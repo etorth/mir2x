@@ -111,6 +111,7 @@ Monster::Monster(uint32_t   nMonsterID,
     , m_MonsterRecord(DBCOM_MONSTERRECORD(nMonsterID))
     , m_AStarCache()
     , m_BvTree()
+    , m_UpdateCoro([this](){ UpdateCoroFunc(); })
 {
     if(!m_MonsterRecord){
         g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid monster record: MonsterID = %d", (int)(MonsterID()));
@@ -199,6 +200,40 @@ bool Monster::RandomMove()
 
         // do nothing
         // stay as idle state
+    }
+    return false;
+}
+
+bool Monster::RandomTurn()
+{
+    constexpr int dirs[]
+    {
+        DIR_UP,
+        DIR_UPRIGHT,
+        DIR_RIGHT,
+        DIR_DOWNRIGHT,
+        DIR_DOWN,
+        DIR_DOWNLEFT,
+        DIR_LEFT,
+        DIR_UPLEFT,
+    };
+
+    const auto dirCount = (int)(std::extent<decltype(dirs)>::value);
+    const auto dirStart = (int)(std::rand() % dirCount);
+
+    for(int i = 0; i < dirCount; ++i){
+        const auto dir = dirs[(dirStart + i) % dirCount];
+        if(Direction() != dir){
+            int newX = -1;
+            int newY = -1;
+            if(OneStepReach(dir, 1, &newX, &newY) == 1){
+                // current direction is possible for next move
+                // report the turn and do motion (by chance) in next update
+                m_Direction = dir;
+                DispatchAction(ActionStand(X(), Y(), Direction()));
+                return true;
+            }
+        }
     }
     return false;
 }
@@ -435,6 +470,29 @@ uint64_t Monster::Activate()
     return 0;
 }
 
+void Monster::UpdateCoroFunc()
+{
+    while(HP() > 0){
+
+        if(const uint64_t targetUID = CoroNode_GetProperTarget()){
+            CoroNode_TrackAttackUID(targetUID);
+        }
+
+        else if(MasterUID()){
+            if(m_ActorPod->CheckInvalid(MasterUID())){
+                GoDie();
+            }
+            CoroNode_FollowMaster();
+        }
+
+        else{
+            CoroNode_RandomMove();
+        }
+    }
+
+    GoDie();
+}
+
 bool Monster::Update()
 {
     if(HP() < 0){
@@ -444,6 +502,9 @@ bool Monster::Update()
     if(MasterUID() && m_ActorPod->CheckInvalid(MasterUID())){
         return GoDie();
     }
+
+    // m_UpdateCoro.coro_resume();
+    // return true;
 
     switch(auto nState = m_BvTree->update()){
         case BV_PENDING:

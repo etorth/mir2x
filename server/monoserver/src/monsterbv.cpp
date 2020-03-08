@@ -15,11 +15,9 @@
  *
  * =====================================================================================
  */
-#include <optional>
+#include "coro.hpp"
 #include "monster.hpp"
 #include "monoserver.hpp"
-
-extern MonoServer *g_MonoServer;
 
 bvnode_ptr Monster::BvNode_GetMasterUID(bvarg_ref nMasterUID)
 {
@@ -52,6 +50,13 @@ bvnode_ptr Monster::BvNode_FollowMaster()
     );
 }
 
+bool Monster::CoroNode_FollowMaster()
+{
+    coro_variable<bool> done;
+    FollowMaster([&done](){ done.assign(true); }, [&done](){ done.assign(false); });
+    return done.wait();
+}
+
 bvnode_ptr Monster::BvNode_LocateUID(bvarg_ref nUID, bvarg_ref stLocation)
 {
     return bvtree::lambda_stage([this, nUID, stLocation](bvarg_ref nStage) mutable
@@ -67,6 +72,18 @@ bvnode_ptr Monster::BvNode_LocateUID(bvarg_ref nUID, bvarg_ref stLocation)
             nStage.assign<bvres_t>(BV_FAILURE);
         });
     });
+}
+
+void Monster::CoroNode_RandomMove()
+{
+    RandomTurn();
+    CoroNode_MoveForward();
+    CoroNode_MoveForward();
+    CoroNode_MoveForward();
+    CoroNode_MoveForward();
+    CoroNode_MoveForward();
+    CoroNode_MoveForward();
+    CoroNode_MoveForward();
 }
 
 bvnode_ptr Monster::BvNode_RandomMove()
@@ -129,6 +146,20 @@ bvnode_ptr Monster::BvNode_RandomTurn()
         bvtree::op_delay(200),
         bvtree::op_abort()
     );
+}
+
+bool Monster::CoroNode_MoveForward()
+{
+    int nextX = -1;
+    int nextY = -1;
+
+    if(OneStepReach(Direction(), 1, &nextX, &nextY) != 1){
+        return false;
+    }
+
+    coro_variable<bool> done;
+    RequestMove(nextX, nextY, MoveSpeed(), false, [&done](){ done.assign(true); }, [&done](){ done.assign(false); });
+    return done.wait();
 }
 
 bvnode_ptr Monster::BvNode_MoveForward()
@@ -233,6 +264,13 @@ bvnode_ptr Monster::BvNode_GetProperTarget(bvarg_ref nTargetUID)
     });
 }
 
+uint64_t Monster::CoroNode_GetProperTarget()
+{
+    coro_variable<uint64_t> targetUID;
+    GetProperTarget([&targetUID](uint64_t uid){ targetUID.assign(uid); });
+    return targetUID.wait();
+}
+
 bvnode_ptr Monster::BvNode_AttackUID(bvarg_ref nTargetUID, bvarg_ref nDCType)
 {
     return bvtree::lambda_stage([this, nTargetUID, nDCType](bvarg_ref nStage)
@@ -247,6 +285,13 @@ bvnode_ptr Monster::BvNode_AttackUID(bvarg_ref nTargetUID, bvarg_ref nDCType)
             nStage.assign<bvres_t>(BV_FAILURE);
         });
     });
+}
+
+bool Monster::CoroNode_TrackAttackUID(uint64_t targetUID)
+{
+    coro_variable<bool> done;
+    TrackAttackUID(targetUID, [&done]{ done.assign(true); }, [&done]{ done.assign(false); });
+    return done.wait();
 }
 
 bvnode_ptr Monster::BvNode_TrackAttackUID(bvarg_ref nTargetUID)

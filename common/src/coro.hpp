@@ -17,6 +17,7 @@
  */
 
 #pragma once
+#include <optional>
 #ifdef _MSC_VER
 #include <windows.h>
 #else
@@ -90,7 +91,7 @@ class coro_stack
 #endif
 };
 
-coro_stack *coro_get_tls_stack()
+inline coro_stack *coro_get_tls_stack()
 {
     thread_local coro_stack t_stack;
     return &t_stack;
@@ -174,5 +175,50 @@ template<typename T> class coro final
                 aco_resume(m_handle);
             }
 #endif
+        }
+};
+
+class coro_yielder final
+{
+    public:
+        ~coro_yielder()
+        {
+            coro_yield();
+        }
+};
+
+template<typename T> class coro_variable
+{
+    private:
+        std::optional<T> m_var;
+
+    public:
+        template<typename U = T> void assign(U &&u)
+        {
+            if(m_var.has_value()){
+                throw fflerror("Assign value to coro_variable twice");
+            }
+            m_var = std::move(u);
+        }
+
+    public:
+        coro_variable() {}
+
+    public:
+        template<typename U> coro_variable(const coro_variable<U> &) = delete;
+        template<typename U = T> coro_variable<T> &operator = (const coro_variable<U> &) = delete;
+
+    public:
+        const auto &wait() const
+        {
+            while(!m_var.has_value()){
+                coro_yield();
+            }
+            return m_var.value();
+        }
+
+        T &wait()
+        {
+            return const_cast<T &>(static_cast<const coro_variable<T> *>(this)->wait());
         }
 };

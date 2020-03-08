@@ -17,6 +17,7 @@
  */
 #pragma once
 #include <functional>
+#include "coro.hpp"
 #include "bvtree.hpp"
 #include "charobject.hpp"
 #include "monsterrecord.hpp"
@@ -74,6 +75,7 @@ class Monster final: public CharObject
 
     protected:
         bvnode_ptr m_BvTree;
+        coro<std::function<void()>> m_UpdateCoro;
 
     public:
         Monster(uint32_t,               // monster id
@@ -103,10 +105,12 @@ class Monster final: public CharObject
 
     protected:
         void SearchViewRange();
+        void UpdateCoroFunc();
         bool Update();
 
     protected:
         bool RandomMove();
+        bool RandomTurn();
         void FollowMaster(std::function<void()>, std::function<void()>);
 
     protected:
@@ -203,6 +207,13 @@ class Monster final: public CharObject
 
     protected:
         virtual void CreateBvTree();
+
+    protected:
+        void     CoroNode_RandomMove();
+        bool     CoroNode_MoveForward();
+        bool     CoroNode_FollowMaster();
+        uint64_t CoroNode_GetProperTarget();
+        bool     CoroNode_TrackAttackUID(uint64_t);
 
     protected:
         virtual bvnode_ptr BvNode_HasMaster();
