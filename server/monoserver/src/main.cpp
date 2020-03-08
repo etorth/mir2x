@@ -52,9 +52,6 @@ DatabaseConfigureWindow  *g_DatabaseConfigureWindow;
 ActorMonitorWindow       *g_ActorMonitorWindow;
 ActorThreadMonitorWindow *g_ActorThreadMonitorWindow;
 
-#include "coro.hpp"
-#include <iostream>
-
 int main(int argc, char *argv[])
 {
     std::srand((unsigned int)std::time(nullptr));
