@@ -209,6 +209,7 @@ class Monster final: public CharObject
         virtual void CreateBvTree();
 
     protected:
+        void     CoroNode_Wait(uint64_t);
         void     CoroNode_RandomMove();
         bool     CoroNode_MoveForward();
         bool     CoroNode_FollowMaster();

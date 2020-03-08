@@ -54,7 +54,14 @@ bool Monster::CoroNode_FollowMaster()
 {
     coro_variable<bool> done;
     FollowMaster([&done](){ done.assign(true); }, [&done](){ done.assign(false); });
-    return done.wait();
+
+    if(done.wait()){
+        CoroNode_Wait(1200);
+        return true;
+    }
+
+    CoroNode_Wait(200);
+    return false;
 }
 
 bvnode_ptr Monster::BvNode_LocateUID(bvarg_ref nUID, bvarg_ref stLocation)
@@ -74,16 +81,38 @@ bvnode_ptr Monster::BvNode_LocateUID(bvarg_ref nUID, bvarg_ref stLocation)
     });
 }
 
+void Monster::CoroNode_Wait(uint64_t ms)
+{
+    if(ms == 0){
+        coro_yield();
+        return;
+    }
+
+    hres_timer timer;
+    while(timer.diff_msec() < ms){
+        coro_yield();
+    }
+}
+
 void Monster::CoroNode_RandomMove()
 {
-    RandomTurn();
-    CoroNode_MoveForward();
-    CoroNode_MoveForward();
-    CoroNode_MoveForward();
-    CoroNode_MoveForward();
-    CoroNode_MoveForward();
-    CoroNode_MoveForward();
-    CoroNode_MoveForward();
+    if(std::rand() % 10 < 2){
+        if(RandomTurn()){
+            CoroNode_Wait(200);
+        }
+        else{
+            CoroNode_Wait(1000);
+        }
+    }
+
+    else{
+        if(CoroNode_MoveForward()){
+            CoroNode_Wait(1200);
+        }
+        else{
+            CoroNode_Wait(200);
+        }
+    }
 }
 
 bvnode_ptr Monster::BvNode_RandomMove()
@@ -291,7 +320,14 @@ bool Monster::CoroNode_TrackAttackUID(uint64_t targetUID)
 {
     coro_variable<bool> done;
     TrackAttackUID(targetUID, [&done]{ done.assign(true); }, [&done]{ done.assign(false); });
-    return done.wait();
+
+    if(done.wait()){
+        CoroNode_Wait(1200);
+        return true;
+    }
+
+    CoroNode_Wait(200);
+    return false;
 }
 
 bvnode_ptr Monster::BvNode_TrackAttackUID(bvarg_ref nTargetUID)

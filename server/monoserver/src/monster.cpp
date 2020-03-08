@@ -503,8 +503,8 @@ bool Monster::Update()
         return GoDie();
     }
 
-    // m_UpdateCoro.coro_resume();
-    // return true;
+    m_UpdateCoro.coro_resume();
+    return true;
 
     switch(auto nState = m_BvTree->update()){
         case BV_PENDING:
