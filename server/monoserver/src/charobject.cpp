@@ -200,7 +200,7 @@ void CharObject::DispatchAction(const ActionNode &rstAction)
     // this would cause zombies
 
     if(!ActorPodValid()){
-        throw std::runtime_error(str_fflprintf(": Can't dispatch action: %s", rstAction.ActionName()));
+        throw fflerror("Can't dispatch action: %s", rstAction.ActionName());
     }
 
     AMAction stAMA;
@@ -356,7 +356,7 @@ bool CharObject::RequestMove(int nX, int nY, int nSpeed, bool bAllowHalfMove, st
     return m_ActorPod->Forward(MapUID(), {MPK_TRYMOVE, stAMTM}, [this, nX, nY, nSpeed, fnOnMoveOK, fnOnMoveError](const MessagePack &rstMPK)
     {
         if(!m_MoveLock){
-            throw std::runtime_error(str_fflprintf("MoveLock released before map responds: ClassName = %s", UIDName()));
+            throw fflerror("MoveLock released before map responds: ClassName = %s", UIDName());
         }
         m_MoveLock = false;
 
@@ -373,7 +373,7 @@ bool CharObject::RequestMove(int nX, int nY, int nSpeed, bool bAllowHalfMove, st
                     // servermap permitted dst may not be (nX, nY)
 
                     if(!m_Map->ValidC(stAMMOK.EndX, stAMMOK.EndY)){
-                        throw std::runtime_error(str_fflprintf("Map returns invalid destination: (%" PRIu64 ", %d, %d)", m_Map->UID(), stAMMOK.EndX, stAMMOK.EndY));
+                        throw fflerror("Map returns invalid destination: (%" PRIu64 ", %d, %d)", m_Map->UID(), stAMMOK.EndX, stAMMOK.EndY);
                     }
 
                     if(!CanMove()){
@@ -410,7 +410,7 @@ bool CharObject::RequestMove(int nX, int nY, int nSpeed, bool bAllowHalfMove, st
 bool CharObject::RequestSpaceMove(uint32_t nMapID, int nX, int nY, bool bStrictMove, std::function<void()> fnOnMoveOK, std::function<void()> fnOnMoveError)
 {
     if(!(UIDFunc::GetMapUID(nMapID) && (nX >= 0) && (nY >= 0))){
-        throw std::runtime_error(str_fflprintf("Invalid map destination: (%" PRIu32 ", %d, %d)", nMapID, nX, nY));
+        throw fflerror("Invalid map destination: (%lld, %d, %d)", to_LLD(nMapID), nX, nY);
     }
 
     if(!CanMove()){
@@ -1149,7 +1149,7 @@ bool CharObject::IsOffender(uint64_t nUID)
 void CharObject::QueryFinalMaster(uint64_t nUID, std::function<void(uint64_t)> fnOp)
 {
     if(!nUID){
-        throw std::invalid_argument(str_fflprintf(": Invalid zero UID"));
+        throw fflerror("Invalid zero UID");
     }
 
     if(UIDFunc::GetUIDType(nUID) != UID_MON){
