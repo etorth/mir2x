@@ -58,8 +58,10 @@ Function {ActorMonitorWindow_Timer_CB(void *pUserData)} {return_type void
   code {// used to flush the actor mointor table
 {
     auto pWindow = (ActorMonitorWindow *)(pUserData);
-    pWindow->UpdateTable();
-    pWindow->RedrawAll();
+    if(pWindow->m_Window->visible()){
+        pWindow->UpdateTable();
+        pWindow->RedrawAll();
+    }
     Fl::repeat_timeout(1.370, ActorMonitorWindow_Timer_CB, pWindow);
 }} {}
 }

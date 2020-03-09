@@ -699,13 +699,10 @@ std::vector<ActorPool::ActorMonitor> ActorPool::GetActorMonitor() const
     for(size_t nIndex = 0; nIndex < m_BucketList.size(); ++nIndex){
         std::shared_lock<std::shared_mutex> stLock(m_BucketList[nIndex].BucketLock);
         {
-            if(auto nMostNeed = stRetList.size() + m_BucketList[nIndex].MailboxList.size(); nMostNeed > stRetList.capacity()){
-                stRetList.reserve(nMostNeed);
-            }
-
+            stRetList.reserve(stRetList.size() + m_BucketList[nIndex].MailboxList.size());
             for(auto p = m_BucketList[nIndex].MailboxList.begin(); p != m_BucketList[nIndex].MailboxList.end(); ++p){
                 if(!p->second->SchedLock.Detached()){
-                    stRetList.emplace_back(p->second->DumpMonitor());
+                    stRetList.push_back(p->second->DumpMonitor());
                 }
             }
         }
