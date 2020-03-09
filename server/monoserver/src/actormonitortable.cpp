@@ -276,49 +276,26 @@ void ActorMonitorTable::ResetSort()
 
     std::sort(m_ActorMonitorList.begin(), m_ActorMonitorList.end(), [this](const ActorPool::ActorMonitor &lhs, const ActorPool::ActorMonitor &rhs) -> bool
     {
-        bool bSortRes = false;
+        auto fnArgedCompare = [this](const auto &x, const auto &y) -> bool
+        {
+            if(m_SortOrder){
+                return x < y;
+            }
+            else{
+                return x > y;
+            }
+        };
+
         switch(m_SortByCol){
-            case 0:
-                {
-                    bSortRes = (lhs.UID < rhs.UID);
-                    break;
-                }
-            case 1:
-                {
-                    bSortRes = (UIDFunc::GetUIDType(lhs.UID) < UIDFunc::GetUIDType(rhs.UID));
-                    break;
-                }
-            case 2:
-                {
-                    bSortRes = (g_ActorPool->UIDGroup(lhs.UID) < g_ActorPool->UIDGroup(rhs.UID));
-                    break;
-                }
-            case 3:
-                {
-                    bSortRes = (lhs.LiveTick < rhs.LiveTick);
-                    break;
-                }
-            case 4:
-                {
-                    bSortRes = (lhs.BusyTick < rhs.BusyTick);
-                    break;
-                }
-            case 5:
-                {
-                    bSortRes = (lhs.MessageDone < rhs.MessageDone);
-                    break;
-                }
-            case 6:
-                {
-                    bSortRes = (lhs.MessagePending < rhs.MessagePending);
-                    break;
-                }
-            default:
-                {
-                    break;
-                }
+            case 0 : return fnArgedCompare(lhs.UID, rhs.UID);
+            case 1 : return fnArgedCompare(UIDFunc::GetUIDType(lhs.UID), UIDFunc::GetUIDType(rhs.UID));
+            case 2 : return fnArgedCompare(g_ActorPool->UIDGroup(lhs.UID), g_ActorPool->UIDGroup(rhs.UID));
+            case 3 : return fnArgedCompare(lhs.LiveTick, rhs.LiveTick);
+            case 4 : return fnArgedCompare(lhs.BusyTick, rhs.BusyTick);
+            case 5 : return fnArgedCompare(lhs.MessageDone, rhs.MessageDone);
+            case 6 : return fnArgedCompare(lhs.MessagePending, rhs.MessagePending);
+            default: return fnArgedCompare(&lhs, &rhs); // keep everything as it or reversed
         }
-        return m_SortOrder ? bSortRes : !bSortRes;
     });
 }
 
