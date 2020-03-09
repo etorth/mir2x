@@ -105,6 +105,11 @@ template<typename T> class coro final
     private:
         const T m_func;
 
+#ifdef _MSC_VER
+    private:
+        bool m_exited = false;
+#endif
+
     private:
 #ifdef _MSC_VER
         LPVOID m_handle = nullptr;
@@ -139,6 +144,8 @@ template<typename T> class coro final
                 auto fnRoutine = [](void *coptr) -> void
                 {
                     reinterpret_cast<coro<T> *>(coptr)->m_func();
+                    m_exited = true;
+                    SwitchToFiber(coro_get_main());
                 };
                 m_handle = CreateFiber(0, fnRoutine, (void *)(this));
             }
@@ -147,6 +154,7 @@ template<typename T> class coro final
                 auto fnRoutine = []() -> void
                 {
                     reinterpret_cast<coro<T> *>(aco_get_arg())->m_func();
+                    aco_exit();
                 };
 
                 if(!sstk){
@@ -158,8 +166,23 @@ template<typename T> class coro final
 #endif
         }
 
+    public:
+        ~coro()
+        {
+#ifdef _MSC_VER
+            DeleteFiber(m_handle);
+#else
+            aco_destroy(m_handle);
+#endif
+            m_handle = nullptr;
+        }
+
         void coro_resume()
         {
+            if(exited()){
+                throw fflerror("Resume an exited coroutine");
+            }
+
 #ifdef _MSC_VER
             {
                 if(GetCurrentFiber() != coro_get_main()){
@@ -174,6 +197,15 @@ template<typename T> class coro final
                 }
                 aco_resume(m_handle);
             }
+#endif
+        }
+
+        bool exited() const
+        {
+#ifdef _MSC_VER
+            SwitchToFiber(coro_get_main());
+#else
+            return m_handle->is_end;
 #endif
         }
 };
