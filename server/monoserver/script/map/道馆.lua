@@ -19,7 +19,7 @@ if g_Inited == nil then
     -- only initialize once
     -- initialize all global/constant variables
 
-    g_MaxMonsterCount = 1
+    g_MaxMonsterCount = 5
     g_LogicDelay      = 1000
     g_LastInvokeTime  = getTime()
 
