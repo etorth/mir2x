@@ -144,7 +144,7 @@ template<typename T> class coro final
                 auto fnRoutine = [](void *coptr) -> void
                 {
                     reinterpret_cast<coro<T> *>(coptr)->m_func();
-                    m_exited = true;
+                    reinterpret_cast<coro<T> *>(coptr)->m_exited = true;
                     SwitchToFiber(coro_get_main());
                 };
                 m_handle = CreateFiber(0, fnRoutine, (void *)(this));
@@ -203,7 +203,7 @@ template<typename T> class coro final
         bool exited() const
         {
 #ifdef _MSC_VER
-            SwitchToFiber(coro_get_main());
+            return m_exited;
 #else
             return m_handle->is_end;
 #endif
