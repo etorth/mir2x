@@ -179,7 +179,7 @@ class Creature
             , m_LastActive(0)
             , m_LastQuerySelf(0)
             , m_LastUpdateTime(0.0)
-            , m_nameBoard(0, 0, "creature", 1, 12, 0, ColorFunc::RGBA(0X00, 0XFF, 0X00, 0X00))
+            , m_nameBoard(0, 0, "creature", 1, 12, 0, ColorFunc::RGBA(0XFF, 0XFF, 0XFF, 0X00))
         {
             condcheck(m_UID);
             condcheck(m_ProcessRun);

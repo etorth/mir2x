@@ -384,7 +384,7 @@ class XMLBoard
     public:
         uint32_t Color() const
         {
-            return ColorFunc::WHITE + 255;
+            return m_DefaultFontColor;
         }
 
         uint32_t BGColor() const
