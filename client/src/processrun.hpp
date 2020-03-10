@@ -120,6 +120,9 @@ class ProcessRun: public Process
         std::list<std::shared_ptr<AscendStr>> m_AscendStrList;
 
     private:
+        double m_starRatio = 0.0;
+
+    private:
         void ScrollMap();
 
     private:

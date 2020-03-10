@@ -22,6 +22,8 @@
 
 struct ClientArgParser
 {
+    const bool enableDrawUID;           // "--enable-draw-uid"
+    const bool alwaysDrawName;          // "--always-draw-name"
     const bool EnableDrawMapGrid;       // "--enable-draw-map-grid"
     const bool EnableDrawCreatureCover; // "--enable-draw-creature-cover"
     const bool EnableDrawMouseLocation; // "--enable-draw-mouse-location"
@@ -29,11 +31,13 @@ struct ClientArgParser
 
     bool TraceMove;
 
-    ClientArgParser(const arg_parser &rstCmdParser)
-        : EnableDrawMapGrid(rstCmdParser["enable-draw-map-grid"])
-        , EnableDrawCreatureCover(rstCmdParser["enable-draw-creature-cover"])
-        , EnableDrawMouseLocation(rstCmdParser["enable-draw-mouse-location"])
-        , EnableClientMonitor(rstCmdParser["enable-client-monitor"])
-        , TraceMove(rstCmdParser["trace-move"])
+    ClientArgParser(const arg_parser &cmdParser)
+        : enableDrawUID(cmdParser["enable-draw-uid"])
+        , alwaysDrawName(cmdParser["always-draw-name"])
+        , EnableDrawMapGrid(cmdParser["enable-draw-map-grid"])
+        , EnableDrawCreatureCover(cmdParser["enable-draw-creature-cover"])
+        , EnableDrawMouseLocation(cmdParser["enable-draw-mouse-location"])
+        , EnableClientMonitor(cmdParser["enable-client-monitor"])
+        , TraceMove(cmdParser["trace-move"])
     {}
 };

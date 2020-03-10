@@ -17,6 +17,7 @@
  */
 #include <SDL2/SDL.h>
 #include "log.hpp"
+#include "llcast.hpp"
 #include "dbcomid.hpp"
 #include "monster.hpp"
 #include "uidfunc.hpp"
@@ -26,18 +27,27 @@
 #include "protocoldef.hpp"
 #include "dbcomrecord.hpp"
 #include "pngtexoffdbn.hpp"
+#include "clientargparser.hpp"
 #include "clientpathfinder.hpp"
 
 extern Log *g_Log;
 extern SDLDevice *g_SDLDevice;
 extern PNGTexDBN *g_ProgUseDBN;
 extern PNGTexOffDBN *g_MonsterDBN;
+extern ClientArgParser *g_ClientArgParser;
 
 Monster::Monster(uint64_t nUID, ProcessRun *pRun)
     : Creature(nUID, pRun)
 {
     condcheck(nUID);
     condcheck(pRun);
+
+    if(g_ClientArgParser->enableDrawUID){
+        m_nameBoard.SetText("%s(%llu)", DBCOM_MONSTERRECORD(MonsterID()).Name, to_LLU(UID()));
+    }
+    else{
+        m_nameBoard.SetText("%s", DBCOM_MONSTERRECORD(MonsterID()).Name);
+    }
 }
 
 bool Monster::Update(double fUpdateTime)
@@ -200,20 +210,30 @@ bool Monster::Draw(int nViewX, int nViewY, int nFocusMask)
             auto pBar0 = g_ProgUseDBN->Retrieve(0X00000014);
             auto pBar1 = g_ProgUseDBN->Retrieve(0X00000015);
 
-            int nW = -1;
-            int nH = -1;
-            SDL_QueryTexture(pBar1, nullptr, nullptr, &nW, &nH);
-            g_SDLDevice->DrawTexture(pBar1,
-                    X() * SYS_MAPGRIDXP - nViewX + nShiftX +  7,
-                    Y() * SYS_MAPGRIDYP - nViewY + nShiftY - 53,
-                    0,
-                    0,
-                    (int)(std::lround(nW * (m_HPMax ? (std::min<double>)(1.0, (1.0 * m_HP) / m_HPMax) : 1.0))),
-                    nH);
+            int nBarW = -1;
+            int nBarH = -1;
+            SDL_QueryTexture(pBar1, nullptr, nullptr, &nBarW, &nBarH);
 
-            g_SDLDevice->DrawTexture(pBar0,
-                    X() * SYS_MAPGRIDXP - nViewX + nShiftX +  7,
-                    Y() * SYS_MAPGRIDYP - nViewY + nShiftY - 53);
+            const int nDrawBarXP = X() * SYS_MAPGRIDXP - nViewX + nShiftX +  7;
+            const int nDrawBarYP = Y() * SYS_MAPGRIDYP - nViewY + nShiftY - 53;
+
+            g_SDLDevice->DrawTexture(pBar1,
+                    nDrawBarXP,
+                    nDrawBarYP,
+                    0,
+                    0,
+                    (int)(std::lround(nBarW * (m_HPMax ? (std::min<double>)(1.0, (1.0 * m_HP) / m_HPMax) : 1.0))),
+                    nBarH);
+
+            g_SDLDevice->DrawTexture(pBar0, nDrawBarXP, nDrawBarYP);
+
+            if(g_ClientArgParser->alwaysDrawName || (nFocusMask & (1 << FOCUS_MOUSE))){
+                const int nLW = m_nameBoard.W();
+                const int nLH = m_nameBoard.H();
+                const int nDrawNameXP = nDrawBarXP + nBarW / 2 - nLW / 2;
+                const int nDrawNameYP = nDrawBarYP + 20;
+                m_nameBoard.DrawEx(nDrawNameXP, nDrawNameYP, 0, 0, nLW, nLH);
+            }
         }
     }
     return false;

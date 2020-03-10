@@ -414,12 +414,11 @@ void ProcessRun::Draw()
 
         // draw all rotating stars
         // to aware players there is somethig to check
-        static double fRatio = 0.00;
 
-        fRatio += 0.05;
-        if(fRatio >= 2.50){
-            fRatio = 0.00;
-        }else if(fRatio >= 1.00){
+        m_starRatio += 0.05;
+        if(m_starRatio >= 2.50){
+            m_starRatio = 0.00;
+        }else if(m_starRatio >= 1.00){
             // do nothing
             // hide the star to avoid blinking too much
         }else{
@@ -431,7 +430,7 @@ void ProcessRun::Draw()
                             int nW = -1;
                             int nH = -1;
                             if(!SDL_QueryTexture(pTexture, nullptr, nullptr, &nW, &nH)){
-                                if(auto nLt = (int)(std::lround(fRatio * nW / 2.50))){
+                                if(auto nLt = (int)(std::lround(m_starRatio * nW / 2.50))){
                                     auto nXt = nX * SYS_MAPGRIDXP - m_ViewX + SYS_MAPGRIDXP / 2 - nLt / 2;
                                     auto nYt = nY * SYS_MAPGRIDYP - m_ViewY + SYS_MAPGRIDYP / 2 - nLt / 2;
 
@@ -450,7 +449,7 @@ void ProcessRun::Draw()
                                             nLt,
                                             nLt / 2,
                                             nLt / 2,
-                                            std::lround(fRatio * 360.0));
+                                            std::lround(m_starRatio * 360.0));
                                 }
                             }
                         }
