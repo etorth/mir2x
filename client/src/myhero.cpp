@@ -20,6 +20,7 @@
 #include "client.hpp"
 #include "myhero.hpp"
 #include "message.hpp"
+#include "fflerror.hpp"
 #include "mathfunc.hpp"
 #include "clientargparser.hpp"
 #include "processrun.hpp"
@@ -54,10 +55,11 @@ bool MyHero::Update(double fUpdateTime)
         switch(m_CurrMotion.Motion){
             case MOTION_STAND:
                 {
-                    if(m_MotionQueue.empty()){
+                    if(StayIdle()){
                         if(m_ActionQueue.empty()){
                             return AdvanceMotionFrame(1);
-                        }else{
+                        }
+                        else{
                             return ParseActionQueue();
                         }
                     }else{
@@ -71,10 +73,11 @@ bool MyHero::Update(double fUpdateTime)
                 }
             case MOTION_HITTED:
                 {
-                    if(m_MotionQueue.empty()){
+                    if(StayIdle()){
                         if(m_ActionQueue.empty()){
                             return UpdateMotion(false);
-                        }else{
+                        }
+                        else{
                             return ParseActionQueue();
                         }
                     }else{
@@ -97,15 +100,15 @@ bool MyHero::Update(double fUpdateTime)
 
 bool MyHero::MoveNextMotion()
 {
+    if(!m_forceMotionQueue.empty()){
+        m_CurrMotion = m_forceMotionQueue.front();
+        m_forceMotionQueue.pop_front();
+        return true;
+    }
+
     if(m_MotionQueue.empty()){
         if(m_ActionQueue.empty()){
-            m_CurrMotion = {
-                MOTION_STAND,
-                0,
-                m_CurrMotion.Direction,
-                m_CurrMotion.EndX,
-                m_CurrMotion.EndY
-            };
+            m_CurrMotion = MakeMotionIdle();
             return true;
         }else{
             // there is pending action in the queue
@@ -124,12 +127,10 @@ bool MyHero::MoveNextMotion()
     g_Log->AddLog(LOGTYPE_INFO, "Invalid motion queue:");
 
     m_CurrMotion.Print();
-    for(auto &rstMotion: m_MotionQueue){
-        rstMotion.Print();
+    for(auto &m: m_MotionQueue){
+        m.Print();
     }
-
-    g_Log->AddLog(LOGTYPE_FATAL, "Current motion is not valid");
-    return false;
+    throw fflerror("Current motion is not valid");
 }
 
 bool MyHero::DecompMove(bool bCheckGround, int nCheckCreature, bool bCheckMove, int nX0, int nY0, int nX1, int nY1, int *pXm, int *pYm)

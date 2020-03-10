@@ -59,7 +59,7 @@ bool Monster::Update(double fUpdateTime)
 
     // 2. update this monster
     //    need fps control for current motion
-    double fTimeNow = SDL_GetTicks() * 1.0;
+    const double fTimeNow = SDL_GetTicks() * 1.0;
     if(fTimeNow > CurrMotionDelay() + m_LastUpdateTime){
 
         // 1. record update time
@@ -70,9 +70,10 @@ bool Monster::Update(double fUpdateTime)
         switch(m_CurrMotion.Motion){
             case MOTION_MON_STAND:
                 {
-                    if(m_MotionQueue.empty()){
+                    if(StayIdle()){
                         return AdvanceMotionFrame(1);
-                    }else{
+                    }
+                    else{
                         // move to next motion will reset frame as 0
                         // if current there is no more motion pending
                         // it will add a MOTION_MON_STAND
@@ -83,7 +84,7 @@ bool Monster::Update(double fUpdateTime)
                 }
             case MOTION_MON_DIE:
                 {
-                    auto nFrameCount = MotionFrameCount(m_CurrMotion.Motion, m_CurrMotion.Direction);
+                    const auto nFrameCount = MotionFrameCount(m_CurrMotion.Motion, m_CurrMotion.Direction);
                     if(nFrameCount > 0){
                         if((m_CurrMotion.Frame + 1) == nFrameCount){
                             switch(m_CurrMotion.FadeOut){
@@ -316,24 +317,29 @@ int Monster::MotionFrameCount(int nMotion, int nDirection) const
 bool Monster::ParseAction(const ActionNode &rstAction)
 {
     m_LastActive = SDL_GetTicks();
-    bool bFindMotionDie = false;
-    for(auto &rstMotionNode: m_MotionQueue){
-        if(rstMotionNode.Motion == MOTION_MON_DIE){
-            bFindMotionDie = true;
-            break;
+
+    // try find pending motion die
+    // ignore all the following actions till the MOTION_MON_DIE done
+
+    for(const auto &m: m_forceMotionQueue){
+        if(m.Motion == MOTION_MON_DIE){
+            return true;
         }
     }
 
-    // found pending motion die
-    // ignore all the following actions till the MOTION_MON_DIE done
-
-    if(bFindMotionDie){
-        return true;
+    for(const auto &m: m_MotionQueue){
+        if(m.Motion == MOTION_MON_DIE){
+            throw fflerror("Found MOTION_MON_DIE in pending motion queue");
+        }
     }
 
     // make current motion super-fast
     // can presents those ignored actions, helpful for debug
     m_CurrMotion.Speed = SYS_MAXSPEED;
+    m_MotionQueue.clear();
+
+    const int endX = m_forceMotionQueue.empty() ? m_CurrMotion.EndX : m_forceMotionQueue.back().EndX;
+    const int endY = m_forceMotionQueue.empty() ? m_CurrMotion.EndY : m_forceMotionQueue.back().EndY;
 
     // 1. prepare before parsing action
     //    additional movement added if necessary but in rush
@@ -342,66 +348,14 @@ bool Monster::ParseAction(const ActionNode &rstAction)
         case ACTION_MOVE:
         case ACTION_ATTACK:
         case ACTION_HITTED:
-        case ACTION_DIE:
             {
-                // when cleaning pending queue
-                // there could be MOTION_MON_DIE skipped
-                // after dead still I can get ACTION_ATTACK and ACTION_MOVE
-
-                // 1. clean all pending motions
-                m_MotionQueue.clear();
-
-                // 2. move to the proper place
-                //    ParseMovePath() will find a valid path and check creatures, means
-                //    1. all nodes are valid grid
-                //    2. prefer path without creatures on the way
-
-                switch(MathFunc::LDistance2(m_CurrMotion.EndX, m_CurrMotion.EndY, rstAction.X, rstAction.Y)){
-                    case 0:
-                        {
-                            break;
-                        }
-                    default:
-                        {
-                            auto stvPathNode = ParseMovePath(m_CurrMotion.EndX, m_CurrMotion.EndY, rstAction.X, rstAction.Y, true, 1);
-                            switch(stvPathNode.size()){
-                                case 0:
-                                case 1:
-                                    {
-                                        // 0 means error
-                                        // 1 means can't find a path here since we know LDistance2 != 0
-                                        return false;
-                                    }
-                                default:
-                                    {
-                                        // we get a path
-                                        // make a motion list for the path
-
-                                        for(size_t nIndex = 1; nIndex < stvPathNode.size(); ++nIndex){
-                                            auto nX0 = stvPathNode[nIndex - 1].X;
-                                            auto nY0 = stvPathNode[nIndex - 1].Y;
-                                            auto nX1 = stvPathNode[nIndex    ].X;
-                                            auto nY1 = stvPathNode[nIndex    ].Y;
-
-                                            if(auto stMotionNode = MakeMotionWalk(nX0, nY0, nX1, nY1, SYS_MAXSPEED)){
-                                                m_MotionQueue.push_back(stMotionNode);
-                                            }else{
-                                                m_MotionQueue.clear();
-                                                return false;
-                                            }
-                                        }
-                                        break;
-                                    }
-                            }
-                            break;
-                        }
-                }
+                m_MotionQueue = MakeMotionWalkQueue(endX, endY, rstAction.X, rstAction.Y, SYS_MINSPEED);
                 break;
             }
-        case ACTION_SPACEMOVE1:
-        case ACTION_SPACEMOVE2:
+        case ACTION_DIE:
             {
-                m_MotionQueue.clear();
+                const auto motionQueue = MakeMotionWalkQueue(endX, endY, rstAction.X, rstAction.Y, SYS_MINSPEED);
+                m_forceMotionQueue.insert(m_forceMotionQueue.end(), motionQueue.begin(), motionQueue.end());
                 break;
             }
         default:
@@ -414,8 +368,8 @@ bool Monster::ParseAction(const ActionNode &rstAction)
     switch(rstAction.Action){
         case ACTION_DIE:
             {
-                m_MotionQueue.emplace_back(MOTION_MON_DIE, 0, rstAction.Direction, rstAction.X, rstAction.Y);
-                m_MotionQueue.back().FadeOut = rstAction.ActionParam;
+                m_forceMotionQueue.emplace_back(MOTION_MON_DIE, 0, rstAction.Direction, rstAction.X, rstAction.Y);
+                m_forceMotionQueue.back().FadeOut = rstAction.ActionParam;
                 break;
             }
         case ACTION_STAND:

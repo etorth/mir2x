@@ -151,6 +151,7 @@ class Creature
 
     protected:
         std::deque<MotionNode> m_MotionQueue;
+        std::deque<MotionNode> m_forceMotionQueue;
 
     protected:
         std::vector<std::shared_ptr<AttachMagic>> m_AttachMagicList;
@@ -175,6 +176,7 @@ class Creature
             , m_MPMax(0)
             , m_CurrMotion()
             , m_MotionQueue()
+            , m_forceMotionQueue()
             , m_AttachMagicList()
             , m_LastActive(0)
             , m_LastQuerySelf(0)
@@ -338,6 +340,9 @@ class Creature
     protected:
         virtual MotionNode MakeMotionIdle() const;
         virtual MotionNode MakeMotionWalk(int, int, int, int, int) const = 0;
+
+    protected:
+        std::deque<MotionNode> MakeMotionWalkQueue(int, int, int, int, int);
 
     public:
         bool AddAttachMagic(int, int, int);

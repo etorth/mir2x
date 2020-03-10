@@ -179,7 +179,7 @@ bool Hero::Update(double fUpdateTime)
 
     // 2. update this monster
     //    need fps control for current motion
-    double fTimeNow = SDL_GetTicks() * 1.0;
+    const double fTimeNow = SDL_GetTicks() * 1.0;
     if(fTimeNow > CurrMotionDelay() + m_LastUpdateTime){
 
         // 1. record update time
@@ -190,9 +190,10 @@ bool Hero::Update(double fUpdateTime)
         switch(m_CurrMotion.Motion){
             case MOTION_STAND:
                 {
-                    if(m_MotionQueue.empty()){
+                    if(StayIdle()){
                         return AdvanceMotionFrame(1);
-                    }else{
+                    }
+                    else{
                         // move to next motion will reset frame as 0
                         // if current there is no more motion pending
                         // it will add a MOTION_STAND
@@ -203,9 +204,10 @@ bool Hero::Update(double fUpdateTime)
                 }
             case MOTION_HITTED:
                 {
-                    if(m_MotionQueue.empty()){
+                    if(StayIdle()){
                         return UpdateMotion(false);
-                    }else{
+                    }
+                    else{
                         // move to next motion will reset frame as 0
                         // if current there is no more motion pending
                         // it will add a MOTION_STAND
@@ -339,70 +341,32 @@ bool Hero::ParseAction(const ActionNode &rstAction)
 {
     m_LastActive = SDL_GetTicks();
 
+    m_CurrMotion.Speed = SYS_MAXSPEED;
+    m_MotionQueue.clear();
+
+    const int endX = m_forceMotionQueue.empty() ? m_CurrMotion.EndX : m_forceMotionQueue.back().EndX;
+    const int endY = m_forceMotionQueue.empty() ? m_CurrMotion.EndY : m_forceMotionQueue.back().EndY;
+
     // 1. prepare before parsing action
     //    additional movement added if necessary but in rush
     switch(rstAction.Action){
+        case ACTION_DIE:
+        case ACTION_STAND:
+            {
+                // take this as cirtical
+                // server use ReportStand() to do location sync
+                const auto motionQueue = MakeMotionWalkQueue(endX, endY, rstAction.X, rstAction.Y, SYS_MINSPEED);
+                m_forceMotionQueue.insert(m_forceMotionQueue.end(), motionQueue.begin(), motionQueue.end());
+                break;
+            }
         case ACTION_MOVE:
         case ACTION_SPELL:
-        case ACTION_STAND:
         case ACTION_ATTACK:
             {
-                // 1. clean all pending motions
-                m_MotionQueue.clear();
-
-                // 2. move to the proper place
-                //    ParseMovePath() will find a valid path and check creatures, means
-                //    1. all nodes are valid grid
-                //    2. prefer path without creatures on the way
-
-                switch(MathFunc::LDistance2(m_CurrMotion.EndX, m_CurrMotion.EndY, rstAction.X, rstAction.Y)){
-                    case 0:
-                        {
-                            break;
-                        }
-                    default:
-                        {
-                            auto stvPathNode = ParseMovePath(m_CurrMotion.EndX, m_CurrMotion.EndY, rstAction.X, rstAction.Y, true, 0);
-                            switch(stvPathNode.size()){
-                                case 0:
-                                case 1:
-                                    {
-                                        // 0 means error
-                                        // 1 means can't find a path here since we know LDistance2 != 0
-                                        return false;
-                                    }
-                                default:
-                                    {
-                                        // we get a path
-                                        // make a motion list for the path
-
-                                        for(size_t nIndex = 1; nIndex < stvPathNode.size(); ++nIndex){
-                                            auto nX0 = stvPathNode[nIndex - 1].X;
-                                            auto nY0 = stvPathNode[nIndex - 1].Y;
-                                            auto nX1 = stvPathNode[nIndex    ].X;
-                                            auto nY1 = stvPathNode[nIndex    ].Y;
-
-                                            if(auto stMotionNode = MakeMotionWalk(nX0, nY0, nX1, nY1, SYS_MAXSPEED)){
-                                                m_MotionQueue.push_back(stMotionNode);
-                                            }else{
-                                                m_MotionQueue.clear();
-                                                return false;
-                                            }
-                                        }
-                                        break;
-                                    }
-                            }
-                            break;
-                        }
-                }
+                m_MotionQueue = MakeMotionWalkQueue(endX, endY, rstAction.X, rstAction.Y, SYS_MINSPEED);
                 break;
             }
-        case ACTION_HITTED:
         case ACTION_SPACEMOVE2:
-            {
-                m_MotionQueue.clear();
-                break;
-            }
         case ACTION_PICKUP:
         default:
             {
@@ -533,7 +497,7 @@ bool Hero::ParseAction(const ActionNode &rstAction)
             }
         case ACTION_DIE:
             {
-                m_MotionQueue.emplace_front(
+                m_forceMotionQueue.emplace_back(
                         OnHorse() ? MOTION_ONHORSEDIE : MOTION_DIE,
                         0,
                         rstAction.Direction,

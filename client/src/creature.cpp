@@ -22,6 +22,7 @@
 
 #include "log.hpp"
 #include "motion.hpp"
+#include "fflerror.hpp"
 #include "mathfunc.hpp"
 #include "creature.hpp"
 #include "sysconst.hpp"
@@ -30,6 +31,8 @@
 #include "protocoldef.hpp"
 #include "dbcomrecord.hpp"
 #include "clientpathfinder.hpp"
+
+extern Log *g_Log;
 
 bool Creature::GetShift(int *pShiftX, int *pShiftY)
 {
@@ -198,7 +201,6 @@ bool Creature::GetShift(int *pShiftX, int *pShiftY)
             }
         default:
             {
-                extern Log *g_Log;
                 g_Log->AddLog(LOGTYPE_WARNING, "Current motion is not valid: frameCount = %d", nFrameCount);
 
                 m_CurrMotion.Print();
@@ -209,8 +211,13 @@ bool Creature::GetShift(int *pShiftX, int *pShiftY)
 
 bool Creature::MoveNextMotion()
 {
-    if(m_MotionQueue.empty()){
+    if(!m_forceMotionQueue.empty()){
+        m_CurrMotion = m_forceMotionQueue.front();
+        m_forceMotionQueue.pop_front();
+        return true;
+    }
 
+    if(m_MotionQueue.empty()){
         // reset creature to idle state
         // using last direction, speed, location and frame as 0
         m_CurrMotion = MakeMotionIdle();
@@ -228,18 +235,15 @@ bool Creature::MoveNextMotion()
     // invalid motion queue
     // clear all pending motions and reset creature to idle state
 
-    extern Log *g_Log;
     g_Log->AddLog(LOGTYPE_WARNING, "Motion queue invalid, reset idle state");
-
     m_MotionQueue.clear();
     m_CurrMotion = MakeMotionIdle();
-
     return false;
 }
 
 bool Creature::AdvanceMotionFrame(int nDFrame)
 {
-    auto nFrameCount = MotionFrameCount(m_CurrMotion.Motion, m_CurrMotion.Direction);
+    const auto nFrameCount = MotionFrameCount(m_CurrMotion.Motion, m_CurrMotion.Direction);
     if(nFrameCount > 0){
         m_CurrMotion.Frame = (m_CurrMotion.Frame + nDFrame    ) % nFrameCount;
         m_CurrMotion.Frame = (m_CurrMotion.Frame + nFrameCount) % nFrameCount;
@@ -328,7 +332,6 @@ std::vector<PathFind::PathNode> Creature::ParseMovePath(int nX0, int nY0, int nX
                                 }
                             default:
                                 {
-                                    extern Log *g_Log;
                                     g_Log->AddLog(LOGTYPE_FATAL, "Invalid CheckCreature provided: %d, should be (0, 1, 2)", nCheckCreature);
                                     break;
                                 }
@@ -376,7 +379,7 @@ void Creature::UpdateAttachMagic(double fUpdateTime)
 
 bool Creature::UpdateMotion(bool bLooped)
 {
-    auto nFrameCount = MotionFrameCount(m_CurrMotion.Motion, m_CurrMotion.Direction);
+    const auto nFrameCount = MotionFrameCount(m_CurrMotion.Motion, m_CurrMotion.Direction);
     if(nFrameCount >= 0){
         if(bLooped || (m_CurrMotion.Frame < (nFrameCount - 1))){
             return AdvanceMotionFrame(1);
@@ -401,9 +404,7 @@ bool Creature::MotionQueueValid()
                 && (pLast->EndY == rstMotion.Y)){
             pLast = &rstMotion;
         }else{
-            extern Log *g_Log;
             g_Log->AddLog(LOGTYPE_WARNING, "Invalid motion queue:");
-
             m_CurrMotion.Print();
             for(auto &rstMotionNode: m_MotionQueue){
                 rstMotionNode.Print();
@@ -446,7 +447,7 @@ bool Creature::StayDead()
 
 bool Creature::StayIdle()
 {
-    return m_MotionQueue.empty();
+    return m_forceMotionQueue.empty() && m_MotionQueue.empty();
 }
 
 bool Creature::DeadFadeOut()
@@ -601,4 +602,43 @@ void Creature::QuerySelf()
 {
     m_LastQuerySelf = SDL_GetTicks();
     m_ProcessRun->QueryCORecord(UID());
+}
+
+std::deque<MotionNode> Creature::MakeMotionWalkQueue(int startX, int startY, int endX, int endY, int speed)
+{
+    if(MathFunc::LDistance2(startX, startY, endX, endY) == 0){
+        return {};
+    }
+
+    const auto pathNodes = ParseMovePath(startX, startY, endX, endY, true, 1);
+    switch(pathNodes.size()){
+        case 0:
+        case 1:
+            {
+                // 0 means error
+                // 1 means can't find a path here since we know LDistance2 != 0
+                throw fflerror("Can't find a path: (%d, %d) -> (%d, %d)", startX, startY, endX, endY);
+            }
+        default:
+            {
+                // we get a path
+                // make a motion list for the path
+
+                std::deque<MotionNode> motionQueue;
+                for(size_t nIndex = 1; nIndex < pathNodes.size(); ++nIndex){
+                    auto nX0 = pathNodes[nIndex - 1].X;
+                    auto nY0 = pathNodes[nIndex - 1].Y;
+                    auto nX1 = pathNodes[nIndex    ].X;
+                    auto nY1 = pathNodes[nIndex    ].Y;
+
+                    if(const auto motionNode = MakeMotionWalk(nX0, nY0, nX1, nY1, speed)){
+                        motionQueue.push_back(motionNode);
+                    }
+                    else{
+                        throw fflerror("Can't make a motioni node: (%d, %d) -> (%d, %d)", nX0, nY0, nX1, nY1);
+                    }
+                }
+                return motionQueue;
+            }
+    }
 }

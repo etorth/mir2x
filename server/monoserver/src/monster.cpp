@@ -38,8 +38,10 @@
 #include "dbcomrecord.hpp"
 #include "messagepack.hpp"
 #include "protocoldef.hpp"
+#include "serverargparser.hpp"
 
 extern MonoServer *g_MonoServer;
+extern ServerArgParser *g_ServerArgParser;
 
 Monster::AStarCache::AStarCache()
     : Time(0)
@@ -503,28 +505,30 @@ bool Monster::Update()
         return GoDie();
     }
 
+    if(g_ServerArgParser->useBvTree){
+        switch(auto nState = m_BvTree->update()){
+            case BV_PENDING:
+                {
+                    return true;
+                }
+            case BV_ABORT:
+            case BV_SUCCESS:
+            case BV_FAILURE:
+                {
+                    m_BvTree->reset();
+                    return true;
+                }
+            default:
+                {
+                    throw fflerror(": Invalid node status: %d", nState);
+                }
+        }
+    }
+
     if(!m_UpdateCoro.exited()){
         m_UpdateCoro.coro_resume();
     }
     return true;
-
-    switch(auto nState = m_BvTree->update()){
-        case BV_PENDING:
-            {
-                return true;
-            }
-        case BV_ABORT:
-        case BV_SUCCESS:
-        case BV_FAILURE:
-            {
-                m_BvTree->reset();
-                return true;
-            }
-        default:
-            {
-                throw std::runtime_error(str_fflprintf(": Invalid node status: %d", nState));
-            }
-    }
 }
 
 void Monster::OperateAM(const MessagePack &rstMPK)
