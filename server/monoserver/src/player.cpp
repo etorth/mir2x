@@ -30,6 +30,7 @@
 #include "dbcomrecord.hpp"
 
 extern DBPodN *g_DBPodN;
+extern NetDriver *g_NetDriver;
 extern MonoServer *g_MonoServer;
 
 Player::Player(uint32_t nDBID,
@@ -47,12 +48,6 @@ Player::Player(uint32_t nDBID,
     , m_Gold(0)
     , m_Inventory()
 {
-    m_StateHook.Install("CheckTime", [this]() -> bool
-    {
-        For_CheckTime();
-        return false;
-    });
-
     m_HP    = 10;
     m_HPMax = 10;
     m_MP    = 10;
@@ -60,7 +55,6 @@ Player::Player(uint32_t nDBID,
 
     m_StateHook.Install("RecoverHealth", [this, nLastTime = (uint32_t)(0)]() mutable -> bool
     {
-        extern MonoServer *g_MonoServer;
         if(g_MonoServer->GetTimeTick() >= (nLastTime + 1000)){
             RecoverHealth();
             nLastTime = g_MonoServer->GetTimeTick();
@@ -194,7 +188,6 @@ void Player::OperateAM(const MessagePack &rstMPK)
             }
         default:
             {
-                extern MonoServer *g_MonoServer;
                 g_MonoServer->AddLog(LOGTYPE_WARNING, "Unsupported message: %s", rstMPK.Name());
                 break;
             }
@@ -211,10 +204,6 @@ void Player::OperateNet(uint8_t nType, const uint8_t *pData, size_t nDataLen)
         case CM_QUERYGOLD       : Net_CM_QUERYGOLD       (nType, pData, nDataLen); break;
         default                 :                                                  break;
     }
-}
-
-void Player::For_CheckTime()
-{
 }
 
 bool Player::Update()
@@ -292,7 +281,6 @@ void Player::ReportAction(uint64_t nUID, const ActionNode &rstAction)
         stSMA.AimUID      = rstAction.AimUID;
         stSMA.ActionParam = rstAction.ActionParam;
 
-        extern NetDriver *g_NetDriver;
         g_NetDriver->Post(ChannID(), SM_ACTION, stSMA);
     }
 }
@@ -489,7 +477,6 @@ void Player::DispatchOffline()
         return;
     }
 
-    extern MonoServer *g_MonoServer;
     g_MonoServer->AddLog(LOGTYPE_WARNING, "Can't dispatch offline event");
 }
 
@@ -504,7 +491,6 @@ void Player::ReportOffline(uint64_t nUID, uint32_t nMapID)
         stSMO.UID   = nUID;
         stSMO.MapID = nMapID;
 
-        extern NetDriver *g_NetDriver;
         g_NetDriver->Post(ChannID(), SM_OFFLINE, stSMO);
     }
 }
@@ -521,7 +507,6 @@ bool Player::Offline()
 bool Player::PostNetMessage(uint8_t nHC, const uint8_t *pData, size_t nDataLen)
 {
     if(ChannID()){
-        extern NetDriver *g_NetDriver;
         return g_NetDriver->Post(ChannID(), nHC, pData, nDataLen);
     }
     return false;
@@ -694,7 +679,6 @@ void Player::OnCMActionSpell(CMAction stCMA)
 
                 Delay(1400, [this, stSMFM]()
                 {
-                    extern NetDriver *g_NetDriver;
                     g_NetDriver->Post(ChannID(), SM_FIREMAGIC, stSMFM);
                 });
                 break;
@@ -710,7 +694,6 @@ void Player::OnCMActionSpell(CMAction stCMA)
 
                 Delay(800, [this, stSMFM]()
                 {
-                    extern NetDriver *g_NetDriver;
                     g_NetDriver->Post(ChannID(), SM_FIREMAGIC, stSMFM);
                 });
                 break;
@@ -920,7 +903,6 @@ bool Player::DBAccess(const char *szTableName, const char *szFieldName, std::fun
 
         auto pDBHDR = g_DBPodN->CreateDBHDR();
         if(!pDBHDR->QueryResult("select %s from %s where fld_dbid = %" PRIu32, szFieldName, szTableName, DBID())){
-            extern MonoServer *g_MonoServer;
             g_MonoServer->AddLog(LOGTYPE_INFO, "No dbid created for this player: DBID = %" PRIu32, DBID());
             return false;
         }

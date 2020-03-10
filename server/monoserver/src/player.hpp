@@ -125,9 +125,6 @@ class Player final: public CharObject
         void Net_CM_PICKUP          (uint8_t, const uint8_t *, size_t);
         void Net_CM_QUERYGOLD       (uint8_t, const uint8_t *, size_t);
 
-    private:
-        void For_CheckTime();
-
     protected:
         void ReportGold();
         void ReportStand();
