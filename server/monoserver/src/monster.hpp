@@ -19,6 +19,7 @@
 #include <functional>
 #include "coro.hpp"
 #include "bvtree.hpp"
+#include "fflerror.hpp"
 #include "charobject.hpp"
 #include "monsterrecord.hpp"
 

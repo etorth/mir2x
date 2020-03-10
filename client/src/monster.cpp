@@ -22,6 +22,7 @@
 #include "monster.hpp"
 #include "uidfunc.hpp"
 #include "mathfunc.hpp"
+#include "fflerror.hpp"
 #include "condcheck.hpp"
 #include "processrun.hpp"
 #include "protocoldef.hpp"
@@ -641,17 +642,15 @@ bool Monster::CanFocus(int nPointX, int nPointY)
 Monster *Monster::CreateMonster(uint64_t nUID, ProcessRun *pRun, const ActionNode &rstAction)
 {
     if(UIDFunc::GetUIDType(nUID) != UID_MON){
-        g_Log->AddLog(LOGTYPE_FATAL, "Invalid UID provided for monster type: UIDName = %s", UIDFunc::GetUIDString(nUID).c_str());
-        return nullptr;
+        throw fflerror("Invalid UID provided for monster type: UIDName = %s", UIDFunc::GetUIDString(nUID).c_str());
     }
 
     Monster *pMonster = nullptr;
-    try
-    {
+    try{
         pMonster = new Monster(nUID, pRun);
-    }catch(...){
-        g_Log->AddLog(LOGTYPE_FATAL, "Create monster failed: UIDName = %s", UIDFunc::GetUIDString(nUID).c_str());
-        return nullptr;
+    }
+    catch(...){
+        throw fflerror("Create monster failed: UIDName = %s", UIDFunc::GetUIDString(nUID).c_str());
     }
 
     // setup the initial motion
