@@ -24,10 +24,15 @@
 #include "log.hpp"
 #include "client.hpp"
 #include "message.hpp"
+#include "pngtexdb.hpp"
 #include "sdldevice.hpp"
-#include "pngtexdbn.hpp"
 #include "processnew.hpp"
 #include "notifyboard.hpp"
+
+extern Client *g_Client;
+extern SDLDevice *g_SDLDevice;
+extern PNGTexDB *g_ProgUseDB;
+extern NotifyBoard *g_NotifyBoard;
 
 ProcessNew::ProcessNew()
 	: Process()
@@ -36,12 +41,10 @@ ProcessNew::ProcessNew()
 
     , m_X([this]() -> int
       {
-          extern SDLDevice *g_SDLDevice;
           return (g_SDLDevice->WindowW(false) - m_W) / 2;
       }())
     , m_Y([this]() -> int
       {
-          extern SDLDevice *g_SDLDevice;
           return (g_SDLDevice->WindowH(false) - m_H) / 2;
       }())
 
@@ -135,13 +138,10 @@ void ProcessNew::Update(double fMS)
 
 void ProcessNew::Draw()
 {
-    extern SDLDevice *g_SDLDevice;
-    extern PNGTexDBN *g_ProgUseDBN;
-
     g_SDLDevice->ClearScreen();
 
-    g_SDLDevice->DrawTexture(g_ProgUseDBN->Retrieve(0X00000003), 0, 75);
-    g_SDLDevice->DrawTexture(g_ProgUseDBN->Retrieve(0X00000004), 0, 75, 0, 0, 800, 450);
+    g_SDLDevice->DrawTexture(g_ProgUseDB->Retrieve(0X00000003), 0, 75);
+    g_SDLDevice->DrawTexture(g_ProgUseDB->Retrieve(0X00000004), 0, 75, 0, 0, 800, 450);
 
     m_TBCreate.Draw();
     m_TBExit  .Draw();
@@ -157,7 +157,6 @@ void ProcessNew::Draw()
 
         rstLB.DrawEx(nX - rstLB.W() - nDX, nY, 0, 0, rstLB.W(), rstLB.H());
 
-        extern SDLDevice *g_SDLDevice;
         g_SDLDevice->DrawRectangle(nX, nY, rstBox.W(), rstBox.H());
         rstBox.DrawEx(nX, nY, 0, 0, rstBox.W(), rstBox.H());
 
@@ -240,7 +239,6 @@ bool ProcessNew::LocalCheckPwd(const char *szPwd)
 
 void ProcessNew::DoExit()
 {
-    extern Client *g_Client;
     g_Client->RequestProcess(PROCESSID_LOGIN);
 }
 
@@ -250,7 +248,6 @@ void ProcessNew::DoPostAccount()
             || m_CheckID
             || m_CheckPwd
             || m_CheckPwdConfirm){
-        extern NotifyBoard *g_NotifyBoard;
         g_NotifyBoard->AddLog(LOGTYPE_WARNING, "Fix error before send request");
         return;
     }
@@ -271,8 +268,6 @@ void ProcessNew::PostAccount(const char *szID, const char *szPWD, int nOperation
         std::strcpy(stCMA.Password, szPWD);
 
         stCMA.Operation = nOperation;
-
-        extern Client *g_Client;
         g_Client->Send(CM_ACCOUNT, stCMA);
     }
 }

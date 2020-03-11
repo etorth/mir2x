@@ -17,9 +17,13 @@
  */
 
 #include "client.hpp"
+#include "pngtexdb.hpp"
 #include "sdldevice.hpp"
-#include "pngtexdbn.hpp"
 #include "processlogo.hpp"
+
+extern Client *g_Client;
+extern PNGTexDB *g_ProgUseDB;
+extern SDLDevice *g_SDLDevice;
 
 void ProcessLogo::ProcessEvent(const SDL_Event &rstEvent)
 {
@@ -30,7 +34,6 @@ void ProcessLogo::ProcessEvent(const SDL_Event &rstEvent)
                     case SDLK_SPACE:
                     case SDLK_ESCAPE:
                         {
-                            extern Client *g_Client;
                             g_Client->RequestProcess(PROCESSID_SYRC);
                         }
                         break;
@@ -48,19 +51,15 @@ void ProcessLogo::Update(double fDTime)
 {
     m_TotalTime += fDTime;
     if(m_TotalTime >= m_FullTime){
-        extern Client *g_Client;
         g_Client->RequestProcess(PROCESSID_SYRC);
     }
 }
 
 void ProcessLogo::Draw()
 {
-    extern SDLDevice *g_SDLDevice;
-    extern PNGTexDBN *g_ProgUseDBN;
-
     g_SDLDevice->ClearScreen();
 
-    if(auto pTexture = g_ProgUseDBN->Retrieve(0X00000000)){
+    if(auto pTexture = g_ProgUseDB->Retrieve(0X00000000)){
         auto bColor = (Uint8)(std::lround(255 * ColorRatio()));
         SDL_SetTextureColorMod(pTexture, bColor, bColor, bColor);
 

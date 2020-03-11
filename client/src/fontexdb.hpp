@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename: fontexdbn.hpp
+ *       Filename: fontexdb.hpp
  *        Created: 02/24/2016 17:51:16
  *    Description: this class only releases resource automatically
  *                 on loading new resources
@@ -44,7 +44,7 @@ struct FontexEntry
     SDL_Texture *Texture;
 };
 
-template<size_t ResMaxN> class FontexDB: public InnDB<uint64_t, FontexEntry, ResMaxN>
+class FontexDB: public InnDB<uint64_t, FontexEntry>
 {
     private:
         std::unique_ptr<ZSDB> m_ZSDBPtr;
@@ -58,8 +58,8 @@ template<size_t ResMaxN> class FontexDB: public InnDB<uint64_t, FontexEntry, Res
         std::map<uint8_t, std::vector<uint8_t>> m_FontDataCache;
 
     public:
-        FontexDB()
-            : InnDB<uint64_t, FontexEntry, ResMaxN>()
+        FontexDB(size_t nResMax)
+            : InnDB<uint64_t, FontexEntry>(nResMax)
             , m_ZSDBPtr()
             , m_TTFCache()
             , m_FontDataCache()
@@ -215,5 +215,3 @@ template<size_t ResMaxN> class FontexDB: public InnDB<uint64_t, FontexEntry, Res
             }
         }
 };
-
-using FontexDBN = FontexDB<1024>;

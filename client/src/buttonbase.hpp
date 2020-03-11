@@ -29,7 +29,7 @@
 #include <functional>
 
 #include "widget.hpp"
-#include "pngtexdbn.hpp"
+#include "pngtexdb.hpp"
 #include "sdldevice.hpp"
 
 class ButtonBase: public Widget

@@ -20,12 +20,12 @@
 #include "log.hpp"
 #include "client.hpp"
 #include "xmlconf.hpp"
-#include "pngtexdbn.hpp"
-#include "fontexdbn.hpp"
-#include "mapbindbn.hpp"
-#include "emoticondbn.hpp"
+#include "pngtexdb.hpp"
+#include "fontexdb.hpp"
+#include "mapbindb.hpp"
+#include "emoticondb.hpp"
 #include "notifyboard.hpp"
-#include "pngtexoffdbn.hpp"
+#include "pngtexoffdb.hpp"
 #include "clientargparser.hpp"
 
 // global variables, decide to follow pattern in MapEditor
@@ -33,17 +33,17 @@
 
 ClientArgParser *g_ClientArgParser = nullptr;
 Log             *g_Log             = nullptr; // log information handler, must be inited first
-PNGTexDBN       *g_ProgUseDBN      = nullptr; // database for all PNG texture only
-PNGTexDBN       *g_GroundItemDBN   = nullptr; // database for all PNG texture only
-PNGTexDBN       *g_CommonItemDBN   = nullptr; // database for all PNG texture only
-PNGTexDBN       *g_MapDBN          = nullptr;
-PNGTexOffDBN    *g_HeroDBN         = nullptr; // database for hero
-PNGTexOffDBN    *g_MonsterDBN      = nullptr; // database for monster
-PNGTexOffDBN    *g_WeaponDBN       = nullptr; // database for weapon
-PNGTexOffDBN    *g_MagicDBN        = nullptr; // database for magic
-EmoticonDBN     *g_EmoticonDBN     = nullptr; // database for emoticons
-MapBinDBN       *g_MapBinDBN       = nullptr;
-FontexDBN       *g_FontexDBN       = nullptr;
+PNGTexDB        *g_ProgUseDB       = nullptr; // database for all PNG texture only
+PNGTexDB        *g_GroundItemDB    = nullptr; // database for all PNG texture only
+PNGTexDB        *g_CommonItemDB    = nullptr; // database for all PNG texture only
+PNGTexDB        *g_MapDB           = nullptr;
+PNGTexOffDB     *g_HeroDB          = nullptr; // database for hero
+PNGTexOffDB     *g_MonsterDB       = nullptr; // database for monster
+PNGTexOffDB     *g_WeaponDB        = nullptr; // database for weapon
+PNGTexOffDB     *g_MagicDB         = nullptr; // database for magic
+EmoticonDB      *g_EmoticonDB      = nullptr; // database for emoticons
+MapBinDB        *g_MapBinDB        = nullptr;
+FontexDB        *g_FontexDB        = nullptr;
 XMLConf         *g_XMLConf         = nullptr; // for client configure XML parsing
 SDLDevice       *g_SDLDevice       = nullptr; // for SDL hardware device
 NotifyBoard     *g_NotifyBoard     = nullptr;
@@ -60,15 +60,15 @@ int main(int argc, char *argv[])
             delete g_Log            ; g_Log             = nullptr;
             delete g_XMLConf        ; g_XMLConf         = nullptr;
             delete g_SDLDevice      ; g_SDLDevice       = nullptr;
-            delete g_ProgUseDBN     ; g_ProgUseDBN      = nullptr;
-            delete g_GroundItemDBN  ; g_GroundItemDBN   = nullptr;
-            delete g_CommonItemDBN  ; g_CommonItemDBN   = nullptr;
-            delete g_MapDBN         ; g_MapDBN          = nullptr;
-            delete g_HeroDBN        ; g_HeroDBN         = nullptr;
-            delete g_MonsterDBN     ; g_MonsterDBN      = nullptr;
-            delete g_FontexDBN      ; g_FontexDBN       = nullptr;
-            delete g_MapBinDBN      ; g_MapBinDBN       = nullptr;
-            delete g_EmoticonDBN    ; g_EmoticonDBN     = nullptr;
+            delete g_ProgUseDB      ; g_ProgUseDB       = nullptr;
+            delete g_GroundItemDB   ; g_GroundItemDB    = nullptr;
+            delete g_CommonItemDB   ; g_CommonItemDB    = nullptr;
+            delete g_MapDB          ; g_MapDB           = nullptr;
+            delete g_HeroDB         ; g_HeroDB          = nullptr;
+            delete g_MonsterDB      ; g_MonsterDB       = nullptr;
+            delete g_FontexDB       ; g_FontexDB        = nullptr;
+            delete g_MapBinDB       ; g_MapBinDB        = nullptr;
+            delete g_EmoticonDB     ; g_EmoticonDB      = nullptr;
             delete g_NotifyBoard    ; g_NotifyBoard     = nullptr;
             delete g_Client         ; g_Client          = nullptr;
         };
@@ -89,17 +89,17 @@ int main(int argc, char *argv[])
     try{
         g_XMLConf         = new XMLConf();
         g_SDLDevice       = new SDLDevice();
-        g_ProgUseDBN      = new PNGTexDBN();
-        g_GroundItemDBN   = new PNGTexDBN();
-        g_CommonItemDBN   = new PNGTexDBN();
-        g_MapDBN          = new PNGTexDBN();
-        g_HeroDBN         = new PNGTexOffDBN();
-        g_MonsterDBN      = new PNGTexOffDBN();
-        g_WeaponDBN       = new PNGTexOffDBN();
-        g_MagicDBN        = new PNGTexOffDBN();
-        g_FontexDBN       = new FontexDBN();
-        g_MapBinDBN       = new MapBinDBN();
-        g_EmoticonDBN     = new EmoticonDBN();
+        g_ProgUseDB       = new PNGTexDB(1024);
+        g_GroundItemDB    = new PNGTexDB(1024);
+        g_CommonItemDB    = new PNGTexDB(1024);
+        g_MapDB           = new PNGTexDB(8192);
+        g_HeroDB          = new PNGTexOffDB(1024);
+        g_MonsterDB       = new PNGTexOffDB(1024);
+        g_WeaponDB        = new PNGTexOffDB(1024);
+        g_MagicDB         = new PNGTexOffDB(1024);
+        g_FontexDB        = new FontexDB(1024);
+        g_MapBinDB        = new MapBinDB();
+        g_EmoticonDB      = new EmoticonDB();
         g_Client          = new Client();       // loads fontex resource
         g_NotifyBoard     = new NotifyBoard();  // needs fontex
 

@@ -54,6 +54,7 @@ class Monster final: public CharObject
         {
             FPMETHOD_NONE,
             FPMETHOD_ASTAR,
+            FPMETHOD_DSTAR,
             FPMETHOD_GREEDY,
             FPMETHOD_COMBINE,
             FPMETHOD_NEIGHBOR,
@@ -191,6 +192,7 @@ class Monster final: public CharObject
 
     protected:
         bool MoveOneStepAStar   (int, int, std::function<void()>, std::function<void()>);
+        bool MoveOneStepDStar   (int, int, std::function<void()>, std::function<void()>);
         bool MoveOneStepGreedy  (int, int, std::function<void()>, std::function<void()>);
         bool MoveOneStepCombine (int, int, std::function<void()>, std::function<void()>);
         bool MoveOneStepNeighbor(int, int, std::function<void()>, std::function<void()>);

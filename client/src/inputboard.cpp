@@ -23,9 +23,13 @@
 #include "log.hpp"
 #include "client.hpp"
 #include "mathfunc.hpp"
-#include "fontexdbn.hpp"
+#include "fontexdb.hpp"
 #include "inputboard.hpp"
 #include "sdlkeyeventchar.hpp"
+
+extern Log *g_Log;
+extern Client *g_Client;
+extern SDLDevice *g_SDLDevice;
 
 int InputBoard::s_ShowSystemCursorCount = 0;
 int InputBoard::s_InputBoardCount       = 0;
@@ -158,7 +162,6 @@ bool InputBoard::ProcessEvent(const SDL_Event &rstEvent, bool *)
                                 if(false
                                         || rstEvent.key.keysym.mod & KMOD_LCTRL
                                         || rstEvent.key.keysym.mod & KMOD_RCTRL){
-                                    extern Client *g_Client;
                                     g_Client->Clipboard(m_TokenBoard.GetXML(true));
                                     m_TokenBoard.Delete(true);
                                 }else{
@@ -180,7 +183,6 @@ bool InputBoard::ProcessEvent(const SDL_Event &rstEvent, bool *)
                                 if(false
                                         || rstEvent.key.keysym.mod & KMOD_LCTRL
                                         || rstEvent.key.keysym.mod & KMOD_RCTRL){
-                                    extern Client *g_Client;
                                     g_Client->Clipboard(m_TokenBoard.GetXML(true));
                                 }else{
                                     if(SDL_IsTextInputActive() == SDL_FALSE){
@@ -201,7 +203,6 @@ bool InputBoard::ProcessEvent(const SDL_Event &rstEvent, bool *)
                                 if(false
                                         || rstEvent.key.keysym.mod & KMOD_LCTRL
                                         || rstEvent.key.keysym.mod & KMOD_RCTRL){
-                                    extern Client *g_Client;
                                     m_TokenBoard.ParseXML(g_Client->Clipboard().c_str(), {});
                                 }else{
                                     if(SDL_IsTextInputActive() == SDL_FALSE){
@@ -383,7 +384,6 @@ void InputBoard::Draw()
     QueryCursor(&nX, &nY, &nW, &nH);
 
     if(((int)m_MS % 1000) < 500 && Focus()){
-        extern SDLDevice *g_SDLDevice;
         g_SDLDevice->PushColor(m_CursorColor.r, m_CursorColor.g, m_CursorColor.b, m_CursorColor.a);
         g_SDLDevice->FillRectangle(X() + m_TokenBoard.X() + nX, Y() + m_TokenBoard.Y() + nY, nW, nH);
         g_SDLDevice->PopColor();
@@ -391,7 +391,6 @@ void InputBoard::Draw()
 
     // 2. draw ``I" cursor
     if(m_DrawOwnSystemCursor){
-        extern SDLDevice   *g_SDLDevice;
         g_SDLDevice->PushColor(200, 200, 200, 200);
         g_SDLDevice->DrawLine(
                 m_SystemCursorX, m_SystemCursorY - m_H / 2,
@@ -449,7 +448,6 @@ std::string InputBoard::Content()
                 }
             default:
                 {
-                    extern Log *g_Log;
                     g_Log->AddLog(LOGTYPE_WARNING, "Detected known object type, ignored it");
                     break;
                 }

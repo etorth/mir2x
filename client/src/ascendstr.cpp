@@ -17,9 +17,13 @@
 #include <cstdint>
 #include <cinttypes>
 #include "log.hpp"
+#include "pngtexdb.hpp"
 #include "ascendstr.hpp"
 #include "sdldevice.hpp"
-#include "pngtexdbn.hpp"
+
+extern Log *g_Log;
+extern PNGTexDB *g_ProgUseDB;
+extern SDLDevice *g_SDLDevice;
 
 AscendStr::AscendStr(int nType, int nValue, int nX, int nY)
     : m_Type(nType)
@@ -42,7 +46,6 @@ AscendStr::AscendStr(int nType, int nValue, int nX, int nY)
             }
         default:
             {
-                extern Log *g_Log;
                 g_Log->AddLog(LOGTYPE_FATAL, "Invalid AscendStr type: %d", Type());
                 break;
             }
@@ -60,8 +63,6 @@ void AscendStr::Update(double fUpdate)
 void AscendStr::Draw(int nViewX, int nViewY)
 {
     if(Ratio() < 1.0){
-        extern SDLDevice *g_SDLDevice;
-        extern PNGTexDBN *g_ProgUseDBN;
 
         auto nCurrX = X();
         auto nCurrY = Y();
@@ -70,7 +71,7 @@ void AscendStr::Draw(int nViewX, int nViewY)
         switch(Type()){
             case ASCENDSTR_MISS:
                 {
-                    if(auto pTexture = g_ProgUseDBN->Retrieve(0X03000030)){
+                    if(auto pTexture = g_ProgUseDB->Retrieve(0X03000030)){
                         SDL_SetTextureAlphaMod(pTexture, nCurrA);
                         g_SDLDevice->DrawTexture(pTexture, nCurrX - nViewX, nCurrY - nViewY);
                     }
@@ -82,7 +83,7 @@ void AscendStr::Draw(int nViewX, int nViewY)
                 {
                     if(Value()){
                         uint32_t nPreKey = 0X03000000 | ((Type() - ASCENDSTR_NUM0) << 4);
-                        if(auto pTexture = g_ProgUseDBN->Retrieve(nPreKey | ((Value() < 0) ? 0X0A : 0X0B))){
+                        if(auto pTexture = g_ProgUseDB->Retrieve(nPreKey | ((Value() < 0) ? 0X0A : 0X0B))){
                             SDL_SetTextureAlphaMod(pTexture, nCurrA);
                             g_SDLDevice->DrawTexture(pTexture, nCurrX - nViewX, nCurrY - nViewY + ((Value() < 0) ? 4 : 1));
 
@@ -93,7 +94,7 @@ void AscendStr::Draw(int nViewX, int nViewY)
 
                         auto szNumStr = std::to_string(std::labs(Value()));
                         for(auto chNum: szNumStr){
-                            if(auto pTexture = g_ProgUseDBN->Retrieve(nPreKey | (chNum - '0'))){
+                            if(auto pTexture = g_ProgUseDB->Retrieve(nPreKey | (chNum - '0'))){
                                 SDL_SetTextureAlphaMod(pTexture, nCurrA);
                                 g_SDLDevice->DrawTexture(pTexture, nCurrX - nViewX, nCurrY - nViewY);
 

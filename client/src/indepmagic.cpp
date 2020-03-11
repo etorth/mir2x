@@ -18,7 +18,10 @@
 #include "sdldevice.hpp"
 #include "indepmagic.hpp"
 #include "dbcomrecord.hpp"
-#include "pngtexoffdbn.hpp"
+#include "pngtexoffdb.hpp"
+
+extern SDLDevice *g_SDLDevice;
+extern PNGTexOffDB *g_MagicDB;
 
 IndepMagic::IndepMagic(uint64_t nUID,
         int nMagicID,
@@ -186,12 +189,9 @@ void IndepMagic::Draw(int nViewX, int nViewY)
     if(!Done()){
         if(RefreshCache()){
             if(m_CacheEntry->GfxID >= 0){
-                extern SDLDevice *g_SDLDevice;
-                extern PNGTexOffDBN *g_MagicDBN;
-
                 int nOffX = 0;
                 int nOffY = 0;
-                if(auto pTexture = g_MagicDBN->Retrieve(m_CacheEntry->GfxID + Frame(), &nOffX, &nOffY)){
+                if(auto pTexture = g_MagicDB->Retrieve(m_CacheEntry->GfxID + Frame(), &nOffX, &nOffY)){
                     SDL_SetTextureBlendMode(pTexture, SDL_BLENDMODE_BLEND);
                     g_SDLDevice->DrawTexture(pTexture, DrawPX() - nViewX + nOffX, DrawPY() - nViewY + nOffY);
                 }

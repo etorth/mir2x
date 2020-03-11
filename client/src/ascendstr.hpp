@@ -57,7 +57,7 @@ class AscendStr
     private:
         int X() const
         {
-            return m_X;
+            return m_X + (int)(std::lround(Ratio() * 50.0));
         }
 
         int Y() const

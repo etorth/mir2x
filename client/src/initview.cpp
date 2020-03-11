@@ -25,12 +25,26 @@
 #include "strfunc.hpp"
 #include "mathfunc.hpp"
 #include "initview.hpp"
-#include "fontexdbn.hpp"
-#include "pngtexdbn.hpp"
-#include "mapbindbn.hpp"
-#include "pngtexoffdbn.hpp"
+#include "fontexdb.hpp"
+#include "pngtexdb.hpp"
+#include "mapbindb.hpp"
+#include "pngtexoffdb.hpp"
 
 extern Log *g_Log;
+extern XMLConf *g_XMLConf;
+extern SDLDevice *g_SDLDevice;
+
+extern PNGTexDB *g_MapDB;
+extern MapBinDB *g_MapBinDB;
+extern FontexDB *g_FontexDB;
+extern PNGTexDB *g_ProgUseDB;
+extern PNGTexDB *g_CommonItemDB;
+extern PNGTexDB *g_GroundItemDB;
+
+extern PNGTexOffDB *g_HeroDB;
+extern PNGTexOffDB *g_MagicDB;
+extern PNGTexOffDB *g_WeaponDB;
+extern PNGTexOffDB *g_MonsterDB;
 
 InitView::InitView(uint8_t nFontSize)
     : m_ProcState(IVPROC_LOOP)
@@ -44,72 +58,52 @@ InitView::InitView(uint8_t nFontSize)
     // 1. emplace all loading procedures
     m_LoadProcV.emplace_back(1, [this](size_t nIndex) -> bool
     {
-        extern XMLConf   *g_XMLConf;
-        extern PNGTexDBN *g_ProgUseDBN;
-        return LoadDBN(nIndex, g_XMLConf, g_ProgUseDBN, "Root/Texture/ProgUseDBN");
+        return LoadDB(nIndex, g_XMLConf, g_ProgUseDB, "Root/Texture/ProgUseDB");
     });
 
     m_LoadProcV.emplace_back(1, [this](size_t nIndex) -> bool
     {
-        extern XMLConf   *g_XMLConf;
-        extern PNGTexDBN *g_GroundItemDBN;
-        return LoadDBN(nIndex, g_XMLConf, g_GroundItemDBN, "Root/Texture/GroundItemDBN");
+        return LoadDB(nIndex, g_XMLConf, g_GroundItemDB, "Root/Texture/GroundItemDB");
     });
 
     m_LoadProcV.emplace_back(1, [this](size_t nIndex) -> bool
     {
-        extern XMLConf   *g_XMLConf;
-        extern PNGTexDBN *g_CommonItemDBN;
-        return LoadDBN(nIndex, g_XMLConf, g_CommonItemDBN, "Root/Texture/CommonItemDBN");
+        return LoadDB(nIndex, g_XMLConf, g_CommonItemDB, "Root/Texture/CommonItemDB");
     });
 
     m_LoadProcV.emplace_back(1, [this](size_t nIndex) -> bool
     {
-        extern XMLConf   *g_XMLConf;
-        extern PNGTexDBN *g_MapDBN;
-        return LoadDBN(nIndex, g_XMLConf, g_MapDBN, "Root/Texture/MapDBN");
+        return LoadDB(nIndex, g_XMLConf, g_MapDB, "Root/Texture/MapDB");
     });
 
     m_LoadProcV.emplace_back(1, [this](size_t nIndex) -> bool
     {
-        extern XMLConf   *g_XMLConf;
-        extern FontexDBN *g_FontexDBN;
-        return LoadDBN(nIndex, g_XMLConf, g_FontexDBN, "Root/Font/FontexDBN");
+        return LoadDB(nIndex, g_XMLConf, g_FontexDB, "Root/Font/FontexDB");
     });
 
     m_LoadProcV.emplace_back(1, [this](size_t nIndex) -> bool
     {
-        extern XMLConf      *g_XMLConf;
-        extern PNGTexOffDBN *g_HeroDBN;
-        return LoadDBN(nIndex, g_XMLConf, g_HeroDBN, "Root/Texture/HeroDBN");
+        return LoadDB(nIndex, g_XMLConf, g_HeroDB, "Root/Texture/HeroDB");
     });
 
     m_LoadProcV.emplace_back(1, [this](size_t nIndex) -> bool
     {
-        extern XMLConf      *g_XMLConf;
-        extern PNGTexOffDBN *g_MonsterDBN;
-        return LoadDBN(nIndex, g_XMLConf, g_MonsterDBN, "Root/Texture/MonsterDBN");
+        return LoadDB(nIndex, g_XMLConf, g_MonsterDB, "Root/Texture/MonsterDB");
     });
 
     m_LoadProcV.emplace_back(1, [this](size_t nIndex) -> bool
     {
-        extern XMLConf      *g_XMLConf;
-        extern PNGTexOffDBN *g_WeaponDBN;
-        return LoadDBN(nIndex, g_XMLConf, g_WeaponDBN, "Root/Texture/WeaponDBN");
+        return LoadDB(nIndex, g_XMLConf, g_WeaponDB, "Root/Texture/WeaponDB");
     });
 
     m_LoadProcV.emplace_back(1, [this](size_t nIndex) -> bool
     {
-        extern XMLConf      *g_XMLConf;
-        extern PNGTexOffDBN *g_MagicDBN;
-        return LoadDBN(nIndex, g_XMLConf, g_MagicDBN, "Root/Texture/MagicDBN");
+        return LoadDB(nIndex, g_XMLConf, g_MagicDB, "Root/Texture/MagicDB");
     });
 
     m_LoadProcV.emplace_back(1, [this](size_t nIndex) -> bool
     {
-        extern XMLConf      *g_XMLConf;
-        extern MapBinDBN    *g_MapBinDBN;
-        return LoadDBN(nIndex, g_XMLConf, g_MapBinDBN, "Root/Map/MapBinDBN");
+        return LoadDB(nIndex, g_XMLConf, g_MapBinDB, "Root/Map/MapBinDB");
     });
 
     // 2. loading font and textures
@@ -130,14 +124,12 @@ InitView::InitView(uint8_t nFontSize)
 
         for(auto &stBufU32: stBufU32V){
             if(stBufU32.empty() || ((size_t)((stBufU32[0] + 3) / 4) + 1) > stBufU32.size()){
-                extern Log *g_Log;
                 g_Log->AddLog(LOGTYPE_FATAL, "Invalid data in initview.inc");
             }
         }
         return stBufU32V;
     }();
 
-    extern SDLDevice *g_SDLDevice;
     g_SDLDevice->CreateInitViewWindow();
 
     // create window before loading textures
@@ -149,7 +141,6 @@ InitView::InitView(uint8_t nFontSize)
     if(false
             || !m_TextureV[0]
             || !m_TextureV[1]){
-        extern Log *g_Log;
         g_Log->AddLog(LOGTYPE_FATAL, "Build graphics resources failed for InitView");
     }
 
@@ -329,7 +320,6 @@ void InitView::Load()
 
 void InitView::Draw()
 {
-    extern SDLDevice *g_SDLDevice;
     g_SDLDevice->ClearScreen();
     g_SDLDevice->DrawTexture(m_TextureV[0], 0, 0);
 
@@ -365,7 +355,6 @@ void InitView::Draw()
         }();
 
         if(auto pSurface = TTF_RenderUTF8_Blended(g_SDLDevice->DefaultTTF(m_FontSize), szMessage.c_str(), stColor)){
-            extern SDLDevice *g_SDLDevice;
             pTexture = g_SDLDevice->CreateTextureFromSurface(pSurface);
             SDL_FreeSurface(pSurface);
         }

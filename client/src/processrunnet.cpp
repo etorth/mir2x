@@ -25,7 +25,7 @@
 #include "monster.hpp"
 #include "uidfunc.hpp"
 #include "sysconst.hpp"
-#include "pngtexdbn.hpp"
+#include "pngtexdb.hpp"
 #include "sdldevice.hpp"
 #include "sdldevice.hpp"
 #include "processrun.hpp"

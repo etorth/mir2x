@@ -25,6 +25,7 @@
 #include "dbconst.hpp"
 #include "dbcomid.hpp"
 #include "monster.hpp"
+#include "fflerror.hpp"
 #include "condcheck.hpp"
 #include "netdriver.hpp"
 #include "actorpod.hpp"
@@ -940,6 +941,10 @@ bool Monster::MoveOneStep(int nX, int nY, std::function<void()> fnOnOK, std::fun
             {
                 return MoveOneStepAStar(nX, nY, fnOnOK, fnOnError);
             }
+        case FPMETHOD_DSTAR:
+            {
+                return MoveOneStepDStar(nX, nY, fnOnOK, fnOnError);
+            }
         case FPMETHOD_GREEDY:
             {
                 return MoveOneStepGreedy(nX, nY, fnOnOK, fnOnError);
@@ -1086,6 +1091,11 @@ bool Monster::MoveOneStepAStar(int nX, int nY, std::function<void()> fnOnOK, std
                 }
         }
     });
+}
+
+bool Monster::MoveOneStepDStar(int, int, std::function<void()>, std::function<void()>)
+{
+    throw fflerror("Not supported now");
 }
 
 int Monster::FindPathMethod()

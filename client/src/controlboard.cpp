@@ -21,11 +21,15 @@
 #include <functional>
 
 #include "log.hpp"
+#include "pngtexdb.hpp"
 #include "sdldevice.hpp"
-#include "pngtexdbn.hpp"
 #include "processrun.hpp"
 #include "dbcomrecord.hpp"
 #include "controlboard.hpp"
+
+extern Log *g_Log;
+extern PNGTexDB *g_ProgUseDB;
+extern SDLDevice *g_SDLDevice;
 
 ControlBoard::ControlBoard(int nX, int nY, int nW, ProcessRun *pRun, Widget *pWidget, bool bAutoDelete)
     : Widget(nX, nY, nW, 135, pWidget, bAutoDelete)
@@ -114,7 +118,6 @@ ControlBoard::ControlBoard(int nX, int nY, int nW, ProcessRun *pRun, Widget *pWi
             false)
 {
     if(!pRun){
-        extern Log *g_Log;
         g_Log->AddLog(LOGTYPE_FATAL, "Invalid ProcessRun provided to ControlBoard()");
     }
 }
@@ -145,9 +148,6 @@ void ControlBoard::DrawEx(int, int, int, int, int, int)
     //
     // |---fixed---|--repeat--|----set-----|-----------fixed---------|
 
-    extern SDLDevice *g_SDLDevice;
-    extern PNGTexDBN *g_ProgUseDBN;
-
     int nX0 = X();
     int nY0 = Y();
     int nW0 = W();
@@ -168,13 +168,13 @@ void ControlBoard::DrawEx(int, int, int, int, int, int)
     }
 
     // draw left and right part
-    if(auto pTexture = g_ProgUseDBN->Retrieve(0X00000012)){
+    if(auto pTexture = g_ProgUseDB->Retrieve(0X00000012)){
         g_SDLDevice->DrawTexture(pTexture,             nX0, nY0,   0, 0, 178, 134);
         g_SDLDevice->DrawTexture(pTexture, nW0 - 166 + nX0, nY0, 634, 0, 166, 134);
     }
 
     // draw middle part
-    if(auto pTexture = g_ProgUseDBN->Retrieve(0X00000013)){
+    if(auto pTexture = g_ProgUseDB->Retrieve(0X00000013)){
         g_SDLDevice->DrawTexture(pTexture,                  178, nY0 - 18,              0, 0,       50, 152);
         g_SDLDevice->DrawTexture(pTexture, nW0 - 166 - 119 - 50, nY0 - 18, 50 + 110 + 127, 0, 50 + 119, 152);
 
@@ -190,8 +190,8 @@ void ControlBoard::DrawEx(int, int, int, int, int, int)
 
     // draw HP and MP texture
     {
-        auto pHP = g_ProgUseDBN->Retrieve(0X00000018);
-        auto pMP = g_ProgUseDBN->Retrieve(0X00000019);
+        auto pHP = g_ProgUseDB->Retrieve(0X00000018);
+        auto pMP = g_ProgUseDB->Retrieve(0X00000019);
 
         if(pHP && pMP){ 
 
@@ -226,7 +226,7 @@ void ControlBoard::DrawEx(int, int, int, int, int, int)
     }
 
     // draw current creature face
-    if(auto pTexture = g_ProgUseDBN->Retrieve(m_ProcessRun->GetFocusFaceKey())){
+    if(auto pTexture = g_ProgUseDB->Retrieve(m_ProcessRun->GetFocusFaceKey())){
         g_SDLDevice->DrawTexture(pTexture, nX0 + (nW0 - 266), nY0 + 17);
     }
 

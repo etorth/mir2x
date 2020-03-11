@@ -22,12 +22,12 @@
 #include "xmlboard.hpp"
 #include "utf8func.hpp"
 #include "mathfunc.hpp"
-#include "fontexdbn.hpp"
+#include "fontexdb.hpp"
 #include "sdldevice.hpp"
 
 extern Log *g_Log;
+extern FontexDB *g_FontexDB;
 extern SDLDevice *g_SDLDevice;
-extern FontexDBN *g_FontexDBN;
 
 void XMLBoard::SetTokenBoxWordSpace(size_t nLine)
 {
@@ -511,7 +511,7 @@ void XMLBoard::SetLineTokenStartY(size_t nLine)
 void XMLBoard::CheckDefaultFont() const
 {
     uint64_t nU64Key = UTF8Func::BuildU64Key(m_DefaultFont, m_DefaultFontSize, 0, UTF8Func::PeekUTF8Code("0"));
-    if(!g_FontexDBN->Retrieve(nU64Key)){
+    if(!g_FontexDB->Retrieve(nU64Key)){
         throw std::runtime_error(str_fflprintf(": Invalid default font: font = %d, fontsize = %d", (int)(m_DefaultFont), (int)(m_DefaultFontSize)));
     }
 }
@@ -522,7 +522,7 @@ TOKEN XMLBoard::BuildUTF8Token(uint8_t nFont, uint8_t nFontSize, uint8_t nFontSt
     std::memset(&(stToken), 0, sizeof(stToken));
     auto nU64Key = UTF8Func::BuildU64Key(nFont, nFontSize, nFontStyle, nUTF8Code);
 
-    if(auto pTexture = g_FontexDBN->Retrieve(nU64Key)){
+    if(auto pTexture = g_FontexDB->Retrieve(nU64Key)){
         int nBoxW = -1;
         int nBoxH = -1;
         if(!SDL_QueryTexture(pTexture, nullptr, nullptr, &nBoxW, &nBoxH)){
@@ -537,12 +537,12 @@ TOKEN XMLBoard::BuildUTF8Token(uint8_t nFont, uint8_t nFontSize, uint8_t nFontSt
     }
 
     nU64Key = UTF8Func::BuildU64Key(m_DefaultFont, m_DefaultFontSize, 0, nUTF8Code);
-    if(g_FontexDBN->Retrieve(nU64Key)){
+    if(g_FontexDB->Retrieve(nU64Key)){
         throw std::invalid_argument(str_fflprintf(": Can't find texture for UTF8: %" PRIX32, nUTF8Code));
     }
 
     nU64Key = UTF8Func::BuildU64Key(m_DefaultFont, m_DefaultFontSize, nFontStyle, UTF8Func::PeekUTF8Code("0"));
-    if(g_FontexDBN->Retrieve(nU64Key)){
+    if(g_FontexDB->Retrieve(nU64Key)){
         throw std::invalid_argument(str_fflprintf(": Invalid font style: %" PRIX8, nFontStyle));
     }
 
@@ -550,7 +550,7 @@ TOKEN XMLBoard::BuildUTF8Token(uint8_t nFont, uint8_t nFontSize, uint8_t nFontSt
     // use system default font, don't fail it
 
     nU64Key = UTF8Func::BuildU64Key(m_DefaultFont, m_DefaultFontSize, nFontStyle, nUTF8Code);
-    if(auto pTexture = g_FontexDBN->Retrieve(nU64Key)){
+    if(auto pTexture = g_FontexDB->Retrieve(nU64Key)){
         int nBoxW = -1;
         int nBoxH = -1;
         if(!SDL_QueryTexture(pTexture, nullptr, nullptr, &nBoxW, &nBoxH)){
@@ -840,7 +840,7 @@ void XMLBoard::DrawEx(int nDstX, int nDstY, int nSrcX, int nSrcY, int nSrcW, int
                         int nDX = nX - pToken->Box.State.X;
                         int nDY = nY - pToken->Box.State.Y;
 
-                        auto pTexture = g_FontexDBN->Retrieve(pToken->UTF8Char.U64Key);
+                        auto pTexture = g_FontexDB->Retrieve(pToken->UTF8Char.U64Key);
                         if(pTexture){
                             SDL_SetTextureColorMod(pTexture, ColorFunc::R(nColor), ColorFunc::G(nColor), ColorFunc::B(nColor));
                             g_SDLDevice->DrawTexture(pTexture, nX + nDstDX, nY + nDstDY, nDX, nDY, nW, nH);
@@ -857,7 +857,7 @@ void XMLBoard::DrawEx(int nDstX, int nDstY, int nSrcX, int nSrcY, int nSrcW, int
                     {
                         // int nXOnTex = 0;
                         // int nYOnTex = 0;
-                        // if(auto pTexture = g_EmojiDBN->Retrieve(stLeaf.Emoji().U32Key(), stLeaf.Emoji().Frame(), &nXOnTex, &nYOnTex, nullptr, nullptr, nullptr, nullptr, nullptr)){
+                        // if(auto pTexture = g_EmojiDB->Retrieve(stLeaf.Emoji().U32Key(), stLeaf.Emoji().Frame(), &nXOnTex, &nYOnTex, nullptr, nullptr, nullptr, nullptr, nullptr)){
                         //     g_SDLDevice->DrawTexture(pTexture, nX + nDstDX, nY + nDstDY, nXOnTex + nDX, nYOnTex + nDY, nW, nH);
                         // }else{
                         //     g_SDLDevice->DrawRectangle(ColorFunc::CompColor(nBGColor));

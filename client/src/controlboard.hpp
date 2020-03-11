@@ -23,7 +23,7 @@
 
 #include "log.hpp"
 #include "widget.hpp"
-#include "pngtexdbn.hpp"
+#include "pngtexdb.hpp"
 #include "sdldevice.hpp"
 #include "inputline.hpp"
 #include "tritexbutton.hpp"

@@ -16,16 +16,16 @@
  * =====================================================================================
  */
 
+#include "pngtexdb.hpp"
 #include "sdldevice.hpp"
-#include "pngtexdbn.hpp"
 #include "tritexbutton.hpp"
+
+extern PNGTexDB *g_ProgUseDB;
+extern SDLDevice *g_SDLDevice;
 
 void TritexButton::DrawEx(int nDstX, int nDstY, int nSrcX, int nSrcY, int nW, int nH)
 {
-    extern PNGTexDBN *g_ProgUseDBN;
-    extern SDLDevice *g_SDLDevice;
-
-    if(auto pTexture = g_ProgUseDBN->Retrieve(m_TexID[m_State])){
+    if(auto pTexture = g_ProgUseDB->Retrieve(m_TexID[m_State])){
         g_SDLDevice->DrawTexture(pTexture, nDstX + m_Offset[m_State][0], nDstY + m_Offset[m_State][1], nSrcX, nSrcY, nW, nH);
     }
 }

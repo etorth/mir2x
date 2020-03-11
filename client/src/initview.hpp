@@ -134,13 +134,13 @@ class InitView final
 
     private:
         // we use nCurrIndex rather than percentage
-        // since we may have other events not calling LoadDBN()
-        template<typename T> bool LoadDBN(size_t nCurrIndex, const XMLConf *pXMLConf, T *pDBN, const char *szNodePath)
+        // since we may have other events not calling LoadDB()
+        template<typename T> bool LoadDB(size_t nCurrIndex, const XMLConf *pXMLConf, T *pDB, const char *szNodePath)
         {
             if(true
                     && nCurrIndex < m_LoadProcV.size()
                     && pXMLConf
-                    && pDBN
+                    && pDB
                     && szNodePath){
 
                 auto stArray = [this, nCurrIndex]() -> std::array<size_t, 2>
@@ -158,7 +158,7 @@ class InitView final
                 AddIVLog(LOGIV_INFO, "[%03d%%]Loading %s", nPercent, szNodePath);
                 if(auto pNode = pXMLConf->GetXMLNode(szNodePath)){
                     if(auto szPath = pNode->GetText()){
-                        if(pDBN->Load(szPath)){
+                        if(pDB->Load(szPath)){
                             AddIVLog(LOGIV_INFO, "[%03d%%]Loading %s done", nPercent, szNodePath);
                             return true;
                         }else{
@@ -174,7 +174,7 @@ class InitView final
                     return false;
                 }
             }
-            AddIVLog(LOGIV_WARNING, "[%%---]Loading parameters invalid for LoadDBN(%d, %p, %p, %p)", (int)(nCurrIndex), pXMLConf, pDBN, szNodePath);
+            AddIVLog(LOGIV_WARNING, "[%%---]Loading parameters invalid for LoadDB(%d, %p, %p, %p)", (int)(nCurrIndex), pXMLConf, pDB, szNodePath);
             return false;
         }
 };

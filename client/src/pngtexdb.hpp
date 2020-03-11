@@ -31,14 +31,14 @@ struct PNGTexEntry
     SDL_Texture *Texture;
 };
 
-template<size_t ResMaxN> class PNGTexDB: public InnDB<uint32_t, PNGTexEntry, ResMaxN>
+class PNGTexDB: public InnDB<uint32_t, PNGTexEntry>
 {
     private:
         std::unique_ptr<ZSDB> m_ZSDBPtr;
 
     public:
-        PNGTexDB()
-            : InnDB<uint32_t, PNGTexEntry, ResMaxN>()
+        PNGTexDB(size_t nResMax)
+            : InnDB<uint32_t, PNGTexEntry>(nResMax)
             , m_ZSDBPtr()
         {}
 
@@ -88,5 +88,3 @@ template<size_t ResMaxN> class PNGTexDB: public InnDB<uint32_t, PNGTexEntry, Res
             }
         }
 };
-
-using PNGTexDBN = PNGTexDB<1024>;

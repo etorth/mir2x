@@ -88,7 +88,7 @@ class MonoServer final
     private:
         void RunASIO();
         void CreateDBConnection();
-        void LoadMapBinDBN();
+        void LoadMapBinDB();
 
     private:
         void CreateDefaultDatabase();

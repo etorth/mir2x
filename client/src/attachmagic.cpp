@@ -20,7 +20,11 @@
 #include "sdldevice.hpp"
 #include "dbcomrecord.hpp"
 #include "attachmagic.hpp"
-#include "pngtexoffdbn.hpp"
+#include "pngtexoffdb.hpp"
+
+extern Log *g_Log;
+extern SDLDevice *g_SDLDevice;
+extern PNGTexOffDB *g_MagicDB;
 
 AttachMagic::AttachMagic(int nMagicID, int nMagicParam, int nMagicStage, double fLastTime)
     : MagicBase(nMagicID, nMagicParam, nMagicStage, fLastTime)
@@ -33,7 +37,6 @@ AttachMagic::AttachMagic(int nMagicID, int nMagicParam, int nMagicStage, double 
                 }
             default:
                 {
-                    extern Log *g_Log;
                     g_Log->AddLog(LOGTYPE_FATAL, "Invalid GfxEntry::Type to AttachMagic");
                     m_CacheEntry->Print();
                     break;
@@ -136,12 +139,9 @@ void AttachMagic::Draw(int nDrawOffX, int nDrawOffY)
 {
     if(RefreshCache()){
         if(m_CacheEntry->GfxID >= 0){
-            extern SDLDevice *g_SDLDevice;
-            extern PNGTexOffDBN *g_MagicDBN;
-
             int nOffX = 0;
             int nOffY = 0;
-            if(auto pEffectTexture = g_MagicDBN->Retrieve(m_CacheEntry->GfxID + Frame(), &nOffX, &nOffY)){
+            if(auto pEffectTexture = g_MagicDB->Retrieve(m_CacheEntry->GfxID + Frame(), &nOffX, &nOffY)){
                 SDL_SetTextureBlendMode(pEffectTexture, SDL_BLENDMODE_BLEND);
                 g_SDLDevice->DrawTexture(pEffectTexture, nDrawOffX + nOffX, nDrawOffY + nOffY);
             }

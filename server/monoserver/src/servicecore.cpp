@@ -21,9 +21,11 @@
 
 #include "player.hpp"
 #include "actorpod.hpp"
-#include "mapbindbn.hpp"
+#include "mapbindb.hpp"
 #include "monoserver.hpp"
 #include "servicecore.hpp"
+
+extern MapBinDB *g_MapBinDB;
 
 ServiceCore::ServiceCore()
     : ServerObject(UIDFunc::GetServiceCoreUID())
@@ -101,8 +103,7 @@ bool ServiceCore::LoadMap(uint32_t nMapID)
 {
     if(nMapID){
         if(m_MapList.find(nMapID) == m_MapList.end()){
-            extern MapBinDBN *g_MapBinDBN;
-            if(g_MapBinDBN->Retrieve(nMapID)){
+            if(g_MapBinDB->Retrieve(nMapID)){
                 auto pMap = new ServerMap(this, nMapID);
                 pMap->Activate();
                 m_MapList[nMapID] = pMap;

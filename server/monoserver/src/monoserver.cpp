@@ -32,8 +32,9 @@
 #include "monster.hpp"
 #include "database.hpp"
 #include "threadpn.hpp"
+#include "mapbindb.hpp"
+#include "fflerror.hpp"
 #include "actorpool.hpp"
-#include "mapbindbn.hpp"
 #include "syncdriver.hpp"
 #include "mainwindow.hpp"
 #include "monoserver.hpp"
@@ -45,8 +46,8 @@
 
 extern Log *g_Log;
 extern DBPodN *g_DBPodN;
+extern MapBinDB *g_MapBinDB;
 extern ActorPool *g_ActorPool;
-extern MapBinDBN *g_MapBinDBN;
 extern NetDriver *g_NetDriver;
 extern MonoServer *g_MonoServer;
 extern MainWindow *g_MainWindow;
@@ -233,13 +234,12 @@ void MonoServer::CreateDBConnection()
     }
 }
 
-void MonoServer::LoadMapBinDBN()
+void MonoServer::LoadMapBinDB()
 {
     std::string szMapPath = g_ServerConfigureWindow->GetMapPath();
 
-    if(!g_MapBinDBN->Load(szMapPath.c_str())){
-        AddLog(LOGTYPE_WARNING, "Failed to load mapbindbn");
-        Restart();
+    if(!g_MapBinDB->Load(szMapPath.c_str())){
+        throw fflerror("Failed to load mapbindb");
     }
 }
 
@@ -263,7 +263,7 @@ void MonoServer::StartNetwork()
 void MonoServer::Launch()
 {
     CreateDBConnection();
-    LoadMapBinDBN();
+    LoadMapBinDB();
 
     StartServiceCore();
     StartNetwork();

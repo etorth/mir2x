@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename: emoticondbn.hpp
+ *       Filename: emoticondb.hpp
  *        Created: 02/26/2016 21:48:43
  *    Description: 
  *
@@ -61,14 +61,14 @@ struct EmojiEntry
     int          FPS;
 };
 
-template<size_t ResMaxN> class EmoticonDB: public InnDB<uint32_t, EmojiEntry, ResMaxN>
+class EmoticonDB: public InnDB<uint32_t, EmojiEntry>
 {
     private:
         std::unique_ptr<ZSDB> m_ZSDBPtr;
 
     public:
         EmoticonDB()
-            : InnDB<uint32_t, EmojiEntry, ResMaxN>()
+            : InnDB<uint32_t, EmojiEntry>(1024)
             , m_ZSDBPtr()
         {}
 
@@ -154,5 +154,3 @@ template<size_t ResMaxN> class EmoticonDB: public InnDB<uint32_t, EmojiEntry, Re
             }
         }
 };
-
-using EmoticonDBN = EmoticonDB<512>;

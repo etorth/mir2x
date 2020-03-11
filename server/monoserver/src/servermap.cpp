@@ -25,16 +25,16 @@
 #include "actorpod.hpp"
 #include "mathfunc.hpp"
 #include "sysconst.hpp"
+#include "mapbindb.hpp"
 #include "condcheck.hpp"
 #include "servermap.hpp"
-#include "mapbindbn.hpp"
 #include "charobject.hpp"
 #include "monoserver.hpp"
 #include "dbcomrecord.hpp"
 #include "rotatecoord.hpp"
 #include "serverconfigurewindow.hpp"
 
-extern MapBinDBN *g_MapBinDBN;
+extern MapBinDB *g_MapBinDB;
 extern MonoServer *g_MonoServer;
 extern ServerConfigureWindow *g_ServerConfigureWindow;
 
@@ -118,7 +118,7 @@ ServerMap::ServerMap(ServiceCore *pServiceCore, uint32_t nMapID)
           // server is multi-thread
           // but creating server map is always in service core
 
-          if(auto pMir2xMapData = g_MapBinDBN->Retrieve(nMapID)){
+          if(auto pMir2xMapData = g_MapBinDB->Retrieve(nMapID)){
               return pMir2xMapData;
           }
 

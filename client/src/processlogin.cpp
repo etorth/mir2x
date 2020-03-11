@@ -23,9 +23,14 @@
 #include "log.hpp"
 #include "client.hpp"
 #include "message.hpp"
+#include "pngtexdb.hpp"
 #include "sdldevice.hpp"
-#include "pngtexdbn.hpp"
 #include "processlogin.hpp"
+
+extern Log *g_Log;
+extern Client *g_Client;
+extern PNGTexDB *g_ProgUseDB;
+extern SDLDevice *g_SDLDevice;
 
 ProcessLogin::ProcessLogin()
 	: Process()
@@ -82,14 +87,11 @@ void ProcessLogin::Update(double fMS)
 
 void ProcessLogin::Draw()
 {
-    extern SDLDevice *g_SDLDevice;
-    extern PNGTexDBN *g_ProgUseDBN;
-
     g_SDLDevice->ClearScreen();
 
-    g_SDLDevice->DrawTexture(g_ProgUseDBN->Retrieve(0X00000003),   0,  75);
-    g_SDLDevice->DrawTexture(g_ProgUseDBN->Retrieve(0X00000004),   0, 465);
-    g_SDLDevice->DrawTexture(g_ProgUseDBN->Retrieve(0X00000011), 103, 536);
+    g_SDLDevice->DrawTexture(g_ProgUseDB->Retrieve(0X00000003),   0,  75);
+    g_SDLDevice->DrawTexture(g_ProgUseDB->Retrieve(0X00000004),   0, 465);
+    g_SDLDevice->DrawTexture(g_ProgUseDB->Retrieve(0X00000011), 103, 536);
 
     m_Button1.Draw();
     m_Button2.Draw();
@@ -147,7 +149,6 @@ void ProcessLogin::ProcessEvent(const SDL_Event &rstEvent)
 void ProcessLogin::DoLogin()
 {
     if(!(m_IDBox.Content().empty()) && !(m_PasswordBox.Content().empty())){
-        extern Log *g_Log;
         g_Log->AddLog(LOGTYPE_INFO, "login account: (%s:%s)", m_IDBox.Content().c_str(), m_PasswordBox.Content().c_str());
 
         auto szID  = m_IDBox.Content();
@@ -157,7 +158,6 @@ void ProcessLogin::DoLogin()
         std::memset(&stCML, 0, sizeof(stCML));
 
         if((szID.size() >= sizeof(stCML.ID)) || (szPWD.size() >= sizeof(stCML.Password))){
-            extern Log *g_Log;
             g_Log->AddLog(LOGTYPE_WARNING, "Too long ID/PWD provided");
             return;
         }
@@ -165,13 +165,11 @@ void ProcessLogin::DoLogin()
         std::memcpy(stCML.ID, szID.c_str(), szID.size());
         std::memcpy(stCML.Password, szPWD.c_str(), szPWD.size());
 
-        extern Client *g_Client;
         g_Client->Send(CM_LOGIN, stCML);
     }
 }
 
 void ProcessLogin::DoCreateAccount()
 {
-    extern Client *g_Client;
     g_Client->RequestProcess(PROCESSID_NEW);
 }

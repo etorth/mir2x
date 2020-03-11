@@ -20,7 +20,9 @@
 #include "sdldevice.hpp"
 #include "magicbase.hpp"
 #include "dbcomrecord.hpp"
-#include "pngtexoffdbn.hpp"
+#include "pngtexoffdb.hpp"
+
+extern Log *g_Log;
 
 MagicBase::MagicBase(int nMagicID,
         int nMagicParam,
@@ -34,7 +36,6 @@ MagicBase::MagicBase(int nMagicID,
     , m_CacheEntry(nullptr)
 {
     if(!RefreshCache()){
-        extern Log *g_Log;
         g_Log->AddLog(LOGTYPE_FATAL, "Invalid argument to MagicBase");
         Print();
     }

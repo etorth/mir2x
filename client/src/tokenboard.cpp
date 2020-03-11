@@ -30,12 +30,17 @@
 #include "tokenbox.hpp"
 #include "utf8char.hpp"
 #include "mathfunc.hpp"
+#include "fontexdb.hpp"
 #include "condcheck.hpp"
-#include "fontexdbn.hpp"
 #include "colorfunc.hpp"
 #include "tokenboard.hpp"
-#include "emoticondbn.hpp"
+#include "emoticondb.hpp"
 #include "xmlobjectlist.hpp"
+
+extern Log *g_Log;
+extern FontexDB *g_FontexDB;
+extern SDLDevice *g_SDLDevice;
+extern EmoticonDB *g_EmoticonDB;
 
 // insert an XML file to current board
 // assumption: current board is well-prepared
@@ -65,7 +70,6 @@ bool TokenBoard::InnInsert(const XMLObjectList &rstXMLObjectList, const IDHandle
                 }
             default:
                 {
-                    extern Log *g_Log;
                     g_Log->AddLog(LOGTYPE_WARNING, "Detected known object type, ignored it");
 
                     bRes = true;
@@ -144,8 +148,7 @@ bool TokenBoard::ParseEmoticonObject(const tinyxml2::XMLElement &rstCurrentObjec
     GetAttributeAtoi(&(stSection.Info.Emoticon.Set),   0, rstCurrentObject, {"SET", "Set", "set"});
     GetAttributeAtoi(&(stSection.Info.Emoticon.Index), 0, rstCurrentObject, {"INDEX", "Index", "index"});
 
-    extern EmoticonDBN *g_EmoticonDBN;
-    auto pTexture = g_EmoticonDBN->Retrieve(
+    auto pTexture = g_EmoticonDB->Retrieve(
             stSection.Info.Emoticon.Set,          // emoticon set
             stSection.Info.Emoticon.Index,        // emoticon index
             0,                                    // first frame of the emoticon
@@ -191,7 +194,6 @@ bool TokenBoard::ParseTextObject(const tinyxml2::XMLElement &rstCurrentObject, i
             }
         default:
             {
-                extern Log *g_Log;
                 g_Log->AddLog(LOGTYPE_WARNING, "Invalid object type: %d", nObjectType);
                 return false;
             }
@@ -347,7 +349,6 @@ int TokenBoard::SectionTypeCount(int nLine, int nSectionType)
                         if(SectionValid(rstTokenBox.Section)){
                             nCount += (fnCmp(m_SectionRecord[rstTokenBox.Section].Section.Info.Type, nSectionType) ? 1 : 0);
                         }else{
-                            extern Log *g_Log;
                             g_Log->AddLog(LOGTYPE_INFO, "Invalid section ID: %d", rstTokenBox.Section);
                             return -1;
                         }
@@ -769,7 +770,6 @@ void TokenBoard::DrawEx(
             // try to get the clipped region of the tokenbox
             if(!MathFunc::RectangleOverlapRegion(nSrcX, nSrcY, nSrcW, nSrcH, &nX, &nY, &nW, &nH)){ continue; }
             if(!SectionValid(rstTokenBox.Section, true)){
-                extern Log *g_Log;
                 g_Log->AddLog(LOGTYPE_INFO, "section id invalid: %d", rstTokenBox.Section);
                 return;
             }
@@ -799,9 +799,7 @@ void TokenBoard::DrawEx(
                         auto &rstColor = m_SectionRecord[rstTokenBox.Section].Section.Info.Text.Color[nEvent];
                         auto &rstBackColor = m_SectionRecord[rstTokenBox.Section].Section.Info.Text.BackColor[0];
 
-                        extern SDLDevice *g_SDLDevice;
-                        extern FontexDBN *g_FontexDBN;
-                        auto pTexture = g_FontexDBN->Retrieve(rstTokenBox.UTF8CharBox.Cache.Key);
+                        auto pTexture = g_FontexDB->Retrieve(rstTokenBox.UTF8CharBox.Cache.Key);
 
                         if(pTexture){
                             int nDX = nX - rstTokenBox.Cache.StartX;
@@ -826,11 +824,9 @@ void TokenBoard::DrawEx(
                 case SECTIONTYPE_EMOTICON:
                     {
                         int nFrameIndex = m_SectionRecord[rstTokenBox.Section].Section.State.Emoticon.FrameIndex;
-                        extern EmoticonDBN *g_EmoticonDBN;
-                        extern SDLDevice   *g_SDLDevice;
 
                         int nXOnTex, nYOnTex;
-                        auto pTexture = g_EmoticonDBN->Retrieve(rstTokenBox.EmoticonBox.Cache.Key + nFrameIndex, &nXOnTex, &nYOnTex, nullptr, nullptr, nullptr, nullptr, nullptr);
+                        auto pTexture = g_EmoticonDB->Retrieve(rstTokenBox.EmoticonBox.Cache.Key + nFrameIndex, &nXOnTex, &nYOnTex, nullptr, nullptr, nullptr, nullptr, nullptr);
 
                         if(pTexture){
                             int nDX = nX - rstTokenBox.Cache.StartX;
@@ -938,7 +934,6 @@ void TokenBoard::TokenBoxGetMouseButtonUp(int nX, int nY, bool bFirstHalf)
     // 2. invalid section id
     int nSection = m_LineV[nY].Content[nX].Section;
     if(!SectionValid(nSection)){
-        extern Log *g_Log;
         g_Log->AddLog(LOGTYPE_WARNING, "Invalid section ID: %d", nSection);
         return;
     }
@@ -1034,7 +1029,6 @@ void TokenBoard::TokenBoxGetMouseButtonDown(int nX, int nY, bool bFirstHalf)
     // 2. invalid section id
     int nSection = m_LineV[nY].Content[nX].Section;
     if(!SectionValid(nSection, true)){
-        extern Log *g_Log;
         g_Log->AddLog(LOGTYPE_INFO, "section id can't find: %d", nSection);
         return;
     }
@@ -1543,7 +1537,6 @@ bool TokenBoard::AddTokenBoxLine(const std::vector<TOKENBOX> &rstTBV)
     }
 
     if(nCount == 0){
-        extern Log *g_Log;
         g_Log->AddLog(LOGTYPE_WARNING, "Big token box for current board: Token::W = %d, PW = %d", m_LineV[nY].Content[0].Cache.W, m_MaxLineWidth);
         return false;
     }
@@ -1592,7 +1585,6 @@ bool TokenBoard::AddTokenBoxLine(const std::vector<TOKENBOX> &rstTBV)
             // this is an internal error
             // this is the last line and it's not end with CR
 
-            extern Log *g_Log;
             g_Log->AddLog(LOGTYPE_WARNING, "Last line doesn't end with CR");
 
             // repair by insert an empty line at the end
@@ -2034,7 +2026,6 @@ bool TokenBoard::AddUTF8Code(uint32_t nUTF8Code)
         if(TokenBoxValid(nTBX, nTBY)){
             int nID = m_LineV[nTBY].Content[nTBX].Section;
             if(!SectionValid(nID, false)){
-                extern Log *g_Log;
                 g_Log->AddLog(LOGTYPE_WARNING, "Section ID %d not found for token box (%d, %d).", nID, nTBX, nTBY);
                 return -1;
             }
@@ -2077,7 +2068,6 @@ bool TokenBoard::AddUTF8Code(uint32_t nUTF8Code)
 
     if(nSectionID < 0){
         // no hope, just give up
-        extern Log *g_Log;
         g_Log->AddLog(LOGTYPE_WARNING, "Can't find a proper section for current insertion");
         return false;
     }
@@ -2168,8 +2158,7 @@ bool TokenBoard::MakeTokenBox(int nSectionID, uint32_t nKey, TOKENBOX *pTokenBox
                 pTokenBox->UTF8CharBox.Cache.Key = (((uint64_t)nFontAttrKey << 32) + nKey);
 
                 // 2. set size cache
-                extern FontexDBN *g_FontexDBN;
-                auto pTexture = g_FontexDBN->Retrieve(pTokenBox->UTF8CharBox.Cache.Key);
+                auto pTexture = g_FontexDB->Retrieve(pTokenBox->UTF8CharBox.Cache.Key);
                 if(pTexture){
                     SDL_QueryTexture(pTexture, nullptr, nullptr, &(pTokenBox->Cache.W), &(pTokenBox->Cache.H));
                     pTokenBox->Cache.H1    = pTokenBox->Cache.H;
@@ -2187,8 +2176,7 @@ bool TokenBoard::MakeTokenBox(int nSectionID, uint32_t nKey, TOKENBOX *pTokenBox
         case SECTIONTYPE_EMOTICON:
             {
                 pTokenBox->Section = nSectionID;
-                extern EmoticonDBN *g_EmoticonDBN;
-                auto pTexture = g_EmoticonDBN->Retrieve(
+                auto pTexture = g_EmoticonDB->Retrieve(
                         rstSection.Info.Emoticon.Set,         // emoticon set
                         rstSection.Info.Emoticon.Index,       // emoticon index
                         0,                                    // first frame of the emoticon
@@ -2271,7 +2259,6 @@ std::string TokenBoard::Print(bool bSelectOnly)
             || !CursorValid(nX0, nY0)
             || !CursorValid(nX1, nY1)){
 
-        extern Log *g_Log;
         g_Log->AddLog(LOGTYPE_WARNING, "Invalid selection location: (%d, %d) -> (%d, %d)", nX0, nY0, nX1, nY1);
         return stObjectList.Print();
     }
@@ -2447,7 +2434,6 @@ std::string TokenBoard::Print(bool bSelectOnly)
                 //    2. invalid type
                 // skip this box and alert a warning
 
-                extern Log *g_Log;
                 g_Log->AddLog(LOGTYPE_WARNING, "Invalid section ID = %d for token (%d, %d)", rstTokenBox.Section, nCurrX, nCurrY);
 
                 nCurrX++;
@@ -2468,8 +2454,7 @@ int TokenBoard::GetLineStartY(int nLine)
 
 int TokenBoard::GetBlankLineHeight()
 {
-    extern FontexDBN *g_FontexDBN;
-    auto pTexture = g_FontexDBN->Retrieve(m_DefaultFont, m_DefaultSize, m_DefaultStyle, (int)'H'); 
+    auto pTexture = g_FontexDB->Retrieve(m_DefaultFont, m_DefaultSize, m_DefaultStyle, (int)'H'); 
 
     int nDefaultH;
     SDL_QueryTexture(pTexture, nullptr, nullptr, nullptr, &nDefaultH);

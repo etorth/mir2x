@@ -27,14 +27,12 @@
  *
  * =====================================================================================
  */
-#ifndef __INNDB_HPP__
-#define __INNDB_HPP__
-
+#pragma once
 #include "abdlist.hpp"
 #include <tuple>
 #include <unordered_map>
 
-template<typename KeyT, typename ResT, size_t ResMax> class InnDB
+template<typename KeyT, typename ResT> class InnDB
 {
     private:
         struct ResourceEntry
@@ -51,13 +49,17 @@ template<typename KeyT, typename ResT, size_t ResMax> class InnDB
         ABDList<KeyT> m_DLink;
 
     private:
-        size_t m_ResourceSum;
+        size_t m_ResSum;
+
+    private:
+        const size_t m_ResMax;
 
     public:
-        InnDB()
+        InnDB(size_t nResMax)
             : m_Cache()
             , m_DLink()
-            , m_ResourceSum(0)
+            , m_ResSum(0)
+            , m_ResMax(nResMax)
         {
             static_assert(std::is_unsigned<KeyT>::value, "InnDB only support unsigned intergal key");
         }
@@ -86,7 +88,7 @@ template<typename KeyT, typename ResT, size_t ResMax> class InnDB
                 if(pResource){
                     *pResource = p->second.Resource;
                 }
-                if(ResMax > 0){
+                if(m_ResMax > 0){
                     m_DLink.MoveHead(p->second.DLinkOff);
                 }
                 return true;
@@ -94,20 +96,20 @@ template<typename KeyT, typename ResT, size_t ResMax> class InnDB
 
             auto [stResource, nWeight] = LoadResource(nKey);
 
-            if(ResMax){
+            if(m_ResMax){
                 m_DLink.PushHead(nKey);
             }
 
             ResourceEntry stEntry;
             stEntry.Resource = stResource;
             stEntry.Weight   = nWeight;
-            stEntry.DLinkOff = (ResMax > 0) ? m_DLink.HeadOff() : 0;
+            stEntry.DLinkOff = (m_ResMax > 0) ? m_DLink.HeadOff() : 0;
 
             m_Cache[nKey] = stEntry;
 
-            if(ResMax){
-                m_ResourceSum += nWeight;
-                if(m_ResourceSum > ResMax){
+            if(m_ResMax){
+                m_ResSum += nWeight;
+                if(m_ResSum > m_ResMax){
                     Resize();
                 }
             }
@@ -121,15 +123,13 @@ template<typename KeyT, typename ResT, size_t ResMax> class InnDB
     private:
         void Resize()
         {
-            while((ResMax > 0) && (m_ResourceSum > ResMax / 2) && !m_DLink.Empty()){
+            while((m_ResMax > 0) && (m_ResSum > m_ResMax / 2) && !m_DLink.Empty()){
                 if(auto p = m_Cache.find(m_DLink.Back()); p != m_Cache.end()){
                     FreeResource(p->second.Resource);
-                    m_ResourceSum -= p->second.Weight;
+                    m_ResSum -= p->second.Weight;
                     m_Cache.erase(p);
                 }
                 m_DLink.PopBack();
             }
         }
 };
-
-#endif

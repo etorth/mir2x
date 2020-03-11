@@ -22,7 +22,7 @@
 #include "dbpod.hpp"
 #include "memorypn.hpp"
 #include "threadpn.hpp"
-#include "mapbindbn.hpp"
+#include "mapbindb.hpp"
 #include "actorpool.hpp"
 #include "netdriver.hpp"
 #include "argparser.hpp"
@@ -43,7 +43,7 @@ ThreadPN                 *g_ThreadPN;
 NetDriver                *g_NetDriver;
 DBPodN                   *g_DBPodN;
 
-MapBinDBN                *g_MapBinDBN;
+MapBinDB                 *g_MapBinDB;
 ScriptWindow             *g_ScriptWindow;
 MainWindow               *g_MainWindow;
 MonoServer               *g_MonoServer;
@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
         g_MainWindow               = new MainWindow();
         g_MonoServer               = new MonoServer();
         g_MemoryPN                 = new MemoryPN();
-        g_MapBinDBN                = new MapBinDBN();
+        g_MapBinDB                 = new MapBinDB();
         g_ServerConfigureWindow    = new ServerConfigureWindow();
         g_DatabaseConfigureWindow  = new DatabaseConfigureWindow();
         g_ActorPool                = new ActorPool(g_ServerArgParser->ActorPoolThread);

@@ -22,8 +22,8 @@
 #include "monster.hpp"
 #include "mathfunc.hpp"
 #include "sysconst.hpp"
-#include "mapbindbn.hpp"
-#include "pngtexdbn.hpp"
+#include "mapbindb.hpp"
+#include "pngtexdb.hpp"
 #include "sdldevice.hpp"
 #include "clientargparser.hpp"
 #include "pathfinder.hpp"
@@ -34,10 +34,10 @@
 
 extern Log *g_Log;
 extern Client *g_Client;
-extern PNGTexDBN *g_MapDBN;
+extern PNGTexDB *g_MapDB;
+extern MapBinDB *g_MapBinDB;
 extern SDLDevice *g_SDLDevice;
-extern MapBinDBN *g_MapBinDBN;
-extern PNGTexDBN *g_GroundItemDBN;
+extern PNGTexDB *g_GroundItemDB;
 extern ClientArgParser *g_ClientArgParser;
 
 ProcessRun::ProcessRun()
@@ -233,7 +233,7 @@ void ProcessRun::Draw()
                 if(m_Mir2xMapData.ValidC(nX, nY) && !(nX % 2) && !(nY % 2)){
                     auto &rstTile = m_Mir2xMapData.Tile(nX, nY);
                     if(rstTile.Valid()){
-                        if(auto pTexture = g_MapDBN->Retrieve(rstTile.Image())){
+                        if(auto pTexture = g_MapDB->Retrieve(rstTile.Image())){
                             g_SDLDevice->DrawTexture(pTexture, nX * SYS_MAPGRIDXP - m_ViewX, nY * SYS_MAPGRIDYP - m_ViewY);
                         }
                     }
@@ -254,7 +254,7 @@ void ProcessRun::Draw()
                                 | (((uint32_t)(stArray[2])) << 16)
                                 | (((uint32_t)(stArray[1])) <<  8)
                                 | (((uint32_t)(stArray[0])) <<  0);
-                            if(auto pTexture = g_MapDBN->Retrieve(nImage)){
+                            if(auto pTexture = g_MapDB->Retrieve(nImage)){
                                 int nH = 0;
                                 if(!SDL_QueryTexture(pTexture, nullptr, nullptr, nullptr, &nH)){
                                     g_SDLDevice->DrawTexture(pTexture, nX * SYS_MAPGRIDXP - m_ViewX, (nY + 1) * SYS_MAPGRIDYP - m_ViewY - nH);
@@ -307,7 +307,7 @@ void ProcessRun::Draw()
                 for(auto rstGroundItem: rstGroundItemList){
                     if(auto &rstIR = DBCOM_ITEMRECORD(rstGroundItem.ID())){
                         if(rstIR.PkgGfxID >= 0){
-                            if(auto pTexture = g_GroundItemDBN->Retrieve(rstIR.PkgGfxID)){
+                            if(auto pTexture = g_GroundItemDB->Retrieve(rstIR.PkgGfxID)){
                                 int nW = -1;
                                 int nH = -1;
                                 if(!SDL_QueryTexture(pTexture, nullptr, nullptr, &nW, &nH)){
@@ -372,7 +372,7 @@ void ProcessRun::Draw()
                                 | (((uint32_t)(stArray[2])) << 16)
                                 | (((uint32_t)(stArray[1])) <<  8)
                                 | (((uint32_t)(stArray[0])) <<  0);
-                            if(auto pTexture = g_MapDBN->Retrieve(nImage)){
+                            if(auto pTexture = g_MapDB->Retrieve(nImage)){
                                 int nH = 0;
                                 if(!SDL_QueryTexture(pTexture, nullptr, nullptr, nullptr, &nH)){
                                     g_SDLDevice->DrawTexture(pTexture, nX * SYS_MAPGRIDXP - m_ViewX, (nY + 1) * SYS_MAPGRIDYP - m_ViewY - nH);
@@ -426,7 +426,7 @@ void ProcessRun::Draw()
                 for(int nX = nX0; nX <= nX1; ++nX){
 
                     if(!GetGroundItemListRef(nX, nY).empty()){
-                        if(auto pTexture = g_GroundItemDBN->Retrieve(0X01000000)){
+                        if(auto pTexture = g_GroundItemDB->Retrieve(0X01000000)){
                             int nW = -1;
                             int nH = -1;
                             if(!SDL_QueryTexture(pTexture, nullptr, nullptr, &nW, &nH)){
@@ -672,7 +672,7 @@ void ProcessRun::ProcessEvent(const SDL_Event &rstEvent)
 int ProcessRun::LoadMap(uint32_t nMapID)
 {
     if(nMapID){
-        if(auto pMapBin = g_MapBinDBN->Retrieve(nMapID)){
+        if(auto pMapBin = g_MapBinDB->Retrieve(nMapID)){
             m_MapID        =  nMapID;
             m_Mir2xMapData = *pMapBin;
 
@@ -1396,7 +1396,7 @@ void ProcessRun::CenterMyHero()
 
 bool ProcessRun::RequestSpaceMove(uint32_t nMapID, int nX, int nY)
 {
-    if(auto pMapBin = g_MapBinDBN->Retrieve(nMapID)){
+    if(auto pMapBin = g_MapBinDB->Retrieve(nMapID)){
         if(pMapBin->ValidC(nX, nY) && pMapBin->Cell(nX, nY).CanThrough()){
             CMReqestSpaceMove stCMRSM;
             stCMRSM.MapID = nMapID;
@@ -1436,6 +1436,9 @@ void ProcessRun::OnActionSpawn(uint64_t nUID, const ActionNode &rstAction)
     switch(UIDFunc::GetMonsterID(nUID)){
         case DBCOM_MONSTERID(u8"变异骷髅"):
             {
+                // TODO how about make it as an action of skeleton
+                // then we don't need to define the callback of a done magic
+
                 AddOPLog(OUTPORT_CONTROLBOARD, 2, "", u8"使用魔法: 召唤骷髅"), 
                 m_IndepMagicList.emplace_back(std::make_shared<IndepMagic>
                 (

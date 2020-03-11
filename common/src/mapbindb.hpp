@@ -30,14 +30,14 @@ struct MapBinEntry
     Mir2xMapData *Map;
 };
 
-template<size_t ResMaxN> class MapBinDB: public InnDB<uint32_t, MapBinEntry, ResMaxN>
+class MapBinDB: public InnDB<uint32_t, MapBinEntry>
 {
     private:
         std::unique_ptr<ZSDB> m_ZSDBPtr;
 
     public:
         MapBinDB()
-            : InnDB<uint32_t, MapBinEntry, ResMaxN>()
+            : InnDB<uint32_t, MapBinEntry>(16)
             , m_ZSDBPtr()
         {}
 
@@ -86,5 +86,3 @@ template<size_t ResMaxN> class MapBinDB: public InnDB<uint32_t, MapBinEntry, Res
             }
         }
 };
-
-using MapBinDBN = MapBinDB<16>;

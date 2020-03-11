@@ -178,7 +178,7 @@ class ServerMap final: public ServerObject
         void NotifyNewCO(uint64_t, int, int);
 
     private:
-        Player  *AddPlayer (uint32_t, int, int, int, bool);
+        Player  *AddPlayer (uint32_t,      int, int, int, bool);
         Monster *AddMonster(uint32_t, uint64_t, int, int, bool);
 
     private:

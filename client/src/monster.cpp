@@ -27,14 +27,14 @@
 #include "processrun.hpp"
 #include "protocoldef.hpp"
 #include "dbcomrecord.hpp"
-#include "pngtexoffdbn.hpp"
+#include "pngtexoffdb.hpp"
 #include "clientargparser.hpp"
 #include "clientpathfinder.hpp"
 
 extern Log *g_Log;
+extern PNGTexDB *g_ProgUseDB;
 extern SDLDevice *g_SDLDevice;
-extern PNGTexDBN *g_ProgUseDBN;
-extern PNGTexOffDBN *g_MonsterDBN;
+extern PNGTexOffDB *g_MonsterDB;
 extern ClientArgParser *g_ClientArgParser;
 
 Monster::Monster(uint64_t nUID, ProcessRun *pRun)
@@ -149,8 +149,8 @@ bool Monster::Draw(int nViewX, int nViewY, int nFocusMask)
         int nDX1 = 0;
         int nDY1 = 0;
 
-        auto pFrame0 = g_MonsterDBN->Retrieve(nKey0, &nDX0, &nDY0);
-        auto pFrame1 = g_MonsterDBN->Retrieve(nKey1, &nDX1, &nDY1);
+        auto pFrame0 = g_MonsterDB->Retrieve(nKey0, &nDX0, &nDY0);
+        auto pFrame1 = g_MonsterDB->Retrieve(nKey1, &nDX1, &nDY1);
 
         int nShiftX = 0;
         int nShiftY = 0;
@@ -209,8 +209,8 @@ bool Monster::Draw(int nViewX, int nViewY, int nFocusMask)
         // draw HP bar
         // if current m_HPMqx is zero we draw full bar
         if(m_CurrMotion.Motion != MOTION_MON_DIE){
-            auto pBar0 = g_ProgUseDBN->Retrieve(0X00000014);
-            auto pBar1 = g_ProgUseDBN->Retrieve(0X00000015);
+            auto pBar0 = g_ProgUseDB->Retrieve(0X00000014);
+            auto pBar1 = g_ProgUseDB->Retrieve(0X00000015);
 
             int nBarW = -1;
             int nBarH = -1;
@@ -570,7 +570,7 @@ bool Monster::CanFocus(int nPointX, int nPointY)
         int nDX0 = 0;
         int nDY0 = 0;
 
-        auto pFrame0 = g_MonsterDBN->Retrieve(nKey0, &nDX0, &nDY0);
+        auto pFrame0 = g_MonsterDB->Retrieve(nKey0, &nDX0, &nDY0);
 
         int nShiftX = 0;
         int nShiftY = 0;

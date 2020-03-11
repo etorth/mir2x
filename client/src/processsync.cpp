@@ -18,10 +18,14 @@
 
 #include "log.hpp"
 #include "client.hpp"
+#include "pngtexdb.hpp"
 #include "sdldevice.hpp"
-#include "pngtexdbn.hpp"
 #include "tokenboard.hpp"
 #include "processsync.hpp"
+
+extern Client *g_Client;
+extern PNGTexDB *g_ProgUseDB;
+extern SDLDevice *g_SDLDevice;
 
 ProcessSync::ProcessSync()
 	: Process()
@@ -34,7 +38,6 @@ void ProcessSync::ProcessEvent(const SDL_Event &rstEvent)
         case SDL_KEYDOWN:
             {
                 if(rstEvent.key.keysym.sym == SDLK_ESCAPE){
-                    extern Client *g_Client;
                     g_Client->RequestProcess(PROCESSID_LOGIN);
                 }
                 break;
@@ -49,7 +52,6 @@ void ProcessSync::ProcessEvent(const SDL_Event &rstEvent)
 void ProcessSync::Update(double fDeltaMS)
 {
     if(m_Ratio >= 100){
-        extern Client *g_Client;
         g_Client->RequestProcess(PROCESSID_LOGIN);
         return;
     }
@@ -59,10 +61,7 @@ void ProcessSync::Update(double fDeltaMS)
 
 void ProcessSync::Draw()
 {
-    extern SDLDevice *g_SDLDevice;
-    extern PNGTexDBN *g_ProgUseDBN;
-
-    auto pTexture = g_ProgUseDBN->Retrieve(0X00000002);
+    auto pTexture = g_ProgUseDB->Retrieve(0X00000002);
     int nW, nH;
 
     SDL_QueryTexture(pTexture, nullptr, nullptr, &nW, &nH);
@@ -75,7 +74,7 @@ void ProcessSync::Draw()
             0,    // src y
             std::lround(nW * (m_Ratio / 100.0)), // src w
             nH);  // src h
-    g_SDLDevice->DrawTexture(g_ProgUseDBN->Retrieve(0X00000001), 0, 0);
+    g_SDLDevice->DrawTexture(g_ProgUseDB->Retrieve(0X00000001), 0, 0);
 
     int nInfoX = (g_SDLDevice->WindowW(false) - m_ProcessBarInfo.W()) / 2;
     int nInfoY = 528 + (nH - m_ProcessBarInfo.H()) / 2;

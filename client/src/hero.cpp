@@ -21,13 +21,19 @@
 #include "dbcomid.hpp"
 #include "mathfunc.hpp"
 #include "sysconst.hpp"
+#include "pngtexdb.hpp"
 #include "sdldevice.hpp"
-#include "pngtexdbn.hpp"
 #include "processrun.hpp"
 #include "motionnode.hpp"
 #include "attachmagic.hpp"
 #include "dbcomrecord.hpp"
-#include "pngtexoffdbn.hpp"
+#include "pngtexoffdb.hpp"
+
+extern Log *g_Log;
+extern SDLDevice *g_SDLDevice;
+extern PNGTexDB *g_ProgUseDB;
+extern PNGTexOffDB *g_HeroDB;
+extern PNGTexOffDB *g_WeaponDB;
 
 Hero::Hero(uint64_t nUID, uint32_t nDBID, bool bGender, uint32_t nDress, ProcessRun *pRun, const ActionNode &rstAction)
     : Creature(nUID, pRun)
@@ -50,7 +56,6 @@ Hero::Hero(uint64_t nUID, uint32_t nDBID, bool bGender, uint32_t nDress, Process
     };
 
     if(!ParseAction(rstAction)){
-        extern Log *g_Log;
         g_Log->AddLog(LOGTYPE_FATAL, "Construct hero failed");
     }
 }
@@ -82,9 +87,8 @@ bool Hero::Draw(int nViewX, int nViewY, int)
     int nDX1 = 0;
     int nDY1 = 0;
 
-    extern PNGTexOffDBN *g_HeroDBN;
-    auto pFrame0 = g_HeroDBN->Retrieve(nKey0, &nDX0, &nDY0);
-    auto pFrame1 = g_HeroDBN->Retrieve(nKey1, &nDX1, &nDY1);
+    auto pFrame0 = g_HeroDB->Retrieve(nKey0, &nDX0, &nDY0);
+    auto pFrame1 = g_HeroDB->Retrieve(nKey1, &nDX1, &nDY1);
 
     int nShiftX = 0;
     int nShiftY = 0;
@@ -105,9 +109,7 @@ bool Hero::Draw(int nViewX, int nViewY, int)
             int nWeaponDX = 0;
             int nWeaponDY = 0;
 
-            extern SDLDevice *g_SDLDevice;
-            extern PNGTexOffDBN *g_WeaponDBN;
-            auto pFrame = g_WeaponDBN->Retrieve(nWeaponKey, &nWeaponDX, &nWeaponDY);
+            auto pFrame = g_WeaponDB->Retrieve(nWeaponKey, &nWeaponDX, &nWeaponDY);
 
             if(pFrame && bShadow){ SDL_SetTextureAlphaMod(pFrame, 128); }
             g_SDLDevice->DrawTexture(pFrame, X() * SYS_MAPGRIDXP + nWeaponDX - nViewX + nShiftX, Y() * SYS_MAPGRIDYP + nWeaponDY - nViewY + nShiftY);
@@ -116,8 +118,9 @@ bool Hero::Draw(int nViewX, int nViewY, int)
 
     fnDrawWeapon(true);
 
-    extern SDLDevice *g_SDLDevice;
-    if(pFrame1){ SDL_SetTextureAlphaMod(pFrame1, 128); }
+    if(pFrame1){
+        SDL_SetTextureAlphaMod(pFrame1, 128);
+    }
     g_SDLDevice->DrawTexture(pFrame1, X() * SYS_MAPGRIDXP + nDX1 - nViewX + nShiftX, Y() * SYS_MAPGRIDYP + nDY1 - nViewY + nShiftY);
 
     if(true
@@ -148,9 +151,8 @@ bool Hero::Draw(int nViewX, int nViewY, int)
             }
         default:
             {
-                extern PNGTexDBN *g_ProgUseDBN;
-                auto pBar0 = g_ProgUseDBN->Retrieve(0X00000014);
-                auto pBar1 = g_ProgUseDBN->Retrieve(0X00000015);
+                auto pBar0 = g_ProgUseDB->Retrieve(0X00000014);
+                auto pBar1 = g_ProgUseDB->Retrieve(0X00000015);
 
                 int nW = -1;
                 int nH = -1;
@@ -645,8 +647,7 @@ bool Hero::CanFocus(int nPointX, int nPointY)
 
         uint32_t nKey0 = (((uint32_t)(nGender ? 1 : 0)) << 22) + (((uint32_t)(nGfxDressID & 0X01FFFF)) << 5) + CurrMotion().Frame;
 
-        extern PNGTexOffDBN *g_HeroDBN;
-        auto pFrame0 = g_HeroDBN->Retrieve(nKey0, &nDX0, &nDY0);
+        auto pFrame0 = g_HeroDB->Retrieve(nKey0, &nDX0, &nDY0);
 
         int nShiftX = 0;
         int nShiftY = 0;

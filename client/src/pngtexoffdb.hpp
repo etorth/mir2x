@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename: pngtexoffdbn.hpp
+ *       Filename: pngtexoffdb.hpp
  *        Created: 02/26/2016 21:48:43
  *    Description:
  *
@@ -36,14 +36,14 @@ struct PNGTexOffEntry
     int          DY;
 };
 
-template<size_t ResMaxN> class PNGTexOffDB: public InnDB<uint32_t, PNGTexOffEntry, ResMaxN>
+class PNGTexOffDB: public InnDB<uint32_t, PNGTexOffEntry>
 {
     private:
         std::unique_ptr<ZSDB> m_ZSDBPtr;
 
     public:
-        PNGTexOffDB()
-            : InnDB<uint32_t, PNGTexOffEntry, ResMaxN>()
+        PNGTexOffDB(size_t nResMax)
+            : InnDB<uint32_t, PNGTexOffEntry>(nResMax)
             , m_ZSDBPtr()
         {}
 
@@ -117,5 +117,3 @@ template<size_t ResMaxN> class PNGTexOffDB: public InnDB<uint32_t, PNGTexOffEntr
             }
         }
 };
-
-using PNGTexOffDBN = PNGTexOffDB<2048>;

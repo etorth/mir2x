@@ -17,7 +17,9 @@
  */
 
 #include "invpack.hpp"
-#include "pngtexdbn.hpp"
+#include "pngtexdb.hpp"
+
+extern PNGTexDB *g_CommonItemDB;
 
 bool InvPack::Repack()
 {
@@ -85,8 +87,7 @@ bool InvPack::Remove(uint32_t nItemID, int nX, int nY)
 
 PackBin InvPack::MakePackBin(uint32_t nItemID)
 {
-    extern PNGTexDBN *g_CommonItemDBN;
-    if(auto pTexture = g_CommonItemDBN->Retrieve(nItemID - 1)){
+    if(auto pTexture = g_CommonItemDB->Retrieve(nItemID - 1)){
 
         int nItemPW = -1;
         int nItemPH = -1;

@@ -169,6 +169,8 @@ struct AMTrySpaceMove
 struct AMSpaceMoveOK
 {
     void *Ptr;
+    int X;
+    int Y;
 };
 
 struct AMTryMove

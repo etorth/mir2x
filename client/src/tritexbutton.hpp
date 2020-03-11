@@ -19,7 +19,7 @@
 
 #pragma once
 #include <array>
-#include "pngtexdbn.hpp"
+#include "pngtexdb.hpp"
 #include "sdldevice.hpp"
 #include "buttonbase.hpp"
 
@@ -76,8 +76,8 @@ class TritexButton: public ButtonBase
             int nH = 0;
             for(int nState = 0; nState < 3; ++nState){
                 if(m_TexID[nState]){
-                    extern PNGTexDBN *g_ProgUseDBN;
-                    if(auto pTexture = g_ProgUseDBN->Retrieve(m_TexID[nState])){
+                    extern PNGTexDB *g_ProgUseDB;
+                    if(auto pTexture = g_ProgUseDB->Retrieve(m_TexID[nState])){
                         int nCurrW, nCurrH;
                         if(!SDL_QueryTexture(pTexture, nullptr, nullptr, &nCurrW, &nCurrH)){
                             nW = (std::max<int>)(nCurrW, nW);

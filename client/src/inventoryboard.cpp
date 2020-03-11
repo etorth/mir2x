@@ -16,10 +16,15 @@
  * =====================================================================================
  */
 
-#include "pngtexdbn.hpp"
+#include "pngtexdb.hpp"
 #include "sdldevice.hpp"
 #include "processrun.hpp"
 #include "inventoryboard.hpp"
+
+extern PNGTexDB *g_ProgUseDB;
+extern PNGTexDB *g_ProgUseDB;
+extern PNGTexDB *g_CommonItemDB;
+extern SDLDevice *g_SDLDevice;
 
 InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, Widget *pWidget, bool bAutoFree)
     : Widget(nX, nY, 0, 0, pWidget, bAutoFree)
@@ -42,8 +47,7 @@ InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, Widget *pWidget
             false)
     , m_ProcessRun(pRun)
 {
-    extern PNGTexDBN *g_ProgUseDBN;
-    if(auto pTexture = g_ProgUseDBN->Retrieve(0X0000001B)){
+    if(auto pTexture = g_ProgUseDB->Retrieve(0X0000001B)){
         SDL_QueryTexture(pTexture, nullptr, nullptr, &m_W, &m_H);
     }
 }
@@ -57,8 +61,7 @@ void InventoryBoard::DrawItem(int nDstX, int nDstY, const PackBin &rstBin)
             && rstBin.W >  0
             && rstBin.H >  0){
 
-        extern PNGTexDBN *g_CommonItemDBN;
-        if(auto pTexture = g_CommonItemDBN->Retrieve(rstBin.ID - 1)){
+        if(auto pTexture = g_CommonItemDB->Retrieve(rstBin.ID - 1)){
 
             int nItemPW = -1;
             int nItemPH = -1;
@@ -67,7 +70,6 @@ void InventoryBoard::DrawItem(int nDstX, int nDstY, const PackBin &rstBin)
                 const int nInvGridX0 = 18;
                 const int nInvGridY0 = 59;
 
-                extern SDLDevice *g_SDLDevice;
                 g_SDLDevice->DrawTexture(pTexture, 
                         nDstX + nInvGridX0 + rstBin.X * SYS_INVGRIDPW + (rstBin.W * SYS_INVGRIDPW - nItemPW) / 2,
                         nDstY + nInvGridY0 + rstBin.Y * SYS_INVGRIDPH + (rstBin.H * SYS_INVGRIDPH - nItemPH) / 2);
@@ -78,9 +80,7 @@ void InventoryBoard::DrawItem(int nDstX, int nDstY, const PackBin &rstBin)
 
 void InventoryBoard::DrawEx(int nDstX, int nDstY, int, int, int, int)
 {
-    extern SDLDevice *g_SDLDevice;
-    extern PNGTexDBN *g_ProgUseDBN;
-    if(auto pTexture = g_ProgUseDBN->Retrieve(0X0000001B)){
+    if(auto pTexture = g_ProgUseDB->Retrieve(0X0000001B)){
         g_SDLDevice->DrawTexture(pTexture, nDstX, nDstY);
     }
 
