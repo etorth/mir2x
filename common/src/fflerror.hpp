@@ -19,4 +19,4 @@
 #pragma once
 #include <stdexcept>
 #include "strfunc.hpp"
-#define fflerror(...) std::runtime_error(str_ffl() + ": " + str_printf(__VA_ARGS__));
+#define fflerror(...) std::runtime_error(str_ffl() + ": " + str_printf(__VA_ARGS__))

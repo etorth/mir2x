@@ -71,6 +71,10 @@ bool PreviewWindow::LoadImage()
         CalcPixelAutoAlpha(m_Buf.data(), m_Buf.size());
     }
 
+    if(g_MainWindow->ShadowRemovalEnabled()){
+        CalcShadowRemovalAlpha(m_Buf.data(), nW, nH, 0X80000000);
+    }
+
     m_Image = std::make_unique<Fl_RGB_Image>((uchar *)(m_Buf.data()), nW, nH, 4);
     m_ImageIndex.emplace(g_MainWindow->SelectedImageIndex());
 

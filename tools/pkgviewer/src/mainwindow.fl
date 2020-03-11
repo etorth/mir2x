@@ -22,19 +22,18 @@ decl {\#include "wilimagepackage.hpp"} {private local
 
 class MainWindow {open
 } {
-  Function {MainWindow()} {open
-  } {
+  Function {MainWindow()} {} {
     Fl_Window m_Window {
       label pkgviewer
       callback {{
 	// don't exit directly
 	// exit(0);
-}} open
-      private xywh {1 41 555 605} type Double labelfont 4
+}}
+      private xywh {536 205 555 605} type Double labelfont 4
       code0 {\#include <FL/fl_ask.H>} visible
     } {
       Fl_Menu_Bar m_MenuBar {
-        label {Auto alpha} open
+        label {Auto alpha}
         private xywh {0 0 600 20} box FLAT_BOX labelfont 4 textfont 4
       } {
         Submenu {} {
@@ -183,8 +182,13 @@ class MainWindow {open
 
                     std::vector<uint32_t> stvBuf(nW * nH);
                     g_WilPackage.Decode(&(stvBuf[0]), 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF);
+
                     if(AutoAlphaEnabled()){
                         CalcPixelAutoAlpha(stvBuf.data(), stvBuf.size());
+                    }
+
+                    if(ShadowRemovalEnabled()){
+                        CalcShadowRemovalAlpha(stvBuf.data(), nW, nH, 0X80000000);
                     }
 
                     auto nDX = g_WilPackage.CurrentImageInfo().shPX;
@@ -264,8 +268,13 @@ class MainWindow {open
                     stvBuf.resize(nW * nH);
 
                     g_WilPackage.Decode(stvBuf.data(), 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF);
+
                     if(AutoAlphaEnabled()){
                         CalcPixelAutoAlpha(stvBuf.data(), stvBuf.size());
+                    }
+
+                    if(ShadowRemovalEnabled()){
+                        CalcShadowRemovalAlpha(stvBuf.data(), nW, nH, 0X80000000);
                     }
 
                     auto nDX = g_WilPackage.CurrentImageInfo().shPX;
@@ -303,7 +312,7 @@ class MainWindow {open
           }
         }
         Submenu {} {
-          label Config open
+          label Config
           xywh {0 0 70 21} labelfont 4
         } {
           MenuItem m_MenuItemSaveOffset {
@@ -440,6 +449,12 @@ if(g_WilPackage.CurrentImageValid()){
   } {
     code {{
     return m_MenuItemAutoAlpha->value();
+}} {}
+  }
+  Function {ShadowRemovalEnabled()} {return_type bool
+  } {
+    code {{
+    return m_MenuItemAutoAlphaShadow->value();
 }} {}
   }
   Function {SaveOffsetEnabled()} {return_type bool

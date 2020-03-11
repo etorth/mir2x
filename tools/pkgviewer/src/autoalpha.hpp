@@ -21,3 +21,4 @@
 #include <cstddef>
 
 void CalcPixelAutoAlpha(uint32_t *, size_t);
+void CalcShadowRemovalAlpha(uint32_t *, size_t, size_t, uint32_t);
