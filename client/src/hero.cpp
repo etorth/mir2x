@@ -355,7 +355,7 @@ bool Hero::ParseAction(const ActionNode &rstAction)
             {
                 // take this as cirtical
                 // server use ReportStand() to do location sync
-                const auto motionQueue = MakeMotionWalkQueue(endX, endY, rstAction.X, rstAction.Y, SYS_MINSPEED);
+                const auto motionQueue = MakeMotionWalkQueue(endX, endY, rstAction.X, rstAction.Y, SYS_MAXSPEED);
                 m_forceMotionQueue.insert(m_forceMotionQueue.end(), motionQueue.begin(), motionQueue.end());
                 break;
             }
@@ -363,7 +363,7 @@ bool Hero::ParseAction(const ActionNode &rstAction)
         case ACTION_SPELL:
         case ACTION_ATTACK:
             {
-                m_MotionQueue = MakeMotionWalkQueue(endX, endY, rstAction.X, rstAction.Y, SYS_MINSPEED);
+                m_MotionQueue = MakeMotionWalkQueue(endX, endY, rstAction.X, rstAction.Y, SYS_MAXSPEED);
                 break;
             }
         case ACTION_SPACEMOVE2:

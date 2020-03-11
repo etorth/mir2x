@@ -349,12 +349,12 @@ bool Monster::ParseAction(const ActionNode &rstAction)
         case ACTION_ATTACK:
         case ACTION_HITTED:
             {
-                m_MotionQueue = MakeMotionWalkQueue(endX, endY, rstAction.X, rstAction.Y, SYS_MINSPEED);
+                m_MotionQueue = MakeMotionWalkQueue(endX, endY, rstAction.X, rstAction.Y, SYS_MAXSPEED);
                 break;
             }
         case ACTION_DIE:
             {
-                const auto motionQueue = MakeMotionWalkQueue(endX, endY, rstAction.X, rstAction.Y, SYS_MINSPEED);
+                const auto motionQueue = MakeMotionWalkQueue(endX, endY, rstAction.X, rstAction.Y, SYS_MAXSPEED);
                 m_forceMotionQueue.insert(m_forceMotionQueue.end(), motionQueue.begin(), motionQueue.end());
                 break;
             }
