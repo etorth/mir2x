@@ -716,7 +716,7 @@ void Player::OnCMActionSpell(CMAction stCMA)
 
                 Delay(600, [this, stSMFM]()
                 {
-                    AddMonster(DBCOM_MONSTERID(u8"变异骷髅"), stSMFM.AimX, stSMFM.AimY, true);
+                    AddMonster(DBCOM_MONSTERID(u8"变异骷髅"), stSMFM.AimX, stSMFM.AimY, false);
 
                     // AddMonster will send ACTION_SPAWN to client
                     // client then use it to play the magic for 召唤骷髅, we don't send magic message here

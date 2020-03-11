@@ -807,17 +807,17 @@ int CharObject::Speed(int nSpeedType) const
     }
 }
 
-void CharObject::AddMonster(uint32_t nMonsterID, int nX, int nY, bool bRandom)
+void CharObject::AddMonster(uint32_t nMonsterID, int nX, int nY, bool bStrictLoc)
 {
     AMAddCharObject stAMACO;
     std::memset(&stAMACO, 0, sizeof(stAMACO));
 
     stAMACO.Type = TYPE_MONSTER;
 
-    stAMACO.Common.MapID  = m_Map->ID();
-    stAMACO.Common.X      = nX;
-    stAMACO.Common.Y      = nY;
-    stAMACO.Common.Random = bRandom;
+    stAMACO.Common.MapID     = m_Map->ID();
+    stAMACO.Common.X         = nX;
+    stAMACO.Common.Y         = nY;
+    stAMACO.Common.StrictLoc = bStrictLoc;
 
     stAMACO.Monster.MonsterID = nMonsterID;
     stAMACO.Monster.MasterUID = UID();

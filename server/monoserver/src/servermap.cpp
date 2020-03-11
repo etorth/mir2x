@@ -25,6 +25,7 @@
 #include "actorpod.hpp"
 #include "mathfunc.hpp"
 #include "sysconst.hpp"
+#include "fflerror.hpp"
 #include "mapbindb.hpp"
 #include "condcheck.hpp"
 #include "servermap.hpp"
@@ -265,7 +266,7 @@ bool ServerMap::GroundValid(int nX, int nY) const
         && m_Mir2xMapData.Cell(nX, nY).CanThrough();
 }
 
-bool ServerMap::CanMove(bool bCheckCO, bool bCheckLock, int nX, int nY)
+bool ServerMap::CanMove(bool bCheckCO, bool bCheckLock, int nX, int nY) const
 {
     if(GroundValid(nX, nY)){
         if(bCheckCO){
@@ -413,91 +414,40 @@ double ServerMap::OneStepCost(int nCheckCO, int nCheckLock, int nX0, int nY0, in
     return 1.00 + nMaxIndex * 0.10 + fExtraPen;
 }
 
-bool ServerMap::GetValidGrid(int *pX, int *pY, bool bRandom)
+std::tuple<bool, int, int> ServerMap::GetValidGrid(bool bCheckCO, bool bCheckLock, int nCheckCount) const
 {
-    if(pX && pY){
+    for(int nIndex = 0; (nCheckCount <= 0) || (nIndex < nCheckCount); ++nIndex){
+        int nX = std::rand() % W();
+        int nY = std::rand() % H();
 
-        auto nX = *pX;
-        auto nY = *pY;
-
-        bool bValidLoc = true;
-        if(false
-                || !In(ID(), nX, nY)
-                || !CanMove(true, true, nX, nY)){
-
-            // have to check if we can do random pick
-            // the location field provides an invalid location
-            bValidLoc = false;
-
-            if(bRandom){
-                if(In(ID(), nX, nY)){
-                    // OK we failed to add monster at the specified location
-                    // but still to try to add near it
-                }else{
-                    // randomly pick one
-                    // an invalid location provided
-                    nX = std::rand() % W();
-                    nY = std::rand() % H();
-                }
-
-                RotateCoord stRC;
-                if(stRC.Reset(nX, nY, 0, 0, W(), H())){
-                    do{
-                        if(true
-                                && In(ID(), stRC.X(), stRC.Y())
-                                && CanMove(true, true, stRC.X(), stRC.Y())){
-
-                            // find a valid location
-                            // use it to add new charobject
-                            bValidLoc = true;
-
-                            nX = stRC.X();
-                            nY = stRC.Y();
-                            break;
-                        }
-                    }while(stRC.Forward());
-                }
-            }
+        if(In(ID(), nX, nY) && CanMove(bCheckCO, bCheckLock, nX, nY)){
+            return {true, nX, nY};
         }
-
-        // if we get the valid location, output it
-        // otherwise we keep it un-touched
-
-        if(bValidLoc){
-
-            *pX = nX;
-            *pY = nY;
-        }
-
-        return bValidLoc;
     }
-    return false;
+    return {false, -1, -1};
 }
 
-bool ServerMap::RandomLocation(int *pX, int *pY)
+std::tuple<bool, int, int> ServerMap::GetValidGrid(bool bCheckCO, bool bCheckLock, int nCheckCount, int nX, int nY) const
 {
-    for(int nX = 0; nX < W(); ++nX){
-        for(int nY = 0; nY < H(); ++nY){
-            if(CanMove(false, false, nX, nY)){
-                if(pX){ *pX = nX; }
-                if(pY){ *pY = nY; }
-                return true;
-            }
-        }
+    if(!In(ID(), nX, nY)){
+        throw fflerror("Invalid location: (%d, %d)", nX, nY);
     }
-    return false;
-}
 
-bool ServerMap::Empty()
-{
-    for(int nX = 0; nX < W(); ++nX){
-        for(int nY = 0; nY < H(); ++nY){
-            if(CanMove(true, true, nX, nY)){
-                return false;
-            }
+    RotateCoord stRC(nX, nY, 0, 0, W(), H());
+    for(int nIndex = 0; (nCheckCount <= 0) || (nIndex < nCheckCount); ++nIndex){
+
+        int nCurrX = stRC.X();
+        int nCurrY = stRC.Y();
+
+        if(In(ID(), nCurrX, nCurrY) && CanMove(bCheckCO, bCheckLock, nCurrX, nCurrY)){
+            return {true, nCurrX, nCurrY};
+        }
+
+        if(!stRC.Forward()){
+            return {false, -1, -1};
         }
     }
-    return true;
+    return {false, -1, -1};
 }
 
 uint64_t ServerMap::Activate()
@@ -511,14 +461,14 @@ uint64_t ServerMap::Activate()
     return 0;
 }
 
-void ServerMap::AddGridUID(uint64_t nUID, int nX, int nY)
+void ServerMap::AddGridUID(uint64_t nUID, int nX, int nY, bool bForce)
 {
-    if(true
-            && ValidC(nX, nY)
-            && GroundValid(nX, nY)){
+    if(!ValidC(nX, nY)){
+        throw fflerror("Invalid location: (%d, %d)", nX, nY);
+    }
 
-        auto &rstUIDList = GetUIDListRef(nX, nY);
-        if(std::find(rstUIDList.begin(), rstUIDList.end(), nUID) == rstUIDList.end()){
+    if(bForce || GroundValid(nX, nY)){
+        if(auto &rstUIDList = GetUIDListRef(nX, nY); std::find(rstUIDList.begin(), rstUIDList.end(), nUID) == rstUIDList.end()){
             rstUIDList.push_back(nUID);
         }
     }
@@ -526,16 +476,19 @@ void ServerMap::AddGridUID(uint64_t nUID, int nX, int nY)
 
 void ServerMap::RemoveGridUID(uint64_t nUID, int nX, int nY)
 {
-    if(true
-            && ValidC(nX, nY)
-            && GroundValid(nX, nY)){
+    if(!ValidC(nX, nY)){
+        throw fflerror("Invalid location: (%d, %d)", nX, nY);
+    }
 
-        auto &rstUIDList = GetUIDListRef(nX, nY);
-        auto pUIDRecord  = std::find(rstUIDList.begin(), rstUIDList.end(), nUID);
+    auto &rstUIDList = GetUIDListRef(nX, nY);
+    auto  pUIDRecord = std::find(rstUIDList.begin(), rstUIDList.end(), nUID);
 
-        if(pUIDRecord != rstUIDList.end()){
-            std::swap(rstUIDList.back(), *pUIDRecord);
-            rstUIDList.pop_back();
+    if(pUIDRecord != rstUIDList.end()){
+        std::swap(rstUIDList.back(), *pUIDRecord);
+        rstUIDList.pop_back();
+
+        if(rstUIDList.size() * 2 < rstUIDList.capacity()){
+            rstUIDList.shrink_to_fit();
         }
     }
 }
@@ -634,25 +587,23 @@ bool ServerMap::DoCenterCircle(int nCX0, int nCY0, int nCR, bool bPriority, cons
         // get the clip region over the map
         // if no valid region we won't do the rest
 
-        RotateCoord stRC;
-        if(stRC.Reset(nCX0, nCY0, nX0, nY0, nW, nH)){
-            do{
-                int nX = stRC.X();
-                int nY = stRC.Y();
+        RotateCoord stRC(nCX0, nCY0, nX0, nY0, nW, nH);
+        do{
+            const int nX = stRC.X();
+            const int nY = stRC.Y();
 
-                if(true || ValidC(nX, nY)){
-                    if(MathFunc::LDistance2(nX, nY, nCX0, nCY0) <= (nCR - 1) * (nCR - 1)){
-                        if(!fnOP){
-                            return false;
-                        }
+            if(true || ValidC(nX, nY)){
+                if(MathFunc::LDistance2(nX, nY, nCX0, nCY0) <= (nCR - 1) * (nCR - 1)){
+                    if(!fnOP){
+                        return false;
+                    }
 
-                        if(fnOP(nX, nY)){
-                            return true;
-                        }
+                    if(fnOP(nX, nY)){
+                        return true;
                     }
                 }
-            }while(stRC.Forward());
-        }
+            }
+        }while(stRC.Forward());
     }
     return false;
 }
@@ -674,23 +625,21 @@ bool ServerMap::DoCenterSquare(int nCX, int nCY, int nW, int nH, bool bPriority,
         // get the clip region over the map
         // if no valid region we won't do the rest
 
-        RotateCoord stRC;
-        if(stRC.Reset(nCX, nCY, nX0, nY0, nW, nH)){
-            do{
-                int nX = stRC.X();
-                int nY = stRC.Y();
+        RotateCoord stRC(nCX, nCY, nX0, nY0, nW, nH);
+        do{
+            const int nX = stRC.X();
+            const int nY = stRC.Y();
 
-                if(true || ValidC(nX, nY)){
-                    if(!fnOP){
-                        return false;
-                    }
-
-                    if(fnOP(nX, nY)){
-                        return true;
-                    }
+            if(true || ValidC(nX, nY)){
+                if(!fnOP){
+                    return false;
                 }
-            }while(stRC.Forward());
-        }
+
+                if(fnOP(nX, nY)){
+                    return true;
+                }
+            }
+        }while(stRC.Forward());
     }
     return false;
 }
@@ -824,47 +773,65 @@ void ServerMap::NotifyNewCO(uint64_t nUID, int nX, int nY)
     });
 }
 
-Monster *ServerMap::AddMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nX, int nY, bool bRandom)
+Monster *ServerMap::AddMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHintX, int nHintY, bool bStrictLoc)
 {
-    if(GetValidGrid(&nX, &nY, bRandom)){
+    if(!ValidC(nHintX, nHintY)){
+        if(bStrictLoc){
+            return nullptr;
+        }
+
+        nHintX = std::rand() % W();
+        nHintY = std::rand() % H();
+    }
+
+    if(auto [bDstOK, nDstX, nDstY] = GetValidGrid(false, false, (int)(bStrictLoc), nHintX, nHintY); bDstOK){
         auto pMonster = new Monster
         {
             nMonsterID,
             m_ServiceCore,
             this,
-            nX,
-            nY,
+            nDstX,
+            nDstY,
             DIR_UP,
             nMasterUID,
         };
 
         pMonster->Activate();
 
-        AddGridUID(pMonster->UID(), nX, nY);
-        NotifyNewCO(pMonster->UID(), nX, nY);
+        AddGridUID (pMonster->UID(), nDstX, nDstY, true);
+        NotifyNewCO(pMonster->UID(), nDstX, nDstY);
 
         return pMonster;
     }
     return nullptr;
 }
 
-Player *ServerMap::AddPlayer(uint32_t nDBID, int nX, int nY, int nDirection, bool bRandom)
+Player *ServerMap::AddPlayer(uint32_t nDBID, int nHintX, int nHintY, int nDirection, bool bStrictLoc)
 {
-    if(GetValidGrid(&nX, &nY, bRandom)){
+    if(!ValidC(nHintX, nHintY)){
+        if(bStrictLoc){
+            return nullptr;
+        }
+
+        nHintX = std::rand() % W();
+        nHintY = std::rand() % H();
+    }
+
+    if(auto [bDstOK, nDstX, nDstY] = GetValidGrid(false, false, (int)(bStrictLoc), nHintX, nHintY); bDstOK){
         auto pPlayer = new Player
         {
             nDBID,
             m_ServiceCore,
             this,
-            nX,
-            nY,
+            nDstX,
+            nDstY,
             nDirection,
         };
 
         pPlayer->Activate();
 
-        AddGridUID(pPlayer->UID(), nX, nY);
-        NotifyNewCO(pPlayer->UID(), nX, nY);
+        AddGridUID (pPlayer->UID(), nDstX, nDstY, true);
+        NotifyNewCO(pPlayer->UID(), nDstX, nDstY);
 
         return pPlayer;
     }
@@ -950,7 +917,7 @@ bool ServerMap::RegisterLuaExport(ServerMap::ServerMapLuaModule *pModule)
             switch(stArgList.size()){
                 case 0:
                     {
-                        return AddMonster(nMonsterID, 0, -1, -1, true);
+                        return AddMonster(nMonsterID, 0, -1, -1, false);
                     }
                 case 2:
                     {
@@ -961,7 +928,7 @@ bool ServerMap::RegisterLuaExport(ServerMap::ServerMapLuaModule *pModule)
                             auto nX = stArgList[0].as<int>();
                             auto nY = stArgList[1].as<int>();
 
-                            return AddMonster(nMonsterID, 0, nX, nY, true);
+                            return AddMonster(nMonsterID, 0, nX, nY, false);
                         }
                         break;
                     }
@@ -972,11 +939,11 @@ bool ServerMap::RegisterLuaExport(ServerMap::ServerMapLuaModule *pModule)
                                 && stArgList[1].is<int >()
                                 && stArgList[2].is<bool>()){
 
-                            auto nX      = stArgList[0].as<int >();
-                            auto nY      = stArgList[1].as<int >();
-                            auto bRandom = stArgList[2].as<bool>();
+                            const auto nX = stArgList[0].as<int >();
+                            const auto nY = stArgList[1].as<int >();
+                            const auto bStrictLoc = stArgList[2].as<bool>();
 
-                            return AddMonster(nMonsterID, 0, nX, nY, bRandom);
+                            return AddMonster(nMonsterID, 0, nX, nY, bStrictLoc);
                         }
                         break;
                     }

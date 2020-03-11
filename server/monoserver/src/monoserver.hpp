@@ -125,7 +125,7 @@ class MonoServer final
                 uint32_t,               // map id
                 int,                    // x
                 int,                    // y
-                bool);                  // do random throw if (x, y) is invalid
+                bool);                  // use strict loc
 
     public:
         uint32_t GetTimeTick() const

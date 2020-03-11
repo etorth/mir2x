@@ -60,34 +60,38 @@ void ServiceCore::On_MPK_ADDCHAROBJECT(const MessagePack &rstMPK)
     AMAddCharObject stAMACO;
     std::memcpy(&stAMACO, rstMPK.Data(), sizeof(stAMACO));
 
-    if(stAMACO.Common.MapID){
-        if(auto pMap = RetrieveMap(stAMACO.Common.MapID)){
-            if(false
-                    || stAMACO.Common.Random
-                    || pMap->In(stAMACO.Common.MapID, stAMACO.Common.X, stAMACO.Common.Y)){
-
-                m_ActorPod->Forward(pMap->UID(), {MPK_ADDCHAROBJECT, stAMACO}, [this, stAMACO, rstMPK](const MessagePack &rstRMPK)
-                {
-                    switch(rstRMPK.Type()){
-                        case MPK_OK:
-                            {
-                                m_ActorPod->Forward(rstMPK.From(), MPK_OK, rstMPK.ID());
-                                break;
-                            }
-                        default:
-                            {
-                                m_ActorPod->Forward(rstMPK.From(), MPK_ERROR, rstMPK.ID());
-                                break;
-                            }
-                    }
-                });
-                return;
-            }
-        }
+    if(!stAMACO.Common.MapID){
+        m_ActorPod->Forward(rstMPK.From(), MPK_ERROR, rstMPK.ID());
+        return;
     }
 
-    // invalid location info, return error directly
-    m_ActorPod->Forward(rstMPK.From(), MPK_ERROR, rstMPK.ID());
+    auto pMap = RetrieveMap(stAMACO.Common.MapID);
+
+    if(!pMap){
+        m_ActorPod->Forward(rstMPK.From(), MPK_ERROR, rstMPK.ID());
+        return;
+    }
+
+    if(!pMap->In(stAMACO.Common.MapID, stAMACO.Common.X, stAMACO.Common.Y) && stAMACO.Common.StrictLoc){
+        m_ActorPod->Forward(rstMPK.From(), MPK_ERROR, rstMPK.ID());
+        return;
+    }
+
+    m_ActorPod->Forward(pMap->UID(), {MPK_ADDCHAROBJECT, stAMACO}, [this, stAMACO, rstMPK](const MessagePack &rstRMPK)
+    {
+        switch(rstRMPK.Type()){
+            case MPK_OK:
+                {
+                    m_ActorPod->Forward(rstMPK.From(), MPK_OK, rstMPK.ID());
+                    break;
+                }
+            default:
+                {
+                    m_ActorPod->Forward(rstMPK.From(), MPK_ERROR, rstMPK.ID());
+                    break;
+                }
+        }
+    });
 }
 
 void ServiceCore::On_MPK_QUERYMAPLIST(const MessagePack &rstMPK)

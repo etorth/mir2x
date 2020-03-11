@@ -322,17 +322,17 @@ void MonoServer::Restart()
     NotifyGUI("Restart");
 }
 
-bool MonoServer::AddMonster(uint32_t nMonsterID, uint32_t nMapID, int nX, int nY, bool bRandom)
+bool MonoServer::AddMonster(uint32_t nMonsterID, uint32_t nMapID, int nX, int nY, bool bStrictLoc)
 {
     AMAddCharObject stAMACO;
     std::memset(&stAMACO, 0, sizeof(stAMACO));
 
     stAMACO.Type = TYPE_MONSTER;
 
-    stAMACO.Common.MapID  = nMapID;
-    stAMACO.Common.X      = nX;
-    stAMACO.Common.Y      = nY;
-    stAMACO.Common.Random = bRandom;
+    stAMACO.Common.MapID     = nMapID;
+    stAMACO.Common.X         = nX;
+    stAMACO.Common.Y         = nY;
+    stAMACO.Common.StrictLoc = bStrictLoc;
 
     stAMACO.Monster.MonsterID = nMonsterID;
     stAMACO.Monster.MasterUID = 0;
@@ -681,7 +681,7 @@ bool MonoServer::RegisterLuaExport(CommandLuaModule *pModule, uint32_t nCWID)
             switch(stArgList.size()){
                 case 0:
                     {
-                        return AddMonster((uint32_t)(nMonsterID), (uint32_t)(nMapID), -1, -1, true);
+                        return AddMonster((uint32_t)(nMonsterID), (uint32_t)(nMapID), -1, -1, false);
                     }
                 case 1:
                     {

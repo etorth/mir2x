@@ -83,7 +83,7 @@ void ServiceCore::Net_CM_Login(uint32_t nChannID, uint8_t, const uint8_t *pData,
     stAMACO.Common.MapID     = nMapID;
     stAMACO.Common.X         = nMapX;
     stAMACO.Common.Y         = nMapY;
-    stAMACO.Common.Random    = true;
+    stAMACO.Common.StrictLoc = false;
     stAMACO.Player.DBID      = nDBID;
     stAMACO.Player.Direction = nDirection;
     stAMACO.Player.ChannID   = nChannID;

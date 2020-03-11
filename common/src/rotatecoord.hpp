@@ -3,7 +3,7 @@
  *
  *       Filename: rotatecoord.hpp
  *        Created: 08/15/2015 04:01:57
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -20,49 +20,63 @@
 class RotateCoord
 {
     private:
-        bool m_Overlap[4];
-
-    private:
-        int m_CurrentX;
-        int m_CurrentY;
-
-    private:
-        int m_CenterX;
-        int m_CenterY;
-
-    private:
-        int m_StartX;
-        int m_StartY;
-        int m_StopX;
-        int m_StopY;
-
-    private:
-        int m_Distance;
-
-    private:
+        // define the direction current x/y increments
         //      2
         //  <-------A
         //  |       |
         // 3|       |1
         //  |   0   |
         //  v------->
-        int  m_Direction;
+        //
+        enum class DirType
+        {
+            DIR_0 = 0,
+            DIR_1,
+            DIR_2,
+            DIR_3,
+        };
+
+    private:
+        const int m_CenterX;
+        const int m_CenterY;
+
+    private:
+        const int m_StartX;
+        const int m_StartY;
+        const int m_StopX;
+        const int m_StopY;
+
+    private:
+        int m_Distance;
+
+    private:
+        DirType m_Direction;
+
+    private:
+        int m_CurrentX;
+        int m_CurrentY;
+
+    private:
+        bool m_Overlap[4];
 
     public:
-        RotateCoord() = default;
-       ~RotateCoord() = default;
+        RotateCoord(int, int, int, int, int, int);
 
     public:
-        int X() const { return m_CurrentX; }
-        int Y() const { return m_CurrentY; }
+        ~RotateCoord() = default;
 
     public:
-        bool Reset(int,
-                int,
-                int,
-                int,
-                int,
-                int);
+        int X() const
+        {
+            return m_CurrentX;
+        }
+
+        int Y() const
+        {
+            return m_CurrentY;
+        }
+
+    public:
         bool Forward();
 
     private:

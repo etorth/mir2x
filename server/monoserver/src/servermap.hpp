@@ -18,6 +18,7 @@
 
 #pragma once
 
+#include <tuple>
 #include <vector>
 #include <cstdint>
 
@@ -123,8 +124,7 @@ class ServerMap final: public ServerObject
         bool GroundValid(int, int) const;
 
     protected:
-        bool CanMove(bool, bool, int, int);
-        bool CanMove(bool, bool, int, int, int, int);
+        bool CanMove(bool, bool, int, int) const;
 
     protected:
         double OneStepCost(int, int, int, int, int, int) const;
@@ -164,15 +164,12 @@ class ServerMap final: public ServerObject
         bool Load(const char *);
 
     private:
-        void AddGridUID(uint64_t, int, int);
+        void    AddGridUID(uint64_t, int, int, bool);
         void RemoveGridUID(uint64_t, int, int);
 
     private:
-        bool Empty();
-        bool RandomLocation(int *, int *);
-
-    private:
-        bool GetValidGrid(int *, int *, bool);
+        [[maybe_unused]] std::tuple<bool, int, int> GetValidGrid(bool, bool, int) const;
+        [[maybe_unused]] std::tuple<bool, int, int> GetValidGrid(bool, bool, int, int, int) const;
 
     private:
         void NotifyNewCO(uint64_t, int, int);

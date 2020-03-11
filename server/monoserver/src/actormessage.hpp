@@ -117,7 +117,7 @@ union AMAddCharObject
         int X;
         int Y;
 
-        bool Random;
+        bool StrictLoc;
     }Common;
 
     struct _Monster
