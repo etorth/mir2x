@@ -21,6 +21,7 @@
 #include "dbcomid.hpp"
 #include "monster.hpp"
 #include "mathfunc.hpp"
+#include "fflerror.hpp"
 #include "actorpod.hpp"
 #include "svobuffer.hpp"
 #include "condcheck.hpp"
@@ -290,7 +291,7 @@ void CharObject::DispatchAction(uint64_t nUID, const ActionNode &rstAction)
     m_ActorPod->Forward(nUID, {MPK_ACTION, stAMA});
 }
 
-bool CharObject::RequestMove(int nX, int nY, int nSpeed, bool bAllowHalfMove, std::function<void()> fnOnMoveOK, std::function<void()> fnOnMoveError)
+bool CharObject::RequestMove(int nX, int nY, int nSpeed, bool bAllowHalfMove, bool bRemoveMonster, std::function<void()> fnOnMoveOK, std::function<void()> fnOnMoveError)
 {
     if(!CanMove()){
         fnOnMoveError();
@@ -300,6 +301,10 @@ bool CharObject::RequestMove(int nX, int nY, int nSpeed, bool bAllowHalfMove, st
     if(EstimateHop(nX, nY) != 1){
         fnOnMoveError();
         return false;
+    }
+
+    if(bRemoveMonster){
+        throw fflerror("RemoveMonster in RequestMove() not implemented yet");
     }
 
     switch(MathFunc::LDistance2(X(), Y(), nX, nY)){
@@ -351,6 +356,7 @@ bool CharObject::RequestMove(int nX, int nY, int nSpeed, bool bAllowHalfMove, st
     stAMTM.EndX          = nX;
     stAMTM.EndY          = nY;
     stAMTM.AllowHalfMove = bAllowHalfMove;
+    stAMTM.RemoveMonster = bRemoveMonster;
 
     m_MoveLock = true;
     return m_ActorPod->Forward(MapUID(), {MPK_TRYMOVE, stAMTM}, [this, nX, nY, nSpeed, fnOnMoveOK, fnOnMoveError](const MessagePack &rstMPK)

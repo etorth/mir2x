@@ -185,6 +185,7 @@ struct AMTryMove
     int EndY;
 
     bool AllowHalfMove;
+    bool RemoveMonster;
 };
 
 struct AMMoveOK

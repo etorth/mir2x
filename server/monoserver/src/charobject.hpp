@@ -324,6 +324,7 @@ class CharObject: public ServerObject
                 int,                    // nY, should be one hop distance
                 int,                    // nSpeed, move speed
                 bool,                   // bAllowHalfMove, tolerate CO occupied error
+                bool,                   // bRemoveMonster, force monster on (nX, nY) go to somewhere else to make room
                 std::function<void()>,  // fnOnOK
                 std::function<void()>); // fnOnError
 
