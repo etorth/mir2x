@@ -344,8 +344,9 @@ bool Hero::ParseAction(const ActionNode &rstAction)
     m_CurrMotion.Speed = SYS_MAXSPEED;
     m_MotionQueue.clear();
 
-    const int endX = m_forceMotionQueue.empty() ? m_CurrMotion.EndX : m_forceMotionQueue.back().EndX;
-    const int endY = m_forceMotionQueue.empty() ? m_CurrMotion.EndY : m_forceMotionQueue.back().EndY;
+    const int endX   = m_forceMotionQueue.empty() ? m_CurrMotion.EndX      : m_forceMotionQueue.back().EndX;
+    const int endY   = m_forceMotionQueue.empty() ? m_CurrMotion.EndY      : m_forceMotionQueue.back().EndY;
+    const int endDir = m_forceMotionQueue.empty() ? m_CurrMotion.Direction : m_forceMotionQueue.back().Direction;
 
     // 1. prepare before parsing action
     //    additional movement added if necessary but in rush
@@ -485,9 +486,9 @@ bool Hero::ParseAction(const ActionNode &rstAction)
                 m_MotionQueue.emplace_front(
                         OnHorse() ? MOTION_ONHORSEHITTED : MOTION_HITTED,
                         0,
-                        m_CurrMotion.Direction,
-                        m_CurrMotion.EndX,
-                        m_CurrMotion.EndY);
+                        endDir,
+                        endX,
+                        endY);
                 break;
             }
         case ACTION_PICKUP:
