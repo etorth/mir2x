@@ -15,19 +15,19 @@
     </Window>
 
 
-    <Font><FontexDBN>Res/Font/FontexDBN.ZSDB</FontexDBN></Font>
+    <Font><FontexDB>Res/Font/FontexDB.ZSDB</FontexDB></Font>
     <Texture>
-        <ProgUseDBN>Res/Texture/ProgUseDBN.ZSDB</ProgUseDBN>
-        <GroundItemDBN>Res/Texture/GroundItemDBN.ZSDB</GroundItemDBN>
-        <CommonItemDBN>Res/Texture/CommonItemDBN.ZSDB</CommonItemDBN>
-        <MapDBN>Res/Texture/MapDBN.ZSDB</MapDBN>
-        <HeroDBN>Res/Texture/HeroDBN.ZSDB</HeroDBN>
-        <MonsterDBN>Res/Texture/MonsterDBN.ZSDB</MonsterDBN>
-        <WeaponDBN>Res/Texture/WeaponDBN.ZSDB</WeaponDBN>
-        <MagicDBN>Res/Texture/MagicDBN.ZSDB</MagicDBN>
+        <ProgUseDB>Res/Texture/ProgUseDB.ZSDB</ProgUseDB>
+        <GroundItemDB>Res/Texture/GroundItemDB.ZSDB</GroundItemDB>
+        <CommonItemDB>Res/Texture/CommonItemDB.ZSDB</CommonItemDB>
+        <MapDB>Res/Texture/MapDB.ZSDB</MapDB>
+        <HeroDB>Res/Texture/HeroDB.ZSDB</HeroDB>
+        <MonsterDB>Res/Texture/MonsterDB.ZSDB</MonsterDB>
+        <WeaponDB>Res/Texture/WeaponDB.ZSDB</WeaponDB>
+        <MagicDB>Res/Texture/MagicDB.ZSDB</MagicDB>
     </Texture>
     <Map>
-        <MapBinDBN>Res/Map/MapBinDBN.ZSDB</MapBinDBN>
+        <MapBinDB>Res/Map/MapBinDB.ZSDB</MapBinDB>
     </Map>
     <Font>
         <FontFile Index="0">
