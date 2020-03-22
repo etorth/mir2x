@@ -25,7 +25,7 @@
 #endif
 #include "fflerror.hpp"
 
-inline auto &coro_get_main()
+inline auto &coro_get_main_coref()
 {
 #ifdef _MSC_VER
     thread_local LPVOID t_mainCO = nullptr;
@@ -37,22 +37,22 @@ inline auto &coro_get_main()
 
 inline void coro_init_thread()
 {
-    if(coro_get_main()){
+    if(coro_get_main_coref()){
         throw fflerror("Call coro_init_thread() twice");
     }
 
 #ifdef _MSC_VER
     {
-        coro_get_main() = ConvertThreadToFiber(nullptr);
+        coro_get_main_coref() = ConvertThreadToFiber(nullptr);
     }
 #else
     {
         aco_thread_init(nullptr);
-        coro_get_main() = aco_create(nullptr, nullptr, 0, nullptr, nullptr);
+        coro_get_main_coref() = aco_create(nullptr, nullptr, 0, nullptr, nullptr);
     }
 #endif
 
-    if(!coro_get_main()){
+    if(!coro_get_main_coref()){
         throw fflerror("Failed to allocate mainCO");
     }
 }
@@ -60,7 +60,7 @@ inline void coro_init_thread()
 inline void coro_yield()
 {
 #ifdef _MSC_VER
-    SwitchToFiber(coro_get_main());
+    SwitchToFiber(coro_get_main_coref());
 #else
     aco_yield();
 #endif
@@ -135,7 +135,7 @@ template<typename T> class coro final
         coro(coro_stack *sstk, T t)
             : m_func(t)
         {
-            if(!coro_get_main()){
+            if(!coro_get_main_coref()){
                 coro_init_thread();
             }
 
@@ -145,7 +145,7 @@ template<typename T> class coro final
                 {
                     reinterpret_cast<coro<T> *>(coptr)->m_func();
                     reinterpret_cast<coro<T> *>(coptr)->m_done = true;
-                    SwitchToFiber(coro_get_main());
+                    SwitchToFiber(coro_get_main_coref());
                 };
                 m_handle = CreateFiber(0, fnRoutine, (void *)(this));
             }
@@ -161,7 +161,7 @@ template<typename T> class coro final
                     m_stack = std::make_shared<coro_stack>();
                     sstk = m_stack.get();
                 }
-                m_handle = aco_create(coro_get_main(), sstk->m_stack, 0, fnRoutine, (void *)(this));
+                m_handle = aco_create(coro_get_main_coref(), sstk->m_stack, 0, fnRoutine, (void *)(this));
             }
 #endif
         }
@@ -185,14 +185,14 @@ template<typename T> class coro final
 
 #ifdef _MSC_VER
             {
-                if(GetCurrentFiber() != coro_get_main()){
+                if(GetCurrentFiber() != coro_get_main_coref()){
                     throw fflerror("Call coro_resume() not from mainCO");
                 }
                 SwitchToFiber(m_handle);
             }
 #else
             {
-                if(m_handle->main_co != coro_get_main()){
+                if(m_handle->main_co != coro_get_main_coref()){
                     throw fflerror("Call coro_resume() not from its mainCO");
                 }
                 aco_resume(m_handle);
@@ -207,9 +207,9 @@ template<typename T> class coro final
             }
 
 #ifdef _MSC_VER
-            return GetCurrentFiber() == coro_get_main();
+            return GetCurrentFiber() == coro_get_main_coref();
 #else
-            return m_handle->main_co == coro_get_main();
+            return m_handle->main_co == coro_get_main_coref();
 #endif
         }
 
