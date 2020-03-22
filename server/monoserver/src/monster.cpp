@@ -526,7 +526,7 @@ bool Monster::Update()
         }
     }
 
-    if(!m_UpdateCoro.exited()){
+    if(!m_UpdateCoro.is_done() && m_UpdateCoro.in_main()){
         m_UpdateCoro.coro_resume();
     }
     return true;

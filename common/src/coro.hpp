@@ -107,7 +107,7 @@ template<typename T> class coro final
 
 #ifdef _MSC_VER
     private:
-        bool m_exited = false;
+        bool m_done = false;
 #endif
 
     private:
@@ -144,7 +144,7 @@ template<typename T> class coro final
                 auto fnRoutine = [](void *coptr) -> void
                 {
                     reinterpret_cast<coro<T> *>(coptr)->m_func();
-                    reinterpret_cast<coro<T> *>(coptr)->m_exited = true;
+                    reinterpret_cast<coro<T> *>(coptr)->m_done = true;
                     SwitchToFiber(coro_get_main());
                 };
                 m_handle = CreateFiber(0, fnRoutine, (void *)(this));
@@ -179,8 +179,8 @@ template<typename T> class coro final
 
         void coro_resume()
         {
-            if(exited()){
-                throw fflerror("Resume an exited coroutine");
+            if(is_done()){
+                throw fflerror("Resume finished coroutine");
             }
 
 #ifdef _MSC_VER
@@ -200,10 +200,23 @@ template<typename T> class coro final
 #endif
         }
 
-        bool exited() const
+        bool in_main() const
+        {
+            if(is_done()){
+                throw fflerror("Resume finished coroutine");
+            }
+
+#ifdef _MSC_VER
+            return GetCurrentFiber() == coro_get_main();
+#else
+            return m_handle->main_co == coro_get_main();
+#endif
+        }
+
+        bool is_done() const
         {
 #ifdef _MSC_VER
-            return m_exited;
+            return m_done;
 #else
             return m_handle->is_end;
 #endif
