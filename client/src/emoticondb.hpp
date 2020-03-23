@@ -45,7 +45,7 @@
 //  [0 ~ 1] [2 ~ 5] [6 ~ 7] [8 ~ 9] [10 ~ 13] [14 ~ 17] [18 ~ 21].PNG
 //
 //  ESet    ESubset EFrame  FPS     FrameW    FrameH    FrameH1
-//  1Byte   2Bytes  1Byte   1Byte   2Bytes    2Bytes    2Byte
+//  1Byte   2Bytes  1Byte   1Byte   2Bytes    2Bytes    2Bytes
 //                  ------
 //                    ^
 //                    |
@@ -65,6 +65,17 @@ class EmoticonDB: public InnDB<uint32_t, EmojiEntry>
 {
     private:
         std::unique_ptr<ZSDB> m_ZSDBPtr;
+
+    public:
+        static uint32_t U32Key(uint8_t emojiSet, uint16_t emojiSubset)
+        {
+            return ((uint32_t)(emojiSet) << 24) | ((uint32_t)(emojiSubset) << 8);
+        }
+
+        static uint32_t U32Key(uint8_t emojiSet, uint16_t emojiSubset, uint8_t emojiIndex)
+        {
+            return U32Key(emojiSet, emojiSubset) | (uint32_t)(emojiIndex);
+        }
 
     public:
         EmoticonDB()

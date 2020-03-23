@@ -21,6 +21,7 @@
 #include "token.hpp"
 #include "lalign.hpp"
 #include "xmlfunc.hpp"
+#include "fflerror.hpp"
 #include "colorfunc.hpp"
 #include "xmlparagraph.hpp"
 

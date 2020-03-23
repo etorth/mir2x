@@ -24,6 +24,7 @@
 #include <stdexcept>
 #include <tinyxml2.h>
 #include "strfunc.hpp"
+#include "fflerror.hpp"
 
 constexpr int LEAF_UTF8GROUP = 0;
 constexpr int LEAF_IMAGE     = 1;
@@ -79,11 +80,11 @@ class XMLParagraphLeaf
         const std::vector<size_t> &UTF8CharOffRef() const
         {
             if(Type() != LEAF_UTF8GROUP){
-                throw std::runtime_error(str_fflprintf(": Leaf is not an utf8 string"));
+                throw fflerror("leaf is not an utf8 string");
             }
 
             if(m_UTF8CharOff.empty()){
-                throw std::runtime_error(str_fflprintf(": Utf8 token off doesn't initialized"));
+                throw fflerror("utf8 token off doesn't initialized");
             }
 
             return m_UTF8CharOff;
@@ -105,15 +106,15 @@ class XMLParagraphLeaf
         uint64_t ImageU64Key() const
         {
             if(Type() != LEAF_IMAGE){
-                throw std::runtime_error(str_fflprintf(": Leaf is not an image"));
+                throw fflerror("leaf is not an image");
             }
             return m_U64Key;
         }
 
         uint64_t EmojiU64Key() const
         {
-            if(Type() != LEAF_IMAGE){
-                throw std::runtime_error(str_fflprintf(": Leaf is not an emoji"));
+            if(Type() != LEAF_EMOJI){
+                throw fflerror("leaf is not an emoji");
             }
             return m_U64Key;
         }

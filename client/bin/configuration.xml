@@ -48,7 +48,7 @@
         <Path>Res/Monster</Path>
     </Monster>
     <Emoticon>
-        <Path>Res/Emoticon</Path>
+        <Path>Res/Emoticon/emojidb.zsdb</Path>
     </Emoticon>
     <Network>
         <Server>

@@ -44,7 +44,7 @@ XMLParagraphLeaf::XMLParagraphLeaf(tinyxml2::XMLNode *pNode)
       {
           if(XMLFunc::CheckTextLeaf(Node())){
               if(!utf8::is_valid(Node()->Value(), Node()->Value() + std::strlen(Node()->Value()))){
-                  throw std::invalid_argument(str_fflprintf(": Not a utf8 string: %s", Node()->Value()));
+                  throw fflerror("not a utf8 string: %s", Node()->Value());
               }
               return LEAF_UTF8GROUP;
           }
@@ -57,9 +57,15 @@ XMLParagraphLeaf::XMLParagraphLeaf(tinyxml2::XMLNode *pNode)
               return LEAF_IMAGE;
           }
 
-          throw std::invalid_argument(str_fflprintf(": Invalid argument: node type not recognized"));
+          throw fflerror("invalid argument: node type not recognized");
       }())
-    , m_U64Key(0)
+    , m_U64Key([this]() -> uint64_t
+      {
+          switch(m_Type){
+              case LEAF_EMOJI: return 1;
+              default: return 0;
+          }
+      }())
     , m_UTF8CharOff()
     , m_Event(BEVENT_OFF)
 {

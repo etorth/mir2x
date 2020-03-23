@@ -28,11 +28,13 @@
 #include "fontexdb.hpp"
 #include "pngtexdb.hpp"
 #include "mapbindb.hpp"
+#include "emoticondb.hpp"
 #include "pngtexoffdb.hpp"
 
 extern Log *g_Log;
 extern XMLConf *g_XMLConf;
 extern SDLDevice *g_SDLDevice;
+extern EmoticonDB *g_EmoticonDB;
 
 extern PNGTexDB *g_MapDB;
 extern MapBinDB *g_MapBinDB;
@@ -104,6 +106,11 @@ InitView::InitView(uint8_t nFontSize)
     m_LoadProcV.emplace_back(1, [this](size_t nIndex) -> bool
     {
         return LoadDB(nIndex, g_XMLConf, g_MapBinDB, "Root/Map/MapBinDB");
+    });
+
+    m_LoadProcV.emplace_back(1, [this](size_t nIndex) -> bool
+    {
+        return LoadDB(nIndex, g_XMLConf, g_EmoticonDB, "Root/Emoticon/Path");
     });
 
     // 2. loading font and textures
