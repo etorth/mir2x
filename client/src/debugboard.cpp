@@ -47,12 +47,16 @@ void DebugBoard::addLog(const char * formatString, ...)
         g_Log->AddLog(LOGTYPE_WARNING, "%s", text.c_str());
     }
 
-    m_BoardList.push_back(std::make_shared<XMLBoard>(m_LineW, LALIGN_LEFT, true, 0, 0, m_DefaultFont, m_DefaultFontSize, m_DefaultFontStyle, m_DefaultFontColor));
-    m_BoardList.back()->LoadXML(str_printf("<par>%s</par>", text.c_str()).c_str());
-
-    while(m_BoardList.size() > 5){
-        m_BoardList.pop_front();
+    if(m_BoardList.size() < 5){
+        m_BoardList.push_back(std::make_shared<XMLBoard>(m_LineW, LALIGN_LEFT, true, 0, 0, m_DefaultFont, m_DefaultFontSize, m_DefaultFontStyle, m_DefaultFontColor));
     }
+    else{
+	m_BoardList.push_back(m_BoardList.front());
+	m_BoardList.pop_front();
+    }
+
+    const auto xmlString = str_printf("<par>%s</par>", text.c_str());
+    m_BoardList.back()->LoadXML(xmlString.c_str());
 
     m_W = m_LineW;
     m_H = 0;
