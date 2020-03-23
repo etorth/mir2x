@@ -28,6 +28,7 @@
 #include "pngtexdb.hpp"
 #include "fontexdb.hpp"
 #include "sdldevice.hpp"
+#include "debugboard.hpp"
 #include "processnew.hpp"
 #include "processrun.hpp"
 #include "processlogo.hpp"
@@ -40,6 +41,7 @@
 extern Log *g_Log;
 extern XMLConf *g_XMLConf;
 extern SDLDevice *g_SDLDevice;
+extern DebugBoard *g_DebugBoard;
 extern ClientArgParser *g_ClientArgParser;
 
 Client::Client()
@@ -186,6 +188,7 @@ void Client::OnServerMessage(uint8_t nHC, const uint8_t *pData, size_t nDataLen)
 {
     // 1. update the time when last message received
     m_NetPackTick = SDL_GetTicks() * 1.0;
+    g_DebugBoard->SetText("%s", SMSGParam(nHC).Name().c_str());
 
     m_ClientMonitor.SMProcMonitorList[nHC].RecvCount++;
     raii_timer stTimer(&(m_ClientMonitor.SMProcMonitorList[nHC].ProcTick));

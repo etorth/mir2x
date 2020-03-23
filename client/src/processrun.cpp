@@ -31,6 +31,7 @@
 #include "dbcomrecord.hpp"
 #include "clientluamodule.hpp"
 #include "clientpathfinder.hpp"
+#include "debugboard.hpp"
 #include "notifyboard.hpp"
 
 extern Log *g_Log;
@@ -40,6 +41,7 @@ extern MapBinDB *g_MapBinDB;
 extern SDLDevice *g_SDLDevice;
 extern PNGTexDB *g_GroundItemDB;
 extern NotifyBoard *g_NotifyBoard;
+extern DebugBoard *g_DebugBoard;
 extern ClientArgParser *g_ClientArgParser;
 
 ProcessRun::ProcessRun()
@@ -494,6 +496,20 @@ void ProcessRun::Draw()
         const int w = g_NotifyBoard->W();
         const int h = g_NotifyBoard->H();
         g_NotifyBoard->DrawEx(0, 0, 0, 0, w, h);
+    }
+
+    // draw debugBoard
+    {
+        const int x = 0;
+        const int y = 0;
+        const int w = 200;
+        const int h = 100;
+
+        g_DebugBoard->DrawEx(x, y, 0, 0, w, h);
+        {
+            SDLDevice::EnableDrawColor enableColor(ColorFunc::GREEN + 255);
+            g_SDLDevice->DrawRectangle(x, y, w, h);
+        }
     }
 
     // draw cursor location information on top-left
