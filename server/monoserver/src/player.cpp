@@ -198,6 +198,7 @@ void Player::OperateNet(uint8_t nType, const uint8_t *pData, size_t nDataLen)
 {
     switch(nType){
         case CM_QUERYCORECORD   : Net_CM_QUERYCORECORD   (nType, pData, nDataLen); break;
+        case CM_REQUESTKILLPETS : Net_CM_REQUESTKILLPETS (nType, pData, nDataLen); break;
         case CM_REQUESTSPACEMOVE: Net_CM_REQUESTSPACEMOVE(nType, pData, nDataLen); break;
         case CM_ACTION          : Net_CM_ACTION          (nType, pData, nDataLen); break;
         case CM_PICKUP          : Net_CM_PICKUP          (nType, pData, nDataLen); break;
@@ -985,4 +986,12 @@ void Player::CheckFriendType(uint64_t nUID, std::function<void(int)> fnOp)
                 throw std::invalid_argument(str_fflprintf(": Checking friend type for: %s", UIDFunc::GetUIDTypeString(nUID)));
             }
     }
+}
+
+void Player::RequestKillPets()
+{
+    for(auto uid: m_slaveList){
+        m_ActorPod->Forward(uid, {MPK_MASTERKILL});
+    }
+    m_slaveList.clear();
 }

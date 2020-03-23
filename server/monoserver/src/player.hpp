@@ -17,6 +17,7 @@
  */
 
 #pragma once
+#include <set>
 #include <cstdint>
 #include "monoserver.hpp"
 #include "charobject.hpp"
@@ -37,6 +38,9 @@ class Player final: public CharObject
     protected:
         uint32_t m_Gold;
         std::vector<CommonItem> m_Inventory;
+
+    protected:
+        std::set<uint64_t> m_slaveList;
 
     public:
         Player(uint32_t,                // DBID 
@@ -119,6 +123,7 @@ class Player final: public CharObject
         void On_MPK_REMOVEGROUNDITEM(const MessagePack &);
 
     private:
+        void Net_CM_REQUESTKILLPETS (uint8_t, const uint8_t *, size_t);
         void Net_CM_REQUESTSPACEMOVE(uint8_t, const uint8_t *, size_t);
         void Net_CM_QUERYCORECORD   (uint8_t, const uint8_t *, size_t);
         void Net_CM_ACTION          (uint8_t, const uint8_t *, size_t);
@@ -139,6 +144,9 @@ class Player final: public CharObject
 
     protected:
         bool StruckDamage(const DamageNode &);
+
+    protected:
+        void RequestKillPets();
 
     protected:
         DamageNode GetAttackDamage(int);

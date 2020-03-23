@@ -263,6 +263,7 @@ template<size_t StaticBufferLength = 64> class InnMessagePack final
                 case MPK_FRIENDTYPE          : return "MPK_FRIENDTYPE";
                 case MPK_QUERYNAMECOLOR      : return "MPK_QUERYNAMECOLOR";
                 case MPK_NAMECOLOR           : return "MPK_NAMECOLOR";
+                case MPK_MASTERKILL          : return "MPK_MASTERKILL";
                 default                      : return "MPK_UNKNOWN";
             }
         }

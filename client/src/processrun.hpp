@@ -291,6 +291,7 @@ class ProcessRun: public Process
         double OneStepCost(const ClientPathFinder *, bool, int, int, int, int, int) const;
 
     public:
+        void RequestKillPets();
         bool RequestSpaceMove(uint32_t, int, int);
 
     public:

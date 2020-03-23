@@ -71,6 +71,11 @@ void Player::Net_CM_REQUESTSPACEMOVE(uint8_t, const uint8_t *pBuf, size_t)
     RequestSpaceMove(stCMRSM.MapID, stCMRSM.X, stCMRSM.Y, false, [](){}, [](){});
 }
 
+void Player::Net_CM_REQUESTKILLPETS(uint8_t, const uint8_t *, size_t)
+{
+    RequestKillPets();
+}
+
 void Player::Net_CM_PICKUP(uint8_t, const uint8_t *pBuf, size_t)
 {
     if(auto pCM = (CMPickUp *)(pBuf); pCM->MapID == m_Map->ID()){

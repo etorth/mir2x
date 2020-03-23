@@ -34,6 +34,7 @@ enum CMType: uint8_t
     CM_QUERYMONSTERGINFO,
     CM_QUERYCORECORD,
 
+    CM_REQUESTKILLPETS,
     CM_REQUESTSPACEMOVE,
     CM_PICKUP,
     CM_QUERYGOLD,
@@ -131,6 +132,7 @@ class CMSGParam: public MessageBase
                 {CM_LOGIN,            {1, sizeof(CMLogin),           "CM_LOGIN"           }},
                 {CM_ACTION,           {1, sizeof(CMAction),          "CM_ACTION"          }},
                 {CM_QUERYCORECORD,    {1, sizeof(CMQueryCORecord),   "CM_QUERYCORECORD"   }},
+                {CM_REQUESTKILLPETS,  {0, 0,                         "CM_REQUESTKILLPETS" }},
                 {CM_REQUESTSPACEMOVE, {1, sizeof(CMReqestSpaceMove), "CM_REQUESTSPACEMOVE"}},
                 {CM_PICKUP,           {1, sizeof(CMPickUp),          "CM_PICKUP"          }},
                 {CM_QUERYGOLD,        {0, 0,                         "CM_QUERYGOLD"       }},

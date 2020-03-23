@@ -147,6 +147,7 @@ class Monster final: public CharObject
         void On_MPK_UPDATEHP        (const MessagePack &);
         void On_MPK_METRONOME       (const MessagePack &);
         void On_MPK_MAPSWITCH       (const MessagePack &);
+        void On_MPK_MASTERKILL      (const MessagePack &);
         void On_MPK_NOTIFYDEAD      (const MessagePack &);
         void On_MPK_BADACTORPOD     (const MessagePack &);
         void On_MPK_CHECKMASTER     (const MessagePack &);

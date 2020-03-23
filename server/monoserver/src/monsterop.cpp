@@ -302,3 +302,10 @@ void Monster::On_MPK_QUERYNAMECOLOR(const MessagePack &rstMPK)
     stAMNC.Color = 'W';
     m_ActorPod->Forward(rstMPK.From(), {MPK_NAMECOLOR, stAMNC}, rstMPK.ID());
 }
+
+void Monster::On_MPK_MASTERKILL(const MessagePack &rstMPK)
+{
+    if(MasterUID() && (rstMPK.From() == MasterUID())){
+        GoDie();
+    }
+}

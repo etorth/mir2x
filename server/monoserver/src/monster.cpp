@@ -467,6 +467,14 @@ void Monster::TrackAttackUID(uint64_t nTargetUID, std::function<void()> fnOnOK, 
 uint64_t Monster::Activate()
 {
     if(auto nUID = CharObject::Activate()){
+        if(MasterUID()){
+            m_ActorPod->Forward(MasterUID(), {MPK_CHECKMASTER}, [this](const MessagePack &rstRMPK)
+            {
+                if(rstRMPK.Type() != MPK_OK){
+                    GoDie();
+                }
+            });
+        }
         CreateBvTree();
         return nUID;
     }
@@ -623,6 +631,11 @@ void Monster::OperateAM(const MessagePack &rstMPK)
         case MPK_OFFLINE:
             {
                 On_MPK_OFFLINE(rstMPK);
+                break;
+            }
+        case MPK_MASTERKILL:
+            {
+                On_MPK_MASTERKILL(rstMPK);
                 break;
             }
         default:

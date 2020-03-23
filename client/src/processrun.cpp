@@ -1092,6 +1092,14 @@ bool ProcessRun::RegisterUserCommand()
     };
     m_UserCommandGroup.emplace_back("getAttackUID", fnGetAttackUID);
 
+    auto fnKillPets = [this](const std::vector<std::string> &) -> int
+    {
+        RequestKillPets();
+        AddOPLog(OUTPORT_CONTROLBOARD, 2, "", u8"杀死所有宝宝");
+        return 0;
+    };
+    m_UserCommandGroup.emplace_back("killPets", fnKillPets);
+
     return true;
 }
 
@@ -1438,6 +1446,11 @@ bool ProcessRun::RequestSpaceMove(uint32_t nMapID, int nX, int nY)
         }
     }
     return false;
+}
+
+void ProcessRun::RequestKillPets()
+{
+    g_Client->Send(CM_REQUESTKILLPETS);
 }
 
 void ProcessRun::ClearCreature()

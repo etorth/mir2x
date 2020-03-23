@@ -79,6 +79,7 @@ enum MessagePackType: int
     MPK_FRIENDTYPE,
     MPK_QUERYNAMECOLOR,
     MPK_NAMECOLOR,
+    MPK_MASTERKILL,
     MPK_MAX,
 };
 
