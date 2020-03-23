@@ -104,7 +104,7 @@ int main(int argc, char *argv[])
         g_MapBinDB        = new MapBinDB();
         g_EmoticonDB      = new EmoticonDB();
         g_Client          = new Client();       // loads fontex resource
-        g_DebugBoard      = new DebugBoard(0, 0, "", 0, 20, 0, ColorFunc::RED + 255);
+        g_DebugBoard      = new DebugBoard(0, 0, 10240, 0, 15, 0, ColorFunc::RED + 255);
         g_NotifyBoard     = new NotifyBoard();  // needs fontex
 
         g_Client->MainLoop();

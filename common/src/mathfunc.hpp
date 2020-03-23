@@ -23,6 +23,7 @@
 #include <type_traits>
 
 #include "strfunc.hpp"
+#include "fflerror.hpp"
 #include "condcheck.hpp"
 
 namespace MathFunc
@@ -427,16 +428,18 @@ namespace MathFunc
     }
 
     inline bool ROICrop(
-            int *pSrcX, int *pSrcY,
-            int *pSrcW, int *pSrcH,
-            int *pDstX, int *pDstY,
+            int *pSrcX, int *pSrcY,  // the default parameters we used in DrawEx
+            int *pSrcW, int *pSrcH,  // ...
+            int *pDstX, int *pDstY,  // ...
 
-            int nSrcOriginW, int nSrcOriginH,
-            int nSrcRegionX, int nSrcRegionY, int nSrcRegionW, int nSrcRegionH,
-            int nDstRegionX, int nDstRegionY, int nDstRegionW, int nDstRegionH)
+            int nSrcOriginW,         // original size of the source image
+            int nSrcOriginH,         // ...
+
+            int nSrcRegionX = 0, int nSrcRegionY = 0, int nSrcRegionW = -1, int nSrcRegionH = -1,  // ROI of source, by default uses fully
+            int nDstRegionX = 0, int nDstRegionY = 0, int nDstRegionW = -1, int nDstRegionH = -1)  // ROI of canvas, by default uses fully
     {
         if(!(pSrcX && pSrcY && pSrcW && pSrcH && pDstX && pDstY && (nSrcOriginW >= 0) && (nSrcOriginH >= 0))){
-            throw std::invalid_argument(str_fflprintf(": Invalid argument: ROPCrop(%p, %p, %p, %p, %p, %p, %d, %d, ...)", pSrcX, pSrcY, pSrcW, pSrcH, pDstX, pDstY, nSrcOriginW, nSrcOriginH));
+            throw fflerror("invalid argument: ROPCrop(%p, %p, %p, %p, %p, %p, %d, %d, ...)", pSrcX, pSrcY, pSrcW, pSrcH, pDstX, pDstY, nSrcOriginW, nSrcOriginH);
         }
 
         if(nSrcRegionW < 0){

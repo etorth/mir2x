@@ -24,13 +24,24 @@
 class DebugBoard: public Widget
 {
     private:
-        XMLBoard m_Board;
+        int m_LineW;
+
+    private:
+        uint8_t m_DefaultFont;
+        uint8_t m_DefaultFontSize;
+        uint8_t m_DefaultFontStyle;
+
+    private:
+        uint32_t m_DefaultFontColor;
+
+    private:
+        std::deque<std::shared_ptr<XMLBoard>> m_BoardList;
 
     public:
         DebugBoard(
                 int              nX,
                 int              nY,
-                const char      *szContent         = "",
+                int              nW,
                 uint8_t          nDefaultFont      = 0,
                 uint8_t          nDefaultFontSize  = 10,
                 uint8_t          nDefaultFontStyle = 0,
@@ -38,76 +49,51 @@ class DebugBoard: public Widget
                 Widget          *pWidget           = nullptr,
                 bool             bAutoDelete       = false)
             : Widget(nX, nY, 0, 0, pWidget, bAutoDelete)
-            , m_Board
-              {
-                  0,
-                  LALIGN_LEFT,
-                  false,
-                  0,
-                  0,
-                  nDefaultFont,
-                  nDefaultFontSize,
-                  nDefaultFontStyle,
-                  nDefaultFontColor,
-              }
-        {
-            SetText("%s", szContent);
-        }
+            , m_LineW(nW)
+            , m_DefaultFont(nDefaultFont)
+            , m_DefaultFontSize(nDefaultFontSize)
+            , m_DefaultFontStyle(nDefaultFontStyle)
+            , m_DefaultFontColor(nDefaultFontColor)
+        {}
 
     public:
         ~DebugBoard() = default;
 
     public:
-        void LoadXML(const char *szXMLString)
-        {
-            m_Board.LoadXML(szXMLString);
-        }
-
-    public:
-        void SetText(const char *, ...);
-
-    public:
-        std::string GetText(bool bTextOnly) const
-        {
-            return m_Board.GetText(bTextOnly);
-        }
+        void addLog(const char *, ...);
 
     public:
         void SetFont(uint8_t nFont)
         {
-            m_Board.SetDefaultFont(nFont);
+            m_DefaultFont = nFont;
         }
 
         void SetFontSize(uint8_t nFontSize)
         {
-            m_Board.SetDefaultFontSize(nFontSize);
+            m_DefaultFontSize = nFontSize;
         }
 
         void SetFontStyle(uint8_t nFontStyle)
         {
-            m_Board.SetDefaultFontStyle(nFontStyle);
+            m_DefaultFontStyle = nFontStyle;
         }
 
         void SetFontColor(uint32_t nFontColor)
         {
-            m_Board.SetDefaultFontColor(nFontColor);
+            m_DefaultFontColor = nFontColor;
         }
 
     public:
         void Clear()
         {
-            m_Board.Clear();
+            m_BoardList.clear();
+            m_W = 0;
+            m_H = 0;
         }
 
     public:
-        std::string PrintXML() const
-        {
-            return m_Board.PrintXML();
-        }
+        int PW();
 
     public:
-        void DrawEx(int nDstX, int nDstY, int nSrcX, int nSrcY, int nW, int nH)
-        {
-            m_Board.DrawEx(nDstX, nDstY, nSrcX, nSrcY, nW, nH);
-        }
+        void DrawEx(int, int, int, int, int, int);
 };

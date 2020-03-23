@@ -3,7 +3,7 @@
  *
  *       Filename: debugboard.cpp
  *        Created: 03/22/2020 16:45:16
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -19,37 +19,86 @@
 #include "log.hpp"
 #include "strfunc.hpp"
 #include "xmlboard.hpp"
+#include "mathfunc.hpp"
 #include "colorfunc.hpp"
 #include "debugboard.hpp"
 
 extern Log *g_Log;
 
-void DebugBoard::SetText(const char * szFormatString, ...)
+void DebugBoard::addLog(const char * formatString, ...)
 {
-    std::string szText;
-    bool bError = false;
+    std::string text;
+    bool error = false;
     {
         va_list ap;
-        va_start(ap, szFormatString);
+        va_start(ap, formatString);
 
         try{
-            szText = str_vprintf(szFormatString, ap);
+            text = str_vprintf(formatString, ap);
         }catch(const std::exception &e){
-            bError = true;
-            szText = str_printf("Exception caught in DebugBoard::SetText(\"%s\", ...): %s", szFormatString, e.what());
+            error = true;
+            text = str_printf("Exception caught in DebugBoard::addLog(\"%s\", ...): %s", formatString, e.what());
         }
 
         va_end(ap);
     }
 
-    if(bError){
-        g_Log->AddLog(LOGTYPE_WARNING, "%s", szText.c_str());
+    if(error){
+        g_Log->AddLog(LOGTYPE_WARNING, "%s", text.c_str());
     }
 
-    // use the fallback values of m_Board
-    // don't need to specify the font/size/style info here
-    m_Board.LoadXML(str_printf("<par>%s</par>", szText.c_str()).c_str());
+    m_BoardList.push_back(std::make_shared<XMLBoard>(m_LineW, LALIGN_LEFT, true, 0, 0, m_DefaultFont, m_DefaultFontSize, m_DefaultFontStyle, m_DefaultFontColor));
+    m_BoardList.back()->LoadXML(str_printf("<par>%s</par>", text.c_str()).c_str());
 
-    m_W = m_Board.PX() + m_Board.PW();
-    m_H = m_Board.PY() + m_Board.PH();
+    while(m_BoardList.size() > 5){
+        m_BoardList.pop_front();
+    }
+
+    m_W = m_LineW;
+    m_H = 0;
+
+    for(const auto &ptr: m_BoardList){
+        m_H += ptr->PH();
+    }
+}
+
+void DebugBoard::DrawEx(int dstX, int dstY, int srcX, int srcY, int w, int h)
+{
+    int startX = 0;
+    int startY = 0;
+
+    for(const auto &ptr: m_BoardList){
+        const auto p = ptr.get();
+
+        int srcXCrop = srcX;
+        int srcYCrop = srcY;
+        int dstXCrop = dstX;
+        int dstYCrop = dstY;
+        int srcWCrop = w;
+        int srcHCrop = h;
+
+        if(!MathFunc::ROICrop(
+                    &srcXCrop, &srcYCrop,
+                    &srcWCrop, &srcHCrop,
+                    &dstXCrop, &dstYCrop,
+
+                    W(),
+                    H(),
+
+                    0, startY, p->PW(), p->PH(), 0, 0, -1, -1)){
+            break;
+        }
+
+        p->DrawEx(dstXCrop, dstYCrop, srcXCrop - startX, srcYCrop - startY, srcWCrop, srcHCrop);
+        startY += p->PH();
+    }
+}
+
+int DebugBoard::PW()
+{
+    int maxW = 0;
+    for(const auto &ptr: m_BoardList){
+        maxW = std::max<int>(maxW, ptr->PW());
+    }
+    return maxW;
 }

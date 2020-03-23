@@ -502,12 +502,18 @@ void ProcessRun::Draw()
     {
         const int x = 0;
         const int y = 0;
-        const int w = 200;
-        const int h = 100;
+        const int w = std::max<int>(g_DebugBoard->PW(), 200);
+        const int h = g_DebugBoard->H();
+
+        {
+            SDLDevice::EnableDrawColor enableColor(ColorFunc::GREEN + 200);
+            SDLDevice::EnableDrawBlendMode enableBlend(SDL_BLENDMODE_BLEND);
+            g_SDLDevice->FillRectangle(x, y, w, h);
+        }
 
         g_DebugBoard->DrawEx(x, y, 0, 0, w, h);
         {
-            SDLDevice::EnableDrawColor enableColor(ColorFunc::GREEN + 255);
+            SDLDevice::EnableDrawColor enableColor(ColorFunc::BLUE + 100);
             g_SDLDevice->DrawRectangle(x, y, w, h);
         }
     }
