@@ -24,13 +24,11 @@
 #include "netdriver.hpp"
 #include "monoserver.hpp"
 
+extern NetDriver *g_NetDriver;
 extern MonoServer *g_MonoServer;
 
 void Player::On_MPK_METRONOME(const MessagePack &)
 {
-    extern NetDriver *g_NetDriver;
-    extern MonoServer *g_MonoServer;
-
     Update();
 
     SMPing stSMP;
@@ -54,7 +52,6 @@ void Player::On_MPK_BINDCHANNEL(const MessagePack &rstMPK)
     // set the channel actor as this->GetAddress()
     m_ChannID = stAMBC.ChannID;
 
-    extern NetDriver *g_NetDriver;
     g_NetDriver->BindActor(ChannID(), UID());
 
     SMLoginOK stSMLOK;
@@ -70,9 +67,7 @@ void Player::On_MPK_BINDCHANNEL(const MessagePack &rstMPK)
     stSMLOK.JobID     = JobID();
     stSMLOK.Level     = Level();
 
-    extern NetDriver *g_NetDriver;
     g_NetDriver->Post(ChannID(), SM_LOGINOK, stSMLOK);
-
     PullRectCO(10, 10);
 }
 
@@ -202,7 +197,6 @@ void Player::On_MPK_MAPSWITCH(const MessagePack &rstMPK)
     std::memcpy(&stAMMS, rstMPK.Data(), sizeof(stAMMS));
 
     if(!(stAMMS.UID && stAMMS.MapID)){
-        extern MonoServer *g_MonoServer;
         g_MonoServer->AddLog(LOGTYPE_WARNING, "Map switch request failed: (UID = %" PRIu64 ", MapID = %" PRIu32 ")", stAMMS.UID, stAMMS.MapID);
     }
 
@@ -271,8 +265,6 @@ void Player::On_MPK_MAPSWITCH(const MessagePack &rstMPK)
                                         // server map won't respond any other message not MPK_OK
                                         // dangerous issue since we then can never inform the new map ``we can't come to you"
                                         m_ActorPod->Forward(((ServerMap *)(stAMMSOK.Ptr))->UID(), MPK_ERROR, rstRMPK.ID());
-
-                                        extern MonoServer *g_MonoServer;
                                         g_MonoServer->AddLog(LOGTYPE_WARNING, "Leave request failed: (UID = %" PRIu64 ", MapID = %" PRIu32 ")", UID(), ((ServerMap *)(stAMMSOK.Ptr))->ID());
                                         break;
                                     }
@@ -282,7 +274,6 @@ void Player::On_MPK_MAPSWITCH(const MessagePack &rstMPK)
                     }
 
                     // AMMapSwitchOK invalid
-                    extern MonoServer *g_MonoServer;
                     g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid AMMapSwitchOK: Map = %p", stAMMSOK.Ptr);
                     return;
                 }
@@ -351,7 +342,6 @@ void Player::On_MPK_UPDATEHP(const MessagePack &rstMPK)
         stSMUHP.HP    = stAMUHP.HP;
         stSMUHP.HPMax = stAMUHP.HPMax;
 
-        extern NetDriver *g_NetDriver;
         g_NetDriver->Post(ChannID(), SM_UPDATEHP, stSMUHP);
     }
 }
@@ -368,8 +358,6 @@ void Player::On_MPK_DEADFADEOUT(const MessagePack &rstMPK)
         stSMDFO.MapID = stAMDFO.MapID;
         stSMDFO.X     = stAMDFO.X;
         stSMDFO.Y     = stAMDFO.Y;
-
-        extern NetDriver *g_NetDriver;
         g_NetDriver->Post(ChannID(), SM_DEADFADEOUT, stSMDFO);
     }
 }
@@ -384,8 +372,6 @@ void Player::On_MPK_EXP(const MessagePack &rstMPK)
     if(stAME.Exp > 0){
         SMExp stSME;
         stSME.Exp = stAME.Exp;
-
-        extern NetDriver *g_NetDriver;
         g_NetDriver->Post(ChannID(), SM_EXP, stSME);
     }
 }
@@ -425,8 +411,6 @@ void Player::On_MPK_SHOWDROPITEM(const MessagePack &rstMPK)
             break;
         }
     }
-
-    extern NetDriver *g_NetDriver;
     g_NetDriver->Post(ChannID(), SM_SHOWDROPITEM, stSMSDI);
 }
 
@@ -436,8 +420,6 @@ void Player::On_MPK_BADCHANNEL(const MessagePack &rstMPK)
     std::memcpy(&stAMBC, rstMPK.Data(), sizeof(stAMBC));
 
     condcheck(ChannID() == stAMBC.ChannID);
-
-    extern NetDriver *g_NetDriver;
     g_NetDriver->Shutdown(ChannID(), false);
 
     Offline();
