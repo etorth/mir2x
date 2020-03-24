@@ -25,7 +25,7 @@ mir2x is a c/s based mir2ei implementation with various platforms supported. It 
 
 ### Windows
 
-For windows please download binaries from appveyor:
+For windows please download binaries from appveyor
 ```
 https://ci.appveyor.com/project/etorth/mir2x/build/artifacts
 ```
