@@ -33,6 +33,8 @@
 #include "clientpathfinder.hpp"
 #include "debugboard.hpp"
 #include "notifyboard.hpp"
+#include "fflerror.hpp"
+#include "llcast.hpp"
 
 extern Log *g_Log;
 extern Client *g_Client;
@@ -195,16 +197,22 @@ uint64_t ProcessRun::FocusUID(int nFocusType)
                     }
 
                     Creature *pFocus = nullptr;
-                    for(auto pRecord: m_CreatureList){
-                        if(fnCheckFocus(pRecord.second->UID(), nCheckPointX, nCheckPointY)){
+                    for(auto p = m_CreatureList.begin();;){
+                        auto pnext = std::next(p);
+                        if(fnCheckFocus(p->second->UID(), nCheckPointX, nCheckPointY)){
                             if(false
                                     || !pFocus
-                                    ||  pFocus->Y() < pRecord.second->Y()){
+                                    ||  pFocus->Y() < p->second->Y()){
                                 // 1. currently we have no candidate yet
                                 // 2. we have candidate but it's not at more front location
-                                pFocus = pRecord.second.get();
+                                pFocus = p->second.get();
                             }
                         }
+
+                        if(pnext == m_CreatureList.end()){
+                            break;
+                        }
+                        p = pnext;
                     }
 
                     m_FocusUIDTable[FOCUS_MOUSE] = pFocus ? pFocus->UID() : 0;
@@ -1281,8 +1289,7 @@ Creature *ProcessRun::RetrieveUID(uint64_t nUID)
     if(auto p = m_CreatureList.find(nUID); p != m_CreatureList.end()){
         if(p->second->Visible()){
             if(p->second->UID() != nUID){
-                g_Log->AddLog(LOGTYPE_FATAL, "Invalid creature record: %p, UID = %" PRIu64, p->second, p->second->UID());
-                return nullptr;
+                throw fflerror("invalid creature record: %p, UID = %llu", p->second, to_LLU(p->second->UID()));
             }
             return p->second.get();
         }

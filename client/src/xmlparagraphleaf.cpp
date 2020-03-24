@@ -62,8 +62,14 @@ XMLParagraphLeaf::XMLParagraphLeaf(tinyxml2::XMLNode *pNode)
     , m_U64Key([this]() -> uint64_t
       {
           switch(m_Type){
-              case LEAF_EMOJI: return 1;
-              default: return 0;
+              case LEAF_EMOJI:
+                  {
+                      return 0;
+                  }
+              default:
+                  {
+                      return 0;
+                  }
           }
       }())
     , m_UTF8CharOff()
