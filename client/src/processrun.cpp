@@ -801,15 +801,13 @@ bool ProcessRun::CanMove(bool bCheckGround, int nCheckCreature, int nX, int nY)
                         }
                     default:
                         {
-                            g_Log->AddLog(LOGTYPE_FATAL, "Invalid CheckCreature provided: %d, should be (0, 1, 2)", nCheckCreature);
-                            return false;
+                            throw fflerror("invalid CheckCreature provided: %d, should be (0, 1, 2)", nCheckCreature);
                         }
                 }
             }
         default:
             {
-                g_Log->AddLog(LOGTYPE_FATAL, "Invalid grid provided: %d at (%d, %d)", nGrid, nX, nY);
-                return false;
+                throw fflerror("invalid grid provided: %d at (%d, %d)", nGrid, nX, nY);
             }
     }
 }
