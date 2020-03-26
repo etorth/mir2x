@@ -26,7 +26,7 @@
 extern Log *g_Log;
 extern SDLDevice *g_SDLDevice;
 
-void TextButton::DrawEx(int nDstX, int nDstY, int nSrcX, int nSrcY, int nW, int nH)
+void TextButton::drawEx(int nDstX, int nDstY, int nSrcX, int nSrcY, int nW, int nH)
 {
     extern SDLDevice *g_SDLDevice;
     g_SDLDevice->PushColor(ColorFunc::RGBA2Color(ColorFunc::ARGB2RGBA(m_Color[State()][1])));
@@ -51,7 +51,7 @@ void TextButton::DrawEx(int nDstX, int nDstY, int nSrcX, int nSrcY, int nW, int 
 
     if(MathFunc::RectangleOverlapRegion(nSrcX, nSrcY, nW, nH, &nLBX, &nLBY, &nLBW, &nLBH)){
         m_Label.SetFontColor(m_Color[State()][0]);
-        m_Label.DrawEx(nDstX + (nLBX - nSrcX) + OffX(), nDstY + (nLBY - nSrcY) + OffY(), nLBX - nLBX0, nLBY - nLBY0, nLBW, nLBH);
+        m_Label.drawEx(nDstX + (nLBX - nSrcX) + OffX(), nDstY + (nLBY - nSrcY) + OffY(), nLBX - nLBX0, nLBY - nLBY0, nLBW, nLBH);
     }
 }
 

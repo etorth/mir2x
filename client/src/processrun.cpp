@@ -76,9 +76,29 @@ ProcessRun::ProcessRun()
     , m_MousePixlLoc(0, 0, "", 0, 15, 0, ColorFunc::RGBA(0XFF, 0X00, 0X00, 0X00))
     , m_MouseGridLoc(0, 0, "", 0, 15, 0, ColorFunc::RGBA(0XFF, 0X00, 0X00, 0X00))
     , m_AscendStrList()
+    , m_layout
+      {
+          0,
+          0,
+          400,
+          false,
+          0,
+          20,
+          0,
+          ColorFunc::RED + 255,
+      }
 {
     m_FocusUIDTable.fill(0);
     RegisterUserCommand();
+
+    m_layout.loadXML(
+            R"###(
+
+            <layout>
+                <par>Hello <emoji></emoji> world</par>
+            </layout>
+
+            )###");
 }
 
 void ProcessRun::ScrollMap()
@@ -117,6 +137,7 @@ void ProcessRun::Update(double fUpdateTime)
 {
     ScrollMap();
     m_ControbBoard.Update(fUpdateTime);
+    m_layout.Update(fUpdateTime);
 
     for(auto p = m_CreatureList.begin(); p != m_CreatureList.end();){
         if(p->second->Visible()){
@@ -361,7 +382,7 @@ void ProcessRun::Draw()
                                         int nLXt = nX * SYS_MAPGRIDXP - m_ViewX + SYS_MAPGRIDXP / 2 - nLW / 2;
                                         int nLYt = nY * SYS_MAPGRIDYP - m_ViewY + SYS_MAPGRIDYP / 2 - nLH / 2 - 20;
 
-                                        stItemName.DrawEx(nLXt, nLYt, 0, 0, nLW, nLH);
+                                        stItemName.drawEx(nLXt, nLYt, 0, 0, nLW, nLH);
                                     }
                                 }
                             }
@@ -503,7 +524,27 @@ void ProcessRun::Draw()
     {
         const int w = g_NotifyBoard->W();
         const int h = g_NotifyBoard->H();
-        g_NotifyBoard->DrawEx(0, 0, 0, 0, w, h);
+        g_NotifyBoard->drawEx(0, 0, 0, 0, w, h);
+    }
+
+    // draw layoutBoard
+    {
+        const int x = 300;
+        const int y = 200;
+        const int w = std::max<int>(m_layout.W(), 200);
+        const int h = m_layout.H();
+
+        {
+            SDLDevice::EnableDrawColor enableColor(ColorFunc::GREEN + 200);
+            SDLDevice::EnableDrawBlendMode enableBlend(SDL_BLENDMODE_BLEND);
+            g_SDLDevice->FillRectangle(x, y, w, h);
+        }
+
+        m_layout.drawEx(x, y, 0, 0, w, h);
+        {
+            SDLDevice::EnableDrawColor enableColor(ColorFunc::BLUE + 100);
+            g_SDLDevice->DrawRectangle(x, y, w, h);
+        }
     }
 
     // draw debugBoard
@@ -519,7 +560,7 @@ void ProcessRun::Draw()
             g_SDLDevice->FillRectangle(x, y, w, h);
         }
 
-        g_DebugBoard->DrawEx(x, y, 0, 0, w, h);
+        g_DebugBoard->drawEx(x, y, 0, 0, w, h);
         {
             SDLDevice::EnableDrawColor enableColor(ColorFunc::BLUE + 100);
             g_SDLDevice->DrawRectangle(x, y, w, h);
@@ -541,8 +582,8 @@ void ProcessRun::Draw()
         m_MousePixlLoc.SetText("Pix_Loc: %3d, %3d", nPointX, nPointY);
         m_MouseGridLoc.SetText("Til_Loc: %3d, %3d", (nPointX + m_ViewX) / SYS_MAPGRIDXP, (nPointY + m_ViewY) / SYS_MAPGRIDYP);
 
-        m_MouseGridLoc.DrawEx(10, 10, 0, 0, m_MouseGridLoc.W(), m_MouseGridLoc.H());
-        m_MousePixlLoc.DrawEx(10, 30, 0, 0, m_MousePixlLoc.W(), m_MousePixlLoc.H());
+        m_MouseGridLoc.drawEx(10, 10, 0, 0, m_MouseGridLoc.W(), m_MouseGridLoc.H());
+        m_MousePixlLoc.drawEx(10, 30, 0, 0, m_MousePixlLoc.W(), m_MousePixlLoc.H());
     }
 
     g_SDLDevice->Present();

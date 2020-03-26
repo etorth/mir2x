@@ -119,7 +119,7 @@ class EmoticonDB: public InnDB<uint32_t, EmojiEntry>
             if(pSrcX      ){ *pSrcX       = (nFrameIndex % nCountX) * stEntry.FrameW; }
             if(pSrcY      ){ *pSrcY       = (nFrameIndex / nCountX) * stEntry.FrameH; }
             if(pSrcW      ){ *pSrcW       = stEntry.FrameW;                           }
-            if(pSrcH      ){ *pSrcW       = stEntry.FrameH;                           }
+            if(pSrcH      ){ *pSrcH       = stEntry.FrameH;                           }
             if(pH1        ){ *pH1         = stEntry.FrameH1;                          }
             if(pFPS       ){ *pFPS        = stEntry.FPS;                              }
             if(pFrameCount){ *pFrameCount = nCountX * nCountY;                        }

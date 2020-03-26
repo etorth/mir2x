@@ -87,7 +87,7 @@ class LineBrowserBoard: public Widget
         bool AddXML(const char *, const std::map<std::string, std::function<void()>> &);
 
     public:
-        void DrawEx(int, int, int, int, int, int);
+        void drawEx(int, int, int, int, int, int);
 
     public:
         const std::string &Print(size_t nIndex) const

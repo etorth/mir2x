@@ -127,7 +127,7 @@ void ControlBoard::Update(double fMS)
     m_CmdLine.Update(fMS);
 }
 
-void ControlBoard::DrawEx(int, int, int, int, int, int)
+void ControlBoard::drawEx(int, int, int, int, int, int)
 {
     // for texture 0X00000012 and 0X00000013
     // I split it into many parts to fix different screen size
@@ -234,7 +234,7 @@ void ControlBoard::DrawEx(int, int, int, int, int, int)
         auto nX = m_ProcessRun->GetMyHero()->X();
         auto nY = m_ProcessRun->GetMyHero()->Y();
         m_LocBoard.SetText(u8"%s: %d %d", DBCOM_MAPRECORD(m_ProcessRun->MapID()).Name, nX, nY);
-        m_LocBoard.DrawEx(nX0 + (136 - m_LocBoard.W()) / 2, nY0 + 108, 0, 0, m_LocBoard.W(), m_LocBoard.H());
+        m_LocBoard.drawEx(nX0 + (136 - m_LocBoard.W()) / 2, nY0 + 108, 0, 0, m_LocBoard.W(), m_LocBoard.H());
     }
 
     // g_SDLDevice->PushColor(0X00, 0XFF, 0X00, 0XFF);

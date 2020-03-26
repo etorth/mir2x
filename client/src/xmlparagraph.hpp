@@ -92,7 +92,8 @@ class XMLParagraph
         XMLParagraph Break();
 
     public:
-        void LoadXML(const char *);
+        void loadXML(const char *);
+        void loadXMLNode(const tinyxml2::XMLNode *);
 
     public:
         void Join(const XMLParagraph &);

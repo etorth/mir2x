@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename: xmlboard.hpp
+ *       Filename: xmltypeset.hpp
  *        Created: 12/11/2018 04:40:11
  *    Description: 
  *
@@ -25,7 +25,7 @@
 #include "colorfunc.hpp"
 #include "xmlparagraph.hpp"
 
-class XMLBoard
+class XMLTypeset // means XMLParagraph typeset
 {
     private:
         struct ContentLine
@@ -65,8 +65,11 @@ class XMLBoard
     private:
         std::vector<ContentLine> m_LineList;
 
+    private:
+        std::vector<std::tuple<int, int>> m_leaf2TokenLoc;
+
     public:
-        XMLBoard(
+        XMLTypeset(
                 size_t      nMaxLineWidth,
                 int         nLAlign           = LALIGN_LEFT,
                 bool        bCanThrough       = true,
@@ -96,7 +99,7 @@ class XMLBoard
         }
 
     public:
-        ~XMLBoard() = default;
+        ~XMLTypeset() = default;
 
     public:
         bool Empty() const
@@ -105,10 +108,20 @@ class XMLBoard
         }
 
     public:
-        void LoadXML(const char *szXMLString)
+        void loadXML(const char *szXMLString)
         {
             Clear();
-            m_Paragraph.LoadXML(szXMLString);
+            m_Paragraph.loadXML(szXMLString);
+
+            if(m_Paragraph.LeafCount() > 0){
+                BuildBoard(0, 0);
+            }
+        }
+
+        void loadXMLNode(const tinyxml2::XMLNode *node)
+        {
+            Clear();
+            m_Paragraph.loadXMLNode(node);
 
             if(m_Paragraph.LeafCount() > 0){
                 BuildBoard(0, 0);
@@ -126,7 +139,7 @@ class XMLBoard
         }
 
     public:
-        XMLBoard Break();
+        XMLTypeset Break();
 
     private:
         void ResetBoardPixelRegion();
@@ -155,16 +168,21 @@ class XMLBoard
         std::tuple<size_t, size_t> NextTokenLoc(size_t, size_t) const;
 
     private:
-        std::tuple<size_t, size_t, size_t> PrevTokenLoc(size_t, size_t, size_t) const;
-        std::tuple<size_t, size_t, size_t> NextTokenLoc(size_t, size_t, size_t) const;
-
-    private:
         std::tuple<size_t, size_t> LastTokenLoc() const
         {
             if(Empty()){
                 throw std::runtime_error(str_fflprintf(": Empty board"));
             }
             return {LineTokenCount(LineCount() - 1) - 1, LineCount() - 1};
+        }
+
+    public:
+        std::tuple<int, int> leafTokenLoc(size_t leaf) const
+        {
+            if(LeafValid(leaf)){
+                return m_leaf2TokenLoc.at(leaf);
+            }
+            throw fflerror("invalid leaf: %d", leaf);
         }
 
     private:
@@ -174,7 +192,7 @@ class XMLBoard
         }
 
     public:
-        void Update(double);
+        void update(double);
 
     public:
         void InsertXML (size_t, size_t, const char *);
@@ -204,7 +222,7 @@ class XMLBoard
         }
 
     public:
-        void DrawEx(int, int, int, int, int, int) const;
+        void drawEx(int, int, int, int, int, int) const;
 
     public:
         void SetDefaultFont(uint8_t nFont)
@@ -243,7 +261,7 @@ class XMLBoard
         void ResetOneLine(size_t, bool);
 
     private:
-        bool AddRawToken(size_t, const TOKEN &);
+        bool addRawToken(size_t, const TOKEN &);
 
     private:
         void SetTokenBoxWordSpace(size_t);
@@ -269,7 +287,7 @@ class XMLBoard
 
         TOKEN *GetToken(size_t nX, size_t nY)
         {
-            return const_cast<TOKEN *>(static_cast<const XMLBoard *>(this)->GetToken(nX, nY));
+            return const_cast<TOKEN *>(static_cast<const XMLTypeset *>(this)->GetToken(nX, nY));
         }
 
     public:
@@ -288,7 +306,7 @@ class XMLBoard
 
         TOKEN *GetLineBackToken(size_t nLine)
         {
-            return const_cast<TOKEN *>(static_cast<const XMLBoard *>(this)->GetLineBackToken(nLine));
+            return const_cast<TOKEN *>(static_cast<const XMLTypeset *>(this)->GetLineBackToken(nLine));
         }
 
     public:
@@ -307,7 +325,7 @@ class XMLBoard
 
         TOKEN *GetBackToken()
         {
-            return const_cast<TOKEN *>(static_cast<const XMLBoard *>(this)->GetBackToken());
+            return const_cast<TOKEN *>(static_cast<const XMLTypeset *>(this)->GetBackToken());
         }
 
     private:
@@ -318,7 +336,8 @@ class XMLBoard
         void LinePadding(size_t);
 
     private:
-        TOKEN BuildUTF8Token(uint8_t, uint8_t, uint8_t, uint32_t) const;
+        TOKEN BuildUTF8Token(size_t, uint8_t, uint8_t, uint8_t, uint32_t) const;
+        TOKEN buildEmojiToken(size_t, uint32_t) const;
 
     private:
         std::tuple<size_t, size_t> TokenLocInXMLParagraph(size_t, size_t) const;

@@ -18,7 +18,7 @@
 
 #include "log.hpp"
 #include "strfunc.hpp"
-#include "xmlboard.hpp"
+#include "xmltypeset.hpp"
 #include "mathfunc.hpp"
 #include "colorfunc.hpp"
 #include "debugboard.hpp"
@@ -48,7 +48,7 @@ void DebugBoard::addLog(const char * formatString, ...)
     }
 
     if(m_BoardList.size() < 5){
-        m_BoardList.push_back(std::make_shared<XMLBoard>(m_LineW, LALIGN_LEFT, true, 0, 0, m_DefaultFont, m_DefaultFontSize, m_DefaultFontStyle, m_DefaultFontColor));
+        m_BoardList.push_back(std::make_shared<XMLTypeset>(m_LineW, LALIGN_LEFT, true, 0, 0, m_DefaultFont, m_DefaultFontSize, m_DefaultFontStyle, m_DefaultFontColor));
     }
     else{
 	m_BoardList.push_back(m_BoardList.front());
@@ -56,7 +56,7 @@ void DebugBoard::addLog(const char * formatString, ...)
     }
 
     const auto xmlString = str_printf("<par>%s</par>", text.c_str());
-    m_BoardList.back()->LoadXML(xmlString.c_str());
+    m_BoardList.back()->loadXML(xmlString.c_str());
 
     m_W = m_LineW;
     m_H = 0;
@@ -66,7 +66,7 @@ void DebugBoard::addLog(const char * formatString, ...)
     }
 }
 
-void DebugBoard::DrawEx(int dstX, int dstY, int srcX, int srcY, int w, int h)
+void DebugBoard::drawEx(int dstX, int dstY, int srcX, int srcY, int w, int h)
 {
     int startX = 0;
     int startY = 0;
@@ -93,7 +93,7 @@ void DebugBoard::DrawEx(int dstX, int dstY, int srcX, int srcY, int w, int h)
             break;
         }
 
-        p->DrawEx(dstXCrop, dstYCrop, srcXCrop - startX, srcYCrop - startY, srcWCrop, srcHCrop);
+        p->drawEx(dstXCrop, dstYCrop, srcXCrop - startX, srcYCrop - startY, srcWCrop, srcHCrop);
         startY += p->PH();
     }
 }

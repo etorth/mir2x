@@ -367,7 +367,7 @@ void InputBoard::Draw()
     if(MathFunc::RectangleOverlapRegion(0, 0, W(), H(), &nTBDX, &nTBDY, &nTBW, &nTBH)){
         int nTBX = nTBDX - m_TokenBoard.X();
         int nTBY = nTBDY - m_TokenBoard.Y();
-        m_TokenBoard.DrawEx(nTBDX + X(), nTBDY + Y(), nTBX, nTBY, nTBW, nTBH);
+        m_TokenBoard.drawEx(nTBDX + X(), nTBDY + Y(), nTBX, nTBY, nTBW, nTBH);
     }
 
     // +-------------------------+
@@ -415,12 +415,12 @@ void InputBoard::Draw()
     }
 }
 
-void InputBoard::DrawEx(
+void InputBoard::drawEx(
         int nDstX, int nDstY, // start position of drawing on the screen
         int nSrcX, int nSrcY, // region to draw, a cropped region on the token board
         int nSrcW, int nSrcH)
 {
-    m_TokenBoard.DrawEx(nDstX, nDstY, nSrcX, nSrcY, nSrcW, nSrcH);
+    m_TokenBoard.drawEx(nDstX, nDstY, nSrcX, nSrcY, nSrcW, nSrcH);
 }
 
 std::string InputBoard::Content()

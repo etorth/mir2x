@@ -135,6 +135,10 @@ tinyxml2::XMLNode *XMLFunc::GetNextLeaf(tinyxml2::XMLNode *pNode)
         throw std::invalid_argument(str_fflprintf(": Invalid argument: [%p] is not a leaf node", pNode));
     }
 
+    if(auto pNext = pNode->NextSibling()){
+        return XMLFunc::GetNodeFirstLeaf(pNext);
+    }
+
     for(auto pParent = pNode->Parent(); pParent; pParent = pParent->Parent()){
         if(auto pUncle = pParent->NextSibling()){
             return XMLFunc::GetNodeFirstLeaf(pUncle);

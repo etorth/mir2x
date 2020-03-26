@@ -78,7 +78,7 @@ void InventoryBoard::DrawItem(int nDstX, int nDstY, const PackBin &rstBin)
     }
 }
 
-void InventoryBoard::DrawEx(int nDstX, int nDstY, int, int, int, int)
+void InventoryBoard::drawEx(int nDstX, int nDstY, int, int, int, int)
 {
     if(auto pTexture = g_ProgUseDB->Retrieve(0X0000001B)){
         g_SDLDevice->DrawTexture(pTexture, nDstX, nDstY);

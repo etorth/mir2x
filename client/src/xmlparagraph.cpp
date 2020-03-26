@@ -282,7 +282,7 @@ void XMLParagraph::Join(const XMLParagraph &rstInput)
     }
 }
 
-void XMLParagraph::LoadXML(const char *szXMLString)
+void XMLParagraph::loadXML(const char *szXMLString)
 {
     if(szXMLString == nullptr){
         throw std::invalid_argument(str_fflprintf(": Invalid argument: (nullptr)"));
@@ -304,6 +304,44 @@ void XMLParagraph::LoadXML(const char *szXMLString)
             }
     }
 
+    for(auto pNode = XMLFunc::GetTreeFirstLeaf(m_XMLDocument.FirstChild()); pNode; pNode = XMLFunc::GetNextLeaf(pNode)){
+        if(XMLFunc::CheckValidLeaf(pNode)){
+            m_LeafList.emplace_back(pNode);
+        }
+    }
+}
+
+void XMLParagraph::loadXMLNode(const tinyxml2::XMLNode *node)
+{
+    if(!node){
+        throw fflerror("null node pointer");
+    }
+
+    if(!node->ToElement()){
+        throw fflerror("given node is not an element");
+    }
+
+    bool parXML = false;
+    for(const char *cstr: {"par", "Par", "PAR"}){
+        if(std::string(node->Value()) == cstr){
+            parXML = true;
+            break;
+        }
+    }
+
+    if(!parXML){
+        throw fflerror("not a paragraph node");
+    }
+
+    m_XMLDocument.Clear();
+    if(auto pNew = node->DeepClone(&m_XMLDocument); pNew){
+        m_XMLDocument.InsertEndChild(pNew);
+    }
+    else{
+        throw fflerror("copy paragraph node failed");
+    }
+
+    m_LeafList.clear();
     for(auto pNode = XMLFunc::GetTreeFirstLeaf(m_XMLDocument.FirstChild()); pNode; pNode = XMLFunc::GetNextLeaf(pNode)){
         if(XMLFunc::CheckValidLeaf(pNode)){
             m_LeafList.emplace_back(pNode);

@@ -422,7 +422,7 @@ class TokenBoard: public Widget
             return bRes;
         }
 
-        bool LoadXML(const char *szXML, const IDHandlerMap &rstMap = IDHandlerMap())
+        bool loadXML(const char *szXML, const IDHandlerMap &rstMap = IDHandlerMap())
         {
             XMLObjectList stXMLObjectList;
             if(stXMLObjectList.Parse(szXML, true)){
@@ -446,11 +446,11 @@ class TokenBoard: public Widget
     public:
         void Draw(int nX, int nY)
         {
-            DrawEx(nX, nY, 0, 0, W(), H());
+            drawEx(nX, nY, 0, 0, W(), H());
         }
 
     public:
-        void DrawEx(int, int, int, int, int, int);
+        void drawEx(int, int, int, int, int, int);
 
     private:
         int GetNewLineStartY(int);

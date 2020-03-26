@@ -24,13 +24,13 @@
 
 #include "widget.hpp"
 #include "lalign.hpp"
-#include "xmlboard.hpp"
+#include "xmltypeset.hpp"
 #include "colorfunc.hpp"
 
 class LabelBoard: public Widget
 {
     private:
-        XMLBoard m_Board;
+        XMLTypeset m_Board;
 
     public:
         LabelBoard(
@@ -64,9 +64,9 @@ class LabelBoard: public Widget
         ~LabelBoard() = default;
 
     public:
-        void LoadXML(const char *szXMLString)
+        void loadXML(const char *szXMLString)
         {
-            m_Board.LoadXML(szXMLString);
+            m_Board.loadXML(szXMLString);
         }
 
     public:
@@ -112,8 +112,8 @@ class LabelBoard: public Widget
         }
 
     public:
-        void DrawEx(int nDstX, int nDstY, int nSrcX, int nSrcY, int nW, int nH)
+        void drawEx(int nDstX, int nDstY, int nSrcX, int nSrcY, int nW, int nH)
         {
-            m_Board.DrawEx(nDstX, nDstY, nSrcX, nSrcY, nW, nH);
+            m_Board.drawEx(nDstX, nDstY, nSrcX, nSrcY, nW, nH);
         }
 };

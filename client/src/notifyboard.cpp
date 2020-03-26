@@ -120,7 +120,7 @@ void NotifyBoard::AddLog(std::array<std::string, 4> stLogType, const char *szLog
     }
 }
 
-void NotifyBoard::DrawEx(int nDstX, int nDstY, int nSrcX, int nSrcY, int nW, int nH)
+void NotifyBoard::drawEx(int nDstX, int nDstY, int nSrcX, int nSrcY, int nW, int nH)
 {
-    m_LogBoard.DrawEx(nDstX, nDstY, nSrcX, nSrcY, nW, nH);
+    m_LogBoard.drawEx(nDstX, nDstY, nSrcX, nSrcY, nW, nH);
 }

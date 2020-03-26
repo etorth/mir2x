@@ -80,12 +80,12 @@ class Widget
         virtual void Draw()
         {
             if(Show()){
-                DrawEx(X(), Y(), 0, 0, W(), H());
+                drawEx(X(), Y(), 0, 0, W(), H());
             }
         }
 
     public:
-        virtual void DrawEx(int,        // dst x on the screen coordinate
+        virtual void drawEx(int,        // dst x on the screen coordinate
                             int,        // dst y on the screen coordinate
                             int,        // src x on the widget, take top-left as origin
                             int,        // src y on the widget, take top-left as origin

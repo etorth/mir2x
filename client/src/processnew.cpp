@@ -155,12 +155,12 @@ void ProcessNew::Draw()
         //     -->| |<--       -->| |<--
         //        nDX             nDX
 
-        rstLB.DrawEx(nX - rstLB.W() - nDX, nY, 0, 0, rstLB.W(), rstLB.H());
+        rstLB.drawEx(nX - rstLB.W() - nDX, nY, 0, 0, rstLB.W(), rstLB.H());
 
         g_SDLDevice->DrawRectangle(nX, nY, rstBox.W(), rstBox.H());
-        rstBox.DrawEx(nX, nY, 0, 0, rstBox.W(), rstBox.H());
+        rstBox.drawEx(nX, nY, 0, 0, rstBox.W(), rstBox.H());
 
-        rstLBCheck.DrawEx(nX + rstBox.W() + nDX, nY, 0, 0, rstLBCheck.W(), rstLBCheck.H());
+        rstLBCheck.drawEx(nX + rstBox.W() + nDX, nY, 0, 0, rstLBCheck.W(), rstLBCheck.H());
     };
 
     g_SDLDevice->PushColor(0X00, 0X80, 0X00, 0X00);

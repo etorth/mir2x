@@ -19,7 +19,7 @@
 #pragma once
 #include "widget.hpp"
 #include "lalign.hpp"
-#include "xmlboard.hpp"
+#include "xmltypeset.hpp"
 
 class DebugBoard: public Widget
 {
@@ -35,7 +35,7 @@ class DebugBoard: public Widget
         uint32_t m_DefaultFontColor;
 
     private:
-        std::deque<std::shared_ptr<XMLBoard>> m_BoardList;
+        std::deque<std::shared_ptr<XMLTypeset>> m_BoardList;
 
     public:
         DebugBoard(
@@ -55,9 +55,6 @@ class DebugBoard: public Widget
             , m_DefaultFontStyle(nDefaultFontStyle)
             , m_DefaultFontColor(nDefaultFontColor)
         {}
-
-    public:
-        ~DebugBoard() = default;
 
     public:
         void addLog(const char *, ...);
@@ -95,5 +92,5 @@ class DebugBoard: public Widget
         int PW();
 
     public:
-        void DrawEx(int, int, int, int, int, int);
+        void drawEx(int, int, int, int, int, int);
 };

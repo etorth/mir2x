@@ -747,7 +747,7 @@ int TokenBoard::GetNewLineStartY(int nLine)
 //            static is in Info
 // we assume all token box are well-prepared here!
 // means cache, state, info are all valid now when invoke this function
-void TokenBoard::DrawEx(
+void TokenBoard::drawEx(
         int nDstX, int nDstY, // start position of drawing on the screen
         int nSrcX, int nSrcY, // region to draw, a cropped region on the token board
         int nSrcW, int nSrcH)

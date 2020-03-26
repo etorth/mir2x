@@ -120,7 +120,7 @@ class InputBoard: public Widget
 
     public:
         void Draw();
-        void DrawEx(int, int, int, int, int, int);
+        void drawEx(int, int, int, int, int, int);
 
     public:
         std::string Content();

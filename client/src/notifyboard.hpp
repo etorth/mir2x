@@ -83,5 +83,5 @@ class NotifyBoard: public Widget
         void AddXML(const char *szXML, const std::map<std::string, std::function<void()>> &rstMap = {});
 
     public:
-        void DrawEx(int, int, int, int, int, int);
+        void drawEx(int, int, int, int, int, int);
 };

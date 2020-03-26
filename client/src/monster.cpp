@@ -234,7 +234,7 @@ bool Monster::Draw(int nViewX, int nViewY, int nFocusMask)
                 const int nLH = m_nameBoard.H();
                 const int nDrawNameXP = nDrawBarXP + nBarW / 2 - nLW / 2;
                 const int nDrawNameYP = nDrawBarYP + 20;
-                m_nameBoard.DrawEx(nDrawNameXP, nDrawNameYP, 0, 0, nLW, nLH);
+                m_nameBoard.drawEx(nDrawNameXP, nDrawNameYP, 0, 0, nLW, nLH);
             }
         }
     }

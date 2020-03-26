@@ -30,6 +30,17 @@ constexpr int LEAF_UTF8GROUP = 0;
 constexpr int LEAF_IMAGE     = 1;
 constexpr int LEAF_EMOJI     = 2;
 
+struct xmlLeafData
+{
+    struct _currData
+    {
+    } currData;
+
+    struct _accuData
+    {
+    } accuData;
+};
+
 class XMLParagraphLeaf
 {
     private:
@@ -111,7 +122,7 @@ class XMLParagraphLeaf
             return m_U64Key;
         }
 
-        uint64_t EmojiU64Key() const
+        uint32_t emojiU32Key() const
         {
             if(Type() != LEAF_EMOJI){
                 throw fflerror("leaf is not an emoji");
@@ -132,4 +143,10 @@ class XMLParagraphLeaf
         std::optional<uint8_t> Font()      const;
         std::optional<uint8_t> FontSize()  const;
         std::optional<uint8_t> FontStyle() const;
+
+    public:
+        const xmlLeafData *leafData() const
+        {
+            return reinterpret_cast<xmlLeafData *>(m_Node->GetUserData());
+        }
 };

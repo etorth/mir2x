@@ -141,7 +141,7 @@ class TextButton: public ButtonBase
         }
 
     public:
-        void DrawEx(int,    // dst x on the screen coordinate
+        void drawEx(int,    // dst x on the screen coordinate
                 int,        // dst y on the screen coordinate
                 int,        // src x on the widget, take top-left as origin
                 int,        // src y on the widget, take top-left as origin

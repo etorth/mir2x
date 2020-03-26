@@ -18,7 +18,7 @@
 
 #include "log.hpp"
 #include "strfunc.hpp"
-#include "xmlboard.hpp"
+#include "xmltypeset.hpp"
 #include "colorfunc.hpp"
 #include "labelboard.hpp"
 
@@ -48,7 +48,7 @@ void LabelBoard::SetText(const char * szFormatString, ...)
 
     // use the fallback values of m_Board
     // don't need to specify the font/size/style info here
-    m_Board.LoadXML(str_printf("<par>%s</par>", szText.c_str()).c_str());
+    m_Board.loadXML(str_printf("<par>%s</par>", szText.c_str()).c_str());
 
     m_W = m_Board.PX() + m_Board.PW();
     m_H = m_Board.PY() + m_Board.PH();

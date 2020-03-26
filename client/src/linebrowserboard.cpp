@@ -44,11 +44,11 @@ bool LineBrowserBoard::AddXML(const char *szXML, const std::map<std::string, std
     return bRes;
 }
 
-void LineBrowserBoard::DrawEx(int nDstX, int nDstY, int nSrcX, int nSrcY, int nW, int nH)
+void LineBrowserBoard::drawEx(int nDstX, int nDstY, int nSrcX, int nSrcY, int nW, int nH)
 {
     if(m_TokenBoard.H() <= H()){
-        m_TokenBoard.DrawEx(nDstX, nDstY, nSrcX, nSrcY, nW, nH);
+        m_TokenBoard.drawEx(nDstX, nDstY, nSrcX, nSrcY, nW, nH);
     }else{
-        m_TokenBoard.DrawEx(nDstX, nDstY, nSrcX, nSrcY + (m_TokenBoard.H() - H()), nW, nH);
+        m_TokenBoard.drawEx(nDstX, nDstY, nSrcX, nSrcY + (m_TokenBoard.H() - H()), nW, nH);
     }
 }

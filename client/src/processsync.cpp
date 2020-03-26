@@ -79,6 +79,6 @@ void ProcessSync::Draw()
     int nInfoX = (g_SDLDevice->WindowW(false) - m_ProcessBarInfo.W()) / 2;
     int nInfoY = 528 + (nH - m_ProcessBarInfo.H()) / 2;
 
-    m_ProcessBarInfo.DrawEx(nInfoX, nInfoY, 0, 0, m_ProcessBarInfo.W(), m_ProcessBarInfo.H());
+    m_ProcessBarInfo.drawEx(nInfoX, nInfoY, 0, 0, m_ProcessBarInfo.W(), m_ProcessBarInfo.H());
     g_SDLDevice->Present();
 }

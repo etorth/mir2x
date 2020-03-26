@@ -34,6 +34,7 @@
 #include "commonitem.hpp"
 #include "indepmagic.hpp"
 #include "labelboard.hpp"
+#include "layoutboard.hpp"
 #include "mir2xmapdata.hpp"
 #include "controlboard.hpp"
 #include "inventoryboard.hpp"
@@ -118,6 +119,9 @@ class ProcessRun: public Process
 
     private:
         std::list<std::shared_ptr<AscendStr>> m_AscendStrList;
+
+    private:
+        layoutBoard m_layout;
 
     private:
         double m_starRatio = 0.0;

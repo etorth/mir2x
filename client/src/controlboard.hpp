@@ -58,7 +58,7 @@ class ControlBoard: public Widget
         ~ControlBoard() = default;
 
     public:
-        void DrawEx(int, int, int, int, int, int);
+        void drawEx(int, int, int, int, int, int);
 
     public:
         void Update(double);
