@@ -27,12 +27,12 @@ class DebugBoard: public Widget
         int m_LineW;
 
     private:
-        uint8_t m_DefaultFont;
-        uint8_t m_DefaultFontSize;
-        uint8_t m_DefaultFontStyle;
+        uint8_t m_font;
+        uint8_t m_fontSize;
+        uint8_t m_fontStyle;
 
     private:
-        uint32_t m_DefaultFontColor;
+        uint32_t m_fontColor;
 
     private:
         std::deque<std::shared_ptr<XMLTypeset>> m_BoardList;
@@ -50,10 +50,10 @@ class DebugBoard: public Widget
                 bool             bAutoDelete       = false)
             : Widget(nX, nY, 0, 0, pWidget, bAutoDelete)
             , m_LineW(nW)
-            , m_DefaultFont(nDefaultFont)
-            , m_DefaultFontSize(nDefaultFontSize)
-            , m_DefaultFontStyle(nDefaultFontStyle)
-            , m_DefaultFontColor(nDefaultFontColor)
+            , m_font(nDefaultFont)
+            , m_fontSize(nDefaultFontSize)
+            , m_fontStyle(nDefaultFontStyle)
+            , m_fontColor(nDefaultFontColor)
         {}
 
     public:
@@ -62,22 +62,22 @@ class DebugBoard: public Widget
     public:
         void SetFont(uint8_t nFont)
         {
-            m_DefaultFont = nFont;
+            m_font = nFont;
         }
 
         void SetFontSize(uint8_t nFontSize)
         {
-            m_DefaultFontSize = nFontSize;
+            m_fontSize = nFontSize;
         }
 
         void SetFontStyle(uint8_t nFontStyle)
         {
-            m_DefaultFontStyle = nFontStyle;
+            m_fontStyle = nFontStyle;
         }
 
         void SetFontColor(uint32_t nFontColor)
         {
-            m_DefaultFontColor = nFontColor;
+            m_fontColor = nFontColor;
         }
 
     public:

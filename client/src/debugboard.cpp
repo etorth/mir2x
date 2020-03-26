@@ -48,11 +48,11 @@ void DebugBoard::addLog(const char * formatString, ...)
     }
 
     if(m_BoardList.size() < 5){
-        m_BoardList.push_back(std::make_shared<XMLTypeset>(m_LineW, LALIGN_LEFT, true, 0, 0, m_DefaultFont, m_DefaultFontSize, m_DefaultFontStyle, m_DefaultFontColor));
+        m_BoardList.push_back(std::make_shared<XMLTypeset>(m_LineW, LALIGN_LEFT, false, m_font, m_fontSize, m_fontStyle, m_fontColor));
     }
     else{
-	m_BoardList.push_back(m_BoardList.front());
-	m_BoardList.pop_front();
+        m_BoardList.push_back(m_BoardList.front());
+        m_BoardList.pop_front();
     }
 
     const auto xmlString = str_printf("<par>%s</par>", text.c_str());

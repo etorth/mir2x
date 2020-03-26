@@ -72,11 +72,10 @@ XMLParagraphLeaf::XMLParagraphLeaf(tinyxml2::XMLNode *pNode)
                   }
           }
       }())
-    , m_UTF8CharOff()
     , m_Event(BEVENT_OFF)
 {
     if(Type() == LEAF_UTF8GROUP){
-        m_UTF8CharOff = UTF8Func::BuildUTF8Off(UTF8Text());
+        m_UTF8CharOff = UTF8Func::buildUTF8Off(UTF8Text());
     }
 }
 
@@ -97,7 +96,7 @@ void XMLParagraphLeaf::MarkEvent(int nEvent)
     m_Event = nEvent;
 }
 
-uint32_t XMLParagraphLeaf::PeekUTF8Code(size_t nLeafOff) const
+uint32_t XMLParagraphLeaf::PeekUTF8Code(int nLeafOff) const
 {
     if(nLeafOff >= Length()){
         throw std::invalid_argument(str_fflprintf(": Provided LeafOff exceeds leaf length: %zu", Length()));

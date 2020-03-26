@@ -30,12 +30,12 @@ class XMLTypeset // means XMLParagraph typeset
     private:
         struct ContentLine
         {
-            size_t StartY;
+            int StartY;
             std::vector<TOKEN> Content;
         };
 
     private:
-        const size_t m_MaxLineWidth;
+        const int m_MaxLineWidth;
 
     private:
         const int m_LAlign;
@@ -44,23 +44,23 @@ class XMLTypeset // means XMLParagraph typeset
         const bool m_CanThrough;
 
     private:
-        size_t m_WordSpace;
-        size_t m_LineSpace;
+        int m_WordSpace;
+        int m_LineSpace;
 
     private:
-        uint8_t  m_DefaultFont;
-        uint8_t  m_DefaultFontSize;
-        uint8_t  m_DefaultFontStyle;
-        uint32_t m_DefaultFontColor;
+        uint8_t  m_font;
+        uint8_t  m_fontSize;
+        uint8_t  m_fontStyle;
+        uint32_t m_fontColor;
 
     private:
-        size_t m_PX;
-        size_t m_PY;
-        size_t m_PW;
-        size_t m_PH;
+        int m_PX;
+        int m_PY;
+        int m_PW;
+        int m_PH;
 
     private:
-        XMLParagraph m_Paragraph;
+        XMLParagraph m_paragraph;
 
     private:
         std::vector<ContentLine> m_LineList;
@@ -70,50 +70,50 @@ class XMLTypeset // means XMLParagraph typeset
 
     public:
         XMLTypeset(
-                size_t      nMaxLineWidth,
-                int         nLAlign           = LALIGN_LEFT,
-                bool        bCanThrough       = true,
-                size_t      nWordSpace        = 0,
-                size_t      nLineSpace        = 0,
-                uint8_t     nDefaultFont      = 0,
-                uint8_t     nDefaultFontSize  = 0,
-                uint8_t     nDefaultFontStyle = 0,
-                uint32_t    nDefaultFontColor = ColorFunc::WHITE + 255)
+                int      nMaxLineWidth,
+                int      nLAlign           =  LALIGN_LEFT,
+                bool     bCanThrough       =  true,
+                uint8_t  nDefaultFont      =  0,
+                uint8_t  nDefaultFontSize  = 10,
+                uint8_t  nDefaultFontStyle =  0,
+                uint32_t nDefaultFontColor =  ColorFunc::WHITE + 255,
+                int      nLineSpace        =  0,
+                int      nWordSpace        =  0)
             : m_MaxLineWidth(nMaxLineWidth)
             , m_LAlign(nLAlign)
             , m_CanThrough(bCanThrough)
             , m_WordSpace(nWordSpace)
             , m_LineSpace(nLineSpace)
-            , m_DefaultFont(nDefaultFont)
-            , m_DefaultFontSize(nDefaultFontSize)
-            , m_DefaultFontStyle(nDefaultFontStyle)
-            , m_DefaultFontColor(nDefaultFontColor)
+            , m_font(nDefaultFont)
+            , m_fontSize(nDefaultFontSize)
+            , m_fontStyle(nDefaultFontStyle)
+            , m_fontColor(nDefaultFontColor)
             , m_PX(0)
             , m_PY(0)
             , m_PW(0)
             , m_PH(0)
-            , m_Paragraph()
+            , m_paragraph()
             , m_LineList()
         {
-            CheckDefaultFont();
+            checkDefaultFont();
         }
 
     public:
         ~XMLTypeset() = default;
 
     public:
-        bool Empty() const
+        bool empty() const
         {
-            return m_Paragraph.Empty();
+            return m_paragraph.empty();
         }
 
     public:
         void loadXML(const char *szXMLString)
         {
             Clear();
-            m_Paragraph.loadXML(szXMLString);
+            m_paragraph.loadXML(szXMLString);
 
-            if(m_Paragraph.LeafCount() > 0){
+            if(m_paragraph.LeafCount() > 0){
                 BuildBoard(0, 0);
             }
         }
@@ -121,9 +121,9 @@ class XMLTypeset // means XMLParagraph typeset
         void loadXMLNode(const tinyxml2::XMLNode *node)
         {
             Clear();
-            m_Paragraph.loadXMLNode(node);
+            m_paragraph.loadXMLNode(node);
 
-            if(m_Paragraph.LeafCount() > 0){
+            if(m_paragraph.LeafCount() > 0){
                 BuildBoard(0, 0);
             }
         }
@@ -145,39 +145,39 @@ class XMLTypeset // means XMLParagraph typeset
         void ResetBoardPixelRegion();
 
     public:
-        bool LineValid(size_t nLine) const
+        bool LineValid(int line) const
         {
-            return nLine < m_LineList.size();
+            return line >= 0 && line < lineCount();
         }
 
-        size_t LineCount() const
+        int lineCount() const
         {
-            return m_LineList.size();
+            return (int)(m_LineList.size());
         }
 
-        size_t LineTokenCount(size_t nLine) const
+        int LineTokenCount(int nLine) const
         {
-            if(nLine < LineCount()){
+            if(LineValid(nLine)){
                 return m_LineList[nLine].Content.size();
             }
-            throw std::invalid_argument(str_fflprintf(": Invalid line specified: %zu >= %zu", nLine, LineCount()));
+            throw fflerror("invalid line specified: %d >= %d", nLine, lineCount());
         }
 
     private:
-        std::tuple<size_t, size_t> PrevTokenLoc(size_t, size_t) const;
-        std::tuple<size_t, size_t> NextTokenLoc(size_t, size_t) const;
+        std::tuple<int, int> PrevTokenLoc(int, int) const;
+        std::tuple<int, int> NextTokenLoc(int, int) const;
 
     private:
-        std::tuple<size_t, size_t> LastTokenLoc() const
+        std::tuple<int, int> LastTokenLoc() const
         {
-            if(Empty()){
-                throw std::runtime_error(str_fflprintf(": Empty board"));
+            if(empty()){
+                throw fflerror("empty board");
             }
-            return {LineTokenCount(LineCount() - 1) - 1, LineCount() - 1};
+            return {LineTokenCount(lineCount() - 1) - 1, lineCount() - 1};
         }
 
     public:
-        std::tuple<int, int> leafTokenLoc(size_t leaf) const
+        std::tuple<int, int> leafTokenLoc(int leaf) const
         {
             if(LeafValid(leaf)){
                 return m_leaf2TokenLoc.at(leaf);
@@ -186,7 +186,7 @@ class XMLTypeset // means XMLParagraph typeset
         }
 
     private:
-        bool TokenLocValid(size_t nX, size_t nY) const
+        bool TokenLocValid(int nX, int nY) const
         {
             return LineValid(nY) && (nX < LineTokenCount(nY));
         }
@@ -195,30 +195,30 @@ class XMLTypeset // means XMLParagraph typeset
         void update(double);
 
     public:
-        void InsertXML (size_t, size_t, const char *);
-        void InsertText(size_t, size_t, const char *);
+        void InsertXML (int, int, const char *);
+        void InsertText(int, int, const char *);
 
     public:
-        void Break(size_t, size_t);
+        void Break(int, int);
 
     public:
-        void Delete(size_t, size_t, size_t);
+        void Delete(int, int, int);
 
     public:
-        size_t LeafCount() const
+        int LeafCount() const
         {
-            return m_Paragraph.LeafCount();
+            return m_paragraph.LeafCount();
         }
 
-        bool LeafValid(size_t nLeaf) const
+        bool LeafValid(int nLeaf) const
         {
             return nLeaf < LeafCount();
         }
 
     public:
-        void MarkLeafEvent(size_t nLeaf, int nEvent)
+        void MarkLeafEvent(int nLeaf, int nEvent)
         {
-            m_Paragraph.LeafRef(nLeaf).MarkEvent(nEvent);
+            m_paragraph.leafRef(nLeaf).MarkEvent(nEvent);
         }
 
     public:
@@ -227,84 +227,84 @@ class XMLTypeset // means XMLParagraph typeset
     public:
         void SetDefaultFont(uint8_t nFont)
         {
-            m_DefaultFont = nFont;
+            m_font = nFont;
         }
 
         void SetDefaultFontSize(uint8_t nFontSize)
         {
-            m_DefaultFontSize = nFontSize;
+            m_fontSize = nFontSize;
         }
 
         void SetDefaultFontStyle(uint8_t nFontStyle)
         {
-            m_DefaultFontStyle = nFontStyle;
+            m_fontStyle = nFontStyle;
         }
 
         void SetDefaultFontColor(uint32_t nFontColor)
         {
-            m_DefaultFontColor = nFontColor;
+            m_fontColor = nFontColor;
         }
 
     public:
         std::string PrintXML() const
         {
-            return m_Paragraph.PrintXML();
+            return m_paragraph.PrintXML();
         }
 
     public:
         std::string GetText(bool) const;
 
     private:
-        void CheckDefaultFont() const;
+        void checkDefaultFont() const;
 
     private:
-        void ResetOneLine(size_t, bool);
+        void ResetOneLine(int, bool);
 
     private:
-        bool addRawToken(size_t, const TOKEN &);
+        bool addRawToken(int, const TOKEN &);
 
     private:
-        void SetTokenBoxWordSpace(size_t);
+        void SetTokenBoxWordSpace(int);
 
     private:
-        void SetLineTokenStartX(size_t);
-        void SetLineTokenStartY(size_t);
+        void SetLineTokenStartX(int);
+        void SetLineTokenStartY(int);
 
     private:
-        size_t LineRawWidth(size_t, bool) const;
+        int LineRawWidth(int, bool) const;
 
     private:
-        size_t LineFullWidth(size_t) const;
+        int LineFullWidth(int) const;
 
     public:
-        const TOKEN *GetToken(size_t nX, size_t nY) const
+        const TOKEN *GetToken(int nX, int nY) const
         {
             if(!TokenLocValid(nX, nY)){
-                throw std::invalid_argument(str_fflprintf(": Invalid token location: (%zu, %zu)", nX, nY));
+                throw std::invalid_argument(str_fflprintf(": Invalid token location: (%d, %d)", nX, nY));
             }
             return &(m_LineList[nY].Content[nX]);
         }
 
-        TOKEN *GetToken(size_t nX, size_t nY)
+        TOKEN *GetToken(int nX, int nY)
         {
             return const_cast<TOKEN *>(static_cast<const XMLTypeset *>(this)->GetToken(nX, nY));
         }
 
     public:
-        const TOKEN *GetLineBackToken(size_t nLine) const
+        const TOKEN *GetLineBackToken(int nLine) const
         {
             if(!LineValid(nLine)){
-                throw std::invalid_argument(str_fflprintf(": Invalid line: %zu", nLine));
+                throw std::invalid_argument(str_fflprintf(": Invalid line: %d", nLine));
             }
 
             if(LineTokenCount(nLine) == 0){
-                throw std::runtime_error(str_fflprintf(": Invalie empty line: %zu", nLine));
+                throw std::runtime_error(str_fflprintf(": Invalie empty line: %d", nLine));
             }
 
             return GetToken(LineTokenCount(nLine) - 1, nLine);
         }
 
-        TOKEN *GetLineBackToken(size_t nLine)
+        TOKEN *GetLineBackToken(int nLine)
         {
             return const_cast<TOKEN *>(static_cast<const XMLTypeset *>(this)->GetLineBackToken(nLine));
         }
@@ -312,15 +312,15 @@ class XMLTypeset // means XMLParagraph typeset
     public:
         const TOKEN *GetBackToken() const
         {
-            if(LineCount() == 0){
-                throw std::runtime_error(str_fflprintf(": Empty board"));
+            if(lineCount() == 0){
+                throw std::runtime_error(str_fflprintf(": empty board"));
             }
 
-            if(LineTokenCount(LineCount() - 1) == 0){
-                throw std::runtime_error(str_fflprintf(": Invalie empty line: %zu", LineCount() - 1));
+            if(LineTokenCount(lineCount() - 1) == 0){
+                throw std::runtime_error(str_fflprintf(": Invalie empty line: %d", lineCount() - 1));
             }
 
-            return GetLineBackToken(LineCount() - 1);
+            return GetLineBackToken(lineCount() - 1);
         }
 
         TOKEN *GetBackToken()
@@ -329,64 +329,64 @@ class XMLTypeset // means XMLParagraph typeset
         }
 
     private:
-        size_t GetTokenWordSpace(size_t, size_t) const;
+        int GetTokenWordSpace(int, int) const;
 
     private:
-        bool AppendToken(size_t, const TOKEN &);
-        void LinePadding(size_t);
+        bool AppendToken(int, const TOKEN &);
+        void LinePadding(int);
 
     private:
-        TOKEN BuildUTF8Token(size_t, uint8_t, uint8_t, uint8_t, uint32_t) const;
-        TOKEN buildEmojiToken(size_t, uint32_t) const;
+        TOKEN BuildUTF8Token(int, uint8_t, uint8_t, uint8_t, uint32_t) const;
+        TOKEN buildEmojiToken(int, uint32_t) const;
 
     private:
-        std::tuple<size_t, size_t> TokenLocInXMLParagraph(size_t, size_t) const;
+        std::tuple<int, int> TokenLocInXMLParagraph(int, int) const;
 
     private:
-        TOKEN CreateToken(size_t, size_t) const;
+        TOKEN CreateToken(int, int) const;
 
     private:
-        void BuildBoard(size_t, size_t);
+        void BuildBoard(int, int);
 
     private:
-        size_t LineReachMaxX(size_t) const;
-        size_t LineReachMaxY(size_t) const;
-        size_t LineReachMinX(size_t) const;
-        size_t LineReachMinY(size_t) const;
+        int LineReachMaxX(int) const;
+        int LineReachMaxY(int) const;
+        int LineReachMinX(int) const;
+        int LineReachMinY(int) const;
 
     public:
-        size_t PX() const
+        int PX() const
         {
             return m_PX;
         }
 
-        size_t PY() const
+        int PY() const
         {
             return m_PY;
         }
 
-        size_t PW() const
+        int PW() const
         {
             return m_PW;
         }
 
-        size_t PH() const
+        int PH() const
         {
             return m_PH;
         }
 
     public:
-        size_t LineMaxHk(size_t, size_t) const;
+        int LineMaxHk(int, int) const;
 
     private:
-        void LineJustifyPadding(size_t);
-        void LineDistributedPadding(size_t);
+        void LineJustifyPadding(int);
+        void LineDistributedPadding(int);
 
     public:
         int LAlign() const;
 
     public:
-        size_t MaxLineWidth() const
+        int MaxLineWidth() const
         {
             return m_MaxLineWidth;
         }
@@ -397,14 +397,14 @@ class XMLTypeset // means XMLParagraph typeset
         }
 
     private:
-        size_t LineNewStartY(size_t);
-        size_t LineTokenBestY(size_t, size_t, size_t, size_t) const;
-        int    LineIntervalMaxH2(size_t, size_t, size_t) const;
+        int LineNewStartY(int);
+        int LineTokenBestY(int, int, int, int) const;
+        int LineIntervalMaxH2(int, int, int) const;
 
     public:
         uint32_t Color() const
         {
-            return m_DefaultFontColor;
+            return m_fontColor;
         }
 
         uint32_t BGColor() const

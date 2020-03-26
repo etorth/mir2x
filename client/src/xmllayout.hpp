@@ -45,26 +45,53 @@ class XMLLayout
         int m_W;
 
     private:
-        uint8_t m_DefaultFont;
-        uint8_t m_DefaultFontSize;
-        uint8_t m_DefaultFontStyle;
+        std::array<int, 4> m_margin;
 
     private:
-        uint32_t m_DefaultFontColor;
+        bool m_canThrough;
+
+    private:
+        uint8_t m_font;
+        uint8_t m_fontSize;
+        uint8_t m_fontStyle;
+
+    private:
+        uint32_t m_fontColor;
+
+    private:
+        int m_align;
+
+    private:
+        int m_lineSpace;
+        int m_wordSpace;
 
     public:
         XMLLayout(
-                int              nW,
-                uint8_t          nDefaultFont      = 0,
-                uint8_t          nDefaultFontSize  = 10,
-                uint8_t          nDefaultFontStyle = 0,
-                uint32_t         nDefaultFontColor = ColorFunc::WHITE + 255)
-            : m_W(nW)
-            , m_DefaultFont(nDefaultFont)
-            , m_DefaultFontSize(nDefaultFontSize)
-            , m_DefaultFontStyle(nDefaultFontStyle)
-            , m_DefaultFontColor(nDefaultFontColor)
-        {}
+                int                w,
+                std::array<int, 4> margin     = {0, 0, 0, 0},
+                bool               canThrough = false,
+                uint8_t            font       =  0,
+                uint8_t            fontSize   = 10,
+                uint8_t            fontStyle  =  0,
+                uint32_t           fontColor  =  ColorFunc::WHITE + 255,
+                int                lineAlign  =  LALIGN_LEFT,
+                int                lineSpace  =  0,
+                int                wordSpace  =  0)
+            : m_W(w)
+            , m_margin(margin)
+            , m_canThrough(canThrough)
+            , m_font(font)
+            , m_fontSize(fontSize)
+            , m_fontStyle(fontStyle)
+            , m_fontColor(fontColor)
+            , m_align(lineAlign)
+            , m_lineSpace(lineSpace)
+            , m_wordSpace(wordSpace)
+        {
+            if(m_W <= m_margin[2] + m_margin[3]){
+                throw fflerror("default margin takes all room of width");
+            }
+        }
 
     public:
         ~XMLLayout() = default;
@@ -75,22 +102,22 @@ class XMLLayout
     public:
         void SetFont(uint8_t nFont)
         {
-            m_DefaultFont = nFont;
+            m_font = nFont;
         }
 
         void SetFontSize(uint8_t nFontSize)
         {
-            m_DefaultFontSize = nFontSize;
+            m_fontSize = nFontSize;
         }
 
         void SetFontStyle(uint8_t nFontStyle)
         {
-            m_DefaultFontStyle = nFontStyle;
+            m_fontStyle = nFontStyle;
         }
 
         void SetFontColor(uint32_t nFontColor)
         {
-            m_DefaultFontColor = nFontColor;
+            m_fontColor = nFontColor;
         }
 
     public:
@@ -117,7 +144,13 @@ class XMLLayout
         }
 
     public:
-        void addPar(int, const std::array<int, 4> &, size_t, int, bool, size_t, size_t, const tinyxml2::XMLNode *);
+        void addPar(int loc, const tinyxml2::XMLNode * node)
+        {
+            addPar(loc, m_margin, node);
+        }
+
+    public:
+        void addPar(int, const std::array<int, 4> &, const tinyxml2::XMLNode *);
 
     public:
         int W() const

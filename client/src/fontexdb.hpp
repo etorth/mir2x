@@ -25,6 +25,7 @@
 
 #include "zsdb.hpp"
 #include "inndb.hpp"
+#include "fflerror.hpp"
 #include "hexstring.hpp"
 #include "sdldevice.hpp"
 
@@ -48,6 +49,7 @@ class FontexDB: public InnDB<uint64_t, FontexEntry>
 {
     private:
         std::unique_ptr<ZSDB> m_ZSDBPtr;
+        std::vector<ZSDB::Entry> m_entryList;
 
     private:
         // 0XFF00 : font index
@@ -118,6 +120,7 @@ class FontexDB: public InnDB<uint64_t, FontexEntry>
         {
             try{
                 m_ZSDBPtr = std::make_unique<ZSDB>(szFontexDBName);
+                m_entryList = m_ZSDBPtr->GetEntryList();
             }catch(...){
                 return false;
             }
@@ -141,6 +144,27 @@ class FontexDB: public InnDB<uint64_t, FontexEntry>
                 + (((uint64_t)nFontStyle) << 32) 
                 + (((uint64_t)nUTF8Code)  <<  0);
             return Retrieve(nKey);
+        }
+
+    public:
+        uint8_t findFontName(const char *fontName)
+        {
+            if(!fontName){
+                return 0;
+            }
+
+            const auto fileName = str_printf("%s.TTF", fontName);
+            for(const auto &entry: m_entryList){
+                if(fileName == entry.FileName + 3){
+                    return HexString::ToHex<uint8_t, 1>(entry.FileName);
+                }
+            }
+            return 0;
+        }
+
+        bool hasFont(uint8_t font)
+        {
+            return !RetrieveFontData(font).empty();
         }
 
     public:

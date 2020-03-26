@@ -56,7 +56,7 @@ class XMLParagraphLeaf
         const uint64_t m_U64Key;
 
     private:
-        std::vector<size_t> m_UTF8CharOff;
+        std::vector<int> m_UTF8CharOff;
 
     private:
         int m_Event;
@@ -80,7 +80,7 @@ class XMLParagraphLeaf
             return const_cast<tinyxml2::XMLNode *>(static_cast<const XMLParagraphLeaf *>(this)->Node());
         }
 
-        size_t Length() const
+        int Length() const
         {
             if(Type() == LEAF_UTF8GROUP){
                 return UTF8CharOffRef().size();
@@ -88,7 +88,7 @@ class XMLParagraphLeaf
             return 1;
         }
 
-        const std::vector<size_t> &UTF8CharOffRef() const
+        const std::vector<int> &UTF8CharOffRef() const
         {
             if(Type() != LEAF_UTF8GROUP){
                 throw fflerror("leaf is not an utf8 string");
@@ -101,9 +101,9 @@ class XMLParagraphLeaf
             return m_UTF8CharOff;
         }
 
-        std::vector<size_t> &UTF8CharOffRef()
+        std::vector<int> &UTF8CharOffRef()
         {
-            return const_cast<std::vector<size_t> &>(static_cast<const XMLParagraphLeaf *>(this)->UTF8CharOffRef());
+            return const_cast<std::vector<int> &>(static_cast<const XMLParagraphLeaf *>(this)->UTF8CharOffRef());
         }
 
         const char *UTF8Text() const
@@ -130,7 +130,7 @@ class XMLParagraphLeaf
             return m_U64Key;
         }
 
-        uint32_t PeekUTF8Code(size_t) const;
+        uint32_t PeekUTF8Code(int) const;
 
     public:
         void MarkEvent(int);

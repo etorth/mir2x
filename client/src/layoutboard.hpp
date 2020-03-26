@@ -30,18 +30,38 @@ class layoutBoard: public Widget
 
     public:
         layoutBoard(
-                int              x,
-                int              y,
-                int              w,
-                bool             canSelect        = false,
-                uint8_t          defaultFont      = 0,
-                uint8_t          defaultFontSize  = 10,
-                uint8_t          defaultFontStyle = 0,
-                uint32_t         defaultFontColor = ColorFunc::WHITE + 255,
-                Widget          *parent           = nullptr,
-                bool             autoDelete       = false)
+                // widget paramater
+                int                x,
+                int                y,
+                int                w,
+                bool               canSelect  =  false,
+
+                // forward to XMLLayout
+                std::array<int, 4> margin     =  {0, 0, 0, 0},
+                bool               canThrough =  false,
+                uint8_t            font       =  0,
+                uint8_t            fontSize   = 10,
+                uint8_t            fontStyle  =  0,
+                uint32_t           fontColor  =  ColorFunc::WHITE + 255,
+                int                lineAlign  =  LALIGN_LEFT,
+                int                lineSpace  =  0,
+                int                wordSpace  =  0,
+                Widget            *parent     =  nullptr,
+                bool               autoDelete =  false)
             : Widget(x, y, 0, 0, parent, autoDelete)
-            , m_layout(w, defaultFont, defaultFontSize, defaultFontStyle, defaultFontColor)
+            , m_layout
+              {
+                  w,
+                  margin,
+                  canThrough,
+                  font,
+                  fontSize,
+                  fontStyle,
+                  fontColor,
+                  lineAlign,
+                  lineSpace,
+                  wordSpace,
+              }
             , m_canSelect(canSelect)
         {}
 

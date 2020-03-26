@@ -77,7 +77,7 @@ void TextButton::FormatText(const char *szFormatText, ...)
         g_Log->AddLog(LOGTYPE_WARNING, "%s", szError.c_str());
     }
 
-    m_Label.SetText("%s", szText.c_str());
+    m_Label.setText("%s", szText.c_str());
     m_W = (std::max<int>)(m_W, m_Label.W());
     m_H = (std::max<int>)(m_H, m_Label.H());
 }

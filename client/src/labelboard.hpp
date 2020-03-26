@@ -34,30 +34,28 @@ class LabelBoard: public Widget
 
     public:
         LabelBoard(
-                int              nX,
-                int              nY,
-                const char      *szContent         = "",
-                uint8_t          nDefaultFont      = 0,
-                uint8_t          nDefaultFontSize  = 10,
-                uint8_t          nDefaultFontStyle = 0,
-                uint32_t         nDefaultFontColor = ColorFunc::WHITE + 255,
-                Widget          *pWidget           = nullptr,
-                bool             bAutoDelete       = false)
-            : Widget(nX, nY, 0, 0, pWidget, bAutoDelete)
+                int         x,
+                int         y,
+                const char *content     =  "",
+                uint8_t     font        =  0,
+                uint8_t     fontSize    = 10,
+                uint8_t     fontStyle   =  0,
+                uint32_t    fontColor   =  ColorFunc::WHITE + 255,
+                Widget     *pWidget     =  nullptr,
+                bool        bAutoDelete =  false)
+            : Widget(x, y, 0, 0, pWidget, bAutoDelete)
             , m_Board
               {
                   0,
                   LALIGN_LEFT,
                   false,
-                  0,
-                  0,
-                  nDefaultFont,
-                  nDefaultFontSize,
-                  nDefaultFontStyle,
-                  nDefaultFontColor,
+                  font,
+                  fontSize,
+                  fontStyle,
+                  fontColor,
               }
         {
-            SetText("%s", szContent);
+            setText("%s", content);
         }
 
     public:
@@ -70,7 +68,7 @@ class LabelBoard: public Widget
         }
 
     public:
-        void SetText(const char *, ...);
+        void setText(const char *, ...);
 
     public:
         std::string GetText(bool bTextOnly) const

@@ -242,7 +242,7 @@ class TokenBoard: public Widget
         int m_LineSpace;
 
     private:
-        uint8_t   m_DefaultFont;
+        uint8_t   m_font;
         uint8_t   m_DefaultSize;
         uint8_t   m_DefaultStyle;
         SDL_Color m_DefaultColor;
@@ -345,7 +345,7 @@ class TokenBoard: public Widget
             , m_WordSpace(nWordSpace)
             , m_LineSpace(nLineSpace)
 
-            , m_DefaultFont(nDefaultFont)
+            , m_font(nDefaultFont)
             , m_DefaultSize(nDefaultSize)
             , m_DefaultStyle(nDefaultStyle)
             , m_DefaultColor(rstDefaultColor)
@@ -522,7 +522,7 @@ class TokenBoard: public Widget
 
         void SetDefaultFont(uint8_t nFont, uint8_t nSize, uint8_t nStyle, const SDL_Color &rstColor)
         {
-            m_DefaultFont  = nFont;
+            m_font  = nFont;
             m_DefaultSize  = nSize;
             m_DefaultStyle = nStyle;
             m_DefaultColor = rstColor;

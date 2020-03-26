@@ -17,7 +17,7 @@
  */
 #include <SDL2/SDL.h>
 #include "log.hpp"
-#include "llcast.hpp"
+#include "toll.hpp"
 #include "dbcomid.hpp"
 #include "monster.hpp"
 #include "uidfunc.hpp"
@@ -44,10 +44,10 @@ Monster::Monster(uint64_t nUID, ProcessRun *pRun)
     condcheck(pRun);
 
     if(g_ClientArgParser->enableDrawUID){
-        m_nameBoard.SetText("%s(%llu)", DBCOM_MONSTERRECORD(MonsterID()).Name, to_LLU(UID()));
+        m_nameBoard.setText("%s(%llu)", DBCOM_MONSTERRECORD(MonsterID()).Name, to_LLU(UID()));
     }
     else{
-        m_nameBoard.SetText("%s", DBCOM_MONSTERRECORD(MonsterID()).Name);
+        m_nameBoard.setText("%s", DBCOM_MONSTERRECORD(MonsterID()).Name);
     }
 }
 

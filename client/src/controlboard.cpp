@@ -233,7 +233,7 @@ void ControlBoard::drawEx(int, int, int, int, int, int)
     {
         auto nX = m_ProcessRun->GetMyHero()->X();
         auto nY = m_ProcessRun->GetMyHero()->Y();
-        m_LocBoard.SetText(u8"%s: %d %d", DBCOM_MAPRECORD(m_ProcessRun->MapID()).Name, nX, nY);
+        m_LocBoard.setText(u8"%s: %d %d", DBCOM_MAPRECORD(m_ProcessRun->MapID()).Name, nX, nY);
         m_LocBoard.drawEx(nX0 + (136 - m_LocBoard.W()) / 2, nY0 + 108, 0, 0, m_LocBoard.W(), m_LocBoard.H());
     }
 

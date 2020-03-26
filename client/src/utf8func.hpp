@@ -25,7 +25,7 @@ namespace UTF8Func
 {
     uint32_t PeekUTF8Code(const char *);
 
-    std::vector<size_t> BuildUTF8Off(const char *);
+    std::vector<int> buildUTF8Off(const char *);
 
     constexpr uint64_t BuildU64Key(uint8_t nFont, uint8_t nFontSize, uint8_t nFontStyle, uint32_t nUTF8Code)
     {

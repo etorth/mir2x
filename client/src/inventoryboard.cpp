@@ -86,7 +86,7 @@ void InventoryBoard::drawEx(int nDstX, int nDstY, int, int, int, int)
 
     if(auto pMyHero = m_ProcessRun->GetMyHero()){
         // 1. draw gold
-        m_GoldBoard.SetText("%d", pMyHero->GetGold());
+        m_GoldBoard.setText("%d", pMyHero->GetGold());
 
         // 2. draw all items
         for(auto &rstBin: pMyHero->GetInvPack().GetPackBinList()){

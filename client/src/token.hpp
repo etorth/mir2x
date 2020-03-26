@@ -40,8 +40,8 @@
 
 struct TOKEN
 {
-    size_t Leaf;
-    size_t SelectID;
+    int Leaf;
+    int SelectID;
 
     struct __TokenBox
     {

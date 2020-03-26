@@ -209,7 +209,7 @@ bool TokenBoard::ParseTextObject(const tinyxml2::XMLElement &rstCurrentObject, i
     }
 
     int nFontCode = 0;
-    GetAttributeAtoi(&nFontCode, m_DefaultFont, rstCurrentObject, {"FONT", "Font", "font"});
+    GetAttributeAtoi(&nFontCode, m_font, rstCurrentObject, {"FONT", "Font", "font"});
     stSection.Info.Text.Font = (uint8_t)(nFontCode);
 
     // TODO: need to support it
@@ -2058,7 +2058,7 @@ bool TokenBoard::AddUTF8Code(uint32_t nUTF8Code)
         std::memset(&stSection, 0, sizeof(stSection));
 
         stSection.Info.Type          = SECTIONTYPE_PLAINTEXT;
-        stSection.Info.Text.Font     = m_DefaultFont;
+        stSection.Info.Text.Font     = m_font;
         stSection.Info.Text.Size     = m_DefaultSize;
         stSection.Info.Text.Style    = m_DefaultStyle;
         stSection.Info.Text.Color[0] = m_DefaultColor;
@@ -2108,7 +2108,7 @@ bool TokenBoard::AddUTF8Text(const char *pText)
 
 void TokenBoard::QueryDefaultFont(uint8_t *pFont, uint8_t *pFontSize, uint8_t *pFontStyle)
 {
-    if(pFont     ){ *pFont      = m_DefaultFont; }
+    if(pFont     ){ *pFont      = m_font; }
     if(pFontSize ){ *pFontSize  = m_DefaultSize; }
     if(pFontStyle){ *pFontStyle = m_DefaultStyle; }
 }
@@ -2454,7 +2454,7 @@ int TokenBoard::GetLineStartY(int nLine)
 
 int TokenBoard::GetBlankLineHeight()
 {
-    auto pTexture = g_FontexDB->Retrieve(m_DefaultFont, m_DefaultSize, m_DefaultStyle, (int)'H'); 
+    auto pTexture = g_FontexDB->Retrieve(m_font, m_DefaultSize, m_DefaultStyle, (int)'H'); 
 
     int nDefaultH;
     SDL_QueryTexture(pTexture, nullptr, nullptr, nullptr, &nDefaultH);

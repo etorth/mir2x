@@ -18,34 +18,137 @@
 
 #include "log.hpp"
 #include "strfunc.hpp"
+#include "fontexdb.hpp"
 #include "xmltypeset.hpp"
 #include "mathfunc.hpp"
 #include "colorfunc.hpp"
 #include "xmllayout.hpp"
 
 extern Log *g_Log;
+extern FontexDB *g_FontexDB;
 
-void XMLLayout::addPar(int loc, const std::array<int, 4> &margin, size_t maxLineWidth, int lalign, bool canThrough, size_t wordSpace, size_t lineSpace, const tinyxml2::XMLNode *node)
+void XMLLayout::addPar(int loc, const std::array<int, 4> &margin, const tinyxml2::XMLNode *node)
 {
     if(loc < 0 || loc > parCount()){
-        throw fflerror("invalid location: %d", loc);
+        throw fflerror("invalid location: %zu", loc);
     }
 
     if(!node){
         throw fflerror("null xml node");
     }
 
+    const auto elemNode = node->ToElement();
+    if(!elemNode){
+        throw fflerror("can't cast to XMLElement");
+    }
+
+    bool parXML = false;
+    for(const char *cstr: {"par", "Par", "PAR"}){
+        if(std::string(elemNode->Name()) == cstr){
+            parXML = true;
+            break;
+        }
+    }
+
+    if(!parXML){
+        throw fflerror("not a paragraph node");
+    }
+
+    const int lineWidth = [elemNode, this]()
+    {
+        const int defMargin = m_margin[2] + m_margin[3];
+        if(m_W <= defMargin){
+            throw fflerror("invalid default line width");
+        }
+
+        // even we use default size
+        // we won't let it create one-line mode by default
+        // user should explicitly note that they want this special mode
+
+        int lineWidth = std::max<int>(m_W - defMargin, 1);
+        elemNode->QueryIntAttribute("lineWidth", &lineWidth);
+        return lineWidth;
+    }();
+
+    const int lineAlign = [elemNode, this]()
+    {
+        if(const auto val = elemNode->Attribute("align")){
+            if(std::string(val) == "left"       ) return LALIGN_LEFT;
+            if(std::string(val) == "right"      ) return LALIGN_RIGHT;
+            if(std::string(val) == "center"     ) return LALIGN_CENTER;
+            if(std::string(val) == "justify"    ) return LALIGN_JUSTIFY;
+            if(std::string(val) == "distributed") return LALIGN_DISTRIBUTED;
+        }
+        return m_align;
+    }();
+
+    const bool canThrough = [elemNode, this]()
+    {
+        bool canThrough = m_canThrough;
+        elemNode->QueryBoolAttribute("canThrough", &canThrough);
+        return canThrough;
+    }();
+
+    const uint8_t font = [elemNode, this]()
+    {
+        int font = m_font;
+        if(const auto val = elemNode->Attribute("font")){
+            try{
+                font = std::stoi(val);
+            }
+            catch(...){
+                font = g_FontexDB->findFontName(val);
+            }
+        }
+
+        if(g_FontexDB->hasFont(font)){
+            return font;
+        }
+        return 0;
+    }();
+
+    const uint8_t fontSize = [elemNode, this]()
+    {
+        int fontSize = m_fontSize;
+        elemNode->QueryIntAttribute("size", &fontSize);
+        return fontSize;
+    }();
+
+    const uint32_t fontColor = [elemNode, this]()
+    {
+        if(const char *val = elemNode->Attribute("color")){
+            return ColorFunc::String2RGBA(val);
+        }
+        return m_fontColor;
+    }();
+
+    const uint8_t fontStyle = m_fontStyle;
+
+    const int lineSpace = [elemNode, this]()
+    {
+        int lineSpace = m_lineSpace;
+        elemNode->QueryIntAttribute("lineSpace", &lineSpace);
+        return lineSpace;
+    }();
+
+    const int wordSpace = [elemNode, this]()
+    {
+        int wordSpace = m_lineSpace;
+        elemNode->QueryIntAttribute("wordSpace", &wordSpace);
+        return wordSpace;
+    }();
+
     auto pNew = std::make_unique<XMLTypeset>
     (
-        maxLineWidth,
-        lalign,
+        lineWidth,
+        lineAlign,
         canThrough,
+        font,
+        fontSize,
+        fontStyle,
+        fontColor,
         lineSpace,
-        wordSpace,
-        m_DefaultFont,
-        m_DefaultFontSize,
-        m_DefaultFontStyle,
-        m_DefaultFontColor
+        wordSpace
     );
 
     pNew->loadXMLNode(node);
@@ -123,6 +226,10 @@ void XMLLayout::loadXML(const char *xmlString)
         throw fflerror("string is not layout xml");
     }
 
+    if(pRoot->FirstAttribute()){
+        g_Log->AddLog(LOGTYPE_WARNING, "Layout XML won't accept attributes, ignored.");
+    }
+
     for(auto p = pRoot->FirstChild(); p; p = p->NextSibling()){
         if(!p->ToElement()){
             g_Log->AddLog(LOGTYPE_WARNING, "Not an element: %s", p->Value());
@@ -142,7 +249,7 @@ void XMLLayout::loadXML(const char *xmlString)
             continue;
         }
 
-        addPar(parCount(), {0, 0, 0, 0}, m_W, LALIGN_LEFT, false, 0, 0, p);
+        addPar(parCount(), m_margin, p);
     }
 }
 

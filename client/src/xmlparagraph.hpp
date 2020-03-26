@@ -43,25 +43,25 @@ class XMLParagraph
         ~XMLParagraph() = default;
 
     public:
-        bool Empty() const
+        bool empty() const
         {
             return LeafCount() == 0;
         }
 
     public:
-        size_t LeafCount() const
+        int LeafCount() const
         {
-            return m_LeafList.size();
+            return (int)(m_LeafList.size());
         }
 
     public:
-        bool LeafValid(size_t nLeaf) const
+        bool LeafValid(int nLeaf) const
         {
-            return nLeaf < LeafCount();
+            return nLeaf >= 0 && nLeaf < LeafCount();
         }
 
     public:
-        const auto &LeafRef(size_t nLeaf) const
+        const auto &leafRef(int nLeaf) const
         {
             if(!LeafValid(nLeaf)){
                 throw std::invalid_argument(str_fflprintf(": Invalid leaf index: %zu", nLeaf));
@@ -69,13 +69,13 @@ class XMLParagraph
             return m_LeafList[nLeaf];
         }
 
-        auto &LeafRef(size_t nLeaf)
+        auto &leafRef(int nLeaf)
         {
-            return const_cast<XMLParagraphLeaf &>(static_cast<const XMLParagraph *>(this)->LeafRef(nLeaf));
+            return const_cast<XMLParagraphLeaf &>(static_cast<const XMLParagraph *>(this)->leafRef(nLeaf));
         }
 
     public:
-        const auto &BackLeafRef() const
+        const auto &BackleafRef() const
         {
             if(m_LeafList.empty()){
                 throw std::invalid_argument(str_fflprintf(": No leaf"));
@@ -83,9 +83,9 @@ class XMLParagraph
             return m_LeafList.back();
         }
 
-        auto &BackLeafRef()
+        auto &BackleafRef()
         {
-            return const_cast<XMLParagraphLeaf &>(static_cast<const XMLParagraph *>(this)->BackLeafRef());
+            return const_cast<XMLParagraphLeaf &>(static_cast<const XMLParagraph *>(this)->BackleafRef());
         }
 
     public:
@@ -103,7 +103,7 @@ class XMLParagraph
         void InsertLeaf();
 
     public:
-        void InsertUTF8Char(size_t, size_t, const char *);
+        void InsertUTF8Char(int, int, const char *);
 
     public:
         tinyxml2::XMLNode *Clone(tinyxml2::XMLDocument *pDoc)
@@ -112,12 +112,12 @@ class XMLParagraph
         }
 
     public:
-        tinyxml2::XMLNode *Clone(tinyxml2::XMLDocument *, size_t, size_t, size_t);
+        tinyxml2::XMLNode *Clone(tinyxml2::XMLDocument *, int, int, int);
 
     public:
-        tinyxml2::XMLNode *CloneLeaf(tinyxml2::XMLDocument *pDoc, size_t nLeaf) const
+        tinyxml2::XMLNode *CloneLeaf(tinyxml2::XMLDocument *pDoc, int nLeaf) const
         {
-            return LeafRef(nLeaf).Node()->DeepClone(pDoc);
+            return leafRef(nLeaf).Node()->DeepClone(pDoc);
         }
 
     public:
@@ -129,18 +129,18 @@ class XMLParagraph
         }
 
     public:
-        void Delete(size_t, size_t, size_t);
+        void Delete(int, int, int);
 
     public:
-        void DeleteLeaf(size_t);
-        void DeleteUTF8Char(size_t, size_t, size_t);
+        void DeleteLeaf(int);
+        void DeleteUTF8Char(int, int, int);
 
     public:
-        std::tuple<size_t, size_t, size_t> PrevLeafOff(size_t, size_t, size_t) const;
-        std::tuple<size_t, size_t, size_t> NextLeafOff(size_t, size_t, size_t) const;
+        std::tuple<int, int, int> PrevLeafOff(int, int, int) const;
+        std::tuple<int, int, int> NextLeafOff(int, int, int) const;
 
     private:
-        const tinyxml2::XMLNode *LeafCommonAncestor(size_t, size_t) const;
+        const tinyxml2::XMLNode *LeafCommonAncestor(int, int) const;
 
     private:
         void Clear()

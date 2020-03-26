@@ -34,7 +34,7 @@
 #include "debugboard.hpp"
 #include "notifyboard.hpp"
 #include "fflerror.hpp"
-#include "llcast.hpp"
+#include "toll.hpp"
 
 extern Log *g_Log;
 extern Client *g_Client;
@@ -81,6 +81,8 @@ ProcessRun::ProcessRun()
           0,
           0,
           400,
+          false,
+          {0, 0, 0, 0},
           false,
           0,
           20,
@@ -579,8 +581,8 @@ void ProcessRun::Draw()
         int nPointY = -1;
         SDL_GetMouseState(&nPointX, &nPointY);
 
-        m_MousePixlLoc.SetText("Pix_Loc: %3d, %3d", nPointX, nPointY);
-        m_MouseGridLoc.SetText("Til_Loc: %3d, %3d", (nPointX + m_ViewX) / SYS_MAPGRIDXP, (nPointY + m_ViewY) / SYS_MAPGRIDYP);
+        m_MousePixlLoc.setText("Pix_Loc: %3d, %3d", nPointX, nPointY);
+        m_MouseGridLoc.setText("Til_Loc: %3d, %3d", (nPointX + m_ViewX) / SYS_MAPGRIDXP, (nPointY + m_ViewY) / SYS_MAPGRIDYP);
 
         m_MouseGridLoc.drawEx(10, 10, 0, 0, m_MouseGridLoc.W(), m_MouseGridLoc.H());
         m_MousePixlLoc.drawEx(10, 30, 0, 0, m_MousePixlLoc.W(), m_MousePixlLoc.H());
