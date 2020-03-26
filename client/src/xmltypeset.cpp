@@ -913,6 +913,12 @@ void XMLTypeset::drawEx(int nDstX, int nDstY, int nSrcX, int nSrcY, int nSrcW, i
 
         }
     }
+
+    if(g_ClientArgParser->drawBoardFrame){
+        SDLDevice::EnableDrawColor enableDrawColor(ColorFunc::YELLOW + 255);
+        SDLDevice::EnableDrawBlendMode enableDrawBlendMode(SDL_BLENDMODE_BLEND);
+        g_SDLDevice->DrawRectangle(nDstX, nDstY, nSrcW, nSrcH);
+    }
 }
 
 void XMLTypeset::update(double fMS)
