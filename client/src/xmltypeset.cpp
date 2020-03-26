@@ -27,11 +27,13 @@
 #include "fontexdb.hpp"
 #include "sdldevice.hpp"
 #include "emoticondb.hpp"
+#include "clientargparser.hpp"
 
 extern Log *g_Log;
 extern FontexDB *g_FontexDB;
 extern SDLDevice *g_SDLDevice;
 extern EmoticonDB *g_EmoticonDB;
+extern ClientArgParser *g_ClientArgParser;
 
 void XMLTypeset::SetTokenBoxWordSpace(int nLine)
 {
@@ -864,12 +866,21 @@ void XMLTypeset::drawEx(int nDstX, int nDstY, int nSrcX, int nSrcY, int nSrcW, i
             switch(stLeaf.Type()){
                 case LEAF_UTF8GROUP:
                     {
+                        const int drawDstX = nX + nDstDX;
+                        const int drawDstY = nY + nDstDY;
+
                         auto pTexture = g_FontexDB->Retrieve(pToken->UTF8Char.U64Key);
                         if(pTexture){
                             SDL_SetTextureColorMod(pTexture, ColorFunc::R(nColor), ColorFunc::G(nColor), ColorFunc::B(nColor));
-                            g_SDLDevice->DrawTexture(pTexture, nX + nDstDX, nY + nDstDY, nDX, nDY, nW, nH);
+                            g_SDLDevice->DrawTexture(pTexture, drawDstX, drawDstY, nDX, nDY, nW, nH);
                         }else{
-                            g_SDLDevice->DrawRectangle(ColorFunc::CompColor(nBGColor), nX + nDstDX, nY + nDstDY, nW, nH);
+                            g_SDLDevice->DrawRectangle(ColorFunc::CompColor(nBGColor), drawDstX, drawDstY, nW, nH);
+                        }
+
+                        if(g_ClientArgParser->drawTokenFrame){
+                            SDLDevice::EnableDrawColor enableDrawColor(ColorFunc::PURPLE + 255);
+                            SDLDevice::EnableDrawBlendMode enableDrawBlendMode(SDL_BLENDMODE_BLEND);
+                            g_SDLDevice->DrawRectangle(drawDstX, drawDstY, nW, nH);
                         }
                         break;
                     }

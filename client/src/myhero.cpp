@@ -531,7 +531,7 @@ bool MyHero::ParseActionQueue()
 
     // trace message
     // trace move action before parsing
-    if(g_ClientArgParser->TraceMove){
+    if(g_ClientArgParser->traceMove){
         if((!m_ActionQueue.empty()) && (m_ActionQueue.front().Action == ACTION_MOVE)){
             auto nMotionX0 = m_CurrMotion.X;
             auto nMotionY0 = m_CurrMotion.Y;
@@ -619,7 +619,7 @@ bool MyHero::ParseActionQueue()
         if(ParseAction(stCurrAction)){
             // trace message
             // trace move action after parsing
-            if(g_ClientArgParser->TraceMove){
+            if(g_ClientArgParser->traceMove){
                 for(auto &rstMotion: m_MotionQueue){
                     auto nMotionX0 = rstMotion.X;
                     auto nMotionY0 = rstMotion.Y;

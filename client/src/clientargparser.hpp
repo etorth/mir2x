@@ -28,8 +28,10 @@ struct ClientArgParser
     const bool EnableDrawCreatureCover; // "--enable-draw-creature-cover"
     const bool EnableDrawMouseLocation; // "--enable-draw-mouse-location"
     const bool EnableClientMonitor;     // "--enable-client-monitor"
+    const bool drawTokenFrame;          // "--draw-token-frame"
+    const bool drawBoardFrame;          // "--draw-board-frame"
 
-    bool TraceMove;
+    bool traceMove;
 
     ClientArgParser(const arg_parser &cmdParser)
         : enableDrawUID(cmdParser["enable-draw-uid"])
@@ -38,6 +40,8 @@ struct ClientArgParser
         , EnableDrawCreatureCover(cmdParser["enable-draw-creature-cover"])
         , EnableDrawMouseLocation(cmdParser["enable-draw-mouse-location"])
         , EnableClientMonitor(cmdParser["enable-client-monitor"])
-        , TraceMove(cmdParser["trace-move"])
+        , drawTokenFrame(cmdParser["draw-token-frame"])
+        , drawBoardFrame(cmdParser["draw-board-frame"])
+        , traceMove(cmdParser["trace-move"])
     {}
 };
