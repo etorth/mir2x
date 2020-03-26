@@ -75,8 +75,17 @@ class layoutBoard: public Widget
         void loadXML(const char *);
 
     public:
+        void addParXML(int, const std::array<int, 4> &, const char *);
+
+    public:
         void Update(double ms) override
         {
             m_layout.update(ms);
+        }
+
+    public:
+        int parCount() const
+        {
+            return m_layout.parCount();
         }
 };
