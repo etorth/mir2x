@@ -342,7 +342,7 @@ void SDLDevice::CreateInitViewWindow()
         }
     }
 
-    m_Window = SDL_CreateWindow("MIR2X-V0.1-LOADING", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, nWindowW, nWindowH, SDL_WINDOW_BORDERLESS);
+    m_Window = SDL_CreateWindow("MIR2X-V0.1-LOADING", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, nWindowW, nWindowH, SDL_WINDOW_BORDERLESS);
     if(!m_Window){
         throw std::runtime_error(str_fflprintf(": Failed to create SDL window handler: %s", SDL_GetError()));
     }
@@ -422,7 +422,7 @@ void SDLDevice::CreateMainWindow()
         }
     }
 
-    m_Window = SDL_CreateWindow("MIR2X-V0.1", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, m_WindowW, m_WindowH, nFlags);
+    m_Window = SDL_CreateWindow("MIR2X-V0.1", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, m_WindowW, m_WindowH, nFlags);
     if(!m_Window){
         throw std::runtime_error(str_fflprintf(": Failed to create SDL window handler: %s", SDL_GetError()));
     }
