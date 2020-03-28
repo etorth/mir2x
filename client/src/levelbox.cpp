@@ -50,3 +50,14 @@ bool levelBox::processEvent(const SDL_Event &event, bool valid)
     }
     return false;
 }
+
+void levelBox::drawEx(int dstX, int dstY, int, int, int, int)
+{
+    // don't worry too much here
+    // we always draw fully for levelBox
+
+    const int dx = (W() - m_label.W()) / 2;
+    const int dy = (H() - m_label.H()) / 2;
+
+    m_label.drawEx(dstX + dx, dstY + dy, 0, 0, m_label.W(), m_label.H());
+}

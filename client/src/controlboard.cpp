@@ -444,7 +444,7 @@ void controlBoard::drawMiddleExpand()
 
         SDL_QueryTexture(pTexture, 0, 0, &titleW, &titleH);
         const int titleDstX = 178 + (nW0 - 178 - 166 - titleW) / 2;
-        const int titleDstY = startY - 19;
+        const int titleDstY = startY - 2 - 19;
         g_SDLDevice->DrawTexture(pTexture, titleDstX, titleDstY);
     }
 
@@ -573,6 +573,6 @@ void controlBoard::switchExpandMode()
     else{
         m_expand = true;
         m_buttonSwitchMode.moveTo(W() - 181, 5 - modeDiffY);
-        m_level.moveTo(178 + (W() - 178 - 166 - m_level.W()) / 2, 6 - modeDiffY - m_level.H() / 2);
+        m_level.moveTo(178 + (W() - 178 - 166 - m_level.W()) / 2, 6 - m_level.H() / 2 - modeDiffY);
     }
 }

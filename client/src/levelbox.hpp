@@ -64,10 +64,7 @@ class levelBox: public Widget
         bool processEvent(const SDL_Event &, bool);
 
     public:
-        void drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int srcH) override
-        {
-            m_label.drawEx(dstX, dstY, srcX, srcY, srcW, srcH);
-        }
+        void drawEx(int, int, int, int, int, int) override;
 
     public:
         void setLevel(int level)
