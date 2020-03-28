@@ -105,6 +105,21 @@ controlBoard::controlBoard(int nX, int nY, int nW, ProcessRun *pRun, Widget *pWi
           this,
           false,
       }
+    , m_buttonSwitchMode
+      {
+          625,
+          10,
+          {0XFFFFFFFF, 0X00000028, 0X00000029},
+          [](){},
+          [this](){ m_expand = !m_expand; },
+          0,
+          0,
+          0,
+          0,
+          true,
+          this,
+          false,
+      }
     , m_CmdLine(
             185,
             108,
@@ -223,6 +238,9 @@ void controlBoard::drawLeft()
         m_LocBoard.setText(u8"%s: %d %d", DBCOM_MAPRECORD(m_ProcessRun->MapID()).Name, nX, nY);
         m_LocBoard.drawEx((136 - m_LocBoard.W()) / 2, nY0 + 109, 0, 0, m_LocBoard.W(), m_LocBoard.H());
     }
+
+    m_ButtonClose.Draw();
+    m_ButtonMinize.Draw();
 }
 
 void controlBoard::drawRight()
@@ -235,8 +253,6 @@ void controlBoard::drawRight()
         g_SDLDevice->DrawTexture(pTexture, nW0 - 166, nY0, 800 - 166, 0, 166, 133);
     }
 
-    m_ButtonClose    .Draw();
-    m_ButtonMinize   .Draw();
     m_ButtonInventory.Draw();
 }
 
@@ -316,9 +332,7 @@ void controlBoard::drawMiddleDefalt()
     // g_SDLDevice->DrawRectangle(m_CmdLine.X(), m_CmdLine.Y(), m_CmdLine.W(), m_CmdLine.H());
     // g_SDLDevice->PopColor();
 
-    m_ButtonClose    .Draw();
-    m_ButtonMinize   .Draw();
-    m_ButtonInventory.Draw();
+    m_buttonSwitchMode.Draw();
 }
 
 void controlBoard::drawMiddleExpand()
@@ -347,7 +361,8 @@ bool controlBoard::processEvent(const SDL_Event &rstEvent, bool *bValid)
             || m_CmdLine        .processEvent(rstEvent, bValid)
             || m_ButtonClose    .processEvent(rstEvent, bValid)
             || m_ButtonMinize   .processEvent(rstEvent, bValid)
-            || m_ButtonInventory.processEvent(rstEvent, bValid)){ return true; }
+            || m_ButtonInventory.processEvent(rstEvent, bValid)
+            || m_buttonSwitchMode.processEvent(rstEvent, bValid)){ return true; }
 
     switch(rstEvent.type){
         case SDL_KEYDOWN:

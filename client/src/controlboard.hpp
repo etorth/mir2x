@@ -44,6 +44,9 @@ class controlBoard: public Widget
         TritexButton m_ButtonInventory;
 
     private:
+        TritexButton m_buttonSwitchMode;
+
+    private:
         InputLine        m_CmdLine;
         labelBoard       m_LocBoard;
         LineBrowserBoard m_LogBoard;
