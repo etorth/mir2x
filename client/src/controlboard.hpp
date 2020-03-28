@@ -24,6 +24,7 @@
 #include "log.hpp"
 #include "widget.hpp"
 #include "pngtexdb.hpp"
+#include "levelbox.hpp"
 #include "sdldevice.hpp"
 #include "inputline.hpp"
 #include "tritexbutton.hpp"
@@ -49,6 +50,9 @@ class controlBoard: public Widget
 
     private:
         TritexButton m_buttonSwitchMode;
+
+    private:
+        levelBox m_level;
 
     private:
         InputLine        m_CmdLine;

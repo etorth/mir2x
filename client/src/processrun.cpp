@@ -93,15 +93,15 @@ ProcessRun::ProcessRun()
     m_FocusUIDTable.fill(0);
     RegisterUserCommand();
 
-    m_layout.loadXML(
-            R"###(
-
-            <layout>
-                <par font="0" size="10">Hello <emoji/> world</par>
-                <par font="0" size="20">Hello <emoji/> <font font="1" size="20">wor</font>ld</par>
-            </layout>
-
-            )###");
+    // m_layout.loadXML(
+    //         R"###(
+    //
+    //         <layout>
+    //             <par font="0" size="10">Hello <emoji/> world</par>
+    //             <par font="0" size="20">Hello <emoji/> <font font="1" size="20">wor</font>ld</par>
+    //         </layout>
+    //
+    //         )###");
 
     m_layout.addParXML(m_layout.parCount(), {0, 0,  5, 0}, "<par>test</par>");
     m_layout.addParXML(m_layout.parCount(), {0, 0, 10, 0}, "<par>test</par>");

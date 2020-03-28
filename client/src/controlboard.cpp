@@ -145,6 +145,26 @@ controlBoard::controlBoard(int nX, int nY, int nW, ProcessRun *pRun, Widget *pWi
           this,
           false,
       }
+    , m_level
+      {
+          0,
+          0,
+          [this](int dy)
+          {
+              m_stretchH += dy;
+          },
+          [this]()
+          {
+              if(m_stretchH != m_stretchHMin){
+                  m_stretchH = m_stretchHMin;
+              }
+              else{
+                  m_stretchH = g_SDLDevice->WindowH(false) - 47 - 55;
+              }
+          },
+          this,
+          false,
+      }
     , m_CmdLine(
             185,
             108,
@@ -204,6 +224,8 @@ controlBoard::controlBoard(int nX, int nY, int nW, ProcessRun *pRun, Widget *pWi
     if(X() != 0 || Y() + H() != g_SDLDevice->WindowH(false) || W() != g_SDLDevice->WindowW(false)){
         throw fflerror("controlBoard has wrong location or size");
     }
+
+    m_level.moveTo(178 + (W() - 178 - 166 - m_level.W()) / 2, 6 - m_level.H() / 2);
 }
 
 void controlBoard::Update(double fMS)
@@ -347,7 +369,7 @@ void controlBoard::drawMiddleDefault()
         int titleH = -1;
 
         SDL_QueryTexture(pTexture, 0, 0, &titleW, &titleH);
-        const int titleDstX = 178 + (nW0 - 178 - 116 - titleW) / 2;
+        const int titleDstX = 178 + (nW0 - 178 - 166 - titleW) / 2;
         const int titleDstY = nY0 - 19;
         g_SDLDevice->DrawTexture(pTexture, titleDstX, titleDstY);
     }
@@ -357,6 +379,7 @@ void controlBoard::drawMiddleDefault()
     // g_SDLDevice->PopColor();
 
     m_buttonSwitchMode.Draw();
+    m_level.Draw();
 }
 
 void controlBoard::drawMiddleExpand()
@@ -420,12 +443,13 @@ void controlBoard::drawMiddleExpand()
         int titleH = -1;
 
         SDL_QueryTexture(pTexture, 0, 0, &titleW, &titleH);
-        const int titleDstX = 178 + (nW0 - 178 - 116 - titleW) / 2;
+        const int titleDstX = 178 + (nW0 - 178 - 166 - titleW) / 2;
         const int titleDstY = startY - 19;
         g_SDLDevice->DrawTexture(pTexture, titleDstX, titleDstY);
     }
 
     m_buttonSwitchMode.Draw();
+    m_level.Draw();
 }
 
 void controlBoard::drawEx(int, int, int, int, int, int)
@@ -536,12 +560,19 @@ bool controlBoard::CheckMyHeroMoved()
 
 void controlBoard::switchExpandMode()
 {
+    // diff of height of texture 0X00000013 and 0X00000027
+    // when you draw something on default log board at (X, Y), (0, 0) is left-top
+    // if you need to keep the same location on expand log board, draw on(X, Y - modeDiffY)
+
+    const int modeDiffY = 298 - 131;
     if(m_expand){
-        m_buttonSwitchMode.moveTo(W() - 181, 5);
         m_expand = false;
+        m_buttonSwitchMode.moveTo(W() - 181, 5);
+        m_level.moveTo(178 + (W() - 178 - 166 - m_level.W()) / 2, 6 - m_level.H() / 2);
     }
     else{
-        m_buttonSwitchMode.moveTo(W() - 181, 5 + 131 - 298);
         m_expand = true;
+        m_buttonSwitchMode.moveTo(W() - 181, 5 - modeDiffY);
+        m_level.moveTo(178 + (W() - 178 - 166 - m_level.W()) / 2, 6 - modeDiffY - m_level.H() / 2);
     }
 }
