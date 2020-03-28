@@ -107,7 +107,7 @@ controlBoard::controlBoard(int nX, int nY, int nW, ProcessRun *pRun, Widget *pWi
       }
     , m_buttonSwitchMode
       {
-          619,
+          nW - 181,
           5,
           {0XFFFFFFFF, 0X00000028, 0X00000029},
           [](){},
