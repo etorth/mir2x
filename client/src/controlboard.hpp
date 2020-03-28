@@ -85,7 +85,7 @@ class controlBoard: public Widget
 
     public:
         void Update(double);
-        bool processEvent(const SDL_Event &, bool *);
+        bool processEvent(const SDL_Event &, bool);
 
     public:
         void InputLineDone();
@@ -98,4 +98,5 @@ class controlBoard: public Widget
 
     private:
         void switchExpandMode();
+        void setLeveBoxLoc();
 };

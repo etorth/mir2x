@@ -151,16 +151,26 @@ controlBoard::controlBoard(int nX, int nY, int nW, ProcessRun *pRun, Widget *pWi
           0,
           [this](int dy)
           {
-              m_stretchH += dy;
+              if(!m_expand){
+                  return;
+              }
+
+              m_stretchH = std::max<int>(m_stretchH - dy, m_stretchHMin);
+              setLeveBoxLoc();
           },
           [this]()
           {
+              if(!m_expand){
+                  return;
+              }
+
               if(m_stretchH != m_stretchHMin){
                   m_stretchH = m_stretchHMin;
               }
               else{
                   m_stretchH = g_SDLDevice->WindowH(false) - 47 - 55;
               }
+              setLeveBoxLoc();
           },
           this,
           false,
@@ -225,6 +235,7 @@ controlBoard::controlBoard(int nX, int nY, int nW, ProcessRun *pRun, Widget *pWi
         throw fflerror("controlBoard has wrong location or size");
     }
 
+    m_level.setLevel(7);
     m_level.moveTo(178 + (W() - 178 - 166 - m_level.W()) / 2, 6 - m_level.H() / 2);
 }
 
@@ -466,20 +477,25 @@ void controlBoard::drawEx(int, int, int, int, int, int)
     drawRight();
 }
 
-bool controlBoard::processEvent(const SDL_Event &rstEvent, bool *bValid)
+bool controlBoard::processEvent(const SDL_Event &event, bool valid)
 {
-    if(bValid && !(*bValid)){ return false; }
-    if(false
-            || m_CmdLine        .processEvent(rstEvent, bValid)
-            || m_ButtonClose    .processEvent(rstEvent, bValid)
-            || m_ButtonMinize   .processEvent(rstEvent, bValid)
-            || m_ButtonInventory.processEvent(rstEvent, bValid)
-            || m_buttonSwitchMode.processEvent(rstEvent, bValid)){ return true; }
+    bool takeEvent = false;
 
-    switch(rstEvent.type){
+    takeEvent |= m_level           .processEvent(event, valid && !takeEvent);
+    takeEvent |= m_CmdLine         .processEvent(event, valid && !takeEvent);
+    takeEvent |= m_ButtonClose     .processEvent(event, valid && !takeEvent);
+    takeEvent |= m_ButtonMinize    .processEvent(event, valid && !takeEvent);
+    takeEvent |= m_ButtonInventory .processEvent(event, valid && !takeEvent);
+    takeEvent |= m_buttonSwitchMode.processEvent(event, valid && !takeEvent);
+
+    if(takeEvent){
+        return true;
+    }
+
+    switch(event.type){
         case SDL_KEYDOWN:
             {
-                switch(rstEvent.key.keysym.sym){
+                switch(event.key.keysym.sym){
                     case SDLK_RETURN:
                         {
                             m_CmdLine.Focus(true);
@@ -499,7 +515,6 @@ bool controlBoard::processEvent(const SDL_Event &rstEvent, bool *bValid)
                 return false;
             }
     }
-    return false;
 }
 
 void controlBoard::InputLineDone()
@@ -568,11 +583,22 @@ void controlBoard::switchExpandMode()
     if(m_expand){
         m_expand = false;
         m_buttonSwitchMode.moveTo(W() - 181, 5);
-        m_level.moveTo(178 + (W() - 178 - 166 - m_level.W()) / 2, 6 - m_level.H() / 2);
+        setLeveBoxLoc();
     }
     else{
         m_expand = true;
         m_buttonSwitchMode.moveTo(W() - 181, 5 - modeDiffY);
-        m_level.moveTo(178 + (W() - 178 - 166 - m_level.W()) / 2, 6 - m_level.H() / 2 - modeDiffY);
+        setLeveBoxLoc();
+    }
+}
+
+void controlBoard::setLeveBoxLoc()
+{
+    const int modeDiffY = 298 - 131;
+    if(m_expand){
+        m_level.moveTo(178 + (W() - 178 - 166 - m_level.W()) / 2, 6 - m_level.H() / 2 - modeDiffY - (m_stretchH - m_stretchHMin));
+    }
+    else{
+        m_level.moveTo(178 + (W() - 178 - 166 - m_level.W()) / 2, 6 - m_level.H() / 2);
     }
 }

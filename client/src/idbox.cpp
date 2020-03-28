@@ -17,42 +17,49 @@
  */
 
 #include "idbox.hpp"
-bool IDBox::processEvent(const SDL_Event &rstEvent, bool *pValid)
+bool IDBox::processEvent(const SDL_Event &event, bool valid)
 {
-    if(pValid && !(*pValid)){ return false; }
+    if(!valid){
+        return false;
+    }
 
     // even not focused
     // should also accept some events
     // like the insert sign when pointer inside idbox
 
-    switch(rstEvent.type){
+    switch(event.type){
         case SDL_KEYDOWN:
             {
-                switch(rstEvent.key.keysym.sym){
+                switch(event.key.keysym.sym){
                     case SDLK_RETURN:
                         {
                             if(Focus()){
-                                if(m_OnEnter){  m_OnEnter();    }
-                                if(pValid   ){ *pValid = false; }
+                                if(m_OnEnter){
+                                    m_OnEnter();
+                                }
                                 return true;
                             }
-                            break;
+                            return false;
                         }
                     case SDLK_TAB:
                         {
                             if(Focus()){
-                                if(m_OnTab){  m_OnTab();      }
-                                if(pValid ){ *pValid = false; }
+                                if(m_OnTab){
+                                    m_OnTab();
+                                }
                                 return true;
                             }
-                            break;
+                            return false;
                         }
                     default:
                         {
-                            break;
+                            return false;
                         }
                 }
             }
+        default:
+            {
+                return InputBoard::processEvent(event, valid);
+            }
     }
-    return InputBoard::processEvent(rstEvent, pValid);
 }

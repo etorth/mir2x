@@ -18,13 +18,16 @@
 
 #include "inputline.hpp"
 
-bool InputLine::processEvent(const SDL_Event &rstEvent, bool *pValid)
+bool InputLine::processEvent(const SDL_Event &event, bool valid)
 {
-    if(pValid && !(*pValid)){ return false; }
-    switch(rstEvent.type){
+    if(!valid){
+        return false;
+    }
+
+    switch(event.type){
         case SDL_KEYDOWN:
             {
-                switch(rstEvent.key.keysym.sym){
+                switch(event.key.keysym.sym){
                     case SDLK_TAB:
                         {
                             if(Focus() && m_TabFunc){
@@ -62,5 +65,5 @@ bool InputLine::processEvent(const SDL_Event &rstEvent, bool *pValid)
     }
 
     // fallback to use InputBoard event handling
-    return InputBoard::processEvent(rstEvent, pValid);
+    return InputBoard::processEvent(event, valid);
 }

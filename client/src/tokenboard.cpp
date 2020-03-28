@@ -1065,26 +1065,32 @@ void TokenBoard::TokenBoxGetMouseMotion(int nX, int nY, bool bFirstHalf)
     }
 }
 
-bool TokenBoard::processEvent(const SDL_Event &rstEvent, bool *bValid)
+bool TokenBoard::processEvent(const SDL_Event &event, bool valid)
 {
+    if(!valid){
+        return false;
+    }
+
     // don't need to handle event or event has been consumed
-    if(m_SkipEvent || (bValid && !(*bValid))){ return false; }
+    if(m_SkipEvent){
+        return false;
+    }
 
     int nEventDX = -1;
     int nEventDY = -1;
 
-    switch(rstEvent.type){
+    switch(event.type){
         case SDL_MOUSEBUTTONUP:
         case SDL_MOUSEBUTTONDOWN:
             {
-                nEventDX = rstEvent.button.x - X();
-                nEventDY = rstEvent.button.y - Y();
+                nEventDX = event.button.x - X();
+                nEventDY = event.button.y - Y();
                 break;
             }
         case SDL_MOUSEMOTION:
             {
-                nEventDX = rstEvent.motion.x - X();
-                nEventDY = rstEvent.motion.y - Y();
+                nEventDX = event.motion.x - X();
+                nEventDY = event.motion.y - Y();
                 break;
             }
         default:
@@ -1094,7 +1100,9 @@ bool TokenBoard::processEvent(const SDL_Event &rstEvent, bool *bValid)
     }
 
     // 1. inside the board or not
-    if(!In(nEventDX, nEventDY)){ return false; }
+    if(!In(nEventDX, nEventDY)){
+        return false;
+    }
 
     auto fnTokenBoxEventHandle = [this](uint32_t nEventType, int nLocX, int nLocY, bool bFirstHalf)
     {
@@ -1175,10 +1183,8 @@ bool TokenBoard::processEvent(const SDL_Event &rstEvent, bool *bValid)
     if(TokenBoxValid(nTBLocX, nTBLocY)){
         // 1. trigger event
         // 2. update m_LastTokenBoxLoc
-        fnTokenBoxEventHandle(rstEvent.type, nTBLocX, nTBLocY, bFirstHalf);
+        fnTokenBoxEventHandle(event.type, nTBLocX, nTBLocY, bFirstHalf);
         m_LastTokenBoxLoc = {nTBLocX, nTBLocY};
-
-        if(bValid){ *bValid = false; }
         return true;
     }
 
@@ -1193,7 +1199,6 @@ bool TokenBoard::processEvent(const SDL_Event &rstEvent, bool *bValid)
         // 2. can select and is in progress
 
         // 0. anyway we need to consume it
-        if(bValid){ *bValid = false; }
 
         // 1. decide which line it's inside
         int nRowIn = -1;
@@ -1265,8 +1270,8 @@ bool TokenBoard::processEvent(const SDL_Event &rstEvent, bool *bValid)
             nTokenBoxBind = m_LineV[nRowIn].Content.size();
         }
 
-        fnTokenBoxEventHandle(rstEvent.type, nTokenBoxBind, nRowIn, false);
-        return false;
+        fnTokenBoxEventHandle(event.type, nTokenBoxBind, nRowIn, false);
+        return true;
     }
     return true;
 }

@@ -48,5 +48,5 @@ class InventoryBoard: public Widget
         void drawEx(int, int, int, int, int, int);
 
     public:
-        bool processEvent(const SDL_Event &, bool *);
+        bool processEvent(const SDL_Event &, bool);
 };

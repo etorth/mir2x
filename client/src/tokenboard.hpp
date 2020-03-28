@@ -375,7 +375,7 @@ class TokenBoard: public Widget
         virtual ~TokenBoard() = default;
 
     public:
-        bool processEvent(const SDL_Event &, bool *);
+        bool processEvent(const SDL_Event &, bool);
 
     public:
         void Reset();

@@ -19,8 +19,12 @@
 #pragma once
 #include <functional>
 #include "widget.hpp"
+#include "bevent.hpp"
+#include "sdldevice.hpp"
 #include "colorfunc.hpp"
 #include "labelboard.hpp"
+
+extern SDLDevice *g_SDLDevice;
 
 class levelBox: public Widget
 {
@@ -28,37 +32,17 @@ class levelBox: public Widget
         labelBoard m_label;
 
     private:
+        int m_state = BEVENT_OFF;
+
+    private:
+        SDL_Texture * const m_texture = nullptr;
+
+    private:
         std::function<void(int)> m_onDrag;
         std::function<void()> m_onDoubleClick;
 
     public:
-        levelBox(
-                int x,
-                int y,
-
-                std::function<void(int)> onDrag,
-                std::function<void()> onDoubleClick,
-
-                Widget *parent,
-                bool autoDelete)
-            : Widget(x, y, 0, 0, parent, autoDelete)
-            , m_label
-              {
-                  0,
-                  0,
-                  "",
-                  0,
-                  12,
-                  0,
-                  ColorFunc::YELLOW + 128,
-                  this,
-                  false,
-              }
-            , m_onDrag(onDrag)
-            , m_onDoubleClick(onDoubleClick)
-        {
-            setLevel(0);
-        }
+        levelBox(int, int, std::function<void(int)>, std::function<void()>, Widget *, bool);
 
     public:
         bool processEvent(const SDL_Event &, bool);

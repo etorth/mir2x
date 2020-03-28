@@ -99,6 +99,9 @@ class Widget
         }
 
     public:
+        //  valid: this event has been consumed by other widget
+        // return: does current widget take this event?
+        //         always return false if given event has been take by previous widget
         virtual bool processEvent(const SDL_Event &, bool)
         {
             return false;

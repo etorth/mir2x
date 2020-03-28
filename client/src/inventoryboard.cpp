@@ -98,26 +98,32 @@ void InventoryBoard::drawEx(int nDstX, int nDstY, int, int, int, int)
     m_CloseButton.Draw();
 }
 
-bool InventoryBoard::processEvent(const SDL_Event &rstEvent, bool *pValid)
+bool InventoryBoard::processEvent(const SDL_Event &event, bool valid)
 {
-    if(Show()){
-
-        m_CloseButton.processEvent(rstEvent, pValid);
-
-        switch(rstEvent.type){
-            case SDL_MOUSEMOTION:
-                {
-                    if(pValid && *pValid){
-                        if(In(rstEvent.motion.x, rstEvent.motion.y)){
-                            if(rstEvent.motion.state & SDL_BUTTON_LMASK){
-                                Move(rstEvent.motion.xrel, rstEvent.motion.yrel);
-                                return true;
-                            }
-                        }
-                    }
-                    break;
-                }
-        }
+    if(!valid){
+        return false;
     }
-    return false;
+
+    if(!Show()){
+        return false;
+    }
+
+    if(m_CloseButton.processEvent(event, valid)){
+        return true;
+    }
+
+    switch(event.type){
+        case SDL_MOUSEMOTION:
+            {
+                if(In(event.motion.x, event.motion.y) && (event.motion.state & SDL_BUTTON_LMASK)){
+                    Move(event.motion.xrel, event.motion.yrel);
+                    return true;
+                }
+                return false;
+            }
+        default:
+            {
+                return false;
+            }
+    }
 }

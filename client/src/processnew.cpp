@@ -172,12 +172,12 @@ void ProcessNew::Draw()
     g_SDLDevice->Present();
 }
 
-void ProcessNew::processEvent(const SDL_Event &rstEvent)
+void ProcessNew::processEvent(const SDL_Event &event)
 {
-    switch(rstEvent.type){
+    switch(event.type){
         case SDL_KEYDOWN:
             {
-                switch(rstEvent.key.keysym.sym){
+                switch(event.key.keysym.sym){
                     case SDLK_TAB:
                         {
                             if(true
@@ -203,16 +203,15 @@ void ProcessNew::processEvent(const SDL_Event &rstEvent)
             }
     }
 
-    m_TBCreate.processEvent(rstEvent, nullptr);
-    m_TBExit  .processEvent(rstEvent, nullptr);
+    m_TBCreate.processEvent(event, true);
+    m_TBExit  .processEvent(event, true);
 
     // widget idbox and pwdbox are not independent from each other
     // tab in one box will grant focus to another
 
-    bool bValid = true;
-    m_BoxID        .processEvent(rstEvent, &bValid);
-    m_BoxPwd       .processEvent(rstEvent, &bValid);
-    m_BoxPwdConfirm.processEvent(rstEvent, &bValid);
+    m_BoxID        .processEvent(event, true);
+    m_BoxPwd       .processEvent(event, true);
+    m_BoxPwdConfirm.processEvent(event, true);
 
     CheckInput();
 }

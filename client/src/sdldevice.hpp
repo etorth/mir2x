@@ -253,5 +253,8 @@ class SDLDevice final
        void CreateInitViewWindow();
 
     public:
+       SDL_Texture *createTexture(const uint32_t *, int, int);
+
+    public:
        TTF_Font *DefaultTTF(uint8_t);
 };

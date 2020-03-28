@@ -32,12 +32,12 @@ ProcessSync::ProcessSync()
     , m_Ratio(0)
     , m_ProcessBarInfo(0, 0, "Connecting...", 1, 10, 0)
 {} 
-void ProcessSync::processEvent(const SDL_Event &rstEvent)
+void ProcessSync::processEvent(const SDL_Event &event)
 {
-    switch(rstEvent.type){
+    switch(event.type){
         case SDL_KEYDOWN:
             {
-                if(rstEvent.key.keysym.sym == SDLK_ESCAPE){
+                if(event.key.keysym.sym == SDLK_ESCAPE){
                     g_Client->RequestProcess(PROCESSID_LOGIN);
                 }
                 break;

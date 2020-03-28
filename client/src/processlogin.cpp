@@ -104,12 +104,12 @@ void ProcessLogin::Draw()
     g_SDLDevice->Present();
 }
 
-void ProcessLogin::processEvent(const SDL_Event &rstEvent)
+void ProcessLogin::processEvent(const SDL_Event &event)
 {
-    switch(rstEvent.type){
+    switch(event.type){
         case SDL_KEYDOWN:
             {
-                switch(rstEvent.key.keysym.sym){
+                switch(event.key.keysym.sym){
                     case SDLK_TAB:
                         {
                             if(true
@@ -133,17 +133,16 @@ void ProcessLogin::processEvent(const SDL_Event &rstEvent)
             }
     }
 
-    m_Button1.processEvent(rstEvent, nullptr);
-    m_Button2.processEvent(rstEvent, nullptr);
-    m_Button3.processEvent(rstEvent, nullptr);
-    m_Button4.processEvent(rstEvent, nullptr);
+    m_Button1.processEvent(event, true);
+    m_Button2.processEvent(event, true);
+    m_Button3.processEvent(event, true);
+    m_Button4.processEvent(event, true);
 
     // widget idbox and pwdbox are not independent from each other
     // tab in one box will grant focus to another
 
-    bool bValid = true;
-    m_IDBox      .processEvent(rstEvent, &bValid);
-    m_PasswordBox.processEvent(rstEvent, &bValid);
+    m_IDBox      .processEvent(event, true);
+    m_PasswordBox.processEvent(event, true);
 }
 
 void ProcessLogin::DoLogin()

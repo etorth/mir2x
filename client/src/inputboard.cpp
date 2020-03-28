@@ -41,7 +41,7 @@ void InputBoard::Update(double fMS)
     m_TokenBoard.Update(fMS);
 }
 
-bool InputBoard::processEvent(const SDL_Event &rstEvent, bool *)
+bool InputBoard::processEvent(const SDL_Event &event, bool valid)
 {
     // here we parse all event
     // even some else widget have captured this event
@@ -53,47 +53,45 @@ bool InputBoard::processEvent(const SDL_Event &rstEvent, bool *)
     // |   A   | |   B   |
     // +-------+ +-------+
 
-    switch(rstEvent.type){
+    switch(event.type){
         case SDL_MOUSEMOTION:
             {
-                if(In(rstEvent.motion.x, rstEvent.motion.y)){
-                    m_SystemCursorX = rstEvent.motion.x;
-                    m_SystemCursorY = rstEvent.motion.y;
+                if(In(event.motion.x, event.motion.y)){
+                    m_SystemCursorX = event.motion.x;
+                    m_SystemCursorY = event.motion.y;
                     if(!m_DrawOwnSystemCursor){
                         s_ShowSystemCursorCount--;
                     }
                     m_DrawOwnSystemCursor = true;
-                }else{
+                }
+                else{
                     if(m_DrawOwnSystemCursor){
                         s_ShowSystemCursorCount++;
                     }
                     m_DrawOwnSystemCursor = false;
                 }
-
-                bool bInnValid = true;
-                m_TokenBoard.processEvent(rstEvent, &bInnValid);
-                break;
+                return m_TokenBoard.processEvent(event, valid);
             }
         case SDL_MOUSEBUTTONDOWN:
             {
-                if(In(rstEvent.button.x, rstEvent.button.y)){
-                    bool bInnValid = true;
-                    m_TokenBoard.processEvent(rstEvent, &bInnValid);
+                if(In(event.button.x, event.button.y)){
+                    m_TokenBoard.processEvent(event, true);
 
                     RelocateTokenBoard();
                     Focus(true);
                     return true;
-                }else{
-                    Focus(false);
                 }
-                break;
+                else{
+                    Focus(false);
+                    return false;
+                }
             }
         case SDL_KEYDOWN:
             {
                 if(Focus()){
                     // clear the count no matter what key pressed
                     m_MS = 0.0;
-                    switch(rstEvent.key.keysym.sym){
+                    switch(event.key.keysym.sym){
                         case SDLK_UP:
                             {
                                 int nX, nY;
@@ -160,15 +158,15 @@ bool InputBoard::processEvent(const SDL_Event &rstEvent, bool *)
                         case SDLK_x:
                             {
                                 if(false
-                                        || rstEvent.key.keysym.mod & KMOD_LCTRL
-                                        || rstEvent.key.keysym.mod & KMOD_RCTRL){
+                                        || event.key.keysym.mod & KMOD_LCTRL
+                                        || event.key.keysym.mod & KMOD_RCTRL){
                                     g_Client->Clipboard(m_TokenBoard.GetXML(true));
                                     m_TokenBoard.Delete(true);
                                 }else{
                                     if(SDL_IsTextInputActive() == SDL_FALSE){
                                         if(false
-                                                || rstEvent.key.keysym.mod & KMOD_LSHIFT
-                                                || rstEvent.key.keysym.mod & KMOD_RSHIFT){
+                                                || event.key.keysym.mod & KMOD_LSHIFT
+                                                || event.key.keysym.mod & KMOD_RSHIFT){
                                             m_TokenBoard.AddUTF8Code(uint32_t('X'));
                                         }else{
                                             m_TokenBoard.AddUTF8Code(uint32_t('x'));
@@ -181,14 +179,14 @@ bool InputBoard::processEvent(const SDL_Event &rstEvent, bool *)
                         case SDLK_c:
                             {
                                 if(false
-                                        || rstEvent.key.keysym.mod & KMOD_LCTRL
-                                        || rstEvent.key.keysym.mod & KMOD_RCTRL){
+                                        || event.key.keysym.mod & KMOD_LCTRL
+                                        || event.key.keysym.mod & KMOD_RCTRL){
                                     g_Client->Clipboard(m_TokenBoard.GetXML(true));
                                 }else{
                                     if(SDL_IsTextInputActive() == SDL_FALSE){
                                         if(false
-                                                || rstEvent.key.keysym.mod & KMOD_LSHIFT
-                                                || rstEvent.key.keysym.mod & KMOD_RSHIFT){
+                                                || event.key.keysym.mod & KMOD_LSHIFT
+                                                || event.key.keysym.mod & KMOD_RSHIFT){
                                             m_TokenBoard.AddUTF8Code(uint32_t('C'));
                                         }else{
                                             m_TokenBoard.AddUTF8Code(uint32_t('c'));
@@ -201,14 +199,14 @@ bool InputBoard::processEvent(const SDL_Event &rstEvent, bool *)
                         case SDLK_v:
                             {
                                 if(false
-                                        || rstEvent.key.keysym.mod & KMOD_LCTRL
-                                        || rstEvent.key.keysym.mod & KMOD_RCTRL){
+                                        || event.key.keysym.mod & KMOD_LCTRL
+                                        || event.key.keysym.mod & KMOD_RCTRL){
                                     m_TokenBoard.ParseXML(g_Client->Clipboard().c_str(), {});
                                 }else{
                                     if(SDL_IsTextInputActive() == SDL_FALSE){
                                         if(false
-                                                || rstEvent.key.keysym.mod & KMOD_LSHIFT
-                                                || rstEvent.key.keysym.mod & KMOD_RSHIFT){
+                                                || event.key.keysym.mod & KMOD_LSHIFT
+                                                || event.key.keysym.mod & KMOD_RSHIFT){
                                             m_TokenBoard.AddUTF8Code(uint32_t('V'));
                                         }else{
                                             m_TokenBoard.AddUTF8Code(uint32_t('v'));
@@ -221,7 +219,7 @@ bool InputBoard::processEvent(const SDL_Event &rstEvent, bool *)
                         default:
                             {
                                 if(SDL_IsTextInputActive() == SDL_FALSE){
-                                    char chKeyName = SDLKeyEventChar(rstEvent);
+                                    char chKeyName = SDLKeyEventChar(event);
                                     if(chKeyName != '\0'){
                                         m_TokenBoard.AddUTF8Code((uint32_t)(chKeyName));
                                     }
@@ -239,7 +237,7 @@ bool InputBoard::processEvent(const SDL_Event &rstEvent, bool *)
         case SDL_TEXTINPUT:
             {
                 if(Focus()){
-                    m_TokenBoard.AddUTF8Text(rstEvent.text.text);
+                    m_TokenBoard.AddUTF8Text(event.text.text);
                     RelocateTokenBoard();
                 }
                 break;

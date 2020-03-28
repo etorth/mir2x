@@ -20,61 +20,61 @@
 #include "sdldevice.hpp"
 #include "buttonbase.hpp"
 
-bool ButtonBase::processEvent(const SDL_Event &rstEvent, bool *bValid)
+bool ButtonBase::processEvent(const SDL_Event &event, bool valid)
 {
-    if(bValid && !(*bValid)){
+    if(!valid){
+        m_State = BUTTON_OFF;
         return false;
     }
 
-    switch(rstEvent.type){
+    switch(event.type){
         case SDL_MOUSEBUTTONUP:
             {
-                if(In(rstEvent.button.x, rstEvent.button.y)){
+                if(In(event.button.x, event.button.y)){
                     if(m_OnClickDone){
                         m_OnClick();
                     }
 
                     m_State = BUTTON_OVER;
                     return true;
-                }else{
+                }
+                else{
                     m_State = BUTTON_OFF;
                     return false;
                 }
-                break;
             }
 
         case SDL_MOUSEBUTTONDOWN:
             {
-                if(In(rstEvent.button.x, rstEvent.button.y)){
+                if(In(event.button.x, event.button.y)){
                     if(!m_OnClickDone){
                         m_OnClick();
                     }
 
                     m_State = BUTTON_PRESSED;
                     return true;
-                }else{
+                }
+                else{
                     m_State = BUTTON_OFF;
                     return false;
                 }
-                break;
             }
         case SDL_MOUSEMOTION:
             {
-                if(In(rstEvent.motion.x, rstEvent.motion.y)){
+                if(In(event.motion.x, event.motion.y)){
                     if(m_State != 2){
                         m_State = BUTTON_OVER;
                     }
                     return true;
-                }else{
+                }
+                else{
                     m_State = BUTTON_OFF;
                     return false;
                 }
-                break;
             }
         default:
             {
                 return false;
             }
     }
-    return false;
 }

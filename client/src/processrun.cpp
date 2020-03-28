@@ -595,20 +595,24 @@ void ProcessRun::Draw()
     g_SDLDevice->Present();
 }
 
-void ProcessRun::processEvent(const SDL_Event &rstEvent)
+void ProcessRun::processEvent(const SDL_Event &event)
 {
-    bool bValid = true;
-    if(m_InventoryBoard.processEvent(rstEvent, &bValid)){ return; }
-    if(m_controlBoard  .processEvent(rstEvent, &bValid)){ return; }
+    if(m_InventoryBoard.processEvent(event, true)){
+        return;
+    }
 
-    switch(rstEvent.type){
+    if(m_controlBoard.processEvent(event, true)){
+        return;
+    }
+
+    switch(event.type){
         case SDL_MOUSEBUTTONDOWN:
             {
                 int nMouseGridX = -1;
                 int nMouseGridY = -1;
-                ScreenPoint2Grid(rstEvent.button.x, rstEvent.button.y, &nMouseGridX, &nMouseGridY);
+                ScreenPoint2Grid(event.button.x, event.button.y, &nMouseGridX, &nMouseGridY);
 
-                switch(rstEvent.button.button){
+                switch(event.button.button){
                     case SDL_BUTTON_LEFT:
                         {
                             if(auto nUID = FocusUID(FOCUS_MOUSE)){
@@ -640,7 +644,7 @@ void ProcessRun::processEvent(const SDL_Event &rstEvent)
                                 int nX = -1;
                                 int nY = -1;
                                 if(true
-                                        && ScreenPoint2Grid(rstEvent.button.x, rstEvent.button.y, &nX, &nY)
+                                        && ScreenPoint2Grid(event.button.x, event.button.y, &nX, &nY)
                                         && MathFunc::LDistance2(GetMyHero()->CurrMotion().EndX, GetMyHero()->CurrMotion().EndY, nX, nY)){
 
                                     // we get a valid dst to go
@@ -675,7 +679,7 @@ void ProcessRun::processEvent(const SDL_Event &rstEvent)
             }
         case SDL_KEYDOWN:
             {
-                switch(rstEvent.key.keysym.sym){
+                switch(event.key.keysym.sym){
                     case SDLK_e:
                         {
                             std::exit(0);
