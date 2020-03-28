@@ -115,7 +115,7 @@ controlBoard::controlBoard(int nX, int nY, int nW, ProcessRun *pRun, Widget *pWi
           [this]()
           {
               if(auto pInventory = m_ProcessRun->GetWidget("InventoryBoard")){
-                  pInventory->Show(!pInventory->Show());
+                  pInventory->show(!pInventory->show());
               }
           },
           0,
@@ -502,7 +502,7 @@ bool controlBoard::processEvent(const SDL_Event &event, bool valid)
                 switch(event.key.keysym.sym){
                     case SDLK_RETURN:
                         {
-                            m_CmdLine.Focus(true);
+                            m_CmdLine.focus(true);
                             return true;
                         }
                     default:

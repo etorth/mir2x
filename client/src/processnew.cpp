@@ -68,9 +68,9 @@ ProcessNew::ProcessNew()
             {0XFF, 0XFF, 0XFF, 0XFF},
             [this]()
             {
-                m_BoxID        .Focus(false);
-                m_BoxPwd       .Focus(true );
-                m_BoxPwdConfirm.Focus(false);
+                m_BoxID        .focus(false);
+                m_BoxPwd       .focus(true );
+                m_BoxPwdConfirm.focus(false);
             },
             [this]()
             {
@@ -90,9 +90,9 @@ ProcessNew::ProcessNew()
             {0XFF, 0XFF, 0XFF, 0XFF},
             [this]()
             {
-                m_BoxID        .Focus(false);
-                m_BoxPwd       .Focus(false);
-                m_BoxPwdConfirm.Focus(true );
+                m_BoxID        .focus(false);
+                m_BoxPwd       .focus(false);
+                m_BoxPwdConfirm.focus(true );
             },
             [this]()
             {
@@ -112,9 +112,9 @@ ProcessNew::ProcessNew()
             {0XFF, 0XFF, 0XFF, 0XFF},
             [this]()
             {
-                m_BoxID        .Focus(true );
-                m_BoxPwd       .Focus(false);
-                m_BoxPwdConfirm.Focus(false);
+                m_BoxID        .focus(true );
+                m_BoxPwd       .focus(false);
+                m_BoxPwdConfirm.focus(false);
             },
             [this]()
             {
@@ -181,13 +181,13 @@ void ProcessNew::processEvent(const SDL_Event &event)
                     case SDLK_TAB:
                         {
                             if(true
-                                    && !m_BoxID       .Focus()
-                                    && !m_BoxPwd.Focus()
-                                    && !m_BoxPwdConfirm.Focus()){
+                                    && !m_BoxID       .focus()
+                                    && !m_BoxPwd.focus()
+                                    && !m_BoxPwdConfirm.focus()){
 
-                                m_BoxID       .Focus(true);
-                                m_BoxPwd.Focus(false);
-                                m_BoxPwdConfirm.Focus(false);
+                                m_BoxID       .focus(true);
+                                m_BoxPwd.focus(false);
+                                m_BoxPwdConfirm.focus(false);
                                 return;
                             }
                         }

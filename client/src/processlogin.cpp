@@ -50,8 +50,8 @@ ProcessLogin::ProcessLogin()
             {0XFF, 0XFF, 0XFF, 0XFF},
             [this]()
             {
-                m_IDBox      .Focus(false);
-                m_PasswordBox.Focus(true);
+                m_IDBox      .focus(false);
+                m_PasswordBox.focus(true);
             },
             [this]()
             {
@@ -70,8 +70,8 @@ ProcessLogin::ProcessLogin()
             {0XFF, 0XFF, 0XFF, 0XFF},
             [this]()
             {
-                m_IDBox      .Focus(true);
-                m_PasswordBox.Focus(false);
+                m_IDBox      .focus(true);
+                m_PasswordBox.focus(false);
             },
             [this]()
             {
@@ -113,11 +113,11 @@ void ProcessLogin::processEvent(const SDL_Event &event)
                     case SDLK_TAB:
                         {
                             if(true
-                                    && !m_IDBox      .Focus()
-                                    && !m_PasswordBox.Focus()){
+                                    && !m_IDBox      .focus()
+                                    && !m_PasswordBox.focus()){
 
-                                m_IDBox      .Focus(true);
-                                m_PasswordBox.Focus(false);
+                                m_IDBox      .focus(true);
+                                m_PasswordBox.focus(false);
                                 return;
                             }
                         }

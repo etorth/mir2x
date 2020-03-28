@@ -612,7 +612,7 @@ void ProcessRun::processEvent(const SDL_Event &event)
                     case SDL_WINDOWEVENT_SIZE_CHANGED:
                         {
                             const auto [w, h] = g_SDLDevice->getRendererSize();
-                            m_controlBoard.resize(w, h);
+                            m_controlBoard.resizeWidth(w);
                             m_controlBoard.moveTo(0, h - 133);
                             break;
                         }

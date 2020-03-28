@@ -33,7 +33,7 @@ bool IDBox::processEvent(const SDL_Event &event, bool valid)
                 switch(event.key.keysym.sym){
                     case SDLK_RETURN:
                         {
-                            if(Focus()){
+                            if(focus()){
                                 if(m_OnEnter){
                                     m_OnEnter();
                                 }
@@ -43,7 +43,7 @@ bool IDBox::processEvent(const SDL_Event &event, bool valid)
                         }
                     case SDLK_TAB:
                         {
-                            if(Focus()){
+                            if(focus()){
                                 if(m_OnTab){
                                     m_OnTab();
                                 }

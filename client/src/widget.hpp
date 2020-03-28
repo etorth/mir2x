@@ -79,7 +79,7 @@ class Widget
     public:
         virtual void Draw()
         {
-            if(Show()){
+            if(show()){
                 drawEx(X(), Y(), 0, 0, W(), H());
             }
         }
@@ -137,35 +137,35 @@ class Widget
         }
 
     public:
-        bool In(int nX, int nY) const
+        bool in(int nX, int nY) const
         {
             return (nX >= X() && nX < X() + W()) && (nY >= Y() && nY < Y() + H());
         }
 
     public:
-        void Focus(bool bFocus)
+        void focus(bool bFocus)
         {
             m_Focus = bFocus;
         }
 
-        bool Focus() const
+        bool focus() const
         {
             return m_Focus;
         }
 
     public:
-        void Show(bool bShow)
+        void show(bool bShow)
         {
             m_Show = bShow;
         }
 
-        bool Show() const
+        bool show() const
         {
             return m_Show;
         }
 
     public:
-        void Move(int nDX, int nDY)
+        void moveBy(int nDX, int nDY)
         {
             m_X += nDX;
             m_Y += nDY;
@@ -175,12 +175,5 @@ class Widget
         {
             m_X = nX;
             m_Y = nY;
-        }
-
-    public:
-        void resize(int w, int h)
-        {
-            m_W = w;
-            m_H = h;
         }
 };

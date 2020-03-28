@@ -30,7 +30,7 @@ bool InputLine::processEvent(const SDL_Event &event, bool valid)
                 switch(event.key.keysym.sym){
                     case SDLK_TAB:
                         {
-                            if(Focus() && m_TabFunc){
+                            if(focus() && m_TabFunc){
                                 m_TabFunc();
                                 return true;
                             }
@@ -41,7 +41,7 @@ bool InputLine::processEvent(const SDL_Event &event, bool valid)
                         }
                     case SDLK_RETURN:
                         {
-                            if(Focus() && m_ReturnFunc){
+                            if(focus() && m_ReturnFunc){
                                 m_ReturnFunc();
                                 return true;
                             }

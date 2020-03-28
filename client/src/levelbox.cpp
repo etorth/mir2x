@@ -81,7 +81,7 @@ bool levelBox::processEvent(const SDL_Event &event, bool valid)
     switch(event.type){
         case SDL_MOUSEBUTTONDOWN:
             {
-                if(!In(event.button.x, event.button.y)){
+                if(!in(event.button.x, event.button.y)){
                     m_state = BEVENT_OFF;
                     return false;
                 }
@@ -94,7 +94,7 @@ bool levelBox::processEvent(const SDL_Event &event, bool valid)
             }
         case SDL_MOUSEBUTTONUP:
             {
-                if(!In(event.button.x, event.button.y)){
+                if(!in(event.button.x, event.button.y)){
                     m_state = BEVENT_OFF;
                     return false;
                 }
@@ -113,7 +113,7 @@ bool levelBox::processEvent(const SDL_Event &event, bool valid)
                         return true;
                     }
                     else{
-                        if(In(event.motion.x, event.motion.y)){
+                        if(in(event.motion.x, event.motion.y)){
                             m_state = BEVENT_ON;
                             return true;
                         }
@@ -124,7 +124,7 @@ bool levelBox::processEvent(const SDL_Event &event, bool valid)
                     }
                 }
 
-                if(In(event.motion.x, event.motion.y)){
+                if(in(event.motion.x, event.motion.y)){
                     m_state = BEVENT_ON;
                     return true;
                 }

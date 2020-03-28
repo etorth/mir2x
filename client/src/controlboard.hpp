@@ -99,4 +99,12 @@ class controlBoard: public Widget
     private:
         void switchExpandMode();
         void setButtonLoc();
+
+    public:
+        // TODO: we don't support Widget::resize()
+        // widget doesn't have box concept, parent widget can't calculate proper size for children
+        void resizeWidth(int w)
+        {
+            m_W = w;
+        }
 };

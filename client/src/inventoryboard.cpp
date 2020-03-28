@@ -36,7 +36,7 @@ InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, Widget *pWidget
             [](){},
             [this]()
             {
-                Show(false);
+                show(false);
             },
             0,
             0,
@@ -104,7 +104,7 @@ bool InventoryBoard::processEvent(const SDL_Event &event, bool valid)
         return false;
     }
 
-    if(!Show()){
+    if(!show()){
         return false;
     }
 
@@ -115,8 +115,8 @@ bool InventoryBoard::processEvent(const SDL_Event &event, bool valid)
     switch(event.type){
         case SDL_MOUSEMOTION:
             {
-                if(In(event.motion.x, event.motion.y) && (event.motion.state & SDL_BUTTON_LMASK)){
-                    Move(event.motion.xrel, event.motion.yrel);
+                if(in(event.motion.x, event.motion.y) && (event.motion.state & SDL_BUTTON_LMASK)){
+                    moveBy(event.motion.xrel, event.motion.yrel);
                     return true;
                 }
                 return false;

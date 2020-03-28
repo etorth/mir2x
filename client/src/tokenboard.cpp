@@ -1100,7 +1100,7 @@ bool TokenBoard::processEvent(const SDL_Event &event, bool valid)
     }
 
     // 1. inside the board or not
-    if(!In(nEventDX, nEventDY)){
+    if(!in(nEventDX, nEventDY)){
         return false;
     }
 

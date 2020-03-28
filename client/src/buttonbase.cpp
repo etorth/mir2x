@@ -30,7 +30,7 @@ bool ButtonBase::processEvent(const SDL_Event &event, bool valid)
     switch(event.type){
         case SDL_MOUSEBUTTONUP:
             {
-                if(In(event.button.x, event.button.y)){
+                if(in(event.button.x, event.button.y)){
                     if(m_OnClickDone){
                         m_OnClick();
                     }
@@ -46,7 +46,7 @@ bool ButtonBase::processEvent(const SDL_Event &event, bool valid)
 
         case SDL_MOUSEBUTTONDOWN:
             {
-                if(In(event.button.x, event.button.y)){
+                if(in(event.button.x, event.button.y)){
                     if(!m_OnClickDone){
                         m_OnClick();
                     }
@@ -61,7 +61,7 @@ bool ButtonBase::processEvent(const SDL_Event &event, bool valid)
             }
         case SDL_MOUSEMOTION:
             {
-                if(In(event.motion.x, event.motion.y)){
+                if(in(event.motion.x, event.motion.y)){
                     if(m_State != 2){
                         m_State = BUTTON_OVER;
                     }

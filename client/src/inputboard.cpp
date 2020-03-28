@@ -56,7 +56,7 @@ bool InputBoard::processEvent(const SDL_Event &event, bool valid)
     switch(event.type){
         case SDL_MOUSEMOTION:
             {
-                if(In(event.motion.x, event.motion.y)){
+                if(in(event.motion.x, event.motion.y)){
                     m_SystemCursorX = event.motion.x;
                     m_SystemCursorY = event.motion.y;
                     if(!m_DrawOwnSystemCursor){
@@ -74,21 +74,21 @@ bool InputBoard::processEvent(const SDL_Event &event, bool valid)
             }
         case SDL_MOUSEBUTTONDOWN:
             {
-                if(In(event.button.x, event.button.y)){
+                if(in(event.button.x, event.button.y)){
                     m_TokenBoard.processEvent(event, true);
 
                     RelocateTokenBoard();
-                    Focus(true);
+                    focus(true);
                     return true;
                 }
                 else{
-                    Focus(false);
+                    focus(false);
                     return false;
                 }
             }
         case SDL_KEYDOWN:
             {
-                if(Focus()){
+                if(focus()){
                     // clear the count no matter what key pressed
                     m_MS = 0.0;
                     switch(event.key.keysym.sym){
@@ -151,7 +151,7 @@ bool InputBoard::processEvent(const SDL_Event &event, bool valid)
 
                         case SDLK_ESCAPE:
                             {
-                                Focus(false);
+                                focus(false);
                                 break;
                             }
 
@@ -236,7 +236,7 @@ bool InputBoard::processEvent(const SDL_Event &event, bool valid)
             }
         case SDL_TEXTINPUT:
             {
-                if(Focus()){
+                if(focus()){
                     m_TokenBoard.AddUTF8Text(event.text.text);
                     RelocateTokenBoard();
                 }
@@ -337,19 +337,19 @@ void InputBoard::RelocateTokenBoard()
     nY += m_TokenBoard.Y();
 
     if(nX < 0){
-        m_TokenBoard.Move(-nX, 0);
+        m_TokenBoard.moveBy(-nX, 0);
     }
 
     if((nX + nW > W()) && (nW <= W())){
-        m_TokenBoard.Move(W() - (nX + nW), 0);
+        m_TokenBoard.moveBy(W() - (nX + nW), 0);
     }
 
     if(nY < 0){
-        m_TokenBoard.Move(0, -nY);
+        m_TokenBoard.moveBy(0, -nY);
     }
 
     if((nY + nH > H()) && (nH <= H())){
-        m_TokenBoard.Move(0, H() - (nY + nH));
+        m_TokenBoard.moveBy(0, H() - (nY + nH));
     }
 }
 
@@ -381,7 +381,7 @@ void InputBoard::Draw()
     int nX, nY, nW, nH;
     QueryCursor(&nX, &nY, &nW, &nH);
 
-    if(((int)m_MS % 1000) < 500 && Focus()){
+    if(((int)m_MS % 1000) < 500 && focus()){
         g_SDLDevice->PushColor(m_CursorColor.r, m_CursorColor.g, m_CursorColor.b, m_CursorColor.a);
         g_SDLDevice->FillRectangle(X() + m_TokenBoard.X() + nX, Y() + m_TokenBoard.Y() + nY, nW, nH);
         g_SDLDevice->PopColor();
