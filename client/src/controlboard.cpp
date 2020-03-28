@@ -49,7 +49,7 @@
 // |---fixed---|-------------repeat---------------|---fixed------|
 
 // 
-// 0X00000028 : 456 x 298: char box frame
+// 0X00000027 : 456 x 298: char box frame
 //
 //                         +-----------+                        ---
 //                          \  title  /                          ^
@@ -132,7 +132,11 @@ controlBoard::controlBoard(int nX, int nY, int nW, ProcessRun *pRun, Widget *pWi
           5,
           {0XFFFFFFFF, 0X00000028, 0X00000029},
           [](){},
-          [this](){ switchExpandMode(); },
+          [this]()
+          {
+              switchExpandMode();
+              m_buttonSwitchMode.setOff();
+          },
           0,
           0,
           0,
@@ -361,35 +365,37 @@ void controlBoard::drawMiddleExpand()
     const int nW0 = W();
     const int nH0 = H();
 
-    // draw black underlay for the big log board
-    {
-        SDLDevice::EnableDrawBlendMode enableDrawBlendMode(SDL_BLENDMODE_BLEND);
-        SDLDevice::EnableDrawColor enableColor(ColorFunc::RGBA(0X00, 0X00, 0X00, 0XF0));
-        g_SDLDevice->FillRectangle(178 + 2, nY0 - 47 - m_stretchH - 55, nW0 - (178 + 2) - (166 + 2), 47 + m_stretchH);
-    }
-
     // use this position to calculate all points
     // the Y-axis on screen that the big chat-frame starts
     const int startY = nY0 + nH0 - 55 - m_stretchH - 47;
 
-    if(auto pTexture = g_ProgUseDB->Retrieve(0X00000028)){
+    // draw black underlay for the big log board
+    {
+        SDLDevice::EnableDrawBlendMode enableDrawBlendMode(SDL_BLENDMODE_BLEND);
+        SDLDevice::EnableDrawColor enableColor(ColorFunc::RGBA(0X00, 0X00, 0X00, 0XF0));
+        g_SDLDevice->FillRectangle(178 + 2, startY + 2, nW0 - (178 + 2) - (166 + 2), 47 + m_stretchH);
+    }
+
+    if(auto pTexture = g_ProgUseDB->Retrieve(0X00000027)){
 
         // draw four corners
-        g_SDLDevice->DrawTexture(pTexture,             178,    startY,         0,        0,  50, 47);
-        g_SDLDevice->DrawTexture(pTexture, nW0 - 166 - 119,    startY, 456 - 119,        0, 119, 47);
-        g_SDLDevice->DrawTexture(pTexture,             178,  nY0 - 55,         0, 298 - 55,  50, 55);
-        g_SDLDevice->DrawTexture(pTexture, nW0 - 166 - 119,  nY0 - 55, 456 - 119, 298 - 55, 119, 55);
+        g_SDLDevice->DrawTexture(pTexture,             178,                   startY,         0,        0,  50, 47);
+        g_SDLDevice->DrawTexture(pTexture, nW0 - 166 - 119,                   startY, 456 - 119,        0, 119, 47);
+        g_SDLDevice->DrawTexture(pTexture,             178, startY + 47 + m_stretchH,         0, 298 - 55,  50, 55);
+        g_SDLDevice->DrawTexture(pTexture, nW0 - 166 - 119, startY + 47 + m_stretchH, 456 - 119, 298 - 55, 119, 55);
 
         // draw two stretched vertical bars
         const int repeatH = 298 - 47 - 55;
         const auto [repeatHCnt, stretchH] = scheduleStretch(m_stretchH, repeatH);
 
         for(int i = 0; i < repeatHCnt; ++i){
-            g_SDLDevice->DrawTexture(pTexture, 178, startY + 47 + i * repeatH, 0, 47, 456, repeatH);
+            g_SDLDevice->DrawTexture(pTexture,             178, startY + 47 + i * repeatH,         0, 47,  50, repeatH);
+            g_SDLDevice->DrawTexture(pTexture, nW0 - 166 - 119, startY + 47 + i * repeatH, 456 - 119, 47, 119, repeatH);
         }
 
         if(stretchH > 0){
-            g_SDLDevice->DrawTexture(pTexture, 178, startY + 47 + repeatHCnt * repeatH, 456, stretchH, 0, 47, 456, repeatH);
+            g_SDLDevice->DrawTexture(pTexture,             178, startY + 47 + repeatHCnt * repeatH,  50, stretchH,         0, 47,  50, repeatH);
+            g_SDLDevice->DrawTexture(pTexture, nW0 - 166 - 119, startY + 47 + repeatHCnt * repeatH, 119, stretchH, 456 - 119, 47, 119, repeatH);
         }
 
         // draw horizontal top bar and bottom input area
@@ -398,13 +404,13 @@ void controlBoard::drawMiddleExpand()
 
         const auto [repeatWCnt, stretchW] = scheduleStretch(drawW, repeatW);
         for(int i = 0; i < repeatWCnt; ++i){
-            g_SDLDevice->DrawTexture(pTexture, 178 + 50 + i * repeatW,   startY, 50,        0, repeatW, 47);
-            g_SDLDevice->DrawTexture(pTexture, 178 + 50 + i * repeatW, nY0 - 55, 50, 298 - 55, repeatW, 55);
+            g_SDLDevice->DrawTexture(pTexture, 178 + 50 + i * repeatW,                   startY, 50,        0, repeatW, 47);
+            g_SDLDevice->DrawTexture(pTexture, 178 + 50 + i * repeatW, startY + 47 + m_stretchH, 50, 298 - 55, repeatW, 55);
         }
 
         if(stretchW > 0){
-            g_SDLDevice->DrawTexture(pTexture, 178 + 50 + repeatWCnt * repeatW,   startY, stretchW, 47, 50,        0, repeatW, 47);
-            g_SDLDevice->DrawTexture(pTexture, 178 + 50 + repeatWCnt * repeatW, nY0 - 55, stretchW, 55, 50, 298 - 55, repeatW, 55);
+            g_SDLDevice->DrawTexture(pTexture, 178 + 50 + repeatWCnt * repeatW,                   startY, stretchW, 47, 50,        0, repeatW, 47);
+            g_SDLDevice->DrawTexture(pTexture, 178 + 50 + repeatWCnt * repeatW, startY + 47 + m_stretchH, stretchW, 55, 50, 298 - 55, repeatW, 55);
         }
     }
 

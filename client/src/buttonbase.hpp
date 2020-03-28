@@ -110,4 +110,12 @@ class ButtonBase: public Widget
         {
             return m_State;
         }
+
+    public:
+        // we can automatically do this or call this function
+        // sometimes when we invoke the callback it changes the button location
+        void setOff()
+        {
+            m_State = BUTTON_OFF;
+        }
 };
