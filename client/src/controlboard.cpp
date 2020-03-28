@@ -279,8 +279,8 @@ void controlBoard::drawMiddleDefalt()
 
     // draw middle part
     if(auto pTexture = g_ProgUseDB->Retrieve(0X00000013)){
-        g_SDLDevice->DrawTexture(pTexture,             178, nY0 + 2,               0, 0,  50, 131);
-        g_SDLDevice->DrawTexture(pTexture, nW0 - 166 - 119, nY0 + 2, 800 - 166 - 119, 0, 119, 131);
+        g_SDLDevice->DrawTexture(pTexture,             178, nY0 + 2,         0, 0,  50, 131);
+        g_SDLDevice->DrawTexture(pTexture, nW0 - 166 - 119, nY0 + 2, 456 - 119, 0, 119, 131);
 
         const int repeatW = 456 - 50 - 119;
         const auto [repeat, stretch] = scheduleStretch();
