@@ -606,6 +606,23 @@ void ProcessRun::processEvent(const SDL_Event &event)
     }
 
     switch(event.type){
+        case SDL_WINDOWEVENT:
+            {
+                switch(event.window.event){
+                    case SDL_WINDOWEVENT_SIZE_CHANGED:
+                        {
+                            const auto [w, h] = g_SDLDevice->getRendererSize();
+                            m_controlBoard.resize(w, h);
+                            m_controlBoard.moveTo(0, h - 133);
+                            break;
+                        }
+                    default:
+                        {
+                            break;
+                        }
+                }
+                break;
+            }
         case SDL_MOUSEBUTTONDOWN:
             {
                 int nMouseGridX = -1;

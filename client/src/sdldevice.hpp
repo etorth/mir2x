@@ -24,6 +24,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 #include "colorfunc.hpp"
+#include "fflerror.hpp"
 
 class SDLDevice final
 {
@@ -222,6 +223,17 @@ class SDLDevice final
            }else{
                return m_WindowH;
            }
+       }
+
+       std::tuple<int, int> getRendererSize()
+       {
+           int w = -1;
+           int h = -1;
+
+           if(SDL_GetRendererOutputSize(m_Renderer, &w, &h)){
+               throw fflerror("SDL_GetRendererOutputSize(%p) failed", m_Renderer);
+           }
+           return {w, h};
        }
 
     public:

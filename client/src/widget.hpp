@@ -178,4 +178,9 @@ class Widget
         }
 
     public:
+        void resize(int w, int h)
+        {
+            m_W = w;
+            m_H = h;
+        }
 };
