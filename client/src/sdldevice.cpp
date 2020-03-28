@@ -55,8 +55,6 @@ SDLDevice::SDLDevice()
     , m_Renderer(nullptr)
     , m_ColorStack()
     , m_BlendModeStack()
-    , m_WindowW(0)
-    , m_WindowH(0)
     , m_InnFontMap()
 {
     if(g_SDLDevice){
@@ -410,19 +408,13 @@ void SDLDevice::CreateMainWindow()
         nWindowH = 600;
     }
 
-    m_WindowW = nWindowW;
-    m_WindowH = nWindowH;
-
-    if(m_WindowW && m_WindowH){
-        // try to adjust the current window size
-        SDL_DisplayMode stDesktop;
-        if(!SDL_GetDesktopDisplayMode(0, &stDesktop)){
-            m_WindowW = std::min(m_WindowW , stDesktop.w);
-            m_WindowH = std::min(m_WindowH , stDesktop.h);
-        }
+    SDL_DisplayMode stDesktop;
+    if(!SDL_GetDesktopDisplayMode(0, &stDesktop)){
+        nWindowW = std::min(nWindowW , stDesktop.w);
+        nWindowH = std::min(nWindowH , stDesktop.h);
     }
 
-    m_Window = SDL_CreateWindow("MIR2X-V0.1", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, m_WindowW, m_WindowH, nFlags);
+    m_Window = SDL_CreateWindow("MIR2X-V0.1", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, nWindowW, nWindowH, nFlags);
     if(!m_Window){
         throw std::runtime_error(str_fflprintf(": Failed to create SDL window handler: %s", SDL_GetError()));
     }

@@ -73,10 +73,6 @@ class SDLDevice final
        std::vector<BlendModeStackNode> m_BlendModeStack;
 
     private:
-       int m_WindowW;
-       int m_WindowH;
-
-    private:
        std::map<uint8_t, TTF_Font *> m_InnFontMap;
 
     private:
@@ -205,23 +201,19 @@ class SDLDevice final
 
        int WindowW(bool bRealWindowSizeInPixel)
        {
-           int nW, nH;
            if(bRealWindowSizeInPixel){
-               SDL_GetWindowSize(m_Window, &nW, &nH);
-               return nW;
+               return std::get<0>(getWindowSize());
            }else{
-               return m_WindowW;
+               return std::get<0>(getRendererSize());
            }
        }
 
        int WindowH(bool bRealWindowSizeInPixel)
        {
-           int nW, nH;
            if(bRealWindowSizeInPixel){
-               SDL_GetWindowSize(m_Window, &nW, &nH);
-               return nH;
+               return std::get<1>(getWindowSize());
            }else{
-               return m_WindowH;
+               return std::get<1>(getRendererSize());
            }
        }
 
