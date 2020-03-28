@@ -461,7 +461,11 @@ void SDLDevice::DrawTextureEx(SDL_Texture *pTexture,
 
 SDL_Texture *SDLDevice::createTexture(const uint32_t *buf, int w, int h)
 {
-    if(auto ptex = SDL_CreateTexture(m_Renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, w, h)){
+    // TODO
+    // seems we can only use SDL_PIXELFORMAT_RGBA8888
+    // tried SDL_PIXELFORMAT_RGBA32 but gives wrong pixel format
+    //
+    if(auto ptex = SDL_CreateTexture(m_Renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STATIC, w, h)){
         if(!SDL_UpdateTexture(ptex, 0, buf, w * 4) && !SDL_SetTextureBlendMode(ptex, SDL_BLENDMODE_BLEND)){
             return ptex;
         }

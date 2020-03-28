@@ -156,11 +156,15 @@ controlBoard::controlBoard(int nX, int nY, int nW, ProcessRun *pRun, Widget *pWi
               }
 
               m_stretchH = std::max<int>(m_stretchH - dy, m_stretchHMin);
-              setLeveBoxLoc();
+              m_stretchH = std::min<int>(m_stretchH, g_SDLDevice->WindowH(false) - 47 - 55);
+              setButtonLoc();
           },
           [this]()
           {
               if(!m_expand){
+                  switchExpandMode();
+                  m_stretchH = g_SDLDevice->WindowH(false) - 47 - 55;
+                  setButtonLoc();
                   return;
               }
 
@@ -170,7 +174,7 @@ controlBoard::controlBoard(int nX, int nY, int nW, ProcessRun *pRun, Widget *pWi
               else{
                   m_stretchH = g_SDLDevice->WindowH(false) - 47 - 55;
               }
-              setLeveBoxLoc();
+              setButtonLoc();
           },
           this,
           false,
@@ -575,30 +579,29 @@ bool controlBoard::CheckMyHeroMoved()
 
 void controlBoard::switchExpandMode()
 {
+    if(m_expand){
+        m_expand = false;
+    }
+    else{
+        m_expand = true;
+        m_stretchH = m_stretchHMin;
+    }
+    setButtonLoc();
+}
+
+void controlBoard::setButtonLoc()
+{
     // diff of height of texture 0X00000013 and 0X00000027
     // when you draw something on default log board at (X, Y), (0, 0) is left-top
     // if you need to keep the same location on expand log board, draw on(X, Y - modeDiffY)
 
-    const int modeDiffY = 298 - 131;
+    const int modeDiffY = (298 - 131) + (m_stretchH - m_stretchHMin);
     if(m_expand){
-        m_expand = false;
-        m_buttonSwitchMode.moveTo(W() - 181, 5);
-        setLeveBoxLoc();
-    }
-    else{
-        m_expand = true;
         m_buttonSwitchMode.moveTo(W() - 181, 5 - modeDiffY);
-        setLeveBoxLoc();
-    }
-}
-
-void controlBoard::setLeveBoxLoc()
-{
-    const int modeDiffY = 298 - 131;
-    if(m_expand){
-        m_level.moveTo(178 + (W() - 178 - 166 - m_level.W()) / 2, 6 - m_level.H() / 2 - modeDiffY - (m_stretchH - m_stretchHMin));
+        m_level.moveTo(178 + (W() - 178 - 166 - m_level.W()) / 2, 6 - m_level.H() / 2 - modeDiffY);
     }
     else{
+        m_buttonSwitchMode.moveTo(W() - 181, 5);
         m_level.moveTo(178 + (W() - 178 - 166 - m_level.W()) / 2, 6 - m_level.H() / 2);
     }
 }

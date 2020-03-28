@@ -98,5 +98,5 @@ class controlBoard: public Widget
 
     private:
         void switchExpandMode();
-        void setLeveBoxLoc();
+        void setButtonLoc();
 };

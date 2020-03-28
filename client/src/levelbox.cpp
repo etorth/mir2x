@@ -78,42 +78,66 @@ bool levelBox::processEvent(const SDL_Event &event, bool valid)
         return false;
     }
 
-    if(!In(event.motion.x, event.motion.y)){
-        m_state = BEVENT_OFF;
-        return false;
-    }
-
     switch(event.type){
         case SDL_MOUSEBUTTONDOWN:
             {
+                if(!In(event.button.x, event.button.y)){
+                    m_state = BEVENT_OFF;
+                    return false;
+                }
+
                 if(event.button.clicks == 2){
                     m_onDoubleClick();
                 }
                 m_state = BEVENT_DOWN;
-                break;
+                return true;
             }
         case SDL_MOUSEBUTTONUP:
             {
+                if(!In(event.button.x, event.button.y)){
+                    m_state = BEVENT_OFF;
+                    return false;
+                }
+
                 m_state = BEVENT_ON;
-                break;
+                return true;
             }
         case SDL_MOUSEMOTION:
             {
-                if(event.motion.state & SDL_BUTTON_LMASK){
-                    m_state = BEVENT_DOWN;
-                    m_onDrag(event.motion.yrel);
+                // even not in the box
+                // we still need to drag the widget
+
+                if(m_state == BEVENT_DOWN){
+                    if(event.motion.state & SDL_BUTTON_LMASK){
+                        m_onDrag(event.motion.yrel);
+                        return true;
+                    }
+                    else{
+                        if(In(event.motion.x, event.motion.y)){
+                            m_state = BEVENT_ON;
+                            return true;
+                        }
+                        else{
+                            m_state = BEVENT_OFF;
+                            return false;
+                        }
+                    }
+                }
+
+                if(In(event.motion.x, event.motion.y)){
+                    m_state = BEVENT_ON;
+                    return true;
                 }
                 else{
-                    m_state = BEVENT_ON;
+                    m_state = BEVENT_OFF;
+                    return false;
                 }
-                break;
             }
         default:
             {
-                break;
+                return false;
             }
     }
-    return false;
 }
 
 void levelBox::drawEx(int dstX, int dstY, int, int, int, int)
