@@ -225,6 +225,15 @@ class SDLDevice final
            }
        }
 
+       std::tuple<int, int> getWindowSize()
+       {
+           int w = -1;
+           int h = -1;
+
+           SDL_GetWindowSize(m_Window, &w, &h);
+           return {w, h};
+       }
+
        std::tuple<int, int> getRendererSize()
        {
            int w = -1;
