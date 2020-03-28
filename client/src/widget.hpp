@@ -99,7 +99,7 @@ class Widget
         }
 
     public:
-        virtual bool ProcessEvent(const SDL_Event &, bool)
+        virtual bool processEvent(const SDL_Event &, bool)
         {
             return false;
         }

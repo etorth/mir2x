@@ -17,7 +17,7 @@
  */
 
 #include "idbox.hpp"
-bool IDBox::ProcessEvent(const SDL_Event &rstEvent, bool *pValid)
+bool IDBox::processEvent(const SDL_Event &rstEvent, bool *pValid)
 {
     if(pValid && !(*pValid)){ return false; }
 
@@ -54,5 +54,5 @@ bool IDBox::ProcessEvent(const SDL_Event &rstEvent, bool *pValid)
                 }
             }
     }
-    return InputBoard::ProcessEvent(rstEvent, pValid);
+    return InputBoard::processEvent(rstEvent, pValid);
 }

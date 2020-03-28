@@ -174,7 +174,7 @@ InitView::~InitView()
     }
 }
 
-void InitView::ProcessEvent()
+void InitView::processEvent()
 {
     int nX = m_ButtonX;
     int nY = m_ButtonY;
@@ -251,7 +251,7 @@ void InitView::Proc()
             }
         }()){ break; }
 
-        ProcessEvent();
+        processEvent();
         Draw();
     }
     stThread.join();

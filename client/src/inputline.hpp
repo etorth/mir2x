@@ -69,5 +69,5 @@ class InputLine: public InputBoard
        ~InputLine() = default;
 
     public:
-        bool ProcessEvent(const SDL_Event &, bool *);
+        bool processEvent(const SDL_Event &, bool *);
 };

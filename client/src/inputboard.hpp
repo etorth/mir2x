@@ -112,7 +112,7 @@ class InputBoard: public Widget
         }
 
     public:
-        bool ProcessEvent(const SDL_Event &, bool *);
+        bool processEvent(const SDL_Event &, bool *);
 
     public:
         void QueryCursor(int *, int *, int *, int *);

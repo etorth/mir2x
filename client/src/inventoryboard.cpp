@@ -98,11 +98,11 @@ void InventoryBoard::drawEx(int nDstX, int nDstY, int, int, int, int)
     m_CloseButton.Draw();
 }
 
-bool InventoryBoard::ProcessEvent(const SDL_Event &rstEvent, bool *pValid)
+bool InventoryBoard::processEvent(const SDL_Event &rstEvent, bool *pValid)
 {
     if(Show()){
 
-        m_CloseButton.ProcessEvent(rstEvent, pValid);
+        m_CloseButton.processEvent(rstEvent, pValid);
 
         switch(rstEvent.type){
             case SDL_MOUSEMOTION:

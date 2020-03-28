@@ -73,9 +73,9 @@ class NotifyBoard: public Widget
         void Update(double);
 
     public:
-        bool ProcessEvent(const SDL_Event &rstEvent, bool *bValid)
+        bool processEvent(const SDL_Event &rstEvent, bool *bValid)
         {
-            return m_LogBoard.ProcessEvent(rstEvent, bValid);
+            return m_LogBoard.processEvent(rstEvent, bValid);
         }
 
     public:

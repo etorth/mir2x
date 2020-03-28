@@ -30,10 +30,13 @@
 #include "linebrowserboard.hpp"
 
 class ProcessRun;
-class ControlBoard: public Widget
+class controlBoard: public Widget
 {
     private:
         ProcessRun *m_ProcessRun;
+
+    private:
+        bool m_expand = false;
 
     private:
         TritexButton m_ButtonClose;
@@ -42,11 +45,11 @@ class ControlBoard: public Widget
 
     private:
         InputLine        m_CmdLine;
-        LabelBoard       m_LocBoard;
+        labelBoard       m_LocBoard;
         LineBrowserBoard m_LogBoard;
 
     public:
-        ControlBoard(
+        controlBoard(
                 int,            // x
                 int,            // y
                 int,            // screen width
@@ -55,14 +58,23 @@ class ControlBoard: public Widget
                 bool);          //
 
     public:
-        ~ControlBoard() = default;
+        ~controlBoard() = default;
 
     public:
         void drawEx(int, int, int, int, int, int);
 
+    private:
+        std::tuple<int, int> scheduleStretch() const;
+
+    private:
+        void drawLeft();
+        void drawRight();
+        void drawMiddleDefalt();
+        void drawMiddleExpand();
+
     public:
         void Update(double);
-        bool ProcessEvent(const SDL_Event &, bool *);
+        bool processEvent(const SDL_Event &, bool *);
 
     public:
         void InputLineDone();

@@ -52,7 +52,7 @@ class ProcessLogo: public Process
     public:
         void Draw();
         void Update(double);
-        void ProcessEvent(const SDL_Event &);
+        void processEvent(const SDL_Event &);
 
     private:
         double ColorRatio();

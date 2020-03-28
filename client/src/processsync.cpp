@@ -32,7 +32,7 @@ ProcessSync::ProcessSync()
     , m_Ratio(0)
     , m_ProcessBarInfo(0, 0, "Connecting...", 1, 10, 0)
 {} 
-void ProcessSync::ProcessEvent(const SDL_Event &rstEvent)
+void ProcessSync::processEvent(const SDL_Event &rstEvent)
 {
     switch(rstEvent.type){
         case SDL_KEYDOWN:

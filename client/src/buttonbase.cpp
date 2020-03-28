@@ -20,7 +20,7 @@
 #include "sdldevice.hpp"
 #include "buttonbase.hpp"
 
-bool ButtonBase::ProcessEvent(const SDL_Event &rstEvent, bool *bValid)
+bool ButtonBase::processEvent(const SDL_Event &rstEvent, bool *bValid)
 {
     if(bValid && !(*bValid)){
         return false;

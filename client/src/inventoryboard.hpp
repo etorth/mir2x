@@ -30,7 +30,7 @@ class ProcessRun;
 class InventoryBoard: public Widget
 {
     private:
-        LabelBoard m_GoldBoard;
+        labelBoard m_GoldBoard;
 
     private:
         TritexButton m_CloseButton;
@@ -48,5 +48,5 @@ class InventoryBoard: public Widget
         void drawEx(int, int, int, int, int, int);
 
     public:
-        bool ProcessEvent(const SDL_Event &, bool *);
+        bool processEvent(const SDL_Event &, bool *);
 };

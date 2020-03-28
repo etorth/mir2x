@@ -164,7 +164,7 @@ class Creature
         double m_LastUpdateTime;
 
     protected:
-        LabelBoard m_nameBoard;
+        labelBoard m_nameBoard;
 
     protected:
         Creature(uint64_t nUID, ProcessRun *pRun)

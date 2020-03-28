@@ -24,7 +24,7 @@
 
 extern Log *g_Log;
 
-void LabelBoard::setText(const char * szFormatString, ...)
+void labelBoard::setText(const char * szFormatString, ...)
 {
     std::string szText;
     bool bError = false;
@@ -36,7 +36,7 @@ void LabelBoard::setText(const char * szFormatString, ...)
             szText = str_vprintf(szFormatString, ap);
         }catch(const std::exception &e){
             bError = true;
-            szText = str_printf("Exception caught in LabelBoard::setText(\"%s\", ...): %s", szFormatString, e.what());
+            szText = str_printf("Exception caught in labelBoard::setText(\"%s\", ...): %s", szFormatString, e.what());
         }
 
         va_end(ap);

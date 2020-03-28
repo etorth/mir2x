@@ -1065,7 +1065,7 @@ void TokenBoard::TokenBoxGetMouseMotion(int nX, int nY, bool bFirstHalf)
     }
 }
 
-bool TokenBoard::ProcessEvent(const SDL_Event &rstEvent, bool *bValid)
+bool TokenBoard::processEvent(const SDL_Event &rstEvent, bool *bValid)
 {
     // don't need to handle event or event has been consumed
     if(m_SkipEvent || (bValid && !(*bValid))){ return false; }

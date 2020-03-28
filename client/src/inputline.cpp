@@ -18,7 +18,7 @@
 
 #include "inputline.hpp"
 
-bool InputLine::ProcessEvent(const SDL_Event &rstEvent, bool *pValid)
+bool InputLine::processEvent(const SDL_Event &rstEvent, bool *pValid)
 {
     if(pValid && !(*pValid)){ return false; }
     switch(rstEvent.type){
@@ -62,5 +62,5 @@ bool InputLine::ProcessEvent(const SDL_Event &rstEvent, bool *pValid)
     }
 
     // fallback to use InputBoard event handling
-    return InputBoard::ProcessEvent(rstEvent, pValid);
+    return InputBoard::processEvent(rstEvent, pValid);
 }

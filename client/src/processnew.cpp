@@ -172,7 +172,7 @@ void ProcessNew::Draw()
     g_SDLDevice->Present();
 }
 
-void ProcessNew::ProcessEvent(const SDL_Event &rstEvent)
+void ProcessNew::processEvent(const SDL_Event &rstEvent)
 {
     switch(rstEvent.type){
         case SDL_KEYDOWN:
@@ -203,16 +203,16 @@ void ProcessNew::ProcessEvent(const SDL_Event &rstEvent)
             }
     }
 
-    m_TBCreate.ProcessEvent(rstEvent, nullptr);
-    m_TBExit  .ProcessEvent(rstEvent, nullptr);
+    m_TBCreate.processEvent(rstEvent, nullptr);
+    m_TBExit  .processEvent(rstEvent, nullptr);
 
     // widget idbox and pwdbox are not independent from each other
     // tab in one box will grant focus to another
 
     bool bValid = true;
-    m_BoxID        .ProcessEvent(rstEvent, &bValid);
-    m_BoxPwd       .ProcessEvent(rstEvent, &bValid);
-    m_BoxPwdConfirm.ProcessEvent(rstEvent, &bValid);
+    m_BoxID        .processEvent(rstEvent, &bValid);
+    m_BoxPwd       .processEvent(rstEvent, &bValid);
+    m_BoxPwdConfirm.processEvent(rstEvent, &bValid);
 
     CheckInput();
 }

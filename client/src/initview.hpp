@@ -127,7 +127,7 @@ class InitView final
         void Proc();
         void Load();
         void Draw();
-        void ProcessEvent();
+        void processEvent();
 
     private:
         void AddIVLog(int, const char *, ...);

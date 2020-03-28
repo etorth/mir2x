@@ -25,7 +25,7 @@ extern Client *g_Client;
 extern PNGTexDB *g_ProgUseDB;
 extern SDLDevice *g_SDLDevice;
 
-void ProcessLogo::ProcessEvent(const SDL_Event &rstEvent)
+void ProcessLogo::processEvent(const SDL_Event &rstEvent)
 {
     switch(rstEvent.type){
         case SDL_KEYDOWN:

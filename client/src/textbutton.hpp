@@ -40,7 +40,7 @@ class TextButton: public ButtonBase
         int m_FrameLineWidth;
 
     private:
-        LabelBoard m_Label;
+        labelBoard m_Label;
 
     public:
         TextButton(
@@ -152,7 +152,7 @@ class TextButton: public ButtonBase
         void FormatText(const char *, ...);
 
     public:
-        const LabelBoard &GetLabelBoard()
+        const labelBoard &GetlabelBoard()
         {
             return m_Label;
         }

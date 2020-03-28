@@ -41,7 +41,7 @@ void InputBoard::Update(double fMS)
     m_TokenBoard.Update(fMS);
 }
 
-bool InputBoard::ProcessEvent(const SDL_Event &rstEvent, bool *)
+bool InputBoard::processEvent(const SDL_Event &rstEvent, bool *)
 {
     // here we parse all event
     // even some else widget have captured this event
@@ -71,14 +71,14 @@ bool InputBoard::ProcessEvent(const SDL_Event &rstEvent, bool *)
                 }
 
                 bool bInnValid = true;
-                m_TokenBoard.ProcessEvent(rstEvent, &bInnValid);
+                m_TokenBoard.processEvent(rstEvent, &bInnValid);
                 break;
             }
         case SDL_MOUSEBUTTONDOWN:
             {
                 if(In(rstEvent.button.x, rstEvent.button.y)){
                     bool bInnValid = true;
-                    m_TokenBoard.ProcessEvent(rstEvent, &bInnValid);
+                    m_TokenBoard.processEvent(rstEvent, &bInnValid);
 
                     RelocateTokenBoard();
                     Focus(true);

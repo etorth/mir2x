@@ -58,12 +58,12 @@ Client::Client()
 Client::~Client()
 {}
 
-void Client::ProcessEvent()
+void Client::processEvent()
 {
     if(m_CurrentProcess){
         SDL_Event stEvent;
         while(SDL_PollEvent(&stEvent)){
-            m_CurrentProcess->ProcessEvent(stEvent);
+            m_CurrentProcess->processEvent(stEvent);
         }
     }
 }
@@ -130,7 +130,7 @@ void Client::EventDelay(double fDelayMS)
         PollASIO();
 
         // everytime firstly try to process all pending events
-        ProcessEvent();
+        processEvent();
 
         double fCurrentMS = SDL_GetTicks() * 1.0;
         double fDelayDone = fCurrentMS - fStartDelayMS;

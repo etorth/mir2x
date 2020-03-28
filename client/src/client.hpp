@@ -113,7 +113,7 @@ class Client final
 
     private:
         void EventDelay(double);
-        void ProcessEvent();
+        void processEvent();
 
     private:
         void Draw()

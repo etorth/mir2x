@@ -27,13 +27,13 @@
 #include "xmltypeset.hpp"
 #include "colorfunc.hpp"
 
-class LabelBoard: public Widget
+class labelBoard: public Widget
 {
     private:
         XMLTypeset m_Board;
 
     public:
-        LabelBoard(
+        labelBoard(
                 int         x,
                 int         y,
                 const char *content     =  "",
@@ -59,7 +59,7 @@ class LabelBoard: public Widget
         }
 
     public:
-        ~LabelBoard() = default;
+        ~labelBoard() = default;
 
     public:
         void loadXML(const char *szXMLString)

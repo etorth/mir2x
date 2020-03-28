@@ -46,5 +46,5 @@ class Process
     public:
         virtual void Draw() = 0;
         virtual void Update(double) = 0;
-        virtual void ProcessEvent(const SDL_Event &) = 0;
+        virtual void processEvent(const SDL_Event &) = 0;
 };

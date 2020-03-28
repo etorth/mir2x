@@ -50,7 +50,7 @@ class ProcessLogin: public Process
     public:
         void Update(double);
         void Draw();
-        void ProcessEvent(const SDL_Event &);
+        void processEvent(const SDL_Event &);
 
     private:
         void DoLogin();

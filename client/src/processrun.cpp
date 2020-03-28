@@ -57,11 +57,11 @@ ProcessRun::ProcessRun()
     , m_ViewY(0)
     , m_RollMap(false)
     , m_LuaModule(this, OUTPORT_CONTROLBOARD)
-    , m_ControbBoard(
+    , m_controlBoard(
             0,                  // x
             []() -> int         // y
             {
-                return g_SDLDevice->WindowH(false) - 134;
+                return g_SDLDevice->WindowH(false) - 133;
             }(),
             []() -> int         // w
             {
@@ -142,7 +142,7 @@ void ProcessRun::ScrollMap()
 void ProcessRun::Update(double fUpdateTime)
 {
     ScrollMap();
-    m_ControbBoard.Update(fUpdateTime);
+    m_controlBoard.Update(fUpdateTime);
     m_layout.Update(fUpdateTime);
 
     for(auto p = m_CreatureList.begin(); p != m_CreatureList.end();){
@@ -381,7 +381,7 @@ void ProcessRun::Draw()
                                     g_SDLDevice->DrawTexture(pTexture, nXt, nYt);
 
                                     if(bChoose){
-                                        LabelBoard stItemName(0, 0, rstIR.Name, 1, 12, 0, ColorFunc::RGBA(0XFF, 0XFF, 0X00, 0X00));
+                                        labelBoard stItemName(0, 0, rstIR.Name, 1, 12, 0, ColorFunc::RGBA(0XFF, 0XFF, 0X00, 0X00));
                                         int nLW = stItemName.W();
                                         int nLH = stItemName.H();
 
@@ -523,7 +523,7 @@ void ProcessRun::Draw()
         p->Draw(m_ViewX, m_ViewY);
     }
 
-    m_ControbBoard  .Draw();
+    m_controlBoard  .Draw();
     m_InventoryBoard.Draw();
 
     // draw notifyBoard
@@ -595,11 +595,11 @@ void ProcessRun::Draw()
     g_SDLDevice->Present();
 }
 
-void ProcessRun::ProcessEvent(const SDL_Event &rstEvent)
+void ProcessRun::processEvent(const SDL_Event &rstEvent)
 {
     bool bValid = true;
-    if(m_InventoryBoard.ProcessEvent(rstEvent, &bValid)){ return; }
-    if(m_ControbBoard  .ProcessEvent(rstEvent, &bValid)){ return; }
+    if(m_InventoryBoard.processEvent(rstEvent, &bValid)){ return; }
+    if(m_controlBoard  .processEvent(rstEvent, &bValid)){ return; }
 
     switch(rstEvent.type){
         case SDL_MOUSEBUTTONDOWN:
@@ -1316,7 +1316,7 @@ void ProcessRun::AddOPLog(int nOutPort, int nLogType, const char *szPrompt, cons
     }
 
     if(nOutPort & OUTPORT_CONTROLBOARD){
-        m_ControbBoard.AddLog(nLogType, szLog.c_str());
+        m_controlBoard.AddLog(nLogType, szLog.c_str());
     }
 }
 

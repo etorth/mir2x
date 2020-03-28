@@ -25,7 +25,7 @@ class ProcessSync: public Process
 {
     private:
         int        m_Ratio;
-        LabelBoard m_ProcessBarInfo;
+        labelBoard m_ProcessBarInfo;
 
     public:
         ProcessSync();
@@ -42,5 +42,5 @@ class ProcessSync: public Process
     public:
         void Update(double);
         void Draw();
-        void ProcessEvent(const SDL_Event &);
+        void processEvent(const SDL_Event &);
 };

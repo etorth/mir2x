@@ -98,7 +98,7 @@ class ProcessRun: public Process
         ClientLuaModule m_LuaModule;
 
     private:
-        ControlBoard m_ControbBoard;
+        controlBoard m_controlBoard;
 
     private:
         InventoryBoard m_InventoryBoard;
@@ -114,8 +114,8 @@ class ProcessRun: public Process
 
     private:
         // use a tokenboard to show all in future
-        LabelBoard m_MousePixlLoc;
-        LabelBoard m_MouseGridLoc;
+        labelBoard m_MousePixlLoc;
+        labelBoard m_MouseGridLoc;
 
     private:
         std::list<std::shared_ptr<AscendStr>> m_AscendStrList;
@@ -160,7 +160,7 @@ class ProcessRun: public Process
     public:
         virtual void Update(double);
         virtual void Draw();
-        virtual void ProcessEvent(const SDL_Event &);
+        virtual void processEvent(const SDL_Event &);
 
     public:
         bool ScreenPoint2Grid(int, int, int *, int *);

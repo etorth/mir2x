@@ -83,9 +83,9 @@ class ProcessNew: public Process
         int m_CheckPwdConfirm;
 
     private:
-        LabelBoard m_LBID;
-        LabelBoard m_LBPwd;
-        LabelBoard m_LBPwdConfirm;
+        labelBoard m_LBID;
+        labelBoard m_LBPwd;
+        labelBoard m_LBPwdConfirm;
 
     private:
         IDBox       m_BoxID;
@@ -93,9 +93,9 @@ class ProcessNew: public Process
         PasswordBox m_BoxPwdConfirm;
 
     private:
-        LabelBoard m_LBCheckID;
-        LabelBoard m_LBCheckPwd;
-        LabelBoard m_LBCheckPwdConfirm;
+        labelBoard m_LBCheckID;
+        labelBoard m_LBCheckPwd;
+        labelBoard m_LBCheckPwdConfirm;
 
     private:
         TextButton m_TBCreate;
@@ -117,7 +117,7 @@ class ProcessNew: public Process
     public:
         void Update(double);
         void Draw();
-        void ProcessEvent(const SDL_Event &);
+        void processEvent(const SDL_Event &);
 
     private:
         void DoPostAccount();
