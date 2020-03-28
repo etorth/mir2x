@@ -168,7 +168,7 @@ class Widget
             m_Y += nDY;
         }
 
-        void MoveTo(int nX, int nY)
+        void moveTo(int nX, int nY)
         {
             m_X = nX;
             m_Y = nY;

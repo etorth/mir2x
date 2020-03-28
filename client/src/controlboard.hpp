@@ -39,6 +39,10 @@ class controlBoard: public Widget
         bool m_expand = false;
 
     private:
+        int m_stretchH = 196;
+        const int m_stretchHMin = 196; // only can get bigger than original frame
+
+    private:
         TritexButton m_ButtonClose;
         TritexButton m_ButtonMinize;
         TritexButton m_ButtonInventory;
@@ -67,13 +71,13 @@ class controlBoard: public Widget
         void drawEx(int, int, int, int, int, int);
 
     private:
-        std::tuple<int, int> scheduleStretch() const;
+        static std::tuple<int, int> scheduleStretch(int, int);
 
     private:
         void drawLeft();
         void drawRight();
-        void drawMiddleDefalt();
         void drawMiddleExpand();
+        void drawMiddleDefault();
 
     public:
         void Update(double);
@@ -87,4 +91,7 @@ class controlBoard: public Widget
 
     public:
         bool CheckMyHeroMoved();
+
+    private:
+        void switchExpandMode();
 };

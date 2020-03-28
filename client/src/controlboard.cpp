@@ -48,6 +48,27 @@
 //
 // |---fixed---|-------------repeat---------------|---fixed------|
 
+// 
+// 0X00000028 : 456 x 298: char box frame
+//
+//                         +-----------+                        ---
+//                          \  title  /                          ^
+//        +==----------------+       +----------------==+ ---    |  ---- <-- startY
+//        $                                             $  ^     |   47
+//        |                                             |  |     |  ----
+//        |                                             |  |     |   |
+//        |                                             |  |     |  196: use to repeat, as m_stretchH
+//        |                                             | 298   319  |
+//        +---------------------------------------+-----+  |     |  ----
+//        |                                       |     |  |     |   55
+//        |                                       |() ()|  |     |   |
+//        |                                       |     |  v     v   |
+// +------+---------------------------------------+-----+--------+ --- -- ---
+// ^      ^    ^           ^           ^          ^     ^        ^
+// | 178  | 50 |    110    |   127     |    50    | 119 |   166  | = 800
+//
+// |---fixed---|-------------repeat---------------|---fixed------|
+
 extern Log *g_Log;
 extern PNGTexDB *g_ProgUseDB;
 extern SDLDevice *g_SDLDevice;
@@ -111,7 +132,7 @@ controlBoard::controlBoard(int nX, int nY, int nW, ProcessRun *pRun, Widget *pWi
           5,
           {0XFFFFFFFF, 0X00000028, 0X00000029},
           [](){},
-          [this](){ m_expand = !m_expand; },
+          [this](){ switchExpandMode(); },
           0,
           0,
           0,
@@ -174,6 +195,7 @@ controlBoard::controlBoard(int nX, int nY, int nW, ProcessRun *pRun, Widget *pWi
     fnAssertImage(0X00000012, 800, 133);
     fnAssertImage(0X00000013, 456, 131);
     fnAssertImage(0X00000022, 127,  41);
+    fnAssertImage(0X00000027, 456, 298);
 
     if(X() != 0 || Y() + H() != g_SDLDevice->WindowH(false) || W() != g_SDLDevice->WindowW(false)){
         throw fflerror("controlBoard has wrong location or size");
@@ -256,30 +278,27 @@ void controlBoard::drawRight()
     m_ButtonInventory.Draw();
 }
 
-std::tuple<int, int> controlBoard::scheduleStretch() const
+std::tuple<int, int> controlBoard::scheduleStretch(int dstSize, int srcSize)
 {
     // use same way for default or expand mode
     // this requires texture 0X00000013 and 0X00000027 are of width 456
 
-    const int drawW   = W() - 50 - 119 - 178 - 166;
-    const int repeatW = 456 - 50 - 119;
-
-    if(drawW < repeatW){
-        return {0, drawW};
+    if(dstSize < srcSize){
+        return {0, dstSize};
     }
 
-    if(drawW % repeatW == 0){
-        return {drawW / repeatW, 0};
+    if(dstSize % srcSize == 0){
+        return {dstSize / srcSize, 0};
     }
 
-    const double fillRatio = (1.0 * (drawW % repeatW)) / repeatW;
+    const double fillRatio = (1.0 * (dstSize % srcSize)) / srcSize;
     if(fillRatio < 0.5){
-        return {drawW / repeatW - 1, repeatW + (drawW % repeatW)};
+        return {dstSize / srcSize - 1, srcSize + (dstSize % srcSize)};
     }
-    return {drawW / repeatW, drawW % repeatW};
+    return {dstSize / srcSize, dstSize % srcSize};
 }
 
-void controlBoard::drawMiddleDefalt()
+void controlBoard::drawMiddleDefault()
 {
     const int nY0 = Y();
     const int nW0 = W();
@@ -299,8 +318,9 @@ void controlBoard::drawMiddleDefalt()
         g_SDLDevice->DrawTexture(pTexture, nW0 - 166 - 119, nY0 + 2, 456 - 119, 0, 119, 131);
 
         const int repeatW = 456 - 50 - 119;
-        const auto [repeat, stretch] = scheduleStretch();
+        const int drawW   = nW0 - 50 - 119 - 178 - 166;
 
+        const auto [repeat, stretch] = scheduleStretch(drawW, repeatW);
         for(int i = 0; i < repeat; ++i){
             g_SDLDevice->DrawTexture(pTexture, 178 + 50 + i * repeatW, nY0 + 2, 50, 0, repeatW, 131);
         }
@@ -337,7 +357,69 @@ void controlBoard::drawMiddleDefalt()
 
 void controlBoard::drawMiddleExpand()
 {
+    const int nY0 = Y();
+    const int nW0 = W();
+    const int nH0 = H();
 
+    // draw black underlay for the big log board
+    {
+        SDLDevice::EnableDrawBlendMode enableDrawBlendMode(SDL_BLENDMODE_BLEND);
+        SDLDevice::EnableDrawColor enableColor(ColorFunc::RGBA(0X00, 0X00, 0X00, 0XF0));
+        g_SDLDevice->FillRectangle(178 + 2, nY0 - 47 - m_stretchH - 55, nW0 - (178 + 2) - (166 + 2), 47 + m_stretchH);
+    }
+
+    // use this position to calculate all points
+    // the Y-axis on screen that the big chat-frame starts
+    const int startY = nY0 + nH0 - 55 - m_stretchH - 47;
+
+    if(auto pTexture = g_ProgUseDB->Retrieve(0X00000028)){
+
+        // draw four corners
+        g_SDLDevice->DrawTexture(pTexture,             178,    startY,         0,        0,  50, 47);
+        g_SDLDevice->DrawTexture(pTexture, nW0 - 166 - 119,    startY, 456 - 119,        0, 119, 47);
+        g_SDLDevice->DrawTexture(pTexture,             178,  nY0 - 55,         0, 298 - 55,  50, 55);
+        g_SDLDevice->DrawTexture(pTexture, nW0 - 166 - 119,  nY0 - 55, 456 - 119, 298 - 55, 119, 55);
+
+        // draw two stretched vertical bars
+        const int repeatH = 298 - 47 - 55;
+        const auto [repeatHCnt, stretchH] = scheduleStretch(m_stretchH, repeatH);
+
+        for(int i = 0; i < repeatHCnt; ++i){
+            g_SDLDevice->DrawTexture(pTexture, 178, startY + 47 + i * repeatH, 0, 47, 456, repeatH);
+        }
+
+        if(stretchH > 0){
+            g_SDLDevice->DrawTexture(pTexture, 178, startY + 47 + repeatHCnt * repeatH, 456, stretchH, 0, 47, 456, repeatH);
+        }
+
+        // draw horizontal top bar and bottom input area
+        const int repeatW = 456 - 50 - 119;
+        const int drawW   = nW0 - 50 - 119 - 178 - 166;
+
+        const auto [repeatWCnt, stretchW] = scheduleStretch(drawW, repeatW);
+        for(int i = 0; i < repeatWCnt; ++i){
+            g_SDLDevice->DrawTexture(pTexture, 178 + 50 + i * repeatW,   startY, 50,        0, repeatW, 47);
+            g_SDLDevice->DrawTexture(pTexture, 178 + 50 + i * repeatW, nY0 - 55, 50, 298 - 55, repeatW, 55);
+        }
+
+        if(stretchW > 0){
+            g_SDLDevice->DrawTexture(pTexture, 178 + 50 + repeatWCnt * repeatW,   startY, stretchW, 47, 50,        0, repeatW, 47);
+            g_SDLDevice->DrawTexture(pTexture, 178 + 50 + repeatWCnt * repeatW, nY0 - 55, stretchW, 55, 50, 298 - 55, repeatW, 55);
+        }
+    }
+
+    // draw title
+    if(auto pTexture = g_ProgUseDB->Retrieve(0X00000022)){
+        int titleW = -1;
+        int titleH = -1;
+
+        SDL_QueryTexture(pTexture, 0, 0, &titleW, &titleH);
+        const int titleDstX = 178 + (nW0 - 178 - 116 - titleW) / 2;
+        const int titleDstY = startY - 19;
+        g_SDLDevice->DrawTexture(pTexture, titleDstX, titleDstY);
+    }
+
+    m_buttonSwitchMode.Draw();
 }
 
 void controlBoard::drawEx(int, int, int, int, int, int)
@@ -348,7 +430,7 @@ void controlBoard::drawEx(int, int, int, int, int, int)
         drawMiddleExpand();
     }
     else{
-        drawMiddleDefalt();
+        drawMiddleDefault();
     }
 
     drawRight();
@@ -444,4 +526,16 @@ void controlBoard::AddLog(int nLogType, const char *szLog)
 bool controlBoard::CheckMyHeroMoved()
 {
     return true;
+}
+
+void controlBoard::switchExpandMode()
+{
+    if(m_expand){
+        m_buttonSwitchMode.moveTo(W() - 181, 5);
+        m_expand = false;
+    }
+    else{
+        m_buttonSwitchMode.moveTo(W() - 181, 5 + 131 - 298);
+        m_expand = true;
+    }
 }
