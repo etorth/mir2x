@@ -62,7 +62,7 @@ class XMLParagraphLeaf
         int m_Event;
 
     public:
-        XMLParagraphLeaf(tinyxml2::XMLNode *);
+        explicit XMLParagraphLeaf(tinyxml2::XMLNode *);
 
     public:
         int Type() const
@@ -70,14 +70,14 @@ class XMLParagraphLeaf
             return m_Type;
         }
 
-        const tinyxml2::XMLNode *Node() const
+        const tinyxml2::XMLNode *xmlNode() const
         {
             return m_Node;
         }
 
-        tinyxml2::XMLNode *Node()
+        tinyxml2::XMLNode *xmlNode()
         {
-            return const_cast<tinyxml2::XMLNode *>(static_cast<const XMLParagraphLeaf *>(this)->Node());
+            return const_cast<tinyxml2::XMLNode *>(static_cast<const XMLParagraphLeaf *>(this)->xmlNode());
         }
 
         int Length() const
@@ -111,7 +111,7 @@ class XMLParagraphLeaf
             if(Type() != LEAF_UTF8GROUP){
                 return nullptr;
             }
-            return Node()->Value();
+            return xmlNode()->Value();
         }
 
         uint64_t ImageU64Key() const
@@ -133,7 +133,7 @@ class XMLParagraphLeaf
         uint32_t peekUTF8Code(int) const;
 
     public:
-        void MarkEvent(int);
+        void markEvent(int);
 
     public:
         std::optional<uint32_t>   Color() const;

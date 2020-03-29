@@ -82,7 +82,7 @@ controlBoard::controlBoard(int nX, int nY, int nW, ProcessRun *pRun, widget *pwi
           72,
           {0XFFFFFFFF, 0X0000001E, 0X0000001F},
           [](){},
-          [](){},
+          [](){ std::exit(0); },
           0,
           0,
           0,

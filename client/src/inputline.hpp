@@ -28,7 +28,7 @@ class inputLine: public widget
         XMLTypeset m_tpset;
 
     protected:
-        int m_cursorLoc = 0;
+        int m_cursor = 0;
 
     protected:
         int m_tpsetX = 0;

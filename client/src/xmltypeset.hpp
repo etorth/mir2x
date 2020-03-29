@@ -239,7 +239,7 @@ class XMLTypeset // means XMLParagraph typeset
     public:
         void MarkLeafEvent(int nLeaf, int nEvent)
         {
-            m_paragraph.leafRef(nLeaf).MarkEvent(nEvent);
+            m_paragraph.leafRef(nLeaf).markEvent(nEvent);
         }
 
     public:

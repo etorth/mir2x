@@ -817,10 +817,59 @@ void XMLTypeset::insertUTF8String(int x, int y, const char *text)
         return;
     }
 
-    const auto [leaf, leafOff] = leafLocInXMLParagraph(x, y);
-    if(m_paragraph.leafRef(leaf).Type() == LEAF_UTF8GROUP){
-        m_paragraph.insertUTF8String(leaf, leafOff, text);
+    // XMLParagraph doesn't have cursor
+    // need to parse here
+
+    if(x == 0 && y == 0){
+        if(m_paragraph.leafRef(0).Type() != LEAF_UTF8GROUP){
+            m_paragraph.insertLeafXML(0, str_printf("<par>%s</par>", text).c_str());
+        }
+        else{
+            m_paragraph.insertUTF8String(0, 0, text);
+        }
+        buildTypeset(0, 0);
+        return;
     }
+
+    // we are appending at the last location
+    // can't call PrevTokenLoc() because this tokenLoc is invalid
+
+    if((y == lineCount() - 1) && (x == lineTokenCount(y))){
+        if(m_paragraph.backLeafRef().Type() != LEAF_UTF8GROUP){
+            m_paragraph.insertLeafXML(leafCount(), str_printf("<par>%s</par>", text).c_str());
+        }
+        else{
+            m_paragraph.insertUTF8String(leafCount() - 1, m_paragraph.backLeafRef().utf8CharOffRef().size(), text);
+        }
+        buildTypeset(0, 0);
+        return;
+    }
+
+    const auto [prevTX, prevTY] = PrevTokenLoc(x, y);
+    const auto currLeaf = getToken(x, y)->Leaf;
+    const auto prevLeaf = getToken(prevTX, prevTY)->Leaf;
+
+    if(prevLeaf == currLeaf){
+        if(m_paragraph.leafRef(prevLeaf).Type() != LEAF_UTF8GROUP){
+            throw fflerror("only UTF8 leaf can have length great than 1");
+        }
+
+        const auto [leaf, leafOff] = leafLocInXMLParagraph(x, y);
+        m_paragraph.insertUTF8String(currLeaf, leafOff, text);
+    }
+    else{
+        if(m_paragraph.leafRef(prevLeaf).Type() == LEAF_UTF8GROUP){
+            m_paragraph.insertUTF8String(prevLeaf, m_paragraph.leafRef(prevLeaf).utf8CharOffRef().size(), text);
+        }
+        if(m_paragraph.leafRef(currLeaf).Type() == LEAF_UTF8GROUP){
+            m_paragraph.insertUTF8String(currLeaf, 0, text);
+        }
+        else{
+            m_paragraph.insertLeafXML(currLeaf, str_printf("<par>%s</par>", text).c_str());
+        }
+    }
+
+    buildTypeset(0, 0);
 }
 
 void XMLTypeset::drawEx(int nDstX, int nDstY, int nSrcX, int nSrcY, int nSrcW, int nSrcH) const

@@ -75,7 +75,7 @@ class XMLParagraph
         }
 
     public:
-        const auto &BackleafRef() const
+        const auto &backLeafRef() const
         {
             if(m_leafList.empty()){
                 throw std::invalid_argument(str_fflprintf(": No leaf"));
@@ -83,9 +83,9 @@ class XMLParagraph
             return m_leafList.back();
         }
 
-        auto &BackleafRef()
+        auto &backLeafRef()
         {
-            return const_cast<XMLParagraphLeaf &>(static_cast<const XMLParagraph *>(this)->BackleafRef());
+            return const_cast<XMLParagraphLeaf &>(static_cast<const XMLParagraph *>(this)->backLeafRef());
         }
 
     public:
@@ -98,9 +98,11 @@ class XMLParagraph
     public:
         void Join(const XMLParagraph &);
 
+    private:
+        void insertXMLAfter(tinyxml2::XMLNode *, const char *);
+
     public:
-        void InsertNode();
-        void InsertLeaf();
+        void insertLeafXML(int, const char *);
 
     public:
         void insertUTF8String(int, int, const char *);
@@ -117,7 +119,7 @@ class XMLParagraph
     public:
         tinyxml2::XMLNode *CloneLeaf(tinyxml2::XMLDocument *pDoc, int nLeaf) const
         {
-            return leafRef(nLeaf).Node()->DeepClone(pDoc);
+            return leafRef(nLeaf).xmlNode()->DeepClone(pDoc);
         }
 
     public:
@@ -140,7 +142,7 @@ class XMLParagraph
         std::tuple<int, int, int> NextLeafOff(int, int, int) const;
 
     private:
-        const tinyxml2::XMLNode *LeafCommonAncestor(int, int) const;
+        const tinyxml2::XMLNode *leafCommonAncestor(int, int) const;
 
     private:
         void Clear()

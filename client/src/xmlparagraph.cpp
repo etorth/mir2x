@@ -37,7 +37,7 @@ XMLParagraph::XMLParagraph()
 
 void XMLParagraph::DeleteLeaf(int nLeaf)
 {
-    auto pNode   = leafRef(nLeaf).Node();
+    auto pNode   = leafRef(nLeaf).xmlNode();
     auto pParent = pNode->Parent();
 
     while(pParent && (pParent->FirstChild() == pParent->LastChild())){
@@ -72,9 +72,9 @@ void XMLParagraph::insertUTF8String(int leaf, int leafOff, const char *utf8Strin
         throw fflerror("invalid utf-8 string: %s", utf8String);
     }
 
-    const auto oldValue = leafRef(leaf).Node()->Value();
+    const auto oldValue = leafRef(leaf).xmlNode()->Value();
     const auto newValue = (std::string(oldValue, oldValue + leafOff) + utf8String) + std::string(oldValue + leafOff);
-    m_leafList[leaf].Node()->SetValue(newValue.c_str());
+    m_leafList[leaf].xmlNode()->SetValue(newValue.c_str());
 
     auto addedValueOff = UTF8Func::buildUTF8Off(utf8String);
     if(leafOff > 0){
@@ -122,8 +122,8 @@ void XMLParagraph::DeleteUTF8Char(int nLeaf, int nLeafOff, int nTokenCount)
         }
     }();
 
-    auto szNewValue = std::string(leafRef(nLeaf).Node()->Value()).erase(nCharOff, nCharLen);
-    leafRef(nLeaf).Node()->SetValue(szNewValue.c_str());
+    auto szNewValue = std::string(leafRef(nLeaf).xmlNode()->Value()).erase(nCharOff, nCharLen);
+    leafRef(nLeaf).xmlNode()->SetValue(szNewValue.c_str());
 
     for(int nIndex = nLeafOff; nIndex + nLeafOff < nTokenCount; ++nIndex){
         leafRef(nLeaf).utf8CharOffRef()[nIndex] = leafRef(nLeaf).utf8CharOffRef()[nIndex + nLeafOff] - nCharLen;
@@ -231,7 +231,7 @@ std::tuple<int, int, int> XMLParagraph::NextLeafOff(int nLeaf, int nLeafOff, int
 }
 
 // lowest common ancestor
-const tinyxml2::XMLNode *XMLParagraph::LeafCommonAncestor(int, int) const
+const tinyxml2::XMLNode *XMLParagraph::leafCommonAncestor(int, int) const
 {
     return nullptr;
 }
@@ -243,7 +243,7 @@ tinyxml2::XMLNode *XMLParagraph::Clone(tinyxml2::XMLDocument *pDoc, int nLeaf, i
         // reach end before finish the given count
     }
 
-    auto pClone = LeafCommonAncestor(nLeaf, nEndLeaf)->DeepClone(pDoc);
+    auto pClone = leafCommonAncestor(nLeaf, nEndLeaf)->DeepClone(pDoc);
 
     if(nLeafOff != 0){
         if(leafRef(nLeaf).Type() != LEAF_UTF8GROUP){
@@ -328,6 +328,87 @@ void XMLParagraph::loadXMLNode(const tinyxml2::XMLNode *node)
     else{
         throw fflerror("copy paragraph node failed");
     }
+
+    m_leafList.clear();
+    for(auto pNode = XMLFunc::GetTreeFirstLeaf(m_XMLDocument.FirstChild()); pNode; pNode = XMLFunc::GetNextLeaf(pNode)){
+        if(XMLFunc::CheckValidLeaf(pNode)){
+            m_leafList.emplace_back(pNode);
+        }
+    }
+}
+
+void XMLParagraph::insertLeafXML(int loc, const char *xmlString)
+{
+    if(loc < 0 || loc > leafCount() || !xmlString){
+        throw fflerror("invalid argument: loc = %d, xmlString = %p", loc, xmlString);
+    }
+    insertXMLAfter(leafRef(loc).xmlNode(), xmlString);
+}
+
+void XMLParagraph::insertXMLAfter(tinyxml2::XMLNode *after, const char *xmlString)
+{
+    if(!(after && xmlString)){
+        throw fflerror("invalid argument: after = %p, xmlString = %p", after, xmlString);
+    }
+
+    if(after->GetDocument() != &m_XMLDocument){
+        throw fflerror("can't find after node in current XMLDocument");
+    }
+
+    // to insert XML as leaves, we requires to insert as a new paragraph
+    // for emoji and image we have specified tag <emoji>, <image>, but for text we don't have
+
+    // i don't want to define a <text> tag
+    // instead I want to use <font> <underline> <strike> <color> for easier text control
+
+    // example:
+    //      <underline>hello world!</underline>
+    // or:
+    //      <text underline="true">hello world!</text>
+    // looks same
+    //
+    // but:
+    //      <underline> hello world, I like <emoji id="12"/> a lot!</underline>
+    // is better than:
+    //      <text underline="true">hello world, I like </text><emoji id="12"/><text> a lot!</text>
+    //
+    // <text> tag needs pure text while sometimes we may need to put emoji inside text
+
+    tinyxml2::XMLDocument xmlDoc;
+    if(xmlDoc.Parse(xmlString) != tinyxml2::XML_SUCCESS){
+        throw fflerror("tinyxml2::XMLDocument::Parse() failed: %s", xmlString);
+    }
+
+    auto xmlRoot = xmlDoc.RootElement();
+    if(!xmlRoot){
+        throw fflerror("no root element");
+    }
+
+    bool parXML = false;
+    for(const char *cstr: {"par", "Par", "PAR"}){
+        if(std::string(xmlRoot->Value()) == cstr){
+            parXML = true;
+            break;
+        }
+    }
+
+    if(!parXML){
+        throw fflerror("xmlString is not a paragraph");
+    }
+
+    for(auto p = xmlRoot->FirstChild(); p; p = p->NextSibling()){
+        if(auto cloneNode = p->DeepClone(&m_XMLDocument)){
+            if(after->Parent()->InsertAfterChild(after, cloneNode) != cloneNode){
+                throw fflerror("insert node failed");
+            }
+        }
+        else{
+            throw fflerror("deep clone node failed");
+        }
+    }
+
+    // TODO rebuild everything
+    // this is not necessary, optimize later
 
     m_leafList.clear();
     for(auto pNode = XMLFunc::GetTreeFirstLeaf(m_XMLDocument.FirstChild()); pNode; pNode = XMLFunc::GetNextLeaf(pNode)){

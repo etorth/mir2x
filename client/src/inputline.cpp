@@ -53,7 +53,7 @@ bool inputLine::processEvent(const SDL_Event &event, bool valid)
                                 sdlKeyChar(event), '\0',
                             };
 
-                            m_tpset.insertUTF8String(m_cursorLoc, 0, text);
+                            m_tpset.insertUTF8String(m_cursor++, 0, text);
                             return true;
                         }
                 }
@@ -73,7 +73,7 @@ bool inputLine::processEvent(const SDL_Event &event, bool valid)
                     throw fflerror("cursor locates at wrong line");
                 }
 
-                m_cursorLoc = cursorY;
+                m_cursor = cursorY;
 
                 focus(true);
                 return true;
