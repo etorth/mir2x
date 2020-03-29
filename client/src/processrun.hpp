@@ -306,5 +306,5 @@ class ProcessRun: public Process
         void OnActionSpawn(uint64_t, const ActionNode &);
 
     public:
-        Widget *GetWidget(const char *);
+        widget *Getwidget(const char *);
 };

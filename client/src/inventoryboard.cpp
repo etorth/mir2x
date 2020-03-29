@@ -26,10 +26,10 @@ extern PNGTexDB *g_ProgUseDB;
 extern PNGTexDB *g_CommonItemDB;
 extern SDLDevice *g_SDLDevice;
 
-InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, Widget *pWidget, bool bAutoFree)
-    : Widget(nX, nY, 0, 0, pWidget, bAutoFree)
-    , m_GoldBoard(70, 403, "", 0, 15, 0, ColorFunc::RGBA(0XFF, 0XFF, 0X00, 0X00), this, false)
-    , m_CloseButton(
+InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, widget *pwidget, bool bAutoFree)
+    : widget(nX, nY, 0, 0, pwidget, bAutoFree)
+    , m_goldBoard(70, 403, "", 0, 15, 0, ColorFunc::RGBA(0XFF, 0XFF, 0X00, 0X00), this, false)
+    , m_closeButton(
             242,
             422,
             {0XFFFFFFFF, 0X0000001C, 0X0000001D},
@@ -86,7 +86,7 @@ void InventoryBoard::drawEx(int nDstX, int nDstY, int, int, int, int)
 
     if(auto pMyHero = m_ProcessRun->GetMyHero()){
         // 1. draw gold
-        m_GoldBoard.setText("%d", pMyHero->GetGold());
+        m_goldBoard.setText("%d", pMyHero->GetGold());
 
         // 2. draw all items
         for(auto &rstBin: pMyHero->GetInvPack().GetPackBinList()){
@@ -94,8 +94,8 @@ void InventoryBoard::drawEx(int nDstX, int nDstY, int, int, int, int)
         }
     }
 
-    m_GoldBoard.Draw();
-    m_CloseButton.Draw();
+    m_goldBoard.draw();
+    m_closeButton.draw();
 }
 
 bool InventoryBoard::processEvent(const SDL_Event &event, bool valid)
@@ -108,7 +108,7 @@ bool InventoryBoard::processEvent(const SDL_Event &event, bool valid)
         return false;
     }
 
-    if(m_CloseButton.processEvent(event, valid)){
+    if(m_closeButton.processEvent(event, valid)){
         return true;
     }
 

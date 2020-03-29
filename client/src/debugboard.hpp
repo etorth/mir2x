@@ -21,7 +21,7 @@
 #include "lalign.hpp"
 #include "xmltypeset.hpp"
 
-class DebugBoard: public Widget
+class debugBoard: public widget
 {
     private:
         int m_LineW;
@@ -38,7 +38,7 @@ class DebugBoard: public Widget
         std::deque<std::shared_ptr<XMLTypeset>> m_BoardList;
 
     public:
-        DebugBoard(
+        debugBoard(
                 int              nX,
                 int              nY,
                 int              nW,
@@ -46,9 +46,9 @@ class DebugBoard: public Widget
                 uint8_t          nDefaultFontSize  = 10,
                 uint8_t          nDefaultFontStyle = 0,
                 uint32_t         nDefaultFontColor = ColorFunc::WHITE + 255,
-                Widget          *pWidget           = nullptr,
+                widget          *pwidget           = nullptr,
                 bool             bAutoDelete       = false)
-            : Widget(nX, nY, 0, 0, pWidget, bAutoDelete)
+            : widget(nX, nY, 0, 0, pwidget, bAutoDelete)
             , m_LineW(nW)
             , m_font(nDefaultFont)
             , m_fontSize(nDefaultFontSize)

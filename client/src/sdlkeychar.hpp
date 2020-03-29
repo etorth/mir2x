@@ -20,4 +20,4 @@
 #pragma once
 #include <SDL2/SDL.h>
 
-char SDLKeyEventChar(const SDL_Event &);
+char sdlKeyChar(const SDL_Event &);

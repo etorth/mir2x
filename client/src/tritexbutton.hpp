@@ -44,8 +44,8 @@ class TritexButton: public ButtonBase
                 int nOffYOnClick = 0,
 
                 bool    bOnClickDone = true,
-                Widget *pWidget      = nullptr,
-                bool    bFreeWidget  = false)
+                widget *pwidget      = nullptr,
+                bool    bFreewidget  = false)
             : ButtonBase
               {
                   nX, 
@@ -62,8 +62,8 @@ class TritexButton: public ButtonBase
                   nOffYOnClick,
 
                   bOnClickDone,
-                  pWidget,
-                  bFreeWidget,
+                  pwidget,
+                  bFreewidget,
               }
             , m_TexID
               {
@@ -109,8 +109,8 @@ class TritexButton: public ButtonBase
                 int nOffYOnClick = 0,
 
                 bool    bOnClickDone = true,
-                Widget *pWidget      = nullptr,
-                bool    bFreeWidget  = false)
+                widget *pwidget      = nullptr,
+                bool    bFreewidget  = false)
             : TritexButton
               {
                   nX,
@@ -131,8 +131,8 @@ class TritexButton: public ButtonBase
                   nOffYOnClick,
 
                   bOnClickDone,
-                  pWidget,
-                  bFreeWidget
+                  pwidget,
+                  bFreewidget
               }
         {}
 

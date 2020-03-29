@@ -87,8 +87,8 @@ class TextButton: public ButtonBase
                 int nOffYOnClick = 0,
 
                 bool    bOnClickDone = true,
-                Widget *pWidget      = nullptr,
-                bool    bFreeWidget  = false)
+                widget *pwidget      = nullptr,
+                bool    bFreewidget  = false)
             : ButtonBase
               {
                   nX,
@@ -105,8 +105,8 @@ class TextButton: public ButtonBase
                   nOffYOnClick,
 
                   bOnClickDone,
-                  pWidget,
-                  bFreeWidget
+                  pwidget,
+                  bFreewidget
               }
             , m_Color
               {

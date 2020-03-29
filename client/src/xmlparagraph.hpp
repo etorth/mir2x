@@ -34,7 +34,7 @@ class XMLParagraph
         tinyxml2::XMLDocument m_XMLDocument;
 
     private:
-        std::vector<XMLParagraphLeaf> m_LeafList;
+        std::vector<XMLParagraphLeaf> m_leafList;
 
     public:
         XMLParagraph();
@@ -45,19 +45,19 @@ class XMLParagraph
     public:
         bool empty() const
         {
-            return LeafCount() == 0;
+            return leafCount() == 0;
         }
 
     public:
-        int LeafCount() const
+        int leafCount() const
         {
-            return (int)(m_LeafList.size());
+            return (int)(m_leafList.size());
         }
 
     public:
         bool LeafValid(int nLeaf) const
         {
-            return nLeaf >= 0 && nLeaf < LeafCount();
+            return nLeaf >= 0 && nLeaf < leafCount();
         }
 
     public:
@@ -66,7 +66,7 @@ class XMLParagraph
             if(!LeafValid(nLeaf)){
                 throw std::invalid_argument(str_fflprintf(": Invalid leaf index: %zu", nLeaf));
             }
-            return m_LeafList[nLeaf];
+            return m_leafList[nLeaf];
         }
 
         auto &leafRef(int nLeaf)
@@ -77,10 +77,10 @@ class XMLParagraph
     public:
         const auto &BackleafRef() const
         {
-            if(m_LeafList.empty()){
+            if(m_leafList.empty()){
                 throw std::invalid_argument(str_fflprintf(": No leaf"));
             }
-            return m_LeafList.back();
+            return m_leafList.back();
         }
 
         auto &BackleafRef()
@@ -103,7 +103,7 @@ class XMLParagraph
         void InsertLeaf();
 
     public:
-        void InsertUTF8Char(int, int, const char *);
+        void insertUTF8String(int, int, const char *);
 
     public:
         tinyxml2::XMLNode *Clone(tinyxml2::XMLDocument *pDoc)
@@ -145,7 +145,7 @@ class XMLParagraph
     private:
         void Clear()
         {
-            m_LeafList.clear();
+            m_leafList.clear();
             m_XMLDocument.Clear();
         }
 };

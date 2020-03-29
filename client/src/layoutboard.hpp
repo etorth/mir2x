@@ -20,7 +20,7 @@
 #include "widget.hpp"
 #include "xmllayout.hpp"
 
-class layoutBoard: public Widget
+class layoutBoard: public widget
 {
     private:
         XMLLayout m_layout;
@@ -46,9 +46,9 @@ class layoutBoard: public Widget
                 int                lineAlign  =  LALIGN_LEFT,
                 int                lineSpace  =  0,
                 int                wordSpace  =  0,
-                Widget            *parent     =  nullptr,
+                widget            *parent     =  nullptr,
                 bool               autoDelete =  false)
-            : Widget(x, y, 0, 0, parent, autoDelete)
+            : widget(x, y, 0, 0, parent, autoDelete)
             , m_layout
               {
                   w,

@@ -19,7 +19,7 @@
 #pragma once
 #include "widget.hpp"
 
-class editBoard: public Widget
+class editBoard: public widget
 {
     private:
         int m_cursorX;

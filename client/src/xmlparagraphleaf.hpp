@@ -83,12 +83,12 @@ class XMLParagraphLeaf
         int Length() const
         {
             if(Type() == LEAF_UTF8GROUP){
-                return UTF8CharOffRef().size();
+                return utf8CharOffRef().size();
             }
             return 1;
         }
 
-        const std::vector<int> &UTF8CharOffRef() const
+        const std::vector<int> &utf8CharOffRef() const
         {
             if(Type() != LEAF_UTF8GROUP){
                 throw fflerror("leaf is not an utf8 string");
@@ -101,9 +101,9 @@ class XMLParagraphLeaf
             return m_UTF8CharOff;
         }
 
-        std::vector<int> &UTF8CharOffRef()
+        std::vector<int> &utf8CharOffRef()
         {
-            return const_cast<std::vector<int> &>(static_cast<const XMLParagraphLeaf *>(this)->UTF8CharOffRef());
+            return const_cast<std::vector<int> &>(static_cast<const XMLParagraphLeaf *>(this)->utf8CharOffRef());
         }
 
         const char *UTF8Text() const
@@ -130,7 +130,7 @@ class XMLParagraphLeaf
             return m_U64Key;
         }
 
-        uint32_t PeekUTF8Code(int) const;
+        uint32_t peekUTF8Code(int) const;
 
     public:
         void MarkEvent(int);

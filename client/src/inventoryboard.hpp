@@ -27,19 +27,19 @@
 #include "tritexbutton.hpp"
 
 class ProcessRun;
-class InventoryBoard: public Widget
+class InventoryBoard: public widget
 {
     private:
-        labelBoard m_GoldBoard;
+        labelBoard m_goldBoard;
 
     private:
-        TritexButton m_CloseButton;
+        TritexButton m_closeButton;
 
     private:
         ProcessRun *m_ProcessRun;
 
     public:
-        InventoryBoard(int, int, ProcessRun *, Widget * = nullptr, bool = false);
+        InventoryBoard(int, int, ProcessRun *, widget * = nullptr, bool = false);
 
     private:
         void DrawItem(int, int, const PackBin &);

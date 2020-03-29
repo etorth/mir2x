@@ -26,7 +26,7 @@
 #include "tokenbox.hpp"
 #include "tokenboard.hpp"
 
-class InputBoard: public Widget
+class InputBoard: public widget
 {
     protected:
         TokenBoard m_TokenBoard;
@@ -63,9 +63,9 @@ class InputBoard: public Widget
                 uint8_t          nDefaultSize    =  10,
                 uint8_t          nDefaultStyle   =  0,
                 const SDL_Color &rstDefaultColor = {0XFF, 0XFF, 0XFF, 0XFF},
-                Widget          *pWidget         =  nullptr,
-                bool             bFreeWidget     =  false)
-            : Widget(nX, nY, nW, nH, pWidget, bFreeWidget)
+                widget          *pwidget         =  nullptr,
+                bool             bFreewidget     =  false)
+            : widget(nX, nY, nW, nH, pwidget, bFreewidget)
             , m_TokenBoard(
                     0,
                     0,

@@ -93,13 +93,13 @@ void ProcessLogin::Draw()
     g_SDLDevice->DrawTexture(g_ProgUseDB->Retrieve(0X00000004),   0, 465);
     g_SDLDevice->DrawTexture(g_ProgUseDB->Retrieve(0X00000011), 103, 536);
 
-    m_Button1.Draw();
-    m_Button2.Draw();
-    m_Button3.Draw();
-    m_Button4.Draw();
+    m_Button1.draw();
+    m_Button2.draw();
+    m_Button3.draw();
+    m_Button4.draw();
 
-    m_IDBox      .Draw();
-    m_PasswordBox.Draw();
+    m_IDBox      .draw();
+    m_PasswordBox.draw();
 
     g_SDLDevice->Present();
 }

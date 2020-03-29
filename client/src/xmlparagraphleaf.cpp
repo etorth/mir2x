@@ -96,7 +96,7 @@ void XMLParagraphLeaf::MarkEvent(int nEvent)
     m_Event = nEvent;
 }
 
-uint32_t XMLParagraphLeaf::PeekUTF8Code(int nLeafOff) const
+uint32_t XMLParagraphLeaf::peekUTF8Code(int nLeafOff) const
 {
     if(nLeafOff >= Length()){
         throw std::invalid_argument(str_fflprintf(": Provided LeafOff exceeds leaf length: %zu", Length()));
@@ -106,7 +106,7 @@ uint32_t XMLParagraphLeaf::PeekUTF8Code(int nLeafOff) const
         throw std::runtime_error(str_fflprintf(": Try peek utf8 code from a leaf with type: %d", Type()));
     }
 
-    return UTF8Func::PeekUTF8Code(Node()->Value() + UTF8CharOffRef()[nLeafOff]);
+    return UTF8Func::peekUTF8Code(Node()->Value() + utf8CharOffRef()[nLeafOff]);
 }
 
 std::optional<uint32_t> XMLParagraphLeaf::Color() const

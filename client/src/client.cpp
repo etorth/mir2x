@@ -41,7 +41,7 @@
 extern Log *g_Log;
 extern XMLConf *g_XMLConf;
 extern SDLDevice *g_SDLDevice;
-extern DebugBoard *g_DebugBoard;
+extern debugBoard *g_debugBoard;
 extern ClientArgParser *g_ClientArgParser;
 
 Client::Client()
@@ -189,7 +189,7 @@ void Client::OnServerMessage(uint8_t nHC, const uint8_t *pData, size_t nDataLen)
     // 1. update the time when last message received
     m_NetPackTick = SDL_GetTicks() * 1.0;
     if(nHC != SM_PING){
-        g_DebugBoard->addLog("[%08.3f]%s", (float)(m_NetPackTick / 1000.0f), SMSGParam(nHC).Name().c_str());
+        g_debugBoard->addLog("[%08.3f]%s", (float)(m_NetPackTick / 1000.0f), SMSGParam(nHC).Name().c_str());
     }
 
     m_ClientMonitor.SMProcMonitorList[nHC].RecvCount++;

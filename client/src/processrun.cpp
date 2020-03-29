@@ -43,7 +43,7 @@ extern MapBinDB *g_MapBinDB;
 extern SDLDevice *g_SDLDevice;
 extern PNGTexDB *g_GroundItemDB;
 extern NotifyBoard *g_NotifyBoard;
-extern DebugBoard *g_DebugBoard;
+extern debugBoard *g_debugBoard;
 extern ClientArgParser *g_ClientArgParser;
 
 ProcessRun::ProcessRun()
@@ -523,8 +523,8 @@ void ProcessRun::Draw()
         p->Draw(m_ViewX, m_ViewY);
     }
 
-    m_controlBoard  .Draw();
-    m_InventoryBoard.Draw();
+    m_controlBoard  .draw();
+    m_InventoryBoard.draw();
 
     // draw notifyBoard
     {
@@ -557,8 +557,8 @@ void ProcessRun::Draw()
     {
         const int x = 0;
         const int y = 0;
-        const int w = std::max<int>(g_DebugBoard->PW(), 200);
-        const int h = g_DebugBoard->H();
+        const int w = std::max<int>(g_debugBoard->PW(), 200);
+        const int h = g_debugBoard->H();
 
         {
             SDLDevice::EnableDrawColor enableColor(ColorFunc::GREEN + 200);
@@ -566,7 +566,7 @@ void ProcessRun::Draw()
             g_SDLDevice->FillRectangle(x, y, w, h);
         }
 
-        g_DebugBoard->drawEx(x, y, 0, 0, w, h);
+        g_debugBoard->drawEx(x, y, 0, 0, w, h);
         {
             SDLDevice::EnableDrawColor enableColor(ColorFunc::BLUE + 100);
             g_SDLDevice->DrawRectangle(x, y, w, h);
@@ -1619,10 +1619,10 @@ void ProcessRun::OnActionSpawn(uint64_t nUID, const ActionNode &rstAction)
     }
 }
 
-Widget *ProcessRun::GetWidget(const char *szWidgetName)
+widget *ProcessRun::Getwidget(const char *szwidgetName)
 {
-    if(szWidgetName){
-        if(!std::strcmp(szWidgetName, "InventoryBoard")){ return &m_InventoryBoard; }
+    if(szwidgetName){
+        if(!std::strcmp(szwidgetName, "InventoryBoard")){ return &m_InventoryBoard; }
     }
     return nullptr;
 }

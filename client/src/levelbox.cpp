@@ -26,9 +26,9 @@ levelBox::levelBox(
         std::function<void(int)> onDrag,
         std::function<void()> onDoubleClick,
 
-        Widget *parent,
+        widget *parent,
         bool autoDelete)
-    : Widget(x, y, 0, 0, parent, autoDelete)
+    : widget(x, y, 0, 0, parent, autoDelete)
     , m_label
       {
           0,

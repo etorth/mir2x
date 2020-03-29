@@ -23,7 +23,7 @@
 #include "strfunc.hpp"
 #include "utf8func.hpp"
 
-uint32_t UTF8Func::PeekUTF8Code(const char *szUTF8String)
+uint32_t UTF8Func::peekUTF8Code(const char *szUTF8String)
 {
     // seems utf8::peek_next() is not what I need here
     // what it returns?

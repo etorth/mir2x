@@ -45,8 +45,8 @@ class IDBox: public InputBoard
                 const SDL_Color             &rstCursorColor = {0XFF, 0XFF, 0XFF, 0XFF},
                 const std::function<void()> &fnOnTab        = [](){},
                 const std::function<void()> &fnOnEnter      = [](){},
-                Widget                      *pWidget        = nullptr,
-                bool                         bFreeWidget    = false)
+                widget                      *pwidget        = nullptr,
+                bool                         bFreewidget    = false)
             : InputBoard(
                     nX,
                     nY,
@@ -61,8 +61,8 @@ class IDBox: public InputBoard
                     nFontSize,
                     0,
                     rstFontColor,
-                    pWidget,
-                    bFreeWidget)
+                    pwidget,
+                    bFreewidget)
             , m_OnTab(fnOnTab)
             , m_OnEnter(fnOnEnter)
         {}

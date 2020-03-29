@@ -73,8 +73,8 @@ extern Log *g_Log;
 extern PNGTexDB *g_ProgUseDB;
 extern SDLDevice *g_SDLDevice;
 
-controlBoard::controlBoard(int nX, int nY, int nW, ProcessRun *pRun, Widget *pWidget, bool bAutoDelete)
-    : Widget(nX, nY, nW, 133, pWidget, bAutoDelete)
+controlBoard::controlBoard(int nX, int nY, int nW, ProcessRun *pRun, widget *pwidget, bool bAutoDelete)
+    : widget(nX, nY, nW, 133, pwidget, bAutoDelete)
     , m_ProcessRun(pRun)
     , m_ButtonClose
       {
@@ -114,7 +114,7 @@ controlBoard::controlBoard(int nX, int nY, int nW, ProcessRun *pRun, Widget *pWi
           [](){},
           [this]()
           {
-              if(auto pInventory = m_ProcessRun->GetWidget("InventoryBoard")){
+              if(auto pInventory = m_ProcessRun->Getwidget("InventoryBoard")){
                   pInventory->show(!pInventory->show());
               }
           },
@@ -179,21 +179,26 @@ controlBoard::controlBoard(int nX, int nY, int nW, ProcessRun *pRun, Widget *pWi
           this,
           false,
       }
-    , m_CmdLine(
-            185,
-            108,
-            343 + (nW - 800),
-            15,
-            1,
-            {0XFF, 0XFF, 0XFF, 0XFF},
-            1,
-            12,
-            0,
-            {0XFF, 0XFF, 0XFF, 0XFF},
-            [    ](){                  },
-            [this](){ InputLineDone(); },
-            this,
-            false)
+    , m_cmdLine
+      {
+          185,
+          108,
+          343 + (nW - 800),
+          15,
+
+          1,
+          12,
+          0,
+          ColorFunc::WHITE,
+
+          2,
+          ColorFunc::WHITE,
+
+          [](){},
+          [this](){ inputLineDone(); },
+          this,
+          false
+      }
     , m_LocBoard(0, 0, "", 1, 12, 0, ColorFunc::RGBA(0XFF, 0X00, 0X00, 0X00))
     , m_LogBoard(
             187,
@@ -245,7 +250,7 @@ controlBoard::controlBoard(int nX, int nY, int nW, ProcessRun *pRun, Widget *pWi
 
 void controlBoard::Update(double fMS)
 {
-    m_CmdLine.Update(fMS);
+    m_cmdLine.Update(fMS);
 }
 
 void controlBoard::drawLeft()
@@ -302,8 +307,8 @@ void controlBoard::drawLeft()
         m_LocBoard.drawEx((136 - m_LocBoard.W()) / 2, nY0 + 109, 0, 0, m_LocBoard.W(), m_LocBoard.H());
     }
 
-    m_ButtonClose.Draw();
-    m_ButtonMinize.Draw();
+    m_ButtonClose.draw();
+    m_ButtonMinize.draw();
 }
 
 void controlBoard::drawRight()
@@ -316,7 +321,7 @@ void controlBoard::drawRight()
         g_SDLDevice->DrawTexture(pTexture, nW0 - 166, nY0, 800 - 166, 0, 166, 133);
     }
 
-    m_ButtonInventory.Draw();
+    m_ButtonInventory.draw();
 }
 
 std::tuple<int, int> controlBoard::scheduleStretch(int dstSize, int srcSize)
@@ -350,8 +355,8 @@ void controlBoard::drawMiddleDefault()
         g_SDLDevice->FillRectangle(178 + 2, nY0 + 14, nW0 - (178 + 2) - (166 + 2), 120);
     }
 
-    m_CmdLine.Draw();
-    m_LogBoard.Draw();
+    m_cmdLine.draw();
+    m_LogBoard.draw();
 
     // draw middle part
     if(auto pTexture = g_ProgUseDB->Retrieve(0X00000013)){
@@ -390,11 +395,11 @@ void controlBoard::drawMiddleDefault()
     }
 
     // g_SDLDevice->PushColor(0X00, 0XFF, 0X00, 0XFF);
-    // g_SDLDevice->DrawRectangle(m_CmdLine.X(), m_CmdLine.Y(), m_CmdLine.W(), m_CmdLine.H());
+    // g_SDLDevice->DrawRectangle(m_cmdLine.X(), m_cmdLine.Y(), m_cmdLine.W(), m_cmdLine.H());
     // g_SDLDevice->PopColor();
 
-    m_buttonSwitchMode.Draw();
-    m_level.Draw();
+    m_buttonSwitchMode.draw();
+    m_level.draw();
 }
 
 void controlBoard::drawMiddleExpand()
@@ -463,8 +468,8 @@ void controlBoard::drawMiddleExpand()
         g_SDLDevice->DrawTexture(pTexture, titleDstX, titleDstY);
     }
 
-    m_buttonSwitchMode.Draw();
-    m_level.Draw();
+    m_buttonSwitchMode.draw();
+    m_level.draw();
 }
 
 void controlBoard::drawEx(int, int, int, int, int, int)
@@ -486,7 +491,7 @@ bool controlBoard::processEvent(const SDL_Event &event, bool valid)
     bool takeEvent = false;
 
     takeEvent |= m_level           .processEvent(event, valid && !takeEvent);
-    takeEvent |= m_CmdLine         .processEvent(event, valid && !takeEvent);
+    takeEvent |= m_cmdLine         .processEvent(event, valid && !takeEvent);
     takeEvent |= m_ButtonClose     .processEvent(event, valid && !takeEvent);
     takeEvent |= m_ButtonMinize    .processEvent(event, valid && !takeEvent);
     takeEvent |= m_ButtonInventory .processEvent(event, valid && !takeEvent);
@@ -502,7 +507,7 @@ bool controlBoard::processEvent(const SDL_Event &event, bool valid)
                 switch(event.key.keysym.sym){
                     case SDLK_RETURN:
                         {
-                            m_CmdLine.focus(true);
+                            m_cmdLine.focus(true);
                             return true;
                         }
                     default:
@@ -521,10 +526,10 @@ bool controlBoard::processEvent(const SDL_Event &event, bool valid)
     }
 }
 
-void controlBoard::InputLineDone()
+void controlBoard::inputLineDone()
 {
     std::string szRealInput;
-    std::string szFullInput = m_CmdLine.Content();
+    std::string szFullInput = m_cmdLine.getString();
 
     auto nInputPos = szFullInput.find_first_not_of(" \n\r\t");
     szRealInput = (nInputPos == std::string::npos) ? "" : szFullInput.substr(nInputPos);

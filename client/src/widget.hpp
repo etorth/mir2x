@@ -21,63 +21,65 @@
 #include <SDL2/SDL.h>
 #include "lalign.hpp"
 
-class Widget
+class widget
 {
     private:
-        struct ChildNode
+        struct childNode
         {
-            Widget *Child;
-            bool    AutoDelete;
+            widget *child;
+            bool    autoDelete;
 
-            ChildNode(Widget *pWidget, bool bAutoDelete)
-                : Child(pWidget)
-                , AutoDelete(bAutoDelete)
+            childNode(widget *pwidget, bool bAutoDelete)
+                : child(pwidget)
+                , autoDelete(bAutoDelete)
             {}
         };
 
     protected:
-        Widget *m_Parent;
+        widget *m_parent;
 
     protected:
-        bool m_Show;
-        bool m_Focus;
+        bool m_show;
+        bool m_focus;
 
-    protected:
+    private:
         int m_X;
         int m_Y;
+
+    protected:
         int m_W;
         int m_H;
 
     protected:
-        std::vector<ChildNode> m_ChildNodeList;
+        std::vector<childNode> m_childList;
 
     public:
-        Widget(int nX, int nY, int nW = 0, int nH = 0, Widget *pParent = nullptr, bool bAutoDelete = false)
-            : m_Parent(pParent)
-            , m_Show(true)
-            , m_Focus(false)
+        widget(int nX, int nY, int nW = 0, int nH = 0, widget *pParent = nullptr, bool bAutoDelete = false)
+            : m_parent(pParent)
+            , m_show(true)
+            , m_focus(false)
             , m_X(nX)
             , m_Y(nY)
             , m_W(nW)
             , m_H(nH)
         {
-            if(m_Parent){
-                m_Parent->m_ChildNodeList.emplace_back(this, bAutoDelete);
+            if(m_parent){
+                m_parent->m_childList.emplace_back(this, bAutoDelete);
             }
         }
         
     public:
-        virtual ~Widget()
+        virtual ~widget()
         {
-            for(auto rstChildNode: m_ChildNodeList){
-                if(rstChildNode.AutoDelete){
-                    delete rstChildNode.Child;
+            for(auto node: m_childList){
+                if(node.autoDelete){
+                    delete node.child;
                 }
             }
         }
 
     public:
-        virtual void Draw()
+        virtual void draw()
         {
             if(show()){
                 drawEx(X(), Y(), 0, 0, W(), H());
@@ -102,16 +104,20 @@ class Widget
         //  valid: this event has been consumed by other widget
         // return: does current widget take this event?
         //         always return false if given event has been take by previous widget
-        virtual bool processEvent(const SDL_Event &, bool)
+        virtual bool processEvent(const SDL_Event &event, bool valid)
         {
-            return false;
+            bool took = false;
+            for(auto &node: m_childList){
+                took |= node.child->processEvent(event, valid && !took);
+            }
+            return took;
         }
 
     public:
         int X() const
         {
-            if(m_Parent){
-                return m_Parent->X() + m_X;
+            if(m_parent){
+                return m_parent->X() + m_X;
             }else{
                 return m_X;
             }
@@ -119,8 +125,8 @@ class Widget
 
         int Y() const
         {
-            if(m_Parent){
-                return m_Parent->Y() + m_Y;
+            if(m_parent){
+                return m_parent->Y() + m_Y;
             }else{
                 return m_Y;
             }
@@ -145,23 +151,23 @@ class Widget
     public:
         void focus(bool bFocus)
         {
-            m_Focus = bFocus;
+            m_focus = bFocus;
         }
 
         bool focus() const
         {
-            return m_Focus;
+            return m_focus;
         }
 
     public:
         void show(bool bShow)
         {
-            m_Show = bShow;
+            m_show = bShow;
         }
 
         bool show() const
         {
-            return m_Show;
+            return m_show;
         }
 
     public:

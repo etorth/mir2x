@@ -26,7 +26,7 @@
 
 extern SDLDevice *g_SDLDevice;
 
-class levelBox: public Widget
+class levelBox: public widget
 {
     private:
         labelBoard m_label;
@@ -42,7 +42,7 @@ class levelBox: public Widget
         std::function<void()> m_onDoubleClick;
 
     public:
-        levelBox(int, int, std::function<void(int)>, std::function<void()>, Widget *, bool);
+        levelBox(int, int, std::function<void(int)>, std::function<void()>, widget *, bool);
 
     public:
         bool processEvent(const SDL_Event &, bool);

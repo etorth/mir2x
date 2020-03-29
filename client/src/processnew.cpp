@@ -143,8 +143,8 @@ void ProcessNew::Draw()
     g_SDLDevice->DrawTexture(g_ProgUseDB->Retrieve(0X00000003), 0, 75);
     g_SDLDevice->DrawTexture(g_ProgUseDB->Retrieve(0X00000004), 0, 75, 0, 0, 800, 450);
 
-    m_TBCreate.Draw();
-    m_TBExit  .Draw();
+    m_TBCreate.draw();
+    m_TBExit  .draw();
 
     auto fnDrawInput = [](int nX, int nY, int nDX, auto &rstLB, auto &rstBox, auto &rstLBCheck)
     {

@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename: sdlkeyeventchar.cpp
+ *       Filename: sdlkeychar.cpp
  *        Created: 03/12/2016 19:31:23
  *    Description: 
  *
@@ -17,11 +17,11 @@
  */
 
 #include <map>
-#include "sdlkeyeventchar.hpp"
+#include "sdlkeychar.hpp"
     
-char SDLKeyEventChar(const SDL_Event &rstEvent)
+char sdlKeyChar(const SDL_Event &event)
 {
-    const static std::map<SDL_Keycode, const char *> s_LookupTable
+    const static std::map<SDL_Keycode, const char *> s_lookupTable
     {
         {SDLK_SPACE,        " "   " " },
         {SDLK_QUOTE,        "'"   "\""},
@@ -73,8 +73,8 @@ char SDLKeyEventChar(const SDL_Event &rstEvent)
         {SDLK_z,            "z"   "Z" },
     };
 
-    if(auto p = s_LookupTable.find(rstEvent.key.keysym.sym); p != s_LookupTable.end()){
-        return p->second[((rstEvent.key.keysym.mod & KMOD_LSHIFT) || (rstEvent.key.keysym.mod & KMOD_RSHIFT)) ? 1 : 0];
+    if(auto p = s_lookupTable.find(event.key.keysym.sym); p != s_lookupTable.end()){
+        return p->second[((event.key.keysym.mod & KMOD_LSHIFT) || (event.key.keysym.mod & KMOD_RSHIFT)) ? 1 : 0];
     }
     return '\0';
 }

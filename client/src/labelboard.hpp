@@ -27,7 +27,7 @@
 #include "xmltypeset.hpp"
 #include "colorfunc.hpp"
 
-class labelBoard: public Widget
+class labelBoard: public widget
 {
     private:
         XMLTypeset m_Board;
@@ -41,9 +41,9 @@ class labelBoard: public Widget
                 uint8_t     fontSize    = 10,
                 uint8_t     fontStyle   =  0,
                 uint32_t    fontColor   =  ColorFunc::WHITE + 255,
-                Widget     *pWidget     =  nullptr,
+                widget     *pwidget     =  nullptr,
                 bool        bAutoDelete =  false)
-            : Widget(x, y, 0, 0, pWidget, bAutoDelete)
+            : widget(x, y, 0, 0, pwidget, bAutoDelete)
             , m_Board
               {
                   0,

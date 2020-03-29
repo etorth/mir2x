@@ -159,7 +159,7 @@
 #include "tokenbox.hpp"
 #include "xmlobjectlist.hpp"
 
-class TokenBoard: public Widget
+class TokenBoard: public widget
 {
     // +-----------------------------+
     // |           0                 |
@@ -331,9 +331,9 @@ class TokenBoard: public Widget
                 int nMargin2 = 0,
                 int nMargin3 = 0,
 
-                Widget *pWidget     = nullptr,
-                bool    bFreeWidget = false)
-            : Widget(nX, nY, 0, 0, pWidget, bFreeWidget)
+                widget *pwidget     = nullptr,
+                bool    bFreewidget = false)
+            : widget(nX, nY, 0, 0, pwidget, bFreewidget)
 
             , m_Selectable(bSelectable)
             , m_WithCursor(bWithCursor)

@@ -25,7 +25,7 @@
 #include "mathfunc.hpp"
 #include "fontexdb.hpp"
 #include "inputboard.hpp"
-#include "sdlkeyeventchar.hpp"
+#include "sdlkeychar.hpp"
 
 extern Log *g_Log;
 extern Client *g_Client;
@@ -37,7 +37,7 @@ int InputBoard::s_InputBoardCount       = 0;
 void InputBoard::Update(double fMS)
 {
     m_MS += fMS;
-    Widget::Update(fMS);
+    widget::Update(fMS);
     m_TokenBoard.Update(fMS);
 }
 
@@ -219,7 +219,7 @@ bool InputBoard::processEvent(const SDL_Event &event, bool valid)
                         default:
                             {
                                 if(SDL_IsTextInputActive() == SDL_FALSE){
-                                    char chKeyName = SDLKeyEventChar(event);
+                                    char chKeyName = sdlKeyChar(event);
                                     if(chKeyName != '\0'){
                                         m_TokenBoard.AddUTF8Code((uint32_t)(chKeyName));
                                     }

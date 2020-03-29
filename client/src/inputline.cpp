@@ -16,9 +16,11 @@
  * =====================================================================================
  */
 
+#include "mathfunc.hpp"
 #include "inputline.hpp"
+#include "sdlkeychar.hpp"
 
-bool InputLine::processEvent(const SDL_Event &event, bool valid)
+bool inputLine::processEvent(const SDL_Event &event, bool valid)
 {
     if(!valid){
         return false;
@@ -30,40 +32,78 @@ bool InputLine::processEvent(const SDL_Event &event, bool valid)
                 switch(event.key.keysym.sym){
                     case SDLK_TAB:
                         {
-                            if(focus() && m_TabFunc){
-                                m_TabFunc();
+                            if(focus() && m_tabCB){
+                                m_tabCB();
                                 return true;
                             }
-
-                            // for other cases we won't capture the event
-                            // and pass to InputBoard for handling
-                            break;
+                            return false;
                         }
                     case SDLK_RETURN:
                         {
-                            if(focus() && m_ReturnFunc){
-                                m_ReturnFunc();
+                            if(focus() && m_returnCB){
+                                m_returnCB();
                                 return true;
                             }
-
-                            // for other cases we won't capture the event
-                            // and pass to InputBoard for handling
-                            break;
+                            return false;
                         }
                     default:
                         {
-                            break;
+                            const char text[2]
+                            {
+                                sdlKeyChar(event), '\0',
+                            };
+
+                            m_tpset.insertUTF8String(m_cursorLoc, 0, text);
+                            return true;
                         }
                 }
+            }
+        case SDL_MOUSEBUTTONDOWN:
+            {
+                if(!in(event.button.x, event.button.y)){
+                    focus(false);
+                    return false;
+                }
 
-                break;
+                const int eventX = X() - event.button.x;
+                const int eventY = Y() - event.button.y;
+
+                const auto [cursorX, cursorY] = m_tpset.locCursor(eventX, eventY);
+                if(cursorY != 0){
+                    throw fflerror("cursor locates at wrong line");
+                }
+
+                m_cursorLoc = cursorY;
+
+                focus(true);
+                return true;
             }
         default:
             {
-                break;
+                return false;
             }
     }
+}
 
-    // fallback to use InputBoard event handling
-    return InputBoard::processEvent(event, valid);
+void inputLine::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int srcH)
+{
+    const auto needDraw = MathFunc::ROICrop(
+            &srcX, &srcY,
+            &srcW, &srcH,
+            &dstX, &dstY,
+
+            W(),
+            H(),
+
+            m_tpsetX, m_tpsetY, m_tpset.PW(), m_tpset.PH());
+
+    if(!needDraw){
+        return;
+    }
+    m_tpset.drawEx(dstX, dstY, srcX - m_tpsetX, srcY - m_tpsetY, srcW, srcH);
+}
+
+std::string inputLine::getString() const
+{
+    return "12";
 }

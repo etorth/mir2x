@@ -23,7 +23,7 @@
 
 namespace UTF8Func
 {
-    uint32_t PeekUTF8Code(const char *);
+    uint32_t peekUTF8Code(const char *);
 
     std::vector<int> buildUTF8Off(const char *);
 

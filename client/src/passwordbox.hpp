@@ -38,8 +38,8 @@ class PasswordBox: public IDBox
                 const SDL_Color             &rstCursorColor = {0XFF, 0XFF, 0XFF, 0XFF},
                 const std::function<void()> &fnOnTab        = [](){},
                 const std::function<void()> &fnOnEnter      = [](){},
-                Widget                      *pWidget        = nullptr,
-                bool                         bFreeWidget    = false)
+                widget                      *pwidget        = nullptr,
+                bool                         bFreewidget    = false)
             : IDBox(
                     nX,
                     nY,
@@ -52,8 +52,8 @@ class PasswordBox: public IDBox
                     rstCursorColor,
                     fnOnTab,
                     fnOnEnter,
-                    pWidget,
-                    bFreeWidget)
+                    pwidget,
+                    bFreewidget)
             , m_Security(bSecurity)
         {}
 

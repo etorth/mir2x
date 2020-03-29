@@ -32,7 +32,7 @@
 #include "pngtexdb.hpp"
 #include "sdldevice.hpp"
 
-class ButtonBase: public Widget
+class ButtonBase: public widget
 {
     public:
         enum ButtonState: int
@@ -71,9 +71,9 @@ class ButtonBase: public Widget
                 int nOffYOnClick = 0,
 
                 bool    bOnClickDone = true,
-                Widget *pWidget      = nullptr,
-                bool    bFreeWidget  = false)
-            : Widget(nX, nY, nW, nH, pWidget, bFreeWidget)
+                widget *pwidget      = nullptr,
+                bool    bFreewidget  = false)
+            : widget(nX, nY, nW, nH, pwidget, bFreewidget)
             , m_State(BUTTON_OFF)
             , m_OnClickDone(bOnClickDone)
             , m_Offset

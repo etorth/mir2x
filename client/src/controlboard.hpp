@@ -31,7 +31,7 @@
 #include "linebrowserboard.hpp"
 
 class ProcessRun;
-class controlBoard: public Widget
+class controlBoard: public widget
 {
     private:
         ProcessRun *m_ProcessRun;
@@ -55,7 +55,7 @@ class controlBoard: public Widget
         levelBox m_level;
 
     private:
-        InputLine        m_CmdLine;
+        inputLine        m_cmdLine;
         labelBoard       m_LocBoard;
         LineBrowserBoard m_LogBoard;
 
@@ -65,7 +65,7 @@ class controlBoard: public Widget
                 int,            // y
                 int,            // screen width
                 ProcessRun *,   // 
-                Widget *,       //
+                widget *,       //
                 bool);          //
 
     public:
@@ -88,7 +88,7 @@ class controlBoard: public Widget
         bool processEvent(const SDL_Event &, bool);
 
     public:
-        void InputLineDone();
+        void inputLineDone();
 
     public:
         void AddLog(int, const char *);
@@ -101,7 +101,7 @@ class controlBoard: public Widget
         void setButtonLoc();
 
     public:
-        // TODO: we don't support Widget::resize()
+        // TODO: we don't support widget::resize()
         // widget doesn't have box concept, parent widget can't calculate proper size for children
         void resizeWidth(int w)
         {

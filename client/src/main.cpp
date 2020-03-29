@@ -47,7 +47,7 @@ MapBinDB        *g_MapBinDB        = nullptr;
 FontexDB        *g_FontexDB        = nullptr;
 XMLConf         *g_XMLConf         = nullptr; // for client configure XML parsing
 SDLDevice       *g_SDLDevice       = nullptr; // for SDL hardware device
-DebugBoard      *g_DebugBoard      = nullptr;
+debugBoard      *g_debugBoard      = nullptr;
 NotifyBoard     *g_NotifyBoard     = nullptr;
 Client          *g_Client          = nullptr; // gobal instance
 
@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
             delete g_FontexDB       ; g_FontexDB        = nullptr;
             delete g_MapBinDB       ; g_MapBinDB        = nullptr;
             delete g_EmoticonDB     ; g_EmoticonDB      = nullptr;
-            delete g_DebugBoard     ; g_DebugBoard      = nullptr;
+            delete g_debugBoard     ; g_debugBoard      = nullptr;
             delete g_NotifyBoard    ; g_NotifyBoard     = nullptr;
             delete g_Client         ; g_Client          = nullptr;
         };
@@ -104,7 +104,7 @@ int main(int argc, char *argv[])
         g_MapBinDB        = new MapBinDB();
         g_EmoticonDB      = new EmoticonDB();
         g_Client          = new Client();       // loads fontex resource
-        g_DebugBoard      = new DebugBoard(0, 0, 10240, 0, 15, 0, ColorFunc::RED + 255);
+        g_debugBoard      = new debugBoard(0, 0, 10240, 0, 15, 0, ColorFunc::RED + 255);
         g_NotifyBoard     = new NotifyBoard();  // needs fontex
 
         g_Client->MainLoop();

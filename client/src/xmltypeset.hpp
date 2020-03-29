@@ -28,10 +28,10 @@
 class XMLTypeset // means XMLParagraph typeset
 {
     private:
-        struct ContentLine
+        struct contentLine
         {
-            int StartY;
-            std::vector<TOKEN> Content;
+            int startY;
+            std::vector<TOKEN> content;
         };
 
     private:
@@ -63,7 +63,7 @@ class XMLTypeset // means XMLParagraph typeset
         XMLParagraph m_paragraph;
 
     private:
-        std::vector<ContentLine> m_LineList;
+        std::vector<contentLine> m_lineList;
 
     private:
         std::vector<std::tuple<int, int>> m_leaf2TokenLoc;
@@ -93,7 +93,7 @@ class XMLTypeset // means XMLParagraph typeset
             , m_PW(0)
             , m_PH(0)
             , m_paragraph()
-            , m_LineList()
+            , m_lineList()
         {
             checkDefaultFont();
         }
@@ -107,13 +107,18 @@ class XMLTypeset // means XMLParagraph typeset
             return m_paragraph.empty();
         }
 
+        bool lineEmpty(int line) const
+        {
+            return m_lineList.at(line).content.empty();
+        }
+
     public:
         void loadXML(const char *szXMLString)
         {
             Clear();
             m_paragraph.loadXML(szXMLString);
 
-            if(m_paragraph.LeafCount() > 0){
+            if(m_paragraph.leafCount() > 0){
                 BuildBoard(0, 0);
             }
         }
@@ -123,7 +128,7 @@ class XMLTypeset // means XMLParagraph typeset
             Clear();
             m_paragraph.loadXMLNode(node);
 
-            if(m_paragraph.LeafCount() > 0){
+            if(m_paragraph.leafCount() > 0){
                 BuildBoard(0, 0);
             }
         }
@@ -135,7 +140,7 @@ class XMLTypeset // means XMLParagraph typeset
             m_PY = 0;
             m_PW = 0;
             m_PH = 0;
-            m_LineList.clear();
+            m_lineList.clear();
         }
 
     public:
@@ -145,20 +150,20 @@ class XMLTypeset // means XMLParagraph typeset
         void ResetBoardPixelRegion();
 
     public:
-        bool LineValid(int line) const
+        bool lineValid(int line) const
         {
             return line >= 0 && line < lineCount();
         }
 
         int lineCount() const
         {
-            return (int)(m_LineList.size());
+            return (int)(m_lineList.size());
         }
 
-        int LineTokenCount(int nLine) const
+        int lineTokenCount(int nLine) const
         {
-            if(LineValid(nLine)){
-                return m_LineList[nLine].Content.size();
+            if(lineValid(nLine)){
+                return m_lineList[nLine].content.size();
             }
             throw fflerror("invalid line specified: %d >= %d", nLine, lineCount());
         }
@@ -167,13 +172,22 @@ class XMLTypeset // means XMLParagraph typeset
         std::tuple<int, int> PrevTokenLoc(int, int) const;
         std::tuple<int, int> NextTokenLoc(int, int) const;
 
+    public:
+        static bool locInToken(int, int, const TOKEN *, bool withPadding);
+
+    public:
+        std::tuple<int, int> locToken(int, int, bool withPadding) const;
+
+    public:
+        std::tuple<int, int> locCursor(int, int) const;
+
     private:
         std::tuple<int, int> LastTokenLoc() const
         {
             if(empty()){
                 throw fflerror("empty board");
             }
-            return {LineTokenCount(lineCount() - 1) - 1, lineCount() - 1};
+            return {lineTokenCount(lineCount() - 1) - 1, lineCount() - 1};
         }
 
     public:
@@ -185,18 +199,25 @@ class XMLTypeset // means XMLParagraph typeset
             throw fflerror("invalid leaf: %d", leaf);
         }
 
-    private:
-        bool TokenLocValid(int nX, int nY) const
+    public:
+        bool tokenLocValid(int nX, int nY) const
         {
-            return LineValid(nY) && (nX < LineTokenCount(nY));
+            return lineValid(nY) && (nX >= 0) && (nX < lineTokenCount(nY));
+        }
+
+        bool cursorLocValid(int nX, int nY) const
+        {
+            return (nX == 0 && nY == 0) || (lineValid(nY) && (nX >= 0) && (nX <= lineTokenCount(nY)));
         }
 
     public:
         void update(double);
 
     public:
-        void InsertXML (int, int, const char *);
-        void InsertText(int, int, const char *);
+        void InsertXML(int, int, const char *);
+
+    public:
+        void insertUTF8String(int, int, const char *);
 
     public:
         void Break(int, int);
@@ -205,14 +226,14 @@ class XMLTypeset // means XMLParagraph typeset
         void Delete(int, int, int);
 
     public:
-        int LeafCount() const
+        int leafCount() const
         {
-            return m_paragraph.LeafCount();
+            return m_paragraph.leafCount();
         }
 
         bool LeafValid(int nLeaf) const
         {
-            return nLeaf < LeafCount();
+            return nLeaf < leafCount();
         }
 
     public:
@@ -277,31 +298,31 @@ class XMLTypeset // means XMLParagraph typeset
         int LineFullWidth(int) const;
 
     public:
-        const TOKEN *GetToken(int nX, int nY) const
+        const TOKEN *getToken(int nX, int nY) const
         {
-            if(!TokenLocValid(nX, nY)){
+            if(!tokenLocValid(nX, nY)){
                 throw std::invalid_argument(str_fflprintf(": Invalid token location: (%d, %d)", nX, nY));
             }
-            return &(m_LineList[nY].Content[nX]);
+            return &(m_lineList[nY].content[nX]);
         }
 
-        TOKEN *GetToken(int nX, int nY)
+        TOKEN *getToken(int nX, int nY)
         {
-            return const_cast<TOKEN *>(static_cast<const XMLTypeset *>(this)->GetToken(nX, nY));
+            return const_cast<TOKEN *>(static_cast<const XMLTypeset *>(this)->getToken(nX, nY));
         }
 
     public:
         const TOKEN *GetLineBackToken(int nLine) const
         {
-            if(!LineValid(nLine)){
+            if(!lineValid(nLine)){
                 throw std::invalid_argument(str_fflprintf(": Invalid line: %d", nLine));
             }
 
-            if(LineTokenCount(nLine) == 0){
+            if(lineTokenCount(nLine) == 0){
                 throw std::runtime_error(str_fflprintf(": Invalie empty line: %d", nLine));
             }
 
-            return GetToken(LineTokenCount(nLine) - 1, nLine);
+            return getToken(lineTokenCount(nLine) - 1, nLine);
         }
 
         TOKEN *GetLineBackToken(int nLine)
@@ -316,7 +337,7 @@ class XMLTypeset // means XMLParagraph typeset
                 throw std::runtime_error(str_fflprintf(": empty board"));
             }
 
-            if(LineTokenCount(lineCount() - 1) == 0){
+            if(lineTokenCount(lineCount() - 1) == 0){
                 throw std::runtime_error(str_fflprintf(": Invalie empty line: %d", lineCount() - 1));
             }
 
@@ -340,7 +361,7 @@ class XMLTypeset // means XMLParagraph typeset
         TOKEN buildEmojiToken(int, uint32_t) const;
 
     private:
-        std::tuple<int, int> TokenLocInXMLParagraph(int, int) const;
+        std::tuple<int, int> leafLocInXMLParagraph(int, int) const;
 
     private:
         TOKEN CreateToken(int, int) const;
