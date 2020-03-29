@@ -119,7 +119,7 @@ class XMLTypeset // means XMLParagraph typeset
             m_paragraph.loadXML(szXMLString);
 
             if(m_paragraph.leafCount() > 0){
-                BuildBoard(0, 0);
+                buildTypeset(0, 0);
             }
         }
 
@@ -129,7 +129,7 @@ class XMLTypeset // means XMLParagraph typeset
             m_paragraph.loadXMLNode(node);
 
             if(m_paragraph.leafCount() > 0){
-                BuildBoard(0, 0);
+                buildTypeset(0, 0);
             }
         }
 
@@ -367,7 +367,7 @@ class XMLTypeset // means XMLParagraph typeset
         TOKEN CreateToken(int, int) const;
 
     private:
-        void BuildBoard(int, int);
+        void buildTypeset(int, int);
 
     private:
         int LineReachMaxX(int) const;

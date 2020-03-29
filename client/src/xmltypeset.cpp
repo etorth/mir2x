@@ -631,7 +631,7 @@ TOKEN XMLTypeset::CreateToken(int nLeaf, int nLeafOff) const
 // notice:
 // this function may get called after any XML update, the (nX, nY) in XMLTypeset may be
 // invalid but as long as it's valid in XMLParagraph it's well-defined
-void XMLTypeset::BuildBoard(int nX, int nY)
+void XMLTypeset::buildTypeset(int nX, int nY)
 {
     for(int nLine = 0; nLine < nY; ++nLine){
         if(m_lineList[nLine].content.empty()){
@@ -800,7 +800,7 @@ void XMLTypeset::Delete(int nX, int nY, int nTokenCount)
     std::tie(std::ignore, std::ignore, nAdvanced) = m_paragraph.NextLeafOff(nLeaf, nLeafOff, nTokenCount);
 
     m_paragraph.Delete(nLeaf, nLeafOff, nAdvanced);
-    BuildBoard(nX, nY);
+    buildTypeset(nX, nY);
 }
 
 void XMLTypeset::insertUTF8String(int x, int y, const char *text)
@@ -811,6 +811,9 @@ void XMLTypeset::insertUTF8String(int x, int y, const char *text)
 
     if(m_paragraph.empty()){
         m_paragraph.loadXML(str_printf("<par>%s</par>", text).c_str());
+        if(m_paragraph.leafCount() > 0){
+            buildTypeset(0, 0);
+        }
         return;
     }
 
