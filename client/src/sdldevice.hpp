@@ -270,4 +270,10 @@ class SDLDevice final
 
     public:
        TTF_Font *DefaultTTF(uint8_t);
+
+    public:
+       void setWindowResizable(bool resizable)
+       {
+           SDL_SetWindowResizable(m_Window, resizable ? SDL_TRUE : SDL_FALSE);
+       }
 };

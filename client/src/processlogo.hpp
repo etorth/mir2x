@@ -24,21 +24,17 @@
 class ProcessLogo: public Process
 {
     private:
-        double m_TimeR1;
-        double m_TimeR2;
+        const double m_timeR1 = 0.3;
+        const double m_timeR2 = 0.3;
 
     private:
-        double m_FullTime;
-        double m_TotalTime;
+        const double m_fullTime = 5000.0;
+
+    private:
+        double m_totalTime = 0.0;
 
     public:
-        ProcessLogo()
-            : Process()
-            , m_TimeR1(0.3)
-            , m_TimeR2(0.3)
-            , m_FullTime(5000.0)
-            , m_TotalTime(0.0)
-        {}
+        ProcessLogo(): Process() {}
 
     public:
         virtual ~ProcessLogo() = default;

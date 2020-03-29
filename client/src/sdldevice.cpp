@@ -345,6 +345,10 @@ void SDLDevice::CreateInitViewWindow()
         throw std::runtime_error(str_fflprintf(": Failed to create SDL window handler: %s", SDL_GetError()));
     }
 
+    SDL_ShowWindow(m_Window);
+    SDL_RaiseWindow(m_Window);
+    SDL_SetWindowResizable(m_Window, SDL_FALSE);
+
     m_Renderer = SDL_CreateRenderer(m_Window, -1, 0);
     if(!m_Renderer){
         SDL_DestroyWindow(m_Window);

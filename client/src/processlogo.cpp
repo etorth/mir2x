@@ -49,8 +49,8 @@ void ProcessLogo::processEvent(const SDL_Event &event)
 
 void ProcessLogo::Update(double fDTime)
 {
-    m_TotalTime += fDTime;
-    if(m_TotalTime >= m_FullTime){
+    m_totalTime += fDTime;
+    if(m_totalTime >= m_fullTime){
         g_Client->RequestProcess(PROCESSID_SYRC);
     }
 }
@@ -63,8 +63,8 @@ void ProcessLogo::Draw()
         auto bColor = (Uint8)(std::lround(255 * ColorRatio()));
         SDL_SetTextureColorMod(pTexture, bColor, bColor, bColor);
 
-        auto nWindowW = g_SDLDevice->WindowW(false);
-        auto nWindowH = g_SDLDevice->WindowH(false);
+        const auto nWindowW = g_SDLDevice->WindowW(false);
+        const auto nWindowH = g_SDLDevice->WindowH(false);
         g_SDLDevice->DrawTexture(pTexture, 0, 0, 0, 0, nWindowW, nWindowH);
     }
 
@@ -73,12 +73,12 @@ void ProcessLogo::Draw()
 
 double ProcessLogo::ColorRatio()
 {
-    double fRatio = m_TotalTime / m_FullTime;
-    if(fRatio < m_TimeR1){
-        return fRatio / m_TimeR1;
-    }else if(fRatio < m_TimeR1 + m_TimeR2){
+    double fRatio = m_totalTime / m_fullTime;
+    if(fRatio < m_timeR1){
+        return fRatio / m_timeR1;
+    }else if(fRatio < m_timeR1 + m_timeR2){
         return 1.0;
     }else{
-        return 1.0 - (fRatio - m_TimeR1 - m_TimeR2) / (1.0 - m_TimeR1 - m_TimeR2);
+        return 1.0 - (fRatio - m_timeR1 - m_timeR2) / (1.0 - m_timeR1 - m_timeR2);
     }
 }
