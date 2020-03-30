@@ -37,6 +37,7 @@ class inputLine: public widget
     protected:
         int      m_cursorWidth;
         uint32_t m_cursorColor;
+        double   m_cursorBlink = 0.0;
 
     protected:
         std::function<void()> m_tabCB;
@@ -83,6 +84,12 @@ class inputLine: public widget
 
     public:
         void drawEx(int, int, int, int, int, int) override;
+
+    public:
+        void Update(double ms) override
+        {
+            m_cursorBlink += ms;
+        }
 
     public:
         std::string getString() const;

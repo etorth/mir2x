@@ -16,6 +16,7 @@
  * =====================================================================================
  */
 
+#include <cmath>
 #include "mathfunc.hpp"
 #include "inputline.hpp"
 #include "sdldevice.hpp"
@@ -32,27 +33,30 @@ bool inputLine::processEvent(const SDL_Event &event, bool valid)
     switch(event.type){
         case SDL_KEYDOWN:
             {
+                if(!focus()){
+                    return false;
+                }
+
                 switch(event.key.keysym.sym){
                     case SDLK_TAB:
                         {
-                            if(focus() && m_tabCB){
+                            if(m_tabCB){
                                 m_tabCB();
-                                return true;
                             }
-                            return false;
+                            return true;
                         }
                     case SDLK_RETURN:
                         {
-                            if(focus() && m_returnCB){
+                            if(m_returnCB){
                                 m_returnCB();
-                                return true;
                             }
-                            return false;
+                            return true;
                         }
                     case SDLK_LEFT:
                         {
                             m_cursor = std::max<int>(0, m_cursor - 1);
-                            return false;
+                            m_cursorBlink = 0.0;
+                            return true;
                         }
                     case SDLK_RIGHT:
                         {
@@ -62,7 +66,8 @@ bool inputLine::processEvent(const SDL_Event &event, bool valid)
                             else{
                                 m_cursor = std::min<int>(m_tpset.lineTokenCount(0), m_cursor + 1);
                             }
-                            return false;
+                            m_cursorBlink = 0.0;
+                            return true;
                         }
                     case SDLK_BACKSPACE:
                         {
@@ -70,6 +75,7 @@ bool inputLine::processEvent(const SDL_Event &event, bool valid)
                                 m_tpset.deleteToken(m_cursor - 1, 0, 1);
                                 m_cursor--;
                             }
+                            m_cursorBlink = 0.0;
                             return true;
                         }
                     default:
@@ -79,6 +85,7 @@ bool inputLine::processEvent(const SDL_Event &event, bool valid)
                                 const char text[] {keyChar, '\0'};
                                 m_tpset.insertUTF8String(m_cursor++, 0, text);
                             }
+                            m_cursorBlink = 0.0;
                             return true;
                         }
                 }
@@ -99,7 +106,6 @@ bool inputLine::processEvent(const SDL_Event &event, bool valid)
                 }
 
                 m_cursor = cursorX;
-
                 focus(true);
                 return true;
             }
@@ -112,10 +118,17 @@ bool inputLine::processEvent(const SDL_Event &event, bool valid)
 
 void inputLine::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int srcH)
 {
+    int srcCropX = srcX;
+    int srcCropY = srcY;
+    int srcCropW = srcW;
+    int srcCropH = srcH;
+    int dstCropX = dstX;
+    int dstCropY = dstY;
+
     const auto needDraw = MathFunc::ROICrop(
-            &srcX, &srcY,
-            &srcW, &srcH,
-            &dstX, &dstY,
+            &srcCropX, &srcCropY,
+            &srcCropW, &srcCropH,
+            &dstCropX, &dstCropY,
 
             W(),
             H(),
@@ -125,11 +138,18 @@ void inputLine::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int src
     if(!needDraw){
         return;
     }
+    m_tpset.drawEx(dstCropX, dstCropY, srcCropX - m_tpsetX, srcCropY - m_tpsetY, srcCropW, srcCropH);
 
-    m_tpset.drawEx(dstX, dstY, srcX - m_tpsetX, srcY - m_tpsetY, srcW, srcH);
+    if(std::fmod(m_cursorBlink, 1000.0) > 500.0){
+        return;
+    }
 
-    const int cursorY = Y() + m_tpsetY;
-    const int cursorX = X() + m_tpsetX + [this]()
+    if(!focus()){
+        return;
+    }
+
+    int cursorY = Y() + m_tpsetY;
+    int cursorX = X() + m_tpsetX + [this]()
     {
         if(m_tpset.empty() || m_cursor == 0){
             return 0;
@@ -146,7 +166,9 @@ void inputLine::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int src
     int cursorW = m_cursorWidth;
     int cursorH = m_tpset.ph();
 
-    g_SDLDevice->FillRectangle(m_cursorColor + 128, cursorX, cursorY, cursorW, cursorH);
+    if(MathFunc::RectangleOverlapRegion(dstX, dstY, srcW, srcH, &cursorX, &cursorY, &cursorW, &cursorH)){
+        g_SDLDevice->FillRectangle(m_cursorColor + 128, cursorX, cursorY, cursorW, cursorH);
+    }
 }
 
 std::string inputLine::getString() const
