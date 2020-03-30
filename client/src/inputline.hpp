@@ -92,5 +92,8 @@ class inputLine: public widget
         }
 
     public:
-        std::string getString() const;
+        std::string getRawString() const
+        {
+            return m_tpset.getRawString();
+        }
 };

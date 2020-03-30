@@ -478,3 +478,27 @@ void XMLParagraph::deleteToken(int leaf, int leafOff)
             }
     }
 }
+
+std::string XMLParagraph::getRawString() const
+{
+    std::string rawString;
+    for(const auto &leaf: m_leafList){
+        switch(leaf.Type()){
+            case LEAF_UTF8GROUP:
+                {
+                    rawString += leaf.xmlNode()->Value();
+                    break;
+                }
+            case LEAF_EMOJI:
+            case LEAF_IMAGE:
+                {
+                    break;
+                }
+            default:
+                {
+                    throw fflerror("invalid leaf node type");
+                }
+        }
+    }
+    return rawString;
+}

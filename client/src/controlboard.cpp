@@ -529,7 +529,7 @@ bool controlBoard::processEvent(const SDL_Event &event, bool valid)
 void controlBoard::inputLineDone()
 {
     std::string szRealInput;
-    std::string szFullInput = m_cmdLine.getString();
+    std::string szFullInput = m_cmdLine.getRawString();
 
     auto nInputPos = szFullInput.find_first_not_of(" \n\r\t");
     szRealInput = (nInputPos == std::string::npos) ? "" : szFullInput.substr(nInputPos);

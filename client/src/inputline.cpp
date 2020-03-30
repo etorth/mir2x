@@ -176,8 +176,3 @@ void inputLine::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int src
         g_SDLDevice->FillRectangle(m_cursorColor + 128, cursorX, cursorY, cursorW, cursorH);
     }
 }
-
-std::string inputLine::getString() const
-{
-    return "12";
-}

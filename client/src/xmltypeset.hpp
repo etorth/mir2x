@@ -432,4 +432,10 @@ class XMLTypeset // means XMLParagraph typeset
         {
             return 0;
         }
+
+    public:
+        std::string getRawString() const
+        {
+            return m_paragraph.getRawString();
+        }
 };

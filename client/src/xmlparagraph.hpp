@@ -160,4 +160,7 @@ class XMLParagraph
             m_leafList.clear();
             m_XMLDocument.Clear();
         }
+
+    public:
+        std::string getRawString() const;
 };
