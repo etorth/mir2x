@@ -182,12 +182,15 @@ controlBoard::controlBoard(int nX, int nY, int nW, ProcessRun *pRun, widget *pwi
     , m_cmdLine
       {
           185,
-          108,
+          107,
           343 + (nW - 800),
-          15,
+          17,
 
-          2,
-          15,
+          // 2,
+          // 15,
+          1,
+          12,
+
           0,
           ColorFunc::WHITE,
 
