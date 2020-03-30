@@ -470,6 +470,7 @@ void controlBoard::drawMiddleExpand()
 
     m_buttonSwitchMode.draw();
     m_level.draw();
+    m_cmdLine.draw();
 }
 
 void controlBoard::drawEx(int, int, int, int, int, int)
