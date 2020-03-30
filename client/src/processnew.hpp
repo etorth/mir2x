@@ -70,12 +70,12 @@ class ProcessNew: public Process
         };
 
     private:
-        const int m_W;
-        const int m_H;
+        const int m_w;
+        const int m_h;
 
     private:
-        const int m_X;
-        const int m_Y;
+        const int m_x;
+        const int m_y;
 
     private:
         int m_CheckID;

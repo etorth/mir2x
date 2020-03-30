@@ -557,7 +557,7 @@ void ProcessRun::Draw()
     {
         const int x = 0;
         const int y = 0;
-        const int w = std::max<int>(g_debugBoard->PW(), 200);
+        const int w = std::max<int>(g_debugBoard->pw(), 200);
         const int h = g_debugBoard->H();
 
         {

@@ -34,8 +34,8 @@ class IndepMagic: public MagicBase
         int m_Direction;
 
     private:
-        int m_X;
-        int m_Y;
+        int m_x;
+        int m_y;
 
     private:
         int m_AimX;
@@ -95,12 +95,12 @@ class IndepMagic: public MagicBase
     public:
         int X() const
         {
-            return m_X;
+            return m_x;
         }
 
         int Y() const
         {
-            return m_Y;
+            return m_y;
         }
 
         int AimX() const

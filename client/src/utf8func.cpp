@@ -22,6 +22,7 @@
 #include <stdexcept>
 #include "strfunc.hpp"
 #include "utf8func.hpp"
+#include "fflerror.hpp"
 
 uint32_t UTF8Func::peekUTF8Code(const char *szUTF8String)
 {
@@ -55,26 +56,26 @@ uint32_t UTF8Func::peekUTF8Code(const char *szUTF8String)
     return nUTF8Key;
 }
 
-std::vector<int> UTF8Func::buildUTF8Off(const char *szUTF8String)
+std::vector<int> UTF8Func::buildUTF8Off(const char *utf8String)
 {
-    if(!szUTF8String){
-        throw std::invalid_argument(str_fflprintf(": Invalid argument: (nullptr)"));
+    if(!utf8String){
+        throw fflerror("null utf8String");
     }
 
-    auto nStrLen = std::strlen(szUTF8String);
-    if(nStrLen == 0){
+    const auto strLen = std::strlen(utf8String);
+    if(strLen == 0){
         return {};
     }
 
-    std::vector<int> stvOff;
+    std::vector<int> off;
 
-    const char *pszCurr = szUTF8String;
-    const char *pszEnd  = szUTF8String + nStrLen;
+    const char *pszCurr = utf8String;
+    const char *pszEnd  = utf8String + strLen;
 
-    stvOff.reserve(nStrLen);
+    off.reserve(strLen);
     for(; pszCurr < pszEnd; utf8::advance(pszCurr, 1, pszEnd)){
-        stvOff.push_back(pszCurr - szUTF8String);
+        off.push_back(pszCurr - utf8String);
     }
 
-    return stvOff;
+    return off;
 }

@@ -52,7 +52,7 @@ struct PackBin
 class Pack2D
 {
     private:
-        const size_t m_W;
+        const size_t m_w;
 
     private:
         std::vector<int> m_PackMap;
@@ -66,14 +66,14 @@ class Pack2D
 
         size_t W() const
         {
-            return m_W;
+            return m_w;
         }
 
     public:
         Pack2D(size_t nW)
-            : m_W(nW)
+            : m_w(nW)
         {
-            condcheck(m_W < sizeof(decltype(m_PackMap)::value_type) * 8);
+            condcheck(m_w < sizeof(decltype(m_PackMap)::value_type) * 8);
         }
 
     public:

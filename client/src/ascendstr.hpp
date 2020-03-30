@@ -34,8 +34,8 @@ class AscendStr
         int m_Value;
 
     private:
-        int m_X;
-        int m_Y;
+        int m_x;
+        int m_y;
 
     private:
         double m_Tick;
@@ -57,12 +57,12 @@ class AscendStr
     private:
         int X() const
         {
-            return m_X + (int)(std::lround(Ratio() * 50.0));
+            return m_x + (int)(std::lround(Ratio() * 50.0));
         }
 
         int Y() const
         {
-            return m_Y - (int)(std::lround(Ratio() * 50.0));
+            return m_y - (int)(std::lround(Ratio() * 50.0));
         }
 
     private:

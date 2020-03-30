@@ -391,18 +391,18 @@ void InputBoard::Draw()
     if(m_DrawOwnSystemCursor){
         g_SDLDevice->PushColor(200, 200, 200, 200);
         g_SDLDevice->DrawLine(
-                m_SystemCursorX, m_SystemCursorY - m_H / 2,
-                m_SystemCursorX, m_SystemCursorY + m_H / 2);
+                m_SystemCursorX, m_SystemCursorY - m_h / 2,
+                m_SystemCursorX, m_SystemCursorY + m_h / 2);
         g_SDLDevice->DrawLine(
-                m_SystemCursorX - (std::max<int>)(1, (int)std::lround(m_H * 0.08)),
-                m_SystemCursorY - m_H / 2,
-                m_SystemCursorX + (std::max<int>)(1, (int)std::lround(m_H * 0.08)),
-                m_SystemCursorY - m_H / 2);
+                m_SystemCursorX - (std::max<int>)(1, (int)std::lround(m_h * 0.08)),
+                m_SystemCursorY - m_h / 2,
+                m_SystemCursorX + (std::max<int>)(1, (int)std::lround(m_h * 0.08)),
+                m_SystemCursorY - m_h / 2);
         g_SDLDevice->DrawLine(
-                m_SystemCursorX - (std::max<int>)(1, (int)std::lround(m_H * 0.08)),
-                m_SystemCursorY + m_H / 2,
-                m_SystemCursorX + (std::max<int>)(1, (int)std::lround(m_H * 0.08)),
-                m_SystemCursorY + m_H / 2);
+                m_SystemCursorX - (std::max<int>)(1, (int)std::lround(m_h * 0.08)),
+                m_SystemCursorY + m_h / 2,
+                m_SystemCursorX + (std::max<int>)(1, (int)std::lround(m_h * 0.08)),
+                m_SystemCursorY + m_h / 2);
         g_SDLDevice->PopColor();
     }
 

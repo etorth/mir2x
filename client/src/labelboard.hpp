@@ -30,7 +30,7 @@
 class labelBoard: public widget
 {
     private:
-        XMLTypeset m_Board;
+        XMLTypeset m_tpset;
 
     public:
         labelBoard(
@@ -44,7 +44,7 @@ class labelBoard: public widget
                 widget     *pwidget     =  nullptr,
                 bool        bAutoDelete =  false)
             : widget(x, y, 0, 0, pwidget, bAutoDelete)
-            , m_Board
+            , m_tpset
               {
                   0,
                   LALIGN_LEFT,
@@ -64,7 +64,7 @@ class labelBoard: public widget
     public:
         void loadXML(const char *szXMLString)
         {
-            m_Board.loadXML(szXMLString);
+            m_tpset.loadXML(szXMLString);
         }
 
     public:
@@ -73,45 +73,45 @@ class labelBoard: public widget
     public:
         std::string GetText(bool bTextOnly) const
         {
-            return m_Board.GetText(bTextOnly);
+            return m_tpset.GetText(bTextOnly);
         }
 
     public:
         void SetFont(uint8_t nFont)
         {
-            m_Board.SetDefaultFont(nFont);
+            m_tpset.SetDefaultFont(nFont);
         }
 
         void SetFontSize(uint8_t nFontSize)
         {
-            m_Board.SetDefaultFontSize(nFontSize);
+            m_tpset.SetDefaultFontSize(nFontSize);
         }
 
         void SetFontStyle(uint8_t nFontStyle)
         {
-            m_Board.SetDefaultFontStyle(nFontStyle);
+            m_tpset.SetDefaultFontStyle(nFontStyle);
         }
 
         void SetFontColor(uint32_t nFontColor)
         {
-            m_Board.SetDefaultFontColor(nFontColor);
+            m_tpset.SetDefaultFontColor(nFontColor);
         }
 
     public:
-        void Clear()
+        void clear()
         {
-            m_Board.Clear();
+            m_tpset.clear();
         }
 
     public:
         std::string PrintXML() const
         {
-            return m_Board.PrintXML();
+            return m_tpset.PrintXML();
         }
 
     public:
         void drawEx(int nDstX, int nDstY, int nSrcX, int nSrcY, int nW, int nH)
         {
-            m_Board.drawEx(nDstX, nDstY, nSrcX, nSrcY, nW, nH);
+            m_tpset.drawEx(nDstX, nDstY, nSrcX, nSrcY, nW, nH);
         }
 };

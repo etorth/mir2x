@@ -23,14 +23,14 @@
 class InvPack
 {
     private:
-        const size_t m_W;
+        const size_t m_w;
 
     private:
         std::vector<PackBin> m_PackBinList;
 
     public:
         InvPack(size_t nW = SYS_INVGRIDW)
-            : m_W(nW)
+            : m_w(nW)
             , m_PackBinList()
         {}
 
@@ -43,7 +43,7 @@ class InvPack
     public:
         size_t W() const
         {
-            return m_W;
+            return m_w;
         }
 
     public:

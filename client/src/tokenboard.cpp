@@ -878,14 +878,14 @@ void TokenBoard::ResetLine(int nLine)
     // if shorter we recompute the board width
 
     int nWidth = LineFullWidth(nLine);
-    if(m_W < nWidth + m_Margin[1] + m_Margin[3]){
-        m_W = nWidth + m_Margin[1] + m_Margin[3];
+    if(m_w < nWidth + m_Margin[1] + m_Margin[3]){
+        m_w = nWidth + m_Margin[1] + m_Margin[3];
     }else{
-        m_W = 0;
+        m_w = 0;
         for(int nIndex = 0; nIndex < (int)(m_LineV.size()); ++nIndex){
-            m_W = (std::max<int>)(m_W, LineFullWidth(nIndex));
+            m_w = (std::max<int>)(m_w, LineFullWidth(nIndex));
         }
-        m_W += (m_Margin[1] + m_Margin[3]);
+        m_w += (m_Margin[1] + m_Margin[3]);
     }
 
     // without StartX we can't calculate StartY
@@ -913,7 +913,7 @@ void TokenBoard::ResetLine(int nLine)
         }else{
             int nOldStartY = m_LineV[nRestLine].StartY;
             m_LineV[nRestLine].StartY = GetNewLineStartY(nRestLine);
-            if(LineFullWidth(nRestLine) + (m_Margin[1] + m_Margin[3]) == m_W){
+            if(LineFullWidth(nRestLine) + (m_Margin[1] + m_Margin[3]) == m_w){
                 nTrickOn = 1;
                 nDStartY = m_LineV[nRestLine].StartY - nOldStartY;
             }
@@ -923,7 +923,7 @@ void TokenBoard::ResetLine(int nLine)
         nRestLine++;
     }
 
-    m_H = GetNewHBasedOnLastLine();
+    m_h = GetNewHBasedOnLastLine();
 }
 
 void TokenBoard::TokenBoxGetMouseButtonUp(int nX, int nY, bool bFirstHalf)
@@ -1542,7 +1542,7 @@ bool TokenBoard::AddTokenBoxLine(const std::vector<TOKENBOX> &rstTBV)
     }
 
     if(nCount == 0){
-        g_Log->AddLog(LOGTYPE_WARNING, "Big token box for current board: Token::W = %d, PW = %d", m_LineV[nY].Content[0].Cache.W, m_MaxLineWidth);
+        g_Log->AddLog(LOGTYPE_WARNING, "Big token box for current board: Token::W = %d, pw = %d", m_LineV[nY].Content[0].Cache.W, m_MaxLineWidth);
         return false;
     }
 
@@ -1701,7 +1701,7 @@ bool TokenBoard::Delete(bool bSelectedOnly)
         }else{
             // ok there is no line nY0 any more
             // we should reset the height of the board
-            m_H = GetNewHBasedOnLastLine();
+            m_h = GetNewHBasedOnLastLine();
         }
 
         // 3. reset the cursor and return
@@ -1785,7 +1785,7 @@ bool TokenBoard::Delete(bool bSelectedOnly)
                 ResetLineStartY(nY0);
             }else{
                 // else don't for reset H
-                m_H = GetNewHBasedOnLastLine();
+                m_h = GetNewHBasedOnLastLine();
             }
 
             // reset the cursor to the last line
@@ -1848,12 +1848,12 @@ void TokenBoard::Reset()
     m_SelectRecord  .clear();
 
     if(m_MaxLineWidth > 0){
-        m_W = m_Margin[1] + m_MaxLineWidth + m_Margin[3];
+        m_w = m_Margin[1] + m_MaxLineWidth + m_Margin[3];
     }else{
-        m_W = 0;
+        m_w = 0;
     }
 
-    m_H           = 0;
+    m_h           = 0;
     m_SelectState = 0;
     m_SkipEvent   = false;
     m_SkipUpdate  = false;
@@ -2011,7 +2011,7 @@ void TokenBoard::ResetLineStartY(int nStartLine)
     }
 
     // don't forget to update the height
-    m_H = GetNewHBasedOnLastLine();
+    m_h = GetNewHBasedOnLastLine();
 }
 
 // insert an utf-8 char box to current section
@@ -2475,7 +2475,7 @@ int TokenBoard::GetNewHBasedOnLastLine()
         return m_Margin[0] + m_Margin[2];
     }
 
-    return m_LineV.back().StartY + 1 + (m_LineV.back().Content.empty() ? 0 : GetLineIntervalMaxH2(m_LineV.size() - 1, 0, m_W)) + m_Margin[2];
+    return m_LineV.back().StartY + 1 + (m_LineV.back().Content.empty() ? 0 : GetLineIntervalMaxH2(m_LineV.size() - 1, 0, m_w)) + m_Margin[2];
 }
 
 bool TokenBoard::BreakLine()

@@ -89,8 +89,8 @@ class TritexButton: public ButtonBase
 
             // we allow buttons without any valid texture, in that case some extra work
             // can be done for special drawing
-            m_W = nW;
-            m_H = nH;
+            m_w = nW;
+            m_h = nH;
         }
 
         // use one specified texture ID

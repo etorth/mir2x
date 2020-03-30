@@ -57,7 +57,7 @@ void XMLLayout::addPar(int loc, const std::array<int, 4> &margin, const tinyxml2
     const int lineWidth = [elemNode, this]()
     {
         const int defMargin = m_margin[2] + m_margin[3];
-        if(m_W <= defMargin){
+        if(m_w <= defMargin){
             throw fflerror("invalid default line width");
         }
 
@@ -65,7 +65,7 @@ void XMLLayout::addPar(int loc, const std::array<int, 4> &margin, const tinyxml2
         // we won't let it create one-line mode by default
         // user should explicitly note that they want this special mode
 
-        int lineWidth = std::max<int>(m_W - defMargin, 1);
+        int lineWidth = std::max<int>(m_w - defMargin, 1);
         elemNode->QueryIntAttribute("lineWidth", &lineWidth);
         return lineWidth;
     }();
@@ -159,10 +159,10 @@ void XMLLayout::addPar(int loc, const std::array<int, 4> &margin, const tinyxml2
     }
     else{
         const auto prevNode = std::prev(pInsert);
-        pInsert->startY = prevNode->startY + prevNode->margin[0] + prevNode->margin[1] + prevNode->tpset->PH();
+        pInsert->startY = prevNode->startY + prevNode->margin[0] + prevNode->margin[1] + prevNode->tpset->ph();
     }
 
-    const int extraH = pInsert->tpset->PH() + pInsert->margin[0] + pInsert->margin[1];
+    const int extraH = pInsert->tpset->ph() + pInsert->margin[0] + pInsert->margin[1];
     for(auto p = std::next(pInsert); p != m_parNodeList.end(); ++p){
         p->startY += extraH;
     }
@@ -186,7 +186,7 @@ void XMLLayout::drawEx(int dstX, int dstY, int srcX, int srcY, int w, int h)
                     W(),
                     H(),
 
-                    0, node.startY, node.tpset->PW(), node.tpset->PH(), 0, 0, -1, -1)){
+                    0, node.startY, node.tpset->pw(), node.tpset->ph(), 0, 0, -1, -1)){
             continue;
         }
 
@@ -194,11 +194,11 @@ void XMLLayout::drawEx(int dstX, int dstY, int srcX, int srcY, int w, int h)
     }
 }
 
-int XMLLayout::PW()
+int XMLLayout::pw()
 {
     int maxW = 0;
     for(const auto &node: m_parNodeList){
-        maxW = std::max<int>(maxW, node.tpset->PW());
+        maxW = std::max<int>(maxW, node.tpset->pw());
     }
     return maxW;
 }

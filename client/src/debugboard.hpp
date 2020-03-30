@@ -84,12 +84,12 @@ class debugBoard: public widget
         void Clear()
         {
             m_BoardList.clear();
-            m_W = 0;
-            m_H = 0;
+            m_w = 0;
+            m_h = 0;
         }
 
     public:
-        int PW();
+        int pw();
 
     public:
         void drawEx(int, int, int, int, int, int);

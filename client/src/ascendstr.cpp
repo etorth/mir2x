@@ -28,8 +28,8 @@ extern SDLDevice *g_SDLDevice;
 AscendStr::AscendStr(int nType, int nValue, int nX, int nY)
     : m_Type(nType)
     , m_Value(nValue)
-    , m_X(nX)
-    , m_Y(nY)
+    , m_x(nX)
+    , m_y(nY)
     , m_Tick(0.0)
 {
     switch(m_Type){

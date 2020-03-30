@@ -36,16 +36,16 @@ extern NotifyBoard *g_NotifyBoard;
 
 ProcessNew::ProcessNew()
 	: Process()
-    , m_W(400)
-    , m_H(300)
+    , m_w(400)
+    , m_h(300)
 
-    , m_X([this]() -> int
+    , m_x([this]() -> int
       {
-          return (g_SDLDevice->WindowW(false) - m_W) / 2;
+          return (g_SDLDevice->WindowW(false) - m_w) / 2;
       }())
-    , m_Y([this]() -> int
+    , m_y([this]() -> int
       {
-          return (g_SDLDevice->WindowH(false) - m_H) / 2;
+          return (g_SDLDevice->WindowH(false) - m_h) / 2;
       }())
 
     , m_CheckID(true)
@@ -279,7 +279,7 @@ void ProcessNew::CheckInput()
 
     if(CacheFind(true, szID)){
         m_CheckID = CHECK_OK;
-        m_LBCheckID.Clear();
+        m_LBCheckID.clear();
     }else if(CacheFind(false, szID)){
         m_CheckID = CHECK_ERROR;
         m_LBCheckID.SetFontColor(ColorFunc::RED);
@@ -305,7 +305,7 @@ void ProcessNew::CheckInput()
     }else{
         if(LocalCheckPwd(szPwd.c_str())){
             m_CheckPwd = CHECK_OK;
-            m_LBCheckPwd.Clear();
+            m_LBCheckPwd.clear();
         }else{
             m_CheckPwd = CHECK_ERROR;
             m_LBCheckPwd.SetFontColor(ColorFunc::RED);
@@ -318,7 +318,7 @@ void ProcessNew::CheckInput()
     }else{
         if(szPwdConfirm == szPwd){
             m_CheckPwdConfirm = CHECK_OK;
-            m_LBCheckPwdConfirm.Clear();
+            m_LBCheckPwdConfirm.clear();
         }else{
             m_CheckPwdConfirm = CHECK_ERROR;
             m_LBCheckPwdConfirm.SetFontColor(ColorFunc::RED);

@@ -26,8 +26,8 @@ void layoutBoard::loadXML(const char *xmlString)
     }
     m_layout.loadXML(xmlString);
 
-    m_W = m_layout.W();
-    m_H = m_layout.H();
+    m_w = m_layout.W();
+    m_h = m_layout.H();
 }
 
 void layoutBoard::addParXML(int loc, const std::array<int, 4> &margin, const char *xmlString)
@@ -38,6 +38,6 @@ void layoutBoard::addParXML(int loc, const std::array<int, 4> &margin, const cha
     }
 
     m_layout.addPar(loc, margin, xmlDoc.RootElement());
-    m_W = m_layout.W();
-    m_H = m_layout.H();
+    m_w = m_layout.W();
+    m_h = m_layout.H();
 }

@@ -55,23 +55,32 @@ class XMLParagraph
         }
 
     public:
-        bool LeafValid(int nLeaf) const
+        bool leafValid(int leaf) const
         {
-            return nLeaf >= 0 && nLeaf < leafCount();
+            return leaf >= 0 && leaf < leafCount();
         }
 
     public:
-        const auto &leafRef(int nLeaf) const
+        const auto &leafRef(int leaf) const
         {
-            if(!LeafValid(nLeaf)){
-                throw std::invalid_argument(str_fflprintf(": Invalid leaf index: %zu", nLeaf));
+            if(!leafValid(leaf)){
+                throw fflerror("invalid leaf index: %d", leaf);
             }
-            return m_leafList[nLeaf];
+            return m_leafList[leaf];
         }
 
-        auto &leafRef(int nLeaf)
+        auto &leafRef(int leaf)
         {
-            return const_cast<XMLParagraphLeaf &>(static_cast<const XMLParagraph *>(this)->leafRef(nLeaf));
+            return const_cast<XMLParagraphLeaf &>(static_cast<const XMLParagraph *>(this)->leafRef(leaf));
+        }
+
+    public:
+        bool leafOffValid(int leaf, int leafOff) const
+        {
+            if(!leafValid(leaf)){
+                return false;
+            }
+            return leafOff >= 0 && leafOff < leafRef(leaf).length();
         }
 
     public:
@@ -131,11 +140,12 @@ class XMLParagraph
         }
 
     public:
-        void Delete(int, int, int);
+        void deleteToken(int, int, int);
+        void deleteToken(int, int);
 
     public:
-        void DeleteLeaf(int);
-        void DeleteUTF8Char(int, int, int);
+        void deleteLeaf(int);
+        void deleteUTF8Char(int, int, int);
 
     public:
         std::tuple<int, int, int> PrevLeafOff(int, int, int) const;

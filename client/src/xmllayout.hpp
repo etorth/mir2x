@@ -42,7 +42,7 @@ class XMLLayout
         std::list<parNode> m_parNodeList;
 
     private:
-        int m_W;
+        int m_w;
 
     private:
         std::array<int, 4> m_margin;
@@ -77,7 +77,7 @@ class XMLLayout
                 int                lineAlign  =  LALIGN_LEFT,
                 int                lineSpace  =  0,
                 int                wordSpace  =  0)
-            : m_W(w)
+            : m_w(w)
             , m_margin(margin)
             , m_canThrough(canThrough)
             , m_font(font)
@@ -88,7 +88,7 @@ class XMLLayout
             , m_lineSpace(lineSpace)
             , m_wordSpace(wordSpace)
         {
-            if(m_W <= m_margin[2] + m_margin[3]){
+            if(m_w <= m_margin[2] + m_margin[3]){
                 throw fflerror("default margin takes all room of width");
             }
         }
@@ -127,7 +127,7 @@ class XMLLayout
         }
 
     public:
-        int PW();
+        int pw();
 
     public:
         void drawEx(int, int, int, int, int, int);
@@ -155,7 +155,7 @@ class XMLLayout
     public:
         int W() const
         {
-            return m_W;
+            return m_w;
         }
 
         int H() const
@@ -165,7 +165,7 @@ class XMLLayout
             }
 
             const auto &backNode = m_parNodeList.back();
-            return backNode.startY + backNode.margin[0] + backNode.margin[1] + backNode.tpset->PH();
+            return backNode.startY + backNode.margin[0] + backNode.margin[1] + backNode.tpset->ph();
         }
 
     private:

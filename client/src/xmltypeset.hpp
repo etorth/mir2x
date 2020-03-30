@@ -54,10 +54,10 @@ class XMLTypeset // means XMLParagraph typeset
         uint32_t m_fontColor;
 
     private:
-        int m_PX;
-        int m_PY;
-        int m_PW;
-        int m_PH;
+        int m_px;
+        int m_py;
+        int m_pw;
+        int m_ph;
 
     private:
         XMLParagraph m_paragraph;
@@ -88,10 +88,10 @@ class XMLTypeset // means XMLParagraph typeset
             , m_fontSize(nDefaultFontSize)
             , m_fontStyle(nDefaultFontStyle)
             , m_fontColor(nDefaultFontColor)
-            , m_PX(0)
-            , m_PY(0)
-            , m_PW(0)
-            , m_PH(0)
+            , m_px(0)
+            , m_py(0)
+            , m_pw(0)
+            , m_ph(0)
             , m_paragraph()
             , m_lineList()
         {
@@ -115,7 +115,7 @@ class XMLTypeset // means XMLParagraph typeset
     public:
         void loadXML(const char *szXMLString)
         {
-            Clear();
+            clear();
             m_paragraph.loadXML(szXMLString);
 
             if(m_paragraph.leafCount() > 0){
@@ -125,7 +125,7 @@ class XMLTypeset // means XMLParagraph typeset
 
         void loadXMLNode(const tinyxml2::XMLNode *node)
         {
-            Clear();
+            clear();
             m_paragraph.loadXMLNode(node);
 
             if(m_paragraph.leafCount() > 0){
@@ -134,12 +134,12 @@ class XMLTypeset // means XMLParagraph typeset
         }
 
     public:
-        void Clear()
+        void clear()
         {
-            m_PX = 0;
-            m_PY = 0;
-            m_PW = 0;
-            m_PH = 0;
+            m_px = 0;
+            m_py = 0;
+            m_pw = 0;
+            m_ph = 0;
             m_lineList.clear();
         }
 
@@ -223,7 +223,7 @@ class XMLTypeset // means XMLParagraph typeset
         void Break(int, int);
 
     public:
-        void Delete(int, int, int);
+        void deleteToken(int, int, int);
 
     public:
         int leafCount() const
@@ -376,24 +376,24 @@ class XMLTypeset // means XMLParagraph typeset
         int LineReachMinY(int) const;
 
     public:
-        int PX() const
+        int px() const
         {
-            return m_PX;
+            return m_px;
         }
 
-        int PY() const
+        int py() const
         {
-            return m_PY;
+            return m_py;
         }
 
-        int PW() const
+        int pw() const
         {
-            return m_PW;
+            return m_pw;
         }
 
-        int PH() const
+        int ph() const
         {
-            return m_PH;
+            return m_ph;
         }
 
     public:

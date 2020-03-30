@@ -46,10 +46,10 @@ void labelBoard::setText(const char * szFormatString, ...)
         g_Log->AddLog(LOGTYPE_WARNING, "%s", szText.c_str());
     }
 
-    // use the fallback values of m_Board
+    // use the fallback values of m_tpset
     // don't need to specify the font/size/style info here
-    m_Board.loadXML(str_printf("<par>%s</par>", szText.c_str()).c_str());
+    m_tpset.loadXML(str_printf("<par>%s</par>", szText.c_str()).c_str());
 
-    m_W = m_Board.PX() + m_Board.PW();
-    m_H = m_Board.PY() + m_Board.PH();
+    m_w = m_tpset.px() + m_tpset.pw();
+    m_h = m_tpset.py() + m_tpset.ph();
 }

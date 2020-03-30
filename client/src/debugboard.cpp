@@ -58,11 +58,11 @@ void debugBoard::addLog(const char * formatString, ...)
     const auto xmlString = str_printf("<par>%s</par>", text.c_str());
     m_BoardList.back()->loadXML(xmlString.c_str());
 
-    m_W = m_LineW;
-    m_H = 0;
+    m_w = m_LineW;
+    m_h = 0;
 
     for(const auto &ptr: m_BoardList){
-        m_H += ptr->PH();
+        m_h += ptr->ph();
     }
 }
 
@@ -89,20 +89,20 @@ void debugBoard::drawEx(int dstX, int dstY, int srcX, int srcY, int w, int h)
                     W(),
                     H(),
 
-                    0, startY, p->PW(), p->PH(), 0, 0, -1, -1)){
+                    0, startY, p->pw(), p->ph(), 0, 0, -1, -1)){
             break;
         }
 
         p->drawEx(dstXCrop, dstYCrop, srcXCrop - startX, srcYCrop - startY, srcWCrop, srcHCrop);
-        startY += p->PH();
+        startY += p->ph();
     }
 }
 
-int debugBoard::PW()
+int debugBoard::pw()
 {
     int maxW = 0;
     for(const auto &ptr: m_BoardList){
-        maxW = std::max<int>(maxW, ptr->PW());
+        maxW = std::max<int>(maxW, ptr->pw());
     }
     return maxW;
 }

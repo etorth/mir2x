@@ -43,12 +43,12 @@ class widget
         bool m_focus;
 
     private:
-        int m_X;
-        int m_Y;
+        int m_x;
+        int m_y;
 
     protected:
-        int m_W;
-        int m_H;
+        int m_w;
+        int m_h;
 
     protected:
         std::vector<childNode> m_childList;
@@ -58,10 +58,10 @@ class widget
             : m_parent(pParent)
             , m_show(true)
             , m_focus(false)
-            , m_X(nX)
-            , m_Y(nY)
-            , m_W(nW)
-            , m_H(nH)
+            , m_x(nX)
+            , m_y(nY)
+            , m_w(nW)
+            , m_h(nH)
         {
             if(m_parent){
                 m_parent->m_childList.emplace_back(this, bAutoDelete);
@@ -94,10 +94,12 @@ class widget
                             int,        // size to draw
                             int) = 0;   // size to draw
 
-        virtual void Update(double)
+    public:
+        virtual void Update(double ms)
         {
-            // widget supports update
-            // but not every widget should update
+            for(auto &node: m_childList){
+                node.child->Update(ms);
+            }
         }
 
     public:
@@ -117,29 +119,29 @@ class widget
         int X() const
         {
             if(m_parent){
-                return m_parent->X() + m_X;
+                return m_parent->X() + m_x;
             }else{
-                return m_X;
+                return m_x;
             }
         }
 
         int Y() const
         {
             if(m_parent){
-                return m_parent->Y() + m_Y;
+                return m_parent->Y() + m_y;
             }else{
-                return m_Y;
+                return m_y;
             }
         }
 
         int W() const
         {
-            return m_W;
+            return m_w;
         }
 
         int H() const
         {
-            return m_H;
+            return m_h;
         }
 
     public:
@@ -173,13 +175,13 @@ class widget
     public:
         void moveBy(int nDX, int nDY)
         {
-            m_X += nDX;
-            m_Y += nDY;
+            m_x += nDX;
+            m_y += nDY;
         }
 
         void moveTo(int nX, int nY)
         {
-            m_X = nX;
-            m_Y = nY;
+            m_x = nX;
+            m_y = nY;
         }
 };

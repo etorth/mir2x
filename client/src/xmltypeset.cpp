@@ -516,7 +516,7 @@ void XMLTypeset::SetLineTokenStartY(int nLine)
 
 void XMLTypeset::checkDefaultFont() const
 {
-    const uint64_t u64key = UTF8Func::BuildU64Key(m_font, m_fontSize, 0, UTF8Func::peekUTF8Code("0"));
+    const uint64_t u64key = UTF8Func::buildU64Key(m_font, m_fontSize, 0, UTF8Func::peekUTF8Code("0"));
     if(!g_FontexDB->Retrieve(u64key)){
         throw fflerror("invalid default font: font = %d, fontsize = %d", (int)(m_font), (int)(m_fontSize));
     }
@@ -526,7 +526,7 @@ TOKEN XMLTypeset::BuildUTF8Token(int nLeaf, uint8_t nFont, uint8_t nFontSize, ui
 {
     TOKEN stToken;
     std::memset(&(stToken), 0, sizeof(stToken));
-    auto nU64Key = UTF8Func::BuildU64Key(nFont, nFontSize, nFontStyle, nUTF8Code);
+    auto nU64Key = UTF8Func::buildU64Key(nFont, nFontSize, nFontStyle, nUTF8Code);
 
     stToken.Leaf = nLeaf;
     if(auto pTexture = g_FontexDB->Retrieve(nU64Key)){
@@ -543,12 +543,12 @@ TOKEN XMLTypeset::BuildUTF8Token(int nLeaf, uint8_t nFont, uint8_t nFontSize, ui
         throw std::runtime_error(str_fflprintf(": SDL_QueryTexture(%p) failed", pTexture));
     }
 
-    nU64Key = UTF8Func::BuildU64Key(m_font, m_fontSize, 0, nUTF8Code);
+    nU64Key = UTF8Func::buildU64Key(m_font, m_fontSize, 0, nUTF8Code);
     if(g_FontexDB->Retrieve(nU64Key)){
         throw std::invalid_argument(str_fflprintf(": Can't find texture for UTF8: %" PRIX32, nUTF8Code));
     }
 
-    nU64Key = UTF8Func::BuildU64Key(m_font, m_fontSize, nFontStyle, UTF8Func::peekUTF8Code("0"));
+    nU64Key = UTF8Func::buildU64Key(m_font, m_fontSize, nFontStyle, UTF8Func::peekUTF8Code("0"));
     if(g_FontexDB->Retrieve(nU64Key)){
         throw std::invalid_argument(str_fflprintf(": Invalid font style: %" PRIX8, nFontStyle));
     }
@@ -556,7 +556,7 @@ TOKEN XMLTypeset::BuildUTF8Token(int nLeaf, uint8_t nFont, uint8_t nFontSize, ui
     // invalid font given
     // use system default font, don't fail it
 
-    nU64Key = UTF8Func::BuildU64Key(m_font, m_fontSize, nFontStyle, nUTF8Code);
+    nU64Key = UTF8Func::buildU64Key(m_font, m_fontSize, nFontStyle, nUTF8Code);
     if(auto pTexture = g_FontexDB->Retrieve(nU64Key)){
         int nBoxW = -1;
         int nBoxH = -1;
@@ -721,10 +721,10 @@ std::tuple<int, int> XMLTypeset::leafLocInXMLParagraph(int tokenX, int tokenY) c
 void XMLTypeset::ResetBoardPixelRegion()
 {
     if(!lineCount()){
-        m_PX = 0;
-        m_PY = 0;
-        m_PW = 0;
-        m_PH = 0;
+        m_px = 0;
+        m_py = 0;
+        m_pw = 0;
+        m_ph = 0;
         return;
     }
 
@@ -744,10 +744,10 @@ void XMLTypeset::ResetBoardPixelRegion()
         nMinPY = (std::min<int>)(nMinPY, LineReachMinY(nLine));
     }
 
-    m_PX = nMinPX;
-    m_PY = nMinPY;
-    m_PW = nMaxPX + 1 - nMinPX;
-    m_PH = nMaxPY + 1 - nMinPY;
+    m_px = nMinPX;
+    m_py = nMinPY;
+    m_pw = nMaxPX + 1 - nMinPX;
+    m_ph = nMaxPY + 1 - nMinPY;
 }
 
 std::tuple<int, int> XMLTypeset::PrevTokenLoc(int nX, int nY) const
@@ -784,23 +784,25 @@ std::tuple<int, int> XMLTypeset::NextTokenLoc(int nX, int nY) const
     }
 }
 
-void XMLTypeset::Delete(int nX, int nY, int nTokenCount)
+void XMLTypeset::deleteToken(int x, int y, int tokenCount)
 {
-    if(!tokenLocValid(nX, nY)){
-        throw std::invalid_argument(str_fflprintf(": Invalid location: (X = %d, Y = %d)", nX, nY));
+    if(!tokenLocValid(x, y)){
+        throw fflerror("invalid token location: (%d, %d)", x, y);
     }
 
-    if(nTokenCount == 0){
+    if(tokenCount <= 0){
         return;
     }
 
-    auto [nLeaf, nLeafOff] = leafLocInXMLParagraph(nX, nY);
+    const auto [leaf, leafOff] = leafLocInXMLParagraph(x, y);
+    m_paragraph.deleteToken(leaf, leafOff, tokenCount);
 
-    int nAdvanced = 0;
-    std::tie(std::ignore, std::ignore, nAdvanced) = m_paragraph.NextLeafOff(nLeaf, nLeafOff, nTokenCount);
-
-    m_paragraph.Delete(nLeaf, nLeafOff, nAdvanced);
-    buildTypeset(nX, nY);
+    if(m_paragraph.empty()){
+        clear();
+    }
+    else{
+        buildTypeset(x, y);
+    }
 }
 
 void XMLTypeset::insertUTF8String(int x, int y, const char *text)
@@ -874,7 +876,7 @@ void XMLTypeset::insertUTF8String(int x, int y, const char *text)
 
 void XMLTypeset::drawEx(int nDstX, int nDstY, int nSrcX, int nSrcY, int nSrcW, int nSrcH) const
 {
-    if(!MathFunc::RectangleOverlap<int>(nSrcX, nSrcY, nSrcW, nSrcH, PX(), PY(), PW(), PH())){
+    if(!MathFunc::RectangleOverlap<int>(nSrcX, nSrcY, nSrcW, nSrcH, px(), py(), pw(), ph())){
         return;
     }
 
@@ -1152,7 +1154,7 @@ bool XMLTypeset::locInToken(int xOffPixel, int yOffPixel, const TOKEN *pToken, b
 
 std::tuple<int, int> XMLTypeset::locToken(int xOffPixel, int yOffPixel, bool withPadding) const
 {
-    if(yOffPixel < 0 || yOffPixel >= PH()){
+    if(yOffPixel < 0 || yOffPixel >= ph()){
         return {-1, -1};
     }
 

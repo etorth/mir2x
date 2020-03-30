@@ -18,7 +18,10 @@
 
 #include "mathfunc.hpp"
 #include "inputline.hpp"
+#include "sdldevice.hpp"
 #include "sdlkeychar.hpp"
+
+extern SDLDevice *g_SDLDevice;
 
 bool inputLine::processEvent(const SDL_Event &event, bool valid)
 {
@@ -46,14 +49,36 @@ bool inputLine::processEvent(const SDL_Event &event, bool valid)
                             }
                             return false;
                         }
+                    case SDLK_LEFT:
+                        {
+                            m_cursor = std::max<int>(0, m_cursor - 1);
+                            return false;
+                        }
+                    case SDLK_RIGHT:
+                        {
+                            if(m_tpset.empty()){
+                                m_cursor = 0;
+                            }
+                            else{
+                                m_cursor = std::min<int>(m_tpset.lineTokenCount(0), m_cursor + 1);
+                            }
+                            return false;
+                        }
+                    case SDLK_BACKSPACE:
+                        {
+                            if(m_cursor > 0){
+                                m_tpset.deleteToken(m_cursor - 1, 0, 1);
+                                m_cursor--;
+                            }
+                            return true;
+                        }
                     default:
                         {
-                            const char text[2]
-                            {
-                                sdlKeyChar(event), '\0',
-                            };
-
-                            m_tpset.insertUTF8String(m_cursor++, 0, text);
+                            const char keyChar = sdlKeyChar(event);
+                            if(keyChar != '\0'){
+                                const char text[] {keyChar, '\0'};
+                                m_tpset.insertUTF8String(m_cursor++, 0, text);
+                            }
                             return true;
                         }
                 }
@@ -65,15 +90,15 @@ bool inputLine::processEvent(const SDL_Event &event, bool valid)
                     return false;
                 }
 
-                const int eventX = X() - event.button.x;
-                const int eventY = Y() - event.button.y;
+                const int eventX = event.button.x - X();
+                const int eventY = event.button.y - Y();
 
                 const auto [cursorX, cursorY] = m_tpset.locCursor(eventX, eventY);
                 if(cursorY != 0){
                     throw fflerror("cursor locates at wrong line");
                 }
 
-                m_cursor = cursorY;
+                m_cursor = cursorX;
 
                 focus(true);
                 return true;
@@ -95,12 +120,33 @@ void inputLine::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int src
             W(),
             H(),
 
-            m_tpsetX, m_tpsetY, m_tpset.PW(), m_tpset.PH());
+            m_tpsetX, m_tpsetY, m_tpset.pw(), m_tpset.ph());
 
     if(!needDraw){
         return;
     }
+
     m_tpset.drawEx(dstX, dstY, srcX - m_tpsetX, srcY - m_tpsetY, srcW, srcH);
+
+    const int cursorY = Y() + m_tpsetY;
+    const int cursorX = X() + m_tpsetX + [this]()
+    {
+        if(m_tpset.empty() || m_cursor == 0){
+            return 0;
+        }
+
+        if(m_cursor == m_tpset.lineTokenCount(0)){
+            return m_tpset.pw();
+        }
+
+        const auto pToken = m_tpset.getToken(m_cursor - 1, 0);
+        return pToken->Box.State.W1 + pToken->Box.State.X + pToken->Box.Info.W;
+    }();
+
+    int cursorW = m_cursorWidth;
+    int cursorH = m_tpset.ph();
+
+    g_SDLDevice->FillRectangle(m_cursorColor + 128, cursorX, cursorY, cursorW, cursorH);
 }
 
 std::string inputLine::getString() const

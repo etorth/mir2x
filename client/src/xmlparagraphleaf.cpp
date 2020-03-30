@@ -98,8 +98,8 @@ void XMLParagraphLeaf::markEvent(int nEvent)
 
 uint32_t XMLParagraphLeaf::peekUTF8Code(int nLeafOff) const
 {
-    if(nLeafOff >= Length()){
-        throw std::invalid_argument(str_fflprintf(": Provided LeafOff exceeds leaf length: %zu", Length()));
+    if(nLeafOff >= length()){
+        throw std::invalid_argument(str_fflprintf(": Provided LeafOff exceeds leaf length: %zu", length()));
     }
 
     if(Type() != LEAF_UTF8GROUP){

@@ -50,10 +50,10 @@ class XMLParagraphLeaf
         const tinyxml2::XMLNode *m_Node;
 
     private:
-        const int m_Type;
+        int m_Type;
 
     private:
-        const uint64_t m_U64Key;
+        uint64_t m_U64Key;
 
     private:
         std::vector<int> m_UTF8CharOff;
@@ -80,10 +80,10 @@ class XMLParagraphLeaf
             return const_cast<tinyxml2::XMLNode *>(static_cast<const XMLParagraphLeaf *>(this)->xmlNode());
         }
 
-        int Length() const
+        int length() const
         {
             if(Type() == LEAF_UTF8GROUP){
-                return utf8CharOffRef().size();
+                return (int)(utf8CharOffRef().size());
             }
             return 1;
         }

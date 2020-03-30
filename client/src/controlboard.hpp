@@ -105,6 +105,6 @@ class controlBoard: public widget
         // widget doesn't have box concept, parent widget can't calculate proper size for children
         void resizeWidth(int w)
         {
-            m_W = w;
+            m_w = w;
         }
 };

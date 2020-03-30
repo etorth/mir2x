@@ -55,8 +55,8 @@ class levelBox: public widget
         {
             m_label.setText("%d", level);
 
-            m_W = std::max<int>(m_label.W(), 18);
-            m_H = std::max<int>(m_label.H(), 10);
+            m_w = std::max<int>(m_label.W(), 18);
+            m_h = std::max<int>(m_label.H(), 10);
 
             m_label.moveTo((W() - m_label.W()) / 2,(H() - m_label.H()) / 2);
         }

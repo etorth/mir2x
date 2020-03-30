@@ -27,8 +27,8 @@ namespace UTF8Func
 
     std::vector<int> buildUTF8Off(const char *);
 
-    constexpr uint64_t BuildU64Key(uint8_t nFont, uint8_t nFontSize, uint8_t nFontStyle, uint32_t nUTF8Code)
+    constexpr uint64_t buildU64Key(uint8_t font, uint8_t fontSize, uint8_t fontStyle, uint32_t utf8Code)
     {
-        return ((uint64_t)(nFont) << 48) + ((uint64_t)(nFontSize) << 40) + ((uint64_t)(nFontStyle) << 32) + (uint64_t)(nUTF8Code);
+        return ((uint64_t)(font) << 48) + ((uint64_t)(fontSize) << 40) + ((uint64_t)(fontStyle) << 32) + (uint64_t)(utf8Code);
     }
 }
