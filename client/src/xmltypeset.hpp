@@ -357,14 +357,14 @@ class XMLTypeset // means XMLParagraph typeset
         void LinePadding(int);
 
     private:
-        TOKEN BuildUTF8Token(int, uint8_t, uint8_t, uint8_t, uint32_t) const;
+        TOKEN buildUTF8Token(int, uint8_t, uint8_t, uint8_t, uint32_t) const;
         TOKEN buildEmojiToken(int, uint32_t) const;
 
     private:
         std::tuple<int, int> leafLocInXMLParagraph(int, int) const;
 
     private:
-        TOKEN CreateToken(int, int) const;
+        TOKEN createToken(int, int) const;
 
     private:
         void buildTypeset(int, int);

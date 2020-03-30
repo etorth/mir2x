@@ -522,7 +522,7 @@ void XMLTypeset::checkDefaultFont() const
     }
 }
 
-TOKEN XMLTypeset::BuildUTF8Token(int nLeaf, uint8_t nFont, uint8_t nFontSize, uint8_t nFontStyle, uint32_t nUTF8Code) const
+TOKEN XMLTypeset::buildUTF8Token(int nLeaf, uint8_t nFont, uint8_t nFontSize, uint8_t nFontStyle, uint32_t nUTF8Code) const
 {
     TOKEN stToken;
     std::memset(&(stToken), 0, sizeof(stToken));
@@ -598,7 +598,7 @@ TOKEN XMLTypeset::buildEmojiToken(int leaf, uint32_t emoji) const
     return token;
 }
 
-TOKEN XMLTypeset::CreateToken(int nLeaf, int nLeafOff) const
+TOKEN XMLTypeset::createToken(int nLeaf, int nLeafOff) const
 {
     switch(auto &rstLeaf = m_paragraph.leafRef(nLeaf); rstLeaf.Type()){
         case LEAF_UTF8GROUP:
@@ -606,7 +606,7 @@ TOKEN XMLTypeset::CreateToken(int nLeaf, int nLeafOff) const
                 auto nFont      = rstLeaf.Font()     .value_or(m_font);
                 auto nFontSize  = rstLeaf.FontSize() .value_or(m_fontSize);
                 auto nFontStyle = rstLeaf.FontStyle().value_or(m_fontStyle);
-                return BuildUTF8Token(nLeaf, nFont, nFontSize, nFontStyle, rstLeaf.peekUTF8Code(nLeafOff));
+                return buildUTF8Token(nLeaf, nFont, nFontSize, nFontStyle, rstLeaf.peekUTF8Code(nLeafOff));
             }
         case LEAF_EMOJI:
             {
@@ -674,8 +674,8 @@ void XMLTypeset::buildTypeset(int x, int y)
     int currLine = y;
 
     for(; advanced; std::tie(leaf, leafOff, advanced) = m_paragraph.nextLeafOff(leaf, leafOff, 1)){
-        TOKEN stToken = CreateToken(leaf, leafOff);
-        if(addRawToken(currLine, stToken)){
+        const TOKEN token = createToken(leaf, leafOff);
+        if(addRawToken(currLine, token)){
             if(leafOff == 0){
                 m_leaf2TokenLoc.push_back({m_lineList[currLine].content.size() - 1, currLine});
             }
@@ -687,7 +687,7 @@ void XMLTypeset::buildTypeset(int x, int y)
         currLine++;
         m_lineList.resize(currLine + 1);
 
-        if(!addRawToken(currLine, stToken)){
+        if(!addRawToken(currLine, token)){
             throw fflerror("insert token to a new line failed: line = %d", (int)(currLine));
         }
 
