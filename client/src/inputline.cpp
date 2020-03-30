@@ -78,6 +78,11 @@ bool inputLine::processEvent(const SDL_Event &event, bool valid)
                             m_cursorBlink = 0.0;
                             return true;
                         }
+                    case SDLK_ESCAPE:
+                        {
+                            focus(false);
+                            return true;
+                        }
                     default:
                         {
                             const char keyChar = sdlKeyChar(event);

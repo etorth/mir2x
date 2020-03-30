@@ -186,8 +186,8 @@ controlBoard::controlBoard(int nX, int nY, int nW, ProcessRun *pRun, widget *pwi
           343 + (nW - 800),
           15,
 
-          1,
-          12,
+          2,
+          15,
           0,
           ColorFunc::WHITE,
 
