@@ -126,9 +126,9 @@ class XMLParagraph
         tinyxml2::XMLNode *Clone(tinyxml2::XMLDocument *, int, int, int);
 
     public:
-        tinyxml2::XMLNode *CloneLeaf(tinyxml2::XMLDocument *pDoc, int nLeaf) const
+        tinyxml2::XMLNode *CloneLeaf(tinyxml2::XMLDocument *pDoc, int leaf) const
         {
-            return leafRef(nLeaf).xmlNode()->DeepClone(pDoc);
+            return leafRef(leaf).xmlNode()->DeepClone(pDoc);
         }
 
     public:

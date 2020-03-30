@@ -151,8 +151,8 @@ void XMLParagraph::deleteUTF8Char(int leaf, int leafOff, int tokenCount)
     const auto newValue = std::string(leafRef(leaf).xmlNode()->Value()).erase(charOff, charLen);
     leafRef(leaf).xmlNode()->SetValue(newValue.c_str());
 
-    for(int i = leafOff; i + leafOff < tokenCount; ++i){
-        leafRef(leaf).utf8CharOffRef()[i] = leafRef(leaf).utf8CharOffRef()[i + leafOff] - charLen;
+    for(int i = leafOff; i + tokenCount < (int)(leafRef(leaf).utf8CharOffRef().size()); ++i){
+        leafRef(leaf).utf8CharOffRef()[i] = leafRef(leaf).utf8CharOffRef()[i + tokenCount] - charLen;
     }
     leafRef(leaf).utf8CharOffRef().resize(leafRef(leaf).utf8CharOffRef().size() - tokenCount);
 }

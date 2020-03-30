@@ -193,7 +193,7 @@ class XMLTypeset // means XMLParagraph typeset
     public:
         std::tuple<int, int> leafTokenLoc(int leaf) const
         {
-            if(LeafValid(leaf)){
+            if(leafValid(leaf)){
                 return m_leaf2TokenLoc.at(leaf);
             }
             throw fflerror("invalid leaf: %d", leaf);
@@ -231,15 +231,15 @@ class XMLTypeset // means XMLParagraph typeset
             return m_paragraph.leafCount();
         }
 
-        bool LeafValid(int nLeaf) const
+        bool leafValid(int leaf) const
         {
-            return nLeaf < leafCount();
+            return leaf < leafCount();
         }
 
     public:
-        void MarkLeafEvent(int nLeaf, int nEvent)
+        void MarkLeafEvent(int leaf, int nEvent)
         {
-            m_paragraph.leafRef(nLeaf).markEvent(nEvent);
+            m_paragraph.leafRef(leaf).markEvent(nEvent);
         }
 
     public:

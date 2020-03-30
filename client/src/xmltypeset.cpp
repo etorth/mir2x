@@ -522,13 +522,13 @@ void XMLTypeset::checkDefaultFont() const
     }
 }
 
-TOKEN XMLTypeset::buildUTF8Token(int nLeaf, uint8_t nFont, uint8_t nFontSize, uint8_t nFontStyle, uint32_t nUTF8Code) const
+TOKEN XMLTypeset::buildUTF8Token(int leaf, uint8_t nFont, uint8_t nFontSize, uint8_t nFontStyle, uint32_t nUTF8Code) const
 {
     TOKEN stToken;
     std::memset(&(stToken), 0, sizeof(stToken));
     auto nU64Key = UTF8Func::buildU64Key(nFont, nFontSize, nFontStyle, nUTF8Code);
 
-    stToken.Leaf = nLeaf;
+    stToken.Leaf = leaf;
     if(auto pTexture = g_FontexDB->Retrieve(nU64Key)){
         int nBoxW = -1;
         int nBoxH = -1;
@@ -598,19 +598,19 @@ TOKEN XMLTypeset::buildEmojiToken(int leaf, uint32_t emoji) const
     return token;
 }
 
-TOKEN XMLTypeset::createToken(int nLeaf, int nLeafOff) const
+TOKEN XMLTypeset::createToken(int leaf, int leafOff) const
 {
-    switch(auto &rstLeaf = m_paragraph.leafRef(nLeaf); rstLeaf.Type()){
+    switch(auto &rstLeaf = m_paragraph.leafRef(leaf); rstLeaf.Type()){
         case LEAF_UTF8GROUP:
             {
                 auto nFont      = rstLeaf.Font()     .value_or(m_font);
                 auto nFontSize  = rstLeaf.FontSize() .value_or(m_fontSize);
                 auto nFontStyle = rstLeaf.FontStyle().value_or(m_fontStyle);
-                return buildUTF8Token(nLeaf, nFont, nFontSize, nFontStyle, rstLeaf.peekUTF8Code(nLeafOff));
+                return buildUTF8Token(leaf, nFont, nFontSize, nFontStyle, rstLeaf.peekUTF8Code(leafOff));
             }
         case LEAF_EMOJI:
             {
-                return buildEmojiToken(nLeaf, rstLeaf.emojiU32Key());
+                return buildEmojiToken(leaf, rstLeaf.emojiU32Key());
             }
         case LEAF_IMAGE:
             {
@@ -664,7 +664,9 @@ void XMLTypeset::buildTypeset(int x, int y)
         }
     }
 
-    m_leaf2TokenLoc.resize(leaf);
+    // we start to push token from (leaf, leafOff)
+    // if current it's a utf8String and not start from the beginning, we should keep the leaf record
+    m_leaf2TokenLoc.resize(leaf + (int)(leafOff > 0));
 
     m_lineList.resize(y + 1);
     m_lineList[y].startY = 0;
