@@ -148,8 +148,8 @@ class XMLParagraph
         void deleteUTF8Char(int, int, int);
 
     public:
-        std::tuple<int, int, int> PrevLeafOff(int, int, int) const;
-        std::tuple<int, int, int> NextLeafOff(int, int, int) const;
+        std::tuple<int, int, int> prevLeafOff(int, int, int) const;
+        std::tuple<int, int, int> nextLeafOff(int, int, int) const;
 
     private:
         const tinyxml2::XMLNode *leafCommonAncestor(int, int) const;

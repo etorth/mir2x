@@ -147,7 +147,7 @@ class XMLTypeset // means XMLParagraph typeset
         XMLTypeset Break();
 
     private:
-        void ResetBoardPixelRegion();
+        void resetBoardPixelRegion();
 
     public:
         bool lineValid(int line) const
@@ -169,7 +169,7 @@ class XMLTypeset // means XMLParagraph typeset
         }
 
     private:
-        std::tuple<int, int> PrevTokenLoc(int, int) const;
+        std::tuple<int, int> prevTokenLoc(int, int) const;
         std::tuple<int, int> NextTokenLoc(int, int) const;
 
     public:
@@ -279,7 +279,7 @@ class XMLTypeset // means XMLParagraph typeset
         void checkDefaultFont() const;
 
     private:
-        void ResetOneLine(int, bool);
+        void resetOneLine(int, bool);
 
     private:
         bool addRawToken(int, const TOKEN &);

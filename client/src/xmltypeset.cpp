@@ -257,7 +257,7 @@ void XMLTypeset::LineJustifyPadding(int nLine)
     throw std::runtime_error(str_fflprintf(": Can't do padding to width: %d", MaxLineWidth()));
 }
 
-void XMLTypeset::ResetOneLine(int nLine, bool bCREnd)
+void XMLTypeset::resetOneLine(int nLine, bool bCREnd)
 {
     if(!lineValid(nLine)){
         throw std::invalid_argument(str_fflprintf(": Invalid line: %d", nLine));
@@ -623,73 +623,81 @@ TOKEN XMLTypeset::CreateToken(int nLeaf, int nLeafOff) const
     }
 }
 
-// rebuild the board from token (nX, nY)
+// rebuild the board from token (x, y)
 // assumen:
-//      (0, 0) ~ PrevTokenLoc(nX, nY) are valid
+//      (0, 0) ~ prevTokenLoc(x, y) are valid
 // output:
 //      valid board
 // notice:
-// this function may get called after any XML update, the (nX, nY) in XMLTypeset may be
+// this function may get called after any XML update, the (x, y) in XMLTypeset may be
 // invalid but as long as it's valid in XMLParagraph it's well-defined
-void XMLTypeset::buildTypeset(int nX, int nY)
+void XMLTypeset::buildTypeset(int x, int y)
 {
-    for(int nLine = 0; nLine < nY; ++nLine){
-        if(m_lineList[nLine].content.empty()){
-            throw std::invalid_argument(str_fflprintf(": Line %d is empty", nLine));
+    for(int line = 0; line < y; ++line){
+        if(lineEmpty(line)){
+            throw fflerror("line %d is empty", line);
         }
     }
 
-    int nLeaf    = 0;
-    int nLeafOff = 0;
+    int leaf    = 0;
+    int leafOff = 0;
 
-    if(nX || nY){
-        auto [nPrevX,    nPrevY      ] = PrevTokenLoc(nX, nY);
-        auto [nPrevLeaf, nPrevLeafOff] = leafLocInXMLParagraph(nPrevX, nPrevY);
+    if(x || y){
+        const auto [prevX, prevY] = prevTokenLoc(x, y);
+        const auto [prevLeaf, prevLeafOff] = leafLocInXMLParagraph(prevX, prevY);
 
-        int nAdvanced = 0;
-        std::tie(nLeaf, nLeafOff, nAdvanced) = m_paragraph.NextLeafOff(nPrevLeaf, nPrevLeafOff, 1);
+        int advanced = 0;
+        std::tie(leaf, leafOff, advanced) = m_paragraph.nextLeafOff(prevLeaf, prevLeafOff, 1);
 
-        if(nAdvanced == 0){
-            ResetOneLine(nPrevY, true);
-            ResetBoardPixelRegion();
+        if(advanced == 0){
+            // only prev location is valid
+            // from (x, y) all token should be removed
+            m_leaf2TokenLoc.resize(prevLeaf + 1);
+
+            m_lineList.resize(prevY + 1);
+            m_lineList[prevY].startY = 0;
+            m_lineList[prevY].content.resize(prevX + 1);
+
+            resetOneLine(prevY, true);
+            resetBoardPixelRegion();
             return;
         }
     }
 
-    m_leaf2TokenLoc.resize(nLeaf);
+    m_leaf2TokenLoc.resize(leaf);
 
-    m_lineList.resize(nY + 1);
-    m_lineList[nY].startY = 0;
-    m_lineList[nY].content.resize(nX);
+    m_lineList.resize(y + 1);
+    m_lineList[y].startY = 0;
+    m_lineList[y].content.resize(x);
 
-    int nAdvanced = 1;
-    int nCurrLine = nY;
+    int advanced = 1;
+    int currLine = y;
 
-    for(; nAdvanced; std::tie(nLeaf, nLeafOff, nAdvanced) = m_paragraph.NextLeafOff(nLeaf, nLeafOff, 1)){
-        TOKEN stToken = CreateToken(nLeaf, nLeafOff);
-        if(addRawToken(nCurrLine, stToken)){
-            if(nLeafOff == 0){
-                m_leaf2TokenLoc.push_back({m_lineList[nCurrLine].content.size() - 1, nCurrLine});
+    for(; advanced; std::tie(leaf, leafOff, advanced) = m_paragraph.nextLeafOff(leaf, leafOff, 1)){
+        TOKEN stToken = CreateToken(leaf, leafOff);
+        if(addRawToken(currLine, stToken)){
+            if(leafOff == 0){
+                m_leaf2TokenLoc.push_back({m_lineList[currLine].content.size() - 1, currLine});
             }
             continue;
         }
 
-        ResetOneLine(nCurrLine, false);
+        resetOneLine(currLine, false);
 
-        nCurrLine++;
-        m_lineList.resize(nCurrLine + 1);
+        currLine++;
+        m_lineList.resize(currLine + 1);
 
-        if(!addRawToken(nCurrLine, stToken)){
-            throw std::runtime_error(str_fflprintf(": Insert token to a new line failed: line = %d", (int)(nCurrLine)));
+        if(!addRawToken(currLine, stToken)){
+            throw fflerror("insert token to a new line failed: line = %d", (int)(currLine));
         }
 
-        if(nLeafOff == 0){
-            m_leaf2TokenLoc.push_back({m_lineList[nCurrLine].content.size() - 1, nCurrLine});
+        if(leafOff == 0){
+            m_leaf2TokenLoc.push_back({m_lineList[currLine].content.size() - 1, currLine});
         }
     }
 
-    ResetOneLine(nCurrLine, true);
-    ResetBoardPixelRegion();
+    resetOneLine(currLine, true);
+    resetBoardPixelRegion();
 }
 
 std::tuple<int, int> XMLTypeset::leafLocInXMLParagraph(int tokenX, int tokenY) const
@@ -718,7 +726,7 @@ std::tuple<int, int> XMLTypeset::leafLocInXMLParagraph(int tokenX, int tokenY) c
     return {leaf, tokenOff};
 }
 
-void XMLTypeset::ResetBoardPixelRegion()
+void XMLTypeset::resetBoardPixelRegion()
 {
     if(!lineCount()){
         m_px = 0;
@@ -750,7 +758,7 @@ void XMLTypeset::ResetBoardPixelRegion()
     m_ph = nMaxPY + 1 - nMinPY;
 }
 
-std::tuple<int, int> XMLTypeset::PrevTokenLoc(int nX, int nY) const
+std::tuple<int, int> XMLTypeset::prevTokenLoc(int nX, int nY) const
 {
     if(!tokenLocValid(nX, nY)){
         throw std::invalid_argument(str_fflprintf(": Invalid token location: (%d, %d)", nX, nY));
@@ -834,7 +842,7 @@ void XMLTypeset::insertUTF8String(int x, int y, const char *text)
     }
 
     // we are appending at the last location
-    // can't call PrevTokenLoc() because this tokenLoc is invalid
+    // can't call prevTokenLoc() because this tokenLoc is invalid
 
     if((y == lineCount() - 1) && (x == lineTokenCount(y))){
         if(m_paragraph.backLeafRef().Type() != LEAF_UTF8GROUP){
@@ -847,7 +855,7 @@ void XMLTypeset::insertUTF8String(int x, int y, const char *text)
         return;
     }
 
-    const auto [prevTX, prevTY] = PrevTokenLoc(x, y);
+    const auto [prevTX, prevTY] = prevTokenLoc(x, y);
     const auto currLeaf = getToken(x, y)->Leaf;
     const auto prevLeaf = getToken(prevTX, prevTY)->Leaf;
 

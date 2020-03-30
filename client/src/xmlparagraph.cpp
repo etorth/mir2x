@@ -218,7 +218,7 @@ void XMLParagraph::deleteToken(int leaf, int leafOff, int tokenCount)
     }
 }
 
-std::tuple<int, int, int> XMLParagraph::PrevLeafOff(int leaf, int leafOff, int) const
+std::tuple<int, int, int> XMLParagraph::prevLeafOff(int leaf, int leafOff, int) const
 {
     if(leafOff >= (int)(leafRef(leaf).utf8CharOffRef().size())){
         throw std::invalid_argument(str_fflprintf(": The %zu-th leaf has only %zu tokens", leaf, leafRef(leaf).utf8CharOffRef().size()));
@@ -227,7 +227,7 @@ std::tuple<int, int, int> XMLParagraph::PrevLeafOff(int leaf, int leafOff, int) 
     return {0, 0, 0};
 }
 
-std::tuple<int, int, int> XMLParagraph::NextLeafOff(int leaf, int leafOff, int tokenCount) const
+std::tuple<int, int, int> XMLParagraph::nextLeafOff(int leaf, int leafOff, int tokenCount) const
 {
     if(leafOff >= leafRef(leaf).length()){
         throw std::invalid_argument(str_fflprintf(": The %zu-th leaf has only %zu tokens", leaf, leafRef(leaf).length()));
@@ -278,7 +278,7 @@ const tinyxml2::XMLNode *XMLParagraph::leafCommonAncestor(int, int) const
 
 tinyxml2::XMLNode *XMLParagraph::Clone(tinyxml2::XMLDocument *pDoc, int leaf, int leafOff, int tokenCount)
 {
-    auto [nEndLeaf, nEndLeafOff, nAdvancedToken] = NextLeafOff(leaf, leafOff, tokenCount);
+    auto [nEndLeaf, nEndLeafOff, nAdvancedToken] = nextLeafOff(leaf, leafOff, tokenCount);
     if(nAdvancedToken != tokenCount){
         // reach end before finish the given count
     }
