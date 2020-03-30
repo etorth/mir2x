@@ -106,6 +106,8 @@ bool inputLine::processEvent(const SDL_Event &event, bool valid)
                 }
 
                 m_cursor = cursorX;
+                m_cursorBlink = 0.0;
+
                 focus(true);
                 return true;
             }
@@ -135,10 +137,9 @@ void inputLine::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int src
 
             m_tpsetX, m_tpsetY, m_tpset.pw(), m_tpset.ph());
 
-    if(!needDraw){
-        return;
+    if(needDraw){
+        m_tpset.drawEx(dstCropX, dstCropY, srcCropX - m_tpsetX, srcCropY - m_tpsetY, srcCropW, srcCropH);
     }
-    m_tpset.drawEx(dstCropX, dstCropY, srcCropX - m_tpsetX, srcCropY - m_tpsetY, srcCropW, srcCropH);
 
     if(std::fmod(m_cursorBlink, 1000.0) > 500.0){
         return;
@@ -164,7 +165,7 @@ void inputLine::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int src
     }();
 
     int cursorW = m_cursorWidth;
-    int cursorH = m_tpset.ph();
+    int cursorH = std::max<int>(m_tpset.ph(), H());
 
     if(MathFunc::RectangleOverlapRegion(dstX, dstY, srcW, srcH, &cursorX, &cursorY, &cursorW, &cursorH)){
         g_SDLDevice->FillRectangle(m_cursorColor + 128, cursorX, cursorY, cursorW, cursorH);
