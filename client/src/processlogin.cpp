@@ -153,8 +153,13 @@ void ProcessLogin::processEvent(const SDL_Event &event)
     // widget idbox and pwdbox are not independent from each other
     // tab in one box will grant focus to another
 
-    m_idBox      .processEvent(event, true);
-    m_PasswordBox.processEvent(event, true);
+    if(m_idBox.processEvent(event, true)){
+        return;
+    }
+
+    if(m_PasswordBox.processEvent(event, true)){
+        return;
+    }
 }
 
 void ProcessLogin::DoLogin()
