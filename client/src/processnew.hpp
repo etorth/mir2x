@@ -50,7 +50,6 @@
 #include <cstdint>
 #include <SDL2/SDL.h>
 
-#include "idbox.hpp"
 #include "process.hpp"
 #include "message.hpp"
 #include "textbutton.hpp"
@@ -88,9 +87,9 @@ class ProcessNew: public Process
         labelBoard m_LBPwdConfirm;
 
     private:
-        IDBox       m_BoxID;
-        PasswordBox m_BoxPwd;
-        PasswordBox m_BoxPwdConfirm;
+        inputLine   m_BoxID;
+        passwordBox m_BoxPwd;
+        passwordBox m_BoxPwdConfirm;
 
     private:
         labelBoard m_LBCheckID;

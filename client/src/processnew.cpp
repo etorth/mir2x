@@ -56,70 +56,86 @@ ProcessNew::ProcessNew()
     , m_LBPwd       (0, 0, "Password"        , 0, 15, 0, ColorFunc::RGBA(0xFF, 0X00, 0X00, 0X00))
     , m_LBPwdConfirm(0, 0, "Confirm Passowrd", 0, 15, 0, ColorFunc::RGBA(0xFF, 0X00, 0X00, 0X00))
 
-	, m_BoxID(
-            159,
-            540,
-            146,
-            18,
-            2,
-            1,
-            14,
-            {0XFF, 0XFF, 0XFF, 0XFF},
-            {0XFF, 0XFF, 0XFF, 0XFF},
-            [this]()
-            {
-                m_BoxID        .focus(false);
-                m_BoxPwd       .focus(true );
-                m_BoxPwdConfirm.focus(false);
-            },
-            [this]()
-            {
-                DoPostAccount();
-            })
+	, m_BoxID
+      {
+          159,
+          540,
+          146,
+          18,
 
-	, m_BoxPwd(
-            409,
-            540,
-            146,
-            18,
-            true,
-            2,
-            1,
-            14,
-            {0XFF, 0XFF, 0XFF, 0XFF},
-            {0XFF, 0XFF, 0XFF, 0XFF},
-            [this]()
-            {
-                m_BoxID        .focus(false);
-                m_BoxPwd       .focus(false);
-                m_BoxPwdConfirm.focus(true );
-            },
-            [this]()
-            {
-                DoPostAccount();
-            })
+          2,
+          15,
+          0,
+          ColorFunc::WHITE,
 
-	, m_BoxPwdConfirm(
-            409,
-            540,
-            146,
-            18,
-            true,
-            2,
-            1,
-            14,
-            {0XFF, 0XFF, 0XFF, 0XFF},
-            {0XFF, 0XFF, 0XFF, 0XFF},
-            [this]()
-            {
-                m_BoxID        .focus(true );
-                m_BoxPwd       .focus(false);
-                m_BoxPwdConfirm.focus(false);
-            },
-            [this]()
-            {
-                DoPostAccount();
-            })
+          2,
+          ColorFunc::WHITE,
+
+          [this]()
+          {
+              m_BoxID        .focus(false);
+              m_BoxPwd       .focus(true );
+              m_BoxPwdConfirm.focus(false);
+          },
+          [this]()
+          {
+              DoPostAccount();
+          },
+      }
+	, m_BoxPwd
+      {
+          409,
+          540,
+          146,
+          18,
+          true,
+
+          2,
+          15,
+          0,
+          ColorFunc::WHITE,
+
+          2,
+          ColorFunc::WHITE,
+
+          [this]()
+          {
+              m_BoxID        .focus(false);
+              m_BoxPwd       .focus(false);
+              m_BoxPwdConfirm.focus(true );
+          },
+          [this]()
+          {
+              DoPostAccount();
+          },
+      }
+	, m_BoxPwdConfirm
+      {
+          409,
+          540,
+          146,
+          18,
+          true,
+
+          2,
+          15,
+          0,
+          ColorFunc::WHITE,
+
+          2,
+          ColorFunc::WHITE,
+
+          [this]()
+          {
+              m_BoxID        .focus(true );
+              m_BoxPwd       .focus(false);
+              m_BoxPwdConfirm.focus(false);
+          },
+          [this]()
+          {
+              DoPostAccount();
+          },
+      }
 
     , m_LBCheckID        (0, 0, "ID", 0, 15, 0, ColorFunc::RGBA(0xFF, 0X00, 0X00, 0X00))
     , m_LBCheckPwd       (0, 0, "ID", 0, 15, 0, ColorFunc::RGBA(0xFF, 0X00, 0X00, 0X00))
@@ -251,7 +267,7 @@ void ProcessNew::DoPostAccount()
         return;
     }
 
-    PostAccount(m_BoxID.Content().c_str(), m_BoxPwd.Content().c_str(), 1);
+    PostAccount(m_BoxID.getRawString().c_str(), m_BoxPwd.getRawString().c_str(), 1);
 }
 
 void ProcessNew::PostAccount(const char *szID, const char *szPWD, int nOperation)
@@ -273,9 +289,9 @@ void ProcessNew::PostAccount(const char *szID, const char *szPWD, int nOperation
 
 void ProcessNew::CheckInput()
 {
-    auto szID         = m_BoxID.Content();
-    auto szPwd        = m_BoxPwd.Content();
-    auto szPwdConfirm = m_BoxPwdConfirm.Content();
+    auto szID         = m_BoxID.getRawString();
+    auto szPwd        = m_BoxPwd.getRawString();
+    auto szPwdConfirm = m_BoxPwdConfirm.getRawString();
 
     if(CacheFind(true, szID)){
         m_CheckID = CHECK_OK;

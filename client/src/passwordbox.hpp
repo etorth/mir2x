@@ -17,46 +17,55 @@
  */
 #pragma once
 #include <string>
-#include "idbox.hpp"
+#include <functional>
+#include "inputline.hpp"
 
-class PasswordBox: public IDBox
+class passwordBox: public inputLine
 {
     private:
-        bool m_Security;
+        bool m_security;
 
     public:
-        PasswordBox(
-                int                          nX,
-                int                          nY,
-                int                          nW,
-                int                          nH,
-                bool                         bSecurity      = true,
-                int                          nCursorWidth   = 2,
-                uint8_t                      nFont          = 0,
-                uint8_t                      nFontSize      = 18,
-                const SDL_Color             &rstFontColor   = {0XFF, 0XFF, 0XFF, 0XFF},
-                const SDL_Color             &rstCursorColor = {0XFF, 0XFF, 0XFF, 0XFF},
-                const std::function<void()> &fnOnTab        = [](){},
-                const std::function<void()> &fnOnEnter      = [](){},
-                widget                      *pwidget        = nullptr,
-                bool                         bFreewidget    = false)
-            : IDBox(
-                    nX,
-                    nY,
-                    nW,
-                    nH,
-                    nCursorWidth,
-                    nFont,
-                    nFontSize,
-                    rstFontColor,
-                    rstCursorColor,
-                    fnOnTab,
-                    fnOnEnter,
-                    pwidget,
-                    bFreewidget)
-            , m_Security(bSecurity)
+        passwordBox(
+                int  x,
+                int  y,
+                int  w,
+                int  h,
+                bool security = true,
+
+                uint8_t  font      =  0,
+                uint8_t  fontSize  = 10,
+                uint8_t  fontStyle =  0,
+                uint32_t fontColor =  ColorFunc::WHITE,
+
+                int      cursorWidth = 2,
+                uint32_t cursorColor = ColorFunc::WHITE,
+
+                std::function<void()>  fnOnTab    = [](){},
+                std::function<void()>  fnOnReturn = [](){},
+                widget                *parent     = nullptr,
+                bool                   autoDelete = false)
+            : inputLine 
+              {
+                  x,
+                  y,
+                  w,
+                  h,
+
+                  font,
+                  fontSize,
+                  fontStyle,
+                  fontColor,
+
+                  cursorWidth,
+                  cursorColor,
+
+                  fnOnTab,
+                  fnOnReturn,
+
+                  parent,
+                  autoDelete,
+              }
+            , m_security(security)
         {}
-
-    public:
-        ~PasswordBox() = default;
 };

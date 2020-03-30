@@ -20,9 +20,9 @@
 #include <cstdint>
 #include <SDL2/SDL.h>
 
-#include "idbox.hpp"
 #include "process.hpp"
 #include "message.hpp"
+#include "inputline.hpp"
 #include "passwordbox.hpp"
 #include "tritexbutton.hpp"
 
@@ -34,8 +34,8 @@ class ProcessLogin: public Process
         TritexButton    m_Button3;
         TritexButton    m_Button4;
 
-        IDBox           m_IDBox;
-        PasswordBox     m_PasswordBox;
+        inputLine       m_idBox;
+        passwordBox     m_PasswordBox;
 
     public:
         ProcessLogin();

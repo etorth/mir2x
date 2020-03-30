@@ -38,50 +38,62 @@ ProcessLogin::ProcessLogin()
 	, m_Button2(352, 482, 0X00000008, []{}, [    ](){                    })
 	, m_Button3(554, 482, 0X0000000B, []{}, [    ](){ std::exit(0);      })
     , m_Button4(600, 536, 0X0000000E, []{}, [this](){ DoLogin();         })
-	, m_IDBox(
-            159,
-            540,
-            146,
-            18,
-            2,
-            1,
-            14,
-            {0XFF, 0XFF, 0XFF, 0XFF},
-            {0XFF, 0XFF, 0XFF, 0XFF},
-            [this]()
-            {
-                m_IDBox      .focus(false);
-                m_PasswordBox.focus(true);
-            },
-            [this]()
-            {
-                DoLogin();
-            })
-	, m_PasswordBox(
-            409,
-            540,
-            146,
-            18,
-            true,
-            2,
-            1,
-            14,
-            {0XFF, 0XFF, 0XFF, 0XFF},
-            {0XFF, 0XFF, 0XFF, 0XFF},
-            [this]()
-            {
-                m_IDBox      .focus(true);
-                m_PasswordBox.focus(false);
-            },
-            [this]()
-            {
-                DoLogin();
-            })
+	, m_idBox
+      {
+          159,
+          540,
+          146,
+          18,
+
+          2,
+          18,
+          0,
+          ColorFunc::WHITE,
+
+          2,
+          ColorFunc::WHITE,
+
+          [this]()
+          {
+              m_idBox      .focus(false);
+              m_PasswordBox.focus(true);
+          },
+          [this]()
+          {
+              DoLogin();
+          }
+      }
+	, m_PasswordBox
+      {
+          409,
+          540,
+          146,
+          18,
+          true,
+
+          2,
+          18,
+          0,
+          ColorFunc::WHITE,
+
+          2,
+          ColorFunc::WHITE,
+
+          [this]()
+          {
+              m_idBox      .focus(true);
+              m_PasswordBox.focus(false);
+          },
+          [this]()
+          {
+              DoLogin();
+          },
+      }
 {}
 
 void ProcessLogin::Update(double fMS)
 {
-    m_IDBox.Update(fMS);
+    m_idBox.Update(fMS);
     m_PasswordBox.Update(fMS);
 }
 
@@ -98,7 +110,7 @@ void ProcessLogin::Draw()
     m_Button3.draw();
     m_Button4.draw();
 
-    m_IDBox      .draw();
+    m_idBox      .draw();
     m_PasswordBox.draw();
 
     g_SDLDevice->Present();
@@ -113,10 +125,10 @@ void ProcessLogin::processEvent(const SDL_Event &event)
                     case SDLK_TAB:
                         {
                             if(true
-                                    && !m_IDBox      .focus()
+                                    && !m_idBox      .focus()
                                     && !m_PasswordBox.focus()){
 
-                                m_IDBox      .focus(true);
+                                m_idBox      .focus(true);
                                 m_PasswordBox.focus(false);
                                 return;
                             }
@@ -141,17 +153,17 @@ void ProcessLogin::processEvent(const SDL_Event &event)
     // widget idbox and pwdbox are not independent from each other
     // tab in one box will grant focus to another
 
-    m_IDBox      .processEvent(event, true);
+    m_idBox      .processEvent(event, true);
     m_PasswordBox.processEvent(event, true);
 }
 
 void ProcessLogin::DoLogin()
 {
-    if(!(m_IDBox.Content().empty()) && !(m_PasswordBox.Content().empty())){
-        g_Log->AddLog(LOGTYPE_INFO, "login account: (%s:%s)", m_IDBox.Content().c_str(), m_PasswordBox.Content().c_str());
+    if(!(m_idBox.getRawString().empty()) && !(m_PasswordBox.getRawString().empty())){
+        g_Log->AddLog(LOGTYPE_INFO, "login account: (%s:%s)", m_idBox.getRawString().c_str(), m_PasswordBox.getRawString().c_str());
 
-        auto szID  = m_IDBox.Content();
-        auto szPWD = m_PasswordBox.Content();
+        auto szID  = m_idBox.getRawString();
+        auto szPWD = m_PasswordBox.getRawString();
 
         CMLogin stCML;
         std::memset(&stCML, 0, sizeof(stCML));
