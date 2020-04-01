@@ -158,7 +158,6 @@ controlBoard::controlBoard(int nX, int nY, int nW, ProcessRun *pRun, widget *pwi
               m_stretchH = std::max<int>(m_stretchH - dy, m_stretchHMin);
               m_stretchH = std::min<int>(m_stretchH, g_SDLDevice->WindowH(false) - 47 - 55);
               setButtonLoc();
-              setLogBoardLoc();
           },
           [this]()
           {
@@ -166,7 +165,6 @@ controlBoard::controlBoard(int nX, int nY, int nW, ProcessRun *pRun, widget *pwi
                   switchExpandMode();
                   m_stretchH = g_SDLDevice->WindowH(false) - 47 - 55;
                   setButtonLoc();
-                  setLogBoardLoc();
                   return;
               }
 
@@ -177,7 +175,6 @@ controlBoard::controlBoard(int nX, int nY, int nW, ProcessRun *pRun, widget *pwi
                   m_stretchH = g_SDLDevice->WindowH(false) - 47 - 55;
               }
               setButtonLoc();
-              setLogBoardLoc();
           },
           this,
           false,
@@ -208,8 +205,8 @@ controlBoard::controlBoard(int nX, int nY, int nW, ProcessRun *pRun, widget *pwi
     , m_LocBoard(0, 0, "", 1, 12, 0, ColorFunc::RGBA(0XFF, 0X00, 0X00, 0X00))
     , m_logBoard
       {
-          187,
-          logBoardStartY(),
+          0,
+          0,
           341 + (nW - 800),
           false,
           {0, 0, 0, 0},
@@ -254,6 +251,7 @@ controlBoard::controlBoard(int nX, int nY, int nW, ProcessRun *pRun, widget *pwi
 void controlBoard::Update(double fMS)
 {
     m_cmdLine.Update(fMS);
+    m_logBoard.Update(fMS);
 }
 
 void controlBoard::drawLeft()
@@ -359,7 +357,7 @@ void controlBoard::drawMiddleDefault()
     }
 
     m_cmdLine.draw();
-    m_logBoard.draw();
+    drawLogBoardDefault();
 
     // draw middle part
     if(auto pTexture = g_ProgUseDB->Retrieve(0X00000013)){
@@ -403,6 +401,33 @@ void controlBoard::drawMiddleDefault()
 
     m_buttonSwitchMode.draw();
     m_level.draw();
+}
+
+void controlBoard::drawLogBoardDefault()
+{
+    const int dstX = 187;
+    const int dstY = logBoardStartY();
+
+    const int srcX = 0;
+    const int srcY = std::max<int>(0, m_logBoard.H() - 83);
+    const int srcW = m_logBoard.W();
+    const int srcH = 83;
+
+    m_logBoard.drawEx(dstX, dstY, srcX, srcY, srcW, srcH);
+}
+
+void controlBoard::drawLogBoardExpand()
+{
+    const int dstX = 187;
+    const int dstY = logBoardStartY();
+
+    const int boardFrameH = m_stretchH + 47 + 55 - 70;
+    const int srcX = 0;
+    const int srcY = std::max<int>(0, m_logBoard.H() - boardFrameH);
+    const int srcW = m_logBoard.W();
+    const int srcH = boardFrameH;
+
+    m_logBoard.drawEx(dstX, dstY, srcX, srcY, srcW, srcH);
 }
 
 void controlBoard::drawMiddleExpand()
@@ -474,6 +499,7 @@ void controlBoard::drawMiddleExpand()
     m_buttonSwitchMode.draw();
     m_level.draw();
     m_cmdLine.draw();
+    drawLogBoardExpand();
 }
 
 void controlBoard::drawEx(int, int, int, int, int, int)
@@ -573,6 +599,9 @@ void controlBoard::addLog(int, const char *log)
         throw fflerror("null log string");
     }
     m_logBoard.addParXML(m_logBoard.parCount(), {0, 0, 0, 0}, str_printf("<par>%s</par>", log).c_str());
+    if(std::rand() % 5 == 0){
+        m_logBoard.addParXML(m_logBoard.parCount(), {0, 0, 0, 0}, "<par>hello world! <emoji/></par>");
+    }
 }
 
 bool controlBoard::CheckMyHeroMoved()
@@ -590,7 +619,6 @@ void controlBoard::switchExpandMode()
         m_stretchH = m_stretchHMin;
     }
     setButtonLoc();
-    setLogBoardLoc();
 }
 
 void controlBoard::setButtonLoc()
@@ -610,15 +638,10 @@ void controlBoard::setButtonLoc()
     }
 }
 
-void controlBoard::setLogBoardLoc()
-{
-    m_logBoard.moveBy(0, m_logBoard.Y() - logBoardStartY());
-}
-
 int controlBoard::logBoardStartY() const
 {
     if(!m_expand){
         return g_SDLDevice->WindowH(false) - 120;
     }
-    return g_SDLDevice->WindowH(false) - 55 - (m_stretchH - m_stretchHMin) - 34;
+    return g_SDLDevice->WindowH(false) - 55 - m_stretchH - 47 + 12; // 12 is texture top-left to log line distane
 }

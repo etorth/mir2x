@@ -84,6 +84,8 @@ class controlBoard: public widget
         void drawRight();
         void drawMiddleExpand();
         void drawMiddleDefault();
+        void drawLogBoardExpand();
+        void drawLogBoardDefault();
 
     public:
         void Update(double);
@@ -101,7 +103,6 @@ class controlBoard: public widget
     private:
         void switchExpandMode();
         void setButtonLoc();
-        void setLogBoardLoc();
 
     public:
         // TODO: we don't support widget::resize()
