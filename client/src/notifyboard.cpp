@@ -29,7 +29,7 @@ void NotifyBoard::Pop()
     if(!m_LogQueue.empty()){
         auto stHead = m_LogQueue.front();
         if(stHead.LineCount > 0){
-            m_LogBoard.RemoveLine(0, stHead.LineCount);
+            m_logBoard.RemoveLine(0, stHead.LineCount);
         }
         m_LogQueue.pop();
     }
@@ -47,23 +47,23 @@ void NotifyBoard::Update(double)
     }
 
     if(nLineCount){
-        m_LogBoard.RemoveLine(0, nLineCount);
+        m_logBoard.RemoveLine(0, nLineCount);
     }
 }
 
 void NotifyBoard::AddXML(const char *szXML, const std::map<std::string, std::function<void()>> &rstMap)
 {
     bool bRes = true;
-    if(!m_LogBoard.Empty(false)){
-        bRes = m_LogBoard.AppendXML("<ROOT><OBJECT TYPE=\"RETURN\"></OBJECT></ROOT>", {});
+    if(!m_logBoard.Empty(false)){
+        bRes = m_logBoard.AppendXML("<ROOT><OBJECT TYPE=\"RETURN\"></OBJECT></ROOT>", {});
     }
 
-    auto nLineCount0 = m_LogBoard.GetLineCount();
+    auto nLineCount0 = m_logBoard.GetLineCount();
     if(bRes){
-        bRes = m_LogBoard.AppendXML(szXML, rstMap);
+        bRes = m_logBoard.AppendXML(szXML, rstMap);
     }
 
-    auto nLineCount1 = m_LogBoard.GetLineCount();
+    auto nLineCount1 = m_logBoard.GetLineCount();
     condcheck(nLineCount1 > nLineCount0);
 
     if(bRes){
@@ -122,5 +122,5 @@ void NotifyBoard::AddLog(std::array<std::string, 4> stLogType, const char *szLog
 
 void NotifyBoard::drawEx(int nDstX, int nDstY, int nSrcX, int nSrcY, int nW, int nH)
 {
-    m_LogBoard.drawEx(nDstX, nDstY, nSrcX, nSrcY, nW, nH);
+    m_logBoard.drawEx(nDstX, nDstY, nSrcX, nSrcY, nW, nH);
 }

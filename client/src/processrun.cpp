@@ -76,35 +76,9 @@ ProcessRun::ProcessRun()
     , m_MousePixlLoc(0, 0, "", 0, 15, 0, ColorFunc::RGBA(0XFF, 0X00, 0X00, 0X00))
     , m_MouseGridLoc(0, 0, "", 0, 15, 0, ColorFunc::RGBA(0XFF, 0X00, 0X00, 0X00))
     , m_AscendStrList()
-    , m_layout
-      {
-          0,
-          0,
-          400,
-          false,
-          {0, 0, 0, 0},
-          false,
-          0,
-          20,
-          0,
-          ColorFunc::RED + 255,
-      }
 {
     m_FocusUIDTable.fill(0);
     RegisterUserCommand();
-
-    // m_layout.loadXML(
-    //         R"###(
-    //
-    //         <layout>
-    //             <par font="0" size="10">Hello <emoji/> world</par>
-    //             <par font="0" size="20">Hello <emoji/> <font font="1" size="20">wor</font>ld</par>
-    //         </layout>
-    //
-    //         )###");
-
-    m_layout.addParXML(m_layout.parCount(), {0, 0,  5, 0}, "<par>test</par>");
-    m_layout.addParXML(m_layout.parCount(), {0, 0, 10, 0}, "<par>test</par>");
 }
 
 void ProcessRun::ScrollMap()
@@ -143,7 +117,6 @@ void ProcessRun::Update(double fUpdateTime)
 {
     ScrollMap();
     m_controlBoard.Update(fUpdateTime);
-    m_layout.Update(fUpdateTime);
 
     for(auto p = m_CreatureList.begin(); p != m_CreatureList.end();){
         if(p->second->Visible()){
@@ -531,26 +504,6 @@ void ProcessRun::Draw()
         const int w = g_NotifyBoard->W();
         const int h = g_NotifyBoard->H();
         g_NotifyBoard->drawEx(0, 0, 0, 0, w, h);
-    }
-
-    // draw layoutBoard
-    {
-        const int x = 300;
-        const int y = 200;
-        const int w = std::max<int>(m_layout.W(), 200);
-        const int h = m_layout.H();
-
-        {
-            SDLDevice::EnableDrawColor enableColor(ColorFunc::GREEN + 200);
-            SDLDevice::EnableDrawBlendMode enableBlend(SDL_BLENDMODE_BLEND);
-            g_SDLDevice->FillRectangle(x, y, w, h);
-        }
-
-        m_layout.drawEx(x, y, 0, 0, w, h);
-        {
-            SDLDevice::EnableDrawColor enableColor(ColorFunc::BLUE + 100);
-            g_SDLDevice->DrawRectangle(x, y, w, h);
-        }
     }
 
     // draw debugBoard
@@ -1302,7 +1255,7 @@ bool ProcessRun::RegisterLuaExport(ClientLuaModule *pModule, int nOutPort)
     return false;
 }
 
-void ProcessRun::AddOPLog(int nOutPort, int nLogType, const char *szPrompt, const char *szLogFormat, ...)
+void ProcessRun::AddOPLog(int nOutPort, int logType, const char *szPrompt, const char *szLogFormat, ...)
 {
     std::string szLog;
     bool bError = false;
@@ -1321,11 +1274,11 @@ void ProcessRun::AddOPLog(int nOutPort, int nLogType, const char *szPrompt, cons
     }
 
     if(bError){
-        nLogType = Log::LOGTYPEV_WARNING;
+        logType = Log::LOGTYPEV_WARNING;
     }
 
     if(nOutPort & OUTPORT_LOG){
-        switch(nLogType){
+        switch(logType){
             case Log::LOGTYPEV_INFO    : g_Log->AddLog(LOGTYPE_INFO   , u8"%s%s", szPrompt ? szPrompt : "", szLog.c_str()); break;
             case Log::LOGTYPEV_WARNING : g_Log->AddLog(LOGTYPE_WARNING, u8"%s%s", szPrompt ? szPrompt : "", szLog.c_str()); break;
             case Log::LOGTYPEV_DEBUG   : g_Log->AddLog(LOGTYPE_DEBUG,   u8"%s%s", szPrompt ? szPrompt : "", szLog.c_str()); break;
@@ -1337,7 +1290,7 @@ void ProcessRun::AddOPLog(int nOutPort, int nLogType, const char *szPrompt, cons
     }
 
     if(nOutPort & OUTPORT_CONTROLBOARD){
-        m_controlBoard.AddLog(nLogType, szLog.c_str());
+        m_controlBoard.addLog(logType, szLog.c_str());
     }
 }
 

@@ -27,8 +27,8 @@
 #include "levelbox.hpp"
 #include "sdldevice.hpp"
 #include "inputline.hpp"
+#include "layoutboard.hpp"
 #include "tritexbutton.hpp"
-#include "linebrowserboard.hpp"
 
 class ProcessRun;
 class controlBoard: public widget
@@ -57,7 +57,9 @@ class controlBoard: public widget
     private:
         inputLine        m_cmdLine;
         labelBoard       m_LocBoard;
-        LineBrowserBoard m_LogBoard;
+
+    private:
+        layoutBoard m_logBoard;
 
     public:
         controlBoard(
@@ -91,7 +93,7 @@ class controlBoard: public widget
         void inputLineDone();
 
     public:
-        void AddLog(int, const char *);
+        void addLog(int, const char *);
 
     public:
         bool CheckMyHeroMoved();
@@ -99,6 +101,7 @@ class controlBoard: public widget
     private:
         void switchExpandMode();
         void setButtonLoc();
+        void setLogBoardLoc();
 
     public:
         // TODO: we don't support widget::resize()
@@ -107,4 +110,7 @@ class controlBoard: public widget
         {
             m_w = w;
         }
+
+    private:
+        int logBoardStartY() const;
 };

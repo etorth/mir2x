@@ -34,12 +34,12 @@ class NotifyBoard: public widget
         std::queue<LogLine> m_LogQueue;
 
     protected:
-        TokenBoard m_LogBoard;
+        TokenBoard m_logBoard;
 
     public:
         NotifyBoard()
             : widget(0, 0, 0, 0, nullptr, false)
-            , m_LogBoard
+            , m_logBoard
               {
                   0,
                   0,
@@ -75,7 +75,7 @@ class NotifyBoard: public widget
     public:
         bool processEvent(const SDL_Event &event, bool valid)
         {
-            return m_LogBoard.processEvent(event, valid);
+            return m_logBoard.processEvent(event, valid);
         }
 
     public:

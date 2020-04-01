@@ -158,6 +158,7 @@ controlBoard::controlBoard(int nX, int nY, int nW, ProcessRun *pRun, widget *pwi
               m_stretchH = std::max<int>(m_stretchH - dy, m_stretchHMin);
               m_stretchH = std::min<int>(m_stretchH, g_SDLDevice->WindowH(false) - 47 - 55);
               setButtonLoc();
+              setLogBoardLoc();
           },
           [this]()
           {
@@ -165,6 +166,7 @@ controlBoard::controlBoard(int nX, int nY, int nW, ProcessRun *pRun, widget *pwi
                   switchExpandMode();
                   m_stretchH = g_SDLDevice->WindowH(false) - 47 - 55;
                   setButtonLoc();
+                  setLogBoardLoc();
                   return;
               }
 
@@ -175,6 +177,7 @@ controlBoard::controlBoard(int nX, int nY, int nW, ProcessRun *pRun, widget *pwi
                   m_stretchH = g_SDLDevice->WindowH(false) - 47 - 55;
               }
               setButtonLoc();
+              setLogBoardLoc();
           },
           this,
           false,
@@ -203,22 +206,19 @@ controlBoard::controlBoard(int nX, int nY, int nW, ProcessRun *pRun, widget *pwi
           false
       }
     , m_LocBoard(0, 0, "", 1, 12, 0, ColorFunc::RGBA(0XFF, 0X00, 0X00, 0X00))
-    , m_LogBoard(
-            187,
-            18,
-            341 + (nW - 800),
-            83,
-            true,
-            true,
-            true,
-            0,
-            0,
-            1,
-            12,
-            0,
-            {0XFF, 0XFF, 0XFF, 0XFF},
-            this,
-            false)
+    , m_logBoard
+      {
+          187,
+          logBoardStartY(),
+          341 + (nW - 800),
+          false,
+          {0, 0, 0, 0},
+          false,
+          1,
+          12,
+          0,
+          ColorFunc::WHITE,
+      }
 {
     if(!pRun){
         throw fflerror("invalid ProcessRun provided to controlBoard()");
@@ -352,14 +352,14 @@ void controlBoard::drawMiddleDefault()
     const int nY0 = Y();
     const int nW0 = W();
 
-    // draw black underlay for the LogBoard and actor face
+    // draw black underlay for the logBoard and actor face
     {
         SDLDevice::EnableDrawColor enableColor(ColorFunc::RGBA(0X00, 0X00, 0X00, 0XFF));
         g_SDLDevice->FillRectangle(178 + 2, nY0 + 14, nW0 - (178 + 2) - (166 + 2), 120);
     }
 
     m_cmdLine.draw();
-    m_LogBoard.draw();
+    m_logBoard.draw();
 
     // draw middle part
     if(auto pTexture = g_ProgUseDB->Retrieve(0X00000013)){
@@ -567,18 +567,12 @@ void controlBoard::inputLineDone()
     }
 }
 
-void controlBoard::AddLog(int nLogType, const char *szLog)
+void controlBoard::addLog(int, const char *log)
 {
-    if(szLog){
-        char szXML[1024];
-        switch(nLogType){
-            case 0  : std::sprintf(szXML, "<ROOT><OBJECT                                    >%s</OBJECT></ROOT>", szLog); break;
-            case 1  : std::sprintf(szXML, "<ROOT><OBJECT BACKCOLOR=\"YELLOW\" COLOR=\"BLUE\">%s</OBJECT></ROOT>", szLog); break;
-            default : std::sprintf(szXML, "<ROOT><OBJECT BACKCOLOR=\"RED\"                  >%s</OBJECT></ROOT>", szLog); break;
-        }
-
-        m_LogBoard.AddXML(szXML, {});
+    if(!log){
+        throw fflerror("null log string");
     }
+    m_logBoard.addParXML(m_logBoard.parCount(), {0, 0, 0, 0}, str_printf("<par>%s</par>", log).c_str());
 }
 
 bool controlBoard::CheckMyHeroMoved()
@@ -596,6 +590,7 @@ void controlBoard::switchExpandMode()
         m_stretchH = m_stretchHMin;
     }
     setButtonLoc();
+    setLogBoardLoc();
 }
 
 void controlBoard::setButtonLoc()
@@ -613,4 +608,17 @@ void controlBoard::setButtonLoc()
         m_buttonSwitchMode.moveTo(W() - 181, 5);
         m_level.moveTo(178 + (W() - 178 - 166 - m_level.W()) / 2, 6 - m_level.H() / 2);
     }
+}
+
+void controlBoard::setLogBoardLoc()
+{
+    m_logBoard.moveBy(0, m_logBoard.Y() - logBoardStartY());
+}
+
+int controlBoard::logBoardStartY() const
+{
+    if(!m_expand){
+        return g_SDLDevice->WindowH(false) - 120;
+    }
+    return g_SDLDevice->WindowH(false) - 55 - (m_stretchH - m_stretchHMin) - 34;
 }
