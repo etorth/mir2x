@@ -587,6 +587,7 @@ void controlBoard::inputLineDone()
                 }
             default: // normal talk
                 {
+                    addLog(0, szRealInput.c_str());
                     break;
                 }
         }
