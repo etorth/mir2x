@@ -57,20 +57,13 @@ ProcessRun::ProcessRun()
     , m_ViewY(0)
     , m_RollMap(false)
     , m_LuaModule(this, OUTPORT_CONTROLBOARD)
-    , m_controlBoard(
-            0,                  // x
-            []() -> int         // y
-            {
-                return g_SDLDevice->WindowH(false) - 133;
-            }(),
-            []() -> int         // w
-            {
-                return g_SDLDevice->WindowW(false);
-            }(),
-            this,               // self-bind
-            nullptr,            // independent widget
-            false)              // 
-    , m_InventoryBoard(0, 0, this)
+    , m_controlBoard
+      {
+          g_SDLDevice->WindowH(false) - 133,
+          g_SDLDevice->WindowW(false),
+          this,
+      }
+    , m_inventoryBoard(0, 0, this)
     , m_CreatureList()
     , m_UIDPending()
     , m_MousePixlLoc(0, 0, "", 0, 15, 0, ColorFunc::RGBA(0XFF, 0X00, 0X00, 0X00))
@@ -497,7 +490,7 @@ void ProcessRun::Draw()
     }
 
     m_controlBoard  .draw();
-    m_InventoryBoard.draw();
+    m_inventoryBoard.draw();
 
     // draw notifyBoard
     {
@@ -550,7 +543,7 @@ void ProcessRun::Draw()
 
 void ProcessRun::processEvent(const SDL_Event &event)
 {
-    if(m_InventoryBoard.processEvent(event, true)){
+    if(m_inventoryBoard.processEvent(event, true)){
         return;
     }
 
@@ -1572,10 +1565,10 @@ void ProcessRun::OnActionSpawn(uint64_t nUID, const ActionNode &rstAction)
     }
 }
 
-widget *ProcessRun::Getwidget(const char *szwidgetName)
+widget *ProcessRun::getWidget(const std::string &widgetName)
 {
-    if(szwidgetName){
-        if(!std::strcmp(szwidgetName, "InventoryBoard")){ return &m_InventoryBoard; }
+    if(widgetName == "inventoryBoard"){
+        return &m_inventoryBoard;
     }
     return nullptr;
 }

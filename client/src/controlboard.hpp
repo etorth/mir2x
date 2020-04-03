@@ -34,7 +34,7 @@ class ProcessRun;
 class controlBoard: public widget
 {
     private:
-        ProcessRun *m_ProcessRun;
+        ProcessRun *m_processRun;
 
     private:
         bool m_expand = false;
@@ -44,31 +44,33 @@ class controlBoard: public widget
         const int m_stretchHMin = 196; // only can get bigger than original frame
 
     private:
-        TritexButton m_ButtonClose;
-        TritexButton m_ButtonMinize;
-        TritexButton m_ButtonInventory;
+        // define group for widget moving
+        // but will not call widgetGroup::drawEx, we still draw manually
+        widgetGroup m_left;
+        widgetGroup m_middle;
+        widgetGroup m_right;
 
     private:
-        TritexButton m_buttonSwitchMode;
+        tritexButton m_buttonClose;
+        tritexButton m_buttonMinize;
+        tritexButton m_buttonInventory;
+        tritexButton m_buttonSwitchMode;
 
     private:
-        levelBox m_level;
+        levelBox m_levelBox;
 
     private:
-        inputLine        m_cmdLine;
-        labelBoard       m_LocBoard;
+        inputLine  m_cmdLine;
+        labelBoard m_locBoard;
 
     private:
         layoutBoard m_logBoard;
 
     public:
         controlBoard(
-                int,            // x
-                int,            // y
-                int,            // screen width
-                ProcessRun *,   // 
-                widget *,       //
-                bool);          //
+                int,            // startY
+                int,            // boardW
+                ProcessRun *);  // 
 
     public:
         ~controlBoard() = default;
@@ -105,12 +107,9 @@ class controlBoard: public widget
         void setButtonLoc();
 
     public:
-        // TODO: we don't support widget::resize()
+        // we don't support widget::resize()
         // widget doesn't have box concept, parent widget can't calculate proper size for children
-        void resizeWidth(int w)
-        {
-            m_w = w;
-        }
+        void resizeWidth(int w);
 
     private:
         int logBoardStartY() const;

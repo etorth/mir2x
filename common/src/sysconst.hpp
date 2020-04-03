@@ -26,39 +26,41 @@
 // are 26 cells of one object slice at most, then design data structure for object
 // rendering method based on this information
 
-const int SYS_DEFFPS = 10;
+constexpr int SYS_DEFFPS = 10;
 
-const int SYS_TARGETRGN_GAPX = 10;
-const int SYS_TARGETRGN_GAPY = 8;
+constexpr int SYS_TARGETRGN_GAPX = 10;
+constexpr int SYS_TARGETRGN_GAPY = 8;
 
-const int SYS_MAPGRIDXP = 48;
-const int SYS_MAPGRIDYP = 32;
+constexpr int SYS_MAPGRIDXP = 48;
+constexpr int SYS_MAPGRIDYP = 32;
 
-const int SYS_OBJMAXW = 3;
-const int SYS_OBJMAXH = 15;
+constexpr int SYS_OBJMAXW = 3;
+constexpr int SYS_OBJMAXH = 15;
 
-const int SYS_MAXR         = 40;
-const int SYS_MAPVISIBLEW  = 60;
-const int SYS_MAPVISIBLEH  = 40;
-const int SYS_MAPVISIBLECD = 100;
+constexpr int SYS_MAXR         = 40;
+constexpr int SYS_MAPVISIBLEW  = 60;
+constexpr int SYS_MAPVISIBLEH  = 40;
+constexpr int SYS_MAPVISIBLECD = 100;
 
-const int SYS_MAXPLAYERNUM = 8192;
+constexpr int SYS_MAXPLAYERNUM = 8192;
 
-const int SYS_MAXDROPITEM     = 10;
-const int SYS_MAXDROPITEMGRID = 81;
+constexpr int SYS_MAXDROPITEM     = 10;
+constexpr int SYS_MAXDROPITEMGRID = 81;
 
-const int SYS_MINSPEED =  20;
-const int SYS_DEFSPEED = 100;
-const int SYS_MAXSPEED = 500;
+constexpr int SYS_MINSPEED =  20;
+constexpr int SYS_DEFSPEED = 100;
+constexpr int SYS_MAXSPEED = 500;
 
-const int SYS_INVGRIDW  = 6;
-const int SYS_INVGRIDPW = 38;
-const int SYS_INVGRIDPH = 38;
+constexpr int SYS_INVGRIDW  = 6;
+constexpr int SYS_INVGRIDPW = 38;
+constexpr int SYS_INVGRIDPH = 38;
 
-const int SYS_MAXTARGET = 8;
-const int SYS_MAXACTOR  = 65521;
+constexpr int SYS_MAXTARGET = 8;
+constexpr int SYS_MAXACTOR  = 65521;
 
-const uint32_t SYS_NEEDEXP[]
+constexpr uint32_t SYS_TEXNIL = 0XFFFFFFFF;
+
+constexpr uint32_t SYS_NEEDEXP[]
 {
              0 , // 0
            100 , // 1

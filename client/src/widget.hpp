@@ -54,12 +54,12 @@ class widget
         std::vector<childNode> m_childList;
 
     public:
-        widget(int nX, int nY, int nW = 0, int nH = 0, widget *pParent = nullptr, bool bAutoDelete = false)
+        widget(int x, int y, int nW = 0, int nH = 0, widget *pParent = nullptr, bool bAutoDelete = false)
             : m_parent(pParent)
             , m_show(true)
             , m_focus(false)
-            , m_x(nX)
-            , m_y(nY)
+            , m_x(x)
+            , m_y(y)
             , m_w(nW)
             , m_h(nH)
         {
@@ -145,9 +145,9 @@ class widget
         }
 
     public:
-        bool in(int nX, int nY) const
+        bool in(int x, int y) const
         {
-            return (nX >= X() && nX < X() + W()) && (nY >= Y() && nY < Y() + H());
+            return (x >= X() && x < X() + W()) && (y >= Y() && y < Y() + H());
         }
 
     public:
@@ -162,9 +162,9 @@ class widget
         }
 
     public:
-        void show(bool bShow)
+        void show(bool bshow)
         {
-            m_show = bShow;
+            m_show = bshow;
         }
 
         bool show() const
@@ -173,15 +173,34 @@ class widget
         }
 
     public:
-        void moveBy(int nDX, int nDY)
+        void moveBy(int dx, int dy)
         {
-            m_x += nDX;
-            m_y += nDY;
+            m_x += dx;
+            m_y += dy;
         }
 
-        void moveTo(int nX, int nY)
+        void moveTo(int x, int y)
         {
-            m_x = nX;
-            m_y = nY;
+            m_x = x;
+            m_y = y;
+        }
+};
+
+class widgetGroup: public widget
+{
+    public:
+        widgetGroup(int x, int y, int w, int h, widget *parent = nullptr, bool autoDelete = false)
+            : widget(x, y, w, h, parent, autoDelete)
+        {}
+
+    public:
+        void drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int srcH) override
+        {
+            // we don't have box concept for widget class
+            // this drawEx is a simple forward of parameters to all children
+
+            for(auto &node: m_childList){
+                node.child->drawEx(dstX, dstY, srcX, srcY, srcW, srcH);
+            }
         }
 };

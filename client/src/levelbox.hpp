@@ -42,7 +42,15 @@ class levelBox: public widget
         std::function<void()> m_onDoubleClick;
 
     public:
-        levelBox(int, int, std::function<void(int)>, std::function<void()>, widget *, bool);
+        levelBox(
+                int, // x
+                int, // y
+
+                const std::function<void(int)> &, // drag
+                const std::function<void(   )> &, // double-click
+                
+                widget * = nullptr, // parent
+                bool     = false);  // auto-delete
 
     public:
         bool processEvent(const SDL_Event &, bool);

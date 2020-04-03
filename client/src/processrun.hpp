@@ -98,7 +98,7 @@ class ProcessRun: public Process
         controlBoard m_controlBoard;
 
     private:
-        InventoryBoard m_InventoryBoard;
+        InventoryBoard m_inventoryBoard;
 
     private:
         std::list<std::shared_ptr<IndepMagic>> m_IndepMagicList;
@@ -300,5 +300,5 @@ class ProcessRun: public Process
         void OnActionSpawn(uint64_t, const ActionNode &);
 
     public:
-        widget *Getwidget(const char *);
+        widget *getWidget(const std::string &);
 };

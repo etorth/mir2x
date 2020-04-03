@@ -31,8 +31,8 @@ bool ButtonBase::processEvent(const SDL_Event &event, bool valid)
         case SDL_MOUSEBUTTONUP:
             {
                 if(in(event.button.x, event.button.y)){
-                    if(m_OnClickDone){
-                        m_OnClick();
+                    if(m_onClickDone && m_onClick){
+                        m_onClick();
                     }
 
                     m_State = BUTTON_OVER;
@@ -47,8 +47,8 @@ bool ButtonBase::processEvent(const SDL_Event &event, bool valid)
         case SDL_MOUSEBUTTONDOWN:
             {
                 if(in(event.button.x, event.button.y)){
-                    if(!m_OnClickDone){
-                        m_OnClick();
+                    if(!m_onClickDone && m_onClick){
+                        m_onClick();
                     }
 
                     m_State = BUTTON_PRESSED;
@@ -63,6 +63,9 @@ bool ButtonBase::processEvent(const SDL_Event &event, bool valid)
             {
                 if(in(event.motion.x, event.motion.y)){
                     if(m_State != 2){
+                        if(m_onOver){
+                            m_onOver();
+                        }
                         m_State = BUTTON_OVER;
                     }
                     return true;

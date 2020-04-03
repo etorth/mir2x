@@ -23,8 +23,8 @@ levelBox::levelBox(
         int x,
         int y,
 
-        std::function<void(int)> onDrag,
-        std::function<void()> onDoubleClick,
+        const std::function<void(int)> &onDrag,
+        const std::function<void(   )> &onDoubleClick,
 
         widget *parent,
         bool autoDelete)

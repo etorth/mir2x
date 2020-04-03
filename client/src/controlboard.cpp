@@ -38,7 +38,7 @@
 //
 //                         +-----------+                           ---
 //                          \  title  /                             ^
-// +------+==----------------+       +----------------==+--------+  |  ---
+// +------+==----------------+       +----------------==+--------+  |  --- <-- left/right is 133, middle is 131
 // |      $                                        +---+$        | 152  | ---
 // |      |                                        |   ||        |  |  133 | 120 as underlay log
 // |      |                                        +---+|        |  V   |  |
@@ -73,82 +73,121 @@ extern Log *g_Log;
 extern PNGTexDB *g_ProgUseDB;
 extern SDLDevice *g_SDLDevice;
 
-controlBoard::controlBoard(int nX, int nY, int nW, ProcessRun *pRun, widget *pwidget, bool bAutoDelete)
-    : widget(nX, nY, nW, 133, pwidget, bAutoDelete)
-    , m_ProcessRun(pRun)
-    , m_ButtonClose
+controlBoard::controlBoard(int startY, int boardW, ProcessRun *pRun)
+    : widget(0, startY, boardW, 133, nullptr, false)
+    , m_processRun(pRun)
+    , m_left
+      {
+          0,
+          0,
+          178,
+          133,
+          this,
+      }
+
+    , m_middle
+      {
+          178,
+          2, // middle tex height is 131, not 133
+          boardW - 178 - 166,
+          131,
+          this,
+      }
+
+    , m_right
+      {
+          boardW - 166,
+          0,
+          166,
+          133,
+          this,
+      }
+    
+    , m_buttonClose
       {
           8,
           72,
-          {0XFFFFFFFF, 0X0000001E, 0X0000001F},
-          [](){},
+          {SYS_TEXNIL, 0X0000001E, 0X0000001F},
+
+          nullptr,
           [](){ std::exit(0); },
+
           0,
           0,
           0,
           0,
+
           true,
-          this,
-          false,
+          &m_left,
       }
-    , m_ButtonMinize
+
+    , m_buttonMinize
       {
           109,
           72,
-          {0XFFFFFFFF, 0X00000020, 0X00000021},
-          [](){},
-          [](){},
+          {SYS_TEXNIL, 0X00000020, 0X00000021},
+
+          nullptr,
+          nullptr,
+
           0,
           0,
           0,
           0,
+
           true,
-          this,
-          false,
+          &m_left,
       }
-    , m_ButtonInventory
+
+    , m_buttonInventory
       {
-          682,
+          48,
           33,
-          {0XFFFFFFFF, 0X00000030, 0X00000031},
-          [](){},
+          {SYS_TEXNIL, 0X00000030, 0X00000031},
+
+          nullptr,
           [this]()
           {
-              if(auto pInventory = m_ProcessRun->Getwidget("InventoryBoard")){
-                  pInventory->show(!pInventory->show());
+              if(auto p = m_processRun->getWidget("inventoryBoard")){
+                  p->show(!p->show());
               }
           },
+
           0,
           0,
           0,
           0,
+
           true,
-          this,
-          false,
+          &m_right,
       }
+
     , m_buttonSwitchMode
       {
-          nW - 181,
+          boardW - 181,
           5,
-          {0XFFFFFFFF, 0X00000028, 0X00000029},
-          [](){},
+          {SYS_TEXNIL, 0X00000028, 0X00000029},
+
+          nullptr,
           [this]()
           {
               switchExpandMode();
-              m_buttonSwitchMode.setOff();
           },
+
           0,
           0,
           0,
           0,
+
           true,
-          this,
-          false,
+          &m_middle,
       }
-    , m_level
+
+    , m_levelBox
       {
-          0,
-          0,
+          0, // need reset
+          0, // need reset
+
           [this](int dy)
           {
               if(!m_expand){
@@ -176,18 +215,16 @@ controlBoard::controlBoard(int nX, int nY, int nW, ProcessRun *pRun, widget *pwi
               }
               setButtonLoc();
           },
-          this,
-          false,
+          &m_middle,
       }
+
     , m_cmdLine
       {
-          185,
-          107,
-          343 + (nW - 800),
+          7,
+          105,
+          343 + (boardW - 800),
           17,
 
-          // 2,
-          // 15,
           1,
           12,
 
@@ -197,24 +234,48 @@ controlBoard::controlBoard(int nX, int nY, int nW, ProcessRun *pRun, widget *pwi
           2,
           ColorFunc::WHITE,
 
-          [](){},
-          [this](){ inputLineDone(); },
-          this,
-          false
+          nullptr,
+          [this]()
+          {
+              inputLineDone();
+          },
+
+          &m_middle,
       }
-    , m_LocBoard(0, 0, "", 1, 12, 0, ColorFunc::RGBA(0XFF, 0X00, 0X00, 0X00))
-    , m_logBoard
+
+    , m_locBoard
       {
-          0,
-          0,
-          341 + (nW - 800),
-          false,
-          {0, 0, 0, 0},
-          false,
+          0, // need reset
+          109,
+
+          "",
           1,
           12,
           0,
+
           ColorFunc::WHITE,
+          &m_left,
+      }
+
+    , m_logBoard
+      {
+          9,
+          0, // need reset
+          341 + (boardW - 800),
+          false,
+
+          {0, 0, 0, 0},
+          false,
+
+          1,
+          12,
+          0,
+
+          ColorFunc::WHITE,
+          LALIGN_LEFT,
+          0,
+          0,
+          &m_middle,
       }
 {
     if(!pRun){
@@ -244,8 +305,8 @@ controlBoard::controlBoard(int nX, int nY, int nW, ProcessRun *pRun, widget *pwi
         throw fflerror("controlBoard has wrong location or size");
     }
 
-    m_level.setLevel(7);
-    m_level.moveTo(178 + (W() - 178 - 166 - m_level.W()) / 2, 6 - m_level.H() / 2);
+    m_levelBox.setLevel(7);
+    m_levelBox.moveTo((W() - 178 - 166 - m_levelBox.W()) / 2, 6 - m_levelBox.H() / 2);
 }
 
 void controlBoard::Update(double fMS)
@@ -281,7 +342,7 @@ void controlBoard::drawLeft()
             SDL_QueryTexture(pHP, nullptr, nullptr, &nHPW, &nHPH);
             SDL_QueryTexture(pMP, nullptr, nullptr, &nMPW, &nMPH);
 
-            if(auto pMyHero = m_ProcessRun->GetMyHero()){
+            if(auto pMyHero = m_processRun->GetMyHero()){
                 double fHPRatio = (pMyHero->HPMax() > 0) ? ((1.0 * pMyHero->HP()) / pMyHero->HPMax()) : 1.0;
                 double fMPRatio = (pMyHero->MPMax() > 0) ? ((1.0 * pMyHero->MP()) / pMyHero->MPMax()) : 1.0;
 
@@ -302,14 +363,16 @@ void controlBoard::drawLeft()
 
     // draw current location
     {
-        const auto nX = m_ProcessRun->GetMyHero()->X();
-        const auto nY = m_ProcessRun->GetMyHero()->Y();
-        m_LocBoard.setText(u8"%s: %d %d", DBCOM_MAPRECORD(m_ProcessRun->MapID()).Name, nX, nY);
-        m_LocBoard.drawEx((136 - m_LocBoard.W()) / 2, nY0 + 109, 0, 0, m_LocBoard.W(), m_LocBoard.H());
+        const int nX = m_processRun->GetMyHero()->X();
+        const int nY = m_processRun->GetMyHero()->Y();
+        m_locBoard.setText(u8"%s: %d %d", DBCOM_MAPRECORD(m_processRun->MapID()).Name, nX, nY);
+
+        const int locBoardStartX = (136 - m_locBoard.W()) / 2;
+        m_locBoard.drawEx(locBoardStartX, m_locBoard.Y(), 0, 0, m_locBoard.W(), m_locBoard.H());
     }
 
-    m_ButtonClose.draw();
-    m_ButtonMinize.draw();
+    m_buttonClose.draw();
+    m_buttonMinize.draw();
 }
 
 void controlBoard::drawRight()
@@ -322,7 +385,7 @@ void controlBoard::drawRight()
         g_SDLDevice->DrawTexture(pTexture, nW0 - 166, nY0, 800 - 166, 0, 166, 133);
     }
 
-    m_ButtonInventory.draw();
+    m_buttonInventory.draw();
 }
 
 std::tuple<int, int> controlBoard::scheduleStretch(int dstSize, int srcSize)
@@ -380,7 +443,7 @@ void controlBoard::drawMiddleDefault()
     }
 
     // draw current creature face
-    if(auto pTexture = g_ProgUseDB->Retrieve(m_ProcessRun->GetFocusFaceKey())){
+    if(auto pTexture = g_ProgUseDB->Retrieve(m_processRun->GetFocusFaceKey())){
         g_SDLDevice->DrawTexture(pTexture, nW0 - 266, nY0 + 18);
     }
 
@@ -400,7 +463,7 @@ void controlBoard::drawMiddleDefault()
     // g_SDLDevice->PopColor();
 
     m_buttonSwitchMode.draw();
-    m_level.draw();
+    m_levelBox.draw();
 }
 
 void controlBoard::drawLogBoardDefault()
@@ -497,7 +560,7 @@ void controlBoard::drawMiddleExpand()
     }
 
     m_buttonSwitchMode.draw();
-    m_level.draw();
+    m_levelBox.draw();
     m_cmdLine.draw();
     drawLogBoardExpand();
 }
@@ -520,11 +583,11 @@ bool controlBoard::processEvent(const SDL_Event &event, bool valid)
 {
     bool takeEvent = false;
 
-    takeEvent |= m_level           .processEvent(event, valid && !takeEvent);
+    takeEvent |= m_levelBox           .processEvent(event, valid && !takeEvent);
     takeEvent |= m_cmdLine         .processEvent(event, valid && !takeEvent);
-    takeEvent |= m_ButtonClose     .processEvent(event, valid && !takeEvent);
-    takeEvent |= m_ButtonMinize    .processEvent(event, valid && !takeEvent);
-    takeEvent |= m_ButtonInventory .processEvent(event, valid && !takeEvent);
+    takeEvent |= m_buttonClose     .processEvent(event, valid && !takeEvent);
+    takeEvent |= m_buttonMinize    .processEvent(event, valid && !takeEvent);
+    takeEvent |= m_buttonInventory .processEvent(event, valid && !takeEvent);
     takeEvent |= m_buttonSwitchMode.processEvent(event, valid && !takeEvent);
 
     if(takeEvent){
@@ -573,15 +636,15 @@ void controlBoard::inputLineDone()
                 }
             case '@': // user command
                 {
-                    if(m_ProcessRun){
-                        m_ProcessRun->UserCommand(szRealInput.c_str() + 1);
+                    if(m_processRun){
+                        m_processRun->UserCommand(szRealInput.c_str() + 1);
                     }
                     break;
                 }
             case '$': // lua command for super user
                 {
-                    if(m_ProcessRun){
-                        m_ProcessRun->LuaCommand(szRealInput.c_str() + 1);
+                    if(m_processRun){
+                        m_processRun->LuaCommand(szRealInput.c_str() + 1);
                     }
                     break;
                 }
@@ -631,11 +694,11 @@ void controlBoard::setButtonLoc()
     const int modeDiffY = (298 - 131) + (m_stretchH - m_stretchHMin);
     if(m_expand){
         m_buttonSwitchMode.moveTo(W() - 181, 5 - modeDiffY);
-        m_level.moveTo(178 + (W() - 178 - 166 - m_level.W()) / 2, 6 - m_level.H() / 2 - modeDiffY);
+        m_levelBox.moveTo(178 + (W() - 178 - 166 - m_levelBox.W()) / 2, 6 - m_levelBox.H() / 2 - modeDiffY);
     }
     else{
         m_buttonSwitchMode.moveTo(W() - 181, 5);
-        m_level.moveTo(178 + (W() - 178 - 166 - m_level.W()) / 2, 6 - m_level.H() / 2);
+        m_levelBox.moveTo(178 + (W() - 178 - 166 - m_levelBox.W()) / 2, 6 - m_levelBox.H() / 2);
     }
 }
 
@@ -645,4 +708,10 @@ int controlBoard::logBoardStartY() const
         return g_SDLDevice->WindowH(false) - 120;
     }
     return g_SDLDevice->WindowH(false) - 55 - m_stretchH - 47 + 12; // 12 is texture top-left to log line distane
+}
+
+void controlBoard::resizeWidth(int w)
+{
+    m_right.moveBy(0, W() - w);
+    m_w = w;
 }

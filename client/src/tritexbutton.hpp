@@ -23,13 +23,13 @@
 #include "sdldevice.hpp"
 #include "buttonbase.hpp"
 
-class TritexButton: public ButtonBase
+class tritexButton: public ButtonBase
 {
     private:
         uint32_t m_TexID[3];
 
     public:
-        TritexButton(
+        tritexButton(
                 int nX,
                 int nY,
 
@@ -94,7 +94,7 @@ class TritexButton: public ButtonBase
         }
 
         // use one specified texture ID
-        TritexButton(
+        tritexButton(
                 int nX,
                 int nY,
 
@@ -111,7 +111,7 @@ class TritexButton: public ButtonBase
                 bool    bOnClickDone = true,
                 widget *pwidget      = nullptr,
                 bool    bFreewidget  = false)
-            : TritexButton
+            : tritexButton
               {
                   nX,
                   nY,

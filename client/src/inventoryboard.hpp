@@ -33,7 +33,7 @@ class InventoryBoard: public widget
         labelBoard m_goldBoard;
 
     private:
-        TritexButton m_closeButton;
+        tritexButton m_closeButton;
 
     private:
         ProcessRun *m_ProcessRun;

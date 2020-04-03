@@ -46,14 +46,14 @@ class ButtonBase: public widget
         int m_State;
 
     protected:
-        bool m_OnClickDone;
+        bool m_onClickDone;
 
     protected:
         int m_Offset[3][2];
 
     protected:
-        std::function<void()> m_OnOver;
-        std::function<void()> m_OnClick;
+        std::function<void()> m_onOver;
+        std::function<void()> m_onClick;
         
     public:
         ButtonBase(
@@ -62,8 +62,8 @@ class ButtonBase: public widget
                 int nW,
                 int nH,
 
-                const std::function<void()> &fnOnOver  = [](){},
-                const std::function<void()> &fnOnClick = [](){},
+                const std::function<void()> &fnOnOver  = nullptr,
+                const std::function<void()> &fnOnClick = nullptr,
 
                 int nOffXOnOver  = 0,
                 int nOffYOnOver  = 0,
@@ -75,15 +75,15 @@ class ButtonBase: public widget
                 bool    bFreewidget  = false)
             : widget(nX, nY, nW, nH, pwidget, bFreewidget)
             , m_State(BUTTON_OFF)
-            , m_OnClickDone(bOnClickDone)
+            , m_onClickDone(bOnClickDone)
             , m_Offset
               {
                   {0            , 0           },
                   {nOffXOnOver  , nOffYOnOver },
                   {nOffXOnClick , nOffYOnClick},
               }
-            , m_OnOver (fnOnOver)
-            , m_OnClick(fnOnClick)
+            , m_onOver (fnOnOver)
+            , m_onClick(fnOnClick)
         {
             // we don't fail even if x, y, w, h are invalid
             // because derived class could reset it in its constructor
