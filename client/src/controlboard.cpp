@@ -183,6 +183,42 @@ controlBoard::controlBoard(int startY, int boardW, ProcessRun *pRun)
           &m_middle,
       }
 
+    , m_buttonEmoji
+      {
+          boardW - 20,
+          105,
+          {SYS_TEXNIL, 0X00000023, 0X00000024},
+
+          nullptr,
+          nullptr,
+
+          0,
+          0,
+          0,
+          0,
+
+          true,
+          &m_middle,
+      }
+
+    , m_buttonMute
+      {
+          boardW - 20,
+          105,
+          {SYS_TEXNIL, 0X00000025, 0X00000026},
+
+          nullptr,
+          nullptr,
+
+          0,
+          0,
+          0,
+          0,
+
+          true,
+          &m_middle,
+      }
+
     , m_levelBox
       {
           0, // need reset
@@ -558,6 +594,8 @@ void controlBoard::drawMiddleExpand()
     m_buttonSwitchMode.draw();
     m_levelBox.draw();
     m_cmdLine.draw();
+    m_buttonEmoji.draw();
+    m_buttonMute.draw();
     drawLogBoardExpand();
 }
 
@@ -579,12 +617,17 @@ bool controlBoard::processEvent(const SDL_Event &event, bool valid)
 {
     bool takeEvent = false;
 
-    takeEvent |= m_levelBox           .processEvent(event, valid && !takeEvent);
+    takeEvent |= m_levelBox        .processEvent(event, valid && !takeEvent);
     takeEvent |= m_cmdLine         .processEvent(event, valid && !takeEvent);
     takeEvent |= m_buttonClose     .processEvent(event, valid && !takeEvent);
     takeEvent |= m_buttonMinize    .processEvent(event, valid && !takeEvent);
     takeEvent |= m_buttonInventory .processEvent(event, valid && !takeEvent);
     takeEvent |= m_buttonSwitchMode.processEvent(event, valid && !takeEvent);
+
+    if(m_expand){
+        takeEvent |= m_buttonEmoji.processEvent(event, valid && !takeEvent);
+        takeEvent |= m_buttonMute .processEvent(event, valid && !takeEvent);
+    }
 
     if(takeEvent){
         return true;

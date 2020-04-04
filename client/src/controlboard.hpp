@@ -57,6 +57,10 @@ class controlBoard: public widget
         tritexButton m_buttonSwitchMode;
 
     private:
+        tritexButton m_buttonEmoji;
+        tritexButton m_buttonMute;
+
+    private:
         levelBox m_levelBox;
 
     private:
