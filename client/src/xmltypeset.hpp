@@ -141,6 +141,7 @@ class XMLTypeset // means XMLParagraph typeset
             m_pw = 0;
             m_ph = 0;
             m_lineList.clear();
+            m_paragraph.clear();
         }
 
     public:

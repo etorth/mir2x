@@ -617,39 +617,39 @@ bool controlBoard::processEvent(const SDL_Event &event, bool valid)
 
 void controlBoard::inputLineDone()
 {
-    std::string szRealInput;
-    std::string szFullInput = m_cmdLine.getRawString();
+    const std::string fullInput = m_cmdLine.getRawString();
+    const auto inputPos = fullInput.find_first_not_of(" \n\r\t");
+    const std::string realInput = (inputPos == std::string::npos) ? "" : fullInput.substr(inputPos);
 
-    auto nInputPos = szFullInput.find_first_not_of(" \n\r\t");
-    szRealInput = (nInputPos == std::string::npos) ? "" : szFullInput.substr(nInputPos);
+    m_cmdLine.clear();
+    if(realInput.empty()){
+        return;
+    }
 
-    if(szRealInput.empty()){
-    }else{
-        switch(szRealInput[0]){
-            case '!': // broadcast
-                {
-                    break;
+    switch(realInput[0]){
+        case '!': // broadcast
+            {
+                break;
+            }
+        case '@': // user command
+            {
+                if(m_processRun){
+                    m_processRun->UserCommand(realInput.c_str() + 1);
                 }
-            case '@': // user command
-                {
-                    if(m_processRun){
-                        m_processRun->UserCommand(szRealInput.c_str() + 1);
-                    }
-                    break;
+                break;
+            }
+        case '$': // lua command for super user
+            {
+                if(m_processRun){
+                    m_processRun->LuaCommand(realInput.c_str() + 1);
                 }
-            case '$': // lua command for super user
-                {
-                    if(m_processRun){
-                        m_processRun->LuaCommand(szRealInput.c_str() + 1);
-                    }
-                    break;
-                }
-            default: // normal talk
-                {
-                    addLog(0, szRealInput.c_str());
-                    break;
-                }
-        }
+                break;
+            }
+        default: // normal talk
+            {
+                addLog(0, realInput.c_str());
+                break;
+            }
     }
 }
 

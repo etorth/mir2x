@@ -154,8 +154,8 @@ class XMLParagraph
     private:
         const tinyxml2::XMLNode *leafCommonAncestor(int, int) const;
 
-    private:
-        void Clear()
+    public:
+        void clear()
         {
             m_leafList.clear();
             m_XMLDocument.Clear();

@@ -96,4 +96,11 @@ class inputLine: public widget
         {
             return m_tpset.getRawString();
         }
+
+        void clear()
+        {
+            m_cursor = 0;
+            m_cursorBlink = 0.0;
+            m_tpset.clear();
+        }
 };
