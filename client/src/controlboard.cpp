@@ -736,6 +736,9 @@ void controlBoard::setButtonLoc()
     if(m_expand){
         m_buttonSwitchMode.moveTo(boardW - 178 - 181, 3 - modeDiffY);
         m_levelBox.moveTo((boardW - 178 - 166 - m_levelBox.W()) / 2, 4 - m_levelBox.H() / 2 - modeDiffY);
+
+        m_buttonEmoji.moveTo(boardW - 178 - 260, 87);
+        m_buttonMute .moveTo(boardW - 178 - 220, 87);
     }
     else{
         m_buttonSwitchMode.moveTo(boardW - 178 - 181, 3);
