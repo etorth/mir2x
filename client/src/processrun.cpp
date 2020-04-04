@@ -49,7 +49,7 @@ extern ClientArgParser *g_ClientArgParser;
 ProcessRun::ProcessRun()
     : Process()
     , m_MapID(0)
-    , m_Mir2xMapData()
+    , m_mir2xMapData()
     , m_GroundItemList()
     , m_MyHeroUID(0)
     , m_FocusUIDTable()
@@ -235,8 +235,8 @@ void ProcessRun::Draw()
         // tiles
         for(int nY = nY0; nY <= nY1; ++nY){
             for(int nX = nX0; nX <= nX1; ++nX){
-                if(m_Mir2xMapData.ValidC(nX, nY) && !(nX % 2) && !(nY % 2)){
-                    auto &rstTile = m_Mir2xMapData.Tile(nX, nY);
+                if(m_mir2xMapData.ValidC(nX, nY) && !(nX % 2) && !(nY % 2)){
+                    auto &rstTile = m_mir2xMapData.Tile(nX, nY);
                     if(rstTile.Valid()){
                         if(auto pTexture = g_MapDB->Retrieve(rstTile.Image())){
                             g_SDLDevice->DrawTexture(pTexture, nX * SYS_MAPGRIDXP - m_ViewX, nY * SYS_MAPGRIDYP - m_ViewY);
@@ -249,9 +249,9 @@ void ProcessRun::Draw()
         // ground objects
         for(int nY = nY0; nY <= nY1; ++nY){
             for(int nX = nX0; nX <= nX1; ++nX){
-                if(m_Mir2xMapData.ValidC(nX, nY)){
+                if(m_mir2xMapData.ValidC(nX, nY)){
                     for(int nIndex = 0; nIndex < 2; ++nIndex){
-                        auto stArray = m_Mir2xMapData.Cell(nX, nY).ObjectArray(nIndex);
+                        auto stArray = m_mir2xMapData.Cell(nX, nY).ObjectArray(nIndex);
                         if(true
                                 && (stArray[4] & 0X80)
                                 && (stArray[4] & 0X01)){
@@ -367,9 +367,9 @@ void ProcessRun::Draw()
         // over ground objects
         for(int nY = nY0; nY <= nY1; ++nY){
             for(int nX = nX0; nX <= nX1; ++nX){
-                if(m_Mir2xMapData.ValidC(nX, nY)){
+                if(m_mir2xMapData.ValidC(nX, nY)){
                     for(int nIndex = 0; nIndex < 2; ++nIndex){
-                        auto stArray = m_Mir2xMapData.Cell(nX, nY).ObjectArray(nIndex);
+                        auto stArray = m_mir2xMapData.Cell(nX, nY).ObjectArray(nIndex);
                         if(true
                                 &&  (stArray[4] & 0X80)
                                 && !(stArray[4] & 0X01)){
@@ -727,10 +727,10 @@ int ProcessRun::LoadMap(uint32_t nMapID)
     if(nMapID){
         if(auto pMapBin = g_MapBinDB->Retrieve(nMapID)){
             m_MapID        =  nMapID;
-            m_Mir2xMapData = *pMapBin;
+            m_mir2xMapData = *pMapBin;
 
-            auto nW = m_Mir2xMapData.W();
-            auto nH = m_Mir2xMapData.H();
+            auto nW = m_mir2xMapData.W();
+            auto nH = m_mir2xMapData.H();
 
             m_GroundItemList.clear();
             m_GroundItemList.resize(nW);
@@ -787,11 +787,11 @@ bool ProcessRun::CanMove(bool bCheckGround, int nCheckCreature, int nX, int nY)
 
 int ProcessRun::CheckPathGrid(int nX, int nY) const
 {
-    if(!m_Mir2xMapData.ValidC(nX, nY)){
+    if(!m_mir2xMapData.ValidC(nX, nY)){
         return PathFind::INVALID;
     }
 
-    if(!m_Mir2xMapData.Cell(nX, nY).CanThrough()){
+    if(!m_mir2xMapData.Cell(nX, nY).CanThrough()){
         return PathFind::OBSTACLE;
     }
 
@@ -1289,7 +1289,7 @@ void ProcessRun::AddOPLog(int nOutPort, int logType, const char *szPrompt, const
 
 bool ProcessRun::OnMap(uint32_t nMapID, int nX, int nY) const
 {
-    return (MapID() == nMapID) && m_Mir2xMapData.ValidC(nX, nY);
+    return (MapID() == nMapID) && m_mir2xMapData.ValidC(nX, nY);
 }
 
 Creature *ProcessRun::RetrieveUID(uint64_t nUID)

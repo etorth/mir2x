@@ -67,7 +67,7 @@ class ProcessRun: public Process
 
     private:
         uint32_t     m_MapID;
-        Mir2xMapData m_Mir2xMapData;
+        Mir2xMapData m_mir2xMapData;
 
     private:
         std::vector<std::vector<std::vector<CommonItem>>> m_GroundItemList;
@@ -78,7 +78,7 @@ class ProcessRun: public Process
     public:
         bool ValidC(int nX, int nY) const
         {
-            return m_Mir2xMapData.ValidC(nX, nY);
+            return m_mir2xMapData.ValidC(nX, nY);
         }
 
     private:
@@ -262,7 +262,7 @@ class ProcessRun: public Process
 
         bool AddGroundItem(const CommonItem &rstCommonItem, int nX, int nY)
         {
-            if(rstCommonItem && m_Mir2xMapData.ValidC(nX, nY)){
+            if(rstCommonItem && m_mir2xMapData.ValidC(nX, nY)){
                 m_GroundItemList[nX][nY].push_back(rstCommonItem);
                 return true;
             }
