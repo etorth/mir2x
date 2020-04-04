@@ -32,10 +32,10 @@
 #include "pngtexdb.hpp"
 #include "sdldevice.hpp"
 
-class ButtonBase: public widget
+class buttonBase: public widget
 {
     public:
-        enum ButtonState: int
+        enum buttonState: int
         {
             BUTTON_OFF     = 0,
             BUTTON_OVER    = 1,
@@ -43,7 +43,7 @@ class ButtonBase: public widget
         };
 
     protected:
-        int m_State;
+        int m_state;
 
     protected:
         bool m_onClickDone;
@@ -56,7 +56,7 @@ class ButtonBase: public widget
         std::function<void()> m_onClick;
         
     public:
-        ButtonBase(
+        buttonBase(
                 int nX,
                 int nY,
                 int nW,
@@ -74,7 +74,7 @@ class ButtonBase: public widget
                 widget *pwidget      = nullptr,
                 bool    bFreewidget  = false)
             : widget(nX, nY, nW, nH, pwidget, bFreewidget)
-            , m_State(BUTTON_OFF)
+            , m_state(BUTTON_OFF)
             , m_onClickDone(bOnClickDone)
             , m_Offset
               {
@@ -90,7 +90,7 @@ class ButtonBase: public widget
         }
 
     public:
-        virtual ~ButtonBase() = default;
+        virtual ~buttonBase() = default;
 
     public:
         bool processEvent(const SDL_Event &, bool);
@@ -108,7 +108,7 @@ class ButtonBase: public widget
 
         int State() const
         {
-            return m_State;
+            return m_state;
         }
 
     public:
@@ -116,6 +116,6 @@ class ButtonBase: public widget
         // sometimes when we invoke the callback it changes the button location
         void setOff()
         {
-            m_State = BUTTON_OFF;
+            m_state = BUTTON_OFF;
         }
 };

@@ -20,10 +20,10 @@
 #include "sdldevice.hpp"
 #include "buttonbase.hpp"
 
-bool ButtonBase::processEvent(const SDL_Event &event, bool valid)
+bool buttonBase::processEvent(const SDL_Event &event, bool valid)
 {
     if(!valid){
-        m_State = BUTTON_OFF;
+        m_state = BUTTON_OFF;
         return false;
     }
 
@@ -35,11 +35,11 @@ bool ButtonBase::processEvent(const SDL_Event &event, bool valid)
                         m_onClick();
                     }
 
-                    m_State = BUTTON_OVER;
+                    m_state = BUTTON_OVER;
                     return true;
                 }
                 else{
-                    m_State = BUTTON_OFF;
+                    m_state = BUTTON_OFF;
                     return false;
                 }
             }
@@ -51,27 +51,27 @@ bool ButtonBase::processEvent(const SDL_Event &event, bool valid)
                         m_onClick();
                     }
 
-                    m_State = BUTTON_PRESSED;
+                    m_state = BUTTON_PRESSED;
                     return true;
                 }
                 else{
-                    m_State = BUTTON_OFF;
+                    m_state = BUTTON_OFF;
                     return false;
                 }
             }
         case SDL_MOUSEMOTION:
             {
                 if(in(event.motion.x, event.motion.y)){
-                    if(m_State != 2){
+                    if(m_state != 2){
                         if(m_onOver){
                             m_onOver();
                         }
-                        m_State = BUTTON_OVER;
+                        m_state = BUTTON_OVER;
                     }
                     return true;
                 }
                 else{
-                    m_State = BUTTON_OFF;
+                    m_state = BUTTON_OFF;
                     return false;
                 }
             }

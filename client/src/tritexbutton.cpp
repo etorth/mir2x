@@ -23,9 +23,9 @@
 extern PNGTexDB *g_ProgUseDB;
 extern SDLDevice *g_SDLDevice;
 
-void tritexButton::drawEx(int nDstX, int nDstY, int nSrcX, int nSrcY, int nW, int nH)
+void tritexButton::drawEx(int dstX, int dstY, int srcX, int srcY, int w, int h)
 {
-    if(auto pTexture = g_ProgUseDB->Retrieve(m_TexID[m_State])){
-        g_SDLDevice->DrawTexture(pTexture, nDstX + m_Offset[m_State][0], nDstY + m_Offset[m_State][1], nSrcX, nSrcY, nW, nH);
+    if(auto tex = g_ProgUseDB->Retrieve(m_texID[m_state])){
+        g_SDLDevice->DrawTexture(tex, dstX + m_Offset[m_state][0], dstY + m_Offset[m_state][1], srcX, srcY, w, h);
     }
 }

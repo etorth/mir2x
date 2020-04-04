@@ -23,7 +23,7 @@
 #include "buttonbase.hpp"
 #include "labelboard.hpp"
 
-class TextButton: public ButtonBase
+class TextButton: public buttonBase
 {
     private:
         // for [3]: 0 : off
@@ -89,7 +89,7 @@ class TextButton: public ButtonBase
                 bool    bOnClickDone = true,
                 widget *pwidget      = nullptr,
                 bool    bFreewidget  = false)
-            : ButtonBase
+            : buttonBase
               {
                   nX,
                   nY,

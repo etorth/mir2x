@@ -23,10 +23,10 @@
 #include "sdldevice.hpp"
 #include "buttonbase.hpp"
 
-class tritexButton: public ButtonBase
+class tritexButton: public buttonBase
 {
     private:
-        uint32_t m_TexID[3];
+        uint32_t m_texID[3];
 
     public:
         tritexButton(
@@ -46,7 +46,7 @@ class tritexButton: public ButtonBase
                 bool    bOnClickDone = true,
                 widget *pwidget      = nullptr,
                 bool    bFreewidget  = false)
-            : ButtonBase
+            : buttonBase
               {
                   nX, 
                   nY,
@@ -65,7 +65,7 @@ class tritexButton: public ButtonBase
                   pwidget,
                   bFreewidget,
               }
-            , m_TexID
+            , m_texID
               {
                   rstvTexID[0],
                   rstvTexID[1],
@@ -75,9 +75,9 @@ class tritexButton: public ButtonBase
             int nW = 0;
             int nH = 0;
             for(int nState = 0; nState < 3; ++nState){
-                if(m_TexID[nState]){
+                if(m_texID[nState]){
                     extern PNGTexDB *g_ProgUseDB;
-                    if(auto pTexture = g_ProgUseDB->Retrieve(m_TexID[nState])){
+                    if(auto pTexture = g_ProgUseDB->Retrieve(m_texID[nState])){
                         int nCurrW, nCurrH;
                         if(!SDL_QueryTexture(pTexture, nullptr, nullptr, &nCurrW, &nCurrH)){
                             nW = (std::max<int>)(nCurrW, nW);
