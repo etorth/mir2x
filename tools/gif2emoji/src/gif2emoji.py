@@ -69,6 +69,9 @@ def gif2emoji(gifName, outId):
 def main():
     # need to install pillow:
     # python3 -m pip install --upgrade Pillow
+
+    # seems not good, still use ezGIF
+    # or check this link: https://gist.github.com/BigglesZX/4016539
     if len(sys.argv) != 3:
         raise ValueError("usage: python3 gif2emoji fileName.gif 123")
     gif2emoji(sys.argv[1], int(sys.argv[2]))
