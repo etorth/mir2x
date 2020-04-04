@@ -164,8 +164,8 @@ controlBoard::controlBoard(int startY, int boardW, ProcessRun *pRun)
 
     , m_buttonSwitchMode
       {
-          boardW - 181,
-          5,
+          boardW - 178 - 181,
+          3,
           {SYS_TEXNIL, 0X00000028, 0X00000029},
 
           nullptr,
@@ -306,7 +306,7 @@ controlBoard::controlBoard(int startY, int boardW, ProcessRun *pRun)
     }
 
     m_levelBox.setLevel(7);
-    m_levelBox.moveTo((W() - 178 - 166 - m_levelBox.W()) / 2, 6 - m_levelBox.H() / 2);
+    m_levelBox.moveTo((W() - 178 - 166 - m_levelBox.W()) / 2, 4 - m_levelBox.H() / 2);
 }
 
 void controlBoard::Update(double fMS)
@@ -457,10 +457,6 @@ void controlBoard::drawMiddleDefault()
         const int titleDstY = nY0 - 19;
         g_SDLDevice->DrawTexture(pTexture, titleDstX, titleDstY);
     }
-
-    // g_SDLDevice->PushColor(0X00, 0XFF, 0X00, 0XFF);
-    // g_SDLDevice->DrawRectangle(m_cmdLine.X(), m_cmdLine.Y(), m_cmdLine.W(), m_cmdLine.H());
-    // g_SDLDevice->PopColor();
 
     m_buttonSwitchMode.draw();
     m_levelBox.draw();
@@ -691,14 +687,16 @@ void controlBoard::setButtonLoc()
     // when you draw something on default log board at (X, Y), (0, 0) is left-top
     // if you need to keep the same location on expand log board, draw on(X, Y - modeDiffY)
 
+    const int boardW = W();
     const int modeDiffY = (298 - 131) + (m_stretchH - m_stretchHMin);
+
     if(m_expand){
-        m_buttonSwitchMode.moveTo(W() - 181, 5 - modeDiffY);
-        m_levelBox.moveTo(178 + (W() - 178 - 166 - m_levelBox.W()) / 2, 6 - m_levelBox.H() / 2 - modeDiffY);
+        m_buttonSwitchMode.moveTo(boardW - 178 - 181, 3 - modeDiffY);
+        m_levelBox.moveTo((boardW - 178 - 166 - m_levelBox.W()) / 2, 4 - m_levelBox.H() / 2 - modeDiffY);
     }
     else{
-        m_buttonSwitchMode.moveTo(W() - 181, 5);
-        m_levelBox.moveTo(178 + (W() - 178 - 166 - m_levelBox.W()) / 2, 6 - m_levelBox.H() / 2);
+        m_buttonSwitchMode.moveTo(boardW - 178 - 181, 3);
+        m_levelBox.moveTo((boardW - 178 - 166 - m_levelBox.W()) / 2, 4 - m_levelBox.H() / 2);
     }
 }
 
@@ -712,6 +710,6 @@ int controlBoard::logBoardStartY() const
 
 void controlBoard::resizeWidth(int w)
 {
-    m_right.moveBy(0, W() - w);
+    m_right.moveBy(W() - w, 0);
     m_w = w;
 }
