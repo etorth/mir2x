@@ -42,14 +42,14 @@
 //
 //  FileName format:
 //
-//  [0 ~ 1] [2 ~ 5] [6 ~ 7] [8 ~ 9] [10 ~ 13] [14 ~ 17] [18 ~ 21].PNG
+//  [0 ~ 1] [2 ~ 5] [6 ~ 7] [8 ~ 9]  [10 ~ 11] [12 ~ 15] [16 ~ 19] [20 ~ 23].PNG
 //
-//  ESet    ESubset EFrame  FPS     FrameW    FrameH    FrameH1
-//  1Byte   2Bytes  1Byte   1Byte   2Bytes    2Bytes    2Bytes
-//                  ------
-//                    ^
-//                    |
-//                    +------- always set it as zero
+//  ESet    ESubset EFrame  FrameCnt FPS       FrameW    FrameH    FrameH1
+//  1Byte   2Bytes  1Byte   1Byte    1Byte     2Bytes    2Bytes    2Bytes
+//                  +-----
+//                  ^
+//                  |
+//                  +------- always set it as zero
 //                             and when retrieving we can just plus the frame index here
 
 struct emojiEntry
@@ -59,12 +59,13 @@ struct emojiEntry
     int          FrameH;
     int          FrameH1;
     int          FPS;
+    int          frameCount;
 };
 
-class EmoticonDB: public InnDB<uint32_t, emojiEntry>
+class emoticonDB: public innDB<uint32_t, emojiEntry>
 {
     private:
-        std::unique_ptr<ZSDB> m_ZSDBPtr;
+        std::unique_ptr<ZSDB> m_zsdbPtr;
 
     public:
         static uint32_t U32Key(uint8_t emojiSet, uint16_t emojiSubset)
@@ -78,16 +79,16 @@ class EmoticonDB: public InnDB<uint32_t, emojiEntry>
         }
 
     public:
-        EmoticonDB()
-            : InnDB<uint32_t, emojiEntry>(1024)
-            , m_ZSDBPtr()
+        emoticonDB()
+            : innDB<uint32_t, emojiEntry>(1024)
+            , m_zsdbPtr()
         {}
 
     public:
         bool Load(const char *szEmojiDBName)
         {
             try{
-                m_ZSDBPtr = std::make_unique<ZSDB>(szEmojiDBName);
+                m_zsdbPtr = std::make_unique<ZSDB>(szEmojiDBName);
             }catch(...){
                 return false;
             }
@@ -95,36 +96,34 @@ class EmoticonDB: public InnDB<uint32_t, emojiEntry>
         }
 
     public:
-        SDL_Texture *Retrieve(uint32_t nKey,
+        SDL_Texture *Retrieve(uint32_t key,
                 int *pSrcX, int *pSrcY,
                 int *pSrcW, int *pSrcH,
                 int *pH1,
                 int *pFPS,
                 int *pFrameCount)
         {
-            emojiEntry stEntry;
-            if(!this->RetrieveResource(nKey & 0XFFFFFF00, &stEntry)){
+            emojiEntry entry;
+            if(!this->RetrieveResource(key & 0XFFFFFF00, &entry)){
                 return nullptr;
             }
 
             int nW = 0;
             int nH = 0;
-            SDL_QueryTexture(stEntry.Texture, nullptr, nullptr, &nW, &nH);
+            SDL_QueryTexture(entry.Texture, nullptr, nullptr, &nW, &nH);
 
-            int nCountX = nW / stEntry.FrameW;
-            int nCountY = nH / stEntry.FrameH;
+            const int nCountX = nW / entry.FrameW;
+            const int nFrameIndex = (int)(key & 0X000000FF);
 
-            int nFrameIndex = (int)(nKey & 0X000000FF);
+            if(pSrcX      ){ *pSrcX       = (nFrameIndex % nCountX) * entry.FrameW; }
+            if(pSrcY      ){ *pSrcY       = (nFrameIndex / nCountX) * entry.FrameH; }
+            if(pSrcW      ){ *pSrcW       = entry.FrameW;                           }
+            if(pSrcH      ){ *pSrcH       = entry.FrameH;                           }
+            if(pH1        ){ *pH1         = entry.FrameH1;                          }
+            if(pFPS       ){ *pFPS        = entry.FPS;                              }
+            if(pFrameCount){ *pFrameCount = entry.frameCount;                       }
 
-            if(pSrcX      ){ *pSrcX       = (nFrameIndex % nCountX) * stEntry.FrameW; }
-            if(pSrcY      ){ *pSrcY       = (nFrameIndex / nCountX) * stEntry.FrameH; }
-            if(pSrcW      ){ *pSrcW       = stEntry.FrameW;                           }
-            if(pSrcH      ){ *pSrcH       = stEntry.FrameH;                           }
-            if(pH1        ){ *pH1         = stEntry.FrameH1;                          }
-            if(pFPS       ){ *pFPS        = stEntry.FPS;                              }
-            if(pFrameCount){ *pFrameCount = nCountX * nCountY;                        }
-
-            return stEntry.Texture;
+            return entry.Texture;
         }
 
         SDL_Texture *Retrieve(uint8_t nSet, uint16_t nSubset, uint8_t nIndex,
@@ -139,25 +138,26 @@ class EmoticonDB: public InnDB<uint32_t, emojiEntry>
         }
 
     public:
-        virtual std::tuple<emojiEntry, size_t> LoadResource(uint32_t nKey)
+        virtual std::tuple<emojiEntry, size_t> loadResource(uint32_t nKey)
         {
-            char szKeyString[16];
-            std::vector<uint8_t> stBuf;
-            emojiEntry stEntry {nullptr, 0, 0, 0, 0};
+            char keyString[16];
+            std::vector<uint8_t> dataBuf;
+            emojiEntry entry {nullptr, 0, 0, 0, 0, 0};
 
-            if(auto szFileName = m_ZSDBPtr->Decomp(HexString::ToString<uint32_t, 4>(nKey, szKeyString, true), 8, &stBuf); szFileName && (std::strlen(szFileName) >= 22)){
-                stEntry.FPS     = (int)HexString::ToHex< uint8_t, 1>(szFileName +  8);
-                stEntry.FrameW  = (int)HexString::ToHex<uint16_t, 2>(szFileName + 10);
-                stEntry.FrameH  = (int)HexString::ToHex<uint16_t, 2>(szFileName + 14);
-                stEntry.FrameH1 = (int)HexString::ToHex<uint16_t, 2>(szFileName + 18);
+            if(auto fileName = m_zsdbPtr->Decomp(HexString::ToString<uint32_t, 4>(nKey, keyString, true), 8, &dataBuf); fileName && (std::strlen(fileName) >= 22)){
+                entry.frameCount = (int)HexString::ToHex< uint8_t, 1>(fileName +  8);
+                entry.FPS        = (int)HexString::ToHex< uint8_t, 1>(fileName + 10);
+                entry.FrameW     = (int)HexString::ToHex<uint16_t, 2>(fileName + 12);
+                entry.FrameH     = (int)HexString::ToHex<uint16_t, 2>(fileName + 16);
+                entry.FrameH1    = (int)HexString::ToHex<uint16_t, 2>(fileName + 20);
 
                 extern SDLDevice *g_SDLDevice;
-                stEntry.Texture = g_SDLDevice->CreateTexture(stBuf.data(), stBuf.size());
+                entry.Texture = g_SDLDevice->CreateTexture(dataBuf.data(), dataBuf.size());
             }
-            return {stEntry, stEntry.Texture ? 1 : 0};
+            return {entry, entry.Texture ? 1 : 0};
         }
 
-        virtual void FreeResource(emojiEntry &rstEntry)
+        virtual void freeResource(emojiEntry &rstEntry)
         {
             if(rstEntry.Texture){
                 SDL_DestroyTexture(rstEntry.Texture);

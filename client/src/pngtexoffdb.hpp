@@ -36,22 +36,22 @@ struct PNGTexOffEntry
     int          DY;
 };
 
-class PNGTexOffDB: public InnDB<uint32_t, PNGTexOffEntry>
+class PNGTexOffDB: public innDB<uint32_t, PNGTexOffEntry>
 {
     private:
-        std::unique_ptr<ZSDB> m_ZSDBPtr;
+        std::unique_ptr<ZSDB> m_zsdbPtr;
 
     public:
         PNGTexOffDB(size_t nResMax)
-            : InnDB<uint32_t, PNGTexOffEntry>(nResMax)
-            , m_ZSDBPtr()
+            : innDB<uint32_t, PNGTexOffEntry>(nResMax)
+            , m_zsdbPtr()
         {}
 
     public:
         bool Load(const char *szPNGTexOffDBName)
         {
             try{
-                m_ZSDBPtr = std::make_unique<ZSDB>(szPNGTexOffDBName);
+                m_zsdbPtr = std::make_unique<ZSDB>(szPNGTexOffDBName);
             }catch(...){
                 return false;
             }
@@ -79,13 +79,13 @@ class PNGTexOffDB: public InnDB<uint32_t, PNGTexOffEntry>
         }
 
     public:
-        virtual std::tuple<PNGTexOffEntry, size_t> LoadResource(uint32_t nKey)
+        virtual std::tuple<PNGTexOffEntry, size_t> loadResource(uint32_t nKey)
         {
             char szKeyString[16];
             std::vector<uint8_t> stBuf;
             PNGTexOffEntry stEntry {nullptr, 0, 0};
 
-            if(auto szFileName = m_ZSDBPtr->Decomp(HexString::ToString<uint32_t, 4>(nKey, szKeyString, true), 8, &stBuf); szFileName && (std::strlen(szFileName) >= 18)){
+            if(auto szFileName = m_zsdbPtr->Decomp(HexString::ToString<uint32_t, 4>(nKey, szKeyString, true), 8, &stBuf); szFileName && (std::strlen(szFileName) >= 18)){
                 //
                 // [0 ~ 7] [8] [9] [10 ~ 13] [14 ~ 17]
                 //  <KEY>  <S> <S>   <+DX>     <+DY>
@@ -109,7 +109,7 @@ class PNGTexOffDB: public InnDB<uint32_t, PNGTexOffEntry>
             return {stEntry, stEntry.Texture ? 1 : 0};
         }
 
-        virtual void FreeResource(PNGTexOffEntry &rstEntry)
+        virtual void freeResource(PNGTexOffEntry &rstEntry)
         {
             if(rstEntry.Texture){
                 SDL_DestroyTexture(rstEntry.Texture);

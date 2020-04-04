@@ -30,14 +30,14 @@ struct MapBinEntry
     Mir2xMapData *Map;
 };
 
-class MapBinDB: public InnDB<uint32_t, MapBinEntry>
+class MapBinDB: public innDB<uint32_t, MapBinEntry>
 {
     private:
         std::unique_ptr<ZSDB> m_ZSDBPtr;
 
     public:
         MapBinDB()
-            : InnDB<uint32_t, MapBinEntry>(16)
+            : innDB<uint32_t, MapBinEntry>(16)
             , m_ZSDBPtr()
         {}
 
@@ -62,7 +62,7 @@ class MapBinDB: public InnDB<uint32_t, MapBinEntry>
         }
 
     public:
-        virtual std::tuple<MapBinEntry, size_t> LoadResource(uint32_t nKey)
+        virtual std::tuple<MapBinEntry, size_t> loadResource(uint32_t nKey)
         {
             char szKeyString[16];
             MapBinEntry stEntry {nullptr};
@@ -78,7 +78,7 @@ class MapBinDB: public InnDB<uint32_t, MapBinEntry>
             return {stEntry, stEntry.Map ? 1 : 0};
         }
 
-        virtual void FreeResource(MapBinEntry &rstEntry)
+        virtual void freeResource(MapBinEntry &rstEntry)
         {
             if(rstEntry.Map){
                 delete rstEntry.Map;

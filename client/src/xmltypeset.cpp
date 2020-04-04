@@ -32,7 +32,7 @@
 extern Log *g_Log;
 extern FontexDB *g_FontexDB;
 extern SDLDevice *g_SDLDevice;
-extern EmoticonDB *g_EmoticonDB;
+extern emoticonDB *g_emoticonDB;
 extern ClientArgParser *g_ClientArgParser;
 
 void XMLTypeset::SetTokenBoxWordSpace(int nLine)
@@ -586,7 +586,7 @@ TOKEN XMLTypeset::buildEmojiToken(int leaf, uint32_t emoji) const
     int fps        = -1;
     int frameCount = -1;
 
-    if(g_EmoticonDB->Retrieve(emoji, 0, 0, &tokenW, &tokenH, &h1, &fps, &frameCount)){
+    if(g_emoticonDB->Retrieve(emoji, 0, 0, &tokenW, &tokenH, &h1, &fps, &frameCount)){
         token.Box.Info.W       = tokenW;
         token.Box.Info.H       = tokenH;
         token.Box.State.H1     = h1;
@@ -961,7 +961,7 @@ void XMLTypeset::drawEx(int nDstX, int nDstY, int nSrcX, int nSrcY, int nSrcW, i
                             return pToken->Emoji.U32Key & 0XFFFFFF00;
                         }();
 
-                        if(auto ptex = g_EmoticonDB->Retrieve(emojiKey, &xOnTex, &yOnTex, 0, 0, 0, 0, 0)){
+                        if(auto ptex = g_emoticonDB->Retrieve(emojiKey, &xOnTex, &yOnTex, 0, 0, 0, 0, 0)){
                             g_SDLDevice->DrawTexture(ptex, nX + nDstDX, nY + nDstDY, xOnTex + nDX, yOnTex + nDY, nW, nH);
                         }
                         else{

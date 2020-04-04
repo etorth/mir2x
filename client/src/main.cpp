@@ -42,7 +42,7 @@ PNGTexOffDB     *g_HeroDB          = nullptr; // database for hero
 PNGTexOffDB     *g_MonsterDB       = nullptr; // database for monster
 PNGTexOffDB     *g_WeaponDB        = nullptr; // database for weapon
 PNGTexOffDB     *g_MagicDB         = nullptr; // database for magic
-EmoticonDB      *g_EmoticonDB      = nullptr; // database for emoticons
+emoticonDB      *g_emoticonDB      = nullptr; // database for emoticons
 MapBinDB        *g_MapBinDB        = nullptr;
 FontexDB        *g_FontexDB        = nullptr;
 XMLConf         *g_XMLConf         = nullptr; // for client configure XML parsing
@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
             delete g_MonsterDB      ; g_MonsterDB       = nullptr;
             delete g_FontexDB       ; g_FontexDB        = nullptr;
             delete g_MapBinDB       ; g_MapBinDB        = nullptr;
-            delete g_EmoticonDB     ; g_EmoticonDB      = nullptr;
+            delete g_emoticonDB     ; g_emoticonDB      = nullptr;
             delete g_debugBoard     ; g_debugBoard      = nullptr;
             delete g_NotifyBoard    ; g_NotifyBoard     = nullptr;
             delete g_Client         ; g_Client          = nullptr;
@@ -102,7 +102,7 @@ int main(int argc, char *argv[])
         g_MagicDB         = new PNGTexOffDB(1024);
         g_FontexDB        = new FontexDB(1024);
         g_MapBinDB        = new MapBinDB();
-        g_EmoticonDB      = new EmoticonDB();
+        g_emoticonDB      = new emoticonDB();
         g_Client          = new Client();       // loads fontex resource
         g_debugBoard      = new debugBoard(0, 0, 10240, 0, 15, 0, ColorFunc::RED + 255);
         g_NotifyBoard     = new NotifyBoard();  // needs fontex

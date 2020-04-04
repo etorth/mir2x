@@ -40,7 +40,7 @@
 extern Log *g_Log;
 extern FontexDB *g_FontexDB;
 extern SDLDevice *g_SDLDevice;
-extern EmoticonDB *g_EmoticonDB;
+extern emoticonDB *g_emoticonDB;
 
 // insert an XML file to current board
 // assumption: current board is well-prepared
@@ -148,7 +148,7 @@ bool TokenBoard::ParseEmoticonObject(const tinyxml2::XMLElement &rstCurrentObjec
     GetAttributeAtoi(&(stSection.Info.Emoticon.Set),   0, rstCurrentObject, {"SET", "Set", "set"});
     GetAttributeAtoi(&(stSection.Info.Emoticon.Index), 0, rstCurrentObject, {"INDEX", "Index", "index"});
 
-    auto pTexture = g_EmoticonDB->Retrieve(
+    auto pTexture = g_emoticonDB->Retrieve(
             stSection.Info.Emoticon.Set,          // emoticon set
             stSection.Info.Emoticon.Index,        // emoticon index
             0,                                    // first frame of the emoticon
@@ -826,7 +826,7 @@ void TokenBoard::drawEx(
                         int nFrameIndex = m_SectionRecord[rstTokenBox.Section].Section.State.Emoticon.FrameIndex;
 
                         int nXOnTex, nYOnTex;
-                        auto pTexture = g_EmoticonDB->Retrieve(rstTokenBox.EmoticonBox.Cache.Key + nFrameIndex, &nXOnTex, &nYOnTex, nullptr, nullptr, nullptr, nullptr, nullptr);
+                        auto pTexture = g_emoticonDB->Retrieve(rstTokenBox.EmoticonBox.Cache.Key + nFrameIndex, &nXOnTex, &nYOnTex, nullptr, nullptr, nullptr, nullptr, nullptr);
 
                         if(pTexture){
                             int nDX = nX - rstTokenBox.Cache.StartX;
@@ -2181,7 +2181,7 @@ bool TokenBoard::MakeTokenBox(int nSectionID, uint32_t nKey, TOKENBOX *pTokenBox
         case SECTIONTYPE_EMOTICON:
             {
                 pTokenBox->Section = nSectionID;
-                auto pTexture = g_EmoticonDB->Retrieve(
+                auto pTexture = g_emoticonDB->Retrieve(
                         rstSection.Info.Emoticon.Set,         // emoticon set
                         rstSection.Info.Emoticon.Index,       // emoticon index
                         0,                                    // first frame of the emoticon

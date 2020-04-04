@@ -45,10 +45,10 @@ struct FontexEntry
     SDL_Texture *Texture;
 };
 
-class FontexDB: public InnDB<uint64_t, FontexEntry>
+class FontexDB: public innDB<uint64_t, FontexEntry>
 {
     private:
-        std::unique_ptr<ZSDB> m_ZSDBPtr;
+        std::unique_ptr<ZSDB> m_zsdbPtr;
         std::vector<ZSDB::Entry> m_entryList;
 
     private:
@@ -61,8 +61,8 @@ class FontexDB: public InnDB<uint64_t, FontexEntry>
 
     public:
         FontexDB(size_t nResMax)
-            : InnDB<uint64_t, FontexEntry>(nResMax)
-            , m_ZSDBPtr()
+            : innDB<uint64_t, FontexEntry>(nResMax)
+            , m_zsdbPtr()
             , m_TTFCache()
             , m_FontDataCache()
         {}
@@ -85,7 +85,7 @@ class FontexDB: public InnDB<uint64_t, FontexEntry>
             {
                 char szFontIndexString[8];
                 std::vector<uint8_t> stFontDataBuf;
-                if(m_ZSDBPtr->Decomp(HexString::ToString<uint8_t, 1>(nFontIndex, szFontIndexString, true), 2, &stFontDataBuf)){
+                if(m_zsdbPtr->Decomp(HexString::ToString<uint8_t, 1>(nFontIndex, szFontIndexString, true), 2, &stFontDataBuf)){
                     return stFontDataBuf;
                 }
                 return {};
@@ -119,8 +119,8 @@ class FontexDB: public InnDB<uint64_t, FontexEntry>
         bool Load(const char *szFontexDBName)
         {
             try{
-                m_ZSDBPtr = std::make_unique<ZSDB>(szFontexDBName);
-                m_entryList = m_ZSDBPtr->GetEntryList();
+                m_zsdbPtr = std::make_unique<ZSDB>(szFontexDBName);
+                m_entryList = m_zsdbPtr->GetEntryList();
             }catch(...){
                 return false;
             }
@@ -168,7 +168,7 @@ class FontexDB: public InnDB<uint64_t, FontexEntry>
         }
 
     public:
-        virtual std::tuple<FontexEntry, size_t> LoadResource(uint64_t nKey)
+        virtual std::tuple<FontexEntry, size_t> loadResource(uint64_t nKey)
         {
             FontexEntry stEntry {nullptr};
 
@@ -231,7 +231,7 @@ class FontexDB: public InnDB<uint64_t, FontexEntry>
             return {stEntry, stEntry.Texture ? 1 : 0};
         }
 
-        virtual void FreeResource(FontexEntry &rstEntry)
+        virtual void freeResource(FontexEntry &rstEntry)
         {
             if(rstEntry.Texture){
                 SDL_DestroyTexture(rstEntry.Texture);

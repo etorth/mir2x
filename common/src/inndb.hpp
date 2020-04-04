@@ -14,8 +14,8 @@
  *                 store it in a hash-table based cache, linear cache is optional
  *
  *                 to instantiation this class
- *                 1. define LoadResource()
- *                 2. define FreeResource()
+ *                 1. define loadResource()
+ *                 2. define freeResource()
  *
  *        Version: 1.0
  *       Revision: none
@@ -32,7 +32,7 @@
 #include <tuple>
 #include <unordered_map>
 
-template<typename KeyT, typename ResT> class InnDB
+template<typename KeyT, typename ResT> class innDB
 {
     private:
         struct ResourceEntry
@@ -55,27 +55,27 @@ template<typename KeyT, typename ResT> class InnDB
         const size_t m_ResMax;
 
     public:
-        InnDB(size_t nResMax)
+        innDB(size_t nResMax)
             : m_Cache()
             , m_DLink()
             , m_ResSum(0)
             , m_ResMax(nResMax)
         {
-            static_assert(std::is_unsigned<KeyT>::value, "InnDB only support unsigned intergal key");
+            static_assert(std::is_unsigned<KeyT>::value, "innDB only support unsigned intergal key");
         }
 
     public:
-        virtual ~InnDB() = default;
+        virtual ~innDB() = default;
 
     public:
-        virtual std::tuple<ResT, size_t> LoadResource(KeyT  ) = 0;
-        virtual void                     FreeResource(ResT &) = 0;
+        virtual std::tuple<ResT, size_t> loadResource(KeyT  ) = 0;
+        virtual void                     freeResource(ResT &) = 0;
 
     public:
         void ClearCache()
         {
             for(auto &rstEntry: m_Cache){
-                FreeResource(rstEntry.second.Resource);
+                freeResource(rstEntry.second.Resource);
             }
             m_Cache.clear();
             m_DLink.Clear();
@@ -94,7 +94,7 @@ template<typename KeyT, typename ResT> class InnDB
                 return true;
             }
 
-            auto [stResource, nWeight] = LoadResource(nKey);
+            auto [stResource, nWeight] = loadResource(nKey);
 
             if(m_ResMax){
                 m_DLink.PushHead(nKey);
@@ -125,7 +125,7 @@ template<typename KeyT, typename ResT> class InnDB
         {
             while((m_ResMax > 0) && (m_ResSum > m_ResMax / 2) && !m_DLink.Empty()){
                 if(auto p = m_Cache.find(m_DLink.Back()); p != m_Cache.end()){
-                    FreeResource(p->second.Resource);
+                    freeResource(p->second.Resource);
                     m_ResSum -= p->second.Weight;
                     m_Cache.erase(p);
                 }
