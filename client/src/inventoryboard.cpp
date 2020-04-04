@@ -28,7 +28,7 @@ extern SDLDevice *g_SDLDevice;
 
 InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, widget *pwidget, bool bAutoFree)
     : widget(nX, nY, 0, 0, pwidget, bAutoFree)
-    , m_goldBoard(70, 403, "", 0, 15, 0, ColorFunc::RGBA(0XFF, 0XFF, 0X00, 0X00), this, false)
+    , m_goldBoard(70, 403, "0", 0, 15, 0, ColorFunc::RGBA(0XFF, 0XFF, 0X00, 0X00), this)
     , m_closeButton(
             242,
             422,
@@ -52,7 +52,7 @@ InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, widget *pwidget
     }
 }
 
-void InventoryBoard::DrawItem(int nDstX, int nDstY, const PackBin &rstBin)
+void InventoryBoard::drawItem(int nDstX, int nDstY, const PackBin &rstBin)
 {
     if(true
             && rstBin
@@ -61,7 +61,7 @@ void InventoryBoard::DrawItem(int nDstX, int nDstY, const PackBin &rstBin)
             && rstBin.W >  0
             && rstBin.H >  0){
 
-        if(auto pTexture = g_CommonItemDB->Retrieve(rstBin.ID - 1)){
+        if(auto pTexture = g_CommonItemDB->Retrieve(rstBin.ID)){
 
             int nItemPW = -1;
             int nItemPH = -1;
@@ -89,8 +89,8 @@ void InventoryBoard::drawEx(int nDstX, int nDstY, int, int, int, int)
         m_goldBoard.setText("%d", pMyHero->GetGold());
 
         // 2. draw all items
-        for(auto &rstBin: pMyHero->GetInvPack().GetPackBinList()){
-            DrawItem(nDstX, nDstY, rstBin);
+        for(auto &rstBin: pMyHero->getInvPack().GetPackBinList()){
+            drawItem(nDstX, nDstY, rstBin);
         }
     }
 

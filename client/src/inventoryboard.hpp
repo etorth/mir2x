@@ -42,7 +42,7 @@ class InventoryBoard: public widget
         InventoryBoard(int, int, ProcessRun *, widget * = nullptr, bool = false);
 
     private:
-        void DrawItem(int, int, const PackBin &);
+        void drawItem(int, int, const PackBin &);
 
     public:
         void drawEx(int, int, int, int, int, int);

@@ -386,7 +386,7 @@ void ProcessRun::Net_PICKUPOK(const uint8_t *pBuf, size_t)
     SMPickUpOK stSMPUOK;
     std::memcpy(&stSMPUOK, pBuf, sizeof(stSMPUOK));
 
-    GetMyHero()->GetInvPack().Add(stSMPUOK.ID);
+    GetMyHero()->getInvPack().Add(stSMPUOK.ID);
     RemoveGroundItem(CommonItem(stSMPUOK.ID, 0), stSMPUOK.X, stSMPUOK.Y);
     AddOPLog(OUTPORT_CONTROLBOARD, 2, "", u8"捡起%s于坐标(%d, %d)", DBCOM_ITEMRECORD(stSMPUOK.ID).Name, (int)(stSMPUOK.X), (int)(stSMPUOK.Y));
 }

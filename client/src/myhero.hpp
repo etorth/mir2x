@@ -89,7 +89,7 @@ class MyHero: public Hero
         }
 
     public:
-        InvPack &GetInvPack()
+        InvPack &getInvPack()
         {
             return m_InvPack;
         }
