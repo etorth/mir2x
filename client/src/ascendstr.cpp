@@ -26,13 +26,13 @@ extern PNGTexDB *g_ProgUseDB;
 extern SDLDevice *g_SDLDevice;
 
 AscendStr::AscendStr(int nType, int nValue, int nX, int nY)
-    : m_Type(nType)
+    : m_type(nType)
     , m_Value(nValue)
     , m_x(nX)
     , m_y(nY)
     , m_Tick(0.0)
 {
-    switch(m_Type){
+    switch(m_type){
         case ASCENDSTR_MISS:
             {
                 m_Value = 0;

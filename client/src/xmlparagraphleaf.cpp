@@ -40,7 +40,7 @@ XMLParagraphLeaf::XMLParagraphLeaf(tinyxml2::XMLNode *pNode)
           }
           return pNode;
       }())
-    , m_Type([this]()
+    , m_type([this]()
       {
           if(XMLFunc::CheckTextLeaf(xmlNode())){
               if(!utf8::is_valid(xmlNode()->Value(), xmlNode()->Value() + std::strlen(xmlNode()->Value()))){
@@ -61,10 +61,18 @@ XMLParagraphLeaf::XMLParagraphLeaf(tinyxml2::XMLNode *pNode)
       }())
     , m_U64Key([this]() -> uint64_t
       {
-          switch(m_Type){
+          switch(m_type){
               case LEAF_EMOJI:
                   {
-                      return 0;
+                      int emojiId = 0;
+                      if((m_Node->ToElement()->QueryIntAttribute("id", &emojiId) != tinyxml2::XML_SUCCESS) &&
+                         (m_Node->ToElement()->QueryIntAttribute("Id", &emojiId) != tinyxml2::XML_SUCCESS) &&
+                         (m_Node->ToElement()->QueryIntAttribute("ID", &emojiId) != tinyxml2::XML_SUCCESS)){
+
+                          // no id attribute
+                          // use default emojiId zero
+                      }
+                      return emojiId;
                   }
               default:
                   {

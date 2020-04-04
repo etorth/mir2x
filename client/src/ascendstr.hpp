@@ -30,7 +30,7 @@ enum AscendStrType: int
 class AscendStr
 {
     private:
-        int m_Type;
+        int m_type;
         int m_Value;
 
     private:
@@ -51,7 +51,7 @@ class AscendStr
         void Update(double);
 
     private:
-        int Type () const { return m_Type;  }
+        int Type () const { return m_type;  }
         int Value() const { return m_Value; }
 
     private:

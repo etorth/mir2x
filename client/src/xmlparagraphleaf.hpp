@@ -50,7 +50,7 @@ class XMLParagraphLeaf
         const tinyxml2::XMLNode *m_Node;
 
     private:
-        int m_Type;
+        int m_type;
 
     private:
         uint64_t m_U64Key;
@@ -67,7 +67,7 @@ class XMLParagraphLeaf
     public:
         int Type() const
         {
-            return m_Type;
+            return m_type;
         }
 
         const tinyxml2::XMLNode *xmlNode() const

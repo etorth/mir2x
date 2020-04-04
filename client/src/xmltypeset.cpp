@@ -586,6 +586,11 @@ TOKEN XMLTypeset::buildEmojiToken(int leaf, uint32_t emoji) const
     int fps        = -1;
     int frameCount = -1;
 
+    if(((emoji << 8) >> 8) != emoji){
+        throw fflerror("invalid emoji key: %llu", to_LLU(emoji));
+    }
+
+    emoji <<= 8;
     if(g_emoticonDB->Retrieve(emoji, 0, 0, &tokenW, &tokenH, &h1, &fps, &frameCount)){
         token.Box.Info.W       = tokenW;
         token.Box.Info.H       = tokenH;
@@ -953,7 +958,7 @@ void XMLTypeset::drawEx(int nDstX, int nDstY, int nSrcX, int nSrcY, int nSrcW, i
                         int xOnTex = 0;
                         int yOnTex = 0;
 
-                        const uint32_t emojiKey = [pToken]() -> uint8_t
+                        const auto emojiKey = [pToken]() -> uint32_t
                         {
                             if(pToken->Emoji.FrameCount && pToken->Emoji.FPS){
                                 return (pToken->Emoji.U32Key & 0XFFFFFF00) + pToken->Emoji.Frame % pToken->Emoji.FrameCount;
