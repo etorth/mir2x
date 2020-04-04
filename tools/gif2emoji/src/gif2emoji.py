@@ -67,11 +67,10 @@ def gif2emoji(gifName, outId):
     mergedImg.save(outfileName)
 
 def main():
-    # I use:
-    # python3 gif2emoji.py fileName.gif 123
-    # need to install: python3 -m pip install --upgrade Pillow
+    # need to install pillow:
+    # python3 -m pip install --upgrade Pillow
     if len(sys.argv) != 3:
-        raise ValueError("usage: gif2emoji fileName.gif 123")
+        raise ValueError("usage: python3 gif2emoji fileName.gif 123")
     gif2emoji(sys.argv[1], int(sys.argv[2]))
 
 if __name__ == "__main__":
