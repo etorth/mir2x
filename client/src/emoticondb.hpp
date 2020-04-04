@@ -52,7 +52,7 @@
 //                    +------- always set it as zero
 //                             and when retrieving we can just plus the frame index here
 
-struct EmojiEntry
+struct emojiEntry
 {
     SDL_Texture *Texture;
     int          FrameW;
@@ -61,7 +61,7 @@ struct EmojiEntry
     int          FPS;
 };
 
-class EmoticonDB: public InnDB<uint32_t, EmojiEntry>
+class EmoticonDB: public InnDB<uint32_t, emojiEntry>
 {
     private:
         std::unique_ptr<ZSDB> m_ZSDBPtr;
@@ -79,7 +79,7 @@ class EmoticonDB: public InnDB<uint32_t, EmojiEntry>
 
     public:
         EmoticonDB()
-            : InnDB<uint32_t, EmojiEntry>(1024)
+            : InnDB<uint32_t, emojiEntry>(1024)
             , m_ZSDBPtr()
         {}
 
@@ -102,7 +102,7 @@ class EmoticonDB: public InnDB<uint32_t, EmojiEntry>
                 int *pFPS,
                 int *pFrameCount)
         {
-            EmojiEntry stEntry;
+            emojiEntry stEntry;
             if(!this->RetrieveResource(nKey & 0XFFFFFF00, &stEntry)){
                 return nullptr;
             }
@@ -139,11 +139,11 @@ class EmoticonDB: public InnDB<uint32_t, EmojiEntry>
         }
 
     public:
-        virtual std::tuple<EmojiEntry, size_t> LoadResource(uint32_t nKey)
+        virtual std::tuple<emojiEntry, size_t> LoadResource(uint32_t nKey)
         {
             char szKeyString[16];
             std::vector<uint8_t> stBuf;
-            EmojiEntry stEntry {nullptr, 0, 0, 0, 0};
+            emojiEntry stEntry {nullptr, 0, 0, 0, 0};
 
             if(auto szFileName = m_ZSDBPtr->Decomp(HexString::ToString<uint32_t, 4>(nKey, szKeyString, true), 8, &stBuf); szFileName && (std::strlen(szFileName) >= 22)){
                 stEntry.FPS     = (int)HexString::ToHex< uint8_t, 1>(szFileName +  8);
@@ -157,7 +157,7 @@ class EmoticonDB: public InnDB<uint32_t, EmojiEntry>
             return {stEntry, stEntry.Texture ? 1 : 0};
         }
 
-        virtual void FreeResource(EmojiEntry &rstEntry)
+        virtual void FreeResource(emojiEntry &rstEntry)
         {
             if(rstEntry.Texture){
                 SDL_DestroyTexture(rstEntry.Texture);
