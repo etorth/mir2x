@@ -710,6 +710,8 @@ int controlBoard::logBoardStartY() const
 
 void controlBoard::resizeWidth(int w)
 {
-    m_right.moveBy(W() - w, 0);
+    m_right.moveBy(w - W(), 0);
     m_w = w;
+
+    setButtonLoc();
 }
