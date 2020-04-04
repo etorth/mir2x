@@ -185,8 +185,8 @@ controlBoard::controlBoard(int startY, int boardW, ProcessRun *pRun)
 
     , m_buttonEmoji
       {
-          boardW - 20,
-          105,
+          boardW - 178 - 260,
+          87,
           {SYS_TEXNIL, 0X00000023, 0X00000024},
 
           nullptr,
@@ -203,8 +203,8 @@ controlBoard::controlBoard(int startY, int boardW, ProcessRun *pRun)
 
     , m_buttonMute
       {
-          boardW - 20,
-          105,
+          boardW - 178 - 220,
+          87,
           {SYS_TEXNIL, 0X00000025, 0X00000026},
 
           nullptr,
