@@ -72,6 +72,9 @@ ProcessRun::ProcessRun()
 {
     m_FocusUIDTable.fill(0);
     RegisterUserCommand();
+
+    std::memset(m_aniSaveTick, 0, sizeof(m_aniSaveTick));
+    std::memset(m_aniTileFrame, 0, sizeof(m_aniTileFrame));
 }
 
 void ProcessRun::ScrollMap()
@@ -108,6 +111,24 @@ void ProcessRun::ScrollMap()
 
 void ProcessRun::Update(double fUpdateTime)
 {
+    constexpr uint32_t delayTicks[]
+    {
+        150, 200, 250, 300, 350, 400, 420, 450,
+    };
+
+    for(int i = 0; i < 8; ++i){
+        m_aniSaveTick[i] += std::lround(fUpdateTime);
+        if(m_aniSaveTick[i] > delayTicks[i]){
+            for(int frame = 0; frame < 16; ++frame){
+                m_aniTileFrame[i][frame]++;
+                if(m_aniTileFrame[i][frame] >= frame){
+                    m_aniTileFrame[i][frame] = 0;
+                }
+            }
+            m_aniSaveTick[i] = 0;
+        }
+    }
+
     ScrollMap();
     m_controlBoard.Update(fUpdateTime);
 
@@ -259,6 +280,20 @@ void ProcessRun::Draw()
                                 | (((uint32_t)(stArray[2])) << 16)
                                 | (((uint32_t)(stArray[1])) <<  8)
                                 | (((uint32_t)(stArray[0])) <<  0);
+
+                            if(stArray[3] & 0X80){
+                                if(false
+                                        || stArray[2] == 11
+                                        || stArray[2] == 26
+                                        || stArray[2] == 41
+                                        || stArray[2] == 56
+                                        || stArray[2] == 71){
+                                    const int aniType = (stArray[3] & 0B01110000) >> 4;
+                                    const int aniFrameType = (stArray[3] & 0B00001111);
+                                    nImage += m_aniTileFrame[aniType][aniFrameType];
+                                }
+                            }
+
                             if(auto pTexture = g_MapDB->Retrieve(nImage)){
                                 int nH = 0;
                                 if(!SDL_QueryTexture(pTexture, nullptr, nullptr, nullptr, &nH)){
@@ -377,6 +412,20 @@ void ProcessRun::Draw()
                                 | (((uint32_t)(stArray[2])) << 16)
                                 | (((uint32_t)(stArray[1])) <<  8)
                                 | (((uint32_t)(stArray[0])) <<  0);
+
+                            if(stArray[3] & 0X80){
+                                if(false
+                                        || stArray[2] == 11
+                                        || stArray[2] == 26
+                                        || stArray[2] == 41
+                                        || stArray[2] == 56
+                                        || stArray[2] == 71){
+                                    const int aniType = (stArray[3] & 0B01110000) >> 4;
+                                    const int aniFrameType = (stArray[3] & 0B00001111);
+                                    nImage += m_aniTileFrame[aniType][aniFrameType];
+                                }
+                            }
+
                             if(auto pTexture = g_MapDB->Retrieve(nImage)){
                                 int nH = 0;
                                 if(!SDL_QueryTexture(pTexture, nullptr, nullptr, nullptr, &nH)){

@@ -92,6 +92,10 @@ class ProcessRun: public Process
         bool m_RollMap;
 
     private:
+        uint32_t m_aniSaveTick[8];
+        uint8_t  m_aniTileFrame[8][16];
+
+    private:
         ClientLuaModule m_LuaModule;
 
     private:
