@@ -21,7 +21,7 @@
 #include <unordered_map>
 
 #include "inndb.hpp"
-#include "hexstring.hpp"
+#include "hexstr.hpp"
 #include "sdldevice.hpp"
 
 // layout of a emoticon on a texture
@@ -144,12 +144,12 @@ class emoticonDB: public innDB<uint32_t, emojiEntry>
             std::vector<uint8_t> dataBuf;
             emojiEntry entry {nullptr, 0, 0, 0, 0, 0};
 
-            if(auto fileName = m_zsdbPtr->Decomp(HexString::ToString<uint32_t, 4>(nKey, keyString, true), 8, &dataBuf); fileName && (std::strlen(fileName) >= 22)){
-                entry.frameCount = (int)HexString::ToHex< uint8_t, 1>(fileName +  8);
-                entry.FPS        = (int)HexString::ToHex< uint8_t, 1>(fileName + 10);
-                entry.FrameW     = (int)HexString::ToHex<uint16_t, 2>(fileName + 12);
-                entry.FrameH     = (int)HexString::ToHex<uint16_t, 2>(fileName + 16);
-                entry.FrameH1    = (int)HexString::ToHex<uint16_t, 2>(fileName + 20);
+            if(auto fileName = m_zsdbPtr->Decomp(hexstr::to_string<uint32_t, 4>(nKey, keyString, true), 8, &dataBuf); fileName && (std::strlen(fileName) >= 22)){
+                entry.frameCount = (int)hexstr::to_hex< uint8_t, 1>(fileName +  8);
+                entry.FPS        = (int)hexstr::to_hex< uint8_t, 1>(fileName + 10);
+                entry.FrameW     = (int)hexstr::to_hex<uint16_t, 2>(fileName + 12);
+                entry.FrameH     = (int)hexstr::to_hex<uint16_t, 2>(fileName + 16);
+                entry.FrameH1    = (int)hexstr::to_hex<uint16_t, 2>(fileName + 20);
 
                 extern SDLDevice *g_SDLDevice;
                 entry.Texture = g_SDLDevice->CreateTexture(dataBuf.data(), dataBuf.size());

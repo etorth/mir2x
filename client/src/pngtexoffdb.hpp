@@ -26,7 +26,7 @@
 
 #include "zsdb.hpp"
 #include "inndb.hpp"
-#include "hexstring.hpp"
+#include "hexstr.hpp"
 #include "sdldevice.hpp"
 
 struct PNGTexOffEntry
@@ -85,7 +85,7 @@ class PNGTexOffDB: public innDB<uint32_t, PNGTexOffEntry>
             std::vector<uint8_t> stBuf;
             PNGTexOffEntry stEntry {nullptr, 0, 0};
 
-            if(auto szFileName = m_zsdbPtr->Decomp(HexString::ToString<uint32_t, 4>(nKey, szKeyString, true), 8, &stBuf); szFileName && (std::strlen(szFileName) >= 18)){
+            if(auto szFileName = m_zsdbPtr->Decomp(hexstr::to_string<uint32_t, 4>(nKey, szKeyString, true), 8, &stBuf); szFileName && (std::strlen(szFileName) >= 18)){
                 //
                 // [0 ~ 7] [8] [9] [10 ~ 13] [14 ~ 17]
                 //  <KEY>  <S> <S>   <+DX>     <+DY>
@@ -100,8 +100,8 @@ class PNGTexOffDB: public innDB<uint32_t, PNGTexOffEntry>
                 stEntry.DX = (szFileName[8] != '0') ? 1 : (-1);
                 stEntry.DY = (szFileName[9] != '0') ? 1 : (-1);
 
-                stEntry.DX *= (int)(HexString::ToHex<uint32_t, 2>(szFileName + 10));
-                stEntry.DY *= (int)(HexString::ToHex<uint32_t, 2>(szFileName + 14));
+                stEntry.DX *= (int)(hexstr::to_hex<uint32_t, 2>(szFileName + 10));
+                stEntry.DY *= (int)(hexstr::to_hex<uint32_t, 2>(szFileName + 14));
 
                 extern SDLDevice *g_SDLDevice;
                 stEntry.Texture = g_SDLDevice->CreateTexture(stBuf.data(), stBuf.size());

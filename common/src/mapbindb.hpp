@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename: mapbindbn.hpp
+ *       Filename: mapbindb.hpp
  *        Created: 08/31/2017 17:23:35
  *    Description: 
  *
@@ -22,7 +22,7 @@
 
 #include "zsdb.hpp"
 #include "inndb.hpp"
-#include "hexstring.hpp"
+#include "hexstr.hpp"
 #include "mir2xmapdata.hpp"
 
 struct MapBinEntry
@@ -67,7 +67,7 @@ class MapBinDB: public innDB<uint32_t, MapBinEntry>
             char szKeyString[16];
             MapBinEntry stEntry {nullptr};
 
-            if(std::vector<uint8_t> stBuf; m_ZSDBPtr->Decomp(HexString::ToString<uint32_t, 4>(nKey, szKeyString, true), 8, &stBuf)){
+            if(std::vector<uint8_t> stBuf; m_ZSDBPtr->Decomp(hexstr::to_string<uint32_t, 4>(nKey, szKeyString, true), 8, &stBuf)){
                 auto pMap = new Mir2xMapData();
                 if(pMap->Load(stBuf.data(), stBuf.size())){
                     stEntry.Map = pMap;

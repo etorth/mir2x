@@ -18,7 +18,7 @@
 
 #include <cstring>
 #include <filesystem>
-#include "hexstring.hpp"
+#include "hexstr.hpp"
 #include "animationdb.hpp"
 
 bool AnimationDB::Load(const char *szDBPath)
@@ -55,7 +55,7 @@ bool AnimationDB::Load(const char *szDBPath)
         uint32_t nDirection = 0;
         uint32_t nFrame     = 0;
 
-        auto nDesc = HexString::ToHex<uint32_t, 4>(szFileName.c_str());
+        auto nDesc = hexstr::to_hex<uint32_t, 4>(szFileName.c_str());
 
         nMonsterID = ((nDesc & 0X00FFF000) >> 12);
         nAction    = ((nDesc & 0X00000F00) >>  8);
@@ -65,7 +65,7 @@ bool AnimationDB::Load(const char *szDBPath)
         // we refuse to accept frame with MonsterID == 0
         if(nMonsterID == 0){ continue; }
 
-        auto nOffset = HexString::ToHex<uint32_t, 4>(szFileName.c_str() + 10);
+        auto nOffset = hexstr::to_hex<uint32_t, 4>(szFileName.c_str() + 10);
 
         int nDX = ((szFileName[8] == '0') ? -1 : 1) * (int)((nOffset & 0XFFFF0000) >> 16);
         int nDY = ((szFileName[9] == '0') ? -1 : 1) * (int)((nOffset & 0X0000FFFF) >>  0);

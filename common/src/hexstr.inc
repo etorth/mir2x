@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename: hexstring.inc
+ *       Filename: hexstr.inc
  *        Created: 02/06/2016 13:35:51
  *    Description: each entry for one byte, i.e.
  *

@@ -26,7 +26,7 @@
 #include "zsdb.hpp"
 #include "inndb.hpp"
 #include "fflerror.hpp"
-#include "hexstring.hpp"
+#include "hexstr.hpp"
 #include "sdldevice.hpp"
 
 enum FontStyle: uint8_t
@@ -85,7 +85,7 @@ class FontexDB: public innDB<uint64_t, FontexEntry>
             {
                 char szFontIndexString[8];
                 std::vector<uint8_t> stFontDataBuf;
-                if(m_zsdbPtr->Decomp(HexString::ToString<uint8_t, 1>(nFontIndex, szFontIndexString, true), 2, &stFontDataBuf)){
+                if(m_zsdbPtr->Decomp(hexstr::to_string<uint8_t, 1>(nFontIndex, szFontIndexString, true), 2, &stFontDataBuf)){
                     return stFontDataBuf;
                 }
                 return {};
@@ -156,7 +156,7 @@ class FontexDB: public innDB<uint64_t, FontexEntry>
             const auto fileName = str_printf("%s.TTF", fontName);
             for(const auto &entry: m_entryList){
                 if(fileName == entry.FileName + 3){
-                    return HexString::ToHex<uint8_t, 1>(entry.FileName);
+                    return hexstr::to_hex<uint8_t, 1>(entry.FileName);
                 }
             }
             return 0;

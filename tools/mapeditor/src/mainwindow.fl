@@ -47,7 +47,7 @@ decl {\#include "mathfunc.hpp"} {private local
 decl {\#include "colorfunc.hpp"} {private local
 }
 
-decl {\#include "hexstring.hpp"} {private local
+decl {\#include "hexstr.hpp"} {private local
 }
 
 decl {\#include "editormap.hpp"} {private local
@@ -207,7 +207,7 @@ fl_alert("%s", "Haven't implement yet!");}
         std::memset(szHexString, 0, sizeof(szHexString));
 
         uint32_t nKey = (((uint32_t)(nFileIndex)) << 16) + ((uint32_t)(nImageIndex));
-        HexString::ToString<uint32_t, 4>(nKey, szHexString, true);
+        hexstr::to_string<uint32_t, 4>(nKey, szHexString, true);
 
         std::string szIMGPNGName = ((g_WorkingPathName + "/IMG/") + szHexString) + ".PNG";
 
