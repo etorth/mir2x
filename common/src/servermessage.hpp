@@ -255,6 +255,7 @@ class SMSGParam: public MessageBase
                 //  1    : not empty,     fixed size,     compressed
                 //  2    : not empty,     fixed size, not compressed
                 //  3    : not empty, not fixed size, not compressed
+                //  4    : not empty, not fixed size,     compressed
 
                 {SM_NONE,             {0, 0,                               "SM_NONE"            }},
                 {SM_PING,             {2, sizeof(SMPing),                  "SM_PING"            }},
