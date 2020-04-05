@@ -79,18 +79,18 @@ ProcessRun::ProcessRun()
 
 void ProcessRun::ScrollMap()
 {
-    auto nShowWindowW = g_SDLDevice->WindowW(false);
-    auto nShowWindowH = g_SDLDevice->WindowH(false) - 134;
+    const auto showWindowW = g_SDLDevice->WindowW(false);
+    const auto showWindowH = g_SDLDevice->WindowH(false) - m_controlBoard.H();
 
-    int nViewX = GetMyHero()->X() * SYS_MAPGRIDXP - nShowWindowW / 2;
-    int nViewY = GetMyHero()->Y() * SYS_MAPGRIDYP - nShowWindowH / 2;
+    int nViewX = GetMyHero()->X() * SYS_MAPGRIDXP - showWindowW / 2;
+    int nViewY = GetMyHero()->Y() * SYS_MAPGRIDYP - showWindowH / 2;
 
     int nDViewX = nViewX - m_ViewX;
     int nDViewY = nViewY - m_ViewY;
 
     if(m_RollMap
-            ||  (std::abs(nDViewX) > nShowWindowW / 6)
-            ||  (std::abs(nDViewY) > nShowWindowH / 6)){
+            ||  (std::abs(nDViewX) > showWindowW / 6)
+            ||  (std::abs(nDViewY) > showWindowH / 6)){
 
         m_RollMap = true;
 
@@ -1449,19 +1449,19 @@ void ProcessRun::CenterMyHero()
     auto nFrameCount = GetMyHero()->MotionFrameCount(nMotion, nDirection);
 
     if(nFrameCount <= 0){
-        throw std::runtime_error(str_fflprintf("Current hero has invalid frame count: %d", nFrameCount));
+        throw fflerror("invalid frame count: %d", nFrameCount);
     }
 
     auto fnSetOff = [this, nX, nY, nDirection, nFrame, nFrameCount](int nStepLen)
     {
-        auto nShowWindowW = g_SDLDevice->WindowW(false);
-        auto nShowWindowH = g_SDLDevice->WindowH(false);
+        const auto showWindowW = g_SDLDevice->WindowW(false);
+        const auto showWindowH = g_SDLDevice->WindowH(false) - m_controlBoard.H();
 
         switch(nStepLen){
             case 0:
                 {
-                    m_ViewX = nX * SYS_MAPGRIDXP - nShowWindowW / 2;
-                    m_ViewY = nY * SYS_MAPGRIDYP - nShowWindowH / 2;
+                    m_ViewX = nX * SYS_MAPGRIDXP - showWindowW / 2;
+                    m_ViewY = nY * SYS_MAPGRIDYP - showWindowH / 2;
                     return;
                 }
             case 1:
@@ -1475,8 +1475,8 @@ void ProcessRun::CenterMyHero()
                     int nOffX = nDX * SYS_MAPGRIDXP * (nFrame + 1) / nFrameCount;
                     int nOffY = nDY * SYS_MAPGRIDYP * (nFrame + 1) / nFrameCount;
 
-                    m_ViewX = nX * SYS_MAPGRIDXP + nOffX - nShowWindowW / 2;
-                    m_ViewY = nY * SYS_MAPGRIDYP + nOffY - nShowWindowH / 2;
+                    m_ViewX = nX * SYS_MAPGRIDXP + nOffX - showWindowW / 2;
+                    m_ViewY = nY * SYS_MAPGRIDYP + nOffY - showWindowH / 2;
                     return;
                 }
             default:
