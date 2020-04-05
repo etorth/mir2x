@@ -30,6 +30,7 @@ struct MessageAttribute
     //  1    : not empty,     fixed size,     compressed
     //  2    : not empty,     fixed size, not compressed
     //  3    : not empty, not fixed size, not compressed
+    //  4    : not empty, not fixed size,     compressed
     //
     // we don't have a "not empty, not fixed size, compressed" type message
     // if we need to send such a message, we should firstly compress it and send it in mode 3
