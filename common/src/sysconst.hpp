@@ -35,7 +35,7 @@ constexpr int SYS_MAPGRIDXP = 48;
 constexpr int SYS_MAPGRIDYP = 32;
 
 constexpr int SYS_OBJMAXW = 3;
-constexpr int SYS_OBJMAXH = 15;
+constexpr int SYS_OBJMAXH = 25;
 
 constexpr int SYS_MAXR         = 40;
 constexpr int SYS_MAPVISIBLEW  = 60;
