@@ -294,9 +294,14 @@ void ProcessRun::Draw()
                                 }
                             }
 
+                            const bool alphaRender = (stArray[4] & 0B00000010);
                             if(auto pTexture = g_MapDB->Retrieve(nImage)){
                                 int nH = 0;
                                 if(!SDL_QueryTexture(pTexture, nullptr, nullptr, nullptr, &nH)){
+                                    if(alphaRender){
+                                        SDL_SetTextureBlendMode(pTexture, SDL_BLENDMODE_BLEND);
+                                        SDL_SetTextureAlphaMod(pTexture, 128);
+                                    }
                                     g_SDLDevice->DrawTexture(pTexture, nX * SYS_MAPGRIDXP - m_ViewX, (nY + 1) * SYS_MAPGRIDYP - m_ViewY - nH);
                                 }
                             }
@@ -426,9 +431,14 @@ void ProcessRun::Draw()
                                 }
                             }
 
+                            const bool alphaRender = (stArray[4] & 0B00000010);
                             if(auto pTexture = g_MapDB->Retrieve(nImage)){
                                 int nH = 0;
                                 if(!SDL_QueryTexture(pTexture, nullptr, nullptr, nullptr, &nH)){
+                                    if(alphaRender){
+                                        SDL_SetTextureBlendMode(pTexture, SDL_BLENDMODE_BLEND);
+                                        SDL_SetTextureAlphaMod(pTexture, 128);
+                                    }
                                     g_SDLDevice->DrawTexture(pTexture, nX * SYS_MAPGRIDXP - m_ViewX, (nY + 1) * SYS_MAPGRIDYP - m_ViewY - nH);
                                 }
                             }
