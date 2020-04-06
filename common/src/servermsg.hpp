@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename: servermessage.hpp
+ *       Filename: servermsg.hpp
  *        Created: 01/24/2016 19:30:45
  *    Description: net message used by client and mono-server
  *
@@ -23,7 +23,7 @@
 
 enum SMType: uint8_t
 {
-    SM_NONE = 0,
+    SM_NONE_0 = 0,
     SM_PING,
     SM_LOGINOK,
     SM_LOGINFAIL,
@@ -239,17 +239,17 @@ struct SMGold
 
 #pragma pack(pop)
 
-class SMSGParam: public msgBase
+class serverMsg final: public msgBase
 {
     public:
-        SMSGParam(uint8_t nHC)
-            : msgBase(nHC)
+        serverMsg(uint8_t headCode)
+            : msgBase(headCode)
         {}
 
     private:
-        const MessageAttribute &GetAttribute(uint8_t nHC) const
+        const msgAttribute &getAttribute(uint8_t headCode) const override
         {
-            static const std::unordered_map<uint8_t, MessageAttribute> s_AttributeTable
+            static const std::unordered_map<uint8_t, msgAttribute> s_msgAttributeTable
             {
                 //  0    :     empty
                 //  1    : not empty,     fixed size,     compressed
@@ -257,7 +257,7 @@ class SMSGParam: public msgBase
                 //  3    : not empty, not fixed size, not compressed
                 //  4    : not empty, not fixed size,     compressed
 
-                {SM_NONE,             {0, 0,                               "SM_NONE"            }},
+                {SM_NONE_0,           {0, 0,                               "SM_NONE"            }},
                 {SM_PING,             {2, sizeof(SMPing),                  "SM_PING"            }},
                 {SM_LOGINOK,          {1, sizeof(SMLoginOK),               "SM_LOGINOK"         }},
                 {SM_LOGINFAIL,        {2, sizeof(SMLoginFail),             "SM_LOGINFAIL"       }},
@@ -276,6 +276,9 @@ class SMSGParam: public msgBase
                 {SM_GOLD,             {1, sizeof(SMGold),                  "SM_GOLD"            }},
             };
 
-            return s_AttributeTable.at((s_AttributeTable.find(nHC) == s_AttributeTable.end()) ? (uint8_t)(SM_NONE) : nHC);
+            if(const auto p = s_msgAttributeTable.find(headCode); p != s_msgAttributeTable.end()){
+                return p->second;
+            }
+            return s_msgAttributeTable.at(SM_NONE_0);
         }
 };

@@ -68,10 +68,10 @@ void Channel::DoReadPackHC()
                 auto fnReportLastPack = [pThis = shared_from_this()]()
                 {
                     extern MonoServer *g_MonoServer;
-                    g_MonoServer->AddLog(LOGTYPE_WARNING, "Last CMSGParam::HC      = %s", (CMSGParam(pThis->m_ReadHC).Name().c_str()));
-                    g_MonoServer->AddLog(LOGTYPE_WARNING, "              ::Type    = %d", (int)(CMSGParam(pThis->m_ReadHC).Type()));
-                    g_MonoServer->AddLog(LOGTYPE_WARNING, "              ::MaskLen = %d", (int)(CMSGParam(pThis->m_ReadHC).MaskLen()));
-                    g_MonoServer->AddLog(LOGTYPE_WARNING, "              ::DataLen = %d", (int)(CMSGParam(pThis->m_ReadHC).DataLen()));
+                    g_MonoServer->AddLog(LOGTYPE_WARNING, "Last clientMsg::HC      = %s", (clientMsg(pThis->m_ReadHC).name().c_str()));
+                    g_MonoServer->AddLog(LOGTYPE_WARNING, "              ::Type    = %d", (int)(clientMsg(pThis->m_ReadHC).type()));
+                    g_MonoServer->AddLog(LOGTYPE_WARNING, "              ::MaskLen = %d", (int)(clientMsg(pThis->m_ReadHC).maskLen()));
+                    g_MonoServer->AddLog(LOGTYPE_WARNING, "              ::DataLen = %d", (int)(clientMsg(pThis->m_ReadHC).dataLen()));
                 };
 
                 auto fnOnNetError = [pThis = shared_from_this(), fnReportLastPack](std::error_code stEC)
@@ -92,8 +92,8 @@ void Channel::DoReadPackHC()
                     if(stEC){
                         fnOnNetError(stEC);
                     }else{
-                        CMSGParam stCMSG(pThis->m_ReadHC);
-                        switch(stCMSG.Type()){
+                        clientMsg stCMSG(pThis->m_ReadHC);
+                        switch(stCMSG.type()){
                             case 0:
                                 {
                                     pThis->ForwardActorMessage(pThis->m_ReadHC, nullptr, 0);
@@ -109,7 +109,7 @@ void Channel::DoReadPackHC()
                                             fnOnNetError(stEC);
                                         }else{
                                             if(pThis->m_ReadLen[0] != 255){
-                                                if((size_t)(pThis->m_ReadLen[0]) > stCMSG.DataLen()){
+                                                if((size_t)(pThis->m_ReadLen[0]) > stCMSG.dataLen()){
                                                     // 1. close the asio socket
                                                     pThis->Shutdown(true);
 
@@ -122,7 +122,7 @@ void Channel::DoReadPackHC()
                                                     //    should we have some method to save it?
                                                     return;
                                                 }else{
-                                                    pThis->DoReadPackBody(stCMSG.MaskLen(), pThis->m_ReadLen[0]);
+                                                    pThis->DoReadPackBody(stCMSG.maskLen(), pThis->m_ReadLen[0]);
                                                 }
                                             }else{
                                                 // oooops, bytes[0] is 255
@@ -135,7 +135,7 @@ void Channel::DoReadPackHC()
                                                         condcheck(pThis->m_ReadLen[0] == 255);
                                                         auto nCompLen = (size_t)(pThis->m_ReadLen[1]) + 255;
 
-                                                        if(nCompLen > stCMSG.DataLen()){
+                                                        if(nCompLen > stCMSG.dataLen()){
                                                             // 1. close the asio socket
                                                             pThis->Shutdown(true);
 
@@ -148,7 +148,7 @@ void Channel::DoReadPackHC()
                                                             //    should we have some method to save it?
                                                             return;
                                                         }else{
-                                                            pThis->DoReadPackBody(stCMSG.MaskLen(), nCompLen);
+                                                            pThis->DoReadPackBody(stCMSG.maskLen(), nCompLen);
                                                         }
                                                     }
                                                 };
@@ -165,7 +165,7 @@ void Channel::DoReadPackHC()
 
                                     // it has no overhead, fast
                                     // this mode should be used for small messages
-                                    pThis->DoReadPackBody(0, stCMSG.DataLen());
+                                    pThis->DoReadPackBody(0, stCMSG.dataLen());
                                     return;
                                 }
                             case 3:
@@ -194,7 +194,7 @@ void Channel::DoReadPackHC()
                             default:
                                 {
                                     // impossible type
-                                    // should abort at construction of CMSGParam
+                                    // should abort at construction of clientMsg
                                     pThis->Shutdown(true);
                                     fnReportLastPack();
                                     return;
@@ -226,10 +226,10 @@ void Channel::DoReadPackBody(size_t nMaskLen, size_t nBodyLen)
                 auto fnReportLastPack = [pThis = shared_from_this()]()
                 {
                     extern MonoServer *g_MonoServer;
-                    g_MonoServer->AddLog(LOGTYPE_WARNING, "Current SMSGParam::HC      = %d", (int)(pThis->m_ReadHC));
-                    g_MonoServer->AddLog(LOGTYPE_WARNING, "                 ::Type    = %d", (int)(CMSGParam(pThis->m_ReadHC).Type()));
-                    g_MonoServer->AddLog(LOGTYPE_WARNING, "                 ::MaskLen = %d", (int)(CMSGParam(pThis->m_ReadHC).MaskLen()));
-                    g_MonoServer->AddLog(LOGTYPE_WARNING, "                 ::DataLen = %d", (int)(CMSGParam(pThis->m_ReadHC).DataLen()));
+                    g_MonoServer->AddLog(LOGTYPE_WARNING, "Current serverMsg::HC      = %d", (int)(pThis->m_ReadHC));
+                    g_MonoServer->AddLog(LOGTYPE_WARNING, "                 ::Type    = %d", (int)(clientMsg(pThis->m_ReadHC).type()));
+                    g_MonoServer->AddLog(LOGTYPE_WARNING, "                 ::MaskLen = %d", (int)(clientMsg(pThis->m_ReadHC).maskLen()));
+                    g_MonoServer->AddLog(LOGTYPE_WARNING, "                 ::DataLen = %d", (int)(clientMsg(pThis->m_ReadHC).dataLen()));
                 };
 
                 auto fnOnNetError = [pThis = shared_from_this(), fnReportLastPack](std::error_code stEC)
@@ -254,8 +254,8 @@ void Channel::DoReadPackBody(size_t nMaskLen, size_t nBodyLen)
 
                 // argument check
                 // check if (nMaskLen, nBodyLen) is proper based on current m_ReadHC
-                CMSGParam stCMSG(m_ReadHC);
-                switch(stCMSG.Type()){
+                clientMsg stCMSG(m_ReadHC);
+                switch(stCMSG.type()){
                     case 0:
                         {
                             fnReportInvalidArg();
@@ -263,7 +263,7 @@ void Channel::DoReadPackBody(size_t nMaskLen, size_t nBodyLen)
                         }
                     case 1:
                         {
-                            if(!((nMaskLen == stCMSG.MaskLen()) && (nBodyLen <= stCMSG.DataLen()))){
+                            if(!((nMaskLen == stCMSG.maskLen()) && (nBodyLen <= stCMSG.dataLen()))){
                                 fnReportInvalidArg();
                                 return;
                             }
@@ -271,7 +271,7 @@ void Channel::DoReadPackBody(size_t nMaskLen, size_t nBodyLen)
                         }
                     case 2:
                         {
-                            if(nMaskLen || (nBodyLen != stCMSG.DataLen())){
+                            if(nMaskLen || (nBodyLen != stCMSG.dataLen())){
                                 fnReportInvalidArg();
                                 return;
                             }
@@ -317,9 +317,9 @@ void Channel::DoReadPackBody(size_t nMaskLen, size_t nBodyLen)
 
                                 // we need to decode it
                                 // we do have a compressed version of data
-                                if(nBodyLen <= stCMSG.DataLen()){
-                                    pDecodeMem = pThis->GetDecodeBuf(stCMSG.DataLen());
-                                    if(Compress::Decode(pDecodeMem, stCMSG.DataLen(), pMem, pMem + nMaskLen) != (int)(nBodyLen)){
+                                if(nBodyLen <= stCMSG.dataLen()){
+                                    pDecodeMem = pThis->GetDecodeBuf(stCMSG.dataLen());
+                                    if(Compress::Decode(pDecodeMem, stCMSG.dataLen(), pMem, pMem + nMaskLen) != (int)(nBodyLen)){
                                         extern MonoServer *g_MonoServer;
                                         g_MonoServer->AddLog(LOGTYPE_WARNING, "Decode failed: MaskCount = %d, CompLen = %d", nMaskCount, (int)(nBodyLen));
                                         fnReportLastPack();
@@ -327,7 +327,7 @@ void Channel::DoReadPackBody(size_t nMaskLen, size_t nBodyLen)
                                     }
                                 }else{
                                     extern MonoServer *g_MonoServer;
-                                    g_MonoServer->AddLog(LOGTYPE_WARNING, "Corrupted data: DataLen = %d, CompLen = %d", (int)(stCMSG.DataLen()), (int)(nBodyLen));
+                                    g_MonoServer->AddLog(LOGTYPE_WARNING, "Corrupted data: DataLen = %d, CompLen = %d", (int)(stCMSG.dataLen()), (int)(nBodyLen));
                                     fnReportLastPack();
                                     return;
                                 }
@@ -335,7 +335,7 @@ void Channel::DoReadPackBody(size_t nMaskLen, size_t nBodyLen)
 
                             // decoding and verification done
                             // we forward the (decoded/origin) data to the bind actor
-                            pThis->ForwardActorMessage(pThis->m_ReadHC, pDecodeMem ? pDecodeMem : pMem, nMaskLen ? stCMSG.DataLen() : nBodyLen);
+                            pThis->ForwardActorMessage(pThis->m_ReadHC, pDecodeMem ? pDecodeMem : pMem, nMaskLen ? stCMSG.dataLen() : nBodyLen);
                             pThis->DoReadPackHC();
                         }
                     };
@@ -488,8 +488,8 @@ bool Channel::ForwardActorMessage(uint8_t nHC, const uint8_t *pData, size_t nDat
         g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid argument: (%d, %p, %d)", (int)(nHC), pData, (int)(nDataLen));
     };
 
-    CMSGParam stCMSG(nHC);
-    switch(stCMSG.Type()){
+    clientMsg stCMSG(nHC);
+    switch(stCMSG.type()){
         case 0:
             {
                 if(pData || nDataLen){
@@ -501,7 +501,7 @@ bool Channel::ForwardActorMessage(uint8_t nHC, const uint8_t *pData, size_t nDat
         case 1:
         case 2:
             {
-                if(!(pData && (nDataLen == stCMSG.DataLen()))){
+                if(!(pData && (nDataLen == stCMSG.dataLen()))){
                     fnReportBadArgs();
                     return false;
                 }

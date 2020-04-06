@@ -35,7 +35,7 @@
 #include "processsync.hpp"
 #include "pngtexoffdb.hpp"
 #include "processlogin.hpp"
-#include "servermessage.hpp"
+#include "servermsg.hpp"
 #include "clientargparser.hpp"
 
 extern Log *g_Log;
@@ -189,7 +189,7 @@ void Client::OnServerMessage(uint8_t nHC, const uint8_t *pData, size_t nDataLen)
     // 1. update the time when last message received
     m_NetPackTick = SDL_GetTicks() * 1.0;
     if(nHC != SM_PING){
-        g_debugBoard->addLog("[%08.3f]%s", (float)(m_NetPackTick / 1000.0f), SMSGParam(nHC).Name().c_str());
+        g_debugBoard->addLog("[%08.3f]%s", (float)(m_NetPackTick / 1000.0f), serverMsg(nHC).name().c_str());
     }
 
     m_ClientMonitor.SMProcMonitorList[nHC].RecvCount++;
@@ -426,7 +426,7 @@ void Client::PrintMonitor() const
         uint64_t nProcTick  = m_ClientMonitor.SMProcMonitorList[nIndex].ProcTick / 1000000;
         uint64_t nRecvCount = m_ClientMonitor.SMProcMonitorList[nIndex].RecvCount;
         if(nRecvCount > 0){
-            g_Log->AddLog(LOGTYPE_DEBUG, "%s: RecvCount = %" PRIu64 ", ProcTick = %" PRIu64 "msec", SMSGParam(nIndex).Name().c_str(), nRecvCount, nProcTick);
+            g_Log->AddLog(LOGTYPE_DEBUG, "%s: RecvCount = %" PRIu64 ", ProcTick = %" PRIu64 "msec", serverMsg(nIndex).name().c_str(), nRecvCount, nProcTick);
         }
     }
 }

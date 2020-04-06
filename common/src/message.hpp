@@ -17,5 +17,5 @@
  */
 #pragma once
 
-#include "clientmessage.hpp"
-#include "servermessage.hpp"
+#include "clientmsg.hpp"
+#include "servermsg.hpp"

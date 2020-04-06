@@ -26,7 +26,8 @@
 #pragma once
 #include <cstdint>
 #include <cstddef>
-#include "messageattribute.hpp"
+#include "fflerror.hpp"
+#include "msgattribute.hpp"
 
 class msgBase
 {
@@ -34,45 +35,34 @@ class msgBase
         const uint8_t m_headCode;
 
     protected:
-        msgBase(uint8_t nHC)
-            : m_headCode(nHC)
+        msgBase(uint8_t headCode)
+            : m_headCode(headCode)
         {}
 
     public:
-        int Type() const
+        int type() const
         {
-            return GetAttribute(m_headCode).Type;
+            return getAttribute(m_headCode).type;
         }
 
-        size_t DataLen() const
+        size_t dataLen() const
         {
-            return GetAttribute(m_headCode).DataLen;
+            return getAttribute(m_headCode).dataLen;
         }
 
-        size_t MaskLen() const
+        size_t maskLen() const
         {
-            switch(Type()){
-                case 1:
-                    {
-                        return (DataLen() + 7) / 8;
-                    }
-                case 0:
-                case 2:
-                case 3:
-                default:
-                    {
-                        // for invalid type I also return 0
-                        // should I return (size_t)(-1) or make return type as int?
-                        return 0;
-                    }
+            if(type() == 1){
+                return (dataLen() + 7) / 8;
             }
+            throw fflerror("not compressed by xor");
         }
 
-        const std::string &Name() const
+        const std::string &name() const
         {
-            return GetAttribute(m_headCode).Name;
+            return getAttribute(m_headCode).name;
         }
 
     private:
-        virtual const MessageAttribute &GetAttribute(uint8_t nHC) const = 0;
+        virtual const msgAttribute &getAttribute(uint8_t) const = 0;
 };

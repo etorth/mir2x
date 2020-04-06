@@ -21,7 +21,7 @@
 #include "uidfunc.hpp"
 #include "creature.hpp"
 #include "protocoldef.hpp"
-#include "clientmessage.hpp"
+#include "clientmsg.hpp"
 
 class Monster: public Creature
 {

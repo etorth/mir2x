@@ -34,8 +34,8 @@ NetIO::SendPack::SendPack(uint8_t nHC, const uint8_t *pData, size_t nDataLen, st
         std::abort();
     };
 
-    CMSGParam stCMSG(HC);
-    switch(stCMSG.Type()){
+    clientMsg stCMSG(HC);
+    switch(stCMSG.type()){
         case 0:
             {
                 // empty message, shouldn't contain anything
@@ -53,17 +53,17 @@ NetIO::SendPack::SendPack(uint8_t nHC, const uint8_t *pData, size_t nDataLen, st
                 if(Data[0] == 255){
                     nSizeLen = 2;
                     nCompLen = 255 + (int)(Data[1]);
-                    nMaskCnt = Compress::CountMask(Data + 2, stCMSG.MaskLen());
+                    nMaskCnt = Compress::CountMask(Data + 2, stCMSG.maskLen());
                 }else{
                     nSizeLen = 1;
                     nCompLen = (int)(Data[0]);
-                    nMaskCnt = Compress::CountMask(Data + 1, stCMSG.MaskLen());
+                    nMaskCnt = Compress::CountMask(Data + 1, stCMSG.maskLen());
                 }
 
                 if(false
                         || (nMaskCnt < 0)
                         || (nCompLen != nMaskCnt)
-                        || (DataLen != ((size_t)(nSizeLen) + stCMSG.MaskLen() + (size_t)(nCompLen)))){
+                        || (DataLen != ((size_t)(nSizeLen) + stCMSG.maskLen() + (size_t)(nCompLen)))){
                     fnReportAndExit();
                     return;
                 }
@@ -72,7 +72,7 @@ NetIO::SendPack::SendPack(uint8_t nHC, const uint8_t *pData, size_t nDataLen, st
         case 2:
             {
                 // not empty, fixed size and not compressed
-                if(!(Data && (DataLen == stCMSG.DataLen()))){ fnReportAndExit(); return; }
+                if(!(Data && (DataLen == stCMSG.dataLen()))){ fnReportAndExit(); return; }
                 break;
             }
         case 3:
@@ -125,10 +125,10 @@ void NetIO::DoReadHC()
 {
     auto fnReportCurrentMessage = [this](){
         extern Log *g_Log;
-        g_Log->AddLog(LOGTYPE_WARNING, "Current SMSGParam::HC      = %d", (int)(m_ReadHC));
-        g_Log->AddLog(LOGTYPE_WARNING, "                 ::Type    = %d", (int)(SMSGParam(m_ReadHC).Type()));
-        g_Log->AddLog(LOGTYPE_WARNING, "                 ::MaskLen = %d", (int)(SMSGParam(m_ReadHC).MaskLen()));
-        g_Log->AddLog(LOGTYPE_WARNING, "                 ::DataLen = %d", (int)(SMSGParam(m_ReadHC).DataLen()));
+        g_Log->AddLog(LOGTYPE_WARNING, "Current serverMsg::HC      = %d", (int)(m_ReadHC));
+        g_Log->AddLog(LOGTYPE_WARNING, "                 ::Type    = %d", (int)(serverMsg(m_ReadHC).type()));
+        g_Log->AddLog(LOGTYPE_WARNING, "                 ::MaskLen = %d", (int)(serverMsg(m_ReadHC).maskLen()));
+        g_Log->AddLog(LOGTYPE_WARNING, "                 ::DataLen = %d", (int)(serverMsg(m_ReadHC).dataLen()));
     };
 
     auto fnOnNetError = [this, fnReportCurrentMessage](std::error_code stEC){
@@ -146,8 +146,8 @@ void NetIO::DoReadHC()
     auto fnOnReadHC = [this, fnOnNetError, fnReportCurrentMessage](std::error_code stEC, size_t){
         if(stEC){ fnOnNetError(stEC); }
         else{
-            SMSGParam stSMSG(m_ReadHC);
-            switch(stSMSG.Type()){
+            serverMsg stSMSG(m_ReadHC);
+            switch(stSMSG.type()){
                 case 0:
                     {
                         if(m_OnReadDone){ m_OnReadDone(m_ReadHC, nullptr, 0); }
@@ -160,7 +160,7 @@ void NetIO::DoReadHC()
                             if(stEC){ fnOnNetError(stEC); }
                             else{
                                 if(m_ReadLen[0] != 255){
-                                    if((size_t)(m_ReadLen[0]) > stSMSG.DataLen()){
+                                    if((size_t)(m_ReadLen[0]) > stSMSG.dataLen()){
                                         // 1. close the asio socket
                                         Shutdown();
 
@@ -172,7 +172,7 @@ void NetIO::DoReadHC()
                                         // 3. we stop here
                                         //    should we have some method to save it?
                                         return;
-                                    }else{ DoReadBody(stSMSG.MaskLen(), m_ReadLen[0]); }
+                                    }else{ DoReadBody(stSMSG.maskLen(), m_ReadLen[0]); }
                                 }else{
                                     auto fnOnReadLen1 = [this, stSMSG, fnReportCurrentMessage, fnOnNetError](std::error_code stEC, size_t){
                                         if(stEC){ fnOnNetError(stEC); }
@@ -180,7 +180,7 @@ void NetIO::DoReadHC()
                                             condcheck(m_ReadLen[0] == 255);
                                             auto nCompLen = (size_t)(m_ReadLen[1]) + 255;
 
-                                            if(nCompLen > stSMSG.DataLen()){
+                                            if(nCompLen > stSMSG.dataLen()){
                                                 // 1. close the asio socket
                                                 Shutdown();
 
@@ -192,7 +192,7 @@ void NetIO::DoReadHC()
                                                 // 3. we stop here
                                                 //    should we have some method to save it?
                                                 return;
-                                            }else{ DoReadBody(stSMSG.MaskLen(), nCompLen); }
+                                            }else{ DoReadBody(stSMSG.maskLen(), nCompLen); }
                                         }
                                     };
                                     asio::async_read(m_Socket, asio::buffer(m_ReadLen + 1, 1), fnOnReadLen1);
@@ -204,7 +204,7 @@ void NetIO::DoReadHC()
                     }
                 case 2:
                     {
-                        DoReadBody(0, stSMSG.DataLen());
+                        DoReadBody(0, stSMSG.dataLen());
                         return;
                     }
                 case 3:
@@ -236,10 +236,10 @@ bool NetIO::DoReadBody(size_t nMaskLen, size_t nBodyLen)
 {
     auto fnReportCurrentMessage = [this](){
         extern Log *g_Log;
-        g_Log->AddLog(LOGTYPE_WARNING, "Current SMSGParam::HC      = %d", (int)(m_ReadHC));
-        g_Log->AddLog(LOGTYPE_WARNING, "                 ::Type    = %d", (int)(SMSGParam(m_ReadHC).Type()));
-        g_Log->AddLog(LOGTYPE_WARNING, "                 ::MaskLen = %d", (int)(SMSGParam(m_ReadHC).MaskLen()));
-        g_Log->AddLog(LOGTYPE_WARNING, "                 ::DataLen = %d", (int)(SMSGParam(m_ReadHC).DataLen()));
+        g_Log->AddLog(LOGTYPE_WARNING, "Current serverMsg::HC      = %d", (int)(m_ReadHC));
+        g_Log->AddLog(LOGTYPE_WARNING, "                 ::Type    = %d", (int)(serverMsg(m_ReadHC).type()));
+        g_Log->AddLog(LOGTYPE_WARNING, "                 ::MaskLen = %d", (int)(serverMsg(m_ReadHC).maskLen()));
+        g_Log->AddLog(LOGTYPE_WARNING, "                 ::DataLen = %d", (int)(serverMsg(m_ReadHC).dataLen()));
     };
 
     auto fnOnNetError = [this, fnReportCurrentMessage](std::error_code stEC){
@@ -261,8 +261,8 @@ bool NetIO::DoReadBody(size_t nMaskLen, size_t nBodyLen)
         fnReportCurrentMessage();
     };
 
-    SMSGParam stSMSG(m_ReadHC);
-    switch(stSMSG.Type()){
+    serverMsg stSMSG(m_ReadHC);
+    switch(stSMSG.type()){
         case 0:
             {
                 fnReportInvalidArg();
@@ -270,20 +270,20 @@ bool NetIO::DoReadBody(size_t nMaskLen, size_t nBodyLen)
             }
         case 1:
             {
-                if(!((nMaskLen == stSMSG.MaskLen()) && (nBodyLen <= stSMSG.DataLen()))){
+                if(!((nMaskLen == stSMSG.maskLen()) && (nBodyLen <= stSMSG.dataLen()))){
                     fnReportInvalidArg();
                     return false;
                 }
-                m_ReadBuf.resize(nMaskLen + nBodyLen + 8 + stSMSG.DataLen());
+                m_ReadBuf.resize(nMaskLen + nBodyLen + 8 + stSMSG.dataLen());
                 break;
             }
         case 2:
             {
-                if(nMaskLen || (nBodyLen != stSMSG.DataLen())){
+                if(nMaskLen || (nBodyLen != stSMSG.dataLen())){
                     fnReportInvalidArg();
                     return false;
                 }
-                m_ReadBuf.resize(stSMSG.DataLen());
+                m_ReadBuf.resize(stSMSG.dataLen());
                 break;
             }
         case 3:
@@ -292,7 +292,7 @@ bool NetIO::DoReadBody(size_t nMaskLen, size_t nBodyLen)
                     fnReportInvalidArg();
                     return false;
                 }
-                m_ReadBuf.resize(stSMSG.DataLen());
+                m_ReadBuf.resize(stSMSG.dataLen());
                 break;
             }
         default:
@@ -322,11 +322,11 @@ bool NetIO::DoReadBody(size_t nMaskLen, size_t nBodyLen)
                         return;
                     }
 
-                    if(nBodyLen <= stSMSG.DataLen()){
+                    if(nBodyLen <= stSMSG.dataLen()){
                         auto pMaskData = &(m_ReadBuf[0]);
                         auto pCompData = &(m_ReadBuf[nMaskLen]);
                         auto pOrigData = &(m_ReadBuf[((nMaskLen + nBodyLen + 7) / 8) * 8]);
-                        if(Compress::Decode(pOrigData, stSMSG.DataLen(), pMaskData, pCompData) != (int)(nBodyLen)){
+                        if(Compress::Decode(pOrigData, stSMSG.dataLen(), pMaskData, pCompData) != (int)(nBodyLen)){
                             extern Log *g_Log;
                             g_Log->AddLog(LOGTYPE_WARNING, "Decode failed: MaskCount = %d, CompLen = %d", nMaskCount, (int)(nBodyLen));
                             fnReportCurrentMessage();
@@ -334,7 +334,7 @@ bool NetIO::DoReadBody(size_t nMaskLen, size_t nBodyLen)
                         }
                     }else{
                         extern Log *g_Log;
-                        g_Log->AddLog(LOGTYPE_WARNING, "Corrupted data: DataLen = %d, CompLen = %d", (int)(stSMSG.DataLen()), (int)(nBodyLen));
+                        g_Log->AddLog(LOGTYPE_WARNING, "Corrupted data: DataLen = %d, CompLen = %d", (int)(stSMSG.dataLen()), (int)(nBodyLen));
                         fnReportCurrentMessage();
                         return;
                     }
@@ -345,7 +345,7 @@ bool NetIO::DoReadBody(size_t nMaskLen, size_t nBodyLen)
 
                 // 1. call completion on decompressed data
                 if(m_OnReadDone){
-                    m_OnReadDone(m_ReadHC, &(m_ReadBuf[nMaskLen ? ((nMaskLen + nBodyLen + 7) / 8 * 8) : 0]), nMaskLen ? stSMSG.DataLen() : nBodyLen);
+                    m_OnReadDone(m_ReadHC, &(m_ReadBuf[nMaskLen ? ((nMaskLen + nBodyLen + 7) / 8 * 8) : 0]), nMaskLen ? stSMSG.dataLen() : nBodyLen);
                 }
 
                 // 2. read next DoReadHC()
@@ -423,8 +423,8 @@ bool NetIO::Send(uint8_t nHC, const uint8_t *pData, size_t nDataLen, std::functi
         g_Log->AddLog(LOGTYPE_WARNING, "Invalid message to send: HC = %d, Data = %p, DataLen = %d", (int)(nHC), pData, (int)(nDataLen));
     };
 
-    CMSGParam stCMSG(nHC);
-    switch(stCMSG.Type()){
+    clientMsg stCMSG(nHC);
+    switch(stCMSG.type()){
         case 0:
             {
                 if(pData || nDataLen){
@@ -435,18 +435,18 @@ bool NetIO::Send(uint8_t nHC, const uint8_t *pData, size_t nDataLen, std::functi
             }
         case 1:
             {
-                if(!(pData && (stCMSG.DataLen() == nDataLen))){
+                if(!(pData && (stCMSG.dataLen() == nDataLen))){
                     fnReportError();
                     return false;
                 }
 
                 auto nCountData = Compress::CountData(pData, nDataLen);
-                if((nCountData < 0) || (nCountData > (int)(stCMSG.DataLen()))){
+                if((nCountData < 0) || (nCountData > (int)(stCMSG.dataLen()))){
                     extern Log *g_Log;
                     g_Log->AddLog(LOGTYPE_WARNING, "Count failed: HC = %d, DataLen = %d, CountData = %d", (int)(nHC), (int)(nDataLen), nCountData);
                     return false;
                 }else if(nCountData <= 254){
-                    pEncodeData = (uint8_t *)(m_MemoryPN.Get(stCMSG.MaskLen() + (size_t)(nCountData) + 1));
+                    pEncodeData = (uint8_t *)(m_MemoryPN.Get(stCMSG.maskLen() + (size_t)(nCountData) + 1));
                     if(Compress::Encode(pEncodeData + 1, pData, nDataLen) != nCountData){
                         extern Log *g_Log;
                         g_Log->AddLog(LOGTYPE_WARNING, "Count failed: HC = %d, DataLen = %d, CountData = %d", (int)(nHC), (int)(nDataLen), nCountData);
@@ -456,9 +456,9 @@ bool NetIO::Send(uint8_t nHC, const uint8_t *pData, size_t nDataLen, std::functi
                     }
 
                     pEncodeData[0] = (uint8_t)(nCountData);
-                    nEncodeSize    = 1 + stCMSG.MaskLen() + (size_t)(nCountData);
+                    nEncodeSize    = 1 + stCMSG.maskLen() + (size_t)(nCountData);
                 }else if(nCountData <= (255 + 255)){
-                    pEncodeData = (uint8_t *)(m_MemoryPN.Get(stCMSG.MaskLen() + (size_t)(nCountData) + 2));
+                    pEncodeData = (uint8_t *)(m_MemoryPN.Get(stCMSG.maskLen() + (size_t)(nCountData) + 2));
                     if(Compress::Encode(pEncodeData + 2, pData, nDataLen) != nCountData){
                         extern Log *g_Log;
                         g_Log->AddLog(LOGTYPE_WARNING, "Count failed: HC = %d, DataLen = %d, CountData = %d", (int)(nHC), (int)(nDataLen), nCountData);
@@ -469,7 +469,7 @@ bool NetIO::Send(uint8_t nHC, const uint8_t *pData, size_t nDataLen, std::functi
 
                     pEncodeData[0] = 255;
                     pEncodeData[1] = (uint8_t)(nCountData - 255);
-                    nEncodeSize    = 2 + stCMSG.MaskLen() + (size_t)(nCountData);
+                    nEncodeSize    = 2 + stCMSG.maskLen() + (size_t)(nCountData);
                 }else{
                     extern Log *g_Log;
                     g_Log->AddLog(LOGTYPE_WARNING, "Count overflows: HC = %d, DataLen = %d, CountData = %d", (int)(nHC), (int)(nDataLen), nCountData);
@@ -481,7 +481,7 @@ bool NetIO::Send(uint8_t nHC, const uint8_t *pData, size_t nDataLen, std::functi
             }
         case 2:
             {
-                if(!(pData && (nDataLen == stCMSG.DataLen()))){
+                if(!(pData && (nDataLen == stCMSG.dataLen()))){
                     fnReportError();
                     return false;
                 }

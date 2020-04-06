@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename: clientmessage.hpp
+ *       Filename: clientmsg.hpp
  *        Created: 01/24/2016 19:30:45
  *    Description: net message used by client and mono-server
  *
@@ -110,17 +110,17 @@ struct CMAccount
 // unfortunately this name has been taken by Xlib
 // and ClientMessage seems like a real message but actually this class only give general information
 
-class CMSGParam: public msgBase
+class clientMsg final: public msgBase
 {
     public:
-        CMSGParam(uint8_t nHC)
-            : msgBase(nHC)
+        clientMsg(uint8_t headCode)
+            : msgBase(headCode)
         {}
 
     private:
-        const MessageAttribute &GetAttribute(uint8_t nHC) const
+        const msgAttribute &getAttribute(uint8_t headCode) const override
         {
-            static const std::unordered_map<uint8_t, MessageAttribute> s_AttributeTable
+            static const std::unordered_map<uint8_t, msgAttribute> s_msgAttributeTable
             {
                 //  0    :     empty
                 //  1    : not empty,     fixed size,     compressed
@@ -140,6 +140,9 @@ class CMSGParam: public msgBase
                 {CM_ACCOUNT,          {1, sizeof(CMAccount),         "CM_ACCOUNT"         }},
             };
 
-            return s_AttributeTable.at((s_AttributeTable.find(nHC) == s_AttributeTable.end()) ? (uint8_t)(CM_NONE_0) : nHC);
+            if(const auto p = s_msgAttributeTable.find(headCode); p != s_msgAttributeTable.end()){
+                return p->second;
+            }
+            return s_msgAttributeTable.at(CM_NONE_0);
         }
 };
