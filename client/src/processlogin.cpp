@@ -26,6 +26,7 @@
 #include "pngtexdb.hpp"
 #include "sdldevice.hpp"
 #include "processlogin.hpp"
+#include "buildsignature.hpp"
 
 extern Log *g_Log;
 extern Client *g_client;
@@ -89,7 +90,20 @@ ProcessLogin::ProcessLogin()
               DoLogin();
           },
       }
-{}
+
+      , m_buildSignature
+        {
+            0,
+            0,
+            "build",
+            1,
+            14,
+            0,
+            ColorFunc::YELLOW,
+        }
+{
+    m_buildSignature.setText(u8"编译版本号:%s", getBuildSignature());
+}
 
 void ProcessLogin::Update(double fMS)
 {
@@ -113,6 +127,7 @@ void ProcessLogin::Draw()
     m_idBox      .draw();
     m_PasswordBox.draw();
 
+    m_buildSignature.draw();
     g_SDLDevice->Present();
 }
 

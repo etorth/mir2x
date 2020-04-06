@@ -23,6 +23,7 @@
 #include "process.hpp"
 #include "message.hpp"
 #include "inputline.hpp"
+#include "labelboard.hpp"
 #include "passwordbox.hpp"
 #include "tritexbutton.hpp"
 
@@ -36,6 +37,9 @@ class ProcessLogin: public Process
 
         inputLine       m_idBox;
         passwordBox     m_PasswordBox;
+
+    private:
+        labelBoard m_buildSignature;
 
     public:
         ProcessLogin();

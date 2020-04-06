@@ -91,6 +91,17 @@ ENDIF()
 SET(MIR2X_3RD_PARTY_DIR "${CMAKE_BINARY_DIR}/3rdparty")
 SET(MIR2X_COMMON_SOURCE_DIR ${CMAKE_SOURCE_DIR}/common/src)
 
+# configure file
+# if not version defined, use version enginerring signagure
+IF(NOT DEFINED MIR2X_BUILD_SIGNATURE)
+    STRING(TIMESTAMP NOW_TIMESTAMP "%Y%m%d%H%M%S")
+    SET(MIR2X_BUILD_SIGNATURE "VENGINEERING-${NOW_TIMESTAMP}")
+ENDIF()
+MESSAGE(STATUS "Build signature: ${MIR2X_BUILD_SIGNATURE}")
+
+INCLUDE_DIRECTORIES(SYSTEM ${CMAKE_BINARY_DIR}/config_file)
+CONFIGURE_FILE(${MIR2X_COMMON_SOURCE_DIR}/buildsignature.hpp.in ${CMAKE_BINARY_DIR}/config_file/buildsignature.hpp)
+
 # set additional module path
 LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
 
