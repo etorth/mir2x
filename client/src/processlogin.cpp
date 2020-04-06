@@ -28,7 +28,7 @@
 #include "processlogin.hpp"
 
 extern Log *g_Log;
-extern Client *g_Client;
+extern Client *g_client;
 extern PNGTexDB *g_ProgUseDB;
 extern SDLDevice *g_SDLDevice;
 
@@ -181,11 +181,11 @@ void ProcessLogin::DoLogin()
         std::memcpy(stCML.ID, szID.c_str(), szID.size());
         std::memcpy(stCML.Password, szPWD.c_str(), szPWD.size());
 
-        g_Client->Send(CM_LOGIN, stCML);
+        g_client->Send(CM_LOGIN, stCML);
     }
 }
 
 void ProcessLogin::DoCreateAccount()
 {
-    g_Client->RequestProcess(PROCESSID_NEW);
+    g_client->RequestProcess(PROCESSID_NEW);
 }

@@ -33,7 +33,7 @@ extern Log *g_Log;
 extern FontexDB *g_FontexDB;
 extern SDLDevice *g_SDLDevice;
 extern emoticonDB *g_emoticonDB;
-extern ClientArgParser *g_ClientArgParser;
+extern ClientArgParser *g_clientArgParser;
 
 void XMLTypeset::SetTokenBoxWordSpace(int nLine)
 {
@@ -942,7 +942,7 @@ void XMLTypeset::drawEx(int nDstX, int nDstY, int nSrcX, int nSrcY, int nSrcW, i
                             g_SDLDevice->DrawRectangle(ColorFunc::CompColor(nBGColor), drawDstX, drawDstY, nW, nH);
                         }
 
-                        if(g_ClientArgParser->drawTokenFrame){
+                        if(g_clientArgParser->drawTokenFrame){
                             SDLDevice::EnableDrawColor enableDrawColor(ColorFunc::PURPLE + 255);
                             SDLDevice::EnableDrawBlendMode enableDrawBlendMode(SDL_BLENDMODE_BLEND);
                             g_SDLDevice->DrawRectangle(drawDstX, drawDstY, nW, nH);
@@ -979,7 +979,7 @@ void XMLTypeset::drawEx(int nDstX, int nDstY, int nSrcX, int nSrcY, int nSrcW, i
         }
     }
 
-    if(g_ClientArgParser->drawBoardFrame){
+    if(g_clientArgParser->drawBoardFrame){
         SDLDevice::EnableDrawColor enableDrawColor(ColorFunc::YELLOW + 255);
         SDLDevice::EnableDrawBlendMode enableDrawBlendMode(SDL_BLENDMODE_BLEND);
         g_SDLDevice->DrawRectangle(nDstX, nDstY, nSrcW, nSrcH);

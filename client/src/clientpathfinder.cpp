@@ -22,7 +22,7 @@
 #include "clientpathfinder.hpp"
 
 extern Log *g_Log;
-extern Client *g_Client;
+extern Client *g_client;
 
 ClientPathFinder::ClientPathFinder(bool bCheckGround, int nCheckCreature, int nMaxStep)
     : AStarPathFinder([this](int nSrcX, int nSrcY, int nDstX, int nDstY) -> double
@@ -49,7 +49,7 @@ ClientPathFinder::ClientPathFinder(bool bCheckGround, int nCheckCreature, int nM
               }
           }
 
-          auto pRun = (ProcessRun *)(g_Client->ProcessValid(PROCESSID_RUN));
+          auto pRun = (ProcessRun *)(g_client->ProcessValid(PROCESSID_RUN));
 
           if(!pRun){
               g_Log->AddLog(LOGTYPE_FATAL, "ProcessRun is invalid");
@@ -91,7 +91,7 @@ ClientPathFinder::ClientPathFinder(bool bCheckGround, int nCheckCreature, int nM
 
 int ClientPathFinder::GetGrid(int nX, int nY) const
 {
-    auto pRun = (ProcessRun *)(g_Client->ProcessValid(PROCESSID_RUN));
+    auto pRun = (ProcessRun *)(g_client->ProcessValid(PROCESSID_RUN));
 
     if(!pRun){
         g_Log->AddLog(LOGTYPE_FATAL, "ProcessRun is invalid", pRun);

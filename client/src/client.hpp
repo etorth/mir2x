@@ -142,6 +142,10 @@ class Client final
             m_NetIO.Send(std::forward<U>(u)...);
         }
 
+        void sendNPCEventId(uint64_t)
+        {
+        }
+
     public:
         void PrintMonitor() const;
 };

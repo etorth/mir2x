@@ -27,8 +27,8 @@
 #include "clientpathfinder.hpp"
 
 extern Log *g_Log;
-extern Client *g_Client;
-extern ClientArgParser *g_ClientArgParser;
+extern Client *g_client;
+extern ClientArgParser *g_clientArgParser;
 
 MyHero::MyHero(uint64_t nUID, uint32_t nDBID, bool bMale, uint32_t nDressID, ProcessRun *pRun, const ActionNode &rstAction)
 	: Hero(nUID, nDBID, bMale, nDressID, pRun, rstAction)
@@ -531,7 +531,7 @@ bool MyHero::ParseActionQueue()
 
     // trace message
     // trace move action before parsing
-    if(g_ClientArgParser->traceMove){
+    if(g_clientArgParser->traceMove){
         if((!m_ActionQueue.empty()) && (m_ActionQueue.front().Action == ACTION_MOVE)){
             auto nMotionX0 = m_CurrMotion.X;
             auto nMotionY0 = m_CurrMotion.Y;
@@ -619,7 +619,7 @@ bool MyHero::ParseActionQueue()
         if(ParseAction(stCurrAction)){
             // trace message
             // trace move action after parsing
-            if(g_ClientArgParser->traceMove){
+            if(g_clientArgParser->traceMove){
                 for(auto &rstMotion: m_MotionQueue){
                     auto nMotionX0 = rstMotion.X;
                     auto nMotionY0 = rstMotion.Y;
@@ -704,10 +704,10 @@ void MyHero::ReportAction(const ActionNode &rstAction)
     stCMA.AimUID      = rstAction.AimUID;
     stCMA.ActionParam = rstAction.ActionParam;
 
-    g_Client->Send(CM_ACTION, stCMA);
+    g_client->Send(CM_ACTION, stCMA);
 }
 
 void MyHero::PullGold()
 {
-    g_Client->Send(CM_QUERYGOLD);
+    g_client->Send(CM_QUERYGOLD);
 }

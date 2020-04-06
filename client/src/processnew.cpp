@@ -29,7 +29,7 @@
 #include "processnew.hpp"
 #include "notifyboard.hpp"
 
-extern Client *g_Client;
+extern Client *g_client;
 extern SDLDevice *g_SDLDevice;
 extern PNGTexDB *g_ProgUseDB;
 extern NotifyBoard *g_NotifyBoard;
@@ -254,7 +254,7 @@ bool ProcessNew::LocalCheckPwd(const char *szPwd)
 
 void ProcessNew::DoExit()
 {
-    g_Client->RequestProcess(PROCESSID_LOGIN);
+    g_client->RequestProcess(PROCESSID_LOGIN);
 }
 
 void ProcessNew::DoPostAccount()
@@ -283,7 +283,7 @@ void ProcessNew::PostAccount(const char *szID, const char *szPWD, int nOperation
         std::strcpy(stCMA.Password, szPWD);
 
         stCMA.Operation = nOperation;
-        g_Client->Send(CM_ACCOUNT, stCMA);
+        g_client->Send(CM_ACCOUNT, stCMA);
     }
 }
 

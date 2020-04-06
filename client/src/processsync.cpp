@@ -23,7 +23,7 @@
 #include "tokenboard.hpp"
 #include "processsync.hpp"
 
-extern Client *g_Client;
+extern Client *g_client;
 extern PNGTexDB *g_ProgUseDB;
 extern SDLDevice *g_SDLDevice;
 
@@ -38,7 +38,7 @@ void ProcessSync::processEvent(const SDL_Event &event)
         case SDL_KEYDOWN:
             {
                 if(event.key.keysym.sym == SDLK_ESCAPE){
-                    g_Client->RequestProcess(PROCESSID_LOGIN);
+                    g_client->RequestProcess(PROCESSID_LOGIN);
                 }
                 break;
             }
@@ -52,7 +52,7 @@ void ProcessSync::processEvent(const SDL_Event &event)
 void ProcessSync::Update(double fDeltaMS)
 {
     if(m_Ratio >= 100){
-        g_Client->RequestProcess(PROCESSID_LOGIN);
+        g_client->RequestProcess(PROCESSID_LOGIN);
         return;
     }
 

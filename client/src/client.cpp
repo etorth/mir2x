@@ -42,7 +42,7 @@ extern Log *g_Log;
 extern XMLConf *g_XMLConf;
 extern SDLDevice *g_SDLDevice;
 extern debugBoard *g_debugBoard;
-extern ClientArgParser *g_ClientArgParser;
+extern ClientArgParser *g_clientArgParser;
 
 Client::Client()
     : m_ClientMonitor()
@@ -82,7 +82,7 @@ void Client::MainLoop()
     auto fLastLoop   = SDL_GetTicks() * 1.0;
 
     while(true){
-        if(g_ClientArgParser->EnableClientMonitor){
+        if(g_clientArgParser->EnableClientMonitor){
             PrintMonitor();
         }
 

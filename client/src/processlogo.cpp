@@ -21,7 +21,7 @@
 #include "sdldevice.hpp"
 #include "processlogo.hpp"
 
-extern Client *g_Client;
+extern Client *g_client;
 extern PNGTexDB *g_ProgUseDB;
 extern SDLDevice *g_SDLDevice;
 
@@ -34,7 +34,7 @@ void ProcessLogo::processEvent(const SDL_Event &event)
                     case SDLK_SPACE:
                     case SDLK_ESCAPE:
                         {
-                            g_Client->RequestProcess(PROCESSID_SYRC);
+                            g_client->RequestProcess(PROCESSID_SYRC);
                         }
                         break;
                     default:
@@ -51,7 +51,7 @@ void ProcessLogo::Update(double fDTime)
 {
     m_totalTime += fDTime;
     if(m_totalTime >= m_fullTime){
-        g_Client->RequestProcess(PROCESSID_SYRC);
+        g_client->RequestProcess(PROCESSID_SYRC);
     }
 }
 

@@ -32,7 +32,7 @@
 // global variables, decide to follow pattern in MapEditor
 // put all global in one place and create them togother
 
-ClientArgParser *g_ClientArgParser = nullptr;
+ClientArgParser *g_clientArgParser = nullptr;
 Log             *g_Log             = nullptr; // log information handler, must be inited first
 PNGTexDB        *g_ProgUseDB       = nullptr; // database for all PNG texture only
 PNGTexDB        *g_GroundItemDB    = nullptr; // database for all PNG texture only
@@ -49,7 +49,7 @@ XMLConf         *g_XMLConf         = nullptr; // for client configure XML parsin
 SDLDevice       *g_SDLDevice       = nullptr; // for SDL hardware device
 debugBoard      *g_debugBoard      = nullptr;
 NotifyBoard     *g_NotifyBoard     = nullptr;
-Client          *g_Client          = nullptr; // gobal instance
+Client          *g_client          = nullptr; // gobal instance
 
 int main(int argc, char *argv[])
 {
@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
         arg_parser stCmdParser(argc, argv);
         auto fnAtExit = []()
         {
-            delete g_ClientArgParser; g_ClientArgParser = nullptr;
+            delete g_clientArgParser; g_clientArgParser = nullptr;
             delete g_Log            ; g_Log             = nullptr;
             delete g_XMLConf        ; g_XMLConf         = nullptr;
             delete g_SDLDevice      ; g_SDLDevice       = nullptr;
@@ -73,12 +73,12 @@ int main(int argc, char *argv[])
             delete g_emoticonDB     ; g_emoticonDB      = nullptr;
             delete g_debugBoard     ; g_debugBoard      = nullptr;
             delete g_NotifyBoard    ; g_NotifyBoard     = nullptr;
-            delete g_Client         ; g_Client          = nullptr;
+            delete g_client         ; g_client          = nullptr;
         };
 
         std::atexit(fnAtExit);
 
-        g_ClientArgParser = new ClientArgParser(stCmdParser);
+        g_clientArgParser = new ClientArgParser(stCmdParser);
         g_Log             = new Log("mir2x-client-v0.1");
 
     }catch(const std::exception &e){
@@ -103,11 +103,11 @@ int main(int argc, char *argv[])
         g_FontexDB        = new FontexDB(1024);
         g_MapBinDB        = new MapBinDB();
         g_emoticonDB      = new emoticonDB();
-        g_Client          = new Client();       // loads fontex resource
+        g_client          = new Client();       // loads fontex resource
         g_debugBoard      = new debugBoard(0, 0, 10240, 0, 15, 0, ColorFunc::RED + 255);
         g_NotifyBoard     = new NotifyBoard();  // needs fontex
 
-        g_Client->MainLoop();
+        g_client->MainLoop();
 
     }catch(const std::exception &e){
         g_Log->AddLog(LOGTYPE_FATAL, "Caught exception: %s", e.what());

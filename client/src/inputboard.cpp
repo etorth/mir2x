@@ -28,7 +28,7 @@
 #include "sdlkeychar.hpp"
 
 extern Log *g_Log;
-extern Client *g_Client;
+extern Client *g_client;
 extern SDLDevice *g_SDLDevice;
 
 int InputBoard::s_ShowSystemCursorCount = 0;
@@ -160,7 +160,7 @@ bool InputBoard::processEvent(const SDL_Event &event, bool valid)
                                 if(false
                                         || event.key.keysym.mod & KMOD_LCTRL
                                         || event.key.keysym.mod & KMOD_RCTRL){
-                                    g_Client->Clipboard(m_TokenBoard.GetXML(true));
+                                    g_client->Clipboard(m_TokenBoard.GetXML(true));
                                     m_TokenBoard.Delete(true);
                                 }else{
                                     if(SDL_IsTextInputActive() == SDL_FALSE){
@@ -181,7 +181,7 @@ bool InputBoard::processEvent(const SDL_Event &event, bool valid)
                                 if(false
                                         || event.key.keysym.mod & KMOD_LCTRL
                                         || event.key.keysym.mod & KMOD_RCTRL){
-                                    g_Client->Clipboard(m_TokenBoard.GetXML(true));
+                                    g_client->Clipboard(m_TokenBoard.GetXML(true));
                                 }else{
                                     if(SDL_IsTextInputActive() == SDL_FALSE){
                                         if(false
@@ -201,7 +201,7 @@ bool InputBoard::processEvent(const SDL_Event &event, bool valid)
                                 if(false
                                         || event.key.keysym.mod & KMOD_LCTRL
                                         || event.key.keysym.mod & KMOD_RCTRL){
-                                    m_TokenBoard.ParseXML(g_Client->Clipboard().c_str(), {});
+                                    m_TokenBoard.ParseXML(g_client->Clipboard().c_str(), {});
                                 }else{
                                     if(SDL_IsTextInputActive() == SDL_FALSE){
                                         if(false

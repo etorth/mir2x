@@ -35,7 +35,7 @@ extern Log *g_Log;
 extern PNGTexDB *g_ProgUseDB;
 extern SDLDevice *g_SDLDevice;
 extern PNGTexOffDB *g_MonsterDB;
-extern ClientArgParser *g_ClientArgParser;
+extern ClientArgParser *g_clientArgParser;
 
 Monster::Monster(uint64_t nUID, ProcessRun *pRun)
     : Creature(nUID, pRun)
@@ -43,7 +43,7 @@ Monster::Monster(uint64_t nUID, ProcessRun *pRun)
     condcheck(nUID);
     condcheck(pRun);
 
-    if(g_ClientArgParser->enableDrawUID){
+    if(g_clientArgParser->enableDrawUID){
         m_nameBoard.setText("%s(%llu)", DBCOM_MONSTERRECORD(MonsterID()).Name, to_LLU(UID()));
     }
     else{
@@ -229,7 +229,7 @@ bool Monster::Draw(int nViewX, int nViewY, int nFocusMask)
 
             g_SDLDevice->DrawTexture(pBar0, nDrawBarXP, nDrawBarYP);
 
-            if(g_ClientArgParser->alwaysDrawName || (nFocusMask & (1 << FOCUS_MOUSE))){
+            if(g_clientArgParser->alwaysDrawName || (nFocusMask & (1 << FOCUS_MOUSE))){
                 const int nLW = m_nameBoard.W();
                 const int nLH = m_nameBoard.H();
                 const int nDrawNameXP = nDrawBarXP + nBarW / 2 - nLW / 2;

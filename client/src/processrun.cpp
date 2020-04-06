@@ -37,14 +37,14 @@
 #include "toll.hpp"
 
 extern Log *g_Log;
-extern Client *g_Client;
+extern Client *g_client;
 extern PNGTexDB *g_MapDB;
 extern MapBinDB *g_MapBinDB;
 extern SDLDevice *g_SDLDevice;
 extern PNGTexDB *g_GroundItemDB;
 extern NotifyBoard *g_NotifyBoard;
 extern debugBoard *g_debugBoard;
-extern ClientArgParser *g_ClientArgParser;
+extern ClientArgParser *g_clientArgParser;
 
 ProcessRun::ProcessRun()
     : Process()
@@ -311,7 +311,7 @@ void ProcessRun::Draw()
             }
         }
 
-        if(g_ClientArgParser->EnableDrawMapGrid){
+        if(g_clientArgParser->EnableDrawMapGrid){
             int nGridX0 = m_ViewX / SYS_MAPGRIDXP;
             int nGridY0 = m_ViewY / SYS_MAPGRIDYP;
 
@@ -456,7 +456,7 @@ void ProcessRun::Draw()
                             &&  (pCreature.second->Y() == nY)
                             && !(pCreature.second->StayDead())){
 
-                        if(g_ClientArgParser->EnableDrawCreatureCover){
+                        if(g_clientArgParser->EnableDrawCreatureCover){
                             g_SDLDevice->PushColor(0, 0, 255, 128);
                             g_SDLDevice->PushBlendMode(SDL_BLENDMODE_BLEND);
                             g_SDLDevice->FillRectangle(nX * SYS_MAPGRIDXP - m_ViewX, nY * SYS_MAPGRIDYP - m_ViewY, SYS_MAPGRIDXP, SYS_MAPGRIDYP);
@@ -579,7 +579,7 @@ void ProcessRun::Draw()
     }
 
     // draw cursor location information on top-left
-    if(g_ClientArgParser->EnableDrawMouseLocation){
+    if(g_clientArgParser->EnableDrawMouseLocation){
         g_SDLDevice->PushColor(0, 0, 0, 230);
         g_SDLDevice->PushBlendMode(SDL_BLENDMODE_BLEND);
         g_SDLDevice->FillRectangle(0, 0, 200, 60);
@@ -1519,7 +1519,7 @@ bool ProcessRun::RequestSpaceMove(uint32_t nMapID, int nX, int nY)
             stCMRSM.MapID = nMapID;
             stCMRSM.X     = nX;
             stCMRSM.Y     = nY;
-            g_Client->Send(CM_REQUESTSPACEMOVE, stCMRSM);
+            g_client->Send(CM_REQUESTSPACEMOVE, stCMRSM);
             return true;
         }
     }
@@ -1528,7 +1528,7 @@ bool ProcessRun::RequestSpaceMove(uint32_t nMapID, int nX, int nY)
 
 void ProcessRun::RequestKillPets()
 {
-    g_Client->Send(CM_REQUESTKILLPETS);
+    g_client->Send(CM_REQUESTKILLPETS);
 }
 
 void ProcessRun::ClearCreature()
@@ -1542,7 +1542,7 @@ void ProcessRun::QueryCORecord(uint64_t nUID) const
     std::memset(&stCMQCOR, 0, sizeof(stCMQCOR));
 
     stCMQCOR.AimUID = nUID;
-    g_Client->Send(CM_QUERYCORECORD, stCMQCOR);
+    g_client->Send(CM_QUERYCORECORD, stCMQCOR);
 }
 
 void ProcessRun::OnActionSpawn(uint64_t nUID, const ActionNode &rstAction)
