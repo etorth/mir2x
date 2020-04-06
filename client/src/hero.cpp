@@ -621,7 +621,7 @@ bool Hero::Moving()
         || m_CurrMotion.Motion == MOTION_ONHORSEWALK;
 }
 
-bool Hero::CanFocus(int nPointX, int nPointY)
+bool Hero::canFocus(int nPointX, int nPointY)
 {
     switch(CurrMotion().Motion){
         case MOTION_DIE:

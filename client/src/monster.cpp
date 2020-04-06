@@ -546,7 +546,7 @@ bool Monster::MotionValid(const MotionNode &rstMotion) const
     return false;
 }
 
-bool Monster::CanFocus(int nPointX, int nPointY)
+bool Monster::canFocus(int nPointX, int nPointY)
 {
     switch(m_CurrMotion.Motion){
         case MOTION_MON_DIE:

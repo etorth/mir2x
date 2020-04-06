@@ -52,7 +52,7 @@ class Hero: public Creature
         bool Draw(int, int, int);
 
     public:
-        bool CanFocus(int, int);
+        bool canFocus(int, int);
 
     public:
         bool OnHorse() const

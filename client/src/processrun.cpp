@@ -190,7 +190,7 @@ uint64_t ProcessRun::FocusUID(int nFocusType)
                     {
                         if(auto pCreature = RetrieveUID(nUID)){
                             if(nUID != m_MyHeroUID){
-                                if(pCreature->CanFocus(nX, nY)){
+                                if(pCreature->canFocus(nX, nY)){
                                     return true;
                                 }
                             }

@@ -60,7 +60,7 @@ class Monster: public Creature
         bool MotionValid(const MotionNode &) const;
 
     public:
-        bool CanFocus(int, int);
+        bool canFocus(int, int);
 
     protected:
         int GfxMotionID(int) const;

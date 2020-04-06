@@ -85,4 +85,10 @@ enum MotionType: int
     MOTION_MON_SPECIAL,
 
     MOTION_MON_MAX,
+
+    MOTION_NPC_NONE,
+    MOTION_NPC_STAND,
+    MOTION_NPC_ACT1,
+    MOTION_NPC_ACT2,
+    MOTION_NPC_MAX,
 };

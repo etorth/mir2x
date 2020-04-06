@@ -224,7 +224,7 @@ class Creature
         }
 
     public:
-        virtual bool CanFocus(int, int) = 0;
+        virtual bool canFocus(int, int) = 0;
 
     public:
         bool Alive();

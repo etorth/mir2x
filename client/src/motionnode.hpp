@@ -100,4 +100,67 @@ struct MotionNode
     }
 
     void Print();
+
+    static const char *name(int motion)
+    {
+#define _addCaseType(t) case t: return #t;
+        switch(motion){
+            _addCaseType(MOTION_NONE         )
+            _addCaseType(MOTION_STAND        )
+            _addCaseType(MOTION_ARROWATTACK  )
+            _addCaseType(MOTION_SPELL0       )
+            _addCaseType(MOTION_SPELL1       )
+            _addCaseType(MOTION_HOLD         )
+            _addCaseType(MOTION_PUSHBACK     )
+            _addCaseType(MOTION_PUSHBACKFLY  )
+            _addCaseType(MOTION_ATTACKMODE   )
+            _addCaseType(MOTION_CUT          )
+            _addCaseType(MOTION_ONEVSWING    )
+            _addCaseType(MOTION_TWOVSWING    )
+            _addCaseType(MOTION_ONEHSWING    )
+            _addCaseType(MOTION_TWOHSWING    )
+            _addCaseType(MOTION_SPEARVSWING  )
+            _addCaseType(MOTION_SPEARHSWING  )
+            _addCaseType(MOTION_HITTED       )
+            _addCaseType(MOTION_WHEELWIND    )
+            _addCaseType(MOTION_RANDSWING    )
+            _addCaseType(MOTION_BACKDROPKICK )
+            _addCaseType(MOTION_DIE          )
+            _addCaseType(MOTION_ONHORSEDIE   )
+            _addCaseType(MOTION_WALK         )
+            _addCaseType(MOTION_RUN          )
+            _addCaseType(MOTION_MOODEPO      )
+            _addCaseType(MOTION_ROLL         )
+            _addCaseType(MOTION_FISHSTAND    )
+            _addCaseType(MOTION_FISHHAND     )
+            _addCaseType(MOTION_FISHTHROW    )
+            _addCaseType(MOTION_FISHPULL     )
+            _addCaseType(MOTION_ONHORSESTAND )
+            _addCaseType(MOTION_ONHORSEWALK  )
+            _addCaseType(MOTION_ONHORSERUN   )
+            _addCaseType(MOTION_ONHORSEHITTED)
+            _addCaseType(MOTION_MAX          )
+
+            _addCaseType(MOTION_MON_NONE     )
+            _addCaseType(MOTION_MON_STAND    )
+            _addCaseType(MOTION_MON_WALK     )
+            _addCaseType(MOTION_MON_ATTACK0  )
+            _addCaseType(MOTION_MON_HITTED   )
+            _addCaseType(MOTION_MON_DIE      )
+            _addCaseType(MOTION_MON_ATTACK1  )
+            _addCaseType(MOTION_MON_SPELL0   )
+            _addCaseType(MOTION_MON_SPELL1   )
+            _addCaseType(MOTION_MON_APPEAR   )
+            _addCaseType(MOTION_MON_SPECIAL  )
+            _addCaseType(MOTION_MON_MAX      )
+
+            _addCaseType(MOTION_NPC_NONE     )
+            _addCaseType(MOTION_NPC_STAND    )
+            _addCaseType(MOTION_NPC_ACT1     )
+            _addCaseType(MOTION_NPC_ACT2     )
+            _addCaseType(MOTION_NPC_MAX      )
+#undef _addCaseType
+            default: return "MOTION_UNKNOWN";
+        }
+    }
 };
