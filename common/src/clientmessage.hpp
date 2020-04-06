@@ -20,7 +20,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <unordered_map>
-#include "messagebase.hpp"
+#include "msgbase.hpp"
 
 enum CMType: uint8_t
 {
@@ -110,11 +110,11 @@ struct CMAccount
 // unfortunately this name has been taken by Xlib
 // and ClientMessage seems like a real message but actually this class only give general information
 
-class CMSGParam: public MessageBase
+class CMSGParam: public msgBase
 {
     public:
         CMSGParam(uint8_t nHC)
-            : MessageBase(nHC)
+            : msgBase(nHC)
         {}
 
     private:

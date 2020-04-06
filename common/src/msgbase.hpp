@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename: messagebase.hpp
+ *       Filename: msgbase.hpp
  *        Created: 04/24/2017 00:46:48
  *    Description: length encoding for mode 1:
  *
@@ -28,25 +28,25 @@
 #include <cstddef>
 #include "messageattribute.hpp"
 
-class MessageBase
+class msgBase
 {
     private:
-        const uint8_t m_HC;
+        const uint8_t m_headCode;
 
     protected:
-        MessageBase(uint8_t nHC)
-            : m_HC(nHC)
+        msgBase(uint8_t nHC)
+            : m_headCode(nHC)
         {}
 
     public:
         int Type() const
         {
-            return GetAttribute(m_HC).Type;
+            return GetAttribute(m_headCode).Type;
         }
 
         size_t DataLen() const
         {
-            return GetAttribute(m_HC).DataLen;
+            return GetAttribute(m_headCode).DataLen;
         }
 
         size_t MaskLen() const
@@ -70,7 +70,7 @@ class MessageBase
 
         const std::string &Name() const
         {
-            return GetAttribute(m_HC).Name;
+            return GetAttribute(m_headCode).Name;
         }
 
     private:

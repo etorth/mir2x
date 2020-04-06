@@ -19,7 +19,7 @@
 #pragma once
 #include <cstdint>
 #include <unordered_map>
-#include "messagebase.hpp"
+#include "msgbase.hpp"
 
 enum SMType: uint8_t
 {
@@ -239,11 +239,11 @@ struct SMGold
 
 #pragma pack(pop)
 
-class SMSGParam: public MessageBase
+class SMSGParam: public msgBase
 {
     public:
         SMSGParam(uint8_t nHC)
-            : MessageBase(nHC)
+            : msgBase(nHC)
         {}
 
     private:
