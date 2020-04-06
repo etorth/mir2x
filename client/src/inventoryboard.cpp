@@ -28,28 +28,45 @@ extern SDLDevice *g_SDLDevice;
 
 InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, widget *pwidget, bool bAutoFree)
     : widget(nX, nY, 0, 0, pwidget, bAutoFree)
-    , m_goldBoard(70, 403, "0", 0, 15, 0, ColorFunc::RGBA(0XFF, 0XFF, 0X00, 0X00), this)
-    , m_closeButton(
-            242,
-            422,
-            {0XFFFFFFFF, 0X0000001C, 0X0000001D},
-            [](){},
-            [this]()
-            {
-                show(false);
-            },
-            0,
-            0,
-            0,
-            0,
-            true,
-            this,
-            false)
+    , m_goldBoard
+      {
+          0, // reset by new width
+          0,
+          "0",
+
+          1,
+          12,
+          0,
+
+          ColorFunc::RGBA(0XFF, 0XFF, 0X00, 0X00),
+          this,
+      }
+    , m_closeButton
+      {
+          242,
+          422,
+          {0XFFFFFFFF, 0X0000001C, 0X0000001D},
+
+          nullptr,
+          [this]()
+          {
+              show(false);
+          },
+
+          0,
+          0,
+          0,
+          0,
+
+          true,
+          this,
+      }
     , m_ProcessRun(pRun)
 {
     if(auto pTexture = g_ProgUseDB->Retrieve(0X0000001B)){
         SDL_QueryTexture(pTexture, nullptr, nullptr, &m_w, &m_h);
     }
+    m_goldBoard.moveTo(105 - m_goldBoard.W() / 2, 401);
 }
 
 void InventoryBoard::drawItem(int nDstX, int nDstY, const PackBin &rstBin)
@@ -85,8 +102,8 @@ void InventoryBoard::drawEx(int nDstX, int nDstY, int, int, int, int)
     }
 
     if(auto pMyHero = m_ProcessRun->GetMyHero()){
-        // 1. draw gold
-        m_goldBoard.setText("%d", pMyHero->GetGold());
+        m_goldBoard.setText("%s", getGoldStr().c_str());
+        m_goldBoard.moveTo(105 - m_goldBoard.W() / 2, 401);
 
         // 2. draw all items
         for(auto &rstBin: pMyHero->getInvPack().GetPackBinList()){
@@ -126,4 +143,31 @@ bool InventoryBoard::processEvent(const SDL_Event &event, bool valid)
                 return false;
             }
     }
+}
+
+std::string InventoryBoard::getGoldStr() const
+{
+    std::string result;
+    std::string goldStr = std::to_string([this]() -> int
+    {
+        if(auto p = m_ProcessRun->GetMyHero()){
+            return p->GetGold();
+        }
+        return 0;
+    }());
+
+    std::reverse(goldStr.begin(), goldStr.end());
+    for(size_t i = 0; i < goldStr.size(); ++i){
+        result.push_back(goldStr[i]);
+        if(i % 3 == 2){
+            result.push_back(',');
+        }
+    }
+
+    if(result.back() == ','){
+        result.pop_back();
+    }
+
+    std::reverse(result.begin(), result.end());
+    return result;
 }

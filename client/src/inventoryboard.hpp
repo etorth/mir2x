@@ -49,4 +49,7 @@ class InventoryBoard: public widget
 
     public:
         bool processEvent(const SDL_Event &, bool);
+
+    private:
+        std::string getGoldStr() const;
 };
