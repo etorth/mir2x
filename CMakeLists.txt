@@ -100,7 +100,7 @@ ENDIF()
 MESSAGE(STATUS "Build signature: ${MIR2X_BUILD_SIGNATURE}")
 
 INCLUDE_DIRECTORIES(SYSTEM ${CMAKE_BINARY_DIR}/config_file)
-CONFIGURE_FILE(${MIR2X_COMMON_SOURCE_DIR}/buildsignature.hpp.in ${CMAKE_BINARY_DIR}/config_file/buildsignature.hpp)
+CONFIGURE_FILE(${MIR2X_COMMON_SOURCE_DIR}/buildconfig.hpp.in ${CMAKE_BINARY_DIR}/config_file/buildconfig.hpp)
 
 # set additional module path
 LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")

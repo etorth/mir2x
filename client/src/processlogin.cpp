@@ -25,8 +25,8 @@
 #include "message.hpp"
 #include "pngtexdb.hpp"
 #include "sdldevice.hpp"
+#include "buildconfig.hpp"
 #include "processlogin.hpp"
-#include "buildsignature.hpp"
 
 extern Log *g_Log;
 extern Client *g_client;
