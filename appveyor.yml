@@ -16,8 +16,8 @@ configuration:
     - Release
 
 cache:
-    - .git\lfs\objects
-    - C:\Tools\vcpkg\installed
+    - .git\lfs\objects -> appveyor.yml
+    - C:\Tools\vcpkg\installed -> appveyor.yml
 
 clone_script:
     - echo "Skip appveyor clone"
@@ -35,7 +35,7 @@ install:
         vcpkg install sqlite3:x64-windows-static
         git init %APPVEYOR_BUILD_FOLDER%
         cd %APPVEYOR_BUILD_FOLDER%
-        git remote add origin git@github.com:%APPVEYOR_REPO_NAME%.git
+        git remote add origin https://github.com/%APPVEYOR_REPO_NAME%.git
         git fetch -q origin %APPVEYOR_REPO_COMMIT%
         git checkout -qf %APPVEYOR_REPO_COMMIT%
 
