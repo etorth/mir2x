@@ -121,6 +121,13 @@ FIND_PACKAGE(FLTK   REQUIRED)
 FIND_PACKAGE(OpenGL REQUIRED)
 FIND_PACKAGE(PNG    REQUIRED)
 
+# TODO
+# appveyor says "can find make command"
+# use vcpkg to get lz4, but for linux still use github to get lz4
+IF(WIN32 AND MSVC)
+    FIND_PACKAGE(LZ4 REQUIRED)
+ENDIF()
+
 # report sdl2 status
 # seems it won't report in find_package
 IF(WIN32)

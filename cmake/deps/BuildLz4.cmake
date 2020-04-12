@@ -16,6 +16,11 @@
 
 INCLUDE(ExternalProject)
 
+IF(WIN32 AND MSVC)
+    MESSAGE(STATUS "liblz4 build skipped on windows platform, use vcpkg")
+    RETURN()
+ENDIF()
+
 ExternalProject_Add(
     liblz4
 

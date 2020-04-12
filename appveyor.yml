@@ -32,6 +32,7 @@ install:
         vcpkg install opengl:x64-windows-static
         vcpkg install zlib:x64-windows-static
         vcpkg install libpng:x64-windows-static
+        vcpkg install lz4:x64-windows-static
         vcpkg install sqlite3:x64-windows-static
         git init %APPVEYOR_BUILD_FOLDER%
         cd %APPVEYOR_BUILD_FOLDER%
