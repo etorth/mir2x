@@ -11,9 +11,16 @@ environment:
     CMAKE_TOOLCHAIN_FILE: -DCMAKE_TOOLCHAIN_FILE="C:\Tools\vcpkg\scripts\buildsystems\vcpkg.cmake"
     VCPKG_DEFAULT_TRIPLET: x64-windows
     VCPKG_TARGET_TRIPLET: -DVCPKG_TARGET_TRIPLET=x64-windows-static
- 
+
 configuration:
     - Release
+
+cache:
+    - .git\lfs\objects
+    - C:\Tools\vcpkg\installed
+
+clone_script:
+    - echo "Skip appveyor clone"
 
 install:
     - cmd: |-
@@ -26,9 +33,15 @@ install:
         vcpkg install zlib:x64-windows-static
         vcpkg install libpng:x64-windows-static
         vcpkg install sqlite3:x64-windows-static
+        git init %APPVEYOR_BUILD_FOLDER%
+        cd %APPVEYOR_BUILD_FOLDER%
+        git remote add origin git@github.com:%APPVEYOR_REPO_NAME%.git
+        git fetch -q origin %APPVEYOR_REPO_COMMIT%
+        git checkout -qf %APPVEYOR_REPO_COMMIT%
 
 before_build:
     - cmd: |-
+        git lfs prune
         mkdir build
         cd build
         cmake --version
