@@ -106,7 +106,7 @@ InitView::InitView(uint8_t nFontSize)
 
     m_LoadProcV.emplace_back(1, [this](size_t nIndex) -> bool
     {
-        return LoadDB(nIndex, g_XMLConf, g_MagicDB, "Root/Texture/standNPCDB");
+        return LoadDB(nIndex, g_XMLConf, g_standNPCDB, "Root/Texture/standNPCDB");
     });
 
     m_LoadProcV.emplace_back(1, [this](size_t nIndex) -> bool
