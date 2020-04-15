@@ -17,10 +17,10 @@
  */
 
 #include "log.hpp"
-#include "strfunc.hpp"
+#include "strf.hpp"
 #include "xmltypeset.hpp"
-#include "mathfunc.hpp"
-#include "colorfunc.hpp"
+#include "mathf.hpp"
+#include "colorf.hpp"
 #include "debugboard.hpp"
 
 extern Log *g_Log;
@@ -44,7 +44,7 @@ void debugBoard::addLog(const char * formatString, ...)
     }
 
     if(error){
-        g_Log->AddLog(LOGTYPE_WARNING, "%s", text.c_str());
+        g_Log->addLog(LOGTYPE_WARNING, "%s", text.c_str());
     }
 
     if(m_BoardList.size() < 5){
@@ -66,7 +66,7 @@ void debugBoard::addLog(const char * formatString, ...)
     }
 }
 
-void debugBoard::drawEx(int dstX, int dstY, int srcX, int srcY, int w, int h)
+void debugBoard::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int srcH)
 {
     int startX = 0;
     int startY = 0;
@@ -78,16 +78,16 @@ void debugBoard::drawEx(int dstX, int dstY, int srcX, int srcY, int w, int h)
         int srcYCrop = srcY;
         int dstXCrop = dstX;
         int dstYCrop = dstY;
-        int srcWCrop = w;
-        int srcHCrop = h;
+        int srcWCrop = srcW;
+        int srcHCrop = srcH;
 
-        if(!MathFunc::ROICrop(
+        if(!mathf::ROICrop(
                     &srcXCrop, &srcYCrop,
                     &srcWCrop, &srcHCrop,
                     &dstXCrop, &dstYCrop,
 
-                    W(),
-                    H(),
+                    w(),
+                    h(),
 
                     0, startY, p->pw(), p->ph(), 0, 0, -1, -1)){
             break;

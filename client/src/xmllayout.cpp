@@ -17,11 +17,11 @@
  */
 
 #include "log.hpp"
-#include "strfunc.hpp"
+#include "strf.hpp"
 #include "fontexdb.hpp"
 #include "xmltypeset.hpp"
-#include "mathfunc.hpp"
-#include "colorfunc.hpp"
+#include "mathf.hpp"
+#include "colorf.hpp"
 #include "xmllayout.hpp"
 
 extern Log *g_Log;
@@ -117,7 +117,7 @@ void XMLLayout::addPar(int loc, const std::array<int, 4> &margin, const tinyxml2
     const uint32_t fontColor = [elemNode, this]()
     {
         if(const char *val = elemNode->Attribute("color")){
-            return ColorFunc::String2RGBA(val);
+            return colorf::String2RGBA(val);
         }
         return m_fontColor;
     }();
@@ -178,7 +178,7 @@ void XMLLayout::drawEx(int dstX, int dstY, int srcX, int srcY, int w, int h)
         int srcWCrop = w;
         int srcHCrop = h;
 
-        if(!MathFunc::ROICrop(
+        if(!mathf::ROICrop(
                     &srcXCrop, &srcYCrop,
                     &srcWCrop, &srcHCrop,
                     &dstXCrop, &dstYCrop,
@@ -227,12 +227,12 @@ void XMLLayout::loadXML(const char *xmlString)
     }
 
     if(pRoot->FirstAttribute()){
-        g_Log->AddLog(LOGTYPE_WARNING, "Layout XML won't accept attributes, ignored.");
+        g_Log->addLog(LOGTYPE_WARNING, "Layout XML won't accept attributes, ignored.");
     }
 
     for(auto p = pRoot->FirstChild(); p; p = p->NextSibling()){
         if(!p->ToElement()){
-            g_Log->AddLog(LOGTYPE_WARNING, "Not an element: %s", p->Value());
+            g_Log->addLog(LOGTYPE_WARNING, "Not an element: %s", p->Value());
             continue;
         }
 
@@ -245,7 +245,7 @@ void XMLLayout::loadXML(const char *xmlString)
         }
 
         if(!parXML){
-            g_Log->AddLog(LOGTYPE_WARNING, "Not a paragraph element: %s", p->Value());
+            g_Log->addLog(LOGTYPE_WARNING, "Not a paragraph element: %s", p->Value());
             continue;
         }
 

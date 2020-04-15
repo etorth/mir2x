@@ -17,5 +17,5 @@
  */
 
 #pragma once
-#define to_LLD(x) static_cast<long long>(x)
-#define to_LLU(x) static_cast<unsigned long long>(x)
+#define toLLD(x) static_cast<long long>(x)
+#define toLLU(x) static_cast<unsigned long long>(x)

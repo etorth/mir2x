@@ -21,7 +21,7 @@
 #include <array>
 #include "tokenboard.hpp"
 
-class NotifyBoard: public widget
+class NotifyBoard: public Widget
 {
     protected:
         struct LogLine
@@ -38,7 +38,7 @@ class NotifyBoard: public widget
 
     public:
         NotifyBoard()
-            : widget(0, 0, 0, 0, nullptr, false)
+            : Widget(0, 0, 0, 0, nullptr, false)
             , m_logBoard
               {
                   0,
@@ -79,7 +79,7 @@ class NotifyBoard: public widget
         }
 
     public:
-        void AddLog(std::array<std::string, 4>, const char *, ...);
+        void addLog(std::array<std::string, 4>, const char *, ...);
         void AddXML(const char *szXML, const std::map<std::string, std::function<void()>> &rstMap = {});
 
     public:

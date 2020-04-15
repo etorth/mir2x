@@ -17,6 +17,7 @@
  */
 
 #pragma once 
+#include <tuple>
 #include "creature.hpp"
 
 class Hero: public Creature
@@ -45,14 +46,14 @@ class Hero: public Creature
        ~Hero() = default;
 
     public:
-        bool Location(int *, int *);
+       std::tuple<int, int> location() const override;
 
     public:
-        bool Update(double);
-        bool Draw(int, int, int);
+        bool update(double) override;
+        bool draw(int, int, int) override;
 
     public:
-        bool canFocus(int, int);
+        bool canFocus(int, int) const override;
 
     public:
         bool OnHorse() const
@@ -61,13 +62,13 @@ class Hero: public Creature
         }
 
     public:
-        bool MotionValid(const MotionNode &) const;
+        bool motionValid(const MotionNode &) const override;
 
     public:
-        bool ParseAction(const ActionNode &);
+        bool ParseAction(const ActionNode &) override;
 
     public:
-        int Type() const
+        int type() const override
         {
             return CREATURE_PLAYER;
         }
@@ -91,25 +92,25 @@ class Hero: public Creature
         }
 
     public:
-        bool Moving();
+        bool moving();
 
     public:
-        int MotionFrameCount(int, int) const;
+        int motionFrameCount(int, int) const override;
 
     public:
         int WeaponOrder(int, int, int);
 
     protected:
-        MotionNode MakeMotionWalk(int, int, int, int, int) const;
+        MotionNode MakeMotionWalk(int, int, int, int, int) const override;
 
     protected:
-        int GfxMotionID(int) const;
-        int GfxDressID (int, int, int);
-        int GfxWeaponID(int, int, int);
+        int GfxMotionID(int) const override;
+        int GfxDressID (int, int, int) const;
+        int GfxWeaponID(int, int, int) const;
 
     public:
-        int  MaxStep() const;
-        int CurrStep() const;
+        int  MaxStep() const override;
+        int CurrStep() const override;
 
     public:
         virtual void PickUp()

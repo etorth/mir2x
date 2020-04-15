@@ -19,16 +19,16 @@
 #include "levelbox.hpp"
 #include "sdldevice.hpp"
 
-levelBox::levelBox(
+LevelBox::LevelBox(
         int x,
         int y,
 
         const std::function<void(int)> &onDrag,
         const std::function<void(   )> &onDoubleClick,
 
-        widget *parent,
+        Widget *parent,
         bool autoDelete)
-    : widget(x, y, 0, 0, parent, autoDelete)
+    : Widget(x, y, 0, 0, parent, autoDelete)
     , m_label
       {
           0,
@@ -37,7 +37,7 @@ levelBox::levelBox(
           0,
           12,
           0,
-          ColorFunc::YELLOW + 128,
+          colorf::YELLOW + 128,
           this,
           false,
       }
@@ -53,10 +53,10 @@ levelBox::levelBox(
                   const int currR2 = (x - r + 1) * (x - r + 1) + (y - r + 1) * (y - r + 1);
                   const uint8_t alpha = 255 - std::min<uint8_t>(255, std::lround(255.0 * currR2 / (r * r)));
                   if(currR2 < r * r){
-                      buf[x + y * w] = ColorFunc::RGBA(0XFF, 0XFF, 0XFF, alpha);
+                      buf[x + y * w] = colorf::RGBA(0XFF, 0XFF, 0XFF, alpha);
                   }
                   else{
-                      buf[x + y * w] = ColorFunc::RGBA(0, 0, 0, 0);
+                      buf[x + y * w] = colorf::RGBA(0, 0, 0, 0);
                   }
               }
           }
@@ -72,7 +72,7 @@ levelBox::levelBox(
     setLevel(0);
 }
 
-bool levelBox::processEvent(const SDL_Event &event, bool valid)
+bool LevelBox::processEvent(const SDL_Event &event, bool valid)
 {
     if(!valid){
         return false;
@@ -140,10 +140,10 @@ bool levelBox::processEvent(const SDL_Event &event, bool valid)
     }
 }
 
-void levelBox::drawEx(int dstX, int dstY, int, int, int, int)
+void LevelBox::drawEx(int dstX, int dstY, int, int, int, int)
 {
     // don't worry too much here
-    // we always draw fully for levelBox
+    // we always draw fully for LevelBox
 
     int bgW = -1;
     int bgH = -1;
@@ -170,8 +170,8 @@ void levelBox::drawEx(int dstX, int dstY, int, int, int, int)
             }
     }
 
-    const int dx = (W() - m_label.W()) / 2;
-    const int dy = (H() - m_label.H()) / 2;
+    const int dx = (w() - m_label.w()) / 2;
+    const int dy = (h() - m_label.h()) / 2;
 
-    m_label.drawEx(dstX + dx, dstY + dy, 0, 0, m_label.W(), m_label.H());
+    m_label.drawEx(dstX + dx, dstY + dy, 0, 0, m_label.w(), m_label.h());
 }

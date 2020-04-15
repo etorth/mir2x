@@ -32,7 +32,7 @@ decl {\#include <FL/Fl_Shared_Image.H>} {selected public local
 decl {\#include "filesys.hpp"} {private local
 }
 
-decl {\#include "savepng.hpp"} {private local
+decl {\#include "pngf.hpp"} {private local
 }
 
 decl {\#include "imagedb.hpp"} {private local
@@ -41,10 +41,10 @@ decl {\#include "imagedb.hpp"} {private local
 decl {\#include "drawarea.hpp"} {public global
 }
 
-decl {\#include "mathfunc.hpp"} {private local
+decl {\#include "mathf.hpp"} {private local
 }
 
-decl {\#include "colorfunc.hpp"} {private local
+decl {\#include "colorf.hpp"} {private local
 }
 
 decl {\#include "hexstr.hpp"} {private local
@@ -290,7 +290,7 @@ fl_alert("%s", "Haven't implement yet!");}
             if(true
                     && nOnSrcW > 0
                     && nOnSrcH > 0
-                    && MathFunc::RectangleOverlapRegion<int>(0, 0, nSrcW, nSrcH, &nOnSrcX, &nOnSrcY, &nOnSrcW, &nOnSrcH)){
+                    && mathf::rectangleOverlapRegion<int>(0, 0, nSrcW, nSrcH, &nOnSrcX, &nOnSrcY, &nOnSrcW, &nOnSrcH)){
 
                 nOnDstX += (nOnSrcX - nOldOnSrcX);
                 nOnDstY += (nOnSrcY - nOldOnSrcY);
@@ -301,7 +301,7 @@ fl_alert("%s", "Haven't implement yet!");}
                 if(true
                         && nOnSrcW > 0
                         && nOnSrcH > 0
-                        && MathFunc::RectangleOverlapRegion<int>(0, 0, nDstW, nDstH, &nOnDstX, &nOnDstY, &nOnSrcW, &nOnSrcH)){
+                        && mathf::rectangleOverlapRegion<int>(0, 0, nDstW, nDstH, &nOnDstX, &nOnDstY, &nOnSrcW, &nOnSrcH)){
 
                     nOnSrcX += (nOnDstX - nOldOnDstX);
                     nOnSrcY += (nOnDstY - nOldOnDstY);
@@ -314,7 +314,7 @@ fl_alert("%s", "Haven't implement yet!");}
                             for(int nOnSrcDY = 0; nOnSrcDY < nOnSrcH; ++nOnSrcDY){
                                 auto &nSrc = pSrc[(nOnSrcX + nOnSrcDX) + (nOnSrcY + nOnSrcDY) * nSrcW];
                                 auto &nDst = pDst[(nOnDstX + nOnSrcDX) + (nOnDstY + nOnSrcDY) * nDstW];
-                                nDst = ColorFunc::RGBA2ARGB(ColorFunc::RenderRGBA(ColorFunc::ARGB2RGBA(nDst), ColorFunc::ARGB2RGBA(nSrc)));
+                                nDst = colorf::RGBA2ARGB(colorf::RenderRGBA(colorf::ARGB2RGBA(nDst), colorf::ARGB2RGBA(nSrc)));
                             }
                         }
                     }
@@ -354,7 +354,7 @@ fl_alert("%s", "Haven't implement yet!");}
     g_EditorMap.ExportOverview(fnBufDrawImage);
     std::string szOverviewFileName = DateStr::Now() + ".PNG";
     std::string szOverviewFullFileName = g_WorkingPathName + "/" + szOverviewFileName;
-    if(SaveRGBABufferToPNG((const uint8_t *)(pDst), (uint32_t)(nDstW), (uint32_t)(nDstH), szOverviewFullFileName.c_str())){
+    if(pngf::saveRGBABuffer((const uint8_t *)(pDst), (uint32_t)(nDstW), (uint32_t)(nDstH), szOverviewFullFileName.c_str())){
         fl_alert("Done overview map image: %s", szOverviewFileName.c_str());
     }else{
         fl_alert("Export overview map image failed");
@@ -364,7 +364,7 @@ fl_alert("%s", "Haven't implement yet!");}
             code0 {\#include <string>}
             code1 {\#include <FL/Fl_Native_File_Chooser.H>}
             code2 {\#include "datestr.hpp"}
-            code3 {\#include "mathfunc.hpp"}
+            code3 {\#include "mathf.hpp"}
           }
           MenuItem {} {
             label {Save As}

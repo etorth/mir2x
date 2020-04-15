@@ -46,9 +46,9 @@ void ClientLuaModule::addLog(int nLogType, const char *szLogInfo)
 
     extern Log *g_Log;
     switch(nLogType){
-        case 0  : g_Log->AddLog(LOGTYPE_INFO   , "%s", szLogInfo); return;
-        case 1  : g_Log->AddLog(LOGTYPE_WARNING, "%s", szLogInfo); return;
-        case 2  : g_Log->AddLog(LOGTYPE_FATAL  , "%s", szLogInfo); return;
-        default : g_Log->AddLog(LOGTYPE_DEBUG  , "%s", szLogInfo); return;
+        case 0  : g_Log->addLog(LOGTYPE_INFO   , "%s", szLogInfo); return;
+        case 1  : g_Log->addLog(LOGTYPE_WARNING, "%s", szLogInfo); return;
+        case 2  : g_Log->addLog(LOGTYPE_FATAL  , "%s", szLogInfo); return;
+        default : g_Log->addLog(LOGTYPE_DEBUG  , "%s", szLogInfo); return;
     }
 }

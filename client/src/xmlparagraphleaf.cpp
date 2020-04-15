@@ -23,7 +23,7 @@
 #include "bevent.hpp"
 #include "xmlfunc.hpp"
 #include "utf8func.hpp"
-#include "colorfunc.hpp"
+#include "colorf.hpp"
 #include "xmlparagraphleaf.hpp"
 
 extern Log *g_Log;
@@ -121,7 +121,7 @@ std::optional<uint32_t> XMLParagraphLeaf::Color() const
 {
     if(const auto pszColor = XMLFunc::FindAttribute(xmlNode(), "font_color", true)){
         try{
-            return ColorFunc::String2RGBA(pszColor);
+            return colorf::String2RGBA(pszColor);
         }catch(...){}
     }
     return {};
@@ -131,7 +131,7 @@ std::optional<uint32_t> XMLParagraphLeaf::BGColor() const
 {
     if(const auto pszBGColor = XMLFunc::FindAttribute(xmlNode(), "font_bgcolor", true)){
         try{
-            return ColorFunc::String2RGBA(pszBGColor);
+            return colorf::String2RGBA(pszBGColor);
         }catch(...){}
     }
     return {};
@@ -147,9 +147,9 @@ std::optional<uint8_t> XMLParagraphLeaf::Font() const
                 return (uint8_t)(nFontIndex);
             }
         }catch(const std::exception &e){
-            g_Log->AddLog(LOGTYPE_DEBUG, "Caught exception: %s", e.what());
+            g_Log->addLog(LOGTYPE_DEBUG, "Caught exception: %s", e.what());
         }catch(...){
-            g_Log->AddLog(LOGTYPE_DEBUG, "Caught unknown exception");
+            g_Log->addLog(LOGTYPE_DEBUG, "Caught unknown exception");
         }
     }
     return {};
@@ -165,9 +165,9 @@ std::optional<uint8_t> XMLParagraphLeaf::FontSize() const
                 return (uint8_t)(nFontSize);
             }
         }catch(const std::exception &e){
-            g_Log->AddLog(LOGTYPE_DEBUG, "Caught exception: %s", e.what());
+            g_Log->addLog(LOGTYPE_DEBUG, "Caught exception: %s", e.what());
         }catch(...){
-            g_Log->AddLog(LOGTYPE_DEBUG, "Caught unknown exception");
+            g_Log->addLog(LOGTYPE_DEBUG, "Caught unknown exception");
         }
     }
     return {};
@@ -183,9 +183,9 @@ std::optional<uint8_t> XMLParagraphLeaf::FontStyle() const
                 return (uint8_t)(nFontStyle);
             }
         }catch(const std::exception &e){
-            g_Log->AddLog(LOGTYPE_DEBUG, "Caught exception: %s", e.what());
+            g_Log->addLog(LOGTYPE_DEBUG, "Caught exception: %s", e.what());
         }catch(...){
-            g_Log->AddLog(LOGTYPE_DEBUG, "Caught unknown exception");
+            g_Log->addLog(LOGTYPE_DEBUG, "Caught unknown exception");
         }
     }
     return {};

@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename: strfunc.hpp
+ *       Filename: strf.hpp
  *        Created: 11/27/2018 22:28:55
  *    Description: 
  *                  try to support printf to a std::string

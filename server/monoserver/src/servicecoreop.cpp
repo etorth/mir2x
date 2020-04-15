@@ -61,33 +61,33 @@ void ServiceCore::On_MPK_ADDCHAROBJECT(const MessagePack &rstMPK)
     std::memcpy(&stAMACO, rstMPK.Data(), sizeof(stAMACO));
 
     if(!stAMACO.Common.MapID){
-        m_ActorPod->Forward(rstMPK.From(), MPK_ERROR, rstMPK.ID());
+        m_actorPod->Forward(rstMPK.From(), MPK_ERROR, rstMPK.ID());
         return;
     }
 
     auto pMap = RetrieveMap(stAMACO.Common.MapID);
 
     if(!pMap){
-        m_ActorPod->Forward(rstMPK.From(), MPK_ERROR, rstMPK.ID());
+        m_actorPod->Forward(rstMPK.From(), MPK_ERROR, rstMPK.ID());
         return;
     }
 
     if(!pMap->In(stAMACO.Common.MapID, stAMACO.Common.X, stAMACO.Common.Y) && stAMACO.Common.StrictLoc){
-        m_ActorPod->Forward(rstMPK.From(), MPK_ERROR, rstMPK.ID());
+        m_actorPod->Forward(rstMPK.From(), MPK_ERROR, rstMPK.ID());
         return;
     }
 
-    m_ActorPod->Forward(pMap->UID(), {MPK_ADDCHAROBJECT, stAMACO}, [this, stAMACO, rstMPK](const MessagePack &rstRMPK)
+    m_actorPod->Forward(pMap->UID(), {MPK_ADDCHAROBJECT, stAMACO}, [this, stAMACO, rstMPK](const MessagePack &rstRMPK)
     {
         switch(rstRMPK.Type()){
             case MPK_OK:
                 {
-                    m_ActorPod->Forward(rstMPK.From(), MPK_OK, rstMPK.ID());
+                    m_actorPod->Forward(rstMPK.From(), MPK_OK, rstMPK.ID());
                     break;
                 }
             default:
                 {
-                    m_ActorPod->Forward(rstMPK.From(), MPK_ERROR, rstMPK.ID());
+                    m_actorPod->Forward(rstMPK.From(), MPK_ERROR, rstMPK.ID());
                     break;
                 }
         }
@@ -106,12 +106,12 @@ void ServiceCore::On_MPK_QUERYMAPLIST(const MessagePack &rstMPK)
                 stAMML.MapList[nIndex++] = pMap.second->ID();
             }else{
                 extern MonoServer *g_MonoServer;
-                g_MonoServer->AddLog(LOGTYPE_FATAL, "Need larger map list size in AMMapList");
+                g_MonoServer->addLog(LOGTYPE_FATAL, "Need larger map list size in AMMapList");
                 g_MonoServer->Restart();
             }
         }
     }
-    m_ActorPod->Forward(rstMPK.From(), {MPK_MAPLIST, stAMML}, rstMPK.ID());
+    m_actorPod->Forward(rstMPK.From(), {MPK_MAPLIST, stAMML}, rstMPK.ID());
 }
 
 void ServiceCore::On_MPK_TRYMAPSWITCH(const MessagePack &rstMPK)
@@ -121,7 +121,7 @@ void ServiceCore::On_MPK_TRYMAPSWITCH(const MessagePack &rstMPK)
 
     if(stAMTMS.MapID){
         if(auto pMap = RetrieveMap(stAMTMS.MapID)){
-            m_ActorPod->Forward(pMap->UID(), {MPK_TRYMAPSWITCH, stAMTMS});
+            m_actorPod->Forward(pMap->UID(), {MPK_TRYMAPSWITCH, stAMTMS});
         }
     }
 }
@@ -136,9 +136,9 @@ void ServiceCore::On_MPK_QUERYMAPUID(const MessagePack &rstMPK)
         std::memset(&stAMUID, 0, sizeof(stAMUID));
 
         stAMUID.UID = pMap->UID();
-        m_ActorPod->Forward(rstMPK.From(), {MPK_UID, stAMUID}, rstMPK.ID());
+        m_actorPod->Forward(rstMPK.From(), {MPK_UID, stAMUID}, rstMPK.ID());
     }else{
-        m_ActorPod->Forward(rstMPK.From(), MPK_ERROR, rstMPK.ID());
+        m_actorPod->Forward(rstMPK.From(), MPK_ERROR, rstMPK.ID());
     }
 }
 
@@ -161,24 +161,24 @@ void ServiceCore::On_MPK_QUERYCOCOUNT(const MessagePack &rstMPK)
     switch(nCheckCount){
         case 0:
             {
-                m_ActorPod->Forward(rstMPK.From(), MPK_ERROR, rstMPK.ID());
+                m_actorPod->Forward(rstMPK.From(), MPK_ERROR, rstMPK.ID());
                 return;
             }
         case 1:
             {
                 if(auto pMap = (stAMQCOC.MapID ? m_MapList[stAMQCOC.MapID] : m_MapList.begin()->second)){
-                    m_ActorPod->Forward(pMap->UID(), {MPK_QUERYCOCOUNT, stAMQCOC}, [this, rstMPK](const MessagePack &rstRMPK)
+                    m_actorPod->Forward(pMap->UID(), {MPK_QUERYCOCOUNT, stAMQCOC}, [this, rstMPK](const MessagePack &rstRMPK)
                     {
                         switch(rstRMPK.Type()){
                             case MPK_COCOUNT:
                                 {
-                                    m_ActorPod->Forward(rstMPK.From(), {MPK_COCOUNT, rstRMPK.Data(), rstRMPK.DataLen()}, rstMPK.ID());
+                                    m_actorPod->Forward(rstMPK.From(), {MPK_COCOUNT, rstRMPK.Data(), rstRMPK.DataLen()}, rstMPK.ID());
                                     return;
                                 }
                             case MPK_ERROR:
                             default:
                                 {
-                                    m_ActorPod->Forward(rstMPK.From(), MPK_ERROR, rstMPK.ID());
+                                    m_actorPod->Forward(rstMPK.From(), MPK_ERROR, rstMPK.ID());
                                     return;
                                 }
                         }
@@ -186,7 +186,7 @@ void ServiceCore::On_MPK_QUERYCOCOUNT(const MessagePack &rstMPK)
                     return;
                 }else{
                     m_MapList.erase(stAMQCOC.MapID);
-                    m_ActorPod->Forward(rstMPK.From(), MPK_ERROR, rstMPK.ID());
+                    m_actorPod->Forward(rstMPK.From(), MPK_ERROR, rstMPK.ID());
                     return;
                 }
             }
@@ -233,7 +233,7 @@ void ServiceCore::On_MPK_QUERYCOCOUNT(const MessagePack &rstMPK)
 
                                     if(pSharedState->CheckCount == 1){
                                         stAMCOC.Count += pSharedState->COCount;
-                                        m_ActorPod->Forward(rstMPK.From(), {MPK_COCOUNT, stAMCOC}, rstMPK.ID());
+                                        m_actorPod->Forward(rstMPK.From(), {MPK_COCOUNT, stAMCOC}, rstMPK.ID());
                                     }else{
                                         pSharedState->CheckCount--;
                                         pSharedState->COCount += (int)(stAMCOC.Count);
@@ -250,7 +250,7 @@ void ServiceCore::On_MPK_QUERYCOCOUNT(const MessagePack &rstMPK)
                                     // do nothing
                                 }else{
                                     // get first error
-                                    m_ActorPod->Forward(rstMPK.From(), MPK_ERROR, rstMPK.ID());
+                                    m_actorPod->Forward(rstMPK.From(), MPK_ERROR, rstMPK.ID());
                                 }
                                 return;
                             }
@@ -258,7 +258,7 @@ void ServiceCore::On_MPK_QUERYCOCOUNT(const MessagePack &rstMPK)
                 };
 
                 for(auto p: m_MapList){
-                    m_ActorPod->Forward(p.second->UID(), {MPK_QUERYCOCOUNT, stAMQCOC}, fnOnResp);
+                    m_actorPod->Forward(p.second->UID(), {MPK_QUERYCOCOUNT, stAMQCOC}, fnOnResp);
                 }
                 return;
             }

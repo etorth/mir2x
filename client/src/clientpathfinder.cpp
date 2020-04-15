@@ -18,6 +18,7 @@
 
 #include "log.hpp"
 #include "client.hpp"
+#include "fflerror.hpp"
 #include "processrun.hpp"
 #include "clientpathfinder.hpp"
 
@@ -32,28 +33,23 @@ ClientPathFinder::ClientPathFinder(bool bCheckGround, int nCheckCreature, int nM
                       && MaxStep() != 1
                       && MaxStep() != 2
                       && MaxStep() != 3){
-
-                  g_Log->AddLog(LOGTYPE_FATAL, "Invalid MaxStep provided: %d, should be (1, 2, 3)", MaxStep());
-                  return -1.00;
+                  throw fflerror("invalid MaxStep provided: %d, should be (1, 2, 3)", MaxStep());
               }
 
-              int nDistance2 = MathFunc::LDistance2(nSrcX, nSrcY, nDstX, nDstY);
+              int nDistance2 = mathf::LDistance2(nSrcX, nSrcY, nDstX, nDstY);
               if(true
                       && nDistance2 != 1
                       && nDistance2 != 2
                       && nDistance2 != MaxStep() * MaxStep()
                       && nDistance2 != MaxStep() * MaxStep() * 2){
-
-                  g_Log->AddLog(LOGTYPE_FATAL, "Invalid step checked: (%d, %d) -> (%d, %d)", nSrcX, nSrcY, nDstX, nDstY);
-                  return -1.00;
+                  throw fflerror("invalid step checked: (%d, %d) -> (%d, %d)", nSrcX, nSrcY, nDstX, nDstY);
               }
           }
 
           auto pRun = (ProcessRun *)(g_client->ProcessValid(PROCESSID_RUN));
 
           if(!pRun){
-              g_Log->AddLog(LOGTYPE_FATAL, "ProcessRun is invalid");
-              return -1.00;
+              throw fflerror("ProcessRun is invalid");
           }
           return pRun->OneStepCost(this, m_CheckGround, m_CheckCreature, nSrcX, nSrcY, nDstX, nDstY);
       }, nMaxStep)
@@ -69,8 +65,7 @@ ClientPathFinder::ClientPathFinder(bool bCheckGround, int nCheckCreature, int nM
             }
         default:
             {
-                g_Log->AddLog(LOGTYPE_FATAL, "Invalid CheckCreature provided: %d, should be (0, 1, 2)", m_CheckCreature);
-                break;
+                throw fflerror("invalid CheckCreature provided: %d, should be (0, 1, 2)", m_CheckCreature);
             }
     }
 
@@ -83,8 +78,7 @@ ClientPathFinder::ClientPathFinder(bool bCheckGround, int nCheckCreature, int nM
             }
         default:
             {
-                g_Log->AddLog(LOGTYPE_FATAL, "Invalid MaxStep provided: %d, should be (1, 2, 3)", MaxStep());
-                break;
+                throw fflerror("invalid MaxStep provided: %d, should be (1, 2, 3)", MaxStep());
             }
     }
 }
@@ -94,7 +88,7 @@ int ClientPathFinder::GetGrid(int nX, int nY) const
     auto pRun = (ProcessRun *)(g_client->ProcessValid(PROCESSID_RUN));
 
     if(!pRun){
-        g_Log->AddLog(LOGTYPE_FATAL, "ProcessRun is invalid", pRun);
+        throw fflerror("ProcessRun is invalid");
     }
 
     if(!pRun->ValidC(nX, nY)){

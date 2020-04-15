@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename: strfunc.cpp
+ *       Filename: strf.cpp
  *        Created: 11/27/2018 22:36:12
  *    Description: 
  *
@@ -19,7 +19,7 @@
 #include <vector>
 #include <cstring>
 #include <stdexcept>
-#include "strfunc.hpp"
+#include "strf.hpp"
 
 bool str_nonempty(const char *szString)
 {

@@ -45,7 +45,7 @@
 #include <algorithm>
 
 #include "shadow.hpp"
-#include "savepng.hpp"
+#include "pngf.hpp"
 #include "filesys.hpp"
 #include "wilimagepackage.hpp"
 
@@ -205,7 +205,7 @@ bool monsterWil2PNG(int nMonsterFileIndex,
                                 stInfo.shPX,
                                 stInfo.shPY);
 
-                        if(!SaveRGBABufferToPNG((uint8_t *)(&(stPNGBuf[0])), stInfo.shWidth, stInfo.shHeight, szSaveFileName)){
+                        if(!pngf::saveRGBABuffer((uint8_t *)(&(stPNGBuf[0])), stInfo.shWidth, stInfo.shHeight, szSaveFileName)){
                             std::printf("save PNG failed: %s", szSaveFileName);
                             return false;
                         }
@@ -232,7 +232,7 @@ bool monsterWil2PNG(int nMonsterFileIndex,
                                     stShadowInfo.shPX,
                                     stShadowInfo.shPY);
 
-                            if(!SaveRGBABufferToPNG((uint8_t *)(&(stPNGBufShadow[0])), stShadowInfo.shWidth, stShadowInfo.shHeight, szSaveShadowFileName)){
+                            if(!pngf::saveRGBABuffer((uint8_t *)(&(stPNGBufShadow[0])), stShadowInfo.shWidth, stShadowInfo.shHeight, szSaveShadowFileName)){
                                 std::printf("save PNG failed: %s", szSaveShadowFileName);
                                 return false;
                             }
@@ -297,7 +297,7 @@ bool monsterWil2PNG(int nMonsterFileIndex,
                                         bProject ? stInfo.shShadowPX : (stInfo.shPX + 3),
                                         bProject ? stInfo.shShadowPY : (stInfo.shPY + 2));
 
-                                if(!SaveRGBABufferToPNG((uint8_t *)(&(stPNGBufShadow[0])), nShadowW, nShadowH, szSaveShadowFileName)){
+                                if(!pngf::saveRGBABuffer((uint8_t *)(&(stPNGBufShadow[0])), nShadowW, nShadowH, szSaveShadowFileName)){
                                     std::printf("save shadow PNG failed: %s", szSaveShadowFileName);
                                     return false;
                                 }

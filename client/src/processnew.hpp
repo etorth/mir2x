@@ -82,19 +82,19 @@ class ProcessNew: public Process
         int m_CheckPwdConfirm;
 
     private:
-        labelBoard m_LBID;
-        labelBoard m_LBPwd;
-        labelBoard m_LBPwdConfirm;
+        LabelBoard m_LBID;
+        LabelBoard m_LBPwd;
+        LabelBoard m_LBPwdConfirm;
 
     private:
-        inputLine   m_BoxID;
-        passwordBox m_BoxPwd;
-        passwordBox m_BoxPwdConfirm;
+        InputLine   m_BoxID;
+        PasswordBox m_BoxPwd;
+        PasswordBox m_BoxPwdConfirm;
 
     private:
-        labelBoard m_LBCheckID;
-        labelBoard m_LBCheckPwd;
-        labelBoard m_LBCheckPwdConfirm;
+        LabelBoard m_LBCheckID;
+        LabelBoard m_LBCheckPwd;
+        LabelBoard m_LBCheckPwdConfirm;
 
     private:
         TextButton m_TBCreate;

@@ -40,10 +40,10 @@ DropItemConfig::operator bool() const
 void DropItemConfig::Print() const
 {
     extern MonoServer *g_MonoServer;
-    g_MonoServer->AddLog(LOGTYPE_INFO, "DropItemConfig::0X%0*" PRIXPTR "::MonsterName = %s", (int)(2 * sizeof(this)), (uintptr_t)(this), MonsterName);
-    g_MonoServer->AddLog(LOGTYPE_INFO, "DropItemConfig::0X%0*" PRIXPTR "::ItemName    = %s", (int)(2 * sizeof(this)), (uintptr_t)(this), ItemName   );
-    g_MonoServer->AddLog(LOGTYPE_INFO, "DropItemConfig::0X%0*" PRIXPTR "::Group       = %d", (int)(2 * sizeof(this)), (uintptr_t)(this), Group      );
-    g_MonoServer->AddLog(LOGTYPE_INFO, "DropItemConfig::0X%0*" PRIXPTR "::ProbRecip   = %d", (int)(2 * sizeof(this)), (uintptr_t)(this), ProbRecip  );
-    g_MonoServer->AddLog(LOGTYPE_INFO, "DropItemConfig::0X%0*" PRIXPTR "::Repeat      = %d", (int)(2 * sizeof(this)), (uintptr_t)(this), Repeat     );
-    g_MonoServer->AddLog(LOGTYPE_INFO, "DropItemConfig::0X%0*" PRIXPTR "::Value       = %d", (int)(2 * sizeof(this)), (uintptr_t)(this), Value      );
+    g_MonoServer->addLog(LOGTYPE_INFO, "DropItemConfig::0X%0*" PRIXPTR "::MonsterName = %s", (int)(2 * sizeof(this)), (uintptr_t)(this), MonsterName);
+    g_MonoServer->addLog(LOGTYPE_INFO, "DropItemConfig::0X%0*" PRIXPTR "::ItemName    = %s", (int)(2 * sizeof(this)), (uintptr_t)(this), ItemName   );
+    g_MonoServer->addLog(LOGTYPE_INFO, "DropItemConfig::0X%0*" PRIXPTR "::Group       = %d", (int)(2 * sizeof(this)), (uintptr_t)(this), Group      );
+    g_MonoServer->addLog(LOGTYPE_INFO, "DropItemConfig::0X%0*" PRIXPTR "::ProbRecip   = %d", (int)(2 * sizeof(this)), (uintptr_t)(this), ProbRecip  );
+    g_MonoServer->addLog(LOGTYPE_INFO, "DropItemConfig::0X%0*" PRIXPTR "::Repeat      = %d", (int)(2 * sizeof(this)), (uintptr_t)(this), Repeat     );
+    g_MonoServer->addLog(LOGTYPE_INFO, "DropItemConfig::0X%0*" PRIXPTR "::Value       = %d", (int)(2 * sizeof(this)), (uintptr_t)(this), Value      );
 }

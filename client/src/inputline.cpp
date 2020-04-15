@@ -17,14 +17,14 @@
  */
 
 #include <cmath>
-#include "mathfunc.hpp"
+#include "mathf.hpp"
 #include "inputline.hpp"
 #include "sdldevice.hpp"
 #include "sdlkeychar.hpp"
 
 extern SDLDevice *g_SDLDevice;
 
-bool inputLine::processEvent(const SDL_Event &event, bool valid)
+bool InputLine::processEvent(const SDL_Event &event, bool valid)
 {
     if(!valid){
         return false;
@@ -102,8 +102,8 @@ bool inputLine::processEvent(const SDL_Event &event, bool valid)
                     return false;
                 }
 
-                const int eventX = event.button.x - X();
-                const int eventY = event.button.y - Y();
+                const int eventX = event.button.x - x();
+                const int eventY = event.button.y - y();
 
                 const auto [cursorX, cursorY] = m_tpset.locCursor(eventX, eventY);
                 if(cursorY != 0){
@@ -123,7 +123,7 @@ bool inputLine::processEvent(const SDL_Event &event, bool valid)
     }
 }
 
-void inputLine::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int srcH)
+void InputLine::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int srcH)
 {
     int srcCropX = srcX;
     int srcCropY = srcY;
@@ -132,13 +132,13 @@ void inputLine::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int src
     int dstCropX = dstX;
     int dstCropY = dstY;
 
-    const auto needDraw = MathFunc::ROICrop(
+    const auto needDraw = mathf::ROICrop(
             &srcCropX, &srcCropY,
             &srcCropW, &srcCropH,
             &dstCropX, &dstCropY,
 
-            W(),
-            H(),
+            w(),
+            h(),
 
             m_tpsetX, m_tpsetY, m_tpset.pw(), m_tpset.ph());
 
@@ -154,8 +154,8 @@ void inputLine::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int src
         return;
     }
 
-    int cursorY = Y() + m_tpsetY;
-    int cursorX = X() + m_tpsetX + [this]()
+    int cursorY = y() + m_tpsetY;
+    int cursorX = x() + m_tpsetX + [this]()
     {
         if(m_tpset.empty() || m_cursor == 0){
             return 0;
@@ -170,9 +170,9 @@ void inputLine::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int src
     }();
 
     int cursorW = m_cursorWidth;
-    int cursorH = std::max<int>(m_tpset.ph(), H());
+    int cursorH = std::max<int>(m_tpset.ph(), h());
 
-    if(MathFunc::RectangleOverlapRegion(dstX, dstY, srcW, srcH, &cursorX, &cursorY, &cursorW, &cursorH)){
+    if(mathf::rectangleOverlapRegion(dstX, dstY, srcW, srcH, &cursorX, &cursorY, &cursorW, &cursorH)){
         g_SDLDevice->FillRectangle(m_cursorColor + 128, cursorX, cursorY, cursorW, cursorH);
     }
 }

@@ -31,7 +31,7 @@
 #pragma once
 #include <queue>
 #include <atomic>
-#include "uidfunc.hpp"
+#include "uidf.hpp"
 #include "actorpod.hpp"
 #include "statehook.hpp"
 #include "delaycmd.hpp"
@@ -42,8 +42,7 @@ enum ObjectType: uint8_t
     TYPE_NONE,
     TYPE_INFO,
 
-    TYPE_CHAR,
-    TYPE_EVENT,
+    TYPE_CHAR, TYPE_EVENT,
     TYPE_UTILITY,
     
     // char information
@@ -103,7 +102,7 @@ class ServerObject
         std::array<uint32_t, 255> m_StateTimeV;
 
     protected:
-        ActorPod *m_ActorPod;
+        ActorPod *m_actorPod;
 
     protected:
         StateHook m_StateHook;
@@ -146,7 +145,7 @@ class ServerObject
     public:
         bool ActorPodValid() const
         {
-            return m_ActorPod && m_ActorPod->UID();
+            return m_actorPod && m_actorPod->UID();
         }
 
     public:

@@ -17,7 +17,7 @@
  */
 
 #include <cinttypes>
-#include "uidfunc.hpp"
+#include "uidf.hpp"
 #include "serverargparser.hpp"
 #include "actorpool.hpp"
 #include "monoserver.hpp"
@@ -27,7 +27,7 @@ MessagePack SyncDriver::Forward(uint64_t nUID, const MessageBuf &rstMB, uint32_t
 {
     if(!nUID){
         extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "Sending message to UID 0");
+        g_MonoServer->addLog(LOGTYPE_WARNING, "Sending message to UID 0");
         return {MPK_NONE};
     }
 
@@ -38,7 +38,7 @@ MessagePack SyncDriver::Forward(uint64_t nUID, const MessageBuf &rstMB, uint32_t
     extern ActorPool *g_ActorPool;
     if(g_ActorPool->IsActorThread()){
         extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_FATAL, "Calling SyncDriver::Forward() in actor thread, SyncDriver = %p, SyncDriver::UID() = %" PRIu64, this, UID());
+        g_MonoServer->addLog(LOGTYPE_FATAL, "Calling SyncDriver::Forward() in actor thread, SyncDriver = %p, SyncDriver::UID() = %" PRIu64, this, UID());
         return {MPK_NONE};
     }
 
@@ -48,7 +48,7 @@ MessagePack SyncDriver::Forward(uint64_t nUID, const MessageBuf &rstMB, uint32_t
     extern ServerArgParser *g_ServerArgParser;
     if(g_ServerArgParser->TraceActorMessage){
         extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_DEBUG, "%s -> %s: (Type: %s, ID: %" PRIu32 ", Resp: %" PRIu32 ")", UIDFunc::GetUIDString(UID()).c_str(), UIDFunc::GetUIDString(nUID).c_str(), nCurrID, nRespond);
+        g_MonoServer->addLog(LOGTYPE_DEBUG, "%s -> %s: (Type: %s, ID: %" PRIu32 ", Resp: %" PRIu32 ")", uidf::getUIDString(UID()).c_str(), uidf::getUIDString(nUID).c_str(), nCurrID, nRespond);
     }
 
     if(!g_ActorPool->PostMessage(nUID, {rstMB, UID(), nCurrID, nRespond})){

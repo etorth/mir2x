@@ -22,7 +22,7 @@
 #include <variant>
 #include <stdexcept>
 #include <functional>
-#include "strfunc.hpp"
+#include "strf.hpp"
 
 // too error-prone
 // don't allow implicit conversion

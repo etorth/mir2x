@@ -27,10 +27,10 @@ extern ServerArgParser *g_ServerArgParser;
 
 ServerObject::ServerObject(uint64_t nUID)
     : m_UID(nUID)
-    , m_UIDName(UIDFunc::GetUIDString(nUID))
+    , m_UIDName(uidf::getUIDString(nUID))
     , m_StateV()
     , m_StateTimeV()
-    , m_ActorPod(nullptr)
+    , m_actorPod(nullptr)
     , m_StateHook()
     , m_DelayCmdCount(0)
     , m_DelayCmdQ()
@@ -41,7 +41,7 @@ ServerObject::ServerObject(uint64_t nUID)
     m_StateHook.Install("DelayCmdQueue", [this]() -> bool
     {
         if(!m_DelayCmdQ.empty()){
-            if(g_MonoServer->GetTimeTick() >= m_DelayCmdQ.top().Tick()){
+            if(g_MonoServer->getCurrTick() >= m_DelayCmdQ.top().Tick()){
                 m_DelayCmdQ.top()();
                 m_DelayCmdQ.pop();
             }
@@ -52,9 +52,9 @@ ServerObject::ServerObject(uint64_t nUID)
     if(g_ServerArgParser->TraceActorMessage){
         m_StateHook.Install("ReportActorPodMonitor", [this, nLastCheckTick = (uint32_t)(0)]() mutable -> bool
         {
-            if(auto nCurrCheckTick = g_MonoServer->GetTimeTick(); nLastCheckTick + 1000 < nCurrCheckTick){
+            if(auto nCurrCheckTick = g_MonoServer->getCurrTick(); nLastCheckTick + 1000 < nCurrCheckTick){
                 if(ActorPodValid()){
-                    m_ActorPod->PrintMonitor();
+                    m_actorPod->PrintMonitor();
                 }
                 nLastCheckTick = nCurrCheckTick;
             }
@@ -65,7 +65,7 @@ ServerObject::ServerObject(uint64_t nUID)
 
 ServerObject::~ServerObject()
 {
-    delete m_ActorPod;
+    delete m_actorPod;
 }
 
 // TODO & TBD
@@ -80,30 +80,30 @@ ServerObject::~ServerObject()
 // delete current object totally and create a new one instead
 uint64_t ServerObject::Activate()
 {
-    if(!m_ActorPod){
-        m_ActorPod = new ActorPod(m_UID, [this](){ m_StateHook.Execute(); }, [this](const MessagePack &rstMPK){ OperateAM(rstMPK); });
+    if(!m_actorPod){
+        m_actorPod = new ActorPod(m_UID, [this](){ m_StateHook.Execute(); }, [this](const MessagePack &rstMPK){ OperateAM(rstMPK); });
         return UID();
     }
-    throw std::runtime_error(str_fflprintf(": Activation twice: %s", UIDFunc::GetUIDString(UID()).c_str()));
+    throw fflerror("activation twice: %s", uidf::getUIDString(UID()).c_str());
 }
 
 void ServerObject::Deactivate()
 {
-    if(m_ActorPod){
-        m_ActorPod->Detach([this](){ delete this; });
+    if(m_actorPod){
+        m_actorPod->Detach([this](){ delete this; });
     }
 }
 
 void ServerObject::Delay(uint32_t nDelayTick, const std::function<void()> &fnCmd)
 {
     m_DelayCmdCount = m_DelayCmdQ.empty() ? 0 : (m_DelayCmdCount + 1);
-    m_DelayCmdQ.emplace(nDelayTick + g_MonoServer->GetTimeTick(), m_DelayCmdCount, fnCmd);
+    m_DelayCmdQ.emplace(nDelayTick + g_MonoServer->getCurrTick(), m_DelayCmdCount, fnCmd);
 }
 
 void ServerObject::SetState(uint8_t nStateLoc, uint8_t nStateValue)
 {
     m_StateV[nStateLoc] = nStateValue;
-    m_StateTimeV[nStateLoc] = g_MonoServer->GetTimeTick();
+    m_StateTimeV[nStateLoc] = g_MonoServer->getCurrTick();
 }
 
 uint8_t ServerObject::GetState(uint8_t nState) const
@@ -113,5 +113,5 @@ uint8_t ServerObject::GetState(uint8_t nState) const
 
 uint32_t ServerObject::GetStateTime(uint8_t nState) const
 {
-    return g_MonoServer->GetTimeTick() - m_StateTimeV[nState];
+    return g_MonoServer->getCurrTick() - m_StateTimeV[nState];
 }

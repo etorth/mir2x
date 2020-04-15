@@ -23,7 +23,7 @@
 #include "log.hpp"
 #include "motion.hpp"
 #include "fflerror.hpp"
-#include "mathfunc.hpp"
+#include "mathf.hpp"
 #include "creature.hpp"
 #include "sysconst.hpp"
 #include "ascendstr.hpp"
@@ -34,9 +34,12 @@
 
 extern Log *g_Log;
 
-bool Creature::GetShift(int *pShiftX, int *pShiftY)
+std::tuple<int, int> Creature::getShift() const
 {
-    switch(m_CurrMotion.Motion){
+    int shiftX = 0;
+    int shiftY = 0;
+
+    switch(m_currMotion.motion){
         case MOTION_WALK:           // human
         case MOTION_RUN:            // human
         case MOTION_ONHORSEWALK:    // human
@@ -47,12 +50,12 @@ bool Creature::GetShift(int *pShiftX, int *pShiftY)
             }
         default:
             {
-                return false;
+                return {0, 0};
             }
     }
 
-    auto nCurrStep = CurrStep();
-    switch(nCurrStep){
+    const auto currStepCount = CurrStep();
+    switch(currStepCount){
         case 1:
         case 2:
         case 3:
@@ -61,150 +64,123 @@ bool Creature::GetShift(int *pShiftX, int *pShiftY)
             }
         default:
             {
-                return false;
+                return {0, 0};
             }
     }
 
-    // currently we only allow frameCount = 6
-    // for other frameCount need to manually permitted here
+    // we only allow frameCount = 6
+    // for other frameCount need to *manually* permitted here
 
-    switch(auto nFrameCount = MotionFrameCount(m_CurrMotion.Motion, m_CurrMotion.Direction)){
+    switch(const auto frameCount = motionFrameCount(m_currMotion.motion, m_currMotion.direction)){
         case 6:
             {
-                auto nFrameCountInNextGrid = ((m_CurrMotion.Direction == DIR_UPLEFT) ? 2 : 5);
-                switch(m_CurrMotion.Direction){
+                const auto frameCountInNextGrid = ((m_currMotion.direction == DIR_UPLEFT) ? 2 : 5);
+                switch(m_currMotion.direction){
                     case DIR_UP:
                         {
-                            if(pShiftX){ *pShiftX = 0; }
-                            if(pShiftY){
-                                if(m_CurrMotion.Frame < nFrameCount - nFrameCountInNextGrid){
-                                    *pShiftY = -1 * ((SYS_MAPGRIDYP / nFrameCount) * (m_CurrMotion.Frame + 1)) * nCurrStep;
-                                }else{
-                                    *pShiftY = ((SYS_MAPGRIDYP / nFrameCount) * (nFrameCount - (m_CurrMotion.Frame + 1))) * nCurrStep;
-                                }
+                            shiftX = 0;
+                            if(m_currMotion.frame < frameCount - frameCountInNextGrid){
+                                shiftY = -1 * ((SYS_MAPGRIDYP / frameCount) * (m_currMotion.frame + 1)) * currStepCount;
+                            }else{
+                                shiftY = ((SYS_MAPGRIDYP / frameCount) * (frameCount - (m_currMotion.frame + 1))) * currStepCount;
                             }
-                            return true;
+                            return {shiftX, shiftY};
                         }
                     case DIR_UPRIGHT:
                         {
-                            if(pShiftX){
-                                if(m_CurrMotion.Frame < nFrameCount - nFrameCountInNextGrid){
-                                    *pShiftX = ((SYS_MAPGRIDXP / nFrameCount) * (m_CurrMotion.Frame + 1)) * nCurrStep;
-                                }else{
-                                    *pShiftX = -1 * ((SYS_MAPGRIDXP / nFrameCount) * (nFrameCount - (m_CurrMotion.Frame + 1))) * nCurrStep;
-                                }
+                            if(m_currMotion.frame < frameCount - frameCountInNextGrid){
+                                shiftX = ((SYS_MAPGRIDXP / frameCount) * (m_currMotion.frame + 1)) * currStepCount;
+                            }else{
+                                shiftX = -1 * ((SYS_MAPGRIDXP / frameCount) * (frameCount - (m_currMotion.frame + 1))) * currStepCount;
                             }
-                            if(pShiftY){
-                                if(m_CurrMotion.Frame < nFrameCount - nFrameCountInNextGrid){
-                                    *pShiftY = -1 * ((SYS_MAPGRIDYP / nFrameCount) * (m_CurrMotion.Frame + 1)) * nCurrStep;
-                                }else{
-                                    *pShiftY = ((SYS_MAPGRIDYP / nFrameCount) * (nFrameCount - (m_CurrMotion.Frame + 1))) * nCurrStep;
-                                }
+                            if(m_currMotion.frame < frameCount - frameCountInNextGrid){
+                                shiftY = -1 * ((SYS_MAPGRIDYP / frameCount) * (m_currMotion.frame + 1)) * currStepCount;
+                            }else{
+                                shiftY = ((SYS_MAPGRIDYP / frameCount) * (frameCount - (m_currMotion.frame + 1))) * currStepCount;
                             }
-                            return true;
+                            return {shiftX, shiftY};
                         }
                     case DIR_RIGHT:
                         {
-                            if(pShiftX){
-                                if(m_CurrMotion.Frame < nFrameCount - nFrameCountInNextGrid){
-                                    *pShiftX = ((SYS_MAPGRIDXP / nFrameCount) * (m_CurrMotion.Frame + 1)) * nCurrStep;
-                                }else{
-                                    *pShiftX = -1 * ((SYS_MAPGRIDXP / nFrameCount) * (nFrameCount - (m_CurrMotion.Frame + 1))) * nCurrStep;
-                                }
+                            if(m_currMotion.frame < frameCount - frameCountInNextGrid){
+                                shiftX = ((SYS_MAPGRIDXP / frameCount) * (m_currMotion.frame + 1)) * currStepCount;
+                            }else{
+                                shiftX = -1 * ((SYS_MAPGRIDXP / frameCount) * (frameCount - (m_currMotion.frame + 1))) * currStepCount;
                             }
-                            if(pShiftY){ *pShiftY = 0; }
-                            return true;
+                            shiftY = 0;
+                            return {shiftX, shiftY};
                         }
                     case DIR_DOWNRIGHT:
                         {
-                            if(pShiftX){
-                                if(m_CurrMotion.Frame < nFrameCount - nFrameCountInNextGrid){
-                                    *pShiftX = ((SYS_MAPGRIDXP / nFrameCount) * (m_CurrMotion.Frame + 1)) * nCurrStep;
-                                }else{
-                                    *pShiftX = -1 * ((SYS_MAPGRIDXP / nFrameCount) * (nFrameCount - (m_CurrMotion.Frame + 1))) * nCurrStep;
-                                }
+                            if(m_currMotion.frame < frameCount - frameCountInNextGrid){
+                                shiftX = ((SYS_MAPGRIDXP / frameCount) * (m_currMotion.frame + 1)) * currStepCount;
+                            }else{
+                                shiftX = -1 * ((SYS_MAPGRIDXP / frameCount) * (frameCount - (m_currMotion.frame + 1))) * currStepCount;
                             }
-                            if(pShiftY){
-                                if(m_CurrMotion.Frame < nFrameCount - nFrameCountInNextGrid){
-                                    *pShiftY = ((SYS_MAPGRIDYP / nFrameCount) * (m_CurrMotion.Frame + 1)) * nCurrStep;
-                                }else{
-                                    *pShiftY = -1 * ((SYS_MAPGRIDYP / nFrameCount) * (nFrameCount - (m_CurrMotion.Frame + 1))) * nCurrStep;
-                                }
+                            if(m_currMotion.frame < frameCount - frameCountInNextGrid){
+                                shiftY = ((SYS_MAPGRIDYP / frameCount) * (m_currMotion.frame + 1)) * currStepCount;
+                            }else{
+                                shiftY = -1 * ((SYS_MAPGRIDYP / frameCount) * (frameCount - (m_currMotion.frame + 1))) * currStepCount;
                             }
-                            return true;
+                            return {shiftX, shiftY};
                         }
                     case DIR_DOWN:
                         {
-                            if(pShiftX){ *pShiftX = 0; }
-                            if(pShiftY){
-                                if(m_CurrMotion.Frame < nFrameCount - nFrameCountInNextGrid){
-                                    *pShiftY = ((SYS_MAPGRIDYP / nFrameCount) * (m_CurrMotion.Frame + 1)) * nCurrStep;
-                                }else{
-                                    *pShiftY = -1 * ((SYS_MAPGRIDYP / nFrameCount) * (nFrameCount - (m_CurrMotion.Frame + 1))) * nCurrStep;
-                                }
+                            shiftX = 0;
+                            if(m_currMotion.frame < frameCount - frameCountInNextGrid){
+                                shiftY = ((SYS_MAPGRIDYP / frameCount) * (m_currMotion.frame + 1)) * currStepCount;
+                            }else{
+                                shiftY = -1 * ((SYS_MAPGRIDYP / frameCount) * (frameCount - (m_currMotion.frame + 1))) * currStepCount;
                             }
-                            return true;
+                            return {shiftX, shiftY};
                         }
                     case DIR_DOWNLEFT:
                         {
-                            if(pShiftX){
-                                if(m_CurrMotion.Frame < nFrameCount - nFrameCountInNextGrid){
-                                    *pShiftX = -1 * ((SYS_MAPGRIDXP / nFrameCount) * (m_CurrMotion.Frame + 1)) * nCurrStep;
-                                }else{
-                                    *pShiftX = ((SYS_MAPGRIDXP / nFrameCount) * (nFrameCount - (m_CurrMotion.Frame + 1))) * nCurrStep;
-                                }
+                            if(m_currMotion.frame < frameCount - frameCountInNextGrid){
+                                shiftX = -1 * ((SYS_MAPGRIDXP / frameCount) * (m_currMotion.frame + 1)) * currStepCount;
+                            }else{
+                                shiftX = ((SYS_MAPGRIDXP / frameCount) * (frameCount - (m_currMotion.frame + 1))) * currStepCount;
                             }
-                            if(pShiftY){
-                                if(m_CurrMotion.Frame < nFrameCount - nFrameCountInNextGrid){
-                                    *pShiftY = ((SYS_MAPGRIDYP / nFrameCount) * (m_CurrMotion.Frame + 1)) * nCurrStep;
-                                }else{
-                                    *pShiftY = -1 * ((SYS_MAPGRIDYP / nFrameCount) * (nFrameCount - (m_CurrMotion.Frame + 1))) * nCurrStep;
-                                }
+                            if(m_currMotion.frame < frameCount - frameCountInNextGrid){
+                                shiftY = ((SYS_MAPGRIDYP / frameCount) * (m_currMotion.frame + 1)) * currStepCount;
+                            }else{
+                                shiftY = -1 * ((SYS_MAPGRIDYP / frameCount) * (frameCount - (m_currMotion.frame + 1))) * currStepCount;
                             }
-                            return true;
+                            return {shiftX, shiftY};
                         }
                     case DIR_LEFT:
                         {
-                            if(pShiftX){
-                                if(m_CurrMotion.Frame < nFrameCount - nFrameCountInNextGrid){
-                                    *pShiftX = -1 * ((SYS_MAPGRIDXP / nFrameCount) * (m_CurrMotion.Frame + 1)) * nCurrStep;
-                                }else{
-                                    *pShiftX = ((SYS_MAPGRIDXP / nFrameCount) * (nFrameCount - (m_CurrMotion.Frame + 1))) * nCurrStep;
-                                }
+                            if(m_currMotion.frame < frameCount - frameCountInNextGrid){
+                                shiftX = -1 * ((SYS_MAPGRIDXP / frameCount) * (m_currMotion.frame + 1)) * currStepCount;
+                            }else{
+                                shiftX = ((SYS_MAPGRIDXP / frameCount) * (frameCount - (m_currMotion.frame + 1))) * currStepCount;
                             }
-                            if(pShiftY){ *pShiftY = 0; }
-                            return true;
+                            shiftY = 0;
+                            return {shiftX, shiftY};
                         }
                     case DIR_UPLEFT:
                         {
-                            if(pShiftX){
-                                if(m_CurrMotion.Frame < nFrameCount - nFrameCountInNextGrid){
-                                    *pShiftX = -1 * ((SYS_MAPGRIDXP / nFrameCount) * (m_CurrMotion.Frame + 1)) * nCurrStep;
-                                }else{
-                                    *pShiftX = ((SYS_MAPGRIDXP / nFrameCount) * (nFrameCount - (m_CurrMotion.Frame + 1))) * nCurrStep;
-                                }
+                            if(m_currMotion.frame < frameCount - frameCountInNextGrid){
+                                shiftX = -1 * ((SYS_MAPGRIDXP / frameCount) * (m_currMotion.frame + 1)) * currStepCount;
+                            }else{
+                                shiftX = ((SYS_MAPGRIDXP / frameCount) * (frameCount - (m_currMotion.frame + 1))) * currStepCount;
                             }
-                            if(pShiftY){
-                                if(m_CurrMotion.Frame < nFrameCount - nFrameCountInNextGrid){
-                                    *pShiftY = -1 * ((SYS_MAPGRIDYP / nFrameCount) * (m_CurrMotion.Frame + 1)) * nCurrStep;
-                                }else{
-                                    *pShiftY = ((SYS_MAPGRIDYP / nFrameCount) * (nFrameCount - (m_CurrMotion.Frame + 1))) * nCurrStep;
-                                }
+                            if(m_currMotion.frame < frameCount - frameCountInNextGrid){
+                                shiftY = -1 * ((SYS_MAPGRIDYP / frameCount) * (m_currMotion.frame + 1)) * currStepCount;
+                            }else{
+                                shiftY = ((SYS_MAPGRIDYP / frameCount) * (frameCount - (m_currMotion.frame + 1))) * currStepCount;
                             }
-                            return true;
+                            return {shiftX, shiftY};
                         }
                     default:
                         {
-                            return false;
+                            return {0, 0};
                         }
                 }
             }
         default:
             {
-                g_Log->AddLog(LOGTYPE_WARNING, "Current motion is not valid: frameCount = %d", nFrameCount);
-
-                m_CurrMotion.Print();
-                return false;
+                return {0, 0};
             }
     }
 }
@@ -212,44 +188,44 @@ bool Creature::GetShift(int *pShiftX, int *pShiftY)
 bool Creature::MoveNextMotion()
 {
     if(!m_forceMotionQueue.empty()){
-        m_CurrMotion = m_forceMotionQueue.front();
+        m_currMotion = m_forceMotionQueue.front();
         m_forceMotionQueue.pop_front();
         return true;
     }
 
-    if(m_MotionQueue.empty()){
+    if(m_motionQueue.empty()){
         // reset creature to idle state
         // using last direction, speed, location and frame as 0
-        m_CurrMotion = MakeMotionIdle();
+        m_currMotion = MakeMotionIdle();
         return true;
     }
 
     // OK we have pending motions
     // check the motion queue and pick the head if valid
     if(MotionQueueValid()){
-        m_CurrMotion = m_MotionQueue.front();
-        m_MotionQueue.pop_front();
+        m_currMotion = m_motionQueue.front();
+        m_motionQueue.pop_front();
         return true;
     }
 
     // invalid motion queue
     // clear all pending motions and reset creature to idle state
 
-    g_Log->AddLog(LOGTYPE_WARNING, "Motion queue invalid, reset idle state");
-    m_MotionQueue.clear();
-    m_CurrMotion = MakeMotionIdle();
+    g_Log->addLog(LOGTYPE_WARNING, "Motion queue invalid, reset idle state");
+    m_motionQueue.clear();
+    m_currMotion = MakeMotionIdle();
     return false;
 }
 
 bool Creature::AdvanceMotionFrame(int nDFrame)
 {
-    const auto nFrameCount = MotionFrameCount(m_CurrMotion.Motion, m_CurrMotion.Direction);
-    if(nFrameCount > 0){
-        m_CurrMotion.Frame = (m_CurrMotion.Frame + nDFrame    ) % nFrameCount;
-        m_CurrMotion.Frame = (m_CurrMotion.Frame + nFrameCount) % nFrameCount;
+    const auto frameCount = motionFrameCount(m_currMotion.motion, m_currMotion.direction);
+    if(frameCount > 0){
+        m_currMotion.frame = (m_currMotion.frame + nDFrame    ) % frameCount;
+        m_currMotion.frame = (m_currMotion.frame + frameCount) % frameCount;
         return true;
     }else{
-        m_CurrMotion.Print();
+        m_currMotion.print();
         return false;
     }
 }
@@ -262,7 +238,7 @@ std::vector<PathFind::PathNode> Creature::ParseMovePath(int nX0, int nY0, int nX
     }
 
     auto nMaxStep = MaxStep();
-    switch(auto nLDistance2 = MathFunc::LDistance2(nX0, nY0, nX1, nY1)){
+    switch(auto nLDistance2 = mathf::LDistance2(nX0, nY0, nX1, nY1)){
         case 0:
             {
                 return {{nX0, nY0}};
@@ -332,8 +308,7 @@ std::vector<PathFind::PathNode> Creature::ParseMovePath(int nX0, int nY0, int nX
                                 }
                             default:
                                 {
-                                    g_Log->AddLog(LOGTYPE_FATAL, "Invalid CheckCreature provided: %d, should be (0, 1, 2)", nCheckCreature);
-                                    break;
+                                    throw fflerror("invalid CheckCreature provided: %d, should be (0, 1, 2)", nCheckCreature);
                                 }
                         }
 
@@ -366,11 +341,11 @@ std::vector<PathFind::PathNode> Creature::ParseMovePath(int nX0, int nY0, int nX
 
 void Creature::UpdateAttachMagic(double fUpdateTime)
 {
-    for(size_t nIndex = 0; nIndex < m_AttachMagicList.size();){
-        m_AttachMagicList[nIndex]->Update(fUpdateTime);
-        if(m_AttachMagicList[nIndex]->Done()){
-            std::swap(m_AttachMagicList[nIndex], m_AttachMagicList.back());
-            m_AttachMagicList.pop_back();
+    for(size_t nIndex = 0; nIndex < m_attachMagicList.size();){
+        m_attachMagicList[nIndex]->Update(fUpdateTime);
+        if(m_attachMagicList[nIndex]->Done()){
+            std::swap(m_attachMagicList[nIndex], m_attachMagicList.back());
+            m_attachMagicList.pop_back();
         }else{
             nIndex++;
         }
@@ -379,9 +354,9 @@ void Creature::UpdateAttachMagic(double fUpdateTime)
 
 bool Creature::UpdateMotion(bool bLooped)
 {
-    const auto nFrameCount = MotionFrameCount(m_CurrMotion.Motion, m_CurrMotion.Direction);
-    if(nFrameCount >= 0){
-        if(bLooped || (m_CurrMotion.Frame < (nFrameCount - 1))){
+    const auto frameCount = motionFrameCount(m_currMotion.motion, m_currMotion.direction);
+    if(frameCount >= 0){
+        if(bLooped || (m_currMotion.frame < (frameCount - 1))){
             return AdvanceMotionFrame(1);
         }else{
             return MoveNextMotion();
@@ -392,22 +367,22 @@ bool Creature::UpdateMotion(bool bLooped)
 
 bool Creature::MotionQueueValid()
 {
-    if(m_MotionQueue.empty()){
+    if(m_motionQueue.empty()){
         return true;
     }
 
-    auto pLast = &m_CurrMotion;
-    for(auto &rstMotion: m_MotionQueue){
-        if(true
-                && MotionValid(rstMotion)
-                && (pLast->EndX == rstMotion.X)
-                && (pLast->EndY == rstMotion.Y)){
-            pLast = &rstMotion;
-        }else{
-            g_Log->AddLog(LOGTYPE_WARNING, "Invalid motion queue:");
-            m_CurrMotion.Print();
-            for(auto &rstMotionNode: m_MotionQueue){
-                rstMotionNode.Print();
+    const MotionNode *lastMotionPtr = &m_currMotion;
+    for(const auto &motion: m_motionQueue){
+        if(motionValid(motion)
+                && (lastMotionPtr->endX == motion.x)
+                && (lastMotionPtr->endY == motion.y)){
+            lastMotionPtr = &motion;
+        }
+        else{
+            g_Log->addLog(LOGTYPE_WARNING, "Invalid motion queue:");
+            m_currMotion.print();
+            for(auto &node: m_motionQueue){
+                node.print();
             }
             return false;
         }
@@ -441,23 +416,23 @@ int Creature::UpdateHP(int nHP, int nHPMax)
 bool Creature::StayDead()
 {
     return false
-        || m_CurrMotion.Motion == MOTION_DIE
-        || m_CurrMotion.Motion == MOTION_MON_DIE;
+        || m_currMotion.motion == MOTION_DIE
+        || m_currMotion.motion == MOTION_MON_DIE;
 }
 
 bool Creature::StayIdle()
 {
-    return m_forceMotionQueue.empty() && m_MotionQueue.empty();
+    return m_forceMotionQueue.empty() && m_motionQueue.empty();
 }
 
 bool Creature::DeadFadeOut()
 {
-    switch(m_CurrMotion.Motion){
+    switch(m_currMotion.motion){
         case MOTION_DIE:
         case MOTION_MON_DIE:
             {
-                if(!m_CurrMotion.FadeOut){
-                    m_CurrMotion.FadeOut = 1;
+                if(!m_currMotion.fadeOut){
+                    m_currMotion.fadeOut = 1;
                 }
                 return true;
             }
@@ -471,11 +446,11 @@ bool Creature::DeadFadeOut()
 
 bool Creature::Alive()
 {
-    if(!MotionValid(m_CurrMotion)){
+    if(!motionValid(m_currMotion)){
         throw std::runtime_error(str_ffl() + "; Invalid motion detected");
     }
 
-    switch(m_CurrMotion.Motion){
+    switch(m_currMotion.motion){
         case MOTION_DIE:
         case MOTION_MON_DIE:
             {
@@ -490,16 +465,16 @@ bool Creature::Alive()
 
 bool Creature::Active()
 {
-    if(!MotionValid(m_CurrMotion)){
+    if(!motionValid(m_currMotion)){
         throw std::runtime_error(str_ffl() + ": Invalid motion detected");
     }
 
-    switch(m_CurrMotion.Motion){
+    switch(m_currMotion.motion){
         case MOTION_DIE:
         case MOTION_MON_DIE:
             {
-                if(auto nFrameCount = MotionFrameCount(m_CurrMotion.Motion, m_CurrMotion.Direction); nFrameCount > 0){
-                    return m_CurrMotion.Frame < (nFrameCount - 1);
+                if(auto frameCount = motionFrameCount(m_currMotion.motion, m_currMotion.direction); frameCount > 0){
+                    return m_currMotion.frame < (frameCount - 1);
                 }
                 throw std::runtime_error(str_ffl() + ": Invalid motion detected");
             }
@@ -512,16 +487,16 @@ bool Creature::Active()
 
 bool Creature::Visible()
 {
-    if(!MotionValid(m_CurrMotion)){
+    if(!motionValid(m_currMotion)){
         throw std::runtime_error(str_ffl() + ": Invalid motion detected");
     }
 
-    switch(m_CurrMotion.Motion){
+    switch(m_currMotion.motion){
         case MOTION_DIE:
         case MOTION_MON_DIE:
             {
-                if(auto nFrameCount = MotionFrameCount(m_CurrMotion.Motion, m_CurrMotion.Direction); nFrameCount > 0){
-                    return (m_CurrMotion.Frame < (nFrameCount - 1)) || (m_CurrMotion.FadeOut < 255);
+                if(auto frameCount = motionFrameCount(m_currMotion.motion, m_currMotion.direction); frameCount > 0){
+                    return (m_currMotion.frame < (frameCount - 1)) || (m_currMotion.fadeOut < 255);
                 }
                 throw std::runtime_error(str_ffl() + ": Invalid motion detected");
             }
@@ -538,7 +513,7 @@ MotionNode Creature::MakeMotionIdle() const
     // but do it in base class if logic structure highly likely
 
     int nMotion = -1;
-    switch(Type()){
+    switch(type()){
         case CREATURE_PLAYER:
             {
                 nMotion = MOTION_STAND;
@@ -555,7 +530,7 @@ MotionNode Creature::MakeMotionIdle() const
             }
     }
 
-    return {nMotion, 0, m_CurrMotion.Direction, m_CurrMotion.Speed, m_CurrMotion.EndX, m_CurrMotion.EndY};
+    return {nMotion, 0, m_currMotion.direction, m_currMotion.speed, m_currMotion.endX, m_currMotion.endY};
 }
 
 bool Creature::AddAttachMagic(int nMagicID, int nMagicParam, int nMagicStage)
@@ -570,7 +545,7 @@ bool Creature::AddAttachMagic(int nMagicID, int nMagicParam, int nMagicStage)
                     switch(rstGE.Type){
                         case EGT_BOUND:
                             {
-                                m_AttachMagicList.emplace_back(std::make_shared<AttachMagic>(nMagicID, nMagicParam, nMagicStage));
+                                m_attachMagicList.emplace_back(std::make_shared<AttachMagic>(nMagicID, nMagicParam, nMagicStage));
                                 return true;
                             }
                         default:
@@ -591,7 +566,7 @@ bool Creature::AddAttachMagic(int nMagicID, int nMagicParam, int nMagicStage)
 
 double Creature::CurrMotionDelay() const
 {
-    auto nSpeed = CurrMotion().Speed;
+    auto nSpeed = currMotion().speed;
     nSpeed = (std::max<int>)(SYS_MINSPEED, nSpeed);
     nSpeed = (std::min<int>)(SYS_MAXSPEED, nSpeed);
 
@@ -606,7 +581,7 @@ void Creature::QuerySelf()
 
 std::deque<MotionNode> Creature::MakeMotionWalkQueue(int startX, int startY, int endX, int endY, int speed)
 {
-    if(MathFunc::LDistance2(startX, startY, endX, endY) == 0){
+    if(mathf::LDistance2(startX, startY, endX, endY) == 0){
         return {};
     }
 

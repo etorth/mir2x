@@ -21,22 +21,22 @@
 #include <SDL2/SDL.h>
 #include "lalign.hpp"
 
-class widget
+class Widget
 {
     private:
         struct childNode
         {
-            widget *child;
+            Widget *child;
             bool    autoDelete;
 
-            childNode(widget *pwidget, bool bAutoDelete)
+            childNode(Widget *pwidget, bool autoDeleteFlag)
                 : child(pwidget)
-                , autoDelete(bAutoDelete)
+                , autoDelete(autoDeleteFlag)
             {}
         };
 
     protected:
-        widget *m_parent;
+        Widget *m_parent;
 
     protected:
         bool m_show;
@@ -54,22 +54,22 @@ class widget
         std::vector<childNode> m_childList;
 
     public:
-        widget(int x, int y, int nW = 0, int nH = 0, widget *pParent = nullptr, bool bAutoDelete = false)
-            : m_parent(pParent)
+        Widget(int x, int y, int w = 0, int h = 0, Widget *parent = nullptr, bool autoDelete = false)
+            : m_parent(parent)
             , m_show(true)
             , m_focus(false)
             , m_x(x)
             , m_y(y)
-            , m_w(nW)
-            , m_h(nH)
+            , m_w(w)
+            , m_h(h)
         {
             if(m_parent){
-                m_parent->m_childList.emplace_back(this, bAutoDelete);
+                m_parent->m_childList.emplace_back(this, autoDelete);
             }
         }
         
     public:
-        virtual ~widget()
+        virtual ~Widget()
         {
             for(auto node: m_childList){
                 if(node.autoDelete){
@@ -82,7 +82,7 @@ class widget
         virtual void draw()
         {
             if(show()){
-                drawEx(X(), Y(), 0, 0, W(), H());
+                drawEx(x(), y(), 0, 0, w(), h());
             }
         }
 
@@ -95,10 +95,10 @@ class widget
                             int) = 0;   // size to draw
 
     public:
-        virtual void Update(double ms)
+        virtual void update(double ms)
         {
             for(auto &node: m_childList){
-                node.child->Update(ms);
+                node.child->update(ms);
             }
         }
 
@@ -116,44 +116,44 @@ class widget
         }
 
     public:
-        int X() const
+        int x() const
         {
             if(m_parent){
-                return m_parent->X() + m_x;
+                return m_parent->x() + m_x;
             }else{
                 return m_x;
             }
         }
 
-        int Y() const
+        int y() const
         {
             if(m_parent){
-                return m_parent->Y() + m_y;
+                return m_parent->y() + m_y;
             }else{
                 return m_y;
             }
         }
 
-        int W() const
+        int w() const
         {
             return m_w;
         }
 
-        int H() const
+        int h() const
         {
             return m_h;
         }
 
     public:
-        bool in(int x, int y) const
+        bool in(int pixelX, int pixelY) const
         {
-            return (x >= X() && x < X() + W()) && (y >= Y() && y < Y() + H());
+            return (pixelX >= x() && pixelX < x() + w()) && (pixelY >= y() && pixelY < y() + h());
         }
 
     public:
-        void focus(bool bFocus)
+        void focus(bool focusFlag)
         {
-            m_focus = bFocus;
+            m_focus = focusFlag;
         }
 
         bool focus() const
@@ -162,9 +162,9 @@ class widget
         }
 
     public:
-        void show(bool bshow)
+        void show(bool showFlag)
         {
-            m_show = bshow;
+            m_show = showFlag;
         }
 
         bool show() const
@@ -186,11 +186,11 @@ class widget
         }
 };
 
-class widgetGroup: public widget
+class WidgetGroup: public Widget
 {
     public:
-        widgetGroup(int x, int y, int w, int h, widget *parent = nullptr, bool autoDelete = false)
-            : widget(x, y, w, h, parent, autoDelete)
+        WidgetGroup(int x, int y, int w, int h, Widget *parent = nullptr, bool autoDelete = false)
+            : Widget(x, y, w, h, parent, autoDelete)
         {}
 
     public:

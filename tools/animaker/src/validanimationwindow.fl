@@ -9,7 +9,7 @@ decl {\#include <string>} {private local
 decl {\#include "filesys.hpp"} {private local
 } 
 
-decl {\#include "mathfunc.hpp"} {private local
+decl {\#include "mathf.hpp"} {private local
 } 
 
 decl {\#include <algorithm>} {private local

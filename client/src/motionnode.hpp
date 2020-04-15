@@ -3,13 +3,13 @@
  *
  *       Filename: motionnode.hpp
  *        Created: 04/05/2017 12:38:46
- *    Description: for field MotionNode::Speed
+ *    Description: for field MotionNode::speed
  *                  
- *                      means % Speed of default speed
+ *                      means % speed of default speed
  *
  *                 i.e. if default speed is 100 FPS:
  *                  
- *                      MotionNode::Speed :  20 : FPS =  20 : min
+ *                      MotionNode::speed :  20 : FPS =  20 : min
  *                                           50 : FPS =  50 : slow
  *                                          100 : FPS = 100 : default
  *                                          200 : FPS = 200 : fast
@@ -37,30 +37,30 @@ struct MotionNode
 {
     // part-1 : const fields
     //          description of this motion
-    int Motion;
-    int MotionParam;
+    int motion;
+    int motionParam;
 
-    int Direction;
-    int Speed;
+    int direction;
+    int speed;
 
-    int X;
-    int Y;
+    int x;
+    int y;
 
-    int EndX;
-    int EndY;
+    int endX;
+    int endY;
 
     // part-2 : mutable field
     //          always initialized as 0 and get updated later
-    int Frame;
-    int FadeOut;
+    int frame;
+    int fadeOut;
 
     struct _InterpMotion
     {
-        int Motion      = MOTION_NONE;
-        int MotionParam = 0;
+        int motion      = MOTION_NONE;
+        int motionParam = 0;
 
-        int Frame       = 0;
-    }InterpMotion;
+        int frame       = 0;
+    } interpMotion;
 
     // don't put any simple data memeber check in constructor
     // in main code there is need to return an invalid motion node
@@ -68,16 +68,16 @@ struct MotionNode
     // if put check method in constructor
     // I need to abort if checking failed this is not good
     MotionNode(int nMotion, int nMotionParam, int nDirection, int nSpeed, int nX, int nY, int nEndX, int nEndY)
-        : Motion(nMotion)
-        , MotionParam(nMotionParam)
-        , Direction(nDirection)
-        , Speed(nSpeed)
-        , X(nX)
-        , Y(nY)
-        , EndX(nEndX)
-        , EndY(nEndY)
-        , Frame(0)
-        , FadeOut(0)
+        : motion(nMotion)
+        , motionParam(nMotionParam)
+        , direction(nDirection)
+        , speed(nSpeed)
+        , x(nX)
+        , y(nY)
+        , endX(nEndX)
+        , endY(nEndY)
+        , frame(0)
+        , fadeOut(0)
     {}
 
     MotionNode(int nMotion, int nMotionParam, int nDirection, int nSpeed, int nX, int nY)
@@ -95,11 +95,11 @@ struct MotionNode
     operator bool () const
     {
         return false
-            || ((Motion > MOTION_NONE)     && (Motion < MOTION_MAX))
-            || ((Motion > MOTION_MON_NONE) && (Motion < MOTION_MON_MAX));
+            || ((motion > MOTION_NONE)     && (motion < MOTION_MAX))
+            || ((motion > MOTION_MON_NONE) && (motion < MOTION_MON_MAX));
     }
 
-    void Print();
+    void print();
 
     static const char *name(int motion)
     {
@@ -156,8 +156,8 @@ struct MotionNode
 
             _addCaseType(MOTION_NPC_NONE     )
             _addCaseType(MOTION_NPC_STAND    )
-            _addCaseType(MOTION_NPC_ACT1     )
-            _addCaseType(MOTION_NPC_ACT2     )
+            _addCaseType(MOTION_NPC_ACT      )
+            _addCaseType(MOTION_NPC_ACTEXT   )
             _addCaseType(MOTION_NPC_MAX      )
 #undef _addCaseType
             default: return "MOTION_UNKNOWN";

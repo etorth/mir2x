@@ -25,25 +25,25 @@
 #include "widget.hpp"
 #include "lalign.hpp"
 #include "xmltypeset.hpp"
-#include "colorfunc.hpp"
+#include "colorf.hpp"
 
-class labelBoard: public widget
+class LabelBoard: public Widget
 {
     private:
         XMLTypeset m_tpset;
 
     public:
-        labelBoard(
+        LabelBoard(
                 int         x,
                 int         y,
                 const char *content     =  "",
                 uint8_t     font        =  0,
                 uint8_t     fontSize    = 10,
                 uint8_t     fontStyle   =  0,
-                uint32_t    fontColor   =  ColorFunc::WHITE + 255,
-                widget     *pwidget     =  nullptr,
+                uint32_t    fontColor   =  colorf::WHITE + 255,
+                Widget     *pwidget     =  nullptr,
                 bool        bAutoDelete =  false)
-            : widget(x, y, 0, 0, pwidget, bAutoDelete)
+            : Widget(x, y, 0, 0, pwidget, bAutoDelete)
             , m_tpset
               {
                   0,
@@ -59,7 +59,7 @@ class labelBoard: public widget
         }
 
     public:
-        ~labelBoard() = default;
+        ~LabelBoard() = default;
 
     public:
         void loadXML(const char *szXMLString)

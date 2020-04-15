@@ -26,8 +26,8 @@ extern PNGTexDB *g_ProgUseDB;
 extern PNGTexDB *g_CommonItemDB;
 extern SDLDevice *g_SDLDevice;
 
-InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, widget *pwidget, bool bAutoFree)
-    : widget(nX, nY, 0, 0, pwidget, bAutoFree)
+InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget, bool bAutoFree)
+    : Widget(nX, nY, 0, 0, pwidget, bAutoFree)
     , m_goldBoard
       {
           0, // reset by new width
@@ -38,7 +38,7 @@ InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, widget *pwidget
           12,
           0,
 
-          ColorFunc::RGBA(0XFF, 0XFF, 0X00, 0X00),
+          colorf::RGBA(0XFF, 0XFF, 0X00, 0X00),
           this,
       }
     , m_closeButton
@@ -66,7 +66,7 @@ InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, widget *pwidget
     if(auto pTexture = g_ProgUseDB->Retrieve(0X0000001B)){
         SDL_QueryTexture(pTexture, nullptr, nullptr, &m_w, &m_h);
     }
-    m_goldBoard.moveTo(105 - m_goldBoard.W() / 2, 401);
+    m_goldBoard.moveTo(105 - m_goldBoard.w() / 2, 401);
 }
 
 void InventoryBoard::drawItem(int nDstX, int nDstY, const PackBin &rstBin)
@@ -103,7 +103,7 @@ void InventoryBoard::drawEx(int nDstX, int nDstY, int, int, int, int)
 
     if(auto pMyHero = m_ProcessRun->GetMyHero()){
         m_goldBoard.setText("%s", getGoldStr().c_str());
-        m_goldBoard.moveTo(105 - m_goldBoard.W() / 2, 401);
+        m_goldBoard.moveTo(105 - m_goldBoard.w() / 2, 401);
 
         // 2. draw all items
         for(auto &rstBin: pMyHero->getInvPack().GetPackBinList()){

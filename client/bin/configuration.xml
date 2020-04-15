@@ -25,6 +25,7 @@
         <MonsterDB>Res/Texture/MonsterDB.ZSDB</MonsterDB>
         <WeaponDB>Res/Texture/WeaponDB.ZSDB</WeaponDB>
         <MagicDB>Res/Texture/MagicDB.ZSDB</MagicDB>
+        <standNPCDB>Res/Texture/npc.zsdb</standNPCDB>
     </Texture>
     <Map>
         <MapBinDB>Res/Map/MapBinDB.ZSDB</MapBinDB>

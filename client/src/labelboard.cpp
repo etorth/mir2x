@@ -17,14 +17,14 @@
  */
 
 #include "log.hpp"
-#include "strfunc.hpp"
+#include "strf.hpp"
 #include "xmltypeset.hpp"
-#include "colorfunc.hpp"
+#include "colorf.hpp"
 #include "labelboard.hpp"
 
 extern Log *g_Log;
 
-void labelBoard::setText(const char * szFormatString, ...)
+void LabelBoard::setText(const char * szFormatString, ...)
 {
     std::string szText;
     bool bError = false;
@@ -43,7 +43,7 @@ void labelBoard::setText(const char * szFormatString, ...)
     }
 
     if(bError){
-        g_Log->AddLog(LOGTYPE_WARNING, "%s", szText.c_str());
+        g_Log->addLog(LOGTYPE_WARNING, "%s", szText.c_str());
     }
 
     // use the fallback values of m_tpset

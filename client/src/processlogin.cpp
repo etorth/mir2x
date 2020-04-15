@@ -49,10 +49,10 @@ ProcessLogin::ProcessLogin()
           2,
           18,
           0,
-          ColorFunc::WHITE,
+          colorf::WHITE,
 
           2,
-          ColorFunc::WHITE,
+          colorf::WHITE,
 
           [this]()
           {
@@ -75,10 +75,10 @@ ProcessLogin::ProcessLogin()
           2,
           18,
           0,
-          ColorFunc::WHITE,
+          colorf::WHITE,
 
           2,
-          ColorFunc::WHITE,
+          colorf::WHITE,
 
           [this]()
           {
@@ -99,7 +99,7 @@ ProcessLogin::ProcessLogin()
             1,
             14,
             0,
-            ColorFunc::YELLOW,
+            colorf::YELLOW,
         }
 {
     m_buildSignature.setText(u8"编译版本号:%s", getBuildSignature());
@@ -107,8 +107,8 @@ ProcessLogin::ProcessLogin()
 
 void ProcessLogin::Update(double fMS)
 {
-    m_idBox.Update(fMS);
-    m_PasswordBox.Update(fMS);
+    m_idBox.update(fMS);
+    m_PasswordBox.update(fMS);
 }
 
 void ProcessLogin::Draw()
@@ -180,7 +180,7 @@ void ProcessLogin::processEvent(const SDL_Event &event)
 void ProcessLogin::DoLogin()
 {
     if(!(m_idBox.getRawString().empty()) && !(m_PasswordBox.getRawString().empty())){
-        g_Log->AddLog(LOGTYPE_INFO, "login account: (%s:%s)", m_idBox.getRawString().c_str(), m_PasswordBox.getRawString().c_str());
+        g_Log->addLog(LOGTYPE_INFO, "login account: (%s:%s)", m_idBox.getRawString().c_str(), m_PasswordBox.getRawString().c_str());
 
         auto szID  = m_idBox.getRawString();
         auto szPWD = m_PasswordBox.getRawString();
@@ -189,14 +189,14 @@ void ProcessLogin::DoLogin()
         std::memset(&stCML, 0, sizeof(stCML));
 
         if((szID.size() >= sizeof(stCML.ID)) || (szPWD.size() >= sizeof(stCML.Password))){
-            g_Log->AddLog(LOGTYPE_WARNING, "Too long ID/PWD provided");
+            g_Log->addLog(LOGTYPE_WARNING, "Too long ID/PWD provided");
             return;
         }
 
         std::memcpy(stCML.ID, szID.c_str(), szID.size());
         std::memcpy(stCML.Password, szPWD.c_str(), szPWD.size());
 
-        g_client->Send(CM_LOGIN, stCML);
+        g_client->send(CM_LOGIN, stCML);
     }
 }
 

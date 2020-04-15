@@ -18,7 +18,7 @@
 
 #pragma once
 #include "argh.h"
-#include "strfunc.hpp"
+#include "strf.hpp"
 
 class arg_parser: public argh::parser
 {

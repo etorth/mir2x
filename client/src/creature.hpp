@@ -120,7 +120,7 @@
 #include <cstddef>
 #include <cstdint>
 
-#include "colorfunc.hpp"
+#include "colorf.hpp"
 #include "focustype.hpp"
 #include "condcheck.hpp"
 #include "actionnode.hpp"
@@ -147,14 +147,14 @@ class Creature
         uint32_t m_MPMax;
 
     protected:
-        MotionNode m_CurrMotion;
+        MotionNode m_currMotion;
 
     protected:
-        std::deque<MotionNode> m_MotionQueue;
+        std::deque<MotionNode> m_motionQueue;
         std::deque<MotionNode> m_forceMotionQueue;
 
     protected:
-        std::vector<std::shared_ptr<AttachMagic>> m_AttachMagicList;
+        std::vector<std::shared_ptr<AttachMagic>> m_attachMagicList;
 
     protected:
         uint32_t m_LastActive;
@@ -164,7 +164,7 @@ class Creature
         double m_LastUpdateTime;
 
     protected:
-        labelBoard m_nameBoard;
+        LabelBoard m_nameBoard;
 
     protected:
         Creature(uint64_t nUID, ProcessRun *pRun)
@@ -174,14 +174,14 @@ class Creature
             , m_MP(0)
             , m_HPMax(0)
             , m_MPMax(0)
-            , m_CurrMotion()
-            , m_MotionQueue()
+            , m_currMotion()
+            , m_motionQueue()
             , m_forceMotionQueue()
-            , m_AttachMagicList()
+            , m_attachMagicList()
             , m_LastActive(0)
             , m_LastQuerySelf(0)
             , m_LastUpdateTime(0.0)
-            , m_nameBoard(0, 0, "creature", 1, 12, 0, ColorFunc::RGBA(0XFF, 0XFF, 0XFF, 0X00))
+            , m_nameBoard(0, 0, "creature", 1, 12, 0, colorf::RGBA(0XFF, 0XFF, 0XFF, 0X00))
         {
             condcheck(m_UID);
             condcheck(m_ProcessRun);
@@ -197,34 +197,34 @@ class Creature
         }
 
     public:
-        static SDL_Color FocusColor(int nFocusChan)
+        static SDL_Color focusColor(int nFocusChan)
         {
             switch(nFocusChan){
                 case FOCUS_MOUSE:
                     {
-                        return ColorFunc::RGBA2Color(0XFF, 0X86, 0X00, 0XFF);
+                        return colorf::RGBA2Color(0XFF, 0X86, 0X00, 0XFF);
                     }
                 case FOCUS_MAGIC:
                     {
-                        return ColorFunc::RGBA2Color(0X92, 0XC6, 0X20, 0XFF);
+                        return colorf::RGBA2Color(0X92, 0XC6, 0X20, 0XFF);
                     }
                 case FOCUS_FOLLOW:
                     {
-                        return ColorFunc::RGBA2Color(0X00, 0XC6, 0XF0, 0XFF);
+                        return colorf::RGBA2Color(0X00, 0XC6, 0XF0, 0XFF);
                     }
                 case FOCUS_ATTACK:
                     {
-                        return ColorFunc::RGBA2Color(0XD0, 0X2C, 0X70, 0XFF);
+                        return colorf::RGBA2Color(0XD0, 0X2C, 0X70, 0XFF);
                     }
                 default:
                     {
-                        return ColorFunc::RGBA2Color(0XFF, 0XFF, 0XFF, 0XFF);
+                        return colorf::RGBA2Color(0XFF, 0XFF, 0XFF, 0XFF);
                     }
             }
         }
 
     public:
-        virtual bool canFocus(int, int) = 0;
+        virtual bool canFocus(int, int) const = 0;
 
     public:
         bool Alive();
@@ -243,26 +243,33 @@ class Creature
         }
 
     public:
-        int X() { int nX; return Location(&nX, nullptr) ? nX : -1; }
-        int Y() { int nY; return Location(nullptr, &nY) ? nY : -1; }
-
-    public:
-        const MotionNode &CurrMotion() const
+        int X() const
         {
-            return m_CurrMotion;
+            return std::get<0>(location());
+        }
+
+        int Y() const
+        {
+            return std::get<1>(location());
         }
 
     public:
-        virtual bool Location(int *, int *) = 0;
+        const MotionNode &currMotion() const
+        {
+            return m_currMotion;
+        }
 
     public:
-        bool GetShift(int *, int *);
+        virtual std::tuple<int, int> location() const = 0;
 
     public:
-        virtual int Type() const = 0;
+        std::tuple<int, int> getShift() const;
 
     public:
-        virtual int MotionFrameCount(int, int) const = 0;
+        virtual int type() const = 0;
+
+    public:
+        virtual int motionFrameCount(int, int) const = 0;
 
     public:
         virtual bool StayDead();
@@ -279,8 +286,8 @@ class Creature
         virtual void UpdateAttachMagic(double);
 
     public:
-        virtual bool Update(double) = 0;
-        virtual bool Draw(int, int, int) = 0;
+        virtual bool update(double) = 0;
+        virtual bool draw(int, int, int) = 0;
 
     protected:
         virtual bool MoveNextMotion();
@@ -312,7 +319,7 @@ class Creature
         virtual bool MotionQueueValid();
 
     public:
-        virtual bool MotionValid(const MotionNode &) const = 0;
+        virtual bool motionValid(const MotionNode &) const = 0;
 
     public:
         virtual int UpdateHP(int, int);

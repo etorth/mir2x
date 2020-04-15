@@ -46,7 +46,7 @@ bool BatchLuaModule::LoopOne()
         sol::error stError = stCallResult;
 
         extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "Script error: %s", stError.what());
+        g_MonoServer->addLog(LOGTYPE_WARNING, "Script error: %s", stError.what());
         return false;
     }
 }

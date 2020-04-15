@@ -29,10 +29,10 @@
 #include "emoticon.hpp"
 #include "tokenbox.hpp"
 #include "utf8char.hpp"
-#include "mathfunc.hpp"
+#include "mathf.hpp"
 #include "fontexdb.hpp"
 #include "condcheck.hpp"
-#include "colorfunc.hpp"
+#include "colorf.hpp"
 #include "tokenboard.hpp"
 #include "emoticondb.hpp"
 #include "xmlobjectlist.hpp"
@@ -70,8 +70,7 @@ bool TokenBoard::InnInsert(const XMLObjectList &rstXMLObjectList, const IDHandle
                 }
             default:
                 {
-                    g_Log->AddLog(LOGTYPE_WARNING, "Detected known object type, ignored it");
-
+                    g_Log->addLog(LOGTYPE_WARNING, "Detected known object type, ignored it");
                     bRes = true;
                     break;
                 }
@@ -92,7 +91,7 @@ bool TokenBoard::GetAttributeColor(SDL_Color *pOutColor, const SDL_Color &rstDef
 
     if(pText){
         try{
-            auto stColor = ColorFunc::RGBA2Color(ColorFunc::String2RGBA(pText));
+            auto stColor = colorf::RGBA2Color(colorf::String2RGBA(pText));
             if(pOutColor){
                 *pOutColor = stColor;
             }
@@ -194,7 +193,7 @@ bool TokenBoard::ParseTextObject(const tinyxml2::XMLElement &rstCurrentObject, i
             }
         default:
             {
-                g_Log->AddLog(LOGTYPE_WARNING, "Invalid object type: %d", nObjectType);
+                g_Log->addLog(LOGTYPE_WARNING, "Invalid object type: %d", nObjectType);
                 return false;
             }
     }
@@ -349,7 +348,7 @@ int TokenBoard::SectionTypeCount(int nLine, int nSectionType)
                         if(SectionValid(rstTokenBox.Section)){
                             nCount += (fnCmp(m_SectionRecord[rstTokenBox.Section].Section.Info.Type, nSectionType) ? 1 : 0);
                         }else{
-                            g_Log->AddLog(LOGTYPE_INFO, "Invalid section ID: %d", rstTokenBox.Section);
+                            g_Log->addLog(LOGTYPE_INFO, "Invalid section ID: %d", rstTokenBox.Section);
                             return -1;
                         }
                     }
@@ -614,7 +613,7 @@ int TokenBoard::GetLineIntervalMaxH2(int nLine, int nIntervalStartX, int nInterv
         int nW1 = rstTokenBox.State.W1;
         int nW2 = rstTokenBox.State.W2;
 
-        if(MathFunc::IntervalOverlap(nX, nW1 + nW + nW2, nIntervalStartX, nIntervalWidth)){
+        if(mathf::intervalOverlap(nX, nW1 + nW + nW2, nIntervalStartX, nIntervalWidth)){
             nMaxH2 = (std::max<int>)(nMaxH2, nH2);
         }
     }
@@ -753,7 +752,7 @@ void TokenBoard::drawEx(
         int nSrcW, int nSrcH)
 {
     // 1. if no overlapping at all then directly return
-    if(!MathFunc::RectangleOverlap(nSrcX, nSrcY, nSrcW, nSrcH, 0, 0, W(), H())){ return; }
+    if(!mathf::rectangleOverlap(nSrcX, nSrcY, nSrcW, nSrcH, 0, 0, w(), h())){ return; }
 
     // get the coordinate of the top-left corner point on the dst
     int nDstDX = nDstX - nSrcX;
@@ -768,9 +767,9 @@ void TokenBoard::drawEx(
             int nH = rstTokenBox.Cache.H;
 
             // try to get the clipped region of the tokenbox
-            if(!MathFunc::RectangleOverlapRegion(nSrcX, nSrcY, nSrcW, nSrcH, &nX, &nY, &nW, &nH)){ continue; }
+            if(!mathf::rectangleOverlapRegion(nSrcX, nSrcY, nSrcW, nSrcH, &nX, &nY, &nW, &nH)){ continue; }
             if(!SectionValid(rstTokenBox.Section, true)){
-                g_Log->AddLog(LOGTYPE_INFO, "section id invalid: %d", rstTokenBox.Section);
+                g_Log->addLog(LOGTYPE_INFO, "section id invalid: %d", rstTokenBox.Section);
                 return;
             }
 
@@ -934,7 +933,7 @@ void TokenBoard::TokenBoxGetMouseButtonUp(int nX, int nY, bool bFirstHalf)
     // 2. invalid section id
     int nSection = m_LineV[nY].Content[nX].Section;
     if(!SectionValid(nSection)){
-        g_Log->AddLog(LOGTYPE_WARNING, "Invalid section ID: %d", nSection);
+        g_Log->addLog(LOGTYPE_WARNING, "Invalid section ID: %d", nSection);
         return;
     }
 
@@ -1029,7 +1028,7 @@ void TokenBoard::TokenBoxGetMouseButtonDown(int nX, int nY, bool bFirstHalf)
     // 2. invalid section id
     int nSection = m_LineV[nY].Content[nX].Section;
     if(!SectionValid(nSection, true)){
-        g_Log->AddLog(LOGTYPE_INFO, "section id can't find: %d", nSection);
+        g_Log->addLog(LOGTYPE_INFO, "section id can't find: %d", nSection);
         return;
     }
 
@@ -1083,14 +1082,14 @@ bool TokenBoard::processEvent(const SDL_Event &event, bool valid)
         case SDL_MOUSEBUTTONUP:
         case SDL_MOUSEBUTTONDOWN:
             {
-                nEventDX = event.button.x - X();
-                nEventDY = event.button.y - Y();
+                nEventDX = event.button.x - x();
+                nEventDY = event.button.y - y();
                 break;
             }
         case SDL_MOUSEMOTION:
             {
-                nEventDX = event.motion.x - X();
-                nEventDY = event.motion.y - Y();
+                nEventDX = event.motion.x - x();
+                nEventDY = event.motion.y - y();
                 break;
             }
         default:
@@ -1145,7 +1144,7 @@ bool TokenBoard::processEvent(const SDL_Event &event, bool valid)
         int nW = rstLastTB.Cache.W;
         int nH = rstLastTB.Cache.H;
 
-        if(MathFunc::PointInRectangle(nEventDX, nEventDY, nX, nY, nW, nH)){
+        if(mathf::pointInRectangle(nEventDX, nEventDY, nX, nY, nW, nH)){
             nTBLocX    = m_LastTokenBoxLoc.X;
             nTBLocY    = m_LastTokenBoxLoc.Y;
             bFirstHalf = (nEventDX < nX + nW / 2);
@@ -1170,7 +1169,7 @@ bool TokenBoard::processEvent(const SDL_Event &event, bool valid)
                 int nW = rstTokenBox.Cache.W;
                 int nH = rstTokenBox.Cache.H;
 
-                if(MathFunc::PointInRectangle(nEventDX, nEventDY, nX, nY, nW, nH)){
+                if(mathf::pointInRectangle(nEventDX, nEventDY, nX, nY, nW, nH)){
                     nTBLocX    = stLoc.X;
                     nTBLocY    = stLoc.Y;
                     bFirstHalf = (nEventDX < nX + nW / 2);
@@ -1241,7 +1240,7 @@ bool TokenBoard::processEvent(const SDL_Event &event, bool valid)
             int nW  = m_LineV[nRowIn].Content[nXCnt].Cache.W;
             int nCX = nX + nW / 2;
 
-            if(MathFunc::PointInSegment(nEventDX, nLastCenterX, nCX - nLastCenterX + 1)){
+            if(mathf::pointInSegment(nEventDX, nLastCenterX, nCX - nLastCenterX + 1)){
                 nTokenBoxBind = nXCnt;
                 break;
             }
@@ -1297,8 +1296,8 @@ void TokenBoard::MakeTokenBoxEventBitmap()
     // this is too much, so just disable it in the design
     //
 
-    int nGW = (W() + (m_Resolution - 1)) / m_Resolution;
-    int nGH = (H() + (m_Resolution - 1)) / m_Resolution;
+    int nGW = (w() + (m_Resolution - 1)) / m_Resolution;
+    int nGH = (h() + (m_Resolution - 1)) / m_Resolution;
 
     // this should be easier to clarify
     m_TokenBoxBitmap.resize(nGW);
@@ -1457,7 +1456,7 @@ std::string TokenBoard::InnGetXML(int nX0, int nY0, int nX1, int nY1)
                         szXML += std::to_string(rstSN.Info.Text.Size);
 
                         char szColor[16];
-                        std::sprintf(szColor, "0x%08x", ColorFunc::RGBA2ARGB(ColorFunc::Color2RGBA(rstSN.Info.Text.Color[0])));
+                        std::sprintf(szColor, "0x%08x", colorf::RGBA2ARGB(colorf::Color2RGBA(rstSN.Info.Text.Color[0])));
                         szXML += " color=";
                         szXML += szColor;
                         szXML += ">";
@@ -1542,7 +1541,7 @@ bool TokenBoard::AddTokenBoxLine(const std::vector<TOKENBOX> &rstTBV)
     }
 
     if(nCount == 0){
-        g_Log->AddLog(LOGTYPE_WARNING, "Big token box for current board: Token::W = %d, pw = %d", m_LineV[nY].Content[0].Cache.W, m_MaxLineWidth);
+        g_Log->addLog(LOGTYPE_WARNING, "Big token box for current board: Token::W = %d, pw = %d", m_LineV[nY].Content[0].Cache.W, m_MaxLineWidth);
         return false;
     }
 
@@ -1590,7 +1589,7 @@ bool TokenBoard::AddTokenBoxLine(const std::vector<TOKENBOX> &rstTBV)
             // this is an internal error
             // this is the last line and it's not end with CR
 
-            g_Log->AddLog(LOGTYPE_WARNING, "Last line doesn't end with CR");
+            g_Log->addLog(LOGTYPE_WARNING, "Last line doesn't end with CR");
 
             // repair by insert an empty line at the end
             m_LineV.emplace_back();
@@ -2031,7 +2030,7 @@ bool TokenBoard::AddUTF8Code(uint32_t nUTF8Code)
         if(TokenBoxValid(nTBX, nTBY)){
             int nID = m_LineV[nTBY].Content[nTBX].Section;
             if(!SectionValid(nID, false)){
-                g_Log->AddLog(LOGTYPE_WARNING, "Section ID %d not found for token box (%d, %d).", nID, nTBX, nTBY);
+                g_Log->addLog(LOGTYPE_WARNING, "Section ID %d not found for token box (%d, %d).", nID, nTBX, nTBY);
                 return -1;
             }
 
@@ -2073,7 +2072,7 @@ bool TokenBoard::AddUTF8Code(uint32_t nUTF8Code)
 
     if(nSectionID < 0){
         // no hope, just give up
-        g_Log->AddLog(LOGTYPE_WARNING, "Can't find a proper section for current insertion");
+        g_Log->addLog(LOGTYPE_WARNING, "Can't find a proper section for current insertion");
         return false;
     }
 
@@ -2264,7 +2263,7 @@ std::string TokenBoard::Print(bool bSelectOnly)
             || !CursorValid(nX0, nY0)
             || !CursorValid(nX1, nY1)){
 
-        g_Log->AddLog(LOGTYPE_WARNING, "Invalid selection location: (%d, %d) -> (%d, %d)", nX0, nY0, nX1, nY1);
+        g_Log->addLog(LOGTYPE_WARNING, "Invalid selection location: (%d, %d) -> (%d, %d)", nX0, nY0, nX1, nY1);
         return stObjectList.Print();
     }
 
@@ -2305,7 +2304,7 @@ std::string TokenBoard::Print(bool bSelectOnly)
                                                 && std::strlen(szObjectContent)){
 
                                             char szColor[16];
-                                            std::sprintf(szColor, "0X%08X", ColorFunc::RGBA2ARGB(ColorFunc::Color2RGBA(rstSEC.Info.Text.Color[0])));
+                                            std::sprintf(szColor, "0X%08X", colorf::RGBA2ARGB(colorf::Color2RGBA(rstSEC.Info.Text.Color[0])));
                                             pList->Add({
                                                     {"Type" , "PlainText"                           },
                                                     {"Font" , std::to_string(rstSEC.Info.Text.Font) },
@@ -2324,7 +2323,7 @@ std::string TokenBoard::Print(bool bSelectOnly)
 
                                             char szColor[3][16];
                                             for(int nIndex = 0; nIndex < 3; ++nIndex){
-                                                std::sprintf(szColor[nIndex], "0X%08X", ColorFunc::RGBA2ARGB(ColorFunc::Color2RGBA(rstSEC.Info.Text.Color[nIndex])));
+                                                std::sprintf(szColor[nIndex], "0X%08X", colorf::RGBA2ARGB(colorf::Color2RGBA(rstSEC.Info.Text.Color[nIndex])));
                                             }
                                             pList->Add({
                                                     {"Type" , "EventText"                           },
@@ -2439,8 +2438,7 @@ std::string TokenBoard::Print(bool bSelectOnly)
                 //    2. invalid type
                 // skip this box and alert a warning
 
-                g_Log->AddLog(LOGTYPE_WARNING, "Invalid section ID = %d for token (%d, %d)", rstTokenBox.Section, nCurrX, nCurrY);
-
+                g_Log->addLog(LOGTYPE_WARNING, "Invalid section ID = %d for token (%d, %d)", rstTokenBox.Section, nCurrX, nCurrY);
                 nCurrX++;
             }
         }

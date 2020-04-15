@@ -23,9 +23,9 @@
 #include <tinyxml2.h>
 
 #include "xmlfunc.hpp"
-#include "strfunc.hpp"
+#include "strf.hpp"
 #include "utf8func.hpp"
-#include "colorfunc.hpp"
+#include "colorf.hpp"
 #include "xmlparagraphleaf.hpp"
 
 class XMLParagraph

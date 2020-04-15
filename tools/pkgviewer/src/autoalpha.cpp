@@ -19,7 +19,7 @@
 #include <cmath>
 #include <algorithm>
 #include <stdexcept>
-#include "strfunc.hpp"
+#include "strf.hpp"
 #include "fflerror.hpp"
 #include "autoalpha.hpp"
 

@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename: colorfunc.cpp
+ *       Filename: colorf.cpp
  *        Created: 03/31/2016 19:48:57
  *    Description:
  *
@@ -19,17 +19,18 @@
 #include <cmath>
 #include <cstdio>
 #include <cstring>
-#include "strfunc.hpp"
-#include "colorfunc.hpp"
+#include "strf.hpp"
+#include "colorf.hpp"
+#include "fflerror.hpp"
 
-uint32_t ColorFunc::String2RGBA(const char *szColorString)
+uint32_t colorf::String2RGBA(const char *szColorString)
 {
     if(szColorString == nullptr){
-        throw std::invalid_argument(str_fflprintf(": Invalid color string: nullptr"));
+        throw fflerror("invalid color string: nullptr");
     }
 
     if(std::strlen(szColorString) == 0){
-        throw std::invalid_argument(str_fflprintf(": Invalid color string: zero-length"));
+        throw fflerror("invalid color string: zero-length");
     }
 
     // only for some color
@@ -39,42 +40,42 @@ uint32_t ColorFunc::String2RGBA(const char *szColorString)
             || !std::strcmp(szColorString, "WHITE")
             || !std::strcmp(szColorString, "White")
             || !std::strcmp(szColorString, "white")){
-        return ColorFunc::WHITE;
+        return colorf::WHITE;
     }
 
     if(false
             || !std::strcmp(szColorString, "RED")
             || !std::strcmp(szColorString, "Red")
             || !std::strcmp(szColorString, "red")){
-        return ColorFunc::RED;
+        return colorf::RED;
     }
 
     if(false
             || !std::strcmp(szColorString, "GREEN")
             || !std::strcmp(szColorString, "Green")
             || !std::strcmp(szColorString, "green")){
-        return ColorFunc::GREEN;
+        return colorf::GREEN;
     }
 
     if(false
             || !std::strcmp(szColorString, "BLUE")
             || !std::strcmp(szColorString, "Blue")
             || !std::strcmp(szColorString, "blue")){
-        return ColorFunc::BLUE;
+        return colorf::BLUE;
     }
 
     if(false
             || !std::strcmp(szColorString, "YELLOW")
             || !std::strcmp(szColorString, "Yellow")
             || !std::strcmp(szColorString, "yellow")){
-        return ColorFunc::YELLOW;
+        return colorf::YELLOW;
     }
 
     if(false
             || !std::strcmp(szColorString, "PURPLE")
             || !std::strcmp(szColorString, "Purple")
             || !std::strcmp(szColorString, "purple")){
-        return ColorFunc::PURPLE;
+        return colorf::PURPLE;
     }
 
     // try 0XRGBA mode
@@ -98,5 +99,5 @@ uint32_t ColorFunc::String2RGBA(const char *szColorString)
         return nRGBA;
     }
 
-    throw std::invalid_argument(str_fflprintf(": color string not recognized: %s", szColorString));
+    throw fflerror("color string not recognized: %s", szColorString);
 }

@@ -22,7 +22,7 @@
 
 #include "log.hpp"
 #include "client.hpp"
-#include "mathfunc.hpp"
+#include "mathf.hpp"
 #include "fontexdb.hpp"
 #include "inputboard.hpp"
 #include "sdlkeychar.hpp"
@@ -34,10 +34,10 @@ extern SDLDevice *g_SDLDevice;
 int InputBoard::s_ShowSystemCursorCount = 0;
 int InputBoard::s_InputBoardCount       = 0;
 
-void InputBoard::Update(double fMS)
+void InputBoard::update(double fMS)
 {
     m_MS += fMS;
-    widget::Update(fMS);
+    Widget::update(fMS);
     m_TokenBoard.Update(fMS);
 }
 
@@ -333,23 +333,23 @@ void InputBoard::RelocateTokenBoard()
     QueryCursor(&nX, &nY, &nW, &nH);
 
     // make (nX, nY) to be the coordinate w.r.t. InputBoard
-    nX += m_TokenBoard.X();
-    nY += m_TokenBoard.Y();
+    nX += m_TokenBoard.x();
+    nY += m_TokenBoard.y();
 
     if(nX < 0){
         m_TokenBoard.moveBy(-nX, 0);
     }
 
-    if((nX + nW > W()) && (nW <= W())){
-        m_TokenBoard.moveBy(W() - (nX + nW), 0);
+    if((nX + nW > w()) && (nW <= w())){
+        m_TokenBoard.moveBy(w() - (nX + nW), 0);
     }
 
     if(nY < 0){
         m_TokenBoard.moveBy(0, -nY);
     }
 
-    if((nY + nH > H()) && (nH <= H())){
-        m_TokenBoard.moveBy(0, H() - (nY + nH));
+    if((nY + nH > h()) && (nH <= h())){
+        m_TokenBoard.moveBy(0, h() - (nY + nH));
     }
 }
 
@@ -357,15 +357,15 @@ void InputBoard::Draw()
 {
     // m_TokenBoard and InputBoard are of the ``has-a" relationship
     // and coordinate of TokenBoard is relative to top-left of InputBoard
-    int nTBDX = m_TokenBoard.X();
-    int nTBDY = m_TokenBoard.Y();
-    int nTBW  = m_TokenBoard.W();
-    int nTBH  = m_TokenBoard.H();
+    int nTBDX = m_TokenBoard.x();
+    int nTBDY = m_TokenBoard.y();
+    int nTBW  = m_TokenBoard.w();
+    int nTBH  = m_TokenBoard.h();
 
-    if(MathFunc::RectangleOverlapRegion(0, 0, W(), H(), &nTBDX, &nTBDY, &nTBW, &nTBH)){
-        int nTBX = nTBDX - m_TokenBoard.X();
-        int nTBY = nTBDY - m_TokenBoard.Y();
-        m_TokenBoard.drawEx(nTBDX + X(), nTBDY + Y(), nTBX, nTBY, nTBW, nTBH);
+    if(mathf::rectangleOverlapRegion(0, 0, w(), h(), &nTBDX, &nTBDY, &nTBW, &nTBH)){
+        int nTBX = nTBDX - m_TokenBoard.x();
+        int nTBY = nTBDY - m_TokenBoard.y();
+        m_TokenBoard.drawEx(nTBDX + x(), nTBDY + y(), nTBX, nTBY, nTBW, nTBH);
     }
 
     // +-------------------------+
@@ -383,7 +383,7 @@ void InputBoard::Draw()
 
     if(((int)m_MS % 1000) < 500 && focus()){
         g_SDLDevice->PushColor(m_CursorColor.r, m_CursorColor.g, m_CursorColor.b, m_CursorColor.a);
-        g_SDLDevice->FillRectangle(X() + m_TokenBoard.X() + nX, Y() + m_TokenBoard.Y() + nY, nW, nH);
+        g_SDLDevice->FillRectangle(x() + m_TokenBoard.x() + nX, y() + m_TokenBoard.y() + nY, nW, nH);
         g_SDLDevice->PopColor();
     }
 
@@ -446,7 +446,7 @@ std::string InputBoard::Content()
                 }
             default:
                 {
-                    g_Log->AddLog(LOGTYPE_WARNING, "Detected known object type, ignored it");
+                    g_Log->addLog(LOGTYPE_WARNING, "Detected known object type, ignored it");
                     break;
                 }
         }

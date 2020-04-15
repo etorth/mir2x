@@ -18,7 +18,7 @@ decl {\#include <FL/fl_ask.H>} {private local
 decl {\#include "filesys.hpp"} {private local
 } 
 
-decl {\#include "mathfunc.hpp"} {private local
+decl {\#include "mathf.hpp"} {private local
 } 
 
 class ValidWilFileWindow {open

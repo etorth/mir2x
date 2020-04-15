@@ -22,7 +22,7 @@
 #include <cstdint>
 #include <utility>
 #include <type_traits>
-
+#include "fflerror.hpp"
 #include "messagebuf.hpp"
 #include "actormessage.hpp"
 
@@ -163,6 +163,23 @@ template<size_t StaticBufferLength = 64> class InnMessagePack final
        operator bool () const
        {
            return Type() != MPK_NONE;
+       }
+
+    public:
+       template<typename T> void assign(T &t) const
+       {
+           static_assert(std::is_trivially_copyable_v<T>);
+           if(sizeof(T) != DataLen()){
+               throw fflerror("size mismatch, using wrong POD type");
+           }
+           std::memcpy(&t, Data(), sizeof(t));
+       }
+
+       template<typename T> T conv() const
+       {
+           T t;
+           assign<T>(t);
+           return t;
        }
 
     public:

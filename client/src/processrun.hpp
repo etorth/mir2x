@@ -34,6 +34,7 @@
 #include "commonitem.hpp"
 #include "indepmagic.hpp"
 #include "mir2xmapdata.hpp"
+#include "npcchatboard.hpp"
 #include "controlboard.hpp"
 #include "inventoryboard.hpp"
 #include "clientluamodule.hpp"
@@ -99,9 +100,8 @@ class ProcessRun: public Process
         ClientLuaModule m_LuaModule;
 
     private:
-        controlBoard m_controlBoard;
-
-    private:
+        NPCChatBoard m_NPCChatBoard;
+        ControlBoard m_controlBoard;
         InventoryBoard m_inventoryBoard;
 
     private:
@@ -115,8 +115,8 @@ class ProcessRun: public Process
 
     private:
         // use a tokenboard to show all in future
-        labelBoard m_MousePixlLoc;
-        labelBoard m_MouseGridLoc;
+        LabelBoard m_MousePixlLoc;
+        LabelBoard m_MouseGridLoc;
 
     private:
         std::list<std::shared_ptr<AscendStr>> m_AscendStrList;
@@ -188,6 +188,7 @@ class ProcessRun: public Process
         void Net_DEADFADEOUT(const uint8_t *, size_t);
         void Net_MONSTERGINFO(const uint8_t *, size_t);
         void Net_SHOWDROPITEM(const uint8_t *, size_t);
+        void Net_NPCXMLLAYOUT(const uint8_t *, size_t);
 
     public:
         bool CanMove(bool, int, int, int);
@@ -223,7 +224,7 @@ class ProcessRun: public Process
         bool LocateUID(uint64_t, int *, int *);
 
     private:
-        bool TrackAttack(bool, uint64_t);
+        bool trackAttack(bool, uint64_t);
 
     public:
         void AddAscendStr(int, int, int, int);
@@ -304,5 +305,8 @@ class ProcessRun: public Process
         void OnActionSpawn(uint64_t, const ActionNode &);
 
     public:
-        widget *getWidget(const std::string &);
+        Widget *getWidget(const std::string &);
+
+    public:
+        void sendNPCEventID(uint64_t, uint64_t);
 };

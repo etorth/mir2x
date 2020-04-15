@@ -68,7 +68,7 @@ int CommandInput::handle(int nEvent)
                                         // remove the enter and print it
 
                                         extern MonoServer *g_MonoServer;
-                                        g_MonoServer->AddCWLog(nCWID, 0, "> ", szCommandStr.substr(nCurrLoc, nEnterLoc - nCurrLoc).c_str());
+                                        g_MonoServer->addCWLog(nCWID, 0, "> ", szCommandStr.substr(nCurrLoc, nEnterLoc - nCurrLoc).c_str());
 
                                         nCurrLoc = nEnterLoc + 1;
                                     }else{
@@ -76,7 +76,7 @@ int CommandInput::handle(int nEvent)
                                         // we done here for the whole string
 
                                         extern MonoServer *g_MonoServer;
-                                        g_MonoServer->AddCWLog(nCWID, 0, "> ", szCommandStr.substr(nCurrLoc).c_str());
+                                        g_MonoServer->addCWLog(nCWID, 0, "> ", szCommandStr.substr(nCurrLoc).c_str());
                                         break;
                                     }
                                 }
@@ -107,7 +107,7 @@ int CommandInput::handle(int nEvent)
                                         std::string szErrorLine;
                                         while(std::getline(stErrorStream, szErrorLine, '\n')){
                                             extern MonoServer *g_MonoServer;
-                                            g_MonoServer->AddCWLog(nCWID, 2, ">>> ", szErrorLine.c_str());
+                                            g_MonoServer->addCWLog(nCWID, 2, ">>> ", szErrorLine.c_str());
                                         }
                                     }
                                 });

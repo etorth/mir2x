@@ -32,7 +32,7 @@ void Player::On_MPK_METRONOME(const MessagePack &)
     Update();
 
     SMPing stSMP;
-    stSMP.Tick = g_MonoServer->GetTimeTick();
+    stSMP.Tick = g_MonoServer->getCurrTick();
     g_NetDriver->Post(ChannID(), SM_PING, stSMP);
 }
 
@@ -124,7 +124,7 @@ void Player::On_MPK_ACTION(const MessagePack &rstMPK)
             }
     }
 
-    if(MathFunc::LDistance2(stAMA.X, stAMA.Y, X(), Y()) > 20 * 20){
+    if(mathf::LDistance2(stAMA.X, stAMA.Y, X(), Y()) > 20 * 20){
         return;
     }
 
@@ -177,7 +177,7 @@ void Player::On_MPK_NOTIFYNEWCO(const MessagePack &rstMPK)
                 std::memset(&stAMND, 0, sizeof(stAMND));
 
                 stAMND.UID = UID();
-                m_ActorPod->Forward(stAMNNCO.UID, {MPK_NOTIFYDEAD, stAMND});
+                m_actorPod->Forward(stAMNNCO.UID, {MPK_NOTIFYDEAD, stAMND});
                 break;
             }
     }
@@ -197,7 +197,7 @@ void Player::On_MPK_MAPSWITCH(const MessagePack &rstMPK)
     std::memcpy(&stAMMS, rstMPK.Data(), sizeof(stAMMS));
 
     if(!(stAMMS.UID && stAMMS.MapID)){
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "Map switch request failed: (UID = %" PRIu64 ", MapID = %" PRIu32 ")", stAMMS.UID, stAMMS.MapID);
+        g_MonoServer->addLog(LOGTYPE_WARNING, "Map switch request failed: (UID = %" PRIu64 ", MapID = %" PRIu32 ")", stAMMS.UID, stAMMS.MapID);
     }
 
     AMTryMapSwitch stAMTMS;
@@ -213,7 +213,7 @@ void Player::On_MPK_MAPSWITCH(const MessagePack &rstMPK)
 
     // send request to the new map
     // if request rejected then it stays in current map
-    m_ActorPod->Forward(stAMMS.UID, {MPK_TRYMAPSWITCH, stAMTMS}, [this](const MessagePack &rstRMPK)
+    m_actorPod->Forward(stAMMS.UID, {MPK_TRYMAPSWITCH, stAMTMS}, [this](const MessagePack &rstRMPK)
     {
         switch(rstRMPK.Type()){
             case MPK_MAPSWITCHOK:
@@ -238,7 +238,7 @@ void Player::On_MPK_MAPSWITCH(const MessagePack &rstMPK)
 
                         // current map respond for the leave request
                         // dangerous here, we should keep m_Map always valid
-                        m_ActorPod->Forward(m_Map->UID(), {MPK_TRYLEAVE, stAMTL}, [this, stAMMSOK, rstRMPK](const MessagePack &rstLeaveRMPK)
+                        m_actorPod->Forward(m_Map->UID(), {MPK_TRYLEAVE, stAMTL}, [this, stAMMSOK, rstRMPK](const MessagePack &rstLeaveRMPK)
                         {
                             switch(rstLeaveRMPK.Type()){
                                 case MPK_OK:
@@ -247,7 +247,7 @@ void Player::On_MPK_MAPSWITCH(const MessagePack &rstMPK)
                                         m_Map   = (ServerMap *)(stAMMSOK.Ptr);
                                         m_X = stAMMSOK.X;
                                         m_Y = stAMMSOK.Y;
-                                        m_ActorPod->Forward(m_Map->UID(), MPK_OK, rstRMPK.ID());
+                                        m_actorPod->Forward(m_Map->UID(), MPK_OK, rstRMPK.ID());
 
                                         // 2. notify all players on the new map
                                         DispatchAction(ActionStand(X(), Y(), Direction()));
@@ -264,8 +264,8 @@ void Player::On_MPK_MAPSWITCH(const MessagePack &rstMPK)
                                         // can't leave???, illegal response
                                         // server map won't respond any other message not MPK_OK
                                         // dangerous issue since we then can never inform the new map ``we can't come to you"
-                                        m_ActorPod->Forward(((ServerMap *)(stAMMSOK.Ptr))->UID(), MPK_ERROR, rstRMPK.ID());
-                                        g_MonoServer->AddLog(LOGTYPE_WARNING, "Leave request failed: (UID = %" PRIu64 ", MapID = %" PRIu32 ")", UID(), ((ServerMap *)(stAMMSOK.Ptr))->ID());
+                                        m_actorPod->Forward(((ServerMap *)(stAMMSOK.Ptr))->UID(), MPK_ERROR, rstRMPK.ID());
+                                        g_MonoServer->addLog(LOGTYPE_WARNING, "Leave request failed: (UID = %" PRIu64 ", MapID = %" PRIu32 ")", UID(), ((ServerMap *)(stAMMSOK.Ptr))->ID());
                                         break;
                                     }
                             }
@@ -274,7 +274,7 @@ void Player::On_MPK_MAPSWITCH(const MessagePack &rstMPK)
                     }
 
                     // AMMapSwitchOK invalid
-                    g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid AMMapSwitchOK: Map = %p", stAMMSOK.Ptr);
+                    g_MonoServer->addLog(LOGTYPE_WARNING, "Invalid AMMapSwitchOK: Map = %p", stAMMSOK.Ptr);
                     return;
                 }
             default:
@@ -298,7 +298,7 @@ void Player::On_MPK_QUERYLOCATION(const MessagePack &rstMPK)
     stAML.Y         = Y();
     stAML.Direction = Direction();
 
-    m_ActorPod->Forward(rstMPK.From(), {MPK_LOCATION, stAML}, rstMPK.ID());
+    m_actorPod->Forward(rstMPK.From(), {MPK_LOCATION, stAML}, rstMPK.ID());
 }
 
 void Player::On_MPK_ATTACK(const MessagePack &rstMPK)
@@ -306,8 +306,8 @@ void Player::On_MPK_ATTACK(const MessagePack &rstMPK)
     AMAttack stAMA;
     std::memcpy(&stAMA, rstMPK.Data(), sizeof(stAMA));
 
-    if(MathFunc::LDistance2(X(), Y(), stAMA.X, stAMA.Y) > 2){
-        switch(UIDFunc::GetUIDType(stAMA.UID)){
+    if(mathf::LDistance2(X(), Y(), stAMA.X, stAMA.Y) > 2){
+        switch(uidf::getUIDType(stAMA.UID)){
             case UID_MON:
             case UID_PLY:
                 {
@@ -315,7 +315,7 @@ void Player::On_MPK_ATTACK(const MessagePack &rstMPK)
                     std::memset(&stAMM, 0, sizeof(stAMM));
 
                     stAMM.UID = stAMA.UID;
-                    m_ActorPod->Forward(stAMA.UID, {MPK_MISS, stAMM});
+                    m_actorPod->Forward(stAMA.UID, {MPK_MISS, stAMM});
                     return;
                 }
             default:
@@ -385,7 +385,7 @@ void Player::On_MPK_MISS(const MessagePack &rstMPK)
     std::memset(&stSMM, 0, sizeof(stSMM));
 
     stSMM.UID = stAMM.UID;
-    PostNetMessage(SM_MISS, stSMM);
+    postNetMessage(SM_MISS, stSMM);
 }
 
 void Player::On_MPK_SHOWDROPITEM(const MessagePack &rstMPK)
@@ -412,6 +412,16 @@ void Player::On_MPK_SHOWDROPITEM(const MessagePack &rstMPK)
         }
     }
     g_NetDriver->Post(ChannID(), SM_SHOWDROPITEM, stSMSDI);
+}
+
+void Player::On_MPK_NPCXMLLAYOUT(const MessagePack &msg)
+{
+    const auto xmlLayout = msg.conv<AMNPCXMLLayout>();
+    SMNPCXMLLayout smNPCXMLL;
+
+    std::memset(&smNPCXMLL, 0, sizeof(smNPCXMLL));
+    std::strcpy(smNPCXMLL.xmlLayout, xmlLayout.xmlLayout);
+    postNetMessage(SM_NPCXMLLAYOUT, smNPCXMLL);
 }
 
 void Player::On_MPK_BADCHANNEL(const MessagePack &rstMPK)
@@ -444,7 +454,7 @@ void Player::On_MPK_REMOVEGROUNDITEM(const MessagePack &rstMPK)
     stSMRGI.ID   = stAMRGI.ID;
     stSMRGI.DBID = stAMRGI.DBID;
 
-    PostNetMessage(SM_REMOVEGROUNDITEM, stSMRGI);
+    postNetMessage(SM_REMOVEGROUNDITEM, stSMRGI);
 }
 
 void Player::On_MPK_PICKUPOK(const MessagePack &rstMPK)
@@ -460,7 +470,7 @@ void Player::On_MPK_PICKUPOK(const MessagePack &rstMPK)
     stSMPUOK.ID   = stAMPUOK.ID;
     stSMPUOK.DBID = stAMPUOK.DBID;
 
-    PostNetMessage(SM_PICKUPOK, stSMPUOK);
+    postNetMessage(SM_PICKUPOK, stSMPUOK);
 
     switch(stAMPUOK.ID){
         case DBCOM_ITEMID(u8"金币"):
@@ -525,7 +535,7 @@ void Player::On_MPK_CORECORD(const MessagePack &rstMPK)
             }
     }
 
-    PostNetMessage(SM_CORECORD, stSMCOR);
+    postNetMessage(SM_CORECORD, stSMCOR);
 }
 
 void Player::On_MPK_NOTIFYDEAD(const MessagePack &)
@@ -535,5 +545,5 @@ void Player::On_MPK_NOTIFYDEAD(const MessagePack &)
 void Player::On_MPK_CHECKMASTER(const MessagePack &rstMPK)
 {
     m_slaveList.insert(rstMPK.From());
-    m_ActorPod->Forward(rstMPK.From(), MPK_OK, rstMPK.ID());
+    m_actorPod->Forward(rstMPK.From(), MPK_OK, rstMPK.ID());
 }

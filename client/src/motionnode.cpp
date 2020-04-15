@@ -19,17 +19,17 @@
 #include "log.hpp"
 #include "motionnode.hpp"
 
-void MotionNode::Print()
+void MotionNode::print()
 {
     extern Log *g_Log;
-    g_Log->AddLog(LOGTYPE_INFO, "MotionNode::0X%0*" PRIXPTR "::Motion      = %s", (int)(2 * sizeof(this)), (uintptr_t)(this), MotionNode::name(Motion));
-    g_Log->AddLog(LOGTYPE_INFO, "MotionNode::0X%0*" PRIXPTR "::MotionParam = %d", (int)(2 * sizeof(this)), (uintptr_t)(this), MotionParam            );
-    g_Log->AddLog(LOGTYPE_INFO, "MotionNode::0X%0*" PRIXPTR "::Direction   = %d", (int)(2 * sizeof(this)), (uintptr_t)(this), Direction              );
-    g_Log->AddLog(LOGTYPE_INFO, "MotionNode::0X%0*" PRIXPTR "::Speed       = %d", (int)(2 * sizeof(this)), (uintptr_t)(this), Speed                  );
-    g_Log->AddLog(LOGTYPE_INFO, "MotionNode::0X%0*" PRIXPTR "::X           = %d", (int)(2 * sizeof(this)), (uintptr_t)(this), X                      );
-    g_Log->AddLog(LOGTYPE_INFO, "MotionNode::0X%0*" PRIXPTR "::Y           = %d", (int)(2 * sizeof(this)), (uintptr_t)(this), Y                      );
-    g_Log->AddLog(LOGTYPE_INFO, "MotionNode::0X%0*" PRIXPTR "::EndX        = %d", (int)(2 * sizeof(this)), (uintptr_t)(this), EndX                   );
-    g_Log->AddLog(LOGTYPE_INFO, "MotionNode::0X%0*" PRIXPTR "::EndY        = %d", (int)(2 * sizeof(this)), (uintptr_t)(this), EndY                   );
-    g_Log->AddLog(LOGTYPE_INFO, "MotionNode::0X%0*" PRIXPTR "::Frame       = %d", (int)(2 * sizeof(this)), (uintptr_t)(this), Frame                  );
-    g_Log->AddLog(LOGTYPE_INFO, "MotionNode::0X%0*" PRIXPTR "::FadeOut     = %d", (int)(2 * sizeof(this)), (uintptr_t)(this), FadeOut                );
+    g_Log->addLog(LOGTYPE_INFO, "MotionNode::0X%0*" PRIXPTR "::motion      = %s", (int)(2 * sizeof(this)), (uintptr_t)(this), MotionNode::name(motion));
+    g_Log->addLog(LOGTYPE_INFO, "MotionNode::0X%0*" PRIXPTR "::motionParam = %d", (int)(2 * sizeof(this)), (uintptr_t)(this), motionParam            );
+    g_Log->addLog(LOGTYPE_INFO, "MotionNode::0X%0*" PRIXPTR "::direction   = %d", (int)(2 * sizeof(this)), (uintptr_t)(this), direction              );
+    g_Log->addLog(LOGTYPE_INFO, "MotionNode::0X%0*" PRIXPTR "::speed       = %d", (int)(2 * sizeof(this)), (uintptr_t)(this), speed                  );
+    g_Log->addLog(LOGTYPE_INFO, "MotionNode::0X%0*" PRIXPTR "::x           = %d", (int)(2 * sizeof(this)), (uintptr_t)(this), x                      );
+    g_Log->addLog(LOGTYPE_INFO, "MotionNode::0X%0*" PRIXPTR "::y           = %d", (int)(2 * sizeof(this)), (uintptr_t)(this), y                      );
+    g_Log->addLog(LOGTYPE_INFO, "MotionNode::0X%0*" PRIXPTR "::endX        = %d", (int)(2 * sizeof(this)), (uintptr_t)(this), endX                   );
+    g_Log->addLog(LOGTYPE_INFO, "MotionNode::0X%0*" PRIXPTR "::endY        = %d", (int)(2 * sizeof(this)), (uintptr_t)(this), endY                   );
+    g_Log->addLog(LOGTYPE_INFO, "MotionNode::0X%0*" PRIXPTR "::frame       = %d", (int)(2 * sizeof(this)), (uintptr_t)(this), frame                  );
+    g_Log->addLog(LOGTYPE_INFO, "MotionNode::0X%0*" PRIXPTR "::fadeOut     = %d", (int)(2 * sizeof(this)), (uintptr_t)(this), fadeOut                );
 }

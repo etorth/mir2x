@@ -18,11 +18,11 @@
 
 #pragma once
 #include <functional>
-#include "colorfunc.hpp"
+#include "colorf.hpp"
 #include "inputboard.hpp"
 #include "xmltypeset.hpp"
 
-class inputLine: public widget
+class InputLine: public Widget
 {
     protected:
         XMLTypeset m_tpset;
@@ -44,7 +44,7 @@ class inputLine: public widget
         std::function<void()> m_returnCB;
 
     public:
-        inputLine(
+        InputLine(
                 int      x,
                 int      y,
                 int      w,
@@ -53,16 +53,16 @@ class inputLine: public widget
                 uint8_t  font      =  0,
                 uint8_t  fontSize  = 10,
                 uint8_t  fontStyle =  0,
-                uint32_t fontColor =  ColorFunc::WHITE,
+                uint32_t fontColor =  colorf::WHITE,
 
                 int      cursorWidth = 2,
-                uint32_t cursorColor = ColorFunc::WHITE,
+                uint32_t cursorColor = colorf::WHITE,
 
                 std::function<void()>  fnOnTab    = [](){},
                 std::function<void()>  fnOnReturn = [](){},
-                widget                *parent     = nullptr,
+                Widget                *parent     = nullptr,
                 bool                   autoDelete = false)
-            : widget(x, y, w, h, parent, autoDelete)
+            : Widget(x, y, w, h, parent, autoDelete)
             , m_tpset
               {
                   0,
@@ -86,7 +86,7 @@ class inputLine: public widget
         void drawEx(int, int, int, int, int, int) override;
 
     public:
-        void Update(double ms) override
+        void update(double ms) override
         {
             m_cursorBlink += ms;
         }

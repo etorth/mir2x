@@ -21,7 +21,8 @@
 #include <cerrno>
 #include <cstring>
 #include <type_traits>
-#include "strfunc.hpp"
+#include "strf.hpp"
+#include "fflerror.hpp"
 
 inline auto make_fileptr(const char *path, const char *mode)
 {
@@ -40,7 +41,12 @@ inline auto make_fileptr(const char *path, const char *mode)
         // avoid pass standard lib's function pointer
         return std::unique_ptr<std::FILE, decltype(fileptr_deleter)>(fp, fileptr_deleter);
     }
-    throw std::runtime_error(str_printf("in make_fileptr(\"%s\", \"%s\"): %s", path ? path : "(null)", mode ? mode : "(null)", std::strerror(errno)));
+
+    auto fnSafeStr = [](const char *str) -> const char *
+    {
+        return str ? str : "(null)";
+    };
+    throw fflerror("failed to open file: [%p]%s, mode: [%p]%s: %s", path, fnSafeStr(path), mode, fnSafeStr(path), std::strerror(errno));
 }
 
 // define a standalone type of fileptr

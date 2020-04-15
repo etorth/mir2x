@@ -18,7 +18,7 @@
  * =====================================================================================
  */
 
-#include "savepng.hpp"
+#include "pngf.hpp"
 #include "filesys.hpp"
 #include "hexstr.hpp"
 #include "imagecache.hpp"
@@ -90,6 +90,6 @@ bool ImageCache::Register(uint8_t nFileIndex, uint16_t nImageIndex, const uint32
     std::memset(szHexStr, 0, sizeof(szHexStr));
     hexstr::to_string<uint32_t, 4>(nKey, szHexStr, true);
     std::string szPNGFullName = m_Path + "/CACHE/" + szHexStr + ".PNG";
-    return SaveRGBABufferToPNG((uint8_t *)pBuff, nW, nH, szPNGFullName.c_str())
+    return pngf::saveRGBABuffer((uint8_t *)pBuff, nW, nH, szPNGFullName.c_str())
         && Retrieve(nFileIndex, nImageIndex) != nullptr;
 }

@@ -19,6 +19,7 @@
 #pragma once
 #include <cstddef>
 #include <cstdint>
+#include <type_traits>
 #include <unordered_map>
 #include "msgbase.hpp"
 
@@ -33,6 +34,7 @@ enum CMType: uint8_t
     CM_ACTION,
     CM_QUERYMONSTERGINFO,
     CM_QUERYCORECORD,
+    CM_NPCEVENT,
 
     CM_REQUESTKILLPETS,
     CM_REQUESTSPACEMOVE,
@@ -104,23 +106,29 @@ struct CMAccount
     char ID[64];
     char Password[128];
 };
+
+struct CMNPCEvent
+{
+    uint64_t uid;
+    int eventID;
+};
 #pragma pack(pop)
 
 // I was using class name ClientMessage
 // unfortunately this name has been taken by Xlib
 // and ClientMessage seems like a real message but actually this class only give general information
 
-class clientMsg final: public msgBase
+class ClientMsg final: public MsgBase
 {
     public:
-        clientMsg(uint8_t headCode)
-            : msgBase(headCode)
+        ClientMsg(uint8_t headCode)
+            : MsgBase(headCode)
         {}
 
     private:
-        const msgAttribute &getAttribute(uint8_t headCode) const override
+        const MsgAttribute &getAttribute(uint8_t headCode) const override
         {
-            static const std::unordered_map<uint8_t, msgAttribute> s_msgAttributeTable
+            static const std::unordered_map<uint8_t, MsgAttribute> s_msgAttributeTable
             {
                 //  0    :     empty
                 //  1    : not empty,     fixed size,     compressed
@@ -138,11 +146,34 @@ class clientMsg final: public msgBase
                 {CM_PICKUP,           {1, sizeof(CMPickUp),          "CM_PICKUP"          }},
                 {CM_QUERYGOLD,        {0, 0,                         "CM_QUERYGOLD"       }},
                 {CM_ACCOUNT,          {1, sizeof(CMAccount),         "CM_ACCOUNT"         }},
+                {CM_NPCEVENT,         {1, sizeof(CMNPCEvent),        "CM_NPCEVENT"        }},
             };
 
             if(const auto p = s_msgAttributeTable.find(headCode); p != s_msgAttributeTable.end()){
                 return p->second;
             }
             return s_msgAttributeTable.at(CM_NONE_0);
+        }
+
+    public:
+        template<typename T> static T conv(const uint8_t *buf, size_t bufLen = 0)
+        {
+            static_assert(false
+                    || std::is_same_v<T, CMPing>
+                    || std::is_same_v<T, CMLogin>
+                    || std::is_same_v<T, CMAction>
+                    || std::is_same_v<T, CMQueryCORecord>
+                    || std::is_same_v<T, CMReqestSpaceMove>
+                    || std::is_same_v<T, CMPickUp>
+                    || std::is_same_v<T, CMAccount>
+                    || std::is_same_v<T, CMNPCEvent>);
+
+            if(bufLen && bufLen != sizeof(T)){
+                throw fflerror("invalid buffer length");
+            }
+
+            T t;
+            std::memcpy(&t, buf, sizeof(t));
+            return t;
         }
 };

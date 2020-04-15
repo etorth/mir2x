@@ -59,6 +59,7 @@ constexpr int SYS_MAXTARGET = 8;
 constexpr int SYS_MAXACTOR  = 65521;
 
 constexpr uint32_t SYS_TEXNIL = 0XFFFFFFFF;
+constexpr int SYS_MAXNPCDISTANCE = 10;
 
 constexpr uint32_t SYS_NEEDEXP[]
 {

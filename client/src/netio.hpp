@@ -25,11 +25,9 @@
  */
 
 #pragma once
-
 #include <asio.hpp>
 #include <queue>
 #include <functional>
-
 #include "memorychunkpn.hpp"
 
 class NetIO final
@@ -37,23 +35,16 @@ class NetIO final
     private:
         struct SendPack
         {
-            uint8_t  HC;
-
-            const uint8_t *Data;        // buffer from internal pool
-            size_t         DataLen;     // data size rather the buffer capacity
-
-            std::function<void()> OnDone;
-
-            // constructor of SendPack
-            // we don't define the destructor of SendPack
-            // Data will be explicitly released in DoSendNext()
-            SendPack(uint8_t, const uint8_t *, size_t, std::function<void()> &&);
+            uint8_t headCode;
+            const uint8_t *data;        // buffer from internal pool
+            size_t         dataLen;     // data size rather the buffer capacity
+            SendPack(uint8_t, const uint8_t *, size_t);
         };
 
     private:
-        asio::io_service        m_IO;
-        asio::ip::tcp::resolver m_Resolver;
-        asio::ip::tcp::socket   m_Socket;
+        asio::io_service        m_io;
+        asio::ip::tcp::resolver m_resolver;
+        asio::ip::tcp::socket   m_socket;
 
     private:
         uint8_t              m_ReadHC;
@@ -61,81 +52,66 @@ class NetIO final
         std::vector<uint8_t> m_ReadBuf;
 
     private:
-        // Client::InitASIO() provide the completion handler for read messages
-        // the handler will handle a fully received message instead of (HC, Body) seperately
-        std::function<void(uint8_t, const uint8_t *, size_t)> m_OnReadDone;
+        std::function<void(uint8_t, const uint8_t *, size_t)> m_msgHandler;
 
     private:
-        std::queue<SendPack> m_SendQueue;
+        std::queue<SendPack> m_sendQueue;
 
     private:
         MemoryChunkPN<64, 256, 1> m_MemoryPN;
 
     public:
         NetIO();
-       ~NetIO();
 
     public:
-        bool InitIO(const char *, const char *, const std::function<void(uint8_t, const uint8_t *, size_t)> &);
-        void PollIO();
-        void StopIO();
+        ~NetIO();
 
-    private:
-        void Shutdown();
+    public:
+        void start(const char *, const char *, const std::function<void(uint8_t, const uint8_t *, size_t)> &);
+
+    public:
+        void poll()
+        {
+            m_io.poll();
+        }
+
+        void stop()
+        {
+            m_io.post([this]()
+            {
+                shutdown();
+            });
+        }
 
     public:
         // basic function for the send function family
         // caller will provide the send buffer but NetIO will make an internal copy
-        bool Send(uint8_t, const uint8_t *, size_t, std::function<void()>&&);
+        bool send(uint8_t, const uint8_t *, size_t);
 
     public:
-        bool Send(uint8_t nHC)
+        bool send(uint8_t headCode)
         {
-            return Send(nHC, nullptr, 0, std::function<void()>());
+            return send(headCode, nullptr, 0);
         }
 
-        bool Send(uint8_t nHC, std::function<void()> &&fnDone)
+        template<typename T> bool send(uint8_t headCode, const T &stMsg)
         {
-            return Send(nHC, nullptr, 0, std::move(fnDone));
-        }
-
-        bool Send(uint8_t nHC, const std::function<void()> &fnDone)
-        {
-            return Send(nHC, nullptr, 0, std::function<void()>(fnDone));
-        }
-
-        bool Send(uint8_t nHC, const uint8_t *pBuf, size_t nBufLen)
-        {
-            return Send(nHC, pBuf, nBufLen, std::function<void()>());
-        }
-
-        bool Send(uint8_t nHC, const uint8_t *pBuf, size_t nBufLen, const std::function<void()>& fnDone)
-        {
-            return Send(nHC, pBuf, nBufLen, std::function<void()>(fnDone));
-        }
-
-        template<typename T> bool Send(uint8_t nHC, const T &stMsg, std::function<void()> &&fnDone)
-        {
-            static_assert(std::is_pod<T>::value, "pod type required");
-            return Send(nHC, (const uint8_t *)(&stMsg), sizeof(stMsg), std::move(fnDone));
-        }
-
-        template<typename T> bool Send(uint8_t nHC, const T &stMsg, const std::function<void()> &fnDone)
-        {
-            return Send<T>(nHC, stMsg, std::function<void()>(fnDone));
-        }
-
-        template<typename T> bool Send(uint8_t nHC, const T &stMsg)
-        {
-            return Send<T>(nHC, stMsg, std::function<void()>());
+            static_assert(std::is_trivially_copyable<T>::value, "POD type required");
+            return send(headCode, (const uint8_t *)(&stMsg), sizeof(stMsg));
         }
 
     private:
-        void DoSendHC();
-        void DoSendBuf();
-        void DoSendNext();
+        void sendHeadCode();
+        void sendBuf();
+        void sendNext();
 
     private:
-        void DoReadHC();
-        bool DoReadBody(size_t, size_t);
+        void readHeadCode();
+        bool readBody(size_t, size_t);
+
+    private:
+        void shutdown()
+        {
+            m_io.stop();
+        }
 };

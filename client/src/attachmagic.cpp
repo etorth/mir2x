@@ -37,7 +37,7 @@ AttachMagic::AttachMagic(int nMagicID, int nMagicParam, int nMagicStage, double 
                 }
             default:
                 {
-                    g_Log->AddLog(LOGTYPE_FATAL, "Invalid GfxEntry::Type to AttachMagic");
+                    g_Log->addLog(LOGTYPE_FATAL, "Invalid GfxEntry::Type to AttachMagic");
                     m_CacheEntry->Print();
                     break;
                 }

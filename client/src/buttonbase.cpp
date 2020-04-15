@@ -20,7 +20,7 @@
 #include "sdldevice.hpp"
 #include "buttonbase.hpp"
 
-bool buttonBase::processEvent(const SDL_Event &event, bool valid)
+bool ButtonBase::processEvent(const SDL_Event &event, bool valid)
 {
     if(!valid){
         m_state = BUTTON_OFF;

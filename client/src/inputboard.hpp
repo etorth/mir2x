@@ -26,7 +26,7 @@
 #include "tokenbox.hpp"
 #include "tokenboard.hpp"
 
-class InputBoard: public widget
+class InputBoard: public Widget
 {
     protected:
         TokenBoard m_TokenBoard;
@@ -63,9 +63,9 @@ class InputBoard: public widget
                 uint8_t          nDefaultSize    =  10,
                 uint8_t          nDefaultStyle   =  0,
                 const SDL_Color &rstDefaultColor = {0XFF, 0XFF, 0XFF, 0XFF},
-                widget          *pwidget         =  nullptr,
+                Widget          *pwidget         =  nullptr,
                 bool             bFreewidget     =  false)
-            : widget(nX, nY, nW, nH, pwidget, bFreewidget)
+            : Widget(nX, nY, nW, nH, pwidget, bFreewidget)
             , m_TokenBoard(
                     0,
                     0,
@@ -103,7 +103,7 @@ class InputBoard: public widget
         }
 
     public:
-        void Update(double);
+        void update(double) override;
 
     public:
         std::string Print(bool bSelectedOnly)

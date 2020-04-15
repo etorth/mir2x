@@ -29,13 +29,13 @@
 #include "fflerror.hpp"
 #include "msgattribute.hpp"
 
-class msgBase
+class MsgBase
 {
     private:
         const uint8_t m_headCode;
 
     protected:
-        msgBase(uint8_t headCode)
+        MsgBase(uint8_t headCode)
             : m_headCode(headCode)
         {}
 
@@ -64,5 +64,5 @@ class msgBase
         }
 
     private:
-        virtual const msgAttribute &getAttribute(uint8_t) const = 0;
+        virtual const MsgAttribute &getAttribute(uint8_t) const = 0;
 };

@@ -24,11 +24,11 @@
 #include <functional>
 #include <FL/fl_ask.H>
 
-#include "savepng.hpp"
+#include "pngf.hpp"
 #include "filesys.hpp"
 #include "mir2map.hpp"
 #include "sysconst.hpp"
-#include "mathfunc.hpp"
+#include "mathf.hpp"
 #include "editormap.hpp"
 #include "mainwindow.hpp"
 #include "progressbarwindow.hpp"

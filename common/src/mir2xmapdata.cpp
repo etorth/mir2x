@@ -23,8 +23,8 @@
 #include <cstring>
 #include <algorithm>
 
+#include "mathf.hpp"
 #include "sysconst.hpp"
-#include "mathfunc.hpp"
 #include "condcheck.hpp"
 #include "pushstream.hpp"
 #include "mir2xmapdata.hpp"

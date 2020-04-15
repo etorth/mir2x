@@ -80,6 +80,9 @@ enum MessagePackType: int
     MPK_QUERYNAMECOLOR,
     MPK_NAMECOLOR,
     MPK_MASTERKILL,
+    MPK_NPCEVENT,
+    MPK_NPCXMLLAYOUT,
+    MPK_NPCERROR,
     MPK_MAX,
 };
 
@@ -570,4 +573,22 @@ struct AMFriendType
 struct AMNameColor
 {
     int Color;
+};
+
+struct AMNPCEvent
+{
+    int x;
+    int y;
+    uint32_t mapID;
+    uint64_t eventID;
+};
+
+struct AMNPCError
+{
+    int errorID;
+};
+
+struct AMNPCXMLLayout
+{
+    char xmlLayout[512];
 };

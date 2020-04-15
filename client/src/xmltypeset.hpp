@@ -22,7 +22,7 @@
 #include "lalign.hpp"
 #include "xmlfunc.hpp"
 #include "fflerror.hpp"
-#include "colorfunc.hpp"
+#include "colorf.hpp"
 #include "xmlparagraph.hpp"
 
 class XMLTypeset // means XMLParagraph typeset
@@ -76,7 +76,7 @@ class XMLTypeset // means XMLParagraph typeset
                 uint8_t  nDefaultFont      =  0,
                 uint8_t  nDefaultFontSize  = 10,
                 uint8_t  nDefaultFontStyle =  0,
-                uint32_t nDefaultFontColor =  ColorFunc::WHITE + 255,
+                uint32_t nDefaultFontColor =  colorf::WHITE + 255,
                 int      nLineSpace        =  0,
                 int      nWordSpace        =  0)
             : m_MaxLineWidth(nMaxLineWidth)
@@ -439,4 +439,6 @@ class XMLTypeset // means XMLParagraph typeset
         {
             return m_paragraph.getRawString();
         }
+
+        void setLineWidth(int);
 };

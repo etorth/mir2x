@@ -22,7 +22,8 @@
 #include <cinttypes>
 #include <FL/fl_ask.H>
 #include <FL/fl_draw.H>
-#include "mathfunc.hpp"
+#include "mathf.hpp"
+#include "fflerror.hpp"
 #include "sysconst.hpp"
 #include "drawarea.hpp"
 
@@ -57,7 +58,7 @@ void BaseArea::DrawImage(Fl_Image *pImage, int nX, int nY, int nImageX, int nIma
         if(true
                 && nImageW > 0
                 && nImageH > 0
-                && MathFunc::RectangleOverlapRegion<int>(0, 0, pImage->w(), pImage->h(), &nImageX, &nImageY, &nImageW, &nImageH)){
+                && mathf::rectangleOverlapRegion<int>(0, 0, pImage->w(), pImage->h(), &nImageX, &nImageY, &nImageW, &nImageH)){
 
             nX += (nImageX - nOldImageX);
             nY += (nImageY - nOldImageY);
@@ -68,7 +69,7 @@ void BaseArea::DrawImage(Fl_Image *pImage, int nX, int nY, int nImageX, int nIma
             if(true
                     && nImageW > 0
                     && nImageH > 0
-                    && MathFunc::RectangleOverlapRegion<int>(0, 0, w(), h(), &nX, &nY, &nImageW, &nImageH)){
+                    && mathf::rectangleOverlapRegion<int>(0, 0, w(), h(), &nX, &nY, &nImageW, &nImageH)){
 
                 nImageX += (nX - nOldAX);
                 nImageY += (nY - nOldAY);
@@ -156,7 +157,7 @@ void BaseArea::DrawImageCover(Fl_Image *pImage, int nX, int nY, int nW, int nH)
 
             && nW > 0
             && nH > 0
-            && MathFunc::RectangleOverlapRegion(0, 0, w(), h(), &nX, &nY, &nW, &nH)){
+            && mathf::rectangleOverlapRegion(0, 0, w(), h(), &nX, &nY, &nW, &nH)){
 
         // use an image as a cover to repeat
         // should do partically drawing at end of x and y
@@ -219,7 +220,7 @@ void BaseArea::DrawCircle(int nX, int nY, int nR)
         int nCBoxW =  2 * nR - 1;
 
         // draw a full circle
-        if(MathFunc::RectangleInside(0, 0, w(), h(), nCBoxX, nCBoxY, nCBoxW, nCBoxW)){
+        if(mathf::rectangleInside(0, 0, w(), h(), nCBoxX, nCBoxY, nCBoxW, nCBoxW)){
             fl_circle(x() + nX, y() + nY, nR);
             return;
         }
@@ -231,7 +232,7 @@ void BaseArea::DrawCircle(int nX, int nY, int nR)
 
 void BaseArea::DrawLine(int nX0, int nY0, int nX1, int nY1)
 {
-    if(MathFunc::LocateLineSegment(0, 0, w(), h(), &nX0, &nY0, &nX1, &nY1)){
+    if(mathf::locateLineSegment(0, 0, w(), h(), &nX0, &nY0, &nX1, &nY1)){
         fl_line(nX0 + x(), nY0 + y(), nX1 + x(), nY1 + y());
     }
 }
@@ -269,7 +270,9 @@ void BaseArea::PopColor()
     if(m_ColorStack.empty()){
         PushColor(FL_WHITE);
     }else{
-        condcheck(m_ColorStack.back().Count > 0);
+        if(m_ColorStack.back().Count <= 0){
+            throw fflerror("color stack empty");
+        }
         if(m_ColorStack.back().Count == 1){
             m_ColorStack.pop_back();
             if(m_ColorStack.empty()){
@@ -297,7 +300,7 @@ void BaseArea::FillRectangle(int nX, int nY, int nW, int nH, uint32_t nARGB)
     if(true
             && nW > 0
             && nH > 0
-            && MathFunc::RectangleOverlap(0, 0, w(), h(), nX, nY, nW, nH)
+            && mathf::rectangleOverlap(0, 0, w(), h(), nX, nY, nW, nH)
             && ((nARGB & 0XFF000000))){
 
         if(auto pImage = RetrieveImageCover(nARGB)){

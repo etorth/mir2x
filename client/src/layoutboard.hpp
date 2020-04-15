@@ -20,7 +20,7 @@
 #include "widget.hpp"
 #include "xmllayout.hpp"
 
-class layoutBoard: public widget
+class LayoutBoard: public Widget
 {
     private:
         XMLLayout m_layout;
@@ -29,7 +29,7 @@ class layoutBoard: public widget
         bool m_canSelect;
 
     public:
-        layoutBoard(
+        LayoutBoard(
                 // widget paramater
                 int                x,
                 int                y,
@@ -42,13 +42,13 @@ class layoutBoard: public widget
                 uint8_t            font       =  0,
                 uint8_t            fontSize   = 10,
                 uint8_t            fontStyle  =  0,
-                uint32_t           fontColor  =  ColorFunc::WHITE + 255,
+                uint32_t           fontColor  =  colorf::WHITE + 255,
                 int                lineAlign  =  LALIGN_LEFT,
                 int                lineSpace  =  0,
                 int                wordSpace  =  0,
-                widget            *parent     =  nullptr,
+                Widget            *parent     =  nullptr,
                 bool               autoDelete =  false)
-            : widget(x, y, 0, 0, parent, autoDelete)
+            : Widget(x, y, 0, 0, parent, autoDelete)
             , m_layout
               {
                   w,
@@ -78,7 +78,7 @@ class layoutBoard: public widget
         void addParXML(int, const std::array<int, 4> &, const char *);
 
     public:
-        void Update(double ms) override
+        void update(double ms) override
         {
             m_layout.update(ms);
         }
@@ -87,5 +87,10 @@ class layoutBoard: public widget
         int parCount() const
         {
             return m_layout.parCount();
+        }
+
+        void setLineWidth(int width)
+        {
+            m_layout.setLineWidth(width);
         }
 };

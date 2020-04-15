@@ -20,8 +20,8 @@
 #include <algorithm>
 #include <FL/fl_draw.H>
 
-#include "strfunc.hpp"
-#include "uidfunc.hpp"
+#include "strf.hpp"
+#include "uidf.hpp"
 #include "actorpool.hpp"
 #include "actormonitortable.hpp"
 
@@ -97,7 +97,7 @@ std::string ActorMonitorTable::GetGridData(int nRow, int nCol) const
             }
         case 1: // TYPE
             {
-                return UIDFunc::GetUIDTypeString(rstMonitor.UID);
+                return uidf::getUIDTypeString(rstMonitor.UID);
             }
         case 2: // GROUP
             {
@@ -212,7 +212,7 @@ ActorMonitorTable::MonitorDataDiags ActorMonitorTable::GetMonitorDataDiags(const
         stDiags.MaxMessageDone    = (std::max<uint32_t>)(stDiags.MaxMessageDone,    rstMonitor.MessageDone);
         stDiags.MaxMessagePending = (std::max<uint32_t>)(stDiags.MaxMessagePending, rstMonitor.MessagePending);
 
-        ++stDiags.UIDTypeList[UIDFunc::GetUIDType(rstMonitor.UID)];
+        ++stDiags.UIDTypeList[uidf::getUIDType(rstMonitor.UID)];
     }
     return stDiags;
 }
@@ -288,7 +288,7 @@ void ActorMonitorTable::ResetSort()
 
         switch(m_SortByCol){
             case 0 : return fnArgedCompare(lhs.UID, rhs.UID);
-            case 1 : return fnArgedCompare(UIDFunc::GetUIDType(lhs.UID), UIDFunc::GetUIDType(rhs.UID));
+            case 1 : return fnArgedCompare(uidf::getUIDType(lhs.UID), uidf::getUIDType(rhs.UID));
             case 2 : return fnArgedCompare(g_ActorPool->UIDGroup(lhs.UID), g_ActorPool->UIDGroup(rhs.UID));
             case 3 : return fnArgedCompare(lhs.LiveTick, rhs.LiveTick);
             case 4 : return fnArgedCompare(lhs.BusyTick, rhs.BusyTick);

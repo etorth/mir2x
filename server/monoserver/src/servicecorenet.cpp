@@ -33,17 +33,17 @@ void ServiceCore::Net_CM_Login(uint32_t nChannID, uint8_t, const uint8_t *pData,
 
     auto fnOnLoginFail = [nChannID, stCML]()
     {
-        g_MonoServer->AddLog(LOGTYPE_INFO, "Login failed for (%s:%s)", stCML.ID, "******");
+        g_MonoServer->addLog(LOGTYPE_INFO, "Login failed for (%s:%s)", stCML.ID, "******");
 
         g_NetDriver->Post(nChannID, SM_LOGINFAIL);
         g_NetDriver->Shutdown(nChannID, false);
     };
 
-    g_MonoServer->AddLog(LOGTYPE_INFO, "Login requested: (%s:%s)", stCML.ID, "******");
+    g_MonoServer->addLog(LOGTYPE_INFO, "Login requested: (%s:%s)", stCML.ID, "******");
     auto pDBHDR = g_DBPodN->CreateDBHDR();
 
     if(!pDBHDR->QueryResult("select fld_id from tbl_account where fld_account = '%s' and fld_password = '%s'", stCML.ID, stCML.Password)){
-        g_MonoServer->AddLog(LOGTYPE_INFO, "can't find account: (%s:%s)", stCML.ID, "******");
+        g_MonoServer->addLog(LOGTYPE_INFO, "can't find account: (%s:%s)", stCML.ID, "******");
 
         fnOnLoginFail();
         return;
@@ -51,7 +51,7 @@ void ServiceCore::Net_CM_Login(uint32_t nChannID, uint8_t, const uint8_t *pData,
 
     auto nID = pDBHDR->Get<int64_t>("fld_id");
     if(!pDBHDR->QueryResult("select * from tbl_dbid where fld_id = %d", (int)(nID))){
-        g_MonoServer->AddLog(LOGTYPE_INFO, "no dbid created for this account: (%s:%s)", stCML.ID, "******");
+        g_MonoServer->addLog(LOGTYPE_INFO, "no dbid created for this account: (%s:%s)", stCML.ID, "******");
 
         fnOnLoginFail();
         return;
@@ -70,7 +70,7 @@ void ServiceCore::Net_CM_Login(uint32_t nChannID, uint8_t, const uint8_t *pData,
     if(false
             || !pMap
             || !pMap->In(nMapID, nMapX, nMapY)){
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "Invalid db record found: (map, x, y) = (%d, %d, %d)", nMapID, nMapX, nMapY);
+        g_MonoServer->addLog(LOGTYPE_WARNING, "Invalid db record found: (map, x, y) = (%d, %d, %d)", nMapID, nMapX, nMapY);
 
         fnOnLoginFail();
         return;
@@ -88,7 +88,7 @@ void ServiceCore::Net_CM_Login(uint32_t nChannID, uint8_t, const uint8_t *pData,
     stAMACO.Player.Direction = nDirection;
     stAMACO.Player.ChannID   = nChannID;
 
-    m_ActorPod->Forward(pMap->UID(), {MPK_ADDCHAROBJECT, stAMACO}, [this, fnOnLoginFail](const MessagePack &rstRMPK)
+    m_actorPod->Forward(pMap->UID(), {MPK_ADDCHAROBJECT, stAMACO}, [this, fnOnLoginFail](const MessagePack &rstRMPK)
     {
         switch(rstRMPK.Type()){
             case MPK_OK:

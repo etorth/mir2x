@@ -41,6 +41,7 @@ enum SMType: uint8_t
     SM_REMOVEGROUNDITEM,
     SM_PICKUPOK,
     SM_GOLD,
+    SM_NPCXMLLAYOUT,
     SM_MAX,
 };
 
@@ -237,19 +238,24 @@ struct SMGold
     uint32_t Gold;
 };
 
+struct SMNPCXMLLayout
+{
+    char xmlLayout[512];
+};
+
 #pragma pack(pop)
 
-class serverMsg final: public msgBase
+class ServerMsg final: public MsgBase
 {
     public:
-        serverMsg(uint8_t headCode)
-            : msgBase(headCode)
+        ServerMsg(uint8_t headCode)
+            : MsgBase(headCode)
         {}
 
     private:
-        const msgAttribute &getAttribute(uint8_t headCode) const override
+        const MsgAttribute &getAttribute(uint8_t headCode) const override
         {
-            static const std::unordered_map<uint8_t, msgAttribute> s_msgAttributeTable
+            static const std::unordered_map<uint8_t, MsgAttribute> s_msgAttributeTable
             {
                 //  0    :     empty
                 //  1    : not empty,     fixed size,     compressed
@@ -280,5 +286,37 @@ class serverMsg final: public msgBase
                 return p->second;
             }
             return s_msgAttributeTable.at(SM_NONE_0);
+        }
+
+    public:
+        template<typename T> static T conv(const uint8_t *buf, size_t bufLen = 0)
+        {
+            static_assert(false
+                    || std::is_same_v<T, SMPing>
+                    || std::is_same_v<T, SMAccount>
+                    || std::is_same_v<T, SMLoginOK>
+                    || std::is_same_v<T, SMLoginFail>
+                    || std::is_same_v<T, SMAction>
+                    || std::is_same_v<T, SMCORecord>
+                    || std::is_same_v<T, SMUpdateHP>
+                    || std::is_same_v<T, SMDeadFadeOut>
+                    || std::is_same_v<T, SMNotifyDead>
+                    || std::is_same_v<T, SMExp>
+                    || std::is_same_v<T, SMMiss>
+                    || std::is_same_v<T, SMShowDropItem>
+                    || std::is_same_v<T, SMFireMagic>
+                    || std::is_same_v<T, SMOffline>
+                    || std::is_same_v<T, SMRemoveGroundItem>
+                    || std::is_same_v<T, SMPickUpOK>
+                    || std::is_same_v<T, SMGold>
+                    || std::is_same_v<T, SMNPCXMLLayout>);
+
+            if(bufLen && bufLen != sizeof(T)){
+                throw fflerror("invalid buffer length");
+            }
+
+            T t;
+            std::memcpy(&t, buf, sizeof(t));
+            return t;
         }
 };

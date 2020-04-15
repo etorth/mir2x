@@ -32,7 +32,7 @@
 
 #include "fsa.h"
 #include "stlastar.h"
-#include "strfunc.hpp"
+#include "strf.hpp"
 #include "condcheck.hpp"
 #include "protocoldef.hpp"
 

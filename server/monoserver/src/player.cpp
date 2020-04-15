@@ -18,9 +18,8 @@
 #include <cinttypes>
 #include "dbpod.hpp"
 #include "player.hpp"
-#include "uidfunc.hpp"
+#include "uidf.hpp"
 #include "dbcomid.hpp"
-#include "threadpn.hpp"
 #include "memorypn.hpp"
 #include "sysconst.hpp"
 #include "netdriver.hpp"
@@ -39,7 +38,7 @@ Player::Player(uint32_t nDBID,
         int             nMapX,
         int             nMapY,
         int             nDirection)
-    : CharObject(pServiceCore, pServerMap, UIDFunc::GetPlayerUID(nDBID), nMapX, nMapY, nDirection)
+    : CharObject(pServiceCore, pServerMap, uidf::getPlayerUID(nDBID), nMapX, nMapY, nDirection)
     , m_DBID(nDBID)
     , m_JobID(0)        // will provide after bind
     , m_ChannID(0)    // provide by bind
@@ -55,9 +54,9 @@ Player::Player(uint32_t nDBID,
 
     m_StateHook.Install("RecoverHealth", [this, nLastTime = (uint32_t)(0)]() mutable -> bool
     {
-        if(g_MonoServer->GetTimeTick() >= (nLastTime + 1000)){
+        if(g_MonoServer->getCurrTick() >= (nLastTime + 1000)){
             RecoverHealth();
-            nLastTime = g_MonoServer->GetTimeTick();
+            nLastTime = g_MonoServer->getCurrTick();
         }
         return false;
     });
@@ -188,7 +187,7 @@ void Player::OperateAM(const MessagePack &rstMPK)
             }
         default:
             {
-                g_MonoServer->AddLog(LOGTYPE_WARNING, "Unsupported message: %s", rstMPK.Name());
+                g_MonoServer->addLog(LOGTYPE_WARNING, "Unsupported message: %s", rstMPK.Name());
                 break;
             }
     }
@@ -250,7 +249,7 @@ void Player::ReportCORecord(uint64_t nUID)
 
     // don't reply to server map
     // even get co information pull request from map
-    m_ActorPod->Forward(nUID, {MPK_CORECORD, stAMCOR});
+    m_actorPod->Forward(nUID, {MPK_CORECORD, stAMCOR});
 }
 
 void Player::ReportStand()
@@ -292,7 +291,7 @@ void Player::ReportDeadUID(uint64_t nDeadUID)
     std::memset(&stSMND, 0, sizeof(stSMND));
 
     stSMND.UID = nDeadUID;
-    PostNetMessage(SM_NOTIFYDEAD, stSMND);
+    postNetMessage(SM_NOTIFYDEAD, stSMND);
 }
 
 void Player::ReportHealth()
@@ -305,7 +304,7 @@ void Player::ReportHealth()
     stSMUHP.HP    = HP();
     stSMUHP.HPMax = HPMax();
 
-    PostNetMessage(SM_UPDATEHP, stSMUHP);
+    postNetMessage(SM_UPDATEHP, stSMUHP);
 }
 
 bool Player::InRange(int nRangeType, int nX, int nY)
@@ -317,11 +316,11 @@ bool Player::InRange(int nRangeType, int nX, int nY)
     switch(nRangeType){
         case RANGE_VISIBLE:
             {
-                return MathFunc::LDistance2(X(), Y(), nX, nY) < 20 * 20;
+                return mathf::LDistance2(X(), Y(), nX, nY) < 20 * 20;
             }
         case RANGE_ATTACK:
             {
-                return MathFunc::LDistance2(X(), Y(), nX, nY) < 10 * 10;
+                return mathf::LDistance2(X(), Y(), nX, nY) < 10 * 10;
             }
         default:
             {
@@ -383,7 +382,7 @@ bool Player::GoGhost()
                                     && ActorPodValid()
                                     && m_Map
                                     && m_Map->ActorPodValid()){
-                                m_ActorPod->Forward(m_Map->UID(), {MPK_DEADFADEOUT, stAMDFO});
+                                m_actorPod->Forward(m_Map->UID(), {MPK_DEADFADEOUT, stAMDFO});
                             }
 
                             // 2. deactivate the actor here
@@ -391,8 +390,8 @@ bool Player::GoGhost()
                             //    then current *this* can't be refered by any actor threads after this invocation
                             //    then MonoServer::EraseUID() is safe to delete *this*
                             //
-                            //    don't do delete m_ActorPod to disable the actor
-                            //    since currently we are in the actor thread which accquired by m_ActorPod
+                            //    don't do delete m_actorPod to disable the actor
+                            //    since currently we are in the actor thread which accquired by m_actorPod
                             Deactivate();
                             return true;
                         }
@@ -474,11 +473,11 @@ void Player::DispatchOffline()
         stAMO.X     = X();
         stAMO.Y     = Y();
 
-        m_ActorPod->Forward(m_Map->UID(), {MPK_OFFLINE, stAMO});
+        m_actorPod->Forward(m_Map->UID(), {MPK_OFFLINE, stAMO});
         return;
     }
 
-    g_MonoServer->AddLog(LOGTYPE_WARNING, "Can't dispatch offline event");
+    g_MonoServer->addLog(LOGTYPE_WARNING, "Can't dispatch offline event");
 }
 
 void Player::ReportOffline(uint64_t nUID, uint32_t nMapID)
@@ -505,7 +504,7 @@ bool Player::Offline()
     return true;
 }
 
-bool Player::PostNetMessage(uint8_t nHC, const uint8_t *pData, size_t nDataLen)
+bool Player::postNetMessage(uint8_t nHC, const uint8_t *pData, size_t nDataLen)
 {
     if(ChannID()){
         return g_NetDriver->Post(ChannID(), nHC, pData, nDataLen);
@@ -615,7 +614,7 @@ void Player::OnCMActionAttack(CMAction stCMA)
                         switch(EstimateHop(nX0, nY0)){
                             case 0:
                                 {
-                                    switch(MathFunc::LDistance2(nX0, nY0, rstLocation.X, rstLocation.Y)){
+                                    switch(mathf::LDistance2(nX0, nY0, rstLocation.X, rstLocation.Y)){
                                         case 1:
                                         case 2:
                                             {
@@ -750,7 +749,7 @@ void Player::OnCMActionPickUp(CMAction stCMA)
                 stAMPU.ID   = stCMA.ActionParam;
                 stAMPU.DBID = 0;
 
-                m_ActorPod->Forward(m_Map->UID(), {MPK_PICKUP, stAMPU});
+                m_actorPod->Forward(m_Map->UID(), {MPK_PICKUP, stAMPU});
                 return;
             }
         case 1:
@@ -855,7 +854,7 @@ void Player::PullRectCO(int nW, int nH)
         stAMPCOI.H     = nH;
         stAMPCOI.UID   = UID();
         stAMPCOI.MapID = m_Map->ID();
-        m_ActorPod->Forward(m_Map->UID(), {MPK_PULLCOINFO, stAMPCOI});
+        m_actorPod->Forward(m_Map->UID(), {MPK_PULLCOINFO, stAMPCOI});
     }
 }
 
@@ -888,7 +887,7 @@ bool Player::DBUpdate(const char *szTableName, const char *szFieldList, ...)
     }
 
     if(!szExceptionStr.empty()){
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "%s", szExceptionStr.c_str());
+        g_MonoServer->addLog(LOGTYPE_WARNING, "%s", szExceptionStr.c_str());
         return false;
     }
 
@@ -904,7 +903,7 @@ bool Player::DBAccess(const char *szTableName, const char *szFieldName, std::fun
 
         auto pDBHDR = g_DBPodN->CreateDBHDR();
         if(!pDBHDR->QueryResult("select %s from %s where fld_dbid = %" PRIu32, szFieldName, szTableName, DBID())){
-            g_MonoServer->AddLog(LOGTYPE_INFO, "No dbid created for this player: DBID = %" PRIu32, DBID());
+            g_MonoServer->addLog(LOGTYPE_INFO, "No dbid created for this player: DBID = %" PRIu32, DBID());
             return false;
         }
 
@@ -938,7 +937,7 @@ void Player::ReportGold()
     std::memset(&stSMG, 0, sizeof(stSMG));
 
     stSMG.Gold = Gold();
-    PostNetMessage(SM_GOLD, stSMG);
+    postNetMessage(SM_GOLD, stSMG);
 }
 
 void Player::CheckFriendType(uint64_t nUID, std::function<void(int)> fnOp)
@@ -947,7 +946,7 @@ void Player::CheckFriendType(uint64_t nUID, std::function<void(int)> fnOp)
         throw std::invalid_argument(str_fflprintf(": Invalid zero UID"));
     }
 
-    switch(UIDFunc::GetUIDType(nUID)){
+    switch(uidf::getUIDType(nUID)){
         case UID_PLY:
             {
                 fnOp(IsOffender(nUID) ? FT_ENEMY : FT_NEUTRAL);
@@ -955,14 +954,14 @@ void Player::CheckFriendType(uint64_t nUID, std::function<void(int)> fnOp)
             }
         case UID_MON:
             {
-                if(!DBCOM_MONSTERRECORD(UIDFunc::GetMonsterID(nUID)).Tamable){
+                if(!DBCOM_MONSTERRECORD(uidf::getMonsterID(nUID)).Tamable){
                     fnOp(FT_ENEMY);
                     return;
                 }
 
                 QueryFinalMaster(nUID, [this, nUID, fnOp](uint64_t nFMasterUID)
                 {
-                    switch(UIDFunc::GetUIDType(nFMasterUID)){
+                    switch(uidf::getUIDType(nFMasterUID)){
                         case UID_PLY:
                             {
                                 fnOp(IsOffender(nUID) ? FT_ENEMY : FT_NEUTRAL);
@@ -975,7 +974,7 @@ void Player::CheckFriendType(uint64_t nUID, std::function<void(int)> fnOp)
                             }
                         default:
                             {
-                                throw std::runtime_error(str_fflprintf(": Final master is not PLY nor MON"));
+                                throw fflerror("final master is not PLY nor MON");
                             }
                     }
                 });
@@ -983,7 +982,7 @@ void Player::CheckFriendType(uint64_t nUID, std::function<void(int)> fnOp)
             }
         default:
             {
-                throw std::invalid_argument(str_fflprintf(": Checking friend type for: %s", UIDFunc::GetUIDTypeString(nUID)));
+                throw fflerror("checking friend type for: %s", uidf::getUIDTypeString(nUID));
             }
     }
 }
@@ -991,7 +990,7 @@ void Player::CheckFriendType(uint64_t nUID, std::function<void(int)> fnOp)
 void Player::RequestKillPets()
 {
     for(auto uid: m_slaveList){
-        m_ActorPod->Forward(uid, {MPK_MASTERKILL});
+        m_actorPod->Forward(uid, {MPK_MASTERKILL});
     }
     m_slaveList.clear();
 }

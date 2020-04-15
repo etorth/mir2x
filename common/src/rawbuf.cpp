@@ -24,7 +24,7 @@
 
 #include "zstd.h"
 #include "rawbuf.hpp"
-#include "strfunc.hpp"
+#include "strf.hpp"
 #include "fileptr.hpp"
 
 Rawbuf::Rawbuf(std::initializer_list<uint8_t> stInitList)

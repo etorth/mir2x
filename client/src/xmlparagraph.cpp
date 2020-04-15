@@ -23,7 +23,7 @@
 
 #include "log.hpp"
 #include "bevent.hpp"
-#include "strfunc.hpp"
+#include "strf.hpp"
 #include "xmlfunc.hpp"
 #include "utf8func.hpp"
 #include "xmlparagraph.hpp"

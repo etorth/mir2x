@@ -58,7 +58,7 @@ void Player::Net_CM_QUERYCORECORD(uint8_t, const uint8_t *pBuf, size_t)
         // send the query without response requirement
 
         stAMQCOR.UID = UID();
-        if(!m_ActorPod->Forward(stCMQCOR.AimUID, {MPK_QUERYCORECORD, stAMQCOR})){
+        if(!m_actorPod->Forward(stCMQCOR.AimUID, {MPK_QUERYCORECORD, stAMQCOR})){
             ReportDeadUID(stCMQCOR.AimUID);
         }
     }
@@ -87,7 +87,7 @@ void Player::Net_CM_PICKUP(uint8_t, const uint8_t *pBuf, size_t)
             stAMPU.UID  = pCM->UID;
             stAMPU.ID   = pCM->ID;
             stAMPU.DBID = pCM->DBID;
-            m_ActorPod->Forward(m_Map->UID(), {MPK_PICKUP, stAMPU});
+            m_actorPod->Forward(m_Map->UID(), {MPK_PICKUP, stAMPU});
         }
     }
 }
@@ -95,4 +95,14 @@ void Player::Net_CM_PICKUP(uint8_t, const uint8_t *pBuf, size_t)
 void Player::Net_CM_QUERYGOLD(uint8_t, const uint8_t *, size_t)
 {
     ReportGold();
+}
+
+void Player::Net_CM_NPCEVENT(uint8_t, const uint8_t *buf, size_t bufLen)
+{
+    const auto event = ClientMsg::conv<CMNPCEvent>(buf, bufLen);
+    AMNPCEvent amNPCEvent;
+
+    std::memset(&amNPCEvent, 0, sizeof(amNPCEvent));
+    amNPCEvent.eventID = event.eventID;
+    m_actorPod->Forward(event.uid, {MPK_NPCEVENT, amNPCEvent});
 }

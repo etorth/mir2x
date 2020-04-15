@@ -19,7 +19,7 @@
 #include "fflerror.hpp"
 #include "layoutboard.hpp"
 
-void layoutBoard::loadXML(const char *xmlString)
+void LayoutBoard::loadXML(const char *xmlString)
 {
     if(!xmlString){
         throw fflerror("null xmlString");
@@ -30,7 +30,7 @@ void layoutBoard::loadXML(const char *xmlString)
     m_h = m_layout.H();
 }
 
-void layoutBoard::addParXML(int loc, const std::array<int, 4> &margin, const char *xmlString)
+void LayoutBoard::addParXML(int loc, const std::array<int, 4> &margin, const char *xmlString)
 {
     tinyxml2::XMLDocument xmlDoc;
     if(xmlDoc.Parse(xmlString) != tinyxml2::XML_SUCCESS){

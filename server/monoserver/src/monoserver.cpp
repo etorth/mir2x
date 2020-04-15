@@ -31,7 +31,6 @@
 #include "message.hpp"
 #include "monster.hpp"
 #include "database.hpp"
-#include "threadpn.hpp"
 #include "mapbindb.hpp"
 #include "fflerror.hpp"
 #include "actorpool.hpp"
@@ -59,10 +58,10 @@ MonoServer::MonoServer()
     , m_LogBuf()
     , m_ServiceCore(nullptr)
     , m_CurrException()
-    , m_HRTimer()
+    , m_hrtimer()
 {}
 
-void MonoServer::AddLog(const std::array<std::string, 4> &stLogDesc, const char *szLogFormat, ...)
+void MonoServer::addLog(const std::array<std::string, 4> &stLogDesc, const char *szLogFormat, ...)
 {
     std::string szLog;
     bool bError = false;
@@ -74,7 +73,7 @@ void MonoServer::AddLog(const std::array<std::string, 4> &stLogDesc, const char 
             szLog = str_vprintf(szLogFormat, ap);
         }catch(const std::exception &e){
             bError = true;
-            szLog = str_printf("Exception caught in MonoServer::AddLog(\"%s\", ...): %s", szLogFormat, e.what());
+            szLog = str_printf("Exception caught in MonoServer::addLog(\"%s\", ...): %s", szLogFormat, e.what());
         }
 
         va_end(ap);
@@ -85,7 +84,7 @@ void MonoServer::AddLog(const std::array<std::string, 4> &stLogDesc, const char 
     switch(nLogType){
         case Log::LOGTYPEV_DEBUG:
             {
-                g_Log->AddLog(stLogDesc, "%s", szLog.c_str());
+                g_Log->addLog(stLogDesc, "%s", szLog.c_str());
                 return;
             }
         default:
@@ -99,13 +98,13 @@ void MonoServer::AddLog(const std::array<std::string, 4> &stLogDesc, const char 
                 }
                 NotifyGUI("FlushBrowser");
 
-                g_Log->AddLog(stLogDesc, "%s", szLog.c_str());
+                g_Log->addLog(stLogDesc, "%s", szLog.c_str());
                 return;
             }
     }
 }
 
-void MonoServer::AddCWLog(uint32_t nCWID, int nLogType, const char *szPrompt, const char *szLogFormat, ...)
+void MonoServer::addCWLog(uint32_t nCWID, int nLogType, const char *szPrompt, const char *szLogFormat, ...)
 {
     auto fnCWRecordLog = [this](uint32_t nCWID, int nLogType, const char *szPrompt, const char *szLogMsg){
         if(true
@@ -139,14 +138,14 @@ void MonoServer::AddCWLog(uint32_t nCWID, int nLogType, const char *szPrompt, co
             szLog = str_vprintf(szLogFormat, ap);
         }catch(const std::exception &e){
             bError = true;
-            szLog = str_printf("Exception caught in MonoServer::AddCWLog(CWID = %" PRIu32 ", \"%s\", ...): %s", nCWID, szLogFormat, e.what());
+            szLog = str_printf("Exception caught in MonoServer::addCWLog(CWID = %" PRIu32 ", \"%s\", ...): %s", nCWID, szLogFormat, e.what());
         }
 
         va_end(ap);
     }
 
     if(bError){
-        AddLog(LOGTYPE_WARNING, "%s", szLog.c_str());
+        addLog(LOGTYPE_WARNING, "%s", szLog.c_str());
     }
 
     if(bError){
@@ -201,7 +200,7 @@ void MonoServer::CreateDefaultDatabase()
         for(size_t nIndex = 0; nIndex < std::extent<decltype(szSQLCmdList)>::value; ++nIndex){
             pDBHDR->QueryResult(szSQLCmdList[nIndex]);
         }
-        AddLog(LOGTYPE_INFO, "Create default sqlite3 database done");
+        addLog(LOGTYPE_INFO, "Create default sqlite3 database done");
     }
 }
 
@@ -214,14 +213,14 @@ void MonoServer::CreateDBConnection()
                 g_DatabaseConfigureWindow->Password(),
                 g_DatabaseConfigureWindow->DatabaseName(),
                 g_DatabaseConfigureWindow->DatabasePort());
-        AddLog(LOGTYPE_INFO, "Connect to MySQL Database (%s:%d) successfully",
+        addLog(LOGTYPE_INFO, "Connect to MySQL Database (%s:%d) successfully",
                 g_DatabaseConfigureWindow->DatabaseIP(),
                 g_DatabaseConfigureWindow->DatabasePort());
     }
 
     else if(std::strcmp(g_DatabaseConfigureWindow->SelectedDBEngine(), "sqlite3") == 0){
         g_DBPodN->LaunchSQLite3(g_DatabaseConfigureWindow->DatabaseName());
-        AddLog(LOGTYPE_INFO, "Connect to SQLite3 Database (%s) successfully", g_DatabaseConfigureWindow->DatabaseName());
+        addLog(LOGTYPE_INFO, "Connect to SQLite3 Database (%s) successfully", g_DatabaseConfigureWindow->DatabaseName());
 
         if(!g_DBPodN->CreateDBHDR()->QueryResult("select name from sqlite_master where type=\'table\'")){
             CreateDefaultDatabase();
@@ -229,7 +228,7 @@ void MonoServer::CreateDBConnection()
     }
 
     else{
-        AddLog(LOGTYPE_WARNING, "No database started");
+        addLog(LOGTYPE_WARNING, "No database started");
         Restart();
     }
 }
@@ -255,7 +254,7 @@ void MonoServer::StartNetwork()
 {
     uint32_t nPort = g_ServerConfigureWindow->Port();
     if(!g_NetDriver->Launch(nPort, m_ServiceCore->UID())){
-        AddLog(LOGTYPE_WARNING, "Failed to launch the network");
+        addLog(LOGTYPE_WARNING, "Failed to launch the network");
         Restart();
     }
 }
@@ -298,13 +297,13 @@ void MonoServer::DetectException()
 
 void MonoServer::LogException(const std::exception &rstException)
 {
-    AddLog(LOGTYPE_WARNING, "%s", rstException.what());
+    addLog(LOGTYPE_WARNING, "%s", rstException.what());
     try{
         std::rethrow_if_nested(rstException);
     }catch(const std::exception &stNestedException){
         LogException(stNestedException);
     }catch(...){
-        AddLog(LOGTYPE_WARNING, "%s", "Exception can't recongize, skipped...");
+        addLog(LOGTYPE_WARNING, "%s", "Exception can't recongize, skipped...");
     }
 }
 
@@ -322,7 +321,7 @@ void MonoServer::Restart()
     NotifyGUI("Restart");
 }
 
-bool MonoServer::AddMonster(uint32_t nMonsterID, uint32_t nMapID, int nX, int nY, bool bStrictLoc)
+bool MonoServer::addMonster(uint32_t nMonsterID, uint32_t nMapID, int nX, int nY, bool bStrictLoc)
 {
     AMAddCharObject stAMACO;
     std::memset(&stAMACO, 0, sizeof(stAMACO));
@@ -336,22 +335,22 @@ bool MonoServer::AddMonster(uint32_t nMonsterID, uint32_t nMapID, int nX, int nY
 
     stAMACO.Monster.MonsterID = nMonsterID;
     stAMACO.Monster.MasterUID = 0;
-    AddLog(LOGTYPE_INFO, "Try to add monster, MonsterID = %d", nMonsterID);
+    addLog(LOGTYPE_INFO, "Try to add monster, MonsterID = %d", nMonsterID);
 
     switch(auto stRMPK = SyncDriver().Forward(m_ServiceCore->UID(), {MPK_ADDCHAROBJECT, stAMACO}, 0, 0); stRMPK.Type()){
         case MPK_OK:
             {
-                AddLog(LOGTYPE_INFO, "Add monster succeeds");
+                addLog(LOGTYPE_INFO, "Add monster succeeds");
                 return true;
             }
         case MPK_ERROR:
             {
-                AddLog(LOGTYPE_WARNING, "Add monster failed");
+                addLog(LOGTYPE_WARNING, "Add monster failed");
                 return false;
             }
         default:
             {
-                AddLog(LOGTYPE_WARNING, "Unsupported message: %s", stRMPK.Name());
+                addLog(LOGTYPE_WARNING, "Unsupported message: %s", stRMPK.Name());
                 return false;
             }
     }
@@ -542,7 +541,7 @@ void MonoServer::ParseNotifyGUIQ()
         // unsupported command here
         // print into the log file and not exit here
         {
-            g_MonoServer->AddLog(LOGTYPE_WARNING, "Unsupported NotifyGUI command: %s", stTokenList.front().c_str());
+            g_MonoServer->addLog(LOGTYPE_WARNING, "Unsupported NotifyGUI command: %s", stTokenList.front().c_str());
             continue;
         }
     }
@@ -554,7 +553,7 @@ void MonoServer::FlushBrowser()
     {
         auto nCurrLoc = (size_t)(0);
         while(nCurrLoc < m_LogBuf.size()){
-            g_MainWindow->AddLog((int)(m_LogBuf[nCurrLoc]), &(m_LogBuf[nCurrLoc + 1]));
+            g_MainWindow->addLog((int)(m_LogBuf[nCurrLoc]), &(m_LogBuf[nCurrLoc + 1]));
             nCurrLoc += (1 + 1 + std::strlen(&(m_LogBuf[nCurrLoc + 1])));
         }
         m_LogBuf.clear();
@@ -584,7 +583,7 @@ void MonoServer::FlushCWBrowser()
             auto pInfo0 = &(m_CWLogBuf[nCurrLoc + sizeof(nCWID) + 1]);
             auto pInfo1 = &(m_CWLogBuf[nCurrLoc + sizeof(nCWID) + 1 + nInfoLen0 + 1]);
 
-            g_MainWindow->AddCWLog(nCWID, (int)(m_CWLogBuf[nCurrLoc + sizeof(nCWID)]), pInfo0, pInfo1);
+            g_MainWindow->addCWLog(nCWID, (int)(m_CWLogBuf[nCurrLoc + sizeof(nCWID)]), pInfo0, pInfo1);
             nCurrLoc += (sizeof(nCWID) + 1 + nInfoLen0 + 1 + nInfoLen1 + 1);
         }
         m_CWLogBuf.clear();
@@ -621,7 +620,7 @@ bool MonoServer::RegisterLuaExport(CommandLuaModule *pModule, uint32_t nCWID)
         pModule->GetLuaState().set_function("quit", [this, nCWID]()
         {
             // 1. show exiting messages
-            AddCWLog(nCWID, 0, "> ", "Command window is requested to exit now...");
+            addCWLog(nCWID, 0, "> ", "Command window is requested to exit now...");
 
             // 2. flush command windows
             //    we need to flush message before exit the command window
@@ -638,12 +637,12 @@ bool MonoServer::RegisterLuaExport(CommandLuaModule *pModule, uint32_t nCWID)
                     && stLogType.is<int>()
                     && stPrompt.is<std::string>()
                     && stLogInfo.is<std::string>()){
-                AddCWLog(nCWID, stLogType.as<int>(), stPrompt.as<std::string>().c_str(), stLogInfo.as<std::string>().c_str());
+                addCWLog(nCWID, stLogType.as<int>(), stPrompt.as<std::string>().c_str(), stLogInfo.as<std::string>().c_str());
                 return;
             }
 
             // invalid argument provided
-            AddCWLog(nCWID, 2, ">>> ", "printLine(LogType: int, Prompt: string, LogInfo: string)");
+            addCWLog(nCWID, 2, ">>> ", "printLine(LogType: int, Prompt: string, LogInfo: string)");
         });
 
         // register command countMonster(monsterID, mapID)
@@ -651,7 +650,7 @@ bool MonoServer::RegisterLuaExport(CommandLuaModule *pModule, uint32_t nCWID)
         {
             auto nRet = GetMonsterCount(nMonsterID, nMapID).value_or(-1);
             if(nRet < 0){
-                AddCWLog(nCWID, 2, ">>> ", "countMonster(MonsterID: int, MapID: int) failed");
+                addCWLog(nCWID, 2, ">>> ", "countMonster(MonsterID: int, MapID: int) failed");
             }
             return nRet;
         });
@@ -672,16 +671,16 @@ bool MonoServer::RegisterLuaExport(CommandLuaModule *pModule, uint32_t nCWID)
         {
             auto fnPrintUsage = [this, nCWID]()
             {
-                AddCWLog(nCWID, 2, ">>> ", "addMonster(MonsterID: int, MapID: int)");
-                AddCWLog(nCWID, 2, ">>> ", "addMonster(MonsterID: int, MapID: int, X: int, Y: int)");
-                AddCWLog(nCWID, 2, ">>> ", "addMonster(MonsterID: int, MapID: int, X: int, Y: int, Random: bool)");
+                addCWLog(nCWID, 2, ">>> ", "addMonster(MonsterID: int, MapID: int)");
+                addCWLog(nCWID, 2, ">>> ", "addMonster(MonsterID: int, MapID: int, X: int, Y: int)");
+                addCWLog(nCWID, 2, ">>> ", "addMonster(MonsterID: int, MapID: int, X: int, Y: int, Random: bool)");
             };
 
             std::vector<sol::object> stArgList(stVariadicArgs.begin(), stVariadicArgs.end());
             switch(stArgList.size()){
                 case 0:
                     {
-                        return AddMonster((uint32_t)(nMonsterID), (uint32_t)(nMapID), -1, -1, false);
+                        return addMonster((uint32_t)(nMonsterID), (uint32_t)(nMapID), -1, -1, false);
                     }
                 case 1:
                     {
@@ -693,7 +692,7 @@ bool MonoServer::RegisterLuaExport(CommandLuaModule *pModule, uint32_t nCWID)
                         if(true
                                 && stArgList[0].is<int>()
                                 && stArgList[1].is<int>()){
-                            return AddMonster((uint32_t)(nMonsterID), (uint32_t)(nMapID), stArgList[0].as<int>(), stArgList[1].as<int>(), false);
+                            return addMonster((uint32_t)(nMonsterID), (uint32_t)(nMapID), stArgList[0].as<int>(), stArgList[1].as<int>(), false);
                         }else{
                             fnPrintUsage();
                             return false;
@@ -705,7 +704,7 @@ bool MonoServer::RegisterLuaExport(CommandLuaModule *pModule, uint32_t nCWID)
                                 && stArgList[0].is<int >()
                                 && stArgList[1].is<int >()
                                 && stArgList[2].is<bool>()){
-                            return AddMonster((uint32_t)(nMonsterID), (uint32_t)(nMapID), stArgList[0].as<int>(), stArgList[1].as<int>(), stArgList[2].as<bool>());
+                            return addMonster((uint32_t)(nMonsterID), (uint32_t)(nMapID), stArgList[0].as<int>(), stArgList[1].as<int>(), stArgList[2].as<bool>());
                         }else{
                             fnPrintUsage();
                             return false;

@@ -33,7 +33,7 @@ Receiver::Receiver()
     extern ActorPool *g_ActorPool;
     if(!g_ActorPool->Register(this)){
         extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_FATAL, "ActorPool::Register(Reciver = %p) failed", this);
+        g_MonoServer->addLog(LOGTYPE_FATAL, "ActorPool::Register(Reciver = %p) failed", this);
     }
 }
 
@@ -42,7 +42,7 @@ Receiver::~Receiver()
     extern ActorPool *g_ActorPool;
     if(!g_ActorPool->Detach(this)){
         extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_FATAL, "ActorPool::Detach(Reciver = %p) failed", this);
+        g_MonoServer->addLog(LOGTYPE_FATAL, "ActorPool::Detach(Reciver = %p) failed", this);
     }
 }
 

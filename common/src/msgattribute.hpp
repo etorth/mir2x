@@ -23,7 +23,7 @@
 #include <string>
 #include "fflerror.hpp"
 
-struct msgAttribute
+struct MsgAttribute
 {
     //  0    :     empty
     //  1    : not empty,     fixed size,     compressed by xor
@@ -40,13 +40,13 @@ struct msgAttribute
     const size_t dataLen;
     const std::string name;
 
-    msgAttribute(int t, size_t len, const char *nameStr)
+    MsgAttribute(int t, size_t len, const char *nameStr)
         : type(t)
         , dataLen(len)
         , name(nameStr ? nameStr : "")
     {
         // we can't use the log system here for error logging
-        // since msgAttribute will be used in both ClientMessage and ServerMessage
+        // since MsgAttribute will be used in both ClientMessage and ServerMessage
 
         if(name.empty()){
             throw fflerror("invalid message name");

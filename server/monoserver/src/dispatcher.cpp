@@ -17,7 +17,7 @@
  */
 
 #include <cinttypes>
-#include "uidfunc.hpp"
+#include "uidf.hpp"
 #include "serverargparser.hpp"
 #include "actorpool.hpp"
 #include "monoserver.hpp"
@@ -29,12 +29,12 @@ bool Dispatcher::Forward(uint64_t nUID, const MessageBuf &rstMB, uint32_t nRespo
     extern ServerArgParser *g_ServerArgParser;
     if(g_ServerArgParser->TraceActorMessage){
         extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_DEBUG, "Dispatcher -> (UID: %s, Type: %s, ID: 0, Resp: %" PRIu32 ")", UIDFunc::GetUIDString(nUID).c_str(), MessagePack(rstMB.Type()).Name(), nRespond);
+        g_MonoServer->addLog(LOGTYPE_DEBUG, "Dispatcher -> (UID: %s, Type: %s, ID: 0, Resp: %" PRIu32 ")", uidf::getUIDString(nUID).c_str(), MessagePack(rstMB.Type()).Name(), nRespond);
     }
 
     if(!nUID){
         extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_DEBUG, "Dispatcher -> (UID: %s, Type: %s, ID: 0, Resp: %" PRIu32 "): Try to send message to UID 0", UIDFunc::GetUIDString(nUID).c_str(), MessagePack(rstMB.Type()).Name(), nRespond);
+        g_MonoServer->addLog(LOGTYPE_DEBUG, "Dispatcher -> (UID: %s, Type: %s, ID: 0, Resp: %" PRIu32 "): Try to send message to UID 0", uidf::getUIDString(nUID).c_str(), MessagePack(rstMB.Type()).Name(), nRespond);
         return false;
     }
 

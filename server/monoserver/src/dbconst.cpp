@@ -59,7 +59,7 @@ const std::map<int, std::vector<DropItem>> &DB_MONSTERDROPITEM(uint32_t nMonster
                         rstCurrList.insert(rstCurrList.end(), rstEntry.Repeat, {DBCOM_ITEMID(rstEntry.ItemName), rstEntry.ProbRecip, rstEntry.Value});
                     }else{
                         extern MonoServer *g_MonoServer;
-                        g_MonoServer->AddLog(LOGTYPE_WARNING, "Skip invalid DropItemConfig::0X%0*" PRIXPTR, (int)(2 * sizeof(&rstEntry)), (uintptr_t)(&rstEntry));
+                        g_MonoServer->addLog(LOGTYPE_WARNING, "Skip invalid DropItemConfig::0X%0*" PRIXPTR, (int)(2 * sizeof(&rstEntry)), (uintptr_t)(&rstEntry));
                         rstEntry.Print();
                     }
                 }

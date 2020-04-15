@@ -21,7 +21,6 @@
 #include "log.hpp"
 #include "dbpod.hpp"
 #include "memorypn.hpp"
-#include "threadpn.hpp"
 #include "mapbindb.hpp"
 #include "actorpool.hpp"
 #include "netdriver.hpp"
@@ -39,7 +38,6 @@ ServerArgParser          *g_ServerArgParser;
 Log                      *g_Log;
 MemoryPN                 *g_MemoryPN;
 ActorPool                *g_ActorPool;
-ThreadPN                 *g_ThreadPN;
 NetDriver                *g_NetDriver;
 DBPodN                   *g_DBPodN;
 
@@ -71,7 +69,6 @@ int main(int argc, char *argv[])
         g_ServerConfigureWindow    = new ServerConfigureWindow();
         g_DatabaseConfigureWindow  = new DatabaseConfigureWindow();
         g_ActorPool                = new ActorPool(g_ServerArgParser->ActorPoolThread);
-        g_ThreadPN                 = new ThreadPN(4);
         g_DBPodN                   = new DBPodN();
         g_NetDriver                = new NetDriver();
         g_ActorMonitorWindow       = new ActorMonitorWindow();
@@ -118,9 +115,9 @@ int main(int argc, char *argv[])
     }catch(const std::exception &e){
         // use raw log directly
         // no gui available because we are out of gui event loop
-        g_Log->AddLog(LOGTYPE_WARNING, "Exception in main thread: %s", e.what());
+        g_Log->addLog(LOGTYPE_WARNING, "Exception in main thread: %s", e.what());
     }catch(...){
-        g_Log->AddLog(LOGTYPE_WARNING, "Unknown exception caught in main thread");
+        g_Log->addLog(LOGTYPE_WARNING, "Unknown exception caught in main thread");
     }
     return 0;
 }

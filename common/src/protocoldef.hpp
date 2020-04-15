@@ -154,3 +154,10 @@ enum DressIDType : int
     DRESS_NONE =   0,
     DRESS_MAX  = 256,
 };
+
+enum NPCErrorType: int
+{
+    NPCE_NONE = 0,
+    NPCE_TOOFAR,
+    NPCE_BADEVENTID,
+};

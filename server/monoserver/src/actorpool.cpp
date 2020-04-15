@@ -63,7 +63,7 @@ ActorPool::ActorPool(uint32_t nBucketCount, uint32_t nLogicFPS)
 ActorPool::~ActorPool()
 {
     if(IsActorThread()){
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "Trying to destroy actor pool in actor thread %d", GetWorkerID());
+        g_MonoServer->addLog(LOGTYPE_WARNING, "Trying to destroy actor pool in actor thread %d", GetWorkerID());
         g_MonoServer->Restart();
         return;
     }
@@ -79,7 +79,7 @@ ActorPool::~ActorPool()
             p->get();
         }
     }catch(...){
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "Exceptions should be caught before exiting actor threads");
+        g_MonoServer->addLog(LOGTYPE_WARNING, "Exceptions should be caught before exiting actor threads");
         g_MonoServer->Restart();
     }
     m_FutureList.clear();
@@ -608,12 +608,12 @@ void ActorPool::Launch()
             // for application this won't get assigned
             t_WorkerID = nIndex;
             try{
-                auto nCurrTick = g_MonoServer->GetTimeTick();
+                auto nCurrTick = g_MonoServer->getCurrTick();
                 while(!m_Terminated.load()){
                     RunWorker(nIndex);
 
                     auto nExptTick = nCurrTick + 1000 / m_LogicFPS;
-                    nCurrTick = g_MonoServer->GetTimeTick();
+                    nCurrTick = g_MonoServer->getCurrTick();
 
                     if(nCurrTick < nExptTick){
                         g_MonoServer->SleepEx(nExptTick - nCurrTick);
@@ -635,7 +635,7 @@ void ActorPool::Launch()
             return true;
         }).share());
 
-        g_MonoServer->AddLog(LOGTYPE_INFO, "Actor thread %d launched", nIndex);
+        g_MonoServer->addLog(LOGTYPE_INFO, "Actor thread %d launched", nIndex);
     }
 }
 

@@ -65,7 +65,7 @@ class MonoServer final
         std::exception_ptr m_CurrException;
 
     private:
-        hres_timer m_HRTimer;
+        hres_timer m_hrtimer;
 
     public:
         void NotifyGUI(std::string);
@@ -99,18 +99,18 @@ class MonoServer final
         void LogException(const std::exception &);
 
     public:
-        void AddCWLog(uint32_t,         // command window id
+        void addCWLog(uint32_t,         // command window id
                 int,                    // log color in command window
                                         // we don't support fileName/functionName here
-                                        // since AddCWLog() is dedicated for lua command ``printLine"
+                                        // since addCWLog() is dedicated for lua command ``printLine"
                 const char *,           // prompt
                 const char *, ...);     // variadic argument list support std::vsnprintf()
 
-        void AddLog(const std::array<std::string, 4> &,     // argument list, compatible to Log::AddLog()
+        void addLog(const std::array<std::string, 4> &,     // argument list, compatible to Log::addLog()
                 const char *, ...);                         // variadic argument list supported by std::vsnprintf()
 
     private:
-        bool AddPlayer(uint32_t, uint32_t);
+        bool addPlayer(uint32_t, uint32_t);
 
     private:
         void StartNetwork();
@@ -121,16 +121,16 @@ class MonoServer final
         sol::optional<int> GetMonsterCount(int, int);
 
     public:
-        bool AddMonster(uint32_t,       // monster id
+        bool addMonster(uint32_t,       // monster id
                 uint32_t,               // map id
                 int,                    // x
                 int,                    // y
                 bool);                  // use strict loc
 
     public:
-        uint32_t GetTimeTick() const
+        uint32_t getCurrTick() const
         {
-            return (uint32_t)(m_HRTimer.diff_msec());
+            return (uint32_t)(m_hrtimer.diff_msec());
         }
 
     public:

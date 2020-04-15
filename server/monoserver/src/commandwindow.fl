@@ -149,7 +149,7 @@ class CommandWindow {open
     }
 }} {}
   }
-  Function {AddLog(int nLogType, const char *szPrompt, const char *szLogInfo)} {return_type void
+  Function {addLog(int nLogType, const char *szPrompt, const char *szLogInfo)} {return_type void
   } {
     code {{
     // log can be multiply lines but only do one line for this call

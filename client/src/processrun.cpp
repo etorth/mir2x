@@ -20,7 +20,7 @@
 #include <cstring>
 #include "dbcomid.hpp"
 #include "monster.hpp"
-#include "mathfunc.hpp"
+#include "mathf.hpp"
 #include "sysconst.hpp"
 #include "mapbindb.hpp"
 #include "pngtexdb.hpp"
@@ -32,6 +32,7 @@
 #include "clientluamodule.hpp"
 #include "clientpathfinder.hpp"
 #include "debugboard.hpp"
+#include "npcchatboard.hpp"
 #include "notifyboard.hpp"
 #include "fflerror.hpp"
 #include "toll.hpp"
@@ -57,6 +58,7 @@ ProcessRun::ProcessRun()
     , m_ViewY(0)
     , m_RollMap(false)
     , m_LuaModule(this, OUTPORT_CONTROLBOARD)
+    , m_NPCChatBoard(this)
     , m_controlBoard
       {
           g_SDLDevice->WindowH(false) - 133,
@@ -66,8 +68,8 @@ ProcessRun::ProcessRun()
     , m_inventoryBoard(0, 0, this)
     , m_CreatureList()
     , m_UIDPending()
-    , m_MousePixlLoc(0, 0, "", 0, 15, 0, ColorFunc::RGBA(0XFF, 0X00, 0X00, 0X00))
-    , m_MouseGridLoc(0, 0, "", 0, 15, 0, ColorFunc::RGBA(0XFF, 0X00, 0X00, 0X00))
+    , m_MousePixlLoc(0, 0, "", 0, 15, 0, colorf::RGBA(0XFF, 0X00, 0X00, 0X00))
+    , m_MouseGridLoc(0, 0, "", 0, 15, 0, colorf::RGBA(0XFF, 0X00, 0X00, 0X00))
     , m_AscendStrList()
 {
     m_FocusUIDTable.fill(0);
@@ -80,7 +82,7 @@ ProcessRun::ProcessRun()
 void ProcessRun::ScrollMap()
 {
     const auto showWindowW = g_SDLDevice->WindowW(false);
-    const auto showWindowH = g_SDLDevice->WindowH(false) - m_controlBoard.H();
+    const auto showWindowH = g_SDLDevice->WindowH(false) - m_controlBoard.h();
 
     int nViewX = GetMyHero()->X() * SYS_MAPGRIDXP - showWindowW / 2;
     int nViewY = GetMyHero()->Y() * SYS_MAPGRIDYP - showWindowH / 2;
@@ -104,7 +106,7 @@ void ProcessRun::ScrollMap()
     // stop rolling the map when
     //   1. the hero is at the required position
     //   2. the hero is not moving
-    if((nDViewX == 0) && (nDViewY == 0) && !GetMyHero()->Moving()){
+    if((nDViewX == 0) && (nDViewY == 0) && !GetMyHero()->moving()){
         m_RollMap = false;
     }
 }
@@ -130,14 +132,14 @@ void ProcessRun::Update(double fUpdateTime)
     }
 
     ScrollMap();
-    m_controlBoard.Update(fUpdateTime);
+    m_controlBoard.update(fUpdateTime);
 
     for(auto p = m_CreatureList.begin(); p != m_CreatureList.end();){
         if(p->second->Visible()){
             if(p->second->LastActive() + 5000 < SDL_GetTicks() && p->second->LastQuerySelf() + 5000 < SDL_GetTicks()){
                 p->second->QuerySelf();
             }
-            p->second->Update(fUpdateTime);
+            p->second->update(fUpdateTime);
             ++p;
         }else{
             p = m_CreatureList.erase(p);
@@ -166,7 +168,7 @@ void ProcessRun::Update(double fUpdateTime)
         if(p->StayDead()){
             m_FocusUIDTable[FOCUS_ATTACK] = 0;
         }else{
-            TrackAttack(false, m_FocusUIDTable[FOCUS_ATTACK]);
+            trackAttack(false, m_FocusUIDTable[FOCUS_ATTACK]);
         }
     }else{
         m_FocusUIDTable[FOCUS_ATTACK] = 0;
@@ -338,7 +340,7 @@ void ProcessRun::Draw()
                             && (pCreature.second->X() == nX)
                             && (pCreature.second->Y() == nY)
                             && (pCreature.second->StayDead())){
-                        pCreature.second->Draw(m_ViewX, m_ViewY, 0);
+                        pCreature.second->draw(m_ViewX, m_ViewY, 0);
                     }
                 }
             }
@@ -387,14 +389,13 @@ void ProcessRun::Draw()
                                     g_SDLDevice->DrawTexture(pTexture, nXt, nYt);
 
                                     if(bChoose){
-                                        labelBoard stItemName(0, 0, rstIR.Name, 1, 12, 0, ColorFunc::RGBA(0XFF, 0XFF, 0X00, 0X00));
-                                        int nLW = stItemName.W();
-                                        int nLH = stItemName.H();
+                                        LabelBoard itemName(0, 0, rstIR.Name, 1, 12, 0, colorf::RGBA(0XFF, 0XFF, 0X00, 0X00));
+                                        const int boardW = itemName.w();
+                                        const int boardH = itemName.h();
 
-                                        int nLXt = nX * SYS_MAPGRIDXP - m_ViewX + SYS_MAPGRIDXP / 2 - nLW / 2;
-                                        int nLYt = nY * SYS_MAPGRIDYP - m_ViewY + SYS_MAPGRIDYP / 2 - nLH / 2 - 20;
-
-                                        stItemName.drawEx(nLXt, nLYt, 0, 0, nLW, nLH);
+                                        const int drawNameX = nX * SYS_MAPGRIDXP - m_ViewX + SYS_MAPGRIDXP / 2 - itemName.w() / 2;
+                                        const int drawNameY = nY * SYS_MAPGRIDYP - m_ViewY + SYS_MAPGRIDYP / 2 - itemName.h() / 2 - 20;
+                                        itemName.drawEx(drawNameX, drawNameY, 0, 0, boardW, boardH);
                                     }
                                 }
                             }
@@ -470,7 +471,7 @@ void ProcessRun::Draw()
                                 nFocusMask |= (1 << nFocus);
                             }
                         }
-                        pCreature.second->Draw(m_ViewX, m_ViewY, nFocusMask);
+                        pCreature.second->draw(m_ViewX, m_ViewY, nFocusMask);
                     }
                 }
             }
@@ -553,8 +554,8 @@ void ProcessRun::Draw()
 
     // draw notifyBoard
     {
-        const int w = g_NotifyBoard->W();
-        const int h = g_NotifyBoard->H();
+        const int w = g_NotifyBoard->w();
+        const int h = g_NotifyBoard->h();
         g_NotifyBoard->drawEx(0, 0, 0, 0, w, h);
     }
 
@@ -563,17 +564,17 @@ void ProcessRun::Draw()
         const int x = 0;
         const int y = 0;
         const int w = std::max<int>(g_debugBoard->pw(), 200);
-        const int h = g_debugBoard->H();
+        const int h = g_debugBoard->h();
 
         {
-            SDLDevice::EnableDrawColor enableColor(ColorFunc::GREEN + 200);
+            SDLDevice::EnableDrawColor enableColor(colorf::GREEN + 200);
             SDLDevice::EnableDrawBlendMode enableBlend(SDL_BLENDMODE_BLEND);
             g_SDLDevice->FillRectangle(x, y, w, h);
         }
 
         g_debugBoard->drawEx(x, y, 0, 0, w, h);
         {
-            SDLDevice::EnableDrawColor enableColor(ColorFunc::BLUE + 100);
+            SDLDevice::EnableDrawColor enableColor(colorf::BLUE + 100);
             g_SDLDevice->DrawRectangle(x, y, w, h);
         }
     }
@@ -593,8 +594,8 @@ void ProcessRun::Draw()
         m_MousePixlLoc.setText("Pix_Loc: %3d, %3d", nPointX, nPointY);
         m_MouseGridLoc.setText("Til_Loc: %3d, %3d", (nPointX + m_ViewX) / SYS_MAPGRIDXP, (nPointY + m_ViewY) / SYS_MAPGRIDYP);
 
-        m_MouseGridLoc.drawEx(10, 10, 0, 0, m_MouseGridLoc.W(), m_MouseGridLoc.H());
-        m_MousePixlLoc.drawEx(10, 30, 0, 0, m_MousePixlLoc.W(), m_MousePixlLoc.H());
+        m_MouseGridLoc.drawEx(10, 10, 0, 0, m_MouseGridLoc.w(), m_MouseGridLoc.h());
+        m_MousePixlLoc.drawEx(10, 30, 0, 0, m_MousePixlLoc.w(), m_MousePixlLoc.h());
     }
 
     g_SDLDevice->Present();
@@ -637,9 +638,23 @@ void ProcessRun::processEvent(const SDL_Event &event)
                 switch(event.button.button){
                     case SDL_BUTTON_LEFT:
                         {
-                            if(auto nUID = FocusUID(FOCUS_MOUSE)){
-                                m_FocusUIDTable[FOCUS_ATTACK] = nUID;
-                                TrackAttack(true, nUID);
+                            if(const auto uid = FocusUID(FOCUS_MOUSE)){
+                                switch(uidf::getUIDType(uid)){
+                                    case UID_MON:
+                                        {
+                                            m_FocusUIDTable[FOCUS_ATTACK] = uid;
+                                            trackAttack(true, uid);
+                                            break;
+                                        }
+                                    case UID_NPC:
+                                        {
+                                            sendNPCEventID(uid, 0);
+                                        }
+                                    default:
+                                        {
+                                            break;
+                                        }
+                                }
                             }else{
                                 auto &rstGroundItemList = GetGroundItemListRef(nMouseGridX, nMouseGridY);
                                 if(!rstGroundItemList.empty()){
@@ -667,7 +682,7 @@ void ProcessRun::processEvent(const SDL_Event &event)
                                 int nY = -1;
                                 if(true
                                         && ScreenPoint2Grid(event.button.x, event.button.y, &nX, &nY)
-                                        && MathFunc::LDistance2(GetMyHero()->CurrMotion().EndX, GetMyHero()->CurrMotion().EndY, nX, nY)){
+                                        && mathf::LDistance2(GetMyHero()->currMotion().endX, GetMyHero()->currMotion().endY, nX, nY)){
 
                                     // we get a valid dst to go
                                     // provide myHero with new move action command
@@ -677,8 +692,8 @@ void ProcessRun::processEvent(const SDL_Event &event)
 
                                     GetMyHero()->EmplaceAction(ActionMove
                                     {
-                                        GetMyHero()->CurrMotion().EndX,    // don't use X()
-                                        GetMyHero()->CurrMotion().EndY,    // don't use Y()
+                                        GetMyHero()->currMotion().endX,    // don't use X()
+                                        GetMyHero()->currMotion().endY,    // don't use Y()
                                         nX,
                                         nY,
                                         SYS_DEFSPEED,
@@ -725,8 +740,8 @@ void ProcessRun::processEvent(const SDL_Event &event)
                             if(auto nFocusUID = FocusUID(FOCUS_MAGIC)){
                                 GetMyHero()->EmplaceAction(ActionSpell
                                 {
-                                    GetMyHero()->CurrMotion().EndX,
-                                    GetMyHero()->CurrMotion().EndY,
+                                    GetMyHero()->currMotion().endX,
+                                    GetMyHero()->currMotion().endY,
                                     nFocusUID,
                                     DBCOM_MAGICID(u8"雷电术"),
                                 });
@@ -739,8 +754,8 @@ void ProcessRun::processEvent(const SDL_Event &event)
                                 ScreenPoint2Grid(nMouseX, nMouseY, &nAimX, &nAimY);
                                 GetMyHero()->EmplaceAction(ActionSpell
                                 {
-                                    GetMyHero()->CurrMotion().EndX,
-                                    GetMyHero()->CurrMotion().EndY,
+                                    GetMyHero()->currMotion().endX,
+                                    GetMyHero()->currMotion().endY,
                                     nAimX,
                                     nAimY,
                                     DBCOM_MAGICID(u8"雷电术"),
@@ -861,8 +876,8 @@ int ProcessRun::CheckPathGrid(int nX, int nY) const
     for(auto pCreature: m_CreatureList){
         if(true
                 && (pCreature.second)
-                && (pCreature.second->CurrMotion().EndX == nX)
-                && (pCreature.second->CurrMotion().EndY == nY)){
+                && (pCreature.second->currMotion().endX == nX)
+                && (pCreature.second->currMotion().endY == nY)){
             return PathFind::OCCUPIED;
         }
 
@@ -891,13 +906,12 @@ double ProcessRun::OneStepCost(const ClientPathFinder *pFinder, bool bCheckGroun
             }
         default:
             {
-                g_Log->AddLog(LOGTYPE_FATAL, "Invalid CheckCreature provided: %d, should be (0, 1, 2)", nCheckCreature);
-                break;
+                throw fflerror("invalid CheckCreature provided: %d, should be (0, 1, 2)", nCheckCreature);
             }
     }
 
     int nMaxIndex = -1;
-    switch(MathFunc::LDistance2(nX0, nY0, nX1, nY1)){
+    switch(mathf::LDistance2(nX0, nY0, nX1, nY1)){
         case 0:
             {
                 nMaxIndex = 0;
@@ -971,8 +985,7 @@ double ProcessRun::OneStepCost(const ClientPathFinder *pFinder, bool bCheckGroun
                 }
             default:
                 {
-                    g_Log->AddLog(LOGTYPE_FATAL, "Invalid grid provided: %d at (%d, %d)", nGrid, nCurrX, nCurrY);
-                    break;
+                    throw fflerror("invalid grid provided: %d at (%d, %d)", nGrid, nCurrX, nCurrY);
                 }
         }
     }
@@ -1003,8 +1016,7 @@ bool ProcessRun::LuaCommand(const char *szLuaCommand)
             // or we can unlock the input widget to allow next command
         }else{
             sol::error stError = stCallResult;
-
-            g_Log->AddLog(LOGTYPE_WARNING, "%s", stError.what());
+            g_Log->addLog(LOGTYPE_WARNING, "%s", stError.what());
         }
 
         // always return true if command get evaluated
@@ -1083,7 +1095,7 @@ std::vector<int> ProcessRun::GetPlayerList()
     std::vector<int> stRetV {};
     for(auto p = m_CreatureList.begin(); p != m_CreatureList.end();){
         if(p->second->Visible()){
-            switch(p->second->Type()){
+            switch(p->second->type()){
                 case CREATURE_PLAYER:
                     {
                         stRetV.push_back(p->second->UID());
@@ -1214,10 +1226,10 @@ bool ProcessRun::RegisterLuaExport(ClientLuaModule *pModule, int nOutPort)
                     && stLogInfo.is<std::string>()){
 
                 switch(stLogType.as<int>()){
-                    case 0  : g_Log->AddLog(LOGTYPE_INFO   , "%s", stLogInfo.as<std::string>().c_str()); return;
-                    case 1  : g_Log->AddLog(LOGTYPE_WARNING, "%s", stLogInfo.as<std::string>().c_str()); return;
-                    case 2  : g_Log->AddLog(LOGTYPE_FATAL  , "%s", stLogInfo.as<std::string>().c_str()); return;
-                    default : g_Log->AddLog(LOGTYPE_DEBUG  , "%s", stLogInfo.as<std::string>().c_str()); return;
+                    case 0  : g_Log->addLog(LOGTYPE_INFO   , "%s", stLogInfo.as<std::string>().c_str()); return;
+                    case 1  : g_Log->addLog(LOGTYPE_WARNING, "%s", stLogInfo.as<std::string>().c_str()); return;
+                    case 2  : g_Log->addLog(LOGTYPE_FATAL  , "%s", stLogInfo.as<std::string>().c_str()); return;
+                    default : g_Log->addLog(LOGTYPE_DEBUG  , "%s", stLogInfo.as<std::string>().c_str()); return;
                 }
             }
 
@@ -1331,10 +1343,10 @@ void ProcessRun::AddOPLog(int nOutPort, int logType, const char *szPrompt, const
 
     if(nOutPort & OUTPORT_LOG){
         switch(logType){
-            case Log::LOGTYPEV_INFO    : g_Log->AddLog(LOGTYPE_INFO   , u8"%s%s", szPrompt ? szPrompt : "", szLog.c_str()); break;
-            case Log::LOGTYPEV_WARNING : g_Log->AddLog(LOGTYPE_WARNING, u8"%s%s", szPrompt ? szPrompt : "", szLog.c_str()); break;
-            case Log::LOGTYPEV_DEBUG   : g_Log->AddLog(LOGTYPE_DEBUG,   u8"%s%s", szPrompt ? szPrompt : "", szLog.c_str()); break;
-            default                    : g_Log->AddLog(LOGTYPE_FATAL  , u8"%s%s", szPrompt ? szPrompt : "", szLog.c_str()); break;
+            case Log::LOGTYPEV_INFO    : g_Log->addLog(LOGTYPE_INFO   , u8"%s%s", szPrompt ? szPrompt : "", szLog.c_str()); break;
+            case Log::LOGTYPEV_WARNING : g_Log->addLog(LOGTYPE_WARNING, u8"%s%s", szPrompt ? szPrompt : "", szLog.c_str()); break;
+            case Log::LOGTYPEV_DEBUG   : g_Log->addLog(LOGTYPE_DEBUG,   u8"%s%s", szPrompt ? szPrompt : "", szLog.c_str()); break;
+            default                    : g_Log->addLog(LOGTYPE_FATAL  , u8"%s%s", szPrompt ? szPrompt : "", szLog.c_str()); break;
         }
     }
 
@@ -1360,7 +1372,7 @@ Creature *ProcessRun::RetrieveUID(uint64_t nUID)
     if(auto p = m_CreatureList.find(nUID); p != m_CreatureList.end()){
         if(p->second->Visible()){
             if(p->second->UID() != nUID){
-                throw fflerror("invalid creature record: %p, UID = %llu", p->second, to_LLU(p->second->UID()));
+                throw fflerror("invalid creature record: %p, UID = %llu", p->second, toLLU(p->second->UID()));
             }
             return p->second.get();
         }
@@ -1379,12 +1391,12 @@ bool ProcessRun::LocateUID(uint64_t nUID, int *pX, int *pY)
     return false;
 }
 
-bool ProcessRun::TrackAttack(bool bForce, uint64_t nUID)
+bool ProcessRun::trackAttack(bool bForce, uint64_t nUID)
 {
     if(RetrieveUID(nUID)){
         if(bForce || GetMyHero()->StayIdle()){
-            auto nEndX = GetMyHero()->CurrMotion().EndX;
-            auto nEndY = GetMyHero()->CurrMotion().EndY;
+            auto nEndX = GetMyHero()->currMotion().endX;
+            auto nEndY = GetMyHero()->currMotion().endY;
             return GetMyHero()->EmplaceAction(ActionAttack(nEndX, nEndY, DC_PHY_PLAIN, SYS_DEFSPEED, nUID));
         }
     }
@@ -1396,7 +1408,7 @@ uint32_t ProcessRun::GetFocusFaceKey()
     uint32_t nFaceKey = 0X02000000;
     if(auto nUID = FocusUID(FOCUS_MOUSE)){
         if(auto pCreature = RetrieveUID(nUID)){
-            switch(pCreature->Type()){
+            switch(pCreature->type()){
                 case CREATURE_PLAYER:
                     {
                         nFaceKey = 0X02000000;
@@ -1441,12 +1453,12 @@ bool ProcessRun::GetUIDLocation(uint64_t nUID, bool bDrawLoc, int *pX, int *pY)
 
 void ProcessRun::CenterMyHero()
 {
-    auto nMotion     = GetMyHero()->CurrMotion().Motion;
-    auto nDirection  = GetMyHero()->CurrMotion().Direction;
-    auto nX          = GetMyHero()->CurrMotion().X;
-    auto nY          = GetMyHero()->CurrMotion().Y;
-    auto nFrame      = GetMyHero()->CurrMotion().Frame;
-    auto nFrameCount = GetMyHero()->MotionFrameCount(nMotion, nDirection);
+    const auto nMotion     = GetMyHero()->currMotion().motion;
+    const auto nDirection  = GetMyHero()->currMotion().direction;
+    const auto nX          = GetMyHero()->currMotion().x;
+    const auto nY          = GetMyHero()->currMotion().y;
+    const auto nFrame      = GetMyHero()->currMotion().frame;
+    const auto nFrameCount = GetMyHero()->motionFrameCount(nMotion, nDirection);
 
     if(nFrameCount <= 0){
         throw fflerror("invalid frame count: %d", nFrameCount);
@@ -1455,7 +1467,7 @@ void ProcessRun::CenterMyHero()
     auto fnSetOff = [this, nX, nY, nDirection, nFrame, nFrameCount](int nStepLen)
     {
         const auto showWindowW = g_SDLDevice->WindowW(false);
-        const auto showWindowH = g_SDLDevice->WindowH(false) - m_controlBoard.H();
+        const auto showWindowH = g_SDLDevice->WindowH(false) - m_controlBoard.h();
 
         switch(nStepLen){
             case 0:
@@ -1519,7 +1531,7 @@ bool ProcessRun::RequestSpaceMove(uint32_t nMapID, int nX, int nY)
             stCMRSM.MapID = nMapID;
             stCMRSM.X     = nX;
             stCMRSM.Y     = nY;
-            g_client->Send(CM_REQUESTSPACEMOVE, stCMRSM);
+            g_client->send(CM_REQUESTSPACEMOVE, stCMRSM);
             return true;
         }
     }
@@ -1528,7 +1540,7 @@ bool ProcessRun::RequestSpaceMove(uint32_t nMapID, int nX, int nY)
 
 void ProcessRun::RequestKillPets()
 {
-    g_client->Send(CM_REQUESTKILLPETS);
+    g_client->send(CM_REQUESTKILLPETS);
 }
 
 void ProcessRun::ClearCreature()
@@ -1542,7 +1554,7 @@ void ProcessRun::QueryCORecord(uint64_t nUID) const
     std::memset(&stCMQCOR, 0, sizeof(stCMQCOR));
 
     stCMQCOR.AimUID = nUID;
-    g_client->Send(CM_QUERYCORECORD, stCMQCOR);
+    g_client->send(CM_QUERYCORECORD, stCMQCOR);
 }
 
 void ProcessRun::OnActionSpawn(uint64_t nUID, const ActionNode &rstAction)
@@ -1550,12 +1562,12 @@ void ProcessRun::OnActionSpawn(uint64_t nUID, const ActionNode &rstAction)
     condcheck(nUID);
     condcheck(rstAction.Action == ACTION_SPAWN);
 
-    if(UIDFunc::GetUIDType(nUID) != UID_MON){
+    if(uidf::getUIDType(nUID) != UID_MON){
         QueryCORecord(nUID);
         return;
     }
 
-    switch(UIDFunc::GetMonsterID(nUID)){
+    switch(uidf::getMonsterID(nUID)){
         case DBCOM_MONSTERID(u8"变异骷髅"):
             {
                 // TODO how about make it as an action of skeleton
@@ -1594,7 +1606,7 @@ void ProcessRun::OnActionSpawn(uint64_t nUID, const ActionNode &rstAction)
                         DIR_DOWNLEFT,
                     };
 
-                    if(auto pMonster = Monster::CreateMonster(nUID, this, stActionStand)){
+                    if(auto pMonster = Monster::createMonster(nUID, this, stActionStand)){
                         m_CreatureList[nUID].reset(pMonster);
                     }
 
@@ -1614,7 +1626,7 @@ void ProcessRun::OnActionSpawn(uint64_t nUID, const ActionNode &rstAction)
                     PathFind::ValidDir(rstAction.Direction) ? rstAction.Direction : DIR_UP,
                 };
 
-                if(auto pMonster = Monster::CreateMonster(nUID, this, stActionStand)){
+                if(auto pMonster = Monster::createMonster(nUID, this, stActionStand)){
                     m_CreatureList[nUID].reset(pMonster);
                 }
 
@@ -1624,10 +1636,24 @@ void ProcessRun::OnActionSpawn(uint64_t nUID, const ActionNode &rstAction)
     }
 }
 
-widget *ProcessRun::getWidget(const std::string &widgetName)
+Widget *ProcessRun::getWidget(const std::string &widgetName)
 {
-    if(widgetName == "inventoryBoard"){
+    if(widgetName == "InventoryBoard"){
         return &m_inventoryBoard;
     }
     return nullptr;
+}
+
+void ProcessRun::sendNPCEventID(uint64_t uid, uint64_t eventID)
+{
+    if(uidf::getUIDType(uid) != UID_NPC){
+        throw fflerror("sending npc event to a non-npc UID");
+    }
+
+    CMNPCEvent event;
+    std::memset(&event, 0, sizeof(event));
+
+    event.uid = uid;
+    event.eventID = eventID;
+    g_client->send(CM_NPCEVENT, event);
 }

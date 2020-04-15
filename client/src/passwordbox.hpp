@@ -20,13 +20,13 @@
 #include <functional>
 #include "inputline.hpp"
 
-class passwordBox: public inputLine
+class PasswordBox: public InputLine
 {
     private:
         bool m_security;
 
     public:
-        passwordBox(
+        PasswordBox(
                 int  x,
                 int  y,
                 int  w,
@@ -36,16 +36,16 @@ class passwordBox: public inputLine
                 uint8_t  font      =  0,
                 uint8_t  fontSize  = 10,
                 uint8_t  fontStyle =  0,
-                uint32_t fontColor =  ColorFunc::WHITE,
+                uint32_t fontColor =  colorf::WHITE,
 
                 int      cursorWidth = 2,
-                uint32_t cursorColor = ColorFunc::WHITE,
+                uint32_t cursorColor = colorf::WHITE,
 
                 std::function<void()>  fnOnTab    = [](){},
                 std::function<void()>  fnOnReturn = [](){},
-                widget                *parent     = nullptr,
+                Widget                *parent     = nullptr,
                 bool                   autoDelete = false)
-            : inputLine 
+            : InputLine 
               {
                   x,
                   y,

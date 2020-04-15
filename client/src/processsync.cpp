@@ -76,9 +76,9 @@ void ProcessSync::Draw()
             nH);  // src h
     g_SDLDevice->DrawTexture(g_ProgUseDB->Retrieve(0X00000001), 0, 0);
 
-    const int nInfoX = (800 - m_ProcessBarInfo.W()) / 2;
-    const int nInfoY = 528 + (nH - m_ProcessBarInfo.H()) / 2;
+    const int nInfoX = (800 - m_ProcessBarInfo.w()) / 2;
+    const int nInfoY = 528 + (nH - m_ProcessBarInfo.h()) / 2;
 
-    m_ProcessBarInfo.drawEx(nInfoX, nInfoY, 0, 0, m_ProcessBarInfo.W(), m_ProcessBarInfo.H());
+    m_ProcessBarInfo.drawEx(nInfoX, nInfoY, 0, 0, m_ProcessBarInfo.w(), m_ProcessBarInfo.h());
     g_SDLDevice->Present();
 }

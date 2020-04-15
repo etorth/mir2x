@@ -23,7 +23,7 @@
 #include <string>
 #include <atomic>
 
-#include "strfunc.hpp"
+#include "strf.hpp"
 #include "database.hpp"
 
 template<size_t ConnectionCount = 4> class DBPod final

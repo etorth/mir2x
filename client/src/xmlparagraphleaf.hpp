@@ -23,7 +23,7 @@
 #include <optional>
 #include <stdexcept>
 #include <tinyxml2.h>
-#include "strfunc.hpp"
+#include "strf.hpp"
 #include "fflerror.hpp"
 
 constexpr int LEAF_UTF8GROUP = 0;

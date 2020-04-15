@@ -27,6 +27,7 @@
 #include "raiitimer.hpp"
 #include "cachequeue.hpp"
 
+class ProcessRun;
 class Client final
 {
     private:
@@ -60,7 +61,7 @@ class Client final
         double m_NetPackTick;
 
     private:
-        NetIO m_NetIO;
+        NetIO m_netIO;
 
     private:
         int m_RequestProcess;
@@ -137,13 +138,23 @@ class Client final
         }
 
     public:
-        template<typename... U> void Send(U&&... u)
+        ProcessRun *processRun()
         {
-            m_NetIO.Send(std::forward<U>(u)...);
+            return ProcessValid(PROCESSID_RUN) ? (ProcessRun *)(m_CurrentProcess) : nullptr;
         }
 
-        void sendNPCEventId(uint64_t)
+        ProcessRun *processRunEx()
         {
+            if(auto p = processRun()){
+                return p;
+            }
+            throw fflerror("not in process run");
+        }
+
+    public:
+        template<typename... U> void send(U&&... u)
+        {
+            m_netIO.send(std::forward<U>(u)...);
         }
 
     public:

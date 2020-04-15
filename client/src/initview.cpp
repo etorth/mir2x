@@ -22,8 +22,8 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 
-#include "strfunc.hpp"
-#include "mathfunc.hpp"
+#include "strf.hpp"
+#include "mathf.hpp"
 #include "initview.hpp"
 #include "fontexdb.hpp"
 #include "pngtexdb.hpp"
@@ -47,6 +47,7 @@ extern PNGTexOffDB *g_HeroDB;
 extern PNGTexOffDB *g_MagicDB;
 extern PNGTexOffDB *g_WeaponDB;
 extern PNGTexOffDB *g_MonsterDB;
+extern PNGTexOffDB *g_standNPCDB;
 
 InitView::InitView(uint8_t nFontSize)
     : m_ProcState(IVPROC_LOOP)
@@ -105,6 +106,11 @@ InitView::InitView(uint8_t nFontSize)
 
     m_LoadProcV.emplace_back(1, [this](size_t nIndex) -> bool
     {
+        return LoadDB(nIndex, g_XMLConf, g_MagicDB, "Root/Texture/standNPCDB");
+    });
+
+    m_LoadProcV.emplace_back(1, [this](size_t nIndex) -> bool
+    {
         return LoadDB(nIndex, g_XMLConf, g_MapBinDB, "Root/Map/MapBinDB");
     });
 
@@ -131,7 +137,7 @@ InitView::InitView(uint8_t nFontSize)
 
         for(auto &stBufU32: stBufU32V){
             if(stBufU32.empty() || ((size_t)((stBufU32[0] + 3) / 4) + 1) > stBufU32.size()){
-                g_Log->AddLog(LOGTYPE_FATAL, "Invalid data in initview.inc");
+                throw fflerror("invalid data in initview.inc");
             }
         }
         return stBufU32V;
@@ -148,7 +154,7 @@ InitView::InitView(uint8_t nFontSize)
     if(false
             || !m_TextureV[0]
             || !m_TextureV[1]){
-        g_Log->AddLog(LOGTYPE_FATAL, "Build graphics resources failed for InitView");
+        throw fflerror("build graphics resources failed for InitView");
     }
 
     static std::once_flag stOnceFlag;
@@ -186,7 +192,7 @@ void InitView::processEvent()
         switch(stEvent.type){
             case SDL_MOUSEBUTTONUP:
                 {
-                    if(MathFunc::PointInRectangle(stEvent.button.x, stEvent.button.y, nX, nY, nW, nH)){
+                    if(mathf::pointInRectangle(stEvent.button.x, stEvent.button.y, nX, nY, nW, nH)){
                         if(m_ButtonState == 2){
                             std::exit(0);
                         }else{
@@ -202,7 +208,7 @@ void InitView::processEvent()
                     switch(stEvent.button.button){
                         case SDL_BUTTON_LEFT:
                             {
-                                if(MathFunc::PointInRectangle(stEvent.button.x, stEvent.button.y, nX, nY, nW, nH)){
+                                if(mathf::pointInRectangle(stEvent.button.x, stEvent.button.y, nX, nY, nW, nH)){
                                     m_ButtonState = 2;
                                 }
                                 break;
@@ -216,7 +222,7 @@ void InitView::processEvent()
                 }
             case SDL_MOUSEMOTION:
                 {
-                    if(MathFunc::PointInRectangle(stEvent.button.x, stEvent.button.y, nX, nY, nW, nH)){
+                    if(mathf::pointInRectangle(stEvent.button.x, stEvent.button.y, nX, nY, nW, nH)){
                         m_ButtonState = 1;
                     }else{
                         m_ButtonState = 0;
@@ -282,22 +288,22 @@ void InitView::AddIVLog(int nLogType, const char *szLogFormat, ...)
     switch(nLogType){
         case LOGIV_INFO:
             {
-                g_Log->AddLog(LOGTYPE_INFO, "%s", szLog.c_str());
+                g_Log->addLog(LOGTYPE_INFO, "%s", szLog.c_str());
                 break;
             }
         case LOGIV_WARNING:
             {
-                g_Log->AddLog(LOGTYPE_WARNING, "%s", szLog.c_str());
+                g_Log->addLog(LOGTYPE_WARNING, "%s", szLog.c_str());
                 break;
             }
         case LOGIV_FATAL:
             {
-                g_Log->AddLog(LOGTYPE_FATAL, "%s", szLog.c_str());
+                g_Log->addLog(LOGTYPE_FATAL, "%s", szLog.c_str());
                 break;
             }
         default:
             {
-                g_Log->AddLog(LOGTYPE_WARNING, "Unknow LogType %d for message: %s", nLogType, szLog.c_str());
+                g_Log->addLog(LOGTYPE_WARNING, "Unknow LogType %d for message: %s", nLogType, szLog.c_str());
                 return;
             }
     }

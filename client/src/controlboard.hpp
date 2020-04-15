@@ -31,7 +31,7 @@
 #include "tritexbutton.hpp"
 
 class ProcessRun;
-class controlBoard: public widget
+class ControlBoard: public Widget
 {
     private:
         ProcessRun *m_processRun;
@@ -46,38 +46,38 @@ class controlBoard: public widget
     private:
         // define group for widget moving
         // but will not call widgetGroup::drawEx, we still draw manually
-        widgetGroup m_left;
-        widgetGroup m_middle;
-        widgetGroup m_right;
+        WidgetGroup m_left;
+        WidgetGroup m_middle;
+        WidgetGroup m_right;
 
     private:
-        tritexButton m_buttonClose;
-        tritexButton m_buttonMinize;
-        tritexButton m_buttonInventory;
-        tritexButton m_buttonSwitchMode;
+        TritexButton m_buttonClose;
+        TritexButton m_buttonMinize;
+        TritexButton m_buttonInventory;
+        TritexButton m_buttonSwitchMode;
 
     private:
-        tritexButton m_buttonEmoji;
-        tritexButton m_buttonMute;
+        TritexButton m_buttonEmoji;
+        TritexButton m_buttonMute;
 
     private:
-        levelBox m_levelBox;
+        LevelBox m_levelBox;
 
     private:
-        inputLine  m_cmdLine;
-        labelBoard m_locBoard;
+        InputLine  m_cmdLine;
+        LabelBoard m_locBoard;
 
     private:
-        layoutBoard m_logBoard;
+        LayoutBoard m_logBoard;
 
     public:
-        controlBoard(
+        ControlBoard(
                 int,            // startY
                 int,            // boardW
                 ProcessRun *);  // 
 
     public:
-        ~controlBoard() = default;
+        ~ControlBoard() = default;
 
     public:
         void drawEx(int, int, int, int, int, int);
@@ -94,8 +94,8 @@ class controlBoard: public widget
         void drawLogBoardDefault();
 
     public:
-        void Update(double);
-        bool processEvent(const SDL_Event &, bool);
+        void update(double) override;
+        bool processEvent(const SDL_Event &, bool) override;
 
     public:
         void inputLineDone();

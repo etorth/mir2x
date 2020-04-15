@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename: colorfunc.hpp
+ *       Filename: colorf.hpp
  *        Created: 03/31/2016 19:46:27
  *    Description: 
  *
@@ -21,7 +21,7 @@
 #include <cstdint>
 #include <SDL2/SDL.h>
 
-namespace ColorFunc
+namespace colorf
 {
     enum ColorMask: uint32_t
     {
@@ -161,7 +161,7 @@ namespace ColorFunc
 
     inline SDL_Color RGBA2Color(uint32_t nColor)
     {
-        return RGBA2Color(ColorFunc::R(nColor), ColorFunc::G(nColor), ColorFunc::B(nColor), ColorFunc::A(nColor));
+        return RGBA2Color(colorf::R(nColor), colorf::G(nColor), colorf::B(nColor), colorf::A(nColor));
     }
 
     inline uint32_t Color2RGBA(const SDL_Color &rstColor)

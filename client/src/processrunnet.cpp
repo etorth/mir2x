@@ -23,7 +23,7 @@
 #include "client.hpp"
 #include "dbcomid.hpp"
 #include "monster.hpp"
-#include "uidfunc.hpp"
+#include "uidf.hpp"
 #include "sysconst.hpp"
 #include "pngtexdb.hpp"
 #include "sdldevice.hpp"
@@ -89,7 +89,7 @@ void ProcessRun::Net_ACTION(const uint8_t *pBuf, size_t)
         auto nDBID      = GetMyHero()->DBID();
         auto bGender    = GetMyHero()->Gender();
         auto nDress     = GetMyHero()->Dress();
-        auto nDirection = GetMyHero()->CurrMotion().Direction;
+        auto nDirection = GetMyHero()->currMotion().direction;
 
         auto nX = stSMA.X;
         auto nY = stSMA.Y;
@@ -132,7 +132,7 @@ void ProcessRun::Net_ACTION(const uint8_t *pBuf, size_t)
     // map doesn't change
     // action from an non-existing charobject, may need query
 
-    switch(UIDFunc::GetUIDType(stSMA.UID)){
+    switch(uidf::getUIDType(stSMA.UID)){
         case UID_PLY:
             {
                 // do query only for player
@@ -150,7 +150,7 @@ void ProcessRun::Net_ACTION(const uint8_t *pBuf, size_t)
                         }
                     default:
                         {
-                            switch(UIDFunc::GetMonsterID(stSMA.UID)){
+                            switch(uidf::getMonsterID(stSMA.UID)){
                                 case DBCOM_MONSTERID(u8"变异骷髅"):
                                     {
                                         if(UIDPending(stSMA.UID)){
@@ -160,7 +160,7 @@ void ProcessRun::Net_ACTION(const uint8_t *pBuf, size_t)
                                     }
                             }
 
-                            if(auto pMonster = Monster::CreateMonster(stSMA.UID, this, stAction)){
+                            if(auto pMonster = Monster::createMonster(stSMA.UID, this, stAction)){
                                 m_CreatureList[stSMA.UID].reset(pMonster);
                             }
                             return;
@@ -205,7 +205,7 @@ void ProcessRun::Net_CORECORD(const uint8_t *pBuf, size_t)
     switch(stSMCOR.COType){
         case CREATURE_MONSTER:
             {
-                if(auto pMonster = Monster::CreateMonster(stSMCOR.Action.UID, this, stAction)){
+                if(auto pMonster = Monster::createMonster(stSMCOR.Action.UID, this, stAction)){
                     m_CreatureList[stSMCOR.Action.UID].reset(pMonster);
                 }
                 break;
@@ -240,7 +240,7 @@ void ProcessRun::Net_NOTIFYDEAD(const uint8_t *pBuf, size_t)
     std::memcpy(&stSMND, pBuf, sizeof(stSMND));
 
     if(auto p = RetrieveUID(stSMND.UID)){
-        p->ParseAction(ActionDie(p->X(), p->Y(), p->CurrMotion().Direction, true));
+        p->ParseAction(ActionDie(p->X(), p->Y(), p->currMotion().direction, true));
     }
 }
 
@@ -396,4 +396,11 @@ void ProcessRun::Net_GOLD(const uint8_t *pBuf, size_t)
     SMGold stSMG;
     std::memcpy(&stSMG, pBuf, sizeof(stSMG));
     GetMyHero()->SetGold(stSMG.Gold);
+}
+
+void ProcessRun::Net_NPCXMLLAYOUT(const uint8_t *buf, size_t)
+{
+    const auto xmlLayout = ServerMsg::conv<SMNPCXMLLayout>(buf);
+    m_NPCChatBoard.loadXML(xmlLayout.xmlLayout);
+    m_NPCChatBoard.show();
 }

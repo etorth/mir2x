@@ -17,7 +17,7 @@
  */
 
 #include <algorithm>
-#include "mathfunc.hpp"
+#include "mathf.hpp"
 #include "rotatecoord.hpp"
 
 RotateCoord::RotateCoord(int nCenterX, int nCenterY, int nStartX, int nStartY, int nW, int nH)
@@ -29,13 +29,13 @@ RotateCoord::RotateCoord(int nCenterX, int nCenterY, int nStartX, int nStartY, i
     , m_StopY(nStartY + nH - 1)
 {
     if(nW <= 0 || nH <= 0){
-        throw std::invalid_argument(str_fflprintf(": Invalid argument: W = %d, H = %d", nW, nH));
+        throw fflerror("invalid argument: W = %d, H = %d", nW, nH);
     }
 
     // simpler case
     // center point is inside the rectangle
 
-    if(MathFunc::PointInRectangle(m_CenterX, m_CenterY, m_StartX, m_StartY, nW, nH)){
+    if(mathf::pointInRectangle(m_CenterX, m_CenterY, m_StartX, m_StartY, nW, nH)){
         m_Distance  = 0;
         m_Direction = DirType::DIR_0;
         m_CurrentX  = m_CenterX;
@@ -139,15 +139,15 @@ RotateCoord::RotateCoord(int nCenterX, int nCenterY, int nStartX, int nStartY, i
 
     // report bug
     // there is case doesn't cover
-    throw std::runtime_error(str_fflprintf(": Missed logic"));
+    throw fflerror("missed logic");
 }
 
 void RotateCoord::CheckOverlap()
 {
-    m_Overlap[0] = MathFunc::PointInSegment(m_CenterY + m_Distance, m_StartY, m_StopY - m_StartY + 1);
-    m_Overlap[1] = MathFunc::PointInSegment(m_CenterX + m_Distance, m_StartX, m_StopX - m_StartX + 1);
-    m_Overlap[2] = MathFunc::PointInSegment(m_CenterY - m_Distance, m_StartY, m_StopY - m_StartY + 1);
-    m_Overlap[3] = MathFunc::PointInSegment(m_CenterX - m_Distance, m_StartX, m_StopX - m_StartX + 1);
+    m_Overlap[0] = mathf::pointInSegment(m_CenterY + m_Distance, m_StartY, m_StopY - m_StartY + 1);
+    m_Overlap[1] = mathf::pointInSegment(m_CenterX + m_Distance, m_StartX, m_StopX - m_StartX + 1);
+    m_Overlap[2] = mathf::pointInSegment(m_CenterY - m_Distance, m_StartY, m_StopY - m_StartY + 1);
+    m_Overlap[3] = mathf::pointInSegment(m_CenterX - m_Distance, m_StartX, m_StopX - m_StartX + 1);
 }
 
 bool RotateCoord::MoveToNextRound()
@@ -184,7 +184,7 @@ bool RotateCoord::Forward()
     // every time when we reach the boundary, check next boundary
 
     if(m_Distance < 0){
-        throw std::runtime_error(str_fflprintf(": Invalid distance %d", m_Distance));
+        throw fflerror("invalid distance %d", m_Distance);
     }
 
     // center point is inside the rectangle and we are immediately after calling ctor
@@ -216,7 +216,7 @@ bool RotateCoord::Forward()
                                 && (nNewX == m_CurrentX)
                                 && (nNewY == m_CurrentY)){ nNewY--; }
 
-                        if(MathFunc::PointInRectangle(nNewX, nNewY, m_StartX, m_StartY, m_StopX - m_StartX + 1, m_StopY - m_StartY + 1)){
+                        if(mathf::pointInRectangle(nNewX, nNewY, m_StartX, m_StartY, m_StopX - m_StartX + 1, m_StopY - m_StartY + 1)){
                             m_Direction = DirType::DIR_1;
                             m_CurrentX  = nNewX;
                             m_CurrentY  = nNewY;
@@ -290,7 +290,7 @@ bool RotateCoord::Forward()
                                 && (nNewX == m_CurrentX)
                                 && (nNewY == m_CurrentY)){ nNewX--; }
 
-                        if(MathFunc::PointInRectangle(nNewX, nNewY, m_StartX, m_StartY, m_StopX - m_StartX + 1, m_StopY - m_StartY + 1)){
+                        if(mathf::pointInRectangle(nNewX, nNewY, m_StartX, m_StartY, m_StopX - m_StartX + 1, m_StopY - m_StartY + 1)){
                             m_Direction = DirType::DIR_2;
                             m_CurrentX  = nNewX;
                             m_CurrentY  = nNewY;
@@ -336,7 +336,7 @@ bool RotateCoord::Forward()
                                 && (nNewX == m_CurrentX)
                                 && (nNewY == m_CurrentY)){ nNewY++; }
 
-                        if(MathFunc::PointInRectangle(nNewX, nNewY, m_StartX, m_StartY, m_StopX - m_StartX + 1, m_StopY - m_StartY + 1)){
+                        if(mathf::pointInRectangle(nNewX, nNewY, m_StartX, m_StartY, m_StopX - m_StartX + 1, m_StopY - m_StartY + 1)){
                             int nD0StartX = (std::max<int>)(m_StartX, m_CenterX - m_Distance);
                             int nD0StartY = m_CenterY + m_Distance;
                             if(true
@@ -393,7 +393,7 @@ bool RotateCoord::Forward()
             }
         default:
             {
-                throw std::runtime_error(str_fflprintf(": Invalid inn direction: %d", static_cast<int>(m_Direction)));
+                throw fflerror("invalid inn direction: %d", static_cast<int>(m_Direction));
             }
     }
 }

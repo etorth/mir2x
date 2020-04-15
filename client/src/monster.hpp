@@ -17,16 +17,16 @@
  */
 
 #pragma once
+#include "uidf.hpp"
 #include "client.hpp"
-#include "uidfunc.hpp"
 #include "creature.hpp"
-#include "protocoldef.hpp"
 #include "clientmsg.hpp"
+#include "protocoldef.hpp"
 
 class Monster: public Creature
 {
     public:
-        static Monster *CreateMonster(uint64_t, ProcessRun *, const ActionNode &);
+        static Monster *createMonster(uint64_t, ProcessRun *, const ActionNode &);
 
     protected:
         Monster(uint64_t, ProcessRun *);
@@ -35,39 +35,39 @@ class Monster: public Creature
         ~Monster() = default;
 
     public:
-        int Type() const
+        int type() const override
         {
             return CREATURE_MONSTER;
         }
 
     public:
-        bool Update(double);
-        bool Draw(int, int, int);
+        bool update(double) override;
+        bool draw(int, int, int) override;
 
     public:
-        uint32_t MonsterID() const
+        uint32_t monsterID() const
         {
-            return UIDFunc::GetMonsterID(UID());
+            return uidf::getMonsterID(UID());
         }
 
     protected:
-        bool Location(int *, int *);
+        std::tuple<int, int> location() const override;
 
     public:
         bool ParseAction(const ActionNode &);
 
     public:
-        bool MotionValid(const MotionNode &) const;
+        bool motionValid(const MotionNode &) const;
 
     public:
-        bool canFocus(int, int);
+        bool canFocus(int, int) const override;
 
     protected:
         int GfxMotionID(int) const;
         int GfxID(int, int) const;
 
     public:
-        int MotionFrameCount(int, int) const;
+        int motionFrameCount(int, int) const override;
 
     protected:
         void DispatchSpaceMove();

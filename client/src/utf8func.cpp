@@ -20,7 +20,7 @@
 #include <cstdint>
 #include <cinttypes>
 #include <stdexcept>
-#include "strfunc.hpp"
+#include "strf.hpp"
 #include "utf8func.hpp"
 #include "fflerror.hpp"
 

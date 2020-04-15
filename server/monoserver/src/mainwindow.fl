@@ -946,9 +946,9 @@ class MainWindow {open
     m_Window->show();
 }} {}
   }
-  Function {AddLog(int nLogType, const char *szMessage)} {return_type void
+  Function {addLog(int nLogType, const char *szMessage)} {return_type void
   } {
-    code {// AddLog(int nLogType, const char *szMessage)
+    code {// addLog(int nLogType, const char *szMessage)
 {
     // this function only interact with FLTK
     // for multi-thread lock and unlock, don't put it here
@@ -958,7 +958,7 @@ class MainWindow {open
     //    1. use Fl::lock() and Fl::unlock() to access FLTK widgets in child threads
     //    2. use Fl::awake(function_indicator) to post callbacks to main thread
     // I use a wrapper function NotifyGUI("Command") for method 2
-    // here keeps code MainWindow::AddLog() independent from these two methods
+    // here keeps code MainWindow::addLog() independent from these two methods
 	std::time_t stRes = std::time(nullptr);
 	std::string szFullMessage = std::asctime(std::localtime(&stRes));
 	szFullMessage.back() = ' ';
@@ -982,18 +982,18 @@ class MainWindow {open
 	m_Browser->bottomline(m_Browser->size());
 }} {}
   }
-  Function {AddCWLog(int nCWID, int nLogType, const char *szPrompt, const char *szMessage)} {return_type void
+  Function {addCWLog(int nCWID, int nLogType, const char *szPrompt, const char *szMessage)} {return_type void
   } {
-    code {// AddCWLog(int nCWID, int nLogType, const char *szPrompt, const char *szMessage)
+    code {// addCWLog(int nCWID, int nLogType, const char *szPrompt, const char *szMessage)
 {
     // this function only interact with FLTK
     // for multi-thread lock and unlock, don't put it here
-    // for more information, read comments in MainWindow::AddLog()
+    // for more information, read comments in MainWindow::addLog()
 
     // this function forwards all arguments to the command window
     // do nothing if no such command window
     if(auto pCW = GetCommandWindow(nCWID)){
-        pCW->AddLog(nLogType, szPrompt, szMessage);
+        pCW->addLog(nLogType, szPrompt, szMessage);
     }
 }} {}
   }

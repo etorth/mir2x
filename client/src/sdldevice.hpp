@@ -23,7 +23,7 @@
 #include <algorithm>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
-#include "colorfunc.hpp"
+#include "colorf.hpp"
 #include "fflerror.hpp"
 
 class SDLDevice final
@@ -243,7 +243,7 @@ class SDLDevice final
     public:
        void PushColor(uint32_t nRGBA)
        {
-           PushColor(ColorFunc::R(nRGBA), ColorFunc::G(nRGBA), ColorFunc::B(nRGBA), ColorFunc::A(nRGBA));
+           PushColor(colorf::R(nRGBA), colorf::G(nRGBA), colorf::B(nRGBA), colorf::A(nRGBA));
        }
 
        void PushColor(const SDL_Color &rstColor)
@@ -275,5 +275,32 @@ class SDLDevice final
        void setWindowResizable(bool resizable)
        {
            SDL_SetWindowResizable(m_Window, resizable ? SDL_TRUE : SDL_FALSE);
+       }
+
+    public:
+       static std::tuple<int, int> getTextureSize(SDL_Texture *texture)
+       {
+           if(!texture){
+               throw fflerror("null texture");
+           }
+
+           int width  = 0;
+           int height = 0;
+
+           if(!SDL_QueryTexture(texture, 0, 0, &width, &height)){
+               return {width, height};
+           }
+
+           throw fflerror("query texture failed: %p", texture);
+       }
+
+       static int getTextureWidth(SDL_Texture *texture)
+       {
+           return std::get<0>(getTextureSize(texture));
+       }
+
+       static int getTextureHeight(SDL_Texture *texture)
+       {
+           return std::get<1>(getTextureSize(texture));
        }
 };

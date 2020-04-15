@@ -23,7 +23,7 @@
 #include "buttonbase.hpp"
 #include "labelboard.hpp"
 
-class TextButton: public buttonBase
+class TextButton: public ButtonBase
 {
     private:
         // for [3]: 0 : off
@@ -40,7 +40,7 @@ class TextButton: public buttonBase
         int m_FrameLineWidth;
 
     private:
-        labelBoard m_Label;
+        LabelBoard m_Label;
 
     public:
         TextButton(
@@ -60,23 +60,23 @@ class TextButton: public buttonBase
                 const uint32_t (&rstColor)[2][3] =
                 {
                     {
-                        ColorFunc::RGBA(0XFF, 0XFF, 0XFF, 0XFF),   // front ground, off
-                        ColorFunc::RGBA(0XFF, 0XFF, 0X00, 0X00),   // front ground, over
-                        ColorFunc::RGBA(0XFF, 0X00, 0X00, 0X00),   // front ground, pressed
+                        colorf::RGBA(0XFF, 0XFF, 0XFF, 0XFF),   // front ground, off
+                        colorf::RGBA(0XFF, 0XFF, 0X00, 0X00),   // front ground, over
+                        colorf::RGBA(0XFF, 0X00, 0X00, 0X00),   // front ground, pressed
                     },
 
                     {
-                        ColorFunc::RGBA(0X00, 0X00, 0X00, 0X00),   // background, off
-                        ColorFunc::RGBA(0X00, 0X00, 0X00, 0X00),   // background, over
-                        ColorFunc::RGBA(0X00, 0X00, 0X00, 0X00),   // background, pressed
+                        colorf::RGBA(0X00, 0X00, 0X00, 0X00),   // background, off
+                        colorf::RGBA(0X00, 0X00, 0X00, 0X00),   // background, over
+                        colorf::RGBA(0X00, 0X00, 0X00, 0X00),   // background, pressed
                     },
                 },
 
                 const uint32_t (&rstFrameLineColor)[3] =
                 {
-                    ColorFunc::RGBA(0XFF, 0XFF, 0XFF, 0XFF),   // frame line, off
-                    ColorFunc::RGBA(0XFF, 0X00, 0X00, 0X00),   // frame line, over
-                    ColorFunc::RGBA(0XFF, 0XFF, 0X00, 0X00),   // frame line, pressed
+                    colorf::RGBA(0XFF, 0XFF, 0XFF, 0XFF),   // frame line, off
+                    colorf::RGBA(0XFF, 0X00, 0X00, 0X00),   // frame line, over
+                    colorf::RGBA(0XFF, 0XFF, 0X00, 0X00),   // frame line, pressed
                 },
 
                 int nFrameLineWidth = 1,
@@ -87,9 +87,9 @@ class TextButton: public buttonBase
                 int nOffYOnClick = 0,
 
                 bool    bOnClickDone = true,
-                widget *pwidget      = nullptr,
+                Widget *pwidget      = nullptr,
                 bool    bFreewidget  = false)
-            : buttonBase
+            : ButtonBase
               {
                   nX,
                   nY,
@@ -136,8 +136,8 @@ class TextButton: public buttonBase
         // end of initialization list
         // put all validation in the function body
         {
-            m_w = (std::max<int>)(m_w, m_Label.W());
-            m_h = (std::max<int>)(m_h, m_Label.H());
+            m_w = (std::max<int>)(m_w, m_Label.w());
+            m_h = (std::max<int>)(m_h, m_Label.h());
         }
 
     public:
@@ -152,7 +152,7 @@ class TextButton: public buttonBase
         void FormatText(const char *, ...);
 
     public:
-        const labelBoard &GetlabelBoard()
+        const LabelBoard &GetlabelBoard()
         {
             return m_Label;
         }

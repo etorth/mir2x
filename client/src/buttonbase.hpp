@@ -32,7 +32,7 @@
 #include "pngtexdb.hpp"
 #include "sdldevice.hpp"
 
-class buttonBase: public widget
+class ButtonBase: public Widget
 {
     public:
         enum buttonState: int
@@ -56,7 +56,7 @@ class buttonBase: public widget
         std::function<void()> m_onClick;
         
     public:
-        buttonBase(
+        ButtonBase(
                 int nX,
                 int nY,
                 int nW,
@@ -71,9 +71,9 @@ class buttonBase: public widget
                 int nOffYOnClick = 0,
 
                 bool    bOnClickDone = true,
-                widget *pwidget      = nullptr,
+                Widget *pwidget      = nullptr,
                 bool    bFreewidget  = false)
-            : widget(nX, nY, nW, nH, pwidget, bFreewidget)
+            : Widget(nX, nY, nW, nH, pwidget, bFreewidget)
             , m_state(BUTTON_OFF)
             , m_onClickDone(bOnClickDone)
             , m_Offset
@@ -90,7 +90,7 @@ class buttonBase: public widget
         }
 
     public:
-        virtual ~buttonBase() = default;
+        virtual ~ButtonBase() = default;
 
     public:
         bool processEvent(const SDL_Event &, bool);

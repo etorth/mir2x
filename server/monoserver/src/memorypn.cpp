@@ -25,7 +25,7 @@ MemoryPN::MemoryPN()
     extern MemoryPN *g_MemoryPN;
     if(g_MemoryPN){
         extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "one global memory pool instance please");
+        g_MonoServer->addLog(LOGTYPE_WARNING, "one global memory pool instance please");
         g_MonoServer->Restart();
     }
 }

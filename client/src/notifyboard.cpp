@@ -71,7 +71,7 @@ void NotifyBoard::AddXML(const char *szXML, const std::map<std::string, std::fun
     }
 }
 
-void NotifyBoard::AddLog(std::array<std::string, 4> stLogType, const char *szLogFormat, ...)
+void NotifyBoard::addLog(std::array<std::string, 4> stLogType, const char *szLogFormat, ...)
 {
     std::string szLog;
     bool bError = false;
@@ -83,7 +83,7 @@ void NotifyBoard::AddLog(std::array<std::string, 4> stLogType, const char *szLog
             szLog = str_vprintf(szLogFormat, ap);
         }catch(const std::exception &e){
             bError = true;
-            szLog = str_printf("Exception caught in NotifyBoard::AddLog(\"%s\", ...): %s", szLogFormat, e.what());
+            szLog = str_printf("Exception caught in NotifyBoard::addLog(\"%s\", ...): %s", szLogFormat, e.what());
         }
 
         va_end(ap);
@@ -113,7 +113,7 @@ void NotifyBoard::AddLog(std::array<std::string, 4> stLogType, const char *szLog
             }
         default:
             {
-                g_Log->AddLog(LOGTYPE_WARNING, "Invalid LogType %d: %s", nLogType, szLog.c_str());
+                g_Log->addLog(LOGTYPE_WARNING, "Invalid LogType %d: %s", nLogType, szLog.c_str());
                 AddXML(str_printf("<ROOT><OBJECT TYPE=\"PLAINTEXT\" COLOR=\"RED\">Invalid LogType %d: %s</OBJECT></ROOT>", nLogType, szLog.c_str()).c_str(), {});
                 return;
             }

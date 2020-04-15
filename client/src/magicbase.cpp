@@ -36,8 +36,7 @@ MagicBase::MagicBase(int nMagicID,
     , m_CacheEntry(nullptr)
 {
     if(!RefreshCache()){
-        g_Log->AddLog(LOGTYPE_FATAL, "Invalid argument to MagicBase");
-        Print();
+        throw fflerror("invalid argument to MagicBase");
     }
 }
 

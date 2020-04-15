@@ -18,7 +18,7 @@
 #include <utility>
 #include <algorithm>
 #include "xmlfunc.hpp"
-#include "strfunc.hpp"
+#include "strf.hpp"
 
 bool XMLFunc::CheckTextLeaf(const tinyxml2::XMLNode *pNode)
 {

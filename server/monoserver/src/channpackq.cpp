@@ -25,10 +25,10 @@ bool ChannPackQ::AddChannPack(uint8_t nHC, const uint8_t *pData, size_t nDataLen
     auto fnReportError = [nHC, pData, nDataLen](const char *pErrorMessage)
     {
         extern MonoServer *g_MonoServer;
-        g_MonoServer->AddLog(LOGTYPE_WARNING, "%s: (%d, %p, %d)", (pErrorMessage ? pErrorMessage : "Empty message"), (int)(nHC), pData, (int)(nDataLen));
+        g_MonoServer->addLog(LOGTYPE_WARNING, "%s: (%d, %p, %d)", (pErrorMessage ? pErrorMessage : "Empty message"), (int)(nHC), pData, (int)(nDataLen));
     };
 
-    serverMsg stSMSG(nHC);
+    ServerMsg stSMSG(nHC);
     switch(stSMSG.type()){
         case 0:
             {

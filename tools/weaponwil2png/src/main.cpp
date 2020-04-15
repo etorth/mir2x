@@ -54,9 +54,9 @@
 #include <cinttypes>
 #include <algorithm>
 
-#include "shadow.hpp"
-#include "savepng.hpp"
+#include "pngf.hpp"
 #include "filesys.hpp"
+#include "shadow.hpp"
 #include "wilimagepackage.hpp"
 
 void printUsage()
@@ -211,7 +211,7 @@ bool weaponWil2PNG(bool bGender, int nIndex,
                                 stWeaponInfo.shPX,
                                 stWeaponInfo.shPY);
 
-                        if(!SaveRGBABufferToPNG((uint8_t *)(&(stWeaponPNGBuf[0])), stWeaponInfo.shWidth, stWeaponInfo.shHeight, szSaveFileName)){
+                        if(!pngf::saveRGBABuffer((uint8_t *)(&(stWeaponPNGBuf[0])), stWeaponInfo.shWidth, stWeaponInfo.shHeight, szSaveFileName)){
                             std::printf("save weapon PNG failed: %s", szSaveFileName);
                             return false;
                         }
@@ -255,7 +255,7 @@ bool weaponWil2PNG(bool bGender, int nIndex,
                                     bProject ? (nWeaponDX) : (stWeaponInfo.shPX + 3),
                                     bProject ? (nWeaponDY) : (stWeaponInfo.shPY + 2));
 
-                            if(!SaveRGBABufferToPNG((uint8_t *)(&(stWeaponPNGBufShadow[0])), nShadowW, nShadowH, szSaveFileName)){
+                            if(!pngf::saveRGBABuffer((uint8_t *)(&(stWeaponPNGBufShadow[0])), nShadowW, nShadowH, szSaveFileName)){
                                 std::printf("save shadow PNG failed: %s", szSaveFileName);
                                 return false;
                             }

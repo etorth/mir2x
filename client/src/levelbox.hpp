@@ -21,15 +21,15 @@
 #include "widget.hpp"
 #include "bevent.hpp"
 #include "sdldevice.hpp"
-#include "colorfunc.hpp"
+#include "colorf.hpp"
 #include "labelboard.hpp"
 
 extern SDLDevice *g_SDLDevice;
 
-class levelBox: public widget
+class LevelBox: public Widget
 {
     private:
-        labelBoard m_label;
+        LabelBoard m_label;
 
     private:
         int m_state = BEVENT_OFF;
@@ -42,14 +42,14 @@ class levelBox: public widget
         std::function<void()> m_onDoubleClick;
 
     public:
-        levelBox(
+        LevelBox(
                 int, // x
                 int, // y
 
                 const std::function<void(int)> &, // drag
                 const std::function<void(   )> &, // double-click
                 
-                widget * = nullptr, // parent
+                Widget * = nullptr, // parent
                 bool     = false);  // auto-delete
 
     public:
@@ -63,9 +63,9 @@ class levelBox: public widget
         {
             m_label.setText("%d", level);
 
-            m_w = std::max<int>(m_label.W(), 18);
-            m_h = std::max<int>(m_label.H(), 10);
+            m_w = std::max<int>(m_label.w(), 18);
+            m_h = std::max<int>(m_label.h(), 10);
 
-            m_label.moveTo((W() - m_label.W()) / 2,(H() - m_label.H()) / 2);
+            m_label.moveTo((w() - m_label.w()) / 2,(h() - m_label.h()) / 2);
         }
 };

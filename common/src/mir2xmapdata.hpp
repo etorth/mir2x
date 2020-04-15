@@ -25,7 +25,7 @@
 #include <vector>
 #include <cstdint>
 #include <functional>
-#include "strfunc.hpp"
+#include "strf.hpp"
 #include "landtype.hpp"
 #include "sysconst.hpp"
 #include "condcheck.hpp"

@@ -118,6 +118,7 @@ class Player final: public CharObject
         void On_MPK_BINDCHANNEL(const MessagePack &);
         void On_MPK_CHECKMASTER(const MessagePack &);
         void On_MPK_SHOWDROPITEM(const MessagePack &);
+        void On_MPK_NPCXMLLAYOUT(const MessagePack &);
         void On_MPK_QUERYCORECORD(const MessagePack &);
         void On_MPK_QUERYLOCATION(const MessagePack &);
         void On_MPK_REMOVEGROUNDITEM(const MessagePack &);
@@ -129,6 +130,7 @@ class Player final: public CharObject
         void Net_CM_ACTION          (uint8_t, const uint8_t *, size_t);
         void Net_CM_PICKUP          (uint8_t, const uint8_t *, size_t);
         void Net_CM_QUERYGOLD       (uint8_t, const uint8_t *, size_t);
+        void Net_CM_NPCEVENT        (uint8_t, const uint8_t *, size_t);
 
     protected:
         void ReportGold();
@@ -170,10 +172,10 @@ class Player final: public CharObject
         void OnCMActionPickUp(CMAction);
 
     private:
-        bool PostNetMessage(uint8_t, const uint8_t *, size_t);
-        template<typename T> bool PostNetMessage(uint8_t nHC, T& stMessage)
+        bool postNetMessage(uint8_t, const uint8_t *, size_t);
+        template<typename T> bool postNetMessage(uint8_t nHC, T& stMessage)
         {
-            return PostNetMessage(nHC, (const uint8_t *)(&stMessage), sizeof(stMessage));
+            return postNetMessage(nHC, (const uint8_t *)(&stMessage), sizeof(stMessage));
         }
 
     protected:

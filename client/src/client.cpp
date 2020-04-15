@@ -166,7 +166,7 @@ void Client::InitASIO()
         szPort = "5000";
     }
 
-    m_NetIO.InitIO(szIP.c_str(), szPort.c_str(), [this](uint8_t nHC, const uint8_t *pData, size_t nDataLen)
+    m_netIO.start(szIP.c_str(), szPort.c_str(), [this](uint8_t nHC, const uint8_t *pData, size_t nDataLen)
     {
         // core should handle on fully recieved message from the serer
         // previously there are two steps (HC, Body) seperately handled, error-prone
@@ -176,12 +176,12 @@ void Client::InitASIO()
 
 void Client::PollASIO()
 {
-    m_NetIO.PollIO();
+    m_netIO.poll();
 }
 
 void Client::StopASIO()
 {
-    m_NetIO.StopIO();
+    m_netIO.stop();
 }
 
 void Client::OnServerMessage(uint8_t nHC, const uint8_t *pData, size_t nDataLen)
@@ -189,7 +189,7 @@ void Client::OnServerMessage(uint8_t nHC, const uint8_t *pData, size_t nDataLen)
     // 1. update the time when last message received
     m_NetPackTick = SDL_GetTicks() * 1.0;
     if(nHC != SM_PING){
-        g_debugBoard->addLog("[%08.3f]%s", (float)(m_NetPackTick / 1000.0f), serverMsg(nHC).name().c_str());
+        g_debugBoard->addLog("[%08.3f]%s", (float)(m_NetPackTick / 1000.0f), ServerMsg(nHC).name().c_str());
     }
 
     m_ClientMonitor.SMProcMonitorList[nHC].RecvCount++;
@@ -246,6 +246,13 @@ void Client::OnServerMessage(uint8_t nHC, const uint8_t *pData, size_t nDataLen)
                 }
                 break;
             }
+        case SM_NPCXMLLAYOUT:
+            {
+                if(auto p = processRun(); p){
+                    p->Net_NPCXMLLAYOUT(pData, nDataLen);
+                }
+                break;
+            }
         case SM_SHOWDROPITEM:
             {
                 if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
@@ -270,7 +277,7 @@ void Client::OnServerMessage(uint8_t nHC, const uint8_t *pData, size_t nDataLen)
                 if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
                     pRun->Net_LOGINOK(pData, nDataLen);
                 }else{
-                    g_Log->AddLog(LOGTYPE_INFO, "failed to jump into main loop");
+                    g_Log->addLog(LOGTYPE_INFO, "failed to jump into main loop");
                 }
                 break;
             }
@@ -283,7 +290,7 @@ void Client::OnServerMessage(uint8_t nHC, const uint8_t *pData, size_t nDataLen)
             }
         case SM_LOGINFAIL:
             {
-                g_Log->AddLog(LOGTYPE_WARNING, "Login failed: ID = %d", (int)(((SMLoginFail *)(pData))->FailID));
+                g_Log->addLog(LOGTYPE_WARNING, "Login failed: ID = %d", (int)(((SMLoginFail *)(pData))->FailID));
                 break;
             }
         case SM_ACTION:
@@ -421,12 +428,12 @@ void Client::SwitchProcess(int nOldID, int nNewID)
 
 void Client::PrintMonitor() const
 {
-    g_Log->AddLog(LOGTYPE_DEBUG, "Client runs %" PRIu64 " msec", m_ClientTimer.diff_msec());
+    g_Log->addLog(LOGTYPE_DEBUG, "Client runs %" PRIu64 " msec", m_ClientTimer.diff_msec());
     for(size_t nIndex = 0; nIndex < SM_MAX; ++nIndex){
         uint64_t nProcTick  = m_ClientMonitor.SMProcMonitorList[nIndex].ProcTick / 1000000;
         uint64_t nRecvCount = m_ClientMonitor.SMProcMonitorList[nIndex].RecvCount;
         if(nRecvCount > 0){
-            g_Log->AddLog(LOGTYPE_DEBUG, "%s: RecvCount = %" PRIu64 ", ProcTick = %" PRIu64 "msec", serverMsg(nIndex).name().c_str(), nRecvCount, nProcTick);
+            g_Log->addLog(LOGTYPE_DEBUG, "%s: RecvCount = %" PRIu64 ", ProcTick = %" PRIu64 "msec", ServerMsg(nIndex).name().c_str(), nRecvCount, nProcTick);
         }
     }
 }

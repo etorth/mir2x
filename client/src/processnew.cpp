@@ -52,9 +52,9 @@ ProcessNew::ProcessNew()
     , m_CheckPwd(true)
     , m_CheckPwdConfirm(true)
 
-    , m_LBID        (0, 0, "ID"              , 0, 15, 0, ColorFunc::RGBA(0xFF, 0X00, 0X00, 0X00))
-    , m_LBPwd       (0, 0, "Password"        , 0, 15, 0, ColorFunc::RGBA(0xFF, 0X00, 0X00, 0X00))
-    , m_LBPwdConfirm(0, 0, "Confirm Passowrd", 0, 15, 0, ColorFunc::RGBA(0xFF, 0X00, 0X00, 0X00))
+    , m_LBID        (0, 0, "ID"              , 0, 15, 0, colorf::RGBA(0xFF, 0X00, 0X00, 0X00))
+    , m_LBPwd       (0, 0, "Password"        , 0, 15, 0, colorf::RGBA(0xFF, 0X00, 0X00, 0X00))
+    , m_LBPwdConfirm(0, 0, "Confirm Passowrd", 0, 15, 0, colorf::RGBA(0xFF, 0X00, 0X00, 0X00))
 
 	, m_BoxID
       {
@@ -66,10 +66,10 @@ ProcessNew::ProcessNew()
           2,
           15,
           0,
-          ColorFunc::WHITE,
+          colorf::WHITE,
 
           2,
-          ColorFunc::WHITE,
+          colorf::WHITE,
 
           [this]()
           {
@@ -93,10 +93,10 @@ ProcessNew::ProcessNew()
           2,
           15,
           0,
-          ColorFunc::WHITE,
+          colorf::WHITE,
 
           2,
-          ColorFunc::WHITE,
+          colorf::WHITE,
 
           [this]()
           {
@@ -120,10 +120,10 @@ ProcessNew::ProcessNew()
           2,
           15,
           0,
-          ColorFunc::WHITE,
+          colorf::WHITE,
 
           2,
-          ColorFunc::WHITE,
+          colorf::WHITE,
 
           [this]()
           {
@@ -137,9 +137,9 @@ ProcessNew::ProcessNew()
           },
       }
 
-    , m_LBCheckID        (0, 0, "ID", 0, 15, 0, ColorFunc::RGBA(0xFF, 0X00, 0X00, 0X00))
-    , m_LBCheckPwd       (0, 0, "ID", 0, 15, 0, ColorFunc::RGBA(0xFF, 0X00, 0X00, 0X00))
-    , m_LBCheckPwdConfirm(0, 0, "ID", 0, 15, 0, ColorFunc::RGBA(0xFF, 0X00, 0X00, 0X00))
+    , m_LBCheckID        (0, 0, "ID", 0, 15, 0, colorf::RGBA(0xFF, 0X00, 0X00, 0X00))
+    , m_LBCheckPwd       (0, 0, "ID", 0, 15, 0, colorf::RGBA(0xFF, 0X00, 0X00, 0X00))
+    , m_LBCheckPwdConfirm(0, 0, "ID", 0, 15, 0, colorf::RGBA(0xFF, 0X00, 0X00, 0X00))
 
 	, m_TBCreate(150, 482, 200, 40, "CREATE", 0, 16, 0, []{}, [this](){ DoPostAccount(); })
 	, m_TBExit  (352, 482, 200, 40, "EXIT",   0, 16, 0, []{}, [this](){ DoExit();        })
@@ -147,9 +147,9 @@ ProcessNew::ProcessNew()
 
 void ProcessNew::Update(double fMS)
 {
-    m_BoxID        .Update(fMS);
-    m_BoxPwd       .Update(fMS);
-    m_BoxPwdConfirm.Update(fMS);
+    m_BoxID        .update(fMS);
+    m_BoxPwd       .update(fMS);
+    m_BoxPwdConfirm.update(fMS);
 }
 
 void ProcessNew::Draw()
@@ -171,12 +171,12 @@ void ProcessNew::Draw()
         //     -->| |<--       -->| |<--
         //        nDX             nDX
 
-        rstLB.drawEx(nX - rstLB.W() - nDX, nY, 0, 0, rstLB.W(), rstLB.H());
+        rstLB.drawEx(nX - rstLB.w() - nDX, nY, 0, 0, rstLB.w(), rstLB.h());
 
-        g_SDLDevice->DrawRectangle(nX, nY, rstBox.W(), rstBox.H());
-        rstBox.drawEx(nX, nY, 0, 0, rstBox.W(), rstBox.H());
+        g_SDLDevice->DrawRectangle(nX, nY, rstBox.w(), rstBox.h());
+        rstBox.drawEx(nX, nY, 0, 0, rstBox.w(), rstBox.h());
 
-        rstLBCheck.drawEx(nX + rstBox.W() + nDX, nY, 0, 0, rstLBCheck.W(), rstLBCheck.H());
+        rstLBCheck.drawEx(nX + rstBox.w() + nDX, nY, 0, 0, rstLBCheck.w(), rstLBCheck.h());
     };
 
     g_SDLDevice->PushColor(0X00, 0X80, 0X00, 0X00);
@@ -263,7 +263,7 @@ void ProcessNew::DoPostAccount()
             || m_CheckID
             || m_CheckPwd
             || m_CheckPwdConfirm){
-        g_NotifyBoard->AddLog(LOGTYPE_WARNING, "Fix error before send request");
+        g_NotifyBoard->addLog(LOGTYPE_WARNING, "Fix error before send request");
         return;
     }
 
@@ -283,7 +283,7 @@ void ProcessNew::PostAccount(const char *szID, const char *szPWD, int nOperation
         std::strcpy(stCMA.Password, szPWD);
 
         stCMA.Operation = nOperation;
-        g_client->Send(CM_ACCOUNT, stCMA);
+        g_client->send(CM_ACCOUNT, stCMA);
     }
 }
 
@@ -298,7 +298,7 @@ void ProcessNew::CheckInput()
         m_LBCheckID.clear();
     }else if(CacheFind(false, szID)){
         m_CheckID = CHECK_ERROR;
-        m_LBCheckID.SetFontColor(ColorFunc::RED);
+        m_LBCheckID.SetFontColor(colorf::RED);
         m_LBCheckID.setText("ID has been used by others");
     }else{
         if(szID.empty()){
@@ -306,11 +306,11 @@ void ProcessNew::CheckInput()
         }else{
             if(LocalCheckID(szID.c_str())){
                 m_CheckID = CHECK_PENDING;
-                m_LBCheckID.SetFontColor(ColorFunc::GREEN);
+                m_LBCheckID.SetFontColor(colorf::GREEN);
                 m_LBCheckID.setText("Pending...");
             }else{
                 m_CheckID = CHECK_ERROR;
-                m_LBCheckID.SetFontColor(ColorFunc::RED);
+                m_LBCheckID.SetFontColor(colorf::RED);
                 m_LBCheckID.setText("Invalid ID");
             }
         }
@@ -324,7 +324,7 @@ void ProcessNew::CheckInput()
             m_LBCheckPwd.clear();
         }else{
             m_CheckPwd = CHECK_ERROR;
-            m_LBCheckPwd.SetFontColor(ColorFunc::RED);
+            m_LBCheckPwd.SetFontColor(colorf::RED);
             m_LBCheckPwd.setText("Invalid password");
         }
     }
@@ -337,7 +337,7 @@ void ProcessNew::CheckInput()
             m_LBCheckPwdConfirm.clear();
         }else{
             m_CheckPwdConfirm = CHECK_ERROR;
-            m_LBCheckPwdConfirm.SetFontColor(ColorFunc::RED);
+            m_LBCheckPwdConfirm.SetFontColor(colorf::RED);
             m_LBCheckPwdConfirm.setText("Password doesn't match");
         }
     }

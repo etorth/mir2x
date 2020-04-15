@@ -28,7 +28,7 @@
 extern MapBinDB *g_MapBinDB;
 
 ServiceCore::ServiceCore()
-    : ServerObject(UIDFunc::GetServiceCoreUID())
+    : ServerObject(uidf::getServiceCoreUID())
     , m_MapList()
 {}
 
@@ -78,7 +78,7 @@ void ServiceCore::OperateAM(const MessagePack &rstMPK)
         default:
             {
                 extern MonoServer *g_MonoServer;
-                g_MonoServer->AddLog(LOGTYPE_WARNING, "Unsupported message: %s", rstMPK.Name());
+                g_MonoServer->addLog(LOGTYPE_WARNING, "Unsupported message: %s", rstMPK.Name());
                 break;
             }
     }

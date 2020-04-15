@@ -19,11 +19,12 @@
 #include <sstream>
 #include <fstream>
 #include <algorithm>
+#include "uidf.hpp"
 #include "player.hpp"
 #include "dbcomid.hpp"
 #include "monster.hpp"
 #include "actorpod.hpp"
-#include "mathfunc.hpp"
+#include "mathf.hpp"
 #include "sysconst.hpp"
 #include "fflerror.hpp"
 #include "mapbindb.hpp"
@@ -56,18 +57,18 @@ ServerMap::ServerPathFinder::ServerPathFinder(const ServerMap *pMap, int nMaxSte
           //             && MaxStep() != 2
           //             && MaxStep() != 3){
           //
-          //         g_MonoServer->AddLog(LOGTYPE_FATAL, "Invalid MaxStep provided: %d, should be (1, 2, 3)", MaxStep());
+          //         g_MonoServer->addLog(LOGTYPE_FATAL, "Invalid MaxStep provided: %d, should be (1, 2, 3)", MaxStep());
           //         return 10000.00;
           //     }
           //
-          //     int nDistance2 = MathFunc::LDistance2(nSrcX, nSrcY, nDstX, nDstY);
+          //     int nDistance2 = mathf::LDistance2(nSrcX, nSrcY, nDstX, nDstY);
           //     if(true
           //             && nDistance2 != 1
           //             && nDistance2 != 2
           //             && nDistance2 != MaxStep() * MaxStep()
           //             && nDistance2 != MaxStep() * MaxStep() * 2){
           //
-          //         g_MonoServer->AddLog(LOGTYPE_FATAL, "Invalid step checked: (%d, %d) -> (%d, %d)", nSrcX, nSrcY, nDstX, nDstY);
+          //         g_MonoServer->addLog(LOGTYPE_FATAL, "Invalid step checked: (%d, %d) -> (%d, %d)", nSrcX, nSrcY, nDstX, nDstY);
           //         return 10000.00;
           //     }
           // }
@@ -79,7 +80,7 @@ ServerMap::ServerPathFinder::ServerPathFinder(const ServerMap *pMap, int nMaxSte
     , m_CheckCO(nCheckCO)
 {
     if(!pMap){
-        g_MonoServer->AddLog(LOGTYPE_FATAL, "Invalid argument: ServerMap = %p, CheckCreature = %d", pMap, nCheckCO);
+        g_MonoServer->addLog(LOGTYPE_FATAL, "Invalid argument: ServerMap = %p, CheckCreature = %d", pMap, nCheckCO);
     }
 
     switch(nCheckCO){
@@ -91,7 +92,7 @@ ServerMap::ServerPathFinder::ServerPathFinder(const ServerMap *pMap, int nMaxSte
             }
         default:
             {
-                g_MonoServer->AddLog(LOGTYPE_FATAL, "Invalid CheckCO provided: %d, should be (0, 1, 2)", nCheckCO);
+                g_MonoServer->addLog(LOGTYPE_FATAL, "Invalid CheckCO provided: %d, should be (0, 1, 2)", nCheckCO);
                 break;
             }
     }
@@ -105,14 +106,14 @@ ServerMap::ServerPathFinder::ServerPathFinder(const ServerMap *pMap, int nMaxSte
             }
         default:
             {
-                g_MonoServer->AddLog(LOGTYPE_FATAL, "Invalid MaxStep provided: %d, should be (1, 2, 3)", MaxStep());
+                g_MonoServer->addLog(LOGTYPE_FATAL, "Invalid MaxStep provided: %d, should be (1, 2, 3)", MaxStep());
                 break;
             }
     }
 }
 
 ServerMap::ServerMap(ServiceCore *pServiceCore, uint32_t nMapID)
-    : ServerObject(UIDFunc::GetMapUID(nMapID))
+    : ServerObject(uidf::getMapUID(nMapID))
     , m_ID(nMapID)
     , m_Mir2xMapData(*([nMapID]() -> Mir2xMapData *
       {
@@ -252,7 +253,7 @@ void ServerMap::OperateAM(const MessagePack &rstMPK)
             }
         default:
             {
-                g_MonoServer->AddLog(LOGTYPE_FATAL, "Unsupported message: %s", rstMPK.Name());
+                g_MonoServer->addLog(LOGTYPE_FATAL, "Unsupported message: %s", rstMPK.Name());
                 break;
             }
     }
@@ -271,7 +272,7 @@ bool ServerMap::CanMove(bool bCheckCO, bool bCheckLock, int nX, int nY) const
     if(GroundValid(nX, nY)){
         if(bCheckCO){
             for(auto nUID: GetUIDListRef(nX, nY)){
-                if(auto nType = UIDFunc::GetUIDType(nUID); nType == UID_PLY || nType == UID_MON){
+                if(auto nType = uidf::getUIDType(nUID); nType == UID_PLY || nType == UID_MON){
                     return false;
                 }
             }
@@ -298,7 +299,7 @@ double ServerMap::OneStepCost(int nCheckCO, int nCheckLock, int nX0, int nY0, in
             }
         default:
             {
-                g_MonoServer->AddLog(LOGTYPE_FATAL, "Invalid CheckCO provided: %d, should be (0, 1, 2)", nCheckCO);
+                g_MonoServer->addLog(LOGTYPE_FATAL, "Invalid CheckCO provided: %d, should be (0, 1, 2)", nCheckCO);
                 return -1.00;
             }
     }
@@ -312,13 +313,13 @@ double ServerMap::OneStepCost(int nCheckCO, int nCheckLock, int nX0, int nY0, in
             }
         default:
             {
-                g_MonoServer->AddLog(LOGTYPE_FATAL, "Invalid CheckLock provided: %d, should be (0, 1, 2)", nCheckLock);
+                g_MonoServer->addLog(LOGTYPE_FATAL, "Invalid CheckLock provided: %d, should be (0, 1, 2)", nCheckLock);
                 return -1.00;
             }
     }
 
     int nMaxIndex = -1;
-    switch(MathFunc::LDistance2(nX0, nY0, nX1, nY1)){
+    switch(mathf::LDistance2(nX0, nY0, nX1, nY1)){
         case 0:
             {
                 nMaxIndex = 0;
@@ -405,7 +406,7 @@ double ServerMap::OneStepCost(int nCheckCO, int nCheckLock, int nX0, int nY0, in
                 }
             default:
                 {
-                    g_MonoServer->AddLog(LOGTYPE_FATAL, "Invalid grid provided: %d at (%d, %d)", nGrid, nX0 + nDX * nIndex, nY0 + nDY * nIndex);
+                    g_MonoServer->addLog(LOGTYPE_FATAL, "Invalid grid provided: %d at (%d, %d)", nGrid, nX0 + nDX * nIndex, nY0 + nDY * nIndex);
                     break;
                 }
         }
@@ -519,7 +520,7 @@ bool ServerMap::DoCircle(int nCX0, int nCY0, int nCR, const std::function<bool(i
     int nX0 = nCX0 - nCR + 1;
     int nY0 = nCY0 - nCR + 1;
 
-    if((nW > 0) && (nH > 0) && MathFunc::RectangleOverlapRegion(0, 0, W(), H(), &nX0, &nY0, &nW, &nH)){
+    if((nW > 0) && (nH > 0) && mathf::rectangleOverlapRegion(0, 0, W(), H(), &nX0, &nY0, &nW, &nH)){
 
         // get the clip region over the map
         // if no valid region we won't do the rest
@@ -527,7 +528,7 @@ bool ServerMap::DoCircle(int nCX0, int nCY0, int nCR, const std::function<bool(i
         for(int nX = nX0; nX < nX0 + nW; ++nX){
             for(int nY = nY0; nY < nY0 + nH; ++nY){
                 if(true || ValidC(nX, nY)){
-                    if(MathFunc::LDistance2(nX, nY, nCX0, nCY0) <= (nCR - 1) * (nCR - 1)){
+                    if(mathf::LDistance2(nX, nY, nCX0, nCY0) <= (nCR - 1) * (nCR - 1)){
                         if(!fnOP){
                             return false;
                         }
@@ -545,7 +546,7 @@ bool ServerMap::DoCircle(int nCX0, int nCY0, int nCR, const std::function<bool(i
 
 bool ServerMap::DoSquare(int nX0, int nY0, int nW, int nH, const std::function<bool(int, int)> &fnOP)
 {
-    if((nW > 0) && (nH > 0) && MathFunc::RectangleOverlapRegion(0, 0, W(), H(), &nX0, &nY0, &nW, &nH)){
+    if((nW > 0) && (nH > 0) && mathf::rectangleOverlapRegion(0, 0, W(), H(), &nX0, &nY0, &nW, &nH)){
 
         // get the clip region over the map
         // if no valid region we won't do the rest
@@ -582,7 +583,7 @@ bool ServerMap::DoCenterCircle(int nCX0, int nCY0, int nCR, bool bPriority, cons
     if(true
             && nW > 0
             && nH > 0
-            && MathFunc::RectangleOverlapRegion(0, 0, W(), H(), &nX0, &nY0, &nW, &nH)){
+            && mathf::rectangleOverlapRegion(0, 0, W(), H(), &nX0, &nY0, &nW, &nH)){
 
         // get the clip region over the map
         // if no valid region we won't do the rest
@@ -593,7 +594,7 @@ bool ServerMap::DoCenterCircle(int nCX0, int nCY0, int nCR, bool bPriority, cons
             const int nY = stRC.Y();
 
             if(true || ValidC(nX, nY)){
-                if(MathFunc::LDistance2(nX, nY, nCX0, nCY0) <= (nCR - 1) * (nCR - 1)){
+                if(mathf::LDistance2(nX, nY, nCX0, nCY0) <= (nCR - 1) * (nCR - 1)){
                     if(!fnOP){
                         return false;
                     }
@@ -620,7 +621,7 @@ bool ServerMap::DoCenterSquare(int nCX, int nCY, int nW, int nH, bool bPriority,
     if(true
             && nW > 0
             && nH > 0
-            && MathFunc::RectangleOverlapRegion(0, 0, W(), H(), &nX0, &nY0, &nW, &nH)){
+            && mathf::rectangleOverlapRegion(0, 0, W(), H(), &nX0, &nY0, &nW, &nH)){
 
         // get the clip region over the map
         // if no valid region we won't do the rest
@@ -719,8 +720,8 @@ bool ServerMap::AddGroundItem(const CommonItem &rstCommonItem, int nX, int nY)
         {
             if(true || ValidC(nX, nY)){
                 for(auto nUID: GetUIDListRef(nX, nY)){
-                    if(UIDFunc::GetUIDType(nUID) == UID_PLY){
-                        m_ActorPod->Forward(nUID, {MPK_SHOWDROPITEM, stAMSDI});
+                    if(uidf::getUIDType(nUID) == UID_PLY){
+                        m_actorPod->Forward(nUID, {MPK_SHOWDROPITEM, stAMSDI});
                     }
                 }
             }
@@ -739,9 +740,9 @@ int ServerMap::GetMonsterCount(uint32_t nMonsterID)
     for(int nX = 0; nX < W(); ++nX){
         for(int nY = 0; nY < H(); ++nY){
             for(auto nUID: GetUIDListRef(nX, nY)){
-                if(UIDFunc::GetUIDType(nUID) == UID_MON){
+                if(uidf::getUIDType(nUID) == UID_MON){
                     if(nMonsterID){
-                        nCount += ((UIDFunc::GetMonsterID(nUID) == nMonsterID) ? 1 : 0);
+                        nCount += ((uidf::getMonsterID(nUID) == nMonsterID) ? 1 : 0);
                     }else{
                         nCount++;
                     }
@@ -764,7 +765,7 @@ void ServerMap::NotifyNewCO(uint64_t nUID, int nX, int nY)
             DoUIDList(nX, nY, [this, stAMNNCO](uint64_t nUID)
             {
                 if(nUID != stAMNNCO.UID){
-                    m_ActorPod->Forward(nUID, {MPK_NOTIFYNEWCO, stAMNNCO});
+                    m_actorPod->Forward(nUID, {MPK_NOTIFYNEWCO, stAMNNCO});
                 }
                 return false;
             });
@@ -971,7 +972,7 @@ int ServerMap::CheckPathGrid(int nX, int nY) const
     }
 
     // for(auto nUID: GetUIDListRef(nX, nY)){
-    //     if(auto nType = UIDFunc::GetUIDType(nUID); nType == UID_PLY || nType == UID_MON){
+    //     if(auto nType = uidf::getUIDType(nUID); nType == UID_PLY || nType == UID_MON){
     //         return PatFind::OCCUPIED;
     //     }
     // }

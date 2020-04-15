@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename: uidfunc.hpp
+ *       Filename: uidf.hpp
  *        Created: 08/10/2018 21:47:18
  *    Description: 
  *
@@ -20,6 +20,7 @@
 #include <string>
 #include <cstdint>
 #include <cinttypes>
+#include "fflerror.hpp"
 
 enum UIDType: int
 {
@@ -42,43 +43,47 @@ enum UIDType: int
     UID_MAX = 16,
 };
 
-namespace UIDFunc
+namespace uidf
 {
-    inline uint64_t GetMapUID(uint32_t nMapID)
+    inline uint64_t getMapUID(uint32_t mapId)
     {
-        return nMapID ? (((uint64_t)(UID_MAP) << 44) + (uint64_t)(nMapID)) : 0;
+        if(mapId){
+            return ((uint64_t)(UID_MAP) << 44) + (uint64_t)(mapId);
+        }
+        return 0;
     }
 
-    inline uint64_t GetServiceCoreUID()
+    inline uint64_t getServiceCoreUID()
     {
         return (uint64_t)(UID_COR) << 44;
     }
 
-    inline uint64_t GetPlayerUID(uint32_t nDBID)
+    inline uint64_t getPlayerUID(uint32_t dbid)
     {
-        return ((uint64_t)(UID_PLY) << 44) + nDBID;
+        return ((uint64_t)(UID_PLY) << 44) + dbid;
     }
 }
 
-namespace UIDFunc
+namespace uidf
 {
-    uint64_t BuildEtcUID();
-    uint64_t BuildMonsterUID(uint32_t);
+    uint64_t buildEtcUID();
+    uint64_t buildMonsterUID(uint32_t);
+    uint64_t buildNPCUID(uint16_t);
 }
 
-namespace UIDFunc
+namespace uidf
 {
-    inline int GetUIDType(uint64_t nUID)
+    inline int getUIDType(uint64_t uid)
     {
-        if(nUID & 0XFFFF000000000000){
+        if(uid & 0XFFFF000000000000){
             return UID_INN;
         }
-        return (int)((nUID & 0X0000F00000000000) >> 44);
+        return (int)((uid & 0X0000F00000000000) >> 44);
     }
 
-    inline const char *GetUIDTypeString(uint64_t nUID)
+    inline const char *getUIDTypeString(uint64_t uid)
     {
-        switch(GetUIDType(nUID)){
+        switch(getUIDType(uid)){
             case UID_MON: return "MON";
             case UID_PLY: return "PLY";
             case UID_NPC: return "NPC";
@@ -90,26 +95,31 @@ namespace UIDFunc
     }
 }
 
-namespace UIDFunc
+namespace uidf
 {
-    std::string GetUIDString(uint64_t);
+    std::string getUIDString(uint64_t);
 }
 
-namespace UIDFunc
+namespace uidf
 {
-    inline uint32_t GetMonsterID(uint64_t nUID)
+    inline uint32_t getMonsterID(uint64_t uid)
     {
-        if(GetUIDType(nUID) != UID_MON){
-            return 0;
+        if(getUIDType(uid) != UID_MON){
+            throw fflerror("not a monster uid");
         }
-        return (uint32_t)((nUID & 0X00000FFE00000000) >> 33);
+        return (uint32_t)((uid & 0X00000FFE00000000) >> 33);
     }
 
-    inline uint32_t GetMonsterSeq(uint64_t nUID)
+    inline uint32_t getMonsterSeq(uint64_t uid)
     {
-        if(GetUIDType(nUID) != UID_MON){
-            return 0;
+        if(getUIDType(uid) != UID_MON){
+            throw fflerror("not a monster uid");
         }
-        return (uint32_t)(nUID & 0XFFFFFFFF);
+        return (uint32_t)(uid & 0XFFFFFFFF);
+    }
+
+    inline uint16_t getLookID(uint64_t)
+    {
+        return 0;
     }
 }

@@ -24,6 +24,7 @@
 #include "log.hpp"
 #include "rawbuf.hpp"
 #include "xmlconf.hpp"
+#include "fflerror.hpp"
 #include "sdldevice.hpp"
 #include "condcheck.hpp"
 
@@ -58,19 +59,19 @@ SDLDevice::SDLDevice()
     , m_InnFontMap()
 {
     if(g_SDLDevice){
-        throw std::runtime_error(str_fflprintf(": Multiple initialization for SDLDevice"));
+        throw fflerror("multiple initialization for SDLDevice");
     }
 
     if(SDL_Init(SDL_INIT_AUDIO | SDL_INIT_VIDEO | SDL_INIT_EVENTS)){
-        throw std::runtime_error(str_fflprintf(": Initialization failed for SDL2: %s", SDL_GetError()));
+        throw fflerror("initialization failed for SDL2: %s", SDL_GetError());
     }
 
     if(TTF_Init()){
-        throw std::runtime_error(str_fflprintf(": Initialization failed for SDL2 TTF: %s", TTF_GetError()));
+        throw fflerror("initialization failed for SDL2 TTF: %s", TTF_GetError());
     }
 
     if((IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG) != IMG_INIT_PNG){
-        throw std::runtime_error(str_fflprintf(": Initialization failed for SDL2 IMG: %s", IMG_GetError()));
+        throw fflerror("initialization failed for SDL2 IMG: %s", IMG_GetError());
     }
 }
 
@@ -240,7 +241,7 @@ TTF_Font *SDLDevice::CreateTTF(const uint8_t *pMem, size_t nSize, uint8_t nFontP
 
 void SDLDevice::PushColor(uint8_t nR, uint8_t nG, uint8_t nB, uint8_t nA)
 {
-    uint32_t nRGBA = ColorFunc::RGBA(nR, nG, nB, nA);
+    uint32_t nRGBA = colorf::RGBA(nR, nG, nB, nA);
     if(m_ColorStack.empty() || nRGBA != m_ColorStack.back().Color){
         SetColor(nR, nG, nB, nA);
         m_ColorStack.emplace_back(nRGBA, 1);
@@ -265,7 +266,7 @@ void SDLDevice::PopColor()
                     if(m_ColorStack.empty()){
                         PushColor(0, 0, 0, 0);
                     }else{
-                        SDL_Color stColor = ColorFunc::RGBA2Color(m_ColorStack.back().Color);
+                        SDL_Color stColor = colorf::RGBA2Color(m_ColorStack.back().Color);
                         SetColor(stColor.r, stColor.g, stColor.b, stColor.a);
                     }
                     break;
@@ -384,9 +385,9 @@ void SDLDevice::CreateMainWindow()
     extern XMLConf *g_XMLConf;
     int nScreenMode = 0;
     if(g_XMLConf->NodeAtoi("Root/Window/ScreenMode", &nScreenMode, 0)){
-        g_Log->AddLog(LOGTYPE_INFO, "screen mode by configuration file: %d", nScreenMode);
+        g_Log->addLog(LOGTYPE_INFO, "screen mode by configuration file: %d", nScreenMode);
     }else{
-        g_Log->AddLog(LOGTYPE_WARNING, "Failed to select screen mode by configuration file.");
+        g_Log->addLog(LOGTYPE_WARNING, "Failed to select screen mode by configuration file.");
     }
 
     switch(nScreenMode){
@@ -405,9 +406,9 @@ void SDLDevice::CreateMainWindow()
     if(true
             && g_XMLConf->NodeAtoi("Root/Window/W", &nWindowW, 800)
             && g_XMLConf->NodeAtoi("Root/Window/H", &nWindowH, 600)){
-        g_Log->AddLog(LOGTYPE_INFO, "window size by configuration file: %d x %d", nWindowW, nWindowH);
+        g_Log->addLog(LOGTYPE_INFO, "window size by configuration file: %d x %d", nWindowW, nWindowH);
     }else{
-        g_Log->AddLog(LOGTYPE_INFO, "Use default window size.");
+        g_Log->addLog(LOGTYPE_INFO, "Use default window size.");
         nWindowW = 800;
         nWindowH = 600;
     }

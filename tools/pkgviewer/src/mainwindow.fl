@@ -11,10 +11,13 @@ decl {\#include <cmath>} {private local
 decl {\#include <cstdint>} {private local
 }
 
+decl {\#include <cstring>} {private local
+}
+
 decl {\#include <iostream>} {private local
 }
 
-decl {\#include "savepng.hpp"} {private local
+decl {\#include "pngf.hpp"} {private local
 }
 
 decl {\#include "wilimagepackage.hpp"} {private local
@@ -210,7 +213,7 @@ class MainWindow {open
 
                     std::string tmpFilePathName = fileChooser.filename();
                     std::replace(tmpFilePathName.begin(), tmpFilePathName.end(), '\\\\', '/');
-                    SaveRGBABufferToPNG((uint8_t *)(&(stvBuf[0])), nW, nH, (tmpFilePathName + "/" + tmpIndex + ".PNG").c_str());
+                    pngf::saveRGBABuffer((uint8_t *)(&(stvBuf[0])), nW, nH, (tmpFilePathName + "/" + tmpIndex + ".PNG").c_str());
                 }
                 break;
             }
@@ -294,7 +297,7 @@ class MainWindow {open
 
                     std::string tmpFilePathName = fileChooser.filename();
                     std::replace(tmpFilePathName.begin(), tmpFilePathName.end(), '\\\\', '/');
-                    SaveRGBABufferToPNG((uint8_t *)(&(stvBuf[0])), nW, nH, (tmpFilePathName + "/" + tmpIndex + ".PNG").c_str());
+                    pngf::saveRGBABuffer((uint8_t *)(&(stvBuf[0])), nW, nH, (tmpFilePathName + "/" + tmpIndex + ".PNG").c_str());
                 }
                 g_ProgressBarWindow->HideAll();
                 break;

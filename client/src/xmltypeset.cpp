@@ -23,7 +23,7 @@
 #include "fflerror.hpp"
 #include "xmltypeset.hpp"
 #include "utf8func.hpp"
-#include "mathfunc.hpp"
+#include "mathf.hpp"
 #include "fontexdb.hpp"
 #include "sdldevice.hpp"
 #include "emoticondb.hpp"
@@ -138,7 +138,7 @@ bool XMLTypeset::addRawToken(int nLine, const TOKEN &rstToken)
     // need to accept but give warnings
 
     if(m_MaxLineWidth < rstToken.Box.Info.W && lineTokenCount(nLine) == 0){
-        g_Log->AddLog(LOGTYPE_WARNING, "XMLTypeset width is too small to hold the token: (%d < %d)", (int)(m_MaxLineWidth), (int)(rstToken.Box.Info.W));
+        g_Log->addLog(LOGTYPE_WARNING, "XMLTypeset width is too small to hold the token: (%d < %d)", (int)(m_MaxLineWidth), (int)(rstToken.Box.Info.W));
         m_lineList[nLine].content.push_back(rstToken);
         return true;
     }
@@ -366,7 +366,7 @@ int XMLTypeset::LineIntervalMaxH2(int nLine, int nIntervalStartX, int nIntervalW
         int nW2 = pToken->Box.State.W2;
         int nH2 = pToken->Box.State.H2;
 
-        if(MathFunc::IntervalOverlap<int>(nX - nW1, nW1 + nW + nW2, nIntervalStartX, nIntervalWidth)){
+        if(mathf::intervalOverlap<int>(nX - nW1, nW1 + nW + nW2, nIntervalStartX, nIntervalWidth)){
             nMaxH2 = (std::max<int>)(nMaxH2, nH2);
         }
     }
@@ -561,7 +561,7 @@ TOKEN XMLTypeset::buildUTF8Token(int leaf, uint8_t nFont, uint8_t nFontSize, uin
         int nBoxW = -1;
         int nBoxH = -1;
         if(!SDL_QueryTexture(pTexture, nullptr, nullptr, &nBoxW, &nBoxH)){
-            g_Log->AddLog(LOGTYPE_WARNING, "Fallback to default font: font: %d -> %d, fontsize: %d -> %d", (int)(nFont), (int)(m_font), (int)(nFontSize), (int)(m_fontSize));
+            g_Log->addLog(LOGTYPE_WARNING, "Fallback to default font: font: %d -> %d, fontsize: %d -> %d", (int)(nFont), (int)(m_font), (int)(nFontSize), (int)(m_fontSize));
             stToken.Box.Info.W      = nBoxW;
             stToken.Box.Info.H      = nBoxH;
             stToken.Box.State.H1    = stToken.Box.Info.H;
@@ -587,7 +587,7 @@ TOKEN XMLTypeset::buildEmojiToken(int leaf, uint32_t emoji) const
     int frameCount = -1;
 
     if(((emoji << 8) >> 8) != emoji){
-        throw fflerror("invalid emoji key: %llu", to_LLU(emoji));
+        throw fflerror("invalid emoji key: %llu", toLLU(emoji));
     }
 
     emoji <<= 8;
@@ -891,7 +891,7 @@ void XMLTypeset::insertUTF8String(int x, int y, const char *text)
 
 void XMLTypeset::drawEx(int nDstX, int nDstY, int nSrcX, int nSrcY, int nSrcW, int nSrcH) const
 {
-    if(!MathFunc::RectangleOverlap<int>(nSrcX, nSrcY, nSrcW, nSrcH, px(), py(), pw(), ph())){
+    if(!mathf::rectangleOverlap<int>(nSrcX, nSrcY, nSrcW, nSrcH, px(), py(), pw(), ph())){
         return;
     }
 
@@ -911,7 +911,7 @@ void XMLTypeset::drawEx(int nDstX, int nDstY, int nSrcX, int nSrcY, int nSrcW, i
             int nW = pToken->Box.Info.W;
             int nH = pToken->Box.Info.H;
 
-            if(!MathFunc::RectangleOverlapRegion(nSrcX, nSrcY, nSrcW, nSrcH, &nX, &nY, &nW, &nH)){
+            if(!mathf::rectangleOverlapRegion(nSrcX, nSrcY, nSrcW, nSrcH, &nX, &nY, &nW, &nH)){
                 continue;
             }
 
@@ -936,14 +936,14 @@ void XMLTypeset::drawEx(int nDstX, int nDstY, int nSrcX, int nSrcY, int nSrcW, i
 
                         auto pTexture = g_FontexDB->Retrieve(pToken->UTF8Char.U64Key);
                         if(pTexture){
-                            SDL_SetTextureColorMod(pTexture, ColorFunc::R(nColor), ColorFunc::G(nColor), ColorFunc::B(nColor));
+                            SDL_SetTextureColorMod(pTexture, colorf::R(nColor), colorf::G(nColor), colorf::B(nColor));
                             g_SDLDevice->DrawTexture(pTexture, drawDstX, drawDstY, nDX, nDY, nW, nH);
                         }else{
-                            g_SDLDevice->DrawRectangle(ColorFunc::CompColor(nBGColor), drawDstX, drawDstY, nW, nH);
+                            g_SDLDevice->DrawRectangle(colorf::CompColor(nBGColor), drawDstX, drawDstY, nW, nH);
                         }
 
                         if(g_clientArgParser->drawTokenFrame){
-                            SDLDevice::EnableDrawColor enableDrawColor(ColorFunc::PURPLE + 255);
+                            SDLDevice::EnableDrawColor enableDrawColor(colorf::PURPLE + 255);
                             SDLDevice::EnableDrawBlendMode enableDrawBlendMode(SDL_BLENDMODE_BLEND);
                             g_SDLDevice->DrawRectangle(drawDstX, drawDstY, nW, nH);
                         }
@@ -970,7 +970,7 @@ void XMLTypeset::drawEx(int nDstX, int nDstY, int nSrcX, int nSrcY, int nSrcW, i
                             g_SDLDevice->DrawTexture(ptex, nX + nDstDX, nY + nDstDY, xOnTex + nDX, yOnTex + nDY, nW, nH);
                         }
                         else{
-                            g_SDLDevice->DrawRectangle(ColorFunc::CompColor(nBGColor), nX + nDstDX, nY + nDstDY, nW, nH);
+                            g_SDLDevice->DrawRectangle(colorf::CompColor(nBGColor), nX + nDstDX, nY + nDstDY, nW, nH);
                         }
                         break;
                     }
@@ -980,7 +980,7 @@ void XMLTypeset::drawEx(int nDstX, int nDstY, int nSrcX, int nSrcY, int nSrcW, i
     }
 
     if(g_clientArgParser->drawBoardFrame){
-        SDLDevice::EnableDrawColor enableDrawColor(ColorFunc::YELLOW + 255);
+        SDLDevice::EnableDrawColor enableDrawColor(colorf::YELLOW + 255);
         SDLDevice::EnableDrawBlendMode enableDrawBlendMode(SDL_BLENDMODE_BLEND);
         g_SDLDevice->DrawRectangle(nDstX, nDstY, nSrcW, nSrcH);
     }
@@ -1164,7 +1164,7 @@ bool XMLTypeset::locInToken(int xOffPixel, int yOffPixel, const TOKEN *pToken, b
     const int boxW   = pToken->Box.Info.W + (withPadding ? (pToken->Box.State.W1 + pToken->Box.State.W2) : 0);
     const int boxH   = pToken->Box.Info.H;
 
-    return MathFunc::PointInRectangle(xOffPixel, yOffPixel, startX, startY, boxW, boxH);
+    return mathf::pointInRectangle(xOffPixel, yOffPixel, startX, startY, boxW, boxH);
 }
 
 std::tuple<int, int> XMLTypeset::locToken(int xOffPixel, int yOffPixel, bool withPadding) const

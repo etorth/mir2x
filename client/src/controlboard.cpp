@@ -73,8 +73,8 @@ extern Log *g_Log;
 extern PNGTexDB *g_ProgUseDB;
 extern SDLDevice *g_SDLDevice;
 
-controlBoard::controlBoard(int startY, int boardW, ProcessRun *pRun)
-    : widget(0, startY, boardW, 133, nullptr, false)
+ControlBoard::ControlBoard(int startY, int boardW, ProcessRun *pRun)
+    : Widget(0, startY, boardW, 133, nullptr, false)
     , m_processRun(pRun)
     , m_left
       {
@@ -148,7 +148,7 @@ controlBoard::controlBoard(int startY, int boardW, ProcessRun *pRun)
           nullptr,
           [this]()
           {
-              if(auto p = m_processRun->getWidget("inventoryBoard")){
+              if(auto p = m_processRun->getWidget("InventoryBoard")){
                   p->show(!p->show());
               }
           },
@@ -265,10 +265,10 @@ controlBoard::controlBoard(int startY, int boardW, ProcessRun *pRun)
           12,
 
           0,
-          ColorFunc::WHITE,
+          colorf::WHITE,
 
           2,
-          ColorFunc::WHITE,
+          colorf::WHITE,
 
           nullptr,
           [this]()
@@ -289,7 +289,7 @@ controlBoard::controlBoard(int startY, int boardW, ProcessRun *pRun)
           12,
           0,
 
-          ColorFunc::WHITE,
+          colorf::WHITE,
           &m_left,
       }
 
@@ -307,7 +307,7 @@ controlBoard::controlBoard(int startY, int boardW, ProcessRun *pRun)
           12,
           0,
 
-          ColorFunc::WHITE,
+          colorf::WHITE,
           LALIGN_LEFT,
           0,
           0,
@@ -315,7 +315,7 @@ controlBoard::controlBoard(int startY, int boardW, ProcessRun *pRun)
       }
 {
     if(!pRun){
-        throw fflerror("invalid ProcessRun provided to controlBoard()");
+        throw fflerror("invalid ProcessRun provided to ControlBoard()");
     }
 
     auto fnAssertImage = [](uint32_t img, int w, int h)
@@ -329,7 +329,7 @@ controlBoard::controlBoard(int startY, int boardW, ProcessRun *pRun)
                 }
             }
         }
-        throw fflerror("image assertion failed: img = %llu, w = %d, h = %d", to_LLU(img), w, h);
+        throw fflerror("image assertion failed: img = %llu, w = %d, h = %d", toLLU(img), w, h);
     };
 
     fnAssertImage(0X00000012, 800, 133);
@@ -337,23 +337,23 @@ controlBoard::controlBoard(int startY, int boardW, ProcessRun *pRun)
     fnAssertImage(0X00000022, 127,  41);
     fnAssertImage(0X00000027, 456, 298);
 
-    if(X() != 0 || Y() + H() != g_SDLDevice->WindowH(false) || W() != g_SDLDevice->WindowW(false)){
-        throw fflerror("controlBoard has wrong location or size");
+    if(x() != 0 || y() + h() != g_SDLDevice->WindowH(false) || w() != g_SDLDevice->WindowW(false)){
+        throw fflerror("ControlBoard has wrong location or size");
     }
 
     m_levelBox.setLevel(7);
-    m_levelBox.moveTo((W() - 178 - 166 - m_levelBox.W()) / 2, 4 - m_levelBox.H() / 2);
+    m_levelBox.moveTo((w() - 178 - 166 - m_levelBox.w()) / 2, 4 - m_levelBox.h() / 2);
 }
 
-void controlBoard::Update(double fMS)
+void ControlBoard::update(double fMS)
 {
-    m_cmdLine.Update(fMS);
-    m_logBoard.Update(fMS);
+    m_cmdLine.update(fMS);
+    m_logBoard.update(fMS);
 }
 
-void controlBoard::drawLeft()
+void ControlBoard::drawLeft()
 {
-    const int nY0 = Y();
+    const int nY0 = y();
 
     // draw left part
     if(auto pTexture = g_ProgUseDB->Retrieve(0X00000012)){
@@ -403,18 +403,18 @@ void controlBoard::drawLeft()
         const int nY = m_processRun->GetMyHero()->Y();
         m_locBoard.setText(u8"%s: %d %d", DBCOM_MAPRECORD(m_processRun->MapID()).Name, nX, nY);
 
-        const int locBoardStartX = (136 - m_locBoard.W()) / 2;
-        m_locBoard.drawEx(locBoardStartX, m_locBoard.Y(), 0, 0, m_locBoard.W(), m_locBoard.H());
+        const int locBoardStartX = (136 - m_locBoard.w()) / 2;
+        m_locBoard.drawEx(locBoardStartX, m_locBoard.y(), 0, 0, m_locBoard.w(), m_locBoard.h());
     }
 
     m_buttonClose.draw();
     m_buttonMinize.draw();
 }
 
-void controlBoard::drawRight()
+void ControlBoard::drawRight()
 {
-    const int nY0 = Y();
-    const int nW0 = W();
+    const int nY0 = y();
+    const int nW0 = w();
 
     // draw right part
     if(auto pTexture = g_ProgUseDB->Retrieve(0X00000012)){
@@ -424,7 +424,7 @@ void controlBoard::drawRight()
     m_buttonInventory.draw();
 }
 
-std::tuple<int, int> controlBoard::scheduleStretch(int dstSize, int srcSize)
+std::tuple<int, int> ControlBoard::scheduleStretch(int dstSize, int srcSize)
 {
     // use same way for default or expand mode
     // this requires texture 0X00000013 and 0X00000027 are of width 456
@@ -444,14 +444,14 @@ std::tuple<int, int> controlBoard::scheduleStretch(int dstSize, int srcSize)
     return {dstSize / srcSize, dstSize % srcSize};
 }
 
-void controlBoard::drawMiddleDefault()
+void ControlBoard::drawMiddleDefault()
 {
-    const int nY0 = Y();
-    const int nW0 = W();
+    const int nY0 = y();
+    const int nW0 = w();
 
     // draw black underlay for the logBoard and actor face
     {
-        SDLDevice::EnableDrawColor enableColor(ColorFunc::RGBA(0X00, 0X00, 0X00, 0XFF));
+        SDLDevice::EnableDrawColor enableColor(colorf::RGBA(0X00, 0X00, 0X00, 0XFF));
         g_SDLDevice->FillRectangle(178 + 2, nY0 + 14, nW0 - (178 + 2) - (166 + 2), 120);
     }
 
@@ -498,38 +498,38 @@ void controlBoard::drawMiddleDefault()
     m_levelBox.draw();
 }
 
-void controlBoard::drawLogBoardDefault()
+void ControlBoard::drawLogBoardDefault()
 {
     const int dstX = 187;
     const int dstY = logBoardStartY();
 
     const int srcX = 0;
-    const int srcY = std::max<int>(0, m_logBoard.H() - 83);
-    const int srcW = m_logBoard.W();
+    const int srcY = std::max<int>(0, m_logBoard.h() - 83);
+    const int srcW = m_logBoard.w();
     const int srcH = 83;
 
     m_logBoard.drawEx(dstX, dstY, srcX, srcY, srcW, srcH);
 }
 
-void controlBoard::drawLogBoardExpand()
+void ControlBoard::drawLogBoardExpand()
 {
     const int dstX = 187;
     const int dstY = logBoardStartY();
 
     const int boardFrameH = m_stretchH + 47 + 55 - 70;
     const int srcX = 0;
-    const int srcY = std::max<int>(0, m_logBoard.H() - boardFrameH);
-    const int srcW = m_logBoard.W();
+    const int srcY = std::max<int>(0, m_logBoard.h() - boardFrameH);
+    const int srcW = m_logBoard.w();
     const int srcH = boardFrameH;
 
     m_logBoard.drawEx(dstX, dstY, srcX, srcY, srcW, srcH);
 }
 
-void controlBoard::drawMiddleExpand()
+void ControlBoard::drawMiddleExpand()
 {
-    const int nY0 = Y();
-    const int nW0 = W();
-    const int nH0 = H();
+    const int nY0 = y();
+    const int nW0 = w();
+    const int nH0 = h();
 
     // use this position to calculate all points
     // the Y-axis on screen that the big chat-frame starts
@@ -538,7 +538,7 @@ void controlBoard::drawMiddleExpand()
     // draw black underlay for the big log board
     {
         SDLDevice::EnableDrawBlendMode enableDrawBlendMode(SDL_BLENDMODE_BLEND);
-        SDLDevice::EnableDrawColor enableColor(ColorFunc::RGBA(0X00, 0X00, 0X00, 0XF0));
+        SDLDevice::EnableDrawColor enableColor(colorf::RGBA(0X00, 0X00, 0X00, 0XF0));
         g_SDLDevice->FillRectangle(178 + 2, startY + 2, nW0 - (178 + 2) - (166 + 2), 47 + m_stretchH);
     }
 
@@ -599,7 +599,7 @@ void controlBoard::drawMiddleExpand()
     drawLogBoardExpand();
 }
 
-void controlBoard::drawEx(int, int, int, int, int, int)
+void ControlBoard::drawEx(int, int, int, int, int, int)
 {
     drawLeft();
 
@@ -613,7 +613,7 @@ void controlBoard::drawEx(int, int, int, int, int, int)
     drawRight();
 }
 
-bool controlBoard::processEvent(const SDL_Event &event, bool valid)
+bool ControlBoard::processEvent(const SDL_Event &event, bool valid)
 {
     bool takeEvent = false;
 
@@ -658,7 +658,7 @@ bool controlBoard::processEvent(const SDL_Event &event, bool valid)
     }
 }
 
-void controlBoard::inputLineDone()
+void ControlBoard::inputLineDone()
 {
     const std::string fullInput = m_cmdLine.getRawString();
     const auto inputPos = fullInput.find_first_not_of(" \n\r\t");
@@ -696,7 +696,7 @@ void controlBoard::inputLineDone()
     }
 }
 
-void controlBoard::addLog(int, const char *log)
+void ControlBoard::addLog(int, const char *log)
 {
     if(!log){
         throw fflerror("null log string");
@@ -707,12 +707,12 @@ void controlBoard::addLog(int, const char *log)
     }
 }
 
-bool controlBoard::CheckMyHeroMoved()
+bool ControlBoard::CheckMyHeroMoved()
 {
     return true;
 }
 
-void controlBoard::switchExpandMode()
+void ControlBoard::switchExpandMode()
 {
     if(m_expand){
         m_expand = false;
@@ -724,29 +724,29 @@ void controlBoard::switchExpandMode()
     setButtonLoc();
 }
 
-void controlBoard::setButtonLoc()
+void ControlBoard::setButtonLoc()
 {
     // diff of height of texture 0X00000013 and 0X00000027
     // when you draw something on default log board at (X, Y), (0, 0) is left-top
     // if you need to keep the same location on expand log board, draw on(X, Y - modeDiffY)
 
-    const int boardW = W();
+    const int boardW = w();
     const int modeDiffY = (298 - 131) + (m_stretchH - m_stretchHMin);
 
     if(m_expand){
         m_buttonSwitchMode.moveTo(boardW - 178 - 181, 3 - modeDiffY);
-        m_levelBox.moveTo((boardW - 178 - 166 - m_levelBox.W()) / 2, 4 - m_levelBox.H() / 2 - modeDiffY);
+        m_levelBox.moveTo((boardW - 178 - 166 - m_levelBox.w()) / 2, 4 - m_levelBox.h() / 2 - modeDiffY);
 
         m_buttonEmoji.moveTo(boardW - 178 - 260, 87);
         m_buttonMute .moveTo(boardW - 178 - 220, 87);
     }
     else{
         m_buttonSwitchMode.moveTo(boardW - 178 - 181, 3);
-        m_levelBox.moveTo((boardW - 178 - 166 - m_levelBox.W()) / 2, 4 - m_levelBox.H() / 2);
+        m_levelBox.moveTo((boardW - 178 - 166 - m_levelBox.w()) / 2, 4 - m_levelBox.h() / 2);
     }
 }
 
-int controlBoard::logBoardStartY() const
+int ControlBoard::logBoardStartY() const
 {
     if(!m_expand){
         return g_SDLDevice->WindowH(false) - 120;
@@ -754,10 +754,10 @@ int controlBoard::logBoardStartY() const
     return g_SDLDevice->WindowH(false) - 55 - m_stretchH - 47 + 12; // 12 is texture top-left to log line distane
 }
 
-void controlBoard::resizeWidth(int w)
+void ControlBoard::resizeWidth(int boardW)
 {
-    m_right.moveBy(w - W(), 0);
-    m_w = w;
+    m_right.moveBy(boardW - w(), 0);
+    m_w = boardW;
 
     setButtonLoc();
 }

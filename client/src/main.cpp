@@ -42,6 +42,7 @@ PNGTexOffDB     *g_HeroDB          = nullptr; // database for hero
 PNGTexOffDB     *g_MonsterDB       = nullptr; // database for monster
 PNGTexOffDB     *g_WeaponDB        = nullptr; // database for weapon
 PNGTexOffDB     *g_MagicDB         = nullptr; // database for magic
+PNGTexOffDB     *g_standNPCDB      = nullptr; // database for NPC
 emoticonDB      *g_emoticonDB      = nullptr; // database for emoticons
 MapBinDB        *g_MapBinDB        = nullptr;
 FontexDB        *g_FontexDB        = nullptr;
@@ -100,19 +101,20 @@ int main(int argc, char *argv[])
         g_MonsterDB       = new PNGTexOffDB(1024);
         g_WeaponDB        = new PNGTexOffDB(1024);
         g_MagicDB         = new PNGTexOffDB(1024);
+        g_standNPCDB      = new PNGTexOffDB(1024);
         g_FontexDB        = new FontexDB(1024);
         g_MapBinDB        = new MapBinDB();
         g_emoticonDB      = new emoticonDB();
         g_client          = new Client();       // loads fontex resource
-        g_debugBoard      = new debugBoard(0, 0, 10240, 0, 15, 0, ColorFunc::RED + 255);
+        g_debugBoard      = new debugBoard(0, 0, 10240, 0, 15, 0, colorf::RED + 255);
         g_NotifyBoard     = new NotifyBoard();  // needs fontex
 
         g_client->MainLoop();
 
     }catch(const std::exception &e){
-        g_Log->AddLog(LOGTYPE_FATAL, "Caught exception: %s", e.what());
+        g_Log->addLog(LOGTYPE_FATAL, "Caught exception: %s", e.what());
     }catch(...){
-        g_Log->AddLog(LOGTYPE_FATAL, "Caught unknown exception, exit...");
+        g_Log->addLog(LOGTYPE_FATAL, "Caught unknown exception, exit...");
     }
     return 0;
 }

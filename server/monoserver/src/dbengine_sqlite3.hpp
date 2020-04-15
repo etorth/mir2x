@@ -20,7 +20,7 @@
 #include <cstring>
 #include <stdexcept>
 #include <sqlite3.h>
-#include "strfunc.hpp"
+#include "strf.hpp"
 
 class DBRecord_SQLite3;
 class DBEngine_SQLite3: public DBConnection
