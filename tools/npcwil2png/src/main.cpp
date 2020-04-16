@@ -32,7 +32,11 @@
  */
 
 #include <map>
+#include <array>
 #include <vector>
+#include <string>
+#include <cstdio>
+#include <utility>
 #include <cstring>
 #include <cstdlib>
 #include <cstdint>
