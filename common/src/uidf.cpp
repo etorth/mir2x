@@ -68,7 +68,8 @@ uint64_t uidf::buildEtcUID()
 
 uint64_t uidf::buildNPCUID(uint16_t lookId)
 {
-    return lookId;
+    static std::atomic<uint16_t> s_NPCSeqID {1};
+    return ((uint64_t)(UID_NPC) << 44) + ((uint64_t)(lookId) << 16) + s_NPCSeqID.fetch_add(1);
 }
 
 std::string uidf::getUIDString(uint64_t uid)

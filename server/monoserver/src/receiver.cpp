@@ -20,28 +20,23 @@
 #include "actorpool.hpp"
 #include "monoserver.hpp"
 
+extern ActorPool *g_ActorPool;
+extern MonoServer *g_MonoServer;
+
 Receiver::Receiver()
-    : m_UID([]() -> uint64_t
-      {
-          static std::atomic<uint64_t> s_RecvUID {1};
-          return s_RecvUID.fetch_add(1);
-      }())
+    : m_UID(ActorPool::CreateReceiverUID())
     , m_Lock()
     , m_Condition()
     , m_MessageList()
 {
-    extern ActorPool *g_ActorPool;
     if(!g_ActorPool->Register(this)){
-        extern MonoServer *g_MonoServer;
         g_MonoServer->addLog(LOGTYPE_FATAL, "ActorPool::Register(Reciver = %p) failed", this);
     }
 }
 
 Receiver::~Receiver()
 {
-    extern ActorPool *g_ActorPool;
     if(!g_ActorPool->Detach(this)){
-        extern MonoServer *g_MonoServer;
         g_MonoServer->addLog(LOGTYPE_FATAL, "ActorPool::Detach(Reciver = %p) failed", this);
     }
 }

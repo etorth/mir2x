@@ -643,188 +643,190 @@ uint32_t MonoServer::SleepEx(uint32_t nTick)
     return 0;
 }
 
-bool MonoServer::RegisterLuaExport(CommandLuaModule *pModule, uint32_t nCWID)
+void MonoServer::RegisterLuaExport(CommandLuaModule *pModule, uint32_t nCWID)
 {
-    if(true
-            && pModule      // module to execute lua script
-            && nCWID){      // command window id to echo all execution information
-
-        // register command quit
-        // exit current command window and free all related resource
-        pModule->GetLuaState().set_function("quit", [this, nCWID]()
-        {
-            // 1. show exiting messages
-            addCWLog(nCWID, 0, "> ", "Command window is requested to exit now...");
-
-            // 2. flush command windows
-            //    we need to flush message before exit the command window
-            //    otherwise next created command window may get them if it uses the same CWID
-            NotifyGUI("FlushCWBrowser");
-            NotifyGUI(std::string("ExitCW ") + std::to_string(nCWID));
-        });
-
-        // register command printLine
-        // print one line in command window, won't add message to log system
-        pModule->GetLuaState().set_function("printLine", [this, nCWID](sol::object stLogType, sol::object stPrompt, sol::object stLogInfo)
-        {
-            if(true
-                    && stLogType.is<int>()
-                    && stPrompt.is<std::string>()
-                    && stLogInfo.is<std::string>()){
-                addCWLog(nCWID, stLogType.as<int>(), stPrompt.as<std::string>().c_str(), stLogInfo.as<std::string>().c_str());
-                return;
-            }
-
-            // invalid argument provided
-            addCWLog(nCWID, 2, ">>> ", "printLine(LogType: int, Prompt: string, LogInfo: string)");
-        });
-
-        // register command countMonster(monsterID, mapID)
-        pModule->GetLuaState().set_function("countMonster", [this, nCWID](int nMonsterID, int nMapID) -> int
-        {
-            auto nRet = GetMonsterCount(nMonsterID, nMapID).value_or(-1);
-            if(nRet < 0){
-                addCWLog(nCWID, 2, ">>> ", "countMonster(MonsterID: int, MapID: int) failed");
-            }
-            return nRet;
-        });
-
-        // register command addMonster
-        // will support add monster by monster name and map name
-        // here we need to register a function to do the monster creation
-        //      1. fnAddMonster(sol::variadic_args stVariadicArgs)
-        //      2. fnAddMonster(int nMonsterID, int nMapID, sol::variadic_args stVariadicArgs)
-        // I want to use method-1 in future, method-2 is more readable but can't handle the parameter issue:
-        //      for i in mapList()
-        //      do
-        //          addMonster(i)
-        //      end
-        // here we get an exception from lua caught by sol2: ``std::bad_alloc"
-        // but we want more detailed information like print the function usage out
-        pModule->GetLuaState().set_function("addMonster", [this, nCWID](int nMonsterID, int nMapID, sol::variadic_args stVariadicArgs) -> bool
-        {
-            auto fnPrintUsage = [this, nCWID]()
-            {
-                addCWLog(nCWID, 2, ">>> ", "addMonster(MonsterID: int, MapID: int)");
-                addCWLog(nCWID, 2, ">>> ", "addMonster(MonsterID: int, MapID: int, X: int, Y: int)");
-                addCWLog(nCWID, 2, ">>> ", "addMonster(MonsterID: int, MapID: int, X: int, Y: int, Random: bool)");
-            };
-
-            std::vector<sol::object> stArgList(stVariadicArgs.begin(), stVariadicArgs.end());
-            switch(stArgList.size()){
-                case 0:
-                    {
-                        return addMonster((uint32_t)(nMonsterID), (uint32_t)(nMapID), -1, -1, false);
-                    }
-                case 1:
-                    {
-                        fnPrintUsage();
-                        return false;
-                    }
-                case 2:
-                    {
-                        if(true
-                                && stArgList[0].is<int>()
-                                && stArgList[1].is<int>()){
-                            return addMonster((uint32_t)(nMonsterID), (uint32_t)(nMapID), stArgList[0].as<int>(), stArgList[1].as<int>(), false);
-                        }else{
-                            fnPrintUsage();
-                            return false;
-                        }
-                    }
-                case 3:
-                    {
-                        if(true
-                                && stArgList[0].is<int >()
-                                && stArgList[1].is<int >()
-                                && stArgList[2].is<bool>()){
-                            return addMonster((uint32_t)(nMonsterID), (uint32_t)(nMapID), stArgList[0].as<int>(), stArgList[1].as<int>(), stArgList[2].as<bool>());
-                        }else{
-                            fnPrintUsage();
-                            return false;
-                        }
-                    }
-                default:
-                    {
-                        fnPrintUsage();
-                        return false;
-                    }
-            }
-        });
-
-        pModule->GetLuaState().set_function("addNPChar", [this, nCWID](int npcID, int mapID, sol::variadic_args args) -> bool
-        {
-            const auto fnUsage = [this, nCWID]()
-            {
-                addCWLog(nCWID, 2, ">>> ", "addNPChar(NPCID: int, MapID: int)");
-                addCWLog(nCWID, 2, ">>> ", "addNPChar(NPCID: int, MapID: int, X: int, Y: int)");
-                addCWLog(nCWID, 2, ">>> ", "addNPChar(NPCID: int, MapID: int, X: int, Y: int, Random: bool)");
-            };
-
-            const std::vector<sol::object> argList(args.begin(), args.end());
-            switch(argList.size()){
-                case 0:
-                    {
-                        return addNPChar((uint16_t)(npcID), (uint32_t)(mapID), -1, -1, false);
-                    }
-                case 2:
-                    {
-                        if(argList[0].is<int>() && argList[1].is<int>()){
-                            return addNPChar((uint32_t)(npcID), (uint32_t)(mapID), argList[0].as<int>(), argList[1].as<int>(), false);
-                        }
-                        break;
-                    }
-                case 3:
-                    {
-                        if(argList[0].is<int >() && argList[1].is<int >() && argList[2].is<bool>()){
-                            return addNPChar((uint32_t)(npcID), (uint32_t)(mapID), argList[0].as<int>(), argList[1].as<int>(), argList[2].as<bool>());
-                        }
-                        break;
-                    }
-                default:
-                    {
-                        break;
-                    }
-            }
-
-            fnUsage();
-            return false;
-        });
-
-        // register command mapList
-        // return a table (userData) to lua for ipairs() check
-        pModule->GetLuaState().set_function("getMapIDList", [this](sol::this_state stThisLua)
-        {
-            return sol::make_object(sol::state_view(stThisLua), GetMapList());
-        });
-
-        // register command ``listAllMap"
-        // this command call getMapIDList to get a table and print to CommandWindow
-        pModule->GetLuaState().script(
-            R"###( function listMap()                                                      )###""\n"
-            R"###(     local mapNameTable = {}                                             )###""\n"
-            R"###(     for k, v in ipairs(getMapIDList()) do                               )###""\n"
-            R"###(         table.insert(mapNameTable, mapID2Name(v))                       )###""\n"
-            R"###(     end                                                                 )###""\n"
-            R"###(     return mapNameTable                                                 )###""\n"
-            R"###( end                                                                     )###""\n");
-
-        // register command ``help"
-        // part-1: divide into two parts, part-1 create the table
-
-        pModule->GetLuaState().script(
-            R"###( g_HelpTable = {}                                                        )###""\n"
-            R"###( g_HelpTable["listMap"] = "print all map indices to current window"      )###""\n");
-
-        // part-2: make up the function to print the table entry
-        pModule->GetLuaState().script(
-            R"###( function help(queryKey)                                                 )###""\n"
-            R"###(     if g_HelpTable[queryKey] then                                       )###""\n"
-            R"###(         printLine(0, "> ", g_HelpTable[queryKey])                       )###""\n"
-            R"###(     else                                                                )###""\n"
-            R"###(         printLine(2, "> ", "No registered help information for input")  )###""\n"
-            R"###(     end                                                                 )###""\n"
-            R"###( end                                                                     )###""\n");
+    if(!(pModule && nCWID)){
+        throw fflerror("invalid argument: module = %p, window ID = %llu", pModule, toLLU(nCWID));
     }
-    return false;
+
+    // register command quit
+    // exit current command window and free all related resource
+    pModule->GetLuaState().set_function("quit", [this, nCWID]()
+    {
+        // 1. show exiting messages
+        addCWLog(nCWID, 0, "> ", "Command window is requested to exit now...");
+
+        // 2. flush command windows
+        //    we need to flush message before exit the command window
+        //    otherwise next created command window may get them if it uses the same CWID
+        NotifyGUI("FlushCWBrowser");
+        NotifyGUI(std::string("ExitCW ") + std::to_string(nCWID));
+    });
+
+    // register command printLine
+    // print one line in command window, won't add message to log system
+    pModule->GetLuaState().set_function("printLine", [this, nCWID](sol::object stLogType, sol::object stPrompt, sol::object stLogInfo)
+    {
+        if(true
+                && stLogType.is<int>()
+                && stPrompt.is<std::string>()
+                && stLogInfo.is<std::string>()){
+            addCWLog(nCWID, stLogType.as<int>(), stPrompt.as<std::string>().c_str(), stLogInfo.as<std::string>().c_str());
+            return;
+        }
+
+        // invalid argument provided
+        addCWLog(nCWID, 2, ">>> ", "printLine(LogType: int, Prompt: string, LogInfo: string)");
+    });
+
+    // register command countMonster(monsterID, mapID)
+    pModule->GetLuaState().set_function("countMonster", [this, nCWID](int nMonsterID, int nMapID) -> int
+    {
+        auto nRet = GetMonsterCount(nMonsterID, nMapID).value_or(-1);
+        if(nRet < 0){
+            addCWLog(nCWID, 2, ">>> ", "countMonster(MonsterID: int, MapID: int) failed");
+        }
+        return nRet;
+    });
+
+    // register command addMonster
+    // will support add monster by monster name and map name
+    // here we need to register a function to do the monster creation
+    //      1. fnAddMonster(sol::variadic_args stVariadicArgs)
+    //      2. fnAddMonster(int nMonsterID, int nMapID, sol::variadic_args stVariadicArgs)
+    // I want to use method-1 in future, method-2 is more readable but can't handle the parameter issue:
+    //      for i in mapList()
+    //      do
+    //          addMonster(i)
+    //      end
+    // here we get an exception from lua caught by sol2: ``std::bad_alloc"
+    // but we want more detailed information like print the function usage out
+    pModule->GetLuaState().set_function("addMonster", [this, nCWID](int nMonsterID, int nMapID, sol::variadic_args stVariadicArgs) -> bool
+    {
+        auto fnPrintUsage = [this, nCWID]()
+        {
+            addCWLog(nCWID, 2, ">>> ", "addMonster(MonsterID: int, MapID: int)");
+            addCWLog(nCWID, 2, ">>> ", "addMonster(MonsterID: int, MapID: int, X: int, Y: int)");
+            addCWLog(nCWID, 2, ">>> ", "addMonster(MonsterID: int, MapID: int, X: int, Y: int, Random: bool)");
+        };
+
+        std::vector<sol::object> stArgList(stVariadicArgs.begin(), stVariadicArgs.end());
+        switch(stArgList.size()){
+            case 0:
+                {
+                    return addMonster((uint32_t)(nMonsterID), (uint32_t)(nMapID), -1, -1, false);
+                }
+            case 1:
+                {
+                    fnPrintUsage();
+                    return false;
+                }
+            case 2:
+                {
+                    if(true
+                            && stArgList[0].is<int>()
+                            && stArgList[1].is<int>()){
+                        return addMonster((uint32_t)(nMonsterID), (uint32_t)(nMapID), stArgList[0].as<int>(), stArgList[1].as<int>(), false);
+                    }else{
+                        fnPrintUsage();
+                        return false;
+                    }
+                }
+            case 3:
+                {
+                    if(true
+                            && stArgList[0].is<int >()
+                            && stArgList[1].is<int >()
+                            && stArgList[2].is<bool>()){
+                        return addMonster((uint32_t)(nMonsterID), (uint32_t)(nMapID), stArgList[0].as<int>(), stArgList[1].as<int>(), stArgList[2].as<bool>());
+                    }else{
+                        fnPrintUsage();
+                        return false;
+                    }
+                }
+            default:
+                {
+                    fnPrintUsage();
+                    return false;
+                }
+        }
+    });
+
+    pModule->GetLuaState().set_function("addNPChar", [this, nCWID](int npcID, int mapID, sol::variadic_args args) -> bool
+    {
+        const auto fnUsage = [this, nCWID]()
+        {
+            addCWLog(nCWID, 2, ">>> ", "addNPChar(NPCID: int, MapID: int)");
+            addCWLog(nCWID, 2, ">>> ", "addNPChar(NPCID: int, MapID: int, X: int, Y: int)");
+            addCWLog(nCWID, 2, ">>> ", "addNPChar(NPCID: int, MapID: int, X: int, Y: int, Random: bool)");
+        };
+
+        const std::vector<sol::object> argList(args.begin(), args.end());
+        switch(argList.size()){
+            case 0:
+                {
+                    return addNPChar((uint16_t)(npcID), (uint32_t)(mapID), -1, -1, false);
+                }
+            case 2:
+                {
+                    if(argList[0].is<int>() && argList[1].is<int>()){
+                        return addNPChar((uint32_t)(npcID), (uint32_t)(mapID), argList[0].as<int>(), argList[1].as<int>(), false);
+                    }
+                    break;
+                }
+            case 3:
+                {
+                    if(argList[0].is<int >() && argList[1].is<int >() && argList[2].is<bool>()){
+                        return addNPChar((uint32_t)(npcID), (uint32_t)(mapID), argList[0].as<int>(), argList[1].as<int>(), argList[2].as<bool>());
+                    }
+                    break;
+                }
+            default:
+                {
+                    break;
+                }
+        }
+
+        fnUsage();
+        return false;
+    });
+
+    // register command mapList
+    // return a table (userData) to lua for ipairs() check
+    pModule->GetLuaState().set_function("getMapIDList", [this](sol::this_state stThisLua)
+    {
+        return sol::make_object(sol::state_view(stThisLua), GetMapList());
+    });
+
+    pModule->GetLuaState().script(
+        R"###( function mapID2Name(mapID)                                              )###""\n"
+        R"###(     return "map_name"                                                   )###""\n"
+        R"###( end                                                                     )###""\n");
+
+    // register command ``listAllMap"
+    // this command call getMapIDList to get a table and print to CommandWindow
+    pModule->GetLuaState().script(
+        R"###( function listMap()                                                      )###""\n"
+        R"###(     local mapNameTable = {}                                             )###""\n"
+        R"###(     for k, v in ipairs(getMapIDList()) do                               )###""\n"
+        R"###(         printLine(0, ".", tostring(v) .. " " .. mapID2Name(v))          )###""\n"
+        R"###(     end                                                                 )###""\n"
+        R"###( end                                                                     )###""\n");
+
+    // register command ``help"
+    // part-1: divide into two parts, part-1 create the table
+
+    pModule->GetLuaState().script(
+        R"###( g_HelpTable = {}                                                        )###""\n"
+        R"###( g_HelpTable["listMap"] = "print all map indices to current window"      )###""\n");
+
+    // part-2: make up the function to print the table entry
+    pModule->GetLuaState().script(
+        R"###( function help(queryKey)                                                 )###""\n"
+        R"###(     if g_HelpTable[queryKey] then                                       )###""\n"
+        R"###(         printLine(0, "> ", g_HelpTable[queryKey])                       )###""\n"
+        R"###(     else                                                                )###""\n"
+        R"###(         printLine(2, "> ", "No registered help information for input")  )###""\n"
+        R"###(     end                                                                 )###""\n"
+        R"###( end                                                                     )###""\n");
 }

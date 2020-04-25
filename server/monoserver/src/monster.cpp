@@ -1310,7 +1310,7 @@ void Monster::checkFriend_AsGuard(uint64_t nUID, std::function<void(int)> fnOp)
 void Monster::checkFriend_CtrlByMonster(uint64_t nUID, std::function<void(int)> fnOp)
 {
     if(MasterUID() && uidf::getUIDType(MasterUID()) != UID_MON){
-        throw std::runtime_error(str_fflprintf(": Invalid call to checkFriend_CtrlByMonster"));
+        throw fflerror("invalid call to checkFriend_CtrlByMonster");
     }
 
     switch(uidf::getUIDType(nUID)){
@@ -1352,9 +1352,13 @@ void Monster::checkFriend_CtrlByMonster(uint64_t nUID, std::function<void(int)> 
                 });
                 return;
             }
+        case UID_NPC:
+            {
+                return;
+            }
         default:
             {
-                throw std::invalid_argument(str_fflprintf(": Invalid UID type: %s", uidf::getUIDTypeString(nUID)));
+                throw fflerror("invalid UID type: %s", uidf::getUIDTypeString(nUID));
             }
     }
 }

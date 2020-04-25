@@ -114,12 +114,12 @@ void ServerMap::On_MPK_ADDCHAROBJECT(const MessagePack &rstMPK)
         case TYPE_NPC:
             {
                 const auto npcID = stAMACO.NPC.NPCID;
-                const auto mapID = stAMACO.Common.MapID;
                 const auto x     = stAMACO.Common.X;
                 const auto y     = stAMACO.Common.Y;
+                const auto direction = stAMACO.NPC.direction;
                 const auto strictLoc = stAMACO.Common.StrictLoc;
 
-                if(addNPChar(npcID, mapID, x, y, strictLoc)){
+                if(addNPChar(npcID, x, y, direction, strictLoc)){
                     m_actorPod->forward(rstMPK.From(), MPK_OK, rstMPK.ID());
                     DoCircle(nX, nY, 20, [this](int nX, int nY) -> bool
                     {

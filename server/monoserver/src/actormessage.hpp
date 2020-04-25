@@ -144,6 +144,7 @@ union AMAddCharObject
     struct _NPC
     {
         struct _Common _memoryAlign;
+        int direction;
         uint16_t NPCID;
     }NPC;
 };
