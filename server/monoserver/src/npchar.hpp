@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename: npc.hpp
+ *       Filename: npchar.hpp
  *        Created: 04/12/2020 15:53:55
  *    Description: 
  *
@@ -22,14 +22,14 @@
 #include "servermap.hpp"
 #include "charobject.hpp"
 
-class NPC final: public CharObject
+class NPChar final: public CharObject
 {
     private:
         int m_dirIndex;
         std::unordered_map<int, std::function<void(uint64_t, const AMNPCEvent &)>> m_onEventID;
 
     public:
-        NPC(uint16_t, ServiceCore *, ServerMap *, int, int, int);
+        NPChar(uint16_t, ServiceCore *, ServerMap *, int, int, int);
 
     public:
         uint32_t mapID() const

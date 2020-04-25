@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename: npc.cpp
+ *       Filename: npchar.cpp
  *        Created: 04/12/2020 16:01:51
  *    Description: 
  *
@@ -17,10 +17,10 @@
  */
 
 #include <cstdint>
-#include "npc.hpp"
+#include "npchar.hpp"
 #include "fflerror.hpp"
 
-NPC::NPC(uint16_t lookId, ServiceCore *core, ServerMap *serverMap, int mapX, int mapY, int dirIndex)
+NPChar::NPChar(uint16_t lookId, ServiceCore *core, ServerMap *serverMap, int mapX, int mapY, int dirIndex)
     : CharObject(core, serverMap, uidf::buildNPCUID(lookId), mapX, mapY, DIR_NONE)
     , m_dirIndex(dirIndex)
 {
@@ -49,7 +49,7 @@ NPC::NPC(uint16_t lookId, ServiceCore *core, ServerMap *serverMap, int mapX, int
     };
 }
 
-void NPC::sendXMLLayout(uint64_t uid, const char *xmlString)
+void NPChar::sendXMLLayout(uint64_t uid, const char *xmlString)
 {
     if(!xmlString){
         throw fflerror("xmlString null");

@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename: npcop.cpp
+ *       Filename: npcharop.cpp
  *        Created: 04/12/2020 16:27:40
  *    Description: 
  *
@@ -16,11 +16,11 @@
  * =====================================================================================
  */
 
-#include "npc.hpp"
+#include "npchar.hpp"
 #include "mathf.hpp"
 #include "messagepack.hpp"
 
-void NPC::On_MPK_NPCEVENT(const MessagePack &msg)
+void NPChar::On_MPK_NPCEVENT(const MessagePack &msg)
 {
     const auto event = msg.conv<AMNPCEvent>();
     if(event.mapID != mapID() || mathf::LDistance2(event.x, event.y, X(), Y()) >= SYS_MAXNPCDISTANCE){
