@@ -37,9 +37,33 @@ class NPChar final: public CharObject
             return 0;
         }
 
+    public:
+        bool Update() override;
+        bool InRange(int, int, int) override;
+
+    public:
+        void ReportCORecord(uint64_t) override;
+
+    public:
+        bool DCValid(int, bool) override;
+        DamageNode GetAttackDamage(int) override;
+
+    public:
+        bool StruckDamage(const DamageNode &) override;
+
+    public:
+        bool GoDie() override;
+        bool GoGhost() override;
+
+    public:
+        void checkFriend(uint64_t, std::function<void(int)>) override;
+
     private:
         void On_MPK_NPCEVENT(const MessagePack &);
 
     private:
         void sendXMLLayout(uint64_t, const char *);
+
+    public:
+        void OperateAM(const MessagePack &) override;
 };

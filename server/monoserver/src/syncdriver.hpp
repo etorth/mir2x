@@ -46,5 +46,5 @@ class SyncDriver final
         }
 
     public:
-        MessagePack Forward(uint64_t, const MessageBuf &, uint32_t = 0, uint32_t = 0);
+        MessagePack forward(uint64_t, const MessageBuf &, uint32_t = 0, uint32_t = 0);
 };

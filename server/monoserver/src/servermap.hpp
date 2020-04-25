@@ -32,6 +32,7 @@
 #include "batchluamodule.hpp"
 
 class Player;
+class NPChar;
 class Monster;
 class ServiceCore;
 class ServerObject;
@@ -172,10 +173,11 @@ class ServerMap final: public ServerObject
         [[maybe_unused]] std::tuple<bool, int, int> GetValidGrid(bool, bool, int, int, int) const;
 
     private:
-        void NotifyNewCO(uint64_t, int, int);
+        void notifyNewCO(uint64_t, int, int);
 
     private:
         Player  *AddPlayer (uint32_t,      int, int, int, bool);
+        NPChar  *addNPChar (uint16_t,      int, int, int, bool);
         Monster *AddMonster(uint32_t, uint64_t, int, int, bool);
 
     private:

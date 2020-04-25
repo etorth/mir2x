@@ -128,6 +128,9 @@ class MonoServer final
                 bool);                  // use strict loc
 
     public:
+        void addNPChar(uint16_t, uint32_t, int, int, bool);
+
+    public:
         uint32_t getCurrTick() const
         {
             return (uint32_t)(m_hrtimer.diff_msec());

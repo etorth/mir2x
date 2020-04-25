@@ -249,7 +249,7 @@ void Player::ReportCORecord(uint64_t nUID)
 
     // don't reply to server map
     // even get co information pull request from map
-    m_actorPod->Forward(nUID, {MPK_CORECORD, stAMCOR});
+    m_actorPod->forward(nUID, {MPK_CORECORD, stAMCOR});
 }
 
 void Player::ReportStand()
@@ -382,7 +382,7 @@ bool Player::GoGhost()
                                     && ActorPodValid()
                                     && m_Map
                                     && m_Map->ActorPodValid()){
-                                m_actorPod->Forward(m_Map->UID(), {MPK_DEADFADEOUT, stAMDFO});
+                                m_actorPod->forward(m_Map->UID(), {MPK_DEADFADEOUT, stAMDFO});
                             }
 
                             // 2. deactivate the actor here
@@ -449,15 +449,6 @@ bool Player::ActionValid(const ActionNode &)
     return true;
 }
 
-void Player::CheckFriend(uint64_t nUID, const std::function<void(int)> &fnOnFriend)
-{
-    if(nUID){
-        if(0){
-            if(fnOnFriend){ fnOnFriend(FT_NONE); }
-        }
-    }
-}
-
 void Player::DispatchOffline()
 {
     if(true
@@ -473,7 +464,7 @@ void Player::DispatchOffline()
         stAMO.X     = X();
         stAMO.Y     = Y();
 
-        m_actorPod->Forward(m_Map->UID(), {MPK_OFFLINE, stAMO});
+        m_actorPod->forward(m_Map->UID(), {MPK_OFFLINE, stAMO});
         return;
     }
 
@@ -749,7 +740,7 @@ void Player::OnCMActionPickUp(CMAction stCMA)
                 stAMPU.ID   = stCMA.ActionParam;
                 stAMPU.DBID = 0;
 
-                m_actorPod->Forward(m_Map->UID(), {MPK_PICKUP, stAMPU});
+                m_actorPod->forward(m_Map->UID(), {MPK_PICKUP, stAMPU});
                 return;
             }
         case 1:
@@ -854,7 +845,7 @@ void Player::PullRectCO(int nW, int nH)
         stAMPCOI.H     = nH;
         stAMPCOI.UID   = UID();
         stAMPCOI.MapID = m_Map->ID();
-        m_actorPod->Forward(m_Map->UID(), {MPK_PULLCOINFO, stAMPCOI});
+        m_actorPod->forward(m_Map->UID(), {MPK_PULLCOINFO, stAMPCOI});
     }
 }
 
@@ -940,7 +931,7 @@ void Player::ReportGold()
     postNetMessage(SM_GOLD, stSMG);
 }
 
-void Player::CheckFriendType(uint64_t nUID, std::function<void(int)> fnOp)
+void Player::checkFriend(uint64_t nUID, std::function<void(int)> fnOp)
 {
     if(!nUID){
         throw std::invalid_argument(str_fflprintf(": Invalid zero UID"));
@@ -990,7 +981,7 @@ void Player::CheckFriendType(uint64_t nUID, std::function<void(int)> fnOp)
 void Player::RequestKillPets()
 {
     for(auto uid: m_slaveList){
-        m_actorPod->Forward(uid, {MPK_MASTERKILL});
+        m_actorPod->forward(uid, {MPK_MASTERKILL});
     }
     m_slaveList.clear();
 }

@@ -178,7 +178,7 @@ bool RotateCoord::MoveToNextRound()
     }
 }
 
-bool RotateCoord::Forward()
+bool RotateCoord::forward()
 {
     // based on boundary but not current position
     // every time when we reach the boundary, check next boundary

@@ -180,15 +180,14 @@ class Monster final: public CharObject
 
     protected:
         void QueryFriendType(uint64_t, uint64_t, std::function<void(int)>);
-        void CheckFriendType(uint64_t, std::function<void(int)>) override;
+        void checkFriend(uint64_t, std::function<void(int)>) override;
 
     private:
-        void CheckFriendType_AsGuard      (uint64_t, std::function<void(int)>);
-        void CheckFriendType_CtrlByPlayer (uint64_t, std::function<void(int)>);
-        void CheckFriendType_CtrlByMonster(uint64_t, std::function<void(int)>);
+        void checkFriend_AsGuard      (uint64_t, std::function<void(int)>);
+        void checkFriend_CtrlByPlayer (uint64_t, std::function<void(int)>);
+        void checkFriend_CtrlByMonster(uint64_t, std::function<void(int)>);
 
     protected:
-        void CheckFriend(uint64_t, const std::function<void(int)> &);
         void QueryMaster(uint64_t, std::function<void(uint64_t)>);
 
     protected:

@@ -49,6 +49,49 @@ NPChar::NPChar(uint16_t lookId, ServiceCore *core, ServerMap *serverMap, int map
     };
 }
 
+bool NPChar::Update()
+{
+    return true;
+}
+
+bool NPChar::InRange(int, int, int)
+{
+    return true;
+}
+
+void NPChar::ReportCORecord(uint64_t)
+{
+}
+
+bool NPChar::DCValid(int, bool)
+{
+    return true;
+}
+
+DamageNode NPChar::GetAttackDamage(int)
+{
+    return {};
+}
+
+bool NPChar::StruckDamage(const DamageNode &)
+{
+    return true;
+}
+
+void NPChar::checkFriend(uint64_t, std::function<void(int)>)
+{
+}
+
+bool NPChar::GoDie()
+{
+    return true;
+}
+
+bool NPChar::GoGhost()
+{
+    return true;
+}
+
 void NPChar::sendXMLLayout(uint64_t uid, const char *xmlString)
 {
     if(!xmlString){
@@ -63,5 +106,8 @@ void NPChar::sendXMLLayout(uint64_t uid, const char *xmlString)
     }
 
     std::strcpy(amNPCXMLL.xmlLayout, xmlString);
-    m_actorPod->Forward(uid, {MPK_NPCXMLLAYOUT, amNPCXMLL});
+    m_actorPod->forward(uid, {MPK_NPCXMLLAYOUT, amNPCXMLL});
 }
+
+void NPChar::OperateAM(const MessagePack &)
+{}

@@ -126,14 +126,14 @@ union AMAddCharObject
 
     struct _Monster
     {
-        struct _Common _MemoryAlign;
+        struct _Common _memoryAlign;
         uint32_t MonsterID;
         uint64_t MasterUID;
     }Monster;
 
     struct _Player
     {
-        struct _Common _MemoryAlign;
+        struct _Common _memoryAlign;
         uint32_t DBID;
         uint32_t JobID;
         int Level;
@@ -143,8 +143,8 @@ union AMAddCharObject
 
     struct _NPC
     {
-        struct _Common _MemoryAlign;
-        uint32_t NPCID;
+        struct _Common _memoryAlign;
+        uint16_t NPCID;
     }NPC;
 };
 

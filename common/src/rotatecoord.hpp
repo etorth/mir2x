@@ -77,7 +77,7 @@ class RotateCoord
         }
 
     public:
-        bool Forward();
+        bool forward();
 
     private:
         void CheckOverlap();

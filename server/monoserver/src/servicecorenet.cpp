@@ -88,7 +88,7 @@ void ServiceCore::Net_CM_Login(uint32_t nChannID, uint8_t, const uint8_t *pData,
     stAMACO.Player.Direction = nDirection;
     stAMACO.Player.ChannID   = nChannID;
 
-    m_actorPod->Forward(pMap->UID(), {MPK_ADDCHAROBJECT, stAMACO}, [this, fnOnLoginFail](const MessagePack &rstRMPK)
+    m_actorPod->forward(pMap->UID(), {MPK_ADDCHAROBJECT, stAMACO}, [this, fnOnLoginFail](const MessagePack &rstRMPK)
     {
         switch(rstRMPK.Type()){
             case MPK_OK:

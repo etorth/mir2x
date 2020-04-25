@@ -171,7 +171,7 @@ uint32_t ActorPod::GetValidID()
     throw std::runtime_error(str_fflprintf("Running out of message ID, exiting..."));
 }
 
-bool ActorPod::Forward(uint64_t nUID, const MessageBuf &rstMB, uint32_t nRespond)
+bool ActorPod::forward(uint64_t nUID, const MessageBuf &rstMB, uint32_t nRespond)
 {
     if(!nUID){
         throw std::invalid_argument(str_fflprintf(": %s -> NONE: (Type: %s, ID: 0, Resp: %" PRIu32 "): Try to send message to an empty address",
@@ -197,7 +197,7 @@ bool ActorPod::Forward(uint64_t nUID, const MessageBuf &rstMB, uint32_t nRespond
     return g_ActorPool->PostMessage(nUID, {rstMB, UID(), 0, nRespond});
 }
 
-bool ActorPod::Forward(uint64_t nUID, const MessageBuf &rstMB, uint32_t nRespond, std::function<void(const MessagePack &)> fnOPR)
+bool ActorPod::forward(uint64_t nUID, const MessageBuf &rstMB, uint32_t nRespond, std::function<void(const MessagePack &)> fnOPR)
 {
     if(!nUID){
         throw std::invalid_argument(str_fflprintf(": %s -> NONE: (Type: %s, ID: 0, Resp: %" PRIu32 "): Try to send message to an empty address",

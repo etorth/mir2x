@@ -244,7 +244,7 @@ void CharObject::DispatchAction(const ActionNode &rstAction)
         case ACTION_SPACEMOVE2:
         case ACTION_SPAWN:
             {
-                m_actorPod->Forward(m_Map->UID(), {MPK_ACTION, stAMA});
+                m_actorPod->forward(m_Map->UID(), {MPK_ACTION, stAMA});
                 return;
             }
         default:
@@ -255,7 +255,7 @@ void CharObject::DispatchAction(const ActionNode &rstAction)
                     auto nY = rstLocation.Y;
                     auto nMapID = rstLocation.MapID;
                     if(InView(nMapID, nX, nY)){
-                        m_actorPod->Forward(rstLocation.UID, {MPK_ACTION, stAMA});
+                        m_actorPod->forward(rstLocation.UID, {MPK_ACTION, stAMA});
                     }
                 });
                 return;
@@ -289,7 +289,7 @@ void CharObject::DispatchAction(uint64_t nUID, const ActionNode &rstAction)
     stAMA.AimUID      = rstAction.AimUID;
     stAMA.ActionParam = rstAction.ActionParam;
 
-    m_actorPod->Forward(nUID, {MPK_ACTION, stAMA});
+    m_actorPod->forward(nUID, {MPK_ACTION, stAMA});
 }
 
 bool CharObject::RequestMove(int nX, int nY, int nSpeed, bool bAllowHalfMove, bool bRemoveMonster, std::function<void()> fnOnMoveOK, std::function<void()> fnOnMoveError)
@@ -360,7 +360,7 @@ bool CharObject::RequestMove(int nX, int nY, int nSpeed, bool bAllowHalfMove, bo
     stAMTM.RemoveMonster = bRemoveMonster;
 
     m_MoveLock = true;
-    return m_actorPod->Forward(MapUID(), {MPK_TRYMOVE, stAMTM}, [this, nX, nY, nSpeed, fnOnMoveOK, fnOnMoveError](const MessagePack &rstMPK)
+    return m_actorPod->forward(MapUID(), {MPK_TRYMOVE, stAMTM}, [this, nX, nY, nSpeed, fnOnMoveOK, fnOnMoveError](const MessagePack &rstMPK)
     {
         if(!m_MoveLock){
             throw fflerror("MoveLock released before map responds: ClassName = %s", UIDName());
@@ -384,7 +384,7 @@ bool CharObject::RequestMove(int nX, int nY, int nSpeed, bool bAllowHalfMove, bo
                     }
 
                     if(!CanMove()){
-                        m_actorPod->Forward(rstMPK.From(), MPK_ERROR, rstMPK.ID());
+                        m_actorPod->forward(rstMPK.From(), MPK_ERROR, rstMPK.ID());
                         fnOnMoveError();
                         return;
                     }
@@ -398,7 +398,7 @@ bool CharObject::RequestMove(int nX, int nY, int nSpeed, bool bAllowHalfMove, bo
                     m_Direction = PathFind::GetDirection(nOldX, nOldY, X(), Y());
                     m_LastMoveTime = g_MonoServer->getCurrTick();
 
-                    m_actorPod->Forward(rstMPK.From(), MPK_OK, rstMPK.ID());
+                    m_actorPod->forward(rstMPK.From(), MPK_OK, rstMPK.ID());
                     DispatchAction(ActionMove(nOldX, nOldY, X(), Y(), nSpeed, Horse()));
                     SortInViewCO();
 
@@ -434,7 +434,7 @@ bool CharObject::RequestSpaceMove(uint32_t nMapID, int nX, int nY, bool bStrictM
     stAMTSM.StrictMove = bStrictMove;
 
     m_MoveLock = true;
-    return m_actorPod->Forward(uidf::getMapUID(nMapID), {MPK_TRYSPACEMOVE, stAMTSM}, [this, fnOnMoveOK, fnOnMoveError](const MessagePack &rstRMPK)
+    return m_actorPod->forward(uidf::getMapUID(nMapID), {MPK_TRYSPACEMOVE, stAMTSM}, [this, fnOnMoveOK, fnOnMoveError](const MessagePack &rstRMPK)
     {
         if(!m_MoveLock){
             throw std::runtime_error(str_fflprintf("MoveLock released before map responds: ClassName = %s", UIDName()));
@@ -451,7 +451,7 @@ bool CharObject::RequestSpaceMove(uint32_t nMapID, int nX, int nY, bool bStrictM
                     // dst map already says OK for current move
 
                     if(!CanMove()){
-                        m_actorPod->Forward(rstRMPK.From(), MPK_ERROR, rstRMPK.ID());
+                        m_actorPod->forward(rstRMPK.From(), MPK_ERROR, rstRMPK.ID());
                         fnOnMoveError();
                         return;
                     }
@@ -465,7 +465,7 @@ bool CharObject::RequestSpaceMove(uint32_t nMapID, int nX, int nY, bool bStrictM
                     stAMTL.Y     = Y();
 
                     m_MoveLock = true;
-                    m_actorPod->Forward(m_Map->UID(), {MPK_TRYLEAVE, stAMTL}, [this, rstRMPK, fnOnMoveOK, fnOnMoveError](const MessagePack &rstLeaveRMPK)
+                    m_actorPod->forward(m_Map->UID(), {MPK_TRYLEAVE, stAMTL}, [this, rstRMPK, fnOnMoveOK, fnOnMoveError](const MessagePack &rstLeaveRMPK)
                     {
                         if(!m_MoveLock){
                             throw std::runtime_error(str_fflprintf("MoveLock released before map responds: ClassName = %s", UIDName()));
@@ -479,7 +479,7 @@ bool CharObject::RequestSpaceMove(uint32_t nMapID, int nX, int nY, bool bStrictM
                                     std::memcpy(&stAMSMOK, rstRMPK.Data(), sizeof(stAMSMOK));
 
                                     if(!CanMove()){
-                                        m_actorPod->Forward(rstRMPK.From(), MPK_ERROR, rstRMPK.ID());
+                                        m_actorPod->forward(rstRMPK.From(), MPK_ERROR, rstRMPK.ID());
                                         fnOnMoveError();
                                         return;
                                     }
@@ -494,7 +494,7 @@ bool CharObject::RequestSpaceMove(uint32_t nMapID, int nX, int nY, bool bStrictM
                                     m_Map = (ServerMap *)(stAMSMOK.Ptr);
 
                                     m_LastMoveTime = g_MonoServer->getCurrTick();
-                                    m_actorPod->Forward(rstRMPK.From(), MPK_OK, rstRMPK.ID());
+                                    m_actorPod->forward(rstRMPK.From(), MPK_OK, rstRMPK.ID());
 
                                     //  dispatch/report space move part 2 on new map
                                     DispatchAction(ActionSpaceMove2(X(), Y(), Direction()));
@@ -505,7 +505,7 @@ bool CharObject::RequestSpaceMove(uint32_t nMapID, int nX, int nY, bool bStrictM
                                 }
                             default:
                                 {
-                                    m_actorPod->Forward(rstRMPK.From(), MPK_ERROR, rstRMPK.ID());
+                                    m_actorPod->forward(rstRMPK.From(), MPK_ERROR, rstRMPK.ID());
                                     fnOnMoveError();
                                     return;
                                 }
@@ -619,7 +619,7 @@ void CharObject::RetrieveLocation(uint64_t nUID, std::function<void(const COLoca
     stAMQL.UID   = UID();
     stAMQL.MapID = MapID();
 
-    m_actorPod->Forward(nUID, {MPK_QUERYLOCATION, stAMQL}, [this, nUID, fnOnOK, fnOnError](const MessagePack &rstRMPK)
+    m_actorPod->forward(nUID, {MPK_QUERYLOCATION, stAMQL}, [this, nUID, fnOnOK, fnOnError](const MessagePack &rstRMPK)
     {
         switch(rstRMPK.Type()){
             case MPK_LOCATION:
@@ -652,7 +652,7 @@ void CharObject::RetrieveLocation(uint64_t nUID, std::function<void(const COLoca
             default:
                 {
                     // TODO dangerous part here
-                    // when nUID is not detached ActorPod::Forward receives MPK_BADACTORPOD immedately
+                    // when nUID is not detached ActorPod::forward receives MPK_BADACTORPOD immedately
                     // then this branch get called, then m_InViewCOList get updated implicitly
 
                     RemoveInViewCO(nUID);
@@ -712,7 +712,7 @@ void CharObject::DispatchOffenderExp()
             std::memset(&stAME, 0, sizeof(stAME));
 
             stAME.Exp = fnCalcExp(rstOffender.Damage);
-            m_actorPod->Forward(rstOffender.UID, {MPK_EXP, stAME});
+            m_actorPod->forward(rstOffender.UID, {MPK_EXP, stAME});
         }
     }
 }
@@ -764,7 +764,7 @@ void CharObject::DispatchHealth()
             && ActorPodValid()
             && m_Map
             && m_Map->ActorPodValid()){
-        m_actorPod->Forward(m_Map->UID(), {MPK_UPDATEHP, stAMUHP});
+        m_actorPod->forward(m_Map->UID(), {MPK_UPDATEHP, stAMUHP});
     }
 }
 
@@ -792,7 +792,7 @@ void CharObject::DispatchAttack(uint64_t nUID, int nDC)
                 stAMA.Effect[nIndex] = EFF_NONE;
             }
         }
-        m_actorPod->Forward(nUID, {MPK_ATTACK, stAMA});
+        m_actorPod->forward(nUID, {MPK_ATTACK, stAMA});
     }
 }
 
@@ -829,7 +829,7 @@ void CharObject::AddMonster(uint32_t nMonsterID, int nX, int nY, bool bStrictLoc
     stAMACO.Monster.MonsterID = nMonsterID;
     stAMACO.Monster.MasterUID = UID();
 
-    m_actorPod->Forward(m_ServiceCore->UID(), {MPK_ADDCHAROBJECT, stAMACO}, [](const MessagePack &rstRMPK)
+    m_actorPod->forward(m_ServiceCore->UID(), {MPK_ADDCHAROBJECT, stAMACO}, [](const MessagePack &rstRMPK)
     {
         switch(rstRMPK.ID()){
             default:
@@ -1166,7 +1166,7 @@ void CharObject::QueryFinalMaster(uint64_t nUID, std::function<void(uint64_t)> f
 
     auto fnQuery = [this, fnOp](uint64_t nQueryUID)
     {
-        m_actorPod->Forward(nQueryUID, MPK_QUERYFINALMASTER, [this, nQueryUID, fnOp](const MessagePack &rstRMPK)
+        m_actorPod->forward(nQueryUID, MPK_QUERYFINALMASTER, [this, nQueryUID, fnOp](const MessagePack &rstRMPK)
         {
             switch(rstRMPK.Type()){
                 case MPK_UID:

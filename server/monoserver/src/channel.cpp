@@ -545,7 +545,7 @@ bool Channel::ForwardActorMessage(uint8_t nHC, const uint8_t *pData, size_t nDat
         }
     }
 
-    return m_Dispatcher.Forward(m_BindUID, {MPK_NETPACKAGE, stAMNP});
+    return m_Dispatcher.forward(m_BindUID, {MPK_NETPACKAGE, stAMNP});
 }
 
 void Channel::Shutdown(bool bForce)
@@ -566,7 +566,7 @@ void Channel::Shutdown(bool bForce)
                     // servicecore won't keep pointer *this* then we need to report it
                     stAMBC.ChannID = pThis->ID();
 
-                    pThis->m_Dispatcher.Forward(pThis->m_BindUID, {MPK_BADCHANNEL, stAMBC});
+                    pThis->m_Dispatcher.forward(pThis->m_BindUID, {MPK_BADCHANNEL, stAMBC});
                     pThis->m_BindUID = 0;
 
                     // if we call shutdown() here

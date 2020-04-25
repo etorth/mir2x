@@ -162,9 +162,6 @@ class Player final: public CharObject
         bool MotionValid(const ActionNode &);
 
     protected:
-        void CheckFriend(uint64_t, const std::function<void(int)> &);
-
-    protected:
         void OnCMActionMove  (CMAction);
         void OnCMActionStand (CMAction);
         void OnCMActionSpell (CMAction);
@@ -212,5 +209,5 @@ class Player final: public CharObject
         bool DBSavePlayer();
 
     protected:
-        void CheckFriendType(uint64_t, std::function<void(int)>) override;
+        void checkFriend(uint64_t, std::function<void(int)>) override;
 };

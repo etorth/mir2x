@@ -39,6 +39,8 @@ if g_Inited == nil then
         return nMonsterCount
     end
 
+    -- addNPChar()
+
     g_Inited = true
 end
 

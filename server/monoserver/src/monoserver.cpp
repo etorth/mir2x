@@ -27,6 +27,7 @@
 
 #include "log.hpp"
 #include "dbpod.hpp"
+#include "toll.hpp"
 #include "taskhub.hpp"
 #include "message.hpp"
 #include "monster.hpp"
@@ -337,7 +338,7 @@ bool MonoServer::addMonster(uint32_t nMonsterID, uint32_t nMapID, int nX, int nY
     stAMACO.Monster.MasterUID = 0;
     addLog(LOGTYPE_INFO, "Try to add monster, MonsterID = %d", nMonsterID);
 
-    switch(auto stRMPK = SyncDriver().Forward(m_ServiceCore->UID(), {MPK_ADDCHAROBJECT, stAMACO}, 0, 0); stRMPK.Type()){
+    switch(auto stRMPK = SyncDriver().forward(m_ServiceCore->UID(), {MPK_ADDCHAROBJECT, stAMACO}, 0, 0); stRMPK.Type()){
         case MPK_OK:
             {
                 addLog(LOGTYPE_INFO, "Add monster succeeds");
@@ -356,9 +357,42 @@ bool MonoServer::addMonster(uint32_t nMonsterID, uint32_t nMapID, int nX, int nY
     }
 }
 
+void MonoServer::addNPChar(uint16_t npcID, uint32_t mapID, int x, int y, bool strictLoc)
+{
+    AMAddCharObject stAMACO;
+    std::memset(&stAMACO, 0, sizeof(stAMACO));
+
+    stAMACO.Type = TYPE_NPC;
+
+    stAMACO.Common.MapID     = mapID;
+    stAMACO.Common.X         = x;
+    stAMACO.Common.Y         = y;
+    stAMACO.Common.StrictLoc = strictLoc;
+
+    stAMACO.NPC.NPCID = npcID;
+    addLog(LOGTYPE_INFO, "Try to add NPC, NPCID = %llu", toLLU(npcID));
+
+    switch(auto stRMPK = SyncDriver().forward(m_ServiceCore->UID(), {MPK_ADDCHAROBJECT, stAMACO}, 0, 0); stRMPK.Type()){
+        case MPK_OK:
+            {
+                addLog(LOGTYPE_INFO, "Add NPC succeeds");
+                return;
+            }
+        case MPK_ERROR:
+            {
+                addLog(LOGTYPE_WARNING, "Add NPC failed");
+                return;
+            }
+        default:
+            {
+                throw fflerror("Unsupported message: %s", stRMPK.Name());
+            }
+    }
+}
+
 std::vector<int> MonoServer::GetMapList()
 {
-    switch(auto stRMPK = SyncDriver().Forward(MPK_QUERYMAPLIST, m_ServiceCore->UID()); stRMPK.Type()){
+    switch(auto stRMPK = SyncDriver().forward(MPK_QUERYMAPLIST, m_ServiceCore->UID()); stRMPK.Type()){
         case MPK_MAPLIST:
             {
                 AMMapList stAMML;
@@ -402,7 +436,7 @@ sol::optional<int> MonoServer::GetMonsterCount(int nMonsterID, int nMapID)
         stAMQCOC.Check.Monster        = true;
         stAMQCOC.CheckParam.MonsterID = (uint32_t)(nMonsterID);
 
-        switch(auto stRMPK = SyncDriver().Forward(m_ServiceCore->UID(), {MPK_QUERYCOCOUNT, stAMQCOC}); stRMPK.Type()){
+        switch(auto stRMPK = SyncDriver().forward(m_ServiceCore->UID(), {MPK_QUERYCOCOUNT, stAMQCOC}); stRMPK.Type()){
             case MPK_COCOUNT:
                 {
                     AMCOCount stAMCOC;

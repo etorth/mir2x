@@ -24,7 +24,7 @@
 #include "dispatcher.hpp"
 #include "messagepack.hpp"
 
-bool Dispatcher::Forward(uint64_t nUID, const MessageBuf &rstMB, uint32_t nRespond)
+bool Dispatcher::forward(uint64_t nUID, const MessageBuf &rstMB, uint32_t nRespond)
 {
     extern ServerArgParser *g_ServerArgParser;
     if(g_ServerArgParser->TraceActorMessage){

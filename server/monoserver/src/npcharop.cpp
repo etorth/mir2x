@@ -28,7 +28,7 @@ void NPChar::On_MPK_NPCEVENT(const MessagePack &msg)
         std::memset(&amNPCE, 0, sizeof(amNPCE));
 
         amNPCE.errorID = NPCE_TOOFAR;
-        m_actorPod->Forward(msg.From(), {MPK_NPCERROR, amNPCE});
+        m_actorPod->forward(msg.From(), {MPK_NPCERROR, amNPCE});
         return;
     }
 
@@ -44,5 +44,5 @@ void NPChar::On_MPK_NPCEVENT(const MessagePack &msg)
     std::memset(&amNPCE, 0, sizeof(amNPCE));
 
     amNPCE.errorID = NPCE_BADEVENTID;
-    m_actorPod->Forward(msg.From(), {MPK_NPCERROR, amNPCE});
+    m_actorPod->forward(msg.From(), {MPK_NPCERROR, amNPCE});
 }

@@ -177,7 +177,7 @@ void Player::On_MPK_NOTIFYNEWCO(const MessagePack &rstMPK)
                 std::memset(&stAMND, 0, sizeof(stAMND));
 
                 stAMND.UID = UID();
-                m_actorPod->Forward(stAMNNCO.UID, {MPK_NOTIFYDEAD, stAMND});
+                m_actorPod->forward(stAMNNCO.UID, {MPK_NOTIFYDEAD, stAMND});
                 break;
             }
     }
@@ -213,7 +213,7 @@ void Player::On_MPK_MAPSWITCH(const MessagePack &rstMPK)
 
     // send request to the new map
     // if request rejected then it stays in current map
-    m_actorPod->Forward(stAMMS.UID, {MPK_TRYMAPSWITCH, stAMTMS}, [this](const MessagePack &rstRMPK)
+    m_actorPod->forward(stAMMS.UID, {MPK_TRYMAPSWITCH, stAMTMS}, [this](const MessagePack &rstRMPK)
     {
         switch(rstRMPK.Type()){
             case MPK_MAPSWITCHOK:
@@ -238,7 +238,7 @@ void Player::On_MPK_MAPSWITCH(const MessagePack &rstMPK)
 
                         // current map respond for the leave request
                         // dangerous here, we should keep m_Map always valid
-                        m_actorPod->Forward(m_Map->UID(), {MPK_TRYLEAVE, stAMTL}, [this, stAMMSOK, rstRMPK](const MessagePack &rstLeaveRMPK)
+                        m_actorPod->forward(m_Map->UID(), {MPK_TRYLEAVE, stAMTL}, [this, stAMMSOK, rstRMPK](const MessagePack &rstLeaveRMPK)
                         {
                             switch(rstLeaveRMPK.Type()){
                                 case MPK_OK:
@@ -247,7 +247,7 @@ void Player::On_MPK_MAPSWITCH(const MessagePack &rstMPK)
                                         m_Map   = (ServerMap *)(stAMMSOK.Ptr);
                                         m_X = stAMMSOK.X;
                                         m_Y = stAMMSOK.Y;
-                                        m_actorPod->Forward(m_Map->UID(), MPK_OK, rstRMPK.ID());
+                                        m_actorPod->forward(m_Map->UID(), MPK_OK, rstRMPK.ID());
 
                                         // 2. notify all players on the new map
                                         DispatchAction(ActionStand(X(), Y(), Direction()));
@@ -264,7 +264,7 @@ void Player::On_MPK_MAPSWITCH(const MessagePack &rstMPK)
                                         // can't leave???, illegal response
                                         // server map won't respond any other message not MPK_OK
                                         // dangerous issue since we then can never inform the new map ``we can't come to you"
-                                        m_actorPod->Forward(((ServerMap *)(stAMMSOK.Ptr))->UID(), MPK_ERROR, rstRMPK.ID());
+                                        m_actorPod->forward(((ServerMap *)(stAMMSOK.Ptr))->UID(), MPK_ERROR, rstRMPK.ID());
                                         g_MonoServer->addLog(LOGTYPE_WARNING, "Leave request failed: (UID = %" PRIu64 ", MapID = %" PRIu32 ")", UID(), ((ServerMap *)(stAMMSOK.Ptr))->ID());
                                         break;
                                     }
@@ -298,7 +298,7 @@ void Player::On_MPK_QUERYLOCATION(const MessagePack &rstMPK)
     stAML.Y         = Y();
     stAML.Direction = Direction();
 
-    m_actorPod->Forward(rstMPK.From(), {MPK_LOCATION, stAML}, rstMPK.ID());
+    m_actorPod->forward(rstMPK.From(), {MPK_LOCATION, stAML}, rstMPK.ID());
 }
 
 void Player::On_MPK_ATTACK(const MessagePack &rstMPK)
@@ -315,7 +315,7 @@ void Player::On_MPK_ATTACK(const MessagePack &rstMPK)
                     std::memset(&stAMM, 0, sizeof(stAMM));
 
                     stAMM.UID = stAMA.UID;
-                    m_actorPod->Forward(stAMA.UID, {MPK_MISS, stAMM});
+                    m_actorPod->forward(stAMA.UID, {MPK_MISS, stAMM});
                     return;
                 }
             default:
@@ -545,5 +545,5 @@ void Player::On_MPK_NOTIFYDEAD(const MessagePack &)
 void Player::On_MPK_CHECKMASTER(const MessagePack &rstMPK)
 {
     m_slaveList.insert(rstMPK.From());
-    m_actorPod->Forward(rstMPK.From(), MPK_OK, rstMPK.ID());
+    m_actorPod->forward(rstMPK.From(), MPK_OK, rstMPK.ID());
 }

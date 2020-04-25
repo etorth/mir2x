@@ -355,9 +355,6 @@ class CharObject: public ServerObject
         void AddMonster(uint32_t, int, int, bool);
 
     protected:
-        virtual void CheckFriend(uint64_t, const std::function<void(int)> &) = 0;
-
-    protected:
         virtual bool GoDie()   = 0;
         virtual bool GoGhost() = 0;
 
@@ -421,7 +418,7 @@ class CharObject: public ServerObject
         COLocation *GetInViewCOPtr(uint64_t);
 
     protected:
-        virtual void CheckFriendType(uint64_t, std::function<void(int)>) = 0;
+        virtual void checkFriend(uint64_t, std::function<void(int)>) = 0;
 
     protected:
         void QueryFinalMaster(uint64_t, std::function<void(uint64_t)>);

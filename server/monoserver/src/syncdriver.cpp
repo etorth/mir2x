@@ -23,7 +23,7 @@
 #include "monoserver.hpp"
 #include "syncdriver.hpp"
 
-MessagePack SyncDriver::Forward(uint64_t nUID, const MessageBuf &rstMB, uint32_t nRespond, uint32_t nTimeout)
+MessagePack SyncDriver::forward(uint64_t nUID, const MessageBuf &rstMB, uint32_t nRespond, uint32_t nTimeout)
 {
     if(!nUID){
         extern MonoServer *g_MonoServer;
@@ -38,7 +38,7 @@ MessagePack SyncDriver::Forward(uint64_t nUID, const MessageBuf &rstMB, uint32_t
     extern ActorPool *g_ActorPool;
     if(g_ActorPool->IsActorThread()){
         extern MonoServer *g_MonoServer;
-        g_MonoServer->addLog(LOGTYPE_FATAL, "Calling SyncDriver::Forward() in actor thread, SyncDriver = %p, SyncDriver::UID() = %" PRIu64, this, UID());
+        g_MonoServer->addLog(LOGTYPE_FATAL, "Calling SyncDriver::forward() in actor thread, SyncDriver = %p, SyncDriver::UID() = %" PRIu64, this, UID());
         return {MPK_NONE};
     }
 

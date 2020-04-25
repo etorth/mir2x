@@ -467,7 +467,7 @@ uint64_t Monster::Activate()
 {
     if(auto nUID = CharObject::Activate()){
         if(MasterUID()){
-            m_actorPod->Forward(MasterUID(), {MPK_CHECKMASTER}, [this](const MessagePack &rstRMPK)
+            m_actorPod->forward(MasterUID(), {MPK_CHECKMASTER}, [this](const MessagePack &rstRMPK)
             {
                 if(rstRMPK.Type() != MPK_OK){
                     GoDie();
@@ -686,7 +686,7 @@ void Monster::ReportCORecord(uint64_t nUID)
 
     // don't reply to server map
     // even get co information pull request from map
-    m_actorPod->Forward(nUID, {MPK_CORECORD, stAMCOR});
+    m_actorPod->forward(nUID, {MPK_CORECORD, stAMCOR});
 }
 
 bool Monster::InRange(int nRangeType, int nX, int nY)
@@ -858,7 +858,7 @@ bool Monster::GoGhost()
                                     && ActorPodValid()
                                     && m_Map
                                     && m_Map->ActorPodValid()){
-                                m_actorPod->Forward(m_Map->UID(), {MPK_DEADFADEOUT, stAMDFO});
+                                m_actorPod->forward(m_Map->UID(), {MPK_DEADFADEOUT, stAMDFO});
                             }
 
                             // 2. deactivate the actor here
@@ -1065,7 +1065,7 @@ bool Monster::MoveOneStepAStar(int nX, int nY, std::function<void()> fnOnOK, std
     stAMPF.EndX    = nX;
     stAMPF.EndY    = nY;
 
-    return m_actorPod->Forward(MapUID(), {MPK_PATHFIND, stAMPF}, [this, nX, nY, fnOnOK, fnOnError](const MessagePack &rstRMPK)
+    return m_actorPod->forward(MapUID(), {MPK_PATHFIND, stAMPF}, [this, nX, nY, fnOnOK, fnOnError](const MessagePack &rstRMPK)
     {
         switch(rstRMPK.Type()){
             case MPK_PATHFINDOK:
@@ -1132,7 +1132,7 @@ void Monster::RandomDrop()
                 //
                 // and if we are not in group-0
                 // break if we select the first one item
-                m_actorPod->Forward(m_Map->UID(), {MPK_NEWDROPITEM, stAMNDI});
+                m_actorPod->forward(m_Map->UID(), {MPK_NEWDROPITEM, stAMNDI});
                 if(rstGroupRecord.first != 0){
                     break;
                 }
@@ -1149,7 +1149,7 @@ void Monster::RecursiveCheckInViewTarget(size_t nIndex, std::function<void(uint6
     }
 
     auto nUID = m_InViewCOList[nIndex].UID;
-    CheckFriendType(nUID, [this, nIndex, nUID, fnTarget](int nFriendType)
+    checkFriend(nUID, [this, nIndex, nUID, fnTarget](int nFriendType)
     {
         // when reach here
         // m_InViewCOList[nIndex] may not be nUID anymore
@@ -1183,7 +1183,7 @@ void Monster::GetProperTarget(std::function<void(uint64_t)> fnTarget)
 {
     if(m_Target.UID){
         if(g_MonoServer->getCurrTick() < m_Target.ActiveTime + 60 * 1000){
-            CheckFriendType(m_Target.UID, [nTargetUID = m_Target.UID, fnTarget, this](int nFriendType)
+            checkFriend(m_Target.UID, [nTargetUID = m_Target.UID, fnTarget, this](int nFriendType)
             {
                 if(nFriendType == FT_ENEMY){
                     fnTarget(nTargetUID);
@@ -1202,116 +1202,6 @@ void Monster::GetProperTarget(std::function<void(uint64_t)> fnTarget)
 
     RemoveTarget(m_Target.UID);
     SearchNearestTarget(fnTarget);
-}
-
-void Monster::CheckFriend(uint64_t nCheckUID, const std::function<void(int)> &fnOnFriend)
-{
-    enum UIDFromType: int
-    {
-        UIDFROM_NONE    = 0,
-        UIDFROM_PLAYER  = 1,
-        UIDFROM_SUMMON  = 2,
-        UIDFROM_SLAVE   = 3,
-        UIDFROM_MONSTER = 4,
-    };
-
-    auto fnUIDFrom = [](uint64_t nUID) -> int
-    {
-        // define return code
-        // <= 0: error
-        //    1: player
-        //    2: 变异骷髅 or 神兽
-        //    3: monster, but tameble
-        //    4: monster
-
-        if(uidf::getUIDType(nUID) == UID_PLY){
-            return UIDFROM_PLAYER;
-        }else if(uidf::getUIDType(nUID) == UID_MON){
-            switch(uidf::getMonsterID(nUID)){
-                case DBCOM_MONSTERID(u8"神兽"):
-                case DBCOM_MONSTERID(u8"变异骷髅"):
-                    {
-                        return UIDFROM_SUMMON;
-                    }
-                default:
-                    {
-                        return UIDFROM_MONSTER;
-                    }
-            }
-        }
-        return UIDFROM_NONE;
-    };
-
-    if(MasterUID()){
-        switch(fnUIDFrom(MasterUID())){
-            case UIDFROM_PLAYER:
-                {
-                    switch(fnUIDFrom(nCheckUID)){
-                        case UIDFROM_PLAYER:
-                        case UIDFROM_SUMMON:
-                            {
-                                fnOnFriend(FT_FRIEND);
-                                return;
-                            }
-                        case UIDFROM_MONSTER:
-                            {
-                                fnOnFriend(FT_ENEMY);
-                                return;
-                            }
-                        default:
-                            {
-                                return;
-                            }
-                    }
-                }
-            case UIDFROM_MONSTER:
-                {
-                    switch(fnUIDFrom(nCheckUID)){
-                        case UIDFROM_PLAYER:
-                        case UIDFROM_SUMMON:
-                            {
-                                fnOnFriend(FT_ENEMY);
-                                return;
-                            }
-                        case UIDFROM_MONSTER:
-                            {
-                                fnOnFriend(FT_FRIEND);
-                                return;
-                            }
-                        default:
-                            {
-                                return;
-                            }
-                    }
-                }
-            default:
-                {
-                    return;
-                }
-        }
-    }else{
-
-        // a monster without master
-        // do everything decided by itself
-
-        switch(fnUIDFrom(nCheckUID)){
-            case UIDFROM_PLAYER:
-            case UIDFROM_SUMMON:
-                {
-                    fnOnFriend(FT_ENEMY);
-                    return;
-                }
-            case UIDFROM_MONSTER:
-                {
-                    fnOnFriend(FT_FRIEND);
-                    return;
-                }
-            default:
-                {
-                    return;
-                }
-        }
-    }
 }
 
 void Monster::CreateBvTree()
@@ -1343,7 +1233,7 @@ void Monster::QueryMaster(uint64_t nUID, std::function<void(uint64_t)> fnOp)
         throw std::invalid_argument(str_fflprintf(": Query self for MasterUID()"));
     }
 
-    m_actorPod->Forward(nUID, MPK_QUERYMASTER, [this, nUID, fnOp](const MessagePack &rstRMPK)
+    m_actorPod->forward(nUID, MPK_QUERYMASTER, [this, nUID, fnOp](const MessagePack &rstRMPK)
     {
         switch(rstRMPK.Type()){
             case MPK_UID:
@@ -1366,10 +1256,10 @@ void Monster::QueryMaster(uint64_t nUID, std::function<void(uint64_t)> fnOp)
     });
 }
 
-void Monster::CheckFriendType_AsGuard(uint64_t nUID, std::function<void(int)> fnOp)
+void Monster::checkFriend_AsGuard(uint64_t nUID, std::function<void(int)> fnOp)
 {
     if(!IsGuard(UID())){
-        throw std::runtime_error(str_fflprintf(": Invalid call to CheckFriendType_AsGuard"));
+        throw std::runtime_error(str_fflprintf(": Invalid call to checkFriend_AsGuard"));
     }
 
     switch(uidf::getUIDType(nUID)){
@@ -1380,7 +1270,7 @@ void Monster::CheckFriendType_AsGuard(uint64_t nUID, std::function<void(int)> fn
             }
         case UID_PLY:
             {
-                m_actorPod->Forward(nUID, MPK_QUERYNAMECOLOR, [fnOp](const MessagePack &rstMPK)
+                m_actorPod->forward(nUID, MPK_QUERYNAMECOLOR, [fnOp](const MessagePack &rstMPK)
                 {
                     switch(rstMPK.Type()){
                         case MPK_NAMECOLOR:
@@ -1417,10 +1307,10 @@ void Monster::CheckFriendType_AsGuard(uint64_t nUID, std::function<void(int)> fn
     }
 }
 
-void Monster::CheckFriendType_CtrlByMonster(uint64_t nUID, std::function<void(int)> fnOp)
+void Monster::checkFriend_CtrlByMonster(uint64_t nUID, std::function<void(int)> fnOp)
 {
     if(MasterUID() && uidf::getUIDType(MasterUID()) != UID_MON){
-        throw std::runtime_error(str_fflprintf(": Invalid call to CheckFriendType_CtrlByMonster"));
+        throw std::runtime_error(str_fflprintf(": Invalid call to checkFriend_CtrlByMonster"));
     }
 
     switch(uidf::getUIDType(nUID)){
@@ -1469,10 +1359,10 @@ void Monster::CheckFriendType_CtrlByMonster(uint64_t nUID, std::function<void(in
     }
 }
 
-void Monster::CheckFriendType_CtrlByPlayer(uint64_t nUID, std::function<void(int)> fnOp)
+void Monster::checkFriend_CtrlByPlayer(uint64_t nUID, std::function<void(int)> fnOp)
 {
     if(uidf::getUIDType(MasterUID()) != UID_PLY){
-        throw std::runtime_error(str_fflprintf(": Invalid call to CheckFriendType_CtrlByPlayer"));
+        throw std::runtime_error(str_fflprintf(": Invalid call to checkFriend_CtrlByPlayer"));
     }
 
     switch(uidf::getUIDType(nUID)){
@@ -1527,12 +1417,12 @@ void Monster::CheckFriendType_CtrlByPlayer(uint64_t nUID, std::function<void(int
             }
         default:
             {
-                throw std::runtime_error(str_fflprintf(": Invalid call to CheckFriendType_CtrlByPlayer"));
+                throw std::runtime_error(str_fflprintf(": Invalid call to checkFriend_CtrlByPlayer"));
             }
     }
 }
 
-void Monster::CheckFriendType(uint64_t nUID, std::function<void(int)> fnOp)
+void Monster::checkFriend(uint64_t nUID, std::function<void(int)> fnOp)
 {
     if(!nUID){
         throw std::invalid_argument(str_fflprintf(": Invalid zero UID"));
@@ -1547,12 +1437,12 @@ void Monster::CheckFriendType(uint64_t nUID, std::function<void(int)> fnOp)
     // 3. as pet, master is UID_PLY
 
     if(IsGuard(UID())){
-        CheckFriendType_AsGuard(nUID, fnOp);
+        checkFriend_AsGuard(nUID, fnOp);
         return;
     }
 
     if(!MasterUID()){
-        CheckFriendType_CtrlByMonster(nUID, fnOp);
+        checkFriend_CtrlByMonster(nUID, fnOp);
         return;
     }
 
@@ -1580,12 +1470,12 @@ void Monster::CheckFriendType(uint64_t nUID, std::function<void(int)> fnOp)
         switch(uidf::getUIDType(nFMasterUID)){
             case UID_PLY:
                 {
-                    CheckFriendType_CtrlByPlayer(nUID, fnOp);
+                    checkFriend_CtrlByPlayer(nUID, fnOp);
                     return;
                 }
             case UID_MON:
                 {
-                    CheckFriendType_CtrlByMonster(nUID, fnOp);
+                    checkFriend_CtrlByMonster(nUID, fnOp);
                     return;
                 }
             default:
@@ -1607,7 +1497,7 @@ void Monster::QueryFriendType(uint64_t nUID, uint64_t nTargetUID, std::function<
 
     stAMQFT.UID = nTargetUID;
 
-    m_actorPod->Forward(nUID, {MPK_QUERYFRIENDTYPE, stAMQFT}, [fnOp](const MessagePack &rstMPK)
+    m_actorPod->forward(nUID, {MPK_QUERYFRIENDTYPE, stAMQFT}, [fnOp](const MessagePack &rstMPK)
     {
         switch(rstMPK.Type()){
             case MPK_FRIENDTYPE:

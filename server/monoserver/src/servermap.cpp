@@ -20,6 +20,7 @@
 #include <fstream>
 #include <algorithm>
 #include "uidf.hpp"
+#include "npchar.hpp"
 #include "player.hpp"
 #include "dbcomid.hpp"
 #include "monster.hpp"
@@ -444,7 +445,7 @@ std::tuple<bool, int, int> ServerMap::GetValidGrid(bool bCheckCO, bool bCheckLoc
             return {true, nCurrX, nCurrY};
         }
 
-        if(!stRC.Forward()){
+        if(!stRC.forward()){
             return {false, -1, -1};
         }
     }
@@ -604,7 +605,7 @@ bool ServerMap::DoCenterCircle(int nCX0, int nCY0, int nCR, bool bPriority, cons
                     }
                 }
             }
-        }while(stRC.Forward());
+        }while(stRC.forward());
     }
     return false;
 }
@@ -640,7 +641,7 @@ bool ServerMap::DoCenterSquare(int nCX, int nCY, int nW, int nH, bool bPriority,
                     return true;
                 }
             }
-        }while(stRC.Forward());
+        }while(stRC.forward());
     }
     return false;
 }
@@ -721,7 +722,7 @@ bool ServerMap::AddGroundItem(const CommonItem &rstCommonItem, int nX, int nY)
             if(true || ValidC(nX, nY)){
                 for(auto nUID: GetUIDListRef(nX, nY)){
                     if(uidf::getUIDType(nUID) == UID_PLY){
-                        m_actorPod->Forward(nUID, {MPK_SHOWDROPITEM, stAMSDI});
+                        m_actorPod->forward(nUID, {MPK_SHOWDROPITEM, stAMSDI});
                     }
                 }
             }
@@ -753,7 +754,7 @@ int ServerMap::GetMonsterCount(uint32_t nMonsterID)
     return nCount;
 }
 
-void ServerMap::NotifyNewCO(uint64_t nUID, int nX, int nY)
+void ServerMap::notifyNewCO(uint64_t nUID, int nX, int nY)
 {
     AMNotifyNewCO stAMNNCO;
     std::memset(&stAMNNCO, 0, sizeof(stAMNNCO));
@@ -765,7 +766,7 @@ void ServerMap::NotifyNewCO(uint64_t nUID, int nX, int nY)
             DoUIDList(nX, nY, [this, stAMNNCO](uint64_t nUID)
             {
                 if(nUID != stAMNNCO.UID){
-                    m_actorPod->Forward(nUID, {MPK_NOTIFYNEWCO, stAMNNCO});
+                    m_actorPod->forward(nUID, {MPK_NOTIFYNEWCO, stAMNNCO});
                 }
                 return false;
             });
@@ -800,9 +801,41 @@ Monster *ServerMap::AddMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
         pMonster->Activate();
 
         AddGridUID (pMonster->UID(), nDstX, nDstY, true);
-        NotifyNewCO(pMonster->UID(), nDstX, nDstY);
+        notifyNewCO(pMonster->UID(), nDstX, nDstY);
 
         return pMonster;
+    }
+    return nullptr;
+}
+
+NPChar *ServerMap::addNPChar(uint16_t npcID, int hintX, int hintY, int direction, bool strictLoc)
+{
+    if(!ValidC(hintX, hintY)){
+        if(strictLoc){
+            return nullptr;
+        }
+
+        hintX = std::rand() % W();
+        hintY = std::rand() % H();
+    }
+
+    if(const auto [dstOK, dstX, dstY] = GetValidGrid(false, false, (int)(strictLoc), hintX, hintY); dstOK){
+        auto pNPC = new NPChar
+        {
+            npcID,
+            m_ServiceCore,
+            this,
+            dstX,
+            dstY,
+            direction,
+        };
+
+        pNPC->Activate();
+
+        AddGridUID (pNPC->UID(), dstX, dstY, true);
+        notifyNewCO(pNPC->UID(), dstX, dstY);
+
+        return pNPC;
     }
     return nullptr;
 }
@@ -832,7 +865,7 @@ Player *ServerMap::AddPlayer(uint32_t nDBID, int nHintX, int nHintY, int nDirect
         pPlayer->Activate();
 
         AddGridUID (pPlayer->UID(), nDstX, nDstY, true);
-        NotifyNewCO(pPlayer->UID(), nDstX, nDstY);
+        notifyNewCO(pPlayer->UID(), nDstX, nDstY);
 
         return pPlayer;
     }
