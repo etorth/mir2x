@@ -357,7 +357,7 @@ bool MonoServer::addMonster(uint32_t nMonsterID, uint32_t nMapID, int nX, int nY
     }
 }
 
-void MonoServer::addNPChar(uint16_t npcID, uint32_t mapID, int x, int y, bool strictLoc)
+bool MonoServer::addNPChar(uint16_t npcID, uint32_t mapID, int x, int y, bool strictLoc)
 {
     AMAddCharObject stAMACO;
     std::memset(&stAMACO, 0, sizeof(stAMACO));
@@ -376,12 +376,12 @@ void MonoServer::addNPChar(uint16_t npcID, uint32_t mapID, int x, int y, bool st
         case MPK_OK:
             {
                 addLog(LOGTYPE_INFO, "Add NPC succeeds");
-                return;
+                return true;
             }
         case MPK_ERROR:
             {
                 addLog(LOGTYPE_WARNING, "Add NPC failed");
-                return;
+                return false;
             }
         default:
             {
@@ -392,7 +392,7 @@ void MonoServer::addNPChar(uint16_t npcID, uint32_t mapID, int x, int y, bool st
 
 std::vector<int> MonoServer::GetMapList()
 {
-    switch(auto stRMPK = SyncDriver().forward(MPK_QUERYMAPLIST, m_ServiceCore->UID()); stRMPK.Type()){
+    switch(auto stRMPK = SyncDriver().forward(m_ServiceCore->UID(), MPK_QUERYMAPLIST); stRMPK.Type()){
         case MPK_MAPLIST:
             {
                 AMMapList stAMML;
@@ -750,6 +750,45 @@ bool MonoServer::RegisterLuaExport(CommandLuaModule *pModule, uint32_t nCWID)
                         return false;
                     }
             }
+        });
+
+        pModule->GetLuaState().set_function("addNPChar", [this, nCWID](int npcID, int mapID, sol::variadic_args args) -> bool
+        {
+            const auto fnUsage = [this, nCWID]()
+            {
+                addCWLog(nCWID, 2, ">>> ", "addNPChar(NPCID: int, MapID: int)");
+                addCWLog(nCWID, 2, ">>> ", "addNPChar(NPCID: int, MapID: int, X: int, Y: int)");
+                addCWLog(nCWID, 2, ">>> ", "addNPChar(NPCID: int, MapID: int, X: int, Y: int, Random: bool)");
+            };
+
+            const std::vector<sol::object> argList(args.begin(), args.end());
+            switch(argList.size()){
+                case 0:
+                    {
+                        return addNPChar((uint16_t)(npcID), (uint32_t)(mapID), -1, -1, false);
+                    }
+                case 2:
+                    {
+                        if(argList[0].is<int>() && argList[1].is<int>()){
+                            return addNPChar((uint32_t)(npcID), (uint32_t)(mapID), argList[0].as<int>(), argList[1].as<int>(), false);
+                        }
+                        break;
+                    }
+                case 3:
+                    {
+                        if(argList[0].is<int >() && argList[1].is<int >() && argList[2].is<bool>()){
+                            return addNPChar((uint32_t)(npcID), (uint32_t)(mapID), argList[0].as<int>(), argList[1].as<int>(), argList[2].as<bool>());
+                        }
+                        break;
+                    }
+                default:
+                    {
+                        break;
+                    }
+            }
+
+            fnUsage();
+            return false;
         });
 
         // register command mapList
