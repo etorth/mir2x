@@ -97,8 +97,9 @@ int main(int argc, char *argv[])
                         try{
                             g_MonoServer->DetectException();
                         }catch(const std::exception &except){
-                            g_MonoServer->LogException(except);
-                            g_MonoServer->Restart(except.what());
+                            std::string firstExceptStr;
+                            g_MonoServer->LogException(except, &firstExceptStr);
+                            g_MonoServer->Restart(firstExceptStr);
                         }
                         break;
                     }

@@ -296,13 +296,16 @@ void MonoServer::DetectException()
     }
 }
 
-void MonoServer::LogException(const std::exception &except)
+void MonoServer::LogException(const std::exception &except, std::string *pstr)
 {
     addLog(LOGTYPE_WARNING, "%s", except.what());
     try{
+        if(pstr){
+            pstr->assign(except.what());
+        }
         std::rethrow_if_nested(except);
-    }catch(const std::exception &stNestedException){
-        LogException(stNestedException);
+    }catch(const std::exception &nextedExcept){
+        LogException(nextedExcept, pstr);
     }catch(...){
         addLog(LOGTYPE_WARNING, "%s", "Exception can't recongize, skipped...");
     }
@@ -325,7 +328,7 @@ void MonoServer::Restart(const std::string &msg)
     }
 
     else if(msg.find('\n') != std::string::npos){
-        notifyGUI("Restart\nfatal message contains \\n");
+        notifyGUI("Restart\nfatal message contains \\n, ignored");
     }
 
     else{
@@ -673,7 +676,7 @@ void MonoServer::RegisterLuaExport(CommandLuaModule *pModule, uint32_t nCWID)
         //    we need to flush message before exit the command window
         //    otherwise next created command window may get them if it uses the same CWID
         notifyGUI("FlushCWBrowser");
-        notifyGUI(std::string("ExitCW ") + std::to_string(nCWID));
+        notifyGUI(std::string("ExitCW\n") + std::to_string(nCWID));
     });
 
     // register command printLine

@@ -96,7 +96,7 @@ class MonoServer final
     public:
         void DetectException();
         void PropagateException();
-        void LogException(const std::exception &);
+        void LogException(const std::exception &, std::string * = nullptr);
 
     public:
         void addCWLog(uint32_t,         // command window id
