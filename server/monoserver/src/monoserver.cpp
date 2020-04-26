@@ -750,13 +750,13 @@ void MonoServer::RegisterLuaExport(CommandLuaModule *pModule, uint32_t nCWID)
         }
     });
 
-    pModule->GetLuaState().set_function("addNPChar", [this, nCWID](int npcID, int mapID, sol::variadic_args args) -> bool
+    pModule->GetLuaState().set_function("addNPC", [this, nCWID](int npcID, int mapID, sol::variadic_args args) -> bool
     {
         const auto fnUsage = [this, nCWID]()
         {
-            addCWLog(nCWID, 2, ">>> ", "addNPChar(NPCID: int, MapID: int)");
-            addCWLog(nCWID, 2, ">>> ", "addNPChar(NPCID: int, MapID: int, X: int, Y: int)");
-            addCWLog(nCWID, 2, ">>> ", "addNPChar(NPCID: int, MapID: int, X: int, Y: int, Random: bool)");
+            addCWLog(nCWID, 2, ">>> ", "addNPC(NPCID: int, MapID: int)");
+            addCWLog(nCWID, 2, ">>> ", "addNPC(NPCID: int, MapID: int, X: int, Y: int)");
+            addCWLog(nCWID, 2, ">>> ", "addNPC(NPCID: int, MapID: int, X: int, Y: int, Random: bool)");
         };
 
         const std::vector<sol::object> argList(args.begin(), args.end());

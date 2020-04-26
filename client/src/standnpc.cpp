@@ -37,6 +37,8 @@ StandNPC::StandNPC(uint64_t uid, ProcessRun *proc, const ActionNode &action)
 
 int StandNPC::motionFrameCount(int motion, int direction) const
 {
+    // NPC direction is not the real direction
+    // it's like a seq id for the first/second/third valid direction
 
     switch(lookID()){
         case 0:
@@ -57,7 +59,7 @@ int StandNPC::motionFrameCount(int motion, int direction) const
                                     }
                                 default:
                                     {
-                                        return -1;
+                                        return 4; // TODO
                                     }
                             }
                         }
@@ -72,7 +74,7 @@ int StandNPC::motionFrameCount(int motion, int direction) const
                                     }
                                 default:
                                     {
-                                        return -1;
+                                        return 4; // TODO
                                     }
                             }
                         }
@@ -141,11 +143,11 @@ bool StandNPC::draw(int viewX, int viewY, int focusMask)
 
     int bodyDX = 0;
     int bodyDY = 0;
-    auto bodyFrame = g_standNPCDB->Retrieve(bodyKey, &bodyDX, &bodyDY);
+    auto bodyFrame = g_standNPCDB->Retrieve(bodyKey + m_currMotion.frame, &bodyDX, &bodyDY);
 
     int shadowDX = 0;
     int shadowDY = 0;
-    auto shadowFrame = g_standNPCDB->Retrieve(shadowKey, &shadowDX, &shadowDY);
+    auto shadowFrame = g_standNPCDB->Retrieve(shadowKey + m_currMotion.frame, &shadowDX, &shadowDY);
 
     if(bodyFrame){
         SDL_SetTextureAlphaMod(bodyFrame, 255);
@@ -212,9 +214,9 @@ int32_t StandNPC::gfxID() const
     }
 
     if(motionFrameCount(m_currMotion.motion, m_currMotion.direction) <= 0){
-        return ((int32_t)(uidf::getLookID(UID()) & 0X07FF) << 12) | ((int32_t)(m_currMotion.motion & 0X0F) << 8) | ((int32_t)(m_currMotion.direction) << 5);
+        return -1;
     }
-    return -1;
+    return ((int32_t)(lookID()) << 12) | ((int32_t)(m_currMotion.motion & 0X0F) << 8) | ((int32_t)(m_currMotion.direction) << 5);
 }
 
 bool StandNPC::parseAction(const ActionNode &action)
@@ -254,9 +256,27 @@ bool StandNPC::parseAction(const ActionNode &action)
     return motionValid(m_currMotion);
 }
 
-bool StandNPC::update(double)
+bool StandNPC::update(double ms)
 {
-    return true;
+    updateAttachMagic(ms);
+
+    if(SDL_GetTicks() * 1.0f < currMotionDelay() + m_lastUpdateTime){
+        return true;
+    }
+
+    m_lastUpdateTime = SDL_GetTicks() * 1.0f;
+    switch(m_currMotion.motion){
+        case MOTION_NPC_STAND:
+        case MOTION_NPC_ACT:
+        case MOTION_NPC_ACTEXT:
+            {
+                return advanceMotionFrame(1);
+            }
+        default:
+            {
+                throw fflerror("invalid motion");
+            }
+    }
 }
 
 bool StandNPC::motionValid(const MotionNode &) const

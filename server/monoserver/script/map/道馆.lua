@@ -39,7 +39,9 @@ if g_Inited == nil then
         return nMonsterCount
     end
 
-    -- addNPChar()
+    addNPC(3, 400, 120, 0, false)
+    addNPC(3, 401, 300, 0, false)
+    addNPC(3, 397, 133, 0, false)
 
     g_Inited = true
 end
