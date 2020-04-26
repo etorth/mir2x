@@ -814,20 +814,19 @@ int CharObject::Speed(int nSpeedType) const
     }
 }
 
-void CharObject::AddMonster(uint32_t nMonsterID, int nX, int nY, bool bStrictLoc)
+void CharObject::addMonster(uint32_t monsterID, int x, int y, bool strictLoc)
 {
     AMAddCharObject stAMACO;
     std::memset(&stAMACO, 0, sizeof(stAMACO));
 
-    stAMACO.Type = TYPE_MONSTER;
+    stAMACO.type = UID_MON;
+    stAMACO.x = x;
+    stAMACO.y = y;
+    stAMACO.mapID = m_Map->ID();
+    stAMACO.strictLoc = strictLoc;
 
-    stAMACO.Common.MapID     = m_Map->ID();
-    stAMACO.Common.X         = nX;
-    stAMACO.Common.Y         = nY;
-    stAMACO.Common.StrictLoc = bStrictLoc;
-
-    stAMACO.Monster.MonsterID = nMonsterID;
-    stAMACO.Monster.MasterUID = UID();
+    stAMACO.monster.monsterID = monsterID;
+    stAMACO.monster.masterUID = UID();
 
     m_actorPod->forward(m_ServiceCore->UID(), {MPK_ADDCHAROBJECT, stAMACO}, [](const MessagePack &rstRMPK)
     {

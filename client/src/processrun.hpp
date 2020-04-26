@@ -28,7 +28,6 @@
 #include "myhero.hpp"
 #include "process.hpp"
 #include "message.hpp"
-#include "creature.hpp"
 #include "focustype.hpp"
 #include "ascendstr.hpp"
 #include "commonitem.hpp"
@@ -36,6 +35,7 @@
 #include "mir2xmapdata.hpp"
 #include "npcchatboard.hpp"
 #include "controlboard.hpp"
+#include "clientcreature.hpp"
 #include "inventoryboard.hpp"
 #include "clientluamodule.hpp"
 
@@ -108,7 +108,7 @@ class ProcessRun: public Process
         std::list<std::shared_ptr<IndepMagic>> m_IndepMagicList;
 
     private:
-        std::map<uint64_t, std::shared_ptr<Creature>> m_CreatureList;
+        std::map<uint64_t, std::unique_ptr<ClientCreature>> m_creatureList;
 
     private:
         std::set<uint64_t> m_UIDPending;
@@ -220,14 +220,14 @@ class ProcessRun: public Process
         bool RegisterLuaExport(ClientLuaModule *, int);
 
     public:
-        Creature *RetrieveUID(uint64_t);
+        ClientCreature *RetrieveUID(uint64_t);
         bool LocateUID(uint64_t, int *, int *);
 
     private:
         bool trackAttack(bool, uint64_t);
 
     public:
-        void AddAscendStr(int, int, int, int);
+        void addAscendStr(int, int, int, int);
 
     public:
         bool GetUIDLocation(uint64_t, bool, int *, int *);
@@ -239,10 +239,10 @@ class ProcessRun: public Process
         MyHero *GetMyHero() const
         {
             // GetMyHero() is read-only
-            // won't use RetrieveUID(), it may change m_CreatureList
+            // won't use RetrieveUID(), it may change m_creatureList
 
             if(m_MyHeroUID){
-                if(auto p = m_CreatureList.find(m_MyHeroUID); p != m_CreatureList.end()){
+                if(auto p = m_creatureList.find(m_MyHeroUID); p != m_creatureList.end()){
                     return dynamic_cast<MyHero *>(p->second.get());
                 }
             }
@@ -301,7 +301,7 @@ class ProcessRun: public Process
         void ClearCreature();
 
     public:
-        void QueryCORecord(uint64_t) const;
+        void queryCORecord(uint64_t) const;
         void OnActionSpawn(uint64_t, const ActionNode &);
 
     public:

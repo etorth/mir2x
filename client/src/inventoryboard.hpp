@@ -36,7 +36,7 @@ class InventoryBoard: public Widget
         TritexButton m_closeButton;
 
     private:
-        ProcessRun *m_ProcessRun;
+        ProcessRun *m_processRun;
 
     public:
         InventoryBoard(int, int, ProcessRun *, Widget * = nullptr, bool = false);

@@ -18,9 +18,9 @@
 
 #pragma once 
 #include <tuple>
-#include "creature.hpp"
+#include "creaturemovable.hpp"
 
-class Hero: public Creature
+class Hero: public CreatureMovable
 {
     protected:
         const uint32_t m_DBID;
@@ -65,13 +65,7 @@ class Hero: public Creature
         bool motionValid(const MotionNode &) const override;
 
     public:
-        bool ParseAction(const ActionNode &) override;
-
-    public:
-        int type() const override
-        {
-            return CREATURE_PLAYER;
-        }
+        bool parseAction(const ActionNode &) override;
 
     public:
         bool     Gender() const { return m_Gender ; }
@@ -101,16 +95,21 @@ class Hero: public Creature
         int WeaponOrder(int, int, int);
 
     protected:
-        MotionNode MakeMotionWalk(int, int, int, int, int) const override;
+        MotionNode makeMotionWalk(int, int, int, int, int) const override;
 
     protected:
-        int GfxMotionID(int) const override;
+        int gfxMotionID(int) const override;
         int GfxDressID (int, int, int) const;
         int GfxWeaponID(int, int, int) const;
 
     public:
-        int  MaxStep() const override;
-        int CurrStep() const override;
+        int maxStep() const override
+        {
+            return OnHorse() ? 3 : 2;
+        }
+
+    public:
+        int currStep() const override;
 
     public:
         virtual void PickUp()

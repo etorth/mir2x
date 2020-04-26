@@ -19,26 +19,18 @@
 #pragma once
 #include "uidf.hpp"
 #include "client.hpp"
-#include "creature.hpp"
 #include "clientmsg.hpp"
+#include "dbcomrecord.hpp"
 #include "protocoldef.hpp"
+#include "creaturemovable.hpp"
 
-class Monster: public Creature
+class Monster: public CreatureMovable
 {
     public:
         static Monster *createMonster(uint64_t, ProcessRun *, const ActionNode &);
 
     protected:
         Monster(uint64_t, ProcessRun *);
-
-    public:
-        ~Monster() = default;
-
-    public:
-        int type() const override
-        {
-            return CREATURE_MONSTER;
-        }
 
     public:
         bool update(double) override;
@@ -54,7 +46,7 @@ class Monster: public Creature
         std::tuple<int, int> location() const override;
 
     public:
-        bool ParseAction(const ActionNode &);
+        bool parseAction(const ActionNode &);
 
     public:
         bool motionValid(const MotionNode &) const;
@@ -63,22 +55,39 @@ class Monster: public Creature
         bool canFocus(int, int) const override;
 
     protected:
-        int GfxMotionID(int) const;
-        int GfxID(int, int) const;
+        int gfxMotionID(int motion) const override
+        {
+            if((motion > MOTION_MON_NONE) && (motion < MOTION_MON_MAX)){
+                return (motion - (MOTION_MON_NONE + 1));
+            }
+            return -1;
+        }
+
+    protected:
+        int gfxID(int, int) const;
 
     public:
         int motionFrameCount(int, int) const override;
 
     protected:
-        void DispatchSpaceMove();
-
-    protected:
-        MotionNode MakeMotionWalk(int, int, int, int, int) const;
+        MotionNode makeMotionWalk(int, int, int, int, int) const;
 
     public:
-        int  MaxStep() const;
-        int CurrStep() const;
+        int maxStep() const override
+        {
+            return 1;
+        }
+        int currStep() const override
+        {
+            return 1;
+        }
 
     public:
-        int LookID() const;
+        int lookID() const
+        {
+            if(const auto &mr = DBCOM_MONSTERRECORD(monsterID())){
+                return mr.LookID;
+            }
+            return -1;
+        }
 };

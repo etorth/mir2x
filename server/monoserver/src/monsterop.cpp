@@ -129,9 +129,7 @@ void Monster::On_MPK_ACTION(const MessagePack &rstMPK)
 
 void Monster::On_MPK_NOTIFYNEWCO(const MessagePack &rstMPK)
 {
-    AMNotifyNewCO stAMNNCO;
-    std::memcpy(&stAMNNCO, rstMPK.Data(), sizeof(stAMNNCO));
-
+    const auto stAMNNCO = rstMPK.conv<AMNotifyNewCO>();
     switch(GetState(STATE_DEAD)){
         case 0:
             {

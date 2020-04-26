@@ -352,7 +352,7 @@ class CharObject: public ServerObject
         virtual bool StruckDamage(const DamageNode &) = 0;
 
     protected:
-        void AddMonster(uint32_t, int, int, bool);
+        void addMonster(uint32_t, int, int, bool);
 
     protected:
         virtual bool GoDie()   = 0;

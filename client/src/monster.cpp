@@ -28,6 +28,7 @@
 #include "protocoldef.hpp"
 #include "dbcomrecord.hpp"
 #include "pngtexoffdb.hpp"
+#include "creaturemovable.hpp"
 #include "clientargparser.hpp"
 #include "clientpathfinder.hpp"
 
@@ -37,12 +38,47 @@ extern SDLDevice *g_SDLDevice;
 extern PNGTexOffDB *g_MonsterDB;
 extern ClientArgParser *g_clientArgParser;
 
-Monster::Monster(uint64_t nUID, ProcessRun *pRun)
-    : Creature(nUID, pRun)
+Monster *Monster::createMonster(uint64_t uid, ProcessRun *proc, const ActionNode &action)
 {
-    condcheck(nUID);
-    condcheck(pRun);
+    if(uidf::getUIDType(uid) != UID_MON){
+        throw fflerror("invalid UID for monster type: UIDName = %s", uidf::getUIDString(uid).c_str());
+    }
 
+    Monster *pMonster = nullptr;
+    try{
+        pMonster = new Monster(uid, proc);
+    }
+    catch(...){
+        throw fflerror("create monster failed: UIDName = %s", uidf::getUIDString(uid).c_str());
+    }
+
+    // setup the initial motion
+    // this motion may never be present since we immediately call parseAction()
+
+    switch(pMonster->monsterID()){
+        case DBCOM_MONSTERID(u8"变异骷髅"):
+            {
+                pMonster->m_currMotion = {MOTION_MON_STAND, 0, DIR_DOWNLEFT, action.X, action.Y};
+                break;
+            }
+        default:
+            {
+                pMonster->m_currMotion = {MOTION_MON_STAND, 0, DIR_UP, action.X, action.Y};
+                break;
+            }
+    }
+
+    if(pMonster->parseAction(action)){
+        return pMonster;
+    }
+
+    delete pMonster;
+    return nullptr;
+}
+
+Monster::Monster(uint64_t uid, ProcessRun *proc)
+    : CreatureMovable(uid, proc)
+{
     if(g_clientArgParser->enableDrawUID){
         m_nameBoard.setText("%s(%llu)", DBCOM_MONSTERRECORD(monsterID()).Name, toLLU(UID()));
     }
@@ -51,80 +87,71 @@ Monster::Monster(uint64_t nUID, ProcessRun *pRun)
     }
 }
 
-bool Monster::update(double fUpdateTime)
+bool Monster::update(double ms)
 {
-    // 1. independent from time control
-    //    attached magic could take different speed
-    UpdateAttachMagic(fUpdateTime);
+    updateAttachMagic(ms);
 
-    // 2. update this monster
-    //    need fps control for current motion
-    const double fTimeNow = SDL_GetTicks() * 1.0;
-    if(fTimeNow > CurrMotionDelay() + m_LastUpdateTime){
+    if(SDL_GetTicks() * 1.0f < currMotionDelay() + m_lastUpdateTime){
+        return true;
+    }
 
-        // 1. record update time
-        //    needed for next update
-        m_LastUpdateTime = fTimeNow;
-
-        // 2. do the update
-        switch(m_currMotion.motion){
-            case MOTION_MON_STAND:
-                {
-                    if(StayIdle()){
-                        return AdvanceMotionFrame(1);
-                    }
-                    else{
-                        // move to next motion will reset frame as 0
-                        // if current there is no more motion pending
-                        // it will add a MOTION_MON_STAND
-                        //
-                        // we don't want to reset the frame here
-                        return MoveNextMotion();
-                    }
+    m_lastUpdateTime = SDL_GetTicks() * 1.0f;
+    switch(m_currMotion.motion){
+        case MOTION_MON_STAND:
+            {
+                if(stayIdle()){
+                    return advanceMotionFrame(1);
                 }
-            case MOTION_MON_DIE:
-                {
-                    const auto nFrameCount = motionFrameCount(m_currMotion.motion, m_currMotion.direction);
-                    if(nFrameCount > 0){
-                        if((m_currMotion.frame + 1) == nFrameCount){
-                            switch(m_currMotion.fadeOut){
-                                case 0:
-                                    {
-                                        break;
-                                    }
-                                case 255:
-                                    {
-                                        // deactivated if FadeOut reach 255
-                                        // next update will auotmatically delete it
-                                        break;
-                                    }
-                                default:
-                                    {
-                                        auto nNextFadeOut = 0;
-                                        nNextFadeOut = (std::max<int>)(1, m_currMotion.fadeOut + 10);
-                                        nNextFadeOut = (std::min<int>)(nNextFadeOut, 255);
 
-                                        m_currMotion.fadeOut = nNextFadeOut;
-                                        break;
-                                    }
-                            }
-                            return true;
-                        }else{
-                            return AdvanceMotionFrame(1);
-                        }
-                    }
+                // move to next motion will reset frame as 0
+                // if current there is no more motion pending
+                // it will add a MOTION_MON_STAND
+                //
+                // we don't want to reset the frame here
+                return moveNextMotion();
+            }
+        case MOTION_MON_DIE:
+            {
+                const auto frameCount = motionFrameCount(m_currMotion.motion, m_currMotion.direction);
+                if(frameCount <= 0){
                     return false;
                 }
-            default:
-                {
-                    return UpdateMotion(false);
+
+                if(m_currMotion.frame + 1 < frameCount){
+                    return advanceMotionFrame(1);
                 }
-        }
+
+                switch(m_currMotion.fadeOut){
+                    case 0:
+                        {
+                            break;
+                        }
+                    case 255:
+                        {
+                            // deactivated if fadeOut reach 255
+                            // next update will auotmatically delete it
+                            break;
+                        }
+                    default:
+                        {
+                            int nextFadeOut = 0;
+                            nextFadeOut = (std::max<int>)(1, m_currMotion.fadeOut + 10);
+                            nextFadeOut = (std::min<int>)(nextFadeOut, 255);
+
+                            m_currMotion.fadeOut = nextFadeOut;
+                            break;
+                        }
+                }
+                return true;
+            }
+        default:
+            {
+                return updateMotion(false);
+            }
     }
-    return true;
 }
 
-bool Monster::draw(int nViewX, int nViewY, int nFocusMask)
+bool Monster::draw(int viewX, int viewY, int focusMask)
 {
     // monster graphics retrieving key structure
     //
@@ -135,295 +162,109 @@ bool Monster::draw(int nViewX, int nViewY, int nFocusMask)
     //             |||| |||| |||| |||| |||+-++++-----------     frame : max =   32
     //             |||| |||| |||| |||| +++----------------- direction : max =    8 -+
     //             |||| |||| |||| ++++---------------------    motion : max =   16 -+
-    //             |+++-++++-++++--------------------------      look : max = 2048 -+------> GfxID
+    //             |+++-++++-++++--------------------------      look : max = 2048 -+------> gfxID
     //             +---------------------------------------    shadow : max =    2
     //
 
-    auto nGfxID = GfxID(m_currMotion.motion, m_currMotion.direction);
-    if(nGfxID >= 0){
-        uint32_t nKey0 = ((uint32_t)(0) << 23) + ((uint32_t)(nGfxID & 0X03FFFF) << 5) + m_currMotion.frame; // body
-        uint32_t nKey1 = ((uint32_t)(1) << 23) + ((uint32_t)(nGfxID & 0X03FFFF) << 5) + m_currMotion.frame; // shadow
+    const auto nGfxID = gfxID(m_currMotion.motion, m_currMotion.direction);
+    if(nGfxID < 0){
+        return false;
+    }
 
-        int nDX0 = 0;
-        int nDY0 = 0;
-        int nDX1 = 0;
-        int nDY1 = 0;
+    const uint32_t nKey0 = ((uint32_t)(0) << 23) + ((uint32_t)(nGfxID & 0X03FFFF) << 5) + m_currMotion.frame; // body
+    const uint32_t nKey1 = ((uint32_t)(1) << 23) + ((uint32_t)(nGfxID & 0X03FFFF) << 5) + m_currMotion.frame; // shadow
 
-        auto pFrame0 = g_MonsterDB->Retrieve(nKey0, &nDX0, &nDY0);
-        auto pFrame1 = g_MonsterDB->Retrieve(nKey1, &nDX1, &nDY1);
-        const auto [shiftX, shiftY] = getShift();
+    int nDX0 = 0;
+    int nDY0 = 0;
+    int nDX1 = 0;
+    int nDY1 = 0;
 
-        // always reset the alpha mode for each texture because texture is shared
-        // one texture to draw can be configured with different alpha mode for other creatures
-        if(pFrame0){ SDL_SetTextureAlphaMod(pFrame0, 255); }
-        if(pFrame1){ SDL_SetTextureAlphaMod(pFrame1, 128); }
+    auto pFrame0 = g_MonsterDB->Retrieve(nKey0, &nDX0, &nDY0);
+    auto pFrame1 = g_MonsterDB->Retrieve(nKey1, &nDX1, &nDY1);
+    const auto [shiftX, shiftY] = getShift();
 
+    // always reset the alpha mode for each texture because texture is shared
+    // one texture to draw can be configured with different alpha mode for other creatures
+    if(pFrame0){ SDL_SetTextureAlphaMod(pFrame0, 255); }
+    if(pFrame1){ SDL_SetTextureAlphaMod(pFrame1, 128); }
+
+    if(true
+            && (m_currMotion.motion  == MOTION_MON_DIE)
+            && (m_currMotion.fadeOut  > 0             )){
+        // FadeOut :    0 : normal
+        //         : 1-255: fadeOut
+        if(pFrame0){ SDL_SetTextureAlphaMod(pFrame0, (255 - m_currMotion.fadeOut) / 1); }
+        if(pFrame1){ SDL_SetTextureAlphaMod(pFrame1, (255 - m_currMotion.fadeOut) / 2); }
+    }
+
+    auto fnBlendFrame = [](SDL_Texture *pTexture, int nFocusChan, int nX, int nY)
+    {
         if(true
-                && (m_currMotion.motion  == MOTION_MON_DIE)
-                && (m_currMotion.fadeOut  > 0             )){
-            // FadeOut :    0 : normal
-            //         : 1-255: fadeOut
-            if(pFrame0){ SDL_SetTextureAlphaMod(pFrame0, (255 - m_currMotion.fadeOut) / 1); }
-            if(pFrame1){ SDL_SetTextureAlphaMod(pFrame1, (255 - m_currMotion.fadeOut) / 2); }
-        }
+                && pTexture
+                && nFocusChan >= 0
+                && nFocusChan <  FOCUS_MAX){
 
-        auto fnBlendFrame = [](SDL_Texture *pTexture, int nFocusChan, int nX, int nY)
-        {
-            if(true
-                    && pTexture
-                    && nFocusChan >= 0
-                    && nFocusChan <  FOCUS_MAX){
+            // if provided channel as 0
+            // just blend it using the original color
 
-                // if provided channel as 0
-                // just blend it using the original color
-
-                auto stColor = focusColor(nFocusChan);
-                if(!SDL_SetTextureColorMod(pTexture, stColor.r, stColor.g, stColor.b)){
-                    g_SDLDevice->DrawTexture(pTexture, nX, nY);
-                }
-            }
-        };
-
-        int nBlendX0 = X() * SYS_MAPGRIDXP + nDX0 - nViewX + shiftX;
-        int nBlendY0 = Y() * SYS_MAPGRIDYP + nDY0 - nViewY + shiftY;
-        int nBlendX1 = X() * SYS_MAPGRIDXP + nDX1 - nViewX + shiftX;
-        int nBlendY1 = Y() * SYS_MAPGRIDYP + nDY1 - nViewY + shiftY;
-
-        fnBlendFrame(pFrame1, 0, nBlendX1, nBlendY1);
-        fnBlendFrame(pFrame0, 0, nBlendX0, nBlendY0);
-
-        for(int nFocusChan = 1; nFocusChan < FOCUS_MAX; ++nFocusChan){
-            if(nFocusMask & (1 << nFocusChan)){
-                fnBlendFrame(pFrame0, nFocusChan, nBlendX0, nBlendY0);
+            auto stColor = focusColor(nFocusChan);
+            if(!SDL_SetTextureColorMod(pTexture, stColor.r, stColor.g, stColor.b)){
+                g_SDLDevice->DrawTexture(pTexture, nX, nY);
             }
         }
+    };
 
-        // draw attached magics
-        for(auto pMagic: m_attachMagicList){
-            pMagic->Draw(X() * SYS_MAPGRIDXP - nViewX + shiftX, Y() * SYS_MAPGRIDYP - nViewY + shiftY);
-        }
+    const int nBlendX0 = x() * SYS_MAPGRIDXP + nDX0 - viewX + shiftX;
+    const int nBlendY0 = y() * SYS_MAPGRIDYP + nDY0 - viewY + shiftY;
+    const int nBlendX1 = x() * SYS_MAPGRIDXP + nDX1 - viewX + shiftX;
+    const int nBlendY1 = y() * SYS_MAPGRIDYP + nDY1 - viewY + shiftY;
 
-        // draw HP bar
-        // if current m_HPMqx is zero we draw full bar
-        if(m_currMotion.motion != MOTION_MON_DIE){
-            auto pBar0 = g_ProgUseDB->Retrieve(0X00000014);
-            auto pBar1 = g_ProgUseDB->Retrieve(0X00000015);
+    fnBlendFrame(pFrame1, 0, nBlendX1, nBlendY1);
+    fnBlendFrame(pFrame0, 0, nBlendX0, nBlendY0);
 
-            int nBarW = -1;
-            int nBarH = -1;
-            SDL_QueryTexture(pBar1, nullptr, nullptr, &nBarW, &nBarH);
-
-            const int nDrawBarXP = X() * SYS_MAPGRIDXP - nViewX + shiftX +  7;
-            const int nDrawBarYP = Y() * SYS_MAPGRIDYP - nViewY + shiftY - 53;
-
-            g_SDLDevice->DrawTexture(pBar1,
-                    nDrawBarXP,
-                    nDrawBarYP,
-                    0,
-                    0,
-                    (int)(std::lround(nBarW * (m_HPMax ? (std::min<double>)(1.0, (1.0 * m_HP) / m_HPMax) : 1.0))),
-                    nBarH);
-
-            g_SDLDevice->DrawTexture(pBar0, nDrawBarXP, nDrawBarYP);
-
-            if(g_clientArgParser->alwaysDrawName || (nFocusMask & (1 << FOCUS_MOUSE))){
-                const int nLW = m_nameBoard.w();
-                const int nLH = m_nameBoard.h();
-                const int nDrawNameXP = nDrawBarXP + nBarW / 2 - nLW / 2;
-                const int nDrawNameYP = nDrawBarYP + 20;
-                m_nameBoard.drawEx(nDrawNameXP, nDrawNameYP, 0, 0, nLW, nLH);
-            }
-        }
-    }
-    return false;
-}
-
-int Monster::motionFrameCount(int nMotion, int nDirection) const
-{
-    auto nGfxID = GfxID(nMotion, nDirection);
-    if(nGfxID >= 0){
-
-        switch(nMotion){
-            case MOTION_MON_STAND:
-                {
-                    return 4;
-                }
-            case MOTION_MON_WALK:
-                {
-                    return 6;
-                }
-            case MOTION_MON_ATTACK0:
-                {
-                    return 6;
-                }
-            case MOTION_MON_HITTED:
-                {
-                    switch(LookID()){
-                        default:
-                            {
-                                return 2;
-                            }
-                    }
-                }
-            case MOTION_MON_DIE:
-                {
-                    switch(LookID()){
-                        default:
-                            {
-                                return 10;
-                            }
-                    }
-                }
-            case MOTION_MON_ATTACK1:
-                {
-                    return 6;
-                }
-            case MOTION_MON_SPELL0:
-            case MOTION_MON_SPELL1:
-                {
-                    return 10;
-                }
-            case MOTION_MON_APPEAR:
-                {
-                    switch(LookID()){
-                        default:
-                            {
-                                return 10;
-                            }
-                    }
-                }
-            case MOTION_MON_SPECIAL:
-                {
-                    switch(LookID()){
-                        default:
-                            {
-                                return 6;
-                            }
-                    }
-                }
-            default:
-                {
-                    break;
-                }
+    for(int nFocusChan = 1; nFocusChan < FOCUS_MAX; ++nFocusChan){
+        if(focusMask & (1 << nFocusChan)){
+            fnBlendFrame(pFrame0, nFocusChan, nBlendX0, nBlendY0);
         }
     }
 
-    return -1;
-}
+    // draw attached magics
+    for(auto &p: m_attachMagicList){
+        p->Draw(x() * SYS_MAPGRIDXP - viewX + shiftX, y() * SYS_MAPGRIDYP - viewY + shiftY);
+    }
 
-bool Monster::ParseAction(const ActionNode &rstAction)
-{
-    m_LastActive = SDL_GetTicks();
+    // draw HP bar
+    // if current m_HPMqx is zero we draw full bar
+    if(m_currMotion.motion != MOTION_MON_DIE){
+        auto pBar0 = g_ProgUseDB->Retrieve(0X00000014);
+        auto pBar1 = g_ProgUseDB->Retrieve(0X00000015);
 
-    // try find pending motion die
-    // ignore all the following actions till the MOTION_MON_DIE done
+        int nBarW = -1;
+        int nBarH = -1;
+        SDL_QueryTexture(pBar1, nullptr, nullptr, &nBarW, &nBarH);
 
-    for(const auto &m: m_forceMotionQueue){
-        if(m.motion == MOTION_MON_DIE){
-            return true;
+        const int nDrawBarXP = x() * SYS_MAPGRIDXP - viewX + shiftX +  7;
+        const int nDrawBarYP = y() * SYS_MAPGRIDYP - viewY + shiftY - 53;
+
+        g_SDLDevice->DrawTexture(pBar1,
+                nDrawBarXP,
+                nDrawBarYP,
+                0,
+                0,
+                (int)(std::lround(nBarW * (m_maxHP ? (std::min<double>)(1.0, (1.0 * m_HP) / m_maxHP) : 1.0))),
+                nBarH);
+
+        g_SDLDevice->DrawTexture(pBar0, nDrawBarXP, nDrawBarYP);
+
+        if(g_clientArgParser->alwaysDrawName || (focusMask & (1 << FOCUS_MOUSE))){
+            const int nLW = m_nameBoard.w();
+            const int nLH = m_nameBoard.h();
+            const int nDrawNameXP = nDrawBarXP + nBarW / 2 - nLW / 2;
+            const int nDrawNameYP = nDrawBarYP + 20;
+            m_nameBoard.drawEx(nDrawNameXP, nDrawNameYP, 0, 0, nLW, nLH);
         }
     }
-
-    for(const auto &m: m_motionQueue){
-        if(m.motion == MOTION_MON_DIE){
-            throw fflerror("Found MOTION_MON_DIE in pending motion queue");
-        }
-    }
-
-    // make current motion super-fast
-    // can presents those ignored actions, helpful for debug
-    m_currMotion.speed = SYS_MAXSPEED;
-    m_motionQueue.clear();
-
-    const int endX = m_forceMotionQueue.empty() ? m_currMotion.endX : m_forceMotionQueue.back().endX;
-    const int endY = m_forceMotionQueue.empty() ? m_currMotion.endY : m_forceMotionQueue.back().endY;
-
-    // 1. prepare before parsing action
-    //    additional movement added if necessary but in rush
-    switch(rstAction.Action){
-        case ACTION_STAND:
-        case ACTION_MOVE:
-        case ACTION_ATTACK:
-        case ACTION_HITTED:
-            {
-                m_motionQueue = MakeMotionWalkQueue(endX, endY, rstAction.X, rstAction.Y, SYS_MAXSPEED);
-                break;
-            }
-        case ACTION_DIE:
-            {
-                const auto motionQueue = MakeMotionWalkQueue(endX, endY, rstAction.X, rstAction.Y, SYS_MAXSPEED);
-                m_forceMotionQueue.insert(m_forceMotionQueue.end(), motionQueue.begin(), motionQueue.end());
-                break;
-            }
-        default:
-            {
-                break;
-            }
-    }
-
-    // 2. parse the action
-    switch(rstAction.Action){
-        case ACTION_DIE:
-            {
-                m_forceMotionQueue.emplace_back(MOTION_MON_DIE, 0, rstAction.Direction, rstAction.X, rstAction.Y);
-                m_forceMotionQueue.back().fadeOut = rstAction.ActionParam;
-                break;
-            }
-        case ACTION_STAND:
-            {
-                m_motionQueue.emplace_back(MOTION_MON_STAND, 0, rstAction.Direction, rstAction.X, rstAction.Y);
-                break;
-            }
-        case ACTION_HITTED:
-            {
-                m_motionQueue.emplace_back(MOTION_MON_HITTED, 0, rstAction.Direction, rstAction.X, rstAction.Y);
-                break;
-            }
-        case ACTION_MOVE:
-            {
-                if(auto stMotionNode = MakeMotionWalk(rstAction.X, rstAction.Y, rstAction.AimX, rstAction.AimY, rstAction.Speed)){
-                    m_motionQueue.push_back(stMotionNode);
-                }
-                break;
-            }
-        case ACTION_SPACEMOVE2:
-            {
-                m_currMotion = MotionNode
-                {
-                    MOTION_MON_STAND,
-                    0,
-                    m_currMotion.direction,
-                    rstAction.X,
-                    rstAction.Y,
-                };
-
-                AddAttachMagic(DBCOM_MAGICID(u8"瞬息移动"), 0, EGS_DONE);
-                break;
-            }
-        case ACTION_ATTACK:
-            {
-                if(auto pCreature = m_ProcessRun->RetrieveUID(rstAction.AimUID)){
-                    auto nX   = pCreature->X();
-                    auto nY   = pCreature->Y();
-                    auto nDir = PathFind::GetDirection(rstAction.X, rstAction.Y, nX, nY);
-
-                    if(nDir > DIR_NONE && nDir < DIR_MAX){
-                        m_motionQueue.emplace_back(MOTION_MON_ATTACK0, 0, nDir, rstAction.X, rstAction.Y);
-                    }
-                }else{
-                    return false;
-                }
-                break;
-            }
-        default:
-            {
-                return false;
-            }
-    }
-
-    // 3. after action parse
-    //    verify the whole motion queue
-    return MotionQueueValid();
+    return true;
 }
 
 std::tuple<int, int> Monster::location() const
@@ -464,32 +305,119 @@ std::tuple<int, int> Monster::location() const
     }
 }
 
-int Monster::GfxID(int nMotion, int nDirection) const
+bool Monster::parseAction(const ActionNode &action)
 {
-    // see Monster::Draw() for format of nGfxID
-    // monster GfxID consists of (LookID, Motion, Direction)
-    static_assert(sizeof(int) > 2, "Monster::GfxID() overflows because of sizeof(int) <= 2");
+    m_lastActive = SDL_GetTicks();
 
-    if(monsterID()){
-        auto nLookID      = LookID();
-        auto nGfxMotionID = GfxMotionID(nMotion);
+    // try find pending motion die
+    // ignore all the following actions till the MOTION_MON_DIE done
 
-        if(true
-                && nLookID >= LID_MIN
-                && nLookID <  LID_MAX
-
-                && nDirection > DIR_NONE
-                && nDirection < DIR_MAX
-
-                && nGfxMotionID >= 0){
-
-            // if passed listed simple test
-            // we need to check the huge table for it
-
-            return (((nLookID - LID_MIN) & 0X07FF) << 7) + ((nGfxMotionID & 0X000F) << 3) + ((nDirection - (DIR_NONE + 1)) & 0X0007);
+    for(const auto &m: m_forceMotionQueue){
+        if(m.motion == MOTION_MON_DIE){
+            return true;
         }
     }
-    return -1;
+
+    for(const auto &m: m_motionQueue){
+        if(m.motion == MOTION_MON_DIE){
+            throw fflerror("Found MOTION_MON_DIE in pending motion queue");
+        }
+    }
+
+    // make current motion super-fast
+    // can presents those ignored actions, helpful for debug
+    m_currMotion.speed = SYS_MAXSPEED;
+    m_motionQueue.clear();
+
+    const int endX = m_forceMotionQueue.empty() ? m_currMotion.endX : m_forceMotionQueue.back().endX;
+    const int endY = m_forceMotionQueue.empty() ? m_currMotion.endY : m_forceMotionQueue.back().endY;
+
+    // 1. prepare before parsing action
+    //    additional movement added if necessary but in rush
+    switch(action.Action){
+        case ACTION_STAND:
+        case ACTION_MOVE:
+        case ACTION_ATTACK:
+        case ACTION_HITTED:
+            {
+                m_motionQueue = makeMotionWalkQueue(endX, endY, action.X, action.Y, SYS_MAXSPEED);
+                break;
+            }
+        case ACTION_DIE:
+            {
+                const auto motionQueue = makeMotionWalkQueue(endX, endY, action.X, action.Y, SYS_MAXSPEED);
+                m_forceMotionQueue.insert(m_forceMotionQueue.end(), motionQueue.begin(), motionQueue.end());
+                break;
+            }
+        default:
+            {
+                break;
+            }
+    }
+
+    // 2. parse the action
+    switch(action.Action){
+        case ACTION_DIE:
+            {
+                m_forceMotionQueue.emplace_back(MOTION_MON_DIE, 0, action.Direction, action.X, action.Y);
+                m_forceMotionQueue.back().fadeOut = action.ActionParam;
+                break;
+            }
+        case ACTION_STAND:
+            {
+                m_motionQueue.emplace_back(MOTION_MON_STAND, 0, action.Direction, action.X, action.Y);
+                break;
+            }
+        case ACTION_HITTED:
+            {
+                m_motionQueue.emplace_back(MOTION_MON_HITTED, 0, action.Direction, action.X, action.Y);
+                break;
+            }
+        case ACTION_MOVE:
+            {
+                if(auto stMotionNode = makeMotionWalk(action.X, action.Y, action.AimX, action.AimY, action.Speed)){
+                    m_motionQueue.push_back(stMotionNode);
+                }
+                break;
+            }
+        case ACTION_SPACEMOVE2:
+            {
+                m_currMotion = MotionNode
+                {
+                    MOTION_MON_STAND,
+                    0,
+                    m_currMotion.direction,
+                    action.X,
+                    action.Y,
+                };
+
+                addAttachMagic(DBCOM_MAGICID(u8"瞬息移动"), 0, EGS_DONE);
+                break;
+            }
+        case ACTION_ATTACK:
+            {
+                if(auto pCreature = m_processRun->RetrieveUID(action.AimUID)){
+                    auto nX   = pCreature->x();
+                    auto nY   = pCreature->y();
+                    auto nDir = PathFind::GetDirection(action.X, action.Y, nX, nY);
+
+                    if(nDir > DIR_NONE && nDir < DIR_MAX){
+                        m_motionQueue.emplace_back(MOTION_MON_ATTACK0, 0, nDir, action.X, action.Y);
+                    }
+                }else{
+                    return false;
+                }
+                break;
+            }
+        default:
+            {
+                return false;
+            }
+    }
+
+    // 3. after action parse
+    //    verify the whole motion queue
+    return motionQueueValid();
 }
 
 bool Monster::motionValid(const MotionNode &rstMotion) const
@@ -501,9 +429,9 @@ bool Monster::motionValid(const MotionNode &rstMotion) const
             && rstMotion.direction > DIR_NONE
             && rstMotion.direction < DIR_MAX 
 
-            && m_ProcessRun
-            && m_ProcessRun->OnMap(m_ProcessRun->MapID(), rstMotion.x,    rstMotion.y)
-            && m_ProcessRun->OnMap(m_ProcessRun->MapID(), rstMotion.endX, rstMotion.endY)
+            && m_processRun
+            && m_processRun->OnMap(m_processRun->MapID(), rstMotion.x,    rstMotion.y)
+            && m_processRun->OnMap(m_processRun->MapID(), rstMotion.endX, rstMotion.endY)
 
             && rstMotion.speed >= SYS_MINSPEED
             && rstMotion.speed <= SYS_MAXSPEED
@@ -522,8 +450,8 @@ bool Monster::motionValid(const MotionNode &rstMotion) const
                     return false
                         || nLDistance2 == 1
                         || nLDistance2 == 2
-                        || nLDistance2 == 1 * MaxStep() * MaxStep()
-                        || nLDistance2 == 2 * MaxStep() * MaxStep();
+                        || nLDistance2 == 1 * maxStep() * maxStep()
+                        || nLDistance2 == 2 * maxStep() * maxStep();
                 }
             case MOTION_MON_ATTACK0:
             case MOTION_MON_HITTED:
@@ -554,7 +482,7 @@ bool Monster::canFocus(int nPointX, int nPointY) const
             }
     }
 
-    auto nGfxID = GfxID(m_currMotion.motion, m_currMotion.direction);
+    auto nGfxID = gfxID(m_currMotion.motion, m_currMotion.direction);
     if(nGfxID >= 0){
 
         // we only check the body frame
@@ -568,8 +496,8 @@ bool Monster::canFocus(int nPointX, int nPointY) const
         auto pFrame0 = g_MonsterDB->Retrieve(nKey0, &nDX0, &nDY0);
         const auto [shiftX, shiftY] = getShift();
 
-        int nStartX = X() * SYS_MAPGRIDXP + nDX0 + shiftX;
-        int nStartY = Y() * SYS_MAPGRIDYP + nDY0 + shiftY;
+        int nStartX = x() * SYS_MAPGRIDXP + nDX0 + shiftX;
+        int nStartY = y() * SYS_MAPGRIDYP + nDY0 + shiftY;
 
         int nW = 0;
         int nH = 0;
@@ -585,49 +513,114 @@ bool Monster::canFocus(int nPointX, int nPointY) const
     return false;
 }
 
-Monster *Monster::createMonster(uint64_t nUID, ProcessRun *pRun, const ActionNode &rstAction)
+int Monster::gfxID(int nMotion, int nDirection) const
 {
-    if(uidf::getUIDType(nUID) != UID_MON){
-        throw fflerror("Invalid UID provided for monster type: UIDName = %s", uidf::getUIDString(nUID).c_str());
+    // see Monster::Draw() for format of nGfxID
+    // monster GfxID consists of (LookID, Motion, Direction)
+    static_assert(sizeof(int) > 2, "Monster::GfxID() overflows because of sizeof(int) <= 2");
+
+    if(!monsterID()){
+        return -1;
     }
 
-    Monster *pMonster = nullptr;
-    try{
-        pMonster = new Monster(nUID, pRun);
+    const auto nLookID      = lookID();
+    const auto nGfxMotionID = gfxMotionID(nMotion);
+
+    if(true
+            && nLookID >= LID_MIN
+            && nLookID <  LID_MAX
+
+            && nDirection > DIR_NONE
+            && nDirection < DIR_MAX
+
+            && nGfxMotionID >= 0){
+
+        // if passed listed simple test
+        // we need to check the huge table for it
+
+        return (((nLookID - LID_MIN) & 0X07FF) << 7) + ((nGfxMotionID & 0X000F) << 3) + ((nDirection - (DIR_NONE + 1)) & 0X0007);
     }
-    catch(...){
-        throw fflerror("Create monster failed: UIDName = %s", uidf::getUIDString(nUID).c_str());
+    return -1;
+}
+
+int Monster::motionFrameCount(int motion, int direction) const
+{
+    const auto nGfxID = gfxID(motion, direction);
+    if(nGfxID < 0){
+        return -1;
     }
 
-    // setup the initial motion
-    // this motion may never be present since we immediately call ParseAction()
-    switch(pMonster->monsterID()){
-        case DBCOM_MONSTERID(u8"变异骷髅"):
+    switch(motion){
+        case MOTION_MON_STAND:
             {
-                pMonster->m_currMotion = {MOTION_MON_STAND, 0, DIR_DOWNLEFT, rstAction.X, rstAction.Y};
-                break;
+                return 4;
+            }
+        case MOTION_MON_WALK:
+            {
+                return 6;
+            }
+        case MOTION_MON_ATTACK0:
+            {
+                return 6;
+            }
+        case MOTION_MON_HITTED:
+            {
+                switch(lookID()){
+                    default:
+                        {
+                            return 2;
+                        }
+                }
+            }
+        case MOTION_MON_DIE:
+            {
+                switch(lookID()){
+                    default:
+                        {
+                            return 10;
+                        }
+                }
+            }
+        case MOTION_MON_ATTACK1:
+            {
+                return 6;
+            }
+        case MOTION_MON_SPELL0:
+        case MOTION_MON_SPELL1:
+            {
+                return 10;
+            }
+        case MOTION_MON_APPEAR:
+            {
+                switch(lookID()){
+                    default:
+                        {
+                            return 10;
+                        }
+                }
+            }
+        case MOTION_MON_SPECIAL:
+            {
+                switch(lookID()){
+                    default:
+                        {
+                            return 6;
+                        }
+                }
             }
         default:
             {
-                pMonster->m_currMotion = {MOTION_MON_STAND, 0, DIR_UP, rstAction.X, rstAction.Y};
-                break;
+                return -1;
             }
     }
-
-    if(pMonster->ParseAction(rstAction)){
-        return pMonster;
-    }
-
-    delete pMonster;
-    return nullptr;
 }
 
-MotionNode Monster::MakeMotionWalk(int nX0, int nY0, int nX1, int nY1, int nSpeed) const
+MotionNode Monster::makeMotionWalk(int nX0, int nY0, int nX1, int nY1, int nSpeed) const
 {
     if(true
-            && m_ProcessRun
-            && m_ProcessRun->CanMove(true, 0, nX0, nY0)
-            && m_ProcessRun->CanMove(true, 0, nX1, nY1)
+            && m_processRun
+            && m_processRun->CanMove(true, 0, nX0, nY0)
+            && m_processRun->CanMove(true, 0, nX1, nY1)
 
             && nSpeed >= SYS_MINSPEED
             && nSpeed <= SYS_MAXSPEED){
@@ -644,34 +637,11 @@ MotionNode Monster::MakeMotionWalk(int nX0, int nY0, int nX1, int nY1, int nSpee
         if(false
                 || nLDistance2 == 1
                 || nLDistance2 == 2
-                || nLDistance2 == 1 * MaxStep() * MaxStep()
-                || nLDistance2 == 2 * MaxStep() * MaxStep()){
+                || nLDistance2 == 1 * maxStep() * maxStep()
+                || nLDistance2 == 2 * maxStep() * maxStep()){
 
             return {MOTION_MON_WALK, 0, nDirV[nSDY][nSDX], nSpeed, nX0, nY0, nX1, nY1};
         }
     }
     return {};
-}
-
-int Monster::MaxStep() const
-{
-    return 1;
-}
-
-int Monster::CurrStep() const
-{
-    return 1;
-}
-
-int Monster::LookID() const
-{
-    if(auto &rstMR = DBCOM_MONSTERRECORD(monsterID())){
-        return rstMR.LookID;
-    }
-    return -1;
-}
-
-int Monster::GfxMotionID(int nMotion) const
-{
-    return ((nMotion > MOTION_MON_NONE) && (nMotion < MOTION_MON_MAX)) ? (nMotion - (MOTION_MON_NONE + 1)) : -1;
 }

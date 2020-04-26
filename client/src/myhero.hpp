@@ -39,7 +39,7 @@ class MyHero: public Hero
         ~MyHero() = default;
 
     public:
-        bool Update(double);
+        bool update(double) override;
 
     public:
         // decompose (srcLoc->dstLoc) => (srcLoc->decompLoc->dstLoc)
@@ -66,7 +66,7 @@ class MyHero: public Hero
                 int *, int *);  // decompLoc
 
     public:
-        bool MoveNextMotion();
+        bool moveNextMotion() override;
 
     protected:
         bool DecompActionMove();
@@ -75,7 +75,7 @@ class MyHero: public Hero
         bool DecompActionAttack();
 
     public:
-        bool ParseActionQueue();
+        bool parseActionQueue();
 
     public:
         uint32_t GetGold() const

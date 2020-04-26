@@ -287,7 +287,7 @@ class TokenBoard: public Widget
 
         // last token box selected
         // location for token box, not for cursor
-        TBLocation m_LastTokenBoxLoc;
+        TBLocation m_lastTokenBoxLoc;
 
     private:
         int        m_SelectState;
@@ -362,7 +362,7 @@ class TokenBoard: public Widget
             , m_TokenBoxBitmap()
 
             , m_CursorLoc(0, 0)
-            , m_LastTokenBoxLoc(-1, -1)
+            , m_lastTokenBoxLoc(-1, -1)
 
             , m_SelectState(SELECTTYPE_DONE)
             , m_SelectLoc {{-1, -1}, {-1, -1}}
@@ -585,7 +585,7 @@ class TokenBoard: public Widget
     private:
         bool LastTokenBoxValid() const
         {
-            return TokenBoxValid(m_LastTokenBoxLoc.X, m_LastTokenBoxLoc.Y);
+            return TokenBoxValid(m_lastTokenBoxLoc.X, m_lastTokenBoxLoc.Y);
         }
 
     private:

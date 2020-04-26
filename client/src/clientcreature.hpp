@@ -1,22 +1,22 @@
 /*
  * =====================================================================================
  *
- *       Filename: creature.hpp
+ *       Filename: clientcreature.hpp
  *        Created: 04/07/2016 03:48:41
  *    Description: should I use factory method to create all creatures? seems I have to
  *                 allow to create creatures with current motion as MOTION_NONE
  *
  *                 reason:
- *                      class Creature is supposed to be base of many derived
+ *                      class ClientCreature is supposed to be base of many derived
  *                      classes, then if define its constructor as
  *
- *                          Creature(nUID, pRun, stAction)
+ *                          ClientCreature(uid, pRun, stAction)
  *
  *                      means every time if we wanna create it, we should provide
  *                      currently its motion, however, think about class Monster
- *                      public derived from Creature:
+ *                      public derived from ClientCreature:
  *
- *                          Monster(nUID, nMonsterID, pRun, stAction)
+ *                          Monster(uid, nMonsterID, pRun, stAction)
  *
  *                      say this class is for general monsters, then it allows
  *
@@ -31,8 +31,8 @@
  *                      now, if we further derive MonsterD from Monster, MonsterD
  *                      is a specified monster which can't walk. then in the ctor:
  *
- *                          MonsterD(nUID, pRun, stAction)
- *                              : Monster(nUID, pRun, stAction) // <-- fail
+ *                          MonsterD(uid, pRun, stAction)
+ *                              : Monster(uid, pRun, stAction) // <-- fail
  *                          {...}
  *
  *                      then here we call Monster() and it fails
@@ -51,9 +51,9 @@
  *
  *                      factory method works as a two phases solution:
  *
- *                          Monster *Create(nUID, pRun, stAction)
+ *                          Monster *Create(uid, pRun, stAction)
  *                          {
- *                              p = new Monster(nUID, pRun);
+ *                              p = new Monster(uid, pRun);
  *                              p->PrivateParseAction(stAction);
  *
  *                              return p;
@@ -64,7 +64,7 @@
  *                      creature in invalid state.
  *
  *                      PrivateParseAction() first check if current state valid? if
- *                      not, make it valid and then call the public ParseAction()
+ *                      not, make it valid and then call the public parseAction()
  *
  *                      but at the beginning how we to make it valid?? We have to make
  *                      one explicitly, which means we have to define a motion valid
@@ -74,19 +74,19 @@
  *                      then immediately I will use MOTION_NONE
  *                      but if MOTION_NONE is valid, we can just use
  *
- *                          auto p = new Monster(nUID, pRun);
- *                          p->ParseAction(stAction);
+ *                          auto p = new Monster(uid, pRun);
+ *                          p->parseAction(stAction);
  *
  *                      we don't even need the factory method any more. the cost is for
  *                      all function of Monster, we have to take care of MOTION_NONE,
  *                      this is a nightmare, every place I have to check for MOTION_NONE
  *                      
  *                      to get rid of this noise, currently how work around
- *                          Monster *Create(nUID, pRun, stAction)
+ *                          Monster *Create(uid, pRun, stAction)
  *                          {
- *                              1. p = new Monster(nUID, pRun);
+ *                              1. p = new Monster(uid, pRun);
  *                              2. p->MakeMotion(MOTION_STAND, stAction.X, stAciton.Y)
- *                              3. p->ParseAction(stAction)
+ *                              3. p->parseAction(stAction)
  *
  *                              return p;
  *                          }
@@ -95,7 +95,7 @@
  *                      this method will make up a motion based on stAction, nasty hack
  *                      but this can give use the assume:
  *
- *                          1. all creatures are made by Create(nUID, ...)
+ *                          1. all creatures are made by Create(uid, ...)
  *                          2. once made, it's guarenteed to be in valid state
  *
  *                      then only constructor can leave creature with MOTION_NONE, but
@@ -120,75 +120,66 @@
 #include <cstddef>
 #include <cstdint>
 
+#include "uidf.hpp"
+#include "toll.hpp"
 #include "colorf.hpp"
+#include "fflerror.hpp"
 #include "focustype.hpp"
-#include "condcheck.hpp"
 #include "actionnode.hpp"
 #include "labelboard.hpp"
 #include "motionnode.hpp"
-#include "pathfinder.hpp"
-#include "magicrecord.hpp"
 #include "protocoldef.hpp"
 #include "attachmagic.hpp"
 
-class ProcessRun;
-class Creature
+ class ProcessRun;
+ class ClientCreature
 {
     protected:
         const uint64_t m_UID;
 
     protected:
-        ProcessRun *m_ProcessRun;
+        ProcessRun *m_processRun;
 
     protected:
         uint32_t m_HP;
         uint32_t m_MP;
-        uint32_t m_HPMax;
-        uint32_t m_MPMax;
+        uint32_t m_maxHP;
+        uint32_t m_maxMP;
 
     protected:
         MotionNode m_currMotion;
 
     protected:
-        std::deque<MotionNode> m_motionQueue;
-        std::deque<MotionNode> m_forceMotionQueue;
+        std::vector<std::unique_ptr<AttachMagic>> m_attachMagicList;
 
     protected:
-        std::vector<std::shared_ptr<AttachMagic>> m_attachMagicList;
-
-    protected:
-        uint32_t m_LastActive;
-        uint32_t m_LastQuerySelf;
-
-    protected:
-        double m_LastUpdateTime;
+        uint32_t m_lastActive;
+        uint32_t m_lastQuerySelf;
+        double   m_lastUpdateTime;
 
     protected:
         LabelBoard m_nameBoard;
 
     protected:
-        Creature(uint64_t nUID, ProcessRun *pRun)
-            : m_UID(nUID)
-            , m_ProcessRun(pRun)
+        ClientCreature(uint64_t uid, ProcessRun *pRun)
+            : m_UID(uid)
+            , m_processRun(pRun)
             , m_HP(0)
             , m_MP(0)
-            , m_HPMax(0)
-            , m_MPMax(0)
-            , m_currMotion()
-            , m_motionQueue()
-            , m_forceMotionQueue()
-            , m_attachMagicList()
-            , m_LastActive(0)
-            , m_LastQuerySelf(0)
-            , m_LastUpdateTime(0.0)
-            , m_nameBoard(0, 0, "creature", 1, 12, 0, colorf::RGBA(0XFF, 0XFF, 0XFF, 0X00))
+            , m_maxHP(0)
+            , m_maxMP(0)
+            , m_lastActive(0)
+            , m_lastQuerySelf(0)
+            , m_lastUpdateTime(0.0)
+            , m_nameBoard(0, 0, "ClientCreature", 1, 12, 0, colorf::RGBA(0XFF, 0XFF, 0XFF, 0X00))
         {
-            condcheck(m_UID);
-            condcheck(m_ProcessRun);
+            if(!(m_UID && m_processRun)){
+                throw fflerror("invalid argument: UID = %llu, processRun = %p", toLLU(m_UID), m_processRun);
+            }
         }
 
     public:
-        virtual ~Creature() = default;
+        virtual ~ClientCreature() = default;
 
     public:
         uint64_t UID() const
@@ -196,30 +187,20 @@ class Creature
             return m_UID;
         }
 
-    public:
-        static SDL_Color focusColor(int nFocusChan)
+        int type() const
         {
-            switch(nFocusChan){
-                case FOCUS_MOUSE:
-                    {
-                        return colorf::RGBA2Color(0XFF, 0X86, 0X00, 0XFF);
-                    }
-                case FOCUS_MAGIC:
-                    {
-                        return colorf::RGBA2Color(0X92, 0XC6, 0X20, 0XFF);
-                    }
-                case FOCUS_FOLLOW:
-                    {
-                        return colorf::RGBA2Color(0X00, 0XC6, 0XF0, 0XFF);
-                    }
-                case FOCUS_ATTACK:
-                    {
-                        return colorf::RGBA2Color(0XD0, 0X2C, 0X70, 0XFF);
-                    }
-                default:
-                    {
-                        return colorf::RGBA2Color(0XFF, 0XFF, 0XFF, 0XFF);
-                    }
+            return uidf::getUIDType(UID());
+        }
+
+    public:
+        static SDL_Color focusColor(int focusChan)
+        {
+            switch(focusChan){
+                case FOCUS_MOUSE : return colorf::RGBA2Color(0XFF, 0X86, 0X00, 0XFF);
+                case FOCUS_MAGIC : return colorf::RGBA2Color(0X92, 0XC6, 0X20, 0XFF);
+                case FOCUS_FOLLOW: return colorf::RGBA2Color(0X00, 0XC6, 0XF0, 0XFF);
+                case FOCUS_ATTACK: return colorf::RGBA2Color(0XD0, 0X2C, 0X70, 0XFF);
+                default          : return colorf::RGBA2Color(0XFF, 0XFF, 0XFF, 0XFF);
             }
         }
 
@@ -227,28 +208,23 @@ class Creature
         virtual bool canFocus(int, int) const = 0;
 
     public:
-        bool Alive();
-        bool Active();
-        bool Visible();
-
-    public:
-        uint32_t LastActive() const
+        uint32_t lastActive() const
         {
-            return m_LastActive;
+            return m_lastActive;
         }
 
-        uint32_t LastQuerySelf() const
+        uint32_t lastQuerySelf() const
         {
-            return m_LastQuerySelf;
+            return m_lastQuerySelf;
         }
 
     public:
-        int X() const
+        int x() const
         {
             return std::get<0>(location());
         }
 
-        int Y() const
+        int y() const
         {
             return std::get<1>(location());
         }
@@ -263,97 +239,66 @@ class Creature
         virtual std::tuple<int, int> location() const = 0;
 
     public:
-        std::tuple<int, int> getShift() const;
-
-    public:
-        virtual int type() const = 0;
-
-    public:
         virtual int motionFrameCount(int, int) const = 0;
 
-    public:
-        virtual bool StayDead();
-        virtual bool StayIdle();
+    protected:
+        virtual bool moveNextMotion() = 0;
 
     public:
-        virtual bool ParseAction(const ActionNode &) = 0;
+        virtual bool parseAction(const ActionNode &) = 0;
 
     protected:
-        virtual bool AdvanceMotionFrame(int);
+        virtual bool advanceMotionFrame(int);
 
     protected:
-        virtual bool UpdateMotion(bool);
-        virtual void UpdateAttachMagic(double);
+        bool updateMotion(bool);
+        void updateAttachMagic(double);
 
     public:
         virtual bool update(double) = 0;
         virtual bool draw(int, int, int) = 0;
 
-    protected:
-        virtual bool MoveNextMotion();
-
-    protected:
-        // parse a motion path for src -> dst for current creature
-        // parameters:
-        //      src            : (nX0, nY0)
-        //      dst            : (nX1, nY1)
-        //      bCheckGround   :
-        //      bCheckCreature :
-        //
-        //  1. src point should be valid grid on map
-        //  2. this function allows dst to be invalid location if bCheckGround is not set
-        //  3. this function automatically use the minmal time path by calling Creature::MaxStep()
-        //  4. check ClientPathFinder for bCheckGround and bCheckCreature
-        //
-        // return vector size:
-        //      0 : error happens
-        //      1 : can't find a path and keep standing on (nX0, nY0)
-        //     >1 : path found
-        virtual std::vector<PathFind::PathNode> ParseMovePath(
-                int, int,       // src
-                int, int,       // dst
-                bool,           // bCheckGround
-                int);           // nCheckCreature
-
-    protected:
-        virtual bool MotionQueueValid();
-
     public:
         virtual bool motionValid(const MotionNode &) const = 0;
 
     public:
-        virtual int UpdateHP(int, int);
+        void motionValidEx(const MotionNode &motion) const
+        {
+            if(!motionValid(motion)){
+                throw fflerror("invalid motion");
+            }
+        }
+
+    public:
+        void updateHealth(int, int);
 
     public:
         int HP() const { return m_HP; }
         int MP() const { return m_MP; }
 
-        int HPMax() const { return m_HPMax; }
-        int MPMax() const { return m_MPMax; }
+        int maxHP() const { return m_maxHP; }
+        int maxMP() const { return m_maxMP; }
 
     public:
-        virtual bool DeadFadeOut();
+        bool deadFadeOut();
 
     protected:
-        double CurrMotionDelay() const;
-
-    protected:
-        virtual int  MaxStep() const = 0;
-        virtual int CurrStep() const = 0;
-
-    protected:
-        virtual int GfxMotionID(int) const = 0;
-
-    protected:
-        virtual MotionNode MakeMotionIdle() const;
-        virtual MotionNode MakeMotionWalk(int, int, int, int, int) const = 0;
-
-    protected:
-        std::deque<MotionNode> MakeMotionWalkQueue(int, int, int, int, int);
+        virtual int gfxMotionID(int) const = 0;
 
     public:
-        bool AddAttachMagic(int, int, int);
+        bool   alive() const;
+        bool  active() const;
+        bool visible() const;
+
+    protected:
+        MotionNode makeMotionIdle() const;
 
     public:
-        void QuerySelf();
+        bool addAttachMagic(int, int, int);
+
+    protected:
+        double currMotionDelay() const;
+
+    public:
+        void querySelf();
 };

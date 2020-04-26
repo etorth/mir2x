@@ -69,14 +69,6 @@ enum ActExtType: int
     ACTEXT_FADEOUT,
 };
 
-enum CreatureType: int
-{
-    CREATURE_NONE = 0,
-    CREATURE_PLAYER,
-    CREATURE_MONSTER,
-    CREATURE_NPC,
-};
-
 enum LookIDType: int
 {
     LID_MIN = 0,

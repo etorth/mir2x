@@ -17,6 +17,7 @@
  */
 
 #pragma once
+#include <map>
 #include "pathfinder.hpp"
 
 class ClientPathFinder final: public AStarPathFinder

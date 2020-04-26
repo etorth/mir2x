@@ -159,9 +159,7 @@ void Player::On_MPK_ACTION(const MessagePack &rstMPK)
 
 void Player::On_MPK_NOTIFYNEWCO(const MessagePack &rstMPK)
 {
-    AMNotifyNewCO stAMNNCO;
-    std::memcpy(&stAMNNCO, rstMPK.Data(), sizeof(stAMNNCO));
-
+    const auto stAMNNCO = rstMPK.conv<AMNotifyNewCO>();
     switch(GetState(STATE_DEAD)){
         case 0:
             {
@@ -490,16 +488,11 @@ void Player::On_MPK_PICKUPOK(const MessagePack &rstMPK)
 
 void Player::On_MPK_CORECORD(const MessagePack &rstMPK)
 {
-    AMCORecord stAMCOR;
-    std::memcpy(&stAMCOR, rstMPK.Data(), sizeof(stAMCOR));
+    const auto stAMCOR = rstMPK.conv<AMCORecord>();
 
     SMCORecord stSMCOR;
     std::memset(&stSMCOR, 0, sizeof(stSMCOR));
 
-    // 1. set type
-    stSMCOR.COType = stAMCOR.COType;
-
-    // 2. set common info
     stSMCOR.Action.UID   = stAMCOR.Action.UID;
     stSMCOR.Action.MapID = stAMCOR.Action.MapID;
 
@@ -515,16 +508,15 @@ void Player::On_MPK_CORECORD(const MessagePack &rstMPK)
     stSMCOR.Action.AimUID      = stAMCOR.Action.AimUID;
     stSMCOR.Action.ActionParam = stAMCOR.Action.ActionParam;
 
-    // 3. set specified info
-    switch(stAMCOR.COType){
-        case CREATURE_PLAYER:
+    switch(uidf::getUIDType(stAMCOR.Action.UID)){
+        case UID_PLY:
             {
                 stSMCOR.Player.DBID  = stAMCOR.Player.DBID;
                 stSMCOR.Player.JobID = stAMCOR.Player.JobID;
                 stSMCOR.Player.Level = stAMCOR.Player.Level;
                 break;
             }
-        case CREATURE_MONSTER:
+        case UID_MON:
             {
                 stSMCOR.Monster.MonsterID = stAMCOR.Monster.MonsterID;
                 break;
@@ -534,7 +526,6 @@ void Player::On_MPK_CORECORD(const MessagePack &rstMPK)
                 break;
             }
     }
-
     postNetMessage(SM_CORECORD, stSMCOR);
 }
 

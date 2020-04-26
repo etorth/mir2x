@@ -79,14 +79,14 @@ void ServiceCore::Net_CM_Login(uint32_t nChannID, uint8_t, const uint8_t *pData,
     AMAddCharObject stAMACO;
     std::memset(&stAMACO, 0, sizeof(stAMACO));
 
-    stAMACO.Type             = TYPE_PLAYER;
-    stAMACO.Common.MapID     = nMapID;
-    stAMACO.Common.X         = nMapX;
-    stAMACO.Common.Y         = nMapY;
-    stAMACO.Common.StrictLoc = false;
-    stAMACO.Player.DBID      = nDBID;
-    stAMACO.Player.Direction = nDirection;
-    stAMACO.Player.ChannID   = nChannID;
+    stAMACO.type             = UID_PLY;
+    stAMACO.x                = nMapX;
+    stAMACO.y                = nMapY;
+    stAMACO.mapID            = nMapID;
+    stAMACO.strictLoc        = false;
+    stAMACO.player.DBID      = nDBID;
+    stAMACO.player.direction = nDirection;
+    stAMACO.player.channID   = nChannID;
 
     m_actorPod->forward(pMap->UID(), {MPK_ADDCHAROBJECT, stAMACO}, [this, fnOnLoginFail](const MessagePack &rstRMPK)
     {

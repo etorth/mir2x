@@ -23,6 +23,7 @@
 #include "client.hpp"
 #include "dbcomid.hpp"
 #include "monster.hpp"
+#include "standnpc.hpp"
 #include "uidf.hpp"
 #include "sysconst.hpp"
 #include "pngtexdb.hpp"
@@ -51,7 +52,7 @@ void ProcessRun::Net_LOGINOK(const uint8_t *pBuf, size_t nLen)
         LoadMap(nMapID);
 
         m_MyHeroUID = nUID;
-        m_CreatureList[nUID] = std::make_shared<MyHero>(nUID, nDBID, bGender, nDressID, this, ActionStand(nX, nY, nDirection));
+        m_creatureList[nUID] = std::make_unique<MyHero>(nUID, nDBID, bGender, nDressID, this, ActionStand(nX, nY, nDirection));
 
         CenterMyHero();
     }
@@ -97,10 +98,10 @@ void ProcessRun::Net_ACTION(const uint8_t *pBuf, size_t)
         m_UIDPending.clear();
 
         ClearCreature();
-        m_CreatureList[m_MyHeroUID] = std::make_shared<MyHero>(nUID, nDBID, bGender, nDress, this, ActionStand(nX, nY, nDirection));
+        m_creatureList[m_MyHeroUID] = std::make_unique<MyHero>(nUID, nDBID, bGender, nDress, this, ActionStand(nX, nY, nDirection));
 
         CenterMyHero();
-        GetMyHero()->ParseAction(stAction);
+        GetMyHero()->parseAction(stAction);
         return;
     }
 
@@ -112,7 +113,7 @@ void ProcessRun::Net_ACTION(const uint8_t *pBuf, size_t)
         // we shouldn't have spawn action after co created
         condcheck(stSMA.Action != ACTION_SPAWN);
 
-        pCreature->ParseAction(stAction);
+        pCreature->parseAction(stAction);
         switch(stAction.Action){
             case ACTION_SPACEMOVE2:
                 {
@@ -137,7 +138,7 @@ void ProcessRun::Net_ACTION(const uint8_t *pBuf, size_t)
             {
                 // do query only for player
                 // can't create new player based on action information
-                QueryCORecord(stSMA.UID);
+                queryCORecord(stSMA.UID);
                 return;
             }
         case UID_MON:
@@ -161,11 +162,16 @@ void ProcessRun::Net_ACTION(const uint8_t *pBuf, size_t)
                             }
 
                             if(auto pMonster = Monster::createMonster(stSMA.UID, this, stAction)){
-                                m_CreatureList[stSMA.UID].reset(pMonster);
+                                m_creatureList[stSMA.UID].reset(pMonster);
                             }
                             return;
                         }
                 }
+                return;
+            }
+        case UID_NPC:
+            {
+                m_creatureList[stSMA.UID] = std::make_unique<StandNPC>(stSMA.UID, this, stAction);
                 return;
             }
         default:
@@ -197,22 +203,22 @@ void ProcessRun::Net_CORECORD(const uint8_t *pBuf, size_t)
         stSMCOR.Action.ActionParam,
     };
 
-    if(auto p = m_CreatureList.find(stSMCOR.Action.UID); p != m_CreatureList.end()){
-        p->second->ParseAction(stAction);
+    if(auto p = m_creatureList.find(stSMCOR.Action.UID); p != m_creatureList.end()){
+        p->second->parseAction(stAction);
         return;
     }
 
-    switch(stSMCOR.COType){
-        case CREATURE_MONSTER:
+    switch(uidf::getUIDType(stSMCOR.Action.UID)){
+        case UID_MON:
             {
                 if(auto pMonster = Monster::createMonster(stSMCOR.Action.UID, this, stAction)){
-                    m_CreatureList[stSMCOR.Action.UID].reset(pMonster);
+                    m_creatureList[stSMCOR.Action.UID].reset(pMonster);
                 }
                 break;
             }
-        case CREATURE_PLAYER:
+        case UID_PLY:
             {
-                m_CreatureList[stSMCOR.Action.UID] = std::make_shared<Hero>(stSMCOR.Action.UID, stSMCOR.Player.DBID, true, 0, this, stAction);
+                m_creatureList[stSMCOR.Action.UID] = std::make_unique<Hero>(stSMCOR.Action.UID, stSMCOR.Player.DBID, true, 0, this, stAction);
                 break;
             }
         default:
@@ -229,7 +235,7 @@ void ProcessRun::Net_UPDATEHP(const uint8_t *pBuf, size_t)
 
     if(stSMUHP.MapID == MapID()){
         if(auto p = RetrieveUID(stSMUHP.UID)){
-            p->UpdateHP(stSMUHP.HP, stSMUHP.HPMax);
+            p->updateHealth(stSMUHP.HP, stSMUHP.HPMax);
         }
     }
 }
@@ -240,7 +246,7 @@ void ProcessRun::Net_NOTIFYDEAD(const uint8_t *pBuf, size_t)
     std::memcpy(&stSMND, pBuf, sizeof(stSMND));
 
     if(auto p = RetrieveUID(stSMND.UID)){
-        p->ParseAction(ActionDie(p->X(), p->Y(), p->currMotion().direction, true));
+        p->parseAction(ActionDie(p->x(), p->y(), p->currMotion().direction, true));
     }
 }
 
@@ -251,7 +257,7 @@ void ProcessRun::Net_DEADFADEOUT(const uint8_t *pBuf, size_t)
 
     if(stSMDFO.MapID == MapID()){
         if(auto p = RetrieveUID(stSMDFO.UID)){
-            p->DeadFadeOut();
+            p->deadFadeOut();
         }
     }
 }
@@ -272,9 +278,9 @@ void ProcessRun::Net_MISS(const uint8_t *pBuf, size_t)
     std::memcpy(&stSMM, pBuf, sizeof(stSMM));
 
     if(auto p = RetrieveUID(stSMM.UID)){
-        int nX = p->X() * SYS_MAPGRIDXP + SYS_MAPGRIDXP / 2 - 20;
-        int nY = p->Y() * SYS_MAPGRIDYP - SYS_MAPGRIDYP * 1;
-        AddAscendStr(ASCENDSTR_MISS, 0, nX, nY);
+        int nX = p->x() * SYS_MAPGRIDXP + SYS_MAPGRIDXP / 2 - 20;
+        int nY = p->y() * SYS_MAPGRIDYP - SYS_MAPGRIDYP * 1;
+        addAscendStr(ASCENDSTR_MISS, 0, nX, nY);
     }
 }
 
@@ -307,7 +313,7 @@ void ProcessRun::Net_FIREMAGIC(const uint8_t *pBuf, size_t)
                 {
                     if(auto stEntry = rstMR.GetGfxEntry(u8"开始")){
                         if(auto pCreature = RetrieveUID(stSMFM.UID)){
-                            pCreature->AddAttachMagic(stSMFM.Magic, 0, stEntry.Stage);
+                            pCreature->addAttachMagic(stSMFM.Magic, 0, stEntry.Stage);
                         }
                         return;
                     }
@@ -331,7 +337,7 @@ void ProcessRun::Net_FIREMAGIC(const uint8_t *pBuf, size_t)
                 case EGT_BOUND:
                     {
                         if(auto pCreature = RetrieveUID(stSMFM.AimUID)){
-                            pCreature->AddAttachMagic(stSMFM.Magic, 0, pEntry->Stage);
+                            pCreature->addAttachMagic(stSMFM.Magic, 0, pEntry->Stage);
                         }
                         break;
                     }
@@ -376,7 +382,7 @@ void ProcessRun::Net_OFFLINE(const uint8_t *pBuf, size_t)
 
     if(stSMO.MapID == MapID()){
         if(auto pCreature = RetrieveUID(stSMO.UID)){
-            pCreature->AddAttachMagic(DBCOM_MAGICID(u8"瞬息移动"), 0, EGS_INIT);
+            pCreature->addAttachMagic(DBCOM_MAGICID(u8"瞬息移动"), 0, EGS_INIT);
         }
     }
 }

@@ -322,21 +322,20 @@ void MonoServer::Restart()
     NotifyGUI("Restart");
 }
 
-bool MonoServer::addMonster(uint32_t nMonsterID, uint32_t nMapID, int nX, int nY, bool bStrictLoc)
+bool MonoServer::addMonster(uint32_t monsterID, uint32_t mapID, int x, int y, bool strictLoc)
 {
     AMAddCharObject stAMACO;
     std::memset(&stAMACO, 0, sizeof(stAMACO));
 
-    stAMACO.Type = TYPE_MONSTER;
+    stAMACO.type = UID_MON;
+    stAMACO.x = x;
+    stAMACO.y = y;
+    stAMACO.mapID = mapID;
+    stAMACO.strictLoc = strictLoc;
 
-    stAMACO.Common.MapID     = nMapID;
-    stAMACO.Common.X         = nX;
-    stAMACO.Common.Y         = nY;
-    stAMACO.Common.StrictLoc = bStrictLoc;
-
-    stAMACO.Monster.MonsterID = nMonsterID;
-    stAMACO.Monster.MasterUID = 0;
-    addLog(LOGTYPE_INFO, "Try to add monster, MonsterID = %d", nMonsterID);
+    stAMACO.monster.monsterID = monsterID;
+    stAMACO.monster.masterUID = 0;
+    addLog(LOGTYPE_INFO, "Try to add monster, monsterID = %llu", toLLU(monsterID));
 
     switch(auto stRMPK = SyncDriver().forward(m_ServiceCore->UID(), {MPK_ADDCHAROBJECT, stAMACO}, 0, 0); stRMPK.Type()){
         case MPK_OK:
@@ -362,12 +361,11 @@ bool MonoServer::addNPChar(uint16_t npcID, uint32_t mapID, int x, int y, bool st
     AMAddCharObject stAMACO;
     std::memset(&stAMACO, 0, sizeof(stAMACO));
 
-    stAMACO.Type = TYPE_NPC;
-
-    stAMACO.Common.MapID     = mapID;
-    stAMACO.Common.X         = x;
-    stAMACO.Common.Y         = y;
-    stAMACO.Common.StrictLoc = strictLoc;
+    stAMACO.type = UID_NPC;
+    stAMACO.x = x;
+    stAMACO.y = y;
+    stAMACO.mapID = mapID;
+    stAMACO.strictLoc = strictLoc;
 
     stAMACO.NPC.NPCID = npcID;
     addLog(LOGTYPE_INFO, "Try to add NPC, NPCID = %llu", toLLU(npcID));

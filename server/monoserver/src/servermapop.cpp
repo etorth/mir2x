@@ -70,15 +70,15 @@ void ServerMap::On_MPK_ACTION(const MessagePack &rstMPK)
 void ServerMap::On_MPK_ADDCHAROBJECT(const MessagePack &rstMPK)
 {
     const auto stAMACO = rstMPK.conv<AMAddCharObject>();
-    auto nX = stAMACO.Common.X;
-    auto nY = stAMACO.Common.Y;
-    auto bStrictLoc = stAMACO.Common.StrictLoc;
+    const auto nX = stAMACO.x;
+    const auto nY = stAMACO.y;
+    const bool bStrictLoc = stAMACO.strictLoc;
 
-    switch(stAMACO.Type){
-        case TYPE_MONSTER:
+    switch(stAMACO.type){
+        case UID_MON:
             {
-                auto nMonsterID = stAMACO.Monster.MonsterID;
-                auto nMasterUID = stAMACO.Monster.MasterUID;
+                const auto nMonsterID = stAMACO.monster.monsterID;
+                const auto nMasterUID = stAMACO.monster.masterUID;
 
                 if(AddMonster(nMonsterID, nMasterUID, nX, nY, bStrictLoc)){
                     m_actorPod->forward(rstMPK.From(), MPK_OK, rstMPK.ID());
@@ -88,11 +88,11 @@ void ServerMap::On_MPK_ADDCHAROBJECT(const MessagePack &rstMPK)
                 m_actorPod->forward(rstMPK.From(), MPK_ERROR, rstMPK.ID());
                 return;
             }
-        case TYPE_PLAYER:
+        case UID_PLY:
             {
-                auto nDBID      = stAMACO.Player.DBID;
-                auto nChannID   = stAMACO.Player.ChannID;
-                auto nDirection = stAMACO.Player.Direction;
+                const auto nDBID      = stAMACO.player.DBID;
+                const auto nChannID   = stAMACO.player.channID;
+                const auto nDirection = stAMACO.player.direction;
 
                 if(auto pPlayer = AddPlayer(nDBID, nX, nY, nDirection, bStrictLoc)){
                     m_actorPod->forward(rstMPK.From(), MPK_OK, rstMPK.ID());
@@ -111,13 +111,13 @@ void ServerMap::On_MPK_ADDCHAROBJECT(const MessagePack &rstMPK)
                 m_actorPod->forward(rstMPK.From(), MPK_ERROR, rstMPK.ID());
                 return;
             }
-        case TYPE_NPC:
+        case UID_NPC:
             {
                 const auto npcID = stAMACO.NPC.NPCID;
-                const auto x     = stAMACO.Common.X;
-                const auto y     = stAMACO.Common.Y;
+                const auto x     = stAMACO.x;
+                const auto y     = stAMACO.y;
+                const auto strictLoc = stAMACO.strictLoc;
                 const auto direction = stAMACO.NPC.direction;
-                const auto strictLoc = stAMACO.Common.StrictLoc;
 
                 if(addNPChar(npcID, x, y, direction, strictLoc)){
                     m_actorPod->forward(rstMPK.From(), MPK_OK, rstMPK.ID());

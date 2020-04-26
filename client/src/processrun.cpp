@@ -66,7 +66,7 @@ ProcessRun::ProcessRun()
           this,
       }
     , m_inventoryBoard(0, 0, this)
-    , m_CreatureList()
+    , m_creatureList()
     , m_UIDPending()
     , m_MousePixlLoc(0, 0, "", 0, 15, 0, colorf::RGBA(0XFF, 0X00, 0X00, 0X00))
     , m_MouseGridLoc(0, 0, "", 0, 15, 0, colorf::RGBA(0XFF, 0X00, 0X00, 0X00))
@@ -84,8 +84,8 @@ void ProcessRun::ScrollMap()
     const auto showWindowW = g_SDLDevice->WindowW(false);
     const auto showWindowH = g_SDLDevice->WindowH(false) - m_controlBoard.h();
 
-    int nViewX = GetMyHero()->X() * SYS_MAPGRIDXP - showWindowW / 2;
-    int nViewY = GetMyHero()->Y() * SYS_MAPGRIDYP - showWindowH / 2;
+    int nViewX = GetMyHero()->x() * SYS_MAPGRIDXP - showWindowW / 2;
+    int nViewY = GetMyHero()->y() * SYS_MAPGRIDYP - showWindowH / 2;
 
     int nDViewX = nViewX - m_ViewX;
     int nDViewY = nViewY - m_ViewY;
@@ -134,15 +134,15 @@ void ProcessRun::Update(double fUpdateTime)
     ScrollMap();
     m_controlBoard.update(fUpdateTime);
 
-    for(auto p = m_CreatureList.begin(); p != m_CreatureList.end();){
-        if(p->second->Visible()){
-            if(p->second->LastActive() + 5000 < SDL_GetTicks() && p->second->LastQuerySelf() + 5000 < SDL_GetTicks()){
-                p->second->QuerySelf();
+    for(auto p = m_creatureList.begin(); p != m_creatureList.end();){
+        if(p->second->visible()){
+            if(p->second->lastActive() + 5000 < SDL_GetTicks() && p->second->lastQuerySelf() + 5000 < SDL_GetTicks()){
+                p->second->querySelf();
             }
             p->second->update(fUpdateTime);
             ++p;
         }else{
-            p = m_CreatureList.erase(p);
+            p = m_creatureList.erase(p);
         }
     }
 
@@ -165,10 +165,10 @@ void ProcessRun::Update(double fUpdateTime)
     }
 
     if(auto p = RetrieveUID(m_FocusUIDTable[FOCUS_ATTACK])){
-        if(p->StayDead()){
-            m_FocusUIDTable[FOCUS_ATTACK] = 0;
-        }else{
+        if(p->alive()){
             trackAttack(false, m_FocusUIDTable[FOCUS_ATTACK]);
+        }else{
+            m_FocusUIDTable[FOCUS_ATTACK] = 0;
         }
     }else{
         m_FocusUIDTable[FOCUS_ATTACK] = 0;
@@ -212,20 +212,20 @@ uint64_t ProcessRun::FocusUID(int nFocusType)
                         return m_FocusUIDTable[FOCUS_MOUSE];
                     }
 
-                    Creature *pFocus = nullptr;
-                    for(auto p = m_CreatureList.begin();;){
+                    ClientCreature *pFocus = nullptr;
+                    for(auto p = m_creatureList.begin();;){
                         auto pnext = std::next(p);
                         if(fnCheckFocus(p->second->UID(), nCheckPointX, nCheckPointY)){
                             if(false
                                     || !pFocus
-                                    ||  pFocus->Y() < p->second->Y()){
+                                    ||  pFocus->y() < p->second->y()){
                                 // 1. currently we have no candidate yet
                                 // 2. we have candidate but it's not at more front location
                                 pFocus = p->second.get();
                             }
                         }
 
-                        if(pnext == m_CreatureList.end()){
+                        if(pnext == m_creatureList.end()){
                             break;
                         }
                         p = pnext;
@@ -334,13 +334,13 @@ void ProcessRun::Draw()
         // dead actors are shown before all active actors
         for(int nY = nY0; nY <= nY1; ++nY){
             for(int nX = nX0; nX <= nX1; ++nX){
-                for(auto pCreature: m_CreatureList){
+                for(auto &p: m_creatureList){
                     if(true
-                            && (pCreature.second)
-                            && (pCreature.second->X() == nX)
-                            && (pCreature.second->Y() == nY)
-                            && (pCreature.second->StayDead())){
-                        pCreature.second->draw(m_ViewX, m_ViewY, 0);
+                            &&  (p.second)
+                            &&  (p.second->x() == nX)
+                            &&  (p.second->y() == nY)
+                            && !(p.second->alive())){
+                        p.second->draw(m_ViewX, m_ViewY, 0);
                     }
                 }
             }
@@ -450,12 +450,12 @@ void ProcessRun::Draw()
 
             // draw alive actors
             for(int nX = nX0; nX <= nX1; ++nX){
-                for(auto pCreature: m_CreatureList){
+                for(auto &p: m_creatureList){
                     if(true
-                            &&  (pCreature.second)
-                            &&  (pCreature.second->X() == nX)
-                            &&  (pCreature.second->Y() == nY)
-                            && !(pCreature.second->StayDead())){
+                            && (p.second)
+                            && (p.second->x() == nX)
+                            && (p.second->y() == nY)
+                            && (p.second->alive())){
 
                         if(g_clientArgParser->EnableDrawCreatureCover){
                             g_SDLDevice->PushColor(0, 0, 255, 128);
@@ -467,11 +467,11 @@ void ProcessRun::Draw()
 
                         int nFocusMask = 0;
                         for(auto nFocus = 0; nFocus < FOCUS_MAX; ++nFocus){
-                            if(FocusUID(nFocus) == pCreature.second->UID()){
+                            if(FocusUID(nFocus) == p.second->UID()){
                                 nFocusMask |= (1 << nFocus);
                             }
                         }
-                        pCreature.second->draw(m_ViewX, m_ViewY, nFocusMask);
+                        p.second->draw(m_ViewX, m_ViewY, nFocusMask);
                     }
                 }
             }
@@ -770,12 +770,12 @@ void ProcessRun::processEvent(const SDL_Event &event)
                         }
                     case SDLK_y:
                         {
-                            GetMyHero()->EmplaceAction(ActionSpell(GetMyHero()->X(), GetMyHero()->Y(), GetMyHero()->UID(), DBCOM_MAGICID(u8"魔法盾")));
+                            GetMyHero()->EmplaceAction(ActionSpell(GetMyHero()->x(), GetMyHero()->y(), GetMyHero()->UID(), DBCOM_MAGICID(u8"魔法盾")));
                             break;
                         }
                     case SDLK_u:
                         {
-                            GetMyHero()->EmplaceAction(ActionSpell(GetMyHero()->X(), GetMyHero()->Y(), GetMyHero()->UID(), DBCOM_MAGICID(u8"召唤骷髅")));
+                            GetMyHero()->EmplaceAction(ActionSpell(GetMyHero()->x(), GetMyHero()->y(), GetMyHero()->UID(), DBCOM_MAGICID(u8"召唤骷髅")));
                             break;
                         }
                     default:
@@ -873,17 +873,17 @@ int ProcessRun::CheckPathGrid(int nX, int nY) const
     // because server only checks EndX/EndY, if we use X()/Y() to request move it just fails
 
     bool bLocked = false;
-    for(auto pCreature: m_CreatureList){
+    for(auto &p: m_creatureList){
         if(true
-                && (pCreature.second)
-                && (pCreature.second->currMotion().endX == nX)
-                && (pCreature.second->currMotion().endY == nY)){
+                && (p.second)
+                && (p.second->currMotion().endX == nX)
+                && (p.second->currMotion().endY == nY)){
             return PathFind::OCCUPIED;
         }
 
         if(!bLocked
-                && pCreature.second->X() == nX
-                && pCreature.second->Y() == nY){
+                && p.second->x() == nX
+                && p.second->y() == nY){
             bLocked = true;
         }
     }
@@ -1092,13 +1092,13 @@ bool ProcessRun::UserCommand(const char *szUserCommand)
 
 std::vector<int> ProcessRun::GetPlayerList()
 {
-    std::vector<int> stRetV {};
-    for(auto p = m_CreatureList.begin(); p != m_CreatureList.end();){
-        if(p->second->Visible()){
+    std::vector<int> result;
+    for(auto p = m_creatureList.begin(); p != m_creatureList.end();){
+        if(p->second->visible()){
             switch(p->second->type()){
-                case CREATURE_PLAYER:
+                case UID_PLY:
                     {
-                        stRetV.push_back(p->second->UID());
+                        result.push_back(p->second->UID());
                         break;
                     }
                 default:
@@ -1108,10 +1108,10 @@ std::vector<int> ProcessRun::GetPlayerList()
             }
             ++p;
         }else{
-            p = m_CreatureList.erase(p);
+            p = m_creatureList.erase(p);
         }
     }
-    return stRetV;
+    return result;
 }
 
 bool ProcessRun::RegisterUserCommand()
@@ -1363,20 +1363,20 @@ bool ProcessRun::OnMap(uint32_t nMapID, int nX, int nY) const
     return (MapID() == nMapID) && m_mir2xMapData.ValidC(nX, nY);
 }
 
-Creature *ProcessRun::RetrieveUID(uint64_t nUID)
+ClientCreature *ProcessRun::RetrieveUID(uint64_t uid)
 {
-    if(!nUID){
+    if(!uid){
         return nullptr;
     }
 
-    if(auto p = m_CreatureList.find(nUID); p != m_CreatureList.end()){
-        if(p->second->Visible()){
-            if(p->second->UID() != nUID){
-                throw fflerror("invalid creature record: %p, UID = %llu", p->second, toLLU(p->second->UID()));
+    if(auto p = m_creatureList.find(uid); p != m_creatureList.end()){
+        if(p->second->visible()){
+            if(p->second->UID() != uid){
+                throw fflerror("invalid creature record: %p, UID = %llu", p->second.get(), toLLU(p->second->UID()));
             }
             return p->second.get();
         }
-        m_CreatureList.erase(p);
+        m_creatureList.erase(p);
     }
     return nullptr;
 }
@@ -1384,8 +1384,8 @@ Creature *ProcessRun::RetrieveUID(uint64_t nUID)
 bool ProcessRun::LocateUID(uint64_t nUID, int *pX, int *pY)
 {
     if(auto pCreature = RetrieveUID(nUID)){
-        if(pX){ *pX = pCreature->X(); }
-        if(pY){ *pY = pCreature->Y(); }
+        if(pX){ *pX = pCreature->x(); }
+        if(pY){ *pY = pCreature->y(); }
         return true;
     }
     return false;
@@ -1409,14 +1409,14 @@ uint32_t ProcessRun::GetFocusFaceKey()
     if(auto nUID = FocusUID(FOCUS_MOUSE)){
         if(auto pCreature = RetrieveUID(nUID)){
             switch(pCreature->type()){
-                case CREATURE_PLAYER:
+                case UID_PLY:
                     {
                         nFaceKey = 0X02000000;
                         break;
                     }
-                case CREATURE_MONSTER:
+                case UID_MON:
                     {
-                        auto nLookID = ((Monster*)(pCreature))->LookID();
+                        auto nLookID = ((Monster*)(pCreature))->lookID();
                         if(nLookID >= 0){
                             nFaceKey = 0X01000000 + (nLookID - LID_MIN);
                         }
@@ -1433,7 +1433,7 @@ uint32_t ProcessRun::GetFocusFaceKey()
     return nFaceKey;
 }
 
-void ProcessRun::AddAscendStr(int nType, int nValue, int nX, int nY)
+void ProcessRun::addAscendStr(int nType, int nValue, int nX, int nY)
 {
     m_AscendStrList.emplace_back(std::make_shared<AscendStr>(nType, nValue, nX, nY));
 }
@@ -1443,8 +1443,8 @@ bool ProcessRun::GetUIDLocation(uint64_t nUID, bool bDrawLoc, int *pX, int *pY)
     if(auto pCreature = RetrieveUID(nUID)){
         if(bDrawLoc){
         }else{
-            if(pX){ *pX = pCreature->X(); }
-            if(pY){ *pY = pCreature->Y(); }
+            if(pX){ *pX = pCreature->x(); }
+            if(pY){ *pY = pCreature->y(); }
         }
         return true;
     }
@@ -1545,10 +1545,10 @@ void ProcessRun::RequestKillPets()
 
 void ProcessRun::ClearCreature()
 {
-    m_CreatureList.clear();
+    m_creatureList.clear();
 }
 
-void ProcessRun::QueryCORecord(uint64_t nUID) const
+void ProcessRun::queryCORecord(uint64_t nUID) const
 {
     CMQueryCORecord stCMQCOR;
     std::memset(&stCMQCOR, 0, sizeof(stCMQCOR));
@@ -1563,7 +1563,7 @@ void ProcessRun::OnActionSpawn(uint64_t nUID, const ActionNode &rstAction)
     condcheck(rstAction.Action == ACTION_SPAWN);
 
     if(uidf::getUIDType(nUID) != UID_MON){
-        QueryCORecord(nUID);
+        queryCORecord(nUID);
         return;
     }
 
@@ -1607,11 +1607,11 @@ void ProcessRun::OnActionSpawn(uint64_t nUID, const ActionNode &rstAction)
                     };
 
                     if(auto pMonster = Monster::createMonster(nUID, this, stActionStand)){
-                        m_CreatureList[nUID].reset(pMonster);
+                        m_creatureList[nUID].reset(pMonster);
                     }
 
                     m_UIDPending.erase(nUID);
-                    QueryCORecord(nUID);
+                    queryCORecord(nUID);
                     return true;
                 });
 
@@ -1627,10 +1627,10 @@ void ProcessRun::OnActionSpawn(uint64_t nUID, const ActionNode &rstAction)
                 };
 
                 if(auto pMonster = Monster::createMonster(nUID, this, stActionStand)){
-                    m_CreatureList[nUID].reset(pMonster);
+                    m_creatureList[nUID].reset(pMonster);
                 }
 
-                QueryCORecord(nUID);
+                queryCORecord(nUID);
                 return;
             }
     }

@@ -37,30 +37,30 @@ MyHero::MyHero(uint64_t nUID, uint32_t nDBID, bool bMale, uint32_t nDressID, Pro
     , m_ActionQueue()
 {}
 
-bool MyHero::Update(double fUpdateTime)
+bool MyHero::update(double fUpdateTime)
 {
     // 1. independent from time control
     //    attached magic could take different speed
-    UpdateAttachMagic(fUpdateTime);
+    updateAttachMagic(fUpdateTime);
 
     // 2. update this monster
     //    need fps control for current motion
     const double fTimeNow = SDL_GetTicks() * 1.0;
-    if(fTimeNow > CurrMotionDelay() + m_LastUpdateTime){
+    if(fTimeNow > currMotionDelay() + m_lastUpdateTime){
 
         // 1. record update time
         //    needed for next update
-        m_LastUpdateTime = fTimeNow;
+        m_lastUpdateTime = fTimeNow;
 
         switch(m_currMotion.motion){
             case MOTION_STAND:
                 {
                     if(StayIdle()){
                         if(m_ActionQueue.empty()){
-                            return AdvanceMotionFrame(1);
+                            return advanceMotionFrame(1);
                         }
                         else{
-                            return ParseActionQueue();
+                            return parseActionQueue();
                         }
                     }else{
                         // move to next motion will reset frame as 0
@@ -68,17 +68,17 @@ bool MyHero::Update(double fUpdateTime)
                         // it will add a MOTION_STAND
                         //
                         // we don't want to reset the frame here
-                        return MoveNextMotion();
+                        return moveNextMotion();
                     }
                 }
             case MOTION_HITTED:
                 {
                     if(StayIdle()){
                         if(m_ActionQueue.empty()){
-                            return UpdateMotion(false);
+                            return updateMotion(false);
                         }
                         else{
-                            return ParseActionQueue();
+                            return parseActionQueue();
                         }
                     }else{
                         // move to next motion will reset frame as 0
@@ -86,19 +86,19 @@ bool MyHero::Update(double fUpdateTime)
                         // it will add a MOTION_STAND
                         //
                         // we don't want to reset the frame here
-                        return MoveNextMotion();
+                        return moveNextMotion();
                     }
                 }
             default:
                 {
-                    return UpdateMotion(false);
+                    return updateMotion(false);
                 }
         }
     }
     return true;
 }
 
-bool MyHero::MoveNextMotion()
+bool MyHero::moveNextMotion()
 {
     if(!m_forceMotionQueue.empty()){
         m_currMotion = m_forceMotionQueue.front();
@@ -108,16 +108,16 @@ bool MyHero::MoveNextMotion()
 
     if(m_motionQueue.empty()){
         if(m_ActionQueue.empty()){
-            m_currMotion = MakeMotionIdle();
+            m_currMotion = makeMotionIdle();
             return true;
         }else{
             // there is pending action in the queue
             // try to present it and return false if failed
-            return ParseActionQueue();
+            return parseActionQueue();
         }
     }
 
-    if(MotionQueueValid()){
+    if(motionQueueValid()){
         m_currMotion = m_motionQueue.front();
         m_motionQueue.pop_front();
         return true;
@@ -135,7 +135,7 @@ bool MyHero::MoveNextMotion()
 
 bool MyHero::DecompMove(bool bCheckGround, int nCheckCreature, bool bCheckMove, int nX0, int nY0, int nX1, int nY1, int *pXm, int *pYm)
 {
-    auto stvPathNode = ParseMovePath(nX0, nY0, nX1, nY1, bCheckGround, nCheckCreature);
+    const auto stvPathNode = parseMovePath(nX0, nY0, nX1, nY1, bCheckGround, nCheckCreature);
     switch(stvPathNode.size()){
         case 0:
         case 1:
@@ -183,7 +183,7 @@ bool MyHero::DecompMove(bool bCheckGround, int nCheckCreature, bool bCheckMove, 
 
                     int nReachIndexMax = 0;
                     for(int nIndex = 1; nIndex <= nIndexMax; ++nIndex){
-                        if(m_ProcessRun->CanMove(true, 2, nX0 + nDX * nIndex, nY0 + nDY * nIndex)){
+                        if(m_processRun->CanMove(true, 2, nX0 + nDX * nIndex, nY0 + nDY * nIndex)){
                             nReachIndexMax = nIndex;
                         }else{ break; }
                     }
@@ -252,13 +252,13 @@ bool MyHero::DecompActionPickUp()
         int nX1 = stCurrPickUp.X;
         int nY1 = stCurrPickUp.Y;
 
-        if(!m_ProcessRun->CanMove(true, 0, nX0, nY0)){
+        if(!m_processRun->CanMove(true, 0, nX0, nY0)){
             g_Log->addLog(LOGTYPE_WARNING, "Motion start from invalid grid (%d, %d)", nX0, nY0);
             m_ActionQueue.clear();
             return false;
         }
 
-        if(!m_ProcessRun->CanMove(true, 0, nX1, nY1)){
+        if(!m_processRun->CanMove(true, 0, nX1, nY1)){
             g_Log->addLog(LOGTYPE_WARNING, "Pick up at an invalid grid (%d, %d)", nX1, nY1);
             m_ActionQueue.clear();
             return false;
@@ -310,7 +310,7 @@ bool MyHero::DecompActionMove()
         int nX1 = stCurrMove.AimX;
         int nY1 = stCurrMove.AimY;
 
-        if(!m_ProcessRun->CanMove(true, 0, nX0, nY0)){
+        if(!m_processRun->CanMove(true, 0, nX0, nY0)){
             g_Log->addLog(LOGTYPE_WARNING, "Motion start from invalid grid (%d, %d)", nX0, nY0);
             m_ActionQueue.clear();
             return false;
@@ -349,7 +349,7 @@ bool MyHero::DecompActionMove()
                     int nXm = -1;
                     int nYm = -1;
 
-                    bool bCheckGround = m_ProcessRun->CanMove(true, 0, nX1, nY1);
+                    bool bCheckGround = m_processRun->CanMove(true, 0, nX1, nY1);
                     if(DecompMove(bCheckGround, 1, true, nX0, nY0, nX1, nY1, &nXm, &nYm)){
                         return fnaddHop(nXm, nYm);
                     }else{
@@ -404,9 +404,9 @@ bool MyHero::DecompActionAttack()
             stCurrAction.AimUID,
         };
 
-        if(auto pCreature = m_ProcessRun->RetrieveUID(stCurrAction.AimUID)){
-            auto nX1 = pCreature->X();
-            auto nY1 = pCreature->Y();
+        if(auto pCreature = m_processRun->RetrieveUID(stCurrAction.AimUID)){
+            const auto nX1 = pCreature->x();
+            const auto nY1 = pCreature->y();
 
             switch(mathf::LDistance2(nX0, nY0, nX1, nY1)){
                 case 0:
@@ -523,7 +523,7 @@ bool MyHero::DecompActionSpell()
     return false;
 }
 
-bool MyHero::ParseActionQueue()
+bool MyHero::parseActionQueue()
 {
     if(m_ActionQueue.empty()){
         return true;
@@ -616,7 +616,7 @@ bool MyHero::ParseActionQueue()
         // present current *local* action without verification
         // later if server refused current action we'll do correction by pullback
 
-        if(ParseAction(stCurrAction)){
+        if(parseAction(stCurrAction)){
             // trace message
             // trace move action after parsing
             if(g_clientArgParser->traceMove){
@@ -670,7 +670,7 @@ void MyHero::PickUp()
         int nX = currMotion().x;
         int nY = currMotion().y;
 
-        auto &rstGroundItemList = m_ProcessRun->GetGroundItemListRef(nX, nY);
+        auto &rstGroundItemList = m_processRun->GetGroundItemListRef(nX, nY);
         if(!rstGroundItemList.empty()){
             ReportAction(ActionPickUp(nX, nY, rstGroundItemList.back().ID()));
         }
@@ -690,7 +690,7 @@ void MyHero::ReportAction(const ActionNode &rstAction)
     std::memset(&stCMA, 0, sizeof(stCMA));
 
     stCMA.UID   = UID();
-    stCMA.MapID = m_ProcessRun->MapID();
+    stCMA.MapID = m_processRun->MapID();
 
     stCMA.Action    = rstAction.Action;
     stCMA.Speed     = rstAction.Speed;

@@ -57,22 +57,20 @@ void ServiceCore::On_MPK_METRONOME(const MessagePack &)
 
 void ServiceCore::On_MPK_ADDCHAROBJECT(const MessagePack &rstMPK)
 {
-    AMAddCharObject stAMACO;
-    std::memcpy(&stAMACO, rstMPK.Data(), sizeof(stAMACO));
-
-    if(!stAMACO.Common.MapID){
+    const auto stAMACO = rstMPK.conv<AMAddCharObject>();
+    if(!stAMACO.mapID){
         m_actorPod->forward(rstMPK.From(), MPK_ERROR, rstMPK.ID());
         return;
     }
 
-    auto pMap = RetrieveMap(stAMACO.Common.MapID);
+    auto pMap = RetrieveMap(stAMACO.mapID);
 
     if(!pMap){
         m_actorPod->forward(rstMPK.From(), MPK_ERROR, rstMPK.ID());
         return;
     }
 
-    if(!pMap->In(stAMACO.Common.MapID, stAMACO.Common.X, stAMACO.Common.Y) && stAMACO.Common.StrictLoc){
+    if(!pMap->In(stAMACO.mapID, stAMACO.x, stAMACO.y) && stAMACO.strictLoc){
         m_actorPod->forward(rstMPK.From(), MPK_ERROR, rstMPK.ID());
         return;
     }

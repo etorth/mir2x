@@ -211,22 +211,15 @@ bool Player::Update()
     return true;
 }
 
-void Player::ReportCORecord(uint64_t nUID)
+void Player::ReportCORecord(uint64_t toUID)
 {
-    if(!nUID){
+    if(!toUID){
         return;
     }
 
     AMCORecord stAMCOR;
     std::memset(&stAMCOR, 0, sizeof(stAMCOR));
 
-    // TODO: don't use OBJECT_PLAYER, we need translation
-    //       rule of communication, the sender is responsible to translate
-
-    // 1. set type
-    stAMCOR.COType = CREATURE_PLAYER;
-
-    // 2. set current action
     stAMCOR.Action.UID   = UID();
     stAMCOR.Action.MapID = MapID();
 
@@ -242,14 +235,11 @@ void Player::ReportCORecord(uint64_t nUID)
     stAMCOR.Action.AimUID      = 0;
     stAMCOR.Action.ActionParam = 0;
 
-    // 3. set specified co information
     stAMCOR.Player.DBID  = DBID();
     stAMCOR.Player.JobID = JobID();
     stAMCOR.Player.Level = Level();
 
-    // don't reply to server map
-    // even get co information pull request from map
-    m_actorPod->forward(nUID, {MPK_CORECORD, stAMCOR});
+    m_actorPod->forward(toUID, {MPK_CORECORD, stAMCOR});
 }
 
 void Player::ReportStand()
@@ -707,7 +697,7 @@ void Player::OnCMActionSpell(CMAction stCMA)
 
                 Delay(600, [this, stSMFM]()
                 {
-                    AddMonster(DBCOM_MONSTERID(u8"变异骷髅"), stSMFM.AimX, stSMFM.AimY, false);
+                    addMonster(DBCOM_MONSTERID(u8"变异骷髅"), stSMFM.AimX, stSMFM.AimY, false);
 
                     // AddMonster will send ACTION_SPAWN to client
                     // client then use it to play the magic for 召唤骷髅, we don't send magic message here

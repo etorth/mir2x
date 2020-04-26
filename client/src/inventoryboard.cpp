@@ -61,7 +61,7 @@ InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget
           true,
           this,
       }
-    , m_ProcessRun(pRun)
+    , m_processRun(pRun)
 {
     if(auto pTexture = g_ProgUseDB->Retrieve(0X0000001B)){
         SDL_QueryTexture(pTexture, nullptr, nullptr, &m_w, &m_h);
@@ -101,7 +101,7 @@ void InventoryBoard::drawEx(int nDstX, int nDstY, int, int, int, int)
         g_SDLDevice->DrawTexture(pTexture, nDstX, nDstY);
     }
 
-    if(auto pMyHero = m_ProcessRun->GetMyHero()){
+    if(auto pMyHero = m_processRun->GetMyHero()){
         m_goldBoard.setText("%s", getGoldStr().c_str());
         m_goldBoard.moveTo(105 - m_goldBoard.w() / 2, 401);
 
@@ -150,7 +150,7 @@ std::string InventoryBoard::getGoldStr() const
     std::string result;
     std::string goldStr = std::to_string([this]() -> int
     {
-        if(auto p = m_ProcessRun->GetMyHero()){
+        if(auto p = m_processRun->GetMyHero()){
             return p->GetGold();
         }
         return 0;

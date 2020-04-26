@@ -19,9 +19,10 @@
 #include "log.hpp"
 #include "motionnode.hpp"
 
-void MotionNode::print()
+extern Log *g_Log;
+
+void MotionNode::print() const
 {
-    extern Log *g_Log;
     g_Log->addLog(LOGTYPE_INFO, "MotionNode::0X%0*" PRIXPTR "::motion      = %s", (int)(2 * sizeof(this)), (uintptr_t)(this), MotionNode::name(motion));
     g_Log->addLog(LOGTYPE_INFO, "MotionNode::0X%0*" PRIXPTR "::motionParam = %d", (int)(2 * sizeof(this)), (uintptr_t)(this), motionParam            );
     g_Log->addLog(LOGTYPE_INFO, "MotionNode::0X%0*" PRIXPTR "::direction   = %d", (int)(2 * sizeof(this)), (uintptr_t)(this), direction              );

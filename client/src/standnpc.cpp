@@ -23,11 +23,15 @@
 
 extern PNGTexOffDB *g_standNPCDB;
 
-StandNPC::StandNPC(uint64_t uid, ProcessRun *proc, const ActionNode &)
-    : Creature(uid, proc)
+StandNPC::StandNPC(uint64_t uid, ProcessRun *proc, const ActionNode &action)
+    : ClientCreature(uid, proc)
 {
-    if(uidf::getUIDType(UID()) != UID_NPC){
+    if(type() != UID_NPC){
         throw fflerror("uid type: %s", uidf::getUIDString(UID()));
+    }
+
+    if(!parseAction(action)){
+        throw fflerror("invalid NPC action");
     }
 }
 
@@ -113,8 +117,8 @@ bool StandNPC::canFocus(int pointX, int pointY) const
     int bodyFrameH = 0;
     SDL_QueryTexture(bodyFrame, nullptr, nullptr, &bodyFrameW, &bodyFrameH);
 
-    const int startX = X() * SYS_MAPGRIDXP + bodyDX;
-    const int startY = Y() * SYS_MAPGRIDYP + bodyDY;
+    const int startX = x() * SYS_MAPGRIDXP + bodyDX;
+    const int startY = y() * SYS_MAPGRIDYP + bodyDY;
 
     const int maxTargetW = SYS_MAPGRIDXP + SYS_TARGETRGN_GAPX;
     const int maxTargetH = SYS_MAPGRIDYP + SYS_TARGETRGN_GAPY;
@@ -168,10 +172,10 @@ bool StandNPC::draw(int viewX, int viewY, int focusMask)
         g_SDLDevice->DrawTexture(texture, x, y);
     };
 
-    const int   bodyDrawX = X() * SYS_MAPGRIDXP +   bodyDX - viewX;
-    const int   bodyDrawY = Y() * SYS_MAPGRIDYP +   bodyDY - viewY;
-    const int shadowDrawX = X() * SYS_MAPGRIDXP + shadowDX - viewX;
-    const int shadowDrawY = Y() * SYS_MAPGRIDYP + shadowDY - viewY;
+    const int   bodyDrawX = x() * SYS_MAPGRIDXP +   bodyDX - viewX;
+    const int   bodyDrawY = y() * SYS_MAPGRIDYP +   bodyDY - viewY;
+    const int shadowDrawX = x() * SYS_MAPGRIDXP + shadowDX - viewX;
+    const int shadowDrawY = y() * SYS_MAPGRIDYP + shadowDY - viewY;
 
     fnBlendFrame(shadowFrame, FOCUS_NONE, shadowDrawX, shadowDrawY, 128);
     fnBlendFrame(  bodyFrame, FOCUS_NONE,   bodyDrawX,   bodyDrawY, 255);
@@ -182,8 +186,8 @@ bool StandNPC::draw(int viewX, int viewY, int focusMask)
         }
     }
 
-    for(auto p: m_attachMagicList){
-        p->Draw(X() * SYS_MAPGRIDXP - viewX, Y() * SYS_MAPGRIDYP - viewY);
+    for(auto &p: m_attachMagicList){
+        p->Draw(x() * SYS_MAPGRIDXP - viewX, y() * SYS_MAPGRIDYP - viewY);
     }
     return true;
 }
@@ -210,5 +214,47 @@ int32_t StandNPC::gfxID() const
     if(motionFrameCount(m_currMotion.motion, m_currMotion.direction) <= 0){
         return ((int32_t)(uidf::getLookID(UID()) & 0X07FF) << 12) | ((int32_t)(m_currMotion.motion & 0X0F) << 8) | ((int32_t)(m_currMotion.direction) << 5);
     }
+    return -1;
+}
+
+bool StandNPC::parseAction(const ActionNode &action)
+{
+    m_lastActive = SDL_GetTicks();
+
+    switch(action.Action){
+        case ACTION_STAND: break;
+        default: throw fflerror("invalid action node: type = %d", action.Action);
+    }
+
+    switch(action.ActionParam){
+        case MOTION_NPC_ACT   : break;
+        case MOTION_NPC_ACTEXT: break;
+        default: throw fflerror("invalid motion: %d", action.ActionParam);
+    }
+
+    m_currMotion = MotionNode
+    {
+        (int)(action.ActionParam),
+        0,
+        action.Direction,
+        action.X,
+        action.Y,
+    };
+
+    return motionValid(m_currMotion);
+}
+
+bool StandNPC::update(double)
+{
+    return true;
+}
+
+bool StandNPC::motionValid(const MotionNode &) const
+{
+    return true;
+}
+
+int StandNPC::gfxMotionID(int) const
+{
     return -1;
 }

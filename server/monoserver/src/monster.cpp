@@ -650,22 +650,15 @@ void Monster::SearchViewRange()
 {
 }
 
-void Monster::ReportCORecord(uint64_t nUID)
+void Monster::ReportCORecord(uint64_t toUID)
 {
-    if(!nUID || nUID == UID()){
+    if(!toUID || toUID == UID()){
         return;
     }
 
     AMCORecord stAMCOR;
     std::memset(&stAMCOR, 0, sizeof(stAMCOR));
 
-    // TODO: don't use OBJECT_MONSTER, we need translation
-    //       rule of communication, the sender is responsible to translate
-
-    // 1. set type
-    stAMCOR.COType = CREATURE_MONSTER;
-
-    // 2. set current action
     stAMCOR.Action.UID   = UID();
     stAMCOR.Action.MapID = MapID();
 
@@ -681,12 +674,8 @@ void Monster::ReportCORecord(uint64_t nUID)
     stAMCOR.Action.AimUID      = 0;
     stAMCOR.Action.ActionParam = 0;
 
-    // 3. set specified co information
     stAMCOR.Monster.MonsterID = MonsterID();
-
-    // don't reply to server map
-    // even get co information pull request from map
-    m_actorPod->forward(nUID, {MPK_CORECORD, stAMCOR});
+    m_actorPod->forward(toUID, {MPK_CORECORD, stAMCOR});
 }
 
 bool Monster::InRange(int nRangeType, int nX, int nY)

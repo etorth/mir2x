@@ -99,7 +99,7 @@ struct MotionNode
             || ((motion > MOTION_MON_NONE) && (motion < MOTION_MON_MAX));
     }
 
-    void print();
+    void print() const;
 
     static const char *name(int motion)
     {

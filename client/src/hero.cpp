@@ -35,10 +35,10 @@ extern PNGTexDB *g_ProgUseDB;
 extern PNGTexOffDB *g_HeroDB;
 extern PNGTexOffDB *g_WeaponDB;
 
-Hero::Hero(uint64_t nUID, uint32_t nDBID, bool bGender, uint32_t nDress, ProcessRun *pRun, const ActionNode &rstAction)
-    : Creature(nUID, pRun)
-    , m_DBID(nDBID)
-    , m_Gender(bGender)
+Hero::Hero(uint64_t uid, uint32_t dbid, bool gender, uint32_t nDress, ProcessRun *proc, const ActionNode &action)
+    : CreatureMovable(uid, proc)
+    , m_DBID(dbid)
+    , m_Gender(gender)
     , m_Horse(0)
     , m_Weapon(5)
     , m_Hair(0)
@@ -51,12 +51,12 @@ Hero::Hero(uint64_t nUID, uint32_t nDBID, bool bGender, uint32_t nDress, Process
         MOTION_STAND,
         0,
         DIR_UP,
-        rstAction.X,
-        rstAction.Y
+        action.X,
+        action.Y
     };
 
-    if(!ParseAction(rstAction)){
-        throw fflerror("construct hero failed");
+    if(!parseAction(action)){
+        throw fflerror("failed to parse action");
     }
 }
 
@@ -108,8 +108,10 @@ bool Hero::draw(int viewX, int viewY, int)
 
             auto pFrame = g_WeaponDB->Retrieve(nWeaponKey, &nWeaponDX, &nWeaponDY);
 
-            if(pFrame && bShadow){ SDL_SetTextureAlphaMod(pFrame, 128); }
-            g_SDLDevice->DrawTexture(pFrame, X() * SYS_MAPGRIDXP + nWeaponDX - viewX + shiftX, Y() * SYS_MAPGRIDYP + nWeaponDY - viewY + shiftY);
+            if(pFrame && bShadow){
+                SDL_SetTextureAlphaMod(pFrame, 128);
+            }
+            g_SDLDevice->DrawTexture(pFrame, x() * SYS_MAPGRIDXP + nWeaponDX - viewX + shiftX, y() * SYS_MAPGRIDYP + nWeaponDY - viewY + shiftY);
         }
     };
 
@@ -118,7 +120,7 @@ bool Hero::draw(int viewX, int viewY, int)
     if(pFrame1){
         SDL_SetTextureAlphaMod(pFrame1, 128);
     }
-    g_SDLDevice->DrawTexture(pFrame1, X() * SYS_MAPGRIDXP + nDX1 - viewX + shiftX, Y() * SYS_MAPGRIDYP + nDY1 - viewY + shiftY);
+    g_SDLDevice->DrawTexture(pFrame1, x() * SYS_MAPGRIDXP + nDX1 - viewX + shiftX, y() * SYS_MAPGRIDYP + nDY1 - viewY + shiftY);
 
     if(true
             && m_Weapon
@@ -126,7 +128,7 @@ bool Hero::draw(int viewX, int viewY, int)
         fnDrawWeapon(false);
     }
 
-    g_SDLDevice->DrawTexture(pFrame0, X() * SYS_MAPGRIDXP + nDX0 - viewX + shiftX, Y() * SYS_MAPGRIDYP + nDY0 - viewY + shiftY);
+    g_SDLDevice->DrawTexture(pFrame0, x() * SYS_MAPGRIDXP + nDX0 - viewX + shiftX, y() * SYS_MAPGRIDYP + nDY0 - viewY + shiftY);
 
     if(true
             && m_Weapon
@@ -135,8 +137,8 @@ bool Hero::draw(int viewX, int viewY, int)
     }
 
     // draw attached magics
-    for(auto pMagic: m_attachMagicList){
-        pMagic->Draw(X() * SYS_MAPGRIDXP - viewX + shiftX, Y() * SYS_MAPGRIDYP - viewY + shiftY);
+    for(auto &p: m_attachMagicList){
+        p->Draw(x() * SYS_MAPGRIDXP - viewX + shiftX, y() * SYS_MAPGRIDYP - viewY + shiftY);
     }
 
     // draw HP bar
@@ -155,16 +157,16 @@ bool Hero::draw(int viewX, int viewY, int)
                 int nH = -1;
                 SDL_QueryTexture(pBar1, nullptr, nullptr, &nW, &nH);
                 g_SDLDevice->DrawTexture(pBar1,
-                        X() * SYS_MAPGRIDXP - viewX + shiftX +  7,
-                        Y() * SYS_MAPGRIDYP - viewY + shiftY - 53,
+                        x() * SYS_MAPGRIDXP - viewX + shiftX +  7,
+                        y() * SYS_MAPGRIDYP - viewY + shiftY - 53,
                         0,
                         0,
-                        (int)(std::lround(nW * (m_HPMax ? (std::min<double>)(1.0, (1.0 * m_HP) / m_HPMax) : 1.0))),
+                        (int)(std::lround(nW * (m_maxHP ? (std::min<double>)(1.0, (1.0 * m_HP) / m_maxHP) : 1.0))),
                         nH);
 
                 g_SDLDevice->DrawTexture(pBar0,
-                        X() * SYS_MAPGRIDXP - viewX + shiftX +  7,
-                        Y() * SYS_MAPGRIDYP - viewY + shiftY - 53);
+                        x() * SYS_MAPGRIDXP - viewX + shiftX +  7,
+                        y() * SYS_MAPGRIDYP - viewY + shiftY - 53);
             }
     }
     return true;
@@ -174,23 +176,23 @@ bool Hero::update(double fUpdateTime)
 {
     // 1. independent from time control
     //    attached magic could take different speed
-    UpdateAttachMagic(fUpdateTime);
+    updateAttachMagic(fUpdateTime);
 
     // 2. update this monster
     //    need fps control for current motion
     const double fTimeNow = SDL_GetTicks() * 1.0;
-    if(fTimeNow > CurrMotionDelay() + m_LastUpdateTime){
+    if(fTimeNow > currMotionDelay() + m_lastUpdateTime){
 
         // 1. record update time
         //    needed for next update
-        m_LastUpdateTime = fTimeNow;
+        m_lastUpdateTime = fTimeNow;
 
         // 2. do the update
         switch(m_currMotion.motion){
             case MOTION_STAND:
                 {
-                    if(StayIdle()){
-                        return AdvanceMotionFrame(1);
+                    if(stayIdle()){
+                        return advanceMotionFrame(1);
                     }
                     else{
                         // move to next motion will reset frame as 0
@@ -198,13 +200,13 @@ bool Hero::update(double fUpdateTime)
                         // it will add a MOTION_STAND
                         //
                         // we don't want to reset the frame here
-                        return MoveNextMotion();
+                        return moveNextMotion();
                     }
                 }
             case MOTION_HITTED:
                 {
-                    if(StayIdle()){
-                        return UpdateMotion(false);
+                    if(stayIdle()){
+                        return updateMotion(false);
                     }
                     else{
                         // move to next motion will reset frame as 0
@@ -212,12 +214,12 @@ bool Hero::update(double fUpdateTime)
                         // it will add a MOTION_STAND
                         //
                         // we don't want to reset the frame here
-                        return MoveNextMotion();
+                        return moveNextMotion();
                     }
                 }
             default:
                 {
-                    return UpdateMotion(false);
+                    return updateMotion(false);
                 }
         }
     }
@@ -233,9 +235,9 @@ bool Hero::motionValid(const MotionNode &rstMotion) const
             && rstMotion.direction > DIR_NONE
             && rstMotion.direction < DIR_MAX 
 
-            && m_ProcessRun
-            && m_ProcessRun->OnMap(m_ProcessRun->MapID(), rstMotion.x,    rstMotion.y)
-            && m_ProcessRun->OnMap(m_ProcessRun->MapID(), rstMotion.endX, rstMotion.endY)
+            && m_processRun
+            && m_processRun->OnMap(m_processRun->MapID(), rstMotion.x,    rstMotion.y)
+            && m_processRun->OnMap(m_processRun->MapID(), rstMotion.endX, rstMotion.endY)
 
             && rstMotion.speed >= SYS_MINSPEED
             && rstMotion.speed <= SYS_MAXSPEED
@@ -336,9 +338,9 @@ bool Hero::motionValid(const MotionNode &rstMotion) const
     return false;
 }
 
-bool Hero::ParseAction(const ActionNode &rstAction)
+bool Hero::parseAction(const ActionNode &rstAction)
 {
-    m_LastActive = SDL_GetTicks();
+    m_lastActive = SDL_GetTicks();
 
     m_currMotion.speed = SYS_MAXSPEED;
     m_motionQueue.clear();
@@ -355,7 +357,7 @@ bool Hero::ParseAction(const ActionNode &rstAction)
             {
                 // take this as cirtical
                 // server use ReportStand() to do location sync
-                const auto motionQueue = MakeMotionWalkQueue(endX, endY, rstAction.X, rstAction.Y, SYS_MAXSPEED);
+                const auto motionQueue = makeMotionWalkQueue(endX, endY, rstAction.X, rstAction.Y, SYS_MAXSPEED);
                 m_forceMotionQueue.insert(m_forceMotionQueue.end(), motionQueue.begin(), motionQueue.end());
                 break;
             }
@@ -363,7 +365,7 @@ bool Hero::ParseAction(const ActionNode &rstAction)
         case ACTION_SPELL:
         case ACTION_ATTACK:
             {
-                m_motionQueue = MakeMotionWalkQueue(endX, endY, rstAction.X, rstAction.Y, SYS_MAXSPEED);
+                m_motionQueue = makeMotionWalkQueue(endX, endY, rstAction.X, rstAction.Y, SYS_MAXSPEED);
                 break;
             }
         case ACTION_SPACEMOVE2:
@@ -389,7 +391,7 @@ bool Hero::ParseAction(const ActionNode &rstAction)
             }
         case ACTION_MOVE:
             {
-                if(auto stMotionNode = MakeMotionWalk(rstAction.X, rstAction.Y, rstAction.AimX, rstAction.AimY, rstAction.Speed)){
+                if(auto stMotionNode = makeMotionWalk(rstAction.X, rstAction.Y, rstAction.AimX, rstAction.AimY, rstAction.Speed)){
                     m_motionQueue.push_back(stMotionNode);
                 }else{
                     return false;
@@ -407,7 +409,7 @@ bool Hero::ParseAction(const ActionNode &rstAction)
                     rstAction.Y,
                 };
 
-                AddAttachMagic(DBCOM_MAGICID(u8"瞬息移动"), 0, EGS_DONE);
+                addAttachMagic(DBCOM_MAGICID(u8"瞬息移动"), 0, EGS_DONE);
                 break;
             }
         case ACTION_SPELL:
@@ -437,17 +439,17 @@ bool Hero::ParseAction(const ActionNode &rstAction)
                             };
 
                             int nDir = DIR_NONE;
-                            if(m_ProcessRun->CanMove(true, 0, rstAction.AimX, rstAction.AimY)){
+                            if(m_processRun->CanMove(true, 0, rstAction.AimX, rstAction.AimY)){
                                 nDir = fnGetSpellDir(rstAction.X, rstAction.Y, rstAction.AimX, rstAction.AimY);
                             }else if(rstAction.AimUID){
-                                if(auto pCreature = m_ProcessRun->RetrieveUID(rstAction.AimUID)){
-                                    nDir = fnGetSpellDir(rstAction.X, rstAction.Y, pCreature->X(), pCreature->Y());
+                                if(auto pCreature = m_processRun->RetrieveUID(rstAction.AimUID)){
+                                    nDir = fnGetSpellDir(rstAction.X, rstAction.Y, pCreature->x(), pCreature->y());
                                 }
                             }
 
                             if(nDir > DIR_NONE && nDir < DIR_MAX){
                                 m_motionQueue.emplace_back(nMotionSpell, 0, nDir, SYS_DEFSPEED, rstAction.X, rstAction.Y);
-                                AddAttachMagic(rstAction.ActionParam, 0, rstGfxEntry.Stage);
+                                addAttachMagic(rstAction.ActionParam, 0, rstGfxEntry.Stage);
                             }
                         }
                     }
@@ -465,9 +467,9 @@ bool Hero::ParseAction(const ActionNode &rstAction)
                         }
                 }
 
-                if(auto pCreature = m_ProcessRun->RetrieveUID(rstAction.AimUID)){
-                    auto nX   = pCreature->X();
-                    auto nY   = pCreature->Y();
+                if(auto pCreature = m_processRun->RetrieveUID(rstAction.AimUID)){
+                    auto nX   = pCreature->x();
+                    auto nY   = pCreature->y();
                     auto nDir = PathFind::GetDirection(rstAction.X, rstAction.Y, nX, nY);
 
                     if(nDir > DIR_NONE && nDir < DIR_MAX){
@@ -513,7 +515,7 @@ bool Hero::ParseAction(const ActionNode &rstAction)
 
     // 3. after action parse
     //    verify the whole motion queue
-    return MotionQueueValid();
+    return motionQueueValid();
 }
 
 std::tuple<int, int> Hero::location() const
@@ -643,8 +645,8 @@ bool Hero::canFocus(int nPointX, int nPointY) const
         auto pFrame0 = g_HeroDB->Retrieve(nKey0, &nDX0, &nDY0);
         const auto [shiftX, shiftY] = getShift();
 
-        int nStartX = X() * SYS_MAPGRIDXP + nDX0 + shiftX;
-        int nStartY = Y() * SYS_MAPGRIDYP + nDY0 + shiftY;
+        int nStartX = x() * SYS_MAPGRIDXP + nDX0 + shiftX;
+        int nStartY = y() * SYS_MAPGRIDYP + nDY0 + shiftY;
 
         int nW = 0;
         int nH = 0;
@@ -677,18 +679,19 @@ int Hero::WeaponOrder(int nMotion, int nDirection, int nFrame)
         #include "weaponorder.inc"
     };
 
-    auto nGfxMotionID = GfxMotionID(nMotion);
-    if(nGfxMotionID >= 0){
-        return s_WeaponOrder[nGfxMotionID * 80 + (nDirection - (DIR_NONE + 1)) * 10 + nFrame];
-    }else{ return -1; }
+    const auto nGfxMotionID = gfxMotionID(nMotion);
+    if(nGfxMotionID < 0){
+        return -1;
+    }
+    return s_WeaponOrder[nGfxMotionID * 80 + (nDirection - (DIR_NONE + 1)) * 10 + nFrame];
 }
 
-MotionNode Hero::MakeMotionWalk(int nX0, int nY0, int nX1, int nY1, int nSpeed) const
+MotionNode Hero::makeMotionWalk(int nX0, int nY0, int nX1, int nY1, int nSpeed) const
 {
     if(true
-            && m_ProcessRun
-            && m_ProcessRun->CanMove(true, 0, nX0, nY0)
-            && m_ProcessRun->CanMove(true, 0, nX1, nY1)
+            && m_processRun
+            && m_processRun->CanMove(true, 0, nX0, nY0)
+            && m_processRun->CanMove(true, 0, nX1, nY1)
 
             && nSpeed >= SYS_MINSPEED
             && nSpeed <= SYS_MAXSPEED){
@@ -733,7 +736,7 @@ MotionNode Hero::MakeMotionWalk(int nX0, int nY0, int nX1, int nY1, int nSpeed) 
     return {};
 }
 
-int Hero::GfxMotionID(int nMotion) const
+int Hero::gfxMotionID(int nMotion) const
 {
     return ((nMotion > MOTION_NONE) && (nMotion < MOTION_MAX)) ? (nMotion - (MOTION_NONE + 1)) : -1;
 }
@@ -745,7 +748,7 @@ int Hero::GfxWeaponID(int nWeapon, int nMotion, int nDirection) const
             && (nWeapon    > WEAPON_NONE && nWeapon    < WEAPON_MAX )
             && (nMotion    > MOTION_NONE && nMotion    < MOTION_MAX )
             && (nDirection > DIR_NONE    && nDirection < DIR_MAX    )){
-        auto nGfxMotionID = GfxMotionID(nMotion);
+        const auto nGfxMotionID = gfxMotionID(nMotion);
         if(nGfxMotionID >= 0){
             return ((nWeapon - (WEAPON_NONE + 1)) << 9) + (nGfxMotionID << 3) + (nDirection - (DIR_NONE + 1));
         }
@@ -760,7 +763,7 @@ int Hero::GfxDressID(int nDress, int nMotion, int nDirection) const
             && (nDress     > DRESS_NONE  && nDress     < DRESS_MAX  )
             && (nMotion    > MOTION_NONE && nMotion    < MOTION_MAX )
             && (nDirection > DIR_NONE    && nDirection < DIR_MAX    )){
-        auto nGfxMotionID = GfxMotionID(nMotion);
+        const auto nGfxMotionID = gfxMotionID(nMotion);
         if(nGfxMotionID >= 0){
             return ((nDress - (DRESS_NONE + 1)) << 9) + (nGfxMotionID << 3) + (nDirection - (DIR_NONE + 1));
         }
@@ -768,34 +771,26 @@ int Hero::GfxDressID(int nDress, int nMotion, int nDirection) const
     return -1;
 }
 
-int Hero::MaxStep() const
+int Hero::currStep() const
 {
-    return OnHorse() ? 3 : 2;
-}
-
-int Hero::CurrStep() const
-{
-    if(motionValid(m_currMotion)){
-        switch(m_currMotion.motion){
-            case MOTION_WALK:
-            case MOTION_ONHORSEWALK:
-                {
-                    return 1;
-                }
-            case MOTION_RUN:
-                {
-                    return 2;
-                }
-            case MOTION_ONHORSERUN:
-                {
-                    return 3;
-                }
-            default:
-                {
-                    return 0;
-                }
-        }
+    motionValidEx(m_currMotion);
+    switch(m_currMotion.motion){
+        case MOTION_WALK:
+        case MOTION_ONHORSEWALK:
+            {
+                return 1;
+            }
+        case MOTION_RUN:
+            {
+                return 2;
+            }
+        case MOTION_ONHORSERUN:
+            {
+                return 3;
+            }
+        default:
+            {
+                return 0;
+            }
     }
-
-    return -1;
 }

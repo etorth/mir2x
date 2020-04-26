@@ -109,44 +109,43 @@ struct AMTryLeave
     int Y;
 };
 
-union AMAddCharObject
+struct AMAddCharObject
 {
-    uint8_t Type;
+    int type;
 
-    struct _Common
+    int x;
+    int y;
+    uint32_t mapID;
+    bool strictLoc;
+
+    struct _monsterType
     {
-        uint8_t Type;
+        uint32_t monsterID;
+        uint64_t masterUID;
+    };
 
-        uint32_t MapID;
-        int X;
-        int Y;
-
-        bool StrictLoc;
-    }Common;
-
-    struct _Monster
+    struct _playerType
     {
-        struct _Common _memoryAlign;
-        uint32_t MonsterID;
-        uint64_t MasterUID;
-    }Monster;
-
-    struct _Player
-    {
-        struct _Common _memoryAlign;
         uint32_t DBID;
-        uint32_t JobID;
-        int Level;
-        int Direction;
-        uint32_t ChannID;
-    }Player;
+        uint32_t jobID;
 
-    struct _NPC
+        int level;
+        int direction;
+        uint32_t channID;
+    };
+
+    struct _NPCType
     {
-        struct _Common _memoryAlign;
         int direction;
         uint16_t NPCID;
-    }NPC;
+    };
+
+    union
+    {
+        _NPCType NPC;
+        _playerType player;
+        _monsterType monster;
+    };
 };
 
 struct AMLogin
@@ -508,8 +507,6 @@ struct AMRemoveGroundItem
 
 struct AMCORecord
 {
-    uint8_t COType;
-
     struct _Action
     {
         uint64_t UID;

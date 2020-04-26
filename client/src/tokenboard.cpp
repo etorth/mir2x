@@ -1134,7 +1134,7 @@ bool TokenBoard::processEvent(const SDL_Event &event, bool valid)
     bool bFirstHalf = false;
 
     if(LastTokenBoxValid()){
-        auto &rstLastTB = m_LineV[m_LastTokenBoxLoc.Y].Content[m_LastTokenBoxLoc.X];
+        auto &rstLastTB = m_LineV[m_lastTokenBoxLoc.Y].Content[m_lastTokenBoxLoc.X];
         // W1 and W2 should also count in
         // otherwise mouse can escape from the flaw of two contiguous tokens
         // means when move mouse horizontally, event text will turn on and off
@@ -1145,8 +1145,8 @@ bool TokenBoard::processEvent(const SDL_Event &event, bool valid)
         int nH = rstLastTB.Cache.H;
 
         if(mathf::pointInRectangle(nEventDX, nEventDY, nX, nY, nW, nH)){
-            nTBLocX    = m_LastTokenBoxLoc.X;
-            nTBLocY    = m_LastTokenBoxLoc.Y;
+            nTBLocX    = m_lastTokenBoxLoc.X;
+            nTBLocY    = m_lastTokenBoxLoc.Y;
             bFirstHalf = (nEventDX < nX + nW / 2);
         }
     }
@@ -1181,9 +1181,9 @@ bool TokenBoard::processEvent(const SDL_Event &event, bool valid)
 
     if(TokenBoxValid(nTBLocX, nTBLocY)){
         // 1. trigger event
-        // 2. update m_LastTokenBoxLoc
+        // 2. update m_lastTokenBoxLoc
         fnTokenBoxEventHandle(event.type, nTBLocX, nTBLocY, bFirstHalf);
-        m_LastTokenBoxLoc = {nTBLocX, nTBLocY};
+        m_lastTokenBoxLoc = {nTBLocX, nTBLocY};
         return true;
     }
 

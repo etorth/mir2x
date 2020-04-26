@@ -104,8 +104,6 @@ struct SMAction
 
 struct SMCORecord
 {
-    uint8_t COType;
-
     struct _Action
     {
         uint64_t UID;
