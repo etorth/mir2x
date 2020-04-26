@@ -56,7 +56,7 @@ class MonoServer final
 
     private:
         std::mutex m_NotifyGUILock;
-        std::queue<std::string> m_NotifyGUIQ;
+        std::queue<std::string> m_notifyGUIQ;
 
     private:
         ServiceCore *m_ServiceCore;
@@ -68,8 +68,8 @@ class MonoServer final
         hres_timer m_hrtimer;
 
     public:
-        void NotifyGUI(std::string);
-        void ParseNotifyGUIQ();
+        void notifyGUI(std::string);
+        void parseNotifyGUIQ();
 
     public:
         void FlushBrowser();
@@ -83,7 +83,7 @@ class MonoServer final
         void ReadHC();
 
         void Launch();
-        void Restart();
+        void Restart(const std::string & = {});
 
     private:
         void RunASIO();

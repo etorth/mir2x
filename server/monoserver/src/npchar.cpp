@@ -109,5 +109,22 @@ void NPChar::sendXMLLayout(uint64_t uid, const char *xmlString)
     m_actorPod->forward(uid, {MPK_NPCXMLLAYOUT, amNPCXMLL});
 }
 
-void NPChar::OperateAM(const MessagePack &)
-{}
+void NPChar::OperateAM(const MessagePack &mpk)
+{
+    switch(mpk.Type()){
+        case MPK_METRONOME:
+            {
+                On_MPK_METRONOME(mpk);
+                break;
+            }
+        case MPK_ACTION:
+            {
+                On_MPK_ACTION(mpk);
+                break;
+            }
+        default:
+            {
+                throw fflerror("unsupported message: %s", mpk.Name());
+            }
+    }
+}

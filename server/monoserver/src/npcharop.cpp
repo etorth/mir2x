@@ -20,6 +20,17 @@
 #include "mathf.hpp"
 #include "messagepack.hpp"
 
+void NPChar::On_MPK_METRONOME(const MessagePack &)
+{}
+
+void NPChar::On_MPK_ACTION(const MessagePack &mpk)
+{
+    const auto stAMA = mpk.conv<AMAction>();
+    if(uidf::getUIDType(stAMA.UID) == UID_PLY){
+        DispatchAction(stAMA.UID, ActionStand(X(), Y(), Direction()));
+    }
+}
+
 void NPChar::On_MPK_NPCEVENT(const MessagePack &msg)
 {
     const auto event = msg.conv<AMNPCEvent>();

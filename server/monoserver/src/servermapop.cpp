@@ -55,8 +55,18 @@ void ServerMap::On_MPK_ACTION(const MessagePack &rstMPK)
                 DoUIDList(nX, nY, [this, stAMA](uint64_t nUID) -> bool
                 {
                     if(nUID != stAMA.UID){
-                        if(auto nType = uidf::getUIDType(nUID); nType == UID_PLY || nType == UID_MON){
-                            m_actorPod->forward(nUID, {MPK_ACTION, stAMA});
+                        switch(uidf::getUIDType(nUID)){
+                            case UID_PLY:
+                            case UID_MON:
+                            case UID_NPC:
+                                {
+                                    m_actorPod->forward(nUID, {MPK_ACTION, stAMA});
+                                    break;
+                                }
+                            default:
+                                {
+                                    break;
+                                }
                         }
                     }
                     return false;

@@ -96,9 +96,9 @@ int main(int argc, char *argv[])
                         // all threads need to call Fl::awake(2) to propagate exception(s) caught
                         try{
                             g_MonoServer->DetectException();
-                        }catch(const std::exception &rstException){
-                            g_MonoServer->LogException(rstException);
-                            g_MonoServer->Restart();
+                        }catch(const std::exception &except){
+                            g_MonoServer->LogException(except);
+                            g_MonoServer->Restart(except.what());
                         }
                         break;
                     }
@@ -107,7 +107,7 @@ int main(int argc, char *argv[])
                     {
                         // pase the gui requests in the queue
                         // designed to send Fl::awake(1) to notify gui
-                        g_MonoServer->ParseNotifyGUIQ();
+                        g_MonoServer->parseNotifyGUIQ();
                         break;
                     }
             }

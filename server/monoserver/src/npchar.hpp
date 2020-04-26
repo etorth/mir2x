@@ -59,7 +59,9 @@ class NPChar final: public CharObject
         void checkFriend(uint64_t, std::function<void(int)>) override;
 
     private:
+        void On_MPK_ACTION(const MessagePack &);
         void On_MPK_NPCEVENT(const MessagePack &);
+        void On_MPK_METRONOME(const MessagePack &);
 
     private:
         void sendXMLLayout(uint64_t, const char *);

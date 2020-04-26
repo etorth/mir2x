@@ -19,7 +19,6 @@
 #include <tuple>
 #include <cinttypes>
 #include "player.hpp"
-#include "motion.hpp"
 #include "uidf.hpp"
 #include "strf.hpp"
 #include "dbconst.hpp"

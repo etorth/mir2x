@@ -227,14 +227,14 @@ bool StandNPC::parseAction(const ActionNode &action)
         switch(action.Action){
             case ACTION_SPAWN:
                 {
-                    return MOTION_NPC_ACT;
+                    return MOTION_NPC_STAND;
                 }
             case ACTION_STAND:
                 {
                     switch(action.ActionParam){
-                        case MOTION_NPC_ACT   :
-                        case MOTION_NPC_ACTEXT: return action.ActionParam;
-                        default: throw fflerror("invalid motion: %d", action.ActionParam);
+                        case 1 : return MOTION_NPC_ACT;
+                        case 2 : return MOTION_NPC_ACTEXT;
+                        default: return MOTION_NPC_STAND;
                     }
                 }
             default:
@@ -264,17 +264,29 @@ bool StandNPC::update(double ms)
         return true;
     }
 
+    motionValidEx(m_currMotion);
     m_lastUpdateTime = SDL_GetTicks() * 1.0f;
+    const bool doneCurrMotion = [this]()
+    {
+        return m_currMotion.frame + 1 == motionFrameCount(m_currMotion.motion, m_currMotion.direction);
+    }();
+
     switch(m_currMotion.motion){
         case MOTION_NPC_STAND:
+            {
+                return advanceMotionFrame(1);
+            }
         case MOTION_NPC_ACT:
         case MOTION_NPC_ACTEXT:
             {
+                if(doneCurrMotion){
+                    return moveNextMotion();
+                }
                 return advanceMotionFrame(1);
             }
         default:
             {
-                throw fflerror("invalid motion");
+                throw fflerror("invalid motion: %d", m_currMotion.motion);
             }
     }
 }

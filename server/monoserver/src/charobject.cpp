@@ -17,7 +17,6 @@
  */
 #include <cinttypes>
 #include "uidf.hpp"
-#include "motion.hpp"
 #include "player.hpp"
 #include "dbcomid.hpp"
 #include "monster.hpp"

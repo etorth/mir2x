@@ -190,7 +190,7 @@ void ProcessRun::Net_CORECORD(const uint8_t *pBuf, size_t)
         return;
     }
 
-    ActionNode stAction
+    const ActionNode stAction
     {
         stSMCOR.Action.Action,
         stSMCOR.Action.Speed,

@@ -97,7 +97,7 @@ void MonoServer::addLog(const std::array<std::string, 4> &stLogDesc, const char 
                     m_LogBuf.push_back((char)(nLogType));
                     m_LogBuf.insert(m_LogBuf.end(), szLog.c_str(), szLog.c_str() + std::strlen(szLog.c_str()) + 1);
                 }
-                NotifyGUI("FlushBrowser");
+                notifyGUI("FlushBrowser");
 
                 g_Log->addLog(stLogDesc, "%s", szLog.c_str());
                 return;
@@ -125,7 +125,7 @@ void MonoServer::addCWLog(uint32_t nCWID, int nLogType, const char *szPrompt, co
                 m_CWLogBuf.insert(m_CWLogBuf.end(), szPrompt, szPrompt + std::strlen(szPrompt) + 1);
                 m_CWLogBuf.insert(m_CWLogBuf.end(), szLogMsg, szLogMsg + std::strlen(szLogMsg) + 1);
             }
-            NotifyGUI("FlushCWBrowser");
+            notifyGUI("FlushCWBrowser");
         }
     };
 
@@ -275,12 +275,12 @@ void MonoServer::PropagateException()
     // add multi-thread protection
     try{
         if(!std::current_exception()){
-            throw std::runtime_error("Call MonoServer::PropagateException() without exception captured");
+            throw fflerror("call MonoServer::PropagateException() without exception captured");
         }
 
         // we do have an exception
         // but may not be std::exception, nest it...
-        std::throw_with_nested(std::runtime_error("Rethrow in MonoServer::PropagateException()"));
+        std::throw_with_nested(fflerror("rethrow in MonoServer::PropagateException()"));
     }catch(...){
         // must have one exception...
         // now we are sure main thread will always capture an std::exception
@@ -296,11 +296,11 @@ void MonoServer::DetectException()
     }
 }
 
-void MonoServer::LogException(const std::exception &rstException)
+void MonoServer::LogException(const std::exception &except)
 {
-    addLog(LOGTYPE_WARNING, "%s", rstException.what());
+    addLog(LOGTYPE_WARNING, "%s", except.what());
     try{
-        std::rethrow_if_nested(rstException);
+        std::rethrow_if_nested(except);
     }catch(const std::exception &stNestedException){
         LogException(stNestedException);
     }catch(...){
@@ -308,7 +308,7 @@ void MonoServer::LogException(const std::exception &rstException)
     }
 }
 
-void MonoServer::Restart()
+void MonoServer::Restart(const std::string &msg)
 {
     // TODO: FLTK multi-threading support is weak, see:
     // http://www.fltk.org/doc-1.3/advanced.html#advanced_multithreading
@@ -319,7 +319,18 @@ void MonoServer::Restart()
     // this function itself can be called from
     //   1. main loop
     //   2. child thread
-    NotifyGUI("Restart");
+
+    if(msg.empty()){
+        notifyGUI("Restart");
+    }
+
+    else if(msg.find('\n') != std::string::npos){
+        notifyGUI("Restart\nfatal message contains \\n");
+    }
+
+    else{
+        notifyGUI(std::string("Restart") + "\n" + msg);
+    }
 }
 
 bool MonoServer::addMonster(uint32_t monsterID, uint32_t mapID, int x, int y, bool strictLoc)
@@ -454,128 +465,132 @@ sol::optional<int> MonoServer::GetMonsterCount(int nMonsterID, int nMapID)
     return sol::optional<int>();
 }
 
-void MonoServer::NotifyGUI(std::string szNotification)
+void MonoServer::notifyGUI(std::string notifStr)
 {
-    if(szNotification != ""){
+    if(!notifStr.empty()){
         {
-            std::lock_guard<std::mutex> stLockGuard(m_NotifyGUILock);
-            m_NotifyGUIQ.push(szNotification);
+            std::lock_guard<std::mutex> lockGuard(m_NotifyGUILock);
+            m_notifyGUIQ.push(notifStr);
         }
         Fl::awake((void *)(uintptr_t)(1));
     }
 }
 
-void MonoServer::ParseNotifyGUIQ()
+void MonoServer::parseNotifyGUIQ()
 {
-    static auto fnGetTokenList = [](const std::string &szCommand) -> std::deque<std::string>
+    const auto fnGetTokenList = [](const std::string &cmdStr) -> std::deque<std::string>
     {
-        std::deque<std::string> stTokenList;
+        size_t currLoc = 0;
+        std::deque<std::string> tokenList;
 
-        size_t nCurrLoc = 0;
-        while(nCurrLoc <= szCommand.size()){
-            auto nLoc0 = szCommand.find_first_not_of(" \t", nCurrLoc);
-            auto nLoc1 = szCommand.find_first_of    (" \t", nCurrLoc);
+        while(currLoc <= cmdStr.size()){
+            const auto loc0 = cmdStr.find_first_not_of("\n", currLoc);
+            const auto loc1 = cmdStr.find_first_of    ("\n", currLoc);
 
-            if(nLoc0 == std::string::npos){
+            if(loc0 == std::string::npos){
                 // done parsing
-                // there is no more tokens in the string
+                // there are no more tokens in the string
                 break;
-            }else if(nLoc1 == std::string::npos){           // last one
-                // nLoc0 is OK
-                // nLoc1 reaches the end
+            }
+
+            else if(loc1 == std::string::npos){
+                // last one
+                // loc0 is OK
+                // loc1 reaches the end
                 // this is the last token in the list
-                stTokenList.push_back(szCommand.substr(nLoc0));
+                tokenList.push_back(cmdStr.substr(loc0));
                 break;
-            }else if(nLoc0 < nLoc1){
+            }
+
+            else if(loc0 < loc1){
                 // match cases
-                // make sure nLoc0 < nLoc1 to avoid cases like: "    OK 1"
-                stTokenList.push_back(szCommand.substr(nLoc0, nLoc1 - nLoc0));
-                nCurrLoc = nLoc1;
+                // make sure loc0 < loc1 to avoid cases like: "    OK 1"
+                tokenList.push_back(cmdStr.substr(loc0, loc1 - loc0));
+                currLoc = loc1;
                 continue;
-            }else{
-                // case for nLoc0 > nLoc1, no equal here
+            }
+
+            else{
+                // case for loc0 > loc1, no equal here
                 // cases like "   OK 1", take no token and move forward
-                nCurrLoc = nLoc0;
+                currLoc = loc0;
                 continue;
             }
         }
-        return stTokenList;
+        return tokenList;
     };
 
-
     while(true){
-        std::string szCurrNotify;
+        std::string currNotify;
         {
-            std::lock_guard<std::mutex> stLockGuard(m_NotifyGUILock);
-            if(m_NotifyGUIQ.empty()){ break; }
+            std::lock_guard<std::mutex> lockGuard(m_NotifyGUILock);
+            if(m_notifyGUIQ.empty()){
+                break;
+            }
 
-            szCurrNotify = m_NotifyGUIQ.front();
-            m_NotifyGUIQ.pop();
+            currNotify = std::move(m_notifyGUIQ.front());
+            m_notifyGUIQ.pop();
         }
 
-        auto stTokenList = fnGetTokenList(szCurrNotify);
-        if(stTokenList.empty()){ continue; }
+        const auto tokenList = fnGetTokenList(currNotify);
+        if(tokenList.empty()){
+            continue;
+        }
 
-        // get a valid token list
-        // parse the first token as command name
+        const auto fnCheckFront = [&tokenList](const std::vector<std::string> &keyList) -> bool
+        {
+            for(const auto &key: keyList){
+                if(tokenList.front() == key){
+                    return true;
+                }
+            }
+            return false;
+        };
 
-        if(false
-                || stTokenList.front() == "exit"
-                || stTokenList.front() == "Exit"
-                || stTokenList.front() == "EXIT"){
+        if(fnCheckFront({"exit", "Exit", "EXIT"})){
             std::exit(0);
             return;
         }
 
-        if(false
-                || stTokenList.front() == "restart"
-                || stTokenList.front() == "Restart"
-                || stTokenList.front() == "RESTART"){
-            fl_alert("%s", "System request for restart");
+        if(fnCheckFront({"restart", "Restart", "RESTART"})){
+            if(tokenList.size() == 1){
+                fl_alert("Fatal error");
+            }
+            else{
+                fl_alert("Fatal error: %s", tokenList.at(1).c_str());
+            }
             std::exit(0);
             return;
         }
-        
-        if(false
-                || stTokenList.front() == "flushbrowser"
-                || stTokenList.front() == "FlushBrowser"
-                || stTokenList.front() == "FLUSHBROWSER"){
+
+        if(fnCheckFront({"flushbrowser", "FlushBrowser", "FLUSHBROWSER"})){
             g_MonoServer->FlushBrowser();
             continue;
         }
-        
-        if(false
-                || stTokenList.front() == "flushcwbrowser"
-                || stTokenList.front() == "FlushCWBrowser"
-                || stTokenList.front() == "FLUSHCWBROWSER"){
+
+        if(fnCheckFront({"flushcwbrowser", "FlushCWBrowser", "FLUSHCWBROWSER"})){
             g_MonoServer->FlushCWBrowser();
             continue;
         }
 
-        if(false
-                || stTokenList.front() == "exitcw"
-                || stTokenList.front() == "ExitCW"
-                || stTokenList.front() == "EXITCW"){
-            stTokenList.pop_front();
-            int nCWID = 0;
-            try{
-                nCWID = std::stoi(stTokenList.front());
-            }catch(...){
-                nCWID = 0;
-            }
+        if(fnCheckFront({"exitcw", "ExitCW", "EXITCW"})){
+            const int cwid = [&tokenList]() -> int
+            {
+                try{
+                    return std::stoi(tokenList.at(1));
+                }catch(...){
+                    //
+                }
+                return 0;
+            }();
 
-            if(nCWID > 0){
-                g_MainWindow->DeleteCommandWindow(nCWID);
+            if(cwid > 0){
+                g_MainWindow->DeleteCommandWindow(cwid);
             }
             continue;
         }
 
-        // unsupported command here
-        // print into the log file and not exit here
-        {
-            g_MonoServer->addLog(LOGTYPE_WARNING, "Unsupported NotifyGUI command: %s", stTokenList.front().c_str());
-            continue;
-        }
+        g_MonoServer->addLog(LOGTYPE_WARNING, "Unsupported notification: %s", tokenList.front().c_str());
     }
 }
 
@@ -657,8 +672,8 @@ void MonoServer::RegisterLuaExport(CommandLuaModule *pModule, uint32_t nCWID)
         // 2. flush command windows
         //    we need to flush message before exit the command window
         //    otherwise next created command window may get them if it uses the same CWID
-        NotifyGUI("FlushCWBrowser");
-        NotifyGUI(std::string("ExitCW ") + std::to_string(nCWID));
+        notifyGUI("FlushCWBrowser");
+        notifyGUI(std::string("ExitCW ") + std::to_string(nCWID));
     });
 
     // register command printLine
