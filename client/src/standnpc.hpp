@@ -30,7 +30,7 @@ class StandNPC: public ClientCreature
     public:
         uint16_t lookID() const
         {
-            return 0;
+            return uidf::getLookID(UID());
         }
 
     protected:

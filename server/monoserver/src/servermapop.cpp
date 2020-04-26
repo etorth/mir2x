@@ -379,7 +379,7 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK)
                         AMMapSwitch stAMMS;
                         std::memset(&stAMMS, 0, sizeof(stAMMS));
 
-                        stAMMS.UID   = uidf::getMapUID(GetCell(nMostX, nMostY).MapID);
+                        stAMMS.UID   = uidf::buildMapUID(GetCell(nMostX, nMostY).MapID); // TODO
                         stAMMS.MapID = GetCell(nMostX, nMostY).MapID;
                         stAMMS.X     = GetCell(nMostX, nMostY).SwitchX;
                         stAMMS.Y     = GetCell(nMostX, nMostY).SwitchY;

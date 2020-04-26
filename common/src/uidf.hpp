@@ -20,6 +20,7 @@
 #include <string>
 #include <cstdint>
 #include <cinttypes>
+#include "toll.hpp"
 #include "fflerror.hpp"
 
 enum UIDType: int
@@ -45,30 +46,16 @@ enum UIDType: int
 
 namespace uidf
 {
-    inline uint64_t getMapUID(uint32_t mapId)
-    {
-        if(mapId){
-            return ((uint64_t)(UID_MAP) << 44) + (uint64_t)(mapId);
-        }
-        return 0;
-    }
+    // based on database id to create UID
+    // always model it as ``build" even some of them are pure mapping
 
-    inline uint64_t getServiceCoreUID()
-    {
-        return (uint64_t)(UID_COR) << 44;
-    }
-
-    inline uint64_t getPlayerUID(uint32_t dbid)
-    {
-        return ((uint64_t)(UID_PLY) << 44) + dbid;
-    }
-}
-
-namespace uidf
-{
-    uint64_t buildEtcUID();
-    uint64_t buildMonsterUID(uint32_t);
+    uint64_t buildMapUID(uint32_t);
     uint64_t buildNPCUID(uint16_t);
+    uint64_t buildPlayerUID(uint32_t);
+    uint64_t buildMonsterUID(uint32_t);
+
+    uint64_t buildEtcUID();
+    uint64_t buildServiceCoreUID();
 }
 
 namespace uidf
@@ -93,10 +80,7 @@ namespace uidf
             default     : return "ERR";
         }
     }
-}
 
-namespace uidf
-{
     std::string getUIDString(uint64_t);
 }
 
@@ -118,8 +102,6 @@ namespace uidf
         return (uint32_t)(uid & 0XFFFFFFFF);
     }
 
-    inline uint16_t getLookID(uint64_t)
-    {
-        return 0;
-    }
+    uint32_t getMapID (uint64_t);
+    uint16_t getLookID(uint64_t);
 }

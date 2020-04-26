@@ -28,7 +28,7 @@
 extern MapBinDB *g_MapBinDB;
 
 ServiceCore::ServiceCore()
-    : ServerObject(uidf::getServiceCoreUID())
+    : ServerObject(uidf::buildServiceCoreUID())
     , m_MapList()
 {}
 

@@ -220,21 +220,31 @@ int32_t StandNPC::gfxID() const
 bool StandNPC::parseAction(const ActionNode &action)
 {
     m_lastActive = SDL_GetTicks();
-
-    switch(action.Action){
-        case ACTION_STAND: break;
-        default: throw fflerror("invalid action node: type = %d", action.Action);
-    }
-
-    switch(action.ActionParam){
-        case MOTION_NPC_ACT   : break;
-        case MOTION_NPC_ACTEXT: break;
-        default: throw fflerror("invalid motion: %d", action.ActionParam);
-    }
+    const int motion = [&action]() -> int
+    {
+        switch(action.Action){
+            case ACTION_SPAWN:
+                {
+                    return MOTION_NPC_ACT;
+                }
+            case ACTION_STAND:
+                {
+                    switch(action.ActionParam){
+                        case MOTION_NPC_ACT   :
+                        case MOTION_NPC_ACTEXT: return action.ActionParam;
+                        default: throw fflerror("invalid motion: %d", action.ActionParam);
+                    }
+                }
+            default:
+                {
+                    throw fflerror("invalid action node: type = %d", action.Action);
+                }
+        }
+    }();
 
     m_currMotion = MotionNode
     {
-        (int)(action.ActionParam),
+        motion,
         0,
         action.Direction,
         action.X,

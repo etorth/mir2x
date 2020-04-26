@@ -414,10 +414,10 @@ bool CharObject::RequestMove(int nX, int nY, int nSpeed, bool bAllowHalfMove, bo
     });
 }
 
-bool CharObject::RequestSpaceMove(uint32_t nMapID, int nX, int nY, bool bStrictMove, std::function<void()> fnOnMoveOK, std::function<void()> fnOnMoveError)
+bool CharObject::RequestSpaceMove(uint32_t mapID, int nX, int nY, bool bStrictMove, std::function<void()> fnOnMoveOK, std::function<void()> fnOnMoveError)
 {
-    if(!(uidf::getMapUID(nMapID) && (nX >= 0) && (nY >= 0))){
-        throw fflerror("Invalid map destination: (%lld, %d, %d)", toLLD(nMapID), nX, nY);
+    if(!(uidf::buildMapUID(mapID) && (nX >= 0) && (nY >= 0))){
+        throw fflerror("Invalid map destination: (%lld, %d, %d)", toLLD(mapID), nX, nY);
     }
 
     if(!CanMove()){
@@ -434,10 +434,10 @@ bool CharObject::RequestSpaceMove(uint32_t nMapID, int nX, int nY, bool bStrictM
     stAMTSM.StrictMove = bStrictMove;
 
     m_MoveLock = true;
-    return m_actorPod->forward(uidf::getMapUID(nMapID), {MPK_TRYSPACEMOVE, stAMTSM}, [this, fnOnMoveOK, fnOnMoveError](const MessagePack &rstRMPK)
+    return m_actorPod->forward(uidf::buildMapUID(mapID), {MPK_TRYSPACEMOVE, stAMTSM}, [this, fnOnMoveOK, fnOnMoveError](const MessagePack &rstRMPK)
     {
         if(!m_MoveLock){
-            throw std::runtime_error(str_fflprintf("MoveLock released before map responds: ClassName = %s", UIDName()));
+            throw fflerror("moveLock released before map responds: ClassName = %s", UIDName());
         }
         m_MoveLock = false;
 
