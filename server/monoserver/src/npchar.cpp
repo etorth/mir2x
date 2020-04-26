@@ -122,6 +122,21 @@ void NPChar::OperateAM(const MessagePack &mpk)
                 On_MPK_ACTION(mpk);
                 break;
             }
+        case MPK_NOTIFYNEWCO:
+            {
+                On_MPK_NOTIFYNEWCO(mpk);
+                break;
+            }
+        case MPK_QUERYCORECORD:
+            {
+                On_MPK_QUERYCORECORD(mpk);
+                break;
+            }
+        case MPK_QUERYLOCATION:
+            {
+                On_MPK_QUERYLOCATION(mpk);
+                break;
+            }
         default:
             {
                 throw fflerror("unsupported message: %s", mpk.Name());

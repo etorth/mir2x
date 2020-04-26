@@ -57,3 +57,33 @@ void NPChar::On_MPK_NPCEVENT(const MessagePack &msg)
     amNPCE.errorID = NPCE_BADEVENTID;
     m_actorPod->forward(msg.From(), {MPK_NPCERROR, amNPCE});
 }
+
+void NPChar::On_MPK_NOTIFYNEWCO(const MessagePack &mpk)
+{
+    if(uidf::getUIDType(mpk.From()) == UID_PLY){
+        DispatchAction(mpk.From(), ActionStand(X(), Y(), Direction()));
+    }
+}
+
+void NPChar::On_MPK_QUERYCORECORD(const MessagePack &mpk)
+{
+    const auto fromUID = mpk.conv<AMQueryCORecord>().UID;
+    if(uidf::getUIDType(fromUID) != UID_PLY){
+        throw fflerror("NPC get AMQueryCORecord from %s", uidf::getUIDTypeString(fromUID));
+    }
+    DispatchAction(fromUID, ActionStand(X(), Y(), Direction()));
+}
+
+void NPChar::On_MPK_QUERYLOCATION(const MessagePack &mpk)
+{
+    AMLocation stAML;
+    std::memset(&stAML, 0, sizeof(stAML));
+
+    stAML.UID       = UID();
+    stAML.MapID     = MapID();
+    stAML.X         = X();
+    stAML.Y         = Y();
+    stAML.Direction = Direction();
+
+    m_actorPod->forward(mpk.From(), {MPK_LOCATION, stAML}, mpk.ID());
+}

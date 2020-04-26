@@ -62,6 +62,9 @@ class NPChar final: public CharObject
         void On_MPK_ACTION(const MessagePack &);
         void On_MPK_NPCEVENT(const MessagePack &);
         void On_MPK_METRONOME(const MessagePack &);
+        void On_MPK_NOTIFYNEWCO(const MessagePack &);
+        void On_MPK_QUERYCORECORD(const MessagePack &);
+        void On_MPK_QUERYLOCATION(const MessagePack &);
 
     private:
         void sendXMLLayout(uint64_t, const char *);
