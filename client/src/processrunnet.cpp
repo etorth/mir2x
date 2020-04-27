@@ -406,7 +406,7 @@ void ProcessRun::Net_GOLD(const uint8_t *pBuf, size_t)
 
 void ProcessRun::Net_NPCXMLLAYOUT(const uint8_t *buf, size_t)
 {
-    const auto xmlLayout = ServerMsg::conv<SMNPCXMLLayout>(buf);
-    m_NPCChatBoard.loadXML(xmlLayout.xmlLayout);
-    m_NPCChatBoard.show();
+    const auto smNPCXMLL = ServerMsg::conv<SMNPCXMLLayout>(buf);
+    m_NPCChatBoard.loadXML(smNPCXMLL.NPCUID, smNPCXMLL.xmlLayout);
+    m_NPCChatBoard.show(true);
 }

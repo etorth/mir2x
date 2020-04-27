@@ -47,8 +47,13 @@ class NPCChatBoard: public Widget
         void drawWithNPCFace();
 
     public:
-        void loadXML(const char *xmlString)
+        void loadXML(uint64_t uid, const char *xmlString)
         {
+            if(uidf::getUIDType(uid) != UID_NPC){
+                throw fflerror("invalid uid type: %s", uidf::getUIDTypeString(uid));
+            }
+
+            m_NPCUID = uid;
             m_chatBoard.loadXML(xmlString);
         }
 };

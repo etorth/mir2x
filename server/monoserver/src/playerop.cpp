@@ -414,11 +414,16 @@ void Player::On_MPK_SHOWDROPITEM(const MessagePack &rstMPK)
 
 void Player::On_MPK_NPCXMLLAYOUT(const MessagePack &msg)
 {
-    const auto xmlLayout = msg.conv<AMNPCXMLLayout>();
-    SMNPCXMLLayout smNPCXMLL;
+    if(uidf::getUIDType(msg.From()) != UID_NPC){
+        throw fflerror("actor message AMNPCXMLLayout from %s", uidf::getUIDTypeString(msg.From()));
+    }
 
+    const auto amNPCXMLL = msg.conv<AMNPCXMLLayout>();
+    SMNPCXMLLayout smNPCXMLL;
     std::memset(&smNPCXMLL, 0, sizeof(smNPCXMLL));
-    std::strcpy(smNPCXMLL.xmlLayout, xmlLayout.xmlLayout);
+
+    smNPCXMLL.NPCUID = msg.From();
+    std::strcpy(smNPCXMLL.xmlLayout, amNPCXMLL.xmlLayout);
     postNetMessage(SM_NPCXMLLAYOUT, smNPCXMLL);
 }
 

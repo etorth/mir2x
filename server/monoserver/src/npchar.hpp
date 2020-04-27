@@ -32,12 +32,6 @@ class NPChar final: public CharObject
         NPChar(uint16_t, ServiceCore *, ServerMap *, int, int, int);
 
     public:
-        uint32_t mapID() const
-        {
-            return 0;
-        }
-
-    public:
         bool Update() override;
         bool InRange(int, int, int) override;
 

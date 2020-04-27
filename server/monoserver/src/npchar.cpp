@@ -122,6 +122,11 @@ void NPChar::OperateAM(const MessagePack &mpk)
                 On_MPK_ACTION(mpk);
                 break;
             }
+        case MPK_NPCEVENT:
+            {
+                On_MPK_NPCEVENT(mpk);
+                break;
+            }
         case MPK_NOTIFYNEWCO:
             {
                 On_MPK_NOTIFYNEWCO(mpk);

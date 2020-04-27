@@ -238,6 +238,7 @@ struct SMGold
 
 struct SMNPCXMLLayout
 {
+    uint64_t NPCUID;
     char xmlLayout[512];
 };
 
@@ -277,6 +278,7 @@ class ServerMsg final: public MsgBase
                 {SM_OFFLINE,          {1, sizeof(SMOffline),               "SM_OFFLINE"         }},
                 {SM_PICKUPOK,         {1, sizeof(SMPickUpOK),              "SM_PICKUPOK"        }},
                 {SM_REMOVEGROUNDITEM, {1, sizeof(SMRemoveGroundItem),      "SM_REMOVEGROUNDITEM"}},
+                {SM_NPCXMLLAYOUT,     {2, sizeof(SMNPCXMLLayout),          "SM_NPCXMLLAYOUT"    }},
                 {SM_GOLD,             {1, sizeof(SMGold),                  "SM_GOLD"            }},
             };
 

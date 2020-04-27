@@ -103,6 +103,9 @@ void Player::Net_CM_NPCEVENT(uint8_t, const uint8_t *buf, size_t bufLen)
     AMNPCEvent amNPCEvent;
 
     std::memset(&amNPCEvent, 0, sizeof(amNPCEvent));
+    amNPCEvent.x = X();
+    amNPCEvent.y = Y();
+    amNPCEvent.mapID = MapID();
     amNPCEvent.eventID = event.eventID;
     m_actorPod->forward(event.uid, {MPK_NPCEVENT, amNPCEvent});
 }

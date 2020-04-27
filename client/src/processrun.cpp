@@ -551,6 +551,7 @@ void ProcessRun::Draw()
 
     m_controlBoard  .draw();
     m_inventoryBoard.draw();
+    m_NPCChatBoard  .draw();
 
     // draw notifyBoard
     {
@@ -608,6 +609,10 @@ void ProcessRun::processEvent(const SDL_Event &event)
     }
 
     if(m_controlBoard.processEvent(event, true)){
+        return;
+    }
+
+    if(m_NPCChatBoard.processEvent(event, true)){
         return;
     }
 

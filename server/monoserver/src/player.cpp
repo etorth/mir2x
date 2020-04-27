@@ -185,6 +185,11 @@ void Player::OperateAM(const MessagePack &rstMPK)
                 On_MPK_NOTIFYDEAD(rstMPK);
                 break;
             }
+        case MPK_NPCXMLLAYOUT:
+            {
+                On_MPK_NPCXMLLAYOUT(rstMPK);
+                break;
+            }
         default:
             {
                 g_MonoServer->addLog(LOGTYPE_WARNING, "Unsupported message: %s", rstMPK.Name());
@@ -202,6 +207,7 @@ void Player::OperateNet(uint8_t nType, const uint8_t *pData, size_t nDataLen)
         case CM_ACTION          : Net_CM_ACTION          (nType, pData, nDataLen); break;
         case CM_PICKUP          : Net_CM_PICKUP          (nType, pData, nDataLen); break;
         case CM_QUERYGOLD       : Net_CM_QUERYGOLD       (nType, pData, nDataLen); break;
+        case CM_NPCEVENT        : Net_CM_NPCEVENT        (nType, pData, nDataLen); break;
         default                 :                                                  break;
     }
 }

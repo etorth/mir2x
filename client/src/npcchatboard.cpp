@@ -140,6 +140,7 @@ void NPCChatBoard::drawWithNPCFace()
     g_SDLDevice->DrawTexture(faceFrame, 20, (boardHeight - faceH) / 2);
     m_chatBoard.moveTo(m_margin * 2 + faceW, (boardHeight - m_chatBoard.h()) / 2);
     m_chatBoard.draw();
+    m_buttonClose.draw();
 }
 
 void NPCChatBoard::drawPlain()
@@ -179,7 +180,7 @@ void NPCChatBoard::drawPlain()
     }
 
     const int boardHeight = 160 + k * 20 + 44;
-    g_SDLDevice->DrawTexture(frameDown, 0, k * 20);
+    g_SDLDevice->DrawTexture(frameDown, 0, 160 + k * 20);
     m_chatBoard.moveTo(m_margin * 2, (boardHeight - m_chatBoard.h()) / 2);
     m_chatBoard.draw();
 }

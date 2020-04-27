@@ -31,7 +31,7 @@ void NPChar::On_MPK_ACTION(const MessagePack &mpk)
 void NPChar::On_MPK_NPCEVENT(const MessagePack &msg)
 {
     const auto event = msg.conv<AMNPCEvent>();
-    if(event.mapID != mapID() || mathf::LDistance2(event.x, event.y, X(), Y()) >= SYS_MAXNPCDISTANCE){
+    if(event.mapID != MapID() || mathf::LDistance2(event.x, event.y, X(), Y()) >= SYS_MAXNPCDISTANCE * SYS_MAXNPCDISTANCE){
         AMNPCError amNPCE;
         std::memset(&amNPCE, 0, sizeof(amNPCE));
 
