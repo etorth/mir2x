@@ -102,22 +102,20 @@ int32_t StandNPC::gfxShadowID(int32_t gfxId) const
 
 bool StandNPC::canFocus(int pointX, int pointY) const
 {
-    if(gfxID() < 0){
+    const auto bodyKey = gfxID();
+    if(bodyKey < 0){
         return false;
     }
 
     int bodyDX = 0;
     int bodyDY = 0;
-    const uint32_t bodyKey = ((uint32_t)(gfxID() & 0X03FFFF) << 5) + m_currMotion.frame;
-    auto bodyFrame = g_standNPCDB->Retrieve(bodyKey, &bodyDX, &bodyDY);
+    auto bodyFrame = g_standNPCDB->Retrieve(bodyKey + m_currMotion.frame, &bodyDX, &bodyDY);
 
     if(!bodyFrame){
         return false;
     }
 
-    int bodyFrameW = 0;
-    int bodyFrameH = 0;
-    SDL_QueryTexture(bodyFrame, nullptr, nullptr, &bodyFrameW, &bodyFrameH);
+    const auto [bodyFrameW, bodyFrameH] = SDLDevice::getTextureSize(bodyFrame);
 
     const int startX = x() * SYS_MAPGRIDXP + bodyDX;
     const int startY = y() * SYS_MAPGRIDYP + bodyDY;
