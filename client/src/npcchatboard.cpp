@@ -181,8 +181,11 @@ void NPCChatBoard::drawPlain()
 
     const int boardHeight = 160 + k * 20 + 44;
     g_SDLDevice->DrawTexture(frameDown, 0, 160 + k * 20);
-    m_chatBoard.moveTo(m_margin * 2, (boardHeight - m_chatBoard.h()) / 2);
+    m_chatBoard.moveTo(m_margin, (boardHeight - m_chatBoard.h()) / 2);
     m_chatBoard.draw();
+
+    m_buttonClose.moveTo(346, boardHeight - 43);
+    m_buttonClose.draw();
 }
 
 void NPCChatBoard::drawEx(int, int, int, int, int, int)
@@ -194,4 +197,14 @@ void NPCChatBoard::drawEx(int, int, int, int, int, int)
     else{
         drawPlain();
     }
+}
+
+void NPCChatBoard::loadXML(uint64_t uid, const char *xmlString)
+{
+    if(uidf::getUIDType(uid) != UID_NPC){
+        throw fflerror("invalid uid type: %s", uidf::getUIDTypeString(uid));
+    }
+
+    m_NPCUID = uid;
+    m_chatBoard.loadXML(xmlString);
 }

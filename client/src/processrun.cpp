@@ -133,6 +133,7 @@ void ProcessRun::Update(double fUpdateTime)
 
     ScrollMap();
     m_controlBoard.update(fUpdateTime);
+    m_NPCChatBoard.update(fUpdateTime);
 
     for(auto p = m_creatureList.begin(); p != m_creatureList.end();){
         if(p->second->visible()){
