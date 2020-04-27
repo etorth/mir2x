@@ -20,9 +20,6 @@
 #include "mathf.hpp"
 #include "messagepack.hpp"
 
-void NPChar::On_MPK_METRONOME(const MessagePack &)
-{}
-
 void NPChar::On_MPK_ACTION(const MessagePack &mpk)
 {
     const auto stAMA = mpk.conv<AMAction>();

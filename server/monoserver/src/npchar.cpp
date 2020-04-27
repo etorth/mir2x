@@ -112,9 +112,9 @@ void NPChar::sendXMLLayout(uint64_t uid, const char *xmlString)
 void NPChar::OperateAM(const MessagePack &mpk)
 {
     switch(mpk.Type()){
+        case MPK_OFFLINE:
         case MPK_METRONOME:
             {
-                On_MPK_METRONOME(mpk);
                 break;
             }
         case MPK_ACTION:
