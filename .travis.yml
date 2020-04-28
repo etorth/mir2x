@@ -6,8 +6,9 @@ addons:
             - cmake
             - gcc-8
             - g++-8
+            - liblua5.3-dev
 
 script:
     - mkdir -p build
     - cd build
-    - cmake ..
+    - cmake .. -DCMAKE_C_COMPILER=gcc-8 -DCMAKE_CXX_COMPILER=g++-8
