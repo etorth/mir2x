@@ -8,6 +8,6 @@ addons:
             - g++-8
 
 script:
-    - make -p build
+    - mkdir -p build
     - cd build
     - cmake ..
