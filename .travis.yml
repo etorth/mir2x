@@ -1,5 +1,6 @@
 language: c++
 dist: bionic
+
 addons:
     apt:
         packages:
@@ -13,6 +14,7 @@ addons:
             - libsdl2-ttf-dev
             - libpng-dev
             - fluid
+
 script:
     - mkdir -p build
     - cd build
@@ -23,3 +25,13 @@ script:
 
 notifications:
     email: false
+
+cache:
+    directories:
+        - .git/lfs
+
+git:
+    lfs_skip_smudge: true
+
+install:
+    - git lfs pull
