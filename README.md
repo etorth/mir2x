@@ -12,6 +12,10 @@
   <img alt="Travis CI Build Status"
        src="https://travis-ci.org/etorth/mir2x.svg?branch=master"/>
 </a>
+<a href="https://gitter.im/mir2x/community?utm_source=share-link&utm_medium=link&utm_campaign=share-link">
+  <img alt="Gitter chat"
+       src="https://badges.gitter.im/org.png"/>
+</a>
 
 mir2x is a c/s based mir2ei implementation with various platforms supported. It contains all need components for game players and developers:
 
