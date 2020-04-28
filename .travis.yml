@@ -18,6 +18,8 @@ script:
     - cd build
     - cmake --version
     - cmake .. -DCMAKE_C_COMPILER=gcc-8 -DCMAKE_CXX_COMPILER=g++-8 -DCMAKE_BUILD_TYPE=Debug -DCMAKE_BUILD_PREFIX=.
+    - make -j $(nproc)
+    - make -j $(nproc) install
 
 notifications:
     email: false
