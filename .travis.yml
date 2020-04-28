@@ -6,3 +6,8 @@ addons:
             - cmake
             - gcc-8
             - g++-8
+
+script:
+    - make -p build
+    - cd build
+    - cmake ..
