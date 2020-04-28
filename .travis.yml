@@ -20,6 +20,7 @@ addons:
         build_command_prepend: "mkdir -p build && cd build && cmake .. -DCMAKE_C_COMPILER=gcc-8 -DCMAKE_CXX_COMPILER=g++-8 -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=install"
         build_command: "make"
         branch_pattern: master
+        notification_email: anhonghe@gmail.com
 
 script:
     - mkdir -p build
