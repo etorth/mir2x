@@ -8,8 +8,10 @@
   <img alt="Appveyor Build Status"
        src="https://ci.appveyor.com/api/projects/status/github/etorth/mir2x?svg=true"/>
 </a>
-
-[![Build Status](https://travis-ci.org/etorth/mir2x.svg?branch=master)](https://travis-ci.org/etorth/mir2x)
+<a href="https://travis-ci.org/github/etorth/mir2x">
+  <img alt="Travis CI Build Status"
+       src="https://travis-ci.org/etorth/mir2x.svg?branch=master"/>
+</a>
 
 mir2x is a c/s based mir2ei implementation with various platforms supported. It contains all need components for game players and developers:
 
