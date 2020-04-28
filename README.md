@@ -40,7 +40,7 @@ If complains missing dll, you may need to copy .dll files from mir2x/bin to mir2
 
 ### Building from source
 
-mir2x requires [cmake](https://cmake.org/) v3+ and [gcc](https://gcc.gnu.org/) support c++17 to run. Mir2x needs some pre-installed packages before compile:
+mir2x requires [cmake](https://cmake.org/) v3.12 and [gcc](https://gcc.gnu.org/) support c++17 to run. Mir2x needs some pre-installed packages before compile:
 
 ```sh
 libsdl2-dev
