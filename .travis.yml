@@ -14,6 +14,12 @@ addons:
             - libsdl2-ttf-dev
             - libpng-dev
             - fluid
+    coverity_scan:
+        project:
+            name: "etorth/mir2x"
+        build_command_prepend: "mkdir -p build && cd build && cmake .. -DCMAKE_C_COMPILER=gcc-8 -DCMAKE_CXX_COMPILER=g++-8 -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=install"
+        build_command: "make"
+        branch_pattern: master
 
 script:
     - mkdir -p build
@@ -35,3 +41,13 @@ git:
 
 install:
     - git lfs pull
+
+env:
+  global:
+   # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
+   #   via the "travis encrypt" command using the project repo's public key
+   - secure: "FLoWb3o5Nl2KKGSMD1dGLN1LNZSkYWcf/46jR4WtPfMMFUCgo7bZFBPqekV1dLjHC5hG5z11UwqTjF/GcqG3So3rxRSronmnimuiq2LnxE/GwfvZQC+iHeH3TYoyPm25B2SzZb2xCNYhqesyB4lA4ErbYPYE4NYvj65x8U+/jNE0jjdUF+KNcK7VqEwWQHxfH1PIdi0FgtQoL2XtgOsmtINgJpw+rcDzTxFYrWHInc3NFtw2Ifap/IM8c/EgxppCLUIpFXcU6tU6drQbYr5qvKPyBUMeHQhrLrfdK28TwxeHgd36JPMVg7yrmcOzX1sfBRVBmTVVxwWuosPZ1NJZ6KyeSt28PakHttx/dYn+wZayB6rYb/gXL4iQSBDviwparld6jMNYUFo/6KdPQTgHPma41ha4yJxZ+C+wRoWThR/x7zi2y6uhQh2TgBXOvlLG/HtXhc9XJ61GT7LccGlxKphyAHG5ySTkAROgWof+plGSr6D+tl4OP1gsLQKBpkJjnH9XGnOzBUB8dO7GaK/MUUuJlL1BYND1ENuJtYAHISnLRM5B/Xqy1QTeHg7iPtkyUDaBx3ZvfYYK/yLwRWiroOoMMYCmjoRJKonq0q1yR1tfMfBIBqloWFV9aXWYetLyoHx18BbBOjH3JuUI5H655J30WvizevpkkbLemxff60M="
+
+before_install:
+    - echo -n | openssl s_client -connect https://scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
+
