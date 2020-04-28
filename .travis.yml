@@ -7,8 +7,15 @@ addons:
             - gcc-8
             - g++-8
             - liblua5.3-dev
-
+            - libfltk1.3-dev
+            - libsdl2-dev
+            - libsdl2-image-dev
+            - libsdl2-ttf-dev
+            - libpng-dev
 script:
     - mkdir -p build
     - cd build
     - cmake .. -DCMAKE_C_COMPILER=gcc-8 -DCMAKE_CXX_COMPILER=g++-8
+
+notifications:
+    email: false
