@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename: utf8func.cpp
+ *       Filename: utf8f.cpp
  *        Created: 12/12/2018 07:27:12
  *    Description: 
  *
@@ -21,10 +21,10 @@
 #include <cinttypes>
 #include <stdexcept>
 #include "strf.hpp"
-#include "utf8func.hpp"
+#include "utf8f.hpp"
 #include "fflerror.hpp"
 
-uint32_t UTF8Func::peekUTF8Code(const char *szUTF8String)
+uint32_t utf8f::peekUTF8Code(const char *szUTF8String)
 {
     // seems utf8::peek_next() is not what I need here
     // what it returns?
@@ -56,7 +56,7 @@ uint32_t UTF8Func::peekUTF8Code(const char *szUTF8String)
     return nUTF8Key;
 }
 
-std::vector<int> UTF8Func::buildUTF8Off(const char *utf8String)
+std::vector<int> utf8f::buildUTF8Off(const char *utf8String)
 {
     if(!utf8String){
         throw fflerror("null utf8String");

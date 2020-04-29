@@ -22,7 +22,7 @@
 #include "log.hpp"
 #include "bevent.hpp"
 #include "xmlf.hpp"
-#include "utf8func.hpp"
+#include "utf8f.hpp"
 #include "colorf.hpp"
 #include "xmlparagraphleaf.hpp"
 
@@ -83,7 +83,7 @@ XMLParagraphLeaf::XMLParagraphLeaf(tinyxml2::XMLNode *pNode)
     , m_event(BEVENT_OFF)
 {
     if(Type() == LEAF_UTF8GROUP){
-        m_UTF8CharOff = UTF8Func::buildUTF8Off(UTF8Text());
+        m_UTF8CharOff = utf8f::buildUTF8Off(UTF8Text());
     }
 }
 
@@ -114,7 +114,7 @@ uint32_t XMLParagraphLeaf::peekUTF8Code(int leafOff) const
         throw std::runtime_error(str_fflprintf(": Try peek utf8 code from a leaf with type: %d", Type()));
     }
 
-    return UTF8Func::peekUTF8Code(xmlNode()->Value() + utf8CharOffRef()[leafOff]);
+    return utf8f::peekUTF8Code(xmlNode()->Value() + utf8CharOffRef()[leafOff]);
 }
 
 std::optional<uint32_t> XMLParagraphLeaf::Color() const

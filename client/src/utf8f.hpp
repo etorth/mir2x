@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename: utf8func.hpp
+ *       Filename: utf8f.hpp
  *        Created: 12/12/2018 07:26:25
  *    Description: 
  *
@@ -21,7 +21,7 @@
 #include <vector>
 #include <cstdint>
 
-namespace UTF8Func
+namespace utf8f
 {
     uint32_t peekUTF8Code(const char *);
 

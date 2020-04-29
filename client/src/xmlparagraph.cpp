@@ -25,7 +25,7 @@
 #include "bevent.hpp"
 #include "strf.hpp"
 #include "xmlf.hpp"
-#include "utf8func.hpp"
+#include "utf8f.hpp"
 #include "xmlparagraph.hpp"
 
 extern Log *g_Log;
@@ -92,7 +92,7 @@ void XMLParagraph::insertUTF8String(int leaf, int leafOff, const char *utf8Strin
     }();
     m_leafList[leaf].xmlNode()->SetValue(newValue.c_str());
 
-    auto addedValueOff = UTF8Func::buildUTF8Off(utf8String);
+    auto addedValueOff = utf8f::buildUTF8Off(utf8String);
     if(leafOff > 0){
         const auto firstOffDiff = [leafOff, oldLength, &utf8OffRef]() -> int
         {

@@ -22,7 +22,7 @@
 #include "toll.hpp"
 #include "fflerror.hpp"
 #include "xmltypeset.hpp"
-#include "utf8func.hpp"
+#include "utf8f.hpp"
 #include "mathf.hpp"
 #include "fontexdb.hpp"
 #include "sdldevice.hpp"
@@ -516,7 +516,7 @@ void XMLTypeset::SetLineTokenStartY(int nLine)
 
 void XMLTypeset::checkDefaultFont() const
 {
-    const uint64_t u64key = UTF8Func::buildU64Key(m_font, m_fontSize, 0, UTF8Func::peekUTF8Code("0"));
+    const uint64_t u64key = utf8f::buildU64Key(m_font, m_fontSize, 0, utf8f::peekUTF8Code("0"));
     if(!g_FontexDB->Retrieve(u64key)){
         throw fflerror("invalid default font: font = %d, fontsize = %d", (int)(m_font), (int)(m_fontSize));
     }
@@ -526,7 +526,7 @@ TOKEN XMLTypeset::buildUTF8Token(int leaf, uint8_t nFont, uint8_t nFontSize, uin
 {
     TOKEN stToken;
     std::memset(&(stToken), 0, sizeof(stToken));
-    auto nU64Key = UTF8Func::buildU64Key(nFont, nFontSize, nFontStyle, nUTF8Code);
+    auto nU64Key = utf8f::buildU64Key(nFont, nFontSize, nFontStyle, nUTF8Code);
 
     stToken.Leaf = leaf;
     if(auto pTexture = g_FontexDB->Retrieve(nU64Key)){
@@ -543,12 +543,12 @@ TOKEN XMLTypeset::buildUTF8Token(int leaf, uint8_t nFont, uint8_t nFontSize, uin
         throw std::runtime_error(str_fflprintf(": SDL_QueryTexture(%p) failed", pTexture));
     }
 
-    nU64Key = UTF8Func::buildU64Key(m_font, m_fontSize, 0, nUTF8Code);
+    nU64Key = utf8f::buildU64Key(m_font, m_fontSize, 0, nUTF8Code);
     if(g_FontexDB->Retrieve(nU64Key)){
         throw std::invalid_argument(str_fflprintf(": Can't find texture for UTF8: %" PRIX32, nUTF8Code));
     }
 
-    nU64Key = UTF8Func::buildU64Key(m_font, m_fontSize, nFontStyle, UTF8Func::peekUTF8Code("0"));
+    nU64Key = utf8f::buildU64Key(m_font, m_fontSize, nFontStyle, utf8f::peekUTF8Code("0"));
     if(g_FontexDB->Retrieve(nU64Key)){
         throw std::invalid_argument(str_fflprintf(": Invalid font style: %" PRIX8, nFontStyle));
     }
@@ -556,7 +556,7 @@ TOKEN XMLTypeset::buildUTF8Token(int leaf, uint8_t nFont, uint8_t nFontSize, uin
     // invalid font given
     // use system default font, don't fail it
 
-    nU64Key = UTF8Func::buildU64Key(m_font, m_fontSize, nFontStyle, nUTF8Code);
+    nU64Key = utf8f::buildU64Key(m_font, m_fontSize, nFontStyle, nUTF8Code);
     if(auto pTexture = g_FontexDB->Retrieve(nU64Key)){
         int nBoxW = -1;
         int nBoxH = -1;

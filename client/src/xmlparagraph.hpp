@@ -24,7 +24,7 @@
 
 #include "xmlf.hpp"
 #include "strf.hpp"
-#include "utf8func.hpp"
+#include "utf8f.hpp"
 #include "colorf.hpp"
 #include "xmlparagraphleaf.hpp"
 
