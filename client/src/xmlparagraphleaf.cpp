@@ -87,21 +87,21 @@ XMLParagraphLeaf::XMLParagraphLeaf(tinyxml2::XMLNode *pNode)
     }
 }
 
-void XMLParagraphLeaf::markEvent(int nEvent)
+void XMLParagraphLeaf::markEvent(int event)
 {
-    switch(nEvent){
+    switch(event){
         case BEVENT_ON:
         case BEVENT_OFF:
         case BEVENT_DOWN:
             {
-                break;
+                m_Event = event;
+                return;
             }
         default:
             {
-                throw fflerror("invalid event: %d", nEvent);
+                throw fflerror("invalid event: %d", event);
             }
     }
-    m_Event = nEvent;
 }
 
 uint32_t XMLParagraphLeaf::peekUTF8Code(int leafOff) const

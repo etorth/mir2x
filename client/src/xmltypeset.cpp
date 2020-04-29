@@ -129,7 +129,7 @@ bool XMLTypeset::addRawToken(int nLine, const TOKEN &rstToken)
         throw std::invalid_argument(str_fflprintf(": Invalid line: %d", nLine));
     }
 
-    if(m_MaxLineWidth == 0){
+    if(m_lineWidth == 0){
         m_lineList[nLine].content.push_back(rstToken);
         return true;
     }
@@ -137,13 +137,13 @@ bool XMLTypeset::addRawToken(int nLine, const TOKEN &rstToken)
     // if we have a defined width but too small
     // need to accept but give warnings
 
-    if(m_MaxLineWidth < rstToken.Box.Info.W && lineTokenCount(nLine) == 0){
-        g_Log->addLog(LOGTYPE_WARNING, "XMLTypeset width is too small to hold the token: (%d < %d)", (int)(m_MaxLineWidth), (int)(rstToken.Box.Info.W));
+    if(m_lineWidth < rstToken.Box.Info.W && lineTokenCount(nLine) == 0){
+        g_Log->addLog(LOGTYPE_WARNING, "XMLTypeset width is too small to hold the token: (%d < %d)", (int)(m_lineWidth), (int)(rstToken.Box.Info.W));
         m_lineList[nLine].content.push_back(rstToken);
         return true;
     }
 
-    if((LineRawWidth(nLine, true) + rstToken.Box.Info.W) > m_MaxLineWidth){
+    if((LineRawWidth(nLine, true) + rstToken.Box.Info.W) > m_lineWidth){
         return false;
     }
 

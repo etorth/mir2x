@@ -35,7 +35,7 @@ class XMLTypeset // means XMLParagraph typeset
         };
 
     private:
-        const int m_MaxLineWidth;
+        const int m_lineWidth;
 
     private:
         const int m_LAlign;
@@ -79,7 +79,7 @@ class XMLTypeset // means XMLParagraph typeset
                 uint32_t nDefaultFontColor =  colorf::WHITE + 255,
                 int      nLineSpace        =  0,
                 int      nWordSpace        =  0)
-            : m_MaxLineWidth(nMaxLineWidth)
+            : m_lineWidth(nMaxLineWidth)
             , m_LAlign(nLAlign)
             , m_CanThrough(bCanThrough)
             , m_WordSpace(nWordSpace)
@@ -410,7 +410,7 @@ class XMLTypeset // means XMLParagraph typeset
     public:
         int MaxLineWidth() const
         {
-            return m_MaxLineWidth;
+            return m_lineWidth;
         }
 
         bool CanThrough() const
