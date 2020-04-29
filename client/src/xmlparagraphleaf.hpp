@@ -47,7 +47,7 @@ class XMLParagraphLeaf
         friend class XMLParapragh;
 
     private:
-        const tinyxml2::XMLNode *m_Node;
+        const tinyxml2::XMLNode *m_node;
 
     private:
         int m_type;
@@ -72,7 +72,7 @@ class XMLParagraphLeaf
 
         const tinyxml2::XMLNode *xmlNode() const
         {
-            return m_Node;
+            return m_node;
         }
 
         tinyxml2::XMLNode *xmlNode()
@@ -140,13 +140,13 @@ class XMLParagraphLeaf
         std::optional<uint32_t> BGColor() const;
 
     public:
-        std::optional<uint8_t> Font()      const;
-        std::optional<uint8_t> FontSize()  const;
-        std::optional<uint8_t> FontStyle() const;
+        std::optional<uint8_t> font()      const;
+        std::optional<uint8_t> fontSize()  const;
+        std::optional<uint8_t> fontStyle() const;
 
     public:
         const xmlLeafData *leafData() const
         {
-            return reinterpret_cast<xmlLeafData *>(m_Node->GetUserData());
+            return reinterpret_cast<xmlLeafData *>(m_node->GetUserData());
         }
 };

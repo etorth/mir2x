@@ -22,7 +22,7 @@
 #include <stdexcept>
 #include <tinyxml2.h>
 
-#include "xmlfunc.hpp"
+#include "xmlf.hpp"
 #include "strf.hpp"
 #include "utf8func.hpp"
 #include "colorf.hpp"

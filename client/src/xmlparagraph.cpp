@@ -24,7 +24,7 @@
 #include "log.hpp"
 #include "bevent.hpp"
 #include "strf.hpp"
-#include "xmlfunc.hpp"
+#include "xmlf.hpp"
 #include "utf8func.hpp"
 #include "xmlparagraph.hpp"
 
@@ -292,7 +292,7 @@ tinyxml2::XMLNode *XMLParagraph::Clone(tinyxml2::XMLDocument *pDoc, int leaf, in
 
         // make a copy here, for safe
         // tinyxml2 doesn't specify if SetValue(Value()) works
-        auto pCloneLeaf = XMLFunc::GetTreeFirstLeaf(pClone);
+        auto pCloneLeaf = xmlf::getTreeFirstLeaf(pClone);
         auto szNewValue = std::string(pCloneLeaf->Value() + leafRef(leaf).utf8CharOffRef()[leafOff]);
         pCloneLeaf->SetValue(szNewValue.c_str());
     }
@@ -302,7 +302,7 @@ tinyxml2::XMLNode *XMLParagraph::Clone(tinyxml2::XMLDocument *pDoc, int leaf, in
             throw std::runtime_error(str_fflprintf(": Non-utf8 string leaf contains multiple tokens"));
         }
 
-        auto pCloneLeaf = XMLFunc::GetTreeLastLeaf(pClone);
+        auto pCloneLeaf = xmlf::getTreeLastLeaf(pClone);
         auto szNewValue = std::string(pCloneLeaf->Value(), pCloneLeaf->Value() + leafOff);
         pCloneLeaf->SetValue(szNewValue.c_str());
     }
@@ -370,8 +370,8 @@ void XMLParagraph::loadXMLNode(const tinyxml2::XMLNode *node)
     }
 
     m_leafList.clear();
-    for(auto pNode = XMLFunc::GetTreeFirstLeaf(m_XMLDocument.FirstChild()); pNode; pNode = XMLFunc::GetNextLeaf(pNode)){
-        if(XMLFunc::CheckValidLeaf(pNode)){
+    for(auto pNode = xmlf::getTreeFirstLeaf(m_XMLDocument.FirstChild()); pNode; pNode = xmlf::getNextLeaf(pNode)){
+        if(xmlf::checkValidLeaf(pNode)){
             m_leafList.emplace_back(pNode);
         }
     }
@@ -451,8 +451,8 @@ void XMLParagraph::insertXMLAfter(tinyxml2::XMLNode *after, const char *xmlStrin
     // this is not necessary, optimize later
 
     m_leafList.clear();
-    for(auto pNode = XMLFunc::GetTreeFirstLeaf(m_XMLDocument.FirstChild()); pNode; pNode = XMLFunc::GetNextLeaf(pNode)){
-        if(XMLFunc::CheckValidLeaf(pNode)){
+    for(auto pNode = xmlf::getTreeFirstLeaf(m_XMLDocument.FirstChild()); pNode; pNode = xmlf::getNextLeaf(pNode)){
+        if(xmlf::checkValidLeaf(pNode)){
             m_leafList.emplace_back(pNode);
         }
     }

@@ -33,6 +33,7 @@ NPChar::NPChar(uint16_t lookId, ServiceCore *core, ServerMap *serverMap, int map
             u8R"###(<layout>                                                             )###"
             u8R"###(    <par>客官你好，欢迎来到传奇旧时光的世界！<emoji id="0"/></par>   )###"
             u8R"###(    <par>有什么可以为你效劳的吗？</par>                              )###"
+            u8R"###(    <par></par>                                                      )###"
             u8R"###(    <par><event id="1">如何快速升级</event></par>                    )###"
             u8R"###(    <par><event id="close">关闭</event></par>                        )###"
             u8R"###(</layout>                                                            )###";

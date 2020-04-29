@@ -608,9 +608,9 @@ TOKEN XMLTypeset::createToken(int leaf, int leafOff) const
     switch(auto &rstLeaf = m_paragraph.leafRef(leaf); rstLeaf.Type()){
         case LEAF_UTF8GROUP:
             {
-                auto nFont      = rstLeaf.Font()     .value_or(m_font);
-                auto nFontSize  = rstLeaf.FontSize() .value_or(m_fontSize);
-                auto nFontStyle = rstLeaf.FontStyle().value_or(m_fontStyle);
+                auto nFont      = rstLeaf.font()     .value_or(m_font);
+                auto nFontSize  = rstLeaf.fontSize() .value_or(m_fontSize);
+                auto nFontStyle = rstLeaf.fontStyle().value_or(m_fontStyle);
                 return buildUTF8Token(leaf, nFont, nFontSize, nFontStyle, rstLeaf.peekUTF8Code(leafOff));
             }
         case LEAF_EMOJI:

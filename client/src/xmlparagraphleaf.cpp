@@ -21,7 +21,7 @@
 
 #include "log.hpp"
 #include "bevent.hpp"
-#include "xmlfunc.hpp"
+#include "xmlf.hpp"
 #include "utf8func.hpp"
 #include "colorf.hpp"
 #include "xmlparagraphleaf.hpp"
@@ -29,31 +29,31 @@
 extern Log *g_Log;
 
 XMLParagraphLeaf::XMLParagraphLeaf(tinyxml2::XMLNode *pNode)
-    : m_Node([pNode]()
+    : m_node([pNode]()
       {
           if(pNode == nullptr){
               throw std::invalid_argument(str_fflprintf(": Invalid argument: (nullptr)"));
           }
 
-          if(!XMLFunc::CheckValidLeaf(pNode)){
+          if(!xmlf::checkValidLeaf(pNode)){
               throw std::invalid_argument(str_fflprintf(": Invalid argument: not a valid XMParagraph leaf"));
           }
           return pNode;
       }())
     , m_type([this]()
       {
-          if(XMLFunc::CheckTextLeaf(xmlNode())){
+          if(xmlf::checkTextLeaf(xmlNode())){
               if(!utf8::is_valid(xmlNode()->Value(), xmlNode()->Value() + std::strlen(xmlNode()->Value()))){
                   throw fflerror("not a utf8 string: %s", xmlNode()->Value());
               }
               return LEAF_UTF8GROUP;
           }
 
-          if(XMLFunc::CheckEmojiLeaf(xmlNode())){
+          if(xmlf::checkEmojiLeaf(xmlNode())){
               return LEAF_EMOJI;
           }
 
-          if(XMLFunc::CheckImageLeaf(xmlNode())){
+          if(xmlf::checkImageLeaf(xmlNode())){
               return LEAF_IMAGE;
           }
 
@@ -65,9 +65,9 @@ XMLParagraphLeaf::XMLParagraphLeaf(tinyxml2::XMLNode *pNode)
               case LEAF_EMOJI:
                   {
                       int emojiId = 0;
-                      if((m_Node->ToElement()->QueryIntAttribute("id", &emojiId) != tinyxml2::XML_SUCCESS) &&
-                         (m_Node->ToElement()->QueryIntAttribute("Id", &emojiId) != tinyxml2::XML_SUCCESS) &&
-                         (m_Node->ToElement()->QueryIntAttribute("ID", &emojiId) != tinyxml2::XML_SUCCESS)){
+                      if((m_node->ToElement()->QueryIntAttribute("id", &emojiId) != tinyxml2::XML_SUCCESS) &&
+                         (m_node->ToElement()->QueryIntAttribute("Id", &emojiId) != tinyxml2::XML_SUCCESS) &&
+                         (m_node->ToElement()->QueryIntAttribute("ID", &emojiId) != tinyxml2::XML_SUCCESS)){
 
                           // no id attribute
                           // use default emojiId zero
@@ -98,7 +98,7 @@ void XMLParagraphLeaf::markEvent(int nEvent)
             }
         default:
             {
-                throw std::invalid_argument(str_fflprintf(": Invalid event: %d", nEvent));
+                throw fflerror("invalid event: %d", nEvent);
             }
     }
     m_Event = nEvent;
@@ -119,17 +119,21 @@ uint32_t XMLParagraphLeaf::peekUTF8Code(int leafOff) const
 
 std::optional<uint32_t> XMLParagraphLeaf::Color() const
 {
-    if(const auto pszColor = XMLFunc::FindAttribute(xmlNode(), "font_color", true)){
+    if(const auto pszColor = xmlf::findAttribute(xmlNode(), "font_color", true)){
         try{
             return colorf::String2RGBA(pszColor);
         }catch(...){}
+    }
+
+    if(m_node->ToElement() && std::strcmp(m_node->ToElement()->Name(), "event") == 0){
+        return colorf::YELLOW;
     }
     return {};
 }
 
 std::optional<uint32_t> XMLParagraphLeaf::BGColor() const
 {
-    if(const auto pszBGColor = XMLFunc::FindAttribute(xmlNode(), "font_bgcolor", true)){
+    if(const auto pszBGColor = xmlf::findAttribute(xmlNode(), "font_bgcolor", true)){
         try{
             return colorf::String2RGBA(pszBGColor);
         }catch(...){}
@@ -137,9 +141,9 @@ std::optional<uint32_t> XMLParagraphLeaf::BGColor() const
     return {};
 }
 
-std::optional<uint8_t> XMLParagraphLeaf::Font() const
+std::optional<uint8_t> XMLParagraphLeaf::font() const
 {
-    if(const auto pszFont = XMLFunc::FindAttribute(xmlNode(), "font", true)){
+    if(const auto pszFont = xmlf::findAttribute(xmlNode(), "font", true)){
         try{
             if(auto nFontIndex = std::atoi(pszFont); (nFontIndex < 0 || nFontIndex > 255)){
                 throw std::runtime_error(str_fflprintf(": Invalid font index, not an uint8_t: %d", nFontIndex));
@@ -155,9 +159,9 @@ std::optional<uint8_t> XMLParagraphLeaf::Font() const
     return {};
 }
 
-std::optional<uint8_t> XMLParagraphLeaf::FontSize() const
+std::optional<uint8_t> XMLParagraphLeaf::fontSize() const
 {
-    if(const auto pszFontSize = XMLFunc::FindAttribute(xmlNode(), "font_size", true)){
+    if(const auto pszFontSize = xmlf::findAttribute(xmlNode(), "font_size", true)){
         try{
             if(auto nFontSize = std::atoi(pszFontSize); (nFontSize < 0 || nFontSize > 255)){
                 throw std::runtime_error(str_fflprintf(": Invalid font size, not an uint8_t: %d", nFontSize));
@@ -173,9 +177,9 @@ std::optional<uint8_t> XMLParagraphLeaf::FontSize() const
     return {};
 }
 
-std::optional<uint8_t> XMLParagraphLeaf::FontStyle() const
+std::optional<uint8_t> XMLParagraphLeaf::fontStyle() const
 {
-    if(const auto pszFontStyle = XMLFunc::FindAttribute(xmlNode(), "font_style", true)){
+    if(const auto pszFontStyle = xmlf::findAttribute(xmlNode(), "font_style", true)){
         try{
             if(auto nFontStyle = std::atoi(pszFontStyle); (nFontStyle < 0 || nFontStyle > 255)){
                 throw std::runtime_error(str_fflprintf(": Invalid font style, not an uint8_t: %d", nFontStyle));

@@ -20,7 +20,7 @@
 #include <tuple>
 #include "token.hpp"
 #include "lalign.hpp"
-#include "xmlfunc.hpp"
+#include "xmlf.hpp"
 #include "fflerror.hpp"
 #include "colorf.hpp"
 #include "xmlparagraph.hpp"

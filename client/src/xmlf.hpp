@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename: xmlfunc.hpp
+ *       Filename: xmlf.hpp
  *        Created: 12/11/2018 04:01:50
  *    Description: 
  *
@@ -22,29 +22,29 @@
 #include <tinyxml2.h>
 #include "strf.hpp"
 
-namespace XMLFunc
+namespace xmlf
 {
-    bool CheckTextLeaf (const tinyxml2::XMLNode *);
-    bool CheckEmojiLeaf(const tinyxml2::XMLNode *);
-    bool CheckImageLeaf(const tinyxml2::XMLNode *);
-    bool CheckValidLeaf(const tinyxml2::XMLNode *);
+    bool checkTextLeaf (const tinyxml2::XMLNode *);
+    bool checkEmojiLeaf(const tinyxml2::XMLNode *);
+    bool checkImageLeaf(const tinyxml2::XMLNode *);
+    bool checkValidLeaf(const tinyxml2::XMLNode *);
 
-    const char *FindAttribute(const tinyxml2::XMLNode *, const char *, bool);
+    const char *findAttribute(const tinyxml2::XMLNode *, const char *, bool);
 
     // 1. current input should be a xml leaf
     // 2. return next xml node if exists, or nullptr
-    tinyxml2::XMLNode *GetNextLeaf(tinyxml2::XMLNode *);
+    tinyxml2::XMLNode *getNextLeaf(tinyxml2::XMLNode *);
 
-    tinyxml2::XMLNode *GetNodeFirstLeaf(tinyxml2::XMLNode *);
-    tinyxml2::XMLNode *GetTreeFirstLeaf(tinyxml2::XMLNode *);
+    tinyxml2::XMLNode *getNodeFirstLeaf(tinyxml2::XMLNode *);
+    tinyxml2::XMLNode *getTreeFirstLeaf(tinyxml2::XMLNode *);
 
-    tinyxml2::XMLNode *GetNodeLastLeaf(tinyxml2::XMLNode *);
-    tinyxml2::XMLNode *GetTreeLastLeaf(tinyxml2::XMLNode *);
+    tinyxml2::XMLNode *getNodeLastLeaf(tinyxml2::XMLNode *);
+    tinyxml2::XMLNode *getTreeLastLeaf(tinyxml2::XMLNode *);
 
-    bool ValidTagName(const std::string &);
-    bool ValidAttributeName(const std::string &);
+    bool validTagName(const std::string &);
+    bool validAttributeName(const std::string &);
 
-    std::string BuildXMLString(
+    std::string buildXMLString(
             const std::string &, // tag name
             const std::string &, // content
             const std::vector<std::pair<std::string, std::string>> &);

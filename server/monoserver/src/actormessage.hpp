@@ -588,5 +588,5 @@ struct AMNPCError
 
 struct AMNPCXMLLayout
 {
-    char xmlLayout[512];
+    char xmlLayout[1024];
 };
