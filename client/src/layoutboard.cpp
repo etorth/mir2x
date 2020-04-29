@@ -23,6 +23,7 @@
 #include "log.hpp"
 #include "mathf.hpp"
 #include "strf.hpp"
+#include "bevent.hpp"
 #include "xmltypeset.hpp"
 
 extern Log *g_Log;
@@ -286,4 +287,58 @@ void LayoutBoard::setupSize()
         const auto &backNode = m_parNodeList.back();
         return backNode.startY + backNode.margin[0] + backNode.margin[1] + backNode.tpset->ph();
     }();
+}
+
+bool LayoutBoard::processEvent(const SDL_Event &event, bool valid)
+{
+    if(m_parNodeList.empty()){
+        return false;
+    }
+
+    const auto fnHandleEvent = [&event, this](parNode *node, bool currValid) -> bool
+    {
+        node->tpset->clearEvent();
+        if(!currValid){
+            return false;
+        }
+
+        switch(event.type){
+            case SDL_MOUSEMOTION:
+                {
+                    const int dx = event.motion.x - (x()                + node->margin[2]);
+                    const int dy = event.motion.y - (y() + node->startY + node->margin[0]);
+
+                    const auto [tokenX, tokenY] = node->tpset->locToken(dx, dy, true);
+                    if(node->tpset->tokenLocValid(tokenX, tokenY)){
+                        node->tpset->markLeafEvent(node->tpset->getToken(tokenX, tokenY)->Leaf, (event.motion.state & SDL_BUTTON_LMASK) ? BEVENT_DOWN : BEVENT_ON);
+                        return true;
+                    }
+                    return false;
+                }
+            case SDL_MOUSEBUTTONUP:
+            case SDL_MOUSEBUTTONDOWN:
+                {
+                    const int dx = event.button.x - (x()                + node->margin[2]);
+                    const int dy = event.button.y - (y() + node->startY + node->margin[0]);
+
+                    const auto [tokenX, tokenY] = node->tpset->locToken(dx, dy, true);
+                    if(node->tpset->tokenLocValid(tokenX, tokenY)){
+                        node->tpset->markLeafEvent(node->tpset->getToken(tokenX, tokenY)->Leaf, (event.type == SDL_MOUSEBUTTONUP) ? BEVENT_ON : BEVENT_DOWN);
+                        return true;
+                    }
+                    return false;
+                }
+            default:
+                {
+                    return false;
+                }
+        }
+    };
+
+    bool takeEvent = false;
+    for(auto &node: m_parNodeList){
+        takeEvent |= fnHandleEvent(&node, valid && !takeEvent);
+    }
+
+    return takeEvent;
 }

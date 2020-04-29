@@ -23,6 +23,7 @@
 #include "xmlf.hpp"
 #include "fflerror.hpp"
 #include "colorf.hpp"
+#include "bevent.hpp"
 #include "xmlparagraph.hpp"
 
 class XMLTypeset // means XMLParagraph typeset
@@ -238,9 +239,16 @@ class XMLTypeset // means XMLParagraph typeset
         }
 
     public:
-        void MarkLeafEvent(int leaf, int nEvent)
+        void clearEvent()
         {
-            m_paragraph.leafRef(leaf).markEvent(nEvent);
+            for(int leaf = 0; leaf < m_paragraph.leafCount(); ++leaf){
+                m_paragraph.leafRef(leaf).markEvent(BEVENT_OFF);
+            }
+        }
+
+        void markLeafEvent(int leaf, int event)
+        {
+            m_paragraph.leafRef(leaf).markEvent(event);
         }
 
     public:

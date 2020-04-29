@@ -171,6 +171,7 @@ class LayoutBoard: public Widget
 
     public:
         void drawEx(int, int, int, int, int, int) override;
+        bool processEvent(const SDL_Event &, bool) override;
 
     private:
         void setupSize();

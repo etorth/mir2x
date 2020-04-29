@@ -128,9 +128,9 @@ std::optional<uint32_t> XMLParagraphLeaf::Color() const
     if(Type() == LEAF_UTF8GROUP){
         if(auto par = m_node->Parent(); par && par->ToElement() && (std::strcmp(par->ToElement()->Name(), "event") == 0)){
             switch(m_event){
-                case BEVENT_ON  : return colorf::RED;
+                case BEVENT_ON  : return colorf::GREEN;
                 case BEVENT_OFF : return colorf::YELLOW;
-                case BEVENT_DOWN: return colorf::BLUE;
+                case BEVENT_DOWN: return colorf::PURPLE;
                 default: throw fflerror("invalid leaf event: %d", m_event);
             }
         }
