@@ -125,8 +125,10 @@ std::optional<uint32_t> XMLParagraphLeaf::Color() const
         }catch(...){}
     }
 
-    if(m_node->ToElement() && std::strcmp(m_node->ToElement()->Name(), "event") == 0){
-        return colorf::YELLOW;
+    if(Type() == LEAF_UTF8GROUP){
+        if(auto par = m_node->Parent(); par && par->ToElement() && (std::strcmp(par->ToElement()->Name(), "event") == 0)){
+            return colorf::YELLOW;
+        }
     }
     return {};
 }
