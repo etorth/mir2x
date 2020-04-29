@@ -4,11 +4,6 @@
  *       Filename: layoutboard.hpp
  *        Created: 03/25/2020 22:27:45
  *    Description: 
- *                  LayoutBoard doesn't have width configuration in the constructor
- *                  it's conceptually a container of XMLTypeset, every typeset has its own line width setup
- *
- *                  the w()/h() returns actual pixel size of it
- *                  for a line-width configurable LayoutBoard, try LayoutViewBoard, it supports cropping
  *
  *        Version: 1.0
  *       Revision: none
@@ -48,24 +43,26 @@ class LayoutBoard: public Widget
         std::list<parNode> m_parNodeList;
 
     private:
-        int m_parLineWidth;
-        std::array<int, 4> m_parMargin;
+        struct parNodeConfig
+        {
+            // default setup of paragraph in LayoutBoard
+            // may needed this to support theme
 
-    private:
-        bool m_canThrough;
+            int lineWidth;
+            std::array<int, 4> margin;
 
-    private:
-        uint8_t m_font;
-        uint8_t m_fontSize;
-        uint8_t m_fontStyle;
+            bool canThrough;
 
-    private:
-        uint32_t m_fontColor;
+            uint8_t  font;
+            uint8_t  fontSize;
+            uint8_t  fontStyle;
+            uint32_t fontColor;
 
-    private:
-        int m_align;
-        int m_lineSpace;
-        int m_wordSpace;
+            int align;
+            int lineSpace;
+            int wordSpace;
+
+        } m_parNodeConfig;
 
     private:
         bool m_canSelect;
@@ -74,9 +71,9 @@ class LayoutBoard: public Widget
         LayoutBoard(
                 int                x,
                 int                y,
-                int                parLineWidth,
+                int                lineWidth,
                 bool               canSelect  =  false,
-                std::array<int, 4> parMargin  =  {0, 0, 0, 0},
+                std::array<int, 4> margin  =  {0, 0, 0, 0},
                 bool               canThrough =  false,
                 uint8_t            font       =  0,
                 uint8_t            fontSize   = 10,
@@ -88,19 +85,22 @@ class LayoutBoard: public Widget
                 Widget            *parent     =  nullptr,
                 bool               autoDelete =  false)
             : Widget(x, y, 0, 0, parent, autoDelete)
-            , m_parLineWidth(parLineWidth)
-            , m_parMargin(parMargin)
-            , m_canThrough(canThrough)
-            , m_font(font)
-            , m_fontSize(fontSize)
-            , m_fontStyle(fontStyle)
-            , m_fontColor(fontColor)
-            , m_align(lineAlign)
-            , m_lineSpace(lineSpace)
-            , m_wordSpace(wordSpace)
+            , m_parNodeConfig
+              {
+                  lineWidth,
+                  margin,
+                  canThrough,
+                  font,
+                  fontSize,
+                  fontStyle,
+                  fontColor,
+                  lineAlign,
+                  lineSpace,
+                  wordSpace,
+              }
             , m_canSelect(canSelect)
         {
-            if(m_parLineWidth <= m_parMargin[2] + m_parMargin[3]){
+            if(m_parNodeConfig.lineWidth <= m_parNodeConfig.margin[2] + m_parNodeConfig.margin[3]){
                 throw fflerror("invalid default paragraph parameters");
             }
         }
@@ -145,24 +145,24 @@ class LayoutBoard: public Widget
         }
 
     public:
-        void SetFont(uint8_t nFont)
+        void setFont(uint8_t font)
         {
-            m_font = nFont;
+            m_parNodeConfig.font = font;
         }
 
-        void SetFontSize(uint8_t nFontSize)
+        void setFontSize(uint8_t fontSize)
         {
-            m_fontSize = nFontSize;
+            m_parNodeConfig.fontSize = fontSize;
         }
 
-        void SetFontStyle(uint8_t nFontStyle)
+        void setFontStyle(uint8_t fontStyle)
         {
-            m_fontStyle = nFontStyle;
+            m_parNodeConfig.fontStyle = fontStyle;
         }
 
-        void SetFontColor(uint32_t nFontColor)
+        void setFontColor(uint32_t fontColor)
         {
-            m_fontColor = nFontColor;
+            m_parNodeConfig.fontColor = fontColor;
         }
 
         void setLineWidth(int)

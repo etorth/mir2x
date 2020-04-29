@@ -78,7 +78,7 @@ void LayoutBoard::loadXML(const char *xmlString)
             continue;
         }
 
-        addPar(parCount(), m_parMargin, p, false);
+        addPar(parCount(), m_parNodeConfig.margin, p, false);
     }
 
     setupSize();
@@ -117,8 +117,11 @@ void LayoutBoard::addPar(int loc, const std::array<int, 4> &parMargin, const tin
         // we won't let it create one-line mode by default
         // user should explicitly note that they want this special mode
 
-        int lineWidth = std::max<int>(m_parLineWidth - (m_parMargin[2] + m_parMargin[3]), 1);
+        int lineWidth = std::max<int>(m_parNodeConfig.lineWidth - (m_parNodeConfig.margin[2] + m_parNodeConfig.margin[3]), 1);
         elemNode->QueryIntAttribute("lineWidth", &lineWidth);
+
+        // TODO should I force all lineWidth to be less than defaut lineWidth?
+        //      should I jsut disable to support lineWidth attribute and force all typeset uses global lineWidth?
 
         if(lineWidth < -1){
             throw fflerror("invalid line width: %d", lineWidth);
@@ -135,19 +138,19 @@ void LayoutBoard::addPar(int loc, const std::array<int, 4> &parMargin, const tin
             if(std::string(val) == "justify"    ) return LALIGN_JUSTIFY;
             if(std::string(val) == "distributed") return LALIGN_DISTRIBUTED;
         }
-        return m_align;
+        return m_parNodeConfig.align;
     }();
 
     const bool canThrough = [elemNode, this]()
     {
-        bool canThrough = m_canThrough;
+        bool canThrough = m_parNodeConfig.canThrough;
         elemNode->QueryBoolAttribute("canThrough", &canThrough);
         return canThrough;
     }();
 
     const uint8_t font = [elemNode, this]()
     {
-        int font = m_font;
+        int font = m_parNodeConfig.font;
         if(const auto val = elemNode->Attribute("font")){
             try{
                 font = std::stoi(val);
@@ -165,7 +168,7 @@ void LayoutBoard::addPar(int loc, const std::array<int, 4> &parMargin, const tin
 
     const uint8_t fontSize = [elemNode, this]()
     {
-        int fontSize = m_fontSize;
+        int fontSize = m_parNodeConfig.fontSize;
         elemNode->QueryIntAttribute("size", &fontSize);
         return fontSize;
     }();
@@ -175,21 +178,21 @@ void LayoutBoard::addPar(int loc, const std::array<int, 4> &parMargin, const tin
         if(const char *val = elemNode->Attribute("color")){
             return colorf::String2RGBA(val);
         }
-        return m_fontColor;
+        return m_parNodeConfig.fontColor;
     }();
 
-    const uint8_t fontStyle = m_fontStyle;
+    const uint8_t fontStyle = m_parNodeConfig.fontStyle;
 
     const int lineSpace = [elemNode, this]()
     {
-        int lineSpace = m_lineSpace;
+        int lineSpace = m_parNodeConfig.lineSpace;
         elemNode->QueryIntAttribute("lineSpace", &lineSpace);
         return lineSpace;
     }();
 
     const int wordSpace = [elemNode, this]()
     {
-        int wordSpace = m_lineSpace;
+        int wordSpace = m_parNodeConfig.lineSpace;
         elemNode->QueryIntAttribute("wordSpace", &wordSpace);
         return wordSpace;
     }();
