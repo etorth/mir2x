@@ -311,10 +311,11 @@ bool LayoutBoard::processEvent(const SDL_Event &event, bool valid)
                     const auto [tokenX, tokenY] = node->tpset->locToken(dx, dy, true);
                     if(node->tpset->tokenLocValid(tokenX, tokenY)){
                         const auto newEvent = (event.motion.state & SDL_BUTTON_LMASK) ? BEVENT_DOWN : BEVENT_ON;
-                        node->tpset->markLeafEvent(node->tpset->getToken(tokenX, tokenY)->Leaf, newEvent);
+                        const auto leafID = node->tpset->getToken(tokenX, tokenY)->Leaf;
 
-                        if(m_eventCB){
-                            m_eventCB("", newEvent);
+                        node->tpset->markLeafEvent(leafID, newEvent);
+                        if(const auto eventID = node->tpset->leafEventID(leafID); m_eventCB && eventID){
+                            m_eventCB(eventID, newEvent);
                         }
                         return true;
                     }
@@ -329,10 +330,11 @@ bool LayoutBoard::processEvent(const SDL_Event &event, bool valid)
                     const auto [tokenX, tokenY] = node->tpset->locToken(dx, dy, true);
                     if(node->tpset->tokenLocValid(tokenX, tokenY)){
                         const auto newEvent = (event.type == SDL_MOUSEBUTTONUP) ? BEVENT_ON : BEVENT_DOWN;
-                        node->tpset->markLeafEvent(node->tpset->getToken(tokenX, tokenY)->Leaf, newEvent);
+                        const auto leafID = node->tpset->getToken(tokenX, tokenY)->Leaf;
 
-                        if(m_eventCB){
-                            m_eventCB("", newEvent);
+                        node->tpset->markLeafEvent(leafID, newEvent);
+                        if(const auto eventID = node->tpset->leafEventID(leafID); m_eventCB && eventID){
+                            m_eventCB(eventID, newEvent);
                         }
                         return true;
                     }

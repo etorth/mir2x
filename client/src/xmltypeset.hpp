@@ -284,6 +284,12 @@ class XMLTypeset // means XMLParagraph typeset
     public:
         std::string GetText(bool) const;
 
+    public:
+        const char *leafEventID(int leafID) const
+        {
+            return m_paragraph.leafRef(leafID).hasEvent();
+        }
+
     private:
         void checkDefaultFont() const;
 
