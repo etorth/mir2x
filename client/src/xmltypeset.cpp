@@ -129,7 +129,7 @@ bool XMLTypeset::addRawToken(int nLine, const TOKEN &rstToken)
         throw std::invalid_argument(str_fflprintf(": Invalid line: %d", nLine));
     }
 
-    if(m_lineWidth == 0){
+    if(m_lineWidth <= 0){
         m_lineList[nLine].content.push_back(rstToken);
         return true;
     }
