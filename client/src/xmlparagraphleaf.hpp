@@ -59,7 +59,7 @@ class XMLParagraphLeaf
         std::vector<int> m_UTF8CharOff;
 
     private:
-        int m_Event;
+        int m_event;
 
     public:
         explicit XMLParagraphLeaf(tinyxml2::XMLNode *);

@@ -80,7 +80,7 @@ XMLParagraphLeaf::XMLParagraphLeaf(tinyxml2::XMLNode *pNode)
                   }
           }
       }())
-    , m_Event(BEVENT_OFF)
+    , m_event(BEVENT_OFF)
 {
     if(Type() == LEAF_UTF8GROUP){
         m_UTF8CharOff = UTF8Func::buildUTF8Off(UTF8Text());
@@ -94,7 +94,7 @@ void XMLParagraphLeaf::markEvent(int event)
         case BEVENT_OFF:
         case BEVENT_DOWN:
             {
-                m_Event = event;
+                m_event = event;
                 return;
             }
         default:
@@ -127,7 +127,12 @@ std::optional<uint32_t> XMLParagraphLeaf::Color() const
 
     if(Type() == LEAF_UTF8GROUP){
         if(auto par = m_node->Parent(); par && par->ToElement() && (std::strcmp(par->ToElement()->Name(), "event") == 0)){
-            return colorf::YELLOW;
+            switch(m_event){
+                case BEVENT_ON  : return colorf::RED;
+                case BEVENT_OFF : return colorf::YELLOW;
+                case BEVENT_DOWN: return colorf::BLUE;
+                default: throw fflerror("invalid leaf event: %d", m_event);
+            }
         }
     }
     return {};
