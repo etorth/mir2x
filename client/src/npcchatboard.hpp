@@ -48,4 +48,7 @@ class NPCChatBoard: public Widget
 
     public:
         void loadXML(uint64_t, const char *);
+
+    private:
+        void onClickEvent(const std::string &);
 };

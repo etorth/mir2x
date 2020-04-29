@@ -310,7 +310,12 @@ bool LayoutBoard::processEvent(const SDL_Event &event, bool valid)
 
                     const auto [tokenX, tokenY] = node->tpset->locToken(dx, dy, true);
                     if(node->tpset->tokenLocValid(tokenX, tokenY)){
-                        node->tpset->markLeafEvent(node->tpset->getToken(tokenX, tokenY)->Leaf, (event.motion.state & SDL_BUTTON_LMASK) ? BEVENT_DOWN : BEVENT_ON);
+                        const auto newEvent = (event.motion.state & SDL_BUTTON_LMASK) ? BEVENT_DOWN : BEVENT_ON;
+                        node->tpset->markLeafEvent(node->tpset->getToken(tokenX, tokenY)->Leaf, newEvent);
+
+                        if(m_eventCB){
+                            m_eventCB("", newEvent);
+                        }
                         return true;
                     }
                     return false;
@@ -323,7 +328,12 @@ bool LayoutBoard::processEvent(const SDL_Event &event, bool valid)
 
                     const auto [tokenX, tokenY] = node->tpset->locToken(dx, dy, true);
                     if(node->tpset->tokenLocValid(tokenX, tokenY)){
-                        node->tpset->markLeafEvent(node->tpset->getToken(tokenX, tokenY)->Leaf, (event.type == SDL_MOUSEBUTTONUP) ? BEVENT_ON : BEVENT_DOWN);
+                        const auto newEvent = (event.type == SDL_MOUSEBUTTONUP) ? BEVENT_ON : BEVENT_DOWN;
+                        node->tpset->markLeafEvent(node->tpset->getToken(tokenX, tokenY)->Leaf, newEvent);
+
+                        if(m_eventCB){
+                            m_eventCB("", newEvent);
+                        }
                         return true;
                     }
                     return false;

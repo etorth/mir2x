@@ -48,6 +48,13 @@ NPCChatBoard::NPCChatBoard(ProcessRun *proc)
           LALIGN_LEFT,
           0,
           0,
+
+          [this](const std::string &id, int event)
+          {
+              if(event == BEVENT_DOWN){
+                  onClickEvent(id);
+              }
+          },
           this,
       }
     , m_buttonClose
@@ -207,4 +214,9 @@ void NPCChatBoard::loadXML(uint64_t uid, const char *xmlString)
 
     m_NPCUID = uid;
     m_chatBoard.loadXML(xmlString);
+}
+
+void NPCChatBoard::onClickEvent(const std::string &id)
+{
+    m_processRun->AddOPLog(/* OUTPORT_CONTROLBOARD */ 3 << 1, 1, "", "clickEvent id: %s", id.c_str());
 }

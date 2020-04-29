@@ -21,6 +21,7 @@
 #include <array>
 #include <vector>
 #include <memory>
+#include <functional>
 #include "widget.hpp"
 #include "xmltypeset.hpp"
 
@@ -67,23 +68,33 @@ class LayoutBoard: public Widget
     private:
         bool m_canSelect;
 
+    private:
+        const std::function<void(const std::string &, int)> m_eventCB;
+
     public:
         LayoutBoard(
-                int                x,
-                int                y,
-                int                lineWidth,
-                bool               canSelect  =  false,
-                std::array<int, 4> margin  =  {0, 0, 0, 0},
-                bool               canThrough =  false,
-                uint8_t            font       =  0,
-                uint8_t            fontSize   = 10,
-                uint8_t            fontStyle  =  0,
-                uint32_t           fontColor  =  colorf::WHITE + 255,
-                int                lineAlign  =  LALIGN_LEFT,
-                int                lineSpace  =  0,
-                int                wordSpace  =  0,
-                Widget            *parent     =  nullptr,
-                bool               autoDelete =  false)
+                int x,
+                int y,
+                int lineWidth,
+
+                bool            canSelect = false,
+                std::array<int, 4> margin = {0, 0, 0, 0},
+
+                bool canThrough = false,
+
+                uint8_t  font      =  0,
+                uint8_t  fontSize  = 10,
+                uint8_t  fontStyle =  0,
+                uint32_t fontColor =  colorf::WHITE + 255,
+
+                int lineAlign = LALIGN_LEFT,
+                int lineSpace = 0,
+                int wordSpace = 0,
+
+                const std::function<void(const std::string &, int)> &eventCB = nullptr,
+
+                Widget *parent     =  nullptr,
+                bool    autoDelete =  false)
             : Widget(x, y, 0, 0, parent, autoDelete)
             , m_parNodeConfig
               {
@@ -99,6 +110,7 @@ class LayoutBoard: public Widget
                   wordSpace,
               }
             , m_canSelect(canSelect)
+            , m_eventCB(eventCB)
         {
             if(m_parNodeConfig.lineWidth <= m_parNodeConfig.margin[2] + m_parNodeConfig.margin[3]){
                 throw fflerror("invalid default paragraph parameters");

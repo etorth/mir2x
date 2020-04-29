@@ -311,6 +311,8 @@ ControlBoard::ControlBoard(int startY, int boardW, ProcessRun *pRun)
           LALIGN_LEFT,
           0,
           0,
+
+          nullptr,
           &m_middle,
       }
 {
