@@ -219,4 +219,22 @@ void NPCChatBoard::loadXML(uint64_t uid, const char *xmlString)
 void NPCChatBoard::onClickEvent(const std::string &id)
 {
     m_processRun->AddOPLog(/* OUTPORT_CONTROLBOARD */ 3 << 1, 1, "", "clickEvent id: %s", id.c_str());
+    const int eventID = [&id]() -> int
+    {
+        try{
+            return std::stoi(id);
+        }
+        catch(...){
+            //
+        }
+        return -1;
+    }();
+
+    if(eventID >= 0){
+        m_processRun->sendNPCEventID(m_NPCUID, eventID);
+    }
+
+    else if(id == "close"){
+        show(false);
+    }
 }
