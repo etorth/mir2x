@@ -1364,6 +1364,31 @@ void ProcessRun::AddOPLog(int nOutPort, int logType, const char *szPrompt, const
     }
 }
 
+void ProcessRun::addCBLog(int logType, const char *format, ...)
+{
+    std::string logStr;
+    bool hasError = false;
+    {
+        va_list ap;
+        va_start(ap, format);
+
+        try{
+            logStr = str_vprintf(format, ap);
+        }
+        catch(const std::exception &e){
+            hasError = true;
+            logStr = str_printf("Parsing failed in ProcessRun::addCBLog(\"%s\", ...): %s", format, e.what());
+        }
+
+        va_end(ap);
+    }
+
+    if(hasError){
+        logType = CBLOG_ERR;
+    }
+    m_controlBoard.addLog(logType, logStr.c_str());
+}
+
 bool ProcessRun::OnMap(uint32_t nMapID, int nX, int nY) const
 {
     return (MapID() == nMapID) && m_mir2xMapData.ValidC(nX, nY);

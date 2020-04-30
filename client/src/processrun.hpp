@@ -212,6 +212,7 @@ class ProcessRun: public Process
 
     public:
         void AddOPLog(int, int, const char *, const char *, ...);
+        void addCBLog(int, const char *, ...);
 
     public:
         bool RegisterUserCommand();

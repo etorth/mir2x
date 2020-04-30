@@ -218,7 +218,7 @@ void NPCChatBoard::loadXML(uint64_t uid, const char *xmlString)
 
 void NPCChatBoard::onClickEvent(const std::string &id)
 {
-    m_processRun->AddOPLog(/* OUTPORT_CONTROLBOARD */ 3 << 1, 1, "", "clickEvent id: %s", id.c_str());
+    m_processRun->addCBLog(CBLOG_SYS, "clickEvent id: %s", id.c_str());
     const int eventID = [&id]() -> int
     {
         try{

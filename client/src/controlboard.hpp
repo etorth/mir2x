@@ -30,6 +30,14 @@
 #include "layoutboard.hpp"
 #include "tritexbutton.hpp"
 
+enum
+{
+    CBLOG_DEF = 0,
+    CBLOG_SYS,
+    CBLOG_DBG,
+    CBLOG_ERR,
+};
+
 class ProcessRun;
 class ControlBoard: public Widget
 {

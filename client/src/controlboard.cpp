@@ -704,9 +704,6 @@ void ControlBoard::addLog(int, const char *log)
         throw fflerror("null log string");
     }
     m_logBoard.addParXML(m_logBoard.parCount(), {0, 0, 0, 0}, str_printf("<par>%s</par>", log).c_str());
-    if(std::rand() % 2 == 0){
-        m_logBoard.addParXML(m_logBoard.parCount(), {0, 0, 0, 0}, str_printf("<par>test emoji: <emoji id=\"%d\"/></par>", (int)(std::rand() % 3)).c_str());
-    }
 }
 
 bool ControlBoard::CheckMyHeroMoved()
