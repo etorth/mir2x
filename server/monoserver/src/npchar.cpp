@@ -30,23 +30,23 @@ NPChar::NPChar(uint16_t lookId, ServiceCore *core, ServerMap *serverMap, int map
     m_onEventID[0] = [this](uint64_t uid, const AMNPCEvent &)
     {
         const char *xmlMessage = 
-            u8R"###(<layout>                                                             )###"
-            u8R"###(    <par>客官你好，欢迎来到传奇旧时光的世界！<emoji id="0"/></par>   )###"
-            u8R"###(    <par>有什么可以为你效劳的吗？</par>                              )###"
-            u8R"###(    <par></par>                                                      )###"
-            u8R"###(    <par><event id="1">如何快速升级</event></par>                    )###"
-            u8R"###(    <par><event id="close">关闭</event></par>                        )###"
-            u8R"###(</layout>                                                            )###";
-        sendXMLLayout(uid, xmlMessage);
+            u8R"###(<layout>                                                                )###"
+            u8R"###(    <par>客官你好，我是%llu，欢迎来到传奇旧时光！<emoji id="0"/></par>  )###"
+            u8R"###(    <par>有什么可以为你效劳的吗？</par>                                 )###"
+            u8R"###(    <par></par>                                                         )###"
+            u8R"###(    <par><event id="1">如何快速升级</event></par>                       )###"
+            u8R"###(    <par><event id="close">关闭</event></par>                           )###"
+            u8R"###(</layout>                                                               )###";
+        sendXMLLayout(uid, str_printf(xmlMessage, toLLU(UID())).c_str());
     };
 
     m_onEventID[1] = [this](uint64_t uid, const AMNPCEvent &)
     {
         const char *xmlMessage = 
-            u8R"###(<layout>                                                             )###"
-            u8R"###(    <par>多多上线打怪升级！<emoji id="1"/></par>                     )###"
-            u8R"###(    <par><event id="close">关闭</event></par>                        )###"
-            u8R"###(</layout>                                                            )###";
+            u8R"###(<layout>                                           )###"
+            u8R"###(    <par>多多上线打怪升级！<emoji id="1"/></par>   )###"
+            u8R"###(    <par><event id="close">关闭</event></par>      )###"
+            u8R"###(</layout>                                          )###";
         sendXMLLayout(uid, xmlMessage);
     };
 }
