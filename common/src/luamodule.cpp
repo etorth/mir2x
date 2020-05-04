@@ -19,6 +19,7 @@
 #include "log.hpp"
 #include <chrono>
 #include <thread>
+#include "sysconst.hpp"
 #include "luamodule.hpp"
 #include "dbcomrecord.hpp"
 
@@ -32,8 +33,8 @@ LuaModule::LuaModule()
             R"###( LOGTYPE_FATAL     = 2    )###""\n"
             R"###( LOGTYPE_DEBUG     = 3    )###""\n");
 
-    m_LuaState.script(str_printf("SYS_NPCINIT = %s", SYS_NPCINIT));
-    m_LuaState.script(str_printf("SYS_NPCDONE = %s", SYS_NPCDONE));
+    m_LuaState.script(str_printf("SYS_NPCINIT = \"%s\"", SYS_NPCINIT));
+    m_LuaState.script(str_printf("SYS_NPCDONE = \"%s\"", SYS_NPCDONE));
 
     // get backtrace in lua
     // used in LuaModule to give location in the script
