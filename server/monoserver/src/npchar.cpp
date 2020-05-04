@@ -19,37 +19,157 @@
 #include <cstdint>
 #include "npchar.hpp"
 #include "fflerror.hpp"
+#include "serverconfigurewindow.hpp"
+
+extern ServerConfigureWindow *g_ServerConfigureWindow;
+
+NPChar::LuaNPCModule::LuaNPCModule(NPChar *npc)
+    : ServerLuaModule()
+    , m_NPChar(npc)
+{
+    m_LuaState.set_function("getUID", [this]() -> std::string
+    {
+        return std::to_string(m_NPChar->UID());
+    });
+
+    m_LuaState.set_function("getName", [this]() -> std::string
+    {
+        return uidf::getUIDString(m_NPChar->UID());
+    });
+
+    m_LuaState.set_function("sayXML", [this](std::string uidString, std::string xmlString)
+    {
+        const uint64_t uid = [&uidString]() -> uint64_t
+        {
+            try{
+                return std::stoull(uidString);
+            }
+            catch(...){
+                //
+            }
+            return 0;
+        }();
+
+        if(uid){
+            m_NPChar->sendXMLLayout(uid, xmlString.c_str());
+        }
+
+        else{
+            addLog(0, "invalid UID: 0");
+        }
+    });
+
+    m_LuaState.set_function("pollEvent", [this](std::string uidString)
+    {
+        const uint64_t uid = [&uidString]() -> uint64_t
+        {
+            try{
+                return std::stoi(uidString);
+            }
+            catch(...){
+                //
+            }
+            return 0;
+        }();
+
+        return sol::as_returns([uid, this]() -> std::vector<std::string>
+        {
+            if(auto p = m_sessionList.find(uid); p != m_sessionList.end()){
+                if(p->second.event.empty()){
+                    return {};
+                }
+
+                if(p->second.value.empty()){
+                    return {std::move(p->second.event)};
+                }
+                return {std::move(p->second.event), std::move(p->second.value)};
+            }
+            throw fflerror("can't find session for UID = %llu", toLLU(uid));
+        }());
+    });
+
+    m_LuaState.script
+    (
+        R"###( function waitEvent(uid)                         )###""\n"
+        R"###(     while true do                               )###""\n"
+        R"###(         local event, value = pollEvent(uid)     )###""\n"
+        R"###(         if event then                           )###""\n"
+        R"###(             return event, value                 )###""\n"
+        R"###(         end                                     )###""\n"
+        R"###(         coroutine.yield()                       )###""\n"
+        R"###(     end                                         )###""\n"
+        R"###( end                                             )###""\n"
+        R"###(                                                 )###""\n"
+        R"###( function startNPCEventLoop(uid)                 )###""\n"
+        R"###(     while true do                               )###""\n"
+        R"###(         local event, value = waitEvent(uid)     )###""\n"
+        R"###(         processNPCEvent(uid, value)             )###""\n"
+        R"###(     end                                         )###""\n"
+        R"###( end                                             )###""\n"
+        R"###(                                                 )###""\n"
+        R"###( local function main(uid)                        )###""\n"
+        R"###(     while true do                               )###""\n"
+        R"###(         local uid, event, value = waitEvent()   )###""\n"
+        R"###(         processNPCEvent[event](uid, value)      )###""\n"
+        R"###(     end                                         )###""\n"
+        R"###( end                                             )###""\n"
+    );
+
+    m_LuaState.script_file([]() -> std::string
+    {
+        if(const auto scriptPath = g_ServerConfigureWindow->GetScriptPath(); !scriptPath.empty()){
+            return scriptPath + "npc/default.lua";
+        }
+        return std::string("script/npc/default.lua");
+    }());
+}
+
+void NPChar::LuaNPCModule::setEvent(uint64_t uid, std::string event, std::string value)
+{
+    if(!(uid && !event.empty())){
+        throw fflerror("invalid argument: uid = %llu, event = %s, value = %s", toLLU(uid), event.c_str(), value.c_str());
+    }
+
+    auto p = m_sessionList.find(uid);
+    if(p == m_sessionList.end()){
+        if(event != "npc_init"){
+            throw fflerror("get script event %s while no communication initialized", event.c_str());
+        }
+
+        LuaNPCModule::LuaNPCSession session
+        {
+            uid,
+            {},
+            {},
+            this,
+            m_LuaState["main"],
+        };
+
+        // create the coroutine
+        // and make it get stuck at pollEvent()
+
+        p = m_sessionList.insert({uid, std::move(session)}).first;
+        p->second.co_handler(std::to_string(uid));
+    }
+
+    if(p->second.uid != uid){
+        throw fflerror("invalid session: key = %llu, value.key = %llu", toLLU(uid), toLLU(p->second.uid));
+    }
+
+    if(!p->second.co_handler){
+        throw fflerror("lua coroutine is not callable");
+    }
+
+    p->second.event = event;
+    p->second.value = value;
+    p->second.co_handler();
+}
 
 NPChar::NPChar(uint16_t lookId, ServiceCore *core, ServerMap *serverMap, int mapX, int mapY, int dirIndex)
     : CharObject(core, serverMap, uidf::buildNPCUID(lookId), mapX, mapY, DIR_NONE)
     , m_dirIndex(dirIndex)
-{
-    // TODO
-    // support lua script, don't use hard coded logic
-
-    m_onEventID[0] = [this](uint64_t uid, const AMNPCEvent &)
-    {
-        const char *xmlMessage = 
-            u8R"###(<layout>                                                                )###"
-            u8R"###(    <par>客官你好，我是%llu，欢迎来到传奇旧时光！<emoji id="0"/></par>  )###"
-            u8R"###(    <par>有什么可以为你效劳的吗？</par>                                 )###"
-            u8R"###(    <par></par>                                                         )###"
-            u8R"###(    <par><event id="1">如何快速升级</event></par>                       )###"
-            u8R"###(    <par><event id="close">关闭</event></par>                           )###"
-            u8R"###(</layout>                                                               )###";
-        sendXMLLayout(uid, str_printf(xmlMessage, toLLU(UID())).c_str());
-    };
-
-    m_onEventID[1] = [this](uint64_t uid, const AMNPCEvent &)
-    {
-        const char *xmlMessage = 
-            u8R"###(<layout>                                           )###"
-            u8R"###(    <par>多多上线打怪升级！<emoji id="1"/></par>   )###"
-            u8R"###(    <par><event id="close">关闭</event></par>      )###"
-            u8R"###(</layout>                                          )###";
-        sendXMLLayout(uid, xmlMessage);
-    };
-}
+    , m_luaModule(this)
+{}
 
 bool NPChar::Update()
 {

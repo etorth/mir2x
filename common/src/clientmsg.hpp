@@ -110,7 +110,8 @@ struct CMAccount
 struct CMNPCEvent
 {
     uint64_t uid;
-    int eventID;
+    char event[32];
+    char value[32];
 };
 #pragma pack(pop)
 

@@ -28,31 +28,24 @@ void NPChar::On_MPK_ACTION(const MessagePack &mpk)
     }
 }
 
-void NPChar::On_MPK_NPCEVENT(const MessagePack &msg)
+void NPChar::On_MPK_NPCEVENT(const MessagePack &mpk)
 {
-    const auto event = msg.conv<AMNPCEvent>();
-    if(event.mapID != MapID() || mathf::LDistance2(event.x, event.y, X(), Y()) >= SYS_MAXNPCDISTANCE * SYS_MAXNPCDISTANCE){
+    if(!mpk.From()){
+        throw fflerror("NPC event comes from zero uid");
+    }
+
+    const auto amNPCE = mpk.conv<AMNPCEvent>();
+    if(amNPCE.mapID != MapID() || mathf::LDistance2(amNPCE.x, amNPCE.y, X(), Y()) >= SYS_MAXNPCDISTANCE * SYS_MAXNPCDISTANCE){
         AMNPCError amNPCE;
         std::memset(&amNPCE, 0, sizeof(amNPCE));
 
         amNPCE.errorID = NPCE_TOOFAR;
-        m_actorPod->forward(msg.From(), {MPK_NPCERROR, amNPCE});
+        m_actorPod->forward(mpk.From(), {MPK_NPCERROR, amNPCE});
+
+        m_luaModule.close(mpk.From());
         return;
     }
-
-    if(auto p = m_onEventID.find(event.eventID); p != m_onEventID.end()){
-        if(p->second){
-            p->second(msg.From(), event);
-            return;
-        }
-        throw fflerror("invalid handler registered for eventID: %lld", toLLD(event.eventID));
-    }
-
-    AMNPCError amNPCE;
-    std::memset(&amNPCE, 0, sizeof(amNPCE));
-
-    amNPCE.errorID = NPCE_BADEVENTID;
-    m_actorPod->forward(msg.From(), {MPK_NPCERROR, amNPCE});
+    m_luaModule.setEvent(mpk.From(), amNPCE.event, amNPCE.value);
 }
 
 void NPChar::On_MPK_NOTIFYNEWCO(const MessagePack &mpk)

@@ -99,13 +99,14 @@ void Player::Net_CM_QUERYGOLD(uint8_t, const uint8_t *, size_t)
 
 void Player::Net_CM_NPCEVENT(uint8_t, const uint8_t *buf, size_t bufLen)
 {
-    const auto event = ClientMsg::conv<CMNPCEvent>(buf, bufLen);
+    const auto cmNPCE = ClientMsg::conv<CMNPCEvent>(buf, bufLen);
     AMNPCEvent amNPCEvent;
 
     std::memset(&amNPCEvent, 0, sizeof(amNPCEvent));
     amNPCEvent.x = X();
     amNPCEvent.y = Y();
     amNPCEvent.mapID = MapID();
-    amNPCEvent.eventID = event.eventID;
-    m_actorPod->forward(event.uid, {MPK_NPCEVENT, amNPCEvent});
+    std::strcpy(amNPCEvent.event, cmNPCE.event);
+    std::strcpy(amNPCEvent.value, cmNPCE.value);
+    m_actorPod->forward(cmNPCE.uid, {MPK_NPCEVENT, amNPCEvent});
 }

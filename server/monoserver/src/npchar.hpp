@@ -25,8 +25,42 @@
 class NPChar final: public CharObject
 {
     private:
+        class LuaNPCModule: public ServerLuaModule
+        {
+            private:
+                struct LuaNPCSession
+                {
+                    uint64_t uid;
+                    std::string event;
+                    std::string value;
+
+                    LuaNPCModule *module;
+                    sol::coroutine co_handler;
+                };
+
+
+            private:
+                std::unordered_map<uint64_t, LuaNPCSession> m_sessionList;
+
+            private:
+                NPChar *m_NPChar;
+
+            public:
+                LuaNPCModule(NPChar *);
+
+            public:
+                void setEvent(uint64_t uid, std::string event, std::string value);
+
+            public:
+                void close(uint64_t uid)
+                {
+                    m_sessionList.erase(uid);
+                }
+        };
+
+    private:
         int m_dirIndex;
-        std::unordered_map<int, std::function<void(uint64_t, const AMNPCEvent &)>> m_onEventID;
+        LuaNPCModule m_luaModule;
 
     public:
         NPChar(uint16_t, ServiceCore *, ServerMap *, int, int, int);

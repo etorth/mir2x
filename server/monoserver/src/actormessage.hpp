@@ -578,7 +578,9 @@ struct AMNPCEvent
     int x;
     int y;
     uint32_t mapID;
-    uint64_t eventID;
+
+    char event[32];
+    char value[32];
 };
 
 struct AMNPCError

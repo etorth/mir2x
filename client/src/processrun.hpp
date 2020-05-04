@@ -309,5 +309,5 @@ class ProcessRun: public Process
         Widget *getWidget(const std::string &);
 
     public:
-        void sendNPCEventID(uint64_t, uint64_t);
+        void sendNPCEvent(uint64_t, const char *, const char * = nullptr);
 };

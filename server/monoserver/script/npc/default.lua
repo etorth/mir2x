@@ -14,7 +14,7 @@
 --
 -- =====================================================================================
 
-event_handler = 
+processNPCEvent =
 {
     ["init"] = function(uid)
         sayXML(string.format(
@@ -39,8 +39,3 @@ event_handler =
         ]])
     end,
 }
-
-function main()
-    local event, uid = waitEvent()
-    event_handler[event](uid)
-end

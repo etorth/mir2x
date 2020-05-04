@@ -654,7 +654,7 @@ void ProcessRun::processEvent(const SDL_Event &event)
                                         }
                                     case UID_NPC:
                                         {
-                                            sendNPCEventID(uid, 0);
+                                            sendNPCEvent(uid, "npc_init");
                                         }
                                     default:
                                         {
@@ -1675,16 +1675,26 @@ Widget *ProcessRun::getWidget(const std::string &widgetName)
     return nullptr;
 }
 
-void ProcessRun::sendNPCEventID(uint64_t uid, uint64_t eventID)
+void ProcessRun::sendNPCEvent(uint64_t uid, const char *event, const char *value)
 {
     if(uidf::getUIDType(uid) != UID_NPC){
         throw fflerror("sending npc event to a non-npc UID");
     }
 
-    CMNPCEvent event;
-    std::memset(&event, 0, sizeof(event));
+    if(!(event && std::strlen(event))){
+        throw fflerror("invalid event name: [%p]%s", event, event ? event : "(null)");
+    }
 
-    event.uid = uid;
-    event.eventID = eventID;
-    g_client->send(CM_NPCEVENT, event);
+    CMNPCEvent cmNPCE;
+    std::memset(&cmNPCE, 0, sizeof(cmNPCE));
+
+    cmNPCE.uid = uid;
+    if(event){
+        std::strcpy(cmNPCE.event, event);
+    }
+
+    if(value){
+        std::strcpy(cmNPCE.value, value);
+    }
+    g_client->send(CM_NPCEVENT, cmNPCE);
 }
