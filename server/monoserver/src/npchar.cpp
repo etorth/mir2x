@@ -144,6 +144,19 @@ void NPChar::LuaNPCModule::setEvent(uint64_t uid, std::string event, std::string
         throw fflerror("invalid argument: uid = %llu, event = %s, value = %s", toLLU(uid), event.c_str(), value.c_str());
     }
 
+    const auto fnCheckCOResult = [this](const auto &result)
+    {
+        if(!result.valid()){
+            sol::error err = result;
+            std::stringstream errStream(err.what());
+
+            std::string errLine;
+            while(std::getline(errStream, errLine, '\n')){
+                addLog(1, errLine.c_str());
+            }
+        }
+    };
+
     auto p = m_sessionList.find(uid);
     if(p == m_sessionList.end()){
         if(event != "npc_init"){
@@ -163,7 +176,8 @@ void NPChar::LuaNPCModule::setEvent(uint64_t uid, std::string event, std::string
         // and make it get stuck at pollEvent()
 
         p = m_sessionList.insert({uid, std::move(session)}).first;
-        p->second.co_handler(std::to_string(uid));
+        const auto result = p->second.co_handler(std::to_string(uid));
+        fnCheckCOResult(result);
     }
 
     if(p->second.uid != uid){
@@ -176,7 +190,9 @@ void NPChar::LuaNPCModule::setEvent(uint64_t uid, std::string event, std::string
 
     p->second.event = event;
     p->second.value = value;
-    p->second.co_handler();
+
+    const auto result = p->second.co_handler();
+    fnCheckCOResult(result);
 }
 
 NPChar::NPChar(uint16_t lookId, ServiceCore *core, ServerMap *serverMap, int mapX, int mapY, int dirIndex)
