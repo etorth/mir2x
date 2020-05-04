@@ -25,12 +25,7 @@
 LuaModule::LuaModule()
     : m_LuaState()
 {
-    m_LuaState.open_libraries(sol::lib::base);
-    m_LuaState.open_libraries(sol::lib::math);
-    m_LuaState.open_libraries(sol::lib::table);
-    m_LuaState.open_libraries(sol::lib::debug);
-    m_LuaState.open_libraries(sol::lib::string);
-
+    m_LuaState.open_libraries();
     m_LuaState.script(
             R"###( LOGTYPE_INFO      = 0    )###""\n"
             R"###( LOGTYPE_WARNING   = 1    )###""\n"

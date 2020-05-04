@@ -27,5 +27,5 @@ class ServerLuaModule: public LuaModule
        ~ServerLuaModule() = default;
 
     protected:
-       void addLog(int, const char *);
+       void addLog(int, const char *) override;
 };

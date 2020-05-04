@@ -39,11 +39,6 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npc)
         return uidf::getUIDString(m_NPChar->UID());
     });
 
-    m_LuaState.set_function("addLog", [](std::string log)
-    {
-        g_MonoServer->addLog(LOGTYPE_INFO, "%s", log.c_str());
-    });
-
     m_LuaState.set_function("sayXML", [this](std::string uidString, std::string xmlString)
     {
         const uint64_t uid = [&uidString]() -> uint64_t
@@ -97,22 +92,24 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npc)
 
     m_LuaState.script
     (
-        R"###( function waitEvent(uid)                          )###""\n"
-        R"###(     while true do                                )###""\n"
-        R"###(         local event, value = pollEvent(uid)      )###""\n"
-        R"###(         if event then                            )###""\n"
-        R"###(             return event, value                  )###""\n"
-        R"###(         end                                      )###""\n"
-        R"###(         coroutine.yield()                        )###""\n"
-        R"###(     end                                          )###""\n"
-        R"###( end                                              )###""\n"
-        R"###(                                                  )###""\n"
-        R"###( function main(uid)                               )###""\n"
-        R"###(     while true do                                )###""\n"
-        R"###(         local event, value = waitEvent(uid)      )###""\n"
-        R"###(         processNPCEvent[event](uid, value)       )###""\n"
-        R"###(     end                                          )###""\n"
-        R"###( end                                              )###""\n"
+        R"###( function waitEvent(uid)                                        )###""\n"
+        R"###(     while true do                                              )###""\n"
+        R"###(         local event, value = pollEvent(uid)                    )###""\n"
+        R"###(         addLog(LOGTYPE_INFO, 'event: ' .. tostring(event))     )###""\n"
+        R"###(         addLog(LOGTYPE_INFO, 'value: ' .. tostring(value))     )###""\n"
+        R"###(         if event then                                          )###""\n"
+        R"###(             return event, value                                )###""\n"
+        R"###(         end                                                    )###""\n"
+        R"###(         coroutine.yield()                                      )###""\n"
+        R"###(     end                                                        )###""\n"
+        R"###( end                                                            )###""\n"
+        R"###(                                                                )###""\n"
+        R"###( function main(uid)                                             )###""\n"
+        R"###(     while true do                                              )###""\n"
+        R"###(         local event, value = waitEvent(uid)                    )###""\n"
+        R"###(         processNPCEvent[event](uid, value)                     )###""\n"
+        R"###(     end                                                        )###""\n"
+        R"###( end                                                            )###""\n"
     );
 
     m_LuaState.script_file([]() -> std::string
