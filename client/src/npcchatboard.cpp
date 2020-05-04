@@ -18,6 +18,7 @@
 
 #include "toll.hpp"
 #include "uidf.hpp"
+#include "sysconst.hpp"
 #include "pngtexdb.hpp"
 #include "sdldevice.hpp"
 #include "processrun.hpp"
@@ -219,7 +220,7 @@ void NPCChatBoard::loadXML(uint64_t uid, const char *xmlString)
 void NPCChatBoard::onClickEvent(const std::string &id)
 {
     m_processRun->addCBLog(CBLOG_SYS, "clickEvent id: %s", id.c_str());
-    if(id == "close"){
+    if(id == SYS_NPCDONE){
         show(false);
     }
     m_processRun->sendNPCEvent(m_NPCUID, id.c_str());

@@ -32,6 +32,9 @@ LuaModule::LuaModule()
             R"###( LOGTYPE_FATAL     = 2    )###""\n"
             R"###( LOGTYPE_DEBUG     = 3    )###""\n");
 
+    m_LuaState.script(str_printf("SYS_NPCINIT = %s", SYS_NPCINIT));
+    m_LuaState.script(str_printf("SYS_NPCDONE = %s", SYS_NPCDONE));
+
     // get backtrace in lua
     // used in LuaModule to give location in the script
 
@@ -64,37 +67,25 @@ LuaModule::LuaModule()
     // but don't call it since this is in constructor!
     // this function need lua::getBackTraceLine() to append the logInfo
 
-    m_LuaState.set_function("addLog", [this](sol::object stLogType, sol::object stLogInfo)
+    m_LuaState.set_function("addLog", [this](sol::object logType, sol::object logInfo)
     {
-        if(stLogType.is<int>() && stLogInfo.is<std::string>()){
-            addLog(stLogType.as<int>(), stLogInfo.as<std::string>().c_str());
+        if(logType.is<int>() && logInfo.is<std::string>()){
+            addLog(logType.as<int>(), logInfo.as<std::string>().c_str());
             return;
         }
 
-        if(stLogType.is<int>()){
-            std::string szWarnInfo;
-            szWarnInfo += "Invalid addLog(";
-            szWarnInfo += std::to_string(stLogType.as<int>());
-            szWarnInfo += ", \"?\")";
-
-            addLog(1, szWarnInfo.c_str());
+        if(logType.is<int>()){
+            addLog(1, str_printf("Invalid addLog(%d, \"?\")", logType.as<int>()).c_str());
             return;
         }
 
-        if(stLogInfo.is<std::string>()){
-            std::string szWarnInfo;
-            szWarnInfo += "Invalid addLog(?, \"";
-            szWarnInfo += stLogInfo.as<std::string>();
-            szWarnInfo += "\")";
-
-            addLog(1, szWarnInfo.c_str());
+        if(logInfo.is<std::string>()){
+            addLog(1, str_printf("Invalid addLog(?, \"%s\")", logInfo.as<std::string>().c_str()).c_str());
             return;
         }
 
-        {
-            addLog(1, "Invalid addLog(?, ?)");
-            return;
-        }
+        addLog(1, "Invalid addLog(?, \"?\")");
+        return;
     });
 
     m_LuaState.script(
@@ -103,13 +94,13 @@ LuaModule::LuaModule()
             R"###(     -- add type checking here                                        )###""\n"
             R"###(     -- need logType as int and logInfo as string                     )###""\n"
             R"###(                                                                      )###""\n"
-            R"###(     if type(logType) == "number" and type(logInfo) == "string" then  )###""\n"
-            R"###(         addLog(logType, getBackTraceLine() .. ": " .. logInfo)       )###""\n"
+            R"###(     if type(logType) == 'number' and type(logInfo) == 'string' then  )###""\n"
+            R"###(         addLog(logType, getBackTraceLine() .. ': ' .. logInfo)       )###""\n"
             R"###(         return                                                       )###""\n"
             R"###(     end                                                              )###""\n"
             R"###(                                                                      )###""\n"
             R"###(     -- else we need to give warning                                  )###""\n"
-            R"###(     addLog(1, "addLog(logType: int, logInfo: string)")               )###""\n"
+            R"###(     addLog(1, 'addLog(logType: int, logInfo: string)')               )###""\n"
             R"###( end                                                                  )###""\n");
 
     m_LuaState.set_function("mapID2Name", [](int nMapID) -> std::string

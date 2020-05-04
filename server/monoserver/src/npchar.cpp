@@ -144,6 +144,11 @@ void NPChar::LuaNPCModule::setEvent(uint64_t uid, std::string event, std::string
         throw fflerror("invalid argument: uid = %llu, event = %s, value = %s", toLLU(uid), event.c_str(), value.c_str());
     }
 
+    if(event == SYS_NPCDONE){
+        m_sessionList.erase(uid);
+        return;
+    }
+
     const auto fnCheckCOResult = [this](const auto &result)
     {
         if(!result.valid()){
@@ -159,24 +164,22 @@ void NPChar::LuaNPCModule::setEvent(uint64_t uid, std::string event, std::string
 
     auto p = m_sessionList.find(uid);
     if(p == m_sessionList.end()){
-        if(event != "npc_init"){
+        if(event != SYS_NPCINIT){
             throw fflerror("get script event %s while no communication initialized", event.c_str());
         }
 
-        LuaNPCModule::LuaNPCSession session
-        {
-            uid,
-            {},
-            {},
-            this,
-            m_LuaState["main"],
-        };
+        LuaNPCModule::LuaNPCSession session;
+        session.uid = uid;
+        session.module = this;
 
-        // create the coroutine
-        // and make it get stuck at pollEvent()
+        session.co_handler.runner = sol::thread::create(GetLuaState().lua_state());
+        session.co_handler.callback = sol::state_view(session.co_handler.runner.state())["main"];
 
         p = m_sessionList.insert({uid, std::move(session)}).first;
-        const auto result = p->second.co_handler(std::to_string(uid));
+
+        session.event.clear();
+        session.value.clear();
+        const auto result = p->second.co_handler.callback(std::to_string(uid));
         fnCheckCOResult(result);
     }
 
@@ -184,14 +187,17 @@ void NPChar::LuaNPCModule::setEvent(uint64_t uid, std::string event, std::string
         throw fflerror("invalid session: key = %llu, value.key = %llu", toLLU(uid), toLLU(p->second.uid));
     }
 
-    if(!p->second.co_handler){
+    if(!p->second.co_handler.callback){
         throw fflerror("lua coroutine is not callable");
     }
 
-    p->second.event = event;
-    p->second.value = value;
+    // clear the event
+    // call the coroutine to make it stuck at pollEvent()
 
-    const auto result = p->second.co_handler();
+    p->second.event = std::move(event);
+    p->second.value = std::move(value);
+
+    const auto result = p->second.co_handler.callback();
     fnCheckCOResult(result);
 }
 

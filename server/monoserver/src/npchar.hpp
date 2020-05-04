@@ -35,9 +35,13 @@ class NPChar final: public CharObject
                     std::string value;
 
                     LuaNPCModule *module;
-                    sol::coroutine co_handler;
-                };
 
+                    struct LuaCORunner
+                    {
+                        sol::thread runner;
+                        sol::coroutine callback;
+                    } co_handler;
+                };
 
             private:
                 std::unordered_map<uint64_t, LuaNPCSession> m_sessionList;
