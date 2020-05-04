@@ -26,10 +26,10 @@ mir2x is a c/s based mir2ei implementation with various platforms supported. It 
   - mapeditor
   - dbcreator
 
-![image](https://github.com/etorth/mir2x/raw/master/readme/screencapture.gif)
-![image](https://github.com/etorth/mir2x/raw/master/readme/screencapture2.gif)
-![image](https://github.com/etorth/mir2x/raw/master/readme/screencapture3.png)
-![image](https://github.com/etorth/mir2x/raw/master/readme/mapeditor.png)
+<img src="https://github.com/etorth/mir2x/raw/master/readme/screencapture.gif" width="800" height="600"/>
+<img src="https://github.com/etorth/mir2x/raw/master/readme/screencapture2.gif" width="800" height="600"/>
+<img src="https://github.com/etorth/mir2x/raw/master/readme/screencapture3.png" width="800" height="433"/>
+<img src="https://github.com/etorth/mir2x/raw/master/readme/mapeditor.png" width="800" height="520"/>
 
 ### Windows
 
