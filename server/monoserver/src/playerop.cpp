@@ -423,6 +423,9 @@ void Player::On_MPK_NPCXMLLAYOUT(const MessagePack &msg)
     std::memset(&smNPCXMLL, 0, sizeof(smNPCXMLL));
 
     smNPCXMLL.NPCUID = msg.From();
+    if(std::strlen(amNPCXMLL.xmlLayout) >= sizeof(smNPCXMLL.xmlLayout)){
+        throw fflerror("actor message is too long: %zu", std::strlen(amNPCXMLL.xmlLayout));
+    }
     std::strcpy(smNPCXMLL.xmlLayout, amNPCXMLL.xmlLayout);
     postNetMessage(SM_NPCXMLLAYOUT, smNPCXMLL);
 }

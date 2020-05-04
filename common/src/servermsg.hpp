@@ -239,7 +239,7 @@ struct SMGold
 struct SMNPCXMLLayout
 {
     uint64_t NPCUID;
-    char xmlLayout[512];
+    char xmlLayout[1024];
 };
 
 #pragma pack(pop)

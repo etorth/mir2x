@@ -14,10 +14,14 @@
 --
 -- =====================================================================================
 
+-- NPC script
+-- provides the table: processNPCEvent for event processing
+
+addLog(LOGTYPE_INFO, string.format('NPC %s sources default.lua', getName()))
 processNPCEvent =
 {
-    ["npc_init"] = function(uid)
-        sayXML(string.format(
+    ["npc_init"] = function(uid, value)
+        sayXML(uid, string.format(
         [[
             <layout>                                                                
                 <par>客官你好，我是%s，欢迎来到传奇旧时光！<emoji id="0"/></par>  
@@ -26,11 +30,11 @@ processNPCEvent =
                 <par><event id="event_1">如何快速升级</event></par>                       
                 <par><event id="close">关闭</event></par>                           
             </layout>                                                               
-        ]], getSelfName()))
+        ]], getName()))
     end,
 
-    ["event_1"] = function(uid)
-        sayXML(
+    ["event_1"] = function(uid, value)
+        sayXML(uid,
         [[
             <layout>                                        
                 <par>多多上线打怪升级！<emoji id="1"/></par>

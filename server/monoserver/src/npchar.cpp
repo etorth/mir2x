@@ -22,7 +22,6 @@
 #include "monoserver.hpp"
 #include "serverconfigurewindow.hpp"
 
-extern MonoServer *g_MonoServer;
 extern ServerConfigureWindow *g_ServerConfigureWindow;
 
 NPChar::LuaNPCModule::LuaNPCModule(NPChar *npc)
@@ -36,7 +35,10 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npc)
 
     m_LuaState.set_function("getName", [this]() -> std::string
     {
-        return uidf::getUIDString(m_NPChar->UID());
+        if(m_NPChar->UID()){
+            return uidf::getUIDString(m_NPChar->UID());
+        }
+        return std::string("InactiveNPC");
     });
 
     m_LuaState.set_function("sayXML", [this](std::string uidString, std::string xmlString)
@@ -95,8 +97,6 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npc)
         R"###( function waitEvent(uid)                                        )###""\n"
         R"###(     while true do                                              )###""\n"
         R"###(         local event, value = pollEvent(uid)                    )###""\n"
-        R"###(         addLog(LOGTYPE_INFO, 'event: ' .. tostring(event))     )###""\n"
-        R"###(         addLog(LOGTYPE_INFO, 'value: ' .. tostring(value))     )###""\n"
         R"###(         if event then                                          )###""\n"
         R"###(             return event, value                                )###""\n"
         R"###(         end                                                    )###""\n"
@@ -107,7 +107,9 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npc)
         R"###( function main(uid)                                             )###""\n"
         R"###(     while true do                                              )###""\n"
         R"###(         local event, value = waitEvent(uid)                    )###""\n"
-        R"###(         processNPCEvent[event](uid, value)                     )###""\n"
+        R"###(         if type(processNPCEvent[event]) == 'function' then     )###""\n"
+        R"###(             processNPCEvent[event](uid, value)                 )###""\n"
+        R"###(         end                                                    )###""\n"
         R"###(     end                                                        )###""\n"
         R"###( end                                                            )###""\n"
     );
