@@ -16,7 +16,7 @@
 
 processNPCEvent =
 {
-    ["init"] = function(uid)
+    ["npc_init"] = function(uid)
         sayXML(string.format(
         [[
             <layout>                                                                
