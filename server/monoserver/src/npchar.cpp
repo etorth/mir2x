@@ -71,7 +71,7 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npc)
         const uint64_t uid = [&uidString]() -> uint64_t
         {
             try{
-                return std::stoi(uidString);
+                return std::stoull(uidString);
             }
             catch(...){
                 //
