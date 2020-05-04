@@ -19,8 +19,10 @@
 #include <cstdint>
 #include "npchar.hpp"
 #include "fflerror.hpp"
+#include "monoserver.hpp"
 #include "serverconfigurewindow.hpp"
 
+extern MonoServer *g_MonoServer;
 extern ServerConfigureWindow *g_ServerConfigureWindow;
 
 NPChar::LuaNPCModule::LuaNPCModule(NPChar *npc)
@@ -35,6 +37,11 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npc)
     m_LuaState.set_function("getName", [this]() -> std::string
     {
         return uidf::getUIDString(m_NPChar->UID());
+    });
+
+    m_LuaState.set_function("addLog", [](std::string log)
+    {
+        g_MonoServer->addLog(LOGTYPE_INFO, "%s", log.c_str());
     });
 
     m_LuaState.set_function("sayXML", [this](std::string uidString, std::string xmlString)
