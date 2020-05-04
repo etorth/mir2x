@@ -17,6 +17,7 @@
  */
 
 #include <cstdint>
+#include "uidf.hpp"
 #include "npchar.hpp"
 #include "fflerror.hpp"
 #include "monoserver.hpp"
@@ -30,15 +31,29 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npc)
 {
     m_LuaState.set_function("getUID", [this]() -> std::string
     {
-        return std::to_string(m_NPChar->UID());
+        return std::to_string(m_NPChar->rawUID());
+    });
+
+    m_LuaState.set_function("getUIDString", [](std::string uidString) -> std::string
+    {
+        const uint64_t uid = [&uidString]() -> uint64_t
+        {
+            try{
+                return std::stoull(uidString);
+            }
+            catch(...){
+                return 0;
+            }
+        }();
+        return uidf::getUIDString(uid);
     });
 
     m_LuaState.set_function("getName", [this]() -> std::string
     {
-        if(m_NPChar->UID()){
-            return uidf::getUIDString(m_NPChar->UID());
+        if(m_NPChar->rawUID()){
+            return uidf::getUIDString(m_NPChar->rawUID());
         }
-        return std::string("InactiveNPC");
+        return std::string("ZERO");
     });
 
     m_LuaState.set_function("sayXML", [this](std::string uidString, std::string xmlString)

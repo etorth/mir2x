@@ -121,7 +121,12 @@ class ServerObject
     public:
         uint64_t UID() const
         {
-            return ActorPodValid() ? m_UID : 0;
+            return ActorPodValid() ? rawUID() : 0;
+        }
+
+        uint64_t rawUID() const
+        {
+            return m_UID;
         }
 
         const char *UIDName() const

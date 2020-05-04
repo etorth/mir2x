@@ -99,11 +99,15 @@ std::string uidf::getUIDString(uint64_t uid)
     switch(getUIDType(uid)){
         case UID_PLY:
             {
-                return str_printf("%PLY%llu", toLLU((uid & 0XFFFFFFFF)));
+                return str_printf("PLY%llu", toLLU((uid & 0XFFFFFFFF)));
             }
         case UID_MON:
             {
                 return str_printf("MON%llu_%llu", getMonsterID(uid), getMonsterSeq(uid));
+            }
+        case UID_NPC:
+            {
+                return str_printf("NPC%llu_%llu", toLLU(uidf::getLookID(uid)), toLLU(uid & 0XFFFF));
             }
         case UID_MAP:
             {

@@ -24,13 +24,13 @@ processNPCEvent =
         sayXML(uid, string.format(
         [[
             <layout>                                                                
-                <par>客官你好，我是%s，欢迎来到传奇旧时光！<emoji id="0"/></par>  
+                <par>客官%s你好，我是%s，欢迎来到传奇旧时光！<emoji id="0"/></par>
                 <par>有什么可以为你效劳的吗？</par>                                 
                 <par></par>                                                         
                 <par><event id="event_1">如何快速升级</event></par>                       
                 <par><event id="close">关闭</event></par>                           
             </layout>                                                               
-        ]], getName()))
+        ]], getUIDString(uid), getName()))
     end,
 
     ["event_1"] = function(uid, value)
