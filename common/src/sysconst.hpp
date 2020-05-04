@@ -61,8 +61,8 @@ constexpr int SYS_MAXACTOR  = 65521;
 constexpr uint32_t SYS_TEXNIL = 0XFFFFFFFF;
 constexpr int SYS_MAXNPCDISTANCE = 10;
 
-constexpr char SYS_NPCINIT[] = "npc_init";
-constexpr char SYS_NPCDONE[] = "npc_done";
+constexpr char SYS_NPCINIT[] = "RSVD_NPC_INIT_2967391362393263";
+constexpr char SYS_NPCDONE[] = "RSVD_NPC_DONE_6381083734343264";
 
 constexpr uint32_t SYS_NEEDEXP[]
 {

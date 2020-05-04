@@ -20,7 +20,7 @@
 addLog(LOGTYPE_INFO, string.format('NPC %s sources default.lua', getName()))
 processNPCEvent =
 {
-    ["npc_init"] = function(uid, value)
+    [SYS_NPCINIT] = function(uid, value)
         sayXML(uid, string.format(
         [[
             <layout>
