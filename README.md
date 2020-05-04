@@ -28,6 +28,7 @@ mir2x is a c/s based mir2ei implementation with various platforms supported. It 
 
 ![image](https://github.com/etorth/mir2x/raw/master/readme/screencapture.gif)
 ![image](https://github.com/etorth/mir2x/raw/master/readme/screencapture2.gif)
+![image](https://github.com/etorth/mir2x/raw/master/readme/screencapture3.png)
 ![image](https://github.com/etorth/mir2x/raw/master/readme/mapeditor.png)
 
 ### Windows
