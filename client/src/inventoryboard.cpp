@@ -63,6 +63,7 @@ InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget
       }
     , m_processRun(pRun)
 {
+    show(false);
     if(auto pTexture = g_ProgUseDB->Retrieve(0X0000001B)){
         SDL_QueryTexture(pTexture, nullptr, nullptr, &m_w, &m_h);
     }

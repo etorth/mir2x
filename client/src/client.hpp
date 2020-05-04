@@ -58,7 +58,7 @@ class Client final
 
     private:
         double m_ServerDelay;
-        double m_NetPackTick;
+        double m_netPackTick;
 
     private:
         NetIO m_netIO;
@@ -105,9 +105,7 @@ class Client final
         void SwitchProcess(int, int);
 
     public:
-        void InitASIO();
-        void PollASIO();
-        void StopASIO();
+        void initASIO();
 
     private:
         void OnServerMessage(uint8_t, const uint8_t *, size_t);
@@ -151,10 +149,15 @@ class Client final
             throw fflerror("not in process run");
         }
 
+    private:
+        void sendCMsgLog(uint8_t);
+        void sendSMsgLog(uint8_t);
+
     public:
-        template<typename... U> void send(U&&... u)
+        template<typename... U> void send(uint8_t headCode, U&&... u)
         {
-            m_netIO.send(std::forward<U>(u)...);
+            m_netIO.send(headCode, std::forward<U>(u)...);
+            sendCMsgLog(headCode);
         }
 
     public:

@@ -47,7 +47,7 @@ extern ClientArgParser *g_clientArgParser;
 Client::Client()
     : m_ClientMonitor()
     , m_ServerDelay( 0.00)
-    , m_NetPackTick(-1.00)
+    , m_netPackTick(-1.00)
     , m_RequestProcess(PROCESSID_NONE)
     , m_CurrentProcess(nullptr)
 {
@@ -71,7 +71,7 @@ void Client::processEvent()
 void Client::MainLoop()
 {
     SwitchProcess(PROCESSID_LOGO);
-    InitASIO();
+    initASIO();
 
     auto fDelayDraw   = (1000.0 / (1.0 * SYS_DEFFPS)) / 6.0;
     auto fDelayUpdate = (1000.0 / (1.0 * SYS_DEFFPS)) / 7.0;
@@ -91,8 +91,8 @@ void Client::MainLoop()
                 && m_CurrentProcess
                 && m_CurrentProcess->ID() != PROCESSID_EXIT){
 
-            if(m_NetPackTick > 0.0){
-                if(SDL_GetTicks() * 1.0 - m_NetPackTick > 15.0 * 1000){
+            if(m_netPackTick > 0.0){
+                if(SDL_GetTicks() * 1.0 - m_netPackTick > 15.0 * 1000){
                     // std::exit(0);
                 }
             }
@@ -127,7 +127,7 @@ void Client::EventDelay(double fDelayMS)
     while(true){
 
         // always try to poll it
-        PollASIO();
+        m_netIO.poll();
 
         // everytime firstly try to process all pending events
         processEvent();
@@ -145,7 +145,7 @@ void Client::EventDelay(double fDelayMS)
     }
 }
 
-void Client::InitASIO()
+void Client::initASIO()
 {
     // this function will run in another thread
     // make sure there is no data race
@@ -166,37 +166,27 @@ void Client::InitASIO()
         szPort = "5000";
     }
 
-    m_netIO.start(szIP.c_str(), szPort.c_str(), [this](uint8_t nHC, const uint8_t *pData, size_t nDataLen)
+    m_netIO.start(szIP.c_str(), szPort.c_str(), [this](uint8_t headCode, const uint8_t *pData, size_t nDataLen)
     {
         // core should handle on fully recieved message from the serer
         // previously there are two steps (HC, Body) seperately handled, error-prone
-        OnServerMessage(nHC, pData, nDataLen);
+        OnServerMessage(headCode, pData, nDataLen);
     });
 }
 
-void Client::PollASIO()
-{
-    m_netIO.poll();
-}
-
-void Client::StopASIO()
-{
-    m_netIO.stop();
-}
-
-void Client::OnServerMessage(uint8_t nHC, const uint8_t *pData, size_t nDataLen)
+void Client::OnServerMessage(uint8_t headCode, const uint8_t *pData, size_t nDataLen)
 {
     // 1. update the time when last message received
-    m_NetPackTick = SDL_GetTicks() * 1.0;
-    if(nHC != SM_PING){
-        g_debugBoard->addLog("[%08.3f]%s", (float)(m_NetPackTick / 1000.0f), ServerMsg(nHC).name().c_str());
+    m_netPackTick = SDL_GetTicks() * 1.0;
+    if(headCode != SM_PING){
+        sendSMsgLog(headCode);
     }
 
-    m_ClientMonitor.SMProcMonitorList[nHC].RecvCount++;
-    raii_timer stTimer(&(m_ClientMonitor.SMProcMonitorList[nHC].ProcTick));
+    m_ClientMonitor.SMProcMonitorList[headCode].RecvCount++;
+    raii_timer stTimer(&(m_ClientMonitor.SMProcMonitorList[headCode].ProcTick));
 
     // 2. handle messages
-    switch(nHC){
+    switch(headCode){
         case SM_UPDATEHP:
             {
                 if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
@@ -424,6 +414,16 @@ void Client::SwitchProcess(int nOldID, int nNewID)
                 break;
             }
     }
+}
+
+void Client::sendCMsgLog(uint8_t headCode)
+{
+    g_debugBoard->addLog(u8"[%08.3f] ← %s", (float)(SDL_GetTicks()) / 1000.0f, ClientMsg(headCode).name().c_str());
+}
+
+void Client::sendSMsgLog(uint8_t headCode)
+{
+    g_debugBoard->addLog(u8"[%08.3f] → %s", (float)(SDL_GetTicks()) / 1000.0f, ServerMsg(headCode).name().c_str());
 }
 
 void Client::PrintMonitor() const

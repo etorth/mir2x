@@ -563,10 +563,10 @@ void ProcessRun::Draw()
 
     // draw debugBoard
     {
-        const int x = 0;
-        const int y = 0;
-        const int w = std::max<int>(g_debugBoard->pw(), 200);
+        const int w = std::max<int>(g_debugBoard->pw() + 10, 160);
         const int h = g_debugBoard->h();
+        const int x = 0;
+        const int y = std::get<1>(g_SDLDevice->getRendererSize()) - h - 133;
 
         {
             SDLDevice::EnableDrawColor enableColor(colorf::GREEN + 200);
