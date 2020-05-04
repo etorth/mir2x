@@ -95,6 +95,11 @@ void Player::OperateAM(const MessagePack &rstMPK)
                 On_MPK_MAPSWITCH(rstMPK);
                 break;
             }
+        case MPK_NPCQUERY:
+            {
+                On_MPK_NPCQUERY(rstMPK);
+                break;
+            }
         case MPK_QUERYLOCATION:
             {
                 On_MPK_QUERYLOCATION(rstMPK);

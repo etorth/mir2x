@@ -55,6 +55,7 @@ void ProcessRun::Net_LOGINOK(const uint8_t *pBuf, size_t nLen)
         m_creatureList[nUID] = std::make_unique<MyHero>(nUID, nDBID, bGender, nDressID, this, ActionStand(nX, nY, nDirection));
 
         CenterMyHero();
+        GetMyHero()->PullGold();
     }
 }
 

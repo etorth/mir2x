@@ -107,6 +107,7 @@ class Player final: public CharObject
         void On_MPK_CORECORD(const MessagePack &);
         void On_MPK_PICKUPOK(const MessagePack &);
         void On_MPK_UPDATEHP(const MessagePack &);
+        void On_MPK_NPCQUERY(const MessagePack &);
         void On_MPK_METRONOME(const MessagePack &);
         void On_MPK_MAPSWITCH(const MessagePack &);
         void On_MPK_NETPACKAGE(const MessagePack &);

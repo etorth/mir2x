@@ -98,6 +98,7 @@ class NPChar final: public CharObject
         void On_MPK_QUERYLOCATION(const MessagePack &);
 
     private:
+        void sendQuery(uint64_t, const std::string &);
         void sendXMLLayout(uint64_t, const char *);
 
     public:

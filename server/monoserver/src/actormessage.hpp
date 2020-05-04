@@ -80,6 +80,7 @@ enum MessagePackType: int
     MPK_QUERYNAMECOLOR,
     MPK_NAMECOLOR,
     MPK_MASTERKILL,
+    MPK_NPCQUERY,
     MPK_NPCEVENT,
     MPK_NPCXMLLAYOUT,
     MPK_NPCERROR,
@@ -581,6 +582,11 @@ struct AMNPCEvent
 
     char event[32];
     char value[32];
+};
+
+struct AMNPCQuery
+{
+    char query[32];
 };
 
 struct AMNPCError

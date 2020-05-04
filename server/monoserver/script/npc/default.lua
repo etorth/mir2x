@@ -34,12 +34,22 @@ processNPCEvent =
     end,
 
     ["event_1"] = function(uid, value)
-        sayXML(uid, string.format(
-        [[
-            <layout>
-                <par>多多上线打怪升级！<emoji id="1"/></par>
-                <par><event id="%s">关闭</event></par>
-            </layout>
-        ]], SYS_NPCDONE))
+        if queryGold(uid) < 10000 then
+            sayXML(uid, string.format(
+            [[
+                <layout>
+                    <par>穷鬼，先去赚点钱吧！<emoji id="2"/></par>
+                    <par><event id="%s">关闭</event></par>
+                </layout>
+            ]], SYS_NPCDONE))
+        else
+            sayXML(uid, string.format(
+            [[
+                <layout>
+                    <par>多多上线打怪升级！<emoji id="1"/></par>
+                    <par><event id="%s">关闭</event></par>
+                </layout>
+            ]], SYS_NPCDONE))
+        end
     end,
 }

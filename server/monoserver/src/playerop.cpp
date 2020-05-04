@@ -285,6 +285,28 @@ void Player::On_MPK_MAPSWITCH(const MessagePack &rstMPK)
     });
 }
 
+void Player::On_MPK_NPCQUERY(const MessagePack &mpk)
+{
+    const std::string queryName = mpk.conv<AMNPCQuery>().query;
+    AMNPCEvent amNPCE;
+
+    std::memset(&amNPCE, 0, sizeof(amNPCE));
+    std::strcpy(amNPCE.event, queryName.c_str());
+
+    if(queryName == "NPCQ_GOLD"){
+        std::sprintf(amNPCE.value, "%d", m_Gold);
+    }
+
+    else if(queryName == "NPCQ_LEVEL"){
+        std::sprintf(amNPCE.value, "%d", m_Level);
+    }
+
+    else{
+        std::strcpy(amNPCE.value, "ERROR");
+    }
+    m_actorPod->forward(mpk.From(), {MPK_NPCEVENT, amNPCE}, mpk.ID());
+}
+
 void Player::On_MPK_QUERYLOCATION(const MessagePack &rstMPK)
 {
     AMLocation stAML;

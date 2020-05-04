@@ -56,6 +56,24 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npc)
         return std::string("ZERO");
     });
 
+    m_LuaState.set_function("sendQuery", [this](std::string uidString, std::string queryName)
+    {
+        const uint64_t uid = [&uidString]() -> uint64_t
+        {
+            try{
+                return std::stoull(uidString);
+            }
+            catch(...){
+                return 0;
+            }
+        }();
+
+        if(!uid){
+            throw fflerror("bad uid: ZERO");
+        }
+        m_NPChar->sendQuery(uid, queryName);
+    });
+
     m_LuaState.set_function("sayXML", [this](std::string uidString, std::string xmlString)
     {
         const uint64_t uid = [&uidString]() -> uint64_t
@@ -109,24 +127,35 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npc)
 
     m_LuaState.script
     (
-        R"###( function waitEvent(uid)                                        )###""\n"
-        R"###(     while true do                                              )###""\n"
-        R"###(         local event, value = pollEvent(uid)                    )###""\n"
-        R"###(         if event then                                          )###""\n"
-        R"###(             return event, value                                )###""\n"
-        R"###(         end                                                    )###""\n"
-        R"###(         coroutine.yield()                                      )###""\n"
-        R"###(     end                                                        )###""\n"
-        R"###( end                                                            )###""\n"
-        R"###(                                                                )###""\n"
-        R"###( function main(uid)                                             )###""\n"
-        R"###(     while true do                                              )###""\n"
-        R"###(         local event, value = waitEvent(uid)                    )###""\n"
-        R"###(         if type(processNPCEvent[event]) == 'function' then     )###""\n"
-        R"###(             processNPCEvent[event](uid, value)                 )###""\n"
-        R"###(         end                                                    )###""\n"
-        R"###(     end                                                        )###""\n"
-        R"###( end                                                            )###""\n"
+        R"###( function queryGold(uid)                                                   )###""\n"
+        R"###(     sendQuery(uid, 'NPCQ_GOLD')                                           )###""\n"
+        R"###(     local event, value = waitEvent(uid)                                   )###""\n"
+        R"###(     if event == 'NPCQ_GOLD' then                                          )###""\n"
+        R"###(         return tonumber(value)                                            )###""\n"
+        R"###(     else                                                                  )###""\n"
+        R"###(         addLog(1, 'Wait event for NPCQ_GOLD but get ' .. tostring(event)) )###""\n"
+        R"###(         return nil                                                        )###""\n"
+        R"###(     end                                                                   )###""\n"
+        R"###( end                                                                       )###""\n"
+        R"###(                                                                           )###""\n"
+        R"###( function waitEvent(uid)                                                   )###""\n"
+        R"###(     while true do                                                         )###""\n"
+        R"###(         local event, value = pollEvent(uid)                               )###""\n"
+        R"###(         if event then                                                     )###""\n"
+        R"###(             return event, value                                           )###""\n"
+        R"###(         end                                                               )###""\n"
+        R"###(         coroutine.yield()                                                 )###""\n"
+        R"###(     end                                                                   )###""\n"
+        R"###( end                                                                       )###""\n"
+        R"###(                                                                           )###""\n"
+        R"###( function main(uid)                                                        )###""\n"
+        R"###(     while true do                                                         )###""\n"
+        R"###(         local event, value = waitEvent(uid)                               )###""\n"
+        R"###(         if type(processNPCEvent[event]) == 'function' then                )###""\n"
+        R"###(             processNPCEvent[event](uid, value)                            )###""\n"
+        R"###(         end                                                               )###""\n"
+        R"###(     end                                                                   )###""\n"
+        R"###( end                                                                       )###""\n"
     );
 
     m_LuaState.script_file([]() -> std::string
@@ -248,6 +277,19 @@ bool NPChar::GoDie()
 bool NPChar::GoGhost()
 {
     return true;
+}
+
+void NPChar::sendQuery(uint64_t uid, const std::string &queryName)
+{
+    AMNPCQuery amNPCQ;
+    std::memset(&amNPCQ, 0, sizeof(amNPCQ));
+
+    if(queryName.size() >= sizeof(amNPCQ.query)){
+        throw fflerror("query name is too long: %s", queryName.c_str());
+    }
+
+    std::strcpy(amNPCQ.query, queryName.c_str());
+    m_actorPod->forward(uid, {MPK_NPCQUERY, amNPCQ});
 }
 
 void NPChar::sendXMLLayout(uint64_t uid, const char *xmlString)
