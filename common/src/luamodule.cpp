@@ -33,8 +33,10 @@ LuaModule::LuaModule()
             R"###( LOGTYPE_FATAL     = 2    )###""\n"
             R"###( LOGTYPE_DEBUG     = 3    )###""\n");
 
-    m_LuaState.script(str_printf("SYS_NPCINIT = \"%s\"", SYS_NPCINIT));
-    m_LuaState.script(str_printf("SYS_NPCDONE = \"%s\"", SYS_NPCDONE));
+    m_LuaState.script(str_printf("SYS_NPCINIT  = \"%s\"", SYS_NPCINIT ));
+    m_LuaState.script(str_printf("SYS_NPCDONE  = \"%s\"", SYS_NPCDONE ));
+    m_LuaState.script(str_printf("SYS_NPCQUERY = \"%s\"", SYS_NPCQUERY));
+    m_LuaState.script(str_printf("SYS_NPCERROR = \"%s\"", SYS_NPCERROR));
 
     // get backtrace in lua
     // used in LuaModule to give location in the script

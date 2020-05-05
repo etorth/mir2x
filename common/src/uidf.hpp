@@ -105,3 +105,25 @@ namespace uidf
     uint32_t getMapID (uint64_t);
     uint16_t getLookID(uint64_t);
 }
+
+namespace uidf
+{
+    inline uint64_t toUID(const std::string &uidString)
+    {
+        try{
+            return std::stoull(uidString);
+        }
+        catch(...){
+            //
+        }
+        return 0;
+    }
+
+    inline uint64_t toUIDEx(const std::string &uidString)
+    {
+        if(const uint64_t uid = toUID(uidString)){
+            return uid;
+        }
+        throw fflerror("failed to convert %s to a valid UID", uidString.c_str());
+    }
+}

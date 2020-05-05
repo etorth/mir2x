@@ -35,6 +35,15 @@ void NPChar::On_MPK_NPCEVENT(const MessagePack &mpk)
     }
 
     const auto amNPCE = mpk.conv<AMNPCEvent>();
+
+    // for NPC query we don't check location
+    // it's sent by NPC itself
+
+    if(std::string(amNPCE.event) == SYS_NPCQUERY || std::string(amNPCE.event) == SYS_NPCDONE){
+        m_luaModule.setEvent(mpk.From(), amNPCE.event, amNPCE.value);
+        return;
+    }
+
     if(amNPCE.mapID != MapID() || mathf::LDistance2(amNPCE.x, amNPCE.y, X(), Y()) >= SYS_MAXNPCDISTANCE * SYS_MAXNPCDISTANCE){
         AMNPCError amNPCE;
         std::memset(&amNPCE, 0, sizeof(amNPCE));

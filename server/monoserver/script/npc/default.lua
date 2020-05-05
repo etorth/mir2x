@@ -27,14 +27,16 @@ processNPCEvent =
                 <par>客官%s你好，我是%s，欢迎来到传奇旧时光！<emoji id="0"/></par>
                 <par>有什么可以为你效劳的吗？</par>
                 <par></par>
-                <par><event id="event_1">如何快速升级</event></par>
+                <par><event id="event_1">如何玩得开心</event></par>
                 <par><event id="%s">关闭</event></par>
             </layout>
         ]], getUIDString(uid), getName(), SYS_NPCDONE))
     end,
 
     ["event_1"] = function(uid, value)
-        if queryGold(uid) < 10000 then
+        local gold  = queryGold(uid)
+        local level = queryLevel(uid)
+        if gold < 1000 then
             sayXML(uid, string.format(
             [[
                 <layout>
@@ -42,6 +44,14 @@ processNPCEvent =
                     <par><event id="%s">关闭</event></par>
                 </layout>
             ]], SYS_NPCDONE))
+        elseif level < 10 then
+            sayXML(uid, string.format(
+            [[
+                <layout>
+                    <par>客官你才%d级，先去打怪升级吧！<emoji id="3"/></par>
+                    <par><event id="%s">关闭</event></par>
+                </layout>
+            ]], level, SYS_NPCDONE))
         else
             sayXML(uid, string.format(
             [[

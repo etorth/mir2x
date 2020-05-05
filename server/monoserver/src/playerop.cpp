@@ -293,17 +293,19 @@ void Player::On_MPK_NPCQUERY(const MessagePack &mpk)
     std::memset(&amNPCE, 0, sizeof(amNPCE));
     std::strcpy(amNPCE.event, queryName.c_str());
 
-    if(queryName == "NPCQ_GOLD"){
+    if(queryName == "GOLD"){
         std::sprintf(amNPCE.value, "%d", m_Gold);
     }
 
-    else if(queryName == "NPCQ_LEVEL"){
+    else if(queryName == "LEVEL"){
         std::sprintf(amNPCE.value, "%d", m_Level);
     }
 
     else{
-        std::strcpy(amNPCE.value, "ERROR");
+        std::strcpy(amNPCE.value, SYS_NPCERROR);
     }
+
+    std::strcpy(amNPCE.event, SYS_NPCQUERY);
     m_actorPod->forward(mpk.From(), {MPK_NPCEVENT, amNPCE}, mpk.ID());
 }
 
