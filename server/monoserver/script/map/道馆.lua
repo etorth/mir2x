@@ -19,7 +19,7 @@ if g_Inited == nil then
     -- only initialize once
     -- initialize all global/constant variables
 
-    g_MaxMonsterCount = 20
+    g_MaxMonsterCount = 1000
     g_LogicDelay      = 1000
     g_LastInvokeTime  = getTime()
 
@@ -65,8 +65,15 @@ if getTime() - g_LastInvokeTime > g_LogicDelay then
 
     if getMonsterCountInList() < g_MaxMonsterCount then
 
-        addMonster(g_MonsterList[math.random(#g_MonsterList)], 400 + math.random(1, 5), 120 + math.random(1, 5), true)
+        local monsterName = g_MonsterList[math.random(#g_MonsterList)]
+        for i = 1, 50 do
+            local x, y = getRandLoc()
+            addMonster(monsterName, x, y, true)
+        end
+
+        if math.random(1, 20) == 1 then
+            addMonster(monsterName, 400 + math.random(1, 5), 120 + math.random(1, 5), true)
+        end
 
     end
-
 end

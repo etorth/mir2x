@@ -906,6 +906,22 @@ bool ServerMap::RegisterLuaExport(ServerMap::ServerMapLuaModule *pModule)
         return std::string(DBCOM_MAPRECORD(ID()).Name);
     });
 
+    pModule->GetLuaState().set_function("getRandLoc", [this]() /* -> ? */
+    {
+        std::array<int, 2> loc;
+        while(true){
+            const int x = std::rand() % W();
+            const int y = std::rand() % H();
+
+            if(GroundValid(x, y)){
+                loc[0] = x;
+                loc[1] = y;
+                break;
+            }
+        }
+        return sol::as_returns(loc);
+    });
+
     pModule->GetLuaState().set_function("getMonsterCount", [this](sol::variadic_args stVariadicArgs) -> int
     {
         std::vector<sol::object> stArgList(stVariadicArgs.begin(), stVariadicArgs.end());
