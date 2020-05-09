@@ -1490,18 +1490,18 @@ void ProcessRun::CenterMyHero()
     const auto nX          = GetMyHero()->currMotion().x;
     const auto nY          = GetMyHero()->currMotion().y;
     const auto nFrame      = GetMyHero()->currMotion().frame;
-    const auto nFrameCount = GetMyHero()->motionFrameCount(nMotion, nDirection);
+    const auto frameCount = GetMyHero()->motionFrameCount(nMotion, nDirection);
 
-    if(nFrameCount <= 0){
-        throw fflerror("invalid frame count: %d", nFrameCount);
+    if(frameCount <= 0){
+        throw fflerror("invalid frame count: %d", frameCount);
     }
 
-    auto fnSetOff = [this, nX, nY, nDirection, nFrame, nFrameCount](int nStepLen)
+    const auto fnSetOff = [this, nX, nY, nDirection, nFrame, frameCount](int stepLen)
     {
         const auto showWindowW = g_SDLDevice->WindowW(false);
         const auto showWindowH = g_SDLDevice->WindowH(false) - m_controlBoard.h();
 
-        switch(nStepLen){
+        switch(stepLen){
             case 0:
                 {
                     m_ViewX = nX * SYS_MAPGRIDXP - showWindowW / 2;
@@ -1514,13 +1514,13 @@ void ProcessRun::CenterMyHero()
                 {
                     int nDX = -1;
                     int nDY = -1;
-                    PathFind::GetFrontLocation(&nDX, &nDY, 0, 0, nDirection, nStepLen);
+                    PathFind::GetFrontLocation(&nDX, &nDY, 0, 0, nDirection, stepLen);
 
-                    int nOffX = nDX * SYS_MAPGRIDXP * (nFrame + 1) / nFrameCount;
-                    int nOffY = nDY * SYS_MAPGRIDYP * (nFrame + 1) / nFrameCount;
+                    const int offX = nDX * SYS_MAPGRIDXP * (nFrame + 1) / frameCount;
+                    const int offY = nDY * SYS_MAPGRIDYP * (nFrame + 1) / frameCount;
 
-                    m_ViewX = nX * SYS_MAPGRIDXP + nOffX - showWindowW / 2;
-                    m_ViewY = nY * SYS_MAPGRIDYP + nOffY - showWindowH / 2;
+                    m_ViewX = nX * SYS_MAPGRIDXP + offX - showWindowW / 2;
+                    m_ViewY = nY * SYS_MAPGRIDYP + offY - showWindowH / 2;
                     return;
                 }
             default:

@@ -261,7 +261,7 @@ std::tuple<int, int> CreatureMovable::getShift() const
     switch(const auto frameCount = motionFrameCount(m_currMotion.motion, m_currMotion.direction)){
         case 6:
             {
-                const auto frameCountInNextGrid = ((m_currMotion.direction == DIR_UPLEFT) ? 2 : 5);
+                constexpr int frameCountInNextGrid = 3;
                 switch(m_currMotion.direction){
                     case DIR_UP:
                         {

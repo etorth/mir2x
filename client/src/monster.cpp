@@ -276,20 +276,19 @@ std::tuple<int, int> Monster::location() const
     switch(currMotion().motion){
         case MOTION_MON_WALK:
             {
-                const auto nX0        = m_currMotion.x;
-                const auto nY0        = m_currMotion.y;
-                const auto nX1        = m_currMotion.endX;
-                const auto nY1        = m_currMotion.endY;
-                const auto nFrame     = m_currMotion.frame;
-                const auto nDirection = m_currMotion.direction;
+                const auto nX0 = m_currMotion.x;
+                const auto nY0 = m_currMotion.y;
+                const auto nX1 = m_currMotion.endX;
+                const auto nY1 = m_currMotion.endY;
 
                 switch(const auto frameCountMoving = motionFrameCount(MOTION_MON_WALK, m_currMotion.direction)){
                     case 6:
                         {
+                            constexpr int frameCountInNextGrid = 3;
                             return
                             {
-                                (nFrame < (frameCountMoving - (((nDirection == DIR_UPLEFT) ? 2 : 5) + 0))) ? nX0 : nX1,
-                                (nFrame < (frameCountMoving - (((nDirection == DIR_UPLEFT) ? 2 : 5) + 0))) ? nY0 : nY1,
+                                (m_currMotion.frame < (frameCountMoving - frameCountInNextGrid)) ? nX0 : nX1,
+                                (m_currMotion.frame < (frameCountMoving - frameCountInNextGrid)) ? nY0 : nY1,
                             };
                         }
                     default:
