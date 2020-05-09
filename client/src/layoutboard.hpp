@@ -69,7 +69,7 @@ class LayoutBoard: public Widget
         bool m_canSelect;
 
     private:
-        const std::function<void(const std::string &, int)> m_eventCB;
+        const std::function<void(const std::string &, int, int)> m_eventCB;
 
     public:
         LayoutBoard(
@@ -91,7 +91,7 @@ class LayoutBoard: public Widget
                 int lineSpace = 0,
                 int wordSpace = 0,
 
-                const std::function<void(const std::string &, int)> &eventCB = nullptr,
+                const std::function<void(const std::string &, int, int)> &eventCB = nullptr,
 
                 Widget *parent     =  nullptr,
                 bool    autoDelete =  false)

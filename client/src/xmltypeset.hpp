@@ -246,9 +246,9 @@ class XMLTypeset // means XMLParagraph typeset
             }
         }
 
-        void markLeafEvent(int leaf, int event)
+        int markLeafEvent(int leaf, int event)
         {
-            m_paragraph.leafRef(leaf).markEvent(event);
+            return m_paragraph.leafRef(leaf).markEvent(event);
         }
 
     public:

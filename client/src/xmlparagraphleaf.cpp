@@ -87,15 +87,15 @@ XMLParagraphLeaf::XMLParagraphLeaf(tinyxml2::XMLNode *pNode)
     }
 }
 
-void XMLParagraphLeaf::markEvent(int event)
+int XMLParagraphLeaf::markEvent(int event)
 {
     switch(event){
         case BEVENT_ON:
         case BEVENT_OFF:
         case BEVENT_DOWN:
             {
-                m_event = event;
-                return;
+                std::swap(m_event, event);
+                return event;
             }
         default:
             {

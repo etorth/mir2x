@@ -50,9 +50,9 @@ NPCChatBoard::NPCChatBoard(ProcessRun *proc)
           0,
           0,
 
-          [this](const std::string &id, int event)
+          [this](const std::string &id, int oldEvent, int newEvent)
           {
-              if(event == BEVENT_DOWN){
+              if(oldEvent == BEVENT_DOWN && newEvent == BEVENT_ON){
                   onClickEvent(id);
               }
           },

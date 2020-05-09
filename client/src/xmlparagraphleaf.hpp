@@ -133,7 +133,7 @@ class XMLParagraphLeaf
         uint32_t peekUTF8Code(int) const;
 
     public:
-        void markEvent(int);
+        int markEvent(int);
 
     public:
         std::optional<uint32_t>   Color() const;
