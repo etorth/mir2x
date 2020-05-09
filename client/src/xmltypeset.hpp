@@ -239,10 +239,12 @@ class XMLTypeset // means XMLParagraph typeset
         }
 
     public:
-        void clearEvent()
+        void clearEvent(int currLeaf = -1)
         {
             for(int leaf = 0; leaf < m_paragraph.leafCount(); ++leaf){
-                m_paragraph.leafRef(leaf).markEvent(BEVENT_OFF);
+                if(leaf != currLeaf){
+                    m_paragraph.leafRef(leaf).markEvent(BEVENT_OFF);
+                }
             }
         }
 
