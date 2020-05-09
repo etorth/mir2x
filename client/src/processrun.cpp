@@ -56,7 +56,7 @@ ProcessRun::ProcessRun()
     , m_FocusUIDTable()
     , m_ViewX(0)
     , m_ViewY(0)
-    , m_RollMap(false)
+    , m_mapScrolling(false)
     , m_LuaModule(this, OUTPORT_CONTROLBOARD)
     , m_NPCChatBoard(this)
     , m_controlBoard
@@ -79,22 +79,23 @@ ProcessRun::ProcessRun()
     std::memset(m_aniTileFrame, 0, sizeof(m_aniTileFrame));
 }
 
-void ProcessRun::ScrollMap()
+void ProcessRun::scrollMap()
 {
-    const auto showWindowW = g_SDLDevice->WindowW(false);
-    const auto showWindowH = g_SDLDevice->WindowH(false) - m_controlBoard.h();
+    const auto [rendererW, rendererH] = g_SDLDevice->getRendererSize();
+    const auto showWindowW = rendererW;
+    const auto showWindowH = rendererH - m_controlBoard.h();
 
-    int nViewX = GetMyHero()->x() * SYS_MAPGRIDXP - showWindowW / 2;
-    int nViewY = GetMyHero()->y() * SYS_MAPGRIDYP - showWindowH / 2;
+    const int nViewX = GetMyHero()->x() * SYS_MAPGRIDXP - showWindowW / 2;
+    const int nViewY = GetMyHero()->y() * SYS_MAPGRIDYP - showWindowH / 2;
 
-    int nDViewX = nViewX - m_ViewX;
-    int nDViewY = nViewY - m_ViewY;
+    const int nDViewX = nViewX - m_ViewX;
+    const int nDViewY = nViewY - m_ViewY;
 
-    if(m_RollMap
+    if(m_mapScrolling
             ||  (std::abs(nDViewX) > showWindowW / 6)
             ||  (std::abs(nDViewY) > showWindowH / 6)){
 
-        m_RollMap = true;
+        m_mapScrolling = true;
 
         m_ViewX += (int)(std::lround(std::copysign((std::min<int>)(3, std::abs(nDViewX)), nDViewX)));
         m_ViewY += (int)(std::lround(std::copysign((std::min<int>)(2, std::abs(nDViewY)), nDViewY)));
@@ -107,7 +108,7 @@ void ProcessRun::ScrollMap()
     //   1. the hero is at the required position
     //   2. the hero is not moving
     if((nDViewX == 0) && (nDViewY == 0) && !GetMyHero()->moving()){
-        m_RollMap = false;
+        m_mapScrolling = false;
     }
 }
 
@@ -131,7 +132,7 @@ void ProcessRun::Update(double fUpdateTime)
         }
     }
 
-    ScrollMap();
+    scrollMap();
     m_controlBoard.update(fUpdateTime);
     m_NPCChatBoard.update(fUpdateTime);
 

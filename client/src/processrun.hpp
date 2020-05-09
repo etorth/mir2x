@@ -90,7 +90,7 @@ class ProcessRun: public Process
         int m_ViewY;
 
     private:
-        bool m_RollMap;
+        bool m_mapScrolling;
 
     private:
         uint32_t m_aniSaveTick[8];
@@ -125,7 +125,7 @@ class ProcessRun: public Process
         double m_starRatio = 0.0;
 
     private:
-        void ScrollMap();
+        void scrollMap();
 
     private:
         int LoadMap(uint32_t);
