@@ -229,7 +229,7 @@ class ServerMap final: public ServerObject
         int CheckPathGrid(int, int) const;
 
     private:
-        bool DoUIDList(int, int, const std::function<bool(uint64_t)> &);
+        bool doUIDList(int, int, const std::function<bool(uint64_t)> &);
 
     private:
         bool DoCircle(int, int, int,      const std::function<bool(int, int)> &);

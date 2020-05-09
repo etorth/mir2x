@@ -45,36 +45,36 @@ void ServerMap::On_MPK_BADACTORPOD(const MessagePack &)
 
 void ServerMap::On_MPK_ACTION(const MessagePack &rstMPK)
 {
-    AMAction stAMA;
-    std::memcpy(&stAMA, rstMPK.Data(), sizeof(stAMA));
-
-    if(ValidC(stAMA.X, stAMA.Y)){
-        DoCircle(stAMA.X, stAMA.Y, 10, [this, stAMA](int nX, int nY) -> bool
-        {
-            if(true || ValidC(nX, nY)){
-                DoUIDList(nX, nY, [this, stAMA](uint64_t nUID) -> bool
-                {
-                    if(nUID != stAMA.UID){
-                        switch(uidf::getUIDType(nUID)){
-                            case UID_PLY:
-                            case UID_MON:
-                            case UID_NPC:
-                                {
-                                    m_actorPod->forward(nUID, {MPK_ACTION, stAMA});
-                                    break;
-                                }
-                            default:
-                                {
-                                    break;
-                                }
-                        }
-                    }
-                    return false;
-                });
-            }
-            return false;
-        });
+    const auto amA = rstMPK.conv<AMAction>();
+    if(!ValidC(amA.X, amA.Y)){
+        return;
     }
+
+    DoCircle(amA.X, amA.Y, 10, [this, amA](int nX, int nY) -> bool
+    {
+        if(true || ValidC(nX, nY)){
+            doUIDList(nX, nY, [this, amA](uint64_t nUID) -> bool
+            {
+                if(nUID != amA.UID){
+                    switch(uidf::getUIDType(nUID)){
+                        case UID_PLY:
+                        case UID_MON:
+                        case UID_NPC:
+                            {
+                                m_actorPod->forward(nUID, {MPK_ACTION, amA});
+                                break;
+                            }
+                        default:
+                            {
+                                break;
+                            }
+                    }
+                }
+                return false;
+            });
+        }
+        return false;
+    });
 }
 
 void ServerMap::On_MPK_ADDCHAROBJECT(const MessagePack &rstMPK)
@@ -434,7 +434,7 @@ void ServerMap::On_MPK_PULLCOINFO(const MessagePack &rstMPK)
     DoCenterSquare(stAMPCOI.X, stAMPCOI.Y, stAMPCOI.W, stAMPCOI.H, false, [this, stAMPCOI](int nX, int nY) -> bool
     {
         if(true || ValidC(nX, nY)){
-            DoUIDList(nX, nY, [this, stAMPCOI](uint64_t nUID) -> bool
+            doUIDList(nX, nY, [this, stAMPCOI](uint64_t nUID) -> bool
             {
                 if(nUID != stAMPCOI.UID){
                     if(uidf::getUIDType(nUID) == UID_PLY || uidf::getUIDType(nUID) == UID_MON){
@@ -790,7 +790,7 @@ void ServerMap::On_MPK_PICKUP(const MessagePack &rstMPK)
                 stAMRGI.DBID   = stAMPU.DBID;
                 stAMRGI.ID = stAMPU.ID;
 
-                DoUIDList(nX, nY, [this, &stAMRGI](uint64_t nUID) -> bool
+                doUIDList(nX, nY, [this, &stAMRGI](uint64_t nUID) -> bool
                 {
                     if(uidf::getUIDType(nUID) == UID_PLY){
                         m_actorPod->forward(nUID, {MPK_REMOVEGROUNDITEM, stAMRGI});

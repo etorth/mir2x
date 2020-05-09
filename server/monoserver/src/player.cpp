@@ -935,10 +935,15 @@ void Player::ReportGold()
 void Player::checkFriend(uint64_t nUID, std::function<void(int)> fnOp)
 {
     if(!nUID){
-        throw std::invalid_argument(str_fflprintf(": Invalid zero UID"));
+        throw fflerror("invalid zero UID");
     }
 
     switch(uidf::getUIDType(nUID)){
+        case UID_NPC:
+            {
+                fnOp(FT_NEUTRAL);
+                return;
+            }
         case UID_PLY:
             {
                 fnOp(IsOffender(nUID) ? FT_ENEMY : FT_NEUTRAL);

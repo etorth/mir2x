@@ -22,9 +22,17 @@
 
 void NPChar::On_MPK_ACTION(const MessagePack &mpk)
 {
-    const auto stAMA = mpk.conv<AMAction>();
-    if(uidf::getUIDType(stAMA.UID) == UID_PLY){
-        DispatchAction(stAMA.UID, ActionStand(X(), Y(), Direction()));
+    const auto amA = mpk.conv<AMAction>();
+    switch(uidf::getUIDType(amA.UID)){
+        case UID_PLY:
+        case UID_MON:
+            {
+                DispatchAction(amA.UID, ActionStand(X(), Y(), Direction()));
+            }
+        default:
+            {
+                break;
+            }
     }
 }
 

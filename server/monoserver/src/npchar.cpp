@@ -20,6 +20,7 @@
 #include "uidf.hpp"
 #include "npchar.hpp"
 #include "fflerror.hpp"
+#include "friendtype.hpp"
 #include "monoserver.hpp"
 #include "serverconfigurewindow.hpp"
 
@@ -254,8 +255,9 @@ bool NPChar::StruckDamage(const DamageNode &)
     return true;
 }
 
-void NPChar::checkFriend(uint64_t, std::function<void(int)>)
+void NPChar::checkFriend(uint64_t, std::function<void(int)> fnOP)
 {
+    fnOP(FT_NEUTRAL);
 }
 
 bool NPChar::GoDie()

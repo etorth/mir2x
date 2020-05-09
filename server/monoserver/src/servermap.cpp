@@ -300,8 +300,7 @@ double ServerMap::OneStepCost(int nCheckCO, int nCheckLock, int nX0, int nY0, in
             }
         default:
             {
-                g_MonoServer->addLog(LOGTYPE_FATAL, "Invalid CheckCO provided: %d, should be (0, 1, 2)", nCheckCO);
-                return -1.00;
+                throw fflerror("invalid CheckCO provided: %d, should be (0, 1, 2)", nCheckCO);
             }
     }
 
@@ -314,8 +313,7 @@ double ServerMap::OneStepCost(int nCheckCO, int nCheckLock, int nX0, int nY0, in
             }
         default:
             {
-                g_MonoServer->addLog(LOGTYPE_FATAL, "Invalid CheckLock provided: %d, should be (0, 1, 2)", nCheckLock);
-                return -1.00;
+                throw fflerror("invalid CheckLock provided: %d, should be (0, 1, 2)", nCheckLock);
             }
     }
 
@@ -350,8 +348,8 @@ double ServerMap::OneStepCost(int nCheckCO, int nCheckLock, int nX0, int nY0, in
             }
     }
 
-    int nDX = (nX1 > nX0) - (nX1 < nX0);
-    int nDY = (nY1 > nY0) - (nY1 < nY0);
+    const int nDX = (nX1 > nX0) - (nX1 < nX0);
+    const int nDY = (nY1 > nY0) - (nY1 < nY0);
 
     double fExtraPen = 0.00;
     for(int nIndex = 0; nIndex <= nMaxIndex; ++nIndex){
@@ -407,8 +405,7 @@ double ServerMap::OneStepCost(int nCheckCO, int nCheckLock, int nX0, int nY0, in
                 }
             default:
                 {
-                    g_MonoServer->addLog(LOGTYPE_FATAL, "Invalid grid provided: %d at (%d, %d)", nGrid, nX0 + nDX * nIndex, nY0 + nDY * nIndex);
-                    break;
+                    throw fflerror("invalid grid provided: %d at (%d, %d)", nGrid, nX0 + nDX * nIndex, nY0 + nDY * nIndex);
                 }
         }
     }
@@ -495,7 +492,7 @@ void ServerMap::RemoveGridUID(uint64_t nUID, int nX, int nY)
     }
 }
 
-bool ServerMap::DoUIDList(int nX, int nY, const std::function<bool(uint64_t)> &fnOP)
+bool ServerMap::doUIDList(int nX, int nY, const std::function<bool(uint64_t)> &fnOP)
 {
     if(!ValidC(nX, nY)){
         return false;
@@ -763,7 +760,7 @@ void ServerMap::notifyNewCO(uint64_t nUID, int nX, int nY)
     DoCircle(nX, nY, 20, [this, stAMNNCO](int nX, int nY) -> bool
     {
         if(true || ValidC(nX, nY)){
-            DoUIDList(nX, nY, [this, stAMNNCO](uint64_t nUID)
+            doUIDList(nX, nY, [this, stAMNNCO](uint64_t nUID)
             {
                 if(nUID != stAMNNCO.UID){
                     m_actorPod->forward(nUID, {MPK_NOTIFYNEWCO, stAMNNCO});

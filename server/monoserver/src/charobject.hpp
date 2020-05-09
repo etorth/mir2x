@@ -43,60 +43,6 @@ enum _RangeType: uint8_t
     RANGE_TRACETARGET,
 };
 
-#pragma pack(push, 1)
-typedef struct
-{
-    uint8_t     Level;
-    uint16_t    HP;
-    uint16_t    MP;
-    uint16_t    MaxHP;
-    uint16_t    MaxMP;
-    uint16_t    Weight;
-    uint16_t    MaxWeight;
-    uint32_t    Exp;
-    uint32_t    MaxExp;
-
-    uint8_t     WearWeight;
-    uint8_t     MaxWearWeight;
-    uint8_t     HandWeight;
-    uint8_t     MaxHandWeight;
-
-    uint16_t    DC;
-    uint16_t    MC;
-    uint16_t    SC;
-    uint16_t    AC;
-    uint16_t    MAC;
-
-    uint16_t    Water;
-    uint16_t    Fire;
-    uint16_t    Wind;
-    uint16_t    Light;
-    uint16_t    Earth;
-}OBJECTABILITY;
-
-typedef struct
-{
-    uint16_t    HP;
-    uint16_t    MP;
-    uint16_t    HIT;
-    uint16_t    SPEED;
-    uint16_t    AC;
-    uint16_t    MAC;
-    uint16_t    DC;
-    uint16_t    MC;
-    uint16_t    SC;
-    uint16_t    AntiPoison;
-    uint16_t    PoisonRecover;
-    uint16_t    HealthRecover;
-    uint16_t    SpellRecover;
-    uint16_t    AntiMagic;
-    uint8_t     Luck;
-    uint8_t     UnLuck;
-    uint8_t     WeaponStrong;
-    uint16_t    HitSpeed;
-}OBJECTADDABILITY;
-#pragma pack(pop)
-
 // cache entry for charobject location
 // should be visible for CharObject and its derived classes
 struct COLocation
@@ -238,11 +184,6 @@ class CharObject: public ServerObject
 
     protected:
         std::vector<Offender> m_OffenderList;
-
-    protected:
-        OBJECTABILITY       m_Ability;
-        OBJECTABILITY       m_WAbility;
-        OBJECTADDABILITY    m_AddAbility;
 
     public:
         CharObject(ServiceCore *,       // service core

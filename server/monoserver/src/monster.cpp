@@ -978,9 +978,9 @@ bool Monster::MoveOneStepNeighbor(int nX, int nY, std::function<void()> fnOnOK, 
         return false;
     }
 
-    auto [stPathNode, nNodeNum] = stFinder.GetFirstNPathNode<5>();
+    const auto [stPathNode, nNodeNum] = stFinder.GetFirstNPathNode<5>();
     if(nNodeNum < 2){
-        throw std::runtime_error(str_fflprintf(": Incorrect pathnode number: %zu", nNodeNum));
+        throw fflerror("incorrect pathnode number: %zu", nNodeNum);
     }
 
     m_AStarCache.Cache({stPathNode.begin(), stPathNode.begin() + nNodeNum}, MapID());
@@ -1354,7 +1354,7 @@ void Monster::checkFriend_CtrlByMonster(uint64_t nUID, std::function<void(int)> 
 void Monster::checkFriend_CtrlByPlayer(uint64_t nUID, std::function<void(int)> fnOp)
 {
     if(uidf::getUIDType(MasterUID()) != UID_PLY){
-        throw std::runtime_error(str_fflprintf(": Invalid call to checkFriend_CtrlByPlayer"));
+        throw fflerror("invalid call to checkFriend_CtrlByPlayer");
     }
 
     switch(uidf::getUIDType(nUID)){
@@ -1393,7 +1393,7 @@ void Monster::checkFriend_CtrlByPlayer(uint64_t nUID, std::function<void(int)> f
                             }
                         default:
                             {
-                                throw std::runtime_error(str_fflprintf(": Invalid final master type: %s", uidf::getUIDTypeString(nFMasterUID)));
+                                throw fflerror("invalid final master type: %s", uidf::getUIDTypeString(nFMasterUID));
                             }
                     }
                 });
@@ -1409,7 +1409,7 @@ void Monster::checkFriend_CtrlByPlayer(uint64_t nUID, std::function<void(int)> f
             }
         default:
             {
-                throw std::runtime_error(str_fflprintf(": Invalid call to checkFriend_CtrlByPlayer"));
+                throw fflerror("invalid call to checkFriend_CtrlByPlayer");
             }
     }
 }
@@ -1417,11 +1417,16 @@ void Monster::checkFriend_CtrlByPlayer(uint64_t nUID, std::function<void(int)> f
 void Monster::checkFriend(uint64_t nUID, std::function<void(int)> fnOp)
 {
     if(!nUID){
-        throw std::invalid_argument(str_fflprintf(": Invalid zero UID"));
+        throw fflerror("invalid zero UID");
     }
 
     if(nUID == UID()){
-        throw std::invalid_argument(str_fflprintf(": Check friend type to self"));
+        throw fflerror("check friend type to self");
+    }
+
+    if(uidf::getUIDType(nUID) == UID_NPC){
+        fnOp(FT_NEUTRAL);
+        return;
     }
 
     // 1. 大刀卫士 or 弓箭卫士
@@ -1472,7 +1477,7 @@ void Monster::checkFriend(uint64_t nUID, std::function<void(int)> fnOp)
                 }
             default:
                 {
-                    throw std::runtime_error(str_fflprintf(": Monster can't be controlled by type: %s", uidf::getUIDTypeString(nFMasterUID)));
+                    throw fflerror("Monster can't be controlled by type: %s", uidf::getUIDTypeString(nFMasterUID));
                 }
         }
     });

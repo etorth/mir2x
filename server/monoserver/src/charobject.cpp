@@ -44,23 +44,18 @@ CharObject::COPathFinder::COPathFinder(const CharObject *pCO, int nCheckCO)
                       && MaxStep() != 1
                       && MaxStep() != 2
                       && MaxStep() != 3){
-
-                    g_MonoServer->addLog(LOGTYPE_FATAL, "Invalid MaxStep provided: %d, should be (1, 2, 3)", MaxStep());
-                    return 10000.00;
+                    throw fflerror("invalid MaxStep provided: %d, should be (1, 2, 3)", MaxStep());
               }
 
-              int nDistance2 = mathf::LDistance2(nSrcX, nSrcY, nDstX, nDstY);
+              const int nDistance2 = mathf::LDistance2(nSrcX, nSrcY, nDstX, nDstY);
               if(true
                       && nDistance2 != 1
                       && nDistance2 != 2
                       && nDistance2 != MaxStep() * MaxStep()
                       && nDistance2 != MaxStep() * MaxStep() * 2){
-
-                  g_MonoServer->addLog(LOGTYPE_FATAL, "Invalid step checked: (%d, %d) -> (%d, %d)", nSrcX, nSrcY, nDstX, nDstY);
-                  return 10000.00;
+                  throw fflerror("invalid step checked: (%d, %d) -> (%d, %d)", nSrcX, nSrcY, nDstX, nDstY);
               }
           }
-
           return m_CO->OneStepCost(this, m_CheckCO, nSrcX, nSrcY, nDstX, nDstY);
       }, pCO->MaxStep())
     , m_CO(pCO)
@@ -68,7 +63,7 @@ CharObject::COPathFinder::COPathFinder(const CharObject *pCO, int nCheckCO)
     , m_Cache()
 {
     if(!m_CO){
-        g_MonoServer->addLog(LOGTYPE_FATAL, "Invalid argument: CO = %p, CheckCO = %d", m_CO, m_CheckCO);
+        throw fflerror("invalid argument: CO = %p, CheckCO = %d", m_CO, m_CheckCO);
     }
 
     switch(m_CheckCO){
@@ -80,8 +75,7 @@ CharObject::COPathFinder::COPathFinder(const CharObject *pCO, int nCheckCO)
             }
         default:
             {
-                g_MonoServer->addLog(LOGTYPE_FATAL, "Invalid argument: CO = %p, CheckCO = %d", m_CO, m_CheckCO);
-                break;
+                throw fflerror("invalid argument: CO = %p, CheckCO = %d", m_CO, m_CheckCO);
             }
     }
 
@@ -94,8 +88,7 @@ CharObject::COPathFinder::COPathFinder(const CharObject *pCO, int nCheckCO)
             }
         default:
             {
-                g_MonoServer->addLog(LOGTYPE_FATAL, "Invalid MaxStep provided: %d, should be (1, 2, 3)", m_CO->MaxStep());
-                break;
+                throw fflerror("invalid MaxStep provided: %d, should be (1, 2, 3)", m_CO->MaxStep());
             }
     }
 }
@@ -106,14 +99,11 @@ int CharObject::COPathFinder::GetGrid(int nX, int nY) const
         return PathFind::INVALID;
     }
 
-    uint32_t nKey = ((uint32_t)(nX) << 16) | (uint32_t)(nY);
+    const uint32_t nKey = ((uint32_t)(nX) << 16) | (uint32_t)(nY);
     if(auto p = m_Cache.find(nKey); p != m_Cache.end()){
         return p->second;
     }
-
-    auto nGrid = m_CO->CheckPathGrid(nX, nY);
-    m_Cache[nKey] = nGrid;
-    return nGrid;
+    return (m_Cache[nKey] = m_CO->CheckPathGrid(nX, nY));
 }
 
 CharObject::CharObject(ServiceCore *pServiceCore,
@@ -125,7 +115,6 @@ CharObject::CharObject(ServiceCore *pServiceCore,
     : ServerObject(nUID)
     , m_ServiceCore(pServiceCore)
     , m_Map(pServerMap)
-    , m_InViewCOList()
     , m_X(nMapX)
     , m_Y(nMapY)
     , m_Direction(nDirection)
@@ -140,12 +129,11 @@ CharObject::CharObject(ServiceCore *pServiceCore,
     , m_LastAction(ACTION_NONE)
     , m_LastActionTime(0)
     , m_Target()
-    , m_OffenderList()
-    , m_Ability()
-    , m_WAbility()
-    , m_AddAbility()
 {
-    condcheck(m_Map);
+    if(!m_Map){
+        throw fflerror("CO has no assciated map");
+    }
+
     m_StateHook.Install("RemoveDeadUIDLocation", [this, nLastCheckTick = (uint32_t)(0)]() mutable -> bool
     {
         if(auto nCurrCheckTick = g_MonoServer->getCurrTick(); nLastCheckTick + 5000 < nCurrCheckTick){
@@ -641,7 +629,8 @@ void CharObject::RetrieveLocation(uint64_t nUID, std::function<void(const COLoca
 
                     if((stAML.UID == nUID) && InView(stAML.MapID, stAML.X, stAML.Y)){
                         AddInViewCO(stCOLoccation);
-                    }else{
+                    }
+                    else{
                         RemoveInViewCO(nUID);
                     }
 
@@ -882,7 +871,10 @@ int CharObject::EstimateHop(int nX, int nY)
 
 int CharObject::CheckPathGrid(int nX, int nY, uint32_t nTimeOut) const
 {
-    condcheck(m_Map);
+    if(!m_Map){
+        throw fflerror("CO has no map associated");
+    }
+
     if(!m_Map->GetMir2xMapData().ValidC(nX, nY)){
         return PathFind::INVALID;
     }
@@ -968,8 +960,7 @@ double CharObject::OneStepCost(const CharObject::COPathFinder *pFinder, int nChe
             }
         default:
             {
-                g_MonoServer->addLog(LOGTYPE_FATAL, "Invalid argument: COPathFinder = %p, CheckCO = %d", pFinder, nCheckCO);
-                break;
+                throw fflerror("invalid argument: COPathFinder = %p, CheckCO = %d", pFinder, nCheckCO);
             }
     }
 
@@ -1011,7 +1002,7 @@ double CharObject::OneStepCost(const CharObject::COPathFinder *pFinder, int nChe
     for(int nIndex = 0; nIndex <= nMaxIndex; ++nIndex){
         int nCurrX = nX0 + nDX * nIndex;
         int nCurrY = nY0 + nDY * nIndex;
-        switch(auto nGrid = pFinder ? pFinder->GetGrid(nCurrX, nCurrY) : CheckPathGrid(nCurrX, nCurrY)){
+        switch(const auto nGrid = pFinder ? pFinder->GetGrid(nCurrX, nCurrY) : CheckPathGrid(nCurrX, nCurrY)){
             case PathFind::FREE:
                 {
                     break;
@@ -1042,8 +1033,7 @@ double CharObject::OneStepCost(const CharObject::COPathFinder *pFinder, int nChe
                 }
             default:
                 {
-                    g_MonoServer->addLog(LOGTYPE_FATAL, "Invalid grid provided: %d at (%d, %d)", nGrid, nCurrX, nCurrY);
-                    break;
+                    throw fflerror("invalid grid provided: %d at (%d, %d)", nGrid, nCurrX, nCurrY);
                 }
         }
     }
@@ -1065,7 +1055,8 @@ void CharObject::AddInViewCO(const COLocation &rstCOLocation)
 
     if(auto p = GetInViewCOPtr(rstCOLocation.UID)){
         *p = rstCOLocation;
-    }else{
+    }
+    else{
         m_InViewCOList.push_back(rstCOLocation);
     }
     SortInViewCO();
