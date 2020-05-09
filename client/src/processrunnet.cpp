@@ -51,10 +51,10 @@ void ProcessRun::Net_LOGINOK(const uint8_t *pBuf, size_t nLen)
 
         LoadMap(nMapID);
 
-        m_MyHeroUID = nUID;
+        m_myHeroUID = nUID;
         m_creatureList[nUID] = std::make_unique<MyHero>(nUID, nDBID, bGender, nDressID, this, ActionStand(nX, nY, nDirection));
 
-        CenterMyHero();
+        centerMyHero();
         GetMyHero()->PullGold();
     }
 }
@@ -99,9 +99,9 @@ void ProcessRun::Net_ACTION(const uint8_t *pBuf, size_t)
         m_UIDPending.clear();
 
         ClearCreature();
-        m_creatureList[m_MyHeroUID] = std::make_unique<MyHero>(nUID, nDBID, bGender, nDress, this, ActionStand(nX, nY, nDirection));
+        m_creatureList[m_myHeroUID] = std::make_unique<MyHero>(nUID, nDBID, bGender, nDress, this, ActionStand(nX, nY, nDirection));
 
-        CenterMyHero();
+        centerMyHero();
         GetMyHero()->parseAction(stAction);
         return;
     }
@@ -118,8 +118,8 @@ void ProcessRun::Net_ACTION(const uint8_t *pBuf, size_t)
         switch(stAction.Action){
             case ACTION_SPACEMOVE2:
                 {
-                    if(stSMA.UID == m_MyHeroUID){
-                        CenterMyHero();
+                    if(stSMA.UID == m_myHeroUID){
+                        centerMyHero();
                     }
                     return;
                 }

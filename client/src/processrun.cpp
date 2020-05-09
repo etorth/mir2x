@@ -52,7 +52,7 @@ ProcessRun::ProcessRun()
     , m_MapID(0)
     , m_mir2xMapData()
     , m_GroundItemList()
-    , m_MyHeroUID(0)
+    , m_myHeroUID(0)
     , m_FocusUIDTable()
     , m_ViewX(0)
     , m_ViewY(0)
@@ -175,6 +175,10 @@ void ProcessRun::Update(double fUpdateTime)
     }else{
         m_FocusUIDTable[FOCUS_ATTACK] = 0;
     }
+
+    if(true){
+        centerMyHero();
+    }
 }
 
 uint64_t ProcessRun::FocusUID(int nFocusType)
@@ -193,7 +197,7 @@ uint64_t ProcessRun::FocusUID(int nFocusType)
                     auto fnCheckFocus = [this](uint64_t nUID, int nX, int nY) -> bool
                     {
                         if(auto pCreature = RetrieveUID(nUID)){
-                            if(nUID != m_MyHeroUID){
+                            if(nUID != m_myHeroUID){
                                 if(pCreature->canFocus(nX, nY)){
                                     return true;
                                 }
@@ -731,7 +735,7 @@ void ProcessRun::processEvent(const SDL_Event &event)
                         }
                     case SDLK_ESCAPE:
                         {
-                            CenterMyHero();
+                            centerMyHero();
                             break;
                         }
                     case SDLK_t:
@@ -1483,7 +1487,7 @@ bool ProcessRun::GetUIDLocation(uint64_t nUID, bool bDrawLoc, int *pX, int *pY)
     return false;
 }
 
-void ProcessRun::CenterMyHero()
+void ProcessRun::centerMyHero()
 {
     const auto nMotion     = GetMyHero()->currMotion().motion;
     const auto nDirection  = GetMyHero()->currMotion().direction;

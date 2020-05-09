@@ -74,7 +74,7 @@ class ProcessRun: public Process
         std::vector<std::vector<std::vector<CommonItem>>> m_GroundItemList;
 
     private:
-        uint64_t m_MyHeroUID;
+        uint64_t m_myHeroUID;
 
     public:
         bool ValidC(int nX, int nY) const
@@ -234,7 +234,7 @@ class ProcessRun: public Process
         bool GetUIDLocation(uint64_t, bool, int *, int *);
 
     public:
-        void CenterMyHero();
+        void centerMyHero();
 
     public:
         MyHero *GetMyHero() const
@@ -242,8 +242,8 @@ class ProcessRun: public Process
             // GetMyHero() is read-only
             // won't use RetrieveUID(), it may change m_creatureList
 
-            if(m_MyHeroUID){
-                if(auto p = m_creatureList.find(m_MyHeroUID); p != m_creatureList.end()){
+            if(m_myHeroUID){
+                if(auto p = m_creatureList.find(m_myHeroUID); p != m_creatureList.end()){
                     return dynamic_cast<MyHero *>(p->second.get());
                 }
             }
