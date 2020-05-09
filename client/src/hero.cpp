@@ -62,11 +62,43 @@ Hero::Hero(uint64_t uid, uint32_t dbid, bool gender, uint32_t nDress, ProcessRun
 
 bool Hero::draw(int viewX, int viewY, int)
 {
-    auto nDress     = m_Dress;
-    auto nMotion    = m_currMotion.motion;
-    auto nDirection = m_currMotion.direction;
+    const auto [shiftX, shiftY] = getShift();
+    const auto startX = m_currMotion.x * SYS_MAPGRIDXP + shiftX - viewX;
+    const auto startY = m_currMotion.y * SYS_MAPGRIDYP + shiftY - viewY;
 
-    auto nGfxDressID = GfxDressID(nDress, nMotion, nDirection);
+    const auto fnDrawWeapon = [startX, startY, this](bool shadow)
+    {
+        // 04 - 00 :     frame : max =  32
+        // 07 - 05 : direction : max =  08 : +
+        // 13 - 08 :    motion : max =  64 : +
+        // 21 - 14 :    weapon : max = 256 : +----> GfxWeaponID
+        //      22 :    gender :
+        //      23 :    shadow :
+        const auto nGfxWeaponID = GfxWeaponID(m_Weapon, m_currMotion.motion, m_currMotion.direction);
+        if(nGfxWeaponID < 0){
+            return;
+        }
+
+        const uint32_t weaponKey = (((uint32_t)(shadow ? 1 : 0)) << 23) + (((uint32_t)(m_Gender ? 1 : 0)) << 22) + ((nGfxWeaponID & 0X01FFFF) << 5) + m_currMotion.frame;
+
+        int weaponDX = 0;
+        int weaponDY = 0;
+
+        auto weaponFrame = g_WeaponDB->Retrieve(weaponKey, &weaponDX, &weaponDY);
+
+        if(weaponFrame && shadow){
+            SDL_SetTextureAlphaMod(weaponFrame, 128);
+        }
+        g_SDLDevice->DrawTexture(weaponFrame, startX + weaponDX, startY + weaponDY);
+    };
+
+    fnDrawWeapon(true);
+
+    const auto nDress     = m_Dress;
+    const auto nMotion    = m_currMotion.motion;
+    const auto nDirection = m_currMotion.direction;
+
+    const auto nGfxDressID = GfxDressID(nDress, nMotion, nDirection);
     if(nGfxDressID < 0){
         m_currMotion.print();
         return false;
@@ -79,8 +111,8 @@ bool Hero::draw(int viewX, int viewY, int)
     // 21 - 14 :     dress : max = 256 : +----> GfxDressID
     //      22 :       sex :
     //      23 :    shadow :
-    uint32_t nKey0 = ((uint32_t)(0) << 23) + (((uint32_t)(m_Gender ? 1 : 0)) << 22) + (((uint32_t)(nGfxDressID & 0X01FFFF)) << 5) + m_currMotion.frame;
-    uint32_t nKey1 = ((uint32_t)(1) << 23) + (((uint32_t)(m_Gender ? 1 : 0)) << 22) + (((uint32_t)(nGfxDressID & 0X01FFFF)) << 5) + m_currMotion.frame;
+    const uint32_t nKey0 = ((uint32_t)(0) << 23) + (((uint32_t)(m_Gender ? 1 : 0)) << 22) + (((uint32_t)(nGfxDressID & 0X01FFFF)) << 5) + m_currMotion.frame;
+    const uint32_t nKey1 = ((uint32_t)(1) << 23) + (((uint32_t)(m_Gender ? 1 : 0)) << 22) + (((uint32_t)(nGfxDressID & 0X01FFFF)) << 5) + m_currMotion.frame;
 
     int nDX0 = 0;
     int nDY0 = 0;
@@ -90,37 +122,10 @@ bool Hero::draw(int viewX, int viewY, int)
     auto pFrame0 = g_HeroDB->Retrieve(nKey0, &nDX0, &nDY0);
     auto pFrame1 = g_HeroDB->Retrieve(nKey1, &nDX1, &nDY1);
 
-    const auto [shiftX, shiftY] = getShift();
-    auto fnDrawWeapon = [this, viewX, viewY, shiftX, shiftY](bool bShadow)
-    {
-        // 04 - 00 :     frame : max =  32
-        // 07 - 05 : direction : max =  08 : +
-        // 13 - 08 :    motion : max =  64 : +
-        // 21 - 14 :    weapon : max = 256 : +----> GfxWeaponID
-        //      22 :    gender :
-        //      23 :    shadow :
-        auto nGfxWeaponID = GfxWeaponID(m_Weapon, m_currMotion.motion, m_currMotion.direction);
-        if(nGfxWeaponID >= 0){
-            uint32_t nWeaponKey = (((uint32_t)(bShadow ? 1 : 0)) << 23) + (((uint32_t)(m_Gender ? 1 : 0)) << 22) + ((nGfxWeaponID & 0X01FFFF) << 5) + m_currMotion.frame;
-
-            int nWeaponDX = 0;
-            int nWeaponDY = 0;
-
-            auto pFrame = g_WeaponDB->Retrieve(nWeaponKey, &nWeaponDX, &nWeaponDY);
-
-            if(pFrame && bShadow){
-                SDL_SetTextureAlphaMod(pFrame, 128);
-            }
-            g_SDLDevice->DrawTexture(pFrame, x() * SYS_MAPGRIDXP + nWeaponDX - viewX + shiftX, y() * SYS_MAPGRIDYP + nWeaponDY - viewY + shiftY);
-        }
-    };
-
-    fnDrawWeapon(true);
-
     if(pFrame1){
         SDL_SetTextureAlphaMod(pFrame1, 128);
     }
-    g_SDLDevice->DrawTexture(pFrame1, x() * SYS_MAPGRIDXP + nDX1 - viewX + shiftX, y() * SYS_MAPGRIDYP + nDY1 - viewY + shiftY);
+    g_SDLDevice->DrawTexture(pFrame1, startX + nDX1, startY + nDY1);
 
     if(true
             && m_Weapon
@@ -128,7 +133,7 @@ bool Hero::draw(int viewX, int viewY, int)
         fnDrawWeapon(false);
     }
 
-    g_SDLDevice->DrawTexture(pFrame0, x() * SYS_MAPGRIDXP + nDX0 - viewX + shiftX, y() * SYS_MAPGRIDYP + nDY0 - viewY + shiftY);
+    g_SDLDevice->DrawTexture(pFrame0, startX + nDX0, startY + nDY0);
 
     if(true
             && m_Weapon
@@ -136,9 +141,8 @@ bool Hero::draw(int viewX, int viewY, int)
         fnDrawWeapon(false);
     }
 
-    // draw attached magics
     for(auto &p: m_attachMagicList){
-        p->Draw(x() * SYS_MAPGRIDXP - viewX + shiftX, y() * SYS_MAPGRIDYP - viewY + shiftY);
+        p->Draw(startX, startY);
     }
 
     // draw HP bar
@@ -156,17 +160,13 @@ bool Hero::draw(int viewX, int viewY, int)
                 int nW = -1;
                 int nH = -1;
                 SDL_QueryTexture(pBar1, nullptr, nullptr, &nW, &nH);
-                g_SDLDevice->DrawTexture(pBar1,
-                        x() * SYS_MAPGRIDXP - viewX + shiftX +  7,
-                        y() * SYS_MAPGRIDYP - viewY + shiftY - 53,
-                        0,
-                        0,
-                        (int)(std::lround(nW * (m_maxHP ? (std::min<double>)(1.0, (1.0 * m_HP) / m_maxHP) : 1.0))),
-                        nH);
 
-                g_SDLDevice->DrawTexture(pBar0,
-                        x() * SYS_MAPGRIDXP - viewX + shiftX +  7,
-                        y() * SYS_MAPGRIDYP - viewY + shiftY - 53);
+                const int drawHPX = startX +  7;
+                const int drawHPY = startY - 53;
+                const int drawHPW = (int)(std::lround(nW * (m_maxHP ? (std::min<double>)(1.0, (1.0 * m_HP) / m_maxHP) : 1.0)));
+
+                g_SDLDevice->DrawTexture(pBar1, drawHPX, drawHPY, 0, 0, drawHPW, nH);
+                g_SDLDevice->DrawTexture(pBar0, drawHPX, drawHPY);
             }
     }
     return true;
@@ -441,7 +441,8 @@ bool Hero::parseAction(const ActionNode &rstAction)
                             int nDir = DIR_NONE;
                             if(m_processRun->CanMove(true, 0, rstAction.AimX, rstAction.AimY)){
                                 nDir = fnGetSpellDir(rstAction.X, rstAction.Y, rstAction.AimX, rstAction.AimY);
-                            }else if(rstAction.AimUID){
+                            }
+                            else if(rstAction.AimUID){
                                 if(auto pCreature = m_processRun->RetrieveUID(rstAction.AimUID)){
                                     nDir = fnGetSpellDir(rstAction.X, rstAction.Y, pCreature->x(), pCreature->y());
                                 }
@@ -535,21 +536,16 @@ std::tuple<int, int> Hero::location() const
                 const auto nX1 = m_currMotion.endX;
                 const auto nY1 = m_currMotion.endY;
 
-                switch(auto frameCountMoving = motionFrameCount(m_currMotion.motion, m_currMotion.direction)){
-                    case 6:
-                        {
-                            constexpr int frameCountInNextGrid = 3;
-                            return
-                            {
-                                (m_currMotion.frame < (frameCountMoving - frameCountInNextGrid)) ? nX0 : nX1,
-                                (m_currMotion.frame < (frameCountMoving - frameCountInNextGrid)) ? nY0 : nY1,
-                            };
-                        }
-                    default:
-                        {
-                            throw fflerror("moving frame should have frame count 6");
-                        }
+                const auto frameCountMoving = motionFrameCount(m_currMotion.motion, m_currMotion.direction);
+                if(frameCountMoving <= 0){
+                    throw fflerror("invalid player moving frame count: %d", frameCountMoving);
                 }
+
+                return
+                {
+                    (m_currMotion.frame < (frameCountMoving / 2)) ? nX0 : nX1,
+                    (m_currMotion.frame < (frameCountMoving / 2)) ? nY0 : nY1,
+                };
             }
         default:
             {
@@ -615,7 +611,7 @@ bool Hero::moving()
         || m_currMotion.motion == MOTION_ONHORSEWALK;
 }
 
-bool Hero::canFocus(int nPointX, int nPointY) const
+bool Hero::canFocus(int pointX, int pointY) const
 {
     switch(currMotion().motion){
         case MOTION_DIE:
@@ -634,30 +630,30 @@ bool Hero::canFocus(int nPointX, int nPointY) const
     const auto nDirection = currMotion().direction;
 
     const auto nGfxDressID = GfxDressID(nDress, nMotion, nDirection);
-    if(nGfxDressID >= 0){
-
-        int nDX0 = 0;
-        int nDY0 = 0;
-
-        uint32_t nKey0 = (((uint32_t)(nGender ? 1 : 0)) << 22) + (((uint32_t)(nGfxDressID & 0X01FFFF)) << 5) + currMotion().frame;
-
-        auto pFrame0 = g_HeroDB->Retrieve(nKey0, &nDX0, &nDY0);
-        const auto [shiftX, shiftY] = getShift();
-
-        int nStartX = x() * SYS_MAPGRIDXP + nDX0 + shiftX;
-        int nStartY = y() * SYS_MAPGRIDYP + nDY0 + shiftY;
-
-        int nW = 0;
-        int nH = 0;
-        SDL_QueryTexture(pFrame0, nullptr, nullptr, &nW, &nH);
-
-        int nMaxTargetW = SYS_MAPGRIDXP + SYS_TARGETRGN_GAPX;
-        int nMaxTargetH = SYS_MAPGRIDYP + SYS_TARGETRGN_GAPY;
-
-        return ((nW >= nMaxTargetW) ? mathf::pointInSegment(nPointX, (nStartX + (nW - nMaxTargetW) / 2), nMaxTargetW) : mathf::pointInSegment(nPointX, nStartX, nW))
-            && ((nH >= nMaxTargetH) ? mathf::pointInSegment(nPointY, (nStartY + (nH - nMaxTargetH) / 2), nMaxTargetH) : mathf::pointInSegment(nPointY, nStartY, nH));
+    if(nGfxDressID < 0){
+        return false;
     }
-    return false;
+
+    int nDX0 = 0;
+    int nDY0 = 0;
+
+    const uint32_t nKey0 = (((uint32_t)(nGender ? 1 : 0)) << 22) + (((uint32_t)(nGfxDressID & 0X01FFFF)) << 5) + currMotion().frame;
+
+    auto pFrame0 = g_HeroDB->Retrieve(nKey0, &nDX0, &nDY0);
+    const auto [shiftX, shiftY] = getShift();
+
+    const int startX = m_currMotion.x * SYS_MAPGRIDXP + nDX0 + shiftX;
+    const int startY = m_currMotion.y * SYS_MAPGRIDYP + nDY0 + shiftY;
+
+    int nW = 0;
+    int nH = 0;
+    SDL_QueryTexture(pFrame0, nullptr, nullptr, &nW, &nH);
+
+    const int maxTargetW = SYS_MAPGRIDXP + SYS_TARGETRGN_GAPX;
+    const int maxTargetH = SYS_MAPGRIDYP + SYS_TARGETRGN_GAPY;
+
+    return ((nW >= maxTargetW) ? mathf::pointInSegment(pointX, (startX + (nW - maxTargetW) / 2), maxTargetW) : mathf::pointInSegment(pointX, startX, nW))
+        && ((nH >= maxTargetH) ? mathf::pointInSegment(pointY, (startY + (nH - maxTargetH) / 2), maxTargetH) : mathf::pointInSegment(pointY, startY, nH));
 }
 
 int Hero::WeaponOrder(int nMotion, int nDirection, int nFrame)

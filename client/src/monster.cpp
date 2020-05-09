@@ -185,19 +185,30 @@ bool Monster::draw(int viewX, int viewY, int focusMask)
 
     // always reset the alpha mode for each texture because texture is shared
     // one texture to draw can be configured with different alpha mode for other creatures
-    if(pFrame0){ SDL_SetTextureAlphaMod(pFrame0, 255); }
-    if(pFrame1){ SDL_SetTextureAlphaMod(pFrame1, 128); }
+
+    if(pFrame0){
+        SDL_SetTextureAlphaMod(pFrame0, 255);
+    }
+
+    if(pFrame1){
+        SDL_SetTextureAlphaMod(pFrame1, 128);
+    }
 
     if(true
             && (m_currMotion.motion  == MOTION_MON_DIE)
             && (m_currMotion.fadeOut  > 0             )){
         // FadeOut :    0 : normal
         //         : 1-255: fadeOut
-        if(pFrame0){ SDL_SetTextureAlphaMod(pFrame0, (255 - m_currMotion.fadeOut) / 1); }
-        if(pFrame1){ SDL_SetTextureAlphaMod(pFrame1, (255 - m_currMotion.fadeOut) / 2); }
+        if(pFrame0){
+            SDL_SetTextureAlphaMod(pFrame0, (255 - m_currMotion.fadeOut) / 1);
+        }
+
+        if(pFrame1){
+            SDL_SetTextureAlphaMod(pFrame1, (255 - m_currMotion.fadeOut) / 2);
+        }
     }
 
-    auto fnBlendFrame = [](SDL_Texture *pTexture, int nFocusChan, int nX, int nY)
+    const auto fnBlendFrame = [](SDL_Texture *pTexture, int nFocusChan, int nX, int nY)
     {
         if(true
                 && pTexture
@@ -207,34 +218,29 @@ bool Monster::draw(int viewX, int viewY, int focusMask)
             // if provided channel as 0
             // just blend it using the original color
 
-            auto stColor = focusColor(nFocusChan);
+            const auto stColor = focusColor(nFocusChan);
             if(!SDL_SetTextureColorMod(pTexture, stColor.r, stColor.g, stColor.b)){
                 g_SDLDevice->DrawTexture(pTexture, nX, nY);
             }
         }
     };
 
-    const int nBlendX0 = x() * SYS_MAPGRIDXP + nDX0 - viewX + shiftX;
-    const int nBlendY0 = y() * SYS_MAPGRIDYP + nDY0 - viewY + shiftY;
-    const int nBlendX1 = x() * SYS_MAPGRIDXP + nDX1 - viewX + shiftX;
-    const int nBlendY1 = y() * SYS_MAPGRIDYP + nDY1 - viewY + shiftY;
+    const int startX = currMotion().x * SYS_MAPGRIDXP + shiftX - viewX;
+    const int startY = currMotion().y * SYS_MAPGRIDYP + shiftY - viewY;
 
-    fnBlendFrame(pFrame1, 0, nBlendX1, nBlendY1);
-    fnBlendFrame(pFrame0, 0, nBlendX0, nBlendY0);
+    fnBlendFrame(pFrame1, 0, startX + nDX1, startY + nDY1);
+    fnBlendFrame(pFrame0, 0, startX + nDX0, startY + nDY0);
 
     for(int nFocusChan = 1; nFocusChan < FOCUS_MAX; ++nFocusChan){
         if(focusMask & (1 << nFocusChan)){
-            fnBlendFrame(pFrame0, nFocusChan, nBlendX0, nBlendY0);
+            fnBlendFrame(pFrame0, nFocusChan, startX + nDX0, startY + nDY0);
         }
     }
 
-    // draw attached magics
     for(auto &p: m_attachMagicList){
-        p->Draw(x() * SYS_MAPGRIDXP - viewX + shiftX, y() * SYS_MAPGRIDYP - viewY + shiftY);
+        p->Draw(startX, startY);
     }
 
-    // draw HP bar
-    // if current m_HPMqx is zero we draw full bar
     if(m_currMotion.motion != MOTION_MON_DIE){
         auto pBar0 = g_ProgUseDB->Retrieve(0X00000014);
         auto pBar1 = g_ProgUseDB->Retrieve(0X00000015);
@@ -243,24 +249,18 @@ bool Monster::draw(int viewX, int viewY, int focusMask)
         int nBarH = -1;
         SDL_QueryTexture(pBar1, nullptr, nullptr, &nBarW, &nBarH);
 
-        const int nDrawBarXP = x() * SYS_MAPGRIDXP - viewX + shiftX +  7;
-        const int nDrawBarYP = y() * SYS_MAPGRIDYP - viewY + shiftY - 53;
+        const int drawBarXP = startX +  7;
+        const int drawBarYP = startY - 53;
+        const int drawBarWidth = (int)(std::lround(nBarW * (m_maxHP ? (std::min<double>)(1.0, (1.0 * m_HP) / m_maxHP) : 1.0)));
 
-        g_SDLDevice->DrawTexture(pBar1,
-                nDrawBarXP,
-                nDrawBarYP,
-                0,
-                0,
-                (int)(std::lround(nBarW * (m_maxHP ? (std::min<double>)(1.0, (1.0 * m_HP) / m_maxHP) : 1.0))),
-                nBarH);
-
-        g_SDLDevice->DrawTexture(pBar0, nDrawBarXP, nDrawBarYP);
+        g_SDLDevice->DrawTexture(pBar1, drawBarXP, drawBarYP, 0, 0, drawBarWidth, nBarH);
+        g_SDLDevice->DrawTexture(pBar0, drawBarXP, drawBarYP);
 
         if(g_clientArgParser->alwaysDrawName || (focusMask & (1 << FOCUS_MOUSE))){
             const int nLW = m_nameBoard.w();
             const int nLH = m_nameBoard.h();
-            const int nDrawNameXP = nDrawBarXP + nBarW / 2 - nLW / 2;
-            const int nDrawNameYP = nDrawBarYP + 20;
+            const int nDrawNameXP = drawBarXP + nBarW / 2 - nLW / 2;
+            const int nDrawNameYP = drawBarYP + 20;
             m_nameBoard.drawEx(nDrawNameXP, nDrawNameYP, 0, 0, nLW, nLH);
         }
     }
@@ -281,21 +281,16 @@ std::tuple<int, int> Monster::location() const
                 const auto nX1 = m_currMotion.endX;
                 const auto nY1 = m_currMotion.endY;
 
-                switch(const auto frameCountMoving = motionFrameCount(MOTION_MON_WALK, m_currMotion.direction)){
-                    case 6:
-                        {
-                            constexpr int frameCountInNextGrid = 3;
-                            return
-                            {
-                                (m_currMotion.frame < (frameCountMoving - frameCountInNextGrid)) ? nX0 : nX1,
-                                (m_currMotion.frame < (frameCountMoving - frameCountInNextGrid)) ? nY0 : nY1,
-                            };
-                        }
-                    default:
-                        {
-                            throw fflerror("monster moving frame count is not 6");
-                        }
+                const auto frameCountMoving = motionFrameCount(MOTION_MON_WALK, m_currMotion.direction);
+                if(frameCountMoving <= 0){
+                    throw fflerror("invalid monster moving frame count: %d", frameCountMoving);
                 }
+
+                return
+                {
+                    (m_currMotion.frame < (frameCountMoving / 2)) ? nX0 : nX1,
+                    (m_currMotion.frame < (frameCountMoving / 2)) ? nY0 : nY1,
+                };
             }
         default:
             {
@@ -468,7 +463,7 @@ bool Monster::motionValid(const MotionNode &rstMotion) const
     return false;
 }
 
-bool Monster::canFocus(int nPointX, int nPointY) const
+bool Monster::canFocus(int pointX, int pointY) const
 {
     switch(m_currMotion.motion){
         case MOTION_MON_DIE:
@@ -481,35 +476,34 @@ bool Monster::canFocus(int nPointX, int nPointY) const
             }
     }
 
-    auto nGfxID = gfxID(m_currMotion.motion, m_currMotion.direction);
-    if(nGfxID >= 0){
-
-        // we only check the body frame
-        // can focus or not is decided by the graphics size
-
-        uint32_t nKey0 = ((uint32_t)(nGfxID & 0X03FFFF) << 5) + m_currMotion.frame;
-
-        int nDX0 = 0;
-        int nDY0 = 0;
-
-        auto pFrame0 = g_MonsterDB->Retrieve(nKey0, &nDX0, &nDY0);
-        const auto [shiftX, shiftY] = getShift();
-
-        int nStartX = x() * SYS_MAPGRIDXP + nDX0 + shiftX;
-        int nStartY = y() * SYS_MAPGRIDYP + nDY0 + shiftY;
-
-        int nW = 0;
-        int nH = 0;
-        SDL_QueryTexture(pFrame0, nullptr, nullptr, &nW, &nH);
-
-        int nMaxTargetW = SYS_MAPGRIDXP + SYS_TARGETRGN_GAPX;
-        int nMaxTargetH = SYS_MAPGRIDYP + SYS_TARGETRGN_GAPY;
-
-        return ((nW >= nMaxTargetW) ? mathf::pointInSegment(nPointX, (nStartX + (nW - nMaxTargetW) / 2), nMaxTargetW) : mathf::pointInSegment(nPointX, nStartX, nW))
-            && ((nH >= nMaxTargetH) ? mathf::pointInSegment(nPointY, (nStartY + (nH - nMaxTargetH) / 2), nMaxTargetH) : mathf::pointInSegment(nPointY, nStartY, nH));
+    const auto nGfxID = gfxID(m_currMotion.motion, m_currMotion.direction);
+    if(nGfxID < 0){
+        return false;
     }
 
-    return false;
+    // we only check the body frame
+    // can focus or not is decided by the graphics size
+
+    const uint32_t nKey0 = ((uint32_t)(nGfxID & 0X03FFFF) << 5) + m_currMotion.frame;
+
+    int nDX0 = 0;
+    int nDY0 = 0;
+
+    auto pFrame0 = g_MonsterDB->Retrieve(nKey0, &nDX0, &nDY0);
+    const auto [shiftX, shiftY] = getShift();
+
+    const int startX = m_currMotion.x * SYS_MAPGRIDXP + shiftX + nDX0;
+    const int startY = m_currMotion.y * SYS_MAPGRIDYP + shiftY + nDY0;
+
+    int nW = 0;
+    int nH = 0;
+    SDL_QueryTexture(pFrame0, nullptr, nullptr, &nW, &nH);
+
+    const int maxTargetW = SYS_MAPGRIDXP + SYS_TARGETRGN_GAPX;
+    const int maxTargetH = SYS_MAPGRIDYP + SYS_TARGETRGN_GAPY;
+
+    return ((nW >= maxTargetW) ? mathf::pointInSegment(pointX, (startX + (nW - maxTargetW) / 2), maxTargetW) : mathf::pointInSegment(pointX, startX, nW))
+        && ((nH >= maxTargetH) ? mathf::pointInSegment(pointY, (startY + (nH - maxTargetH) / 2), maxTargetH) : mathf::pointInSegment(pointY, startY, nH));
 }
 
 int Monster::gfxID(int nMotion, int nDirection) const

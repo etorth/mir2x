@@ -223,9 +223,6 @@ bool CreatureMovable::moveNextMotion()
 
 std::tuple<int, int> CreatureMovable::getShift() const
 {
-    int shiftX = 0;
-    int shiftY = 0;
-
     switch(m_currMotion.motion){
         case MOTION_WALK:           // human
         case MOTION_RUN:            // human
@@ -251,123 +248,31 @@ std::tuple<int, int> CreatureMovable::getShift() const
             }
         default:
             {
-                return {0, 0};
+                throw fflerror("invalid step count: %d", currStepCount);
             }
     }
 
-    // we only allow frameCount = 6
-    // for other frameCount need to *manually* permitted here
+    const auto frameCount = motionFrameCount(m_currMotion.motion, m_currMotion.direction);
+    if(frameCount <= 0){
+        throw fflerror("invalid frame count: %d", frameCount);
+    }
 
-    switch(const auto frameCount = motionFrameCount(m_currMotion.motion, m_currMotion.direction)){
-        case 6:
-            {
-                constexpr int frameCountInNextGrid = 3;
-                switch(m_currMotion.direction){
-                    case DIR_UP:
-                        {
-                            shiftX = 0;
-                            if(m_currMotion.frame < frameCount - frameCountInNextGrid){
-                                shiftY = -1 * ((SYS_MAPGRIDYP / frameCount) * (m_currMotion.frame + 1)) * currStepCount;
-                            }else{
-                                shiftY = ((SYS_MAPGRIDYP / frameCount) * (frameCount - (m_currMotion.frame + 1))) * currStepCount;
-                            }
-                            return {shiftX, shiftY};
-                        }
-                    case DIR_UPRIGHT:
-                        {
-                            if(m_currMotion.frame < frameCount - frameCountInNextGrid){
-                                shiftX = ((SYS_MAPGRIDXP / frameCount) * (m_currMotion.frame + 1)) * currStepCount;
-                            }else{
-                                shiftX = -1 * ((SYS_MAPGRIDXP / frameCount) * (frameCount - (m_currMotion.frame + 1))) * currStepCount;
-                            }
-                            if(m_currMotion.frame < frameCount - frameCountInNextGrid){
-                                shiftY = -1 * ((SYS_MAPGRIDYP / frameCount) * (m_currMotion.frame + 1)) * currStepCount;
-                            }else{
-                                shiftY = ((SYS_MAPGRIDYP / frameCount) * (frameCount - (m_currMotion.frame + 1))) * currStepCount;
-                            }
-                            return {shiftX, shiftY};
-                        }
-                    case DIR_RIGHT:
-                        {
-                            if(m_currMotion.frame < frameCount - frameCountInNextGrid){
-                                shiftX = ((SYS_MAPGRIDXP / frameCount) * (m_currMotion.frame + 1)) * currStepCount;
-                            }else{
-                                shiftX = -1 * ((SYS_MAPGRIDXP / frameCount) * (frameCount - (m_currMotion.frame + 1))) * currStepCount;
-                            }
-                            shiftY = 0;
-                            return {shiftX, shiftY};
-                        }
-                    case DIR_DOWNRIGHT:
-                        {
-                            if(m_currMotion.frame < frameCount - frameCountInNextGrid){
-                                shiftX = ((SYS_MAPGRIDXP / frameCount) * (m_currMotion.frame + 1)) * currStepCount;
-                            }else{
-                                shiftX = -1 * ((SYS_MAPGRIDXP / frameCount) * (frameCount - (m_currMotion.frame + 1))) * currStepCount;
-                            }
-                            if(m_currMotion.frame < frameCount - frameCountInNextGrid){
-                                shiftY = ((SYS_MAPGRIDYP / frameCount) * (m_currMotion.frame + 1)) * currStepCount;
-                            }else{
-                                shiftY = -1 * ((SYS_MAPGRIDYP / frameCount) * (frameCount - (m_currMotion.frame + 1))) * currStepCount;
-                            }
-                            return {shiftX, shiftY};
-                        }
-                    case DIR_DOWN:
-                        {
-                            shiftX = 0;
-                            if(m_currMotion.frame < frameCount - frameCountInNextGrid){
-                                shiftY = ((SYS_MAPGRIDYP / frameCount) * (m_currMotion.frame + 1)) * currStepCount;
-                            }else{
-                                shiftY = -1 * ((SYS_MAPGRIDYP / frameCount) * (frameCount - (m_currMotion.frame + 1))) * currStepCount;
-                            }
-                            return {shiftX, shiftY};
-                        }
-                    case DIR_DOWNLEFT:
-                        {
-                            if(m_currMotion.frame < frameCount - frameCountInNextGrid){
-                                shiftX = -1 * ((SYS_MAPGRIDXP / frameCount) * (m_currMotion.frame + 1)) * currStepCount;
-                            }else{
-                                shiftX = ((SYS_MAPGRIDXP / frameCount) * (frameCount - (m_currMotion.frame + 1))) * currStepCount;
-                            }
-                            if(m_currMotion.frame < frameCount - frameCountInNextGrid){
-                                shiftY = ((SYS_MAPGRIDYP / frameCount) * (m_currMotion.frame + 1)) * currStepCount;
-                            }else{
-                                shiftY = -1 * ((SYS_MAPGRIDYP / frameCount) * (frameCount - (m_currMotion.frame + 1))) * currStepCount;
-                            }
-                            return {shiftX, shiftY};
-                        }
-                    case DIR_LEFT:
-                        {
-                            if(m_currMotion.frame < frameCount - frameCountInNextGrid){
-                                shiftX = -1 * ((SYS_MAPGRIDXP / frameCount) * (m_currMotion.frame + 1)) * currStepCount;
-                            }else{
-                                shiftX = ((SYS_MAPGRIDXP / frameCount) * (frameCount - (m_currMotion.frame + 1))) * currStepCount;
-                            }
-                            shiftY = 0;
-                            return {shiftX, shiftY};
-                        }
-                    case DIR_UPLEFT:
-                        {
-                            if(m_currMotion.frame < frameCount - frameCountInNextGrid){
-                                shiftX = -1 * ((SYS_MAPGRIDXP / frameCount) * (m_currMotion.frame + 1)) * currStepCount;
-                            }else{
-                                shiftX = ((SYS_MAPGRIDXP / frameCount) * (frameCount - (m_currMotion.frame + 1))) * currStepCount;
-                            }
-                            if(m_currMotion.frame < frameCount - frameCountInNextGrid){
-                                shiftY = -1 * ((SYS_MAPGRIDYP / frameCount) * (m_currMotion.frame + 1)) * currStepCount;
-                            }else{
-                                shiftY = ((SYS_MAPGRIDYP / frameCount) * (frameCount - (m_currMotion.frame + 1))) * currStepCount;
-                            }
-                            return {shiftX, shiftY};
-                        }
-                    default:
-                        {
-                            return {0, 0};
-                        }
-                }
-            }
-        default:
-            {
-                return {0, 0};
-            }
+    if(m_currMotion.frame >= frameCount){
+        throw fflerror("invalid frame: %d", m_currMotion.frame);
+    }
+
+    const int shiftX = (int)(std::lround((1.0f * SYS_MAPGRIDXP / frameCount) * (m_currMotion.frame + 1) * currStepCount));
+    const int shiftY = (int)(std::lround((1.0f * SYS_MAPGRIDYP / frameCount) * (m_currMotion.frame + 1) * currStepCount));
+
+    switch(m_currMotion.direction){
+        case DIR_UP       : return {      0, -shiftY};
+        case DIR_UPRIGHT  : return { shiftX, -shiftY};
+        case DIR_RIGHT    : return { shiftX,       0};
+        case DIR_DOWNRIGHT: return { shiftX,  shiftY};
+        case DIR_DOWN     : return {      0,  shiftY};
+        case DIR_DOWNLEFT : return {-shiftX,  shiftY};
+        case DIR_LEFT     : return {-shiftX,       0};
+        case DIR_UPLEFT   : return {-shiftX, -shiftY};
+        default           : return {      0,       0};
     }
 }
