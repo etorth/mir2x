@@ -30,6 +30,7 @@
 #include "message.hpp"
 #include "focustype.hpp"
 #include "ascendstr.hpp"
+#include "fpsmonitor.hpp"
 #include "commonitem.hpp"
 #include "indepmagic.hpp"
 #include "mir2xmapdata.hpp"
@@ -76,6 +77,9 @@ class ProcessRun: public Process
     private:
         uint64_t m_myHeroUID;
 
+    private:
+        FPSMonitor m_fps;
+
     public:
         bool ValidC(int nX, int nY) const
         {
@@ -115,6 +119,7 @@ class ProcessRun: public Process
 
     private:
         // use a tokenboard to show all in future
+        LabelBoard m_fpsBoard;
         LabelBoard m_MousePixlLoc;
         LabelBoard m_MouseGridLoc;
 

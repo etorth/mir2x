@@ -68,6 +68,7 @@ ProcessRun::ProcessRun()
     , m_inventoryBoard(0, 0, this)
     , m_creatureList()
     , m_UIDPending()
+    , m_fpsBoard    (0, 0, "", 0, 15, 0, colorf::RGBA(0XFF, 0XFF, 0X00, 0X00))
     , m_MousePixlLoc(0, 0, "", 0, 15, 0, colorf::RGBA(0XFF, 0X00, 0X00, 0X00))
     , m_MouseGridLoc(0, 0, "", 0, 15, 0, colorf::RGBA(0XFF, 0X00, 0X00, 0X00))
     , m_AscendStrList()
@@ -605,6 +606,9 @@ void ProcessRun::Draw()
         m_MousePixlLoc.drawEx(10, 30, 0, 0, m_MousePixlLoc.w(), m_MousePixlLoc.h());
     }
 
+    m_fps.update();
+    m_fpsBoard.setText("FPS: %zu", m_fps.fps());
+    m_fpsBoard.drawEx(g_SDLDevice->WindowW(false) - 60, 0, 0, 0, m_fpsBoard.w(), m_fpsBoard.h());
     g_SDLDevice->Present();
 }
 
