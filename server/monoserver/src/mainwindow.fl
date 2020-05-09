@@ -25,10 +25,10 @@ class MainWindow {open
       label MonoServer
       callback {{
 	// do nothing
-}} open
-      xywh {483 92 720 400} type Double labelfont 4 resizable visible
+}}
+      xywh {366 262 720 400} type Double labelfont 4 resizable visible
     } {
-      Fl_Menu_Bar {} {open
+      Fl_Menu_Bar {} {
         xywh {0 0 721 25} box FLAT_BOX labelfont 4 textfont 4
       } {
         Submenu {} {
@@ -60,7 +60,7 @@ class MainWindow {open
           }
         }
         Submenu {} {
-          label Configure open
+          label Configure
           xywh {0 0 62 20} labelfont 4
         } {
           MenuItem {} {
@@ -82,7 +82,7 @@ class MainWindow {open
             code0 {\#include "databaseconfigurewindow.hpp"}
           }
           Submenu {} {
-            label Fonts open
+            label Fonts
             xywh {0 0 70 21} labelfont 4
           } {
             MenuItem m_MenuItemFirstFont {
@@ -582,7 +582,7 @@ class MainWindow {open
               xywh {1080 1080 36 21} labelfont 4
             }
             MenuItem m_MenuItemLastFont {
-              label dynamic_label selected
+              label dynamic_label
               xywh {20 20 36 21} labelfont 4
             }
           }
@@ -846,7 +846,7 @@ class MainWindow {open
           xywh {0 0 100 20} labelfont 4
         } {
           MenuItem {} {
-            label {Load      }
+            label {Load        }
             callback {{
     Fl_Native_File_Chooser stFileChooser;
     stFileChooser.title("Load Server Lua Script...");
@@ -885,7 +885,7 @@ class MainWindow {open
           xywh {0 0 70 21} labelfont 4
         } {
           MenuItem {} {
-            label Actor
+            label {Actor          }
             callback {// show actor information window
 {
     extern ActorMonitorWindow *g_ActorMonitorWindow;

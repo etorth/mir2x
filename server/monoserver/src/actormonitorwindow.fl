@@ -5,17 +5,19 @@ code_name {.cpp}
 decl {\#include "actormonitortable.hpp"} {private global
 }
 
-class ActorMonitorWindow {} {
-  Function {ActorMonitorWindow()} {} {
+class ActorMonitorWindow {open
+} {
+  Function {ActorMonitorWindow()} {open
+  } {
     Fl_Window m_Window {
       label ActorMointorWindow
       callback {{
     // do nothing
-}}
-      xywh {831 341 900 445} type Double labelfont 4 resizable visible
+}} open
+      xywh {258 108 900 445} type Double labelfont 4 resizable visible
     } {
-      Fl_Table m_ActorMonitorTable {
-        xywh {0 25 900 420} labelfont 4 resizable
+      Fl_Table m_ActorMonitorTable {selected
+        xywh {0 25 900 400} labelfont 4 resizable
         code0 {\#include "actormonitortable.hpp"}
         class ActorMonitorTable
       } {}
