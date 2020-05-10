@@ -137,14 +137,20 @@ void ProcessRun::Update(double fUpdateTime)
     m_controlBoard.update(fUpdateTime);
     m_NPCChatBoard.update(fUpdateTime);
 
+    const int myHeroX = GetMyHero()->x();
+    const int myHeroY = GetMyHero()->y();
+
     for(auto p = m_creatureList.begin(); p != m_creatureList.end();){
-        if(p->second->visible()){
+        const auto [locX, locY] = p->second->location();
+        const auto locDistance2 = mathf::LDistance2(myHeroX, myHeroY, locX, locY);
+        if(p->second->visible() && locDistance2 < 1000){
             if(p->second->lastActive() + 5000 < SDL_GetTicks() && p->second->lastQuerySelf() + 5000 < SDL_GetTicks()){
                 p->second->querySelf();
             }
             p->second->update(fUpdateTime);
             ++p;
-        }else{
+        }
+        else{
             p = m_creatureList.erase(p);
         }
     }

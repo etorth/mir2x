@@ -112,7 +112,7 @@ class ProcessRun: public Process
         std::list<std::shared_ptr<IndepMagic>> m_IndepMagicList;
 
     private:
-        std::map<uint64_t, std::unique_ptr<ClientCreature>> m_creatureList;
+        std::unordered_map<uint64_t, std::unique_ptr<ClientCreature>> m_creatureList;
 
     private:
         std::set<uint64_t> m_UIDPending;
