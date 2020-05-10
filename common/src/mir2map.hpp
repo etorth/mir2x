@@ -73,7 +73,7 @@ class Mir2Map
        ~Mir2Map();
 
     private:
-        bool            m_Valid;
+        bool            m_valid;
 
     private:
         TILEINFO       *m_pstTileInfo;
@@ -90,7 +90,7 @@ class Mir2Map
         // use this API set to extract needed information only
         bool Valid()
         {
-            return m_Valid;
+            return m_valid;
         }
 
         bool ValidC(int nX, int nY)

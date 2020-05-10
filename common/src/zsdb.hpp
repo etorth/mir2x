@@ -80,13 +80,13 @@ class ZSDB final
         ZSTD_DDict *m_DDict;
 
     private:
-        ZSDBHeader m_Header;
+        ZSDBHeader m_header;
 
     private:
-        std::vector<InnEntry> m_EntryList;
+        std::vector<InnEntry> m_entryList;
 
     private:
-        std::vector<char> m_FileNameBuf;
+        std::vector<char> m_fileNameBuf;
 
     public:
         ZSDB(const char *);

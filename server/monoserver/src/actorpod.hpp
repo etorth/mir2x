@@ -87,26 +87,26 @@ class ActorPod final
         // for actors the only chance to update their state is via message driving.
         //
         // conceptually one actor could have more than one trigger
-        // for that we should register / de-register those triggers to m_Trigger 
+        // for that we should register / de-register those triggers to m_trigger 
         // most likely here we use StateHook::Execute();
         //
         // trigger is provided at initialization and never change
-        const std::function<void()> m_Trigger;
+        const std::function<void()> m_trigger;
 
         // handler to handle every informing messages
         // informing messges means we didn't register an handler for it
         // this handler is provided at the initialization time and never change
-        const std::function<void(const MessagePack &)> m_Operation;
+        const std::function<void(const MessagePack &)> m_operation;
 
     private:
         // used by ValidID()
         // to create unique proper ID for an message expcecting response
-        uint32_t m_ValidID;
+        uint32_t m_validID;
 
         // for expire time check
         // zero expire time means we never expire any handler for current pod
         // we can put argument to specify the expire time of each handler but not necessary
-        const uint32_t m_ExpireTime;
+        const uint32_t m_expireTime;
 
         // use std::map instead of std::unordered_map
         //
@@ -118,10 +118,10 @@ class ActorPod final
         // 2. std::map keeps entries in order by Resp number
         //    Resp number gives strict order of expire time, excellent feature by std::map
         //    then when checking expired ones, we start from std::map::begin() and stop at the fist non-expired one
-        std::map<uint32_t, RespondHandler> m_RespondHandlerGroup;
+        std::map<uint32_t, RespondHandler> m_respondHandlerGroup;
 
     private:
-        ActorPodMonitor m_PodMonitor;
+        ActorPodMonitor m_podMonitor;
 
     public:
         explicit ActorPod(uint64_t,

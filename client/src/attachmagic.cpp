@@ -22,23 +22,23 @@
 #include "attachmagic.hpp"
 #include "pngtexoffdb.hpp"
 
-extern Log *g_Log;
+extern Log *g_log;
 extern SDLDevice *g_SDLDevice;
-extern PNGTexOffDB *g_MagicDB;
+extern PNGTexOffDB *g_magicDB;
 
 AttachMagic::AttachMagic(int nMagicID, int nMagicParam, int nMagicStage, double fLastTime)
     : MagicBase(nMagicID, nMagicParam, nMagicStage, fLastTime)
 {
     if(RefreshCache()){
-        switch(m_CacheEntry->Type){
+        switch(m_cacheEntry->Type){
             case EGT_BOUND:
                 {
                     break;
                 }
             default:
                 {
-                    g_Log->addLog(LOGTYPE_FATAL, "Invalid GfxEntry::Type to AttachMagic");
-                    m_CacheEntry->Print();
+                    g_log->addLog(LOGTYPE_FATAL, "Invalid GfxEntry::Type to AttachMagic");
+                    m_cacheEntry->Print();
                     break;
                 }
         }
@@ -52,7 +52,7 @@ AttachMagic::AttachMagic(int nMagicID, int nMagicParam, int nMagicStage)
 void AttachMagic::Update(double fTime)
 {
     if(!Done()){
-        m_AccuTime += fTime;
+        m_accuTime += fTime;
 
         if(StageDone()){
             auto fnCheckStageValid = [this](int nNewStage) -> bool
@@ -80,17 +80,17 @@ void AttachMagic::Update(double fTime)
                             case DBCOM_MAGICID(u8"雷电术"):
                             case DBCOM_MAGICID(u8"魔法盾"):
                                 {
-                                    m_Stage = EGS_DONE;
+                                    m_stage = EGS_DONE;
                                     break;
                                 }
                             default:
                                 {
                                     if(fnCheckStageValid(EGS_RUN)){
-                                        m_Stage = EGS_RUN;
+                                        m_stage = EGS_RUN;
                                     }else if(fnCheckStageValid(EGS_DONE)){
-                                        m_Stage = EGS_DONE;
+                                        m_stage = EGS_DONE;
                                     }else{
-                                        m_Stage = EGS_NONE;
+                                        m_stage = EGS_NONE;
                                     }
                                     break;
                                 }
@@ -100,26 +100,26 @@ void AttachMagic::Update(double fTime)
                 case EGS_START:
                     {
                         if(fnCheckStageValid(EGS_RUN)){
-                            m_Stage = EGS_RUN;
+                            m_stage = EGS_RUN;
                         }else if(fnCheckStageValid(EGS_DONE)){
-                            m_Stage = EGS_DONE;
+                            m_stage = EGS_DONE;
                         }else{
-                            m_Stage = EGS_NONE;
+                            m_stage = EGS_NONE;
                         }
                         break;
                     }
                 case EGS_RUN:
                     {
                         if(fnCheckStageValid(EGS_DONE)){
-                            m_Stage = EGS_DONE;
+                            m_stage = EGS_DONE;
                         }else{
-                            m_Stage = EGS_NONE;
+                            m_stage = EGS_NONE;
                         }
                         break;
                     }
                 case EGS_DONE:
                     {
-                        m_Stage = EGS_NONE;
+                        m_stage = EGS_NONE;
                         break;
                     }
                 default:
@@ -130,7 +130,7 @@ void AttachMagic::Update(double fTime)
 
             // clear the accumulated time
             // should I record the duration in total?
-            m_AccuTime = 0.0;
+            m_accuTime = 0.0;
         }
     }
 }
@@ -138,10 +138,10 @@ void AttachMagic::Update(double fTime)
 void AttachMagic::Draw(int nDrawOffX, int nDrawOffY)
 {
     if(RefreshCache()){
-        if(m_CacheEntry->GfxID >= 0){
+        if(m_cacheEntry->GfxID >= 0){
             int nOffX = 0;
             int nOffY = 0;
-            if(auto pEffectTexture = g_MagicDB->Retrieve(m_CacheEntry->GfxID + Frame(), &nOffX, &nOffY)){
+            if(auto pEffectTexture = g_magicDB->Retrieve(m_cacheEntry->GfxID + Frame(), &nOffX, &nOffY)){
                 SDL_SetTextureBlendMode(pEffectTexture, SDL_BLENDMODE_BLEND);
                 g_SDLDevice->DrawTexture(pEffectTexture, nDrawOffX + nOffX, nDrawOffY + nOffY);
             }
@@ -153,7 +153,7 @@ bool AttachMagic::Done() const
 {
     if(StageDone()){
         if(RefreshCache()){
-            switch(m_CacheEntry->Stage){
+            switch(m_cacheEntry->Stage){
                 case EGS_INIT:
                     {
                         switch(ID()){
@@ -179,11 +179,11 @@ bool AttachMagic::Done() const
                     }
             }
         }else{
-            // when we deref m_CacheEntry
+            // when we deref m_cacheEntry
             // we should call RefreshCache() first
 
             // when really done Update() will make current stage as EGS_NONE
-            // then RefreshCache() makes m_CacheEntry as nullptr
+            // then RefreshCache() makes m_cacheEntry as nullptr
             return true;
         }
     }

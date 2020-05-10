@@ -42,47 +42,47 @@ class Channel final: public std::enable_shared_from_this<Channel>
         const uint32_t m_ID;
 
     private:
-        std::atomic<int> m_State;
+        std::atomic<int> m_state;
 
     private:
-        Dispatcher m_Dispatcher;
+        Dispatcher m_dispatcher;
 
     private:
-        asio::ip::tcp::socket m_Socket;
+        asio::ip::tcp::socket m_socket;
         const std::string     m_IP;
-        const uint32_t        m_Port;
+        const uint32_t        m_port;
 
     private:
         // for read channel packets
         // only asio main loop accesses these fields
-        uint8_t  m_ReadHC;
-        uint8_t  m_ReadLen[4];
-        uint32_t m_BodyLen;
+        uint8_t  m_readHC;
+        uint8_t  m_readLen[4];
+        uint32_t m_bodyLen;
 
     private:
-        std::vector<uint8_t> m_ReadBuf;
-        std::vector<uint8_t> m_DecodeBuf;
+        std::vector<uint8_t> m_readBuf;
+        std::vector<uint8_t> m_decodeBuf;
 
     private:
-        uint64_t m_BindUID;
+        uint64_t m_bindUID;
 
     private:
         // for post channel packets
         // server thread and asio main loop accesses these feilds
         //
-        // 1. m_FlushFlag indicates there is procedure accessing m_CurrSendQ in asio main loop
-        //    m_FlushFlag prevents more than one procedure from accessing m_CurrSendQ
+        // 1. m_flushFlag indicates there is procedure accessing m_currSendQ in asio main loop
+        //    m_flushFlag prevents more than one procedure from accessing m_currSendQ
         //
-        // 2. m_NextQLock protect the pending queue: m_NextSendQ
-        //    m_NextSendQ will be accessed by server thread to push packets in
-        bool       m_FlushFlag;
-        std::mutex m_NextQLock;
+        // 2. m_nextQLock protect the pending queue: m_nextSendQ
+        //    m_nextSendQ will be accessed by server thread to push packets in
+        bool       m_flushFlag;
+        std::mutex m_nextQLock;
 
     private:
-        ChannPackQ  m_SendPackQ0;
-        ChannPackQ  m_SendPackQ1;
-        ChannPackQ *m_CurrSendQ;
-        ChannPackQ *m_NextSendQ;
+        ChannPackQ  m_sendPackQ0;
+        ChannPackQ  m_sendPackQ1;
+        ChannPackQ *m_currSendQ;
+        ChannPackQ *m_nextSendQ;
 
     public:
         // only asio main loop calls the constructor
@@ -108,7 +108,7 @@ class Channel final: public std::enable_shared_from_this<Channel>
 
         uint32_t Port() const
         {
-            return m_Port;
+            return m_port;
         }
 
     public:
@@ -178,14 +178,14 @@ class Channel final: public std::enable_shared_from_this<Channel>
     private:
         uint8_t *GetReadBuf(size_t nBufLen)
         {
-            m_ReadBuf.resize(nBufLen + 16);
-            return &(m_ReadBuf[0]);
+            m_readBuf.resize(nBufLen + 16);
+            return &(m_readBuf[0]);
         }
 
         uint8_t *GetDecodeBuf(size_t nBufLen)
         {
-            m_DecodeBuf.resize(nBufLen + 16);
-            return &(m_DecodeBuf[0]);
+            m_decodeBuf.resize(nBufLen + 16);
+            return &(m_decodeBuf[0]);
         }
 
     private:
@@ -219,15 +219,15 @@ class Channel final: public std::enable_shared_from_this<Channel>
         {
             // force messages forward to the new actor
             // use post rather than directly assignement
-            // since asio main loop thread will access m_BindUID
+            // since asio main loop thread will access m_bindUID
 
             // potential bug:
             // internal actor address won't get update immediately after this call
 
             auto fnBind = [nUID, this]()
             {
-                m_BindUID = nUID;
+                m_bindUID = nUID;
             };
-            m_Socket.get_io_service().post(fnBind);
+            m_socket.get_io_service().post(fnBind);
         }
 };

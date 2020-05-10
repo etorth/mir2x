@@ -77,9 +77,9 @@ class ProcessNew: public Process
         const int m_y;
 
     private:
-        int m_CheckID;
-        int m_CheckPwd;
-        int m_CheckPwdConfirm;
+        int m_checkID;
+        int m_checkPwd;
+        int m_checkPwdConfirm;
 
     private:
         LabelBoard m_LBID;
@@ -87,9 +87,9 @@ class ProcessNew: public Process
         LabelBoard m_LBPwdConfirm;
 
     private:
-        InputLine   m_BoxID;
-        PasswordBox m_BoxPwd;
-        PasswordBox m_BoxPwdConfirm;
+        InputLine   m_boxID;
+        PasswordBox m_boxPwd;
+        PasswordBox m_boxPwdConfirm;
 
     private:
         LabelBoard m_LBCheckID;

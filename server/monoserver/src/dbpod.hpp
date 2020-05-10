@@ -35,12 +35,12 @@ template<size_t ConnectionCount = 4> class DBPod final
                 DBConnection *m_DBConnection;
 
             private:
-                std::mutex *m_Lock;
+                std::mutex *m_lock;
 
             public:
                 InnDeleter(DBConnection *pDBConnection = nullptr, std::mutex *pLock = nullptr)
                     : m_DBConnection(pDBConnection)
-                    , m_Lock(pLock)
+                    , m_lock(pLock)
                 {}
 
                 ~InnDeleter() = default;
@@ -56,10 +56,10 @@ template<size_t ConnectionCount = 4> class DBPod final
                         m_DBConnection->DestroyDBRecord(pRecord);
                     }
 
-                    if(ConnectionCount > 1 && m_Lock){
-                        m_Lock->unlock();
+                    if(ConnectionCount > 1 && m_lock){
+                        m_lock->unlock();
                     }
-                    m_Lock = nullptr;
+                    m_lock = nullptr;
                 }
         };
 
@@ -67,15 +67,15 @@ template<size_t ConnectionCount = 4> class DBPod final
         using DBHDR = std::unique_ptr<DBRecord, InnDeleter>;
 
     private:
-        std::atomic<size_t> m_Current;
+        std::atomic<size_t> m_current;
 
     private:
-        std::mutex                    m_ConnLockVec[ConnectionCount];
-        std::unique_ptr<DBConnection> m_ConnVec    [ConnectionCount];
+        std::mutex                    m_connLockVec[ConnectionCount];
+        std::unique_ptr<DBConnection> m_connVec    [ConnectionCount];
 
     public:
         DBPod()
-            : m_Current {0}
+            : m_current {0}
         {
             static_assert(ConnectionCount > 0, "DBPod should contain at least one connection handler");
         }
@@ -89,7 +89,7 @@ template<size_t ConnectionCount = 4> class DBPod final
         {
 #if defined(MIR2X_ENABLE_MYSQL)
             for(size_t nIndex = 0; nIndex < ConnectionCount; ++nIndex){
-                m_ConnVec[nIndex] = std::make_unique<DBEngine_MySQL>(szHostName, szUserName, szPassword, szDBName, nPort);
+                m_connVec[nIndex] = std::make_unique<DBEngine_MySQL>(szHostName, szUserName, szPassword, szDBName, nPort);
             }
 #else
             throw std::runtime_error(str_fflprintf(": LaunchMySQL(...) not supported in current build"));
@@ -100,7 +100,7 @@ template<size_t ConnectionCount = 4> class DBPod final
         {
 #if defined(MIR2X_ENABLE_SQLITE3)
             for(size_t nIndex = 0; nIndex < ConnectionCount; ++nIndex){
-                m_ConnVec[nIndex] = std::make_unique<DBEngine_SQLite3>(szDBName);
+                m_connVec[nIndex] = std::make_unique<DBEngine_SQLite3>(szDBName);
             }
 #else
             throw std::runtime_error(str_fflprintf(": LaunchSQLite3(...) not supported in current build"));
@@ -109,8 +109,8 @@ template<size_t ConnectionCount = 4> class DBPod final
 
         DBHDR InnCreateDBHDR(size_t nPodIndex)
         {
-            if(auto p = m_ConnVec[nPodIndex]->CreateDBRecord()){
-                return DBHDR(p, InnDeleter(m_ConnVec[nPodIndex].get(), m_ConnLockVec + nPodIndex));
+            if(auto p = m_connVec[nPodIndex]->CreateDBRecord()){
+                return DBHDR(p, InnDeleter(m_connVec[nPodIndex].get(), m_connLockVec + nPodIndex));
             }
             return DBHDR(nullptr, InnDeleter());
         }
@@ -124,8 +124,8 @@ template<size_t ConnectionCount = 4> class DBPod final
             // call try_lock here
             // will be unlocked if this DBHDR get constructed
 
-            for(size_t nIndex = m_Current.fetch_add(1) % ConnectionCount;; nIndex = (nIndex + 1) % ConnectionCount){
-                if(m_ConnLockVec[nIndex].try_lock()){
+            for(size_t nIndex = m_current.fetch_add(1) % ConnectionCount;; nIndex = (nIndex + 1) % ConnectionCount){
+                if(m_connLockVec[nIndex].try_lock()){
                     return InnCreateDBHDR(nIndex);
                 }
             }
@@ -156,7 +156,7 @@ template<size_t ConnectionCount = 4> class DBPod final
     public:
         const char *DBEngine() const
         {
-            return m_ConnVec[0] ? m_ConnVec[0]->DBEngine() : nullptr;
+            return m_connVec[0] ? m_connVec[0]->DBEngine() : nullptr;
         }
 };
 

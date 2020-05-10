@@ -25,17 +25,17 @@
 #include "actorpool.hpp"
 #include "actormonitortable.hpp"
 
-extern ActorPool *g_ActorPool;
+extern ActorPool *g_actorPool;
 
 ActorMonitorTable::ActorMonitorTable(int nX, int nY, int nW, int nH, const char *szLabel)
     : Fl_TableImpl(nX, nY, nW, nH, szLabel)
-    , m_ColumnName
+    , m_columnName
       {
           "UID", "TYPE", "GROUP", "LIVE", "BUSY", "MSG_DONE", "MSG_PENDING"
       }
-    , m_ActorMonitorList()
-    , m_SortByCol(-1)
-    , m_SelectedUID(0)
+    , m_actorMonitorList()
+    , m_sortByCol(-1)
+    , m_selectedUID(0)
 {
     // begin
     {
@@ -44,7 +44,7 @@ ActorMonitorTable::ActorMonitorTable(int nX, int nY, int nW, int nH, const char 
         row_height_all(20);
         row_resize(0);
 
-        cols(m_ColumnName.size());
+        cols(m_columnName.size());
 
         col_header(1);
         col_resize_min(80);
@@ -53,7 +53,7 @@ ActorMonitorTable::ActorMonitorTable(int nX, int nY, int nW, int nH, const char 
     }
     end();
 
-    m_ActorMonitorList.clear();
+    m_actorMonitorList.clear();
     SetupHeaderWidth();
 
     // register callbacks
@@ -77,7 +77,7 @@ static std::string GetTimeString(uint32_t nMS)
 
 std::string ActorMonitorTable::GetGridData(int nRow, int nCol) const
 {
-    if(nRow >= (int)(m_ActorMonitorList.size()) || nCol >= (int)(m_ColumnName.size())){
+    if(nRow >= (int)(m_actorMonitorList.size()) || nCol >= (int)(m_columnName.size())){
         return "";
     }
 
@@ -89,7 +89,7 @@ std::string ActorMonitorTable::GetGridData(int nRow, int nCol) const
         return std::string(nNewLength - szString.size(), ' ') + szString;
     };
 
-    const auto &rstMonitor = m_ActorMonitorList[nRow];
+    const auto &rstMonitor = m_actorMonitorList[nRow];
     switch(nCol){
         case 0: // UID
             {
@@ -101,7 +101,7 @@ std::string ActorMonitorTable::GetGridData(int nRow, int nCol) const
             }
         case 2: // GROUP
             {
-                return std::to_string(g_ActorPool->UIDGroup(rstMonitor.UID));
+                return std::to_string(g_actorPool->UIDGroup(rstMonitor.UID));
             }
         case 3: // LIVE
             {
@@ -113,11 +113,11 @@ std::string ActorMonitorTable::GetGridData(int nRow, int nCol) const
             }
         case 5: // MSG_DONE
             {
-                return fnAdjustLength(std::to_string(rstMonitor.MessageDone), std::to_string(m_MonitorDataDiags.MaxMessageDone).size());
+                return fnAdjustLength(std::to_string(rstMonitor.MessageDone), std::to_string(m_monitorDataDiags.MaxMessageDone).size());
             }
         case 6: // MSG_PENDING
             {
-                return fnAdjustLength(std::to_string(rstMonitor.MessagePending), std::to_string(m_MonitorDataDiags.MaxMessagePending).size());
+                return fnAdjustLength(std::to_string(rstMonitor.MessagePending), std::to_string(m_monitorDataDiags.MaxMessagePending).size());
             }
         default:
             {
@@ -135,7 +135,7 @@ void ActorMonitorTable::draw_cell(TableContext nContext, int nRow, int nCol, int
             }
         case CONTEXT_COL_HEADER:
             {
-                DrawHeader(m_ColumnName[nCol].c_str(), nX, nY, nW, nH);
+                DrawHeader(m_columnName[nCol].c_str(), nX, nY, nW, nH);
                 return;
             }
         case CONTEXT_ROW_HEADER:
@@ -171,8 +171,8 @@ void ActorMonitorTable::DrawData(int nRow, int nCol, int nX, int nY, int nW, int
     int fg_color = FL_BLACK;
     int bg_color = FL_WHITE;
 
-    bool bSelectedRow = (m_ActorMonitorList[nRow].UID == m_SelectedUID);
-    bool bSelectedCol = (m_SortByCol >= 0 && m_SortByCol == nCol);
+    bool bSelectedRow = (m_actorMonitorList[nRow].UID == m_selectedUID);
+    bool bSelectedCol = (m_sortByCol >= 0 && m_sortByCol == nCol);
 
     if(bSelectedRow){
         fg_color = FL_WHITE;
@@ -221,14 +221,14 @@ void ActorMonitorTable::SetupHeaderWidth()
 {
     auto fnHeaderWidth = [this](int nCol) -> int
     {
-        if(nCol >= 0 && nCol < (int)(m_ColumnName.size())){
-            return 10 + m_ColumnName[nCol].size() * 10;
+        if(nCol >= 0 && nCol < (int)(m_columnName.size())){
+            return 10 + m_columnName[nCol].size() * 10;
         }
         return 100;
     };
 
-    if(m_ActorMonitorList.empty()){
-        for(size_t nIndex = 0; nIndex < m_ColumnName.size(); ++nIndex){
+    if(m_actorMonitorList.empty()){
+        for(size_t nIndex = 0; nIndex < m_columnName.size(); ++nIndex){
             col_width(nIndex, fnHeaderWidth(nIndex));
         }
     }else{
@@ -244,24 +244,24 @@ void ActorMonitorTable::SetupHeaderWidth()
 
 void ActorMonitorTable::UpdateTable()
 {
-    m_ActorMonitorList = g_ActorPool->GetActorMonitor();
-    m_MonitorDataDiags = GetMonitorDataDiags(m_ActorMonitorList);
+    m_actorMonitorList = g_actorPool->GetActorMonitor();
+    m_monitorDataDiags = GetMonitorDataDiags(m_actorMonitorList);
 
-    if(rows() != (int)(m_ActorMonitorList.size())){
-        rows(m_ActorMonitorList.size());
+    if(rows() != (int)(m_actorMonitorList.size())){
+        rows(m_actorMonitorList.size());
     }
 
     ResetSort();
-    if(SelectUIDRow(m_SelectedUID) < 0){
-        m_SelectedUID = 0;
+    if(SelectUIDRow(m_selectedUID) < 0){
+        m_selectedUID = 0;
     }
     SetupHeaderWidth();
 }
 
 int ActorMonitorTable::FindUIDRow(uint64_t nUID) const
 {
-    for(int nIndex = 0; nIndex < (int)(m_ActorMonitorList.size()); ++nIndex){
-        if(m_ActorMonitorList[nIndex].UID == nUID){
+    for(int nIndex = 0; nIndex < (int)(m_actorMonitorList.size()); ++nIndex){
+        if(m_actorMonitorList[nIndex].UID == nUID){
             return nIndex;
         }
     }
@@ -270,15 +270,15 @@ int ActorMonitorTable::FindUIDRow(uint64_t nUID) const
 
 void ActorMonitorTable::ResetSort()
 {
-    if(m_SortByCol < 0){
+    if(m_sortByCol < 0){
         return;
     }
 
-    std::sort(m_ActorMonitorList.begin(), m_ActorMonitorList.end(), [this](const ActorPool::ActorMonitor &lhs, const ActorPool::ActorMonitor &rhs) -> bool
+    std::sort(m_actorMonitorList.begin(), m_actorMonitorList.end(), [this](const ActorPool::ActorMonitor &lhs, const ActorPool::ActorMonitor &rhs) -> bool
     {
         auto fnArgedCompare = [this](const auto &x, const auto &y) -> bool
         {
-            if(m_SortOrder){
+            if(m_sortOrder){
                 return x < y;
             }
             else{
@@ -286,10 +286,10 @@ void ActorMonitorTable::ResetSort()
             }
         };
 
-        switch(m_SortByCol){
+        switch(m_sortByCol){
             case 0 : return fnArgedCompare(lhs.UID, rhs.UID);
             case 1 : return fnArgedCompare(uidf::getUIDType(lhs.UID), uidf::getUIDType(rhs.UID));
-            case 2 : return fnArgedCompare(g_ActorPool->UIDGroup(lhs.UID), g_ActorPool->UIDGroup(rhs.UID));
+            case 2 : return fnArgedCompare(g_actorPool->UIDGroup(lhs.UID), g_actorPool->UIDGroup(rhs.UID));
             case 3 : return fnArgedCompare(lhs.LiveTick, rhs.LiveTick);
             case 4 : return fnArgedCompare(lhs.BusyTick, rhs.BusyTick);
             case 5 : return fnArgedCompare(lhs.MessageDone, rhs.MessageDone);
@@ -307,7 +307,7 @@ int ActorMonitorTable::SelectUIDRow(uint64_t nUID)
 
     int nUIDRow = -1;
     for(int nIndex = 0; nIndex < GetDataRow(); ++nIndex){
-        if(m_ActorMonitorList[nIndex].UID == nUID){
+        if(m_actorMonitorList[nIndex].UID == nUID){
             select_row(nIndex, 1);
             nUIDRow = nIndex;
         }else{
@@ -335,9 +335,9 @@ void ActorMonitorTable::OnClick()
     // seems if click on table's dead zone, this will return row and col both as ZERO
     // but should I relay on this???
     if((nCtx == CONTEXT_TABLE) /* ((nRow == 0 ) && (nCol == 0)) */){
-        m_SortByCol   = -1;
-        m_SortOrder   =  true;
-        m_SelectedUID =  0;
+        m_sortByCol   = -1;
+        m_sortOrder   =  true;
+        m_selectedUID =  0;
 
         ResetSort();
         redraw();
@@ -346,7 +346,7 @@ void ActorMonitorTable::OnClick()
 
     // setup new UID to hightlight
     if((nCtx == CONTEXT_CELL) && (nRow >= 0 && nRow < GetDataRow()) && (nCol >= 0) && (nCol < GetDataCol())){
-        m_SelectedUID = m_ActorMonitorList[nRow].UID;
+        m_selectedUID = m_actorMonitorList[nRow].UID;
         redraw();
         return;
     }
@@ -355,11 +355,11 @@ void ActorMonitorTable::OnClick()
     // need to make sure this is the click on col header
 
     if((nCtx == CONTEXT_COL_HEADER) && (nRow == 0) && (nCol >= 0 && nCol < GetDataCol())){
-        if(m_SortByCol == nCol){
-            m_SortOrder = !m_SortOrder;
+        if(m_sortByCol == nCol){
+            m_sortOrder = !m_sortOrder;
         }else{
-            m_SortByCol = nCol;
-            m_SortOrder = true;
+            m_sortByCol = nCol;
+            m_sortOrder = true;
         }
 
         ResetSort();

@@ -23,7 +23,7 @@
 #include "sysconst.hpp"
 
 Mir2Map::Mir2Map()
-    : m_Valid(false)
+    : m_valid(false)
     , m_pstTileInfo(nullptr)
     , m_pstCellInfo(nullptr)
 {
@@ -38,7 +38,7 @@ Mir2Map::~Mir2Map()
 
 bool Mir2Map::Load(const char *szMapFileName)
 {
-    m_Valid = false;
+    m_valid = false;
 
     delete []m_pstTileInfo;  m_pstTileInfo  = nullptr;
     delete []m_pstCellInfo;  m_pstCellInfo  = nullptr;
@@ -73,9 +73,9 @@ bool Mir2Map::Load(const char *szMapFileName)
 
     fclose(hFile);
 
-    m_Valid = true;
+    m_valid = true;
 
-    return m_Valid;
+    return m_valid;
 }
 
 uint8_t Mir2Map::Flag(int nX, int nY)

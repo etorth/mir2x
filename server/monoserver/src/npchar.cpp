@@ -24,23 +24,23 @@
 #include "monoserver.hpp"
 #include "serverconfigurewindow.hpp"
 
-extern ServerConfigureWindow *g_ServerConfigureWindow;
+extern ServerConfigureWindow *g_serverConfigureWindow;
 
 NPChar::LuaNPCModule::LuaNPCModule(NPChar *npc)
     : ServerLuaModule()
     , m_NPChar(npc)
 {
-    m_LuaState.set_function("getUID", [this]() -> std::string
+    m_luaState.set_function("getUID", [this]() -> std::string
     {
         return std::to_string(m_NPChar->rawUID());
     });
 
-    m_LuaState.set_function("getUIDString", [](std::string uidString) -> std::string
+    m_luaState.set_function("getUIDString", [](std::string uidString) -> std::string
     {
         return uidf::getUIDString(uidf::toUID(uidString));
     });
 
-    m_LuaState.set_function("getName", [this]() -> std::string
+    m_luaState.set_function("getName", [this]() -> std::string
     {
         if(m_NPChar->rawUID()){
             return uidf::getUIDString(m_NPChar->rawUID());
@@ -48,12 +48,12 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npc)
         return std::string("ZERO");
     });
 
-    m_LuaState.set_function("sendQuery", [this](std::string uidString, std::string queryName)
+    m_luaState.set_function("sendQuery", [this](std::string uidString, std::string queryName)
     {
         m_NPChar->sendQuery(uidf::toUIDEx(uidString), queryName);
     });
 
-    m_LuaState.set_function("sayXML", [this](std::string uidString, std::string xmlString)
+    m_luaState.set_function("sayXML", [this](std::string uidString, std::string xmlString)
     {
         const uint64_t uid = [&uidString]() -> uint64_t
         {
@@ -75,7 +75,7 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npc)
         }
     });
 
-    m_LuaState.set_function("pollEvent", [this](std::string uidString)
+    m_luaState.set_function("pollEvent", [this](std::string uidString)
     {
         const uint64_t uid = [&uidString]() -> uint64_t
         {
@@ -104,7 +104,7 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npc)
         }());
     });
 
-    m_LuaState.script
+    m_luaState.script
     (
         R"###( function queryLevel(uid)                                                     )###""\n"
         R"###(     sendQuery(uid, 'LEVEL')                                                  )###""\n"
@@ -148,9 +148,9 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npc)
         R"###( end                                                                          )###""\n"
     );
 
-    m_LuaState.script_file([]() -> std::string
+    m_luaState.script_file([]() -> std::string
     {
-        if(const auto scriptPath = g_ServerConfigureWindow->GetScriptPath(); !scriptPath.empty()){
+        if(const auto scriptPath = g_serverConfigureWindow->GetScriptPath(); !scriptPath.empty()){
             return scriptPath + "npc/default.lua";
         }
         return std::string("script/npc/default.lua");

@@ -25,13 +25,13 @@
 class ImageDB
 {
     private:
-        std::vector<uint32_t> m_Buf;
-        std::array<WilImagePackage, 256> m_ImagePackage;
+        std::vector<uint32_t> m_buf;
+        std::array<WilImagePackage, 256> m_imagePackage;
 
     public:
         ImageDB()
-            : m_Buf()
-            , m_ImagePackage()
+            : m_buf()
+            , m_imagePackage()
         {}
 
        ~ImageDB() = default;

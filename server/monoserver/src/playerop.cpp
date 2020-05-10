@@ -24,16 +24,16 @@
 #include "netdriver.hpp"
 #include "monoserver.hpp"
 
-extern NetDriver *g_NetDriver;
-extern MonoServer *g_MonoServer;
+extern NetDriver *g_netDriver;
+extern MonoServer *g_monoServer;
 
 void Player::On_MPK_METRONOME(const MessagePack &)
 {
     Update();
 
     SMPing stSMP;
-    stSMP.Tick = g_MonoServer->getCurrTick();
-    g_NetDriver->Post(ChannID(), SM_PING, stSMP);
+    stSMP.Tick = g_monoServer->getCurrTick();
+    g_netDriver->Post(ChannID(), SM_PING, stSMP);
 }
 
 void Player::On_MPK_BADACTORPOD(const MessagePack &rstMPK)
@@ -50,16 +50,16 @@ void Player::On_MPK_BINDCHANNEL(const MessagePack &rstMPK)
 
     // bind channel here
     // set the channel actor as this->GetAddress()
-    m_ChannID = stAMBC.ChannID;
+    m_channID = stAMBC.ChannID;
 
-    g_NetDriver->BindActor(ChannID(), UID());
+    g_netDriver->BindActor(ChannID(), UID());
 
     SMLoginOK stSMLOK;
     std::memset(&stSMLOK, 0, sizeof(stSMLOK));
 
     stSMLOK.UID       = UID();
     stSMLOK.DBID      = DBID();
-    stSMLOK.MapID     = m_Map->ID();
+    stSMLOK.MapID     = m_map->ID();
     stSMLOK.X         = X();
     stSMLOK.Y         = Y();
     stSMLOK.Male      = true;
@@ -67,7 +67,7 @@ void Player::On_MPK_BINDCHANNEL(const MessagePack &rstMPK)
     stSMLOK.JobID     = JobID();
     stSMLOK.Level     = Level();
 
-    g_NetDriver->Post(ChannID(), SM_LOGINOK, stSMLOK);
+    g_netDriver->Post(ChannID(), SM_LOGINOK, stSMLOK);
     PullRectCO(10, 10);
 }
 
@@ -195,15 +195,15 @@ void Player::On_MPK_MAPSWITCH(const MessagePack &rstMPK)
     std::memcpy(&stAMMS, rstMPK.Data(), sizeof(stAMMS));
 
     if(!(stAMMS.UID && stAMMS.MapID)){
-        g_MonoServer->addLog(LOGTYPE_WARNING, "Map switch request failed: (UID = %" PRIu64 ", MapID = %" PRIu32 ")", stAMMS.UID, stAMMS.MapID);
+        g_monoServer->addLog(LOGTYPE_WARNING, "Map switch request failed: (UID = %" PRIu64 ", MapID = %" PRIu32 ")", stAMMS.UID, stAMMS.MapID);
     }
 
     AMTryMapSwitch stAMTMS;
     std::memset(&stAMTMS, 0, sizeof(stAMTMS));
 
     stAMTMS.UID    = UID();         //
-    stAMTMS.MapID  = m_Map->ID();   // current map
-    stAMTMS.MapUID = m_Map->UID();  // current map
+    stAMTMS.MapID  = m_map->ID();   // current map
+    stAMTMS.MapUID = m_map->UID();  // current map
     stAMTMS.X      = X();           // current map
     stAMTMS.Y      = Y();           // current map
     stAMTMS.EndX   = stAMMS.X;      // map to switch to
@@ -230,22 +230,22 @@ void Player::On_MPK_MAPSWITCH(const MessagePack &rstMPK)
                         std::memset(&stAMTL, 0, sizeof(stAMTL));
 
                         stAMTL.UID   = UID();
-                        stAMTL.MapID = m_Map->ID();
+                        stAMTL.MapID = m_map->ID();
                         stAMTL.X     = X();
                         stAMTL.Y     = Y();
 
                         // current map respond for the leave request
-                        // dangerous here, we should keep m_Map always valid
-                        m_actorPod->forward(m_Map->UID(), {MPK_TRYLEAVE, stAMTL}, [this, stAMMSOK, rstRMPK](const MessagePack &rstLeaveRMPK)
+                        // dangerous here, we should keep m_map always valid
+                        m_actorPod->forward(m_map->UID(), {MPK_TRYLEAVE, stAMTL}, [this, stAMMSOK, rstRMPK](const MessagePack &rstLeaveRMPK)
                         {
                             switch(rstLeaveRMPK.Type()){
                                 case MPK_OK:
                                     {
                                         // 1. response to new map ``I am here"
-                                        m_Map   = (ServerMap *)(stAMMSOK.Ptr);
+                                        m_map   = (ServerMap *)(stAMMSOK.Ptr);
                                         m_X = stAMMSOK.X;
                                         m_Y = stAMMSOK.Y;
-                                        m_actorPod->forward(m_Map->UID(), MPK_OK, rstRMPK.ID());
+                                        m_actorPod->forward(m_map->UID(), MPK_OK, rstRMPK.ID());
 
                                         // 2. notify all players on the new map
                                         DispatchAction(ActionStand(X(), Y(), Direction()));
@@ -263,7 +263,7 @@ void Player::On_MPK_MAPSWITCH(const MessagePack &rstMPK)
                                         // server map won't respond any other message not MPK_OK
                                         // dangerous issue since we then can never inform the new map ``we can't come to you"
                                         m_actorPod->forward(((ServerMap *)(stAMMSOK.Ptr))->UID(), MPK_ERROR, rstRMPK.ID());
-                                        g_MonoServer->addLog(LOGTYPE_WARNING, "Leave request failed: (UID = %" PRIu64 ", MapID = %" PRIu32 ")", UID(), ((ServerMap *)(stAMMSOK.Ptr))->ID());
+                                        g_monoServer->addLog(LOGTYPE_WARNING, "Leave request failed: (UID = %" PRIu64 ", MapID = %" PRIu32 ")", UID(), ((ServerMap *)(stAMMSOK.Ptr))->ID());
                                         break;
                                     }
                             }
@@ -272,7 +272,7 @@ void Player::On_MPK_MAPSWITCH(const MessagePack &rstMPK)
                     }
 
                     // AMMapSwitchOK invalid
-                    g_MonoServer->addLog(LOGTYPE_WARNING, "Invalid AMMapSwitchOK: Map = %p", stAMMSOK.Ptr);
+                    g_monoServer->addLog(LOGTYPE_WARNING, "Invalid AMMapSwitchOK: Map = %p", stAMMSOK.Ptr);
                     return;
                 }
             default:
@@ -294,11 +294,11 @@ void Player::On_MPK_NPCQUERY(const MessagePack &mpk)
     std::strcpy(amNPCE.event, queryName.c_str());
 
     if(queryName == "GOLD"){
-        std::sprintf(amNPCE.value, "%d", m_Gold);
+        std::sprintf(amNPCE.value, "%d", m_gold);
     }
 
     else if(queryName == "LEVEL"){
-        std::sprintf(amNPCE.value, "%d", m_Level);
+        std::sprintf(amNPCE.value, "%d", m_level);
     }
 
     else{
@@ -364,7 +364,7 @@ void Player::On_MPK_UPDATEHP(const MessagePack &rstMPK)
         stSMUHP.HP    = stAMUHP.HP;
         stSMUHP.HPMax = stAMUHP.HPMax;
 
-        g_NetDriver->Post(ChannID(), SM_UPDATEHP, stSMUHP);
+        g_netDriver->Post(ChannID(), SM_UPDATEHP, stSMUHP);
     }
 }
 
@@ -380,7 +380,7 @@ void Player::On_MPK_DEADFADEOUT(const MessagePack &rstMPK)
         stSMDFO.MapID = stAMDFO.MapID;
         stSMDFO.X     = stAMDFO.X;
         stSMDFO.Y     = stAMDFO.Y;
-        g_NetDriver->Post(ChannID(), SM_DEADFADEOUT, stSMDFO);
+        g_netDriver->Post(ChannID(), SM_DEADFADEOUT, stSMDFO);
     }
 }
 
@@ -394,7 +394,7 @@ void Player::On_MPK_EXP(const MessagePack &rstMPK)
     if(stAME.Exp > 0){
         SMExp stSME;
         stSME.Exp = stAME.Exp;
-        g_NetDriver->Post(ChannID(), SM_EXP, stSME);
+        g_netDriver->Post(ChannID(), SM_EXP, stSME);
     }
 }
 
@@ -433,7 +433,7 @@ void Player::On_MPK_SHOWDROPITEM(const MessagePack &rstMPK)
             break;
         }
     }
-    g_NetDriver->Post(ChannID(), SM_SHOWDROPITEM, stSMSDI);
+    g_netDriver->Post(ChannID(), SM_SHOWDROPITEM, stSMSDI);
 }
 
 void Player::On_MPK_NPCXMLLAYOUT(const MessagePack &msg)
@@ -460,7 +460,7 @@ void Player::On_MPK_BADCHANNEL(const MessagePack &rstMPK)
     std::memcpy(&stAMBC, rstMPK.Data(), sizeof(stAMBC));
 
     condcheck(ChannID() == stAMBC.ChannID);
-    g_NetDriver->Shutdown(ChannID(), false);
+    g_netDriver->Shutdown(ChannID(), false);
 
     Offline();
 }
@@ -505,13 +505,13 @@ void Player::On_MPK_PICKUPOK(const MessagePack &rstMPK)
     switch(stAMPUOK.ID){
         case DBCOM_ITEMID(u8"金币"):
             {
-                m_Gold += std::rand() % 500;
+                m_gold += std::rand() % 500;
                 ReportGold();
                 break;
             }
         default:
             {
-                m_Inventory.emplace_back(stAMPUOK.ID, stAMPUOK.DBID);
+                m_inventory.emplace_back(stAMPUOK.ID, stAMPUOK.DBID);
                 break;
             }
     }

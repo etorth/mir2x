@@ -25,20 +25,20 @@ class MagicBase
 {
     protected:
         int m_ID;
-        int m_Param;
-        int m_Stage;
+        int m_param;
+        int m_stage;
 
     protected:
-        double m_TimeOut;
-        double m_AccuTime;
+        double m_timeOut;
+        double m_accuTime;
 
     protected:
         // mutable means already thread safe
         // don't use this class in multithread env since not atomic protection
-        mutable const GfxEntry *m_CacheEntry;
+        mutable const GfxEntry *m_cacheEntry;
 
     protected:
-        std::list<std::function<bool()>> m_UpdateFunc;
+        std::list<std::function<bool()>> m_updateFunc;
 
     public:
         MagicBase(int,      // MagicID
@@ -61,12 +61,12 @@ class MagicBase
 
         int Param() const
         {
-            return m_Param;
+            return m_param;
         }
 
         int Stage() const
         {
-            return m_Stage;
+            return m_stage;
         }
 
     public:
@@ -84,15 +84,15 @@ class MagicBase
     public:
         void AddFunc(std::function<bool()> fnOnUpdate)
         {
-            m_UpdateFunc.push_back(fnOnUpdate);
+            m_updateFunc.push_back(fnOnUpdate);
         }
 
     protected:
         void ExecUpdateFunc()
         {
-            for(auto p = m_UpdateFunc.begin(); p != m_UpdateFunc.end();){
+            for(auto p = m_updateFunc.begin(); p != m_updateFunc.end();){
                 if((*p)()){
-                    p = m_UpdateFunc.erase(p);
+                    p = m_updateFunc.erase(p);
                 }else{
                     ++p;
                 }
@@ -105,7 +105,7 @@ class MagicBase
     public:
         operator bool () const
         {
-            // RefreshCache() makes m_CacheEntry point to correct entry
+            // RefreshCache() makes m_cacheEntry point to correct entry
             // if current magic configuration is invalid it fails
 
             return RefreshCache();

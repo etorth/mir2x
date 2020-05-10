@@ -53,10 +53,10 @@ class ServerMap final: public ServerObject
         class ServerPathFinder: public AStarPathFinder
         {
             private:
-                const ServerMap *m_Map;
+                const ServerMap *m_map;
 
             private:
-                const int m_CheckCO;
+                const int m_checkCO;
 
             public:
                 ServerPathFinder(const ServerMap*, int, int);
@@ -94,16 +94,16 @@ class ServerMap final: public ServerObject
 
     private:
         const uint32_t     m_ID;
-        const Mir2xMapData m_Mir2xMapData;
+        const Mir2xMapData m_mir2xMapData;
 
     private:
-        ServiceCore *m_ServiceCore;
+        ServiceCore *m_serviceCore;
 
     private:
-        Vec2D<MapCell> m_CellVec2D;
+        Vec2D<MapCell> m_cellVec2D;
 
     private:
-        ServerMapLuaModule *m_LuaModule;
+        ServerMapLuaModule *m_luaModule;
 
     private:
         void OperateAM(const MessagePack &);
@@ -133,29 +133,29 @@ class ServerMap final: public ServerObject
     public:
         const Mir2xMapData &GetMir2xMapData() const
         {
-            return m_Mir2xMapData;
+            return m_mir2xMapData;
         }
 
     public:
         int W() const
         {
-            return m_Mir2xMapData.Valid() ? m_Mir2xMapData.W() : 0;
+            return m_mir2xMapData.Valid() ? m_mir2xMapData.W() : 0;
         }
 
         int H() const
         {
-            return m_Mir2xMapData.Valid() ? m_Mir2xMapData.H() : 0;
+            return m_mir2xMapData.Valid() ? m_mir2xMapData.H() : 0;
         }
 
     public:
         bool ValidC(int nX, int nY) const
         {
-            return m_Mir2xMapData.ValidC(nX, nY);
+            return m_mir2xMapData.ValidC(nX, nY);
         }
 
         bool ValidP(int nX, int nY) const
         {
-            return m_Mir2xMapData.ValidP(nX, nY);
+            return m_mir2xMapData.ValidP(nX, nY);
         }
 
     public:
@@ -186,34 +186,34 @@ class ServerMap final: public ServerObject
     private:
         auto &GetCell(int nX, int nY)
         {
-            return m_CellVec2D[nX][nY];
+            return m_cellVec2D[nX][nY];
         }
 
         const auto &GetCell(int nX, int nY) const
         {
-            return m_CellVec2D[nX][nY];
+            return m_cellVec2D[nX][nY];
         }
 
     private:
         auto &GetUIDListRef(int nX, int nY)
         {
-            return m_CellVec2D[nX][nY].UIDList;
+            return m_cellVec2D[nX][nY].UIDList;
         }
 
         const auto &GetUIDListRef(int nX, int nY) const
         {
-            return m_CellVec2D[nX][nY].UIDList;
+            return m_cellVec2D[nX][nY].UIDList;
         }
 
     private:
         auto &GetGroundItemList(int nX, int nY)
         {
-            return m_CellVec2D[nX][nY].GroundItemQueue;
+            return m_cellVec2D[nX][nY].GroundItemQueue;
         }
 
         const auto &GetGroundItemList(int nX, int nY) const
         {
-            return m_CellVec2D[nX][nY].GroundItemQueue;
+            return m_cellVec2D[nX][nY].GroundItemQueue;
         }
 
     private:

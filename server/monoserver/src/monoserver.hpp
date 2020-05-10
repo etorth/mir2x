@@ -47,22 +47,22 @@ class MonoServer final
     };
 
     private:
-        std::mutex m_LogLock;
-        std::vector<char> m_LogBuf;
+        std::mutex m_logLock;
+        std::vector<char> m_logBuf;
 
     private:
         std::mutex m_CWLogLock;
         std::vector<char> m_CWLogBuf;
 
     private:
-        std::mutex m_NotifyGUILock;
+        std::mutex m_notifyGUILock;
         std::queue<std::string> m_notifyGUIQ;
 
     private:
-        ServiceCore *m_ServiceCore;
+        ServiceCore *m_serviceCore;
 
     private:
-        std::exception_ptr m_CurrException;
+        std::exception_ptr m_currException;
 
     private:
         hres_timer m_hrtimer;

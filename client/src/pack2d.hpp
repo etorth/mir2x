@@ -55,13 +55,13 @@ class Pack2D
         const size_t m_w;
 
     private:
-        std::vector<int> m_PackMap;
+        std::vector<int> m_packMap;
 
     public:
         size_t H()
         {
             Shrink();
-            return m_PackMap.size();
+            return m_packMap.size();
         }
 
         size_t W() const
@@ -73,7 +73,7 @@ class Pack2D
         Pack2D(size_t nW)
             : m_w(nW)
         {
-            condcheck(m_w < sizeof(decltype(m_PackMap)::value_type) * 8);
+            condcheck(m_w < sizeof(decltype(m_packMap)::value_type) * 8);
         }
 
     public:
@@ -101,11 +101,11 @@ class Pack2D
     private:
         void Shrink()
         {
-            while(!m_PackMap.empty()){
-                if(m_PackMap.back()){
+            while(!m_packMap.empty()){
+                if(m_packMap.back()){
                     break;
                 }else{
-                    m_PackMap.pop_back();
+                    m_packMap.pop_back();
                 }
             }
         }

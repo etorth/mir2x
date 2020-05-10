@@ -24,7 +24,7 @@
 #include "fflerror.hpp"
 #include "condcheck.hpp"
 
-extern Log *g_Log;
+extern Log *g_log;
 
 NetIO::SendPack::SendPack(uint8_t hc, const uint8_t *dataBuf, size_t dataLength)
     : headCode(hc)
@@ -97,12 +97,12 @@ NetIO::NetIO()
     : m_io()
     , m_resolver(m_io)
     , m_socket(m_io)
-    , m_ReadHC(0)
-    , m_ReadLen {0, 0, 0, 0}
-    , m_ReadBuf(1024)
+    , m_readHC(0)
+    , m_readLen {0, 0, 0, 0}
+    , m_readBuf(1024)
     , m_msgHandler()
     , m_sendQueue()
-    , m_MemoryPN()
+    , m_memoryPN()
 {}
 
 NetIO::~NetIO()
@@ -113,10 +113,10 @@ NetIO::~NetIO()
 void NetIO::readHeadCode()
 {
     auto fnReportCurrentMessage = [this](){
-        g_Log->addLog(LOGTYPE_WARNING, "Current ServerMsg::headCode = %d", (int)(m_ReadHC));
-        g_Log->addLog(LOGTYPE_WARNING, "                 ::type     = %d", (int)(ServerMsg(m_ReadHC).type()));
-        g_Log->addLog(LOGTYPE_WARNING, "                 ::daskLen  = %d", (int)(ServerMsg(m_ReadHC).maskLen()));
-        g_Log->addLog(LOGTYPE_WARNING, "                 ::dataLen  = %d", (int)(ServerMsg(m_ReadHC).dataLen()));
+        g_log->addLog(LOGTYPE_WARNING, "Current ServerMsg::headCode = %d", (int)(m_readHC));
+        g_log->addLog(LOGTYPE_WARNING, "                 ::type     = %d", (int)(ServerMsg(m_readHC).type()));
+        g_log->addLog(LOGTYPE_WARNING, "                 ::daskLen  = %d", (int)(ServerMsg(m_readHC).maskLen()));
+        g_log->addLog(LOGTYPE_WARNING, "                 ::dataLen  = %d", (int)(ServerMsg(m_readHC).dataLen()));
     };
 
     auto fnOnNetError = [this, fnReportCurrentMessage](std::error_code errCode)
@@ -126,7 +126,7 @@ void NetIO::readHeadCode()
             shutdown();
 
             // 2. record the error code to log
-            g_Log->addLog(LOGTYPE_WARNING, "Network error: %s", errCode.message().c_str());
+            g_log->addLog(LOGTYPE_WARNING, "Network error: %s", errCode.message().c_str());
             fnReportCurrentMessage();
         }
     };
@@ -137,11 +137,11 @@ void NetIO::readHeadCode()
             fnOnNetError(errCode);
         }
 
-        ServerMsg stSMSG(m_ReadHC);
+        ServerMsg stSMSG(m_readHC);
         switch(stSMSG.type()){
             case 0:
                 {
-                    m_msgHandler(m_ReadHC, nullptr, 0);
+                    m_msgHandler(m_readHC, nullptr, 0);
                     readHeadCode();
                     return;
                 }
@@ -150,32 +150,32 @@ void NetIO::readHeadCode()
                     auto fnOnReadLen0 = [this, stSMSG, fnOnNetError, fnReportCurrentMessage](std::error_code errCode, size_t){
                         if(errCode){ fnOnNetError(errCode); }
                         else{
-                            if(m_ReadLen[0] != 255){
-                                if((size_t)(m_ReadLen[0]) > stSMSG.dataLen()){
+                            if(m_readLen[0] != 255){
+                                if((size_t)(m_readLen[0]) > stSMSG.dataLen()){
                                     // 1. close the asio socket
                                     shutdown();
 
                                     // 2. record the error code but not exit?
-                                    g_Log->addLog(LOGTYPE_WARNING, "Invalid package: CompLen = %d", (int)(m_ReadLen[0]));
+                                    g_log->addLog(LOGTYPE_WARNING, "Invalid package: CompLen = %d", (int)(m_readLen[0]));
                                     fnReportCurrentMessage();
 
                                     // 3. we stop here
                                     //    should we have some method to save it?
                                     return;
-                                }else{ readBody(stSMSG.maskLen(), m_ReadLen[0]); }
+                                }else{ readBody(stSMSG.maskLen(), m_readLen[0]); }
                             }else{
                                 auto fnOnReadLen1 = [this, stSMSG, fnReportCurrentMessage, fnOnNetError](std::error_code errCode, size_t){
                                     if(errCode){ fnOnNetError(errCode); }
                                     else{
-                                        condcheck(m_ReadLen[0] == 255);
-                                        auto nCompLen = (size_t)(m_ReadLen[1]) + 255;
+                                        condcheck(m_readLen[0] == 255);
+                                        auto nCompLen = (size_t)(m_readLen[1]) + 255;
 
                                         if(nCompLen > stSMSG.dataLen()){
                                             // 1. close the asio socket
                                             shutdown();
 
                                             // 2. record the error code but not exit?
-                                            g_Log->addLog(LOGTYPE_WARNING, "Invalid package: CompLen = %d", (int)(nCompLen));
+                                            g_log->addLog(LOGTYPE_WARNING, "Invalid package: CompLen = %d", (int)(nCompLen));
                                             fnReportCurrentMessage();
 
                                             // 3. we stop here
@@ -184,11 +184,11 @@ void NetIO::readHeadCode()
                                         }else{ readBody(stSMSG.maskLen(), nCompLen); }
                                     }
                                 };
-                                asio::async_read(m_socket, asio::buffer(m_ReadLen + 1, 1), fnOnReadLen1);
+                                asio::async_read(m_socket, asio::buffer(m_readLen + 1, 1), fnOnReadLen1);
                             }
                         }
                     };
-                    asio::async_read(m_socket, asio::buffer(m_ReadLen, 1), fnOnReadLen0);
+                    asio::async_read(m_socket, asio::buffer(m_readLen, 1), fnOnReadLen0);
                     return;
                 }
             case 2:
@@ -202,11 +202,11 @@ void NetIO::readHeadCode()
                         if(errCode){ fnOnNetError(errCode); }
                         else{
                             uint32_t nDataLenU32 = 0;
-                            std::memcpy(&nDataLenU32, m_ReadLen, 4);
+                            std::memcpy(&nDataLenU32, m_readLen, 4);
                             readBody(0, nDataLenU32);
                         }
                     };
-                    asio::async_read(m_socket, asio::buffer(m_ReadLen, 4), fnOnReadLen);
+                    asio::async_read(m_socket, asio::buffer(m_readLen, 4), fnOnReadLen);
                     return;
                 }
             default:
@@ -217,16 +217,16 @@ void NetIO::readHeadCode()
                 }
         }
     };
-    asio::async_read(m_socket, asio::buffer(&m_ReadHC, 1), fnOnReadHC);
+    asio::async_read(m_socket, asio::buffer(&m_readHC, 1), fnOnReadHC);
 }
 
 bool NetIO::readBody(size_t nMaskLen, size_t nBodyLen)
 {
     auto fnReportCurrentMessage = [this](){
-        g_Log->addLog(LOGTYPE_WARNING, "Current ServerMsg::headCode = %d", (int)(m_ReadHC));
-        g_Log->addLog(LOGTYPE_WARNING, "                 ::Type     = %d", (int)(ServerMsg(m_ReadHC).type()));
-        g_Log->addLog(LOGTYPE_WARNING, "                 ::MaskLen  = %d", (int)(ServerMsg(m_ReadHC).maskLen()));
-        g_Log->addLog(LOGTYPE_WARNING, "                 ::DataLen  = %d", (int)(ServerMsg(m_ReadHC).dataLen()));
+        g_log->addLog(LOGTYPE_WARNING, "Current ServerMsg::headCode = %d", (int)(m_readHC));
+        g_log->addLog(LOGTYPE_WARNING, "                 ::Type     = %d", (int)(ServerMsg(m_readHC).type()));
+        g_log->addLog(LOGTYPE_WARNING, "                 ::MaskLen  = %d", (int)(ServerMsg(m_readHC).maskLen()));
+        g_log->addLog(LOGTYPE_WARNING, "                 ::DataLen  = %d", (int)(ServerMsg(m_readHC).dataLen()));
     };
 
     auto fnOnNetError = [this, fnReportCurrentMessage](std::error_code errCode){
@@ -235,18 +235,18 @@ bool NetIO::readBody(size_t nMaskLen, size_t nBodyLen)
             shutdown();
 
             // 2. record the error code to log
-            g_Log->addLog(LOGTYPE_WARNING, "Network error: %s", errCode.message().c_str());
+            g_log->addLog(LOGTYPE_WARNING, "Network error: %s", errCode.message().c_str());
             fnReportCurrentMessage();
         }
     };
 
     auto fnReportInvalidArg = [nMaskLen, nBodyLen, fnReportCurrentMessage]()
     {
-        g_Log->addLog(LOGTYPE_WARNING, "Invalid argument to readBody(MaskLen = %d, BodyLen = %d)", (int)(nMaskLen), (int)(nBodyLen));
+        g_log->addLog(LOGTYPE_WARNING, "Invalid argument to readBody(MaskLen = %d, BodyLen = %d)", (int)(nMaskLen), (int)(nBodyLen));
         fnReportCurrentMessage();
     };
 
-    ServerMsg stSMSG(m_ReadHC);
+    ServerMsg stSMSG(m_readHC);
     switch(stSMSG.type()){
         case 0:
             {
@@ -259,7 +259,7 @@ bool NetIO::readBody(size_t nMaskLen, size_t nBodyLen)
                     fnReportInvalidArg();
                     return false;
                 }
-                m_ReadBuf.resize(nMaskLen + nBodyLen + 8 + stSMSG.dataLen());
+                m_readBuf.resize(nMaskLen + nBodyLen + 8 + stSMSG.dataLen());
                 break;
             }
         case 2:
@@ -268,7 +268,7 @@ bool NetIO::readBody(size_t nMaskLen, size_t nBodyLen)
                     fnReportInvalidArg();
                     return false;
                 }
-                m_ReadBuf.resize(stSMSG.dataLen());
+                m_readBuf.resize(stSMSG.dataLen());
                 break;
             }
         case 3:
@@ -277,7 +277,7 @@ bool NetIO::readBody(size_t nMaskLen, size_t nBodyLen)
                     fnReportInvalidArg();
                     return false;
                 }
-                m_ReadBuf.resize(stSMSG.dataLen());
+                m_readBuf.resize(stSMSG.dataLen());
                 break;
             }
         default:
@@ -292,13 +292,13 @@ bool NetIO::readBody(size_t nMaskLen, size_t nBodyLen)
             if(errCode){ fnOnNetError(errCode); }
             else{
                 if(nMaskLen){
-                    auto nMaskCount = Compress::CountMask(&(m_ReadBuf[0]), nMaskLen);
+                    auto nMaskCount = Compress::CountMask(&(m_readBuf[0]), nMaskLen);
                     if(nMaskCount != (int)(nBodyLen)){
                         // we get corrupted data
                         // should we ignore current package or kill the process?
 
                         // 1. keep a log for the corrupted message
-                        g_Log->addLog(LOGTYPE_WARNING, "Corrupted data: MaskCount = %d, CompLen = %d", nMaskCount, (int)(nBodyLen));
+                        g_log->addLog(LOGTYPE_WARNING, "Corrupted data: MaskCount = %d, CompLen = %d", nMaskCount, (int)(nBodyLen));
                         fnReportCurrentMessage();
 
                         // 2. we ignore this message
@@ -307,16 +307,16 @@ bool NetIO::readBody(size_t nMaskLen, size_t nBodyLen)
                     }
 
                     if(nBodyLen <= stSMSG.dataLen()){
-                        auto pMaskData = &(m_ReadBuf[0]);
-                        auto pCompData = &(m_ReadBuf[nMaskLen]);
-                        auto pOrigData = &(m_ReadBuf[((nMaskLen + nBodyLen + 7) / 8) * 8]);
+                        auto pMaskData = &(m_readBuf[0]);
+                        auto pCompData = &(m_readBuf[nMaskLen]);
+                        auto pOrigData = &(m_readBuf[((nMaskLen + nBodyLen + 7) / 8) * 8]);
                         if(Compress::Decode(pOrigData, stSMSG.dataLen(), pMaskData, pCompData) != (int)(nBodyLen)){
-                            g_Log->addLog(LOGTYPE_WARNING, "Decode failed: MaskCount = %d, CompLen = %d", nMaskCount, (int)(nBodyLen));
+                            g_log->addLog(LOGTYPE_WARNING, "Decode failed: MaskCount = %d, CompLen = %d", nMaskCount, (int)(nBodyLen));
                             fnReportCurrentMessage();
                             return;
                         }
                     }else{
-                        g_Log->addLog(LOGTYPE_WARNING, "Corrupted data: DataLen = %d, CompLen = %d", (int)(stSMSG.dataLen()), (int)(nBodyLen));
+                        g_log->addLog(LOGTYPE_WARNING, "Corrupted data: DataLen = %d, CompLen = %d", (int)(stSMSG.dataLen()), (int)(nBodyLen));
                         fnReportCurrentMessage();
                         return;
                     }
@@ -326,19 +326,19 @@ bool NetIO::readBody(size_t nMaskLen, size_t nBodyLen)
                 // we should call the completion handler here
 
                 // 1. call completion on decompressed data
-                m_msgHandler(m_ReadHC, &(m_ReadBuf[nMaskLen ? ((nMaskLen + nBodyLen + 7) / 8 * 8) : 0]), nMaskLen ? stSMSG.dataLen() : nBodyLen);
+                m_msgHandler(m_readHC, &(m_readBuf[nMaskLen ? ((nMaskLen + nBodyLen + 7) / 8 * 8) : 0]), nMaskLen ? stSMSG.dataLen() : nBodyLen);
 
                 // 2. read next readHeadCode()
                 readHeadCode();
             }
         };
-        asio::async_read(m_socket, asio::buffer(&(m_ReadBuf[0]), nDataLen), fnDoneReadData);
+        asio::async_read(m_socket, asio::buffer(&(m_readBuf[0]), nDataLen), fnDoneReadData);
         return true;
     }
 
     // I report error when read boyd at mode-0 
     // but still if in mode3 and we're transfering empty message we can reach here
-    m_msgHandler(m_ReadHC, nullptr, 0);
+    m_msgHandler(m_readHC, nullptr, 0);
     readHeadCode();
     return true;
 }
@@ -347,7 +347,7 @@ void NetIO::sendNext()
 {
     condcheck(!m_sendQueue.empty());
     if(m_sendQueue.front().data){
-        m_MemoryPN.Free(const_cast<uint8_t *>(m_sendQueue.front().data));
+        m_memoryPN.Free(const_cast<uint8_t *>(m_sendQueue.front().data));
     }
 
     m_sendQueue.pop();
@@ -367,7 +367,7 @@ void NetIO::sendBuf()
                 shutdown();
 
                 // 2. record the error code and exit
-                g_Log->addLog(LOGTYPE_WARNING, "Network error: %s", errCode.message().c_str());
+                g_log->addLog(LOGTYPE_WARNING, "Network error: %s", errCode.message().c_str());
             }else{ sendNext(); }
         };
         asio::async_write(m_socket, asio::buffer(m_sendQueue.front().data, m_sendQueue.front().dataLen), fnDoSendValidBuf);
@@ -383,7 +383,7 @@ void NetIO::sendHeadCode()
                 shutdown();
 
                 // 2. record the error code and exit
-                g_Log->addLog(LOGTYPE_WARNING, "Network error: %s", errCode.message().c_str());
+                g_log->addLog(LOGTYPE_WARNING, "Network error: %s", errCode.message().c_str());
             }else{ sendBuf(); }
         }
     );
@@ -396,7 +396,7 @@ bool NetIO::send(uint8_t nHC, const uint8_t *pData, size_t nDataLen)
 
     auto fnReportError = [nHC, pData, nDataLen]()
     {
-        g_Log->addLog(LOGTYPE_WARNING, "Invalid message to send: headCode = %d, Data = %p, DataLen = %d", (int)(nHC), pData, (int)(nDataLen));
+        g_log->addLog(LOGTYPE_WARNING, "Invalid message to send: headCode = %d, Data = %p, DataLen = %d", (int)(nHC), pData, (int)(nDataLen));
     };
 
     ClientMsg stCMSG(nHC);
@@ -418,25 +418,25 @@ bool NetIO::send(uint8_t nHC, const uint8_t *pData, size_t nDataLen)
 
                 auto nCountData = Compress::CountData(pData, nDataLen);
                 if((nCountData < 0) || (nCountData > (int)(stCMSG.dataLen()))){
-                    g_Log->addLog(LOGTYPE_WARNING, "Count failed: headCode = %d, DataLen = %d, CountData = %d", (int)(nHC), (int)(nDataLen), nCountData);
+                    g_log->addLog(LOGTYPE_WARNING, "Count failed: headCode = %d, DataLen = %d, CountData = %d", (int)(nHC), (int)(nDataLen), nCountData);
                     return false;
                 }else if(nCountData <= 254){
-                    pEncodeData = (uint8_t *)(m_MemoryPN.Get(stCMSG.maskLen() + (size_t)(nCountData) + 1));
+                    pEncodeData = (uint8_t *)(m_memoryPN.Get(stCMSG.maskLen() + (size_t)(nCountData) + 1));
                     if(Compress::Encode(pEncodeData + 1, pData, nDataLen) != nCountData){
-                        g_Log->addLog(LOGTYPE_WARNING, "Count failed: headCode = %d, DataLen = %d, CountData = %d", (int)(nHC), (int)(nDataLen), nCountData);
+                        g_log->addLog(LOGTYPE_WARNING, "Count failed: headCode = %d, DataLen = %d, CountData = %d", (int)(nHC), (int)(nDataLen), nCountData);
 
-                        m_MemoryPN.Free(pEncodeData);
+                        m_memoryPN.Free(pEncodeData);
                         return false;
                     }
 
                     pEncodeData[0] = (uint8_t)(nCountData);
                     nEncodeSize    = 1 + stCMSG.maskLen() + (size_t)(nCountData);
                 }else if(nCountData <= (255 + 255)){
-                    pEncodeData = (uint8_t *)(m_MemoryPN.Get(stCMSG.maskLen() + (size_t)(nCountData) + 2));
+                    pEncodeData = (uint8_t *)(m_memoryPN.Get(stCMSG.maskLen() + (size_t)(nCountData) + 2));
                     if(Compress::Encode(pEncodeData + 2, pData, nDataLen) != nCountData){
-                        g_Log->addLog(LOGTYPE_WARNING, "Count failed: headCode = %d, DataLen = %d, CountData = %d", (int)(nHC), (int)(nDataLen), nCountData);
+                        g_log->addLog(LOGTYPE_WARNING, "Count failed: headCode = %d, DataLen = %d, CountData = %d", (int)(nHC), (int)(nDataLen), nCountData);
 
-                        m_MemoryPN.Free(pEncodeData);
+                        m_memoryPN.Free(pEncodeData);
                         return false;
                     }
 
@@ -444,9 +444,9 @@ bool NetIO::send(uint8_t nHC, const uint8_t *pData, size_t nDataLen)
                     pEncodeData[1] = (uint8_t)(nCountData - 255);
                     nEncodeSize    = 2 + stCMSG.maskLen() + (size_t)(nCountData);
                 }else{
-                    g_Log->addLog(LOGTYPE_WARNING, "Count overflows: headCode = %d, DataLen = %d, CountData = %d", (int)(nHC), (int)(nDataLen), nCountData);
+                    g_log->addLog(LOGTYPE_WARNING, "Count overflows: headCode = %d, DataLen = %d, CountData = %d", (int)(nHC), (int)(nDataLen), nCountData);
 
-                    m_MemoryPN.Free(pEncodeData);
+                    m_memoryPN.Free(pEncodeData);
                     return false;
                 }
                 break;
@@ -458,7 +458,7 @@ bool NetIO::send(uint8_t nHC, const uint8_t *pData, size_t nDataLen)
                     return false;
                 }
 
-                pEncodeData = (uint8_t *)(m_MemoryPN.Get(nDataLen));
+                pEncodeData = (uint8_t *)(m_memoryPN.Get(nDataLen));
                 nEncodeSize = nDataLen;
                 std::memcpy(pEncodeData, pData, nDataLen);
                 break;
@@ -477,7 +477,7 @@ bool NetIO::send(uint8_t nHC, const uint8_t *pData, size_t nDataLen)
                     }
                 }
 
-                pEncodeData = (uint8_t *)(m_MemoryPN.Get(nDataLen + 4));
+                pEncodeData = (uint8_t *)(m_memoryPN.Get(nDataLen + 4));
                 nEncodeSize = nDataLen + 4;
 
                 // 1. setup the message length encoding
@@ -532,7 +532,7 @@ void NetIO::start(const char *IPStr, const char * portStr, const std::function<v
             shutdown();
 
             // 2. record the error code and exit
-            g_Log->addLog(LOGTYPE_WARNING, "Network error: %s", errCode.message().c_str());
+            g_log->addLog(LOGTYPE_WARNING, "Network error: %s", errCode.message().c_str());
 
             // 3. the main loop can check socket::is_open()
             //    to inform the user that current socket is working or run into errors

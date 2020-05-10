@@ -84,10 +84,10 @@ class CharObject: public ServerObject
                 const CharObject *m_CO;
 
             private:
-                const int m_CheckCO;
+                const int m_checkCO;
 
             private:
-                mutable std::map<uint32_t, int> m_Cache;
+                mutable std::map<uint32_t, int> m_cache;
 
             public:
                 COPathFinder(const CharObject *, int);
@@ -140,13 +140,13 @@ class CharObject: public ServerObject
         };
 
     protected:
-        const ServiceCore *m_ServiceCore;
-        const ServerMap   *m_Map;
+        const ServiceCore *m_serviceCore;
+        const ServerMap   *m_map;
 
     protected:
         const ServerMap *GetServerMap() const
         {
-            return m_Map;
+            return m_map;
         }
 
     protected:
@@ -156,12 +156,12 @@ class CharObject: public ServerObject
         // 3. need to report to map if moving
         // 4. part of these COs are neighbors if close enough
         // 5. don't remove COs in this list if expired, otherwise action in (2) may miss
-        std::vector<COLocation> m_InViewCOList;
+        std::vector<COLocation> m_inViewCOList;
 
     protected:
         int m_X;
         int m_Y;
-        int m_Direction;
+        int m_direction;
 
     protected:
         int m_HP;
@@ -170,20 +170,20 @@ class CharObject: public ServerObject
         int m_MPMax;
 
     protected:
-        bool     m_MoveLock;
-        bool     m_AttackLock;
-        uint32_t m_LastMoveTime;
-        uint32_t m_LastAttackTime;
+        bool     m_moveLock;
+        bool     m_attackLock;
+        uint32_t m_lastMoveTime;
+        uint32_t m_lastAttackTime;
 
     protected:
-        int      m_LastAction;
-        uint32_t m_LastActionTime;
+        int      m_lastAction;
+        uint32_t m_lastActionTime;
 
     protected:
-        Target m_Target;
+        Target m_target;
 
     protected:
-        std::vector<Offender> m_OffenderList;
+        std::vector<Offender> m_offenderList;
 
     public:
         CharObject(ServiceCore *,       // service core
@@ -207,17 +207,17 @@ class CharObject: public ServerObject
     protected:
         int Direction() const
         {
-            return m_Direction;
+            return m_direction;
         }
 
         uint32_t MapID() const
         {
-            return m_Map ? m_Map->ID() : 0;
+            return m_map ? m_map->ID() : 0;
         }
 
         uint64_t MapUID() const
         {
-            return m_Map->UID();
+            return m_map->UID();
         }
 
     public:

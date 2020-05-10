@@ -51,24 +51,24 @@ class Client final
         };
 
     private:
-        ClientMonitor m_ClientMonitor;
+        ClientMonitor m_clientMonitor;
 
     private:
-        hres_timer m_ClientTimer;
+        hres_timer m_clientTimer;
 
     private:
-        double m_ServerDelay;
+        double m_serverDelay;
         double m_netPackTick;
 
     private:
         NetIO m_netIO;
 
     private:
-        int m_RequestProcess;
-        Process *m_CurrentProcess;
+        int m_requestProcess;
+        Process *m_currentProcess;
 
     private:
-        std::string m_ClipboardBuf;
+        std::string m_clipboardBuf;
 
     public:
         Client();
@@ -80,23 +80,23 @@ class Client final
     public:
         void Clipboard(const std::string &szInfo)
         {
-            m_ClipboardBuf = szInfo;
+            m_clipboardBuf = szInfo;
         }
 
         std::string Clipboard()
         {
-            return m_ClipboardBuf;
+            return m_clipboardBuf;
         }
 
     public:
         int RequestProcess() const
         {
-            return m_RequestProcess;
+            return m_requestProcess;
         }
 
         void RequestProcess(int nProcessID)
         {
-            m_RequestProcess = nProcessID;
+            m_requestProcess = nProcessID;
         }
 
     private:
@@ -117,28 +117,28 @@ class Client final
     private:
         void Draw()
         {
-            if(m_CurrentProcess){
-                m_CurrentProcess->Draw();
+            if(m_currentProcess){
+                m_currentProcess->Draw();
             }
         }
 
         void Update(double fDTime)
         {
-            if(m_CurrentProcess){
-                m_CurrentProcess->Update(fDTime);
+            if(m_currentProcess){
+                m_currentProcess->Update(fDTime);
             }
         }
 
     public:
         Process *ProcessValid(int nProcessID)
         {
-            return (m_CurrentProcess && m_CurrentProcess->ID() == nProcessID) ? m_CurrentProcess : nullptr;
+            return (m_currentProcess && m_currentProcess->ID() == nProcessID) ? m_currentProcess : nullptr;
         }
 
     public:
         ProcessRun *processRun()
         {
-            return ProcessValid(PROCESSID_RUN) ? (ProcessRun *)(m_CurrentProcess) : nullptr;
+            return ProcessValid(PROCESSID_RUN) ? (ProcessRun *)(m_currentProcess) : nullptr;
         }
 
         ProcessRun *processRunEx()

@@ -23,7 +23,7 @@
 class BatchLuaModule: public ServerLuaModule
 {
     private:
-        std::string m_BatchCmd;
+        std::string m_batchCmd;
 
     public:
         BatchLuaModule();
@@ -33,7 +33,7 @@ class BatchLuaModule: public ServerLuaModule
         bool LoadBatch(const char *szCmd)
         {
             if(szCmd){
-                m_BatchCmd = std::string(szCmd);
+                m_batchCmd = std::string(szCmd);
                 return true;
             }
             return false;
@@ -41,7 +41,7 @@ class BatchLuaModule: public ServerLuaModule
 
         bool Empty() const
         {
-            return m_BatchCmd.empty();
+            return m_batchCmd.empty();
         }
 
     public:

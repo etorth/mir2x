@@ -31,7 +31,7 @@ class NotifyBoard: public Widget
         };
 
     protected:
-        std::queue<LogLine> m_LogQueue;
+        std::queue<LogLine> m_logQueue;
 
     protected:
         TokenBoard m_logBoard;

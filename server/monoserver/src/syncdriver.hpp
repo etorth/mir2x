@@ -25,15 +25,15 @@
 class SyncDriver final
 {
     private:
-        uint32_t m_CurrID;
+        uint32_t m_currID;
 
     private:
-        Receiver m_Receiver;
+        Receiver m_receiver;
 
     public:
         SyncDriver()
-            : m_CurrID(1)
-            , m_Receiver()
+            : m_currID(1)
+            , m_receiver()
         {}
 
     public:
@@ -42,7 +42,7 @@ class SyncDriver final
     public:
         uint64_t UID() const
         {
-            return m_Receiver.UID();
+            return m_receiver.UID();
         }
 
     public:

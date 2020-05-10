@@ -219,12 +219,12 @@ class MemoryBlockPN
         }InnMemoryBlockPoolBranch;
 
     private:
-        size_t m_Count;
+        size_t m_count;
         InnMemoryBlockPoolBranch m_MBPBV[BranchSize];
 
     public:
         MemoryBlockPN()
-            : m_Count(0)
+            : m_count(0)
         {
             static_assert(true
                     && BlockSize  > 0
@@ -247,8 +247,8 @@ class MemoryBlockPN
             if(BranchSize == 1){ return m_MBPBV[0].Get(); }
 
             // OK it's in multi-thread environment
-            // I didn't protect m_Count since it's just a huristic variable
-            int nIndex = (m_Count++) % BranchSize;
+            // I didn't protect m_count since it's just a huristic variable
+            int nIndex = (m_count++) % BranchSize;
             while(true){
                 if(auto pRet = m_MBPBV[nIndex].Get()){
                     return pRet;

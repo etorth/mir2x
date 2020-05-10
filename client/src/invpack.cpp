@@ -19,12 +19,12 @@
 #include "invpack.hpp"
 #include "pngtexdb.hpp"
 
-extern PNGTexDB *g_CommonItemDB;
+extern PNGTexDB *g_commonItemDB;
 
 bool InvPack::Repack()
 {
     Pack2D stPack2D(W());
-    switch(stPack2D.Pack(&m_PackBinList)){
+    switch(stPack2D.Pack(&m_packBinList)){
         case 1:
             {
                 return true;
@@ -40,7 +40,7 @@ bool InvPack::Add(uint32_t nItemID)
 {
     if(nItemID){
         Pack2D stPack2D(W());
-        for(auto &rstPackBin: m_PackBinList){
+        for(auto &rstPackBin: m_packBinList){
             switch(stPack2D.Put(rstPackBin.X, rstPackBin.Y, rstPackBin.W, rstPackBin.H)){
                 case 1:
                     {
@@ -57,7 +57,7 @@ bool InvPack::Add(uint32_t nItemID)
             switch(stPack2D.Add(&stPackBin)){
                 case 1:
                     {
-                        m_PackBinList.push_back(stPackBin);
+                        m_packBinList.push_back(stPackBin);
                         return true;
                     }
                 default:
@@ -72,13 +72,13 @@ bool InvPack::Add(uint32_t nItemID)
 
 bool InvPack::Remove(uint32_t nItemID, int nX, int nY)
 {
-    for(size_t nIndex = 0; nIndex < m_PackBinList.size(); ++nIndex){
+    for(size_t nIndex = 0; nIndex < m_packBinList.size(); ++nIndex){
         if(true
-                && m_PackBinList[nIndex].X  == nX
-                && m_PackBinList[nIndex].Y  == nY
-                && m_PackBinList[nIndex].ID == nItemID){
-            std::swap(m_PackBinList[nIndex], m_PackBinList.back());
-            m_PackBinList.pop_back();
+                && m_packBinList[nIndex].X  == nX
+                && m_packBinList[nIndex].Y  == nY
+                && m_packBinList[nIndex].ID == nItemID){
+            std::swap(m_packBinList[nIndex], m_packBinList.back());
+            m_packBinList.pop_back();
             return true;
         }
     }
@@ -87,7 +87,7 @@ bool InvPack::Remove(uint32_t nItemID, int nX, int nY)
 
 PackBin InvPack::MakePackBin(uint32_t nItemID)
 {
-    if(auto pTexture = g_CommonItemDB->Retrieve(nItemID - 1)){
+    if(auto pTexture = g_commonItemDB->Retrieve(nItemID - 1)){
 
         int nItemPW = -1;
         int nItemPH = -1;

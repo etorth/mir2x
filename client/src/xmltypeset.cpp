@@ -29,8 +29,8 @@
 #include "emoticondb.hpp"
 #include "clientargparser.hpp"
 
-extern Log *g_Log;
-extern FontexDB *g_FontexDB;
+extern Log *g_log;
+extern FontexDB *g_fontexDB;
 extern SDLDevice *g_SDLDevice;
 extern emoticonDB *g_emoticonDB;
 extern ClientArgParser *g_clientArgParser;
@@ -41,8 +41,8 @@ void XMLTypeset::SetTokenBoxWordSpace(int nLine)
         throw std::invalid_argument(str_fflprintf(": Invalid line: %d", nLine));
     }
 
-    int nW1 = m_WordSpace / 2;
-    int nW2 = m_WordSpace - nW1;
+    int nW1 = m_wordSpace / 2;
+    int nW2 = m_wordSpace - nW1;
 
     for(auto &rstToken: m_lineList[nLine].content){
         rstToken.Box.State.W1 = nW1;
@@ -138,7 +138,7 @@ bool XMLTypeset::addRawToken(int nLine, const TOKEN &rstToken)
     // need to accept but give warnings
 
     if(m_lineWidth < rstToken.Box.Info.W && lineTokenCount(nLine) == 0){
-        g_Log->addLog(LOGTYPE_WARNING, "XMLTypeset width is too small to hold the token: (%d < %d)", (int)(m_lineWidth), (int)(rstToken.Box.Info.W));
+        g_log->addLog(LOGTYPE_WARNING, "XMLTypeset width is too small to hold the token: (%d < %d)", (int)(m_lineWidth), (int)(rstToken.Box.Info.W));
         m_lineList[nLine].content.push_back(rstToken);
         return true;
     }
@@ -400,7 +400,7 @@ int XMLTypeset::LineTokenBestY(int nLine, int nTokenX, int nTokenWidth, int nTok
     }
 
     if(int nMaxH2 = LineIntervalMaxH2(nLine - 1, nTokenX, nTokenWidth); nMaxH2 >= 0){
-        return m_lineList[nLine - 1].startY + (int)(nMaxH2) + m_LineSpace + nTokenHeight;
+        return m_lineList[nLine - 1].startY + (int)(nMaxH2) + m_lineSpace + nTokenHeight;
     }
 
     // negative nMaxH2 means the (n - 1)th line is not long enough
@@ -419,7 +419,7 @@ int XMLTypeset::LineTokenBestY(int nLine, int nTokenX, int nTokenWidth, int nTok
     //                +-------+-+----------+-------           
     //                          |          |                   
     //                          +----------+                  
-    return m_lineList[nLine - 1].startY + m_LineSpace + nTokenHeight;
+    return m_lineList[nLine - 1].startY + m_lineSpace + nTokenHeight;
 }
 
 // get start Y of current line
@@ -467,7 +467,7 @@ int XMLTypeset::LineNewStartY(int nLine)
     }
 
     if(!CanThrough()){
-        return LineReachMaxY(nLine - 1) + m_LineSpace + LineMaxHk(nLine, 1);
+        return LineReachMaxY(nLine - 1) + m_lineSpace + LineMaxHk(nLine, 1);
     }
 
     if(lineTokenCount(nLine) == 0){
@@ -481,7 +481,7 @@ int XMLTypeset::LineNewStartY(int nLine)
         int nW  = pToken->Box.Info .W;
         int nH1 = pToken->Box.State.H1;
 
-        // LineTokenBestY() already take m_LineSpace into consideration
+        // LineTokenBestY() already take m_lineSpace into consideration
         nCurrentY = (std::max<int>)(nCurrentY, LineTokenBestY(nLine, nX, nW, nH1));
     }
 
@@ -517,7 +517,7 @@ void XMLTypeset::SetLineTokenStartY(int nLine)
 void XMLTypeset::checkDefaultFont() const
 {
     const uint64_t u64key = utf8f::buildU64Key(m_font, m_fontSize, 0, utf8f::peekUTF8Code("0"));
-    if(!g_FontexDB->Retrieve(u64key)){
+    if(!g_fontexDB->Retrieve(u64key)){
         throw fflerror("invalid default font: font = %d, fontsize = %d", (int)(m_font), (int)(m_fontSize));
     }
 }
@@ -529,7 +529,7 @@ TOKEN XMLTypeset::buildUTF8Token(int leaf, uint8_t nFont, uint8_t nFontSize, uin
     auto nU64Key = utf8f::buildU64Key(nFont, nFontSize, nFontStyle, nUTF8Code);
 
     stToken.Leaf = leaf;
-    if(auto pTexture = g_FontexDB->Retrieve(nU64Key)){
+    if(auto pTexture = g_fontexDB->Retrieve(nU64Key)){
         int nBoxW = -1;
         int nBoxH = -1;
         if(!SDL_QueryTexture(pTexture, nullptr, nullptr, &nBoxW, &nBoxH)){
@@ -544,12 +544,12 @@ TOKEN XMLTypeset::buildUTF8Token(int leaf, uint8_t nFont, uint8_t nFontSize, uin
     }
 
     nU64Key = utf8f::buildU64Key(m_font, m_fontSize, 0, nUTF8Code);
-    if(g_FontexDB->Retrieve(nU64Key)){
+    if(g_fontexDB->Retrieve(nU64Key)){
         throw std::invalid_argument(str_fflprintf(": Can't find texture for UTF8: %" PRIX32, nUTF8Code));
     }
 
     nU64Key = utf8f::buildU64Key(m_font, m_fontSize, nFontStyle, utf8f::peekUTF8Code("0"));
-    if(g_FontexDB->Retrieve(nU64Key)){
+    if(g_fontexDB->Retrieve(nU64Key)){
         throw std::invalid_argument(str_fflprintf(": Invalid font style: %" PRIX8, nFontStyle));
     }
 
@@ -557,11 +557,11 @@ TOKEN XMLTypeset::buildUTF8Token(int leaf, uint8_t nFont, uint8_t nFontSize, uin
     // use system default font, don't fail it
 
     nU64Key = utf8f::buildU64Key(m_font, m_fontSize, nFontStyle, nUTF8Code);
-    if(auto pTexture = g_FontexDB->Retrieve(nU64Key)){
+    if(auto pTexture = g_fontexDB->Retrieve(nU64Key)){
         int nBoxW = -1;
         int nBoxH = -1;
         if(!SDL_QueryTexture(pTexture, nullptr, nullptr, &nBoxW, &nBoxH)){
-            g_Log->addLog(LOGTYPE_WARNING, "Fallback to default font: font: %d -> %d, fontsize: %d -> %d", (int)(nFont), (int)(m_font), (int)(nFontSize), (int)(m_fontSize));
+            g_log->addLog(LOGTYPE_WARNING, "Fallback to default font: font: %d -> %d, fontsize: %d -> %d", (int)(nFont), (int)(m_font), (int)(nFontSize), (int)(m_fontSize));
             stToken.Box.Info.W      = nBoxW;
             stToken.Box.Info.H      = nBoxH;
             stToken.Box.State.H1    = stToken.Box.Info.H;
@@ -934,7 +934,7 @@ void XMLTypeset::drawEx(int nDstX, int nDstY, int nSrcX, int nSrcY, int nSrcW, i
                         const int drawDstX = nX + nDstDX;
                         const int drawDstY = nY + nDstDY;
 
-                        auto pTexture = g_FontexDB->Retrieve(pToken->UTF8Char.U64Key);
+                        auto pTexture = g_fontexDB->Retrieve(pToken->UTF8Char.U64Key);
                         if(pTexture){
                             SDL_SetTextureColorMod(pTexture, colorf::R(nColor), colorf::G(nColor), colorf::B(nColor));
                             g_SDLDevice->DrawTexture(pTexture, drawDstX, drawDstY, nDX, nDY, nW, nH);
@@ -1041,7 +1041,7 @@ int XMLTypeset::GetTokenWordSpace(int nX, int nY) const
     if(!tokenLocValid(nX, nY)){
         throw std::invalid_argument(str_fflprintf(": Invalid token location: (%d, %d)", nX, nY));
     }
-    return m_WordSpace;
+    return m_wordSpace;
 }
 
 int XMLTypeset::LineReachMaxX(int nLine) const

@@ -37,27 +37,27 @@
 #include "fflerror.hpp"
 #include "toll.hpp"
 
-extern Log *g_Log;
+extern Log *g_log;
 extern Client *g_client;
-extern PNGTexDB *g_MapDB;
-extern MapBinDB *g_MapBinDB;
+extern PNGTexDB *g_mapDB;
+extern MapBinDB *g_mapBinDB;
 extern SDLDevice *g_SDLDevice;
-extern PNGTexDB *g_GroundItemDB;
-extern NotifyBoard *g_NotifyBoard;
+extern PNGTexDB *g_groundItemDB;
+extern NotifyBoard *g_notifyBoard;
 extern debugBoard *g_debugBoard;
 extern ClientArgParser *g_clientArgParser;
 
 ProcessRun::ProcessRun()
     : Process()
-    , m_MapID(0)
+    , m_mapID(0)
     , m_mir2xMapData()
-    , m_GroundItemList()
+    , m_groundItemList()
     , m_myHeroUID(0)
-    , m_FocusUIDTable()
-    , m_ViewX(0)
-    , m_ViewY(0)
+    , m_focusUIDTable()
+    , m_viewX(0)
+    , m_viewY(0)
     , m_mapScrolling(false)
-    , m_LuaModule(this, OUTPORT_CONTROLBOARD)
+    , m_luaModule(this, OUTPORT_CONTROLBOARD)
     , m_NPCChatBoard(this)
     , m_controlBoard
       {
@@ -69,11 +69,11 @@ ProcessRun::ProcessRun()
     , m_creatureList()
     , m_UIDPending()
     , m_fpsBoard    (0, 0, "", 0, 15, 0, colorf::RGBA(0XFF, 0XFF, 0X00, 0X00))
-    , m_MousePixlLoc(0, 0, "", 0, 15, 0, colorf::RGBA(0XFF, 0X00, 0X00, 0X00))
-    , m_MouseGridLoc(0, 0, "", 0, 15, 0, colorf::RGBA(0XFF, 0X00, 0X00, 0X00))
-    , m_AscendStrList()
+    , m_mousePixlLoc(0, 0, "", 0, 15, 0, colorf::RGBA(0XFF, 0X00, 0X00, 0X00))
+    , m_mouseGridLoc(0, 0, "", 0, 15, 0, colorf::RGBA(0XFF, 0X00, 0X00, 0X00))
+    , m_ascendStrList()
 {
-    m_FocusUIDTable.fill(0);
+    m_focusUIDTable.fill(0);
     RegisterUserCommand();
 
     std::memset(m_aniSaveTick, 0, sizeof(m_aniSaveTick));
@@ -89,8 +89,8 @@ void ProcessRun::scrollMap()
     const int nViewX = GetMyHero()->x() * SYS_MAPGRIDXP - showWindowW / 2;
     const int nViewY = GetMyHero()->y() * SYS_MAPGRIDYP - showWindowH / 2;
 
-    const int nDViewX = nViewX - m_ViewX;
-    const int nDViewY = nViewY - m_ViewY;
+    const int nDViewX = nViewX - m_viewX;
+    const int nDViewY = nViewY - m_viewY;
 
     if(m_mapScrolling
             ||  (std::abs(nDViewX) > showWindowW / 6)
@@ -98,11 +98,11 @@ void ProcessRun::scrollMap()
 
         m_mapScrolling = true;
 
-        m_ViewX += (int)(std::lround(std::copysign((std::min<int>)(3, std::abs(nDViewX)), nDViewX)));
-        m_ViewY += (int)(std::lround(std::copysign((std::min<int>)(2, std::abs(nDViewY)), nDViewY)));
+        m_viewX += (int)(std::lround(std::copysign((std::min<int>)(3, std::abs(nDViewX)), nDViewX)));
+        m_viewY += (int)(std::lround(std::copysign((std::min<int>)(2, std::abs(nDViewY)), nDViewY)));
 
-        m_ViewX = (std::max<int>)(0, m_ViewX);
-        m_ViewY = (std::max<int>)(0, m_ViewY);
+        m_viewX = (std::max<int>)(0, m_viewX);
+        m_viewY = (std::max<int>)(0, m_viewY);
     }
 
     // stop rolling the map when
@@ -155,32 +155,32 @@ void ProcessRun::Update(double fUpdateTime)
         }
     }
 
-    for(auto p = m_IndepMagicList.begin(); p != m_IndepMagicList.end();){
+    for(auto p = m_indepMagicList.begin(); p != m_indepMagicList.end();){
         if((*p)->Done()){
-            p = m_IndepMagicList.erase(p);
+            p = m_indepMagicList.erase(p);
         }else{
             (*p)->Update(fUpdateTime);
             ++p;
         }
     }
 
-    for(auto p = m_AscendStrList.begin(); p != m_AscendStrList.end();){
+    for(auto p = m_ascendStrList.begin(); p != m_ascendStrList.end();){
         if((*p)->Ratio() < 1.00){
             (*p)->Update(fUpdateTime);
             ++p;
         }else{
-            p = m_AscendStrList.erase(p);
+            p = m_ascendStrList.erase(p);
         }
     }
 
-    if(auto p = RetrieveUID(m_FocusUIDTable[FOCUS_ATTACK])){
+    if(auto p = RetrieveUID(m_focusUIDTable[FOCUS_ATTACK])){
         if(p->alive()){
-            trackAttack(false, m_FocusUIDTable[FOCUS_ATTACK]);
+            trackAttack(false, m_focusUIDTable[FOCUS_ATTACK]);
         }else{
-            m_FocusUIDTable[FOCUS_ATTACK] = 0;
+            m_focusUIDTable[FOCUS_ATTACK] = 0;
         }
     }else{
-        m_FocusUIDTable[FOCUS_ATTACK] = 0;
+        m_focusUIDTable[FOCUS_ATTACK] = 0;
     }
 
     if(true){
@@ -190,7 +190,7 @@ void ProcessRun::Update(double fUpdateTime)
 
 uint64_t ProcessRun::FocusUID(int nFocusType)
 {
-    if(nFocusType < (int)(m_FocusUIDTable.size())){
+    if(nFocusType < (int)(m_focusUIDTable.size())){
         switch(nFocusType){
             case FOCUS_NONE:
                 {
@@ -218,11 +218,11 @@ uint64_t ProcessRun::FocusUID(int nFocusType)
                     int nPointY = -1;
                     SDL_GetMouseState(&nPointX, &nPointY);
 
-                    int nCheckPointX = nPointX + m_ViewX;
-                    int nCheckPointY = nPointY + m_ViewY;
+                    int nCheckPointX = nPointX + m_viewX;
+                    int nCheckPointY = nPointY + m_viewY;
 
-                    if(fnCheckFocus(m_FocusUIDTable[FOCUS_MOUSE], nCheckPointX, nCheckPointY)){
-                        return m_FocusUIDTable[FOCUS_MOUSE];
+                    if(fnCheckFocus(m_focusUIDTable[FOCUS_MOUSE], nCheckPointX, nCheckPointY)){
+                        return m_focusUIDTable[FOCUS_MOUSE];
                     }
 
                     ClientCreature *pFocus = nullptr;
@@ -244,12 +244,12 @@ uint64_t ProcessRun::FocusUID(int nFocusType)
                         p = pnext;
                     }
 
-                    m_FocusUIDTable[FOCUS_MOUSE] = pFocus ? pFocus->UID() : 0;
-                    return m_FocusUIDTable[FOCUS_MOUSE];
+                    m_focusUIDTable[FOCUS_MOUSE] = pFocus ? pFocus->UID() : 0;
+                    return m_focusUIDTable[FOCUS_MOUSE];
                 }
             default:
                 {
-                    return m_FocusUIDTable[nFocusType];
+                    return m_focusUIDTable[nFocusType];
                 }
         }
     }
@@ -263,10 +263,10 @@ void ProcessRun::Draw()
 
     // 1. draw map + object
     {
-        int nX0 = -SYS_OBJMAXW + (m_ViewX - 2 * SYS_MAPGRIDXP) / SYS_MAPGRIDXP;
-        int nY0 = -SYS_OBJMAXH + (m_ViewY - 2 * SYS_MAPGRIDYP) / SYS_MAPGRIDYP;
-        int nX1 = +SYS_OBJMAXW + (m_ViewX + 2 * SYS_MAPGRIDXP + g_SDLDevice->WindowW(false)) / SYS_MAPGRIDXP;
-        int nY1 = +SYS_OBJMAXH + (m_ViewY + 2 * SYS_MAPGRIDYP + g_SDLDevice->WindowH(false)) / SYS_MAPGRIDYP;
+        int nX0 = -SYS_OBJMAXW + (m_viewX - 2 * SYS_MAPGRIDXP) / SYS_MAPGRIDXP;
+        int nY0 = -SYS_OBJMAXH + (m_viewY - 2 * SYS_MAPGRIDYP) / SYS_MAPGRIDYP;
+        int nX1 = +SYS_OBJMAXW + (m_viewX + 2 * SYS_MAPGRIDXP + g_SDLDevice->WindowW(false)) / SYS_MAPGRIDXP;
+        int nY1 = +SYS_OBJMAXH + (m_viewY + 2 * SYS_MAPGRIDYP + g_SDLDevice->WindowH(false)) / SYS_MAPGRIDYP;
 
         // tiles
         for(int nY = nY0; nY <= nY1; ++nY){
@@ -274,8 +274,8 @@ void ProcessRun::Draw()
                 if(m_mir2xMapData.ValidC(nX, nY) && !(nX % 2) && !(nY % 2)){
                     auto &rstTile = m_mir2xMapData.Tile(nX, nY);
                     if(rstTile.Valid()){
-                        if(auto pTexture = g_MapDB->Retrieve(rstTile.Image())){
-                            g_SDLDevice->DrawTexture(pTexture, nX * SYS_MAPGRIDXP - m_ViewX, nY * SYS_MAPGRIDYP - m_ViewY);
+                        if(auto pTexture = g_mapDB->Retrieve(rstTile.Image())){
+                            g_SDLDevice->DrawTexture(pTexture, nX * SYS_MAPGRIDXP - m_viewX, nY * SYS_MAPGRIDYP - m_viewY);
                         }
                     }
                 }
@@ -310,14 +310,14 @@ void ProcessRun::Draw()
                             }
 
                             const bool alphaRender = (stArray[4] & 0B00000010);
-                            if(auto pTexture = g_MapDB->Retrieve(nImage)){
+                            if(auto pTexture = g_mapDB->Retrieve(nImage)){
                                 int nH = 0;
                                 if(!SDL_QueryTexture(pTexture, nullptr, nullptr, nullptr, &nH)){
                                     if(alphaRender){
                                         SDL_SetTextureBlendMode(pTexture, SDL_BLENDMODE_BLEND);
                                         SDL_SetTextureAlphaMod(pTexture, 128);
                                     }
-                                    g_SDLDevice->DrawTexture(pTexture, nX * SYS_MAPGRIDXP - m_ViewX, (nY + 1) * SYS_MAPGRIDYP - m_ViewY - nH);
+                                    g_SDLDevice->DrawTexture(pTexture, nX * SYS_MAPGRIDXP - m_viewX, (nY + 1) * SYS_MAPGRIDYP - m_viewY - nH);
                                 }
                             }
                         }
@@ -327,18 +327,18 @@ void ProcessRun::Draw()
         }
 
         if(g_clientArgParser->EnableDrawMapGrid){
-            int nGridX0 = m_ViewX / SYS_MAPGRIDXP;
-            int nGridY0 = m_ViewY / SYS_MAPGRIDYP;
+            int nGridX0 = m_viewX / SYS_MAPGRIDXP;
+            int nGridY0 = m_viewY / SYS_MAPGRIDYP;
 
-            int nGridX1 = (m_ViewX + g_SDLDevice->WindowW(false)) / SYS_MAPGRIDXP;
-            int nGridY1 = (m_ViewY + g_SDLDevice->WindowH(false)) / SYS_MAPGRIDYP;
+            int nGridX1 = (m_viewX + g_SDLDevice->WindowW(false)) / SYS_MAPGRIDXP;
+            int nGridY1 = (m_viewY + g_SDLDevice->WindowH(false)) / SYS_MAPGRIDYP;
 
             g_SDLDevice->PushColor(0, 255, 0, 128);
             for(int nX = nGridX0; nX <= nGridX1; ++nX){
-                g_SDLDevice->DrawLine(nX * SYS_MAPGRIDXP - m_ViewX, 0, nX * SYS_MAPGRIDXP - m_ViewX, g_SDLDevice->WindowH(false));
+                g_SDLDevice->DrawLine(nX * SYS_MAPGRIDXP - m_viewX, 0, nX * SYS_MAPGRIDXP - m_viewX, g_SDLDevice->WindowH(false));
             }
             for(int nY = nGridY0; nY <= nGridY1; ++nY){
-                g_SDLDevice->DrawLine(0, nY * SYS_MAPGRIDYP - m_ViewY, g_SDLDevice->WindowW(false), nY * SYS_MAPGRIDYP - m_ViewY);
+                g_SDLDevice->DrawLine(0, nY * SYS_MAPGRIDYP - m_viewY, g_SDLDevice->WindowW(false), nY * SYS_MAPGRIDYP - m_viewY);
             }
             g_SDLDevice->PopColor();
         }
@@ -353,7 +353,7 @@ void ProcessRun::Draw()
                             &&  (p.second->x() == nX)
                             &&  (p.second->y() == nY)
                             && !(p.second->alive())){
-                        p.second->draw(m_ViewX, m_ViewY, 0);
+                        p.second->draw(m_viewX, m_viewY, 0);
                     }
                 }
             }
@@ -367,19 +367,19 @@ void ProcessRun::Draw()
                 for(auto rstGroundItem: rstGroundItemList){
                     if(auto &rstIR = DBCOM_ITEMRECORD(rstGroundItem.ID())){
                         if(rstIR.PkgGfxID >= 0){
-                            if(auto pTexture = g_GroundItemDB->Retrieve(rstIR.PkgGfxID)){
+                            if(auto pTexture = g_groundItemDB->Retrieve(rstIR.PkgGfxID)){
                                 int nW = -1;
                                 int nH = -1;
                                 if(!SDL_QueryTexture(pTexture, nullptr, nullptr, &nW, &nH)){
-                                    int nXt = nX * SYS_MAPGRIDXP - m_ViewX + SYS_MAPGRIDXP / 2 - nW / 2;
-                                    int nYt = nY * SYS_MAPGRIDYP - m_ViewY + SYS_MAPGRIDYP / 2 - nH / 2;
+                                    int nXt = nX * SYS_MAPGRIDXP - m_viewX + SYS_MAPGRIDXP / 2 - nW / 2;
+                                    int nYt = nY * SYS_MAPGRIDYP - m_viewY + SYS_MAPGRIDYP / 2 - nH / 2;
 
                                     int nPointX = -1;
                                     int nPointY = -1;
                                     SDL_GetMouseState(&nPointX, &nPointY);
 
-                                    int nCurrX = (nPointX + m_ViewX) / SYS_MAPGRIDXP;
-                                    int nCurrY = (nPointY + m_ViewY) / SYS_MAPGRIDYP;
+                                    int nCurrX = (nPointX + m_viewX) / SYS_MAPGRIDXP;
+                                    int nCurrY = (nPointY + m_viewY) / SYS_MAPGRIDYP;
 
                                     bool bChoose = false;
                                     if(true
@@ -406,8 +406,8 @@ void ProcessRun::Draw()
                                         const int boardW = itemName.w();
                                         const int boardH = itemName.h();
 
-                                        const int drawNameX = nX * SYS_MAPGRIDXP - m_ViewX + SYS_MAPGRIDXP / 2 - itemName.w() / 2;
-                                        const int drawNameY = nY * SYS_MAPGRIDYP - m_ViewY + SYS_MAPGRIDYP / 2 - itemName.h() / 2 - 20;
+                                        const int drawNameX = nX * SYS_MAPGRIDXP - m_viewX + SYS_MAPGRIDXP / 2 - itemName.w() / 2;
+                                        const int drawNameY = nY * SYS_MAPGRIDYP - m_viewY + SYS_MAPGRIDYP / 2 - itemName.h() / 2 - 20;
                                         itemName.drawEx(drawNameX, drawNameY, 0, 0, boardW, boardH);
                                     }
                                 }
@@ -446,14 +446,14 @@ void ProcessRun::Draw()
                             }
 
                             const bool alphaRender = (stArray[4] & 0B00000010);
-                            if(auto pTexture = g_MapDB->Retrieve(nImage)){
+                            if(auto pTexture = g_mapDB->Retrieve(nImage)){
                                 int nH = 0;
                                 if(!SDL_QueryTexture(pTexture, nullptr, nullptr, nullptr, &nH)){
                                     if(alphaRender){
                                         SDL_SetTextureBlendMode(pTexture, SDL_BLENDMODE_BLEND);
                                         SDL_SetTextureAlphaMod(pTexture, 128);
                                     }
-                                    g_SDLDevice->DrawTexture(pTexture, nX * SYS_MAPGRIDXP - m_ViewX, (nY + 1) * SYS_MAPGRIDYP - m_ViewY - nH);
+                                    g_SDLDevice->DrawTexture(pTexture, nX * SYS_MAPGRIDXP - m_viewX, (nY + 1) * SYS_MAPGRIDYP - m_viewY - nH);
                                 }
                             }
                         }
@@ -473,7 +473,7 @@ void ProcessRun::Draw()
                         if(g_clientArgParser->EnableDrawCreatureCover){
                             g_SDLDevice->PushColor(0, 0, 255, 128);
                             g_SDLDevice->PushBlendMode(SDL_BLENDMODE_BLEND);
-                            g_SDLDevice->FillRectangle(nX * SYS_MAPGRIDXP - m_ViewX, nY * SYS_MAPGRIDYP - m_ViewY, SYS_MAPGRIDXP, SYS_MAPGRIDYP);
+                            g_SDLDevice->FillRectangle(nX * SYS_MAPGRIDXP - m_viewX, nY * SYS_MAPGRIDYP - m_viewY, SYS_MAPGRIDXP, SYS_MAPGRIDYP);
                             g_SDLDevice->PopBlendMode();
                             g_SDLDevice->PopColor();
                         }
@@ -484,7 +484,7 @@ void ProcessRun::Draw()
                                 nFocusMask |= (1 << nFocus);
                             }
                         }
-                        p.second->draw(m_ViewX, m_ViewY, nFocusMask);
+                        p.second->draw(m_viewX, m_viewY, nFocusMask);
                     }
                 }
             }
@@ -504,13 +504,13 @@ void ProcessRun::Draw()
                 for(int nX = nX0; nX <= nX1; ++nX){
 
                     if(!GetGroundItemListRef(nX, nY).empty()){
-                        if(auto pTexture = g_GroundItemDB->Retrieve(0X01000000)){
+                        if(auto pTexture = g_groundItemDB->Retrieve(0X01000000)){
                             int nW = -1;
                             int nH = -1;
                             if(!SDL_QueryTexture(pTexture, nullptr, nullptr, &nW, &nH)){
                                 if(auto nLt = (int)(std::lround(m_starRatio * nW / 2.50))){
-                                    auto nXt = nX * SYS_MAPGRIDXP - m_ViewX + SYS_MAPGRIDXP / 2 - nLt / 2;
-                                    auto nYt = nY * SYS_MAPGRIDYP - m_ViewY + SYS_MAPGRIDYP / 2 - nLt / 2;
+                                    auto nXt = nX * SYS_MAPGRIDXP - m_viewX + SYS_MAPGRIDXP / 2 - nLt / 2;
+                                    auto nYt = nY * SYS_MAPGRIDYP - m_viewY + SYS_MAPGRIDYP / 2 - nLt / 2;
 
                                     // to make this to be more informative
                                     // use different color of rotating star for different type
@@ -537,9 +537,9 @@ void ProcessRun::Draw()
         }
 
         // draw magics
-        for(auto p: m_IndepMagicList){
+        for(auto p: m_indepMagicList){
             if(!p->Done()){
-                p->Draw(m_ViewX, m_ViewY);
+                p->Draw(m_viewX, m_viewY);
             }
         }
 
@@ -558,8 +558,8 @@ void ProcessRun::Draw()
         g_SDLDevice->PopColor();
     }
 
-    for(auto p: m_AscendStrList){
-        p->Draw(m_ViewX, m_ViewY);
+    for(auto p: m_ascendStrList){
+        p->Draw(m_viewX, m_viewY);
     }
 
     m_controlBoard  .draw();
@@ -568,9 +568,9 @@ void ProcessRun::Draw()
 
     // draw notifyBoard
     {
-        const int w = g_NotifyBoard->w();
-        const int h = g_NotifyBoard->h();
-        g_NotifyBoard->drawEx(0, 0, 0, 0, w, h);
+        const int w = g_notifyBoard->w();
+        const int h = g_notifyBoard->h();
+        g_notifyBoard->drawEx(0, 0, 0, 0, w, h);
     }
 
     // draw debugBoard
@@ -605,11 +605,11 @@ void ProcessRun::Draw()
         int nPointY = -1;
         SDL_GetMouseState(&nPointX, &nPointY);
 
-        m_MousePixlLoc.setText("Pix_Loc: %3d, %3d", nPointX, nPointY);
-        m_MouseGridLoc.setText("Til_Loc: %3d, %3d", (nPointX + m_ViewX) / SYS_MAPGRIDXP, (nPointY + m_ViewY) / SYS_MAPGRIDYP);
+        m_mousePixlLoc.setText("Pix_Loc: %3d, %3d", nPointX, nPointY);
+        m_mouseGridLoc.setText("Til_Loc: %3d, %3d", (nPointX + m_viewX) / SYS_MAPGRIDXP, (nPointY + m_viewY) / SYS_MAPGRIDYP);
 
-        m_MouseGridLoc.drawEx(10, 10, 0, 0, m_MouseGridLoc.w(), m_MouseGridLoc.h());
-        m_MousePixlLoc.drawEx(10, 30, 0, 0, m_MousePixlLoc.w(), m_MousePixlLoc.h());
+        m_mouseGridLoc.drawEx(10, 10, 0, 0, m_mouseGridLoc.w(), m_mouseGridLoc.h());
+        m_mousePixlLoc.drawEx(10, 30, 0, 0, m_mousePixlLoc.w(), m_mousePixlLoc.h());
     }
 
     m_fps.update();
@@ -663,7 +663,7 @@ void ProcessRun::processEvent(const SDL_Event &event)
                                 switch(uidf::getUIDType(uid)){
                                     case UID_MON:
                                         {
-                                            m_FocusUIDTable[FOCUS_ATTACK] = uid;
+                                            m_focusUIDTable[FOCUS_ATTACK] = uid;
                                             trackAttack(true, uid);
                                             break;
                                         }
@@ -693,11 +693,11 @@ void ProcessRun::processEvent(const SDL_Event &event)
                             // 4. if "+GOOD" client will release the motion lock
                             // 5. if "+FAIL" client will use the backup position and direction
 
-                            m_FocusUIDTable[FOCUS_ATTACK] = 0;
-                            m_FocusUIDTable[FOCUS_FOLLOW] = 0;
+                            m_focusUIDTable[FOCUS_ATTACK] = 0;
+                            m_focusUIDTable[FOCUS_FOLLOW] = 0;
 
                             if(auto nUID = FocusUID(FOCUS_MOUSE)){
-                                m_FocusUIDTable[FOCUS_FOLLOW] = nUID;
+                                m_focusUIDTable[FOCUS_FOLLOW] = nUID;
                             }else{
                                 int nX = -1;
                                 int nY = -1;
@@ -751,10 +751,10 @@ void ProcessRun::processEvent(const SDL_Event &event)
                     case SDLK_t:
                         {
                             if(auto nMouseFocusUID = FocusUID(FOCUS_MOUSE)){
-                                m_FocusUIDTable[FOCUS_MAGIC] = nMouseFocusUID;
+                                m_focusUIDTable[FOCUS_MAGIC] = nMouseFocusUID;
                             }else{
-                                if(!RetrieveUID(m_FocusUIDTable[FOCUS_MAGIC])){
-                                    m_FocusUIDTable[FOCUS_MAGIC] = 0;
+                                if(!RetrieveUID(m_focusUIDTable[FOCUS_MAGIC])){
+                                    m_focusUIDTable[FOCUS_MAGIC] = 0;
                                 }
                             }
 
@@ -820,25 +820,25 @@ void ProcessRun::processEvent(const SDL_Event &event)
 int ProcessRun::LoadMap(uint32_t nMapID)
 {
     if(nMapID){
-        if(auto pMapBin = g_MapBinDB->Retrieve(nMapID)){
-            m_MapID        =  nMapID;
+        if(auto pMapBin = g_mapBinDB->Retrieve(nMapID)){
+            m_mapID        =  nMapID;
             m_mir2xMapData = *pMapBin;
 
             auto nW = m_mir2xMapData.W();
             auto nH = m_mir2xMapData.H();
 
-            m_GroundItemList.clear();
-            m_GroundItemList.resize(nW);
+            m_groundItemList.clear();
+            m_groundItemList.resize(nW);
 
             for(int nX = 0; nX < nW; ++nX){
-                m_GroundItemList[nX].resize(nH);
+                m_groundItemList[nX].resize(nH);
             }
 
             return 0;
         }
     }
 
-    m_MapID = 0;
+    m_mapID = 0;
     return -1;
 }
 
@@ -1016,8 +1016,8 @@ double ProcessRun::OneStepCost(const ClientPathFinder *pFinder, bool bCheckGroun
 
 bool ProcessRun::ScreenPoint2Grid(int nPX, int nPY, int *pX, int *pY)
 {
-    if(pX){ *pX = (nPX + m_ViewX) / SYS_MAPGRIDXP; }
-    if(pY){ *pY = (nPY + m_ViewY) / SYS_MAPGRIDYP; }
+    if(pX){ *pX = (nPX + m_viewX) / SYS_MAPGRIDXP; }
+    if(pY){ *pY = (nPY + m_viewY) / SYS_MAPGRIDYP; }
 
     return true;
 }
@@ -1025,7 +1025,7 @@ bool ProcessRun::ScreenPoint2Grid(int nPX, int nPY, int *pX, int *pY)
 bool ProcessRun::LuaCommand(const char *szLuaCommand)
 {
     if(szLuaCommand){
-        auto stCallResult = m_LuaModule.GetLuaState().script(szLuaCommand, [](lua_State *, sol::protected_function_result stResult){
+        auto stCallResult = m_luaModule.GetLuaState().script(szLuaCommand, [](lua_State *, sol::protected_function_result stResult){
             // default handler
             // do nothing and let the call site handle the errors
             return stResult;
@@ -1037,7 +1037,7 @@ bool ProcessRun::LuaCommand(const char *szLuaCommand)
             // or we can unlock the input widget to allow next command
         }else{
             sol::error stError = stCallResult;
-            g_Log->addLog(LOGTYPE_WARNING, "%s", stError.what());
+            g_log->addLog(LOGTYPE_WARNING, "%s", stError.what());
         }
 
         // always return true if command get evaluated
@@ -1075,7 +1075,7 @@ bool ProcessRun::UserCommand(const char *szUserCommand)
         UserCommandEntry *pEntry = nullptr;
         {
             int nCount = 0;
-            for(auto &rstEntry : m_UserCommandGroup){
+            for(auto &rstEntry : m_userCommandGroup){
                 if(rstEntry.Command.substr(0, stvToken[0].size()) == stvToken[0]){
                     pEntry = &rstEntry;
                     nCount++;
@@ -1098,7 +1098,7 @@ bool ProcessRun::UserCommand(const char *szUserCommand)
                 default:
                     {
                         AddOPLog(OUTPORT_CONTROLBOARD, 1, "", "Ambiguous command: %s", stvToken[0].c_str());
-                        for(auto &rstEntry : m_UserCommandGroup){
+                        for(auto &rstEntry : m_userCommandGroup){
                             if(rstEntry.Command.substr(0, stvToken[0].size()) == stvToken[0]){
                                 AddOPLog(OUTPORT_CONTROLBOARD, 1, "", "Possible command: %s", rstEntry.Command.c_str());
                             }
@@ -1166,14 +1166,14 @@ bool ProcessRun::RegisterUserCommand()
                 }
         }
     };
-    m_UserCommandGroup.emplace_back("moveTo", fnMoveTo);
+    m_userCommandGroup.emplace_back("moveTo", fnMoveTo);
 
     auto fnLuaEditor = [this](const std::vector<std::string> &) -> int
     {
         AddOPLog(OUTPORT_CONTROLBOARD, 1, "", "LuaEditor not implemented yet");
         return 0;
     };
-    m_UserCommandGroup.emplace_back("luaEditor", fnLuaEditor);
+    m_userCommandGroup.emplace_back("luaEditor", fnLuaEditor);
 
     auto fnMakeItem = [this](const std::vector<std::string> &rstvParam) -> int
     {
@@ -1195,14 +1195,14 @@ bool ProcessRun::RegisterUserCommand()
                 }
         }
     };
-    m_UserCommandGroup.emplace_back("makeItem", fnMakeItem);
+    m_userCommandGroup.emplace_back("makeItem", fnMakeItem);
 
     auto fnGetAttackUID = [this](const std::vector<std::string> &) -> int
     {
         AddOPLog(OUTPORT_CONTROLBOARD, 2, "", std::to_string(FocusUID(FOCUS_ATTACK)).c_str());
         return 0;
     };
-    m_UserCommandGroup.emplace_back("getAttackUID", fnGetAttackUID);
+    m_userCommandGroup.emplace_back("getAttackUID", fnGetAttackUID);
 
     auto fnKillPets = [this](const std::vector<std::string> &) -> int
     {
@@ -1210,7 +1210,7 @@ bool ProcessRun::RegisterUserCommand()
         AddOPLog(OUTPORT_CONTROLBOARD, 2, "", u8"杀死所有宝宝");
         return 0;
     };
-    m_UserCommandGroup.emplace_back("killPets", fnKillPets);
+    m_userCommandGroup.emplace_back("killPets", fnKillPets);
 
     return true;
 }
@@ -1239,7 +1239,7 @@ bool ProcessRun::RegisterLuaExport(ClientLuaModule *pModule, int nOutPort)
         });
 
         // register command addLog
-        // add to client system log file only, same as g_Log->AddLog(LOGTYPE_XXXX, LogInfo)
+        // add to client system log file only, same as g_log->AddLog(LOGTYPE_XXXX, LogInfo)
         pModule->GetLuaState().set_function("addLog", [this, nOutPort](sol::object stLogType, sol::object stLogInfo)
         {
             if(true
@@ -1247,10 +1247,10 @@ bool ProcessRun::RegisterLuaExport(ClientLuaModule *pModule, int nOutPort)
                     && stLogInfo.is<std::string>()){
 
                 switch(stLogType.as<int>()){
-                    case 0  : g_Log->addLog(LOGTYPE_INFO   , "%s", stLogInfo.as<std::string>().c_str()); return;
-                    case 1  : g_Log->addLog(LOGTYPE_WARNING, "%s", stLogInfo.as<std::string>().c_str()); return;
-                    case 2  : g_Log->addLog(LOGTYPE_FATAL  , "%s", stLogInfo.as<std::string>().c_str()); return;
-                    default : g_Log->addLog(LOGTYPE_DEBUG  , "%s", stLogInfo.as<std::string>().c_str()); return;
+                    case 0  : g_log->addLog(LOGTYPE_INFO   , "%s", stLogInfo.as<std::string>().c_str()); return;
+                    case 1  : g_log->addLog(LOGTYPE_WARNING, "%s", stLogInfo.as<std::string>().c_str()); return;
+                    case 2  : g_log->addLog(LOGTYPE_FATAL  , "%s", stLogInfo.as<std::string>().c_str()); return;
+                    default : g_log->addLog(LOGTYPE_DEBUG  , "%s", stLogInfo.as<std::string>().c_str()); return;
                 }
             }
 
@@ -1364,10 +1364,10 @@ void ProcessRun::AddOPLog(int nOutPort, int logType, const char *szPrompt, const
 
     if(nOutPort & OUTPORT_LOG){
         switch(logType){
-            case Log::LOGTYPEV_INFO    : g_Log->addLog(LOGTYPE_INFO   , u8"%s%s", szPrompt ? szPrompt : "", szLog.c_str()); break;
-            case Log::LOGTYPEV_WARNING : g_Log->addLog(LOGTYPE_WARNING, u8"%s%s", szPrompt ? szPrompt : "", szLog.c_str()); break;
-            case Log::LOGTYPEV_DEBUG   : g_Log->addLog(LOGTYPE_DEBUG,   u8"%s%s", szPrompt ? szPrompt : "", szLog.c_str()); break;
-            default                    : g_Log->addLog(LOGTYPE_FATAL  , u8"%s%s", szPrompt ? szPrompt : "", szLog.c_str()); break;
+            case Log::LOGTYPEV_INFO    : g_log->addLog(LOGTYPE_INFO   , u8"%s%s", szPrompt ? szPrompt : "", szLog.c_str()); break;
+            case Log::LOGTYPEV_WARNING : g_log->addLog(LOGTYPE_WARNING, u8"%s%s", szPrompt ? szPrompt : "", szLog.c_str()); break;
+            case Log::LOGTYPEV_DEBUG   : g_log->addLog(LOGTYPE_DEBUG,   u8"%s%s", szPrompt ? szPrompt : "", szLog.c_str()); break;
+            default                    : g_log->addLog(LOGTYPE_FATAL  , u8"%s%s", szPrompt ? szPrompt : "", szLog.c_str()); break;
         }
     }
 
@@ -1481,7 +1481,7 @@ uint32_t ProcessRun::GetFocusFaceKey()
 
 void ProcessRun::addAscendStr(int nType, int nValue, int nX, int nY)
 {
-    m_AscendStrList.emplace_back(std::make_shared<AscendStr>(nType, nValue, nX, nY));
+    m_ascendStrList.emplace_back(std::make_shared<AscendStr>(nType, nValue, nX, nY));
 }
 
 bool ProcessRun::GetUIDLocation(uint64_t nUID, bool bDrawLoc, int *pX, int *pY)
@@ -1518,8 +1518,8 @@ void ProcessRun::centerMyHero()
         switch(stepLen){
             case 0:
                 {
-                    m_ViewX = nX * SYS_MAPGRIDXP - showWindowW / 2;
-                    m_ViewY = nY * SYS_MAPGRIDYP - showWindowH / 2;
+                    m_viewX = nX * SYS_MAPGRIDXP - showWindowW / 2;
+                    m_viewY = nY * SYS_MAPGRIDYP - showWindowH / 2;
                     return;
                 }
             case 1:
@@ -1533,8 +1533,8 @@ void ProcessRun::centerMyHero()
                     const int offX = nDX * SYS_MAPGRIDXP * (currFrame + 1) / frameCount;
                     const int offY = nDY * SYS_MAPGRIDYP * (currFrame + 1) / frameCount;
 
-                    m_ViewX = nX * SYS_MAPGRIDXP + offX - showWindowW / 2;
-                    m_ViewY = nY * SYS_MAPGRIDYP + offY - showWindowH / 2;
+                    m_viewX = nX * SYS_MAPGRIDXP + offX - showWindowW / 2;
+                    m_viewY = nY * SYS_MAPGRIDYP + offY - showWindowH / 2;
                     return;
                 }
             default:
@@ -1571,7 +1571,7 @@ void ProcessRun::centerMyHero()
 
 bool ProcessRun::RequestSpaceMove(uint32_t nMapID, int nX, int nY)
 {
-    if(auto pMapBin = g_MapBinDB->Retrieve(nMapID)){
+    if(auto pMapBin = g_mapBinDB->Retrieve(nMapID)){
         if(pMapBin->ValidC(nX, nY) && pMapBin->Cell(nX, nY).CanThrough()){
             CMReqestSpaceMove stCMRSM;
             stCMRSM.MapID = nMapID;
@@ -1620,7 +1620,7 @@ void ProcessRun::OnActionSpawn(uint64_t nUID, const ActionNode &rstAction)
                 // then we don't need to define the callback of a done magic
 
                 AddOPLog(OUTPORT_CONTROLBOARD, 2, "", u8"使用魔法: 召唤骷髅"), 
-                m_IndepMagicList.emplace_back(std::make_shared<IndepMagic>
+                m_indepMagicList.emplace_back(std::make_shared<IndepMagic>
                 (
                     rstAction.ActionParam,
                     DBCOM_MAGICID(u8"召唤骷髅"), 
@@ -1635,7 +1635,7 @@ void ProcessRun::OnActionSpawn(uint64_t nUID, const ActionNode &rstAction)
                 ));
 
                 m_UIDPending.insert(nUID);
-                m_IndepMagicList.back()->AddFunc([this, nUID, rstAction, pMagic = m_IndepMagicList.back()]() -> bool
+                m_indepMagicList.back()->AddFunc([this, nUID, rstAction, pMagic = m_indepMagicList.back()]() -> bool
                 {
                     // if(!pMagic->Done()){
                     //     return false;

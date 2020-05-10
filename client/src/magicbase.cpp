@@ -22,18 +22,18 @@
 #include "dbcomrecord.hpp"
 #include "pngtexoffdb.hpp"
 
-extern Log *g_Log;
+extern Log *g_log;
 
 MagicBase::MagicBase(int nMagicID,
         int nMagicParam,
         int nMagicStage,
         double fTimeOut)
     : m_ID(nMagicID)
-    , m_Param(nMagicParam)
-    , m_Stage(nMagicStage)
-    , m_TimeOut(fTimeOut)
-    , m_AccuTime(0.0)
-    , m_CacheEntry(nullptr)
+    , m_param(nMagicParam)
+    , m_stage(nMagicStage)
+    , m_timeOut(fTimeOut)
+    , m_accuTime(0.0)
+    , m_cacheEntry(nullptr)
 {
     if(!RefreshCache()){
         throw fflerror("invalid argument to MagicBase");
@@ -47,15 +47,15 @@ MagicBase::MagicBase(int nMagicID, int nMagicParam, int nMagicStage)
 int MagicBase::Frame() const
 {
     if(RefreshCache()){
-        int nRealFrame = (m_AccuTime / 1000.0) * SYS_DEFFPS * (m_CacheEntry->Speed / 100.0);
-        switch(m_CacheEntry->Loop){
+        int nRealFrame = (m_accuTime / 1000.0) * SYS_DEFFPS * (m_cacheEntry->Speed / 100.0);
+        switch(m_cacheEntry->Loop){
             case 0:
                 {
                     return nRealFrame;
                 }
             case 1:
                 {
-                    return nRealFrame % m_CacheEntry->FrameCount;
+                    return nRealFrame % m_cacheEntry->FrameCount;
                 }
             default:
                 {
@@ -75,13 +75,13 @@ bool MagicBase::StageDone() const
     // 1. loop effect
     // 2. not looping but not finished yet
 
-    if(m_CacheEntry->Loop){
+    if(m_cacheEntry->Loop){
         return false;
     }
 
     // I allow the last frame as ``incomplete"
     // otherwise I can't show the last magic frame in Draw()
-    if(Frame() <= (m_CacheEntry->FrameCount - 1)){
+    if(Frame() <= (m_cacheEntry->FrameCount - 1)){
         return false;
     }
 
@@ -90,7 +90,7 @@ bool MagicBase::StageDone() const
 
 bool MagicBase::RefreshCache() const
 {
-    if(m_CacheEntry && (m_CacheEntry->Stage == Stage())){
+    if(m_cacheEntry && (m_cacheEntry->Stage == Stage())){
         return true;
     }
 
@@ -101,7 +101,7 @@ bool MagicBase::RefreshCache() const
         for(int nGfxEntryIndex = 0;; ++nGfxEntryIndex){
             if(auto &rstGfxEntry = rstMR.GetGfxEntry(nGfxEntryIndex)){
                 if(rstGfxEntry.Stage == Stage()){
-                    m_CacheEntry = &rstGfxEntry;
+                    m_cacheEntry = &rstGfxEntry;
                     return true;
                 }
             }else{
@@ -110,7 +110,7 @@ bool MagicBase::RefreshCache() const
         }
     }
 
-    m_CacheEntry = nullptr;
+    m_cacheEntry = nullptr;
     return false;
 }
 

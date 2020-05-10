@@ -20,57 +20,57 @@
 #include "actorpool.hpp"
 #include "monoserver.hpp"
 
-extern ActorPool *g_ActorPool;
-extern MonoServer *g_MonoServer;
+extern ActorPool *g_actorPool;
+extern MonoServer *g_monoServer;
 
 Receiver::Receiver()
     : m_UID(ActorPool::CreateReceiverUID())
-    , m_Lock()
-    , m_Condition()
-    , m_MessageList()
+    , m_lock()
+    , m_condition()
+    , m_messageList()
 {
-    if(!g_ActorPool->Register(this)){
-        g_MonoServer->addLog(LOGTYPE_FATAL, "ActorPool::Register(Reciver = %p) failed", this);
+    if(!g_actorPool->Register(this)){
+        g_monoServer->addLog(LOGTYPE_FATAL, "ActorPool::Register(Reciver = %p) failed", this);
     }
 }
 
 Receiver::~Receiver()
 {
-    if(!g_ActorPool->Detach(this)){
-        g_MonoServer->addLog(LOGTYPE_FATAL, "ActorPool::Detach(Reciver = %p) failed", this);
+    if(!g_actorPool->Detach(this)){
+        g_monoServer->addLog(LOGTYPE_FATAL, "ActorPool::Detach(Reciver = %p) failed", this);
     }
 }
 
 void Receiver::PushMessage(MessagePack stMPK)
 {
-    std::unique_lock<std::mutex> stLock(m_Lock);
-    m_MessageList.push_back(std::move(stMPK));
-    m_Condition.notify_all();
+    std::unique_lock<std::mutex> stLock(m_lock);
+    m_messageList.push_back(std::move(stMPK));
+    m_condition.notify_all();
 }
 
 size_t Receiver::Wait(uint32_t nTimeout)
 {
-    std::unique_lock<std::mutex> stLock(m_Lock);
-    auto fnPred = [this, nOrigLen = m_MessageList.size()]() -> bool
+    std::unique_lock<std::mutex> stLock(m_lock);
+    auto fnPred = [this, nOrigLen = m_messageList.size()]() -> bool
     {
-        return m_MessageList.size() > nOrigLen;
+        return m_messageList.size() > nOrigLen;
     };
 
     if(nTimeout){
-        m_Condition.wait_for(stLock, std::chrono::milliseconds(nTimeout), fnPred);
+        m_condition.wait_for(stLock, std::chrono::milliseconds(nTimeout), fnPred);
     }else{
-        m_Condition.wait(stLock, fnPred);
+        m_condition.wait(stLock, fnPred);
     }
 
-    return m_MessageList.size();
+    return m_messageList.size();
 }
 
 std::vector<MessagePack> Receiver::Pop()
 {
     std::vector<MessagePack> stvPop;
     {
-        std::lock_guard<std::mutex> stLockGuard(m_Lock);
-        std::swap(stvPop, m_MessageList);
+        std::lock_guard<std::mutex> stLockGuard(m_lock);
+        std::swap(stvPop, m_messageList);
     }
     return stvPop;
 }

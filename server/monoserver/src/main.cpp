@@ -34,21 +34,21 @@
 #include <iostream>
 #include "coro.hpp"
 
-ServerArgParser          *g_ServerArgParser;
-Log                      *g_Log;
-MemoryPN                 *g_MemoryPN;
-ActorPool                *g_ActorPool;
-NetDriver                *g_NetDriver;
+ServerArgParser          *g_serverArgParser;
+Log                      *g_log;
+MemoryPN                 *g_memoryPN;
+ActorPool                *g_actorPool;
+NetDriver                *g_netDriver;
 DBPodN                   *g_DBPodN;
 
-MapBinDB                 *g_MapBinDB;
-ScriptWindow             *g_ScriptWindow;
-MainWindow               *g_MainWindow;
-MonoServer               *g_MonoServer;
-ServerConfigureWindow    *g_ServerConfigureWindow;
-DatabaseConfigureWindow  *g_DatabaseConfigureWindow;
-ActorMonitorWindow       *g_ActorMonitorWindow;
-ActorThreadMonitorWindow *g_ActorThreadMonitorWindow;
+MapBinDB                 *g_mapBinDB;
+ScriptWindow             *g_scriptWindow;
+MainWindow               *g_mainWindow;
+MonoServer               *g_monoServer;
+ServerConfigureWindow    *g_serverConfigureWindow;
+DatabaseConfigureWindow  *g_databaseConfigureWindow;
+ActorMonitorWindow       *g_actorMonitorWindow;
+ActorThreadMonitorWindow *g_actorThreadMonitorWindow;
 
 int main(int argc, char *argv[])
 {
@@ -59,22 +59,22 @@ int main(int argc, char *argv[])
         // start FLTK multithreading support
         Fl::lock();
 
-        g_ServerArgParser          = new ServerArgParser(stCmdParser);
-        g_Log                      = new Log("mir2x-monoserver-v0.1");
-        g_ScriptWindow             = new ScriptWindow();
-        g_MainWindow               = new MainWindow();
-        g_MonoServer               = new MonoServer();
-        g_MemoryPN                 = new MemoryPN();
-        g_MapBinDB                 = new MapBinDB();
-        g_ServerConfigureWindow    = new ServerConfigureWindow();
-        g_DatabaseConfigureWindow  = new DatabaseConfigureWindow();
-        g_ActorPool                = new ActorPool(g_ServerArgParser->ActorPoolThread);
+        g_serverArgParser          = new ServerArgParser(stCmdParser);
+        g_log                      = new Log("mir2x-monoserver-v0.1");
+        g_scriptWindow             = new ScriptWindow();
+        g_mainWindow               = new MainWindow();
+        g_monoServer               = new MonoServer();
+        g_memoryPN                 = new MemoryPN();
+        g_mapBinDB                 = new MapBinDB();
+        g_serverConfigureWindow    = new ServerConfigureWindow();
+        g_databaseConfigureWindow  = new DatabaseConfigureWindow();
+        g_actorPool                = new ActorPool(g_serverArgParser->ActorPoolThread);
         g_DBPodN                   = new DBPodN();
-        g_NetDriver                = new NetDriver();
-        g_ActorMonitorWindow       = new ActorMonitorWindow();
-        g_ActorThreadMonitorWindow = new ActorThreadMonitorWindow();
+        g_netDriver                = new NetDriver();
+        g_actorMonitorWindow       = new ActorMonitorWindow();
+        g_actorThreadMonitorWindow = new ActorThreadMonitorWindow();
 
-        g_MainWindow->ShowAll();
+        g_mainWindow->ShowAll();
 
         while(Fl::wait() > 0){
             switch((uintptr_t)(Fl::thread_message())){
@@ -95,11 +95,11 @@ int main(int argc, char *argv[])
                         // won't handle exception in threads
                         // all threads need to call Fl::awake(2) to propagate exception(s) caught
                         try{
-                            g_MonoServer->DetectException();
+                            g_monoServer->DetectException();
                         }catch(const std::exception &except){
                             std::string firstExceptStr;
-                            g_MonoServer->LogException(except, &firstExceptStr);
-                            g_MonoServer->Restart(firstExceptStr);
+                            g_monoServer->LogException(except, &firstExceptStr);
+                            g_monoServer->Restart(firstExceptStr);
                         }
                         break;
                     }
@@ -108,7 +108,7 @@ int main(int argc, char *argv[])
                     {
                         // pase the gui requests in the queue
                         // designed to send Fl::awake(1) to notify gui
-                        g_MonoServer->parseNotifyGUIQ();
+                        g_monoServer->parseNotifyGUIQ();
                         break;
                     }
             }
@@ -116,9 +116,9 @@ int main(int argc, char *argv[])
     }catch(const std::exception &e){
         // use raw log directly
         // no gui available because we are out of gui event loop
-        g_Log->addLog(LOGTYPE_WARNING, "Exception in main thread: %s", e.what());
+        g_log->addLog(LOGTYPE_WARNING, "Exception in main thread: %s", e.what());
     }catch(...){
-        g_Log->addLog(LOGTYPE_WARNING, "Unknown exception caught in main thread");
+        g_log->addLog(LOGTYPE_WARNING, "Unknown exception caught in main thread");
     }
     return 0;
 }

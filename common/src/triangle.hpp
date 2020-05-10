@@ -33,10 +33,10 @@ class Triangle final
         void DMove(double, double);
 
     private:
-        double m_MinX;
-        double m_MinY;
-        double m_MaxX;
-        double m_MaxY;
+        double m_minX;
+        double m_minY;
+        double m_maxX;
+        double m_maxY;
 
     public:
         double MinX() const;
@@ -49,5 +49,5 @@ class Triangle final
         bool StrongCheckOverlap(const Triangle &);
 
     private:
-        std::array<std::pair<double, double>, 3> m_PointV;
+        std::array<std::pair<double, double>, 3> m_pointV;
 };

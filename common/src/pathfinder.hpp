@@ -71,23 +71,23 @@ namespace PathFind
             int m_Y;
 
         private:
-            static constexpr int m_GridBit       = (int)(N);
-            static constexpr int m_GridBitMask   = (1 << m_GridBit) - 1;
-            static constexpr int m_GridPerInt    = sizeof(int) * 8 / m_GridBit;
-            static constexpr int m_GridLineWidth = ((2 * R - 1) + (m_GridPerInt - 1)) / m_GridPerInt;
+            static constexpr int m_gridBit       = (int)(N);
+            static constexpr int m_gridBitMask   = (1 << m_gridBit) - 1;
+            static constexpr int m_gridPerInt    = sizeof(int) * 8 / m_gridBit;
+            static constexpr int m_gridLineWidth = ((2 * R - 1) + (m_gridPerInt - 1)) / m_gridPerInt;
 
         private:
-            std::array<int, (2 * R - 1) * m_GridLineWidth> m_Buf;
+            std::array<int, (2 * R - 1) * m_gridLineWidth> m_buf;
 
         public:
             GridMaskMap(int nCenterX, int nCenterY)
                 : m_X(nCenterX - (int)(R) + 1)
                 , m_Y(nCenterY - (int)(R) + 1)
-                , m_Buf()
+                , m_buf()
             {
                 static_assert(R > 0, "Requires a non-zero radius");
                 static_assert(N > 0, "Requires a non-zero grid bit-width");
-                m_Buf.fill(0);
+                m_buf.fill(0);
             }
 
         public:
@@ -103,9 +103,9 @@ namespace PathFind
                     return 0;
                 }
 
-                int nOff   = (nDX / m_GridPerInt) + m_GridLineWidth * nDY;
-                int nShift = (nDX % m_GridPerInt) * m_GridBit;
-                return (m_Buf[nOff] >> nShift) & m_GridBitMask;
+                int nOff   = (nDX / m_gridPerInt) + m_gridLineWidth * nDY;
+                int nShift = (nDX % m_gridPerInt) * m_gridBit;
+                return (m_buf[nOff] >> nShift) & m_gridBitMask;
             }
 
             void SetGrid(int nX, int nY, int nVal)
@@ -120,11 +120,11 @@ namespace PathFind
                     return;
                 }
 
-                int nOff   = (nDX / m_GridPerInt) + m_GridLineWidth * nDY;
-                int nShift = (nDX % m_GridPerInt) * m_GridBit;
+                int nOff   = (nDX / m_gridPerInt) + m_gridLineWidth * nDY;
+                int nShift = (nDX % m_gridPerInt) * m_gridBit;
 
-                m_Buf[nOff] |= (        m_GridBitMask  << nShift);
-                m_Buf[nOff] &= ((nVal & m_GridBitMask) << nShift);
+                m_buf[nOff] |= (        m_gridBitMask  << nShift);
+                m_buf[nOff] &= ((nVal & m_gridBitMask) << nShift);
             }
     };
 
@@ -214,32 +214,32 @@ class AStarPathFinder: public AStarSearch<AStarPathFinderNode>
         friend class AStarPathFinderNode;
 
     private:
-        const std::function<double(int, int, int, int)> m_OneStepCost;
+        const std::function<double(int, int, int, int)> m_oneStepCost;
 
     private:
-        const int m_MaxStep;
+        const int m_maxStep;
 
     private:
-        bool m_FoundPath;
+        bool m_foundPath;
 
     public:
         AStarPathFinder(std::function<double(int, int, int, int)> fnOneStepCost, int nMaxStepSize = 1)
             : AStarSearch<AStarPathFinderNode>()
-            , m_OneStepCost(fnOneStepCost)
-            , m_MaxStep(nMaxStepSize)
-            , m_FoundPath(false)
+            , m_oneStepCost(fnOneStepCost)
+            , m_maxStep(nMaxStepSize)
+            , m_foundPath(false)
         {
-            condcheck(m_OneStepCost);
+            condcheck(m_oneStepCost);
             condcheck(false
-                    || (m_MaxStep == 1)
-                    || (m_MaxStep == 2)
-                    || (m_MaxStep == 3));
+                    || (m_maxStep == 1)
+                    || (m_maxStep == 2)
+                    || (m_maxStep == 3));
         }
 
     public:
         ~AStarPathFinder()
         {
-            if(m_FoundPath){
+            if(m_foundPath){
                 FreeSolutionNodes();
             }
             EnsureMemoryFreed();
@@ -248,13 +248,13 @@ class AStarPathFinder: public AStarSearch<AStarPathFinderNode>
     protected:
         int MaxStep() const
         {
-            return m_MaxStep;
+            return m_maxStep;
         }
 
     public:
         bool PathFound() const
         {
-            return m_FoundPath;
+            return m_foundPath;
         }
 
     public:
@@ -288,20 +288,20 @@ class AStarPathFinderNode
         //                6 -> DIR_LEFT
         //                7 -> DIR_UPLEFT
         //
-        // if mark m_Direction as -1 (invalid)
+        // if mark m_direction as -1 (invalid)
         // means we don't take consider of turn cost
-        int m_Direction;
+        int m_direction;
 
     private:
-        AStarPathFinder *m_Finder;
+        AStarPathFinder *m_finder;
 
     private:
         AStarPathFinderNode() = default;
         AStarPathFinderNode(int nX, int nY, int nDirection, AStarPathFinder *pFinder)
             : m_X(nX)
             , m_Y(nY)
-            , m_Direction(nDirection)
-            , m_Finder(pFinder)
+            , m_direction(nDirection)
+            , m_finder(pFinder)
         {
             condcheck(pFinder);
         }
@@ -322,7 +322,7 @@ class AStarPathFinderNode
 
         int Direction() const
         {
-            return m_Direction;
+            return m_direction;
         }
 
     public:
@@ -334,7 +334,7 @@ class AStarPathFinderNode
             // to make A-star algorithm admissible
             // we need h(x) never over-estimate the distance
 
-            auto nMaxStep   = (m_Finder->MaxStep());
+            auto nMaxStep   = (m_finder->MaxStep());
             auto nXDistance = (std::labs(rstGoalNode.X() - X()) + (nMaxStep - 1)) / nMaxStep;
             auto nYDistance = (std::labs(rstGoalNode.Y() - Y()) + (nMaxStep - 1)) / nMaxStep;
 
@@ -351,10 +351,10 @@ class AStarPathFinderNode
             static const int nDX[] = { 0, +1, +1, +1,  0, -1, -1, -1};
             static const int nDY[] = {-1, -1,  0, +1, +1, +1,  0, -1};
 
-            for(int nStepIndex = 0; nStepIndex < ((m_Finder->MaxStep() > 1) ? 2 : 1); ++nStepIndex){
+            for(int nStepIndex = 0; nStepIndex < ((m_finder->MaxStep() > 1) ? 2 : 1); ++nStepIndex){
                 for(int nDirIndex = 0; nDirIndex < 8; ++nDirIndex){
-                    int nNewX = X() + nDX[nDirIndex] * ((nStepIndex == 0) ? m_Finder->MaxStep() : 1);
-                    int nNewY = Y() + nDY[nDirIndex] * ((nStepIndex == 0) ? m_Finder->MaxStep() : 1);
+                    int nNewX = X() + nDX[nDirIndex] * ((nStepIndex == 0) ? m_finder->MaxStep() : 1);
+                    int nNewY = Y() + nDY[nDirIndex] * ((nStepIndex == 0) ? m_finder->MaxStep() : 1);
 
                     if(true
                             && pParentNode
@@ -364,10 +364,10 @@ class AStarPathFinderNode
                     }
 
                     // when add a successor we always check it's distance between the ParentNode
-                    // means for m_MoveChecker(x0, y0, x1, y1) we guarentee that (x1, y1) inside propor distance to (x0, y0)
+                    // means for m_moveChecker(x0, y0, x1, y1) we guarentee that (x1, y1) inside propor distance to (x0, y0)
 
-                    if(m_Finder->m_OneStepCost(X(), Y(), nNewX, nNewY) >= 0.00){
-                        AStarPathFinderNode stFinderNode {nNewX, nNewY, nDirIndex, m_Finder};
+                    if(m_finder->m_oneStepCost(X(), Y(), nNewX, nNewY) >= 0.00){
+                        AStarPathFinderNode stFinderNode {nNewX, nNewY, nDirIndex, m_finder};
                         pAStarSearch->AddSuccessor(stFinderNode);
                     }
                 }
@@ -419,7 +419,7 @@ class AStarPathFinderNode
             int nDstX = rstNode.X();
             int nDstY = rstNode.Y();
 
-            auto fCost = m_Finder->m_OneStepCost(nSrcX, nSrcY, nDstX, nDstY);
+            auto fCost = m_finder->m_oneStepCost(nSrcX, nSrcY, nDstX, nDstY);
             condcheck(fCost >= 0.00);
 
             if(Direction() < 0){
@@ -457,8 +457,8 @@ inline bool AStarPathFinder::Search(int nX0, int nY0, int nX1, int nY1)
         nSearchState = SearchStep();
     }while(nSearchState == AStarSearch<AStarPathFinderNode>::SEARCH_STATE_SEARCHING);
 
-    m_FoundPath = (nSearchState == AStarSearch<AStarPathFinderNode>::SEARCH_STATE_SUCCEEDED);
-    return m_FoundPath;
+    m_foundPath = (nSearchState == AStarSearch<AStarPathFinderNode>::SEARCH_STATE_SUCCEEDED);
+    return m_foundPath;
 }
 
 inline std::vector<PathFind::PathNode> AStarPathFinder::GetPathNode()

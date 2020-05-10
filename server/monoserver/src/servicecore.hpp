@@ -35,7 +35,7 @@ class ServerMap;
 class ServiceCore final: public ServerObject
 {
     protected:
-        std::map<uint32_t, ServerMap *> m_MapList;
+        std::map<uint32_t, ServerMap *> m_mapList;
 
     public:
         ServiceCore();

@@ -48,19 +48,19 @@ template<typename ValueType, size_t SBufLen = 0> class ABDList
         std::array<ABDListNode, SBufLen> m_SBuf;
 
     private:
-        size_t m_Used0;
-        size_t m_Used1;
-        size_t m_Free0;
-        size_t m_Free1;
+        size_t m_used0;
+        size_t m_used1;
+        size_t m_free0;
+        size_t m_free1;
 
     public:
         ABDList(size_t nCap = 0)
             : m_DBuf()
             , m_SBuf()
-            , m_Used0(NPos)
-            , m_Used1(NPos)
-            , m_Free0(0)
-            , m_Free1(0)
+            , m_used0(NPos)
+            , m_used1(NPos)
+            , m_free0(0)
+            , m_free1(0)
         {
             static_assert(std::is_pod<ValueType>::value, "ABDList only supports POD data");
             if(nCap > m_SBuf.size()){
@@ -78,43 +78,43 @@ template<typename ValueType, size_t SBufLen = 0> class ABDList
     public:
         ValueType &Head()
         {
-            return CurrNode(m_Used0).Value;
+            return CurrNode(m_used0).Value;
         }
 
         const ValueType &Head() const
         {
-            return CurrNode(m_Used0).Value;
+            return CurrNode(m_used0).Value;
         }
 
         ValueType &Back()
         {
-            return CurrNode(m_Used1).Value;
+            return CurrNode(m_used1).Value;
         }
 
         const ValueType &Back() const
         {
-            return CurrNode(m_Used1).Value;
+            return CurrNode(m_used1).Value;
         }
 
     public:
         size_t Begin() const
         {
-            return m_Used0;
+            return m_used0;
         }
 
         size_t End() const
         {
-            return (m_Used1 < Capacity()) ? Next(m_Used1) : NPos;
+            return (m_used1 < Capacity()) ? Next(m_used1) : NPos;
         }
 
         size_t HeadOff() const
         {
-            return m_Used0;
+            return m_used0;
         }
 
         size_t BackOff() const
         {
-            return m_Used1;
+            return m_used1;
         }
 
     public:
@@ -182,7 +182,7 @@ template<typename ValueType, size_t SBufLen = 0> class ABDList
         // now move it as the new used0 but keeps all others the same
         void MoveHead(size_t nPos)
         {
-            if(nPos == m_Used0){
+            if(nPos == m_used0){
                 return;
             }
 
@@ -198,15 +198,15 @@ template<typename ValueType, size_t SBufLen = 0> class ABDList
             }
 
             CurrNode(nPos   ).Prev = NPos;
-            CurrNode(nPos   ).Next = m_Used0;
-            CurrNode(m_Used0).Prev = nPos;
+            CurrNode(nPos   ).Next = m_used0;
+            CurrNode(m_used0).Prev = nPos;
 
             // shouldn't touch free0/1
             // change happens in data list only
 
-            m_Used0 = nPos;
-            if(m_Used1 == nPos){
-                m_Used1 = nPosPrev;
+            m_used0 = nPos;
+            if(m_used1 == nPos){
+                m_used1 = nPosPrev;
             }
         }
 
@@ -214,7 +214,7 @@ template<typename ValueType, size_t SBufLen = 0> class ABDList
         // now move it as the new used1 but keeps all others the same
         void MoveBack(size_t nPos)
         {
-            if(nPos == m_Used1){
+            if(nPos == m_used1){
                 return;
             }
 
@@ -231,21 +231,21 @@ template<typename ValueType, size_t SBufLen = 0> class ABDList
                 CurrNode(nPosNext).Prev = NPos;
             }
 
-            CurrNode(nPos).Prev = m_Used1;
-            CurrNode(nPos).Next = m_Free0;
+            CurrNode(nPos).Prev = m_used1;
+            CurrNode(nPos).Next = m_free0;
 
-            CurrNode(m_Used1).Next = nPos;
-            if(m_Free0 < Capacity()){
-                CurrNode(m_Free0).Prev = nPos;
+            CurrNode(m_used1).Next = nPos;
+            if(m_free0 < Capacity()){
+                CurrNode(m_free0).Prev = nPos;
             }
 
             // shouldn't touch free0/1
             // change happens in data list only
 
-            if(m_Used0 == nPos){
-                m_Used0 = nPosNext;
+            if(m_used0 == nPos){
+                m_used0 = nPosNext;
             }
-            m_Used1 = nPos;
+            m_used1 = nPos;
         }
 
     public:
@@ -257,7 +257,7 @@ template<typename ValueType, size_t SBufLen = 0> class ABDList
                 AppendFreeNode(1);
             }
 
-            auto nFreeNode = m_Free1;
+            auto nFreeNode = m_free1;
             CurrNode(nFreeNode).Value = std::move(stValue);
 
             PickFree1Node();
@@ -283,12 +283,12 @@ template<typename ValueType, size_t SBufLen = 0> class ABDList
             // if at begin/end need to reset used0/1 and free0/1
             // better use the specified functions directly
 
-            if(nPos == m_Used0){
+            if(nPos == m_used0){
                 PopHead();
                 return Begin();
             }
 
-            if(nPos == m_Used1){
+            if(nPos == m_used1){
                 PopBack();
                 return End();
             }
@@ -313,23 +313,23 @@ template<typename ValueType, size_t SBufLen = 0> class ABDList
                 AppendFreeNode(1);
             }
 
-            auto nFreeNode = m_Free1;
+            auto nFreeNode = m_free1;
             CurrNode(nFreeNode).Value = ValueType(std::forward<U>(u)...);
 
             PickFree1Node();
             CurrNode(nFreeNode).Prev = NPos;
 
             if(Empty()){
-                CurrNode(nFreeNode).Next = m_Free0;
-                if(m_Free0 < Capacity()){
-                    CurrNode(m_Free0).Prev = nFreeNode;
+                CurrNode(nFreeNode).Next = m_free0;
+                if(m_free0 < Capacity()){
+                    CurrNode(m_free0).Prev = nFreeNode;
                 }
-                m_Used0 = nFreeNode;
-                m_Used1 = nFreeNode;
+                m_used0 = nFreeNode;
+                m_used1 = nFreeNode;
             }else{
-                CurrNode(nFreeNode).Next = m_Used0;
-                CurrNode(m_Used0  ).Prev = nFreeNode;
-                m_Used0 = nFreeNode;
+                CurrNode(nFreeNode).Next = m_used0;
+                CurrNode(m_used0  ).Prev = nFreeNode;
+                m_used0 = nFreeNode;
             }
         }
 
@@ -341,17 +341,17 @@ template<typename ValueType, size_t SBufLen = 0> class ABDList
                 AppendFreeNode(1);
             }
 
-            CurrNode(m_Free0).Value = ValueType(std::forward<U>(u)...);
+            CurrNode(m_free0).Value = ValueType(std::forward<U>(u)...);
             if(Empty()){
-                m_Used0 = m_Free0;
+                m_used0 = m_free0;
             }
-            m_Used1 = m_Free0;
+            m_used1 = m_free0;
 
-            if(m_Free0 == m_Free1){
-                m_Free0 = Capacity();
-                m_Free1 = m_Free0;
+            if(m_free0 == m_free1){
+                m_free0 = Capacity();
+                m_free1 = m_free0;
             }else{
-                m_Free0 = Next(m_Free0);
+                m_free0 = Next(m_free0);
             }
         }
 
@@ -360,13 +360,13 @@ template<typename ValueType, size_t SBufLen = 0> class ABDList
         // and make is as the new free1 node
         void PopHead()
         {
-            auto nOldHead = m_Used0;
-            if(m_Used0 == m_Used1){
-                m_Used0 = NPos;
-                m_Used1 = NPos;
+            auto nOldHead = m_used0;
+            if(m_used0 == m_used1){
+                m_used0 = NPos;
+                m_used1 = NPos;
             }else{
-                m_Used0 = Next(m_Used0);
-                CurrNode(m_Used0).Prev = NPos;
+                m_used0 = Next(m_used0);
+                CurrNode(m_used0).Prev = NPos;
             }
             PushFree1Node(nOldHead);
         }
@@ -376,26 +376,26 @@ template<typename ValueType, size_t SBufLen = 0> class ABDList
         void PopBack()
         {
             if(FreeNodeEmpty()){
-                m_Free0 = m_Used1;
-                m_Free1 = m_Free0;
+                m_free0 = m_used1;
+                m_free1 = m_free0;
             }else{
-                m_Free0 = m_Used1;
+                m_free0 = m_used1;
             }
 
             // we have only one node
             // need to reset used0 and used1 as npos
-            if(m_Used0 == m_Used1){
-                m_Used0 = NPos;
-                m_Used1 = NPos;
+            if(m_used0 == m_used1){
+                m_used0 = NPos;
+                m_used1 = NPos;
             }else{
-                m_Used1 = Prev(m_Used1);
+                m_used1 = Prev(m_used1);
             }
         }
 
     public:
         bool Empty() const
         {
-            return m_Used0 == NPos;
+            return m_used0 == NPos;
         }
 
         size_t Length() const
@@ -415,7 +415,7 @@ template<typename ValueType, size_t SBufLen = 0> class ABDList
     private:
         bool FreeNodeEmpty() const
         {
-            return m_Free0 >= Capacity();
+            return m_free0 >= Capacity();
         }
 
     private:
@@ -423,17 +423,17 @@ template<typename ValueType, size_t SBufLen = 0> class ABDList
         // remove free1 from the free node list and relink the free list
         void PickFree1Node()
         {
-            if(Prev(m_Free1) < Capacity()){
-                PrevNode(m_Free1).Next = Capacity();
+            if(Prev(m_free1) < Capacity()){
+                PrevNode(m_free1).Next = Capacity();
             }
 
             // we assume free1 is valid
             // then if free0 == free1 there must be only one free node
-            if(m_Free0 == m_Free1){
-                m_Free0 = Capacity();
-                m_Free1 = m_Free0;
+            if(m_free0 == m_free1){
+                m_free0 = Capacity();
+                m_free1 = m_free0;
             }else{
-                m_Free1 = Prev(m_Free1);
+                m_free1 = Prev(m_free1);
             }
         }
 
@@ -442,27 +442,27 @@ template<typename ValueType, size_t SBufLen = 0> class ABDList
         void PushFree1Node(size_t nPos)
         {
             if(FreeNodeEmpty()){
-                CurrNode(nPos).Prev = m_Used1;
+                CurrNode(nPos).Prev = m_used1;
                 CurrNode(nPos).Next = Capacity();
-                if(m_Used1 < Capacity()){
-                    CurrNode(m_Used1).Next = nPos;
+                if(m_used1 < Capacity()){
+                    CurrNode(m_used1).Next = nPos;
                 }
-                m_Free0 = nPos;
-                m_Free1 = nPos;
+                m_free0 = nPos;
+                m_free1 = nPos;
             }else{
-                CurrNode(nPos   ).Prev = m_Free1;
+                CurrNode(nPos   ).Prev = m_free1;
                 CurrNode(nPos   ).Next = Capacity();
-                CurrNode(m_Free1).Next = nPos;
-                m_Free1 = nPos;
+                CurrNode(m_free1).Next = nPos;
+                m_free1 = nPos;
             }
         }
 
     private: 
         // only call this function if there is no free node
         // when there is no free node:
-        //      1. Next(m_Used1) == Capacity()
-        //      2. m_Free0       == Capacity()
-        //      3. m_Free1       == Capacity()
+        //      1. Next(m_used1) == Capacity()
+        //      2. m_free0       == Capacity()
+        //      3. m_free1       == Capacity()
         void AppendFreeNode(size_t nCnt)
         {
             auto nOldCap = Capacity();
@@ -471,7 +471,7 @@ template<typename ValueType, size_t SBufLen = 0> class ABDList
             // don't need to link new node to the whole list
             // since we know the Next of ``last node of the whole list" already is Capacity()
 
-            CurrNode(nOldCap).Prev = m_Used1;
+            CurrNode(nOldCap).Prev = m_used1;
             CurrNode(nOldCap).Next = nOldCap + 1;
 
             for(size_t nIndex = nOldCap + 1; nIndex < Capacity(); ++nIndex){
@@ -479,8 +479,8 @@ template<typename ValueType, size_t SBufLen = 0> class ABDList
                 CurrNode(nIndex).Next = nIndex + 1;
             }
 
-            m_Free0 = nOldCap;
-            m_Free1 = Capacity() - 1;
+            m_free0 = nOldCap;
+            m_free1 = Capacity() - 1;
         }
 
     private:
@@ -491,21 +491,21 @@ template<typename ValueType, size_t SBufLen = 0> class ABDList
                 CurrNode(nIndex).Next = nIndex + 1;
             }
 
-            m_Used0 = NPos;
-            m_Used1 = NPos;
+            m_used0 = NPos;
+            m_used1 = NPos;
 
-            m_Free0 = 0;
-            m_Free1 = (Capacity() > 0) ? (Capacity() - 1) : 0;
+            m_free0 = 0;
+            m_free1 = (Capacity() > 0) ? (Capacity() - 1) : 0;
         }
 
     public:
         void Debug(std::ostream &f = std::cout)
         {
-            f << "Used0 : " << m_Used0 << std::endl;
-            f << "Used1 : " << m_Used1 << std::endl;
+            f << "Used0 : " << m_used0 << std::endl;
+            f << "Used1 : " << m_used1 << std::endl;
 
-            f << "Free0 : " << m_Free0 << std::endl;
-            f << "Free1 : " << m_Free1 << std::endl;
+            f << "Free0 : " << m_free0 << std::endl;
+            f << "Free1 : " << m_free1 << std::endl;
 
             f << "Capacity : " << Capacity() << std::endl;
 
@@ -516,7 +516,7 @@ template<typename ValueType, size_t SBufLen = 0> class ABDList
             }
 
             if(!FreeNodeEmpty()){
-                for(size_t nIndex = m_Free0, nLoc = 0; nIndex != Capacity(); nIndex = Next(nIndex), ++nLoc){
+                for(size_t nIndex = m_free0, nLoc = 0; nIndex != Capacity(); nIndex = Next(nIndex), ++nLoc){
                     f << "FreeLoc = " << nLoc << ", Loc = " << nIndex << ", Prev = " << Prev(nIndex) << ", Next = " << Next(nIndex) << std::endl;
                 }
             }

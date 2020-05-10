@@ -27,13 +27,13 @@ class BaseHub
         //     T:   running
         //
         // won't make an enum for it since there is only three possibility
-        std::thread       m_Thread;
-        std::atomic<bool> m_ThreadState;
+        std::thread       m_thread;
+        std::atomic<bool> m_threadState;
 
     protected:
         BaseHub()
-            : m_Thread()
-            , m_ThreadState(false)
+            : m_thread()
+            , m_threadState(false)
         {}
 
         virtual ~BaseHub()
@@ -61,26 +61,26 @@ class BaseHub
             // 4. start the thread
             //    decide to move invocation of MainLoop() from constructor to Launch()
             //    then don't need use the dirty trick of static_cast<Derived*>(this))->MainLoop()
-            m_Thread = std::thread([this](){ MainLoop(); });
+            m_thread = std::thread([this](){ MainLoop(); });
         }
 
     protected:
         void Join()
         {
-            if(m_Thread.joinable()){
-                m_Thread.join();
+            if(m_thread.joinable()){
+                m_thread.join();
             }
         }
 
     protected:
         int State()
         {
-            return m_ThreadState.load(std::memory_order_relaxed);
+            return m_threadState.load(std::memory_order_relaxed);
         }
 
         void State(bool nNewState)
         {
-            m_ThreadState.store(nNewState, std::memory_order_relaxed);
+            m_threadState.store(nNewState, std::memory_order_relaxed);
         }
 
     protected:

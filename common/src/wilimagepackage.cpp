@@ -62,97 +62,97 @@ static void MemSet32(uint32_t *dst, int n, uint32_t src)
 }
 
 WilImagePackage::WilImagePackage()
-    : m_CurrentImageIndex(-1)
-    , m_CurrentImageValid(false)
-    , m_CurrentImageBuffer(2048)
-    , m_WilPosition(2048)
-    , m_WilFile(nullptr)
+    : m_currentImageIndex(-1)
+    , m_currentImageValid(false)
+    , m_currentImageBuffer(2048)
+    , m_wilPosition(2048)
+    , m_wilFile(nullptr)
 {
-    std::memset(&m_WixImageInfo,        0, sizeof(WIXIMAGEINFO ));
-    std::memset(&m_CurrentWilImageInfo, 0, sizeof(WILIMAGEINFO ));
-    std::memset(&m_WilFileHeader,       0, sizeof(WILFILEHEADER));
+    std::memset(&m_wixImageInfo,        0, sizeof(WIXIMAGEINFO ));
+    std::memset(&m_currentWilImageInfo, 0, sizeof(WILIMAGEINFO ));
+    std::memset(&m_wilFileHeader,       0, sizeof(WILFILEHEADER));
 }
 
 WilImagePackage::~WilImagePackage()
 {
-    if(m_WilFile){ std::fclose(m_WilFile); }
+    if(m_wilFile){ std::fclose(m_wilFile); }
 }
 
 bool WilImagePackage::SetIndex(uint32_t dwIndex)
 {
     if(false
-            || m_WilFile == nullptr
-            || dwIndex   >= (uint32_t)(m_WilPosition.size())
-            || dwIndex   >= (uint32_t)(m_WixImageInfo.nIndexCount)){
+            || m_wilFile == nullptr
+            || dwIndex   >= (uint32_t)(m_wilPosition.size())
+            || dwIndex   >= (uint32_t)(m_wixImageInfo.nIndexCount)){
 
-        m_CurrentImageValid = false;
-        m_CurrentImageIndex = -1;
+        m_currentImageValid = false;
+        m_currentImageIndex = -1;
         return false;
     }
 
-    if((dwIndex == (uint32_t)(m_CurrentImageIndex)) && m_CurrentImageValid){
+    if((dwIndex == (uint32_t)(m_currentImageIndex)) && m_currentImageValid){
         return true;
     }
 
-    m_CurrentImageIndex = (int32_t)(dwIndex);
-    if(m_WilPosition[dwIndex] <= 0){
+    m_currentImageIndex = (int32_t)(dwIndex);
+    if(m_wilPosition[dwIndex] <= 0){
         // invalid image but set index operation succeeds
-        m_CurrentImageValid = false;
+        m_currentImageValid = false;
         return true;
     }
 
-    if(std::fseek(m_WilFile, m_WilPosition[dwIndex], SEEK_SET)){
-        m_CurrentImageValid = false;
+    if(std::fseek(m_wilFile, m_wilPosition[dwIndex], SEEK_SET)){
+        m_currentImageValid = false;
         return false;
     }
 
-    if(std::fread(&m_CurrentWilImageInfo, sizeof(WILIMAGEINFO), 1, m_WilFile) != 1){
-        m_CurrentImageValid = false;
+    if(std::fread(&m_currentWilImageInfo, sizeof(WILIMAGEINFO), 1, m_wilFile) != 1){
+        m_currentImageValid = false;
         return false;
     }
 
-    m_CurrentImageBuffer.resize(0);
-    m_CurrentImageBuffer.resize(m_CurrentWilImageInfo.dwImageLength);
+    m_currentImageBuffer.resize(0);
+    m_currentImageBuffer.resize(m_currentWilImageInfo.dwImageLength);
 
-    auto nWilOffset = WilOffset(m_WilFileHeader.shVer);
+    auto nWilOffset = WilOffset(m_wilFileHeader.shVer);
     if(nWilOffset < 0){
-        m_CurrentImageValid = false;
+        m_currentImageValid = false;
         return false;
     }
 
-    std::fseek(m_WilFile, m_WilPosition[dwIndex], SEEK_SET);
-    std::fseek(m_WilFile, nWilOffset, SEEK_CUR);
+    std::fseek(m_wilFile, m_wilPosition[dwIndex], SEEK_SET);
+    std::fseek(m_wilFile, nWilOffset, SEEK_CUR);
 
-    auto nCurrDataLen = m_CurrentWilImageInfo.dwImageLength;
-    if(std::fread(&(m_CurrentImageBuffer[0]), sizeof(uint16_t), nCurrDataLen, m_WilFile) != nCurrDataLen){
-        m_CurrentImageValid = false;
+    auto nCurrDataLen = m_currentWilImageInfo.dwImageLength;
+    if(std::fread(&(m_currentImageBuffer[0]), sizeof(uint16_t), nCurrDataLen, m_wilFile) != nCurrDataLen){
+        m_currentImageValid = false;
         return false;
     }
 
-    m_CurrentImageValid = true;
+    m_currentImageValid = true;
     return true;
 }
 
 bool WilImagePackage::Load(const char* wilFilePath, const char *wilFileName, const char *)
 {
     // 1. set current image invalid if load or reload
-    m_CurrentImageValid = false;
+    m_currentImageValid = false;
 
     auto fnReleaseFile = [this]()
     {
-        if(m_WilFile){ std::fclose(m_WilFile); m_WilFile = nullptr; }
+        if(m_wilFile){ std::fclose(m_wilFile); m_wilFile = nullptr; }
     };
 
     // 2. load wil image library
     fnReleaseFile();
 
-    if(!m_WilFile){ m_WilFile = std::fopen((std::string(wilFilePath) + "/" + wilFileName + ".wil").c_str(), "rb"); }
-    if(!m_WilFile){ m_WilFile = std::fopen((std::string(wilFilePath) + "/" + wilFileName + ".Wil").c_str(), "rb"); }
-    if(!m_WilFile){ m_WilFile = std::fopen((std::string(wilFilePath) + "/" + wilFileName + ".WIL").c_str(), "rb"); }
+    if(!m_wilFile){ m_wilFile = std::fopen((std::string(wilFilePath) + "/" + wilFileName + ".wil").c_str(), "rb"); }
+    if(!m_wilFile){ m_wilFile = std::fopen((std::string(wilFilePath) + "/" + wilFileName + ".Wil").c_str(), "rb"); }
+    if(!m_wilFile){ m_wilFile = std::fopen((std::string(wilFilePath) + "/" + wilFileName + ".WIL").c_str(), "rb"); }
 
-    if(m_WilFile == nullptr){ return false; }
+    if(m_wilFile == nullptr){ return false; }
 
-    if(std::fread(&m_WilFileHeader, sizeof(WILFILEHEADER), 1, m_WilFile) != 1){
+    if(std::fread(&m_wilFileHeader, sizeof(WILFILEHEADER), 1, m_wilFile) != 1){
         fnReleaseFile(); return false;
     }
 
@@ -166,34 +166,34 @@ bool WilImagePackage::Load(const char* wilFilePath, const char *wilFileName, con
         fnReleaseFile(); return false;
     }
 
-    if(std::fread(&m_WixImageInfo, sizeof(WIXIMAGEINFO), 1, hWixFile) != 1){
+    if(std::fread(&m_wixImageInfo, sizeof(WIXIMAGEINFO), 1, hWixFile) != 1){
         std::fclose(hWixFile); fnReleaseFile(); return false;
     }
 
-    m_WilPosition.resize(0);
-    m_WilPosition.resize(m_WixImageInfo.nIndexCount);
+    m_wilPosition.resize(0);
+    m_wilPosition.resize(m_wixImageInfo.nIndexCount);
 
-    auto nWixOffset = WixOffset(m_WilFileHeader.shVer);
+    auto nWixOffset = WixOffset(m_wilFileHeader.shVer);
     if(nWixOffset < 0){
         std::fclose(hWixFile); fnReleaseFile(); return false;
     }
 
     std::fseek(hWixFile, nWixOffset, SEEK_SET);
 
-    auto nCurrDataLen = m_WixImageInfo.nIndexCount;
-    if(std::fread(&(m_WilPosition[0]), sizeof(int32_t), nCurrDataLen, hWixFile) != (size_t)(nCurrDataLen)){
+    auto nCurrDataLen = m_wixImageInfo.nIndexCount;
+    if(std::fread(&(m_wilPosition[0]), sizeof(int32_t), nCurrDataLen, hWixFile) != (size_t)(nCurrDataLen)){
         std::fclose(hWixFile); fnReleaseFile(); return false;
     }
 
     // set current index to an invalid index
-    m_CurrentImageIndex = -1;
+    m_currentImageIndex = -1;
     return true;
 }
 
 const uint16_t *WilImagePackage::CurrentImageBuffer()
 {
-    if(m_CurrentImageValid){
-        return &(m_CurrentImageBuffer[0]);
+    if(m_currentImageValid){
+        return &(m_currentImageBuffer[0]);
     }else{
         return nullptr;
     }
@@ -201,8 +201,8 @@ const uint16_t *WilImagePackage::CurrentImageBuffer()
 
 const WILIMAGEINFO &WilImagePackage::CurrentImageInfo()
 {
-    if(m_CurrentImageValid){
-        return m_CurrentWilImageInfo;
+    if(m_currentImageValid){
+        return m_currentWilImageInfo;
     }else{
         const static WILIMAGEINFO rstEmptyImageInfo = []()
         {
@@ -217,9 +217,9 @@ const WILIMAGEINFO &WilImagePackage::CurrentImageInfo()
 
 void WilImagePackage::Decode(uint32_t *rectImageBuffer, uint32_t dwColor0, uint32_t dwColor1, uint32_t dwColor2)
 {
-    auto pwSrc   = &(m_CurrentImageBuffer[0]);
-    int  nWidth  = m_CurrentWilImageInfo.shWidth;
-    int  nHeight = m_CurrentWilImageInfo.shHeight;
+    auto pwSrc   = &(m_currentImageBuffer[0]);
+    int  nWidth  = m_currentWilImageInfo.shWidth;
+    int  nHeight = m_currentWilImageInfo.shHeight;
 
     size_t srcBeginPos    = 0;
     size_t srcEndPos      = 0;
@@ -267,27 +267,27 @@ void WilImagePackage::Decode(uint32_t *rectImageBuffer, uint32_t dwColor0, uint3
 
 int32_t WilImagePackage::ImageCount()
 {
-    return m_WilFile ? m_WilFileHeader.nImageCount : 0;
+    return m_wilFile ? m_wilFileHeader.nImageCount : 0;
 }
 
 int32_t WilImagePackage::IndexCount()
 {
-    return m_WilFile ? m_WixImageInfo.nIndexCount: 0;
+    return m_wilFile ? m_wixImageInfo.nIndexCount: 0;
 }
 
 bool WilImagePackage::CurrentImageValid()
 {
-    return m_CurrentImageValid;
+    return m_currentImageValid;
 }
 
 int16_t WilImagePackage::Version()
 {
-    return m_WilFileHeader.shVer;
+    return m_wilFileHeader.shVer;
 }
 
 const WILFILEHEADER &WilImagePackage::HeaderInfo() const
 {
-    return m_WilFileHeader;
+    return m_wilFileHeader;
 }
 
 int WilImagePackage::WixOffset(int nVersion)

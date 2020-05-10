@@ -28,7 +28,7 @@
 #include "utf8f.hpp"
 #include "xmlparagraph.hpp"
 
-extern Log *g_Log;
+extern Log *g_log;
 
 XMLParagraph::XMLParagraph()
     : m_XMLDocument()

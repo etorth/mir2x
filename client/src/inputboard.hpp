@@ -29,19 +29,19 @@
 class InputBoard: public Widget
 {
     protected:
-        TokenBoard m_TokenBoard;
-        SDL_Color  m_CursorColor;
-        int        m_CursorWidth;
-        uint8_t    m_FontSet;
-        uint8_t    m_Size;
-        uint32_t   m_TextColor;
+        TokenBoard m_tokenBoard;
+        SDL_Color  m_cursorColor;
+        int        m_cursorWidth;
+        uint8_t    m_fontSet;
+        uint8_t    m_size;
+        uint32_t   m_textColor;
 
     protected:
-        int     m_SystemCursorX;
-        int     m_SystemCursorY;
-        bool    m_DrawOwnSystemCursor;
-        int     m_BindTokenBoxIndex;
-        int     m_ShowStartX;
+        int     m_systemCursorX;
+        int     m_systemCursorY;
+        bool    m_drawOwnSystemCursor;
+        int     m_bindTokenBoxIndex;
+        int     m_showStartX;
         double  m_MS;
 
     public:
@@ -66,7 +66,7 @@ class InputBoard: public Widget
                 Widget          *pwidget         =  nullptr,
                 bool             bFreewidget     =  false)
             : Widget(nX, nY, nW, nH, pwidget, bFreewidget)
-            , m_TokenBoard(
+            , m_tokenBoard(
                     0,
                     0,
                     true,
@@ -86,8 +86,8 @@ class InputBoard: public Widget
                     nCursorWidth,
                     nullptr,
                     false)
-            , m_CursorColor(rstCursorColor)
-            , m_CursorWidth(nCursorWidth)
+            , m_cursorColor(rstCursorColor)
+            , m_cursorWidth(nCursorWidth)
         {
 
             m_MS = 0.0;
@@ -108,7 +108,7 @@ class InputBoard: public Widget
     public:
         std::string Print(bool bSelectedOnly)
         {
-            return m_TokenBoard.Print(bSelectedOnly);
+            return m_tokenBoard.Print(bSelectedOnly);
         }
 
     public:

@@ -23,7 +23,7 @@
 #include "colorf.hpp"
 #include "debugboard.hpp"
 
-extern Log *g_Log;
+extern Log *g_log;
 
 void debugBoard::addLog(const char * formatString, ...)
 {
@@ -44,24 +44,24 @@ void debugBoard::addLog(const char * formatString, ...)
     }
 
     if(error){
-        g_Log->addLog(LOGTYPE_WARNING, "%s", text.c_str());
+        g_log->addLog(LOGTYPE_WARNING, "%s", text.c_str());
     }
 
-    if(m_BoardList.size() < 5){
-        m_BoardList.push_back(std::make_shared<XMLTypeset>(m_LineW, LALIGN_LEFT, false, m_font, m_fontSize, m_fontStyle, m_fontColor));
+    if(m_boardList.size() < 5){
+        m_boardList.push_back(std::make_shared<XMLTypeset>(m_lineW, LALIGN_LEFT, false, m_font, m_fontSize, m_fontStyle, m_fontColor));
     }
     else{
-        m_BoardList.push_back(m_BoardList.front());
-        m_BoardList.pop_front();
+        m_boardList.push_back(m_boardList.front());
+        m_boardList.pop_front();
     }
 
     const auto xmlString = str_printf("<par>%s</par>", text.c_str());
-    m_BoardList.back()->loadXML(xmlString.c_str());
+    m_boardList.back()->loadXML(xmlString.c_str());
 
-    m_w = m_LineW;
+    m_w = m_lineW;
     m_h = 0;
 
-    for(const auto &ptr: m_BoardList){
+    for(const auto &ptr: m_boardList){
         m_h += ptr->ph();
     }
 }
@@ -71,7 +71,7 @@ void debugBoard::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int sr
     int startX = 0;
     int startY = 0;
 
-    for(const auto &ptr: m_BoardList){
+    for(const auto &ptr: m_boardList){
         const auto p = ptr.get();
 
         int srcXCrop = srcX;
@@ -101,7 +101,7 @@ void debugBoard::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int sr
 int debugBoard::pw()
 {
     int maxW = 0;
-    for(const auto &ptr: m_BoardList){
+    for(const auto &ptr: m_boardList){
         maxW = std::max<int>(maxW, ptr->pw());
     }
     return maxW;

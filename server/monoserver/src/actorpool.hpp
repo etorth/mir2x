@@ -177,55 +177,55 @@ class ActorPool final
             private:
                 // make the atomic status encapsulated
                 // then no one can legally access it except the MailboxLock
-                std::atomic<int> m_Status;
+                std::atomic<int> m_status;
 
             public:
                 MailboxMutex()
-                    : m_Status(MAILBOX_READY)
+                    : m_status(MAILBOX_READY)
                 {}
 
                 int Detach()
                 {
-                    return m_Status.exchange(MAILBOX_DETACHED);
+                    return m_status.exchange(MAILBOX_DETACHED);
                 }
 
                 bool Detached() const
                 {
-                    return m_Status.load() == MAILBOX_DETACHED;
+                    return m_status.load() == MAILBOX_DETACHED;
                 }
         };
 
         class MailboxLock
         {
             private:
-                int m_Expected;
-                int m_WorkerID;
+                int m_expected;
+                int m_workerID;
 
             private:
-                MailboxMutex &m_MutexRef;
+                MailboxMutex &m_mutexRef;
 
             public:
                 MailboxLock(MailboxMutex &rstMutex, int nWorkerID)
-                    : m_Expected(MAILBOX_READY)
-                    , m_WorkerID(MAILBOX_ERROR)
-                    , m_MutexRef(rstMutex)
+                    : m_expected(MAILBOX_READY)
+                    , m_workerID(MAILBOX_ERROR)
+                    , m_mutexRef(rstMutex)
                 {
                     // need to save the worker id
                     // since the mailbox may get detached quietly
-                    if(m_MutexRef.m_Status.compare_exchange_strong(m_Expected, nWorkerID)){
-                        m_WorkerID = nWorkerID;
+                    if(m_mutexRef.m_status.compare_exchange_strong(m_expected, nWorkerID)){
+                        m_workerID = nWorkerID;
                     }
                 }
 
                 ~MailboxLock()
                 {
                     if(Locked()){
-                        m_Expected = m_WorkerID;
-                        if(!m_MutexRef.m_Status.compare_exchange_strong(m_Expected, MAILBOX_READY)){
-                            if(m_Expected != MAILBOX_DETACHED){
+                        m_expected = m_workerID;
+                        if(!m_mutexRef.m_status.compare_exchange_strong(m_expected, MAILBOX_READY)){
+                            if(m_expected != MAILBOX_DETACHED){
                                 // big error here and should never happen
                                 // someone stolen the mailbox without accquire the lock
-                                condcheck(m_Expected == MAILBOX_DETACHED);
+                                condcheck(m_expected == MAILBOX_DETACHED);
                             }
                         }
                     }
@@ -242,7 +242,7 @@ class ActorPool final
 
                 int LockType() const
                 {
-                    return m_Expected;
+                    return m_expected;
                 }
         };
 
@@ -304,20 +304,20 @@ class ActorPool final
         };
 
     private:
-        const uint32_t m_LogicFPS;
+        const uint32_t m_logicFPS;
 
     private:
-        std::atomic<bool> m_Terminated;
+        std::atomic<bool> m_terminated;
 
     private:
-        std::vector<std::shared_future<bool>> m_FutureList;
+        std::vector<std::shared_future<bool>> m_futureList;
 
     private:
-        std::vector<MailboxBucket> m_BucketList;
+        std::vector<MailboxBucket> m_bucketList;
 
     private:
-        std::mutex m_ReceiverLock;
-        std::map<uint64_t, Receiver *> m_ReceiverList;
+        std::mutex m_receiverLock;
+        std::map<uint64_t, Receiver *> m_receiverList;
 
     public:
         ActorPool(uint32_t = 23, uint32_t = 30);
@@ -357,7 +357,7 @@ class ActorPool final
         bool HasWorkSteal() const
         {
             static bool bEnabled= std::getenv("MIR2X_ENABLE_WORK_STEAL");
-            return bEnabled && (m_BucketList.size() > 1);
+            return bEnabled && (m_bucketList.size() > 1);
         }
 
     private:
@@ -384,7 +384,7 @@ class ActorPool final
         {
             // always thread safe
             // never change the bucket size after construction
-            return m_BucketList.size();
+            return m_bucketList.size();
         }
 
         size_t UIDGroup(uint64_t nUID)

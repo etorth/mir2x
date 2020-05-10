@@ -28,7 +28,7 @@
 #include "fileptr.hpp"
 
 Rawbuf::Rawbuf(std::initializer_list<uint8_t> stInitList)
-    : m_Data()
+    : m_data()
 {
     switch(auto nDecompSize = ZSTD_getFrameContentSize(stInitList.begin(), stInitList.size())){
         case ZSTD_CONTENTSIZE_ERROR:
@@ -38,18 +38,18 @@ Rawbuf::Rawbuf(std::initializer_list<uint8_t> stInitList)
             }
         default:
             {
-                m_Data.resize(nDecompSize);
+                m_data.resize(nDecompSize);
                 break;
             }
     }
 
-    size_t nRC = ZSTD_decompress(m_Data.data(), m_Data.size(), stInitList.begin(), stInitList.size());
+    size_t nRC = ZSTD_decompress(m_data.data(), m_data.size(), stInitList.begin(), stInitList.size());
 
     if(ZSTD_isError(nRC)){
         throw std::invalid_argument(str_fflprintf(": Failed to decompress data buffer"));
     }
 
-    m_Data.resize(nRC);
+    m_data.resize(nRC);
 }
 
 std::vector<uint8_t> Rawbuf::BuildBuf(const char *szInFileName)

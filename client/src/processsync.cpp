@@ -24,13 +24,13 @@
 #include "processsync.hpp"
 
 extern Client *g_client;
-extern PNGTexDB *g_ProgUseDB;
+extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_SDLDevice;
 
 ProcessSync::ProcessSync()
 	: Process()
-    , m_Ratio(0)
-    , m_ProcessBarInfo(0, 0, "Connecting...", 1, 10, 0)
+    , m_ratio(0)
+    , m_processBarInfo(0, 0, "Connecting...", 1, 10, 0)
 {} 
 void ProcessSync::processEvent(const SDL_Event &event)
 {
@@ -51,17 +51,17 @@ void ProcessSync::processEvent(const SDL_Event &event)
 
 void ProcessSync::Update(double fDeltaMS)
 {
-    if(m_Ratio >= 100){
+    if(m_ratio >= 100){
         g_client->RequestProcess(PROCESSID_LOGIN);
         return;
     }
 
-    m_Ratio += (fDeltaMS > 0.0 ? 1 : 0);
+    m_ratio += (fDeltaMS > 0.0 ? 1 : 0);
 }
 
 void ProcessSync::Draw()
 {
-    auto pTexture = g_ProgUseDB->Retrieve(0X00000002);
+    auto pTexture = g_progUseDB->Retrieve(0X00000002);
     int nW, nH;
 
     SDL_QueryTexture(pTexture, nullptr, nullptr, &nW, &nH);
@@ -72,13 +72,13 @@ void ProcessSync::Draw()
             528,  // dst y
             0,    // src x
             0,    // src y
-            std::lround(nW * (m_Ratio / 100.0)), // src w
+            std::lround(nW * (m_ratio / 100.0)), // src w
             nH);  // src h
-    g_SDLDevice->DrawTexture(g_ProgUseDB->Retrieve(0X00000001), 0, 0);
+    g_SDLDevice->DrawTexture(g_progUseDB->Retrieve(0X00000001), 0, 0);
 
-    const int nInfoX = (800 - m_ProcessBarInfo.w()) / 2;
-    const int nInfoY = 528 + (nH - m_ProcessBarInfo.h()) / 2;
+    const int nInfoX = (800 - m_processBarInfo.w()) / 2;
+    const int nInfoY = 528 + (nH - m_processBarInfo.h()) / 2;
 
-    m_ProcessBarInfo.drawEx(nInfoX, nInfoY, 0, 0, m_ProcessBarInfo.w(), m_ProcessBarInfo.h());
+    m_processBarInfo.drawEx(nInfoX, nInfoY, 0, 0, m_processBarInfo.w(), m_processBarInfo.h());
     g_SDLDevice->Present();
 }

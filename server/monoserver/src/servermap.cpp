@@ -37,9 +37,9 @@
 #include "rotatecoord.hpp"
 #include "serverconfigurewindow.hpp"
 
-extern MapBinDB *g_MapBinDB;
-extern MonoServer *g_MonoServer;
-extern ServerConfigureWindow *g_ServerConfigureWindow;
+extern MapBinDB *g_mapBinDB;
+extern MonoServer *g_monoServer;
+extern ServerConfigureWindow *g_serverConfigureWindow;
 
 ServerMap::ServerMapLuaModule::ServerMapLuaModule()
     : BatchLuaModule()
@@ -58,7 +58,7 @@ ServerMap::ServerPathFinder::ServerPathFinder(const ServerMap *pMap, int nMaxSte
           //             && MaxStep() != 2
           //             && MaxStep() != 3){
           //
-          //         g_MonoServer->addLog(LOGTYPE_FATAL, "Invalid MaxStep provided: %d, should be (1, 2, 3)", MaxStep());
+          //         g_monoServer->addLog(LOGTYPE_FATAL, "Invalid MaxStep provided: %d, should be (1, 2, 3)", MaxStep());
           //         return 10000.00;
           //     }
           //
@@ -69,19 +69,19 @@ ServerMap::ServerPathFinder::ServerPathFinder(const ServerMap *pMap, int nMaxSte
           //             && nDistance2 != MaxStep() * MaxStep()
           //             && nDistance2 != MaxStep() * MaxStep() * 2){
           //
-          //         g_MonoServer->addLog(LOGTYPE_FATAL, "Invalid step checked: (%d, %d) -> (%d, %d)", nSrcX, nSrcY, nDstX, nDstY);
+          //         g_monoServer->addLog(LOGTYPE_FATAL, "Invalid step checked: (%d, %d) -> (%d, %d)", nSrcX, nSrcY, nDstX, nDstY);
           //         return 10000.00;
           //     }
           // }
 
-          const int nCheckLock = m_CheckCO;
-          return m_Map->OneStepCost(m_CheckCO, nCheckLock, nSrcX, nSrcY, nDstX, nDstY);
+          const int nCheckLock = m_checkCO;
+          return m_map->OneStepCost(m_checkCO, nCheckLock, nSrcX, nSrcY, nDstX, nDstY);
       }, nMaxStep)
-    , m_Map(pMap)
-    , m_CheckCO(nCheckCO)
+    , m_map(pMap)
+    , m_checkCO(nCheckCO)
 {
     if(!pMap){
-        g_MonoServer->addLog(LOGTYPE_FATAL, "Invalid argument: ServerMap = %p, CheckCreature = %d", pMap, nCheckCO);
+        g_monoServer->addLog(LOGTYPE_FATAL, "Invalid argument: ServerMap = %p, CheckCreature = %d", pMap, nCheckCO);
     }
 
     switch(nCheckCO){
@@ -93,7 +93,7 @@ ServerMap::ServerPathFinder::ServerPathFinder(const ServerMap *pMap, int nMaxSte
             }
         default:
             {
-                g_MonoServer->addLog(LOGTYPE_FATAL, "Invalid CheckCO provided: %d, should be (0, 1, 2)", nCheckCO);
+                g_monoServer->addLog(LOGTYPE_FATAL, "Invalid CheckCO provided: %d, should be (0, 1, 2)", nCheckCO);
                 break;
             }
     }
@@ -107,7 +107,7 @@ ServerMap::ServerPathFinder::ServerPathFinder(const ServerMap *pMap, int nMaxSte
             }
         default:
             {
-                g_MonoServer->addLog(LOGTYPE_FATAL, "Invalid MaxStep provided: %d, should be (1, 2, 3)", MaxStep());
+                g_monoServer->addLog(LOGTYPE_FATAL, "Invalid MaxStep provided: %d, should be (1, 2, 3)", MaxStep());
                 break;
             }
     }
@@ -116,12 +116,12 @@ ServerMap::ServerPathFinder::ServerPathFinder(const ServerMap *pMap, int nMaxSte
 ServerMap::ServerMap(ServiceCore *pServiceCore, uint32_t nMapID)
     : ServerObject(uidf::buildMapUID(nMapID))
     , m_ID(nMapID)
-    , m_Mir2xMapData(*([nMapID]() -> Mir2xMapData *
+    , m_mir2xMapData(*([nMapID]() -> Mir2xMapData *
       {
           // server is multi-thread
           // but creating server map is always in service core
 
-          if(auto pMir2xMapData = g_MapBinDB->Retrieve(nMapID)){
+          if(auto pMir2xMapData = g_mapBinDB->Retrieve(nMapID)){
               return pMir2xMapData;
           }
 
@@ -129,18 +129,18 @@ ServerMap::ServerMap(ServiceCore *pServiceCore, uint32_t nMapID)
           // servicecore should test if current nMapID valid
           throw std::runtime_error(str_fflprintf("Load map failed: ID = %d, Name = %s", nMapID, DBCOM_MAPRECORD(nMapID).Name));
       }()))
-    , m_ServiceCore(pServiceCore)
-    , m_CellVec2D()
-    , m_LuaModule(nullptr)
+    , m_serviceCore(pServiceCore)
+    , m_cellVec2D()
+    , m_luaModule(nullptr)
 {
-    if(!m_Mir2xMapData.Valid()){
+    if(!m_mir2xMapData.Valid()){
         throw std::runtime_error(str_fflprintf("Load map failed: ID = %d, Name = %s", nMapID, DBCOM_MAPRECORD(nMapID).Name));
     }
 
-    m_CellVec2D.resize(W());
-    m_CellVec2D.shrink_to_fit();
+    m_cellVec2D.resize(W());
+    m_cellVec2D.shrink_to_fit();
 
-    for(auto &rstStateLine: m_CellVec2D){
+    for(auto &rstStateLine: m_cellVec2D){
         rstStateLine.resize(H());
         rstStateLine.shrink_to_fit();
     }
@@ -254,7 +254,7 @@ void ServerMap::OperateAM(const MessagePack &rstMPK)
             }
         default:
             {
-                g_MonoServer->addLog(LOGTYPE_FATAL, "Unsupported message: %s", rstMPK.Name());
+                g_monoServer->addLog(LOGTYPE_FATAL, "Unsupported message: %s", rstMPK.Name());
                 break;
             }
     }
@@ -263,9 +263,9 @@ void ServerMap::OperateAM(const MessagePack &rstMPK)
 bool ServerMap::GroundValid(int nX, int nY) const
 {
     return true
-        && m_Mir2xMapData.Valid()
-        && m_Mir2xMapData.ValidC(nX, nY)
-        && m_Mir2xMapData.Cell(nX, nY).CanThrough();
+        && m_mir2xMapData.Valid()
+        && m_mir2xMapData.ValidC(nX, nY)
+        && m_mir2xMapData.Cell(nX, nY).CanThrough();
 }
 
 bool ServerMap::CanMove(bool bCheckCO, bool bCheckLock, int nX, int nY) const
@@ -452,9 +452,9 @@ std::tuple<bool, int, int> ServerMap::GetValidGrid(bool bCheckCO, bool bCheckLoc
 uint64_t ServerMap::Activate()
 {
     if(auto nUID = ServerObject::Activate()){
-        delete m_LuaModule;
-        m_LuaModule = new ServerMap::ServerMapLuaModule();
-        RegisterLuaExport(m_LuaModule);
+        delete m_luaModule;
+        m_luaModule = new ServerMap::ServerMapLuaModule();
+        RegisterLuaExport(m_luaModule);
         return nUID;
     }
     return 0;
@@ -787,7 +787,7 @@ Monster *ServerMap::AddMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
         auto pMonster = new Monster
         {
             nMonsterID,
-            m_ServiceCore,
+            m_serviceCore,
             this,
             nDstX,
             nDstY,
@@ -820,7 +820,7 @@ NPChar *ServerMap::addNPChar(uint16_t npcID, int hintX, int hintY, int direction
         auto pNPC = new NPChar
         {
             npcID,
-            m_ServiceCore,
+            m_serviceCore,
             this,
             dstX,
             dstY,
@@ -852,7 +852,7 @@ Player *ServerMap::AddPlayer(uint32_t nDBID, int nHintX, int nHintY, int nDirect
         auto pPlayer = new Player
         {
             nDBID,
-            m_ServiceCore,
+            m_serviceCore,
             this,
             nDstX,
             nDstY,
@@ -877,7 +877,7 @@ bool ServerMap::RegisterLuaExport(ServerMap::ServerMapLuaModule *pModule)
 
     // load lua script to the module
     {
-        auto szScriptPath = g_ServerConfigureWindow->GetScriptPath();
+        auto szScriptPath = g_serverConfigureWindow->GetScriptPath();
         if(szScriptPath.empty()){
             szScriptPath = "script/map";
         }
@@ -1056,11 +1056,11 @@ bool ServerMap::RegisterLuaExport(ServerMap::ServerMapLuaModule *pModule)
 
 int ServerMap::CheckPathGrid(int nX, int nY) const
 {
-    if(!m_Mir2xMapData.ValidC(nX, nY)){
+    if(!m_mir2xMapData.ValidC(nX, nY)){
         return PathFind::INVALID;
     }
 
-    if(!m_Mir2xMapData.Cell(nX, nY).CanThrough()){
+    if(!m_mir2xMapData.Cell(nX, nY).CanThrough()){
         return PathFind::OBSTACLE;
     }
 

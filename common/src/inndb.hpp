@@ -43,23 +43,23 @@ template<typename KeyT, typename ResT> class innDB
         };
 
     private:
-        std::unordered_map<KeyT, ResourceEntry> m_Cache;
+        std::unordered_map<KeyT, ResourceEntry> m_cache;
 
     private:
         ABDList<KeyT> m_DLink;
 
     private:
-        size_t m_ResSum;
+        size_t m_resSum;
 
     private:
-        const size_t m_ResMax;
+        const size_t m_resMax;
 
     public:
         innDB(size_t nResMax)
-            : m_Cache()
+            : m_cache()
             , m_DLink()
-            , m_ResSum(0)
-            , m_ResMax(nResMax)
+            , m_resSum(0)
+            , m_resMax(nResMax)
         {
             static_assert(std::is_unsigned<KeyT>::value, "innDB only support unsigned intergal key");
         }
@@ -74,21 +74,21 @@ template<typename KeyT, typename ResT> class innDB
     public:
         void ClearCache()
         {
-            for(auto &rstEntry: m_Cache){
+            for(auto &rstEntry: m_cache){
                 freeResource(rstEntry.second.Resource);
             }
-            m_Cache.clear();
+            m_cache.clear();
             m_DLink.Clear();
         }
 
     protected:
         bool RetrieveResource(KeyT nKey, ResT *pResource)
         {
-            if(auto p = m_Cache.find(nKey); p != m_Cache.end()){
+            if(auto p = m_cache.find(nKey); p != m_cache.end()){
                 if(pResource){
                     *pResource = p->second.Resource;
                 }
-                if(m_ResMax > 0){
+                if(m_resMax > 0){
                     m_DLink.MoveHead(p->second.DLinkOff);
                 }
                 return true;
@@ -96,20 +96,20 @@ template<typename KeyT, typename ResT> class innDB
 
             auto [stResource, nWeight] = loadResource(nKey);
 
-            if(m_ResMax){
+            if(m_resMax){
                 m_DLink.PushHead(nKey);
             }
 
             ResourceEntry stEntry;
             stEntry.Resource = stResource;
             stEntry.Weight   = nWeight;
-            stEntry.DLinkOff = (m_ResMax > 0) ? m_DLink.HeadOff() : 0;
+            stEntry.DLinkOff = (m_resMax > 0) ? m_DLink.HeadOff() : 0;
 
-            m_Cache[nKey] = stEntry;
+            m_cache[nKey] = stEntry;
 
-            if(m_ResMax){
-                m_ResSum += nWeight;
-                if(m_ResSum > m_ResMax){
+            if(m_resMax){
+                m_resSum += nWeight;
+                if(m_resSum > m_resMax){
                     Resize();
                 }
             }
@@ -123,11 +123,11 @@ template<typename KeyT, typename ResT> class innDB
     private:
         void Resize()
         {
-            while((m_ResMax > 0) && (m_ResSum > m_ResMax / 2) && !m_DLink.Empty()){
-                if(auto p = m_Cache.find(m_DLink.Back()); p != m_Cache.end()){
+            while((m_resMax > 0) && (m_resSum > m_resMax / 2) && !m_DLink.Empty()){
+                if(auto p = m_cache.find(m_DLink.Back()); p != m_cache.end()){
                     freeResource(p->second.Resource);
-                    m_ResSum -= p->second.Weight;
-                    m_Cache.erase(p);
+                    m_resSum -= p->second.Weight;
+                    m_cache.erase(p);
                 }
                 m_DLink.PopBack();
             }

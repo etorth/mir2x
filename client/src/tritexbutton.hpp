@@ -76,8 +76,8 @@ class TritexButton: public ButtonBase
             int nH = 0;
             for(int nState = 0; nState < 3; ++nState){
                 if(m_texID[nState]){
-                    extern PNGTexDB *g_ProgUseDB;
-                    if(auto pTexture = g_ProgUseDB->Retrieve(m_texID[nState])){
+                    extern PNGTexDB *g_progUseDB;
+                    if(auto pTexture = g_progUseDB->Retrieve(m_texID[nState])){
                         int nCurrW, nCurrH;
                         if(!SDL_QueryTexture(pTexture, nullptr, nullptr, &nCurrW, &nCurrH)){
                             nW = (std::max<int>)(nCurrW, nW);

@@ -12,31 +12,31 @@ class ServerConfigureWindow {open
 } {
   Function {ServerConfigureWindow()} {open
   } {
-    Fl_Window m_Window {
+    Fl_Window m_window {
       label ConfigureWindow open selected
       xywh {630 211 625 360} type Double labelfont 4 modal visible
     } {
-      Fl_Value_Input m_MaxPlayerCount {
+      Fl_Value_Input m_maxPlayerCount {
         label {Maximal Player: }
         xywh {172 146 60 24} labelfont 4 minimum 1024 maximum 10000 value 5000 textfont 4
       }
-      Fl_Input m_MapFullName {
+      Fl_Input m_mapFullName {
         label {Map Path: }
         xywh {172 20 273 24} labelfont 4 textfont 4
       }
-      Fl_Input m_ScriptFullName {
+      Fl_Input m_scriptFullName {
         label {Script Path: }
         xywh {172 61 273 24} labelfont 4 textfont 4
       }
-      Fl_Value_Input m_EquipRate {
+      Fl_Value_Input m_equipRate {
         label {Equipment Rate: }
         xywh {172 221 60 24} labelfont 4 minimum 1024 maximum 10000 value 1.5 textfont 4
       }
-      Fl_Value_Input m_ExpRate {
+      Fl_Value_Input m_expRate {
         label {Exprience Rate: }
         xywh {172 183 60 24} labelfont 4 minimum 1024 maximum 10000 value 1.5 textfont 4
       }
-      Fl_Value_Input m_GoldRate {
+      Fl_Value_Input m_goldRate {
         label {Gold Rate: }
         xywh {172 259 60 24} labelfont 4 minimum 1024 maximum 10000 value 1.5 textfont 4
       }
@@ -69,7 +69,7 @@ class ServerConfigureWindow {open
                 std::string szPath = stFileChooser.filename();
                 std::replace(szPath.begin(), szPath.end(), '\\\\', '/');
 
-                m_MapFullName->value(szPath.c_str());
+                m_mapFullName->value(szPath.c_str());
             }
     }
 }}
@@ -78,18 +78,18 @@ class ServerConfigureWindow {open
         code1 {\#include <FL/Fl_Native_File_Chooser.H>}
         code2 {\#include <FL/fl_ask.H>}
       }
-      Fl_Value_Input m_MaxMonsterCount {
+      Fl_Value_Input m_maxMonsterCount {
         label {Maximal Monster: }
         xywh {172 108 60 24} labelfont 4 minimum 1024 maximum 10000 value 5000 textfont 4
       }
       Fl_Button {} {
         label OK
         callback {{
-	m_Window->hide();
+	m_window->hide();
 }}
         xywh {450 315 70 25}
       }
-      Fl_Value_Input m_Port {
+      Fl_Value_Input m_port {
         label {Listen Port: }
         xywh {171 298 60 24} labelfont 4 minimum 1024 maximum 10000 value 5000 textfont 4
       }
@@ -118,7 +118,7 @@ class ServerConfigureWindow {open
                 std::string szPath = stFileChooser.filename();
                 std::replace(szPath.begin(), szPath.end(), '\\\\', '/');
 
-                m_ScriptFullName->value(szPath.c_str());
+                m_scriptFullName->value(szPath.c_str());
             }
     }
 }}
@@ -130,20 +130,20 @@ class ServerConfigureWindow {open
     }
     code {// set up the default map path
 {
-    m_MapFullName->value("Map/MapBinDB.ZSDB");
-    m_ScriptFullName->value("script/map");
+    m_mapFullName->value("Map/MapBinDB.ZSDB");
+    m_scriptFullName->value("script/map");
 }} {}
   }
   Function {ShowAll()} {} {
     code {{
-    m_Window->show();
+    m_window->show();
 }} {}
   }
   Function {GetMapPath()} {return_type {std::string}
   } {
     code {{
 	// printf("%d\\n", std::lround(m_VIPort1->value()));
-	return m_MapFullName->value() ? m_MapFullName->value() : "";
+	return m_mapFullName->value() ? m_mapFullName->value() : "";
 }} {}
   }
   Function {GetScriptPath()} {return_type {std::string}
@@ -155,37 +155,37 @@ class ServerConfigureWindow {open
   Function {MaxPlayerCount()} {return_type int
   } {
     code {{
-    return std::lround(m_MaxPlayerCount->value());
+    return std::lround(m_maxPlayerCount->value());
 }} {}
   }
   Function {ExpRate()} {return_type double
   } {
     code {{
-    return (std::max<double>)(0.00, (double)(m_ExpRate->value()));
+    return (std::max<double>)(0.00, (double)(m_expRate->value()));
 }} {}
   }
   Function {EquipRate()} {return_type double
   } {
     code {{
-    return (std::max<double>)(0.00, (double)(m_EquipRate->value()));
+    return (std::max<double>)(0.00, (double)(m_equipRate->value()));
 }} {}
   }
   Function {GoldRate()} {return_type double
   } {
     code {{
-    return (std::max<double>)(0.00, (double)(m_GoldRate->value()));
+    return (std::max<double>)(0.00, (double)(m_goldRate->value()));
 }} {}
   }
   Function {MaxMonsterCount()} {return_type int
   } {
     code {{
-    return std::lround(m_MaxMonsterCount->value());
+    return std::lround(m_maxMonsterCount->value());
 }} {}
   }
   Function {Port()} {return_type int
   } {
     code {{
-    return std::lround(m_Port->value());
+    return std::lround(m_port->value());
 }} {}
   }
 }

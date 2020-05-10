@@ -197,13 +197,13 @@ class Mir2xMapData final
         uint16_t m_H;
 
     private:
-        std::vector<BLOCK> m_Data;
+        std::vector<BLOCK> m_data;
 
     public:
         Mir2xMapData()
             : m_W(0)
             , m_H(0)
-            , m_Data()
+            , m_data()
         {}
 
         Mir2xMapData(const char *pName)
@@ -217,12 +217,12 @@ class Mir2xMapData final
     public:
         const uint8_t *Data() const
         {
-            return (uint8_t *)(&m_Data[0]);
+            return (uint8_t *)(&m_data[0]);
         }
 
         size_t DataLen() const
         {
-            return m_Data.size() * sizeof(m_Data[0]);
+            return m_data.size() * sizeof(m_data[0]);
         }
 
     public:
@@ -235,7 +235,7 @@ class Mir2xMapData final
     public:
         auto &Block(int nX, int nY)
         {
-            return m_Data[nX / 2 + (nY / 2) * (m_W / 2)];
+            return m_data[nX / 2 + (nY / 2) * (m_W / 2)];
         }
 
         auto &Tile(int nX, int nY)
@@ -251,7 +251,7 @@ class Mir2xMapData final
     public:
         const auto &Block(int nX, int nY) const
         {
-            return m_Data[nX / 2 + (nY / 2) * (m_W / 2)];
+            return m_data[nX / 2 + (nY / 2) * (m_W / 2)];
         }
 
         const auto &Tile(int nX, int nY) const
@@ -274,7 +274,7 @@ class Mir2xMapData final
     public:
         bool Valid() const
         {
-            return !m_Data.empty();
+            return !m_data.empty();
         }
 
         bool ValidC(int nX, int nY) const

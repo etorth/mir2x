@@ -90,32 +90,32 @@ class InitView final
         };
 
     private:
-        static constexpr int m_ButtonX = 345;
-        static constexpr int m_ButtonY = 117;
-        static constexpr int m_ButtonW =  32;
-        static constexpr int m_ButtonH =  30;
+        static constexpr int m_buttonX = 345;
+        static constexpr int m_buttonY = 117;
+        static constexpr int m_buttonW =  32;
+        static constexpr int m_buttonH =  30;
 
     private:
-        std::atomic<int> m_ProcState;
+        std::atomic<int> m_procState;
 
     private:
         // button status: 0 : normal
         //                1 : over
         //                2 : pressed
-        int m_ButtonState;
+        int m_buttonState;
 
     private:
-        uint8_t m_FontSize;
+        uint8_t m_fontSize;
 
     private:
-        std::vector<LoadProc> m_LoadProcV;
+        std::vector<LoadProc> m_loadProcV;
 
     private:
-        std::mutex                m_Lock;
-        std::vector<MessageEntry> m_MessageList;
+        std::mutex                m_lock;
+        std::vector<MessageEntry> m_messageList;
 
     private:
-        SDL_Texture *m_TextureV[2];
+        SDL_Texture *m_textureV[2];
 
     public:
         InitView(uint8_t);
@@ -138,7 +138,7 @@ class InitView final
         template<typename T> bool LoadDB(size_t nCurrIndex, const XMLConf *pXMLConf, T *pDB, const char *szNodePath)
         {
             if(true
-                    && nCurrIndex < m_LoadProcV.size()
+                    && nCurrIndex < m_loadProcV.size()
                     && pXMLConf
                     && pDB
                     && szNodePath){
@@ -146,8 +146,8 @@ class InitView final
                 auto stArray = [this, nCurrIndex]() -> std::array<size_t, 2>
                 {
                     std::array<size_t, 2> stArray {{0, 0}};
-                    for(size_t nIndex = 0; nIndex < m_LoadProcV.size(); ++nIndex){
-                        auto nWeight = m_LoadProcV[nIndex].Weight ? m_LoadProcV[nIndex].Weight : 1;
+                    for(size_t nIndex = 0; nIndex < m_loadProcV.size(); ++nIndex){
+                        auto nWeight = m_loadProcV[nIndex].Weight ? m_loadProcV[nIndex].Weight : 1;
                         stArray[0] += (nWeight);
                         stArray[1] += (nIndex <= nCurrIndex ? nWeight : 0);
                     }

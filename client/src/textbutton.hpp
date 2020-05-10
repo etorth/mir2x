@@ -31,16 +31,16 @@ class TextButton: public ButtonBase
         //          2 : pressed
         //     [2]  0 : font
         //          1 : background
-        uint32_t m_Color[3][2];
+        uint32_t m_color[3][2];
 
     private:
-        uint32_t m_FrameLineColor[3];
+        uint32_t m_frameLineColor[3];
 
     private:
-        int m_FrameLineWidth;
+        int m_frameLineWidth;
 
     private:
-        LabelBoard m_Label;
+        LabelBoard m_label;
 
     public:
         TextButton(
@@ -108,20 +108,20 @@ class TextButton: public ButtonBase
                   pwidget,
                   bFreewidget
               }
-            , m_Color
+            , m_color
               {
                   {rstColor[0][0], rstColor[1][0]},
                   {rstColor[0][1], rstColor[1][1]},
                   {rstColor[0][2], rstColor[1][2]},
               }
-            , m_FrameLineColor
+            , m_frameLineColor
               {
                   rstFrameLineColor[0],
                   rstFrameLineColor[1],
                   rstFrameLineColor[2],
               }
-            , m_FrameLineWidth(nFrameLineWidth)
-            , m_Label
+            , m_frameLineWidth(nFrameLineWidth)
+            , m_label
               {
                   0,
                   0,
@@ -129,15 +129,15 @@ class TextButton: public ButtonBase
                   nFont,
                   nSize,
                   nStyle,
-                  m_Color[0][0],
+                  m_color[0][0],
                   nullptr,
                   false,
               }
         // end of initialization list
         // put all validation in the function body
         {
-            m_w = (std::max<int>)(m_w, m_Label.w());
-            m_h = (std::max<int>)(m_h, m_Label.h());
+            m_w = (std::max<int>)(m_w, m_label.w());
+            m_h = (std::max<int>)(m_h, m_label.h());
         }
 
     public:
@@ -154,6 +154,6 @@ class TextButton: public ButtonBase
     public:
         const LabelBoard &GetlabelBoard()
         {
-            return m_Label;
+            return m_label;
         }
 };

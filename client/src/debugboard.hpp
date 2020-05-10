@@ -24,7 +24,7 @@
 class debugBoard: public Widget
 {
     private:
-        int m_LineW;
+        int m_lineW;
 
     private:
         uint8_t m_font;
@@ -35,7 +35,7 @@ class debugBoard: public Widget
         uint32_t m_fontColor;
 
     private:
-        std::deque<std::shared_ptr<XMLTypeset>> m_BoardList;
+        std::deque<std::shared_ptr<XMLTypeset>> m_boardList;
 
     public:
         debugBoard(
@@ -49,7 +49,7 @@ class debugBoard: public Widget
                 Widget          *pwidget           = nullptr,
                 bool             bAutoDelete       = false)
             : Widget(nX, nY, 0, 0, pwidget, bAutoDelete)
-            , m_LineW(nW)
+            , m_lineW(nW)
             , m_font(nDefaultFont)
             , m_fontSize(nDefaultFontSize)
             , m_fontStyle(nDefaultFontStyle)
@@ -83,7 +83,7 @@ class debugBoard: public Widget
     public:
         void Clear()
         {
-            m_BoardList.clear();
+            m_boardList.clear();
             m_w = 0;
             m_h = 0;
         }

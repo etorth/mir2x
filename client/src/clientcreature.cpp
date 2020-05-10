@@ -32,7 +32,7 @@
 #include "dbcomrecord.hpp"
 #include "clientcreature.hpp"
 
-extern Log *g_Log;
+extern Log *g_log;
 
 bool ClientCreature::advanceMotionFrame(int addFrame)
 {

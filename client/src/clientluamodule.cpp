@@ -44,11 +44,11 @@ void ClientLuaModule::addLog(int nLogType, const char *szLogInfo)
     // any time if you call addLog() in LUA
     // then this will get printed in the server GUI console
 
-    extern Log *g_Log;
+    extern Log *g_log;
     switch(nLogType){
-        case 0  : g_Log->addLog(LOGTYPE_INFO   , "%s", szLogInfo); return;
-        case 1  : g_Log->addLog(LOGTYPE_WARNING, "%s", szLogInfo); return;
-        case 2  : g_Log->addLog(LOGTYPE_FATAL  , "%s", szLogInfo); return;
-        default : g_Log->addLog(LOGTYPE_DEBUG  , "%s", szLogInfo); return;
+        case 0  : g_log->addLog(LOGTYPE_INFO   , "%s", szLogInfo); return;
+        case 1  : g_log->addLog(LOGTYPE_WARNING, "%s", szLogInfo); return;
+        case 2  : g_log->addLog(LOGTYPE_FATAL  , "%s", szLogInfo); return;
+        default : g_log->addLog(LOGTYPE_DEBUG  , "%s", szLogInfo); return;
     }
 }

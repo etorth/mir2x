@@ -49,7 +49,7 @@ class ButtonBase: public Widget
         bool m_onClickDone;
 
     protected:
-        int m_Offset[3][2];
+        int m_offset[3][2];
 
     protected:
         std::function<void()> m_onOver;
@@ -76,7 +76,7 @@ class ButtonBase: public Widget
             : Widget(nX, nY, nW, nH, pwidget, bFreewidget)
             , m_state(BUTTON_OFF)
             , m_onClickDone(bOnClickDone)
-            , m_Offset
+            , m_offset
               {
                   {0            , 0           },
                   {nOffXOnOver  , nOffYOnOver },
@@ -98,12 +98,12 @@ class ButtonBase: public Widget
     protected:
         int OffX() const
         {
-            return m_Offset[State()][0];
+            return m_offset[State()][0];
         }
 
         int OffY() const
         {
-            return m_Offset[State()][1];
+            return m_offset[State()][1];
         }
 
         int State() const

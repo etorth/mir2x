@@ -62,20 +62,20 @@ struct PackMark
 class ChannPackQ
 {
     private:
-        std::vector<uint8_t> m_CompBuf;
-        std::vector<uint8_t> m_PackBuf;
+        std::vector<uint8_t> m_compBuf;
+        std::vector<uint8_t> m_packBuf;
 
     private:
-        std::deque<PackMark> m_PackMarkQ;
+        std::deque<PackMark> m_packMarkQ;
 
     public:
         ChannPackQ()
-            : m_CompBuf()
-            , m_PackBuf()
-            , m_PackMarkQ()
+            : m_compBuf()
+            , m_packBuf()
+            , m_packMarkQ()
         {
-            m_CompBuf.reserve(1024 * 1024);
-            m_PackBuf.reserve(1024 * 1024 * 1024);
+            m_compBuf.reserve(1024 * 1024);
+            m_packBuf.reserve(1024 * 1024 * 1024);
         }
 
     public:
@@ -84,28 +84,28 @@ class ChannPackQ
     public:
         bool Empty() const
         {
-            return m_PackMarkQ.empty();
+            return m_packMarkQ.empty();
         }
 
     public:
         void Clear()
         {
-            m_CompBuf.clear();
-            m_PackBuf.clear();
-            m_PackMarkQ.clear();
+            m_compBuf.clear();
+            m_packBuf.clear();
+            m_packMarkQ.clear();
         }
 
     public:
         ChannPack GetChannPack()
         {
-            auto &rstHead = m_PackMarkQ.front();
-            return ChannPack(&(m_PackBuf[rstHead.Loc]), rstHead.Length, rstHead.DoneCB);
+            auto &rstHead = m_packMarkQ.front();
+            return ChannPack(&(m_packBuf[rstHead.Loc]), rstHead.Length, rstHead.DoneCB);
         }
 
         void RemoveChannPack()
         {
             if(!Empty()){
-                m_PackMarkQ.pop_front();
+                m_packMarkQ.pop_front();
             }
         }
 
@@ -121,12 +121,12 @@ class ChannPackQ
     private:
         uint8_t *GetCompBuf(size_t nBufLen)
         {
-            m_CompBuf.resize(nBufLen);
-            return &(m_CompBuf[0]);
+            m_compBuf.resize(nBufLen);
+            return &(m_compBuf[0]);
         }
 
         size_t GetBufOff(const uint8_t *pDst) const
         {
-            return pDst - &(m_PackBuf[0]);
+            return pDst - &(m_packBuf[0]);
         }
 };

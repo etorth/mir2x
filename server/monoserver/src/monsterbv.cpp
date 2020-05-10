@@ -157,7 +157,7 @@ bvnode_ptr Monster::BvNode_RandomTurn()
                 if(OneStepReach(nDirection, 1, &nX, &nY) == 1){
                     // current direction is possible for next move
                     // report the turn and do motion (by chance) in next update
-                    m_Direction = nDirection;
+                    m_direction = nDirection;
                     DispatchAction(ActionStand(X(), Y(), Direction()));
 
                     // we won't do ReportStand() for monster
@@ -250,7 +250,7 @@ bvnode_ptr Monster::BvNode_MoveOneStep(bvarg_ref stDstLocation)
     return bvtree::lambda_stage([this, stDstLocation](bvarg_ref nStage) mutable
     {
         auto [nMapID, nX, nY] = stDstLocation.as<tuple<uint32_t, int, int>>();
-        if(!m_Map->In(nMapID, nX, nY)){
+        if(!m_map->In(nMapID, nX, nY)){
             nStage.assign<bvres_t>(BV_ABORT);
             return;
         }

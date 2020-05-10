@@ -29,8 +29,8 @@
 #include "dbcomrecord.hpp"
 
 extern DBPodN *g_DBPodN;
-extern NetDriver *g_NetDriver;
-extern MonoServer *g_MonoServer;
+extern NetDriver *g_netDriver;
+extern MonoServer *g_monoServer;
 
 Player::Player(uint32_t nDBID,
         ServiceCore    *pServiceCore,
@@ -40,23 +40,23 @@ Player::Player(uint32_t nDBID,
         int             nDirection)
     : CharObject(pServiceCore, pServerMap, uidf::buildPlayerUID(nDBID), nMapX, nMapY, nDirection)
     , m_DBID(nDBID)
-    , m_JobID(0)        // will provide after bind
-    , m_ChannID(0)    // provide by bind
-    , m_Exp(0)
-    , m_Level(0)        // after bind
-    , m_Gold(0)
-    , m_Inventory()
+    , m_jobID(0)        // will provide after bind
+    , m_channID(0)    // provide by bind
+    , m_exp(0)
+    , m_level(0)        // after bind
+    , m_gold(0)
+    , m_inventory()
 {
     m_HP    = 10;
     m_HPMax = 10;
     m_MP    = 10;
     m_MPMax = 10;
 
-    m_StateHook.Install("RecoverHealth", [this, nLastTime = (uint32_t)(0)]() mutable -> bool
+    m_stateHook.Install("RecoverHealth", [this, nLastTime = (uint32_t)(0)]() mutable -> bool
     {
-        if(g_MonoServer->getCurrTick() >= (nLastTime + 1000)){
+        if(g_monoServer->getCurrTick() >= (nLastTime + 1000)){
             RecoverHealth();
-            nLastTime = g_MonoServer->getCurrTick();
+            nLastTime = g_monoServer->getCurrTick();
         }
         return false;
     });
@@ -197,7 +197,7 @@ void Player::OperateAM(const MessagePack &rstMPK)
             }
         default:
             {
-                g_MonoServer->addLog(LOGTYPE_WARNING, "Unsupported message: %s", rstMPK.Name());
+                g_monoServer->addLog(LOGTYPE_WARNING, "Unsupported message: %s", rstMPK.Name());
                 break;
             }
     }
@@ -282,7 +282,7 @@ void Player::ReportAction(uint64_t nUID, const ActionNode &rstAction)
         stSMA.AimUID      = rstAction.AimUID;
         stSMA.ActionParam = rstAction.ActionParam;
 
-        g_NetDriver->Post(ChannID(), SM_ACTION, stSMA);
+        g_netDriver->Post(ChannID(), SM_ACTION, stSMA);
     }
 }
 
@@ -310,7 +310,7 @@ void Player::ReportHealth()
 
 bool Player::InRange(int nRangeType, int nX, int nY)
 {
-    if(!m_Map->ValidC(nX, nY)){
+    if(!m_map->ValidC(nX, nY)){
         return false;
     }
 
@@ -381,9 +381,9 @@ bool Player::GoGhost()
 
                             if(true
                                     && ActorPodValid()
-                                    && m_Map
-                                    && m_Map->ActorPodValid()){
-                                m_actorPod->forward(m_Map->UID(), {MPK_DEADFADEOUT, stAMDFO});
+                                    && m_map
+                                    && m_map->ActorPodValid()){
+                                m_actorPod->forward(m_map->UID(), {MPK_DEADFADEOUT, stAMDFO});
                             }
 
                             // 2. deactivate the actor here
@@ -454,8 +454,8 @@ void Player::DispatchOffline()
 {
     if(true
             && ActorPodValid()
-            && m_Map
-            && m_Map->ActorPodValid()){
+            && m_map
+            && m_map->ActorPodValid()){
 
         AMOffline stAMO;
         std::memset(&stAMO, 0, sizeof(stAMO));
@@ -465,11 +465,11 @@ void Player::DispatchOffline()
         stAMO.X     = X();
         stAMO.Y     = Y();
 
-        m_actorPod->forward(m_Map->UID(), {MPK_OFFLINE, stAMO});
+        m_actorPod->forward(m_map->UID(), {MPK_OFFLINE, stAMO});
         return;
     }
 
-    g_MonoServer->addLog(LOGTYPE_WARNING, "Can't dispatch offline event");
+    g_monoServer->addLog(LOGTYPE_WARNING, "Can't dispatch offline event");
 }
 
 void Player::ReportOffline(uint64_t nUID, uint32_t nMapID)
@@ -483,7 +483,7 @@ void Player::ReportOffline(uint64_t nUID, uint32_t nMapID)
         stSMO.UID   = nUID;
         stSMO.MapID = nMapID;
 
-        g_NetDriver->Post(ChannID(), SM_OFFLINE, stSMO);
+        g_netDriver->Post(ChannID(), SM_OFFLINE, stSMO);
     }
 }
 
@@ -499,7 +499,7 @@ bool Player::Offline()
 bool Player::postNetMessage(uint8_t nHC, const uint8_t *pData, size_t nDataLen)
 {
     if(ChannID()){
-        return g_NetDriver->Post(ChannID(), nHC, pData, nDataLen);
+        return g_netDriver->Post(ChannID(), nHC, pData, nDataLen);
     }
     return false;
 }
@@ -511,8 +511,8 @@ void Player::OnCMActionStand(CMAction stCMA)
     int nDirection = stCMA.Direction;
 
     if(true
-            && m_Map
-            && m_Map->ValidC(nX, nY)){
+            && m_map
+            && m_map->ValidC(nX, nY)){
 
         // server get report stand
         // means client is trying to re-sync
@@ -538,7 +538,7 @@ void Player::OnCMActionStand(CMAction stCMA)
                     if(true
                             && nDirection > DIR_NONE
                             && nDirection < DIR_MAX){
-                        m_Direction = nDirection;
+                        m_direction = nDirection;
                     }
 
                     ReportStand();
@@ -671,7 +671,7 @@ void Player::OnCMActionSpell(CMAction stCMA)
 
                 Delay(1400, [this, stSMFM]()
                 {
-                    g_NetDriver->Post(ChannID(), SM_FIREMAGIC, stSMFM);
+                    g_netDriver->Post(ChannID(), SM_FIREMAGIC, stSMFM);
                 });
                 break;
             }
@@ -686,7 +686,7 @@ void Player::OnCMActionSpell(CMAction stCMA)
 
                 Delay(800, [this, stSMFM]()
                 {
-                    g_NetDriver->Post(ChannID(), SM_FIREMAGIC, stSMFM);
+                    g_netDriver->Post(ChannID(), SM_FIREMAGIC, stSMFM);
                 });
                 break;
             }
@@ -741,7 +741,7 @@ void Player::OnCMActionPickUp(CMAction stCMA)
                 stAMPU.ID   = stCMA.ActionParam;
                 stAMPU.DBID = 0;
 
-                m_actorPod->forward(m_Map->UID(), {MPK_PICKUP, stAMPU});
+                m_actorPod->forward(m_map->UID(), {MPK_PICKUP, stAMPU});
                 return;
             }
         case 1:
@@ -803,16 +803,16 @@ void Player::RecoverHealth()
 void Player::GainExp(int nExp)
 {
     if(nExp){
-        if((int)(m_Exp) + nExp < 0){
-            m_Exp = 0;
+        if((int)(m_exp) + nExp < 0){
+            m_exp = 0;
         }else{
-            m_Exp += (uint32_t)(nExp);
+            m_exp += (uint32_t)(nExp);
         }
 
         auto nLevelExp = GetLevelExp();
-        if(m_Exp >= nLevelExp){
-            m_Exp    = m_Exp - nLevelExp;
-            m_Level += 1;
+        if(m_exp >= nLevelExp){
+            m_exp    = m_exp - nLevelExp;
+            m_level += 1;
         }
     }
 }
@@ -835,7 +835,7 @@ void Player::PullRectCO(int nW, int nH)
             && nW > 0
             && nH > 0
             && ActorPodValid()
-            && m_Map->ActorPodValid()){
+            && m_map->ActorPodValid()){
 
         AMPullCOInfo stAMPCOI;
         std::memset(&stAMPCOI, 0, sizeof(stAMPCOI));
@@ -845,8 +845,8 @@ void Player::PullRectCO(int nW, int nH)
         stAMPCOI.W     = nW;
         stAMPCOI.H     = nH;
         stAMPCOI.UID   = UID();
-        stAMPCOI.MapID = m_Map->ID();
-        m_actorPod->forward(m_Map->UID(), {MPK_PULLCOINFO, stAMPCOI});
+        stAMPCOI.MapID = m_map->ID();
+        m_actorPod->forward(m_map->UID(), {MPK_PULLCOINFO, stAMPCOI});
     }
 }
 
@@ -879,7 +879,7 @@ bool Player::DBUpdate(const char *szTableName, const char *szFieldList, ...)
     }
 
     if(!szExceptionStr.empty()){
-        g_MonoServer->addLog(LOGTYPE_WARNING, "%s", szExceptionStr.c_str());
+        g_monoServer->addLog(LOGTYPE_WARNING, "%s", szExceptionStr.c_str());
         return false;
     }
 
@@ -895,7 +895,7 @@ bool Player::DBAccess(const char *szTableName, const char *szFieldName, std::fun
 
         auto pDBHDR = g_DBPodN->CreateDBHDR();
         if(!pDBHDR->QueryResult("select %s from %s where fld_dbid = %" PRIu32, szFieldName, szTableName, DBID())){
-            g_MonoServer->addLog(LOGTYPE_INFO, "No dbid created for this player: DBID = %" PRIu32, DBID());
+            g_monoServer->addLog(LOGTYPE_INFO, "No dbid created for this player: DBID = %" PRIu32, DBID());
             return false;
         }
 

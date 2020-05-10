@@ -21,17 +21,17 @@
 #include "sdldevice.hpp"
 #include "notifyboard.hpp"
 
-extern Log *g_Log;
+extern Log *g_log;
 
 void NotifyBoard::Pop()
 {
     // remove the first log line
-    if(!m_LogQueue.empty()){
-        auto stHead = m_LogQueue.front();
+    if(!m_logQueue.empty()){
+        auto stHead = m_logQueue.front();
         if(stHead.LineCount > 0){
             m_logBoard.RemoveLine(0, stHead.LineCount);
         }
-        m_LogQueue.pop();
+        m_logQueue.pop();
     }
 }
 
@@ -39,10 +39,10 @@ void NotifyBoard::Update(double)
 {
     int nLineCount = 0;
     auto nCurrTick = (uint32_t)(SDL_GetTicks());
-    while(!m_LogQueue.empty()){
-        if(m_LogQueue.front().ExpireTime >= nCurrTick){
-            nLineCount += (int)(m_LogQueue.front().LineCount);
-            m_LogQueue.pop();
+    while(!m_logQueue.empty()){
+        if(m_logQueue.front().ExpireTime >= nCurrTick){
+            nLineCount += (int)(m_logQueue.front().LineCount);
+            m_logQueue.pop();
         }
     }
 
@@ -67,7 +67,7 @@ void NotifyBoard::AddXML(const char *szXML, const std::map<std::string, std::fun
     condcheck(nLineCount1 > nLineCount0);
 
     if(bRes){
-        m_LogQueue.push({(uint32_t)(nLineCount1 - nLineCount0), (uint32_t)(SDL_GetTicks()) + 5000});
+        m_logQueue.push({(uint32_t)(nLineCount1 - nLineCount0), (uint32_t)(SDL_GetTicks()) + 5000});
     }
 }
 
@@ -113,7 +113,7 @@ void NotifyBoard::addLog(std::array<std::string, 4> stLogType, const char *szLog
             }
         default:
             {
-                g_Log->addLog(LOGTYPE_WARNING, "Invalid LogType %d: %s", nLogType, szLog.c_str());
+                g_log->addLog(LOGTYPE_WARNING, "Invalid LogType %d: %s", nLogType, szLog.c_str());
                 AddXML(str_printf("<ROOT><OBJECT TYPE=\"PLAINTEXT\" COLOR=\"RED\">Invalid LogType %d: %s</OBJECT></ROOT>", nLogType, szLog.c_str()).c_str(), {});
                 return;
             }

@@ -22,10 +22,10 @@
 MemoryPN::MemoryPN()
     : MemoryChunkPN<64, 256, 4>()
 {
-    extern MemoryPN *g_MemoryPN;
-    if(g_MemoryPN){
-        extern MonoServer *g_MonoServer;
-        g_MonoServer->addLog(LOGTYPE_WARNING, "one global memory pool instance please");
-        g_MonoServer->Restart();
+    extern MemoryPN *g_memoryPN;
+    if(g_memoryPN){
+        extern MonoServer *g_monoServer;
+        g_monoServer->addLog(LOGTYPE_WARNING, "one global memory pool instance please");
+        g_monoServer->Restart();
     }
 }

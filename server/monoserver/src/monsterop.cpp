@@ -24,7 +24,7 @@
 #include "mathf.hpp"
 #include "monoserver.hpp"
 
-extern MonoServer *g_MonoServer;
+extern MonoServer *g_monoServer;
 void Monster::On_MPK_METRONOME(const MessagePack &)
 {
     Update();

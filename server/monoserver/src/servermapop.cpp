@@ -29,13 +29,13 @@
 #include "dbcomrecord.hpp"
 #include "serverargparser.hpp"
 
-extern MonoServer *g_MonoServer;
-extern ServerArgParser *g_ServerArgParser;
+extern MonoServer *g_monoServer;
+extern ServerArgParser *g_serverArgParser;
 
 void ServerMap::On_MPK_METRONOME(const MessagePack &)
 {
-    if(m_LuaModule && !g_ServerArgParser->DisableMapScript){
-        m_LuaModule->LoopOne();
+    if(m_luaModule && !g_serverArgParser->DisableMapScript){
+        m_luaModule->LoopOne();
     }
 }
 
@@ -219,17 +219,17 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK)
 
     auto fnPrintMoveError = [&stAMTM]()
     {
-        g_MonoServer->addLog(LOGTYPE_WARNING, "TRYMOVE[%p]::UID           = %" PRIu32 , &stAMTM, stAMTM.UID);
-        g_MonoServer->addLog(LOGTYPE_WARNING, "TRYMOVE[%p]::MapID         = %" PRIu32 , &stAMTM, stAMTM.MapID);
-        g_MonoServer->addLog(LOGTYPE_WARNING, "TRYMOVE[%p]::X             = %d"       , &stAMTM, stAMTM.X);
-        g_MonoServer->addLog(LOGTYPE_WARNING, "TRYMOVE[%p]::Y             = %d"       , &stAMTM, stAMTM.Y);
-        g_MonoServer->addLog(LOGTYPE_WARNING, "TRYMOVE[%p]::EndX          = %d"       , &stAMTM, stAMTM.EndX);
-        g_MonoServer->addLog(LOGTYPE_WARNING, "TRYMOVE[%p]::EndY          = %d"       , &stAMTM, stAMTM.EndY);
-        g_MonoServer->addLog(LOGTYPE_WARNING, "TRYMOVE[%p]::AllowHalfMove = %s"       , &stAMTM, stAMTM.AllowHalfMove ? "true" : "false");
+        g_monoServer->addLog(LOGTYPE_WARNING, "TRYMOVE[%p]::UID           = %" PRIu32 , &stAMTM, stAMTM.UID);
+        g_monoServer->addLog(LOGTYPE_WARNING, "TRYMOVE[%p]::MapID         = %" PRIu32 , &stAMTM, stAMTM.MapID);
+        g_monoServer->addLog(LOGTYPE_WARNING, "TRYMOVE[%p]::X             = %d"       , &stAMTM, stAMTM.X);
+        g_monoServer->addLog(LOGTYPE_WARNING, "TRYMOVE[%p]::Y             = %d"       , &stAMTM, stAMTM.Y);
+        g_monoServer->addLog(LOGTYPE_WARNING, "TRYMOVE[%p]::EndX          = %d"       , &stAMTM, stAMTM.EndX);
+        g_monoServer->addLog(LOGTYPE_WARNING, "TRYMOVE[%p]::EndY          = %d"       , &stAMTM, stAMTM.EndY);
+        g_monoServer->addLog(LOGTYPE_WARNING, "TRYMOVE[%p]::AllowHalfMove = %s"       , &stAMTM, stAMTM.AllowHalfMove ? "true" : "false");
     };
 
     if(!In(stAMTM.MapID, stAMTM.X, stAMTM.Y)){
-        g_MonoServer->addLog(LOGTYPE_WARNING, "Invalid location: (X, Y)");
+        g_monoServer->addLog(LOGTYPE_WARNING, "Invalid location: (X, Y)");
         fnPrintMoveError();
         m_actorPod->forward(rstMPK.From(), MPK_ERROR, rstMPK.ID());
         return;
@@ -239,7 +239,7 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK)
     // for client every motion request need to be prepared to avoid this
 
     if(!In(stAMTM.MapID, stAMTM.EndX, stAMTM.EndY)){
-        g_MonoServer->addLog(LOGTYPE_WARNING, "Invalid location: (EndX, EndY)");
+        g_monoServer->addLog(LOGTYPE_WARNING, "Invalid location: (EndX, EndY)");
         fnPrintMoveError();
         m_actorPod->forward(rstMPK.From(), MPK_ERROR, rstMPK.ID());
         return;
@@ -254,7 +254,7 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK)
     }
 
     if(!bFindCO){
-        g_MonoServer->addLog(LOGTYPE_WARNING, "Can't find CO at current location: (UID, X, Y)");
+        g_monoServer->addLog(LOGTYPE_WARNING, "Can't find CO at current location: (UID, X, Y)");
         fnPrintMoveError();
         m_actorPod->forward(rstMPK.From(), MPK_ERROR, rstMPK.ID());
         return;
@@ -282,7 +282,7 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK)
             }
         default:
             {
-                g_MonoServer->addLog(LOGTYPE_WARNING, "Invalid move request: (X, Y) -> (EndX, EndY)");
+                g_monoServer->addLog(LOGTYPE_WARNING, "Invalid move request: (X, Y) -> (EndX, EndY)");
                 fnPrintMoveError();
                 m_actorPod->forward(rstMPK.From(), MPK_ERROR, rstMPK.ID());
                 return;
@@ -423,7 +423,7 @@ void ServerMap::On_MPK_TRYLEAVE(const MessagePack &rstMPK)
     // otherwise try leave failed
     // we reply MPK_ERROR but this is already something wrong, map never prevert leave on purpose
     m_actorPod->forward(rstMPK.From(), MPK_ERROR, rstMPK.ID());
-    g_MonoServer->addLog(LOGTYPE_WARNING, "Leave request failed: UID = %" PRIu64 ", X = %d, Y = %d", stAMTL.UID, stAMTL.X, stAMTL.Y);
+    g_monoServer->addLog(LOGTYPE_WARNING, "Leave request failed: UID = %" PRIu64 ", X = %d, Y = %d", stAMTL.UID, stAMTL.X, stAMTL.Y);
 }
 
 void ServerMap::On_MPK_PULLCOINFO(const MessagePack &rstMPK)
@@ -461,7 +461,7 @@ void ServerMap::On_MPK_TRYMAPSWITCH(const MessagePack &rstMPK)
     int nY = stAMTMS.EndY;
 
     if(!CanMove(false, false, nX, nY)){
-        g_MonoServer->addLog(LOGTYPE_WARNING, "Requested map switch location is invalid: MapName = %s, X = %d, Y = %d", DBCOM_MAPRECORD(ID()).Name, nX, nY);
+        g_monoServer->addLog(LOGTYPE_WARNING, "Requested map switch location is invalid: MapName = %s, X = %d, Y = %d", DBCOM_MAPRECORD(ID()).Name, nX, nY);
         m_actorPod->forward(rstMPK.From(), MPK_ERROR, rstMPK.ID());
         return;
     }
@@ -530,7 +530,7 @@ void ServerMap::On_MPK_PATHFIND(const MessagePack &rstMPK)
         // we get a dangerous parameter from actormessage
         // correct here and put an warning in the log system
         stAMPF.MaxStep = 1;
-        g_MonoServer->addLog(LOGTYPE_WARNING, "Invalid MaxStep: %d, should be (1, 2, 3)", stAMPF.MaxStep);
+        g_monoServer->addLog(LOGTYPE_WARNING, "Invalid MaxStep: %d, should be (1, 2, 3)", stAMPF.MaxStep);
     }
 
     ServerPathFinder stPathFinder(this, stAMPF.MaxStep, stAMPF.CheckCO);
@@ -572,7 +572,7 @@ void ServerMap::On_MPK_PATHFIND(const MessagePack &rstMPK)
             case 0:
             default:
                 {
-                    g_MonoServer->addLog(LOGTYPE_WARNING, "Invalid path node found");
+                    g_monoServer->addLog(LOGTYPE_WARNING, "Invalid path node found");
                     break;
                 }
         }
@@ -773,7 +773,7 @@ void ServerMap::On_MPK_PICKUP(const MessagePack &rstMPK)
     std::memcpy(&stAMPU, rstMPK.Data(), sizeof(stAMPU));
 
     if(!ValidC(stAMPU.X, stAMPU.Y) || !stAMPU.ID){
-        g_MonoServer->addLog(LOGTYPE_WARNING, "Invalid pickup request: X = %d, Y = %d, ID = %" PRIu32, stAMPU.X, stAMPU.Y, stAMPU.ID);
+        g_monoServer->addLog(LOGTYPE_WARNING, "Invalid pickup request: X = %d, Y = %d, ID = %" PRIu32, stAMPU.X, stAMPU.Y, stAMPU.ID);
         return;
     }
 

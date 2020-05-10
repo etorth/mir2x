@@ -24,24 +24,24 @@
 #include "dbcomrecord.hpp"
 
 LuaModule::LuaModule()
-    : m_LuaState()
+    : m_luaState()
 {
-    m_LuaState.open_libraries();
-    m_LuaState.script(
+    m_luaState.open_libraries();
+    m_luaState.script(
             R"###( LOGTYPE_INFO      = 0    )###""\n"
             R"###( LOGTYPE_WARNING   = 1    )###""\n"
             R"###( LOGTYPE_FATAL     = 2    )###""\n"
             R"###( LOGTYPE_DEBUG     = 3    )###""\n");
 
-    m_LuaState.script(str_printf("SYS_NPCINIT  = \"%s\"", SYS_NPCINIT ));
-    m_LuaState.script(str_printf("SYS_NPCDONE  = \"%s\"", SYS_NPCDONE ));
-    m_LuaState.script(str_printf("SYS_NPCQUERY = \"%s\"", SYS_NPCQUERY));
-    m_LuaState.script(str_printf("SYS_NPCERROR = \"%s\"", SYS_NPCERROR));
+    m_luaState.script(str_printf("SYS_NPCINIT  = \"%s\"", SYS_NPCINIT ));
+    m_luaState.script(str_printf("SYS_NPCDONE  = \"%s\"", SYS_NPCDONE ));
+    m_luaState.script(str_printf("SYS_NPCQUERY = \"%s\"", SYS_NPCQUERY));
+    m_luaState.script(str_printf("SYS_NPCERROR = \"%s\"", SYS_NPCERROR));
 
     // get backtrace in lua
     // used in LuaModule to give location in the script
 
-    m_LuaState.script(
+    m_luaState.script(
             R"###( function getBackTraceLine()                                                  )###""\n"
             R"###(     local info = debug.getinfo(3, "Sl")                                      )###""\n"
             R"###(                                                                              )###""\n"
@@ -66,11 +66,11 @@ LuaModule::LuaModule()
             R"###(     return string.format("[%s]: %d", info.short_src, info.currentline)       )###""\n"
             R"###( end                                                                          )###""\n");
 
-    // define _addLog_Raw() by LuaModule::addLog()
+    // define _addLog_raw() by LuaModule::addLog()
     // but don't call it since this is in constructor!
     // this function need lua::getBackTraceLine() to append the logInfo
 
-    m_LuaState.set_function("addLog", [this](sol::object logType, sol::object logInfo)
+    m_luaState.set_function("addLog", [this](sol::object logType, sol::object logInfo)
     {
         if(logType.is<int>() && logInfo.is<std::string>()){
             addLog(logType.as<int>(), logInfo.as<std::string>().c_str());
@@ -91,7 +91,7 @@ LuaModule::LuaModule()
         return;
     });
 
-    m_LuaState.script(
+    m_luaState.script(
             R"###( function addExtLog(logType, logInfo)                                 )###""\n"
             R"###(                                                                      )###""\n"
             R"###(     -- add type checking here                                        )###""\n"
@@ -106,19 +106,19 @@ LuaModule::LuaModule()
             R"###(     addLog(1, 'addLog(logType: int, logInfo: string)')               )###""\n"
             R"###( end                                                                  )###""\n");
 
-    m_LuaState.set_function("mapID2Name", [](int nMapID) -> std::string
+    m_luaState.set_function("mapID2Name", [](int nMapID) -> std::string
     {
         return std::string(DBCOM_MAPRECORD((uint32_t)(nMapID)).Name);
     });
 
-    m_LuaState.set_function("sleep", [](int nSleepMS)
+    m_luaState.set_function("sleep", [](int nSleepMS)
     {
         if(nSleepMS > 0){
             std::this_thread::sleep_for(std::chrono::milliseconds(nSleepMS));
         }
     });
 
-    m_LuaState.set_function("exit", [](int nExitCode)
+    m_luaState.set_function("exit", [](int nExitCode)
     {
         std::exit(nExitCode);
     });

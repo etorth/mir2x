@@ -25,7 +25,7 @@
 class Rawbuf final
 {
     private:
-        std::vector<uint8_t> m_Data;
+        std::vector<uint8_t> m_data;
 
     public:
         Rawbuf(std::initializer_list<uint8_t>);
@@ -36,13 +36,13 @@ class Rawbuf final
     public:
         const uint8_t *Data() const
         {
-            return (DataLen() == 0) ? nullptr : m_Data.data();
+            return (DataLen() == 0) ? nullptr : m_data.data();
         }
 
     public:
         size_t DataLen() const
         {
-            return m_Data.size();
+            return m_data.size();
         }
 
     public:

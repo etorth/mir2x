@@ -44,21 +44,21 @@
 #include "commandwindow.hpp"
 #include "databaseconfigurewindow.hpp"
 
-extern Log *g_Log;
+extern Log *g_log;
 extern DBPodN *g_DBPodN;
-extern MapBinDB *g_MapBinDB;
-extern ActorPool *g_ActorPool;
-extern NetDriver *g_NetDriver;
-extern MonoServer *g_MonoServer;
-extern MainWindow *g_MainWindow;
-extern ServerConfigureWindow *g_ServerConfigureWindow;
-extern DatabaseConfigureWindow *g_DatabaseConfigureWindow;
+extern MapBinDB *g_mapBinDB;
+extern ActorPool *g_actorPool;
+extern NetDriver *g_netDriver;
+extern MonoServer *g_monoServer;
+extern MainWindow *g_mainWindow;
+extern ServerConfigureWindow *g_serverConfigureWindow;
+extern DatabaseConfigureWindow *g_databaseConfigureWindow;
 
 MonoServer::MonoServer()
-    : m_LogLock()
-    , m_LogBuf()
-    , m_ServiceCore(nullptr)
-    , m_CurrException()
+    : m_logLock()
+    , m_logBuf()
+    , m_serviceCore(nullptr)
+    , m_currException()
     , m_hrtimer()
 {}
 
@@ -85,7 +85,7 @@ void MonoServer::addLog(const std::array<std::string, 4> &stLogDesc, const char 
     switch(nLogType){
         case Log::LOGTYPEV_DEBUG:
             {
-                g_Log->addLog(stLogDesc, "%s", szLog.c_str());
+                g_log->addLog(stLogDesc, "%s", szLog.c_str());
                 return;
             }
         default:
@@ -93,13 +93,13 @@ void MonoServer::addLog(const std::array<std::string, 4> &stLogDesc, const char 
                 // flush the log window
                 // make LOGTYPEV_FATAL be seen before process crash
                 {
-                    std::lock_guard<std::mutex> stLockGuard(m_LogLock);
-                    m_LogBuf.push_back((char)(nLogType));
-                    m_LogBuf.insert(m_LogBuf.end(), szLog.c_str(), szLog.c_str() + std::strlen(szLog.c_str()) + 1);
+                    std::lock_guard<std::mutex> stLockGuard(m_logLock);
+                    m_logBuf.push_back((char)(nLogType));
+                    m_logBuf.insert(m_logBuf.end(), szLog.c_str(), szLog.c_str() + std::strlen(szLog.c_str()) + 1);
                 }
                 notifyGUI("FlushBrowser");
 
-                g_Log->addLog(stLogDesc, "%s", szLog.c_str());
+                g_log->addLog(stLogDesc, "%s", szLog.c_str());
                 return;
             }
     }
@@ -207,21 +207,21 @@ void MonoServer::CreateDefaultDatabase()
 
 void MonoServer::CreateDBConnection()
 {
-    if(std::strcmp(g_DatabaseConfigureWindow->SelectedDBEngine(), "mysql") == 0){
+    if(std::strcmp(g_databaseConfigureWindow->SelectedDBEngine(), "mysql") == 0){
         g_DBPodN->LaunchMySQL(
-                g_DatabaseConfigureWindow->DatabaseIP(),
-                g_DatabaseConfigureWindow->UserName(),
-                g_DatabaseConfigureWindow->Password(),
-                g_DatabaseConfigureWindow->DatabaseName(),
-                g_DatabaseConfigureWindow->DatabasePort());
+                g_databaseConfigureWindow->DatabaseIP(),
+                g_databaseConfigureWindow->UserName(),
+                g_databaseConfigureWindow->Password(),
+                g_databaseConfigureWindow->DatabaseName(),
+                g_databaseConfigureWindow->DatabasePort());
         addLog(LOGTYPE_INFO, "Connect to MySQL Database (%s:%d) successfully",
-                g_DatabaseConfigureWindow->DatabaseIP(),
-                g_DatabaseConfigureWindow->DatabasePort());
+                g_databaseConfigureWindow->DatabaseIP(),
+                g_databaseConfigureWindow->DatabasePort());
     }
 
-    else if(std::strcmp(g_DatabaseConfigureWindow->SelectedDBEngine(), "sqlite3") == 0){
-        g_DBPodN->LaunchSQLite3(g_DatabaseConfigureWindow->DatabaseName());
-        addLog(LOGTYPE_INFO, "Connect to SQLite3 Database (%s) successfully", g_DatabaseConfigureWindow->DatabaseName());
+    else if(std::strcmp(g_databaseConfigureWindow->SelectedDBEngine(), "sqlite3") == 0){
+        g_DBPodN->LaunchSQLite3(g_databaseConfigureWindow->DatabaseName());
+        addLog(LOGTYPE_INFO, "Connect to SQLite3 Database (%s) successfully", g_databaseConfigureWindow->DatabaseName());
 
         if(!g_DBPodN->CreateDBHDR()->QueryResult("select name from sqlite_master where type=\'table\'")){
             CreateDefaultDatabase();
@@ -236,25 +236,25 @@ void MonoServer::CreateDBConnection()
 
 void MonoServer::LoadMapBinDB()
 {
-    std::string szMapPath = g_ServerConfigureWindow->GetMapPath();
+    std::string szMapPath = g_serverConfigureWindow->GetMapPath();
 
-    if(!g_MapBinDB->Load(szMapPath.c_str())){
+    if(!g_mapBinDB->Load(szMapPath.c_str())){
         throw fflerror("Failed to load mapbindb");
     }
 }
 
 void MonoServer::StartServiceCore()
 {
-    g_ActorPool->Launch();
+    g_actorPool->Launch();
 
-    m_ServiceCore = new ServiceCore();
-    m_ServiceCore->Activate();
+    m_serviceCore = new ServiceCore();
+    m_serviceCore->Activate();
 }
 
 void MonoServer::StartNetwork()
 {
-    uint32_t nPort = g_ServerConfigureWindow->Port();
-    if(!g_NetDriver->Launch(nPort, m_ServiceCore->UID())){
+    uint32_t nPort = g_serverConfigureWindow->Port();
+    if(!g_netDriver->Launch(nPort, m_serviceCore->UID())){
         addLog(LOGTYPE_WARNING, "Failed to launch the network");
         Restart();
     }
@@ -284,15 +284,15 @@ void MonoServer::PropagateException()
     }catch(...){
         // must have one exception...
         // now we are sure main thread will always capture an std::exception
-        m_CurrException = std::current_exception();
+        m_currException = std::current_exception();
         Fl::awake((void *)(uintptr_t)(2));
     }
 }
 
 void MonoServer::DetectException()
 {
-    if(m_CurrException){
-        std::rethrow_exception(m_CurrException);
+    if(m_currException){
+        std::rethrow_exception(m_currException);
     }
 }
 
@@ -351,7 +351,7 @@ bool MonoServer::addMonster(uint32_t monsterID, uint32_t mapID, int x, int y, bo
     stAMACO.monster.masterUID = 0;
     addLog(LOGTYPE_INFO, "Try to add monster, monsterID = %llu", toLLU(monsterID));
 
-    switch(auto stRMPK = SyncDriver().forward(m_ServiceCore->UID(), {MPK_ADDCHAROBJECT, stAMACO}, 0, 0); stRMPK.Type()){
+    switch(auto stRMPK = SyncDriver().forward(m_serviceCore->UID(), {MPK_ADDCHAROBJECT, stAMACO}, 0, 0); stRMPK.Type()){
         case MPK_OK:
             {
                 addLog(LOGTYPE_INFO, "Add monster succeeds");
@@ -384,7 +384,7 @@ bool MonoServer::addNPChar(uint16_t npcID, uint32_t mapID, int x, int y, bool st
     stAMACO.NPC.NPCID = npcID;
     addLog(LOGTYPE_INFO, "Try to add NPC, NPCID = %llu", toLLU(npcID));
 
-    switch(auto stRMPK = SyncDriver().forward(m_ServiceCore->UID(), {MPK_ADDCHAROBJECT, stAMACO}, 0, 0); stRMPK.Type()){
+    switch(auto stRMPK = SyncDriver().forward(m_serviceCore->UID(), {MPK_ADDCHAROBJECT, stAMACO}, 0, 0); stRMPK.Type()){
         case MPK_OK:
             {
                 addLog(LOGTYPE_INFO, "Add NPC succeeds");
@@ -404,7 +404,7 @@ bool MonoServer::addNPChar(uint16_t npcID, uint32_t mapID, int x, int y, bool st
 
 std::vector<int> MonoServer::GetMapList()
 {
-    switch(auto stRMPK = SyncDriver().forward(m_ServiceCore->UID(), MPK_QUERYMAPLIST); stRMPK.Type()){
+    switch(auto stRMPK = SyncDriver().forward(m_serviceCore->UID(), MPK_QUERYMAPLIST); stRMPK.Type()){
         case MPK_MAPLIST:
             {
                 AMMapList stAMML;
@@ -448,7 +448,7 @@ sol::optional<int> MonoServer::GetMonsterCount(int nMonsterID, int nMapID)
         stAMQCOC.Check.Monster        = true;
         stAMQCOC.CheckParam.MonsterID = (uint32_t)(nMonsterID);
 
-        switch(auto stRMPK = SyncDriver().forward(m_ServiceCore->UID(), {MPK_QUERYCOCOUNT, stAMQCOC}); stRMPK.Type()){
+        switch(auto stRMPK = SyncDriver().forward(m_serviceCore->UID(), {MPK_QUERYCOCOUNT, stAMQCOC}); stRMPK.Type()){
             case MPK_COCOUNT:
                 {
                     AMCOCount stAMCOC;
@@ -472,7 +472,7 @@ void MonoServer::notifyGUI(std::string notifStr)
 {
     if(!notifStr.empty()){
         {
-            std::lock_guard<std::mutex> lockGuard(m_NotifyGUILock);
+            std::lock_guard<std::mutex> lockGuard(m_notifyGUILock);
             m_notifyGUIQ.push(notifStr);
         }
         Fl::awake((void *)(uintptr_t)(1));
@@ -526,7 +526,7 @@ void MonoServer::parseNotifyGUIQ()
     while(true){
         std::string currNotify;
         {
-            std::lock_guard<std::mutex> lockGuard(m_NotifyGUILock);
+            std::lock_guard<std::mutex> lockGuard(m_notifyGUILock);
             if(m_notifyGUIQ.empty()){
                 break;
             }
@@ -567,12 +567,12 @@ void MonoServer::parseNotifyGUIQ()
         }
 
         if(fnCheckFront({"flushbrowser", "FlushBrowser", "FLUSHBROWSER"})){
-            g_MonoServer->FlushBrowser();
+            g_monoServer->FlushBrowser();
             continue;
         }
 
         if(fnCheckFront({"flushcwbrowser", "FlushCWBrowser", "FLUSHCWBROWSER"})){
-            g_MonoServer->FlushCWBrowser();
+            g_monoServer->FlushCWBrowser();
             continue;
         }
 
@@ -588,25 +588,25 @@ void MonoServer::parseNotifyGUIQ()
             }();
 
             if(cwid > 0){
-                g_MainWindow->DeleteCommandWindow(cwid);
+                g_mainWindow->DeleteCommandWindow(cwid);
             }
             continue;
         }
 
-        g_MonoServer->addLog(LOGTYPE_WARNING, "Unsupported notification: %s", tokenList.front().c_str());
+        g_monoServer->addLog(LOGTYPE_WARNING, "Unsupported notification: %s", tokenList.front().c_str());
     }
 }
 
 void MonoServer::FlushBrowser()
 {
-    std::lock_guard<std::mutex> stLockGuard(m_LogLock);
+    std::lock_guard<std::mutex> stLockGuard(m_logLock);
     {
         auto nCurrLoc = (size_t)(0);
-        while(nCurrLoc < m_LogBuf.size()){
-            g_MainWindow->addLog((int)(m_LogBuf[nCurrLoc]), &(m_LogBuf[nCurrLoc + 1]));
-            nCurrLoc += (1 + 1 + std::strlen(&(m_LogBuf[nCurrLoc + 1])));
+        while(nCurrLoc < m_logBuf.size()){
+            g_mainWindow->addLog((int)(m_logBuf[nCurrLoc]), &(m_logBuf[nCurrLoc + 1]));
+            nCurrLoc += (1 + 1 + std::strlen(&(m_logBuf[nCurrLoc + 1])));
         }
-        m_LogBuf.clear();
+        m_logBuf.clear();
     }
 }
 
@@ -633,7 +633,7 @@ void MonoServer::FlushCWBrowser()
             auto pInfo0 = &(m_CWLogBuf[nCurrLoc + sizeof(nCWID) + 1]);
             auto pInfo1 = &(m_CWLogBuf[nCurrLoc + sizeof(nCWID) + 1 + nInfoLen0 + 1]);
 
-            g_MainWindow->addCWLog(nCWID, (int)(m_CWLogBuf[nCurrLoc + sizeof(nCWID)]), pInfo0, pInfo1);
+            g_mainWindow->addCWLog(nCWID, (int)(m_CWLogBuf[nCurrLoc + sizeof(nCWID)]), pInfo0, pInfo1);
             nCurrLoc += (sizeof(nCWID) + 1 + nInfoLen0 + 1 + nInfoLen1 + 1);
         }
         m_CWLogBuf.clear();
@@ -833,14 +833,14 @@ void MonoServer::RegisterLuaExport(CommandLuaModule *pModule, uint32_t nCWID)
     // part-1: divide into two parts, part-1 create the table
 
     pModule->GetLuaState().script(
-        R"###( g_HelpTable = {}                                                        )###""\n"
-        R"###( g_HelpTable["listMap"] = "print all map indices to current window"      )###""\n");
+        R"###( g_helpTable = {}                                                        )###""\n"
+        R"###( g_helpTable["listMap"] = "print all map indices to current window"      )###""\n");
 
     // part-2: make up the function to print the table entry
     pModule->GetLuaState().script(
         R"###( function help(queryKey)                                                 )###""\n"
-        R"###(     if g_HelpTable[queryKey] then                                       )###""\n"
-        R"###(         printLine(0, "> ", g_HelpTable[queryKey])                       )###""\n"
+        R"###(     if g_helpTable[queryKey] then                                       )###""\n"
+        R"###(         printLine(0, "> ", g_helpTable[queryKey])                       )###""\n"
         R"###(     else                                                                )###""\n"
         R"###(         printLine(2, "> ", "No registered help information for input")  )###""\n"
         R"###(     end                                                                 )###""\n"

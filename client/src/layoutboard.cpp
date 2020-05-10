@@ -26,8 +26,8 @@
 #include "bevent.hpp"
 #include "xmltypeset.hpp"
 
-extern Log *g_Log;
-extern FontexDB *g_FontexDB;
+extern Log *g_log;
+extern FontexDB *g_fontexDB;
 
 void LayoutBoard::loadXML(const char *xmlString)
 {
@@ -57,12 +57,12 @@ void LayoutBoard::loadXML(const char *xmlString)
     }
 
     if(rootElem->FirstAttribute()){
-        g_Log->addLog(LOGTYPE_WARNING, "Layout XML doesn't accept attributes, ignored.");
+        g_log->addLog(LOGTYPE_WARNING, "Layout XML doesn't accept attributes, ignored.");
     }
 
     for(auto p = rootElem->FirstChild(); p; p = p->NextSibling()){
         if(!p->ToElement()){
-            g_Log->addLog(LOGTYPE_WARNING, "Not an element: %s", p->Value());
+            g_log->addLog(LOGTYPE_WARNING, "Not an element: %s", p->Value());
             continue;
         }
 
@@ -75,7 +75,7 @@ void LayoutBoard::loadXML(const char *xmlString)
         }
 
         if(!parXML){
-            g_Log->addLog(LOGTYPE_WARNING, "Not a paragraph element: %s", p->Value());
+            g_log->addLog(LOGTYPE_WARNING, "Not a paragraph element: %s", p->Value());
             continue;
         }
 
@@ -157,11 +157,11 @@ void LayoutBoard::addPar(int loc, const std::array<int, 4> &parMargin, const tin
                 font = std::stoi(val);
             }
             catch(...){
-                font = g_FontexDB->findFontName(val);
+                font = g_fontexDB->findFontName(val);
             }
         }
 
-        if(g_FontexDB->hasFont(font)){
+        if(g_fontexDB->hasFont(font)){
             return font;
         }
         return 0;

@@ -119,7 +119,7 @@ bool ImageDB::LoadDB(const char *szPathName)
 
 bool ImageDB::Load(uint8_t nFileIndex, const char *szPathName, const char *szFileName, const char *szNamePrefix)
 {
-    return m_ImagePackage[nFileIndex].Load(szPathName, szFileName, szNamePrefix);
+    return m_imagePackage[nFileIndex].Load(szPathName, szFileName, szNamePrefix);
 }
 
 bool ImageDB::Valid(uint8_t nFileIndex, uint16_t nImageIndex)
@@ -127,10 +127,10 @@ bool ImageDB::Valid(uint8_t nFileIndex, uint16_t nImageIndex)
     if(true
             && nFileIndex  != 255
             && nImageIndex != 65535
-            && m_ImagePackage[nFileIndex].SetIndex(nImageIndex)
-            && m_ImagePackage[nFileIndex].CurrentImageValid()){
-        int nW = m_ImagePackage[nFileIndex].CurrentImageInfo().shWidth;
-        int nH = m_ImagePackage[nFileIndex].CurrentImageInfo().shHeight;
+            && m_imagePackage[nFileIndex].SetIndex(nImageIndex)
+            && m_imagePackage[nFileIndex].CurrentImageValid()){
+        int nW = m_imagePackage[nFileIndex].CurrentImageInfo().shWidth;
+        int nH = m_imagePackage[nFileIndex].CurrentImageInfo().shHeight;
         if((nW > 0) && (nH > 0)){
             return true;
         }
@@ -140,12 +140,12 @@ bool ImageDB::Valid(uint8_t nFileIndex, uint16_t nImageIndex)
 
 int ImageDB::FastW(uint8_t nFileIndex)
 {
-    return m_ImagePackage[nFileIndex].CurrentImageInfo().shWidth;
+    return m_imagePackage[nFileIndex].CurrentImageInfo().shWidth;
 }
 
 int ImageDB::FastH(uint8_t nFileIndex)
 {
-    return m_ImagePackage[nFileIndex].CurrentImageInfo().shHeight;
+    return m_imagePackage[nFileIndex].CurrentImageInfo().shHeight;
 }
 
 int ImageDB::W(uint8_t nFileIndex, uint16_t nImageIndex)
@@ -163,10 +163,10 @@ const uint32_t *ImageDB::FastDecode(uint8_t nFileIndex, uint32_t nC0, uint32_t n
     int nW = FastW(nFileIndex);
     int nH = FastH(nFileIndex);
 
-    m_Buf.resize(nW * nH);
-    m_ImagePackage[nFileIndex].Decode(&(m_Buf[0]), nC0, nC1, nC2);
+    m_buf.resize(nW * nH);
+    m_imagePackage[nFileIndex].Decode(&(m_buf[0]), nC0, nC1, nC2);
 
-    return &(m_Buf[0]);
+    return &(m_buf[0]);
 }
 
 const uint32_t *ImageDB::Decode(uint8_t nFileIndex, uint16_t nImageIndex, uint32_t nC0, uint32_t nC1, uint32_t nC2)
@@ -176,11 +176,11 @@ const uint32_t *ImageDB::Decode(uint8_t nFileIndex, uint16_t nImageIndex, uint32
 
 const WILIMAGEINFO &ImageDB::ImageInfo(uint8_t nFileIndex, uint16_t nImageIndex)
 {
-    m_ImagePackage[nFileIndex].SetIndex(nImageIndex);
-    return m_ImagePackage[nFileIndex].CurrentImageInfo();
+    m_imagePackage[nFileIndex].SetIndex(nImageIndex);
+    return m_imagePackage[nFileIndex].CurrentImageInfo();
 }
 
 const WilImagePackage &ImageDB::GetPackage(uint8_t nFileIndex)
 {
-    return m_ImagePackage[nFileIndex];
+    return m_imagePackage[nFileIndex];
 }

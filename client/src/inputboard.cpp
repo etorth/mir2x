@@ -27,7 +27,7 @@
 #include "inputboard.hpp"
 #include "sdlkeychar.hpp"
 
-extern Log *g_Log;
+extern Log *g_log;
 extern Client *g_client;
 extern SDLDevice *g_SDLDevice;
 
@@ -38,7 +38,7 @@ void InputBoard::update(double fMS)
 {
     m_MS += fMS;
     Widget::update(fMS);
-    m_TokenBoard.Update(fMS);
+    m_tokenBoard.Update(fMS);
 }
 
 bool InputBoard::processEvent(const SDL_Event &event, bool valid)
@@ -57,25 +57,25 @@ bool InputBoard::processEvent(const SDL_Event &event, bool valid)
         case SDL_MOUSEMOTION:
             {
                 if(in(event.motion.x, event.motion.y)){
-                    m_SystemCursorX = event.motion.x;
-                    m_SystemCursorY = event.motion.y;
-                    if(!m_DrawOwnSystemCursor){
+                    m_systemCursorX = event.motion.x;
+                    m_systemCursorY = event.motion.y;
+                    if(!m_drawOwnSystemCursor){
                         s_ShowSystemCursorCount--;
                     }
-                    m_DrawOwnSystemCursor = true;
+                    m_drawOwnSystemCursor = true;
                 }
                 else{
-                    if(m_DrawOwnSystemCursor){
+                    if(m_drawOwnSystemCursor){
                         s_ShowSystemCursorCount++;
                     }
-                    m_DrawOwnSystemCursor = false;
+                    m_drawOwnSystemCursor = false;
                 }
-                return m_TokenBoard.processEvent(event, valid);
+                return m_tokenBoard.processEvent(event, valid);
             }
         case SDL_MOUSEBUTTONDOWN:
             {
                 if(in(event.button.x, event.button.y)){
-                    m_TokenBoard.processEvent(event, true);
+                    m_tokenBoard.processEvent(event, true);
 
                     RelocateTokenBoard();
                     focus(true);
@@ -95,18 +95,18 @@ bool InputBoard::processEvent(const SDL_Event &event, bool valid)
                         case SDLK_UP:
                             {
                                 int nX, nY;
-                                m_TokenBoard.GetCursor(&nX, &nY);
-                                if(!m_TokenBoard.SetCursor(nX, nY - 1)){
-                                    m_TokenBoard.SetCursor(m_TokenBoard.GetLineTokenBoxCount(nY - 1), nY - 1);
+                                m_tokenBoard.GetCursor(&nX, &nY);
+                                if(!m_tokenBoard.SetCursor(nX, nY - 1)){
+                                    m_tokenBoard.SetCursor(m_tokenBoard.GetLineTokenBoxCount(nY - 1), nY - 1);
                                 }
                                 break;
                             }
                         case SDLK_DOWN:
                             {
                                 int nX, nY;
-                                m_TokenBoard.GetCursor(&nX, &nY);
-                                if(!m_TokenBoard.SetCursor(nX, nY + 1)){
-                                    m_TokenBoard.SetCursor(m_TokenBoard.GetLineTokenBoxCount(nY + 1), nY + 1);
+                                m_tokenBoard.GetCursor(&nX, &nY);
+                                if(!m_tokenBoard.SetCursor(nX, nY + 1)){
+                                    m_tokenBoard.SetCursor(m_tokenBoard.GetLineTokenBoxCount(nY + 1), nY + 1);
                                 }
                                 break;
                             }
@@ -114,11 +114,11 @@ bool InputBoard::processEvent(const SDL_Event &event, bool valid)
                         case SDLK_LEFT:
                             {
                                 int nX, nY;
-                                m_TokenBoard.GetCursor(&nX, &nY);
-                                if(!m_TokenBoard.SetCursor(nX - 1, nY)){
+                                m_tokenBoard.GetCursor(&nX, &nY);
+                                if(!m_tokenBoard.SetCursor(nX - 1, nY)){
                                     if(nY > 0){
-                                        nX = m_TokenBoard.GetLineTokenBoxCount(nY - 1);
-                                        m_TokenBoard.SetCursor(nX, nY - 1);
+                                        nX = m_tokenBoard.GetLineTokenBoxCount(nY - 1);
+                                        m_tokenBoard.SetCursor(nX, nY - 1);
                                     }
                                 }
                                 break;
@@ -127,10 +127,10 @@ bool InputBoard::processEvent(const SDL_Event &event, bool valid)
                         case SDLK_RIGHT:
                             {
                                 int nX, nY;
-                                m_TokenBoard.GetCursor(&nX, &nY);
-                                if(!m_TokenBoard.SetCursor(nX + 1, nY)){
-                                    if(nY + 1 < m_TokenBoard.GetLineCount()){
-                                        m_TokenBoard.SetCursor(0, nY + 1);
+                                m_tokenBoard.GetCursor(&nX, &nY);
+                                if(!m_tokenBoard.SetCursor(nX + 1, nY)){
+                                    if(nY + 1 < m_tokenBoard.GetLineCount()){
+                                        m_tokenBoard.SetCursor(0, nY + 1);
                                     }
                                 }
                                 break;
@@ -139,13 +139,13 @@ bool InputBoard::processEvent(const SDL_Event &event, bool valid)
                         case SDLK_BACKSPACE:
 
                             {
-                                m_TokenBoard.Delete(false);
+                                m_tokenBoard.Delete(false);
                                 break;
                             }
 
                         case SDLK_RETURN:
                             {
-                                m_TokenBoard.BreakLine();
+                                m_tokenBoard.BreakLine();
                                 break;
                             }
 
@@ -160,16 +160,16 @@ bool InputBoard::processEvent(const SDL_Event &event, bool valid)
                                 if(false
                                         || event.key.keysym.mod & KMOD_LCTRL
                                         || event.key.keysym.mod & KMOD_RCTRL){
-                                    g_client->Clipboard(m_TokenBoard.GetXML(true));
-                                    m_TokenBoard.Delete(true);
+                                    g_client->Clipboard(m_tokenBoard.GetXML(true));
+                                    m_tokenBoard.Delete(true);
                                 }else{
                                     if(SDL_IsTextInputActive() == SDL_FALSE){
                                         if(false
                                                 || event.key.keysym.mod & KMOD_LSHIFT
                                                 || event.key.keysym.mod & KMOD_RSHIFT){
-                                            m_TokenBoard.AddUTF8Code(uint32_t('X'));
+                                            m_tokenBoard.AddUTF8Code(uint32_t('X'));
                                         }else{
-                                            m_TokenBoard.AddUTF8Code(uint32_t('x'));
+                                            m_tokenBoard.AddUTF8Code(uint32_t('x'));
                                         }
                                     }
                                 }
@@ -181,15 +181,15 @@ bool InputBoard::processEvent(const SDL_Event &event, bool valid)
                                 if(false
                                         || event.key.keysym.mod & KMOD_LCTRL
                                         || event.key.keysym.mod & KMOD_RCTRL){
-                                    g_client->Clipboard(m_TokenBoard.GetXML(true));
+                                    g_client->Clipboard(m_tokenBoard.GetXML(true));
                                 }else{
                                     if(SDL_IsTextInputActive() == SDL_FALSE){
                                         if(false
                                                 || event.key.keysym.mod & KMOD_LSHIFT
                                                 || event.key.keysym.mod & KMOD_RSHIFT){
-                                            m_TokenBoard.AddUTF8Code(uint32_t('C'));
+                                            m_tokenBoard.AddUTF8Code(uint32_t('C'));
                                         }else{
-                                            m_TokenBoard.AddUTF8Code(uint32_t('c'));
+                                            m_tokenBoard.AddUTF8Code(uint32_t('c'));
                                         }
                                     }
                                 }
@@ -201,15 +201,15 @@ bool InputBoard::processEvent(const SDL_Event &event, bool valid)
                                 if(false
                                         || event.key.keysym.mod & KMOD_LCTRL
                                         || event.key.keysym.mod & KMOD_RCTRL){
-                                    m_TokenBoard.ParseXML(g_client->Clipboard().c_str(), {});
+                                    m_tokenBoard.ParseXML(g_client->Clipboard().c_str(), {});
                                 }else{
                                     if(SDL_IsTextInputActive() == SDL_FALSE){
                                         if(false
                                                 || event.key.keysym.mod & KMOD_LSHIFT
                                                 || event.key.keysym.mod & KMOD_RSHIFT){
-                                            m_TokenBoard.AddUTF8Code(uint32_t('V'));
+                                            m_tokenBoard.AddUTF8Code(uint32_t('V'));
                                         }else{
-                                            m_TokenBoard.AddUTF8Code(uint32_t('v'));
+                                            m_tokenBoard.AddUTF8Code(uint32_t('v'));
                                         }
                                     }
                                 }
@@ -221,7 +221,7 @@ bool InputBoard::processEvent(const SDL_Event &event, bool valid)
                                 if(SDL_IsTextInputActive() == SDL_FALSE){
                                     char chKeyName = sdlKeyChar(event);
                                     if(chKeyName != '\0'){
-                                        m_TokenBoard.AddUTF8Code((uint32_t)(chKeyName));
+                                        m_tokenBoard.AddUTF8Code((uint32_t)(chKeyName));
                                     }
                                 }
                                 break;
@@ -237,7 +237,7 @@ bool InputBoard::processEvent(const SDL_Event &event, bool valid)
         case SDL_TEXTINPUT:
             {
                 if(focus()){
-                    m_TokenBoard.AddUTF8Text(event.text.text);
+                    m_tokenBoard.AddUTF8Text(event.text.text);
                     RelocateTokenBoard();
                 }
                 break;
@@ -272,7 +272,7 @@ void InputBoard::QueryCursor(int *pX, int *pY, int *pW, int *pH)
     //
     int nCursorX = -1;
     int nCursorY = -1;
-    m_TokenBoard.GetCursor(&nCursorX, &nCursorY);
+    m_tokenBoard.GetCursor(&nCursorX, &nCursorY);
 
     int nX = -1;
     int nY = -1;
@@ -283,30 +283,30 @@ void InputBoard::QueryCursor(int *pX, int *pY, int *pW, int *pH)
     int nTBW = -1;
     int nTBH = -1;
 
-    if(m_TokenBoard.QueryTokenBox(nCursorX - 1, nCursorY, nullptr, &nTBX, &nTBY, &nTBW, &nTBH, nullptr, nullptr)){
+    if(m_tokenBoard.QueryTokenBox(nCursorX - 1, nCursorY, nullptr, &nTBX, &nTBY, &nTBW, &nTBH, nullptr, nullptr)){
         nX = nTBX + nTBW;
-        nY = nTBY - m_TokenBoard.GetLineSpace() / 2;
-        nH = nTBH + m_TokenBoard.GetLineSpace();
-    }else if(m_TokenBoard.QueryTokenBox(nCursorX, nCursorY, nullptr, &nTBX, &nTBY, &nTBW, &nTBH, nullptr, nullptr)){
-        nX = nTBX - m_CursorWidth;
-        nY = nTBY - m_TokenBoard.GetLineSpace() / 2;
-        nH = nTBH + m_TokenBoard.GetLineSpace();
+        nY = nTBY - m_tokenBoard.GetLineSpace() / 2;
+        nH = nTBH + m_tokenBoard.GetLineSpace();
+    }else if(m_tokenBoard.QueryTokenBox(nCursorX, nCursorY, nullptr, &nTBX, &nTBY, &nTBW, &nTBH, nullptr, nullptr)){
+        nX = nTBX - m_cursorWidth;
+        nY = nTBY - m_tokenBoard.GetLineSpace() / 2;
+        nH = nTBH + m_tokenBoard.GetLineSpace();
     }else{
         // even both sides give me failure, still the board may be non-empty
         // i.e. when the cursor is at the beginning of an blank line
         // but this board also contains non-empty lines
         //
-        int nStartY = m_TokenBoard.GetLineStartY(nCursorY);
-        int nBlankLineH = m_TokenBoard.GetBlankLineHeight();
+        int nStartY = m_tokenBoard.GetLineStartY(nCursorY);
+        int nBlankLineH = m_tokenBoard.GetBlankLineHeight();
 
-        nX = m_TokenBoard.Margin(3);
-        nY = nStartY - nBlankLineH - m_TokenBoard.GetLineSpace() / 2;
-        nH = nBlankLineH + m_TokenBoard.GetLineSpace();
+        nX = m_tokenBoard.Margin(3);
+        nY = nStartY - nBlankLineH - m_tokenBoard.GetLineSpace() / 2;
+        nH = nBlankLineH + m_tokenBoard.GetLineSpace();
     }
 
     if(pX){ *pX = nX;                                }
     if(pY){ *pY = nY;                                }
-    if(pW){ *pW = (std::max<int>)(1, m_CursorWidth); }
+    if(pW){ *pW = (std::max<int>)(1, m_cursorWidth); }
     if(pH){ *pH = nH;                                }
 }
 
@@ -333,39 +333,39 @@ void InputBoard::RelocateTokenBoard()
     QueryCursor(&nX, &nY, &nW, &nH);
 
     // make (nX, nY) to be the coordinate w.r.t. InputBoard
-    nX += m_TokenBoard.x();
-    nY += m_TokenBoard.y();
+    nX += m_tokenBoard.x();
+    nY += m_tokenBoard.y();
 
     if(nX < 0){
-        m_TokenBoard.moveBy(-nX, 0);
+        m_tokenBoard.moveBy(-nX, 0);
     }
 
     if((nX + nW > w()) && (nW <= w())){
-        m_TokenBoard.moveBy(w() - (nX + nW), 0);
+        m_tokenBoard.moveBy(w() - (nX + nW), 0);
     }
 
     if(nY < 0){
-        m_TokenBoard.moveBy(0, -nY);
+        m_tokenBoard.moveBy(0, -nY);
     }
 
     if((nY + nH > h()) && (nH <= h())){
-        m_TokenBoard.moveBy(0, h() - (nY + nH));
+        m_tokenBoard.moveBy(0, h() - (nY + nH));
     }
 }
 
 void InputBoard::Draw()
 {
-    // m_TokenBoard and InputBoard are of the ``has-a" relationship
+    // m_tokenBoard and InputBoard are of the ``has-a" relationship
     // and coordinate of TokenBoard is relative to top-left of InputBoard
-    int nTBDX = m_TokenBoard.x();
-    int nTBDY = m_TokenBoard.y();
-    int nTBW  = m_TokenBoard.w();
-    int nTBH  = m_TokenBoard.h();
+    int nTBDX = m_tokenBoard.x();
+    int nTBDY = m_tokenBoard.y();
+    int nTBW  = m_tokenBoard.w();
+    int nTBH  = m_tokenBoard.h();
 
     if(mathf::rectangleOverlapRegion(0, 0, w(), h(), &nTBDX, &nTBDY, &nTBW, &nTBH)){
-        int nTBX = nTBDX - m_TokenBoard.x();
-        int nTBY = nTBDY - m_TokenBoard.y();
-        m_TokenBoard.drawEx(nTBDX + x(), nTBDY + y(), nTBX, nTBY, nTBW, nTBH);
+        int nTBX = nTBDX - m_tokenBoard.x();
+        int nTBY = nTBDY - m_tokenBoard.y();
+        m_tokenBoard.drawEx(nTBDX + x(), nTBDY + y(), nTBX, nTBY, nTBW, nTBH);
     }
 
     // +-------------------------+
@@ -382,27 +382,27 @@ void InputBoard::Draw()
     QueryCursor(&nX, &nY, &nW, &nH);
 
     if(((int)m_MS % 1000) < 500 && focus()){
-        g_SDLDevice->PushColor(m_CursorColor.r, m_CursorColor.g, m_CursorColor.b, m_CursorColor.a);
-        g_SDLDevice->FillRectangle(x() + m_TokenBoard.x() + nX, y() + m_TokenBoard.y() + nY, nW, nH);
+        g_SDLDevice->PushColor(m_cursorColor.r, m_cursorColor.g, m_cursorColor.b, m_cursorColor.a);
+        g_SDLDevice->FillRectangle(x() + m_tokenBoard.x() + nX, y() + m_tokenBoard.y() + nY, nW, nH);
         g_SDLDevice->PopColor();
     }
 
     // 2. draw ``I" cursor
-    if(m_DrawOwnSystemCursor){
+    if(m_drawOwnSystemCursor){
         g_SDLDevice->PushColor(200, 200, 200, 200);
         g_SDLDevice->DrawLine(
-                m_SystemCursorX, m_SystemCursorY - m_h / 2,
-                m_SystemCursorX, m_SystemCursorY + m_h / 2);
+                m_systemCursorX, m_systemCursorY - m_h / 2,
+                m_systemCursorX, m_systemCursorY + m_h / 2);
         g_SDLDevice->DrawLine(
-                m_SystemCursorX - (std::max<int>)(1, (int)std::lround(m_h * 0.08)),
-                m_SystemCursorY - m_h / 2,
-                m_SystemCursorX + (std::max<int>)(1, (int)std::lround(m_h * 0.08)),
-                m_SystemCursorY - m_h / 2);
+                m_systemCursorX - (std::max<int>)(1, (int)std::lround(m_h * 0.08)),
+                m_systemCursorY - m_h / 2,
+                m_systemCursorX + (std::max<int>)(1, (int)std::lround(m_h * 0.08)),
+                m_systemCursorY - m_h / 2);
         g_SDLDevice->DrawLine(
-                m_SystemCursorX - (std::max<int>)(1, (int)std::lround(m_h * 0.08)),
-                m_SystemCursorY + m_h / 2,
-                m_SystemCursorX + (std::max<int>)(1, (int)std::lround(m_h * 0.08)),
-                m_SystemCursorY + m_h / 2);
+                m_systemCursorX - (std::max<int>)(1, (int)std::lround(m_h * 0.08)),
+                m_systemCursorY + m_h / 2,
+                m_systemCursorX + (std::max<int>)(1, (int)std::lround(m_h * 0.08)),
+                m_systemCursorY + m_h / 2);
         g_SDLDevice->PopColor();
     }
 
@@ -418,7 +418,7 @@ void InputBoard::drawEx(
         int nSrcX, int nSrcY, // region to draw, a cropped region on the token board
         int nSrcW, int nSrcH)
 {
-    m_TokenBoard.drawEx(nDstX, nDstY, nSrcX, nSrcY, nSrcW, nSrcH);
+    m_tokenBoard.drawEx(nDstX, nDstY, nSrcX, nSrcY, nSrcW, nSrcH);
 }
 
 std::string InputBoard::Content()
@@ -446,7 +446,7 @@ std::string InputBoard::Content()
                 }
             default:
                 {
-                    g_Log->addLog(LOGTYPE_WARNING, "Detected known object type, ignored it");
+                    g_log->addLog(LOGTYPE_WARNING, "Detected known object type, ignored it");
                     break;
                 }
         }

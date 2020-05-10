@@ -69,8 +69,8 @@
 //
 // |---fixed---|-------------repeat---------------|---fixed------|
 
-extern Log *g_Log;
-extern PNGTexDB *g_ProgUseDB;
+extern Log *g_log;
+extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_SDLDevice;
 
 ControlBoard::ControlBoard(int startY, int boardW, ProcessRun *pRun)
@@ -322,7 +322,7 @@ ControlBoard::ControlBoard(int startY, int boardW, ProcessRun *pRun)
 
     auto fnAssertImage = [](uint32_t img, int w, int h)
     {
-        if(auto ptex = g_ProgUseDB->Retrieve(img)){
+        if(auto ptex = g_progUseDB->Retrieve(img)){
             int readw = -1;
             int readh = -1;
             if(!SDL_QueryTexture(ptex, 0, 0, &readw, &readh)){
@@ -358,14 +358,14 @@ void ControlBoard::drawLeft()
     const int nY0 = y();
 
     // draw left part
-    if(auto pTexture = g_ProgUseDB->Retrieve(0X00000012)){
+    if(auto pTexture = g_progUseDB->Retrieve(0X00000012)){
         g_SDLDevice->DrawTexture(pTexture, 0, nY0, 0, 0, 178, 133);
     }
 
     // draw HP and MP texture
     {
-        auto pHP = g_ProgUseDB->Retrieve(0X00000018);
-        auto pMP = g_ProgUseDB->Retrieve(0X00000019);
+        auto pHP = g_progUseDB->Retrieve(0X00000018);
+        auto pMP = g_progUseDB->Retrieve(0X00000019);
 
         if(pHP && pMP){ 
 
@@ -419,7 +419,7 @@ void ControlBoard::drawRight()
     const int nW0 = w();
 
     // draw right part
-    if(auto pTexture = g_ProgUseDB->Retrieve(0X00000012)){
+    if(auto pTexture = g_progUseDB->Retrieve(0X00000012)){
         g_SDLDevice->DrawTexture(pTexture, nW0 - 166, nY0, 800 - 166, 0, 166, 133);
     }
 
@@ -461,7 +461,7 @@ void ControlBoard::drawMiddleDefault()
     drawLogBoardDefault();
 
     // draw middle part
-    if(auto pTexture = g_ProgUseDB->Retrieve(0X00000013)){
+    if(auto pTexture = g_progUseDB->Retrieve(0X00000013)){
         g_SDLDevice->DrawTexture(pTexture,             178, nY0 + 2,         0, 0,  50, 131);
         g_SDLDevice->DrawTexture(pTexture, nW0 - 166 - 119, nY0 + 2, 456 - 119, 0, 119, 131);
 
@@ -481,12 +481,12 @@ void ControlBoard::drawMiddleDefault()
     }
 
     // draw current creature face
-    if(auto pTexture = g_ProgUseDB->Retrieve(m_processRun->GetFocusFaceKey())){
+    if(auto pTexture = g_progUseDB->Retrieve(m_processRun->GetFocusFaceKey())){
         g_SDLDevice->DrawTexture(pTexture, nW0 - 266, nY0 + 18);
     }
 
     // draw title
-    if(auto pTexture = g_ProgUseDB->Retrieve(0X00000022)){
+    if(auto pTexture = g_progUseDB->Retrieve(0X00000022)){
         int titleW = -1;
         int titleH = -1;
 
@@ -544,7 +544,7 @@ void ControlBoard::drawMiddleExpand()
         g_SDLDevice->FillRectangle(178 + 2, startY + 2, nW0 - (178 + 2) - (166 + 2), 47 + m_stretchH);
     }
 
-    if(auto pTexture = g_ProgUseDB->Retrieve(0X00000027)){
+    if(auto pTexture = g_progUseDB->Retrieve(0X00000027)){
 
         // draw four corners
         g_SDLDevice->DrawTexture(pTexture,             178,                   startY,         0,        0,  50, 47);
@@ -583,7 +583,7 @@ void ControlBoard::drawMiddleExpand()
     }
 
     // draw title
-    if(auto pTexture = g_ProgUseDB->Retrieve(0X00000022)){
+    if(auto pTexture = g_progUseDB->Retrieve(0X00000022)){
         int titleW = -1;
         int titleH = -1;
 

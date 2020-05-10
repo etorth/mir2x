@@ -65,14 +65,14 @@ class ProcessRun: public Process
         };
 
     private:
-        std::vector<UserCommandEntry> m_UserCommandGroup;
+        std::vector<UserCommandEntry> m_userCommandGroup;
 
     private:
-        uint32_t     m_MapID;
+        uint32_t     m_mapID;
         Mir2xMapData m_mir2xMapData;
 
     private:
-        std::vector<std::vector<std::vector<CommonItem>>> m_GroundItemList;
+        std::vector<std::vector<std::vector<CommonItem>>> m_groundItemList;
 
     private:
         uint64_t m_myHeroUID;
@@ -87,11 +87,11 @@ class ProcessRun: public Process
         }
 
     private:
-        std::array<uint64_t, FOCUS_MAX> m_FocusUIDTable;
+        std::array<uint64_t, FOCUS_MAX> m_focusUIDTable;
 
     private:
-        int m_ViewX;
-        int m_ViewY;
+        int m_viewX;
+        int m_viewY;
 
     private:
         bool m_mapScrolling;
@@ -101,7 +101,7 @@ class ProcessRun: public Process
         uint8_t  m_aniTileFrame[8][16];
 
     private:
-        ClientLuaModule m_LuaModule;
+        ClientLuaModule m_luaModule;
 
     private:
         NPCChatBoard m_NPCChatBoard;
@@ -109,7 +109,7 @@ class ProcessRun: public Process
         InventoryBoard m_inventoryBoard;
 
     private:
-        std::list<std::shared_ptr<IndepMagic>> m_IndepMagicList;
+        std::list<std::shared_ptr<IndepMagic>> m_indepMagicList;
 
     private:
         std::unordered_map<uint64_t, std::unique_ptr<ClientCreature>> m_creatureList;
@@ -120,11 +120,11 @@ class ProcessRun: public Process
     private:
         // use a tokenboard to show all in future
         LabelBoard m_fpsBoard;
-        LabelBoard m_MousePixlLoc;
-        LabelBoard m_MouseGridLoc;
+        LabelBoard m_mousePixlLoc;
+        LabelBoard m_mouseGridLoc;
 
     private:
-        std::list<std::shared_ptr<AscendStr>> m_AscendStrList;
+        std::list<std::shared_ptr<AscendStr>> m_ascendStrList;
 
     private:
         double m_starRatio = 0.0;
@@ -147,7 +147,7 @@ class ProcessRun: public Process
 
         uint32_t MapID() const
         {
-            return m_MapID;
+            return m_mapID;
         }
 
     public:
@@ -171,7 +171,7 @@ class ProcessRun: public Process
     public:
         std::tuple<int, int> ScreenPoint2Grid(int nPX, int nPY)
         {
-            return {(nPX + m_ViewX) / SYS_MAPGRIDXP, (nPY + m_ViewY) / SYS_MAPGRIDYP};
+            return {(nPX + m_viewX) / SYS_MAPGRIDXP, (nPY + m_viewY) / SYS_MAPGRIDYP};
         }
 
 
@@ -258,13 +258,13 @@ class ProcessRun: public Process
     public:
         const auto &GetGroundItemListRef(int nX, int nY) const
         {
-            return m_GroundItemList[nX][nY];
+            return m_groundItemList[nX][nY];
         }
 
         int FindGroundItem(const CommonItem &rstCommonItem, int nX, int nY)
         {
-            for(int nIndex = (int)(m_GroundItemList[nX][nY].size()) - 1; nIndex >= 0; --nIndex){
-                if(m_GroundItemList[nX][nY][nIndex] == rstCommonItem){
+            for(int nIndex = (int)(m_groundItemList[nX][nY].size()) - 1; nIndex >= 0; --nIndex){
+                if(m_groundItemList[nX][nY][nIndex] == rstCommonItem){
                     return nIndex;
                 }
             }
@@ -274,7 +274,7 @@ class ProcessRun: public Process
         bool AddGroundItem(const CommonItem &rstCommonItem, int nX, int nY)
         {
             if(rstCommonItem && m_mir2xMapData.ValidC(nX, nY)){
-                m_GroundItemList[nX][nY].push_back(rstCommonItem);
+                m_groundItemList[nX][nY].push_back(rstCommonItem);
                 return true;
             }
             return false;
@@ -282,9 +282,9 @@ class ProcessRun: public Process
 
         void RemoveGroundItem(const CommonItem &rstCommonItem, int nX, int nY)
         {
-            for(auto pCurr = m_GroundItemList[nX][nY].begin(); pCurr != m_GroundItemList[nX][nY].end(); ++pCurr){
+            for(auto pCurr = m_groundItemList[nX][nY].begin(); pCurr != m_groundItemList[nX][nY].end(); ++pCurr){
                 if(*pCurr == rstCommonItem){
-                    m_GroundItemList[nX][nY].erase(pCurr);
+                    m_groundItemList[nX][nY].erase(pCurr);
                     return;
                 }
             }
@@ -292,7 +292,7 @@ class ProcessRun: public Process
 
         void ClearGroundItem(int nX, int nY)
         {
-            m_GroundItemList[nX][nY].clear();
+            m_groundItemList[nX][nY].clear();
         }
 
     public:

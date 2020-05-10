@@ -24,12 +24,12 @@ class EventTask: public Task
         friend class EventTaskHub;
 
     protected:
-		uint32_t m_EventID;
+		uint32_t m_eventID;
 
 	protected:
 		EventTask(uint32_t nDelayMS, const std::function<void()>& fnOp)
             : Task(nDelayMS, fnOp)
-            , m_EventID(0)
+            , m_eventID(0)
         {}
 
         virtual ~EventTask() = default;
@@ -37,16 +37,16 @@ class EventTask: public Task
 	public:
 		void ID(uint32_t nID)
         {
-			m_EventID = nID;
+			m_eventID = nID;
 		}
 
 		uint32_t ID() const
         {
-			return m_EventID;
+			return m_eventID;
 		}
 
         std::chrono::system_clock::time_point Cycle() const
         {
-            return m_Expiration;
+            return m_expiration;
         }
 };

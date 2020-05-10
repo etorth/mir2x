@@ -26,15 +26,15 @@
 #include "processrun.hpp"
 #include "clientpathfinder.hpp"
 
-extern Log *g_Log;
+extern Log *g_log;
 extern Client *g_client;
 extern ClientArgParser *g_clientArgParser;
 
 MyHero::MyHero(uint64_t nUID, uint32_t nDBID, bool bMale, uint32_t nDressID, ProcessRun *pRun, const ActionNode &rstAction)
 	: Hero(nUID, nDBID, bMale, nDressID, pRun, rstAction)
-    , m_Gold(0)
-    , m_InvPack()
-    , m_ActionQueue()
+    , m_gold(0)
+    , m_invPack()
+    , m_actionQueue()
 {}
 
 bool MyHero::update(double fUpdateTime)
@@ -56,7 +56,7 @@ bool MyHero::update(double fUpdateTime)
             case MOTION_STAND:
                 {
                     if(StayIdle()){
-                        if(m_ActionQueue.empty()){
+                        if(m_actionQueue.empty()){
                             return advanceMotionFrame(1);
                         }
                         else{
@@ -74,7 +74,7 @@ bool MyHero::update(double fUpdateTime)
             case MOTION_HITTED:
                 {
                     if(StayIdle()){
-                        if(m_ActionQueue.empty()){
+                        if(m_actionQueue.empty()){
                             return updateMotion(false);
                         }
                         else{
@@ -107,7 +107,7 @@ bool MyHero::moveNextMotion()
     }
 
     if(m_motionQueue.empty()){
-        if(m_ActionQueue.empty()){
+        if(m_actionQueue.empty()){
             m_currMotion = makeMotionIdle();
             return true;
         }else{
@@ -124,7 +124,7 @@ bool MyHero::moveNextMotion()
     }
 
     // oops we get invalid motion queue
-    g_Log->addLog(LOGTYPE_INFO, "Invalid motion queue:");
+    g_log->addLog(LOGTYPE_INFO, "Invalid motion queue:");
 
     m_currMotion.print();
     for(auto &m: m_motionQueue){
@@ -241,11 +241,11 @@ bool MyHero::DecompMove(bool bCheckGround, int nCheckCreature, bool bCheckMove, 
 bool MyHero::DecompActionPickUp()
 {
     if(true
-            && !m_ActionQueue.empty()
-            &&  m_ActionQueue.front().Action == ACTION_PICKUP){
+            && !m_actionQueue.empty()
+            &&  m_actionQueue.front().Action == ACTION_PICKUP){
 
-        const auto stCurrPickUp = m_ActionQueue.front();
-        m_ActionQueue.pop_front();
+        const auto stCurrPickUp = m_actionQueue.front();
+        m_actionQueue.pop_front();
 
         int nX0 = m_currMotion.endX;
         int nY0 = m_currMotion.endY;
@@ -253,21 +253,21 @@ bool MyHero::DecompActionPickUp()
         int nY1 = stCurrPickUp.Y;
 
         if(!m_processRun->CanMove(true, 0, nX0, nY0)){
-            g_Log->addLog(LOGTYPE_WARNING, "Motion start from invalid grid (%d, %d)", nX0, nY0);
-            m_ActionQueue.clear();
+            g_log->addLog(LOGTYPE_WARNING, "Motion start from invalid grid (%d, %d)", nX0, nY0);
+            m_actionQueue.clear();
             return false;
         }
 
         if(!m_processRun->CanMove(true, 0, nX1, nY1)){
-            g_Log->addLog(LOGTYPE_WARNING, "Pick up at an invalid grid (%d, %d)", nX1, nY1);
-            m_ActionQueue.clear();
+            g_log->addLog(LOGTYPE_WARNING, "Pick up at an invalid grid (%d, %d)", nX1, nY1);
+            m_actionQueue.clear();
             return false;
         }
 
         switch(mathf::LDistance2(nX0, nY0, nX1, nY1)){
             case 0:
                 {
-                    m_ActionQueue.emplace_front(stCurrPickUp);
+                    m_actionQueue.emplace_front(stCurrPickUp);
                     return true;
                 }
             default:
@@ -276,14 +276,14 @@ bool MyHero::DecompActionPickUp()
                     int nYm = -1;
 
                     if(DecompMove(true, 1, true, nX0, nY0, nX1, nY1, &nXm, &nYm)){
-                        m_ActionQueue.emplace_front(stCurrPickUp);
-                        m_ActionQueue.emplace_front(ActionMove(nX0, nY0, nXm, nYm, SYS_DEFSPEED, OnHorse() ? 1 : 0));
+                        m_actionQueue.emplace_front(stCurrPickUp);
+                        m_actionQueue.emplace_front(ActionMove(nX0, nY0, nXm, nYm, SYS_DEFSPEED, OnHorse() ? 1 : 0));
                         return true;
                     }else{
                         if(DecompMove(true, 0, false, nX0, nY0, nX1, nY1, nullptr, nullptr)){
                             // reachable but blocked
                             // path occupied, we restore it and wait
-                            m_ActionQueue.emplace_front(stCurrPickUp);
+                            m_actionQueue.emplace_front(stCurrPickUp);
                         }
 
                         // report failure
@@ -299,11 +299,11 @@ bool MyHero::DecompActionPickUp()
 bool MyHero::DecompActionMove()
 {
     if(true
-            && !m_ActionQueue.empty()
-            &&  m_ActionQueue.front().Action == ACTION_MOVE){
+            && !m_actionQueue.empty()
+            &&  m_actionQueue.front().Action == ACTION_MOVE){
 
-        auto stCurrMove = m_ActionQueue.front();
-        m_ActionQueue.pop_front();
+        auto stCurrMove = m_actionQueue.front();
+        m_actionQueue.pop_front();
 
         int nX0 = stCurrMove.X;
         int nY0 = stCurrMove.Y;
@@ -311,20 +311,20 @@ bool MyHero::DecompActionMove()
         int nY1 = stCurrMove.AimY;
 
         if(!m_processRun->CanMove(true, 0, nX0, nY0)){
-            g_Log->addLog(LOGTYPE_WARNING, "Motion start from invalid grid (%d, %d)", nX0, nY0);
-            m_ActionQueue.clear();
+            g_log->addLog(LOGTYPE_WARNING, "Motion start from invalid grid (%d, %d)", nX0, nY0);
+            m_actionQueue.clear();
             return false;
         }
 
         switch(mathf::LDistance2(nX0, nY0, nX1, nY1)){
             case 0:
                 {
-                    g_Log->addLog(LOGTYPE_WARNING, "Motion invalid (%d, %d) -> (%d, %d)", nX0, nY0, nX1, nY1);
+                    g_log->addLog(LOGTYPE_WARNING, "Motion invalid (%d, %d) -> (%d, %d)", nX0, nY0, nX1, nY1);
 
                     // I have to clear all pending actions
                     // because if I return true the next step treats the front action as basic one
 
-                    m_ActionQueue.clear();
+                    m_actionQueue.clear();
                     return false;
                 }
             default:
@@ -334,13 +334,13 @@ bool MyHero::DecompActionMove()
                         switch(mathf::LDistance2(stCurrMove.AimX, stCurrMove.AimY, nXm, nYm)){
                             case 0:
                                 {
-                                    m_ActionQueue.emplace_front(stCurrMove);
+                                    m_actionQueue.emplace_front(stCurrMove);
                                     return true;
                                 }
                             default:
                                 {
-                                    m_ActionQueue.emplace_front(ActionMove(nXm, nYm, stCurrMove.AimX, stCurrMove.AimY, stCurrMove.Speed, 0));
-                                    m_ActionQueue.emplace_front(ActionMove(stCurrMove.X, stCurrMove.Y, nXm, nYm, stCurrMove.Speed, 0));
+                                    m_actionQueue.emplace_front(ActionMove(nXm, nYm, stCurrMove.AimX, stCurrMove.AimY, stCurrMove.Speed, 0));
+                                    m_actionQueue.emplace_front(ActionMove(stCurrMove.X, stCurrMove.Y, nXm, nYm, stCurrMove.Speed, 0));
                                     return true;
                                 }
                         }
@@ -377,11 +377,11 @@ bool MyHero::DecompActionMove()
 bool MyHero::DecompActionAttack()
 {
     if(true
-            && !m_ActionQueue.empty()
-            &&  m_ActionQueue.front().Action == ACTION_ATTACK){
+            && !m_actionQueue.empty()
+            &&  m_actionQueue.front().Action == ACTION_ATTACK){
 
-        auto stCurrAction = m_ActionQueue.front();
-        m_ActionQueue.pop_front();
+        auto stCurrAction = m_actionQueue.front();
+        m_actionQueue.pop_front();
 
         // when parsing ActionAttack
         // we don't use ActionAttack::X/Y
@@ -411,14 +411,14 @@ bool MyHero::DecompActionAttack()
             switch(mathf::LDistance2(nX0, nY0, nX1, nY1)){
                 case 0:
                     {
-                        g_Log->addLog(LOGTYPE_WARNING, "Invalid attack location (%d, %d) -> (%d, %d)", nX0, nY0, nX1, nY1);
-                        m_ActionQueue.clear();
+                        g_log->addLog(LOGTYPE_WARNING, "Invalid attack location (%d, %d) -> (%d, %d)", nX0, nY0, nX1, nY1);
+                        m_actionQueue.clear();
                         return false;
                     }
                 case 1:
                 case 2:
                     {
-                        m_ActionQueue.emplace_front(stAttack);
+                        m_actionQueue.emplace_front(stAttack);
                         return true;
                     }
                 default:
@@ -456,7 +456,7 @@ bool MyHero::DecompActionAttack()
                                     }
                             }
 
-                            m_ActionQueue.emplace_front(ActionAttack
+                            m_actionQueue.emplace_front(ActionAttack
                             {
                                 nXt,
                                 nYt,
@@ -465,7 +465,7 @@ bool MyHero::DecompActionAttack()
                                 stCurrAction.AimUID,
                             });
 
-                            m_ActionQueue.emplace_front(ActionMove
+                            m_actionQueue.emplace_front(ActionMove
                             {
                                 nX0,
                                 nY0,
@@ -485,9 +485,9 @@ bool MyHero::DecompActionAttack()
                             if(DecompMove(true, 0, false, nX0, nY0, nX1, nY1, nullptr, nullptr)){
                                 // keep it
                                 // can reach but not now
-                                m_ActionQueue.emplace_front(stAttack);
+                                m_actionQueue.emplace_front(stAttack);
                             }else{
-                                m_ActionQueue.clear();
+                                m_actionQueue.clear();
                             }
 
                             // decompse failed
@@ -508,16 +508,16 @@ bool MyHero::DecompActionAttack()
 bool MyHero::DecompActionSpell()
 {
     if(true
-            && !m_ActionQueue.empty()
-            &&  m_ActionQueue.front().Action == ACTION_SPELL){
+            && !m_actionQueue.empty()
+            &&  m_actionQueue.front().Action == ACTION_SPELL){
 
-        auto stCurrAction = m_ActionQueue.front();
-        m_ActionQueue.pop_front();
+        auto stCurrAction = m_actionQueue.front();
+        m_actionQueue.pop_front();
 
         // like dual axe
         // some magic it has a attack distance
 
-        m_ActionQueue.emplace_front(stCurrAction);
+        m_actionQueue.emplace_front(stCurrAction);
         return true;
     }
     return false;
@@ -525,26 +525,26 @@ bool MyHero::DecompActionSpell()
 
 bool MyHero::parseActionQueue()
 {
-    if(m_ActionQueue.empty()){
+    if(m_actionQueue.empty()){
         return true;
     }
 
     // trace message
     // trace move action before parsing
     if(g_clientArgParser->traceMove){
-        if((!m_ActionQueue.empty()) && (m_ActionQueue.front().Action == ACTION_MOVE)){
+        if((!m_actionQueue.empty()) && (m_actionQueue.front().Action == ACTION_MOVE)){
             auto nMotionX0 = m_currMotion.x;
             auto nMotionY0 = m_currMotion.y;
             auto nMotionX1 = m_currMotion.endX;
             auto nMotionY1 = m_currMotion.endY;
 
-            auto nActionX0 = m_ActionQueue.front().X;
-            auto nActionY0 = m_ActionQueue.front().Y;
-            auto nActionX1 = m_ActionQueue.front().AimX;
-            auto nActionY1 = m_ActionQueue.front().AimY;
+            auto nActionX0 = m_actionQueue.front().X;
+            auto nActionY0 = m_actionQueue.front().Y;
+            auto nActionX1 = m_actionQueue.front().AimX;
+            auto nActionY1 = m_actionQueue.front().AimY;
 
-            g_Log->addLog(LOGTYPE_INFO, "BF: CurrMotion: (%d, %d) -> (%d, %d)", nMotionX0, nMotionY0, nMotionX1, nMotionY1);
-            g_Log->addLog(LOGTYPE_INFO, "BF: CurrAction: (%d, %d) -> (%d, %d)", nActionX0, nActionY0, nActionX1, nActionY1);
+            g_log->addLog(LOGTYPE_INFO, "BF: CurrMotion: (%d, %d) -> (%d, %d)", nMotionX0, nMotionY0, nMotionX1, nMotionY1);
+            g_log->addLog(LOGTYPE_INFO, "BF: CurrAction: (%d, %d) -> (%d, %d)", nActionX0, nActionY0, nActionX1, nActionY1);
         }
     }
 
@@ -560,7 +560,7 @@ bool MyHero::parseActionQueue()
     // 2. send the simple action to server for verification
     // 3. present the action simultaneously
 
-    switch(m_ActionQueue.front().Action){
+    switch(m_actionQueue.front().Action){
         case ACTION_PICKUP:
             {
                 if(!DecompActionPickUp()){
@@ -597,8 +597,8 @@ bool MyHero::parseActionQueue()
 
     // pick the first simple action and handle it
     {
-        auto stCurrAction = m_ActionQueue.front();
-        m_ActionQueue.pop_front();
+        auto stCurrAction = m_actionQueue.front();
+        m_actionQueue.pop_front();
 
         ReportAction(ActionNode
         {
@@ -625,19 +625,19 @@ bool MyHero::parseActionQueue()
                     auto nMotionY0 = rstMotion.y;
                     auto nMotionX1 = rstMotion.endX;
                     auto nMotionY1 = rstMotion.endY;
-                    g_Log->addLog(LOGTYPE_INFO, "AF: CurrMotion: (%d, %d) -> (%d, %d)", nMotionX0, nMotionY0, nMotionX1, nMotionY1);
+                    g_log->addLog(LOGTYPE_INFO, "AF: CurrMotion: (%d, %d) -> (%d, %d)", nMotionX0, nMotionY0, nMotionX1, nMotionY1);
                 }
 
-                if(m_ActionQueue.empty()){
-                    g_Log->addLog(LOGTYPE_INFO, "AF: CurrAction: NONE");
+                if(m_actionQueue.empty()){
+                    g_log->addLog(LOGTYPE_INFO, "AF: CurrAction: NONE");
                 }
                 else{
-                    for(auto &rstAction: m_ActionQueue){
+                    for(auto &rstAction: m_actionQueue){
                         auto nActionX0 = rstAction.X;
                         auto nActionY0 = rstAction.Y;
                         auto nActionX1 = rstAction.AimX;
                         auto nActionY1 = rstAction.AimY;
-                        g_Log->addLog(LOGTYPE_INFO, "AF: CurrAction: (%d, %d) -> (%d, %d)", nActionX0, nActionY0, nActionX1, nActionY1);
+                        g_log->addLog(LOGTYPE_INFO, "AF: CurrAction: (%d, %d) -> (%d, %d)", nActionX0, nActionY0, nActionX1, nActionY1);
                     }
                 }
             }
@@ -660,7 +660,7 @@ bool MyHero::StayIdle()
 {
     return true
         && m_motionQueue.empty()
-        && m_ActionQueue.empty();
+        && m_actionQueue.empty();
 }
 
 void MyHero::PickUp()
@@ -679,8 +679,8 @@ void MyHero::PickUp()
 
 bool MyHero::EmplaceAction(const ActionNode &rstAction)
 {
-    m_ActionQueue.clear();
-    m_ActionQueue.push_back(rstAction);
+    m_actionQueue.clear();
+    m_actionQueue.push_back(rstAction);
     return true;
 }
 

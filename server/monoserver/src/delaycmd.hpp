@@ -4,10 +4,10 @@
  *       Filename: delaycmd.hpp
  *        Created: 05/04/2016 14:13:04
  *    Description: delay cmd for active object
- *                 and field m_Count for issue that std::priority_queue not stable
+ *                 and field m_count for issue that std::priority_queue not stable
  *
- *                 m_Count should be strict ordered if there exist more than one
- *                 DelayCmd object with the same m_Tick field
+ *                 m_count should be strict ordered if there exist more than one
+ *                 DelayCmd object with the same m_tick field
  *
  *        Version: 1.0
  *       Revision: none
@@ -26,17 +26,17 @@
 class DelayCmd
 {
     private:
-        uint32_t m_Tick;
-        uint32_t m_Count;
+        uint32_t m_tick;
+        uint32_t m_count;
 
     private:
-        std::function<void()> m_Cmd;
+        std::function<void()> m_cmd;
 
     public:
         DelayCmd(uint32_t nTick, uint32_t nCount, const std::function<void()> &fnCmd)
-            : m_Tick(nTick)
-            , m_Count(nCount)
-            , m_Cmd(fnCmd)
+            : m_tick(nTick)
+            , m_count(nCount)
+            , m_cmd(fnCmd)
         {}
 
         DelayCmd(uint32_t nTick, const std::function<void()> &fnCmd)
@@ -45,8 +45,8 @@ class DelayCmd
 
         void operator () () const
         {
-            if(m_Cmd){
-                m_Cmd();
+            if(m_cmd){
+                m_cmd();
             }
         }
 
@@ -54,11 +54,11 @@ class DelayCmd
         // by default std::priority_queue<T> is a max-heap for sort()
         bool operator < (const DelayCmd &rstCmd) const
         {
-            return (m_Tick == rstCmd.m_Tick) ? (m_Count > rstCmd.m_Count) : (m_Tick > rstCmd.m_Tick);
+            return (m_tick == rstCmd.m_tick) ? (m_count > rstCmd.m_count) : (m_tick > rstCmd.m_tick);
         }
 
         uint32_t Tick() const
         {
-            return m_Tick;
+            return m_tick;
         }
 };

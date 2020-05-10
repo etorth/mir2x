@@ -26,18 +26,18 @@ class Hero: public CreatureMovable
         const uint32_t m_DBID;
 
     protected:
-        bool     m_Gender;
-        uint8_t  m_Horse;
-        uint16_t m_Weapon;
+        bool     m_gender;
+        uint8_t  m_horse;
+        uint16_t m_weapon;
 
-        uint8_t  m_Hair;
-        uint32_t m_HairColor;
+        uint8_t  m_hair;
+        uint32_t m_hairColor;
 
-        uint8_t  m_Dress;
-        uint32_t m_DressColor;
+        uint8_t  m_dress;
+        uint32_t m_dressColor;
 
     protected:
-        bool m_OnHorse;
+        bool m_onHorse;
 
     public:
         Hero(uint64_t, uint32_t, bool, uint32_t, ProcessRun *, const ActionNode &);
@@ -58,7 +58,7 @@ class Hero: public CreatureMovable
     public:
         bool OnHorse() const
         {
-            return m_OnHorse;
+            return m_onHorse;
         }
 
     public:
@@ -68,21 +68,21 @@ class Hero: public CreatureMovable
         bool parseAction(const ActionNode &) override;
 
     public:
-        bool     Gender() const { return m_Gender ; }
-        uint8_t  Horse () const { return m_Horse  ; }
-        uint16_t Weapon() const { return m_Weapon ; }
+        bool     Gender() const { return m_gender ; }
+        uint8_t  Horse () const { return m_horse  ; }
+        uint16_t Weapon() const { return m_weapon ; }
         uint32_t DBID  () const { return m_DBID   ; }
-        uint32_t Dress () const { return m_Dress  ; }
+        uint32_t Dress () const { return m_dress  ; }
 
     public:
         void Dress(uint32_t nDress)
         {
-            m_Dress = nDress;
+            m_dress = nDress;
         }
 
         void Weapon(uint16_t nWeapon)
         {
-            m_Weapon = nWeapon;
+            m_weapon = nWeapon;
         }
 
     public:

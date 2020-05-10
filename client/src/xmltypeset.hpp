@@ -42,11 +42,11 @@ class XMLTypeset // means XMLParagraph typeset
         const int m_LAlign;
 
     private:
-        const bool m_CanThrough;
+        const bool m_canThrough;
 
     private:
-        int m_WordSpace;
-        int m_LineSpace;
+        int m_wordSpace;
+        int m_lineSpace;
 
     private:
         uint8_t  m_font;
@@ -82,9 +82,9 @@ class XMLTypeset // means XMLParagraph typeset
                 int      nWordSpace        =  0)
             : m_lineWidth(nMaxLineWidth)
             , m_LAlign(nLAlign)
-            , m_CanThrough(bCanThrough)
-            , m_WordSpace(nWordSpace)
-            , m_LineSpace(nLineSpace)
+            , m_canThrough(bCanThrough)
+            , m_wordSpace(nWordSpace)
+            , m_lineSpace(nLineSpace)
             , m_font(nDefaultFont)
             , m_fontSize(nDefaultFontSize)
             , m_fontStyle(nDefaultFontStyle)
@@ -431,7 +431,7 @@ class XMLTypeset // means XMLParagraph typeset
 
         bool CanThrough() const
         {
-            return m_CanThrough;
+            return m_canThrough;
         }
 
     private:

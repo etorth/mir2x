@@ -24,8 +24,8 @@ bool ChannPackQ::AddChannPack(uint8_t nHC, const uint8_t *pData, size_t nDataLen
 {
     auto fnReportError = [nHC, pData, nDataLen](const char *pErrorMessage)
     {
-        extern MonoServer *g_MonoServer;
-        g_MonoServer->addLog(LOGTYPE_WARNING, "%s: (%d, %p, %d)", (pErrorMessage ? pErrorMessage : "Empty message"), (int)(nHC), pData, (int)(nDataLen));
+        extern MonoServer *g_monoServer;
+        g_monoServer->addLog(LOGTYPE_WARNING, "%s: (%d, %p, %d)", (pErrorMessage ? pErrorMessage : "Empty message"), (int)(nHC), pData, (int)(nDataLen));
     };
 
     ServerMsg stSMSG(nHC);
@@ -144,13 +144,13 @@ bool ChannPackQ::AddChannPack(uint8_t nHC, const uint8_t *pData, size_t nDataLen
 
 bool ChannPackQ::AddPackMark(size_t nLoc, size_t nLength, std::function<void()> &&rstDoneCB)
 {
-    if(!m_PackMarkQ.empty()){
-        if(nLoc < m_PackMarkQ.back().Loc + m_PackMarkQ.back().Length){
+    if(!m_packMarkQ.empty()){
+        if(nLoc < m_packMarkQ.back().Loc + m_packMarkQ.back().Length){
             return false;
         }
     }
 
-    m_PackMarkQ.emplace_back(nLoc, nLength, std::move(rstDoneCB));
+    m_packMarkQ.emplace_back(nLoc, nLength, std::move(rstDoneCB));
     return true;
 }
 
@@ -161,10 +161,10 @@ uint8_t *ChannPackQ::GetPostBuf(size_t nNextLen)
 
     size_t nNextLoc0 = 0;
 
-    if(!m_PackMarkQ.empty()){
-        nNextLoc0 = m_PackMarkQ.back().Loc + m_PackMarkQ.back().Length;
+    if(!m_packMarkQ.empty()){
+        nNextLoc0 = m_packMarkQ.back().Loc + m_packMarkQ.back().Length;
     }
 
-    m_PackBuf.resize(nNextLoc0 + nNextLen + 16);
-    return &(m_PackBuf[0]) + nNextLoc0;
+    m_packBuf.resize(nNextLoc0 + nNextLen + 16);
+    return &(m_packBuf[0]) + nNextLoc0;
 }

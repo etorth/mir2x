@@ -28,7 +28,7 @@
 #include "sdldevice.hpp"
 #include "condcheck.hpp"
 
-extern Log *g_Log;
+extern Log *g_log;
 extern SDLDevice *g_SDLDevice;
 
 SDLDevice::EnableDrawColor::EnableDrawColor(uint32_t nRGBA)
@@ -52,11 +52,11 @@ SDLDevice::EnableDrawBlendMode::~EnableDrawBlendMode()
 }
 
 SDLDevice::SDLDevice()
-    : m_Window(nullptr)
-    , m_Renderer(nullptr)
-    , m_ColorStack()
-    , m_BlendModeStack()
-    , m_InnFontMap()
+    : m_window(nullptr)
+    , m_renderer(nullptr)
+    , m_colorStack()
+    , m_blendModeStack()
+    , m_innFontMap()
 {
     if(g_SDLDevice){
         throw fflerror("multiple initialization for SDLDevice");
@@ -77,17 +77,17 @@ SDLDevice::SDLDevice()
 
 SDLDevice::~SDLDevice()
 {
-    for(auto pTTF: m_InnFontMap){
+    for(auto pTTF: m_innFontMap){
         TTF_CloseFont(pTTF.second);
     }
-    m_InnFontMap.clear();
+    m_innFontMap.clear();
 
-    if(m_Window){
-        SDL_DestroyWindow(m_Window);
+    if(m_window){
+        SDL_DestroyWindow(m_window);
     }
 
-    if(m_Renderer){
-        SDL_DestroyRenderer(m_Renderer);
+    if(m_renderer){
+        SDL_DestroyRenderer(m_renderer);
     }
 
     SDL_StopTextInput();
@@ -131,7 +131,7 @@ void SDLDevice::SetWindowIcon()
         0X0FFF, 0X0FFF, 0X0FFF, 0X0FFF, 0X0FFF, 0X0FFF, 0X0FFF, 0X0FFF};
 
     if(auto pstSurface = SDL_CreateRGBSurfaceFrom(pRawData, 16, 16, 16, 16*2, 0x0f00, 0x00f0, 0x000f, 0xf000)){
-        SDL_SetWindowIcon(m_Window, pstSurface);
+        SDL_SetWindowIcon(m_window, pstSurface);
         SDL_FreeSurface(pstSurface);
     }
 }
@@ -142,7 +142,7 @@ SDL_Texture *SDLDevice::CreateTexture(const uint8_t *pMem, size_t nSize)
     // all the texture need to be re-load
 
     // currently it doesn't support dynamic set of context
-    // because all textures are based on current m_Renderer
+    // because all textures are based on current m_renderer
 
     SDL_RWops   *pstRWops   = nullptr;
     SDL_Surface *pstSurface = nullptr;
@@ -153,8 +153,8 @@ SDL_Texture *SDLDevice::CreateTexture(const uint8_t *pMem, size_t nSize)
         if(pstRWops){
             pstSurface = IMG_LoadPNG_RW(pstRWops);
             if(pstSurface){
-                if(m_Renderer){
-                    pstTexture = SDL_CreateTextureFromSurface(m_Renderer, pstSurface);
+                if(m_renderer){
+                    pstTexture = SDL_CreateTextureFromSurface(m_renderer, pstSurface);
                 }
             }
         }
@@ -182,7 +182,7 @@ void SDLDevice::DrawTexture(SDL_Texture *pstTexture,
     if(pstTexture){
         SDL_Rect stSrc {nSrcX, nSrcY, nSrcW, nSrcH};
         SDL_Rect stDst {nDstX, nDstY, nDstW, nDstH};
-        SDL_RenderCopy(m_Renderer, pstTexture, &stSrc, &stDst);
+        SDL_RenderCopy(m_renderer, pstTexture, &stSrc, &stDst);
     }
 }
 
@@ -194,7 +194,7 @@ void SDLDevice::DrawTexture(SDL_Texture *pstTexture,
     if(pstTexture){
         SDL_Rect stSrc {nSrcX, nSrcY, nSrcW, nSrcH};
         SDL_Rect stDst {nDstX, nDstY, nSrcW, nSrcH};
-        SDL_RenderCopy(m_Renderer, pstTexture, &stSrc, &stDst);
+        SDL_RenderCopy(m_renderer, pstTexture, &stSrc, &stDst);
     }
 }
 
@@ -242,38 +242,38 @@ TTF_Font *SDLDevice::CreateTTF(const uint8_t *pMem, size_t nSize, uint8_t nFontP
 void SDLDevice::PushColor(uint8_t nR, uint8_t nG, uint8_t nB, uint8_t nA)
 {
     uint32_t nRGBA = colorf::RGBA(nR, nG, nB, nA);
-    if(m_ColorStack.empty() || nRGBA != m_ColorStack.back().Color){
+    if(m_colorStack.empty() || nRGBA != m_colorStack.back().Color){
         SetColor(nR, nG, nB, nA);
-        m_ColorStack.emplace_back(nRGBA, 1);
+        m_colorStack.emplace_back(nRGBA, 1);
     }else{
-        ++m_ColorStack.back().Repeat;
+        ++m_colorStack.back().Repeat;
     }
 }
 
 void SDLDevice::PopColor()
 {
-    if(m_ColorStack.empty()){
+    if(m_colorStack.empty()){
         PushColor(0, 0, 0, 0);
     }else{
-        switch(m_ColorStack.back().Repeat){
+        switch(m_colorStack.back().Repeat){
             case 0:
                 {
-                    throw std::runtime_error(str_fflprintf(": Last color 0x%" PRIx32 "with zero repeat", m_ColorStack.back().Color));
+                    throw std::runtime_error(str_fflprintf(": Last color 0x%" PRIx32 "with zero repeat", m_colorStack.back().Color));
                 }
             case 1:
                 {
-                    m_ColorStack.pop_back();
-                    if(m_ColorStack.empty()){
+                    m_colorStack.pop_back();
+                    if(m_colorStack.empty()){
                         PushColor(0, 0, 0, 0);
                     }else{
-                        SDL_Color stColor = colorf::RGBA2Color(m_ColorStack.back().Color);
+                        SDL_Color stColor = colorf::RGBA2Color(m_colorStack.back().Color);
                         SetColor(stColor.r, stColor.g, stColor.b, stColor.a);
                     }
                     break;
                 }
             default:
                 {
-                    --m_ColorStack.back().Repeat;
+                    --m_colorStack.back().Repeat;
                     break;
                 }
         }
@@ -282,37 +282,37 @@ void SDLDevice::PopColor()
 
 void SDLDevice::PushBlendMode(SDL_BlendMode stBlendMode)
 {
-    if(m_BlendModeStack.empty() || stBlendMode != m_BlendModeStack.back().BlendMode){
-        SDL_SetRenderDrawBlendMode(m_Renderer, stBlendMode);
-        m_BlendModeStack.emplace_back(stBlendMode, 1);
+    if(m_blendModeStack.empty() || stBlendMode != m_blendModeStack.back().BlendMode){
+        SDL_SetRenderDrawBlendMode(m_renderer, stBlendMode);
+        m_blendModeStack.emplace_back(stBlendMode, 1);
     }else{
-        ++m_BlendModeStack.back().Repeat;
+        ++m_blendModeStack.back().Repeat;
     }
 }
 
 void SDLDevice::PopBlendMode()
 {
-    if(m_BlendModeStack.empty()){
+    if(m_blendModeStack.empty()){
         PushBlendMode(SDL_BLENDMODE_NONE);
     }else{
-        switch(m_BlendModeStack.back().Repeat){
+        switch(m_blendModeStack.back().Repeat){
             case 0:
                 {
                     throw std::runtime_error(str_fflprintf(": Last blend mode with zero repeat"));
                 }
             case 1:
                 {
-                    m_BlendModeStack.pop_back();
-                    if(m_BlendModeStack.empty()){
+                    m_blendModeStack.pop_back();
+                    if(m_blendModeStack.empty()){
                         PushBlendMode(SDL_BLENDMODE_NONE);
                     }else{
-                        SDL_SetRenderDrawBlendMode(m_Renderer, m_BlendModeStack.back().BlendMode);
+                        SDL_SetRenderDrawBlendMode(m_renderer, m_blendModeStack.back().BlendMode);
                     }
                     break;
                 }
             default:
                 {
-                    --m_BlendModeStack.back().Repeat;
+                    --m_blendModeStack.back().Repeat;
                     break;
                 }
         }
@@ -321,14 +321,14 @@ void SDLDevice::PopBlendMode()
 
 void SDLDevice::CreateInitViewWindow()
 {
-    if(m_Renderer){
-        SDL_DestroyRenderer(m_Renderer);
-        m_Renderer = nullptr;
+    if(m_renderer){
+        SDL_DestroyRenderer(m_renderer);
+        m_renderer = nullptr;
     }
 
-    if(m_Window){
-        SDL_DestroyWindow(m_Window);
-        m_Window = nullptr;
+    if(m_window){
+        SDL_DestroyWindow(m_window);
+        m_window = nullptr;
     }
 
     int nWindowW = 388;
@@ -341,18 +341,18 @@ void SDLDevice::CreateInitViewWindow()
         }
     }
 
-    m_Window = SDL_CreateWindow("MIR2X-V0.1-LOADING", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, nWindowW, nWindowH, SDL_WINDOW_BORDERLESS);
-    if(!m_Window){
+    m_window = SDL_CreateWindow("MIR2X-V0.1-LOADING", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, nWindowW, nWindowH, SDL_WINDOW_BORDERLESS);
+    if(!m_window){
         throw std::runtime_error(str_fflprintf(": Failed to create SDL window handler: %s", SDL_GetError()));
     }
 
-    SDL_ShowWindow(m_Window);
-    SDL_RaiseWindow(m_Window);
-    SDL_SetWindowResizable(m_Window, SDL_FALSE);
+    SDL_ShowWindow(m_window);
+    SDL_RaiseWindow(m_window);
+    SDL_SetWindowResizable(m_window, SDL_FALSE);
 
-    m_Renderer = SDL_CreateRenderer(m_Window, -1, 0);
-    if(!m_Renderer){
-        SDL_DestroyWindow(m_Window);
+    m_renderer = SDL_CreateRenderer(m_window, -1, 0);
+    if(!m_renderer){
+        SDL_DestroyWindow(m_window);
         throw std::runtime_error(str_fflprintf(": Failed to create SDL renderer: %s", SDL_GetError()));
     }
 
@@ -367,27 +367,27 @@ void SDLDevice::CreateMainWindow()
     // and abort if window allocation failed
     // InitView will allocate window before main window
 
-    if(m_Renderer){
-        SDL_DestroyRenderer(m_Renderer);
-        m_Renderer = nullptr;
+    if(m_renderer){
+        SDL_DestroyRenderer(m_renderer);
+        m_renderer = nullptr;
     }
 
-    if(m_Window){
-        SDL_DestroyWindow(m_Window);
-        m_Window = nullptr;
+    if(m_window){
+        SDL_DestroyWindow(m_window);
+        m_window = nullptr;
     }
 
     Uint32 nFlags   = 0;
     int    nWindowW = 0;
     int    nWindowH = 0;
 
-    extern Log     *g_Log;
+    extern Log     *g_log;
     extern XMLConf *g_XMLConf;
     int nScreenMode = 0;
     if(g_XMLConf->NodeAtoi("Root/Window/ScreenMode", &nScreenMode, 0)){
-        g_Log->addLog(LOGTYPE_INFO, "screen mode by configuration file: %d", nScreenMode);
+        g_log->addLog(LOGTYPE_INFO, "screen mode by configuration file: %d", nScreenMode);
     }else{
-        g_Log->addLog(LOGTYPE_WARNING, "Failed to select screen mode by configuration file.");
+        g_log->addLog(LOGTYPE_WARNING, "Failed to select screen mode by configuration file.");
     }
 
     switch(nScreenMode){
@@ -406,9 +406,9 @@ void SDLDevice::CreateMainWindow()
     if(true
             && g_XMLConf->NodeAtoi("Root/Window/W", &nWindowW, 800)
             && g_XMLConf->NodeAtoi("Root/Window/H", &nWindowH, 600)){
-        g_Log->addLog(LOGTYPE_INFO, "window size by configuration file: %d x %d", nWindowW, nWindowH);
+        g_log->addLog(LOGTYPE_INFO, "window size by configuration file: %d x %d", nWindowW, nWindowH);
     }else{
-        g_Log->addLog(LOGTYPE_INFO, "Use default window size.");
+        g_log->addLog(LOGTYPE_INFO, "Use default window size.");
         nWindowW = 800;
         nWindowH = 600;
     }
@@ -419,15 +419,15 @@ void SDLDevice::CreateMainWindow()
         nWindowH = std::min(nWindowH , stDesktop.h);
     }
 
-    m_Window = SDL_CreateWindow("MIR2X-V0.1", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, nWindowW, nWindowH, nFlags);
-    if(!m_Window){
+    m_window = SDL_CreateWindow("MIR2X-V0.1", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, nWindowW, nWindowH, nFlags);
+    if(!m_window){
         throw std::runtime_error(str_fflprintf(": Failed to create SDL window handler: %s", SDL_GetError()));
     }
 
-    m_Renderer = SDL_CreateRenderer(m_Window, -1, 0);
+    m_renderer = SDL_CreateRenderer(m_window, -1, 0);
 
-    if(!m_Renderer){
-        SDL_DestroyWindow(m_Window);
+    if(!m_renderer){
+        SDL_DestroyWindow(m_window);
         throw std::runtime_error(str_fflprintf(": Failed to create SDL renderer: %s", SDL_GetError()));
     }
 
@@ -452,7 +452,7 @@ void SDLDevice::DrawTextureEx(SDL_Texture *pTexture,
         double fAngle = 1.00 * (nRotateDegree % 360);
         SDL_Point stCenter {nCenterDstX, nCenterDstY};
 
-        SDL_RenderCopyEx(m_Renderer, pTexture, &stSrc, &stDst, fAngle, &stCenter, SDL_FLIP_NONE);
+        SDL_RenderCopyEx(m_renderer, pTexture, &stSrc, &stDst, fAngle, &stCenter, SDL_FLIP_NONE);
     }
 }
 
@@ -462,7 +462,7 @@ SDL_Texture *SDLDevice::createTexture(const uint32_t *buf, int w, int h)
     // seems we can only use SDL_PIXELFORMAT_RGBA8888
     // tried SDL_PIXELFORMAT_RGBA32 but gives wrong pixel format
     //
-    if(auto ptex = SDL_CreateTexture(m_Renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STATIC, w, h)){
+    if(auto ptex = SDL_CreateTexture(m_renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STATIC, w, h)){
         if(!SDL_UpdateTexture(ptex, 0, buf, w * 4) && !SDL_SetTextureBlendMode(ptex, SDL_BLENDMODE_BLEND)){
             return ptex;
         }
@@ -478,14 +478,14 @@ TTF_Font *SDLDevice::DefaultTTF(uint8_t nFontSize)
         #include "monaco.rawbuf"
     };
 
-    if(auto p = m_InnFontMap.find(nFontSize); p != m_InnFontMap.end()){
+    if(auto p = m_innFontMap.find(nFontSize); p != m_innFontMap.end()){
         return p->second;
     }
 
     if(auto pTTF = CreateTTF(s_DefaultTTFData.Data(), s_DefaultTTFData.DataLen(), nFontSize); !pTTF){
         throw std::runtime_error(str_fflprintf(": Can't build default ttf with point: %" PRIu8, nFontSize));
     }else{
-        m_InnFontMap[nFontSize] = pTTF;
+        m_innFontMap[nFontSize] = pTTF;
     }
-    return m_InnFontMap[nFontSize];
+    return m_innFontMap[nFontSize];
 }

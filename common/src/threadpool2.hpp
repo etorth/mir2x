@@ -13,10 +13,10 @@
  *                 start when creating it and stop when deleting it
  *
  *                 USAGE:
- *                      g_ThreadPool = new ThreadPool2();    // start the pool
- *                      g_ThreadPool->Add([](){ task(); });  // add new task
+ *                      g_threadPool = new ThreadPool2();    // start the pool
+ *                      g_threadPool->Add([](){ task(); });  // add new task
  *
- *                      delete g_ThreadPool;                 // stop the pool
+ *                      delete g_threadPool;                 // stop the pool
  *
  *
  *                 TODO
@@ -49,16 +49,16 @@
 class ThreadPool2
 {
     private:
-        bool                              m_Stop;
-        std::mutex                        m_QueueMutex;
-        std::vector<std::thread>          m_WorkThreadV;
-        std::condition_variable           m_Condition;
-        std::queue<std::function<void()>> m_TaskQ;
+        bool                              m_stop;
+        std::mutex                        m_queueMutex;
+        std::vector<std::thread>          m_workThreadV;
+        std::condition_variable           m_condition;
+        std::queue<std::function<void()>> m_taskQ;
 
     public:
         // the constructor launches some amount of workers
         ThreadPool2(size_t nCount = 0)
-            : m_Stop(false)
+            : m_stop(false)
         {
             // TODO
             // try to guess a proper number of thread for the thread pool
@@ -66,28 +66,28 @@ class ThreadPool2
             if(!nCount){ nCount = 4; }
 
             for(size_t nIndex = 0; nIndex < nCount; ++nIndex){
-                m_WorkThreadV.emplace_back([this]()
+                m_workThreadV.emplace_back([this]()
                     {
                         while(true){
                             std::function<void()> fnTask;
                             {
-                                std::unique_lock<std::mutex> stUniqueLock(m_QueueMutex);
+                                std::unique_lock<std::mutex> stUniqueLock(m_queueMutex);
                                 // cv.wait(stLock, fnCheck()) is equivlent to 
                                 //      while(!fnCheck()){
                                 //          cv.wait(stLock);
                                 //      }
-                                // so here, if there are tasks in the queue, or m_Stop set as
+                                // so here, if there are tasks in the queue, or m_stop set as
                                 // false in the dtor, cv.wait() won't take place, the while(true)
                                 // loop will execute until there is no more tasks in the queue or
-                                // m_Stop == true, then cv.wait() takes place
-                                this->m_Condition.wait(stUniqueLock,
-                                        [this](){ return (m_Stop || !m_TaskQ.empty()); });
+                                // m_stop == true, then cv.wait() takes place
+                                this->m_condition.wait(stUniqueLock,
+                                        [this](){ return (m_stop || !m_taskQ.empty()); });
 
                                 // exit current thread i.i.f. there is no more tasks and
                                 // current thread is required to exit, so it uses ``&&".
-                                if(m_Stop && m_TaskQ.empty()){ return; };
-                                fnTask = std::move(m_TaskQ.front());
-                                m_TaskQ.pop();
+                                if(m_stop && m_taskQ.empty()){ return; };
+                                fnTask = std::move(m_taskQ.front());
+                                m_taskQ.pop();
                             }
 
                             // if we can be there, then fnTask must be executable
@@ -101,17 +101,17 @@ class ThreadPool2
         virtual ~ThreadPool2()
         {
             {
-                std::unique_lock<std::mutex> stUniqueLock(m_QueueMutex);
-                m_Stop = true;
+                std::unique_lock<std::mutex> stUniqueLock(m_queueMutex);
+                m_stop = true;
             }
-            m_Condition.notify_all();
+            m_condition.notify_all();
 
             // before we exit all handler will take place, since the while(true)
-            // loop only exit when m_Stop is false or queue is empty
+            // loop only exit when m_stop is false or queue is empty
             //
             // TODO
             // do we need a method to force to clear the current task queue?
-            for(auto &stWorker: m_WorkThreadV){ stWorker.join(); }
+            for(auto &stWorker: m_workThreadV){ stWorker.join(); }
         }
 
     public:
@@ -119,25 +119,25 @@ class ThreadPool2
         bool Add(const std::function<void()> &fnOperate)
         {
             {
-                std::unique_lock<std::mutex> stUniqueLock(m_QueueMutex);
+                std::unique_lock<std::mutex> stUniqueLock(m_queueMutex);
                 // TODO
-                // only in the dtor we can set m_Stop = true
-                // why the author put an m_Stop here? maybe the author put it to
+                // only in the dtor we can set m_stop = true
+                // why the author put an m_stop here? maybe the author put it to
                 // enable the implementation of Suspend() which can suspend current 
                 // pool without calling dtor ???
                 //
                 // can't put new tasks when pool stopped
-                if(m_Stop){ return false; }
+                if(m_stop){ return false; }
 
                 // since we use const ref of fnOperate, so here it's the same for
                 // std::queue::push() and std::queue::emplace()
-                m_TaskQ.push(fnOperate);
+                m_taskQ.push(fnOperate);
             }
             // TODO understand notify_one() v.s. notify_all()
             //
             // here we only need to wake up one thread then it poll the task queue
             // and execute the task, then sleep again
-            m_Condition.notify_one();
+            m_condition.notify_one();
             return true;
         }
 };

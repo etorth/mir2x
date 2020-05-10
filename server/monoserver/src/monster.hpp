@@ -64,20 +64,20 @@ class Monster final: public CharObject
         friend class CharObject;
 
     protected:
-        const uint32_t m_MonsterID;
+        const uint32_t m_monsterID;
 
     protected:
-        uint64_t m_MasterUID;
+        uint64_t m_masterUID;
 
     protected:
-        const MonsterRecord &m_MonsterRecord;
+        const MonsterRecord &m_monsterRecord;
 
     protected:
         AStarCache m_AStarCache;
 
     protected:
-        bvnode_ptr m_BvTree;
-        coro<std::function<void()>> m_UpdateCoro;
+        bvnode_ptr m_bvTree;
+        coro<std::function<void()>> m_updateCoro;
 
     public:
         Monster(uint32_t,               // monster id
@@ -94,7 +94,7 @@ class Monster final: public CharObject
     public:
        uint32_t MonsterID() const
        {
-           return m_MonsterID;
+           return m_monsterID;
        }
 
     protected:
@@ -102,7 +102,7 @@ class Monster final: public CharObject
        // master may change by time or by magic
        uint64_t MasterUID() const
        {
-           return m_MasterUID;
+           return m_masterUID;
        }
 
     protected:

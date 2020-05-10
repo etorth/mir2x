@@ -23,25 +23,25 @@
 #include "textbutton.hpp"
 #include "tritexbutton.hpp"
 
-extern Log *g_Log;
+extern Log *g_log;
 extern SDLDevice *g_SDLDevice;
 
 void TextButton::drawEx(int nDstX, int nDstY, int nSrcX, int nSrcY, int nW, int nH)
 {
     extern SDLDevice *g_SDLDevice;
-    g_SDLDevice->PushColor(colorf::RGBA2Color(colorf::ARGB2RGBA(m_Color[State()][1])));
+    g_SDLDevice->PushColor(colorf::RGBA2Color(colorf::ARGB2RGBA(m_color[State()][1])));
     g_SDLDevice->FillRectangle(nDstX, nDstY, nW, nH);
     g_SDLDevice->PopColor();
 
-    g_SDLDevice->PushColor(colorf::RGBA2Color(colorf::ARGB2RGBA(m_FrameLineColor[State()])));
-    g_SDLDevice->DrawRectangle(m_FrameLineWidth, nDstX, nDstY, nW, nH);
+    g_SDLDevice->PushColor(colorf::RGBA2Color(colorf::ARGB2RGBA(m_frameLineColor[State()])));
+    g_SDLDevice->DrawRectangle(m_frameLineWidth, nDstX, nDstY, nW, nH);
     g_SDLDevice->PopColor();
 
-    int nLBX0 = (w() - m_Label.w()) / 2;
-    int nLBY0 = (h() - m_Label.h()) / 2;
+    int nLBX0 = (w() - m_label.w()) / 2;
+    int nLBY0 = (h() - m_label.h()) / 2;
 
-    int nLBW0 = m_Label.w();
-    int nLBH0 = m_Label.h();
+    int nLBW0 = m_label.w();
+    int nLBH0 = m_label.h();
 
     int nLBX = nLBX0;
     int nLBY = nLBY0;
@@ -50,8 +50,8 @@ void TextButton::drawEx(int nDstX, int nDstY, int nSrcX, int nSrcY, int nW, int 
     int nLBH = nLBH0;
 
     if(mathf::rectangleOverlapRegion(nSrcX, nSrcY, nW, nH, &nLBX, &nLBY, &nLBW, &nLBH)){
-        m_Label.SetFontColor(m_Color[State()][0]);
-        m_Label.drawEx(nDstX + (nLBX - nSrcX) + OffX(), nDstY + (nLBY - nSrcY) + OffY(), nLBX - nLBX0, nLBY - nLBY0, nLBW, nLBH);
+        m_label.SetFontColor(m_color[State()][0]);
+        m_label.drawEx(nDstX + (nLBX - nSrcX) + OffX(), nDstY + (nLBY - nSrcY) + OffY(), nLBX - nLBX0, nLBY - nLBY0, nLBW, nLBH);
     }
 }
 
@@ -74,10 +74,10 @@ void TextButton::FormatText(const char *szFormatText, ...)
     }
 
     if(!szError.empty()){
-        g_Log->addLog(LOGTYPE_WARNING, "%s", szError.c_str());
+        g_log->addLog(LOGTYPE_WARNING, "%s", szError.c_str());
     }
 
-    m_Label.setText("%s", szText.c_str());
-    m_w = (std::max<int>)(m_w, m_Label.w());
-    m_h = (std::max<int>)(m_h, m_Label.h());
+    m_label.setText("%s", szText.c_str());
+    m_w = (std::max<int>)(m_w, m_label.w());
+    m_h = (std::max<int>)(m_h, m_label.h());
 }

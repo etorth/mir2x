@@ -37,27 +37,27 @@ class RotateCoord
         };
 
     private:
-        const int m_CenterX;
-        const int m_CenterY;
+        const int m_centerX;
+        const int m_centerY;
 
     private:
-        const int m_StartX;
-        const int m_StartY;
-        const int m_StopX;
-        const int m_StopY;
+        const int m_startX;
+        const int m_startY;
+        const int m_stopX;
+        const int m_stopY;
 
     private:
-        int m_Distance;
+        int m_distance;
 
     private:
-        DirType m_Direction;
+        DirType m_direction;
 
     private:
-        int m_CurrentX;
-        int m_CurrentY;
+        int m_currentX;
+        int m_currentY;
 
     private:
-        bool m_Overlap[4];
+        bool m_overlap[4];
 
     public:
         RotateCoord(int, int, int, int, int, int);
@@ -68,12 +68,12 @@ class RotateCoord
     public:
         int X() const
         {
-            return m_CurrentX;
+            return m_currentX;
         }
 
         int Y() const
         {
-            return m_CurrentY;
+            return m_currentY;
         }
 
     public:

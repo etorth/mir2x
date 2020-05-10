@@ -21,7 +21,7 @@
 #include "pngtexoffdb.hpp"
 
 extern SDLDevice *g_SDLDevice;
-extern PNGTexOffDB *g_MagicDB;
+extern PNGTexOffDB *g_magicDB;
 
 IndepMagic::IndepMagic(uint64_t nUID,
         int nMagicID,
@@ -35,12 +35,12 @@ IndepMagic::IndepMagic(uint64_t nUID,
         uint64_t nAimUID)
     : MagicBase(nMagicID, nMagicParam, nMagicStage)
     , m_UID(nUID)
-    , m_Direction(nDirection)
+    , m_direction(nDirection)
     , m_x(nX)
     , m_y(nY)
-    , m_AimX(nAimX)
-    , m_AimY(nAimY)
-    , m_AimUID(nAimUID)
+    , m_aimX(nAimX)
+    , m_aimY(nAimY)
+    , m_aimUID(nAimUID)
 {}
 
 IndepMagic::IndepMagic(uint64_t nUID,
@@ -91,7 +91,7 @@ bool IndepMagic::Done() const
     }
 
     if(RefreshCache()){
-        switch(m_CacheEntry->Stage){
+        switch(m_cacheEntry->Stage){
             case EGS_DONE:
                 {
                     return true;
@@ -102,11 +102,11 @@ bool IndepMagic::Done() const
                 }
         }
     }else{
-        // when we deref m_CacheEntry
+        // when we deref m_cacheEntry
         // we should call RefreshCache() first
 
         // when really done Update() will make current stage as EGS_NONE
-        // then RefreshCache() makes m_CacheEntry as nullptr
+        // then RefreshCache() makes m_cacheEntry as nullptr
         return true;
     }
 }
@@ -120,11 +120,11 @@ void IndepMagic::Update(double fTime)
         return;
     }
 
-    m_AccuTime += fTime;
+    m_accuTime += fTime;
     ExecUpdateFunc();
 
     if(Done()){
-        m_UpdateFunc.clear();
+        m_updateFunc.clear();
     }
 
     if(!StageDone()){
@@ -151,26 +151,26 @@ void IndepMagic::Update(double fTime)
         case EGS_START:
             {
                 if(fnCheckStageValid(EGS_RUN)){
-                    m_Stage = EGS_RUN;
+                    m_stage = EGS_RUN;
                 }else if(fnCheckStageValid(EGS_DONE)){
-                    m_Stage = EGS_DONE;
+                    m_stage = EGS_DONE;
                 }else{
-                    m_Stage = EGS_NONE;
+                    m_stage = EGS_NONE;
                 }
                 break;
             }
         case EGS_RUN:
             {
                 if(fnCheckStageValid(EGS_DONE)){
-                    m_Stage = EGS_DONE;
+                    m_stage = EGS_DONE;
                 }else{
-                    m_Stage = EGS_NONE;
+                    m_stage = EGS_NONE;
                 }
                 break;
             }
         case EGS_DONE:
             {
-                m_Stage = EGS_DONE;
+                m_stage = EGS_DONE;
                 break;
             }
         default:
@@ -181,17 +181,17 @@ void IndepMagic::Update(double fTime)
 
     // clear the accumulated time
     // should I record the duration in total?
-    m_AccuTime = 0.0;
+    m_accuTime = 0.0;
 }
 
 void IndepMagic::Draw(int nViewX, int nViewY)
 {
     if(!Done()){
         if(RefreshCache()){
-            if(m_CacheEntry->GfxID >= 0){
+            if(m_cacheEntry->GfxID >= 0){
                 int nOffX = 0;
                 int nOffY = 0;
-                if(auto pTexture = g_MagicDB->Retrieve(m_CacheEntry->GfxID + Frame(), &nOffX, &nOffY)){
+                if(auto pTexture = g_magicDB->Retrieve(m_cacheEntry->GfxID + Frame(), &nOffX, &nOffY)){
                     SDL_SetTextureBlendMode(pTexture, SDL_BLENDMODE_BLEND);
                     g_SDLDevice->DrawTexture(pTexture, DrawPX() - nViewX + nOffX, DrawPY() - nViewY + nOffY);
                 }
@@ -203,7 +203,7 @@ void IndepMagic::Draw(int nViewX, int nViewY)
 bool IndepMagic::DrawPLoc(int *pPX, int *pPY) const
 {
     if(RefreshCache()){
-        switch(m_CacheEntry->Type){
+        switch(m_cacheEntry->Type){
             case EGT_FIXED:
                 {
                     if(pPX){ *pPX = AimX() * SYS_MAPGRIDXP; }

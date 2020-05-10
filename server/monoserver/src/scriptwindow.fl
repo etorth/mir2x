@@ -12,12 +12,12 @@ decl {\#include <Fl/Fl_Text_Buffer.H>} {private local
 }
 
 class ScriptWindow {} {
-  decl {std::string m_FileName;} {private local
+  decl {std::string m_fileName;} {private local
   }
-  decl {Fl_Text_Buffer *m_Buffer;} {private local
+  decl {Fl_Text_Buffer *m_buffer;} {private local
   }
   Function {ScriptWindow()} {} {
-    Fl_Window m_Window {
+    Fl_Window m_window {
       xywh {1 41 830 505} type Double labelfont 4 resizable visible
     } {
       Fl_Menu_Bar {} {
@@ -34,8 +34,8 @@ class ScriptWindow {} {
           MenuItem {} {
             label Update
             callback {{
-    if(m_FileName != ""){
-        LoadFile(m_FileName.c_str());
+    if(m_fileName != ""){
+        LoadFile(m_fileName.c_str());
     }
 }}
             xywh {0 0 100 20} shortcut 0x40075 labelfont 4 divider
@@ -43,7 +43,7 @@ class ScriptWindow {} {
           MenuItem {} {
             label Exit
             callback {{
-	m_Window->hide();
+	m_window->hide();
 }}
             xywh {0 0 100 20} labelfont 4
           }
@@ -62,31 +62,31 @@ class ScriptWindow {} {
           }
         }
       }
-      Fl_Text_Display m_Display {
+      Fl_Text_Display m_display {
         xywh {0 25 830 480} labelfont 4 textfont 4 resizable
       }
     }
     code {{
 	// install the text buffer into text display
-	m_Buffer = new Fl_Text_Buffer();
-	m_Display->buffer(m_Buffer);
+	m_buffer = new Fl_Text_Buffer();
+	m_display->buffer(m_buffer);
 }} {}
   }
   Function {ShowAll()} {return_type void
   } {
     code {{
-	m_Window->show();
+	m_window->show();
 }} {}
   }
   Function {LoadFile(const char *szFileName)} {return_type void
   } {
     code {{
 	// Load file
-    switch(m_Buffer->loadfile(szFileName)){
+    switch(m_buffer->loadfile(szFileName)){
         case 0:
         case 2:
             {
-                m_FileName = szFileName;
+                m_fileName = szFileName;
                 ShowAll();
                 break;
             }
@@ -101,8 +101,8 @@ class ScriptWindow {} {
   Function {SetGUIFont(int nFont)} {return_type void
   } {
     code {{
-    m_Display->textfont((Fl_Font)(nFont));
-    m_Window->redraw();
+    m_display->textfont((Fl_Font)(nFont));
+    m_window->redraw();
 }} {}
   }
 }

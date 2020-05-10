@@ -226,26 +226,26 @@ class TokenBoard: public Widget
         using IDHandlerMap = std::map<std::string, std::function<void()>>;
 
     private:
-        bool m_Selectable;
-        bool m_WithCursor;
-        bool m_SpacePadding;
-        bool m_CanThrough;
+        bool m_selectable;
+        bool m_withCursor;
+        bool m_spacePadding;
+        bool m_canThrough;
 
     private:
         // define max line width in pixel
         // <= 0 : not fixed
         // >  0 :
-        int m_MaxLineWidth;
+        int m_maxLineWidth;
 
     private:
-        int m_WordSpace;
-        int m_LineSpace;
+        int m_wordSpace;
+        int m_lineSpace;
 
     private:
         uint8_t   m_font;
-        uint8_t   m_DefaultSize;
-        uint8_t   m_DefaultStyle;
-        SDL_Color m_DefaultColor;
+        uint8_t   m_defaultSize;
+        uint8_t   m_defaultStyle;
+        SDL_Color m_defaultColor;
 
     private:
         // margins for the board, this is needed for balabala..
@@ -258,43 +258,43 @@ class TokenBoard: public Widget
         //  |  +-------------+        |
         //  |        M2               |
         //  +-------------------------+
-        int m_Margin[4];
+        int m_margin[4];
 
     private:
-        std::vector<TextLine> m_LineV;
+        std::vector<TextLine> m_lineV;
 
     private:
-        std::map<int, SectionEntry> m_SectionRecord;
+        std::map<int, SectionEntry> m_sectionRecord;
 
     private:
-        bool m_SkipEvent;
-        bool m_SkipUpdate;
+        bool m_skipEvent;
+        bool m_skipUpdate;
 
     private:
         // keep it mutable and dynamically update it
         // define the grid size assistant to token box selecting
-        int m_Resolution;
+        int m_resolution;
 
         // token box map
         // record box's location rather than its pointer
-        std::vector<std::vector<std::vector<TBLocation>>> m_TokenBoxBitmap;
+        std::vector<std::vector<std::vector<TBLocation>>> m_tokenBoxBitmap;
 
     private:
         // cursor binds to the token box after it
         // (0,              Y) : before the first token box
         // (Content.size(), Y) : after  the last  token box
-        TBLocation m_CursorLoc;
+        TBLocation m_cursorLoc;
 
         // last token box selected
         // location for token box, not for cursor
         TBLocation m_lastTokenBoxLoc;
 
     private:
-        int        m_SelectState;
-        TBLocation m_SelectLoc[2];
+        int        m_selectState;
+        TBLocation m_selectLoc[2];
 
     private:
-        std::map<int, SelectRecord> m_SelectRecord;
+        std::map<int, SelectRecord> m_selectRecord;
 
     public:
         // parameters
@@ -335,38 +335,38 @@ class TokenBoard: public Widget
                 bool    bFreewidget = false)
             : Widget(nX, nY, 0, 0, pwidget, bFreewidget)
 
-            , m_Selectable(bSelectable)
-            , m_WithCursor(bWithCursor)
-            , m_SpacePadding(bSpacePadding)
-            , m_CanThrough(bCanThrough)
+            , m_selectable(bSelectable)
+            , m_withCursor(bWithCursor)
+            , m_spacePadding(bSpacePadding)
+            , m_canThrough(bCanThrough)
 
-            , m_MaxLineWidth(nMaxLineWidth)
+            , m_maxLineWidth(nMaxLineWidth)
 
-            , m_WordSpace(nWordSpace)
-            , m_LineSpace(nLineSpace)
+            , m_wordSpace(nWordSpace)
+            , m_lineSpace(nLineSpace)
 
             , m_font(nDefaultFont)
-            , m_DefaultSize(nDefaultSize)
-            , m_DefaultStyle(nDefaultStyle)
-            , m_DefaultColor(rstDefaultColor)
+            , m_defaultSize(nDefaultSize)
+            , m_defaultStyle(nDefaultStyle)
+            , m_defaultColor(rstDefaultColor)
 
-            , m_Margin {nMargin0, nMargin1, nMargin2, nMargin3}
+            , m_margin {nMargin0, nMargin1, nMargin2, nMargin3}
 
-            , m_LineV()
-            , m_SectionRecord()
+            , m_lineV()
+            , m_sectionRecord()
 
-            , m_SkipEvent(false)
-            , m_SkipUpdate(false)
+            , m_skipEvent(false)
+            , m_skipUpdate(false)
 
-            , m_Resolution(20)
-            , m_TokenBoxBitmap()
+            , m_resolution(20)
+            , m_tokenBoxBitmap()
 
-            , m_CursorLoc(0, 0)
+            , m_cursorLoc(0, 0)
             , m_lastTokenBoxLoc(-1, -1)
 
-            , m_SelectState(SELECTTYPE_DONE)
-            , m_SelectLoc {{-1, -1}, {-1, -1}}
-            , m_SelectRecord()
+            , m_selectState(SELECTTYPE_DONE)
+            , m_selectLoc {{-1, -1}, {-1, -1}}
+            , m_selectRecord()
         {
             Reset();
         }
@@ -411,12 +411,12 @@ class TokenBoard: public Widget
         // 1. previous content will be destroyed
         // 2. failed then board is undefined
         // 3. TBD:
-        //      if m_WithCursor is false, then last empty line will be deleted
+        //      if m_withCursor is false, then last empty line will be deleted
         bool Load(const XMLObjectList &rstXMLObjectList, const IDHandlerMap &rstMap = IDHandlerMap())
         {
             Reset();
             bool bRes = InnInsert(rstXMLObjectList, rstMap);
-            if(bRes && !m_WithCursor){
+            if(bRes && !m_withCursor){
                 DeleteEmptyBottomLine();
             }
             return bRes;
@@ -482,15 +482,15 @@ class TokenBoard: public Widget
     public:
         void GetCursor(int *pX, int *pY) const
         {
-            if(pX){ *pX = m_CursorLoc.X; }
-            if(pY){ *pY = m_CursorLoc.Y; }
+            if(pX){ *pX = m_cursorLoc.X; }
+            if(pY){ *pY = m_cursorLoc.Y; }
         }
 
     public:
         bool SetCursor(int nX, int nY)
         {
             if(CursorValid(nX, nY)){
-                m_CursorLoc = {nX, nY};
+                m_cursorLoc = {nX, nY};
                 return true;
             }
             return false;
@@ -499,23 +499,23 @@ class TokenBoard: public Widget
     public:
         int GetWordSpace() const
         {
-            return m_WordSpace;
+            return m_wordSpace;
         }
 
         int GetLineSpace() const
         {
-            return m_LineSpace;
+            return m_lineSpace;
         }
 
     public:
         int GetLineTokenBoxCount(int nLine) const
         {
-            return LineValid(nLine) ? (int)(m_LineV[nLine].Content.size()) : -1;
+            return LineValid(nLine) ? (int)(m_lineV[nLine].Content.size()) : -1;
         }
 
         int GetLineCount()
         {
-            return (int)(m_LineV.size());
+            return (int)(m_lineV.size());
         }
 
         bool BreakLine();
@@ -523,9 +523,9 @@ class TokenBoard: public Widget
         void SetDefaultFont(uint8_t nFont, uint8_t nSize, uint8_t nStyle, const SDL_Color &rstColor)
         {
             m_font  = nFont;
-            m_DefaultSize  = nSize;
-            m_DefaultStyle = nStyle;
-            m_DefaultColor = rstColor;
+            m_defaultSize  = nSize;
+            m_defaultStyle = nStyle;
+            m_defaultColor = rstColor;
         }
 
     private:
@@ -539,18 +539,18 @@ class TokenBoard: public Widget
     public:
         void MoveCursorFront()
         {
-            if(m_LineV.empty()){
+            if(m_lineV.empty()){
                 Reset();
             }
-            m_CursorLoc = {0, 0};
+            m_cursorLoc = {0, 0};
         }
 
         void MoveCursorBack()
         {
-            if(m_LineV.empty()){
+            if(m_lineV.empty()){
                 Reset();
             }
-            m_CursorLoc = {(int)(m_LineV.back().Content.size()), (int)(m_LineV.size()) - 1};
+            m_cursorLoc = {(int)(m_lineV.back().Content.size()), (int)(m_lineV.size()) - 1};
         }
 
     private:
@@ -558,28 +558,28 @@ class TokenBoard: public Widget
         {
             return true
                 && nY >= 0
-                && nY <  (int)(m_LineV.size())
+                && nY <  (int)(m_lineV.size())
                 && nX >= 0
-                && nX <= (int)(m_LineV[nY].Content.size());
+                && nX <= (int)(m_lineV[nY].Content.size());
         }
 
         bool CursorValid() const
         {
-            return CursorValid(m_CursorLoc.X, m_CursorLoc.Y);
+            return CursorValid(m_cursorLoc.X, m_cursorLoc.Y);
         }
 
         bool LineValid(int nLine) const
         {
-            return nLine >= 0 && nLine < (int)(m_LineV.size());
+            return nLine >= 0 && nLine < (int)(m_lineV.size());
         }
 
         bool TokenBoxValid(int nX, int nY) const
         {
             return true
                 && nY >= 0
-                && nY < (int)(m_LineV.size())
+                && nY < (int)(m_lineV.size())
                 && nX >= 0
-                && nX < (int)(m_LineV[nY].Content.size());
+                && nX < (int)(m_lineV[nY].Content.size());
         }
 
     private:
@@ -613,8 +613,8 @@ class TokenBoard: public Widget
         bool SectionValid(int nSectionID, bool bCheckSectionType = true) const
         {
             if(nSectionID > 0){
-                auto pRecord = m_SectionRecord.find(nSectionID);
-                if(pRecord != m_SectionRecord.end()){
+                auto pRecord = m_sectionRecord.find(nSectionID);
+                if(pRecord != m_sectionRecord.end()){
                     if(bCheckSectionType){
                         switch(pRecord->second.Section.Info.Type){
                             case SECTIONTYPE_PLAINTEXT:
@@ -640,11 +640,11 @@ class TokenBoard: public Widget
         {
             auto fnDoCreate = [this](int nSection, const SECTION &rstSEC, const std::function<void()> &fnCB)
             {
-                m_SectionRecord[nSection].Section  = rstSEC;
-                m_SectionRecord[nSection].Callback = fnCB;
+                m_sectionRecord[nSection].Section  = rstSEC;
+                m_sectionRecord[nSection].Callback = fnCB;
             };
 
-            int nSection = m_SectionRecord.empty() ? 1 : m_SectionRecord.rbegin()->first;
+            int nSection = m_sectionRecord.empty() ? 1 : m_sectionRecord.rbegin()->first;
             fnDoCreate(nSection, rstSection, fnCallback);
             return nSection;
         }
@@ -659,7 +659,7 @@ class TokenBoard: public Widget
     public:
         int Margin(int nIndex) const
         {
-            return (nIndex >= 0 && nIndex < 4) ? m_Margin[nIndex] : -1;
+            return (nIndex >= 0 && nIndex < 4) ? m_margin[nIndex] : -1;
         }
 
     public:

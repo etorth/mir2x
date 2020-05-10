@@ -98,19 +98,19 @@ class ServerObject
         const std::string m_UIDName;
 
     protected:
-        std::array< uint8_t, 255> m_StateV;
-        std::array<uint32_t, 255> m_StateTimeV;
+        std::array< uint8_t, 255> m_stateV;
+        std::array<uint32_t, 255> m_stateTimeV;
 
     protected:
         ActorPod *m_actorPod;
 
     protected:
-        StateHook m_StateHook;
+        StateHook m_stateHook;
 
         // keep an incremental counter for DelayCmd
         // we have to maintain this count to make DelayCmdQ stable for sort
-        uint32_t m_DelayCmdCount;
-        std::priority_queue<DelayCmd> m_DelayCmdQ;
+        uint32_t m_delayCmdCount;
+        std::priority_queue<DelayCmd> m_delayCmdQ;
 
     public:
         ServerObject(uint64_t);

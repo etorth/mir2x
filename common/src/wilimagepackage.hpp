@@ -56,20 +56,20 @@ struct WILIMAGEINFO
 class WilImagePackage
 {
     private:
-        WIXIMAGEINFO  m_WixImageInfo;
-        WILIMAGEINFO  m_CurrentWilImageInfo;
-        WILFILEHEADER m_WilFileHeader;
+        WIXIMAGEINFO  m_wixImageInfo;
+        WILIMAGEINFO  m_currentWilImageInfo;
+        WILFILEHEADER m_wilFileHeader;
 
     private:
-        int32_t m_CurrentImageIndex;
-        bool    m_CurrentImageValid;
+        int32_t m_currentImageIndex;
+        bool    m_currentImageValid;
 
     private:
-        std::vector<uint16_t> m_CurrentImageBuffer;
-        std::vector< int32_t> m_WilPosition;
+        std::vector<uint16_t> m_currentImageBuffer;
+        std::vector< int32_t> m_wilPosition;
 
     private:
-        FILE *m_WilFile;
+        FILE *m_wilFile;
 
     public:
         WilImagePackage();

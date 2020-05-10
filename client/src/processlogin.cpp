@@ -28,17 +28,17 @@
 #include "buildconfig.hpp"
 #include "processlogin.hpp"
 
-extern Log *g_Log;
+extern Log *g_log;
 extern Client *g_client;
-extern PNGTexDB *g_ProgUseDB;
+extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_SDLDevice;
 
 ProcessLogin::ProcessLogin()
 	: Process()
-	, m_Button1(150, 482, 0X00000005, []{}, [this](){ DoCreateAccount(); })
-	, m_Button2(352, 482, 0X00000008, []{}, [    ](){                    })
-	, m_Button3(554, 482, 0X0000000B, []{}, [    ](){ std::exit(0);      })
-    , m_Button4(600, 536, 0X0000000E, []{}, [this](){ DoLogin();         })
+	, m_button1(150, 482, 0X00000005, []{}, [this](){ DoCreateAccount(); })
+	, m_button2(352, 482, 0X00000008, []{}, [    ](){                    })
+	, m_button3(554, 482, 0X0000000B, []{}, [    ](){ std::exit(0);      })
+    , m_button4(600, 536, 0X0000000E, []{}, [this](){ DoLogin();         })
 	, m_idBox
       {
           159,
@@ -57,14 +57,14 @@ ProcessLogin::ProcessLogin()
           [this]()
           {
               m_idBox      .focus(false);
-              m_PasswordBox.focus(true);
+              m_passwordBox.focus(true);
           },
           [this]()
           {
               DoLogin();
           }
       }
-	, m_PasswordBox
+	, m_passwordBox
       {
           409,
           540,
@@ -83,7 +83,7 @@ ProcessLogin::ProcessLogin()
           [this]()
           {
               m_idBox      .focus(true);
-              m_PasswordBox.focus(false);
+              m_passwordBox.focus(false);
           },
           [this]()
           {
@@ -108,24 +108,24 @@ ProcessLogin::ProcessLogin()
 void ProcessLogin::Update(double fMS)
 {
     m_idBox.update(fMS);
-    m_PasswordBox.update(fMS);
+    m_passwordBox.update(fMS);
 }
 
 void ProcessLogin::Draw()
 {
     g_SDLDevice->ClearScreen();
 
-    g_SDLDevice->DrawTexture(g_ProgUseDB->Retrieve(0X00000003),   0,  75);
-    g_SDLDevice->DrawTexture(g_ProgUseDB->Retrieve(0X00000004),   0, 465);
-    g_SDLDevice->DrawTexture(g_ProgUseDB->Retrieve(0X00000011), 103, 536);
+    g_SDLDevice->DrawTexture(g_progUseDB->Retrieve(0X00000003),   0,  75);
+    g_SDLDevice->DrawTexture(g_progUseDB->Retrieve(0X00000004),   0, 465);
+    g_SDLDevice->DrawTexture(g_progUseDB->Retrieve(0X00000011), 103, 536);
 
-    m_Button1.draw();
-    m_Button2.draw();
-    m_Button3.draw();
-    m_Button4.draw();
+    m_button1.draw();
+    m_button2.draw();
+    m_button3.draw();
+    m_button4.draw();
 
     m_idBox      .draw();
-    m_PasswordBox.draw();
+    m_passwordBox.draw();
 
     m_buildSignature.draw();
     g_SDLDevice->Present();
@@ -141,10 +141,10 @@ void ProcessLogin::processEvent(const SDL_Event &event)
                         {
                             if(true
                                     && !m_idBox      .focus()
-                                    && !m_PasswordBox.focus()){
+                                    && !m_passwordBox.focus()){
 
                                 m_idBox      .focus(true);
-                                m_PasswordBox.focus(false);
+                                m_passwordBox.focus(false);
                                 return;
                             }
                         }
@@ -160,10 +160,10 @@ void ProcessLogin::processEvent(const SDL_Event &event)
             }
     }
 
-    m_Button1.processEvent(event, true);
-    m_Button2.processEvent(event, true);
-    m_Button3.processEvent(event, true);
-    m_Button4.processEvent(event, true);
+    m_button1.processEvent(event, true);
+    m_button2.processEvent(event, true);
+    m_button3.processEvent(event, true);
+    m_button4.processEvent(event, true);
 
     // widget idbox and pwdbox are not independent from each other
     // tab in one box will grant focus to another
@@ -172,24 +172,24 @@ void ProcessLogin::processEvent(const SDL_Event &event)
         return;
     }
 
-    if(m_PasswordBox.processEvent(event, true)){
+    if(m_passwordBox.processEvent(event, true)){
         return;
     }
 }
 
 void ProcessLogin::DoLogin()
 {
-    if(!(m_idBox.getRawString().empty()) && !(m_PasswordBox.getRawString().empty())){
-        g_Log->addLog(LOGTYPE_INFO, "login account: (%s:%s)", m_idBox.getRawString().c_str(), m_PasswordBox.getRawString().c_str());
+    if(!(m_idBox.getRawString().empty()) && !(m_passwordBox.getRawString().empty())){
+        g_log->addLog(LOGTYPE_INFO, "login account: (%s:%s)", m_idBox.getRawString().c_str(), m_passwordBox.getRawString().c_str());
 
         auto szID  = m_idBox.getRawString();
-        auto szPWD = m_PasswordBox.getRawString();
+        auto szPWD = m_passwordBox.getRawString();
 
         CMLogin stCML;
         std::memset(&stCML, 0, sizeof(stCML));
 
         if((szID.size() >= sizeof(stCML.ID)) || (szPWD.size() >= sizeof(stCML.Password))){
-            g_Log->addLog(LOGTYPE_WARNING, "Too long ID/PWD provided");
+            g_log->addLog(LOGTYPE_WARNING, "Too long ID/PWD provided");
             return;
         }
 

@@ -29,14 +29,14 @@
 template<size_t StaticBufferLength = 64> class InnMessagePack final
 {
     private:
-        int m_Type;
+        int m_type;
 
     private:
-        uint64_t m_From;
+        uint64_t m_from;
 
     private:
         uint32_t m_ID;
-        uint32_t m_Respond;
+        uint32_t m_respond;
 
     private:
         uint8_t  m_SBuf[StaticBufferLength];
@@ -48,10 +48,10 @@ template<size_t StaticBufferLength = 64> class InnMessagePack final
 
     public:
         InnMessagePack(int nType = MPK_NONE, const uint8_t *pData = nullptr, size_t nDataLen = 0, uint64_t nFrom = 0, uint32_t nID = 0, uint32_t nRespond = 0)
-            : m_Type(nType)
-            , m_From(nFrom)
+            : m_type(nType)
+            , m_from(nFrom)
             , m_ID(nID)
-            , m_Respond(nRespond)
+            , m_respond(nRespond)
         {
             if(pData && nDataLen){
                 if(nDataLen <= StaticBufferLength){
@@ -84,19 +84,19 @@ template<size_t StaticBufferLength = 64> class InnMessagePack final
         {}
 
         InnMessagePack(InnMessagePack &&rstMPK)
-            : m_Type(rstMPK.Type())
-            , m_From(rstMPK.From())
+            : m_type(rstMPK.Type())
+            , m_from(rstMPK.From())
             , m_ID(rstMPK.ID())
-            , m_Respond(rstMPK.Respond())
+            , m_respond(rstMPK.Respond())
         {
             // invalidate the r-ref message by
             // 1. remove its from/id/resp
             // 2. remove its buffer
 
-            rstMPK.m_Type    = MPK_NONE;
-            rstMPK.m_From    = 0;
+            rstMPK.m_type    = MPK_NONE;
+            rstMPK.m_from    = 0;
             rstMPK.m_ID      = 0;
-            rstMPK.m_Respond = 0;
+            rstMPK.m_respond = 0;
 
             // case-1: use dynamic buffer, steal the buffer
             //         after this call rstMPK should be destructed immediately
@@ -144,10 +144,10 @@ template<size_t StaticBufferLength = 64> class InnMessagePack final
     public:
        InnMessagePack & operator = (InnMessagePack stMPK)
        {
-           std::swap(m_Type   , stMPK.m_Type   );
-           std::swap(m_From   , stMPK.m_From   );
+           std::swap(m_type   , stMPK.m_type   );
+           std::swap(m_from   , stMPK.m_from   );
            std::swap(m_ID     , stMPK.m_ID     );
-           std::swap(m_Respond, stMPK.m_Respond);
+           std::swap(m_respond, stMPK.m_respond);
 
            std::swap(m_SBufLen, stMPK.m_SBufLen);
            std::swap(m_DBuf   , stMPK.m_DBuf   );
@@ -185,7 +185,7 @@ template<size_t StaticBufferLength = 64> class InnMessagePack final
     public:
         int Type() const
         {
-            return m_Type;
+            return m_type;
         }
 
         const uint8_t *Data() const
@@ -205,7 +205,7 @@ template<size_t StaticBufferLength = 64> class InnMessagePack final
 
         uint64_t From() const
         {
-            return m_From;
+            return m_from;
         }
 
         uint32_t ID() const
@@ -215,12 +215,12 @@ template<size_t StaticBufferLength = 64> class InnMessagePack final
 
         uint32_t Respond() const
         {
-            return m_Respond;
+            return m_respond;
         }
 
         const char *Name() const
         {
-            switch(m_Type){
+            switch(m_type){
                 case MPK_NONE                : return "MPK_NONE";
                 case MPK_OK                  : return "MPK_OK";
                 case MPK_ERROR               : return "MPK_ERROR";

@@ -409,12 +409,12 @@ class MemoryChunkPN
         }InnMemoryChunkPoolBranch;
 
     private:
-        size_t m_Count;
+        size_t m_count;
         InnMemoryChunkPoolBranch m_MCPBV[BranchSize];
 
     public:
         MemoryChunkPN()
-            : m_Count(0)
+            : m_count(0)
         {
             // 1. check parameters
             static_assert(UnitSize > 0 && UnitSize <= 256 && (!(UnitSize & (UnitSize - 1))), "invalid argument for UnitSize");
@@ -455,7 +455,7 @@ class MemoryChunkPN
 
             if(BranchSize == 1){ return m_MCPBV[0].Get(nSizeInUnit); }
 
-            size_t nIndex = (m_Count++) % BranchSize;
+            size_t nIndex = (m_count++) % BranchSize;
             while(true){
                 if(auto pRet = m_MCPBV[nIndex].Get(nSizeInUnit)){
                     return pRet;

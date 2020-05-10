@@ -9,14 +9,14 @@ class ActorMonitorWindow {open
 } {
   Function {ActorMonitorWindow()} {open
   } {
-    Fl_Window m_Window {
+    Fl_Window m_window {
       label ActorMointorWindow
       callback {{
     // do nothing
 }} open
       xywh {258 108 900 445} type Double labelfont 4 resizable visible
     } {
-      Fl_Table m_ActorMonitorTable {selected
+      Fl_Table m_actorMonitorTable {selected
         xywh {0 25 900 400} labelfont 4 resizable
         code0 {\#include "actormonitortable.hpp"}
         class ActorMonitorTable
@@ -31,7 +31,7 @@ class ActorMonitorWindow {open
           MenuItem {} {
             label {Exit    }
             callback {{
-    m_Window->hide();
+    m_window->hide();
 }}
             xywh {0 0 36 21} shortcut 0x40071 labelfont 4
           }
@@ -46,17 +46,17 @@ Fl::add_timeout(1.370, ActorMonitorWindow_Timer_CB, this);} {}
   }
   Function {ShowAll()} {return_type void
   } {
-    code {m_Window->show();} {}
+    code {m_window->show();} {}
   }
   Function {RedrawAll()} {return_type void
   } {
-    code {m_Window->redraw();} {}
+    code {m_window->redraw();} {}
   }
   Function {UpdateTable()} {return_type void
   } {
-    code {dynamic_cast<ActorMonitorTable *>(m_ActorMonitorTable)->UpdateTable();
+    code {dynamic_cast<ActorMonitorTable *>(m_actorMonitorTable)->UpdateTable();
 char buf[64];
-std::sprintf(buf, "actors: %d", m_ActorMonitorTable->rows());
+std::sprintf(buf, "actors: %d", m_actorMonitorTable->rows());
 addLog(buf);} {}
   }
   Function {addLog(const char *log)} {return_type void
@@ -69,7 +69,7 @@ else{
 }
 
 m_logBar->redraw();
-m_Window->redraw();} {}
+m_window->redraw();} {}
   }
 }
 
@@ -78,7 +78,7 @@ Function {ActorMonitorWindow_Timer_CB(void *pUserData)} {return_type void
   code {// used to flush the actor mointor table
 {
     auto pWindow = (ActorMonitorWindow *)(pUserData);
-    if(pWindow->m_Window->visible()){
+    if(pWindow->m_window->visible()){
         pWindow->UpdateTable();
         pWindow->RedrawAll();
     }

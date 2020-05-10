@@ -43,16 +43,16 @@ int CommandInput::handle(int nEvent)
                             }
 
                             if(true
-                                    && m_Window
-                                    && m_Window->GetTaskHub()
-                                    && m_Window->GetLuaModule()){
+                                    && m_window
+                                    && m_window->GetTaskHub()
+                                    && m_window->GetLuaModule()){
 
                                 // 1. print current command for echo
                                 //    should give method to disable the echo
 
                                 // won't use CommandWindow::AddLog() directly
                                 // use MonoServer::AddCWLog() for thread-safe access
-                                int nCWID = m_Window->GetLuaModule()->CWID();
+                                int nCWID = m_window->GetLuaModule()->CWID();
 
                                 // we echo the command to the command window
                                 // enter in command string will be commit to lua machine
@@ -67,25 +67,25 @@ int CommandInput::handle(int nEvent)
                                         // we do find an enter
                                         // remove the enter and print it
 
-                                        extern MonoServer *g_MonoServer;
-                                        g_MonoServer->addCWLog(nCWID, 0, "> ", szCommandStr.substr(nCurrLoc, nEnterLoc - nCurrLoc).c_str());
+                                        extern MonoServer *g_monoServer;
+                                        g_monoServer->addCWLog(nCWID, 0, "> ", szCommandStr.substr(nCurrLoc, nEnterLoc - nCurrLoc).c_str());
 
                                         nCurrLoc = nEnterLoc + 1;
                                     }else{
                                         // can't find a enter
                                         // we done here for the whole string
 
-                                        extern MonoServer *g_MonoServer;
-                                        g_MonoServer->addCWLog(nCWID, 0, "> ", szCommandStr.substr(nCurrLoc).c_str());
+                                        extern MonoServer *g_monoServer;
+                                        g_monoServer->addCWLog(nCWID, 0, "> ", szCommandStr.substr(nCurrLoc).c_str());
                                         break;
                                     }
                                 }
 
                                 // 2. put a task in the LuaModule::TaskHub
                                 //    and return immediately for current thread
-                                m_Window->GetTaskHub()->Add([this, nCWID, szCommandStr]()
+                                m_window->GetTaskHub()->Add([this, nCWID, szCommandStr]()
                                 {
-                                    auto stCallResult = m_Window->GetLuaModule()->GetLuaState().script(szCommandStr.c_str(),
+                                    auto stCallResult = m_window->GetLuaModule()->GetLuaState().script(szCommandStr.c_str(),
                                     [](lua_State *, sol::protected_function_result stResult)
                                     {
                                         // default handler
@@ -106,8 +106,8 @@ int CommandInput::handle(int nEvent)
 
                                         std::string szErrorLine;
                                         while(std::getline(stErrorStream, szErrorLine, '\n')){
-                                            extern MonoServer *g_MonoServer;
-                                            g_MonoServer->addCWLog(nCWID, 2, ">>> ", szErrorLine.c_str());
+                                            extern MonoServer *g_monoServer;
+                                            g_monoServer->addCWLog(nCWID, 2, ">>> ", szErrorLine.c_str());
                                         }
                                     }
                                 });

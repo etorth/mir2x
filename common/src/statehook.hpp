@@ -59,11 +59,11 @@ class StateHook final
         using OperationRecord = std::tuple<std::string, std::function<bool()>, bool>;
 
     private:
-        std::vector<OperationRecord> m_OperationV;
+        std::vector<OperationRecord> m_operationV;
 
     public:
         StateHook()
-            : m_OperationV()
+            : m_operationV()
         {}
 
         ~StateHook() = default;
@@ -72,16 +72,16 @@ class StateHook final
         void Execute()
         {
             size_t nIndex = 0;
-            while(nIndex < m_OperationV.size()){
+            while(nIndex < m_operationV.size()){
                 if(true
-                        && std::get<1>(m_OperationV[nIndex])    // callable
-                        && std::get<2>(m_OperationV[nIndex])){  // active
+                        && std::get<1>(m_operationV[nIndex])    // callable
+                        && std::get<2>(m_operationV[nIndex])){  // active
                     // 1. invoke the operation handler
-                    bool bDone = std::get<1>(m_OperationV[nIndex])();
+                    bool bDone = std::get<1>(m_operationV[nIndex])();
 
                     // 2. mark it's status
                     //    TODO: when it's done, we set status as inactive
-                    std::get<2>(m_OperationV[nIndex]) = !bDone;
+                    std::get<2>(m_operationV[nIndex]) = !bDone;
 
                     // 3. next
                     nIndex++;
@@ -91,8 +91,8 @@ class StateHook final
                 // ok current hook handler should be deleted
                 // we delete disabled & invalid handler everytime we found it
 
-                std::swap(m_OperationV[nIndex], m_OperationV.back());
-                m_OperationV.pop_back();
+                std::swap(m_operationV[nIndex], m_operationV.back());
+                m_operationV.pop_back();
             }
         }
 
@@ -101,7 +101,7 @@ class StateHook final
         //    may soon be deleted
         std::function<bool()> Hook(const std::string &szOperationName)
         {
-            for(auto &rstEle: m_OperationV){
+            for(auto &rstEle: m_operationV){
                 if(true
                         && (std::get<0>(rstEle) == szOperationName)   // name matching
                         && (std::get<1>(rstEle))                      // callable
@@ -116,14 +116,14 @@ class StateHook final
         // just try to match, and overwrite the matched slot
         void Install(const std::string &szOperationName, const std::function<bool()> &fnHookOp)
         {
-            for(auto &rstEle: m_OperationV){
+            for(auto &rstEle: m_operationV){
                 if(std::get<0>(rstEle) == szOperationName){
                     std::get<1>(rstEle) = fnHookOp;
                     std::get<2>(rstEle) = true;
                     return;
                 }
             }
-            m_OperationV.emplace_back(std::make_tuple(szOperationName, fnHookOp, true));
+            m_operationV.emplace_back(std::make_tuple(szOperationName, fnHookOp, true));
         }
 
         // anymous operation, can only be removed by return value
@@ -145,7 +145,7 @@ class StateHook final
         // disabled or invalid handler won't count
         bool Installed(const std::string &szOperationName)
         {
-            for(auto &rstEle: m_OperationV){
+            for(auto &rstEle: m_operationV){
                 if(true
                         && (std::get<0>(rstEle) == szOperationName)   // name matching
                         && (std::get<1>(rstEle))                      // callable
@@ -165,11 +165,11 @@ class StateHook final
         void Uninstall(const std::string &szOperationName, bool bInside = true)
         {
             size_t nIndex = 0;
-            while(nIndex < m_OperationV.size()){
+            while(nIndex < m_operationV.size()){
                 if(true
-                        && (std::get<0>(m_OperationV[nIndex]) != szOperationName) // not the one
-                        && (std::get<1>(m_OperationV[nIndex]))                    // callable
-                        && (std::get<2>(m_OperationV[nIndex]))){                  // active
+                        && (std::get<0>(m_operationV[nIndex]) != szOperationName) // not the one
+                        && (std::get<1>(m_operationV[nIndex]))                    // callable
+                        && (std::get<2>(m_operationV[nIndex]))){                  // active
                     nIndex++;
                     continue;
                 }
@@ -178,23 +178,23 @@ class StateHook final
                 // we delete disabled & invalid handler everytime we found it
 
                 // 1. disable it always
-                std::get<2>(m_OperationV[nIndex]) = false;
+                std::get<2>(m_operationV[nIndex]) = false;
 
                 // 2. if inside we have to jump to next
                 if(bInside){ nIndex++; continue; }
 
                 // 3. otherwise we delete now
-                std::swap(m_OperationV[nIndex], m_OperationV.back());
-                m_OperationV.pop_back();
+                std::swap(m_operationV[nIndex], m_operationV.back());
+                m_operationV.pop_back();
             }
         }
 
         // uninstall all
         void Uninstall(bool bInside = true)
         {
-            if(!bInside){ m_OperationV.clear(); return; }
+            if(!bInside){ m_operationV.clear(); return; }
 
-            for(auto &rstEle: m_OperationV){
+            for(auto &rstEle: m_operationV){
                 Uninstall(std::get<0>(rstEle), true);
             }
         }

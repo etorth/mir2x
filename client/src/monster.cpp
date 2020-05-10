@@ -32,10 +32,10 @@
 #include "clientargparser.hpp"
 #include "clientpathfinder.hpp"
 
-extern Log *g_Log;
-extern PNGTexDB *g_ProgUseDB;
+extern Log *g_log;
+extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_SDLDevice;
-extern PNGTexOffDB *g_MonsterDB;
+extern PNGTexOffDB *g_monsterDB;
 extern ClientArgParser *g_clientArgParser;
 
 Monster *Monster::createMonster(uint64_t uid, ProcessRun *proc, const ActionNode &action)
@@ -179,8 +179,8 @@ bool Monster::draw(int viewX, int viewY, int focusMask)
     int nDX1 = 0;
     int nDY1 = 0;
 
-    auto pFrame0 = g_MonsterDB->Retrieve(nKey0, &nDX0, &nDY0);
-    auto pFrame1 = g_MonsterDB->Retrieve(nKey1, &nDX1, &nDY1);
+    auto pFrame0 = g_monsterDB->Retrieve(nKey0, &nDX0, &nDY0);
+    auto pFrame1 = g_monsterDB->Retrieve(nKey1, &nDX1, &nDY1);
     const auto [shiftX, shiftY] = getShift();
 
     // always reset the alpha mode for each texture because texture is shared
@@ -242,8 +242,8 @@ bool Monster::draw(int viewX, int viewY, int focusMask)
     }
 
     if(m_currMotion.motion != MOTION_MON_DIE){
-        auto pBar0 = g_ProgUseDB->Retrieve(0X00000014);
-        auto pBar1 = g_ProgUseDB->Retrieve(0X00000015);
+        auto pBar0 = g_progUseDB->Retrieve(0X00000014);
+        auto pBar1 = g_progUseDB->Retrieve(0X00000015);
 
         int nBarW = -1;
         int nBarH = -1;
@@ -489,7 +489,7 @@ bool Monster::canFocus(int pointX, int pointY) const
     int nDX0 = 0;
     int nDY0 = 0;
 
-    auto pFrame0 = g_MonsterDB->Retrieve(nKey0, &nDX0, &nDY0);
+    auto pFrame0 = g_monsterDB->Retrieve(nKey0, &nDX0, &nDY0);
     const auto [shiftX, shiftY] = getShift();
 
     const int startX = m_currMotion.x * SYS_MAPGRIDXP + shiftX + nDX0;

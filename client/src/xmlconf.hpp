@@ -28,8 +28,8 @@ class XMLConf: public XMLRoot
         {
             extern XMLConf *g_XMLConf;
             if(g_XMLConf){
-                extern Log *g_Log;
-                g_Log->addLog(LOGTYPE_FATAL, "Multiple initialization for XMLConf");
+                extern Log *g_log;
+                g_log->addLog(LOGTYPE_FATAL, "Multiple initialization for XMLConf");
             }
 
             if(false){
@@ -37,8 +37,8 @@ class XMLConf: public XMLRoot
             }else if(!m_XMLDoc.LoadFile("./configure.xml"    )){
             }else if(!m_XMLDoc.LoadFile("./configuration.xml")){
             }else{
-                extern Log *g_Log;
-                g_Log->addLog(LOGTYPE_FATAL, "No configuration file found.");
+                extern Log *g_log;
+                g_log->addLog(LOGTYPE_FATAL, "No configuration file found.");
                 // TODO
                 // if there is no configuration
                 // we need to generate one with default value and remind user to edit it

@@ -26,8 +26,8 @@
 MessagePack SyncDriver::forward(uint64_t nUID, const MessageBuf &rstMB, uint32_t nRespond, uint32_t nTimeout)
 {
     if(!nUID){
-        extern MonoServer *g_MonoServer;
-        g_MonoServer->addLog(LOGTYPE_WARNING, "Sending message to UID 0");
+        extern MonoServer *g_monoServer;
+        g_monoServer->addLog(LOGTYPE_WARNING, "Sending message to UID 0");
         return {MPK_NONE};
     }
 
@@ -35,23 +35,23 @@ MessagePack SyncDriver::forward(uint64_t nUID, const MessageBuf &rstMB, uint32_t
     // because we can use actor send message directly
     // and this blocks the actor thread caused the wait never finish
 
-    extern ActorPool *g_ActorPool;
-    if(g_ActorPool->IsActorThread()){
-        extern MonoServer *g_MonoServer;
-        g_MonoServer->addLog(LOGTYPE_FATAL, "Calling SyncDriver::forward() in actor thread, SyncDriver = %p, SyncDriver::UID() = %" PRIu64, this, UID());
+    extern ActorPool *g_actorPool;
+    if(g_actorPool->IsActorThread()){
+        extern MonoServer *g_monoServer;
+        g_monoServer->addLog(LOGTYPE_FATAL, "Calling SyncDriver::forward() in actor thread, SyncDriver = %p, SyncDriver::UID() = %" PRIu64, this, UID());
         return {MPK_NONE};
     }
 
-    m_CurrID = (m_CurrID + 1) ? (m_CurrID + 1) : 1;
-    auto nCurrID = m_CurrID;
+    m_currID = (m_currID + 1) ? (m_currID + 1) : 1;
+    auto nCurrID = m_currID;
 
-    extern ServerArgParser *g_ServerArgParser;
-    if(g_ServerArgParser->TraceActorMessage){
-        extern MonoServer *g_MonoServer;
-        g_MonoServer->addLog(LOGTYPE_DEBUG, "%s -> %s: (Type: %s, ID: %" PRIu32 ", Resp: %" PRIu32 ")", uidf::getUIDString(UID()).c_str(), uidf::getUIDString(nUID).c_str(), nCurrID, nRespond);
+    extern ServerArgParser *g_serverArgParser;
+    if(g_serverArgParser->TraceActorMessage){
+        extern MonoServer *g_monoServer;
+        g_monoServer->addLog(LOGTYPE_DEBUG, "%s -> %s: (Type: %s, ID: %" PRIu32 ", Resp: %" PRIu32 ")", uidf::getUIDString(UID()).c_str(), uidf::getUIDString(nUID).c_str(), nCurrID, nRespond);
     }
 
-    if(!g_ActorPool->PostMessage(nUID, {rstMB, UID(), nCurrID, nRespond})){
+    if(!g_actorPool->PostMessage(nUID, {rstMB, UID(), nCurrID, nRespond})){
         AMBadActorPod stAMBAP;
         std::memset(&stAMBAP, 0, sizeof(stAMBAP));
 
@@ -63,7 +63,7 @@ MessagePack SyncDriver::forward(uint64_t nUID, const MessageBuf &rstMB, uint32_t
         return {MessageBuf(MPK_BADACTORPOD, stAMBAP), 0, 0, nCurrID};
     }
 
-    switch(m_Receiver.Wait(nTimeout)){
+    switch(m_receiver.Wait(nTimeout)){
         case 0:
             {
                 break;
@@ -71,7 +71,7 @@ MessagePack SyncDriver::forward(uint64_t nUID, const MessageBuf &rstMB, uint32_t
         case 1:
         default:
             {
-                if(auto stvMPK = m_Receiver.Pop(); stvMPK.size()){
+                if(auto stvMPK = m_receiver.Pop(); stvMPK.size()){
                     for(auto p = stvMPK.begin(); p != stvMPK.end(); ++p){
                         if(p->Respond() == nCurrID){
                             return *p;

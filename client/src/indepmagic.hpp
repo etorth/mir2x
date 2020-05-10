@@ -23,7 +23,7 @@
 
 class IndepMagic: public MagicBase
 {
-    // don't have a m_MapID filed
+    // don't have a m_mapID filed
     // independent magic should be bound to map
     // if bound to creture then use effect to present
 
@@ -31,18 +31,18 @@ class IndepMagic: public MagicBase
         const uint64_t m_UID;
 
     private:
-        int m_Direction;
+        int m_direction;
 
     private:
         int m_x;
         int m_y;
 
     private:
-        int m_AimX;
-        int m_AimY;
+        int m_aimX;
+        int m_aimY;
 
     private:
-        const uint64_t m_AimUID;
+        const uint64_t m_aimUID;
 
     public:
         IndepMagic(uint64_t,    // UID
@@ -105,17 +105,17 @@ class IndepMagic: public MagicBase
 
         int AimX() const
         {
-            return m_AimX;
+            return m_aimX;
         }
 
         int AimY() const
         {
-            return m_AimY;
+            return m_aimY;
         }
 
         uint64_t AimUID() const
         {
-            return m_AimUID;
+            return m_aimUID;
         }
 
     public:

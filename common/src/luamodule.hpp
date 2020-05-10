@@ -24,7 +24,7 @@
 class LuaModule
 {
     protected:
-        sol::state m_LuaState;
+        sol::state m_luaState;
 
     public:
         LuaModule();
@@ -35,7 +35,7 @@ class LuaModule
     public:
         sol::state &GetLuaState()
         {
-            return m_LuaState;
+            return m_luaState;
         }
 
     protected:

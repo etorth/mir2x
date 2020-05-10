@@ -15,13 +15,13 @@ class CommandWindow {open
 } {
   decl {int m_CWID;} {private local
   }
-  decl {TaskHub *m_LuaModuleTaskHub;} {private local
+  decl {TaskHub *m_luaModuleTaskHub;} {private local
   }
-  decl {CommandLuaModule *m_LuaModule;} {private local
+  decl {CommandLuaModule *m_luaModule;} {private local
   }
   Function {CommandWindow()} {open
   } {
-    Fl_Window m_Window {
+    Fl_Window m_window {
       callback {// when get esc
 // 1. hide current window
 // 2. activate its menuitem in main window
@@ -29,8 +29,8 @@ class CommandWindow {open
 {
     HideAll();
 
-    extern MainWindow *g_MainWindow;
-    g_MainWindow->HideCommandWindow(GetCWID());
+    extern MainWindow *g_mainWindow;
+    g_mainWindow->HideCommandWindow(GetCWID());
 }} open
       xywh {888 311 580 400} type Double resizable
       code0 {\#include "mainwindow.hpp"} visible
@@ -48,25 +48,25 @@ class CommandWindow {open
           }
         }
       }
-      Fl_Input m_Input {
+      Fl_Input m_input {
         xywh {0 375 580 25} labeltype NO_LABEL labelfont 4 textfont 4 resizable
         class CommandInput
       }
-      Fl_Browser m_Browser {
+      Fl_Browser m_browser {
         callback {// callback for browser
 // when getting double-clicks, it insert current entry to the input box
 {
     // check if we get double-clicks
     if(Fl::event_clicks()){
-        if(auto pText = m_Browser->text(m_Browser->value())){
-            std::string szCommandStr = m_Input->value();
+        if(auto pText = m_browser->text(m_browser->value())){
+            std::string szCommandStr = m_input->value();
             if(szCommandStr.empty()){
                 // to skip the formatting string at the beginning
                 // current I am using:
                 //   @C4 : normal
                 //   @C9 : warning
                 //   @C1 : error
-                m_Input->value(pText + 3);
+                m_input->value(pText + 3);
             }
         }
     }
@@ -78,25 +78,25 @@ class CommandWindow {open
     code {{
     // initialization of the lua module and its taskhub
     m_CWID             = 0;
-    m_LuaModuleTaskHub = nullptr;
-	m_LuaModule        = nullptr;
+    m_luaModuleTaskHub = nullptr;
+	m_luaModule        = nullptr;
 	
 	// bind current window to CommandInput
 	// which helps to do event logic handling inside CommandInput
 	// avoid to do it in CommandWindow::handle(int)
-	m_Input->Bind(this);
+	m_input->Bind(this);
 }} {}
   }
   Function {HideAll()} {return_type void
   } {
     code {{
-	m_Window->hide();
+	m_window->hide();
 }} {}
   }
   Function {ShowAll()} {return_type void
   } {
     code {{
-	m_Window->show();
+	m_window->show();
 }} {}
   }
   Function {GetTaskHub()} {return_type {TaskHub *}
@@ -104,7 +104,7 @@ class CommandWindow {open
     code {{
 	// won't put any cv-qualifiers
 	// expose the TaskHub interface to outside
-	return m_LuaModuleTaskHub;
+	return m_luaModuleTaskHub;
 }} {}
   }
   Function {GetLuaModule()} {return_type {CommandLuaModule *}
@@ -113,7 +113,7 @@ class CommandWindow {open
 	// won't put any cv-qualifiers
 	// expose the TaskHub interface to outside
 	// then I don't have do implement CommandWindow::Execute(const char *)
-	return m_LuaModule;
+	return m_luaModule;
 }} {}
   }
   Function {DetachLuaModule()} {return_type void
@@ -122,10 +122,10 @@ class CommandWindow {open
 	// won't put any cv-qualifiers
 	// expose the TaskHub interface to outside
 	// then I don't have do implement CommandWindow::Execute(const char *)
-    m_LuaModuleTaskHub->Shutdown();
+    m_luaModuleTaskHub->Shutdown();
 
-    delete m_LuaModule;        m_LuaModule        = nullptr;
-    delete m_LuaModuleTaskHub; m_LuaModuleTaskHub = nullptr;
+    delete m_luaModule;        m_luaModule        = nullptr;
+    delete m_luaModuleTaskHub; m_luaModuleTaskHub = nullptr;
 }} {}
   }
   Function {BindLuaModule(int nCWID)} {return_type void
@@ -136,15 +136,15 @@ class CommandWindow {open
     // and LuaModuleTaskHub has an LuaModule as command input
     {
         if(nCWID > 0){
-            condcheck(m_LuaModule        == nullptr);
-            condcheck(m_LuaModuleTaskHub == nullptr);
+            condcheck(m_luaModule        == nullptr);
+            condcheck(m_luaModuleTaskHub == nullptr);
 
             m_CWID             = nCWID;
-            m_LuaModuleTaskHub = new TaskHub();
-            m_LuaModule        = new CommandLuaModule((uint32_t)(nCWID));
+            m_luaModuleTaskHub = new TaskHub();
+            m_luaModule        = new CommandLuaModule((uint32_t)(nCWID));
 
             // start the hub now
-            m_LuaModuleTaskHub->Launch();
+            m_luaModuleTaskHub->Launch();
         }
     }
 }} {}
@@ -155,8 +155,8 @@ class CommandWindow {open
     // log can be multiply lines but only do one line for this call
     // don't put multi-thread handling code here
 
-    if(m_Browser->size() > 5000){
-        m_Browser->remove(1);
+    if(m_browser->size() > 5000){
+        m_browser->remove(1);
     }
 
     const char *pColorCode = nullptr;
@@ -166,15 +166,15 @@ class CommandWindow {open
         default : pColorCode = "@C1"; break;
     }
 
-    m_Browser->add(((std::string(pColorCode) + (szPrompt ? szPrompt : "")) + (szLogInfo ? szLogInfo : "")).c_str());
-    m_Browser->bottomline(m_Browser->size());
+    m_browser->add(((std::string(pColorCode) + (szPrompt ? szPrompt : "")) + (szLogInfo ? szLogInfo : "")).c_str());
+    m_browser->bottomline(m_browser->size());
 }} {}
   }
   Function {ClearBrowser()} {return_type void
   } {
     code {{
     // clear all history of current browser
-    m_Browser->clear();
+    m_browser->clear();
 }} {}
   }
   Function {GetCWID()} {return_type int

@@ -4,11 +4,11 @@ header_name {.hpp}
 code_name {.cpp}
 class ActorThreadMonitorWindow {} {
   Function {ActorThreadMonitorWindow()} {} {
-    Fl_Window m_Window {
+    Fl_Window m_window {
       label ActorThreadMonitorWindow selected
       xywh {736 345 740 445} type Double labelfont 4 resizable visible
     } {
-      Fl_Table m_ActorThreadMonitorTable {
+      Fl_Table m_actorThreadMonitorTable {
         xywh {0 0 740 445} labelfont 4 resizable
         code0 {\#include "actorthreadmonitortable.hpp"}
         class ActorThreadMonitorTable
@@ -17,6 +17,6 @@ class ActorThreadMonitorWindow {} {
   }
   Function {ShowAll()} {return_type void
   } {
-    code {m_Window->show();} {}
+    code {m_window->show();} {}
   }
 }

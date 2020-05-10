@@ -33,20 +33,20 @@ class ActorMonitorTable: public Fl_TableImpl
             uint32_t MaxMessagePending;
             uint32_t UIDTypeList[UID_MAX];
 
-        }m_MonitorDataDiags;
+        }m_monitorDataDiags;
 
     private:
-        const std::vector<std::string> m_ColumnName;
+        const std::vector<std::string> m_columnName;
 
     private:
-        std::vector<ActorPool::ActorMonitor> m_ActorMonitorList;
+        std::vector<ActorPool::ActorMonitor> m_actorMonitorList;
 
     private:
-        int  m_SortByCol;
-        bool m_SortOrder;
+        int  m_sortByCol;
+        bool m_sortOrder;
 
     private:
-        uint64_t m_SelectedUID;
+        uint64_t m_selectedUID;
 
     public:
         ActorMonitorTable(int, int, int, int, const char * = nullptr);
@@ -79,12 +79,12 @@ class ActorMonitorTable: public Fl_TableImpl
     private:
         int GetDataRow() const
         {
-            return m_ActorMonitorList.size();
+            return m_actorMonitorList.size();
         }
 
         int GetDataCol() const
         {
-            return m_ColumnName.size();
+            return m_columnName.size();
         }
 
     private:

@@ -26,7 +26,7 @@
 #include "colorf.hpp"
 #include "xmlparagraphleaf.hpp"
 
-extern Log *g_Log;
+extern Log *g_log;
 
 XMLParagraphLeaf::XMLParagraphLeaf(tinyxml2::XMLNode *pNode)
     : m_node([pNode]()
@@ -156,9 +156,9 @@ std::optional<uint8_t> XMLParagraphLeaf::font() const
                 return (uint8_t)(nFontIndex);
             }
         }catch(const std::exception &e){
-            g_Log->addLog(LOGTYPE_DEBUG, "Caught exception: %s", e.what());
+            g_log->addLog(LOGTYPE_DEBUG, "Caught exception: %s", e.what());
         }catch(...){
-            g_Log->addLog(LOGTYPE_DEBUG, "Caught unknown exception");
+            g_log->addLog(LOGTYPE_DEBUG, "Caught unknown exception");
         }
     }
     return {};
@@ -174,9 +174,9 @@ std::optional<uint8_t> XMLParagraphLeaf::fontSize() const
                 return (uint8_t)(nFontSize);
             }
         }catch(const std::exception &e){
-            g_Log->addLog(LOGTYPE_DEBUG, "Caught exception: %s", e.what());
+            g_log->addLog(LOGTYPE_DEBUG, "Caught exception: %s", e.what());
         }catch(...){
-            g_Log->addLog(LOGTYPE_DEBUG, "Caught unknown exception");
+            g_log->addLog(LOGTYPE_DEBUG, "Caught unknown exception");
         }
     }
     return {};
@@ -192,9 +192,9 @@ std::optional<uint8_t> XMLParagraphLeaf::fontStyle() const
                 return (uint8_t)(nFontStyle);
             }
         }catch(const std::exception &e){
-            g_Log->addLog(LOGTYPE_DEBUG, "Caught exception: %s", e.what());
+            g_log->addLog(LOGTYPE_DEBUG, "Caught exception: %s", e.what());
         }catch(...){
-            g_Log->addLog(LOGTYPE_DEBUG, "Caught unknown exception");
+            g_log->addLog(LOGTYPE_DEBUG, "Caught unknown exception");
         }
     }
     return {};

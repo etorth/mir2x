@@ -47,9 +47,9 @@ class NetIO final
         asio::ip::tcp::socket   m_socket;
 
     private:
-        uint8_t              m_ReadHC;
-        uint8_t              m_ReadLen[4];
-        std::vector<uint8_t> m_ReadBuf;
+        uint8_t              m_readHC;
+        uint8_t              m_readLen[4];
+        std::vector<uint8_t> m_readBuf;
 
     private:
         std::function<void(uint8_t, const uint8_t *, size_t)> m_msgHandler;
@@ -58,7 +58,7 @@ class NetIO final
         std::queue<SendPack> m_sendQueue;
 
     private:
-        MemoryChunkPN<64, 256, 1> m_MemoryPN;
+        MemoryChunkPN<64, 256, 1> m_memoryPN;
 
     public:
         NetIO();

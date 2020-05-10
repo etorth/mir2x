@@ -73,7 +73,7 @@ class DBRecord_MySQL: public DBRecord
 
     private:
         MYSQL_RES *m_SQLRES;
-        MYSQL_ROW  m_CurrentRow;
+        MYSQL_ROW  m_currentRow;
 
     private:
         DBEngine_MySQL *m_DBEngine;
@@ -81,7 +81,7 @@ class DBRecord_MySQL: public DBRecord
     private:
         DBRecord_MySQL(DBConnection *pConnection)
             : m_SQLRES(nullptr)
-            , m_CurrentRow(nullptr)
+            , m_currentRow(nullptr)
             , m_DBEngine(dynamic_cast<DBEngine_MySQL *>(pConnection))
         {
             if(!m_DBEngine){
@@ -97,7 +97,7 @@ class DBRecord_MySQL: public DBRecord
             }
 
             m_SQLRES     = nullptr;
-            m_CurrentRow = nullptr;
+            m_currentRow = nullptr;
             m_DBEngine   = nullptr;
         }
 
@@ -112,7 +112,7 @@ class DBRecord_MySQL: public DBRecord
                 throw std::invalid_argument(str_fflprintf(": Invalid argument: \"\""));
             }
 
-            if(!m_CurrentRow){
+            if(!m_currentRow){
                 throw std::runtime_error(str_fflprintf(": No valid row"));
             }
 
@@ -128,16 +128,16 @@ class DBRecord_MySQL: public DBRecord
                         case MYSQL_TYPE_LONG:
                         case MYSQL_TYPE_LONGLONG:
                             {
-                                return (int64_t)(std::stoll(m_CurrentRow[nIndex]));
+                                return (int64_t)(std::stoll(m_currentRow[nIndex]));
                             }
                         case MYSQL_TYPE_FLOAT:
                         case MYSQL_TYPE_DOUBLE:
                             {
-                                return std::stod(m_CurrentRow[nIndex]);
+                                return std::stod(m_currentRow[nIndex]);
                             }
                         case MYSQL_TYPE_STRING:
                             {
-                                return std::string(m_CurrentRow[nIndex]);
+                                return std::string(m_currentRow[nIndex]);
                             }
                         default:
                             {
@@ -202,7 +202,7 @@ class DBRecord_MySQL: public DBRecord
             if(!m_SQLRES){
                 throw std::runtime_error(str_fflprintf(": Call Fetch() before QueryResult(QueryCmd, ...)"));
             }
-            return (m_CurrentRow = mysql_fetch_row(m_SQLRES)) != nullptr;
+            return (m_currentRow = mysql_fetch_row(m_SQLRES)) != nullptr;
         }
 
     public:

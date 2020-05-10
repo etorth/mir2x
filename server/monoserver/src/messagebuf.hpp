@@ -24,9 +24,9 @@
 class MessageBuf
 {
     private:
-        int            m_Type;
-        const uint8_t *m_Data;
-        size_t         m_DataLen;
+        int            m_type;
+        const uint8_t *m_data;
+        size_t         m_dataLen;
 
     public:
         // message descriptor without body
@@ -37,9 +37,9 @@ class MessageBuf
         // message descriptor with body
         // if we provide body, we need to supply both pointer and length
         MessageBuf(int nMessageType, const uint8_t *pData, size_t nDataLen)
-            : m_Type(nMessageType)
-            , m_Data(pData)
-            , m_DataLen(nDataLen)
+            : m_type(nMessageType)
+            , m_data(pData)
+            , m_dataLen(nDataLen)
         {}
 
         // actually you can put a pointer here
@@ -62,17 +62,17 @@ class MessageBuf
     public:
         int Type() const
         {
-            return m_Type;
+            return m_type;
         }
 
         const uint8_t *Data() const
         {
-            return m_Data;
+            return m_data;
         }
 
         size_t DataLen() const
         {
-            return m_DataLen;
+            return m_dataLen;
         }
 
         size_t Size() const
@@ -83,17 +83,17 @@ class MessageBuf
     public:
         int Type()
         {
-            return m_Type;
+            return m_type;
         }
 
         const uint8_t *Data()
         {
-            return m_Data;
+            return m_data;
         }
 
         size_t DataLen()
         {
-            return m_DataLen;
+            return m_dataLen;
         }
 
         size_t Size()

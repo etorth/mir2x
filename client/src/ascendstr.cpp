@@ -21,21 +21,21 @@
 #include "ascendstr.hpp"
 #include "sdldevice.hpp"
 
-extern Log *g_Log;
-extern PNGTexDB *g_ProgUseDB;
+extern Log *g_log;
+extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_SDLDevice;
 
 AscendStr::AscendStr(int nType, int nValue, int nX, int nY)
     : m_type(nType)
-    , m_Value(nValue)
+    , m_value(nValue)
     , m_x(nX)
     , m_y(nY)
-    , m_Tick(0.0)
+    , m_tick(0.0)
 {
     switch(m_type){
         case ASCENDSTR_MISS:
             {
-                m_Value = 0;
+                m_value = 0;
                 break;
             }
         case ASCENDSTR_NUM0:
@@ -46,7 +46,7 @@ AscendStr::AscendStr(int nType, int nValue, int nX, int nY)
             }
         default:
             {
-                g_Log->addLog(LOGTYPE_FATAL, "Invalid AscendStr type: %d", Type());
+                g_log->addLog(LOGTYPE_FATAL, "Invalid AscendStr type: %d", Type());
                 break;
             }
     }
@@ -57,7 +57,7 @@ AscendStr::AscendStr(int nType, int nValue, int nX, int nY)
 
 void AscendStr::Update(double fUpdate)
 {
-    m_Tick += fUpdate;
+    m_tick += fUpdate;
 }
 
 void AscendStr::Draw(int nViewX, int nViewY)
@@ -71,7 +71,7 @@ void AscendStr::Draw(int nViewX, int nViewY)
         switch(Type()){
             case ASCENDSTR_MISS:
                 {
-                    if(auto pTexture = g_ProgUseDB->Retrieve(0X03000030)){
+                    if(auto pTexture = g_progUseDB->Retrieve(0X03000030)){
                         SDL_SetTextureAlphaMod(pTexture, nCurrA);
                         g_SDLDevice->DrawTexture(pTexture, nCurrX - nViewX, nCurrY - nViewY);
                     }
@@ -83,7 +83,7 @@ void AscendStr::Draw(int nViewX, int nViewY)
                 {
                     if(Value()){
                         uint32_t nPreKey = 0X03000000 | ((Type() - ASCENDSTR_NUM0) << 4);
-                        if(auto pTexture = g_ProgUseDB->Retrieve(nPreKey | ((Value() < 0) ? 0X0A : 0X0B))){
+                        if(auto pTexture = g_progUseDB->Retrieve(nPreKey | ((Value() < 0) ? 0X0A : 0X0B))){
                             SDL_SetTextureAlphaMod(pTexture, nCurrA);
                             g_SDLDevice->DrawTexture(pTexture, nCurrX - nViewX, nCurrY - nViewY + ((Value() < 0) ? 4 : 1));
 
@@ -94,7 +94,7 @@ void AscendStr::Draw(int nViewX, int nViewY)
 
                         auto szNumStr = std::to_string(std::labs(Value()));
                         for(auto chNum: szNumStr){
-                            if(auto pTexture = g_ProgUseDB->Retrieve(nPreKey | (chNum - '0'))){
+                            if(auto pTexture = g_progUseDB->Retrieve(nPreKey | (chNum - '0'))){
                                 SDL_SetTextureAlphaMod(pTexture, nCurrA);
                                 g_SDLDevice->DrawTexture(pTexture, nCurrX - nViewX, nCurrY - nViewY);
 

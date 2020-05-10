@@ -59,15 +59,15 @@ template<typename T, size_t N> class CacheQueue final
         class Iterator final
         {
             private:
-                CacheQueue<T, N> *m_CacheQueue;
+                CacheQueue<T, N> *m_cacheQueue;
 
             private:
-                size_t m_At;
+                size_t m_at;
 
             public:
                 Iterator()
-                    : m_CacheQueue(nullptr)
-                    , m_At(0)
+                    : m_cacheQueue(nullptr)
+                    , m_at(0)
                 {}
 
                ~Iterator() = default;
@@ -79,32 +79,32 @@ template<typename T, size_t N> class CacheQueue final
 
                 friend class CacheQueue<T, N>;
                 Iterator(CacheQueue<T, N> *pCacheQueue = nullptr, size_t nAt = 0)
-                    : m_CacheQueue(pCacheQueue)
-                    , m_At(nAt)
+                    : m_cacheQueue(pCacheQueue)
+                    , m_at(nAt)
                 {}
 
             public:
                 operator bool () const
                 {
-                    return m_CacheQueue != nullptr;
+                    return m_cacheQueue != nullptr;
                 }
 
             public:
                 size_t At() const
                 {
-                    return m_At;
+                    return m_at;
                 }
 
             private:
                 void DerefCheck() const
                 {
                     condcheck(true
-                            &&  m_CacheQueue
-                            &&  m_CacheQueue->Capacity() > 0
-                            && !m_CacheQueue->Empty()
+                            &&  m_cacheQueue
+                            &&  m_cacheQueue->Capacity() > 0
+                            && !m_cacheQueue->Empty()
 
-                            && m_At >= 0
-                            && m_At <  m_CacheQueue->Length());
+                            && m_at >= 0
+                            && m_at <  m_cacheQueue->Length());
                 }
 
             private:
@@ -112,7 +112,7 @@ template<typename T, size_t N> class CacheQueue final
                 {
                     if(nForward){
                         DerefCheck();
-                        m_At = (m_At + nForward + m_CacheQueue->Length()) % m_CacheQueue->Length();
+                        m_at = (m_at + nForward + m_cacheQueue->Length()) % m_cacheQueue->Length();
                     }
                 }
 
@@ -141,31 +141,31 @@ template<typename T, size_t N> class CacheQueue final
                 T & operator * ()
                 {
                     DerefCheck();
-                    return m_CacheQueue->At(At());
+                    return m_cacheQueue->At(At());
                 }
 
                 const T & operator * () const
                 {
                     DerefCheck();
-                    return m_CacheQueue->At(At());
+                    return m_cacheQueue->At(At());
                 }
 
                 T * operator -> ()
                 {
                     DerefCheck();
-                    return &(m_CacheQueue->At(At()));
+                    return &(m_cacheQueue->At(At()));
                 }
 
                 const T * operator -> () const
                 {
                     DerefCheck();
-                    return &(m_CacheQueue->At(At()));
+                    return &(m_cacheQueue->At(At()));
                 }
 
             public:
                 bool operator == (const Iterator &stLHS) const
                 {
-                    return m_CacheQueue == stLHS.m_CacheQueue && m_At == stLHS.m_At;
+                    return m_cacheQueue == stLHS.m_cacheQueue && m_at == stLHS.m_at;
                 }
 
             public:
@@ -174,8 +174,8 @@ template<typename T, size_t N> class CacheQueue final
                     // simple class
                     // I won't use the swap here
 
-                    m_CacheQueue = rstLHS.m_CacheQueue;
-                    m_At         = rstLHS.m_At;
+                    m_cacheQueue = rstLHS.m_cacheQueue;
+                    m_at         = rstLHS.m_at;
                 }
         };
 
@@ -185,15 +185,15 @@ template<typename T, size_t N> class CacheQueue final
         class CIterator
         {
             private:
-                CacheQueue<T, N> *m_CacheQueue;
+                CacheQueue<T, N> *m_cacheQueue;
 
             private:
-                size_t m_At;
+                size_t m_at;
 
             public:
                 CIterator()
-                    : m_CacheQueue(nullptr)
-                    , m_At(0)
+                    : m_cacheQueue(nullptr)
+                    , m_at(0)
                 {}
 
                ~CIterator() = default;
@@ -205,32 +205,32 @@ template<typename T, size_t N> class CacheQueue final
 
                 friend class CacheQueue<T, N>;
                 CIterator(CacheQueue<T, N> *pCacheQueue = nullptr, size_t nAt = 0)
-                    : m_CacheQueue(pCacheQueue)
-                    , m_At(nAt)
+                    : m_cacheQueue(pCacheQueue)
+                    , m_at(nAt)
                 {}
 
             public:
                 operator bool () const
                 {
-                    return m_CacheQueue != nullptr;
+                    return m_cacheQueue != nullptr;
                 }
 
             public:
                 size_t At() const
                 {
-                    return m_At;
+                    return m_at;
                 }
 
             private:
                 void DerefCheck() const
                 {
                     condcheck(false
-                            &&  m_CacheQueue
-                            &&  m_CacheQueue->Capacity() != 0
-                            && !m_CacheQueue->Empty()
+                            &&  m_cacheQueue
+                            &&  m_cacheQueue->Capacity() != 0
+                            && !m_cacheQueue->Empty()
 
-                            && m_At >= 0
-                            && m_At <  m_CacheQueue->Length());
+                            && m_at >= 0
+                            && m_at <  m_cacheQueue->Length());
                 }
 
             protected:
@@ -238,7 +238,7 @@ template<typename T, size_t N> class CacheQueue final
                 {
                     if(nForward){
                         DerefCheck();
-                        m_At = (m_At + nForward + m_CacheQueue->Length()) % m_CacheQueue->Length();
+                        m_at = (m_at + nForward + m_cacheQueue->Length()) % m_cacheQueue->Length();
                     }
                 }
 
@@ -267,19 +267,19 @@ template<typename T, size_t N> class CacheQueue final
                 const T & operator * () const
                 {
                     DerefCheck();
-                    return m_CacheQueue->At(At());
+                    return m_cacheQueue->At(At());
                 }
 
                 const T * operator -> () const
                 {
                     DerefCheck();
-                    return &(m_CacheQueue->At(At()));
+                    return &(m_cacheQueue->At(At()));
                 }
 
             public:
                 bool operator == (const Iterator &stLHS) const
                 {
-                    return m_CacheQueue == stLHS.m_CacheQueue && m_At == stLHS.m_At;
+                    return m_cacheQueue == stLHS.m_cacheQueue && m_at == stLHS.m_at;
                 }
 
             public:
@@ -288,23 +288,23 @@ template<typename T, size_t N> class CacheQueue final
                     // simple class
                     // I won't use the swap here
 
-                    m_CacheQueue = rstLHS.m_CacheQueue;
-                    m_At         = rstLHS.m_At;
+                    m_cacheQueue = rstLHS.m_cacheQueue;
+                    m_at         = rstLHS.m_at;
                 }
         };
 
     private:
-        std::array<T, N> m_CircleQ;
+        std::array<T, N> m_circleQ;
 
     private:
-        size_t m_Head;          // point to the first element
-        size_t m_CurrSize;      // how many elements we have in the queue
+        size_t m_head;          // point to the first element
+        size_t m_currSize;      // how many elements we have in the queue
 
     public:
         CacheQueue()
-            : m_CircleQ()
-            , m_Head(0)
-            , m_CurrSize(0)
+            : m_circleQ()
+            , m_head(0)
+            , m_currSize(0)
         {}
 
        ~CacheQueue() = default;
@@ -339,13 +339,13 @@ template<typename T, size_t N> class CacheQueue final
     public:
         constexpr size_t Capacity() const
         {
-            return m_CircleQ.size();
+            return m_circleQ.size();
         }
 
     public:
         size_t Size() const
         {
-            return m_CurrSize;
+            return m_currSize;
         }
 
         size_t Length() const
@@ -356,37 +356,37 @@ template<typename T, size_t N> class CacheQueue final
     public:
         bool Empty() const
         {
-            return m_CurrSize == 0;
+            return m_currSize == 0;
         }
 
         bool Full() const
         {
-            return m_CurrSize == Capacity();
+            return m_currSize == Capacity();
         }
 
     public:
         T &Head()
         {
             condcheck((Capacity() != 0) && (!Empty()));
-            return m_CircleQ[m_Head];
+            return m_circleQ[m_head];
         }
 
         const T &Head() const
         {
             condcheck((Capacity() != 0) && (!Empty()));
-            return m_CircleQ[m_Head];
+            return m_circleQ[m_head];
         }
 
         T &Back()
         {
             condcheck((Capacity() != 0) && (!Empty()));
-            return m_CircleQ[(m_Head + Length() + Capacity() - 1) % Capacity()];
+            return m_circleQ[(m_head + Length() + Capacity() - 1) % Capacity()];
         }
 
         const T &Back() const
         {
             condcheck((Capacity() != 0) && (!Empty()));
-            return m_CircleQ[(m_Head + Length() + Capacity() - 1) % Capacity()];
+            return m_circleQ[(m_head + Length() + Capacity() - 1) % Capacity()];
         }
 
     public:
@@ -394,13 +394,13 @@ template<typename T, size_t N> class CacheQueue final
         {
             condcheck(Capacity() != 0);
             if(Empty()){
-                m_Head       = 0;
-                m_CircleQ[0] = T(std::forward<U>(u)...);
-                m_CurrSize   = 1;
+                m_head       = 0;
+                m_circleQ[0] = T(std::forward<U>(u)...);
+                m_currSize   = 1;
             }else{
-                m_Head = ((m_Head + Capacity() - 1) % Capacity());
-                m_CircleQ[m_Head] = T(std::forward<U>(u)...);
-                m_CurrSize = std::min<size_t>(m_CurrSize + 1, Capacity());
+                m_head = ((m_head + Capacity() - 1) % Capacity());
+                m_circleQ[m_head] = T(std::forward<U>(u)...);
+                m_currSize = std::min<size_t>(m_currSize + 1, Capacity());
             }
         }
 
@@ -408,15 +408,15 @@ template<typename T, size_t N> class CacheQueue final
         {
             condcheck(Capacity() != 0);
             if(Empty()){
-                m_Head       = 0;
-                m_CircleQ[0] = T(std::forward<U>(u)...);
-                m_CurrSize   = 1;
+                m_head       = 0;
+                m_circleQ[0] = T(std::forward<U>(u)...);
+                m_currSize   = 1;
             }else if(Full()){
-                m_CircleQ[m_Head] = T(std::forward<U>(u)...);
-                m_Head = (m_Head + 1) % Capacity();
+                m_circleQ[m_head] = T(std::forward<U>(u)...);
+                m_head = (m_head + 1) % Capacity();
             }else{
-                m_CircleQ[(m_Head + Length()) % Capacity()] = T(std::forward<U>(u)...);
-                m_CurrSize = std::min<size_t>(m_CurrSize + 1, Capacity());
+                m_circleQ[(m_head + Length()) % Capacity()] = T(std::forward<U>(u)...);
+                m_currSize = std::min<size_t>(m_currSize + 1, Capacity());
             }
         }
 
@@ -424,23 +424,23 @@ template<typename T, size_t N> class CacheQueue final
         void PopHead()
         {
             if(!Empty()){
-                m_Head = (m_Head + 1) % Capacity();
-                m_CurrSize--;
+                m_head = (m_head + 1) % Capacity();
+                m_currSize--;
             }
         }
 
         void PopBack()
         {
             if(!Empty()){
-                m_CurrSize--;
+                m_currSize--;
             }
         }
 
     public:
         void Clear()
         {
-            m_Head = 0;
-            m_CurrSize = 0;
+            m_head = 0;
+            m_currSize = 0;
         }
 
     public:
@@ -448,7 +448,7 @@ template<typename T, size_t N> class CacheQueue final
         {
             // circular queue rotation
             // need to optimize since we do extra copy when queue is not full
-            std::rotate(m_CircleQ.begin(), m_CircleQ.end(), m_CircleQ.begin() + m_Head);
+            std::rotate(m_circleQ.begin(), m_circleQ.end(), m_circleQ.begin() + m_head);
         }
 
     public:
@@ -479,23 +479,23 @@ template<typename T, size_t N> class CacheQueue final
     public:
         T &Off(size_t nOff)
         {
-            return m_CircleQ[nOff];
+            return m_circleQ[nOff];
         }
 
         const T &Off(size_t nOff) const
         {
-            return m_CircleQ[nOff];
+            return m_circleQ[nOff];
         }
         
     public:
         T &At(size_t nIndex)
         {
-            return m_CircleQ[(m_Head + nIndex + Capacity()) % Capacity()];
+            return m_circleQ[(m_head + nIndex + Capacity()) % Capacity()];
         }
 
         const T &At(size_t nIndex) const
         {
-            return m_CircleQ[(m_Head + nIndex + Capacity()) % Capacity()];
+            return m_circleQ[(m_head + nIndex + Capacity()) % Capacity()];
         }
 
     public:
@@ -512,11 +512,11 @@ template<typename T, size_t N> class CacheQueue final
     public:
         size_t HeadOff() const
         {
-            return m_Head;
+            return m_head;
         }
 
         size_t BackOff() const
         {
-            return (m_Head + Length() - 1 + Capacity()) % Capacity();
+            return (m_head + Length() - 1 + Capacity()) % Capacity();
         }
 };

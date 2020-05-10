@@ -24,14 +24,14 @@ int Pack2D::Occupied(int nX, int nY)
 
         // 1. box is outside current memory map
         //    always return not occupied
-        if(nY >= (int)(m_PackMap.size())){
+        if(nY >= (int)(m_packMap.size())){
             return 0;
         }
 
         // 2. box is inside current memory map
         //    need to check memory bit
         if(nY >= 0){
-            return (m_PackMap[nY] & (1 << nX)) ? 1 : 0;
+            return (m_packMap[nY] & (1 << nX)) ? 1 : 0;
         }
     }
     return -1;
@@ -80,15 +80,15 @@ int Pack2D::Occupy(int nX, int nY, bool bOccup)
             && nX >= 0 && nX < (int)(W())
             && nY >= 0){
 
-        if((nY >= (int)(m_PackMap.size()))){
-            m_PackMap.resize(nY + 1);
+        if((nY >= (int)(m_packMap.size()))){
+            m_packMap.resize(nY + 1);
         }
 
         if(bOccup){
-            m_PackMap[nY] |= (1 << nX);
+            m_packMap[nY] |= (1 << nX);
         }else{
-            m_PackMap[nY] |= (1 << nX);
-            m_PackMap[nY] ^= (1 << nX);
+            m_packMap[nY] |= (1 << nX);
+            m_packMap[nY] ^= (1 << nX);
         }
 
         Shrink();
@@ -135,7 +135,7 @@ int Pack2D::FindRoom(PackBin *pBin)
             && pBin->H >= 0){
 
         if(pBin->W <= (int)(W())){
-            for(int nCurrY = 0; nCurrY <= (int)(m_PackMap.size()); ++nCurrY){
+            for(int nCurrY = 0; nCurrY <= (int)(m_packMap.size()); ++nCurrY){
                 for(int nCurrX = 0; nCurrX <= (int)(W()) - pBin->W; ++nCurrX){
                     switch(Occupied(nCurrX, nCurrY, pBin->W, pBin->H, true)){
                         case 0:
@@ -167,7 +167,7 @@ int Pack2D::FindRoom(PackBin *pBin)
 
 int Pack2D::Pack(std::vector<PackBin> *pBinList)
 {
-    m_PackMap.clear();
+    m_packMap.clear();
     if(pBinList){
         if(pBinList->empty()){
             return 1;

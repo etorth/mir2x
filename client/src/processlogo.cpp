@@ -22,7 +22,7 @@
 #include "processlogo.hpp"
 
 extern Client *g_client;
-extern PNGTexDB *g_ProgUseDB;
+extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_SDLDevice;
 
 void ProcessLogo::processEvent(const SDL_Event &event)
@@ -59,7 +59,7 @@ void ProcessLogo::Draw()
 {
     g_SDLDevice->ClearScreen();
 
-    if(auto pTexture = g_ProgUseDB->Retrieve(0X00000000)){
+    if(auto pTexture = g_progUseDB->Retrieve(0X00000000)){
         auto bColor = (Uint8)(std::lround(255 * ColorRatio()));
         SDL_SetTextureColorMod(pTexture, bColor, bColor, bColor);
 

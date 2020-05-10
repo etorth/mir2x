@@ -42,23 +42,23 @@ class NetDriver final: public Dispatcher
         friend class Channel;
 
     private:
-        unsigned int                m_Port;
+        unsigned int                m_port;
         asio::io_service           *m_IO;
-        asio::ip::tcp::endpoint    *m_EndPoint;
-        asio::ip::tcp::acceptor    *m_Acceptor;
-        asio::ip::tcp::socket      *m_Socket;
+        asio::ip::tcp::endpoint    *m_endPoint;
+        asio::ip::tcp::acceptor    *m_acceptor;
+        asio::ip::tcp::socket      *m_socket;
 
     private:
-        std::thread m_Thread;
+        std::thread m_thread;
 
     private:
-        uint64_t m_ServiceCoreUID;
+        uint64_t m_serviceCoreUID;
 
     private:
-        CacheQueue<uint32_t, SYS_MAXPLAYERNUM> m_ChannIDQ;
+        CacheQueue<uint32_t, SYS_MAXPLAYERNUM> m_channIDQ;
 
     private:
-        std::shared_ptr<Channel> m_ChannelList[SYS_MAXPLAYERNUM + 1];
+        std::shared_ptr<Channel> m_channelList[SYS_MAXPLAYERNUM + 1];
 
     public:
         NetDriver();
@@ -73,13 +73,13 @@ class NetDriver final: public Dispatcher
     private:
         void RecycleChannID(uint32_t nChannID)
         {
-            m_ChannIDQ.PushBack(nChannID);
+            m_channIDQ.PushBack(nChannID);
         }
 
     private:
         bool CheckChannID(uint32_t nChannID)
         {
-            return (nChannID > 0) && (nChannID <= std::extent<decltype(m_ChannelList)>::value);
+            return (nChannID > 0) && (nChannID <= std::extent<decltype(m_channelList)>::value);
         }
 
     public:
@@ -97,7 +97,7 @@ class NetDriver final: public Dispatcher
         template<typename... Args> bool Post(uint32_t nChannID, uint8_t nHC, Args&&... args)
         {
             if(CheckChannID(nChannID)){
-                return m_ChannelList[nChannID]->Post(nHC, std::forward<Args>(args)...);
+                return m_channelList[nChannID]->Post(nHC, std::forward<Args>(args)...);
             }
             return false;
         }
@@ -105,14 +105,14 @@ class NetDriver final: public Dispatcher
         void BindActor(uint32_t nChannID, uint64_t nUID)
         {
             if(CheckChannID(nChannID)){
-                m_ChannelList[nChannID]->BindActor(nUID);
+                m_channelList[nChannID]->BindActor(nUID);
             }
         }
 
         void Shutdown(uint32_t nChannID, bool bForce)
         {
             if(CheckChannID(nChannID)){
-                m_ChannelList[nChannID]->Shutdown(bForce);
+                m_channelList[nChannID]->Shutdown(bForce);
             }
         }
 
@@ -120,7 +120,7 @@ class NetDriver final: public Dispatcher
         bool ChannBuild(uint32_t nChannID, asio::ip::tcp::socket stSocket)
         {
             if(CheckChannID(nChannID)){
-                m_ChannelList[nChannID] = std::make_shared<Channel>(nChannID, std::move(stSocket));
+                m_channelList[nChannID] = std::make_shared<Channel>(nChannID, std::move(stSocket));
                 return true;
             }
             return false;
@@ -129,7 +129,7 @@ class NetDriver final: public Dispatcher
         void ChannRelease(uint32_t nChannID)
         {
             if(CheckChannID(nChannID)){
-                m_ChannelList[nChannID].reset();
+                m_channelList[nChannID].reset();
             }
         }
 

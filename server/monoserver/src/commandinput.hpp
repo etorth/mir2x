@@ -24,23 +24,23 @@ class CommandWindow;
 class CommandInput : public Fl_Multiline_Input
 {
     private:
-        CommandWindow *m_Window;
+        CommandWindow *m_window;
 
     private:
         // to support history scan
-        // int m_InputListPos;
-        // std::vector<std::string> m_InputList;
+        // int m_inputListPos;
+        // std::vector<std::string> m_inputList;
 
     public:
         CommandInput(int nX, int nY, int nW, int nH, const char *pLabel = nullptr)
             : Fl_Multiline_Input(nX, nY, nW, nH, pLabel)
-            , m_Window(nullptr)
+            , m_window(nullptr)
         {}
 
     public:
         void Bind(CommandWindow *pWindow)
         {
-            m_Window = pWindow;
+            m_window = pWindow;
         }
 
     public:

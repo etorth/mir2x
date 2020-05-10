@@ -39,8 +39,8 @@
 #include "protocoldef.hpp"
 #include "serverargparser.hpp"
 
-extern MonoServer *g_MonoServer;
-extern ServerArgParser *g_ServerArgParser;
+extern MonoServer *g_monoServer;
+extern ServerArgParser *g_serverArgParser;
 
 Monster::AStarCache::AStarCache()
     : Time(0)
@@ -50,7 +50,7 @@ Monster::AStarCache::AStarCache()
 
 bool Monster::AStarCache::Retrieve(int *pX, int *pY, int nX0, int nY0, int nX1, int nY1, uint32_t nMapID)
 {
-    if(g_MonoServer->getCurrTick() >= (Time + Refresh)){
+    if(g_monoServer->getCurrTick() >= (Time + Refresh)){
         Path.clear();
         return false;
     }
@@ -96,7 +96,7 @@ void Monster::AStarCache::Cache(std::vector<PathFind::PathNode> stvPathNode, uin
     MapID = nMapID;
     Path.swap(stvPathNode);
 
-    Time = g_MonoServer->getCurrTick();
+    Time = g_monoServer->getCurrTick();
 }
 
 Monster::Monster(uint32_t   nMonsterID,
@@ -107,16 +107,16 @@ Monster::Monster(uint32_t   nMonsterID,
         int                 nDirection,
         uint64_t            nMasterUID)
     : CharObject(pServiceCore, pServerMap, uidf::buildMonsterUID(nMonsterID), nMapX, nMapY, nDirection)
-    , m_MonsterID(nMonsterID)
-    , m_MasterUID(nMasterUID)
-    , m_MonsterRecord(DBCOM_MONSTERRECORD(nMonsterID))
+    , m_monsterID(nMonsterID)
+    , m_masterUID(nMasterUID)
+    , m_monsterRecord(DBCOM_MONSTERRECORD(nMonsterID))
     , m_AStarCache()
-    , m_BvTree()
-    , m_UpdateCoro([this](){ UpdateCoroFunc(); })
+    , m_bvTree()
+    , m_updateCoro([this](){ UpdateCoroFunc(); })
 {
-    if(!m_MonsterRecord){
-        g_MonoServer->addLog(LOGTYPE_WARNING, "Invalid monster record: MonsterID = %d", (int)(MonsterID()));
-        g_MonoServer->Restart();
+    if(!m_monsterRecord){
+        g_monoServer->addLog(LOGTYPE_WARNING, "Invalid monster record: MonsterID = %d", (int)(MonsterID()));
+        g_monoServer->Restart();
     }
 
     SetState(STATE_DEAD    , 0);
@@ -126,10 +126,10 @@ Monster::Monster(uint32_t   nMonsterID,
     // SetState(STATE_ATTACKMODE, STATE_ATTACKMODE_NORMAL);
     SetState(STATE_ATTACKMODE, STATE_ATTACKMODE_ATTACKALL);
 
-    m_HP    = m_MonsterRecord.HP;
-    m_HPMax = m_MonsterRecord.HP;
-    m_MP    = m_MonsterRecord.MP;
-    m_MPMax = m_MonsterRecord.MP;
+    m_HP    = m_monsterRecord.HP;
+    m_HPMax = m_monsterRecord.HP;
+    m_MP    = m_monsterRecord.MP;
+    m_MPMax = m_monsterRecord.MP;
 }
 
 bool Monster::RandomMove()
@@ -170,7 +170,7 @@ bool Monster::RandomMove()
                     if(OneStepReach(nDirection, 1, &nX, &nY) == 1){
                         // current direction is possible for next move
                         // report the turn and do motion (by chance) in next update
-                        m_Direction = nDirection;
+                        m_direction = nDirection;
                         DispatchAction(ActionStand(X(), Y(), Direction()));
 
                         // we won't do ReportStand() for monster
@@ -230,7 +230,7 @@ bool Monster::RandomTurn()
             if(OneStepReach(dir, 1, &newX, &newY) == 1){
                 // current direction is possible for next move
                 // report the turn and do motion (by chance) in next update
-                m_Direction = dir;
+                m_direction = dir;
                 DispatchAction(ActionStand(X(), Y(), Direction()));
                 return true;
             }
@@ -254,13 +254,13 @@ void Monster::AttackUID(uint64_t nUID, int nDC, std::function<void()> fnOnOK, st
     // retrieving could schedule location query
     // before response received we can't allow any attack request
 
-    m_AttackLock = true;
+    m_attackLock = true;
     RetrieveLocation(nUID, [this, nDC, nUID, fnOnOK, fnOnError](const COLocation &stCOLocation)
     {
-        if(!m_AttackLock){
+        if(!m_attackLock){
             throw std::runtime_error(str_ffl() + "AttackLock released before location query done");
         }
-        m_AttackLock = false;
+        m_attackLock = false;
 
         auto nX = stCOLocation.X;
         auto nY = stCOLocation.Y;
@@ -272,14 +272,14 @@ void Monster::AttackUID(uint64_t nUID, int nDC, std::function<void()> fnOnOK, st
                         case 1:
                         case 2:
                             {
-                                m_Direction = PathFind::GetDirection(X(), Y(), nX, nY);
+                                m_direction = PathFind::GetDirection(X(), Y(), nX, nY);
                                 if(!CanAttack()){
                                     fnOnError();
                                     return;
                                 }
 
                                 SetTarget(nUID);
-                                m_LastAttackTime = g_MonoServer->getCurrTick();
+                                m_lastAttackTime = g_monoServer->getCurrTick();
                                 DispatchAction(ActionAttack(X(), Y(), DC_PHY_PLAIN, AttackSpeed(), nUID));
 
                                 // 2. send attack message to target
@@ -326,7 +326,7 @@ void Monster::AttackUID(uint64_t nUID, int nDC, std::function<void()> fnOnOK, st
 
     [this, nUID]()
     {
-        m_AttackLock = false;
+        m_attackLock = false;
 
         RemoveTarget(nUID);
         RemoveInViewCO(nUID);
@@ -345,7 +345,7 @@ void Monster::TrackUID(uint64_t nUID, int nMinCDistance, std::function<void()> f
         auto nY     = rstCOLocation.Y;
         auto nMapID = rstCOLocation.MapID;
 
-        if(!m_Map->In(nMapID, nX, nY)){
+        if(!m_map->In(nMapID, nX, nY)){
             fnOnError();
             return false;
         }
@@ -422,7 +422,7 @@ void Monster::FollowMaster(std::function<void()> fnOnOK, std::function<void()> f
                         // need to make a turn if needed
 
                         if(Direction() != nDirection){
-                            m_Direction= nDirection;
+                            m_direction= nDirection;
                             DispatchAction(ActionStand(X(), Y(), Direction()));
                         }
 
@@ -453,7 +453,7 @@ void Monster::TrackAttackUID(uint64_t nTargetUID, std::function<void()> fnOnOK, 
     // TODO choose proper DC
     // for different monster it may use different DC
     
-    int nProperDC = m_MonsterRecord.DCList()[0];
+    int nProperDC = m_monsterRecord.DCList()[0];
     int nMinCDistance = 1;
 
     TrackUID(nTargetUID, nMinCDistance, [nTargetUID, nProperDC, fnOnOK, fnOnError, this]()
@@ -512,8 +512,8 @@ bool Monster::Update()
         return GoDie();
     }
 
-    if(g_ServerArgParser->useBvTree){
-        switch(auto nState = m_BvTree->update()){
+    if(g_serverArgParser->useBvTree){
+        switch(auto nState = m_bvTree->update()){
             case BV_PENDING:
                 {
                     return true;
@@ -522,7 +522,7 @@ bool Monster::Update()
             case BV_SUCCESS:
             case BV_FAILURE:
                 {
-                    m_BvTree->reset();
+                    m_bvTree->reset();
                     return true;
                 }
             default:
@@ -532,8 +532,8 @@ bool Monster::Update()
         }
     }
 
-    if(!m_UpdateCoro.is_done() && m_UpdateCoro.in_main()){
-        m_UpdateCoro.coro_resume();
+    if(!m_updateCoro.is_done() && m_updateCoro.in_main()){
+        m_updateCoro.coro_resume();
     }
     return true;
 }
@@ -638,8 +638,8 @@ void Monster::OperateAM(const MessagePack &rstMPK)
             }
         default:
             {
-                g_MonoServer->addLog(LOGTYPE_WARNING, "Unsupported message: %s", rstMPK.Name());
-                g_MonoServer->Restart();
+                g_monoServer->addLog(LOGTYPE_WARNING, "Unsupported message: %s", rstMPK.Name());
+                g_monoServer->Restart();
                 break;
             }
     }
@@ -680,8 +680,8 @@ void Monster::ReportCORecord(uint64_t toUID)
 bool Monster::InRange(int nRangeType, int nX, int nY)
 {
     if(true
-            && m_Map
-            && m_Map->ValidC(nX, nY)){
+            && m_map
+            && m_map->ValidC(nX, nY)){
         switch(nRangeType){
             case RANGE_VISIBLE:
                 {
@@ -703,11 +703,11 @@ DamageNode Monster::GetAttackDamage(int nDC)
     switch(nDC){
         case DC_PHY_PLAIN:
             {
-                return {UID(), nDC, m_MonsterRecord.DC + std::rand() % (1 + (std::max<int>)(m_MonsterRecord.DCMax - m_MonsterRecord.DC, 0)), EC_NONE};
+                return {UID(), nDC, m_monsterRecord.DC + std::rand() % (1 + (std::max<int>)(m_monsterRecord.DCMax - m_monsterRecord.DC, 0)), EC_NONE};
             }
         case DC_MAG_FIRE:
             {
-                return {UID(), nDC, m_MonsterRecord.MDC + std::rand() % (1 + (std::max<int>)(m_MonsterRecord.MDCMax - m_MonsterRecord.MDC, 0)), EC_FIRE};
+                return {UID(), nDC, m_monsterRecord.MDC + std::rand() % (1 + (std::max<int>)(m_monsterRecord.MDCMax - m_monsterRecord.MDC, 0)), EC_FIRE};
             }
         default:
             {
@@ -719,7 +719,7 @@ DamageNode Monster::GetAttackDamage(int nDC)
 bool Monster::CanMove()
 {
     if(CharObject::CanMove() && CanAct()){
-        return g_MonoServer->getCurrTick() >= m_LastMoveTime + m_MonsterRecord.WalkWait;
+        return g_monoServer->getCurrTick() >= m_lastMoveTime + m_monsterRecord.WalkWait;
     }
     return false;
 }
@@ -743,18 +743,18 @@ bool Monster::CanAttack()
         return false;
     }
 
-    auto nCurrTick = g_MonoServer->getCurrTick();
+    auto nCurrTick = g_monoServer->getCurrTick();
 
-    if(nCurrTick < m_LastMoveTime + 800){
+    if(nCurrTick < m_lastMoveTime + 800){
         return false;
     }
 
-    return nCurrTick >= m_LastAttackTime + m_MonsterRecord.AttackWait;
+    return nCurrTick >= m_lastAttackTime + m_monsterRecord.AttackWait;
 }
 
 bool Monster::DCValid(int nDC, bool bCheck)
 {
-    if(std::find(m_MonsterRecord.DCList().begin(), m_MonsterRecord.DCList().end(), nDC) != m_MonsterRecord.DCList().end()){
+    if(std::find(m_monsterRecord.DCList().begin(), m_monsterRecord.DCList().end(), nDC) != m_monsterRecord.DCList().end()){
         if(bCheck){
             if(auto &rstDCR = DB_DCRECORD(nDC)){
                 if(m_HP < rstDCR.HP){ return false; }
@@ -768,15 +768,15 @@ bool Monster::DCValid(int nDC, bool bCheck)
 
 void Monster::RemoveTarget(uint64_t nUID)
 {
-    if(m_Target.UID == nUID){
-        m_Target = {};
+    if(m_target.UID == nUID){
+        m_target = {};
     }
 }
 
 void Monster::SetTarget(uint64_t nUID)
 {
-    m_Target.UID = nUID;
-    m_Target.ActiveTime = g_MonoServer->getCurrTick();
+    m_target.UID = nUID;
+    m_target.ActiveTime = g_monoServer->getCurrTick();
 }
 
 bool Monster::GoDie()
@@ -844,9 +844,9 @@ bool Monster::GoGhost()
 
                             if(true
                                     && ActorPodValid()
-                                    && m_Map
-                                    && m_Map->ActorPodValid()){
-                                m_actorPod->forward(m_Map->UID(), {MPK_DEADFADEOUT, stAMDFO});
+                                    && m_map
+                                    && m_map->ActorPodValid()){
+                                m_actorPod->forward(m_map->UID(), {MPK_DEADFADEOUT, stAMDFO});
                             }
 
                             // 2. deactivate the actor here
@@ -1069,7 +1069,7 @@ bool Monster::MoveOneStepAStar(int nX, int nY, std::function<void()> fnOnOK, std
 
                     std::vector<PathFind::PathNode> stvPathNode;
                     for(auto pCurr = pBegin; pCurr != pEnd; ++pCurr){
-                        if(m_Map->GroundValid(pCurr->X, pCurr->Y)){
+                        if(m_map->GroundValid(pCurr->X, pCurr->Y)){
                             stvPathNode.emplace_back(pCurr->X, pCurr->Y);
                         }else{
                             break;
@@ -1120,7 +1120,7 @@ void Monster::RandomDrop()
                 //
                 // and if we are not in group-0
                 // break if we select the first one item
-                m_actorPod->forward(m_Map->UID(), {MPK_NEWDROPITEM, stAMNDI});
+                m_actorPod->forward(m_map->UID(), {MPK_NEWDROPITEM, stAMNDI});
                 if(rstGroupRecord.first != 0){
                     break;
                 }
@@ -1131,21 +1131,21 @@ void Monster::RandomDrop()
 
 void Monster::RecursiveCheckInViewTarget(size_t nIndex, std::function<void(uint64_t)> fnTarget)
 {
-    if(nIndex >= m_InViewCOList.size()){
+    if(nIndex >= m_inViewCOList.size()){
         fnTarget(0);
         return;
     }
 
-    auto nUID = m_InViewCOList[nIndex].UID;
+    auto nUID = m_inViewCOList[nIndex].UID;
     checkFriend(nUID, [this, nIndex, nUID, fnTarget](int nFriendType)
     {
         // when reach here
-        // m_InViewCOList[nIndex] may not be nUID anymore
+        // m_inViewCOList[nIndex] may not be nUID anymore
 
         // if changed
         // we'd better redo the search
 
-        if(nIndex >= m_InViewCOList.size() || m_InViewCOList[nIndex].UID != nUID){
+        if(nIndex >= m_inViewCOList.size() || m_inViewCOList[nIndex].UID != nUID){
             RecursiveCheckInViewTarget(0, fnTarget);
             return;
         }
@@ -1160,7 +1160,7 @@ void Monster::RecursiveCheckInViewTarget(size_t nIndex, std::function<void(uint6
 
 void Monster::SearchNearestTarget(std::function<void(uint64_t)> fnTarget)
 {
-    if(m_InViewCOList.empty()){
+    if(m_inViewCOList.empty()){
         fnTarget(0);
         return;
     }
@@ -1169,9 +1169,9 @@ void Monster::SearchNearestTarget(std::function<void(uint64_t)> fnTarget)
 
 void Monster::GetProperTarget(std::function<void(uint64_t)> fnTarget)
 {
-    if(m_Target.UID){
-        if(g_MonoServer->getCurrTick() < m_Target.ActiveTime + 60 * 1000){
-            checkFriend(m_Target.UID, [nTargetUID = m_Target.UID, fnTarget, this](int nFriendType)
+    if(m_target.UID){
+        if(g_monoServer->getCurrTick() < m_target.ActiveTime + 60 * 1000){
+            checkFriend(m_target.UID, [nTargetUID = m_target.UID, fnTarget, this](int nFriendType)
             {
                 if(nFriendType == FT_ENEMY){
                     fnTarget(nTargetUID);
@@ -1188,7 +1188,7 @@ void Monster::GetProperTarget(std::function<void(uint64_t)> fnTarget)
         return;
     }
 
-    RemoveTarget(m_Target.UID);
+    RemoveTarget(m_target.UID);
     SearchNearestTarget(fnTarget);
 }
 
@@ -1196,7 +1196,7 @@ void Monster::CreateBvTree()
 {
     bvarg_ref nTargetUID;
 
-    m_BvTree = bvtree::if_branch
+    m_bvTree = bvtree::if_branch
     (
         BvNode_GetProperTarget(nTargetUID),
         BvNode_TrackAttackUID(nTargetUID),
@@ -1208,7 +1208,7 @@ void Monster::CreateBvTree()
             BvNode_RandomMove()
         )
     );
-    m_BvTree->reset();
+    m_bvTree->reset();
 }
 
 void Monster::QueryMaster(uint64_t nUID, std::function<void(uint64_t)> fnOp)

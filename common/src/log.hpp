@@ -55,25 +55,25 @@ class Log final
         };
 
     private:
-        std::unique_ptr<g3::LogWorker>      m_Worker;
-        std::unique_ptr<g3::FileSinkHandle> m_Handler;
-        std::string                         m_LogFileName;
+        std::unique_ptr<g3::LogWorker>      m_worker;
+        std::unique_ptr<g3::FileSinkHandle> m_handler;
+        std::string                         m_logFileName;
 
     public:
         Log(const char *szLogArg0 = LOG_ARGV0, const char *szLogPath = LOG_PATH)
-            : m_Worker(g3::LogWorker::createLogWorker())
-            , m_Handler(m_Worker->addDefaultLogger(szLogArg0, szLogPath))
+            : m_worker(g3::LogWorker::createLogWorker())
+            , m_handler(m_worker->addDefaultLogger(szLogArg0, szLogPath))
         {
-            g3::initializeLogging(m_Worker.get());
+            g3::initializeLogging(m_worker.get());
 
-            std::future<std::string> szLogFileName = m_Handler->call(&g3::FileSink::fileName);
+            std::future<std::string> szLogFileName = m_handler->call(&g3::FileSink::fileName);
 
             std::cout << "* This is the initialization of Log functionality"           << std::endl;
             std::cout << "* For info/debug/warning/fatal messages."                    << std::endl;
 
-            m_LogFileName = szLogFileName.get();
+            m_logFileName = szLogFileName.get();
 
-            std::cout << "* Log file: [" << m_LogFileName << "]"                       << std::endl;
+            std::cout << "* Log file: [" << m_logFileName << "]"                       << std::endl;
             std::cout << "* Log functionality established!"                            << std::endl;
             std::cout << "* All messges will be redirected to the log after this line" << std::endl;
         }
@@ -84,7 +84,7 @@ class Log final
     public:
         const char *logPath() const
         {
-            return m_LogFileName.c_str();
+            return m_logFileName.c_str();
         }
 
     private:

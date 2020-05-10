@@ -32,13 +32,13 @@
 class Task
 {
     protected:
-        std::function<void()>                 m_Func;
-        std::chrono::system_clock::time_point m_Expiration;
+        std::function<void()>                 m_func;
+        std::chrono::system_clock::time_point m_expiration;
 
     public:
         Task(uint32_t nDuraMS, std::function<void()>&& fnOp)
-            : m_Func(std::move(fnOp))
-            , m_Expiration(LOCAL_SYSTEM_TIME_NEXT(nDuraMS))
+            : m_func(std::move(fnOp))
+            , m_expiration(LOCAL_SYSTEM_TIME_NEXT(nDuraMS))
         {}
 
         Task(uint32_t nDuraMS, const std::function<void()>& fnOp)
@@ -46,8 +46,8 @@ class Task
         {}
 
         explicit Task(std::function<void()>&& fnOp)
-            : m_Func(fnOp)
-            , m_Expiration(LOCAL_SYSTEM_TIME_ZERO)
+            : m_func(fnOp)
+            , m_expiration(LOCAL_SYSTEM_TIME_ZERO)
         {}
 
         explicit Task(const std::function<void()>& fnOp)
@@ -58,20 +58,20 @@ class Task
 
         void operator()()
         {
-            if(m_Func){ m_Func(); }
+            if(m_func){ m_func(); }
         }
 
         void Expire(uint32_t nMS)
         {
-            m_Expiration = (nMS ? LOCAL_SYSTEM_TIME_NEXT(nMS) : LOCAL_SYSTEM_TIME_ZERO);
+            m_expiration = (nMS ? LOCAL_SYSTEM_TIME_NEXT(nMS) : LOCAL_SYSTEM_TIME_ZERO);
         }
 
         bool Expired()
         {
-            if(m_Expiration == LOCAL_SYSTEM_TIME_ZERO){
+            if(m_expiration == LOCAL_SYSTEM_TIME_ZERO){
                 return false;
             }
-            return m_Expiration < LOCAL_SYSTEM_TIME_NOW;
+            return m_expiration < LOCAL_SYSTEM_TIME_NOW;
         }
 };
 

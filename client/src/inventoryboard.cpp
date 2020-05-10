@@ -21,9 +21,9 @@
 #include "processrun.hpp"
 #include "inventoryboard.hpp"
 
-extern PNGTexDB *g_ProgUseDB;
-extern PNGTexDB *g_ProgUseDB;
-extern PNGTexDB *g_CommonItemDB;
+extern PNGTexDB *g_progUseDB;
+extern PNGTexDB *g_progUseDB;
+extern PNGTexDB *g_commonItemDB;
 extern SDLDevice *g_SDLDevice;
 
 InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget, bool bAutoFree)
@@ -64,7 +64,7 @@ InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget
     , m_processRun(pRun)
 {
     show(false);
-    if(auto pTexture = g_ProgUseDB->Retrieve(0X0000001B)){
+    if(auto pTexture = g_progUseDB->Retrieve(0X0000001B)){
         SDL_QueryTexture(pTexture, nullptr, nullptr, &m_w, &m_h);
     }
     m_goldBoard.moveTo(105 - m_goldBoard.w() / 2, 401);
@@ -79,7 +79,7 @@ void InventoryBoard::drawItem(int nDstX, int nDstY, const PackBin &rstBin)
             && rstBin.W >  0
             && rstBin.H >  0){
 
-        if(auto pTexture = g_CommonItemDB->Retrieve(rstBin.ID)){
+        if(auto pTexture = g_commonItemDB->Retrieve(rstBin.ID)){
 
             int nItemPW = -1;
             int nItemPH = -1;
@@ -98,7 +98,7 @@ void InventoryBoard::drawItem(int nDstX, int nDstY, const PackBin &rstBin)
 
 void InventoryBoard::drawEx(int nDstX, int nDstY, int, int, int, int)
 {
-    if(auto pTexture = g_ProgUseDB->Retrieve(0X0000001B)){
+    if(auto pTexture = g_progUseDB->Retrieve(0X0000001B)){
         g_SDLDevice->DrawTexture(pTexture, nDstX, nDstY);
     }
 

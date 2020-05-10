@@ -28,7 +28,7 @@
 #include "zsdb.hpp"
 #include "fileptr.hpp"
 
-const static int g_CompLevel = 3;
+const static int g_compLevel = 3;
 
 template<typename T, typename F> static T check_cast(F from)
 {
@@ -51,9 +51,9 @@ static std::vector<uint8_t> compressDataBuf(const uint8_t *pDataBuf, size_t nDat
     if(pCCtx && pCDict){
         nRC = ZSTD_compress_usingCDict(pCCtx, stRetBuf.data(), stRetBuf.size(), pDataBuf, nDataLen, pCDict);
     }else if(pCCtx){
-        nRC = ZSTD_compressCCtx(pCCtx, stRetBuf.data(), stRetBuf.size(), pDataBuf, nDataLen, g_CompLevel);
+        nRC = ZSTD_compressCCtx(pCCtx, stRetBuf.data(), stRetBuf.size(), pDataBuf, nDataLen, g_compLevel);
     }else{
-        nRC = ZSTD_compress(stRetBuf.data(), stRetBuf.size(), pDataBuf, nDataLen, g_CompLevel);
+        nRC = ZSTD_compress(stRetBuf.data(), stRetBuf.size(), pDataBuf, nDataLen, g_compLevel);
     }
 
     if(ZSTD_isError(nRC)){
@@ -172,9 +172,9 @@ ZSDB::ZSDB(const char *szPath)
     : m_fp(nullptr)
     , m_DCtx(nullptr)
     , m_DDict(nullptr)
-    , m_Header()
-    , m_EntryList()
-    , m_FileNameBuf()
+    , m_header()
+    , m_entryList()
+    , m_fileNameBuf()
 {
     m_fp = std::fopen(szPath, "rb");
     if(!m_fp){
@@ -189,12 +189,12 @@ ZSDB::ZSDB(const char *szPath)
     if(auto stHeaderData = readFileOffData(m_fp, 0, sizeof(ZSDBHeader)); stHeaderData.empty()){
         throw std::runtime_error("failed to load izdb header");
     }else{
-        std::memcpy(&m_Header, stHeaderData.data(), sizeof(m_Header));
+        std::memcpy(&m_header, stHeaderData.data(), sizeof(m_header));
     }
 
-    if(m_Header.DictLength){
-        auto nOffset = check_cast<size_t>(m_Header.DictOffset);
-        auto nLength = check_cast<size_t>(m_Header.DictLength);
+    if(m_header.DictLength){
+        auto nOffset = check_cast<size_t>(m_header.DictOffset);
+        auto nLength = check_cast<size_t>(m_header.DictLength);
         if(auto stDictBuf = decompFileOffData(m_fp, nOffset, nLength, m_DCtx, m_DDict); stDictBuf.empty()){
             throw std::runtime_error(std::string("failed to load data at (") + ((std::to_string(nOffset) + ", ") + std::to_string(nLength) + ")"));
         }else{
@@ -205,37 +205,37 @@ ZSDB::ZSDB(const char *szPath)
         }
     }
 
-    if(m_Header.EntryLength){
-        auto nOffset = check_cast<size_t>(m_Header.EntryOffset);
-        auto nLength = check_cast<size_t>(m_Header.EntryLength);
+    if(m_header.EntryLength){
+        auto nOffset = check_cast<size_t>(m_header.EntryOffset);
+        auto nLength = check_cast<size_t>(m_header.EntryLength);
 
         if(auto stEntryBuf = decompFileOffData(m_fp, nOffset, nLength, m_DCtx, m_DDict); stEntryBuf.empty()){
             throw std::runtime_error(std::string("failed to load data at (") + ((std::to_string(nOffset) + ", ") + std::to_string(nLength) + ")"));
         }else{
-            if(stEntryBuf.size() != (1 + m_Header.EntryNum) * sizeof(InnEntry)){
+            if(stEntryBuf.size() != (1 + m_header.EntryNum) * sizeof(InnEntry)){
                 throw std::runtime_error("zsdb database file corrupted");
             }
 
             auto *pHead = (InnEntry *)(stEntryBuf.data());
-            m_EntryList.clear();
-            m_EntryList.insert(m_EntryList.end(), pHead, pHead + m_Header.EntryNum + 1);
+            m_entryList.clear();
+            m_entryList.insert(m_entryList.end(), pHead, pHead + m_header.EntryNum + 1);
 
-            if(std::memcmp(&m_EntryList.back(), &GetErrorEntry(), sizeof(InnEntry))){
+            if(std::memcmp(&m_entryList.back(), &GetErrorEntry(), sizeof(InnEntry))){
                 throw std::runtime_error("zsdb database file corrupted");
             }
-            m_EntryList.pop_back();
+            m_entryList.pop_back();
         }
     }
 
-    if(m_Header.FileNameLength){
-        auto nOffset = check_cast<size_t>(m_Header.FileNameOffset);
-        auto nLength = check_cast<size_t>(m_Header.FileNameLength);
+    if(m_header.FileNameLength){
+        auto nOffset = check_cast<size_t>(m_header.FileNameOffset);
+        auto nLength = check_cast<size_t>(m_header.FileNameLength);
         if(auto stFileNameBuf = decompFileOffData(m_fp, nOffset, nLength, m_DCtx, nullptr); stFileNameBuf.empty()){
             throw std::runtime_error(std::string("failed to load data at (") + ((std::to_string(nOffset) + ", ") + std::to_string(nLength) + ")"));
         }else{
             auto *pHead = (char *)(stFileNameBuf.data());
-            m_FileNameBuf.clear();
-            m_FileNameBuf.insert(m_FileNameBuf.end(), pHead, pHead + stFileNameBuf.size());
+            m_fileNameBuf.clear();
+            m_fileNameBuf.insert(m_fileNameBuf.end(), pHead, pHead + stFileNameBuf.size());
         }
     }
 }
@@ -253,30 +253,30 @@ const char *ZSDB::Decomp(const char *szFileName, size_t nCheckLen, std::vector<u
         return nullptr;
     }
 
-    auto p = std::lower_bound(m_EntryList.begin(), m_EntryList.end(), szFileName, [this, nCheckLen](const InnEntry &lhs, const char *rhs) -> bool
+    auto p = std::lower_bound(m_entryList.begin(), m_entryList.end(), szFileName, [this, nCheckLen](const InnEntry &lhs, const char *rhs) -> bool
     {
         if(nCheckLen){
-            return std::strncmp(m_FileNameBuf.data() + lhs.FileName, rhs, nCheckLen) < 0;
+            return std::strncmp(m_fileNameBuf.data() + lhs.FileName, rhs, nCheckLen) < 0;
         }else{
-            return std::strcmp(m_FileNameBuf.data() + lhs.FileName, rhs) < 0;
+            return std::strcmp(m_fileNameBuf.data() + lhs.FileName, rhs) < 0;
         }
     });
 
-    if(p == m_EntryList.end()){
+    if(p == m_entryList.end()){
         return nullptr;
     }
 
     if(nCheckLen){
-        if(std::strncmp(szFileName, m_FileNameBuf.data() + p->FileName, nCheckLen)){
+        if(std::strncmp(szFileName, m_fileNameBuf.data() + p->FileName, nCheckLen)){
             return nullptr;
         }
     }else{
-        if(std::strcmp(szFileName, m_FileNameBuf.data() + p->FileName)){
+        if(std::strcmp(szFileName, m_fileNameBuf.data() + p->FileName)){
             return nullptr;
         }
     }
 
-    return ZSDB::DecompEntry(*p, pDstBuf) ? (m_FileNameBuf.data() + p->FileName) : nullptr;
+    return ZSDB::DecompEntry(*p, pDstBuf) ? (m_fileNameBuf.data() + p->FileName) : nullptr;
 }
 
 bool ZSDB::DecompEntry(const ZSDB::InnEntry &rstEntry, std::vector<uint8_t> *pDstBuf)
@@ -292,9 +292,9 @@ bool ZSDB::DecompEntry(const ZSDB::InnEntry &rstEntry, std::vector<uint8_t> *pDs
 
     std::vector<uint8_t> stRetBuf;
     if(rstEntry.Attribute & F_COMPRESSED){
-        stRetBuf = decompFileOffData(m_fp, m_Header.StreamOffset + rstEntry.Offset, rstEntry.Length, m_DCtx, m_DDict);
+        stRetBuf = decompFileOffData(m_fp, m_header.StreamOffset + rstEntry.Offset, rstEntry.Length, m_DCtx, m_DDict);
     }else{
-        stRetBuf = readFileOffData(m_fp, m_Header.StreamOffset + rstEntry.Offset, rstEntry.Length);
+        stRetBuf = readFileOffData(m_fp, m_header.StreamOffset + rstEntry.Offset, rstEntry.Length);
     }
 
     if(stRetBuf.empty()){
@@ -308,8 +308,8 @@ bool ZSDB::DecompEntry(const ZSDB::InnEntry &rstEntry, std::vector<uint8_t> *pDs
 std::vector<ZSDB::Entry> ZSDB::GetEntryList() const
 {
     std::vector<ZSDB::Entry> stRetBuf;
-    for(auto &rstEntry: m_EntryList){
-        stRetBuf.emplace_back(m_FileNameBuf.data() + rstEntry.FileName, rstEntry.Length, rstEntry.Attribute);
+    for(auto &rstEntry: m_entryList){
+        stRetBuf.emplace_back(m_fileNameBuf.data() + rstEntry.FileName, rstEntry.Length, rstEntry.Attribute);
     }
     return stRetBuf;
 }
@@ -333,7 +333,7 @@ bool ZSDB::BuildDB(const char *szSaveFullName, const char *szFileNameRegex, cons
             return false;
         }
 
-        pCDict = ZSTD_createCDict(stCDictBuf.data(), stCDictBuf.size(), g_CompLevel);
+        pCDict = ZSTD_createCDict(stCDictBuf.data(), stCDictBuf.size(), g_compLevel);
         if(!pCDict){
             return false;
         }

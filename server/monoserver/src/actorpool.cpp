@@ -26,7 +26,7 @@
 #include "actorpool.hpp"
 #include "monoserver.hpp"
 
-extern MonoServer *g_MonoServer;
+extern MonoServer *g_monoServer;
 
 // keep in mind:
 // 1. at ANY time only one thread can access one actor message handler
@@ -52,37 +52,37 @@ ActorPool::Mailbox::Mailbox(ActorPod *pActor)
 {}
 
 ActorPool::ActorPool(uint32_t nBucketCount, uint32_t nLogicFPS)
-    : m_LogicFPS(nLogicFPS)
-    , m_Terminated(false)
-    , m_FutureList()
-    , m_BucketList(nBucketCount)
-    , m_ReceiverLock()
-    , m_ReceiverList()
+    : m_logicFPS(nLogicFPS)
+    , m_terminated(false)
+    , m_futureList()
+    , m_bucketList(nBucketCount)
+    , m_receiverLock()
+    , m_receiverList()
 {}
 
 ActorPool::~ActorPool()
 {
     if(IsActorThread()){
-        g_MonoServer->addLog(LOGTYPE_WARNING, "Trying to destroy actor pool in actor thread %d", GetWorkerID());
-        g_MonoServer->Restart();
+        g_monoServer->addLog(LOGTYPE_WARNING, "Trying to destroy actor pool in actor thread %d", GetWorkerID());
+        g_monoServer->Restart();
         return;
     }
 
     // don't throw in dtor
     // can only put the log for diag
 
-    m_Terminated.store(true);
+    m_terminated.store(true);
     try{
-        for(auto p = m_FutureList.begin(); p != m_FutureList.end(); ++p){
+        for(auto p = m_futureList.begin(); p != m_futureList.end(); ++p){
             // in lanuch part if an actor thread can join
             // it already passed the unique_lock to clean all readers
             p->get();
         }
     }catch(...){
-        g_MonoServer->addLog(LOGTYPE_WARNING, "Exceptions should be caught before exiting actor threads");
-        g_MonoServer->Restart();
+        g_monoServer->addLog(LOGTYPE_WARNING, "Exceptions should be caught before exiting actor threads");
+        g_monoServer->Restart();
     }
-    m_FutureList.clear();
+    m_futureList.clear();
 }
 
 bool ActorPool::Register(ActorPod *pActor)
@@ -92,7 +92,7 @@ bool ActorPool::Register(ActorPod *pActor)
     }
 
     auto nUID = pActor->UID();
-    auto nIndex = nUID % m_BucketList.size();
+    auto nIndex = nUID % m_bucketList.size();
     auto pMailbox = std::make_shared<Mailbox>(pActor);
 
     // can call this function from:
@@ -106,9 +106,9 @@ bool ActorPool::Register(ActorPod *pActor)
     // 1. to make sure any other reading thread done
     // 2. current thread won't accquire the lock in read mode
     {
-        std::unique_lock<std::shared_mutex> stLock(m_BucketList[nIndex].BucketLock);
-        if(auto p = m_BucketList[nIndex].MailboxList.find(nUID); p == m_BucketList[nIndex].MailboxList.end()){
-            m_BucketList[nIndex].MailboxList[nUID] = pMailbox;
+        std::unique_lock<std::shared_mutex> stLock(m_bucketList[nIndex].BucketLock);
+        if(auto p = m_bucketList[nIndex].MailboxList.find(nUID); p == m_bucketList[nIndex].MailboxList.end()){
+            m_bucketList[nIndex].MailboxList[nUID] = pMailbox;
             return true;
         }else{
             throw std::runtime_error(str_fflprintf(": UID exists: UID = %" PRIu64 ", ActorPod = %p", nUID, p->second->Actor));
@@ -123,9 +123,9 @@ bool ActorPool::Register(Receiver *pReceiver)
     }
 
     {
-        std::lock_guard<std::mutex> stLock(m_ReceiverLock);
-        if(auto p = m_ReceiverList.find(pReceiver->UID()); p == m_ReceiverList.end()){
-            m_ReceiverList[pReceiver->UID()] = pReceiver;
+        std::lock_guard<std::mutex> stLock(m_receiverLock);
+        if(auto p = m_receiverList.find(pReceiver->UID()); p == m_receiverList.end()){
+            m_receiverList[pReceiver->UID()] = pReceiver;
             return true;
         }else{
             throw std::runtime_error(str_fflprintf(": UID exists: UID = %" PRIu64 ", Receiver = %p", p->second->UID(), p->second));
@@ -142,8 +142,8 @@ bool ActorPool::Detach(const ActorPod *pActor, const std::function<void()> &fnAt
     // we can use UID as parameter
     // but use actor address prevents other thread detach blindly
 
-    auto nIndex = pActor->UID() % m_BucketList.size();
-    auto fnDoDetach = [this, &rstMailboxList = m_BucketList[nIndex].MailboxList, pActor, &fnAtExit]() -> bool
+    auto nIndex = pActor->UID() % m_bucketList.size();
+    auto fnDoDetach = [this, &rstMailboxList = m_bucketList[nIndex].MailboxList, pActor, &fnAtExit]() -> bool
     {
         // we need to make sure after this funtion
         // there isn't any threads accessing the internal actor state
@@ -267,7 +267,7 @@ bool ActorPool::Detach(const ActorPod *pActor, const std::function<void()> &fnAt
     if(GetWorkerID() == (int)(nIndex)){
         return fnDoDetach();
     }else{
-        std::shared_lock<std::shared_mutex> stLock(m_BucketList[nIndex].BucketLock);
+        std::shared_lock<std::shared_mutex> stLock(m_bucketList[nIndex].BucketLock);
         return fnDoDetach();
     }
 }
@@ -281,9 +281,9 @@ bool ActorPool::Detach(const Receiver *pReceiver)
     // we allow detach a receiver multiple times
     // since we support this for actorpod, no better reason...
     {
-        std::lock_guard<std::mutex> stLock(m_ReceiverLock);
-        if(auto p = m_ReceiverList.find(pReceiver->UID()); (p != m_ReceiverList.end()) && (p->second == pReceiver)){
-            m_ReceiverList.erase(p);
+        std::lock_guard<std::mutex> stLock(m_receiverLock);
+        if(auto p = m_receiverList.find(pReceiver->UID()); (p != m_receiverList.end()) && (p->second == pReceiver)){
+            m_receiverList.erase(p);
         }
         return true;
     }
@@ -300,21 +300,21 @@ bool ActorPool::PostMessage(uint64_t nUID, MessagePack stMPK)
     }
 
     if(IsReceiver(nUID)){
-        std::lock_guard<std::mutex> stLockGuard(m_ReceiverLock);
-        if(auto p = m_ReceiverList.find(nUID); p != m_ReceiverList.end()){
+        std::lock_guard<std::mutex> stLockGuard(m_receiverLock);
+        if(auto p = m_receiverList.find(nUID); p != m_receiverList.end()){
             p->second->PushMessage(std::move(stMPK));
             return true;
         }
         return false;
     }
 
-    auto nIndex = nUID % m_BucketList.size();
+    auto nIndex = nUID % m_bucketList.size();
     auto fnPostMessage = [this, nIndex, nUID](MessagePack stMPK)
     {
         // here won't try lock the mailbox
         // but it will check if the mailbox is detached
 
-        if(auto p = m_BucketList[nIndex].MailboxList.find(nUID); p != m_BucketList[nIndex].MailboxList.end()){
+        if(auto p = m_bucketList[nIndex].MailboxList.find(nUID); p != m_bucketList[nIndex].MailboxList.end()){
             // just a cheat and can remove it
             // try return earlier with acquire the NextQLock
             if(p->second->SchedLock.Detached()){
@@ -338,7 +338,7 @@ bool ActorPool::PostMessage(uint64_t nUID, MessagePack stMPK)
     if(GetWorkerID() == (int)(nIndex)){
         return fnPostMessage(stMPK);
     }else{
-        std::shared_lock<std::shared_mutex> stLock(m_BucketList[nIndex].BucketLock);
+        std::shared_lock<std::shared_mutex> stLock(m_bucketList[nIndex].BucketLock);
         return fnPostMessage(stMPK);
     }
 }
@@ -409,8 +409,8 @@ bool ActorPool::RunOneMailbox(Mailbox *pMailbox, bool bMetronome)
 
 void ActorPool::RunWorkerSteal(size_t nMaxIndex)
 {
-    std::shared_lock<std::shared_mutex> stLock(m_BucketList[nMaxIndex].BucketLock);
-    for(auto p = m_BucketList[nMaxIndex].MailboxList.rbegin(); p != m_BucketList[nMaxIndex].MailboxList.rend(); ++p){
+    std::shared_lock<std::shared_mutex> stLock(m_bucketList[nMaxIndex].BucketLock);
+    for(auto p = m_bucketList[nMaxIndex].MailboxList.rbegin(); p != m_bucketList[nMaxIndex].MailboxList.rend(); ++p){
         if(MailboxLock stMailboxLock(p->second->SchedLock, GetWorkerID()); stMailboxLock.Locked()){
             RunOneMailbox(p->second.get(), false);
         }
@@ -422,27 +422,27 @@ std::tuple<long, size_t> ActorPool::CheckWorkerTime() const
     long nSum = 0;
     size_t nMaxIndex = 0;
 
-    for(int nIndex = 0; nIndex < (int)(m_BucketList.size()); ++nIndex){
-        nSum += m_BucketList[nIndex].RunTimer.GetAvgTime();
-        if(m_BucketList[nIndex].RunTimer.GetAvgTime() > m_BucketList[nMaxIndex].RunTimer.GetAvgTime()){
+    for(int nIndex = 0; nIndex < (int)(m_bucketList.size()); ++nIndex){
+        nSum += m_bucketList[nIndex].RunTimer.GetAvgTime();
+        if(m_bucketList[nIndex].RunTimer.GetAvgTime() > m_bucketList[nMaxIndex].RunTimer.GetAvgTime()){
             nMaxIndex = nIndex;
         }
     }
-    return {nSum / m_BucketList.size(), nMaxIndex};
+    return {nSum / m_bucketList.size(), nMaxIndex};
 }
 
 void ActorPool::RunWorker(size_t nIndex)
 {
     hres_timer stHRTimer;
     RunWorkerOneLoop(nIndex);
-    m_BucketList[nIndex].RunTimer.Push(stHRTimer.diff_nsec());
+    m_bucketList[nIndex].RunTimer.Push(stHRTimer.diff_nsec());
 
     if(HasWorkSteal()){
         auto [nAvgTime, nMaxIndex] = CheckWorkerTime();
-        if((m_BucketList[nIndex].RunTimer.GetAvgTime()) < nAvgTime && (nIndex != nMaxIndex)){
+        if((m_bucketList[nIndex].RunTimer.GetAvgTime()) < nAvgTime && (nIndex != nMaxIndex)){
             hres_timer stHRStealTimer;
             RunWorkerSteal(nMaxIndex);
-            m_BucketList[nIndex].StealTimer.Push(stHRStealTimer.diff_nsec());
+            m_bucketList[nIndex].StealTimer.Push(stHRStealTimer.diff_nsec());
         }
     }
 }
@@ -526,7 +526,7 @@ void ActorPool::RunWorkerOneLoop(size_t nIndex)
 
     auto fnUpdate = [this](size_t nIndex, auto p)
     {
-        while(p != m_BucketList[nIndex].MailboxList.end()){
+        while(p != m_bucketList[nIndex].MailboxList.end()){
             switch(MailboxLock stMailboxLock(p->second->SchedLock, GetWorkerID()); stMailboxLock.LockType()){
                 case MAILBOX_DETACHED:
                     {
@@ -581,10 +581,10 @@ void ActorPool::RunWorkerOneLoop(size_t nIndex)
                     }
             }
         }
-        return m_BucketList[nIndex].MailboxList.end();
+        return m_bucketList[nIndex].MailboxList.end();
     };
 
-    for(auto p = fnUpdate(nIndex, m_BucketList[nIndex].MailboxList.begin()); p != m_BucketList[nIndex].MailboxList.end(); p = fnUpdate(nIndex, p)){
+    for(auto p = fnUpdate(nIndex, m_bucketList[nIndex].MailboxList.begin()); p != m_bucketList[nIndex].MailboxList.end(); p = fnUpdate(nIndex, p)){
         // we detected a detached actor
         // clear all its queued messages and remove it if ready
         if(p->second->AtExit){
@@ -593,41 +593,41 @@ void ActorPool::RunWorkerOneLoop(size_t nIndex)
         }
         ClearOneMailbox(p->second.get());
         {
-            std::unique_lock<std::shared_mutex> stLock(m_BucketList[nIndex].BucketLock);
-            p = m_BucketList[nIndex].MailboxList.erase(p);
+            std::unique_lock<std::shared_mutex> stLock(m_bucketList[nIndex].BucketLock);
+            p = m_bucketList[nIndex].MailboxList.erase(p);
         }
     }
 }
 
 void ActorPool::Launch()
 {
-    for(int nIndex = 0; nIndex < (int)(m_BucketList.size()); ++nIndex){
-        m_FutureList.emplace_back(std::async(std::launch::async, [nIndex, this]()
+    for(int nIndex = 0; nIndex < (int)(m_bucketList.size()); ++nIndex){
+        m_futureList.emplace_back(std::async(std::launch::async, [nIndex, this]()
         {
             // record the worker id
             // for application this won't get assigned
             t_WorkerID = nIndex;
             try{
-                auto nCurrTick = g_MonoServer->getCurrTick();
-                while(!m_Terminated.load()){
+                auto nCurrTick = g_monoServer->getCurrTick();
+                while(!m_terminated.load()){
                     RunWorker(nIndex);
 
-                    auto nExptTick = nCurrTick + 1000 / m_LogicFPS;
-                    nCurrTick = g_MonoServer->getCurrTick();
+                    auto nExptTick = nCurrTick + 1000 / m_logicFPS;
+                    nCurrTick = g_monoServer->getCurrTick();
 
                     if(nCurrTick < nExptTick){
-                        g_MonoServer->SleepEx(nExptTick - nCurrTick);
+                        g_monoServer->SleepEx(nExptTick - nCurrTick);
                     }
                 }
 
                 // terminted
                 // need to clean all mailboxes
                 {
-                    std::unique_lock<std::shared_mutex> stLock(m_BucketList[nIndex].BucketLock);
-                    m_BucketList[nIndex].MailboxList.clear();
+                    std::unique_lock<std::shared_mutex> stLock(m_bucketList[nIndex].BucketLock);
+                    m_bucketList[nIndex].MailboxList.clear();
                 }
             }catch(...){
-                g_MonoServer->PropagateException();
+                g_monoServer->PropagateException();
             }
 
             // won't let the std::future get the exception
@@ -635,14 +635,14 @@ void ActorPool::Launch()
             return true;
         }).share());
 
-        g_MonoServer->addLog(LOGTYPE_INFO, "Actor thread %d launched", nIndex);
+        g_monoServer->addLog(LOGTYPE_INFO, "Actor thread %d launched", nIndex);
     }
 }
 
 bool ActorPool::CheckInvalid(uint64_t nUID) const
 {
-    auto nIndex = nUID % m_BucketList.size();
-    auto fnGetInvalid = [this, &rstMailboxList = m_BucketList[nIndex].MailboxList, nUID]() -> bool
+    auto nIndex = nUID % m_bucketList.size();
+    auto fnGetInvalid = [this, &rstMailboxList = m_bucketList[nIndex].MailboxList, nUID]() -> bool
     {
         if(auto p = rstMailboxList.find(nUID); p == rstMailboxList.end() || p->second->SchedLock.Detached()){
             return true;
@@ -653,7 +653,7 @@ bool ActorPool::CheckInvalid(uint64_t nUID) const
     if(GetWorkerID() == (int)(nIndex)){
         return fnGetInvalid();
     }else{
-        std::shared_lock<std::shared_mutex> stLock(m_BucketList[nIndex].BucketLock);
+        std::shared_lock<std::shared_mutex> stLock(m_bucketList[nIndex].BucketLock);
         return fnGetInvalid();
     }
 }
@@ -665,7 +665,7 @@ bool ActorPool::IsActorThread() const
 
 bool ActorPool::IsActorThread(int nWorkerID) const
 {
-    return (nWorkerID >= 0) && (nWorkerID < (int)(m_BucketList.size()));
+    return (nWorkerID >= 0) && (nWorkerID < (int)(m_bucketList.size()));
 }
 
 ActorPool::ActorMonitor ActorPool::GetActorMonitor(uint64_t nUID) const
@@ -674,15 +674,15 @@ ActorPool::ActorMonitor ActorPool::GetActorMonitor(uint64_t nUID) const
         throw std::runtime_error(str_fflprintf(": Querying actor monitor inside actor thread: WorkerID = %d, UID = %" PRIu64, GetWorkerID(), nUID));
     }
 
-    auto nIndex = nUID % m_BucketList.size();
+    auto nIndex = nUID % m_bucketList.size();
     {
         // lock the bucket
         // other thread can detach the actor but can't erase the mailbox
-        std::shared_lock<std::shared_mutex> stLock(m_BucketList[nIndex].BucketLock);
+        std::shared_lock<std::shared_mutex> stLock(m_bucketList[nIndex].BucketLock);
 
         // just read the mailbox cached variables
         // I don't need to acquire the sched_lock, I don't need it 100% accurate
-        if(auto p = m_BucketList[nIndex].MailboxList.find(nUID); (p != m_BucketList[nIndex].MailboxList.end()) && (!p->second->SchedLock.Detached())){
+        if(auto p = m_bucketList[nIndex].MailboxList.find(nUID); (p != m_bucketList[nIndex].MailboxList.end()) && (!p->second->SchedLock.Detached())){
             return p->second->DumpMonitor();
         }
         return {};
@@ -696,11 +696,11 @@ std::vector<ActorPool::ActorMonitor> ActorPool::GetActorMonitor() const
     }
 
     std::vector<ActorPool::ActorMonitor> stRetList;
-    for(size_t nIndex = 0; nIndex < m_BucketList.size(); ++nIndex){
-        std::shared_lock<std::shared_mutex> stLock(m_BucketList[nIndex].BucketLock);
+    for(size_t nIndex = 0; nIndex < m_bucketList.size(); ++nIndex){
+        std::shared_lock<std::shared_mutex> stLock(m_bucketList[nIndex].BucketLock);
         {
-            stRetList.reserve(stRetList.size() + m_BucketList[nIndex].MailboxList.size());
-            for(auto p = m_BucketList[nIndex].MailboxList.begin(); p != m_BucketList[nIndex].MailboxList.end(); ++p){
+            stRetList.reserve(stRetList.size() + m_bucketList[nIndex].MailboxList.size());
+            for(auto p = m_bucketList[nIndex].MailboxList.begin(); p != m_bucketList[nIndex].MailboxList.end(); ++p){
                 if(!p->second->SchedLock.Detached()){
                     stRetList.push_back(p->second->DumpMonitor());
                 }

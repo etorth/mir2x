@@ -33,18 +33,18 @@ using TaskBlockPN = MemoryBlockPN<sizeof(Task), 1024, 4>;
 class TaskHub: public BaseHub
 {
     protected:
-        std::mutex              m_TaskLock;
-        std::condition_variable m_TaskCV;
-        std::list<Task*>        m_TaskList;
-        TaskBlockPN             m_TaskBlockPN;
+        std::mutex              m_taskLock;
+        std::condition_variable m_taskCV;
+        std::list<Task*>        m_taskList;
+        TaskBlockPN             m_taskBlockPN;
 
     public:
         TaskHub()
             : BaseHub()
-            , m_TaskLock()
-            , m_TaskCV()
-            , m_TaskList()
-            , m_TaskBlockPN()
+            , m_taskLock()
+            , m_taskCV()
+            , m_taskList()
+            , m_taskBlockPN()
         {}
 
         // 1. do shutdown manually
@@ -57,15 +57,15 @@ class TaskHub: public BaseHub
             if(pTask){
                 bool bNeedNotify = false;
                 {
-                    std::lock_guard<std::mutex> stLockGuard(m_TaskLock);
+                    std::lock_guard<std::mutex> stLockGuard(m_taskLock);
                     // still we are running
                     if(State()){
-                        bNeedNotify = m_TaskList.empty();
+                        bNeedNotify = m_taskList.empty();
 
                         if(bPushHead){
-                            m_TaskList.push_front(pTask);
+                            m_taskList.push_front(pTask);
                         }else{
-                            m_TaskList.push_back(pTask);
+                            m_taskList.push_back(pTask);
                         }
                     }else{
                         DeleteTask(pTask);
@@ -73,7 +73,7 @@ class TaskHub: public BaseHub
                     }
                 }
 
-                if(bNeedNotify){ m_TaskCV.notify_one(); }
+                if(bNeedNotify){ m_taskCV.notify_one(); }
             }
         }
 
@@ -96,7 +96,7 @@ class TaskHub: public BaseHub
     protected:
         template<typename... Args> Task *CreateTask(Args &&... args)
         {
-            if(auto pData = m_TaskBlockPN.Get()){
+            if(auto pData = m_taskBlockPN.Get()){
                 // passing null argument to placement new is undefined behavior
                 return new (pData) Task(std::forward<Args>(args)...);
             }
@@ -107,7 +107,7 @@ class TaskHub: public BaseHub
         {
             if(pTask){
                 pTask->~Task();
-                m_TaskBlockPN.Free(pTask);
+                m_taskBlockPN.Free(pTask);
             }
         }
 
@@ -115,35 +115,35 @@ class TaskHub: public BaseHub
         void Shutdown()
         {
             State(false);
-            std::lock_guard<std::mutex> stLockGuard(m_TaskLock);
+            std::lock_guard<std::mutex> stLockGuard(m_taskLock);
 
-            for(auto pTask: m_TaskList){
+            for(auto pTask: m_taskList){
                 DeleteTask(pTask);
             }
 
-            m_TaskList.clear();
-            m_TaskCV.notify_one();
+            m_taskList.clear();
+            m_taskCV.notify_one();
         }
 
     protected:
         void MainLoop()
         {
             // NOTE: second argument defer_lock is to prevent from immediate locking
-            std::unique_lock<std::mutex> stTaskUniqueLock(m_TaskLock, std::defer_lock);
+            std::unique_lock<std::mutex> stTaskUniqueLock(m_taskLock, std::defer_lock);
 
             while(State()){
                 // check if there are tasks waiting
                 stTaskUniqueLock.lock();
 
-                if(m_TaskList.empty()){
+                if(m_taskList.empty()){
                     //if the list is empty, then wait for signal
-                    m_TaskCV.wait(stTaskUniqueLock);
+                    m_taskCV.wait(stTaskUniqueLock);
                 }
 
                 // for spurious wake-up
-                if(!m_TaskList.empty()){
-                    auto pTask = m_TaskList.front();
-                    m_TaskList.pop_front();
+                if(!m_taskList.empty()){
+                    auto pTask = m_taskList.front();
+                    m_taskList.pop_front();
                     stTaskUniqueLock.unlock();
 
                     if(!pTask->Expired()){ (*pTask)(); }

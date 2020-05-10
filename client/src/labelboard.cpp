@@ -22,7 +22,7 @@
 #include "colorf.hpp"
 #include "labelboard.hpp"
 
-extern Log *g_Log;
+extern Log *g_log;
 
 void LabelBoard::setText(const char * szFormatString, ...)
 {
@@ -43,7 +43,7 @@ void LabelBoard::setText(const char * szFormatString, ...)
     }
 
     if(bError){
-        g_Log->addLog(LOGTYPE_WARNING, "%s", szText.c_str());
+        g_log->addLog(LOGTYPE_WARNING, "%s", szText.c_str());
     }
 
     // use the fallback values of m_tpset

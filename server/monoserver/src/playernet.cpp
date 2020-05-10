@@ -78,7 +78,7 @@ void Player::Net_CM_REQUESTKILLPETS(uint8_t, const uint8_t *, size_t)
 
 void Player::Net_CM_PICKUP(uint8_t, const uint8_t *pBuf, size_t)
 {
-    if(auto pCM = (CMPickUp *)(pBuf); pCM->MapID == m_Map->ID()){
+    if(auto pCM = (CMPickUp *)(pBuf); pCM->MapID == m_map->ID()){
         if(CanPickUp(pCM->ID, 0)){
             AMPickUp stAMPU;
             std::memset(&stAMPU, 0, sizeof(stAMPU));
@@ -87,7 +87,7 @@ void Player::Net_CM_PICKUP(uint8_t, const uint8_t *pBuf, size_t)
             stAMPU.UID  = pCM->UID;
             stAMPU.ID   = pCM->ID;
             stAMPU.DBID = pCM->DBID;
-            m_actorPod->forward(m_Map->UID(), {MPK_PICKUP, stAMPU});
+            m_actorPod->forward(m_map->UID(), {MPK_PICKUP, stAMPU});
         }
     }
 }

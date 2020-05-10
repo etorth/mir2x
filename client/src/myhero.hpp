@@ -24,13 +24,13 @@
 class MyHero: public Hero
 {
     private:
-        uint32_t m_Gold;
+        uint32_t m_gold;
 
     private:
-        InvPack m_InvPack;
+        InvPack m_invPack;
 
     private:
-        std::deque<ActionNode> m_ActionQueue;
+        std::deque<ActionNode> m_actionQueue;
 
     public:
         MyHero(uint64_t, uint32_t, bool, uint32_t, ProcessRun *, const ActionNode &);
@@ -80,18 +80,18 @@ class MyHero: public Hero
     public:
         uint32_t GetGold() const
         {
-            return m_Gold;
+            return m_gold;
         }
 
         void SetGold(uint32_t nGold)
         {
-            m_Gold = nGold;
+            m_gold = nGold;
         }
 
     public:
         InvPack &getInvPack()
         {
-            return m_InvPack;
+            return m_invPack;
         }
 
     public:

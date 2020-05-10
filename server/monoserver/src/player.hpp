@@ -26,18 +26,18 @@ class Player final: public CharObject
 {
     protected:
         const uint32_t m_DBID;
-        const uint32_t m_JobID;
+        const uint32_t m_jobID;
 
     protected:
-        uint32_t m_ChannID;
+        uint32_t m_channID;
 
     protected:
-        uint32_t m_Exp;
-        uint32_t m_Level;
+        uint32_t m_exp;
+        uint32_t m_level;
 
     protected:
-        uint32_t m_Gold;
-        std::vector<CommonItem> m_Inventory;
+        uint32_t m_gold;
+        std::vector<CommonItem> m_inventory;
 
     protected:
         std::set<uint64_t> m_slaveList;
@@ -56,17 +56,17 @@ class Player final: public CharObject
     protected:
         uint32_t Exp() const
         {
-            return m_Exp;
+            return m_exp;
         }
 
         uint32_t Gold() const
         {
-            return m_Gold;
+            return m_gold;
         }
 
         uint32_t Level() const
         {
-            return m_Level;
+            return m_level;
         }
 
         uint32_t DBID() const
@@ -76,12 +76,12 @@ class Player final: public CharObject
 
         uint32_t JobID() const
         {
-            return m_JobID;
+            return m_jobID;
         }
 
         uint32_t ChannID()
         {
-            return m_ChannID;
+            return m_channID;
         }
 
     public:

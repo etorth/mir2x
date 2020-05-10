@@ -344,7 +344,7 @@ void ProcessRun::Net_FIREMAGIC(const uint8_t *pBuf, size_t)
                     }
                 case EGT_FIXED:
                     {
-                        m_IndepMagicList.emplace_back(std::make_shared<IndepMagic>
+                        m_indepMagicList.emplace_back(std::make_shared<IndepMagic>
                         (
                             stSMFM.UID,
                             stSMFM.Magic,

@@ -57,14 +57,14 @@ class FontexDB: public innDB<uint64_t, FontexEntry>
         std::map<uint16_t, TTF_Font *> m_TTFCache;
 
     private:
-        std::map<uint8_t, std::vector<uint8_t>> m_FontDataCache;
+        std::map<uint8_t, std::vector<uint8_t>> m_fontDataCache;
 
     public:
         FontexDB(size_t nResMax)
             : innDB<uint64_t, FontexEntry>(nResMax)
             , m_zsdbPtr()
             , m_TTFCache()
-            , m_FontDataCache()
+            , m_fontDataCache()
         {}
 
         virtual ~FontexDB()
@@ -77,11 +77,11 @@ class FontexDB: public innDB<uint64_t, FontexEntry>
     private:
         const std::vector<uint8_t> &RetrieveFontData(uint8_t nFontIndex)
         {
-            if(auto p = m_FontDataCache.find(nFontIndex); p != m_FontDataCache.end()){
+            if(auto p = m_fontDataCache.find(nFontIndex); p != m_fontDataCache.end()){
                 return p->second;
             }
 
-            m_FontDataCache[nFontIndex] = [this, nFontIndex]() -> std::vector<uint8_t>
+            m_fontDataCache[nFontIndex] = [this, nFontIndex]() -> std::vector<uint8_t>
             {
                 char szFontIndexString[8];
                 std::vector<uint8_t> stFontDataBuf;
@@ -91,7 +91,7 @@ class FontexDB: public innDB<uint64_t, FontexEntry>
                 return {};
             }();
 
-            return m_FontDataCache[nFontIndex];
+            return m_fontDataCache[nFontIndex];
         }
 
         TTF_Font *RetrieveTTF(uint16_t nTTFIndex)

@@ -26,8 +26,8 @@ template<typename Record>
 class RandomPick
 {
     private:
-        std::vector<uint32_t> m_ProbV;
-        std::vector<Record>   m_RecordV;
+        std::vector<uint32_t> m_probV;
+        std::vector<Record>   m_recordV;
         std::vector<double>   m_CProbV;
 
     public:
@@ -38,17 +38,17 @@ class RandomPick
         template<typename... T> void Add(uint32_t nProb, T&&... stT)
         {
             // 1. push this record back
-            m_ProbV.push_back(nProb);
-            m_RecordV.emplace_back(std::forward<T>(stT)...);
+            m_probV.push_back(nProb);
+            m_recordV.emplace_back(std::forward<T>(stT)...);
 
             // 2. re-calculate the cumulative probability
-            double fSum = 1.0 * std::accumulate(m_ProbV.begin(), m_ProbV.end(), 0);
+            double fSum = 1.0 * std::accumulate(m_probV.begin(), m_probV.end(), 0);
 
             // 3. clear last cumulative probability distribution
             m_CProbV.clear();
 
             // 4. push one by one
-            std::for_each(m_ProbV.begin(), m_ProbV.end(), [this, fSum](uint32_t nProb){
+            std::for_each(m_probV.begin(), m_probV.end(), [this, fSum](uint32_t nProb){
                 m_CProbV.push_back(m_CProbV.size() ? (m_CProbV.back() + 1.0 * nProb / fSum) : (1.0 * nProb / fSum));
             });
         }
@@ -66,10 +66,10 @@ class RandomPick
 
             // 3. do pick
             for(size_t nIndex = 0; nIndex < m_CProbV.size(); ++nIndex){
-                if(fPick < m_CProbV[nIndex]){ return m_RecordV[nIndex]; }
+                if(fPick < m_CProbV[nIndex]){ return m_recordV[nIndex]; }
             }
 
-            return m_RecordV.back();
+            return m_recordV.back();
         }
 
         size_t Size()

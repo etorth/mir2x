@@ -26,9 +26,9 @@
 #include "monoserver.hpp"
 #include "serverargparser.hpp"
 
-extern ActorPool *g_ActorPool;
-extern MonoServer *g_MonoServer;
-extern ServerArgParser *g_ServerArgParser;
+extern ActorPool *g_actorPool;
+extern MonoServer *g_monoServer;
+extern ServerArgParser *g_serverArgParser;
 
 ActorPod::ActorPod(uint64_t nUID,
         const std::function<void()> &fnTrigger,
@@ -44,14 +44,14 @@ ActorPod::ActorPod(uint64_t nUID,
           }
           return nUID;
       }())
-    , m_Trigger(fnTrigger)
-    , m_Operation(fnOperation)
-    , m_ValidID(0)
-    , m_ExpireTime(nExpireTime)
-    , m_RespondHandlerGroup()
-    , m_PodMonitor()
+    , m_trigger(fnTrigger)
+    , m_operation(fnOperation)
+    , m_validID(0)
+    , m_expireTime(nExpireTime)
+    , m_respondHandlerGroup()
+    , m_podMonitor()
 {
-    if(!g_ActorPool->Register(this)){
+    if(!g_actorPool->Register(this)){
         throw std::runtime_error(str_fflprintf("Register actor failed: ActorPod = %p, ActorPod::UID() = %" PRIu64, this, UID()));
     }
 }
@@ -67,30 +67,30 @@ ActorPod::~ActorPod()
     // Detach(this, true) will report error if called in running actor thread
     // good enough
 
-    if(!g_ActorPool->Detach(this, [](){})){
-        g_MonoServer->addLog(LOGTYPE_WARNING, "ActorPool::Detach(ActorPod = %p) failed", this);
-        g_MonoServer->Restart();
+    if(!g_actorPool->Detach(this, [](){})){
+        g_monoServer->addLog(LOGTYPE_WARNING, "ActorPool::Detach(ActorPod = %p) failed", this);
+        g_monoServer->Restart();
     }
 }
 
 void ActorPod::InnHandler(const MessagePack &rstMPK)
 {
-    if(g_ServerArgParser->TraceActorMessage){
-        g_MonoServer->addLog(LOGTYPE_DEBUG, "%s <- %s : (Type: %s, ID: %" PRIu32 ", Resp: %" PRIu32 ")",
+    if(g_serverArgParser->TraceActorMessage){
+        g_monoServer->addLog(LOGTYPE_DEBUG, "%s <- %s : (Type: %s, ID: %" PRIu32 ", Resp: %" PRIu32 ")",
                 uidf::getUIDString(UID()).c_str(), uidf::getUIDString(rstMPK.From()).c_str(), rstMPK.Name(), rstMPK.ID(), rstMPK.Respond());
     }
 
-    if(m_ExpireTime){
-        while(!m_RespondHandlerGroup.empty()){
-            if(g_MonoServer->getCurrTick() >= m_RespondHandlerGroup.begin()->second.ExpireTime){
+    if(m_expireTime){
+        while(!m_respondHandlerGroup.empty()){
+            if(g_monoServer->getCurrTick() >= m_respondHandlerGroup.begin()->second.ExpireTime){
                 // everytime when we received the new MPK we check if there is handler the timeout
                 // also this time get counted into the monitor entry
-                m_PodMonitor.AMProcMonitorList[MPK_TIMEOUT].RecvCount++;
+                m_podMonitor.AMProcMonitorList[MPK_TIMEOUT].RecvCount++;
                 {
-                    raii_timer stTimer(&(m_PodMonitor.AMProcMonitorList[MPK_TIMEOUT].ProcTick));
-                    m_RespondHandlerGroup.begin()->second.Operation(MPK_TIMEOUT);
+                    raii_timer stTimer(&(m_podMonitor.AMProcMonitorList[MPK_TIMEOUT].ProcTick));
+                    m_respondHandlerGroup.begin()->second.Operation(MPK_TIMEOUT);
                 }
-                m_RespondHandlerGroup.erase(m_RespondHandlerGroup.begin());
+                m_respondHandlerGroup.erase(m_respondHandlerGroup.begin());
                 continue;
             }
 
@@ -108,18 +108,18 @@ void ActorPod::InnHandler(const MessagePack &rstMPK)
         // 1.     find it, good
         // 2. not find it: 1. didn't register for it, we must prevent this at sending
         //                 2. repsonse is too late ooops and the handler has already be deleted
-        if(auto p = m_RespondHandlerGroup.find(rstMPK.Respond()); p != m_RespondHandlerGroup.end()){
+        if(auto p = m_respondHandlerGroup.find(rstMPK.Respond()); p != m_respondHandlerGroup.end()){
             if(p->second.Operation){
-                m_PodMonitor.AMProcMonitorList[rstMPK.Type()].RecvCount++;
+                m_podMonitor.AMProcMonitorList[rstMPK.Type()].RecvCount++;
                 {
-                    raii_timer stTimer(&(m_PodMonitor.AMProcMonitorList[rstMPK.Type()].ProcTick));
+                    raii_timer stTimer(&(m_podMonitor.AMProcMonitorList[rstMPK.Type()].ProcTick));
                     p->second.Operation(rstMPK);
                 }
             }else{
                 throw std::runtime_error(str_fflprintf("%s <- %s : (Type: %s, ID: %" PRIu32 ", Resp: %" PRIu32 "): Response handler not executable",
                             uidf::getUIDString(UID()).c_str(), uidf::getUIDString(rstMPK.From()).c_str(), rstMPK.Name(), rstMPK.ID(), rstMPK.Respond()));
             }
-            m_RespondHandlerGroup.erase(p);
+            m_respondHandlerGroup.erase(p);
         }else{
             // should only caused by deletion of timeout
             // do nothing for this case, don't take this as an error
@@ -127,11 +127,11 @@ void ActorPod::InnHandler(const MessagePack &rstMPK)
     }else{
         // this is not a responding message
         // use default message handling operation
-        if(m_Operation){
-            m_PodMonitor.AMProcMonitorList[rstMPK.Type()].RecvCount++;
+        if(m_operation){
+            m_podMonitor.AMProcMonitorList[rstMPK.Type()].RecvCount++;
             {
-                raii_timer stTimer(&(m_PodMonitor.AMProcMonitorList[rstMPK.Type()].ProcTick));
-                m_Operation(rstMPK);
+                raii_timer stTimer(&(m_podMonitor.AMProcMonitorList[rstMPK.Type()].ProcTick));
+                m_operation(rstMPK);
             }
         }else{
             // shoud I make it fatal?
@@ -144,16 +144,16 @@ void ActorPod::InnHandler(const MessagePack &rstMPK)
     // trigger is for all types of messages
     // currently we don't take trigger time into consideration
 
-    if(m_Trigger){
-        raii_timer stTimer(&(m_PodMonitor.TriggerMonitor.ProcTick));
-        m_Trigger();
+    if(m_trigger){
+        raii_timer stTimer(&(m_podMonitor.TriggerMonitor.ProcTick));
+        m_trigger();
     }
 }
 
 uint32_t ActorPod::GetValidID()
 {
-    // previously I use g_ServerArgParser->TraceActorMessage to select use this one
-    // this is dangerous since if we can change g_ServerArgParser->TraceActorMessage during runtime then it's dead
+    // previously I use g_serverArgParser->TraceActorMessage to select use this one
+    // this is dangerous since if we can change g_serverArgParser->TraceActorMessage during runtime then it's dead
     if(1){
         static std::atomic<uint32_t> s_ValidID(1);
         auto nNewValidID = s_ValidID.fetch_add(1);
@@ -164,9 +164,9 @@ uint32_t ActorPod::GetValidID()
         throw std::runtime_error(str_fflprintf("Running out of message ID, exiting..."));
     }
 
-    m_ValidID = (m_RespondHandlerGroup.empty() ? 1 : (m_ValidID + 1));
-    if(auto p = m_RespondHandlerGroup.find(m_ValidID); p == m_RespondHandlerGroup.end()){
-        return m_ValidID;
+    m_validID = (m_respondHandlerGroup.empty() ? 1 : (m_validID + 1));
+    if(auto p = m_respondHandlerGroup.find(m_validID); p == m_respondHandlerGroup.end()){
+        return m_validID;
     }
     throw std::runtime_error(str_fflprintf("Running out of message ID, exiting..."));
 }
@@ -188,13 +188,13 @@ bool ActorPod::forward(uint64_t nUID, const MessageBuf &rstMB, uint32_t nRespond
                     uidf::getUIDString(UID()).c_str(), uidf::getUIDString(nUID).c_str(), nRespond));
     }
 
-    if(g_ServerArgParser->TraceActorMessage){
-        g_MonoServer->addLog(LOGTYPE_DEBUG, "%s -> %s: (Type: %s, ID: 0, Resp: %" PRIu32 ")",
+    if(g_serverArgParser->TraceActorMessage){
+        g_monoServer->addLog(LOGTYPE_DEBUG, "%s -> %s: (Type: %s, ID: 0, Resp: %" PRIu32 ")",
                 uidf::getUIDString(UID()).c_str(), uidf::getUIDString(nUID).c_str(), MessagePack(rstMB.Type()).Name(), nRespond);
     }
 
-    m_PodMonitor.AMProcMonitorList[rstMB.Type()].SendCount++;
-    return g_ActorPool->PostMessage(nUID, {rstMB, UID(), 0, nRespond});
+    m_podMonitor.AMProcMonitorList[rstMB.Type()].SendCount++;
+    return g_actorPool->PostMessage(nUID, {rstMB, UID(), 0, nRespond});
 }
 
 bool ActorPod::forward(uint64_t nUID, const MessageBuf &rstMB, uint32_t nRespond, std::function<void(const MessagePack &)> fnOPR)
@@ -220,14 +220,14 @@ bool ActorPod::forward(uint64_t nUID, const MessageBuf &rstMB, uint32_t nRespond
     }
 
     auto nID = GetValidID();
-    if(g_ServerArgParser->TraceActorMessage){
-        g_MonoServer->addLog(LOGTYPE_DEBUG, "%s -> %s: (Type: %s, ID: %u, Resp: %u)",
+    if(g_serverArgParser->TraceActorMessage){
+        g_monoServer->addLog(LOGTYPE_DEBUG, "%s -> %s: (Type: %s, ID: %u, Resp: %u)",
                 uidf::getUIDString(UID()).c_str(), uidf::getUIDString(nUID).c_str(), MessagePack(rstMB.Type()).Name(), nID, nRespond);
     }
 
-    m_PodMonitor.AMProcMonitorList[rstMB.Type()].SendCount++;
-    if(g_ActorPool->PostMessage(nUID, {rstMB, UID(), nID, nRespond})){
-        if(m_RespondHandlerGroup.try_emplace(nID, g_MonoServer->getCurrTick() + m_ExpireTime, std::move(fnOPR)).second){
+    m_podMonitor.AMProcMonitorList[rstMB.Type()].SendCount++;
+    if(g_actorPool->PostMessage(nUID, {rstMB, UID(), nID, nRespond})){
+        if(m_respondHandlerGroup.try_emplace(nID, g_monoServer->getCurrTick() + m_expireTime, std::move(fnOPR)).second){
             return true;
         }
         throw std::runtime_error(str_fflprintf(": Failed to register response handler for posted message: %s", MessagePack(rstMB.Type()).Name()));
@@ -235,9 +235,9 @@ bool ActorPod::forward(uint64_t nUID, const MessageBuf &rstMB, uint32_t nRespond
         // respond the response handler here
         // if post failed, it can only be the UID is detached
         if(fnOPR){
-            m_PodMonitor.AMProcMonitorList[MPK_BADACTORPOD].RecvCount++;
+            m_podMonitor.AMProcMonitorList[MPK_BADACTORPOD].RecvCount++;
             {
-                raii_timer stTimer(&(m_PodMonitor.AMProcMonitorList[MPK_BADACTORPOD].ProcTick));
+                raii_timer stTimer(&(m_podMonitor.AMProcMonitorList[MPK_BADACTORPOD].ProcTick));
                 fnOPR(MPK_BADACTORPOD);
             }
         }
@@ -265,7 +265,7 @@ bool ActorPod::Detach(const std::function<void()> &fnAtExit) const
 
     // theron library also has this issue
     // only destructor can guarentee the actor is not running any more
-    return g_ActorPool->Detach(this, fnAtExit);
+    return g_actorPool->Detach(this, fnAtExit);
 }
 
 bool ActorPod::CheckInvalid(uint64_t nUID)
@@ -273,17 +273,17 @@ bool ActorPod::CheckInvalid(uint64_t nUID)
     if(!nUID){
         throw std::invalid_argument(str_fflprintf(": Invalid zero UID"));
     }
-    return g_ActorPool->CheckInvalid(nUID);
+    return g_actorPool->CheckInvalid(nUID);
 }
 
 void ActorPod::PrintMonitor() const
 {
-    for(size_t nIndex = 0; nIndex < m_PodMonitor.AMProcMonitorList.size(); ++nIndex){
-        uint64_t nProcTick  = m_PodMonitor.AMProcMonitorList[nIndex].ProcTick / 1000000;
-        uint32_t nSendCount = m_PodMonitor.AMProcMonitorList[nIndex].SendCount;
-        uint32_t nRecvCount = m_PodMonitor.AMProcMonitorList[nIndex].RecvCount;
+    for(size_t nIndex = 0; nIndex < m_podMonitor.AMProcMonitorList.size(); ++nIndex){
+        uint64_t nProcTick  = m_podMonitor.AMProcMonitorList[nIndex].ProcTick / 1000000;
+        uint32_t nSendCount = m_podMonitor.AMProcMonitorList[nIndex].SendCount;
+        uint32_t nRecvCount = m_podMonitor.AMProcMonitorList[nIndex].RecvCount;
         if(nSendCount || nRecvCount){
-            g_MonoServer->addLog(LOGTYPE_DEBUG, "UID: %s %s: ProcTick %" PRIu64 "ms, SendCount %" PRIu32 ", RecvCount %" PRIu32, uidf::getUIDString(UID()).c_str(), MessagePack(nIndex).Name(), nProcTick, nSendCount, nRecvCount);
+            g_monoServer->addLog(LOGTYPE_DEBUG, "UID: %s %s: ProcTick %" PRIu64 "ms, SendCount %" PRIu32 ", RecvCount %" PRIu32, uidf::getUIDString(UID()).c_str(), MessagePack(nIndex).Name(), nProcTick, nSendCount, nRecvCount);
         }
     }
 }

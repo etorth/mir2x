@@ -24,7 +24,7 @@
 #include "processrun.hpp"
 #include "npcchatboard.hpp"
 
-extern PNGTexDB *g_ProgUseDB;
+extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_SDLDevice;
 
 NPCChatBoard::NPCChatBoard(ProcessRun *proc)
@@ -85,7 +85,7 @@ NPCChatBoard::NPCChatBoard(ProcessRun *proc)
 
     auto fnAssertImage = [](uint32_t key, int w, int h)
     {
-        if(auto ptex = g_ProgUseDB->Retrieve(key)){
+        if(auto ptex = g_progUseDB->Retrieve(key)){
             if(SDLDevice::getTextureSize(ptex) == std::tuple<int, int>{w, h}){
                 return;
             }
@@ -112,12 +112,12 @@ void NPCChatBoard::drawWithNPCFace()
     // | +----+ +------------------+ |  v
     // +-----------------------------+ ---
 
-    auto frameUp = g_ProgUseDB->Retrieve(0X00000051);
-    auto frameMid = g_ProgUseDB->Retrieve(0X00000052);
-    auto frameDown = g_ProgUseDB->Retrieve(0X00000053);
+    auto frameUp = g_progUseDB->Retrieve(0X00000051);
+    auto frameMid = g_progUseDB->Retrieve(0X00000052);
+    auto frameDown = g_progUseDB->Retrieve(0X00000053);
     const uint32_t faceKey = 0X50000000 | uidf::getLookID(m_NPCUID);
 
-    auto faceFrame = g_ProgUseDB->Retrieve(faceKey);
+    auto faceFrame = g_progUseDB->Retrieve(faceKey);
     if(!faceFrame){
         throw fflerror("no valid NPC face image");
     }
@@ -162,9 +162,9 @@ void NPCChatBoard::drawPlain()
     // | +-------------------------+ |  v
     // +-----------------------------+ ---
 
-    auto frameUp = g_ProgUseDB->Retrieve(0X00000051);
-    auto frameMid = g_ProgUseDB->Retrieve(0X00000052);
-    auto frameDown = g_ProgUseDB->Retrieve(0X00000053);
+    auto frameUp = g_progUseDB->Retrieve(0X00000051);
+    auto frameMid = g_progUseDB->Retrieve(0X00000052);
+    auto frameDown = g_progUseDB->Retrieve(0X00000053);
 
     const int boardWidth = 386 - m_margin * 2;
     if(m_chatBoard.w() < boardWidth){
@@ -199,7 +199,7 @@ void NPCChatBoard::drawPlain()
 void NPCChatBoard::drawEx(int, int, int, int, int, int)
 {
     const uint32_t faceKey = 0X50000000 | uidf::getLookID(m_NPCUID);
-    if(g_ProgUseDB->Retrieve(faceKey)){
+    if(g_progUseDB->Retrieve(faceKey)){
         drawWithNPCFace();
     }
     else{

@@ -22,37 +22,37 @@
 #include "monoserver.hpp"
 #include "serverobject.hpp"
 
-extern MonoServer *g_MonoServer;
-extern ServerArgParser *g_ServerArgParser;
+extern MonoServer *g_monoServer;
+extern ServerArgParser *g_serverArgParser;
 
 ServerObject::ServerObject(uint64_t nUID)
     : m_UID(nUID)
     , m_UIDName(uidf::getUIDString(nUID))
-    , m_StateV()
-    , m_StateTimeV()
+    , m_stateV()
+    , m_stateTimeV()
     , m_actorPod(nullptr)
-    , m_StateHook()
-    , m_DelayCmdCount(0)
-    , m_DelayCmdQ()
+    , m_stateHook()
+    , m_delayCmdCount(0)
+    , m_delayCmdQ()
 {
-    m_StateV.fill(0);
-    m_StateTimeV.fill(0);
+    m_stateV.fill(0);
+    m_stateTimeV.fill(0);
 
-    m_StateHook.Install("DelayCmdQueue", [this]() -> bool
+    m_stateHook.Install("DelayCmdQueue", [this]() -> bool
     {
-        if(!m_DelayCmdQ.empty()){
-            if(g_MonoServer->getCurrTick() >= m_DelayCmdQ.top().Tick()){
-                m_DelayCmdQ.top()();
-                m_DelayCmdQ.pop();
+        if(!m_delayCmdQ.empty()){
+            if(g_monoServer->getCurrTick() >= m_delayCmdQ.top().Tick()){
+                m_delayCmdQ.top()();
+                m_delayCmdQ.pop();
             }
         }
         return false;
     });
 
-    if(g_ServerArgParser->TraceActorMessage){
-        m_StateHook.Install("ReportActorPodMonitor", [this, nLastCheckTick = (uint32_t)(0)]() mutable -> bool
+    if(g_serverArgParser->TraceActorMessage){
+        m_stateHook.Install("ReportActorPodMonitor", [this, nLastCheckTick = (uint32_t)(0)]() mutable -> bool
         {
-            if(auto nCurrCheckTick = g_MonoServer->getCurrTick(); nLastCheckTick + 1000 < nCurrCheckTick){
+            if(auto nCurrCheckTick = g_monoServer->getCurrTick(); nLastCheckTick + 1000 < nCurrCheckTick){
                 if(ActorPodValid()){
                     m_actorPod->PrintMonitor();
                 }
@@ -81,7 +81,7 @@ ServerObject::~ServerObject()
 uint64_t ServerObject::Activate()
 {
     if(!m_actorPod){
-        m_actorPod = new ActorPod(m_UID, [this](){ m_StateHook.Execute(); }, [this](const MessagePack &rstMPK){ OperateAM(rstMPK); });
+        m_actorPod = new ActorPod(m_UID, [this](){ m_stateHook.Execute(); }, [this](const MessagePack &rstMPK){ OperateAM(rstMPK); });
         return UID();
     }
     throw fflerror("activation twice: %s", uidf::getUIDString(UID()).c_str());
@@ -96,22 +96,22 @@ void ServerObject::Deactivate()
 
 void ServerObject::Delay(uint32_t nDelayTick, const std::function<void()> &fnCmd)
 {
-    m_DelayCmdCount = m_DelayCmdQ.empty() ? 0 : (m_DelayCmdCount + 1);
-    m_DelayCmdQ.emplace(nDelayTick + g_MonoServer->getCurrTick(), m_DelayCmdCount, fnCmd);
+    m_delayCmdCount = m_delayCmdQ.empty() ? 0 : (m_delayCmdCount + 1);
+    m_delayCmdQ.emplace(nDelayTick + g_monoServer->getCurrTick(), m_delayCmdCount, fnCmd);
 }
 
 void ServerObject::SetState(uint8_t nStateLoc, uint8_t nStateValue)
 {
-    m_StateV[nStateLoc] = nStateValue;
-    m_StateTimeV[nStateLoc] = g_MonoServer->getCurrTick();
+    m_stateV[nStateLoc] = nStateValue;
+    m_stateTimeV[nStateLoc] = g_monoServer->getCurrTick();
 }
 
 uint8_t ServerObject::GetState(uint8_t nState) const
 {
-    return m_StateV[nState];
+    return m_stateV[nState];
 }
 
 uint32_t ServerObject::GetStateTime(uint8_t nState) const
 {
-    return g_MonoServer->getCurrTick() - m_StateTimeV[nState];
+    return g_monoServer->getCurrTick() - m_stateTimeV[nState];
 }

@@ -31,11 +31,11 @@ class Receiver
         uint64_t m_UID;
 
     private:
-        std::mutex m_Lock;
-        std::condition_variable m_Condition;
+        std::mutex m_lock;
+        std::condition_variable m_condition;
 
     private:
-        std::vector<MessagePack> m_MessageList;
+        std::vector<MessagePack> m_messageList;
 
     public:
         Receiver();

@@ -38,18 +38,18 @@
 #include "servermsg.hpp"
 #include "clientargparser.hpp"
 
-extern Log *g_Log;
+extern Log *g_log;
 extern XMLConf *g_XMLConf;
 extern SDLDevice *g_SDLDevice;
 extern debugBoard *g_debugBoard;
 extern ClientArgParser *g_clientArgParser;
 
 Client::Client()
-    : m_ClientMonitor()
-    , m_ServerDelay( 0.00)
+    : m_clientMonitor()
+    , m_serverDelay( 0.00)
     , m_netPackTick(-1.00)
-    , m_RequestProcess(PROCESSID_NONE)
-    , m_CurrentProcess(nullptr)
+    , m_requestProcess(PROCESSID_NONE)
+    , m_currentProcess(nullptr)
 {
     InitView(10);
     g_SDLDevice->CreateMainWindow();
@@ -60,10 +60,10 @@ Client::~Client()
 
 void Client::processEvent()
 {
-    if(m_CurrentProcess){
+    if(m_currentProcess){
         SDL_Event stEvent;
         while(SDL_PollEvent(&stEvent)){
-            m_CurrentProcess->processEvent(stEvent);
+            m_currentProcess->processEvent(stEvent);
         }
     }
 }
@@ -88,8 +88,8 @@ void Client::MainLoop()
 
         SwitchProcess();
         if(true
-                && m_CurrentProcess
-                && m_CurrentProcess->ID() != PROCESSID_EXIT){
+                && m_currentProcess
+                && m_currentProcess->ID() != PROCESSID_EXIT){
 
             if(m_netPackTick > 0.0){
                 if(SDL_GetTicks() * 1.0 - m_netPackTick > 15.0 * 1000){
@@ -182,8 +182,8 @@ void Client::OnServerMessage(uint8_t headCode, const uint8_t *pData, size_t nDat
         sendSMsgLog(headCode);
     }
 
-    m_ClientMonitor.SMProcMonitorList[headCode].RecvCount++;
-    raii_timer stTimer(&(m_ClientMonitor.SMProcMonitorList[headCode].ProcTick));
+    m_clientMonitor.SMProcMonitorList[headCode].RecvCount++;
+    raii_timer stTimer(&(m_clientMonitor.SMProcMonitorList[headCode].ProcTick));
 
     // 2. handle messages
     switch(headCode){
@@ -263,11 +263,11 @@ void Client::OnServerMessage(uint8_t headCode, const uint8_t *pData, size_t nDat
             }
         case SM_LOGINOK:
             {
-                SwitchProcess(m_CurrentProcess->ID(), PROCESSID_RUN);
+                SwitchProcess(m_currentProcess->ID(), PROCESSID_RUN);
                 if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
                     pRun->Net_LOGINOK(pData, nDataLen);
                 }else{
-                    g_Log->addLog(LOGTYPE_INFO, "failed to jump into main loop");
+                    g_log->addLog(LOGTYPE_INFO, "failed to jump into main loop");
                 }
                 break;
             }
@@ -280,7 +280,7 @@ void Client::OnServerMessage(uint8_t headCode, const uint8_t *pData, size_t nDat
             }
         case SM_LOGINFAIL:
             {
-                g_Log->addLog(LOGTYPE_WARNING, "Login failed: ID = %d", (int)(((SMLoginFail *)(pData))->FailID));
+                g_log->addLog(LOGTYPE_WARNING, "Login failed: ID = %d", (int)(((SMLoginFail *)(pData))->FailID));
                 break;
             }
         case SM_ACTION:
@@ -307,22 +307,22 @@ void Client::OnServerMessage(uint8_t headCode, const uint8_t *pData, size_t nDat
 void Client::SwitchProcess()
 {
     if(true
-            && m_RequestProcess > PROCESSID_NONE
-            && m_RequestProcess < PROCESSID_MAX){
-        SwitchProcess((m_CurrentProcess ? m_CurrentProcess->ID() : PROCESSID_NONE), m_RequestProcess);
+            && m_requestProcess > PROCESSID_NONE
+            && m_requestProcess < PROCESSID_MAX){
+        SwitchProcess((m_currentProcess ? m_currentProcess->ID() : PROCESSID_NONE), m_requestProcess);
     }
-    m_RequestProcess = PROCESSID_NONE;
+    m_requestProcess = PROCESSID_NONE;
 }
 
 void Client::SwitchProcess(int nNewID)
 {
-    SwitchProcess((m_CurrentProcess ? m_CurrentProcess->ID() : PROCESSID_NONE), nNewID);
+    SwitchProcess((m_currentProcess ? m_currentProcess->ID() : PROCESSID_NONE), nNewID);
 }
 
 void Client::SwitchProcess(int nOldID, int nNewID)
 {
-    delete m_CurrentProcess;
-    m_CurrentProcess = nullptr;
+    delete m_currentProcess;
+    m_currentProcess = nullptr;
 
     switch(nOldID)
     {
@@ -333,7 +333,7 @@ void Client::SwitchProcess(int nOldID, int nNewID)
                     case PROCESSID_LOGO:
                         {
                             // on initialization
-                            m_CurrentProcess = new ProcessLogo();
+                            m_currentProcess = new ProcessLogo();
                             SDL_ShowCursor(0);
                             break;
                         }
@@ -356,7 +356,7 @@ void Client::SwitchProcess(int nOldID, int nNewID)
                     case PROCESSID_SYRC:
                         {
                             // on initialization
-                            m_CurrentProcess = new ProcessSync();
+                            m_currentProcess = new ProcessSync();
                             SDL_ShowCursor(1);
                             break;
                         }
@@ -378,7 +378,7 @@ void Client::SwitchProcess(int nOldID, int nNewID)
                 {
                     case PROCESSID_LOGIN:
                         {
-                            m_CurrentProcess = new ProcessLogin();
+                            m_currentProcess = new ProcessLogin();
                             SDL_ShowCursor(1);
                             break;
                         }
@@ -395,12 +395,12 @@ void Client::SwitchProcess(int nOldID, int nNewID)
                 switch(nNewID){
                     case PROCESSID_NEW:
                         {
-                            m_CurrentProcess = new ProcessNew();
+                            m_currentProcess = new ProcessNew();
                             break;
                         }
                     case PROCESSID_RUN:
                         {
-                            m_CurrentProcess = new ProcessRun();
+                            m_currentProcess = new ProcessRun();
                             break;
                         }
                     default:
@@ -428,12 +428,12 @@ void Client::sendSMsgLog(uint8_t headCode)
 
 void Client::PrintMonitor() const
 {
-    g_Log->addLog(LOGTYPE_DEBUG, "Client runs %" PRIu64 " msec", m_ClientTimer.diff_msec());
+    g_log->addLog(LOGTYPE_DEBUG, "Client runs %" PRIu64 " msec", m_clientTimer.diff_msec());
     for(size_t nIndex = 0; nIndex < SM_MAX; ++nIndex){
-        uint64_t nProcTick  = m_ClientMonitor.SMProcMonitorList[nIndex].ProcTick / 1000000;
-        uint64_t nRecvCount = m_ClientMonitor.SMProcMonitorList[nIndex].RecvCount;
+        uint64_t nProcTick  = m_clientMonitor.SMProcMonitorList[nIndex].ProcTick / 1000000;
+        uint64_t nRecvCount = m_clientMonitor.SMProcMonitorList[nIndex].RecvCount;
         if(nRecvCount > 0){
-            g_Log->addLog(LOGTYPE_DEBUG, "%s: RecvCount = %" PRIu64 ", ProcTick = %" PRIu64 "msec", ServerMsg(nIndex).name().c_str(), nRecvCount, nProcTick);
+            g_log->addLog(LOGTYPE_DEBUG, "%s: RecvCount = %" PRIu64 ", ProcTick = %" PRIu64 "msec", ServerMsg(nIndex).name().c_str(), nRecvCount, nProcTick);
         }
     }
 }

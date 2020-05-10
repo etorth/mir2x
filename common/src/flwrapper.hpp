@@ -24,11 +24,11 @@ namespace fl_wrapper
     class enable_color final
     {
         private:
-            Fl_Color m_Color;
+            Fl_Color m_color;
 
         public:
             enable_color(Fl_Color stColor)
-                : m_Color(fl_color())
+                : m_color(fl_color())
             {
                 fl_color(stColor);
             }
@@ -36,7 +36,7 @@ namespace fl_wrapper
         public:
             ~enable_color()
             {
-                fl_color(m_Color);
+                fl_color(m_color);
             }
     };
 }

@@ -21,7 +21,7 @@ class MainWindow {open
 } {
   Function {MainWindow()} {open
   } {
-    Fl_Window m_Window {
+    Fl_Window m_window {
       label MonoServer
       callback {{
 	// do nothing
@@ -38,11 +38,11 @@ class MainWindow {open
           MenuItem {} {
             label {Launch          }
             callback {{
-	extern MonoServer *g_MonoServer;
-	delete g_MonoServer;
+	extern MonoServer *g_monoServer;
+	delete g_monoServer;
 	
-	g_MonoServer = new MonoServer();
-	g_MonoServer->Launch();
+	g_monoServer = new MonoServer();
+	g_monoServer->Launch();
 }}
             xywh {0 0 30 20} shortcut 0x4006c labelfont 4 divider
             code0 {\#include "monoserver.hpp"}
@@ -66,8 +66,8 @@ class MainWindow {open
           MenuItem {} {
             label Server
             callback {{
-	extern ServerConfigureWindow	*g_ServerConfigureWindow;
-	g_ServerConfigureWindow->ShowAll();
+	extern ServerConfigureWindow	*g_serverConfigureWindow;
+	g_serverConfigureWindow->ShowAll();
 }}
             xywh {10 10 30 20} labelfont 4 divider
             code0 {\#include "serverconfigurewindow.hpp"}
@@ -75,8 +75,8 @@ class MainWindow {open
           MenuItem {} {
             label {Network            }
             callback {{
-	extern DatabaseConfigureWindow	*g_DatabaseConfigureWindow;
-	g_DatabaseConfigureWindow->ShowAll();
+	extern DatabaseConfigureWindow	*g_databaseConfigureWindow;
+	g_databaseConfigureWindow->ShowAll();
 }}
             xywh {0 0 30 20} labelfont 4 divider
             code0 {\#include "databaseconfigurewindow.hpp"}
@@ -85,7 +85,7 @@ class MainWindow {open
             label Fonts
             xywh {0 0 70 21} labelfont 4
           } {
-            MenuItem m_MenuItemFirstFont {
+            MenuItem m_menuItemFirstFont {
               label dynamic_label
               xywh {10 10 36 21} labelfont 4
             }
@@ -581,17 +581,17 @@ class MainWindow {open
               label dynamic_label
               xywh {1080 1080 36 21} labelfont 4
             }
-            MenuItem m_MenuItemLastFont {
+            MenuItem m_menuItemLastFont {
               label dynamic_label
               xywh {20 20 36 21} labelfont 4
             }
           }
         }
-        Submenu m_CommandMenuButton {
+        Submenu m_commandMenuButton {
           label Command
           xywh {15 15 62 20} labelfont 4
         } {
-          MenuItem m_SubMenuRunCommand {
+          MenuItem m_subMenuRunCommand {
             label {Run Command    }
             callback {// create a new command window if pressed
 // to retrieve the created windows, use cwid to find it
@@ -603,7 +603,7 @@ class MainWindow {open
 }}
             xywh {0 0 36 20} labelfont 4 divider
           }
-          MenuItem m_MenuItemToggleAll {
+          MenuItem m_menuItemToggleAll {
             label {Toggle All   }
             callback {// toggle all
 // if all open close all
@@ -617,21 +617,21 @@ class MainWindow {open
         bOpen = true;
     }
 
-    for(int nIndex = 1; nIndex <= (1 + (int)(m_MenuItemLastCW - m_MenuItemFirstCW)); ++nIndex){
+    for(int nIndex = 1; nIndex <= (1 + (int)(m_menuItemLastCW - m_menuItemFirstCW)); ++nIndex){
         if(auto pCW = GetCommandWindow(nIndex)){
             if(bOpen){
                 pCW->ShowAll();
-                (m_MenuItemFirstCW + (nIndex - 1))->deactivate();
+                (m_menuItemFirstCW + (nIndex - 1))->deactivate();
             }else{
                 pCW->HideAll();
-                (m_MenuItemFirstCW + (nIndex - 1))->activate();
+                (m_menuItemFirstCW + (nIndex - 1))->activate();
             }
         }
     }
 }}
             xywh {10 10 36 20} labelfont 4
           }
-          MenuItem m_MenuItemFirstCW {
+          MenuItem m_menuItemFirstCW {
             label {Window 01}
             callback {// when enabled
 // it can show it's command window
@@ -639,7 +639,7 @@ class MainWindow {open
     int nMenuItem = 1;
     if(auto pCW = GetCommandWindow(nMenuItem)){
         pCW->ShowAll();
-        (m_MenuItemFirstCW + (nMenuItem - 1))->deactivate();
+        (m_menuItemFirstCW + (nMenuItem - 1))->deactivate();
     }
 }}
             xywh {40 40 36 20} labelfont 4 hide
@@ -653,7 +653,7 @@ class MainWindow {open
     int nMenuItem = 2;
     if(auto pCW = GetCommandWindow(nMenuItem)){
         pCW->ShowAll();
-        (m_MenuItemFirstCW + (nMenuItem - 1))->deactivate();
+        (m_menuItemFirstCW + (nMenuItem - 1))->deactivate();
     }
 }}
             xywh {50 50 36 20} labelfont 4 hide
@@ -666,7 +666,7 @@ class MainWindow {open
     int nMenuItem = 3;
     if(auto pCW = GetCommandWindow(nMenuItem)){
         pCW->ShowAll();
-        (m_MenuItemFirstCW + (nMenuItem - 1))->deactivate();
+        (m_menuItemFirstCW + (nMenuItem - 1))->deactivate();
     }
 }}
             xywh {60 60 36 20} labelfont 4 hide
@@ -679,7 +679,7 @@ class MainWindow {open
     int nMenuItem = 4;
     if(auto pCW = GetCommandWindow(nMenuItem)){
         pCW->ShowAll();
-        (m_MenuItemFirstCW + (nMenuItem - 1))->deactivate();
+        (m_menuItemFirstCW + (nMenuItem - 1))->deactivate();
     }
 }}
             xywh {70 70 36 20} labelfont 4 hide
@@ -692,7 +692,7 @@ class MainWindow {open
     int nMenuItem = 5;
     if(auto pCW = GetCommandWindow(nMenuItem)){
         pCW->ShowAll();
-        (m_MenuItemFirstCW + (nMenuItem - 1))->deactivate();
+        (m_menuItemFirstCW + (nMenuItem - 1))->deactivate();
     }
 }}
             xywh {80 80 36 20} labelfont 4 hide
@@ -705,7 +705,7 @@ class MainWindow {open
     int nMenuItem = 6;
     if(auto pCW = GetCommandWindow(nMenuItem)){
         pCW->ShowAll();
-        (m_MenuItemFirstCW + (nMenuItem - 1))->deactivate();
+        (m_menuItemFirstCW + (nMenuItem - 1))->deactivate();
     }
 }}
             xywh {90 90 36 20} labelfont 4 hide
@@ -718,7 +718,7 @@ class MainWindow {open
     int nMenuItem = 7;
     if(auto pCW = GetCommandWindow(nMenuItem)){
         pCW->ShowAll();
-        (m_MenuItemFirstCW + (nMenuItem - 1))->deactivate();
+        (m_menuItemFirstCW + (nMenuItem - 1))->deactivate();
     }
 }}
             xywh {100 100 36 20} labelfont 4 hide
@@ -731,7 +731,7 @@ class MainWindow {open
     int nMenuItem = 8;
     if(auto pCW = GetCommandWindow(nMenuItem)){
         pCW->ShowAll();
-        (m_MenuItemFirstCW + (nMenuItem - 1))->deactivate();
+        (m_menuItemFirstCW + (nMenuItem - 1))->deactivate();
     }
 }}
             xywh {110 110 36 20} labelfont 4 hide
@@ -744,7 +744,7 @@ class MainWindow {open
     int nMenuItem = 9;
     if(auto pCW = GetCommandWindow(nMenuItem)){
         pCW->ShowAll();
-        (m_MenuItemFirstCW + (nMenuItem - 1))->deactivate();
+        (m_menuItemFirstCW + (nMenuItem - 1))->deactivate();
     }
 }}
             xywh {120 120 36 20} labelfont 4 hide
@@ -757,7 +757,7 @@ class MainWindow {open
     int nMenuItem = 10;
     if(auto pCW = GetCommandWindow(nMenuItem)){
         pCW->ShowAll();
-        (m_MenuItemFirstCW + (nMenuItem - 1))->deactivate();
+        (m_menuItemFirstCW + (nMenuItem - 1))->deactivate();
     }
 }}
             xywh {130 130 36 20} labelfont 4 hide
@@ -770,7 +770,7 @@ class MainWindow {open
     int nMenuItem = 11;
     if(auto pCW = GetCommandWindow(nMenuItem)){
         pCW->ShowAll();
-        (m_MenuItemFirstCW + (nMenuItem - 1))->deactivate();
+        (m_menuItemFirstCW + (nMenuItem - 1))->deactivate();
     }
 }}
             xywh {140 140 36 20} labelfont 4 hide
@@ -783,7 +783,7 @@ class MainWindow {open
     int nMenuItem = 12;
     if(auto pCW = GetCommandWindow(nMenuItem)){
         pCW->ShowAll();
-        (m_MenuItemFirstCW + (nMenuItem - 1))->deactivate();
+        (m_menuItemFirstCW + (nMenuItem - 1))->deactivate();
     }
 }}
             xywh {140 140 36 20} labelfont 4 hide
@@ -796,7 +796,7 @@ class MainWindow {open
     int nMenuItem = 13;
     if(auto pCW = GetCommandWindow(nMenuItem)){
         pCW->ShowAll();
-        (m_MenuItemFirstCW + (nMenuItem - 1))->deactivate();
+        (m_menuItemFirstCW + (nMenuItem - 1))->deactivate();
     }
 }}
             xywh {150 150 36 20} labelfont 4 hide
@@ -809,7 +809,7 @@ class MainWindow {open
     int nMenuItem = 14;
     if(auto pCW = GetCommandWindow(nMenuItem)){
         pCW->ShowAll();
-        (m_MenuItemFirstCW + (nMenuItem - 1))->deactivate();
+        (m_menuItemFirstCW + (nMenuItem - 1))->deactivate();
     }
 }}
             xywh {160 160 36 20} labelfont 4 hide
@@ -822,12 +822,12 @@ class MainWindow {open
     int nMenuItem = 15;
     if(auto pCW = GetCommandWindow(nMenuItem)){
         pCW->ShowAll();
-        (m_MenuItemFirstCW + (nMenuItem - 1))->deactivate();
+        (m_menuItemFirstCW + (nMenuItem - 1))->deactivate();
     }
 }}
             xywh {170 170 36 20} labelfont 4 hide
           }
-          MenuItem m_MenuItemLastCW {
+          MenuItem m_menuItemLastCW {
             label {Window 16}
             callback {// when enabled
 // it can show it's command window
@@ -835,7 +835,7 @@ class MainWindow {open
     int nMenuItem = 16;
     if(auto pCW = GetCommandWindow(nMenuItem)){
         pCW->ShowAll();
-        (m_MenuItemFirstCW + (nMenuItem - 1))->deactivate();
+        (m_menuItemFirstCW + (nMenuItem - 1))->deactivate();
     }
 }}
             xywh {180 180 36 20} labelfont 4 hide
@@ -870,8 +870,8 @@ class MainWindow {open
                 std::string szFileName = stFileChooser.filename();
                 std::replace(szFileName.begin(), szFileName.end(), '\\\\', '/');
 
-                extern ScriptWindow *g_ScriptWindow;
-                g_ScriptWindow->LoadFile(szFileName.c_str());
+                extern ScriptWindow *g_scriptWindow;
+                g_scriptWindow->LoadFile(szFileName.c_str());
             }
     }
 
@@ -888,8 +888,8 @@ class MainWindow {open
             label {Actor          }
             callback {// show actor information window
 {
-    extern ActorMonitorWindow *g_ActorMonitorWindow;
-    g_ActorMonitorWindow->ShowAll();
+    extern ActorMonitorWindow *g_actorMonitorWindow;
+    g_actorMonitorWindow->ShowAll();
 }}
             xywh {0 0 36 21} labelfont 4 divider
             code0 {\#include "actormonitorwindow.hpp"}
@@ -898,15 +898,15 @@ class MainWindow {open
             label {Actor Thread}
             callback {// show actor thread information window
 {
-    extern ActorThreadMonitorWindow *g_ActorThreadMonitorWindow;
-    g_ActorThreadMonitorWindow->ShowAll();
+    extern ActorThreadMonitorWindow *g_actorThreadMonitorWindow;
+    g_actorThreadMonitorWindow->ShowAll();
 }}
             xywh {0 0 36 21} labelfont 4
             code0 {\#include "actorthreadmonitorwindow.hpp"}
           }
         }
       }
-      Fl_Browser m_Browser {
+      Fl_Browser m_browser {
         xywh {0 24 720 375} type Hold labelfont 4 textfont 4 resizable
       }
     }
@@ -916,13 +916,13 @@ class MainWindow {open
     // dynamically changing menus for fluid created gui is dangerous
     auto fnCallback = [](Fl_Widget *, void *pArg) -> void
     {
-        extern MainWindow *g_MainWindow;
-        g_MainWindow->SetGUIFont((int)((intptr_t)(pArg)));
+        extern MainWindow *g_mainWindow;
+        g_mainWindow->SetGUIFont((int)((intptr_t)(pArg)));
     };
 
     int nFontCount = Fl::set_fonts("-*");
-    for(auto pMenuItem = m_MenuItemFirstFont; pMenuItem <= m_MenuItemLastFont; ++pMenuItem){
-        auto nIndex = (int)(pMenuItem - m_MenuItemFirstFont);
+    for(auto pMenuItem = m_menuItemFirstFont; pMenuItem <= m_menuItemLastFont; ++pMenuItem){
+        auto nIndex = (int)(pMenuItem - m_menuItemFirstFont);
         if(nIndex >= nFontCount){
             pMenuItem->hide();
             continue;
@@ -943,7 +943,7 @@ class MainWindow {open
   }
   Function {ShowAll()} {} {
     code {{
-    m_Window->show();
+    m_window->show();
 }} {}
   }
   Function {addLog(int nLogType, const char *szMessage)} {return_type void
@@ -974,12 +974,12 @@ class MainWindow {open
 			break;
 		}
 
-    if(m_Browser->size() > 5000){
-        m_Browser->remove(1);
+    if(m_browser->size() > 5000){
+        m_browser->remove(1);
     }
 
-	m_Browser->add(szFullMessage.c_str());
-	m_Browser->bottomline(m_Browser->size());
+	m_browser->add(szFullMessage.c_str());
+	m_browser->bottomline(m_browser->size());
 }} {}
   }
   Function {addCWLog(int nCWID, int nLogType, const char *szPrompt, const char *szMessage)} {return_type void
@@ -1004,9 +1004,9 @@ class MainWindow {open
 {
     if(true
             && (nCWID > 0)
-            && (m_MenuItemFirstCW + (nCWID - 1) <= m_MenuItemLastCW)
-            && (m_MenuItemFirstCW + (nCWID - 1))->visible()){
-        return (CommandWindow *)((m_MenuItemFirstCW + (nCWID - 1))->user_data());
+            && (m_menuItemFirstCW + (nCWID - 1) <= m_menuItemLastCW)
+            && (m_menuItemFirstCW + (nCWID - 1))->visible()){
+        return (CommandWindow *)((m_menuItemFirstCW + (nCWID - 1))->user_data());
     }else{
         return nullptr;
     }
@@ -1018,7 +1018,7 @@ class MainWindow {open
 // main window create a new command window and store internally
 // provide caller an ID returned for retrieve
 {
-    for(auto pMenuItem = m_MenuItemFirstCW; pMenuItem != (m_MenuItemLastCW + 1); ++pMenuItem){
+    for(auto pMenuItem = m_menuItemFirstCW; pMenuItem != (m_menuItemLastCW + 1); ++pMenuItem){
         // because we use it as initialial status to do checking
         // it's very important to make sure all command window menu item are hidden
         if(pMenuItem->visible()){
@@ -1037,12 +1037,12 @@ class MainWindow {open
             pMenuItem->deactivate();
             pMenuItem->show();
 
-            pCW->BindLuaModule((uint32_t)(pMenuItem - m_MenuItemFirstCW + 1));
+            pCW->BindLuaModule((uint32_t)(pMenuItem - m_menuItemFirstCW + 1));
             pCW->ShowAll();
 
             // the first item return 1
             // and takes <= 0 as invalid command window ID
-            return pMenuItem - m_MenuItemFirstCW + 1;
+            return pMenuItem - m_menuItemFirstCW + 1;
         }
     }
 
@@ -1058,13 +1058,13 @@ class MainWindow {open
 {
     if(true
             && (nCWID > 0 )                                         // valid command window index
-            && (m_MenuItemFirstCW + (nCWID - 1) <= m_MenuItemLastCW)      // 
-            && (m_MenuItemFirstCW + (nCWID - 1))->visible()               // menu item is ``in use"
-            && (m_MenuItemFirstCW + (nCWID - 1))->user_data()){           // menu item contains a command window
+            && (m_menuItemFirstCW + (nCWID - 1) <= m_menuItemLastCW)      // 
+            && (m_menuItemFirstCW + (nCWID - 1))->visible()               // menu item is ``in use"
+            && (m_menuItemFirstCW + (nCWID - 1))->user_data()){           // menu item contains a command window
 
         // actually we won't delete the command window
         // instead we detach the lua module offside it and hide it only
-        auto pMenuItem = m_MenuItemFirstCW + (nCWID - 1);
+        auto pMenuItem = m_menuItemFirstCW + (nCWID - 1);
 
         // 0. clear all history of the window
         //    we need a clean browser when we reuse it next time
@@ -1091,11 +1091,11 @@ class MainWindow {open
 {
     if(true
             && (nCWID > 0 )                                               // valid command window index
-            && (m_MenuItemFirstCW + (nCWID - 1) <= m_MenuItemLastCW)      // 
-            && (m_MenuItemFirstCW + (nCWID - 1))->visible()               // menu item is ``in use"
-            && (m_MenuItemFirstCW + (nCWID - 1))->user_data()){           // menu item contains a command window
+            && (m_menuItemFirstCW + (nCWID - 1) <= m_menuItemLastCW)      // 
+            && (m_menuItemFirstCW + (nCWID - 1))->visible()               // menu item is ``in use"
+            && (m_menuItemFirstCW + (nCWID - 1))->user_data()){           // menu item contains a command window
 
-        (m_MenuItemFirstCW + (nCWID - 1))->activate();
+        (m_menuItemFirstCW + (nCWID - 1))->activate();
     }
 }} {}
   }
@@ -1104,11 +1104,11 @@ class MainWindow {open
     code {// SetGUIFont(int nFont)
 // call it in callback of Configure/Fonts/xxx
 {
-    m_Browser->textfont((Fl_Font)(nFont));
-    m_Window->redraw();
+    m_browser->textfont((Fl_Font)(nFont));
+    m_window->redraw();
 
-    extern ScriptWindow *g_ScriptWindow;
-    g_ScriptWindow->SetGUIFont(nFont);
+    extern ScriptWindow *g_scriptWindow;
+    g_scriptWindow->SetGUIFont(nFont);
 }} {}
   }
 }

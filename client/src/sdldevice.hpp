@@ -65,15 +65,15 @@ class SDLDevice final
         };
 
     private:
-       SDL_Window   *m_Window;
-       SDL_Renderer *m_Renderer;
+       SDL_Window   *m_window;
+       SDL_Renderer *m_renderer;
 
     private:
-       std::vector<ColorStackNode>     m_ColorStack;
-       std::vector<BlendModeStackNode> m_BlendModeStack;
+       std::vector<ColorStackNode>     m_colorStack;
+       std::vector<BlendModeStackNode> m_blendModeStack;
 
     private:
-       std::map<uint8_t, TTF_Font *> m_InnFontMap;
+       std::map<uint8_t, TTF_Font *> m_innFontMap;
 
     private:
        // for sound
@@ -108,35 +108,35 @@ class SDLDevice final
     public:
        void Present()
        {
-           SDL_RenderPresent(m_Renderer);
+           SDL_RenderPresent(m_renderer);
        }
 
        void SetWindowTitle(const char *szUTF8Title)
        {
-           SDL_SetWindowTitle(m_Window, (szUTF8Title) ? szUTF8Title : "");
+           SDL_SetWindowTitle(m_window, (szUTF8Title) ? szUTF8Title : "");
        }
 
        void SetGamma(double fGamma)
        {
            Uint16 pRawRamp[256];
            SDL_CalculateGammaRamp((float)((std::min<double>)((std::max<double>)(fGamma, 0.0), 1.0)), pRawRamp);
-           SDL_SetWindowGammaRamp(m_Window, pRawRamp, pRawRamp, pRawRamp);
+           SDL_SetWindowGammaRamp(m_window, pRawRamp, pRawRamp, pRawRamp);
        }
 
        void ClearScreen()
        {
            SetColor(0, 0, 0, 0);
-           SDL_RenderClear(m_Renderer);
+           SDL_RenderClear(m_renderer);
        }
 
        void DrawLine(int nX0, int nY0, int nX1, int nY1)
        {
-           SDL_RenderDrawLine(m_Renderer, nX0, nY0, nX1, nY1);
+           SDL_RenderDrawLine(m_renderer, nX0, nY0, nX1, nY1);
        }
 
        void SetColor(uint8_t nR, uint8_t nG, uint8_t nB, uint8_t nA)
        {
-           SDL_SetRenderDrawColor(m_Renderer, nR, nG, nB, nA);
+           SDL_SetRenderDrawColor(m_renderer, nR, nG, nB, nA);
        }
 
        void FillRectangle(int nX, int nY, int nW, int nH)
@@ -147,7 +147,7 @@ class SDLDevice final
            stRect.w = nW;
            stRect.h = nH;
 
-           SDL_RenderFillRect(m_Renderer, &stRect);
+           SDL_RenderFillRect(m_renderer, &stRect);
        }
 
        void FillRectangle(uint32_t nRGBA, int nX, int nY, int nW, int nH)
@@ -160,12 +160,12 @@ class SDLDevice final
            stRect.w = nW;
            stRect.h = nH;
 
-           SDL_RenderFillRect(m_Renderer, &stRect);
+           SDL_RenderFillRect(m_renderer, &stRect);
        }
 
        void DrawPixel(int nX, int nY)
        {
-           SDL_RenderDrawPoint(m_Renderer, nX, nY);
+           SDL_RenderDrawPoint(m_renderer, nX, nY);
        }
 
        void DrawRectangle(int nX, int nY, int nW, int nH)
@@ -176,7 +176,7 @@ class SDLDevice final
            stRect.w = nW;
            stRect.h = nH;
 
-           SDL_RenderDrawRect(m_Renderer, &stRect);
+           SDL_RenderDrawRect(m_renderer, &stRect);
        }
 
        void DrawRectangle(int nFrameLineWidth, int nX, int nY, int nW, int nH)
@@ -196,7 +196,7 @@ class SDLDevice final
 
        SDL_Texture *CreateTextureFromSurface(SDL_Surface * pSurface)
        {
-           return pSurface ? SDL_CreateTextureFromSurface(m_Renderer, pSurface) : nullptr;
+           return pSurface ? SDL_CreateTextureFromSurface(m_renderer, pSurface) : nullptr;
        }
 
        int WindowW(bool bRealWindowSizeInPixel)
@@ -222,7 +222,7 @@ class SDLDevice final
            int w = -1;
            int h = -1;
 
-           SDL_GetWindowSize(m_Window, &w, &h);
+           SDL_GetWindowSize(m_window, &w, &h);
            return {w, h};
        }
 
@@ -231,8 +231,8 @@ class SDLDevice final
            int w = -1;
            int h = -1;
 
-           if(SDL_GetRendererOutputSize(m_Renderer, &w, &h)){
-               throw fflerror("SDL_GetRendererOutputSize(%p) failed", m_Renderer);
+           if(SDL_GetRendererOutputSize(m_renderer, &w, &h)){
+               throw fflerror("SDL_GetRendererOutputSize(%p) failed", m_renderer);
            }
            return {w, h};
        }
@@ -274,7 +274,7 @@ class SDLDevice final
     public:
        void setWindowResizable(bool resizable)
        {
-           SDL_SetWindowResizable(m_Window, resizable ? SDL_TRUE : SDL_FALSE);
+           SDL_SetWindowResizable(m_window, resizable ? SDL_TRUE : SDL_FALSE);
        }
 
     public:

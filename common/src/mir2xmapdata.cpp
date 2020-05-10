@@ -57,7 +57,7 @@ bool Mir2xMapData::Load(const char *szFullName)
 
     m_W = 0;
     m_H = 0;
-    m_Data.clear();
+    m_data.clear();
     return false;
 }
 
@@ -75,10 +75,10 @@ bool Mir2xMapData::Load(const uint8_t *pData, size_t nDataLen)
                 && (m_H / 2 > 0) && !(m_H % 2)){
 
             auto nBlockSize = (m_W / 2) * (m_H / 2);
-            m_Data.resize(nBlockSize);
+            m_data.resize(nBlockSize);
 
-            if(((sizeof(m_Data[0]) * nBlockSize) + 4) == nDataLen){
-                std::memcpy(&(m_Data[0]), pData, sizeof(m_Data[0]) * nBlockSize);
+            if(((sizeof(m_data[0]) * nBlockSize) + 4) == nDataLen){
+                std::memcpy(&(m_data[0]), pData, sizeof(m_data[0]) * nBlockSize);
                 return true;
             }
         }
@@ -86,7 +86,7 @@ bool Mir2xMapData::Load(const uint8_t *pData, size_t nDataLen)
 
     m_W = 0;
     m_H = 0;
-    m_Data.clear();
+    m_data.clear();
     return false;
 }
 
@@ -114,8 +114,8 @@ bool Mir2xMapData::Allocate(uint16_t nW, uint16_t nH)
         m_W = nW;
         m_H = nH;
 
-        m_Data.resize(m_W * m_H / 4);
-        std::memset(&(m_Data[0]), 0, sizeof(m_Data[0]) * m_Data.size());
+        m_data.resize(m_W * m_H / 4);
+        std::memset(&(m_data[0]), 0, sizeof(m_data[0]) * m_data.size());
         return true;
     }
     return false;

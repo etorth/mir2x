@@ -31,14 +31,14 @@ class AscendStr
 {
     private:
         int m_type;
-        int m_Value;
+        int m_value;
 
     private:
         int m_x;
         int m_y;
 
     private:
-        double m_Tick;
+        double m_tick;
 
     public:
         AscendStr(int, int, int, int);
@@ -52,7 +52,7 @@ class AscendStr
 
     private:
         int Type () const { return m_type;  }
-        int Value() const { return m_Value; }
+        int Value() const { return m_value; }
 
     private:
         int X() const
@@ -68,7 +68,7 @@ class AscendStr
     private:
         double Tick() const
         {
-            return m_Tick;
+            return m_tick;
         }
 
     public:

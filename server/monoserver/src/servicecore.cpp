@@ -25,11 +25,11 @@
 #include "monoserver.hpp"
 #include "servicecore.hpp"
 
-extern MapBinDB *g_MapBinDB;
+extern MapBinDB *g_mapBinDB;
 
 ServiceCore::ServiceCore()
     : ServerObject(uidf::buildServiceCoreUID())
-    , m_MapList()
+    , m_mapList()
 {}
 
 void ServiceCore::OperateAM(const MessagePack &rstMPK)
@@ -77,8 +77,8 @@ void ServiceCore::OperateAM(const MessagePack &rstMPK)
             }
         default:
             {
-                extern MonoServer *g_MonoServer;
-                g_MonoServer->addLog(LOGTYPE_WARNING, "Unsupported message: %s", rstMPK.Name());
+                extern MonoServer *g_monoServer;
+                g_monoServer->addLog(LOGTYPE_WARNING, "Unsupported message: %s", rstMPK.Name());
                 break;
             }
     }
@@ -102,11 +102,11 @@ void ServiceCore::OperateNet(uint32_t nSID, uint8_t nType, const uint8_t *pData,
 bool ServiceCore::LoadMap(uint32_t nMapID)
 {
     if(nMapID){
-        if(m_MapList.find(nMapID) == m_MapList.end()){
-            if(g_MapBinDB->Retrieve(nMapID)){
+        if(m_mapList.find(nMapID) == m_mapList.end()){
+            if(g_mapBinDB->Retrieve(nMapID)){
                 auto pMap = new ServerMap(this, nMapID);
                 pMap->Activate();
-                m_MapList[nMapID] = pMap;
+                m_mapList[nMapID] = pMap;
                 return true;
             }else{
                 return false;
@@ -120,14 +120,14 @@ bool ServiceCore::LoadMap(uint32_t nMapID)
 const ServerMap *ServiceCore::RetrieveMap(uint32_t nMapID)
 {
     if(nMapID){
-        auto pMap = m_MapList.find(nMapID);
-        if(pMap == m_MapList.end()){
+        auto pMap = m_mapList.find(nMapID);
+        if(pMap == m_mapList.end()){
             if(LoadMap(nMapID)){
-                pMap = m_MapList.find(nMapID);
+                pMap = m_mapList.find(nMapID);
             }
         }
 
-        return (pMap == m_MapList.end()) ? nullptr : pMap->second;
+        return (pMap == m_mapList.end()) ? nullptr : pMap->second;
     }
     return nullptr;
 }

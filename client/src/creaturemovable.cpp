@@ -22,7 +22,7 @@
 #include "processrun.hpp"
 #include "creaturemovable.hpp"
 
-extern Log *g_Log;
+extern Log *g_log;
 
 std::vector<PathFind::PathNode> CreatureMovable::parseMovePath(int x0, int y0, int x1, int y1, bool checkGround, int checkCreature)
 {
@@ -185,7 +185,7 @@ bool CreatureMovable::motionQueueValid() const
             lastMotionPtr = &motion;
         }
         else{
-            g_Log->addLog(LOGTYPE_WARNING, "Invalid motion queue:");
+            g_log->addLog(LOGTYPE_WARNING, "Invalid motion queue:");
             m_currMotion.print();
             for(auto &node: m_motionQueue){
                 node.print();
@@ -215,7 +215,7 @@ bool CreatureMovable::moveNextMotion()
         return true;
     }
 
-    g_Log->addLog(LOGTYPE_WARNING, "Motion queue invalid, reset idle state");
+    g_log->addLog(LOGTYPE_WARNING, "Motion queue invalid, reset idle state");
     m_motionQueue.clear();
     m_currMotion = makeMotionIdle();
     return false;

@@ -98,14 +98,14 @@ void ServiceCore::On_MPK_QUERYMAPLIST(const MessagePack &rstMPK)
     std::memset(&stAMML, 0, sizeof(stAMML));
 
     size_t nIndex = 0;
-    for(auto pMap: m_MapList){
+    for(auto pMap: m_mapList){
         if(pMap.second && pMap.second->ID()){
             if(nIndex < (sizeof(stAMML.MapList) / sizeof(stAMML.MapList[0]))){
                 stAMML.MapList[nIndex++] = pMap.second->ID();
             }else{
-                extern MonoServer *g_MonoServer;
-                g_MonoServer->addLog(LOGTYPE_FATAL, "Need larger map list size in AMMapList");
-                g_MonoServer->Restart();
+                extern MonoServer *g_monoServer;
+                g_monoServer->addLog(LOGTYPE_FATAL, "Need larger map list size in AMMapList");
+                g_monoServer->Restart();
             }
         }
     }
@@ -147,13 +147,13 @@ void ServiceCore::On_MPK_QUERYCOCOUNT(const MessagePack &rstMPK)
 
     int nCheckCount = 0;
     if(stAMQCOC.MapID){
-        if(m_MapList.find(stAMQCOC.MapID) == m_MapList.end()){
+        if(m_mapList.find(stAMQCOC.MapID) == m_mapList.end()){
             nCheckCount = 0;
         }else{
             nCheckCount = 1;
         }
     }else{
-        nCheckCount = (int)(m_MapList.size());
+        nCheckCount = (int)(m_mapList.size());
     }
 
     switch(nCheckCount){
@@ -164,7 +164,7 @@ void ServiceCore::On_MPK_QUERYCOCOUNT(const MessagePack &rstMPK)
             }
         case 1:
             {
-                if(auto pMap = (stAMQCOC.MapID ? m_MapList[stAMQCOC.MapID] : m_MapList.begin()->second)){
+                if(auto pMap = (stAMQCOC.MapID ? m_mapList[stAMQCOC.MapID] : m_mapList.begin()->second)){
                     m_actorPod->forward(pMap->UID(), {MPK_QUERYCOCOUNT, stAMQCOC}, [this, rstMPK](const MessagePack &rstRMPK)
                     {
                         switch(rstRMPK.Type()){
@@ -183,7 +183,7 @@ void ServiceCore::On_MPK_QUERYCOCOUNT(const MessagePack &rstMPK)
                     });
                     return;
                 }else{
-                    m_MapList.erase(stAMQCOC.MapID);
+                    m_mapList.erase(stAMQCOC.MapID);
                     m_actorPod->forward(rstMPK.From(), MPK_ERROR, rstMPK.ID());
                     return;
                 }
@@ -255,7 +255,7 @@ void ServiceCore::On_MPK_QUERYCOCOUNT(const MessagePack &rstMPK)
                     }
                 };
 
-                for(auto p: m_MapList){
+                for(auto p: m_mapList){
                     m_actorPod->forward(p.second->UID(), {MPK_QUERYCOCOUNT, stAMQCOC}, fnOnResp);
                 }
                 return;
@@ -271,6 +271,6 @@ void ServiceCore::On_MPK_BADCHANNEL(const MessagePack &rstMPK)
     AMBadChannel stAMBC;
     std::memcpy(&stAMBC, rstMPK.Data(), sizeof(stAMBC));
 
-    extern NetDriver *g_NetDriver;
-    g_NetDriver->Shutdown(stAMBC.ChannID, false);
+    extern NetDriver *g_netDriver;
+    g_netDriver->Shutdown(stAMBC.ChannID, false);
 }

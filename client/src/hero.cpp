@@ -29,23 +29,23 @@
 #include "dbcomrecord.hpp"
 #include "pngtexoffdb.hpp"
 
-extern Log *g_Log;
+extern Log *g_log;
 extern SDLDevice *g_SDLDevice;
-extern PNGTexDB *g_ProgUseDB;
-extern PNGTexOffDB *g_HeroDB;
-extern PNGTexOffDB *g_WeaponDB;
+extern PNGTexDB *g_progUseDB;
+extern PNGTexOffDB *g_heroDB;
+extern PNGTexOffDB *g_weaponDB;
 
 Hero::Hero(uint64_t uid, uint32_t dbid, bool gender, uint32_t nDress, ProcessRun *proc, const ActionNode &action)
     : CreatureMovable(uid, proc)
     , m_DBID(dbid)
-    , m_Gender(gender)
-    , m_Horse(0)
-    , m_Weapon(5)
-    , m_Hair(0)
-    , m_HairColor(0)
-    , m_Dress(nDress - nDress + 6)
-    , m_DressColor(0)
-    , m_OnHorse(false)
+    , m_gender(gender)
+    , m_horse(0)
+    , m_weapon(5)
+    , m_hair(0)
+    , m_hairColor(0)
+    , m_dress(nDress - nDress + 6)
+    , m_dressColor(0)
+    , m_onHorse(false)
 {
     m_currMotion = {
         MOTION_STAND,
@@ -74,17 +74,17 @@ bool Hero::draw(int viewX, int viewY, int)
         // 21 - 14 :    weapon : max = 256 : +----> GfxWeaponID
         //      22 :    gender :
         //      23 :    shadow :
-        const auto nGfxWeaponID = GfxWeaponID(m_Weapon, m_currMotion.motion, m_currMotion.direction);
+        const auto nGfxWeaponID = GfxWeaponID(m_weapon, m_currMotion.motion, m_currMotion.direction);
         if(nGfxWeaponID < 0){
             return;
         }
 
-        const uint32_t weaponKey = (((uint32_t)(shadow ? 1 : 0)) << 23) + (((uint32_t)(m_Gender ? 1 : 0)) << 22) + ((nGfxWeaponID & 0X01FFFF) << 5) + m_currMotion.frame;
+        const uint32_t weaponKey = (((uint32_t)(shadow ? 1 : 0)) << 23) + (((uint32_t)(m_gender ? 1 : 0)) << 22) + ((nGfxWeaponID & 0X01FFFF) << 5) + m_currMotion.frame;
 
         int weaponDX = 0;
         int weaponDY = 0;
 
-        auto weaponFrame = g_WeaponDB->Retrieve(weaponKey, &weaponDX, &weaponDY);
+        auto weaponFrame = g_weaponDB->Retrieve(weaponKey, &weaponDX, &weaponDY);
 
         if(weaponFrame && shadow){
             SDL_SetTextureAlphaMod(weaponFrame, 128);
@@ -94,7 +94,7 @@ bool Hero::draw(int viewX, int viewY, int)
 
     fnDrawWeapon(true);
 
-    const auto nDress     = m_Dress;
+    const auto nDress     = m_dress;
     const auto nMotion    = m_currMotion.motion;
     const auto nDirection = m_currMotion.direction;
 
@@ -111,16 +111,16 @@ bool Hero::draw(int viewX, int viewY, int)
     // 21 - 14 :     dress : max = 256 : +----> GfxDressID
     //      22 :       sex :
     //      23 :    shadow :
-    const uint32_t nKey0 = ((uint32_t)(0) << 23) + (((uint32_t)(m_Gender ? 1 : 0)) << 22) + (((uint32_t)(nGfxDressID & 0X01FFFF)) << 5) + m_currMotion.frame;
-    const uint32_t nKey1 = ((uint32_t)(1) << 23) + (((uint32_t)(m_Gender ? 1 : 0)) << 22) + (((uint32_t)(nGfxDressID & 0X01FFFF)) << 5) + m_currMotion.frame;
+    const uint32_t nKey0 = ((uint32_t)(0) << 23) + (((uint32_t)(m_gender ? 1 : 0)) << 22) + (((uint32_t)(nGfxDressID & 0X01FFFF)) << 5) + m_currMotion.frame;
+    const uint32_t nKey1 = ((uint32_t)(1) << 23) + (((uint32_t)(m_gender ? 1 : 0)) << 22) + (((uint32_t)(nGfxDressID & 0X01FFFF)) << 5) + m_currMotion.frame;
 
     int nDX0 = 0;
     int nDY0 = 0;
     int nDX1 = 0;
     int nDY1 = 0;
 
-    auto pFrame0 = g_HeroDB->Retrieve(nKey0, &nDX0, &nDY0);
-    auto pFrame1 = g_HeroDB->Retrieve(nKey1, &nDX1, &nDY1);
+    auto pFrame0 = g_heroDB->Retrieve(nKey0, &nDX0, &nDY0);
+    auto pFrame1 = g_heroDB->Retrieve(nKey1, &nDX1, &nDY1);
 
     if(pFrame1){
         SDL_SetTextureAlphaMod(pFrame1, 128);
@@ -128,7 +128,7 @@ bool Hero::draw(int viewX, int viewY, int)
     g_SDLDevice->DrawTexture(pFrame1, startX + nDX1, startY + nDY1);
 
     if(true
-            && m_Weapon
+            && m_weapon
             && WeaponOrder(m_currMotion.motion, m_currMotion.direction, m_currMotion.frame) == 1){
         fnDrawWeapon(false);
     }
@@ -136,7 +136,7 @@ bool Hero::draw(int viewX, int viewY, int)
     g_SDLDevice->DrawTexture(pFrame0, startX + nDX0, startY + nDY0);
 
     if(true
-            && m_Weapon
+            && m_weapon
             && WeaponOrder(m_currMotion.motion, m_currMotion.direction, m_currMotion.frame) == 0){
         fnDrawWeapon(false);
     }
@@ -154,8 +154,8 @@ bool Hero::draw(int viewX, int viewY, int)
             }
         default:
             {
-                auto pBar0 = g_ProgUseDB->Retrieve(0X00000014);
-                auto pBar1 = g_ProgUseDB->Retrieve(0X00000015);
+                auto pBar0 = g_progUseDB->Retrieve(0X00000014);
+                auto pBar1 = g_progUseDB->Retrieve(0X00000015);
 
                 int nW = -1;
                 int nH = -1;
@@ -639,7 +639,7 @@ bool Hero::canFocus(int pointX, int pointY) const
 
     const uint32_t nKey0 = (((uint32_t)(nGender ? 1 : 0)) << 22) + (((uint32_t)(nGfxDressID & 0X01FFFF)) << 5) + currMotion().frame;
 
-    auto pFrame0 = g_HeroDB->Retrieve(nKey0, &nDX0, &nDY0);
+    auto pFrame0 = g_heroDB->Retrieve(nKey0, &nDX0, &nDY0);
     const auto [shiftX, shiftY] = getShift();
 
     const int startX = m_currMotion.x * SYS_MAPGRIDXP + nDX0 + shiftX;

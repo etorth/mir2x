@@ -31,8 +31,8 @@
 
 extern Client *g_client;
 extern SDLDevice *g_SDLDevice;
-extern PNGTexDB *g_ProgUseDB;
-extern NotifyBoard *g_NotifyBoard;
+extern PNGTexDB *g_progUseDB;
+extern NotifyBoard *g_notifyBoard;
 
 ProcessNew::ProcessNew()
 	: Process()
@@ -48,15 +48,15 @@ ProcessNew::ProcessNew()
           return (g_SDLDevice->WindowH(false) - m_h) / 2;
       }())
 
-    , m_CheckID(true)
-    , m_CheckPwd(true)
-    , m_CheckPwdConfirm(true)
+    , m_checkID(true)
+    , m_checkPwd(true)
+    , m_checkPwdConfirm(true)
 
     , m_LBID        (0, 0, "ID"              , 0, 15, 0, colorf::RGBA(0xFF, 0X00, 0X00, 0X00))
     , m_LBPwd       (0, 0, "Password"        , 0, 15, 0, colorf::RGBA(0xFF, 0X00, 0X00, 0X00))
     , m_LBPwdConfirm(0, 0, "Confirm Passowrd", 0, 15, 0, colorf::RGBA(0xFF, 0X00, 0X00, 0X00))
 
-	, m_BoxID
+	, m_boxID
       {
           159,
           540,
@@ -73,16 +73,16 @@ ProcessNew::ProcessNew()
 
           [this]()
           {
-              m_BoxID        .focus(false);
-              m_BoxPwd       .focus(true );
-              m_BoxPwdConfirm.focus(false);
+              m_boxID        .focus(false);
+              m_boxPwd       .focus(true );
+              m_boxPwdConfirm.focus(false);
           },
           [this]()
           {
               DoPostAccount();
           },
       }
-	, m_BoxPwd
+	, m_boxPwd
       {
           409,
           540,
@@ -100,16 +100,16 @@ ProcessNew::ProcessNew()
 
           [this]()
           {
-              m_BoxID        .focus(false);
-              m_BoxPwd       .focus(false);
-              m_BoxPwdConfirm.focus(true );
+              m_boxID        .focus(false);
+              m_boxPwd       .focus(false);
+              m_boxPwdConfirm.focus(true );
           },
           [this]()
           {
               DoPostAccount();
           },
       }
-	, m_BoxPwdConfirm
+	, m_boxPwdConfirm
       {
           409,
           540,
@@ -127,9 +127,9 @@ ProcessNew::ProcessNew()
 
           [this]()
           {
-              m_BoxID        .focus(true );
-              m_BoxPwd       .focus(false);
-              m_BoxPwdConfirm.focus(false);
+              m_boxID        .focus(true );
+              m_boxPwd       .focus(false);
+              m_boxPwdConfirm.focus(false);
           },
           [this]()
           {
@@ -147,17 +147,17 @@ ProcessNew::ProcessNew()
 
 void ProcessNew::Update(double fMS)
 {
-    m_BoxID        .update(fMS);
-    m_BoxPwd       .update(fMS);
-    m_BoxPwdConfirm.update(fMS);
+    m_boxID        .update(fMS);
+    m_boxPwd       .update(fMS);
+    m_boxPwdConfirm.update(fMS);
 }
 
 void ProcessNew::Draw()
 {
     g_SDLDevice->ClearScreen();
 
-    g_SDLDevice->DrawTexture(g_ProgUseDB->Retrieve(0X00000003), 0, 75);
-    g_SDLDevice->DrawTexture(g_ProgUseDB->Retrieve(0X00000004), 0, 75, 0, 0, 800, 450);
+    g_SDLDevice->DrawTexture(g_progUseDB->Retrieve(0X00000003), 0, 75);
+    g_SDLDevice->DrawTexture(g_progUseDB->Retrieve(0X00000004), 0, 75, 0, 0, 800, 450);
 
     m_TBCreate.draw();
     m_TBExit  .draw();
@@ -180,9 +180,9 @@ void ProcessNew::Draw()
     };
 
     g_SDLDevice->PushColor(0X00, 0X80, 0X00, 0X00);
-    fnDrawInput(300, 200, 10, m_LBID        , m_BoxID        , m_LBCheckID        );
-    fnDrawInput(300, 300, 10, m_LBPwd       , m_BoxPwd       , m_LBCheckPwd       );
-    fnDrawInput(300, 400, 10, m_LBPwdConfirm, m_BoxPwdConfirm, m_LBCheckPwdConfirm);
+    fnDrawInput(300, 200, 10, m_LBID        , m_boxID        , m_LBCheckID        );
+    fnDrawInput(300, 300, 10, m_LBPwd       , m_boxPwd       , m_LBCheckPwd       );
+    fnDrawInput(300, 400, 10, m_LBPwdConfirm, m_boxPwdConfirm, m_LBCheckPwdConfirm);
     g_SDLDevice->PopColor();
 
     g_SDLDevice->Present();
@@ -197,13 +197,13 @@ void ProcessNew::processEvent(const SDL_Event &event)
                     case SDLK_TAB:
                         {
                             if(true
-                                    && !m_BoxID       .focus()
-                                    && !m_BoxPwd.focus()
-                                    && !m_BoxPwdConfirm.focus()){
+                                    && !m_boxID       .focus()
+                                    && !m_boxPwd.focus()
+                                    && !m_boxPwdConfirm.focus()){
 
-                                m_BoxID       .focus(true);
-                                m_BoxPwd.focus(false);
-                                m_BoxPwdConfirm.focus(false);
+                                m_boxID       .focus(true);
+                                m_boxPwd.focus(false);
+                                m_boxPwdConfirm.focus(false);
                                 return;
                             }
                         }
@@ -225,9 +225,9 @@ void ProcessNew::processEvent(const SDL_Event &event)
     // widget idbox and pwdbox are not independent from each other
     // tab in one box will grant focus to another
 
-    m_BoxID        .processEvent(event, true);
-    m_BoxPwd       .processEvent(event, true);
-    m_BoxPwdConfirm.processEvent(event, true);
+    m_boxID        .processEvent(event, true);
+    m_boxPwd       .processEvent(event, true);
+    m_boxPwdConfirm.processEvent(event, true);
 
     CheckInput();
 }
@@ -260,14 +260,14 @@ void ProcessNew::DoExit()
 void ProcessNew::DoPostAccount()
 {
     if(false
-            || m_CheckID
-            || m_CheckPwd
-            || m_CheckPwdConfirm){
-        g_NotifyBoard->addLog(LOGTYPE_WARNING, "Fix error before send request");
+            || m_checkID
+            || m_checkPwd
+            || m_checkPwdConfirm){
+        g_notifyBoard->addLog(LOGTYPE_WARNING, "Fix error before send request");
         return;
     }
 
-    PostAccount(m_BoxID.getRawString().c_str(), m_BoxPwd.getRawString().c_str(), 1);
+    PostAccount(m_boxID.getRawString().c_str(), m_boxPwd.getRawString().c_str(), 1);
 }
 
 void ProcessNew::PostAccount(const char *szID, const char *szPWD, int nOperation)
@@ -289,27 +289,27 @@ void ProcessNew::PostAccount(const char *szID, const char *szPWD, int nOperation
 
 void ProcessNew::CheckInput()
 {
-    auto szID         = m_BoxID.getRawString();
-    auto szPwd        = m_BoxPwd.getRawString();
-    auto szPwdConfirm = m_BoxPwdConfirm.getRawString();
+    auto szID         = m_boxID.getRawString();
+    auto szPwd        = m_boxPwd.getRawString();
+    auto szPwdConfirm = m_boxPwdConfirm.getRawString();
 
     if(CacheFind(true, szID)){
-        m_CheckID = CHECK_OK;
+        m_checkID = CHECK_OK;
         m_LBCheckID.clear();
     }else if(CacheFind(false, szID)){
-        m_CheckID = CHECK_ERROR;
+        m_checkID = CHECK_ERROR;
         m_LBCheckID.SetFontColor(colorf::RED);
         m_LBCheckID.setText("ID has been used by others");
     }else{
         if(szID.empty()){
-            m_CheckID = CHECK_NONE;
+            m_checkID = CHECK_NONE;
         }else{
             if(LocalCheckID(szID.c_str())){
-                m_CheckID = CHECK_PENDING;
+                m_checkID = CHECK_PENDING;
                 m_LBCheckID.SetFontColor(colorf::GREEN);
                 m_LBCheckID.setText("Pending...");
             }else{
-                m_CheckID = CHECK_ERROR;
+                m_checkID = CHECK_ERROR;
                 m_LBCheckID.SetFontColor(colorf::RED);
                 m_LBCheckID.setText("Invalid ID");
             }
@@ -317,26 +317,26 @@ void ProcessNew::CheckInput()
     }
 
     if(szPwd.empty()){
-        m_CheckPwd = CHECK_NONE;
+        m_checkPwd = CHECK_NONE;
     }else{
         if(LocalCheckPwd(szPwd.c_str())){
-            m_CheckPwd = CHECK_OK;
+            m_checkPwd = CHECK_OK;
             m_LBCheckPwd.clear();
         }else{
-            m_CheckPwd = CHECK_ERROR;
+            m_checkPwd = CHECK_ERROR;
             m_LBCheckPwd.SetFontColor(colorf::RED);
             m_LBCheckPwd.setText("Invalid password");
         }
     }
 
     if(szPwdConfirm.empty()){
-        m_CheckPwdConfirm = CHECK_NONE;
+        m_checkPwdConfirm = CHECK_NONE;
     }else{
         if(szPwdConfirm == szPwd){
-            m_CheckPwdConfirm = CHECK_OK;
+            m_checkPwdConfirm = CHECK_OK;
             m_LBCheckPwdConfirm.clear();
         }else{
-            m_CheckPwdConfirm = CHECK_ERROR;
+            m_checkPwdConfirm = CHECK_ERROR;
             m_LBCheckPwdConfirm.SetFontColor(colorf::RED);
             m_LBCheckPwdConfirm.setText("Password doesn't match");
         }

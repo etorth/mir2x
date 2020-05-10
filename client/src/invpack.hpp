@@ -26,18 +26,18 @@ class InvPack
         const size_t m_w;
 
     private:
-        std::vector<PackBin> m_PackBinList;
+        std::vector<PackBin> m_packBinList;
 
     public:
         InvPack(size_t nW = SYS_INVGRIDW)
             : m_w(nW)
-            , m_PackBinList()
+            , m_packBinList()
         {}
 
     public:
         const std::vector<PackBin> &GetPackBinList() const
         {
-            return m_PackBinList;
+            return m_packBinList;
         }
 
     public:

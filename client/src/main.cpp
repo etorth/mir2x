@@ -33,23 +33,23 @@
 // put all global in one place and create them togother
 
 ClientArgParser *g_clientArgParser = nullptr;
-Log             *g_Log             = nullptr; // log information handler, must be inited first
-PNGTexDB        *g_ProgUseDB       = nullptr; // database for all PNG texture only
-PNGTexDB        *g_GroundItemDB    = nullptr; // database for all PNG texture only
-PNGTexDB        *g_CommonItemDB    = nullptr; // database for all PNG texture only
-PNGTexDB        *g_MapDB           = nullptr;
-PNGTexOffDB     *g_HeroDB          = nullptr; // database for hero
-PNGTexOffDB     *g_MonsterDB       = nullptr; // database for monster
-PNGTexOffDB     *g_WeaponDB        = nullptr; // database for weapon
-PNGTexOffDB     *g_MagicDB         = nullptr; // database for magic
+Log             *g_log             = nullptr; // log information handler, must be inited first
+PNGTexDB        *g_progUseDB       = nullptr; // database for all PNG texture only
+PNGTexDB        *g_groundItemDB    = nullptr; // database for all PNG texture only
+PNGTexDB        *g_commonItemDB    = nullptr; // database for all PNG texture only
+PNGTexDB        *g_mapDB           = nullptr;
+PNGTexOffDB     *g_heroDB          = nullptr; // database for hero
+PNGTexOffDB     *g_monsterDB       = nullptr; // database for monster
+PNGTexOffDB     *g_weaponDB        = nullptr; // database for weapon
+PNGTexOffDB     *g_magicDB         = nullptr; // database for magic
 PNGTexOffDB     *g_standNPCDB      = nullptr; // database for NPC
 emoticonDB      *g_emoticonDB      = nullptr; // database for emoticons
-MapBinDB        *g_MapBinDB        = nullptr;
-FontexDB        *g_FontexDB        = nullptr;
+MapBinDB        *g_mapBinDB        = nullptr;
+FontexDB        *g_fontexDB        = nullptr;
 XMLConf         *g_XMLConf         = nullptr; // for client configure XML parsing
 SDLDevice       *g_SDLDevice       = nullptr; // for SDL hardware device
 debugBoard      *g_debugBoard      = nullptr;
-NotifyBoard     *g_NotifyBoard     = nullptr;
+NotifyBoard     *g_notifyBoard     = nullptr;
 Client          *g_client          = nullptr; // gobal instance
 
 int main(int argc, char *argv[])
@@ -60,27 +60,27 @@ int main(int argc, char *argv[])
         auto fnAtExit = []()
         {
             delete g_clientArgParser; g_clientArgParser = nullptr;
-            delete g_Log            ; g_Log             = nullptr;
+            delete g_log            ; g_log             = nullptr;
             delete g_XMLConf        ; g_XMLConf         = nullptr;
             delete g_SDLDevice      ; g_SDLDevice       = nullptr;
-            delete g_ProgUseDB      ; g_ProgUseDB       = nullptr;
-            delete g_GroundItemDB   ; g_GroundItemDB    = nullptr;
-            delete g_CommonItemDB   ; g_CommonItemDB    = nullptr;
-            delete g_MapDB          ; g_MapDB           = nullptr;
-            delete g_HeroDB         ; g_HeroDB          = nullptr;
-            delete g_MonsterDB      ; g_MonsterDB       = nullptr;
-            delete g_FontexDB       ; g_FontexDB        = nullptr;
-            delete g_MapBinDB       ; g_MapBinDB        = nullptr;
+            delete g_progUseDB      ; g_progUseDB       = nullptr;
+            delete g_groundItemDB   ; g_groundItemDB    = nullptr;
+            delete g_commonItemDB   ; g_commonItemDB    = nullptr;
+            delete g_mapDB          ; g_mapDB           = nullptr;
+            delete g_heroDB         ; g_heroDB          = nullptr;
+            delete g_monsterDB      ; g_monsterDB       = nullptr;
+            delete g_fontexDB       ; g_fontexDB        = nullptr;
+            delete g_mapBinDB       ; g_mapBinDB        = nullptr;
             delete g_emoticonDB     ; g_emoticonDB      = nullptr;
             delete g_debugBoard     ; g_debugBoard      = nullptr;
-            delete g_NotifyBoard    ; g_NotifyBoard     = nullptr;
+            delete g_notifyBoard    ; g_notifyBoard     = nullptr;
             delete g_client         ; g_client          = nullptr;
         };
 
         std::atexit(fnAtExit);
 
         g_clientArgParser = new ClientArgParser(stCmdParser);
-        g_Log             = new Log("mir2x-client-v0.1");
+        g_log             = new Log("mir2x-client-v0.1");
 
     }catch(const std::exception &e){
         std::fprintf(stderr, "Caught exception: %s\n", e.what());
@@ -93,28 +93,28 @@ int main(int argc, char *argv[])
     try{
         g_XMLConf         = new XMLConf();
         g_SDLDevice       = new SDLDevice();
-        g_ProgUseDB       = new PNGTexDB(1024);
-        g_GroundItemDB    = new PNGTexDB(1024);
-        g_CommonItemDB    = new PNGTexDB(1024);
-        g_MapDB           = new PNGTexDB(8192);
-        g_HeroDB          = new PNGTexOffDB(1024);
-        g_MonsterDB       = new PNGTexOffDB(1024);
-        g_WeaponDB        = new PNGTexOffDB(1024);
-        g_MagicDB         = new PNGTexOffDB(1024);
+        g_progUseDB       = new PNGTexDB(1024);
+        g_groundItemDB    = new PNGTexDB(1024);
+        g_commonItemDB    = new PNGTexDB(1024);
+        g_mapDB           = new PNGTexDB(8192);
+        g_heroDB          = new PNGTexOffDB(1024);
+        g_monsterDB       = new PNGTexOffDB(1024);
+        g_weaponDB        = new PNGTexOffDB(1024);
+        g_magicDB         = new PNGTexOffDB(1024);
         g_standNPCDB      = new PNGTexOffDB(1024);
-        g_FontexDB        = new FontexDB(1024);
-        g_MapBinDB        = new MapBinDB();
+        g_fontexDB        = new FontexDB(1024);
+        g_mapBinDB        = new MapBinDB();
         g_emoticonDB      = new emoticonDB();
         g_client          = new Client();       // loads fontex resource
         g_debugBoard      = new debugBoard(0, 0, 10240, 0, 15, 0, colorf::RED + 255);
-        g_NotifyBoard     = new NotifyBoard();  // needs fontex
+        g_notifyBoard     = new NotifyBoard();  // needs fontex
 
         g_client->MainLoop();
 
     }catch(const std::exception &e){
-        g_Log->addLog(LOGTYPE_FATAL, "Caught exception: %s", e.what());
+        g_log->addLog(LOGTYPE_FATAL, "Caught exception: %s", e.what());
     }catch(...){
-        g_Log->addLog(LOGTYPE_FATAL, "Caught unknown exception, exit...");
+        g_log->addLog(LOGTYPE_FATAL, "Caught unknown exception, exit...");
     }
     return 0;
 }

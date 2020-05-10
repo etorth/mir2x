@@ -30,13 +30,13 @@
 class ProcessLogin: public Process
 {
     private:
-        TritexButton    m_Button1;
-        TritexButton    m_Button2;
-        TritexButton    m_Button3;
-        TritexButton    m_Button4;
+        TritexButton    m_button1;
+        TritexButton    m_button2;
+        TritexButton    m_button3;
+        TritexButton    m_button4;
 
         InputLine       m_idBox;
-        PasswordBox     m_PasswordBox;
+        PasswordBox     m_passwordBox;
 
     private:
         LabelBoard m_buildSignature;
