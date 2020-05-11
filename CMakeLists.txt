@@ -120,7 +120,7 @@ FIND_PACKAGE(Lua     REQUIRED)
 FIND_PACKAGE(FLTK    REQUIRED)
 FIND_PACKAGE(OpenGL  REQUIRED)
 FIND_PACKAGE(PNG     REQUIRED)
-FIND_PACKAGE(SQLite3 REQUIRED)
+# FIND_PACKAGE(SQLite3 REQUIRED) # seems travis has no sqlite3 ?
 
 # TODO
 # appveyor says "can find make command"
