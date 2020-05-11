@@ -8,6 +8,7 @@ addons:
             - gcc-8
             - g++-8
             - liblua5.3-dev
+            - libsqlite3-dev
             - libfltk1.3-dev
             - libsdl2-dev
             - libsdl2-image-dev
