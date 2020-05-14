@@ -172,58 +172,47 @@ bool Hero::draw(int viewX, int viewY, int)
     return true;
 }
 
-bool Hero::update(double fUpdateTime)
+bool Hero::update(double ms)
 {
-    // 1. independent from time control
-    //    attached magic could take different speed
-    updateAttachMagic(fUpdateTime);
+    updateAttachMagic(ms);
 
-    // 2. update this monster
-    //    need fps control for current motion
-    const double fTimeNow = SDL_GetTicks() * 1.0;
-    if(fTimeNow > currMotionDelay() + m_lastUpdateTime){
+    if(SDL_GetTicks() * 1.0f < currMotionDelay() + m_lastUpdateTime){
+        return true;
+    }
 
-        // 1. record update time
-        //    needed for next update
-        m_lastUpdateTime = fTimeNow;
-
-        // 2. do the update
-        switch(m_currMotion.motion){
-            case MOTION_STAND:
-                {
-                    if(stayIdle()){
-                        return advanceMotionFrame(1);
-                    }
-                    else{
-                        // move to next motion will reset frame as 0
-                        // if current there is no more motion pending
-                        // it will add a MOTION_STAND
-                        //
-                        // we don't want to reset the frame here
-                        return moveNextMotion();
-                    }
+    m_lastUpdateTime = SDL_GetTicks() * 1.0f;
+    switch(m_currMotion.motion){
+        case MOTION_STAND:
+            {
+                if(stayIdle()){
+                    return advanceMotionFrame(1);
                 }
-            case MOTION_HITTED:
-                {
-                    if(stayIdle()){
-                        return updateMotion(false);
-                    }
-                    else{
-                        // move to next motion will reset frame as 0
-                        // if current there is no more motion pending
-                        // it will add a MOTION_STAND
-                        //
-                        // we don't want to reset the frame here
-                        return moveNextMotion();
-                    }
-                }
-            default:
-                {
+
+                // move to next motion will reset frame as 0
+                // if current there is no more motion pending
+                // it will add a MOTION_STAND
+                //
+                // we don't want to reset the frame here
+                return moveNextMotion();
+            }
+        case MOTION_HITTED:
+            {
+                if(stayIdle()){
                     return updateMotion(false);
                 }
-        }
+
+                // move to next motion will reset frame as 0
+                // if current there is no more motion pending
+                // it will add a MOTION_STAND
+                //
+                // we don't want to reset the frame here
+                return moveNextMotion();
+            }
+        default:
+            {
+                return updateMotion(false);
+            }
     }
-    return true;
 }
 
 bool Hero::motionValid(const MotionNode &rstMotion) const

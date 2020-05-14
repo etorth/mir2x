@@ -261,8 +261,11 @@ std::tuple<int, int> CreatureMovable::getShift() const
         throw fflerror("invalid frame: %d", m_currMotion.frame);
     }
 
-    const int shiftX = (int)(std::lround((1.0f * SYS_MAPGRIDXP / frameCount) * (m_currMotion.frame + 1) * currStepCount));
-    const int shiftY = (int)(std::lround((1.0f * SYS_MAPGRIDYP / frameCount) * (m_currMotion.frame + 1) * currStepCount));
+    const float shiftDX = 1.0f * SYS_MAPGRIDXP * currStepCount / frameCount;
+    const float shiftDY = 1.0f * SYS_MAPGRIDYP * currStepCount / frameCount;
+
+    const int shiftX = (int)(std::lround(shiftDX * (m_currMotion.frame + 1)));
+    const int shiftY = (int)(std::lround(shiftDY * (m_currMotion.frame + 1)));
 
     switch(m_currMotion.direction){
         case DIR_UP       : return {      0, -shiftY};

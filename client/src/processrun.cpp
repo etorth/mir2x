@@ -1526,15 +1526,9 @@ void ProcessRun::centerMyHero()
             case 2:
             case 3:
                 {
-                    int nDX = -1;
-                    int nDY = -1;
-                    PathFind::GetFrontLocation(&nDX, &nDY, 0, 0, nDirection, stepLen);
-
-                    const int offX = nDX * SYS_MAPGRIDXP * (currFrame + 1) / frameCount;
-                    const int offY = nDY * SYS_MAPGRIDYP * (currFrame + 1) / frameCount;
-
-                    m_viewX = nX * SYS_MAPGRIDXP + offX - showWindowW / 2;
-                    m_viewY = nY * SYS_MAPGRIDYP + offY - showWindowH / 2;
+                    const auto [shiftX, shiftY] = GetMyHero()->getShift();
+                    m_viewX = nX * SYS_MAPGRIDXP + shiftX - showWindowW / 2;
+                    m_viewY = nY * SYS_MAPGRIDYP + shiftY - showWindowH / 2;
                     return;
                 }
             default:
