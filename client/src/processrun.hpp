@@ -242,9 +242,9 @@ class ProcessRun: public Process
         void centerMyHero();
 
     public:
-        MyHero *GetMyHero() const
+        MyHero *getMyHero() const
         {
-            // GetMyHero() is read-only
+            // getMyHero() is read-only
             // won't use RetrieveUID(), it may change m_creatureList
 
             if(m_myHeroUID){

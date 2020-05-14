@@ -380,7 +380,7 @@ void ControlBoard::drawLeft()
             SDL_QueryTexture(pHP, nullptr, nullptr, &nHPW, &nHPH);
             SDL_QueryTexture(pMP, nullptr, nullptr, &nMPW, &nMPH);
 
-            if(auto pMyHero = m_processRun->GetMyHero()){
+            if(auto pMyHero = m_processRun->getMyHero()){
                 double fHPRatio = (pMyHero->maxHP() > 0) ? ((1.0 * pMyHero->HP()) / pMyHero->maxHP()) : 1.0;
                 double fMPRatio = (pMyHero->maxMP() > 0) ? ((1.0 * pMyHero->MP()) / pMyHero->maxMP()) : 1.0;
 
@@ -401,8 +401,8 @@ void ControlBoard::drawLeft()
 
     // draw current location
     {
-        const int nX = m_processRun->GetMyHero()->x();
-        const int nY = m_processRun->GetMyHero()->y();
+        const int nX = m_processRun->getMyHero()->x();
+        const int nY = m_processRun->getMyHero()->y();
         m_locBoard.setText(u8"%s: %d %d", DBCOM_MAPRECORD(m_processRun->MapID()).Name, nX, nY);
 
         const int locBoardStartX = (136 - m_locBoard.w()) / 2;

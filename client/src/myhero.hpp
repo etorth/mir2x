@@ -83,7 +83,7 @@ class MyHero: public Hero
             return m_gold;
         }
 
-        void SetGold(uint32_t nGold)
+        void setGold(uint32_t nGold)
         {
             m_gold = nGold;
         }
@@ -101,7 +101,7 @@ class MyHero: public Hero
         virtual void PickUp();
 
     public:
-        bool EmplaceAction(const ActionNode &);
+        bool emplaceAction(const ActionNode &);
 
     public:
         void ReportAction(const ActionNode &);

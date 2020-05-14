@@ -677,7 +677,7 @@ void MyHero::PickUp()
     }
 }
 
-bool MyHero::EmplaceAction(const ActionNode &rstAction)
+bool MyHero::emplaceAction(const ActionNode &rstAction)
 {
     m_actionQueue.clear();
     m_actionQueue.push_back(rstAction);

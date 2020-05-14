@@ -55,7 +55,7 @@ void ProcessRun::Net_LOGINOK(const uint8_t *pBuf, size_t nLen)
         m_creatureList[nUID] = std::make_unique<MyHero>(nUID, nDBID, bGender, nDressID, this, ActionStand(nX, nY, nDirection));
 
         centerMyHero();
-        GetMyHero()->PullGold();
+        getMyHero()->PullGold();
     }
 }
 
@@ -78,7 +78,7 @@ void ProcessRun::Net_ACTION(const uint8_t *pBuf, size_t)
     };
 
     if(stSMA.MapID != MapID()){
-        if(stSMA.UID != GetMyHero()->UID()){
+        if(stSMA.UID != getMyHero()->UID()){
             return;
         }
 
@@ -87,11 +87,11 @@ void ProcessRun::Net_ACTION(const uint8_t *pBuf, size_t)
 
         LoadMap(stSMA.MapID);
 
-        auto nUID       = GetMyHero()->UID();
-        auto nDBID      = GetMyHero()->DBID();
-        auto bGender    = GetMyHero()->Gender();
-        auto nDress     = GetMyHero()->Dress();
-        auto nDirection = GetMyHero()->currMotion().direction;
+        auto nUID       = getMyHero()->UID();
+        auto nDBID      = getMyHero()->DBID();
+        auto bGender    = getMyHero()->Gender();
+        auto nDress     = getMyHero()->Dress();
+        auto nDirection = getMyHero()->currMotion().direction;
 
         auto nX = stSMA.X;
         auto nY = stSMA.Y;
@@ -102,7 +102,7 @@ void ProcessRun::Net_ACTION(const uint8_t *pBuf, size_t)
         m_creatureList[m_myHeroUID] = std::make_unique<MyHero>(nUID, nDBID, bGender, nDress, this, ActionStand(nX, nY, nDirection));
 
         centerMyHero();
-        GetMyHero()->parseAction(stAction);
+        getMyHero()->parseAction(stAction);
         return;
     }
 
@@ -322,7 +322,7 @@ void ProcessRun::Net_FIREMAGIC(const uint8_t *pBuf, size_t)
         }
 
         const GfxEntry *pEntry = nullptr;
-        if(stSMFM.UID != GetMyHero()->UID()){
+        if(stSMFM.UID != getMyHero()->UID()){
             if(!(pEntry && *pEntry)){ pEntry = &(rstMR.GetGfxEntry(u8"启动")); }
             if(!(pEntry && *pEntry)){ pEntry = &(rstMR.GetGfxEntry(u8"开始")); }
             if(!(pEntry && *pEntry)){ pEntry = &(rstMR.GetGfxEntry(u8"运行")); }
@@ -393,7 +393,7 @@ void ProcessRun::Net_PICKUPOK(const uint8_t *pBuf, size_t)
     SMPickUpOK stSMPUOK;
     std::memcpy(&stSMPUOK, pBuf, sizeof(stSMPUOK));
 
-    GetMyHero()->getInvPack().Add(stSMPUOK.ID);
+    getMyHero()->getInvPack().Add(stSMPUOK.ID);
     RemoveGroundItem(CommonItem(stSMPUOK.ID, 0), stSMPUOK.X, stSMPUOK.Y);
     AddOPLog(OUTPORT_CONTROLBOARD, 2, "", u8"捡起%s于坐标(%d, %d)", DBCOM_ITEMRECORD(stSMPUOK.ID).Name, (int)(stSMPUOK.X), (int)(stSMPUOK.Y));
 }
@@ -402,7 +402,7 @@ void ProcessRun::Net_GOLD(const uint8_t *pBuf, size_t)
 {
     SMGold stSMG;
     std::memcpy(&stSMG, pBuf, sizeof(stSMG));
-    GetMyHero()->SetGold(stSMG.Gold);
+    getMyHero()->setGold(stSMG.Gold);
 }
 
 void ProcessRun::Net_NPCXMLLAYOUT(const uint8_t *buf, size_t)

@@ -102,7 +102,7 @@ void InventoryBoard::drawEx(int nDstX, int nDstY, int, int, int, int)
         g_SDLDevice->DrawTexture(pTexture, nDstX, nDstY);
     }
 
-    if(auto pMyHero = m_processRun->GetMyHero()){
+    if(auto pMyHero = m_processRun->getMyHero()){
         m_goldBoard.setText("%s", getGoldStr().c_str());
         m_goldBoard.moveTo(105 - m_goldBoard.w() / 2, 401);
 
@@ -151,7 +151,7 @@ std::string InventoryBoard::getGoldStr() const
     std::string result;
     std::string goldStr = std::to_string([this]() -> int
     {
-        if(auto p = m_processRun->GetMyHero()){
+        if(auto p = m_processRun->getMyHero()){
             return p->GetGold();
         }
         return 0;

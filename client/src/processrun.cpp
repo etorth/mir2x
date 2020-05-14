@@ -86,8 +86,8 @@ void ProcessRun::scrollMap()
     const auto showWindowW = rendererW;
     const auto showWindowH = rendererH - m_controlBoard.h();
 
-    const int nViewX = GetMyHero()->x() * SYS_MAPGRIDXP - showWindowW / 2;
-    const int nViewY = GetMyHero()->y() * SYS_MAPGRIDYP - showWindowH / 2;
+    const int nViewX = getMyHero()->x() * SYS_MAPGRIDXP - showWindowW / 2;
+    const int nViewY = getMyHero()->y() * SYS_MAPGRIDYP - showWindowH / 2;
 
     const int nDViewX = nViewX - m_viewX;
     const int nDViewY = nViewY - m_viewY;
@@ -108,7 +108,7 @@ void ProcessRun::scrollMap()
     // stop rolling the map when
     //   1. the hero is at the required position
     //   2. the hero is not moving
-    if((nDViewX == 0) && (nDViewY == 0) && !GetMyHero()->moving()){
+    if((nDViewX == 0) && (nDViewY == 0) && !getMyHero()->moving()){
         m_mapScrolling = false;
     }
 }
@@ -137,8 +137,8 @@ void ProcessRun::Update(double fUpdateTime)
     m_controlBoard.update(fUpdateTime);
     m_NPCChatBoard.update(fUpdateTime);
 
-    const int myHeroX = GetMyHero()->x();
-    const int myHeroY = GetMyHero()->y();
+    const int myHeroX = getMyHero()->x();
+    const int myHeroY = getMyHero()->y();
 
     for(auto p = m_creatureList.begin(); p != m_creatureList.end();){
         const auto [locX, locY] = p->second->location();
@@ -679,7 +679,7 @@ void ProcessRun::processEvent(const SDL_Event &event)
                             }else{
                                 auto &rstGroundItemList = GetGroundItemListRef(nMouseGridX, nMouseGridY);
                                 if(!rstGroundItemList.empty()){
-                                    GetMyHero()->EmplaceAction(ActionPickUp(nMouseGridX, nMouseGridY, rstGroundItemList.back().ID()));
+                                    getMyHero()->emplaceAction(ActionPickUp(nMouseGridX, nMouseGridY, rstGroundItemList.back().ID()));
                                 }
                             }
                             break;
@@ -703,7 +703,7 @@ void ProcessRun::processEvent(const SDL_Event &event)
                                 int nY = -1;
                                 if(true
                                         && ScreenPoint2Grid(event.button.x, event.button.y, &nX, &nY)
-                                        && mathf::LDistance2(GetMyHero()->currMotion().endX, GetMyHero()->currMotion().endY, nX, nY)){
+                                        && mathf::LDistance2(getMyHero()->currMotion().endX, getMyHero()->currMotion().endY, nX, nY)){
 
                                     // we get a valid dst to go
                                     // provide myHero with new move action command
@@ -711,14 +711,14 @@ void ProcessRun::processEvent(const SDL_Event &event)
                                     // when post move action don't use X() and Y()
                                     // since if clicks during hero moving then X() may not equal to EndX
 
-                                    GetMyHero()->EmplaceAction(ActionMove
+                                    getMyHero()->emplaceAction(ActionMove
                                     {
-                                        GetMyHero()->currMotion().endX,    // don't use X()
-                                        GetMyHero()->currMotion().endY,    // don't use Y()
+                                        getMyHero()->currMotion().endX,    // don't use X()
+                                        getMyHero()->currMotion().endY,    // don't use Y()
                                         nX,
                                         nY,
                                         SYS_DEFSPEED,
-                                        GetMyHero()->OnHorse() ? 1 : 0
+                                        getMyHero()->OnHorse() ? 1 : 0
                                     });
                                 }
                             }
@@ -759,10 +759,10 @@ void ProcessRun::processEvent(const SDL_Event &event)
                             }
 
                             if(auto nFocusUID = FocusUID(FOCUS_MAGIC)){
-                                GetMyHero()->EmplaceAction(ActionSpell
+                                getMyHero()->emplaceAction(ActionSpell
                                 {
-                                    GetMyHero()->currMotion().endX,
-                                    GetMyHero()->currMotion().endY,
+                                    getMyHero()->currMotion().endX,
+                                    getMyHero()->currMotion().endY,
                                     nFocusUID,
                                     DBCOM_MAGICID(u8"雷电术"),
                                 });
@@ -773,10 +773,10 @@ void ProcessRun::processEvent(const SDL_Event &event)
                                 int nMouseY = -1;
                                 SDL_GetMouseState(&nMouseX, &nMouseY);
                                 ScreenPoint2Grid(nMouseX, nMouseY, &nAimX, &nAimY);
-                                GetMyHero()->EmplaceAction(ActionSpell
+                                getMyHero()->emplaceAction(ActionSpell
                                 {
-                                    GetMyHero()->currMotion().endX,
-                                    GetMyHero()->currMotion().endY,
+                                    getMyHero()->currMotion().endX,
+                                    getMyHero()->currMotion().endY,
                                     nAimX,
                                     nAimY,
                                     DBCOM_MAGICID(u8"雷电术"),
@@ -786,17 +786,17 @@ void ProcessRun::processEvent(const SDL_Event &event)
                         }
                     case SDLK_p:
                         {
-                            GetMyHero()->PickUp();
+                            getMyHero()->PickUp();
                             break;
                         }
                     case SDLK_y:
                         {
-                            GetMyHero()->EmplaceAction(ActionSpell(GetMyHero()->x(), GetMyHero()->y(), GetMyHero()->UID(), DBCOM_MAGICID(u8"魔法盾")));
+                            getMyHero()->emplaceAction(ActionSpell(getMyHero()->x(), getMyHero()->y(), getMyHero()->UID(), DBCOM_MAGICID(u8"魔法盾")));
                             break;
                         }
                     case SDLK_u:
                         {
-                            GetMyHero()->EmplaceAction(ActionSpell(GetMyHero()->x(), GetMyHero()->y(), GetMyHero()->UID(), DBCOM_MAGICID(u8"召唤骷髅")));
+                            getMyHero()->emplaceAction(ActionSpell(getMyHero()->x(), getMyHero()->y(), getMyHero()->UID(), DBCOM_MAGICID(u8"召唤骷髅")));
                             break;
                         }
                     default:
@@ -1320,7 +1320,7 @@ bool ProcessRun::RegisterLuaExport(ClientLuaModule *pModule, int nOutPort)
         pModule->GetLuaState().set_function("myHero_dress", [this](int nDress)
         {
             if(nDress >= 0){
-                GetMyHero()->Dress((uint32_t)(nDress));
+                getMyHero()->Dress((uint32_t)(nDress));
             }
         });
 
@@ -1329,7 +1329,7 @@ bool ProcessRun::RegisterLuaExport(ClientLuaModule *pModule, int nOutPort)
         pModule->GetLuaState().set_function("myHero_weapon", [this](int nWeapon)
         {
             if(nWeapon >= 0){
-                GetMyHero()->Weapon((uint32_t)(nWeapon));
+                getMyHero()->Weapon((uint32_t)(nWeapon));
             }
         });
 
@@ -1440,10 +1440,10 @@ bool ProcessRun::LocateUID(uint64_t nUID, int *pX, int *pY)
 bool ProcessRun::trackAttack(bool bForce, uint64_t nUID)
 {
     if(RetrieveUID(nUID)){
-        if(bForce || GetMyHero()->StayIdle()){
-            auto nEndX = GetMyHero()->currMotion().endX;
-            auto nEndY = GetMyHero()->currMotion().endY;
-            return GetMyHero()->EmplaceAction(ActionAttack(nEndX, nEndY, DC_PHY_PLAIN, SYS_DEFSPEED, nUID));
+        if(bForce || getMyHero()->StayIdle()){
+            auto nEndX = getMyHero()->currMotion().endX;
+            auto nEndY = getMyHero()->currMotion().endY;
+            return getMyHero()->emplaceAction(ActionAttack(nEndX, nEndY, DC_PHY_PLAIN, SYS_DEFSPEED, nUID));
         }
     }
     return false;
@@ -1499,12 +1499,12 @@ bool ProcessRun::GetUIDLocation(uint64_t nUID, bool bDrawLoc, int *pX, int *pY)
 
 void ProcessRun::centerMyHero()
 {
-    const auto nMotion     = GetMyHero()->currMotion().motion;
-    const auto nDirection  = GetMyHero()->currMotion().direction;
-    const auto nX          = GetMyHero()->currMotion().x;
-    const auto nY          = GetMyHero()->currMotion().y;
-    const auto currFrame   = GetMyHero()->currMotion().frame;
-    const auto frameCount = GetMyHero()->motionFrameCount(nMotion, nDirection);
+    const auto nMotion     = getMyHero()->currMotion().motion;
+    const auto nDirection  = getMyHero()->currMotion().direction;
+    const auto nX          = getMyHero()->currMotion().x;
+    const auto nY          = getMyHero()->currMotion().y;
+    const auto currFrame   = getMyHero()->currMotion().frame;
+    const auto frameCount = getMyHero()->motionFrameCount(nMotion, nDirection);
 
     if(frameCount <= 0){
         throw fflerror("invalid frame count: %d", frameCount);
@@ -1526,7 +1526,7 @@ void ProcessRun::centerMyHero()
             case 2:
             case 3:
                 {
-                    const auto [shiftX, shiftY] = GetMyHero()->getShift();
+                    const auto [shiftX, shiftY] = getMyHero()->getShift();
                     m_viewX = nX * SYS_MAPGRIDXP + shiftX - showWindowW / 2;
                     m_viewY = nY * SYS_MAPGRIDYP + shiftY - showWindowH / 2;
                     return;
