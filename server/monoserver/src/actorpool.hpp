@@ -326,8 +326,8 @@ class ActorPool final
         ~ActorPool();
 
     private:
-        bool IsActorThread()    const;
-        bool IsActorThread(int) const;
+        bool isActorThread()    const;
+        bool isActorThread(int) const;
 
     private:
         bool Register(Receiver *);

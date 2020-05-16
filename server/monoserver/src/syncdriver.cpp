@@ -36,7 +36,7 @@ MessagePack SyncDriver::forward(uint64_t nUID, const MessageBuf &rstMB, uint32_t
     // and this blocks the actor thread caused the wait never finish
 
     extern ActorPool *g_actorPool;
-    if(g_actorPool->IsActorThread()){
+    if(g_actorPool->isActorThread()){
         extern MonoServer *g_monoServer;
         g_monoServer->addLog(LOGTYPE_FATAL, "Calling SyncDriver::forward() in actor thread, SyncDriver = %p, SyncDriver::UID() = %" PRIu64, this, UID());
         return {MPK_NONE};
