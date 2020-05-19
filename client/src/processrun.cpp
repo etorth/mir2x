@@ -137,10 +137,16 @@ void ProcessRun::Update(double fUpdateTime)
     m_controlBoard.update(fUpdateTime);
     m_NPCChatBoard.update(fUpdateTime);
 
+    getMyHero()->update(fUpdateTime);
     const int myHeroX = getMyHero()->x();
     const int myHeroY = getMyHero()->y();
 
     for(auto p = m_creatureList.begin(); p != m_creatureList.end();){
+        if(p->second.get() == getMyHero()){
+            ++p;
+            continue;
+        }
+
         const auto [locX, locY] = p->second->location();
         const auto locDistance2 = mathf::LDistance2(myHeroX, myHeroY, locX, locY);
         if(p->second->visible() && locDistance2 < 1000){
