@@ -703,7 +703,21 @@ void ControlBoard::addLog(int, const char *log)
     if(!log){
         throw fflerror("null log string");
     }
-    m_logBoard.addParXML(m_logBoard.parCount(), {0, 0, 0, 0}, str_printf("<par>%s</par>", log).c_str());
+
+    tinyxml2::XMLDocument xmlDoc;
+    const char *xmlString = "<par></par>";
+
+    if(xmlDoc.Parse(xmlString) != tinyxml2::XML_SUCCESS){
+        throw fflerror("parse xml template failed: %s", xmlString);
+    }
+
+    // to support <, >, / in xml string
+    // don't directly pass the raw string to addParXML
+    xmlDoc.RootElement()->SetText(log);
+
+    tinyxml2::XMLPrinter printer;
+    xmlDoc.Print(&printer);
+    m_logBoard.addParXML(m_logBoard.parCount(), {0, 0, 0, 0}, printer.CStr());
 }
 
 bool ControlBoard::CheckMyHeroMoved()

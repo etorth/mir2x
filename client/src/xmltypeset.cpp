@@ -826,8 +826,31 @@ void XMLTypeset::insertUTF8String(int x, int y, const char *text)
         throw fflerror("invalid location: (%d, %d)", x, y);
     }
 
+    tinyxml2::XMLPrinter printer;
+    const auto fnParXMLString = [&printer](const char *rawString) -> const char *
+    {
+        if(!rawString){
+            throw fflerror("invalid null raw string pointer");
+        }
+
+        tinyxml2::XMLDocument xmlDoc;
+        const char *xmlString = "<par></par>";
+
+        if(xmlDoc.Parse(xmlString) != tinyxml2::XML_SUCCESS){
+            throw fflerror("parse xml template failed: %s", xmlString);
+        }
+
+        // to support <, >, / in xml string
+        // don't directly pass the raw string to addParXML
+        xmlDoc.RootElement()->SetText(rawString);
+
+        tinyxml2::XMLPrinter printer;
+        xmlDoc.Print(&printer);
+        return printer.CStr();
+    };
+
     if(m_paragraph.empty()){
-        m_paragraph.loadXML(str_printf("<par>%s</par>", text).c_str());
+        m_paragraph.loadXML(fnParXMLString(text));
         if(m_paragraph.leafCount() > 0){
             buildTypeset(0, 0);
         }
@@ -839,7 +862,7 @@ void XMLTypeset::insertUTF8String(int x, int y, const char *text)
 
     if(x == 0 && y == 0){
         if(m_paragraph.leafRef(0).Type() != LEAF_UTF8GROUP){
-            m_paragraph.insertLeafXML(0, str_printf("<par>%s</par>", text).c_str());
+            m_paragraph.insertLeafXML(0, fnParXMLString(text));
         }
         else{
             m_paragraph.insertUTF8String(0, 0, text);
@@ -853,7 +876,7 @@ void XMLTypeset::insertUTF8String(int x, int y, const char *text)
 
     if((y == lineCount() - 1) && (x == lineTokenCount(y))){
         if(m_paragraph.backLeafRef().Type() != LEAF_UTF8GROUP){
-            m_paragraph.insertLeafXML(leafCount(), str_printf("<par>%s</par>", text).c_str());
+            m_paragraph.insertLeafXML(leafCount(), fnParXMLString(text));
         }
         else{
             m_paragraph.insertUTF8String(leafCount() - 1, m_paragraph.backLeafRef().utf8CharOffRef().size(), text);
@@ -882,7 +905,7 @@ void XMLTypeset::insertUTF8String(int x, int y, const char *text)
             m_paragraph.insertUTF8String(currLeaf, 0, text);
         }
         else{
-            m_paragraph.insertLeafXML(currLeaf, str_printf("<par>%s</par>", text).c_str());
+            m_paragraph.insertLeafXML(currLeaf, fnParXMLString(text));
         }
     }
 
