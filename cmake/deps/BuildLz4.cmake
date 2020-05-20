@@ -30,7 +30,7 @@ ExternalProject_Add(
     SOURCE_DIR "${MIR2X_3RD_PARTY_DIR}/lz4"
     BUILD_IN_SOURCE TRUE
 
-    CONFIGURE_COMMAND ""
+    CONFIGURE_COMMAND make uninstall DESTDIR=${MIR2X_3RD_PARTY_DIR}/lz4/install_lz4lib
     BUILD_COMMAND make
     INSTALL_COMMAND make install DESTDIR=${MIR2X_3RD_PARTY_DIR}/lz4/install_lz4lib
     UPDATE_COMMAND ""
