@@ -843,8 +843,6 @@ void XMLTypeset::insertUTF8String(int x, int y, const char *text)
         // to support <, >, / in xml string
         // don't directly pass the raw string to addParXML
         xmlDoc.RootElement()->SetText(rawString);
-
-        tinyxml2::XMLPrinter printer;
         xmlDoc.Print(&printer);
         return printer.CStr();
     };
