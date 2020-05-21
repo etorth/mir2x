@@ -109,7 +109,7 @@ int main(int argc, char *argv[])
         g_debugBoard      = new debugBoard(0, 0, 10240, 0, 15, 0, colorf::RED + 255);
         g_notifyBoard     = new NotifyBoard();  // needs fontex
 
-        g_client->MainLoop();
+        g_client->mainLoop();
 
     }catch(const std::exception &e){
         g_log->addLog(LOGTYPE_FATAL, "Caught exception: %s", e.what());

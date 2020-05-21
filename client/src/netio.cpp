@@ -546,5 +546,5 @@ void NetIO::start(const char *IPStr, const char * portStr, const std::function<v
     });
 
     // 3. we won't call asio::io_service::run() here
-    //    instead we'll explicitly call asio::io_service::poll() in Client::MainLoop()
+    //    instead we'll explicitly call asio::io_service::poll() in Client::mainLoop()
 }

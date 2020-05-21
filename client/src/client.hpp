@@ -75,7 +75,7 @@ class Client final
        ~Client();
 
     public:
-        void MainLoop();
+        void mainLoop();
 
     public:
         void Clipboard(const std::string &szInfo)

@@ -68,7 +68,7 @@ void Client::processEvent()
     }
 }
 
-void Client::MainLoop()
+void Client::mainLoop()
 {
     SwitchProcess(PROCESSID_LOGO);
     initASIO();
@@ -135,13 +135,19 @@ void Client::EventDelay(double fDelayMS)
         double fCurrentMS = SDL_GetTicks() * 1.0;
         double fDelayDone = fCurrentMS - fStartDelayMS;
 
-        if(fDelayDone >= fDelayMS){ break; }
+        if(fDelayDone >= fDelayMS){
+            break;
+        }
 
         // here we check the delay time
         // since SDL_Delay(0) may run into problem
 
-        auto nDelayMSCount = (Uint32)(std::lround((fDelayMS - fDelayDone) * 0.50));
-        if(nDelayMSCount > 0){ SDL_Delay(nDelayMSCount); }
+        const auto nDelayMSCount = (Uint32)(std::lround((fDelayMS - fDelayDone) * 0.50));
+        if(nDelayMSCount <= 0){
+            break;
+        }
+
+        SDL_Delay(nDelayMSCount);
     }
 }
 
