@@ -87,7 +87,7 @@ class XMLParagraph
         const auto &backLeafRef() const
         {
             if(m_leafList.empty()){
-                throw std::invalid_argument(str_fflprintf(": No leaf"));
+                throw fflerror("no leaf");
             }
             return m_leafList.back();
         }

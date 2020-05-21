@@ -258,7 +258,7 @@ void SDLDevice::PopColor()
         switch(m_colorStack.back().Repeat){
             case 0:
                 {
-                    throw std::runtime_error(str_fflprintf(": Last color 0x%" PRIx32 "with zero repeat", m_colorStack.back().Color));
+                    throw fflerror("last color 0x%" PRIx32 "with zero repeat", m_colorStack.back().Color);
                 }
             case 1:
                 {
@@ -298,7 +298,7 @@ void SDLDevice::PopBlendMode()
         switch(m_blendModeStack.back().Repeat){
             case 0:
                 {
-                    throw std::runtime_error(str_fflprintf(": Last blend mode with zero repeat"));
+                    throw fflerror("last blend mode with zero repeat");
                 }
             case 1:
                 {
@@ -343,7 +343,7 @@ void SDLDevice::CreateInitViewWindow()
 
     m_window = SDL_CreateWindow("MIR2X-V0.1-LOADING", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, nWindowW, nWindowH, SDL_WINDOW_BORDERLESS);
     if(!m_window){
-        throw std::runtime_error(str_fflprintf(": Failed to create SDL window handler: %s", SDL_GetError()));
+        throw fflerror("failed to create SDL window handler: %s", SDL_GetError());
     }
 
     SDL_ShowWindow(m_window);
@@ -353,7 +353,7 @@ void SDLDevice::CreateInitViewWindow()
     m_renderer = SDL_CreateRenderer(m_window, -1, 0);
     if(!m_renderer){
         SDL_DestroyWindow(m_window);
-        throw std::runtime_error(str_fflprintf(": Failed to create SDL renderer: %s", SDL_GetError()));
+        throw fflerror("failed to create SDL renderer: %s", SDL_GetError());
     }
 
     SetWindowIcon();
@@ -421,14 +421,14 @@ void SDLDevice::CreateMainWindow()
 
     m_window = SDL_CreateWindow("MIR2X-V0.1", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, nWindowW, nWindowH, nFlags);
     if(!m_window){
-        throw std::runtime_error(str_fflprintf(": Failed to create SDL window handler: %s", SDL_GetError()));
+        throw fflerror("failed to create SDL window handler: %s", SDL_GetError());
     }
 
     m_renderer = SDL_CreateRenderer(m_window, -1, 0);
 
     if(!m_renderer){
         SDL_DestroyWindow(m_window);
-        throw std::runtime_error(str_fflprintf(": Failed to create SDL renderer: %s", SDL_GetError()));
+        throw fflerror("failed to create SDL renderer: %s", SDL_GetError());
     }
 
     SetWindowIcon();
@@ -483,8 +483,9 @@ TTF_Font *SDLDevice::DefaultTTF(uint8_t nFontSize)
     }
 
     if(auto pTTF = CreateTTF(s_DefaultTTFData.Data(), s_DefaultTTFData.DataLen(), nFontSize); !pTTF){
-        throw std::runtime_error(str_fflprintf(": Can't build default ttf with point: %" PRIu8, nFontSize));
-    }else{
+        throw fflerror("can't build default ttf with point: %" PRIu8, nFontSize);
+    }
+    else{
         m_innFontMap[nFontSize] = pTTF;
     }
     return m_innFontMap[nFontSize];

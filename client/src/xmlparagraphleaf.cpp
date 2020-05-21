@@ -32,11 +32,11 @@ XMLParagraphLeaf::XMLParagraphLeaf(tinyxml2::XMLNode *pNode)
     : m_node([pNode]()
       {
           if(pNode == nullptr){
-              throw std::invalid_argument(str_fflprintf(": Invalid argument: (nullptr)"));
+              throw fflerror("invalid argument: (nullptr)");
           }
 
           if(!xmlf::checkValidLeaf(pNode)){
-              throw std::invalid_argument(str_fflprintf(": Invalid argument: not a valid XMParagraph leaf"));
+              throw fflerror("invalid argument: not a valid XMParagraph leaf");
           }
           return pNode;
       }())
@@ -107,11 +107,11 @@ int XMLParagraphLeaf::markEvent(int event)
 uint32_t XMLParagraphLeaf::peekUTF8Code(int leafOff) const
 {
     if(leafOff >= length()){
-        throw std::invalid_argument(str_fflprintf(": Provided LeafOff exceeds leaf length: %zu", length()));
+        throw fflerror("provided LeafOff exceeds leaf length: %zu", length());
     }
 
     if(Type() != LEAF_UTF8GROUP){
-        throw std::runtime_error(str_fflprintf(": Try peek utf8 code from a leaf with type: %d", Type()));
+        throw fflerror("try peek utf8 code from a leaf with type: %d", Type());
     }
 
     return utf8f::peekUTF8Code(xmlNode()->Value() + utf8CharOffRef()[leafOff]);
@@ -151,8 +151,9 @@ std::optional<uint8_t> XMLParagraphLeaf::font() const
     if(const auto pszFont = xmlf::findAttribute(xmlNode(), "font", true)){
         try{
             if(auto nFontIndex = std::atoi(pszFont); (nFontIndex < 0 || nFontIndex > 255)){
-                throw std::runtime_error(str_fflprintf(": Invalid font index, not an uint8_t: %d", nFontIndex));
-            }else{
+                throw fflerror("invalid font index, not an uint8_t: %d", nFontIndex);
+            }
+            else{
                 return (uint8_t)(nFontIndex);
             }
         }catch(const std::exception &e){
@@ -169,8 +170,9 @@ std::optional<uint8_t> XMLParagraphLeaf::fontSize() const
     if(const auto pszFontSize = xmlf::findAttribute(xmlNode(), "font_size", true)){
         try{
             if(auto nFontSize = std::atoi(pszFontSize); (nFontSize < 0 || nFontSize > 255)){
-                throw std::runtime_error(str_fflprintf(": Invalid font size, not an uint8_t: %d", nFontSize));
-            }else{
+                throw fflerror("invalid font size, not an uint8_t: %d", nFontSize);
+            }
+            else{
                 return (uint8_t)(nFontSize);
             }
         }catch(const std::exception &e){
@@ -187,13 +189,16 @@ std::optional<uint8_t> XMLParagraphLeaf::fontStyle() const
     if(const auto pszFontStyle = xmlf::findAttribute(xmlNode(), "font_style", true)){
         try{
             if(auto nFontStyle = std::atoi(pszFontStyle); (nFontStyle < 0 || nFontStyle > 255)){
-                throw std::runtime_error(str_fflprintf(": Invalid font style, not an uint8_t: %d", nFontStyle));
-            }else{
+                throw fflerror("invalid font style, not an uint8_t: %d", nFontStyle);
+            }
+            else{
                 return (uint8_t)(nFontStyle);
             }
-        }catch(const std::exception &e){
+        }
+        catch(const std::exception &e){
             g_log->addLog(LOGTYPE_DEBUG, "Caught exception: %s", e.what());
-        }catch(...){
+        }
+        catch(...){
             g_log->addLog(LOGTYPE_DEBUG, "Caught unknown exception");
         }
     }

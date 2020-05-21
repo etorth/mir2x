@@ -28,7 +28,7 @@
 #include "strf.hpp"
 #include "landtype.hpp"
 #include "sysconst.hpp"
-#include "condcheck.hpp"
+#include "fflerror.hpp"
 
 class Mir2xMapData final
 {
@@ -210,7 +210,7 @@ class Mir2xMapData final
             : Mir2xMapData()
         {
             if(!Load(pName)){
-                throw std::runtime_error(str_fflprintf(": Failed to load map: %s", pName));
+                throw fflerror("failed to load map: %s", pName);
             }
         }
 

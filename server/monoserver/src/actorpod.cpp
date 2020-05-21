@@ -36,11 +36,11 @@ ActorPod::ActorPod(uint64_t nUID,
     : m_UID([nUID]() -> uint64_t
       {
           if(!nUID){
-              throw std::runtime_error("Provide user-defined zero UID");
+              throw fflerror("provide user-defined zero UID");
           }
 
           if(nUID & 0XFFFF000000000000){
-              throw std::runtime_error(str_fflprintf("Provide user-defined UID greater than 0XFFFF000000000000: %" PRIu64, nUID));
+              throw fflerror("provide user-defined UID greater than 0XFFFF000000000000: %" PRIu64, nUID);
           }
           return nUID;
       }())
@@ -52,7 +52,7 @@ ActorPod::ActorPod(uint64_t nUID,
     , m_podMonitor()
 {
     if(!g_actorPool->Register(this)){
-        throw std::runtime_error(str_fflprintf("Register actor failed: ActorPod = %p, ActorPod::UID() = %" PRIu64, this, UID()));
+        throw fflerror("register actor failed: ActorPod = %p, ActorPod::UID() = %" PRIu64, this, UID());
     }
 }
 
@@ -116,8 +116,8 @@ void ActorPod::InnHandler(const MessagePack &rstMPK)
                     p->second.Operation(rstMPK);
                 }
             }else{
-                throw std::runtime_error(str_fflprintf("%s <- %s : (Type: %s, ID: %" PRIu32 ", Resp: %" PRIu32 "): Response handler not executable",
-                            uidf::getUIDString(UID()).c_str(), uidf::getUIDString(rstMPK.From()).c_str(), rstMPK.Name(), rstMPK.ID(), rstMPK.Respond()));
+                throw fflerror("%s <- %s : (Type: %s, ID: %" PRIu32 ", Resp: %" PRIu32 "): Response handler not executable",
+                        uidf::getUIDString(UID()).c_str(), uidf::getUIDString(rstMPK.From()).c_str(), rstMPK.Name(), rstMPK.ID(), rstMPK.Respond());
             }
             m_respondHandlerGroup.erase(p);
         }else{
@@ -136,8 +136,8 @@ void ActorPod::InnHandler(const MessagePack &rstMPK)
         }else{
             // shoud I make it fatal?
             // we may get a lot warning message here
-            throw std::runtime_error(str_fflprintf("%s <- %s : (Type: %s, ID: %" PRIu32 ", Resp: %" PRIu32 "): Message handler not executable",
-                        uidf::getUIDString(UID()).c_str(), uidf::getUIDString(rstMPK.From()).c_str(), rstMPK.Name(), rstMPK.ID(), rstMPK.Respond()));
+            throw fflerror("%s <- %s : (Type: %s, ID: %" PRIu32 ", Resp: %" PRIu32 "): Message handler not executable",
+                    uidf::getUIDString(UID()).c_str(), uidf::getUIDString(rstMPK.From()).c_str(), rstMPK.Name(), rstMPK.ID(), rstMPK.Respond());
         }
     }
 
@@ -161,31 +161,31 @@ uint32_t ActorPod::GetValidID()
         if(nNewValidID){
             return nNewValidID;
         }
-        throw std::runtime_error(str_fflprintf("Running out of message ID, exiting..."));
+        throw fflerror("running out of message ID, exiting...");
     }
 
     m_validID = (m_respondHandlerGroup.empty() ? 1 : (m_validID + 1));
     if(auto p = m_respondHandlerGroup.find(m_validID); p == m_respondHandlerGroup.end()){
         return m_validID;
     }
-    throw std::runtime_error(str_fflprintf("Running out of message ID, exiting..."));
+    throw fflerror("running out of message ID, exiting...");
 }
 
 bool ActorPod::forward(uint64_t nUID, const MessageBuf &rstMB, uint32_t nRespond)
 {
     if(!nUID){
-        throw std::invalid_argument(str_fflprintf(": %s -> NONE: (Type: %s, ID: 0, Resp: %" PRIu32 "): Try to send message to an empty address",
-                    uidf::getUIDString(UID()).c_str(), MessagePack(rstMB.Type()).Name(), nRespond));
+        throw fflerror("%s -> NONE: (Type: %s, ID: 0, Resp: %" PRIu32 "): Try to send message to an empty address",
+                uidf::getUIDString(UID()).c_str(), MessagePack(rstMB.Type()).Name(), nRespond);
     }
 
     if(nUID == UID()){
-        throw std::invalid_argument(str_fflprintf(": %s -> %s: (Type: %s, ID: 0, Resp: %" PRIu32 "): Try to send message to itself",
-                    uidf::getUIDString(UID()).c_str(), uidf::getUIDString(nUID).c_str(), MessagePack(rstMB.Type()).Name(), nRespond));
+        throw fflerror("%s -> %s: (Type: %s, ID: 0, Resp: %" PRIu32 "): Try to send message to itself",
+                uidf::getUIDString(UID()).c_str(), uidf::getUIDString(nUID).c_str(), MessagePack(rstMB.Type()).Name(), nRespond);
     }
 
     if(!rstMB){
-        throw std::invalid_argument(str_fflprintf(": %s -> %s: (Type: MPK_NONE, ID: 0, Resp: %" PRIu32 "): Try to send an empty message",
-                    uidf::getUIDString(UID()).c_str(), uidf::getUIDString(nUID).c_str(), nRespond));
+        throw fflerror("%s -> %s: (Type: MPK_NONE, ID: 0, Resp: %" PRIu32 "): Try to send an empty message",
+                uidf::getUIDString(UID()).c_str(), uidf::getUIDString(nUID).c_str(), nRespond);
     }
 
     if(g_serverArgParser->TraceActorMessage){
@@ -200,23 +200,23 @@ bool ActorPod::forward(uint64_t nUID, const MessageBuf &rstMB, uint32_t nRespond
 bool ActorPod::forward(uint64_t nUID, const MessageBuf &rstMB, uint32_t nRespond, std::function<void(const MessagePack &)> fnOPR)
 {
     if(!nUID){
-        throw std::invalid_argument(str_fflprintf(": %s -> NONE: (Type: %s, ID: 0, Resp: %" PRIu32 "): Try to send message to an empty address",
-                    uidf::getUIDString(UID()).c_str(), MessagePack(rstMB.Type()).Name(), nRespond));
+        throw fflerror("%s -> NONE: (Type: %s, ID: 0, Resp: %" PRIu32 "): Try to send message to an empty address",
+                uidf::getUIDString(UID()).c_str(), MessagePack(rstMB.Type()).Name(), nRespond);
     }
 
     if(nUID == UID()){
-        throw std::invalid_argument(str_fflprintf(": %s -> %s: (Type: %s, ID: 0, Resp: %" PRIu32 "): Try to send message to itself",
-                    uidf::getUIDString(UID()).c_str(), uidf::getUIDString(nUID).c_str(), MessagePack(rstMB.Type()).Name(), nRespond));
+        throw fflerror("%s -> %s: (Type: %s, ID: 0, Resp: %" PRIu32 "): Try to send message to itself",
+                uidf::getUIDString(UID()).c_str(), uidf::getUIDString(nUID).c_str(), MessagePack(rstMB.Type()).Name(), nRespond);
     }
 
     if(!rstMB){
-        throw std::invalid_argument(str_fflprintf(": %s -> %s: (Type: MPK_NONE, ID: 0, Resp: %" PRIu32 "): Try to send an empty message",
-                    uidf::getUIDString(UID()).c_str(), uidf::getUIDString(nUID).c_str(), nRespond));
+        throw fflerror("%s -> %s: (Type: MPK_NONE, ID: 0, Resp: %" PRIu32 "): Try to send an empty message",
+                uidf::getUIDString(UID()).c_str(), uidf::getUIDString(nUID).c_str(), nRespond);
     }
 
     if(!fnOPR){
-        throw std::invalid_argument(str_fflprintf(": %s -> %s: (Type: %s, ID: NA, Resp: %" PRIu32 "): Response handler not executable",
-                    uidf::getUIDString(UID()).c_str(), uidf::getUIDString(nUID).c_str(), MessagePack(rstMB.Type()).Name(), nRespond));
+        throw fflerror("%s -> %s: (Type: %s, ID: NA, Resp: %" PRIu32 "): Response handler not executable",
+                uidf::getUIDString(UID()).c_str(), uidf::getUIDString(nUID).c_str(), MessagePack(rstMB.Type()).Name(), nRespond);
     }
 
     auto nID = GetValidID();
@@ -230,7 +230,7 @@ bool ActorPod::forward(uint64_t nUID, const MessageBuf &rstMB, uint32_t nRespond
         if(m_respondHandlerGroup.try_emplace(nID, g_monoServer->getCurrTick() + m_expireTime, std::move(fnOPR)).second){
             return true;
         }
-        throw std::runtime_error(str_fflprintf(": Failed to register response handler for posted message: %s", MessagePack(rstMB.Type()).Name()));
+        throw fflerror("failed to register response handler for posted message: %s", MessagePack(rstMB.Type()).Name());
     }else{
         // respond the response handler here
         // if post failed, it can only be the UID is detached
@@ -271,7 +271,7 @@ bool ActorPod::Detach(const std::function<void()> &fnAtExit) const
 bool ActorPod::CheckInvalid(uint64_t nUID)
 {
     if(!nUID){
-        throw std::invalid_argument(str_fflprintf(": Invalid zero UID"));
+        throw fflerror("invalid zero UID");
     }
     return g_actorPool->CheckInvalid(nUID);
 }

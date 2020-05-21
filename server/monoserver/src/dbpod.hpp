@@ -92,7 +92,7 @@ template<size_t ConnectionCount = 4> class DBPod final
                 m_connVec[nIndex] = std::make_unique<DBEngine_MySQL>(szHostName, szUserName, szPassword, szDBName, nPort);
             }
 #else
-            throw std::runtime_error(str_fflprintf(": LaunchMySQL(...) not supported in current build"));
+            throw fflerror("launchMySQL(...) not supported in current build");
 #endif
         }
 
@@ -103,7 +103,7 @@ template<size_t ConnectionCount = 4> class DBPod final
                 m_connVec[nIndex] = std::make_unique<DBEngine_SQLite3>(szDBName);
             }
 #else
-            throw std::runtime_error(str_fflprintf(": LaunchSQLite3(...) not supported in current build"));
+            throw fflerror("launchSQLite3(...) not supported in current build");
 #endif
         }
 
@@ -150,7 +150,7 @@ template<size_t ConnectionCount = 4> class DBPod final
                 return false;
 #endif
             }
-            throw std::invalid_argument(str_fflprintf(": Invalid dbengine name: %s", szDBEngineName));
+            throw fflerror("invalid dbengine name: %s", szDBEngineName);
         }
 
     public:

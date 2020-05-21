@@ -127,14 +127,14 @@ ServerMap::ServerMap(ServiceCore *pServiceCore, uint32_t nMapID)
 
           // when constructing a servermap
           // servicecore should test if current nMapID valid
-          throw std::runtime_error(str_fflprintf("Load map failed: ID = %d, Name = %s", nMapID, DBCOM_MAPRECORD(nMapID).Name));
+          throw fflerror("load map failed: ID = %d, Name = %s", nMapID, DBCOM_MAPRECORD(nMapID).Name);
       }()))
     , m_serviceCore(pServiceCore)
     , m_cellVec2D()
     , m_luaModule(nullptr)
 {
     if(!m_mir2xMapData.Valid()){
-        throw std::runtime_error(str_fflprintf("Load map failed: ID = %d, Name = %s", nMapID, DBCOM_MAPRECORD(nMapID).Name));
+        throw fflerror("load map failed: ID = %d, Name = %s", nMapID, DBCOM_MAPRECORD(nMapID).Name);
     }
 
     m_cellVec2D.resize(W());
@@ -429,7 +429,7 @@ std::tuple<bool, int, int> ServerMap::GetValidGrid(bool bCheckCO, bool bCheckLoc
 std::tuple<bool, int, int> ServerMap::GetValidGrid(bool bCheckCO, bool bCheckLock, int nCheckCount, int nX, int nY) const
 {
     if(!In(ID(), nX, nY)){
-        throw fflerror("Invalid location: (%d, %d)", nX, nY);
+        throw fflerror("invalid location: (%d, %d)", nX, nY);
     }
 
     RotateCoord stRC(nX, nY, 0, 0, W(), H());
@@ -463,7 +463,7 @@ uint64_t ServerMap::Activate()
 void ServerMap::AddGridUID(uint64_t nUID, int nX, int nY, bool bForce)
 {
     if(!ValidC(nX, nY)){
-        throw fflerror("Invalid location: (%d, %d)", nX, nY);
+        throw fflerror("invalid location: (%d, %d)", nX, nY);
     }
 
     if(bForce || GroundValid(nX, nY)){
@@ -476,7 +476,7 @@ void ServerMap::AddGridUID(uint64_t nUID, int nX, int nY, bool bForce)
 void ServerMap::RemoveGridUID(uint64_t nUID, int nX, int nY)
 {
     if(!ValidC(nX, nY)){
-        throw fflerror("Invalid location: (%d, %d)", nX, nY);
+        throw fflerror("invalid location: (%d, %d)", nX, nY);
     }
 
     auto &rstUIDList = GetUIDListRef(nX, nY);

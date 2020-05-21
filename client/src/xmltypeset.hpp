@@ -318,7 +318,7 @@ class XMLTypeset // means XMLParagraph typeset
         const TOKEN *getToken(int nX, int nY) const
         {
             if(!tokenLocValid(nX, nY)){
-                throw std::invalid_argument(str_fflprintf(": Invalid token location: (%d, %d)", nX, nY));
+                throw fflerror("invalid token location: (%d, %d)", nX, nY);
             }
             return &(m_lineList[nY].content[nX]);
         }
@@ -332,11 +332,11 @@ class XMLTypeset // means XMLParagraph typeset
         const TOKEN *GetLineBackToken(int nLine) const
         {
             if(!lineValid(nLine)){
-                throw std::invalid_argument(str_fflprintf(": Invalid line: %d", nLine));
+                throw fflerror("invalid line: %d", nLine);
             }
 
             if(lineTokenCount(nLine) == 0){
-                throw std::runtime_error(str_fflprintf(": Invalie empty line: %d", nLine));
+                throw fflerror("invalie empty line: %d", nLine);
             }
 
             return getToken(lineTokenCount(nLine) - 1, nLine);
@@ -351,11 +351,11 @@ class XMLTypeset // means XMLParagraph typeset
         const TOKEN *GetBackToken() const
         {
             if(lineCount() == 0){
-                throw std::runtime_error(str_fflprintf(": empty board"));
+                throw fflerror("empty board");
             }
 
             if(lineTokenCount(lineCount() - 1) == 0){
-                throw std::runtime_error(str_fflprintf(": Invalie empty line: %d", lineCount() - 1));
+                throw fflerror("invalie empty line: %d", lineCount() - 1);
             }
 
             return GetLineBackToken(lineCount() - 1);

@@ -221,7 +221,7 @@ void XMLParagraph::deleteToken(int leaf, int leafOff, int tokenCount)
 std::tuple<int, int, int> XMLParagraph::prevLeafOff(int leaf, int leafOff, int) const
 {
     if(leafOff >= (int)(leafRef(leaf).utf8CharOffRef().size())){
-        throw std::invalid_argument(str_fflprintf(": The %zu-th leaf has only %zu tokens", leaf, leafRef(leaf).utf8CharOffRef().size()));
+        throw fflerror("the %zu-th leaf has only %zu tokens", leaf, leafRef(leaf).utf8CharOffRef().size());
     }
 
     return {0, 0, 0};
@@ -230,7 +230,7 @@ std::tuple<int, int, int> XMLParagraph::prevLeafOff(int leaf, int leafOff, int) 
 std::tuple<int, int, int> XMLParagraph::nextLeafOff(int leaf, int leafOff, int tokenCount) const
 {
     if(leafOff >= leafRef(leaf).length()){
-        throw std::invalid_argument(str_fflprintf(": The %zu-th leaf has only %zu tokens", leaf, leafRef(leaf).length()));
+        throw fflerror("the %zu-th leaf has only %zu tokens", leaf, leafRef(leaf).length());
     }
 
     int nCurrLeaf      = leaf;
@@ -263,7 +263,7 @@ std::tuple<int, int, int> XMLParagraph::nextLeafOff(int leaf, int leafOff, int t
                 }
             default:
                 {
-                    throw std::runtime_error(str_fflprintf(": Invalid leaf type: %d", nType));
+                    throw fflerror("invalid leaf type: %d", nType);
                 }
         }
     }
@@ -287,7 +287,7 @@ tinyxml2::XMLNode *XMLParagraph::Clone(tinyxml2::XMLDocument *pDoc, int leaf, in
 
     if(leafOff != 0){
         if(leafRef(leaf).Type() != LEAF_UTF8GROUP){
-            throw std::runtime_error(str_fflprintf(": Non-utf8 string leaf contains multiple tokens"));
+            throw fflerror("non-utf8 string leaf contains multiple tokens");
         }
 
         // make a copy here, for safe
@@ -299,7 +299,7 @@ tinyxml2::XMLNode *XMLParagraph::Clone(tinyxml2::XMLDocument *pDoc, int leaf, in
 
     if(nEndLeafOff != (leafRef(nEndLeaf).length() - 1)){
         if(leafRef(nEndLeaf).Type() != LEAF_UTF8GROUP){
-            throw std::runtime_error(str_fflprintf(": Non-utf8 string leaf contains multiple tokens"));
+            throw fflerror("non-utf8 string leaf contains multiple tokens");
         }
 
         auto pCloneLeaf = xmlf::getTreeLastLeaf(pClone);

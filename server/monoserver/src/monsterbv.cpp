@@ -232,7 +232,7 @@ bvnode_ptr Monster::BvNode_MoveForward()
                 }
             default:
                 {
-                    throw std::runtime_error(str_fflprintf(": Invalid node status: %d", nStatus));
+                    throw fflerror("invalid node status: %d", nStatus);
                 }
         }
     };

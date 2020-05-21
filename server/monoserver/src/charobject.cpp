@@ -17,6 +17,7 @@
  */
 #include <cinttypes>
 #include "uidf.hpp"
+#include "toll.hpp"
 #include "player.hpp"
 #include "dbcomid.hpp"
 #include "monster.hpp"
@@ -189,7 +190,7 @@ void CharObject::DispatchAction(const ActionNode &rstAction)
     // this would cause zombies
 
     if(!ActorPodValid()){
-        throw fflerror("Can't dispatch action: %s", rstAction.ActionName());
+        throw fflerror("can't dispatch action: %s", rstAction.ActionName());
     }
 
     AMAction stAMA;
@@ -350,7 +351,7 @@ bool CharObject::RequestMove(int nX, int nY, int nSpeed, bool bAllowHalfMove, bo
     return m_actorPod->forward(MapUID(), {MPK_TRYMOVE, stAMTM}, [this, nX, nY, nSpeed, fnOnMoveOK, fnOnMoveError](const MessagePack &rstMPK)
     {
         if(!m_moveLock){
-            throw fflerror("MoveLock released before map responds: ClassName = %s", UIDName());
+            throw fflerror("moveLock released before map responds: ClassName = %s", UIDName());
         }
         m_moveLock = false;
 
@@ -367,7 +368,7 @@ bool CharObject::RequestMove(int nX, int nY, int nSpeed, bool bAllowHalfMove, bo
                     // servermap permitted dst may not be (nX, nY)
 
                     if(!m_map->ValidC(stAMMOK.EndX, stAMMOK.EndY)){
-                        throw fflerror("Map returns invalid destination: (%" PRIu64 ", %d, %d)", m_map->UID(), stAMMOK.EndX, stAMMOK.EndY);
+                        throw fflerror("map returns invalid destination: (%" PRIu64 ", %d, %d)", m_map->UID(), stAMMOK.EndX, stAMMOK.EndY);
                     }
 
                     if(!CanMove()){
@@ -404,7 +405,7 @@ bool CharObject::RequestMove(int nX, int nY, int nSpeed, bool bAllowHalfMove, bo
 bool CharObject::RequestSpaceMove(uint32_t mapID, int nX, int nY, bool bStrictMove, std::function<void()> fnOnMoveOK, std::function<void()> fnOnMoveError)
 {
     if(!(uidf::buildMapUID(mapID) && (nX >= 0) && (nY >= 0))){
-        throw fflerror("Invalid map destination: (%lld, %d, %d)", toLLD(mapID), nX, nY);
+        throw fflerror("invalid map destination: (%lld, %d, %d)", toLLD(mapID), nX, nY);
     }
 
     if(!CanMove()){
@@ -455,7 +456,7 @@ bool CharObject::RequestSpaceMove(uint32_t mapID, int nX, int nY, bool bStrictMo
                     m_actorPod->forward(m_map->UID(), {MPK_TRYLEAVE, stAMTL}, [this, rstRMPK, fnOnMoveOK, fnOnMoveError](const MessagePack &rstLeaveRMPK)
                     {
                         if(!m_moveLock){
-                            throw std::runtime_error(str_fflprintf("MoveLock released before map responds: ClassName = %s", UIDName()));
+                            throw fflerror("moveLock released before map responds: ClassName = %s", UIDName());
                         }
                         m_moveLock = false;
 
@@ -582,11 +583,11 @@ bool CharObject::CanAttack()
 void CharObject::RetrieveLocation(uint64_t nUID, std::function<void(const COLocation &)> fnOnOK, std::function<void()> fnOnError)
 {
     if(!nUID){
-        throw std::invalid_argument(str_ffl() + ": Query location with zero UID");
+        throw fflerror("query location with zero UID");
     }
 
     if(nUID == UID()){
-        throw std::invalid_argument(str_ffl() + ": Query UID to CO itself: " + uidf::getUIDString(nUID));
+        throw fflerror("query UID to CO itself: %llu", toLLU(nUID));
     }
 
     // CO dispatches location changes automatically
@@ -658,11 +659,11 @@ void CharObject::RetrieveLocation(uint64_t nUID, std::function<void(const COLoca
 void CharObject::AddOffenderDamage(uint64_t nUID, int nDamage)
 {
     if(!nUID){
-        throw std::invalid_argument(str_fflprintf(": Offender with zero UID"));
+        throw fflerror("offender with zero UID");
     }
 
     if(nDamage < 0){
-        throw std::invalid_argument(str_fflprintf(": Invalid offender damage: %d", nDamage));
+        throw fflerror("invalid offender damage: %d", nDamage);
     }
 
     for(auto p = m_offenderList.begin(); p != m_offenderList.end(); ++p){
@@ -1120,7 +1121,7 @@ COLocation &CharObject::GetInViewCORef(uint64_t nUID)
     if(auto p = GetInViewCOPtr(nUID)){
         return *p;
     }
-    throw std::runtime_error(str_fflprintf(": Can't find UID in InViewCOList: %" PRIu64, nUID));
+    throw fflerror("can't find UID in InViewCOList: %" PRIu64, nUID);
 }
 
 COLocation *CharObject::GetInViewCOPtr(uint64_t nUID)
@@ -1146,11 +1147,11 @@ bool CharObject::IsOffender(uint64_t nUID)
 void CharObject::QueryFinalMaster(uint64_t nUID, std::function<void(uint64_t)> fnOp)
 {
     if(!nUID){
-        throw fflerror("Invalid zero UID");
+        throw fflerror("invalid zero UID");
     }
 
     if(uidf::getUIDType(nUID) != UID_MON){
-        throw std::invalid_argument(str_fflprintf(": %s can't have master", uidf::getUIDTypeString(nUID)));
+        throw fflerror("%s can't have master", uidf::getUIDTypeString(nUID));
     }
 
     auto fnQuery = [this, fnOp](uint64_t nQueryUID)
@@ -1206,7 +1207,7 @@ void CharObject::QueryFinalMaster(uint64_t nUID, std::function<void(uint64_t)> f
                             }
                         default:
                             {
-                                throw std::runtime_error(str_fflprintf(": Invalid master type: %s", uidf::getUIDTypeString(nMasterUID)));
+                                throw fflerror("invalid master type: %s", uidf::getUIDTypeString(nMasterUID));
                             }
                     }
                 }
@@ -1223,7 +1224,7 @@ void CharObject::QueryFinalMaster(uint64_t nUID, std::function<void(uint64_t)> f
                     fnQuery(nUID);
                     return;
                 }
-                throw std::invalid_argument(str_fflprintf(": %s can't query self for final master", uidf::getUIDTypeString(UID())));
+                throw fflerror("%s can't query self for final master", uidf::getUIDTypeString(UID()));
             }
     }
 }

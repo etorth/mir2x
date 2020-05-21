@@ -355,7 +355,7 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK)
     m_actorPod->forward(rstMPK.From(), {MPK_MOVEOK, stAMMOK}, rstMPK.ID(), [this, stAMTM, nMostX, nMostY](const MessagePack &rstRMPK)
     {
         if(!GetCell(nMostX, nMostY).Locked){
-            throw std::runtime_error(str_fflprintf(": Cell lock released before MOVEOK get responsed: MapUID = %" PRIu64, UID()));
+            throw fflerror("cell lock released before MOVEOK get responsed: MapUID = %" PRIu64, UID());
         }
         GetCell(nMostX, nMostY).Locked = false;
 
@@ -379,7 +379,7 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK)
                     }
 
                     if(!bFindCO){
-                        throw std::runtime_error(str_fflprintf("CO location error: (UID = %" PRIu32 ", X = %d, Y = %d)", stAMTM.UID, stAMTM.X, stAMTM.Y));
+                        throw fflerror("CO location error: (UID = %" PRIu32 ", X = %d, Y = %d)", stAMTM.UID, stAMTM.X, stAMTM.Y);
                     }
 
                     // 2. push to the new cell
@@ -477,7 +477,7 @@ void ServerMap::On_MPK_TRYMAPSWITCH(const MessagePack &rstMPK)
     m_actorPod->forward(rstMPK.From(), {MPK_MAPSWITCHOK, stAMMSOK}, rstMPK.ID(), [this, stAMTMS, stAMMSOK](const MessagePack &rstRMPK)
     {
         if(!GetCell(stAMMSOK.X, stAMMSOK.Y).Locked){
-            throw std::runtime_error(str_fflprintf("Cell lock released before MAPSWITCHOK get responsed: MapUID = %" PRIu64, UID()));
+            throw fflerror("cell lock released before MAPSWITCHOK get responsed: MapUID = %" PRIu64, UID());
         }
 
         GetCell(stAMMSOK.X, stAMMSOK.Y).Locked = false;

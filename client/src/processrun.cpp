@@ -324,8 +324,8 @@ void ProcessRun::draw()
         for(int x = x0; x <= x1; ++x){
             if(auto p = locHashTable.find({x, y}); p != locHashTable.end()){
                 for(auto creaturePtr: p->second){
-                    if(!(creaturePtr && creaturePtr->location() != std::make_tuple(x, y))){
-                        throw fflerror("invalid creature set");
+                    if(!(creaturePtr && creaturePtr->location() == std::make_tuple(x, y))){
+                        throw fflerror("invalid creature location table");
                     }
 
                     if(!creaturePtr->alive()){

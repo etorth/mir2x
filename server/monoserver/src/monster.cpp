@@ -258,7 +258,7 @@ void Monster::AttackUID(uint64_t nUID, int nDC, std::function<void()> fnOnOK, st
     RetrieveLocation(nUID, [this, nDC, nUID, fnOnOK, fnOnError](const COLocation &stCOLocation)
     {
         if(!m_attackLock){
-            throw std::runtime_error(str_ffl() + "AttackLock released before location query done");
+            throw fflerror("attackLock released before location query done");
         }
         m_attackLock = false;
 
@@ -336,7 +336,7 @@ void Monster::AttackUID(uint64_t nUID, int nDC, std::function<void()> fnOnOK, st
 void Monster::TrackUID(uint64_t nUID, int nMinCDistance, std::function<void()> fnOnOK, std::function<void()> fnOnError)
 {
     if(nMinCDistance < 1){
-        throw std::invalid_argument(str_fflprintf(": Invalid distance: %d", nMinCDistance));
+        throw fflerror("invalid distance: %d", nMinCDistance);
     }
 
     RetrieveLocation(nUID, [this, nMinCDistance, fnOnOK, fnOnError](const COLocation &rstCOLocation) -> bool
@@ -447,7 +447,7 @@ void Monster::FollowMaster(std::function<void()> fnOnOK, std::function<void()> f
 void Monster::TrackAttackUID(uint64_t nTargetUID, std::function<void()> fnOnOK, std::function<void()> fnOnError)
 {
     if(!nTargetUID){
-        throw std::invalid_argument(str_fflprintf(": Invalid zero UID"));
+        throw fflerror("invalid zero UID");
     }
 
     // TODO choose proper DC
@@ -1214,11 +1214,11 @@ void Monster::CreateBvTree()
 void Monster::QueryMaster(uint64_t nUID, std::function<void(uint64_t)> fnOp)
 {
     if(!nUID){
-        throw std::invalid_argument(str_fflprintf(": Invalid zero UID"));
+        throw fflerror("invalid zero UID");
     }
 
     if(nUID == UID()){
-        throw std::invalid_argument(str_fflprintf(": Query self for MasterUID()"));
+        throw fflerror("query self for MasterUID()");
     }
 
     m_actorPod->forward(nUID, MPK_QUERYMASTER, [this, nUID, fnOp](const MessagePack &rstRMPK)
@@ -1247,7 +1247,7 @@ void Monster::QueryMaster(uint64_t nUID, std::function<void(uint64_t)> fnOp)
 void Monster::checkFriend_AsGuard(uint64_t nUID, std::function<void(int)> fnOp)
 {
     if(!IsGuard(UID())){
-        throw std::runtime_error(str_fflprintf(": Invalid call to checkFriend_AsGuard"));
+        throw fflerror("invalid call to checkFriend_AsGuard");
     }
 
     switch(uidf::getUIDType(nUID)){
@@ -1290,7 +1290,7 @@ void Monster::checkFriend_AsGuard(uint64_t nUID, std::function<void(int)> fnOp)
             }
         default:
             {
-                throw std::invalid_argument(str_fflprintf(": Invalid UID type: %s", uidf::getUIDTypeString(nUID)));
+                throw fflerror("invalid UID type: %s", uidf::getUIDTypeString(nUID));
             }
     }
 }
@@ -1334,7 +1334,7 @@ void Monster::checkFriend_CtrlByMonster(uint64_t nUID, std::function<void(int)> 
                             }
                         default:
                             {
-                                throw std::runtime_error(str_fflprintf(": Invalid final master type: %s", uidf::getUIDTypeString(nFMasterUID)));
+                                throw fflerror("invalid final master type: %s", uidf::getUIDTypeString(nFMasterUID));
                             }
                     }
                 });
@@ -1486,7 +1486,7 @@ void Monster::checkFriend(uint64_t nUID, std::function<void(int)> fnOp)
 void Monster::QueryFriendType(uint64_t nUID, uint64_t nTargetUID, std::function<void(int)> fnOp)
 {
     if(!(nUID && nTargetUID)){
-        throw std::invalid_argument(str_fflprintf(": Invalid UID: %" PRIu64 ", %" PRIu64, nUID, nTargetUID));
+        throw fflerror("invalid UID: %" PRIu64 ", %" PRIu64, nUID, nTargetUID);
     }
 
     AMQueryFriendType stAMQFT;
@@ -1513,7 +1513,7 @@ void Monster::QueryFriendType(uint64_t nUID, uint64_t nTargetUID, std::function<
                             }
                         default:
                             {
-                                throw std::runtime_error(str_fflprintf(": Invalid friend type: %d", stAMFT.Type));
+                                throw fflerror("invalid friend type: %d", stAMFT.Type);
                             }
                     }
                 }

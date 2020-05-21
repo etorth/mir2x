@@ -118,7 +118,7 @@ static std::vector<uint8_t> readFileData(const char *szPath)
 
     std::vector<uint8_t> stDataBuf(nFileLen, 0);
     if(std::fread(stDataBuf.data(), nFileLen, 1, fp.get()) != 1){
-        throw std::runtime_error(str_fflprintf(": Failed to read file: %s", szPath));
+        throw fflerror("failed to read file: %s", szPath);
     }
     return stDataBuf;
 }

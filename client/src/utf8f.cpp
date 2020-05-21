@@ -30,12 +30,12 @@ uint32_t utf8f::peekUTF8Code(const char *szUTF8String)
     // what it returns?
 
     if(!szUTF8String){
-        throw std::invalid_argument(str_fflprintf(": Invalid argument: (nullptr)"));
+        throw fflerror("invalid argument: (nullptr)");
     }
 
     size_t nStrLen = std::strlen(szUTF8String);
     if(nStrLen == 0){
-        throw std::invalid_argument(str_fflprintf(": Invalid argument: empty string"));
+        throw fflerror("invalid argument: empty string");
     }
 
     auto pszBegin = szUTF8String;
@@ -44,11 +44,11 @@ uint32_t utf8f::peekUTF8Code(const char *szUTF8String)
     try{
         utf8::advance(pszEnd, 1, szUTF8String + nStrLen);
     }catch(...){
-        throw std::invalid_argument(str_fflprintf(": Invalid argument: failed to peek the first utf8 code"));
+        throw fflerror("invalid argument: failed to peek the first utf8 code");
     }
 
     if(pszEnd - pszBegin > 4){
-        throw std::runtime_error(str_fflprintf(": Pick a code point longer than 4 bytes: %s", szUTF8String));
+        throw fflerror("pick a code point longer than 4 bytes: %s", szUTF8String);
     }
 
     uint32_t nUTF8Key = 0;

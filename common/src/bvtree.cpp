@@ -53,7 +53,7 @@ class node_lambda: public bvtree::node
                     }
                 default:
                     {
-                        throw std::runtime_error(str_fflprintf(": Invalid node status: %d", op_status));
+                        throw fflerror("invalid node status: %d", op_status);
                     }
             }
         }
@@ -144,7 +144,7 @@ bvnode_ptr bvtree::if_check(bvnode_ptr check, bvnode_ptr operation)
                             }
                         default:
                             {
-                                throw std::invalid_argument(str_fflprintf(": Invalid node status: %d", status));
+                                throw fflerror("invalid node status: %d", status);
                             }
                     }
                 }
@@ -162,7 +162,7 @@ bvnode_ptr bvtree::if_check(bvnode_ptr check, bvnode_ptr operation)
                         }
                     default:
                         {
-                            throw std::invalid_argument(str_fflprintf(": Invalid node status: %d", op_status));
+                            throw fflerror("invalid node status: %d", op_status);
                         }
                 }
             }
@@ -229,7 +229,7 @@ bvnode_ptr bvtree::if_branch(bvnode_ptr check, bvnode_ptr on_true, bvnode_ptr on
                             }
                         default:
                             {
-                                throw std::invalid_argument(str_fflprintf(": Invalid node status: %d", status));
+                                throw fflerror("invalid node status: %d", status);
                             }
                     }
                 }
@@ -247,7 +247,7 @@ bvnode_ptr bvtree::if_branch(bvnode_ptr check, bvnode_ptr on_true, bvnode_ptr on
                         }
                     default:
                         {
-                            throw std::invalid_argument(str_fflprintf(": Invalid node status: %d", op_status));
+                            throw fflerror("invalid node status: %d", op_status);
                         }
                 }
             }
@@ -297,7 +297,7 @@ class node_loop_while: public bvtree::node
                             }
                         default:
                             {
-                                throw std::invalid_argument(str_fflprintf(": Invalid node status: %d", status));
+                                throw fflerror("invalid node status: %d", status);
                             }
                     }
                 }
@@ -315,7 +315,7 @@ class node_loop_while: public bvtree::node
                         }
                     default:
                         {
-                            throw std::invalid_argument(str_fflprintf(": Invalid node status: %d", op_status));
+                            throw fflerror("invalid node status: %d", op_status);
                         }
                 }
             }
@@ -345,7 +345,7 @@ bvnode_ptr bvtree::loop_while(bvarg_ref arg, bvnode_ptr operation)
 
         // should I return ABORT?
         // need to conclude difference between std::exception vs ABORT
-        throw std::runtime_error(str_fflprintf(": Captured argument doesn't contain valid type"));
+        throw fflerror("captured argument doesn't contain valid type");
     }), operation);
 }
 
@@ -379,7 +379,7 @@ class node_repeat_loop: public bvtree::node
             // during the repeating we won't change this number
 
             if(m_repeat < 0){
-                throw std::runtime_error(str_fflprintf(": negative repeat number: %d", m_repeat));
+                throw fflerror("negative repeat number: %d", m_repeat);
             }
             m_operation->reset();
         }
@@ -402,7 +402,7 @@ class node_repeat_loop: public bvtree::node
                         }
                     default:
                         {
-                            throw std::runtime_error(str_fflprintf(": Invalid node status: %d", status));
+                            throw fflerror("invalid node status: %d", status);
                         }
                 }
             }
@@ -422,7 +422,7 @@ bvnode_ptr bvtree::loop_repeat(bvarg_ref arg, bvnode_ptr operation)
         if(auto p = arg.as_ptr<int>()){
             return *p;
         }
-        throw std::runtime_error(str_fflprintf(": Captured argument doesn't contain valid type"));
+        throw fflerror("captured argument doesn't contain valid type");
     }, operation);
 }
 
@@ -460,7 +460,7 @@ bvnode_ptr bvtree::catch_abort(bvnode_ptr operation)
                         }
                     default:
                         {
-                            throw std::runtime_error(str_fflprintf(": Invalid node status: %d", status));
+                            throw fflerror("invalid node status: %d", status);
                         }
                 }
             }
@@ -502,7 +502,7 @@ bvnode_ptr bvtree::abort_failure(bvnode_ptr operation)
                         }
                     default:
                         {
-                            throw std::runtime_error(str_fflprintf(": Invalid node status: %d", op_status));
+                            throw fflerror("invalid node status: %d", op_status);
                         }
                 }
             }
@@ -544,7 +544,7 @@ bvnode_ptr bvtree::always_success(bvnode_ptr operation)
                         }
                     default:
                         {
-                            throw std::runtime_error(str_fflprintf(": Invalid node status: %d", status));
+                            throw fflerror("invalid node status: %d", status);
                         }
                 }
             }
@@ -589,7 +589,7 @@ bvnode_ptr bvtree::op_not(bvnode_ptr operation)
                         }
                     default:
                         {
-                            throw std::runtime_error(str_fflprintf(": Invalid node status: %d", status));
+                            throw fflerror("invalid node status: %d", status);
                         }
                 }
             }
@@ -663,7 +663,7 @@ bvnode_ptr bvtree::op_delay(uint64_t ms, bvnode_ptr operation)
                         }
                     default:
                         {
-                            throw std::runtime_error(str_fflprintf(": Invalid node status: %d", op_status));
+                            throw fflerror("invalid node status: %d", op_status);
                         }
                 }
             }
@@ -724,7 +724,7 @@ bvnode_ptr bvtree::op_timeout(uint64_t ms, bvnode_ptr operation)
                         }
                     default:
                         {
-                            throw std::runtime_error(str_fflprintf(": Invalid node status: %d", op_status));
+                            throw fflerror("invalid node status: %d", op_status);
                         }
                 }
             }
@@ -790,7 +790,7 @@ bvnode_ptr bvtree::op_slowdown(uint64_t ms, bvnode_ptr operation)
                             }
                         default:
                             {
-                                throw std::runtime_error(str_fflprintf(": Invalid node status: %d", op_status));
+                                throw fflerror("invalid node status: %d", op_status);
                             }
                     }
                 }

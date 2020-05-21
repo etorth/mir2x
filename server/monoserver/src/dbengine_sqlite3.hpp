@@ -21,6 +21,7 @@
 #include <stdexcept>
 #include <sqlite3.h>
 #include "strf.hpp"
+#include "fflerror.hpp"
 
 class DBRecord_SQLite3;
 class DBEngine_SQLite3: public DBConnection
@@ -35,7 +36,7 @@ class DBEngine_SQLite3: public DBConnection
             if(auto nRC = sqlite3_open_v2(szDBName, &m_SQLite3, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, nullptr); nRC != SQLITE_OK){
                 std::string szErrorMsg = sqlite3_errmsg(m_SQLite3);
                 sqlite3_close_v2(m_SQLite3);
-                throw std::runtime_error(str_fflprintf(": sqlite3_open_v2(\"%s\") failed with ec = %d, errmsg: %s", szDBName, nRC, szErrorMsg.c_str()));
+                throw fflerror("sqlite3_open_v2(\"%s\") failed with ec = %d, errmsg: %s", szDBName, nRC, szErrorMsg.c_str());
             }
         }
 
@@ -80,7 +81,7 @@ class DBRecord_SQLite3: public DBRecord
             }
 
             if(int nRC = sqlite3_prepare_v2(m_DBEngine->m_SQLite3, szQueryCmd.c_str(), szQueryCmd.length(), &m_statement, nullptr); nRC != SQLITE_OK){
-                throw std::runtime_error(str_fflprintf(": sqlite3_prepare_v2(\"%s\") failed, errcode = %d, errmsg: %s", szQueryCmd.c_str(), nRC, sqlite3_errmsg(m_DBEngine->m_SQLite3)));
+                throw fflerror("sqlite3_prepare_v2(\"%s\") failed, errcode = %d, errmsg: %s", szQueryCmd.c_str(), nRC, sqlite3_errmsg(m_DBEngine->m_SQLite3));
             }
         }
 
@@ -92,7 +93,7 @@ class DBRecord_SQLite3: public DBRecord
             }
 
             if(auto nRC = sqlite3_finalize(m_statement); nRC != SQLITE_OK){
-                throw std::runtime_error(str_fflprintf("sqlite3_finalize(%p) failed with errcode: %d", m_statement, nRC));
+                throw fflerror("sqlite3_finalize(%p) failed with errcode: %d", m_statement, nRC);
             }
             m_statement = nullptr;
         }
@@ -103,7 +104,7 @@ class DBRecord_SQLite3: public DBRecord
             , m_statement(nullptr)
         {
             if(!m_DBEngine){
-                throw std::runtime_error(str_fflprintf(": DBEngine_SQLite3(%p) failed", pConnection));
+                throw fflerror("DBEngine_SQLite3(%p) failed", pConnection);
             }
         }
 
@@ -123,15 +124,15 @@ class DBRecord_SQLite3: public DBRecord
         DBRecord::DBDataType GetData(const char *szColumnName) override
         {
             if(!szColumnName){
-                throw std::invalid_argument(str_fflprintf(": Invalid argument: (nullptr)"));
+                throw fflerror("invalid argument: (nullptr)");
             }
 
             if(std::strlen(szColumnName) == 0){
-                throw std::invalid_argument(str_fflprintf(": Invalid argument: \"\""));
+                throw fflerror("invalid argument: \"\"");
             }
 
             if(!m_statement){
-                throw std::runtime_error(str_fflprintf(": No valid statement"));
+                throw fflerror("no valid statement");
             }
 
             int nDataCount   = sqlite3_data_count(m_statement);
@@ -162,12 +163,12 @@ class DBRecord_SQLite3: public DBRecord
                             }
                         default:
                             {
-                                throw std::runtime_error(str_fflprintf(": Data type %d not supported, should be int64_t, double, string", nType));
+                                throw fflerror("data type %d not supported, should be int64_t, double, string", nType);
                             }
                     }
                 }
             }
-            throw std::invalid_argument(str_fflprintf(": Can't find given column name: %s", szColumnName));
+            throw fflerror("can't find given column name: %s", szColumnName);
         }
 
     public:
@@ -182,7 +183,7 @@ class DBRecord_SQLite3: public DBRecord
                 va_end(ap);
             }catch(...){
                 va_end(ap);
-                throw std::runtime_error(str_fflprintf(": Call str_vprintf(%s) failed", szQueryCmd));
+                throw fflerror("call str_vprintf(%s) failed", szQueryCmd);
             }
 
             Prepare(szQueryFullCmd);
@@ -193,7 +194,7 @@ class DBRecord_SQLite3: public DBRecord
         bool Fetch()
         {
             if(!m_statement){
-                throw std::runtime_error(str_fflprintf(": Fetch() on empty statement"));
+                throw fflerror("fetch() on empty statement");
             }
 
             switch(auto nRC = sqlite3_step(m_statement)){
@@ -207,7 +208,7 @@ class DBRecord_SQLite3: public DBRecord
                     }
                 default:
                     {
-                        throw std::runtime_error(str_fflprintf(": sqlite3_step(%s) failed: %d", nRC));
+                        throw fflerror("sqlite3_step(%s) failed: %d", nRC);
                     }
             }
         }

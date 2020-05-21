@@ -23,6 +23,7 @@
 #include <stdexcept>
 #include <functional>
 #include "strf.hpp"
+#include "fflerror.hpp"
 
 // too error-prone
 // don't allow implicit conversion
@@ -63,7 +64,7 @@ class bvarg_ref
             : m_ptr(p)
         {
             if(!m_ptr){
-                throw std::invalid_argument(str_fflprintf(": bvarg_ref bind to empty instance"));
+                throw fflerror("bvarg_ref bind to empty instance");
             }
         }
 
@@ -194,7 +195,7 @@ inline const char *bvres_cstr(bvres_t status)
             }
         default:
             {
-                throw std::runtime_error(str_fflprintf(": Invalid node status: %d", status));
+                throw fflerror("invalid node status: %d", status);
             }
     }
 }
@@ -243,7 +244,7 @@ namespace bvtree
                 bvres_t update() override
                 {
                     if(m_nodes.empty()){
-                        throw std::runtime_error(str_fflprintf(": No valid node"));
+                        throw fflerror("no valid node");
                     }
 
                     if(m_currnode < 0 || m_currnode >= (int)(m_nodes.size())){
@@ -260,7 +261,7 @@ namespace bvtree
                             }
                         default:
                             {
-                                throw std::runtime_error(str_fflprintf(": Invalid node status: %d", status));
+                                throw fflerror("invalid node status: %d", status);
                             }
                     }
                 }
@@ -297,7 +298,7 @@ namespace bvtree
                 bvres_t update() override
                 {
                     if(m_nodes.empty()){
-                        throw std::runtime_error(str_fflprintf(": No valid node"));
+                        throw fflerror("no valid node");
                     }
 
                     while(m_currnode < (int)(m_nodes.size())){
@@ -315,7 +316,7 @@ namespace bvtree
                                 }
                             default:
                                 {
-                                    throw std::runtime_error(str_fflprintf(": Invalid node status: %d", status));
+                                    throw fflerror("invalid node status: %d", status);
                                 }
                         }
                     }
@@ -354,7 +355,7 @@ namespace bvtree
                 bvres_t update() override
                 {
                     if(m_nodes.empty()){
-                        throw std::runtime_error(str_fflprintf(": No valid node"));
+                        throw fflerror("no valid node");
                     }
 
                     while(m_currnode < (int)(m_nodes.size())){
@@ -372,7 +373,7 @@ namespace bvtree
                                 }
                             default:
                                 {
-                                    throw std::runtime_error(str_fflprintf(": Invalid node status: %d", status));
+                                    throw fflerror("invalid node status: %d", status);
                                 }
                         }
                     }
@@ -414,7 +415,7 @@ namespace bvtree
                 bvres_t update() override
                 {
                     if(m_nodes.empty() || m_nodes_done.empty()){
-                        throw std::runtime_error(str_fflprintf(": No valid node"));
+                        throw fflerror("no valid node");
                     }
 
                     bool has_pending = false;
@@ -440,7 +441,7 @@ namespace bvtree
                                 }
                             default:
                                 {
-                                    throw std::runtime_error(str_fflprintf(": Invalid node status: %d", op_status));
+                                    throw fflerror("invalid node status: %d", op_status);
                                 }
                         }
                     }
