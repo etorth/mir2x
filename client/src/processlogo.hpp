@@ -46,10 +46,10 @@ class ProcessLogo: public Process
         }
 
     public:
-        void Draw();
-        void Update(double);
-        void processEvent(const SDL_Event &);
+        void draw() override;
+        void update(double) override;
+        void processEvent(const SDL_Event &) override;
 
     private:
-        double ColorRatio();
+        double colorRatio();
 };

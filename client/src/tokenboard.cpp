@@ -807,7 +807,7 @@ void TokenBoard::drawEx(
 
                             g_SDLDevice->PushColor(rstBackColor.r, rstBackColor.g, rstBackColor.b, rstBackColor.a);
                             g_SDLDevice->PushBlendMode(SDL_BLENDMODE_BLEND);
-                            g_SDLDevice->FillRectangle(nX + nDstDX, nY + nDstDY, nW, nH);
+                            g_SDLDevice->fillRectangle(nX + nDstDX, nY + nDstDY, nW, nH);
                             g_SDLDevice->PopBlendMode();
                             g_SDLDevice->PopColor();
 

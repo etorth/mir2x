@@ -35,10 +35,10 @@ extern SDLDevice *g_SDLDevice;
 
 ProcessLogin::ProcessLogin()
 	: Process()
-	, m_button1(150, 482, 0X00000005, []{}, [this](){ DoCreateAccount(); })
+	, m_button1(150, 482, 0X00000005, []{}, [this](){ doCreateAccount(); })
 	, m_button2(352, 482, 0X00000008, []{}, [    ](){                    })
 	, m_button3(554, 482, 0X0000000B, []{}, [    ](){ std::exit(0);      })
-    , m_button4(600, 536, 0X0000000E, []{}, [this](){ DoLogin();         })
+    , m_button4(600, 536, 0X0000000E, []{}, [this](){ doLogin();         })
 	, m_idBox
       {
           159,
@@ -61,7 +61,7 @@ ProcessLogin::ProcessLogin()
           },
           [this]()
           {
-              DoLogin();
+              doLogin();
           }
       }
 	, m_passwordBox
@@ -87,7 +87,7 @@ ProcessLogin::ProcessLogin()
           },
           [this]()
           {
-              DoLogin();
+              doLogin();
           },
       }
 
@@ -105,15 +105,15 @@ ProcessLogin::ProcessLogin()
     m_buildSignature.setText(u8"编译版本号:%s", getBuildSignature());
 }
 
-void ProcessLogin::Update(double fMS)
+void ProcessLogin::update(double fUpdateTime)
 {
-    m_idBox.update(fMS);
-    m_passwordBox.update(fMS);
+    m_idBox.update(fUpdateTime);
+    m_passwordBox.update(fUpdateTime);
 }
 
-void ProcessLogin::Draw()
+void ProcessLogin::draw()
 {
-    g_SDLDevice->ClearScreen();
+    g_SDLDevice->clearScreen();
 
     g_SDLDevice->DrawTexture(g_progUseDB->Retrieve(0X00000003),   0,  75);
     g_SDLDevice->DrawTexture(g_progUseDB->Retrieve(0X00000004),   0, 465);
@@ -128,7 +128,7 @@ void ProcessLogin::Draw()
     m_passwordBox.draw();
 
     m_buildSignature.draw();
-    g_SDLDevice->Present();
+    g_SDLDevice->present();
 }
 
 void ProcessLogin::processEvent(const SDL_Event &event)
@@ -177,7 +177,7 @@ void ProcessLogin::processEvent(const SDL_Event &event)
     }
 }
 
-void ProcessLogin::DoLogin()
+void ProcessLogin::doLogin()
 {
     if(!(m_idBox.getRawString().empty()) && !(m_passwordBox.getRawString().empty())){
         g_log->addLog(LOGTYPE_INFO, "login account: (%s:%s)", m_idBox.getRawString().c_str(), m_passwordBox.getRawString().c_str());
@@ -200,7 +200,7 @@ void ProcessLogin::DoLogin()
     }
 }
 
-void ProcessLogin::DoCreateAccount()
+void ProcessLogin::doCreateAccount()
 {
     g_client->RequestProcess(PROCESSID_NEW);
 }

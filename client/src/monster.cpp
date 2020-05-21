@@ -79,7 +79,7 @@ Monster *Monster::createMonster(uint64_t uid, ProcessRun *proc, const ActionNode
 Monster::Monster(uint64_t uid, ProcessRun *proc)
     : CreatureMovable(uid, proc)
 {
-    if(g_clientArgParser->enableDrawUID){
+    if(g_clientArgParser->drawUID){
         m_nameBoard.setText("%s(%llu)", DBCOM_MONSTERRECORD(monsterID()).Name, toLLU(UID()));
     }
     else{

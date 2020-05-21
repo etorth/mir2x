@@ -30,7 +30,7 @@ void TextButton::drawEx(int nDstX, int nDstY, int nSrcX, int nSrcY, int nW, int 
 {
     extern SDLDevice *g_SDLDevice;
     g_SDLDevice->PushColor(colorf::RGBA2Color(colorf::ARGB2RGBA(m_color[State()][1])));
-    g_SDLDevice->FillRectangle(nDstX, nDstY, nW, nH);
+    g_SDLDevice->fillRectangle(nDstX, nDstY, nW, nH);
     g_SDLDevice->PopColor();
 
     g_SDLDevice->PushColor(colorf::RGBA2Color(colorf::ARGB2RGBA(m_frameLineColor[State()])));

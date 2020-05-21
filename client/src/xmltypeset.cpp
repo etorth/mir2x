@@ -949,7 +949,7 @@ void XMLTypeset::drawEx(int nDstX, int nDstY, int nSrcX, int nSrcY, int nSrcW, i
             }
 
             SDLDevice::EnableDrawBlendMode stEnableDrawBlendMode(SDL_BLENDMODE_BLEND);
-            g_SDLDevice->FillRectangle(nBGColor, nX + nDstX, nY + nDstY, nW, nH);
+            g_SDLDevice->fillRectangle(nBGColor, nX + nDstX, nY + nDstY, nW, nH);
 
             switch(stLeaf.Type()){
                 case LEAF_UTF8GROUP:

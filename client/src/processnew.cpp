@@ -145,16 +145,16 @@ ProcessNew::ProcessNew()
 	, m_TBExit  (352, 482, 200, 40, "EXIT",   0, 16, 0, []{}, [this](){ DoExit();        })
 {}
 
-void ProcessNew::Update(double fMS)
+void ProcessNew::update(double fUpdateTime)
 {
-    m_boxID        .update(fMS);
-    m_boxPwd       .update(fMS);
-    m_boxPwdConfirm.update(fMS);
+    m_boxID        .update(fUpdateTime);
+    m_boxPwd       .update(fUpdateTime);
+    m_boxPwdConfirm.update(fUpdateTime);
 }
 
-void ProcessNew::Draw()
+void ProcessNew::draw()
 {
-    g_SDLDevice->ClearScreen();
+    g_SDLDevice->clearScreen();
 
     g_SDLDevice->DrawTexture(g_progUseDB->Retrieve(0X00000003), 0, 75);
     g_SDLDevice->DrawTexture(g_progUseDB->Retrieve(0X00000004), 0, 75, 0, 0, 800, 450);
@@ -185,7 +185,7 @@ void ProcessNew::Draw()
     fnDrawInput(300, 400, 10, m_LBPwdConfirm, m_boxPwdConfirm, m_LBCheckPwdConfirm);
     g_SDLDevice->PopColor();
 
-    g_SDLDevice->Present();
+    g_SDLDevice->present();
 }
 
 void ProcessNew::processEvent(const SDL_Event &event)

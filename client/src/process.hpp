@@ -44,7 +44,7 @@ class Process
         virtual int ID() const = 0;
 
     public:
-        virtual void Draw() = 0;
-        virtual void Update(double) = 0;
+        virtual void draw() = 0;
+        virtual void update(double) = 0;
         virtual void processEvent(const SDL_Event &) = 0;
 };

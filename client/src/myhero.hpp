@@ -107,5 +107,5 @@ class MyHero: public Hero
         void ReportAction(const ActionNode &);
 
     public:
-        void PullGold();
+        void pullGold();
 };

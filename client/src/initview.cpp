@@ -333,7 +333,7 @@ void InitView::Load()
 
 void InitView::Draw()
 {
-    g_SDLDevice->ClearScreen();
+    g_SDLDevice->clearScreen();
     g_SDLDevice->DrawTexture(m_textureV[0], 0, 0);
 
     int nX = m_buttonX;
@@ -408,5 +408,5 @@ void InitView::Draw()
             }
         }
     }
-    g_SDLDevice->Present();
+    g_SDLDevice->present();
 }

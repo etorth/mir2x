@@ -454,7 +454,7 @@ void ControlBoard::drawMiddleDefault()
     // draw black underlay for the logBoard and actor face
     {
         SDLDevice::EnableDrawColor enableColor(colorf::RGBA(0X00, 0X00, 0X00, 0XFF));
-        g_SDLDevice->FillRectangle(178 + 2, nY0 + 14, nW0 - (178 + 2) - (166 + 2), 120);
+        g_SDLDevice->fillRectangle(178 + 2, nY0 + 14, nW0 - (178 + 2) - (166 + 2), 120);
     }
 
     m_cmdLine.draw();
@@ -541,7 +541,7 @@ void ControlBoard::drawMiddleExpand()
     {
         SDLDevice::EnableDrawBlendMode enableDrawBlendMode(SDL_BLENDMODE_BLEND);
         SDLDevice::EnableDrawColor enableColor(colorf::RGBA(0X00, 0X00, 0X00, 0XF0));
-        g_SDLDevice->FillRectangle(178 + 2, startY + 2, nW0 - (178 + 2) - (166 + 2), 47 + m_stretchH);
+        g_SDLDevice->fillRectangle(178 + 2, startY + 2, nW0 - (178 + 2) - (166 + 2), 47 + m_stretchH);
     }
 
     if(auto pTexture = g_progUseDB->Retrieve(0X00000027)){

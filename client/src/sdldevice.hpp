@@ -92,7 +92,7 @@ class SDLDevice final
        void DrawTexture(SDL_Texture *, int, int, int, int, int, int, int, int);
 
     public:
-       void DrawTextureEx(SDL_Texture *,  
+       void drawTextureEx(SDL_Texture *,  
                int,     // x on src
                int,     // y on src
                int,     // w on src
@@ -106,7 +106,7 @@ class SDLDevice final
                int);    // rotate in degree on dst
 
     public:
-       void Present()
+       void present()
        {
            SDL_RenderPresent(m_renderer);
        }
@@ -123,7 +123,7 @@ class SDLDevice final
            SDL_SetWindowGammaRamp(m_window, pRawRamp, pRawRamp, pRawRamp);
        }
 
-       void ClearScreen()
+       void clearScreen()
        {
            SetColor(0, 0, 0, 0);
            SDL_RenderClear(m_renderer);
@@ -139,7 +139,7 @@ class SDLDevice final
            SDL_SetRenderDrawColor(m_renderer, nR, nG, nB, nA);
        }
 
-       void FillRectangle(int nX, int nY, int nW, int nH)
+       void fillRectangle(int nX, int nY, int nW, int nH)
        {
            SDL_Rect stRect;
            stRect.x = nX;
@@ -150,7 +150,7 @@ class SDLDevice final
            SDL_RenderFillRect(m_renderer, &stRect);
        }
 
-       void FillRectangle(uint32_t nRGBA, int nX, int nY, int nW, int nH)
+       void fillRectangle(uint32_t nRGBA, int nX, int nY, int nW, int nH)
        {
            EnableDrawColor stEnableColor(nRGBA);
 
@@ -185,11 +185,11 @@ class SDLDevice final
                if(nFrameLineWidth == 1){
                    DrawRectangle(nX, nY, nW, nH);
                }else{
-                   FillRectangle(nX, nY,                            nW, nFrameLineWidth);
-                   FillRectangle(nX, nY + nW - 2 * nFrameLineWidth, nW, nFrameLineWidth);
+                   fillRectangle(nX, nY,                            nW, nFrameLineWidth);
+                   fillRectangle(nX, nY + nW - 2 * nFrameLineWidth, nW, nFrameLineWidth);
 
-                   FillRectangle(nX,                            nY + nFrameLineWidth, nFrameLineWidth, nH - 2 * nFrameLineWidth);
-                   FillRectangle(nX + nW - 2 * nFrameLineWidth, nY + nFrameLineWidth, nFrameLineWidth, nH - 2 * nFrameLineWidth);
+                   fillRectangle(nX,                            nY + nFrameLineWidth, nFrameLineWidth, nH - 2 * nFrameLineWidth);
+                   fillRectangle(nX + nW - 2 * nFrameLineWidth, nY + nFrameLineWidth, nFrameLineWidth, nH - 2 * nFrameLineWidth);
                }
            }
        }
@@ -287,7 +287,7 @@ class SDLDevice final
            int width  = 0;
            int height = 0;
 
-           if(!SDL_QueryTexture(texture, 0, 0, &width, &height)){
+           if(!SDL_QueryTexture(const_cast<SDL_Texture *>(texture), 0, 0, &width, &height)){
                return {width, height};
            }
 

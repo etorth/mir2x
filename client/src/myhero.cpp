@@ -667,12 +667,11 @@ void MyHero::PickUp()
 {
     if(StayIdle()){
 
-        int nX = currMotion().x;
-        int nY = currMotion().y;
+        const int nX = currMotion().x;
+        const int nY = currMotion().y;
 
-        auto &rstGroundItemList = m_processRun->GetGroundItemListRef(nX, nY);
-        if(!rstGroundItemList.empty()){
-            ReportAction(ActionPickUp(nX, nY, rstGroundItemList.back().ID()));
+        if(const auto &itemList = m_processRun->getGroundItemList(nX, nY); !itemList.empty()){
+            ReportAction(ActionPickUp(nX, nY, itemList.back().ID()));
         }
     }
 }
@@ -707,7 +706,7 @@ void MyHero::ReportAction(const ActionNode &rstAction)
     g_client->send(CM_ACTION, stCMA);
 }
 
-void MyHero::PullGold()
+void MyHero::pullGold()
 {
     g_client->send(CM_QUERYGOLD);
 }

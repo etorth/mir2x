@@ -3,7 +3,7 @@
  *
  *       Filename: processlogo.cpp
  *        Created: 08/13/2015 12:15:38
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -47,7 +47,7 @@ void ProcessLogo::processEvent(const SDL_Event &event)
     }
 }
 
-void ProcessLogo::Update(double fDTime)
+void ProcessLogo::update(double fDTime)
 {
     m_totalTime += fDTime;
     if(m_totalTime >= m_fullTime){
@@ -55,12 +55,12 @@ void ProcessLogo::Update(double fDTime)
     }
 }
 
-void ProcessLogo::Draw()
+void ProcessLogo::draw()
 {
-    g_SDLDevice->ClearScreen();
+    g_SDLDevice->clearScreen();
 
     if(auto pTexture = g_progUseDB->Retrieve(0X00000000)){
-        auto bColor = (Uint8)(std::lround(255 * ColorRatio()));
+        auto bColor = (Uint8)(std::lround(255 * colorRatio()));
         SDL_SetTextureColorMod(pTexture, bColor, bColor, bColor);
 
         const auto nWindowW = g_SDLDevice->WindowW(false);
@@ -68,17 +68,21 @@ void ProcessLogo::Draw()
         g_SDLDevice->DrawTexture(pTexture, 0, 0, 0, 0, nWindowW, nWindowH);
     }
 
-    g_SDLDevice->Present();
+    g_SDLDevice->present();
 }
 
-double ProcessLogo::ColorRatio()
+double ProcessLogo::colorRatio()
 {
-    double fRatio = m_totalTime / m_fullTime;
+    const double fRatio = m_totalTime / m_fullTime;
     if(fRatio < m_timeR1){
         return fRatio / m_timeR1;
-    }else if(fRatio < m_timeR1 + m_timeR2){
+    }
+
+    else if(fRatio < m_timeR1 + m_timeR2){
         return 1.0;
-    }else{
+    }
+
+    else{
         return 1.0 - (fRatio - m_timeR1 - m_timeR2) / (1.0 - m_timeR1 - m_timeR2);
     }
 }

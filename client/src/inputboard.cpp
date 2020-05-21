@@ -383,7 +383,7 @@ void InputBoard::Draw()
 
     if(((int)m_MS % 1000) < 500 && focus()){
         g_SDLDevice->PushColor(m_cursorColor.r, m_cursorColor.g, m_cursorColor.b, m_cursorColor.a);
-        g_SDLDevice->FillRectangle(x() + m_tokenBoard.x() + nX, y() + m_tokenBoard.y() + nY, nW, nH);
+        g_SDLDevice->fillRectangle(x() + m_tokenBoard.x() + nX, y() + m_tokenBoard.y() + nY, nW, nH);
         g_SDLDevice->PopColor();
     }
 

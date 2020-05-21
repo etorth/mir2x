@@ -82,7 +82,7 @@ void Client::MainLoop()
     auto fLastLoop   = SDL_GetTicks() * 1.0;
 
     while(true){
-        if(g_clientArgParser->EnableClientMonitor){
+        if(g_clientArgParser->enableClientMonitor){
             PrintMonitor();
         }
 
@@ -100,12 +100,12 @@ void Client::MainLoop()
             if(auto fCurrUpdate = 1.0 * SDL_GetTicks(); fCurrUpdate - fLastUpdate > fDelayUpdate){
                 auto fPastUpdate = fCurrUpdate - fLastUpdate;
                 fLastUpdate = fCurrUpdate;
-                Update(fPastUpdate);
+                update(fPastUpdate);
             }
 
             if(auto fCurrDraw = 1.0 * SDL_GetTicks(); fCurrDraw - fLastDraw > fDelayDraw){
                 fLastDraw = fCurrDraw;
-                Draw();
+                draw();
             }
 
             auto fCurrLoop = 1.0 * SDL_GetTicks();

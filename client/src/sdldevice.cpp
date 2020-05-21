@@ -438,7 +438,7 @@ void SDLDevice::CreateMainWindow()
     SDL_StartTextInput();
 }
 
-void SDLDevice::DrawTextureEx(SDL_Texture *pTexture,
+void SDLDevice::drawTextureEx(SDL_Texture *pTexture,
         int nSrcX, int nSrcY, int nSrcW, int nSrcH,
         int nDstX, int nDstY, int nDstW, int nDstH,
         int nCenterDstX,

@@ -36,6 +36,7 @@
 #include "notifyboard.hpp"
 #include "fflerror.hpp"
 #include "toll.hpp"
+#include "lochashtable.hpp"
 
 extern Log *g_log;
 extern Client *g_client;
@@ -50,10 +51,7 @@ extern ClientArgParser *g_clientArgParser;
 ProcessRun::ProcessRun()
     : Process()
     , m_mapID(0)
-    , m_mir2xMapData()
-    , m_groundItemList()
     , m_myHeroUID(0)
-    , m_focusUIDTable()
     , m_viewX(0)
     , m_viewY(0)
     , m_mapScrolling(false)
@@ -66,8 +64,6 @@ ProcessRun::ProcessRun()
           this,
       }
     , m_inventoryBoard(0, 0, this)
-    , m_creatureList()
-    , m_UIDPending()
     , m_fpsBoard    (0, 0, "", 0, 15, 0, colorf::RGBA(0XFF, 0XFF, 0X00, 0X00))
     , m_mousePixlLoc(0, 0, "", 0, 15, 0, colorf::RGBA(0XFF, 0X00, 0X00, 0X00))
     , m_mouseGridLoc(0, 0, "", 0, 15, 0, colorf::RGBA(0XFF, 0X00, 0X00, 0X00))
@@ -113,7 +109,7 @@ void ProcessRun::scrollMap()
     }
 }
 
-void ProcessRun::Update(double fUpdateTime)
+void ProcessRun::update(double fUpdateTime)
 {
     constexpr uint32_t delayTicks[]
     {
@@ -192,6 +188,11 @@ void ProcessRun::Update(double fUpdateTime)
     if(true){
         centerMyHero();
     }
+
+    m_starRatio += 0.05;
+    if(m_starRatio >= 2.50){
+        m_starRatio = 0.00;
+    }
 }
 
 uint64_t ProcessRun::FocusUID(int nFocusType)
@@ -207,11 +208,11 @@ uint64_t ProcessRun::FocusUID(int nFocusType)
                     // use the cached mouse focus first
                     // if can't get it then scan the whole creature list
 
-                    auto fnCheckFocus = [this](uint64_t nUID, int nX, int nY) -> bool
+                    const auto fnCheckFocus = [this](uint64_t uid, int px, int py) -> bool
                     {
-                        if(auto pCreature = RetrieveUID(nUID)){
-                            if(nUID != m_myHeroUID){
-                                if(pCreature->canFocus(nX, nY)){
+                        if(auto creaturePtr = RetrieveUID(uid)){
+                            if(uid != getMyHeroUID()){
+                                if(creaturePtr->canFocus(px, py)){
                                     return true;
                                 }
                             }
@@ -219,28 +220,27 @@ uint64_t ProcessRun::FocusUID(int nFocusType)
                         return false;
                     };
                     
+                    int mousePX = -1;
+                    int mousePY = -1;
+                    SDL_GetMouseState(&mousePX, &mousePY);
 
-                    int nPointX = -1;
-                    int nPointY = -1;
-                    SDL_GetMouseState(&nPointX, &nPointY);
+                    mousePX += m_viewX;
+                    mousePY += m_viewY;
 
-                    int nCheckPointX = nPointX + m_viewX;
-                    int nCheckPointY = nPointY + m_viewY;
-
-                    if(fnCheckFocus(m_focusUIDTable[FOCUS_MOUSE], nCheckPointX, nCheckPointY)){
+                    if(fnCheckFocus(m_focusUIDTable[FOCUS_MOUSE], mousePX, mousePY)){
                         return m_focusUIDTable[FOCUS_MOUSE];
                     }
 
-                    ClientCreature *pFocus = nullptr;
+                    ClientCreature *focusCreaturePtr = nullptr;
                     for(auto p = m_creatureList.begin();;){
                         auto pnext = std::next(p);
-                        if(fnCheckFocus(p->second->UID(), nCheckPointX, nCheckPointY)){
+                        if(fnCheckFocus(p->second->UID(), mousePX, mousePY)){
                             if(false
-                                    || !pFocus
-                                    ||  pFocus->y() < p->second->y()){
+                                    || !focusCreaturePtr
+                                    ||  focusCreaturePtr->y() < p->second->y()){
                                 // 1. currently we have no candidate yet
                                 // 2. we have candidate but it's not at more front location
-                                pFocus = p->second.get();
+                                focusCreaturePtr = p->second.get();
                             }
                         }
 
@@ -250,7 +250,7 @@ uint64_t ProcessRun::FocusUID(int nFocusType)
                         p = pnext;
                     }
 
-                    m_focusUIDTable[FOCUS_MOUSE] = pFocus ? pFocus->UID() : 0;
+                    m_focusUIDTable[FOCUS_MOUSE] = focusCreaturePtr ? focusCreaturePtr->UID() : 0;
                     return m_focusUIDTable[FOCUS_MOUSE];
                 }
             default:
@@ -263,305 +263,110 @@ uint64_t ProcessRun::FocusUID(int nFocusType)
     return 0;
 }
 
-void ProcessRun::Draw()
+void ProcessRun::draw()
 {
-    g_SDLDevice->ClearScreen();
+    g_SDLDevice->clearScreen();
 
-    // 1. draw map + object
+    const int x0 = -SYS_OBJMAXW + (m_viewX - 2 * SYS_MAPGRIDXP) / SYS_MAPGRIDXP;
+    const int y0 = -SYS_OBJMAXH + (m_viewY - 2 * SYS_MAPGRIDYP) / SYS_MAPGRIDYP;
+    const int x1 = +SYS_OBJMAXW + (m_viewX + 2 * SYS_MAPGRIDXP + g_SDLDevice->WindowW(false)) / SYS_MAPGRIDXP;
+    const int y1 = +SYS_OBJMAXH + (m_viewY + 2 * SYS_MAPGRIDYP + g_SDLDevice->WindowH(false)) / SYS_MAPGRIDYP;
+
+    drawTile(x0, y0, x1, y1);
+
+    // ground objects
+    for(int y = y0; y <= y1; ++y){
+        for(int x = x0; x <= x1; ++x){
+            drawGroundObject(x, y, true);
+        }
+    }
+
+    if(g_clientArgParser->drawMapGrid){
+        const int gridX0 = m_viewX / SYS_MAPGRIDXP;
+        const int gridY0 = m_viewY / SYS_MAPGRIDYP;
+
+        const int gridX1 = (m_viewX + g_SDLDevice->WindowW(false)) / SYS_MAPGRIDXP;
+        const int gridY1 = (m_viewY + g_SDLDevice->WindowH(false)) / SYS_MAPGRIDYP;
+
+        SDLDevice::EnableDrawColor drawColor(colorf::RGBA(0, 255, 0, 128));
+        for(int x = gridX0; x <= gridX1; ++x){
+            g_SDLDevice->DrawLine(x * SYS_MAPGRIDXP - m_viewX, 0, x * SYS_MAPGRIDXP - m_viewX, g_SDLDevice->WindowH(false));
+        }
+
+        for(int y = gridY0; y <= gridY1; ++y){
+            g_SDLDevice->DrawLine(0, y * SYS_MAPGRIDYP - m_viewY, g_SDLDevice->WindowW(false), y * SYS_MAPGRIDYP - m_viewY);
+        }
+    }
+
+    // draw dead actors
+    // dead actors are shown before all active actors
+    for(auto &p: m_creatureList){
+        p.second->draw(m_viewX, m_viewY, 0);
+    }
+
+    drawGroundItem(x0, y0, x1, y1);
+
+    const auto locHashTable = [this]()
     {
-        int nX0 = -SYS_OBJMAXW + (m_viewX - 2 * SYS_MAPGRIDXP) / SYS_MAPGRIDXP;
-        int nY0 = -SYS_OBJMAXH + (m_viewY - 2 * SYS_MAPGRIDYP) / SYS_MAPGRIDYP;
-        int nX1 = +SYS_OBJMAXW + (m_viewX + 2 * SYS_MAPGRIDXP + g_SDLDevice->WindowW(false)) / SYS_MAPGRIDXP;
-        int nY1 = +SYS_OBJMAXH + (m_viewY + 2 * SYS_MAPGRIDYP + g_SDLDevice->WindowH(false)) / SYS_MAPGRIDYP;
+        LocHashTable<std::vector<ClientCreature *>> table;
+        for(auto &p: m_creatureList){
+            table[p.second->location()].push_back(p.second.get());
+        }
+        return table;
+    }();
 
-        // tiles
-        for(int nY = nY0; nY <= nY1; ++nY){
-            for(int nX = nX0; nX <= nX1; ++nX){
-                if(m_mir2xMapData.ValidC(nX, nY) && !(nX % 2) && !(nY % 2)){
-                    auto &rstTile = m_mir2xMapData.Tile(nX, nY);
-                    if(rstTile.Valid()){
-                        if(auto pTexture = g_mapDB->Retrieve(rstTile.Image())){
-                            g_SDLDevice->DrawTexture(pTexture, nX * SYS_MAPGRIDXP - m_viewX, nY * SYS_MAPGRIDYP - m_viewY);
+    // over ground objects
+    for(int y = y0; y <= y1; ++y){
+        for(int x = x0; x <= x1; ++x){
+            drawGroundObject(x, y, false);
+        }
+
+        for(int x = x0; x <= x1; ++x){
+            if(auto p = locHashTable.find({x, y}); p != locHashTable.end()){
+                for(auto creaturePtr: p->second){
+                    if(!(creaturePtr && creaturePtr->location() != std::make_tuple(x, y))){
+                        throw fflerror("invalid creature set");
+                    }
+
+                    if(!creaturePtr->alive()){
+                        continue;
+                    }
+
+                    int focusMask = 0;
+                    for(auto nFocus = 0; nFocus < FOCUS_MAX; ++nFocus){
+                        if(FocusUID(nFocus) == creaturePtr->UID()){
+                            focusMask |= (1 << nFocus);
                         }
                     }
+                    creaturePtr->draw(m_viewX, m_viewY, focusMask);
+                }
+
+                if(g_clientArgParser->drawCreatureCover){
+                    SDLDevice::EnableDrawColor enableColor(colorf::RGBA(0, 0, 255, 128));
+                    SDLDevice::EnableDrawBlendMode enableBlendMode(SDL_BLENDMODE_BLEND);
+                    g_SDLDevice->fillRectangle(x * SYS_MAPGRIDXP - m_viewX, y * SYS_MAPGRIDYP - m_viewY, SYS_MAPGRIDXP, SYS_MAPGRIDYP);
                 }
             }
         }
+    }
 
-        // ground objects
-        for(int nY = nY0; nY <= nY1; ++nY){
-            for(int nX = nX0; nX <= nX1; ++nX){
-                if(m_mir2xMapData.ValidC(nX, nY)){
-                    for(int nIndex = 0; nIndex < 2; ++nIndex){
-                        auto stArray = m_mir2xMapData.Cell(nX, nY).ObjectArray(nIndex);
-                        if(true
-                                && (stArray[4] & 0X80)
-                                && (stArray[4] & 0X01)){
-                            uint32_t nImage = 0
-                                | (((uint32_t)(stArray[2])) << 16)
-                                | (((uint32_t)(stArray[1])) <<  8)
-                                | (((uint32_t)(stArray[0])) <<  0);
-
-                            if(stArray[3] & 0X80){
-                                if(false
-                                        || stArray[2] == 11
-                                        || stArray[2] == 26
-                                        || stArray[2] == 41
-                                        || stArray[2] == 56
-                                        || stArray[2] == 71){
-                                    const int aniType = (stArray[3] & 0B01110000) >> 4;
-                                    const int aniFrameType = (stArray[3] & 0B00001111);
-                                    nImage += m_aniTileFrame[aniType][aniFrameType];
-                                }
-                            }
-
-                            const bool alphaRender = (stArray[4] & 0B00000010);
-                            if(auto pTexture = g_mapDB->Retrieve(nImage)){
-                                int nH = 0;
-                                if(!SDL_QueryTexture(pTexture, nullptr, nullptr, nullptr, &nH)){
-                                    if(alphaRender){
-                                        SDL_SetTextureBlendMode(pTexture, SDL_BLENDMODE_BLEND);
-                                        SDL_SetTextureAlphaMod(pTexture, 128);
-                                    }
-                                    g_SDLDevice->DrawTexture(pTexture, nX * SYS_MAPGRIDXP - m_viewX, (nY + 1) * SYS_MAPGRIDYP - m_viewY - nH);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+    // draw all rotating stars
+    // notify players that there is somethig to check
+    drawRotateStar(x0, y0, x1, y1);
+    
+    // draw magics
+    for(auto p: m_indepMagicList){
+        if(!p->Done()){
+            p->Draw(m_viewX, m_viewY);
         }
-
-        if(g_clientArgParser->EnableDrawMapGrid){
-            int nGridX0 = m_viewX / SYS_MAPGRIDXP;
-            int nGridY0 = m_viewY / SYS_MAPGRIDYP;
-
-            int nGridX1 = (m_viewX + g_SDLDevice->WindowW(false)) / SYS_MAPGRIDXP;
-            int nGridY1 = (m_viewY + g_SDLDevice->WindowH(false)) / SYS_MAPGRIDYP;
-
-            g_SDLDevice->PushColor(0, 255, 0, 128);
-            for(int nX = nGridX0; nX <= nGridX1; ++nX){
-                g_SDLDevice->DrawLine(nX * SYS_MAPGRIDXP - m_viewX, 0, nX * SYS_MAPGRIDXP - m_viewX, g_SDLDevice->WindowH(false));
-            }
-            for(int nY = nGridY0; nY <= nGridY1; ++nY){
-                g_SDLDevice->DrawLine(0, nY * SYS_MAPGRIDYP - m_viewY, g_SDLDevice->WindowW(false), nY * SYS_MAPGRIDYP - m_viewY);
-            }
-            g_SDLDevice->PopColor();
-        }
-
-        // draw dead actors
-        // dead actors are shown before all active actors
-        for(int nY = nY0; nY <= nY1; ++nY){
-            for(int nX = nX0; nX <= nX1; ++nX){
-                for(auto &p: m_creatureList){
-                    if(true
-                            &&  (p.second)
-                            &&  (p.second->x() == nX)
-                            &&  (p.second->y() == nY)
-                            && !(p.second->alive())){
-                        p.second->draw(m_viewX, m_viewY, 0);
-                    }
-                }
-            }
-        }
-
-        // draw ground item
-        // should be over dead actors
-        for(int nY = nY0; nY <= nY1; ++nY){
-            for(int nX = nX0; nX <= nX1; ++nX){
-                auto &rstGroundItemList = GetGroundItemListRef(nX, nY);
-                for(auto rstGroundItem: rstGroundItemList){
-                    if(auto &rstIR = DBCOM_ITEMRECORD(rstGroundItem.ID())){
-                        if(rstIR.PkgGfxID >= 0){
-                            if(auto pTexture = g_groundItemDB->Retrieve(rstIR.PkgGfxID)){
-                                int nW = -1;
-                                int nH = -1;
-                                if(!SDL_QueryTexture(pTexture, nullptr, nullptr, &nW, &nH)){
-                                    int nXt = nX * SYS_MAPGRIDXP - m_viewX + SYS_MAPGRIDXP / 2 - nW / 2;
-                                    int nYt = nY * SYS_MAPGRIDYP - m_viewY + SYS_MAPGRIDYP / 2 - nH / 2;
-
-                                    int nPointX = -1;
-                                    int nPointY = -1;
-                                    SDL_GetMouseState(&nPointX, &nPointY);
-
-                                    int nCurrX = (nPointX + m_viewX) / SYS_MAPGRIDXP;
-                                    int nCurrY = (nPointY + m_viewY) / SYS_MAPGRIDYP;
-
-                                    bool bChoose = false;
-                                    if(true
-                                            && nCurrX == nX
-                                            && nCurrY == nY){
-                                        bChoose = true;
-                                        SDL_SetTextureBlendMode(pTexture, SDL_BLENDMODE_ADD);
-                                    }else{
-                                        SDL_SetTextureBlendMode(pTexture, SDL_BLENDMODE_BLEND);
-                                    }
-
-                                    // 1. draw item shadow
-                                    SDL_SetTextureColorMod(pTexture, 0, 0, 0);
-                                    SDL_SetTextureAlphaMod(pTexture, 128);
-                                    g_SDLDevice->DrawTexture(pTexture, nXt + 1, nYt - 1);
-
-                                    // 2. draw item body
-                                    SDL_SetTextureColorMod(pTexture, 255, 255, 255);
-                                    SDL_SetTextureAlphaMod(pTexture, 255);
-                                    g_SDLDevice->DrawTexture(pTexture, nXt, nYt);
-
-                                    if(bChoose){
-                                        LabelBoard itemName(0, 0, rstIR.Name, 1, 12, 0, colorf::RGBA(0XFF, 0XFF, 0X00, 0X00));
-                                        const int boardW = itemName.w();
-                                        const int boardH = itemName.h();
-
-                                        const int drawNameX = nX * SYS_MAPGRIDXP - m_viewX + SYS_MAPGRIDXP / 2 - itemName.w() / 2;
-                                        const int drawNameY = nY * SYS_MAPGRIDYP - m_viewY + SYS_MAPGRIDYP / 2 - itemName.h() / 2 - 20;
-                                        itemName.drawEx(drawNameX, drawNameY, 0, 0, boardW, boardH);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        // over ground objects
-        for(int nY = nY0; nY <= nY1; ++nY){
-            for(int nX = nX0; nX <= nX1; ++nX){
-                if(m_mir2xMapData.ValidC(nX, nY)){
-                    for(int nIndex = 0; nIndex < 2; ++nIndex){
-                        auto stArray = m_mir2xMapData.Cell(nX, nY).ObjectArray(nIndex);
-                        if(true
-                                &&  (stArray[4] & 0X80)
-                                && !(stArray[4] & 0X01)){
-                            uint32_t nImage = 0
-                                | (((uint32_t)(stArray[2])) << 16)
-                                | (((uint32_t)(stArray[1])) <<  8)
-                                | (((uint32_t)(stArray[0])) <<  0);
-
-                            if(stArray[3] & 0X80){
-                                if(false
-                                        || stArray[2] == 11
-                                        || stArray[2] == 26
-                                        || stArray[2] == 41
-                                        || stArray[2] == 56
-                                        || stArray[2] == 71){
-                                    const int aniType = (stArray[3] & 0B01110000) >> 4;
-                                    const int aniFrameType = (stArray[3] & 0B00001111);
-                                    nImage += m_aniTileFrame[aniType][aniFrameType];
-                                }
-                            }
-
-                            const bool alphaRender = (stArray[4] & 0B00000010);
-                            if(auto pTexture = g_mapDB->Retrieve(nImage)){
-                                int nH = 0;
-                                if(!SDL_QueryTexture(pTexture, nullptr, nullptr, nullptr, &nH)){
-                                    if(alphaRender){
-                                        SDL_SetTextureBlendMode(pTexture, SDL_BLENDMODE_BLEND);
-                                        SDL_SetTextureAlphaMod(pTexture, 128);
-                                    }
-                                    g_SDLDevice->DrawTexture(pTexture, nX * SYS_MAPGRIDXP - m_viewX, (nY + 1) * SYS_MAPGRIDYP - m_viewY - nH);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            // draw alive actors
-            for(int nX = nX0; nX <= nX1; ++nX){
-                for(auto &p: m_creatureList){
-                    if(true
-                            && (p.second)
-                            && (p.second->x() == nX)
-                            && (p.second->y() == nY)
-                            && (p.second->alive())){
-
-                        if(g_clientArgParser->EnableDrawCreatureCover){
-                            g_SDLDevice->PushColor(0, 0, 255, 128);
-                            g_SDLDevice->PushBlendMode(SDL_BLENDMODE_BLEND);
-                            g_SDLDevice->FillRectangle(nX * SYS_MAPGRIDXP - m_viewX, nY * SYS_MAPGRIDYP - m_viewY, SYS_MAPGRIDXP, SYS_MAPGRIDYP);
-                            g_SDLDevice->PopBlendMode();
-                            g_SDLDevice->PopColor();
-                        }
-
-                        int nFocusMask = 0;
-                        for(auto nFocus = 0; nFocus < FOCUS_MAX; ++nFocus){
-                            if(FocusUID(nFocus) == p.second->UID()){
-                                nFocusMask |= (1 << nFocus);
-                            }
-                        }
-                        p.second->draw(m_viewX, m_viewY, nFocusMask);
-                    }
-                }
-            }
-        }
-
-        // draw all rotating stars
-        // to aware players there is somethig to check
-
-        m_starRatio += 0.05;
-        if(m_starRatio >= 2.50){
-            m_starRatio = 0.00;
-        }else if(m_starRatio >= 1.00){
-            // do nothing
-            // hide the star to avoid blinking too much
-        }else{
-            for(int nY = nY0; nY <= nY1; ++nY){
-                for(int nX = nX0; nX <= nX1; ++nX){
-
-                    if(!GetGroundItemListRef(nX, nY).empty()){
-                        if(auto pTexture = g_groundItemDB->Retrieve(0X01000000)){
-                            int nW = -1;
-                            int nH = -1;
-                            if(!SDL_QueryTexture(pTexture, nullptr, nullptr, &nW, &nH)){
-                                if(auto nLt = (int)(std::lround(m_starRatio * nW / 2.50))){
-                                    auto nXt = nX * SYS_MAPGRIDXP - m_viewX + SYS_MAPGRIDXP / 2 - nLt / 2;
-                                    auto nYt = nY * SYS_MAPGRIDYP - m_viewY + SYS_MAPGRIDYP / 2 - nLt / 2;
-
-                                    // to make this to be more informative
-                                    // use different color of rotating star for different type
-
-                                    SDL_SetTextureAlphaMod(pTexture, 128);
-                                    g_SDLDevice->DrawTextureEx(pTexture,
-                                            0,
-                                            0,
-                                            nW,
-                                            nH,
-                                            nXt,
-                                            nYt,
-                                            nLt,
-                                            nLt,
-                                            nLt / 2,
-                                            nLt / 2,
-                                            std::lround(m_starRatio * 360.0));
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        // draw magics
-        for(auto p: m_indepMagicList){
-            if(!p->Done()){
-                p->Draw(m_viewX, m_viewY);
-            }
-        }
-
-        // put it here
-        // any other should draw before GUI
     }
 
     // draw underlay at the bottom
     // there is one pixel transparent rectangle
     {
-        auto nWindowW = g_SDLDevice->WindowW(false);
-        auto nWindowH = g_SDLDevice->WindowH(false);
-
-        g_SDLDevice->PushColor(0, 0, 0, 0);
-        g_SDLDevice->FillRectangle(0, nWindowH - 4, nWindowW, 4);
-        g_SDLDevice->PopColor();
+        const auto [winW, winH] = g_SDLDevice->getRendererSize();
+        SDLDevice::EnableDrawColor color(colorf::RGBA(0, 0, 0, 0));
+        g_SDLDevice->fillRectangle(0, winH - 4, winW, 4);
     }
 
     for(auto p: m_ascendStrList){
@@ -589,7 +394,7 @@ void ProcessRun::Draw()
         {
             SDLDevice::EnableDrawColor enableColor(colorf::GREEN + 200);
             SDLDevice::EnableDrawBlendMode enableBlend(SDL_BLENDMODE_BLEND);
-            g_SDLDevice->FillRectangle(x, y, w, h);
+            g_SDLDevice->fillRectangle(x, y, w, h);
         }
 
         g_debugBoard->drawEx(x, y, 0, 0, w, h);
@@ -599,20 +404,17 @@ void ProcessRun::Draw()
         }
     }
 
-    // draw cursor location information on top-left
-    if(g_clientArgParser->EnableDrawMouseLocation){
-        g_SDLDevice->PushColor(0, 0, 0, 230);
-        g_SDLDevice->PushBlendMode(SDL_BLENDMODE_BLEND);
-        g_SDLDevice->FillRectangle(0, 0, 200, 60);
-        g_SDLDevice->PopBlendMode();
-        g_SDLDevice->PopColor();
+    if(g_clientArgParser->drawMouseLocation){
+        SDLDevice::EnableDrawColor enableColor(colorf::RGBA(0, 0, 0, 230));
+        SDLDevice::EnableDrawBlendMode enableBlendMode(SDL_BLENDMODE_BLEND);
+        g_SDLDevice->fillRectangle(0, 0, 200, 60);
 
-        int nPointX = -1;
-        int nPointY = -1;
-        SDL_GetMouseState(&nPointX, &nPointY);
+        int mouseX = -1;
+        int mouseY = -1;
+        SDL_GetMouseState(&mouseX, &mouseY);
 
-        m_mousePixlLoc.setText("Pix_Loc: %3d, %3d", nPointX, nPointY);
-        m_mouseGridLoc.setText("Til_Loc: %3d, %3d", (nPointX + m_viewX) / SYS_MAPGRIDXP, (nPointY + m_viewY) / SYS_MAPGRIDYP);
+        m_mousePixlLoc.setText("Pix_Loc: %d, %d", mouseX, mouseY);
+        m_mouseGridLoc.setText("Til_Loc: %d, %d", (mouseX + m_viewX) / SYS_MAPGRIDXP, (mouseY + m_viewY) / SYS_MAPGRIDYP);
 
         m_mouseGridLoc.drawEx(10, 10, 0, 0, m_mouseGridLoc.w(), m_mouseGridLoc.h());
         m_mousePixlLoc.drawEx(10, 30, 0, 0, m_mousePixlLoc.w(), m_mousePixlLoc.h());
@@ -621,7 +423,7 @@ void ProcessRun::Draw()
     m_fps.update();
     m_fpsBoard.setText("FPS: %zu", m_fps.fps());
     m_fpsBoard.drawEx(g_SDLDevice->WindowW(false) - 60, 0, 0, 0, m_fpsBoard.w(), m_fpsBoard.h());
-    g_SDLDevice->Present();
+    g_SDLDevice->present();
 }
 
 void ProcessRun::processEvent(const SDL_Event &event)
@@ -658,9 +460,9 @@ void ProcessRun::processEvent(const SDL_Event &event)
             }
         case SDL_MOUSEBUTTONDOWN:
             {
-                int nMouseGridX = -1;
-                int nMouseGridY = -1;
-                ScreenPoint2Grid(event.button.x, event.button.y, &nMouseGridX, &nMouseGridY);
+                int mouseGridX = -1;
+                int mouseGridY = -1;
+                ScreenPoint2Grid(event.button.x, event.button.y, &mouseGridX, &mouseGridY);
 
                 switch(event.button.button){
                     case SDL_BUTTON_LEFT:
@@ -682,11 +484,10 @@ void ProcessRun::processEvent(const SDL_Event &event)
                                             break;
                                         }
                                 }
-                            }else{
-                                auto &rstGroundItemList = GetGroundItemListRef(nMouseGridX, nMouseGridY);
-                                if(!rstGroundItemList.empty()){
-                                    getMyHero()->emplaceAction(ActionPickUp(nMouseGridX, nMouseGridY, rstGroundItemList.back().ID()));
-                                }
+                            }
+                            
+                            else if(const auto &itemList = getGroundItemList(mouseGridX, mouseGridY); !itemList.empty()){
+                                getMyHero()->emplaceAction(ActionPickUp(mouseGridX, mouseGridY, itemList.back().ID()));
                             }
                             break;
                         }
@@ -823,29 +624,20 @@ void ProcessRun::processEvent(const SDL_Event &event)
     }
 }
 
-int ProcessRun::LoadMap(uint32_t nMapID)
+void ProcessRun::loadMap(uint32_t mapID)
 {
-    if(nMapID){
-        if(auto pMapBin = g_mapBinDB->Retrieve(nMapID)){
-            m_mapID        =  nMapID;
-            m_mir2xMapData = *pMapBin;
-
-            auto nW = m_mir2xMapData.W();
-            auto nH = m_mir2xMapData.H();
-
-            m_groundItemList.clear();
-            m_groundItemList.resize(nW);
-
-            for(int nX = 0; nX < nW; ++nX){
-                m_groundItemList[nX].resize(nH);
-            }
-
-            return 0;
-        }
+    if(!mapID){
+        throw fflerror("mapID is zero");
     }
 
-    m_mapID = 0;
-    return -1;
+    const auto mapBinPtr = g_mapBinDB->Retrieve(mapID);
+    if(!mapBinPtr){
+        throw fflerror("can't find map: mapID = %llu", toLLU(mapID));
+    }
+
+    m_mapID = mapID;
+    m_mir2xMapData = *mapBinPtr;
+    m_groundItemList.clear();
 }
 
 bool ProcessRun::CanMove(bool bCheckGround, int nCheckCreature, int nX, int nY)
@@ -1589,11 +1381,6 @@ void ProcessRun::RequestKillPets()
     g_client->send(CM_REQUESTKILLPETS);
 }
 
-void ProcessRun::ClearCreature()
-{
-    m_creatureList.clear();
-}
-
 void ProcessRun::queryCORecord(uint64_t nUID) const
 {
     CMQueryCORecord stCMQCOR;
@@ -1712,4 +1499,162 @@ void ProcessRun::sendNPCEvent(uint64_t uid, const char *event, const char *value
         std::strcpy(cmNPCE.value, value);
     }
     g_client->send(CM_NPCEVENT, cmNPCE);
+}
+
+void ProcessRun::drawGroundItem(int x0, int y0, int x1, int y1)
+{
+    for(const auto &p: m_groundItemList){
+        const auto [x, y] = p.first;
+        if(!(x >= x0 && x < x1 && y >= y0 && y < y1)){
+            continue;
+        }
+
+        for(auto &item: p.second){
+            const auto &ir = DBCOM_ITEMRECORD(item.ID());
+            if(!ir){
+                throw fflerror("invalid item record");
+            }
+
+            if(ir.PkgGfxID < 0){
+                continue;
+            }
+
+            auto texPtr = g_groundItemDB->Retrieve(ir.PkgGfxID);
+            if(!texPtr){
+                continue;
+            }
+
+            const auto [texW, texH] = SDLDevice::getTextureSize(texPtr);
+            const int drawPX = x * SYS_MAPGRIDXP - m_viewX + SYS_MAPGRIDXP / 2 - texW / 2;
+            const int drawPY = y * SYS_MAPGRIDYP - m_viewY + SYS_MAPGRIDYP / 2 - texH / 2;
+
+            int mouseX = -1;
+            int mouseY = -1;
+            SDL_GetMouseState(&mouseX, &mouseY);
+
+            const int mouseGridX = (mouseX + m_viewX) / SYS_MAPGRIDXP;
+            const int mouseGridY = (mouseY + m_viewY) / SYS_MAPGRIDYP;
+
+            bool mouseOver = false;
+            if(mouseGridX == x && mouseGridY == y){
+                mouseOver = true;
+                SDL_SetTextureBlendMode(texPtr, SDL_BLENDMODE_ADD);
+            }
+            else{
+                SDL_SetTextureBlendMode(texPtr, SDL_BLENDMODE_BLEND);
+            }
+
+            // draw item shadow
+            SDL_SetTextureColorMod(texPtr, 0, 0, 0);
+            SDL_SetTextureAlphaMod(texPtr, 128);
+            g_SDLDevice->DrawTexture(texPtr, drawPX + 1, drawPY - 1);
+
+            // draw item body
+            SDL_SetTextureColorMod(texPtr, 255, 255, 255);
+            SDL_SetTextureAlphaMod(texPtr, 255);
+            g_SDLDevice->DrawTexture(texPtr, drawPX, drawPY);
+
+            if(mouseOver){
+                LabelBoard itemName(0, 0, ir.Name, 1, 12, 0, colorf::RGBA(0XFF, 0XFF, 0X00, 0X00));
+                const int boardW = itemName.w();
+                const int boardH = itemName.h();
+
+                const int drawNameX = x * SYS_MAPGRIDXP - m_viewX + SYS_MAPGRIDXP / 2 - itemName.w() / 2;
+                const int drawNameY = y * SYS_MAPGRIDYP - m_viewY + SYS_MAPGRIDYP / 2 - itemName.h() / 2 - 20;
+                itemName.drawEx(drawNameX, drawNameY, 0, 0, boardW, boardH);
+            }
+        }
+    }
+}
+
+void ProcessRun::drawTile(int x0, int y0, int x1, int y1)
+{
+    for(int y = y0; y < y1; ++y){
+        for(int x = x0; x <= x1; ++x){
+            if(m_mir2xMapData.ValidC(x, y) && !(x % 2) && !(y % 2)){
+                if(const auto &tile = m_mir2xMapData.Tile(x, y); tile.Valid()){
+                    if(auto texPtr = g_mapDB->Retrieve(tile.Image())){
+                        g_SDLDevice->DrawTexture(texPtr, x * SYS_MAPGRIDXP - m_viewX, y * SYS_MAPGRIDYP - m_viewY);
+                    }
+                }
+            }
+        }
+    }
+}
+
+void ProcessRun::drawGroundObject(int x, int y, bool ground)
+{
+    if(!m_mir2xMapData.ValidC(x, y)){
+        return;
+    }
+
+    for(const int i: {0, 1}){
+        const auto objArr = m_mir2xMapData.Cell(x, y).ObjectArray(i);
+        if(true
+                && ((bool)(objArr[4] & 0X80))
+                && ((bool)(objArr[4] & 0X01) == ground)){
+            uint32_t imageId = 0
+                | (((uint32_t)(objArr[2])) << 16)
+                | (((uint32_t)(objArr[1])) <<  8)
+                | (((uint32_t)(objArr[0])) <<  0);
+
+            if(objArr[3] & 0X80){
+                if(false
+                        || objArr[2] == 11
+                        || objArr[2] == 26
+                        || objArr[2] == 41
+                        || objArr[2] == 56
+                        || objArr[2] == 71){
+                    const int aniType = (objArr[3] & 0B01110000) >> 4;
+                    const int aniFrameType = (objArr[3] & 0B00001111);
+                    imageId += m_aniTileFrame[aniType][aniFrameType];
+                }
+            }
+
+            const bool alphaRender = (objArr[4] & 0B00000010);
+            if(auto texPtr = g_mapDB->Retrieve(imageId)){
+                const int texH = SDLDevice::getTextureHeight(texPtr);
+                if(alphaRender){
+                    SDL_SetTextureBlendMode(texPtr, SDL_BLENDMODE_BLEND);
+                    SDL_SetTextureAlphaMod(texPtr, 128);
+                }
+                g_SDLDevice->DrawTexture(texPtr, x * SYS_MAPGRIDXP - m_viewX, (y + 1) * SYS_MAPGRIDYP - m_viewY - texH);
+            }
+        }
+    }
+}
+
+void ProcessRun::drawRotateStar(int x0, int y0, int x1, int y1)
+{
+    if(m_starRatio > 1.0){
+        return;
+    }
+
+    auto texPtr = g_groundItemDB->Retrieve(0X01000000);
+    if(!texPtr){
+        return;
+    }
+
+    const auto [texW, texH] = SDLDevice::getTextureSize(texPtr);
+    const auto currSize = (int)(std::lround(m_starRatio * texW / 2.50));
+
+    for(const auto &p: m_groundItemList){
+        const auto [x, y] = p.first;
+        if(p.second.empty()){
+            throw fflerror("empty ground item list at (%d, %d)", x, y);
+        }
+
+        if(!(x >= x0 && x < x1 && y >= y0 && y < y1)){
+            continue;
+        }
+
+        const auto drawPX = x * SYS_MAPGRIDXP - m_viewX + SYS_MAPGRIDXP / 2 - currSize / 2;
+        const auto drawPY = y * SYS_MAPGRIDYP - m_viewY + SYS_MAPGRIDYP / 2 - currSize / 2;
+
+        // TODO make this to be more informative
+        // use different color of rotating star for different type
+
+        SDL_SetTextureAlphaMod(texPtr, 128);
+        g_SDLDevice->drawTextureEx(texPtr, 0, 0, texW, texH, drawPX, drawPY, currSize, currSize, currSize / 2, currSize / 2, std::lround(m_starRatio * 360.0));
+    }
 }

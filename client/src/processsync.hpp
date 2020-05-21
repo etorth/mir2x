@@ -40,7 +40,7 @@ class ProcessSync: public Process
         }
 
     public:
-        void Update(double);
-        void Draw();
-        void processEvent(const SDL_Event &);
+        void update(double) override;
+        void draw() override;
+        void processEvent(const SDL_Event &) override;
 };

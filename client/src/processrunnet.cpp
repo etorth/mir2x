@@ -49,13 +49,13 @@ void ProcessRun::Net_LOGINOK(const uint8_t *pBuf, size_t nLen)
         int nY = stSMLOK.Y;
         int nDirection = stSMLOK.Direction;
 
-        LoadMap(nMapID);
+        loadMap(nMapID);
 
         m_myHeroUID = nUID;
         m_creatureList[nUID] = std::make_unique<MyHero>(nUID, nDBID, bGender, nDressID, this, ActionStand(nX, nY, nDirection));
 
         centerMyHero();
-        getMyHero()->PullGold();
+        getMyHero()->pullGold();
     }
 }
 
@@ -85,7 +85,7 @@ void ProcessRun::Net_ACTION(const uint8_t *pBuf, size_t)
         // detected map switch for myhero
         // need to do map switch and parse current action
 
-        LoadMap(stSMA.MapID);
+        loadMap(stSMA.MapID);
 
         auto nUID       = getMyHero()->UID();
         auto nDBID      = getMyHero()->DBID();
@@ -98,7 +98,7 @@ void ProcessRun::Net_ACTION(const uint8_t *pBuf, size_t)
 
         m_UIDPending.clear();
 
-        ClearCreature();
+        m_creatureList.clear();
         m_creatureList[m_myHeroUID] = std::make_unique<MyHero>(nUID, nDBID, bGender, nDress, this, ActionStand(nX, nY, nDirection));
 
         centerMyHero();
@@ -162,8 +162,8 @@ void ProcessRun::Net_ACTION(const uint8_t *pBuf, size_t)
                                     }
                             }
 
-                            if(auto pMonster = Monster::createMonster(stSMA.UID, this, stAction)){
-                                m_creatureList[stSMA.UID].reset(pMonster);
+                            if(auto monPtr = Monster::createMonster(stSMA.UID, this, stAction)){
+                                m_creatureList[stSMA.UID].reset(monPtr);
                             }
                             return;
                         }
@@ -184,42 +184,40 @@ void ProcessRun::Net_ACTION(const uint8_t *pBuf, size_t)
 
 void ProcessRun::Net_CORECORD(const uint8_t *pBuf, size_t)
 {
-    SMCORecord stSMCOR;
-    std::memcpy(&stSMCOR, pBuf, sizeof(stSMCOR));
-
-    if(stSMCOR.Action.MapID != MapID()){
+    const auto smCOR = ServerMsg::conv<SMCORecord>(pBuf);
+    if(smCOR.Action.MapID != MapID()){
         return;
     }
 
-    const ActionNode stAction
+    const ActionNode actionNode
     {
-        stSMCOR.Action.Action,
-        stSMCOR.Action.Speed,
-        stSMCOR.Action.Direction,
-        stSMCOR.Action.X,
-        stSMCOR.Action.Y,
-        stSMCOR.Action.AimX,
-        stSMCOR.Action.AimY,
-        stSMCOR.Action.AimUID,
-        stSMCOR.Action.ActionParam,
+        smCOR.Action.Action,
+        smCOR.Action.Speed,
+        smCOR.Action.Direction,
+        smCOR.Action.X,
+        smCOR.Action.Y,
+        smCOR.Action.AimX,
+        smCOR.Action.AimY,
+        smCOR.Action.AimUID,
+        smCOR.Action.ActionParam,
     };
 
-    if(auto p = m_creatureList.find(stSMCOR.Action.UID); p != m_creatureList.end()){
-        p->second->parseAction(stAction);
+    if(auto p = m_creatureList.find(smCOR.Action.UID); p != m_creatureList.end()){
+        p->second->parseAction(actionNode);
         return;
     }
 
-    switch(uidf::getUIDType(stSMCOR.Action.UID)){
+    switch(uidf::getUIDType(smCOR.Action.UID)){
         case UID_MON:
             {
-                if(auto pMonster = Monster::createMonster(stSMCOR.Action.UID, this, stAction)){
-                    m_creatureList[stSMCOR.Action.UID].reset(pMonster);
+                if(auto monPtr = Monster::createMonster(smCOR.Action.UID, this, actionNode)){
+                    m_creatureList[smCOR.Action.UID].reset(monPtr);
                 }
                 break;
             }
         case UID_PLY:
             {
-                m_creatureList[stSMCOR.Action.UID] = std::make_unique<Hero>(stSMCOR.Action.UID, stSMCOR.Player.DBID, true, 0, this, stAction);
+                m_creatureList[smCOR.Action.UID] = std::make_unique<Hero>(smCOR.Action.UID, smCOR.Player.DBID, true, 0, this, actionNode);
                 break;
             }
         default:
@@ -287,17 +285,15 @@ void ProcessRun::Net_MISS(const uint8_t *pBuf, size_t)
 
 void ProcessRun::Net_SHOWDROPITEM(const uint8_t *pBuf, size_t)
 {
-    SMShowDropItem stSMSDI;
-    std::memcpy(&stSMSDI, pBuf, sizeof(stSMSDI));
+    const auto smSDI = ServerMsg::conv<SMShowDropItem>(pBuf);
+    clearGroundItem(smSDI.X, smSDI.Y);
 
-    ClearGroundItem(stSMSDI.X, stSMSDI.Y);
-    for(size_t nIndex = 0; nIndex < std::extent<decltype(stSMSDI.IDList)>::value; ++nIndex){
-        CommonItem stCommonItem(stSMSDI.IDList[nIndex].ID, stSMSDI.IDList[nIndex].DBID);
-        if(stCommonItem){
-            AddGroundItem(stCommonItem, stSMSDI.X, stSMSDI.Y);
-        }else{
+    for(size_t i = 0; i < std::extent<decltype(smSDI.IDList)>::value; ++i){
+        const CommonItem item(smSDI.IDList[i].ID, smSDI.IDList[i].DBID);
+        if(!item){
             break;
         }
+        addGroundItem(item, smSDI.X, smSDI.Y);
     }
 }
 
@@ -390,12 +386,11 @@ void ProcessRun::Net_OFFLINE(const uint8_t *pBuf, size_t)
 
 void ProcessRun::Net_PICKUPOK(const uint8_t *pBuf, size_t)
 {
-    SMPickUpOK stSMPUOK;
-    std::memcpy(&stSMPUOK, pBuf, sizeof(stSMPUOK));
+    const auto smPUOK = ServerMsg::conv<SMPickUpOK>(pBuf);
+    getMyHero()->getInvPack().Add(smPUOK.ID);
 
-    getMyHero()->getInvPack().Add(stSMPUOK.ID);
-    RemoveGroundItem(CommonItem(stSMPUOK.ID, 0), stSMPUOK.X, stSMPUOK.Y);
-    AddOPLog(OUTPORT_CONTROLBOARD, 2, "", u8"捡起%s于坐标(%d, %d)", DBCOM_ITEMRECORD(stSMPUOK.ID).Name, (int)(stSMPUOK.X), (int)(stSMPUOK.Y));
+    removeGroundItem(CommonItem(smPUOK.ID, 0), smPUOK.X, smPUOK.Y);
+    AddOPLog(OUTPORT_CONTROLBOARD, 2, "", u8"捡起%s于坐标(%d, %d)", DBCOM_ITEMRECORD(smPUOK.ID).Name, (int)(smPUOK.X), (int)(smPUOK.Y));
 }
 
 void ProcessRun::Net_GOLD(const uint8_t *pBuf, size_t)

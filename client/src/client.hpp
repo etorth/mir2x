@@ -115,17 +115,17 @@ class Client final
         void processEvent();
 
     private:
-        void Draw()
+        void draw()
         {
             if(m_currentProcess){
-                m_currentProcess->Draw();
+                m_currentProcess->draw();
             }
         }
 
-        void Update(double fDTime)
+        void update(double fUpdateTime)
         {
             if(m_currentProcess){
-                m_currentProcess->Update(fDTime);
+                m_currentProcess->update(fUpdateTime);
             }
         }
 

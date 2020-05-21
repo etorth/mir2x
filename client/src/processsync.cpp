@@ -49,24 +49,24 @@ void ProcessSync::processEvent(const SDL_Event &event)
     }
 }
 
-void ProcessSync::Update(double fDeltaMS)
+void ProcessSync::update(double fUpdateTime)
 {
     if(m_ratio >= 100){
         g_client->RequestProcess(PROCESSID_LOGIN);
         return;
     }
 
-    m_ratio += (fDeltaMS > 0.0 ? 1 : 0);
+    m_ratio += (fUpdateTime > 0.0 ? 1 : 0);
 }
 
-void ProcessSync::Draw()
+void ProcessSync::draw()
 {
     auto pTexture = g_progUseDB->Retrieve(0X00000002);
     int nW, nH;
 
     SDL_QueryTexture(pTexture, nullptr, nullptr, &nW, &nH);
 
-    g_SDLDevice->ClearScreen();
+    g_SDLDevice->clearScreen();
     g_SDLDevice->DrawTexture(pTexture,
             112,  // dst x
             528,  // dst y
@@ -80,5 +80,5 @@ void ProcessSync::Draw()
     const int nInfoY = 528 + (nH - m_processBarInfo.h()) / 2;
 
     m_processBarInfo.drawEx(nInfoX, nInfoY, 0, 0, m_processBarInfo.w(), m_processBarInfo.h());
-    g_SDLDevice->Present();
+    g_SDLDevice->present();
 }

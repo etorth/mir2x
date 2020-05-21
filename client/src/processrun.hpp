@@ -33,6 +33,7 @@
 #include "fpsmonitor.hpp"
 #include "commonitem.hpp"
 #include "indepmagic.hpp"
+#include "lochashtable.hpp"
 #include "mir2xmapdata.hpp"
 #include "npcchatboard.hpp"
 #include "controlboard.hpp"
@@ -72,7 +73,7 @@ class ProcessRun: public Process
         Mir2xMapData m_mir2xMapData;
 
     private:
-        std::vector<std::vector<std::vector<CommonItem>>> m_groundItemList;
+        LocHashTable<std::vector<CommonItem>> m_groundItemList;
 
     private:
         uint64_t m_myHeroUID;
@@ -133,7 +134,7 @@ class ProcessRun: public Process
         void scrollMap();
 
     private:
-        int LoadMap(uint32_t);
+        void loadMap(uint32_t);
 
     public:
         ProcessRun();
@@ -161,9 +162,9 @@ class ProcessRun: public Process
         void Notify(const char *, const std::map<std::string, std::function<void()>> &);
 
     public:
-        virtual void Update(double);
-        virtual void Draw();
-        virtual void processEvent(const SDL_Event &);
+        virtual void update(double) override;
+        virtual void draw() override;
+        virtual void processEvent(const SDL_Event &) override;
 
     public:
         bool ScreenPoint2Grid(int, int, int *, int *);
@@ -242,13 +243,18 @@ class ProcessRun: public Process
         void centerMyHero();
 
     public:
+        uint64_t getMyHeroUID() const
+        {
+            return m_myHeroUID;
+        }
+
         MyHero *getMyHero() const
         {
             // getMyHero() is read-only
             // won't use RetrieveUID(), it may change m_creatureList
 
-            if(m_myHeroUID){
-                if(auto p = m_creatureList.find(m_myHeroUID); p != m_creatureList.end()){
+            if(getMyHeroUID()){
+                if(auto p = m_creatureList.find(getMyHeroUID()); p != m_creatureList.end()){
                     return dynamic_cast<MyHero *>(p->second.get());
                 }
             }
@@ -256,43 +262,57 @@ class ProcessRun: public Process
         }
 
     public:
-        const auto &GetGroundItemListRef(int nX, int nY) const
+        const auto &getGroundItemList(int x, int y) const
         {
-            return m_groundItemList[nX][nY];
+            if(auto p = m_groundItemList.find({x, y}); p != m_groundItemList.end()){
+                return p->second;
+            }
+
+            const static std::vector<CommonItem> emptyList;
+            return emptyList;
         }
 
-        int FindGroundItem(const CommonItem &rstCommonItem, int nX, int nY)
+        int findGroundItem(const CommonItem &item, int x, int y) const
         {
-            for(int nIndex = (int)(m_groundItemList[nX][nY].size()) - 1; nIndex >= 0; --nIndex){
-                if(m_groundItemList[nX][nY][nIndex] == rstCommonItem){
-                    return nIndex;
+            const auto &itemList = getGroundItemList(x, y);
+            if(itemList.empty()){
+                return -1;
+            }
+
+            for(int i = (int)(itemList.size()) - 1; i >= 0; --i){
+                if(itemList[i] == item){
+                    return i;
                 }
             }
             return -1;
         }
 
-        bool AddGroundItem(const CommonItem &rstCommonItem, int nX, int nY)
+        bool addGroundItem(const CommonItem &item, int x, int y)
         {
-            if(rstCommonItem && m_mir2xMapData.ValidC(nX, nY)){
-                m_groundItemList[nX][nY].push_back(rstCommonItem);
-                return true;
+            if(!(item && m_mir2xMapData.ValidC(x, y))){
+                return false;
             }
-            return false;
+
+            m_groundItemList[{x, y}].push_back(item);
+            return true;
         }
 
-        void RemoveGroundItem(const CommonItem &rstCommonItem, int nX, int nY)
+        void removeGroundItem(const CommonItem &item, int x, int y)
         {
-            for(auto pCurr = m_groundItemList[nX][nY].begin(); pCurr != m_groundItemList[nX][nY].end(); ++pCurr){
-                if(*pCurr == rstCommonItem){
-                    m_groundItemList[nX][nY].erase(pCurr);
-                    return;
-                }
+            auto p = m_groundItemList.find({x, y});
+            if(p == m_groundItemList.end()){
+                return;
+            }
+
+            p->second.erase(std::remove(p->second.begin(), p->second.end(), item), p->second.end());
+            if(p->second.empty()){
+                m_groundItemList.erase(p);
             }
         }
 
-        void ClearGroundItem(int nX, int nY)
+        void clearGroundItem(int x, int y)
         {
-            m_groundItemList[nX][nY].clear();
+            m_groundItemList.erase({x, y});
         }
 
     public:
@@ -304,9 +324,6 @@ class ProcessRun: public Process
         bool RequestSpaceMove(uint32_t, int, int);
 
     public:
-        void ClearCreature();
-
-    public:
         void queryCORecord(uint64_t) const;
         void OnActionSpawn(uint64_t, const ActionNode &);
 
@@ -315,4 +332,12 @@ class ProcessRun: public Process
 
     public:
         void sendNPCEvent(uint64_t, const char *, const char * = nullptr);
+
+    private:
+        void drawTile(int, int, int, int);
+        void drawGroundItem(int, int, int, int);
+        void drawRotateStar(int, int, int, int);
+
+    private:
+        void drawGroundObject(int, int, bool);
 };
