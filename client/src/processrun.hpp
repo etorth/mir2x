@@ -227,8 +227,7 @@ class ProcessRun: public Process
         bool RegisterLuaExport(ClientLuaModule *, int);
 
     public:
-        ClientCreature *RetrieveUID(uint64_t);
-        bool LocateUID(uint64_t, int *, int *);
+        ClientCreature *findUID(uint64_t, bool checkVisible = true) const;
 
     private:
         bool trackAttack(bool, uint64_t);
@@ -250,13 +249,8 @@ class ProcessRun: public Process
 
         MyHero *getMyHero() const
         {
-            // getMyHero() is read-only
-            // won't use RetrieveUID(), it may change m_creatureList
-
             if(getMyHeroUID()){
-                if(auto p = m_creatureList.find(getMyHeroUID()); p != m_creatureList.end()){
-                    return dynamic_cast<MyHero *>(p->second.get());
-                }
+                return dynamic_cast<MyHero *>(findUID(getMyHeroUID()));
             }
             return nullptr;
         }

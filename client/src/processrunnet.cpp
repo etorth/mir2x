@@ -109,7 +109,7 @@ void ProcessRun::Net_ACTION(const uint8_t *pBuf, size_t)
     // map doesn't change
     // action from an existing charobject for current processrun
 
-    if(auto pCreature = RetrieveUID(stSMA.UID)){
+    if(auto pCreature = findUID(stSMA.UID)){
         // shouldn't accept ACTION_SPAWN
         // we shouldn't have spawn action after co created
         condcheck(stSMA.Action != ACTION_SPAWN);
@@ -233,7 +233,7 @@ void ProcessRun::Net_UPDATEHP(const uint8_t *pBuf, size_t)
     std::memcpy(&stSMUHP, pBuf, sizeof(stSMUHP));
 
     if(stSMUHP.MapID == MapID()){
-        if(auto p = RetrieveUID(stSMUHP.UID)){
+        if(auto p = findUID(stSMUHP.UID)){
             p->updateHealth(stSMUHP.HP, stSMUHP.HPMax);
         }
     }
@@ -244,7 +244,7 @@ void ProcessRun::Net_NOTIFYDEAD(const uint8_t *pBuf, size_t)
     SMNotifyDead stSMND;
     std::memcpy(&stSMND, pBuf, sizeof(stSMND));
 
-    if(auto p = RetrieveUID(stSMND.UID)){
+    if(auto p = findUID(stSMND.UID)){
         p->parseAction(ActionDie(p->x(), p->y(), p->currMotion().direction, true));
     }
 }
@@ -255,7 +255,7 @@ void ProcessRun::Net_DEADFADEOUT(const uint8_t *pBuf, size_t)
     std::memcpy(&stSMDFO, pBuf, sizeof(stSMDFO));
 
     if(stSMDFO.MapID == MapID()){
-        if(auto p = RetrieveUID(stSMDFO.UID)){
+        if(auto p = findUID(stSMDFO.UID)){
             p->deadFadeOut();
         }
     }
@@ -276,7 +276,7 @@ void ProcessRun::Net_MISS(const uint8_t *pBuf, size_t)
     SMMiss stSMM;
     std::memcpy(&stSMM, pBuf, sizeof(stSMM));
 
-    if(auto p = RetrieveUID(stSMM.UID)){
+    if(auto p = findUID(stSMM.UID)){
         int nX = p->x() * SYS_MAPGRIDXP + SYS_MAPGRIDXP / 2 - 20;
         int nY = p->y() * SYS_MAPGRIDYP - SYS_MAPGRIDYP * 1;
         addAscendStr(ASCENDSTR_MISS, 0, nX, nY);
@@ -309,7 +309,7 @@ void ProcessRun::Net_FIREMAGIC(const uint8_t *pBuf, size_t)
             case DBCOM_MAGICID(u8"魔法盾"):
                 {
                     if(auto stEntry = rstMR.GetGfxEntry(u8"开始")){
-                        if(auto pCreature = RetrieveUID(stSMFM.UID)){
+                        if(auto pCreature = findUID(stSMFM.UID)){
                             pCreature->addAttachMagic(stSMFM.Magic, 0, stEntry.Stage);
                         }
                         return;
@@ -333,7 +333,7 @@ void ProcessRun::Net_FIREMAGIC(const uint8_t *pBuf, size_t)
             switch(pEntry->Type){
                 case EGT_BOUND:
                     {
-                        if(auto pCreature = RetrieveUID(stSMFM.AimUID)){
+                        if(auto pCreature = findUID(stSMFM.AimUID)){
                             pCreature->addAttachMagic(stSMFM.Magic, 0, pEntry->Stage);
                         }
                         break;
@@ -378,7 +378,7 @@ void ProcessRun::Net_OFFLINE(const uint8_t *pBuf, size_t)
     std::memcpy(&stSMO, pBuf, sizeof(stSMO));
 
     if(stSMO.MapID == MapID()){
-        if(auto pCreature = RetrieveUID(stSMO.UID)){
+        if(auto pCreature = findUID(stSMO.UID)){
             pCreature->addAttachMagic(DBCOM_MAGICID(u8"瞬息移动"), 0, EGS_INIT);
         }
     }

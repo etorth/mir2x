@@ -145,7 +145,7 @@ void ProcessRun::update(double fUpdateTime)
 
         const auto [locX, locY] = p->second->location();
         const auto locDistance2 = mathf::LDistance2(myHeroX, myHeroY, locX, locY);
-        if(p->second->visible() && locDistance2 < 1000){
+        if(p->second->visible() && (locDistance2 < 1000)){
             if(p->second->lastActive() + 5000 < SDL_GetTicks() && p->second->lastQuerySelf() + 5000 < SDL_GetTicks()){
                 p->second->querySelf();
             }
@@ -175,7 +175,7 @@ void ProcessRun::update(double fUpdateTime)
         }
     }
 
-    if(auto p = RetrieveUID(m_focusUIDTable[FOCUS_ATTACK])){
+    if(auto p = findUID(m_focusUIDTable[FOCUS_ATTACK])){
         if(p->alive()){
             trackAttack(false, m_focusUIDTable[FOCUS_ATTACK]);
         }else{
@@ -210,7 +210,7 @@ uint64_t ProcessRun::FocusUID(int nFocusType)
 
                     const auto fnCheckFocus = [this](uint64_t uid, int px, int py) -> bool
                     {
-                        if(auto creaturePtr = RetrieveUID(uid)){
+                        if(auto creaturePtr = findUID(uid)){
                             if(uid != getMyHeroUID()){
                                 if(creaturePtr->canFocus(px, py)){
                                     return true;
@@ -333,9 +333,9 @@ void ProcessRun::draw()
                     }
 
                     int focusMask = 0;
-                    for(auto nFocus = 0; nFocus < FOCUS_MAX; ++nFocus){
-                        if(FocusUID(nFocus) == creaturePtr->UID()){
-                            focusMask |= (1 << nFocus);
+                    for(auto focusType = 0; focusType < FOCUS_MAX; ++focusType){
+                        if(FocusUID(focusType) == creaturePtr->UID()){
+                            focusMask |= (1 << focusType);
                         }
                     }
                     creaturePtr->draw(m_viewX, m_viewY, focusMask);
@@ -560,7 +560,7 @@ void ProcessRun::processEvent(const SDL_Event &event)
                             if(auto nMouseFocusUID = FocusUID(FOCUS_MOUSE)){
                                 m_focusUIDTable[FOCUS_MAGIC] = nMouseFocusUID;
                             }else{
-                                if(!RetrieveUID(m_focusUIDTable[FOCUS_MAGIC])){
+                                if(!findUID(m_focusUIDTable[FOCUS_MAGIC])){
                                     m_focusUIDTable[FOCUS_MAGIC] = 0;
                                 }
                             }
@@ -1207,37 +1207,30 @@ bool ProcessRun::OnMap(uint32_t nMapID, int nX, int nY) const
     return (MapID() == nMapID) && m_mir2xMapData.ValidC(nX, nY);
 }
 
-ClientCreature *ProcessRun::RetrieveUID(uint64_t uid)
+ClientCreature *ProcessRun::findUID(uint64_t uid, bool checkVisible) const
 {
     if(!uid){
         return nullptr;
     }
 
+    // TODO don't remove invisible creatures, this causes too much crash
+    // let ProcessRun::update() loop clean it
+
     if(auto p = m_creatureList.find(uid); p != m_creatureList.end()){
-        if(p->second->visible()){
-            if(p->second->UID() != uid){
-                throw fflerror("invalid creature record: %p, UID = %llu", p->second.get(), toLLU(p->second->UID()));
-            }
+        if(p->second->UID() != uid){
+            throw fflerror("invalid creature: %p, UID = %llu", p->second.get(), toLLU(p->second->UID()));
+        }
+
+        if(!checkVisible || p->second->visible()){
             return p->second.get();
         }
-        m_creatureList.erase(p);
     }
     return nullptr;
 }
 
-bool ProcessRun::LocateUID(uint64_t nUID, int *pX, int *pY)
-{
-    if(auto pCreature = RetrieveUID(nUID)){
-        if(pX){ *pX = pCreature->x(); }
-        if(pY){ *pY = pCreature->y(); }
-        return true;
-    }
-    return false;
-}
-
 bool ProcessRun::trackAttack(bool bForce, uint64_t nUID)
 {
-    if(RetrieveUID(nUID)){
+    if(findUID(nUID)){
         if(bForce || getMyHero()->StayIdle()){
             auto nEndX = getMyHero()->currMotion().endX;
             auto nEndY = getMyHero()->currMotion().endY;
@@ -1251,7 +1244,7 @@ uint32_t ProcessRun::GetFocusFaceKey()
 {
     uint32_t nFaceKey = 0X02000000;
     if(auto nUID = FocusUID(FOCUS_MOUSE)){
-        if(auto pCreature = RetrieveUID(nUID)){
+        if(auto pCreature = findUID(nUID)){
             switch(pCreature->type()){
                 case UID_PLY:
                     {
@@ -1284,7 +1277,7 @@ void ProcessRun::addAscendStr(int nType, int nValue, int nX, int nY)
 
 bool ProcessRun::GetUIDLocation(uint64_t nUID, bool bDrawLoc, int *pX, int *pY)
 {
-    if(auto pCreature = RetrieveUID(nUID)){
+    if(auto pCreature = findUID(nUID)){
         if(bDrawLoc){
         }else{
             if(pX){ *pX = pCreature->x(); }

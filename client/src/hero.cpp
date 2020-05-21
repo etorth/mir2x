@@ -432,7 +432,7 @@ bool Hero::parseAction(const ActionNode &rstAction)
                                 nDir = fnGetSpellDir(rstAction.X, rstAction.Y, rstAction.AimX, rstAction.AimY);
                             }
                             else if(rstAction.AimUID){
-                                if(auto pCreature = m_processRun->RetrieveUID(rstAction.AimUID)){
+                                if(auto pCreature = m_processRun->findUID(rstAction.AimUID)){
                                     nDir = fnGetSpellDir(rstAction.X, rstAction.Y, pCreature->x(), pCreature->y());
                                 }
                             }
@@ -457,7 +457,7 @@ bool Hero::parseAction(const ActionNode &rstAction)
                         }
                 }
 
-                if(auto pCreature = m_processRun->RetrieveUID(rstAction.AimUID)){
+                if(auto pCreature = m_processRun->findUID(rstAction.AimUID)){
                     auto nX   = pCreature->x();
                     auto nY   = pCreature->y();
                     auto nDir = PathFind::GetDirection(rstAction.X, rstAction.Y, nX, nY);

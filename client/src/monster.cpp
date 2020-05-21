@@ -390,7 +390,7 @@ bool Monster::parseAction(const ActionNode &action)
             }
         case ACTION_ATTACK:
             {
-                if(auto pCreature = m_processRun->RetrieveUID(action.AimUID)){
+                if(auto pCreature = m_processRun->findUID(action.AimUID)){
                     auto nX   = pCreature->x();
                     auto nY   = pCreature->y();
                     auto nDir = PathFind::GetDirection(action.X, action.Y, nX, nY);

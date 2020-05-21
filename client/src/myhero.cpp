@@ -404,7 +404,7 @@ bool MyHero::DecompActionAttack()
             stCurrAction.AimUID,
         };
 
-        if(auto pCreature = m_processRun->RetrieveUID(stCurrAction.AimUID)){
+        if(auto pCreature = m_processRun->findUID(stCurrAction.AimUID)){
             const auto nX1 = pCreature->x();
             const auto nY1 = pCreature->y();
 
