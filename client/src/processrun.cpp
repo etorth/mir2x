@@ -265,7 +265,7 @@ uint64_t ProcessRun::FocusUID(int nFocusType)
 
 void ProcessRun::draw()
 {
-    g_SDLDevice->clearScreen();
+    SDLDevice::RenderNewFrame newFrame;
 
     const int x0 = -SYS_OBJMAXW + (m_viewX - 2 * SYS_MAPGRIDXP) / SYS_MAPGRIDXP;
     const int y0 = -SYS_OBJMAXH + (m_viewY - 2 * SYS_MAPGRIDYP) / SYS_MAPGRIDYP;
@@ -420,10 +420,8 @@ void ProcessRun::draw()
         m_mousePixlLoc.drawEx(10, 30, 0, 0, m_mousePixlLoc.w(), m_mousePixlLoc.h());
     }
 
-    m_fps.update();
-    m_fpsBoard.setText("FPS: %zu", m_fps.fps());
+    m_fpsBoard.setText("FPS: %zu", g_SDLDevice->getFPS());
     m_fpsBoard.drawEx(g_SDLDevice->WindowW(false) - 60, 0, 0, 0, m_fpsBoard.w(), m_fpsBoard.h());
-    g_SDLDevice->present();
 }
 
 void ProcessRun::processEvent(const SDL_Event &event)

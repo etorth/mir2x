@@ -30,7 +30,6 @@
 #include "message.hpp"
 #include "focustype.hpp"
 #include "ascendstr.hpp"
-#include "fpsmonitor.hpp"
 #include "commonitem.hpp"
 #include "indepmagic.hpp"
 #include "lochashtable.hpp"

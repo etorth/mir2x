@@ -26,10 +26,20 @@
 #include "xmlconf.hpp"
 #include "fflerror.hpp"
 #include "sdldevice.hpp"
-#include "condcheck.hpp"
 
 extern Log *g_log;
 extern SDLDevice *g_SDLDevice;
+
+SDLDevice::RenderNewFrame::RenderNewFrame()
+{
+    g_SDLDevice->clearScreen();
+}
+
+SDLDevice::RenderNewFrame::~RenderNewFrame()
+{
+    g_SDLDevice->updateFPS();
+    g_SDLDevice->present();
+}
 
 SDLDevice::EnableDrawColor::EnableDrawColor(uint32_t nRGBA)
 {
@@ -52,11 +62,6 @@ SDLDevice::EnableDrawBlendMode::~EnableDrawBlendMode()
 }
 
 SDLDevice::SDLDevice()
-    : m_window(nullptr)
-    , m_renderer(nullptr)
-    , m_colorStack()
-    , m_blendModeStack()
-    , m_innFontMap()
 {
     if(g_SDLDevice){
         throw fflerror("multiple initialization for SDLDevice");

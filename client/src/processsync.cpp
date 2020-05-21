@@ -61,12 +61,12 @@ void ProcessSync::update(double fUpdateTime)
 
 void ProcessSync::draw()
 {
+    SDLDevice::RenderNewFrame newFrame;
     auto pTexture = g_progUseDB->Retrieve(0X00000002);
     int nW, nH;
 
     SDL_QueryTexture(pTexture, nullptr, nullptr, &nW, &nH);
 
-    g_SDLDevice->clearScreen();
     g_SDLDevice->DrawTexture(pTexture,
             112,  // dst x
             528,  // dst y
@@ -80,5 +80,4 @@ void ProcessSync::draw()
     const int nInfoY = 528 + (nH - m_processBarInfo.h()) / 2;
 
     m_processBarInfo.drawEx(nInfoX, nInfoY, 0, 0, m_processBarInfo.w(), m_processBarInfo.h());
-    g_SDLDevice->present();
 }

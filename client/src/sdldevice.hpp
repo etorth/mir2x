@@ -25,6 +25,7 @@
 #include <SDL2/SDL_ttf.h>
 #include "colorf.hpp"
 #include "fflerror.hpp"
+#include "fpsmonitor.hpp"
 
 class SDLDevice final
 {
@@ -39,6 +40,12 @@ class SDLDevice final
         {
             EnableDrawBlendMode(SDL_BlendMode);
            ~EnableDrawBlendMode();
+        };
+
+        struct RenderNewFrame
+        {
+            RenderNewFrame();
+           ~RenderNewFrame();
         };
 
     private:
@@ -65,8 +72,11 @@ class SDLDevice final
         };
 
     private:
-       SDL_Window   *m_window;
-       SDL_Renderer *m_renderer;
+       SDL_Window   *m_window   = nullptr;
+       SDL_Renderer *m_renderer = nullptr;
+
+    private:
+       FPSMonitor m_fpsMonitor;
 
     private:
        std::vector<ColorStackNode>     m_colorStack;
@@ -270,6 +280,17 @@ class SDLDevice final
 
     public:
        TTF_Font *DefaultTTF(uint8_t);
+
+    public:
+       void updateFPS()
+       {
+           m_fpsMonitor.update();
+       }
+
+       size_t getFPS() const
+       {
+           return m_fpsMonitor.fps();
+       }
 
     public:
        void setWindowResizable(bool resizable)

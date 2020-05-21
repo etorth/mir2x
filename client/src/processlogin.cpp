@@ -113,7 +113,7 @@ void ProcessLogin::update(double fUpdateTime)
 
 void ProcessLogin::draw()
 {
-    g_SDLDevice->clearScreen();
+    SDLDevice::RenderNewFrame newFrame;
 
     g_SDLDevice->DrawTexture(g_progUseDB->Retrieve(0X00000003),   0,  75);
     g_SDLDevice->DrawTexture(g_progUseDB->Retrieve(0X00000004),   0, 465);
@@ -128,7 +128,6 @@ void ProcessLogin::draw()
     m_passwordBox.draw();
 
     m_buildSignature.draw();
-    g_SDLDevice->present();
 }
 
 void ProcessLogin::processEvent(const SDL_Event &event)

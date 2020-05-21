@@ -57,7 +57,7 @@ void ProcessLogo::update(double fDTime)
 
 void ProcessLogo::draw()
 {
-    g_SDLDevice->clearScreen();
+    SDLDevice::RenderNewFrame newFrame;
 
     if(auto pTexture = g_progUseDB->Retrieve(0X00000000)){
         auto bColor = (Uint8)(std::lround(255 * colorRatio()));
@@ -67,8 +67,6 @@ void ProcessLogo::draw()
         const auto nWindowH = g_SDLDevice->WindowH(false);
         g_SDLDevice->DrawTexture(pTexture, 0, 0, 0, 0, nWindowW, nWindowH);
     }
-
-    g_SDLDevice->present();
 }
 
 double ProcessLogo::colorRatio()
