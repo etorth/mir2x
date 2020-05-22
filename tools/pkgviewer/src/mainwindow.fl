@@ -249,16 +249,22 @@ class MainWindow {} {
                 g_ProgressBarWindow->ShowAll();
                 Fl::check();
 
+                int lastPercent = 0;
                 std::vector<uint32_t> stvBuf;
+
                 for(int nIndex = 1; nIndex <= m_Browser->size(); ++nIndex){
-                    g_ProgressBarWindow->SetValue((int)(std::lround(nIndex * 100.0 / g_WilPackage.IndexCount())));
-                    g_ProgressBarWindow->Redraw();
-                    g_ProgressBarWindow->ShowAll();
-                    Fl::check();
+                    const auto currPercent = (int)(std::lround(nIndex * 100.0 / g_WilPackage.IndexCount()));
+                    if(currPercent != lastPercent){
+                        lastPercent = currPercent;
+                        g_ProgressBarWindow->SetValue(currPercent);
+                        g_ProgressBarWindow->Redraw();
+                        g_ProgressBarWindow->ShowAll();
+                        Fl::check();
+                    }
 
-                    auto imgIdx = (uint32_t)((intptr_t)(m_Browser->data(nIndex)));
-
+                    const auto imgIdx = (uint32_t)((intptr_t)(m_Browser->data(nIndex)));
                     g_WilPackage.SetIndex(imgIdx);
+
                     if(!g_WilPackage.CurrentImageValid()){
                         continue;
                     }
