@@ -41,6 +41,19 @@ InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget
           colorf::RGBA(0XFF, 0XFF, 0X00, 0X00),
           this,
       }
+    , m_nameBoard
+      {
+          27,
+          16,
+          u8"【背包】",
+
+          1,
+          12,
+          0,
+
+          colorf::WHITE,
+          this,
+      }
     , m_closeButton
       {
           242,
@@ -112,6 +125,7 @@ void InventoryBoard::drawEx(int nDstX, int nDstY, int, int, int, int)
         }
     }
 
+    m_nameBoard.draw();
     m_goldBoard.draw();
     m_closeButton.draw();
 }
