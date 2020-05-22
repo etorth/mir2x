@@ -23,8 +23,7 @@ decl {\#include "pngf.hpp"} {private local
 decl {\#include "wilimagepackage.hpp"} {private local
 }
 
-class MainWindow {open
-} {
+class MainWindow {} {
   Function {MainWindow()} {} {
     Fl_Window m_Window {
       label pkgviewer
@@ -32,7 +31,7 @@ class MainWindow {open
 	// don't exit directly
 	// exit(0);
 }}
-      private xywh {536 205 555 605} type Double labelfont 4
+      private xywh {2683 227 555 605} type Double labelfont 4 resizable
       code0 {\#include <FL/fl_ask.H>} visible
     } {
       Fl_Menu_Bar m_MenuBar {
@@ -385,7 +384,7 @@ if(g_WilPackage.CurrentImageValid()){
 	g_PreviewWindow->redraw();
 }
 }}
-        private xywh {0 20 555 570} type Hold labelfont 4 textfont 4
+        private xywh {0 20 555 570} type Hold labelfont 4 textfont 4 resizable
         code0 {\#include <algorithm>}
         code1 {\#include <FL/fl_draw.H>}
         code2 {\#include "previewwindow.hpp"}
