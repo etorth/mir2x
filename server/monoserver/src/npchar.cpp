@@ -159,8 +159,13 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npc)
 
 void NPChar::LuaNPCModule::setEvent(uint64_t uid, std::string event, std::string value)
 {
+    const auto fnCStr = [](const std::string &s) -> const char *
+    {
+        return s.empty() ? s.c_str() : "(empty)";
+    };
+
     if(!(uid && !event.empty())){
-        throw fflerror("invalid argument: uid = %llu, event = %s, value = %s", toLLU(uid), event.c_str(), value.c_str());
+        throw fflerror("invalid argument: uid = %llu, event = %s, value = %s", toLLU(uid), fnCStr(event), fnCStr(value));
     }
 
     if(event == SYS_NPCDONE){
@@ -170,14 +175,16 @@ void NPChar::LuaNPCModule::setEvent(uint64_t uid, std::string event, std::string
 
     const auto fnCheckCOResult = [this](const auto &result)
     {
-        if(!result.valid()){
-            sol::error err = result;
-            std::stringstream errStream(err.what());
+        if(result.valid()){
+            return;
+        }
 
-            std::string errLine;
-            while(std::getline(errStream, errLine, '\n')){
-                addLog(1, errLine.c_str());
-            }
+        const sol::error err = result;
+        std::stringstream errStream(err.what());
+
+        std::string errLine;
+        while(std::getline(errStream, errLine, '\n')){
+            addLog(1, errLine.c_str());
         }
     };
 
@@ -280,7 +287,22 @@ void NPChar::sendQuery(uint64_t uid, const std::string &queryName)
     }
 
     std::strcpy(amNPCQ.query, queryName.c_str());
-    m_actorPod->forward(uid, {MPK_NPCQUERY, amNPCQ});
+    m_actorPod->forward(uid, {MPK_NPCQUERY, amNPCQ}, [uid, this](const MessagePack &mpk)
+    {
+        switch(mpk.Type()){
+            case MPK_NPCEVENT:
+                {
+                    const auto amNPCE = mpk.conv<AMNPCEvent>();
+                    m_luaModule.setEvent(mpk.from(), amNPCE.event, amNPCE.value);
+                    return;
+                }
+            default:
+                {
+                    m_luaModule.close(uid);
+                    return;
+                }
+        }
+    });
 }
 
 void NPChar::sendXMLLayout(uint64_t uid, const char *xmlString)
