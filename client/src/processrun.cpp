@@ -420,7 +420,7 @@ void ProcessRun::draw()
         m_mousePixlLoc.drawEx(10, 30, 0, 0, m_mousePixlLoc.w(), m_mousePixlLoc.h());
     }
 
-    m_fpsBoard.setText("FPS: %zu", g_SDLDevice->getFPS());
+    m_fpsBoard.setText("FPS:%zu", g_SDLDevice->getFPS());
     m_fpsBoard.drawEx(g_SDLDevice->WindowW(false) - 60, 0, 0, 0, m_fpsBoard.w(), m_fpsBoard.h());
 }
 
