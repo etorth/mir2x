@@ -23,8 +23,10 @@
 
 static int cmd_help()
 {
-    std::printf("--help:\n");
+    std::printf("--help\n");
     std::printf("--create-db\n");
+    std::printf("--list\n");
+    std::printf("--decomp-db\n");
     std::printf("--input-data-dir\n");
     std::printf("--input-dict\n");
 
