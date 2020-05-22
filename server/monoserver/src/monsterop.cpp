@@ -210,7 +210,7 @@ void Monster::On_MPK_QUERYLOCATION(const MessagePack &rstMPK)
     stAML.Y         = Y();
     stAML.Direction = Direction();
 
-    m_actorPod->forward(rstMPK.From(), {MPK_LOCATION, stAML}, rstMPK.ID());
+    m_actorPod->forward(rstMPK.from(), {MPK_LOCATION, stAML}, rstMPK.ID());
 }
 
 void Monster::On_MPK_UPDATEHP(const MessagePack &)
@@ -253,7 +253,7 @@ void Monster::On_MPK_OFFLINE(const MessagePack &rstMPK)
 
 void Monster::On_MPK_CHECKMASTER(const MessagePack &rstMPK)
 {
-    m_actorPod->forward(rstMPK.From(), MPK_OK, rstMPK.ID());
+    m_actorPod->forward(rstMPK.from(), MPK_OK, rstMPK.ID());
 }
 
 void Monster::On_MPK_QUERYMASTER(const MessagePack &rstMPK)
@@ -262,7 +262,7 @@ void Monster::On_MPK_QUERYMASTER(const MessagePack &rstMPK)
     std::memset(&stAMUID, 0, sizeof(stAMUID));
 
     stAMUID.UID = MasterUID() ? MasterUID() : UID();
-    m_actorPod->forward(rstMPK.From(), {MPK_UID, stAMUID}, rstMPK.ID());
+    m_actorPod->forward(rstMPK.from(), {MPK_UID, stAMUID}, rstMPK.ID());
 }
 
 void Monster::On_MPK_QUERYFINALMASTER(const MessagePack &rstMPK)
@@ -273,7 +273,7 @@ void Monster::On_MPK_QUERYFINALMASTER(const MessagePack &rstMPK)
         std::memset(&stAMUID, 0, sizeof(stAMUID));
 
         stAMUID.UID = nFMasterUID;
-        m_actorPod->forward(rstMPK.From(), {MPK_UID, stAMUID}, rstMPK.ID());
+        m_actorPod->forward(rstMPK.from(), {MPK_UID, stAMUID}, rstMPK.ID());
     });
 }
 
@@ -288,7 +288,7 @@ void Monster::On_MPK_QUERYFRIENDTYPE(const MessagePack &rstMPK)
         std::memset(&stAMFT, 0, sizeof(stAMFT));
 
         stAMFT.Type = nFriendType;
-        m_actorPod->forward(rstMPK.From(), {MPK_FRIENDTYPE, stAMFT}, rstMPK.ID());
+        m_actorPod->forward(rstMPK.from(), {MPK_FRIENDTYPE, stAMFT}, rstMPK.ID());
     });
 }
 
@@ -298,12 +298,12 @@ void Monster::On_MPK_QUERYNAMECOLOR(const MessagePack &rstMPK)
     std::memset(&stAMNC, 0, sizeof(stAMNC));
 
     stAMNC.Color = 'W';
-    m_actorPod->forward(rstMPK.From(), {MPK_NAMECOLOR, stAMNC}, rstMPK.ID());
+    m_actorPod->forward(rstMPK.from(), {MPK_NAMECOLOR, stAMNC}, rstMPK.ID());
 }
 
 void Monster::On_MPK_MASTERKILL(const MessagePack &rstMPK)
 {
-    if(MasterUID() && (rstMPK.From() == MasterUID())){
+    if(MasterUID() && (rstMPK.from() == MasterUID())){
         GoDie();
     }
 }

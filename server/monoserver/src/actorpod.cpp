@@ -77,7 +77,7 @@ void ActorPod::InnHandler(const MessagePack &rstMPK)
 {
     if(g_serverArgParser->TraceActorMessage){
         g_monoServer->addLog(LOGTYPE_DEBUG, "%s <- %s : (Type: %s, ID: %" PRIu32 ", Resp: %" PRIu32 ")",
-                uidf::getUIDString(UID()).c_str(), uidf::getUIDString(rstMPK.From()).c_str(), rstMPK.Name(), rstMPK.ID(), rstMPK.Respond());
+                uidf::getUIDString(UID()).c_str(), uidf::getUIDString(rstMPK.from()).c_str(), rstMPK.Name(), rstMPK.ID(), rstMPK.Respond());
     }
 
     if(m_expireTime){
@@ -117,7 +117,7 @@ void ActorPod::InnHandler(const MessagePack &rstMPK)
                 }
             }else{
                 throw fflerror("%s <- %s : (Type: %s, ID: %" PRIu32 ", Resp: %" PRIu32 "): Response handler not executable",
-                        uidf::getUIDString(UID()).c_str(), uidf::getUIDString(rstMPK.From()).c_str(), rstMPK.Name(), rstMPK.ID(), rstMPK.Respond());
+                        uidf::getUIDString(UID()).c_str(), uidf::getUIDString(rstMPK.from()).c_str(), rstMPK.Name(), rstMPK.ID(), rstMPK.Respond());
             }
             m_respondHandlerGroup.erase(p);
         }else{
@@ -137,7 +137,7 @@ void ActorPod::InnHandler(const MessagePack &rstMPK)
             // shoud I make it fatal?
             // we may get a lot warning message here
             throw fflerror("%s <- %s : (Type: %s, ID: %" PRIu32 ", Resp: %" PRIu32 "): Message handler not executable",
-                    uidf::getUIDString(UID()).c_str(), uidf::getUIDString(rstMPK.From()).c_str(), rstMPK.Name(), rstMPK.ID(), rstMPK.Respond());
+                    uidf::getUIDString(UID()).c_str(), uidf::getUIDString(rstMPK.from()).c_str(), rstMPK.Name(), rstMPK.ID(), rstMPK.Respond());
         }
     }
 

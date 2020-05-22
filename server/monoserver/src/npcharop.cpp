@@ -38,7 +38,7 @@ void NPChar::On_MPK_ACTION(const MessagePack &mpk)
 
 void NPChar::On_MPK_NPCEVENT(const MessagePack &mpk)
 {
-    if(!mpk.From()){
+    if(!mpk.from()){
         throw fflerror("NPC event comes from zero uid");
     }
 
@@ -48,7 +48,7 @@ void NPChar::On_MPK_NPCEVENT(const MessagePack &mpk)
     // it's sent by NPC itself
 
     if(std::string(amNPCE.event) == SYS_NPCQUERY || std::string(amNPCE.event) == SYS_NPCDONE){
-        m_luaModule.setEvent(mpk.From(), amNPCE.event, amNPCE.value);
+        m_luaModule.setEvent(mpk.from(), amNPCE.event, amNPCE.value);
         return;
     }
 
@@ -57,18 +57,18 @@ void NPChar::On_MPK_NPCEVENT(const MessagePack &mpk)
         std::memset(&amNPCE, 0, sizeof(amNPCE));
 
         amNPCE.errorID = NPCE_TOOFAR;
-        m_actorPod->forward(mpk.From(), {MPK_NPCERROR, amNPCE});
+        m_actorPod->forward(mpk.from(), {MPK_NPCERROR, amNPCE});
 
-        m_luaModule.close(mpk.From());
+        m_luaModule.close(mpk.from());
         return;
     }
-    m_luaModule.setEvent(mpk.From(), amNPCE.event, amNPCE.value);
+    m_luaModule.setEvent(mpk.from(), amNPCE.event, amNPCE.value);
 }
 
 void NPChar::On_MPK_NOTIFYNEWCO(const MessagePack &mpk)
 {
-    if(uidf::getUIDType(mpk.From()) == UID_PLY){
-        DispatchAction(mpk.From(), ActionStand(X(), Y(), Direction()));
+    if(uidf::getUIDType(mpk.from()) == UID_PLY){
+        DispatchAction(mpk.from(), ActionStand(X(), Y(), Direction()));
     }
 }
 
@@ -92,5 +92,5 @@ void NPChar::On_MPK_QUERYLOCATION(const MessagePack &mpk)
     stAML.Y         = Y();
     stAML.Direction = Direction();
 
-    m_actorPod->forward(mpk.From(), {MPK_LOCATION, stAML}, mpk.ID());
+    m_actorPod->forward(mpk.from(), {MPK_LOCATION, stAML}, mpk.ID());
 }

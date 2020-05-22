@@ -306,7 +306,7 @@ void Player::On_MPK_NPCQUERY(const MessagePack &mpk)
     }
 
     std::strcpy(amNPCE.event, SYS_NPCQUERY);
-    m_actorPod->forward(mpk.From(), {MPK_NPCEVENT, amNPCE}, mpk.ID());
+    m_actorPod->forward(mpk.from(), {MPK_NPCEVENT, amNPCE}, mpk.ID());
 }
 
 void Player::On_MPK_QUERYLOCATION(const MessagePack &rstMPK)
@@ -320,7 +320,7 @@ void Player::On_MPK_QUERYLOCATION(const MessagePack &rstMPK)
     stAML.Y         = Y();
     stAML.Direction = Direction();
 
-    m_actorPod->forward(rstMPK.From(), {MPK_LOCATION, stAML}, rstMPK.ID());
+    m_actorPod->forward(rstMPK.from(), {MPK_LOCATION, stAML}, rstMPK.ID());
 }
 
 void Player::On_MPK_ATTACK(const MessagePack &rstMPK)
@@ -438,15 +438,15 @@ void Player::On_MPK_SHOWDROPITEM(const MessagePack &rstMPK)
 
 void Player::On_MPK_NPCXMLLAYOUT(const MessagePack &msg)
 {
-    if(uidf::getUIDType(msg.From()) != UID_NPC){
-        throw fflerror("actor message AMNPCXMLLayout from %s", uidf::getUIDTypeString(msg.From()));
+    if(uidf::getUIDType(msg.from()) != UID_NPC){
+        throw fflerror("actor message AMNPCXMLLayout from %s", uidf::getUIDTypeString(msg.from()));
     }
 
     const auto amNPCXMLL = msg.conv<AMNPCXMLLayout>();
     SMNPCXMLLayout smNPCXMLL;
     std::memset(&smNPCXMLL, 0, sizeof(smNPCXMLL));
 
-    smNPCXMLL.NPCUID = msg.From();
+    smNPCXMLL.NPCUID = msg.from();
     if(std::strlen(amNPCXMLL.xmlLayout) >= sizeof(smNPCXMLL.xmlLayout)){
         throw fflerror("actor message is too long: %zu", std::strlen(amNPCXMLL.xmlLayout));
     }
@@ -567,6 +567,6 @@ void Player::On_MPK_NOTIFYDEAD(const MessagePack &)
 
 void Player::On_MPK_CHECKMASTER(const MessagePack &rstMPK)
 {
-    m_slaveList.insert(rstMPK.From());
-    m_actorPod->forward(rstMPK.From(), MPK_OK, rstMPK.ID());
+    m_slaveList.insert(rstMPK.from());
+    m_actorPod->forward(rstMPK.from(), MPK_OK, rstMPK.ID());
 }

@@ -372,7 +372,7 @@ bool CharObject::RequestMove(int nX, int nY, int nSpeed, bool bAllowHalfMove, bo
                     }
 
                     if(!CanMove()){
-                        m_actorPod->forward(rstMPK.From(), MPK_ERROR, rstMPK.ID());
+                        m_actorPod->forward(rstMPK.from(), MPK_ERROR, rstMPK.ID());
                         fnOnMoveError();
                         return;
                     }
@@ -386,7 +386,7 @@ bool CharObject::RequestMove(int nX, int nY, int nSpeed, bool bAllowHalfMove, bo
                     m_direction = PathFind::GetDirection(nOldX, nOldY, X(), Y());
                     m_lastMoveTime = g_monoServer->getCurrTick();
 
-                    m_actorPod->forward(rstMPK.From(), MPK_OK, rstMPK.ID());
+                    m_actorPod->forward(rstMPK.from(), MPK_OK, rstMPK.ID());
                     DispatchAction(ActionMove(nOldX, nOldY, X(), Y(), nSpeed, Horse()));
                     SortInViewCO();
 
@@ -439,7 +439,7 @@ bool CharObject::RequestSpaceMove(uint32_t mapID, int nX, int nY, bool bStrictMo
                     // dst map already says OK for current move
 
                     if(!CanMove()){
-                        m_actorPod->forward(rstRMPK.From(), MPK_ERROR, rstRMPK.ID());
+                        m_actorPod->forward(rstRMPK.from(), MPK_ERROR, rstRMPK.ID());
                         fnOnMoveError();
                         return;
                     }
@@ -467,7 +467,7 @@ bool CharObject::RequestSpaceMove(uint32_t mapID, int nX, int nY, bool bStrictMo
                                     std::memcpy(&stAMSMOK, rstRMPK.Data(), sizeof(stAMSMOK));
 
                                     if(!CanMove()){
-                                        m_actorPod->forward(rstRMPK.From(), MPK_ERROR, rstRMPK.ID());
+                                        m_actorPod->forward(rstRMPK.from(), MPK_ERROR, rstRMPK.ID());
                                         fnOnMoveError();
                                         return;
                                     }
@@ -482,7 +482,7 @@ bool CharObject::RequestSpaceMove(uint32_t mapID, int nX, int nY, bool bStrictMo
                                     m_map = (ServerMap *)(stAMSMOK.Ptr);
 
                                     m_lastMoveTime = g_monoServer->getCurrTick();
-                                    m_actorPod->forward(rstRMPK.From(), MPK_OK, rstRMPK.ID());
+                                    m_actorPod->forward(rstRMPK.from(), MPK_OK, rstRMPK.ID());
 
                                     //  dispatch/report space move part 2 on new map
                                     DispatchAction(ActionSpaceMove2(X(), Y(), Direction()));
@@ -493,7 +493,7 @@ bool CharObject::RequestSpaceMove(uint32_t mapID, int nX, int nY, bool bStrictMo
                                 }
                             default:
                                 {
-                                    m_actorPod->forward(rstRMPK.From(), MPK_ERROR, rstRMPK.ID());
+                                    m_actorPod->forward(rstRMPK.from(), MPK_ERROR, rstRMPK.ID());
                                     fnOnMoveError();
                                     return;
                                 }

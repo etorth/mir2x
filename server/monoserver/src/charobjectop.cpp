@@ -31,6 +31,6 @@ void CharObject::On_MPK_QUERYFRIENDTYPE(const MessagePack &rstMPK)
         std::memset(&stAMFT, 0, sizeof(stAMFT));
 
         stAMFT.Type = nFriendType;
-        m_actorPod->forward(rstMPK.From(), {MPK_FRIENDTYPE, stAMFT}, rstMPK.ID());
+        m_actorPod->forward(rstMPK.from(), {MPK_FRIENDTYPE, stAMFT}, rstMPK.ID());
     });
 }

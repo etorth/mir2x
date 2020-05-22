@@ -56,7 +56,7 @@ MessagePack SyncDriver::forward(uint64_t nUID, const MessageBuf &rstMB, uint32_t
         std::memset(&stAMBAP, 0, sizeof(stAMBAP));
 
         stAMBAP.Type    = rstMB.Type();
-        stAMBAP.From    = UID();
+        stAMBAP.from    = UID();
         stAMBAP.ID      = nCurrID;
         stAMBAP.Respond = nRespond;
 

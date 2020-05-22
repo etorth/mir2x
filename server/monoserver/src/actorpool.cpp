@@ -500,7 +500,7 @@ void ActorPool::ClearOneMailbox(Mailbox *pMailbox)
     }
 
     for(auto pMPK = pMailbox->CurrQ.begin(); pMPK != pMailbox->CurrQ.end(); ++pMPK){
-        if(pMPK->From()){
+        if(pMPK->from()){
             AMBadActorPod stAMBAP;
             std::memset(&stAMBAP, 0, sizeof(stAMBAP));
 
@@ -508,12 +508,12 @@ void ActorPool::ClearOneMailbox(Mailbox *pMailbox)
             // have to know this mailbox's UID, should I move Monitor::UID to Mailbox::UID ?
 
             stAMBAP.Type    = pMPK->Type();
-            stAMBAP.From    = pMPK->From();
+            stAMBAP.from    = pMPK->from();
             stAMBAP.ID      = pMPK->ID();
             stAMBAP.Respond = pMPK->Respond();
             stAMBAP.UID     = pMailbox->Monitor.UID;
 
-            PostMessage(pMPK->From(), {MessageBuf(MPK_BADACTORPOD, stAMBAP), 0, 0, pMPK->ID()});
+            PostMessage(pMPK->from(), {MessageBuf(MPK_BADACTORPOD, stAMBAP), 0, 0, pMPK->ID()});
         }
     }
     pMailbox->CurrQ.clear();

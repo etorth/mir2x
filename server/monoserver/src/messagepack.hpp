@@ -80,12 +80,12 @@ template<size_t StaticBufferLength = 64> class InnMessagePack final
         {}
 
         InnMessagePack(const InnMessagePack &rstMPK)
-            : InnMessagePack(rstMPK.Type(), rstMPK.Data(), rstMPK.DataLen(), rstMPK.From(), rstMPK.ID(), rstMPK.Respond())
+            : InnMessagePack(rstMPK.Type(), rstMPK.Data(), rstMPK.DataLen(), rstMPK.from(), rstMPK.ID(), rstMPK.Respond())
         {}
 
         InnMessagePack(InnMessagePack &&rstMPK)
             : m_type(rstMPK.Type())
-            , m_from(rstMPK.From())
+            , m_from(rstMPK.from())
             , m_ID(rstMPK.ID())
             , m_respond(rstMPK.Respond())
         {
@@ -203,7 +203,7 @@ template<size_t StaticBufferLength = 64> class InnMessagePack final
             return DataLen();
         }
 
-        uint64_t From() const
+        uint64_t from() const
         {
             return m_from;
         }
