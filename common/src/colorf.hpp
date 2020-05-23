@@ -103,6 +103,7 @@ namespace colorf
 
     constexpr uint32_t BLACK   = RGBA(0X00, 0X00, 0X00, 0X00);
     constexpr uint32_t WHITE   = RGBA(0XFF, 0XFF, 0XFF, 0X00);
+    constexpr uint32_t GREY    = RGBA(0X80, 0X80, 0X80, 0X00);
     constexpr uint32_t YELLOW  = RGBA(0XFF, 0XFF, 0X00, 0X00);
     constexpr uint32_t PURPLE  = RGBA(0XAB, 0X27, 0X4F, 0X00);
 

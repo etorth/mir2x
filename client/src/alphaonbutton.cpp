@@ -32,6 +32,7 @@ AlphaOnButton::AlphaOnButton(
         int onOffY,
         int onRadius,
 
+        uint8_t alphaMod,
         uint32_t onColor,
         uint32_t downTexID,
 
@@ -60,6 +61,7 @@ AlphaOnButton::AlphaOnButton(
           pwidget,
           autoDelete,
       }
+    , m_alphaMod(alphaMod)
     , m_onColor(onColor)
     , m_texID(downTexID)
     , m_onOffX(onOffX)
@@ -87,6 +89,9 @@ void AlphaOnButton::drawEx(int dstX, int dstY, int, int, int, int)
                     throw fflerror("can't get round cover: radius = %llu", toLLU(m_onRadius));
                 }
 
+                SDL_SetTextureColorMod(texPtr, colorf::R(m_onColor), colorf::G(m_onColor), colorf::B(m_onColor));
+                SDL_SetTextureAlphaMod(texPtr, m_alphaMod);
+                SDLDevice::EnableDrawBlendMode enableDrawBlendMode(SDL_BLENDMODE_BLEND);
                 g_SDLDevice->DrawTexture(texPtr, dstX + m_onOffX, dstY + m_onOffY);
                 break;
             }

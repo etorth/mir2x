@@ -17,6 +17,8 @@
  */
 
 #pragma once
+#include <cstdint>
+#include <functional>
 #include "pngtexdb.hpp"
 #include "sdldevice.hpp"
 #include "buttonbase.hpp"
@@ -24,6 +26,7 @@
 class AlphaOnButton: public ButtonBase
 {
     private:
+        uint8_t m_alphaMod;
         uint32_t m_onColor;
 
     private:
@@ -43,6 +46,7 @@ class AlphaOnButton: public ButtonBase
                 int,
                 int,
 
+                uint8_t,
                 uint32_t,
                 uint32_t,
 

@@ -141,14 +141,15 @@ ControlBoard::ControlBoard(int startY, int boardW, ProcessRun *pRun)
 
     , m_buttonExchange
       {
-          3,
-          3,
+          4,
+          6,
 
-          0,
-          0,
-          12,
+          1,
+          1,
+          10,
 
-          colorf::RED,
+          80,
+          colorf::WHITE,
           0X00000042,
 
           nullptr,
@@ -163,14 +164,15 @@ ControlBoard::ControlBoard(int startY, int boardW, ProcessRun *pRun)
 
     , m_buttonMiniMap
       {
-          3,
-          3,
+          4,
+          40,
 
-          0,
-          0,
-          12,
+          1,
+          1,
+          10,
 
-          colorf::RED,
+          80,
+          colorf::WHITE,
           0X00000043,
 
           nullptr,
@@ -185,14 +187,15 @@ ControlBoard::ControlBoard(int startY, int boardW, ProcessRun *pRun)
 
     , m_buttonMagicKey
       {
-          3,
-          3,
+          4,
+          75,
 
-          0,
-          0,
-          12,
+          1,
+          1,
+          10,
 
-          colorf::RED,
+          80,
+          colorf::WHITE,
           0X00000044,
 
           nullptr,

@@ -521,7 +521,7 @@ SDL_Texture *SDLDevice::getCover(int r)
     for(int y = 0; y < h; ++y){
         for(int x = 0; x < w; ++x){
             const int currR2 = (x - r + 1) * (x - r + 1) + (y - r + 1) * (y - r + 1);
-            const uint8_t alpha = []() -> uint8_t
+            const uint8_t alpha = [currR2, r]() -> uint8_t
             {
                 if(g_clientArgParser->debugAlphaCover){
                     return 255;
