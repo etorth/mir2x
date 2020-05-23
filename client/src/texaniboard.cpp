@@ -88,8 +88,8 @@ void TexAniBoard::drawEx(int dstX, int dstY, int, int, int, int)
     auto currTexPtr = g_progUseDB->Retrieve(currTexId);
     auto nextTexPtr = g_progUseDB->Retrieve(nextTexId);
 
-    SDL_SetTextureAlphaMod(currTexPtr,       alpha);
-    SDL_SetTextureAlphaMod(nextTexPtr, 255 - alpha);
+    SDL_SetTextureAlphaMod(currTexPtr, 255 - alpha);
+    SDL_SetTextureAlphaMod(nextTexPtr,       alpha);
 
     g_SDLDevice->DrawTexture(currTexPtr, dstX, dstY);
     g_SDLDevice->DrawTexture(nextTexPtr, dstX, dstY);
