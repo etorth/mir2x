@@ -17,10 +17,10 @@
  */
 
 #pragma once
-#include <map>
 #include <array>
 #include <vector>
 #include <algorithm>
+#include <unordered_map>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 #include "colorf.hpp"
