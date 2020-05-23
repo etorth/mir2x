@@ -31,6 +31,7 @@
 #include "wmdaniboard.hpp"
 #include "tritexbutton.hpp"
 #include "alphaonbutton.hpp"
+#include "quickaccessbutton.hpp"
 
 enum
 {
@@ -59,6 +60,9 @@ class ControlBoard: public Widget
         WidgetGroup m_left;
         WidgetGroup m_middle;
         WidgetGroup m_right;
+
+    private:
+        QuickAccessButton m_buttonQuickAccess;
 
     private:
         TritexButton m_buttonClose;
