@@ -17,14 +17,19 @@
  */
 
 #pragma once
+#include <cstdint>
+#include <functional>
 #include "widget.hpp"
 #include "buttonbase.hpp"
 
-class QuickAccessButton: public 
+class QuickAccessButton: public ButtonBase
 {
-    public:
-        QuickAccessButton();
+    private:
+        constexpr static uint32_t m_texID = 0X00000045;
 
     public:
-        void drawEx(int, int, int, int, int, int);
+        QuickAccessButton(const std::function<void()> &, Widget * pwidget = nullptr, bool autoDelete = false);
+
+    public:
+        void drawEx(int, int, int, int, int, int) override;
 };

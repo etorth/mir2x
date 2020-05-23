@@ -103,6 +103,15 @@ ControlBoard::ControlBoard(int startY, int boardW, ProcessRun *pRun)
           this,
       }
 
+    , m_buttonQuickAccess
+      {
+          [this]()
+          {
+              addLog(1, "not implemented yet");
+          },
+          &m_left,
+      }
+
     , m_buttonClose
       {
           8,
