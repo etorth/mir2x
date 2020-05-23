@@ -256,11 +256,11 @@ ControlBoard::ControlBoard(int startY, int boardW, ProcessRun *pRun)
 
     , m_arcAniBoard
       {
-          0,
-          0,
+          (boardW - 178 - 166) / 2 - 18,
+         -13,
           0X04000000,
           4,
-          20,
+          1,
           true,
           true,
           &m_middle,
@@ -360,10 +360,11 @@ ControlBoard::ControlBoard(int startY, int boardW, ProcessRun *pRun)
     m_levelBox.moveTo((w() - 178 - 166 - m_levelBox.w()) / 2, 4 - m_levelBox.h() / 2);
 }
 
-void ControlBoard::update(double fMS)
+void ControlBoard::update(double fUpdateTime)
 {
-    m_cmdLine.update(fMS);
-    m_logBoard.update(fMS);
+    m_cmdLine.update(fUpdateTime);
+    m_logBoard.update(fUpdateTime);
+    m_arcAniBoard.update(fUpdateTime);
 }
 
 void ControlBoard::drawLeft()
@@ -499,14 +500,11 @@ void ControlBoard::drawMiddleDefault()
     }
 
     // draw title
-    if(auto pTexture = g_progUseDB->Retrieve(0X00000022)){
-        int titleW = -1;
-        int titleH = -1;
-
-        SDL_QueryTexture(pTexture, 0, 0, &titleW, &titleH);
+    if(auto texPtr = g_progUseDB->Retrieve(0X00000022)){
+        const auto [titleW, titleH] = SDLDevice::getTextureSize(texPtr);
         const int titleDstX = 178 + (nW0 - 178 - 166 - titleW) / 2;
         const int titleDstY = nY0 - 19;
-        g_SDLDevice->DrawTexture(pTexture, titleDstX, titleDstY);
+        g_SDLDevice->DrawTexture(texPtr, titleDstX, titleDstY);
     }
 
     m_arcAniBoard.draw();
@@ -764,6 +762,7 @@ void ControlBoard::setButtonLoc()
     if(m_expand){
         m_buttonSwitchMode.moveTo(boardW - 178 - 181, 3 - modeDiffY);
         m_levelBox.moveTo((boardW - 178 - 166 - m_levelBox.w()) / 2, 4 - m_levelBox.h() / 2 - modeDiffY);
+        m_arcAniBoard.moveTo((boardW - 178 - 166 - m_arcAniBoard.w()) / 2, -13 - modeDiffY);
 
         m_buttonEmoji.moveTo(boardW - 178 - 260, 87);
         m_buttonMute .moveTo(boardW - 178 - 220, 87);
@@ -771,6 +770,7 @@ void ControlBoard::setButtonLoc()
     else{
         m_buttonSwitchMode.moveTo(boardW - 178 - 181, 3);
         m_levelBox.moveTo((boardW - 178 - 166 - m_levelBox.w()) / 2, 4 - m_levelBox.h() / 2);
+        m_arcAniBoard.moveTo((boardW - 178 - 166 - m_arcAniBoard.w()) / 2, -13);
     }
 }
 

@@ -16,6 +16,7 @@
  */
 
 #include <numeric>
+#include "fflerror.hpp"
 #include "pngtexdb.hpp"
 #include "sdldevice.hpp"
 #include "texaniboard.hpp"
@@ -30,8 +31,26 @@ TexAniBoard::TexAniBoard(int x, int y, uint32_t texID, size_t frameCount, size_t
     , m_loop(loop)
     , m_fadeInout(fadeInout)
 {
-    m_texSeq.resize(frameCount);
-    std::iota(m_texSeq.begin(), m_texSeq.end(), texID);
+    m_texSeq.reserve(frameCount);
+
+    int maxW = -1;
+    int maxH = -1;
+
+    for(uint32_t id = texID; id < texID + frameCount; ++id){
+        if(auto texPtr = g_progUseDB->Retrieve(id)){
+            const auto [texW, texH] = SDLDevice::getTextureSize(texPtr);
+            maxW = std::max<int>(maxW, texW);
+            maxH = std::max<int>(maxH, texH);
+            m_texSeq.push_back(id);
+        }
+    }
+
+    if(m_texSeq.empty()){
+        // throw fflerror("empty animation");
+    }
+
+    m_w = maxW;
+    m_h = maxH;
 }
 
 void TexAniBoard::update(double fUpdateTime)
