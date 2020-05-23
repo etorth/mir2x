@@ -22,7 +22,7 @@
 class TexAniBoard: public Widget
 {
     private:
-        size_t m_fps;
+        double m_fps;
         double m_accuTime;
 
     private:
@@ -33,7 +33,7 @@ class TexAniBoard: public Widget
         std::vector<uint32_t> m_texSeq;
 
     public:
-        TexAniBoard(int, int, uint32_t, size_t, size_t, bool, bool loop = true, Widget * pwidget = nullptr, bool autoDelete = false);
+        TexAniBoard(int, int, uint32_t, size_t, double, bool, bool loop = true, Widget * pwidget = nullptr, bool autoDelete = false);
 
     public:
         void update(double) override;

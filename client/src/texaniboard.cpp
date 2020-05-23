@@ -15,6 +15,7 @@
  * =====================================================================================
  */
 
+#include <cfloat>
 #include <numeric>
 #include "fflerror.hpp"
 #include "pngtexdb.hpp"
@@ -24,9 +25,9 @@
 extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_SDLDevice;
 
-TexAniBoard::TexAniBoard(int x, int y, uint32_t texID, size_t frameCount, size_t fps, bool fadeInout, bool loop, Widget *pwidget, bool autoDelete)
+TexAniBoard::TexAniBoard(int x, int y, uint32_t texID, size_t frameCount, double fps, bool fadeInout, bool loop, Widget *pwidget, bool autoDelete)
     : Widget(x, y, 0, 0, pwidget, autoDelete)
-    , m_fps(fps)
+    , m_fps(std::max<double>(fps, 0.0))
     , m_accuTime(0.0)
     , m_loop(loop)
     , m_fadeInout(fadeInout)
@@ -60,7 +61,7 @@ void TexAniBoard::update(double fUpdateTime)
 
 void TexAniBoard::drawEx(int dstX, int dstY, int, int, int, int)
 {
-    const double frameTime = 1000.0 / m_fps;
+    const double frameTime = 1000.0 / (m_fps + DBL_EPSILON);
     const auto frame = [frameTime, this]() -> int
     {
         const auto frame = std::lround(std::floor(m_accuTime / frameTime));
