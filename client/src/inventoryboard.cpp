@@ -43,8 +43,8 @@ InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget
 
     , m_wmdAniBoard
       {
-          0,
-          0,
+          23,
+          14,
           this,
       }
 
@@ -103,6 +103,11 @@ void InventoryBoard::drawItem(int nDstX, int nDstY, const PackBin &rstBin)
     }
 }
 
+void InventoryBoard::update(double fUpdateTime)
+{
+    m_wmdAniBoard.update(fUpdateTime);
+}
+
 void InventoryBoard::drawEx(int nDstX, int nDstY, int, int, int, int)
 {
     if(auto pTexture = g_progUseDB->Retrieve(0X0000001B)){
@@ -119,8 +124,8 @@ void InventoryBoard::drawEx(int nDstX, int nDstY, int, int, int, int)
         }
     }
 
-    m_wmdAniBoard.draw();
     m_goldBoard.draw();
+    m_wmdAniBoard.draw();
     m_closeButton.draw();
 }
 

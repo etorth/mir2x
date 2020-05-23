@@ -63,6 +63,8 @@ class ControlBoard: public Widget
         TritexButton m_buttonClose;
         TritexButton m_buttonMinize;
         TritexButton m_buttonInventory;
+        TritexButton m_buttonHeroStatus;
+        TritexButton m_buttonHeroMagic;
         TritexButton m_buttonSwitchMode;
 
     private:

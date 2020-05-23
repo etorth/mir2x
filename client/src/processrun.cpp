@@ -132,6 +132,7 @@ void ProcessRun::update(double fUpdateTime)
     scrollMap();
     m_controlBoard.update(fUpdateTime);
     m_NPCChatBoard.update(fUpdateTime);
+    m_inventoryBoard.update(fUpdateTime);
 
     getMyHero()->update(fUpdateTime);
     const int myHeroX = getMyHero()->x();

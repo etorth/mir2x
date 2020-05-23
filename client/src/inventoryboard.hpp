@@ -46,10 +46,9 @@ class InventoryBoard: public Widget
         void drawItem(int, int, const PackBin &);
 
     public:
-        void drawEx(int, int, int, int, int, int);
-
-    public:
-        bool processEvent(const SDL_Event &, bool);
+        void update(double) override;
+        void drawEx(int, int, int, int, int, int) override;
+        bool processEvent(const SDL_Event &, bool) override;
 
     private:
         std::string getGoldStr() const;

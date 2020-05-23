@@ -162,6 +162,52 @@ ControlBoard::ControlBoard(int startY, int boardW, ProcessRun *pRun)
           &m_right,
       }
 
+    , m_buttonHeroStatus
+      {
+          77,
+          31,
+          {SYS_TEXNIL, 0X00000033, 0X00000032},
+
+          nullptr,
+          [this]()
+          {
+              if(auto p = m_processRun->getWidget("InventoryBoard")){
+                  p->show(!p->show());
+              }
+          },
+
+          0,
+          0,
+          0,
+          0,
+
+          true,
+          &m_right,
+      }
+
+    , m_buttonHeroMagic
+      {
+          105,
+          33,
+          {SYS_TEXNIL, 0X00000035, 0X00000034},
+
+          nullptr,
+          [this]()
+          {
+              if(auto p = m_processRun->getWidget("InventoryBoard")){
+                  p->show(!p->show());
+              }
+          },
+
+          0,
+          0,
+          0,
+          0,
+
+          true,
+          &m_right,
+      }
+
     , m_buttonSwitchMode
       {
           boardW - 178 - 181,
@@ -260,7 +306,7 @@ ControlBoard::ControlBoard(int startY, int boardW, ProcessRun *pRun)
          -13,
           0X04000000,
           4,
-          1.0,
+          0.5,
           true,
           true,
           &m_middle,
@@ -437,6 +483,8 @@ void ControlBoard::drawRight()
     }
 
     m_buttonInventory.draw();
+    m_buttonHeroStatus.draw();
+    m_buttonHeroMagic.draw();
 }
 
 std::tuple<int, int> ControlBoard::scheduleStretch(int dstSize, int srcSize)
@@ -636,6 +684,8 @@ bool ControlBoard::processEvent(const SDL_Event &event, bool valid)
     takeEvent |= m_buttonClose     .processEvent(event, valid && !takeEvent);
     takeEvent |= m_buttonMinize    .processEvent(event, valid && !takeEvent);
     takeEvent |= m_buttonInventory .processEvent(event, valid && !takeEvent);
+    takeEvent |= m_buttonHeroStatus.processEvent(event, valid && !takeEvent);
+    takeEvent |= m_buttonHeroMagic .processEvent(event, valid && !takeEvent);
     takeEvent |= m_buttonSwitchMode.processEvent(event, valid && !takeEvent);
 
     if(m_expand){
