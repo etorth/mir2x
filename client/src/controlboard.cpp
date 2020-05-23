@@ -110,7 +110,10 @@ ControlBoard::ControlBoard(int startY, int boardW, ProcessRun *pRun)
           {SYS_TEXNIL, 0X0000001E, 0X0000001F},
 
           nullptr,
-          [](){ std::exit(0); },
+          []()
+          {
+              std::exit(0);
+          },
 
           0,
           0,
