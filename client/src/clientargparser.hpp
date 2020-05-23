@@ -30,6 +30,7 @@ struct ClientArgParser
     const bool enableClientMonitor;     // "--enable-client-monitor"
     const bool drawTokenFrame;          // "--draw-token-frame"
     const bool drawBoardFrame;          // "--draw-board-frame"
+    const bool debugAlphaCover;         // "--debug-alpha-cover"
 
     bool traceMove;
 
@@ -42,6 +43,7 @@ struct ClientArgParser
         , enableClientMonitor(cmdParser["enable-client-monitor"])
         , drawTokenFrame(cmdParser["draw-token-frame"])
         , drawBoardFrame(cmdParser["draw-board-frame"])
+        , debugAlphaCover(cmdParser["debug-alpha-cover"])
         , traceMove(cmdParser["trace-move"])
     {}
 };

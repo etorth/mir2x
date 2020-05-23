@@ -27,9 +27,11 @@
 #include "xmlconf.hpp"
 #include "fflerror.hpp"
 #include "sdldevice.hpp"
+#include "clientargparser.hpp"
 
 extern Log *g_log;
 extern SDLDevice *g_SDLDevice;
+extern ClientArgParser *g_clientArgParser;
 
 SDLDevice::RenderNewFrame::RenderNewFrame()
 {
@@ -519,7 +521,13 @@ SDL_Texture *SDLDevice::getCover(int r)
     for(int y = 0; y < h; ++y){
         for(int x = 0; x < w; ++x){
             const int currR2 = (x - r + 1) * (x - r + 1) + (y - r + 1) * (y - r + 1);
-            const uint8_t alpha = 255 - std::min<uint8_t>(255, std::lround(255.0 * currR2 / (r * r)));
+            const uint8_t alpha = []() -> uint8_t
+            {
+                if(g_clientArgParser->debugAlphaCover){
+                    return 255;
+                }
+                return 255 - std::min<uint8_t>(255, std::lround(255.0 * currR2 / (r * r)));
+            }();
             if(currR2 < r * r){
                 buf[x + y * w] = colorf::RGBA(0XFF, 0XFF, 0XFF, alpha);
             }
