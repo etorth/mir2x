@@ -31,6 +31,7 @@ class InventoryBoard: public Widget
 {
     private:
         LabelBoard m_goldBoard;
+        LabelBoard m_opNameBoard;
         WMDAniBoard m_wmdAniBoard;
 
     private:

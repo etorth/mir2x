@@ -41,6 +41,20 @@ InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget
           this,
       }
 
+    , m_opNameBoard
+      {
+          132,
+          16,
+          u8"【背包】",
+
+          1,
+          12,
+          0,
+
+          colorf::WHITE,
+          this,
+      }
+
     , m_wmdAniBoard
       {
           23,
@@ -125,6 +139,7 @@ void InventoryBoard::drawEx(int nDstX, int nDstY, int, int, int, int)
     }
 
     m_goldBoard.draw();
+    m_opNameBoard.draw();
     m_wmdAniBoard.draw();
     m_closeButton.draw();
 }
