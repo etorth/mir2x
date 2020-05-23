@@ -48,7 +48,7 @@
 //
 // |---fixed---|-------------repeat---------------|---fixed------|
 
-// 
+//
 // 0X00000027 : 456 x 298: char box frame
 //
 //                         +-----------+                        ---
@@ -102,7 +102,7 @@ ControlBoard::ControlBoard(int startY, int boardW, ProcessRun *pRun)
           133,
           this,
       }
-    
+
     , m_buttonClose
       {
           8,
@@ -254,6 +254,19 @@ ControlBoard::ControlBoard(int startY, int boardW, ProcessRun *pRun)
           &m_middle,
       }
 
+    , m_arcAniBoard
+      {
+          0,
+          0,
+          0X04000000,
+          4,
+          20,
+          true,
+          true,
+          &m_middle,
+          false,
+      }
+
     , m_cmdLine
       {
           7,
@@ -367,7 +380,7 @@ void ControlBoard::drawLeft()
         auto pHP = g_progUseDB->Retrieve(0X00000018);
         auto pMP = g_progUseDB->Retrieve(0X00000019);
 
-        if(pHP && pMP){ 
+        if(pHP && pMP){
 
             // we need to call query
             // so need to validate two textures here
@@ -496,6 +509,7 @@ void ControlBoard::drawMiddleDefault()
         g_SDLDevice->DrawTexture(pTexture, titleDstX, titleDstY);
     }
 
+    m_arcAniBoard.draw();
     m_buttonSwitchMode.draw();
     m_levelBox.draw();
 }
@@ -593,6 +607,7 @@ void ControlBoard::drawMiddleExpand()
         g_SDLDevice->DrawTexture(pTexture, titleDstX, titleDstY);
     }
 
+    m_arcAniBoard.draw();
     m_buttonSwitchMode.draw();
     m_levelBox.draw();
     m_cmdLine.draw();

@@ -22,7 +22,6 @@
 #include "inventoryboard.hpp"
 
 extern PNGTexDB *g_progUseDB;
-extern PNGTexDB *g_progUseDB;
 extern PNGTexDB *g_commonItemDB;
 extern SDLDevice *g_SDLDevice;
 
@@ -41,19 +40,14 @@ InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget
           colorf::RGBA(0XFF, 0XFF, 0X00, 0X00),
           this,
       }
-    , m_nameBoard
+
+    , m_wmdAniBoard
       {
-          27,
-          16,
-          u8"【背包】",
-
-          1,
-          12,
           0,
-
-          colorf::WHITE,
+          0,
           this,
       }
+
     , m_closeButton
       {
           242,
@@ -125,7 +119,7 @@ void InventoryBoard::drawEx(int nDstX, int nDstY, int, int, int, int)
         }
     }
 
-    m_nameBoard.draw();
+    m_wmdAniBoard.draw();
     m_goldBoard.draw();
     m_closeButton.draw();
 }

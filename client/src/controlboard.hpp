@@ -28,6 +28,7 @@
 #include "sdldevice.hpp"
 #include "inputline.hpp"
 #include "layoutboard.hpp"
+#include "wmdaniboard.hpp"
 #include "tritexbutton.hpp"
 
 enum
@@ -70,6 +71,7 @@ class ControlBoard: public Widget
 
     private:
         LevelBox m_levelBox;
+        TexAniBoard m_arcAniBoard;
 
     private:
         InputLine  m_cmdLine;
