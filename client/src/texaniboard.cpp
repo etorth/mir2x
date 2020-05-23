@@ -64,19 +64,22 @@ void TexAniBoard::drawEx(int dstX, int dstY, int, int, int, int)
     const double frameTime = 1000.0 / (m_fps + DBL_EPSILON);
     const auto frame = [frameTime, this]() -> int
     {
-        const auto frame = std::lround(std::floor(m_accuTime / frameTime));
+        const auto logicFrame = std::lround(std::floor(m_accuTime / frameTime));
         if(m_loop){
-            return frame;
+            return logicFrame;
         }
-        return std::min<int>(frame, m_texSeq.size() - 1);
+        return std::min<int>(logicFrame, m_texSeq.size() - 1);
     }();
 
     const auto alpha = [frameTime, frame, this]() -> int
     {
-        if(m_fadeInout){
-            return (int)(std::lround(255 * std::max<double>(0.0, m_accuTime / frameTime - frame)));
+        if(!m_fadeInout){
+            return 0;
         }
-        return 0;
+
+        const double fDiff = m_accuTime / frameTime - frame;
+        const double fRatio = std::min<double>(1.0, std::max<double>(0.0, fDiff));
+        return std::lround(255 * fRatio);
     }();
 
     const uint32_t currTexId = m_texSeq[(frame + 0) % m_texSeq.size()];
