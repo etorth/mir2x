@@ -22,6 +22,7 @@
 #include <SDL2/SDL_image.h>
 
 #include "log.hpp"
+#include "toll.hpp"
 #include "rawbuf.hpp"
 #include "xmlconf.hpp"
 #include "fflerror.hpp"
@@ -82,10 +83,15 @@ SDLDevice::SDLDevice()
 
 SDLDevice::~SDLDevice()
 {
-    for(auto pTTF: m_innFontMap){
-        TTF_CloseFont(pTTF.second);
+    for(auto p: m_fontList){
+        TTF_CloseFont(p.second);
     }
-    m_innFontMap.clear();
+    m_fontList.clear();
+
+    for(auto p: m_cover){
+        SDL_DestroyTexture(p.second);
+    }
+    m_cover.clear();
 
     if(m_window){
         SDL_DestroyWindow(m_window);
@@ -476,22 +482,55 @@ SDL_Texture *SDLDevice::createTexture(const uint32_t *buf, int w, int h)
     return nullptr;
 }
 
-TTF_Font *SDLDevice::DefaultTTF(uint8_t nFontSize)
+TTF_Font *SDLDevice::DefaultTTF(uint8_t fontSize)
 {
-    static Rawbuf s_DefaultTTFData
+    const static Rawbuf s_DefaultTTFData
     {
         #include "monaco.rawbuf"
     };
 
-    if(auto p = m_innFontMap.find(nFontSize); p != m_innFontMap.end()){
+    if(auto p = m_fontList.find(fontSize); p != m_fontList.end()){
         return p->second;
     }
 
-    if(auto pTTF = CreateTTF(s_DefaultTTFData.Data(), s_DefaultTTFData.DataLen(), nFontSize); !pTTF){
-        throw fflerror("can't build default ttf with point: %" PRIu8, nFontSize);
+    if(auto ttfPtr = CreateTTF(s_DefaultTTFData.Data(), s_DefaultTTFData.DataLen(), fontSize); ttfPtr){
+        return m_fontList[fontSize] = ttfPtr;
     }
-    else{
-        m_innFontMap[nFontSize] = pTTF;
+    throw fflerror("can't build default ttf with point: %llu", toLLU(fontSize));
+}
+
+SDL_Texture *SDLDevice::getCover(int r)
+{
+    if(r <= 0){
+        throw fflerror("invalid argument: radius = %d", r);
     }
-    return m_innFontMap[nFontSize];
+
+    if(auto p = m_cover.find(r); p != m_cover.end()){
+        if(p->second){
+            return p->second;
+        }
+        throw fflerror("invalid registered cover: radius = %d", r);
+    }
+
+    const int w = r * 2 - 1;
+    const int h = r * 2 - 1;
+
+    std::vector<uint32_t> buf(w * h);
+    for(int y = 0; y < h; ++y){
+        for(int x = 0; x < w; ++x){
+            const int currR2 = (x - r + 1) * (x - r + 1) + (y - r + 1) * (y - r + 1);
+            const uint8_t alpha = 255 - std::min<uint8_t>(255, std::lround(255.0 * currR2 / (r * r)));
+            if(currR2 < r * r){
+                buf[x + y * w] = colorf::RGBA(0XFF, 0XFF, 0XFF, alpha);
+            }
+            else{
+                buf[x + y * w] = colorf::RGBA(0, 0, 0, 0);
+            }
+        }
+    }
+
+    if(auto texPtr = createTexture(buf.data(), w, h)){
+        return m_cover[r] = texPtr;
+    }
+    throw fflerror("creature texture failed: radius = %d", r);
 }

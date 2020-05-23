@@ -41,31 +41,6 @@ LevelBox::LevelBox(
           this,
           false,
       }
-    , m_texture([]()
-      {
-          const int r = 8;
-          const int w = r * 2 - 1;
-          const int h = r * 2 - 1;
-
-          std::vector<uint32_t> buf(w * h);
-          for(int y = 0; y < h; ++y){
-              for(int x = 0; x < w; ++x){
-                  const int currR2 = (x - r + 1) * (x - r + 1) + (y - r + 1) * (y - r + 1);
-                  const uint8_t alpha = 255 - std::min<uint8_t>(255, std::lround(255.0 * currR2 / (r * r)));
-                  if(currR2 < r * r){
-                      buf[x + y * w] = colorf::RGBA(0XFF, 0XFF, 0XFF, alpha);
-                  }
-                  else{
-                      buf[x + y * w] = colorf::RGBA(0, 0, 0, 0);
-                  }
-              }
-          }
-
-          if(auto p = g_SDLDevice->createTexture(buf.data(), w, h)){
-              return p;
-          }
-          throw fflerror("failed to create texture");
-      }())
     , m_onDrag(onDrag)
     , m_onDoubleClick(onDoubleClick)
 {
@@ -145,23 +120,22 @@ void LevelBox::drawEx(int dstX, int dstY, int, int, int, int)
     // don't worry too much here
     // we always draw fully for LevelBox
 
-    int bgW = -1;
-    int bgH = -1;
-    SDL_QueryTexture(m_texture, 0, 0, &bgW, &bgH);
+    SDL_Texture *texPtr = g_SDLDevice->getCover(8);
+    const auto [bgW, bgH] = SDLDevice::getTextureSize(texPtr);
 
     switch(m_state){
         case BEVENT_ON:
             {
-                SDL_SetTextureColorMod(m_texture, 0XFF, 0, 0);
+                SDL_SetTextureColorMod(texPtr, 0XFF, 0, 0);
                 SDLDevice::EnableDrawBlendMode enableDrawBlendMode(SDL_BLENDMODE_BLEND);
-                g_SDLDevice->DrawTexture(m_texture, dstX + 1, dstY, 0, 0, bgW, bgH);
+                g_SDLDevice->DrawTexture(texPtr, dstX + 1, dstY, 0, 0, bgW, bgH);
                 break;
             }
         case BEVENT_DOWN:
             {
-                SDL_SetTextureColorMod(m_texture, 0, 0, 0XFF);
+                SDL_SetTextureColorMod(texPtr, 0, 0, 0XFF);
                 SDLDevice::EnableDrawBlendMode enableDrawBlendMode(SDL_BLENDMODE_BLEND);
-                g_SDLDevice->DrawTexture(m_texture, dstX + 1, dstY, 0, 0, bgW, bgH);
+                g_SDLDevice->DrawTexture(texPtr, dstX + 1, dstY, 0, 0, bgW, bgH);
                 break;
             }
         default:

@@ -83,7 +83,10 @@ class SDLDevice final
        std::vector<BlendModeStackNode> m_blendModeStack;
 
     private:
-       std::map<uint8_t, TTF_Font *> m_innFontMap;
+       std::unordered_map<int, SDL_Texture *> m_cover;
+
+    private:
+       std::unordered_map<uint8_t, TTF_Font *> m_fontList;
 
     private:
        // for sound
@@ -324,4 +327,7 @@ class SDLDevice final
        {
            return std::get<1>(getTextureSize(texture));
        }
+
+    public:
+       SDL_Texture *getCover(int);
 };

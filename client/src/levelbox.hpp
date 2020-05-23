@@ -35,9 +35,6 @@ class LevelBox: public Widget
         int m_state = BEVENT_OFF;
 
     private:
-        SDL_Texture * const m_texture = nullptr;
-
-    private:
         std::function<void(int)> m_onDrag;
         std::function<void()> m_onDoubleClick;
 
