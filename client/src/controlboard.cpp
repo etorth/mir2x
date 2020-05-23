@@ -277,6 +277,144 @@ ControlBoard::ControlBoard(int startY, int boardW, ProcessRun *pRun)
           &m_right,
       }
 
+    , m_buttonGuild
+      {
+          40,
+          11,
+          {SYS_TEXNIL, 0X00000036, 0X00000037},
+
+          nullptr,
+          [this]()
+          {
+              if(auto p = m_processRun->getWidget("InventoryBoard")){
+                  p->show(!p->show());
+              }
+          },
+
+          0,
+          0,
+          0,
+          0,
+
+          true,
+          &m_right,
+      }
+
+    , m_buttonTeam
+      {
+          72,
+          8,
+          {SYS_TEXNIL, 0X00000038, 0X00000039},
+
+          nullptr,
+          [this]()
+          {
+              if(auto p = m_processRun->getWidget("InventoryBoard")){
+                  p->show(!p->show());
+              }
+          },
+
+          0,
+          0,
+          0,
+          0,
+
+          true,
+          &m_right,
+      }
+
+    , m_buttonTask
+      {
+          108,
+          11,
+          {SYS_TEXNIL, 0X0000003A, 0X0000003B},
+
+          nullptr,
+          [this]()
+          {
+              if(auto p = m_processRun->getWidget("InventoryBoard")){
+                  p->show(!p->show());
+              }
+          },
+
+          0,
+          0,
+          0,
+          0,
+
+          true,
+          &m_right,
+      }
+
+    , m_buttonHorse
+      {
+          40,
+          61,
+          {SYS_TEXNIL, 0X0000003C, 0X0000003D},
+
+          nullptr,
+          [this]()
+          {
+              if(auto p = m_processRun->getWidget("InventoryBoard")){
+                  p->show(!p->show());
+              }
+          },
+
+          0,
+          0,
+          0,
+          0,
+
+          true,
+          &m_right,
+      }
+
+    , m_buttonEnvConfig
+      {
+          72,
+          72,
+          {SYS_TEXNIL, 0X0000003E, 0X0000003F},
+
+          nullptr,
+          [this]()
+          {
+              if(auto p = m_processRun->getWidget("InventoryBoard")){
+                  p->show(!p->show());
+              }
+          },
+
+          0,
+          0,
+          0,
+          0,
+
+          true,
+          &m_right,
+      }
+
+    , m_buttonSysMessage
+      {
+          108,
+          61,
+          {SYS_TEXNIL, 0X00000040, 0X00000041},
+
+          nullptr,
+          [this]()
+          {
+              if(auto p = m_processRun->getWidget("InventoryBoard")){
+                  p->show(!p->show());
+              }
+          },
+
+          0,
+          0,
+          0,
+          0,
+
+          true,
+          &m_right,
+      }
+
     , m_buttonSwitchMode
       {
           boardW - 178 - 181,
@@ -555,6 +693,13 @@ void ControlBoard::drawRight()
     m_buttonMiniMap.draw();
     m_buttonMagicKey.draw();
 
+    m_buttonGuild.draw();
+    m_buttonTeam.draw();
+    m_buttonTask.draw();
+    m_buttonHorse.draw();
+    m_buttonEnvConfig.draw();
+    m_buttonSysMessage.draw();
+
     m_buttonInventory.draw();
     m_buttonHeroStatus.draw();
     m_buttonHeroMagic.draw();
@@ -759,6 +904,12 @@ bool ControlBoard::processEvent(const SDL_Event &event, bool valid)
     takeEvent |= m_buttonExchange  .processEvent(event, valid && !takeEvent);
     takeEvent |= m_buttonMiniMap   .processEvent(event, valid && !takeEvent);
     takeEvent |= m_buttonMagicKey  .processEvent(event, valid && !takeEvent);
+    takeEvent |= m_buttonGuild     .processEvent(event, valid && !takeEvent);
+    takeEvent |= m_buttonTeam      .processEvent(event, valid && !takeEvent);
+    takeEvent |= m_buttonTask      .processEvent(event, valid && !takeEvent);
+    takeEvent |= m_buttonHorse     .processEvent(event, valid && !takeEvent);
+    takeEvent |= m_buttonEnvConfig .processEvent(event, valid && !takeEvent);
+    takeEvent |= m_buttonSysMessage.processEvent(event, valid && !takeEvent);
     takeEvent |= m_buttonInventory .processEvent(event, valid && !takeEvent);
     takeEvent |= m_buttonHeroStatus.processEvent(event, valid && !takeEvent);
     takeEvent |= m_buttonHeroMagic .processEvent(event, valid && !takeEvent);

@@ -73,6 +73,16 @@ class ControlBoard: public Widget
         TritexButton m_buttonInventory;
         TritexButton m_buttonHeroStatus;
         TritexButton m_buttonHeroMagic;
+
+    private:
+        TritexButton m_buttonGuild;
+        TritexButton m_buttonTeam;
+        TritexButton m_buttonTask;
+        TritexButton m_buttonHorse;
+        TritexButton m_buttonEnvConfig;
+        TritexButton m_buttonSysMessage;
+
+    private:
         TritexButton m_buttonSwitchMode;
 
     private:
