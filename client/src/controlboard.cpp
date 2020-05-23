@@ -548,6 +548,10 @@ void ControlBoard::drawRight()
         g_SDLDevice->DrawTexture(pTexture, nW0 - 166, nY0, 800 - 166, 0, 166, 133);
     }
 
+    m_buttonExchange.draw();
+    m_buttonMiniMap.draw();
+    m_buttonMagicKey.draw();
+
     m_buttonInventory.draw();
     m_buttonHeroStatus.draw();
     m_buttonHeroMagic.draw();
@@ -749,6 +753,9 @@ bool ControlBoard::processEvent(const SDL_Event &event, bool valid)
     takeEvent |= m_cmdLine         .processEvent(event, valid && !takeEvent);
     takeEvent |= m_buttonClose     .processEvent(event, valid && !takeEvent);
     takeEvent |= m_buttonMinize    .processEvent(event, valid && !takeEvent);
+    takeEvent |= m_buttonExchange  .processEvent(event, valid && !takeEvent);
+    takeEvent |= m_buttonMiniMap   .processEvent(event, valid && !takeEvent);
+    takeEvent |= m_buttonMagicKey  .processEvent(event, valid && !takeEvent);
     takeEvent |= m_buttonInventory .processEvent(event, valid && !takeEvent);
     takeEvent |= m_buttonHeroStatus.processEvent(event, valid && !takeEvent);
     takeEvent |= m_buttonHeroMagic .processEvent(event, valid && !takeEvent);

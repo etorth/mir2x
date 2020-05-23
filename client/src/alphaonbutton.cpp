@@ -66,12 +66,15 @@ AlphaOnButton::AlphaOnButton(
     , m_onOffY(onOffY)
     , m_onRadius(onRadius)
 {
-    if(auto texPtr = g_progUseDB->Retrieve(m_texID)){
-        const auto [texW, texH] = SDLDevice::getTextureSize(texPtr);
-        m_w = texW;
-        m_h = texH;
+
+    auto texPtr = g_progUseDB->Retrieve(m_texID);
+    if(!texPtr){
+        throw fflerror("can't load down texture: %llu", toLLU(m_texID));
     }
-    throw fflerror("can't load down texture: %llu", toLLU(m_texID));
+
+    const auto [texW, texH] = SDLDevice::getTextureSize(texPtr);
+    m_w = texW;
+    m_h = texH;
 }
 
 void AlphaOnButton::drawEx(int dstX, int dstY, int, int, int, int)
