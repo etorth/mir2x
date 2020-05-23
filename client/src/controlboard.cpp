@@ -139,6 +139,72 @@ ControlBoard::ControlBoard(int startY, int boardW, ProcessRun *pRun)
           &m_left,
       }
 
+    , m_buttonExchange
+      {
+          3,
+          3,
+
+          0,
+          0,
+          12,
+
+          colorf::RED,
+          0X00000042,
+
+          nullptr,
+          [this]()
+          {
+              addLog(0, "exchange doesn't implemented yet.");
+          },
+
+          true,
+          &m_right,
+      }
+
+    , m_buttonMiniMap
+      {
+          3,
+          3,
+
+          0,
+          0,
+          12,
+
+          colorf::RED,
+          0X00000043,
+
+          nullptr,
+          [this]()
+          {
+              addLog(0, "mini map doesn't implemented yet.");
+          },
+
+          true,
+          &m_right,
+      }
+
+    , m_buttonMagicKey
+      {
+          3,
+          3,
+
+          0,
+          0,
+          12,
+
+          colorf::RED,
+          0X00000044,
+
+          nullptr,
+          [this]()
+          {
+              addLog(0, "magic key doesn't implemented yet.");
+          },
+
+          true,
+          &m_right,
+      }
+
     , m_buttonInventory
       {
           48,

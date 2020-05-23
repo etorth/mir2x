@@ -30,6 +30,7 @@
 #include "layoutboard.hpp"
 #include "wmdaniboard.hpp"
 #include "tritexbutton.hpp"
+#include "alphaonbutton.hpp"
 
 enum
 {
@@ -62,6 +63,13 @@ class ControlBoard: public Widget
     private:
         TritexButton m_buttonClose;
         TritexButton m_buttonMinize;
+
+    private:
+        AlphaOnButton m_buttonExchange;
+        AlphaOnButton m_buttonMiniMap;
+        AlphaOnButton m_buttonMagicKey;
+
+    private:
         TritexButton m_buttonInventory;
         TritexButton m_buttonHeroStatus;
         TritexButton m_buttonHeroMagic;

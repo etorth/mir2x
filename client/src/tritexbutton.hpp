@@ -35,8 +35,8 @@ class TritexButton: public ButtonBase
 
                 const uint32_t (&rstvTexID)[3],
 
-                const std::function<void()> &fnOnOver  = [](){},
-                const std::function<void()> &fnOnClick = [](){},
+                const std::function<void()> &fnOnOver  = nullptr,
+                const std::function<void()> &fnOnClick = nullptr,
 
                 int nOffXOnOver  = 0,
                 int nOffYOnOver  = 0,
@@ -137,10 +137,10 @@ class TritexButton: public ButtonBase
         {}
 
     public:
-        void drawEx(int,    // dst x on the screen coordinate
-                int,        // dst y on the screen coordinate
-                int,        // src x on the widget, take top-left as origin
-                int,        // src y on the widget, take top-left as origin
-                int,        // size to draw
-                int);       // size to draw
+        void drawEx(int,        // dst x on the screen coordinate
+                int,            // dst y on the screen coordinate
+                int,            // src x on the widget, take top-left as origin
+                int,            // src y on the widget, take top-left as origin
+                int,            // size to draw
+                int) override;  // size to draw
 };
