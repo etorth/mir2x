@@ -784,6 +784,7 @@ void ControlBoard::drawMiddleDefault()
 
     m_cmdLine.draw();
     drawLogBoardDefault();
+    drawInputGreyBackground();
 
     // draw middle part
     if(auto pTexture = g_progUseDB->Retrieve(0X00000013)){
@@ -867,6 +868,7 @@ void ControlBoard::drawMiddleExpand()
         g_SDLDevice->fillRectangle(178 + 2, startY + 2, nW0 - (178 + 2) - (166 + 2), 47 + m_stretchH);
     }
 
+    drawInputGreyBackground();
     if(auto pTexture = g_progUseDB->Retrieve(0X00000027)){
 
         // draw four corners
@@ -1005,6 +1007,8 @@ void ControlBoard::inputLineDone()
     const std::string realInput = (inputPos == std::string::npos) ? "" : fullInput.substr(inputPos);
 
     m_cmdLine.clear();
+    m_cmdLine.focus(false);
+
     if(realInput.empty()){
         return;
     }
@@ -1113,4 +1117,21 @@ void ControlBoard::resizeWidth(int boardW)
     m_w = boardW;
 
     setButtonLoc();
+}
+
+void ControlBoard::drawInputGreyBackground()
+{
+    if(!m_cmdLine.focus()){
+        return;
+    }
+
+    const auto color = colorf::GREY + 48;
+    SDLDevice::EnableDrawBlendMode enableDrawBlendMode(SDL_BLENDMODE_BLEND);
+
+    if(m_expand){
+
+    }
+    else{
+        g_SDLDevice->fillRectangle(color, m_middle.x() + 7, m_middle.y() + 104, m_middle.w() - 110, 17);
+    }
 }

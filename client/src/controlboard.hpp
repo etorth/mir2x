@@ -131,6 +131,7 @@ class ControlBoard: public Widget
         void drawMiddleDefault();
         void drawLogBoardExpand();
         void drawLogBoardDefault();
+        void drawInputGreyBackground();
 
     public:
         void update(double) override;
