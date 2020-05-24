@@ -29,8 +29,8 @@ extern SDLDevice *g_SDLDevice;
 QuickAccessButton::QuickAccessButton(const std::function<void()> &fnOnClick, Widget *pwidget, bool autoDelete)
     : ButtonBase
       {
-          50,
-          0,
+          148,
+          2,
           0,
           0,
 
@@ -59,14 +59,17 @@ void QuickAccessButton::drawEx(int dstX, int dstY, int, int, int, int)
     switch(m_state){
         case BEVENT_ON:
             {
-                constexpr int radius = 10;
+                constexpr int radius = 9;
                 auto texPtr = g_SDLDevice->getCover(radius);
                 if(!texPtr){
                     throw fflerror("can't get round cover: radius = %d", radius);
                 }
 
                 const auto [texW, texH] = SDLDevice::getTextureSize(texPtr);
-                g_SDLDevice->DrawTexture(texPtr, dstX, dstY, 0, texH, texW, texH);
+                const int texDrawH = texH * 2 / 3;
+
+                SDL_SetTextureAlphaMod(texPtr, 80);
+                g_SDLDevice->DrawTexture(texPtr, dstX + 3, dstY, 0, texDrawH, texW, texDrawH);
                 break;
             }
         case BEVENT_DOWN:
