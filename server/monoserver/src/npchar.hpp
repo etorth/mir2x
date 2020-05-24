@@ -70,7 +70,7 @@ class NPChar final: public CharObject
         NPChar(uint16_t, ServiceCore *, ServerMap *, int, int, int);
 
     public:
-        bool Update() override;
+        bool update() override;
         bool InRange(int, int, int) override;
 
     public:

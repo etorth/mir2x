@@ -268,7 +268,7 @@ bool ServerMap::GroundValid(int nX, int nY) const
         && m_mir2xMapData.Cell(nX, nY).CanThrough();
 }
 
-bool ServerMap::CanMove(bool bCheckCO, bool bCheckLock, int nX, int nY) const
+bool ServerMap::canMove(bool bCheckCO, bool bCheckLock, int nX, int nY) const
 {
     if(GroundValid(nX, nY)){
         if(bCheckCO){
@@ -419,7 +419,7 @@ std::tuple<bool, int, int> ServerMap::GetValidGrid(bool bCheckCO, bool bCheckLoc
         int nX = std::rand() % W();
         int nY = std::rand() % H();
 
-        if(In(ID(), nX, nY) && CanMove(bCheckCO, bCheckLock, nX, nY)){
+        if(In(ID(), nX, nY) && canMove(bCheckCO, bCheckLock, nX, nY)){
             return {true, nX, nY};
         }
     }
@@ -438,7 +438,7 @@ std::tuple<bool, int, int> ServerMap::GetValidGrid(bool bCheckCO, bool bCheckLoc
         int nCurrX = stRC.X();
         int nCurrY = stRC.Y();
 
-        if(In(ID(), nCurrX, nCurrY) && CanMove(bCheckCO, bCheckLock, nCurrX, nCurrY)){
+        if(In(ID(), nCurrX, nCurrY) && canMove(bCheckCO, bCheckLock, nCurrX, nCurrY)){
             return {true, nCurrX, nCurrY};
         }
 

@@ -63,7 +63,7 @@ class ServerMap final: public ServerObject
                ~ServerPathFinder() = default;
         };
 
-        // the server pathfinder will call CanMove() etc
+        // the server pathfinder will call canMove() etc
         // which I refuse to set as public since it's dynamically updated
         friend class ServerPathFinder;
 
@@ -125,7 +125,7 @@ class ServerMap final: public ServerObject
         bool GroundValid(int, int) const;
 
     protected:
-        bool CanMove(bool, bool, int, int) const;
+        bool canMove(bool, bool, int, int) const;
 
     protected:
         double OneStepCost(int, int, int, int, int, int) const;

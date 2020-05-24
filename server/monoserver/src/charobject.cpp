@@ -280,9 +280,9 @@ void CharObject::DispatchAction(uint64_t nUID, const ActionNode &rstAction)
     m_actorPod->forward(nUID, {MPK_ACTION, stAMA});
 }
 
-bool CharObject::RequestMove(int nX, int nY, int nSpeed, bool bAllowHalfMove, bool bRemoveMonster, std::function<void()> fnOnMoveOK, std::function<void()> fnOnMoveError)
+bool CharObject::reqestMove(int nX, int nY, int nSpeed, bool bAllowHalfMove, bool bRemoveMonster, std::function<void()> fnOnMoveOK, std::function<void()> fnOnMoveError)
 {
-    if(!CanMove()){
+    if(!canMove()){
         fnOnMoveError();
         return false;
     }
@@ -293,7 +293,7 @@ bool CharObject::RequestMove(int nX, int nY, int nSpeed, bool bAllowHalfMove, bo
     }
 
     if(bRemoveMonster){
-        throw fflerror("RemoveMonster in RequestMove() not implemented yet");
+        throw fflerror("RemoveMonster in reqestMove() not implemented yet");
     }
 
     switch(mathf::LDistance2(X(), Y(), nX, nY)){
@@ -371,7 +371,7 @@ bool CharObject::RequestMove(int nX, int nY, int nSpeed, bool bAllowHalfMove, bo
                         throw fflerror("map returns invalid destination: (%" PRIu64 ", %d, %d)", m_map->UID(), stAMMOK.EndX, stAMMOK.EndY);
                     }
 
-                    if(!CanMove()){
+                    if(!canMove()){
                         m_actorPod->forward(rstMPK.from(), MPK_ERROR, rstMPK.ID());
                         fnOnMoveError();
                         return;
@@ -402,27 +402,27 @@ bool CharObject::RequestMove(int nX, int nY, int nSpeed, bool bAllowHalfMove, bo
     });
 }
 
-bool CharObject::RequestSpaceMove(uint32_t mapID, int nX, int nY, bool bStrictMove, std::function<void()> fnOnMoveOK, std::function<void()> fnOnMoveError)
+bool CharObject::reqestSpaceMove(uint32_t mapID, int nX, int nY, bool strictMove, std::function<void()> fnOnMoveOK, std::function<void()> fnOnMoveError)
 {
     if(!(uidf::buildMapUID(mapID) && (nX >= 0) && (nY >= 0))){
         throw fflerror("invalid map destination: (%lld, %d, %d)", toLLD(mapID), nX, nY);
     }
 
-    if(!CanMove()){
+    if(!canMove()){
         fnOnMoveError();
         return false;
     }
 
-    AMTrySpaceMove stAMTSM;
-    std::memset(&stAMTSM, 0, sizeof(stAMTSM));
+    AMTrySpaceMove amTSM;
+    std::memset(&amTSM, 0, sizeof(amTSM));
 
-    stAMTSM.UID        = UID();
-    stAMTSM.X          = nX;
-    stAMTSM.Y          = nY;
-    stAMTSM.StrictMove = bStrictMove;
+    amTSM.UID        = UID();
+    amTSM.X          = nX;
+    amTSM.Y          = nY;
+    amTSM.StrictMove = strictMove;
 
     m_moveLock = true;
-    return m_actorPod->forward(uidf::buildMapUID(mapID), {MPK_TRYSPACEMOVE, stAMTSM}, [this, fnOnMoveOK, fnOnMoveError](const MessagePack &rstRMPK)
+    return m_actorPod->forward(uidf::buildMapUID(mapID), {MPK_TRYSPACEMOVE, amTSM}, [this, fnOnMoveOK, fnOnMoveError](const MessagePack &rstRMPK)
     {
         if(!m_moveLock){
             throw fflerror("moveLock released before map responds: ClassName = %s", UIDName());
@@ -438,7 +438,7 @@ bool CharObject::RequestSpaceMove(uint32_t mapID, int nX, int nY, bool bStrictMo
                     // need to leave src map
                     // dst map already says OK for current move
 
-                    if(!CanMove()){
+                    if(!canMove()){
                         m_actorPod->forward(rstRMPK.from(), MPK_ERROR, rstRMPK.ID());
                         fnOnMoveError();
                         return;
@@ -466,7 +466,7 @@ bool CharObject::RequestSpaceMove(uint32_t mapID, int nX, int nY, bool bStrictMo
                                     AMSpaceMoveOK stAMSMOK;
                                     std::memcpy(&stAMSMOK, rstRMPK.Data(), sizeof(stAMSMOK));
 
-                                    if(!CanMove()){
+                                    if(!canMove()){
                                         m_actorPod->forward(rstRMPK.from(), MPK_ERROR, rstRMPK.ID());
                                         fnOnMoveError();
                                         return;
@@ -510,7 +510,7 @@ bool CharObject::RequestSpaceMove(uint32_t mapID, int nX, int nY, bool bStrictMo
     });
 }
 
-bool CharObject::CanMove()
+bool CharObject::canMove()
 {
     switch(GetState(STATE_DEAD)){
         case 0:
@@ -566,7 +566,7 @@ bool CharObject::CanAct()
     return true;
 }
 
-bool CharObject::CanAttack()
+bool CharObject::canAttack()
 {
     switch(GetState(STATE_DEAD)){
         case 0:
@@ -580,7 +580,7 @@ bool CharObject::CanAttack()
     }
 }
 
-void CharObject::RetrieveLocation(uint64_t nUID, std::function<void(const COLocation &)> fnOnOK, std::function<void()> fnOnError)
+void CharObject::retrieveLocation(uint64_t nUID, std::function<void(const COLocation &)> fnOnOK, std::function<void()> fnOnError)
 {
     if(!nUID){
         throw fflerror("query location with zero UID");
@@ -1066,10 +1066,10 @@ void CharObject::AddInViewCO(const COLocation &rstCOLocation)
 void CharObject::ForeachInViewCO(std::function<void(const COLocation &)> fnOnLoc)
 {
     // TODO dangerous part
-    // check comments in RetrieveLocation
+    // check comments in retrieveLocation
 
     // RemoveInViewCO() may get called in fnOnLoc
-    // RemoveInViewCO() may get called in RetrieveLocation
+    // RemoveInViewCO() may get called in retrieveLocation
 
     svo_buffer<uint64_t, 4> stvUIDList;
     for(const auto &rstCOLoc: m_inViewCOList){
@@ -1077,7 +1077,7 @@ void CharObject::ForeachInViewCO(std::function<void(const COLocation &)> fnOnLoc
     }
 
     for(size_t nIndex = 0; nIndex < stvUIDList.size(); ++nIndex){
-        RetrieveLocation(stvUIDList.at(nIndex), fnOnLoc);
+        retrieveLocation(stvUIDList.at(nIndex), fnOnLoc);
     }
 }
 
@@ -1170,7 +1170,7 @@ void CharObject::QueryFinalMaster(uint64_t nUID, std::function<void(uint64_t)> f
                 default:
                     {
                         fnOp(0);
-                        if(IsMonster() && (nQueryUID == dynamic_cast<Monster *>(this)->MasterUID())){
+                        if(IsMonster() && (nQueryUID == dynamic_cast<Monster *>(this)->masterUID())){
                             GoDie();
                         }
                         return;
@@ -1193,7 +1193,7 @@ void CharObject::QueryFinalMaster(uint64_t nUID, std::function<void(uint64_t)> f
                 // querying self
                 // this is ok for monster
 
-                if(auto nMasterUID = dynamic_cast<Monster *>(this)->MasterUID()){
+                if(auto nMasterUID = dynamic_cast<Monster *>(this)->masterUID()){
                     switch(uidf::getUIDType(nMasterUID)){
                         case UID_PLY:
                             {

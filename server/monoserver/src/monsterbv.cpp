@@ -23,8 +23,8 @@ bvnode_ptr Monster::BvNode_GetMasterUID(bvarg_ref nMasterUID)
 {
     return bvtree::lambda_bool([this, nMasterUID]() mutable -> bool
     {
-        nMasterUID.assign<uint64_t>(MasterUID());
-        return MasterUID();
+        nMasterUID.assign<uint64_t>(masterUID());
+        return masterUID();
     });
 }
 
@@ -68,7 +68,7 @@ bvnode_ptr Monster::BvNode_LocateUID(bvarg_ref nUID, bvarg_ref stLocation)
 {
     return bvtree::lambda_stage([this, nUID, stLocation](bvarg_ref nStage) mutable
     {
-        RetrieveLocation(nUID.as<uint64_t>(), [nStage, stLocation](const COLocation &stLoc) mutable
+        retrieveLocation(nUID.as<uint64_t>(), [nStage, stLocation](const COLocation &stLoc) mutable
         {
             stLocation.assign<tuple<uint32_t, int, int>>(stLoc.MapID, stLoc.X, stLoc.Y);
             nStage.assign<bvres_t>(BV_SUCCESS);
@@ -187,7 +187,7 @@ bool Monster::CoroNode_MoveForward()
     }
 
     coro_variable<bool> done;
-    RequestMove(nextX, nextY, MoveSpeed(), false, false, [&done](){ done.assign(true); }, [&done](){ done.assign(false); });
+    reqestMove(nextX, nextY, MoveSpeed(), false, false, [&done](){ done.assign(true); }, [&done](){ done.assign(false); });
     return done.wait();
 }
 
@@ -207,7 +207,7 @@ bvnode_ptr Monster::BvNode_MoveForward()
             int nY = -1;
 
             if(OneStepReach(Direction(), 1, &nX, &nY) == 1){
-                RequestMove(nX, nY, MoveSpeed(), false, false, [nStage]() mutable
+                reqestMove(nX, nY, MoveSpeed(), false, false, [nStage]() mutable
                 {
                     nStage.assign<bvres_t>(BV_SUCCESS);
                 },
@@ -271,7 +271,7 @@ bvnode_ptr Monster::BvNode_HasMaster()
 {
     return bvtree::lambda_bool([this]() -> bool
     {
-        return MasterUID();
+        return masterUID();
     });
 }
 

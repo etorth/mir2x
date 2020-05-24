@@ -233,7 +233,7 @@ NPChar::NPChar(uint16_t lookId, ServiceCore *core, ServerMap *serverMap, int map
     , m_luaModule(this)
 {}
 
-bool NPChar::Update()
+bool NPChar::update()
 {
     return true;
 }

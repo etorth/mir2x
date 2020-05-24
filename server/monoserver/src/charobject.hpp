@@ -221,7 +221,7 @@ class CharObject: public ServerObject
         }
 
     public:
-        virtual bool Update() = 0;
+        virtual bool update() = 0;
         virtual bool InRange(int, int, int) = 0;
 
     public:
@@ -255,13 +255,13 @@ class CharObject: public ServerObject
         virtual int Speed(int) const;
 
     protected:
-        virtual bool CanMove();
+        virtual bool canMove();
 
     protected:
-        void RetrieveLocation(uint64_t, std::function<void(const COLocation &)>, std::function<void()> = []{});
+        void retrieveLocation(uint64_t, std::function<void(const COLocation &)>, std::function<void()> = []{});
 
     protected:
-        virtual bool RequestMove(int,   // nX, should be one hop distance
+        virtual bool reqestMove(int,   // nX, should be one hop distance
                 int,                    // nY, should be one hop distance
                 int,                    // nSpeed, move speed
                 bool,                   // bAllowHalfMove, tolerate CO occupied error
@@ -270,7 +270,7 @@ class CharObject: public ServerObject
                 std::function<void()>); // fnOnError
 
     protected:
-        virtual bool RequestSpaceMove(uint32_t, int, int, bool, std::function<void()>, std::function<void()>);
+        virtual bool reqestSpaceMove(uint32_t, int, int, bool, std::function<void()>, std::function<void()>);
 
     protected:
         void AddOffenderDamage(uint64_t, int);
@@ -278,7 +278,7 @@ class CharObject: public ServerObject
 
     protected:
         virtual bool CanAct();
-        virtual bool CanAttack();
+        virtual bool canAttack();
 
     protected:
         virtual void SetLastAction(int);

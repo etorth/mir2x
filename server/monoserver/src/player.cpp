@@ -217,7 +217,7 @@ void Player::OperateNet(uint8_t nType, const uint8_t *pData, size_t nDataLen)
     }
 }
 
-bool Player::Update()
+bool Player::update()
 {
     return true;
 }
@@ -521,7 +521,7 @@ void Player::OnCMActionStand(CMAction stCMA)
         switch(EstimateHop(nX, nY)){
             case 1:
                 {
-                    RequestMove(nX, nY, SYS_MAXSPEED, false, false,
+                    reqestMove(nX, nY, SYS_MAXSPEED, false, false,
                     [this, stCMA]()
                     {
                         OnCMActionStand(stCMA);
@@ -561,7 +561,7 @@ void Player::OnCMActionMove(CMAction stCMA)
     switch(EstimateHop(nX0, nY0)){
         case 0:
             {
-                RequestMove(nX1, nY1, MoveSpeed(), false, false, [](){}, [this]()
+                reqestMove(nX1, nY1, MoveSpeed(), false, false, [](){}, [this]()
                 {
                     ReportStand();
                 });
@@ -569,7 +569,7 @@ void Player::OnCMActionMove(CMAction stCMA)
             }
         case 1:
             {
-                RequestMove(nX0, nY0, SYS_MAXSPEED, false, false, [this, stCMA]()
+                reqestMove(nX0, nY0, SYS_MAXSPEED, false, false, [this, stCMA]()
                 {
                     OnCMActionMove(stCMA);
                 },
@@ -589,7 +589,7 @@ void Player::OnCMActionMove(CMAction stCMA)
 
 void Player::OnCMActionAttack(CMAction stCMA)
 {
-    RetrieveLocation(stCMA.AimUID, [this, stCMA](const COLocation &rstLocation)
+    retrieveLocation(stCMA.AimUID, [this, stCMA](const COLocation &rstLocation)
     {
         int nX0 = stCMA.X;
         int nY0 = stCMA.Y;
@@ -622,7 +622,7 @@ void Player::OnCMActionAttack(CMAction stCMA)
                                 }
                             case 1:
                                 {
-                                    RequestMove(nX0, nY0, SYS_MAXSPEED, false, false,
+                                    reqestMove(nX0, nY0, SYS_MAXSPEED, false, false,
                                     [this, stCMA]()
                                     {
                                         OnCMActionAttack(stCMA);
@@ -723,7 +723,7 @@ void Player::OnCMActionSpell(CMAction stCMA)
 
     // sync the location
     // for spelling magic location is not critical
-    RequestMove(nX, nY, SYS_MAXSPEED, false, false, [](){}, [this]()
+    reqestMove(nX, nY, SYS_MAXSPEED, false, false, [](){}, [this]()
     {
         ReportStand();
     });
@@ -746,7 +746,7 @@ void Player::OnCMActionPickUp(CMAction stCMA)
             }
         case 1:
             {
-                RequestMove(stCMA.X, stCMA.Y, SYS_MAXSPEED, false, false,
+                reqestMove(stCMA.X, stCMA.Y, SYS_MAXSPEED, false, false,
                 [this, stCMA]()
                 {
                     OnCMActionPickUp(stCMA);
@@ -872,7 +872,7 @@ bool Player::DBUpdate(const char *szTableName, const char *szFieldList, ...)
         try{
             szSQLCommand = str_vprintf(szFieldList, ap);
         }catch(const std::exception &e){
-            szExceptionStr = str_printf("Exception caught in Player::Update(%s, \"%s\"): %s", szTableName, szFieldList, e.what());
+            szExceptionStr = str_printf("Exception caught in Player::DBUpdate(%s, \"%s\"): %s", szTableName, szFieldList, e.what());
         }
 
         va_end(ap);

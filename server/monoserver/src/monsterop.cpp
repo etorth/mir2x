@@ -27,7 +27,7 @@
 extern MonoServer *g_monoServer;
 void Monster::On_MPK_METRONOME(const MessagePack &)
 {
-    Update();
+    update();
 }
 
 void Monster::On_MPK_MISS(const MessagePack &rstMPK)
@@ -57,8 +57,8 @@ void Monster::On_MPK_QUERYCORECORD(const MessagePack &rstMPK)
 
 void Monster::On_MPK_EXP(const MessagePack &rstMPK)
 {
-    if(MasterUID()){
-        m_actorPod->forward(MasterUID(), {rstMPK.Type(), rstMPK.Data(), rstMPK.DataLen()});
+    if(masterUID()){
+        m_actorPod->forward(masterUID(), {rstMPK.Type(), rstMPK.Data(), rstMPK.DataLen()});
     }
 }
 
@@ -246,7 +246,7 @@ void Monster::On_MPK_OFFLINE(const MessagePack &rstMPK)
 
     if(true
             && stAMO.UID
-            && stAMO.UID == MasterUID()){
+            && stAMO.UID == masterUID()){
         GoDie();
     }
 }
@@ -261,7 +261,7 @@ void Monster::On_MPK_QUERYMASTER(const MessagePack &rstMPK)
     AMUID stAMUID;
     std::memset(&stAMUID, 0, sizeof(stAMUID));
 
-    stAMUID.UID = MasterUID() ? MasterUID() : UID();
+    stAMUID.UID = masterUID() ? masterUID() : UID();
     m_actorPod->forward(rstMPK.from(), {MPK_UID, stAMUID}, rstMPK.ID());
 }
 
@@ -303,7 +303,7 @@ void Monster::On_MPK_QUERYNAMECOLOR(const MessagePack &rstMPK)
 
 void Monster::On_MPK_MASTERKILL(const MessagePack &rstMPK)
 {
-    if(MasterUID() && (rstMPK.from() == MasterUID())){
+    if(masterUID() && (rstMPK.from() == masterUID())){
         GoDie();
     }
 }

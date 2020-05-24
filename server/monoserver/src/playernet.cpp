@@ -68,7 +68,7 @@ void Player::Net_CM_REQUESTSPACEMOVE(uint8_t, const uint8_t *pBuf, size_t)
 {
     CMReqestSpaceMove stCMRSM;
     std::memcpy(&stCMRSM, pBuf, sizeof(stCMRSM));
-    RequestSpaceMove(stCMRSM.MapID, stCMRSM.X, stCMRSM.Y, false, [](){}, [](){});
+    reqestSpaceMove(stCMRSM.MapID, stCMRSM.X, stCMRSM.Y, false, [](){}, [](){});
 }
 
 void Player::Net_CM_REQUESTKILLPETS(uint8_t, const uint8_t *, size_t)

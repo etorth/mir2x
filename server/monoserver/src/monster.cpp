@@ -134,13 +134,13 @@ Monster::Monster(uint32_t   nMonsterID,
 
 bool Monster::RandomMove()
 {
-    if(CanMove()){
+    if(canMove()){
         auto fnMoveOneStep = [this]() -> bool
         {
             int nX = -1;
             int nY = -1;
             if(OneStepReach(Direction(), 1, &nX, &nY) == 1){
-                return RequestMove(nX, nY, MoveSpeed(), false, false, [](){}, [](){});
+                return reqestMove(nX, nY, MoveSpeed(), false, false, [](){}, [](){});
             }
             return false;
         };
@@ -241,7 +241,7 @@ bool Monster::RandomTurn()
 
 void Monster::AttackUID(uint64_t nUID, int nDC, std::function<void()> fnOnOK, std::function<void()> fnOnError)
 {
-    if(!CanAttack()){
+    if(!canAttack()){
         fnOnError();
         return;
     }
@@ -255,7 +255,7 @@ void Monster::AttackUID(uint64_t nUID, int nDC, std::function<void()> fnOnOK, st
     // before response received we can't allow any attack request
 
     m_attackLock = true;
-    RetrieveLocation(nUID, [this, nDC, nUID, fnOnOK, fnOnError](const COLocation &stCOLocation)
+    retrieveLocation(nUID, [this, nDC, nUID, fnOnOK, fnOnError](const COLocation &stCOLocation)
     {
         if(!m_attackLock){
             throw fflerror("attackLock released before location query done");
@@ -273,7 +273,7 @@ void Monster::AttackUID(uint64_t nUID, int nDC, std::function<void()> fnOnOK, st
                         case 2:
                             {
                                 m_direction = PathFind::GetDirection(X(), Y(), nX, nY);
-                                if(!CanAttack()){
+                                if(!canAttack()){
                                     fnOnError();
                                     return;
                                 }
@@ -292,7 +292,7 @@ void Monster::AttackUID(uint64_t nUID, int nDC, std::function<void()> fnOnOK, st
                                 Delay(550, [this, nUID]()
                                 {
                                     // monster may go dead after this delay
-                                    // but don't check CanAttack() since that's for attack lock
+                                    // but don't check canAttack() since that's for attack lock
                                     if(true){
                                         DispatchAttack(nUID, DC_PHY_PLAIN);
                                     }
@@ -339,7 +339,7 @@ void Monster::TrackUID(uint64_t nUID, int nMinCDistance, std::function<void()> f
         throw fflerror("invalid distance: %d", nMinCDistance);
     }
 
-    RetrieveLocation(nUID, [this, nMinCDistance, fnOnOK, fnOnError](const COLocation &rstCOLocation) -> bool
+    retrieveLocation(nUID, [this, nMinCDistance, fnOnOK, fnOnError](const COLocation &rstCOLocation) -> bool
     {
         auto nX     = rstCOLocation.X;
         auto nY     = rstCOLocation.Y;
@@ -362,7 +362,7 @@ void Monster::TrackUID(uint64_t nUID, int nMinCDistance, std::function<void()> f
 
 void Monster::FollowMaster(std::function<void()> fnOnOK, std::function<void()> fnOnError)
 {
-    if(!(MasterUID() && CanMove())){
+    if(!(masterUID() && canMove())){
         fnOnError();
         return;
     }
@@ -371,17 +371,17 @@ void Monster::FollowMaster(std::function<void()> fnOnOK, std::function<void()> f
     // 1. follower always try to stand at the back of the master
     // 2. when distance is too far or master is on different map, follower takes space move
 
-    RetrieveLocation(MasterUID(), [this, fnOnOK, fnOnError](const COLocation &rstCOLocation) -> bool
+    retrieveLocation(masterUID(), [this, fnOnOK, fnOnError](const COLocation &rstCOLocation) -> bool
     {
         // check if it's still my master?
         // possible during the location query master changed
 
-        if(rstCOLocation.UID != MasterUID()){
+        if(rstCOLocation.UID != masterUID()){
             fnOnError();
             return false;
         }
 
-        if(!CanMove()){
+        if(!canMove()){
             fnOnError();
             return false;
         }
@@ -440,7 +440,7 @@ void Monster::FollowMaster(std::function<void()> fnOnOK, std::function<void()> f
         // slave have to do space move
 
         auto [nBackX, nBackY] = fnGetBack(nX, nY, nDirection, 3);
-        return RequestSpaceMove(nMapID, nBackX, nBackY, false, fnOnOK, fnOnError);
+        return reqestSpaceMove(nMapID, nBackX, nBackY, false, fnOnOK, fnOnError);
     });
 }
 
@@ -465,8 +465,8 @@ void Monster::TrackAttackUID(uint64_t nTargetUID, std::function<void()> fnOnOK, 
 uint64_t Monster::Activate()
 {
     if(auto nUID = CharObject::Activate()){
-        if(MasterUID()){
-            m_actorPod->forward(MasterUID(), {MPK_CHECKMASTER}, [this](const MessagePack &rstRMPK)
+        if(masterUID()){
+            m_actorPod->forward(masterUID(), {MPK_CHECKMASTER}, [this](const MessagePack &rstRMPK)
             {
                 if(rstRMPK.Type() != MPK_OK){
                     GoDie();
@@ -487,8 +487,8 @@ void Monster::UpdateCoroFunc()
             CoroNode_TrackAttackUID(targetUID);
         }
 
-        else if(MasterUID()){
-            if(m_actorPod->CheckInvalid(MasterUID())){
+        else if(masterUID()){
+            if(m_actorPod->CheckInvalid(masterUID())){
                 GoDie();
             }
             CoroNode_FollowMaster();
@@ -502,13 +502,13 @@ void Monster::UpdateCoroFunc()
     GoDie();
 }
 
-bool Monster::Update()
+bool Monster::update()
 {
     if(HP() < 0){
         return GoDie();
     }
 
-    if(MasterUID() && m_actorPod->CheckInvalid(MasterUID())){
+    if(masterUID() && m_actorPod->CheckInvalid(masterUID())){
         return GoDie();
     }
 
@@ -716,9 +716,9 @@ DamageNode Monster::GetAttackDamage(int nDC)
     }
 }
 
-bool Monster::CanMove()
+bool Monster::canMove()
 {
-    if(CharObject::CanMove() && CanAct()){
+    if(CharObject::canMove() && CanAct()){
         return g_monoServer->getCurrTick() >= m_lastMoveTime + m_monsterRecord.WalkWait;
     }
     return false;
@@ -733,13 +733,13 @@ bool Monster::CanMove()
 // if there is no GCD, it jumps to (x, y) and immediately attack player and dispatch the attack result
 // from client we see monster is just start moving, but player already get the ACTION_HITTED
 
-bool Monster::CanAttack()
+bool Monster::canAttack()
 {
     if(!CanAct()){
         return false;
     }
 
-    if(!CharObject::CanAttack()){
+    if(!CharObject::canAttack()){
         return false;
     }
 
@@ -873,7 +873,7 @@ bool Monster::StruckDamage(const DamageNode &rstDamage)
     switch(uidf::getMonsterID(UID())){
         case DBCOM_MONSTERID(u8"变异骷髅"):
             {
-                if(MasterUID()){
+                if(masterUID()){
                     return true;
                 }
                 break;
@@ -898,7 +898,7 @@ bool Monster::StruckDamage(const DamageNode &rstDamage)
 
 bool Monster::MoveOneStep(int nX, int nY, std::function<void()> fnOnOK, std::function<void()> fnOnError)
 {
-    if(!CanMove()){
+    if(!canMove()){
         fnOnError();
         return false;
     }
@@ -912,7 +912,7 @@ bool Monster::MoveOneStep(int nX, int nY, std::function<void()> fnOnOK, std::fun
         case 1:
             {
                 if(OneStepCost(nullptr, 1, X(), Y(), nX, nY) >= 0.00){
-                    return RequestMove(nX, nY, MoveSpeed(), false, false, fnOnOK, fnOnError);
+                    return reqestMove(nX, nY, MoveSpeed(), false, false, fnOnOK, fnOnError);
                 }
                 break;
             }
@@ -932,7 +932,7 @@ bool Monster::MoveOneStep(int nX, int nY, std::function<void()> fnOnOK, std::fun
 
     if(m_AStarCache.Retrieve(&nXm, &nYm, X(), Y(), nX, nY, MapID())){
         if(OneStepCost(nullptr, 1, X(), Y(), nXm, nYm) >= 0.00){
-            return RequestMove(nXm, nYm, MoveSpeed(), false, false, fnOnOK, fnOnError);
+            return reqestMove(nXm, nYm, MoveSpeed(), false, false, fnOnOK, fnOnError);
         }
     }
 
@@ -967,7 +967,7 @@ bool Monster::MoveOneStep(int nX, int nY, std::function<void()> fnOnOK, std::fun
 
 bool Monster::MoveOneStepNeighbor(int nX, int nY, std::function<void()> fnOnOK, std::function<void()> fnOnError)
 {
-    if(!CanMove()){
+    if(!canMove()){
         fnOnError();
         return false;
     }
@@ -984,12 +984,12 @@ bool Monster::MoveOneStepNeighbor(int nX, int nY, std::function<void()> fnOnOK, 
     }
 
     m_AStarCache.Cache({stPathNode.begin(), stPathNode.begin() + nNodeNum}, MapID());
-    return RequestMove(stPathNode[1].X, stPathNode[1].Y, MoveSpeed(), false, false, fnOnOK, fnOnError);
+    return reqestMove(stPathNode[1].X, stPathNode[1].Y, MoveSpeed(), false, false, fnOnOK, fnOnError);
 }
 
 bool Monster::MoveOneStepGreedy(int nX, int nY, std::function<void()> fnOnOK, std::function<void()> fnOnError)
 {
-    if(!CanMove()){
+    if(!canMove()){
         fnOnError();
         return false;
     }
@@ -997,11 +997,11 @@ bool Monster::MoveOneStepGreedy(int nX, int nY, std::function<void()> fnOnOK, st
     bool bLongJump   = (MaxStep() > 1) && (mathf::CDistance(X(), Y(), nX, nY) >= MaxStep());
     auto stvPathNode = GetChaseGrid(nX, nY, bLongJump ? MaxStep() : 1);
 
-    return RequestMove(stvPathNode[0].X, stvPathNode[0].Y, MoveSpeed(), false, false, fnOnOK, [this, bLongJump, nX, nY, stvPathNode, fnOnOK, fnOnError]()
+    return reqestMove(stvPathNode[0].X, stvPathNode[0].Y, MoveSpeed(), false, false, fnOnOK, [this, bLongJump, nX, nY, stvPathNode, fnOnOK, fnOnError]()
     {
-        RequestMove(stvPathNode[1].X, stvPathNode[1].Y, MoveSpeed(), false, false, fnOnOK, [this, bLongJump, nX, nY, stvPathNode, fnOnOK, fnOnError]()
+        reqestMove(stvPathNode[1].X, stvPathNode[1].Y, MoveSpeed(), false, false, fnOnOK, [this, bLongJump, nX, nY, stvPathNode, fnOnOK, fnOnError]()
         {
-            RequestMove(stvPathNode[2].X, stvPathNode[2].Y, MoveSpeed(), false, false, fnOnOK, [this, bLongJump, nX, nY,fnOnOK, fnOnError]()
+            reqestMove(stvPathNode[2].X, stvPathNode[2].Y, MoveSpeed(), false, false, fnOnOK, [this, bLongJump, nX, nY,fnOnOK, fnOnError]()
             {
                 if(!bLongJump){
                     fnOnError();
@@ -1009,11 +1009,11 @@ bool Monster::MoveOneStepGreedy(int nX, int nY, std::function<void()> fnOnOK, st
                 }
 
                 auto stvMinPathNode = GetChaseGrid(nX, nY, 1);
-                RequestMove(stvMinPathNode[0].X, stvMinPathNode[0].Y, MoveSpeed(), false, false, fnOnOK, [this, stvMinPathNode, fnOnOK, fnOnError]()
+                reqestMove(stvMinPathNode[0].X, stvMinPathNode[0].Y, MoveSpeed(), false, false, fnOnOK, [this, stvMinPathNode, fnOnOK, fnOnError]()
                 {
-                    RequestMove(stvMinPathNode[1].X, stvMinPathNode[1].Y, MoveSpeed(), false, false, fnOnOK, [this, stvMinPathNode, fnOnOK, fnOnError]()
+                    reqestMove(stvMinPathNode[1].X, stvMinPathNode[1].Y, MoveSpeed(), false, false, fnOnOK, [this, stvMinPathNode, fnOnOK, fnOnError]()
                     {
-                        RequestMove(stvMinPathNode[2].X, stvMinPathNode[2].Y, MoveSpeed(), false, false, fnOnOK, fnOnError);
+                        reqestMove(stvMinPathNode[2].X, stvMinPathNode[2].Y, MoveSpeed(), false, false, fnOnOK, fnOnError);
                     });
                 });
             });
@@ -1023,7 +1023,7 @@ bool Monster::MoveOneStepGreedy(int nX, int nY, std::function<void()> fnOnOK, st
 
 bool Monster::MoveOneStepCombine(int nX, int nY, std::function<void()> fnOnOK, std::function<void()> fnOnError)
 {
-    if(!CanMove()){
+    if(!canMove()){
         fnOnError();
         return false;
     }
@@ -1036,7 +1036,7 @@ bool Monster::MoveOneStepCombine(int nX, int nY, std::function<void()> fnOnOK, s
 
 bool Monster::MoveOneStepAStar(int nX, int nY, std::function<void()> fnOnOK, std::function<void()> fnOnError)
 {
-    if(!CanMove()){
+    if(!canMove()){
         fnOnError();
         return false;
     }
@@ -1081,7 +1081,7 @@ bool Monster::MoveOneStepAStar(int nX, int nY, std::function<void()> fnOnOK, std
                     }
                     m_AStarCache.Cache(stvPathNode, MapID());
 
-                    RequestMove(stAMPFOK.Point[1].X, stAMPFOK.Point[1].Y, MoveSpeed(), false, false, fnOnOK, fnOnError);
+                    reqestMove(stAMPFOK.Point[1].X, stAMPFOK.Point[1].Y, MoveSpeed(), false, false, fnOnOK, fnOnError);
                     break;
                 }
             default:
@@ -1218,7 +1218,7 @@ void Monster::QueryMaster(uint64_t nUID, std::function<void(uint64_t)> fnOp)
     }
 
     if(nUID == UID()){
-        throw fflerror("query self for MasterUID()");
+        throw fflerror("query self for masterUID()");
     }
 
     m_actorPod->forward(nUID, MPK_QUERYMASTER, [this, nUID, fnOp](const MessagePack &rstRMPK)
@@ -1235,7 +1235,7 @@ void Monster::QueryMaster(uint64_t nUID, std::function<void(uint64_t)> fnOp)
             default:
                 {
                     fnOp(0);
-                    if(nUID == MasterUID()){
+                    if(nUID == masterUID()){
                         GoDie();
                     }
                     return;
@@ -1297,7 +1297,7 @@ void Monster::checkFriend_AsGuard(uint64_t nUID, std::function<void(int)> fnOp)
 
 void Monster::checkFriend_CtrlByMonster(uint64_t nUID, std::function<void(int)> fnOp)
 {
-    if(MasterUID() && uidf::getUIDType(MasterUID()) != UID_MON){
+    if(masterUID() && uidf::getUIDType(masterUID()) != UID_MON){
         throw fflerror("invalid call to checkFriend_CtrlByMonster");
     }
 
@@ -1353,7 +1353,7 @@ void Monster::checkFriend_CtrlByMonster(uint64_t nUID, std::function<void(int)> 
 
 void Monster::checkFriend_CtrlByPlayer(uint64_t nUID, std::function<void(int)> fnOp)
 {
-    if(uidf::getUIDType(MasterUID()) != UID_PLY){
+    if(uidf::getUIDType(masterUID()) != UID_PLY){
         throw fflerror("invalid call to checkFriend_CtrlByPlayer");
     }
 
@@ -1380,12 +1380,12 @@ void Monster::checkFriend_CtrlByPlayer(uint64_t nUID, std::function<void(int)> f
                             }
                         case UID_PLY:
                             {
-                                if(nFMasterUID == MasterUID()){
+                                if(nFMasterUID == masterUID()){
                                     fnOp(FT_NEUTRAL);
                                     return;
                                 }
 
-                                QueryFriendType(MasterUID(), nUID, [fnOp](int nFriendType)
+                                QueryFriendType(masterUID(), nUID, [fnOp](int nFriendType)
                                 {
                                     fnOp(nFriendType);
                                 });
@@ -1401,7 +1401,7 @@ void Monster::checkFriend_CtrlByPlayer(uint64_t nUID, std::function<void(int)> f
             }
         case UID_PLY:
             {
-                QueryFriendType(MasterUID(), nUID, [fnOp](int nFriendType)
+                QueryFriendType(masterUID(), nUID, [fnOp](int nFriendType)
                 {
                     fnOp(nFriendType);
                 });
@@ -1438,7 +1438,7 @@ void Monster::checkFriend(uint64_t nUID, std::function<void(int)> fnOp)
         return;
     }
 
-    if(!MasterUID()){
+    if(!masterUID()){
         checkFriend_CtrlByMonster(nUID, fnOp);
         return;
     }
@@ -1446,7 +1446,7 @@ void Monster::checkFriend(uint64_t nUID, std::function<void(int)> fnOp)
     // has a master
     // can be its master
 
-    if(nUID == MasterUID()){
+    if(nUID == masterUID()){
         fnOp(FT_FRIEND);
         return;
     }

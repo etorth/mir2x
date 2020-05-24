@@ -29,7 +29,7 @@ extern MonoServer *g_monoServer;
 
 void Player::On_MPK_METRONOME(const MessagePack &)
 {
-    Update();
+    update();
 
     SMPing stSMP;
     stSMP.Tick = g_monoServer->getCurrTick();

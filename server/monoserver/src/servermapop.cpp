@@ -297,7 +297,7 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK)
         case 1:
             {
                 bCheckMove = false;
-                if(CanMove(true, true, stAMTM.EndX, stAMTM.EndY)){
+                if(canMove(true, true, stAMTM.EndX, stAMTM.EndY)){
                     bCheckMove = true;
                 }
                 break;
@@ -314,9 +314,9 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK)
                 int nDY = (stAMTM.EndY > stAMTM.Y) - (stAMTM.EndY < stAMTM.Y);
 
                 bCheckMove = true;
-                if(CanMove(true, true, stAMTM.EndX, stAMTM.EndY)){
+                if(canMove(true, true, stAMTM.EndX, stAMTM.EndY)){
                     for(int nIndex = 1; nIndex < nStepSize; ++nIndex){
-                        if(!CanMove(true, false, stAMTM.X + nDX * nIndex, stAMTM.Y + nDY * nIndex)){
+                        if(!canMove(true, false, stAMTM.X + nDX * nIndex, stAMTM.Y + nDY * nIndex)){
                             bCheckMove = false;
                             break;
                         }
@@ -326,7 +326,7 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK)
                 if(!bCheckMove){
                     if(true
                             && stAMTM.AllowHalfMove
-                            && CanMove(true, true, stAMTM.X + nDX, stAMTM.Y + nDY)){
+                            && canMove(true, true, stAMTM.X + nDX, stAMTM.Y + nDY)){
                         bCheckMove = true;
                         nMostX = stAMTM.X + nDX;
                         nMostY = stAMTM.Y + nDY;
@@ -460,7 +460,7 @@ void ServerMap::On_MPK_TRYMAPSWITCH(const MessagePack &rstMPK)
     int nX = stAMTMS.EndX;
     int nY = stAMTMS.EndY;
 
-    if(!CanMove(false, false, nX, nY)){
+    if(!canMove(false, false, nX, nY)){
         g_monoServer->addLog(LOGTYPE_WARNING, "Requested map switch location is invalid: MapName = %s, X = %d, Y = %d", DBCOM_MAPRECORD(ID()).Name, nX, nY);
         m_actorPod->forward(rstMPK.from(), MPK_ERROR, rstMPK.ID());
         return;

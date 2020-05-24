@@ -90,7 +90,7 @@ class Player final: public CharObject
             return 5;
         }
 
-        bool Update();
+        bool update() override;
 
     protected:
         void OperateNet(uint8_t, const uint8_t *, size_t);

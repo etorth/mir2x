@@ -100,7 +100,7 @@ class Monster final: public CharObject
     protected:
        // don't expose it to public
        // master may change by time or by magic
-       uint64_t MasterUID() const
+       uint64_t masterUID() const
        {
            return m_masterUID;
        }
@@ -108,7 +108,7 @@ class Monster final: public CharObject
     protected:
         void SearchViewRange();
         void UpdateCoroFunc();
-        bool Update();
+        bool update() override;
 
     protected:
         bool RandomMove();
@@ -201,8 +201,8 @@ class Monster final: public CharObject
         uint64_t Activate() override;
 
     protected:
-        bool CanMove();
-        bool CanAttack();
+        bool canMove();
+        bool canAttack();
 
     protected:
         virtual bool GoDie();
