@@ -94,7 +94,14 @@ bool QuickAccessBoard::processEvent(const SDL_Event &event, bool valid)
         case SDL_MOUSEMOTION:
             {
                 if(in(event.motion.x, event.motion.y) && (event.motion.state & SDL_BUTTON_LMASK)){
-                    moveBy(event.motion.xrel, event.motion.yrel);
+                    const auto [rendererW, rendererH] = g_SDLDevice->getRendererSize();
+                    const int maxX = rendererW - w();
+                    const int maxY = rendererH - h();
+
+                    const int newX = std::max<int>(0, std::min<int>(maxX, x() + event.motion.xrel));
+                    const int newY = std::max<int>(0, std::min<int>(maxY, y() + event.motion.yrel));
+
+                    moveBy(newX - x(), newY - y());
                     return true;
                 }
                 return false;
