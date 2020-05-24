@@ -64,6 +64,12 @@ ProcessRun::ProcessRun()
           this,
       }
     , m_inventoryBoard(0, 0, this)
+    , m_quickAccessBoard
+      {
+          0,
+          std::get<1>(g_SDLDevice->getRendererSize()) - m_controlBoard.h(),
+          this,
+      }
     , m_fpsBoard    (0, 0, "", 0, 15, 0, colorf::RGBA(0XFF, 0XFF, 0X00, 0X00))
     , m_mousePixlLoc(0, 0, "", 0, 15, 0, colorf::RGBA(0XFF, 0X00, 0X00, 0X00))
     , m_mouseGridLoc(0, 0, "", 0, 15, 0, colorf::RGBA(0XFF, 0X00, 0X00, 0X00))
@@ -374,9 +380,10 @@ void ProcessRun::draw()
         p->Draw(m_viewX, m_viewY);
     }
 
-    m_controlBoard  .draw();
-    m_inventoryBoard.draw();
-    m_NPCChatBoard  .draw();
+    m_controlBoard    .draw();
+    m_inventoryBoard  .draw();
+    m_NPCChatBoard    .draw();
+    m_quickAccessBoard.draw();
 
     // draw notifyBoard
     {
@@ -427,15 +434,14 @@ void ProcessRun::draw()
 
 void ProcessRun::processEvent(const SDL_Event &event)
 {
-    if(m_inventoryBoard.processEvent(event, true)){
-        return;
-    }
+    bool takeEvent = false;
 
-    if(m_controlBoard.processEvent(event, true)){
-        return;
-    }
+    takeEvent |= m_inventoryBoard  .processEvent(event, !takeEvent);
+    takeEvent |= m_controlBoard    .processEvent(event, !takeEvent);
+    takeEvent |= m_NPCChatBoard    .processEvent(event, !takeEvent);
+    takeEvent |= m_quickAccessBoard.processEvent(event, !takeEvent);
 
-    if(m_NPCChatBoard.processEvent(event, true)){
+    if(takeEvent){
         return;
     }
 
@@ -1465,6 +1471,10 @@ Widget *ProcessRun::getWidget(const std::string &widgetName)
 {
     if(widgetName == "InventoryBoard"){
         return &m_inventoryBoard;
+    }
+
+    if(widgetName == "QuickAccessBoard"){
+        return &m_quickAccessBoard;
     }
     return nullptr;
 }

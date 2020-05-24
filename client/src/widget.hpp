@@ -134,6 +134,16 @@ class Widget
             }
         }
 
+        int dx() const
+        {
+            return m_x;
+        }
+
+        int dy() const
+        {
+            return m_y;
+        }
+
         int w() const
         {
             return m_w;

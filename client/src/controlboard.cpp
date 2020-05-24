@@ -107,7 +107,9 @@ ControlBoard::ControlBoard(int startY, int boardW, ProcessRun *proc)
       {
           [this]()
           {
-              addLog(1, "not implemented yet");
+              if(auto p = m_processRun->getWidget("QuickAccessBoard")){
+                  p->show(!p->show());
+              }
           },
           &m_left,
       }

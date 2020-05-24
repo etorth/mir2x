@@ -85,9 +85,12 @@ InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget
     , m_processRun(pRun)
 {
     show(false);
-    if(auto pTexture = g_progUseDB->Retrieve(0X0000001B)){
-        SDL_QueryTexture(pTexture, nullptr, nullptr, &m_w, &m_h);
+    auto texPtr = g_progUseDB->Retrieve(0X0000001B);
+    if(!texPtr){
+        throw fflerror("no valid inventory frame texture");
     }
+
+    std::tie(m_w, m_h) = SDLDevice::getTextureSize(texPtr);
     m_goldBoard.moveTo(105 - m_goldBoard.w() / 2, 401);
 }
 

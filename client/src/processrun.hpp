@@ -39,6 +39,7 @@
 #include "clientcreature.hpp"
 #include "inventoryboard.hpp"
 #include "clientluamodule.hpp"
+#include "quickaccessboard.hpp"
 
 class ClientPathFinder;
 class ProcessRun: public Process
@@ -107,6 +108,7 @@ class ProcessRun: public Process
         NPCChatBoard m_NPCChatBoard;
         ControlBoard m_controlBoard;
         InventoryBoard m_inventoryBoard;
+        QuickAccessBoard m_quickAccessBoard;
 
     private:
         std::list<std::shared_ptr<IndepMagic>> m_indepMagicList;
