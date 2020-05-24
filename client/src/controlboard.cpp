@@ -73,9 +73,9 @@ extern Log *g_log;
 extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_SDLDevice;
 
-ControlBoard::ControlBoard(int startY, int boardW, ProcessRun *pRun)
+ControlBoard::ControlBoard(int startY, int boardW, ProcessRun *proc)
     : Widget(0, startY, boardW, 133, nullptr, false)
-    , m_processRun(pRun)
+    , m_processRun(proc)
     , m_left
       {
           0,
@@ -427,6 +427,34 @@ ControlBoard::ControlBoard(int startY, int boardW, ProcessRun *pRun)
           &m_right,
       }
 
+    , m_buttonAC
+      {
+          1,
+          105,
+
+          proc,
+          {
+              "AC",
+              "MA",
+          },
+
+          &m_right,
+      }
+
+    , m_buttonDC
+      {
+          84,
+          105,
+
+          proc,
+          {
+              "DC",
+              "MC",
+          },
+
+          &m_right,
+      }
+
     , m_buttonSwitchMode
       {
           boardW - 178 - 181,
@@ -593,7 +621,7 @@ ControlBoard::ControlBoard(int startY, int boardW, ProcessRun *pRun)
           &m_middle,
       }
 {
-    if(!pRun){
+    if(!proc){
         throw fflerror("invalid ProcessRun provided to ControlBoard()");
     }
 
@@ -712,6 +740,9 @@ void ControlBoard::drawRight()
     m_buttonHorse.draw();
     m_buttonEnvConfig.draw();
     m_buttonSysMessage.draw();
+
+    m_buttonAC.draw();
+    m_buttonDC.draw();
 
     m_buttonInventory.draw();
     m_buttonHeroStatus.draw();
@@ -924,6 +955,9 @@ bool ControlBoard::processEvent(const SDL_Event &event, bool valid)
     takeEvent |= m_buttonHorse      .processEvent(event, valid && !takeEvent);
     takeEvent |= m_buttonEnvConfig  .processEvent(event, valid && !takeEvent);
     takeEvent |= m_buttonSysMessage .processEvent(event, valid && !takeEvent);
+    takeEvent |= m_buttonAC         .processEvent(event, valid && !takeEvent);
+    takeEvent |= m_buttonDC         .processEvent(event, valid && !takeEvent);
+
     takeEvent |= m_buttonInventory  .processEvent(event, valid && !takeEvent);
     takeEvent |= m_buttonHeroStatus .processEvent(event, valid && !takeEvent);
     takeEvent |= m_buttonHeroMagic  .processEvent(event, valid && !takeEvent);

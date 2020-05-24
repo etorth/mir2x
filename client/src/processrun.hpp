@@ -333,4 +333,7 @@ class ProcessRun: public Process
 
     private:
         void drawGroundObject(int, int, bool);
+
+    public:
+        std::tuple<int, int> getACNum(const std::string &) const;
 };

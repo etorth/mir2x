@@ -25,6 +25,7 @@
 #include "widget.hpp"
 #include "pngtexdb.hpp"
 #include "levelbox.hpp"
+#include "acbutton.hpp"
 #include "sdldevice.hpp"
 #include "inputline.hpp"
 #include "layoutboard.hpp"
@@ -85,6 +86,10 @@ class ControlBoard: public Widget
         TritexButton m_buttonHorse;
         TritexButton m_buttonEnvConfig;
         TritexButton m_buttonSysMessage;
+
+    private:
+        ACButton m_buttonAC;
+        ACButton m_buttonDC;
 
     private:
         TritexButton m_buttonSwitchMode;

@@ -1650,3 +1650,26 @@ void ProcessRun::drawRotateStar(int x0, int y0, int x1, int y1)
         g_SDLDevice->drawTextureEx(texPtr, 0, 0, texW, texH, drawPX, drawPY, currSize, currSize, currSize / 2, currSize / 2, std::lround(m_starRatio * 360.0));
     }
 }
+
+std::tuple<int, int> ProcessRun::getACNum(const std::string &name) const
+{
+    if(name == "AC"){
+        return {1, 2};
+    }
+
+    else if(name == "DC"){
+        return {2, 3};
+    }
+
+    else if(name == "MA"){
+        return {3, 4};
+    }
+
+    else if(name == "MC"){
+        return {4, 5};
+    }
+
+    else{
+        throw fflerror("invalid argument: %s", name.c_str());
+    }
+}
