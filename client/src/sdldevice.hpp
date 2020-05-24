@@ -239,6 +239,16 @@ class SDLDevice final
            return {w, h};
        }
 
+       int getWindowWidth()
+       {
+           return std::get<0>(getWindowSize());
+       }
+
+       int getWindowHeight()
+       {
+           return std::get<1>(getWindowSize());
+       }
+
        std::tuple<int, int> getRendererSize()
        {
            int w = -1;
@@ -248,6 +258,16 @@ class SDLDevice final
                throw fflerror("SDL_GetRendererOutputSize(%p) failed", m_renderer);
            }
            return {w, h};
+       }
+
+       int getRendererWidth()
+       {
+           return std::get<0>(getRendererSize());
+       }
+
+       int getRendererHeight()
+       {
+           return std::get<1>(getRendererSize());
        }
 
     public:
