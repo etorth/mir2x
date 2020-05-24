@@ -45,7 +45,7 @@ ACButton::ACButton(int x, int y, ProcessRun *proc, const std::vector<std::string
           0,
           0,
 
-          true,
+          false,
           pwidget,
           autoDelete,
       }
@@ -108,10 +108,14 @@ void ACButton::drawEx(int dstX, int dstY, int, int, int, int)
     }
 
     SDL_SetTextureAlphaMod(texPtr, 255);
+    SDL_SetTextureColorMod(texPtr, 255, 255, 255);
+
     g_SDLDevice->DrawTexture(texPtr, dstX, dstY);
+    m_labelBoard.drawEx(dstX + w() + 5, dstY, 0, 0, m_labelBoard.w(), m_labelBoard.h());
 
     switch(m_state){
         case BEVENT_ON:
+        case BEVENT_DOWN:
             {
                 SDL_SetTextureColorMod(texPtr, 255, 0, 0);
                 SDL_SetTextureAlphaMod(texPtr, 128);

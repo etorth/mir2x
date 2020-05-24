@@ -957,7 +957,6 @@ bool ControlBoard::processEvent(const SDL_Event &event, bool valid)
     takeEvent |= m_buttonSysMessage .processEvent(event, valid && !takeEvent);
     takeEvent |= m_buttonAC         .processEvent(event, valid && !takeEvent);
     takeEvent |= m_buttonDC         .processEvent(event, valid && !takeEvent);
-
     takeEvent |= m_buttonInventory  .processEvent(event, valid && !takeEvent);
     takeEvent |= m_buttonHeroStatus .processEvent(event, valid && !takeEvent);
     takeEvent |= m_buttonHeroMagic  .processEvent(event, valid && !takeEvent);
