@@ -24,6 +24,7 @@ class PasswordBox: public InputLine
 {
     private:
         bool m_security;
+        std::string m_passwordString;
 
     public:
         PasswordBox(
@@ -68,4 +69,35 @@ class PasswordBox: public InputLine
               }
             , m_security(security)
         {}
+
+    public:
+        bool processEvent(const SDL_Event &event, bool valid) override
+        {
+            const auto result = InputLine::processEvent(event, valid);
+            if(m_security){
+                const auto inputString = getRawString();
+                if(inputString.size() + 1 == m_passwordString.size()){
+                    // delete one char
+                    m_passwordString.erase(m_cursor, 1);
+                }
+
+                else if(inputString.size() == m_passwordString.size() + 1){
+                    // insert one char
+                    m_passwordString.insert(m_cursor - 1, 1, inputString[m_cursor - 1]);
+                    deleteChar();
+                    insertChar('*');
+                }
+
+                else if(inputString.size() != m_passwordString.size()){
+                    throw fflerror("password box input error");
+                }
+            }
+            return result;
+        }
+
+    public:
+        std::string getPasswordString() const
+        {
+            return m_security ? m_passwordString : getRawString();
+        }
 };

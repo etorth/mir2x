@@ -159,21 +159,14 @@ void ProcessLogin::processEvent(const SDL_Event &event)
             }
     }
 
-    m_button1.processEvent(event, true);
-    m_button2.processEvent(event, true);
-    m_button3.processEvent(event, true);
-    m_button4.processEvent(event, true);
+    bool takeEvent = false;
 
-    // widget idbox and pwdbox are not independent from each other
-    // tab in one box will grant focus to another
-
-    if(m_idBox.processEvent(event, true)){
-        return;
-    }
-
-    if(m_passwordBox.processEvent(event, true)){
-        return;
-    }
+    takeEvent |= m_button1    .processEvent(event, !takeEvent);
+    takeEvent |= m_button2    .processEvent(event, !takeEvent);
+    takeEvent |= m_button3    .processEvent(event, !takeEvent);
+    takeEvent |= m_button4    .processEvent(event, !takeEvent);
+    takeEvent |= m_idBox      .processEvent(event, !takeEvent);
+    takeEvent |= m_passwordBox.processEvent(event, !takeEvent);
 }
 
 void ProcessLogin::doLogin()
@@ -181,8 +174,8 @@ void ProcessLogin::doLogin()
     if(!(m_idBox.getRawString().empty()) && !(m_passwordBox.getRawString().empty())){
         g_log->addLog(LOGTYPE_INFO, "login account: (%s:%s)", m_idBox.getRawString().c_str(), m_passwordBox.getRawString().c_str());
 
-        auto szID  = m_idBox.getRawString();
-        auto szPWD = m_passwordBox.getRawString();
+        const auto szID  = m_idBox.getRawString();
+        const auto szPWD = m_passwordBox.getPasswordString();
 
         CMLogin stCML;
         std::memset(&stCML, 0, sizeof(stCML));

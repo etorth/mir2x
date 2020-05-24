@@ -103,4 +103,8 @@ class InputLine: public Widget
             m_cursorBlink = 0.0;
             m_tpset.clear();
         }
+
+    public:
+        void deleteChar();
+        void insertChar(char);
 };

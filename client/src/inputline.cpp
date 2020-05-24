@@ -176,3 +176,20 @@ void InputLine::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int src
         g_SDLDevice->fillRectangle(m_cursorColor + 128, cursorX, cursorY, cursorW, cursorH);
     }
 }
+
+void InputLine::deleteChar()
+{
+    m_tpset.deleteToken(m_cursor - 1, 0, 1);
+    m_cursor--;
+}
+
+void InputLine::insertChar(char ch)
+{
+    const char rawString[]
+    {
+        ch, '\0',
+    };
+
+    m_tpset.insertUTF8String(m_cursor, 0, rawString);
+    m_cursor++;
+}
