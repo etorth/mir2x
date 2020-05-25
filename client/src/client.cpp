@@ -142,7 +142,7 @@ void Client::EventDelay(double fDelayMS)
         // here we check the delay time
         // since SDL_Delay(0) may run into problem
 
-        const auto nDelayMSCount = (Uint32)(std::lround((fDelayMS - fDelayDone) * 0.50));
+        const auto nDelayMSCount = (Uint32)(std::lround((fDelayMS - fDelayDone) * 0.80));
         if(nDelayMSCount <= 0){
             break;
         }
