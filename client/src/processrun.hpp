@@ -121,7 +121,6 @@ class ProcessRun: public Process
 
     private:
         // use a tokenboard to show all in future
-        LabelBoard m_fpsBoard;
         LabelBoard m_mousePixlLoc;
         LabelBoard m_mouseGridLoc;
 
@@ -329,6 +328,7 @@ class ProcessRun: public Process
         void sendNPCEvent(uint64_t, const char *, const char * = nullptr);
 
     private:
+        void drawFPS();
         void drawTile(int, int, int, int);
         void drawGroundItem(int, int, int, int);
         void drawRotateStar(int, int, int, int);

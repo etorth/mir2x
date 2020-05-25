@@ -955,11 +955,11 @@ void XMLTypeset::drawEx(int nDstX, int nDstY, int nSrcX, int nSrcY, int nSrcW, i
                         const int drawDstX = nX + nDstDX;
                         const int drawDstY = nY + nDstDY;
 
-                        auto pTexture = g_fontexDB->Retrieve(pToken->UTF8Char.U64Key);
-                        if(pTexture){
-                            SDL_SetTextureColorMod(pTexture, colorf::R(nColor), colorf::G(nColor), colorf::B(nColor));
-                            g_SDLDevice->DrawTexture(pTexture, drawDstX, drawDstY, nDX, nDY, nW, nH);
-                        }else{
+                        if(auto texPtr = g_fontexDB->Retrieve(pToken->UTF8Char.U64Key); texPtr){
+                            SDL_SetTextureColorMod(texPtr, colorf::R(nColor), colorf::G(nColor), colorf::B(nColor));
+                            g_SDLDevice->DrawTexture(texPtr, drawDstX, drawDstY, nDX, nDY, nW, nH);
+                        }
+                        else{
                             g_SDLDevice->DrawRectangle(colorf::CompColor(nBGColor), drawDstX, drawDstY, nW, nH);
                         }
 

@@ -70,7 +70,6 @@ ProcessRun::ProcessRun()
           std::get<1>(g_SDLDevice->getRendererSize()) - m_controlBoard.h(),
           this,
       }
-    , m_fpsBoard    (0, 0, "", 0, 15, 0, colorf::RGBA(0XFF, 0XFF, 0X00, 0X00))
     , m_mousePixlLoc(0, 0, "", 0, 15, 0, colorf::RGBA(0XFF, 0X00, 0X00, 0X00))
     , m_mouseGridLoc(0, 0, "", 0, 15, 0, colorf::RGBA(0XFF, 0X00, 0X00, 0X00))
     , m_ascendStrList()
@@ -428,8 +427,9 @@ void ProcessRun::draw()
         m_mousePixlLoc.drawEx(10, 30, 0, 0, m_mousePixlLoc.w(), m_mousePixlLoc.h());
     }
 
-    m_fpsBoard.setText("FPS:%zu", g_SDLDevice->getFPS());
-    m_fpsBoard.drawEx(g_SDLDevice->WindowW(false) - 60, 0, 0, 0, m_fpsBoard.w(), m_fpsBoard.h());
+    if(g_clientArgParser->drawFPS){
+        drawFPS();
+    }
 }
 
 void ProcessRun::processEvent(const SDL_Event &event)
@@ -1682,4 +1682,17 @@ std::tuple<int, int> ProcessRun::getACNum(const std::string &name) const
     else{
         throw fflerror("invalid argument: %s", name.c_str());
     }
+}
+
+void ProcessRun::drawFPS()
+{
+    const auto fpsStr = std::to_string(g_SDLDevice->getFPS());
+    LabelBoard fpsBoard(0, 0, fpsStr.c_str(), 1, 12, 0, colorf::RGBA(0XFF, 0XFF, 0X00, 0X00));
+
+    const int winWidth = g_SDLDevice->getRendererWidth();
+    fpsBoard.moveTo(winWidth - fpsBoard.w(), 0);
+
+    g_SDLDevice->fillRectangle(colorf::GREY + 255, fpsBoard.x() - 1, fpsBoard.y(), fpsBoard.w() + 1, fpsBoard.h());
+    g_SDLDevice->DrawRectangle(colorf::BLUE + 255, fpsBoard.x() - 1, fpsBoard.y(), fpsBoard.w() + 1, fpsBoard.h());
+    fpsBoard.draw();
 }

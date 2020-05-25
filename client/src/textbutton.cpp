@@ -28,14 +28,11 @@ extern SDLDevice *g_SDLDevice;
 
 void TextButton::drawEx(int nDstX, int nDstY, int nSrcX, int nSrcY, int nW, int nH)
 {
-    extern SDLDevice *g_SDLDevice;
-    g_SDLDevice->PushColor(colorf::RGBA2Color(colorf::ARGB2RGBA(m_color[State()][1])));
-    g_SDLDevice->fillRectangle(nDstX, nDstY, nW, nH);
-    g_SDLDevice->PopColor();
+    const auto bgColor = colorf::ARGB2RGBA(m_color[State()][1]);
+    g_SDLDevice->fillRectangle(bgColor, nDstX, nDstY, nW, nH);
 
-    g_SDLDevice->PushColor(colorf::RGBA2Color(colorf::ARGB2RGBA(m_frameLineColor[State()])));
-    g_SDLDevice->DrawRectangle(m_frameLineWidth, nDstX, nDstY, nW, nH);
-    g_SDLDevice->PopColor();
+    const auto frameLineColor = colorf::ARGB2RGBA(m_frameLineColor[State()]);
+    g_SDLDevice->drawWidthRectangle(frameLineColor, m_frameLineWidth, nDstX, nDstY, nW, nH);
 
     int nLBX0 = (w() - m_label.w()) / 2;
     int nLBY0 = (h() - m_label.h()) / 2;

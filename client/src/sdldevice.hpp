@@ -152,61 +152,24 @@ class SDLDevice final
            SDL_SetRenderDrawColor(m_renderer, nR, nG, nB, nA);
        }
 
-       void fillRectangle(int nX, int nY, int nW, int nH)
-       {
-           SDL_Rect stRect;
-           stRect.x = nX;
-           stRect.y = nY;
-           stRect.w = nW;
-           stRect.h = nH;
-
-           SDL_RenderFillRect(m_renderer, &stRect);
-       }
-
-       void fillRectangle(uint32_t nRGBA, int nX, int nY, int nW, int nH)
-       {
-           EnableDrawColor stEnableColor(nRGBA);
-
-           SDL_Rect stRect;
-           stRect.x = nX;
-           stRect.y = nY;
-           stRect.w = nW;
-           stRect.h = nH;
-
-           SDL_RenderFillRect(m_renderer, &stRect);
-       }
-
        void DrawPixel(int nX, int nY)
        {
            SDL_RenderDrawPoint(m_renderer, nX, nY);
        }
 
-       void DrawRectangle(int nX, int nY, int nW, int nH)
-       {
-           SDL_Rect stRect;
-           stRect.x = nX;
-           stRect.y = nY;
-           stRect.w = nW;
-           stRect.h = nH;
+    public:
+       void fillRectangle(          int, int, int, int);
+       void fillRectangle(uint32_t, int, int, int, int);
 
-           SDL_RenderDrawRect(m_renderer, &stRect);
-       }
+    public:
+       void DrawRectangle(          int, int, int, int);
+       void DrawRectangle(uint32_t, int, int, int, int);
 
-       void DrawRectangle(int nFrameLineWidth, int nX, int nY, int nW, int nH)
-       {
-           if(nFrameLineWidth > 0){
-               if(nFrameLineWidth == 1){
-                   DrawRectangle(nX, nY, nW, nH);
-               }else{
-                   fillRectangle(nX, nY,                            nW, nFrameLineWidth);
-                   fillRectangle(nX, nY + nW - 2 * nFrameLineWidth, nW, nFrameLineWidth);
+    public:
+       void drawWidthRectangle(          size_t, int, int, int, int);
+       void drawWidthRectangle(uint32_t, size_t, int, int, int, int);
 
-                   fillRectangle(nX,                            nY + nFrameLineWidth, nFrameLineWidth, nH - 2 * nFrameLineWidth);
-                   fillRectangle(nX + nW - 2 * nFrameLineWidth, nY + nFrameLineWidth, nFrameLineWidth, nH - 2 * nFrameLineWidth);
-               }
-           }
-       }
-
+    public:
        SDL_Texture *CreateTextureFromSurface(SDL_Surface * pSurface)
        {
            return pSurface ? SDL_CreateTextureFromSurface(m_renderer, pSurface) : nullptr;

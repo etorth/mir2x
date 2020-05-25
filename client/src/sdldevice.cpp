@@ -542,3 +542,65 @@ SDL_Texture *SDLDevice::getCover(int r)
     }
     throw fflerror("creature texture failed: radius = %d", r);
 }
+
+void SDLDevice::fillRectangle(int nX, int nY, int nW, int nH)
+{
+    SDL_Rect stRect;
+    stRect.x = nX;
+    stRect.y = nY;
+    stRect.w = nW;
+    stRect.h = nH;
+
+    SDL_RenderFillRect(m_renderer, &stRect);
+}
+
+void SDLDevice::fillRectangle(uint32_t nRGBA, int nX, int nY, int nW, int nH)
+{
+    SDLDevice::EnableDrawColor stEnableColor(nRGBA);
+    SDLDevice::EnableDrawBlendMode enableBlendMode(SDL_BLENDMODE_BLEND);
+    fillRectangle(nX, nY, nW, nH);
+}
+
+void SDLDevice::DrawRectangle(int nX, int nY, int nW, int nH)
+{
+    SDL_Rect rect;
+    rect.x = nX;
+    rect.y = nY;
+    rect.w = nW;
+    rect.h = nH;
+
+    SDL_RenderDrawRect(m_renderer, &rect);
+    SDL_RenderDrawPoint(m_renderer, rect.x + rect.w - 1, rect.y + rect.h - 1);
+}
+
+void SDLDevice::DrawRectangle(uint32_t color, int nX, int nY, int nW, int nH)
+{
+    SDLDevice::EnableDrawColor enableColor(color);
+    SDLDevice::EnableDrawBlendMode enableBlendMode(SDL_BLENDMODE_BLEND);
+    DrawRectangle(nX, nY, nW, nH);
+}
+
+void SDLDevice::drawWidthRectangle(size_t frameLineWidth, int nX, int nY, int nW, int nH)
+{
+    if(!frameLineWidth){
+        return;
+    }
+
+    if(frameLineWidth == 1){
+        DrawRectangle(nX, nY, nW, nH);
+        return;
+    }
+
+    fillRectangle(nX, nY,                           nW, frameLineWidth);
+    fillRectangle(nX, nY + nW - 2 * frameLineWidth, nW, frameLineWidth);
+
+    fillRectangle(nX,                           nY + frameLineWidth, frameLineWidth, nH - 2 * frameLineWidth);
+    fillRectangle(nX + nW - 2 * frameLineWidth, nY + frameLineWidth, frameLineWidth, nH - 2 * frameLineWidth);
+}
+
+void SDLDevice::drawWidthRectangle(uint32_t color, size_t frameLineWidth, int nX, int nY, int nW, int nH)
+{
+    SDLDevice::EnableDrawColor enableColor(color);
+    SDLDevice::EnableDrawBlendMode enableBlendMode(SDL_BLENDMODE_BLEND);
+    drawWidthRectangle(frameLineWidth, nX, nY, nW, nH);
+}
