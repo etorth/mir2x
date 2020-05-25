@@ -27,12 +27,10 @@
 #include "pngtexdb.hpp"
 #include "sdldevice.hpp"
 #include "processnew.hpp"
-#include "notifyboard.hpp"
 
 extern Client *g_client;
 extern SDLDevice *g_SDLDevice;
 extern PNGTexDB *g_progUseDB;
-extern NotifyBoard *g_notifyBoard;
 
 ProcessNew::ProcessNew()
 	: Process()
@@ -260,7 +258,6 @@ void ProcessNew::DoPostAccount()
             || m_checkID
             || m_checkPwd
             || m_checkPwdConfirm){
-        g_notifyBoard->addLog(LOGTYPE_WARNING, "Fix error before send request");
         return;
     }
 

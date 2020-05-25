@@ -41,7 +41,7 @@
 extern Log *g_log;
 extern XMLConf *g_XMLConf;
 extern SDLDevice *g_SDLDevice;
-extern debugBoard *g_debugBoard;
+extern NotifyBoard *g_notifyBoard;
 extern ClientArgParser *g_clientArgParser;
 
 Client::Client()
@@ -424,12 +424,12 @@ void Client::SwitchProcess(int nOldID, int nNewID)
 
 void Client::sendCMsgLog(uint8_t headCode)
 {
-    g_debugBoard->addLog(u8"[%08.3f] ← %s", (float)(SDL_GetTicks()) / 1000.0f, ClientMsg(headCode).name().c_str());
+    g_notifyBoard->addLog(u8"[%08.3f] ← %s", (float)(SDL_GetTicks()) / 1000.0f, ClientMsg(headCode).name().c_str());
 }
 
 void Client::sendSMsgLog(uint8_t headCode)
 {
-    g_debugBoard->addLog(u8"[%08.3f] → %s", (float)(SDL_GetTicks()) / 1000.0f, ServerMsg(headCode).name().c_str());
+    g_notifyBoard->addLog(u8"[%08.3f] → %s", (float)(SDL_GetTicks()) / 1000.0f, ServerMsg(headCode).name().c_str());
 }
 
 void Client::PrintMonitor() const

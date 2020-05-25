@@ -20,7 +20,6 @@
 #include "client.hpp"
 #include "pngtexdb.hpp"
 #include "sdldevice.hpp"
-#include "tokenboard.hpp"
 #include "processsync.hpp"
 
 extern Client *g_client;

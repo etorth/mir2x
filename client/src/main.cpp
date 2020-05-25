@@ -25,7 +25,6 @@
 #include "mapbindb.hpp"
 #include "emoticondb.hpp"
 #include "debugboard.hpp"
-#include "notifyboard.hpp"
 #include "pngtexoffdb.hpp"
 #include "clientargparser.hpp"
 
@@ -48,7 +47,6 @@ MapBinDB        *g_mapBinDB        = nullptr;
 FontexDB        *g_fontexDB        = nullptr;
 XMLConf         *g_XMLConf         = nullptr; // for client configure XML parsing
 SDLDevice       *g_SDLDevice       = nullptr; // for SDL hardware device
-debugBoard      *g_debugBoard      = nullptr;
 NotifyBoard     *g_notifyBoard     = nullptr;
 Client          *g_client          = nullptr; // gobal instance
 
@@ -72,7 +70,6 @@ int main(int argc, char *argv[])
             delete g_fontexDB       ; g_fontexDB        = nullptr;
             delete g_mapBinDB       ; g_mapBinDB        = nullptr;
             delete g_emoticonDB     ; g_emoticonDB      = nullptr;
-            delete g_debugBoard     ; g_debugBoard      = nullptr;
             delete g_notifyBoard    ; g_notifyBoard     = nullptr;
             delete g_client         ; g_client          = nullptr;
         };
@@ -106,8 +103,7 @@ int main(int argc, char *argv[])
         g_mapBinDB        = new MapBinDB();
         g_emoticonDB      = new emoticonDB();
         g_client          = new Client();       // loads fontex resource
-        g_debugBoard      = new debugBoard(0, 0, 10240, 0, 15, 0, colorf::RED + 255);
-        g_notifyBoard     = new NotifyBoard();  // needs fontex
+        g_notifyBoard     = new NotifyBoard(0, 0, 10240, 0, 15, 0, colorf::RED + 255);
 
         g_client->mainLoop();
 

@@ -19,7 +19,6 @@
 #include <SDL2/SDL.h>
 #include "process.hpp"
 #include "labelboard.hpp"
-#include "tokenboard.hpp"
 
 class ProcessSync: public Process
 {

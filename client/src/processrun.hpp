@@ -120,7 +120,6 @@ class ProcessRun: public Process
         std::set<uint64_t> m_UIDPending;
 
     private:
-        // use a tokenboard to show all in future
         LabelBoard m_mousePixlLoc;
         LabelBoard m_mouseGridLoc;
 

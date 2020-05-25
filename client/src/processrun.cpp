@@ -33,7 +33,6 @@
 #include "clientpathfinder.hpp"
 #include "debugboard.hpp"
 #include "npcchatboard.hpp"
-#include "notifyboard.hpp"
 #include "fflerror.hpp"
 #include "toll.hpp"
 #include "lochashtable.hpp"
@@ -45,7 +44,6 @@ extern MapBinDB *g_mapBinDB;
 extern SDLDevice *g_SDLDevice;
 extern PNGTexDB *g_groundItemDB;
 extern NotifyBoard *g_notifyBoard;
-extern debugBoard *g_debugBoard;
 extern ClientArgParser *g_clientArgParser;
 
 ProcessRun::ProcessRun()
@@ -384,17 +382,10 @@ void ProcessRun::draw()
     m_NPCChatBoard    .draw();
     m_quickAccessBoard.draw();
 
-    // draw notifyBoard
+    // draw NotifyBoard
     {
-        const int w = g_notifyBoard->w();
+        const int w = std::max<int>(g_notifyBoard->pw() + 10, 160);
         const int h = g_notifyBoard->h();
-        g_notifyBoard->drawEx(0, 0, 0, 0, w, h);
-    }
-
-    // draw debugBoard
-    {
-        const int w = std::max<int>(g_debugBoard->pw() + 10, 160);
-        const int h = g_debugBoard->h();
         const int x = 0;
         const int y = std::get<1>(g_SDLDevice->getRendererSize()) - h - 133;
 
@@ -404,7 +395,7 @@ void ProcessRun::draw()
             g_SDLDevice->fillRectangle(x, y, w, h);
         }
 
-        g_debugBoard->drawEx(x, y, 0, 0, w, h);
+        g_notifyBoard->drawEx(x, y, 0, 0, w, h);
         {
             SDLDevice::EnableDrawColor enableColor(colorf::BLUE + 100);
             g_SDLDevice->DrawRectangle(x, y, w, h);

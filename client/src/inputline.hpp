@@ -19,7 +19,7 @@
 #pragma once
 #include <functional>
 #include "colorf.hpp"
-#include "inputboard.hpp"
+#include "widget.hpp"
 #include "xmltypeset.hpp"
 
 class InputLine: public Widget

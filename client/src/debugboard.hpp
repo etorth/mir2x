@@ -21,7 +21,7 @@
 #include "lalign.hpp"
 #include "xmltypeset.hpp"
 
-class debugBoard: public Widget
+class NotifyBoard: public Widget
 {
     private:
         int m_lineW;
@@ -38,7 +38,7 @@ class debugBoard: public Widget
         std::deque<std::shared_ptr<XMLTypeset>> m_boardList;
 
     public:
-        debugBoard(
+        NotifyBoard(
                 int              nX,
                 int              nY,
                 int              nW,

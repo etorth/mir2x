@@ -25,7 +25,7 @@
 
 extern Log *g_log;
 
-void debugBoard::addLog(const char * formatString, ...)
+void NotifyBoard::addLog(const char * formatString, ...)
 {
     std::string text;
     bool error = false;
@@ -37,7 +37,7 @@ void debugBoard::addLog(const char * formatString, ...)
             text = str_vprintf(formatString, ap);
         }catch(const std::exception &e){
             error = true;
-            text = str_printf("Exception caught in debugBoard::addLog(\"%s\", ...): %s", formatString, e.what());
+            text = str_printf("Exception caught in NotifyBoard::addLog(\"%s\", ...): %s", formatString, e.what());
         }
 
         va_end(ap);
@@ -66,7 +66,7 @@ void debugBoard::addLog(const char * formatString, ...)
     }
 }
 
-void debugBoard::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int srcH)
+void NotifyBoard::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int srcH)
 {
     int startX = 0;
     int startY = 0;
@@ -98,7 +98,7 @@ void debugBoard::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int sr
     }
 }
 
-int debugBoard::pw()
+int NotifyBoard::pw()
 {
     int maxW = 0;
     for(const auto &ptr: m_boardList){
