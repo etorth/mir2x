@@ -79,6 +79,16 @@ namespace colorf
         return (nARGB << 8) | (nARGB >> 24);
     }
 
+    constexpr uint32_t ABGR2RGBA(uint32_t colorABGR)
+    {
+        return RGBA((colorABGR & 0X000000FF), (colorABGR & 0X0000FF00) >> 8, (colorABGR & 0X00FF0000) >> 16, (colorABGR & 0XFF000000) >> 24);
+    }
+
+    constexpr uint32_t RGBA2ABGR(uint32_t colorRGBA)
+    {
+        return ((uint32_t)(R(colorRGBA)) << 0) | ((uint32_t)(G(colorRGBA)) << 8) | ((uint32_t)(B(colorRGBA)) << 16) | ((uint32_t)(A(colorRGBA)) << 24);
+    }
+
     template<typename T> constexpr uint8_t Round255(T nValue)
     {
         if(nValue < T(0)){
