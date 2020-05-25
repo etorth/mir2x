@@ -26,7 +26,10 @@ decl {\#include <cstring>} {private local
 decl {\#include <FL/fl_draw.H>} {public local
 }
 
-decl {\#include <FL/Fl_Shared_Image.H>} {selected public local
+decl {\#include "datef.hpp"} {public local
+}
+
+decl {\#include <FL/Fl_Shared_Image.H>} {public local
 }
 
 decl {\#include "filesys.hpp"} {private local
@@ -62,6 +65,9 @@ decl {\#include "animationdraw.hpp"} {private local
 decl {\#include "animationselectwindow.hpp"} {private local
 }
 
+decl {\#include <FL/Fl_Native_File_Chooser.H>} {public local
+}
+
 class MainWindow {open
 } {
   decl {std::string m_WilFilePathName} {private local
@@ -75,7 +81,7 @@ class MainWindow {open
 		default :          break;
 	}
 }} open
-      xywh {148 119 985 665} type Double resizable visible
+      xywh {164 181 985 665} type Double resizable visible
     } {
       Fl_Box m_DrawArea {
         xywh {0 20 965 627} labelfont 4 resizable
@@ -160,11 +166,11 @@ fl_alert("%s", "Haven't implement yet!");}
                     if(!g_EditorMap.LoadMir2xMapData(szPath.c_str()) || !g_EditorMap.Valid()){
                         fl_alert("Failed to load Mir2xMapData: %s", szPath.c_str());
                     }
-                    
+
                     AfterLoadMap();
                     Fl::remove_timeout(UpdateFrame);
                     Fl::add_timeout(0.5, UpdateFrame);
-                    
+
                 }else{
                     fl_alert("Invalid Mir2xMapData folder: %s", szPath.c_str());
                 }
@@ -237,134 +243,46 @@ fl_alert("%s", "Haven't implement yet!");}
     g_EditorMap.ExtractTile(fnSaveTilePNG);
     g_EditorMap.ExtractObject(fnSaveObjPNG);
 }}
-            xywh {10 10 30 20} labelfont 4
+            xywh {10 10 30 20} labelfont 4 divider
             code0 {\#include <string>}
             code1 {\#include <FL/Fl_Native_File_Chooser.H>}
             code2 {\#include "imagecache.hpp"}
             code3 {\#include "imagedb.hpp"}
           }
           MenuItem {} {
-            label {Export Overview}
+            label {Export Overview 1:1}
             callback {{
-    // create a big png file as an overview of the current map
-    // generate name and save it in current working folder
-    
-    extern EditorMap g_EditorMap;
-    if(!g_EditorMap.Valid()){
-        fl_alert("Current editor map is invalid");
-        return;
-    }
-
-    extern std::string g_WorkingPathName;
-    if(g_WorkingPathName == ""){
-        fl_alert("Current editor working path is invalid");
-        return;
-    }
-
-    int nDstW = g_EditorMap.W() * SYS_MAPGRIDXP;
-    int nDstH = g_EditorMap.H() * SYS_MAPGRIDYP;
-
-    std::vector<uint32_t> stvBuf(nDstW * nDstH, 0);
-    auto pDst = &(stvBuf[0]);
-
-    auto fnBufDraw = [](
-            uint32_t       *pDst, int nDstW, int nDstH,
-            const uint32_t *pSrc, int nSrcW, int nSrcH,
-
-            int nOnDstX, int nOnDstY,
-            int nOnSrcX, int nOnSrcY,
-            int nOnSrcW, int nOnSrcH)
-    {
-        if(true
-                && pDst
-                && nDstW > 0
-                && nDstH > 0
-
-                && pSrc
-                && nSrcW > 0
-                && nSrcH > 0){
-
-            auto nOldOnSrcX = nOnSrcX;
-            auto nOldOnSrcY = nOnSrcY;
-
-            if(true
-                    && nOnSrcW > 0
-                    && nOnSrcH > 0
-                    && mathf::rectangleOverlapRegion<int>(0, 0, nSrcW, nSrcH, &nOnSrcX, &nOnSrcY, &nOnSrcW, &nOnSrcH)){
-
-                nOnDstX += (nOnSrcX - nOldOnSrcX);
-                nOnDstY += (nOnSrcY - nOldOnSrcY);
-
-                auto nOldOnDstX = nOnDstX;
-                auto nOldOnDstY = nOnDstY;
-
-                if(true
-                        && nOnSrcW > 0
-                        && nOnSrcH > 0
-                        && mathf::rectangleOverlapRegion<int>(0, 0, nDstW, nDstH, &nOnDstX, &nOnDstY, &nOnSrcW, &nOnSrcH)){
-
-                    nOnSrcX += (nOnDstX - nOldOnDstX);
-                    nOnSrcY += (nOnDstY - nOldOnDstY);
-
-                    if(true
-                            && nOnSrcW > 0
-                            && nOnSrcH > 0){
-
-                        for(int nOnSrcDX = 0; nOnSrcDX < nOnSrcW; ++nOnSrcDX){
-                            for(int nOnSrcDY = 0; nOnSrcDY < nOnSrcH; ++nOnSrcDY){
-                                auto &nSrc = pSrc[(nOnSrcX + nOnSrcDX) + (nOnSrcY + nOnSrcDY) * nSrcW];
-                                auto &nDst = pDst[(nOnDstX + nOnSrcDX) + (nOnDstY + nOnSrcDY) * nDstW];
-                                nDst = colorf::RenderABGR(nDst, nSrc);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    };
-
-    auto fnBufDrawImage = [this, fnBufDraw, pDst, nDstW, nDstH](uint8_t nFileIndex, uint16_t nImageIndex, int nX, int nY, bool bObj)
-    {
-        extern ImageDB g_ImageDB;
-        extern EditorMap g_EditorMap;
-
-        if(true
-                && g_EditorMap.ValidC(nX, nY)
-                && g_ImageDB.Valid(nFileIndex, nImageIndex)){
-
-            auto nSrcW = g_ImageDB.FastW(nFileIndex);
-            auto nSrcH = g_ImageDB.FastH(nFileIndex);
-            if(auto pSrc = g_ImageDB.FastDecode(nFileIndex, 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF)){
-                fnBufDraw(
-                        pDst, nDstW, nDstH,
-                        pSrc, nSrcW, nSrcH,
-
-                        nX * SYS_MAPGRIDXP,
-                        nY * SYS_MAPGRIDYP + (bObj ? (SYS_MAPGRIDYP - nSrcH) : 0),
-
-                        0,
-                        0,
-
-                        nSrcW,
-                        nSrcH);
-            }
-        }
-    };
-
-    g_EditorMap.ExportOverview(fnBufDrawImage);
-    std::string szOverviewFileName = DateStr::Now() + ".PNG";
-    std::string szOverviewFullFileName = g_WorkingPathName + "/" + szOverviewFileName;
-    if(pngf::saveRGBABuffer((const uint8_t *)(pDst), (uint32_t)(nDstW), (uint32_t)(nDstH), szOverviewFullFileName.c_str())){
-        fl_alert("Done overview map image: %s", szOverviewFileName.c_str());
-    }else{
-        fl_alert("Export overview map image failed");
-    }
+    extractOverview(1);
 }}
-            xywh {20 20 30 20} labelfont 4 divider
-            code0 {\#include <string>}
-            code1 {\#include <FL/Fl_Native_File_Chooser.H>}
-            code2 {\#include "datestr.hpp"}
-            code3 {\#include "mathf.hpp"}
+            xywh {20 20 30 20} labelfont 4
+          }
+          MenuItem {} {
+            label {Export Overview 1:2}
+            callback {{
+    extractOverview(2);
+}}
+            xywh {30 30 30 20} labelfont 4
+          }
+          MenuItem {} {
+            label {Export Overview 1:4}
+            callback {{
+    extractOverview(4);
+}}
+            xywh {40 40 30 20} labelfont 4
+          }
+          MenuItem {} {
+            label {Export Overview 1:8}
+            callback {{
+    extractOverview(8);
+}} selected
+            xywh {50 50 30 20} labelfont 4
+          }
+          MenuItem {} {
+            label {Export Overview 1:16}
+            callback {{
+    extractOverview(16);
+}}
+            xywh {60 60 30 20} labelfont 4 divider
           }
           MenuItem {} {
             label {Save As}
@@ -381,7 +299,7 @@ fl_alert("%s", "Haven't implement yet!");}
           }
         }
         Submenu {} {
-          label Grid open
+          label Grid
           xywh {0 0 62 20} labelfont 4
         } {
           MenuItem m_MenuItemGridLine {
@@ -416,7 +334,7 @@ fl_alert("%s", "Haven't implement yet!");}
           }
         }
         Submenu {} {
-          label Show open
+          label Show
           xywh {10 10 62 20} labelfont 4
         } {
           MenuItem m_MenuItemShowLight {
@@ -441,7 +359,7 @@ fl_alert("%s", "Haven't implement yet!");}
           }
         }
         Submenu {} {
-          label Edit open
+          label Edit
           xywh {20 20 62 20} labelfont 4
         } {
           MenuItem m_MenuItemEnableEdit {
@@ -474,7 +392,7 @@ fl_alert("%s", "Haven't implement yet!");}
           }
         }
         Submenu {} {
-          label Select open
+          label Select
           xywh {0 0 62 20} labelfont 4
         } {
           MenuItem m_MenuItemEnableSelect {
@@ -536,7 +454,7 @@ if(g_SelectSettingWindow){
           }
         }
         Submenu {} {
-          label Layer open
+          label Layer
           xywh {0 0 70 20} labelfont 4
         } {
           MenuItem {} {
@@ -583,7 +501,7 @@ if(g_SelectSettingWindow){
           }
         }
         Submenu {} {
-          label Test open
+          label Test
           xywh {0 0 70 20}
         } {
           MenuItem m_MenuItemEnableTest {
@@ -645,7 +563,7 @@ if(g_SelectSettingWindow){
           }
         }
         Submenu {} {
-          label About open
+          label About
           xywh {30 30 62 20} labelfont 4
         } {
           MenuItem {} {
@@ -658,7 +576,7 @@ g_AboutWindow->ShowAll();}
         }
       }
       Fl_Scrollbar m_VSBar {
-        callback {auto pWidget = ((Fl_Valuator *)(m_VSBar)); 
+        callback {auto pWidget = ((Fl_Valuator *)(m_VSBar));
 auto fValue  = pWidget->value();
 
 extern EditorMap g_EditorMap;
@@ -673,7 +591,7 @@ if(g_EditorMap.Valid()){
         code0 {\#include "editormap.hpp"}
       }
       Fl_Scrollbar m_SBar {
-        callback {auto pWidget = ((Fl_Valuator *)(m_SBar)); 
+        callback {auto pWidget = ((Fl_Valuator *)(m_SBar));
 auto fValue  = pWidget->value();
 
 extern EditorMap g_EditorMap;
@@ -692,7 +610,7 @@ if(g_EditorMap.Valid()){
     // set slider size
     // current the fluid can set the slider_size
     // but when parsing it, it complains ``unknown property: slider_size"
-    
+
     ((Fl_Slider *)(m_VSBar))->slider_size(0.08);
     ((Fl_Slider *)(m_SBar ))->slider_size(0.08);
 }} {}
@@ -743,7 +661,7 @@ if(g_EditorMap.Valid()){
                 if(!g_EditorMap.LoadMir2Map(fileChooser.filename())){
                     fl_alert("Load mir2 map %s failed", fileChooser.filename());
                 }
-                
+
                 AfterLoadMap();
 
                 Fl::remove_timeout(UpdateFrame);
@@ -776,7 +694,7 @@ if(g_EditorMap.Valid()){
     // default CACHE system locates inside
     extern std::string g_WorkingPathName;
     Fl_Native_File_Chooser stFileChooser;
-    
+
     stFileChooser.title("Set Working Folder...");
     stFileChooser.options(Fl_Native_File_Chooser::NO_OPTIONS);
     stFileChooser.type(Fl_Native_File_Chooser::BROWSE_DIRECTORY);
@@ -859,7 +777,7 @@ if(g_EditorMap.Valid()){
     extern MainWindow *g_MainWindow;
     extern AnimationDB g_AnimationDB;
     extern AnimationDraw g_AnimationDraw;
-    
+
     if(g_EditorMap.Valid() && g_AnimationDraw.MonsterID){
         auto &rstRecord = g_AnimationDB.RetrieveAnimation(g_AnimationDraw.MonsterID);
         if(rstRecord.Valid() && rstRecord.DirectionValid(g_AnimationDraw.Action, g_AnimationDraw.Direction)){
@@ -868,13 +786,13 @@ if(g_EditorMap.Valid()){
             }else{
                 g_AnimationDraw.Frame = 0;
             }
-            
+
             Fl::repeat_timeout(0.50, UpdateAnimationFrame);
             g_MainWindow->RedrawAll();
             return;
         }
     }
-    
+
     Fl::remove_timeout(UpdateAnimationFrame);
     g_MainWindow->RedrawAll();
 }} {}
@@ -1067,7 +985,7 @@ if(g_EditorMap.Valid()){
     if(g_AnimationDraw.MonsterID){
         int nX = m_DrawArea->OffsetX() + m_Window->w() / 2;
         int nY = m_DrawArea->OffsetY() + m_Window->h() / 2;
-    
+
         g_AnimationDraw.X = nX;
         g_AnimationDraw.Y = nY;
     }
@@ -1134,6 +1052,170 @@ if(g_EditorMap.Valid()){
     m_SBar->deactivate();
     m_VSBar->deactivate();
     m_MenuBar->deactivate();
+}} {}
+  }
+  Function {extractOverview(int overviewRatio)} {return_type void
+  } {
+    code {{
+    // create a big png file as an overview of the current map
+    // generate name and save it in current working folder, support ratio 1/2/4/8/16
+
+    switch(overviewRatio){
+        case 1:
+        case 2:
+        case 4:
+        case 8:
+        case 16:
+            {
+                break;
+            }
+        default:
+            {
+                fl_alert("Overview ratio is not supported: %d", overviewRatio);
+                return;
+            }
+    }
+
+    extern EditorMap g_EditorMap;
+    if(!g_EditorMap.Valid()){
+        fl_alert("Current editor map is invalid");
+        return;
+    }
+
+    extern std::string g_WorkingPathName;
+    if(g_WorkingPathName == ""){
+        fl_alert("Current editor working path is invalid");
+        return;
+    }
+
+    const int nDstW = g_EditorMap.W() * SYS_MAPGRIDXP;
+    const int nDstH = g_EditorMap.H() * SYS_MAPGRIDYP;
+
+    if(nDstW % overviewRatio || nDstH % overviewRatio){
+        fl_alert("system error: overview ratio can't devide original map pixel size");
+        return;
+    }
+
+    std::vector<uint32_t> stvBuf(nDstW * nDstH, 0);
+    auto pDst = &(stvBuf[0]);
+
+    auto fnBufDraw = [](
+            uint32_t       *pDst, int nDstW, int nDstH,
+            const uint32_t *pSrc, int nSrcW, int nSrcH,
+
+            int nOnDstX, int nOnDstY,
+            int nOnSrcX, int nOnSrcY,
+            int nOnSrcW, int nOnSrcH)
+    {
+        if(true
+                && pDst
+                && nDstW > 0
+                && nDstH > 0
+
+                && pSrc
+                && nSrcW > 0
+                && nSrcH > 0){
+
+            auto nOldOnSrcX = nOnSrcX;
+            auto nOldOnSrcY = nOnSrcY;
+
+            if(true
+                    && nOnSrcW > 0
+                    && nOnSrcH > 0
+                    && mathf::rectangleOverlapRegion<int>(0, 0, nSrcW, nSrcH, &nOnSrcX, &nOnSrcY, &nOnSrcW, &nOnSrcH)){
+
+                nOnDstX += (nOnSrcX - nOldOnSrcX);
+                nOnDstY += (nOnSrcY - nOldOnSrcY);
+
+                auto nOldOnDstX = nOnDstX;
+                auto nOldOnDstY = nOnDstY;
+
+                if(true
+                        && nOnSrcW > 0
+                        && nOnSrcH > 0
+                        && mathf::rectangleOverlapRegion<int>(0, 0, nDstW, nDstH, &nOnDstX, &nOnDstY, &nOnSrcW, &nOnSrcH)){
+
+                    nOnSrcX += (nOnDstX - nOldOnDstX);
+                    nOnSrcY += (nOnDstY - nOldOnDstY);
+
+                    if(true
+                            && nOnSrcW > 0
+                            && nOnSrcH > 0){
+
+                        for(int nOnSrcDX = 0; nOnSrcDX < nOnSrcW; ++nOnSrcDX){
+                            for(int nOnSrcDY = 0; nOnSrcDY < nOnSrcH; ++nOnSrcDY){
+                                auto &nSrc = pSrc[(nOnSrcX + nOnSrcDX) + (nOnSrcY + nOnSrcDY) * nSrcW];
+                                auto &nDst = pDst[(nOnDstX + nOnSrcDX) + (nOnDstY + nOnSrcDY) * nDstW];
+                                nDst = colorf::RenderABGR(nDst, nSrc);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    };
+
+    auto fnBufDrawImage = [this, fnBufDraw, pDst, nDstW, nDstH](uint8_t nFileIndex, uint16_t nImageIndex, int nX, int nY, bool bObj)
+    {
+        extern ImageDB g_ImageDB;
+        extern EditorMap g_EditorMap;
+
+        if(true
+                && g_EditorMap.ValidC(nX, nY)
+                && g_ImageDB.Valid(nFileIndex, nImageIndex)){
+
+            auto nSrcW = g_ImageDB.FastW(nFileIndex);
+            auto nSrcH = g_ImageDB.FastH(nFileIndex);
+            if(auto pSrc = g_ImageDB.FastDecode(nFileIndex, 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF)){
+                fnBufDraw(
+                        pDst, nDstW, nDstH,
+                        pSrc, nSrcW, nSrcH,
+
+                        nX * SYS_MAPGRIDXP,
+                        nY * SYS_MAPGRIDYP + (bObj ? (SYS_MAPGRIDYP - nSrcH) : 0),
+
+                        0,
+                        0,
+
+                        nSrcW,
+                        nSrcH);
+            }
+        }
+    };
+
+    g_EditorMap.ExportOverview(fnBufDrawImage);
+    const std::string szOverviewFileName = datef::now() + ".PNG";
+    const std::string szOverviewFullFileName = g_WorkingPathName + "/" + szOverviewFileName;
+
+    int exportW = nDstW;
+    int exportH = nDstH;
+    const uint32_t *exportBufPtr = pDst;
+
+    std::vector<uint32_t> overviewBuf;
+    if(overviewRatio != 1){
+        const int overviewW = nDstW / overviewRatio;
+        const int overviewH = nDstH / overviewRatio;
+
+        overviewBuf.resize(overviewW * overviewH, 0);
+        for(int y = 0; y < overviewH; ++y){
+            for(int x = 0; x < overviewW; ++x){
+                const int origX = x * overviewRatio;
+                const int origY = y * overviewRatio;
+                overviewBuf[y * overviewW + x] = stvBuf[origY * nDstW + origX];
+            }
+        }
+
+        exportW = overviewW;
+        exportH = overviewH;
+        exportBufPtr = overviewBuf.data();
+    }
+
+    if(pngf::saveRGBABuffer((const uint8_t *)(exportBufPtr), (uint32_t)(exportW), (uint32_t)(exportH), szOverviewFullFileName.c_str())){
+        fl_alert("Done overview map image: %s", szOverviewFileName.c_str());
+    }
+    else{
+        fl_alert("Export overview map image failed");
+    }
 }} {}
   }
 }

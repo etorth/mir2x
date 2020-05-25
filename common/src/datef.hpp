@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename: datestr.hpp
+ *       Filename: datef.hpp
  *        Created: 08/21/2017 16:03:41
  *    Description: 
  *
@@ -19,7 +19,7 @@
 #pragma once
 #include <string>
 
-namespace DateStr
+namespace datef
 {
-    std::string Now();
+    std::string now();
 }
