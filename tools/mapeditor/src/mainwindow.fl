@@ -314,7 +314,7 @@ fl_alert("%s", "Haven't implement yet!");}
                             for(int nOnSrcDY = 0; nOnSrcDY < nOnSrcH; ++nOnSrcDY){
                                 auto &nSrc = pSrc[(nOnSrcX + nOnSrcDX) + (nOnSrcY + nOnSrcDY) * nSrcW];
                                 auto &nDst = pDst[(nOnDstX + nOnSrcDX) + (nOnDstY + nOnSrcDY) * nDstW];
-                                nDst = colorf::RGBA2ABGR(colorf::RenderRGBA(colorf::ABGR2RGBA(nDst), colorf::ABGR2RGBA(nSrc)));
+                                nDst = colorf::RenderABGR(nDst, nSrc);
                             }
                         }
                     }

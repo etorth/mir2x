@@ -118,7 +118,7 @@ namespace colorf
     constexpr uint32_t PURPLE  = RGBA(0XAB, 0X27, 0X4F, 0X00);
 
 
-    inline uint32_t RenderRGBA(uint32_t nDstColor, uint32_t nSrcColor)
+    constexpr uint32_t RenderRGBA(uint32_t nDstColor, uint32_t nSrcColor)
     {
         auto nDstR = R(nDstColor);
         auto nDstG = G(nDstColor);
@@ -138,6 +138,28 @@ namespace colorf
         nDstA = Round255(         nSrcA + (1.0 - fAlpha) * nDstA);
 
         return RGBA(nDstR, nDstG, nDstB, nDstA);
+    }
+
+    constexpr uint32_t RenderABGR(uint32_t dstColor, uint32_t srcColor)
+    {
+        uint8_t dstR = (dstColor & 0X000000FF) >>  0;
+        uint8_t dstG = (dstColor & 0X0000FF00) >>  8;
+        uint8_t dstB = (dstColor & 0X00FF0000) >> 16;
+        uint8_t dstA = (dstColor & 0XFF000000) >> 24;
+
+        uint8_t srcR = (srcColor & 0X000000FF) >>  0;
+        uint8_t srcG = (srcColor & 0X0000FF00) >>  8;
+        uint8_t srcB = (srcColor & 0X00FF0000) >> 16;
+        uint8_t srcA = (srcColor & 0XFF000000) >> 24;
+
+        const double alpha = srcA / 255.0;
+
+        dstR = Round255(alpha * srcR + (1.0 - alpha) * dstR);
+        dstG = Round255(alpha * srcG + (1.0 - alpha) * dstG);
+        dstB = Round255(alpha * srcB + (1.0 - alpha) * dstB);
+        dstA = Round255(        srcA + (1.0 - alpha) * dstA);
+
+        return ((uint32_t)(dstA) << 24) | ((uint32_t)(dstB) << 16) | ((uint32_t)(dstG) <<  8) | ((uint32_t)(dstR) <<  0);
     }
 
     template<size_t GradientCount> std::array<uint32_t, GradientCount> GradientColor(uint32_t nColor0, uint32_t nColor1)
