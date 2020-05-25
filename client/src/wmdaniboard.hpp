@@ -21,6 +21,6 @@ class WMDAniBoard: public TexAniBoard
 {
     public:
         WMDAniBoard(int x, int y, Widget * pwidget = nullptr, bool autoDelete = false)
-            : TexAniBoard(x, y, 0X04000010, 10, 8.0, true, true, pwidget, autoDelete)
+            : TexAniBoard(x, y, 0X04000010, 10, 8, true, true, pwidget, autoDelete)
         {}
 };

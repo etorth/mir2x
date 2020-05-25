@@ -555,7 +555,7 @@ ControlBoard::ControlBoard(int startY, int boardW, ProcessRun *proc)
          -13,
           0X04000000,
           4,
-          0.5,
+          1,
           true,
           true,
           &m_middle,

@@ -29,6 +29,7 @@
 #include "sdldevice.hpp"
 #include "inputline.hpp"
 #include "layoutboard.hpp"
+#include "texaniboard.hpp"
 #include "wmdaniboard.hpp"
 #include "tritexbutton.hpp"
 #include "alphaonbutton.hpp"
