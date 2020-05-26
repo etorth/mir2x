@@ -164,7 +164,7 @@ bool InventoryBoard::processEvent(const SDL_Event &event, bool valid)
     switch(event.type){
         case SDL_MOUSEMOTION:
             {
-                if(in(event.motion.x, event.motion.y) && (event.motion.state & SDL_BUTTON_LMASK)){
+                if((event.motion.state & SDL_BUTTON_LMASK) && (in(event.motion.x, event.motion.y) || focus())){
                     const auto [rendererW, rendererH] = g_SDLDevice->getRendererSize();
                     const int maxX = rendererW - w();
                     const int maxY = rendererH - h();
@@ -176,6 +176,27 @@ bool InventoryBoard::processEvent(const SDL_Event &event, bool valid)
                     return true;
                 }
                 return false;
+            }
+        case SDL_MOUSEBUTTONDOWN:
+            {
+                switch(event.button.button){
+                    case SDL_BUTTON_LEFT:
+                        {
+                            if(in(event.button.x, event.button.y)){
+                                focus(true);
+                                return true;
+                            }
+                            else{
+                                focus(false);
+                                return false;
+                            }
+                        }
+                    default:
+                        {
+                            focus(false);
+                            return false;
+                        }
+                }
             }
         default:
             {
