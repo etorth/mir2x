@@ -425,8 +425,10 @@ void ProcessRun::draw()
 
 void ProcessRun::processEvent(const SDL_Event &event)
 {
-    bool takeEvent = false;
+    // TODO use WidgetGroup to handle focus issue
+    // focused widget should get event firstly and draw at last
 
+    bool takeEvent = false;
     takeEvent |= m_inventoryBoard  .processEvent(event, !takeEvent);
     takeEvent |= m_controlBoard    .processEvent(event, !takeEvent);
     takeEvent |= m_NPCChatBoard    .processEvent(event, !takeEvent);

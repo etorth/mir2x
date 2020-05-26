@@ -16,7 +16,7 @@
  * =====================================================================================
  */
 #pragma once
-#include <vector>
+#include <list>
 #include <cstdint>
 #include <SDL2/SDL.h>
 #include "lalign.hpp"
@@ -51,7 +51,7 @@ class Widget
         int m_h;
 
     protected:
-        std::vector<childNode> m_childList;
+        std::list<childNode> m_childList;
 
     public:
         Widget(int x, int y, int w = 0, int h = 0, Widget *parent = nullptr, bool autoDelete = false)
@@ -202,6 +202,26 @@ class WidgetGroup: public Widget
         WidgetGroup(int x, int y, int w, int h, Widget *parent = nullptr, bool autoDelete = false)
             : Widget(x, y, w, h, parent, autoDelete)
         {}
+
+    public:
+        virtual bool processEvent(const SDL_Event &event, bool valid)
+        {
+            bool took = false;
+            auto focusedNode = m_childList.end();
+
+            for(auto p = m_childList.begin(); p != m_childList.end(); ++p){
+                took |= p->child->processEvent(event, valid && !took);
+                if(focusedNode == m_childList.end() && p->child->focus()){
+                    focusedNode = p;
+                }
+            }
+
+            if(focusedNode != m_childList.end()){
+                m_childList.push_back(*focusedNode);
+                m_childList.erase(focusedNode);
+            }
+            return took;
+        }
 
     public:
         void drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int srcH) override

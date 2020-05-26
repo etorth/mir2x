@@ -150,6 +150,7 @@ void InventoryBoard::drawEx(int nDstX, int nDstY, int, int, int, int)
 bool InventoryBoard::processEvent(const SDL_Event &event, bool valid)
 {
     if(!valid){
+        focus(false);
         return false;
     }
 
@@ -171,10 +172,13 @@ bool InventoryBoard::processEvent(const SDL_Event &event, bool valid)
 
                     const int newX = std::max<int>(0, std::min<int>(maxX, x() + event.motion.xrel));
                     const int newY = std::max<int>(0, std::min<int>(maxY, y() + event.motion.yrel));
-
                     moveBy(newX - x(), newY - y());
+
+                    focus(true);
                     return true;
                 }
+
+                focus(false);
                 return false;
             }
         case SDL_MOUSEBUTTONDOWN:
@@ -200,6 +204,7 @@ bool InventoryBoard::processEvent(const SDL_Event &event, bool valid)
             }
         default:
             {
+                focus(false);
                 return false;
             }
     }
