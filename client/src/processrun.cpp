@@ -914,7 +914,7 @@ void ProcessRun::RegisterUserCommand()
 
     m_userCommandGroup.emplace_back("luaEditor", [this](const std::vector<std::string> &) -> int
     {
-        addCBLog(CBLOG_ERR, "LuaEditor not implemented yet");
+        addCBLog(CBLOG_ERR, ">> Lua editor not implemented yet");
         return 0;
     });
 

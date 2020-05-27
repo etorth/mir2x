@@ -94,9 +94,9 @@ bool GUIManager::processEvent(const SDL_Event &event, bool valid)
                 switch(event.window.event){
                     case SDL_WINDOWEVENT_SIZE_CHANGED:
                         {
-                            const auto [w, h] = g_SDLDevice->getRendererSize();
-                            m_controlBoard.resizeWidth(w);
-                            m_controlBoard.moveTo(0, h - 133);
+                            std::tie(m_w, m_h) = g_SDLDevice->getRendererSize();
+                            m_controlBoard.resizeWidth(w());
+                            m_controlBoard.moveTo(0, h() - 133);
                             return true;
                         }
                     default:
