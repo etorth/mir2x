@@ -1048,6 +1048,19 @@ void ControlBoard::addLog(int logType, const char *log)
         throw fflerror("null log string");
     }
 
+    switch(logType){
+        case CBLOG_ERR:
+            {
+                g_log->addLog(LOGTYPE_WARNING, "%s", log);
+                break;
+            }
+        default:
+            {
+                g_log->addLog(LOGTYPE_INFO, "%s", log);
+                break;
+            }
+    }
+
     tinyxml2::XMLDocument xmlDoc;
     const char *xmlString = [logType]() -> const char *
     {
