@@ -19,6 +19,7 @@
 #include <list>
 #include <cstdint>
 #include <SDL2/SDL.h>
+#include "mathf.hpp"
 #include "lalign.hpp"
 
 class Widget
@@ -95,10 +96,10 @@ class Widget
                             int) = 0;   // size to draw
 
     public:
-        virtual void update(double ms)
+        virtual void update(double fUpdateTime)
         {
             for(auto &node: m_childList){
-                node.child->update(ms);
+                node.child->update(fUpdateTime);
             }
         }
 
@@ -196,6 +197,9 @@ class Widget
         }
 };
 
+// simple *tiling* widget group
+// this class won't handle widget overlapping
+
 class WidgetGroup: public Widget
 {
     public:
@@ -204,12 +208,16 @@ class WidgetGroup: public Widget
         {}
 
     public:
-        virtual bool processEvent(const SDL_Event &event, bool valid)
+        bool processEvent(const SDL_Event &event, bool valid) override
         {
             bool took = false;
             auto focusedNode = m_childList.end();
 
             for(auto p = m_childList.begin(); p != m_childList.end(); ++p){
+                if(!show()){
+                    continue;
+                }
+
                 took |= p->child->processEvent(event, valid && !took);
                 if(focusedNode == m_childList.end() && p->child->focus()){
                     focusedNode = p;
@@ -226,11 +234,30 @@ class WidgetGroup: public Widget
     public:
         void drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int srcH) override
         {
-            // we don't have box concept for widget class
-            // this drawEx is a simple forward of parameters to all children
-
             for(auto &node: m_childList){
-                node.child->drawEx(dstX, dstY, srcX, srcY, srcW, srcH);
+                if(!node.child->show()){
+                    continue;
+                }
+
+                int srcXCrop = srcX;
+                int srcYCrop = srcY;
+                int dstXCrop = dstX;
+                int dstYCrop = dstY;
+                int srcWCrop = srcW;
+                int srcHCrop = srcH;
+
+                if(!mathf::ROICrop(
+                            &srcXCrop, &srcYCrop,
+                            &srcWCrop, &srcHCrop,
+                            &dstXCrop, &dstYCrop,
+
+                            w(),
+                            h(),
+
+                            node.child->dx(), node.child->dy(), node.child->w(), node.child->h())){
+                    continue;
+                }
+                node.child->drawEx(dstXCrop, dstYCrop, srcXCrop - dx(), srcYCrop - dy(), srcWCrop, srcHCrop);
             }
         }
 };

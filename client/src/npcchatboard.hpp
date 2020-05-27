@@ -37,7 +37,7 @@ class NPCChatBoard: public Widget
         uint64_t m_NPCUID;
 
     public:
-        NPCChatBoard(ProcessRun *);
+        NPCChatBoard(ProcessRun *, Widget *pwidget = nullptr, bool autoDelete = false);
 
     public:
         void drawEx(int, int, int, int, int, int) override;

@@ -109,12 +109,12 @@ void ProcessRun::Net_ACTION(const uint8_t *pBuf, size_t)
     // map doesn't change
     // action from an existing charobject for current processrun
 
-    if(auto pCreature = findUID(stSMA.UID)){
+    if(auto creaturePtr = findUID(stSMA.UID)){
         // shouldn't accept ACTION_SPAWN
         // we shouldn't have spawn action after co created
         condcheck(stSMA.Action != ACTION_SPAWN);
 
-        pCreature->parseAction(stAction);
+        creaturePtr->parseAction(stAction);
         switch(stAction.Action){
             case ACTION_SPACEMOVE2:
                 {
@@ -263,11 +263,9 @@ void ProcessRun::Net_DEADFADEOUT(const uint8_t *pBuf, size_t)
 
 void ProcessRun::Net_EXP(const uint8_t *pBuf, size_t)
 {
-    SMExp stSME;
-    std::memcpy(&stSME, pBuf, sizeof(stSME));
-
-    if(stSME.Exp){
-        AddOPLog(OUTPORT_CONTROLBOARD, 2, "", u8"你获得了经验值%d", (int)(stSME.Exp));
+    const auto smExp = ServerMsg::conv<SMExp>(pBuf);
+    if(smExp.Exp){
+        addCBLog(CBLOG_SYS, u8"你获得了经验值%d", (int)(smExp.Exp));
     }
 }
 
@@ -299,76 +297,88 @@ void ProcessRun::Net_SHOWDROPITEM(const uint8_t *pBuf, size_t)
 
 void ProcessRun::Net_FIREMAGIC(const uint8_t *pBuf, size_t)
 {
-    SMFireMagic stSMFM;
-    std::memcpy(&stSMFM, pBuf, sizeof(stSMFM));
+    const auto smFM = ServerMsg::conv<SMFireMagic>(pBuf);
+    const auto mr = DBCOM_MAGICRECORD(smFM.Magic);
 
-    if(auto &rstMR = DBCOM_MAGICRECORD(stSMFM.Magic)){
-        AddOPLog(OUTPORT_CONTROLBOARD, 2, "", u8"使用魔法: %s", rstMR.Name);
+    if(!mr){
+        return;
+    }
 
-        switch(stSMFM.Magic){
-            case DBCOM_MAGICID(u8"魔法盾"):
-                {
-                    if(auto stEntry = rstMR.GetGfxEntry(u8"开始")){
-                        if(auto pCreature = findUID(stSMFM.UID)){
-                            pCreature->addAttachMagic(stSMFM.Magic, 0, stEntry.Stage);
-                        }
-                        return;
+    addCBLog(CBLOG_SYS, u8"使用魔法: %s", mr.Name);
+    switch(smFM.Magic){
+        case DBCOM_MAGICID(u8"魔法盾"):
+            {
+                if(auto entry = mr.GetGfxEntry(u8"开始")){
+                    if(auto creaturePtr = findUID(smFM.UID)){
+                        creaturePtr->addAttachMagic(smFM.Magic, 0, entry.Stage);
                     }
+                    return;
                 }
-        }
-
-        const GfxEntry *pEntry = nullptr;
-        if(stSMFM.UID != getMyHero()->UID()){
-            if(!(pEntry && *pEntry)){ pEntry = &(rstMR.GetGfxEntry(u8"启动")); }
-            if(!(pEntry && *pEntry)){ pEntry = &(rstMR.GetGfxEntry(u8"开始")); }
-            if(!(pEntry && *pEntry)){ pEntry = &(rstMR.GetGfxEntry(u8"运行")); }
-            if(!(pEntry && *pEntry)){ pEntry = &(rstMR.GetGfxEntry(u8"结束")); }
-        }else{
-            if(!(pEntry && *pEntry)){ pEntry = &(rstMR.GetGfxEntry(u8"开始")); }
-            if(!(pEntry && *pEntry)){ pEntry = &(rstMR.GetGfxEntry(u8"运行")); }
-            if(!(pEntry && *pEntry)){ pEntry = &(rstMR.GetGfxEntry(u8"结束")); }
-        }
-
-        if(pEntry && *pEntry){
-            switch(pEntry->Type){
-                case EGT_BOUND:
-                    {
-                        if(auto pCreature = findUID(stSMFM.AimUID)){
-                            pCreature->addAttachMagic(stSMFM.Magic, 0, pEntry->Stage);
-                        }
-                        break;
-                    }
-                case EGT_FIXED:
-                    {
-                        m_indepMagicList.emplace_back(std::make_shared<IndepMagic>
-                        (
-                            stSMFM.UID,
-                            stSMFM.Magic,
-                            stSMFM.MagicParam,
-                            pEntry->Stage,
-                            stSMFM.Direction,
-                            stSMFM.X,
-                            stSMFM.Y,
-                            stSMFM.AimX,
-                            stSMFM.AimY,
-                            stSMFM.AimUID
-                        ));
-                        break;
-                    }
-                case EGT_SHOOT:
-                    {
-                        break;
-                    }
-                case EGT_FOLLOW:
-                    {
-                        break;
-                    }
-                default:
-                    {
-                        break;
-                    }
+                break;
             }
-        }
+        default:
+            {
+                break;
+            }
+    }
+
+    // general default handling
+    // put special magic handling in above switch-cases
+
+    const GfxEntry *gfxEntryPtr = nullptr;
+    if(smFM.UID != getMyHero()->UID()){
+        if(!(gfxEntryPtr && *gfxEntryPtr)){ gfxEntryPtr = &(mr.GetGfxEntry(u8"启动")); }
+        if(!(gfxEntryPtr && *gfxEntryPtr)){ gfxEntryPtr = &(mr.GetGfxEntry(u8"开始")); }
+        if(!(gfxEntryPtr && *gfxEntryPtr)){ gfxEntryPtr = &(mr.GetGfxEntry(u8"运行")); }
+        if(!(gfxEntryPtr && *gfxEntryPtr)){ gfxEntryPtr = &(mr.GetGfxEntry(u8"结束")); }
+    }
+    else{
+        if(!(gfxEntryPtr && *gfxEntryPtr)){ gfxEntryPtr = &(mr.GetGfxEntry(u8"开始")); }
+        if(!(gfxEntryPtr && *gfxEntryPtr)){ gfxEntryPtr = &(mr.GetGfxEntry(u8"运行")); }
+        if(!(gfxEntryPtr && *gfxEntryPtr)){ gfxEntryPtr = &(mr.GetGfxEntry(u8"结束")); }
+    }
+
+    if(!(gfxEntryPtr && *gfxEntryPtr)){
+        return;
+    }
+
+    switch(gfxEntryPtr->Type){
+        case EGT_BOUND:
+            {
+                if(auto creaturePtr = findUID(smFM.AimUID)){
+                    creaturePtr->addAttachMagic(smFM.Magic, 0, gfxEntryPtr->Stage);
+                }
+                break;
+            }
+        case EGT_FIXED:
+            {
+                m_indepMagicList.emplace_back(std::make_shared<IndepMagic>
+                (
+                    smFM.UID,
+                    smFM.Magic,
+                    smFM.MagicParam,
+                    gfxEntryPtr->Stage,
+                    smFM.Direction,
+                    smFM.X,
+                    smFM.Y,
+                    smFM.AimX,
+                    smFM.AimY,
+                    smFM.AimUID
+                ));
+                break;
+            }
+        case EGT_SHOOT:
+            {
+                break;
+            }
+        case EGT_FOLLOW:
+            {
+                break;
+            }
+        default:
+            {
+                break;
+            }
     }
 }
 
@@ -378,8 +388,8 @@ void ProcessRun::Net_OFFLINE(const uint8_t *pBuf, size_t)
     std::memcpy(&stSMO, pBuf, sizeof(stSMO));
 
     if(stSMO.MapID == MapID()){
-        if(auto pCreature = findUID(stSMO.UID)){
-            pCreature->addAttachMagic(DBCOM_MAGICID(u8"瞬息移动"), 0, EGS_INIT);
+        if(auto creaturePtr = findUID(stSMO.UID)){
+            creaturePtr->addAttachMagic(DBCOM_MAGICID(u8"瞬息移动"), 0, EGS_INIT);
         }
     }
 }
@@ -390,7 +400,7 @@ void ProcessRun::Net_PICKUPOK(const uint8_t *pBuf, size_t)
     getMyHero()->getInvPack().Add(smPUOK.ID);
 
     removeGroundItem(CommonItem(smPUOK.ID, 0), smPUOK.X, smPUOK.Y);
-    AddOPLog(OUTPORT_CONTROLBOARD, 2, "", u8"捡起%s于坐标(%d, %d)", DBCOM_ITEMRECORD(smPUOK.ID).Name, (int)(smPUOK.X), (int)(smPUOK.Y));
+    addCBLog(CBLOG_SYS, u8"捡起%s于坐标(%d, %d)", DBCOM_ITEMRECORD(smPUOK.ID).Name, (int)(smPUOK.X), (int)(smPUOK.Y));
 }
 
 void ProcessRun::Net_GOLD(const uint8_t *pBuf, size_t)
@@ -403,6 +413,7 @@ void ProcessRun::Net_GOLD(const uint8_t *pBuf, size_t)
 void ProcessRun::Net_NPCXMLLAYOUT(const uint8_t *buf, size_t)
 {
     const auto smNPCXMLL = ServerMsg::conv<SMNPCXMLLayout>(buf);
-    m_NPCChatBoard.loadXML(smNPCXMLL.NPCUID, smNPCXMLL.xmlLayout);
-    m_NPCChatBoard.show(true);
+    auto chatBoardPtr = dynamic_cast<NPCChatBoard *>(getGUIManager()->getWidget("NPCChatBoard"));
+    chatBoardPtr->loadXML(smNPCXMLL.NPCUID, smNPCXMLL.xmlLayout);
+    chatBoardPtr->show(true);
 }

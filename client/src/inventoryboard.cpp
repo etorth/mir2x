@@ -25,8 +25,8 @@ extern PNGTexDB *g_progUseDB;
 extern PNGTexDB *g_commonItemDB;
 extern SDLDevice *g_SDLDevice;
 
-InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget, bool bAutoFree)
-    : Widget(nX, nY, 0, 0, pwidget, bAutoFree)
+InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget, bool autoDelete)
+    : Widget(nX, nY, 0, 0, pwidget, autoDelete)
     , m_goldBoard
       {
           0, // reset by new width

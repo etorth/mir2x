@@ -22,10 +22,12 @@
 class ProcessRun;
 class ClientLuaModule: public LuaModule
 {
+    private:
+        ProcessRun *m_proc;
+
     public:
-        ClientLuaModule(ProcessRun *, int);
-       ~ClientLuaModule() = default;
+        ClientLuaModule(ProcessRun *);
 
     protected:
-       void addLog(int, const char *);
+        void addLog(int, const char *) override;
 };

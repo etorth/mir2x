@@ -1021,14 +1021,14 @@ void ControlBoard::inputLineDone()
         case '@': // user command
             {
                 if(m_processRun){
-                    m_processRun->UserCommand(realInput.c_str() + 1);
+                    m_processRun->userCommand(realInput.c_str() + 1);
                 }
                 break;
             }
         case '$': // lua command for super user
             {
                 if(m_processRun){
-                    m_processRun->LuaCommand(realInput.c_str() + 1);
+                    m_processRun->luaCommand(realInput.c_str() + 1);
                 }
                 break;
             }

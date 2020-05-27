@@ -27,11 +27,15 @@
 extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_SDLDevice;
 
-QuickAccessBoard::QuickAccessBoard(int x, int y, ProcessRun *proc)
+QuickAccessBoard::QuickAccessBoard(int x, int y, ProcessRun *proc, Widget *pwidget, bool autoDelete)
     : Widget
       {
           x,
           y,
+          0,
+          0,
+          pwidget,
+          autoDelete,
       }
      
     , m_proc(proc)

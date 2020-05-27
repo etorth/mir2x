@@ -16,39 +16,24 @@
  * =====================================================================================
  */
 
-#include "log.hpp"
+#include "fflerror.hpp"
 #include "processrun.hpp"
 #include "clientluamodule.hpp"
 
-ClientLuaModule::ClientLuaModule(ProcessRun *pRun, int nOutPort)
+ClientLuaModule::ClientLuaModule(ProcessRun *proc)
     : LuaModule()
+    , m_proc(proc)
 {
-    if(true
-            && pRun
-            && nOutPort >= 0){
-
-        // import all predefined lua functions / variables
-        // don't need to keep ProcessRun and OutPort internally
-        // where-ever it's in needed the lambda should capture it directly
-
-        pRun->RegisterLuaExport(this, nOutPort);
+    if(!m_proc){
+        throw fflerror("null ProcessRun pointer");
     }
+    m_proc->RegisterLuaExport(this);
 }
 
-void ClientLuaModule::addLog(int nLogType, const char *szLogInfo)
+void ClientLuaModule::addLog(int logType, const char *logInfo)
 {
-    if(!szLogInfo){
-        szLogInfo = "";
+    if(!logInfo){
+        logInfo = "(null)";
     }
-
-    // any time if you call addLog() in LUA
-    // then this will get printed in the server GUI console
-
-    extern Log *g_log;
-    switch(nLogType){
-        case 0  : g_log->addLog(LOGTYPE_INFO   , "%s", szLogInfo); return;
-        case 1  : g_log->addLog(LOGTYPE_WARNING, "%s", szLogInfo); return;
-        case 2  : g_log->addLog(LOGTYPE_FATAL  , "%s", szLogInfo); return;
-        default : g_log->addLog(LOGTYPE_DEBUG  , "%s", szLogInfo); return;
-    }
+    m_proc->addCBLog(logType, "%s", logInfo);
 }

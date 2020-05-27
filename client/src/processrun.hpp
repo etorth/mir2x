@@ -32,14 +32,11 @@
 #include "ascendstr.hpp"
 #include "commonitem.hpp"
 #include "indepmagic.hpp"
+#include "guimanager.hpp"
 #include "lochashtable.hpp"
 #include "mir2xmapdata.hpp"
-#include "npcchatboard.hpp"
-#include "controlboard.hpp"
 #include "clientcreature.hpp"
-#include "inventoryboard.hpp"
 #include "clientluamodule.hpp"
-#include "quickaccessboard.hpp"
 
 class ClientPathFinder;
 class ProcessRun: public Process
@@ -47,22 +44,21 @@ class ProcessRun: public Process
     private:
         struct UserCommandEntry
         {
-            std::string Command;
-            std::function<int(const std::vector<std::string> &)> Callback;
+            std::string command;
+            std::function<int(const std::vector<std::string> &)> callback;
 
-            UserCommandEntry(const char *szCommand, std::function<int(const std::vector<std::string> &)> rfnOP)
-                : Command(szCommand ? szCommand : "")
-                , Callback(rfnOP)
-            {}
-        };
+            UserCommandEntry(const char *cmdString, std::function<int(const std::vector<std::string> &)> cmdCB)
+                : command(cmdString ? cmdString : "")
+                , callback(cmdCB)
+            {
+                if(command.empty()){
+                    throw fflerror("empty command name");
+                }
 
-    private:
-        enum OutPortType: int
-        {
-            OUTPORT_NONE         = (0 << 0),
-            OUTPORT_LOG          = (1 << 0),
-            OUTPORT_SCREEN       = (2 << 1),
-            OUTPORT_CONTROLBOARD = (3 << 1),
+                if(!callback){
+                    throw fflerror("command callback is not callable: %s", command.c_str());
+                }
+            }
         };
 
     private:
@@ -105,10 +101,7 @@ class ProcessRun: public Process
         ClientLuaModule m_luaModule;
 
     private:
-        NPCChatBoard m_NPCChatBoard;
-        ControlBoard m_controlBoard;
-        InventoryBoard m_inventoryBoard;
-        QuickAccessBoard m_quickAccessBoard;
+        GUIManager m_GUIManager;
 
     private:
         std::list<std::shared_ptr<IndepMagic>> m_indepMagicList;
@@ -166,14 +159,10 @@ class ProcessRun: public Process
         virtual void processEvent(const SDL_Event &) override;
 
     public:
-        bool ScreenPoint2Grid(int, int, int *, int *);
-
-    public:
-        std::tuple<int, int> ScreenPoint2Grid(int nPX, int nPY)
+        std::tuple<int, int> screenPoint2Grid(int pixelX, int pixelY)
         {
-            return {(nPX + m_viewX) / SYS_MAPGRIDXP, (nPY + m_viewY) / SYS_MAPGRIDYP};
+            return {(pixelX + m_viewX) / SYS_MAPGRIDXP, (pixelY + m_viewY) / SYS_MAPGRIDYP};
         }
-
 
     public:
         bool OnMap(uint32_t, int, int) const;
@@ -206,8 +195,8 @@ class ProcessRun: public Process
         uint64_t FocusUID(int);
 
     public:
-        bool  LuaCommand(const char *);
-        bool UserCommand(const char *);
+        bool  luaCommand(const char *);
+        bool userCommand(const char *);
 
     public:
         uint32_t GetFocusFaceKey();
@@ -216,14 +205,13 @@ class ProcessRun: public Process
         std::vector<int> GetPlayerList();
 
     public:
-        void AddOPLog(int, int, const char *, const char *, ...);
         void addCBLog(int, const char *, ...);
 
     public:
-        bool RegisterUserCommand();
+        void RegisterUserCommand();
 
     public:
-        bool RegisterLuaExport(ClientLuaModule *, int);
+        void RegisterLuaExport(ClientLuaModule *);
 
     public:
         ClientCreature *findUID(uint64_t, bool checkVisible = true) const;
@@ -321,7 +309,10 @@ class ProcessRun: public Process
         void OnActionSpawn(uint64_t, const ActionNode &);
 
     public:
-        Widget *getWidget(const std::string &);
+        Widget *getWidget(const std::string &widgetName)
+        {
+            return getGUIManager()->getWidget(widgetName);
+        }
 
     public:
         void sendNPCEvent(uint64_t, const char *, const char * = nullptr);
@@ -337,4 +328,10 @@ class ProcessRun: public Process
 
     public:
         std::tuple<int, int> getACNum(const std::string &) const;
+
+    public:
+        GUIManager *getGUIManager()
+        {
+            return &m_GUIManager;
+        }
 };

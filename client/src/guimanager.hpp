@@ -1,9 +1,9 @@
 /*
  * =====================================================================================
  *
- *       Filename: quickaccessboard.hpp
- *        Created: 03/28/2020 05:43:45
- *    Description: 
+ *       Filename: guimanager.hpp
+ *        Created: 08/12/2015 09:59:15
+ *    Description: public API for class client only
  *
  *        Version: 1.0
  *       Revision: none
@@ -17,26 +17,33 @@
  */
 
 #pragma once
-#include <cstdint>
 #include "widget.hpp"
-#include "tritexbutton.hpp"
+#include "npcchatboard.hpp"
+#include "controlboard.hpp"
+#include "inventoryboard.hpp"
+#include "quickaccessboard.hpp"
 
 class ProcessRun;
-class QuickAccessBoard: public Widget
+class GUIManager: public WidgetGroup
 {
     private:
         ProcessRun *m_proc;
 
     private:
-        TritexButton m_buttonClose;
+        NPCChatBoard m_NPCChatBoard;
+        ControlBoard m_controlBoard;
 
     private:
-        constexpr static uint32_t m_texID = 0X00000060;
+        InventoryBoard m_inventoryBoard;
+        QuickAccessBoard m_quickAccessBoard;
 
     public:
-        QuickAccessBoard(int, int, ProcessRun *, Widget *pwidget = nullptr, bool autoDelete = false);
+        GUIManager(ProcessRun *);
 
     public:
         void drawEx(int, int, int, int, int, int) override;
         bool processEvent(const SDL_Event &, bool) override;
+
+    public:
+        Widget *getWidget(const std::string &);
 };

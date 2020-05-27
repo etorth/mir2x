@@ -53,21 +53,8 @@ ProcessRun::ProcessRun()
     , m_viewX(0)
     , m_viewY(0)
     , m_mapScrolling(false)
-    , m_luaModule(this, OUTPORT_CONTROLBOARD)
-    , m_NPCChatBoard(this)
-    , m_controlBoard
-      {
-          g_SDLDevice->WindowH(false) - 133,
-          g_SDLDevice->WindowW(false),
-          this,
-      }
-    , m_inventoryBoard(0, 0, this)
-    , m_quickAccessBoard
-      {
-          0,
-          std::get<1>(g_SDLDevice->getRendererSize()) - m_controlBoard.h(),
-          this,
-      }
+    , m_luaModule(this)
+    , m_GUIManager(this)
     , m_mousePixlLoc(0, 0, "", 0, 15, 0, colorf::RGBA(0XFF, 0X00, 0X00, 0X00))
     , m_mouseGridLoc(0, 0, "", 0, 15, 0, colorf::RGBA(0XFF, 0X00, 0X00, 0X00))
     , m_ascendStrList()
@@ -83,7 +70,7 @@ void ProcessRun::scrollMap()
 {
     const auto [rendererW, rendererH] = g_SDLDevice->getRendererSize();
     const auto showWindowW = rendererW;
-    const auto showWindowH = rendererH - m_controlBoard.h();
+    const auto showWindowH = rendererH - getWidget("ControlBoard")->h();
 
     const int nViewX = getMyHero()->x() * SYS_MAPGRIDXP - showWindowW / 2;
     const int nViewY = getMyHero()->y() * SYS_MAPGRIDYP - showWindowH / 2;
@@ -133,9 +120,7 @@ void ProcessRun::update(double fUpdateTime)
     }
 
     scrollMap();
-    m_controlBoard.update(fUpdateTime);
-    m_NPCChatBoard.update(fUpdateTime);
-    m_inventoryBoard.update(fUpdateTime);
+    m_GUIManager.update(fUpdateTime);
 
     getMyHero()->update(fUpdateTime);
     const int myHeroX = getMyHero()->x();
@@ -377,10 +362,7 @@ void ProcessRun::draw()
         p->Draw(m_viewX, m_viewY);
     }
 
-    m_controlBoard    .draw();
-    m_inventoryBoard  .draw();
-    m_NPCChatBoard    .draw();
-    m_quickAccessBoard.draw();
+    m_GUIManager.draw();
 
     // draw NotifyBoard
     {
@@ -425,43 +407,14 @@ void ProcessRun::draw()
 
 void ProcessRun::processEvent(const SDL_Event &event)
 {
-    // TODO use WidgetGroup to handle focus issue
-    // focused widget should get event firstly and draw at last
-
-    bool takeEvent = false;
-    takeEvent |= m_inventoryBoard  .processEvent(event, !takeEvent);
-    takeEvent |= m_controlBoard    .processEvent(event, !takeEvent);
-    takeEvent |= m_NPCChatBoard    .processEvent(event, !takeEvent);
-    takeEvent |= m_quickAccessBoard.processEvent(event, !takeEvent);
-
-    if(takeEvent){
+    if(m_GUIManager.processEvent(event, true)){
         return;
     }
 
     switch(event.type){
-        case SDL_WINDOWEVENT:
-            {
-                switch(event.window.event){
-                    case SDL_WINDOWEVENT_SIZE_CHANGED:
-                        {
-                            const auto [w, h] = g_SDLDevice->getRendererSize();
-                            m_controlBoard.resizeWidth(w);
-                            m_controlBoard.moveTo(0, h - 133);
-                            break;
-                        }
-                    default:
-                        {
-                            break;
-                        }
-                }
-                break;
-            }
         case SDL_MOUSEBUTTONDOWN:
             {
-                int mouseGridX = -1;
-                int mouseGridY = -1;
-                ScreenPoint2Grid(event.button.x, event.button.y, &mouseGridX, &mouseGridY);
-
+                const auto [mouseGridX, mouseGridY] = screenPoint2Grid(event.button.x, event.button.y);
                 switch(event.button.button){
                     case SDL_BUTTON_LEFT:
                         {
@@ -503,12 +456,11 @@ void ProcessRun::processEvent(const SDL_Event &event)
 
                             if(auto nUID = FocusUID(FOCUS_MOUSE)){
                                 m_focusUIDTable[FOCUS_FOLLOW] = nUID;
-                            }else{
-                                int nX = -1;
-                                int nY = -1;
-                                if(true
-                                        && ScreenPoint2Grid(event.button.x, event.button.y, &nX, &nY)
-                                        && mathf::LDistance2(getMyHero()->currMotion().endX, getMyHero()->currMotion().endY, nX, nY)){
+                            }
+
+                            else{
+                                const auto [nX, nY] = screenPoint2Grid(event.button.x, event.button.y);
+                                if(mathf::LDistance2(getMyHero()->currMotion().endX, getMyHero()->currMotion().endY, nX, nY)){
 
                                     // we get a valid dst to go
                                     // provide myHero with new move action command
@@ -571,13 +523,13 @@ void ProcessRun::processEvent(const SDL_Event &event)
                                     nFocusUID,
                                     DBCOM_MAGICID(u8"雷电术"),
                                 });
-                            }else{
-                                int nAimX   = -1;
-                                int nAimY   = -1;
+                            }
+
+                            else{
                                 int nMouseX = -1;
                                 int nMouseY = -1;
                                 SDL_GetMouseState(&nMouseX, &nMouseY);
-                                ScreenPoint2Grid(nMouseX, nMouseY, &nAimX, &nAimY);
+                                const auto [nAimX, nAimY] = screenPoint2Grid(nMouseX, nMouseY);
                                 getMyHero()->emplaceAction(ActionSpell
                                 {
                                     getMyHero()->currMotion().endX,
@@ -810,101 +762,98 @@ double ProcessRun::OneStepCost(const ClientPathFinder *pFinder, bool bCheckGroun
     return 1.00 + nMaxIndex * 0.10 + fExtraPen;
 }
 
-bool ProcessRun::ScreenPoint2Grid(int nPX, int nPY, int *pX, int *pY)
+bool ProcessRun::luaCommand(const char *luaCmdString)
 {
-    if(pX){ *pX = (nPX + m_viewX) / SYS_MAPGRIDXP; }
-    if(pY){ *pY = (nPY + m_viewY) / SYS_MAPGRIDYP; }
+    if(!luaCmdString){
+        return false;
+    }
 
+    const auto callResult = m_luaModule.GetLuaState().script(luaCmdString, [](lua_State *, sol::protected_function_result result)
+    {
+        // default handler
+        // do nothing and let the call site handle the errors
+        return result;
+    });
+
+    if(callResult.valid()){
+        return true;
+    }
+
+    const sol::error err = callResult;
+    std::stringstream errStream(err.what());
+
+    std::string errLine;
+    while(std::getline(errStream, errLine, '\n')){
+        addCBLog(CBLOG_ERR, errLine.c_str());
+    }
     return true;
 }
 
-bool ProcessRun::LuaCommand(const char *szLuaCommand)
+bool ProcessRun::userCommand(const char *userCmdString)
 {
-    if(szLuaCommand){
-        auto stCallResult = m_luaModule.GetLuaState().script(szLuaCommand, [](lua_State *, sol::protected_function_result stResult){
-            // default handler
-            // do nothing and let the call site handle the errors
-            return stResult;
+    if(!userCmdString){
+        return false;
+    }
+
+    const char *beginPtr = userCmdString;
+    const char *endPtr   = userCmdString + std::strlen(userCmdString);
+
+    std::vector<std::string> tokenList;
+    while(true){
+        beginPtr = std::find_if_not(beginPtr, endPtr, [](char chByte)
+        {
+            return chByte == ' ';
         });
 
-        if(stCallResult.valid()){
-            // default nothing printed
-            // we can put information here to show call succeeds
-            // or we can unlock the input widget to allow next command
-        }else{
-            sol::error stError = stCallResult;
-            g_log->addLog(LOGTYPE_WARNING, "%s", stError.what());
+        if(beginPtr == endPtr){
+            break;
         }
 
-        // always return true if command get evaluated
-        // return false only if provided is unhandled
+        const char *donePtr = std::find(beginPtr, endPtr, ' ');
+        tokenList.emplace_back(beginPtr, donePtr);
+        beginPtr = donePtr;
+    }
+
+    if(tokenList.empty()){
         return true;
     }
-    return false;
-}
 
-bool ProcessRun::UserCommand(const char *szUserCommand)
-{
-    if(szUserCommand){
-        // 1. split commands into an array
-        std::vector<std::string> stvToken;
-        {
-            auto pBegin = szUserCommand;
-            auto pEnd   = szUserCommand + std::strlen(szUserCommand);
+    int matchCount = 0;
+    UserCommandEntry *entryPtr = nullptr;
 
-            while(true){
-                pBegin = std::find_if_not(pBegin, pEnd, [](char chByte){ return chByte == ' '; });
-                if(pBegin != pEnd){
-                    auto pDone = std::find(pBegin, pEnd, ' ');
-                    stvToken.emplace_back(pBegin, pDone);
-                    pBegin = pDone;
-                }else{ break; }
-            }
-
-            if(stvToken.empty()){
-                return true;
-            }
-        }
-
-        // 2. to find the command
-        //    alert and return if can't find it
-        UserCommandEntry *pEntry = nullptr;
-        {
-            int nCount = 0;
-            for(auto &rstEntry : m_userCommandGroup){
-                if(rstEntry.Command.substr(0, stvToken[0].size()) == stvToken[0]){
-                    pEntry = &rstEntry;
-                    nCount++;
-                }
-            }
-
-            switch(nCount){
-                case 0:
-                    {
-                        AddOPLog(OUTPORT_CONTROLBOARD, 1, "", "Invalid command: %s", stvToken[0].c_str());
-                        break;
-                    }
-                case 1:
-                    {
-                        if(pEntry->Callback){
-                            pEntry->Callback(stvToken);
-                        }
-                        break;
-                    }
-                default:
-                    {
-                        AddOPLog(OUTPORT_CONTROLBOARD, 1, "", "Ambiguous command: %s", stvToken[0].c_str());
-                        for(auto &rstEntry : m_userCommandGroup){
-                            if(rstEntry.Command.substr(0, stvToken[0].size()) == stvToken[0]){
-                                AddOPLog(OUTPORT_CONTROLBOARD, 1, "", "Possible command: %s", rstEntry.Command.c_str());
-                            }
-                        }
-                        break;
-                    }
-            }
+    for(auto &entry : m_userCommandGroup){
+        if(entry.command.substr(0, tokenList[0].size()) == tokenList[0]){
+            entryPtr = &entry;
+            matchCount++;
         }
     }
-    return false;
+
+    switch(matchCount){
+        case 0:
+            {
+                addCBLog(CBLOG_ERR, ">> Invalid command: %s", tokenList[0].c_str());
+                return true;
+            }
+        case 1:
+            {
+                if(!entryPtr->callback){
+                    throw fflerror("command callback is not callable: %s", entryPtr->command.c_str());
+                }
+
+                entryPtr->callback(tokenList);
+                return true;
+            }
+        default:
+            {
+                addCBLog(CBLOG_ERR, ">> Ambiguous command: %s", tokenList[0].c_str());
+                for(auto &entry : m_userCommandGroup){
+                    if(entry.command.substr(0, tokenList[0].size()) == tokenList[0]){
+                        addCBLog(CBLOG_ERR, ">> Candicate: %s", entry.command.c_str());
+                    }
+                }
+                return true;
+            }
+    }
 }
 
 std::vector<int> ProcessRun::GetPlayerList()
@@ -931,248 +880,162 @@ std::vector<int> ProcessRun::GetPlayerList()
     return result;
 }
 
-bool ProcessRun::RegisterUserCommand()
+void ProcessRun::RegisterUserCommand()
 {
     // 1. register command: moveTo
     //    usage:
     //              moveTo        120 250
     //              moveTo 某地图 120 250
-    auto fnMoveTo = [this](const std::vector<std::string> &rstvParam) -> int
+    m_userCommandGroup.emplace_back("moveTo", [this](const std::vector<std::string> &parmList) -> int
     {
-        switch(rstvParam.size()){
+        switch(parmList.size()){
             case 1 + 2:
                 {
-                    int nX = std::atoi(rstvParam[1].c_str());
-                    int nY = std::atoi(rstvParam[2].c_str());
+                    const int nX = std::atoi(parmList[1].c_str());
+                    const int nY = std::atoi(parmList[2].c_str());
                     RequestSpaceMove(MapID(), nX, nY);
                     return 0;
                 }
             case 1 + 3:
                 {
-                    int nX = std::atoi(rstvParam[2].c_str());
-                    int nY = std::atoi(rstvParam[3].c_str());
-                    auto nMapID = DBCOM_MAPID(rstvParam[1].c_str());
+                    const int nX = std::atoi(parmList[2].c_str());
+                    const int nY = std::atoi(parmList[3].c_str());
+                    const auto nMapID = DBCOM_MAPID(parmList[1].c_str());
                     RequestSpaceMove(nMapID, nX, nY);
                     return 0;
                 }
             default:
                 {
-                    AddOPLog(OUTPORT_CONTROLBOARD, 1, "", "Invalid argument to command: moveTo");
+                    addCBLog(CBLOG_ERR, ">> Invalid argument to command: moveTo");
                     return 1;
                 }
         }
-    };
-    m_userCommandGroup.emplace_back("moveTo", fnMoveTo);
+    });
 
-    auto fnLuaEditor = [this](const std::vector<std::string> &) -> int
+    m_userCommandGroup.emplace_back("luaEditor", [this](const std::vector<std::string> &) -> int
     {
-        AddOPLog(OUTPORT_CONTROLBOARD, 1, "", "LuaEditor not implemented yet");
+        addCBLog(CBLOG_ERR, "LuaEditor not implemented yet");
         return 0;
-    };
-    m_userCommandGroup.emplace_back("luaEditor", fnLuaEditor);
+    });
 
-    auto fnMakeItem = [this](const std::vector<std::string> &rstvParam) -> int
+    m_userCommandGroup.emplace_back("makeItem", [this](const std::vector<std::string> &parmList) -> int
     {
-        switch(rstvParam.size()){
-            case 0 + 1:
+        switch(parmList.size()){
+            case 1 + 0:
                 {
-                    AddOPLog(OUTPORT_CONTROLBOARD, 2, "", u8"@make 物品名字");
+                    addCBLog(CBLOG_SYS, u8"@make 物品名字");
                     return 1;
                 }
             case 1 + 1:
                 {
-                    AddOPLog(OUTPORT_CONTROLBOARD, 2, "", u8"获得%s", rstvParam[1].c_str());
+                    addCBLog(CBLOG_SYS, u8"获得%s", parmList[1].c_str());
                     return 0;
                 }
             default:
                 {
-                    AddOPLog(OUTPORT_CONTROLBOARD, 2, "", u8"Invalid argument for @make");
+                    addCBLog(CBLOG_ERR, u8"Invalid argument to @make");
                     return 1;
                 }
         }
-    };
-    m_userCommandGroup.emplace_back("makeItem", fnMakeItem);
+    });
 
-    auto fnGetAttackUID = [this](const std::vector<std::string> &) -> int
+    m_userCommandGroup.emplace_back("getAttackUID", [this](const std::vector<std::string> &) -> int
     {
-        AddOPLog(OUTPORT_CONTROLBOARD, 2, "", std::to_string(FocusUID(FOCUS_ATTACK)).c_str());
-        return 0;
-    };
-    m_userCommandGroup.emplace_back("getAttackUID", fnGetAttackUID);
+        addCBLog(CBLOG_ERR, std::to_string(FocusUID(FOCUS_ATTACK)).c_str());
+        return 1;
+    });
 
-    auto fnKillPets = [this](const std::vector<std::string> &) -> int
+    m_userCommandGroup.emplace_back("killPets", [this](const std::vector<std::string> &) -> int
     {
         RequestKillPets();
-        AddOPLog(OUTPORT_CONTROLBOARD, 2, "", u8"杀死所有宝宝");
+        addCBLog(CBLOG_SYS, u8"杀死所有宝宝");
         return 0;
-    };
-    m_userCommandGroup.emplace_back("killPets", fnKillPets);
-
-    return true;
+    });
 }
 
-bool ProcessRun::RegisterLuaExport(ClientLuaModule *pModule, int nOutPort)
+void ProcessRun::RegisterLuaExport(ClientLuaModule *luaModulePtr)
 {
-    if(pModule){
-
-        // initialization before registration
-        pModule->GetLuaState().script(R"()");
-
-        // register command printLine
-        // print one line to the out port allocated for the lua module
-        pModule->GetLuaState().set_function("printLine", [this, nOutPort](sol::object stLogType, sol::object stPrompt, sol::object stLogInfo)
-        {
-            if(true
-                    && stLogType.is<int>()
-                    &&  stPrompt.is<std::string>()
-                    && stLogInfo.is<std::string>()){
-                AddOPLog(nOutPort, stLogType.as<int>(), stPrompt.as<std::string>().c_str(), "%s", stLogInfo.as<std::string>().c_str());
-                return;
-            }
-
-            // invalid argument provided
-            AddOPLog(nOutPort, 2, ">>> ", "%s", "printLine(LogType: int, Prompt: string, LogInfo: string)");
-        });
-
-        // register command addLog
-        // add to client system log file only, same as g_log->AddLog(LOGTYPE_XXXX, LogInfo)
-        pModule->GetLuaState().set_function("addLog", [this, nOutPort](sol::object stLogType, sol::object stLogInfo)
-        {
-            if(true
-                    && stLogType.is<int>()
-                    && stLogInfo.is<std::string>()){
-
-                switch(stLogType.as<int>()){
-                    case 0  : g_log->addLog(LOGTYPE_INFO   , "%s", stLogInfo.as<std::string>().c_str()); return;
-                    case 1  : g_log->addLog(LOGTYPE_WARNING, "%s", stLogInfo.as<std::string>().c_str()); return;
-                    case 2  : g_log->addLog(LOGTYPE_FATAL  , "%s", stLogInfo.as<std::string>().c_str()); return;
-                    default : g_log->addLog(LOGTYPE_DEBUG  , "%s", stLogInfo.as<std::string>().c_str()); return;
-                }
-            }
-
-            // invalid argument provided
-            AddOPLog(nOutPort, 2, ">>> ", "%s", "addLog(LogType: int, LogInfo: string)");
-        });
-
-        // register command playerList
-        // return a table (userData) to lua for ipairs() check
-        pModule->GetLuaState().set_function("playerList", [this](sol::this_state stThisLua)
-        {
-            return sol::make_object(sol::state_view(stThisLua), GetPlayerList());
-        });
-
-        // register command moveTo(x, y)
-        // wait for server to move player if possible
-        pModule->GetLuaState().set_function("moveTo", [this, nOutPort](sol::object stLocX, sol::object stLocY)
-        {
-            if(true
-                    && stLocX.is<int>()
-                    && stLocY.is<int>()){
-
-                int nX = stLocX.as<int>();
-                int nY = stLocY.as<int>();
-
-                RequestSpaceMove(MapID(), nX, nY);
-                AddOPLog(nOutPort, 0, ">", "moveTo(%d, %d)", nX, nY);
-            }
-        });
-
-
-        // register command ``listPlayerInfo"
-        // this command call to get a player info table and print to out port
-        pModule->GetLuaState().script(R"#(
-            function listPlayerInfo ()
-                for k, v in ipairs(playerList())
-                do
-                    printLine(0, "> ", tostring(v))
-                end
-            end
-        )#");
-
-        // register command ``help"
-        // part-1: divide into two parts, part-1 create the table for help
-        pModule->GetLuaState().script(R"#(
-            helpInfoTable = {
-                wear     = "put on different dress",
-                moveTo   = "move to other position on current map",
-                randMove = "random move on current map"
-            }
-        )#");
-
-        // part-2: make up the function to print the table entry
-        pModule->GetLuaState().script(R"#(
-            function help (queryKey)
-                if helpInfoTable[queryKey]
-                then
-                    printLine(0, "> ", helpInfoTable[queryKey])
-                else
-                    printLine(2, "> ", "No entry find for input")
-                end
-            end
-        )#");
-
-        // register command ``myHero.xxx"
-        // I need to insert a table to micmic a instance myHero in the future
-        pModule->GetLuaState().set_function("myHero_dress", [this](int nDress)
-        {
-            if(nDress >= 0){
-                getMyHero()->Dress((uint32_t)(nDress));
-            }
-        });
-
-        // register command ``myHero.xxx"
-        // I need to insert a table to micmic a instance myHero in the future
-        pModule->GetLuaState().set_function("myHero_weapon", [this](int nWeapon)
-        {
-            if(nWeapon >= 0){
-                getMyHero()->Weapon((uint32_t)(nWeapon));
-            }
-        });
-
-
-        // registration done
-        return true;
+    if(!luaModulePtr){
+        throw fflerror("null ClientLuaModule pointer");
     }
-    return false;
-}
 
-void ProcessRun::AddOPLog(int nOutPort, int logType, const char *szPrompt, const char *szLogFormat, ...)
-{
-    std::string szLog;
-    bool bError = false;
+    // initialization before registration
+    luaModulePtr->GetLuaState().script(str_printf("CBLOG_DEF = %d", CBLOG_DEF));
+    luaModulePtr->GetLuaState().script(str_printf("CBLOG_SYS = %d", CBLOG_SYS));
+    luaModulePtr->GetLuaState().script(str_printf("CBLOG_DBG = %d", CBLOG_DBG));
+    luaModulePtr->GetLuaState().script(str_printf("CBLOG_ERR = %d", CBLOG_ERR));
+
+    // register command playerList
+    // return a table (userData) to lua for ipairs() check
+    luaModulePtr->GetLuaState().set_function("playerList", [this](sol::this_state stThisLua)
     {
-        va_list ap;
-        va_start(ap, szLogFormat);
+        return sol::make_object(sol::state_view(stThisLua), GetPlayerList());
+    });
 
-        try{
-            szLog = str_vprintf(szLogFormat, ap);
-        }catch(const std::exception &e){
-            bError = true;
-            szLog = str_printf("Exception caught in ProcessRun::AddOPLog(\"%s\", ...): %s", szLogFormat, e.what());
+    // register command moveTo(x, y)
+    // wait for server to move player if possible
+    luaModulePtr->GetLuaState().set_function("moveTo", [this](sol::object locX, sol::object locY)
+    {
+        if(locX.is<int>() && locY.is<int>()){
+            const int nX = locX.as<int>();
+            const int nY = locY.as<int>();
+
+            RequestSpaceMove(MapID(), nX, nY);
+            addCBLog(CBLOG_SYS, "moveTo(%d, %d)", nX, nY);
         }
+    });
 
-        va_end(ap);
-    }
 
-    if(bError){
-        logType = Log::LOGTYPEV_WARNING;
-    }
+    // register command ``listPlayerInfo"
+    // this command call to get a player info table and print to out port
+    luaModulePtr->GetLuaState().script(R"#(
+        function listPlayerInfo ()
+            for k, v in ipairs(playerList())
+            do
+                addLog(CBLOG_SYS, "> " .. tostring(v))
+            end
+        end
+    )#");
 
-    if(nOutPort & OUTPORT_LOG){
-        switch(logType){
-            case Log::LOGTYPEV_INFO    : g_log->addLog(LOGTYPE_INFO   , u8"%s%s", szPrompt ? szPrompt : "", szLog.c_str()); break;
-            case Log::LOGTYPEV_WARNING : g_log->addLog(LOGTYPE_WARNING, u8"%s%s", szPrompt ? szPrompt : "", szLog.c_str()); break;
-            case Log::LOGTYPEV_DEBUG   : g_log->addLog(LOGTYPE_DEBUG,   u8"%s%s", szPrompt ? szPrompt : "", szLog.c_str()); break;
-            default                    : g_log->addLog(LOGTYPE_FATAL  , u8"%s%s", szPrompt ? szPrompt : "", szLog.c_str()); break;
+    // register command ``help"
+    // part-1: divide into two parts, part-1 create the table for help
+    luaModulePtr->GetLuaState().script(R"#(
+        helpInfoTable = {
+            wear     = "put on different dress",
+            moveTo   = "move to other position on current map",
+            randMove = "random move on current map"
         }
-    }
+    )#");
 
-    if(nOutPort & OUTPORT_SCREEN){
-    }
+    // part-2: make up the function to print the table entry
+    luaModulePtr->GetLuaState().script(R"#(
+        function help (queryKey)
+            if helpInfoTable[queryKey]
+            then
+                printLine(0, "> ", helpInfoTable[queryKey])
+            else
+                printLine(2, "> ", "No entry find for input")
+            end
+        end
+    )#");
 
-    if(nOutPort & OUTPORT_CONTROLBOARD){
-        m_controlBoard.addLog(logType, szLog.c_str());
-    }
+    // register command ``myHero.xxx"
+    // I need to insert a table to micmic a instance myHero in the future
+    luaModulePtr->GetLuaState().set_function("myHero_dress", [this](int nDress)
+    {
+        if(nDress >= 0){
+            getMyHero()->Dress((uint32_t)(nDress));
+        }
+    });
+
+    // register command ``myHero.xxx"
+    // I need to insert a table to micmic a instance myHero in the future
+    luaModulePtr->GetLuaState().set_function("myHero_weapon", [this](int nWeapon)
+    {
+        if(nWeapon >= 0){
+            getMyHero()->Weapon((uint32_t)(nWeapon));
+        }
+    });
 }
 
 void ProcessRun::addCBLog(int logType, const char *format, ...)
@@ -1197,7 +1060,7 @@ void ProcessRun::addCBLog(int logType, const char *format, ...)
     if(hasError){
         logType = CBLOG_ERR;
     }
-    m_controlBoard.addLog(logType, logStr.c_str());
+    dynamic_cast<ControlBoard *>(getGUIManager()->getWidget("ControlBoard"))->addLog(logType, logStr.c_str());
 }
 
 bool ProcessRun::OnMap(uint32_t nMapID, int nX, int nY) const
@@ -1301,8 +1164,10 @@ void ProcessRun::centerMyHero()
 
     const auto fnSetOff = [this, nX, nY, nDirection, currFrame, frameCount](int stepLen)
     {
-        const auto showWindowW = g_SDLDevice->WindowW(false);
-        const auto showWindowH = g_SDLDevice->WindowH(false) - m_controlBoard.h();
+        const auto [rendererWidth, rendererHeight] = g_SDLDevice->getRendererSize();
+        const auto controlBoardPtr = dynamic_cast<ControlBoard *>(getGUIManager()->getWidget("ControlBoard"));
+        const auto showWindowW = rendererWidth;
+        const auto showWindowH = rendererHeight - controlBoardPtr->h();
 
         switch(stepLen){
             case 0:
@@ -1397,7 +1262,7 @@ void ProcessRun::OnActionSpawn(uint64_t nUID, const ActionNode &rstAction)
                 // TODO how about make it as an action of skeleton
                 // then we don't need to define the callback of a done magic
 
-                AddOPLog(OUTPORT_CONTROLBOARD, 2, "", u8"使用魔法: 召唤骷髅"), 
+                addCBLog(CBLOG_SYS, u8"使用魔法: 召唤骷髅"), 
                 m_indepMagicList.emplace_back(std::make_shared<IndepMagic>
                 (
                     rstAction.ActionParam,
@@ -1458,18 +1323,6 @@ void ProcessRun::OnActionSpawn(uint64_t nUID, const ActionNode &rstAction)
                 return;
             }
     }
-}
-
-Widget *ProcessRun::getWidget(const std::string &widgetName)
-{
-    if(widgetName == "InventoryBoard"){
-        return &m_inventoryBoard;
-    }
-
-    if(widgetName == "QuickAccessBoard"){
-        return &m_quickAccessBoard;
-    }
-    return nullptr;
 }
 
 void ProcessRun::sendNPCEvent(uint64_t uid, const char *event, const char *value)
