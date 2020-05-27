@@ -184,7 +184,7 @@ void LayoutBoard::addPar(int loc, const std::array<int, 4> &parMargin, const tin
 
     const uint32_t fontBGColor = [elemNode, this]()
     {
-        if(const char *val = elemNode->Attribute("color")){
+        if(const char *val = elemNode->Attribute("bgcolor")){
             return colorf::String2RGBA(val);
         }
         return m_parNodeConfig.fontBGColor;

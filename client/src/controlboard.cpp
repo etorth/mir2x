@@ -1042,14 +1042,23 @@ void ControlBoard::inputLineDone()
     }
 }
 
-void ControlBoard::addLog(int, const char *log)
+void ControlBoard::addLog(int logType, const char *log)
 {
     if(!log){
         throw fflerror("null log string");
     }
 
     tinyxml2::XMLDocument xmlDoc;
-    const char *xmlString = "<par></par>";
+    const char *xmlString = [logType]() -> const char *
+    {
+        switch(logType){
+            case CBLOG_SYS: return "<par bgcolor = \"green\"></par>";
+            case CBLOG_DBG: return "<par bgcolor = \"blue\"></par>";
+            case CBLOG_ERR: return "<par bgcolor = \"red\"></par>";
+            case CBLOG_DEF:
+            default       : return "<par></par>";
+        }
+    }();
 
     if(xmlDoc.Parse(xmlString) != tinyxml2::XML_SUCCESS){
         throw fflerror("parse xml template failed: %s", xmlString);
