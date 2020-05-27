@@ -112,9 +112,11 @@ class ControlBoard: public Widget
 
     public:
         ControlBoard(
-                int,            // startY
-                int,            // boardW
-                ProcessRun *);  // 
+                int,    // boardW
+                int,    // startY
+                ProcessRun *,
+                Widget *pwidget = nullptr,
+                bool autoDelete = false);
 
     public:
         ~ControlBoard() = default;

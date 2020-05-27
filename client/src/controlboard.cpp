@@ -73,8 +73,8 @@ extern Log *g_log;
 extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_SDLDevice;
 
-ControlBoard::ControlBoard(int startY, int boardW, ProcessRun *proc)
-    : Widget(0, startY, boardW, 133, nullptr, false)
+ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwidget, bool autoDelete)
+    : Widget(0, startY, boardW, 133, pwidget, autoDelete)
     , m_processRun(proc)
     , m_left
       {

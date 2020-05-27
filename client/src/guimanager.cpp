@@ -33,12 +33,15 @@ GUIManager::GUIManager(ProcessRun *proc)
       }
 
     , m_proc(proc)
-    , m_NPCChatBoard(proc)
+    , m_NPCChatBoard
+      {
+          proc,
+      }
 
     , m_controlBoard
       {
-          g_SDLDevice->getRendererHeight() - 133,
           g_SDLDevice->getRendererWidth(),
+          g_SDLDevice->getRendererHeight() - 133,
           proc,
       }
 
@@ -70,6 +73,13 @@ void GUIManager::drawEx(int, int, int, int, int, int)
 
     const auto [w, h] = g_SDLDevice->getRendererSize();
     WidgetGroup::drawEx(0, 0, 0, 0, w, h);
+}
+
+void GUIManager::update(double fUpdateTime)
+{
+    WidgetGroup  ::update(fUpdateTime);
+    m_controlBoard.update(fUpdateTime);
+    m_NPCChatBoard.update(fUpdateTime);
 }
 
 bool GUIManager::processEvent(const SDL_Event &event, bool valid)
