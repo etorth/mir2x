@@ -23,13 +23,13 @@
 #include "colorf.hpp"
 #include "fflerror.hpp"
 
-uint32_t colorf::String2RGBA(const char *szColorString)
+uint32_t colorf::String2RGBA(const char *colorString)
 {
-    if(szColorString == nullptr){
+    if(colorString == nullptr){
         throw fflerror("invalid color string: nullptr");
     }
 
-    if(std::strlen(szColorString) == 0){
+    if(std::strlen(colorString) == 0){
         throw fflerror("invalid color string: zero-length");
     }
 
@@ -37,44 +37,44 @@ uint32_t colorf::String2RGBA(const char *szColorString)
     // check www.w3schools.com/cssref/css_colors.asp
 
     if(false
-            || !std::strcmp(szColorString, "WHITE")
-            || !std::strcmp(szColorString, "White")
-            || !std::strcmp(szColorString, "white")){
+            || !std::strcmp(colorString, "WHITE")
+            || !std::strcmp(colorString, "White")
+            || !std::strcmp(colorString, "white")){
         return colorf::WHITE;
     }
 
     if(false
-            || !std::strcmp(szColorString, "RED")
-            || !std::strcmp(szColorString, "Red")
-            || !std::strcmp(szColorString, "red")){
+            || !std::strcmp(colorString, "RED")
+            || !std::strcmp(colorString, "Red")
+            || !std::strcmp(colorString, "red")){
         return colorf::RED;
     }
 
     if(false
-            || !std::strcmp(szColorString, "GREEN")
-            || !std::strcmp(szColorString, "Green")
-            || !std::strcmp(szColorString, "green")){
+            || !std::strcmp(colorString, "GREEN")
+            || !std::strcmp(colorString, "Green")
+            || !std::strcmp(colorString, "green")){
         return colorf::GREEN;
     }
 
     if(false
-            || !std::strcmp(szColorString, "BLUE")
-            || !std::strcmp(szColorString, "Blue")
-            || !std::strcmp(szColorString, "blue")){
+            || !std::strcmp(colorString, "BLUE")
+            || !std::strcmp(colorString, "Blue")
+            || !std::strcmp(colorString, "blue")){
         return colorf::BLUE;
     }
 
     if(false
-            || !std::strcmp(szColorString, "YELLOW")
-            || !std::strcmp(szColorString, "Yellow")
-            || !std::strcmp(szColorString, "yellow")){
+            || !std::strcmp(colorString, "YELLOW")
+            || !std::strcmp(colorString, "Yellow")
+            || !std::strcmp(colorString, "yellow")){
         return colorf::YELLOW;
     }
 
     if(false
-            || !std::strcmp(szColorString, "PURPLE")
-            || !std::strcmp(szColorString, "Purple")
-            || !std::strcmp(szColorString, "purple")){
+            || !std::strcmp(colorString, "PURPLE")
+            || !std::strcmp(colorString, "Purple")
+            || !std::strcmp(colorString, "purple")){
         return colorf::PURPLE;
     }
 
@@ -83,21 +83,21 @@ uint32_t colorf::String2RGBA(const char *szColorString)
 
     uint32_t nRGB = 0X00FFFFFF;
     if(false
-            || (std::sscanf(szColorString, "0X%06X", &nRGB) == 1)
-            || (std::sscanf(szColorString, "0x%06X", &nRGB) == 1)
-            || (std::sscanf(szColorString, "0x%06x", &nRGB) == 1)
-            || (std::sscanf(szColorString, "0X%06x", &nRGB) == 1)){
+            || (std::sscanf(colorString, "0X%06X", &nRGB) == 1)
+            || (std::sscanf(colorString, "0x%06X", &nRGB) == 1)
+            || (std::sscanf(colorString, "0x%06x", &nRGB) == 1)
+            || (std::sscanf(colorString, "0X%06x", &nRGB) == 1)){
         return nRGB << 8;
     }
 
     uint32_t nRGBA = 0XFFFFFFFF;
     if(false
-            || (std::sscanf(szColorString, "0X%08X", &nRGBA) == 1)
-            || (std::sscanf(szColorString, "0x%08X", &nRGBA) == 1)
-            || (std::sscanf(szColorString, "0x%08x", &nRGBA) == 1)
-            || (std::sscanf(szColorString, "0X%08x", &nRGBA) == 1)){
+            || (std::sscanf(colorString, "0X%08X", &nRGBA) == 1)
+            || (std::sscanf(colorString, "0x%08X", &nRGBA) == 1)
+            || (std::sscanf(colorString, "0x%08x", &nRGBA) == 1)
+            || (std::sscanf(colorString, "0X%08x", &nRGBA) == 1)){
         return nRGBA;
     }
 
-    throw fflerror("color string not recognized: %s", szColorString);
+    throw fflerror("color string not recognized: %s", colorString);
 }

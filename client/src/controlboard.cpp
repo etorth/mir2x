@@ -1051,10 +1051,13 @@ void ControlBoard::addLog(int logType, const char *log)
     tinyxml2::XMLDocument xmlDoc;
     const char *xmlString = [logType]() -> const char *
     {
+        // use hex to give alpha
+        // color::String2Color has no alpha component
+
         switch(logType){
-            case CBLOG_SYS: return "<par bgcolor = \"green\"></par>";
-            case CBLOG_DBG: return "<par bgcolor = \"blue\"></par>";
-            case CBLOG_ERR: return "<par bgcolor = \"red\"></par>";
+            case CBLOG_SYS: return "<par bgcolor = \"0x00ff00ff\"></par>";
+            case CBLOG_DBG: return "<par bgcolor = \"0x0000ffff\"></par>";
+            case CBLOG_ERR: return "<par bgcolor = \"0xff0000ff\"></par>";
             case CBLOG_DEF:
             default       : return "<par></par>";
         }
