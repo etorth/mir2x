@@ -53,6 +53,7 @@ class XMLTypeset // means XMLParagraph typeset
         uint8_t  m_fontSize;
         uint8_t  m_fontStyle;
         uint32_t m_fontColor;
+        uint32_t m_fontBGColor;
 
     private:
         int m_px;
@@ -71,24 +72,26 @@ class XMLTypeset // means XMLParagraph typeset
 
     public:
         XMLTypeset(
-                int      nMaxLineWidth,
-                int      nLAlign           =  LALIGN_LEFT,
-                bool     bCanThrough       =  true,
-                uint8_t  nDefaultFont      =  0,
-                uint8_t  nDefaultFontSize  = 10,
-                uint8_t  nDefaultFontStyle =  0,
-                uint32_t nDefaultFontColor =  colorf::WHITE + 255,
-                int      nLineSpace        =  0,
-                int      nWordSpace        =  0)
-            : m_lineWidth(nMaxLineWidth)
-            , m_LAlign(nLAlign)
-            , m_canThrough(bCanThrough)
-            , m_wordSpace(nWordSpace)
-            , m_lineSpace(nLineSpace)
-            , m_font(nDefaultFont)
-            , m_fontSize(nDefaultFontSize)
-            , m_fontStyle(nDefaultFontStyle)
-            , m_fontColor(nDefaultFontColor)
+                int      maxLineWidth,
+                int      lineAlign          =  LALIGN_LEFT,
+                bool     canThrough         =  true,
+                uint8_t  defaultFont        =  0,
+                uint8_t  defaultFontSize    = 10,
+                uint8_t  defaultFontStyle   =  0,
+                uint32_t defaultFontColor   =  colorf::WHITE + 255,
+                uint32_t defaultFontBGColor =  colorf::WHITE,
+                int      lineSpace          =  0,
+                int      wordSpace          =  0)
+            : m_lineWidth(maxLineWidth)
+            , m_LAlign(lineAlign)
+            , m_canThrough(canThrough)
+            , m_wordSpace(wordSpace)
+            , m_lineSpace(lineSpace)
+            , m_font(defaultFont)
+            , m_fontSize(defaultFontSize)
+            , m_fontStyle(defaultFontStyle)
+            , m_fontColor(defaultFontColor)
+            , m_fontBGColor(defaultFontBGColor)
             , m_px(0)
             , m_py(0)
             , m_pw(0)
@@ -257,24 +260,29 @@ class XMLTypeset // means XMLParagraph typeset
         void drawEx(int, int, int, int, int, int) const;
 
     public:
-        void SetDefaultFont(uint8_t nFont)
+        void setDefaultFont(uint8_t font)
         {
-            m_font = nFont;
+            m_font = font;
         }
 
-        void SetDefaultFontSize(uint8_t nFontSize)
+        void setDefaultFontSize(uint8_t fontSize)
         {
-            m_fontSize = nFontSize;
+            m_fontSize = fontSize;
         }
 
-        void SetDefaultFontStyle(uint8_t nFontStyle)
+        void setDefaultFontStyle(uint8_t fontStyle)
         {
-            m_fontStyle = nFontStyle;
+            m_fontStyle = fontStyle;
         }
 
-        void SetDefaultFontColor(uint32_t nFontColor)
+        void setDefaultFontColor(uint32_t fontColor)
         {
-            m_fontColor = nFontColor;
+            m_fontColor = fontColor;
+        }
+
+        void setDefaultFontBGColor(uint32_t fontBGColor)
+        {
+            m_fontBGColor = fontBGColor;
         }
 
     public:
@@ -447,7 +455,7 @@ class XMLTypeset // means XMLParagraph typeset
 
         uint32_t BGColor() const
         {
-            return 0;
+            return m_fontBGColor;
         }
 
     public:

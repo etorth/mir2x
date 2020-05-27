@@ -47,7 +47,7 @@ void TextButton::drawEx(int nDstX, int nDstY, int nSrcX, int nSrcY, int nW, int 
     int nLBH = nLBH0;
 
     if(mathf::rectangleOverlapRegion(nSrcX, nSrcY, nW, nH, &nLBX, &nLBY, &nLBW, &nLBH)){
-        m_label.SetFontColor(m_color[State()][0]);
+        m_label.setFontColor(m_color[State()][0]);
         m_label.drawEx(nDstX + (nLBX - nSrcX) + OffX(), nDstY + (nLBY - nSrcY) + OffY(), nLBX - nLBX0, nLBY - nLBY0, nLBW, nLBH);
     }
 }

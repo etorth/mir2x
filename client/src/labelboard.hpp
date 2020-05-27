@@ -77,24 +77,24 @@ class LabelBoard: public Widget
         }
 
     public:
-        void SetFont(uint8_t nFont)
+        void setFont(uint8_t nFont)
         {
-            m_tpset.SetDefaultFont(nFont);
+            m_tpset.setDefaultFont(nFont);
         }
 
-        void SetFontSize(uint8_t nFontSize)
+        void setFontSize(uint8_t nFontSize)
         {
-            m_tpset.SetDefaultFontSize(nFontSize);
+            m_tpset.setDefaultFontSize(nFontSize);
         }
 
-        void SetFontStyle(uint8_t nFontStyle)
+        void setFontStyle(uint8_t nFontStyle)
         {
-            m_tpset.SetDefaultFontStyle(nFontStyle);
+            m_tpset.setDefaultFontStyle(nFontStyle);
         }
 
-        void SetFontColor(uint32_t nFontColor)
+        void setFontColor(uint32_t nFontColor)
         {
-            m_tpset.SetDefaultFontColor(nFontColor);
+            m_tpset.setDefaultFontColor(nFontColor);
         }
 
     public:

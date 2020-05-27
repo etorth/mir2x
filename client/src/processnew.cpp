@@ -292,7 +292,7 @@ void ProcessNew::CheckInput()
         m_LBCheckID.clear();
     }else if(CacheFind(false, szID)){
         m_checkID = CHECK_ERROR;
-        m_LBCheckID.SetFontColor(colorf::RED);
+        m_LBCheckID.setFontColor(colorf::RED);
         m_LBCheckID.setText("ID has been used by others");
     }else{
         if(szID.empty()){
@@ -300,11 +300,11 @@ void ProcessNew::CheckInput()
         }else{
             if(LocalCheckID(szID.c_str())){
                 m_checkID = CHECK_PENDING;
-                m_LBCheckID.SetFontColor(colorf::GREEN);
+                m_LBCheckID.setFontColor(colorf::GREEN);
                 m_LBCheckID.setText("Pending...");
             }else{
                 m_checkID = CHECK_ERROR;
-                m_LBCheckID.SetFontColor(colorf::RED);
+                m_LBCheckID.setFontColor(colorf::RED);
                 m_LBCheckID.setText("Invalid ID");
             }
         }
@@ -318,7 +318,7 @@ void ProcessNew::CheckInput()
             m_LBCheckPwd.clear();
         }else{
             m_checkPwd = CHECK_ERROR;
-            m_LBCheckPwd.SetFontColor(colorf::RED);
+            m_LBCheckPwd.setFontColor(colorf::RED);
             m_LBCheckPwd.setText("Invalid password");
         }
     }
@@ -331,7 +331,7 @@ void ProcessNew::CheckInput()
             m_LBCheckPwdConfirm.clear();
         }else{
             m_checkPwdConfirm = CHECK_ERROR;
-            m_LBCheckPwdConfirm.SetFontColor(colorf::RED);
+            m_LBCheckPwdConfirm.setFontColor(colorf::RED);
             m_LBCheckPwdConfirm.setText("Password doesn't match");
         }
     }

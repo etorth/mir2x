@@ -58,6 +58,7 @@ class LayoutBoard: public Widget
             uint8_t  fontSize;
             uint8_t  fontStyle;
             uint32_t fontColor;
+            uint32_t fontBGColor;
 
             int align;
             int lineSpace;
@@ -82,10 +83,11 @@ class LayoutBoard: public Widget
 
                 bool canThrough = false,
 
-                uint8_t  font      =  0,
-                uint8_t  fontSize  = 10,
-                uint8_t  fontStyle =  0,
-                uint32_t fontColor =  colorf::WHITE + 255,
+                uint8_t  font        =  0,
+                uint8_t  fontSize    = 10,
+                uint8_t  fontStyle   =  0,
+                uint32_t fontColor   =  colorf::WHITE + 255,
+                uint32_t fontBGColor =  colorf::WHITE,
 
                 int lineAlign = LALIGN_LEFT,
                 int lineSpace = 0,
@@ -105,6 +107,7 @@ class LayoutBoard: public Widget
                   fontSize,
                   fontStyle,
                   fontColor,
+                  fontBGColor,
                   lineAlign,
                   lineSpace,
                   wordSpace,
@@ -175,6 +178,11 @@ class LayoutBoard: public Widget
         void setFontColor(uint32_t fontColor)
         {
             m_parNodeConfig.fontColor = fontColor;
+        }
+
+        void setFontBGColor(uint32_t fontBGColor)
+        {
+            m_parNodeConfig.fontBGColor = fontBGColor;
         }
 
         void setLineWidth(int)
