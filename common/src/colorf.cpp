@@ -78,6 +78,15 @@ uint32_t colorf::String2RGBA(const char *colorString)
         return colorf::PURPLE;
     }
 
+    uint32_t nRGBA = 0XFFFFFFFF;
+    if(false
+            || (std::sscanf(colorString, "0X%08X", &nRGBA) == 1)
+            || (std::sscanf(colorString, "0x%08X", &nRGBA) == 1)
+            || (std::sscanf(colorString, "0x%08x", &nRGBA) == 1)
+            || (std::sscanf(colorString, "0X%08x", &nRGBA) == 1)){
+        return nRGBA;
+    }
+
     // try 0XRGBA mode
     // old browser only support #RRGGBB, newer support #RRGGBBAA
 
@@ -88,15 +97,6 @@ uint32_t colorf::String2RGBA(const char *colorString)
             || (std::sscanf(colorString, "0x%06x", &nRGB) == 1)
             || (std::sscanf(colorString, "0X%06x", &nRGB) == 1)){
         return nRGB << 8;
-    }
-
-    uint32_t nRGBA = 0XFFFFFFFF;
-    if(false
-            || (std::sscanf(colorString, "0X%08X", &nRGBA) == 1)
-            || (std::sscanf(colorString, "0x%08X", &nRGBA) == 1)
-            || (std::sscanf(colorString, "0x%08x", &nRGBA) == 1)
-            || (std::sscanf(colorString, "0X%08x", &nRGBA) == 1)){
-        return nRGBA;
     }
 
     throw fflerror("color string not recognized: %s", colorString);
