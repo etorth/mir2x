@@ -225,7 +225,7 @@ class WidgetGroup: public Widget
             }
 
             if(focusedNode != m_childList.end()){
-                m_childList.push_back(*focusedNode);
+                m_childList.push_front(*focusedNode);
                 m_childList.erase(focusedNode);
             }
             return took;
@@ -234,8 +234,8 @@ class WidgetGroup: public Widget
     public:
         void drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int srcH) override
         {
-            for(auto &node: m_childList){
-                if(!node.child->show()){
+            for(auto p = m_childList.rbegin(); p != m_childList.rend(); ++p){
+                if(!p->child->show()){
                     continue;
                 }
 
@@ -254,10 +254,10 @@ class WidgetGroup: public Widget
                             w(),
                             h(),
 
-                            node.child->dx(), node.child->dy(), node.child->w(), node.child->h())){
+                            p->child->dx(), p->child->dy(), p->child->w(), p->child->h())){
                     continue;
                 }
-                node.child->drawEx(dstXCrop, dstYCrop, srcXCrop - dx(), srcYCrop - dy(), srcWCrop, srcHCrop);
+                p->child->drawEx(dstXCrop, dstYCrop, srcXCrop - dx(), srcYCrop - dy(), srcWCrop, srcHCrop);
             }
         }
 };
