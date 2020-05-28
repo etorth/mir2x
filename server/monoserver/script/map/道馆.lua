@@ -53,6 +53,9 @@ if g_Inited == nil then
     addNPC(3, 397, 133, 0, false)
     addNPC(3, 388, 122, 0, false)
 
+    -- add 六面神石
+
+    addNPC(56, 416, 179, 0, false)
     g_Inited = true
 end
 
