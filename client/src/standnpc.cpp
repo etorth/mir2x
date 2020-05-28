@@ -45,6 +45,10 @@ int StandNPC::motionFrameCount(int motion, int direction) const
             {
                 return -1;
             }
+        case 56: // 六面神石
+            {
+                return 12;
+            }
         default:
             {
                 switch(motion){
