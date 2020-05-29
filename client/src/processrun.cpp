@@ -960,6 +960,39 @@ void ProcessRun::RegisterLuaExport(ClientLuaModule *luaModulePtr)
     luaModulePtr->GetLuaState().script(str_printf("CBLOG_SYS = %d", CBLOG_SYS));
     luaModulePtr->GetLuaState().script(str_printf("CBLOG_DBG = %d", CBLOG_DBG));
     luaModulePtr->GetLuaState().script(str_printf("CBLOG_ERR = %d", CBLOG_ERR));
+    luaModulePtr->GetLuaState().set_function("addCBLog", [this](sol::object logType, sol::object logInfo)
+    {
+        if(logType.is<int>() && logInfo.is<std::string>()){
+            switch(logType.as<int>()){
+                case CBLOG_DEF:
+                case CBLOG_SYS:
+                case CBLOG_DBG:
+                case CBLOG_ERR:
+                    {
+                        addCBLog(logType.as<int>(), logInfo.as<std::string>().c_str());
+                        return;
+                    }
+                default:
+                    {
+                        addCBLog(CBLOG_ERR, "Invalid argument: logType requires [CBLOG_DEF, CBLOG_SYS, CBLOG_DBG, CBLOG_ERR]");
+                        return;
+                    }
+            }
+        }
+
+        if(logType.is<int>()){
+            addCBLog(CBLOG_ERR, str_printf("Invalid argument: addCBLog(%d, \"?\")", logType.as<int>()).c_str());
+            return;
+        }
+
+        if(logInfo.is<std::string>()){
+            addCBLog(CBLOG_ERR, str_printf("Invalid argument: addCBLog(?, \"%s\")", logInfo.as<std::string>().c_str()).c_str());
+            return;
+        }
+
+        addCBLog(CBLOG_ERR, "Invalid argument: addCBLog(?, \"?\")");
+        return;
+    });
 
     // register command playerList
     // return a table (userData) to lua for ipairs() check
@@ -980,7 +1013,6 @@ void ProcessRun::RegisterLuaExport(ClientLuaModule *luaModulePtr)
             addCBLog(CBLOG_SYS, "moveTo(%d, %d)", nX, nY);
         }
     });
-
 
     // register command ``listPlayerInfo"
     // this command call to get a player info table and print to out port
