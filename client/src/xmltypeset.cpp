@@ -913,62 +913,72 @@ void XMLTypeset::insertUTF8String(int x, int y, const char *text)
     buildTypeset(0, 0);
 }
 
-void XMLTypeset::drawEx(int nDstX, int nDstY, int nSrcX, int nSrcY, int nSrcW, int nSrcH) const
+void XMLTypeset::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int srcH) const
 {
-    if(!mathf::rectangleOverlap<int>(nSrcX, nSrcY, nSrcW, nSrcH, px(), py(), pw(), ph())){
+    if(!mathf::rectangleOverlap<int>(srcX, srcY, srcW, srcH, px(), py(), pw(), ph())){
         return;
     }
 
-    const int nDstDX = nDstX - nSrcX;
-    const int nDstDY = nDstY - nSrcY;
+    const int dstDX = dstX - srcX;
+    const int dstDY = dstY - srcY;
 
-    uint32_t nColor   = 0;
-    uint32_t nBGColor = 0;
+    uint32_t fgColor = 0;
+    uint32_t bgColor = 0;
 
-    int nLastLeaf = -1;
-    for(int nLine = 0; nLine < lineCount(); ++nLine){
-        for(int nToken = 0; nToken < lineTokenCount(nLine); ++nToken){
-            auto pToken = getToken(nToken, nLine);
+    int lastLeaf = -1;
+    for(int line = 0; line < lineCount(); ++line){
+        for(int token = 0; token < lineTokenCount(line); ++token){
+            const auto tokenPtr = getToken(token, line);
+            const auto &leaf = m_paragraph.leafRef(tokenPtr->Leaf);
 
-            int nX = pToken->Box.State.X;
-            int nY = pToken->Box.State.Y;
-            int nW = pToken->Box.Info.W;
-            int nH = pToken->Box.Info.H;
+            if(lastLeaf != tokenPtr->Leaf){
+                fgColor  = leaf.  Color().value_or(  Color());
+                bgColor  = leaf.BGColor().value_or(BGColor());
+                lastLeaf = tokenPtr->Leaf;
+            }
 
-            if(!mathf::rectangleOverlapRegion(nSrcX, nSrcY, nSrcW, nSrcH, &nX, &nY, &nW, &nH)){
+            // draw bgColor
+            // background can be bigger than tokenbox by W1/W2
+
+            if(colorf::A(bgColor)){
+                int bgBoxX = tokenPtr->Box.State.X - tokenPtr->Box.State.W1;
+                int bgBoxY = tokenPtr->Box.State.Y;
+                int bgBoxW = tokenPtr->Box.Info.W + tokenPtr->Box.State.W1 + tokenPtr->Box.State.W2;
+                int bgBoxH = tokenPtr->Box.Info.H;
+
+                if(mathf::rectangleOverlapRegion(srcX, srcY, srcW, srcH, &bgBoxX, &bgBoxY, &bgBoxW, &bgBoxH)){
+                    g_SDLDevice->fillRectangle(bgColor, bgBoxX + dstDX, bgBoxY + dstDY, bgBoxW, bgBoxH);
+                }
+            }
+
+            int boxX = tokenPtr->Box.State.X;
+            int boxY = tokenPtr->Box.State.Y;
+            int boxW = tokenPtr->Box.Info.W;
+            int boxH = tokenPtr->Box.Info.H;
+
+            if(!mathf::rectangleOverlapRegion(srcX, srcY, srcW, srcH, &boxX, &boxY, &boxW, &boxH)){
                 continue;
             }
 
-            const int nDX = nX - pToken->Box.State.X;
-            const int nDY = nY - pToken->Box.State.Y;
+            const int drawDstX = boxX + dstDX;
+            const int drawDstY = boxY + dstDY;
 
-            auto &stLeaf = m_paragraph.leafRef(pToken->Leaf);
-            if(nLastLeaf != pToken->Leaf){
-                nColor    = stLeaf.  Color().value_or(  Color());
-                nBGColor  = stLeaf.BGColor().value_or(BGColor());
-                nLastLeaf = pToken->Leaf;
-            }
+            const int dx = boxX - tokenPtr->Box.State.X;
+            const int dy = boxY - tokenPtr->Box.State.Y;
 
-            const int drawDstX = nX + nDstDX;
-            const int drawDstY = nY + nDstDY;
-
-            if(colorf::A(nBGColor)){
-                g_SDLDevice->fillRectangle(nBGColor, drawDstX, drawDstY, nW, nH);
-            }
-
-            switch(stLeaf.Type()){
+            switch(leaf.Type()){
                 case LEAF_UTF8GROUP:
                     {
-                        if(auto texPtr = g_fontexDB->Retrieve(pToken->UTF8Char.U64Key); texPtr){
-                            SDL_SetTextureColorMod(texPtr, colorf::R(nColor), colorf::G(nColor), colorf::B(nColor));
-                            g_SDLDevice->DrawTexture(texPtr, drawDstX, drawDstY, nDX, nDY, nW, nH);
+                        if(auto texPtr = g_fontexDB->Retrieve(tokenPtr->UTF8Char.U64Key)){
+                            SDL_SetTextureColorMod(texPtr, colorf::R(fgColor), colorf::G(fgColor), colorf::B(fgColor));
+                            g_SDLDevice->DrawTexture(texPtr, drawDstX, drawDstY, dx, dy, boxW, boxH);
                         }
                         else{
-                            g_SDLDevice->DrawRectangle(colorf::CompColor(nBGColor), drawDstX, drawDstY, nW, nH);
+                            g_SDLDevice->DrawRectangle(colorf::CompColor(bgColor), drawDstX, drawDstY, boxW, boxH);
                         }
 
                         if(g_clientArgParser->drawTokenFrame){
-                            g_SDLDevice->DrawRectangle(colorf::PURPLE + 255, drawDstX, drawDstY, nW, nH);
+                            g_SDLDevice->DrawRectangle(colorf::PURPLE + 255, drawDstX, drawDstY, boxW, boxH);
                         }
                         break;
                     }
@@ -978,22 +988,22 @@ void XMLTypeset::drawEx(int nDstX, int nDstY, int nSrcX, int nSrcY, int nSrcW, i
                     }
                 case LEAF_EMOJI:
                     {
+                        const auto emojiKey = [tokenPtr]() -> uint32_t
+                        {
+                            if(tokenPtr->Emoji.FrameCount && tokenPtr->Emoji.FPS){
+                                return (tokenPtr->Emoji.U32Key & 0XFFFFFF00) + tokenPtr->Emoji.Frame % tokenPtr->Emoji.FrameCount;
+                            }
+                            return tokenPtr->Emoji.U32Key & 0XFFFFFF00;
+                        }();
+
                         int xOnTex = 0;
                         int yOnTex = 0;
 
-                        const auto emojiKey = [pToken]() -> uint32_t
-                        {
-                            if(pToken->Emoji.FrameCount && pToken->Emoji.FPS){
-                                return (pToken->Emoji.U32Key & 0XFFFFFF00) + pToken->Emoji.Frame % pToken->Emoji.FrameCount;
-                            }
-                            return pToken->Emoji.U32Key & 0XFFFFFF00;
-                        }();
-
-                        if(auto ptex = g_emoticonDB->Retrieve(emojiKey, &xOnTex, &yOnTex, 0, 0, 0, 0, 0)){
-                            g_SDLDevice->DrawTexture(ptex, drawDstX, drawDstY, xOnTex + nDX, yOnTex + nDY, nW, nH);
+                        if(auto texPtr = g_emoticonDB->Retrieve(emojiKey, &xOnTex, &yOnTex, 0, 0, 0, 0, 0)){
+                            g_SDLDevice->DrawTexture(texPtr, drawDstX, drawDstY, xOnTex + dx, yOnTex + dy, boxW, boxH);
                         }
                         else{
-                            g_SDLDevice->DrawRectangle(colorf::CompColor(nBGColor), drawDstX, drawDstY, nW, nH);
+                            g_SDLDevice->DrawRectangle(colorf::CompColor(bgColor), drawDstX, drawDstY, boxW, boxH);
                         }
                         break;
                     }
@@ -1003,9 +1013,7 @@ void XMLTypeset::drawEx(int nDstX, int nDstY, int nSrcX, int nSrcY, int nSrcW, i
     }
 
     if(g_clientArgParser->drawBoardFrame){
-        SDLDevice::EnableDrawColor enableDrawColor(colorf::YELLOW + 255);
-        SDLDevice::EnableDrawBlendMode enableDrawBlendMode(SDL_BLENDMODE_BLEND);
-        g_SDLDevice->DrawRectangle(nDstX, nDstY, nSrcW, nSrcH);
+        g_SDLDevice->DrawRectangle(colorf::YELLOW + 255, dstX, dstY, srcW, srcH);
     }
 }
 
