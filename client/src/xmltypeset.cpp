@@ -1256,7 +1256,7 @@ bool XMLTypeset::blankToken(int x, int y) const
 
     const auto fnCheckBlank = [](uint64_t u64Key)
     {
-        return u64Key == ' ';
+        return (u64Key & 0X00000000FFFFFFFFULL) == ' ';
     };
 
     return (leaf.Type() == LEAF_UTF8GROUP) && fnCheckBlank(tokenPtr->UTF8Char.U64Key);
