@@ -78,16 +78,16 @@ LuaModule::LuaModule()
         }
 
         if(logType.is<int>()){
-            addLog(1, str_printf("Invalid addLog(%d, \"?\")", logType.as<int>()).c_str());
+            addLog(1, str_printf("Invalid argument: addLog(%d, \"?\")", logType.as<int>()).c_str());
             return;
         }
 
         if(logInfo.is<std::string>()){
-            addLog(1, str_printf("Invalid addLog(?, \"%s\")", logInfo.as<std::string>().c_str()).c_str());
+            addLog(1, str_printf("Invalid argument: addLog(?, \"%s\")", logInfo.as<std::string>().c_str()).c_str());
             return;
         }
 
-        addLog(1, "Invalid addLog(?, \"?\")");
+        addLog(1, "Invalid argument: addLog(?, \"?\")");
         return;
     });
 
@@ -103,7 +103,7 @@ LuaModule::LuaModule()
             R"###(     end                                                              )###""\n"
             R"###(                                                                      )###""\n"
             R"###(     -- else we need to give warning                                  )###""\n"
-            R"###(     addLog(1, 'addLog(logType: int, logInfo: string)')               )###""\n"
+            R"###(     addLog(1, 'addExtLog(logType: int, logInfo: string)')            )###""\n"
             R"###( end                                                                  )###""\n");
 
     m_luaState.set_function("mapID2Name", [](int nMapID) -> std::string
