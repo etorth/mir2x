@@ -319,6 +319,9 @@ class ProcessRun: public Process
 
     private:
         void drawFPS();
+        void drawMouseLocation();
+
+    private:
         void drawTile(int, int, int, int);
         void drawGroundItem(int, int, int, int);
         void drawRotateStar(int, int, int, int);

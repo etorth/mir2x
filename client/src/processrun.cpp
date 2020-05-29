@@ -385,19 +385,7 @@ void ProcessRun::draw()
     }
 
     if(g_clientArgParser->drawMouseLocation){
-        SDLDevice::EnableDrawColor enableColor(colorf::RGBA(0, 0, 0, 230));
-        SDLDevice::EnableDrawBlendMode enableBlendMode(SDL_BLENDMODE_BLEND);
-        g_SDLDevice->fillRectangle(0, 0, 200, 60);
-
-        int mouseX = -1;
-        int mouseY = -1;
-        SDL_GetMouseState(&mouseX, &mouseY);
-
-        m_mousePixlLoc.setText("Pix_Loc: %d, %d", mouseX, mouseY);
-        m_mouseGridLoc.setText("Til_Loc: %d, %d", (mouseX + m_viewX) / SYS_MAPGRIDXP, (mouseY + m_viewY) / SYS_MAPGRIDYP);
-
-        m_mouseGridLoc.drawEx(10, 10, 0, 0, m_mouseGridLoc.w(), m_mouseGridLoc.h());
-        m_mousePixlLoc.drawEx(10, 30, 0, 0, m_mousePixlLoc.w(), m_mousePixlLoc.h());
+        drawMouseLocation();
     }
 
     if(g_clientArgParser->drawFPS){
@@ -1528,6 +1516,24 @@ std::tuple<int, int> ProcessRun::getACNum(const std::string &name) const
     else{
         throw fflerror("invalid argument: %s", name.c_str());
     }
+}
+
+void ProcessRun::drawMouseLocation()
+{
+    g_SDLDevice->fillRectangle(colorf::RGBA(0, 0, 0, 230), 0, 0, 200, 60);
+
+    int mouseX = -1;
+    int mouseY = -1;
+    SDL_GetMouseState(&mouseX, &mouseY);
+
+    const auto locPixel = str_printf("Pixel: %d, %d", mouseX, mouseY);
+    const auto locGrid  = str_printf("Grid: %d, %d", (mouseX + m_viewX) / SYS_MAPGRIDXP, (mouseY + m_viewY) / SYS_MAPGRIDYP);
+
+    LabelBoard locPixelBoard(10, 10, locPixel.c_str(), 1, 12, 0, colorf::RGBA(0XFF, 0XFF, 0X00, 0X00));
+    LabelBoard locGridBoard (10, 30, locGrid .c_str(), 1, 12, 0, colorf::RGBA(0XFF, 0XFF, 0X00, 0X00));
+
+    locPixelBoard.draw();
+    locGridBoard .draw();
 }
 
 void ProcessRun::drawFPS()
