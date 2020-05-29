@@ -185,9 +185,7 @@ class LayoutBoard: public Widget
             m_parNodeConfig.fontBGColor = fontBGColor;
         }
 
-        void setLineWidth(int)
-        {
-        }
+        void setLineWidth(int);
 
     public:
         void drawEx(int, int, int, int, int, int) override;

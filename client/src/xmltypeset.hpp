@@ -36,7 +36,7 @@ class XMLTypeset // means XMLParagraph typeset
         };
 
     private:
-        const int m_lineWidth;
+        int m_lineWidth;
 
     private:
         const int m_LAlign;

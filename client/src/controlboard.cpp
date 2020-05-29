@@ -1140,10 +1140,12 @@ int ControlBoard::logBoardStartY() const
 
 void ControlBoard::resizeWidth(int boardW)
 {
+    // const auto prevWidth = w();
     m_right.moveBy(boardW - w(), 0);
     m_w = boardW;
 
     setButtonLoc();
+    // m_logBoard.setLineWidth(m_logBoard.w() + (boardW - prevWidth));
 }
 
 void ControlBoard::drawInputGreyBackground()

@@ -1261,3 +1261,9 @@ bool XMLTypeset::blankToken(int x, int y) const
 
     return (leaf.Type() == LEAF_UTF8GROUP) && fnCheckBlank(tokenPtr->UTF8Char.U64Key);
 }
+
+void XMLTypeset::setLineWidth(int lineWidth)
+{
+    m_lineWidth = lineWidth;
+    buildTypeset(0, 0);
+}

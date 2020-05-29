@@ -298,6 +298,26 @@ void LayoutBoard::setupSize()
     }();
 }
 
+void LayoutBoard::setLineWidth(int lineWidth)
+{
+    m_parNodeConfig.lineWidth = lineWidth;
+    for(auto &node: m_parNodeList){
+        node.tpset->setLineWidth(lineWidth);
+    }
+
+    for(auto p = m_parNodeList.begin(); p != m_parNodeList.end(); ++p){
+        if(p == m_parNodeList.begin()){
+            p->startY = p->margin[0];
+        }
+        else{
+            const auto prevNode = std::prev(p);
+            p->startY = prevNode->startY + prevNode->margin[0] + prevNode->margin[1] + prevNode->tpset->ph();
+        }
+    }
+
+    setupSize();
+}
+
 bool LayoutBoard::processEvent(const SDL_Event &event, bool valid)
 {
     if(m_parNodeList.empty()){
