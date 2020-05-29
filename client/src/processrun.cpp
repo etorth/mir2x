@@ -1584,7 +1584,7 @@ void ProcessRun::drawFPS()
     const int winWidth = g_SDLDevice->getRendererWidth();
     fpsBoard.moveTo(winWidth - fpsBoard.w(), 0);
 
-    g_SDLDevice->fillRectangle(colorf::GREY + 255, fpsBoard.x() - 1, fpsBoard.y(), fpsBoard.w() + 1, fpsBoard.h());
-    g_SDLDevice->DrawRectangle(colorf::BLUE + 255, fpsBoard.x() - 1, fpsBoard.y(), fpsBoard.w() + 1, fpsBoard.h());
+    g_SDLDevice->fillRectangle(colorf::BLACK + 200, fpsBoard.x() - 1, fpsBoard.y(), fpsBoard.w() + 1, fpsBoard.h());
+    g_SDLDevice->DrawRectangle(colorf::BLUE  + 255, fpsBoard.x() - 1, fpsBoard.y(), fpsBoard.w() + 1, fpsBoard.h());
     fpsBoard.draw();
 }
