@@ -465,4 +465,7 @@ class XMLTypeset // means XMLParagraph typeset
         }
 
         void setLineWidth(int);
+
+    public:
+        bool blankToken(int, int) const;
 };

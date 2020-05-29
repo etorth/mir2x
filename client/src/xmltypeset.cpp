@@ -209,7 +209,9 @@ void XMLTypeset::LineJustifyPadding(int nLine)
             int nDoneDWidth = nCurrDWidth;
             for(int nIndex = 0; nIndex < lineTokenCount(nLine); ++nIndex){
                 auto pToken = getToken(nIndex, nLine);
-                if(std::find(leafTypeList.begin(), leafTypeList.end(), m_paragraph.leafRef(pToken->Leaf).Type()) == leafTypeList.end()){
+                const auto leafType = m_paragraph.leafRef(pToken->Leaf).Type();
+
+                if(std::find(leafTypeList.begin(), leafTypeList.end(), leafType) == leafTypeList.end()){
                     continue;
                 }
 
@@ -1219,4 +1221,22 @@ std::tuple<int, int> XMLTypeset::locToken(int xOffPixel, int yOffPixel, bool wit
         }
     }
     return {-1, -1};
+}
+
+bool XMLTypeset::blankToken(int x, int y) const
+{
+    if(!tokenLocValid(x, y)){
+        throw fflerror("invalid token location: x = %d, y = %d", x, y);
+    }
+
+    const auto tokenPtr = getToken(x, y);
+    const auto &leaf = m_paragraph.leafRef(tokenPtr->Leaf);
+
+    const auto fnCheckSpace = [](uint64_t u64Key)
+    {
+        // TODO utf8cpp seems doesn't support some isspace
+        //
+        return u64Key == ' ';
+    };
+    return (leaf.Type() == LEAF_UTF8GROUP) && fnCheckSpace(tokenPtr->UTF8Char.U64Key);
 }
