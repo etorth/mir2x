@@ -122,4 +122,21 @@ LuaModule::LuaModule()
     {
         std::exit(nExitCode);
     });
+
+    m_luaState.set_function("randString", [](int length) -> std::string
+    {
+        // generate random string
+        // for debug purpose of utf8 layout board
+
+        constexpr char alphanum[] =
+            "0123456789"
+            "abcdefghijklmnopqrstuvwxyz"
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+        std::string result;
+        for(int i = 0; i < length; ++i){
+            result.push_back(alphanum[std::rand() % (sizeof(alphanum) - 1)]);
+        }
+        return result;
+    });
 }
