@@ -767,12 +767,20 @@ bool ProcessRun::luaCommand(const char *luaCmdString)
         return true;
     }
 
+    const auto fnReplaceTabChar = [](std::string line) -> std::string
+    {
+        for(auto pos = line.find('\t'); pos != std::string::npos; pos = line.find('\t')){
+            line.replace(pos, 1, "    ");
+        }
+        return line;
+    };
+
     const sol::error err = callResult;
     std::stringstream errStream(err.what());
 
     std::string errLine;
     while(std::getline(errStream, errLine, '\n')){
-        addCBLog(CBLOG_ERR, errLine.c_str());
+        addCBLog(CBLOG_ERR, fnReplaceTabChar(errLine).c_str());
     }
     return true;
 }
