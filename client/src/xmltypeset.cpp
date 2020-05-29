@@ -947,7 +947,6 @@ void XMLTypeset::drawEx(int nDstX, int nDstY, int nSrcX, int nSrcY, int nSrcW, i
             }
 
             if(colorf::A(nBGColor)){
-                SDLDevice::EnableDrawBlendMode stEnableDrawBlendMode(SDL_BLENDMODE_BLEND);
                 g_SDLDevice->fillRectangle(nBGColor, nX + nDstX, nY + nDstY, nW, nH);
             }
 

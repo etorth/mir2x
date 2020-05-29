@@ -558,7 +558,9 @@ void SDLDevice::fillRectangle(uint32_t nRGBA, int nX, int nY, int nW, int nH)
 {
     SDLDevice::EnableDrawColor stEnableColor(nRGBA);
     SDLDevice::EnableDrawBlendMode enableBlendMode(SDL_BLENDMODE_BLEND);
-    fillRectangle(nX, nY, nW, nH);
+    if(colorf::A(nRGBA)){
+        fillRectangle(nX, nY, nW, nH);
+    }
 }
 
 void SDLDevice::DrawRectangle(int nX, int nY, int nW, int nH)
