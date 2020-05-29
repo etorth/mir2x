@@ -202,26 +202,20 @@ void XMLTypeset::LineJustifyPadding(int nLine)
         throw fflerror("line raw width exceeds the fixed max line width: %d", MaxLineWidth());
     }
 
-    const auto fnLeafPadding = [this, nLine](const std::vector<int> &leafTypeList, double fPaddingRatio) -> int
+    const auto fnLeafPadding = [this, y = nLine](const auto &fnCheckToken) -> int
     {
-        while(LineFullWidth(nLine) < MaxLineWidth()){
-            int nCurrDWidth = MaxLineWidth() - LineFullWidth(nLine);
+        while(LineFullWidth(y) < MaxLineWidth()){
+            int nCurrDWidth = MaxLineWidth() - LineFullWidth(y);
             int nDoneDWidth = nCurrDWidth;
-            for(int nIndex = 0; nIndex < lineTokenCount(nLine); ++nIndex){
-                auto pToken = getToken(nIndex, nLine);
-                const auto leafType = m_paragraph.leafRef(pToken->Leaf).Type();
-
-                if(std::find(leafTypeList.begin(), leafTypeList.end(), leafType) == leafTypeList.end()){
+            for(int x = 0; x < lineTokenCount(y); ++x){
+                if(!fnCheckToken(x, y)){
                     continue;
                 }
 
-                if((fPaddingRatio >= 0.0) && (pToken->Box.State.W1 + pToken->Box.State.W2) >= (int)(std::lround(pToken->Box.Info.W * fPaddingRatio))){
-                    continue;
-                }
-
-                if(pToken->Box.State.W1 <= pToken->Box.State.W2){
-                    if(nIndex != 0){
-                        pToken->Box.State.W1++;
+                auto tokenPtr = getToken(x, y);
+                if(tokenPtr->Box.State.W1 <= tokenPtr->Box.State.W2){
+                    if(x != 0){
+                        tokenPtr->Box.State.W1++;
                         nDoneDWidth--;
 
                         if(nDoneDWidth == 0){
@@ -231,8 +225,8 @@ void XMLTypeset::LineJustifyPadding(int nLine)
                 }
 
                 else{
-                    if(nIndex != lineTokenCount(nLine) - 1){
-                        pToken->Box.State.W2++;
+                    if(x != lineTokenCount(y) - 1){
+                        tokenPtr->Box.State.W2++;
                         nDoneDWidth--;
 
                         if(nDoneDWidth == 0){
@@ -244,18 +238,46 @@ void XMLTypeset::LineJustifyPadding(int nLine)
 
             // can't help
             // we go through the whole line but no width changed
+
             if(nCurrDWidth == nDoneDWidth){
-                return LineFullWidth(nLine);
+                return LineFullWidth(y);
             }
         }
         return MaxLineWidth();
     };
 
-    if(fnLeafPadding({LEAF_IMAGE, LEAF_EMOJI}, 0.2) == MaxLineWidth()){
+    // first round
+    // padding image and emoji only, limited to 10%
+
+    if(fnLeafPadding([this](int x, int y) -> bool
+    {
+        const auto tokenPtr = getToken(x, y);
+        switch(m_paragraph.leafRef(tokenPtr->Leaf).Type()){
+            case LEAF_IMAGE:
+            case LEAF_EMOJI: return tokenPtr->Box.State.W1 + tokenPtr->Box.State.W2 < tokenPtr->Box.Info.W / 5;
+            default        : return false;
+        }
+    }) == MaxLineWidth()){
         return;
     }
 
-    if(fnLeafPadding({LEAF_UTF8GROUP}, -1.0) == MaxLineWidth()){
+    // second round
+    // padding utf8 text but only do blank chars
+
+    if(fnLeafPadding([this](int x, int y) -> bool
+    {
+        return blankToken(x, y);
+    }) == MaxLineWidth()){
+        return;
+    }
+
+    // last round
+    // padding ut8 chars
+
+    if(fnLeafPadding([this](int x, int y) -> bool
+    {
+        return m_paragraph.leafRef(getToken(x, y)->Leaf).Type() == LEAF_UTF8GROUP;
+    }) == MaxLineWidth()){
         return;
     }
 
@@ -1232,11 +1254,10 @@ bool XMLTypeset::blankToken(int x, int y) const
     const auto tokenPtr = getToken(x, y);
     const auto &leaf = m_paragraph.leafRef(tokenPtr->Leaf);
 
-    const auto fnCheckSpace = [](uint64_t u64Key)
+    const auto fnCheckBlank = [](uint64_t u64Key)
     {
-        // TODO utf8cpp seems doesn't support some isspace
-        //
         return u64Key == ' ';
     };
-    return (leaf.Type() == LEAF_UTF8GROUP) && fnCheckSpace(tokenPtr->UTF8Char.U64Key);
+
+    return (leaf.Type() == LEAF_UTF8GROUP) && fnCheckBlank(tokenPtr->UTF8Char.U64Key);
 }
