@@ -202,35 +202,39 @@ void XMLTypeset::LineJustifyPadding(int nLine)
         throw fflerror("line raw width exceeds the fixed max line width: %d", MaxLineWidth());
     }
 
-    auto fnLeafTypePadding = [this, nLine](int nLeafTypeMask, double fPaddingRatio) -> int
+    const auto fnLeafPadding = [this, nLine](const std::vector<int> &leafTypeList, double fPaddingRatio) -> int
     {
         while(LineFullWidth(nLine) < MaxLineWidth()){
             int nCurrDWidth = MaxLineWidth() - LineFullWidth(nLine);
             int nDoneDWidth = nCurrDWidth;
             for(int nIndex = 0; nIndex < lineTokenCount(nLine); ++nIndex){
                 auto pToken = getToken(nIndex, nLine);
-                if(m_paragraph.leafRef(pToken->Leaf).Type() & nLeafTypeMask){
-                    if((fPaddingRatio >= 0.0) && (pToken->Box.State.W1 + pToken->Box.State.W2) >= (int)(std::lround(pToken->Box.Info.W * fPaddingRatio))){
-                        continue;
-                    }
+                if(std::find(leafTypeList.begin(), leafTypeList.end(), m_paragraph.leafRef(pToken->Leaf).Type()) == leafTypeList.end()){
+                    continue;
+                }
 
-                    if(pToken->Box.State.W1 <= pToken->Box.State.W2){
-                        if(nIndex != 0){
-                            pToken->Box.State.W1++;
-                            nDoneDWidth--;
+                if((fPaddingRatio >= 0.0) && (pToken->Box.State.W1 + pToken->Box.State.W2) >= (int)(std::lround(pToken->Box.Info.W * fPaddingRatio))){
+                    continue;
+                }
 
-                            if(nDoneDWidth == 0){
-                                return MaxLineWidth();
-                            }
+                if(pToken->Box.State.W1 <= pToken->Box.State.W2){
+                    if(nIndex != 0){
+                        pToken->Box.State.W1++;
+                        nDoneDWidth--;
+
+                        if(nDoneDWidth == 0){
+                            return MaxLineWidth();
                         }
-                    }else{
-                        if(nIndex != lineTokenCount(nLine) - 1){
-                            pToken->Box.State.W2++;
-                            nDoneDWidth--;
+                    }
+                }
 
-                            if(nDoneDWidth == 0){
-                                return MaxLineWidth();
-                            }
+                else{
+                    if(nIndex != lineTokenCount(nLine) - 1){
+                        pToken->Box.State.W2++;
+                        nDoneDWidth--;
+
+                        if(nDoneDWidth == 0){
+                            return MaxLineWidth();
                         }
                     }
                 }
@@ -242,15 +246,14 @@ void XMLTypeset::LineJustifyPadding(int nLine)
                 return LineFullWidth(nLine);
             }
         }
-
         return MaxLineWidth();
     };
 
-    if(fnLeafTypePadding(LEAF_IMAGE | LEAF_EMOJI, 0.2)){
+    if(fnLeafPadding({LEAF_IMAGE, LEAF_EMOJI}, 0.2) == MaxLineWidth()){
         return;
     }
 
-    if(fnLeafTypePadding(LEAF_UTF8GROUP, -1.0) == MaxLineWidth()){
+    if(fnLeafPadding({LEAF_UTF8GROUP}, -1.0) == MaxLineWidth()){
         return;
     }
 
@@ -273,7 +276,7 @@ void XMLTypeset::resetOneLine(int nLine, bool bCREnd)
     switch(LAlign()){
         case LALIGN_JUSTIFY:
             {
-                if(bCREnd){
+                if(!bCREnd){
                     LineJustifyPadding(nLine);
                 }
                 break;
