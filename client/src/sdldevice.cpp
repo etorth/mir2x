@@ -258,7 +258,8 @@ void SDLDevice::PushColor(uint8_t nR, uint8_t nG, uint8_t nB, uint8_t nA)
     if(m_colorStack.empty() || nRGBA != m_colorStack.back().Color){
         SetColor(nR, nG, nB, nA);
         m_colorStack.emplace_back(nRGBA, 1);
-    }else{
+    }
+    else{
         ++m_colorStack.back().Repeat;
     }
 }
@@ -556,9 +557,9 @@ void SDLDevice::fillRectangle(int nX, int nY, int nW, int nH)
 
 void SDLDevice::fillRectangle(uint32_t nRGBA, int nX, int nY, int nW, int nH)
 {
-    SDLDevice::EnableDrawColor stEnableColor(nRGBA);
-    SDLDevice::EnableDrawBlendMode enableBlendMode(SDL_BLENDMODE_BLEND);
     if(colorf::A(nRGBA)){
+        SDLDevice::EnableDrawColor stEnableColor(nRGBA);
+        SDLDevice::EnableDrawBlendMode enableBlendMode(SDL_BLENDMODE_BLEND);
         fillRectangle(nX, nY, nW, nH);
     }
 }
@@ -577,9 +578,11 @@ void SDLDevice::DrawRectangle(int nX, int nY, int nW, int nH)
 
 void SDLDevice::DrawRectangle(uint32_t color, int nX, int nY, int nW, int nH)
 {
-    SDLDevice::EnableDrawColor enableColor(color);
-    SDLDevice::EnableDrawBlendMode enableBlendMode(SDL_BLENDMODE_BLEND);
-    DrawRectangle(nX, nY, nW, nH);
+    if(colorf::A(color)){
+        SDLDevice::EnableDrawColor enableColor(color);
+        SDLDevice::EnableDrawBlendMode enableBlendMode(SDL_BLENDMODE_BLEND);
+        DrawRectangle(nX, nY, nW, nH);
+    }
 }
 
 void SDLDevice::drawWidthRectangle(size_t frameLineWidth, int nX, int nY, int nW, int nH)

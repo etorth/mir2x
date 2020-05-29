@@ -916,8 +916,8 @@ void XMLTypeset::drawEx(int nDstX, int nDstY, int nSrcX, int nSrcY, int nSrcW, i
         return;
     }
 
-    int nDstDX = nDstX - nSrcX;
-    int nDstDY = nDstY - nSrcY;
+    const int nDstDX = nDstX - nSrcX;
+    const int nDstDY = nDstY - nSrcY;
 
     uint32_t nColor   = 0;
     uint32_t nBGColor = 0;
@@ -946,16 +946,16 @@ void XMLTypeset::drawEx(int nDstX, int nDstY, int nSrcX, int nSrcY, int nSrcW, i
                 nLastLeaf = pToken->Leaf;
             }
 
+            const int drawDstX = nX + nDstDX;
+            const int drawDstY = nY + nDstDY;
+
             if(colorf::A(nBGColor)){
-                g_SDLDevice->fillRectangle(nBGColor, nX + nDstX, nY + nDstY, nW, nH);
+                g_SDLDevice->fillRectangle(nBGColor, drawDstX, drawDstY, nW, nH);
             }
 
             switch(stLeaf.Type()){
                 case LEAF_UTF8GROUP:
                     {
-                        const int drawDstX = nX + nDstDX;
-                        const int drawDstY = nY + nDstDY;
-
                         if(auto texPtr = g_fontexDB->Retrieve(pToken->UTF8Char.U64Key); texPtr){
                             SDL_SetTextureColorMod(texPtr, colorf::R(nColor), colorf::G(nColor), colorf::B(nColor));
                             g_SDLDevice->DrawTexture(texPtr, drawDstX, drawDstY, nDX, nDY, nW, nH);
@@ -965,9 +965,7 @@ void XMLTypeset::drawEx(int nDstX, int nDstY, int nSrcX, int nSrcY, int nSrcW, i
                         }
 
                         if(g_clientArgParser->drawTokenFrame){
-                            SDLDevice::EnableDrawColor enableDrawColor(colorf::PURPLE + 255);
-                            SDLDevice::EnableDrawBlendMode enableDrawBlendMode(SDL_BLENDMODE_BLEND);
-                            g_SDLDevice->DrawRectangle(drawDstX, drawDstY, nW, nH);
+                            g_SDLDevice->DrawRectangle(colorf::PURPLE + 255, drawDstX, drawDstY, nW, nH);
                         }
                         break;
                     }
@@ -989,10 +987,10 @@ void XMLTypeset::drawEx(int nDstX, int nDstY, int nSrcX, int nSrcY, int nSrcW, i
                         }();
 
                         if(auto ptex = g_emoticonDB->Retrieve(emojiKey, &xOnTex, &yOnTex, 0, 0, 0, 0, 0)){
-                            g_SDLDevice->DrawTexture(ptex, nX + nDstDX, nY + nDstDY, xOnTex + nDX, yOnTex + nDY, nW, nH);
+                            g_SDLDevice->DrawTexture(ptex, drawDstX, drawDstY, xOnTex + nDX, yOnTex + nDY, nW, nH);
                         }
                         else{
-                            g_SDLDevice->DrawRectangle(colorf::CompColor(nBGColor), nX + nDstDX, nY + nDstDY, nW, nH);
+                            g_SDLDevice->DrawRectangle(colorf::CompColor(nBGColor), drawDstX, drawDstY, nW, nH);
                         }
                         break;
                     }
