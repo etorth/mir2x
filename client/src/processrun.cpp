@@ -17,6 +17,7 @@
  */
 
 #include <memory>
+#include <numeric>
 #include <cstring>
 #include "dbcomid.hpp"
 #include "monster.hpp"
@@ -827,7 +828,7 @@ bool ProcessRun::userCommand(const char *userCmdString)
     switch(matchCount){
         case 0:
             {
-                addCBLog(CBLOG_ERR, ">> Invalid command: %s", tokenList[0].c_str());
+                addCBLog(CBLOG_ERR, ">> Invalid user command: %s", tokenList[0].c_str());
                 return true;
             }
         case 1:
@@ -841,7 +842,7 @@ bool ProcessRun::userCommand(const char *userCmdString)
             }
         default:
             {
-                addCBLog(CBLOG_ERR, ">> Ambiguous command: %s", tokenList[0].c_str());
+                addCBLog(CBLOG_ERR, ">> Ambiguous user command: %s", tokenList[0].c_str());
                 for(auto &entry : m_userCommandGroup){
                     if(entry.command.substr(0, tokenList[0].size()) == tokenList[0]){
                         addCBLog(CBLOG_ERR, ">> Candicate: %s", entry.command.c_str());
@@ -878,34 +879,34 @@ std::vector<int> ProcessRun::GetPlayerList()
 
 void ProcessRun::RegisterUserCommand()
 {
-    // 1. register command: moveTo
-    //    usage:
-    //              moveTo        120 250
-    //              moveTo 某地图 120 250
-    m_userCommandGroup.emplace_back("moveTo", [this](const std::vector<std::string> &parmList) -> int
+    const auto fnCreateLuaCmdString = [](const std::string &luaCommand, const std::vector<std::string> &parmList) -> std::string
     {
+        // don't use parmList[0] as lua function name
+        // user commands can have shortcut matching which fails in lua
+
         switch(parmList.size()){
-            case 1 + 2:
+            case 0:
                 {
-                    const int nX = std::atoi(parmList[1].c_str());
-                    const int nY = std::atoi(parmList[2].c_str());
-                    RequestSpaceMove(MapID(), nX, nY);
-                    return 0;
+                    throw fflerror("argument list empty");
                 }
-            case 1 + 3:
+            case 1:
                 {
-                    const int nX = std::atoi(parmList[2].c_str());
-                    const int nY = std::atoi(parmList[3].c_str());
-                    const auto nMapID = DBCOM_MAPID(parmList[1].c_str());
-                    RequestSpaceMove(nMapID, nX, nY);
-                    return 0;
+                    return luaCommand + "()";
                 }
             default:
                 {
-                    addCBLog(CBLOG_ERR, ">> Invalid argument to command: moveTo");
-                    return 1;
+                    std::string luaString = luaCommand + "(" + parmList[1];
+                    for(size_t i = 2; i < parmList.size(); ++i){
+                        luaString += (std::string(", ") + parmList[i]);
+                    }
+                    return luaString + ")";
                 }
         }
+    };
+
+    m_userCommandGroup.emplace_back("moveTo", [&fnCreateLuaCmdString, this](const std::vector<std::string> &parmList) -> int
+    {
+        return luaCommand(fnCreateLuaCmdString("moveTo", parmList).c_str());
     });
 
     m_userCommandGroup.emplace_back("luaEditor", [this](const std::vector<std::string> &) -> int
@@ -1003,14 +1004,44 @@ void ProcessRun::RegisterLuaExport(ClientLuaModule *luaModulePtr)
 
     // register command moveTo(x, y)
     // wait for server to move player if possible
-    luaModulePtr->getLuaState().set_function("moveTo", [this](sol::object locX, sol::object locY)
+    luaModulePtr->getLuaState().set_function("moveTo", [this](sol::variadic_args args)
     {
-        if(locX.is<int>() && locY.is<int>()){
-            const int nX = locX.as<int>();
-            const int nY = locY.as<int>();
+        int locX = 0;
+        int locY = 0;
+        uint32_t mapID = 0;
 
-            RequestSpaceMove(MapID(), nX, nY);
-            addCBLog(CBLOG_SYS, "moveTo(%d, %d)", nX, nY);
+        const std::vector<sol::object> argList(args.begin(), args.end());
+        switch(argList.size()){
+            case 2:
+                {
+                    if(!(argList[0].is<int>() && argList[1].is<int>())){
+                        throw fflerror("invalid arguments: moveTo(x: int, y: int)");
+                    }
+
+                    mapID = MapID();
+                    locX  = argList[0].as<int>();
+                    locY  = argList[1].as<int>();
+                    break;
+                }
+            case 3:
+                {
+                    if(!(argList[0].is<int>() && argList[1].is<int>() && argList[2].is<int>())){
+                        throw fflerror("invalid arguments: moveTo(mapID: int, x: int, y: int)");
+                    }
+
+                    mapID = argList[0].as<int>();
+                    locX  = argList[1].as<int>();
+                    locY  = argList[2].as<int>();
+                    break;
+                }
+            default:
+                {
+                    throw fflerror("invalid arguments: moveTo([mapID: int,] x: int, y: int)");
+                }
+        }
+
+        if(!RequestSpaceMove(mapID, locX, locY)){
+            addCBLog(CBLOG_ERR, "Move request (mapID = %d, x = %d, y = %d) failed", mapID, locX, locY);
         }
     });
 
