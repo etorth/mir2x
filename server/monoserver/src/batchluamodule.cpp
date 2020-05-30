@@ -31,7 +31,7 @@ bool BatchLuaModule::LoopOne()
         return true;
     }
 
-    auto stCallResult = GetLuaState().script(m_batchCmd.c_str(), [](lua_State *, sol::protected_function_result stResult)
+    auto stCallResult = getLuaState().script(m_batchCmd.c_str(), [](lua_State *, sol::protected_function_result stResult)
     {
         // default handler
         // do nothing and let the call site handle the errors

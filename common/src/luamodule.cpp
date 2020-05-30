@@ -3,7 +3,7 @@
  *
  *       Filename: luamodule.cpp
  *        Created: 06/03/2017 20:26:17
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -20,6 +20,7 @@
 #include <chrono>
 #include <thread>
 #include "sysconst.hpp"
+#include "fflerror.hpp"
 #include "luamodule.hpp"
 #include "dbcomrecord.hpp"
 
@@ -65,10 +66,6 @@ LuaModule::LuaModule()
             R"###(                                                                              )###""\n"
             R"###(     return string.format("[%s]: %d", info.short_src, info.currentline)       )###""\n"
             R"###( end                                                                          )###""\n");
-
-    // define _addLog_raw() by LuaModule::addLog()
-    // but don't call it since this is in constructor!
-    // this function need lua::getBackTraceLine() to append the logInfo
 
     m_luaState.set_function("addLog", [this](sol::object logType, sol::object logInfo)
     {
@@ -123,19 +120,61 @@ LuaModule::LuaModule()
         std::exit(nExitCode);
     });
 
-    m_luaState.set_function("randString", [](int length) -> std::string
+    m_luaState.set_function("randString", [this](sol::variadic_args args) -> std::string
     {
         // generate random string
         // for debug purpose of utf8 layout board
 
-        constexpr char alphanum[] =
-            "0123456789"
-            "abcdefghijklmnopqrstuvwxyz"
-            "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        int length = 0;
+        std::string alphabet;
+
+        const std::vector<sol::object> argList(args.begin(), args.end());
+        switch(argList.size()){
+            case 1:
+                {
+                    if(!argList[0].is<int>()){
+                        throw fflerror("Invalid argument: randString(length: int, [alphabet: string])");
+                    }
+
+                    length = argList[0].as<int>();
+                    alphabet = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+                    break;
+                }
+
+            case 2:
+                {
+                    if(!(argList[0].is<int>() && argList[1].is<std::string>())){
+                        throw fflerror("Invalid argument: randString(length: int, [alphabet: string])");
+                    }
+
+                    length = argList[0].as<int>();
+                    alphabet = argList[1].as<std::string>();
+                    break;
+                }
+            default:
+                {
+                    throw fflerror("Invalid argument: randString(length: int, [alphabet: string])");
+                }
+        }
+
+        if(length < 0 || alphabet.empty()){
+            const auto reportAlphabet = [&alphabet]() -> std::string
+            {
+                if(alphabet.empty()){
+                    return "(empty)";
+                }
+
+                if(alphabet.length() < 5){
+                    return alphabet;
+                }
+                return alphabet.substr(0, 3) + "...";
+            }();
+            throw fflerror("Invalid argument: randString(length = %d, alphabe = \'%s\')", length, reportAlphabet.c_str());
+        }
 
         std::string result;
         for(int i = 0; i < length; ++i){
-            result.push_back(alphanum[std::rand() % (sizeof(alphanum) - 1)]);
+            result.push_back(alphabet[std::rand() % alphabet.length()]);
         }
         return result;
     });

@@ -667,7 +667,7 @@ void MonoServer::RegisterLuaExport(CommandLuaModule *pModule, uint32_t nCWID)
 
     // register command quit
     // exit current command window and free all related resource
-    pModule->GetLuaState().set_function("quit", [this, nCWID]()
+    pModule->getLuaState().set_function("quit", [this, nCWID]()
     {
         // 1. show exiting messages
         addCWLog(nCWID, 0, "> ", "Command window is requested to exit now...");
@@ -681,7 +681,7 @@ void MonoServer::RegisterLuaExport(CommandLuaModule *pModule, uint32_t nCWID)
 
     // register command printLine
     // print one line in command window, won't add message to log system
-    pModule->GetLuaState().set_function("printLine", [this, nCWID](sol::object stLogType, sol::object stPrompt, sol::object stLogInfo)
+    pModule->getLuaState().set_function("printLine", [this, nCWID](sol::object stLogType, sol::object stPrompt, sol::object stLogInfo)
     {
         if(true
                 && stLogType.is<int>()
@@ -696,7 +696,7 @@ void MonoServer::RegisterLuaExport(CommandLuaModule *pModule, uint32_t nCWID)
     });
 
     // register command countMonster(monsterID, mapID)
-    pModule->GetLuaState().set_function("countMonster", [this, nCWID](int nMonsterID, int nMapID) -> int
+    pModule->getLuaState().set_function("countMonster", [this, nCWID](int nMonsterID, int nMapID) -> int
     {
         auto nRet = GetMonsterCount(nMonsterID, nMapID).value_or(-1);
         if(nRet < 0){
@@ -717,7 +717,7 @@ void MonoServer::RegisterLuaExport(CommandLuaModule *pModule, uint32_t nCWID)
     //      end
     // here we get an exception from lua caught by sol2: ``std::bad_alloc"
     // but we want more detailed information like print the function usage out
-    pModule->GetLuaState().set_function("addMonster", [this, nCWID](int nMonsterID, int nMapID, sol::variadic_args stVariadicArgs) -> bool
+    pModule->getLuaState().set_function("addMonster", [this, nCWID](int nMonsterID, int nMapID, sol::variadic_args stVariadicArgs) -> bool
     {
         auto fnPrintUsage = [this, nCWID]()
         {
@@ -768,7 +768,7 @@ void MonoServer::RegisterLuaExport(CommandLuaModule *pModule, uint32_t nCWID)
         }
     });
 
-    pModule->GetLuaState().set_function("addNPC", [this, nCWID](int npcID, int mapID, sol::variadic_args args) -> bool
+    pModule->getLuaState().set_function("addNPC", [this, nCWID](int npcID, int mapID, sol::variadic_args args) -> bool
     {
         const auto fnUsage = [this, nCWID]()
         {
@@ -809,19 +809,19 @@ void MonoServer::RegisterLuaExport(CommandLuaModule *pModule, uint32_t nCWID)
 
     // register command mapList
     // return a table (userData) to lua for ipairs() check
-    pModule->GetLuaState().set_function("getMapIDList", [this](sol::this_state stThisLua)
+    pModule->getLuaState().set_function("getMapIDList", [this](sol::this_state stThisLua)
     {
         return sol::make_object(sol::state_view(stThisLua), GetMapList());
     });
 
-    pModule->GetLuaState().script(
+    pModule->getLuaState().script(
         R"###( function mapID2Name(mapID)                                              )###""\n"
         R"###(     return "map_name"                                                   )###""\n"
         R"###( end                                                                     )###""\n");
 
     // register command ``listAllMap"
     // this command call getMapIDList to get a table and print to CommandWindow
-    pModule->GetLuaState().script(
+    pModule->getLuaState().script(
         R"###( function listMap()                                                      )###""\n"
         R"###(     local mapNameTable = {}                                             )###""\n"
         R"###(     for k, v in ipairs(getMapIDList()) do                               )###""\n"
@@ -832,12 +832,12 @@ void MonoServer::RegisterLuaExport(CommandLuaModule *pModule, uint32_t nCWID)
     // register command ``help"
     // part-1: divide into two parts, part-1 create the table
 
-    pModule->GetLuaState().script(
+    pModule->getLuaState().script(
         R"###( g_helpTable = {}                                                        )###""\n"
         R"###( g_helpTable["listMap"] = "print all map indices to current window"      )###""\n");
 
     // part-2: make up the function to print the table entry
-    pModule->GetLuaState().script(
+    pModule->getLuaState().script(
         R"###( function help(queryKey)                                                 )###""\n"
         R"###(     if g_helpTable[queryKey] then                                       )###""\n"
         R"###(         printLine(0, "> ", g_helpTable[queryKey])                       )###""\n"

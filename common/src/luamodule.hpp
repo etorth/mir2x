@@ -3,8 +3,9 @@
  *
  *       Filename: luamodule.hpp
  *        Created: 06/03/2017 20:24:34
- *    Description: make dtor simple to use sol::state::~state()
- *                 if we do need to release anything, put in LuaModule::Release()
+ *    Description:
+ *                 base class to register all functions, libs.
+ *                 don't call lua error("..") from C++, it calls longmp, skips all dtors
  *
  *
  *        Version: 1.0
@@ -33,7 +34,7 @@ class LuaModule
         virtual ~LuaModule() = default;
 
     public:
-        sol::state &GetLuaState()
+        sol::state &getLuaState()
         {
             return m_luaState;
         }

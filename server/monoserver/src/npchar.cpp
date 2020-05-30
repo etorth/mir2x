@@ -198,7 +198,7 @@ void NPChar::LuaNPCModule::setEvent(uint64_t uid, std::string event, std::string
         session.uid = uid;
         session.module = this;
 
-        session.co_handler.runner = sol::thread::create(GetLuaState().lua_state());
+        session.co_handler.runner = sol::thread::create(getLuaState().lua_state());
         session.co_handler.callback = sol::state_view(session.co_handler.runner.state())["main"];
 
         p = m_sessionList.insert({uid, std::move(session)}).first;

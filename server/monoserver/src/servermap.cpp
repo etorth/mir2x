@@ -893,17 +893,17 @@ bool ServerMap::RegisterLuaExport(ServerMap::ServerMapLuaModule *pModule)
 
     // register lua functions/variables related *this* map
 
-    pModule->GetLuaState().set_function("getMapID", [this]() -> int
+    pModule->getLuaState().set_function("getMapID", [this]() -> int
     {
         return (int)(ID());
     });
 
-    pModule->GetLuaState().set_function("getMapName", [this]() -> std::string
+    pModule->getLuaState().set_function("getMapName", [this]() -> std::string
     {
         return std::string(DBCOM_MAPRECORD(ID()).Name);
     });
 
-    pModule->GetLuaState().set_function("getRandLoc", [this]() /* -> ? */
+    pModule->getLuaState().set_function("getRandLoc", [this]() /* -> ? */
     {
         std::array<int, 2> loc;
         while(true){
@@ -919,7 +919,7 @@ bool ServerMap::RegisterLuaExport(ServerMap::ServerMapLuaModule *pModule)
         return sol::as_returns(loc);
     });
 
-    pModule->GetLuaState().set_function("getMonsterCount", [this](sol::variadic_args stVariadicArgs) -> int
+    pModule->getLuaState().set_function("getMonsterCount", [this](sol::variadic_args stVariadicArgs) -> int
     {
         std::vector<sol::object> stArgList(stVariadicArgs.begin(), stVariadicArgs.end());
         switch(stArgList.size()){
@@ -950,7 +950,7 @@ bool ServerMap::RegisterLuaExport(ServerMap::ServerMapLuaModule *pModule)
         return -1;
     });
 
-    pModule->GetLuaState().set_function("addMonster", [this](sol::object stMonsterID, sol::variadic_args stVariadicArgs) -> bool
+    pModule->getLuaState().set_function("addMonster", [this](sol::object stMonsterID, sol::variadic_args stVariadicArgs) -> bool
     {
         uint32_t nMonsterID = 0;
 
@@ -1005,7 +1005,7 @@ bool ServerMap::RegisterLuaExport(ServerMap::ServerMapLuaModule *pModule)
         return false;
     });
 
-    pModule->GetLuaState().set_function("addNPC", [this](int npcID, sol::variadic_args args) -> bool
+    pModule->getLuaState().set_function("addNPC", [this](int npcID, sol::variadic_args args) -> bool
     {
         const auto fnUsage = [this]()
         {

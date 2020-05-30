@@ -85,7 +85,7 @@ int CommandInput::handle(int nEvent)
                                 //    and return immediately for current thread
                                 m_window->GetTaskHub()->Add([this, nCWID, szCommandStr]()
                                 {
-                                    auto stCallResult = m_window->GetLuaModule()->GetLuaState().script(szCommandStr.c_str(),
+                                    auto stCallResult = m_window->GetLuaModule()->getLuaState().script(szCommandStr.c_str(),
                                     [](lua_State *, sol::protected_function_result stResult)
                                     {
                                         // default handler
