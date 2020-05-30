@@ -194,4 +194,10 @@ class LayoutBoard: public Widget
     private:
         void setupSize();
         void addPar(int, const std::array<int, 4> &, const tinyxml2::XMLNode *, bool);
+
+    public:
+        int getLineWidth() const
+        {
+            return m_parNodeConfig.lineWidth;
+        }
 };

@@ -1145,7 +1145,7 @@ void ControlBoard::resizeWidth(int boardW)
     m_w = boardW;
 
     setButtonLoc();
-    m_logBoard.setLineWidth(m_logBoard.w() + (boardW - prevWidth));
+    m_logBoard.setLineWidth(m_logBoard.getLineWidth() + (boardW - prevWidth));
 }
 
 void ControlBoard::drawInputGreyBackground()
