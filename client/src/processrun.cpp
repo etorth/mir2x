@@ -1040,7 +1040,10 @@ void ProcessRun::RegisterLuaExport(ClientLuaModule *luaModulePtr)
                 }
         }
 
-        if(!RequestSpaceMove(mapID, locX, locY)){
+        if(RequestSpaceMove(mapID, locX, locY)){
+            addCBLog(CBLOG_SYS, "Move request (mapID = %d, x = %d, y = %d) sent", mapID, locX, locY);
+        }
+        else{
             addCBLog(CBLOG_ERR, "Move request (mapID = %d, x = %d, y = %d) failed", mapID, locX, locY);
         }
     });
