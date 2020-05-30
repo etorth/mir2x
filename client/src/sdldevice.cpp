@@ -30,6 +30,7 @@
 #include "clientargparser.hpp"
 
 extern Log *g_log;
+extern XMLConf *g_XMLConf;
 extern SDLDevice *g_SDLDevice;
 extern ClientArgParser *g_clientArgParser;
 
@@ -395,8 +396,6 @@ void SDLDevice::CreateMainWindow()
     int    nWindowW = 0;
     int    nWindowH = 0;
 
-    extern Log     *g_log;
-    extern XMLConf *g_XMLConf;
     int nScreenMode = 0;
     if(g_XMLConf->NodeAtoi("Root/Window/ScreenMode", &nScreenMode, 0)){
         g_log->addLog(LOGTYPE_INFO, "screen mode by configuration file: %d", nScreenMode);
@@ -421,7 +420,9 @@ void SDLDevice::CreateMainWindow()
             && g_XMLConf->NodeAtoi("Root/Window/W", &nWindowW, 800)
             && g_XMLConf->NodeAtoi("Root/Window/H", &nWindowH, 600)){
         g_log->addLog(LOGTYPE_INFO, "window size by configuration file: %d x %d", nWindowW, nWindowH);
-    }else{
+    }
+
+    else{
         g_log->addLog(LOGTYPE_INFO, "Use default window size.");
         nWindowW = 800;
         nWindowH = 600;
@@ -433,6 +434,7 @@ void SDLDevice::CreateMainWindow()
         nWindowH = std::min(nWindowH , stDesktop.h);
     }
 
+    nFlags |= SDL_WINDOW_RESIZABLE;
     m_window = SDL_CreateWindow("MIR2X-V0.1", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, nWindowW, nWindowH, nFlags);
     if(!m_window){
         throw fflerror("failed to create SDL window handler: %s", SDL_GetError());
