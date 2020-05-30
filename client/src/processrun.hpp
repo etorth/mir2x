@@ -300,9 +300,12 @@ class ProcessRun: public Process
         int CheckPathGrid(int, int) const;
         double OneStepCost(const ClientPathFinder *, bool, int, int, int, int, int) const;
 
+    private:
+        std::tuple<int, int> getRandLoc(uint32_t);
+
     public:
         void RequestKillPets();
-        bool RequestSpaceMove(uint32_t, int, int);
+        bool requestSpaceMove(uint32_t, int, int);
 
     public:
         void queryCORecord(uint64_t) const;

@@ -1012,6 +1012,22 @@ void ProcessRun::RegisterLuaExport(ClientLuaModule *luaModulePtr)
 
         const std::vector<sol::object> argList(args.begin(), args.end());
         switch(argList.size()){
+            case 0:
+                {
+                    mapID = MapID();
+                    std::tie(locX, locY) = getRandLoc(MapID());
+                    break;
+                }
+            case 1:
+                {
+                    if(!argList[0].is<int>()){
+                        throw fflerror("invalid arguments: moveTo(mapID: int)");
+                    }
+
+                    mapID = argList[0].as<int>();
+                    std::tie(locX, locY) = getRandLoc(mapID);
+                    break;
+                }
             case 2:
                 {
                     if(!(argList[0].is<int>() && argList[1].is<int>())){
@@ -1040,7 +1056,7 @@ void ProcessRun::RegisterLuaExport(ClientLuaModule *luaModulePtr)
                 }
         }
 
-        if(RequestSpaceMove(mapID, locX, locY)){
+        if(requestSpaceMove(mapID, locX, locY)){
             addCBLog(CBLOG_SYS, "Move request (mapID = %d, x = %d, y = %d) sent", mapID, locX, locY);
         }
         else{
@@ -1279,19 +1295,52 @@ void ProcessRun::centerMyHero()
     }
 }
 
-bool ProcessRun::RequestSpaceMove(uint32_t nMapID, int nX, int nY)
+std::tuple<int, int> ProcessRun::getRandLoc(uint32_t nMapID)
 {
-    if(auto pMapBin = g_mapBinDB->Retrieve(nMapID)){
-        if(pMapBin->ValidC(nX, nY) && pMapBin->Cell(nX, nY).CanThrough()){
-            CMReqestSpaceMove stCMRSM;
-            stCMRSM.MapID = nMapID;
-            stCMRSM.X     = nX;
-            stCMRSM.Y     = nY;
-            g_client->send(CM_REQUESTSPACEMOVE, stCMRSM);
-            return true;
+    const auto mapBinPtr = [nMapID, this]() -> const Mir2xMapData *
+    {
+        if(nMapID == 0 || nMapID == MapID()){
+            return &m_mir2xMapData;
+        }
+        return g_mapBinDB->Retrieve(nMapID);
+    }();
+
+    if(!mapBinPtr){
+        throw fflerror("failed to find map with mapID = %llu", toLLU(nMapID));
+    }
+
+    while(true){
+        const int nX = std::rand() % mapBinPtr->W();
+        const int nY = std::rand() % mapBinPtr->H();
+
+        if(mapBinPtr->ValidC(nX, nY) && mapBinPtr->Cell(nX, nY).CanThrough()){
+            return {nX, nY};
         }
     }
-    return false;
+
+    throw fflerror("can't reach here");
+}
+
+bool ProcessRun::requestSpaceMove(uint32_t nMapID, int nX, int nY)
+{
+    const auto mapBinPtr = g_mapBinDB->Retrieve(nMapID);
+    if(!mapBinPtr){
+        return false;
+    }
+
+    if(!(mapBinPtr->ValidC(nX, nY) && mapBinPtr->Cell(nX, nY).CanThrough())){
+        return false;
+    }
+
+    CMReqestSpaceMove cmRSM;
+    std::memset(&cmRSM, 0, sizeof(cmRSM));
+
+    cmRSM.MapID = nMapID;
+    cmRSM.X     = nX;
+    cmRSM.Y     = nY;
+
+    g_client->send(CM_REQUESTSPACEMOVE, cmRSM);
+    return true;
 }
 
 void ProcessRun::RequestKillPets()
