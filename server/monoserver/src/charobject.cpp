@@ -278,9 +278,9 @@ void CharObject::DispatchAction(uint64_t nUID, const ActionNode &rstAction)
 
 bool CharObject::requestMove(int nX, int nY, int nSpeed, bool allowHalfMove, bool removeMonster, std::function<void()> fnOnOK, std::function<void()> fnOnError)
 {
-    // if(!m_map->groundValid(nX, nY)){
-    //     throw fflerror("invalid destination: (mapID = %lld, x = %d, y = %d)", toLLD(MapID()), nX, nY);
-    // }
+    if(!m_map->groundValid(nX, nY)){
+        throw fflerror("invalid destination: (mapID = %lld, x = %d, y = %d)", toLLD(MapID()), nX, nY);
+    }
 
     if(!canMove()){
         if(fnOnError){
@@ -1146,6 +1146,17 @@ std::array<PathFind::PathNode, 3> CharObject::GetChaseGrid(int nX, int nY, int n
             }
     }
     return pathNodeList;
+}
+
+std::vector<PathFind::PathNode> CharObject::GetValidChaseGrid(int nX, int nY, int nDLen) const
+{
+    std::vector<PathFind::PathNode> result;
+    for(const auto &node: GetChaseGrid(nX, nY, nDLen)){
+        if(m_map->groundValid(node.X, node.Y)){
+            result.push_back(node);
+        }
+    }
+    return result;
 }
 
 double CharObject::OneStepCost(const CharObject::COPathFinder *pFinder, int nCheckCO, int nX0, int nY0, int nX1, int nY1) const

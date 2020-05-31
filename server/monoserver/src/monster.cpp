@@ -3,7 +3,7 @@
  *
  *       Filename: monster.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -452,7 +452,7 @@ void Monster::TrackAttackUID(uint64_t nTargetUID, std::function<void()> fnOnOK, 
 
     // TODO choose proper DC
     // for different monster it may use different DC
-    
+
     int nProperDC = m_monsterRecord.DCList()[0];
     int nMinCDistance = 1;
 
@@ -995,27 +995,62 @@ bool Monster::MoveOneStepGreedy(int nX, int nY, std::function<void()> fnOnOK, st
     }
 
     const bool longJump = (MaxStep() > 1) && (mathf::CDistance(X(), Y(), nX, nY) >= MaxStep());
-    const auto pathNodeList = GetChaseGrid(nX, nY, longJump ? MaxStep() : 1);
+    const auto pathNodeList = GetValidChaseGrid(nX, nY, longJump ? MaxStep() : 1);
 
-    return requestMove(pathNodeList[0].X, pathNodeList[0].Y, MoveSpeed(), false, false, fnOnOK, [this, longJump, nX, nY, pathNodeList, fnOnOK, fnOnError]()
+    if(pathNodeList.empty()){
+        fnOnError();
+        return false;
+    }
+
+    const auto fnOnNodeListError = [nX, nY, longJump, fnOnOK, fnOnError, this]()
     {
-        requestMove(pathNodeList[1].X, pathNodeList[1].Y, MoveSpeed(), false, false, fnOnOK, [this, longJump, nX, nY, pathNodeList, fnOnOK, fnOnError]()
+        if(!longJump){
+            fnOnError();
+            return;
+        }
+
+        const auto minPathNodeList = GetValidChaseGrid(nX, nY, 1);
+        if(minPathNodeList.empty()){
+            fnOnError();
+            return;
+        }
+
+        requestMove(minPathNodeList[0].X, minPathNodeList[0].Y, MoveSpeed(), false, false, fnOnOK, [this, minPathNodeList, fnOnOK, fnOnError]()
         {
-            requestMove(pathNodeList[2].X, pathNodeList[2].Y, MoveSpeed(), false, false, fnOnOK, [this, longJump, nX, nY,fnOnOK, fnOnError]()
+            if(minPathNodeList.size() == 1){
+                fnOnError();
+                return;
+            }
+
+            requestMove(minPathNodeList[1].X, minPathNodeList[1].Y, MoveSpeed(), false, false, fnOnOK, [this, minPathNodeList, fnOnOK, fnOnError]()
             {
-                if(!longJump){
+                if(minPathNodeList.size() == 2){
                     fnOnError();
                     return;
                 }
 
-                auto stvMinPathNode = GetChaseGrid(nX, nY, 1);
-                requestMove(stvMinPathNode[0].X, stvMinPathNode[0].Y, MoveSpeed(), false, false, fnOnOK, [this, stvMinPathNode, fnOnOK, fnOnError]()
-                {
-                    requestMove(stvMinPathNode[1].X, stvMinPathNode[1].Y, MoveSpeed(), false, false, fnOnOK, [this, stvMinPathNode, fnOnOK, fnOnError]()
-                    {
-                        requestMove(stvMinPathNode[2].X, stvMinPathNode[2].Y, MoveSpeed(), false, false, fnOnOK, fnOnError);
-                    });
-                });
+                requestMove(minPathNodeList[2].X, minPathNodeList[2].Y, MoveSpeed(), false, false, fnOnOK, fnOnError);
+            });
+        });
+    };
+
+    return requestMove(pathNodeList[0].X, pathNodeList[0].Y, MoveSpeed(), false, false, fnOnOK, [this, longJump, nX, nY, pathNodeList, fnOnOK, fnOnNodeListError]()
+    {
+        if(pathNodeList.size() == 1){
+            fnOnNodeListError();
+            return;
+        }
+
+        requestMove(pathNodeList[1].X, pathNodeList[1].Y, MoveSpeed(), false, false, fnOnOK, [this, longJump, nX, nY, pathNodeList, fnOnOK, fnOnNodeListError]()
+        {
+            if(pathNodeList.size() == 2){
+                fnOnNodeListError();
+                return;
+            }
+
+            requestMove(pathNodeList[2].X, pathNodeList[2].Y, MoveSpeed(), false, false, fnOnOK, [this, longJump, nX, nY,fnOnOK, fnOnNodeListError]()
+            {
+                fnOnNodeListError();
             });
         });
     });
@@ -1065,7 +1100,7 @@ bool Monster::MoveOneStepAStar(int nX, int nY, std::function<void()> fnOnOK, std
                     static_assert(nNodeCount >= 2);
 
                     auto pBegin = stAMPFOK.Point;
-                    auto pEnd   = stAMPFOK.Point + nNodeCount; 
+                    auto pEnd   = stAMPFOK.Point + nNodeCount;
 
                     std::vector<PathFind::PathNode> stvPathNode;
                     for(auto pCurr = pBegin; pCurr != pEnd; ++pCurr){

@@ -349,7 +349,8 @@ class CharObject: public ServerObject
         }
 
     protected:
-        std::array<PathFind::PathNode, 3> GetChaseGrid(int, int, int) const;
+        std::array<PathFind::PathNode, 3>    GetChaseGrid(int, int, int) const;
+        std::vector<PathFind::PathNode> GetValidChaseGrid(int, int, int) const;
 
     protected:
         int CheckPathGrid(int, int, uint32_t = 0) const;
