@@ -85,7 +85,8 @@ void ProcessRun::Net_ACTION(const uint8_t *pBuf, size_t)
         // detected map switch for myhero
         // need to do map switch and parse current action
 
-        loadMap(stSMA.MapID);
+        // call getMyHero before loadMap()
+        // getMyHero() checks if current creature is on current map
 
         auto nUID       = getMyHero()->UID();
         auto nDBID      = getMyHero()->DBID();
@@ -97,6 +98,7 @@ void ProcessRun::Net_ACTION(const uint8_t *pBuf, size_t)
         auto nY = stSMA.Y;
 
         m_UIDPending.clear();
+        loadMap(stSMA.MapID);
 
         m_creatureList.clear();
         m_creatureList[m_myHeroUID] = std::make_unique<MyHero>(nUID, nDBID, bGender, nDress, this, ActionStand(nX, nY, nDirection));
