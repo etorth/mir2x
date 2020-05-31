@@ -994,16 +994,16 @@ bool Monster::MoveOneStepGreedy(int nX, int nY, std::function<void()> fnOnOK, st
         return false;
     }
 
-    bool bLongJump   = (MaxStep() > 1) && (mathf::CDistance(X(), Y(), nX, nY) >= MaxStep());
-    auto stvPathNode = GetChaseGrid(nX, nY, bLongJump ? MaxStep() : 1);
+    const bool longJump = (MaxStep() > 1) && (mathf::CDistance(X(), Y(), nX, nY) >= MaxStep());
+    const auto pathNodeList = GetChaseGrid(nX, nY, longJump ? MaxStep() : 1);
 
-    return requestMove(stvPathNode[0].X, stvPathNode[0].Y, MoveSpeed(), false, false, fnOnOK, [this, bLongJump, nX, nY, stvPathNode, fnOnOK, fnOnError]()
+    return requestMove(pathNodeList[0].X, pathNodeList[0].Y, MoveSpeed(), false, false, fnOnOK, [this, longJump, nX, nY, pathNodeList, fnOnOK, fnOnError]()
     {
-        requestMove(stvPathNode[1].X, stvPathNode[1].Y, MoveSpeed(), false, false, fnOnOK, [this, bLongJump, nX, nY, stvPathNode, fnOnOK, fnOnError]()
+        requestMove(pathNodeList[1].X, pathNodeList[1].Y, MoveSpeed(), false, false, fnOnOK, [this, longJump, nX, nY, pathNodeList, fnOnOK, fnOnError]()
         {
-            requestMove(stvPathNode[2].X, stvPathNode[2].Y, MoveSpeed(), false, false, fnOnOK, [this, bLongJump, nX, nY,fnOnOK, fnOnError]()
+            requestMove(pathNodeList[2].X, pathNodeList[2].Y, MoveSpeed(), false, false, fnOnOK, [this, longJump, nX, nY,fnOnOK, fnOnError]()
             {
-                if(!bLongJump){
+                if(!longJump){
                     fnOnError();
                     return;
                 }

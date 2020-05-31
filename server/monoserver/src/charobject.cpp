@@ -278,9 +278,9 @@ void CharObject::DispatchAction(uint64_t nUID, const ActionNode &rstAction)
 
 bool CharObject::requestMove(int nX, int nY, int nSpeed, bool allowHalfMove, bool removeMonster, std::function<void()> fnOnOK, std::function<void()> fnOnError)
 {
-    if(!m_map->groundValid(nX, nY)){
-        throw fflerror("invalid destination: (mapID = %lld, x = %d, y = %d)", toLLD(MapID()), nX, nY);
-    }
+    // if(!m_map->groundValid(nX, nY)){
+    //     throw fflerror("invalid destination: (mapID = %lld, x = %d, y = %d)", toLLD(MapID()), nX, nY);
+    // }
 
     if(!canMove()){
         if(fnOnError){
@@ -1105,38 +1105,39 @@ std::array<PathFind::PathNode, 3> CharObject::GetChaseGrid(int nX, int nY, int n
     // always get the next step to chase
     // this function won't check if (nX, nY) is valid
 
-    int nX0 = X();
-    int nY0 = Y();
+    const int nX0 = X();
+    const int nY0 = Y();
 
-    std::array<PathFind::PathNode, 3> stvPathNode
+    std::array<PathFind::PathNode, 3> pathNodeList
     {{
         {-1, -1},
         {-1, -1},
         {-1, -1},
     }};
 
-    int nDX = ((nX > nX0) - (nX < nX0));
-    int nDY = ((nY > nY0) - (nY < nY0));
+    const int nDX = ((nX > nX0) - (nX < nX0));
+    const int nDY = ((nY > nY0) - (nY < nY0));
 
     switch(std::abs(nDX) + std::abs(nDY)){
         case 1:
             {
                 if(nDY){
-                    stvPathNode[0] = {nX0        , nY0 + nDY * nDLen};
-                    stvPathNode[1] = {nX0 - nDLen, nY0 + nDY * nDLen};
-                    stvPathNode[2] = {nX0 + nDLen, nY0 + nDY * nDLen};
-                }else{
-                    stvPathNode[0] = {nX0 + nDX * nDLen, nY0        };
-                    stvPathNode[1] = {nX0 + nDX * nDLen, nY0 - nDLen};
-                    stvPathNode[2] = {nX0 + nDX * nDLen, nY0 + nDLen};
+                    pathNodeList[0] = {nX0        , nY0 + nDY * nDLen};
+                    pathNodeList[1] = {nX0 - nDLen, nY0 + nDY * nDLen};
+                    pathNodeList[2] = {nX0 + nDLen, nY0 + nDY * nDLen};
+                }
+                else{
+                    pathNodeList[0] = {nX0 + nDX * nDLen, nY0        };
+                    pathNodeList[1] = {nX0 + nDX * nDLen, nY0 - nDLen};
+                    pathNodeList[2] = {nX0 + nDX * nDLen, nY0 + nDLen};
                 }
                 break;
             }
         case 2:
             {
-                stvPathNode[0] = {nX0 + nDX * nDLen, nY0 + nDY * nDLen};
-                stvPathNode[1] = {nX0              , nY0 + nDY * nDLen};
-                stvPathNode[2] = {nX0 + nDX * nDLen, nY0              };
+                pathNodeList[0] = {nX0 + nDX * nDLen, nY0 + nDY * nDLen};
+                pathNodeList[1] = {nX0              , nY0 + nDY * nDLen};
+                pathNodeList[2] = {nX0 + nDX * nDLen, nY0              };
                 break;
             }
         default:
@@ -1144,7 +1145,7 @@ std::array<PathFind::PathNode, 3> CharObject::GetChaseGrid(int nX, int nY, int n
                 break;
             }
     }
-    return stvPathNode;
+    return pathNodeList;
 }
 
 double CharObject::OneStepCost(const CharObject::COPathFinder *pFinder, int nCheckCO, int nX0, int nY0, int nX1, int nY1) const
