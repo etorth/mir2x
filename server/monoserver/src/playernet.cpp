@@ -64,11 +64,15 @@ void Player::Net_CM_QUERYCORECORD(uint8_t, const uint8_t *pBuf, size_t)
     }
 }
 
-void Player::Net_CM_REQUESTSPACEMOVE(uint8_t, const uint8_t *pBuf, size_t)
+void Player::Net_CM_REQUESTSPACEMOVE(uint8_t, const uint8_t *buf, size_t)
 {
-    CMReqestSpaceMove stCMRSM;
-    std::memcpy(&stCMRSM, pBuf, sizeof(stCMRSM));
-    requestSpaceMove(stCMRSM.MapID, stCMRSM.X, stCMRSM.Y, false, [](){}, [](){});
+    const auto cmRSM = ClientMsg::conv<CMReqestSpaceMove>(buf);
+    if(cmRSM.MapID == MapID()){
+        requestSpaceMove(cmRSM.X, cmRSM.Y, false);
+    }
+    else{
+        requestMapSwitch(cmRSM.MapID, cmRSM.X, cmRSM.Y, false);
+    }
 }
 
 void Player::Net_CM_REQUESTKILLPETS(uint8_t, const uint8_t *, size_t)

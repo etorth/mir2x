@@ -17,6 +17,7 @@
  */
 
 #include <cinttypes>
+#include "toll.hpp"
 #include "player.hpp"
 #include "dbcomid.hpp"
 #include "memorypn.hpp"
@@ -189,100 +190,13 @@ void Player::On_MPK_QUERYCORECORD(const MessagePack &rstMPK)
     ReportCORecord(stAMQCOR.UID);
 }
 
-void Player::On_MPK_MAPSWITCH(const MessagePack &rstMPK)
+void Player::On_MPK_MAPSWITCH(const MessagePack &mpk)
 {
-    AMMapSwitch stAMMS;
-    std::memcpy(&stAMMS, rstMPK.Data(), sizeof(stAMMS));
-
-    if(!(stAMMS.UID && stAMMS.MapID)){
-        g_monoServer->addLog(LOGTYPE_WARNING, "Map switch request failed: (UID = %" PRIu64 ", MapID = %" PRIu32 ")", stAMMS.UID, stAMMS.MapID);
+    const auto amMS = mpk.conv<AMMapSwitch>();
+    if(!(amMS.UID && amMS.MapID)){
+        g_monoServer->addLog(LOGTYPE_WARNING, "Map switch request failed: (UID = %llu, MapID = %llu)", toLLU(amMS.UID), toLLU(amMS.MapID));
     }
-
-    AMTryMapSwitch stAMTMS;
-    std::memset(&stAMTMS, 0, sizeof(stAMTMS));
-
-    stAMTMS.UID    = UID();         //
-    stAMTMS.MapID  = m_map->ID();   // current map
-    stAMTMS.MapUID = m_map->UID();  // current map
-    stAMTMS.X      = X();           // current map
-    stAMTMS.Y      = Y();           // current map
-    stAMTMS.EndX   = stAMMS.X;      // map to switch to
-    stAMTMS.EndY   = stAMMS.Y;      // map to switch to
-
-    // send request to the new map
-    // if request rejected then it stays in current map
-    m_actorPod->forward(stAMMS.UID, {MPK_TRYMAPSWITCH, stAMTMS}, [this](const MessagePack &rstRMPK)
-    {
-        switch(rstRMPK.Type()){
-            case MPK_MAPSWITCHOK:
-                {
-                    // new map accepts this switch request
-                    // new map will guarantee to outlive current object
-                    AMMapSwitchOK stAMMSOK;
-                    std::memcpy(&stAMMSOK, rstRMPK.Data(), sizeof(stAMMSOK));
-                    if(true
-                            && ((ServerMap *)(stAMMSOK.Ptr))
-                            && ((ServerMap *)(stAMMSOK.Ptr))->ID()
-                            && ((ServerMap *)(stAMMSOK.Ptr))->UID()
-                            && ((ServerMap *)(stAMMSOK.Ptr))->ValidC(stAMMSOK.X, stAMMSOK.Y)){
-
-                        AMTryLeave stAMTL;
-                        std::memset(&stAMTL, 0, sizeof(stAMTL));
-
-                        stAMTL.UID   = UID();
-                        stAMTL.MapID = m_map->ID();
-                        stAMTL.X     = X();
-                        stAMTL.Y     = Y();
-
-                        // current map respond for the leave request
-                        // dangerous here, we should keep m_map always valid
-                        m_actorPod->forward(m_map->UID(), {MPK_TRYLEAVE, stAMTL}, [this, stAMMSOK, rstRMPK](const MessagePack &rstLeaveRMPK)
-                        {
-                            switch(rstLeaveRMPK.Type()){
-                                case MPK_OK:
-                                    {
-                                        // 1. response to new map ``I am here"
-                                        m_map   = (ServerMap *)(stAMMSOK.Ptr);
-                                        m_X = stAMMSOK.X;
-                                        m_Y = stAMMSOK.Y;
-                                        m_actorPod->forward(m_map->UID(), MPK_OK, rstRMPK.ID());
-
-                                        // 2. notify all players on the new map
-                                        DispatchAction(ActionStand(X(), Y(), Direction()));
-
-                                        // 3. inform the client for map swith
-                                        ReportStand();
-
-                                        // 4. pull all co's on the new map
-                                        PullRectCO(10, 10);
-                                        break;
-                                    }
-                                default:
-                                    {
-                                        // can't leave???, illegal response
-                                        // server map won't respond any other message not MPK_OK
-                                        // dangerous issue since we then can never inform the new map ``we can't come to you"
-                                        m_actorPod->forward(((ServerMap *)(stAMMSOK.Ptr))->UID(), MPK_ERROR, rstRMPK.ID());
-                                        g_monoServer->addLog(LOGTYPE_WARNING, "Leave request failed: (UID = %" PRIu64 ", MapID = %" PRIu32 ")", UID(), ((ServerMap *)(stAMMSOK.Ptr))->ID());
-                                        break;
-                                    }
-                            }
-                        });
-                        return;
-                    }
-
-                    // AMMapSwitchOK invalid
-                    g_monoServer->addLog(LOGTYPE_WARNING, "Invalid AMMapSwitchOK: Map = %p", stAMMSOK.Ptr);
-                    return;
-                }
-            default:
-                {
-                    // do nothing
-                    // new map reject this switch request
-                    return;
-                }
-        }
-    });
+    requestMapSwitch(amMS.MapID, amMS.X, amMS.Y, false);
 }
 
 void Player::On_MPK_NPCQUERY(const MessagePack &mpk)

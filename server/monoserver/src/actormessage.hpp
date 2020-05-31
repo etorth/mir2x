@@ -103,9 +103,6 @@ struct AMBadChannel
 
 struct AMTryLeave
 {
-    uint64_t UID;
-    uint32_t MapID;
-
     int X;
     int Y;
 };
@@ -280,15 +277,9 @@ struct AMMapSwitch
 
 struct AMTryMapSwitch
 {
-    uint64_t UID;
-    uint32_t MapID;
-    uint64_t MapUID;
-
     int X;
     int Y;
-
-    int EndX;
-    int EndY;
+    bool strictMove;
 };
 
 struct AMQueryMapUID

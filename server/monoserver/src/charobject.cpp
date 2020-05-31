@@ -180,10 +180,6 @@ uint64_t CharObject::Activate()
     return 0;
 }
 
-void CharObject::ReportAction(uint64_t, const ActionNode &)
-{
-}
-
 void CharObject::DispatchAction(const ActionNode &rstAction)
 {
     // should check to avoid dead CO call this function
@@ -420,99 +416,114 @@ bool CharObject::requestMove(int nX, int nY, int nSpeed, bool allowHalfMove, boo
     });
 }
 
-bool CharObject::requestSpaceMove(uint32_t mapID, int nX, int nY, bool strictMove, std::function<void()> fnOnMoveOK, std::function<void()> fnOnMoveError)
+bool CharObject::requestSpaceMove(int locX, int locY, bool strictMove, std::function<void()> fnOnOK, std::function<void()> fnOnError)
 {
-    if(!(uidf::buildMapUID(mapID) && (nX >= 0) && (nY >= 0))){
-        throw fflerror("invalid map destination: (%lld, %d, %d)", toLLD(mapID), nX, nY);
+    if(strictMove){
+        if(!m_map->groundValid(locX, locY)){
+            throw fflerror("invalid destination: (mapID = %lld, x = %d, y = %d)", toLLU(MapID()), locX, locY);
+        }
+    }
+    else{
+        if(!m_map->ValidC(locX, locY)){
+            throw fflerror("invalid destination: (mapID = %lld, x = %d, y = %d)", toLLU(MapID()), locX, locY);
+        }
     }
 
     if(!canMove()){
-        fnOnMoveError();
+        if(fnOnError){
+            fnOnError();
+        }
         return false;
     }
 
     AMTrySpaceMove amTSM;
     std::memset(&amTSM, 0, sizeof(amTSM));
 
-    amTSM.UID        = UID();
-    amTSM.X          = nX;
-    amTSM.Y          = nY;
+    amTSM.UID = UID();
+    amTSM.X   = locX;
+    amTSM.Y   = locY;
     amTSM.StrictMove = strictMove;
 
     m_moveLock = true;
-    return m_actorPod->forward(uidf::buildMapUID(mapID), {MPK_TRYSPACEMOVE, amTSM}, [this, fnOnMoveOK, fnOnMoveError](const MessagePack &rstRMPK)
+    return m_actorPod->forward(MapUID(), {MPK_TRYSPACEMOVE, amTSM}, [this, fnOnOK, fnOnError](const MessagePack &rmpk)
     {
         if(!m_moveLock){
-            throw fflerror("moveLock released before map responds: ClassName = %s", UIDName());
+            throw fflerror("moveLock released before map responds: UIDName = %s", UIDName());
         }
         m_moveLock = false;
 
         // handle move, CO can be dead already
         // check if current CO can move even we checked before
 
-        switch(rstRMPK.Type()){
+        switch(rmpk.Type()){
             case MPK_SPACEMOVEOK:
                 {
                     // need to leave src map
                     // dst map already says OK for current move
 
                     if(!canMove()){
-                        m_actorPod->forward(rstRMPK.from(), MPK_ERROR, rstRMPK.ID());
-                        fnOnMoveError();
+                        m_actorPod->forward(rmpk.from(), MPK_ERROR, rmpk.ID());
+                        if(fnOnError){
+                            fnOnError();
+                        }
                         return;
                     }
 
-                    AMTryLeave stAMTL;
-                    std::memset(&stAMTL, 0, sizeof(stAMTL));
+                    AMTryLeave amTL;
+                    std::memset(&amTL, 0, sizeof(amTL));
 
-                    stAMTL.UID   = UID();
-                    stAMTL.MapID = m_map->ID();
-                    stAMTL.X     = X();
-                    stAMTL.Y     = Y();
+                    amTL.X = X();
+                    amTL.Y = Y();
 
                     m_moveLock = true;
-                    m_actorPod->forward(m_map->UID(), {MPK_TRYLEAVE, stAMTL}, [this, rstRMPK, fnOnMoveOK, fnOnMoveError](const MessagePack &rstLeaveRMPK)
+                    m_actorPod->forward(m_map->UID(), {MPK_TRYLEAVE, amTL}, [this, rmpk, fnOnOK, fnOnError](const MessagePack &leavermpk)
                     {
                         if(!m_moveLock){
-                            throw fflerror("moveLock released before map responds: ClassName = %s", UIDName());
+                            throw fflerror("moveLock released before map responds: UIDName = %s", UIDName());
                         }
                         m_moveLock = false;
 
-                        switch(rstLeaveRMPK.Type()){
+                        switch(leavermpk.Type()){
                             case MPK_OK:
                                 {
-                                    AMSpaceMoveOK stAMSMOK;
-                                    std::memcpy(&stAMSMOK, rstRMPK.Data(), sizeof(stAMSMOK));
-
+                                    const auto amSMOK = rmpk.conv<AMSpaceMoveOK>();
                                     if(!canMove()){
-                                        m_actorPod->forward(rstRMPK.from(), MPK_ERROR, rstRMPK.ID());
-                                        fnOnMoveError();
+                                        m_actorPod->forward(rmpk.from(), MPK_ERROR, rmpk.ID());
+                                        if(fnOnError){
+                                            fnOnError();
+                                        }
                                         return;
                                     }
-                                    
+
                                     // dispatch space move part 1 on old map
                                     DispatchAction(ActionSpaceMove1(X(), Y(), Direction()));
 
                                     // setup new map
                                     // don't use the requested location
-                                    m_X   = stAMSMOK.X;
-                                    m_Y   = stAMSMOK.Y;
-                                    m_map = (ServerMap *)(stAMSMOK.Ptr);
+                                    m_X   = amSMOK.X;
+                                    m_Y   = amSMOK.Y;
+                                    m_map = (ServerMap *)(amSMOK.Ptr);
 
                                     m_lastMoveTime = g_monoServer->getCurrTick();
-                                    m_actorPod->forward(rstRMPK.from(), MPK_OK, rstRMPK.ID());
+                                    m_actorPod->forward(rmpk.from(), MPK_OK, rmpk.ID());
 
                                     //  dispatch/report space move part 2 on new map
                                     DispatchAction(ActionSpaceMove2(X(), Y(), Direction()));
-                                    ReportAction(UID(), ActionSpaceMove2(X(), Y(), Direction()));
+                                    if(uidf::getUIDType(UID()) == UID_PLY){
+                                        dynamic_cast<Player *>(this)->ReportAction(UID(), ActionSpaceMove2(X(), Y(), Direction()));
+                                    }
 
-                                    fnOnMoveOK();
+                                    if(fnOnOK){
+                                        fnOnOK();
+                                    }
                                     return;
                                 }
                             default:
                                 {
-                                    m_actorPod->forward(rstRMPK.from(), MPK_ERROR, rstRMPK.ID());
-                                    fnOnMoveError();
+                                    m_actorPod->forward(rmpk.from(), MPK_ERROR, rmpk.ID());
+                                    if(fnOnError){
+                                        fnOnError();
+                                    }
                                     return;
                                 }
                         }
@@ -521,7 +532,9 @@ bool CharObject::requestSpaceMove(uint32_t mapID, int nX, int nY, bool strictMov
                 }
             default:
                 {
-                    fnOnMoveError();
+                    if(fnOnError){
+                        fnOnError();
+                    }
                     break;
                 }
         }
@@ -559,7 +572,7 @@ bool CharObject::requestMapSwitch(uint32_t mapID, int locX, int locY, bool stric
 
                     amTMS.X = locX;
                     amTMS.Y = locY;
-                    // amTMS.strictMove = strictMove;
+                    amTMS.strictMove = strictMove;
 
                     // send request to the new map
                     // if request rejected then it stays in current map

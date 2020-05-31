@@ -140,7 +140,7 @@ bool Monster::RandomMove()
             int nX = -1;
             int nY = -1;
             if(OneStepReach(Direction(), 1, &nX, &nY) == 1){
-                return requestMove(nX, nY, MoveSpeed(), false, false, [](){}, [](){});
+                return requestMove(nX, nY, MoveSpeed(), false, false);
             }
             return false;
         };
@@ -440,7 +440,7 @@ void Monster::FollowMaster(std::function<void()> fnOnOK, std::function<void()> f
         // slave have to do space move
 
         auto [nBackX, nBackY] = fnGetBack(nX, nY, nDirection, 3);
-        return requestSpaceMove(nMapID, nBackX, nBackY, false, fnOnOK, fnOnError);
+        return requestSpaceMove(nBackX, nBackY, false, fnOnOK, fnOnError);
     });
 }
 

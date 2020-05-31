@@ -561,7 +561,7 @@ void Player::OnCMActionMove(CMAction stCMA)
     switch(estimateHop(nX0, nY0)){
         case 0:
             {
-                requestMove(nX1, nY1, MoveSpeed(), false, false, [](){}, [this]()
+                requestMove(nX1, nY1, MoveSpeed(), false, false, nullptr, [this]()
                 {
                     ReportStand();
                 });
@@ -723,7 +723,7 @@ void Player::OnCMActionSpell(CMAction stCMA)
 
     // sync the location
     // for spelling magic location is not critical
-    requestMove(nX, nY, SYS_MAXSPEED, false, false, [](){}, [this]()
+    requestMove(nX, nY, SYS_MAXSPEED, false, false, nullptr, [this]()
     {
         ReportStand();
     });

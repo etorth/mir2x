@@ -246,9 +246,6 @@ class CharObject: public ServerObject
         virtual void DispatchAction(uint64_t, const ActionNode &);
 
     protected:
-        virtual void ReportAction(uint64_t, const ActionNode &);
-
-    protected:
         virtual int OneStepReach(int, int, int *, int *);
 
     protected:
@@ -271,7 +268,12 @@ class CharObject: public ServerObject
                 std::function<void()> = nullptr);   // fnOnError
 
     protected:
-        virtual bool requestSpaceMove(uint32_t, int, int, bool, std::function<void()>, std::function<void()>);
+        bool requestSpaceMove(
+                int,                                // x
+                int,                                // y
+                bool,                               // strictMove
+                std::function<void()> = nullptr,    // fnOnOK
+                std::function<void()> = nullptr);   // fnOnError
 
         bool requestMapSwitch(
                 uint32_t,                           // mapID
