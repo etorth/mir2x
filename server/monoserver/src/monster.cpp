@@ -997,6 +997,10 @@ bool Monster::MoveOneStepGreedy(int nX, int nY, std::function<void()> fnOnOK, st
     const bool longJump = (MaxStep() > 1) && (mathf::CDistance(X(), Y(), nX, nY) >= MaxStep());
     const auto pathNodeList = GetValidChaseGrid(nX, nY, longJump ? MaxStep() : 1);
 
+    if(pathNodeList.size() > 3){
+        throw fflerror("invalid chase grid result: size = %zu", pathNodeList.size());
+    }
+
     if(pathNodeList.empty()){
         fnOnError();
         return false;
@@ -1010,6 +1014,10 @@ bool Monster::MoveOneStepGreedy(int nX, int nY, std::function<void()> fnOnOK, st
         }
 
         const auto minPathNodeList = GetValidChaseGrid(nX, nY, 1);
+        if(pathNodeList.size() > 3){
+            throw fflerror("invalid chase grid result: size = %zu", minPathNodeList.size());
+        }
+
         if(minPathNodeList.empty()){
             fnOnError();
             return;
