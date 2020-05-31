@@ -201,7 +201,7 @@ void ServerMap::On_MPK_TRYSPACEMOVE(const MessagePack &rstMPK)
                     // 2. we won't take care of where it comes from
                     // 3. we don't take reservation of the dstination cell
 
-                    AddGridUID(nUID, nDstX, nDstY, true);
+                    addGridUID(nUID, nDstX, nDstY, true);
                     break;
                 }
             default:
@@ -246,7 +246,7 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK)
     }
 
     bool bFindCO = false;
-    for(auto nUID: GetUIDListRef(stAMTM.X, stAMTM.Y)){
+    for(auto nUID: getUIDList(stAMTM.X, stAMTM.Y)){
         if(nUID == stAMTM.UID){
             bFindCO = true;
             break;
@@ -351,13 +351,13 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK)
     stAMMOK.EndX  = nMostX;
     stAMMOK.EndY  = nMostY;
 
-    GetCell(nMostX, nMostY).Locked = true;
+    getCell(nMostX, nMostY).Locked = true;
     m_actorPod->forward(rstMPK.from(), {MPK_MOVEOK, stAMMOK}, rstMPK.ID(), [this, stAMTM, nMostX, nMostY](const MessagePack &rstRMPK)
     {
-        if(!GetCell(nMostX, nMostY).Locked){
+        if(!getCell(nMostX, nMostY).Locked){
             throw fflerror("cell lock released before MOVEOK get responsed: MapUID = %" PRIu64, UID());
         }
-        GetCell(nMostX, nMostY).Locked = false;
+        getCell(nMostX, nMostY).Locked = false;
 
         switch(rstRMPK.Type()){
             case MPK_OK:
@@ -367,7 +367,7 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK)
 
                     // 1. leave last cell
                     bool bFindCO = false;
-                    auto &rstUIDList = GetUIDListRef(stAMTM.X, stAMTM.Y);
+                    auto &rstUIDList = getUIDList(stAMTM.X, stAMTM.Y);
 
                     for(auto &nUID: rstUIDList){
                         if(nUID == stAMTM.UID){
@@ -384,15 +384,15 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK)
 
                     // 2. push to the new cell
                     //    check if it should switch the map
-                    AddGridUID(stAMTM.UID, nMostX, nMostY, true);
-                    if(uidf::getUIDType(stAMTM.UID) == UID_PLY && GetCell(nMostX, nMostY).MapID){
+                    addGridUID(stAMTM.UID, nMostX, nMostY, true);
+                    if(uidf::getUIDType(stAMTM.UID) == UID_PLY && getCell(nMostX, nMostY).mapID){
                         AMMapSwitch stAMMS;
                         std::memset(&stAMMS, 0, sizeof(stAMMS));
 
-                        stAMMS.UID   = uidf::buildMapUID(GetCell(nMostX, nMostY).MapID); // TODO
-                        stAMMS.MapID = GetCell(nMostX, nMostY).MapID;
-                        stAMMS.X     = GetCell(nMostX, nMostY).SwitchX;
-                        stAMMS.Y     = GetCell(nMostX, nMostY).SwitchY;
+                        stAMMS.UID   = uidf::buildMapUID(getCell(nMostX, nMostY).mapID); // TODO
+                        stAMMS.MapID = getCell(nMostX, nMostY).mapID;
+                        stAMMS.X     = getCell(nMostX, nMostY).switchX;
+                        stAMMS.Y     = getCell(nMostX, nMostY).switchY;
                         m_actorPod->forward(stAMTM.UID, {MPK_MAPSWITCH, stAMMS});
                     }
                     break;
@@ -405,25 +405,20 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK)
     });
 }
 
-void ServerMap::On_MPK_TRYLEAVE(const MessagePack &rstMPK)
+void ServerMap::On_MPK_TRYLEAVE(const MessagePack &mpk)
 {
-    AMTryLeave stAMTL;
-    std::memcpy(&stAMTL, rstMPK.Data(), rstMPK.DataLen());
-
-    if(stAMTL.UID && In(stAMTL.MapID, stAMTL.X, stAMTL.Y)){
-        for(auto nUID: GetUIDListRef(stAMTL.X, stAMTL.Y)){
-            if(nUID == stAMTL.UID){
-                RemoveGridUID(nUID, stAMTL.X, stAMTL.Y);
-                m_actorPod->forward(rstMPK.from(), MPK_OK, rstMPK.ID());
-                return;
-            }
-        }
+    const auto amTL = mpk.conv<AMTryLeave>();
+    if(In(ID(), amTL.X, amTL.Y) && hasGridUID(mpk.from(), amTL.X, amTL.Y)){
+        removeGridUID(mpk.from(), amTL.X, amTL.Y);
+        m_actorPod->forward(mpk.from(), MPK_OK, mpk.ID());
+        return;
     }
 
     // otherwise try leave failed
     // we reply MPK_ERROR but this is already something wrong, map never prevert leave on purpose
-    m_actorPod->forward(rstMPK.from(), MPK_ERROR, rstMPK.ID());
-    g_monoServer->addLog(LOGTYPE_WARNING, "Leave request failed: UID = %" PRIu64 ", X = %d, Y = %d", stAMTL.UID, stAMTL.X, stAMTL.Y);
+
+    m_actorPod->forward(mpk.from(), MPK_ERROR, mpk.ID());
+    g_monoServer->addLog(LOGTYPE_WARNING, "Leave request failed: UID = %llu, X = %d, Y = %d", toLLU(mpk.from()), amTL.X, amTL.Y);
 }
 
 void ServerMap::On_MPK_PULLCOINFO(const MessagePack &rstMPK)
@@ -452,41 +447,38 @@ void ServerMap::On_MPK_PULLCOINFO(const MessagePack &rstMPK)
     });
 }
 
-void ServerMap::On_MPK_TRYMAPSWITCH(const MessagePack &rstMPK)
+void ServerMap::On_MPK_TRYMAPSWITCH(const MessagePack &mpk)
 {
-    AMTryMapSwitch stAMTMS;
-    std::memcpy(&stAMTMS, rstMPK.Data(), sizeof(stAMTMS));
+    const auto reqUID = mpk.from();
+    const auto amTMS  = mpk.conv<AMTryMapSwitch>();
 
-    int nX = stAMTMS.EndX;
-    int nY = stAMTMS.EndY;
-
-    if(!canMove(false, false, nX, nY)){
-        g_monoServer->addLog(LOGTYPE_WARNING, "Requested map switch location is invalid: MapName = %s, X = %d, Y = %d", DBCOM_MAPRECORD(ID()).Name, nX, nY);
-        m_actorPod->forward(rstMPK.from(), MPK_ERROR, rstMPK.ID());
+    if(!canMove(false, false, amTMS.X, amTMS.Y)){
+        m_actorPod->forward(mpk.from(), MPK_ERROR, mpk.ID());
         return;
     }
 
-    AMMapSwitchOK stAMMSOK;
-    std::memset(&stAMMSOK, 0, sizeof(stAMMSOK));
+    AMMapSwitchOK amMSOK;
+    std::memset(&amMSOK, 0, sizeof(amMSOK));
 
-    stAMMSOK.Ptr = this;
-    stAMMSOK.X   = nX;
-    stAMMSOK.Y   = nY;
+    amMSOK.Ptr = this;
+    amMSOK.X   = amTMS.X;
+    amMSOK.Y   = amTMS.Y;
 
-    GetCell(nX, nY).Locked = true;
-    m_actorPod->forward(rstMPK.from(), {MPK_MAPSWITCHOK, stAMMSOK}, rstMPK.ID(), [this, stAMTMS, stAMMSOK](const MessagePack &rstRMPK)
+    getCell(amTMS.X, amTMS.Y).Locked = true;
+    m_actorPod->forward(mpk.from(), {MPK_MAPSWITCHOK, amMSOK}, mpk.ID(), [this, reqUID, amMSOK](const MessagePack &rmpk)
     {
-        if(!GetCell(stAMMSOK.X, stAMMSOK.Y).Locked){
-            throw fflerror("cell lock released before MAPSWITCHOK get responsed: MapUID = %" PRIu64, UID());
+        if(!getCell(amMSOK.X, amMSOK.Y).Locked){
+            throw fflerror("cell lock released before MAPSWITCHOK get responsed: MapUID = %lld", toLLU(UID()));
         }
 
-        GetCell(stAMMSOK.X, stAMMSOK.Y).Locked = false;
-        switch(rstRMPK.Type()){
+        getCell(amMSOK.X, amMSOK.Y).Locked = false;
+        switch(rmpk.Type()){
             case MPK_OK:
                 {
                     // didn't check map switch here
                     // map switch should be triggered by move request
-                    AddGridUID(stAMTMS.UID, stAMMSOK.X, stAMMSOK.Y, true);
+
+                    addGridUID(reqUID, amMSOK.X, amMSOK.Y, true);
                     break;
                 }
             default:
@@ -589,7 +581,7 @@ void ServerMap::On_MPK_UPDATEHP(const MessagePack &rstMPK)
         DoCircle(stAMUHP.X, stAMUHP.Y, 20, [this, stAMUHP](int nX, int nY) -> bool
         {
             if(true || ValidC(nX, nY)){
-                for(auto nUID: GetUIDListRef(nX, nY)){
+                for(auto nUID: getUIDList(nX, nY)){
                     if(nUID != stAMUHP.UID){
                         if(uidf::getUIDType(nUID) == UID_PLY || uidf::getUIDType(nUID) == UID_MON){
                             m_actorPod->forward(nUID, {MPK_UPDATEHP, stAMUHP});
@@ -608,11 +600,11 @@ void ServerMap::On_MPK_DEADFADEOUT(const MessagePack &rstMPK)
     std::memcpy(&stAMDFO, rstMPK.Data(), sizeof(stAMDFO));
 
     if(ValidC(stAMDFO.X, stAMDFO.Y)){
-        RemoveGridUID(stAMDFO.UID, stAMDFO.X, stAMDFO.Y);
+        removeGridUID(stAMDFO.UID, stAMDFO.X, stAMDFO.Y);
         DoCircle(stAMDFO.X, stAMDFO.Y, 20, [this, stAMDFO](int nX, int nY) -> bool
         {
             if(true || ValidC(nX, nY)){
-                for(auto nUID: GetUIDListRef(nX, nY)){
+                for(auto nUID: getUIDList(nX, nY)){
                     if(nUID != stAMDFO.UID){
                         if(uidf::getUIDType(nUID) == UID_PLY || uidf::getUIDType(nUID) == UID_MON){
                             m_actorPod->forward(nUID, {MPK_DEADFADEOUT, stAMDFO});
@@ -638,7 +630,7 @@ void ServerMap::On_MPK_QUERYCOCOUNT(const MessagePack &rstMPK)
     int nCOCount = 0;
     for(int nX = 0; nX < W(); ++nX){
         for(int nY = 0; nY < H(); ++nY){
-            std::for_each(GetUIDListRef(nX, nY).begin(), GetUIDListRef(nX, nY).end(), [stAMQCOC, &nCOCount](uint64_t nUID){
+            std::for_each(getUIDList(nX, nY).begin(), getUIDList(nX, nY).end(), [stAMQCOC, &nCOCount](uint64_t nUID){
                 if(uidf::getUIDType(nUID) == UID_PLY || uidf::getUIDType(nUID) == UID_MON){
                     if(stAMQCOC.Check.NPC    ){ nCOCount++; return; }
                     if(stAMQCOC.Check.Player ){ nCOCount++; return; }
@@ -667,7 +659,7 @@ void ServerMap::On_MPK_QUERYRECTUIDLIST(const MessagePack &rstMPK)
     for(int nY = stAMQRUIDL.Y; nY < stAMQRUIDL.Y + stAMQRUIDL.H; ++nY){
         for(int nX = stAMQRUIDL.X; nX < stAMQRUIDL.X + stAMQRUIDL.W; ++nX){
             if(In(stAMQRUIDL.MapID, nX, nY)){
-                for(auto nUID: GetUIDListRef(nX, nY)){
+                for(auto nUID: getUIDList(nX, nY)){
                     stAMUIDL.UIDList[nIndex++] = nUID;
                 }
             }
@@ -752,12 +744,12 @@ void ServerMap::On_MPK_OFFLINE(const MessagePack &rstMPK)
 
     // this may fail
     // because player may get offline at try move
-    RemoveGridUID(stAMO.UID, stAMO.X, stAMO.Y);
+    removeGridUID(stAMO.UID, stAMO.X, stAMO.Y);
 
     DoCircle(stAMO.X, stAMO.Y, 10, [stAMO, this](int nX, int nY) -> bool
     {
         if(true || ValidC(nX, nY)){
-            for(auto nUID: GetUIDListRef(nX, nY)){
+            for(auto nUID: getUIDList(nX, nY)){
                 if(nUID != stAMO.UID){
                     m_actorPod->forward(nUID, {MPK_OFFLINE, stAMO});
                 }

@@ -73,20 +73,24 @@ class ServerMap final: public ServerObject
             bool Locked;
             std::vector<uint64_t> UIDList;
 
-            uint32_t MapID;
-            int      SwitchX;
-            int      SwitchY;
+            uint32_t mapID;
+            int      switchX;
+            int      switchY;
 
             CacheQueue<CommonItem, SYS_MAXDROPITEM> GroundItemQueue;
 
             MapCell()
                 : Locked(false)
-                , UIDList()
-                , MapID(0)
-                , SwitchX(-1)
-                , SwitchY(-1)
+                , mapID(0)
+                , switchX(-1)
+                , switchY(-1)
                 , GroundItemQueue()
             {}
+
+            bool empty() const
+            {
+                return !Locked && UIDList.empty() && (mapID == 0) && GroundItemQueue.Empty();
+            }
         };
 
     private:
@@ -165,8 +169,9 @@ class ServerMap final: public ServerObject
         bool Load(const char *);
 
     private:
-        void    AddGridUID(uint64_t, int, int, bool);
-        void RemoveGridUID(uint64_t, int, int);
+        void    addGridUID(uint64_t, int, int, bool);
+        bool    hasGridUID(uint64_t, int, int) const;
+        void removeGridUID(uint64_t, int, int);
 
     private:
         [[maybe_unused]] std::tuple<bool, int, int> GetValidGrid(bool, bool, int) const;
@@ -184,36 +189,42 @@ class ServerMap final: public ServerObject
         int GetMonsterCount(uint32_t);
 
     private:
-        auto &GetCell(int nX, int nY)
+        auto &getCell(int nX, int nY)
         {
+            if(!ValidC(nX, nY)){
+                throw fflerror("invalid location: x = %d, y = %d", nX, nY);
+            }
             return m_cellVec2D[nX][nY];
         }
 
-        const auto &GetCell(int nX, int nY) const
+        const auto &getCell(int nX, int nY) const
         {
+            if(!ValidC(nX, nY)){
+                throw fflerror("invalid location: x = %d, y = %d", nX, nY);
+            }
             return m_cellVec2D[nX][nY];
         }
 
     private:
-        auto &GetUIDListRef(int nX, int nY)
+        auto &getUIDList(int nX, int nY)
         {
-            return m_cellVec2D[nX][nY].UIDList;
+            return getCell(nX, nY).UIDList;
         }
 
-        const auto &GetUIDListRef(int nX, int nY) const
+        const auto &getUIDList(int nX, int nY) const
         {
-            return m_cellVec2D[nX][nY].UIDList;
+            return getCell(nX, nY).UIDList;
         }
 
     private:
         auto &GetGroundItemList(int nX, int nY)
         {
-            return m_cellVec2D[nX][nY].GroundItemQueue;
+            return getCell(nX, nY).GroundItemQueue;
         }
 
         const auto &GetGroundItemList(int nX, int nY) const
         {
-            return m_cellVec2D[nX][nY].GroundItemQueue;
+            return getCell(nX, nY).GroundItemQueue;
         }
 
     private:

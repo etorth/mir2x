@@ -130,7 +130,6 @@ ServerMap::ServerMap(ServiceCore *pServiceCore, uint32_t nMapID)
           throw fflerror("load map failed: ID = %d, Name = %s", nMapID, DBCOM_MAPRECORD(nMapID).Name);
       }()))
     , m_serviceCore(pServiceCore)
-    , m_cellVec2D()
     , m_luaModule(nullptr)
 {
     if(!m_mir2xMapData.Valid()){
@@ -153,9 +152,9 @@ ServerMap::ServerMap(ServiceCore *pServiceCore, uint32_t nMapID)
 
             for(int nW = 0; nW < stLinkEntry.W; ++nW){
                 for(int nH = 0; nH < stLinkEntry.H; ++nH){
-                    GetCell(stLinkEntry.X + nW,stLinkEntry.Y + nH).MapID   = DBCOM_MAPID(stLinkEntry.EndName);
-                    GetCell(stLinkEntry.X + nW,stLinkEntry.Y + nH).SwitchX = stLinkEntry.EndX;
-                    GetCell(stLinkEntry.X + nW,stLinkEntry.Y + nH).SwitchY = stLinkEntry.EndY;
+                    getCell(stLinkEntry.X + nW,stLinkEntry.Y + nH).mapID   = DBCOM_MAPID(stLinkEntry.EndName);
+                    getCell(stLinkEntry.X + nW,stLinkEntry.Y + nH).switchX = stLinkEntry.EndX;
+                    getCell(stLinkEntry.X + nW,stLinkEntry.Y + nH).switchY = stLinkEntry.EndY;
                 }
             }
         }else{
@@ -272,7 +271,7 @@ bool ServerMap::canMove(bool bCheckCO, bool bCheckLock, int nX, int nY) const
 {
     if(groundValid(nX, nY)){
         if(bCheckCO){
-            for(auto nUID: GetUIDListRef(nX, nY)){
+            for(auto nUID: getUIDList(nX, nY)){
                 if(auto nType = uidf::getUIDType(nUID); nType == UID_PLY || nType == UID_MON){
                     return false;
                 }
@@ -280,7 +279,7 @@ bool ServerMap::canMove(bool bCheckCO, bool bCheckLock, int nX, int nY) const
         }
 
         if(bCheckLock){
-            if(GetCell(nX, nY).Locked){
+            if(getCell(nX, nY).Locked){
                 return false;
             }
         }
@@ -460,35 +459,47 @@ uint64_t ServerMap::Activate()
     return 0;
 }
 
-void ServerMap::AddGridUID(uint64_t nUID, int nX, int nY, bool bForce)
+void ServerMap::addGridUID(uint64_t uid, int nX, int nY, bool bForce)
 {
     if(!ValidC(nX, nY)){
         throw fflerror("invalid location: (%d, %d)", nX, nY);
     }
 
     if(bForce || groundValid(nX, nY)){
-        if(auto &rstUIDList = GetUIDListRef(nX, nY); std::find(rstUIDList.begin(), rstUIDList.end(), nUID) == rstUIDList.end()){
-            rstUIDList.push_back(nUID);
+        if(!hasGridUID(uid, nX, nY)){
+            getUIDList(nX, nY).push_back(uid);
         }
     }
 }
 
-void ServerMap::RemoveGridUID(uint64_t nUID, int nX, int nY)
+bool ServerMap::hasGridUID(uint64_t uid, int nX, int nY) const
 {
     if(!ValidC(nX, nY)){
         throw fflerror("invalid location: (%d, %d)", nX, nY);
     }
 
-    auto &rstUIDList = GetUIDListRef(nX, nY);
-    auto  pUIDRecord = std::find(rstUIDList.begin(), rstUIDList.end(), nUID);
+    const auto &uidList = getUIDList(nX, nY);
+    return std::find(uidList.begin(), uidList.end(), uid) != uidList.end();
+}
 
-    if(pUIDRecord != rstUIDList.end()){
-        std::swap(rstUIDList.back(), *pUIDRecord);
-        rstUIDList.pop_back();
+void ServerMap::removeGridUID(uint64_t uid, int nX, int nY)
+{
+    if(!ValidC(nX, nY)){
+        throw fflerror("invalid location: (%d, %d)", nX, nY);
+    }
 
-        if(rstUIDList.size() * 2 < rstUIDList.capacity()){
-            rstUIDList.shrink_to_fit();
-        }
+    auto &uidList = getUIDList(nX, nY);
+    auto p = std::find(uidList.begin(), uidList.end(), uid); 
+
+    if(p == uidList.end()){
+        return;
+    }
+
+    std::swap(uidList.back(), *p);
+    uidList.pop_back();
+
+    if(uidList.size() * 2 < uidList.capacity()){
+        uidList.shrink_to_fit();
     }
 }
 
@@ -502,7 +513,7 @@ bool ServerMap::doUIDList(int nX, int nY, const std::function<bool(uint64_t)> &f
         return false;
     }
 
-    for(auto nUID: GetUIDListRef(nX, nY)){
+    for(auto nUID: getUIDList(nX, nY)){
         if(fnOP(nUID)){
             return true;
         }
@@ -717,7 +728,7 @@ bool ServerMap::AddGroundItem(const CommonItem &rstCommonItem, int nX, int nY)
         auto fnNotifyDropItem = [this, stAMSDI](int nX, int nY) -> bool
         {
             if(true || ValidC(nX, nY)){
-                for(auto nUID: GetUIDListRef(nX, nY)){
+                for(auto nUID: getUIDList(nX, nY)){
                     if(uidf::getUIDType(nUID) == UID_PLY){
                         m_actorPod->forward(nUID, {MPK_SHOWDROPITEM, stAMSDI});
                     }
@@ -737,7 +748,7 @@ int ServerMap::GetMonsterCount(uint32_t nMonsterID)
     int nCount = 0;
     for(int nX = 0; nX < W(); ++nX){
         for(int nY = 0; nY < H(); ++nY){
-            for(auto nUID: GetUIDListRef(nX, nY)){
+            for(auto nUID: getUIDList(nX, nY)){
                 if(uidf::getUIDType(nUID) == UID_MON){
                     if(nMonsterID){
                         nCount += ((uidf::getMonsterID(nUID) == nMonsterID) ? 1 : 0);
@@ -797,7 +808,7 @@ Monster *ServerMap::AddMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
 
         pMonster->Activate();
 
-        AddGridUID (pMonster->UID(), nDstX, nDstY, true);
+        addGridUID (pMonster->UID(), nDstX, nDstY, true);
         notifyNewCO(pMonster->UID(), nDstX, nDstY);
 
         return pMonster;
@@ -829,7 +840,7 @@ NPChar *ServerMap::addNPChar(uint16_t npcID, int hintX, int hintY, int direction
 
         pNPC->Activate();
 
-        AddGridUID (pNPC->UID(), dstX, dstY, true);
+        addGridUID (pNPC->UID(), dstX, dstY, true);
         notifyNewCO(pNPC->UID(), dstX, dstY);
 
         return pNPC;
@@ -861,7 +872,7 @@ Player *ServerMap::AddPlayer(uint32_t nDBID, int nHintX, int nHintY, int nDirect
 
         pPlayer->Activate();
 
-        AddGridUID (pPlayer->UID(), nDstX, nDstY, true);
+        addGridUID (pPlayer->UID(), nDstX, nDstY, true);
         notifyNewCO(pPlayer->UID(), nDstX, nDstY);
 
         return pPlayer;
@@ -1064,17 +1075,17 @@ int ServerMap::CheckPathGrid(int nX, int nY) const
         return PathFind::OBSTACLE;
     }
 
-    // for(auto nUID: GetUIDListRef(nX, nY)){
+    // for(auto nUID: getUIDList(nX, nY)){
     //     if(auto nType = uidf::getUIDType(nUID); nType == UID_PLY || nType == UID_MON){
     //         return PatFind::OCCUPIED;
     //     }
     // }
 
-    if(!GetUIDListRef(nX, nY).empty()){
+    if(!getUIDList(nX, nY).empty()){
         return PathFind::OCCUPIED;
     }
 
-    if(GetCell(nX, nY).Locked){
+    if(getCell(nX, nY).Locked){
         return PathFind::LOCKED;
     }
 
