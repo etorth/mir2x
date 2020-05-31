@@ -46,8 +46,8 @@ class ServiceCore final: public ServerObject
         void OperateNet(uint32_t, uint8_t, const uint8_t *, size_t);
 
     protected:
-        bool LoadMap(uint32_t);
-        const ServerMap *RetrieveMap(uint32_t);
+        void loadMap(uint32_t);
+        const ServerMap *retrieveMap(uint32_t);
 
     private:
         void On_MPK_LOGIN(const MessagePack &);
@@ -55,7 +55,6 @@ class ServiceCore final: public ServerObject
         void On_MPK_BADCHANNEL(const MessagePack &);
         void On_MPK_NETPACKAGE(const MessagePack &);
         void On_MPK_QUERYMAPUID(const MessagePack &);
-        void On_MPK_TRYMAPSWITCH(const MessagePack &);
         void On_MPK_QUERYMAPLIST(const MessagePack &);
         void On_MPK_QUERYCOCOUNT(const MessagePack &);
         void On_MPK_ADDCHAROBJECT(const MessagePack &);

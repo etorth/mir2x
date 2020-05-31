@@ -50,11 +50,6 @@ void ServiceCore::OperateAM(const MessagePack &rstMPK)
                 On_MPK_ADDCHAROBJECT(rstMPK);
                 break;
             }
-        case MPK_TRYMAPSWITCH:
-            {
-                On_MPK_TRYMAPSWITCH(rstMPK);
-                break;
-            }
         case MPK_NETPACKAGE:
             {
                 On_MPK_NETPACKAGE(rstMPK);
@@ -99,35 +94,37 @@ void ServiceCore::OperateNet(uint32_t nSID, uint8_t nType, const uint8_t *pData,
     }
 }
 
-bool ServiceCore::LoadMap(uint32_t nMapID)
+void ServiceCore::loadMap(uint32_t mapID)
 {
-    if(nMapID){
-        if(m_mapList.find(nMapID) == m_mapList.end()){
-            if(g_mapBinDB->Retrieve(nMapID)){
-                auto pMap = new ServerMap(this, nMapID);
-                pMap->Activate();
-                m_mapList[nMapID] = pMap;
-                return true;
-            }else{
-                return false;
-            }
-        }
-        return true;
+    if(!mapID){
+        return;
     }
-    return false;
+
+    if(m_mapList.count(mapID)){
+        return;
+    }
+
+    if(!g_mapBinDB->Retrieve(mapID)){
+        return;
+    }
+
+    auto mapPtr = new ServerMap(this, mapID);
+    mapPtr->Activate();
+    m_mapList[mapID] = mapPtr;
 }
 
-const ServerMap *ServiceCore::RetrieveMap(uint32_t nMapID)
+const ServerMap *ServiceCore::retrieveMap(uint32_t mapID)
 {
-    if(nMapID){
-        auto pMap = m_mapList.find(nMapID);
-        if(pMap == m_mapList.end()){
-            if(LoadMap(nMapID)){
-                pMap = m_mapList.find(nMapID);
-            }
-        }
+    if(!mapID){
+        return nullptr;
+    }
 
-        return (pMap == m_mapList.end()) ? nullptr : pMap->second;
+    if(!m_mapList.count(mapID)){
+        loadMap(mapID);
+    }
+
+    if(auto p = m_mapList.find(mapID); p != m_mapList.end()){
+        return p->second;
     }
     return nullptr;
 }

@@ -66,7 +66,7 @@ void ServiceCore::Net_CM_Login(uint32_t nChannID, uint8_t, const uint8_t *pData,
     auto nMapY      = pDBHDR->Get<int64_t>("fld_mapy");
     auto nDirection = pDBHDR->Get<int64_t>("fld_direction");
 
-    auto pMap = RetrieveMap(nMapID);
+    auto pMap = retrieveMap(nMapID);
     if(false
             || !pMap
             || !pMap->In(nMapID, nMapX, nMapY)){

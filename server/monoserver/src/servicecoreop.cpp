@@ -63,7 +63,7 @@ void ServiceCore::On_MPK_ADDCHAROBJECT(const MessagePack &rstMPK)
         return;
     }
 
-    auto pMap = RetrieveMap(stAMACO.mapID);
+    auto pMap = retrieveMap(stAMACO.mapID);
 
     if(!pMap){
         m_actorPod->forward(rstMPK.from(), MPK_ERROR, rstMPK.ID());
@@ -112,32 +112,21 @@ void ServiceCore::On_MPK_QUERYMAPLIST(const MessagePack &rstMPK)
     m_actorPod->forward(rstMPK.from(), {MPK_MAPLIST, stAMML}, rstMPK.ID());
 }
 
-void ServiceCore::On_MPK_TRYMAPSWITCH(const MessagePack &rstMPK)
+void ServiceCore::On_MPK_QUERYMAPUID(const MessagePack &mpk)
 {
-    AMTryMapSwitch stAMTMS;
-    std::memcpy(&stAMTMS, rstMPK.Data(), sizeof(stAMTMS));
+    const auto amQMUID = mpk.conv<AMQueryMapUID>();
+    const auto mapPtr = retrieveMap(amQMUID.MapID);
 
-    if(stAMTMS.MapID){
-        if(auto pMap = RetrieveMap(stAMTMS.MapID)){
-            m_actorPod->forward(pMap->UID(), {MPK_TRYMAPSWITCH, stAMTMS});
-        }
+    if(!mapPtr){
+        m_actorPod->forward(mpk.from(), MPK_ERROR, mpk.ID());
+        return;
     }
-}
 
-void ServiceCore::On_MPK_QUERYMAPUID(const MessagePack &rstMPK)
-{
-    AMQueryMapUID stAMQMUID;
-    std::memcpy(&stAMQMUID, rstMPK.Data(), sizeof(stAMQMUID));
+    AMUID amUID;
+    std::memset(&amUID, 0, sizeof(amUID));
 
-    if(auto pMap = RetrieveMap(stAMQMUID.MapID)){
-        AMUID stAMUID;
-        std::memset(&stAMUID, 0, sizeof(stAMUID));
-
-        stAMUID.UID = pMap->UID();
-        m_actorPod->forward(rstMPK.from(), {MPK_UID, stAMUID}, rstMPK.ID());
-    }else{
-        m_actorPod->forward(rstMPK.from(), MPK_ERROR, rstMPK.ID());
-    }
+    amUID.UID = mapPtr->UID();
+    m_actorPod->forward(mpk.from(), {MPK_UID, amUID}, mpk.ID());
 }
 
 void ServiceCore::On_MPK_QUERYCOCOUNT(const MessagePack &rstMPK)
