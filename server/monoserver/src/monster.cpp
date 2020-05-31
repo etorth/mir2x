@@ -903,7 +903,7 @@ bool Monster::MoveOneStep(int nX, int nY, std::function<void()> fnOnOK, std::fun
         return false;
     }
 
-    switch(EstimateHop(nX, nY)){
+    switch(estimateHop(nX, nY)){
         case 0:
             {
                 fnOnError();
@@ -1069,7 +1069,7 @@ bool Monster::MoveOneStepAStar(int nX, int nY, std::function<void()> fnOnOK, std
 
                     std::vector<PathFind::PathNode> stvPathNode;
                     for(auto pCurr = pBegin; pCurr != pEnd; ++pCurr){
-                        if(m_map->GroundValid(pCurr->X, pCurr->Y)){
+                        if(m_map->groundValid(pCurr->X, pCurr->Y)){
                             stvPathNode.emplace_back(pCurr->X, pCurr->Y);
                         }else{
                             break;

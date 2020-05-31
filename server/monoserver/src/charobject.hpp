@@ -319,7 +319,7 @@ class CharObject: public ServerObject
         //           0: no move needed
         //           1: one-hop can reach
         //           2: more than one-hop can reach
-        int EstimateHop(int, int);
+        int estimateHop(int, int);
 
     protected:
         int AttackSpeed() const

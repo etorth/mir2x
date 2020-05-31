@@ -287,7 +287,7 @@ bool CharObject::reqestMove(int nX, int nY, int nSpeed, bool bAllowHalfMove, boo
         return false;
     }
 
-    if(EstimateHop(nX, nY) != 1){
+    if(estimateHop(nX, nY) != 1){
         fnOnMoveError();
         return false;
     }
@@ -718,7 +718,7 @@ int CharObject::OneStepReach(int nDirection, int nMaxDistance, int *pX, int *pY)
                 int nY = -1;
                 if(true
                         && NextLocation(&nX, &nY, nDirection, nDistance)
-                        && m_map->GroundValid(nX, nY)){
+                        && m_map->groundValid(nX, nY)){
                     nLastX = nX;
                     nLastY = nY;
                     nLastD = nDistance;
@@ -828,7 +828,7 @@ void CharObject::addMonster(uint32_t monsterID, int x, int y, bool strictLoc)
     });
 }
 
-int CharObject::EstimateHop(int nX, int nY)
+int CharObject::estimateHop(int nX, int nY)
 {
     condcheck(m_map);
     if(!m_map->ValidC(nX, nY)){

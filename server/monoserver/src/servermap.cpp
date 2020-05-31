@@ -260,7 +260,7 @@ void ServerMap::OperateAM(const MessagePack &rstMPK)
     }
 }
 
-bool ServerMap::GroundValid(int nX, int nY) const
+bool ServerMap::groundValid(int nX, int nY) const
 {
     return true
         && m_mir2xMapData.Valid()
@@ -270,7 +270,7 @@ bool ServerMap::GroundValid(int nX, int nY) const
 
 bool ServerMap::canMove(bool bCheckCO, bool bCheckLock, int nX, int nY) const
 {
-    if(GroundValid(nX, nY)){
+    if(groundValid(nX, nY)){
         if(bCheckCO){
             for(auto nUID: GetUIDListRef(nX, nY)){
                 if(auto nType = uidf::getUIDType(nUID); nType == UID_PLY || nType == UID_MON){
@@ -466,7 +466,7 @@ void ServerMap::AddGridUID(uint64_t nUID, int nX, int nY, bool bForce)
         throw fflerror("invalid location: (%d, %d)", nX, nY);
     }
 
-    if(bForce || GroundValid(nX, nY)){
+    if(bForce || groundValid(nX, nY)){
         if(auto &rstUIDList = GetUIDListRef(nX, nY); std::find(rstUIDList.begin(), rstUIDList.end(), nUID) == rstUIDList.end()){
             rstUIDList.push_back(nUID);
         }
@@ -687,7 +687,7 @@ bool ServerMap::AddGroundItem(const CommonItem &rstCommonItem, int nX, int nY)
 {
     if(true
             && rstCommonItem
-            && GroundValid(nX, nY)){
+            && groundValid(nX, nY)){
 
         // check if item is valid
         // then push back and report, would override if already full
@@ -910,7 +910,7 @@ bool ServerMap::RegisterLuaExport(ServerMap::ServerMapLuaModule *pModule)
             const int x = std::rand() % W();
             const int y = std::rand() % H();
 
-            if(GroundValid(x, y)){
+            if(groundValid(x, y)){
                 loc[0] = x;
                 loc[1] = y;
                 break;

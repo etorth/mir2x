@@ -122,7 +122,7 @@ class ServerMap final: public ServerObject
         }
 
     public:
-        bool GroundValid(int, int) const;
+        bool groundValid(int, int) const;
 
     protected:
         bool canMove(bool, bool, int, int) const;

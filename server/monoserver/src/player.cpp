@@ -518,7 +518,7 @@ void Player::OnCMActionStand(CMAction stCMA)
         // means client is trying to re-sync
         // try client's current location and always response
 
-        switch(EstimateHop(nX, nY)){
+        switch(estimateHop(nX, nY)){
             case 1:
                 {
                     reqestMove(nX, nY, SYS_MAXSPEED, false, false,
@@ -558,7 +558,7 @@ void Player::OnCMActionMove(CMAction stCMA)
     int nX1 = stCMA.AimX;
     int nY1 = stCMA.AimY;
 
-    switch(EstimateHop(nX0, nY0)){
+    switch(estimateHop(nX0, nY0)){
         case 0:
             {
                 reqestMove(nX1, nY1, MoveSpeed(), false, false, [](){}, [this]()
@@ -603,7 +603,7 @@ void Player::OnCMActionAttack(CMAction stCMA)
                 case DC_PHY_WIDESWORD:
                 case DC_PHY_FIRESWORD:
                     {
-                        switch(EstimateHop(nX0, nY0)){
+                        switch(estimateHop(nX0, nY0)){
                             case 0:
                                 {
                                     switch(mathf::LDistance2(nX0, nY0, rstLocation.X, rstLocation.Y)){
@@ -731,7 +731,7 @@ void Player::OnCMActionSpell(CMAction stCMA)
 
 void Player::OnCMActionPickUp(CMAction stCMA)
 {
-    switch(EstimateHop(stCMA.X, stCMA.Y)){
+    switch(estimateHop(stCMA.X, stCMA.Y)){
         case 0:
             {
                 AMPickUp stAMPU;

@@ -685,7 +685,7 @@ void ServerMap::On_MPK_NEWDROPITEM(const MessagePack &rstMPK)
     if(true
             && stAMNDI.ID
             && stAMNDI.Value > 0
-            && GroundValid(stAMNDI.X, stAMNDI.Y)){
+            && groundValid(stAMNDI.X, stAMNDI.Y)){
 
         bool bHoldInOne = false;
         switch(stAMNDI.ID){
@@ -713,7 +713,7 @@ void ServerMap::On_MPK_NEWDROPITEM(const MessagePack &rstMPK)
 
             RotateCoord stRC(stAMNDI.X, stAMNDI.Y, 0, 0, W(), H());
             do{
-                if(GroundValid(stRC.X(), stRC.Y())){
+                if(groundValid(stRC.X(), stRC.Y())){
 
                     // valid grid
                     // check if grid good to hold
@@ -733,7 +733,7 @@ void ServerMap::On_MPK_NEWDROPITEM(const MessagePack &rstMPK)
                 }
             }while(stRC.forward() && (nCheckGrid++ <= SYS_MAXDROPITEMGRID));
 
-            if(GroundValid(nBestX, nBestY)){
+            if(groundValid(nBestX, nBestY)){
                 AddGroundItem(CommonItem(stAMNDI.ID, 0), nBestX, nBestY);
             }else{
 
