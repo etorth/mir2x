@@ -280,19 +280,27 @@ void CharObject::DispatchAction(uint64_t nUID, const ActionNode &rstAction)
     m_actorPod->forward(nUID, {MPK_ACTION, stAMA});
 }
 
-bool CharObject::requestMove(int nX, int nY, int nSpeed, bool bAllowHalfMove, bool bRemoveMonster, std::function<void()> fnOnMoveOK, std::function<void()> fnOnMoveError)
+bool CharObject::requestMove(int nX, int nY, int nSpeed, bool allowHalfMove, bool removeMonster, std::function<void()> fnOnOK, std::function<void()> fnOnError)
 {
+    if(!m_map->groundValid(nX, nY)){
+        throw fflerror("invalid destination: (mapID = %lld, x = %d, y = %d)", toLLD(MapID()), nX, nY);
+    }
+
     if(!canMove()){
-        fnOnMoveError();
+        if(fnOnError){
+            fnOnError();
+        }
         return false;
     }
 
     if(estimateHop(nX, nY) != 1){
-        fnOnMoveError();
+        if(fnOnError){
+            fnOnError();
+        }
         return false;
     }
 
-    if(bRemoveMonster){
+    if(removeMonster){
         throw fflerror("RemoveMonster in requestMove() not implemented yet");
     }
 
@@ -308,7 +316,9 @@ bool CharObject::requestMove(int nX, int nY, int nSpeed, bool bAllowHalfMove, bo
                     case PathFind::OCCUPIED:
                     default:
                         {
-                            fnOnMoveError();
+                            if(fnOnError){
+                                fnOnError();
+                            }
                             return false;
                         }
                 }
@@ -326,8 +336,10 @@ bool CharObject::requestMove(int nX, int nY, int nSpeed, bool bAllowHalfMove, bo
                 // need to skip the current (X(), Y())
 
                 if(OneStepCost(nullptr, 2, nXm, nYm, nX, nY) < 0.00){
-                    if(!bAllowHalfMove){
-                        fnOnMoveError();
+                    if(!allowHalfMove){
+                        if(fnOnError){
+                            fnOnError();
+                        }
                         return false;
                     }
                 }
@@ -344,14 +356,14 @@ bool CharObject::requestMove(int nX, int nY, int nSpeed, bool bAllowHalfMove, bo
     stAMTM.Y             = Y();
     stAMTM.EndX          = nX;
     stAMTM.EndY          = nY;
-    stAMTM.AllowHalfMove = bAllowHalfMove;
-    stAMTM.RemoveMonster = bRemoveMonster;
+    stAMTM.AllowHalfMove = allowHalfMove;
+    stAMTM.RemoveMonster = removeMonster;
 
     m_moveLock = true;
-    return m_actorPod->forward(MapUID(), {MPK_TRYMOVE, stAMTM}, [this, nX, nY, nSpeed, fnOnMoveOK, fnOnMoveError](const MessagePack &rstMPK)
+    return m_actorPod->forward(MapUID(), {MPK_TRYMOVE, stAMTM}, [this, nX, nY, nSpeed, fnOnOK, fnOnError](const MessagePack &rstMPK)
     {
         if(!m_moveLock){
-            throw fflerror("moveLock released before map responds: ClassName = %s", UIDName());
+            throw fflerror("moveLock released before map responds: UIDName = %s", UIDName());
         }
         m_moveLock = false;
 
@@ -373,7 +385,9 @@ bool CharObject::requestMove(int nX, int nY, int nSpeed, bool bAllowHalfMove, bo
 
                     if(!canMove()){
                         m_actorPod->forward(rstMPK.from(), MPK_ERROR, rstMPK.ID());
-                        fnOnMoveError();
+                        if(fnOnError){
+                            fnOnError();
+                        }
                         return;
                     }
 
@@ -390,12 +404,16 @@ bool CharObject::requestMove(int nX, int nY, int nSpeed, bool bAllowHalfMove, bo
                     DispatchAction(ActionMove(nOldX, nOldY, X(), Y(), nSpeed, Horse()));
                     SortInViewCO();
 
-                    fnOnMoveOK();
+                    if(fnOnOK){
+                        fnOnOK();
+                    }
                     return;
                 }
             default:
                 {
-                    fnOnMoveError();
+                    if(fnOnError){
+                        fnOnError();
+                    }
                     return;
                 }
         }
