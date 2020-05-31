@@ -261,16 +261,25 @@ class CharObject: public ServerObject
         void retrieveLocation(uint64_t, std::function<void(const COLocation &)>, std::function<void()> = []{});
 
     protected:
-        virtual bool requestMove(int,   // nX, should be one hop distance
-                int,                    // nY, should be one hop distance
-                int,                    // nSpeed, move speed
-                bool,                   // bAllowHalfMove, tolerate CO occupied error
-                bool,                   // bRemoveMonster, force monster on (nX, nY) go to somewhere else to make room
-                std::function<void()>,  // fnOnOK
-                std::function<void()>); // fnOnError
+        bool requestMove(
+                int,                                // x
+                int,                                // y
+                int,                                // speed
+                bool,                               // allowHalfMove
+                bool,                               // removeMonster: force monster on (x, y) go to somewhere else to make room
+                std::function<void()> = nullptr,    // fnOnOK
+                std::function<void()> = nullptr);   // fnOnError
 
     protected:
         virtual bool requestSpaceMove(uint32_t, int, int, bool, std::function<void()>, std::function<void()>);
+
+        bool requestMapSwitch(
+                uint32_t,                           // mapID
+                int,                                // x
+                int,                                // y
+                bool,                               // strictMove
+                std::function<void()> = nullptr,    // fnOnOK
+                std::function<void()> = nullptr);   // fnOnError
 
     protected:
         void AddOffenderDamage(uint64_t, int);

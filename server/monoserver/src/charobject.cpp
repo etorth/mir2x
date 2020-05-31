@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.cpp
  *        Created: 04/07/2016 03:48:41 AM
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -505,6 +505,172 @@ bool CharObject::requestSpaceMove(uint32_t mapID, int nX, int nY, bool strictMov
                 {
                     fnOnMoveError();
                     break;
+                }
+        }
+    });
+}
+
+bool CharObject::requestMapSwitch(uint32_t mapID, int locX, int locY, bool strictMove, std::function<void()> fnOnOK, std::function<void()> fnOnError)
+{
+    if(mapID == MapID()){
+        throw fflerror("request to switch on same map: mapID = %llu", toLLU(mapID));
+    }
+
+    if(locX < 0 || locY < 0){
+        throw fflerror("invalid argument: mapID = %llu, locX = %d, locY = %d", toLLU(mapID), locX, locY);
+    }
+
+    if(!canMove()){
+        if(fnOnError){
+            fnOnError();
+        }
+        return false;
+    }
+
+    AMQueryMapUID amQMUID;
+    std::memset(&amQMUID, 0, sizeof(amQMUID));
+
+    amQMUID.MapID = mapID;
+    return m_actorPod->forward(m_serviceCore->UID(), {MPK_QUERYMAPUID, amQMUID}, [locX, locY, strictMove, fnOnOK, fnOnError, this](const MessagePack &mpk)
+    {
+        switch(mpk.Type()){
+            case MPK_UID:
+                {
+                    AMTryMapSwitch amTMS;
+                    std::memset(&amTMS, 0, sizeof(amTMS));
+
+                    amTMS.X = locX;
+                    amTMS.Y = locY;
+                    // amTMS.strictMove = strictMove;
+
+                    // send request to the new map
+                    // if request rejected then it stays in current map
+
+                    m_moveLock = true;
+                    m_actorPod->forward(mpk.conv<AMUID>().UID, {MPK_TRYMAPSWITCH, amTMS}, [mpk, fnOnOK, fnOnError, this](const MessagePack &rmpk)
+                    {
+                        if(!m_moveLock){
+                            throw fflerror("moveLock released before map responds: UIDName = %s", UIDName());
+                        }
+                        m_moveLock = false;
+
+                        switch(rmpk.Type()){
+                            case MPK_MAPSWITCHOK:
+                                {
+                                    // new map accepts this switch request
+                                    // new map will guarantee to outlive current object
+
+                                    if(!canMove()){
+                                        m_actorPod->forward(rmpk.from(), MPK_ERROR, rmpk.ID());
+                                        if(fnOnError){
+                                            fnOnError();
+                                        }
+                                        return;
+                                    }
+
+                                    const auto amMSOK = rmpk.conv<AMMapSwitchOK>();
+                                    const auto newMapPtr = (ServerMap *)(amMSOK.Ptr);
+
+                                    if(!(true && newMapPtr
+                                              && newMapPtr->ID()
+                                              && newMapPtr->UID()
+                                              && newMapPtr->ValidC(amMSOK.X, amMSOK.Y))){
+
+                                        // fake map
+                                        // invalid argument, this is not good place to call fnOnError()
+
+                                        m_actorPod->forward(rmpk.from(), MPK_ERROR, rmpk.ID());
+                                        if(fnOnError){
+                                            fnOnError();
+                                        }
+                                        return;
+                                    }
+
+                                    AMTryLeave amTL;
+                                    std::memset(&amTL, 0, sizeof(amTL));
+
+                                    amTL.X = X();
+                                    amTL.Y = Y();
+
+                                    // current map respond for the leave request
+                                    // dangerous here, we should keep m_map always valid
+
+                                    m_moveLock = true;
+                                    m_actorPod->forward(m_map->UID(), {MPK_TRYLEAVE, amTL}, [this, amMSOK, rmpk, fnOnOK, fnOnError](const MessagePack &leavermpk)
+                                    {
+                                        if(!m_moveLock){
+                                            throw fflerror("moveLock released before map responds: UIDName = %s", UIDName());
+                                        }
+                                        m_moveLock = false;
+
+                                        switch(leavermpk.Type()){
+                                            case MPK_OK:
+                                                {
+                                                    const auto amMSOK = rmpk.conv<AMMapSwitchOK>();
+                                                    if(!canMove()){
+                                                        m_actorPod->forward(rmpk.from(), MPK_ERROR, rmpk.ID());
+                                                        if(fnOnError){
+                                                            fnOnError();
+                                                        }
+                                                        return;
+                                                    }
+
+                                                    // 1. response to new map ``I am here"
+                                                    m_map = (ServerMap *)(amMSOK.Ptr);
+                                                    m_X = amMSOK.X;
+                                                    m_Y = amMSOK.Y;
+                                                    m_actorPod->forward(m_map->UID(), MPK_OK, rmpk.ID());
+
+                                                    // 2. notify all players on the new map
+                                                    DispatchAction(ActionStand(X(), Y(), Direction()));
+
+                                                    // 3. inform the client for map swith
+                                                    // 4. get neighbors
+
+                                                    if(uidf::getUIDType(UID()) == UID_PLY){
+                                                        dynamic_cast<Player *>(this)->ReportStand();
+                                                        dynamic_cast<Player *>(this)->PullRectCO(10, 10);
+                                                    }
+
+                                                    if(fnOnOK){
+                                                        fnOnOK();
+                                                    }
+                                                    return;
+                                                }
+                                            default:
+                                                {
+                                                    // can't leave, illegal response
+                                                    // any sane implementation should allow an UID to leave
+
+                                                    // if an UID can't move
+                                                    // then we shouldn't call this function
+
+                                                    m_actorPod->forward(((ServerMap *)(amMSOK.Ptr))->UID(), MPK_ERROR, rmpk.ID());
+                                                    g_monoServer->addLog(LOGTYPE_WARNING, "Leave request failed: mapID = %llu, mapUID = %llu", toLLU(m_map->ID()), toLLU(m_map->UID()));
+                                                    return;
+                                                }
+                                        }
+                                    });
+                                    return;
+                                }
+                            default:
+                                {
+                                    // do nothing
+                                    // new map reject this switch request
+
+                                    g_monoServer->addLog(LOGTYPE_WARNING, "Can't switch to new map: mapUID = %llu", toLLU(mpk.conv<AMUID>().UID));
+                                    return;
+                                }
+                        }
+                    });
+                    return;
+                }
+            default:
+                {
+                    if(fnOnError){
+                        fnOnError();
+                    }
+                    return;
                 }
         }
     });
