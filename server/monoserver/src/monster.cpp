@@ -1014,7 +1014,7 @@ bool Monster::MoveOneStepGreedy(int nX, int nY, std::function<void()> fnOnOK, st
         }
 
         const auto minPathNodeList = GetValidChaseGrid(nX, nY, 1);
-        if(pathNodeList.size() > 3){
+        if(minPathNodeList.size() > 3){
             throw fflerror("invalid chase grid result: size = %zu", minPathNodeList.size());
         }
 
