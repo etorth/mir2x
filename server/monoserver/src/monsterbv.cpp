@@ -187,7 +187,7 @@ bool Monster::CoroNode_MoveForward()
     }
 
     coro_variable<bool> done;
-    reqestMove(nextX, nextY, MoveSpeed(), false, false, [&done](){ done.assign(true); }, [&done](){ done.assign(false); });
+    requestMove(nextX, nextY, MoveSpeed(), false, false, [&done](){ done.assign(true); }, [&done](){ done.assign(false); });
     return done.wait();
 }
 
@@ -207,7 +207,7 @@ bvnode_ptr Monster::BvNode_MoveForward()
             int nY = -1;
 
             if(OneStepReach(Direction(), 1, &nX, &nY) == 1){
-                reqestMove(nX, nY, MoveSpeed(), false, false, [nStage]() mutable
+                requestMove(nX, nY, MoveSpeed(), false, false, [nStage]() mutable
                 {
                     nStage.assign<bvres_t>(BV_SUCCESS);
                 },

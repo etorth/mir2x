@@ -140,7 +140,7 @@ bool Monster::RandomMove()
             int nX = -1;
             int nY = -1;
             if(OneStepReach(Direction(), 1, &nX, &nY) == 1){
-                return reqestMove(nX, nY, MoveSpeed(), false, false, [](){}, [](){});
+                return requestMove(nX, nY, MoveSpeed(), false, false, [](){}, [](){});
             }
             return false;
         };
@@ -440,7 +440,7 @@ void Monster::FollowMaster(std::function<void()> fnOnOK, std::function<void()> f
         // slave have to do space move
 
         auto [nBackX, nBackY] = fnGetBack(nX, nY, nDirection, 3);
-        return reqestSpaceMove(nMapID, nBackX, nBackY, false, fnOnOK, fnOnError);
+        return requestSpaceMove(nMapID, nBackX, nBackY, false, fnOnOK, fnOnError);
     });
 }
 
@@ -912,7 +912,7 @@ bool Monster::MoveOneStep(int nX, int nY, std::function<void()> fnOnOK, std::fun
         case 1:
             {
                 if(OneStepCost(nullptr, 1, X(), Y(), nX, nY) >= 0.00){
-                    return reqestMove(nX, nY, MoveSpeed(), false, false, fnOnOK, fnOnError);
+                    return requestMove(nX, nY, MoveSpeed(), false, false, fnOnOK, fnOnError);
                 }
                 break;
             }
@@ -932,7 +932,7 @@ bool Monster::MoveOneStep(int nX, int nY, std::function<void()> fnOnOK, std::fun
 
     if(m_AStarCache.Retrieve(&nXm, &nYm, X(), Y(), nX, nY, MapID())){
         if(OneStepCost(nullptr, 1, X(), Y(), nXm, nYm) >= 0.00){
-            return reqestMove(nXm, nYm, MoveSpeed(), false, false, fnOnOK, fnOnError);
+            return requestMove(nXm, nYm, MoveSpeed(), false, false, fnOnOK, fnOnError);
         }
     }
 
@@ -984,7 +984,7 @@ bool Monster::MoveOneStepNeighbor(int nX, int nY, std::function<void()> fnOnOK, 
     }
 
     m_AStarCache.Cache({stPathNode.begin(), stPathNode.begin() + nNodeNum}, MapID());
-    return reqestMove(stPathNode[1].X, stPathNode[1].Y, MoveSpeed(), false, false, fnOnOK, fnOnError);
+    return requestMove(stPathNode[1].X, stPathNode[1].Y, MoveSpeed(), false, false, fnOnOK, fnOnError);
 }
 
 bool Monster::MoveOneStepGreedy(int nX, int nY, std::function<void()> fnOnOK, std::function<void()> fnOnError)
@@ -997,11 +997,11 @@ bool Monster::MoveOneStepGreedy(int nX, int nY, std::function<void()> fnOnOK, st
     bool bLongJump   = (MaxStep() > 1) && (mathf::CDistance(X(), Y(), nX, nY) >= MaxStep());
     auto stvPathNode = GetChaseGrid(nX, nY, bLongJump ? MaxStep() : 1);
 
-    return reqestMove(stvPathNode[0].X, stvPathNode[0].Y, MoveSpeed(), false, false, fnOnOK, [this, bLongJump, nX, nY, stvPathNode, fnOnOK, fnOnError]()
+    return requestMove(stvPathNode[0].X, stvPathNode[0].Y, MoveSpeed(), false, false, fnOnOK, [this, bLongJump, nX, nY, stvPathNode, fnOnOK, fnOnError]()
     {
-        reqestMove(stvPathNode[1].X, stvPathNode[1].Y, MoveSpeed(), false, false, fnOnOK, [this, bLongJump, nX, nY, stvPathNode, fnOnOK, fnOnError]()
+        requestMove(stvPathNode[1].X, stvPathNode[1].Y, MoveSpeed(), false, false, fnOnOK, [this, bLongJump, nX, nY, stvPathNode, fnOnOK, fnOnError]()
         {
-            reqestMove(stvPathNode[2].X, stvPathNode[2].Y, MoveSpeed(), false, false, fnOnOK, [this, bLongJump, nX, nY,fnOnOK, fnOnError]()
+            requestMove(stvPathNode[2].X, stvPathNode[2].Y, MoveSpeed(), false, false, fnOnOK, [this, bLongJump, nX, nY,fnOnOK, fnOnError]()
             {
                 if(!bLongJump){
                     fnOnError();
@@ -1009,11 +1009,11 @@ bool Monster::MoveOneStepGreedy(int nX, int nY, std::function<void()> fnOnOK, st
                 }
 
                 auto stvMinPathNode = GetChaseGrid(nX, nY, 1);
-                reqestMove(stvMinPathNode[0].X, stvMinPathNode[0].Y, MoveSpeed(), false, false, fnOnOK, [this, stvMinPathNode, fnOnOK, fnOnError]()
+                requestMove(stvMinPathNode[0].X, stvMinPathNode[0].Y, MoveSpeed(), false, false, fnOnOK, [this, stvMinPathNode, fnOnOK, fnOnError]()
                 {
-                    reqestMove(stvMinPathNode[1].X, stvMinPathNode[1].Y, MoveSpeed(), false, false, fnOnOK, [this, stvMinPathNode, fnOnOK, fnOnError]()
+                    requestMove(stvMinPathNode[1].X, stvMinPathNode[1].Y, MoveSpeed(), false, false, fnOnOK, [this, stvMinPathNode, fnOnOK, fnOnError]()
                     {
-                        reqestMove(stvMinPathNode[2].X, stvMinPathNode[2].Y, MoveSpeed(), false, false, fnOnOK, fnOnError);
+                        requestMove(stvMinPathNode[2].X, stvMinPathNode[2].Y, MoveSpeed(), false, false, fnOnOK, fnOnError);
                     });
                 });
             });
@@ -1081,7 +1081,7 @@ bool Monster::MoveOneStepAStar(int nX, int nY, std::function<void()> fnOnOK, std
                     }
                     m_AStarCache.Cache(stvPathNode, MapID());
 
-                    reqestMove(stAMPFOK.Point[1].X, stAMPFOK.Point[1].Y, MoveSpeed(), false, false, fnOnOK, fnOnError);
+                    requestMove(stAMPFOK.Point[1].X, stAMPFOK.Point[1].Y, MoveSpeed(), false, false, fnOnOK, fnOnError);
                     break;
                 }
             default:

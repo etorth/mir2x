@@ -280,7 +280,7 @@ void CharObject::DispatchAction(uint64_t nUID, const ActionNode &rstAction)
     m_actorPod->forward(nUID, {MPK_ACTION, stAMA});
 }
 
-bool CharObject::reqestMove(int nX, int nY, int nSpeed, bool bAllowHalfMove, bool bRemoveMonster, std::function<void()> fnOnMoveOK, std::function<void()> fnOnMoveError)
+bool CharObject::requestMove(int nX, int nY, int nSpeed, bool bAllowHalfMove, bool bRemoveMonster, std::function<void()> fnOnMoveOK, std::function<void()> fnOnMoveError)
 {
     if(!canMove()){
         fnOnMoveError();
@@ -293,7 +293,7 @@ bool CharObject::reqestMove(int nX, int nY, int nSpeed, bool bAllowHalfMove, boo
     }
 
     if(bRemoveMonster){
-        throw fflerror("RemoveMonster in reqestMove() not implemented yet");
+        throw fflerror("RemoveMonster in requestMove() not implemented yet");
     }
 
     switch(mathf::LDistance2(X(), Y(), nX, nY)){
@@ -402,7 +402,7 @@ bool CharObject::reqestMove(int nX, int nY, int nSpeed, bool bAllowHalfMove, boo
     });
 }
 
-bool CharObject::reqestSpaceMove(uint32_t mapID, int nX, int nY, bool strictMove, std::function<void()> fnOnMoveOK, std::function<void()> fnOnMoveError)
+bool CharObject::requestSpaceMove(uint32_t mapID, int nX, int nY, bool strictMove, std::function<void()> fnOnMoveOK, std::function<void()> fnOnMoveError)
 {
     if(!(uidf::buildMapUID(mapID) && (nX >= 0) && (nY >= 0))){
         throw fflerror("invalid map destination: (%lld, %d, %d)", toLLD(mapID), nX, nY);

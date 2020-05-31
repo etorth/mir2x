@@ -261,7 +261,7 @@ class CharObject: public ServerObject
         void retrieveLocation(uint64_t, std::function<void(const COLocation &)>, std::function<void()> = []{});
 
     protected:
-        virtual bool reqestMove(int,   // nX, should be one hop distance
+        virtual bool requestMove(int,   // nX, should be one hop distance
                 int,                    // nY, should be one hop distance
                 int,                    // nSpeed, move speed
                 bool,                   // bAllowHalfMove, tolerate CO occupied error
@@ -270,7 +270,7 @@ class CharObject: public ServerObject
                 std::function<void()>); // fnOnError
 
     protected:
-        virtual bool reqestSpaceMove(uint32_t, int, int, bool, std::function<void()>, std::function<void()>);
+        virtual bool requestSpaceMove(uint32_t, int, int, bool, std::function<void()>, std::function<void()>);
 
     protected:
         void AddOffenderDamage(uint64_t, int);

@@ -521,7 +521,7 @@ void Player::OnCMActionStand(CMAction stCMA)
         switch(estimateHop(nX, nY)){
             case 1:
                 {
-                    reqestMove(nX, nY, SYS_MAXSPEED, false, false,
+                    requestMove(nX, nY, SYS_MAXSPEED, false, false,
                     [this, stCMA]()
                     {
                         OnCMActionStand(stCMA);
@@ -561,7 +561,7 @@ void Player::OnCMActionMove(CMAction stCMA)
     switch(estimateHop(nX0, nY0)){
         case 0:
             {
-                reqestMove(nX1, nY1, MoveSpeed(), false, false, [](){}, [this]()
+                requestMove(nX1, nY1, MoveSpeed(), false, false, [](){}, [this]()
                 {
                     ReportStand();
                 });
@@ -569,7 +569,7 @@ void Player::OnCMActionMove(CMAction stCMA)
             }
         case 1:
             {
-                reqestMove(nX0, nY0, SYS_MAXSPEED, false, false, [this, stCMA]()
+                requestMove(nX0, nY0, SYS_MAXSPEED, false, false, [this, stCMA]()
                 {
                     OnCMActionMove(stCMA);
                 },
@@ -622,7 +622,7 @@ void Player::OnCMActionAttack(CMAction stCMA)
                                 }
                             case 1:
                                 {
-                                    reqestMove(nX0, nY0, SYS_MAXSPEED, false, false,
+                                    requestMove(nX0, nY0, SYS_MAXSPEED, false, false,
                                     [this, stCMA]()
                                     {
                                         OnCMActionAttack(stCMA);
@@ -723,7 +723,7 @@ void Player::OnCMActionSpell(CMAction stCMA)
 
     // sync the location
     // for spelling magic location is not critical
-    reqestMove(nX, nY, SYS_MAXSPEED, false, false, [](){}, [this]()
+    requestMove(nX, nY, SYS_MAXSPEED, false, false, [](){}, [this]()
     {
         ReportStand();
     });
@@ -746,7 +746,7 @@ void Player::OnCMActionPickUp(CMAction stCMA)
             }
         case 1:
             {
-                reqestMove(stCMA.X, stCMA.Y, SYS_MAXSPEED, false, false,
+                requestMove(stCMA.X, stCMA.Y, SYS_MAXSPEED, false, false,
                 [this, stCMA]()
                 {
                     OnCMActionPickUp(stCMA);
