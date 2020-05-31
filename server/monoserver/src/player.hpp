@@ -24,6 +24,9 @@
 
 class Player final: public CharObject
 {
+    private:
+        friend class CharObject;
+
     protected:
         const uint32_t m_DBID;
         const uint32_t m_jobID;
@@ -140,7 +143,9 @@ class Player final: public CharObject
         void ReportDeadUID(uint64_t);
         void ReportCORecord(uint64_t);
         void ReportOffline(uint64_t, uint32_t);
-        void ReportAction(uint64_t, const ActionNode &);
+
+    protected:
+        virtual void ReportAction(uint64_t, const ActionNode &);
 
     protected:
         void DispatchOffline();
