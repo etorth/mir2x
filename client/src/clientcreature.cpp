@@ -185,7 +185,7 @@ MotionNode ClientCreature::makeMotionIdle() const
 
         0,
         m_currMotion.direction,
-        m_currMotion.speed,
+        SYS_DEFSPEED,
         m_currMotion.endX,
         m_currMotion.endY
     };
