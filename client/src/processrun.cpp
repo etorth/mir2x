@@ -257,11 +257,15 @@ uint64_t ProcessRun::FocusUID(int nFocusType)
 void ProcessRun::draw()
 {
     SDLDevice::RenderNewFrame newFrame;
+    const auto fnLimitedRegion = [](int mn, int mx, int parm) -> int
+    {
+        return std::max<int>(std::min<int>(parm, mx), mn);
+    };
 
-    const int x0 = -SYS_OBJMAXW + (m_viewX - 2 * SYS_MAPGRIDXP) / SYS_MAPGRIDXP;
-    const int y0 = -SYS_OBJMAXH + (m_viewY - 2 * SYS_MAPGRIDYP) / SYS_MAPGRIDYP;
-    const int x1 = +SYS_OBJMAXW + (m_viewX + 2 * SYS_MAPGRIDXP + g_SDLDevice->getRendererWidth()) / SYS_MAPGRIDXP;
-    const int y1 = +SYS_OBJMAXH + (m_viewY + 2 * SYS_MAPGRIDYP + g_SDLDevice->getRendererHeight()) / SYS_MAPGRIDYP;
+    const int x0 = fnLimitedRegion(0, m_mir2xMapData.W(), -SYS_OBJMAXW + (m_viewX - 2 * SYS_MAPGRIDXP) / SYS_MAPGRIDXP);
+    const int y0 = fnLimitedRegion(0, m_mir2xMapData.H(), -SYS_OBJMAXH + (m_viewY - 2 * SYS_MAPGRIDYP) / SYS_MAPGRIDYP);
+    const int x1 = fnLimitedRegion(0, m_mir2xMapData.W(), +SYS_OBJMAXW + (m_viewX + 2 * SYS_MAPGRIDXP + g_SDLDevice->getRendererWidth() ) / SYS_MAPGRIDXP);
+    const int y1 = fnLimitedRegion(0, m_mir2xMapData.H(), +SYS_OBJMAXH + (m_viewY + 2 * SYS_MAPGRIDYP + g_SDLDevice->getRendererHeight()) / SYS_MAPGRIDYP);
 
     drawTile(x0, y0, x1, y1);
 
