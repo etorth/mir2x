@@ -95,7 +95,7 @@ bool GUIManager::processEvent(const SDL_Event &event, bool valid)
                     case SDL_WINDOWEVENT_SIZE_CHANGED:
                         {
                             std::tie(m_w, m_h) = g_SDLDevice->getRendererSize();
-                            m_controlBoard.resizeWidth(w());
+                            m_controlBoard.onWindowResize(w(), h());
                             m_controlBoard.moveTo(0, h() - 133);
                             return true;
                         }

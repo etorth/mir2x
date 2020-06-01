@@ -154,9 +154,7 @@ class ControlBoard: public Widget
         void setButtonLoc();
 
     public:
-        // we don't support widget::resize()
-        // widget doesn't have box concept, parent widget can't calculate proper size for children
-        void resizeWidth(int w);
+        void onWindowResize(int, int);
 
     private:
         int logBoardStartY() const;

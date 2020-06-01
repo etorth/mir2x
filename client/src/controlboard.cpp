@@ -531,9 +531,10 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           },
           [this]()
           {
+              const int winH = g_SDLDevice->getRendererHeight();
               if(!m_expand){
                   switchExpandMode();
-                  m_stretchH = g_SDLDevice->WindowH(false) - 47 - 55;
+                  m_stretchH = winH - 47 - 55;
                   setButtonLoc();
                   return;
               }
@@ -542,7 +543,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
                   m_stretchH = m_stretchHMin;
               }
               else{
-                  m_stretchH = g_SDLDevice->WindowH(false) - 47 - 55;
+                  m_stretchH = winH - 47 - 55;
               }
               setButtonLoc();
           },
@@ -1138,14 +1139,19 @@ int ControlBoard::logBoardStartY() const
     return g_SDLDevice->WindowH(false) - 55 - m_stretchH - 47 + 12; // 12 is texture top-left to log line distane
 }
 
-void ControlBoard::resizeWidth(int boardW)
+void ControlBoard::onWindowResize(int winW, int winH)
 {
     const auto prevWidth = w();
-    m_right.moveBy(boardW - w(), 0);
-    m_w = boardW;
+    m_right.moveBy(winW - w(), 0);
+    m_w = winW;
 
+    m_logBoard.setLineWidth(m_logBoard.getLineWidth() + (winW - prevWidth));
+    const int maxStretchH = winH - 47 - 55;
+
+    if(m_expand && (m_stretchH > maxStretchH)){
+        m_stretchH = maxStretchH;
+    }
     setButtonLoc();
-    m_logBoard.setLineWidth(m_logBoard.getLineWidth() + (boardW - prevWidth));
 }
 
 void ControlBoard::drawInputGreyBackground()
