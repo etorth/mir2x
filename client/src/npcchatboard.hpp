@@ -43,6 +43,9 @@ class NPCChatBoard: public Widget
         void drawEx(int, int, int, int, int, int) override;
 
     private:
+        void drawFrame() const;
+
+    private:
         void drawPlain();
         void drawWithNPCFace();
 
@@ -51,4 +54,13 @@ class NPCChatBoard: public Widget
 
     private:
         void onClickEvent(const std::string &);
+
+    private:
+        int getMiddleCount() const;
+
+    private:
+        uint32_t getNPCFaceKey() const
+        {
+            return 0X50000000 | uidf::getLookID(m_NPCUID);
+        }
 };

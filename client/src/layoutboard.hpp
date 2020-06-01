@@ -154,8 +154,11 @@ class LayoutBoard: public Widget
             return m_parNodeList.empty();
         }
 
+    public:
         void clear()
         {
+            m_w = 0;
+            m_h = 0;
             m_parNodeList.clear();
         }
 
