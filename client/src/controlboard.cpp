@@ -1099,10 +1099,12 @@ void ControlBoard::switchExpandMode()
 {
     if(m_expand){
         m_expand = false;
+        m_logBoard.setLineWidth(m_logBoard.getLineWidth() - 87);
     }
     else{
         m_expand = true;
         m_stretchH = m_stretchHMin;
+        m_logBoard.setLineWidth(m_logBoard.getLineWidth() + 87);
     }
     setButtonLoc();
 }
