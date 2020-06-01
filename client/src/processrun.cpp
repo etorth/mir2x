@@ -1062,10 +1062,10 @@ void ProcessRun::RegisterLuaExport(ClientLuaModule *luaModulePtr)
         }
 
         if(requestSpaceMove(mapID, locX, locY)){
-            addCBLog(CBLOG_SYS, "Move request (mapID = %d, x = %d, y = %d) sent", mapID, locX, locY);
+            addCBLog(CBLOG_SYS, "Move request (mapName = %s, x = %d, y = %d) sent", DBCOM_MAPRECORD(mapID).Name, locX, locY);
         }
         else{
-            addCBLog(CBLOG_ERR, "Move request (mapID = %d, x = %d, y = %d) failed", mapID, locX, locY);
+            addCBLog(CBLOG_ERR, "Move request (mapName = %s, x = %d, y = %d) failed", DBCOM_MAPRECORD(mapID).Name, locX, locY);
         }
     });
 
