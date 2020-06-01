@@ -39,11 +39,11 @@ ProcessNew::ProcessNew()
 
     , m_x([this]() -> int
       {
-          return (g_SDLDevice->WindowW(false) - m_w) / 2;
+          return (g_SDLDevice->getRendererWidth() - m_w) / 2;
       }())
     , m_y([this]() -> int
       {
-          return (g_SDLDevice->WindowH(false) - m_h) / 2;
+          return (g_SDLDevice->getRendererHeight() - m_h) / 2;
       }())
 
     , m_checkID(true)

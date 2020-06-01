@@ -63,8 +63,8 @@ void ProcessLogo::draw()
         auto bColor = (Uint8)(std::lround(255 * colorRatio()));
         SDL_SetTextureColorMod(pTexture, bColor, bColor, bColor);
 
-        const auto nWindowW = g_SDLDevice->WindowW(false);
-        const auto nWindowH = g_SDLDevice->WindowH(false);
+        const auto nWindowW = g_SDLDevice->getRendererWidth();
+        const auto nWindowH = g_SDLDevice->getRendererHeight();
         g_SDLDevice->DrawTexture(pTexture, 0, 0, 0, 0, nWindowW, nWindowH);
     }
 }

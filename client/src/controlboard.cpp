@@ -526,7 +526,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
               }
 
               m_stretchH = std::max<int>(m_stretchH - dy, m_stretchHMin);
-              m_stretchH = std::min<int>(m_stretchH, g_SDLDevice->WindowH(false) - 47 - 55);
+              m_stretchH = std::min<int>(m_stretchH, g_SDLDevice->getRendererHeight() - 47 - 55);
               setButtonLoc();
           },
           [this]()
@@ -649,7 +649,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
     fnAssertImage(0X00000022, 127,  41);
     fnAssertImage(0X00000027, 456, 298);
 
-    if(x() != 0 || y() + h() != g_SDLDevice->WindowH(false) || w() != g_SDLDevice->WindowW(false)){
+    if(x() != 0 || y() + h() != g_SDLDevice->getRendererHeight() || w() != g_SDLDevice->getRendererWidth()){
         throw fflerror("ControlBoard has wrong location or size");
     }
 
@@ -1134,9 +1134,9 @@ void ControlBoard::setButtonLoc()
 int ControlBoard::logBoardStartY() const
 {
     if(!m_expand){
-        return g_SDLDevice->WindowH(false) - 120;
+        return g_SDLDevice->getRendererHeight() - 120;
     }
-    return g_SDLDevice->WindowH(false) - 55 - m_stretchH - 47 + 12; // 12 is texture top-left to log line distane
+    return g_SDLDevice->getRendererHeight() - 55 - m_stretchH - 47 + 12; // 12 is texture top-left to log line distane
 }
 
 void ControlBoard::onWindowResize(int winW, int winH)

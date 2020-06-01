@@ -175,24 +175,6 @@ class SDLDevice final
            return pSurface ? SDL_CreateTextureFromSurface(m_renderer, pSurface) : nullptr;
        }
 
-       int WindowW(bool bRealWindowSizeInPixel)
-       {
-           if(bRealWindowSizeInPixel){
-               return std::get<0>(getWindowSize());
-           }else{
-               return std::get<0>(getRendererSize());
-           }
-       }
-
-       int WindowH(bool bRealWindowSizeInPixel)
-       {
-           if(bRealWindowSizeInPixel){
-               return std::get<1>(getWindowSize());
-           }else{
-               return std::get<1>(getRendererSize());
-           }
-       }
-
        std::tuple<int, int> getWindowSize()
        {
            int w = -1;

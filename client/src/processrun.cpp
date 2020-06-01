@@ -259,8 +259,8 @@ void ProcessRun::draw()
 
     const int x0 = -SYS_OBJMAXW + (m_viewX - 2 * SYS_MAPGRIDXP) / SYS_MAPGRIDXP;
     const int y0 = -SYS_OBJMAXH + (m_viewY - 2 * SYS_MAPGRIDYP) / SYS_MAPGRIDYP;
-    const int x1 = +SYS_OBJMAXW + (m_viewX + 2 * SYS_MAPGRIDXP + g_SDLDevice->WindowW(false)) / SYS_MAPGRIDXP;
-    const int y1 = +SYS_OBJMAXH + (m_viewY + 2 * SYS_MAPGRIDYP + g_SDLDevice->WindowH(false)) / SYS_MAPGRIDYP;
+    const int x1 = +SYS_OBJMAXW + (m_viewX + 2 * SYS_MAPGRIDXP + g_SDLDevice->getRendererWidth()) / SYS_MAPGRIDXP;
+    const int y1 = +SYS_OBJMAXH + (m_viewY + 2 * SYS_MAPGRIDYP + g_SDLDevice->getRendererHeight()) / SYS_MAPGRIDYP;
 
     drawTile(x0, y0, x1, y1);
 
@@ -275,16 +275,16 @@ void ProcessRun::draw()
         const int gridX0 = m_viewX / SYS_MAPGRIDXP;
         const int gridY0 = m_viewY / SYS_MAPGRIDYP;
 
-        const int gridX1 = (m_viewX + g_SDLDevice->WindowW(false)) / SYS_MAPGRIDXP;
-        const int gridY1 = (m_viewY + g_SDLDevice->WindowH(false)) / SYS_MAPGRIDYP;
+        const int gridX1 = (m_viewX + g_SDLDevice->getRendererWidth()) / SYS_MAPGRIDXP;
+        const int gridY1 = (m_viewY + g_SDLDevice->getRendererHeight()) / SYS_MAPGRIDYP;
 
         SDLDevice::EnableDrawColor drawColor(colorf::RGBA(0, 255, 0, 128));
         for(int x = gridX0; x <= gridX1; ++x){
-            g_SDLDevice->DrawLine(x * SYS_MAPGRIDXP - m_viewX, 0, x * SYS_MAPGRIDXP - m_viewX, g_SDLDevice->WindowH(false));
+            g_SDLDevice->DrawLine(x * SYS_MAPGRIDXP - m_viewX, 0, x * SYS_MAPGRIDXP - m_viewX, g_SDLDevice->getRendererHeight());
         }
 
         for(int y = gridY0; y <= gridY1; ++y){
-            g_SDLDevice->DrawLine(0, y * SYS_MAPGRIDYP - m_viewY, g_SDLDevice->WindowW(false), y * SYS_MAPGRIDYP - m_viewY);
+            g_SDLDevice->DrawLine(0, y * SYS_MAPGRIDYP - m_viewY, g_SDLDevice->getRendererWidth(), y * SYS_MAPGRIDYP - m_viewY);
         }
     }
 
