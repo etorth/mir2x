@@ -47,6 +47,21 @@ class ProcessRun;
 class ControlBoard: public Widget
 {
     private:
+        class WidgetMiddleGroup: public WidgetGroup
+        {
+            public:
+                WidgetMiddleGroup(int x, int y, int w, int h, Widget *parent = nullptr, bool autoDelete = false)
+                    : WidgetGroup(x, y, w, h, parent, autoDelete)
+                {}
+
+            public:
+                void resetWidth(int width)
+                {
+                    m_w = width;
+                }
+        };
+
+    private:
         ProcessRun *m_processRun;
 
     private:
@@ -60,8 +75,10 @@ class ControlBoard: public Widget
         // define group for widget moving
         // but will not call widgetGroup::drawEx, we still draw manually
         WidgetGroup m_left;
-        WidgetGroup m_middle;
         WidgetGroup m_right;
+
+    private:
+        WidgetMiddleGroup m_middle;
 
     private:
         QuickAccessButton m_buttonQuickAccess;

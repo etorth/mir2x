@@ -85,21 +85,21 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           this,
       }
 
-    , m_middle
-      {
-          178,
-          2, // middle tex height is 131, not 133
-          boardW - 178 - 166,
-          131,
-          this,
-      }
-
     , m_right
       {
           boardW - 166,
           0,
           166,
           133,
+          this,
+      }
+
+    , m_middle
+      {
+          178,
+          2, // middle tex height is 131, not 133
+          boardW - 178 - 166,
+          131,
           this,
       }
 
@@ -1153,6 +1153,8 @@ void ControlBoard::onWindowResize(int winW, int winH)
     if(m_expand && (m_stretchH > maxStretchH)){
         m_stretchH = maxStretchH;
     }
+
+    m_middle.resetWidth(w() - 178 - 166);
     setButtonLoc();
 }
 
