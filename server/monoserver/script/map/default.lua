@@ -21,7 +21,7 @@ function main()
 
     addLog(LOGTYPE_INFO, 'map script ' .. getMapName() .. ' starts, use default.lua')
 
-    g_MaxMonsterCount = 1000
+    g_MaxMonsterCount = 100
     g_LogicDelay      = 1000
     g_LastInvokeTime  = getTime()
 
