@@ -34,8 +34,8 @@ extern ServerArgParser *g_serverArgParser;
 
 void ServerMap::On_MPK_METRONOME(const MessagePack &)
 {
-    if(m_luaModule && !g_serverArgParser->DisableMapScript){
-        m_luaModule->LoopOne();
+    if(m_luaModulePtr && !g_serverArgParser->DisableMapScript){
+        m_luaModulePtr->resumeLoop();
     }
 }
 

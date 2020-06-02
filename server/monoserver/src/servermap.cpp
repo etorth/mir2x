@@ -41,9 +41,192 @@ extern MapBinDB *g_mapBinDB;
 extern MonoServer *g_monoServer;
 extern ServerConfigureWindow *g_serverConfigureWindow;
 
-ServerMap::ServerMapLuaModule::ServerMapLuaModule()
-    : BatchLuaModule()
-{}
+ServerMap::ServerMapLuaModule::ServerMapLuaModule(ServerMap *mapPtr)
+{
+    if(!mapPtr){
+        throw fflerror("ServerMapLuaModule binds to empty ServerMap");
+    }
+
+    getLuaState().set_function("getMapID", [mapPtr]() -> int
+    {
+        return (int)(mapPtr->ID());
+    });
+
+    getLuaState().set_function("getMapName", [mapPtr]() -> std::string
+    {
+        return std::string(DBCOM_MAPRECORD(mapPtr->ID()).Name);
+    });
+
+    getLuaState().set_function("getRandLoc", [mapPtr]() /* -> ? */
+    {
+        std::array<int, 2> loc;
+        while(true){
+            const int x = std::rand() % mapPtr->W();
+            const int y = std::rand() % mapPtr->H();
+
+            if(mapPtr->groundValid(x, y)){
+                loc[0] = x;
+                loc[1] = y;
+                break;
+            }
+        }
+        return sol::as_returns(loc);
+    });
+
+    getLuaState().set_function("getMonsterCount", [mapPtr](sol::variadic_args args) -> int
+    {
+        const std::vector<sol::object> argList(args.begin(), args.end());
+        switch(argList.size()){
+            case 0:
+                {
+                    return mapPtr->GetMonsterCount(0);
+                }
+            case 1:
+                {
+                    if(argList[0].is<int>()){
+                        if(const int monID = argList[0].as<int>(); monID >= 0){
+                            return mapPtr->GetMonsterCount(monID);
+                        }
+                    }
+
+                    else if(argList[0].is<std::string>()){
+                        if(const int monID = DBCOM_MONSTERID(argList[0].as<std::string>().c_str()); monID >= 0){
+                            return mapPtr->GetMonsterCount(monID);
+                        }
+                    }
+                    break;
+                }
+            default:
+                {
+                    break;
+                }
+        }
+        return -1;
+    });
+
+    getLuaState().set_function("addMonster", [mapPtr](sol::object monInfo, sol::variadic_args args) -> bool
+    {
+        const uint32_t monID = [&monInfo]() -> uint32_t
+        {
+            if(monInfo.is<int>()){
+                return monInfo.as<int>();
+            }
+
+            if(monInfo.is<std::string>()){
+                return DBCOM_MONSTERID(monInfo.as<std::string>().c_str());
+            }
+
+            return 0;
+        }();
+
+        if(!monID){
+            return false;
+        }
+
+        const std::vector<sol::object> argList(args.begin(), args.end());
+        switch(argList.size()){
+            case 0:
+                {
+                    return mapPtr->AddMonster(monID, 0, -1, -1, false);
+                }
+            case 2:
+                {
+                    if(true
+                            && argList[0].is<int>()
+                            && argList[1].is<int>()){
+
+                        auto nX = argList[0].as<int>();
+                        auto nY = argList[1].as<int>();
+
+                        return mapPtr->AddMonster(monID, 0, nX, nY, false);
+                    }
+                    break;
+                }
+            case 3:
+                {
+                    if(true
+                            && argList[0].is<int >()
+                            && argList[1].is<int >()
+                            && argList[2].is<bool>()){
+
+                        const auto nX = argList[0].as<int >();
+                        const auto nY = argList[1].as<int >();
+                        const auto bStrictLoc = argList[2].as<bool>();
+
+                        return mapPtr->AddMonster(monID, 0, nX, nY, bStrictLoc);
+                    }
+                    break;
+                }
+            default:
+                {
+                    break;
+                }
+        }
+
+        return false;
+    });
+
+    getLuaState().set_function("addNPC", [mapPtr](int npcID, sol::variadic_args args) -> bool
+    {
+        const std::vector<sol::object> argList(args.begin(), args.end());
+        switch(argList.size()){
+            case 0:
+                {
+                    return mapPtr->addNPChar((uint16_t)(npcID), -1, -1, 0, false);
+                }
+            case 2:
+                {
+                    if(argList[0].is<int>() && argList[1].is<int>()){
+                        return mapPtr->addNPChar((uint32_t)(npcID), argList[0].as<int>(), argList[1].as<int>(), 0, false);
+                    }
+                    break;
+                }
+            case 3:
+                {
+                    if(argList[0].is<int>() && argList[1].is<int>() && argList[2].is<bool>()){
+                        return mapPtr->addNPChar((uint32_t)(npcID), argList[0].as<int>(), argList[1].as<int>(), 0, argList[2].as<bool>());
+                    }
+                    break;
+                }
+            case 4:
+                {
+                    if(argList[0].is<int>() && argList[1].is<int>() && argList[2].is<int>() && argList[3].is<bool>()){
+                        return mapPtr->addNPChar((uint32_t)(npcID), argList[0].as<int>(), argList[1].as<int>(), argList[2].is<int>(), argList[3].as<bool>());
+                    }
+                    break;
+                }
+            default:
+                {
+                    break;
+                }
+        }
+        return false;
+    });
+
+    getLuaState().script_file([mapPtr]() -> std::string
+    {
+        const auto configScriptPath = g_serverConfigureWindow->GetScriptPath();
+        const auto scriptPath = configScriptPath.empty() ? std::string("script/map") : configScriptPath;
+
+        const auto scriptName = str_printf("%s/%s.lua", scriptPath.c_str(), DBCOM_MAPRECORD(mapPtr->ID()).Name);
+        if(std::filesystem::exists(scriptName)){
+            return scriptName;
+        }
+
+        const auto defaultScriptName = scriptPath + "/default.lua";
+        if(std::filesystem::exists(defaultScriptName)){
+            return defaultScriptName;
+        }
+        throw fflerror("can't load proper script for map %s", DBCOM_MAPRECORD(mapPtr->ID()).Name);
+    }());
+
+    m_coHandler = getLuaState()["main"];
+    if(!m_coHandler){
+        throw fflerror("can't load lua entry function: main()");
+    }
+
+    // checkResult(m_coHandler());
+}
 
 ServerMap::ServerPathFinder::ServerPathFinder(const ServerMap *pMap, int nMaxStep, int nCheckCO)
     : AStarPathFinder([this](int nSrcX, int nSrcY, int nDstX, int nDstY) -> double
@@ -130,7 +313,6 @@ ServerMap::ServerMap(ServiceCore *pServiceCore, uint32_t nMapID)
           throw fflerror("load map failed: ID = %d, Name = %s", nMapID, DBCOM_MAPRECORD(nMapID).Name);
       }()))
     , m_serviceCore(pServiceCore)
-    , m_luaModule(nullptr)
 {
     if(!m_mir2xMapData.Valid()){
         throw fflerror("load map failed: ID = %d, Name = %s", nMapID, DBCOM_MAPRECORD(nMapID).Name);
@@ -450,13 +632,17 @@ std::tuple<bool, int, int> ServerMap::GetValidGrid(bool bCheckCO, bool bCheckLoc
 
 uint64_t ServerMap::Activate()
 {
-    if(auto nUID = ServerObject::Activate()){
-        delete m_luaModule;
-        m_luaModule = new ServerMap::ServerMapLuaModule();
-        RegisterLuaExport(m_luaModule);
-        return nUID;
+    const auto uid = ServerObject::Activate();
+    if(!uid){
+        return 0;
     }
-    return 0;
+
+    if(m_luaModulePtr){
+        throw fflerror("ServerMap activates twice: %s", DBCOM_MAPRECORD(ID()).Name);
+    }
+
+    m_luaModulePtr = new ServerMap::ServerMapLuaModule(this);
+    return uid;
 }
 
 void ServerMap::addGridUID(uint64_t uid, int nX, int nY, bool bForce)
@@ -878,191 +1064,6 @@ Player *ServerMap::AddPlayer(uint32_t nDBID, int nHintX, int nHintY, int nDirect
         return pPlayer;
     }
     return nullptr;
-}
-
-bool ServerMap::RegisterLuaExport(ServerMap::ServerMapLuaModule *pModule)
-{
-    if(!pModule){
-        throw fflerror("invalid module: %p", pModule);
-    }
-
-    // load lua script to the module
-    {
-        auto szScriptPath = g_serverConfigureWindow->GetScriptPath();
-        if(szScriptPath.empty()){
-            szScriptPath = "script/map";
-        }
-
-        std::string szCommandFile = ((szScriptPath + "/") + DBCOM_MAPRECORD(ID()).Name) + ".lua";
-
-        std::stringstream stCommand;
-        std::ifstream stCommandFile(szCommandFile.c_str());
-
-        stCommand << stCommandFile.rdbuf();
-        pModule->LoadBatch(stCommand.str().c_str());
-    }
-
-    // register lua functions/variables related *this* map
-
-    pModule->getLuaState().set_function("getMapID", [this]() -> int
-    {
-        return (int)(ID());
-    });
-
-    pModule->getLuaState().set_function("getMapName", [this]() -> std::string
-    {
-        return std::string(DBCOM_MAPRECORD(ID()).Name);
-    });
-
-    pModule->getLuaState().set_function("getRandLoc", [this]() /* -> ? */
-    {
-        std::array<int, 2> loc;
-        while(true){
-            const int x = std::rand() % W();
-            const int y = std::rand() % H();
-
-            if(groundValid(x, y)){
-                loc[0] = x;
-                loc[1] = y;
-                break;
-            }
-        }
-        return sol::as_returns(loc);
-    });
-
-    pModule->getLuaState().set_function("getMonsterCount", [this](sol::variadic_args stVariadicArgs) -> int
-    {
-        std::vector<sol::object> stArgList(stVariadicArgs.begin(), stVariadicArgs.end());
-        switch(stArgList.size()){
-            case 0:
-                {
-                    return GetMonsterCount(0);
-                }
-            case 1:
-                {
-                    if(stArgList[0].is<int>()){
-                        int nMonsterID = stArgList[0].as<int>();
-                        if(nMonsterID >= 0){
-                            return GetMonsterCount(nMonsterID);
-                        }
-                    }else if(stArgList[0].is<std::string>()){
-                        int nMonsterID = DBCOM_MONSTERID(stArgList[0].as<std::string>().c_str());
-                        if(nMonsterID >= 0){
-                            return GetMonsterCount(nMonsterID);
-                        }
-                    }
-                    break;
-                }
-            default:
-                {
-                    break;
-                }
-        }
-        return -1;
-    });
-
-    pModule->getLuaState().set_function("addMonster", [this](sol::object stMonsterID, sol::variadic_args stVariadicArgs) -> bool
-    {
-        uint32_t nMonsterID = 0;
-
-        if(stMonsterID.is<int>()){
-            nMonsterID = stMonsterID.as<int>();
-        }else if(stMonsterID.is<std::string>()){
-            nMonsterID = DBCOM_MONSTERID(stMonsterID.as<std::string>().c_str());
-        }else{
-            return false;
-        }
-
-        std::vector<sol::object> stArgList(stVariadicArgs.begin(), stVariadicArgs.end());
-        switch(stArgList.size()){
-            case 0:
-                {
-                    return AddMonster(nMonsterID, 0, -1, -1, false);
-                }
-            case 2:
-                {
-                    if(true
-                            && stArgList[0].is<int>()
-                            && stArgList[1].is<int>()){
-
-                        auto nX = stArgList[0].as<int>();
-                        auto nY = stArgList[1].as<int>();
-
-                        return AddMonster(nMonsterID, 0, nX, nY, false);
-                    }
-                    break;
-                }
-            case 3:
-                {
-                    if(true
-                            && stArgList[0].is<int >()
-                            && stArgList[1].is<int >()
-                            && stArgList[2].is<bool>()){
-
-                        const auto nX = stArgList[0].as<int >();
-                        const auto nY = stArgList[1].as<int >();
-                        const auto bStrictLoc = stArgList[2].as<bool>();
-
-                        return AddMonster(nMonsterID, 0, nX, nY, bStrictLoc);
-                    }
-                    break;
-                }
-            default:
-                {
-                    break;
-                }
-        }
-
-        return false;
-    });
-
-    pModule->getLuaState().set_function("addNPC", [this](int npcID, sol::variadic_args args) -> bool
-    {
-        const auto fnUsage = [this]()
-        {
-            // addCWLog(nCWID, 2, ">>> ", "addNPC(NPCID: int, MapID: int)");
-            // addCWLog(nCWID, 2, ">>> ", "addNPC(NPCID: int, MapID: int, X: int, Y: int)");
-            // addCWLog(nCWID, 2, ">>> ", "addNPC(NPCID: int, MapID: int, X: int, Y: int, Random: bool)");
-        };
-
-        const std::vector<sol::object> argList(args.begin(), args.end());
-        switch(argList.size()){
-            case 0:
-                {
-                    return addNPChar((uint16_t)(npcID), -1, -1, 0, false);
-                }
-            case 2:
-                {
-                    if(argList[0].is<int>() && argList[1].is<int>()){
-                        return addNPChar((uint32_t)(npcID), argList[0].as<int>(), argList[1].as<int>(), 0, false);
-                    }
-                    break;
-                }
-            case 3:
-                {
-                    if(argList[0].is<int>() && argList[1].is<int>() && argList[2].is<bool>()){
-                        return addNPChar((uint32_t)(npcID), argList[0].as<int>(), argList[1].as<int>(), 0, argList[2].as<bool>());
-                    }
-                    break;
-                }
-            case 4:
-                {
-                    if(argList[0].is<int>() && argList[1].is<int>() && argList[2].is<int>() && argList[3].is<bool>()){
-                        return addNPChar((uint32_t)(npcID), argList[0].as<int>(), argList[1].as<int>(), argList[2].is<int>(), argList[3].as<bool>());
-                    }
-                    break;
-                }
-            default:
-                {
-                    break;
-                }
-        }
-
-        fnUsage();
-        return false;
-    });
-
-    return true;
 }
 
 int ServerMap::CheckPathGrid(int nX, int nY) const

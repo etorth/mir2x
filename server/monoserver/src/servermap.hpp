@@ -40,11 +40,38 @@ class ServerObject;
 class ServerMap final: public ServerObject
 {
     private:
-        class ServerMapLuaModule: public BatchLuaModule
+        class ServerMapLuaModule: public ServerLuaModule
         {
+            private:
+                sol::coroutine m_coHandler;
+
             public:
-                ServerMapLuaModule();
-               ~ServerMapLuaModule() = default;
+                ServerMapLuaModule(ServerMap *);
+
+            public:
+                void resumeLoop()
+                {
+                    if(!m_coHandler){
+                        throw fflerror("ServerMap lua coroutine is not callable");
+                    }
+                    checkResult(m_coHandler());
+                }
+
+            private:
+                template<typename T> void checkResult(const T &result)
+                {
+                    if(result.valid()){
+                        return;
+                    }
+
+                    const sol::error err = result;
+                    std::stringstream errStream(err.what());
+
+                    std::string errLine;
+                    while(std::getline(errStream, errLine, '\n')){
+                        addLog(1, errLine.c_str());
+                    }
+                }
         };
 
     private:
@@ -107,7 +134,7 @@ class ServerMap final: public ServerObject
         Vec2D<MapCell> m_cellVec2D;
 
     private:
-        ServerMapLuaModule *m_luaModule;
+        ServerMapLuaModule *m_luaModulePtr = nullptr;
 
     private:
         void OperateAM(const MessagePack &);
