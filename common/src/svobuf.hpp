@@ -4,6 +4,8 @@
  *       Filename: svobuf.hpp
  *        Created: 03/29/2019 04:54:20
  *    Description: 
+ *                should use std::align_storage not std::array
+ *                std::array calls T()
  *
  *        Version: 1.0
  *       Revision: none
@@ -20,7 +22,6 @@
 #include <array>
 #include <vector>
 #include <cstddef>
-#include "fflerror.hpp"
 
 template<typename T, size_t N> class svobuf
 {
@@ -34,52 +35,43 @@ template<typename T, size_t N> class svobuf
         std::array<T, N> m_arr;
 
     public:
-        size_t size() const
-        {
-            return m_size;
-        }
-
-    public:
         T &at(size_t n)
         {
             return const_cast<T &>(static_cast<const svobuf *>(this)->at(n));
         }
 
-        const T &at(size_t pos) const
+        const T &at(size_t n) const
         {
-            if(pos >= m_size){
-                throw fflerror("[%zu] access out of range: %zu", pos, size());
+            if(n >= m_size){
+                throw std::out_of_range(__PRETTY_FUNCTION__);
             }
 
-            if(pos < N){
-                return m_arr[pos];
+            if(m_size <= N){
+                return m_arr[n];
             }
-            return m_vec[pos - N];
-        }
 
-    public:
-        auto & operator [] (size_t pos)
-        {
-            return const_cast<T &>(static_cast<const svobuf *>(this)->operator[](pos));
-        }
-
-        const auto & operator [] (size_t pos) const
-        {
-            if(pos < N){
-                return m_arr[pos];
+            if(n < N){
+                return m_arr[n];
             }
-            return m_vec[pos - N];
+            return m_vec[n - N];
         }
 
     public:
         void push_back(const T &val)
         {
-            if(size() < N){
-                m_arr[m_size++] = val;
+            if(m_size < N){
+                m_arr[m_size] = val;
+                m_size++;
                 return;
             }
 
             m_vec.push_back(val);
             m_size++;
+        }
+
+    public:
+        size_t size() const
+        {
+            return m_size;
         }
 };

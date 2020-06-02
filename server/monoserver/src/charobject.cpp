@@ -24,7 +24,7 @@
 #include "mathf.hpp"
 #include "fflerror.hpp"
 #include "actorpod.hpp"
-#include "svobuffer.hpp"
+#include "svobuf.hpp"
 #include "condcheck.hpp"
 #include "monoserver.hpp"
 #include "charobject.hpp"
@@ -1280,7 +1280,7 @@ void CharObject::ForeachInViewCO(std::function<void(const COLocation &)> fnOnLoc
     // RemoveInViewCO() may get called in fnOnLoc
     // RemoveInViewCO() may get called in retrieveLocation
 
-    svo_buffer<uint64_t, 4> stvUIDList;
+    svobuf<uint64_t, 4> stvUIDList;
     for(const auto &rstCOLoc: m_inViewCOList){
         stvUIDList.push_back(rstCOLoc.UID);
     }
