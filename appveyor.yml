@@ -58,8 +58,8 @@ after_build:
 test_script:
     - echo "Done"
 
-artifacts:
-    - path: build\*.zip
+# artifacts:
+#    - path: build\*.zip
 
 # on_finish:
 #     - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
