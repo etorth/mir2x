@@ -1280,13 +1280,13 @@ void CharObject::ForeachInViewCO(std::function<void(const COLocation &)> fnOnLoc
     // RemoveInViewCO() may get called in fnOnLoc
     // RemoveInViewCO() may get called in retrieveLocation
 
-    svobuf<uint64_t, 4> stvUIDList;
+    svobuf<uint64_t, 4> uidList;
     for(const auto &rstCOLoc: m_inViewCOList){
-        stvUIDList.push_back(rstCOLoc.UID);
+        uidList.c.push_back(rstCOLoc.UID);
     }
 
-    for(size_t nIndex = 0; nIndex < stvUIDList.size(); ++nIndex){
-        retrieveLocation(stvUIDList.at(nIndex), fnOnLoc);
+    for(size_t i = 0; i < uidList.c.size(); ++i){
+        retrieveLocation(uidList.c.at(i), fnOnLoc);
     }
 }
 

@@ -19,59 +19,17 @@
  */
 
 #pragma once
-#include <array>
 #include <vector>
-#include <cstddef>
+#include "short_alloc.h"
 
 template<typename T, size_t N> class svobuf
 {
     private:
-        size_t m_size = 0;
-
-    private:
-        std::vector<T> m_vec;
-
-    private:
-        std::array<T, N> m_arr;
+        typename std::vector<T, short_alloc<T, N * sizeof(T), alignof(T)>>::allocator_type::arena_type m_alloc;
 
     public:
-        T &at(size_t n)
-        {
-            return const_cast<T &>(static_cast<const svobuf *>(this)->at(n));
-        }
-
-        const T &at(size_t n) const
-        {
-            if(n >= m_size){
-                throw std::out_of_range(__PRETTY_FUNCTION__);
-            }
-
-            if(m_size <= N){
-                return m_arr[n];
-            }
-
-            if(n < N){
-                return m_arr[n];
-            }
-            return m_vec[n - N];
-        }
+        std::vector<T, short_alloc<T, N * sizeof(T), alignof(T)>> c;
 
     public:
-        void push_back(const T &val)
-        {
-            if(m_size < N){
-                m_arr[m_size] = val;
-                m_size++;
-                return;
-            }
-
-            m_vec.push_back(val);
-            m_size++;
-        }
-
-    public:
-        size_t size() const
-        {
-            return m_size;
-        }
+        svobuf(): c(m_alloc) {}
 };
