@@ -994,14 +994,15 @@ bool Monster::MoveOneStepGreedy(int nX, int nY, std::function<void()> fnOnOK, st
         return false;
     }
 
+    auto pathNodePtr = std::make_shared<svobuf<PathFind::PathNode, 3>>();
     const bool longJump = (MaxStep() > 1) && (mathf::CDistance(X(), Y(), nX, nY) >= MaxStep());
-    const auto pathNodeList = GetValidChaseGrid(nX, nY, longJump ? MaxStep() : 1);
+    GetValidChaseGrid(nX, nY, longJump ? MaxStep() : 1, *(pathNodePtr.get()));
 
-    if(pathNodeList.size() > 3){
-        throw fflerror("invalid chase grid result: size = %zu", pathNodeList.size());
+    if(pathNodePtr->c.size() > 3){
+        throw fflerror("invalid chase grid result: size = %zu", pathNodePtr->c.size());
     }
 
-    if(pathNodeList.empty()){
+    if(pathNodePtr->c.empty()){
         fnOnError();
         return false;
     }
@@ -1013,50 +1014,52 @@ bool Monster::MoveOneStepGreedy(int nX, int nY, std::function<void()> fnOnOK, st
             return;
         }
 
-        const auto minPathNodeList = GetValidChaseGrid(nX, nY, 1);
-        if(minPathNodeList.size() > 3){
-            throw fflerror("invalid chase grid result: size = %zu", minPathNodeList.size());
+        auto minPathNodePtr = std::make_shared<svobuf<PathFind::PathNode, 3>>();
+        GetValidChaseGrid(nX, nY, 1, *(minPathNodePtr.get()));
+
+        if(minPathNodePtr->c.size() > 3){
+            throw fflerror("invalid chase grid result: size = %zu", minPathNodePtr->c.size());
         }
 
-        if(minPathNodeList.empty()){
+        if(minPathNodePtr->c.empty()){
             fnOnError();
             return;
         }
 
-        requestMove(minPathNodeList[0].X, minPathNodeList[0].Y, MoveSpeed(), false, false, fnOnOK, [this, minPathNodeList, fnOnOK, fnOnError]()
+        requestMove(minPathNodePtr->c[0].X, minPathNodePtr->c[0].Y, MoveSpeed(), false, false, fnOnOK, [this, minPathNodePtr, fnOnOK, fnOnError]()
         {
-            if(minPathNodeList.size() == 1){
+            if(minPathNodePtr->c.size() == 1){
                 fnOnError();
                 return;
             }
 
-            requestMove(minPathNodeList[1].X, minPathNodeList[1].Y, MoveSpeed(), false, false, fnOnOK, [this, minPathNodeList, fnOnOK, fnOnError]()
+            requestMove(minPathNodePtr->c[1].X, minPathNodePtr->c[1].Y, MoveSpeed(), false, false, fnOnOK, [this, minPathNodePtr, fnOnOK, fnOnError]()
             {
-                if(minPathNodeList.size() == 2){
+                if(minPathNodePtr->c.size() == 2){
                     fnOnError();
                     return;
                 }
 
-                requestMove(minPathNodeList[2].X, minPathNodeList[2].Y, MoveSpeed(), false, false, fnOnOK, fnOnError);
+                requestMove(minPathNodePtr->c[2].X, minPathNodePtr->c[2].Y, MoveSpeed(), false, false, fnOnOK, fnOnError);
             });
         });
     };
 
-    return requestMove(pathNodeList[0].X, pathNodeList[0].Y, MoveSpeed(), false, false, fnOnOK, [this, longJump, nX, nY, pathNodeList, fnOnOK, fnOnNodeListError]()
+    return requestMove(pathNodePtr->c[0].X, pathNodePtr->c[0].Y, MoveSpeed(), false, false, fnOnOK, [this, longJump, nX, nY, pathNodePtr, fnOnOK, fnOnNodeListError]()
     {
-        if(pathNodeList.size() == 1){
+        if(pathNodePtr->c.size() == 1){
             fnOnNodeListError();
             return;
         }
 
-        requestMove(pathNodeList[1].X, pathNodeList[1].Y, MoveSpeed(), false, false, fnOnOK, [this, longJump, nX, nY, pathNodeList, fnOnOK, fnOnNodeListError]()
+        requestMove(pathNodePtr->c[1].X, pathNodePtr->c[1].Y, MoveSpeed(), false, false, fnOnOK, [this, longJump, nX, nY, pathNodePtr, fnOnOK, fnOnNodeListError]()
         {
-            if(pathNodeList.size() == 2){
+            if(pathNodePtr->c.size() == 2){
                 fnOnNodeListError();
                 return;
             }
 
-            requestMove(pathNodeList[2].X, pathNodeList[2].Y, MoveSpeed(), false, false, fnOnOK, [this, longJump, nX, nY,fnOnOK, fnOnNodeListError]()
+            requestMove(pathNodePtr->c[2].X, pathNodePtr->c[2].Y, MoveSpeed(), false, false, fnOnOK, [this, longJump, nX, nY,fnOnOK, fnOnNodeListError]()
             {
                 fnOnNodeListError();
             });

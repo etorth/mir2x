@@ -1159,6 +1159,20 @@ std::vector<PathFind::PathNode> CharObject::GetValidChaseGrid(int nX, int nY, in
     return result;
 }
 
+void CharObject::GetValidChaseGrid(int nX, int nY, int nDLen, svobuf<PathFind::PathNode, 3> &buf) const
+{
+    buf.c.clear();
+    for(const auto &node: GetChaseGrid(nX, nY, nDLen)){
+        if(m_map->groundValid(node.X, node.Y)){
+            buf.c.push_back(node);
+        }
+    }
+
+    if(buf.c.size() > buf.svocap()){
+        throw fflerror("more than 3 valid chase grid found");
+    }
+}
+
 double CharObject::OneStepCost(const CharObject::COPathFinder *pFinder, int nCheckCO, int nX0, int nY0, int nX1, int nY1) const
 {
     switch(nCheckCO){
