@@ -31,5 +31,12 @@ template<typename T, size_t N> class svobuf
         std::vector<T, short_alloc<T, N * sizeof(T), alignof(T)>> c;
 
     public:
-        svobuf(): c(m_alloc) {}
+        svobuf()
+            : c(m_alloc)
+        {
+            c.reserve(N);
+            if(c.capacity() > N){
+                throw fflerror("allocate initial buffer dynamically");
+            }
+        }
 };
