@@ -1,12 +1,12 @@
 -- =====================================================================================
 --
---       Filename: 道馆.lua
---        Created: 08/31/2015 08:52:57 PM
+--       Filename: default.lua
+--        Created: 06/01/2020 08:52:57 PM
 --    Description: lua 5.3
 --
 --        Version: 1.0
 --       Revision: none
---       Compiler: gcc
+--       Compiler:
 --
 --         Author: ANHONG
 --          Email: anhonghe@gmail.com
@@ -19,7 +19,7 @@
 
 function main()
 
-    addLog(LOGTYPE_INFO, 'map script ' .. getMapName() .. ' starts.')
+    addLog(LOGTYPE_INFO, 'map script ' .. getMapName() .. ' starts, use default.lua')
 
     g_MaxMonsterCount = 1000
     g_LogicDelay      = 1000
@@ -36,24 +36,6 @@ function main()
         end
         return monCount
     end
-
-    addNPC(3, 400, 120, 0, false)
-    addNPC(0, 400, 300, 0, false)
-    addNPC(1, 401, 300, 0, false)
-    addNPC(2, 402, 300, 0, false)
-    addNPC(3, 403, 300, 0, false)
-    addNPC(4, 404, 300, 0, false)
-    addNPC(5, 405, 300, 0, false)
-    addNPC(6, 406, 300, 0, false)
-    addNPC(7, 407, 300, 0, false)
-    addNPC(8, 408, 300, 0, false)
-    addNPC(9, 409, 300, 0, false)
-    addNPC(3, 397, 133, 0, false)
-    addNPC(3, 388, 122, 0, false)
-
-    -- add 六面神石
-
-    addNPC(56, 416, 179, 0, false)
 
     while true do
         if getTime() - g_LastInvokeTime > g_LogicDelay then
@@ -80,5 +62,5 @@ function main()
         coroutine.yield()
     end
 
-    addLog(LOGTYPE_INFO, 'map script ' .. getMapName() .. ' stops.')
+    addLog(LOGTYPE_INFO, 'map script ' .. getMapName() .. ' stops, use default.lua')
 end

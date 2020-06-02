@@ -29,10 +29,10 @@ LuaModule::LuaModule()
 {
     m_luaState.open_libraries();
     m_luaState.script(
-            R"###( LOGTYPE_INFO      = 0    )###""\n"
-            R"###( LOGTYPE_WARNING   = 1    )###""\n"
-            R"###( LOGTYPE_FATAL     = 2    )###""\n"
-            R"###( LOGTYPE_DEBUG     = 3    )###""\n");
+            R"###( LOGTYPE_INFO    = 0 )###""\n"
+            R"###( LOGTYPE_WARNING = 1 )###""\n"
+            R"###( LOGTYPE_FATAL   = 2 )###""\n"
+            R"###( LOGTYPE_DEBUG   = 3 )###""\n");
 
     m_luaState.script(str_printf("SYS_NPCINIT  = \"%s\"", SYS_NPCINIT ));
     m_luaState.script(str_printf("SYS_NPCDONE  = \"%s\"", SYS_NPCDONE ));

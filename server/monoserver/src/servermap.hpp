@@ -214,6 +214,7 @@ class ServerMap final: public ServerObject
 
     private:
         int GetMonsterCount(uint32_t);
+        std::vector<std::string> getMonsterList() const;
 
     private:
         auto &getCell(int nX, int nY)

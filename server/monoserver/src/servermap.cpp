@@ -57,6 +57,11 @@ ServerMap::ServerMapLuaModule::ServerMapLuaModule(ServerMap *mapPtr)
         return std::string(DBCOM_MAPRECORD(mapPtr->ID()).Name);
     });
 
+    getLuaState().set_function("getMonsterList", [mapPtr](sol::this_state thisLua)
+    {
+        return sol::make_object(sol::state_view(thisLua), mapPtr->getMonsterList());
+    });
+
     getLuaState().set_function("getRandLoc", [mapPtr]() /* -> ? */
     {
         std::array<int, 2> loc;
@@ -946,6 +951,18 @@ int ServerMap::GetMonsterCount(uint32_t nMonsterID)
         }
     }
     return nCount;
+}
+
+std::vector<std::string> ServerMap::getMonsterList() const
+{
+    return
+    {
+        u8"虎卫",
+        u8"沙漠石人",
+        u8"红蛇",
+        u8"虎蛇",
+        u8"羊",
+    };
 }
 
 void ServerMap::notifyNewCO(uint64_t nUID, int nX, int nY)

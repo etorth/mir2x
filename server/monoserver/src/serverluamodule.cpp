@@ -19,12 +19,13 @@
 #include "monoserver.hpp"
 #include "serverluamodule.hpp"
 
+extern MonoServer *g_monoServer;
+
 ServerLuaModule::ServerLuaModule()
     : LuaModule()
 {
     m_luaState.set_function("getTime", []() -> int
     {
-        extern MonoServer *g_monoServer;
         return (int)(g_monoServer->getCurrTick());
     });
 
