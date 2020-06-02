@@ -47,6 +47,11 @@ ServerMap::ServerMapLuaModule::ServerMapLuaModule(ServerMap *mapPtr)
         throw fflerror("ServerMapLuaModule binds to empty ServerMap");
     }
 
+    getLuaState().set_function("scriptDone", []() -> bool
+    {
+        return false;
+    });
+
     getLuaState().set_function("getMapID", [mapPtr]() -> int
     {
         return (int)(mapPtr->ID());
