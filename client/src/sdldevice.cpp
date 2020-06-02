@@ -428,10 +428,17 @@ void SDLDevice::CreateMainWindow()
         nWindowH = 600;
     }
 
+    nWindowW = std::max<int>(nWindowW, 800);
+    nWindowH = std::max<int>(nWindowH, 600);
+
     SDL_DisplayMode stDesktop;
     if(!SDL_GetDesktopDisplayMode(0, &stDesktop)){
-        nWindowW = std::min(nWindowW , stDesktop.w);
-        nWindowH = std::min(nWindowH , stDesktop.h);
+        nWindowW = std::min(nWindowW, stDesktop.w);
+        nWindowH = std::min(nWindowH, stDesktop.h);
+    }
+
+    if(nWindowW < 800 || nWindowH < 600){
+        throw fflerror("window size is too small: width = %d, height = %d", nWindowW, nWindowH);
     }
 
     nFlags |= SDL_WINDOW_RESIZABLE;
@@ -440,6 +447,7 @@ void SDLDevice::CreateMainWindow()
         throw fflerror("failed to create SDL window handler: %s", SDL_GetError());
     }
 
+    SDL_SetWindowMinimumSize(m_window, 800, 600);
     m_renderer = SDL_CreateRenderer(m_window, -1, 0);
 
     if(!m_renderer){

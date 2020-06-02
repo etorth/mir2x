@@ -55,7 +55,7 @@ function main()
 
     addNPC(56, 416, 179, 0, false)
 
-    while true do
+    while not scriptDone() do
         if getTime() - g_LastInvokeTime > g_LogicDelay then
 
             -- mark current time
