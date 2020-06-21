@@ -1167,7 +1167,11 @@ void ControlBoard::onWindowResize(int winW, int winH)
         m_stretchH = maxStretchH;
     }
 
+    const int sliderDX = m_middle.w() - m_slider.dx();
+    const int sliderDY = m_middle.h() - m_slider.dy();
+
     m_middle.resetWidth(w() - 178 - 166);
+    m_slider.moveTo(m_middle.w() - sliderDX, m_middle.h() - sliderDY);
     setButtonLoc();
 }
 
