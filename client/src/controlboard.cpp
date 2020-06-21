@@ -562,6 +562,17 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           &m_middle,
       }
 
+    , m_slider
+      {
+          boardW - 178 - 176,
+          40,
+
+          60,
+          true,
+
+          &m_middle,
+      }
+
     , m_cmdLine
       {
           7,
@@ -825,6 +836,7 @@ void ControlBoard::drawMiddleDefault()
     m_arcAniBoard.draw();
     m_buttonSwitchMode.draw();
     m_levelBox.draw();
+    m_slider.draw();
 }
 
 void ControlBoard::drawLogBoardDefault()
@@ -949,6 +961,7 @@ bool ControlBoard::processEvent(const SDL_Event &event, bool valid)
     bool takeEvent = false;
 
     takeEvent |= m_levelBox         .processEvent(event, valid && !takeEvent);
+    takeEvent |= m_slider           .processEvent(event, valid && !takeEvent);
     takeEvent |= m_cmdLine          .processEvent(event, valid && !takeEvent);
     takeEvent |= m_buttonClose      .processEvent(event, valid && !takeEvent);
     takeEvent |= m_buttonMinize     .processEvent(event, valid && !takeEvent);

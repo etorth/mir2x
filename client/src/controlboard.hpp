@@ -28,6 +28,7 @@
 #include "acbutton.hpp"
 #include "sdldevice.hpp"
 #include "inputline.hpp"
+#include "texvslider.hpp"
 #include "layoutboard.hpp"
 #include "texaniboard.hpp"
 #include "wmdaniboard.hpp"
@@ -119,6 +120,9 @@ class ControlBoard: public Widget
     private:
         LevelBox m_levelBox;
         TexAniBoard m_arcAniBoard;
+
+    private:
+        TexVSlider m_slider;
 
     private:
         InputLine  m_cmdLine;
