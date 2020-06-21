@@ -172,6 +172,8 @@ class ControlBoard: public Widget
 
     private:
         void switchExpandMode();
+
+    private:
         void setButtonLoc();
 
     public:

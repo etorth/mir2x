@@ -105,6 +105,10 @@ bool Slider::processEvent(const SDL_Event &e, bool valid)
                     }
                 }
             }
+        default:
+            {
+                focus(false);
+                return false;
+            }
     }
-    return true;
 }

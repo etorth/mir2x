@@ -49,8 +49,9 @@ class TexVSlider: public Slider
         }};
 
     private:
-        bool m_small;   // true : 0X00000070
-                        // false: 0X00000080
+        // texid true : 0X00000070
+        //       false: 0X00000080
+        const bool m_small;
 
     public:
         TexVSlider(int, int, int, bool, Widget * parent = nullptr, bool autoDelete = false);
@@ -64,6 +65,14 @@ class TexVSlider: public Slider
         const auto &getSelfParm() const
         {
             return TexVSlider::getParm(m_small);
+        }
+
+    public:
+        void resizeHeight(int height)
+        {
+            if(height >= 0){
+                m_h = height;
+            }
         }
 
     public:

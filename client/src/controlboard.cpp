@@ -845,7 +845,7 @@ void ControlBoard::drawLogBoardDefault()
     const int dstY = logBoardStartY();
 
     const int srcX = 0;
-    const int srcY = std::max<int>(0, m_logBoard.h() - 83);
+    const int srcY = std::max<int>(0, std::lround((m_logBoard.h() - 83) * m_slider.getValue()));
     const int srcW = m_logBoard.w();
     const int srcH = 83;
 
@@ -859,7 +859,7 @@ void ControlBoard::drawLogBoardExpand()
 
     const int boardFrameH = m_stretchH + 47 + 55 - 70;
     const int srcX = 0;
-    const int srcY = std::max<int>(0, m_logBoard.h() - boardFrameH);
+    const int srcY = std::max<int>(0, std::lround(m_logBoard.h() - boardFrameH) * m_slider.getValue());
     const int srcW = m_logBoard.w();
     const int srcH = boardFrameH;
 
@@ -940,6 +940,7 @@ void ControlBoard::drawMiddleExpand()
     m_buttonEmoji.draw();
     m_buttonMute.draw();
     drawLogBoardExpand();
+    m_slider.draw();
 }
 
 void ControlBoard::drawEx(int, int, int, int, int, int)
@@ -1101,6 +1102,7 @@ void ControlBoard::addLog(int logType, const char *log)
     tinyxml2::XMLPrinter printer;
     xmlDoc.Print(&printer);
     m_logBoard.addParXML(m_logBoard.parCount(), {0, 0, 0, 0}, printer.CStr());
+    m_slider.setValue(1.0f);
 }
 
 bool ControlBoard::CheckMyHeroMoved()
@@ -1138,11 +1140,17 @@ void ControlBoard::setButtonLoc()
 
         m_buttonEmoji.moveTo(boardW - 178 - 260, 87);
         m_buttonMute .moveTo(boardW - 178 - 220, 87);
+
+        m_slider.moveTo(w() - 178 - 176, 40 - modeDiffY);
+        m_slider.resizeHeight(60 + modeDiffY);
     }
     else{
         m_buttonSwitchMode.moveTo(boardW - 178 - 181, 3);
         m_levelBox.moveTo((boardW - 178 - 166 - m_levelBox.w()) / 2, 4 - m_levelBox.h() / 2);
         m_arcAniBoard.moveTo((boardW - 178 - 166 - m_arcAniBoard.w()) / 2, -13);
+
+        m_slider.moveTo(w() - 178 - 176, 40);
+        m_slider.resizeHeight(60);
     }
 }
 
@@ -1167,11 +1175,7 @@ void ControlBoard::onWindowResize(int winW, int winH)
         m_stretchH = maxStretchH;
     }
 
-    const int sliderDX = m_middle.w() - m_slider.dx();
-    const int sliderDY = m_middle.h() - m_slider.dy();
-
     m_middle.resetWidth(w() - 178 - 166);
-    m_slider.moveTo(m_middle.w() - sliderDX, m_middle.h() - sliderDY);
     setButtonLoc();
 }
 
