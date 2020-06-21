@@ -120,22 +120,24 @@ void LevelBox::drawEx(int dstX, int dstY, int, int, int, int)
     // don't worry too much here
     // we always draw fully for LevelBox
 
-    SDL_Texture *texPtr = g_SDLDevice->getCover(8);
-    const auto [bgW, bgH] = SDLDevice::getTextureSize(texPtr);
+    const auto fnDrawCover = [dstX, dstY](uint32_t color)
+    {
+        if(auto *texPtr = g_SDLDevice->getCover(8)){
+            SDL_SetTextureColorMod(texPtr, colorf::R(color), colorf::G(color), colorf::B(color));
+            SDLDevice::EnableDrawBlendMode enableDrawBlendMode(SDL_BLENDMODE_BLEND);
+            g_SDLDevice->DrawTexture(texPtr, dstX + 1, dstY);
+        }
+    };
 
     switch(m_state){
         case BEVENT_ON:
             {
-                SDL_SetTextureColorMod(texPtr, 0XFF, 0, 0);
-                SDLDevice::EnableDrawBlendMode enableDrawBlendMode(SDL_BLENDMODE_BLEND);
-                g_SDLDevice->DrawTexture(texPtr, dstX + 1, dstY, 0, 0, bgW, bgH);
+                fnDrawCover(colorf::RED);
                 break;
             }
         case BEVENT_DOWN:
             {
-                SDL_SetTextureColorMod(texPtr, 0, 0, 0XFF);
-                SDLDevice::EnableDrawBlendMode enableDrawBlendMode(SDL_BLENDMODE_BLEND);
-                g_SDLDevice->DrawTexture(texPtr, dstX + 1, dstY, 0, 0, bgW, bgH);
+                fnDrawCover(colorf::BLUE);
                 break;
             }
         default:
