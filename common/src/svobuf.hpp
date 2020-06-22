@@ -28,6 +28,10 @@
 #define SCOPED_ALLOC_THROW_OVERLIVE
 #define SCOPED_ALLOC_SUPPORT_OVERALIGN
 
+// disable dynamic_arena realloc if it aready has buffer attached
+// see more details in the function
+#define SCOPED_ALLOC_DISABLE_DYNAMIC_ARENA_REALLOC
+
 // use posix_memalign()
 // aligned_alloc is not standardized for compiler with c++14
 #define SCOPED_ALLOC_USE_POSIX_MEMALIGN
@@ -396,6 +400,59 @@ namespace scoped_alloc
             }
 
         public:
+            // TODO: should I disable this if current arena already has buffer allcoated?
+            //       because this can be the root of all bugs!
+            //
+            //     scoped_alloc::dynamic_arena<8> d;
+            //     std::vector<int, scoped_alloc::arena_interf<8>> v1(d);
+            //
+            //     d.alloc(128);    // OK
+            //     v1.push_back(1);
+            //     v1.push_back(2);
+            //     ...
+            //     v1.clear();
+            //
+            //     std::vector<int, scoped_alloc::arena_interf<8>> v2(d);
+            //
+            //     d.alloc(512);    // ERROR!
+            //     v2.push_back(1);
+            //     v1.push_back(2);
+            //     ...
+            //
+            // d.alloc(512) frees its internal buffer previously allocated by d.alloc(128)
+            // however v1 still refers to this buffer
+            //
+            // following code is OK:
+            //
+            //     scoped_alloc::dynamic_arena<8> d;
+            //     {
+            //         std::vector<int, scoped_alloc::arena_interf<8>> v1(d);
+            //
+            //         d.alloc(128);    // OK
+            //         v1.push_back(1);
+            //         v1.push_back(2);
+            //         ...
+            //         v1.clear();
+            //     }
+            //
+            //     d.alloc(512);
+            //     std::vector<int, scoped_alloc::arena_interf<8>> v2(d);
+            //
+            //     v2.push_back(1);
+            //     ...
+            //
+            // before re-alloc, caller needs to confirm no other object refers to its buffer
+            // this is hard, sometimes even the standard doesn't guarantee:
+            //
+            //     std::vector<T>::shrink_to_fit()
+            //
+            // this doesn't guerantee the vector release the buffer
+            // solution:
+            //
+            //     1. trust caller, don't do anything
+            //     2. only allow realloc if arena_interf::used() returns 0, this may overkill
+            //     3. forbid any re-alloc
+            //
             void alloc(size_t byte_count)
             {
                 if(byte_count == 0){
@@ -403,7 +460,11 @@ namespace scoped_alloc
                 }
 
                 if(this->has_buf()){
+#ifdef SCOPED_ALLOC_DISABLE_DYNAMIC_ARENA_REALLOC
+                    throw fflerror("dynamic_arena has buffer attached");
+#else
                     scoped_alloc::free_aligned(this->get_buf().buf);
+#endif
                 }
                 this->set_buf(scoped_alloc::alloc_aligned<Alignment>(byte_count));
             }
