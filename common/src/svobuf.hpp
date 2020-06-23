@@ -34,7 +34,7 @@
 
 // use posix_memalign()
 // aligned_alloc is not standardized for compiler with c++14
-#define SCOPED_ALLOC_USE_POSIX_MEMALIGN
+// #define SCOPED_ALLOC_USE_POSIX_MEMALIGN
 
 namespace scoped_alloc
 {
@@ -88,18 +88,10 @@ namespace scoped_alloc
         // aligned_alloc() requires this but posix_memalign() doesn't
 
 #ifdef SCOPED_ALLOC_USE_POSIX_MEMALIGN
-#if !defined(SAG_COM) && (defined(WIN64) || defined(_WIN64) || defined(__WIN64__) || defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__))
-        aligned_ptr = _aligned_malloc(byte_count_aligned, Alignment);
-        if(aligned_ptr){
-            return {static_cast<char *>(aligned_ptr), byte_count_aligned};
-        }
-        throw fflerror("_aligned_malloc(alignment = %zu, byte_count = %zu, byte_count_aligned = %zu) failed", Alignment, byte_count, byte_count_aligned);
-#else
         if(!posix_memalign(&aligned_ptr, Alignment, byte_count_aligned)){
             return {static_cast<char *>(aligned_ptr), byte_count_aligned};
         }
         throw fflerror("posix_memalign(..., alignment = %zu, byte_count = %zu, byte_count_aligned = %zu) failed", Alignment, byte_count, byte_count_aligned);
-#endif
 #else
         aligned_ptr = aligned_alloc(Alignment, byte_count_aligned);
         if(aligned_ptr){
