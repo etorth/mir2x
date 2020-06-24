@@ -26,7 +26,7 @@
 #include "fflerror.hpp"
 
 #define SCOPED_ALLOC_THROW_OVERLIVE
-#define SCOPED_ALLOC_SUPPORT_OVERALIGN
+// #define SCOPED_ALLOC_SUPPORT_OVERALIGN
 
 // disable dynamic_arena realloc if it aready has buffer attached
 // see more details in the function
@@ -34,7 +34,7 @@
 
 // use posix_memalign()
 // aligned_alloc is not standardized for compiler with c++14
-// #define SCOPED_ALLOC_USE_POSIX_MEMALIGN
+#define SCOPED_ALLOC_USE_POSIX_MEMALIGN
 
 namespace scoped_alloc
 {
