@@ -576,7 +576,7 @@ void ProcessRun::loadMap(uint32_t mapID)
 
     const auto mapBinPtr = g_mapBinDB->Retrieve(mapID);
     if(!mapBinPtr){
-        throw fflerror("can't find map: mapID = %llu", toLLU(mapID));
+        throw fflerror("can't find map: mapID = %llu", to_llu(mapID));
     }
 
     m_mapID = mapID;
@@ -1162,7 +1162,7 @@ ClientCreature *ProcessRun::findUID(uint64_t uid, bool checkVisible) const
 
     if(auto p = m_creatureList.find(uid); p != m_creatureList.end()){
         if(p->second->UID() != uid){
-            throw fflerror("invalid creature: %p, UID = %llu", p->second.get(), toLLU(p->second->UID()));
+            throw fflerror("invalid creature: %p, UID = %llu", p->second.get(), to_llu(p->second->UID()));
         }
 
         if(!checkVisible || p->second->visible()){
@@ -1311,7 +1311,7 @@ std::tuple<int, int> ProcessRun::getRandLoc(uint32_t nMapID)
     }();
 
     if(!mapBinPtr){
-        throw fflerror("failed to find map with mapID = %llu", toLLU(nMapID));
+        throw fflerror("failed to find map with mapID = %llu", to_llu(nMapID));
     }
 
     while(true){

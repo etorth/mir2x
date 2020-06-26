@@ -614,7 +614,7 @@ TOKEN XMLTypeset::buildEmojiToken(int leaf, uint32_t emoji) const
     int frameCount = -1;
 
     if(((emoji << 8) >> 8) != emoji){
-        throw fflerror("invalid emoji key: %llu", toLLU(emoji));
+        throw fflerror("invalid emoji key: %llu", to_llu(emoji));
     }
 
     emoji <<= 8;

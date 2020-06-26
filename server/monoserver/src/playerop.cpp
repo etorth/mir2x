@@ -194,7 +194,7 @@ void Player::On_MPK_MAPSWITCH(const MessagePack &mpk)
 {
     const auto amMS = mpk.conv<AMMapSwitch>();
     if(!(amMS.UID && amMS.MapID)){
-        g_monoServer->addLog(LOGTYPE_WARNING, "Map switch request failed: (UID = %llu, MapID = %llu)", toLLU(amMS.UID), toLLU(amMS.MapID));
+        g_monoServer->addLog(LOGTYPE_WARNING, "Map switch request failed: (UID = %llu, MapID = %llu)", to_llu(amMS.UID), to_llu(amMS.MapID));
     }
     requestMapSwitch(amMS.MapID, amMS.X, amMS.Y, false);
 }

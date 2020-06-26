@@ -17,5 +17,30 @@
  */
 
 #pragma once
-#define toLLD(x) static_cast<long long>(x)
-#define toLLU(x) static_cast<unsigned long long>(x)
+#include <string>
+
+#define to_lld(x) static_cast<long long>(x)
+#define to_llu(x) static_cast<unsigned long long>(x)
+
+inline const char * to_cstr(const char *s)
+{
+    if(s == nullptr){
+        return "(null)";
+    }
+    else if(s[0] == '\0'){
+        return "(empty)";
+    }
+    else{
+        return s;
+    }
+}
+
+inline const char *to_cstr(const std::string &s)
+{
+    return to_cstr(s.c_str());
+}
+
+inline const char *to_boolcstr(bool b)
+{
+    return b ? "true" : "false";
+}

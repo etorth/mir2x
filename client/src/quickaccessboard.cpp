@@ -62,7 +62,7 @@ QuickAccessBoard::QuickAccessBoard(int x, int y, ProcessRun *proc, Widget *pwidg
 {
     auto texPtr = g_progUseDB->Retrieve(m_texID);
     if(!texPtr){
-        throw fflerror("no valid quick access board texture: texID = %llu", toLLU(m_texID));
+        throw fflerror("no valid quick access board texture: texID = %llu", to_llu(m_texID));
     }
 
     show(false);
@@ -73,7 +73,7 @@ void QuickAccessBoard::drawEx(int dstX, int dstY, int, int, int, int)
 {
     auto texPtr = g_progUseDB->Retrieve(m_texID);
     if(!texPtr){
-        throw fflerror("no valid quick access board texture: texID = %llu", toLLU(m_texID));
+        throw fflerror("no valid quick access board texture: texID = %llu", to_llu(m_texID));
     }
 
     g_SDLDevice->DrawTexture(texPtr, dstX, dstY);

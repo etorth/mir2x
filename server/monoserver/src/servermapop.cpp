@@ -418,7 +418,7 @@ void ServerMap::On_MPK_TRYLEAVE(const MessagePack &mpk)
     // we reply MPK_ERROR but this is already something wrong, map never prevert leave on purpose
 
     m_actorPod->forward(mpk.from(), MPK_ERROR, mpk.ID());
-    g_monoServer->addLog(LOGTYPE_WARNING, "Leave request failed: UID = %llu, X = %d, Y = %d", toLLU(mpk.from()), amTL.X, amTL.Y);
+    g_monoServer->addLog(LOGTYPE_WARNING, "Leave request failed: UID = %llu, X = %d, Y = %d", to_llu(mpk.from()), amTL.X, amTL.Y);
 }
 
 void ServerMap::On_MPK_PULLCOINFO(const MessagePack &rstMPK)
@@ -468,7 +468,7 @@ void ServerMap::On_MPK_TRYMAPSWITCH(const MessagePack &mpk)
     m_actorPod->forward(mpk.from(), {MPK_MAPSWITCHOK, amMSOK}, mpk.ID(), [this, reqUID, amMSOK](const MessagePack &rmpk)
     {
         if(!getCell(amMSOK.X, amMSOK.Y).Locked){
-            throw fflerror("cell lock released before MAPSWITCHOK get responsed: MapUID = %lld", toLLU(UID()));
+            throw fflerror("cell lock released before MAPSWITCHOK get responsed: MapUID = %lld", to_llu(UID()));
         }
 
         getCell(amMSOK.X, amMSOK.Y).Locked = false;

@@ -28,7 +28,7 @@
 uint64_t uidf::buildMapUID(uint32_t mapID)
 {
     if(!mapID){
-        throw fflerror("invalid map ID: %llu", toLLU(mapID));
+        throw fflerror("invalid map ID: %llu", to_llu(mapID));
     }
     return ((uint64_t)(UID_MAP) << 44) + (uint64_t)(mapID);
 }
@@ -54,7 +54,7 @@ uint64_t uidf::buildMonsterUID(uint32_t monsterId)
     // +--+------------------------> UID_MON
 
     if(monsterId == 0 || monsterId >= 2048){
-        throw fflerror("invalid monster id: %llu", toLLU(monsterId));
+        throw fflerror("invalid monster id: %llu", to_llu(monsterId));
     }
 
     static auto s_monsterIDSeqPtr = []() -> std::array<std::atomic<uint32_t>, 2048> *
@@ -99,7 +99,7 @@ std::string uidf::getUIDString(uint64_t uid)
     switch(getUIDType(uid)){
         case UID_PLY:
             {
-                return str_printf("PLY%llu", toLLU((uid & 0XFFFFFFFF)));
+                return str_printf("PLY%llu", to_llu((uid & 0XFFFFFFFF)));
             }
         case UID_MON:
             {
@@ -107,11 +107,11 @@ std::string uidf::getUIDString(uint64_t uid)
             }
         case UID_NPC:
             {
-                return str_printf("NPC%llu_%llu", toLLU(uidf::getLookID(uid)), toLLU(uid & 0XFFFF));
+                return str_printf("NPC%llu_%llu", to_llu(uidf::getLookID(uid)), to_llu(uid & 0XFFFF));
             }
         case UID_MAP:
             {
-                return str_printf("MAP%llu", toLLU(uid & 0XFFFFFFFF));
+                return str_printf("MAP%llu", to_llu(uid & 0XFFFFFFFF));
             }
         case UID_COR:
             {
@@ -119,11 +119,11 @@ std::string uidf::getUIDString(uint64_t uid)
             }
         case UID_ETC:
             {
-                return str_printf("ETC%llu", toLLU(uid & 0XFFFFFFFF));
+                return str_printf("ETC%llu", to_llu(uid & 0XFFFFFFFF));
             }
         default:
             {
-                return str_printf("ERR%llu", toLLU(uid));
+                return str_printf("ERR%llu", to_llu(uid));
             }
     }
 }

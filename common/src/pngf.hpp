@@ -27,7 +27,7 @@ namespace pngf
     inline void saveRGBABufferEx(const uint8_t *data, uint32_t width, uint32_t height, const char *fileName)
     {
         if(!saveRGBABuffer(data, width, height, fileName)){
-            throw fflerror("saveRGBABuffer(%p, %llu, %llu, [%p]:%s) failed", data, toLLU(width), toLLU(height), fileName, fileName ? fileName : "(null)");
+            throw fflerror("saveRGBABuffer(%p, %llu, %llu, [%p]:%s) failed", data, to_llu(width), to_llu(height), fileName, fileName ? fileName : "(null)");
         }
     }
 }

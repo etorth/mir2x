@@ -36,7 +36,7 @@ NetIO::SendPack::SendPack(uint8_t hc, const uint8_t *dataBuf, size_t dataLength)
         case 0:
             {
                 if(data || dataLen){
-                    throw fflerror("invalid client message: (%lld, %p, %lld)", toLLD(headCode), data, toLLD(dataLen));
+                    throw fflerror("invalid client message: (%lld, %p, %lld)", to_lld(headCode), data, to_lld(dataLen));
                 }
                 break;
             }
@@ -60,7 +60,7 @@ NetIO::SendPack::SendPack(uint8_t hc, const uint8_t *dataBuf, size_t dataLength)
                         || (nMaskCnt < 0)
                         || (nCompLen != nMaskCnt)
                         || (dataLen != ((size_t)(nSizeLen) + stCMSG.maskLen() + (size_t)(nCompLen)))){
-                    throw fflerror("invalid client message: (%lld, %p, %lld)", toLLD(headCode), data, toLLD(dataLen));
+                    throw fflerror("invalid client message: (%lld, %p, %lld)", to_lld(headCode), data, to_lld(dataLen));
                 }
                 break;
             }
@@ -68,7 +68,7 @@ NetIO::SendPack::SendPack(uint8_t hc, const uint8_t *dataBuf, size_t dataLength)
             {
                 // not empty, fixed size and not compressed
                 if(!(data && (dataLen == stCMSG.dataLen()))){
-                    throw fflerror("invalid client message: (%lld, %p, %lld)", toLLD(headCode), data, toLLD(dataLen));
+                    throw fflerror("invalid client message: (%lld, %p, %lld)", to_lld(headCode), data, to_lld(dataLen));
                 }
                 break;
             }
@@ -76,19 +76,19 @@ NetIO::SendPack::SendPack(uint8_t hc, const uint8_t *dataBuf, size_t dataLength)
             {
                 // not empty, not fixed size and not compressed
                 if(!(data && (dataLen >= 4))){
-                    throw fflerror("invalid client message: (%lld, %p, %lld)", toLLD(headCode), data, toLLD(dataLen));
+                    throw fflerror("invalid client message: (%lld, %p, %lld)", to_lld(headCode), data, to_lld(dataLen));
                 }
 
                 uint32_t nDataLenU32 = 0;
                 std::memcpy(&nDataLenU32, data, 4);
                 if(((size_t)(nDataLenU32) + 4) != dataLen){
-                    throw fflerror("invalid client message: (%lld, %p, %lld)", toLLD(headCode), data, toLLD(dataLen));
+                    throw fflerror("invalid client message: (%lld, %p, %lld)", to_lld(headCode), data, to_lld(dataLen));
                 }
                 break;
             }
         default:
             {
-                throw fflerror("invalid client message: (%lld, %p, %lld)", toLLD(headCode), data, toLLD(dataLen));
+                throw fflerror("invalid client message: (%lld, %p, %lld)", to_lld(headCode), data, to_lld(dataLen));
             }
     }
 }

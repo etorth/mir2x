@@ -652,7 +652,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
                 }
             }
         }
-        throw fflerror("image assertion failed: img = %llu, w = %d, h = %d", toLLU(img), w, h);
+        throw fflerror("image assertion failed: img = %llu, w = %d, h = %d", to_llu(img), w, h);
     };
 
     fnAssertImage(0X00000012, 800, 133);

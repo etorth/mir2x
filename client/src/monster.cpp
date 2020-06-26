@@ -80,7 +80,7 @@ Monster::Monster(uint64_t uid, ProcessRun *proc)
     : CreatureMovable(uid, proc)
 {
     if(g_clientArgParser->drawUID){
-        m_nameBoard.setText("%s(%llu)", DBCOM_MONSTERRECORD(monsterID()).Name, toLLU(UID()));
+        m_nameBoard.setText("%s(%llu)", DBCOM_MONSTERRECORD(monsterID()).Name, to_llu(UID()));
     }
     else{
         m_nameBoard.setText("%s", DBCOM_MONSTERRECORD(monsterID()).Name);

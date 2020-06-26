@@ -279,7 +279,7 @@ void CharObject::DispatchAction(uint64_t nUID, const ActionNode &rstAction)
 bool CharObject::requestMove(int nX, int nY, int nSpeed, bool allowHalfMove, bool removeMonster, std::function<void()> fnOnOK, std::function<void()> fnOnError)
 {
     if(!m_map->groundValid(nX, nY)){
-        throw fflerror("invalid destination: (mapID = %lld, x = %d, y = %d)", toLLD(MapID()), nX, nY);
+        throw fflerror("invalid destination: (mapID = %lld, x = %d, y = %d)", to_lld(MapID()), nX, nY);
     }
 
     if(!canMove()){
@@ -420,12 +420,12 @@ bool CharObject::requestSpaceMove(int locX, int locY, bool strictMove, std::func
 {
     if(strictMove){
         if(!m_map->groundValid(locX, locY)){
-            throw fflerror("invalid destination: (mapID = %lld, x = %d, y = %d)", toLLU(MapID()), locX, locY);
+            throw fflerror("invalid destination: (mapID = %lld, x = %d, y = %d)", to_llu(MapID()), locX, locY);
         }
     }
     else{
         if(!m_map->ValidC(locX, locY)){
-            throw fflerror("invalid destination: (mapID = %lld, x = %d, y = %d)", toLLU(MapID()), locX, locY);
+            throw fflerror("invalid destination: (mapID = %lld, x = %d, y = %d)", to_llu(MapID()), locX, locY);
         }
     }
 
@@ -544,11 +544,11 @@ bool CharObject::requestSpaceMove(int locX, int locY, bool strictMove, std::func
 bool CharObject::requestMapSwitch(uint32_t mapID, int locX, int locY, bool strictMove, std::function<void()> fnOnOK, std::function<void()> fnOnError)
 {
     if(mapID == MapID()){
-        throw fflerror("request to switch on same map: mapID = %llu", toLLU(mapID));
+        throw fflerror("request to switch on same map: mapID = %llu", to_llu(mapID));
     }
 
     if(locX < 0 || locY < 0){
-        throw fflerror("invalid argument: mapID = %llu, locX = %d, locY = %d", toLLU(mapID), locX, locY);
+        throw fflerror("invalid argument: mapID = %llu, locX = %d, locY = %d", to_llu(mapID), locX, locY);
     }
 
     if(!canMove()){
@@ -677,7 +677,7 @@ bool CharObject::requestMapSwitch(uint32_t mapID, int locX, int locY, bool stric
                                                     // then we shouldn't call this function
 
                                                     m_actorPod->forward(((ServerMap *)(amMSOK.Ptr))->UID(), MPK_ERROR, rmpk.ID());
-                                                    g_monoServer->addLog(LOGTYPE_WARNING, "Leave request failed: mapID = %llu, mapUID = %llu", toLLU(m_map->ID()), toLLU(m_map->UID()));
+                                                    g_monoServer->addLog(LOGTYPE_WARNING, "Leave request failed: mapID = %llu, mapUID = %llu", to_llu(m_map->ID()), to_llu(m_map->UID()));
                                                     return;
                                                 }
                                         }
@@ -689,7 +689,7 @@ bool CharObject::requestMapSwitch(uint32_t mapID, int locX, int locY, bool stric
                                     // do nothing
                                     // new map reject this switch request
 
-                                    g_monoServer->addLog(LOGTYPE_WARNING, "Can't switch to new map: mapUID = %llu", toLLU(mpk.conv<AMUID>().UID));
+                                    g_monoServer->addLog(LOGTYPE_WARNING, "Can't switch to new map: mapUID = %llu", to_llu(mpk.conv<AMUID>().UID));
                                     return;
                                 }
                         }
@@ -784,7 +784,7 @@ void CharObject::retrieveLocation(uint64_t nUID, std::function<void(const COLoca
     }
 
     if(nUID == UID()){
-        throw fflerror("query UID to CO itself: %llu", toLLU(nUID));
+        throw fflerror("query UID to CO itself: %llu", to_llu(nUID));
     }
 
     // CO dispatches location changes automatically

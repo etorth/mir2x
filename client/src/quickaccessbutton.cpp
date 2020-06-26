@@ -49,7 +49,7 @@ QuickAccessButton::QuickAccessButton(const std::function<void()> &fnOnClick, Wid
 {
     auto texPtr = g_progUseDB->Retrieve(m_texID);
     if(!texPtr){
-        throw fflerror("no valid texture for quick access button: texID = %llu", toLLU(m_texID));
+        throw fflerror("no valid texture for quick access button: texID = %llu", to_llu(m_texID));
     }
     std::tie(m_w, m_h) = SDLDevice::getTextureSize(texPtr);
 }

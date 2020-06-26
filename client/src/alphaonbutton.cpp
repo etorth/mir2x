@@ -71,7 +71,7 @@ AlphaOnButton::AlphaOnButton(
 
     auto texPtr = g_progUseDB->Retrieve(m_texID);
     if(!texPtr){
-        throw fflerror("can't load down texture: %llu", toLLU(m_texID));
+        throw fflerror("can't load down texture: %llu", to_llu(m_texID));
     }
 
     const auto [texW, texH] = SDLDevice::getTextureSize(texPtr);
@@ -86,7 +86,7 @@ void AlphaOnButton::drawEx(int dstX, int dstY, int, int, int, int)
             {
                 auto texPtr = g_SDLDevice->getCover(m_onRadius);
                 if(!texPtr){
-                    throw fflerror("can't get round cover: radius = %llu", toLLU(m_onRadius));
+                    throw fflerror("can't get round cover: radius = %llu", to_llu(m_onRadius));
                 }
 
                 SDL_SetTextureColorMod(texPtr, colorf::R(m_onColor), colorf::G(m_onColor), colorf::B(m_onColor));
@@ -99,7 +99,7 @@ void AlphaOnButton::drawEx(int dstX, int dstY, int, int, int, int)
             {
                 auto texPtr = g_progUseDB->Retrieve(m_texID);
                 if(!texPtr){
-                    throw fflerror("can't get down texture: texID = %llu", toLLU(m_texID));
+                    throw fflerror("can't get down texture: texID = %llu", to_llu(m_texID));
                 }
 
                 g_SDLDevice->DrawTexture(texPtr, dstX, dstY);

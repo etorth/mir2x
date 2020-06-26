@@ -349,7 +349,7 @@ bool MonoServer::addMonster(uint32_t monsterID, uint32_t mapID, int x, int y, bo
 
     stAMACO.monster.monsterID = monsterID;
     stAMACO.monster.masterUID = 0;
-    addLog(LOGTYPE_INFO, "Try to add monster, monsterID = %llu", toLLU(monsterID));
+    addLog(LOGTYPE_INFO, "Try to add monster, monsterID = %llu", to_llu(monsterID));
 
     switch(auto stRMPK = SyncDriver().forward(m_serviceCore->UID(), {MPK_ADDCHAROBJECT, stAMACO}, 0, 0); stRMPK.Type()){
         case MPK_OK:
@@ -382,7 +382,7 @@ bool MonoServer::addNPChar(uint16_t npcID, uint32_t mapID, int x, int y, bool st
     stAMACO.strictLoc = strictLoc;
 
     stAMACO.NPC.NPCID = npcID;
-    addLog(LOGTYPE_INFO, "Try to add NPC, NPCID = %llu", toLLU(npcID));
+    addLog(LOGTYPE_INFO, "Try to add NPC, NPCID = %llu", to_llu(npcID));
 
     switch(auto stRMPK = SyncDriver().forward(m_serviceCore->UID(), {MPK_ADDCHAROBJECT, stAMACO}, 0, 0); stRMPK.Type()){
         case MPK_OK:
@@ -662,7 +662,7 @@ uint32_t MonoServer::SleepEx(uint32_t nTick)
 void MonoServer::RegisterLuaExport(CommandLuaModule *pModule, uint32_t nCWID)
 {
     if(!(pModule && nCWID)){
-        throw fflerror("invalid argument: module = %p, window ID = %llu", pModule, toLLU(nCWID));
+        throw fflerror("invalid argument: module = %p, window ID = %llu", pModule, to_llu(nCWID));
     }
 
     // register command quit

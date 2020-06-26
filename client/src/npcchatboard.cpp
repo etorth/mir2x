@@ -92,7 +92,7 @@ NPCChatBoard::NPCChatBoard(ProcessRun *proc, Widget *pwidget, bool autoDelete)
                 return;
             }
         }
-        throw fflerror("image assertion failed: key = %llu, w = %d, h = %d", toLLU(key), w, h);
+        throw fflerror("image assertion failed: key = %llu, w = %d, h = %d", to_llu(key), w, h);
     };
 
     fnAssertImage(0X00000050, 386, 160);

@@ -100,7 +100,7 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npc)
                 }
                 return {std::move(p->second.event), std::move(p->second.value)};
             }
-            throw fflerror("can't find session for UID = %llu", toLLU(uid));
+            throw fflerror("can't find session for UID = %llu", to_llu(uid));
         }());
     });
 
@@ -165,7 +165,7 @@ void NPChar::LuaNPCModule::setEvent(uint64_t uid, std::string event, std::string
     };
 
     if(!(uid && !event.empty())){
-        throw fflerror("invalid argument: uid = %llu, event = %s, value = %s", toLLU(uid), fnCStr(event), fnCStr(value));
+        throw fflerror("invalid argument: uid = %llu, event = %s, value = %s", to_llu(uid), fnCStr(event), fnCStr(value));
     }
 
     if(event == SYS_NPCDONE){
@@ -210,7 +210,7 @@ void NPChar::LuaNPCModule::setEvent(uint64_t uid, std::string event, std::string
     }
 
     if(p->second.uid != uid){
-        throw fflerror("invalid session: key = %llu, value.key = %llu", toLLU(uid), toLLU(p->second.uid));
+        throw fflerror("invalid session: key = %llu, value.key = %llu", to_llu(uid), to_llu(p->second.uid));
     }
 
     if(!p->second.co_handler.callback){

@@ -509,7 +509,7 @@ TTF_Font *SDLDevice::DefaultTTF(uint8_t fontSize)
     if(auto ttfPtr = CreateTTF(s_DefaultTTFData.Data(), s_DefaultTTFData.DataLen(), fontSize); ttfPtr){
         return m_fontList[fontSize] = ttfPtr;
     }
-    throw fflerror("can't build default ttf with point: %llu", toLLU(fontSize));
+    throw fflerror("can't build default ttf with point: %llu", to_llu(fontSize));
 }
 
 SDL_Texture *SDLDevice::getCover(int r)

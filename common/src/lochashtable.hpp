@@ -31,7 +31,7 @@ struct LocHashHelper
         if(x >= 0 && x < INT16_MAX && y >= 0 && y < INT16_MAX){
             return (size_t)(y) * (size_t)(INT16_MAX) + (size_t)(x);
         }
-        throw fflerror("invalid location: x = %lld, y = %lld", toLLD(x), toLLD(y));
+        throw fflerror("invalid location: x = %lld, y = %lld", to_lld(x), to_lld(y));
     }
 };
 
