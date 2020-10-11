@@ -17,7 +17,7 @@
        src="https://badges.gitter.im/org.png"/>
 </a>
 
-Waiting C++20 coroutine feature.
+Waiting for C++20.
 
 mir2x is a c/s based mir2ei implementation with various platforms supported. It contains all need components for game players and developers:
 
