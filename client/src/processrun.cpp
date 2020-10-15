@@ -953,6 +953,14 @@ void ProcessRun::RegisterUserCommand()
         addCBLog(CBLOG_SYS, u8"杀死所有宝宝");
         return 0;
     });
+
+    m_userCommandGroup.emplace_back("help", [this](const std::vector<std::string> &) -> int
+    {
+        addCBLog(CBLOG_SYS, u8"u: 召唤骷髅");
+        addCBLog(CBLOG_SYS, u8"y: 魔法盾");
+        addCBLog(CBLOG_SYS, u8"t: 雷电术");
+        return 0;
+    });
 }
 
 void ProcessRun::RegisterLuaExport(ClientLuaModule *luaModulePtr)
