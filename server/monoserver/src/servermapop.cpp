@@ -379,7 +379,7 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK)
                     }
 
                     if(!bFindCO){
-                        throw fflerror("CO location error: (UID = %" PRIu32 ", X = %d, Y = %d)", stAMTM.UID, stAMTM.X, stAMTM.Y);
+                        throw fflerror("CO location error: (UID = %llu, X = %d, Y = %d)", to_llu(stAMTM.UID), stAMTM.X, stAMTM.Y);
                     }
 
                     // 2. push to the new cell

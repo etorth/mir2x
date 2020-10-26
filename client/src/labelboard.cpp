@@ -25,19 +25,19 @@
 
 extern Log *g_log;
 
-void LabelBoard::setText(const char8_t *szFormatString, ...)
+void LabelBoard::setText(const char8_t *format, ...)
 {
     std::string szText;
     bool bError = false;
     {
         va_list ap;
-        va_start(ap, szFormatString);
+        va_start(ap, format);
 
         try{
-            szText = str_vprintf(to_cstr(szFormatString), ap);
+            szText = str_vprintf(to_cstr(format), ap);
         }catch(const std::exception &e){
             bError = true;
-            szText = str_printf("Exception caught in labelBoard::setText(\"%s\", ...): %s", szFormatString, e.what());
+            szText = str_printf("Exception caught in labelBoard::setText(\"%s\", ...): %s", to_cstr(format), e.what());
         }
 
         va_end(ap);

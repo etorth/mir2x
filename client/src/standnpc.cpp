@@ -27,7 +27,7 @@ StandNPC::StandNPC(uint64_t uid, ProcessRun *proc, const ActionNode &action)
     : ClientCreature(uid, proc)
 {
     if(type() != UID_NPC){
-        throw fflerror("uid type: %s", uidf::getUIDString(UID()));
+        throw fflerror("uid type: %s", uidf::getUIDString(UID()).c_str());
     }
 
     if(!parseAction(action)){

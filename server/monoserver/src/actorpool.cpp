@@ -89,7 +89,7 @@ ActorPool::~ActorPool()
 bool ActorPool::Register(ActorPod *pActor)
 {
     if(!(pActor && pActor->UID())){
-        throw fflerror("invalid arguments: ActorPod = %p, ActorPod::UID() = %" PRIu64, pActor, pActor->UID());
+        throw fflerror("invalid arguments: ActorPod = %p, ActorPod::UID() = %" PRIu64, to_cvptr(pActor), pActor->UID());
     }
 
     auto nUID = pActor->UID();
@@ -113,7 +113,7 @@ bool ActorPool::Register(ActorPod *pActor)
             return true;
         }
         else{
-            throw fflerror("UID exists: UID = %" PRIu64 ", ActorPod = %p", nUID, p->second->Actor);
+            throw fflerror("UID exists: UID = %" PRIu64 ", ActorPod = %p", nUID, to_cvptr(p->second->Actor));
         }
     }
 }
@@ -121,7 +121,7 @@ bool ActorPool::Register(ActorPod *pActor)
 bool ActorPool::Register(Receiver *pReceiver)
 {
     if(!pReceiver){
-        throw fflerror("invlaid argument: Receiver = %p", pReceiver);
+        throw fflerror("invlaid argument: Receiver = %p", to_cvptr(pReceiver));
     }
 
     {
@@ -131,7 +131,7 @@ bool ActorPool::Register(Receiver *pReceiver)
             return true;
         }
         else{
-            throw fflerror("UID exists: UID = %" PRIu64 ", Receiver = %p", p->second->UID(), p->second);
+            throw fflerror("UID exists: UID = %" PRIu64 ", Receiver = %p", p->second->UID(), to_cvptr(p->second));
         }
     }
 }
@@ -139,7 +139,7 @@ bool ActorPool::Register(Receiver *pReceiver)
 bool ActorPool::Detach(const ActorPod *pActor, const std::function<void()> &fnAtExit)
 {
     if(!(pActor && pActor->UID())){
-        throw fflerror("invalid arguments: ActorPod = %p, ActorPod::UID() = %" PRIu64, pActor, pActor->UID());
+        throw fflerror("invalid arguments: ActorPod = %p, ActorPod::UID() = %" PRIu64, to_cvptr(pActor), pActor->UID());
     }
 
     // we can use UID as parameter
@@ -162,7 +162,7 @@ bool ActorPool::Detach(const ActorPod *pActor, const std::function<void()> &fnAt
                             // if found a detached actor
                             // then the actor pointer must already be null
                             if(p->second->Actor){
-                                throw fflerror("detached mailbox has non-zero actor pointer: ActorPod = %p, ActorPod::UID() = %" PRIu64, p->second->Actor, pActor->UID());
+                                throw fflerror("detached mailbox has non-zero actor pointer: ActorPod = %p, ActorPod::UID() = %" PRIu64, to_cvptr(p->second->Actor), pActor->UID());
                             }
                             return true;
                         }
@@ -174,13 +174,13 @@ bool ActorPool::Detach(const ActorPod *pActor, const std::function<void()> &fnAt
                             // only check this consistancy when grabbed the lock
                             // otherwise other thread may change the actor pointer to null at any time
                             if(p->second->Actor != pActor){
-                                throw fflerror("different actors with same UID: ActorPod = (%p, %p), ActorPod::UID() = %" PRIu64, pActor, p->second->Actor, pActor->UID());
+                                throw fflerror("different actors with same UID: ActorPod = (%p, %p), ActorPod::UID() = %" PRIu64, to_cvptr(pActor), to_cvptr(p->second->Actor), pActor->UID());
                             }
 
                             // detach a locked mailbox
                             // remember any thread can't flip mailbox to detach before lock it!!!
                             if(auto nWorkerID = p->second->SchedLock.Detach(); nWorkerID != getWorkerID()){
-                                throw fflerror("locked actor flips to invalid status: ActorPod = %p, ActorPod::UID() = %" PRIu64 ", Status = %d", pActor, pActor->UID(), nWorkerID);
+                                throw fflerror("locked actor flips to invalid status: ActorPod = %p, ActorPod::UID() = %" PRIu64 ", Status = %d", to_cvptr(pActor), pActor->UID(), nWorkerID);
                             }
 
                             // we are all good, call actor atexit() function immediately now here
@@ -220,7 +220,7 @@ bool ActorPool::Detach(const ActorPod *pActor, const std::function<void()> &fnAt
                             // can't grab the SchedLock, means someone else is accessing it
                             // and we know it's not public threads accessing, then must be actor threads
                             if(!isActorThread(stMailboxLock.LockType())){
-                                throw fflerror("invalid actor status: ActorPod = %p, ActorPod::UID() = %" PRIu64 ", status = %c", pActor, pActor->UID(), stMailboxLock.LockType());
+                                throw fflerror("invalid actor status: ActorPod = %p, ActorPod::UID() = %" PRIu64 ", status = %c", to_cvptr(pActor), pActor->UID(), stMailboxLock.LockType());
                             }
 
                             // inside actor threads
@@ -230,7 +230,7 @@ bool ActorPool::Detach(const ActorPod *pActor, const std::function<void()> &fnAt
                                 // the lock is grabed already by current actor thread, check the consistancy
                                 // only check it when current thread grabs the lock, otherwise other thread may change it to null at any time
                                 if(p->second->Actor != pActor){
-                                    throw fflerror("different actors with same UID: ActorPod = (%p, %p), ActorPod::UID() = %" PRIu64, pActor, p->second->Actor, pActor->UID());
+                                    throw fflerror("different actors with same UID: ActorPod = (%p, %p), ActorPod::UID() = %" PRIu64, to_cvptr(pActor), to_cvptr(p->second->Actor), pActor->UID());
                                 }
 
                                 // this is from inside the actor's actor thread
@@ -279,7 +279,7 @@ bool ActorPool::Detach(const ActorPod *pActor, const std::function<void()> &fnAt
 bool ActorPool::Detach(const Receiver *pReceiver)
 {
     if(!(pReceiver && pReceiver->UID())){
-        throw fflerror("invalid arguments: Receiver = %p, Receiver::UID() = %" PRIu64, pReceiver, pReceiver->UID());
+        throw fflerror("invalid arguments: Receiver = %p, Receiver::UID() = %" PRIu64, to_cvptr(pReceiver), pReceiver->UID());
     }
 
     // we allow detach a receiver multiple times

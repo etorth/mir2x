@@ -53,7 +53,7 @@ class node_lambda: public bvtree::node
                     }
                 default:
                     {
-                        throw fflerror("invalid node status: %d", op_status);
+                        throw fflerror("invalid node status");
                     }
             }
         }
@@ -144,7 +144,7 @@ bvnode_ptr bvtree::if_check(bvnode_ptr check, bvnode_ptr operation)
                             }
                         default:
                             {
-                                throw fflerror("invalid node status: %d", status);
+                                throw fflerror("invalid node status");
                             }
                     }
                 }
@@ -162,7 +162,7 @@ bvnode_ptr bvtree::if_check(bvnode_ptr check, bvnode_ptr operation)
                         }
                     default:
                         {
-                            throw fflerror("invalid node status: %d", op_status);
+                            throw fflerror("invalid node status");
                         }
                 }
             }
@@ -229,7 +229,7 @@ bvnode_ptr bvtree::if_branch(bvnode_ptr check, bvnode_ptr on_true, bvnode_ptr on
                             }
                         default:
                             {
-                                throw fflerror("invalid node status: %d", status);
+                                throw fflerror("invalid node status");
                             }
                     }
                 }
@@ -247,7 +247,7 @@ bvnode_ptr bvtree::if_branch(bvnode_ptr check, bvnode_ptr on_true, bvnode_ptr on
                         }
                     default:
                         {
-                            throw fflerror("invalid node status: %d", op_status);
+                            throw fflerror("invalid node status");
                         }
                 }
             }
@@ -297,7 +297,7 @@ class node_loop_while: public bvtree::node
                             }
                         default:
                             {
-                                throw fflerror("invalid node status: %d", status);
+                                throw fflerror("invalid node status");
                             }
                     }
                 }
@@ -315,7 +315,7 @@ class node_loop_while: public bvtree::node
                         }
                     default:
                         {
-                            throw fflerror("invalid node status: %d", op_status);
+                            throw fflerror("invalid node status");
                         }
                 }
             }
@@ -402,7 +402,7 @@ class node_repeat_loop: public bvtree::node
                         }
                     default:
                         {
-                            throw fflerror("invalid node status: %d", status);
+                            throw fflerror("invalid node status");
                         }
                 }
             }
@@ -460,7 +460,7 @@ bvnode_ptr bvtree::catch_abort(bvnode_ptr operation)
                         }
                     default:
                         {
-                            throw fflerror("invalid node status: %d", status);
+                            throw fflerror("invalid node status");
                         }
                 }
             }
@@ -502,7 +502,7 @@ bvnode_ptr bvtree::abort_failure(bvnode_ptr operation)
                         }
                     default:
                         {
-                            throw fflerror("invalid node status: %d", op_status);
+                            throw fflerror("invalid node status");
                         }
                 }
             }
@@ -544,7 +544,7 @@ bvnode_ptr bvtree::always_success(bvnode_ptr operation)
                         }
                     default:
                         {
-                            throw fflerror("invalid node status: %d", status);
+                            throw fflerror("invalid node status");
                         }
                 }
             }
@@ -589,7 +589,7 @@ bvnode_ptr bvtree::op_not(bvnode_ptr operation)
                         }
                     default:
                         {
-                            throw fflerror("invalid node status: %d", status);
+                            throw fflerror("invalid node status");
                         }
                 }
             }
@@ -663,7 +663,7 @@ bvnode_ptr bvtree::op_delay(uint64_t ms, bvnode_ptr operation)
                         }
                     default:
                         {
-                            throw fflerror("invalid node status: %d", op_status);
+                            throw fflerror("invalid node status");
                         }
                 }
             }
@@ -724,7 +724,7 @@ bvnode_ptr bvtree::op_timeout(uint64_t ms, bvnode_ptr operation)
                         }
                     default:
                         {
-                            throw fflerror("invalid node status: %d", op_status);
+                            throw fflerror("invalid node status");
                         }
                 }
             }
@@ -790,7 +790,7 @@ bvnode_ptr bvtree::op_slowdown(uint64_t ms, bvnode_ptr operation)
                             }
                         default:
                             {
-                                throw fflerror("invalid node status: %d", op_status);
+                                throw fflerror("invalid node status");
                             }
                     }
                 }

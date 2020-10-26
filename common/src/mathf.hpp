@@ -181,7 +181,7 @@ namespace mathf
     {
         // 1. check parameters, since we use them to provide arguments
         if(!(nfX2 && nfY2 && nfW2 && nfH2)){
-            throw fflerror("invalid argument: %p, %p, %p, %p", nfX2, nfY2, nfW2, nfH2);
+            throw fflerror("invalid argument: rectangleOverlapRegion(...)");
         }
 
         // 2. fast check for overlapping
@@ -438,7 +438,7 @@ namespace mathf
             int nDstRegionX = 0, int nDstRegionY = 0, int nDstRegionW = -1, int nDstRegionH = -1)  // ROI of canvas, by default uses fully
     {
         if(!(pSrcX && pSrcY && pSrcW && pSrcH && pDstX && pDstY && (nSrcOriginW >= 0) && (nSrcOriginH >= 0))){
-            throw fflerror("invalid argument: ROPCrop(%p, %p, %p, %p, %p, %p, %d, %d, ...)", pSrcX, pSrcY, pSrcW, pSrcH, pDstX, pDstY, nSrcOriginW, nSrcOriginH);
+            throw fflerror("invalid argument: ROPCrop(...)");
         }
 
         if(nSrcRegionW < 0){

@@ -107,7 +107,7 @@ int XMLParagraphLeaf::markEvent(int event)
 uint32_t XMLParagraphLeaf::peekUTF8Code(int leafOff) const
 {
     if(leafOff >= length()){
-        throw fflerror("provided LeafOff exceeds leaf length: %zu", length());
+        throw fflerror("provided LeafOff exceeds leaf length: %d", length());
     }
 
     if(Type() != LEAF_UTF8GROUP){

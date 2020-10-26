@@ -135,7 +135,7 @@ void ACButton::setLabel()
     const auto [low, high] = m_proc->getACNum(buttonName);
 
     if(low > high){
-        throw fflerror("invalid %s: %d-%d", low, high);
+        throw fflerror("invalid %s: %d-%d", to_cstr(buttonName), low, high);
     }
     m_labelBoard.setText(u8"%d-%d", low, high);
 }

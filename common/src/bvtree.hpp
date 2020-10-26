@@ -195,7 +195,7 @@ inline const char *bvres_cstr(bvres_t status)
             }
         default:
             {
-                throw fflerror("invalid node status: %d", status);
+                throw fflerror("invalid node status");
             }
     }
 }
@@ -251,7 +251,7 @@ namespace bvtree
                         m_currnode = std::rand() % (int)(m_nodes.size());
                     }
 
-                    switch(auto status = m_nodes[m_currnode]->update()){
+                    switch(const auto status = m_nodes[m_currnode]->update()){
                         case BV_SUCCESS:
                         case BV_FAILURE:
                         case BV_PENDING:
@@ -261,7 +261,7 @@ namespace bvtree
                             }
                         default:
                             {
-                                throw fflerror("invalid node status: %d", status);
+                                throw fflerror("invalid node status");
                             }
                     }
                 }

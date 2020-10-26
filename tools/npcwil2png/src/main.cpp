@@ -81,7 +81,7 @@ std::string createOffsetFileName(const char *outDir, bool shadow, int look, int 
 
     return str_printf("%s/%08llX%s%s%04X%04X.PNG",
             outDir,
-            encode, 
+            to_llu(encode),
             ((dx > 0) ? "1" : "0"),
             ((dy > 0) ? "1" : "0"),
             std::abs(dx),

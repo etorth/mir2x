@@ -23,6 +23,7 @@
 
 #include "log.hpp"
 #include "bevent.hpp"
+#include "toll.hpp"
 #include "strf.hpp"
 #include "xmlf.hpp"
 #include "utf8f.hpp"
@@ -57,7 +58,7 @@ void XMLParagraph::deleteLeaf(int leaf)
 void XMLParagraph::insertUTF8String(int leaf, int leafOff, const char *utf8String)
 {
     if(leafRef(leaf).Type() != LEAF_UTF8GROUP){
-        throw fflerror("the %zu-th leaf is not a XMLText", leaf);
+        throw fflerror("the %d-th leaf is not a XMLText", leaf);
     }
 
     if(leafOff < 0 || leafOff > (int)(leafRef(leaf).utf8CharOffRef().size())){
@@ -119,7 +120,7 @@ void XMLParagraph::insertUTF8String(int leaf, int leafOff, const char *utf8Strin
 void XMLParagraph::deleteUTF8Char(int leaf, int leafOff, int tokenCount)
 {
     if(leafRef(leaf).Type() != LEAF_UTF8GROUP){
-        throw fflerror("the %zu-th leaf is not a XMLText", leaf);
+        throw fflerror("the %d-th leaf is not a XMLText", leaf);
     }
 
     if(!leafOffValid(leaf, leafOff)){
@@ -131,7 +132,7 @@ void XMLParagraph::deleteUTF8Char(int leaf, int leafOff, int tokenCount)
     }
 
     if((leafOff + tokenCount - 1) >= leafRef(leaf).length()){
-        throw fflerror("the %zu-th leaf has only %zu tokens", leaf, leafRef(leaf).length());
+        throw fflerror("the %d-th leaf has only %d tokens", leaf, leafRef(leaf).length());
     }
 
     if(tokenCount == leafRef(leaf).length()){
@@ -221,7 +222,7 @@ void XMLParagraph::deleteToken(int leaf, int leafOff, int tokenCount)
 std::tuple<int, int, int> XMLParagraph::prevLeafOff(int leaf, int leafOff, int) const
 {
     if(leafOff >= (int)(leafRef(leaf).utf8CharOffRef().size())){
-        throw fflerror("the %zu-th leaf has only %zu tokens", leaf, leafRef(leaf).utf8CharOffRef().size());
+        throw fflerror("the %d-th leaf has only %zu tokens", leaf, leafRef(leaf).utf8CharOffRef().size());
     }
 
     return {0, 0, 0};
@@ -230,7 +231,7 @@ std::tuple<int, int, int> XMLParagraph::prevLeafOff(int leaf, int leafOff, int) 
 std::tuple<int, int, int> XMLParagraph::nextLeafOff(int leaf, int leafOff, int tokenCount) const
 {
     if(leafOff >= leafRef(leaf).length()){
-        throw fflerror("the %zu-th leaf has only %zu tokens", leaf, leafRef(leaf).length());
+        throw fflerror("the %d-th leaf has only %d tokens", leaf, leafRef(leaf).length());
     }
 
     int nCurrLeaf      = leaf;
@@ -388,7 +389,7 @@ void XMLParagraph::insertLeafXML(int loc, const char *xmlString)
 void XMLParagraph::insertXMLAfter(tinyxml2::XMLNode *after, const char *xmlString)
 {
     if(!(after && xmlString)){
-        throw fflerror("invalid argument: after = %p, xmlString = %p", after, xmlString);
+        throw fflerror("invalid argument: after = %p, xmlString = %p", to_cvptr(after), to_cvptr(xmlString));
     }
 
     if(after->GetDocument() != &m_XMLDocument){

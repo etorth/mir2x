@@ -17,6 +17,7 @@
  */
 #include <utility>
 #include <algorithm>
+#include "toll.hpp"
 #include "strf.hpp"
 #include "xmlf.hpp"
 #include "fflerror.hpp"
@@ -133,7 +134,7 @@ tinyxml2::XMLNode *xmlf::getNextLeaf(tinyxml2::XMLNode *node)
     }
 
     if(!node->NoChildren()){
-        throw fflerror("invalid argument: [%p] is not a leaf node", node);
+        throw fflerror("invalid argument: [%p] is not a leaf node", to_cvptr(node));
     }
 
     if(auto next = node->NextSibling()){

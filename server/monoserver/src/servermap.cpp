@@ -228,7 +228,7 @@ ServerMap::ServerMapLuaModule::ServerMapLuaModule(ServerMap *mapPtr)
         const auto configScriptPath = g_serverConfigureWindow->GetScriptPath();
         const auto scriptPath = configScriptPath.empty() ? std::string("script/map") : configScriptPath;
 
-        const auto scriptName = str_printf("%s/%s.lua", scriptPath.c_str(), DBCOM_MAPRECORD(mapPtr->ID()).name);
+        const auto scriptName = str_printf("%s/%s.lua", scriptPath.c_str(), to_cstr(DBCOM_MAPRECORD(mapPtr->ID()).name));
         if(std::filesystem::exists(scriptName)){
             return scriptName;
         }
@@ -237,7 +237,7 @@ ServerMap::ServerMapLuaModule::ServerMapLuaModule(ServerMap *mapPtr)
         if(std::filesystem::exists(defaultScriptName)){
             return defaultScriptName;
         }
-        throw fflerror("can't load proper script for map %s", DBCOM_MAPRECORD(mapPtr->ID()).name);
+        throw fflerror("can't load proper script for map %s", to_cstr(DBCOM_MAPRECORD(mapPtr->ID()).name));
     }());
 
     m_coHandler = getLuaState()["main"];
@@ -330,12 +330,12 @@ ServerMap::ServerMap(ServiceCore *pServiceCore, uint32_t nMapID)
 
           // when constructing a servermap
           // servicecore should test if current nMapID valid
-          throw fflerror("load map failed: ID = %d, Name = %s", nMapID, DBCOM_MAPRECORD(nMapID).name);
+          throw fflerror("load map failed: ID = %d, Name = %s", nMapID, to_cstr(DBCOM_MAPRECORD(nMapID).name));
       }()))
     , m_serviceCore(pServiceCore)
 {
     if(!m_mir2xMapData.Valid()){
-        throw fflerror("load map failed: ID = %d, Name = %s", nMapID, DBCOM_MAPRECORD(nMapID).name);
+        throw fflerror("load map failed: ID = %d, Name = %s", nMapID, to_cstr(DBCOM_MAPRECORD(nMapID).name));
     }
 
     m_cellVec2D.resize(W());
@@ -658,7 +658,7 @@ uint64_t ServerMap::Activate()
     }
 
     if(m_luaModulePtr){
-        throw fflerror("ServerMap activates twice: %s", DBCOM_MAPRECORD(ID()).name);
+        throw fflerror("ServerMap activates twice: %s", to_cstr(DBCOM_MAPRECORD(ID()).name));
     }
 
     m_luaModulePtr = new ServerMap::ServerMapLuaModule(this);

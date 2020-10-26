@@ -52,7 +52,7 @@ ActorPod::ActorPod(uint64_t nUID,
     , m_podMonitor()
 {
     if(!g_actorPool->Register(this)){
-        throw fflerror("register actor failed: ActorPod = %p, ActorPod::UID() = %" PRIu64, this, UID());
+        throw fflerror("register actor failed: ActorPod = %p, ActorPod::UID() = %" PRIu64, to_cvptr(this), UID());
     }
 }
 
@@ -68,7 +68,7 @@ ActorPod::~ActorPod()
     // good enough
 
     if(!g_actorPool->Detach(this, [](){})){
-        g_monoServer->addLog(LOGTYPE_WARNING, "ActorPool::Detach(ActorPod = %p) failed", this);
+        g_monoServer->addLog(LOGTYPE_WARNING, "ActorPool::Detach(ActorPod = %p) failed", to_cvptr(this));
         g_monoServer->Restart();
     }
 }

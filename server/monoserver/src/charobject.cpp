@@ -64,7 +64,7 @@ CharObject::COPathFinder::COPathFinder(const CharObject *pCO, int nCheckCO)
     , m_cache()
 {
     if(!m_CO){
-        throw fflerror("invalid argument: CO = %p, CheckCO = %d", m_CO, m_checkCO);
+        throw fflerror("invalid argument: CO = %p, CheckCO = %d", to_cvptr(m_CO), m_checkCO);
     }
 
     switch(m_checkCO){
@@ -76,7 +76,7 @@ CharObject::COPathFinder::COPathFinder(const CharObject *pCO, int nCheckCO)
             }
         default:
             {
-                throw fflerror("invalid argument: CO = %p, CheckCO = %d", m_CO, m_checkCO);
+                throw fflerror("invalid argument: CO = %p, CheckCO = %d", to_cvptr(m_CO), m_checkCO);
             }
     }
 
@@ -1184,7 +1184,7 @@ double CharObject::OneStepCost(const CharObject::COPathFinder *pFinder, int nChe
             }
         default:
             {
-                throw fflerror("invalid argument: COPathFinder = %p, CheckCO = %d", pFinder, nCheckCO);
+                throw fflerror("invalid argument: COPathFinder = %p, CheckCO = %d", to_cvptr(pFinder), nCheckCO);
             }
     }
 

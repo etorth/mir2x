@@ -1170,7 +1170,7 @@ ClientCreature *ProcessRun::findUID(uint64_t uid, bool checkVisible) const
 
     if(auto p = m_creatureList.find(uid); p != m_creatureList.end()){
         if(p->second->UID() != uid){
-            throw fflerror("invalid creature: %p, UID = %llu", p->second.get(), to_llu(p->second->UID()));
+            throw fflerror("invalid creature: %p, UID = %llu", to_cvptr(p->second.get()), to_llu(p->second->UID()));
         }
 
         if(!checkVisible || p->second->visible()){

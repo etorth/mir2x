@@ -567,7 +567,7 @@ TOKEN XMLTypeset::buildUTF8Token(int leaf, uint8_t nFont, uint8_t nFontSize, uin
             stToken.UTF8Char.U64Key = nU64Key;
             return stToken;
         }
-        throw fflerror("SDL_QueryTexture(%p) failed", pTexture);
+        throw fflerror("SDL_QueryTexture(%p) failed", to_cvptr(pTexture));
     }
 
     nU64Key = utf8f::buildU64Key(m_font, m_fontSize, 0, nUTF8Code);
@@ -596,7 +596,7 @@ TOKEN XMLTypeset::buildUTF8Token(int leaf, uint8_t nFont, uint8_t nFontSize, uin
             stToken.UTF8Char.U64Key = nU64Key;
             return stToken;
         }
-        throw fflerror("SDL_QueryTexture(%p) failed", pTexture);
+        throw fflerror("SDL_QueryTexture(%p) failed", to_cvptr(pTexture));
     }
     throw fflerror("fallback to default font failed: font: %d -> %d, fontsize: %d -> %d", (int)(nFont), (int)(m_font), (int)(nFontSize), (int)(m_fontSize));
 }

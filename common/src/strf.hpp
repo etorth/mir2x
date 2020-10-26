@@ -92,20 +92,26 @@
 #include <cstdarg>
 #include <filesystem>
 
- bool str_nonempty(const char *);
- bool str_nonempty(const char8_t *);
+#ifdef __GNUC__
+    #define STR_PRINTF_CHECK_FORMAT(n) __attribute__ ((format (printf, (n), ((n)+1))))
+#else
+    #define STR_PRINTF_CHECK_FORMAT(n)
+#endif
 
- [[nodiscard]] std::string str_printf(const char *, ...);
- [[nodiscard]] std::string str_vprintf(const char *, va_list);
+bool str_nonempty(const char *);
+bool str_nonempty(const char8_t *);
 
- [[maybe_unused]] const std::string &str_printf(std::string &, const char *, ...);
- [[maybe_unused]] const std::string &str_vprintf(std::string &, const char *, va_list);
+[[nodiscard]] std::string str_printf(const char *, ...) STR_PRINTF_CHECK_FORMAT(1);
+[[nodiscard]] std::string str_vprintf(const char *, va_list);
 
- [[nodiscard]] std::u8string str_printf(const char8_t *, ...);
- [[nodiscard]] std::u8string str_vprintf(const char8_t *, va_list);
+[[maybe_unused]] const std::string &str_printf(std::string &, const char *, ...) STR_PRINTF_CHECK_FORMAT(2);
+[[maybe_unused]] const std::string &str_vprintf(std::string &, const char *, va_list);
 
- [[maybe_unused]] const std::u8string &str_printf(std::u8string &, const char8_t *, ...);
- [[maybe_unused]] const std::u8string &str_vprintf(std::u8string &, const char8_t *, va_list);
+[[nodiscard]] std::u8string str_printf(const char8_t *, ...);
+[[nodiscard]] std::u8string str_vprintf(const char8_t *, va_list);
+
+[[maybe_unused]] const std::u8string &str_printf(std::u8string &, const char8_t *, ...);
+[[maybe_unused]] const std::u8string &str_vprintf(std::u8string &, const char8_t *, va_list);
 
 // copy from boost
 // definition of BOOST_CURRENT_FUNCTION

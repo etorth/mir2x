@@ -19,8 +19,9 @@
 #pragma once
 #include <string>
 
-#define to_lld(x) static_cast<long long>(x)
-#define to_llu(x) static_cast<unsigned long long>(x)
+#define to_lld(x)     static_cast<long long>(x)
+#define to_llu(x)     static_cast<unsigned long long>(x)
+#define to_cvptr(x) static_cast<const void *>(x)
 
 inline const char * to_cstr(const char *s)
 {

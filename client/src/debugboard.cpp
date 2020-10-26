@@ -38,7 +38,7 @@ void NotifyBoard::addLog(const char8_t * formatString, ...)
             text = str_vprintf(to_cstr(formatString), ap);
         }catch(const std::exception &e){
             error = true;
-            text = str_printf("Exception caught in NotifyBoard::addLog(\"%s\", ...): %s", formatString, e.what());
+            text = str_printf("Exception caught in NotifyBoard::addLog(\"%s\", ...): %s", to_cstr(formatString), e.what());
         }
 
         va_end(ap);

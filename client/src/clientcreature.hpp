@@ -174,7 +174,7 @@
             , m_nameBoard(0, 0, u8"ClientCreature", 1, 12, 0, colorf::RGBA(0XFF, 0XFF, 0XFF, 0X00))
         {
             if(!(m_UID && m_processRun)){
-                throw fflerror("invalid argument: UID = %llu, processRun = %p", to_llu(m_UID), m_processRun);
+                throw fflerror("invalid argument: UID = %llu, processRun = %p", to_llu(m_UID), to_cvptr(m_processRun));
             }
         }
 

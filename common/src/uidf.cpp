@@ -103,7 +103,7 @@ std::string uidf::getUIDString(uint64_t uid)
             }
         case UID_MON:
             {
-                return str_printf("MON%llu_%llu", getMonsterID(uid), getMonsterSeq(uid));
+                return str_printf("MON%llu_%llu", to_llu(getMonsterID(uid)), to_llu(getMonsterSeq(uid)));
             }
         case UID_NPC:
             {

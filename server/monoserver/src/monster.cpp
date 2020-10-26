@@ -513,7 +513,7 @@ bool Monster::update()
     }
 
     if(g_serverArgParser->useBvTree){
-        switch(auto nState = m_bvTree->update()){
+        switch(m_bvTree->update()){
             case BV_PENDING:
                 {
                     return true;
@@ -527,7 +527,7 @@ bool Monster::update()
                 }
             default:
                 {
-                    throw fflerror(": Invalid node status: %d", nState);
+                    throw fflerror("invalid node status");
                 }
         }
     }

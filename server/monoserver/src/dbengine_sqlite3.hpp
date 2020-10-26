@@ -94,7 +94,7 @@ class DBRecord_SQLite3: public DBRecord
             }
 
             if(auto nRC = sqlite3_finalize(m_statement); nRC != SQLITE_OK){
-                throw fflerror("sqlite3_finalize(%p) failed with errcode: %d", m_statement, nRC);
+                throw fflerror("sqlite3_finalize(%p) failed with errcode: %d", to_cvptr(m_statement), nRC);
             }
             m_statement = nullptr;
         }
@@ -105,7 +105,7 @@ class DBRecord_SQLite3: public DBRecord
             , m_statement(nullptr)
         {
             if(!m_DBEngine){
-                throw fflerror("DBEngine_SQLite3(%p) failed", pConnection);
+                throw fflerror("DBEngine_SQLite3(%p) failed", to_cvptr(pConnection));
             }
         }
 
@@ -211,7 +211,7 @@ class DBRecord_SQLite3: public DBRecord
                     }
                 default:
                     {
-                        throw fflerror("sqlite3_step(%s) failed: %d", nRC);
+                        throw fflerror("sqlite3_step(%p) failed: %d", to_cvptr(m_statement), nRC);
                     }
             }
         }

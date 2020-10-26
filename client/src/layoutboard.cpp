@@ -88,7 +88,7 @@ void LayoutBoard::loadXML(const char *xmlString)
 void LayoutBoard::addPar(int loc, const std::array<int, 4> &parMargin, const tinyxml2::XMLNode *node, bool updateSize)
 {
     if(loc < 0 || loc > parCount()){
-        throw fflerror("invalid location: %zu", loc);
+        throw fflerror("invalid location: %d", loc);
     }
 
     if(!node){

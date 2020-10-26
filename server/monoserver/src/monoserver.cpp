@@ -662,7 +662,7 @@ uint32_t MonoServer::SleepEx(uint32_t nTick)
 void MonoServer::RegisterLuaExport(CommandLuaModule *pModule, uint32_t nCWID)
 {
     if(!(pModule && nCWID)){
-        throw fflerror("invalid argument: module = %p, window ID = %llu", pModule, to_llu(nCWID));
+        throw fflerror("invalid argument: module = %p, window ID = %llu", to_cvptr(pModule), to_llu(nCWID));
     }
 
     // register command quit

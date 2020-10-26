@@ -179,7 +179,7 @@ MotionNode ClientCreature::makeMotionIdle() const
                 case UID_PLY: return MOTION_STAND;
                 case UID_NPC: return MOTION_NPC_ACT;
                 case UID_MON: return MOTION_MON_STAND;
-                default: throw fflerror("invalid ClientCreature: %s", uidf::getUIDString(UID()));
+                default: throw fflerror("invalid ClientCreature: %s", uidf::getUIDString(UID()).c_str());
             }
         }(),
 

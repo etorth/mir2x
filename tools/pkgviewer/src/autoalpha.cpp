@@ -19,6 +19,7 @@
 #include <cmath>
 #include <algorithm>
 #include <stdexcept>
+#include "toll.hpp"
 #include "strf.hpp"
 #include "fflerror.hpp"
 #include "autoalpha.hpp"
@@ -26,7 +27,7 @@
 void CalcPixelAutoAlpha(uint32_t *pData, size_t nDataLen)
 {
     if(!(pData && nDataLen)){
-        throw fflerror("invalid buffer: (%p, %zu)", pData, nDataLen);
+        throw fflerror("invalid buffer: (%p, %zu)", to_cvptr(pData), nDataLen);
     }
 
     for(size_t nIndex = 0; nIndex < nDataLen; ++nIndex){
@@ -53,7 +54,7 @@ void CalcPixelAutoAlpha(uint32_t *pData, size_t nDataLen)
 void CalcShadowRemovalAlpha(uint32_t *pData, size_t nWidth, size_t nHeight, uint32_t nShadowColor)
 {
     if(!(pData && nWidth && nHeight)){
-        throw fflerror("invalid buffer: (%p, %zu, %zu)", pData, nWidth, nHeight);
+        throw fflerror("invalid buffer: (%p, %zu, %zu)", to_cvptr(pData), nWidth, nHeight);
     }
 
     if(nWidth < 3 || nHeight < 3){

@@ -23,6 +23,7 @@
 #include <unordered_map>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
+#include "toll.hpp"
 #include "colorf.hpp"
 #include "fflerror.hpp"
 #include "fpsmonitor.hpp"
@@ -200,7 +201,7 @@ class SDLDevice final
            int h = -1;
 
            if(SDL_GetRendererOutputSize(m_renderer, &w, &h)){
-               throw fflerror("SDL_GetRendererOutputSize(%p) failed", m_renderer);
+               throw fflerror("SDL_GetRendererOutputSize(%p) failed", to_cvptr(m_renderer));
            }
            return {w, h};
        }
@@ -280,7 +281,7 @@ class SDLDevice final
                return {width, height};
            }
 
-           throw fflerror("query texture failed: %p", texture);
+           throw fflerror("query texture failed: %p", to_cvptr(texture));
        }
 
        static int getTextureWidth(SDL_Texture *texture)

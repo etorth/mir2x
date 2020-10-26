@@ -32,7 +32,9 @@
 
 #include "fsa.h"
 #include "stlastar.h"
+#include "toll.hpp"
 #include "strf.hpp"
+#include "fflerror.hpp"
 #include "condcheck.hpp"
 #include "protocoldef.hpp"
 
@@ -170,7 +172,7 @@ namespace PathFind
         static constexpr int nDY[] = {-1, -1,  0, +1, +1, +1,  0, -1};
 
         if(nDirection <= DIR_NONE || nDirection >= DIR_MAX){
-            throw std::invalid_argument(str_printf("In PathFind::GetFrontLocation(%p, %p, %d, %d, %d, %d)", pX, pY, nX, nY, nDirection, nLen));
+            throw fflerror("In PathFind::GetFrontLocation(%p, %p, %d, %d, %d, %d)", to_cvptr(pX), to_cvptr(pY), nX, nY, nDirection, nLen);
         }
 
         if(pX){
