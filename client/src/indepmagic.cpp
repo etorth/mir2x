@@ -91,7 +91,7 @@ bool IndepMagic::Done() const
     }
 
     if(RefreshCache()){
-        switch(m_cacheEntry->Stage){
+        switch(m_cacheEntry->stage){
             case EGS_DONE:
                 {
                     return true;
@@ -135,8 +135,8 @@ void IndepMagic::Update(double fTime)
     {
         if(auto &rstMR = DBCOM_MAGICRECORD(ID())){
             for(int nGfxEntryIndex = 1;; ++nGfxEntryIndex){
-                if(auto &rstGfxEntry = rstMR.GetGfxEntry(nGfxEntryIndex)){
-                    if(rstGfxEntry.Stage == nNewStage){
+                if(auto &rstGfxEntry = rstMR.getGfxEntry(nGfxEntryIndex)){
+                    if(rstGfxEntry.stage == nNewStage){
                         return true;
                     }
                 }else{
@@ -188,10 +188,10 @@ void IndepMagic::Draw(int nViewX, int nViewY)
 {
     if(!Done()){
         if(RefreshCache()){
-            if(m_cacheEntry->GfxID >= 0){
+            if(m_cacheEntry->gfxID >= 0){
                 int nOffX = 0;
                 int nOffY = 0;
-                if(auto pTexture = g_magicDB->Retrieve(m_cacheEntry->GfxID + Frame(), &nOffX, &nOffY)){
+                if(auto pTexture = g_magicDB->Retrieve(m_cacheEntry->gfxID + Frame(), &nOffX, &nOffY)){
                     SDL_SetTextureBlendMode(pTexture, SDL_BLENDMODE_BLEND);
                     g_SDLDevice->DrawTexture(pTexture, DrawPX() - nViewX + nOffX, DrawPY() - nViewY + nOffY);
                 }
@@ -203,7 +203,7 @@ void IndepMagic::Draw(int nViewX, int nViewY)
 bool IndepMagic::DrawPLoc(int *pPX, int *pPY) const
 {
     if(RefreshCache()){
-        switch(m_cacheEntry->Type){
+        switch(m_cacheEntry->type){
             case EGT_FIXED:
                 {
                     if(pPX){ *pPX = AimX() * SYS_MAPGRIDXP; }

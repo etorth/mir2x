@@ -183,7 +183,7 @@ void NPCChatBoard::loadXML(uint64_t uid, const char *xmlString)
 
 void NPCChatBoard::onClickEvent(const std::string &id)
 {
-    m_processRun->addCBLog(CBLOG_SYS, "clickEvent id: %s", id.c_str());
+    m_processRun->addCBLog(CBLOG_SYS, u8"clickEvent id: %s", id.c_str());
     if(id == SYS_NPCDONE){
         show(false);
     }

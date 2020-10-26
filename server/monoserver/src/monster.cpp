@@ -719,7 +719,7 @@ DamageNode Monster::GetAttackDamage(int nDC)
 bool Monster::canMove()
 {
     if(CharObject::canMove() && CanAct()){
-        return g_monoServer->getCurrTick() >= m_lastMoveTime + m_monsterRecord.WalkWait;
+        return g_monoServer->getCurrTick() >= m_lastMoveTime + m_monsterRecord.walkWait;
     }
     return false;
 }
@@ -749,7 +749,7 @@ bool Monster::canAttack()
         return false;
     }
 
-    return nCurrTick >= m_lastAttackTime + m_monsterRecord.AttackWait;
+    return nCurrTick >= m_lastAttackTime + m_monsterRecord.attackWait;
 }
 
 bool Monster::DCValid(int nDC, bool bCheck)
@@ -1355,7 +1355,7 @@ void Monster::checkFriend_CtrlByMonster(uint64_t nUID, std::function<void(int)> 
             }
         case UID_MON:
             {
-                if(!DBCOM_MONSTERRECORD(uidf::getMonsterID(nUID)).Tamable){
+                if(!DBCOM_MONSTERRECORD(uidf::getMonsterID(nUID)).tamable){
                     fnOp(FT_NEUTRAL);
                     return;
                 }
@@ -1406,7 +1406,7 @@ void Monster::checkFriend_CtrlByPlayer(uint64_t nUID, std::function<void(int)> f
     switch(uidf::getUIDType(nUID)){
         case UID_MON:
             {
-                if(!(IsPet(nUID) || DBCOM_MONSTERRECORD(uidf::getMonsterID(nUID)).Tamable)){
+                if(!(IsPet(nUID) || DBCOM_MONSTERRECORD(uidf::getMonsterID(nUID)).tamable)){
                     fnOp(FT_ENEMY);
                     return;
                 }

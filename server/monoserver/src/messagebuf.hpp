@@ -50,7 +50,7 @@ class MessageBuf
         template <typename T> MessageBuf(int nMsgType, const T &rstPOD)
             : MessageBuf(nMsgType, (const uint8_t *)&rstPOD, sizeof(rstPOD))
         {
-            static_assert(std::is_pod<T>::value, "POD data type supported only");
+            static_assert(std::is_standard_layout_v<T>);
         }
 
     public:

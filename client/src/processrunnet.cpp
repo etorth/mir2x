@@ -306,13 +306,13 @@ void ProcessRun::Net_FIREMAGIC(const uint8_t *pBuf, size_t)
         return;
     }
 
-    addCBLog(CBLOG_SYS, u8"使用魔法: %s", mr.Name);
+    addCBLog(CBLOG_SYS, u8"使用魔法: %s", mr.name);
     switch(smFM.Magic){
         case DBCOM_MAGICID(u8"魔法盾"):
             {
-                if(auto entry = mr.GetGfxEntry(u8"开始")){
+                if(auto entry = mr.getGfxEntry(u8"开始")){
                     if(auto creaturePtr = findUID(smFM.UID)){
-                        creaturePtr->addAttachMagic(smFM.Magic, 0, entry.Stage);
+                        creaturePtr->addAttachMagic(smFM.Magic, 0, entry.stage);
                     }
                     return;
                 }
@@ -329,26 +329,26 @@ void ProcessRun::Net_FIREMAGIC(const uint8_t *pBuf, size_t)
 
     const GfxEntry *gfxEntryPtr = nullptr;
     if(smFM.UID != getMyHero()->UID()){
-        if(!(gfxEntryPtr && *gfxEntryPtr)){ gfxEntryPtr = &(mr.GetGfxEntry(u8"启动")); }
-        if(!(gfxEntryPtr && *gfxEntryPtr)){ gfxEntryPtr = &(mr.GetGfxEntry(u8"开始")); }
-        if(!(gfxEntryPtr && *gfxEntryPtr)){ gfxEntryPtr = &(mr.GetGfxEntry(u8"运行")); }
-        if(!(gfxEntryPtr && *gfxEntryPtr)){ gfxEntryPtr = &(mr.GetGfxEntry(u8"结束")); }
+        if(!(gfxEntryPtr && *gfxEntryPtr)){ gfxEntryPtr = &(mr.getGfxEntry(u8"启动")); }
+        if(!(gfxEntryPtr && *gfxEntryPtr)){ gfxEntryPtr = &(mr.getGfxEntry(u8"开始")); }
+        if(!(gfxEntryPtr && *gfxEntryPtr)){ gfxEntryPtr = &(mr.getGfxEntry(u8"运行")); }
+        if(!(gfxEntryPtr && *gfxEntryPtr)){ gfxEntryPtr = &(mr.getGfxEntry(u8"结束")); }
     }
     else{
-        if(!(gfxEntryPtr && *gfxEntryPtr)){ gfxEntryPtr = &(mr.GetGfxEntry(u8"开始")); }
-        if(!(gfxEntryPtr && *gfxEntryPtr)){ gfxEntryPtr = &(mr.GetGfxEntry(u8"运行")); }
-        if(!(gfxEntryPtr && *gfxEntryPtr)){ gfxEntryPtr = &(mr.GetGfxEntry(u8"结束")); }
+        if(!(gfxEntryPtr && *gfxEntryPtr)){ gfxEntryPtr = &(mr.getGfxEntry(u8"开始")); }
+        if(!(gfxEntryPtr && *gfxEntryPtr)){ gfxEntryPtr = &(mr.getGfxEntry(u8"运行")); }
+        if(!(gfxEntryPtr && *gfxEntryPtr)){ gfxEntryPtr = &(mr.getGfxEntry(u8"结束")); }
     }
 
     if(!(gfxEntryPtr && *gfxEntryPtr)){
         return;
     }
 
-    switch(gfxEntryPtr->Type){
+    switch(gfxEntryPtr->type){
         case EGT_BOUND:
             {
                 if(auto creaturePtr = findUID(smFM.AimUID)){
-                    creaturePtr->addAttachMagic(smFM.Magic, 0, gfxEntryPtr->Stage);
+                    creaturePtr->addAttachMagic(smFM.Magic, 0, gfxEntryPtr->stage);
                 }
                 break;
             }
@@ -359,7 +359,7 @@ void ProcessRun::Net_FIREMAGIC(const uint8_t *pBuf, size_t)
                     smFM.UID,
                     smFM.Magic,
                     smFM.MagicParam,
-                    gfxEntryPtr->Stage,
+                    gfxEntryPtr->stage,
                     smFM.Direction,
                     smFM.X,
                     smFM.Y,
@@ -402,7 +402,7 @@ void ProcessRun::Net_PICKUPOK(const uint8_t *pBuf, size_t)
     getMyHero()->getInvPack().Add(smPUOK.ID);
 
     removeGroundItem(CommonItem(smPUOK.ID, 0), smPUOK.X, smPUOK.Y);
-    addCBLog(CBLOG_SYS, u8"捡起%s于坐标(%d, %d)", DBCOM_ITEMRECORD(smPUOK.ID).Name, (int)(smPUOK.X), (int)(smPUOK.Y));
+    addCBLog(CBLOG_SYS, u8"捡起%s于坐标(%d, %d)", DBCOM_ITEMRECORD(smPUOK.ID).name, (int)(smPUOK.X), (int)(smPUOK.Y));
 }
 
 void ProcessRun::Net_GOLD(const uint8_t *pBuf, size_t)

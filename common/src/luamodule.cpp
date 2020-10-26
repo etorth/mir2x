@@ -16,9 +16,10 @@
  * =====================================================================================
  */
 
-#include "log.hpp"
 #include <chrono>
 #include <thread>
+#include "log.hpp"
+#include "toll.hpp"
 #include "sysconst.hpp"
 #include "fflerror.hpp"
 #include "luamodule.hpp"
@@ -70,21 +71,21 @@ LuaModule::LuaModule()
     m_luaState.set_function("addLog", [this](sol::object logType, sol::object logInfo)
     {
         if(logType.is<int>() && logInfo.is<std::string>()){
-            addLog(logType.as<int>(), logInfo.as<std::string>().c_str());
+            addLog(logType.as<int>(), to_u8cstr(logInfo.as<std::string>()));
             return;
         }
 
         if(logType.is<int>()){
-            addLog(1, str_printf("Invalid argument: addLog(%d, \"?\")", logType.as<int>()).c_str());
+            addLog(1, to_u8cstr(str_printf("Invalid argument: addLog(%d, \"?\")", logType.as<int>())));
             return;
         }
 
         if(logInfo.is<std::string>()){
-            addLog(1, str_printf("Invalid argument: addLog(?, \"%s\")", logInfo.as<std::string>().c_str()).c_str());
+            addLog(1, to_u8cstr(str_printf("Invalid argument: addLog(?, \"%s\")", logInfo.as<std::string>().c_str())));
             return;
         }
 
-        addLog(1, "Invalid argument: addLog(?, \"?\")");
+        addLog(1, u8"Invalid argument: addLog(?, \"?\")");
         return;
     });
 
@@ -105,7 +106,7 @@ LuaModule::LuaModule()
 
     m_luaState.set_function("mapID2Name", [](int nMapID) -> std::string
     {
-        return std::string(DBCOM_MAPRECORD((uint32_t)(nMapID)).Name);
+        return std::string(reinterpret_cast<const char *>(DBCOM_MAPRECORD((uint32_t)(nMapID)).name));
     });
 
     m_luaState.set_function("sleep", [](int nSleepMS)

@@ -162,7 +162,7 @@ void MonoServer::CreateDefaultDatabase()
     }
 
     else if(std::strcmp(g_DBPodN->DBEngine(), "sqlite3") == 0){
-        const char *szSQLCmdList[]
+        const char8_t *defSQLCmdList[]
         {
             u8"create table tbl_account("
                 "fld_id       integer not null primary key autoincrement,"
@@ -198,8 +198,8 @@ void MonoServer::CreateDefaultDatabase()
         };
 
         auto pDBHDR = g_DBPodN->CreateDBHDR();
-        for(size_t nIndex = 0; nIndex < std::extent<decltype(szSQLCmdList)>::value; ++nIndex){
-            pDBHDR->QueryResult(szSQLCmdList[nIndex]);
+        for(const auto sqlCmd: defSQLCmdList){
+            pDBHDR->QueryResult(to_cstr(sqlCmd));
         }
         addLog(LOGTYPE_INFO, "Create default sqlite3 database done");
     }

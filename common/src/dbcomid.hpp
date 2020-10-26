@@ -3,21 +3,7 @@
  *
  *       Filename: dbcomid.hpp
  *        Created: 07/28/2017 23:03:43
- *    Description: global constexpr _Inn_XXXXX[] declared here
- *                 any files including this would have an identical copy of them
- *
- *                 for files only call DBCOM_XXXXID() with literal constant I hope the
- *                 compiler should remove this copy, because which can be envaluated at
- *                 compile time
- *
- *                 for files include this and call DBCOM_XXXXID() with string variable
- *                 they have to keep a copy of all _Inn_XXXXXs. But that's OK since we
- *                 only do string comparison using these copies
- *
- *                 if need to return references to entries in these _Inn_XXXXXs, use
- *                 dbcomrecord.hpp instead, it will provide a unique copy, introduced
- *                 by dbcomrecord.cpp (which includes this header file), then all return
- *                 reference will point to that unique copy
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -39,14 +25,7 @@
 
 namespace
 {
-    // TODO
-    // should be very very very careful here
-    // this is an constant variable in header file
-    // for each unit (.cpp file) include it, there is a identical copy of it
-    // so between different .cpp file, never aceess pointer of this _Inn_XXXXX[]
-
-    // why I introduce such a mess?
-    // I want use following statement in switch/case
+    // to support use following statement in switch/case
     //
     //      switch(nMonsterID){
     //          case DBCOM_MONSTERID("鹿"):
@@ -58,92 +37,42 @@ namespace
     // this is very useful since
     // 1. don't need to think about all monster english name
     // 2. don't need to assign monster ID to each type, just automatically generate one by .inc file
-    //
-    // but this need DBCOM_MONSTERID() to be ``constexpr"
-    // and a constexpr function implies it's an inline function
 
-    constexpr ItemRecord _Inn_ItemRecordList []
+    constexpr ItemRecord _inn_ItemRecordList []
     {
         #include "itemrecord.inc"
     };
 
-    constexpr MonsterRecord _Inn_MonsterRecordList []
+    constexpr MonsterRecord _inn_MonsterRecordList []
     {
         #include "monsterrecord.inc"
     };
 
-    constexpr MagicRecord _Inn_MagicRecordList []
+    constexpr MagicRecord _inn_MagicRecordList []
     {
         #include "magicrecord.inc"
     };
 
-    constexpr MapRecord _Inn_MapRecordList []
+    constexpr MapRecord _inn_MapRecordList []
     {
         #include "maprecord.inc"
     };
 }
 
-// constexpr function to map utf-8 string to item record id
-// when use it in compile time never warry about its performance
-//
-// if fallback to runtime:
-//
-//      auto nID = DBCOM_ITEMID(szName);
-//
-// this would cause line search for all item record in itemrecord.inc
-// would be better if we can create a constexpr hashmap based on the data
-// check following repo:
-//
-//      https://github.com/benjibc/constexpr_hash_map.git
-//
-// but we don't need it currently, principle:
-// transfer ID between client and server but not string name
-// so we won't need to retrieve ID by a given a string variable name
-// only use this function with literal string to get ID since ID is not fixed (but unique)
-constexpr uint32_t DBCOM_ITEMID(const char *szName)
+template<typename T, size_t N> constexpr uint32_t DBCOM_IDHELPER(const T (&itemList)[N], const char8_t *name)
 {
-    if(szName){
-        for(size_t nIndex = 0; nIndex < sizeof(_Inn_ItemRecordList) / sizeof(_Inn_ItemRecordList[0]); ++nIndex){
-            if(ConstExprFunc::CompareUTF8(szName, _Inn_ItemRecordList[nIndex].Name)){
-                return (uint32_t)(nIndex);
+    if(name){
+        for(uint32_t i = 0; i < N; ++i){
+            if(std::u8string_view(itemList[i].name) == name){
+                return i;
             }
+            i++;
         }
     }
     return 0;
 }
 
-constexpr uint32_t DBCOM_MONSTERID(const char *szName)
-{
-    if(szName){
-        for(size_t nIndex = 0; nIndex < sizeof(_Inn_MonsterRecordList) / sizeof(_Inn_MonsterRecordList[0]); ++nIndex){
-            if(ConstExprFunc::CompareUTF8(szName, _Inn_MonsterRecordList[nIndex].Name)){
-                return (uint32_t)(nIndex);
-            }
-        }
-    }
-    return 0;
-}
-
-constexpr uint32_t DBCOM_MAGICID(const char *szName)
-{
-    if(szName){
-        for(size_t nIndex = 0; nIndex < sizeof(_Inn_MagicRecordList) / sizeof(_Inn_MagicRecordList[0]); ++nIndex){
-            if(ConstExprFunc::CompareUTF8(szName, _Inn_MagicRecordList[nIndex].Name)){
-                return (uint32_t)(nIndex);
-            }
-        }
-    }
-    return 0;
-}
-
-constexpr uint32_t DBCOM_MAPID(const char *szName)
-{
-    if(szName){
-        for(size_t nIndex = 0; nIndex < sizeof(_Inn_MapRecordList) / sizeof(_Inn_MapRecordList[0]); ++nIndex){
-            if(ConstExprFunc::CompareUTF8(szName, _Inn_MapRecordList[nIndex].Name)){
-                return (uint32_t)(nIndex);
-            }
-        }
-    }
-    return 0;
-}
+constexpr uint32_t DBCOM_ITEMID   (const char8_t *name) { return DBCOM_IDHELPER(_inn_ItemRecordList,    name); }
+constexpr uint32_t DBCOM_MONSTERID(const char8_t *name) { return DBCOM_IDHELPER(_inn_MonsterRecordList, name); }
+constexpr uint32_t DBCOM_MAGICID  (const char8_t *name) { return DBCOM_IDHELPER(_inn_MagicRecordList,   name); }
+constexpr uint32_t DBCOM_MAPID    (const char8_t *name) { return DBCOM_IDHELPER(_inn_MapRecordList,     name); }

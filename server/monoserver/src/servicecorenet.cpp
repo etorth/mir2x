@@ -61,7 +61,7 @@ void ServiceCore::Net_CM_Login(uint32_t nChannID, uint8_t, const uint8_t *pData,
     std::memset(&stAMLQDBOK, 0, sizeof(stAMLQDBOK));
 
     auto nDBID      = pDBHDR->Get<int64_t>("fld_dbid");
-    auto nMapID     = DBCOM_MAPID(pDBHDR->Get<std::string>("fld_mapname").c_str());
+    auto nMapID     = DBCOM_MAPID(pDBHDR->Get<std::u8string>("fld_mapname").c_str());
     auto nMapX      = pDBHDR->Get<int64_t>("fld_mapx");
     auto nMapY      = pDBHDR->Get<int64_t>("fld_mapy");
     auto nDirection = pDBHDR->Get<int64_t>("fld_direction");

@@ -95,7 +95,7 @@ ProcessLogin::ProcessLogin()
         {
             0,
             0,
-            "build",
+            u8"build",
             1,
             14,
             0,

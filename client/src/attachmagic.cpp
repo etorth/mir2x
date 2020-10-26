@@ -30,15 +30,14 @@ AttachMagic::AttachMagic(int nMagicID, int nMagicParam, int nMagicStage, double 
     : MagicBase(nMagicID, nMagicParam, nMagicStage, fLastTime)
 {
     if(RefreshCache()){
-        switch(m_cacheEntry->Type){
+        switch(m_cacheEntry->type){
             case EGT_BOUND:
                 {
                     break;
                 }
             default:
                 {
-                    g_log->addLog(LOGTYPE_FATAL, "Invalid GfxEntry::Type to AttachMagic");
-                    m_cacheEntry->Print();
+                    g_log->addLog(LOGTYPE_FATAL, "Invalid GfxEntry::type to AttachMagic");
                     break;
                 }
         }
@@ -59,8 +58,8 @@ void AttachMagic::Update(double fTime)
             {
                 if(auto &rstMR = DBCOM_MAGICRECORD(ID())){
                     for(int nGfxEntryIndex = 0;; ++nGfxEntryIndex){
-                        if(auto &rstGfxEntry = rstMR.GetGfxEntry(nGfxEntryIndex)){
-                            if(rstGfxEntry.Stage == nNewStage){
+                        if(auto &rstGfxEntry = rstMR.getGfxEntry(nGfxEntryIndex)){
+                            if(rstGfxEntry.stage == nNewStage){
                                 return true;
                             }
                         }else{ break; }
@@ -138,10 +137,10 @@ void AttachMagic::Update(double fTime)
 void AttachMagic::Draw(int nDrawOffX, int nDrawOffY)
 {
     if(RefreshCache()){
-        if(m_cacheEntry->GfxID >= 0){
+        if(m_cacheEntry->gfxID >= 0){
             int nOffX = 0;
             int nOffY = 0;
-            if(auto pEffectTexture = g_magicDB->Retrieve(m_cacheEntry->GfxID + Frame(), &nOffX, &nOffY)){
+            if(auto pEffectTexture = g_magicDB->Retrieve(m_cacheEntry->gfxID + Frame(), &nOffX, &nOffY)){
                 SDL_SetTextureBlendMode(pEffectTexture, SDL_BLENDMODE_BLEND);
                 g_SDLDevice->DrawTexture(pEffectTexture, nDrawOffX + nOffX, nDrawOffY + nOffY);
             }
@@ -153,7 +152,7 @@ bool AttachMagic::Done() const
 {
     if(StageDone()){
         if(RefreshCache()){
-            switch(m_cacheEntry->Stage){
+            switch(m_cacheEntry->stage){
                 case EGS_INIT:
                     {
                         switch(ID()){

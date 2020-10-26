@@ -34,16 +34,16 @@ class LabelBoard: public Widget
 
     public:
         LabelBoard(
-                int         x,
-                int         y,
-                const char *content     =  "",
-                uint8_t     font        =  0,
-                uint8_t     fontSize    = 10,
-                uint8_t     fontStyle   =  0,
-                uint32_t    fontColor   =  colorf::WHITE + 255,
-                Widget     *pwidget     =  nullptr,
-                bool        bAutoDelete =  false)
-            : Widget(x, y, 0, 0, pwidget, bAutoDelete)
+                int            x,
+                int            y,
+                const char8_t *content     = u8"",
+                uint8_t        font        = 0,
+                uint8_t        fontSize    = 10,
+                uint8_t        fontStyle   = 0,
+                uint32_t       fontColor   = colorf::WHITE + 255,
+                Widget        *pwidget     = nullptr,
+                bool           autoDelete = false)
+            : Widget(x, y, 0, 0, pwidget, autoDelete)
             , m_tpset
               {
                   0,
@@ -55,7 +55,7 @@ class LabelBoard: public Widget
                   fontColor,
               }
         {
-            setText("%s", content);
+            setText(u8"%s", content);
         }
 
     public:
@@ -68,7 +68,7 @@ class LabelBoard: public Widget
         }
 
     public:
-        void setText(const char *, ...);
+        void setText(const char8_t *, ...);
 
     public:
         std::string GetText(bool bTextOnly) const

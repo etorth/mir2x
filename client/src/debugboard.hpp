@@ -57,7 +57,7 @@ class NotifyBoard: public Widget
         {}
 
     public:
-        void addLog(const char *, ...);
+        void addLog(const char8_t *, ...);
 
     public:
         void SetFont(uint8_t nFont)

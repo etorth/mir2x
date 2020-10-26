@@ -32,20 +32,19 @@ ServerLuaModule::ServerLuaModule()
     m_luaState.script(R"#(math.randomseed(getTime()))#");
 }
 
-void ServerLuaModule::addLog(int nLogType, const char *szLogInfo)
+void ServerLuaModule::addLog(int nLogType, const char8_t *logInfo)
 {
-    if(!szLogInfo){
-        szLogInfo = "";
+    if(!logInfo){
+        logInfo = u8"";
     }
 
     // any time if you call addLog() in LUA
     // then this will get printed in the server GUI console
 
-    extern MonoServer *g_monoServer;
     switch(nLogType){
-        case 0  : g_monoServer->addLog(LOGTYPE_INFO   , "%s", szLogInfo); return;
-        case 1  : g_monoServer->addLog(LOGTYPE_WARNING, "%s", szLogInfo); return;
-        case 2  : g_monoServer->addLog(LOGTYPE_FATAL  , "%s", szLogInfo); return;
-        default : g_monoServer->addLog(LOGTYPE_DEBUG  , "%s", szLogInfo); return;
+        case 0  : g_monoServer->addLog(LOGTYPE_INFO   , "%s", logInfo); return;
+        case 1  : g_monoServer->addLog(LOGTYPE_WARNING, "%s", logInfo); return;
+        case 2  : g_monoServer->addLog(LOGTYPE_FATAL  , "%s", logInfo); return;
+        default : g_monoServer->addLog(LOGTYPE_DEBUG  , "%s", logInfo); return;
     }
 }

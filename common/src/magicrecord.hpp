@@ -17,9 +17,9 @@
  */
 
 #pragma once
-#include <utility>
+#include <string_view>
 #include "sysconst.hpp"
-#include "constexprfunc.hpp"
+#include "constexprf.hpp"
 
 // use EG_ rather than GE_ here
 // otherwise for GfxEntryType we get GET_XXXX
@@ -47,146 +47,129 @@ enum GfxEntryType: int
 
 struct GfxEntry
 {
-    int Stage;
+    const int stage;
 
-    int Type;
-    int GfxID;
-    int FrameCount;
+    const int type;
+    const int gfxID;
+    const int frameCount;
 
     // motion of the caster
     // can only defined for EGS_INIT (u8"启动")
     // x : MOTION_NONE
     // 0 : MOTION_SPELL0
     // 1 : MOTION_SPELL1
-    int Motion;
+    const int motion;
 
-    int Speed;
-    int Loop;
-    int DirType;
+    const int speed;
+    const int loop;
+    const int dirType;
 
     // as entries in MagicRecord to use gfx resource
     // should provide default parameters to GfxEntry since it supports empty entries
     constexpr GfxEntry(
-            const char *szStage = u8"",
-            const char *szType  = u8"",
+            const char8_t *argStage = u8"",
+            const char8_t *argType  = u8"",
 
-            int nGfxID      = -1,
-            int nFrameCount = -1,
+            int argGfxID      = -1,
+            int argFrameCount = -1,
 
-            int nMotion  = -1,
+            int argMotion  = -1,
 
-            int nSpeed   = SYS_MINSPEED - 1,
-            int nLoop    = -1,
-            int nDirType = -1)
+            int argSpeed   = SYS_MINSPEED - 1,
+            int argLoop    = -1,
+            int argDirType = -1)
 
-        : Stage(ConstExprFunc::CheckIntMap(szStage, EGS_NONE,
+        : stage(constexprf::map2Int(argStage, EGS_NONE,
                     u8"启动", EGS_INIT,
                     u8"开始", EGS_START,
                     u8"运行", EGS_RUN,
                     u8"结束", EGS_DONE,
                     u8"挨打", EGS_HITTED))
-        , Type(ConstExprFunc::CheckIntMap(szType, EGT_NONE,
+        , type(constexprf::map2Int(argType, EGT_NONE,
                     u8"固定", EGT_FIXED,
                     u8"附着", EGT_BOUND,
                     u8"射击", EGT_SHOOT,
                     u8"跟随", EGT_FOLLOW))
-        , GfxID(nGfxID >= -1 ? nGfxID : -1)
-        , FrameCount(nFrameCount >= -1 ? nFrameCount : -1)
-        , Motion(ConstExprFunc::CheckIntParam(nMotion, -1, 0, 1) ? nMotion : -1)
-        , Speed(nSpeed)
-        , Loop(ConstExprFunc::CheckIntParam(nLoop, -1, 0, 1) ? nLoop : -1)
-        , DirType(ConstExprFunc::CheckIntParam(nDirType, -1, 1, 8, 16) ? nDirType : -1)
+        , gfxID(argGfxID >= -1 ? argGfxID : -1)
+        , frameCount(argFrameCount >= -1 ? argFrameCount : -1)
+        , motion(constexprf::hasInt(argMotion, -1, 0, 1) ? argMotion : -1)
+        , speed(argSpeed)
+        , loop(constexprf::hasInt(argLoop, -1, 0, 1) ? argLoop : -1)
+        , dirType(constexprf::hasInt(argDirType, -1, 1, 8, 16) ? argDirType : -1)
     {}
 
     constexpr operator bool () const
     {
         return true
-            && ((Stage > EGS_NONE) && (Stage < EGS_MAX))
-            && ((Type  > EGT_NONE) && (Type  < EGT_MAX));
+            && ((stage > EGS_NONE) && (stage < EGS_MAX))
+            && ((type  > EGT_NONE) && (type  < EGT_MAX));
     }
 
-    constexpr bool CheckStage(const char *szStage) const
+    constexpr bool checkStage(const char8_t *argStage) const
     {
-        switch(Stage){
-            case EGS_INIT  : return ConstExprFunc::CompareUTF8(szStage, u8"启动");
-            case EGS_START : return ConstExprFunc::CompareUTF8(szStage, u8"开始");
-            case EGS_RUN   : return ConstExprFunc::CompareUTF8(szStage, u8"运行");
-            case EGS_DONE  : return ConstExprFunc::CompareUTF8(szStage, u8"结束");
-            case EGS_HITTED: return ConstExprFunc::CompareUTF8(szStage, u8"挨打");
+        switch(stage){
+            case EGS_INIT  : return std::u8string_view(argStage) == u8"启动";
+            case EGS_START : return std::u8string_view(argStage) == u8"开始";
+            case EGS_RUN   : return std::u8string_view(argStage) == u8"运行";
+            case EGS_DONE  : return std::u8string_view(argStage) == u8"结束";
+            case EGS_HITTED: return std::u8string_view(argStage) == u8"挨打";
             default        : return false;
         }
     }
 
-    constexpr bool CheckType(const char *szTypeStr) const
+    constexpr bool checkType(const char8_t *argType) const
     {
-        switch(Type){
-            case EGT_FIXED : return ConstExprFunc::CompareUTF8(szTypeStr, u8"固定");
-            case EGT_BOUND : return ConstExprFunc::CompareUTF8(szTypeStr, u8"附着");
-            case EGT_SHOOT : return ConstExprFunc::CompareUTF8(szTypeStr, u8"射击");
-            case EGT_FOLLOW: return ConstExprFunc::CompareUTF8(szTypeStr, u8"跟随");
+        switch(type){
+            case EGT_FIXED : return std::u8string_view(argType) == u8"固定";
+            case EGT_BOUND : return std::u8string_view(argType) == u8"附着";
+            case EGT_SHOOT : return std::u8string_view(argType) == u8"射击";
+            case EGT_FOLLOW: return std::u8string_view(argType) == u8"跟随";
             default        : return false;
         }
-    }
-
-    void Print() const
-    {
     }
 };
 
 namespace
 {
-    // used for MagicRecord::GfxArray(u8"开始")
-    // if we can't find it we have to return an empty entry
-    constexpr GfxEntry _Inn_Empty_MagicAnimation;
+    constexpr GfxEntry _inn_Empty_MagicAnimation;
 }
 
 class MagicRecord
 {
     public:
-        const char *Name;
+        const char8_t *name;
 
     public:
-        const GfxEntry GfxArray[8];
+        const GfxEntry gfxArray[8];
 
     public:
-        template<typename... U> constexpr MagicRecord(
-                const char *szName,
-
-                // template pack for GfxEntry array
-                // should put at the end of the argument list
-                U&&... u)
-            : Name(szName ? szName : u8"")
-            , GfxArray { std::forward<U>(u)... }
+        template<typename... U> constexpr MagicRecord(const char8_t *argName, U&&... u)
+            : name(argName ? argName : u8"")
+            , gfxArray { std::forward<U>(u)... }
         {}
 
     public:
-        constexpr const GfxEntry &GetGfxEntry(int nEntryIndex) const
+        constexpr const GfxEntry &getGfxEntry(int entryIndex) const
         {
-            if(true
-                    && nEntryIndex >= 0
-                    && nEntryIndex <  (int)(sizeof(GfxArray) / sizeof(GfxArray[0]))){
-                return GfxArray[nEntryIndex];
+            if(entryIndex >= 0 && entryIndex < (int)(std::extent<decltype(gfxArray)>::value)){
+                return gfxArray[entryIndex];
             }
-            return _Inn_Empty_MagicAnimation;
+            return _inn_Empty_MagicAnimation;
         }
 
-        constexpr const GfxEntry &GetGfxEntry(const char *szStage) const
+        constexpr const GfxEntry &getGfxEntry(const char8_t *stage) const
         {
-            for(size_t nIndex = 0; nIndex < sizeof(GfxArray) / sizeof(GfxArray[0]); ++nIndex){
-                if(GfxArray[nIndex].CheckStage(szStage)){
-                    return GfxArray[nIndex];
+            for(const auto &entry: gfxArray){
+                if(entry.checkStage(stage)){
+                    return entry;
                 }
             }
-            return _Inn_Empty_MagicAnimation;
+            return _inn_Empty_MagicAnimation;
         }
-        
+
     public:
         constexpr operator bool () const
         {
             return true;
-        }
-
-        void Print() const
-        {
         }
 };

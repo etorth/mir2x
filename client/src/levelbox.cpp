@@ -33,7 +33,7 @@ LevelBox::LevelBox(
       {
           0,
           0,
-          "",
+          u8"",
           0,
           12,
           0,

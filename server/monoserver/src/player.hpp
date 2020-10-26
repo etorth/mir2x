@@ -199,7 +199,7 @@ class Player final: public CharObject
 
     protected:
         bool DBUpdate(const char *, const char *, ...);
-        bool DBAccess(const char *, const char *, std::function<std::string(const char *)>);
+        bool DBAccess(const char *, const char *, std::function<std::u8string(const char8_t *)>);
 
     protected:
         void GainExp(int);

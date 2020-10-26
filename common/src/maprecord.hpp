@@ -21,50 +21,45 @@
 
 struct LinkEntry
 {
-    int X;
-    int Y;
+    const int x;
+    const int y;
 
-    int W;
-    int H;
+    const int w;
+    const int h;
 
-    int EndX;
-    int EndY;
+    const int endX;
+    const int endY;
 
-    const char *EndName;
+    const char8_t *endName;
 
     constexpr LinkEntry(
-            int nX = -1,
-            int nY = -1,
-            int nW = -1,
-            int nH = -1,
-            int nEndX = -1,
-            int nEndY = -1,
-            const char *szEndName = u8"")
-        : X(nX)
-        , Y(nY)
-        , W(nW)
-        , H(nH)
-        , EndX(nEndX)
-        , EndY(nEndY)
-        , EndName(szEndName ? szEndName : "") {}
+            int argX = -1,
+            int argY = -1,
+            int argW = -1,
+            int argH = -1,
+            int argEndX = -1,
+            int argEndY = -1,
+            const char8_t *argEndName = u8"")
+        : x(argX)
+        , y(argY)
+        , w(argW)
+        , h(argH)
+        , endX(argEndX)
+        , endY(argEndY)
+        , endName(argEndName ? argEndName : u8"") {}
 };
 
 class MapRecord
 {
     public:
-        const char *Name;
+        const char8_t *name;
 
     public:
-        const LinkEntry LinkArray[8];
+        const LinkEntry linkArray[8];
 
     public:
-        template<typename... U> constexpr MapRecord(
-                const char *szName,
-
-                // template pack for LinkEntry array
-                // should put at the end of the argument list
-                U&&... u)
-            : Name(szName ? szName : "")
-            , LinkArray { std::forward<U>(u)... }
+        template<typename... U> constexpr MapRecord(const char8_t *argName, U&&... u)
+            : name(argName ? argName : u8"")
+            , linkArray { std::forward<U>(u)... }
         {}
 };

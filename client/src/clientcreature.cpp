@@ -202,15 +202,15 @@ bool ClientCreature::addAttachMagic(int magicID, int magicParam, int magicStage)
     }
 
     for(size_t i = 0;; ++i){
-        const auto &ge = mr.GetGfxEntry(i);
+        const auto &ge = mr.getGfxEntry(i);
         if(!ge){
             // scan all GE and done
             // can't find the stage, stop here
             break;
         }
 
-        if(ge.Stage == magicStage){
-            switch(ge.Type){
+        if(ge.stage == magicStage){
+            switch(ge.type){
                 case EGT_BOUND:
                     {
                         m_attachMagicList.emplace_back(std::make_unique<AttachMagic>(magicID, magicParam, magicStage));

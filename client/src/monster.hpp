@@ -86,7 +86,7 @@ class Monster: public CreatureMovable
         int lookID() const
         {
             if(const auto &mr = DBCOM_MONSTERRECORD(monsterID())){
-                return mr.LookID;
+                return mr.lookID;
             }
             return -1;
         }

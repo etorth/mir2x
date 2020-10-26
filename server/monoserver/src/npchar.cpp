@@ -17,6 +17,7 @@
  */
 
 #include <cstdint>
+#include "toll.hpp"
 #include "uidf.hpp"
 #include "npchar.hpp"
 #include "fflerror.hpp"
@@ -71,7 +72,7 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npc)
         }
 
         else{
-            addLog(0, "invalid UID: 0");
+            addLog(0, u8"invalid UID: 0");
         }
     });
 
@@ -184,7 +185,7 @@ void NPChar::LuaNPCModule::setEvent(uint64_t uid, std::string event, std::string
 
         std::string errLine;
         while(std::getline(errStream, errLine, '\n')){
-            addLog(1, errLine.c_str());
+            addLog(1, to_u8cstr(errLine));
         }
     };
 

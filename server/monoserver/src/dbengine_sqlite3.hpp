@@ -21,6 +21,7 @@
 #include <stdexcept>
 #include <sqlite3.h>
 #include "strf.hpp"
+#include "toll.hpp"
 #include "fflerror.hpp"
 
 class DBRecord_SQLite3;
@@ -159,7 +160,7 @@ class DBRecord_SQLite3: public DBRecord
                             }
                         case SQLITE_TEXT:
                             {
-                                return (const char *)(sqlite3_column_text(m_statement, nIndex));
+                                return to_u8cstr(sqlite3_column_text(m_statement, nIndex));
                             }
                         default:
                             {

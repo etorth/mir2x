@@ -23,27 +23,28 @@
 #include "monoserver.hpp"
 #include "dropitemconfig.hpp"
 
+extern MonoServer *g_monoServer;
+
 DropItemConfig::operator bool() const
 {
     return true
-        && DBCOM_MONSTERID(MonsterName)
-        && DBCOM_ITEMID(ItemName)
+        && DBCOM_MONSTERID(monsterName)
+        && DBCOM_ITEMID(itemName)
 
-        && Group     >= 0
-        && ProbRecip >= 1
+        && group     >= 0
+        && probRecip >= 1
 
-        && Repeat >= 1
-        && Value  >= 1
+        && repeat >= 1
+        && value  >= 1
         ;
 }
 
-void DropItemConfig::Print() const
+void DropItemConfig::print() const
 {
-    extern MonoServer *g_monoServer;
-    g_monoServer->addLog(LOGTYPE_INFO, "DropItemConfig::0X%0*" PRIXPTR "::MonsterName = %s", (int)(2 * sizeof(this)), (uintptr_t)(this), MonsterName);
-    g_monoServer->addLog(LOGTYPE_INFO, "DropItemConfig::0X%0*" PRIXPTR "::ItemName    = %s", (int)(2 * sizeof(this)), (uintptr_t)(this), ItemName   );
-    g_monoServer->addLog(LOGTYPE_INFO, "DropItemConfig::0X%0*" PRIXPTR "::Group       = %d", (int)(2 * sizeof(this)), (uintptr_t)(this), Group      );
-    g_monoServer->addLog(LOGTYPE_INFO, "DropItemConfig::0X%0*" PRIXPTR "::ProbRecip   = %d", (int)(2 * sizeof(this)), (uintptr_t)(this), ProbRecip  );
-    g_monoServer->addLog(LOGTYPE_INFO, "DropItemConfig::0X%0*" PRIXPTR "::Repeat      = %d", (int)(2 * sizeof(this)), (uintptr_t)(this), Repeat     );
-    g_monoServer->addLog(LOGTYPE_INFO, "DropItemConfig::0X%0*" PRIXPTR "::Value       = %d", (int)(2 * sizeof(this)), (uintptr_t)(this), Value      );
+    g_monoServer->addLog(LOGTYPE_INFO, "DropItemConfig::monsterName = %s", monsterName);
+    g_monoServer->addLog(LOGTYPE_INFO, "DropItemConfig::itemName    = %s", itemName   );
+    g_monoServer->addLog(LOGTYPE_INFO, "DropItemConfig::group       = %d", group      );
+    g_monoServer->addLog(LOGTYPE_INFO, "DropItemConfig::probRecip   = %d", probRecip  );
+    g_monoServer->addLog(LOGTYPE_INFO, "DropItemConfig::repeat      = %d", repeat     );
+    g_monoServer->addLog(LOGTYPE_INFO, "DropItemConfig::value       = %d", value      );
 }

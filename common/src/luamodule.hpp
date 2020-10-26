@@ -40,5 +40,5 @@ class LuaModule
         }
 
     protected:
-        virtual void addLog(int, const char *) = 0;
+        virtual void addLog(int, const char8_t *) = 0;
 };

@@ -24,10 +24,10 @@
 #include "strf.hpp"
 #include "fflerror.hpp"
 
-inline auto make_fileptr(const char *path, const char *mode)
+inline auto make_fileptr_helper(const char *path, const char *mode)
 {
     if(auto fp = std::fopen(path, mode); fp){
-        auto fileptr_deleter = [](std::FILE *fp)-> void
+        constexpr auto fileptr_deleter = [](std::FILE *fp)-> void
         {
             // don't need to check fp
             // deleter only get called when fp is not null
@@ -49,6 +49,16 @@ inline auto make_fileptr(const char *path, const char *mode)
     throw fflerror("failed to open file: [%p]%s, mode: [%p]%s: %s", path, fnSafeStr(path), mode, fnSafeStr(path), std::strerror(errno));
 }
 
+inline auto make_fileptr(const char *path, const char *mode)
+{
+    return make_fileptr_helper(path, mode);
+}
+
+inline auto make_fileptr(const char8_t *path, const char *mode)
+{
+    return make_fileptr_helper(reinterpret_cast<const char *>(path), mode);
+}
+
 // define a standalone type of fileptr
 // but can't use it to instantiate an uninitalized object:
 //
@@ -66,4 +76,4 @@ inline auto make_fileptr(const char *path, const char *mode)
 //       , m_null_ptr()                                // wrong
 //     {}
 // }
-using fileptr = std::invoke_result_t<decltype(&make_fileptr), const char *, const char *>;
+using fileptr = std::invoke_result_t<decltype(&make_fileptr_helper), const char *, const char *>;

@@ -47,7 +47,7 @@ bool AnimationDB::Load(const char *szDBPath)
         if(szFileName.size() != (18 + 4)){ continue; }
         if(szFileName[0] != '0'){ continue; }
         if((szFileName[1] != '0') && (szFileName[1] != '1')){ continue; }
-        if((szFileName.substr(18) != ".PNG") && (szFileName.substr(18) != ".png")){ continue; }
+        if((szFileName.substr(18) != u8".PNG") && (szFileName.substr(18) != u8".png")){ continue; }
 
         // 4. ok it's time to get the info
         uint32_t nMonsterID = 0;
@@ -55,7 +55,7 @@ bool AnimationDB::Load(const char *szDBPath)
         uint32_t nDirection = 0;
         uint32_t nFrame     = 0;
 
-        auto nDesc = hexstr::to_hex<uint32_t, 4>(szFileName.c_str());
+        auto nDesc = hexstr::to_hex<uint32_t, 4>(reinterpret_cast<const char *>(szFileName.c_str()));
 
         nMonsterID = ((nDesc & 0X00FFF000) >> 12);
         nAction    = ((nDesc & 0X00000F00) >>  8);
@@ -65,12 +65,12 @@ bool AnimationDB::Load(const char *szDBPath)
         // we refuse to accept frame with MonsterID == 0
         if(nMonsterID == 0){ continue; }
 
-        auto nOffset = hexstr::to_hex<uint32_t, 4>(szFileName.c_str() + 10);
+        auto nOffset = hexstr::to_hex<uint32_t, 4>(reinterpret_cast<const char *>(szFileName.c_str() + 10));
 
         int nDX = ((szFileName[8] == '0') ? -1 : 1) * (int)((nOffset & 0XFFFF0000) >> 16);
         int nDY = ((szFileName[9] == '0') ? -1 : 1) * (int)((nOffset & 0X0000FFFF) >>  0);
 
-        Add(nMonsterID, nAction, nDirection, nFrame, (szFileName[1] == '1'), nDX, nDY, (m_DBPath + "/" + szFileName));
+        Add(nMonsterID, nAction, nDirection, nFrame, (szFileName[1] == '1'), nDX, nDY, ((m_DBPath + "/") + reinterpret_cast<const char *>(szFileName.c_str())));
         // since we didn't update this directory, so we don't need rewinddir()
     }
     return true;

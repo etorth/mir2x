@@ -62,7 +62,7 @@ template<typename ValueType, size_t SBufLen = 0> class ABDList
             , m_free0(0)
             , m_free1(0)
         {
-            static_assert(std::is_pod<ValueType>::value, "ABDList only supports POD data");
+            static_assert(std::is_trivial_v<ValueType>, "ABDList only supports POD data");
             if(nCap > m_SBuf.size()){
                 m_DBuf.resize(nCap - m_SBuf.size());
             }

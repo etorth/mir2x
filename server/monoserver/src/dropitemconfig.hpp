@@ -19,33 +19,33 @@
 #pragma once
 struct DropItemConfig
 {
-    const char *MonsterName;        // convert to id internally, monster name who drops this item
-    const char *ItemName;           // convert to id internally, item name to drop
+    const char8_t *monsterName;     // convert to id internally, monster name who drops this item
+    const char8_t *itemName;        // convert to id internally, item name to drop
 
-    int Group;                      // can only drop at most one item in the group, zero means no group
-    int ProbRecip;                  // 1 / p, zero means disable this entry
+    int group;                      // can only drop at most one item in the group, zero means no group
+    int probRecip;                  // 1 / p, zero means disable this entry
 
-    int Repeat;                     // try Repeat times for current item record, zero means disable this entry
-    int Value;                      // how many items to drop, gold means value, zero means disable this entry
+    int repeat;                     // try Repeat times for current item record, zero means disable this entry
+    int value;                      // how many items to drop, gold means value, zero means disable this entry
 
     DropItemConfig(
-            const char *szMonsterName,
-            const char *szItemName,
+            const char8_t *argMonsterName,
+            const char8_t *argItemName,
 
-            int nGroup,
-            int nProbRecip,
+            int argGroup,
+            int argProbRecip,
             
-            int nRepeat,
-            int nValue)
-        : MonsterName(szMonsterName)
-        , ItemName(szItemName)
-        , Group(nGroup)
-        , ProbRecip(nProbRecip)
-        , Repeat(nRepeat)
-        , Value(nValue)
+            int argRepeat,
+            int argValue)
+        : monsterName(argMonsterName)
+        , itemName(argItemName)
+        , group(argGroup)
+        , probRecip(argProbRecip)
+        , repeat(argRepeat)
+        , value(argValue)
     {}
 
-    void Print() const;
+    void print() const;
 
     // check if current entry is valid
     // 1. check member variables

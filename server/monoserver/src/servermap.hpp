@@ -22,6 +22,7 @@
 #include <vector>
 #include <cstdint>
 
+#include "toll.hpp"
 #include "sysconst.hpp"
 #include "querytype.hpp"
 #include "commonitem.hpp"
@@ -69,7 +70,7 @@ class ServerMap final: public ServerObject
 
                     std::string errLine;
                     while(std::getline(errStream, errLine, '\n')){
-                        addLog(1, errLine.c_str());
+                        addLog(1, to_u8cstr(errLine));
                     }
                 }
         };
@@ -214,7 +215,7 @@ class ServerMap final: public ServerObject
 
     private:
         int GetMonsterCount(uint32_t);
-        std::vector<std::string> getMonsterList() const;
+        std::vector<std::u8string> getMonsterList() const;
 
     private:
         auto &getCell(int nX, int nY)

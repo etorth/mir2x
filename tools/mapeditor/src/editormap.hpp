@@ -87,7 +87,7 @@
 #include "mir2map.hpp"
 #include "sysconst.hpp"
 #include "landtype.hpp"
-#include "pushstream.hpp"
+#include "bitstreamf.hpp"
 #include "mir2xmapdata.hpp"
 #include "wilimagepackage.hpp"
 

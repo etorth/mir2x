@@ -19,6 +19,7 @@
 #include <sstream>
 #include <fstream>
 #include <algorithm>
+#include "toll.hpp"
 #include "uidf.hpp"
 #include "npchar.hpp"
 #include "player.hpp"
@@ -59,12 +60,21 @@ ServerMap::ServerMapLuaModule::ServerMapLuaModule(ServerMap *mapPtr)
 
     getLuaState().set_function("getMapName", [mapPtr]() -> std::string
     {
-        return std::string(DBCOM_MAPRECORD(mapPtr->ID()).Name);
+        return std::string(to_cstr(DBCOM_MAPRECORD(mapPtr->ID()).name));
     });
 
     getLuaState().set_function("getMonsterList", [mapPtr](sol::this_state thisLua)
     {
-        return sol::make_object(sol::state_view(thisLua), mapPtr->getMonsterList());
+        // convert to std::string
+        // sol don't support std::u8string for now
+        std::vector<std::string> monNameList;
+        const auto monU8NameList = mapPtr->getMonsterList();
+
+        monNameList.reserve(monU8NameList.size());
+        for(const auto &monName: monU8NameList){
+            monNameList.push_back(to_cstr(monName));
+        }
+        return sol::make_object(sol::state_view(thisLua), monNameList);
     });
 
     getLuaState().set_function("getRandLoc", [mapPtr]() /* -> ? */
@@ -100,7 +110,7 @@ ServerMap::ServerMapLuaModule::ServerMapLuaModule(ServerMap *mapPtr)
                     }
 
                     else if(argList[0].is<std::string>()){
-                        if(const int monID = DBCOM_MONSTERID(argList[0].as<std::string>().c_str()); monID >= 0){
+                        if(const int monID = DBCOM_MONSTERID(to_u8cstr(argList[0].as<std::string>().c_str())); monID >= 0){
                             return mapPtr->GetMonsterCount(monID);
                         }
                     }
@@ -123,7 +133,7 @@ ServerMap::ServerMapLuaModule::ServerMapLuaModule(ServerMap *mapPtr)
             }
 
             if(monInfo.is<std::string>()){
-                return DBCOM_MONSTERID(monInfo.as<std::string>().c_str());
+                return DBCOM_MONSTERID(to_u8cstr(monInfo.as<std::string>().c_str()));
             }
 
             return 0;
@@ -218,7 +228,7 @@ ServerMap::ServerMapLuaModule::ServerMapLuaModule(ServerMap *mapPtr)
         const auto configScriptPath = g_serverConfigureWindow->GetScriptPath();
         const auto scriptPath = configScriptPath.empty() ? std::string("script/map") : configScriptPath;
 
-        const auto scriptName = str_printf("%s/%s.lua", scriptPath.c_str(), DBCOM_MAPRECORD(mapPtr->ID()).Name);
+        const auto scriptName = str_printf("%s/%s.lua", scriptPath.c_str(), DBCOM_MAPRECORD(mapPtr->ID()).name);
         if(std::filesystem::exists(scriptName)){
             return scriptName;
         }
@@ -227,7 +237,7 @@ ServerMap::ServerMapLuaModule::ServerMapLuaModule(ServerMap *mapPtr)
         if(std::filesystem::exists(defaultScriptName)){
             return defaultScriptName;
         }
-        throw fflerror("can't load proper script for map %s", DBCOM_MAPRECORD(mapPtr->ID()).Name);
+        throw fflerror("can't load proper script for map %s", DBCOM_MAPRECORD(mapPtr->ID()).name);
     }());
 
     m_coHandler = getLuaState()["main"];
@@ -320,12 +330,12 @@ ServerMap::ServerMap(ServiceCore *pServiceCore, uint32_t nMapID)
 
           // when constructing a servermap
           // servicecore should test if current nMapID valid
-          throw fflerror("load map failed: ID = %d, Name = %s", nMapID, DBCOM_MAPRECORD(nMapID).Name);
+          throw fflerror("load map failed: ID = %d, Name = %s", nMapID, DBCOM_MAPRECORD(nMapID).name);
       }()))
     , m_serviceCore(pServiceCore)
 {
     if(!m_mir2xMapData.Valid()){
-        throw fflerror("load map failed: ID = %d, Name = %s", nMapID, DBCOM_MAPRECORD(nMapID).Name);
+        throw fflerror("load map failed: ID = %d, Name = %s", nMapID, DBCOM_MAPRECORD(nMapID).name);
     }
 
     m_cellVec2D.resize(W());
@@ -336,17 +346,17 @@ ServerMap::ServerMap(ServiceCore *pServiceCore, uint32_t nMapID)
         rstStateLine.shrink_to_fit();
     }
 
-    for(auto stLinkEntry: DBCOM_MAPRECORD(nMapID).LinkArray){
+    for(const auto &entry: DBCOM_MAPRECORD(nMapID).linkArray){
         if(true
-                && stLinkEntry.W > 0
-                && stLinkEntry.H > 0
-                && ValidC(stLinkEntry.X, stLinkEntry.Y)){
+                && entry.w > 0
+                && entry.h > 0
+                && ValidC(entry.x, entry.y)){
 
-            for(int nW = 0; nW < stLinkEntry.W; ++nW){
-                for(int nH = 0; nH < stLinkEntry.H; ++nH){
-                    getCell(stLinkEntry.X + nW,stLinkEntry.Y + nH).mapID   = DBCOM_MAPID(stLinkEntry.EndName);
-                    getCell(stLinkEntry.X + nW,stLinkEntry.Y + nH).switchX = stLinkEntry.EndX;
-                    getCell(stLinkEntry.X + nW,stLinkEntry.Y + nH).switchY = stLinkEntry.EndY;
+            for(int nW = 0; nW < entry.w; ++nW){
+                for(int nH = 0; nH < entry.h; ++nH){
+                    getCell(entry.x + nW, entry.y + nH).mapID   = DBCOM_MAPID(entry.endName);
+                    getCell(entry.x + nW, entry.y + nH).switchX = entry.endX;
+                    getCell(entry.x + nW, entry.y + nH).switchY = entry.endY;
                 }
             }
         }else{
@@ -648,7 +658,7 @@ uint64_t ServerMap::Activate()
     }
 
     if(m_luaModulePtr){
-        throw fflerror("ServerMap activates twice: %s", DBCOM_MAPRECORD(ID()).Name);
+        throw fflerror("ServerMap activates twice: %s", DBCOM_MAPRECORD(ID()).name);
     }
 
     m_luaModulePtr = new ServerMap::ServerMapLuaModule(this);
@@ -958,7 +968,7 @@ int ServerMap::GetMonsterCount(uint32_t nMonsterID)
     return nCount;
 }
 
-std::vector<std::string> ServerMap::getMonsterList() const
+std::vector<std::u8string> ServerMap::getMonsterList() const
 {
     return
     {

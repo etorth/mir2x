@@ -25,62 +25,17 @@
 #include "itemrecord.hpp"
 #include "monsterrecord.hpp"
 
-const ItemRecord &DBCOM_ITEMRECORD(uint32_t nID)
+template<typename T, size_t N> const T &DBCOM_REFHELPER(const T (&itemList)[N], uint32_t id)
 {
-    if(true
-            && nID > 0
-            && nID < sizeof(_Inn_ItemRecordList) / sizeof(_Inn_ItemRecordList[0])){
-        return _Inn_ItemRecordList[nID];
-    }
-    return _Inn_ItemRecordList[0];
+    return (id < (uint32_t)(N)) ? itemList[id] : itemList[0];
 }
 
-const ItemRecord &DBCOM_ITEMRECORD(const char *szName)
-{
-    return DBCOM_ITEMRECORD(DBCOM_ITEMID(szName));
-}
+const ItemRecord    &DBCOM_ITEMRECORD   (uint32_t id) { return DBCOM_REFHELPER(_inn_ItemRecordList,    id); }
+const MagicRecord   &DBCOM_MAGICRECORD  (uint32_t id) { return DBCOM_REFHELPER(_inn_MagicRecordList,   id); }
+const MonsterRecord &DBCOM_MONSTERRECORD(uint32_t id) { return DBCOM_REFHELPER(_inn_MonsterRecordList, id); }
+const MapRecord     &DBCOM_MAPRECORD    (uint32_t id) { return DBCOM_REFHELPER(_inn_MapRecordList,     id); }
 
-const MagicRecord &DBCOM_MAGICRECORD(uint32_t nID)
-{
-    if(true
-            && nID > 0
-            && nID < sizeof(_Inn_MagicRecordList) / sizeof(_Inn_MagicRecordList[0])){
-        return _Inn_MagicRecordList[nID];
-    }
-    return _Inn_MagicRecordList[0];
-}
-
-const MagicRecord &DBCOM_MAGICRECORD(const char *szName)
-{
-    return DBCOM_MAGICRECORD(DBCOM_MAGICID(szName));
-}
-
-const MonsterRecord &DBCOM_MONSTERRECORD(uint32_t nID)
-{
-    if(true
-            && nID > 0
-            && nID < sizeof(_Inn_MonsterRecordList) / sizeof(_Inn_MonsterRecordList[0])){
-        return _Inn_MonsterRecordList[nID];
-    }
-    return _Inn_MonsterRecordList[0];
-}
-
-const MonsterRecord &DBCOM_MONSTERRECORD(const char *szName)
-{
-    return DBCOM_MONSTERRECORD(DBCOM_MONSTERID(szName));
-}
-
-const MapRecord &DBCOM_MAPRECORD(uint32_t nID)
-{
-    if(true
-            && nID > 0
-            && nID < sizeof(_Inn_MapRecordList) / sizeof(_Inn_MapRecordList[0])){
-        return _Inn_MapRecordList[nID];
-    }
-    return _Inn_MapRecordList[0];
-}
-
-const MapRecord &DBCOM_MAPRECORD(const char *szName)
-{
-    return DBCOM_MAPRECORD(DBCOM_MAPID(szName));
-}
+const ItemRecord    &DBCOM_ITEMRECORD   (const char8_t *name) { return DBCOM_ITEMRECORD   (DBCOM_ITEMID   (name)); }
+const MagicRecord   &DBCOM_MAGICRECORD  (const char8_t *name) { return DBCOM_MAGICRECORD  (DBCOM_MAGICID  (name)); }
+const MonsterRecord &DBCOM_MONSTERRECORD(const char8_t *name) { return DBCOM_MONSTERRECORD(DBCOM_MONSTERID(name)); }
+const MapRecord     &DBCOM_MAPRECORD    (const char8_t *name) { return DBCOM_MAPRECORD    (DBCOM_MAPID    (name)); }

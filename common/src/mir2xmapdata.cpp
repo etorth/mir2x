@@ -24,9 +24,10 @@
 #include <algorithm>
 
 #include "mathf.hpp"
+#include "fileptr.hpp"
 #include "sysconst.hpp"
 #include "condcheck.hpp"
-#include "pushstream.hpp"
+#include "bitstreamf.hpp"
 #include "mir2xmapdata.hpp"
 
 bool Mir2xMapData::Load(const char *szFullName)
@@ -94,15 +95,13 @@ bool Mir2xMapData::Save(const char *szFullName)
 {
     if(Valid()){
         std::vector<uint8_t> stvByte;
-        PushStream::PushByte<uint16_t>(stvByte, W());
-        PushStream::PushByte<uint16_t>(stvByte, H());
-        PushStream::PushByte(stvByte, Data(), Data() + DataLen());
+        bitstreamf::pushByte<uint16_t>(stvByte, W());
+        bitstreamf::pushByte<uint16_t>(stvByte, H());
+        bitstreamf::pushByte(stvByte, Data(), Data() + DataLen());
 
-        if(auto fp = std::fopen(szFullName, "wb")){
-            auto bSaveOK = (std::fwrite(&(stvByte[0]), stvByte.size() * sizeof(stvByte[0]), 1, fp) == 1);
-            std::fclose(fp);
-            return bSaveOK;
-        }
+        auto fptr = make_fileptr(szFullName, "wb");
+        auto fp   = fptr.get();
+        return std::fwrite(&(stvByte[0]), stvByte.size() * sizeof(stvByte[0]), 1, fp) == 1;
     }
     return false;
 }

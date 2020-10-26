@@ -603,7 +603,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           0, // need reset
           109,
 
-          "",
+          u8"",
           1,
           12,
           0,
@@ -725,7 +725,7 @@ void ControlBoard::drawLeft()
     {
         const int nX = m_processRun->getMyHero()->x();
         const int nY = m_processRun->getMyHero()->y();
-        m_locBoard.setText(u8"%s: %d %d", DBCOM_MAPRECORD(m_processRun->MapID()).Name, nX, nY);
+        m_locBoard.setText(u8"%s: %d %d", DBCOM_MAPRECORD(m_processRun->MapID()).name, nX, nY);
 
         const int locBoardStartX = (136 - m_locBoard.w()) / 2;
         m_locBoard.drawEx(locBoardStartX, m_locBoard.y(), 0, 0, m_locBoard.w(), m_locBoard.h());

@@ -11,14 +11,14 @@
  *                  b). C99/11 states that(C99-7.15, C11-7.16)
  *                     1. va_list can be re-initialized after called va_end()
  *
- *                          void func_a(szFormat, ...)
+ *                          void func_a(format, ...)
  *                          {
  *                              va_list ap;
- *                              va_start(szFormat, ap);
+ *                              va_start(format, ap);
  *                              ...
  *                              va_end(ap);
  *
- *                              va_start(szFormat, ap);
+ *                              va_start(format, ap);
  *                              ...
  *                              va_end(ap);
  *                          }
@@ -33,10 +33,10 @@
  *                              ...
  *                          }
  *
- *                          void func_a(szFormat, ...)
+ *                          void func_a(format, ...)
  *                          {
  *                              va_list ap;
- *                              va_start(szFormat, ap);
+ *                              va_start(format, ap);
  *
  *                              func_b(ap)
  *
@@ -57,10 +57,10 @@
  *                              // and handle it
  *                          }
  *
- *                          void func_a(szFormat, ...)
+ *                          void func_a(format, ...)
  *                          {
  *                              va_list ap;
- *                              va_start(szFormat, ap);
+ *                              va_start(format, ap);
  *
  *                              func_b(&ap)
  *
@@ -92,10 +92,20 @@
 #include <cstdarg>
 #include <filesystem>
 
-bool str_nonempty(const char *);
+ bool str_nonempty(const char *);
+ bool str_nonempty(const char8_t *);
 
-std::string str_printf(const char *, ...);
-std::string str_vprintf(const char *, va_list);
+ [[nodiscard]] std::string str_printf(const char *, ...);
+ [[nodiscard]] std::string str_vprintf(const char *, va_list);
+
+ [[maybe_unused]] const std::string &str_printf(std::string &, const char *, ...);
+ [[maybe_unused]] const std::string &str_vprintf(std::string &, const char *, va_list);
+
+ [[nodiscard]] std::u8string str_printf(const char8_t *, ...);
+ [[nodiscard]] std::u8string str_vprintf(const char8_t *, va_list);
+
+ [[maybe_unused]] const std::u8string &str_printf(std::u8string &, const char8_t *, ...);
+ [[maybe_unused]] const std::u8string &str_vprintf(std::u8string &, const char8_t *, va_list);
 
 // copy from boost
 // definition of BOOST_CURRENT_FUNCTION

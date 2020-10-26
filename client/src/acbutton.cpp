@@ -63,7 +63,7 @@ ACButton::ACButton(int x, int y, ProcessRun *proc, const std::vector<std::string
       {
           0,
           0,
-          "0-0",
+          u8"0-0",
 
           1,
           12,
@@ -137,5 +137,5 @@ void ACButton::setLabel()
     if(low > high){
         throw fflerror("invalid %s: %d-%d", low, high);
     }
-    m_labelBoard.setText("%d-%d", low, high);
+    m_labelBoard.setText(u8"%d-%d", low, high);
 }

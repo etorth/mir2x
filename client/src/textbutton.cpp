@@ -74,7 +74,7 @@ void TextButton::FormatText(const char *szFormatText, ...)
         g_log->addLog(LOGTYPE_WARNING, "%s", szError.c_str());
     }
 
-    m_label.setText("%s", szText.c_str());
+    m_label.setText(u8"%s", szText.c_str());
     m_w = (std::max<int>)(m_w, m_label.w());
     m_h = (std::max<int>)(m_h, m_label.h());
 }

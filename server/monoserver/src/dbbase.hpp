@@ -39,7 +39,7 @@ class DBConnection
 class DBRecord
 {
     protected:
-        using DBDataType = std::variant<int64_t, double, std::string>;
+        using DBDataType = std::variant<int64_t, double, std::u8string>;
 
     public:
         DBRecord() = default;

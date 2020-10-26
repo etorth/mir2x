@@ -17,6 +17,7 @@
  */
 
 #include "log.hpp"
+#include "toll.hpp"
 #include "strf.hpp"
 #include "xmltypeset.hpp"
 #include "mathf.hpp"
@@ -25,7 +26,7 @@
 
 extern Log *g_log;
 
-void NotifyBoard::addLog(const char * formatString, ...)
+void NotifyBoard::addLog(const char8_t * formatString, ...)
 {
     std::string text;
     bool error = false;
@@ -34,7 +35,7 @@ void NotifyBoard::addLog(const char * formatString, ...)
         va_start(ap, formatString);
 
         try{
-            text = str_vprintf(formatString, ap);
+            text = str_vprintf(to_cstr(formatString), ap);
         }catch(const std::exception &e){
             error = true;
             text = str_printf("Exception caught in NotifyBoard::addLog(\"%s\", ...): %s", formatString, e.what());

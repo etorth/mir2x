@@ -21,80 +21,134 @@
 #include <stdexcept>
 #include "strf.hpp"
 
-bool str_nonempty(const char *szString)
+bool str_nonempty(const char *s)
 {
-    return szString && std::strlen(szString);
+    return s && s[0] != '\0';
 }
 
-std::string str_vprintf(const char *szStrFormat, va_list ap)
+bool str_nonempty(const char8_t *s)
 {
-    if(!szStrFormat){
-        throw std::invalid_argument("str_vprintf(nullptr, ap)");
-    }
-
-    // 1. try static buffer
-    //    give an enough size so we can hopefully stop here
-    int nRetLen = -1;
-    {
-
-        // need to prepare this copy
-        // in case parsing with static buffer failed
-
-        va_list ap_static;
-        va_copy(ap_static, ap);
-
-        char szSBuf[256];
-        nRetLen = std::vsnprintf(szSBuf, std::extent<decltype(szSBuf)>::value, szStrFormat, ap_static);
-        va_end(ap_static);
-
-        if(nRetLen >= 0){
-            if((size_t)(nRetLen + 1) <= std::extent<decltype(szSBuf)>::value){
-                return std::string(szSBuf);
-            }else{
-                // do nothing
-                // have to try the dynamic buffer method
-            }
-        }else{
-            throw std::runtime_error(((std::string("std::vsnprintf(\"") + szStrFormat) + "\") returns ") + std::to_string(nRetLen));
-        }
-    }
-
-    // 2. try dynamic buffer
-    //    use the parsed buffer size above to get enough memory
-
-    std::vector<char> szDBuf(nRetLen + 1 + 128);
-    while(true){
-        va_list ap_dynamic;
-        va_copy(ap_dynamic, ap);
-
-        nRetLen = std::vsnprintf(szDBuf.data(), szDBuf.size(), szStrFormat, ap_dynamic);
-        va_end(ap_dynamic);
-
-        if(nRetLen >= 0){
-            if((size_t)(nRetLen + 1) <= szDBuf.size()){
-                return std::string(szDBuf.data());
-            }else{
-                szDBuf.resize(nRetLen + 1 + 128);
-            }
-        }else{
-            throw std::runtime_error(((std::string("std::vsnprintf(\"") + szStrFormat) + "\") returns ") + std::to_string(nRetLen));
-        }
-    }
-
-    throw std::runtime_error((std::string("std::vsnprintf(\"") + szStrFormat) + "\", ap) reaches impossible point");
+    return str_nonempty(reinterpret_cast<const char *>(s));
 }
 
-std::string str_printf(const char *szStrFormat, ...)
-{
-    va_list ap;
-    va_start(ap, szStrFormat);
+#define _macro_str_vprintf_body_s(s, format, ap) do \
+{ \
+    if(!format){ \
+        throw std::invalid_argument("str_vprintf(s, nullptr, ap)"); \
+    } \
+\
+    constexpr size_t trySize = 64; \
+    if(s.capacity() < trySize){ \
+        s.resize(trySize, '\0'); \
+    } \
+\
+    int needLen = -1; \
+    { \
+        va_list ap_cpy; \
+        va_copy(ap_cpy, ap); \
+\
+        needLen = std::vsnprintf(reinterpret_cast<char *>(s.data()), s.size(), reinterpret_cast<const char *>(format), ap_cpy); \
+        va_end(ap_cpy); \
+\
+        if(needLen < 0){ \
+            throw std::runtime_error(((std::string("std::vsnprintf(\"") + reinterpret_cast<const char *>(format)) + "\") returns ") + std::to_string(needLen)); \
+        } \
+\
+        if((size_t)(needLen) + 1 <= s.size()){ \
+            s.resize(needLen, '\0'); \
+            return s; \
+        } \
+    } \
+\
+    s.resize(needLen + 1, '\0'); \
+    { \
+        va_list ap_cpy; \
+        va_copy(ap_cpy, ap); \
+\
+        const int newNeedLen = std::vsnprintf(reinterpret_cast<char *>(s.data()), s.size(), reinterpret_cast<const char *>(format), ap_cpy); \
+        va_end(ap_cpy); \
+\
+        if(newNeedLen < 0){ \
+            throw std::runtime_error(((std::string("std::vsnprintf(\"") + reinterpret_cast<const char *>(format)) + "\") returns ") + std::to_string(newNeedLen)); \
+        } \
+\
+        if((size_t)(newNeedLen) + 1 != s.size()){ \
+            throw std::runtime_error(((std::string("std::vsnprintf(\"") + reinterpret_cast<const char *>(format)) + "\") returns different value: ") + std::to_string(needLen) + " vs " + std::to_string(newNeedLen)); \
+        } \
+\
+        s.resize(newNeedLen, '\0'); \
+        return s; \
+    } \
+}while(0)
 
-    try{
-        auto stRetStr = str_vprintf(szStrFormat, ap);
-        va_end(ap);
-        return stRetStr;
-    }catch(...){
-        va_end(ap);
-        throw;
-    }
+const std::string &str_vprintf(std::string &s, const char *format, va_list ap)
+{
+    _macro_str_vprintf_body_s(s, format, ap);
+}
+
+const std::u8string &str_vprintf(std::u8string &s, const char8_t *format, va_list ap)
+{
+    _macro_str_vprintf_body_s(s, format, ap);
+}
+
+#define _macro_str_vprintf_body(type, format, ap) do \
+{ \
+    if(!format){ \
+        throw std::invalid_argument("str_vprintf(nullptr, ap)"); \
+    } \
+\
+    va_list ap_cpy; \
+    va_copy(ap_cpy, ap); \
+\
+    try{ \
+        type s; \
+        str_vprintf(s, format, ap_cpy); \
+        va_end(ap_cpy); \
+        return s; \
+    } \
+    catch(...){ \
+        va_end(ap_cpy); \
+        throw; \
+    } \
+}while(0)
+
+std::string str_vprintf(const char *format, va_list ap)
+{
+    _macro_str_vprintf_body(std::string, format, ap);
+}
+
+std::u8string str_vprintf(const char8_t *format, va_list ap)
+{
+    _macro_str_vprintf_body(std::u8string, format, ap);
+}
+
+#define _macro_str_printf_body(type, format) do \
+{ \
+    if(!format){ \
+        throw std::invalid_argument("str_printf(nullptr, ...)"); \
+    } \
+\
+    va_list ap; \
+    va_start(ap, format); \
+\
+    try{ \
+        type s; \
+        str_vprintf(s, format, ap); \
+        va_end(ap); \
+        return s; \
+    } \
+    catch(...){ \
+        va_end(ap); \
+        throw; \
+    } \
+}while(0)
+
+std::string str_printf(const char *format, ...)
+{
+    _macro_str_printf_body(std::string, format);
+}
+
+std::u8string str_printf(const char8_t *format, ...)
+{
+    _macro_str_printf_body(std::u8string, format);
 }

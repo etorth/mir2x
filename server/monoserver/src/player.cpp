@@ -887,7 +887,7 @@ bool Player::DBUpdate(const char *szTableName, const char *szFieldList, ...)
     return true;
 }
 
-bool Player::DBAccess(const char *szTableName, const char *szFieldName, std::function<std::string(const char *)> fnDBOperation)
+bool Player::DBAccess(const char *szTableName, const char *szFieldName, std::function<std::u8string(const char8_t *)> fnDBOperation)
 {
     if(true
             && (szTableName && std::strlen(szTableName))
@@ -899,7 +899,7 @@ bool Player::DBAccess(const char *szTableName, const char *szFieldName, std::fun
             return false;
         }
 
-        auto szRes = fnDBOperation(pDBHDR->Get<std::string>(szFieldName).c_str());
+        auto szRes = fnDBOperation(pDBHDR->Get<std::u8string>(szFieldName).c_str());
 
         // if need to return a string we should do:
         //     return "\"xxxx\"";
@@ -951,7 +951,7 @@ void Player::checkFriend(uint64_t nUID, std::function<void(int)> fnOp)
             }
         case UID_MON:
             {
-                if(!DBCOM_MONSTERRECORD(uidf::getMonsterID(nUID)).Tamable){
+                if(!DBCOM_MONSTERRECORD(uidf::getMonsterID(nUID)).tamable){
                     fnOp(FT_ENEMY);
                     return;
                 }

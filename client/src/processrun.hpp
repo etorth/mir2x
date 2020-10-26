@@ -205,7 +205,7 @@ class ProcessRun: public Process
         std::vector<int> GetPlayerList();
 
     public:
-        void addCBLog(int, const char *, ...);
+        void addCBLog(int, const char8_t *, ...);
 
     public:
         void RegisterUserCommand();

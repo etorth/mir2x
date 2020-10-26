@@ -26,20 +26,20 @@ struct DCRecord
     int HP;
     int MP;
 
-    std::string Name;
-    std::string Description;
+    std::u8string name;
+    std::u8string description;
 
-    DCRecord(int nID,
-             int nHP,
-             int nMP,
+    DCRecord(int argID,
+             int argHP,
+             int argMP,
 
-             const char *szName,
-             const char *szDescription)
-        : ID            (nID)
-        , HP		    (nHP)
-        , MP		    (nMP)
-        , Name	        (szName ? szName : "")
-        , Description	(szDescription ? szDescription : "")
+             const char8_t *argName,
+             const char8_t *argDescription)
+        : ID            (argID)
+        , HP		    (argHP)
+        , MP		    (argMP)
+        , name	        (argName ? argName : u8"")
+        , description	(argDescription ? argDescription : u8"")
     {}
 
     bool Valid() const

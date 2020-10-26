@@ -33,7 +33,7 @@
 #pragma once
 #include <string>
 #include <cstdint>
-#include "constexprfunc.hpp"
+#include <string_view>
 
 enum IRType: int
 {
@@ -62,92 +62,90 @@ enum IRNeedJob: int
 class ItemRecord
 {
     public:
-        // point to the literal constant in itemrecord.inc
-        // don't use std::string here since ItemRecord will be constexpr
-        const char *Name;
+        const char8_t *name;
 
-        int Type;
-        int Rarity;
-        int Weight;
+        int type;
+        int rarity;
+        int weight;
 
-        int PkgGfxID;
-        int UseGfxID;
+        int pkgGfxID;
+        int useGfxID;
 
-        int NeedJob;
-        int NeedLevel;
-        int NeedDC;
-        int NeedSPC;
-        int NeedMDC;
-        int NeedAC;
-        int NeedMAC;
+        int needJob;
+        int needLevel;
+        int needDC;
+        int needSPC;
+        int needMDC;
+        int needAC;
+        int needMAC;
 
     public:
         constexpr ItemRecord(
-                const char *szName,
-                const char *szType,
-                const char *szRarity,
+                const char8_t *argName,
+                const char8_t *argType,
+                const char8_t *argRarity,
 
-                int nWeight,
+                int argWeight,
 
-                int nPkgGfxID,
-                int nUseGfxID,
+                int argPkgGfxID,
+                int argUseGfxID,
 
-                const char *szNeedJob,
-                int          nNeedLevel,
-                int          nNeedDC,
-                int          nNeedSPC,
-                int          nNeedMDC,
-                int          nNeedAC,
-                int          nNeedMAC)
-            : Name(szName ? szName : "")
-            , Type(_Inn_ItemRecord_Type(szType))
-            , Rarity(_Inn_ItemRecord_Rarity(szRarity))
-            , Weight(nWeight)
-            , PkgGfxID(nPkgGfxID)
-            , UseGfxID(nUseGfxID)
-            , NeedJob(_Inn_ItemRecord_NeedJob(szNeedJob))
-            , NeedLevel(nNeedLevel) 
-            , NeedDC(nNeedDC) 
-            , NeedSPC(nNeedSPC) 
-            , NeedMDC(nNeedMDC) 
-            , NeedAC(nNeedAC) 
-            , NeedMAC(nNeedMAC) 
+                const char8_t *argNeedJob,
+                int            argNeedLevel,
+                int            argNeedDC,
+                int            argNeedSPC,
+                int            argNeedMDC,
+                int            argNeedAC,
+                int            argNeedMAC)
+            : name(argName ? argName : u8"")
+            , type(_inn_ItemRecord_Type(argType))
+            , rarity(_inn_ItemRecord_Rarity(argRarity))
+            , weight(argWeight)
+            , pkgGfxID(argPkgGfxID)
+            , useGfxID(argUseGfxID)
+            , needJob(_inn_ItemRecord_NeedJob(argNeedJob))
+            , needLevel(argNeedLevel) 
+            , needDC(argNeedDC) 
+            , needSPC(argNeedSPC) 
+            , needMDC(argNeedMDC) 
+            , needAC(argNeedAC) 
+            , needMAC(argNeedMAC) 
         {
                 // add check here
         }
 
     public:
-        // check if item record is valid
-        // will skip if invalid and *no* log supported
-        operator bool() const;
-
-    public:
-        static constexpr int _Inn_ItemRecord_Type(const char *szType)
+        operator bool() const
         {
-            if(false){
-            }else if(ConstExprFunc::CompareUTF8(szType, u8"金币"    )){ return IRTYPE_GOLD;
-            }else if(ConstExprFunc::CompareUTF8(szType, u8"恢复药水")){ return IRTYPE_RESTORE;
-            }else                                                       return IRTYPE_NONE;
+            return true;
         }
 
-        static constexpr int _Inn_ItemRecord_Rarity(const char *szRarity)
+    private:
+        static constexpr int _inn_ItemRecord_Type(const char8_t *type)
         {
-            if(false){
-            }else if(ConstExprFunc::CompareUTF8(szRarity, u8"普通")){ return IRRARITY_COMMON;
-            }else if(ConstExprFunc::CompareUTF8(szRarity, u8"高级")){ return IRRARITY_HIGHQ;
-            }else if(ConstExprFunc::CompareUTF8(szRarity, u8"稀有")){ return IRRARITY_RARE;
-            }else                                                     return IRRARITY_NONE;
+            using namespace std::literals;
+            if     (u8"金币"sv     == type) return IRTYPE_GOLD;
+            else if(u8"恢复药水"sv == type) return IRTYPE_RESTORE;
+            else                            return IRTYPE_NONE;
         }
 
-        static constexpr int _Inn_ItemRecord_NeedJob(const char *szNeedJob)
+        static constexpr int _inn_ItemRecord_Rarity(const char8_t *rarity)
         {
-            if(false){
-            }else if(ConstExprFunc::CompareUTF8(szNeedJob, u8"武士"  )){ return IRNEEDJOB_WARRIOR;
-            }else if(ConstExprFunc::CompareUTF8(szNeedJob, u8"战士"  )){ return IRNEEDJOB_WARRIOR;
-            }else if(ConstExprFunc::CompareUTF8(szNeedJob, u8"道士"  )){ return IRNEEDJOB_TAOIST;
-            }else if(ConstExprFunc::CompareUTF8(szNeedJob, u8"法师"  )){ return IRNEEDJOB_MAGICIAN;
-            }else if(ConstExprFunc::CompareUTF8(szNeedJob, u8"魔法师")){ return IRNEEDJOB_MAGICIAN;
-            }else if(ConstExprFunc::CompareUTF8(szNeedJob, u8"共用"  )){ return IRNEEDJOB_ALL;
-            }else                                                        return IRNEEDJOB_NONE;
+            using namespace std::literals;
+            if     (u8"普通"sv == rarity) return IRRARITY_COMMON;
+            else if(u8"高级"sv == rarity) return IRRARITY_HIGHQ;
+            else if(u8"稀有"sv == rarity) return IRRARITY_RARE;
+            else                          return IRRARITY_NONE;
+        }
+
+        static constexpr int _inn_ItemRecord_NeedJob(const char8_t *needJob)
+        {
+            using namespace std::literals;
+            if     (u8"战士"sv   == needJob) return IRNEEDJOB_WARRIOR;
+            else if(u8"道士"sv   == needJob) return IRNEEDJOB_TAOIST;
+            else if(u8"法师"sv   == needJob) return IRNEEDJOB_MAGICIAN;
+            else if(u8"魔法师"sv == needJob) return IRNEEDJOB_MAGICIAN;
+            else if(u8"共用"sv   == needJob) return IRNEEDJOB_ALL;
+            else                            return IRNEEDJOB_NONE;
         }
 };

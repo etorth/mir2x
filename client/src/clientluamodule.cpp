@@ -30,10 +30,10 @@ ClientLuaModule::ClientLuaModule(ProcessRun *proc)
     m_proc->RegisterLuaExport(this);
 }
 
-void ClientLuaModule::addLog(int logType, const char *logInfo)
+void ClientLuaModule::addLog(int logType, const char8_t *logInfo)
 {
     if(!logInfo){
-        logInfo = "(null)";
+        logInfo = u8"(null)";
     }
-    m_proc->addCBLog(logType, "%s", logInfo);
+    m_proc->addCBLog(logType, u8"%s", logInfo);
 }

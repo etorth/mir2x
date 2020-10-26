@@ -56,8 +56,8 @@ ProcessRun::ProcessRun()
     , m_mapScrolling(false)
     , m_luaModule(this)
     , m_GUIManager(this)
-    , m_mousePixlLoc(0, 0, "", 0, 15, 0, colorf::RGBA(0XFF, 0X00, 0X00, 0X00))
-    , m_mouseGridLoc(0, 0, "", 0, 15, 0, colorf::RGBA(0XFF, 0X00, 0X00, 0X00))
+    , m_mousePixlLoc(0, 0, u8"", 0, 15, 0, colorf::RGBA(0XFF, 0X00, 0X00, 0X00))
+    , m_mouseGridLoc(0, 0, u8"", 0, 15, 0, colorf::RGBA(0XFF, 0X00, 0X00, 0X00))
     , m_ascendStrList()
 {
     m_focusUIDTable.fill(0);
@@ -786,7 +786,7 @@ bool ProcessRun::luaCommand(const char *luaCmdString)
 
     std::string errLine;
     while(std::getline(errStream, errLine, '\n')){
-        addCBLog(CBLOG_ERR, fnReplaceTabChar(errLine).c_str());
+        addCBLog(CBLOG_ERR, to_u8cstr(fnReplaceTabChar(errLine)));
     }
     return true;
 }
@@ -833,7 +833,7 @@ bool ProcessRun::userCommand(const char *userCmdString)
     switch(matchCount){
         case 0:
             {
-                addCBLog(CBLOG_ERR, ">> Invalid user command: %s", tokenList[0].c_str());
+                addCBLog(CBLOG_ERR, u8">> Invalid user command: %s", tokenList[0].c_str());
                 return true;
             }
         case 1:
@@ -847,10 +847,10 @@ bool ProcessRun::userCommand(const char *userCmdString)
             }
         default:
             {
-                addCBLog(CBLOG_ERR, ">> Ambiguous user command: %s", tokenList[0].c_str());
+                addCBLog(CBLOG_ERR, u8">> Ambiguous user command: %s", tokenList[0].c_str());
                 for(auto &entry : m_userCommandGroup){
                     if(entry.command.substr(0, tokenList[0].size()) == tokenList[0]){
-                        addCBLog(CBLOG_ERR, ">> Candicate: %s", entry.command.c_str());
+                        addCBLog(CBLOG_ERR, u8">> Candicate: %s", entry.command.c_str());
                     }
                 }
                 return true;
@@ -916,7 +916,7 @@ void ProcessRun::RegisterUserCommand()
 
     m_userCommandGroup.emplace_back("luaEditor", [this](const std::vector<std::string> &) -> int
     {
-        addCBLog(CBLOG_ERR, ">> Lua editor not implemented yet");
+        addCBLog(CBLOG_ERR, u8">> Lua editor not implemented yet");
         return 0;
     });
 
@@ -943,7 +943,7 @@ void ProcessRun::RegisterUserCommand()
 
     m_userCommandGroup.emplace_back("getAttackUID", [this](const std::vector<std::string> &) -> int
     {
-        addCBLog(CBLOG_ERR, std::to_string(FocusUID(FOCUS_ATTACK)).c_str());
+        addCBLog(CBLOG_ERR, to_u8cstr(std::to_string(FocusUID(FOCUS_ATTACK))));
         return 1;
     });
 
@@ -983,28 +983,28 @@ void ProcessRun::RegisterLuaExport(ClientLuaModule *luaModulePtr)
                 case CBLOG_DBG:
                 case CBLOG_ERR:
                     {
-                        addCBLog(logType.as<int>(), logInfo.as<std::string>().c_str());
+                        addCBLog(logType.as<int>(), to_u8cstr(logInfo.as<std::string>()));
                         return;
                     }
                 default:
                     {
-                        addCBLog(CBLOG_ERR, "Invalid argument: logType requires [CBLOG_DEF, CBLOG_SYS, CBLOG_DBG, CBLOG_ERR]");
+                        addCBLog(CBLOG_ERR, u8"Invalid argument: logType requires [CBLOG_DEF, CBLOG_SYS, CBLOG_DBG, CBLOG_ERR]");
                         return;
                     }
             }
         }
 
         if(logType.is<int>()){
-            addCBLog(CBLOG_ERR, str_printf("Invalid argument: addCBLog(%d, \"?\")", logType.as<int>()).c_str());
+            addCBLog(CBLOG_ERR, str_printf(u8"Invalid argument: addCBLog(%d, \"?\")", logType.as<int>()).c_str());
             return;
         }
 
         if(logInfo.is<std::string>()){
-            addCBLog(CBLOG_ERR, str_printf("Invalid argument: addCBLog(?, \"%s\")", logInfo.as<std::string>().c_str()).c_str());
+            addCBLog(CBLOG_ERR, str_printf(u8"Invalid argument: addCBLog(?, \"%s\")", logInfo.as<std::string>().c_str()).c_str());
             return;
         }
 
-        addCBLog(CBLOG_ERR, "Invalid argument: addCBLog(?, \"?\")");
+        addCBLog(CBLOG_ERR, u8"Invalid argument: addCBLog(?, \"?\")");
         return;
     });
 
@@ -1070,10 +1070,10 @@ void ProcessRun::RegisterLuaExport(ClientLuaModule *luaModulePtr)
         }
 
         if(requestSpaceMove(mapID, locX, locY)){
-            addCBLog(CBLOG_SYS, "Move request (mapName = %s, x = %d, y = %d) sent", DBCOM_MAPRECORD(mapID).Name, locX, locY);
+            addCBLog(CBLOG_SYS, u8"Move request (mapName = %s, x = %d, y = %d) sent", DBCOM_MAPRECORD(mapID).name, locX, locY);
         }
         else{
-            addCBLog(CBLOG_ERR, "Move request (mapName = %s, x = %d, y = %d) failed", DBCOM_MAPRECORD(mapID).Name, locX, locY);
+            addCBLog(CBLOG_ERR, u8"Move request (mapName = %s, x = %d, y = %d) failed", DBCOM_MAPRECORD(mapID).name, locX, locY);
         }
     });
 
@@ -1129,9 +1129,9 @@ void ProcessRun::RegisterLuaExport(ClientLuaModule *luaModulePtr)
     });
 }
 
-void ProcessRun::addCBLog(int logType, const char *format, ...)
+void ProcessRun::addCBLog(int logType, const char8_t *format, ...)
 {
-    std::string logStr;
+    std::u8string logStr;
     bool hasError = false;
     {
         va_list ap;
@@ -1142,7 +1142,7 @@ void ProcessRun::addCBLog(int logType, const char *format, ...)
         }
         catch(const std::exception &e){
             hasError = true;
-            logStr = str_printf("Parsing failed in ProcessRun::addCBLog(\"%s\", ...): %s", format, e.what());
+            logStr = str_printf(u8"Parsing failed in ProcessRun::addCBLog(\"%s\", ...): %s", format, e.what());
         }
 
         va_end(ap);
@@ -1151,7 +1151,7 @@ void ProcessRun::addCBLog(int logType, const char *format, ...)
     if(hasError){
         logType = CBLOG_ERR;
     }
-    dynamic_cast<ControlBoard *>(getGUIManager()->getWidget("ControlBoard"))->addLog(logType, logStr.c_str());
+    dynamic_cast<ControlBoard *>(getGUIManager()->getWidget("ControlBoard"))->addLog(logType, to_cstr(logStr));
 }
 
 bool ProcessRun::OnMap(uint32_t nMapID, int nX, int nY) const
@@ -1487,11 +1487,11 @@ void ProcessRun::drawGroundItem(int x0, int y0, int x1, int y1)
                 throw fflerror("invalid item record");
             }
 
-            if(ir.PkgGfxID < 0){
+            if(ir.pkgGfxID < 0){
                 continue;
             }
 
-            auto texPtr = g_groundItemDB->Retrieve(ir.PkgGfxID);
+            auto texPtr = g_groundItemDB->Retrieve(ir.pkgGfxID);
             if(!texPtr){
                 continue;
             }
@@ -1527,7 +1527,7 @@ void ProcessRun::drawGroundItem(int x0, int y0, int x1, int y1)
             g_SDLDevice->DrawTexture(texPtr, drawPX, drawPY);
 
             if(mouseOver){
-                LabelBoard itemName(0, 0, ir.Name, 1, 12, 0, colorf::RGBA(0XFF, 0XFF, 0X00, 0X00));
+                LabelBoard itemName(0, 0, ir.name, 1, 12, 0, colorf::RGBA(0XFF, 0XFF, 0X00, 0X00));
                 const int boardW = itemName.w();
                 const int boardH = itemName.h();
 
@@ -1662,8 +1662,8 @@ void ProcessRun::drawMouseLocation()
     int mouseY = -1;
     SDL_GetMouseState(&mouseX, &mouseY);
 
-    const auto locPixel = str_printf("Pixel: %d, %d", mouseX, mouseY);
-    const auto locGrid  = str_printf("Grid: %d, %d", (mouseX + m_viewX) / SYS_MAPGRIDXP, (mouseY + m_viewY) / SYS_MAPGRIDYP);
+    const auto locPixel = str_printf(u8"Pixel: %d, %d", mouseX, mouseY);
+    const auto locGrid  = str_printf(u8"Grid: %d, %d", (mouseX + m_viewX) / SYS_MAPGRIDXP, (mouseY + m_viewY) / SYS_MAPGRIDYP);
 
     LabelBoard locPixelBoard(10, 10, locPixel.c_str(), 1, 12, 0, colorf::RGBA(0XFF, 0XFF, 0X00, 0X00));
     LabelBoard locGridBoard (10, 30, locGrid .c_str(), 1, 12, 0, colorf::RGBA(0XFF, 0XFF, 0X00, 0X00));
@@ -1675,7 +1675,7 @@ void ProcessRun::drawMouseLocation()
 void ProcessRun::drawFPS()
 {
     const auto fpsStr = std::to_string(g_SDLDevice->getFPS());
-    LabelBoard fpsBoard(0, 0, fpsStr.c_str(), 1, 12, 0, colorf::RGBA(0XFF, 0XFF, 0X00, 0X00));
+    LabelBoard fpsBoard(0, 0, to_u8cstr(fpsStr), 1, 12, 0, colorf::RGBA(0XFF, 0XFF, 0X00, 0X00));
 
     const int winWidth = g_SDLDevice->getRendererWidth();
     fpsBoard.moveTo(winWidth - fpsBoard.w(), 0);

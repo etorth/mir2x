@@ -107,7 +107,7 @@ static std::vector<uint8_t> readFileData(const char *szPath)
         return {};
     }
 
-    auto fp = make_fileptr(szPath, "rb");
+    auto fp = make_fileptr(reinterpret_cast<const char *>(szPath), "rb");
     if(!fp){
         return {};
     }
@@ -358,12 +358,12 @@ bool ZSDB::BuildDB(const char *szSaveFullName, const char *szFileNameRegex, cons
 
         auto szFileName = p.path().filename().u8string();
         if(szFileNameRegex){
-            if(!std::regex_match(szFileName.c_str(), stFileNameReg)){
+            if(!std::regex_match(reinterpret_cast<const char *>(szFileName.c_str()), stFileNameReg)){
                 continue;
             }
         }
 
-        auto stSrcBuf = readFileData(p.path().u8string().c_str());
+        auto stSrcBuf = readFileData(reinterpret_cast<const char *>(p.path().u8string().c_str()));
         if(stSrcBuf.empty()){
             continue;
         }

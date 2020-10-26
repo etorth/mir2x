@@ -58,7 +58,7 @@ class LevelBox: public Widget
     public:
         void setLevel(int level)
         {
-            m_label.setText("%d", level);
+            m_label.setText(u8"%d", level);
 
             m_w = std::max<int>(m_label.w(), 18);
             m_h = std::max<int>(m_label.h(), 10);

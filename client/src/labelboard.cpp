@@ -17,6 +17,7 @@
  */
 
 #include "log.hpp"
+#include "toll.hpp"
 #include "strf.hpp"
 #include "xmltypeset.hpp"
 #include "colorf.hpp"
@@ -24,7 +25,7 @@
 
 extern Log *g_log;
 
-void LabelBoard::setText(const char * szFormatString, ...)
+void LabelBoard::setText(const char8_t *szFormatString, ...)
 {
     std::string szText;
     bool bError = false;
@@ -33,7 +34,7 @@ void LabelBoard::setText(const char * szFormatString, ...)
         va_start(ap, szFormatString);
 
         try{
-            szText = str_vprintf(szFormatString, ap);
+            szText = str_vprintf(to_cstr(szFormatString), ap);
         }catch(const std::exception &e){
             bError = true;
             szText = str_printf("Exception caught in labelBoard::setText(\"%s\", ...): %s", szFormatString, e.what());

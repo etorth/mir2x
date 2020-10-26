@@ -405,8 +405,8 @@ bool Hero::parseAction(const ActionNode &rstAction)
             {
                 int nMotionSpell = MOTION_NONE;
                 if(auto &rstMR = DBCOM_MAGICRECORD(rstAction.ActionParam)){
-                    if(auto &rstGfxEntry = rstMR.GetGfxEntry(u8"启动")){
-                        switch(rstGfxEntry.Motion){
+                    if(auto &rstGfxEntry = rstMR.getGfxEntry(u8"启动")){
+                        switch(rstGfxEntry.motion){
                             case 0  : nMotionSpell = MOTION_SPELL0; break;
                             case 1  : nMotionSpell = MOTION_SPELL1; break;
                             default : nMotionSpell = MOTION_NONE;   break;
@@ -439,7 +439,7 @@ bool Hero::parseAction(const ActionNode &rstAction)
 
                             if(nDir > DIR_NONE && nDir < DIR_MAX){
                                 m_motionQueue.emplace_back(nMotionSpell, 0, nDir, SYS_DEFSPEED, rstAction.X, rstAction.Y);
-                                addAttachMagic(rstAction.ActionParam, 0, rstGfxEntry.Stage);
+                                addAttachMagic(rstAction.ActionParam, 0, rstGfxEntry.stage);
                             }
                         }
                     }

@@ -49,10 +49,10 @@ class TextButton: public ButtonBase
                 int nW,
                 int nH,
 
-                const char *szContent = "",
-                uint8_t     nFont     =  0,
-                uint8_t     nSize     = 10,
-                uint8_t     nStyle    =  0,
+                const char8_t *text   = u8"",
+                uint8_t        nFont  =  0,
+                uint8_t        nSize  = 10,
+                uint8_t        nStyle =  0,
 
                 const std::function<void()> &fnOnOver  = [](){},
                 const std::function<void()> &fnOnClick = [](){},
@@ -125,7 +125,7 @@ class TextButton: public ButtonBase
               {
                   0,
                   0,
-                  szContent,
+                  text,
                   nFont,
                   nSize,
                   nStyle,

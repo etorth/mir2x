@@ -26,14 +26,16 @@
 #include "monsterrecord.hpp"
 #include "dropitemconfig.hpp"
 
+extern MonoServer *g_monoServer;
+
 const DCRecord &DB_DCRECORD(uint32_t nDC)
 {
-    static std::map<uint32_t, DCRecord> stDCRecord
+    const static std::map<uint32_t, DCRecord> s_DCRecord
     {
         {           0, {           0, 0, 0, u8"", u8""}},
         {DC_PHY_PLAIN, {DC_PHY_PLAIN, 0, 0, u8"", u8""}},
     };
-    return stDCRecord.at((stDCRecord.find(nDC) != stDCRecord.end()) ? nDC : 0);
+    return s_DCRecord.at((s_DCRecord.find(nDC) != s_DCRecord.end()) ? nDC : 0);
 }
 
 const std::map<int, std::vector<DropItem>> &DB_MONSTERDROPITEM(uint32_t nMonsterID)
@@ -50,17 +52,16 @@ const std::map<int, std::vector<DropItem>> &DB_MONSTERDROPITEM(uint32_t nMonster
                 };
 
                 std::map<uint32_t, DropItemMap> stmDropItemMap;
-                for(auto &rstEntry: stvDropItemConfig){
-                    if(rstEntry){
+                for(auto &entry: stvDropItemConfig){
+                    if(entry){
                         // later we won't never call this two ID-retrieve functions again
                         // here we use DBCOM_MONSTERRID() and DBCOM_ITEMID() with string variable
                         // this is very slow but OK since we here to initialize the static hash table for global usage
-                        auto &rstCurrList = stmDropItemMap[DBCOM_MONSTERID(rstEntry.MonsterName)][rstEntry.Group];
-                        rstCurrList.insert(rstCurrList.end(), rstEntry.Repeat, {DBCOM_ITEMID(rstEntry.ItemName), rstEntry.ProbRecip, rstEntry.Value});
+                        auto &rstCurrList = stmDropItemMap[DBCOM_MONSTERID(entry.monsterName)][entry.group];
+                        rstCurrList.insert(rstCurrList.end(), entry.repeat, {DBCOM_ITEMID(entry.itemName), entry.probRecip, entry.value});
                     }else{
-                        extern MonoServer *g_monoServer;
-                        g_monoServer->addLog(LOGTYPE_WARNING, "Skip invalid DropItemConfig::0X%0*" PRIXPTR, (int)(2 * sizeof(&rstEntry)), (uintptr_t)(&rstEntry));
-                        rstEntry.Print();
+                        g_monoServer->addLog(LOGTYPE_WARNING, "Skip invalid DropItemConfig::0X%0*" PRIXPTR, (int)(2 * sizeof(&entry)), (uintptr_t)(&entry));
+                        entry.print();
                     }
                 }
                 return stmDropItemMap;

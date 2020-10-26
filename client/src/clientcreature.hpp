@@ -171,7 +171,7 @@
             , m_lastActive(0)
             , m_lastQuerySelf(0)
             , m_lastUpdateTime(0.0)
-            , m_nameBoard(0, 0, "ClientCreature", 1, 12, 0, colorf::RGBA(0XFF, 0XFF, 0XFF, 0X00))
+            , m_nameBoard(0, 0, u8"ClientCreature", 1, 12, 0, colorf::RGBA(0XFF, 0XFF, 0XFF, 0X00))
         {
             if(!(m_UID && m_processRun)){
                 throw fflerror("invalid argument: UID = %llu, processRun = %p", to_llu(m_UID), m_processRun);

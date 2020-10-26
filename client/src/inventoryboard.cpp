@@ -31,7 +31,7 @@ InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget
       {
           0, // reset by new width
           0,
-          "0",
+          u8"0",
 
           1,
           12,
@@ -132,7 +132,7 @@ void InventoryBoard::drawEx(int nDstX, int nDstY, int, int, int, int)
     }
 
     if(auto pMyHero = m_processRun->getMyHero()){
-        m_goldBoard.setText("%s", getGoldStr().c_str());
+        m_goldBoard.setText(u8"%s", getGoldStr().c_str());
         m_goldBoard.moveTo(105 - m_goldBoard.w() / 2, 401);
 
         // 2. draw all items

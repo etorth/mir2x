@@ -50,9 +50,9 @@ ProcessNew::ProcessNew()
     , m_checkPwd(true)
     , m_checkPwdConfirm(true)
 
-    , m_LBID        (0, 0, "ID"              , 0, 15, 0, colorf::RGBA(0xFF, 0X00, 0X00, 0X00))
-    , m_LBPwd       (0, 0, "Password"        , 0, 15, 0, colorf::RGBA(0xFF, 0X00, 0X00, 0X00))
-    , m_LBPwdConfirm(0, 0, "Confirm Passowrd", 0, 15, 0, colorf::RGBA(0xFF, 0X00, 0X00, 0X00))
+    , m_LBID        (0, 0, u8"ID"              , 0, 15, 0, colorf::RGBA(0xFF, 0X00, 0X00, 0X00))
+    , m_LBPwd       (0, 0, u8"Password"        , 0, 15, 0, colorf::RGBA(0xFF, 0X00, 0X00, 0X00))
+    , m_LBPwdConfirm(0, 0, u8"Confirm Passowrd", 0, 15, 0, colorf::RGBA(0xFF, 0X00, 0X00, 0X00))
 
 	, m_boxID
       {
@@ -135,12 +135,12 @@ ProcessNew::ProcessNew()
           },
       }
 
-    , m_LBCheckID        (0, 0, "ID", 0, 15, 0, colorf::RGBA(0xFF, 0X00, 0X00, 0X00))
-    , m_LBCheckPwd       (0, 0, "ID", 0, 15, 0, colorf::RGBA(0xFF, 0X00, 0X00, 0X00))
-    , m_LBCheckPwdConfirm(0, 0, "ID", 0, 15, 0, colorf::RGBA(0xFF, 0X00, 0X00, 0X00))
+    , m_LBCheckID        (0, 0, u8"ID", 0, 15, 0, colorf::RGBA(0xFF, 0X00, 0X00, 0X00))
+    , m_LBCheckPwd       (0, 0, u8"ID", 0, 15, 0, colorf::RGBA(0xFF, 0X00, 0X00, 0X00))
+    , m_LBCheckPwdConfirm(0, 0, u8"ID", 0, 15, 0, colorf::RGBA(0xFF, 0X00, 0X00, 0X00))
 
-	, m_TBCreate(150, 482, 200, 40, "CREATE", 0, 16, 0, []{}, [this](){ DoPostAccount(); })
-	, m_TBExit  (352, 482, 200, 40, "EXIT",   0, 16, 0, []{}, [this](){ DoExit();        })
+	, m_TBCreate(150, 482, 200, 40, u8"CREATE", 0, 16, 0, []{}, [this](){ DoPostAccount(); })
+	, m_TBExit  (352, 482, 200, 40, u8"EXIT",   0, 16, 0, []{}, [this](){ DoExit();        })
 {}
 
 void ProcessNew::update(double fUpdateTime)
@@ -293,7 +293,7 @@ void ProcessNew::CheckInput()
     }else if(CacheFind(false, szID)){
         m_checkID = CHECK_ERROR;
         m_LBCheckID.setFontColor(colorf::RED);
-        m_LBCheckID.setText("ID has been used by others");
+        m_LBCheckID.setText(u8"ID has been used by others");
     }else{
         if(szID.empty()){
             m_checkID = CHECK_NONE;
@@ -301,11 +301,11 @@ void ProcessNew::CheckInput()
             if(LocalCheckID(szID.c_str())){
                 m_checkID = CHECK_PENDING;
                 m_LBCheckID.setFontColor(colorf::GREEN);
-                m_LBCheckID.setText("Pending...");
+                m_LBCheckID.setText(u8"Pending...");
             }else{
                 m_checkID = CHECK_ERROR;
                 m_LBCheckID.setFontColor(colorf::RED);
-                m_LBCheckID.setText("Invalid ID");
+                m_LBCheckID.setText(u8"Invalid ID");
             }
         }
     }
@@ -319,7 +319,7 @@ void ProcessNew::CheckInput()
         }else{
             m_checkPwd = CHECK_ERROR;
             m_LBCheckPwd.setFontColor(colorf::RED);
-            m_LBCheckPwd.setText("Invalid password");
+            m_LBCheckPwd.setText(u8"Invalid password");
         }
     }
 
@@ -332,7 +332,7 @@ void ProcessNew::CheckInput()
         }else{
             m_checkPwdConfirm = CHECK_ERROR;
             m_LBCheckPwdConfirm.setFontColor(colorf::RED);
-            m_LBCheckPwdConfirm.setText("Password doesn't match");
+            m_LBCheckPwdConfirm.setText(u8"Password doesn't match");
         }
     }
 }

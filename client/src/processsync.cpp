@@ -29,7 +29,7 @@ extern SDLDevice *g_SDLDevice;
 ProcessSync::ProcessSync()
 	: Process()
     , m_ratio(0)
-    , m_processBarInfo(0, 0, "Connecting...", 1, 10, 0)
+    , m_processBarInfo(0, 0, u8"Connecting...", 1, 10, 0)
 {} 
 void ProcessSync::processEvent(const SDL_Event &event)
 {
