@@ -114,9 +114,11 @@ class DBRecord_SQLite3: public DBRecord
         {
             try{
                 Finalize();
-            }catch(const std::exception &e){
+            }
+            catch(const std::exception &e){
                 //
-            }catch(...){
+            }
+            catch(...){
                 //
             }
         }
@@ -136,15 +138,15 @@ class DBRecord_SQLite3: public DBRecord
                 throw fflerror("no valid statement");
             }
 
-            int nDataCount   = sqlite3_data_count(m_statement);
-            int nColumnCount = sqlite3_column_count(m_statement);
+            const int nDataCount   = sqlite3_data_count(m_statement);
+            const int nColumnCount = sqlite3_column_count(m_statement);
 
             if(nDataCount <= 0){
-                throw;
+                throw fflerror("invalid data count: %d", nDataCount);
             }
 
             if(nDataCount != nColumnCount){
-                throw;
+                throw fflerror("invalid data column: %d", nColumnCount);
             }
 
             for(int nIndex = 0; nIndex < nColumnCount; ++nIndex){
