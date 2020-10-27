@@ -32,7 +32,7 @@
 
 #include "fsa.h"
 #include "stlastar.h"
-#include "toll.hpp"
+#include "typecast.hpp"
 #include "strf.hpp"
 #include "fflerror.hpp"
 #include "condcheck.hpp"

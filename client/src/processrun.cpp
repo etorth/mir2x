@@ -35,7 +35,7 @@
 #include "debugboard.hpp"
 #include "npcchatboard.hpp"
 #include "fflerror.hpp"
-#include "toll.hpp"
+#include "typecast.hpp"
 #include "lochashtable.hpp"
 
 extern Log *g_log;

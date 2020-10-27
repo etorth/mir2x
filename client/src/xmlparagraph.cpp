@@ -23,7 +23,7 @@
 
 #include "log.hpp"
 #include "bevent.hpp"
-#include "toll.hpp"
+#include "typecast.hpp"
 #include "strf.hpp"
 #include "xmlf.hpp"
 #include "utf8f.hpp"

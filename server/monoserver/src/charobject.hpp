@@ -22,7 +22,7 @@
 #include <deque>
 #include <vector>
 
-#include "toll.hpp"
+#include "typecast.hpp"
 #include "svobuf.hpp"
 #include "fflerror.hpp"
 #include "servermap.hpp"

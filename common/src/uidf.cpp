@@ -22,7 +22,7 @@
 #include <atomic>
 #include "uidf.hpp"
 #include "strf.hpp"
-#include "toll.hpp"
+#include "typecast.hpp"
 #include "fflerror.hpp"
 
 uint64_t uidf::buildMapUID(uint32_t mapID)

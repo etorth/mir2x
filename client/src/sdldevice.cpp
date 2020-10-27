@@ -22,7 +22,7 @@
 #include <SDL2/SDL_image.h>
 
 #include "log.hpp"
-#include "toll.hpp"
+#include "typecast.hpp"
 #include "rawbuf.hpp"
 #include "xmlconf.hpp"
 #include "fflerror.hpp"

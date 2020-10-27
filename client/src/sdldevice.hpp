@@ -23,7 +23,7 @@
 #include <unordered_map>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
-#include "toll.hpp"
+#include "typecast.hpp"
 #include "colorf.hpp"
 #include "fflerror.hpp"
 #include "fpsmonitor.hpp"

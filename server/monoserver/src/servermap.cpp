@@ -19,7 +19,7 @@
 #include <sstream>
 #include <fstream>
 #include <algorithm>
-#include "toll.hpp"
+#include "typecast.hpp"
 #include "uidf.hpp"
 #include "npchar.hpp"
 #include "player.hpp"

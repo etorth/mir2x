@@ -17,7 +17,7 @@
  */
 
 #include "log.hpp"
-#include "toll.hpp"
+#include "typecast.hpp"
 #include "strf.hpp"
 #include "xmltypeset.hpp"
 #include "mathf.hpp"

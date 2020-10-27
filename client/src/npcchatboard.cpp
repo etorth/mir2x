@@ -16,7 +16,7 @@
  * =====================================================================================
  */
 
-#include "toll.hpp"
+#include "typecast.hpp"
 #include "uidf.hpp"
 #include "sysconst.hpp"
 #include "pngtexdb.hpp"

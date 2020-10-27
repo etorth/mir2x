@@ -19,9 +19,9 @@
 #include <cmath>
 #include <algorithm>
 #include <stdexcept>
-#include "toll.hpp"
 #include "strf.hpp"
 #include "fflerror.hpp"
+#include "typecast.hpp"
 #include "autoalpha.hpp"
 
 void CalcPixelAutoAlpha(uint32_t *pData, size_t nDataLen)

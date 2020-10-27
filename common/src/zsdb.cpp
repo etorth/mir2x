@@ -27,17 +27,10 @@
 
 #include "zsdb.hpp"
 #include "fileptr.hpp"
+#include "fflerror.hpp"
+#include "typecast.hpp"
 
-const static int g_compLevel = 3;
-
-template<typename T, typename F> static T check_cast(F from)
-{
-    auto to = static_cast<T>(from);
-    if(static_cast<F>(to) != from){
-        throw std::runtime_error("cast fails to preserve original value");
-    }
-    return to;
-}
+constexpr static int g_compLevel = 3;
 
 static std::vector<uint8_t> compressDataBuf(const uint8_t *pDataBuf, size_t nDataLen, ZSTD_CCtx *pCCtx, const ZSTD_CDict *pCDict)
 {
@@ -178,16 +171,16 @@ ZSDB::ZSDB(const char *szPath)
 {
     m_fp = std::fopen(szPath, "rb");
     if(!m_fp){
-        throw std::runtime_error("failed to open database file");
+        throw fflerror("failed to open database file");
     }
 
     m_DCtx = ZSTD_createDCtx();
     if(!m_DCtx){
-        throw std::runtime_error("failed to create decompress context");
+        throw fflerror("failed to create decompress context");
     }
 
     if(auto stHeaderData = readFileOffData(m_fp, 0, sizeof(ZSDBHeader)); stHeaderData.empty()){
-        throw std::runtime_error("failed to load izdb header");
+        throw fflerror("failed to load izdb header");
     }else{
         std::memcpy(&m_header, stHeaderData.data(), sizeof(m_header));
     }
@@ -196,11 +189,11 @@ ZSDB::ZSDB(const char *szPath)
         auto nOffset = check_cast<size_t>(m_header.DictOffset);
         auto nLength = check_cast<size_t>(m_header.DictLength);
         if(auto stDictBuf = decompFileOffData(m_fp, nOffset, nLength, m_DCtx, m_DDict); stDictBuf.empty()){
-            throw std::runtime_error(std::string("failed to load data at (") + ((std::to_string(nOffset) + ", ") + std::to_string(nLength) + ")"));
+            throw fflerror("failed to load data at (off = %zu, length = %zu)", nOffset, nLength);
         }else{
             m_DDict = ZSTD_createDDict(stDictBuf.data(), stDictBuf.size());
             if(!m_DDict){
-                throw std::runtime_error("create decompression dictory failed");
+                throw fflerror("create decompression dictory failed");
             }
         }
     }
@@ -210,10 +203,10 @@ ZSDB::ZSDB(const char *szPath)
         auto nLength = check_cast<size_t>(m_header.EntryLength);
 
         if(auto stEntryBuf = decompFileOffData(m_fp, nOffset, nLength, m_DCtx, m_DDict); stEntryBuf.empty()){
-            throw std::runtime_error(std::string("failed to load data at (") + ((std::to_string(nOffset) + ", ") + std::to_string(nLength) + ")"));
+            throw fflerror("failed to load data at (off = %zu, length = %zu)", nOffset, nLength);
         }else{
             if(stEntryBuf.size() != (1 + m_header.EntryNum) * sizeof(InnEntry)){
-                throw std::runtime_error("zsdb database file corrupted");
+                throw fflerror("zsdb database file corrupted");
             }
 
             auto *pHead = (InnEntry *)(stEntryBuf.data());
@@ -221,7 +214,7 @@ ZSDB::ZSDB(const char *szPath)
             m_entryList.insert(m_entryList.end(), pHead, pHead + m_header.EntryNum + 1);
 
             if(std::memcmp(&m_entryList.back(), &GetErrorEntry(), sizeof(InnEntry))){
-                throw std::runtime_error("zsdb database file corrupted");
+                throw fflerror("zsdb database file corrupted");
             }
             m_entryList.pop_back();
         }
@@ -231,7 +224,7 @@ ZSDB::ZSDB(const char *szPath)
         auto nOffset = check_cast<size_t>(m_header.FileNameOffset);
         auto nLength = check_cast<size_t>(m_header.FileNameLength);
         if(auto stFileNameBuf = decompFileOffData(m_fp, nOffset, nLength, m_DCtx, nullptr); stFileNameBuf.empty()){
-            throw std::runtime_error(std::string("failed to load data at (") + ((std::to_string(nOffset) + ", ") + std::to_string(nLength) + ")"));
+            throw fflerror("failed to load data at (off = %zu, length = %zu)", nOffset, nLength);
         }else{
             auto *pHead = (char *)(stFileNameBuf.data());
             m_fileNameBuf.clear();

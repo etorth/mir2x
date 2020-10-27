@@ -22,7 +22,7 @@
 #include <vector>
 #include <cstdint>
 
-#include "toll.hpp"
+#include "typecast.hpp"
 #include "sysconst.hpp"
 #include "querytype.hpp"
 #include "commonitem.hpp"

@@ -16,7 +16,7 @@
  * =====================================================================================
  */
 
-#include "toll.hpp"
+#include "typecast.hpp"
 #include "bevent.hpp"
 #include "sdldevice.hpp"
 #include "alphaonbutton.hpp"

@@ -17,7 +17,7 @@
  */
 #include <utility>
 #include <algorithm>
-#include "toll.hpp"
+#include "typecast.hpp"
 #include "strf.hpp"
 #include "xmlf.hpp"
 #include "fflerror.hpp"

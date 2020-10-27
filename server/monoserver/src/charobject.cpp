@@ -17,7 +17,7 @@
  */
 #include <cinttypes>
 #include "uidf.hpp"
-#include "toll.hpp"
+#include "typecast.hpp"
 #include "player.hpp"
 #include "dbcomid.hpp"
 #include "monster.hpp"

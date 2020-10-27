@@ -21,7 +21,7 @@
 #include <functional>
 
 #include "log.hpp"
-#include "toll.hpp"
+#include "typecast.hpp"
 #include "pngtexdb.hpp"
 #include "sdldevice.hpp"
 #include "processrun.hpp"

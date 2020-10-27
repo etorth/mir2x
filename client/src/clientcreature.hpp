@@ -121,7 +121,7 @@
 #include <cstdint>
 
 #include "uidf.hpp"
-#include "toll.hpp"
+#include "typecast.hpp"
 #include "colorf.hpp"
 #include "fflerror.hpp"
 #include "focustype.hpp"

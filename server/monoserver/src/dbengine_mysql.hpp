@@ -128,7 +128,7 @@ class DBRecord_MySQL: public DBRecord
                         case MYSQL_TYPE_LONG:
                         case MYSQL_TYPE_LONGLONG:
                             {
-                                return (int64_t)(std::stoll(m_currentRow[nIndex]));
+                                return (int64_t)(std::stypecast(m_currentRow[nIndex]));
                             }
                         case MYSQL_TYPE_FLOAT:
                         case MYSQL_TYPE_DOUBLE:
