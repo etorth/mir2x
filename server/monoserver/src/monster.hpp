@@ -18,7 +18,6 @@
 #pragma once
 #include <functional>
 #include "coro.hpp"
-#include "bvtree.hpp"
 #include "fflerror.hpp"
 #include "charobject.hpp"
 #include "monsterrecord.hpp"
@@ -76,7 +75,6 @@ class Monster final: public CharObject
         AStarCache m_AStarCache;
 
     protected:
-        bvnode_ptr m_bvTree;
         coro<std::function<void()>> m_updateCoro;
 
     public:
@@ -209,28 +207,12 @@ class Monster final: public CharObject
         virtual bool GoGhost();
 
     protected:
-        virtual void CreateBvTree();
-
-    protected:
         void     CoroNode_Wait(uint64_t);
         void     CoroNode_RandomMove();
         bool     CoroNode_MoveForward();
         bool     CoroNode_FollowMaster();
         uint64_t CoroNode_GetProperTarget();
         bool     CoroNode_TrackAttackUID(uint64_t);
-
-    protected:
-        virtual bvnode_ptr BvNode_HasMaster();
-        virtual bvnode_ptr BvNode_GetMasterUID(bvarg_ref);
-        virtual bvnode_ptr BvNode_FollowMaster();
-        virtual bvnode_ptr BvNode_LocateUID(bvarg_ref, bvarg_ref);
-        virtual bvnode_ptr BvNode_RandomMove();
-        virtual bvnode_ptr BvNode_RandomTurn();
-        virtual bvnode_ptr BvNode_AttackUID(bvarg_ref, bvarg_ref);
-        virtual bvnode_ptr BvNode_MoveForward();
-        virtual bvnode_ptr BvNode_MoveOneStep(bvarg_ref);
-        virtual bvnode_ptr BvNode_GetProperTarget(bvarg_ref);
-        virtual bvnode_ptr BvNode_TrackAttackUID(bvarg_ref);
 
     public:
         static bool IsPet(uint64_t);

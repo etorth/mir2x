@@ -111,7 +111,6 @@ Monster::Monster(uint32_t   nMonsterID,
     , m_masterUID(nMasterUID)
     , m_monsterRecord(DBCOM_MONSTERRECORD(nMonsterID))
     , m_AStarCache()
-    , m_bvTree()
     , m_updateCoro([this](){ UpdateCoroFunc(); })
 {
     if(!m_monsterRecord){
@@ -473,7 +472,6 @@ uint64_t Monster::Activate()
                 }
             });
         }
-        CreateBvTree();
         return nUID;
     }
     return 0;
@@ -510,26 +508,6 @@ bool Monster::update()
 
     if(masterUID() && m_actorPod->CheckInvalid(masterUID())){
         return GoDie();
-    }
-
-    if(g_serverArgParser->useBvTree){
-        switch(m_bvTree->update()){
-            case BV_PENDING:
-                {
-                    return true;
-                }
-            case BV_ABORT:
-            case BV_SUCCESS:
-            case BV_FAILURE:
-                {
-                    m_bvTree->reset();
-                    return true;
-                }
-            default:
-                {
-                    throw fflerror("invalid node status");
-                }
-        }
     }
 
     if(!m_updateCoro.is_done() && m_updateCoro.in_main()){
@@ -1236,25 +1214,6 @@ void Monster::GetProperTarget(std::function<void(uint64_t)> fnTarget)
 
     RemoveTarget(m_target.UID);
     SearchNearestTarget(fnTarget);
-}
-
-void Monster::CreateBvTree()
-{
-    bvarg_ref nTargetUID;
-
-    m_bvTree = bvtree::if_branch
-    (
-        BvNode_GetProperTarget(nTargetUID),
-        BvNode_TrackAttackUID(nTargetUID),
-
-        bvtree::if_branch
-        (
-            BvNode_HasMaster(),
-            BvNode_FollowMaster(),
-            BvNode_RandomMove()
-        )
-    );
-    m_bvTree->reset();
 }
 
 void Monster::QueryMaster(uint64_t nUID, std::function<void(uint64_t)> fnOp)
