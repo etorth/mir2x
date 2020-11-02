@@ -83,11 +83,13 @@ corof::long_jmper<bool> Monster::coro_moveForward()
     co_return done.wait();
 }
 
-corof::long_jmper<uint64_t> Monster::coro_getProperTarget()
+corof::long_jmper<bool> Monster::coro_getProperTarget(uint64_t &targetUID)
 {
-    corof::async_variable<uint64_t> targetUID;
-    GetProperTarget([&targetUID](uint64_t uid){ targetUID.assign(uid); });
-    co_return targetUID.wait();
+    corof::async_variable<uint64_t> targetUIDAsync;
+    GetProperTarget([&targetUIDAsync](uint64_t uid){ targetUIDAsync.assign(uid); });
+
+    targetUID = targetUIDAsync.wait();
+    co_return targetUID;
 }
 
 corof::long_jmper<bool> Monster::coro_trackAttackUID(uint64_t targetUID)

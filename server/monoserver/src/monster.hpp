@@ -209,12 +209,12 @@ class Monster final: public CharObject
         virtual bool GoGhost();
 
     protected:
-        corof::long_jmper<bool>     coro_wait(uint64_t);
-        corof::long_jmper<bool>     coro_randomMove();
-        corof::long_jmper<bool>     coro_moveForward();
-        corof::long_jmper<bool>     coro_followMaster();
-        corof::long_jmper<uint64_t> coro_getProperTarget();
-        corof::long_jmper<bool>     coro_trackAttackUID(uint64_t);
+        corof::long_jmper<bool> coro_wait(uint64_t);
+        corof::long_jmper<bool> coro_randomMove();
+        corof::long_jmper<bool> coro_moveForward();
+        corof::long_jmper<bool> coro_followMaster();
+        corof::long_jmper<bool> coro_getProperTarget(uint64_t &);
+        corof::long_jmper<bool> coro_trackAttackUID(uint64_t);
 
     public:
         static bool IsPet(uint64_t);

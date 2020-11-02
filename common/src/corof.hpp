@@ -72,10 +72,10 @@ namespace corof
                 return false;
             }
 
-            bool await_suspend(std::coroutine_handle<>) noexcept
-            {
-                return true;
-            }
+            // bool await_suspend(std::coroutine_handle<>) noexcept
+            // {
+            //     return true;
+            // }
 
             bool await_suspend(std::coroutine_handle<promise_type> handle) noexcept
             {
@@ -172,8 +172,8 @@ namespace corof
 
         private:
             std::optional<T> m_var;
-            cppcoro::generator<int> m_generator;
-            cppcoro::generator<int>::iterator m_update;
+            cppcoro::generator<size_t> m_generator;
+            cppcoro::generator<size_t>::iterator m_update;
 
         public:
             template<typename U = T> void assign(U &&u)
@@ -186,7 +186,7 @@ namespace corof
 
         public:
             async_variable()
-                : m_generator([this]() -> cppcoro::generator<int>
+                : m_generator([this]() -> cppcoro::generator<size_t>
                   {
                       while(!m_var.has_value()){
                           co_yield m_count++;
