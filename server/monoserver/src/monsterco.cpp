@@ -15,89 +15,91 @@
  *
  * =====================================================================================
  */
-#include "coro.hpp"
+#include "corof.hpp"
 #include "monster.hpp"
 #include "monoserver.hpp"
 
-bool Monster::CoroNode_FollowMaster()
+corof::long_jmper<bool> Monster::coro_followMaster()
 {
-    coro_variable<bool> done;
+    corof::async_variable<bool> done;
     FollowMaster([&done](){ done.assign(true); }, [&done](){ done.assign(false); });
 
     if(done.wait()){
-        CoroNode_Wait(1200);
-        return true;
+        co_await coro_wait(1200);
+        co_return true;
     }
 
-    CoroNode_Wait(200);
-    return false;
+    co_await coro_wait(200);
+    co_return false;
 }
 
-void Monster::CoroNode_Wait(uint64_t ms)
+corof::long_jmper<bool> Monster::coro_wait(uint64_t ms)
 {
     if(ms == 0){
-        coro_yield();
-        return;
+        co_await cppcoro::suspend_always();
+        co_return true;
     }
 
     hres_timer timer;
     while(timer.diff_msec() < ms){
-        coro_yield();
+        co_await cppcoro::suspend_always();
     }
+    co_return true;
 }
 
-void Monster::CoroNode_RandomMove()
+corof::long_jmper<bool> Monster::coro_randomMove()
 {
     if(std::rand() % 10 < 2){
         if(RandomTurn()){
-            CoroNode_Wait(200);
+            co_await coro_wait(200);
         }
         else{
-            CoroNode_Wait(1000);
+            co_await coro_wait(1000);
         }
     }
 
     else{
-        if(CoroNode_MoveForward()){
-            CoroNode_Wait(1200);
+        if(coro_moveForward()){
+            co_await coro_wait(1200);
         }
         else{
-            CoroNode_Wait(200);
+            co_await coro_wait(200);
         }
     }
+    co_return true;
 }
 
-bool Monster::CoroNode_MoveForward()
+corof::long_jmper<bool> Monster::coro_moveForward()
 {
     int nextX = -1;
     int nextY = -1;
 
     if(OneStepReach(Direction(), 1, &nextX, &nextY) != 1){
-        return false;
+        co_return false;
     }
 
-    coro_variable<bool> done;
+    corof::async_variable<bool> done;
     requestMove(nextX, nextY, MoveSpeed(), false, false, [&done](){ done.assign(true); }, [&done](){ done.assign(false); });
-    return done.wait();
+    co_return done.wait();
 }
 
-uint64_t Monster::CoroNode_GetProperTarget()
+corof::long_jmper<uint64_t> Monster::coro_getProperTarget()
 {
-    coro_variable<uint64_t> targetUID;
+    corof::async_variable<uint64_t> targetUID;
     GetProperTarget([&targetUID](uint64_t uid){ targetUID.assign(uid); });
-    return targetUID.wait();
+    co_return targetUID.wait();
 }
 
-bool Monster::CoroNode_TrackAttackUID(uint64_t targetUID)
+corof::long_jmper<bool> Monster::coro_trackAttackUID(uint64_t targetUID)
 {
-    coro_variable<bool> done;
+    corof::async_variable<bool> done;
     TrackAttackUID(targetUID, [&done]{ done.assign(true); }, [&done]{ done.assign(false); });
 
     if(done.wait()){
-        CoroNode_Wait(1200);
-        return true;
+        co_await coro_wait(1200);
+        co_return true;
     }
 
-    CoroNode_Wait(200);
-    return false;
+    co_await coro_wait(200);
+    co_return false;
 }

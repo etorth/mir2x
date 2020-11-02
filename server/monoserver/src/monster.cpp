@@ -111,7 +111,6 @@ Monster::Monster(uint32_t   nMonsterID,
     , m_masterUID(nMasterUID)
     , m_monsterRecord(DBCOM_MONSTERRECORD(nMonsterID))
     , m_AStarCache()
-    , m_updateCoro([this](){ UpdateCoroFunc(); })
 {
     if(!m_monsterRecord){
         g_monoServer->addLog(LOGTYPE_WARNING, "Invalid monster record: MonsterID = %d", (int)(MonsterID()));
@@ -477,27 +476,28 @@ uint64_t Monster::Activate()
     return 0;
 }
 
-void Monster::UpdateCoroFunc()
+corof::long_jmper<bool> Monster::updateCoroFunc()
 {
     while(HP() > 0){
-
-        if(const uint64_t targetUID = CoroNode_GetProperTarget()){
-            CoroNode_TrackAttackUID(targetUID);
+        if(const uint64_t targetUID = co_await coro_getProperTarget()){
+            co_await coro_trackAttackUID(targetUID);
         }
 
         else if(masterUID()){
             if(m_actorPod->CheckInvalid(masterUID())){
-                GoDie();
+                break;
             }
-            CoroNode_FollowMaster();
+            else{
+                co_await coro_followMaster();
+            }
         }
-
         else{
-            CoroNode_RandomMove();
+            co_await coro_randomMove();
         }
     }
 
     GoDie();
+    co_return true;
 }
 
 bool Monster::update()
@@ -510,8 +510,8 @@ bool Monster::update()
         return GoDie();
     }
 
-    if(!m_updateCoro.is_done() && m_updateCoro.in_main()){
-        m_updateCoro.coro_resume();
+    if(!m_updateCoro || m_updateCoro.poll_one()){
+        m_updateCoro = updateCoroFunc();
     }
     return true;
 }

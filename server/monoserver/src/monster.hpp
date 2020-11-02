@@ -17,7 +17,7 @@
  */
 #pragma once
 #include <functional>
-#include "coro.hpp"
+#include "corof.hpp"
 #include "fflerror.hpp"
 #include "charobject.hpp"
 #include "monsterrecord.hpp"
@@ -75,7 +75,7 @@ class Monster final: public CharObject
         AStarCache m_AStarCache;
 
     protected:
-        coro<std::function<void()>> m_updateCoro;
+        corof::long_jmper<bool> m_updateCoro;
 
     public:
         Monster(uint32_t,               // monster id
@@ -105,8 +105,10 @@ class Monster final: public CharObject
 
     protected:
         void SearchViewRange();
-        void UpdateCoroFunc();
         bool update() override;
+
+    protected:
+        corof::long_jmper<bool> updateCoroFunc();
 
     protected:
         bool RandomMove();
@@ -207,12 +209,12 @@ class Monster final: public CharObject
         virtual bool GoGhost();
 
     protected:
-        void     CoroNode_Wait(uint64_t);
-        void     CoroNode_RandomMove();
-        bool     CoroNode_MoveForward();
-        bool     CoroNode_FollowMaster();
-        uint64_t CoroNode_GetProperTarget();
-        bool     CoroNode_TrackAttackUID(uint64_t);
+        corof::long_jmper<bool>     coro_wait(uint64_t);
+        corof::long_jmper<bool>     coro_randomMove();
+        corof::long_jmper<bool>     coro_moveForward();
+        corof::long_jmper<bool>     coro_followMaster();
+        corof::long_jmper<uint64_t> coro_getProperTarget();
+        corof::long_jmper<bool>     coro_trackAttackUID(uint64_t);
 
     public:
         static bool IsPet(uint64_t);

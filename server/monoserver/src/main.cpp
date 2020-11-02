@@ -32,7 +32,7 @@
 #include "databaseconfigurewindow.hpp"
 
 #include <iostream>
-#include "coro.hpp"
+#include "corof.hpp"
 
 ServerArgParser          *g_serverArgParser;
 Log                      *g_log;
