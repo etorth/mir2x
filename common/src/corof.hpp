@@ -54,8 +54,20 @@ namespace corof
             }
 
         public:
-            operator bool () const noexcept
+            bool valid() const
             {
+                // don't use the operator bool ()
+                // it can be used incorrectly as:
+                //
+                //     if(x.wait()){
+                //         // ...
+                //     }
+                // but actually we want use
+                //
+                //     if(co_await x.wait()){
+                //         // ...
+                //     }
+                //
                 return bool(m_handle.address());
             }
 
@@ -168,12 +180,7 @@ namespace corof
     template<typename T> class async_variable
     {
         private:
-            size_t m_count = 0;
-
-        private:
             std::optional<T> m_var;
-            cppcoro::generator<size_t> m_generator;
-            cppcoro::generator<size_t>::iterator m_update;
 
         public:
             template<typename U = T> void assign(U &&u)
@@ -185,31 +192,24 @@ namespace corof
             }
 
         public:
-            async_variable()
-                : m_generator([this]() -> cppcoro::generator<size_t>
-                  {
-                      while(!m_var.has_value()){
-                          co_yield m_count++;
-                      }
-                  }())
-            {}
+            async_variable() = default;
 
         public:
             template<typename U> async_variable(const async_variable<U> &) = delete;
             template<typename U = T> async_variable<T> &operator = (const async_variable<U> &) = delete;
 
         public:
-            auto &wait()
+            auto &get()
+            {
+                return m_var.value();
+            }
+
+            long_jmper<bool> wait()
             {
                 while(!m_var.has_value()){
-                    if(m_update == m_generator.end()){
-                        m_update = m_generator.begin();
-                    }
-                    else{
-                        m_update++;
-                    }
+                    co_await std::suspend_always{};
                 }
-                return m_var.value();
+                co_return true;
             }
     };
 }

@@ -24,7 +24,8 @@ corof::long_jmper<bool> Monster::coro_followMaster()
     corof::async_variable<bool> done;
     FollowMaster([&done](){ done.assign(true); }, [&done](){ done.assign(false); });
 
-    if(done.wait()){
+    co_await done.wait();
+    if(done.get()){
         co_await coro_wait(1200);
         co_return true;
     }
@@ -59,7 +60,7 @@ corof::long_jmper<bool> Monster::coro_randomMove()
     }
 
     else{
-        if(coro_moveForward()){
+        if(co_await coro_moveForward()){
             co_await coro_wait(1200);
         }
         else{
@@ -80,7 +81,8 @@ corof::long_jmper<bool> Monster::coro_moveForward()
 
     corof::async_variable<bool> done;
     requestMove(nextX, nextY, MoveSpeed(), false, false, [&done](){ done.assign(true); }, [&done](){ done.assign(false); });
-    co_return done.wait();
+    co_await done.wait();
+    co_return done.get();
 }
 
 corof::long_jmper<bool> Monster::coro_getProperTarget(uint64_t &targetUID)
@@ -88,8 +90,9 @@ corof::long_jmper<bool> Monster::coro_getProperTarget(uint64_t &targetUID)
     corof::async_variable<uint64_t> targetUIDAsync;
     GetProperTarget([&targetUIDAsync](uint64_t uid){ targetUIDAsync.assign(uid); });
 
-    targetUID = targetUIDAsync.wait();
-    co_return targetUID;
+    co_await targetUIDAsync.wait();
+    targetUID = targetUIDAsync.get();
+    co_return targetUID != 0;
 }
 
 corof::long_jmper<bool> Monster::coro_trackAttackUID(uint64_t targetUID)
@@ -97,7 +100,8 @@ corof::long_jmper<bool> Monster::coro_trackAttackUID(uint64_t targetUID)
     corof::async_variable<bool> done;
     TrackAttackUID(targetUID, [&done]{ done.assign(true); }, [&done]{ done.assign(false); });
 
-    if(done.wait()){
+    co_await done.wait();
+    if(done.get()){
         co_await coro_wait(1200);
         co_return true;
     }
