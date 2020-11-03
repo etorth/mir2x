@@ -17,22 +17,23 @@
  */
 
 #pragma once
+#include <any>
+#include <optional>
 #include "fflerror.hpp"
-#include "cppcoro/generator.hpp"
+#include "raiitimer.hpp"
+#include "cppcoro/coroutine.hpp"
 
 namespace corof
 {
-    template <typename T> class [[nodiscard]] long_jmper 
+    class long_jmper_promise;
+    class [[nodiscard]] long_jmper 
     {
         public:
-            class long_jmper_promise;
-
-        public:
             using promise_type = long_jmper_promise;
-            using  handle_type = std::coroutine_handle<promise_type>;
+            using  handle_type = cppcoro::coroutine_handle<promise_type>;
 
         public:
-            mutable handle_type m_handle;
+            handle_type m_handle;
 
         public:
             long_jmper(handle_type handle = nullptr)
@@ -46,6 +47,14 @@ namespace corof
             }
 
         public:
+            long_jmper & operator = (long_jmper && other) noexcept
+            {
+                m_handle = other.m_handle;
+                other.m_handle = nullptr;
+                return *this;
+            }
+
+        public:
             ~long_jmper()
             {
                 if(m_handle){
@@ -56,127 +65,142 @@ namespace corof
         public:
             bool valid() const
             {
-                // don't use the operator bool ()
-                // it can be used incorrectly as:
-                //
-                //     if(x.wait()){
-                //         // ...
-                //     }
-                // but actually we want use
-                //
-                //     if(co_await x.wait()){
-                //         // ...
-                //     }
-                //
-                return bool(m_handle.address());
-            }
-
-            long_jmper & operator = (long_jmper && other) noexcept
-            {
-                m_handle = other.m_handle;
-                other.m_handle = nullptr;
-                return *this;
+                return m_handle.address();
             }
 
         public:
-            bool await_ready() noexcept
-            {
-                return false;
-            }
-
-            // bool await_suspend(std::coroutine_handle<>) noexcept
-            // {
-            //     return true;
-            // }
-
-            bool await_suspend(std::coroutine_handle<promise_type> handle) noexcept
-            {
-                handle  .promise().m_inner_handler = m_handle;
-                m_handle.promise().m_outer_handler =   handle;
-                return true;
-            }
-
-            auto await_resume()
-            {
-                return m_handle.promise().m_value.value();
-            }
+            inline bool poll_one();
 
         public:
-            bool poll_one()
-            {
-                auto curr_handle = m_handle;
-                while(curr_handle){
-                    if(!curr_handle.promise().m_inner_handler){
-                        while(!curr_handle.done()){
-                            curr_handle.resume();
-                            if(!curr_handle.done()){
-                                return false;
-                            }
-
-                            if(curr_handle.promise().m_outer_handler){
-                                curr_handle = curr_handle.promise().m_outer_handler;
-                                curr_handle.promise().m_inner_handler = nullptr;
-                            }
-                            else{
-                                return true;
-                            }
-                        }
-                        break;
-                    }
-                    curr_handle = curr_handle.promise().m_inner_handler;
-                }
-                return curr_handle.done();
-            }
-
-        public:
-            class long_jmper_promise 
+            template<typename T> class eval_op
             {
                 private:
-                    friend struct long_jmper;
-
-                private:
-                    std::optional<T> m_value {};
-                    std::coroutine_handle<promise_type> m_inner_handler {};
-                    std::coroutine_handle<promise_type> m_outer_handler {};
+                    handle_type m_eval_handle;
 
                 public:
-                    auto value()
+                    eval_op(long_jmper &&jmper) noexcept
+                        : m_eval_handle(jmper.m_handle)
                     {
-                        return m_value;
+                        jmper.m_handle = nullptr;
                     }
 
-                    auto initial_suspend() noexcept
+                public:
+                    bool await_ready() noexcept
                     {
-                        return cppcoro::suspend_never{};
+                        return false;
                     }
 
-                    auto final_suspend() noexcept
-                    {
-                        return cppcoro::suspend_always{};
-                    }
-
-                    auto return_value(T t)
-                    {
-                        m_value = t;
-                        return std::suspend_always{};
-                    }
-
-                    long_jmper<T> get_return_object() noexcept
-                    {
-                        return {handle_type::from_promise(*this)};
-                    }
-
-                    void unhandled_exception() noexcept
-                    {
-                        std::terminate();
-                    }
-
-                    void rethrow_if_unhandled_exception()
-                    {
-                    }
+                public:
+                    bool await_suspend(handle_type handle) noexcept;
+                    decltype(auto) await_resume();
             };
+
+        public:
+            template<typename T> [[nodiscard]] eval_op<T> eval()
+            {
+                if(valid()){
+                    return eval_op<T>(std::move(*this));
+                }
+                throw fflerror("long_jmper has no eval-context associated");
+            }
+
+            template<typename T> auto sync_eval()
+            {
+                while(!poll_one()){
+                    continue;
+                }
+                return eval<T>().await_resume();
+            }
     };
 
+    class long_jmper_promise 
+    {
+        private:
+            friend class long_jmper;
+
+        private:
+            std::any m_value;
+            long_jmper::handle_type m_inner_handle;
+            long_jmper::handle_type m_outer_handle;
+
+        public:
+            template<typename T> T &get_value()
+            {
+                return std::any_cast<T &>(m_value);
+            }
+
+            auto initial_suspend()
+            {
+                return std::suspend_never{};
+            }
+
+            auto final_suspend()
+            {
+                return std::suspend_always{};
+            }
+
+            template<typename T> auto return_value(T t)
+            {
+                m_value = std::move(t);
+                return std::suspend_always{};
+            }
+
+            long_jmper get_return_object()
+            {
+                return {std::coroutine_handle<long_jmper_promise>::from_promise(*this)};
+            }
+
+            void unhandled_exception()
+            {
+                std::terminate();
+            }
+
+            void rethrow_if_unhandled_exception()
+            {
+            }
+    };
+
+    inline bool long_jmper::poll_one()
+    {
+        auto curr_handle = m_handle;
+        while(curr_handle){
+            if(!curr_handle.promise().m_inner_handle){
+                while(!curr_handle.done()){
+                    curr_handle.resume();
+                    if(!curr_handle.done()){
+                        return false;
+                    }
+
+                    if(curr_handle.promise().m_outer_handle){
+                        curr_handle = curr_handle.promise().m_outer_handle;
+                        curr_handle.promise().m_inner_handle = nullptr;
+                    }
+                    else{
+                        return true;
+                    }
+                }
+                break;
+            }
+            curr_handle = curr_handle.promise().m_inner_handle;
+        }
+        return curr_handle.done();
+    }
+
+    template<typename T> inline bool long_jmper::eval_op<T>::await_suspend(handle_type handle) noexcept
+    {
+        handle       .promise().m_inner_handle = m_eval_handle;
+        m_eval_handle.promise().m_outer_handle = handle;
+        return true;
+    }
+
+    template<typename T> inline decltype(auto) long_jmper::eval_op<T>::await_resume()
+    {
+        return m_eval_handle.promise().get_value<T>();
+    }
+}
+
+namespace corof
+{
     template<typename T> class async_variable
     {
         private:
@@ -186,7 +210,7 @@ namespace corof
             template<typename U = T> void assign(U &&u)
             {
                 if(m_var.has_value()){
-                    throw fflerror("Assign value to async_variable twice");
+                    throw fflerror("assign value to async_variable twice");
                 }
                 m_var = std::move(u);
             }
@@ -199,17 +223,49 @@ namespace corof
             template<typename U = T> async_variable<T> &operator = (const async_variable<U> &) = delete;
 
         public:
-            auto &get()
+            auto wait()
             {
-                return m_var.value();
+                return do_wait(this). template eval<T>();
             }
 
-            long_jmper<bool> wait()
+        private:
+            static corof::long_jmper do_wait(corof::async_variable<T> *p)
             {
-                while(!m_var.has_value()){
+                while(!p->m_var.has_value()){
                     co_await std::suspend_always{};
                 }
-                co_return true;
+                co_return p->m_var.value();
             }
     };
+
+    inline auto async_wait(uint64_t msec) noexcept
+    {
+        const auto fnwait = [](uint64_t msec) -> corof::long_jmper
+        {
+            size_t count = 0;
+            if(msec == 0){
+                co_await cppcoro::suspend_always{};
+                count++;
+            }
+            else{
+                hres_timer timer;
+                while(timer.diff_msec() < msec){
+                    co_await cppcoro::suspend_always{};
+                    count++;
+                }
+            }
+            co_return count;
+        };
+        return fnwait(msec).eval<size_t>();
+    }
+
+    template<typename T> inline auto delay_value(uint64_t msec, T t) // how about variadic template argument
+    {
+        const auto fnwait = +[](uint64_t msec, T t) -> corof::long_jmper
+        {
+            co_await corof::async_wait(msec);
+            co_return t;
+        };
+        return fnwait(msec, std::move(t)). template eval<T>();
+    }
 }

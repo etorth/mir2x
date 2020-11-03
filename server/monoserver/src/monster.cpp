@@ -476,10 +476,10 @@ uint64_t Monster::Activate()
     return 0;
 }
 
-corof::long_jmper<bool> Monster::updateCoroFunc()
+corof::long_jmper Monster::updateCoroFunc()
 {
     while(HP() > 0){
-        if(uint64_t targetUID = 0; co_await coro_getProperTarget(targetUID)){
+        if(const uint64_t targetUID = co_await coro_getProperTarget()){
             co_await coro_trackAttackUID(targetUID);
         }
 
