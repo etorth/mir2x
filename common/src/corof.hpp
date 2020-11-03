@@ -177,6 +177,10 @@ namespace corof
 
     inline bool long_jmper::poll_one()
     {
+        if(!m_handle){
+            throw fflerror("long_jmper has no eval-context associated");
+        }
+
         auto curr_handle = m_handle;
         while(curr_handle){
             if(!curr_handle.promise().m_inner_handle){
