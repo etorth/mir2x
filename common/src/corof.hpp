@@ -84,6 +84,21 @@ namespace corof
                         jmper.m_handle = nullptr;
                     }
 
+                    ~eval_op()
+                    {
+                        if(m_eval_handle){
+                            m_eval_handle.destroy();
+                        }
+                    }
+
+                public:
+                    eval_op & operator = (eval_op && other) noexcept
+                    {
+                        m_eval_handle = other.m_eval_handle;
+                        other.m_eval_handle = nullptr;
+                        return *this;
+                    }
+
                 public:
                     bool await_ready() noexcept
                     {
