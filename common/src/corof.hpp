@@ -181,28 +181,41 @@ namespace corof
             throw fflerror("long_jmper has no eval-context associated");
         }
 
+        bool resumed = false;
         auto curr_handle = m_handle;
+
         while(curr_handle){
             if(!curr_handle.promise().m_inner_handle){
                 while(!curr_handle.done()){
                     curr_handle.resume();
+                    resumed = true;
+
                     if(!curr_handle.done()){
                         return false;
                     }
 
-                    if(curr_handle.promise().m_outer_handle){
-                        curr_handle = curr_handle.promise().m_outer_handle;
-                        curr_handle.promise().m_inner_handle = nullptr;
-                    }
-                    else{
+                    if(!curr_handle.promise().m_outer_handle){
                         return true;
                     }
+
+                    curr_handle = curr_handle.promise().m_outer_handle;
+                    curr_handle.promise().m_inner_handle = nullptr;
                 }
-                break;
+
+                if(!curr_handle.promise().m_outer_handle){
+                    return true;
+                }
+
+                curr_handle = curr_handle.promise().m_outer_handle;
+                curr_handle.promise().m_inner_handle = nullptr;
+
+                if(resumed){
+                    return m_handle.done();
+                }
             }
             curr_handle = curr_handle.promise().m_inner_handle;
         }
-        return curr_handle.done();
+        return m_handle.done();
     }
 
     template<typename T> inline bool long_jmper::eval_op<T>::await_suspend(handle_type handle) noexcept
