@@ -72,7 +72,7 @@ namespace corof
             inline bool poll_one();
 
         public:
-            template<typename T> class eval_op
+            template<typename T> class [[nodiscard]] eval_op
             {
                 private:
                     handle_type m_eval_handle;
