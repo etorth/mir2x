@@ -71,6 +71,9 @@ namespace corof
         public:
             inline bool poll_one();
 
+        private:
+            static inline handle_type find_handle(handle_type);
+
         public:
             template<typename T> class [[nodiscard]] eval_op
             {
@@ -175,48 +178,94 @@ namespace corof
             }
     };
 
+    inline long_jmper::handle_type long_jmper::find_handle(long_jmper::handle_type start_handle)
+    {
+        if(!start_handle){
+            throw fflerror("invalid argument: find_handle(nullptr)");
+        }
+
+        auto curr_handle = start_handle;
+        auto next_handle = start_handle.promise().m_inner_handle;
+
+        while(curr_handle && next_handle){
+            curr_handle = next_handle;
+            next_handle = next_handle.promise().m_inner_handle;
+        }
+        return curr_handle;
+    }
+
     inline bool long_jmper::poll_one()
     {
         if(!m_handle){
             throw fflerror("long_jmper has no eval-context associated");
         }
 
-        bool resumed = false;
-        auto curr_handle = m_handle;
-
-        while(curr_handle){
-            if(!curr_handle.promise().m_inner_handle){
-                while(!curr_handle.done()){
-                    curr_handle.resume();
-                    resumed = true;
-
-                    if(!curr_handle.done()){
-                        return false;
-                    }
-
-                    if(!curr_handle.promise().m_outer_handle){
-                        return true;
-                    }
-
-                    curr_handle = curr_handle.promise().m_outer_handle;
-                    curr_handle.promise().m_inner_handle = nullptr;
-                }
-
-                if(!curr_handle.promise().m_outer_handle){
-                    return true;
-                }
-
-                curr_handle = curr_handle.promise().m_outer_handle;
-                curr_handle.promise().m_inner_handle = nullptr;
-
-                if(resumed){
-                    return m_handle.done();
-                }
+        handle_type curr_handle = find_handle(m_handle);
+        if(curr_handle.done()){
+            if(!curr_handle.promise().m_outer_handle){
+                return true;
             }
-            curr_handle = curr_handle.promise().m_inner_handle;
+
+            // jump out for one layer
+            // should I call destroy() for done handle?
+
+            curr_handle = curr_handle.promise().m_outer_handle;
+            curr_handle.promise().m_inner_handle = nullptr;
+
+            if(curr_handle.done()){
+                throw fflerror("linked done handle detected");
+            }
         }
+
+        // resume only once and return immediately
+        // after resume curr_handle can be in done state, next call to poll_one should unlink it
+
+        curr_handle.resume();
         return m_handle.done();
     }
+
+    // inline bool long_jmper::poll_one()
+    // {
+    //     if(!m_handle){
+    //         throw fflerror("long_jmper has no eval-context associated");
+    //     }
+    //
+    //     bool resumed = false;
+    //     auto curr_handle = m_handle;
+    //
+    //     while(curr_handle){
+    //         if(!curr_handle.promise().m_inner_handle){
+    //             while(!curr_handle.done()){
+    //                 curr_handle.resume();
+    //                 resumed = true;
+    //
+    //                 if(!curr_handle.done()){
+    //                     return false;
+    //                 }
+    //
+    //                 if(!curr_handle.promise().m_outer_handle){
+    //                     return true;
+    //                 }
+    //
+    //                 curr_handle = curr_handle.promise().m_outer_handle;
+    //                 curr_handle.promise().m_inner_handle = nullptr;
+    //             }
+    //
+    //             if(!curr_handle.promise().m_outer_handle){
+    //                 return true;
+    //             }
+    //
+    //             curr_handle = curr_handle.promise().m_outer_handle;
+    //             curr_handle.promise().m_inner_handle = nullptr;
+    //
+    //             if(resumed){
+    //                 return m_handle.done();
+    //             }
+    //         }
+    //         curr_handle = curr_handle.promise().m_inner_handle;
+    //     }
+    //     return m_handle.done();
+    // }
 
     template<typename T> inline bool long_jmper::eval_op<T>::await_suspend(handle_type handle) noexcept
     {
@@ -272,7 +321,7 @@ namespace corof
 
     inline auto async_wait(uint64_t msec) noexcept
     {
-        const auto fnwait = [](uint64_t msec) -> corof::long_jmper
+        const auto fnwait = +[](uint64_t msec) -> corof::long_jmper
         {
             size_t count = 0;
             if(msec == 0){
