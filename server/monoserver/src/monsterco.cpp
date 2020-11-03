@@ -22,10 +22,10 @@
 
 corof::long_jmper::eval_op<bool> Monster::coro_followMaster()
 {
-    return [this]() -> corof::long_jmper
+    const auto fnwait = +[](Monster *p) -> corof::long_jmper
     {
         corof::async_variable<bool> done;
-        FollowMaster([&done](){ done.assign(true); }, [&done](){ done.assign(false); });
+        p->FollowMaster([&done](){ done.assign(true); }, [&done](){ done.assign(false); });
 
         if(co_await done.wait()){
             co_await corof::async_wait(1200);
@@ -34,15 +34,17 @@ corof::long_jmper::eval_op<bool> Monster::coro_followMaster()
 
         co_await corof::async_wait(200);
         co_return false;
-    }().eval<bool>();
+    };
+
+    return fnwait(this).eval<bool>();
 }
 
 corof::long_jmper::eval_op<bool> Monster::coro_randomMove()
 {
-    return [this]() -> corof::long_jmper
+    const auto fnwait = +[](Monster *p) -> corof::long_jmper
     {
         if(std::rand() % 10 < 2){
-            if(RandomTurn()){
+            if(p->RandomTurn()){
                 co_await corof::async_wait(200);
             }
             else{
@@ -51,7 +53,7 @@ corof::long_jmper::eval_op<bool> Monster::coro_randomMove()
         }
 
         else{
-            if(co_await coro_moveForward()){
+            if(co_await p->coro_moveForward()){
                 co_await corof::async_wait(1200);
             }
             else{
@@ -59,7 +61,9 @@ corof::long_jmper::eval_op<bool> Monster::coro_randomMove()
             }
         }
         co_return true;
-    }().eval<bool>();
+    };
+
+    return fnwait(this).eval<bool>();
 }
 
 corof::long_jmper::eval_op<bool> Monster::coro_moveForward()
