@@ -130,7 +130,7 @@ Monster::Monster(uint32_t   nMonsterID,
     m_MPMax = m_monsterRecord.MP;
 }
 
-bool Monster::RandomMove()
+bool Monster::randomMove()
 {
     if(canMove()){
         auto fnMoveOneStep = [this]() -> bool
@@ -203,7 +203,7 @@ bool Monster::RandomMove()
     return false;
 }
 
-bool Monster::RandomTurn()
+bool Monster::randomTurn()
 {
     constexpr int dirs[]
     {
@@ -358,7 +358,7 @@ void Monster::trackUID(uint64_t nUID, int nMinCDistance, std::function<void()> f
     }, fnOnError);
 }
 
-void Monster::FollowMaster(std::function<void()> fnOnOK, std::function<void()> fnOnError)
+void Monster::followMaster(std::function<void()> fnOnOK, std::function<void()> fnOnError)
 {
     if(!(masterUID() && canMove())){
         fnOnError();

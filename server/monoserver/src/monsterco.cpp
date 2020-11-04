@@ -25,7 +25,7 @@ corof::long_jmper::eval_op<bool> Monster::coro_followMaster()
     const auto fnwait = +[](Monster *p) -> corof::long_jmper
     {
         corof::async_variable<bool> done;
-        p->FollowMaster([&done](){ done.assign(true); }, [&done](){ done.assign(false); });
+        p->followMaster([&done](){ done.assign(true); }, [&done](){ done.assign(false); });
 
         if(co_await done.wait()){
             co_await corof::async_wait(1200);
@@ -44,7 +44,7 @@ corof::long_jmper::eval_op<bool> Monster::coro_randomMove()
     const auto fnwait = +[](Monster *p) -> corof::long_jmper
     {
         if(std::rand() % 10 < 2){
-            if(p->RandomTurn()){
+            if(p->randomTurn()){
                 co_await corof::async_wait(200);
             }
             else{

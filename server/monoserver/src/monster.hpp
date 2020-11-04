@@ -111,9 +111,9 @@ class Monster final: public CharObject
         corof::long_jmper updateCoroFunc();
 
     protected:
-        bool RandomMove();
-        bool RandomTurn();
-        void FollowMaster(std::function<void()>, std::function<void()>);
+        bool randomMove();
+        bool randomTurn();
+        void followMaster(std::function<void()>, std::function<void()>);
 
     protected:
         void RecursiveCheckInViewTarget(size_t, std::function<void(uint64_t)>);
