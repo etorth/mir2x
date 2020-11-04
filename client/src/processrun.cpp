@@ -833,7 +833,7 @@ bool ProcessRun::userCommand(const char *userCmdString)
     switch(matchCount){
         case 0:
             {
-                addCBLog(CBLOG_ERR, u8">> Invalid user command: %s", tokenList[0].c_str());
+                addCBLog(CBLOG_ERR, u8"-> Invalid user command: %s", tokenList[0].c_str());
                 return true;
             }
         case 1:
