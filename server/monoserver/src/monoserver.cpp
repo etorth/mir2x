@@ -641,20 +641,21 @@ void MonoServer::FlushCWBrowser()
     }
 }
 
-uint32_t MonoServer::sleepExt(uint32_t nTick)
+uint64_t MonoServer::sleepExt(uint64_t tickCount)
 {
-    auto stEnterTime = std::chrono::steady_clock::now();
-    auto stExpectedTime = stEnterTime + std::chrono::milliseconds(nTick);
+    const auto enterTime = std::chrono::steady_clock::now();
+    const auto excptTime = enterTime + std::chrono::milliseconds(tickCount);
 
-    if(nTick > 20){
-        std::this_thread::sleep_for(std::chrono::milliseconds(nTick - 10));
+    if(tickCount > 20){
+        std::this_thread::sleep_for(std::chrono::milliseconds(tickCount - 10));
     }
 
     while(true){
-        if(auto stCurrTime = std::chrono::steady_clock::now(); stCurrTime >= stExpectedTime){
-            return (uint32_t)(std::chrono::duration_cast<std::chrono::microseconds>(stCurrTime - stEnterTime).count());
-        }else{
-            std::this_thread::sleep_for((stExpectedTime - stCurrTime) / 2);
+        if(const auto currTime = std::chrono::steady_clock::now(); currTime >= excptTime){
+            return static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::microseconds>(currTime - enterTime).count());
+        }
+        else{
+            std::this_thread::sleep_for((excptTime - currTime) / 2);
         }
     }
     return 0;

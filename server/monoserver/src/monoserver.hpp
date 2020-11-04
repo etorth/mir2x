@@ -140,5 +140,5 @@ class MonoServer final
         void RegisterLuaExport(CommandLuaModule *, uint32_t);
 
     public:
-        uint32_t sleepExt(uint32_t);
+        uint64_t sleepExt(uint64_t);
 };
