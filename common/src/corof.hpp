@@ -301,21 +301,19 @@ namespace corof
 
         public:
             template<typename U> async_variable(const async_variable<U> &) = delete;
-            template<typename U = T> async_variable<T> &operator = (const async_variable<U> &) = delete;
+            template<typename U = T> async_variable<T> & operator = (const async_variable<U> &) = delete;
 
         public:
-            auto wait()
+            auto operator co_await() noexcept
             {
-                return do_wait(this). template eval<T>();
-            }
-
-        private:
-            static corof::long_jmper do_wait(corof::async_variable<T> *p)
-            {
-                while(!p->m_var.has_value()){
-                    co_await std::suspend_always{};
-                }
-                co_return p->m_var.value();
+                const auto fnwait = +[](corof::async_variable<T> *p) -> corof::long_jmper
+                {
+                    while(!p->m_var.has_value()){
+                        co_await std::suspend_always{};
+                    }
+                    co_return p->m_var.value();
+                };
+                return fnwait(this). template eval<T>();
             }
     };
 

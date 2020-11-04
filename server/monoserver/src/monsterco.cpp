@@ -27,7 +27,7 @@ corof::long_jmper::eval_op<bool> Monster::coro_followMaster()
         corof::async_variable<bool> done;
         p->followMaster([&done](){ done.assign(true); }, [&done](){ done.assign(false); });
 
-        if(co_await done.wait()){
+        if(co_await done){
             co_await corof::async_wait(1200);
             co_return true;
         }
@@ -77,7 +77,7 @@ corof::long_jmper::eval_op<bool> Monster::coro_moveForward()
 
         corof::async_variable<bool> done;
         p->requestMove(nextX, nextY, p->MoveSpeed(), false, false, [&done](){ done.assign(true); }, [&done](){ done.assign(false); });
-        const auto result = co_await done.wait();
+        const auto result = co_await done;
         co_return result;
     };
     return fnwait(this).eval<bool>();
@@ -89,7 +89,7 @@ corof::long_jmper::eval_op<uint64_t> Monster::coro_getProperTarget()
     {
         corof::async_variable<uint64_t> targetUID;
         p->GetProperTarget([&targetUID](uint64_t uid){ targetUID.assign(uid); });
-        const auto result = co_await targetUID.wait();
+        const auto result = co_await targetUID;
         co_return result;
     };
     return fnwait(this).eval<uint64_t>();
@@ -102,7 +102,7 @@ corof::long_jmper::eval_op<bool> Monster::coro_trackAttackUID(uint64_t targetUID
         corof::async_variable<bool> done;
         p->trackAttackUID(targetUID, [&done]{ done.assign(true); }, [&done]{ done.assign(false); });
 
-        if(co_await done.wait()){
+        if(co_await done){
             co_await corof::async_wait(1200);
             co_return true;
         }
