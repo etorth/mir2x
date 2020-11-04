@@ -710,7 +710,7 @@ void Player::OnCMActionSpell(CMAction stCMA)
                 {
                     addMonster(DBCOM_MONSTERID(u8"变异骷髅"), stSMFM.AimX, stSMFM.AimY, false);
 
-                    // AddMonster will send ACTION_SPAWN to client
+                    // addMonster will send ACTION_SPAWN to client
                     // client then use it to play the magic for 召唤骷髅, we don't send magic message here
                 });
                 break;

@@ -90,7 +90,7 @@ void ServerMap::On_MPK_ADDCHAROBJECT(const MessagePack &rstMPK)
                 const auto nMonsterID = stAMACO.monster.monsterID;
                 const auto nMasterUID = stAMACO.monster.masterUID;
 
-                if(AddMonster(nMonsterID, nMasterUID, nX, nY, bStrictLoc)){
+                if(addMonster(nMonsterID, nMasterUID, nX, nY, bStrictLoc)){
                     m_actorPod->forward(rstMPK.from(), MPK_OK, rstMPK.ID());
                     return;
                 }
@@ -104,7 +104,7 @@ void ServerMap::On_MPK_ADDCHAROBJECT(const MessagePack &rstMPK)
                 const auto nChannID   = stAMACO.player.channID;
                 const auto nDirection = stAMACO.player.direction;
 
-                if(auto pPlayer = AddPlayer(nDBID, nX, nY, nDirection, bStrictLoc)){
+                if(auto pPlayer = addPlayer(nDBID, nX, nY, nDirection, bStrictLoc)){
                     m_actorPod->forward(rstMPK.from(), MPK_OK, rstMPK.ID());
                     m_actorPod->forward(pPlayer->UID(), {MPK_BINDCHANNEL, nChannID});
 

@@ -209,9 +209,9 @@ class ServerMap final: public ServerObject
         void notifyNewCO(uint64_t, int, int);
 
     private:
-        Player  *AddPlayer (uint32_t,      int, int, int, bool);
+        Player  *addPlayer (uint32_t,      int, int, int, bool);
         NPChar  *addNPChar (uint16_t,      int, int, int, bool);
-        Monster *AddMonster(uint32_t, uint64_t, int, int, bool);
+        Monster *addMonster(uint32_t, uint64_t, int, int, bool);
 
     private:
         int GetMonsterCount(uint32_t);

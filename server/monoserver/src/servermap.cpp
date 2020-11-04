@@ -147,7 +147,7 @@ ServerMap::ServerMapLuaModule::ServerMapLuaModule(ServerMap *mapPtr)
         switch(argList.size()){
             case 0:
                 {
-                    return mapPtr->AddMonster(monID, 0, -1, -1, false);
+                    return mapPtr->addMonster(monID, 0, -1, -1, false);
                 }
             case 2:
                 {
@@ -158,7 +158,7 @@ ServerMap::ServerMapLuaModule::ServerMapLuaModule(ServerMap *mapPtr)
                         auto nX = argList[0].as<int>();
                         auto nY = argList[1].as<int>();
 
-                        return mapPtr->AddMonster(monID, 0, nX, nY, false);
+                        return mapPtr->addMonster(monID, 0, nX, nY, false);
                     }
                     break;
                 }
@@ -173,7 +173,7 @@ ServerMap::ServerMapLuaModule::ServerMapLuaModule(ServerMap *mapPtr)
                         const auto nY = argList[1].as<int >();
                         const auto bStrictLoc = argList[2].as<bool>();
 
-                        return mapPtr->AddMonster(monID, 0, nX, nY, bStrictLoc);
+                        return mapPtr->addMonster(monID, 0, nX, nY, bStrictLoc);
                     }
                     break;
                 }
@@ -1001,7 +1001,7 @@ void ServerMap::notifyNewCO(uint64_t nUID, int nX, int nY)
     });
 }
 
-Monster *ServerMap::AddMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHintX, int nHintY, bool bStrictLoc)
+Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHintX, int nHintY, bool bStrictLoc)
 {
     if(!ValidC(nHintX, nHintY)){
         if(bStrictLoc){
@@ -1066,7 +1066,7 @@ NPChar *ServerMap::addNPChar(uint16_t npcID, int hintX, int hintY, int direction
     return nullptr;
 }
 
-Player *ServerMap::AddPlayer(uint32_t nDBID, int nHintX, int nHintY, int nDirection, bool bStrictLoc)
+Player *ServerMap::addPlayer(uint32_t nDBID, int nHintX, int nHintY, int nDirection, bool bStrictLoc)
 {
     if(!ValidC(nHintX, nHintY)){
         if(bStrictLoc){
