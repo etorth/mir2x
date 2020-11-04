@@ -310,7 +310,7 @@ class ActorPool final
         std::atomic<bool> m_terminated;
 
     private:
-        std::vector<std::shared_future<bool>> m_futureList;
+        std::vector<std::future<bool>> m_futureList;
 
     private:
         std::vector<MailboxBucket> m_bucketList;

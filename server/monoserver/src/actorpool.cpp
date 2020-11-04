@@ -55,7 +55,6 @@ ActorPool::Mailbox::Mailbox(ActorPod *pActor)
 ActorPool::ActorPool(uint32_t nBucketCount, uint32_t nLogicFPS)
     : m_logicFPS(nLogicFPS)
     , m_terminated(false)
-    , m_futureList()
     , m_bucketList(nBucketCount)
     , m_receiverLock()
     , m_receiverList()
@@ -605,41 +604,41 @@ void ActorPool::RunWorkerOneLoop(size_t nIndex)
 
 void ActorPool::Launch()
 {
-    for(int nIndex = 0; nIndex < (int)(m_bucketList.size()); ++nIndex){
-        m_futureList.emplace_back(std::async(std::launch::async, [nIndex, this]()
+    for(int threadId = 0; threadId < (int)(m_bucketList.size()); ++threadId){
+        m_futureList.emplace_back(std::async(std::launch::async, [threadId, this]()
         {
             // record the worker id
-            // for application this won't get assigned
-            t_WorkerID = nIndex;
+            // for application this will NOT get assigned
+            t_WorkerID = threadId;
             try{
-                auto nCurrTick = g_monoServer->getCurrTick();
+                auto currTick = g_monoServer->getCurrTick();
                 while(!m_terminated.load()){
-                    RunWorker(nIndex);
+                    RunWorker(threadId);
 
-                    auto nExptTick = nCurrTick + 1000 / m_logicFPS;
-                    nCurrTick = g_monoServer->getCurrTick();
+                    const auto exptTick = currTick + 1000 / m_logicFPS;
+                    currTick = g_monoServer->getCurrTick();
 
-                    if(nCurrTick < nExptTick){
-                        g_monoServer->SleepEx(nExptTick - nCurrTick);
+                    if(currTick < exptTick){
+                        g_monoServer->SleepEx(exptTick - currTick);
                     }
                 }
 
                 // terminted
                 // need to clean all mailboxes
                 {
-                    std::unique_lock<std::shared_mutex> stLock(m_bucketList[nIndex].BucketLock);
-                    m_bucketList[nIndex].MailboxList.clear();
+                    std::unique_lock<std::shared_mutex> bucketLockGuard(m_bucketList[threadId].BucketLock);
+                    m_bucketList[threadId].MailboxList.clear();
                 }
-            }catch(...){
+            }
+            catch(...){
                 g_monoServer->PropagateException();
             }
 
             // won't let the std::future get the exception
             // keep it clear since no polling on std::future::get() in main thread
             return true;
-        }).share());
-
-        g_monoServer->addLog(LOGTYPE_INFO, "Actor thread %d launched", nIndex);
+        }));
+        g_monoServer->addLog(LOGTYPE_INFO, "Actor thread %d launched", threadId);
     }
 }
 
