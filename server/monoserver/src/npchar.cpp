@@ -268,12 +268,12 @@ void NPChar::checkFriend(uint64_t, std::function<void(int)> fnOP)
     fnOP(FT_NEUTRAL);
 }
 
-bool NPChar::GoDie()
+bool NPChar::goDie()
 {
     return true;
 }
 
-bool NPChar::GoGhost()
+bool NPChar::goGhost()
 {
     return true;
 }

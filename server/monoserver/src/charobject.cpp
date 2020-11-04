@@ -1394,7 +1394,7 @@ void CharObject::QueryFinalMaster(uint64_t nUID, std::function<void(uint64_t)> f
                     {
                         fnOp(0);
                         if(IsMonster() && (nQueryUID == dynamic_cast<Monster *>(this)->masterUID())){
-                            GoDie();
+                            goDie();
                         }
                         return;
                     }

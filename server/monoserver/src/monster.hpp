@@ -205,8 +205,8 @@ class Monster final: public CharObject
         bool canAttack();
 
     protected:
-        virtual bool GoDie();
-        virtual bool GoGhost();
+        virtual bool goDie();
+        virtual bool goGhost();
 
     protected:
         corof::long_jmper::eval_op<bool>     coro_randomMove();

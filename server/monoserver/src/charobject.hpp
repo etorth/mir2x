@@ -308,8 +308,8 @@ class CharObject: public ServerObject
         void addMonster(uint32_t, int, int, bool);
 
     protected:
-        virtual bool GoDie()   = 0;
-        virtual bool GoGhost() = 0;
+        virtual bool goDie()   = 0;
+        virtual bool goGhost() = 0;
 
     protected:
         virtual int MaxStep() const

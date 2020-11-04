@@ -331,7 +331,7 @@ bool Player::InRange(int nRangeType, int nX, int nY)
     return false;
 }
 
-bool Player::GoDie()
+bool Player::goDie()
 {
     switch(GetState(STATE_NEVERDIE)){
         case 0:
@@ -340,7 +340,7 @@ bool Player::GoDie()
                     case 0:
                         {
                             SetState(STATE_DEAD, 1);
-                            Delay(2 * 1000, [this](){ GoGhost(); });
+                            Delay(2 * 1000, [this](){ goGhost(); });
                             return true;
                         }
                     default:
@@ -356,7 +356,7 @@ bool Player::GoDie()
     }
 }
 
-bool Player::GoGhost()
+bool Player::goGhost()
 {
     switch(GetState(STATE_NEVERDIE)){
         case 0:
@@ -438,7 +438,7 @@ bool Player::StruckDamage(const DamageNode &rstDamage)
         DispatchHealth();
 
         if(HP() <= 0){
-            GoDie();
+            goDie();
         }
         return true;
     }

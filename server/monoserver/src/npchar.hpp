@@ -84,8 +84,8 @@ class NPChar final: public CharObject
         bool StruckDamage(const DamageNode &) override;
 
     public:
-        bool GoDie() override;
-        bool GoGhost() override;
+        bool goDie() override;
+        bool goGhost() override;
 
     public:
         void checkFriend(uint64_t, std::function<void(int)>) override;

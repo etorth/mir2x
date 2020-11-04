@@ -247,7 +247,7 @@ void Monster::On_MPK_OFFLINE(const MessagePack &rstMPK)
     if(true
             && stAMO.UID
             && stAMO.UID == masterUID()){
-        GoDie();
+        goDie();
     }
 }
 
@@ -304,6 +304,6 @@ void Monster::On_MPK_QUERYNAMECOLOR(const MessagePack &rstMPK)
 void Monster::On_MPK_MASTERKILL(const MessagePack &rstMPK)
 {
     if(masterUID() && (rstMPK.from() == masterUID())){
-        GoDie();
+        goDie();
     }
 }

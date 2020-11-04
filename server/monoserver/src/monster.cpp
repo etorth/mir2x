@@ -467,7 +467,7 @@ uint64_t Monster::Activate()
             m_actorPod->forward(masterUID(), {MPK_CHECKMASTER}, [this](const MessagePack &rstRMPK)
             {
                 if(rstRMPK.Type() != MPK_OK){
-                    GoDie();
+                    goDie();
                 }
             });
         }
@@ -496,18 +496,18 @@ corof::long_jmper Monster::updateCoroFunc()
         }
     }
 
-    GoDie();
+    goDie();
     co_return true;
 }
 
 bool Monster::update()
 {
     if(HP() < 0){
-        return GoDie();
+        return goDie();
     }
 
     if(masterUID() && m_actorPod->CheckInvalid(masterUID())){
-        return GoDie();
+        return goDie();
     }
 
     if(!m_updateCoro.valid() || m_updateCoro.poll_one()){
@@ -757,7 +757,7 @@ void Monster::SetTarget(uint64_t nUID)
     m_target.ActiveTime = g_monoServer->getCurrTick();
 }
 
-bool Monster::GoDie()
+bool Monster::goDie()
 {
     switch(GetState(STATE_NEVERDIE)){
         case 0:
@@ -769,7 +769,7 @@ bool Monster::GoDie()
                             DispatchOffenderExp();
 
                             // dispatch die acton without auto-fade-out
-                            // server send the fade-out request in GoGhost()
+                            // server send the fade-out request in goGhost()
 
                             // auto-fade-out is for zombie handling
                             // when client confirms a zombie, client use auto-fade-out die action
@@ -781,7 +781,7 @@ bool Monster::GoDie()
 
                             SetState(STATE_DEAD, 1);
 
-                            Delay(2 * 1000, [this](){ GoGhost(); });
+                            Delay(2 * 1000, [this](){ goGhost(); });
                             return true;
                         }
                     default:
@@ -797,7 +797,7 @@ bool Monster::GoDie()
     }
 }
 
-bool Monster::GoGhost()
+bool Monster::goGhost()
 {
     switch(GetState(STATE_NEVERDIE)){
         case 0:
@@ -867,7 +867,7 @@ bool Monster::StruckDamage(const DamageNode &rstDamage)
         DispatchHealth();
 
         if(HP() <= 0){
-            GoDie();
+            goDie();
         }
         return true;
     }
@@ -1241,7 +1241,7 @@ void Monster::QueryMaster(uint64_t nUID, std::function<void(uint64_t)> fnOp)
                 {
                     fnOp(0);
                     if(nUID == masterUID()){
-                        GoDie();
+                        goDie();
                     }
                     return;
                 }
@@ -1465,7 +1465,7 @@ void Monster::checkFriend(uint64_t nUID, std::function<void(int)> fnOp)
             // TODO monster can swith master
             // then here we may incorrectly kill the monster
             fnOp(FT_ERROR);
-            GoDie();
+            goDie();
             return;
         }
 

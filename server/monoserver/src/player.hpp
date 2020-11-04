@@ -182,8 +182,8 @@ class Player final: public CharObject
         }
 
     protected:
-        virtual bool GoDie();
-        virtual bool GoGhost();
+        virtual bool goDie();
+        virtual bool goGhost();
 
     protected:
         bool Offline();
