@@ -641,7 +641,7 @@ void MonoServer::FlushCWBrowser()
     }
 }
 
-uint32_t MonoServer::SleepEx(uint32_t nTick)
+uint32_t MonoServer::sleepExt(uint32_t nTick)
 {
     auto stEnterTime = std::chrono::steady_clock::now();
     auto stExpectedTime = stEnterTime + std::chrono::milliseconds(nTick);

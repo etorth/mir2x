@@ -619,7 +619,7 @@ void ActorPool::Launch()
                     currTick = g_monoServer->getCurrTick();
 
                     if(currTick < exptTick){
-                        g_monoServer->SleepEx(exptTick - currTick);
+                        g_monoServer->sleepExt(exptTick - currTick);
                     }
                 }
 
