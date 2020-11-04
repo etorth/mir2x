@@ -35,7 +35,6 @@ corof::long_jmper::eval_op<bool> Monster::coro_followMaster()
         co_await corof::async_wait(200);
         co_return false;
     };
-
     return fnwait(this).eval<bool>();
 }
 
@@ -62,7 +61,6 @@ corof::long_jmper::eval_op<bool> Monster::coro_randomMove()
         }
         co_return true;
     };
-
     return fnwait(this).eval<bool>();
 }
 
@@ -82,7 +80,6 @@ corof::long_jmper::eval_op<bool> Monster::coro_moveForward()
         const auto result = co_await done.wait();
         co_return result;
     };
-
     return fnwait(this).eval<bool>();
 }
 
@@ -113,6 +110,5 @@ corof::long_jmper::eval_op<bool> Monster::coro_trackAttackUID(uint64_t targetUID
         co_await corof::async_wait(200);
         co_return false;
     };
-
     return fnwait(this, targetUID).eval<bool>();
 }
