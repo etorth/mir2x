@@ -631,7 +631,7 @@ void ActorPool::Launch()
                 }
             }
             catch(...){
-                g_monoServer->PropagateException();
+                g_monoServer->propagateException();
             }
 
             // won't let the std::future get the exception

@@ -269,19 +269,20 @@ void MonoServer::Launch()
     StartNetwork();
 }
 
-void MonoServer::PropagateException()
+void MonoServer::propagateException()
 {
     // TODO
     // add multi-thread protection
     try{
         if(!std::current_exception()){
-            throw fflerror("call MonoServer::PropagateException() without exception captured");
+            throw fflerror("call MonoServer::propagateException() without exception captured");
         }
 
         // we do have an exception
         // but may not be std::exception, nest it...
-        std::throw_with_nested(fflerror("rethrow in MonoServer::PropagateException()"));
-    }catch(...){
+        std::throw_with_nested(fflerror("rethrow in MonoServer::propagateException()"));
+    }
+    catch(...){
         // must have one exception...
         // now we are sure main thread will always capture an std::exception
         m_currException = std::current_exception();

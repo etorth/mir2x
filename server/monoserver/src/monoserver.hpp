@@ -95,7 +95,7 @@ class MonoServer final
 
     public:
         void DetectException();
-        void PropagateException();
+        void propagateException();
         void LogException(const std::exception &, std::string * = nullptr);
 
     public:
