@@ -120,9 +120,9 @@ class Monster final: public CharObject
         void SearchNearestTarget(std::function<void(uint64_t)>);
 
     protected:
-        void TrackUID      (uint64_t, int, std::function<void()>, std::function<void()>);
+        void trackUID      (uint64_t, int, std::function<void()>, std::function<void()>);
         void AttackUID     (uint64_t, int, std::function<void()>, std::function<void()>);
-        void TrackAttackUID(uint64_t,      std::function<void()>, std::function<void()>);
+        void trackAttackUID(uint64_t,      std::function<void()>, std::function<void()>);
 
     protected:
         bool DCValid(int, bool);

@@ -103,7 +103,7 @@ corof::long_jmper::eval_op<bool> Monster::coro_trackAttackUID(uint64_t targetUID
     const auto fnwait = +[](Monster *p, uint64_t targetUID) -> corof::long_jmper
     {
         corof::async_variable<bool> done;
-        p->TrackAttackUID(targetUID, [&done]{ done.assign(true); }, [&done]{ done.assign(false); });
+        p->trackAttackUID(targetUID, [&done]{ done.assign(true); }, [&done]{ done.assign(false); });
 
         if(co_await done.wait()){
             co_await corof::async_wait(1200);

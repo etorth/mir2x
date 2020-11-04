@@ -331,7 +331,7 @@ void Monster::AttackUID(uint64_t nUID, int nDC, std::function<void()> fnOnOK, st
     });
 }
 
-void Monster::TrackUID(uint64_t nUID, int nMinCDistance, std::function<void()> fnOnOK, std::function<void()> fnOnError)
+void Monster::trackUID(uint64_t nUID, int nMinCDistance, std::function<void()> fnOnOK, std::function<void()> fnOnError)
 {
     if(nMinCDistance < 1){
         throw fflerror("invalid distance: %d", nMinCDistance);
@@ -365,7 +365,7 @@ void Monster::FollowMaster(std::function<void()> fnOnOK, std::function<void()> f
         return;
     }
 
-    // followMaster works almost like TrackUID(), but
+    // followMaster works almost like trackUID(), but
     // 1. follower always try to stand at the back of the master
     // 2. when distance is too far or master is on different map, follower takes space move
 
@@ -442,7 +442,7 @@ void Monster::FollowMaster(std::function<void()> fnOnOK, std::function<void()> f
     });
 }
 
-void Monster::TrackAttackUID(uint64_t nTargetUID, std::function<void()> fnOnOK, std::function<void()> fnOnError)
+void Monster::trackAttackUID(uint64_t nTargetUID, std::function<void()> fnOnOK, std::function<void()> fnOnError)
 {
     if(!nTargetUID){
         throw fflerror("invalid zero UID");
@@ -454,7 +454,7 @@ void Monster::TrackAttackUID(uint64_t nTargetUID, std::function<void()> fnOnOK, 
     int nProperDC = m_monsterRecord.DCList()[0];
     int nMinCDistance = 1;
 
-    TrackUID(nTargetUID, nMinCDistance, [nTargetUID, nProperDC, fnOnOK, fnOnError, this]()
+    trackUID(nTargetUID, nMinCDistance, [nTargetUID, nProperDC, fnOnOK, fnOnError, this]()
     {
         AttackUID(nTargetUID, nProperDC, fnOnOK, fnOnError);
     }, fnOnError);
