@@ -381,12 +381,12 @@ class CharObject: public ServerObject
         void QueryFinalMaster(uint64_t, std::function<void(uint64_t)>);
 
     protected:
-        bool IsOffender(uint64_t);
+        bool isOffender(uint64_t);
 
     protected:
         virtual void On_MPK_QUERYFRIENDTYPE(const MessagePack &);
 
     protected:
-        bool IsPlayer()  const;
-        bool IsMonster() const;
+        bool isPlayer()  const;
+        bool isMonster() const;
 };

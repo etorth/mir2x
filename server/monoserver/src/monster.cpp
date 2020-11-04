@@ -1251,14 +1251,14 @@ void Monster::QueryMaster(uint64_t nUID, std::function<void(uint64_t)> fnOp)
 
 void Monster::checkFriend_AsGuard(uint64_t nUID, std::function<void(int)> fnOp)
 {
-    if(!IsGuard(UID())){
+    if(!isGuard(UID())){
         throw fflerror("invalid call to checkFriend_AsGuard");
     }
 
     switch(uidf::getUIDType(nUID)){
         case UID_MON:
             {
-                fnOp(IsGuard(nUID) ? FT_NEUTRAL : FT_ENEMY);
+                fnOp(isGuard(nUID) ? FT_NEUTRAL : FT_ENEMY);
                 return;
             }
         case UID_PLY:
@@ -1365,7 +1365,7 @@ void Monster::checkFriend_CtrlByPlayer(uint64_t nUID, std::function<void(int)> f
     switch(uidf::getUIDType(nUID)){
         case UID_MON:
             {
-                if(!(IsPet(nUID) || DBCOM_MONSTERRECORD(uidf::getMonsterID(nUID)).tamable)){
+                if(!(isPet(nUID) || DBCOM_MONSTERRECORD(uidf::getMonsterID(nUID)).tamable)){
                     fnOp(FT_ENEMY);
                     return;
                 }
@@ -1438,7 +1438,7 @@ void Monster::checkFriend(uint64_t nUID, std::function<void(int)> fnOp)
     // 2. no master or master is still monster
     // 3. as pet, master is UID_PLY
 
-    if(IsGuard(UID())){
+    if(isGuard(UID())){
         checkFriend_AsGuard(nUID, fnOp);
         return;
     }
@@ -1531,7 +1531,7 @@ void Monster::QueryFriendType(uint64_t nUID, uint64_t nTargetUID, std::function<
     });
 }
 
-bool Monster::IsGuard(uint64_t nUID)
+bool Monster::isGuard(uint64_t nUID)
 {
     if(uidf::getUIDType(nUID) != UID_MON){
         return false;
@@ -1550,7 +1550,7 @@ bool Monster::IsGuard(uint64_t nUID)
     }
 }
 
-bool Monster::IsPet(uint64_t nUID)
+bool Monster::isPet(uint64_t nUID)
 {
     if(uidf::getUIDType(nUID) != UID_MON){
         return false;

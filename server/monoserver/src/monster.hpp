@@ -216,6 +216,6 @@ class Monster final: public CharObject
         corof::long_jmper::eval_op<bool>     coro_trackAttackUID(uint64_t);
 
     public:
-        static bool IsPet(uint64_t);
-        static bool IsGuard(uint64_t);
+        static bool isPet(uint64_t);
+        static bool isGuard(uint64_t);
 };

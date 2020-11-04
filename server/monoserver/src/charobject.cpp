@@ -1357,7 +1357,7 @@ COLocation *CharObject::GetInViewCOPtr(uint64_t nUID)
     return nullptr;
 }
 
-bool CharObject::IsOffender(uint64_t nUID)
+bool CharObject::isOffender(uint64_t nUID)
 {
     for(auto &rstOffender: m_offenderList){
         if(rstOffender.UID == nUID){
@@ -1393,7 +1393,7 @@ void CharObject::QueryFinalMaster(uint64_t nUID, std::function<void(uint64_t)> f
                 default:
                     {
                         fnOp(0);
-                        if(IsMonster() && (nQueryUID == dynamic_cast<Monster *>(this)->masterUID())){
+                        if(isMonster() && (nQueryUID == dynamic_cast<Monster *>(this)->masterUID())){
                             goDie();
                         }
                         return;
@@ -1452,12 +1452,12 @@ void CharObject::QueryFinalMaster(uint64_t nUID, std::function<void(uint64_t)> f
     }
 }
 
-bool CharObject::IsPlayer() const
+bool CharObject::isPlayer() const
 {
     return uidf::getUIDType(UID()) == UID_PLY;
 }
 
-bool CharObject::IsMonster() const
+bool CharObject::isMonster() const
 {
     return uidf::getUIDType(UID()) == UID_MON;
 }

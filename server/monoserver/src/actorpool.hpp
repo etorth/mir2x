@@ -342,7 +342,7 @@ class ActorPool final
         bool CheckInvalid(uint64_t) const;
 
     private:
-        static bool IsReceiver(uint64_t nUID)
+        static bool isReceiver(uint64_t nUID)
         {
             return nUID & 0XFFFF000000000000;
         }

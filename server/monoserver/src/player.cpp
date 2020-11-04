@@ -946,7 +946,7 @@ void Player::checkFriend(uint64_t nUID, std::function<void(int)> fnOp)
             }
         case UID_PLY:
             {
-                fnOp(IsOffender(nUID) ? FT_ENEMY : FT_NEUTRAL);
+                fnOp(isOffender(nUID) ? FT_ENEMY : FT_NEUTRAL);
                 return;
             }
         case UID_MON:
@@ -961,7 +961,7 @@ void Player::checkFriend(uint64_t nUID, std::function<void(int)> fnOp)
                     switch(uidf::getUIDType(nFMasterUID)){
                         case UID_PLY:
                             {
-                                fnOp(IsOffender(nUID) ? FT_ENEMY : FT_NEUTRAL);
+                                fnOp(isOffender(nUID) ? FT_ENEMY : FT_NEUTRAL);
                                 return;
                             }
                         case UID_MON:
