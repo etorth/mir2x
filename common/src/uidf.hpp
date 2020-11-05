@@ -65,12 +65,20 @@ namespace uidf
 
     inline int getThreadID(uint64_t uid)
     {
-        return (uid & uidThreadID_Mask) >> uidThreadID_Shift;
+        return static_cast<int>((uid & uidThreadID_Mask) >> uidThreadID_Shift);
     }
 
     inline uint64_t setThreadID(uint64_t uid, int threadId)
     {
-        return uid & ((uidThreadID_Mask & (~uidThreadID_Mask)) | ((uint64_t)(threadId) << uidThreadID_Shift));
+        if(threadId < 0){
+            throw fflerror("invalid uid threadID: %d", threadId);
+        }
+
+        uid = (uid & (~uidThreadID_Mask)) | ((uint64_t)(threadId) << uidThreadID_Shift);
+        if(uidf::getThreadID(uid) != threadId){
+            throw fflerror("can't assign threadID: %d", threadId);
+        }
+        return uid;
     }
 }
 
@@ -78,7 +86,7 @@ namespace uidf
 {
     inline int getUIDType(uint64_t uid)
     {
-        if(uid & 0XFFFF000000000000ULL){
+        if(uid & 0X00FF000000000000ULL){
             return UID_INN;
         }
         return (int)((uid & 0X0000F00000000000ULL) >> 44);

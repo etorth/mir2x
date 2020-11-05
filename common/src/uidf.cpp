@@ -99,7 +99,7 @@ std::string uidf::getUIDString(uint64_t uid)
     switch(getUIDType(uid)){
         case UID_PLY:
             {
-                return str_printf("PLY%llu", to_llu((uid & 0XFFFFFFFF)));
+                return str_printf("PLY%llu", to_llu((uid & 0XFFFFFFFFULL)));
             }
         case UID_MON:
             {
@@ -107,11 +107,11 @@ std::string uidf::getUIDString(uint64_t uid)
             }
         case UID_NPC:
             {
-                return str_printf("NPC%llu_%llu", to_llu(uidf::getLookID(uid)), to_llu(uid & 0XFFFF));
+                return str_printf("NPC%llu_%llu", to_llu(uidf::getLookID(uid)), to_llu(uid & 0XFFFFULL));
             }
         case UID_MAP:
             {
-                return str_printf("MAP%llu", to_llu(uid & 0XFFFFFFFF));
+                return str_printf("MAP%llu", to_llu(uid & 0XFFFFFFFFULL));
             }
         case UID_COR:
             {
@@ -119,7 +119,7 @@ std::string uidf::getUIDString(uint64_t uid)
             }
         case UID_ETC:
             {
-                return str_printf("ETC%llu", to_llu(uid & 0XFFFFFFFF));
+                return str_printf("ETC%llu", to_llu(uid & 0XFFFFFFFFULL));
             }
         default:
             {
@@ -133,7 +133,7 @@ uint32_t uidf::getMapID(uint64_t uid)
     if(uidf::getUIDType(uid) != UID_MAP){
         throw fflerror("invalid uid type: %s", uidf::getUIDTypeString(uid));
     }
-    return uid & 0XFFFFFFFF;
+    return uid & 0XFFFFFFFFULL;
 }
 
 uint16_t uidf::getLookID(uint64_t uid)
@@ -141,7 +141,7 @@ uint16_t uidf::getLookID(uint64_t uid)
     switch(uidf::getUIDType(uid)){
         case UID_NPC:
             {
-                return (uid & 0XFFFF0000) >> 16;
+                return (uid & 0XFFFF0000ULL) >> 16;
             }
         default:
             {
