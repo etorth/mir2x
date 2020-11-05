@@ -371,10 +371,10 @@ class ActorPool final
         std::tuple<long, size_t> CheckWorkerTime() const;
 
     private:
-        void RunWorker(size_t);
-        void RunWorkerSteal(size_t);
-        void RunWorkerOneLoop(size_t);
-        bool RunOneMailbox(Mailbox *, bool);
+        void runWorker(size_t);
+        void runWorkerSteal(size_t);
+        void runWorkerOneLoop(size_t);
+        bool runOneMailbox(Mailbox *, bool);
 
     private:
         void ClearOneMailbox(Mailbox *);

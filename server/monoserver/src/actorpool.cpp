@@ -346,7 +346,7 @@ bool ActorPool::PostMessage(uint64_t nUID, MessagePack stMPK)
     }
 }
 
-bool ActorPool::RunOneMailbox(Mailbox *pMailbox, bool bMetronome)
+bool ActorPool::runOneMailbox(Mailbox *pMailbox, bool bMetronome)
 {
     if(!isActorThread()){
         throw fflerror("accessing actor message handlers outside of any actor threads: %d", getWorkerID());
@@ -410,12 +410,12 @@ bool ActorPool::RunOneMailbox(Mailbox *pMailbox, bool bMetronome)
     return !pMailbox->SchedLock.Detached();
 }
 
-void ActorPool::RunWorkerSteal(size_t nMaxIndex)
+void ActorPool::runWorkerSteal(size_t nMaxIndex)
 {
     std::shared_lock<std::shared_mutex> stLock(m_bucketList[nMaxIndex].BucketLock);
     for(auto p = m_bucketList[nMaxIndex].MailboxList.rbegin(); p != m_bucketList[nMaxIndex].MailboxList.rend(); ++p){
         if(MailboxLock stMailboxLock(p->second->SchedLock, getWorkerID()); stMailboxLock.Locked()){
-            RunOneMailbox(p->second.get(), false);
+            runOneMailbox(p->second.get(), false);
         }
     }
 }
@@ -434,17 +434,17 @@ std::tuple<long, size_t> ActorPool::CheckWorkerTime() const
     return {nSum / m_bucketList.size(), nMaxIndex};
 }
 
-void ActorPool::RunWorker(size_t nIndex)
+void ActorPool::runWorker(size_t nIndex)
 {
     hres_timer stHRTimer;
-    RunWorkerOneLoop(nIndex);
+    runWorkerOneLoop(nIndex);
     m_bucketList[nIndex].RunTimer.Push(stHRTimer.diff_nsec());
 
     if(HasWorkSteal()){
         auto [nAvgTime, nMaxIndex] = CheckWorkerTime();
         if((m_bucketList[nIndex].RunTimer.GetAvgTime()) < nAvgTime && (nIndex != nMaxIndex)){
             hres_timer stHRStealTimer;
-            RunWorkerSteal(nMaxIndex);
+            runWorkerSteal(nMaxIndex);
             m_bucketList[nIndex].StealTimer.Push(stHRStealTimer.diff_nsec());
         }
     }
@@ -518,7 +518,7 @@ void ActorPool::ClearOneMailbox(Mailbox *pMailbox)
     pMailbox->CurrQ.clear();
 }
 
-void ActorPool::RunWorkerOneLoop(size_t nIndex)
+void ActorPool::runWorkerOneLoop(size_t nIndex)
 {
     // check if in the correct thread
     // stealing actor thread can't call this function
@@ -545,7 +545,7 @@ void ActorPool::RunWorkerOneLoop(size_t nIndex)
 
                         // don't try clean it
                         // since we can't guarentee to clean it complately
-                        if(!RunOneMailbox(p->second.get(), true)){
+                        if(!runOneMailbox(p->second.get(), true)){
                             return p;
                         }
 
@@ -570,7 +570,7 @@ void ActorPool::RunWorkerOneLoop(size_t nIndex)
                         }
 
                         // current dedicated *actor* thread has already grabbed this mailbox lock
-                        // means 1. recursively call this RunWorkerOneLoop()
+                        // means 1. recursively call this runWorkerOneLoop()
                         //       2. forget to release the lock
 
                         if(stMailboxLock.LockType() == getWorkerID()){
@@ -613,7 +613,7 @@ void ActorPool::Launch()
             try{
                 auto currTick = g_monoServer->getCurrTick();
                 while(!m_terminated.load()){
-                    RunWorker(threadId);
+                    runWorker(threadId);
 
                     const auto exptTick = currTick + 1000 / m_logicFPS;
                     currTick = g_monoServer->getCurrTick();
