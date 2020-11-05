@@ -127,33 +127,35 @@ class ActorPool final
         };
 
     private:
-        template<size_t AVG_LEN = 16> struct AvgTimer
+        template<size_t AVG_LEN = 16> class AvgTimer
         {
-            std::atomic<long> CurrSum;
+            private:
+                std::atomic<long> m_currSum;
 
-            size_t Curr;
-            std::array<long, AVG_LEN> Array;
+            private:
+                size_t m_curr;
+                std::array<long, AVG_LEN> m_array;
 
-            AvgTimer()
-                : CurrSum{0}
-                , Curr(0)
-                , Array()
-            {
-                for(size_t nIndex = 0; nIndex < Array.size(); ++nIndex){
-                    Array[nIndex] = 0;
+            public:
+                AvgTimer()
+                    : m_currSum{0}
+                    , m_curr(0)
+                {
+                    static_assert(AVG_LEN > 0);
+                    m_array.fill(0);
                 }
-            }
 
-            void Push(long nNewTime)
-            {
-                Curr = ((Curr + 1) % Array.size());
-                CurrSum.fetch_add(nNewTime - Array[Curr]);
-            }
+            public:
+                void push(long newTime)
+                {
+                    m_curr = ((m_curr + 1) % m_array.size());
+                    m_currSum.fetch_add(newTime - m_array[m_curr]);
+                }
 
-            long GetAvgTime() const
-            {
-                return CurrSum.load() / Array.size();
-            }
+                long getAvgTime() const
+                {
+                    return m_currSum.load() / m_array.size();
+                }
         };
 
     public:

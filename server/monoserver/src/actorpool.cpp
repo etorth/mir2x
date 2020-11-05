@@ -426,8 +426,8 @@ std::tuple<long, size_t> ActorPool::CheckWorkerTime() const
     size_t nMaxIndex = 0;
 
     for(int nIndex = 0; nIndex < (int)(m_bucketList.size()); ++nIndex){
-        nSum += m_bucketList[nIndex].RunTimer.GetAvgTime();
-        if(m_bucketList[nIndex].RunTimer.GetAvgTime() > m_bucketList[nMaxIndex].RunTimer.GetAvgTime()){
+        nSum += m_bucketList[nIndex].RunTimer.getAvgTime();
+        if(m_bucketList[nIndex].RunTimer.getAvgTime() > m_bucketList[nMaxIndex].RunTimer.getAvgTime()){
             nMaxIndex = nIndex;
         }
     }
@@ -438,14 +438,14 @@ void ActorPool::runWorker(size_t nIndex)
 {
     hres_timer stHRTimer;
     runWorkerOneLoop(nIndex);
-    m_bucketList[nIndex].RunTimer.Push(stHRTimer.diff_nsec());
+    m_bucketList[nIndex].RunTimer.push(stHRTimer.diff_nsec());
 
     if(HasWorkSteal()){
         auto [nAvgTime, nMaxIndex] = CheckWorkerTime();
-        if((m_bucketList[nIndex].RunTimer.GetAvgTime()) < nAvgTime && (nIndex != nMaxIndex)){
+        if((m_bucketList[nIndex].RunTimer.getAvgTime()) < nAvgTime && (nIndex != nMaxIndex)){
             hres_timer stHRStealTimer;
             runWorkerSteal(nMaxIndex);
-            m_bucketList[nIndex].StealTimer.Push(stHRStealTimer.diff_nsec());
+            m_bucketList[nIndex].StealTimer.push(stHRStealTimer.diff_nsec());
         }
     }
 }
