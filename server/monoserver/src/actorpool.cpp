@@ -20,6 +20,8 @@
 #include <thread>
 #include <cstdint>
 #include <cinttypes>
+#include <climits>
+#include "uidf.hpp"
 #include "fflerror.hpp"
 #include "receiver.hpp"
 #include "actorpod.hpp"
@@ -92,7 +94,7 @@ bool ActorPool::Register(ActorPod *pActor)
     }
 
     auto nUID = pActor->UID();
-    auto nIndex = nUID % m_bucketList.size();
+    auto nIndex = uidf::getThreadID(nUID);
     auto pMailbox = std::make_shared<Mailbox>(pActor);
 
     // can call this function from:
@@ -144,7 +146,7 @@ bool ActorPool::Detach(const ActorPod *pActor, const std::function<void()> &fnAt
     // we can use UID as parameter
     // but use actor address prevents other thread detach blindly
 
-    auto nIndex = pActor->UID() % m_bucketList.size();
+    auto nIndex = uidf::getThreadID(pActor->UID());
     auto fnDoDetach = [this, &rstMailboxList = m_bucketList[nIndex].MailboxList, pActor, &fnAtExit]() -> bool
     {
         // we need to make sure after this funtion
@@ -311,7 +313,7 @@ bool ActorPool::PostMessage(uint64_t nUID, MessagePack stMPK)
         return false;
     }
 
-    auto nIndex = nUID % m_bucketList.size();
+    auto nIndex = uidf::getThreadID(nUID);
     auto fnPostMessage = [this, nIndex, nUID](MessagePack stMPK)
     {
         // here won't try lock the mailbox
@@ -411,44 +413,11 @@ bool ActorPool::runOneMailbox(Mailbox *pMailbox, bool bMetronome)
     return !pMailbox->schedLock.Detached();
 }
 
-void ActorPool::runWorkerSteal(size_t nMaxIndex)
-{
-    std::shared_lock<std::shared_mutex> stLock(m_bucketList[nMaxIndex].BucketLock);
-    for(auto p = m_bucketList[nMaxIndex].MailboxList.rbegin(); p != m_bucketList[nMaxIndex].MailboxList.rend(); ++p){
-        if(MailboxLock stMailboxLock(p->second->schedLock, getWorkerID()); stMailboxLock.Locked()){
-            runOneMailbox(p->second.get(), false);
-        }
-    }
-}
-
-std::tuple<long, size_t> ActorPool::CheckWorkerTime() const
-{
-    long nSum = 0;
-    size_t nMaxIndex = 0;
-
-    for(int nIndex = 0; nIndex < (int)(m_bucketList.size()); ++nIndex){
-        nSum += m_bucketList[nIndex].RunTimer.getAvgTime();
-        if(m_bucketList[nIndex].RunTimer.getAvgTime() > m_bucketList[nMaxIndex].RunTimer.getAvgTime()){
-            nMaxIndex = nIndex;
-        }
-    }
-    return {nSum / m_bucketList.size(), nMaxIndex};
-}
-
 void ActorPool::runWorker(size_t nIndex)
 {
-    hres_timer stHRTimer;
+    hres_timer timer;
     runWorkerOneLoop(nIndex);
-    m_bucketList[nIndex].RunTimer.push(stHRTimer.diff_nsec());
-
-    if(HasWorkSteal()){
-        auto [nAvgTime, nMaxIndex] = CheckWorkerTime();
-        if((m_bucketList[nIndex].RunTimer.getAvgTime()) < nAvgTime && (nIndex != nMaxIndex)){
-            hres_timer stHRStealTimer;
-            runWorkerSteal(nMaxIndex);
-            m_bucketList[nIndex].StealTimer.push(stHRStealTimer.diff_nsec());
-        }
-    }
+    m_bucketList[nIndex].runTimer.push(timer.diff_nsec());
 }
 
 void ActorPool::ClearOneMailbox(Mailbox *pMailbox)
@@ -646,7 +615,7 @@ void ActorPool::Launch()
 
 bool ActorPool::CheckInvalid(uint64_t nUID) const
 {
-    auto nIndex = nUID % m_bucketList.size();
+    auto nIndex = uidf::getThreadID(nUID);
     auto fnGetInvalid = [this, &rstMailboxList = m_bucketList[nIndex].MailboxList, nUID]() -> bool
     {
         if(auto p = rstMailboxList.find(nUID); p == rstMailboxList.end() || p->second->schedLock.Detached()){
@@ -679,7 +648,7 @@ ActorPool::ActorMonitor ActorPool::GetActorMonitor(uint64_t nUID) const
         throw fflerror("querying actor monitor inside actor thread: WorkerID = %d, UID = %" PRIu64, getWorkerID(), nUID);
     }
 
-    auto nIndex = nUID % m_bucketList.size();
+    auto nIndex = uidf::getThreadID(nUID);
     {
         // lock the bucket
         // other thread can detach the actor but can't erase the mailbox
@@ -713,4 +682,23 @@ std::vector<ActorPool::ActorMonitor> ActorPool::GetActorMonitor() const
         }
     }
     return stRetList;
+}
+
+int ActorPool::pickThreadID() const
+{
+    if(m_bucketList.empty()){
+        throw fflerror("no bucket allocated");
+    }
+
+    int minTimeIndex = 0;
+    long minTime = LONG_MAX;
+
+    for(int index = 0; const auto &bucketRef: m_bucketList){
+        if(const auto currTime = bucketRef.runTimer.getAvgTime(); minTime > currTime){
+            minTimeIndex = index;
+            minTime = currTime;
+        }
+        index++;
+    }
+    return minTimeIndex;
 }

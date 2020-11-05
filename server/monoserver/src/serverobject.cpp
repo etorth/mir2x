@@ -21,13 +21,16 @@
 #include "serverargparser.hpp"
 #include "monoserver.hpp"
 #include "serverobject.hpp"
+#include "actorpool.hpp"
+#include "uidf.hpp"
 
+extern ActorPool *g_actorPool;
 extern MonoServer *g_monoServer;
 extern ServerArgParser *g_serverArgParser;
 
-ServerObject::ServerObject(uint64_t nUID)
-    : m_UID(nUID)
-    , m_UIDName(uidf::getUIDString(nUID))
+ServerObject::ServerObject(uint64_t uid)
+    : m_UID(uidf::setThreadID(uid, g_actorPool->pickThreadID()))
+    , m_UIDName(uidf::getUIDString(uid))
     , m_stateV()
     , m_stateTimeV()
     , m_actorPod(nullptr)

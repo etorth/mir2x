@@ -276,9 +276,7 @@ class ActorPool final
 
         struct MailboxBucket
         {
-            AvgTimer<32> RunTimer;
-            AvgTimer<32> StealTimer;
-
+            AvgTimer<32> runTimer;
             mutable std::shared_mutex BucketLock;
             std::map<uint64_t, std::shared_ptr<Mailbox>> MailboxList;
         };
@@ -324,7 +322,7 @@ class ActorPool final
     private:
         static bool isReceiver(uint64_t nUID)
         {
-            return nUID & 0XFFFF000000000000;
+            return nUID & 0X00FF000000000000ULL;
         }
 
     private:
@@ -334,25 +332,14 @@ class ActorPool final
         bool PostMessage(uint64_t, MessagePack);
 
     private:
-        bool HasWorkSteal() const
-        {
-            static bool bEnabled= std::getenv("MIR2X_ENABLE_WORK_STEAL");
-            return bEnabled && (m_bucketList.size() > 1);
-        }
-
-    private:
         static uint64_t CreateReceiverUID()
         {
-            static std::atomic<uint64_t> s_RecvUID(1);
-            return 0XFFFF000000000000 + s_RecvUID.fetch_add(1);
+            static std::atomic<uint64_t> recvUIDOff{1};
+            return 0X00FF000000000000ULL + recvUIDOff.fetch_add(1);
         }
-
-    private:
-        std::tuple<long, size_t> CheckWorkerTime() const;
 
     private:
         void runWorker(size_t);
-        void runWorkerSteal(size_t);
         void runWorkerOneLoop(size_t);
         bool runOneMailbox(Mailbox *, bool);
 
@@ -360,19 +347,9 @@ class ActorPool final
         void ClearOneMailbox(Mailbox *);
 
     public:
-        size_t ActorThreadCount() const
-        {
-            // always thread safe
-            // never change the bucket size after construction
-            return m_bucketList.size();
-        }
-
-        size_t UIDGroup(uint64_t nUID)
-        {
-            return nUID % ActorThreadCount();
-        }
-
-    public:
         ActorMonitor GetActorMonitor(uint64_t) const;
         std::vector<ActorMonitor> GetActorMonitor() const;
+
+    public:
+        int pickThreadID() const;
 };

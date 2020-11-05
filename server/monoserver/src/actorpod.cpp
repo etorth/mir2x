@@ -20,6 +20,7 @@
 #include <cinttypes>
 
 #include "uidf.hpp"
+#include "typecast.hpp"
 #include "actorpod.hpp"
 #include "actorpool.hpp"
 #include "raiitimer.hpp"
@@ -39,8 +40,8 @@ ActorPod::ActorPod(uint64_t nUID,
               throw fflerror("provide user-defined zero UID");
           }
 
-          if(nUID & 0XFFFF000000000000){
-              throw fflerror("provide user-defined UID greater than 0XFFFF000000000000: %" PRIu64, nUID);
+          if(nUID & 0X00FF000000000000ULL){
+              throw fflerror("provide user-defined UID has non-zero bits at 0X00FF000000000000: 0x%016llu", to_llu(nUID));
           }
           return nUID;
       }())

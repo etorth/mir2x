@@ -101,7 +101,7 @@ std::string ActorMonitorTable::GetGridData(int nRow, int nCol) const
             }
         case 2: // GROUP
             {
-                return std::to_string(g_actorPool->UIDGroup(rstMonitor.UID));
+                return std::to_string(uidf::getThreadID(rstMonitor.UID));
             }
         case 3: // LIVE
             {
@@ -289,7 +289,7 @@ void ActorMonitorTable::ResetSort()
         switch(m_sortByCol){
             case 0 : return fnArgedCompare(lhs.UID, rhs.UID);
             case 1 : return fnArgedCompare(uidf::getUIDType(lhs.UID), uidf::getUIDType(rhs.UID));
-            case 2 : return fnArgedCompare(g_actorPool->UIDGroup(lhs.UID), g_actorPool->UIDGroup(rhs.UID));
+            case 2 : return fnArgedCompare(uidf::getThreadID(lhs.UID), uidf::getThreadID(rhs.UID));
             case 3 : return fnArgedCompare(lhs.LiveTick, rhs.LiveTick);
             case 4 : return fnArgedCompare(lhs.BusyTick, rhs.BusyTick);
             case 5 : return fnArgedCompare(lhs.MessageDone, rhs.MessageDone);
