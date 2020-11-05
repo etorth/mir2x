@@ -251,8 +251,8 @@ class ActorPool final
         struct Mailbox
         {
             ActorPod    *Actor;
-            MailboxMutex SchedLock;
-            SpinLock     NextQLock;
+            MailboxMutex schedLock;
+            SpinLock     nextQLock;
 
             std::vector<MessagePack> CurrQ;
             std::vector<MessagePack> NextQ;
@@ -260,7 +260,7 @@ class ActorPool final
             std::function<void()> AtExit;
 
             // put a monitor structure and always maintain it
-            // then no need to acquire SchedLock to dump the monitor
+            // then no need to acquire schedLock to dump the monitor
             struct MailboxMonitor
             {
                 uint64_t   UID;

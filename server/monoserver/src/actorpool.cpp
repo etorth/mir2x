@@ -31,7 +31,7 @@ extern MonoServer *g_monoServer;
 
 // keep in mind:
 // 1. at ANY time only one thread can access one actor message handler
-// 2. at ANY time one thread must grab the SchedLock before detach the mailbox
+// 2. at ANY time one thread must grab the schedLock before detach the mailbox
 
 // actor thread id marker
 // only get explicit assignment in actor threads
@@ -44,8 +44,8 @@ static int getWorkerID()
 
 ActorPool::Mailbox::Mailbox(ActorPod *pActor)
     : Actor(pActor)
-    , SchedLock()
-    , NextQLock()
+    , schedLock()
+    , nextQLock()
     , CurrQ()
     , NextQ()
     , AtExit()
@@ -152,7 +152,7 @@ bool ActorPool::Detach(const ActorPod *pActor, const std::function<void()> &fnAt
         if(auto p = rstMailboxList.find(pActor->UID()); p != rstMailboxList.end()){
             uint32_t nBackoff = 0;
             while(true){
-                switch(MailboxLock stMailboxLock(p->second->SchedLock, getWorkerID()); stMailboxLock.LockType()){
+                switch(MailboxLock stMailboxLock(p->second->schedLock, getWorkerID()); stMailboxLock.LockType()){
                     case MAILBOX_DETACHED:
                         {
                             // we allow double detach an actor
@@ -167,7 +167,7 @@ bool ActorPool::Detach(const ActorPod *pActor, const std::function<void()> &fnAt
                         }
                     case MAILBOX_READY:
                         {
-                            // grabbed the SchedLock successfully
+                            // grabbed the schedLock successfully
                             // no other thread can access the message handler before unlock
 
                             // only check this consistancy when grabbed the lock
@@ -178,7 +178,7 @@ bool ActorPool::Detach(const ActorPod *pActor, const std::function<void()> &fnAt
 
                             // detach a locked mailbox
                             // remember any thread can't flip mailbox to detach before lock it!!!
-                            if(auto nWorkerID = p->second->SchedLock.Detach(); nWorkerID != getWorkerID()){
+                            if(auto nWorkerID = p->second->schedLock.Detach(); nWorkerID != getWorkerID()){
                                 throw fflerror("locked actor flips to invalid status: ActorPod = %p, ActorPod::UID() = %" PRIu64 ", Status = %d", to_cvptr(pActor), pActor->UID(), nWorkerID);
                             }
 
@@ -203,20 +203,20 @@ bool ActorPool::Detach(const ActorPod *pActor, const std::function<void()> &fnAt
                         }
                     case MAILBOX_ACCESS_PUB:
                         {
-                            // allow public thread to access the SchedLock
+                            // allow public thread to access the schedLock
                             // but it should never ever execute the actor handler
 
-                            // I was planning to forbid any public thread to access the SchedLock, but 
+                            // I was planning to forbid any public thread to access the schedLock, but
                             //     1. Detach outside of actor threads
                             //     2. Query actor status
-                            // needs to access the SchedLock
+                            // needs to access the schedLock
 
                             Backoff(nBackoff);
                             break;
                         }
                     default:
                         {
-                            // can't grab the SchedLock, means someone else is accessing it
+                            // can't grab the schedLock, means someone else is accessing it
                             // and we know it's not public threads accessing, then must be actor threads
                             if(!isActorThread(stMailboxLock.LockType())){
                                 throw fflerror("invalid actor status: ActorPod = %p, ActorPod::UID() = %" PRIu64 ", status = %c", to_cvptr(pActor), pActor->UID(), stMailboxLock.LockType());
@@ -234,7 +234,7 @@ bool ActorPool::Detach(const ActorPod *pActor, const std::function<void()> &fnAt
 
                                 // this is from inside the actor's actor thread
                                 // have to delay the atexit() since the message handler is not done yet
-                                p->second->SchedLock.Detach();
+                                p->second->schedLock.Detach();
                                 if(fnAtExit){
                                     p->second->AtExit = fnAtExit;
                                 }
@@ -319,16 +319,16 @@ bool ActorPool::PostMessage(uint64_t nUID, MessagePack stMPK)
 
         if(auto p = m_bucketList[nIndex].MailboxList.find(nUID); p != m_bucketList[nIndex].MailboxList.end()){
             // just a cheat and can remove it
-            // try return earlier with acquire the NextQLock
-            if(p->second->SchedLock.Detached()){
+            // try return earlier with acquire the nextQLock
+            if(p->second->schedLock.Detached()){
                 return false;
             }
 
             // still here the mailbox can freely switch to detached status
             // need the actor thread do fully clear job
             {
-                std::lock_guard<SpinLock> stLockGuard(p->second->NextQLock);
-                if(p->second->SchedLock.Detached()){
+                std::lock_guard<SpinLock> stLockGuard(p->second->nextQLock);
+                if(p->second->schedLock.Detached()){
                     return false;
                 }
                 p->second->NextQ.push_back(std::move(stMPK));
@@ -361,11 +361,11 @@ bool ActorPool::runOneMailbox(Mailbox *pMailbox, bool bMetronome)
     //     pActor->InnHandler(stMPK);    // 4. handle
 
     // don't worry about actor detached at line-3
-    // because it's in the message handling thread and it grabs the SchedLock
-    // any thread want to flip the actor to detached status must firstly grab its SchedLock
+    // because it's in the message handling thread and it grabs the schedLock
+    // any thread want to flip the actor to detached status must firstly grab its schedLock
 
     if(bMetronome){
-        if(pMailbox->SchedLock.Detached()){
+        if(pMailbox->schedLock.Detached()){
             return false;
         }
 
@@ -377,7 +377,7 @@ bool ActorPool::runOneMailbox(Mailbox *pMailbox, bool bMetronome)
     }
 
     if(pMailbox->CurrQ.empty()){
-        std::lock_guard<SpinLock> stLockGuard(pMailbox->NextQLock);
+        std::lock_guard<SpinLock> stLockGuard(pMailbox->nextQLock);
         if(pMailbox->NextQ.empty()){
             return true;
         }
@@ -392,7 +392,7 @@ bool ActorPool::runOneMailbox(Mailbox *pMailbox, bool bMetronome)
     // we may leave unhandled message in CurrQ
 
     for(auto p = pMailbox->CurrQ.begin(); p != pMailbox->CurrQ.end(); ++p){
-        if(pMailbox->SchedLock.Detached()){
+        if(pMailbox->schedLock.Detached()){
             // need to erase all handled messages: [begin, p)
             // otherwise in ClearOneMailbox() will get handled again with MPK_BADACTORPOD
             pMailbox->CurrQ.erase(pMailbox->CurrQ.begin(), p);
@@ -407,14 +407,14 @@ bool ActorPool::runOneMailbox(Mailbox *pMailbox, bool bMetronome)
     }
 
     pMailbox->CurrQ.clear();
-    return !pMailbox->SchedLock.Detached();
+    return !pMailbox->schedLock.Detached();
 }
 
 void ActorPool::runWorkerSteal(size_t nMaxIndex)
 {
     std::shared_lock<std::shared_mutex> stLock(m_bucketList[nMaxIndex].BucketLock);
     for(auto p = m_bucketList[nMaxIndex].MailboxList.rbegin(); p != m_bucketList[nMaxIndex].MailboxList.rend(); ++p){
-        if(MailboxLock stMailboxLock(p->second->SchedLock, getWorkerID()); stMailboxLock.Locked()){
+        if(MailboxLock stMailboxLock(p->second->schedLock, getWorkerID()); stMailboxLock.Locked()){
             runOneMailbox(p->second.get(), false);
         }
     }
@@ -466,8 +466,8 @@ void ActorPool::ClearOneMailbox(Mailbox *pMailbox)
 
     // 0 // thread-1: posting message to NextQ  | 0 // thread-2: try clear all pending/sending messages
     // 1 {                                      | 1 if(Mailbox.Detached()){
-    // 2     LockGuard(Mailbox.NextQLock);      | 2     {                                         // ClearOneMailbox() begins
-    // 3     if(Mailbox.Detached()){            | 3         LockGuard(Mailbox.NextQLock);         //
+    // 2     LockGuard(Mailbox.nextQLock);      | 2     {                                         // ClearOneMailbox() begins
+    // 3     if(Mailbox.Detached()){            | 3         LockGuard(Mailbox.nextQLock);         //
     // 4         return false;                  | 4         Mailbox.CurrQ.Enqueue(Mailbox.NextQ); //
     // 5     }                                  | 5     }                                         //
     // 6     Mailbox.NextQ.Enqueue(MSG);        | 6                                               //
@@ -492,7 +492,7 @@ void ActorPool::ClearOneMailbox(Mailbox *pMailbox)
     // we are sure there is no message is posting or to post message to NextQ
 
     {
-        std::lock_guard<SpinLock> stLockGuard(pMailbox->NextQLock);
+        std::lock_guard<SpinLock> stLockGuard(pMailbox->nextQLock);
         if(!pMailbox->NextQ.empty()){
             pMailbox->CurrQ.insert(pMailbox->CurrQ.end(), pMailbox->NextQ.begin(), pMailbox->NextQ.end());
         }
@@ -530,7 +530,7 @@ void ActorPool::runWorkerOneLoop(size_t nIndex)
     auto fnUpdate = [this](size_t nIndex, auto p)
     {
         while(p != m_bucketList[nIndex].MailboxList.end()){
-            switch(MailboxLock stMailboxLock(p->second->SchedLock, getWorkerID()); stMailboxLock.LockType()){
+            switch(MailboxLock stMailboxLock(p->second->schedLock, getWorkerID()); stMailboxLock.LockType()){
                 case MAILBOX_DETACHED:
                     {
                         return p;
@@ -647,7 +647,7 @@ bool ActorPool::CheckInvalid(uint64_t nUID) const
     auto nIndex = nUID % m_bucketList.size();
     auto fnGetInvalid = [this, &rstMailboxList = m_bucketList[nIndex].MailboxList, nUID]() -> bool
     {
-        if(auto p = rstMailboxList.find(nUID); p == rstMailboxList.end() || p->second->SchedLock.Detached()){
+        if(auto p = rstMailboxList.find(nUID); p == rstMailboxList.end() || p->second->schedLock.Detached()){
             return true;
         }
         return false;
@@ -685,7 +685,7 @@ ActorPool::ActorMonitor ActorPool::GetActorMonitor(uint64_t nUID) const
 
         // just read the mailbox cached variables
         // I don't need to acquire the sched_lock, I don't need it 100% accurate
-        if(auto p = m_bucketList[nIndex].MailboxList.find(nUID); (p != m_bucketList[nIndex].MailboxList.end()) && (!p->second->SchedLock.Detached())){
+        if(auto p = m_bucketList[nIndex].MailboxList.find(nUID); (p != m_bucketList[nIndex].MailboxList.end()) && (!p->second->schedLock.Detached())){
             return p->second->DumpMonitor();
         }
         return {};
@@ -704,7 +704,7 @@ std::vector<ActorPool::ActorMonitor> ActorPool::GetActorMonitor() const
         {
             stRetList.reserve(stRetList.size() + m_bucketList[nIndex].MailboxList.size());
             for(auto p = m_bucketList[nIndex].MailboxList.begin(); p != m_bucketList[nIndex].MailboxList.end(); ++p){
-                if(!p->second->SchedLock.Detached()){
+                if(!p->second->schedLock.Detached()){
                     stRetList.push_back(p->second->DumpMonitor());
                 }
             }
