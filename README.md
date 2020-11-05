@@ -17,7 +17,7 @@
        src="https://badges.gitter.im/org.png"/>
 </a>
 
-Waiting for C++20.
+Switch to C++20 branch to check latest code.
 
 mir2x is a c/s based mir2ei implementation with various platforms supported. It contains all need components for game players and developers:
 
