@@ -105,28 +105,6 @@ class ActorPool final
         }
 
     private:
-        struct SpinLock
-        {
-            std::atomic_flag Latch;
-            SpinLock()
-                : Latch {ATOMIC_FLAG_INIT}
-            {}
-
-            void lock()
-            {
-                uint64_t nBackoff = 0;
-                while (Latch.test_and_set(std::memory_order_acquire)){
-                    backOff(nBackoff);
-                }
-            }
-
-            void unlock()
-            {
-                Latch.clear(std::memory_order_release);
-            }
-        };
-
-    private:
         template<size_t AVG_LEN = 16> class AvgTimer
         {
             private:
