@@ -972,7 +972,7 @@ bool Monster::MoveOneStepGreedy(int nX, int nY, std::function<void()> fnOnOK, st
         return false;
     }
 
-    auto pathNodePtr = std::make_shared<svobuf<PathFind::PathNode, 3>>();
+    auto pathNodePtr = std::make_shared<scoped_alloc::svobuf_wrapper<PathFind::PathNode, 3>>();
     const bool longJump = (MaxStep() > 1) && (mathf::CDistance(X(), Y(), nX, nY) >= MaxStep());
     GetValidChaseGrid(nX, nY, longJump ? MaxStep() : 1, *(pathNodePtr.get()));
 
@@ -992,7 +992,7 @@ bool Monster::MoveOneStepGreedy(int nX, int nY, std::function<void()> fnOnOK, st
             return;
         }
 
-        auto minPathNodePtr = std::make_shared<svobuf<PathFind::PathNode, 3>>();
+        auto minPathNodePtr = std::make_shared<scoped_alloc::svobuf_wrapper<PathFind::PathNode, 3>>();
         GetValidChaseGrid(nX, nY, 1, *(minPathNodePtr.get()));
 
         if(minPathNodePtr->c.size() > 3){

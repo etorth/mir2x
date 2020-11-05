@@ -23,12 +23,12 @@
 #include <vector>
 
 #include "typecast.hpp"
-#include "svobuf.hpp"
 #include "fflerror.hpp"
 #include "servermap.hpp"
 #include "damagenode.hpp"
 #include "actionnode.hpp"
 #include "cachequeue.hpp"
+#include "scopedalloc.hpp"
 #include "servicecore.hpp"
 #include "protocoldef.hpp"
 #include "serverobject.hpp"
@@ -354,7 +354,7 @@ class CharObject: public ServerObject
         std::vector<PathFind::PathNode> GetValidChaseGrid(int, int, int) const;
 
     protected:
-        void GetValidChaseGrid(int, int, int, svobuf<PathFind::PathNode, 3> &) const;
+        void GetValidChaseGrid(int, int, int, scoped_alloc::svobuf_wrapper<PathFind::PathNode, 3> &) const;
 
     protected:
         int CheckPathGrid(int, int, uint32_t = 0) const;

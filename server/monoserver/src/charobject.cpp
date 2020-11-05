@@ -24,7 +24,6 @@
 #include "mathf.hpp"
 #include "fflerror.hpp"
 #include "actorpod.hpp"
-#include "svobuf.hpp"
 #include "condcheck.hpp"
 #include "monoserver.hpp"
 #include "charobject.hpp"
@@ -1159,7 +1158,7 @@ std::vector<PathFind::PathNode> CharObject::GetValidChaseGrid(int nX, int nY, in
     return result;
 }
 
-void CharObject::GetValidChaseGrid(int nX, int nY, int nDLen, svobuf<PathFind::PathNode, 3> &buf) const
+void CharObject::GetValidChaseGrid(int nX, int nY, int nDLen, scoped_alloc::svobuf_wrapper<PathFind::PathNode, 3> &buf) const
 {
     buf.c.clear();
     for(const auto &node: GetChaseGrid(nX, nY, nDLen)){
@@ -1294,7 +1293,7 @@ void CharObject::ForeachInViewCO(std::function<void(const COLocation &)> fnOnLoc
     // RemoveInViewCO() may get called in fnOnLoc
     // RemoveInViewCO() may get called in retrieveLocation
 
-    svobuf<uint64_t, 4> uidList;
+    scoped_alloc::svobuf_wrapper<uint64_t, 4> uidList;
     for(const auto &rstCOLoc: m_inViewCOList){
         uidList.c.push_back(rstCOLoc.UID);
     }

@@ -24,7 +24,7 @@
 #include <vector>
 #include <unordered_map>
 #include <stdexcept>
-#include "fflerror.h"
+#include "fflerror.hpp"
 
 #define SCOPED_ALLOC_THROW_OVERLIVE
 #define SCOPED_ALLOC_SUPPORT_OVERALIGN
