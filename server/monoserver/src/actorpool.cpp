@@ -327,7 +327,7 @@ bool ActorPool::PostMessage(uint64_t nUID, MessagePack stMPK)
             // still here the mailbox can freely switch to detached status
             // need the actor thread do fully clear job
             {
-                std::lock_guard<SpinLock> stLockGuard(p->second->nextQLock);
+                std::lock_guard<std::mutex> stLockGuard(p->second->nextQLock);
                 if(p->second->schedLock.Detached()){
                     return false;
                 }
@@ -378,7 +378,7 @@ bool ActorPool::runOneMailbox(Mailbox *pMailbox, bool bMetronome)
     }
 
     if(pMailbox->CurrQ.empty()){
-        std::lock_guard<SpinLock> stLockGuard(pMailbox->nextQLock);
+        std::lock_guard<std::mutex> stLockGuard(pMailbox->nextQLock);
         if(pMailbox->NextQ.empty()){
             return true;
         }
@@ -493,7 +493,7 @@ void ActorPool::ClearOneMailbox(Mailbox *pMailbox)
     // we are sure there is no message is posting or to post message to NextQ
 
     {
-        std::lock_guard<SpinLock> stLockGuard(pMailbox->nextQLock);
+        std::lock_guard<std::mutex> stLockGuard(pMailbox->nextQLock);
         if(!pMailbox->NextQ.empty()){
             pMailbox->CurrQ.insert(pMailbox->CurrQ.end(), pMailbox->NextQ.begin(), pMailbox->NextQ.end());
         }

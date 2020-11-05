@@ -252,7 +252,7 @@ class ActorPool final
         {
             ActorPod    *Actor;
             MailboxMutex schedLock;
-            SpinLock     nextQLock;
+            std::mutex   nextQLock;
 
             std::vector<MessagePack> CurrQ;
             std::vector<MessagePack> NextQ;
