@@ -234,8 +234,8 @@ class ActorPool final
             MailboxMutex schedLock;
             std::mutex   nextQLock;
 
-            std::vector<MessagePack> CurrQ;
-            std::vector<MessagePack> NextQ;
+            std::vector<MessagePack> currQ;
+            std::vector<MessagePack> nextQ;
 
             std::function<void()> AtExit;
 

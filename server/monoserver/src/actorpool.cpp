@@ -48,8 +48,8 @@ ActorPool::Mailbox::Mailbox(ActorPod *pActor)
     : Actor(pActor)
     , schedLock()
     , nextQLock()
-    , CurrQ()
-    , NextQ()
+    , currQ()
+    , nextQ()
     , AtExit()
     , Monitor(pActor->UID())
 {}
@@ -333,7 +333,7 @@ bool ActorPool::PostMessage(uint64_t nUID, MessagePack stMPK)
                 if(p->second->schedLock.Detached()){
                     return false;
                 }
-                p->second->NextQ.push_back(std::move(stMPK));
+                p->second->nextQ.push_back(std::move(stMPK));
                 return true;
             }
         }
@@ -379,26 +379,26 @@ bool ActorPool::runOneMailbox(Mailbox *pMailbox, bool bMetronome)
         pMailbox->Monitor.MessageDone.fetch_add(1);
     }
 
-    if(pMailbox->CurrQ.empty()){
+    if(pMailbox->currQ.empty()){
         std::lock_guard<std::mutex> stLockGuard(pMailbox->nextQLock);
-        if(pMailbox->NextQ.empty()){
+        if(pMailbox->nextQ.empty()){
             return true;
         }
-        std::swap(pMailbox->CurrQ, pMailbox->NextQ);
+        std::swap(pMailbox->currQ, pMailbox->nextQ);
     }
 
     // this is a good place to store the pending message size
-    // during the *normal* runtime, no one will push mesages to CurrQ, all to the NextQ
-    pMailbox->Monitor.MessagePending.store(pMailbox->CurrQ.size());
+    // during the *normal* runtime, no one will push mesages to currQ, all to the nextQ
+    pMailbox->Monitor.MessagePending.store(pMailbox->currQ.size());
 
     // if we return in the middle
-    // we may leave unhandled message in CurrQ
+    // we may leave unhandled message in currQ
 
-    for(auto p = pMailbox->CurrQ.begin(); p != pMailbox->CurrQ.end(); ++p){
+    for(auto p = pMailbox->currQ.begin(); p != pMailbox->currQ.end(); ++p){
         if(pMailbox->schedLock.Detached()){
             // need to erase all handled messages: [begin, p)
             // otherwise in ClearOneMailbox() will get handled again with MPK_BADACTORPOD
-            pMailbox->CurrQ.erase(pMailbox->CurrQ.begin(), p);
+            pMailbox->currQ.erase(pMailbox->currQ.begin(), p);
             return false;
         }
 
@@ -409,7 +409,7 @@ bool ActorPool::runOneMailbox(Mailbox *pMailbox, bool bMetronome)
         pMailbox->Monitor.MessageDone.fetch_add(1);
     }
 
-    pMailbox->CurrQ.clear();
+    pMailbox->currQ.clear();
     return !pMailbox->schedLock.Detached();
 }
 
@@ -434,17 +434,17 @@ void ActorPool::ClearOneMailbox(Mailbox *pMailbox)
     // 1. without accquiring writer lock
     // 2. always with Mailbox.Detached() as TRUE
 
-    // 0 // thread-1: posting message to NextQ  | 0 // thread-2: try clear all pending/sending messages
+    // 0 // thread-1: posting message to nextQ  | 0 // thread-2: try clear all pending/sending messages
     // 1 {                                      | 1 if(Mailbox.Detached()){
     // 2     LockGuard(Mailbox.nextQLock);      | 2     {                                         // ClearOneMailbox() begins
     // 3     if(Mailbox.Detached()){            | 3         LockGuard(Mailbox.nextQLock);         //
-    // 4         return false;                  | 4         Mailbox.CurrQ.Enqueue(Mailbox.NextQ); //
+    // 4         return false;                  | 4         Mailbox.currQ.Enqueue(Mailbox.nextQ); //
     // 5     }                                  | 5     }                                         //
-    // 6     Mailbox.NextQ.Enqueue(MSG);        | 6                                               //
-    // 7     return true                        | 7     Handle(Mailbox.CurrQ);                    // ClearOneMailbox() ends
+    // 6     Mailbox.nextQ.Enqueue(MSG);        | 6                                               //
+    // 7     return true                        | 7     Handle(Mailbox.currQ);                    // ClearOneMailbox() ends
     // 8 }                                      | 8 }
 
-    // CurrQ is only used in main/stealing actor threads
+    // currQ is only used in main/stealing actor threads
     // what I want to make sure is:
     //
     //      when thread-2 is at or after line 4, threads like thread-1 can't reach line 6
@@ -459,16 +459,16 @@ void ActorPool::ClearOneMailbox(Mailbox *pMailbox)
     // but thread-2 can't reach line 7 because it can't pass line 3
 
     // so we conclude if in thread-2 ClearOneMailbox() returns
-    // we are sure there is no message is posting or to post message to NextQ
+    // we are sure there is no message is posting or to post message to nextQ
 
     {
         std::lock_guard<std::mutex> stLockGuard(pMailbox->nextQLock);
-        if(!pMailbox->NextQ.empty()){
-            pMailbox->CurrQ.insert(pMailbox->CurrQ.end(), pMailbox->NextQ.begin(), pMailbox->NextQ.end());
+        if(!pMailbox->nextQ.empty()){
+            pMailbox->currQ.insert(pMailbox->currQ.end(), pMailbox->nextQ.begin(), pMailbox->nextQ.end());
         }
     }
 
-    for(auto pMPK = pMailbox->CurrQ.begin(); pMPK != pMailbox->CurrQ.end(); ++pMPK){
+    for(auto pMPK = pMailbox->currQ.begin(); pMPK != pMailbox->currQ.end(); ++pMPK){
         if(pMPK->from()){
             AMBadActorPod stAMBAP;
             std::memset(&stAMBAP, 0, sizeof(stAMBAP));
@@ -485,7 +485,7 @@ void ActorPool::ClearOneMailbox(Mailbox *pMailbox)
             PostMessage(pMPK->from(), {MessageBuf(MPK_BADACTORPOD, stAMBAP), 0, 0, pMPK->ID()});
         }
     }
-    pMailbox->CurrQ.clear();
+    pMailbox->currQ.clear();
 }
 
 void ActorPool::runWorkerOneLoop(size_t nIndex)
