@@ -95,7 +95,7 @@ bool ActorPool::Register(ActorPod *pActor)
 
     auto nUID = pActor->UID();
     auto nIndex = uidf::getThreadID(nUID);
-    auto pMailbox = std::make_shared<Mailbox>(pActor);
+    auto pMailbox = std::make_unique<Mailbox>(pActor);
 
     // can call this function from:
     // 1. application thread
@@ -110,7 +110,7 @@ bool ActorPool::Register(ActorPod *pActor)
     {
         std::unique_lock<std::shared_mutex> stLock(m_bucketList[nIndex].BucketLock);
         if(auto p = m_bucketList[nIndex].MailboxList.find(nUID); p == m_bucketList[nIndex].MailboxList.end()){
-            m_bucketList[nIndex].MailboxList[nUID] = pMailbox;
+            m_bucketList[nIndex].MailboxList[nUID] = std::move(pMailbox);
             return true;
         }
         else{

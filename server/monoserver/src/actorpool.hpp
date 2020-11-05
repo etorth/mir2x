@@ -25,6 +25,7 @@
 #include <atomic>
 #include <vector>
 #include <thread>
+#include <memory>
 #include <cstdint>
 #include <shared_mutex>
 #include "condcheck.hpp"
@@ -278,7 +279,7 @@ class ActorPool final
         {
             AvgTimer<32> runTimer;
             mutable std::shared_mutex BucketLock;
-            std::map<uint64_t, std::shared_ptr<Mailbox>> MailboxList;
+            std::map<uint64_t, std::unique_ptr<Mailbox>> MailboxList;
         };
 
     private:
