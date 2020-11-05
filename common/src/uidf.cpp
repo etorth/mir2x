@@ -76,6 +76,18 @@ uint64_t uidf::buildMonsterUID(uint32_t monsterId)
     return 0;
 }
 
+constexpr uint64_t receiverUID_mask = 0X00FF000000000000ULL;
+bool uidf::isReceiver(uint64_t uid)
+{
+    return uid & receiverUID_mask;
+}
+
+uint64_t uidf::buildReceiverUID()
+{
+    static std::atomic<uint64_t> recvUIDOff{1};
+    return receiverUID_mask + recvUIDOff.fetch_add(1);
+}
+
 uint64_t uidf::buildEtcUID()
 {
     static std::atomic<uint32_t> s_ETCUID {1};

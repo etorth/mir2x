@@ -16,6 +16,7 @@
  * =====================================================================================
  */
 
+#include "uidf.hpp"
 #include "receiver.hpp"
 #include "actorpool.hpp"
 #include "monoserver.hpp"
@@ -24,7 +25,7 @@ extern ActorPool *g_actorPool;
 extern MonoServer *g_monoServer;
 
 Receiver::Receiver()
-    : m_UID(ActorPool::CreateReceiverUID())
+    : m_UID(uidf::buildReceiverUID())
     , m_lock()
     , m_condition()
     , m_messageList()

@@ -304,7 +304,7 @@ bool ActorPool::PostMessage(uint64_t nUID, MessagePack stMPK)
         throw fflerror("sending empty message to %" PRIu64, nUID);
     }
 
-    if(isReceiver(nUID)){
+    if(uidf::isReceiver(nUID)){
         std::lock_guard<std::mutex> stLockGuard(m_receiverLock);
         if(auto p = m_receiverList.find(nUID); p != m_receiverList.end()){
             p->second->PushMessage(std::move(stMPK));

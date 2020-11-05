@@ -84,6 +84,12 @@ namespace uidf
 
 namespace uidf
 {
+    bool isReceiver(uint64_t);
+    uint64_t buildReceiverUID();
+}
+
+namespace uidf
+{
     inline int getUIDType(uint64_t uid)
     {
         if(uid & 0X00FF000000000000ULL){

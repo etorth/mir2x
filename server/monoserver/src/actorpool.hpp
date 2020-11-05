@@ -320,23 +320,10 @@ class ActorPool final
         bool CheckInvalid(uint64_t) const;
 
     private:
-        static bool isReceiver(uint64_t nUID)
-        {
-            return nUID & 0X00FF000000000000ULL;
-        }
-
-    private:
         uint64_t GetInnActorUID();
 
     private:
         bool PostMessage(uint64_t, MessagePack);
-
-    private:
-        static uint64_t CreateReceiverUID()
-        {
-            static std::atomic<uint64_t> recvUIDOff{1};
-            return 0X00FF000000000000ULL + recvUIDOff.fetch_add(1);
-        }
 
     private:
         void runWorker(size_t);
