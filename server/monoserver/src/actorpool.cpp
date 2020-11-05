@@ -294,7 +294,7 @@ bool ActorPool::Detach(const Receiver *pReceiver)
     }
 }
 
-bool ActorPool::PostMessage(uint64_t nUID, MessagePack stMPK)
+bool ActorPool::postMessage(uint64_t nUID, MessagePack stMPK)
 {
     if(!nUID){
         throw fflerror("sending %s to zero UID", stMPK.Name());
@@ -482,7 +482,7 @@ void ActorPool::ClearOneMailbox(Mailbox *pMailbox)
             stAMBAP.Respond = pMPK->Respond();
             stAMBAP.UID     = pMailbox->Monitor.UID;
 
-            PostMessage(pMPK->from(), {MessageBuf(MPK_BADACTORPOD, stAMBAP), 0, 0, pMPK->ID()});
+            postMessage(pMPK->from(), {MessageBuf(MPK_BADACTORPOD, stAMBAP), 0, 0, pMPK->ID()});
         }
     }
     pMailbox->currQ.clear();

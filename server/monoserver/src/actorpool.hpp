@@ -325,7 +325,7 @@ class ActorPool final
         uint64_t GetInnActorUID();
 
     private:
-        bool PostMessage(uint64_t, MessagePack);
+        bool postMessage(uint64_t, MessagePack);
 
     private:
         void runWorker(size_t);

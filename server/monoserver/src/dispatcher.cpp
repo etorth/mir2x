@@ -39,5 +39,5 @@ bool Dispatcher::forward(uint64_t nUID, const MessageBuf &rstMB, uint32_t nRespo
     }
 
     extern ActorPool *g_actorPool;
-    return g_actorPool->PostMessage(nUID, {rstMB, 0, 0, nRespond});
+    return g_actorPool->postMessage(nUID, {rstMB, 0, 0, nRespond});
 }

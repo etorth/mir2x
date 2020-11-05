@@ -51,7 +51,7 @@ MessagePack SyncDriver::forward(uint64_t nUID, const MessageBuf &rstMB, uint32_t
         g_monoServer->addLog(LOGTYPE_DEBUG, "%s -> %s: (Type: %s, ID: %" PRIu32 ", Resp: %" PRIu32 ")", uidf::getUIDString(UID()).c_str(), uidf::getUIDString(nUID).c_str(), nCurrID, nRespond);
     }
 
-    if(!g_actorPool->PostMessage(nUID, {rstMB, UID(), nCurrID, nRespond})){
+    if(!g_actorPool->postMessage(nUID, {rstMB, UID(), nCurrID, nRespond})){
         AMBadActorPod stAMBAP;
         std::memset(&stAMBAP, 0, sizeof(stAMBAP));
 

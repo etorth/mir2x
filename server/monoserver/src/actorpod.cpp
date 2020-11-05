@@ -195,7 +195,7 @@ bool ActorPod::forward(uint64_t nUID, const MessageBuf &rstMB, uint32_t nRespond
     }
 
     m_podMonitor.AMProcMonitorList[rstMB.Type()].SendCount++;
-    return g_actorPool->PostMessage(nUID, {rstMB, UID(), 0, nRespond});
+    return g_actorPool->postMessage(nUID, {rstMB, UID(), 0, nRespond});
 }
 
 bool ActorPod::forward(uint64_t nUID, const MessageBuf &rstMB, uint32_t nRespond, std::function<void(const MessagePack &)> fnOPR)
@@ -227,7 +227,7 @@ bool ActorPod::forward(uint64_t nUID, const MessageBuf &rstMB, uint32_t nRespond
     }
 
     m_podMonitor.AMProcMonitorList[rstMB.Type()].SendCount++;
-    if(g_actorPool->PostMessage(nUID, {rstMB, UID(), nID, nRespond})){
+    if(g_actorPool->postMessage(nUID, {rstMB, UID(), nID, nRespond})){
         if(m_respondHandlerGroup.try_emplace(nID, g_monoServer->getCurrTick() + m_expireTime, std::move(fnOPR)).second){
             return true;
         }
