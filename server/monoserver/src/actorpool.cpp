@@ -150,9 +150,9 @@ bool ActorPool::Detach(const ActorPod *pActor, const std::function<void()> &fnAt
         // we need to make sure after this funtion
         // there isn't any threads accessing the internal actor state
         if(auto p = rstMailboxList.find(pActor->UID()); p != rstMailboxList.end()){
-            uint32_t nBackoff = 0;
+            uint64_t nBackoff = 0;
             while(true){
-                switch(MailboxLock stMailboxLock(p->second->schedLock, getWorkerID()); stMailboxLock.LockType()){
+                switch(MailboxLock stMailboxLock(p->second->schedLock, getWorkerID()); stMailboxLock.lockType()){
                     case MAILBOX_DETACHED:
                         {
                             // we allow double detach an actor
@@ -211,21 +211,21 @@ bool ActorPool::Detach(const ActorPod *pActor, const std::function<void()> &fnAt
                             //     2. Query actor status
                             // needs to access the schedLock
 
-                            Backoff(nBackoff);
+                            backOff(nBackoff);
                             break;
                         }
                     default:
                         {
                             // can't grab the schedLock, means someone else is accessing it
                             // and we know it's not public threads accessing, then must be actor threads
-                            if(!isActorThread(stMailboxLock.LockType())){
-                                throw fflerror("invalid actor status: ActorPod = %p, ActorPod::UID() = %" PRIu64 ", status = %c", to_cvptr(pActor), pActor->UID(), stMailboxLock.LockType());
+                            if(!isActorThread(stMailboxLock.lockType())){
+                                throw fflerror("invalid actor status: ActorPod = %p, ActorPod::UID() = %" PRIu64 ", status = %c", to_cvptr(pActor), pActor->UID(), stMailboxLock.lockType());
                             }
 
                             // inside actor threads
                             // if calling detach in the actor's message handler we can only mark the DETACHED status
 
-                            if(stMailboxLock.LockType() == getWorkerID()){
+                            if(stMailboxLock.lockType() == getWorkerID()){
                                 // the lock is grabed already by current actor thread, check the consistancy
                                 // only check it when current thread grabs the lock, otherwise other thread may change it to null at any time
                                 if(p->second->Actor != pActor){
@@ -245,7 +245,7 @@ bool ActorPool::Detach(const ActorPod *pActor, const std::function<void()> &fnAt
 
                             // target actor is in running status
                             // and current thread is not the the one grabs the lock, wait till it release the lock
-                            Backoff(nBackoff);
+                            backOff(nBackoff);
                             break;
                         }
                 }
@@ -340,7 +340,8 @@ bool ActorPool::PostMessage(uint64_t nUID, MessagePack stMPK)
 
     if(getWorkerID() == (int)(nIndex)){
         return fnPostMessage(stMPK);
-    }else{
+    }
+    else{
         std::shared_lock<std::shared_mutex> stLock(m_bucketList[nIndex].BucketLock);
         return fnPostMessage(stMPK);
     }
@@ -530,7 +531,7 @@ void ActorPool::runWorkerOneLoop(size_t nIndex)
     auto fnUpdate = [this](size_t nIndex, auto p)
     {
         while(p != m_bucketList[nIndex].MailboxList.end()){
-            switch(MailboxLock stMailboxLock(p->second->schedLock, getWorkerID()); stMailboxLock.LockType()){
+            switch(MailboxLock stMailboxLock(p->second->schedLock, getWorkerID()); stMailboxLock.lockType()){
                 case MAILBOX_DETACHED:
                     {
                         return p;
@@ -565,16 +566,16 @@ void ActorPool::runWorkerOneLoop(size_t nIndex)
                     {
                         // we didn't get the schedlock
                         // then don't access the actor pointer here for read/log...
-                        if(!isActorThread(stMailboxLock.LockType())){
-                            throw fflerror("invalid actor status: %d", stMailboxLock.LockType());
+                        if(!isActorThread(stMailboxLock.lockType())){
+                            throw fflerror("invalid actor status: %d", stMailboxLock.lockType());
                         }
 
                         // current dedicated *actor* thread has already grabbed this mailbox lock
                         // means 1. recursively call this runWorkerOneLoop()
                         //       2. forget to release the lock
 
-                        if(stMailboxLock.LockType() == getWorkerID()){
-                            throw fflerror("mailbox sched_lock has already been grabbed by current thread: %d", stMailboxLock.LockType());
+                        if(stMailboxLock.lockType() == getWorkerID()){
+                            throw fflerror("mailbox sched_lock has already been grabbed by current thread: %d", stMailboxLock.lockType());
                         }
 
                         // if a mailbox grabbed by some other actor thread

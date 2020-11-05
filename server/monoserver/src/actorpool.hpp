@@ -83,7 +83,7 @@ class ActorPool final
         };
 
     private:
-        static void Backoff(uint32_t &nBackoff)
+        static void backOff(uint64_t &nBackoff)
         {
             nBackoff++;
 
@@ -114,9 +114,9 @@ class ActorPool final
 
             void lock()
             {
-                uint32_t nBackoff = 0;
+                uint64_t nBackoff = 0;
                 while (Latch.test_and_set(std::memory_order_acquire)){
-                    Backoff(nBackoff);
+                    backOff(nBackoff);
                 }
             }
 
@@ -239,10 +239,10 @@ class ActorPool final
             public:
                 bool Locked() const
                 {
-                    return LockType() == MAILBOX_READY;
+                    return lockType() == MAILBOX_READY;
                 }
 
-                int LockType() const
+                int lockType() const
                 {
                     return m_expected;
                 }
