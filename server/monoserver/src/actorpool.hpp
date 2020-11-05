@@ -28,6 +28,7 @@
 #include <memory>
 #include <cstdint>
 #include <shared_mutex>
+#include <unordered_map>
 #include "condcheck.hpp"
 #include "raiitimer.hpp"
 #include "messagepack.hpp"
@@ -279,7 +280,7 @@ class ActorPool final
         {
             AvgTimer<32> runTimer;
             mutable std::shared_mutex BucketLock;
-            std::map<uint64_t, std::unique_ptr<Mailbox>> MailboxList;
+            std::unordered_map<uint64_t, std::unique_ptr<Mailbox>> MailboxList;
         };
 
     private:
@@ -296,7 +297,7 @@ class ActorPool final
 
     private:
         std::mutex m_receiverLock;
-        std::map<uint64_t, Receiver *> m_receiverList;
+        std::unordered_map<uint64_t, Receiver *> m_receiverList;
 
     public:
         ActorPool(uint32_t = 23, uint32_t = 30);
