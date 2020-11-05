@@ -592,8 +592,9 @@ void ActorPool::runWorkerOneLoop(size_t nIndex)
         // clear all its queued messages and remove it if ready
         if(p->second->AtExit){
             p->second->AtExit();
-            p->second->AtExit = {};
+            p->second->AtExit = nullptr;
         }
+
         ClearOneMailbox(p->second.get());
         {
             std::unique_lock<std::shared_mutex> stLock(m_bucketList[nIndex].BucketLock);

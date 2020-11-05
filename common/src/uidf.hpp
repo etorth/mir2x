@@ -60,12 +60,28 @@ namespace uidf
 
 namespace uidf
 {
+    constexpr int uidThreadID_Shift = 56;
+    constexpr uint64_t uidThreadID_Mask = 0XFF00000000000000ULL;
+
+    inline int getThreadID(uint64_t uid)
+    {
+        return (uid & uidThreadID_Mask) >> uidThreadID_Shift;
+    }
+
+    inline uint64_t setThreadID(uint64_t uid, int threadId)
+    {
+        return uid & ((uidThreadID_Mask & (~uidThreadID_Mask)) | ((uint64_t)(threadId) << uidThreadID_Shift));
+    }
+}
+
+namespace uidf
+{
     inline int getUIDType(uint64_t uid)
     {
-        if(uid & 0XFFFF000000000000){
+        if(uid & 0XFFFF000000000000ULL){
             return UID_INN;
         }
-        return (int)((uid & 0X0000F00000000000) >> 44);
+        return (int)((uid & 0X0000F00000000000ULL) >> 44);
     }
 
     inline const char *getUIDTypeString(uint64_t uid)
@@ -91,7 +107,7 @@ namespace uidf
         if(getUIDType(uid) != UID_MON){
             throw fflerror("not a monster uid");
         }
-        return (uint32_t)((uid & 0X00000FFE00000000) >> 33);
+        return (uint32_t)((uid & 0X00000FFE00000000ULL) >> 33);
     }
 
     inline uint32_t getMonsterSeq(uint64_t uid)
@@ -99,7 +115,7 @@ namespace uidf
         if(getUIDType(uid) != UID_MON){
             throw fflerror("not a monster uid");
         }
-        return (uint32_t)(uid & 0XFFFFFFFF);
+        return (uint32_t)(uid & 0XFFFFFFFFULL);
     }
 
     uint32_t getMapID (uint64_t);
