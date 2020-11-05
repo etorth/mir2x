@@ -21,7 +21,7 @@ function main()
 
     addLog(LOGTYPE_INFO, 'map script ' .. getMapName() .. ' starts.')
 
-    g_MaxMonsterCount = 1000
+    g_MaxMonsterCount = 2000
     g_LogicDelay      = 1000
     g_LastInvokeTime  = getTime()
 
