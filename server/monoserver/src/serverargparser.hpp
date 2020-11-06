@@ -18,6 +18,8 @@
 
 #pragma once
 #include <cstdint>
+#include "typecast.hpp"
+#include "fflerror.hpp"
 #include "argparser.hpp"
 
 struct ServerArgParser
@@ -26,6 +28,7 @@ struct ServerArgParser
     const bool TraceActorMessage;       // "--trace-actor-message"
     const bool TraceActorMessageCount;  // "--trace-actor-message-count"
     const int  ActorPoolThread;         // "--actor-pool-thread"
+    const int  uidGroup;                // "--uid-group"
 
     ServerArgParser(const argh::parser &cmdParser)
         : DisableMapScript(cmdParser["disable-map-script"])
@@ -41,6 +44,18 @@ struct ServerArgParser
                   }
               }
               return 1;
+          }())
+        , uidGroup([&cmdParser]() -> int
+          {
+              if(const auto uidGroupStr = cmdParser("uid-group").str(); !uidGroupStr.empty()){
+                  try{
+                      return std::stoi(uidGroupStr);
+                  }
+                  catch(...){
+                      throw fflerror("invalid option value for uid-group: %s", to_cstr(uidGroupStr));
+                  }
+              }
+              return 17;
           }())
     {}
 };
