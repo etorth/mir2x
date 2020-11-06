@@ -81,7 +81,7 @@ ServerObject::~ServerObject()
 //
 // And if we really want to change the address of current object, maybe we need to
 // delete current object totally and create a new one instead
-uint64_t ServerObject::Activate()
+uint64_t ServerObject::activate()
 {
     if(!m_actorPod){
         m_actorPod = new ActorPod(m_UID, [this](){ m_stateHook.Execute(); }, [this](const MessagePack &rstMPK){ OperateAM(rstMPK); });
@@ -90,7 +90,7 @@ uint64_t ServerObject::Activate()
     throw fflerror("activation twice: %s", uidf::getUIDString(UID()).c_str());
 }
 
-void ServerObject::Deactivate()
+void ServerObject::deactivate()
 {
     if(m_actorPod){
         m_actorPod->detach([this](){ delete this; });

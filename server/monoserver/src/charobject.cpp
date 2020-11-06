@@ -170,9 +170,9 @@ bool CharObject::NextLocation(int *pX, int *pY, int nDirection, int nDistance)
     return true;
 }
 
-uint64_t CharObject::Activate()
+uint64_t CharObject::activate()
 {
-    if(auto nUID = ServerObject::Activate(); nUID){
+    if(auto nUID = ServerObject::activate(); nUID){
         DispatchAction(ActionSpawn(X(), Y(), Direction()));
         return nUID;
     }

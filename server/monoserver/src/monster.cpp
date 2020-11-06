@@ -460,9 +460,9 @@ void Monster::trackAttackUID(uint64_t nTargetUID, std::function<void()> fnOnOK, 
     }, fnOnError);
 }
 
-uint64_t Monster::Activate()
+uint64_t Monster::activate()
 {
-    if(auto nUID = CharObject::Activate()){
+    if(auto nUID = CharObject::activate()){
         if(masterUID()){
             m_actorPod->forward(masterUID(), {MPK_CHECKMASTER}, [this](const MessagePack &rstRMPK)
             {
@@ -834,7 +834,7 @@ bool Monster::goGhost()
                             //
                             //    don't do delete m_actorPod to disable the actor
                             //    since currently we are in the actor thread which accquired by m_actorPod
-                            Deactivate();
+                            deactivate();
                             return true;
                         }
                 }

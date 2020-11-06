@@ -248,7 +248,7 @@ void MonoServer::StartServiceCore()
     g_actorPool->Launch();
 
     m_serviceCore = new ServiceCore();
-    m_serviceCore->Activate();
+    m_serviceCore->activate();
 }
 
 void MonoServer::StartNetwork()

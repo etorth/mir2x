@@ -393,7 +393,7 @@ bool Player::goGhost()
                             //
                             //    don't do delete m_actorPod to disable the actor
                             //    since currently we are in the actor thread which accquired by m_actorPod
-                            Deactivate();
+                            deactivate();
                             return true;
                         }
                 }
@@ -492,7 +492,7 @@ bool Player::Offline()
     DispatchOffline();
     ReportOffline(UID(), MapID());
 
-    Deactivate();
+    deactivate();
     return true;
 }
 

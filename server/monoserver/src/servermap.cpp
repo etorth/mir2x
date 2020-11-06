@@ -650,9 +650,9 @@ std::tuple<bool, int, int> ServerMap::GetValidGrid(bool bCheckCO, bool bCheckLoc
     return {false, -1, -1};
 }
 
-uint64_t ServerMap::Activate()
+uint64_t ServerMap::activate()
 {
-    const auto uid = ServerObject::Activate();
+    const auto uid = ServerObject::activate();
     if(!uid){
         return 0;
     }
@@ -1024,7 +1024,7 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
             nMasterUID,
         };
 
-        pMonster->Activate();
+        pMonster->activate();
 
         addGridUID (pMonster->UID(), nDstX, nDstY, true);
         notifyNewCO(pMonster->UID(), nDstX, nDstY);
@@ -1056,7 +1056,7 @@ NPChar *ServerMap::addNPChar(uint16_t npcID, int hintX, int hintY, int direction
             direction,
         };
 
-        pNPC->Activate();
+        pNPC->activate();
 
         addGridUID (pNPC->UID(), dstX, dstY, true);
         notifyNewCO(pNPC->UID(), dstX, dstY);
@@ -1088,7 +1088,7 @@ Player *ServerMap::addPlayer(uint32_t nDBID, int nHintX, int nHintY, int nDirect
             nDirection,
         };
 
-        pPlayer->Activate();
+        pPlayer->activate();
 
         addGridUID (pPlayer->UID(), nDstX, nDstY, true);
         notifyNewCO(pPlayer->UID(), nDstX, nDstY);

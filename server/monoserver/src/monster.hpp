@@ -198,7 +198,7 @@ class Monster final: public CharObject
         bool MoveOneStepNeighbor(int, int, std::function<void()>, std::function<void()>);
 
     public:
-        uint64_t Activate() override;
+        uint64_t activate() override;
 
     protected:
         bool canMove();

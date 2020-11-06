@@ -109,7 +109,7 @@ void ServiceCore::loadMap(uint32_t mapID)
     }
 
     auto mapPtr = new ServerMap(this, mapID);
-    mapPtr->Activate();
+    mapPtr->activate();
     m_mapList[mapID] = mapPtr;
 }
 

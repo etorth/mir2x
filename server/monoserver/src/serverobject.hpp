@@ -142,10 +142,10 @@ class ServerObject
         uint32_t GetStateTime(uint8_t) const;
 
     public:
-        virtual uint64_t Activate();
+        virtual uint64_t activate();
 
     protected:
-        void Deactivate();
+        void deactivate();
 
     public:
         bool ActorPodValid() const

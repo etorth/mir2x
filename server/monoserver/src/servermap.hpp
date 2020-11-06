@@ -191,7 +191,7 @@ class ServerMap final: public ServerObject
         }
 
     public:
-        uint64_t Activate();
+        uint64_t activate();
 
     private:
         bool Load(const char *);
