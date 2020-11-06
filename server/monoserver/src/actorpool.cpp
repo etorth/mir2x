@@ -87,7 +87,7 @@ ActorPool::~ActorPool()
     m_futureList.clear();
 }
 
-bool ActorPool::Register(ActorPod *pActor)
+bool ActorPool::attach(ActorPod *pActor)
 {
     if(!(pActor && pActor->UID())){
         throw fflerror("invalid arguments: ActorPod = %p, ActorPod::UID() = %" PRIu64, to_cvptr(pActor), pActor->UID());
@@ -119,7 +119,7 @@ bool ActorPool::Register(ActorPod *pActor)
     }
 }
 
-bool ActorPool::Register(Receiver *pReceiver)
+bool ActorPool::attach(Receiver *pReceiver)
 {
     if(!pReceiver){
         throw fflerror("invlaid argument: Receiver = %p", to_cvptr(pReceiver));
@@ -137,7 +137,7 @@ bool ActorPool::Register(Receiver *pReceiver)
     }
 }
 
-bool ActorPool::Detach(const ActorPod *pActor, const std::function<void()> &fnAtExit)
+bool ActorPool::detach(const ActorPod *pActor, const std::function<void()> &fnAtExit)
 {
     if(!(pActor && pActor->UID())){
         throw fflerror("invalid arguments: ActorPod = %p, ActorPod::UID() = %" PRIu64, to_cvptr(pActor), pActor->UID());
@@ -158,7 +158,7 @@ bool ActorPool::Detach(const ActorPod *pActor, const std::function<void()> &fnAt
                     case MAILBOX_DETACHED:
                         {
                             // we allow double detach an actor
-                            // this helps to always legally call Detach() in actor destructor
+                            // this helps to always legally call detach() in actor destructor
 
                             // if found a detached actor
                             // then the actor pointer must already be null
@@ -180,7 +180,7 @@ bool ActorPool::Detach(const ActorPod *pActor, const std::function<void()> &fnAt
 
                             // detach a locked mailbox
                             // remember any thread can't flip mailbox to detach before lock it!!!
-                            if(auto nWorkerID = p->second->schedLock.Detach(); nWorkerID != getWorkerID()){
+                            if(auto nWorkerID = p->second->schedLock.detach(); nWorkerID != getWorkerID()){
                                 throw fflerror("locked actor flips to invalid status: ActorPod = %p, ActorPod::UID() = %" PRIu64 ", Status = %d", to_cvptr(pActor), pActor->UID(), nWorkerID);
                             }
 
@@ -192,7 +192,7 @@ bool ActorPool::Detach(const ActorPod *pActor, const std::function<void()> &fnAt
                             // I guess it means: since we successfully grab the lock, there is no actor thread refers to the actor instance/pointer
                             // then it's safe to call the AtExit function, which may call ``delete this"
 
-                            // or maybe previously I assume only actor itself can call this->Detach()
+                            // or maybe previously I assume only actor itself can call this->detach()
                             // then it must not be in actor thread since we can grab its lock
                             if(fnAtExit){
                                 fnAtExit();
@@ -209,7 +209,7 @@ bool ActorPool::Detach(const ActorPod *pActor, const std::function<void()> &fnAt
                             // but it should never ever execute the actor handler
 
                             // I was planning to forbid any public thread to access the schedLock, but
-                            //     1. Detach outside of actor threads
+                            //     1. detach outside of actor threads
                             //     2. Query actor status
                             // needs to access the schedLock
 
@@ -236,7 +236,7 @@ bool ActorPool::Detach(const ActorPod *pActor, const std::function<void()> &fnAt
 
                                 // this is from inside the actor's actor thread
                                 // have to delay the atexit() since the message handler is not done yet
-                                p->second->schedLock.Detach();
+                                p->second->schedLock.detach();
                                 if(fnAtExit){
                                     p->second->AtExit = fnAtExit;
                                 }
@@ -255,7 +255,7 @@ bool ActorPool::Detach(const ActorPod *pActor, const std::function<void()> &fnAt
         }
 
         // we allow double-detach an actor
-        // this helps to put Detach() call in actor destructor
+        // this helps to put detach() call in actor destructor
 
         // then if we can't find this actor
         // most likely it's removed already by its worker thread
@@ -277,7 +277,7 @@ bool ActorPool::Detach(const ActorPod *pActor, const std::function<void()> &fnAt
     }
 }
 
-bool ActorPool::Detach(const Receiver *pReceiver)
+bool ActorPool::detach(const Receiver *pReceiver)
 {
     if(!(pReceiver && pReceiver->UID())){
         throw fflerror("invalid arguments: Receiver = %p, Receiver::UID() = %" PRIu64, to_cvptr(pReceiver), pReceiver->UID());
@@ -356,7 +356,7 @@ bool ActorPool::runOneMailbox(Mailbox *pMailbox, bool bMetronome)
     }
 
     // before every call to InnHandler()
-    // check if it's detached in case actor call Detach() in its message handler
+    // check if it's detached in case actor call detach() in its message handler
     //
     //     if(pActor->Detached()){       // 1. check
     //         return false;             // 2. return
@@ -508,7 +508,7 @@ void ActorPool::runWorkerOneLoop(size_t nIndex)
                 case MAILBOX_READY:
                     {
                         // we grabbed the mailbox successfully
-                        // but it can flip to detached if call Detach() in its message handler
+                        // but it can flip to detached if call detach() in its message handler
 
                         // if between message handling it flips to detached
                         // we just return immediately and leave the rest handled message there

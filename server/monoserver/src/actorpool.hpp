@@ -166,7 +166,7 @@ class ActorPool final
                     : m_status(MAILBOX_READY)
                 {}
 
-                int Detach()
+                int detach()
                 {
                     return m_status.exchange(MAILBOX_DETACHED);
                 }
@@ -201,7 +201,7 @@ class ActorPool final
 
                 ~MailboxLock()
                 {
-                    if(Locked()){
+                    if(locked()){
                         m_expected = m_workerID;
                         if(!m_mutexRef.m_status.compare_exchange_strong(m_expected, MAILBOX_READY)){
                             if(m_expected != MAILBOX_DETACHED){
@@ -217,7 +217,7 @@ class ActorPool final
                 MailboxLock &operator = (MailboxLock) = delete;
 
             public:
-                bool Locked() const
+                bool locked() const
                 {
                     return lockType() == MAILBOX_READY;
                 }
@@ -310,12 +310,12 @@ class ActorPool final
         bool isActorThread(int) const;
 
     private:
-        bool Register(Receiver *);
-        bool Register(ActorPod *);
+        bool attach(Receiver *);
+        bool attach(ActorPod *);
 
     private:
-        bool Detach(const Receiver *);
-        bool Detach(const ActorPod *, const std::function<void()> &);
+        bool detach(const Receiver *);
+        bool detach(const ActorPod *, const std::function<void()> &);
 
     public:
         void Launch();

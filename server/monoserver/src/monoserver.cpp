@@ -661,7 +661,7 @@ uint64_t MonoServer::sleepExt(uint64_t tickCount)
     return 0;
 }
 
-void MonoServer::RegisterLuaExport(CommandLuaModule *pModule, uint32_t nCWID)
+void MonoServer::regLuaExport(CommandLuaModule *pModule, uint32_t nCWID)
 {
     if(!(pModule && nCWID)){
         throw fflerror("invalid argument: module = %p, window ID = %llu", to_cvptr(pModule), to_llu(nCWID));

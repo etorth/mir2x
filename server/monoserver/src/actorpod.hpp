@@ -160,7 +160,7 @@ class ActorPod final
         }
 
     public:
-        bool Detach(const std::function<void()> &) const;
+        bool detach(const std::function<void()> &) const;
 
     public:
         static bool CheckInvalid(uint64_t nUID);

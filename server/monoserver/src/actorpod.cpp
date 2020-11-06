@@ -52,8 +52,8 @@ ActorPod::ActorPod(uint64_t nUID,
     , m_respondHandlerGroup()
     , m_podMonitor()
 {
-    if(!g_actorPool->Register(this)){
-        throw fflerror("register actor failed: ActorPod = %p, ActorPod::UID() = %" PRIu64, to_cvptr(this), UID());
+    if(!g_actorPool->attach(this)){
+        throw fflerror("attach actor failed: ActorPod = %p, ActorPod::UID() = %" PRIu64, to_cvptr(this), UID());
     }
 }
 
@@ -65,11 +65,11 @@ ActorPod::~ActorPod()
     // we can't check it here...
     // in ActorPod it shouldn't be aware who is calling itself
 
-    // Detach(this, true) will report error if called in running actor thread
+    // detach(this, true) will report error if called in running actor thread
     // good enough
 
-    if(!g_actorPool->Detach(this, [](){})){
-        g_monoServer->addLog(LOGTYPE_WARNING, "ActorPool::Detach(ActorPod = %p) failed", to_cvptr(this));
+    if(!g_actorPool->detach(this, [](){})){
+        g_monoServer->addLog(LOGTYPE_WARNING, "ActorPool::detach(ActorPod = %p) failed", to_cvptr(this));
         g_monoServer->Restart();
     }
 }
@@ -246,7 +246,7 @@ bool ActorPod::forward(uint64_t nUID, const MessageBuf &rstMB, uint32_t nRespond
     }
 }
 
-bool ActorPod::Detach(const std::function<void()> &fnAtExit) const
+bool ActorPod::detach(const std::function<void()> &fnAtExit) const
 {
     // we can call detach in its message handler
     // remember the message handler can be executed by worker thread or stealing worker thread
@@ -255,7 +255,7 @@ bool ActorPod::Detach(const std::function<void()> &fnAtExit) const
     //  void MessageHandler()
     //  {
     //      if(bNeedDetach){
-    //          Detach();
+    //          detach();
     //          OtherRelease(); // here still accessing the actor
     //          return;         // after this line we can guarantee actor is not running
     //      }
@@ -266,7 +266,7 @@ bool ActorPod::Detach(const std::function<void()> &fnAtExit) const
 
     // theron library also has this issue
     // only destructor can guarentee the actor is not running any more
-    return g_actorPool->Detach(this, fnAtExit);
+    return g_actorPool->detach(this, fnAtExit);
 }
 
 bool ActorPod::CheckInvalid(uint64_t nUID)

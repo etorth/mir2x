@@ -30,15 +30,15 @@ Receiver::Receiver()
     , m_condition()
     , m_messageList()
 {
-    if(!g_actorPool->Register(this)){
-        g_monoServer->addLog(LOGTYPE_FATAL, "ActorPool::Register(Reciver = %p) failed", this);
+    if(!g_actorPool->attach(this)){
+        g_monoServer->addLog(LOGTYPE_FATAL, "ActorPool::attach(Reciver = %p) failed", this);
     }
 }
 
 Receiver::~Receiver()
 {
-    if(!g_actorPool->Detach(this)){
-        g_monoServer->addLog(LOGTYPE_FATAL, "ActorPool::Detach(Reciver = %p) failed", this);
+    if(!g_actorPool->detach(this)){
+        g_monoServer->addLog(LOGTYPE_FATAL, "ActorPool::detach(Reciver = %p) failed", this);
     }
 }
 

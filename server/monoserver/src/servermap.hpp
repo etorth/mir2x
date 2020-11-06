@@ -298,5 +298,5 @@ class ServerMap final: public ServerObject
         void On_MPK_QUERYRECTUIDLIST(const MessagePack &);
 
     private:
-        bool RegisterLuaExport(ServerMapLuaModule *);
+        bool regLuaExport(ServerMapLuaModule *);
 };

@@ -24,5 +24,5 @@ CommandLuaModule::CommandLuaModule(uint32_t nCWID)
     , m_CWID(nCWID)
 {
     extern MonoServer *g_monoServer;
-    g_monoServer->RegisterLuaExport(this, nCWID);
+    g_monoServer->regLuaExport(this, nCWID);
 }
