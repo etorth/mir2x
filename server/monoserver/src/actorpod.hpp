@@ -135,7 +135,7 @@ class ActorPod final
         uint32_t GetValidID();
 
     private:
-        void InnHandler(const MessagePack &);
+        void innHandler(const MessagePack &);
 
     public:
         bool forward(uint64_t nUID, const MessageBuf &rstMB)
@@ -160,10 +160,10 @@ class ActorPod final
         }
 
     public:
-        bool detach(const std::function<void()> &) const;
+        void detach(const std::function<void()> &) const;
 
     public:
-        static bool CheckInvalid(uint64_t nUID);
+        static bool checkInvalid(uint64_t nUID);
 
     public:
         void PrintMonitor() const;

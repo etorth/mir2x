@@ -29,7 +29,7 @@ extern MonoServer *g_monoServer;
 extern ServerArgParser *g_serverArgParser;
 
 ServerObject::ServerObject(uint64_t uid)
-    : m_UID(uidf::setThreadID(uid, g_actorPool->pickThreadID()))
+    : m_UID(uid)
     , m_UIDName(uidf::getUIDString(uid))
     , m_stateV()
     , m_stateTimeV()

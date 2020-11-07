@@ -52,9 +52,7 @@ ActorPod::ActorPod(uint64_t nUID,
     , m_respondHandlerGroup()
     , m_podMonitor()
 {
-    if(!g_actorPool->attach(this)){
-        throw fflerror("attach actor failed: ActorPod = %p, ActorPod::UID() = %" PRIu64, to_cvptr(this), UID());
-    }
+    g_actorPool->attach(this);
 }
 
 ActorPod::~ActorPod()
@@ -65,16 +63,15 @@ ActorPod::~ActorPod()
     // we can't check it here...
     // in ActorPod it shouldn't be aware who is calling itself
 
-    // detach(this, true) will report error if called in running actor thread
-    // good enough
-
-    if(!g_actorPool->detach(this, [](){})){
-        g_monoServer->addLog(LOGTYPE_WARNING, "ActorPool::detach(ActorPod = %p) failed", to_cvptr(this));
-        g_monoServer->Restart();
+    try{
+        g_actorPool->detach(this, nullptr);
+    }
+    catch(...){
+        g_monoServer->propagateException();
     }
 }
 
-void ActorPod::InnHandler(const MessagePack &rstMPK)
+void ActorPod::innHandler(const MessagePack &rstMPK)
 {
     if(g_serverArgParser->TraceActorMessage){
         g_monoServer->addLog(LOGTYPE_DEBUG, "%s <- %s : (Type: %s, ID: %" PRIu32 ", Resp: %" PRIu32 ")",
@@ -246,7 +243,7 @@ bool ActorPod::forward(uint64_t nUID, const MessageBuf &rstMB, uint32_t nRespond
     }
 }
 
-bool ActorPod::detach(const std::function<void()> &fnAtExit) const
+void ActorPod::detach(const std::function<void()> &fnAtExit) const
 {
     // we can call detach in its message handler
     // remember the message handler can be executed by worker thread or stealing worker thread
@@ -263,18 +260,16 @@ bool ActorPod::detach(const std::function<void()> &fnAtExit) const
     //
     // it's worse to call it out of its message handler
     // when detach returns we can't guarantee if the actor is till handling message
-
-    // theron library also has this issue
-    // only destructor can guarentee the actor is not running any more
-    return g_actorPool->detach(this, fnAtExit);
+    //
+    g_actorPool->detach(this, fnAtExit);
 }
 
-bool ActorPod::CheckInvalid(uint64_t nUID)
+bool ActorPod::checkInvalid(uint64_t uid)
 {
-    if(!nUID){
+    if(!uid){
         throw fflerror("invalid zero UID");
     }
-    return g_actorPool->CheckInvalid(nUID);
+    return g_actorPool->checkInvalid(uid);
 }
 
 void ActorPod::PrintMonitor() const

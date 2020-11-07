@@ -26,11 +26,11 @@
 enum UIDType: int
 {
     UID_ERR =  0,
-    UID_MON =  1,
-    UID_PLY =  2,
-    UID_NPC =  3,
-    UID_MAP =  4,
-    UID_U05 =  5,
+    UID_COR =  1,
+    UID_NPC =  2,
+    UID_MAP =  3,
+    UID_PLY =  4,
+    UID_MON =  5,
     UID_U06 =  6,
     UID_U07 =  7,
     UID_U08 =  8,
@@ -38,7 +38,7 @@ enum UIDType: int
     UID_U10 = 10,
     UID_U11 = 11,
     UID_U12 = 12,
-    UID_COR = 13,
+    UID_U13 = 13,
     UID_ETC = 14,
     UID_INN = 15, // put the internal out of 0 ~ 15
     UID_MAX = 16,
@@ -56,30 +56,6 @@ namespace uidf
 
     uint64_t buildEtcUID();
     uint64_t buildServiceCoreUID();
-}
-
-namespace uidf
-{
-    constexpr int uidThreadID_Shift = 56;
-    constexpr uint64_t uidThreadID_Mask = 0XFF00000000000000ULL;
-
-    inline int getThreadID(uint64_t uid)
-    {
-        return static_cast<int>((uid & uidThreadID_Mask) >> uidThreadID_Shift);
-    }
-
-    inline uint64_t setThreadID(uint64_t uid, int threadId)
-    {
-        if(threadId < 0){
-            throw fflerror("invalid uid threadID: %d", threadId);
-        }
-
-        uid = (uid & (~uidThreadID_Mask)) | ((uint64_t)(threadId) << uidThreadID_Shift);
-        if(uidf::getThreadID(uid) != threadId){
-            throw fflerror("can't assign threadID: %d", threadId);
-        }
-        return uid;
-    }
 }
 
 namespace uidf

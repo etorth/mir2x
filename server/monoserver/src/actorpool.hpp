@@ -20,6 +20,7 @@
 #include <map>
 #include <mutex>
 #include <array>
+#include <queue>
 #include <chrono>
 #include <future>
 #include <atomic>
@@ -29,9 +30,12 @@
 #include <cstdint>
 #include <shared_mutex>
 #include <unordered_map>
+#include "uidf.hpp"
+#include "asyncf.hpp"
 #include "condcheck.hpp"
 #include "raiitimer.hpp"
 #include "messagepack.hpp"
+#include "parallel_hashmap/phmap.h"
 
 class ActorPod;
 class Receiver;
@@ -47,94 +51,50 @@ class ActorPool final
         friend class SyncDriver;
 
     public:
-        struct ActorMonitor
+        struct UIDComper
         {
-            uint64_t UID;
-
-            uint32_t LiveTick;
-            uint32_t BusyTick;
-
-            uint32_t MessageDone;
-            uint32_t MessagePending;
-
-            ActorMonitor(uint64_t nUID, uint32_t nLiveTick, uint32_t nBusyTick, uint32_t nMessageDone, uint32_t nMessagePending)
-                : UID(nUID)
-                , LiveTick(nLiveTick)
-                , BusyTick(nBusyTick)
-                , MessageDone(nMessageDone)
-                , MessagePending(nMessagePending)
-            {}
-
-            ActorMonitor()
-                : UID(0)
-            {}
-
-            operator bool () const
+            uint64_t uid;
+            bool operator < (const UIDComper &other) const
             {
-                return UID != 0;
+                return uidf::getUIDType(uid) > uidf::getUIDType(other.uid);
             }
         };
 
-        struct ActorThreadMonitor
-        {
-            int      ThreadID;
-            uint64_t ActorCount;
-
-            uint32_t LiveTick;
-            uint32_t BusyTick;
-        };
-
-    private:
-        static void backOff(uint64_t &nBackoff)
-        {
-            nBackoff++;
-
-            if(nBackoff < 20){
-                return;
-            }
-
-            if(nBackoff < 50){
-                std::this_thread::yield();
-                return;
-            }
-
-            if(nBackoff < 100){
-                std::this_thread::sleep_for(std::chrono::nanoseconds(1));
-                return;
-            }
-
-            std::this_thread::sleep_for(std::chrono::microseconds(1));
-        }
-
-    private:
-        template<size_t AVG_LEN = 16> class AvgTimer
+        class UIDPriorityQueue
         {
             private:
-                std::atomic<long> m_currSum;
-
-            private:
-                size_t m_curr;
-                std::array<long, AVG_LEN> m_array;
+                std::priority_queue<UIDComper> m_PQ;
+                phmap::flat_hash_set<uint64_t> m_uidSet;
 
             public:
-                AvgTimer()
-                    : m_currSum{0}
-                    , m_curr(0)
+                uint64_t pick_top()
                 {
-                    static_assert(AVG_LEN > 0);
-                    m_array.fill(0);
+                    const auto top = m_PQ.top().uid;
+                    m_PQ.pop();
+                    m_uidSet.erase(top);
+                    return top;
                 }
 
             public:
-                void push(long newTime)
+                bool empty() const
                 {
-                    m_curr = ((m_curr + 1) % m_array.size());
-                    m_currSum.fetch_add(newTime - m_array[m_curr]);
+                    return m_PQ.empty();
                 }
 
-                long getAvgTime() const
+                size_t size() const
                 {
-                    return m_currSum.load() / m_array.size();
+                    return m_PQ.size();
+                }
+
+            public:
+                void push(uint64_t uid)
+                {
+                    if(m_uidSet.contains(uid)){
+                        return;
+                    }
+
+                    m_PQ.push(UIDComper(uid));
+                    m_uidSet.insert(uid);
                 }
         };
 
@@ -171,7 +131,7 @@ class ActorPool final
                     return m_status.exchange(MAILBOX_DETACHED);
                 }
 
-                bool Detached() const
+                bool detached() const
                 {
                     return m_status.load() == MAILBOX_DETACHED;
                 }
@@ -228,46 +188,43 @@ class ActorPool final
                 }
         };
 
+    private:
         struct Mailbox
         {
-            ActorPod    *Actor;
+            ActorPod    *actor;
             MailboxMutex schedLock;
             std::mutex   nextQLock;
 
             std::vector<MessagePack> currQ;
             std::vector<MessagePack> nextQ;
 
-            std::function<void()> AtExit;
+            std::function<void()> atExit;
 
             // put a monitor structure and always maintain it
             // then no need to acquire schedLock to dump the monitor
             struct MailboxMonitor
             {
-                uint64_t   UID;
-                hres_timer LiveTimer;
+                uint64_t   uid;
+                hres_timer liveTimer;
 
-                std::atomic<uint64_t> ProcTick;
-                std::atomic<uint32_t> MessageDone;
-                std::atomic<uint32_t> MessagePending;
+                std::atomic<uint64_t> procTick{0};
+                std::atomic<uint32_t> messageDone{0};
+                std::atomic<uint32_t> messagePending{0};
 
-                MailboxMonitor(uint64_t nUID)
-                    : UID(nUID)
-                    , LiveTimer()
-                    , ProcTick {0}
-                    , MessageDone {0}
-                    , MessagePending {0}
+                MailboxMonitor(uint64_t argUID)
+                    : uid(argUID)
                 {}
-            } Monitor;
+            } monitor;
 
-            auto DumpMonitor() const
+            auto dumpMonitor() const
             {
                 return ActorMonitor
                 {
-                    Monitor.UID,
-                    (uint32_t)(Monitor.LiveTimer.diff_msec()),
-                    (uint32_t)(Monitor.ProcTick.load() / 1000000),
-                    Monitor.MessageDone.load(),
-                    Monitor.MessagePending.load(),
+                    to_u64(monitor.uid),
+                    to_u32(monitor.liveTimer.diff_msec()),
+                    to_u32(monitor.procTick.load() / 1000000ULL),
+                    to_u32(monitor.messageDone.load()),
+                    to_u32(monitor.messagePending.load()),
                 };
             }
 
@@ -276,31 +233,114 @@ class ActorPool final
             Mailbox(ActorPod *);
         };
 
+        struct MailboxSubBucket
+        {
+            mutable std::shared_mutex lock;
+            phmap::flat_hash_map<uint64_t, std::unique_ptr<Mailbox>> mailboxList;
+
+            using RLockGuard = std::shared_lock<decltype(lock)>;
+            using WLockGuard = std::unique_lock<decltype(lock)>;
+        };
+
+    private:
+        constexpr static int m_subBucketCount = 13;
         struct MailboxBucket
         {
-            AvgTimer<32> runTimer;
-            mutable std::shared_mutex BucketLock;
-            std::unordered_map<uint64_t, std::unique_ptr<Mailbox>> MailboxList;
+            std::future<void> runThread;
+            asyncf::taskQ<uint64_t, UIDPriorityQueue> uidQPending;
+            std::array<MailboxSubBucket, m_subBucketCount> subBucketList;
         };
 
     private:
         const uint32_t m_logicFPS;
-
-    private:
-        std::atomic<bool> m_terminated;
-
-    private:
-        std::vector<std::future<bool>> m_futureList;
-
-    private:
         std::vector<MailboxBucket> m_bucketList;
+
+    public:
+        struct ActorMonitor
+        {
+            uint64_t uid = 0;
+
+            uint32_t liveTick = 0;
+            uint32_t busyTick = 0;
+
+            uint32_t messageDone    = 0;
+            uint32_t messagePending = 0;
+
+            operator bool () const
+            {
+                return uid != 0;
+            }
+        };
+
+        struct ActorThreadMonitor
+        {
+            int      threadId;
+            uint64_t actorCount;
+
+            uint32_t liveTick;
+            uint32_t busyTick;
+        };
+
+    private:
+        static void backOff(uint64_t &nBackoff)
+        {
+            nBackoff++;
+
+            if(nBackoff < 20){
+                return;
+            }
+
+            if(nBackoff < 50){
+                std::this_thread::yield();
+                return;
+            }
+
+            if(nBackoff < 100){
+                std::this_thread::sleep_for(std::chrono::nanoseconds(1));
+                return;
+            }
+
+            std::this_thread::sleep_for(std::chrono::microseconds(1));
+        }
+
+    private:
+        template<size_t AVG_LEN = 16> class AvgTimer
+        {
+            private:
+                std::atomic<long> m_currSum;
+
+            private:
+                size_t m_curr;
+                std::array<long, AVG_LEN> m_array;
+
+            public:
+                AvgTimer()
+                    : m_currSum{0}
+                    , m_curr(0)
+                {
+                    static_assert(AVG_LEN > 0);
+                    m_array.fill(0);
+                }
+
+            public:
+                void push(long newTime)
+                {
+                    m_curr = ((m_curr + 1) % m_array.size());
+                    m_currSum.fetch_add(newTime - m_array[m_curr]);
+                }
+
+                long getAvgTime() const
+                {
+                    return m_currSum.load() / m_array.size();
+                }
+        };
 
     private:
         std::mutex m_receiverLock;
         std::unordered_map<uint64_t, Receiver *> m_receiverList;
 
     public:
-        ActorPool(uint32_t = 23, uint32_t = 30);
+        ActorPool(int, int);
 
     public:
         ~ActorPool();
@@ -310,16 +350,16 @@ class ActorPool final
         bool isActorThread(int) const;
 
     private:
-        bool attach(Receiver *);
-        bool attach(ActorPod *);
+        void attach(Receiver *);
+        void attach(ActorPod *);
 
     private:
-        bool detach(const Receiver *);
-        bool detach(const ActorPod *, const std::function<void()> &);
+        void detach(const Receiver *);
+        void detach(const ActorPod *, const std::function<void()> &);
 
     public:
-        void Launch();
-        bool CheckInvalid(uint64_t) const;
+        void launchPool();
+        bool checkInvalid(uint64_t) const;
 
     private:
         uint64_t GetInnActorUID();
@@ -328,17 +368,51 @@ class ActorPool final
         bool postMessage(uint64_t, MessagePack);
 
     private:
-        void runWorker(size_t);
-        void runWorkerOneLoop(size_t);
+        bool runOneUID(uint64_t);
         bool runOneMailbox(Mailbox *, bool);
+        void runOneMailboxBucket(int);
 
     private:
-        void ClearOneMailbox(Mailbox *);
+        void clearOneMailbox(Mailbox *);
 
     public:
-        ActorMonitor GetActorMonitor(uint64_t) const;
-        std::vector<ActorMonitor> GetActorMonitor() const;
+        ActorMonitor getActorMonitor(uint64_t) const;
+        std::vector<ActorMonitor> getActorMonitor() const;
 
     public:
         int pickThreadID() const;
+
+    private:
+        Mailbox *findMailbox(uint64_t);
+
+    public:
+        int getBucketID(uint64_t uid) const
+        {
+            return static_cast<int>(uid % (uint64_t)(m_bucketList.size()));
+        }
+
+        int getSubBucketID(uint64_t uid) const
+        {
+            return static_cast<int>(uid % (uint64_t)(m_subBucketCount));
+        }
+
+        const MailboxSubBucket & getSubBucket(int bucketId, int subBucketId) const
+        {
+            return m_bucketList.at(bucketId).subBucketList.at(subBucketId);
+        }
+
+        MailboxSubBucket & getSubBucket(int bucketId, int subBucketId)
+        {
+            return const_cast<ActorPool *>(this)->getSubBucket(bucketId, subBucketId);
+        }
+
+        const MailboxSubBucket & getSubBucket(uint64_t uid) const
+        {
+            return getSubBucket(getBucketID(uid), getSubBucketID(uid));
+        }
+
+        MailboxSubBucket & getSubBucket(uint64_t uid)
+        {
+            return const_cast<ActorPool *>(this)->getSubBucket(uid);
+        }
 };

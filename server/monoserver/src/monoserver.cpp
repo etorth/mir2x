@@ -245,7 +245,7 @@ void MonoServer::LoadMapBinDB()
 
 void MonoServer::StartServiceCore()
 {
-    g_actorPool->Launch();
+    g_actorPool->launchPool();
 
     m_serviceCore = new ServiceCore();
     m_serviceCore->activate();

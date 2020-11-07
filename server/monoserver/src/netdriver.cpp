@@ -17,10 +17,14 @@
  */
 
 #include <cinttypes>
+#include "fflerror.hpp"
 #include "sysconst.hpp"
 #include "actorpool.hpp"
 #include "netdriver.hpp"
 #include "monoserver.hpp"
+
+extern ActorPool *g_actorPool;
+extern MonoServer *g_monoServer;
 
 NetDriver::NetDriver()
     : Dispatcher()
@@ -50,7 +54,6 @@ NetDriver::~NetDriver()
 bool NetDriver::CheckPort(uint32_t nPort)
 {
     if(nPort <= 1024){
-        extern MonoServer *g_monoServer;
         g_monoServer->addLog(LOGTYPE_WARNING, "Don't use reserved port: %d", (int)(nPort));
         return false;
     }
@@ -67,9 +70,7 @@ bool NetDriver::InitASIO(uint32_t nPort)
     // 1. set server listen port
 
     if(!CheckPort(nPort)){
-        extern MonoServer *g_monoServer;
-        g_monoServer->addLog(LOGTYPE_WARNING, "Invalid port provided");
-        g_monoServer->Restart();
+        throw fflerror("invalid port provided: %llu", to_llu(nPort));
     }
 
     m_port = nPort;
@@ -79,32 +80,27 @@ bool NetDriver::InitASIO(uint32_t nPort)
         m_endPoint = new asio::ip::tcp::endpoint(asio::ip::tcp::v4(), m_port);
         m_acceptor = new asio::ip::tcp::acceptor(*m_IO, *m_endPoint);
         m_socket   = new asio::ip::tcp::socket(*m_IO);
-    }catch(...){
+    }
+    catch(...){
         delete m_socket;
         delete m_acceptor;
         delete m_endPoint;
         delete m_IO;
 
-        extern MonoServer *g_monoServer;
-        g_monoServer->addLog(LOGTYPE_WARNING, "Initialization of ASIO failed");
-        g_monoServer->Restart();
+        throw fflerror("initialization of ASIO failed");
     }
-
     return true;
 }
 
 bool NetDriver::Launch(uint32_t nPort, uint64_t nUID)
 {
     if(!CheckPort(nPort)){
-        extern MonoServer *g_monoServer;
-        g_monoServer->addLog(LOGTYPE_WARNING, "Using invalid port: %" PRIu32, nPort);
+        g_monoServer->addLog(LOGTYPE_WARNING, "Using invalid port: %llu", to_llu(nPort));
         return false;
     }
 
-    extern ActorPool *g_actorPool;
-    if(g_actorPool->CheckInvalid(nUID)){
-        extern MonoServer *g_monoServer;
-        g_monoServer->addLog(LOGTYPE_WARNING, "Launch with invaid UID: " PRIu64, nUID);
+    if(g_actorPool->checkInvalid(nUID)){
+        g_monoServer->addLog(LOGTYPE_WARNING, "Launch with invaid UID: %llu", to_llu(nUID));
         return false;
     }
 
@@ -115,7 +111,6 @@ bool NetDriver::Launch(uint32_t nPort, uint64_t nUID)
     }
 
     if(!InitASIO(nPort)){
-        extern MonoServer *g_monoServer;
         g_monoServer->addLog(LOGTYPE_WARNING, "InitASIO failed in NetDriver");
         return false;
     }
@@ -141,17 +136,10 @@ void NetDriver::AcceptNewConnection()
         if(stEC){
             // error occurs, stop the network
             // assume g_monoServer is ready for log
-            extern MonoServer *g_monoServer;
-            g_monoServer->addLog(LOGTYPE_WARNING, "Get network error when accepting: %s", stEC.message().c_str());
-            g_monoServer->Restart();
-
-            // IO will stop after this
-            // won't feed AcceptNewConnection() to event loop again
-            return;
+            throw fflerror("get network error when accepting: %s", stEC.message().c_str());
         }
 
         if(m_channIDQ.Empty()){
-            extern MonoServer *g_monoServer;
             g_monoServer->addLog(LOGTYPE_INFO, "No valid slot for new connection request");
 
             // currently no valid slot
@@ -164,17 +152,13 @@ void NetDriver::AcceptNewConnection()
         m_channIDQ.PopHead();
 
         if(!CheckChannID(nChannID)){
-            extern MonoServer *g_monoServer;
-            g_monoServer->addLog(LOGTYPE_WARNING, "Get invalid channel ID from reserved queue");
-            g_monoServer->Restart();
-            return;
+            throw fflerror("Get invalid channel ID from reserved queue");
         }
 
         auto szIP  = m_socket->remote_endpoint().address().to_string();
         auto nPort = m_socket->remote_endpoint().port();
 
         if(!ChannBuild(nChannID, std::move(*m_socket))){
-            extern MonoServer *g_monoServer;
             g_monoServer->addLog(LOGTYPE_WARNING, "Creating channel for endpoint (%s:%d) failed", szIP.c_str(), nPort);
 
             // build channel for the allocated id failed
@@ -186,8 +170,6 @@ void NetDriver::AcceptNewConnection()
         }
 
         auto pChann = m_channelList[nChannID];
-
-        extern MonoServer *g_monoServer;
         g_monoServer->addLog(LOGTYPE_INFO, "Channel %d established for endpoint (%s:%d)", pChann->ID(), pChann->IP(), pChann->Port());
 
         // directly lanuch the channel here

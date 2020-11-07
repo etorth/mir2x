@@ -22,6 +22,7 @@
 
 #include "strf.hpp"
 #include "uidf.hpp"
+#include "typecast.hpp"
 #include "actorpool.hpp"
 #include "actormonitortable.hpp"
 
@@ -89,35 +90,35 @@ std::string ActorMonitorTable::GetGridData(int nRow, int nCol) const
         return std::string(nNewLength - szString.size(), ' ') + szString;
     };
 
-    const auto &rstMonitor = m_actorMonitorList[nRow];
+    const auto &monitor = m_actorMonitorList.at(nRow);
     switch(nCol){
         case 0: // UID
             {
-                return str_printf("%016" PRIx64, rstMonitor.UID);
+                return str_printf("%016llx", to_llu(monitor.uid));
             }
         case 1: // TYPE
             {
-                return uidf::getUIDTypeString(rstMonitor.UID);
+                return uidf::getUIDTypeString(monitor.uid);
             }
         case 2: // GROUP
             {
-                return std::to_string(uidf::getThreadID(rstMonitor.UID));
+                return std::to_string(g_actorPool->getBucketID(monitor.uid));
             }
         case 3: // LIVE
             {
-                return GetTimeString(rstMonitor.LiveTick);
+                return GetTimeString(monitor.liveTick);
             }
         case 4: // BUSY
             {
-                return GetTimeString(rstMonitor.BusyTick);
+                return GetTimeString(monitor.busyTick);
             }
         case 5: // MSG_DONE
             {
-                return fnAdjustLength(std::to_string(rstMonitor.MessageDone), std::to_string(m_monitorDataDiags.MaxMessageDone).size());
+                return fnAdjustLength(std::to_string(monitor.messageDone), std::to_string(m_monitorDataDiags.MaxMessageDone).size());
             }
         case 6: // MSG_PENDING
             {
-                return fnAdjustLength(std::to_string(rstMonitor.MessagePending), std::to_string(m_monitorDataDiags.MaxMessagePending).size());
+                return fnAdjustLength(std::to_string(monitor.messagePending), std::to_string(m_monitorDataDiags.MaxMessagePending).size());
             }
         default:
             {
@@ -171,7 +172,7 @@ void ActorMonitorTable::DrawData(int nRow, int nCol, int nX, int nY, int nW, int
     int fg_color = FL_BLACK;
     int bg_color = FL_WHITE;
 
-    bool bSelectedRow = (m_actorMonitorList[nRow].UID == m_selectedUID);
+    bool bSelectedRow = (m_actorMonitorList[nRow].uid == m_selectedUID);
     bool bSelectedCol = (m_sortByCol >= 0 && m_sortByCol == nCol);
 
     if(bSelectedRow){
@@ -209,10 +210,10 @@ ActorMonitorTable::MonitorDataDiags ActorMonitorTable::GetMonitorDataDiags(const
     std::memset(&stDiags, 0, sizeof(stDiags));
 
     for(const auto &rstMonitor: rstMonitorList){
-        stDiags.MaxMessageDone    = (std::max<uint32_t>)(stDiags.MaxMessageDone,    rstMonitor.MessageDone);
-        stDiags.MaxMessagePending = (std::max<uint32_t>)(stDiags.MaxMessagePending, rstMonitor.MessagePending);
+        stDiags.MaxMessageDone    = (std::max<uint32_t>)(stDiags.MaxMessageDone,    rstMonitor.messageDone);
+        stDiags.MaxMessagePending = (std::max<uint32_t>)(stDiags.MaxMessagePending, rstMonitor.messagePending);
 
-        ++stDiags.UIDTypeList[uidf::getUIDType(rstMonitor.UID)];
+        ++stDiags.UIDTypeList[uidf::getUIDType(rstMonitor.uid)];
     }
     return stDiags;
 }
@@ -244,7 +245,7 @@ void ActorMonitorTable::SetupHeaderWidth()
 
 void ActorMonitorTable::UpdateTable()
 {
-    m_actorMonitorList = g_actorPool->GetActorMonitor();
+    m_actorMonitorList = g_actorPool->getActorMonitor();
     m_monitorDataDiags = GetMonitorDataDiags(m_actorMonitorList);
 
     if(rows() != (int)(m_actorMonitorList.size())){
@@ -261,7 +262,7 @@ void ActorMonitorTable::UpdateTable()
 int ActorMonitorTable::FindUIDRow(uint64_t nUID) const
 {
     for(int nIndex = 0; nIndex < (int)(m_actorMonitorList.size()); ++nIndex){
-        if(m_actorMonitorList[nIndex].UID == nUID){
+        if(m_actorMonitorList[nIndex].uid == nUID){
             return nIndex;
         }
     }
@@ -287,13 +288,13 @@ void ActorMonitorTable::ResetSort()
         };
 
         switch(m_sortByCol){
-            case 0 : return fnArgedCompare(lhs.UID, rhs.UID);
-            case 1 : return fnArgedCompare(uidf::getUIDType(lhs.UID), uidf::getUIDType(rhs.UID));
-            case 2 : return fnArgedCompare(uidf::getThreadID(lhs.UID), uidf::getThreadID(rhs.UID));
-            case 3 : return fnArgedCompare(lhs.LiveTick, rhs.LiveTick);
-            case 4 : return fnArgedCompare(lhs.BusyTick, rhs.BusyTick);
-            case 5 : return fnArgedCompare(lhs.MessageDone, rhs.MessageDone);
-            case 6 : return fnArgedCompare(lhs.MessagePending, rhs.MessagePending);
+            case 0 : return fnArgedCompare(lhs.uid, rhs.uid);
+            case 1 : return fnArgedCompare(uidf::getUIDType(lhs.uid), uidf::getUIDType(rhs.uid));
+            case 2 : return fnArgedCompare(g_actorPool->getBucketID(lhs.uid), g_actorPool->getBucketID(rhs.uid));
+            case 3 : return fnArgedCompare(lhs.liveTick, rhs.liveTick);
+            case 4 : return fnArgedCompare(lhs.busyTick, rhs.busyTick);
+            case 5 : return fnArgedCompare(lhs.messageDone, rhs.messageDone);
+            case 6 : return fnArgedCompare(lhs.messagePending, rhs.messagePending);
             default: return fnArgedCompare(&lhs, &rhs); // keep everything as it or reversed
         }
     });
@@ -307,7 +308,7 @@ int ActorMonitorTable::SelectUIDRow(uint64_t nUID)
 
     int nUIDRow = -1;
     for(int nIndex = 0; nIndex < GetDataRow(); ++nIndex){
-        if(m_actorMonitorList[nIndex].UID == nUID){
+        if(m_actorMonitorList[nIndex].uid == nUID){
             select_row(nIndex, 1);
             nUIDRow = nIndex;
         }else{
@@ -346,7 +347,7 @@ void ActorMonitorTable::OnClick()
 
     // setup new UID to hightlight
     if((nCtx == CONTEXT_CELL) && (nRow >= 0 && nRow < GetDataRow()) && (nCol >= 0) && (nCol < GetDataCol())){
-        m_selectedUID = m_actorMonitorList[nRow].UID;
+        m_selectedUID = m_actorMonitorList[nRow].uid;
         redraw();
         return;
     }

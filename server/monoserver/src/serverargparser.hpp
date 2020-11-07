@@ -27,14 +27,14 @@ struct ServerArgParser
     const bool DisableMapScript;        // "--disable-map-script"
     const bool TraceActorMessage;       // "--trace-actor-message"
     const bool TraceActorMessageCount;  // "--trace-actor-message-count"
-    const int  ActorPoolThread;         // "--actor-pool-thread"
+    const int  actorPoolThread;         // "--actor-pool-thread"
     const int  uidGroup;                // "--uid-group"
 
     ServerArgParser(const argh::parser &cmdParser)
         : DisableMapScript(cmdParser["disable-map-script"])
         , TraceActorMessage(cmdParser["trace-actor-message"])
         , TraceActorMessageCount(cmdParser["trace-actor-message-count"])
-        , ActorPoolThread([&cmdParser]()
+        , actorPoolThread([&cmdParser]()
           {
               if(auto szThreadNum = cmdParser("actor-pool-thread").str(); !szThreadNum.empty()){
                   try{

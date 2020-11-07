@@ -18,10 +18,14 @@
 
 #pragma once
 #include <string>
+#include <cstdint>
 #include <stdexcept>
 
 #define to_lld(x) static_cast<         long long>(x)
 #define to_llu(x) static_cast<unsigned long long>(x)
+
+#define to_u32(x) static_cast<uint32_t>(x)
+#define to_u64(x) static_cast<uint64_t>(x)
 
 #define to_cvptr(x) static_cast<const void *>(x)
 
