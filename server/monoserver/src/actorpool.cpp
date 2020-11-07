@@ -98,11 +98,6 @@ void ActorPool::attach(ActorPod *actorPtr)
         throw fflerror("invalid arguments: ActorPod = %p, ActorPod::UID() = %llu", to_cvptr(actorPtr), to_llu(actorPtr->UID()));
     }
 
-    const auto uid = actorPtr->UID();
-    const auto bucketId = getBucketID(uid);
-    const auto subBucketId = getSubBucketID(uid);
-    auto mailboxPtr = std::make_unique<Mailbox>(actorPtr);
-
     // can call this function from:
     // 1. application thread
     // 2. other/current actor thread spawning new actors
@@ -113,13 +108,24 @@ void ActorPool::attach(ActorPod *actorPtr)
     // exclusively lock before write
     // 1. to make sure any other reading thread done
     // 2. current thread won't accquire the lock in read mode
-    auto &subBucketRef = m_bucketList.at(bucketId).subBucketList.at(subBucketId);
+
+    const auto uid = actorPtr->UID();
+    auto mailboxPtr = std::make_unique<Mailbox>(actorPtr);
+    auto &subBucketRef = getSubBucket(uid);
     {
+        // always place the w-lock-protection
+        // this is the only place that can grow a subbucket
+
+        // this requires the sub-bucket lock is not acquired by anyone
+        // when calling this function from public threads, then it's OK
+        // when calling from the actor threads:
+        //   1. in the actor message handler: should be OK, we always call message handler without sub-bucket lock accqured
+        //   2. out of   the message handler: in actorpool.cpp
+
         MailboxSubBucket::WLockGuard lockGuard(subBucketRef.lock);
-        if(subBucketRef.mailboxList.contains(uid)){
+        if(!(subBucketRef.mailboxList.emplace(uid, std::move(mailboxPtr)).second)){
             throw fflerror("actor UID %llu exists in bucket already", to_llu(uid));
         }
-        subBucketRef.mailboxList[uid] = std::move(mailboxPtr);
     }
 }
 
@@ -357,15 +363,15 @@ bool ActorPool::postMessage(uint64_t uid, MessagePack msg)
     };
 
     if(getWorkerID() == bucketId){
-        return fnPostMessage(msg);
+        return fnPostMessage(std::move(msg));
     }
     else{
         MailboxSubBucket::RLockGuard lockGuard(subBucketRef.lock);
-        return fnPostMessage(msg);
+        return fnPostMessage(std::move(msg));
     }
 }
 
-bool ActorPool::runOneUID(uint64_t uid)
+void ActorPool::runOneUID(uint64_t uid)
 {
     const auto workerID = getWorkerID();
     if(!isActorThread(workerID)){
@@ -398,21 +404,31 @@ bool ActorPool::runOneUID(uint64_t uid)
 
     const int bucketId = getBucketID(uid);
     auto &subBucketRef = getSubBucket(uid);
-    if(workerID == bucketId){
+    auto mailboxPtr = [&subBucketRef, uid]() -> Mailbox *
+    {
+        // IMPORTANT: even in dedicated actor thread we still need to use r-lock proctection
+        //            because other actor may spawn new actors which get added to current sub-bucket
+        MailboxSubBucket::RLockGuard lockGuard(subBucketRef.lock);
         if(auto p = subBucketRef.mailboxList.find(uid); p != subBucketRef.mailboxList.end()){
-            if(!fnRunMailbox(p->second.get())){
-                MailboxSubBucket::WLockGuard lockGuard(subBucketRef.lock);
-                subBucketRef.mailboxList.erase(p);
-                return false;
-            }
+            return p->second.get();
         }
-        return true;
+        return nullptr;
+    }();
+
+    if(!mailboxPtr){
+        return;
     }
-    else{
-        if(auto p = subBucketRef.mailboxList.find(uid); p != subBucketRef.mailboxList.end()){
-            return fnRunMailbox(p->second.get());
-        }
-        return true;
+
+    if(fnRunMailbox(mailboxPtr)){
+        return;
+    }
+
+    // run the mailbox and found it has been detached
+    // remove it here if possible
+
+    if(workerID == bucketId){
+        MailboxSubBucket::WLockGuard lockGuard(subBucketRef.lock);
+        subBucketRef.mailboxList.erase(uid);
     }
 }
 
@@ -562,15 +578,19 @@ void ActorPool::clearOneMailbox(Mailbox *mailboxPtr)
 
 void ActorPool::runOneMailboxBucket(int bucketId)
 {
-    if(getWorkerID() != bucketId){
-        throw fflerror("udpate bucket %d by thread %d", bucketId, getWorkerID());
+    const int workerId = getWorkerID();
+    if(workerId != bucketId){
+        throw fflerror("udpate mailbox bucket %d by thread %d", bucketId, workerId);
     }
 
     auto &bucketRef = m_bucketList.at(bucketId);
-    const auto fnRunOneSubBucket = [&bucketRef, this](auto &subBucketRef, auto p)
+    const auto fnRunOneSubBucket = [&bucketRef, workerId, this](auto &subBucketRef, auto p)
     {
+        // we don't add lock on the current sub-bucket
+        // because when run each mailbox, its message handler may spawn new actors which changes current sub-bucket
+
         while(p != subBucketRef.mailboxList.end()){
-            switch(MailboxLock grabLock(p->second->schedLock, getWorkerID()); const auto lockType = grabLock.lockType()){
+            switch(MailboxLock grabLock(p->second->schedLock, workerId); const auto lockType = grabLock.lockType()){
                 case MAILBOX_DETACHED:
                     {
                         return p;
@@ -613,7 +633,7 @@ void ActorPool::runOneMailboxBucket(int bucketId)
                         // means 1. recursively call this runWorkerOneLoop()
                         //       2. forget to release the lock
 
-                        if(lockType == getWorkerID()){
+                        if(lockType == workerId){
                             throw fflerror("mailbox sched_lock has already been grabbed by current thread: %d", lockType);
                         }
 
@@ -640,7 +660,7 @@ void ActorPool::runOneMailboxBucket(int bucketId)
 
             clearOneMailbox(p->second.get());
             {
-                std::unique_lock<std::shared_mutex> lockGuard(subBucketRef.lock);
+                MailboxSubBucket::WLockGuard lockGuard(subBucketRef.lock);
                 p = subBucketRef.mailboxList.erase(p);
             }
         }
@@ -661,7 +681,7 @@ void ActorPool::launchPool()
             try{
                 raii_timer timer;
                 uint64_t lastUpdateTime = 0;
-                const uint64_t maxUpdateWaitTime = 1000ULL * 1000 * 1000 / m_logicFPS;
+                const uint64_t maxUpdateWaitTime = 1000ULL / m_logicFPS;
 
                 bool hasUID = false;
                 uint64_t uidPending = 0;

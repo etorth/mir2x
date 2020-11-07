@@ -238,8 +238,8 @@ class ActorPool final
             mutable std::shared_mutex lock;
             phmap::flat_hash_map<uint64_t, std::unique_ptr<Mailbox>> mailboxList;
 
-            using RLockGuard = std::shared_lock<decltype(lock)>;
-            using WLockGuard = std::unique_lock<decltype(lock)>;
+            using RLockGuard = std::shared_lock<std::shared_mutex>;
+            using WLockGuard = std::unique_lock<std::shared_mutex>;
         };
 
     private:
@@ -368,7 +368,7 @@ class ActorPool final
         bool postMessage(uint64_t, MessagePack);
 
     private:
-        bool runOneUID(uint64_t);
+        void runOneUID(uint64_t);
         bool runOneMailbox(Mailbox *, bool);
         void runOneMailboxBucket(int);
 
