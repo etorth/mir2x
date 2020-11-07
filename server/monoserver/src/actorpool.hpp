@@ -380,12 +380,6 @@ class ActorPool final
         std::vector<ActorMonitor> getActorMonitor() const;
 
     public:
-        int pickThreadID() const;
-
-    private:
-        Mailbox *findMailbox(uint64_t);
-
-    public:
         int getBucketID(uint64_t uid) const
         {
             return static_cast<int>(uid % (uint64_t)(m_bucketList.size()));
@@ -396,23 +390,25 @@ class ActorPool final
             return static_cast<int>(uid % (uint64_t)(m_subBucketCount));
         }
 
+    public:
         const MailboxSubBucket & getSubBucket(int bucketId, int subBucketId) const
-        {
-            return m_bucketList.at(bucketId).subBucketList.at(subBucketId);
-        }
-
-        MailboxSubBucket & getSubBucket(int bucketId, int subBucketId)
         {
             return const_cast<ActorPool *>(this)->getSubBucket(bucketId, subBucketId);
         }
 
+        MailboxSubBucket & getSubBucket(int bucketId, int subBucketId)
+        {
+            return m_bucketList.at(bucketId).subBucketList.at(subBucketId);
+        }
+
+    public:
         const MailboxSubBucket & getSubBucket(uint64_t uid) const
         {
-            return getSubBucket(getBucketID(uid), getSubBucketID(uid));
+            return const_cast<ActorPool *>(this)->getSubBucket(uid);
         }
 
         MailboxSubBucket & getSubBucket(uint64_t uid)
         {
-            return const_cast<ActorPool *>(this)->getSubBucket(uid);
+            return getSubBucket(getBucketID(uid), getSubBucketID(uid));
         }
 };
