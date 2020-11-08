@@ -334,7 +334,7 @@ bool ActorPool::postMessage(uint64_t uid, MessagePack msg)
 
     const auto bucketId = getBucketID(uid);
     auto &subBucketRef = getSubBucket(uid);
-    const auto fnPostMessage = [this, &subBucketRef, uid](MessagePack msg)
+    const auto fnPostMessage = [this, bucketId, &subBucketRef, uid](MessagePack msg)
     {
         // here won't try lock the mailbox
         // but it will check if the mailbox is detached
@@ -359,8 +359,10 @@ bool ActorPool::postMessage(uint64_t uid, MessagePack msg)
                 //   1. don't run an already detached actor
                 //   2. clear all pending message in a detached actor by clearOneMailbox()
                 p->second->nextQ.push_back(std::move(msg));
-                return true;
             }
+
+            m_bucketList.at(bucketId).uidQPending.push(uid);
+            return true;
         }
         return false;
     };
