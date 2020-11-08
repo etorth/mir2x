@@ -361,6 +361,16 @@ bool ActorPool::postMessage(uint64_t uid, MessagePack msg)
                 p->second->nextQ.push_back(std::move(msg));
             }
 
+            // here I can push to any buckets
+            // every dedicated actor thread can handle UID outside of its bucket
+
+            const auto bucketCount = (int)(m_bucketList.size());
+            for(int i = 0; i < bucketCount; ++i){
+                if(m_bucketList.at((bucketId + i) % bucketCount).uidQPending.try_push(uid)){
+                    return true;
+                }
+            }
+
             m_bucketList.at(bucketId).uidQPending.push(uid);
             return true;
         }
