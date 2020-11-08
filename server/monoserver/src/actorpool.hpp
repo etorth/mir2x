@@ -194,8 +194,8 @@ class ActorPool final
             // uid is duplicated
             // used only when mailbox detached, actor is NULL
 
-            uint64_t  uid   = 0;
-            ActorPod *actor = 0;
+            const uint64_t uid = 0;
+            ActorPod    *actor = 0;
 
             MailboxMutex schedLock;
             std::mutex   nextQLock;
