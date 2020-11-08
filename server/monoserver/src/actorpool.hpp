@@ -191,7 +191,12 @@ class ActorPool final
     private:
         struct Mailbox
         {
-            ActorPod    *actor;
+            // uid is duplicated
+            // used only when mailbox detached, actor is NULL
+
+            uint64_t  uid   = 0;
+            ActorPod *actor = 0;
+
             MailboxMutex schedLock;
             std::mutex   nextQLock;
 
@@ -204,23 +209,17 @@ class ActorPool final
             // then no need to acquire schedLock to dump the monitor
             struct MailboxMonitor
             {
-                uint64_t   uid;
                 hres_timer liveTimer;
-
                 std::atomic<uint64_t> procTick{0};
                 std::atomic<uint32_t> messageDone{0};
                 std::atomic<uint32_t> messagePending{0};
-
-                MailboxMonitor(uint64_t argUID)
-                    : uid(argUID)
-                {}
             } monitor;
 
             auto dumpMonitor() const
             {
                 return ActorMonitor
                 {
-                    to_u64(monitor.uid),
+                    to_u64(uid),
                     to_u32(monitor.liveTimer.diff_msec()),
                     to_u32(monitor.procTick.load() / 1000000ULL),
                     to_u32(monitor.messageDone.load()),

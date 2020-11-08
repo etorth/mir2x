@@ -44,8 +44,8 @@ static int getWorkerID()
 }
 
 ActorPool::Mailbox::Mailbox(ActorPod *actorPtr)
-    : actor(actorPtr)
-    , monitor(actorPtr->UID())
+    : uid(actorPtr->UID())
+    , actor(actorPtr)
 {}
 
 ActorPool::ActorPool(int bucketCount, int logicFPS)
@@ -583,7 +583,7 @@ void ActorPool::clearOneMailbox(Mailbox *mailboxPtr)
             stAMBAP.from    = pMPK->from();
             stAMBAP.ID      = pMPK->ID();
             stAMBAP.Respond = pMPK->Respond();
-            stAMBAP.UID     = mailboxPtr->monitor.uid;
+            stAMBAP.UID     = mailboxPtr->uid;
 
             postMessage(pMPK->from(), {MessageBuf(MPK_BADACTORPOD, stAMBAP), 0, 0, pMPK->ID()});
         }
