@@ -24,5 +24,4 @@ echo "Profiling result generated at: ${LOG_DIR}"
     ./monoserver                            \
 )
 
-google-pprof --callgrind ${BIN_DIR}/monoserver ${LOG_DIR}/mir2x-server.log > ${LOG_DIR}/mir2x-server.callgrind
-kcachegrind ${LOG_DIR}/mir2x-server.callgrind
+google-pprof --svg ${BIN_DIR}/monoserver ${LOG_DIR}/mir2x-server.log > ${LOG_DIR}/mir2x-server.svg

@@ -20,5 +20,4 @@ echo "Profiling result generated at: ${LOG_DIR}"
     ./client                                \
 )
 
-google-pprof --callgrind ${BIN_DIR}/client ${LOG_DIR}/mir2x-client.log > ${LOG_DIR}/mir2x-client.callgrind
-kcachegrind ${LOG_DIR}/mir2x-client.callgrind
+google-pprof --svg ${BIN_DIR}/client ${LOG_DIR}/mir2x-client.log > ${LOG_DIR}/mir2x-client.svg
