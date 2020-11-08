@@ -127,6 +127,9 @@ void ActorPool::attach(ActorPod *actorPtr)
             throw fflerror("actor UID %llu exists in bucket already", to_llu(uid));
         }
     }
+
+    // don't push the pointer into mailboxListCache, because mailboxListCache is used to iteration
+    // if this attach is from the the iteration loop, it invalidates the mailboxListCache iterators in runOneMailboxBucket()
 }
 
 void ActorPool::attach(Receiver *receriverPtr)
@@ -583,86 +586,104 @@ void ActorPool::runOneMailboxBucket(int bucketId)
         throw fflerror("udpate mailbox bucket %d by thread %d", bucketId, workerId);
     }
 
-    auto &bucketRef = m_bucketList.at(bucketId);
-    const auto fnRunOneSubBucket = [&bucketRef, workerId, this](auto &subBucketRef, auto p)
+    const auto fnRunMailbox = [workerId, this](Mailbox *p) -> bool
     {
-        // we don't add lock on the current sub-bucket
+        // return false if detached
+        // we can't add r/w-lock on the current sub-bucket
         // because when run each mailbox, its message handler may spawn new actors which changes current sub-bucket
 
-        while(p != subBucketRef.mailboxList.end()){
-            switch(MailboxLock grabLock(p->second->schedLock, workerId); const auto lockType = grabLock.lockType()){
-                case MAILBOX_DETACHED:
-                    {
-                        return p;
+        switch(MailboxLock grabLock(p->schedLock, workerId); const auto lockType = grabLock.lockType()){
+            case MAILBOX_DETACHED:
+                {
+                    return false;
+                }
+            case MAILBOX_READY:
+                {
+                    // we grabbed the mailbox successfully
+                    // but it can flip to detached if call detach() in its message handler
+
+                    // if between message handling it flips to detached
+                    // we just return immediately and leave the rest handled message there
+
+                    // don't try clean it
+                    // since we can't guarentee to clean it complately
+                    return runOneMailbox(p, true);
+                }
+            case MAILBOX_ACCESS_PUB:
+                {
+                    // we need to allow public threads accessing the schedLock to detach actors
+                    //    1. public thread can detach it by force
+                    //    2. public thread can query actorpod statistics
+                    // but should I spin here or just leave and try next mailbox ???
+                    return true;
+                }
+            default:
+                {
+                    // we didn't get the schedlock
+                    // then don't access the actor pointer here for read/log...
+                    if(!isActorThread(lockType)){
+                        throw fflerror("invalid mailbox status: %d", lockType);
                     }
-                case MAILBOX_READY:
-                    {
-                        // we grabbed the mailbox successfully
-                        // but it can flip to detached if call detach() in its message handler
 
-                        // if between message handling it flips to detached
-                        // we just return immediately and leave the rest handled message there
+                    // current dedicated *actor* thread has already grabbed this mailbox lock
+                    // means 1. recursively call this runWorkerOneLoop()
+                    //       2. forget to release the lock
 
-                        // don't try clean it
-                        // since we can't guarentee to clean it complately
-                        if(!runOneMailbox(p->second.get(), true)){
-                            return p;
-                        }
-
-                        ++p;
-                        break;
+                    if(lockType == workerId){
+                        throw fflerror("mailbox sched_lock has already been grabbed by current thread: %d", lockType);
                     }
-                case MAILBOX_ACCESS_PUB:
-                    {
-                        // we need to allow public threads accessing the schedLock to detach actors
-                        //    1. public thread can detach it by force
-                        //    2. public thread can query actorpod statistics
-                        // but should I spin here or just leave and try next mailbox ???
-                        ++p;
-                        break;
-                    }
-                default:
-                    {
-                        // we didn't get the schedlock
-                        // then don't access the actor pointer here for read/log...
-                        if(!isActorThread(lockType)){
-                            throw fflerror("invalid mailbox status: %d", lockType);
-                        }
 
-                        // current dedicated *actor* thread has already grabbed this mailbox lock
-                        // means 1. recursively call this runWorkerOneLoop()
-                        //       2. forget to release the lock
-
-                        if(lockType == workerId){
-                            throw fflerror("mailbox sched_lock has already been grabbed by current thread: %d", lockType);
-                        }
-
-                        // if a mailbox grabbed by some other actor thread
-                        // we skip it and try next one, the grbbing thread will handle all its queued message
-                        ++p;
-                        break;
-                    }
-            }
+                    // if a mailbox grabbed by some other actor thread
+                    // we skip it and try next one, the grbbing thread will handle all its queued message
+                    return true;
+                }
         }
-        return subBucketRef.mailboxList.end();
     };
 
+    auto &bucketRef = m_bucketList.at(bucketId);
     for(int subBucketId = 0; subBucketId < m_subBucketCount; ++subBucketId){
         auto &subBucketRef = bucketRef.subBucketList.at(subBucketId);
-        for(auto p = fnRunOneSubBucket(subBucketRef, subBucketRef.mailboxList.begin()); p != subBucketRef.mailboxList.end(); p = fnRunOneSubBucket(subBucketRef, p)){
-            // we detected a detached actor
-            // clear all its queued messages and remove it if ready
-            // call delayed atExit handler if any
-            if(p->second->atExit){
-                p->second->atExit();
-                p->second->atExit = nullptr;
+        auto &listCacheRef = subBucketRef.mailboxListCache;
+        {
+            MailboxSubBucket::RLockGuard lockGuard(subBucketRef.lock);
+            if(listCacheRef.size() != subBucketRef.mailboxList.size()){
+                listCacheRef.clear();
+                listCacheRef.reserve(subBucketRef.mailboxList.size());
+                for(auto &p: subBucketRef.mailboxList){
+                    listCacheRef.push_back(p.second.get());
+                }
+            }
+        }
+
+        // implemented to use index, not iterator
+        // this can help to support if we append new mailbox pointers into the cache
+
+        bool hasDeletedMailbox = false;
+        for(size_t mailboxIndex = 0; mailboxIndex < listCacheRef.size(); ++mailboxIndex){
+            auto mailboxPtr = listCacheRef.at(mailboxIndex);
+            if(fnRunMailbox(mailboxPtr)){
+                continue;
             }
 
-            clearOneMailbox(p->second.get());
+            if(mailboxPtr->atExit){
+                mailboxPtr->atExit();
+                mailboxPtr->atExit = nullptr;
+            }
+
+            clearOneMailbox(mailboxPtr);
             {
                 MailboxSubBucket::WLockGuard lockGuard(subBucketRef.lock);
-                p = subBucketRef.mailboxList.erase(p);
+                subBucketRef.mailboxList.erase(mailboxPtr->actor->UID());
+                hasDeletedMailbox = true;
             }
+        }
+
+        // clear the cache if we removed any mailbox
+        // otherwise accesses dangling pointers when we deleted one mailbox and and one mailbox
+        // the size check can't detect it
+
+        if(hasDeletedMailbox){
+            listCacheRef.clear();
         }
     }
 }

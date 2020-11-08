@@ -235,6 +235,23 @@ class ActorPool final
 
         struct MailboxSubBucket
         {
+            // dirty part, when calling runOneMailboxBucket() we can't prevent current sub-bucket from rehashing, because:
+            //
+            //   1. we can't r/w-lock current sub-bucket when calling actor message handler, since message handler may call attach/detach and this causes lock twice
+            //   2. job-stealing by other actor thread can also spawn new actors and insert to current sub-bucket
+            //
+            // we can't iterate over the sub-bucket if rehashing happens
+            // so we put this pointer array as cache, we alternatively iterate over this cached mailbox list
+            //
+            // we update the cache whenever needed
+            // don't need a lock since it can ONLY be accessed by dedicated actor thread
+            //
+            // we guarantee mailbox in this cache list is a subset of the mailboxList
+            // otherwise it cases multi-update in one loop and more dangeriously: access a mailbox by pointer but which can be delted already
+            std::vector<Mailbox *> mailboxListCache;
+
+            // protected mailbox list
+            // always need to r/w-lock before change it structurally
             mutable std::shared_mutex lock;
             phmap::flat_hash_map<uint64_t, std::unique_ptr<Mailbox>> mailboxList;
 
