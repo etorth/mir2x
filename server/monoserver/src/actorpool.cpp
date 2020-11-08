@@ -685,7 +685,7 @@ void ActorPool::runOneMailboxBucket(int bucketId)
             clearOneMailbox(mailboxPtr);
             {
                 MailboxSubBucket::WLockGuard lockGuard(subBucketRef.lock);
-                subBucketRef.mailboxList.erase(mailboxPtr->actor->UID());
+                subBucketRef.mailboxList.erase(mailboxPtr->uid);
                 hasDeletedMailbox = true;
             }
         }
