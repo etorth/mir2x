@@ -766,7 +766,7 @@ void ActorPool::launchPool()
                             lastUpdateTime = currTime;
                         }
 
-                        for(int i = 0; i < (int)(m_bucketList.size()) * 4; ++i){
+                        for(int i = 0; i < (int)(m_bucketList.size()) * 32; ++i){
                             if(m_bucketList[(bucketId + i) % m_bucketList.size()].uidQPending.try_pop(uidPending)){
                                 hasUID = true;
                                 break;
