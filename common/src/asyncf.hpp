@@ -77,14 +77,18 @@ namespace asyncf
         public:
             bool try_push(T task)
             {
+                bool added = false;
                 {
                     asyncf::tryLockGuard<decltype(m_lock)> lockGuard(m_lock);
                     if(!lockGuard){
                         return false;
                     }
-                    m_taskQ.push(std::move(task));
+                    added = m_taskQ.push(std::move(task));
                 }
-                m_cond.notify_one();
+
+                if(added){
+                    m_cond.notify_one();
+                }
                 return true;
             }
 
@@ -102,11 +106,15 @@ namespace asyncf
         public:
             void push(T task)
             {
+                bool added = false;
                 {
                     std::lock_guard<decltype(m_lock)> lockGuard(m_lock);
-                    m_taskQ.push(std::move(task));
+                    added = m_taskQ.push(std::move(task));
                 }
-                m_cond.notify_one();
+
+                if(added){
+                    m_cond.notify_one();
+                }
             }
 
             void pop(T &task, uint64_t msec, int &ec)

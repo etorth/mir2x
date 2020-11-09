@@ -87,14 +87,15 @@ class ActorPool final
                 }
 
             public:
-                void push(uint64_t uid)
+                bool push(uint64_t uid)
                 {
                     if(m_uidSet.contains(uid)){
-                        return;
+                        return false;
                     }
 
                     m_PQ.push(UIDComper(uid));
                     m_uidSet.insert(uid);
+                    return true;
                 }
         };
 
