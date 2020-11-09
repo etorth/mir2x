@@ -53,26 +53,57 @@ class ActorPool final
     public:
         struct UIDComper
         {
-            uint64_t uid;
-            bool operator < (const UIDComper &other) const
+            bool operator () (uint64_t x, uint64_t y) const
             {
-                return uidf::getUIDType(uid) > uidf::getUIDType(other.uid);
+                return uidf::getUIDType(x) > uidf::getUIDType(y);
             }
         };
 
         class UIDPriorityQueue
         {
             private:
-                std::priority_queue<UIDComper> m_PQ;
+                struct UIDPQImpl: public std::priority_queue<uint64_t, std::vector<uint64_t>, UIDComper>
+                {
+                    UIDPQImpl()
+                    {
+                        this->c.reserve(2048);
+                    }
+
+                    void uidSwap(std::vector<uint64_t> &uidList)
+                    {
+                        std::swap(uidList, this->c);
+                    }
+                };
+
+            private:
+                UIDPQImpl m_PQ;
                 phmap::flat_hash_set<uint64_t> m_uidSet;
 
             public:
                 uint64_t pick_top()
                 {
-                    const auto top = m_PQ.top().uid;
+                    const auto uidTop = m_PQ.top();
                     m_PQ.pop();
-                    m_uidSet.erase(top);
-                    return top;
+
+                    m_uidSet.erase(uidTop);
+                    return uidTop;
+                }
+
+                void pick_top_batch(std::vector<uint64_t> &uidList, size_t maxPop)
+                {
+                    uidList.clear();
+                    if(maxPop > 0){
+                        for(size_t i = 0; i < maxPop; ++i){
+                            if(empty()){
+                                break;
+                            }
+                            uidList.push_back(pick_top());
+                        }
+                    }
+                    else{
+                        m_PQ.uidSwap(uidList);
+                        m_uidSet.clear();
+                    }
                 }
 
             public:
@@ -93,7 +124,7 @@ class ActorPool final
                         return false;
                     }
 
-                    m_PQ.push(UIDComper(uid));
+                    m_PQ.push(uid);
                     m_uidSet.insert(uid);
                     return true;
                 }
