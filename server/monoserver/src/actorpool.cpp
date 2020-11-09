@@ -749,16 +749,16 @@ void ActorPool::launchPool()
                 uint64_t lastUpdateTime = 0;
                 const uint64_t maxUpdateWaitTime = 1000ULL / m_logicFPS;
 
-                bool hasUID = false;
-                uint64_t uidPending = 0;
+                std::vector<uint64_t> uidList;
+                uidList.reserve(2048);
 
                 while(true){
-                    if(hasUID){
-                        runOneUID(uidPending);
-                        hasUID = false;
-                        uidPending = 0;
+                    if(!uidList.empty()){
+                        for(const auto uid: uidList){
+                            runOneUID(uid);
+                        }
+                        uidList.clear();
                     }
-
                     else{
                         const uint64_t currTime = timer.diff_msec();
                         if(currTime >= lastUpdateTime + maxUpdateWaitTime){
@@ -766,18 +766,19 @@ void ActorPool::launchPool()
                             lastUpdateTime = currTime;
                         }
 
-                        for(int i = 0; i < (int)(m_bucketList.size()) * 4; ++i){
-                            if(m_bucketList[(bucketId + i) % m_bucketList.size()].uidQPending.try_pop(uidPending)){
-                                hasUID = true;
+                        for(int i = 0; i < (int)(m_bucketList.size()) * 32; ++i){
+                            const int currBucketId = (bucketId + i) % (int)(m_bucketList.size());
+                            const size_t maxPopCount = (currBucketId == bucketId) ? 0 : 4;
+                            if(m_bucketList[currBucketId].uidQPending.try_pop_batch(uidList, maxPopCount) && !uidList.empty()){
                                 break;
                             }
                         }
 
-                        if(!hasUID){
+                        if(uidList.empty()){
                             int ec = 0;
                             const uint64_t exptUpdateTime = lastUpdateTime + maxUpdateWaitTime;
                             if(currTime < exptUpdateTime){
-                                m_bucketList[bucketId].uidQPending.pop(uidPending, exptUpdateTime - currTime, ec);
+                                m_bucketList[bucketId].uidQPending.pop_batch(uidList, 0, exptUpdateTime - currTime, ec);
                             }
                             else{
                                 ec = asyncf::E_TIMEOUT;
@@ -794,7 +795,9 @@ void ActorPool::launchPool()
                                 // hold for next loop
                             }
                             else if(ec == asyncf::E_DONE){
-                                hasUID = true;
+                                if(uidList.empty()){
+                                    throw fflerror("taskQ returns E_DONE with empty uid list");
+                                }
                             }
                             else{
                                 throw fflerror("asyncf::taskQ::pop() returns invalid result: %d", ec);

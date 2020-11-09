@@ -16,6 +16,7 @@
  * =====================================================================================
  */
 
+#include <vector>
 #include <queue>
 #include <thread>
 #include <chrono>
@@ -103,6 +104,17 @@ namespace asyncf
                 return true;
             }
 
+            bool try_pop_batch(std::vector<T> &taskList, size_t maxPop)
+            {
+                asyncf::tryLockGuard<decltype(m_lock)> lockGuard(m_lock);
+                if(!lockGuard || m_taskQ.empty()){
+                    return false;
+                }
+
+                m_taskQ.pick_top_batch(taskList, maxPop);
+                return true;
+            }
+
         public:
             void push(T task)
             {
@@ -178,6 +190,68 @@ namespace asyncf
                 }
             }
 
+            void pop_batch(std::vector<T> &taskList, size_t maxPop, uint64_t msec, int &ec)
+            {
+                std::unique_lock<decltype(m_lock)> lockGuard(m_lock);
+                if(msec > 0){
+                    const bool wait_res = m_cond.wait_for(lockGuard, std::chrono::milliseconds(msec), [this]() -> bool
+                    {
+                        return m_closed || !m_taskQ.empty();
+                    });
+
+                    if(wait_res){
+                        // pred returns true
+                        // means either not expired, or even expired but the pred evals to true now
+
+                        // when queue is closed AND there are still tasks in m_taskQ
+                        // what I should do ???
+
+                        // currently I returns the task pending in the m_taskQ
+                        // so a taskQ can be closed but you can still pop task from it
+
+                        if(!m_taskQ.empty()){
+                            ec = asyncf::E_DONE;
+                            m_taskQ.pick_top_batch(taskList, maxPop);
+                        }
+                        else if(m_closed){
+                            ec = asyncf::E_QCLOSED;
+                        }
+                        else{
+                            // taskQ is not closed and m_taskQ is empty
+                            // then pred evals to true, can only be time expired
+                            ec = asyncf::E_TIMEOUT;
+                        }
+                    }
+                    else{
+                        // by https://en.cppreference.com/w/cpp/thread/condition_variable_any/wait_for
+                        // when wait_res returns false:
+                        // 1. the time has been expired
+                        // 2. the pred still returns false, means:
+                        //      1. queue is not closed, and
+                        //      2. m_taskQ is still empty
+                        ec = asyncf::E_TIMEOUT;
+                    }
+                }
+                else{
+                    m_cond.wait(lockGuard, [this]() -> bool
+                    {
+                        return m_closed || !m_taskQ.empty();
+                    });
+
+                    // when there is task in m_taskQ
+                    // we always firstly pick & return the task before report E_CLOSED
+
+                    if(!m_taskQ.empty()){
+                        ec = asyncf::E_DONE;
+                        m_taskQ.pick_top_batch(taskList, maxPop);
+                    }
+                    else{
+                        ec = asyncf::E_QCLOSED;
+                    }
+                }
+            }
+
+        public:
             bool pop(T &task)
             {
                 int ec = 0;
