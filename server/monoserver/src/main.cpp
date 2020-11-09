@@ -20,7 +20,6 @@
 
 #include "log.hpp"
 #include "dbpod.hpp"
-#include "memorypn.hpp"
 #include "mapbindb.hpp"
 #include "actorpool.hpp"
 #include "netdriver.hpp"
@@ -36,7 +35,6 @@
 
 ServerArgParser          *g_serverArgParser;
 Log                      *g_log;
-MemoryPN                 *g_memoryPN;
 ActorPool                *g_actorPool;
 NetDriver                *g_netDriver;
 DBPodN                   *g_DBPodN;
@@ -64,7 +62,6 @@ int main(int argc, char *argv[])
         g_scriptWindow             = new ScriptWindow();
         g_mainWindow               = new MainWindow();
         g_monoServer               = new MonoServer();
-        g_memoryPN                 = new MemoryPN();
         g_mapBinDB                 = new MapBinDB();
         g_serverConfigureWindow    = new ServerConfigureWindow();
         g_databaseConfigureWindow  = new DatabaseConfigureWindow();
