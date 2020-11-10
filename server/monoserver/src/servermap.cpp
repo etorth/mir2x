@@ -63,6 +63,11 @@ ServerMap::ServerMapLuaModule::ServerMapLuaModule(ServerMap *mapPtr)
         return std::string(to_cstr(DBCOM_MAPRECORD(mapPtr->ID()).name));
     });
 
+    getLuaState().set_function("getMapSize", [mapPtr]()
+    {
+        return sol::as_returns(std::vector<int>{mapPtr->W(), mapPtr->H()});
+    });
+
     getLuaState().set_function("getMonsterList", [mapPtr](sol::this_state thisLua)
     {
         // convert to std::string

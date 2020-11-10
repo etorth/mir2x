@@ -21,7 +21,8 @@ function main()
 
     addLog(LOGTYPE_INFO, 'map script ' .. getMapName() .. ' starts, use default.lua')
 
-    g_MaxMonsterCount = 20
+    local w, h = getMapSize()
+    g_MaxMonsterCount = math.floor(w * h / 64)
     g_LogicDelay      = 1000
     g_LastInvokeTime  = getTime()
 
