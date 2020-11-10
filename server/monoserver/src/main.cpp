@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
         g_mapBinDB                 = new MapBinDB();
         g_serverConfigureWindow    = new ServerConfigureWindow();
         g_databaseConfigureWindow  = new DatabaseConfigureWindow();
-        g_actorPool                = new ActorPool(4, 10);
+        g_actorPool                = new ActorPool(g_serverArgParser->actorPoolThread, 10);
         g_DBPodN                   = new DBPodN();
         g_netDriver                = new NetDriver();
         g_actorMonitorWindow       = new ActorMonitorWindow();
