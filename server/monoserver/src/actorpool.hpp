@@ -31,7 +31,6 @@
 #include <shared_mutex>
 #include <unordered_map>
 #include "uidf.hpp"
-#include "asyncf.hpp"
 #include "condcheck.hpp"
 #include "raiitimer.hpp"
 #include "messagepack.hpp"
@@ -89,7 +88,7 @@ class ActorPool final
                     return uidTop;
                 }
 
-                void pick_top_batch(std::vector<uint64_t> &uidList, size_t maxPop)
+                void pick_top(std::vector<uint64_t> &uidList, size_t maxPop)
                 {
                     uidList.clear();
                     if(maxPop > 0){
@@ -127,6 +126,177 @@ class ActorPool final
                     m_PQ.push(uid);
                     m_uidSet.insert(uid);
                     return true;
+                }
+        };
+
+    private:
+        template<typename L> class TryLockGuard
+        {
+            private:
+                L &m_lockRef;
+                const bool m_locked;
+
+            public:
+                explicit TryLockGuard(L &lock)
+                    : m_lockRef(lock)
+                    , m_locked(lock.try_lock())
+                {}
+
+                ~TryLockGuard()
+                {
+                    if(m_locked){
+                        m_lockRef.unlock();
+                    }
+                }
+
+                operator bool () const
+                {
+                    return m_locked;
+                }
+
+            private:
+                TryLockGuard              (const TryLockGuard &) = delete;
+                TryLockGuard & operator = (const TryLockGuard &) = delete;
+        };
+
+        enum
+        {
+            E_DONE    = 0,  // no error
+            E_QCLOSED = 1,  // queue closed
+            E_TIMEOUT = 2,  // wait timeout
+        };
+
+        class UIDQueue final
+        {
+            private:
+                bool m_closed = false;
+                UIDPriorityQueue m_uidQ;
+
+            private:
+                mutable std::mutex m_lock;
+                mutable std::condition_variable m_cond;
+
+            public:
+                UIDQueue() = default;
+
+            public:
+                bool try_push(uint64_t uid)
+                {
+                    bool added = false;
+                    {
+                        TryLockGuard<decltype(m_lock)> lockGuard(m_lock);
+                        if(!lockGuard){
+                            return false;
+                        }
+                        added = m_uidQ.push(uid);
+                    }
+
+                    if(added){
+                        m_cond.notify_one();
+                    }
+                    return true;
+                }
+
+                bool try_pop(std::vector<uint64_t> &uidList, size_t maxPop)
+                {
+                    TryLockGuard<decltype(m_lock)> lockGuard(m_lock);
+                    if(!lockGuard || m_uidQ.empty()){
+                        return false;
+                    }
+
+                    m_uidQ.pick_top(uidList, maxPop);
+                    return true;
+                }
+
+            public:
+                void push(uint64_t uid)
+                {
+                    bool added = false;
+                    {
+                        std::lock_guard<decltype(m_lock)> lockGuard(m_lock);
+                        added = m_uidQ.push(uid);
+                    }
+
+                    if(added){
+                        m_cond.notify_one();
+                    }
+                }
+
+                void pop(std::vector<uint64_t> &uidList, size_t maxPop, uint64_t msec, int &ec)
+                {
+                    std::unique_lock<decltype(m_lock)> lockGuard(m_lock);
+                    if(msec > 0){
+                        const bool wait_res = m_cond.wait_for(lockGuard, std::chrono::milliseconds(msec), [this]() -> bool
+                        {
+                            return m_closed || !m_uidQ.empty();
+                        });
+
+                        if(wait_res){
+                            // pred returns true
+                            // means either not expired, or even expired but the pred evals to true now
+
+                            // when queue is closed AND there are still tasks in m_uidQ
+                            // what I should do ???
+
+                            // currently I returns the task pending in the m_uidQ
+                            // so a UIDQueue can be closed but you can still pop task from it
+
+                            if(!m_uidQ.empty()){
+                                ec = E_DONE;
+                                m_uidQ.pick_top(uidList, maxPop);
+                            }
+                            else if(m_closed){
+                                ec = E_QCLOSED;
+                            }
+                            else{
+                                // UIDQueue is not closed and m_uidQ is empty
+                                // then pred evals to true, can only be time expired
+                                ec = E_TIMEOUT;
+                            }
+                        }
+                        else{
+                            // by https://en.cppreference.com/w/cpp/thread/condition_variable_any/wait_for
+                            // when wait_res returns false:
+                            // 1. the time has been expired
+                            // 2. the pred still returns false, means:
+                            //      1. queue is not closed, and
+                            //      2. m_uidQ is still empty
+                            ec = E_TIMEOUT;
+                        }
+                    }
+                    else{
+                        m_cond.wait(lockGuard, [this]() -> bool
+                        {
+                            return m_closed || !m_uidQ.empty();
+                        });
+
+                        // when there is task in m_uidQ
+                        // we always firstly pick & return the task before report E_CLOSED
+
+                        if(!m_uidQ.empty()){
+                            ec = E_DONE;
+                            m_uidQ.pick_top(uidList, maxPop);
+                        }
+                        else{
+                            ec = E_QCLOSED;
+                        }
+                    }
+                }
+
+            public:
+                void close()
+                {
+                    {
+                        std::lock_guard<decltype(m_lock)> lockGuard(m_lock);
+                        m_closed = true;
+                    }
+                    m_cond.notify_all();
+                }
+
+                size_t size_hint() const
+                {
+                    std::lock_guard<decltype(m_lock)> lockGuard(m_lock);
+                    return m_uidQ.size();
                 }
         };
 
@@ -295,7 +465,7 @@ class ActorPool final
         struct MailboxBucket
         {
             std::future<void> runThread;
-            asyncf::taskQ<uint64_t, UIDPriorityQueue> uidQPending;
+            UIDQueue uidQPending;
             std::array<MailboxSubBucket, m_subBucketCount> subBucketList;
         };
 

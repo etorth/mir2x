@@ -769,7 +769,7 @@ void ActorPool::launchPool()
                         for(int i = 0; i < (int)(m_bucketList.size()) * 32; ++i){
                             const int currBucketId = (bucketId + i) % (int)(m_bucketList.size());
                             const size_t maxPopCount = (currBucketId == bucketId) ? 0 : 4;
-                            if(m_bucketList[currBucketId].uidQPending.try_pop_batch(uidList, maxPopCount) && !uidList.empty()){
+                            if(m_bucketList[currBucketId].uidQPending.try_pop(uidList, maxPopCount) && !uidList.empty()){
                                 break;
                             }
                         }
@@ -778,29 +778,29 @@ void ActorPool::launchPool()
                             int ec = 0;
                             const uint64_t exptUpdateTime = lastUpdateTime + maxUpdateWaitTime;
                             if(currTime < exptUpdateTime){
-                                m_bucketList[bucketId].uidQPending.pop_batch(uidList, 0, exptUpdateTime - currTime, ec);
+                                m_bucketList[bucketId].uidQPending.pop(uidList, 0, exptUpdateTime - currTime, ec);
                             }
                             else{
-                                ec = asyncf::E_TIMEOUT;
+                                ec = E_TIMEOUT;
                             }
 
-                            if(ec == asyncf::E_QCLOSED){
+                            if(ec == E_QCLOSED){
                                 break;
                             }
-                            else if(ec == asyncf::E_TIMEOUT){
+                            else if(ec == E_TIMEOUT){
                                 // didn't get any pending UID
                                 // and when reach here we are sure the thread needs to update the whole mailbox by METRONOME
 
                                 // do nothing here
                                 // hold for next loop
                             }
-                            else if(ec == asyncf::E_DONE){
+                            else if(ec == E_DONE){
                                 if(uidList.empty()){
                                     throw fflerror("taskQ returns E_DONE with empty uid list");
                                 }
                             }
                             else{
-                                throw fflerror("asyncf::taskQ::pop() returns invalid result: %d", ec);
+                                throw fflerror("uidQPending[bucketId = %d].pop() returns invalid result: %d", bucketId, ec);
                             }
                         }
                     }
