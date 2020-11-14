@@ -152,4 +152,10 @@ class ActorPod final
 
     public:
         void PrintMonitor() const;
+
+    public:
+        ActorPodMonitor getPodMonitor() const
+        {
+            return m_podMonitor;
+        }
 };
