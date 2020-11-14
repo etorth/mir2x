@@ -27,6 +27,7 @@
 #include "mainwindow.hpp"
 #include "scriptwindow.hpp"
 #include "serverargparser.hpp"
+#include "podmonitorwindow.hpp"
 #include "serverconfigurewindow.hpp"
 #include "databaseconfigurewindow.hpp"
 
@@ -45,6 +46,7 @@ MainWindow               *g_mainWindow;
 MonoServer               *g_monoServer;
 ServerConfigureWindow    *g_serverConfigureWindow;
 DatabaseConfigureWindow  *g_databaseConfigureWindow;
+PodMonitorWindow         *g_podMonitorWindow;
 ActorMonitorWindow       *g_actorMonitorWindow;
 ActorThreadMonitorWindow *g_actorThreadMonitorWindow;
 
@@ -68,6 +70,7 @@ int main(int argc, char *argv[])
         g_actorPool                = new ActorPool(g_serverArgParser->actorPoolThread, 10);
         g_DBPodN                   = new DBPodN();
         g_netDriver                = new NetDriver();
+        g_podMonitorWindow         = new PodMonitorWindow();
         g_actorMonitorWindow       = new ActorMonitorWindow();
         g_actorThreadMonitorWindow = new ActorThreadMonitorWindow();
 
@@ -110,11 +113,13 @@ int main(int argc, char *argv[])
                     }
             }
         }
-    }catch(const std::exception &e){
+    }
+    catch(const std::exception &e){
         // use raw log directly
         // no gui available because we are out of gui event loop
         g_log->addLog(LOGTYPE_WARNING, "Exception in main thread: %s", e.what());
-    }catch(...){
+    }
+    catch(...){
         g_log->addLog(LOGTYPE_WARNING, "Unknown exception caught in main thread");
     }
     return 0;
