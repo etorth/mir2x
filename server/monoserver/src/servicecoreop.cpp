@@ -16,11 +16,15 @@
  * =====================================================================================
  */
 #include <string>
+#include <type_traits>
 
 #include "player.hpp"
 #include "actorpod.hpp"
 #include "monoserver.hpp"
 #include "servicecore.hpp"
+
+extern NetDriver *g_netDriver;
+extern MonoServer *g_monoServer;
 
 // ServiceCore accepts net packages from *many* sessions and based on it to create
 // the player object for a one to one map
@@ -99,12 +103,10 @@ void ServiceCore::On_MPK_QUERYMAPLIST(const MessagePack &rstMPK)
     size_t nIndex = 0;
     for(auto pMap: m_mapList){
         if(pMap.second && pMap.second->ID()){
-            if(nIndex < (sizeof(stAMML.MapList) / sizeof(stAMML.MapList[0]))){
+            if(nIndex < std::extent_v<decltype(stAMML.MapList)>){
                 stAMML.MapList[nIndex++] = pMap.second->ID();
             }else{
-                extern MonoServer *g_monoServer;
-                g_monoServer->addLog(LOGTYPE_FATAL, "Need larger map list size in AMMapList");
-                g_monoServer->Restart();
+                throw fflerror("Need larger map list size in AMMapList");
             }
         }
     }
@@ -259,6 +261,5 @@ void ServiceCore::On_MPK_BADCHANNEL(const MessagePack &rstMPK)
     AMBadChannel stAMBC;
     std::memcpy(&stAMBC, rstMPK.Data(), sizeof(stAMBC));
 
-    extern NetDriver *g_netDriver;
     g_netDriver->Shutdown(stAMBC.ChannID, false);
 }

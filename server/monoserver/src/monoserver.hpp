@@ -83,7 +83,7 @@ class MonoServer final
         void ReadHC();
 
         void Launch();
-        void Restart(const std::string & = {});
+        void restart(const std::string & = {});
 
     private:
         void RunASIO();

@@ -229,8 +229,7 @@ void MonoServer::CreateDBConnection()
     }
 
     else{
-        addLog(LOGTYPE_WARNING, "No database started");
-        Restart();
+        throw fflerror("No database started");
     }
 }
 
@@ -255,8 +254,7 @@ void MonoServer::StartNetwork()
 {
     uint32_t nPort = g_serverConfigureWindow->Port();
     if(!g_netDriver->Launch(nPort, m_serviceCore->UID())){
-        addLog(LOGTYPE_WARNING, "Failed to launch the network");
-        Restart();
+        throw fflerror("Failed to launch the network");
     }
 }
 
@@ -315,7 +313,7 @@ void MonoServer::logException(const std::exception &except, std::string *strPtr)
     }
 }
 
-void MonoServer::Restart(const std::string &msg)
+void MonoServer::restart(const std::string &msg)
 {
     // TODO: FLTK multi-threading support is weak, see:
     // http://www.fltk.org/doc-1.3/advanced.html#advanced_multithreading

@@ -112,8 +112,7 @@ Monster::Monster(uint32_t   nMonsterID,
     , m_AStarCache()
 {
     if(!m_monsterRecord){
-        g_monoServer->addLog(LOGTYPE_WARNING, "Invalid monster record: MonsterID = %d", (int)(MonsterID()));
-        g_monoServer->Restart();
+        throw fflerror("invalid monster record: MonsterID = %d", (int)(MonsterID()));
     }
 
     SetState(STATE_DEAD    , 0);
@@ -615,9 +614,7 @@ void Monster::OperateAM(const MessagePack &rstMPK)
             }
         default:
             {
-                g_monoServer->addLog(LOGTYPE_WARNING, "Unsupported message: %s", rstMPK.Name());
-                g_monoServer->Restart();
-                break;
+                throw fflerror("Unsupported message: %s", rstMPK.Name());
             }
     }
 }
