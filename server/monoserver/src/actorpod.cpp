@@ -143,7 +143,7 @@ void ActorPod::innHandler(const MessagePack &rstMPK)
     // currently we don't take trigger time into consideration
 
     if(m_trigger){
-        raii_timer stTimer(&(m_podMonitor.TriggerMonitor.procTick));
+        raii_timer stTimer(&(m_podMonitor.triggerMonitor.procTick));
         m_trigger();
     }
 }

@@ -55,10 +55,10 @@ class ActorPod final
         struct ActorPodMonitor
         {
             std::array<AMProcMonitor, MPK_MAX> AMProcMonitorList;
-            struct _TriggerMonitor
+            struct TriggerMonitor
             {
                 uint64_t procTick = 0;
-            }TriggerMonitor;
+            }triggerMonitor;
         };
 
     private:
