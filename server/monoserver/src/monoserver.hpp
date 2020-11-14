@@ -94,9 +94,9 @@ class MonoServer final
         void CreateDefaultDatabase();
 
     public:
-        void DetectException();
-        void propagateException();
-        void LogException(const std::exception &, std::string * = nullptr);
+        void checkException();
+        void propagateException() noexcept;
+        void logException(const std::exception &, std::string * = nullptr) noexcept;
 
     public:
         void addCWLog(uint32_t,         // command window id

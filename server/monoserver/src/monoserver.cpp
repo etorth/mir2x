@@ -269,13 +269,14 @@ void MonoServer::Launch()
     StartNetwork();
 }
 
-void MonoServer::propagateException()
+void MonoServer::propagateException() noexcept
 {
     // TODO
     // add multi-thread protection
     try{
         if(!std::current_exception()){
-            throw fflerror("call MonoServer::propagateException() without exception captured");
+            addLog(LOGTYPE_WARNING, "call MonoServer::propagateException() without exception captured");
+            return;
         }
 
         // we do have an exception
@@ -290,25 +291,27 @@ void MonoServer::propagateException()
     }
 }
 
-void MonoServer::DetectException()
+void MonoServer::checkException()
 {
     if(m_currException){
         std::rethrow_exception(m_currException);
     }
 }
 
-void MonoServer::LogException(const std::exception &except, std::string *pstr)
+void MonoServer::logException(const std::exception &except, std::string *strPtr) noexcept
 {
     addLog(LOGTYPE_WARNING, "%s", except.what());
     try{
-        if(pstr){
-            pstr->assign(except.what());
+        if(strPtr){
+            strPtr->assign(except.what());
         }
         std::rethrow_if_nested(except);
-    }catch(const std::exception &nextedExcept){
-        LogException(nextedExcept, pstr);
-    }catch(...){
-        addLog(LOGTYPE_WARNING, "%s", "Exception can't recongize, skipped...");
+    }
+    catch(const std::exception &nextedExcept){
+        logException(nextedExcept, strPtr);
+    }
+    catch(...){
+        addLog(LOGTYPE_WARNING, "Can't recognize exception, skipped...");
     }
 }
 

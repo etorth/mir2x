@@ -92,10 +92,10 @@ int main(int argc, char *argv[])
                         // won't handle exception in threads
                         // all threads need to call Fl::awake(2) to propagate exception(s) caught
                         try{
-                            g_monoServer->DetectException();
+                            g_monoServer->checkException();
                         }catch(const std::exception &except){
                             std::string firstExceptStr;
-                            g_monoServer->LogException(except, &firstExceptStr);
+                            g_monoServer->logException(except, &firstExceptStr);
                             g_monoServer->Restart(firstExceptStr);
                         }
                         break;
