@@ -24,9 +24,11 @@
 #include "uidf.hpp"
 #include "typecast.hpp"
 #include "actorpool.hpp"
+#include "podmonitorwindow.hpp"
 #include "actormonitortable.hpp"
 
 extern ActorPool *g_actorPool;
+extern PodMonitorWindow *g_podMonitorWindow;
 
 ActorMonitorTable::ActorMonitorTable(int nX, int nY, int nW, int nH, const char *szLabel)
     : Fl_TableImpl(nX, nY, nW, nH, szLabel)
@@ -349,6 +351,10 @@ void ActorMonitorTable::OnClick()
     if((nCtx == CONTEXT_CELL) && (nRow >= 0 && nRow < GetDataRow()) && (nCol >= 0) && (nCol < GetDataCol())){
         m_selectedUID = m_actorMonitorList[nRow].uid;
         redraw();
+
+        if(Fl::event_clicks() >= 1){
+            g_podMonitorWindow->showAll();
+        }
         return;
     }
 

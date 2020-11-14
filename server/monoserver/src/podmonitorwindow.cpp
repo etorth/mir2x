@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename: podmonitorwindow.hpp
+ *       Filename: podmonitorwindow.cpp
  *        Created: 11/20/2020 21:49:14
  *    Description:
  *
@@ -16,16 +16,8 @@
  * =====================================================================================
  */
 
-#pragma once
-#include <FL/Fl_Double_Window.H>
-
-class PodMonitorWindow: public Fl_Double_Window
+#include "podmonitorwindow.hpp"
+void PodMonitorWindow::showAll()
 {
-    public:
-        PodMonitorWindow()
-            : Fl_Double_Window(0, 0, 100, 100)
-        {}
-
-    public:
-        void showAll();
-};
+    show();
+}
