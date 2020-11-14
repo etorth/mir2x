@@ -43,37 +43,22 @@ class ActorPod final
         };
 
     public:
-        // if put this in actorpool, it's hard to collect the SendCount
+        // if put this in actorpool, it's hard to collect the sendCount
         // because therotically post a message doesn't need the sender's information
         struct AMProcMonitor
         {
-            uint64_t ProcTick;
-            uint32_t SendCount;
-            uint32_t RecvCount;
-
-            AMProcMonitor()
-                : ProcTick(0)
-                , SendCount(0)
-                , RecvCount(0)
-            {}
+            uint64_t procTick  = 0;
+            uint32_t sendCount = 0;
+            uint32_t recvCount = 0;
         };
 
         struct ActorPodMonitor
         {
             std::array<AMProcMonitor, MPK_MAX> AMProcMonitorList;
-
             struct _TriggerMonitor
             {
-                uint64_t ProcTick;
-                _TriggerMonitor()
-                    : ProcTick(0)
-                {}
+                uint64_t procTick = 0;
             }TriggerMonitor;
-
-            ActorPodMonitor()
-                : AMProcMonitorList()
-                , TriggerMonitor()
-            {}
         };
 
     private:
