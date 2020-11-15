@@ -50,7 +50,6 @@ ActorPod::ActorPod(uint64_t nUID,
     , m_validID(0)
     , m_expireTime(nExpireTime)
     , m_respondHandlerGroup()
-    , m_podMonitor()
 {
     g_actorPool->attach(this);
 }

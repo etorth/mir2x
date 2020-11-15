@@ -36,31 +36,35 @@ std::string PodMonitorTable::getGridData(int nRow, int nCol) const
         return "";
     }
 
-    const auto fnAdjustLength = [](std::string szString, size_t nNewLength) -> std::string
+    const auto fnAdjustLength = [](std::string szString, size_t nNewLength, bool prefix) -> std::string
     {
         if(nNewLength <= szString.length()){
             return szString;
         }
-        return std::string(nNewLength - szString.size(), ' ') + szString;
+
+        if(prefix){
+            return std::string(nNewLength - szString.size(), ' ') + szString;
+        }
+        return szString + std::string(nNewLength - szString.size(), ' ');
     };
 
     const auto &monitor = m_podDrawHelper.amProcMonitorList.at(nRow);
     switch(nCol){
         case 0: // TYPE
             {
-                return fnAdjustLength(MessagePack(monitor.amType).Name(), 22);
+                return fnAdjustLength(MessagePack(monitor.amType).Name(), 22, false);
             }
         case 1: // BUSY
             {
-                return getTimeString(monitor.procMonitor.procTick);
+                return getTimeString(monitor.procMonitor.procTick / 1000000ULL);
             }
         case 2: // SEND
             {
-                return fnAdjustLength(std::to_string(monitor.procMonitor.sendCount), std::to_string(m_podDrawHelper.maxSendCount).size());
+                return fnAdjustLength(std::to_string(monitor.procMonitor.sendCount), std::to_string(m_podDrawHelper.maxSendCount).size(), true);
             }
         case 3: // RECV
             {
-                return fnAdjustLength(std::to_string(monitor.procMonitor.recvCount), std::to_string(m_podDrawHelper.maxRecvCount).size());
+                return fnAdjustLength(std::to_string(monitor.procMonitor.recvCount), std::to_string(m_podDrawHelper.maxRecvCount).size(), true);
             }
         default:
             {
@@ -87,7 +91,7 @@ void PodMonitorTable::setupColWidth()
         }
     }
     else{
-        col_width(0, (std::max<int>)(fnHeaderWidth(0), 150)); // TYPE
+        col_width(0, (std::max<int>)(fnHeaderWidth(0), 220)); // TYPE
         col_width(1, (std::max<int>)(fnHeaderWidth(1), 160)); // BUSY
         col_width(2, (std::max<int>)(fnHeaderWidth(2), 120)); // SEND
         col_width(3, (std::max<int>)(fnHeaderWidth(3), 120)); // RECV

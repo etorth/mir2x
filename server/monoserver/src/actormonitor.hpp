@@ -38,11 +38,10 @@ struct ActorMonitor
 
 struct ActorThreadMonitor
 {
-    int      threadId;
-    uint64_t actorCount;
-
-    uint32_t liveTick;
-    uint32_t busyTick;
+    int      threadId   = -1;
+    uint64_t actorCount =  0;
+    uint32_t liveTick   =  0;
+    uint32_t busyTick   =  0;
 };
 
 struct AMProcMonitor
