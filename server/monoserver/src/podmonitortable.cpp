@@ -48,7 +48,7 @@ std::string PodMonitorTable::getGridData(int nRow, int nCol) const
     switch(nCol){
         case 0: // TYPE
             {
-                return MessagePack(monitor.amType).Name();
+                return fnAdjustLength(MessagePack(monitor.amType).Name(), 22);
             }
         case 1: // BUSY
             {
@@ -69,7 +69,7 @@ std::string PodMonitorTable::getGridData(int nRow, int nCol) const
     }
 }
 
-void PodMonitorTable::setupHeaderWidth()
+void PodMonitorTable::setupColWidth()
 {
     const auto fnHeaderWidth = [this](int nCol) -> int
     {
@@ -88,9 +88,9 @@ void PodMonitorTable::setupHeaderWidth()
     }
     else{
         col_width(0, (std::max<int>)(fnHeaderWidth(0), 150)); // TYPE
-        col_width(1, (std::max<int>)(fnHeaderWidth(1),  80)); // BUSY
-        col_width(2, (std::max<int>)(fnHeaderWidth(2),  30)); // SEND
-        col_width(3, (std::max<int>)(fnHeaderWidth(3), 160)); // RECV
+        col_width(1, (std::max<int>)(fnHeaderWidth(1), 160)); // BUSY
+        col_width(2, (std::max<int>)(fnHeaderWidth(2), 120)); // SEND
+        col_width(3, (std::max<int>)(fnHeaderWidth(3), 120)); // RECV
     }
 }
 
@@ -162,7 +162,7 @@ void PodMonitorTable::updateTable()
     if(selectAMTypeRow(m_selectedAMType) < 0){
         m_selectedAMType = 0;
     }
-    setupHeaderWidth();
+    setupColWidth();
 }
 
 PodMonitorTable::PodMonitorDrawHelper PodMonitorTable::getPodMonitorDrawHelper(const ActorPodMonitor &podMonitor)

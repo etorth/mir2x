@@ -61,7 +61,7 @@ class ActorMonitorTable: public Fl_TableImpl
 
     private:
         void sortTable();
-        void setupHeaderWidth();
+        void setupColWidth();
 
     private:
         bool rowSelected(int row) const

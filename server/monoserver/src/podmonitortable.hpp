@@ -80,7 +80,7 @@ class PodMonitorTable: public Fl_TableImpl
 
     private:
         void sortTable();
-        void setupHeaderWidth();
+        void setupColWidth();
 
     public:
         int selectAMTypeRow(int);

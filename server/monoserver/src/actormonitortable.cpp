@@ -92,7 +92,7 @@ ActorMonitorTable::ActorMonitorDrawHelper ActorMonitorTable::getActorMonitorDraw
     return result;
 }
 
-void ActorMonitorTable::setupHeaderWidth()
+void ActorMonitorTable::setupColWidth()
 {
     const auto fnHeaderWidth = [this](int nCol) -> int
     {
@@ -128,7 +128,7 @@ void ActorMonitorTable::updateTable()
     if(selectUIDRow(m_selectedUID) < 0){
         m_selectedUID = 0;
     }
-    setupHeaderWidth();
+    setupColWidth();
 }
 
 void ActorMonitorTable::sortTable()
