@@ -156,11 +156,9 @@ void PodMonitorTable::updateTable()
     const auto podMonitor = g_actorPool->getPodMonitor(m_podUID);
     m_podDrawHelper = getPodMonitorDrawHelper(podMonitor);
 
-    if(rows() != (int)(m_podDrawHelper.amProcMonitorList.size())){
-        rows(m_podDrawHelper.amProcMonitorList.size());
-    }
-
+    setupLayout();
     sortTable();
+
     if(selectAMTypeRow(m_selectedAMType) < 0){
         m_selectedAMType = 0;
     }

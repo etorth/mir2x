@@ -139,4 +139,16 @@ class Fl_TableImpl: public Fl_Table_Row
 
     public:
         virtual void updateTable() = 0;
+
+    public:
+        void setupLayout()
+        {
+            if(rows() != getRowCount()){
+                rows(getRowCount());
+            }
+
+            if(cols() != getColCount()){
+                cols(getColCount());
+            }
+        }
 };

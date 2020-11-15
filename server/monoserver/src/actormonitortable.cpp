@@ -108,8 +108,6 @@ void ActorMonitorTable::setupHeaderWidth()
         return 100;
     };
 
-    cols(getColCount());
-
     if(m_actorMonitorList.empty()){
         for(int i = 0; i < getColCount(); ++i){
             col_width(i, fnHeaderWidth(i));
@@ -130,11 +128,9 @@ void ActorMonitorTable::updateTable()
     m_actorMonitorList = g_actorPool->getActorMonitor();
     m_monitorDrawHelper = getActorMonitorDrawHelper(m_actorMonitorList);
 
-    if(rows() != (int)(m_actorMonitorList.size())){
-        rows(m_actorMonitorList.size());
-    }
-
+    setupLayout();
     sortTable();
+
     if(selectUIDRow(m_selectedUID) < 0){
         m_selectedUID = 0;
     }
