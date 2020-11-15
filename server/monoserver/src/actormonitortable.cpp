@@ -169,12 +169,12 @@ int ActorMonitorTable::selectUIDRow(uint64_t uid)
     }
 
     int uidRow = -1;
-    for(int nIndex = 0; nIndex < getRowCount(); ++nIndex){
-        if(m_actorMonitorList[nIndex].uid == uid){
-            select_row(nIndex, 1);
-            uidRow = nIndex;
+    for(int row = 0; row < getRowCount(); ++row){
+        if(m_actorMonitorList[row].uid == uid){
+            select_row(row, 1);
+            uidRow = row;
         }else{
-            select_row(nIndex, 0);
+            select_row(row, 0);
         }
     }
     return uidRow;
