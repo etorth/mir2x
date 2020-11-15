@@ -19,6 +19,7 @@
 #pragma once
 #include <vector>
 #include <string>
+#include "uidf.hpp"
 #include "raiitimer.hpp"
 #include "fltableimpl.hpp"
 #include "actormonitor.hpp"
@@ -28,12 +29,14 @@ class ActorMonitorTable: public Fl_TableImpl
     private:
         struct ActorMonitorDrawHelper
         {
-            size_t mapCount = 0;
-            size_t playerCount = 0;
-            size_t monsterCount = 0;
-
             size_t maxMessageDone = 0;
             size_t maxMessagePending = 0;
+            std::array<size_t, UID_MAX> uidTypeCountList;
+
+            ActorMonitorDrawHelper()
+            {
+                uidTypeCountList.fill(0);
+            }
         };
 
     private:
@@ -111,5 +114,11 @@ class ActorMonitorTable: public Fl_TableImpl
                 case 6: return "MSG_PENDING";
                 default: throw fflerror("invalid col: %d", col);
             }
+        }
+
+    public:
+        int uidTypeCount(int uidType) const
+        {
+            return static_cast<int>(m_monitorDrawHelper.uidTypeCountList.at(uidType));
         }
 };

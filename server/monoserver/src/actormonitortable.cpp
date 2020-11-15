@@ -85,15 +85,9 @@ ActorMonitorTable::ActorMonitorDrawHelper ActorMonitorTable::getActorMonitorDraw
 {
     ActorMonitorTable::ActorMonitorDrawHelper result;
     for(const auto &monitor: monitorList){
+        result.uidTypeCountList.at(uidf::getUIDType(monitor.uid))++;
         result.maxMessageDone    = (std::max<uint32_t>)(result.maxMessageDone, monitor.messageDone);
         result.maxMessagePending = (std::max<uint32_t>)(result.maxMessagePending, monitor.messagePending);
-
-        switch(uidf::getUIDType(monitor.uid)){
-            case UID_MAP: result.mapCount++; break;
-            case UID_PLY: result.playerCount++; break;
-            case UID_MON: result.monsterCount++; break;
-            default: break;
-        }
     }
     return result;
 }

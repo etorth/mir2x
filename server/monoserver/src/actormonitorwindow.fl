@@ -2,6 +2,9 @@
 version 1.0304
 header_name {.hpp}
 code_name {.cpp}
+decl {\#include "uidf.hpp"} {private global
+}
+
 decl {\#include "actormonitortable.hpp"} {private global
 }
 
@@ -9,7 +12,7 @@ class ActorMonitorWindow {} {
   Function {ActorMonitorWindow()} {} {
     Fl_Window m_window {
       label ActorMointorWindow
-      xywh {2666 215 900 445} type Double labelfont 4 resizable visible
+      xywh {2674 246 900 445} type Double labelfont 4 resizable visible
     } {
       Fl_Table m_actorMonitorTable {
         xywh {0 25 900 400} labelfont 4 resizable
@@ -51,7 +54,7 @@ Fl::add_timeout(1.370, ActorMonitorWindow_Timer_CB, this);} {}
   } {
     code {dynamic_cast<ActorMonitorTable *>(m_actorMonitorTable)->updateTable();
 char buf[64];
-std::sprintf(buf, "actors: %d", m_actorMonitorTable->rows());
+std::sprintf(buf, "ACTORS: %d, UID_MAP: %d, UID_PLY: %d, UID_MON: %d", m_actorMonitorTable->rows(), m_actorMonitorTable->uidTypeCount(UID_MAP), m_actorMonitorTable->uidTypeCount(UID_PLY), m_actorMonitorTable->uidTypeCount(UID_MON));
 addLog(buf);} {}
   }
   Function {addLog(const char *log)} {return_type void
