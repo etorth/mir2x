@@ -54,7 +54,7 @@ Fl::add_timeout(1.370, ActorMonitorWindow_Timer_CB, this);} {}
   } {
     code {dynamic_cast<ActorMonitorTable *>(m_actorMonitorTable)->updateTable();
 char buf[64];
-std::sprintf(buf, "ACTORS: %d, UID_MAP: %d, UID_PLY: %d, UID_MON: %d", m_actorMonitorTable->rows(), m_actorMonitorTable->uidTypeCount(UID_MAP), m_actorMonitorTable->uidTypeCount(UID_PLY), m_actorMonitorTable->uidTypeCount(UID_MON));
+std::sprintf(buf, "ACTORS: %d, UID_MAP: %d, UID_PLY: %d, UID_MON: %d", m_actorMonitorTable->uidCount(), m_actorMonitorTable->uidTypeCount(UID_MAP), m_actorMonitorTable->uidTypeCount(UID_PLY), m_actorMonitorTable->uidTypeCount(UID_MON));
 addLog(buf);} {}
   }
   Function {addLog(const char *log)} {return_type void

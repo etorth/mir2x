@@ -121,4 +121,9 @@ class ActorMonitorTable: public Fl_TableImpl
         {
             return static_cast<int>(m_monitorDrawHelper.uidTypeCountList.at(uidType));
         }
+
+        int uidCount() const
+        {
+            return static_cast<int>(m_actorMonitorList.size());
+        }
 };
