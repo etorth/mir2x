@@ -12,7 +12,7 @@ class ActorMonitorWindow {} {
   Function {ActorMonitorWindow()} {} {
     Fl_Window m_window {
       label ActorMointorWindow
-      xywh {2674 246 900 445} type Double labelfont 4 resizable visible
+      xywh {2682 277 900 445} type Double labelfont 4 resizable visible
     } {
       Fl_Table m_actorMonitorTable {
         xywh {0 25 900 400} labelfont 4 resizable
@@ -40,6 +40,7 @@ class ActorMonitorWindow {} {
       }
     }
     code {// register the timer here
+m_window->hide();
 Fl::add_timeout(1.370, ActorMonitorWindow_Timer_CB, this);} {}
   }
   Function {showAll()} {return_type void

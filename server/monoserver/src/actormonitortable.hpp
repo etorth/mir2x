@@ -64,10 +64,10 @@ class ActorMonitorTable: public Fl_TableImpl
         void setupHeaderWidth();
 
     private:
-        bool rowSelected(int col) const
+        bool rowSelected(int row) const
         {
-            checkColEx(col);
-            return m_actorMonitorList.at(col).uid == m_selectedUID;
+            checkRowEx(row);
+            return m_actorMonitorList.at(row).uid == m_selectedUID;
         }
 
     public:

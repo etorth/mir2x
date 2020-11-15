@@ -60,10 +60,10 @@ class PodMonitorTable: public Fl_TableImpl
         {}
 
     private:
-        bool rowSelected(int col) const
+        bool rowSelected(int row) const
         {
-            checkColEx(col);
-            return m_podDrawHelper.amProcMonitorList.at(col).amType == m_selectedAMType;
+            checkRowEx(row);
+            return m_podDrawHelper.amProcMonitorList.at(row).amType == m_selectedAMType;
         }
 
     protected:

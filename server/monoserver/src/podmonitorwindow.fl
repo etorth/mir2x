@@ -37,6 +37,7 @@ class PodMonitorWindow {} {
       }
     }
     code {// register the timer here
+m_window->hide();
 Fl::add_timeout(1.370, PodMonitorWindow_Timer_CB, this);} {}
   }
   Function {showAll()} {return_type void
