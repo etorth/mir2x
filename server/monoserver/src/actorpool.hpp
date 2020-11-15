@@ -34,6 +34,7 @@
 #include "condcheck.hpp"
 #include "raiitimer.hpp"
 #include "messagepack.hpp"
+#include "actormonitor.hpp"
 #include "parallel_hashmap/phmap.h"
 
 class ActorPod;
@@ -473,32 +474,6 @@ class ActorPool final
         const uint32_t m_logicFPS;
         std::vector<MailboxBucket> m_bucketList;
 
-    public:
-        struct ActorMonitor
-        {
-            uint64_t uid = 0;
-
-            uint32_t liveTick = 0;
-            uint32_t busyTick = 0;
-
-            uint32_t messageDone    = 0;
-            uint32_t messagePending = 0;
-
-            operator bool () const
-            {
-                return uid != 0;
-            }
-        };
-
-        struct ActorThreadMonitor
-        {
-            int      threadId;
-            uint64_t actorCount;
-
-            uint32_t liveTick;
-            uint32_t busyTick;
-        };
-
     private:
         static void backOff(uint64_t &nBackoff)
         {
@@ -596,6 +571,9 @@ class ActorPool final
     public:
         ActorMonitor getActorMonitor(uint64_t) const;
         std::vector<ActorMonitor> getActorMonitor() const;
+
+    public:
+        ActorPodMonitor getPodMonitor(uint64_t) const;
 
     public:
         int getBucketID(uint64_t uid) const

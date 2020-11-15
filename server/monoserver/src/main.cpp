@@ -48,7 +48,6 @@ ServerConfigureWindow    *g_serverConfigureWindow;
 DatabaseConfigureWindow  *g_databaseConfigureWindow;
 PodMonitorWindow         *g_podMonitorWindow;
 ActorMonitorWindow       *g_actorMonitorWindow;
-ActorThreadMonitorWindow *g_actorThreadMonitorWindow;
 
 int main(int argc, char *argv[])
 {
@@ -72,9 +71,8 @@ int main(int argc, char *argv[])
         g_netDriver                = new NetDriver();
         g_podMonitorWindow         = new PodMonitorWindow();
         g_actorMonitorWindow       = new ActorMonitorWindow();
-        g_actorThreadMonitorWindow = new ActorThreadMonitorWindow();
 
-        g_mainWindow->ShowAll();
+        g_mainWindow->showAll();
 
         while(Fl::wait() > 0){
             switch((uintptr_t)(Fl::thread_message())){

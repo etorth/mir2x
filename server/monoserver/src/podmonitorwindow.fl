@@ -2,19 +2,19 @@
 version 1.0304
 header_name {.hpp}
 code_name {.cpp}
-decl {\#include "actormonitortable.hpp"} {private global
+decl {\#include "podmonitortable.hpp"} {private global
 }
 
-class ActorMonitorWindow {} {
-  Function {ActorMonitorWindow()} {} {
+class PodMonitorWindow {} {
+  Function {PodMonitorWindow()} {} {
     Fl_Window m_window {
-      label ActorMointorWindow
-      xywh {2666 215 900 445} type Double labelfont 4 resizable visible
+      label PodMointorWindow
+      xywh {1005 468 900 445} type Double labelfont 4 resizable visible
     } {
-      Fl_Table m_actorMonitorTable {
+      Fl_Table m_podMonitorTable {
         xywh {0 25 900 400} labelfont 4 resizable
-        code0 {\#include "actormonitortable.hpp"}
-        class ActorMonitorTable
+        code0 {\#include "podmonitortable.hpp"}
+        class PodMonitorTable
       } {}
       Fl_Menu_Bar {} {
         xywh {0 0 900 25} box THIN_UP_BOX labelfont 4
@@ -37,11 +37,15 @@ class ActorMonitorWindow {} {
       }
     }
     code {// register the timer here
-Fl::add_timeout(1.370, ActorMonitorWindow_Timer_CB, this);} {}
+Fl::add_timeout(1.370, PodMonitorWindow_Timer_CB, this);} {}
   }
   Function {showAll()} {return_type void
   } {
     code {m_window->show();} {}
+  }
+  Function {setPodUID(uint64_t uid)} {return_type void
+  } {
+    code {m_podMonitorTable->setPodUID(uid);} {}
   }
   Function {redrawAll()} {return_type void
   } {
@@ -49,9 +53,9 @@ Fl::add_timeout(1.370, ActorMonitorWindow_Timer_CB, this);} {}
   }
   Function {updateTable()} {return_type void
   } {
-    code {dynamic_cast<ActorMonitorTable *>(m_actorMonitorTable)->updateTable();
+    code {dynamic_cast<PodMonitorTable *>(m_podMonitorTable)->updateTable();
 char buf[64];
-std::sprintf(buf, "actors: %d", m_actorMonitorTable->rows());
+std::sprintf(buf, "actors: %d", m_podMonitorTable->rows());
 addLog(buf);} {}
   }
   Function {addLog(const char *log)} {return_type void
@@ -68,15 +72,15 @@ m_window->redraw();} {}
   }
 }
 
-Function {ActorMonitorWindow_Timer_CB(void *dataPtr)} {return_type void
+Function {PodMonitorWindow_Timer_CB(void *dataPtr)} {return_type void
 } {
-  code {// used to flush the actor mointor table
+  code {// used to flush the pod mointor table
 {
-    auto winPtr = (ActorMonitorWindow *)(dataPtr);
+    auto winPtr = (PodMonitorWindow *)(dataPtr);
     if(winPtr->m_window->visible()){
         winPtr->updateTable();
         winPtr->redrawAll();
     }
-    Fl::repeat_timeout(1.370, ActorMonitorWindow_Timer_CB, winPtr);
+    Fl::repeat_timeout(1.370, PodMonitorWindow_Timer_CB, winPtr);
 }} {}
 }

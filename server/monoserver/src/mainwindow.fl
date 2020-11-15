@@ -24,7 +24,7 @@ class MainWindow {} {
       callback {{
 	// do nothing
 }}
-      xywh {2789 289 720 400} type Double labelfont 4 resizable visible
+      xywh {2648 311 720 400} type Double labelfont 4 resizable visible
     } {
       Fl_Menu_Bar {} {
         xywh {0 0 721 25} box FLAT_BOX labelfont 4 textfont 4
@@ -65,7 +65,7 @@ class MainWindow {} {
             label Server
             callback {{
 	extern ServerConfigureWindow	*g_serverConfigureWindow;
-	g_serverConfigureWindow->ShowAll();
+	g_serverConfigureWindow->showAll();
 }}
             xywh {10 10 30 20} labelfont 4 divider
             code0 {\#include "serverconfigurewindow.hpp"}
@@ -74,7 +74,7 @@ class MainWindow {} {
             label {Network            }
             callback {{
 	extern DatabaseConfigureWindow	*g_databaseConfigureWindow;
-	g_databaseConfigureWindow->ShowAll();
+	g_databaseConfigureWindow->showAll();
 }}
             xywh {0 0 30 20} labelfont 4 divider
             code0 {\#include "databaseconfigurewindow.hpp"}
@@ -618,7 +618,7 @@ class MainWindow {} {
     for(int nIndex = 1; nIndex <= (1 + (int)(m_menuItemLastCW - m_menuItemFirstCW)); ++nIndex){
         if(auto pCW = GetCommandWindow(nIndex)){
             if(bOpen){
-                pCW->ShowAll();
+                pCW->showAll();
                 (m_menuItemFirstCW + (nIndex - 1))->deactivate();
             }else{
                 pCW->HideAll();
@@ -636,7 +636,7 @@ class MainWindow {} {
 {
     int nMenuItem = 1;
     if(auto pCW = GetCommandWindow(nMenuItem)){
-        pCW->ShowAll();
+        pCW->showAll();
         (m_menuItemFirstCW + (nMenuItem - 1))->deactivate();
     }
 }}
@@ -650,7 +650,7 @@ class MainWindow {} {
 {
     int nMenuItem = 2;
     if(auto pCW = GetCommandWindow(nMenuItem)){
-        pCW->ShowAll();
+        pCW->showAll();
         (m_menuItemFirstCW + (nMenuItem - 1))->deactivate();
     }
 }}
@@ -663,7 +663,7 @@ class MainWindow {} {
 {
     int nMenuItem = 3;
     if(auto pCW = GetCommandWindow(nMenuItem)){
-        pCW->ShowAll();
+        pCW->showAll();
         (m_menuItemFirstCW + (nMenuItem - 1))->deactivate();
     }
 }}
@@ -676,7 +676,7 @@ class MainWindow {} {
 {
     int nMenuItem = 4;
     if(auto pCW = GetCommandWindow(nMenuItem)){
-        pCW->ShowAll();
+        pCW->showAll();
         (m_menuItemFirstCW + (nMenuItem - 1))->deactivate();
     }
 }}
@@ -689,7 +689,7 @@ class MainWindow {} {
 {
     int nMenuItem = 5;
     if(auto pCW = GetCommandWindow(nMenuItem)){
-        pCW->ShowAll();
+        pCW->showAll();
         (m_menuItemFirstCW + (nMenuItem - 1))->deactivate();
     }
 }}
@@ -702,7 +702,7 @@ class MainWindow {} {
 {
     int nMenuItem = 6;
     if(auto pCW = GetCommandWindow(nMenuItem)){
-        pCW->ShowAll();
+        pCW->showAll();
         (m_menuItemFirstCW + (nMenuItem - 1))->deactivate();
     }
 }}
@@ -715,7 +715,7 @@ class MainWindow {} {
 {
     int nMenuItem = 7;
     if(auto pCW = GetCommandWindow(nMenuItem)){
-        pCW->ShowAll();
+        pCW->showAll();
         (m_menuItemFirstCW + (nMenuItem - 1))->deactivate();
     }
 }}
@@ -728,7 +728,7 @@ class MainWindow {} {
 {
     int nMenuItem = 8;
     if(auto pCW = GetCommandWindow(nMenuItem)){
-        pCW->ShowAll();
+        pCW->showAll();
         (m_menuItemFirstCW + (nMenuItem - 1))->deactivate();
     }
 }}
@@ -741,7 +741,7 @@ class MainWindow {} {
 {
     int nMenuItem = 9;
     if(auto pCW = GetCommandWindow(nMenuItem)){
-        pCW->ShowAll();
+        pCW->showAll();
         (m_menuItemFirstCW + (nMenuItem - 1))->deactivate();
     }
 }}
@@ -754,7 +754,7 @@ class MainWindow {} {
 {
     int nMenuItem = 10;
     if(auto pCW = GetCommandWindow(nMenuItem)){
-        pCW->ShowAll();
+        pCW->showAll();
         (m_menuItemFirstCW + (nMenuItem - 1))->deactivate();
     }
 }}
@@ -767,7 +767,7 @@ class MainWindow {} {
 {
     int nMenuItem = 11;
     if(auto pCW = GetCommandWindow(nMenuItem)){
-        pCW->ShowAll();
+        pCW->showAll();
         (m_menuItemFirstCW + (nMenuItem - 1))->deactivate();
     }
 }}
@@ -780,7 +780,7 @@ class MainWindow {} {
 {
     int nMenuItem = 12;
     if(auto pCW = GetCommandWindow(nMenuItem)){
-        pCW->ShowAll();
+        pCW->showAll();
         (m_menuItemFirstCW + (nMenuItem - 1))->deactivate();
     }
 }}
@@ -793,7 +793,7 @@ class MainWindow {} {
 {
     int nMenuItem = 13;
     if(auto pCW = GetCommandWindow(nMenuItem)){
-        pCW->ShowAll();
+        pCW->showAll();
         (m_menuItemFirstCW + (nMenuItem - 1))->deactivate();
     }
 }}
@@ -806,7 +806,7 @@ class MainWindow {} {
 {
     int nMenuItem = 14;
     if(auto pCW = GetCommandWindow(nMenuItem)){
-        pCW->ShowAll();
+        pCW->showAll();
         (m_menuItemFirstCW + (nMenuItem - 1))->deactivate();
     }
 }}
@@ -819,7 +819,7 @@ class MainWindow {} {
 {
     int nMenuItem = 15;
     if(auto pCW = GetCommandWindow(nMenuItem)){
-        pCW->ShowAll();
+        pCW->showAll();
         (m_menuItemFirstCW + (nMenuItem - 1))->deactivate();
     }
 }}
@@ -832,7 +832,7 @@ class MainWindow {} {
 {
     int nMenuItem = 16;
     if(auto pCW = GetCommandWindow(nMenuItem)){
-        pCW->ShowAll();
+        pCW->showAll();
         (m_menuItemFirstCW + (nMenuItem - 1))->deactivate();
     }
 }}
@@ -887,7 +887,7 @@ class MainWindow {} {
             callback {// show actor information window
 {
     extern ActorMonitorWindow *g_actorMonitorWindow;
-    g_actorMonitorWindow->ShowAll();
+    g_actorMonitorWindow->showAll();
 }}
             xywh {0 0 36 21} labelfont 4 divider
             code0 {\#include "actormonitorwindow.hpp"}
@@ -904,13 +904,7 @@ class MainWindow {} {
           }
           MenuItem {} {
             label {Actor Thread}
-            callback {// show actor thread information window
-{
-    extern ActorThreadMonitorWindow *g_actorThreadMonitorWindow;
-    g_actorThreadMonitorWindow->ShowAll();
-}}
             xywh {0 0 36 21} labelfont 4
-            code0 {\#include "actorthreadmonitorwindow.hpp"}
           }
         }
       }
@@ -949,7 +943,7 @@ class MainWindow {} {
     }
 }} {}
   }
-  Function {ShowAll()} {} {
+  Function {showAll()} {} {
     code {{
     m_window->show();
 }} {}
@@ -1046,7 +1040,7 @@ class MainWindow {} {
             pMenuItem->show();
 
             pCW->BindLuaModule((uint32_t)(pMenuItem - m_menuItemFirstCW + 1));
-            pCW->ShowAll();
+            pCW->showAll();
 
             // the first item return 1
             // and takes <= 0 as invalid command window ID

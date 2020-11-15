@@ -24,6 +24,7 @@
 
 #include "messagebuf.hpp"
 #include "messagepack.hpp"
+#include "actormonitor.hpp"
 
 class ActorPod final
 {
@@ -40,25 +41,6 @@ class ActorPod final
                 : ExpireTime(nExpireTime)
                 , Operation(std::move(stOperation))
             {}
-        };
-
-    public:
-        // if put this in actorpool, it's hard to collect the sendCount
-        // because therotically post a message doesn't need the sender's information
-        struct AMProcMonitor
-        {
-            uint64_t procTick  = 0;
-            uint32_t sendCount = 0;
-            uint32_t recvCount = 0;
-        };
-
-        struct ActorPodMonitor
-        {
-            std::array<AMProcMonitor, MPK_MAX> AMProcMonitorList;
-            struct TriggerMonitor
-            {
-                uint64_t procTick = 0;
-            }triggerMonitor;
         };
 
     private:
@@ -154,7 +136,7 @@ class ActorPod final
         void PrintMonitor() const;
 
     public:
-        ActorPodMonitor getPodMonitor() const
+        ActorPodMonitor dumpPodMonitor() const
         {
             return m_podMonitor;
         }

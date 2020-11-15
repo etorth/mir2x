@@ -48,7 +48,7 @@ class DatabaseConfigureWindow {open
 	m_databaseName->value("mir2x");
 }} {}
   }
-  Function {ShowAll()} {} {
+  Function {showAll()} {} {
     code {{
 	m_window->show();
 }} {}

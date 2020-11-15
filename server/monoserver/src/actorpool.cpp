@@ -836,7 +836,7 @@ bool ActorPool::isActorThread(int workerId) const
     return (workerId >= 0) && (workerId < (int)(m_bucketList.size()));
 }
 
-ActorPool::ActorMonitor ActorPool::getActorMonitor(uint64_t uid) const
+ActorMonitor ActorPool::getActorMonitor(uint64_t uid) const
 {
     if(isActorThread()){
         throw fflerror("querying actor monitor inside actor thread: WorkerID = %d, UID = %llu", getWorkerID(), to_llu(uid));
@@ -845,14 +845,14 @@ ActorPool::ActorMonitor ActorPool::getActorMonitor(uint64_t uid) const
     const auto &subBucketCRef = getSubBucket(uid);
     {
         MailboxSubBucket::RLockGuard lockGuard(subBucketCRef.lock);
-        if(const auto p = subBucketCRef.mailboxList.find(uid); p != subBucketCRef.mailboxList.end() && p->second->schedLock.detached()){
+        if(const auto p = subBucketCRef.mailboxList.find(uid); p != subBucketCRef.mailboxList.end() && !p->second->schedLock.detached()){
             return p->second->dumpMonitor();
         }
     }
     return {};
 }
 
-std::vector<ActorPool::ActorMonitor> ActorPool::getActorMonitor() const
+std::vector<ActorMonitor> ActorPool::getActorMonitor() const
 {
     if(isActorThread()){
         throw fflerror("querying actor monitor inside actor thread: WorkerID = %d", getWorkerID());
@@ -866,7 +866,7 @@ std::vector<ActorPool::ActorMonitor> ActorPool::getActorMonitor() const
         }
     }
 
-    std::vector<ActorPool::ActorMonitor> result;
+    std::vector<ActorMonitor> result;
     result.reserve(to_llu(actorCount * 1.5));
 
     for(const auto &bucketCRef: m_bucketList){
@@ -907,6 +907,22 @@ std::pair<ActorPool::MailboxSubBucket::RLockGuard, ActorPool::Mailbox *> ActorPo
     MailboxSubBucket::RLockGuard lockGuard(subBucketRef.lock);
     if(auto p = subBucketRef.mailboxList.find(uid); p != subBucketRef.mailboxList.end()){
         return {std::move(lockGuard), p->second.get()};
+    }
+    return {};
+}
+
+ActorPodMonitor ActorPool::getPodMonitor(uint64_t uid) const
+{
+    if(isActorThread()){
+        throw fflerror("querying actor pod monitor inside actor thread: WorkerID = %d, UID = %llu", getWorkerID(), to_llu(uid));
+    }
+
+    const auto &subBucketCRef = getSubBucket(uid);
+    {
+        MailboxSubBucket::RLockGuard lockGuard(subBucketCRef.lock);
+        if(const auto p = subBucketCRef.mailboxList.find(uid); p != subBucketCRef.mailboxList.end() && !p->second->schedLock.detached()){
+            return p->second->actor->dumpPodMonitor();
+        }
     }
     return {};
 }

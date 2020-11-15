@@ -72,7 +72,7 @@ class ScriptWindow {} {
 	m_display->buffer(m_buffer);
 }} {}
   }
-  Function {ShowAll()} {return_type void
+  Function {showAll()} {return_type void
   } {
     code {{
 	m_window->show();
@@ -87,7 +87,7 @@ class ScriptWindow {} {
         case 2:
             {
                 m_fileName = szFileName;
-                ShowAll();
+                showAll();
                 break;
             }
         default:

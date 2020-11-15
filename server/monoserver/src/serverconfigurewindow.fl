@@ -134,7 +134,7 @@ class ServerConfigureWindow {open
     m_scriptFullName->value("script/map");
 }} {}
   }
-  Function {ShowAll()} {} {
+  Function {showAll()} {} {
     code {{
     m_window->show();
 }} {}

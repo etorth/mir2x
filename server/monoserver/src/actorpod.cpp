@@ -83,9 +83,9 @@ void ActorPod::innHandler(const MessagePack &rstMPK)
             if(g_monoServer->getCurrTick() >= m_respondHandlerGroup.begin()->second.ExpireTime){
                 // everytime when we received the new MPK we check if there is handler the timeout
                 // also this time get counted into the monitor entry
-                m_podMonitor.AMProcMonitorList[MPK_TIMEOUT].recvCount++;
+                m_podMonitor.amProcMonitorList[MPK_TIMEOUT].recvCount++;
                 {
-                    raii_timer stTimer(&(m_podMonitor.AMProcMonitorList[MPK_TIMEOUT].procTick));
+                    raii_timer stTimer(&(m_podMonitor.amProcMonitorList[MPK_TIMEOUT].procTick));
                     m_respondHandlerGroup.begin()->second.Operation(MPK_TIMEOUT);
                 }
                 m_respondHandlerGroup.erase(m_respondHandlerGroup.begin());
@@ -108,9 +108,9 @@ void ActorPod::innHandler(const MessagePack &rstMPK)
         //                 2. repsonse is too late ooops and the handler has already be deleted
         if(auto p = m_respondHandlerGroup.find(rstMPK.Respond()); p != m_respondHandlerGroup.end()){
             if(p->second.Operation){
-                m_podMonitor.AMProcMonitorList[rstMPK.Type()].recvCount++;
+                m_podMonitor.amProcMonitorList[rstMPK.Type()].recvCount++;
                 {
-                    raii_timer stTimer(&(m_podMonitor.AMProcMonitorList[rstMPK.Type()].procTick));
+                    raii_timer stTimer(&(m_podMonitor.amProcMonitorList[rstMPK.Type()].procTick));
                     p->second.Operation(rstMPK);
                 }
             }else{
@@ -126,9 +126,9 @@ void ActorPod::innHandler(const MessagePack &rstMPK)
         // this is not a responding message
         // use default message handling operation
         if(m_operation){
-            m_podMonitor.AMProcMonitorList[rstMPK.Type()].recvCount++;
+            m_podMonitor.amProcMonitorList[rstMPK.Type()].recvCount++;
             {
-                raii_timer stTimer(&(m_podMonitor.AMProcMonitorList[rstMPK.Type()].procTick));
+                raii_timer stTimer(&(m_podMonitor.amProcMonitorList[rstMPK.Type()].procTick));
                 m_operation(rstMPK);
             }
         }else{
@@ -191,7 +191,7 @@ bool ActorPod::forward(uint64_t nUID, const MessageBuf &rstMB, uint32_t nRespond
                 uidf::getUIDString(UID()).c_str(), uidf::getUIDString(nUID).c_str(), MessagePack(rstMB.Type()).Name(), nRespond);
     }
 
-    m_podMonitor.AMProcMonitorList[rstMB.Type()].sendCount++;
+    m_podMonitor.amProcMonitorList[rstMB.Type()].sendCount++;
     return g_actorPool->postMessage(nUID, {rstMB, UID(), 0, nRespond});
 }
 
@@ -223,7 +223,7 @@ bool ActorPod::forward(uint64_t nUID, const MessageBuf &rstMB, uint32_t nRespond
                 uidf::getUIDString(UID()).c_str(), uidf::getUIDString(nUID).c_str(), MessagePack(rstMB.Type()).Name(), nID, nRespond);
     }
 
-    m_podMonitor.AMProcMonitorList[rstMB.Type()].sendCount++;
+    m_podMonitor.amProcMonitorList[rstMB.Type()].sendCount++;
     if(g_actorPool->postMessage(nUID, {rstMB, UID(), nID, nRespond})){
         if(m_respondHandlerGroup.try_emplace(nID, g_monoServer->getCurrTick() + m_expireTime, std::move(fnOPR)).second){
             return true;
@@ -233,9 +233,9 @@ bool ActorPod::forward(uint64_t nUID, const MessageBuf &rstMB, uint32_t nRespond
         // respond the response handler here
         // if post failed, it can only be the UID is detached
         if(fnOPR){
-            m_podMonitor.AMProcMonitorList[MPK_BADACTORPOD].recvCount++;
+            m_podMonitor.amProcMonitorList[MPK_BADACTORPOD].recvCount++;
             {
-                raii_timer stTimer(&(m_podMonitor.AMProcMonitorList[MPK_BADACTORPOD].procTick));
+                raii_timer stTimer(&(m_podMonitor.amProcMonitorList[MPK_BADACTORPOD].procTick));
                 fnOPR(MPK_BADACTORPOD);
             }
         }
@@ -274,10 +274,10 @@ bool ActorPod::checkInvalid(uint64_t uid)
 
 void ActorPod::PrintMonitor() const
 {
-    for(size_t nIndex = 0; nIndex < m_podMonitor.AMProcMonitorList.size(); ++nIndex){
-        const uint64_t nProcTick  = m_podMonitor.AMProcMonitorList[nIndex].procTick / 1000000;
-        const uint32_t nSendCount = m_podMonitor.AMProcMonitorList[nIndex].sendCount;
-        const uint32_t nRecvCount = m_podMonitor.AMProcMonitorList[nIndex].recvCount;
+    for(size_t nIndex = 0; nIndex < m_podMonitor.amProcMonitorList.size(); ++nIndex){
+        const uint64_t nProcTick  = m_podMonitor.amProcMonitorList[nIndex].procTick / 1000000;
+        const uint32_t nSendCount = m_podMonitor.amProcMonitorList[nIndex].sendCount;
+        const uint32_t nRecvCount = m_podMonitor.amProcMonitorList[nIndex].recvCount;
         if(nSendCount || nRecvCount){
             g_monoServer->addLog(LOGTYPE_DEBUG, "UID: %s %s: procTick %llu ms, sendCount %llu, recvCount %llu", uidf::getUIDString(UID()).c_str(), MessagePack(nIndex).Name(), to_llu(nProcTick), to_llu(nSendCount), to_llu(nRecvCount));
         }
