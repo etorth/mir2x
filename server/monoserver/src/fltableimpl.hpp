@@ -28,7 +28,7 @@ class Fl_TableImpl: public Fl_Table_Row
         bool m_sortOrder =  false;
 
     public:
-        Fl_TableImpl(int, int, int, int, const char *szLabel = nullptr);
+        Fl_TableImpl(int, int, int, int, const char * = nullptr);
         
     public:
         int getFontWidth() const;

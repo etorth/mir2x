@@ -66,6 +66,10 @@ std::string PodMonitorTable::getGridData(int nRow, int nCol) const
             {
                 return fnAdjustLength(std::to_string(monitor.procMonitor.recvCount), std::to_string(m_podDrawHelper.maxRecvCount).size(), true);
             }
+        case 4: // RECV_AVG
+            {
+                return fnAdjustLength(std::to_string(monitor.procMonitor.recvCount > 0 ? (monitor.procMonitor.procTick / monitor.procMonitor.recvCount) : 0), std::to_string(m_podDrawHelper.maxRecvAvgTime).size(), true);
+            }
         default:
             {
                 return "???";
@@ -83,8 +87,6 @@ void PodMonitorTable::setupColWidth()
         return 100;
     };
 
-    cols(getColCount());
-
     if(m_podDrawHelper.amProcMonitorList.empty()){
         for(int i = 0; i < getColCount(); ++i){
             col_width(i, fnHeaderWidth(i));
@@ -95,6 +97,7 @@ void PodMonitorTable::setupColWidth()
         col_width(1, (std::max<int>)(fnHeaderWidth(1), 160)); // BUSY
         col_width(2, (std::max<int>)(fnHeaderWidth(2), 120)); // SEND
         col_width(3, (std::max<int>)(fnHeaderWidth(3), 120)); // RECV
+        col_width(4, (std::max<int>)(fnHeaderWidth(4), 120)); // RECV_AVG
     }
 }
 
@@ -116,11 +119,20 @@ void PodMonitorTable::sortTable()
             }
         };
 
+        const auto fnGetAverage = [](const auto &num, const auto &den)
+        {
+            if(den > 0){
+                return num / den;
+            }
+            return num - num;
+        };
+
         switch(sortByCol()){
             case 0 : return fnArgedCompare(lhs.amType, rhs.amType);
             case 1 : return fnArgedCompare(lhs.procMonitor.procTick, rhs.procMonitor.procTick);
             case 2 : return fnArgedCompare(lhs.procMonitor.sendCount, rhs.procMonitor.sendCount);
             case 3 : return fnArgedCompare(lhs.procMonitor.recvCount, rhs.procMonitor.recvCount);
+            case 4 : return fnArgedCompare(fnGetAverage(lhs.procMonitor.procTick, lhs.procMonitor.recvCount), fnGetAverage(rhs.procMonitor.procTick, rhs.procMonitor.recvCount));
             default: return fnArgedCompare(&lhs, &rhs); // keep everything as it or reversed
         }
     });
@@ -175,8 +187,9 @@ PodMonitorTable::PodMonitorDrawHelper PodMonitorTable::getPodMonitorDrawHelper(c
     result.amProcMonitorList.reserve(MPK_MAX / 10);
 
     for(int amType = 0; const auto &monitor: podMonitor.amProcMonitorList){
-        result.maxSendCount = std::max<size_t>(result.maxSendCount, monitor.sendCount);
-        result.maxRecvCount = std::max<size_t>(result.maxRecvCount, monitor.recvCount);
+        result.maxSendCount   = std::max<size_t>(result.maxSendCount, monitor.sendCount);
+        result.maxRecvCount   = std::max<size_t>(result.maxRecvCount, monitor.recvCount);
+        result.maxRecvAvgTime = std::max<size_t>(result.maxRecvAvgTime, (monitor.recvCount > 0) ? (monitor.procTick / monitor.recvCount) : 0);
         if(monitor.sendCount || monitor.recvCount){
             result.amProcMonitorList.push_back({amType, monitor});
         }

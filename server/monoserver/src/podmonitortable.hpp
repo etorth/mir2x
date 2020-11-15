@@ -29,8 +29,9 @@ class PodMonitorTable: public Fl_TableImpl
     private:
         struct PodMonitorDrawHelper
         {
-            size_t maxSendCount = 0;
-            size_t maxRecvCount = 0;
+            size_t maxSendCount   = 0;
+            size_t maxRecvCount   = 0;
+            size_t maxRecvAvgTime = 0;
 
             struct PodMonitorHelper
             {
@@ -99,7 +100,7 @@ class PodMonitorTable: public Fl_TableImpl
 
         int getColCount() const override
         {
-            return 4;
+            return 5;
         }
 
         std::string getColName(int col) const override
@@ -109,6 +110,7 @@ class PodMonitorTable: public Fl_TableImpl
                 case 1: return "BUSY";
                 case 2: return "SEND";
                 case 3: return "RECV";
+                case 4: return "RECV_AVG";
                 default: throw fflerror("invalid col: %d", col);
             }
         }
