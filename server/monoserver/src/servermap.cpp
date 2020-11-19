@@ -714,24 +714,6 @@ void ServerMap::removeGridUID(uint64_t uid, int nX, int nY)
     }
 }
 
-bool ServerMap::doUIDList(int nX, int nY, const std::function<bool(uint64_t)> &fnOP)
-{
-    if(!ValidC(nX, nY)){
-        return false;
-    }
-
-    if(!fnOP){
-        return false;
-    }
-
-    for(auto nUID: getUIDList(nX, nY)){
-        if(fnOP(nUID)){
-            return true;
-        }
-    }
-    return false;
-}
-
 bool ServerMap::DoCircle(int nCX0, int nCY0, int nCR, const std::function<bool(int, int)> &fnOP)
 {
     int nW = 2 * nCR - 1;

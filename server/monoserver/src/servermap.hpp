@@ -21,6 +21,7 @@
 #include <tuple>
 #include <vector>
 #include <cstdint>
+#include <concepts>
 
 #include "typecast.hpp"
 #include "sysconst.hpp"
@@ -269,7 +270,19 @@ class ServerMap final: public ServerObject
         int CheckPathGrid(int, int) const;
 
     private:
-        bool doUIDList(int, int, const std::function<bool(uint64_t)> &);
+        template<typename F> bool doUIDList(int x, int y, const F &func)
+        {
+            if(!ValidC(x, y)){
+                return false;
+            }
+
+            for(const auto uid: getUIDList(x, y)){
+                if(func(uid)){
+                    return true;
+                }
+            }
+            return false;
+        }
 
     private:
         bool DoCircle(int, int, int,      const std::function<bool(int, int)> &);
