@@ -714,38 +714,6 @@ void ServerMap::removeGridUID(uint64_t uid, int nX, int nY)
     }
 }
 
-bool ServerMap::DoCircle(int nCX0, int nCY0, int nCR, const std::function<bool(int, int)> &fnOP)
-{
-    int nW = 2 * nCR - 1;
-    int nH = 2 * nCR - 1;
-
-    int nX0 = nCX0 - nCR + 1;
-    int nY0 = nCY0 - nCR + 1;
-
-    if((nW > 0) && (nH > 0) && mathf::rectangleOverlapRegion(0, 0, W(), H(), &nX0, &nY0, &nW, &nH)){
-
-        // get the clip region over the map
-        // if no valid region we won't do the rest
-
-        for(int nX = nX0; nX < nX0 + nW; ++nX){
-            for(int nY = nY0; nY < nY0 + nH; ++nY){
-                if(true || ValidC(nX, nY)){
-                    if(mathf::LDistance2(nX, nY, nCX0, nCY0) <= (nCR - 1) * (nCR - 1)){
-                        if(!fnOP){
-                            return false;
-                        }
-
-                        if(fnOP(nX, nY)){
-                            return true;
-                        }
-                    }
-                }
-            }
-        }
-    }
-    return false;
-}
-
 bool ServerMap::DoSquare(int nX0, int nY0, int nW, int nH, const std::function<bool(int, int)> &fnOP)
 {
     if((nW > 0) && (nH > 0) && mathf::rectangleOverlapRegion(0, 0, W(), H(), &nX0, &nY0, &nW, &nH)){
@@ -773,7 +741,7 @@ bool ServerMap::DoSquare(int nX0, int nY0, int nW, int nH, const std::function<b
 bool ServerMap::DoCenterCircle(int nCX0, int nCY0, int nCR, bool bPriority, const std::function<bool(int, int)> &fnOP)
 {
     if(!bPriority){
-        return DoCircle(nCX0, nCY0, nCR, fnOP);
+        return doCircle(nCX0, nCY0, nCR, fnOP);
     }
 
     int nW = 2 * nCR - 1;
@@ -930,7 +898,7 @@ bool ServerMap::AddGroundItem(const CommonItem &rstCommonItem, int nX, int nY)
             return false;
         };
 
-        DoCircle(nX, nY, 10, fnNotifyDropItem);
+        doCircle(nX, nY, 10, fnNotifyDropItem);
         return true;
     }
     return false;
@@ -973,7 +941,7 @@ void ServerMap::notifyNewCO(uint64_t nUID, int nX, int nY)
     std::memset(&stAMNNCO, 0, sizeof(stAMNNCO));
 
     stAMNNCO.UID = nUID;
-    DoCircle(nX, nY, 20, [this, stAMNNCO](int nX, int nY) -> bool
+    doCircle(nX, nY, 20, [this, stAMNNCO](int nX, int nY) -> bool
     {
         if(true || ValidC(nX, nY)){
             doUIDList(nX, nY, [this, stAMNNCO](uint64_t nUID)

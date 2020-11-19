@@ -50,7 +50,7 @@ void ServerMap::On_MPK_ACTION(const MessagePack &rstMPK)
         return;
     }
 
-    DoCircle(amA.X, amA.Y, 10, [this, amA](int nX, int nY) -> bool
+    doCircle(amA.X, amA.Y, 10, [this, amA](int nX, int nY) -> bool
     {
         if(true || ValidC(nX, nY)){
             doUIDList(nX, nY, [this, amA](uint64_t nUID) -> bool
@@ -108,7 +108,7 @@ void ServerMap::On_MPK_ADDCHAROBJECT(const MessagePack &rstMPK)
                     m_actorPod->forward(rstMPK.from(), MPK_OK, rstMPK.ID());
                     m_actorPod->forward(pPlayer->UID(), {MPK_BINDCHANNEL, nChannID});
 
-                    DoCircle(nX, nY, 20, [this, nChannID](int nX, int nY) -> bool
+                    doCircle(nX, nY, 20, [this, nChannID](int nX, int nY) -> bool
                     {
                         if(true || ValidC(nX, nY)){
                             // ReportGroundItem(nChannID, nX, nY);
@@ -131,7 +131,7 @@ void ServerMap::On_MPK_ADDCHAROBJECT(const MessagePack &rstMPK)
 
                 if(addNPChar(npcID, x, y, direction, strictLoc)){
                     m_actorPod->forward(rstMPK.from(), MPK_OK, rstMPK.ID());
-                    DoCircle(nX, nY, 20, [this](int nX, int nY) -> bool
+                    doCircle(nX, nY, 20, [this](int nX, int nY) -> bool
                     {
                         if(true || ValidC(nX, nY)){
                             // ReportGroundItem(nChannID, nX, nY);
@@ -578,7 +578,7 @@ void ServerMap::On_MPK_UPDATEHP(const MessagePack &rstMPK)
     std::memcpy(&stAMUHP, rstMPK.Data(), sizeof(stAMUHP));
 
     if(ValidC(stAMUHP.X, stAMUHP.Y)){
-        DoCircle(stAMUHP.X, stAMUHP.Y, 20, [this, stAMUHP](int nX, int nY) -> bool
+        doCircle(stAMUHP.X, stAMUHP.Y, 20, [this, stAMUHP](int nX, int nY) -> bool
         {
             if(true || ValidC(nX, nY)){
                 for(auto nUID: getUIDList(nX, nY)){
@@ -601,7 +601,7 @@ void ServerMap::On_MPK_DEADFADEOUT(const MessagePack &rstMPK)
 
     if(ValidC(stAMDFO.X, stAMDFO.Y)){
         removeGridUID(stAMDFO.UID, stAMDFO.X, stAMDFO.Y);
-        DoCircle(stAMDFO.X, stAMDFO.Y, 20, [this, stAMDFO](int nX, int nY) -> bool
+        doCircle(stAMDFO.X, stAMDFO.Y, 20, [this, stAMDFO](int nX, int nY) -> bool
         {
             if(true || ValidC(nX, nY)){
                 for(auto nUID: getUIDList(nX, nY)){
@@ -746,7 +746,7 @@ void ServerMap::On_MPK_OFFLINE(const MessagePack &rstMPK)
     // because player may get offline at try move
     removeGridUID(stAMO.UID, stAMO.X, stAMO.Y);
 
-    DoCircle(stAMO.X, stAMO.Y, 10, [stAMO, this](int nX, int nY) -> bool
+    doCircle(stAMO.X, stAMO.Y, 10, [stAMO, this](int nX, int nY) -> bool
     {
         if(true || ValidC(nX, nY)){
             for(auto nUID: getUIDList(nX, nY)){
@@ -771,7 +771,7 @@ void ServerMap::On_MPK_PICKUP(const MessagePack &rstMPK)
 
     if(auto nIndex = FindGroundItem(CommonItem(stAMPU.ID, 0), stAMPU.X, stAMPU.Y); nIndex >= 0){
         RemoveGroundItem(CommonItem(stAMPU.ID, 0), stAMPU.X, stAMPU.Y);
-        DoCircle(stAMPU.X, stAMPU.Y, 10, [this, stAMPU](int nX, int nY) -> bool
+        doCircle(stAMPU.X, stAMPU.Y, 10, [this, stAMPU](int nX, int nY) -> bool
         {
             if(true || ValidC(nX, nY)){
                 AMRemoveGroundItem stAMRGI;

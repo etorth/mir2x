@@ -23,6 +23,7 @@
 #include <cstdint>
 #include <concepts>
 
+#include "mathf.hpp"
 #include "typecast.hpp"
 #include "sysconst.hpp"
 #include "querytype.hpp"
@@ -285,7 +286,31 @@ class ServerMap final: public ServerObject
         }
 
     private:
-        bool DoCircle(int, int, int,      const std::function<bool(int, int)> &);
+        template<std::predicate<int, int> F> bool doCircle(int cx0, int cy0, int r, const F &f)
+        {
+            int doW = 2 * r - 1;
+            int doH = 2 * r - 1;
+
+            int x0 = cx0 - r + 1;
+            int y0 = cy0 - r + 1;
+
+            if((doW > 0) && (doH > 0) && mathf::rectangleOverlapRegion(0, 0, W(), H(), &x0, &y0, &doW, &doH)){
+                for(int x = x0; x < x0 + doW; ++x){
+                    for(int y = y0; y < y0 + doH; ++y){
+                        if(true || ValidC(x, y)){
+                            if(mathf::LDistance2(x, y, cx0, cy0) <= (r - 1) * (r - 1)){
+                                if(f(x, y)){
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+
+    private:
         bool DoSquare(int, int, int, int, const std::function<bool(int, int)> &);
 
         bool DoCenterCircle(int, int, int,      bool, const std::function<bool(int, int)> &);
