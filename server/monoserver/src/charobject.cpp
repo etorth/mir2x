@@ -789,7 +789,7 @@ void CharObject::retrieveLocation(uint64_t nUID, std::function<void(const COLoca
     // CO dispatches location changes automatically
     // always trust the InViewCOList, can even skip the expiration now
 
-    if(auto p = GetInViewCOPtr(nUID); p && g_monoServer->getCurrTick() <= p->RecordTime + 2 * 1000){
+    if(auto p = getInViewCOPtr(nUID); p && g_monoServer->getCurrTick() <= p->RecordTime + 2 * 1000){
         fnOnOK(*p);
         return;
     }
@@ -1276,7 +1276,7 @@ void CharObject::AddInViewCO(const COLocation &rstCOLocation)
         return;
     }
 
-    if(auto p = GetInViewCOPtr(rstCOLocation.UID)){
+    if(auto p = getInViewCOPtr(rstCOLocation.UID)){
         *p = rstCOLocation;
     }
     else{
@@ -1340,13 +1340,13 @@ bool CharObject::InView(uint32_t nMapID, int nX, int nY) const
 
 COLocation &CharObject::GetInViewCORef(uint64_t nUID)
 {
-    if(auto p = GetInViewCOPtr(nUID)){
+    if(auto p = getInViewCOPtr(nUID)){
         return *p;
     }
     throw fflerror("can't find UID in InViewCOList: %" PRIu64, nUID);
 }
 
-COLocation *CharObject::GetInViewCOPtr(uint64_t nUID)
+COLocation *CharObject::getInViewCOPtr(uint64_t nUID)
 {
     for(auto &rstCOLoc: m_inViewCOList){
         if(rstCOLoc.UID == nUID){

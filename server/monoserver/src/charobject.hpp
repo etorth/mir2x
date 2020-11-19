@@ -372,7 +372,7 @@ class CharObject: public ServerObject
 
     protected:
         COLocation &GetInViewCORef(uint64_t);
-        COLocation *GetInViewCOPtr(uint64_t);
+        COLocation *getInViewCOPtr(uint64_t);
 
     protected:
         virtual void checkFriend(uint64_t, std::function<void(int)>) = 0;
