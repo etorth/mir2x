@@ -1,12 +1,12 @@
 language: c++
-dist: bionic
+dist: focal
 
 addons:
     apt:
         packages:
             - cmake
-            - gcc-8
-            - g++-8
+            - gcc-10
+            - g++-10
             - liblua5.3-dev
             - libsqlite3-dev
             - libfltk1.3-dev
@@ -18,7 +18,7 @@ addons:
     coverity_scan:
         project:
             name: "etorth/mir2x"
-        build_command_prepend: "mkdir -p build && cd build && cmake .. -DCMAKE_C_COMPILER=gcc-8 -DCMAKE_CXX_COMPILER=g++-8 -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=install"
+        build_command_prepend: "mkdir -p build && cd build && cmake .. -DCMAKE_C_COMPILER=gcc-10 -DCMAKE_CXX_COMPILER=g++-10 -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=install"
         build_command: "make"
         branch_pattern: master
         notification_email: anhonghe@gmail.com
@@ -27,7 +27,7 @@ script:
     - mkdir -p build
     - cd build
     - cmake --version
-    - cmake .. -DCMAKE_C_COMPILER=gcc-8 -DCMAKE_CXX_COMPILER=g++-8 -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=install
+    - cmake .. -DCMAKE_C_COMPILER=gcc-10 -DCMAKE_CXX_COMPILER=g++-10 -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=install
     - make -j $(nproc)
     - make -j $(nproc) install
 
