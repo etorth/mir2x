@@ -270,7 +270,7 @@ class ServerMap final: public ServerObject
         int CheckPathGrid(int, int) const;
 
     private:
-        template<typename F> bool doUIDList(int x, int y, const F &func)
+        template<std::predicate<uint64_t> F> bool doUIDList(int x, int y, const F &func)
         {
             if(!ValidC(x, y)){
                 return false;
