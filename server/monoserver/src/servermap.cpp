@@ -714,30 +714,6 @@ void ServerMap::removeGridUID(uint64_t uid, int nX, int nY)
     }
 }
 
-bool ServerMap::DoSquare(int nX0, int nY0, int nW, int nH, const std::function<bool(int, int)> &fnOP)
-{
-    if((nW > 0) && (nH > 0) && mathf::rectangleOverlapRegion(0, 0, W(), H(), &nX0, &nY0, &nW, &nH)){
-
-        // get the clip region over the map
-        // if no valid region we won't do the rest
-
-        for(int nX = nX0; nX < nX0 + nW; ++nX){
-            for(int nY = nY0; nY < nY0 + nH; ++nY){
-                if(true || ValidC(nX, nY)){
-                    if(!fnOP){
-                        return false;
-                    }
-
-                    if(fnOP(nX, nY)){
-                        return true;
-                    }
-                }
-            }
-        }
-    }
-    return false;
-}
-
 bool ServerMap::DoCenterCircle(int nCX0, int nCY0, int nCR, bool bPriority, const std::function<bool(int, int)> &fnOP)
 {
     if(!bPriority){
@@ -782,7 +758,7 @@ bool ServerMap::DoCenterCircle(int nCX0, int nCY0, int nCR, bool bPriority, cons
 bool ServerMap::DoCenterSquare(int nCX, int nCY, int nW, int nH, bool bPriority, const std::function<bool(int, int)> &fnOP)
 {
     if(!bPriority){
-        return DoSquare(nCX - nW / 2, nCY - nH / 2, nW, nH, fnOP);
+        return doSquare(nCX - nW / 2, nCY - nH / 2, nW, nH, fnOP);
     }
 
     int nX0 = nCX - nW / 2;

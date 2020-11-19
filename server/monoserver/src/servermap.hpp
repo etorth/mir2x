@@ -310,8 +310,21 @@ class ServerMap final: public ServerObject
             return false;
         }
 
-    private:
-        bool DoSquare(int, int, int, int, const std::function<bool(int, int)> &);
+        template<std::predicate<int, int> F> bool doSquare(int x0, int y0, int doW, int doH, const F &f)
+        {
+            if((doW > 0) && (doH > 0) && mathf::rectangleOverlapRegion(0, 0, W(), H(), &x0, &y0, &doW, &doH)){
+                for(int x = x0; x < x0 + doW; ++x){
+                    for(int y = y0; y < y0 + doH; ++y){
+                        if(true || ValidC(x, y)){
+                            if(f(x, y)){
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+            return false;
+        }
 
         bool DoCenterCircle(int, int, int,      bool, const std::function<bool(int, int)> &);
         bool DoCenterSquare(int, int, int, int, bool, const std::function<bool(int, int)> &);
