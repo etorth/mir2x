@@ -720,6 +720,10 @@ void ActorPool::runOneMailboxBucket(int bucketId)
                 continue;
             }
 
+            if(!mailboxPtr->schedLock.detached()){
+                throw fflerror("clear mailbox while it's not detached: uid = %llu", to_llu(mailboxPtr->uid));
+            }
+
             if(mailboxPtr->atExit){
                 mailboxPtr->atExit();
                 mailboxPtr->atExit = nullptr;
