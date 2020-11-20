@@ -385,6 +385,10 @@ bool ActorPool::postMessage(uint64_t uid, MessagePack msg)
 
         // still here the mailbox can freely switch to detached status
         // need the actor thread do fully clear job
+
+        // profiler helper
+        // measure the delay that when the message reaches actorpool and it gets executed
+        const uint64_t nowTime = mailboxPtr->monitor.liveTimer.diff_nsec();
         {
             std::lock_guard<std::mutex> lockGuard(mailboxPtr->nextQLock);
             if(mailboxPtr->schedLock.detached()){
@@ -395,7 +399,7 @@ bool ActorPool::postMessage(uint64_t uid, MessagePack msg)
             // we can't guarantee, the only thing we can do is:
             //   1. don't run an already detached actor
             //   2. clear all pending message in a detached actor by clearOneMailbox()
-            mailboxPtr->nextQ.push_back(std::move(msg));
+            mailboxPtr->nextQ.push_back(std::pair<MessagePack, uint64_t>(std::move(msg), nowTime));
         }
         return true;
     };
@@ -544,9 +548,15 @@ bool ActorPool::runOneMailbox(Mailbox *mailboxPtr, bool useMetronome)
                 return false;
             }
 
+            const uint64_t timeNow = mailboxPtr->monitor.liveTimer.diff_nsec();
+            if(timeNow < p->second){
+                throw fflerror("monotonic clock error: %llu -> %llu", to_llu(p->second), to_llu(timeNow));
+            }
+
+            mailboxPtr->monitor.avgDelay.store((mailboxPtr->monitor.avgDelay.load() * 7 + (timeNow - p->second)) / 8);
             {
                 raii_timer procTimer(&(mailboxPtr->monitor.procTick));
-                mailboxPtr->actor->innHandler(*p);
+                mailboxPtr->actor->innHandler(p->first);
             }
             mailboxPtr->monitor.messageDone.fetch_add(1);
         }
@@ -608,19 +618,19 @@ void ActorPool::clearOneMailbox(Mailbox *mailboxPtr)
     }
 
     for(const auto &p: mailboxPtr->currQ){
-        if(!p.from()){
+        if(!p.first.from()){
             continue;
         }
 
         AMBadActorPod amBAP;
         std::memset(&amBAP, 0, sizeof(amBAP));
 
-        amBAP.Type    = p.Type();
-        amBAP.from    = p.from();
-        amBAP.ID      = p.ID();
-        amBAP.Respond = p.Respond();
+        amBAP.Type    = p.first.Type();
+        amBAP.from    = p.first.from();
+        amBAP.ID      = p.first.ID();
+        amBAP.Respond = p.first.Respond();
         amBAP.UID     = mailboxPtr->uid;
-        postMessage(p.from(), {MessageBuf(MPK_BADACTORPOD, amBAP), 0, 0, p.ID()});
+        postMessage(p.first.from(), {MessageBuf(MPK_BADACTORPOD, amBAP), 0, 0, p.first.ID()});
     }
     mailboxPtr->currQ.clear();
 }

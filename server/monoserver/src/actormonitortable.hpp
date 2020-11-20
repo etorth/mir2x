@@ -29,6 +29,7 @@ class ActorMonitorTable: public Fl_TableImpl
     private:
         struct ActorMonitorDrawHelper
         {
+            size_t maxAvgDelay = 0;
             size_t maxMessageDone = 0;
             size_t maxMessagePending = 0;
             std::array<size_t, UID_MAX> uidTypeCountList;
@@ -99,7 +100,7 @@ class ActorMonitorTable: public Fl_TableImpl
 
         int getColCount() const override
         {
-            return 7;
+            return 8;
         }
 
         std::string getColName(int col) const override
@@ -112,6 +113,7 @@ class ActorMonitorTable: public Fl_TableImpl
                 case 4: return "BUSY";
                 case 5: return "MSG_DONE";
                 case 6: return "MSG_PENDING";
+                case 7: return "MSG_AVGDLY";
                 default: throw fflerror("invalid col: %d", col);
             }
         }

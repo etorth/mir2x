@@ -24,6 +24,7 @@ struct ActorMonitor
 {
     uint64_t uid = 0;
 
+    uint32_t avgDelay = 0;
     uint32_t liveTick = 0;
     uint32_t busyTick = 0;
 

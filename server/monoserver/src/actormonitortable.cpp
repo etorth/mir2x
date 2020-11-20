@@ -74,6 +74,10 @@ std::string ActorMonitorTable::getGridData(int nRow, int nCol) const
             {
                 return fnAdjustLength(std::to_string(monitor.messagePending), std::to_string(m_monitorDrawHelper.maxMessagePending).size());
             }
+        case 7: // MSG_AVGDLY
+            {
+                return fnAdjustLength(std::to_string(monitor.avgDelay), std::to_string(m_monitorDrawHelper.maxAvgDelay).size());
+            }
         default:
             {
                 return "???";
@@ -86,6 +90,7 @@ ActorMonitorTable::ActorMonitorDrawHelper ActorMonitorTable::getActorMonitorDraw
     ActorMonitorTable::ActorMonitorDrawHelper result;
     for(const auto &monitor: monitorList){
         result.uidTypeCountList.at(uidf::getUIDType(monitor.uid))++;
+        result.maxAvgDelay       = (std::max<uint32_t>)(result.maxAvgDelay, monitor.avgDelay);
         result.maxMessageDone    = (std::max<uint32_t>)(result.maxMessageDone, monitor.messageDone);
         result.maxMessagePending = (std::max<uint32_t>)(result.maxMessagePending, monitor.messagePending);
     }
@@ -114,6 +119,7 @@ void ActorMonitorTable::setupColWidth()
         col_width(4, (std::max<int>)(fnHeaderWidth(4), 160)); // BUSY
         col_width(5, (std::max<int>)(fnHeaderWidth(5), 120)); // MSG_DONE
         col_width(6, (std::max<int>)(fnHeaderWidth(6),  30)); // MSG_PENDING
+        col_width(7, (std::max<int>)(fnHeaderWidth(5), 120)); // MSG_AVGDLY
     }
 }
 
@@ -157,6 +163,7 @@ void ActorMonitorTable::sortTable()
             case 4 : return fnArgedCompare(lhs.busyTick, rhs.busyTick);
             case 5 : return fnArgedCompare(lhs.messageDone, rhs.messageDone);
             case 6 : return fnArgedCompare(lhs.messagePending, rhs.messagePending);
+            case 7 : return fnArgedCompare(lhs.avgDelay, rhs.avgDelay);
             default: return fnArgedCompare(&lhs, &rhs); // keep everything as it or reversed
         }
     });

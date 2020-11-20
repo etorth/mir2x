@@ -403,8 +403,8 @@ class ActorPool final
             MailboxMutex schedLock;
             std::mutex   nextQLock;
 
-            std::vector<MessagePack> currQ;
-            std::vector<MessagePack> nextQ;
+            std::vector<std::pair<MessagePack, uint64_t>> currQ;
+            std::vector<std::pair<MessagePack, uint64_t>> nextQ;
 
             std::function<void()> atExit;
 
@@ -413,6 +413,7 @@ class ActorPool final
             struct MailboxMonitor
             {
                 hres_timer liveTimer;
+                std::atomic<uint64_t> avgDelay{0};
                 std::atomic<uint64_t> procTick{0};
                 std::atomic<uint32_t> messageDone{0};
                 std::atomic<uint32_t> messagePending{0};
@@ -423,6 +424,7 @@ class ActorPool final
                 return ActorMonitor
                 {
                     to_u64(uid),
+                    to_u32(monitor.avgDelay.load() / 1000000ULL),
                     to_u32(monitor.liveTimer.diff_msec()),
                     to_u32(monitor.procTick.load() / 1000000ULL),
                     to_u32(monitor.messageDone.load()),
