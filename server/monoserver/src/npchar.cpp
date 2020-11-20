@@ -160,13 +160,8 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npc)
 
 void NPChar::LuaNPCModule::setEvent(uint64_t uid, std::string event, std::string value)
 {
-    const auto fnCStr = [](const std::string &s) -> const char *
-    {
-        return s.empty() ? s.c_str() : "(empty)";
-    };
-
     if(!(uid && !event.empty())){
-        throw fflerror("invalid argument: uid = %llu, event = %s, value = %s", to_llu(uid), fnCStr(event), fnCStr(value));
+        throw fflerror("invalid argument: uid = %llu, event = %s, value = %s", to_llu(uid), to_cstr(event), to_cstr(value));
     }
 
     if(event == SYS_NPCDONE){
