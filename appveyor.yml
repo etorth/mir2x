@@ -47,7 +47,7 @@ before_build:
         mkdir build
         cd build
         cmake --version
-        cmake .. %CMAKE_GENERATOR% %CMAKE_TOOLCHAIN_FILE% %VCPKG_TARGET_TRIPLET% -A Win64
+        cmake .. %CMAKE_GENERATOR% %CMAKE_TOOLCHAIN_FILE% %VCPKG_TARGET_TRIPLET%
         cmake --build . --target package --config Release
 
 build_script:
