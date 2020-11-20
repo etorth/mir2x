@@ -384,7 +384,7 @@ class CharObject: public ServerObject
         bool isOffender(uint64_t);
 
     protected:
-        virtual void On_MPK_QUERYFRIENDTYPE(const MessagePack &);
+        virtual void on_MPK_QUERYFRIENDTYPE(const MessagePack &);
 
     protected:
         bool isPlayer()  const;

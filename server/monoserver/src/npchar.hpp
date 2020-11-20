@@ -91,12 +91,12 @@ class NPChar final: public CharObject
         void checkFriend(uint64_t, std::function<void(int)>) override;
 
     private:
-        void On_MPK_ACTION(const MessagePack &);
-        void On_MPK_NPCEVENT(const MessagePack &);
-        void On_MPK_NOTIFYNEWCO(const MessagePack &);
-        void On_MPK_BADACTORPOD(const MessagePack &);
-        void On_MPK_QUERYCORECORD(const MessagePack &);
-        void On_MPK_QUERYLOCATION(const MessagePack &);
+        void on_MPK_ACTION(const MessagePack &);
+        void on_MPK_NPCEVENT(const MessagePack &);
+        void on_MPK_NOTIFYNEWCO(const MessagePack &);
+        void on_MPK_BADACTORPOD(const MessagePack &);
+        void on_MPK_QUERYCORECORD(const MessagePack &);
+        void on_MPK_QUERYLOCATION(const MessagePack &);
 
     private:
         void sendQuery(uint64_t, const std::string &);

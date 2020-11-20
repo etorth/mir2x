@@ -20,7 +20,7 @@
 #include "messagepack.hpp"
 #include "actormessage.hpp"
 
-void CharObject::On_MPK_QUERYFRIENDTYPE(const MessagePack &rstMPK)
+void CharObject::on_MPK_QUERYFRIENDTYPE(const MessagePack &rstMPK)
 {
     AMQueryFriendType stAMQFT;
     std::memcpy(&stAMQFT, rstMPK.Data(), sizeof(stAMQFT));

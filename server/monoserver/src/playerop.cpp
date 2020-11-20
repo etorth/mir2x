@@ -28,7 +28,7 @@
 extern NetDriver *g_netDriver;
 extern MonoServer *g_monoServer;
 
-void Player::On_MPK_METRONOME(const MessagePack &)
+void Player::on_MPK_METRONOME(const MessagePack &)
 {
     update();
 
@@ -37,14 +37,14 @@ void Player::On_MPK_METRONOME(const MessagePack &)
     g_netDriver->Post(ChannID(), SM_PING, stSMP);
 }
 
-void Player::On_MPK_BADACTORPOD(const MessagePack &rstMPK)
+void Player::on_MPK_BADACTORPOD(const MessagePack &rstMPK)
 {
     AMBadActorPod stAMBAP;
     std::memcpy(&stAMBAP, rstMPK.Data(), sizeof(stAMBAP));
     ReportDeadUID(stAMBAP.UID);
 }
 
-void Player::On_MPK_BINDCHANNEL(const MessagePack &rstMPK)
+void Player::on_MPK_BINDCHANNEL(const MessagePack &rstMPK)
 {
     AMBindChannel stAMBC;
     std::memcpy(&stAMBC, rstMPK.Data(), sizeof(stAMBC));
@@ -72,7 +72,7 @@ void Player::On_MPK_BINDCHANNEL(const MessagePack &rstMPK)
     PullRectCO(10, 10);
 }
 
-void Player::On_MPK_NETPACKAGE(const MessagePack &rstMPK)
+void Player::on_MPK_NETPACKAGE(const MessagePack &rstMPK)
 {
     AMNetPackage stAMNP;
     std::memcpy(&stAMNP, rstMPK.Data(), sizeof(AMNetPackage));
@@ -93,7 +93,7 @@ void Player::On_MPK_NETPACKAGE(const MessagePack &rstMPK)
     }
 }
 
-void Player::On_MPK_ACTION(const MessagePack &rstMPK)
+void Player::on_MPK_ACTION(const MessagePack &rstMPK)
 {
     AMAction stAMA;
     std::memcpy(&stAMA, rstMPK.Data(), sizeof(stAMA));
@@ -158,7 +158,7 @@ void Player::On_MPK_ACTION(const MessagePack &rstMPK)
     });
 }
 
-void Player::On_MPK_NOTIFYNEWCO(const MessagePack &rstMPK)
+void Player::on_MPK_NOTIFYNEWCO(const MessagePack &rstMPK)
 {
     const auto stAMNNCO = rstMPK.conv<AMNotifyNewCO>();
     switch(GetState(STATE_DEAD)){
@@ -182,7 +182,7 @@ void Player::On_MPK_NOTIFYNEWCO(const MessagePack &rstMPK)
     }
 }
 
-void Player::On_MPK_QUERYCORECORD(const MessagePack &rstMPK)
+void Player::on_MPK_QUERYCORECORD(const MessagePack &rstMPK)
 {
     AMQueryCORecord stAMQCOR;
     std::memcpy(&stAMQCOR, rstMPK.Data(), sizeof(stAMQCOR));
@@ -190,7 +190,7 @@ void Player::On_MPK_QUERYCORECORD(const MessagePack &rstMPK)
     ReportCORecord(stAMQCOR.UID);
 }
 
-void Player::On_MPK_MAPSWITCH(const MessagePack &mpk)
+void Player::on_MPK_MAPSWITCH(const MessagePack &mpk)
 {
     const auto amMS = mpk.conv<AMMapSwitch>();
     if(!(amMS.UID && amMS.MapID)){
@@ -199,7 +199,7 @@ void Player::On_MPK_MAPSWITCH(const MessagePack &mpk)
     requestMapSwitch(amMS.MapID, amMS.X, amMS.Y, false);
 }
 
-void Player::On_MPK_NPCQUERY(const MessagePack &mpk)
+void Player::on_MPK_NPCQUERY(const MessagePack &mpk)
 {
     const std::string queryName = mpk.conv<AMNPCQuery>().query;
     AMNPCEvent amNPCE;
@@ -223,7 +223,7 @@ void Player::On_MPK_NPCQUERY(const MessagePack &mpk)
     m_actorPod->forward(mpk.from(), {MPK_NPCEVENT, amNPCE}, mpk.ID());
 }
 
-void Player::On_MPK_QUERYLOCATION(const MessagePack &rstMPK)
+void Player::on_MPK_QUERYLOCATION(const MessagePack &rstMPK)
 {
     AMLocation stAML;
     std::memset(&stAML, 0, sizeof(stAML));
@@ -237,7 +237,7 @@ void Player::On_MPK_QUERYLOCATION(const MessagePack &rstMPK)
     m_actorPod->forward(rstMPK.from(), {MPK_LOCATION, stAML}, rstMPK.ID());
 }
 
-void Player::On_MPK_ATTACK(const MessagePack &rstMPK)
+void Player::on_MPK_ATTACK(const MessagePack &rstMPK)
 {
     AMAttack stAMA;
     std::memcpy(&stAMA, rstMPK.Data(), sizeof(stAMA));
@@ -266,7 +266,7 @@ void Player::On_MPK_ATTACK(const MessagePack &rstMPK)
     ReportAction(UID(), ActionHitted(X(), Y(), Direction()));
 }
 
-void Player::On_MPK_UPDATEHP(const MessagePack &rstMPK)
+void Player::on_MPK_UPDATEHP(const MessagePack &rstMPK)
 {
     AMUpdateHP stAMUHP;
     std::memcpy(&stAMUHP, rstMPK.Data(), sizeof(stAMUHP));
@@ -282,7 +282,7 @@ void Player::On_MPK_UPDATEHP(const MessagePack &rstMPK)
     }
 }
 
-void Player::On_MPK_DEADFADEOUT(const MessagePack &rstMPK)
+void Player::on_MPK_DEADFADEOUT(const MessagePack &rstMPK)
 {
     AMDeadFadeOut stAMDFO;
     std::memcpy(&stAMDFO, rstMPK.Data(), sizeof(stAMDFO));
@@ -298,7 +298,7 @@ void Player::On_MPK_DEADFADEOUT(const MessagePack &rstMPK)
     }
 }
 
-void Player::On_MPK_EXP(const MessagePack &rstMPK)
+void Player::on_MPK_EXP(const MessagePack &rstMPK)
 {
     AMExp stAME;
     std::memcpy(&stAME, rstMPK.Data(), sizeof(stAME));
@@ -312,7 +312,7 @@ void Player::On_MPK_EXP(const MessagePack &rstMPK)
     }
 }
 
-void Player::On_MPK_MISS(const MessagePack &rstMPK)
+void Player::on_MPK_MISS(const MessagePack &rstMPK)
 {
     AMMiss stAMM;
     std::memcpy(&stAMM, rstMPK.Data(), sizeof(stAMM));
@@ -324,7 +324,7 @@ void Player::On_MPK_MISS(const MessagePack &rstMPK)
     postNetMessage(SM_MISS, stSMM);
 }
 
-void Player::On_MPK_SHOWDROPITEM(const MessagePack &rstMPK)
+void Player::on_MPK_SHOWDROPITEM(const MessagePack &rstMPK)
 {
     AMShowDropItem stAMSDI;
     std::memcpy(&stAMSDI, rstMPK.Data(), sizeof(stAMSDI));
@@ -350,7 +350,7 @@ void Player::On_MPK_SHOWDROPITEM(const MessagePack &rstMPK)
     g_netDriver->Post(ChannID(), SM_SHOWDROPITEM, stSMSDI);
 }
 
-void Player::On_MPK_NPCXMLLAYOUT(const MessagePack &msg)
+void Player::on_MPK_NPCXMLLAYOUT(const MessagePack &msg)
 {
     if(uidf::getUIDType(msg.from()) != UID_NPC){
         throw fflerror("actor message AMNPCXMLLayout from %s", uidf::getUIDTypeString(msg.from()));
@@ -368,7 +368,7 @@ void Player::On_MPK_NPCXMLLAYOUT(const MessagePack &msg)
     postNetMessage(SM_NPCXMLLAYOUT, smNPCXMLL);
 }
 
-void Player::On_MPK_BADCHANNEL(const MessagePack &rstMPK)
+void Player::on_MPK_BADCHANNEL(const MessagePack &rstMPK)
 {
     AMBadChannel stAMBC;
     std::memcpy(&stAMBC, rstMPK.Data(), sizeof(stAMBC));
@@ -379,7 +379,7 @@ void Player::On_MPK_BADCHANNEL(const MessagePack &rstMPK)
     Offline();
 }
 
-void Player::On_MPK_OFFLINE(const MessagePack &rstMPK)
+void Player::on_MPK_OFFLINE(const MessagePack &rstMPK)
 {
     AMOffline stAMO;
     std::memcpy(&stAMO, rstMPK.Data(), sizeof(stAMO));
@@ -387,7 +387,7 @@ void Player::On_MPK_OFFLINE(const MessagePack &rstMPK)
     ReportOffline(stAMO.UID, stAMO.MapID);
 }
 
-void Player::On_MPK_REMOVEGROUNDITEM(const MessagePack &rstMPK)
+void Player::on_MPK_REMOVEGROUNDITEM(const MessagePack &rstMPK)
 {
     AMRemoveGroundItem stAMRGI;
     std::memcpy(&stAMRGI, rstMPK.Data(), sizeof(stAMRGI));
@@ -401,7 +401,7 @@ void Player::On_MPK_REMOVEGROUNDITEM(const MessagePack &rstMPK)
     postNetMessage(SM_REMOVEGROUNDITEM, stSMRGI);
 }
 
-void Player::On_MPK_PICKUPOK(const MessagePack &rstMPK)
+void Player::on_MPK_PICKUPOK(const MessagePack &rstMPK)
 {
     AMPickUpOK stAMPUOK;
     std::memcpy(&stAMPUOK, rstMPK.Data(), sizeof(stAMPUOK));
@@ -432,7 +432,7 @@ void Player::On_MPK_PICKUPOK(const MessagePack &rstMPK)
 
 }
 
-void Player::On_MPK_CORECORD(const MessagePack &rstMPK)
+void Player::on_MPK_CORECORD(const MessagePack &rstMPK)
 {
     const auto stAMCOR = rstMPK.conv<AMCORecord>();
 
@@ -475,11 +475,11 @@ void Player::On_MPK_CORECORD(const MessagePack &rstMPK)
     postNetMessage(SM_CORECORD, stSMCOR);
 }
 
-void Player::On_MPK_NOTIFYDEAD(const MessagePack &)
+void Player::on_MPK_NOTIFYDEAD(const MessagePack &)
 {
 }
 
-void Player::On_MPK_CHECKMASTER(const MessagePack &rstMPK)
+void Player::on_MPK_CHECKMASTER(const MessagePack &rstMPK)
 {
     m_slaveList.insert(rstMPK.from());
     m_actorPod->forward(rstMPK.from(), MPK_OK, rstMPK.ID());

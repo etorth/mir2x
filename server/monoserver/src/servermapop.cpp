@@ -32,18 +32,18 @@
 extern MonoServer *g_monoServer;
 extern ServerArgParser *g_serverArgParser;
 
-void ServerMap::On_MPK_METRONOME(const MessagePack &)
+void ServerMap::on_MPK_METRONOME(const MessagePack &)
 {
     if(m_luaModulePtr && !g_serverArgParser->DisableMapScript){
         m_luaModulePtr->resumeLoop();
     }
 }
 
-void ServerMap::On_MPK_BADACTORPOD(const MessagePack &)
+void ServerMap::on_MPK_BADACTORPOD(const MessagePack &)
 {
 }
 
-void ServerMap::On_MPK_ACTION(const MessagePack &rstMPK)
+void ServerMap::on_MPK_ACTION(const MessagePack &rstMPK)
 {
     const auto amA = rstMPK.conv<AMAction>();
     if(!ValidC(amA.X, amA.Y)){
@@ -77,7 +77,7 @@ void ServerMap::On_MPK_ACTION(const MessagePack &rstMPK)
     });
 }
 
-void ServerMap::On_MPK_ADDCHAROBJECT(const MessagePack &rstMPK)
+void ServerMap::on_MPK_ADDCHAROBJECT(const MessagePack &rstMPK)
 {
     const auto stAMACO = rstMPK.conv<AMAddCharObject>();
     const auto nX = stAMACO.x;
@@ -152,7 +152,7 @@ void ServerMap::On_MPK_ADDCHAROBJECT(const MessagePack &rstMPK)
     }
 }
 
-void ServerMap::On_MPK_TRYSPACEMOVE(const MessagePack &rstMPK)
+void ServerMap::on_MPK_TRYSPACEMOVE(const MessagePack &rstMPK)
 {
     AMTrySpaceMove stAMTSM;
     std::memcpy(&stAMTSM, rstMPK.Data(), sizeof(stAMTSM));
@@ -212,7 +212,7 @@ void ServerMap::On_MPK_TRYSPACEMOVE(const MessagePack &rstMPK)
     });
 }
 
-void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK)
+void ServerMap::on_MPK_TRYMOVE(const MessagePack &rstMPK)
 {
     AMTryMove stAMTM;
     std::memcpy(&stAMTM, rstMPK.Data(), sizeof(stAMTM));
@@ -405,7 +405,7 @@ void ServerMap::On_MPK_TRYMOVE(const MessagePack &rstMPK)
     });
 }
 
-void ServerMap::On_MPK_TRYLEAVE(const MessagePack &mpk)
+void ServerMap::on_MPK_TRYLEAVE(const MessagePack &mpk)
 {
     const auto amTL = mpk.conv<AMTryLeave>();
     if(In(ID(), amTL.X, amTL.Y) && hasGridUID(mpk.from(), amTL.X, amTL.Y)){
@@ -421,7 +421,7 @@ void ServerMap::On_MPK_TRYLEAVE(const MessagePack &mpk)
     g_monoServer->addLog(LOGTYPE_WARNING, "Leave request failed: UID = %llu, X = %d, Y = %d", to_llu(mpk.from()), amTL.X, amTL.Y);
 }
 
-void ServerMap::On_MPK_PULLCOINFO(const MessagePack &rstMPK)
+void ServerMap::on_MPK_PULLCOINFO(const MessagePack &rstMPK)
 {
     AMPullCOInfo stAMPCOI;
     std::memcpy(&stAMPCOI, rstMPK.Data(), sizeof(stAMPCOI));
@@ -447,7 +447,7 @@ void ServerMap::On_MPK_PULLCOINFO(const MessagePack &rstMPK)
     });
 }
 
-void ServerMap::On_MPK_TRYMAPSWITCH(const MessagePack &mpk)
+void ServerMap::on_MPK_TRYMAPSWITCH(const MessagePack &mpk)
 {
     const auto reqUID = mpk.from();
     const auto amTMS  = mpk.conv<AMTryMapSwitch>();
@@ -489,7 +489,7 @@ void ServerMap::On_MPK_TRYMAPSWITCH(const MessagePack &mpk)
     });
 }
 
-void ServerMap::On_MPK_PATHFIND(const MessagePack &rstMPK)
+void ServerMap::on_MPK_PATHFIND(const MessagePack &rstMPK)
 {
     AMPathFind stAMPF;
     std::memcpy(&stAMPF, rstMPK.Data(), sizeof(stAMPF));
@@ -572,7 +572,7 @@ void ServerMap::On_MPK_PATHFIND(const MessagePack &rstMPK)
     m_actorPod->forward(rstMPK.from(), {MPK_PATHFINDOK, stAMPFOK}, rstMPK.ID());
 }
 
-void ServerMap::On_MPK_UPDATEHP(const MessagePack &rstMPK)
+void ServerMap::on_MPK_UPDATEHP(const MessagePack &rstMPK)
 {
     AMUpdateHP stAMUHP;
     std::memcpy(&stAMUHP, rstMPK.Data(), sizeof(stAMUHP));
@@ -594,7 +594,7 @@ void ServerMap::On_MPK_UPDATEHP(const MessagePack &rstMPK)
     }
 }
 
-void ServerMap::On_MPK_DEADFADEOUT(const MessagePack &rstMPK)
+void ServerMap::on_MPK_DEADFADEOUT(const MessagePack &rstMPK)
 {
     AMDeadFadeOut stAMDFO;
     std::memcpy(&stAMDFO, rstMPK.Data(), sizeof(stAMDFO));
@@ -617,7 +617,7 @@ void ServerMap::On_MPK_DEADFADEOUT(const MessagePack &rstMPK)
     }
 }
 
-void ServerMap::On_MPK_QUERYCOCOUNT(const MessagePack &rstMPK)
+void ServerMap::on_MPK_QUERYCOCOUNT(const MessagePack &rstMPK)
 {
     AMQueryCOCount stAMQCOC;
     std::memcpy(&stAMQCOC, rstMPK.Data(), sizeof(stAMQCOC));
@@ -647,7 +647,7 @@ void ServerMap::On_MPK_QUERYCOCOUNT(const MessagePack &rstMPK)
     m_actorPod->forward(rstMPK.from(), {MPK_COCOUNT, stAMCOC}, rstMPK.ID());
 }
 
-void ServerMap::On_MPK_QUERYRECTUIDLIST(const MessagePack &rstMPK)
+void ServerMap::on_MPK_QUERYRECTUIDLIST(const MessagePack &rstMPK)
 {
     AMQueryRectUIDList stAMQRUIDL;
     std::memcpy(&stAMQRUIDL, rstMPK.Data(), sizeof(stAMQRUIDL));
@@ -669,7 +669,7 @@ void ServerMap::On_MPK_QUERYRECTUIDLIST(const MessagePack &rstMPK)
     m_actorPod->forward(rstMPK.from(), {MPK_UIDLIST, stAMUIDL}, rstMPK.ID());
 }
 
-void ServerMap::On_MPK_NEWDROPITEM(const MessagePack &rstMPK)
+void ServerMap::on_MPK_NEWDROPITEM(const MessagePack &rstMPK)
 {
     AMNewDropItem stAMNDI;
     std::memcpy(&stAMNDI, rstMPK.Data(), sizeof(stAMNDI));
@@ -737,7 +737,7 @@ void ServerMap::On_MPK_NEWDROPITEM(const MessagePack &rstMPK)
     }
 }
 
-void ServerMap::On_MPK_OFFLINE(const MessagePack &rstMPK)
+void ServerMap::on_MPK_OFFLINE(const MessagePack &rstMPK)
 {
     AMOffline stAMO;
     std::memcpy(&stAMO, rstMPK.Data(), sizeof(stAMO));
@@ -759,7 +759,7 @@ void ServerMap::On_MPK_OFFLINE(const MessagePack &rstMPK)
     });
 }
 
-void ServerMap::On_MPK_PICKUP(const MessagePack &rstMPK)
+void ServerMap::on_MPK_PICKUP(const MessagePack &rstMPK)
 {
     AMPickUp stAMPU;
     std::memcpy(&stAMPU, rstMPK.Data(), sizeof(stAMPU));

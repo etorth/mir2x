@@ -37,37 +37,37 @@ void ServiceCore::operateAM(const MessagePack &rstMPK)
     switch(rstMPK.Type()){
         case MPK_BADCHANNEL:
             {
-                On_MPK_BADCHANNEL(rstMPK);
+                on_MPK_BADCHANNEL(rstMPK);
                 break;
             }
         case MPK_METRONOME:
             {
-                On_MPK_METRONOME(rstMPK);
+                on_MPK_METRONOME(rstMPK);
                 break;
             }
         case MPK_ADDCHAROBJECT:
             {
-                On_MPK_ADDCHAROBJECT(rstMPK);
+                on_MPK_ADDCHAROBJECT(rstMPK);
                 break;
             }
         case MPK_NETPACKAGE:
             {
-                On_MPK_NETPACKAGE(rstMPK);
+                on_MPK_NETPACKAGE(rstMPK);
                 break;
             }
         case MPK_QUERYMAPLIST:
             {
-                On_MPK_QUERYMAPLIST(rstMPK);
+                on_MPK_QUERYMAPLIST(rstMPK);
                 break;
             }
         case MPK_QUERYCOCOUNT:
             {
-                On_MPK_QUERYCOCOUNT(rstMPK);
+                on_MPK_QUERYCOCOUNT(rstMPK);
                 break;
             }
         case MPK_QUERYMAPUID:
             {
-                On_MPK_QUERYMAPUID(rstMPK);
+                on_MPK_QUERYMAPUID(rstMPK);
                 break;
             }
         default:

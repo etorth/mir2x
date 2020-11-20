@@ -72,127 +72,127 @@ void Player::operateAM(const MessagePack &rstMPK)
     switch(rstMPK.Type()){
         case MPK_METRONOME:
             {
-                On_MPK_METRONOME(rstMPK);
+                on_MPK_METRONOME(rstMPK);
                 break;
             }
         case MPK_BADACTORPOD:
             {
-                On_MPK_BADACTORPOD(rstMPK);
+                on_MPK_BADACTORPOD(rstMPK);
                 break;
             }
         case MPK_NOTIFYNEWCO:
             {
-                On_MPK_NOTIFYNEWCO(rstMPK);
+                on_MPK_NOTIFYNEWCO(rstMPK);
                 break;
             }
         case MPK_CHECKMASTER:
             {
-                On_MPK_CHECKMASTER(rstMPK);
+                on_MPK_CHECKMASTER(rstMPK);
                 break;
             }
         case MPK_MAPSWITCH:
             {
-                On_MPK_MAPSWITCH(rstMPK);
+                on_MPK_MAPSWITCH(rstMPK);
                 break;
             }
         case MPK_NPCQUERY:
             {
-                On_MPK_NPCQUERY(rstMPK);
+                on_MPK_NPCQUERY(rstMPK);
                 break;
             }
         case MPK_QUERYLOCATION:
             {
-                On_MPK_QUERYLOCATION(rstMPK);
+                on_MPK_QUERYLOCATION(rstMPK);
                 break;
             }
         case MPK_QUERYFRIENDTYPE:
             {
-                On_MPK_QUERYFRIENDTYPE(rstMPK);
+                on_MPK_QUERYFRIENDTYPE(rstMPK);
                 break;
             }
         case MPK_EXP:
             {
-                On_MPK_EXP(rstMPK);
+                on_MPK_EXP(rstMPK);
                 break;
             }
         case MPK_MISS:
             {
-                On_MPK_MISS(rstMPK);
+                on_MPK_MISS(rstMPK);
                 break;
             }
         case MPK_ACTION:
             {
-                On_MPK_ACTION(rstMPK);
+                on_MPK_ACTION(rstMPK);
                 break;
             }
         case MPK_ATTACK:
             {
-                On_MPK_ATTACK(rstMPK);
+                on_MPK_ATTACK(rstMPK);
                 break;
             }
         case MPK_UPDATEHP:
             {
-                On_MPK_UPDATEHP(rstMPK);
+                on_MPK_UPDATEHP(rstMPK);
                 break;
             }
         case MPK_DEADFADEOUT:
             {
-                On_MPK_DEADFADEOUT(rstMPK);
+                on_MPK_DEADFADEOUT(rstMPK);
                 break;
             }
         case MPK_SHOWDROPITEM:
             {
-                On_MPK_SHOWDROPITEM(rstMPK);
+                on_MPK_SHOWDROPITEM(rstMPK);
                 break;
             }
         case MPK_BINDCHANNEL:
             {
-                On_MPK_BINDCHANNEL(rstMPK);
+                on_MPK_BINDCHANNEL(rstMPK);
                 break;
             }
         case MPK_NETPACKAGE:
             {
-                On_MPK_NETPACKAGE(rstMPK);
+                on_MPK_NETPACKAGE(rstMPK);
                 break;
             }
         case MPK_QUERYCORECORD:
             {
-                On_MPK_QUERYCORECORD(rstMPK);
+                on_MPK_QUERYCORECORD(rstMPK);
                 break;
             }
         case MPK_BADCHANNEL:
             {
-                On_MPK_BADCHANNEL(rstMPK);
+                on_MPK_BADCHANNEL(rstMPK);
                 break;
             }
         case MPK_OFFLINE:
             {
-                On_MPK_OFFLINE(rstMPK);
+                on_MPK_OFFLINE(rstMPK);
                 break;
             }
         case MPK_REMOVEGROUNDITEM:
             {
-                On_MPK_REMOVEGROUNDITEM(rstMPK);
+                on_MPK_REMOVEGROUNDITEM(rstMPK);
                 break;
             }
         case MPK_PICKUPOK:
             {
-                On_MPK_PICKUPOK(rstMPK);
+                on_MPK_PICKUPOK(rstMPK);
                 break;
             }
         case MPK_CORECORD:
             {
-                On_MPK_CORECORD(rstMPK);
+                on_MPK_CORECORD(rstMPK);
                 break;
             }
         case MPK_NOTIFYDEAD:
             {
-                On_MPK_NOTIFYDEAD(rstMPK);
+                on_MPK_NOTIFYDEAD(rstMPK);
                 break;
             }
         case MPK_NPCXMLLAYOUT:
             {
-                On_MPK_NPCXMLLAYOUT(rstMPK);
+                on_MPK_NPCXMLLAYOUT(rstMPK);
                 break;
             }
         default:

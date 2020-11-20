@@ -330,23 +330,23 @@ class ServerMap final: public ServerObject
         bool DoCenterSquare(int, int, int, int, bool, const std::function<bool(int, int)> &);
 
     private:
-        void On_MPK_ACTION(const MessagePack &);
-        void On_MPK_PICKUP(const MessagePack &);
-        void On_MPK_OFFLINE(const MessagePack &);
-        void On_MPK_TRYMOVE(const MessagePack &);
-        void On_MPK_TRYLEAVE(const MessagePack &);
-        void On_MPK_PATHFIND(const MessagePack &);
-        void On_MPK_UPDATEHP(const MessagePack &);
-        void On_MPK_METRONOME(const MessagePack &);
-        void On_MPK_PULLCOINFO(const MessagePack &);
-        void On_MPK_BADACTORPOD(const MessagePack &);
-        void On_MPK_DEADFADEOUT(const MessagePack &);
-        void On_MPK_NEWDROPITEM(const MessagePack &);
-        void On_MPK_TRYMAPSWITCH(const MessagePack &);
-        void On_MPK_QUERYCOCOUNT(const MessagePack &);
-        void On_MPK_TRYSPACEMOVE(const MessagePack &);
-        void On_MPK_ADDCHAROBJECT(const MessagePack &);
-        void On_MPK_QUERYRECTUIDLIST(const MessagePack &);
+        void on_MPK_ACTION(const MessagePack &);
+        void on_MPK_PICKUP(const MessagePack &);
+        void on_MPK_OFFLINE(const MessagePack &);
+        void on_MPK_TRYMOVE(const MessagePack &);
+        void on_MPK_TRYLEAVE(const MessagePack &);
+        void on_MPK_PATHFIND(const MessagePack &);
+        void on_MPK_UPDATEHP(const MessagePack &);
+        void on_MPK_METRONOME(const MessagePack &);
+        void on_MPK_PULLCOINFO(const MessagePack &);
+        void on_MPK_BADACTORPOD(const MessagePack &);
+        void on_MPK_DEADFADEOUT(const MessagePack &);
+        void on_MPK_NEWDROPITEM(const MessagePack &);
+        void on_MPK_TRYMAPSWITCH(const MessagePack &);
+        void on_MPK_QUERYCOCOUNT(const MessagePack &);
+        void on_MPK_TRYSPACEMOVE(const MessagePack &);
+        void on_MPK_ADDCHAROBJECT(const MessagePack &);
+        void on_MPK_QUERYRECTUIDLIST(const MessagePack &);
 
     private:
         bool regLuaExport(ServerMapLuaModule *);

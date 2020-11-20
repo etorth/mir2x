@@ -33,7 +33,7 @@ extern MonoServer *g_monoServer;
 // in the net package otherwise we can't find the session even we have session's 
 // address, session is a sync-driver, even we have it's address we can't find it
 //
-void ServiceCore::On_MPK_NETPACKAGE(const MessagePack &rstMPK)
+void ServiceCore::on_MPK_NETPACKAGE(const MessagePack &rstMPK)
 {
     AMNetPackage stAMNP;
     std::memcpy(&stAMNP, rstMPK.Data(), sizeof(AMNetPackage));
@@ -54,11 +54,11 @@ void ServiceCore::On_MPK_NETPACKAGE(const MessagePack &rstMPK)
     }
 }
 
-void ServiceCore::On_MPK_METRONOME(const MessagePack &)
+void ServiceCore::on_MPK_METRONOME(const MessagePack &)
 {
 }
 
-void ServiceCore::On_MPK_ADDCHAROBJECT(const MessagePack &rstMPK)
+void ServiceCore::on_MPK_ADDCHAROBJECT(const MessagePack &rstMPK)
 {
     const auto stAMACO = rstMPK.conv<AMAddCharObject>();
     if(!stAMACO.mapID){
@@ -95,7 +95,7 @@ void ServiceCore::On_MPK_ADDCHAROBJECT(const MessagePack &rstMPK)
     });
 }
 
-void ServiceCore::On_MPK_QUERYMAPLIST(const MessagePack &rstMPK)
+void ServiceCore::on_MPK_QUERYMAPLIST(const MessagePack &rstMPK)
 {
     AMMapList stAMML;
     std::memset(&stAMML, 0, sizeof(stAMML));
@@ -113,7 +113,7 @@ void ServiceCore::On_MPK_QUERYMAPLIST(const MessagePack &rstMPK)
     m_actorPod->forward(rstMPK.from(), {MPK_MAPLIST, stAMML}, rstMPK.ID());
 }
 
-void ServiceCore::On_MPK_QUERYMAPUID(const MessagePack &mpk)
+void ServiceCore::on_MPK_QUERYMAPUID(const MessagePack &mpk)
 {
     const auto amQMUID = mpk.conv<AMQueryMapUID>();
     const auto mapPtr = retrieveMap(amQMUID.MapID);
@@ -130,7 +130,7 @@ void ServiceCore::On_MPK_QUERYMAPUID(const MessagePack &mpk)
     m_actorPod->forward(mpk.from(), {MPK_UID, amUID}, mpk.ID());
 }
 
-void ServiceCore::On_MPK_QUERYCOCOUNT(const MessagePack &rstMPK)
+void ServiceCore::on_MPK_QUERYCOCOUNT(const MessagePack &rstMPK)
 {
     AMQueryCOCount stAMQCOC;
     std::memcpy(&stAMQCOC, rstMPK.Data(), sizeof(stAMQCOC));
@@ -253,7 +253,7 @@ void ServiceCore::On_MPK_QUERYCOCOUNT(const MessagePack &rstMPK)
     }
 }
 
-void ServiceCore::On_MPK_BADCHANNEL(const MessagePack &rstMPK)
+void ServiceCore::on_MPK_BADCHANNEL(const MessagePack &rstMPK)
 {
     // channel may go down before bind to one actor
     // then stop it here

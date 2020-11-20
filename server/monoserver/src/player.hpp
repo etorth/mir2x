@@ -102,30 +102,30 @@ class Player final: public CharObject
         void operateAM(const MessagePack &);
 
     private:
-        void On_MPK_EXP(const MessagePack &);
-        void On_MPK_MISS(const MessagePack &);
-        void On_MPK_ACTION(const MessagePack &);
-        void On_MPK_ATTACK(const MessagePack &);
-        void On_MPK_OFFLINE(const MessagePack &);
-        void On_MPK_CORECORD(const MessagePack &);
-        void On_MPK_PICKUPOK(const MessagePack &);
-        void On_MPK_UPDATEHP(const MessagePack &);
-        void On_MPK_NPCQUERY(const MessagePack &);
-        void On_MPK_METRONOME(const MessagePack &);
-        void On_MPK_MAPSWITCH(const MessagePack &);
-        void On_MPK_NETPACKAGE(const MessagePack &);
-        void On_MPK_BADCHANNEL(const MessagePack &);
-        void On_MPK_NOTIFYDEAD(const MessagePack &);
-        void On_MPK_NOTIFYNEWCO(const MessagePack &);
-        void On_MPK_DEADFADEOUT(const MessagePack &);
-        void On_MPK_BADACTORPOD(const MessagePack &);
-        void On_MPK_BINDCHANNEL(const MessagePack &);
-        void On_MPK_CHECKMASTER(const MessagePack &);
-        void On_MPK_SHOWDROPITEM(const MessagePack &);
-        void On_MPK_NPCXMLLAYOUT(const MessagePack &);
-        void On_MPK_QUERYCORECORD(const MessagePack &);
-        void On_MPK_QUERYLOCATION(const MessagePack &);
-        void On_MPK_REMOVEGROUNDITEM(const MessagePack &);
+        void on_MPK_EXP(const MessagePack &);
+        void on_MPK_MISS(const MessagePack &);
+        void on_MPK_ACTION(const MessagePack &);
+        void on_MPK_ATTACK(const MessagePack &);
+        void on_MPK_OFFLINE(const MessagePack &);
+        void on_MPK_CORECORD(const MessagePack &);
+        void on_MPK_PICKUPOK(const MessagePack &);
+        void on_MPK_UPDATEHP(const MessagePack &);
+        void on_MPK_NPCQUERY(const MessagePack &);
+        void on_MPK_METRONOME(const MessagePack &);
+        void on_MPK_MAPSWITCH(const MessagePack &);
+        void on_MPK_NETPACKAGE(const MessagePack &);
+        void on_MPK_BADCHANNEL(const MessagePack &);
+        void on_MPK_NOTIFYDEAD(const MessagePack &);
+        void on_MPK_NOTIFYNEWCO(const MessagePack &);
+        void on_MPK_DEADFADEOUT(const MessagePack &);
+        void on_MPK_BADACTORPOD(const MessagePack &);
+        void on_MPK_BINDCHANNEL(const MessagePack &);
+        void on_MPK_CHECKMASTER(const MessagePack &);
+        void on_MPK_SHOWDROPITEM(const MessagePack &);
+        void on_MPK_NPCXMLLAYOUT(const MessagePack &);
+        void on_MPK_QUERYCORECORD(const MessagePack &);
+        void on_MPK_QUERYLOCATION(const MessagePack &);
+        void on_MPK_REMOVEGROUNDITEM(const MessagePack &);
 
     private:
         void Net_CM_REQUESTKILLPETS (uint8_t, const uint8_t *, size_t);

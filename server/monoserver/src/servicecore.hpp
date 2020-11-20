@@ -50,14 +50,14 @@ class ServiceCore final: public ServerObject
         const ServerMap *retrieveMap(uint32_t);
 
     private:
-        void On_MPK_LOGIN(const MessagePack &);
-        void On_MPK_METRONOME(const MessagePack &);
-        void On_MPK_BADCHANNEL(const MessagePack &);
-        void On_MPK_NETPACKAGE(const MessagePack &);
-        void On_MPK_QUERYMAPUID(const MessagePack &);
-        void On_MPK_QUERYMAPLIST(const MessagePack &);
-        void On_MPK_QUERYCOCOUNT(const MessagePack &);
-        void On_MPK_ADDCHAROBJECT(const MessagePack &);
+        void on_MPK_LOGIN(const MessagePack &);
+        void on_MPK_METRONOME(const MessagePack &);
+        void on_MPK_BADCHANNEL(const MessagePack &);
+        void on_MPK_NETPACKAGE(const MessagePack &);
+        void on_MPK_QUERYMAPUID(const MessagePack &);
+        void on_MPK_QUERYMAPLIST(const MessagePack &);
+        void on_MPK_QUERYCOCOUNT(const MessagePack &);
+        void on_MPK_ADDCHAROBJECT(const MessagePack &);
 
     private:
         void Net_CM_Login(uint32_t, uint8_t, const uint8_t *, size_t);

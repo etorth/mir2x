@@ -139,26 +139,26 @@ class Monster final: public CharObject
         DamageNode GetAttackDamage(int);
 
     private:
-        void On_MPK_EXP             (const MessagePack &);
-        void On_MPK_MISS            (const MessagePack &);
-        void On_MPK_ATTACK          (const MessagePack &);
-        void On_MPK_ACTION          (const MessagePack &);
-        void On_MPK_OFFLINE         (const MessagePack &);
-        void On_MPK_UPDATEHP        (const MessagePack &);
-        void On_MPK_METRONOME       (const MessagePack &);
-        void On_MPK_MAPSWITCH       (const MessagePack &);
-        void On_MPK_MASTERKILL      (const MessagePack &);
-        void On_MPK_NOTIFYDEAD      (const MessagePack &);
-        void On_MPK_BADACTORPOD     (const MessagePack &);
-        void On_MPK_CHECKMASTER     (const MessagePack &);
-        void On_MPK_QUERYMASTER     (const MessagePack &);
-        void On_MPK_DEADFADEOUT     (const MessagePack &);
-        void On_MPK_NOTIFYNEWCO     (const MessagePack &);
-        void On_MPK_QUERYCORECORD   (const MessagePack &);
-        void On_MPK_QUERYLOCATION   (const MessagePack &);
-        void On_MPK_QUERYNAMECOLOR  (const MessagePack &);
-        void On_MPK_QUERYFRIENDTYPE (const MessagePack &);
-        void On_MPK_QUERYFINALMASTER(const MessagePack &);
+        void on_MPK_EXP             (const MessagePack &);
+        void on_MPK_MISS            (const MessagePack &);
+        void on_MPK_ATTACK          (const MessagePack &);
+        void on_MPK_ACTION          (const MessagePack &);
+        void on_MPK_OFFLINE         (const MessagePack &);
+        void on_MPK_UPDATEHP        (const MessagePack &);
+        void on_MPK_METRONOME       (const MessagePack &);
+        void on_MPK_MAPSWITCH       (const MessagePack &);
+        void on_MPK_MASTERKILL      (const MessagePack &);
+        void on_MPK_NOTIFYDEAD      (const MessagePack &);
+        void on_MPK_BADACTORPOD     (const MessagePack &);
+        void on_MPK_CHECKMASTER     (const MessagePack &);
+        void on_MPK_QUERYMASTER     (const MessagePack &);
+        void on_MPK_DEADFADEOUT     (const MessagePack &);
+        void on_MPK_NOTIFYNEWCO     (const MessagePack &);
+        void on_MPK_QUERYCORECORD   (const MessagePack &);
+        void on_MPK_QUERYLOCATION   (const MessagePack &);
+        void on_MPK_QUERYNAMECOLOR  (const MessagePack &);
+        void on_MPK_QUERYFRIENDTYPE (const MessagePack &);
+        void on_MPK_QUERYFINALMASTER(const MessagePack &);
 
     protected:
         void operateAM(const MessagePack &);

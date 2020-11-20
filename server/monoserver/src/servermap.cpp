@@ -375,87 +375,87 @@ void ServerMap::operateAM(const MessagePack &rstMPK)
     switch(rstMPK.Type()){
         case MPK_PICKUP:
             {
-                On_MPK_PICKUP(rstMPK);
+                on_MPK_PICKUP(rstMPK);
                 break;
             }
         case MPK_NEWDROPITEM:
             {
-                On_MPK_NEWDROPITEM(rstMPK);
+                on_MPK_NEWDROPITEM(rstMPK);
                 break;
             }
         case MPK_TRYLEAVE:
             {
-                On_MPK_TRYLEAVE(rstMPK);
+                on_MPK_TRYLEAVE(rstMPK);
                 break;
             }
         case MPK_UPDATEHP:
             {
-                On_MPK_UPDATEHP(rstMPK);
+                on_MPK_UPDATEHP(rstMPK);
                 break;
             }
         case MPK_DEADFADEOUT:
             {
-                On_MPK_DEADFADEOUT(rstMPK);
+                on_MPK_DEADFADEOUT(rstMPK);
                 break;
             }
         case MPK_ACTION:
             {
-                On_MPK_ACTION(rstMPK);
+                on_MPK_ACTION(rstMPK);
                 break;
             }
         case MPK_BADACTORPOD:
             {
-                On_MPK_BADACTORPOD(rstMPK);
+                on_MPK_BADACTORPOD(rstMPK);
                 break;
             }
         case MPK_TRYMOVE:
             {
-                On_MPK_TRYMOVE(rstMPK);
+                on_MPK_TRYMOVE(rstMPK);
                 break;
             }
         case MPK_PATHFIND:
             {
-                On_MPK_PATHFIND(rstMPK);
+                on_MPK_PATHFIND(rstMPK);
                 break;
             }
         case MPK_TRYMAPSWITCH:
             {
-                On_MPK_TRYMAPSWITCH(rstMPK);
+                on_MPK_TRYMAPSWITCH(rstMPK);
                 break;
             }
         case MPK_METRONOME:
             {
-                On_MPK_METRONOME(rstMPK);
+                on_MPK_METRONOME(rstMPK);
                 break;
             }
         case MPK_TRYSPACEMOVE:
             {
-                On_MPK_TRYSPACEMOVE(rstMPK);
+                on_MPK_TRYSPACEMOVE(rstMPK);
                 break;
             }
         case MPK_ADDCHAROBJECT:
             {
-                On_MPK_ADDCHAROBJECT(rstMPK);
+                on_MPK_ADDCHAROBJECT(rstMPK);
                 break;
             }
         case MPK_PULLCOINFO:
             {
-                On_MPK_PULLCOINFO(rstMPK);
+                on_MPK_PULLCOINFO(rstMPK);
                 break;
             }
         case MPK_QUERYCOCOUNT:
             {
-                On_MPK_QUERYCOCOUNT(rstMPK);
+                on_MPK_QUERYCOCOUNT(rstMPK);
                 break;
             }
         case MPK_QUERYRECTUIDLIST:
             {
-                On_MPK_QUERYRECTUIDLIST(rstMPK);
+                on_MPK_QUERYRECTUIDLIST(rstMPK);
                 break;
             }
         case MPK_OFFLINE:
             {
-                On_MPK_OFFLINE(rstMPK);
+                on_MPK_OFFLINE(rstMPK);
                 break;
             }
         default:

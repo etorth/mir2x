@@ -20,7 +20,7 @@
 #include "mathf.hpp"
 #include "messagepack.hpp"
 
-void NPChar::On_MPK_ACTION(const MessagePack &mpk)
+void NPChar::on_MPK_ACTION(const MessagePack &mpk)
 {
     const auto amA = mpk.conv<AMAction>();
     switch(uidf::getUIDType(amA.UID)){
@@ -36,7 +36,7 @@ void NPChar::On_MPK_ACTION(const MessagePack &mpk)
     }
 }
 
-void NPChar::On_MPK_NPCEVENT(const MessagePack &mpk)
+void NPChar::on_MPK_NPCEVENT(const MessagePack &mpk)
 {
     if(!mpk.from()){
         throw fflerror("NPC event comes from zero uid");
@@ -65,14 +65,14 @@ void NPChar::On_MPK_NPCEVENT(const MessagePack &mpk)
     m_luaModule.setEvent(mpk.from(), amNPCE.event, amNPCE.value);
 }
 
-void NPChar::On_MPK_NOTIFYNEWCO(const MessagePack &mpk)
+void NPChar::on_MPK_NOTIFYNEWCO(const MessagePack &mpk)
 {
     if(uidf::getUIDType(mpk.from()) == UID_PLY){
         DispatchAction(mpk.from(), ActionStand(X(), Y(), Direction()));
     }
 }
 
-void NPChar::On_MPK_QUERYCORECORD(const MessagePack &mpk)
+void NPChar::on_MPK_QUERYCORECORD(const MessagePack &mpk)
 {
     const auto fromUID = mpk.conv<AMQueryCORecord>().UID;
     if(uidf::getUIDType(fromUID) != UID_PLY){
@@ -81,7 +81,7 @@ void NPChar::On_MPK_QUERYCORECORD(const MessagePack &mpk)
     DispatchAction(fromUID, ActionStand(X(), Y(), Direction()));
 }
 
-void NPChar::On_MPK_QUERYLOCATION(const MessagePack &mpk)
+void NPChar::on_MPK_QUERYLOCATION(const MessagePack &mpk)
 {
     AMLocation stAML;
     std::memset(&stAML, 0, sizeof(stAML));
@@ -95,7 +95,7 @@ void NPChar::On_MPK_QUERYLOCATION(const MessagePack &mpk)
     m_actorPod->forward(mpk.from(), {MPK_LOCATION, stAML}, mpk.ID());
 }
 
-void NPChar::On_MPK_BADACTORPOD(const MessagePack &mpk)
+void NPChar::on_MPK_BADACTORPOD(const MessagePack &mpk)
 {
     const auto amBAP = mpk.conv<AMBadActorPod>();
     m_luaModule.close(amBAP.UID);

@@ -328,32 +328,32 @@ void NPChar::operateAM(const MessagePack &mpk)
             }
         case MPK_ACTION:
             {
-                On_MPK_ACTION(mpk);
+                on_MPK_ACTION(mpk);
                 break;
             }
         case MPK_NPCEVENT:
             {
-                On_MPK_NPCEVENT(mpk);
+                on_MPK_NPCEVENT(mpk);
                 break;
             }
         case MPK_NOTIFYNEWCO:
             {
-                On_MPK_NOTIFYNEWCO(mpk);
+                on_MPK_NOTIFYNEWCO(mpk);
                 break;
             }
         case MPK_QUERYCORECORD:
             {
-                On_MPK_QUERYCORECORD(mpk);
+                on_MPK_QUERYCORECORD(mpk);
                 break;
             }
         case MPK_QUERYLOCATION:
             {
-                On_MPK_QUERYLOCATION(mpk);
+                on_MPK_QUERYLOCATION(mpk);
                 break;
             }
         case MPK_BADACTORPOD:
             {
-                On_MPK_BADACTORPOD(mpk);
+                on_MPK_BADACTORPOD(mpk);
                 break;
             }
         default:
