@@ -140,7 +140,7 @@ class ServerMap final: public ServerObject
         ServerMapLuaModule *m_luaModulePtr = nullptr;
 
     private:
-        void OperateAM(const MessagePack &);
+        void operateAM(const MessagePack &);
 
     public:
         ServerMap(ServiceCore *, uint32_t);

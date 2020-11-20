@@ -67,7 +67,7 @@ Player::~Player()
     DBSavePlayer();
 }
 
-void Player::OperateAM(const MessagePack &rstMPK)
+void Player::operateAM(const MessagePack &rstMPK)
 {
     switch(rstMPK.Type()){
         case MPK_METRONOME:
@@ -203,7 +203,7 @@ void Player::OperateAM(const MessagePack &rstMPK)
     }
 }
 
-void Player::OperateNet(uint8_t nType, const uint8_t *pData, size_t nDataLen)
+void Player::operateNet(uint8_t nType, const uint8_t *pData, size_t nDataLen)
 {
     switch(nType){
         case CM_QUERYCORECORD   : Net_CM_QUERYCORECORD   (nType, pData, nDataLen); break;

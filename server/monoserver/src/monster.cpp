@@ -514,7 +514,7 @@ bool Monster::update()
     return true;
 }
 
-void Monster::OperateAM(const MessagePack &rstMPK)
+void Monster::operateAM(const MessagePack &rstMPK)
 {
     switch(rstMPK.Type()){
         case MPK_METRONOME:

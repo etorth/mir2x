@@ -47,7 +47,7 @@ void ServiceCore::On_MPK_NETPACKAGE(const MessagePack &rstMPK)
         }
     }
 
-    OperateNet(stAMNP.ChannID, stAMNP.Type, pDataBuf, stAMNP.DataLen);
+    operateNet(stAMNP.ChannID, stAMNP.Type, pDataBuf, stAMNP.DataLen);
 
     if(stAMNP.Data){
         delete [] stAMNP.Data;

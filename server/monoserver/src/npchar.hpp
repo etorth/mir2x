@@ -103,5 +103,5 @@ class NPChar final: public CharObject
         void sendXMLLayout(uint64_t, const char *);
 
     public:
-        void OperateAM(const MessagePack &) override;
+        void operateAM(const MessagePack &) override;
 };

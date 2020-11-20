@@ -154,7 +154,7 @@ class ServerObject
         }
 
     public:
-        virtual void OperateAM(const MessagePack &) = 0;
+        virtual void operateAM(const MessagePack &) = 0;
 
     public:
         void Delay(uint32_t, const std::function<void()> &);

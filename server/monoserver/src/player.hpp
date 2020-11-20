@@ -96,10 +96,10 @@ class Player final: public CharObject
         bool update() override;
 
     protected:
-        void OperateNet(uint8_t, const uint8_t *, size_t);
+        void operateNet(uint8_t, const uint8_t *, size_t);
 
     protected:
-        void OperateAM(const MessagePack &);
+        void operateAM(const MessagePack &);
 
     private:
         void On_MPK_EXP(const MessagePack &);

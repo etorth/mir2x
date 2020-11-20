@@ -86,7 +86,7 @@ void Player::On_MPK_NETPACKAGE(const MessagePack &rstMPK)
         }
     }
 
-    OperateNet(stAMNP.Type, pDataBuf, stAMNP.DataLen);
+    operateNet(stAMNP.Type, pDataBuf, stAMNP.DataLen);
 
     if(stAMNP.Data){
         delete [] stAMNP.Data;

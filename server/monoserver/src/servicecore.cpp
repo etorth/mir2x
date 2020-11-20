@@ -32,7 +32,7 @@ ServiceCore::ServiceCore()
     , m_mapList()
 {}
 
-void ServiceCore::OperateAM(const MessagePack &rstMPK)
+void ServiceCore::operateAM(const MessagePack &rstMPK)
 {
     switch(rstMPK.Type()){
         case MPK_BADCHANNEL:
@@ -79,7 +79,7 @@ void ServiceCore::OperateAM(const MessagePack &rstMPK)
     }
 }
 
-void ServiceCore::OperateNet(uint32_t nSID, uint8_t nType, const uint8_t *pData, size_t nDataLen)
+void ServiceCore::operateNet(uint32_t nSID, uint8_t nType, const uint8_t *pData, size_t nDataLen)
 {
     switch(nType){
         case CM_LOGIN:

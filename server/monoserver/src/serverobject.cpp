@@ -84,7 +84,7 @@ ServerObject::~ServerObject()
 uint64_t ServerObject::activate()
 {
     if(!m_actorPod){
-        m_actorPod = new ActorPod(m_UID, [this](){ m_stateHook.Execute(); }, [this](const MessagePack &rstMPK){ OperateAM(rstMPK); });
+        m_actorPod = new ActorPod(m_UID, [this](){ m_stateHook.Execute(); }, [this](const MessagePack &rstMPK){ operateAM(rstMPK); });
         return UID();
     }
     throw fflerror("activation twice: %s", uidf::getUIDString(UID()).c_str());

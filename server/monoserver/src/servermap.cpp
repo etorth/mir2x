@@ -370,7 +370,7 @@ ServerMap::ServerMap(ServiceCore *pServiceCore, uint32_t nMapID)
     }
 }
 
-void ServerMap::OperateAM(const MessagePack &rstMPK)
+void ServerMap::operateAM(const MessagePack &rstMPK)
 {
     switch(rstMPK.Type()){
         case MPK_PICKUP:

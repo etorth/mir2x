@@ -161,7 +161,7 @@ class Monster final: public CharObject
         void On_MPK_QUERYFINALMASTER(const MessagePack &);
 
     protected:
-        void OperateAM(const MessagePack &);
+        void operateAM(const MessagePack &);
 
     protected:
         void ReportCORecord(uint64_t);

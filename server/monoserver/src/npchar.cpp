@@ -318,7 +318,7 @@ void NPChar::sendXMLLayout(uint64_t uid, const char *xmlString)
     m_actorPod->forward(uid, {MPK_NPCXMLLAYOUT, amNPCXMLL});
 }
 
-void NPChar::OperateAM(const MessagePack &mpk)
+void NPChar::operateAM(const MessagePack &mpk)
 {
     switch(mpk.Type()){
         case MPK_OFFLINE:

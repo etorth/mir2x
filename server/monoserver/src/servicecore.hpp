@@ -42,8 +42,8 @@ class ServiceCore final: public ServerObject
        ~ServiceCore() = default;
 
     protected:
-        void OperateAM(const MessagePack &);
-        void OperateNet(uint32_t, uint8_t, const uint8_t *, size_t);
+        void operateAM(const MessagePack &);
+        void operateNet(uint32_t, uint8_t, const uint8_t *, size_t);
 
     protected:
         void loadMap(uint32_t);
