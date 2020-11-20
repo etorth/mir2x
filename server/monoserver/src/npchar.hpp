@@ -94,6 +94,7 @@ class NPChar final: public CharObject
         void On_MPK_ACTION(const MessagePack &);
         void On_MPK_NPCEVENT(const MessagePack &);
         void On_MPK_NOTIFYNEWCO(const MessagePack &);
+        void On_MPK_BADACTORPOD(const MessagePack &);
         void On_MPK_QUERYCORECORD(const MessagePack &);
         void On_MPK_QUERYLOCATION(const MessagePack &);
 

@@ -94,3 +94,9 @@ void NPChar::On_MPK_QUERYLOCATION(const MessagePack &mpk)
 
     m_actorPod->forward(mpk.from(), {MPK_LOCATION, stAML}, mpk.ID());
 }
+
+void NPChar::On_MPK_BADACTORPOD(const MessagePack &mpk)
+{
+    const auto amBAP = mpk.conv<AMBadActorPod>();
+    m_luaModule.close(amBAP.UID);
+}

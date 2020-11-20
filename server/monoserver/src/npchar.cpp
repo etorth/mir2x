@@ -351,6 +351,11 @@ void NPChar::OperateAM(const MessagePack &mpk)
                 On_MPK_QUERYLOCATION(mpk);
                 break;
             }
+        case MPK_BADACTORPOD:
+            {
+                On_MPK_BADACTORPOD(mpk);
+                break;
+            }
         default:
             {
                 throw fflerror("unsupported message: %s", mpk.Name());
