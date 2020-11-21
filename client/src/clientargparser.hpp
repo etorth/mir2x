@@ -34,6 +34,9 @@ struct ClientArgParser
     const bool debugSlider;             // "--debug-slider"
     const bool drawFPS;                 // "--draw-fps"
 
+    const std::string serverIP;         // "--server-ip"
+    const std::string serverPort;       // "--server-port"
+
     bool traceMove;
 
     ClientArgParser(const arg_parser &cmdParser)
