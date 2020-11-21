@@ -108,6 +108,7 @@ ActorPool::~ActorPool()
 
 void ActorPool::attach(ActorPod *actorPtr)
 {
+    logProfiler();
     if(!(actorPtr && actorPtr->UID())){
         throw fflerror("invalid arguments: ActorPod = %p, ActorPod::UID() = %llu", to_cvptr(actorPtr), to_llu(actorPtr->UID()));
     }
@@ -173,6 +174,7 @@ void ActorPool::attach(Receiver *receriverPtr)
 
 void ActorPool::detach(const ActorPod *actorPtr, const std::function<void()> &fnAtExit)
 {
+    logProfiler();
     if(!(actorPtr && actorPtr->UID())){
         throw fflerror("invalid arguments: ActorPod = %p, ActorPod::UID() = %llu", to_cvptr(actorPtr), to_llu(actorPtr->UID()));
     }
