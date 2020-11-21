@@ -198,7 +198,7 @@ void ActorPool::detach(const ActorPod *actorPtr, const std::function<void()> &fn
         mailboxPtr = tryGetMailboxPtr(uid);
     }
     else{
-        auto rlockedMailboxPtr = tryGetRlockedMailboxPtr(uid);
+        auto rlockedMailboxPtr = tryGetRLockedMailboxPtr(uid);
         lockGuard = std::move(rlockedMailboxPtr.first);
         mailboxPtr = rlockedMailboxPtr.second;
     }
@@ -421,7 +421,7 @@ bool ActorPool::postMessage(uint64_t uid, MessagePack msg)
             mailboxPtr = tryGetMailboxPtr(uid);
         }
         else{
-            auto rlockedMailboxPtr = tryGetRlockedMailboxPtr(uid);
+            auto rlockedMailboxPtr = tryGetRLockedMailboxPtr(uid);
             lockGuard = std::move(rlockedMailboxPtr.first);
             mailboxPtr = rlockedMailboxPtr.second;
         }
@@ -465,7 +465,7 @@ void ActorPool::runOneUID(uint64_t uid)
         mailboxPtr = tryGetMailboxPtr(uid);
     }
     else{
-        auto rlockedMailboxPtr = tryGetRlockedMailboxPtr(uid);
+        auto rlockedMailboxPtr = tryGetRLockedMailboxPtr(uid);
         lockGuard = std::move(rlockedMailboxPtr.first);
         mailboxPtr = rlockedMailboxPtr.second;
     }
@@ -920,7 +920,7 @@ ActorPool::Mailbox *ActorPool::tryGetMailboxPtr(uint64_t uid)
     return nullptr;
 }
 
-std::pair<ActorPool::MailboxSubBucket::RLockGuard, ActorPool::Mailbox *> ActorPool::tryGetRlockedMailboxPtr(uint64_t uid)
+std::pair<ActorPool::MailboxSubBucket::RLockGuard, ActorPool::Mailbox *> ActorPool::tryGetRLockedMailboxPtr(uint64_t uid)
 {
     logProfiler();
     auto &subBucketRef = getSubBucket(uid);

@@ -612,5 +612,5 @@ class ActorPool final
 
     private:
         Mailbox *tryGetMailboxPtr(uint64_t);
-        std::pair<MailboxSubBucket::RLockGuard, Mailbox *> tryGetRlockedMailboxPtr(uint64_t);
+        std::pair<MailboxSubBucket::RLockGuard, Mailbox *> tryGetRLockedMailboxPtr(uint64_t);
 };
