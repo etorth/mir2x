@@ -32,7 +32,7 @@
 #include "databaseconfigurewindow.hpp"
 
 #include <iostream>
-#include "corof.hpp"
+#include "logprof.hpp"
 
 ServerArgParser          *g_serverArgParser;
 Log                      *g_log;
@@ -72,6 +72,13 @@ int main(int argc, char *argv[])
         g_podMonitorWindow         = new PodMonitorWindow();
         g_actorMonitorWindow       = new ActorMonitorWindow();
 
+        std::atexit(+[]()
+        {
+            logProfiling([](const std::string &s)
+            {
+                std::printf("%s", s.c_str());
+            });
+        });
         g_mainWindow->showAll();
 
         while(Fl::wait() > 0){

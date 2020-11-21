@@ -20,6 +20,7 @@
 #include <thread>
 #include <cstdint>
 #include "uidf.hpp"
+#include "logprof.hpp"
 #include "typecast.hpp"
 #include "fflerror.hpp"
 #include "receiver.hpp"
@@ -357,6 +358,7 @@ void ActorPool::detach(const Receiver *receiverPtr)
 
 bool ActorPool::postMessage(uint64_t uid, MessagePack msg)
 {
+    logProfiler();
     if(!uid){
         throw fflerror("sending %s to zero UID", msg.Name());
     }
@@ -637,6 +639,7 @@ void ActorPool::clearOneMailbox(Mailbox *mailboxPtr)
 
 void ActorPool::runOneMailboxBucket(int bucketId)
 {
+    logProfiler();
     const int workerId = getWorkerID();
     if(workerId != bucketId){
         throw fflerror("udpate mailbox bucket %d by thread %d", bucketId, workerId);
@@ -917,6 +920,7 @@ ActorPool::Mailbox *ActorPool::tryGetMailboxPtr(uint64_t uid)
 
 std::pair<ActorPool::MailboxSubBucket::RLockGuard, ActorPool::Mailbox *> ActorPool::tryGetRlockedMailboxPtr(uint64_t uid)
 {
+    logProfiler();
     auto &subBucketRef = getSubBucket(uid);
     MailboxSubBucket::RLockGuard lockGuard(subBucketRef.lock);
     if(auto p = subBucketRef.mailboxList.find(uid); p != subBucketRef.mailboxList.end()){
