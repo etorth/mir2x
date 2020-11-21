@@ -172,6 +172,14 @@ void Client::initASIO()
         szPort = "5000";
     }
 
+    if(!g_clientArgParser->serverIP.empty()){
+        szIP = g_clientArgParser->serverIP;
+    }
+
+    if(!g_clientArgParser->serverPort.empty()){
+        szPort = g_clientArgParser->serverPort;
+    }
+
     m_netIO.start(szIP.c_str(), szPort.c_str(), [this](uint8_t headCode, const uint8_t *pData, size_t nDataLen)
     {
         // core should handle on fully recieved message from the serer
