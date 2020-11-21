@@ -19,7 +19,7 @@
 #pragma once
 namespace
 {
-    const const char * _inn_logFileList []
+    const char * _inn_logFileList []
     {
         ${MIR2X_LOG_FILELIST}
     };

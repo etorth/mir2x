@@ -126,7 +126,7 @@ ENDIF()
 
 INCLUDE_DIRECTORIES(SYSTEM ${CMAKE_BINARY_DIR}/config_file)
 CONFIGURE_FILE(${MIR2X_COMMON_SOURCE_DIR}/buildconfig.hpp.in ${CMAKE_BINARY_DIR}/config_file/buildconfig.hpp)
-CONFIGURE_FILE(${MIR2X_COMMON_SOURCE_DIR}/projfiles.hpp.in   ${CMAKE_BINARY_DIR}/config_file/projfiles.hpp  )
+CONFIGURE_FILE(${MIR2X_COMMON_SOURCE_DIR}/logprof.hpp.in     ${CMAKE_BINARY_DIR}/config_file/logprof.hpp  )
 
 # set additional module path
 LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")

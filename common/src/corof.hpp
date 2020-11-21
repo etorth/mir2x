@@ -19,9 +19,9 @@
 #pragma once
 #include <any>
 #include <optional>
+#include <coroutine>
 #include "fflerror.hpp"
 #include "raiitimer.hpp"
-#include "cppcoro/coroutine.hpp"
 
 namespace corof
 {
@@ -30,7 +30,7 @@ namespace corof
     {
         public:
             using promise_type = long_jmper_promise;
-            using  handle_type = cppcoro::coroutine_handle<promise_type>;
+            using  handle_type = std::coroutine_handle<promise_type>;
 
         public:
             handle_type m_handle;
@@ -323,13 +323,13 @@ namespace corof
         {
             size_t count = 0;
             if(msec == 0){
-                co_await cppcoro::suspend_always{};
+                co_await std::suspend_always{};
                 count++;
             }
             else{
                 hres_timer timer;
                 while(timer.diff_msec() < msec){
-                    co_await cppcoro::suspend_always{};
+                    co_await std::suspend_always{};
                     count++;
                 }
             }

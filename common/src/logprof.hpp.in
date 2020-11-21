@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename: logprof.hpp
+ *       Filename: logprof.hpp.in
  *        Created: 11/20/2020 19:03:56
  *    Description:
  *
@@ -18,69 +18,39 @@
  */
 
 #pragma once
-#include <string>
+#include <atomic>
+#include <functional>
+#include <string_view>
 #include <type_traits>
-#include "qt.h"
 
-namespace fvProf
+namespace _logProf
 {
-    // include all file names here if you want to use the macro logProfiler() inside
-    // every time recompile all source files, not recommended for other modules except fvDCCUpload
-
-    constexpr const char *fileNameList[]
+    constexpr const char * _inn_logFileList []
     {
-        "fvDCCUpload.h",
-        "fvDCCUpload.C",
-        "fvDCCUploadLogs.h",
-        "fvDCCUploadLogs.C",
-        "fvDCCUploadUtils.h",
-        "fvDCCUploadUtils.C",
+        ${MIR2X_LOG_FILELIST}
     };
-
-    constexpr size_t strLiteralLength(const char *s)
-    {
-        size_t length = 0;
-        while(s[length] != '\0'){
-            length++;
-        }
-        return length;
-    }
-
-    template<size_t N> constexpr bool strLiteralRMatch(const char *s1, const char (&s2)[N])
-    {
-        int p1 = (int)(strLiteralLength(s1)) - 1;
-        int p2 = (int)(N) - 2;
-
-        while(p1 >= 0 && p2 >= 0){
-            if(s1[p1] != s2[p2]){
-                return false;
-            }
-            p1--;
-            p2--;
-        }
-        return true;
-    }
 
     template<size_t N> constexpr size_t fileName2Index(const char (&str)[N])
     {
-        for(size_t i = 0; i < std::extent<decltype(fileNameList)>::value; ++i){
-            if(fvProf::strLiteralRMatch(fileNameList[i], str)){
+        for(size_t i = 0; i < std::extent<decltype(_inn_logFileList)>::value; ++i){
+            if(std::string_view(str).ends_with(_inn_logFileList[i])){
                 return i;
             }
         }
         return SIZE_MAX;
     }
 
+    constexpr size_t maxProfInOneFile = 4096;
     template<size_t fileIndex, int counter> constexpr size_t loc2Hash()
     {
-        static_assert(fileIndex < std::extent<decltype(fileNameList)>::value, "Put filename to fvDCCUploadLogs.h fileNameList[] table");
-        static_assert(counter   < 1024, "too much markers in single file, limited by 1024");
-        return fileIndex * 1024 + counter;
+        static_assert(fileIndex < std::extent<decltype(_inn_logFileList)>::value);
+        static_assert(counter   < _logProf::maxProfInOneFile);
+        return fileIndex * _logProf::maxProfInOneFile + counter;
     }
 
     constexpr size_t maxProfilerCount()
     {
-        return std::extent<decltype(fileNameList)>::value * 1024;
+        return std::extent<decltype(_inn_logFileList)>::value * _logProf::maxProfInOneFile;
     }
 
     inline long long getCurrTick()
@@ -98,8 +68,8 @@ namespace fvProf
         std::atomic<const char *> name {nullptr};
     };
 
-    extern const bool g_logEnableProfiler;
-    extern std::array<logProfilerEntry, fvProf::maxProfilerCount()> g_logProfilerEntrySink;
+    extern bool g_logEnableProfiler;
+    extern std::array<logProfilerEntry, _logProf::maxProfilerCount()> g_logProfilerEntrySink;
 
     class logProfilerHelper
     {
@@ -116,7 +86,7 @@ namespace fvProf
                 if(g_logEnableProfiler){
                     m_loc = loc;
                     m_funcName = funcName;
-                    m_startTime = fvProf::getCurrTick();
+                    m_startTime = _logProf::getCurrTick();
                 }
             }
 
@@ -130,7 +100,7 @@ namespace fvProf
                 sinkRef.count.fetch_add(1, std::memory_order_relaxed);
                 sinkRef.name.store(m_funcName, std::memory_order_relaxed);
 
-                const long long nsec = fvProf::getCurrTick() - m_startTime;
+                const long long nsec = _logProf::getCurrTick() - m_startTime;
                 sinkRef.time.fetch_add(nsec, std::memory_order_relaxed);
 
                 // need stronger memory order
@@ -142,13 +112,16 @@ namespace fvProf
     };
 }
 
+extern void logDisableProfiler();
+extern void logProfiling(const std::function<void(const std::string &)> &);
+
 #define logProfilerHelper_name(counter) logProfilerHelper_inst_##counter
 #define logProfilerHelper_inst(counter) logProfilerHelper_name(counter)
-#define logProfiler()           fvProf::logProfilerHelper logProfilerHelper_inst(__LINE__) {fvProf::loc2Hash<fvProf::fileName2Index(__FILE__), __COUNTER__>(), __func__}
-#define logScopedProfiler(name) fvProf::logProfilerHelper logProfilerHelper_inst(__LINE__) {fvProf::loc2Hash<fvProf::fileName2Index(__FILE__), __COUNTER__>(), "" name }
+#define logProfiler()           _logProf::logProfilerHelper logProfilerHelper_inst(__LINE__) {_logProf::loc2Hash<_logProf::fileName2Index(__FILE__), __COUNTER__>(), __func__}
+#define logScopedProfiler(name) _logProf::logProfilerHelper logProfilerHelper_inst(__LINE__) {_logProf::loc2Hash<_logProf::fileName2Index(__FILE__), __COUNTER__>(), "" name }
 
 #define logNamedProfilerHelper_line(linenum) #linenum
 #define logNamedProfilerHelper_lstr(linenum) logNamedProfilerHelper_line(linenum)
 #define logNamedProfilerHelper_name(counter) logNamedProfilerHelper_inst_##counter
 #define logNamedProfilerHelper_inst(counter) logNamedProfilerHelper_name(counter)
-#define logNamedProfiler(name) fvProf::logProfilerHelper logNamedProfilerHelper_inst(__LINE__) {fvProf::loc2Hash<fvProf::fileName2Index(__FILE__), __COUNTER__>(), "" name "_line_" logNamedProfilerHelper_lstr(__LINE__)}
+#define logNamedProfiler(name) _logProf::logProfilerHelper logNamedProfilerHelper_inst(__LINE__) {_logProf::loc2Hash<_logProf::fileName2Index(__FILE__), __COUNTER__>(), "" name "_line_" logNamedProfilerHelper_lstr(__LINE__)}
