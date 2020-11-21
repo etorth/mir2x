@@ -614,6 +614,7 @@ void ActorPool::clearOneMailbox(Mailbox *mailboxPtr)
     // so we conclude if in thread-2 clearOneMailbox() returns
     // we are sure there is no message is posting or to post message to nextQ
 
+    logProfiler();
     {
         std::lock_guard<std::mutex> lockGuard(mailboxPtr->nextQLock);
         if(!mailboxPtr->nextQ.empty()){
@@ -838,6 +839,7 @@ bool ActorPool::checkInvalid(uint64_t uid) const
     // always need to r-lock the sub-bucket even in dedicated actor thread
     // other bucket can spawn new actor to current sub-bucket
 
+    logProfiler();
     const auto &subBucketCRef = getSubBucket(uid);
     MailboxSubBucket::RLockGuard lockGuard(subBucketCRef.lock);
 
@@ -910,6 +912,7 @@ ActorPool::Mailbox *ActorPool::tryGetMailboxPtr(uint64_t uid)
     // because immediately when we release the r-lock
     // the dedicated actor thread can grab the schedLock and remove the {uid, mailboxPtr} pair form the sub-bucket
 
+    logProfiler();
     auto &subBucketRef = getSubBucket(uid);
     MailboxSubBucket::RLockGuard lockGuard(subBucketRef.lock);
     if(auto p = subBucketRef.mailboxList.find(uid); p != subBucketRef.mailboxList.end()){
