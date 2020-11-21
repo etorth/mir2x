@@ -53,12 +53,16 @@ int main(int argc, char *argv[])
 {
     std::srand((unsigned int)std::time(nullptr));
     try{
-        arg_parser stCmdParser(argc, argv);
+        arg_parser cmdParser(argc, argv);
+        g_serverArgParser = new ServerArgParser(cmdParser);
+
+        if(g_serverArgParser->disableProfiler){
+            logDisableProfiler();
+        }
 
         // start FLTK multithreading support
         Fl::lock();
 
-        g_serverArgParser          = new ServerArgParser(stCmdParser);
         g_log                      = new Log("mir2x-monoserver-v0.1");
         g_scriptWindow             = new ScriptWindow();
         g_mainWindow               = new MainWindow();

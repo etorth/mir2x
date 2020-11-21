@@ -24,38 +24,28 @@
 
 struct ServerArgParser
 {
+    const bool disableProfiler;         // "--disable-profiler"
     const bool DisableMapScript;        // "--disable-map-script"
     const bool TraceActorMessage;       // "--trace-actor-message"
     const bool TraceActorMessageCount;  // "--trace-actor-message-count"
     const int  actorPoolThread;         // "--actor-pool-thread"
-    const int  uidGroup;                // "--uid-group"
 
     ServerArgParser(const argh::parser &cmdParser)
-        : DisableMapScript(cmdParser["disable-map-script"])
+        : disableProfiler(cmdParser["disable-profiler"])
+        , DisableMapScript(cmdParser["disable-map-script"])
         , TraceActorMessage(cmdParser["trace-actor-message"])
         , TraceActorMessageCount(cmdParser["trace-actor-message-count"])
         , actorPoolThread([&cmdParser]()
           {
-              if(auto szThreadNum = cmdParser("actor-pool-thread").str(); !szThreadNum.empty()){
+              if(const auto numStr = cmdParser("actor-pool-thread").str(); !numStr.empty()){
                   try{
-                      return std::stoi(szThreadNum);
-                  }catch(...){
+                      return std::stoi(numStr);
+                  }
+                  catch(...){
                       return 1;
                   }
               }
               return 1;
-          }())
-        , uidGroup([&cmdParser]() -> int
-          {
-              if(const auto uidGroupStr = cmdParser("uid-group").str(); !uidGroupStr.empty()){
-                  try{
-                      return std::stoi(uidGroupStr);
-                  }
-                  catch(...){
-                      throw fflerror("invalid option value for uid-group: %s", to_cstr(uidGroupStr));
-                  }
-              }
-              return 17;
           }())
     {}
 };

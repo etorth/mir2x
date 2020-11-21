@@ -19,6 +19,7 @@
 #include <cstdio>
 #include "log.hpp"
 #include "client.hpp"
+#include "logprof.hpp"
 #include "xmlconf.hpp"
 #include "pngtexdb.hpp"
 #include "fontexdb.hpp"
@@ -54,8 +55,14 @@ int main(int argc, char *argv[])
 {
     std::srand((unsigned int)std::time(nullptr));
     try{
-        arg_parser stCmdParser(argc, argv);
-        auto fnAtExit = []()
+        arg_parser cmdParser(argc, argv);
+        g_clientArgParser = new ClientArgParser(cmdParser);
+
+        if(g_clientArgParser->disableProfiler){
+            logDisableProfiler();
+        }
+
+        const auto fnAtExit = +[]()
         {
             delete g_clientArgParser; g_clientArgParser = nullptr;
             delete g_log            ; g_log             = nullptr;
@@ -75,14 +82,14 @@ int main(int argc, char *argv[])
         };
 
         std::atexit(fnAtExit);
+        g_log = new Log("mir2x-client-v0.1");
 
-        g_clientArgParser = new ClientArgParser(stCmdParser);
-        g_log             = new Log("mir2x-client-v0.1");
-
-    }catch(const std::exception &e){
+    }
+    catch(const std::exception &e){
         std::fprintf(stderr, "Caught exception: %s\n", e.what());
         return -1;
-    }catch(...){
+    }
+    catch(...){
         std::fprintf(stderr, "Caught unknown exception, exit...\n");
         return -1;
     }
@@ -106,10 +113,11 @@ int main(int argc, char *argv[])
         g_notifyBoard     = new NotifyBoard(0, 0, 10240, 0, 15, 0, colorf::RED + 255);
 
         g_client->mainLoop();
-
-    }catch(const std::exception &e){
+    }
+    catch(const std::exception &e){
         g_log->addLog(LOGTYPE_FATAL, "Caught exception: %s", e.what());
-    }catch(...){
+    }
+    catch(...){
         g_log->addLog(LOGTYPE_FATAL, "Caught unknown exception, exit...");
     }
     return 0;

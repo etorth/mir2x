@@ -381,6 +381,8 @@ bool ActorPool::postMessage(uint64_t uid, MessagePack msg)
     const auto bucketId = getBucketID(uid);
     const auto fnPostMessage = [uid](Mailbox *mailboxPtr, MessagePack msg) -> bool
     {
+        logScopedProfiler("pushMailbox");
+
         // just a cheat and can remove it
         // try return earlier without acquiring the nextQLock
         if(mailboxPtr->schedLock.detached()){
