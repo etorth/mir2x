@@ -190,5 +190,6 @@ int ActorMonitorTable::selectUIDRow(uint64_t uid)
 void ActorMonitorTable::onDoubleClickCell(int row, int)
 {
     g_podMonitorWindow->setPodUID(m_actorMonitorList.at(row).uid);
+    g_podMonitorWindow->updateTable();
     g_podMonitorWindow->showAll();
 }

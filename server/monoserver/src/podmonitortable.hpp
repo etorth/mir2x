@@ -83,8 +83,20 @@ class PodMonitorTable: public Fl_TableImpl
         void sortTable();
         void setupColWidth();
 
-    public:
+    private:
         int selectAMTypeRow(int);
+
+    public:
+        void onClickOff() override
+        {
+            m_selectedAMType = MPK_NONE;
+        }
+
+        void onClickCell(int row, int) override
+        {
+            checkRowEx(row);
+            m_selectedAMType = m_podDrawHelper.amProcMonitorList.at(row).amType;
+        }
 
     public:
         void updateTable() override;

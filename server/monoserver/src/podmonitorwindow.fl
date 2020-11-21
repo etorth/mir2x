@@ -2,6 +2,12 @@
 version 1.0304
 header_name {.hpp}
 code_name {.cpp}
+decl {\#include "strf.hpp"} {private global
+}
+
+decl {\#include "uidf.hpp"} {private global
+}
+
 decl {\#include "podmonitortable.hpp"} {private global
 }
 
@@ -9,7 +15,7 @@ class PodMonitorWindow {} {
   Function {PodMonitorWindow()} {} {
     Fl_Window m_window {
       label PodMointorWindow
-      xywh {1005 468 900 445} type Double labelfont 4 resizable visible
+      xywh {1021 530 900 445} type Double labelfont 4 resizable visible
     } {
       Fl_Table m_podMonitorTable {
         xywh {0 25 900 400} labelfont 4 resizable
@@ -46,7 +52,8 @@ Fl::add_timeout(1.370, PodMonitorWindow_Timer_CB, this);} {}
   }
   Function {setPodUID(uint64_t uid)} {return_type void
   } {
-    code {m_podMonitorTable->setPodUID(uid);} {}
+    code {m_podMonitorTable->setPodUID(uid);
+m_window->copy_label(str_printf("PodMonitorWindow (UID: %016llx UIDName: %s)", to_llu(uid), to_cstr(uidf::getUIDString(uid))).c_str());} {}
   }
   Function {redrawAll()} {return_type void
   } {
@@ -56,7 +63,7 @@ Fl::add_timeout(1.370, PodMonitorWindow_Timer_CB, this);} {}
   } {
     code {dynamic_cast<PodMonitorTable *>(m_podMonitorTable)->updateTable();
 char buf[64];
-std::sprintf(buf, "actors: %d", m_podMonitorTable->rows());
+std::sprintf(buf, "MSG_TYPE: %d", m_podMonitorTable->getRowCount());
 addLog(buf);} {}
   }
   Function {addLog(const char *log)} {return_type void
