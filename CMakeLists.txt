@@ -100,8 +100,35 @@ IF(NOT DEFINED MIR2X_BUILD_SIGNATURE)
 ENDIF()
 MESSAGE(STATUS "Build signature: ${MIR2X_BUILD_SIGNATURE}")
 
+# file list to support logProfiler()
+# generate the full file list automatically
+IF(DEFINED MIR2X_LOG_FILELIST)
+    MESSAGE(FATAL_ERROR "Don't define MIR2X_LOG_FILELIST, cmake automatically collect the file list")
+ELSE()
+    FILE(GLOB MIR2X_LOG_SRC_FILELIST
+        ${CMAKE_SOURCE_DIR}/common/src/*.[hc]pp
+        ${CMAKE_SOURCE_DIR}/client/src/*.[hc]pp
+        ${CMAKE_SOURCE_DIR}/server/monoserver/src/*.[hc]pp
+    )
+
+    FOREACH(LOG_SRC ${MIR2X_LOG_SRC_FILELIST})
+        STRING(REGEX REPLACE "^${CMAKE_SOURCE_DIR}/" "" LOG_SRC_BODY ${LOG_SRC})
+        STRING(APPEND MIR2X_LOG_FILELIST "\"${LOG_SRC_BODY}\",\n")
+    ENDFOREACH()
+
+    FILE(GLOB MIR2X_LOG_FL_FILELIST ${CMAKE_SOURCE_DIR}/server/monoserver/src/*.[fF][lL])
+    FOREACH(LOG_FL_SRC ${MIR2X_LOG_FL_FILELIST})
+        GET_FILENAME_COMPONENT(FL_SRC_BASENAME ${LOG_FL_SRC} NAME_WE)
+        STRING(APPEND MIR2X_LOG_FILELIST "\"server/monoserver/src/${FL_SRC_BASENAME}.hpp\",\n")
+        STRING(APPEND MIR2X_LOG_FILELIST "\"server/monoserver/src/${FL_SRC_BASENAME}.cpp\",\n")
+    ENDFOREACH()
+ENDIF()
+
+MESSAGE(STATUS ${MIR2X_LOG_FILELIST})
+
 INCLUDE_DIRECTORIES(SYSTEM ${CMAKE_BINARY_DIR}/config_file)
 CONFIGURE_FILE(${MIR2X_COMMON_SOURCE_DIR}/buildconfig.hpp.in ${CMAKE_BINARY_DIR}/config_file/buildconfig.hpp)
+CONFIGURE_FILE(${MIR2X_COMMON_SOURCE_DIR}/logfile.hpp.in     ${CMAKE_BINARY_DIR}/config_file/logfile.hpp    )
 
 # set additional module path
 LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
