@@ -907,7 +907,6 @@ std::vector<std::u8string> ServerMap::getMonsterList() const
         u8"沙漠石人",
         u8"红蛇",
         u8"虎蛇",
-        u8"羊",
     };
 }
 
