@@ -482,11 +482,11 @@ corof::long_jmper Monster::updateCoroFunc()
         }
 
         else if(masterUID()){
-            if(m_actorPod->checkInvalid(masterUID())){
-                break;
+            if(m_actorPod->checkUIDValid(masterUID())){
+                co_await coro_followMaster();
             }
             else{
-                co_await coro_followMaster();
+                break;
             }
         }
         else{
@@ -504,7 +504,7 @@ bool Monster::update()
         return goDie();
     }
 
-    if(masterUID() && m_actorPod->checkInvalid(masterUID())){
+    if(masterUID() && !m_actorPod->checkUIDValid(masterUID())){
         return goDie();
     }
 

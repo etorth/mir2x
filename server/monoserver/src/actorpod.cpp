@@ -263,12 +263,12 @@ void ActorPod::detach(const std::function<void()> &fnAtExit) const
     g_actorPool->detach(this, fnAtExit);
 }
 
-bool ActorPod::checkInvalid(uint64_t uid)
+bool ActorPod::checkUIDValid(uint64_t uid)
 {
     if(!uid){
         throw fflerror("invalid zero UID");
     }
-    return g_actorPool->checkInvalid(uid);
+    return g_actorPool->checkUIDValid(uid);
 }
 
 void ActorPod::PrintMonitor() const

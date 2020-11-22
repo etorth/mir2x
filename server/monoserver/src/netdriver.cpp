@@ -99,7 +99,7 @@ bool NetDriver::Launch(uint32_t nPort, uint64_t nUID)
         return false;
     }
 
-    if(g_actorPool->checkInvalid(nUID)){
+    if(!g_actorPool->checkUIDValid(nUID)){
         g_monoServer->addLog(LOGTYPE_WARNING, "Launch with invaid UID: %llu", to_llu(nUID));
         return false;
     }

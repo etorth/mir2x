@@ -839,7 +839,7 @@ void ActorPool::launchPool()
     }
 }
 
-bool ActorPool::checkInvalid(uint64_t uid) const
+bool ActorPool::checkUIDValid(uint64_t uid) const
 {
     // always need to r-lock the sub-bucket even in dedicated actor thread
     // other bucket can spawn new actor to current sub-bucket
@@ -849,7 +849,7 @@ bool ActorPool::checkInvalid(uint64_t uid) const
     MailboxSubBucket::RLockGuard lockGuard(subBucketCRef.lock);
 
     const auto p = subBucketCRef.mailboxList.find(uid);
-    return p == subBucketCRef.mailboxList.end() || p->second->schedLock.detached();
+    return p != subBucketCRef.mailboxList.end() && !(p->second->schedLock.detached());
 }
 
 bool ActorPool::isActorThread() const

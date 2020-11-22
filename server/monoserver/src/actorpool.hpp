@@ -554,7 +554,7 @@ class ActorPool final
 
     public:
         void launchPool();
-        bool checkInvalid(uint64_t) const;
+        bool checkUIDValid(uint64_t) const;
 
     private:
         uint64_t GetInnActorUID();
