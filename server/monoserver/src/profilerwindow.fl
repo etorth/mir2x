@@ -11,8 +11,7 @@ decl {\#include <Fl/Fl_Text_Buffer.H>} {private local
 decl {\#include "log.hpp"} {private local
 }
 
-class ProfilerWindow {open
-} {
+class ProfilerWindow {} {
   decl {Fl_Text_Buffer *m_buffer;} {private local
   }
   Function {ProfilerWindow()} {} {
@@ -72,5 +71,6 @@ Function {ProfilerWindow_Timer_CB(void *dataPtr)} {return_type void
     auto winPtr = (ProfilerWindow *)(dataPtr);
     winPtr->update();
     winPtr->redrawAll();
+    Fl::repeat_timeout(1.370, ProfilerWindow_Timer_CB, winPtr);
 }} {}
 }
