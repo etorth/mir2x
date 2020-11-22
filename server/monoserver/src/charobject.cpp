@@ -232,7 +232,7 @@ void CharObject::DispatchAction(const ActionNode &rstAction)
             }
         default:
             {
-                ForeachInViewCO([this, stAMA](const COLocation &rstLocation)
+                foreachInViewCO([this, stAMA](const COLocation &rstLocation)
                 {
                     auto nX = rstLocation.X;
                     auto nY = rstLocation.Y;
@@ -1285,7 +1285,7 @@ void CharObject::AddInViewCO(const COLocation &rstCOLocation)
     SortInViewCO();
 }
 
-void CharObject::ForeachInViewCO(std::function<void(const COLocation &)> fnOnLoc)
+void CharObject::foreachInViewCO(std::function<void(const COLocation &)> fnOnLoc)
 {
     // TODO dangerous part
     // check comments in retrieveLocation
@@ -1293,13 +1293,13 @@ void CharObject::ForeachInViewCO(std::function<void(const COLocation &)> fnOnLoc
     // RemoveInViewCO() may get called in fnOnLoc
     // RemoveInViewCO() may get called in retrieveLocation
 
-    scoped_alloc::svobuf_wrapper<uint64_t, 4> uidList;
+    scoped_alloc::svobuf_wrapper<uint64_t, 16> uidList;
     for(const auto &rstCOLoc: m_inViewCOList){
         uidList.c.push_back(rstCOLoc.UID);
     }
 
     for(size_t i = 0; i < uidList.c.size(); ++i){
-        retrieveLocation(uidList.c.at(i), fnOnLoc);
+        retrieveLocation(uidList.c.at(i), std::move(fnOnLoc));
     }
 }
 

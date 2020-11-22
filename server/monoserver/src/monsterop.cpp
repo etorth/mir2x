@@ -39,7 +39,7 @@ void Monster::on_MPK_MISS(const MessagePack &rstMPK)
         return;
     }
 
-    ForeachInViewCO([this, stAMM](const COLocation &rstLocation)
+    foreachInViewCO([this, stAMM](const COLocation &rstLocation)
     {
         if(uidf::getUIDType(rstLocation.UID) == UID_PLY){
             m_actorPod->forward(rstLocation.UID, {MPK_MISS, stAMM});
