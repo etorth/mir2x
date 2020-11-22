@@ -69,7 +69,7 @@ void logProfiling(const std::function<void(const std::string &)> &f)
             profEntry.maxtime.load(),
         };
 
-        if(std::strcmp(entry.name, __func__) == 0){
+        if(std::strcmp(entry.name, "__test_log_profiler_speed") == 0){
             continue;
         }
 
@@ -89,11 +89,11 @@ void logProfiling(const std::function<void(const std::string &)> &f)
 
     const auto profilerAvgTime = []() -> float
     {
-        constexpr long profilerCount = 99999;
+        constexpr long profilerCount = 9999;
         const auto startTime = _logProf::getCurrTick();
 
         for(long i = 0; i < profilerCount; ++i){
-            logProfiler();
+            logScopedProfiler("__test_log_profiler_speed");
         }
         return 1.0f * (_logProf::getCurrTick() - startTime) / profilerCount;
     }();
