@@ -17,7 +17,7 @@
  */
 
 #include "log.hpp"
-#include "typecast.hpp"
+#include "totype.hpp"
 #include "netio.hpp"
 #include "message.hpp"
 #include "compress.hpp"

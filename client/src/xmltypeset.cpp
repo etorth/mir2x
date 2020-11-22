@@ -19,7 +19,7 @@
 #include <cinttypes>
 #include "log.hpp"
 #include "lalign.hpp"
-#include "typecast.hpp"
+#include "totype.hpp"
 #include "fflerror.hpp"
 #include "xmltypeset.hpp"
 #include "utf8f.hpp"

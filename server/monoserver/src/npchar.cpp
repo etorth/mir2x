@@ -17,7 +17,7 @@
  */
 
 #include <cstdint>
-#include "typecast.hpp"
+#include "totype.hpp"
 #include "uidf.hpp"
 #include "npchar.hpp"
 #include "fflerror.hpp"

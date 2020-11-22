@@ -19,7 +19,7 @@
 #include <chrono>
 #include <thread>
 #include "log.hpp"
-#include "typecast.hpp"
+#include "totype.hpp"
 #include "sysconst.hpp"
 #include "fflerror.hpp"
 #include "luamodule.hpp"

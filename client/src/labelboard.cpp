@@ -17,7 +17,7 @@
  */
 
 #include "log.hpp"
-#include "typecast.hpp"
+#include "totype.hpp"
 #include "strf.hpp"
 #include "xmltypeset.hpp"
 #include "colorf.hpp"

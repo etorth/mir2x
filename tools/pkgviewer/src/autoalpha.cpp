@@ -21,7 +21,7 @@
 #include <stdexcept>
 #include "strf.hpp"
 #include "fflerror.hpp"
-#include "typecast.hpp"
+#include "totype.hpp"
 #include "autoalpha.hpp"
 
 void CalcPixelAutoAlpha(uint32_t *pData, size_t nDataLen)

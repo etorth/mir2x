@@ -17,7 +17,7 @@
  */
 
 #include <tuple>
-#include "typecast.hpp"
+#include "totype.hpp"
 #include "pngtexdb.hpp"
 #include "sysconst.hpp"
 #include "sdldevice.hpp"

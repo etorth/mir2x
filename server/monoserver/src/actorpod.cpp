@@ -20,7 +20,7 @@
 #include <cinttypes>
 
 #include "uidf.hpp"
-#include "typecast.hpp"
+#include "totype.hpp"
 #include "actorpod.hpp"
 #include "actorpool.hpp"
 #include "raiitimer.hpp"

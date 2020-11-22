@@ -20,7 +20,7 @@
 #include <string>
 #include <cstdint>
 #include <cinttypes>
-#include "typecast.hpp"
+#include "totype.hpp"
 #include "fflerror.hpp"
 
 enum UIDType: int

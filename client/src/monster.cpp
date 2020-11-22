@@ -17,7 +17,7 @@
  */
 #include <SDL2/SDL.h>
 #include "log.hpp"
-#include "typecast.hpp"
+#include "totype.hpp"
 #include "dbcomid.hpp"
 #include "monster.hpp"
 #include "uidf.hpp"

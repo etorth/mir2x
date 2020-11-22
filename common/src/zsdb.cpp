@@ -28,7 +28,7 @@
 #include "zsdb.hpp"
 #include "fileptr.hpp"
 #include "fflerror.hpp"
-#include "typecast.hpp"
+#include "totype.hpp"
 
 constexpr static int g_compLevel = 3;
 

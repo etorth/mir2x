@@ -16,7 +16,7 @@
  * =====================================================================================
  */
 
-#include "typecast.hpp"
+#include "totype.hpp"
 #include "bevent.hpp"
 #include "sdldevice.hpp"
 #include "alphaonbutton.hpp"

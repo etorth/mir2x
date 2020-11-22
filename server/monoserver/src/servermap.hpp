@@ -24,7 +24,7 @@
 #include <concepts>
 
 #include "mathf.hpp"
-#include "typecast.hpp"
+#include "totype.hpp"
 #include "sysconst.hpp"
 #include "querytype.hpp"
 #include "commonitem.hpp"

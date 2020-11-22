@@ -18,7 +18,7 @@
 
 #pragma once
 #include <cstdint>
-#include "typecast.hpp"
+#include "totype.hpp"
 #include "fflerror.hpp"
 
 namespace pngf

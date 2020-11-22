@@ -27,7 +27,7 @@
 
 #include "log.hpp"
 #include "dbpod.hpp"
-#include "typecast.hpp"
+#include "totype.hpp"
 #include "taskhub.hpp"
 #include "message.hpp"
 #include "monster.hpp"

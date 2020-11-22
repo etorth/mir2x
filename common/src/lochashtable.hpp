@@ -20,7 +20,7 @@
 #include <utility>
 #include <cstdint>
 #include <unordered_map>
-#include "typecast.hpp"
+#include "totype.hpp"
 #include "fflerror.hpp"
 
 struct LocHashHelper

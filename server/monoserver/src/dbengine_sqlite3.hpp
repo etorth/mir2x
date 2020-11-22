@@ -21,7 +21,7 @@
 #include <stdexcept>
 #include <sqlite3.h>
 #include "strf.hpp"
-#include "typecast.hpp"
+#include "totype.hpp"
 #include "fflerror.hpp"
 
 class DBRecord_SQLite3;

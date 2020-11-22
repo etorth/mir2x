@@ -17,7 +17,7 @@
  */
 
 #include <cinttypes>
-#include "typecast.hpp"
+#include "totype.hpp"
 #include "mathf.hpp"
 #include "player.hpp"
 #include "dbcomid.hpp"
