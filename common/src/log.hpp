@@ -27,6 +27,7 @@
 #include <g3log/logworker.hpp>
 
 #include "strf.hpp"
+#include "logprof.hpp"
 
 #if (defined(WIN32) || defined(_WIN32) || defined(__WIN32__))
 #define LOG_PATH "./"

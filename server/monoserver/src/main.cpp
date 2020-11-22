@@ -15,9 +15,8 @@
  *
  * =====================================================================================
  */
-#include <asio.hpp>
 #include <ctime>
-
+#include <asio.hpp>
 #include "log.hpp"
 #include "dbpod.hpp"
 #include "mapbindb.hpp"
@@ -26,13 +25,11 @@
 #include "argparser.hpp"
 #include "mainwindow.hpp"
 #include "scriptwindow.hpp"
+#include "profilerwindow.hpp"
 #include "serverargparser.hpp"
 #include "podmonitorwindow.hpp"
 #include "serverconfigurewindow.hpp"
 #include "databaseconfigurewindow.hpp"
-
-#include <iostream>
-#include "logprof.hpp"
 
 ServerArgParser          *g_serverArgParser;
 Log                      *g_log;
@@ -42,6 +39,7 @@ DBPodN                   *g_DBPodN;
 
 MapBinDB                 *g_mapBinDB;
 ScriptWindow             *g_scriptWindow;
+ProfilerWindow           *g_profilerWindow;
 MainWindow               *g_mainWindow;
 MonoServer               *g_monoServer;
 ServerConfigureWindow    *g_serverConfigureWindow;
@@ -65,6 +63,7 @@ int main(int argc, char *argv[])
 
         g_log                      = new Log("mir2x-monoserver-v0.1");
         g_scriptWindow             = new ScriptWindow();
+        g_profilerWindow           = new ProfilerWindow();
         g_mainWindow               = new MainWindow();
         g_monoServer               = new MonoServer();
         g_mapBinDB                 = new MapBinDB();

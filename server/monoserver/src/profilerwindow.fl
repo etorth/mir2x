@@ -1,0 +1,76 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0304
+header_name {.hpp}
+code_name {.cpp}
+decl {\#include <functional>} {private local
+}
+
+decl {\#include <Fl/Fl_Text_Buffer.H>} {private local
+}
+
+decl {\#include "log.hpp"} {private local
+}
+
+class ProfilerWindow {open
+} {
+  decl {Fl_Text_Buffer *m_buffer;} {private local
+  }
+  Function {ProfilerWindow()} {} {
+    Fl_Window m_window {
+      xywh {2387 383 830 505} type Double labelfont 4 hide resizable
+    } {
+      Fl_Text_Display m_display {
+        xywh {0 0 830 505} labelfont 4 textfont 4 resizable
+      }
+    }
+    code {{
+	// install the text buffer into text display
+	m_buffer = new Fl_Text_Buffer();
+	m_display->buffer(m_buffer);
+	m_window->hide();
+	Fl::add_timeout(1.370, ProfilerWindow_Timer_CB, this);
+}} {}
+  }
+  Function {showAll()} {return_type void
+  } {
+    code {{
+	m_window->show();
+}} {}
+  }
+  Function {redrawAll()} {return_type void
+  } {
+    code {{
+	m_window->redraw();
+}} {}
+  }
+  Function {update()} {return_type void
+  } {
+    code {{
+    std::string logBuf;
+    const auto f = [&logBuf, this](const std::string &s)
+    {
+    	logBuf += s;
+    };
+
+    logProfiling(f);
+    m_buffer->insert(0, logBuf.c_str());
+}} {}
+  }
+  Function {setGUIFont(int font)} {return_type void
+  } {
+    code {{
+    m_display->textfont((Fl_Font)(font));
+    m_window->redraw();
+}} {}
+  }
+}
+
+Function {ProfilerWindow_Timer_CB(void *dataPtr)} {return_type void
+} {
+  code {{
+    // get window pointer
+    auto winPtr = (ProfilerWindow *)(dataPtr);
+    winPtr->update();
+    winPtr->redrawAll();
+}} {}
+}

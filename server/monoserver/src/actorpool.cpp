@@ -19,8 +19,8 @@
 #include <mutex>
 #include <thread>
 #include <cstdint>
+#include "log.hpp"
 #include "uidf.hpp"
-#include "logprof.hpp"
 #include "typecast.hpp"
 #include "fflerror.hpp"
 #include "receiver.hpp"

@@ -19,7 +19,6 @@
 #include <cstdio>
 #include "log.hpp"
 #include "client.hpp"
-#include "logprof.hpp"
 #include "xmlconf.hpp"
 #include "pngtexdb.hpp"
 #include "fontexdb.hpp"
