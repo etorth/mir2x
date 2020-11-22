@@ -283,6 +283,23 @@ void ProcessRun::Net_MISS(const uint8_t *pBuf, size_t)
     }
 }
 
+void ProcessRun::Net_PING(const uint8_t *pBuf, size_t)
+{
+    if(m_lastPingDone){
+        throw fflerror("received echo while no ping has been sent to server");
+    }
+
+    const auto currTick = SDL_GetTicks();
+    const auto smP = ServerMsg::conv<SMPing>(pBuf);
+
+    if(currTick < smP.Tick){
+        throw fflerror("invalid ping tick: %llu -> %llu", to_llu(smP.Tick), to_llu(currTick));
+    }
+
+    m_lastPingDone = true;
+    addCBLog(CBLOG_SYS, u8"延迟%llums", to_llu(currTick - smP.Tick));
+}
+
 void ProcessRun::Net_SHOWDROPITEM(const uint8_t *pBuf, size_t)
 {
     const auto smSDI = ServerMsg::conv<SMShowDropItem>(pBuf);

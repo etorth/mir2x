@@ -120,6 +120,10 @@ class ProcessRun: public Process
         std::list<std::shared_ptr<AscendStr>> m_ascendStrList;
 
     private:
+        bool     m_lastPingDone = true;
+        uint32_t m_lastPingTick = 0;
+
+    private:
         double m_starRatio = 0.0;
 
     private:
@@ -170,6 +174,7 @@ class ProcessRun: public Process
     public:
         void Net_EXP(const uint8_t *, size_t);
         void Net_MISS(const uint8_t *, size_t);
+        void Net_PING(const uint8_t *, size_t);
         void Net_GOLD(const uint8_t *, size_t);
         void Net_ACTION(const uint8_t *, size_t);
         void Net_OFFLINE(const uint8_t *, size_t);

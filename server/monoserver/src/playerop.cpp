@@ -31,10 +31,6 @@ extern MonoServer *g_monoServer;
 void Player::on_MPK_METRONOME(const MessagePack &)
 {
     update();
-
-    SMPing stSMP;
-    stSMP.Tick = g_monoServer->getCurrTick();
-    g_netDriver->Post(ChannID(), SM_PING, stSMP);
 }
 
 void Player::on_MPK_BADACTORPOD(const MessagePack &rstMPK)

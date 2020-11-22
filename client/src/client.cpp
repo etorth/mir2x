@@ -273,6 +273,9 @@ void Client::OnServerMessage(uint8_t headCode, const uint8_t *pData, size_t nDat
             }
         case SM_PING:
             {
+                if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+                    pRun->Net_PING(pData, nDataLen);
+                }
                 break;
             }
         case SM_LOGINOK:

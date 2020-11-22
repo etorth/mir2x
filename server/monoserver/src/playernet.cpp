@@ -96,6 +96,14 @@ void Player::Net_CM_PICKUP(uint8_t, const uint8_t *pBuf, size_t)
     }
 }
 
+void Player::Net_CM_PING(uint8_t, const uint8_t *pBuf, size_t)
+{
+    SMPing smP;
+    std::memset(&smP, 0, sizeof(smP));
+    smP.Tick = ((CMPing *)(pBuf))->Tick; // strict-aliasing issue
+    postNetMessage(SM_PING, smP);
+}
+
 void Player::Net_CM_QUERYGOLD(uint8_t, const uint8_t *, size_t)
 {
     ReportGold();

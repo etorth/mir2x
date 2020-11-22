@@ -211,6 +211,7 @@ void Player::operateNet(uint8_t nType, const uint8_t *pData, size_t nDataLen)
         case CM_REQUESTSPACEMOVE: Net_CM_REQUESTSPACEMOVE(nType, pData, nDataLen); break;
         case CM_ACTION          : Net_CM_ACTION          (nType, pData, nDataLen); break;
         case CM_PICKUP          : Net_CM_PICKUP          (nType, pData, nDataLen); break;
+        case CM_PING            : Net_CM_PING            (nType, pData, nDataLen); break;
         case CM_QUERYGOLD       : Net_CM_QUERYGOLD       (nType, pData, nDataLen); break;
         case CM_NPCEVENT        : Net_CM_NPCEVENT        (nType, pData, nDataLen); break;
         default                 :                                                  break;
