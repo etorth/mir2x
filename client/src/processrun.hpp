@@ -172,22 +172,22 @@ class ProcessRun: public Process
         bool OnMap(uint32_t, int, int) const;
 
     public:
-        void Net_EXP(const uint8_t *, size_t);
-        void Net_MISS(const uint8_t *, size_t);
-        void Net_PING(const uint8_t *, size_t);
-        void Net_GOLD(const uint8_t *, size_t);
-        void Net_ACTION(const uint8_t *, size_t);
-        void Net_OFFLINE(const uint8_t *, size_t);
-        void Net_LOGINOK(const uint8_t *, size_t);
-        void Net_PICKUPOK(const uint8_t *, size_t);
-        void Net_CORECORD(const uint8_t *, size_t);
-        void Net_UPDATEHP(const uint8_t *, size_t);
-        void Net_FIREMAGIC(const uint8_t *, size_t);
-        void Net_NOTIFYDEAD(const uint8_t *, size_t);
-        void Net_DEADFADEOUT(const uint8_t *, size_t);
-        void Net_MONSTERGINFO(const uint8_t *, size_t);
-        void Net_SHOWDROPITEM(const uint8_t *, size_t);
-        void Net_NPCXMLLAYOUT(const uint8_t *, size_t);
+        void net_EXP(const uint8_t *, size_t);
+        void net_MISS(const uint8_t *, size_t);
+        void net_PING(const uint8_t *, size_t);
+        void net_GOLD(const uint8_t *, size_t);
+        void net_ACTION(const uint8_t *, size_t);
+        void net_OFFLINE(const uint8_t *, size_t);
+        void net_LOGINOK(const uint8_t *, size_t);
+        void net_PICKUPOK(const uint8_t *, size_t);
+        void net_CORECORD(const uint8_t *, size_t);
+        void net_UPDATEHP(const uint8_t *, size_t);
+        void net_FIREMAGIC(const uint8_t *, size_t);
+        void net_NOTIFYDEAD(const uint8_t *, size_t);
+        void net_DEADFADEOUT(const uint8_t *, size_t);
+        void net_MONSTERGINFO(const uint8_t *, size_t);
+        void net_SHOWDROPITEM(const uint8_t *, size_t);
+        void net_NPCXMLLAYOUT(const uint8_t *, size_t);
 
     public:
         bool CanMove(bool, int, int, int);

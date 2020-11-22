@@ -33,7 +33,7 @@
 #include "dbcomrecord.hpp"
 
 // we get all needed initialization info for init the process run
-void ProcessRun::Net_LOGINOK(const uint8_t *pBuf, size_t nLen)
+void ProcessRun::net_LOGINOK(const uint8_t *pBuf, size_t nLen)
 {
     if(pBuf && nLen && (nLen == sizeof(SMLoginOK))){
         SMLoginOK stSMLOK;
@@ -59,7 +59,7 @@ void ProcessRun::Net_LOGINOK(const uint8_t *pBuf, size_t nLen)
     }
 }
 
-void ProcessRun::Net_ACTION(const uint8_t *pBuf, size_t)
+void ProcessRun::net_ACTION(const uint8_t *pBuf, size_t)
 {
     SMAction stSMA;
     std::memcpy(&stSMA, pBuf, sizeof(stSMA));
@@ -184,7 +184,7 @@ void ProcessRun::Net_ACTION(const uint8_t *pBuf, size_t)
     }
 }
 
-void ProcessRun::Net_CORECORD(const uint8_t *pBuf, size_t)
+void ProcessRun::net_CORECORD(const uint8_t *pBuf, size_t)
 {
     const auto smCOR = ServerMsg::conv<SMCORecord>(pBuf);
     if(smCOR.Action.MapID != MapID()){
@@ -229,7 +229,7 @@ void ProcessRun::Net_CORECORD(const uint8_t *pBuf, size_t)
     }
 }
 
-void ProcessRun::Net_UPDATEHP(const uint8_t *pBuf, size_t)
+void ProcessRun::net_UPDATEHP(const uint8_t *pBuf, size_t)
 {
     SMUpdateHP stSMUHP;
     std::memcpy(&stSMUHP, pBuf, sizeof(stSMUHP));
@@ -241,7 +241,7 @@ void ProcessRun::Net_UPDATEHP(const uint8_t *pBuf, size_t)
     }
 }
 
-void ProcessRun::Net_NOTIFYDEAD(const uint8_t *pBuf, size_t)
+void ProcessRun::net_NOTIFYDEAD(const uint8_t *pBuf, size_t)
 {
     SMNotifyDead stSMND;
     std::memcpy(&stSMND, pBuf, sizeof(stSMND));
@@ -251,7 +251,7 @@ void ProcessRun::Net_NOTIFYDEAD(const uint8_t *pBuf, size_t)
     }
 }
 
-void ProcessRun::Net_DEADFADEOUT(const uint8_t *pBuf, size_t)
+void ProcessRun::net_DEADFADEOUT(const uint8_t *pBuf, size_t)
 {
     SMDeadFadeOut stSMDFO;
     std::memcpy(&stSMDFO, pBuf, sizeof(stSMDFO));
@@ -263,7 +263,7 @@ void ProcessRun::Net_DEADFADEOUT(const uint8_t *pBuf, size_t)
     }
 }
 
-void ProcessRun::Net_EXP(const uint8_t *pBuf, size_t)
+void ProcessRun::net_EXP(const uint8_t *pBuf, size_t)
 {
     const auto smExp = ServerMsg::conv<SMExp>(pBuf);
     if(smExp.Exp){
@@ -271,7 +271,7 @@ void ProcessRun::Net_EXP(const uint8_t *pBuf, size_t)
     }
 }
 
-void ProcessRun::Net_MISS(const uint8_t *pBuf, size_t)
+void ProcessRun::net_MISS(const uint8_t *pBuf, size_t)
 {
     SMMiss stSMM;
     std::memcpy(&stSMM, pBuf, sizeof(stSMM));
@@ -283,7 +283,7 @@ void ProcessRun::Net_MISS(const uint8_t *pBuf, size_t)
     }
 }
 
-void ProcessRun::Net_PING(const uint8_t *pBuf, size_t)
+void ProcessRun::net_PING(const uint8_t *pBuf, size_t)
 {
     if(m_lastPingDone){
         throw fflerror("received echo while no ping has been sent to server");
@@ -300,7 +300,7 @@ void ProcessRun::Net_PING(const uint8_t *pBuf, size_t)
     addCBLog(CBLOG_SYS, u8"延迟%llums", to_llu(currTick - smP.Tick));
 }
 
-void ProcessRun::Net_SHOWDROPITEM(const uint8_t *pBuf, size_t)
+void ProcessRun::net_SHOWDROPITEM(const uint8_t *pBuf, size_t)
 {
     const auto smSDI = ServerMsg::conv<SMShowDropItem>(pBuf);
     clearGroundItem(smSDI.X, smSDI.Y);
@@ -314,7 +314,7 @@ void ProcessRun::Net_SHOWDROPITEM(const uint8_t *pBuf, size_t)
     }
 }
 
-void ProcessRun::Net_FIREMAGIC(const uint8_t *pBuf, size_t)
+void ProcessRun::net_FIREMAGIC(const uint8_t *pBuf, size_t)
 {
     const auto smFM = ServerMsg::conv<SMFireMagic>(pBuf);
     const auto mr = DBCOM_MAGICRECORD(smFM.Magic);
@@ -401,7 +401,7 @@ void ProcessRun::Net_FIREMAGIC(const uint8_t *pBuf, size_t)
     }
 }
 
-void ProcessRun::Net_OFFLINE(const uint8_t *pBuf, size_t)
+void ProcessRun::net_OFFLINE(const uint8_t *pBuf, size_t)
 {
     SMOffline stSMO;
     std::memcpy(&stSMO, pBuf, sizeof(stSMO));
@@ -413,7 +413,7 @@ void ProcessRun::Net_OFFLINE(const uint8_t *pBuf, size_t)
     }
 }
 
-void ProcessRun::Net_PICKUPOK(const uint8_t *pBuf, size_t)
+void ProcessRun::net_PICKUPOK(const uint8_t *pBuf, size_t)
 {
     const auto smPUOK = ServerMsg::conv<SMPickUpOK>(pBuf);
     getMyHero()->getInvPack().Add(smPUOK.ID);
@@ -422,14 +422,14 @@ void ProcessRun::Net_PICKUPOK(const uint8_t *pBuf, size_t)
     addCBLog(CBLOG_SYS, u8"捡起%s于坐标(%d, %d)", DBCOM_ITEMRECORD(smPUOK.ID).name, (int)(smPUOK.X), (int)(smPUOK.Y));
 }
 
-void ProcessRun::Net_GOLD(const uint8_t *pBuf, size_t)
+void ProcessRun::net_GOLD(const uint8_t *pBuf, size_t)
 {
     SMGold stSMG;
     std::memcpy(&stSMG, pBuf, sizeof(stSMG));
     getMyHero()->setGold(stSMG.Gold);
 }
 
-void ProcessRun::Net_NPCXMLLAYOUT(const uint8_t *buf, size_t)
+void ProcessRun::net_NPCXMLLAYOUT(const uint8_t *buf, size_t)
 {
     const auto smNPCXMLL = ServerMsg::conv<SMNPCXMLLayout>(buf);
     auto chatBoardPtr = dynamic_cast<NPCChatBoard *>(getGUIManager()->getWidget("NPCChatBoard"));

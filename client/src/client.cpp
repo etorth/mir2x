@@ -204,77 +204,77 @@ void Client::OnServerMessage(uint8_t headCode, const uint8_t *pData, size_t nDat
         case SM_UPDATEHP:
             {
                 if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
-                    pRun->Net_UPDATEHP(pData, nDataLen);
+                    pRun->net_UPDATEHP(pData, nDataLen);
                 }
                 break;
             }
         case SM_DEADFADEOUT:
             {
                 if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
-                    pRun->Net_DEADFADEOUT(pData, nDataLen);
+                    pRun->net_DEADFADEOUT(pData, nDataLen);
                 }
                 break;
             }
         case SM_NOTIFYDEAD:
             {
                 if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
-                    pRun->Net_NOTIFYDEAD(pData, nDataLen);
+                    pRun->net_NOTIFYDEAD(pData, nDataLen);
                 }
                 break;
             }
         case SM_EXP:
             {
                 if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
-                    pRun->Net_EXP(pData, nDataLen);
+                    pRun->net_EXP(pData, nDataLen);
                 }
                 break;
             }
         case SM_MISS:
             {
                 if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
-                    pRun->Net_MISS(pData, nDataLen);
+                    pRun->net_MISS(pData, nDataLen);
                 }
                 break;
             }
         case SM_GOLD:
             {
                 if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
-                    pRun->Net_GOLD(pData, nDataLen);
+                    pRun->net_GOLD(pData, nDataLen);
                 }
                 break;
             }
         case SM_FIREMAGIC:
             {
                 if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
-                    pRun->Net_FIREMAGIC(pData, nDataLen);
+                    pRun->net_FIREMAGIC(pData, nDataLen);
                 }
                 break;
             }
         case SM_NPCXMLLAYOUT:
             {
                 if(auto p = processRun(); p){
-                    p->Net_NPCXMLLAYOUT(pData, nDataLen);
+                    p->net_NPCXMLLAYOUT(pData, nDataLen);
                 }
                 break;
             }
         case SM_SHOWDROPITEM:
             {
                 if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
-                    pRun->Net_SHOWDROPITEM(pData, nDataLen);
+                    pRun->net_SHOWDROPITEM(pData, nDataLen);
                 }
                 break;
             }
         case SM_PICKUPOK:
             {
                 if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
-                    pRun->Net_PICKUPOK(pData, nDataLen);
+                    pRun->net_PICKUPOK(pData, nDataLen);
                 }
                 break;
             }
         case SM_PING:
             {
                 if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
-                    pRun->Net_PING(pData, nDataLen);
+                    pRun->net_PING(pData, nDataLen);
                 }
                 break;
             }
@@ -282,7 +282,7 @@ void Client::OnServerMessage(uint8_t headCode, const uint8_t *pData, size_t nDat
             {
                 SwitchProcess(m_currentProcess->ID(), PROCESSID_RUN);
                 if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
-                    pRun->Net_LOGINOK(pData, nDataLen);
+                    pRun->net_LOGINOK(pData, nDataLen);
                 }else{
                     g_log->addLog(LOGTYPE_INFO, "failed to jump into main loop");
                 }
@@ -291,7 +291,7 @@ void Client::OnServerMessage(uint8_t headCode, const uint8_t *pData, size_t nDat
         case SM_CORECORD:
             {
                 if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
-                    pRun->Net_CORECORD(pData, nDataLen);
+                    pRun->net_CORECORD(pData, nDataLen);
                 }
                 break;
             }
@@ -303,14 +303,14 @@ void Client::OnServerMessage(uint8_t headCode, const uint8_t *pData, size_t nDat
         case SM_ACTION:
             {
                 if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
-                    pRun->Net_ACTION(pData, nDataLen);
+                    pRun->net_ACTION(pData, nDataLen);
                 }
                 break;
             }
         case SM_OFFLINE:
             {
                 if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
-                    pRun->Net_OFFLINE(pData, nDataLen);
+                    pRun->net_OFFLINE(pData, nDataLen);
                 }
                 break;
             }
