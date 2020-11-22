@@ -52,6 +52,7 @@ class ProfilerWindow {} {
     };
 
     logProfiling(f);
+    m_buffer->remove(0, m_buffer->length());
     m_buffer->insert(0, logBuf.c_str());
 }} {}
   }
