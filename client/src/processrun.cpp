@@ -185,7 +185,7 @@ void ProcessRun::update(double fUpdateTime)
         m_starRatio = 0.00;
     }
 
-    if(const auto currTick = SDL_GetTicks(); m_lastPingDone && (m_lastPingTick + 5000 < currTick)){
+    if(const auto currTick = SDL_GetTicks(); m_lastPingDone && (m_lastPingTick + 10ULL * 1000 < currTick)){
         m_lastPingDone = false;
         m_lastPingTick = currTick;
         g_client->send(CM_PING, CMPing{currTick});

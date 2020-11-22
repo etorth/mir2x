@@ -60,5 +60,5 @@ class ServiceCore final: public ServerObject
         void on_MPK_ADDCHAROBJECT(const MessagePack &);
 
     private:
-        void Net_CM_Login(uint32_t, uint8_t, const uint8_t *, size_t);
+        void net_CM_Login(uint32_t, uint8_t, const uint8_t *, size_t);
 };

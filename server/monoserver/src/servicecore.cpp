@@ -84,7 +84,7 @@ void ServiceCore::operateNet(uint32_t nSID, uint8_t nType, const uint8_t *pData,
     switch(nType){
         case CM_LOGIN:
             {
-                Net_CM_Login(nSID, nType, pData, nDataLen);
+                net_CM_Login(nSID, nType, pData, nDataLen);
                 break;
             }
         default:

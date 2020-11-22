@@ -128,14 +128,14 @@ class Player final: public CharObject
         void on_MPK_REMOVEGROUNDITEM(const MessagePack &);
 
     private:
-        void Net_CM_REQUESTKILLPETS (uint8_t, const uint8_t *, size_t);
-        void Net_CM_REQUESTSPACEMOVE(uint8_t, const uint8_t *, size_t);
-        void Net_CM_QUERYCORECORD   (uint8_t, const uint8_t *, size_t);
-        void Net_CM_ACTION          (uint8_t, const uint8_t *, size_t);
-        void Net_CM_PICKUP          (uint8_t, const uint8_t *, size_t);
-        void Net_CM_PING            (uint8_t, const uint8_t *, size_t);
-        void Net_CM_QUERYGOLD       (uint8_t, const uint8_t *, size_t);
-        void Net_CM_NPCEVENT        (uint8_t, const uint8_t *, size_t);
+        void net_CM_REQUESTKILLPETS (uint8_t, const uint8_t *, size_t);
+        void net_CM_REQUESTSPACEMOVE(uint8_t, const uint8_t *, size_t);
+        void net_CM_QUERYCORECORD   (uint8_t, const uint8_t *, size_t);
+        void net_CM_ACTION          (uint8_t, const uint8_t *, size_t);
+        void net_CM_PICKUP          (uint8_t, const uint8_t *, size_t);
+        void net_CM_PING            (uint8_t, const uint8_t *, size_t);
+        void net_CM_QUERYGOLD       (uint8_t, const uint8_t *, size_t);
+        void net_CM_NPCEVENT        (uint8_t, const uint8_t *, size_t);
 
     protected:
         void ReportGold();

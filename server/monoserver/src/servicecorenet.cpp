@@ -26,7 +26,7 @@ extern DBPodN *g_DBPodN;
 extern NetDriver *g_netDriver;
 extern MonoServer *g_monoServer;
 
-void ServiceCore::Net_CM_Login(uint32_t nChannID, uint8_t, const uint8_t *pData, size_t)
+void ServiceCore::net_CM_Login(uint32_t nChannID, uint8_t, const uint8_t *pData, size_t)
 {
     CMLogin stCML;
     std::memcpy(&stCML, pData, sizeof(stCML));

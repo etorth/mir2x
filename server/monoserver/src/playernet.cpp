@@ -22,7 +22,7 @@
 #include "actorpod.hpp"
 #include "monoserver.hpp"
 
-void Player::Net_CM_ACTION(uint8_t, const uint8_t *pBuf, size_t)
+void Player::net_CM_ACTION(uint8_t, const uint8_t *pBuf, size_t)
 {
     CMAction stCMA;
     std::memcpy(&stCMA, pBuf, sizeof(stCMA));
@@ -42,7 +42,7 @@ void Player::Net_CM_ACTION(uint8_t, const uint8_t *pBuf, size_t)
     }
 }
 
-void Player::Net_CM_QUERYCORECORD(uint8_t, const uint8_t *pBuf, size_t)
+void Player::net_CM_QUERYCORECORD(uint8_t, const uint8_t *pBuf, size_t)
 {
     CMQueryCORecord stCMQCOR;
     std::memcpy(&stCMQCOR, pBuf, sizeof(stCMQCOR));
@@ -64,7 +64,7 @@ void Player::Net_CM_QUERYCORECORD(uint8_t, const uint8_t *pBuf, size_t)
     }
 }
 
-void Player::Net_CM_REQUESTSPACEMOVE(uint8_t, const uint8_t *buf, size_t)
+void Player::net_CM_REQUESTSPACEMOVE(uint8_t, const uint8_t *buf, size_t)
 {
     const auto cmRSM = ClientMsg::conv<CMReqestSpaceMove>(buf);
     if(cmRSM.MapID == MapID()){
@@ -75,12 +75,12 @@ void Player::Net_CM_REQUESTSPACEMOVE(uint8_t, const uint8_t *buf, size_t)
     }
 }
 
-void Player::Net_CM_REQUESTKILLPETS(uint8_t, const uint8_t *, size_t)
+void Player::net_CM_REQUESTKILLPETS(uint8_t, const uint8_t *, size_t)
 {
     RequestKillPets();
 }
 
-void Player::Net_CM_PICKUP(uint8_t, const uint8_t *pBuf, size_t)
+void Player::net_CM_PICKUP(uint8_t, const uint8_t *pBuf, size_t)
 {
     if(auto pCM = (CMPickUp *)(pBuf); pCM->MapID == m_map->ID()){
         if(CanPickUp(pCM->ID, 0)){
@@ -96,7 +96,7 @@ void Player::Net_CM_PICKUP(uint8_t, const uint8_t *pBuf, size_t)
     }
 }
 
-void Player::Net_CM_PING(uint8_t, const uint8_t *pBuf, size_t)
+void Player::net_CM_PING(uint8_t, const uint8_t *pBuf, size_t)
 {
     SMPing smP;
     std::memset(&smP, 0, sizeof(smP));
@@ -104,12 +104,12 @@ void Player::Net_CM_PING(uint8_t, const uint8_t *pBuf, size_t)
     postNetMessage(SM_PING, smP);
 }
 
-void Player::Net_CM_QUERYGOLD(uint8_t, const uint8_t *, size_t)
+void Player::net_CM_QUERYGOLD(uint8_t, const uint8_t *, size_t)
 {
     ReportGold();
 }
 
-void Player::Net_CM_NPCEVENT(uint8_t, const uint8_t *buf, size_t bufLen)
+void Player::net_CM_NPCEVENT(uint8_t, const uint8_t *buf, size_t bufLen)
 {
     const auto cmNPCE = ClientMsg::conv<CMNPCEvent>(buf, bufLen);
     AMNPCEvent amNPCEvent;

@@ -206,14 +206,14 @@ void Player::operateAM(const MessagePack &rstMPK)
 void Player::operateNet(uint8_t nType, const uint8_t *pData, size_t nDataLen)
 {
     switch(nType){
-        case CM_QUERYCORECORD   : Net_CM_QUERYCORECORD   (nType, pData, nDataLen); break;
-        case CM_REQUESTKILLPETS : Net_CM_REQUESTKILLPETS (nType, pData, nDataLen); break;
-        case CM_REQUESTSPACEMOVE: Net_CM_REQUESTSPACEMOVE(nType, pData, nDataLen); break;
-        case CM_ACTION          : Net_CM_ACTION          (nType, pData, nDataLen); break;
-        case CM_PICKUP          : Net_CM_PICKUP          (nType, pData, nDataLen); break;
-        case CM_PING            : Net_CM_PING            (nType, pData, nDataLen); break;
-        case CM_QUERYGOLD       : Net_CM_QUERYGOLD       (nType, pData, nDataLen); break;
-        case CM_NPCEVENT        : Net_CM_NPCEVENT        (nType, pData, nDataLen); break;
+        case CM_QUERYCORECORD   : net_CM_QUERYCORECORD   (nType, pData, nDataLen); break;
+        case CM_REQUESTKILLPETS : net_CM_REQUESTKILLPETS (nType, pData, nDataLen); break;
+        case CM_REQUESTSPACEMOVE: net_CM_REQUESTSPACEMOVE(nType, pData, nDataLen); break;
+        case CM_ACTION          : net_CM_ACTION          (nType, pData, nDataLen); break;
+        case CM_PICKUP          : net_CM_PICKUP          (nType, pData, nDataLen); break;
+        case CM_PING            : net_CM_PING            (nType, pData, nDataLen); break;
+        case CM_QUERYGOLD       : net_CM_QUERYGOLD       (nType, pData, nDataLen); break;
+        case CM_NPCEVENT        : net_CM_NPCEVENT        (nType, pData, nDataLen); break;
         default                 :                                                  break;
     }
 }
