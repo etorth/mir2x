@@ -17,6 +17,7 @@
  */
 
 #pragma once
+#include <concepts>
 #include <Fl/Fl_Table_Row.H>
 #include "strf.hpp"
 #include "fflerror.hpp"
@@ -150,5 +151,28 @@ class Fl_TableImpl: public Fl_Table_Row
             if(cols() != getColCount()){
                 cols(getColCount());
             }
+        }
+
+    public:
+        template<std::unsigned_integral T> static size_t digitLength(T t)
+        {
+            if(t == 0){
+                return 1;
+            }
+
+            size_t result = 0;
+            while(t){
+                result++;
+                t /= 10;
+            }
+            return result;
+        }
+
+        template<std::integral T, std::integral U> static T avg(T num, U den)
+        {
+            if(den == 0){
+                return (T)(0);
+            }
+            return num / den;
         }
 };

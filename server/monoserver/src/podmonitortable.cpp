@@ -60,15 +60,15 @@ std::string PodMonitorTable::getGridData(int nRow, int nCol) const
             }
         case 2: // SEND
             {
-                return fnAdjustLength(std::to_string(monitor.procMonitor.sendCount), std::to_string(m_podDrawHelper.maxSendCount).size(), true);
+                return fnAdjustLength(std::to_string(monitor.procMonitor.sendCount), digitLength(m_podDrawHelper.maxSendCount), true);
             }
         case 3: // RECV
             {
-                return fnAdjustLength(std::to_string(monitor.procMonitor.recvCount), std::to_string(m_podDrawHelper.maxRecvCount).size(), true);
+                return fnAdjustLength(std::to_string(monitor.procMonitor.recvCount), digitLength(m_podDrawHelper.maxRecvCount), true);
             }
         case 4: // RECV_AVG
             {
-                return fnAdjustLength(std::to_string(monitor.procMonitor.recvCount > 0 ? (monitor.procMonitor.procTick / monitor.procMonitor.recvCount) : 0), std::to_string(m_podDrawHelper.maxRecvAvgTime).size(), true);
+                return fnAdjustLength(std::to_string(avg(monitor.procMonitor.procTick / 1000ULL, monitor.procMonitor.recvCount)), digitLength(m_podDrawHelper.maxRecvAvgTime / 1000ULL), true);
             }
         default:
             {
@@ -119,20 +119,12 @@ void PodMonitorTable::sortTable()
             }
         };
 
-        const auto fnGetAverage = [](const auto &num, const auto &den)
-        {
-            if(den > 0){
-                return num / den;
-            }
-            return num - num;
-        };
-
         switch(sortByCol()){
             case 0 : return fnArgedCompare(lhs.amType, rhs.amType);
             case 1 : return fnArgedCompare(lhs.procMonitor.procTick, rhs.procMonitor.procTick);
             case 2 : return fnArgedCompare(lhs.procMonitor.sendCount, rhs.procMonitor.sendCount);
             case 3 : return fnArgedCompare(lhs.procMonitor.recvCount, rhs.procMonitor.recvCount);
-            case 4 : return fnArgedCompare(fnGetAverage(lhs.procMonitor.procTick, lhs.procMonitor.recvCount), fnGetAverage(rhs.procMonitor.procTick, rhs.procMonitor.recvCount));
+            case 4 : return fnArgedCompare(avg(lhs.procMonitor.procTick, lhs.procMonitor.recvCount), avg(rhs.procMonitor.procTick, rhs.procMonitor.recvCount));
             default: return fnArgedCompare(&lhs, &rhs); // keep everything as it or reversed
         }
     });

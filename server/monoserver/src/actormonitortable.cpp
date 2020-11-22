@@ -68,15 +68,15 @@ std::string ActorMonitorTable::getGridData(int nRow, int nCol) const
             }
         case 5: // MSG_DONE
             {
-                return fnAdjustLength(std::to_string(monitor.messageDone), std::to_string(m_monitorDrawHelper.maxMessageDone).size());
+                return fnAdjustLength(std::to_string(monitor.messageDone), digitLength(m_monitorDrawHelper.maxMessageDone));
             }
         case 6: // MSG_PENDING
             {
-                return fnAdjustLength(std::to_string(monitor.messagePending), std::to_string(m_monitorDrawHelper.maxMessagePending).size());
+                return fnAdjustLength(std::to_string(monitor.messagePending), digitLength(m_monitorDrawHelper.maxMessagePending));
             }
         case 7: // MSG_AVGDLY
             {
-                return fnAdjustLength(std::to_string(monitor.avgDelay), std::to_string(m_monitorDrawHelper.maxAvgDelay).size());
+                return fnAdjustLength(std::to_string(monitor.avgDelay), digitLength(m_monitorDrawHelper.maxAvgDelay));
             }
         default:
             {
