@@ -1299,7 +1299,7 @@ void CharObject::foreachInViewCO(std::function<void(const COLocation &)> fnOnLoc
     }
 
     for(size_t i = 0; i < uidList.c.size(); ++i){
-        retrieveLocation(uidList.c.at(i), std::move(fnOnLoc));
+        retrieveLocation(uidList.c.at(i), fnOnLoc);
     }
 }
 
