@@ -43,7 +43,7 @@ Receiver::~Receiver()
     }
 }
 
-void Receiver::PushMessage(MessagePack stMPK)
+void Receiver::pushMessage(MessagePack stMPK)
 {
     std::unique_lock<std::mutex> stLock(m_lock);
     m_messageList.push_back(std::move(stMPK));

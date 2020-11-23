@@ -108,7 +108,7 @@ class Client final
         void initASIO();
 
     private:
-        void OnServerMessage(uint8_t, const uint8_t *, size_t);
+        void onServerMessage(uint8_t, const uint8_t *, size_t);
 
     private:
         void EventDelay(double);

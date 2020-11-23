@@ -50,7 +50,7 @@ class Receiver
         }
 
     private:
-        void PushMessage(MessagePack);
+        void pushMessage(MessagePack);
 
     public:
         size_t Wait(uint32_t = 0);

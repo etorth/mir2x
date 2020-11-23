@@ -372,7 +372,7 @@ bool ActorPool::postMessage(uint64_t uid, MessagePack msg)
     if(uidf::isReceiver(uid)){
         std::lock_guard<std::mutex> lockGuard(m_receiverLock);
         if(auto p = m_receiverList.find(uid); p != m_receiverList.end()){
-            p->second->PushMessage(std::move(msg));
+            p->second->pushMessage(std::move(msg));
             return true;
         }
         return false;

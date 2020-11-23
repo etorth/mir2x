@@ -158,37 +158,39 @@ void Client::initASIO()
 
     // TODO
     // may need lock here since g_XMLConf may used in main thread also
-    std::string szIP;
-    std::string szPort;
+    const auto ipStr = []()-> std::string
+    {
+        if(!g_clientArgParser->serverIP.empty()){
+            return g_clientArgParser->serverIP;
+        }
 
-    auto p1 = g_XMLConf->GetXMLNode("/Root/Network/Server/IP"  );
-    auto p2 = g_XMLConf->GetXMLNode("/Root/Network/Server/Port");
+        if(auto nodePtr = g_XMLConf->GetXMLNode("/Root/Network/Server/IP"); nodePtr && nodePtr->GetText()){
+            return std::string(nodePtr->GetText());
+        }
+        return "127.0.0.1";
+    }();
 
-    if(p1 && p2 && p1->GetText() && p2->GetText()){
-        szIP   = p1->GetText();
-        szPort = p2->GetText();
-    }else{
-        szIP   = "127.0.0.1";
-        szPort = "5000";
-    }
+    const auto portStr = []()-> std::string
+    {
+        if(!g_clientArgParser->serverPort.empty()){
+            return g_clientArgParser->serverPort;
+        }
 
-    if(!g_clientArgParser->serverIP.empty()){
-        szIP = g_clientArgParser->serverIP;
-    }
+        if(auto nodePtr = g_XMLConf->GetXMLNode("/Root/Network/Server/Port"); nodePtr && nodePtr->GetText()){
+            return std::string(nodePtr->GetText());
+        }
+        return "5000";
+    }();
 
-    if(!g_clientArgParser->serverPort.empty()){
-        szPort = g_clientArgParser->serverPort;
-    }
-
-    m_netIO.start(szIP.c_str(), szPort.c_str(), [this](uint8_t headCode, const uint8_t *pData, size_t nDataLen)
+    m_netIO.start(ipStr.c_str(), portStr.c_str(), [this](uint8_t headCode, const uint8_t *pData, size_t nDataLen)
     {
         // core should handle on fully recieved message from the serer
         // previously there are two steps (HC, Body) seperately handled, error-prone
-        OnServerMessage(headCode, pData, nDataLen);
+        onServerMessage(headCode, pData, nDataLen);
     });
 }
 
-void Client::OnServerMessage(uint8_t headCode, const uint8_t *pData, size_t nDataLen)
+void Client::onServerMessage(uint8_t headCode, const uint8_t *pData, size_t nDataLen)
 {
     // 1. update the time when last message received
     m_netPackTick = SDL_GetTicks() * 1.0;
