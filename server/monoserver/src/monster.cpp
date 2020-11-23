@@ -169,7 +169,7 @@ bool Monster::randomMove()
                         m_direction = nDirection;
                         DispatchAction(ActionStand(X(), Y(), Direction()));
 
-                        // we won't do ReportStand() for monster
+                        // we won't do reportStand() for monster
                         // monster's moving is only driven by server currently
                         return true;
                     }
@@ -623,7 +623,7 @@ void Monster::SearchViewRange()
 {
 }
 
-void Monster::ReportCORecord(uint64_t toUID)
+void Monster::reportCO(uint64_t toUID)
 {
     if(!toUID || toUID == UID()){
         return;

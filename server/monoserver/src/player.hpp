@@ -138,12 +138,12 @@ class Player final: public CharObject
         void net_CM_NPCEVENT        (uint8_t, const uint8_t *, size_t);
 
     protected:
-        void ReportGold();
-        void ReportStand();
-        void ReportHealth();
-        void ReportDeadUID(uint64_t);
-        void ReportCORecord(uint64_t);
-        void ReportOffline(uint64_t, uint32_t);
+        void reportGold();
+        void reportStand();
+        void reportHealth();
+        void reportDeadUID(uint64_t);
+        void reportCO(uint64_t);
+        void reportOffline(uint64_t, uint32_t);
 
     protected:
         virtual void ReportAction(uint64_t, const ActionNode &);

@@ -74,7 +74,7 @@ class NPChar final: public CharObject
         bool InRange(int, int, int) override;
 
     public:
-        void ReportCORecord(uint64_t) override;
+        void reportCO(uint64_t) override;
 
     public:
         bool DCValid(int, bool) override;

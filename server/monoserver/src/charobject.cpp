@@ -658,7 +658,7 @@ bool CharObject::requestMapSwitch(uint32_t mapID, int locX, int locY, bool stric
                                                     // 4. get neighbors
 
                                                     if(uidf::getUIDType(UID()) == UID_PLY){
-                                                        dynamic_cast<Player *>(this)->ReportStand();
+                                                        dynamic_cast<Player *>(this)->reportStand();
                                                         dynamic_cast<Player *>(this)->PullRectCO(10, 10);
                                                     }
 

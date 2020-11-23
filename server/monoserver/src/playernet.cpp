@@ -59,7 +59,7 @@ void Player::net_CM_QUERYCORECORD(uint8_t, const uint8_t *pBuf, size_t)
 
         stAMQCOR.UID = UID();
         if(!m_actorPod->forward(stCMQCOR.AimUID, {MPK_QUERYCORECORD, stAMQCOR})){
-            ReportDeadUID(stCMQCOR.AimUID);
+            reportDeadUID(stCMQCOR.AimUID);
         }
     }
 }
@@ -106,7 +106,7 @@ void Player::net_CM_PING(uint8_t, const uint8_t *pBuf, size_t)
 
 void Player::net_CM_QUERYGOLD(uint8_t, const uint8_t *, size_t)
 {
-    ReportGold();
+    reportGold();
 }
 
 void Player::net_CM_NPCEVENT(uint8_t, const uint8_t *buf, size_t bufLen)

@@ -52,7 +52,7 @@ void Monster::on_MPK_QUERYCORECORD(const MessagePack &rstMPK)
     AMQueryCORecord stAMQCOR;
     std::memcpy(&stAMQCOR, rstMPK.Data(), sizeof(stAMQCOR));
 
-    ReportCORecord(stAMQCOR.UID);
+    reportCO(stAMQCOR.UID);
 }
 
 void Monster::on_MPK_EXP(const MessagePack &rstMPK)

@@ -37,7 +37,7 @@ void Player::on_MPK_BADACTORPOD(const MessagePack &rstMPK)
 {
     AMBadActorPod stAMBAP;
     std::memcpy(&stAMBAP, rstMPK.Data(), sizeof(stAMBAP));
-    ReportDeadUID(stAMBAP.UID);
+    reportDeadUID(stAMBAP.UID);
 }
 
 void Player::on_MPK_BINDCHANNEL(const MessagePack &rstMPK)
@@ -183,7 +183,7 @@ void Player::on_MPK_QUERYCORECORD(const MessagePack &rstMPK)
     AMQueryCORecord stAMQCOR;
     std::memcpy(&stAMQCOR, rstMPK.Data(), sizeof(stAMQCOR));
 
-    ReportCORecord(stAMQCOR.UID);
+    reportCO(stAMQCOR.UID);
 }
 
 void Player::on_MPK_MAPSWITCH(const MessagePack &mpk)
@@ -380,7 +380,7 @@ void Player::on_MPK_OFFLINE(const MessagePack &rstMPK)
     AMOffline stAMO;
     std::memcpy(&stAMO, rstMPK.Data(), sizeof(stAMO));
 
-    ReportOffline(stAMO.UID, stAMO.MapID);
+    reportOffline(stAMO.UID, stAMO.MapID);
 }
 
 void Player::on_MPK_REMOVEGROUNDITEM(const MessagePack &rstMPK)
@@ -416,7 +416,7 @@ void Player::on_MPK_PICKUPOK(const MessagePack &rstMPK)
         case DBCOM_ITEMID(u8"金币"):
             {
                 m_gold += std::rand() % 500;
-                ReportGold();
+                reportGold();
                 break;
             }
         default:

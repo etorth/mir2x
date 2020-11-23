@@ -239,7 +239,7 @@ bool NPChar::InRange(int, int, int)
     return true;
 }
 
-void NPChar::ReportCORecord(uint64_t)
+void NPChar::reportCO(uint64_t)
 {
 }
 

@@ -223,7 +223,7 @@ bool Player::update()
     return true;
 }
 
-void Player::ReportCORecord(uint64_t toUID)
+void Player::reportCO(uint64_t toUID)
 {
     if(!toUID){
         return;
@@ -254,7 +254,7 @@ void Player::ReportCORecord(uint64_t toUID)
     m_actorPod->forward(toUID, {MPK_CORECORD, stAMCOR});
 }
 
-void Player::ReportStand()
+void Player::reportStand()
 {
     ReportAction(UID(), ActionStand(X(), Y(), Direction()));
 }
@@ -287,7 +287,7 @@ void Player::ReportAction(uint64_t nUID, const ActionNode &rstAction)
     }
 }
 
-void Player::ReportDeadUID(uint64_t nDeadUID)
+void Player::reportDeadUID(uint64_t nDeadUID)
 {
     SMNotifyDead stSMND;
     std::memset(&stSMND, 0, sizeof(stSMND));
@@ -296,7 +296,7 @@ void Player::ReportDeadUID(uint64_t nDeadUID)
     postNetMessage(SM_NOTIFYDEAD, stSMND);
 }
 
-void Player::ReportHealth()
+void Player::reportHealth()
 {
     SMUpdateHP stSMUHP;
     std::memset(&stSMUHP, 0, sizeof(stSMUHP));
@@ -435,7 +435,7 @@ bool Player::StruckDamage(const DamageNode &rstDamage)
 
     if(rstDamage){
         m_HP = (std::max<int>)(0, HP() - rstDamage.Damage);
-        ReportHealth();
+        reportHealth();
         DispatchHealth();
 
         if(HP() <= 0){
@@ -473,7 +473,7 @@ void Player::DispatchOffline()
     g_monoServer->addLog(LOGTYPE_WARNING, "Can't dispatch offline event");
 }
 
-void Player::ReportOffline(uint64_t nUID, uint32_t nMapID)
+void Player::reportOffline(uint64_t nUID, uint32_t nMapID)
 {
     if(true
             && nUID
@@ -491,7 +491,7 @@ void Player::ReportOffline(uint64_t nUID, uint32_t nMapID)
 bool Player::Offline()
 {
     DispatchOffline();
-    ReportOffline(UID(), MapID());
+    reportOffline(UID(), MapID());
 
     deactivate();
     return true;
@@ -529,7 +529,7 @@ void Player::OnCMActionStand(CMAction stCMA)
                     },
                     [this]()
                     {
-                        ReportStand();
+                        reportStand();
                     });
                     return;
                 }
@@ -542,7 +542,7 @@ void Player::OnCMActionStand(CMAction stCMA)
                         m_direction = nDirection;
                     }
 
-                    ReportStand();
+                    reportStand();
                     return;
                 }
         }
@@ -564,7 +564,7 @@ void Player::OnCMActionMove(CMAction stCMA)
             {
                 requestMove(nX1, nY1, MoveSpeed(), false, false, nullptr, [this]()
                 {
-                    ReportStand();
+                    reportStand();
                 });
                 return;
             }
@@ -576,13 +576,13 @@ void Player::OnCMActionMove(CMAction stCMA)
                 },
                 [this]()
                 {
-                    ReportStand();
+                    reportStand();
                 });
                 return;
             }
         default:
             {
-                ReportStand();
+                reportStand();
                 return;
             }
     }
@@ -630,7 +630,7 @@ void Player::OnCMActionAttack(CMAction stCMA)
                                     },
                                     [this]()
                                     {
-                                        ReportStand();
+                                        reportStand();
                                     });
                                     return;
                                 }
@@ -726,7 +726,7 @@ void Player::OnCMActionSpell(CMAction stCMA)
     // for spelling magic location is not critical
     requestMove(nX, nY, SYS_MAXSPEED, false, false, nullptr, [this]()
     {
-        ReportStand();
+        reportStand();
     });
 }
 
@@ -754,7 +754,7 @@ void Player::OnCMActionPickUp(CMAction stCMA)
                 },
                 [this]()
                 {
-                    ReportStand();
+                    reportStand();
                 });
                 return;
             }
@@ -797,7 +797,7 @@ void Player::RecoverHealth()
         m_HP += nAddHP;
         m_MP += nAddMP;
 
-        ReportHealth();
+        reportHealth();
     }
 }
 
@@ -924,7 +924,7 @@ bool Player::DBSavePlayer()
     return DBUpdate("tbl_dbid", "fld_gold = %d, fld_level = %d", Gold(), Level());
 }
 
-void Player::ReportGold()
+void Player::reportGold()
 {
     SMGold stSMG;
     std::memset(&stSMG, 0, sizeof(stSMG));

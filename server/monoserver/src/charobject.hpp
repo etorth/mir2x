@@ -236,7 +236,7 @@ class CharObject: public ServerObject
         uint64_t activate() override;
 
     protected:
-        virtual void ReportCORecord(uint64_t) = 0;
+        virtual void reportCO(uint64_t) = 0;
 
     protected:
         void DispatchHealth();

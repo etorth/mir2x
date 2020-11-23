@@ -164,7 +164,7 @@ class Monster final: public CharObject
         void operateAM(const MessagePack &);
 
     protected:
-        void ReportCORecord(uint64_t);
+        void reportCO(uint64_t);
 
     protected:
         bool MoveOneStep(int, int, std::function<void()>, std::function<void()>);
