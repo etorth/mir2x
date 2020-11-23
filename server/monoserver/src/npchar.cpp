@@ -29,11 +29,10 @@ extern ServerConfigureWindow *g_serverConfigureWindow;
 
 NPChar::LuaNPCModule::LuaNPCModule(NPChar *npc)
     : ServerLuaModule()
-    , m_NPChar(npc)
 {
-    m_luaState.set_function("getUID", [this]() -> std::string
+    m_luaState.set_function("getUID", [npc]() -> std::string
     {
-        return std::to_string(m_NPChar->rawUID());
+        return std::to_string(npc->rawUID());
     });
 
     m_luaState.set_function("getUIDString", [](std::string uidString) -> std::string
@@ -41,20 +40,29 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npc)
         return uidf::getUIDString(uidf::toUID(uidString));
     });
 
-    m_luaState.set_function("getName", [this]() -> std::string
+    m_luaState.set_function("getName", [npc]() -> std::string
     {
-        if(m_NPChar->rawUID()){
-            return uidf::getUIDString(m_NPChar->rawUID());
+        if(!npc->m_name.empty()){
+            return npc->m_name;
+        }
+
+        if(npc->rawUID()){
+            return uidf::getUIDString(npc->rawUID());
         }
         return std::string("ZERO");
     });
 
-    m_luaState.set_function("sendQuery", [this](std::string uidString, std::string queryName)
+    m_luaState.set_function("setName", [npc](std::string npcName)
     {
-        m_NPChar->sendQuery(uidf::toUIDEx(uidString), queryName);
+        npc->m_name = npcName;
     });
 
-    m_luaState.set_function("sayXML", [this](std::string uidString, std::string xmlString)
+    m_luaState.set_function("sendQuery", [npc](std::string uidString, std::string queryName)
+    {
+        npc->sendQuery(uidf::toUIDEx(uidString), queryName);
+    });
+
+    m_luaState.set_function("sayXML", [npc, this](std::string uidString, std::string xmlString)
     {
         const uint64_t uid = [&uidString]() -> uint64_t
         {
@@ -68,7 +76,7 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npc)
         }();
 
         if(uid){
-            m_NPChar->sendXMLLayout(uid, xmlString.c_str());
+            npc->sendXMLLayout(uid, xmlString.c_str());
         }
 
         else{

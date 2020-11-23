@@ -46,9 +46,6 @@ class NPChar final: public CharObject
             private:
                 std::unordered_map<uint64_t, LuaNPCSession> m_sessionList;
 
-            private:
-                NPChar *m_NPChar;
-
             public:
                 LuaNPCModule(NPChar *);
 
@@ -65,6 +62,9 @@ class NPChar final: public CharObject
     private:
         int m_dirIndex;
         LuaNPCModule m_luaModule;
+
+    private:
+        std::string m_name;
 
     public:
         NPChar(uint16_t, ServiceCore *, ServerMap *, int, int, int);
