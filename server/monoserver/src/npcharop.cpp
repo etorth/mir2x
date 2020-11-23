@@ -48,7 +48,7 @@ void NPChar::on_MPK_NPCEVENT(const MessagePack &mpk)
     // it's sent by NPC itself
 
     if(std::string(amNPCE.event) == SYS_NPCQUERY || std::string(amNPCE.event) == SYS_NPCDONE){
-        m_luaModule.setEvent(mpk.from(), amNPCE.event, amNPCE.value);
+        m_luaModulePtr->setEvent(mpk.from(), amNPCE.event, amNPCE.value);
         return;
     }
 
@@ -59,10 +59,10 @@ void NPChar::on_MPK_NPCEVENT(const MessagePack &mpk)
         amNPCE.errorID = NPCE_TOOFAR;
         m_actorPod->forward(mpk.from(), {MPK_NPCERROR, amNPCE});
 
-        m_luaModule.close(mpk.from());
+        m_luaModulePtr->close(mpk.from());
         return;
     }
-    m_luaModule.setEvent(mpk.from(), amNPCE.event, amNPCE.value);
+    m_luaModulePtr->setEvent(mpk.from(), amNPCE.event, amNPCE.value);
 }
 
 void NPChar::on_MPK_NOTIFYNEWCO(const MessagePack &mpk)
@@ -98,5 +98,5 @@ void NPChar::on_MPK_QUERYLOCATION(const MessagePack &mpk)
 void NPChar::on_MPK_BADACTORPOD(const MessagePack &mpk)
 {
     const auto amBAP = mpk.conv<AMBadActorPod>();
-    m_luaModule.close(amBAP.UID);
+    m_luaModulePtr->close(amBAP.UID);
 }

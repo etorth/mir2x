@@ -234,8 +234,11 @@ void NPChar::LuaNPCModule::setEvent(uint64_t uid, std::string event, std::string
 NPChar::NPChar(uint16_t lookId, ServiceCore *core, ServerMap *serverMap, int mapX, int mapY, int dirIndex)
     : CharObject(core, serverMap, uidf::buildNPCUID(lookId), mapX, mapY, DIR_NONE)
     , m_dirIndex(dirIndex)
-    , m_luaModule(this)
-{}
+{
+    // LuaNPCModule(this) can write-access ``this"
+    // when constructing LuaNPCModule we need to confirm ``this" is ready
+    m_luaModulePtr = std::make_unique<NPChar::LuaNPCModule>(this);
+}
 
 bool NPChar::update()
 {
@@ -297,12 +300,12 @@ void NPChar::sendQuery(uint64_t uid, const std::string &queryName)
             case MPK_NPCEVENT:
                 {
                     const auto amNPCE = mpk.conv<AMNPCEvent>();
-                    m_luaModule.setEvent(mpk.from(), amNPCE.event, amNPCE.value);
+                    m_luaModulePtr->setEvent(mpk.from(), amNPCE.event, amNPCE.value);
                     return;
                 }
             default:
                 {
-                    m_luaModule.close(uid);
+                    m_luaModulePtr->close(uid);
                     return;
                 }
         }

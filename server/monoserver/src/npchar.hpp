@@ -17,6 +17,7 @@
  */
 
 #pragma once
+#include <memory>
 #include <cstdint>
 #include "servicecore.hpp"
 #include "servermap.hpp"
@@ -61,7 +62,9 @@ class NPChar final: public CharObject
 
     private:
         int m_dirIndex;
-        LuaNPCModule m_luaModule;
+
+    private:
+        std::unique_ptr<LuaNPCModule> m_luaModulePtr;
 
     private:
         std::string m_name;
