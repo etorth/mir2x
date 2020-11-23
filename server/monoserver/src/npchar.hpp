@@ -67,7 +67,7 @@ class NPChar final: public CharObject
         std::unique_ptr<LuaNPCModule> m_luaModulePtr;
 
     private:
-        std::string m_name;
+        std::string m_npcName;
 
     public:
         NPChar(uint16_t, ServiceCore *, ServerMap *, int, int, int);

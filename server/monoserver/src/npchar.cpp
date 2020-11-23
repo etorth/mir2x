@@ -42,8 +42,8 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npc)
 
     m_luaState.set_function("getName", [npc]() -> std::string
     {
-        if(!npc->m_name.empty()){
-            return npc->m_name;
+        if(!npc->m_npcName.empty()){
+            return npc->m_npcName;
         }
 
         if(npc->rawUID()){
@@ -54,7 +54,7 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npc)
 
     m_luaState.set_function("setName", [npc](std::string npcName)
     {
-        npc->m_name = npcName;
+        npc->m_npcName = npcName;
     });
 
     m_luaState.set_function("sendQuery", [npc](std::string uidString, std::string queryName)
