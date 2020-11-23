@@ -235,7 +235,7 @@ NPChar::NPChar(uint16_t lookId, ServiceCore *core, ServerMap *serverMap, int map
     : CharObject(core, serverMap, uidf::buildNPCUID(lookId), mapX, mapY, DIR_NONE)
     , m_dirIndex(dirIndex)
 {
-    // LuaNPCModule(this) can write-access ``this"
+    // LuaNPCModule(this) can access ``this"
     // when constructing LuaNPCModule we need to confirm ``this" is ready
     m_luaModulePtr = std::make_unique<NPChar::LuaNPCModule>(this);
 }
