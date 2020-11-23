@@ -44,9 +44,10 @@ function main()
             -- then next time we start from here
 
             g_LastInvokeTime = getTime()
+            local monsterCount = getMonsterCountInList()
 
-            if getMonsterCountInList() < g_MaxMonsterCount then
-                for i = 1, 50 do
+            if monsterCount < g_MaxMonsterCount then
+                for i = 1, math.min(50, g_MaxMonsterCount - monsterCount) do
                     local x, y = getRandLoc()
                     local monsterName = g_MonsterList[math.random(#g_MonsterList)]
                     addMonster(monsterName, x, y, true)
