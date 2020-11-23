@@ -663,10 +663,10 @@ uint64_t ServerMap::activate()
     }
 
     if(m_luaModulePtr){
-        throw fflerror("ServerMap activates twice: %s", to_cstr(DBCOM_MAPRECORD(ID()).name));
+        throw fflerror("ServerMap lua module has been loaded twice: %s", to_cstr(DBCOM_MAPRECORD(ID()).name));
     }
 
-    m_luaModulePtr = new ServerMap::ServerMapLuaModule(this);
+    m_luaModulePtr = std::make_unique<ServerMap::ServerMapLuaModule>(this);
     return uid;
 }
 

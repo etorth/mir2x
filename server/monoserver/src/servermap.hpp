@@ -19,6 +19,7 @@
 #pragma once
 
 #include <tuple>
+#include <memory>
 #include <vector>
 #include <cstdint>
 #include <concepts>
@@ -137,7 +138,7 @@ class ServerMap final: public ServerObject
         Vec2D<MapCell> m_cellVec2D;
 
     private:
-        ServerMapLuaModule *m_luaModulePtr = nullptr;
+        std::unique_ptr<ServerMapLuaModule> m_luaModulePtr;
 
     private:
         void operateAM(const MessagePack &);
