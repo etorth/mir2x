@@ -230,7 +230,7 @@ ServerMap::ServerMapLuaModule::ServerMapLuaModule(ServerMap *mapPtr)
 
     getLuaState().script_file([mapPtr]() -> std::string
     {
-        const auto configScriptPath = g_serverConfigureWindow->GetScriptPath();
+        const auto configScriptPath = g_serverConfigureWindow->getScriptPath();
         const auto scriptPath = configScriptPath.empty() ? std::string("script/map") : configScriptPath;
 
         const auto scriptName = str_printf("%s/%s.lua", scriptPath.c_str(), to_cstr(DBCOM_MAPRECORD(mapPtr->ID()).name));

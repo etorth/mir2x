@@ -151,7 +151,7 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npc)
 
     m_luaState.script_file([]() -> std::string
     {
-        if(const auto scriptPath = g_serverConfigureWindow->GetScriptPath(); !scriptPath.empty()){
+        if(const auto scriptPath = g_serverConfigureWindow->getScriptPath(); !scriptPath.empty()){
             return scriptPath + "npc/default.lua";
         }
         return std::string("script/npc/default.lua");

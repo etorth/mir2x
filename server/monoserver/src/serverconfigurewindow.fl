@@ -146,7 +146,7 @@ class ServerConfigureWindow {open
 	return m_mapFullName->value() ? m_mapFullName->value() : "";
 }} {}
   }
-  Function {GetScriptPath()} {return_type {std::string}
+  Function {getScriptPath()} {return_type {std::string}
   } {
     code {{
 	return "";
