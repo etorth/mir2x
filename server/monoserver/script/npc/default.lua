@@ -17,7 +17,7 @@
 -- NPC script
 -- provides the table: processNPCEvent for event processing
 
-addLog(LOGTYPE_INFO, string.format('NPC %s sources default.lua', getName()))
+addLog(LOGTYPE_INFO, string.format('NPC %s sources default.lua', getNPCName()))
 processNPCEvent =
 {
     [SYS_NPCINIT] = function(uid, value)
@@ -30,7 +30,7 @@ processNPCEvent =
                 <par><event id="event_1">如何玩得开心</event></par>
                 <par><event id="%s">关闭</event></par>
             </layout>
-        ]], getUIDString(uid), getName(), SYS_NPCDONE))
+        ]], getUIDString(uid), getNPCName(), SYS_NPCDONE))
     end,
 
     ["event_1"] = function(uid, value)

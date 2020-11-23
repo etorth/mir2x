@@ -40,7 +40,7 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npc)
         return uidf::getUIDString(uidf::toUID(uidString));
     });
 
-    m_luaState.set_function("getName", [npc]() -> std::string
+    m_luaState.set_function("getNPCName", [npc]() -> std::string
     {
         if(!npc->m_npcName.empty()){
             return npc->m_npcName;
@@ -52,7 +52,7 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npc)
         return std::string("ZERO");
     });
 
-    m_luaState.set_function("setName", [npc](std::string npcName)
+    m_luaState.set_function("setNPCName", [npc](std::string npcName)
     {
         npc->m_npcName = npcName;
     });
