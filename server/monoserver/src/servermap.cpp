@@ -68,6 +68,23 @@ ServerMap::ServerMapLuaModule::ServerMapLuaModule(ServerMap *mapPtr)
         return sol::as_returns(std::vector<int>{mapPtr->W(), mapPtr->H()});
     });
 
+    getLuaState().set_function("getCanThroughGridCount", [mapPtr, gridCount = (int)(-1)]() mutable -> int
+    {
+        if(gridCount >= 0){
+            return gridCount;
+        }
+
+        gridCount = 0;
+        for(int x = 0; x < mapPtr->W(); ++x){
+            for(int y = 0; y < mapPtr->H(); ++y){
+                if(mapPtr->groundValid(x, y)){
+                    gridCount++;
+                }
+            }
+        }
+        return gridCount;
+    });
+
     getLuaState().set_function("getMonsterList", [mapPtr](sol::this_state thisLua)
     {
         // convert to std::string

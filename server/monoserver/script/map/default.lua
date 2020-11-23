@@ -21,8 +21,7 @@ function main()
 
     addLog(LOGTYPE_INFO, 'map script ' .. getMapName() .. ' starts, use default.lua')
 
-    local w, h = getMapSize()
-    g_MaxMonsterCount = math.floor(w * h / 64)
+    g_MaxMonsterCount = math.floor(getCanThroughGridCount() / 64)
     g_LogicDelay      = 1000
     g_LastInvokeTime  = getTime()
 
@@ -47,7 +46,7 @@ function main()
             g_LastInvokeTime = getTime()
 
             if getMonsterCountInList() < g_MaxMonsterCount then
-                for i = 1, 10 do
+                for i = 1, 50 do
                     local x, y = getRandLoc()
                     local monsterName = g_MonsterList[math.random(#g_MonsterList)]
                     addMonster(monsterName, x, y, true)
