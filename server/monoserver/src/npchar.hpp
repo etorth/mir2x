@@ -61,16 +61,10 @@ class NPChar final: public CharObject
         };
 
     private:
-        int m_dirIndex;
-
-    private:
         std::unique_ptr<LuaNPCModule> m_luaModulePtr;
 
-    private:
-        std::string m_npcName;
-
     public:
-        NPChar(uint16_t, ServiceCore *, ServerMap *, int, int, int);
+        NPChar(uint16_t, ServiceCore *, ServerMap *, int, int);
 
     public:
         bool update() override;

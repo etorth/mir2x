@@ -214,26 +214,26 @@ ServerMap::ServerMapLuaModule::ServerMapLuaModule(ServerMap *mapPtr)
         switch(argList.size()){
             case 0:
                 {
-                    return mapPtr->addNPChar((uint16_t)(npcID), -1, -1, 0, false);
+                    return mapPtr->addNPChar((uint16_t)(npcID), -1, -1, false);
                 }
             case 2:
                 {
                     if(argList[0].is<int>() && argList[1].is<int>()){
-                        return mapPtr->addNPChar((uint32_t)(npcID), argList[0].as<int>(), argList[1].as<int>(), 0, false);
+                        return mapPtr->addNPChar((uint16_t)(npcID), argList[0].as<int>(), argList[1].as<int>(), false);
                     }
                     break;
                 }
             case 3:
                 {
                     if(argList[0].is<int>() && argList[1].is<int>() && argList[2].is<bool>()){
-                        return mapPtr->addNPChar((uint32_t)(npcID), argList[0].as<int>(), argList[1].as<int>(), 0, argList[2].as<bool>());
+                        return mapPtr->addNPChar((uint16_t)(npcID), argList[0].as<int>(), argList[1].as<int>(), argList[2].as<bool>());
                     }
                     break;
                 }
             case 4:
                 {
-                    if(argList[0].is<int>() && argList[1].is<int>() && argList[2].is<int>() && argList[3].is<bool>()){
-                        return mapPtr->addNPChar((uint32_t)(npcID), argList[0].as<int>(), argList[1].as<int>(), argList[2].is<int>(), argList[3].as<bool>());
+                    if(argList[0].is<int>() && argList[1].is<int>() && argList[2].is<bool>()){
+                        return mapPtr->addNPChar((uint16_t)(npcID), argList[0].as<int>(), argList[1].as<int>(), argList[2].as<bool>());
                     }
                     break;
                 }
@@ -981,7 +981,7 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
     return nullptr;
 }
 
-NPChar *ServerMap::addNPChar(uint16_t npcID, int hintX, int hintY, int direction, bool strictLoc)
+NPChar *ServerMap::addNPChar(uint16_t npcID, int hintX, int hintY, bool strictLoc)
 {
     if(!ValidC(hintX, hintY)){
         if(strictLoc){
@@ -993,22 +993,21 @@ NPChar *ServerMap::addNPChar(uint16_t npcID, int hintX, int hintY, int direction
     }
 
     if(const auto [dstOK, dstX, dstY] = GetValidGrid(false, false, (int)(strictLoc), hintX, hintY); dstOK){
-        auto pNPC = new NPChar
+        auto npcPtr = new NPChar
         {
             npcID,
             m_serviceCore,
             this,
             dstX,
             dstY,
-            direction,
         };
 
-        pNPC->activate();
+        npcPtr->activate();
 
-        addGridUID (pNPC->UID(), dstX, dstY, true);
-        notifyNewCO(pNPC->UID(), dstX, dstY);
+        addGridUID (npcPtr->UID(), dstX, dstY, true);
+        notifyNewCO(npcPtr->UID(), dstX, dstY);
 
-        return pNPC;
+        return npcPtr;
     }
     return nullptr;
 }

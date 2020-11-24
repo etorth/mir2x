@@ -213,7 +213,7 @@ class ServerMap final: public ServerObject
 
     private:
         Player  *addPlayer (uint32_t,      int, int, int, bool);
-        NPChar  *addNPChar (uint16_t,      int, int, int, bool);
+        NPChar  *addNPChar (uint16_t,      int, int,      bool);
         Monster *addMonster(uint32_t, uint64_t, int, int, bool);
 
     private:

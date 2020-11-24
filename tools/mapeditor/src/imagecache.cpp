@@ -43,9 +43,9 @@ void ImageCache::SetPath(const char *szPath)
     }
 
     m_Path = szTmpPath;
-    FileSys::MakeDir(szTmpPath.c_str());
+    filesys::makeDir(szTmpPath.c_str());
     szTmpPath += "/CACHE";
-    FileSys::MakeDir(szTmpPath.c_str());
+    filesys::makeDir(szTmpPath.c_str());
 }
 
 Fl_Shared_Image *ImageCache::Retrieve(uint8_t nFileIndex, uint16_t nImageIndex)
@@ -69,7 +69,7 @@ Fl_Shared_Image *ImageCache::Retrieve(uint8_t nFileIndex, uint16_t nImageIndex)
     hexstr::to_string<uint32_t, 4>(nKey, szHexStr, true);
     std::string szPNGFullName = m_Path + "/CACHE/" + szHexStr + ".PNG";
 
-    if(FileSys::FileExist(szPNGFullName.c_str())){
+    if(filesys::hasFile(szPNGFullName.c_str())){
         auto pImage = Fl_Shared_Image::get(szPNGFullName.c_str());
         if(pImage){
             m_Cache[nKey] = pImage;

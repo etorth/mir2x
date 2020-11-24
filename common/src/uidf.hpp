@@ -108,8 +108,11 @@ namespace uidf
         return (uint32_t)(uid & 0XFFFFFFFFULL);
     }
 
-    uint32_t getMapID (uint64_t);
+    uint32_t getMapID(uint64_t);
     uint16_t getLookID(uint64_t);
+
+    uint16_t getNPCID(uint64_t);
+    uint16_t getNPCSeqID(uint64_t);
 }
 
 namespace uidf

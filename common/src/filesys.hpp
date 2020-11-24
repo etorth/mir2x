@@ -15,11 +15,13 @@
  *
  * =====================================================================================
  */
+
 #pragma once
-namespace FileSys
+namespace filesys
 {
-    bool MakeDir(const char *);
-    bool RemoveDir(const char *);
-    bool FileExist(const char *);
-    bool DupFile(const char *, const char *);
+    bool   makeDir(const char *);
+    bool removeDir(const char *);
+
+    bool  hasFile(const char *);
+    void copyFile(const char *, const char *);
 }

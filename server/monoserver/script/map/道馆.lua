@@ -18,8 +18,7 @@
 -- initialize all global/constant variables
 
 function main()
-
-    addLog(LOGTYPE_INFO, 'map script ' .. getMapName() .. ' starts.')
+    addLog(LOGTYPE_INFO, string.format('Map %s sources %s', getMapName()), getFileName())
 
     g_MaxMonsterCount = math.floor(getCanThroughGridCount() / 64)
     g_LogicDelay      = 1000
@@ -37,23 +36,23 @@ function main()
         return monCount
     end
 
-    addNPC(3, 400, 120, 0, false)
-    addNPC(0, 400, 300, 0, false)
-    addNPC(1, 401, 300, 0, false)
-    addNPC(2, 402, 300, 0, false)
-    addNPC(3, 403, 300, 0, false)
-    addNPC(4, 404, 300, 0, false)
-    addNPC(5, 405, 300, 0, false)
-    addNPC(6, 406, 300, 0, false)
-    addNPC(7, 407, 300, 0, false)
-    addNPC(8, 408, 300, 0, false)
-    addNPC(9, 409, 300, 0, false)
-    addNPC(3, 397, 133, 0, false)
-    addNPC(3, 388, 122, 0, false)
+    addNPC(3, 400, 120, false)
+    addNPC(0, 400, 300, false)
+    addNPC(1, 401, 300, false)
+    addNPC(2, 402, 300, false)
+    addNPC(3, 403, 300, false)
+    addNPC(4, 404, 300, false)
+    addNPC(5, 405, 300, false)
+    addNPC(6, 406, 300, false)
+    addNPC(7, 407, 300, false)
+    addNPC(8, 408, 300, false)
+    addNPC(9, 409, 300, false)
+    addNPC(3, 397, 133, false)
+    addNPC(3, 388, 122, false)
 
     -- add 六面神石
 
-    addNPC(56, 416, 179, 0, false)
+    addNPC(56, 416, 179, false)
 
     while not scriptDone() do
         if getTime() - g_LastInvokeTime > g_LogicDelay then

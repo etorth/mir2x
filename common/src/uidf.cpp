@@ -24,6 +24,7 @@
 #include "strf.hpp"
 #include "totype.hpp"
 #include "fflerror.hpp"
+#include "dbcomrecord.hpp"
 
 uint64_t uidf::buildMapUID(uint32_t mapID)
 {
@@ -33,10 +34,10 @@ uint64_t uidf::buildMapUID(uint32_t mapID)
     return ((uint64_t)(UID_MAP) << 44) + (uint64_t)(mapID);
 }
 
-uint64_t uidf::buildNPCUID(uint16_t lookId)
+uint64_t uidf::buildNPCUID(uint16_t npcId)
 {
     static std::atomic<uint16_t> s_NPCSeqID {1};
-    return ((uint64_t)(UID_NPC) << 44) + ((uint64_t)(lookId) << 16) + s_NPCSeqID.fetch_add(1);
+    return ((uint64_t)(UID_NPC) << 44) + ((uint64_t)(npcId) << 16) + s_NPCSeqID.fetch_add(1);
 }
 
 uint64_t uidf::buildPlayerUID(uint32_t dbid)
@@ -119,7 +120,7 @@ std::string uidf::getUIDString(uint64_t uid)
             }
         case UID_NPC:
             {
-                return str_printf("NPC%llu_%llu", to_llu(uidf::getLookID(uid)), to_llu(uid & 0XFFFFULL));
+                return str_printf("NPC%llu_%llu", to_llu(uidf::getNPCID(uid)), to_llu(uidf::getNPCSeqID(uid)));
             }
         case UID_MAP:
             {
@@ -148,12 +149,28 @@ uint32_t uidf::getMapID(uint64_t uid)
     return uid & 0XFFFFFFFFULL;
 }
 
+uint16_t uidf::getNPCID(uint64_t uid)
+{
+    if(uidf::getUIDType(uid) != UID_NPC){
+        throw fflerror("invalid uid type: %s", uidf::getUIDTypeString(uid));
+    }
+    return (uid & 0XFFFFFFFFULL) >> 16;
+}
+
+uint16_t uidf::getNPCSeqID(uint64_t uid)
+{
+    if(uidf::getUIDType(uid) != UID_NPC){
+        throw fflerror("invalid uid type: %s", uidf::getUIDTypeString(uid));
+    }
+    return (uid & 0XFFFFULL);
+}
+
 uint16_t uidf::getLookID(uint64_t uid)
 {
     switch(uidf::getUIDType(uid)){
         case UID_NPC:
             {
-                return (uid & 0XFFFF0000ULL) >> 16;
+                return DBCOM_NPCRECORD(uidf::getNPCID(uid)).lookID;
             }
         default:
             {

@@ -17,7 +17,7 @@
 -- NPC script
 -- provides the table: processNPCEvent for event processing
 
-addLog(LOGTYPE_INFO, string.format('NPC %s sources default.lua', getNPCName()))
+addLog(LOGTYPE_INFO, string.format('NPC %s sources %s', getNPCFullName()), getFileName())
 processNPCEvent =
 {
     [SYS_NPCINIT] = function(uid, value)

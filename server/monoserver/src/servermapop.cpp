@@ -127,9 +127,8 @@ void ServerMap::on_MPK_ADDCHAROBJECT(const MessagePack &rstMPK)
                 const auto x     = stAMACO.x;
                 const auto y     = stAMACO.y;
                 const auto strictLoc = stAMACO.strictLoc;
-                const auto direction = stAMACO.NPC.direction;
 
-                if(addNPChar(npcID, x, y, direction, strictLoc)){
+                if(addNPChar(npcID, x, y, strictLoc)){
                     m_actorPod->forward(rstMPK.from(), MPK_OK, rstMPK.ID());
                     doCircle(nX, nY, 20, [this](int nX, int nY) -> bool
                     {

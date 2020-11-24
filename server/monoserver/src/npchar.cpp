@@ -17,12 +17,14 @@
  */
 
 #include <cstdint>
-#include "totype.hpp"
 #include "uidf.hpp"
 #include "npchar.hpp"
+#include "totype.hpp"
+#include "filesys.hpp"
 #include "fflerror.hpp"
 #include "friendtype.hpp"
 #include "monoserver.hpp"
+#include "dbcomrecord.hpp"
 #include "serverconfigurewindow.hpp"
 
 extern ServerConfigureWindow *g_serverConfigureWindow;
@@ -42,19 +44,12 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npc)
 
     m_luaState.set_function("getNPCName", [npc]() -> std::string
     {
-        if(!npc->m_npcName.empty()){
-            return npc->m_npcName;
-        }
-
-        if(npc->rawUID()){
-            return uidf::getUIDString(npc->rawUID());
-        }
-        return std::string("ZERO");
+        return std::string(to_cstr(DBCOM_NPCRECORD(uidf::getNPCID(npc->rawUID())).name));
     });
 
-    m_luaState.set_function("setNPCName", [npc](std::string npcName)
+    m_luaState.set_function("getNPCFullName", [npc]() -> std::string
     {
-        npc->m_npcName = npcName;
+        return std::string(to_cstr(DBCOM_MAPRECORD(uidf::getMapID(npc->m_map->UID())).name)) + "." + std::string(to_cstr(DBCOM_NPCRECORD(uidf::getNPCID(npc->rawUID())).name));
     });
 
     m_luaState.set_function("sendQuery", [npc](std::string uidString, std::string queryName)
@@ -157,12 +152,30 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npc)
         R"###( end                                                                          )###""\n"
     );
 
-    m_luaState.script_file([]() -> std::string
+    m_luaState.script_file([npc]() -> std::string
     {
-        if(const auto scriptPath = g_serverConfigureWindow->getScriptPath(); !scriptPath.empty()){
-            return scriptPath + "npc/default.lua";
+        const auto scriptPath = []() -> std::string
+        {
+            if(const auto cfgScriptPath = g_serverConfigureWindow->getScriptPath(); !cfgScriptPath.empty()){
+                return cfgScriptPath + "/npc";
+            }
+            return std::string("script/npc");
+        }();
+
+        const auto mapName = to_cstr(DBCOM_MAPRECORD(uidf::getMapID(npc->m_map->UID())).name);
+        const auto npcName = to_cstr(DBCOM_NPCRECORD(uidf::getNPCID(npc->rawUID())).name);
+
+        for(const auto &fileName:
+        {
+            str_printf("%s/%s.%s.lua",           scriptPath.c_str(), mapName, npcName),
+            str_printf("%s/default/%s.lua",      scriptPath.c_str(), npcName),
+            str_printf("%s/default/default.lua", scriptPath.c_str()),
+        }){
+            if(filesys::hasFile(fileName.c_str())){
+                return fileName;
+            }
         }
-        return std::string("script/npc/default.lua");
+        throw fflerror("no available script for NPC %s.%s", mapName, npcName);
     }());
 }
 
@@ -231,9 +244,8 @@ void NPChar::LuaNPCModule::setEvent(uint64_t uid, std::string event, std::string
     fnCheckCOResult(result);
 }
 
-NPChar::NPChar(uint16_t lookId, ServiceCore *core, ServerMap *serverMap, int mapX, int mapY, int dirIndex)
-    : CharObject(core, serverMap, uidf::buildNPCUID(lookId), mapX, mapY, DIR_NONE)
-    , m_dirIndex(dirIndex)
+NPChar::NPChar(uint16_t npcId, ServiceCore *core, ServerMap *serverMap, int mapX, int mapY)
+    : CharObject(core, serverMap, uidf::buildNPCUID(npcId), mapX, mapY, DIR_NONE)
 {
     // LuaNPCModule(this) can access ``this"
     // when constructing LuaNPCModule we need to confirm ``this" is ready
