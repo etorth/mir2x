@@ -41,16 +41,14 @@ int StandNPC::motionFrameCount(int motion, int direction) const
     // it's like a seq id for the first/second/third valid direction
 
     switch(lookID()){
-        case 0:
-            {
-                return -1;
-            }
         case 56: // 六面神石
             {
                 return 12;
             }
         default:
             {
+                // TODO many motions are not included here
+                // check mir2x/tools/npcwil2png/src/main.cpp
                 switch(motion){
                     case MOTION_NPC_STAND:
                         {
@@ -93,7 +91,7 @@ int StandNPC::motionFrameCount(int motion, int direction) const
 
 int32_t StandNPC::gfxShadowID(int32_t gfxId) const
 {
-    if(gfxId <= 0){
+    if(gfxId < 0){
         return -1;
     }
 
@@ -211,9 +209,8 @@ int32_t StandNPC::gfxID() const
     //             +---------------------------------------    shadow : max =    2
     //
 
-    if(lookID() <= 0){
-        return -1;
-    }
+    // NPC lookID allows zero
+    // check mir2x/tools/npcwil2png/src/main.cpp
 
     if(motionFrameCount(m_currMotion.motion, m_currMotion.direction) <= 0){
         return -1;
