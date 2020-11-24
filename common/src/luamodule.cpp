@@ -41,9 +41,9 @@ LuaModule::LuaModule()
     m_luaState.script(str_printf("SYS_NPCERROR = \"%s\"", SYS_NPCERROR));
 
     m_luaState.script(
-            R"###( function getFileName()                  )###""\n"
-            R"###(     return debug.getinfo(1, 'S').source )###""\n"
-            R"###( end                                     )###""\n");
+            R"###( function getFileName()                     )###""\n"
+            R"###(     return debug.getinfo(2, 'S').short_src )###""\n"
+            R"###( end                                        )###""\n");
 
     // get backtrace in lua
     // used in LuaModule to give location in the script

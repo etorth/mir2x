@@ -17,4 +17,4 @@
 -- NPC script
 -- provides the table: processNPCEvent for event processing
 
-addLog(LOGTYPE_INFO, string.format('NPC %s sources %s', getNPCFullName()), getFileName())
+addLog(LOGTYPE_INFO, string.format('NPC %s sources %s', getNPCFullName(), getFileName()))

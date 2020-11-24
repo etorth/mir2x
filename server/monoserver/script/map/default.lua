@@ -18,8 +18,7 @@
 -- initialize all global/constant variables
 
 function main()
-
-    addLog(LOGTYPE_INFO, 'map script ' .. getMapName() .. ' starts, use default.lua')
+    addLog(LOGTYPE_INFO, string.format('Map %s sources %s', getMapName(), getFileName()))
 
     g_MaxMonsterCount = math.floor(getCanThroughGridCount() / 64)
     g_LogicDelay      = 1000
