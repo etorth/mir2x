@@ -136,7 +136,7 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npc)
         R"###(         local count = 0                                                                                                       )###""\n"
         R"###(         for _ in pairs(processNPCEvent) do                                                                                    )###""\n"
         R"###(             -- here for each entry we can check if the key is string and value is function type                               )###""\n"
-        R"###(             -- but can possibly be OK if the event is not trigger                                                             )###""\n"
+        R"###(             -- but can possibly be OK if the event is not triggered                                                           )###""\n"
         R"###(             count = count + 1                                                                                                 )###""\n"
         R"###(         end                                                                                                                   )###""\n"
         R"###(         if count == 0 then                                                                                                    )###""\n"
