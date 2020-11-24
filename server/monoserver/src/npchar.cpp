@@ -194,15 +194,22 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npc)
         R"###(                                                                                                                               )###""\n"
         R"###( function main(uid)                                                                                                            )###""\n"
         R"###(     while true do                                                                                                             )###""\n"
-        R"###(         -- don't exit this loop                                                                                               )###""\n"
-        R"###(         -- always consume the event no matter if the NPC can handle it                                                        )###""\n"
         R"###(         local event, value = waitEvent(uid)                                                                                   )###""\n"
         R"###(         if has_processNPCEvent(false, event) then                                                                             )###""\n"
         R"###(             processNPCEvent[event](uid, value)                                                                                )###""\n"
+        R"###(         else                                                                                                                  )###""\n"
+        R"###(             -- don't exit this loop                                                                                           )###""\n"
+        R"###(             -- always consume the event no matter if the NPC can handle it                                                    )###""\n"
+        R"###(             sayXML(uid, string.format(                                                                                        )###""\n"
+        R"###(             [[                                                                                                                )###""\n"
+        R"###(                 <layout>                                                                                                      )###""\n"
+        R"###(                     <par>我听不懂你在说什么...</par>                                                                          )###""\n"
+        R"###(                     <par><event id="%s">关闭</event></par>                                                                    )###""\n"
+        R"###(                 </layout>                                                                                                     )###""\n"
+        R"###(             ]], SYS_NPCDONE))                                                                                                 )###""\n"
         R"###(         end                                                                                                                   )###""\n"
         R"###(     end                                                                                                                       )###""\n"
-        R"###( end                                                                                                                           )###""\n"
-    );
+        R"###( end                                                                                                                           )###""\n");
 
     m_luaState.script_file([npc]() -> std::string
     {
