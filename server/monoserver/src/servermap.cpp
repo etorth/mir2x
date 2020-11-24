@@ -210,6 +210,10 @@ ServerMap::ServerMapLuaModule::ServerMapLuaModule(ServerMap *mapPtr)
 
     getLuaState().set_function("addNPC", [mapPtr](int npcID, sol::variadic_args args) -> bool
     {
+        if(npcID <= 0){
+            throw fflerror("invalid npc id: %d", npcID);
+        }
+
         const std::vector<sol::object> argList(args.begin(), args.end());
         switch(argList.size()){
             case 0:

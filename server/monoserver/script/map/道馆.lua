@@ -37,7 +37,7 @@ function main()
     end
 
     addNPC(3, 400, 120, false)
-    addNPC(0, 400, 300, false)
+    addNPC(1, 400, 300, false)
     addNPC(1, 401, 300, false)
     addNPC(2, 402, 300, false)
     addNPC(3, 403, 300, false)
