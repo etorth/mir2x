@@ -177,6 +177,25 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npc)
         }
         throw fflerror("no available script for NPC %s.%s", mapName, npcName);
     }());
+
+    // NPC script has no state
+    // after source it finishes the script, not yield
+
+    m_luaState.script
+    (
+        R"###( if not processNPCEvent then                                                                            )###""\n"
+        R"###(     addLog(LOGTYPE_WARNING, "NPC " .. getNPCFullName() .. ": processNPCEvent is not defined")          )###""\n"
+        R"###( elseif type(processNPCEvent) ~= 'table' then                                                           )###""\n"
+        R"###(     addLog(LOGTYPE_WARNING, "NPC " .. getNPCFullName() .. ": processNPCEvent is not a function table") )###""\n"
+        R"###( else                                                                                                   )###""\n"
+        R"###(     local entryCount = 0                                                                               )###""\n"
+        R"###(     for _ in pairs(processNPCEvent) do                                                                 )###""\n"
+        R"###(         entryCount = entryCount + 1                                                                    )###""\n"
+        R"###(     end                                                                                                )###""\n"
+        R"###(     if entryCount == 0 then                                                                            )###""\n"
+        R"###(         addLog(LOGTYPE_WARNING, "NPC " .. getNPCFullName() .. ": processNPCEvent is empty")            )###""\n"
+        R"###(     end                                                                                                )###""\n"
+        R"###( end                                                                                                    )###""\n");
 }
 
 void NPChar::LuaNPCModule::setEvent(uint64_t uid, std::string event, std::string value)
