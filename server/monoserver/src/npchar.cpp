@@ -239,8 +239,8 @@ void NPChar::LuaNPCModule::setEvent(uint64_t uid, std::string event, std::string
 
         p = m_sessionList.insert({uid, std::move(session)}).first;
 
-        session.event.clear();
-        session.value.clear();
+        p->second.event.clear();
+        p->second.value.clear();
         const auto result = p->second.co_handler.callback(std::to_string(uid));
         fnCheckCOResult(result);
     }
