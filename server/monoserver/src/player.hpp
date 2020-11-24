@@ -43,6 +43,9 @@ class Player final: public CharObject
         std::vector<CommonItem> m_inventory;
 
     protected:
+        const std::string m_name;
+
+    protected:
         std::set<uint64_t> m_slaveList;
 
     public:

@@ -211,6 +211,10 @@ void Player::on_MPK_NPCQUERY(const MessagePack &mpk)
         std::sprintf(amNPCE.value, "%d", m_level);
     }
 
+    else if(queryName == "NAME"){
+        std::sprintf(amNPCE.value, "%s", to_cstr(m_name));
+    }
+
     else{
         std::strcpy(amNPCE.value, SYS_NPCERROR);
     }

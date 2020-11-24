@@ -46,6 +46,16 @@ Player::Player(uint32_t nDBID,
     , m_level(0)        // after bind
     , m_gold(0)
     , m_inventory()
+    , m_name([this]() -> std::string
+      {
+          std::string result;
+          DBAccess("tbl_dbid", "fld_name", [&result](const char8_t *name) -> std::u8string
+          {
+              result = to_cstr(name);
+              return {};
+          });
+          return result;
+      }())
 {
     m_HP    = 10;
     m_HPMax = 10;
