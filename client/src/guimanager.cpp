@@ -45,6 +45,14 @@ GUIManager::GUIManager(ProcessRun *proc)
           proc,
       }
 
+    , m_skillBoard
+      {
+          g_SDLDevice->getRendererWidth()  / 2 - 180,
+          g_SDLDevice->getRendererHeight() / 2 - 224,
+          proc,
+          this,
+      }
+
     , m_inventoryBoard
       {
           g_SDLDevice->getRendererWidth()  / 2 - 141,
@@ -136,6 +144,10 @@ Widget *GUIManager::getWidget(const std::string &widgetName)
 
     if(widgetName == "ControlBoard"){
         return &m_controlBoard;
+    }
+
+    if(widgetName == "SkillBoard"){
+        return &m_skillBoard;
     }
 
     return nullptr;

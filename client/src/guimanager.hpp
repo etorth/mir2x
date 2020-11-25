@@ -18,6 +18,7 @@
 
 #pragma once
 #include "widget.hpp"
+#include "skillboard.hpp"
 #include "npcchatboard.hpp"
 #include "controlboard.hpp"
 #include "inventoryboard.hpp"
@@ -34,6 +35,7 @@ class GUIManager: public WidgetGroup
         ControlBoard m_controlBoard;
 
     private:
+        SkillBoard m_skillBoard;
         InventoryBoard m_inventoryBoard;
         QuickAccessBoard m_quickAccessBoard;
 

@@ -17,12 +17,14 @@
  *
  * =====================================================================================
  */
+
 #pragma once
 #include <list>
 #include <cstdint>
 #include <SDL2/SDL.h>
 #include "mathf.hpp"
 #include "lalign.hpp"
+#include "fflerror.hpp"
 
 class Widget
 {
@@ -263,3 +265,29 @@ class WidgetGroup: public Widget
             }
         }
 };
+
+// focus helper
+// we have tons of code like:
+//
+//     if(...){
+//         focus(true);     // get focus
+//         return false;    // since the event changes focus, then event is consumed
+//     }
+//     else{
+//         focus(false);    // event doesn't help to move focus to the widget
+//         return false;    // not consumed, try next widget
+//     }
+//
+// this function helps to simplify the code to:
+//
+//     return focusConsumer(this, ...)
+//
+inline bool focusConsumer(Widget *widgetPtr, bool setFocus)
+{
+    if(!widgetPtr){
+        throw fflerror("invalid widget pointer: (null)");
+    }
+
+    widgetPtr->focus(setFocus);
+    return setFocus;
+}
