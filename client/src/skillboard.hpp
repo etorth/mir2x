@@ -19,6 +19,7 @@
 #pragma once
 #include <memory>
 #include "widget.hpp"
+#include "labelboard.hpp"
 #include "tritexbutton.hpp"
 
 class ProcessRun;
@@ -29,7 +30,11 @@ class SkillBoard: public Widget
         // use two tritex button to micmic the tab button
 
         int m_tabIndex = 0;
+        const char8_t *m_tabNameList[8];
         std::vector<std::array<std::unique_ptr<TritexButton>, 2>> m_tabButtonList;
+
+    private:
+        LabelBoard m_textBoard;
 
     private:
         TritexButton m_closeButton;

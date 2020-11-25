@@ -27,6 +27,18 @@ extern SDLDevice *g_SDLDevice;
 
 SkillBoard::SkillBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget, bool autoDelete)
     : Widget(nX, nY, 0, 0, pwidget, autoDelete)
+    , m_tabNameList
+      {
+          u8"火",
+          u8"冰",
+          u8"雷",
+          u8"风",
+          u8"神圣",
+          u8"暗黑",
+          u8"幻影",
+          u8"神力",
+      }
+
     , m_tabButtonList([this]() -> std::vector<std::array<std::unique_ptr<TritexButton>, 2>>
       {
           std::vector<std::array<std::unique_ptr<TritexButton>, 2>> tabButtonList;
@@ -50,7 +62,11 @@ SkillBoard::SkillBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget, bool a
 
                       {SYS_TEXNIL, 0X05000020 + (uint32_t)(i), 0X05000030 + (uint32_t)(i)},
 
-                      nullptr,
+                      [i, this]()
+                      {
+                          m_textBoard.setText(u8"【%s系魔法】", to_cstr(m_tabNameList[i]));
+                      },
+
                       [i, this]()
                       {
                           m_tabButtonList.at(i)         .at(0)->setOff();
@@ -91,6 +107,20 @@ SkillBoard::SkillBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget, bool a
           }
           return tabButtonList;
       }())
+
+    , m_textBoard
+      {
+          30,
+          400,
+          u8"【魔法】",
+
+          1,
+          12,
+          0,
+
+          colorf::WHITE,
+          this,
+      }
 
     , m_closeButton
       {
@@ -133,7 +163,9 @@ void SkillBoard::drawEx(int dstX, int dstY, int, int, int, int)
         g_SDLDevice->DrawTexture(texPtr, dstX, dstY);
     }
 
+    m_textBoard.draw();
     m_closeButton.draw();
+
     for(int i = 0; i < (int)(m_tabButtonList.size()); ++i){
         m_tabButtonList.at(i).at(i == m_tabIndex)->draw();
     }
