@@ -53,8 +53,9 @@ SkillBoard::SkillBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget, bool a
                       nullptr,
                       [i, this]()
                       {
+                          m_tabButtonList.at(i)         .at(0)->setOff();
+                          m_tabButtonList.at(m_tabIndex).at(0)->setOff();
                           m_tabIndex = i;
-                          m_tabButtonList.at(i).at(0)->setOff();
                       },
 
                       0,
@@ -119,11 +120,6 @@ SkillBoard::SkillBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget, bool a
     }
     else{
         throw fflerror("no valid inventory frame texture");
-    }
-
-    for(int i = 0; i < (int)(m_tabButtonList.size()); ++i){
-        m_tabButtonList.at(i)[0]->show(i != m_tabIndex);
-        m_tabButtonList.at(i)[1]->show(i == m_tabIndex);
     }
 }
 
