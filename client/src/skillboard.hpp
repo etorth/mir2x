@@ -17,12 +17,20 @@
  */
 
 #pragma once
+#include <memory>
 #include "widget.hpp"
 #include "tritexbutton.hpp"
 
 class ProcessRun;
 class SkillBoard: public Widget
 {
+    private:
+        // no need to introduce a new type
+        // use two tritex button to micmic the tab button
+
+        int m_tabIndex = 0;
+        std::vector<std::array<std::unique_ptr<TritexButton>, 2>> m_tabButtonList;
+
     private:
         TritexButton m_closeButton;
 

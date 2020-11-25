@@ -20,12 +20,77 @@
 #include "sdldevice.hpp"
 #include "processrun.hpp"
 #include "skillboard.hpp"
+#include "tritexbutton.hpp"
 
 extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_SDLDevice;
 
 SkillBoard::SkillBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget, bool autoDelete)
     : Widget(nX, nY, 0, 0, pwidget, autoDelete)
+    , m_tabButtonList([this]() -> std::vector<std::array<std::unique_ptr<TritexButton>, 2>>
+      {
+          std::vector<std::array<std::unique_ptr<TritexButton>, 2>> tabButtonList;
+          tabButtonList.reserve(8);
+
+          const int tabX = 45;
+          const int tabY = 10;
+          const int tabW = 34;
+
+          // don't know WTF
+          // can't compile if use std::vector<TritexButton>
+          // looks for complicated parameter list the forward can't be done correctly ???
+
+          for(int i = 0; i < 8; ++i){
+              tabButtonList.emplace_back(std::array<std::unique_ptr<TritexButton>, 2>
+              {
+                  std::unique_ptr<TritexButton>(new TritexButton // inactive
+                  {
+                      tabX + tabW * i,
+                      tabY,
+
+                      {SYS_TEXNIL, 0X05000020 + (uint32_t)(i), 0X05000030 + (uint32_t)(i)},
+
+                      nullptr,
+                      [i, this]()
+                      {
+                          m_tabIndex = i;
+                          m_tabButtonList.at(i).at(0)->setOff();
+                      },
+
+                      0,
+                      0,
+                      0,
+                      0,
+
+                      false,
+                      this,
+                      false,
+                  }),
+
+                  std::unique_ptr<TritexButton>(new TritexButton // active
+                  {
+                      tabX + tabW * i,
+                      tabY,
+
+                      {0X05000030 + (uint32_t)(i), 0X05000030 + (uint32_t)(i), 0X05000030 + (uint32_t)(i)},
+
+                      nullptr,
+                      nullptr,
+
+                      0,
+                      0,
+                      0,
+                      0,
+
+                      false,
+                      this,
+                      false,
+                  }),
+              });
+          }
+          return tabButtonList;
+      }())
+
     , m_closeButton
       {
           317,
@@ -49,12 +114,17 @@ SkillBoard::SkillBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget, bool a
     , m_processRun(pRun)
 {
     show(false);
-    auto texPtr = g_progUseDB->Retrieve(0X05000000);
-    if(!texPtr){
+    if(auto texPtr = g_progUseDB->Retrieve(0X05000000)){
+        std::tie(m_w, m_h) = SDLDevice::getTextureSize(texPtr);
+    }
+    else{
         throw fflerror("no valid inventory frame texture");
     }
 
-    std::tie(m_w, m_h) = SDLDevice::getTextureSize(texPtr);
+    for(int i = 0; i < (int)(m_tabButtonList.size()); ++i){
+        m_tabButtonList.at(i)[0]->show(i != m_tabIndex);
+        m_tabButtonList.at(i)[1]->show(i == m_tabIndex);
+    }
 }
 
 void SkillBoard::update(double)
@@ -66,7 +136,11 @@ void SkillBoard::drawEx(int dstX, int dstY, int, int, int, int)
     if(auto texPtr = g_progUseDB->Retrieve(0X05000000)){
         g_SDLDevice->DrawTexture(texPtr, dstX, dstY);
     }
+
     m_closeButton.draw();
+    for(int i = 0; i < (int)(m_tabButtonList.size()); ++i){
+        m_tabButtonList.at(i).at(i == m_tabIndex)->draw();
+    }
 }
 
 bool SkillBoard::processEvent(const SDL_Event &event, bool valid)
@@ -81,6 +155,17 @@ bool SkillBoard::processEvent(const SDL_Event &event, bool valid)
 
     if(m_closeButton.processEvent(event, valid)){
         return focusConsumer(this, show());
+    }
+
+    bool tabConsumed = false;
+    const int lastTabIndex = m_tabIndex; // may change in callback
+
+    for(int i = 0; i < (int)(m_tabButtonList.size()); ++i){
+        tabConsumed |= m_tabButtonList.at(i).at(i == lastTabIndex)->processEvent(event, valid && !tabConsumed);
+    }
+
+    if(tabConsumed){
+        return focusConsumer(this, true);
     }
 
     switch(event.type){
