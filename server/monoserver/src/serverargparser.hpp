@@ -28,6 +28,7 @@ struct ServerArgParser
     const bool DisableMapScript;        // "--disable-map-script"
     const bool TraceActorMessage;       // "--trace-actor-message"
     const bool TraceActorMessageCount;  // "--trace-actor-message-count"
+    const bool preloadMap;              // "--preload-map"
     const int  actorPoolThread;         // "--actor-pool-thread"
 
     ServerArgParser(const argh::parser &cmdParser)
@@ -35,6 +36,7 @@ struct ServerArgParser
         , DisableMapScript(cmdParser["disable-map-script"])
         , TraceActorMessage(cmdParser["trace-actor-message"])
         , TraceActorMessageCount(cmdParser["trace-actor-message-count"])
+        , preloadMap(cmdParser["preload-map"])
         , actorPoolThread([&cmdParser]()
           {
               if(const auto numStr = cmdParser("actor-pool-thread").str(); !numStr.empty()){

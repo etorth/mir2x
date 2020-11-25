@@ -16,16 +16,20 @@
  * =====================================================================================
  */
 
+#include <string>
 #include <cstring>
-#include <system_error>
-
 #include "player.hpp"
+#include "totype.hpp"
 #include "actorpod.hpp"
 #include "mapbindb.hpp"
 #include "monoserver.hpp"
+#include "dbcomrecord.hpp"
 #include "servicecore.hpp"
+#include "serverargparser.hpp"
 
 extern MapBinDB *g_mapBinDB;
+extern MonoServer *g_monoServer;
+extern ServerArgParser *g_serverArgParser;
 
 ServiceCore::ServiceCore()
     : ServerObject(uidf::buildServiceCoreUID())
@@ -72,7 +76,6 @@ void ServiceCore::operateAM(const MessagePack &rstMPK)
             }
         default:
             {
-                extern MonoServer *g_monoServer;
                 g_monoServer->addLog(LOGTYPE_WARNING, "Unsupported message: %s", rstMPK.Name());
                 break;
             }
@@ -92,6 +95,21 @@ void ServiceCore::operateNet(uint32_t nSID, uint8_t nType, const uint8_t *pData,
                 break;
             }
     }
+}
+
+uint64_t ServiceCore::activate()
+{
+    if(const auto uid = ServerObject::activate()){
+        if(g_serverArgParser->preloadMap){
+            for(uint32_t mapID = 1;; ++mapID){
+                if(!retrieveMap(mapID)){
+                    return uid;
+                }
+                g_monoServer->addLog(LOGTYPE_INFO, "Preload %s successfully", to_cstr(DBCOM_MAPRECORD(mapID).name));
+            }
+        }
+    }
+    return 0;
 }
 
 void ServiceCore::loadMap(uint32_t mapID)
