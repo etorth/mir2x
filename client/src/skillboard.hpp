@@ -42,6 +42,7 @@ class SkillBoard: public Widget
         };
 
     private:
+        int m_magicIndex = -1;
         std::vector<magicIcon> m_magicIconList;
 
     private:
