@@ -35,6 +35,7 @@ QuickAccessButton::QuickAccessButton(const std::function<void()> &fnOnClick, Wid
           0,
 
           nullptr,
+          nullptr,
           fnOnClick,
 
           0,

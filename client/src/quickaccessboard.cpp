@@ -46,6 +46,7 @@ QuickAccessBoard::QuickAccessBoard(int x, int y, ProcessRun *proc, Widget *pwidg
           {SYS_TEXNIL, 0X00000061, 0X00000062},
 
           nullptr,
+          nullptr,
           [this]()
           {
               show(false);

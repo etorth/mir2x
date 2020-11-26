@@ -23,7 +23,7 @@
 bool ButtonBase::processEvent(const SDL_Event &event, bool valid)
 {
     if(!valid){
-        m_state = BUTTON_OFF;
+        m_state = BEVENT_OFF;
         return false;
     }
 
@@ -35,11 +35,11 @@ bool ButtonBase::processEvent(const SDL_Event &event, bool valid)
                         m_onClick();
                     }
 
-                    m_state = BUTTON_OVER;
+                    m_state = BEVENT_ON;
                     return true;
                 }
                 else{
-                    m_state = BUTTON_OFF;
+                    m_state = BEVENT_OFF;
                     return false;
                 }
             }
@@ -51,27 +51,34 @@ bool ButtonBase::processEvent(const SDL_Event &event, bool valid)
                         m_onClick();
                     }
 
-                    m_state = BUTTON_PRESSED;
+                    m_state = BEVENT_DOWN;
                     return true;
                 }
                 else{
-                    m_state = BUTTON_OFF;
+                    m_state = BEVENT_OFF;
                     return false;
                 }
             }
         case SDL_MOUSEMOTION:
             {
                 if(in(event.motion.x, event.motion.y)){
-                    if(m_state != 2){
-                        if(m_onOver){
-                            m_onOver();
+                    if(m_state != BEVENT_ON){
+                        if(m_onOverIn){
+                            m_onOverIn();
                         }
-                        m_state = BUTTON_OVER;
                     }
+
+                    m_state = BEVENT_ON;
                     return true;
                 }
                 else{
-                    m_state = BUTTON_OFF;
+                    if(m_state != BEVENT_OFF){
+                        if(m_onOverOut){
+                            m_onOverOut();
+                        }
+                    }
+
+                    m_state = BEVENT_OFF;
                     return false;
                 }
             }

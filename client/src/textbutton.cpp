@@ -28,10 +28,10 @@ extern SDLDevice *g_SDLDevice;
 
 void TextButton::drawEx(int nDstX, int nDstY, int nSrcX, int nSrcY, int nW, int nH)
 {
-    const auto bgColor = colorf::ARGB2RGBA(m_color[State()][1]);
+    const auto bgColor = colorf::ARGB2RGBA(m_color[state()][1]);
     g_SDLDevice->fillRectangle(bgColor, nDstX, nDstY, nW, nH);
 
-    const auto frameLineColor = colorf::ARGB2RGBA(m_frameLineColor[State()]);
+    const auto frameLineColor = colorf::ARGB2RGBA(m_frameLineColor[state()]);
     g_SDLDevice->drawWidthRectangle(frameLineColor, m_frameLineWidth, nDstX, nDstY, nW, nH);
 
     int nLBX0 = (w() - m_label.w()) / 2;
@@ -47,8 +47,8 @@ void TextButton::drawEx(int nDstX, int nDstY, int nSrcX, int nSrcY, int nW, int 
     int nLBH = nLBH0;
 
     if(mathf::rectangleOverlapRegion(nSrcX, nSrcY, nW, nH, &nLBX, &nLBY, &nLBW, &nLBH)){
-        m_label.setFontColor(m_color[State()][0]);
-        m_label.drawEx(nDstX + (nLBX - nSrcX) + OffX(), nDstY + (nLBY - nSrcY) + OffY(), nLBX - nLBX0, nLBY - nLBY0, nLBW, nLBH);
+        m_label.setFontColor(m_color[state()][0]);
+        m_label.drawEx(nDstX + (nLBX - nSrcX) + offX(), nDstY + (nLBY - nSrcY) + offY(), nLBX - nLBX0, nLBY - nLBY0, nLBW, nLBH);
     }
 }
 

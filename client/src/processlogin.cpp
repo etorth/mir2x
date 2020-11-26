@@ -3,7 +3,7 @@
  *
  *       Filename: processlogin.cpp
  *        Created: 08/14/2015 02:47:49
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -35,10 +35,10 @@ extern SDLDevice *g_SDLDevice;
 
 ProcessLogin::ProcessLogin()
 	: Process()
-	, m_button1(150, 482, 0X00000005, []{}, [this](){ doCreateAccount(); })
-	, m_button2(352, 482, 0X00000008, []{}, [    ](){                    })
-	, m_button3(554, 482, 0X0000000B, []{}, [    ](){ std::exit(0);      })
-    , m_button4(600, 536, 0X0000000E, []{}, [this](){ doLogin();         })
+	, m_button1(150, 482, {0X00000005, 0X00000006, 0X00000007}, nullptr, nullptr, [this](){ doCreateAccount(); })
+	, m_button2(352, 482, {0X00000008, 0X00000009, 0X0000000A}, nullptr, nullptr, [    ](){                    })
+	, m_button3(554, 482, {0X0000000B, 0X0000000C, 0X0000000D}, nullptr, nullptr, [    ](){ std::exit(0);      })
+    , m_button4(600, 536, {0X0000000E, 0X0000000F, 0X00000010}, nullptr, nullptr, [this](){ doLogin();         })
 	, m_idBox
       {
           159,

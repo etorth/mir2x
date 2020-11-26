@@ -58,6 +58,11 @@ SkillBoard::SkillBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget, bool a
 
                       [i, this]()
                       {
+                          m_textBoard.setText(u8"【魔法】");
+                      },
+
+                      [i, this]()
+                      {
                           m_tabButtonList.at(i)         .at(0)->setOff();
                           m_tabButtonList.at(m_tabIndex).at(0)->setOff();
                           m_tabIndex = i;
@@ -84,6 +89,12 @@ SkillBoard::SkillBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget, bool a
                       {
                           m_textBoard.setText(u8"【%s系魔法】", to_cstr(DBCOM_MCRECORD(i + 1).name));
                       },
+
+                      [i, this]()
+                      {
+                          m_textBoard.setText(u8"【魔法】");
+                      },
+
                       nullptr,
 
                       0,
@@ -120,6 +131,7 @@ SkillBoard::SkillBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget, bool a
           402,
           {SYS_TEXNIL, 0X0000001C, 0X0000001D},
 
+          nullptr,
           nullptr,
           [this]()
           {

@@ -121,6 +121,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           {SYS_TEXNIL, 0X0000001E, 0X0000001F},
 
           nullptr,
+          nullptr,
           []()
           {
               std::exit(0);
@@ -141,6 +142,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           72,
           {SYS_TEXNIL, 0X00000020, 0X00000021},
 
+          nullptr,
           nullptr,
           nullptr,
 
@@ -167,6 +169,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           0X00000042,
 
           nullptr,
+          nullptr,
           [this]()
           {
               addLog(0, "exchange doesn't implemented yet.");
@@ -189,6 +192,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           colorf::WHITE,
           0X00000043,
 
+          nullptr,
           nullptr,
           [this]()
           {
@@ -213,6 +217,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           0X00000044,
 
           nullptr,
+          nullptr,
           [this]()
           {
               addLog(0, "magic key doesn't implemented yet.");
@@ -228,6 +233,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           33,
           {SYS_TEXNIL, 0X00000030, 0X00000031},
 
+          nullptr,
           nullptr,
           [this]()
           {
@@ -252,6 +258,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           {SYS_TEXNIL, 0X00000033, 0X00000032},
 
           nullptr,
+          nullptr,
           [this]()
           {
               if(auto p = m_processRun->getWidget("InventoryBoard")){
@@ -274,6 +281,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           33,
           {SYS_TEXNIL, 0X00000035, 0X00000034},
 
+          nullptr,
           nullptr,
           [this]()
           {
@@ -298,6 +306,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           {SYS_TEXNIL, 0X00000036, 0X00000037},
 
           nullptr,
+          nullptr,
           [this]()
           {
               if(auto p = m_processRun->getWidget("InventoryBoard")){
@@ -320,6 +329,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           8,
           {SYS_TEXNIL, 0X00000038, 0X00000039},
 
+          nullptr,
           nullptr,
           [this]()
           {
@@ -344,6 +354,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           {SYS_TEXNIL, 0X0000003A, 0X0000003B},
 
           nullptr,
+          nullptr,
           [this]()
           {
               if(auto p = m_processRun->getWidget("InventoryBoard")){
@@ -366,6 +377,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           61,
           {SYS_TEXNIL, 0X0000003C, 0X0000003D},
 
+          nullptr,
           nullptr,
           [this]()
           {
@@ -390,6 +402,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           {SYS_TEXNIL, 0X0000003E, 0X0000003F},
 
           nullptr,
+          nullptr,
           [this]()
           {
               if(auto p = m_processRun->getWidget("InventoryBoard")){
@@ -412,6 +425,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           61,
           {SYS_TEXNIL, 0X00000040, 0X00000041},
 
+          nullptr,
           nullptr,
           [this]()
           {
@@ -464,6 +478,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           {SYS_TEXNIL, 0X00000028, 0X00000029},
 
           nullptr,
+          nullptr,
           [this]()
           {
               switchExpandMode();
@@ -486,6 +501,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
 
           nullptr,
           nullptr,
+          nullptr,
 
           0,
           0,
@@ -502,6 +518,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           87,
           {SYS_TEXNIL, 0X00000025, 0X00000026},
 
+          nullptr,
           nullptr,
           nullptr,
 

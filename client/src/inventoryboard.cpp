@@ -69,6 +69,7 @@ InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget
           {SYS_TEXNIL, 0X0000001C, 0X0000001D},
 
           nullptr,
+          nullptr,
           [this]()
           {
               show(false);

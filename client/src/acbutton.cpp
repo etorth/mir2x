@@ -34,6 +34,7 @@ ACButton::ACButton(int x, int y, ProcessRun *proc, const std::vector<std::string
           0,
 
           nullptr,
+          nullptr,
           [this]()
           {
               m_currButtonName = (m_currButtonName + 1) % m_buttonNameList.size();

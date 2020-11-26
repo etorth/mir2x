@@ -36,7 +36,8 @@ AlphaOnButton::AlphaOnButton(
         uint32_t onColor,
         uint32_t downTexID,
 
-        const std::function<void()> &fnOnOver,
+        const std::function<void()> &fnOnOverIn,
+        const std::function<void()> &fnOnOverOut,
         const std::function<void()> &fnOnClick,
 
         bool    triggerOnDone,
@@ -49,7 +50,8 @@ AlphaOnButton::AlphaOnButton(
           0,
           0,
 
-          fnOnOver,
+          fnOnOverIn,
+          fnOnOverOut,
           fnOnClick,
 
           0,

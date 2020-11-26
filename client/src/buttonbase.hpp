@@ -34,59 +34,54 @@
 
 class ButtonBase: public Widget
 {
-    public:
-        enum buttonState: int
-        {
-            BUTTON_OFF     = 0,
-            BUTTON_OVER    = 1,
-            BUTTON_PRESSED = 2,
-        };
-
     protected:
         int m_state;
 
     protected:
-        bool m_onClickDone;
+        const bool m_onClickDone;
 
     protected:
-        int m_offset[3][2];
+        const int m_offset[3][2];
 
     protected:
-        std::function<void()> m_onOver;
+        std::function<void()> m_onOverIn;
+        std::function<void()> m_onOverOut;
         std::function<void()> m_onClick;
         
     public:
         ButtonBase(
-                int nX,
-                int nY,
-                int nW,
-                int nH,
+                int argX,
+                int argY,
+                int argW,
+                int argH,
 
-                const std::function<void()> &fnOnOver  = nullptr,
-                const std::function<void()> &fnOnClick = nullptr,
+                const std::function<void()> &fnOnOverIn  = nullptr,
+                const std::function<void()> &fnOnOverOut = nullptr,
+                const std::function<void()> &fnOnClick   = nullptr,
 
-                int nOffXOnOver  = 0,
-                int nOffYOnOver  = 0,
-                int nOffXOnClick = 0,
-                int nOffYOnClick = 0,
+                int offXOnOver  = 0,
+                int offYOnOver  = 0,
+                int offXOnClick = 0,
+                int offYOnClick = 0,
 
-                bool    bOnClickDone = true,
-                Widget *pwidget      = nullptr,
-                bool    bFreewidget  = false)
-            : Widget(nX, nY, nW, nH, pwidget, bFreewidget)
-            , m_state(BUTTON_OFF)
-            , m_onClickDone(bOnClickDone)
+                bool    onClickDone = true,
+                Widget *widgetPtr   = nullptr,
+                bool    autoFree    = false)
+            : Widget(argX, argY, argW, argH, widgetPtr, autoFree)
+            , m_state(BEVENT_OFF)
+            , m_onClickDone(onClickDone)
             , m_offset
               {
-                  {0            , 0           },
-                  {nOffXOnOver  , nOffYOnOver },
-                  {nOffXOnClick , nOffYOnClick},
+                  {0            , 0          },
+                  {offXOnOver   , offYOnOver },
+                  {offXOnClick  , offYOnClick},
               }
-            , m_onOver (fnOnOver)
+            , m_onOverIn(fnOnOverIn)
+            , m_onOverOut(fnOnOverOut)
             , m_onClick(fnOnClick)
         {
             // we don't fail even if x, y, w, h are invalid
-            // because derived class could reset it in its constructor
+            // because derived class could do reset in its constructor
         }
 
     public:
@@ -96,17 +91,17 @@ class ButtonBase: public Widget
         bool processEvent(const SDL_Event &, bool) override;
 
     protected:
-        int OffX() const
+        int offX() const
         {
-            return m_offset[State()][0];
+            return m_offset[state()][0];
         }
 
-        int OffY() const
+        int offY() const
         {
-            return m_offset[State()][1];
+            return m_offset[state()][1];
         }
 
-        int State() const
+        int state() const
         {
             return m_state;
         }
@@ -116,6 +111,6 @@ class ButtonBase: public Widget
         // sometimes when we invoke the callback it changes the button location
         void setOff()
         {
-            m_state = BUTTON_OFF;
+            m_state = BEVENT_OFF;
         }
 };

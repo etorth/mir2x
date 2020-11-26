@@ -24,6 +24,7 @@
 #include <SDL2/SDL.h>
 #include "mathf.hpp"
 #include "lalign.hpp"
+#include "bevent.hpp"
 #include "fflerror.hpp"
 
 class Widget
