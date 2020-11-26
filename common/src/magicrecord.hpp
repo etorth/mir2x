@@ -169,14 +169,16 @@ class MagicRecord
 
     public:
         const int elem;
+        const uint32_t icon;
 
     public:
         const GfxEntry gfxArray[8];
 
     public:
-        template<typename... U> constexpr MagicRecord(const char8_t *argName, int meType, U&&... u)
+        template<typename... U> constexpr MagicRecord(const char8_t *argName, int meType, uint32_t iconGfx, U&&... u)
             : name(argName ? argName : u8"")
             , elem((meType >= MET_BEGIN && meType < MET_END) ? meType : MET_NONE)
+            , icon(iconGfx)
             , gfxArray { std::forward<U>(u)... }
         {}
 
