@@ -25,22 +25,22 @@ extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_SDLDevice;
 extern ClientArgParser *g_clientArgParser;
 
-TexVSlider::TexVSlider(int x, int y, int h, bool small, Widget *parent, bool autoDelete)
+TexVSlider::TexVSlider(int x, int y, int h, int paramIndex, Widget *parent, bool autoDelete)
     : Slider
       {
           x,
           y,
-          TexVSlider::getParm(small).w,
+          TexVSlider::getParam(paramIndex).w,
           h,
 
           false,
-          TexVSlider::getParm(small).sliderSize,
-          TexVSlider::getParm(small).sliderSize,
+          TexVSlider::getParam(paramIndex).sliderSize,
+          TexVSlider::getParam(paramIndex).sliderSize,
 
           parent,
           autoDelete,
       }
-    , m_small(small)
+    , m_sliderParamIndex(paramIndex)
 {}
 
 void TexVSlider::drawEx(int, int, int, int, int, int)
@@ -51,17 +51,17 @@ void TexVSlider::drawEx(int, int, int, int, int, int)
 
     const auto [sliderX, sliderY, sliderW, sliderH] = getSliderRectangle();
 
-    auto texPtr = g_progUseDB->Retrieve(getSelfParm().texID);
+    auto texPtr = g_progUseDB->Retrieve(getSelfParam().texID);
     if(!texPtr){
         return;
     }
 
     const auto [valCenterX, valCenterY] = getValueCenter();
-    g_SDLDevice->DrawTexture(texPtr, valCenterX - getSelfParm().offX, valCenterY - getSelfParm().offY);
+    g_SDLDevice->DrawTexture(texPtr, valCenterX - getSelfParam().offX, valCenterY - getSelfParam().offY);
 
     const auto fnDrawCover = [valCenterX, valCenterY, this](uint32_t color)
     {
-        const auto r = getSelfParm().sliderCover;
+        const auto r = getSelfParam().sliderCover;
         if(auto texPtr = g_SDLDevice->getCover(r)){
             SDL_SetTextureColorMod(texPtr, colorf::R(color), colorf::G(color), colorf::B(color));
             SDLDevice::EnableDrawBlendMode enableDrawBlendMode(SDL_BLENDMODE_BLEND);

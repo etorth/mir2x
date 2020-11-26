@@ -20,6 +20,7 @@
 #include <memory>
 #include "widget.hpp"
 #include "labelboard.hpp"
+#include "texvslider.hpp"
 #include "tritexbutton.hpp"
 
 class ProcessRun;
@@ -31,6 +32,9 @@ class SkillBoard: public Widget
 
         int m_tabIndex = 0;
         std::vector<std::array<std::unique_ptr<TritexButton>, 2>> m_tabButtonList;
+
+    private:
+        TexVSlider m_slider;
 
     private:
         LabelBoard m_textBoard;

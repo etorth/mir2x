@@ -25,12 +25,12 @@
 class TexVSlider: public Slider
 {
     private:
-        struct SliderTexParm
+        struct SliderTexParam
         {
             int w;
 
             // define the texture center
-            // these two slider textures are not in good shape then not using the (w / 2, h / 2)
+            // some slider textures are not in good shape then not using the (w / 2, h / 2)
 
             int offX;
             int offY;
@@ -42,29 +42,28 @@ class TexVSlider: public Slider
         };
 
     private:
-        constexpr static std::array<SliderTexParm, 2> m_parm
-        {{
+        constexpr static SliderTexParam m_param[]
+        {
             {5,  8,  9, 10, 4, 0X00000070},
             {8, 12, 13, 15, 7, 0X00000080},
-        }};
+            {8,  8,  8, 12, 5, 0X05000040},
+        };
 
     private:
-        // texid true : 0X00000070
-        //       false: 0X00000080
-        const bool m_small;
+        const int m_sliderParamIndex;
 
     public:
-        TexVSlider(int, int, int, bool, Widget * parent = nullptr, bool autoDelete = false);
+        TexVSlider(int, int, int, int, Widget * parent = nullptr, bool autoDelete = false);
 
     private:
-        static const auto &getParm(int small)
+        static const auto &getParam(int paramIndex)
         {
-            return m_parm[small ? 0 : 1];
+            return m_param[paramIndex];
         }
 
-        const auto &getSelfParm() const
+        const auto &getSelfParam() const
         {
-            return TexVSlider::getParm(m_small);
+            return TexVSlider::getParam(m_sliderParamIndex);
         }
 
     public:

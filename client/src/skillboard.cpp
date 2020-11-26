@@ -111,6 +111,17 @@ SkillBoard::SkillBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget, bool a
           return tabButtonList;
       }())
 
+    , m_slider
+      {
+          326,
+          74,
+
+          266,
+          2,
+
+          this,
+      }
+
     , m_textBoard
       {
           30,
@@ -167,6 +178,7 @@ void SkillBoard::drawEx(int dstX, int dstY, int, int, int, int)
         g_SDLDevice->DrawTexture(texPtr, dstX, dstY);
     }
 
+    m_slider.draw();
     m_textBoard.draw();
     m_closeButton.draw();
 
@@ -197,6 +209,10 @@ bool SkillBoard::processEvent(const SDL_Event &event, bool valid)
     }
 
     if(tabConsumed){
+        return focusConsumer(this, true);
+    }
+
+    if(m_slider.processEvent(event, valid)){
         return focusConsumer(this, true);
     }
 
