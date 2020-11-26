@@ -28,6 +28,23 @@ class ProcessRun;
 class SkillBoard: public Widget
 {
     private:
+        struct magicIcon
+        {
+            // icon width : 40
+            // icon height: 40
+
+            uint32_t magicID;
+
+            int x;
+            int y;
+            char key;
+            bool active;
+        };
+
+    private:
+        std::vector<magicIcon> m_magicIconList;
+
+    private:
         // no need to introduce a new type
         // use two tritex button to micmic the tab button
 

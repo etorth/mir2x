@@ -16,6 +16,7 @@
  * =====================================================================================
  */
 
+#include "dbcomid.hpp"
 #include "pngtexdb.hpp"
 #include "sdldevice.hpp"
 #include "processrun.hpp"
@@ -28,6 +29,13 @@ extern SDLDevice *g_SDLDevice;
 
 SkillBoard::SkillBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget, bool autoDelete)
     : Widget(nX, nY, 0, 0, pwidget, autoDelete)
+    , m_magicIconList
+      {
+          {DBCOM_MAGICID(u8"雷电术"),   12,  78, '?', true},
+          {DBCOM_MAGICID(u8"魔法盾"),  252, 143, '?', true},
+          {DBCOM_MAGICID(u8"召唤骷髅"), 12,  13, '?', true},
+      }
+
     , m_tabButtonList([this]() -> std::vector<std::array<std::unique_ptr<TritexButton>, 2>>
       {
           std::vector<std::array<std::unique_ptr<TritexButton>, 2>> tabButtonList;
