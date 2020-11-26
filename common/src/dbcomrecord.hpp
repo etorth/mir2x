@@ -19,6 +19,7 @@
 
 #pragma once
 #include <cstdint>
+#include "mcrecord.hpp"
 #include "npcrecord.hpp"
 #include "maprecord.hpp"
 #include "itemrecord.hpp"
@@ -39,3 +40,6 @@ const MapRecord &DBCOM_MAPRECORD(const char *);
 
 const NPCRecord &DBCOM_NPCRECORD(uint32_t);
 const NPCRecord &DBCOM_NPCRECORD(const char *);
+
+const MCRecord &DBCOM_MCRECORD(uint32_t);
+const MCRecord &DBCOM_MCRECORD(const char *);

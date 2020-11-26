@@ -20,6 +20,7 @@
 #include "sdldevice.hpp"
 #include "processrun.hpp"
 #include "skillboard.hpp"
+#include "dbcomrecord.hpp"
 #include "tritexbutton.hpp"
 
 extern PNGTexDB *g_progUseDB;
@@ -27,18 +28,6 @@ extern SDLDevice *g_SDLDevice;
 
 SkillBoard::SkillBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget, bool autoDelete)
     : Widget(nX, nY, 0, 0, pwidget, autoDelete)
-    , m_tabNameList
-      {
-          u8"火",
-          u8"冰",
-          u8"雷",
-          u8"风",
-          u8"神圣",
-          u8"暗黑",
-          u8"幻影",
-          u8"神力",
-      }
-
     , m_tabButtonList([this]() -> std::vector<std::array<std::unique_ptr<TritexButton>, 2>>
       {
           std::vector<std::array<std::unique_ptr<TritexButton>, 2>> tabButtonList;
@@ -64,7 +53,7 @@ SkillBoard::SkillBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget, bool a
 
                       [i, this]()
                       {
-                          m_textBoard.setText(u8"【%s系魔法】", to_cstr(m_tabNameList[i]));
+                          m_textBoard.setText(u8"【%s系魔法】", to_cstr(DBCOM_MCRECORD(i + 1).name));
                       },
 
                       [i, this]()
@@ -91,7 +80,10 @@ SkillBoard::SkillBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget, bool a
 
                       {0X05000030 + (uint32_t)(i), 0X05000030 + (uint32_t)(i), 0X05000030 + (uint32_t)(i)},
 
-                      nullptr,
+                      [i, this]()
+                      {
+                          m_textBoard.setText(u8"【%s系魔法】", to_cstr(DBCOM_MCRECORD(i + 1).name));
+                      },
                       nullptr,
 
                       0,
