@@ -36,9 +36,9 @@ SkillBoard::SkillBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget, bool a
           {DBCOM_MAGICID(u8"召唤骷髅"), 12,  13, '?', true},
       }
 
-    , m_tabButtonList([this]() -> std::vector<std::array<std::unique_ptr<TritexButton>, 2>>
+    , m_tabButtonList([this]() -> std::vector<TritexButton *>
       {
-          std::vector<std::array<std::unique_ptr<TritexButton>, 2>> tabButtonList;
+          std::vector<TritexButton *> tabButtonList;
           tabButtonList.reserve(8);
 
           const int tabX = 45;
@@ -47,90 +47,75 @@ SkillBoard::SkillBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget, bool a
 
           // don't know WTF
           // can't compile if use std::vector<TritexButton>
-          // looks for complicated parameter list the forward can't be done correctly ???
+          // looks for complicated parameter list gcc can't forward correctly ???
 
           for(int i = 0; i < 8; ++i){
-              tabButtonList.emplace_back(std::array<std::unique_ptr<TritexButton>, 2>
+              tabButtonList.push_back(new TritexButton
               {
-                  std::unique_ptr<TritexButton>(new TritexButton // inactive
+                  tabX + tabW * i,
+                  tabY,
+
+                  {SYS_TEXNIL, 0X05000020 + (uint32_t)(i), 0X05000030 + (uint32_t)(i)},
+
+                  [i, this]()
                   {
-                      tabX + tabW * i,
-                      tabY,
+                      const int meType = i + 1;
+                      if(meType >= MET_BEGIN && meType < MET_END){
+                          m_textBoard.setText(u8"元素【%s】", to_cstr(magicElemName(i + 1)));
+                      }
+                      else{
+                          m_textBoard.setText(u8"元素【无】");
+                      }
+                  },
 
-                      {SYS_TEXNIL, 0X05000020 + (uint32_t)(i), 0X05000030 + (uint32_t)(i)},
-
-                      [i, this]()
-                      {
-                          const int meType = i + 1;
-                          if(meType >= MET_BEGIN && meType < MET_END){
-                              m_textBoard.setText(u8"元素【%s】", to_cstr(magicElemName(i + 1)));
-                          }
-                          else{
-                              m_textBoard.setText(u8"元素【无】");
-                          }
-                      },
-
-                      [i, this]()
-                      {
-                          m_textBoard.setText(u8"元素");
-                      },
-
-                      [i, this]()
-                      {
-                          if(m_tabIndex != i){
-                              m_slider.setValue(0);
-                          }
-
-                          m_tabButtonList.at(i)         .at(0)->setOff();
-                          m_tabButtonList.at(m_tabIndex).at(0)->setOff();
-                          m_tabIndex = i;
-                      },
-
-                      0,
-                      0,
-                      0,
-                      0,
-
-                      false,
-                      this,
-                      false,
-                  }),
-
-                  std::unique_ptr<TritexButton>(new TritexButton // active
+                  [i, this]()
                   {
-                      tabX + tabW * i,
-                      tabY,
+                      m_textBoard.setText(u8"元素");
+                  },
 
-                      {0X05000030 + (uint32_t)(i), 0X05000030 + (uint32_t)(i), 0X05000030 + (uint32_t)(i)},
+                  [i, this]()
+                  {
+                      if(m_tabIndex == i){
+                          return;
+                      }
 
-                      [i, this]()
+                      m_tabButtonList.at(i)->setTexID(
                       {
-                          const int meType = i + 1;
-                          if(meType >= MET_BEGIN && meType < MET_END){
-                              m_textBoard.setText(u8"元素【%s】", to_cstr(magicElemName(i + 1)));
-                          }
-                          else{
-                              m_textBoard.setText(u8"元素【无】");
-                          }
-                      },
+                          0X05000030 + (uint32_t)(i),
+                          0X05000030 + (uint32_t)(i),
+                          0X05000030 + (uint32_t)(i),
+                      });
 
-                      [i, this]()
+                      m_tabButtonList.at(m_tabIndex)->setOff();
+                      m_tabButtonList.at(m_tabIndex)->setTexID(
                       {
-                          m_textBoard.setText(u8"元素");
-                      },
+                          SYS_TEXNIL,
+                          0X05000020 + (uint32_t)(m_tabIndex),
+                          0X05000030 + (uint32_t)(m_tabIndex),
+                      });
 
-                      nullptr,
+                      m_tabIndex = i;
+                      m_slider.setValue(0);
+                  },
 
-                      0,
-                      0,
-                      0,
-                      0,
+                  0,
+                  0,
+                  0,
+                  0,
 
-                      false,
-                      this,
-                      false,
-                  }),
+                  false,
+                  this,
+                  true,
               });
+
+              if(i == m_tabIndex){
+                  m_tabButtonList.at(i)->setTexID(
+                  {
+                      0X05000030 + (uint32_t)(i),
+                      0X05000030 + (uint32_t)(i),
+                      0X05000030 + (uint32_t)(i),
+                  });
+              }
           }
           return tabButtonList;
       }())
@@ -220,8 +205,8 @@ void SkillBoard::drawEx(int dstX, int dstY, int, int, int, int)
     m_textBoard.draw();
     m_closeButton.draw();
 
-    for(int i = 0; i < (int)(m_tabButtonList.size()); ++i){
-        m_tabButtonList.at(i).at(i == m_tabIndex)->draw();
+    for(auto buttonPtr: m_tabButtonList){
+        buttonPtr->draw();
     }
     drawPage();
 }
@@ -241,10 +226,8 @@ bool SkillBoard::processEvent(const SDL_Event &event, bool valid)
     }
 
     bool tabConsumed = false;
-    const int lastTabIndex = m_tabIndex; // may change in callback
-
-    for(int i = 0; i < (int)(m_tabButtonList.size()); ++i){
-        tabConsumed |= m_tabButtonList.at(i).at(i == lastTabIndex)->processEvent(event, valid && !tabConsumed);
+    for(auto buttonPtr: m_tabButtonList){
+        tabConsumed |= buttonPtr->processEvent(event, valid && !tabConsumed);
     }
 
     if(tabConsumed){

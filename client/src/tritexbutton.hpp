@@ -87,4 +87,12 @@ class TritexButton: public ButtonBase
                 int) override;  // size to draw
     private:
         void initButtonSize();
+
+    public:
+        void setTexID(const uint32_t (&texID)[3])
+        {
+            for(int i: {0, 1, 2}){
+                m_texID[i] = texID[i];
+            }
+        }
 };

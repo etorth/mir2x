@@ -50,7 +50,7 @@ class SkillBoard: public Widget
         // use two tritex button to micmic the tab button
 
         int m_tabIndex = 0;
-        std::vector<std::array<std::unique_ptr<TritexButton>, 2>> m_tabButtonList;
+        std::vector<TritexButton *> m_tabButtonList;
 
     private:
         TexVSlider m_slider;
