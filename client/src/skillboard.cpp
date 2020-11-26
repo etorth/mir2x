@@ -63,6 +63,10 @@ SkillBoard::SkillBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget, bool a
 
                       [i, this]()
                       {
+                          if(m_tabIndex != i){
+                              m_slider.setValue(0);
+                          }
+
                           m_tabButtonList.at(i)         .at(0)->setOff();
                           m_tabButtonList.at(m_tabIndex).at(0)->setOff();
                           m_tabIndex = i;
@@ -172,6 +176,20 @@ void SkillBoard::update(double)
 {
 }
 
+void SkillBoard::drawPage()
+{
+    const auto [pageX, pageY, pageW, pageH] = getPageRectange();
+    if(auto texPtr = g_progUseDB->Retrieve(0X05000010 + m_tabIndex)){
+        const auto [texW, texH] = SDLDevice::getTextureSize(texPtr);
+        if(texH < pageH){
+            g_SDLDevice->DrawTexture(texPtr, x() + pageX, y() + pageY);
+        }
+        else{
+            g_SDLDevice->DrawTexture(texPtr, x() + pageX, y() + pageY, 0, std::lround((texH - pageH) * m_slider.getValue()), texW, pageH);
+        }
+    }
+}
+
 void SkillBoard::drawEx(int dstX, int dstY, int, int, int, int)
 {
     if(auto texPtr = g_progUseDB->Retrieve(0X05000000)){
@@ -185,6 +203,7 @@ void SkillBoard::drawEx(int dstX, int dstY, int, int, int, int)
     for(int i = 0; i < (int)(m_tabButtonList.size()); ++i){
         m_tabButtonList.at(i).at(i == m_tabIndex)->draw();
     }
+    drawPage();
 }
 
 bool SkillBoard::processEvent(const SDL_Event &event, bool valid)

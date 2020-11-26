@@ -17,6 +17,7 @@
  */
 
 #pragma once
+#include <array>
 #include <memory>
 #include "widget.hpp"
 #include "labelboard.hpp"
@@ -52,4 +53,13 @@ class SkillBoard: public Widget
         void update(double) override;
         void drawEx(int, int, int, int, int, int) override;
         bool processEvent(const SDL_Event &, bool) override;
+
+    private:
+        void drawPage();
+
+    private:
+        static std::array<int, 4> getPageRectange()
+        {
+            return {18, 44, 304, 329};
+        }
 };
