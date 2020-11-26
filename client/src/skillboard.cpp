@@ -61,12 +61,18 @@ SkillBoard::SkillBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget, bool a
 
                       [i, this]()
                       {
-                          m_textBoard.setText(u8"【%s系魔法】", to_cstr(DBCOM_MCRECORD(i + 1).name));
+                          const int meType = i + 1;
+                          if(meType >= MET_BEGIN && meType < MET_END){
+                              m_textBoard.setText(u8"元素【%s】", to_cstr(magicElemName(i + 1)));
+                          }
+                          else{
+                              m_textBoard.setText(u8"元素【无】");
+                          }
                       },
 
                       [i, this]()
                       {
-                          m_textBoard.setText(u8"【魔法】");
+                          m_textBoard.setText(u8"元素");
                       },
 
                       [i, this]()
@@ -99,12 +105,18 @@ SkillBoard::SkillBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget, bool a
 
                       [i, this]()
                       {
-                          m_textBoard.setText(u8"【%s系魔法】", to_cstr(DBCOM_MCRECORD(i + 1).name));
+                          const int meType = i + 1;
+                          if(meType >= MET_BEGIN && meType < MET_END){
+                              m_textBoard.setText(u8"元素【%s】", to_cstr(magicElemName(i + 1)));
+                          }
+                          else{
+                              m_textBoard.setText(u8"元素【无】");
+                          }
                       },
 
                       [i, this]()
                       {
-                          m_textBoard.setText(u8"【魔法】");
+                          m_textBoard.setText(u8"元素");
                       },
 
                       nullptr,

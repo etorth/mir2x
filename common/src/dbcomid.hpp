@@ -18,7 +18,6 @@
 
 #pragma once
 #include <cstdint>
-#include "mcrecord.hpp"
 #include "npcrecord.hpp"
 #include "maprecord.hpp"
 #include "itemrecord.hpp"
@@ -64,11 +63,6 @@ namespace
     {
         #include "maprecord.inc"
     };
-
-    constexpr MCRecord _inn_MCRecordList []
-    {
-        #include "mcrecord.inc"
-    };
 }
 
 template<typename T, size_t N> constexpr uint32_t DBCOM_IDHELPER(const T (&itemList)[N], const char8_t *name)
@@ -88,4 +82,3 @@ constexpr uint32_t DBCOM_MONSTERID(const char8_t *name) { return DBCOM_IDHELPER(
 constexpr uint32_t DBCOM_MAGICID  (const char8_t *name) { return DBCOM_IDHELPER(_inn_MagicRecordList,   name); }
 constexpr uint32_t DBCOM_MAPID    (const char8_t *name) { return DBCOM_IDHELPER(_inn_MapRecordList,     name); }
 constexpr uint32_t DBCOM_NPCID    (const char8_t *name) { return DBCOM_IDHELPER(_inn_NPCRecordList,     name); }
-constexpr uint32_t DBCOM_MCID     (const char8_t *name) { return DBCOM_IDHELPER(_inn_MCRecordList,      name); }

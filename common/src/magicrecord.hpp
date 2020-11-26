@@ -21,6 +21,34 @@
 #include "sysconst.hpp"
 #include "constexprf.hpp"
 
+enum MagicElemType: int
+{
+    MET_NONE  = 0,
+    MET_BEGIN = 1,
+    MET_FIRE  = 1,
+    MET_ICE,
+    MET_THUNDER,
+    MET_WIND,
+    MET_HOLY,
+    MET_DARK,
+    MET_PHANTOM,
+    MET_END,
+};
+
+constexpr inline const char8_t *magicElemName(int type)
+{
+    switch(type){
+        case MET_FIRE     : return u8"火";
+        case MET_ICE      : return u8"冰";
+        case MET_THUNDER  : return u8"雷";
+        case MET_WIND     : return u8"风";
+        case MET_HOLY     : return u8"神圣";
+        case MET_DARK     : return u8"暗黑";
+        case MET_PHANTOM  : return u8"幻影";
+        default           : return u8"";
+    }
+}
+
 // use EG_ rather than GE_ here
 // otherwise for GfxEntryType we get GET_XXXX
 
