@@ -27,89 +27,13 @@
 extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_SDLDevice;
 
-SkillBoard::SkillPage::SkillPage(Widget *widgetPtr, bool autoDelete)
-    : WidgetGroup
-      {
-          SkillBoard::getPageRectange().at(0),
-          SkillBoard::getPageRectange().at(1),
-          SkillBoard::getPageRectange().at(2),
-          SkillBoard::getPageRectange().at(3),
-          widgetPtr,
-          autoDelete,
-      }
-{}
-
-void SkillBoard::SkillPage::addIcon(SkillBoard::MagicIconData *iconDataPtr)
-{
-    if(!iconDataPtr){
-        throw fflerror("invalid icon data pointer: (null)");
-    }
-
-    const auto iconGfxID = [iconDataPtr]() -> uint32_t
-    {
-        if(iconDataPtr->active){
-            return DBCOM_MAGICRECORD(iconDataPtr->magicID).icon;
-        }
-        return SYS_TEXNIL;
-    }();
-
-    new TritexButton
-    {
-        iconDataPtr->x,
-        iconDataPtr->y,
-
-        {
-            iconGfxID,
-            iconGfxID,
-            iconGfxID,
-        },
-
-        nullptr,
-        nullptr,
-        nullptr,
-
-        0,
-        0,
-        0,
-        0,
-
-        false,
-        this,
-        true,
-    };
-}
-
-void SkillBoard::SkillPage::setPageImage(uint32_t texID)
-{
-    new TritexButton
-    {
-        0,
-        0,
-
-        {texID, texID, texID},
-
-        nullptr,
-        nullptr,
-        nullptr,
-
-        0,
-        0,
-        0,
-        0,
-
-        false,
-        this,
-        true,
-    };
-}
-
 SkillBoard::SkillBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget, bool autoDelete)
     : Widget(nX, nY, 0, 0, pwidget, autoDelete)
     , m_magicIconDataList
       {
-          {DBCOM_MAGICID(u8"雷电术"),   1,  12,  78, '\0', true},
-          {DBCOM_MAGICID(u8"魔法盾"),   1, 252, 143, '\0', true},
-          {DBCOM_MAGICID(u8"召唤骷髅"), 1,  12,  13, '\0', true},
+          {DBCOM_MAGICID(u8"雷电术"),   1,  12,  78, 'T'},
+          {DBCOM_MAGICID(u8"魔法盾"),   1, 252, 143, 'Y'},
+          {DBCOM_MAGICID(u8"召唤骷髅"), 1,  12,  13, 'U'},
       }
 
     , m_skillPageList([this]() -> std::vector<SkillBoard::SkillPage *>
@@ -124,12 +48,12 @@ SkillBoard::SkillBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget, bool a
                   true,
               };
 
-              for(auto &iconCRef: m_magicIconDataList){
-                  if(!iconCRef.magicID){
+              for(auto &iconRef: m_magicIconDataList){
+                  if(!iconRef.magicID){
                       continue;
                   }
 
-                  const auto &mr = DBCOM_MAGICRECORD(iconCRef.magicID);
+                  const auto &mr = DBCOM_MAGICRECORD(iconRef.magicID);
                   const auto tabIndex = [&mr]() -> int
                   {
                       if(mr.elem == MET_NONE){
@@ -144,7 +68,7 @@ SkillBoard::SkillBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget, bool a
                   }();
 
                   if(i == tabIndex){
-                      pagePtr->addIcon(&iconCRef);
+                      pagePtr->addIcon(&iconRef);
                   }
               }
 
@@ -248,6 +172,15 @@ SkillBoard::SkillBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget, bool a
           266,
           2,
 
+          [this](float value)
+          {
+              const auto r = SkillBoard::getPageRectange();
+              const int pageImageHeight = m_skillPageList.at(m_tabIndex)->pageImageSize().at(1);
+
+              if(r[3] < pageImageHeight){
+                  m_skillPageList.at(m_tabIndex)->moveTo(r[0], r[1] + (pageImageHeight - r[3]) * value);
+              }
+          },
           this,
       }
 

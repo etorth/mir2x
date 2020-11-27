@@ -586,6 +586,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
 
           60,
           0,
+          nullptr,
 
           &m_middle,
       }

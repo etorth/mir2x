@@ -26,6 +26,7 @@
  */
 
 #pragma once
+#include <functional>
 #include "widget.hpp"
 #include "bevent.hpp"
 
@@ -42,12 +43,16 @@ class Slider: public Widget
     private:
         float m_value = 0.0f;
 
+    private:
+        std::function<void(float)> m_onChanged;
+
     public:
-        Slider(int x, int y, int w, int h, bool hslider, int sliderW, int sliderH, Widget *parent = nullptr, bool autoDelete = false)
+        Slider(int x, int y, int w, int h, const std::function<void(float)> &onChanged, bool hslider, int sliderW, int sliderH, Widget *parent = nullptr, bool autoDelete = false)
             : Widget(x, y, w, h, parent, autoDelete)
             , m_hslider(hslider)
             , m_sliderW(sliderW)
             , m_sliderH(sliderH)
+            , m_onChanged(onChanged)
         {}
 
     public:

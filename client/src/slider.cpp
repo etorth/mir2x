@@ -48,6 +48,10 @@ bool Slider::processEvent(const SDL_Event &e, bool valid)
                         }
                         return ((e.button.y - y()) * 1.0f) / h();
                     }());
+
+                    if(m_onChanged){
+                        m_onChanged(getValue());
+                    }
                     return focusConsumer(this, true);
                 }
                 else{
@@ -76,7 +80,11 @@ bool Slider::processEvent(const SDL_Event &e, bool valid)
                         else{
                             addValue(pixel2Value(e.motion.yrel));
                         }
+
                         m_sliderState = BEVENT_DOWN;
+                        if(m_onChanged){
+                            m_onChanged(getValue());
+                        }
                         return focusConsumer(this, true);
                     }
                     else{
