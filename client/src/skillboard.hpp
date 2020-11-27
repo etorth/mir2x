@@ -46,7 +46,7 @@ class SkillBoard: public Widget
         struct SkillPage: public WidgetGroup
         {
             public:
-                SkillPage(Widget *, bool, void *);
+                SkillPage(Widget *, bool);
 
             public:
                 void setPageImage(uint32_t);

@@ -23,8 +23,7 @@
 bool Slider::processEvent(const SDL_Event &e, bool valid)
 {
     if(!valid){
-        focus(false);
-        return false;
+        return focusConsumer(this, false);
     }
 
     auto fnInSlider = [this](int eventX, int eventY) -> bool
@@ -38,8 +37,7 @@ bool Slider::processEvent(const SDL_Event &e, bool valid)
             {
                 if(fnInSlider(e.button.x, e.button.y)){
                     m_sliderState = BEVENT_DOWN;
-                    focus(true);
-                    return true;
+                    return focusConsumer(this, true);
                 }
                 else if(in(e.button.x, e.button.y)){
                     m_sliderState = BEVENT_ON;
@@ -50,26 +48,22 @@ bool Slider::processEvent(const SDL_Event &e, bool valid)
                         }
                         return ((e.button.y - y()) * 1.0f) / h();
                     }());
-                    focus(true);
-                    return true;
+                    return focusConsumer(this, true);
                 }
                 else{
                     m_sliderState = BEVENT_OFF;
-                    focus(false);
-                    return false;
+                    return focusConsumer(this, false);
                 }
             }
         case SDL_MOUSEBUTTONUP:
             {
                 if(fnInSlider(e.button.x, e.button.y)){
                     m_sliderState = BEVENT_ON;
-                    focus(true);
-                    return true;
+                    return focusConsumer(this, true);
                 }
                 else{
                     m_sliderState = BEVENT_OFF;
-                    focus(false);
-                    return false;
+                    return focusConsumer(this, false);
                 }
             }
         case SDL_MOUSEMOTION:
@@ -83,32 +77,27 @@ bool Slider::processEvent(const SDL_Event &e, bool valid)
                             addValue(pixel2Value(e.motion.yrel));
                         }
                         m_sliderState = BEVENT_DOWN;
-                        focus(true);
-                        return true;
+                        return focusConsumer(this, true);
                     }
                     else{
                         m_sliderState = BEVENT_OFF;
-                        focus(false);
-                        return false;
+                        return focusConsumer(this, false);
                     }
                 }
                 else{
                     if(fnInSlider(e.motion.x, e.motion.y)){
                         m_sliderState = BEVENT_ON;
-                        focus(true);
-                        return true;
+                        return focusConsumer(this, true);
                     }
                     else{
                         m_sliderState = BEVENT_OFF;
-                        focus(false);
-                        return false;
+                        return focusConsumer(this, false);
                     }
                 }
             }
         default:
             {
-                focus(false);
-                return false;
+                return focusConsumer(this, false);
             }
     }
 }

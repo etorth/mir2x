@@ -27,7 +27,7 @@
 extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_SDLDevice;
 
-SkillBoard::SkillPage::SkillPage(Widget *widgetPtr, bool autoDelete, void *dataPtr)
+SkillBoard::SkillPage::SkillPage(Widget *widgetPtr, bool autoDelete)
     : WidgetGroup
       {
           SkillBoard::getPageRectange().at(0),
@@ -36,7 +36,6 @@ SkillBoard::SkillPage::SkillPage(Widget *widgetPtr, bool autoDelete, void *dataP
           SkillBoard::getPageRectange().at(3),
           widgetPtr,
           autoDelete,
-          dataPtr,
       }
 {}
 
@@ -77,7 +76,6 @@ void SkillBoard::SkillPage::addIcon(SkillBoard::MagicIconData *iconDataPtr)
         false,
         this,
         true,
-        nullptr,
     };
 }
 
@@ -102,7 +100,6 @@ void SkillBoard::SkillPage::setPageImage(uint32_t texID)
         false,
         this,
         true,
-        nullptr,
     };
 }
 
@@ -125,7 +122,6 @@ SkillBoard::SkillBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget, bool a
               {
                   this,
                   true,
-                  nullptr,
               };
 
               for(auto &iconCRef: m_magicIconDataList){
