@@ -178,7 +178,7 @@ SkillBoard::SkillBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget, bool a
               const int pageImageHeight = m_skillPageList.at(m_tabIndex)->pageImageSize().at(1);
 
               if(r[3] < pageImageHeight){
-                  m_skillPageList.at(m_tabIndex)->moveTo(r[0], r[1] + (pageImageHeight - r[3]) * value);
+                  m_skillPageList.at(m_tabIndex)->moveTo(r[0], r[1] - (pageImageHeight - r[3]) * value);
               }
           },
           this,
@@ -188,7 +188,7 @@ SkillBoard::SkillBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget, bool a
       {
           30,
           400,
-          u8"【魔法】",
+          u8"元素",
 
           1,
           12,
