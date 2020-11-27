@@ -110,9 +110,9 @@ SkillBoard::SkillBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget, bool a
     : Widget(nX, nY, 0, 0, pwidget, autoDelete)
     , m_magicIconDataList
       {
-          {DBCOM_MAGICID(u8"雷电术"),   12,  78, '?', true},
-          {DBCOM_MAGICID(u8"魔法盾"),  252, 143, '?', true},
-          {DBCOM_MAGICID(u8"召唤骷髅"), 12,  13, '?', true},
+          {DBCOM_MAGICID(u8"雷电术"),   1,  12,  78, '\0', true},
+          {DBCOM_MAGICID(u8"魔法盾"),   1, 252, 143, '\0', true},
+          {DBCOM_MAGICID(u8"召唤骷髅"), 1,  12,  13, '\0', true},
       }
 
     , m_skillPageList([this]() -> std::vector<SkillBoard::SkillPage *>

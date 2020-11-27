@@ -34,9 +34,11 @@ class SkillBoard: public Widget
             // icon height: 40
 
             uint32_t magicID;
+            int level;
 
             int x;
             int y;
+
             char key;
             bool active;
         };
