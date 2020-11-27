@@ -28,7 +28,7 @@ class ProcessRun;
 class SkillBoard: public Widget
 {
     private:
-        struct magicIcon
+        struct MagicIconData
         {
             // icon width : 40
             // icon height: 40
@@ -41,9 +41,22 @@ class SkillBoard: public Widget
             bool active;
         };
 
+        struct SkillPage: public WidgetGroup
+        {
+            public:
+                SkillPage(Widget *, bool, void *);
+
+            public:
+                void setPageImage(uint32_t);
+                void addIcon(MagicIconData *);
+        };
+
     private:
-        int m_magicIndex = -1;
-        std::vector<magicIcon> m_magicIconList;
+        int m_magicIconIndex = -1;
+        std::vector<MagicIconData> m_magicIconDataList;
+
+    private:
+        std::vector<SkillPage *> m_skillPageList;
 
     private:
         // no need to introduce a new type
@@ -71,9 +84,6 @@ class SkillBoard: public Widget
         void update(double) override;
         void drawEx(int, int, int, int, int, int) override;
         bool processEvent(const SDL_Event &, bool) override;
-
-    private:
-        void drawPage();
 
     private:
         static std::array<int, 4> getPageRectange()

@@ -27,14 +27,138 @@
 extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_SDLDevice;
 
+SkillBoard::SkillPage::SkillPage(Widget *widgetPtr, bool autoDelete, void *dataPtr)
+    : WidgetGroup
+      {
+          SkillBoard::getPageRectange().at(0),
+          SkillBoard::getPageRectange().at(1),
+          SkillBoard::getPageRectange().at(2),
+          SkillBoard::getPageRectange().at(3),
+          widgetPtr,
+          autoDelete,
+          dataPtr,
+      }
+{}
+
+void SkillBoard::SkillPage::addIcon(SkillBoard::MagicIconData *iconDataPtr)
+{
+    if(!iconDataPtr){
+        throw fflerror("invalid icon data pointer: (null)");
+    }
+
+    const auto iconGfxID = [iconDataPtr]() -> uint32_t
+    {
+        if(iconDataPtr->active){
+            return DBCOM_MAGICRECORD(iconDataPtr->magicID).icon;
+        }
+        return SYS_TEXNIL;
+    }();
+
+    new TritexButton
+    {
+        iconDataPtr->x,
+        iconDataPtr->y,
+
+        {
+            iconGfxID,
+            iconGfxID,
+            iconGfxID,
+        },
+
+        nullptr,
+        nullptr,
+        nullptr,
+
+        0,
+        0,
+        0,
+        0,
+
+        false,
+        this,
+        true,
+        nullptr,
+    };
+}
+
+void SkillBoard::SkillPage::setPageImage(uint32_t texID)
+{
+    new TritexButton
+    {
+        0,
+        0,
+
+        {texID, texID, texID},
+
+        nullptr,
+        nullptr,
+        nullptr,
+
+        0,
+        0,
+        0,
+        0,
+
+        false,
+        this,
+        true,
+        nullptr,
+    };
+}
+
 SkillBoard::SkillBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget, bool autoDelete)
     : Widget(nX, nY, 0, 0, pwidget, autoDelete)
-    , m_magicIconList
+    , m_magicIconDataList
       {
           {DBCOM_MAGICID(u8"雷电术"),   12,  78, '?', true},
           {DBCOM_MAGICID(u8"魔法盾"),  252, 143, '?', true},
           {DBCOM_MAGICID(u8"召唤骷髅"), 12,  13, '?', true},
       }
+
+    , m_skillPageList([this]() -> std::vector<SkillBoard::SkillPage *>
+      {
+          std::vector<SkillBoard::SkillPage *> pageList;
+          pageList.reserve(8);
+
+          for(int i = 0; i < 8; ++i){
+              auto pagePtr = new SkillBoard::SkillPage
+              {
+                  this,
+                  true,
+                  nullptr,
+              };
+
+              for(auto &iconCRef: m_magicIconDataList){
+                  if(!iconCRef.magicID){
+                      continue;
+                  }
+
+                  const auto &mr = DBCOM_MAGICRECORD(iconCRef.magicID);
+                  const auto tabIndex = [&mr]() -> int
+                  {
+                      if(mr.elem == MET_NONE){
+                          return 0;
+                      }
+                      else if(mr.elem < MET_END){
+                          return mr.elem - 1;
+                      }
+                      else{
+                          return -1;
+                      }
+                  }();
+
+                  if(i == tabIndex){
+                      pagePtr->addIcon(&iconCRef);
+                  }
+              }
+
+              // need to push background image at last
+              // otherwise it hide all buttons, check draw order of WidgetGroup::drawEx()
+              pagePtr->setPageImage(0X05000010 + (uint32_t)(i));
+              pageList.push_back(pagePtr);
+          }
+          return pageList;
+      }())
 
     , m_tabButtonList([this]() -> std::vector<TritexButton *>
       {
@@ -177,24 +301,6 @@ SkillBoard::SkillBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget, bool a
     }
 }
 
-void SkillBoard::update(double)
-{
-}
-
-void SkillBoard::drawPage()
-{
-    const auto [pageX, pageY, pageW, pageH] = getPageRectange();
-    if(auto texPtr = g_progUseDB->Retrieve(0X05000010 + m_tabIndex)){
-        const auto [texW, texH] = SDLDevice::getTextureSize(texPtr);
-        if(texH < pageH){
-            g_SDLDevice->DrawTexture(texPtr, x() + pageX, y() + pageY);
-        }
-        else{
-            g_SDLDevice->DrawTexture(texPtr, x() + pageX, y() + pageY, 0, std::lround((texH - pageH) * m_slider.getValue()), texW, pageH);
-        }
-    }
-}
-
 void SkillBoard::drawEx(int dstX, int dstY, int, int, int, int)
 {
     if(auto texPtr = g_progUseDB->Retrieve(0X05000000)){
@@ -208,7 +314,11 @@ void SkillBoard::drawEx(int dstX, int dstY, int, int, int, int)
     for(auto buttonPtr: m_tabButtonList){
         buttonPtr->draw();
     }
-    drawPage();
+    m_skillPageList.at(m_tabIndex)->draw();
+}
+
+void SkillBoard::update(double)
+{
 }
 
 bool SkillBoard::processEvent(const SDL_Event &event, bool valid)

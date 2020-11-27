@@ -45,7 +45,8 @@ class TritexButton: public ButtonBase
 
                 bool    bOnClickDone = true,
                 Widget *pwidget      = nullptr,
-                bool    bFreewidget  = false)
+                bool    bFreewidget  = false,
+                void   *dataPtr      = nullptr)
             : ButtonBase
               {
                   argX,
@@ -65,6 +66,7 @@ class TritexButton: public ButtonBase
                   bOnClickDone,
                   pwidget,
                   bFreewidget,
+                  dataPtr,
               }
             , m_texID
               {

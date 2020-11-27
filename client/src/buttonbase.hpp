@@ -66,8 +66,9 @@ class ButtonBase: public Widget
 
                 bool    onClickDone = true,
                 Widget *widgetPtr   = nullptr,
-                bool    autoFree    = false)
-            : Widget(argX, argY, argW, argH, widgetPtr, autoFree)
+                bool    autoFree    = false,
+                void   *dataPtr     = nullptr)
+            : Widget(argX, argY, argW, argH, widgetPtr, autoFree, dataPtr)
             , m_state(BEVENT_OFF)
             , m_onClickDone(onClickDone)
             , m_offset

@@ -42,7 +42,16 @@ class Widget
         };
 
     protected:
-        Widget *m_parent;
+        Widget * const m_parent;
+
+    private:
+        // sometime we want to bind data to widget (like a Button)
+        // we can do:
+        //     1. derived from the Button, so need to redefine at least the ctor
+        //     2. use std::pair<Button, data>
+        //     3. use Widget::setData()
+        // this supports the 3rd idea, hacky but easy to handle
+        void *m_data;
 
     protected:
         bool m_show;
@@ -60,8 +69,9 @@ class Widget
         std::list<childNode> m_childList;
 
     public:
-        Widget(int x, int y, int w = 0, int h = 0, Widget *parent = nullptr, bool autoDelete = false)
+        Widget(int x, int y, int w = 0, int h = 0, Widget *parent = nullptr, bool autoDelete = false, void *dataPtr = nullptr)
             : m_parent(parent)
+            , m_data(dataPtr)
             , m_show(true)
             , m_focus(false)
             , m_x(x)
@@ -200,6 +210,22 @@ class Widget
             m_x = x;
             m_y = y;
         }
+
+    public:
+        void *getData()
+        {
+            return m_data;
+        }
+
+        const void *getData() const
+        {
+            return m_data;
+        }
+
+        void setData(void *dataPtr)
+        {
+            m_data = dataPtr;
+        }
 };
 
 // simple *tiling* widget group
@@ -208,8 +234,8 @@ class Widget
 class WidgetGroup: public Widget
 {
     public:
-        WidgetGroup(int x, int y, int w, int h, Widget *parent = nullptr, bool autoDelete = false)
-            : Widget(x, y, w, h, parent, autoDelete)
+        WidgetGroup(int x, int y, int w, int h, Widget *parent = nullptr, bool autoDelete = false, void *dataPtr = nullptr)
+            : Widget(x, y, w, h, parent, autoDelete, dataPtr)
         {}
 
     public:
@@ -262,7 +288,7 @@ class WidgetGroup: public Widget
                             p->child->dx(), p->child->dy(), p->child->w(), p->child->h())){
                     continue;
                 }
-                p->child->drawEx(dstXCrop, dstYCrop, srcXCrop - dx(), srcYCrop - dy(), srcWCrop, srcHCrop);
+                p->child->drawEx(dstXCrop, dstYCrop, srcXCrop - p->child->dx(), srcYCrop - p->child->dy(), srcWCrop, srcHCrop);
             }
         }
 };

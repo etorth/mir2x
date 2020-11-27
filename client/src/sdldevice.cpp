@@ -197,6 +197,9 @@ void SDLDevice::DrawTexture(SDL_Texture *pstTexture,
         SDL_Rect stSrc {nSrcX, nSrcY, nSrcW, nSrcH};
         SDL_Rect stDst {nDstX, nDstY, nDstW, nDstH};
         SDL_RenderCopy(m_renderer, pstTexture, &stSrc, &stDst);
+        if(g_clientArgParser->debugDrawTexture){
+            DrawRectangle(colorf::BLUE + 128, nDstX, nDstY, nDstW, nDstH);
+        }
     }
 }
 
@@ -205,11 +208,7 @@ void SDLDevice::DrawTexture(SDL_Texture *pstTexture,
         int nSrcX, int nSrcY,
         int nSrcW, int nSrcH)
 {
-    if(pstTexture){
-        SDL_Rect stSrc {nSrcX, nSrcY, nSrcW, nSrcH};
-        SDL_Rect stDst {nDstX, nDstY, nSrcW, nSrcH};
-        SDL_RenderCopy(m_renderer, pstTexture, &stSrc, &stDst);
-    }
+    DrawTexture(pstTexture, nDstX, nDstY, nSrcW, nSrcH, nSrcX, nSrcY, nSrcW, nSrcH);
 }
 
 void SDLDevice::DrawTexture(SDL_Texture *pstTexture, int nX, int nY)
