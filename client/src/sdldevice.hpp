@@ -31,6 +31,19 @@
 class SDLDevice final
 {
     public:
+        struct EventLocation
+        {
+            int  x = -1;
+            int  y = -1;
+            bool hasLocation = false;
+
+            operator bool () const
+            {
+                return hasLocation;
+            }
+        };
+
+    public:
         struct EnableDrawColor
         {
             EnableDrawColor(uint32_t);
@@ -296,4 +309,24 @@ class SDLDevice final
 
     public:
        SDL_Texture *getCover(int);
+
+    public:
+       static EventLocation getEventLocation(const SDL_Event &event)
+       {
+           switch(event.type){
+               case SDL_MOUSEMOTION:
+                   {
+                       return {event.motion.x, event.motion.y, true};
+                   }
+               case SDL_MOUSEBUTTONUP:
+               case SDL_MOUSEBUTTONDOWN:
+                   {
+                       return {event.button.x, event.button.y, true};
+                   }
+               default:
+                   {
+                       return {-1, -1, false};
+                   }
+           }
+       }
 };

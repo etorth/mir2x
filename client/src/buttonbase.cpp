@@ -23,8 +23,14 @@
 bool ButtonBase::processEvent(const SDL_Event &event, bool valid)
 {
     if(!valid){
+        if(m_state != BEVENT_OFF){
+            if(m_onOverOut){
+                m_onOverOut();
+            }
+        }
+
         m_state = BEVENT_OFF;
-        return false;
+        return focusConsumer(this, false);
     }
 
     switch(event.type){
@@ -36,11 +42,11 @@ bool ButtonBase::processEvent(const SDL_Event &event, bool valid)
                     }
 
                     m_state = BEVENT_ON;
-                    return true;
+                    return focusConsumer(this, true);
                 }
                 else{
                     m_state = BEVENT_OFF;
-                    return false;
+                    return focusConsumer(this, false);
                 }
             }
 
@@ -52,11 +58,11 @@ bool ButtonBase::processEvent(const SDL_Event &event, bool valid)
                     }
 
                     m_state = BEVENT_DOWN;
-                    return true;
+                    return focusConsumer(this, true);
                 }
                 else{
                     m_state = BEVENT_OFF;
-                    return false;
+                    return focusConsumer(this, false);
                 }
             }
         case SDL_MOUSEMOTION:
@@ -69,7 +75,7 @@ bool ButtonBase::processEvent(const SDL_Event &event, bool valid)
                     }
 
                     m_state = BEVENT_ON;
-                    return true;
+                    return focusConsumer(this, true);
                 }
                 else{
                     if(m_state != BEVENT_OFF){
@@ -79,12 +85,12 @@ bool ButtonBase::processEvent(const SDL_Event &event, bool valid)
                     }
 
                     m_state = BEVENT_OFF;
-                    return false;
+                    return focusConsumer(this, false);
                 }
             }
         default:
             {
-                return false;
+                return focusConsumer(this, false);
             }
     }
 }

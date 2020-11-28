@@ -285,7 +285,11 @@ bool SkillBoard::processEvent(const SDL_Event &event, bool valid)
         return focusConsumer(this, true);
     }
 
-    if(m_skillPageList.at(m_tabIndex)->processEvent(event, valid)){
+    const auto r = getPageRectange();
+    const auto loc = SDLDevice::getEventLocation(event);
+    const bool captureEvent = loc && mathf::pointInRectangle(loc.x, loc.y, x() + r[0], y() + r[1], r[2], r[3]);
+
+    if(m_skillPageList.at(m_tabIndex)->processEvent(event, captureEvent && valid)){
         return focusConsumer(this, true);
     }
 
