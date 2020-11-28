@@ -215,6 +215,9 @@ class WidgetGroup: public Widget
     public:
         bool processEvent(const SDL_Event &event, bool valid) override
         {
+            // this function alters the draw order
+            // if a WidgetGroup has children having overlapping then be careful
+
             bool took = false;
             auto focusedNode = m_childList.end();
 

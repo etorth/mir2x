@@ -185,20 +185,10 @@ class SkillBoard: public Widget
         class SkillPage: public WidgetGroup
         {
             private:
-                TritexButton *m_pageImage = nullptr;
+                const uint32_t m_pageImage;
 
             public:
-                SkillPage(Widget *widgetPtr, bool autoDelete)
-                    : WidgetGroup
-                      {
-                          SkillBoard::getPageRectange().at(0),
-                          SkillBoard::getPageRectange().at(1),
-                          SkillBoard::getPageRectange().at(2),
-                          SkillBoard::getPageRectange().at(3),
-                          widgetPtr,
-                          autoDelete,
-                      }
-                {}
+                SkillPage(uint32_t, Widget *widgetPtr = nullptr, bool autoDelete = false);
 
             public:
                 void addIcon(SkillBoard::MagicIconData *iconDataPtr)
@@ -218,38 +208,7 @@ class SkillBoard: public Widget
                 }
 
             public:
-                void setPageImage(uint32_t texID)
-                {
-                    m_pageImage = new TritexButton
-                    {
-                        0,
-                        0,
-
-                        {texID, texID, texID},
-
-                        nullptr,
-                        nullptr,
-                        nullptr,
-
-                        0,
-                        0,
-                        0,
-                        0,
-
-                        false,
-                        this,
-                        true,
-                    };
-
-                    m_w = m_pageImage->w();
-                    m_h = m_pageImage->h();
-                }
-
-            public:
-                std::array<int, 2> pageImageSize() const
-                {
-                    return {m_pageImage->w(), m_pageImage->h()};
-                }
+                void drawEx(int, int, int, int, int, int) override;
         };
 
     private:

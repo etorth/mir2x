@@ -27,6 +27,53 @@
 extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_SDLDevice;
 
+SkillBoard::SkillPage::SkillPage(uint32_t pageImage, Widget *widgetPtr, bool autoDelete)
+    : WidgetGroup
+      {
+          SkillBoard::getPageRectange().at(0),
+          SkillBoard::getPageRectange().at(1),
+          0, // reset in ctor body
+          0,
+          widgetPtr,
+          autoDelete,
+      }
+    , m_pageImage(pageImage)
+{
+    std::tie(m_w, m_h) = [this]() -> std::tuple<int, int>
+    {
+        if(auto texPtr = g_progUseDB->Retrieve(m_pageImage)){
+            return SDLDevice::getTextureSize(texPtr);
+        }
+
+        const auto r = SkillBoard::getPageRectange();
+        return {r[2], r[3]};
+    }();
+}
+
+void SkillBoard::SkillPage::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int srcH)
+{
+    if(auto texPtr = g_progUseDB->Retrieve(m_pageImage)){
+        int srcXCrop = srcX;
+        int srcYCrop = srcY;
+        int dstXCrop = dstX;
+        int dstYCrop = dstY;
+        int srcWCrop = srcW;
+        int srcHCrop = srcH;
+
+        const auto [texW, texH] = SDLDevice::getTextureSize(texPtr);
+        if(mathf::ROICrop(
+                    &srcXCrop, &srcYCrop,
+                    &srcWCrop, &srcHCrop,
+                    &dstXCrop, &dstYCrop,
+
+                    texW,
+                    texH)){
+            g_SDLDevice->drawTexture(texPtr, dstXCrop, dstYCrop, srcXCrop, srcYCrop, srcWCrop, srcHCrop);
+        }
+    }
+    WidgetGroup::drawEx(dstX, dstY, srcX, srcY, srcW, srcH);
+}
+
 SkillBoard::SkillBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget, bool autoDelete)
     : Widget(nX, nY, 0, 0, pwidget, autoDelete)
     , m_magicIconDataList
@@ -44,6 +91,7 @@ SkillBoard::SkillBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget, bool a
           for(int i = 0; i < 8; ++i){
               auto pagePtr = new SkillBoard::SkillPage
               {
+                  to_u32(0X05000010 + (uint32_t)(i)),
                   this,
                   true,
               };
@@ -71,10 +119,6 @@ SkillBoard::SkillBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget, bool a
                       pagePtr->addIcon(&iconRef);
                   }
               }
-
-              // need to push background image at last
-              // otherwise it hide all buttons, check draw order of WidgetGroup::drawEx()
-              pagePtr->setPageImage(0X05000010 + (uint32_t)(i));
               pageList.push_back(pagePtr);
           }
           return pageList;
@@ -180,10 +224,10 @@ SkillBoard::SkillBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget, bool a
           [this](float value)
           {
               const auto r = SkillBoard::getPageRectange();
-              const int pageImageHeight = m_skillPageList.at(m_tabIndex)->pageImageSize().at(1);
+              auto pagePtr = m_skillPageList.at(m_tabIndex);
 
-              if(r[3] < pageImageHeight){
-                  m_skillPageList.at(m_tabIndex)->moveTo(r[0], r[1] - (pageImageHeight - r[3]) * value);
+              if(r[3] < pagePtr->h()){
+                  pagePtr->moveTo(r[0], r[1] - (pagePtr->h() - r[3]) * value);
               }
           },
           this,
