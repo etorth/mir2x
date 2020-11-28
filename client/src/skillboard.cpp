@@ -48,21 +48,21 @@ SkillBoard::MagicIconButton::MagicIconButton(int argX, int argY, SkillBoard::Mag
           20,
           0,
 
-          colorf::RGBA(0XFF, 0XFF, 0X00, 0X20),
+          colorf::RGBA(0XFF, 0X80, 0X00, 0X80),
           this,
       }
 
     , m_keyShadow
       {
-          3,
-          3,
+          4,
+          4,
           u8"",
 
           3,
           20,
           0,
 
-          colorf::RGBA(0X00, 0X00, 0X00, 0X20),
+          colorf::RGBA(0X00, 0X00, 0X00, 0X80),
           this,
       }
 
