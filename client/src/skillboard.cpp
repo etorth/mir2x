@@ -27,6 +27,136 @@
 extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_SDLDevice;
 
+SkillBoard::MagicIconButton::MagicIconButton(int argX, int argY, SkillBoard::MagicIconData *iconDataPtr, Widget *widgetPtr, bool autoDelete)
+    : WidgetGroup
+      {
+          argX,
+          argY,
+          0,
+          0,
+          widgetPtr,
+          autoDelete,
+      }
+
+    , m_key
+      {
+          2,
+          2,
+          u8"",
+
+          3,
+          20,
+          0,
+
+          colorf::RGBA(0XFF, 0XFF, 0X00, 0X20),
+          this,
+      }
+
+    , m_keyShadow
+      {
+          3,
+          3,
+          u8"",
+
+          3,
+          20,
+          0,
+
+          colorf::RGBA(0X00, 0X00, 0X00, 0X20),
+          this,
+      }
+
+    , m_level
+      {
+          0,
+          0,
+          u8"",
+
+          3,
+          12,
+          0,
+
+          colorf::RGBA(0XFF, 0XFF, 0X00, 0X00),
+          this,
+      }
+
+    , m_icon
+      {
+          0,
+          0,
+
+          {
+              DBCOM_MAGICRECORD(iconDataPtr->magicID).icon,
+              DBCOM_MAGICRECORD(iconDataPtr->magicID).icon,
+              DBCOM_MAGICRECORD(iconDataPtr->magicID).icon,
+          },
+
+          [iconDataPtr, this]()
+          {
+              iconDataPtr->board->setText(str_printf(u8"元素【%s】%s", to_cstr(magicElemName(DBCOM_MAGICRECORD(iconDataPtr->magicID).elem)), to_cstr(DBCOM_MAGICRECORD(iconDataPtr->magicID).name)));
+          },
+
+          [iconDataPtr, this]()
+          {
+              iconDataPtr->board->setText(str_printf(u8"元素【%s】", to_cstr(magicElemName(iconDataPtr->board->selectedElem()))));
+          },
+          nullptr,
+
+          0,
+          0,
+          0,
+          0,
+
+          false,
+          this,
+          true,
+      }
+{
+    setKey(iconDataPtr->key);
+    setLevel(iconDataPtr->level);
+
+    m_level.moveTo(m_icon.w() - 2, m_icon.h() - 1);
+    m_w = m_level.dx() + m_level.w();
+    m_h = m_level.dy() + m_level.h();
+}
+
+void SkillBoard::MagicIconButton::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int srcH)
+{
+    // to make sure the key always draw on top
+    // otherwise WidgetGroup changes draw order when triggers icon callback, check WidgetGroup::drawEx()
+
+    WidgetGroup::drawEx(dstX, dstY, srcX, srcY, srcW, srcH);
+    const auto fnDrawKey = [dstX, dstY, srcX, srcY, srcW, srcH, this](LabelBoard *b)
+    {
+        if(!b->show()){
+            return;
+        }
+
+        int srcXCrop = srcX;
+        int srcYCrop = srcY;
+        int dstXCrop = dstX;
+        int dstYCrop = dstY;
+        int srcWCrop = srcW;
+        int srcHCrop = srcH;
+
+        if(!mathf::ROICrop(
+                    &srcXCrop, &srcYCrop,
+                    &srcWCrop, &srcHCrop,
+                    &dstXCrop, &dstYCrop,
+
+                    w(),
+                    h(),
+
+                    b->dx(), b->dy(), b->w(), b->h())){
+            return;
+        }
+        b->drawEx(dstXCrop, dstYCrop, srcXCrop - b->dx(), srcYCrop - b->dy(), srcWCrop, srcHCrop);
+    };
+
+    fnDrawKey(&m_keyShadow);
+    fnDrawKey(&m_key);
+}
+
 SkillBoard::SkillPage::SkillPage(uint32_t pageImage, Widget *widgetPtr, bool autoDelete)
     : WidgetGroup
       {

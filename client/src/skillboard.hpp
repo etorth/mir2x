@@ -64,98 +64,10 @@ class SkillBoard: public Widget
                 TritexButton m_icon;
 
             public:
-                MagicIconButton(int argX, int argY, SkillBoard::MagicIconData *iconDataPtr, Widget *widgetPtr, bool autoDelete)
-                    : WidgetGroup
-                      {
-                          argX,
-                          argY,
-                          0,
-                          0,
-                          widgetPtr,
-                          autoDelete,
-                      }
+                MagicIconButton(int, int, SkillBoard::MagicIconData *, Widget *widgetPtr = nullptr, bool autoDelete = false);
 
-                    , m_key
-                      {
-                          2,
-                          2,
-                          u8"",
-
-                          3,
-                          20,
-                          0,
-
-                          colorf::RGBA(0XFF, 0XFF, 0X00, 0X20),
-                          this,
-                      }
-
-                    , m_keyShadow
-                      {
-                          3,
-                          3,
-                          u8"",
-
-                          3,
-                          20,
-                          0,
-
-                          colorf::RGBA(0X00, 0X00, 0X00, 0X20),
-                          this,
-                      }
-
-                    , m_level
-                      {
-                          0,
-                          0,
-                          u8"",
-
-                          3,
-                          12,
-                          0,
-
-                          colorf::RGBA(0XFF, 0XFF, 0X00, 0X00),
-                          this,
-                      }
-
-                    , m_icon
-                      {
-                          0,
-                          0,
-
-                          {
-                              DBCOM_MAGICRECORD(iconDataPtr->magicID).icon,
-                              DBCOM_MAGICRECORD(iconDataPtr->magicID).icon,
-                              DBCOM_MAGICRECORD(iconDataPtr->magicID).icon,
-                          },
-
-                          [iconDataPtr, this]()
-                          {
-                              iconDataPtr->board->setText(str_printf(u8"元素【%s】%s", to_cstr(magicElemName(DBCOM_MAGICRECORD(iconDataPtr->magicID).elem)), to_cstr(DBCOM_MAGICRECORD(iconDataPtr->magicID).name)));
-                          },
-
-                          [iconDataPtr, this]()
-                          {
-                              iconDataPtr->board->setText(str_printf(u8"元素【%s】", to_cstr(magicElemName(iconDataPtr->board->selectedElem()))));
-                          },
-                          nullptr,
-
-                          0,
-                          0,
-                          0,
-                          0,
-
-                          false,
-                          this,
-                          true,
-                      }
-                {
-                    setKey(iconDataPtr->key);
-                    setLevel(iconDataPtr->level);
-
-                    m_level.moveTo(m_icon.w() - 2, m_icon.h() - 1);
-                    m_w = m_level.dx() + m_level.w();
-                    m_h = m_level.dy() + m_level.h();
-                }
+            public:
+                void drawEx(int, int, int, int, int, int) override;
 
             public:
                 void setKey(char key)
