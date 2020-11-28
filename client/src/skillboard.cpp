@@ -243,7 +243,10 @@ void SkillBoard::drawEx(int dstX, int dstY, int, int, int, int)
     for(auto buttonPtr: m_tabButtonList){
         buttonPtr->draw();
     }
-    m_skillPageList.at(m_tabIndex)->draw();
+
+    const auto r = SkillBoard::getPageRectange();
+    auto pagePtr = m_skillPageList.at(m_tabIndex);
+    pagePtr->drawEx(dstX + r[0], dstY + r[1], 0 - pagePtr->dx(), 0 - pagePtr->dy(), r[2], r[3]);
 }
 
 void SkillBoard::update(double)
