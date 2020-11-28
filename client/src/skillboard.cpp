@@ -502,3 +502,13 @@ bool SkillBoard::processEvent(const SDL_Event &event, bool valid)
             }
     }
 }
+
+uint32_t SkillBoard::key2MagicID(char key)
+{
+    for(const auto &iconCRef: m_magicIconDataList){
+        if(std::tolower(iconCRef.key) == std::tolower(key)){
+            return iconCRef.magicID;
+        }
+    }
+    return 0;
+}

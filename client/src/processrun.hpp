@@ -337,6 +337,9 @@ class ProcessRun: public Process
     private:
         void drawGroundObject(int, int, bool);
 
+    private:
+        void checkMagicSpell(const SDL_Event &);
+
     public:
         std::tuple<int, int> getACNum(const std::string &) const;
 

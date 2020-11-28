@@ -181,4 +181,7 @@ class SkillBoard: public Widget
                 throw fflerror("invalid tab index: %d", m_tabIndex);
             }
         }
+
+    public:
+        uint32_t key2MagicID(char);
 };

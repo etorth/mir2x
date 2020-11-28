@@ -26,6 +26,7 @@
 #include "mapbindb.hpp"
 #include "pngtexdb.hpp"
 #include "sdldevice.hpp"
+#include "sdlkeychar.hpp"
 #include "clientargparser.hpp"
 #include "pathfinder.hpp"
 #include "processrun.hpp"
@@ -36,6 +37,7 @@
 #include "npcchatboard.hpp"
 #include "fflerror.hpp"
 #include "totype.hpp"
+#include "skillboard.hpp"
 #include "lochashtable.hpp"
 
 extern Log *g_log;
@@ -505,59 +507,14 @@ void ProcessRun::processEvent(const SDL_Event &event)
                             centerMyHero();
                             break;
                         }
-                    case SDLK_t:
-                        {
-                            if(auto nMouseFocusUID = FocusUID(FOCUS_MOUSE)){
-                                m_focusUIDTable[FOCUS_MAGIC] = nMouseFocusUID;
-                            }else{
-                                if(!findUID(m_focusUIDTable[FOCUS_MAGIC])){
-                                    m_focusUIDTable[FOCUS_MAGIC] = 0;
-                                }
-                            }
-
-                            if(auto nFocusUID = FocusUID(FOCUS_MAGIC)){
-                                getMyHero()->emplaceAction(ActionSpell
-                                {
-                                    getMyHero()->currMotion().endX,
-                                    getMyHero()->currMotion().endY,
-                                    nFocusUID,
-                                    DBCOM_MAGICID(u8"雷电术"),
-                                });
-                            }
-
-                            else{
-                                int nMouseX = -1;
-                                int nMouseY = -1;
-                                SDL_GetMouseState(&nMouseX, &nMouseY);
-                                const auto [nAimX, nAimY] = screenPoint2Grid(nMouseX, nMouseY);
-                                getMyHero()->emplaceAction(ActionSpell
-                                {
-                                    getMyHero()->currMotion().endX,
-                                    getMyHero()->currMotion().endY,
-                                    nAimX,
-                                    nAimY,
-                                    DBCOM_MAGICID(u8"雷电术"),
-                                });
-                            }
-                            break;
-                        }
-                    case SDLK_p:
+                    case SDLK_TAB:
                         {
                             getMyHero()->PickUp();
                             break;
                         }
-                    case SDLK_y:
-                        {
-                            getMyHero()->emplaceAction(ActionSpell(getMyHero()->x(), getMyHero()->y(), getMyHero()->UID(), DBCOM_MAGICID(u8"魔法盾")));
-                            break;
-                        }
-                    case SDLK_u:
-                        {
-                            getMyHero()->emplaceAction(ActionSpell(getMyHero()->x(), getMyHero()->y(), getMyHero()->UID(), DBCOM_MAGICID(u8"召唤骷髅")));
-                            break;
-                        }
                     default:
                         {
+                            checkMagicSpell(event);
                             break;
                         }
                 }
@@ -1689,4 +1646,73 @@ void ProcessRun::drawFPS()
     g_SDLDevice->fillRectangle(colorf::BLACK + 200, fpsBoard.x() - 1, fpsBoard.y(), fpsBoard.w() + 1, fpsBoard.h());
     g_SDLDevice->DrawRectangle(colorf::BLUE  + 255, fpsBoard.x() - 1, fpsBoard.y(), fpsBoard.w() + 1, fpsBoard.h());
     fpsBoard.draw();
+}
+
+void ProcessRun::checkMagicSpell(const SDL_Event &event)
+{
+    const char key = sdlKeyChar(event);
+    if(key == '\0'){
+        return;
+    }
+
+    const uint32_t magicID = dynamic_cast<SkillBoard *>(m_GUIManager.getWidget("SkillBoard"))->key2MagicID(key);
+    if(!magicID){
+        return;
+    }
+
+    switch(magicID){
+        case DBCOM_MAGICID(u8"雷电术"):
+            {
+                if(auto nMouseFocusUID = FocusUID(FOCUS_MOUSE)){
+                    m_focusUIDTable[FOCUS_MAGIC] = nMouseFocusUID;
+                }
+                else{
+                    if(!findUID(m_focusUIDTable[FOCUS_MAGIC])){
+                        m_focusUIDTable[FOCUS_MAGIC] = 0;
+                    }
+                }
+
+                if(auto nFocusUID = FocusUID(FOCUS_MAGIC)){
+                    getMyHero()->emplaceAction(ActionSpell
+                    {
+                        getMyHero()->currMotion().endX,
+                        getMyHero()->currMotion().endY,
+                        nFocusUID,
+                        DBCOM_MAGICID(u8"雷电术"),
+                    });
+                }
+
+                else{
+                    int nMouseX = -1;
+                    int nMouseY = -1;
+                    SDL_GetMouseState(&nMouseX, &nMouseY);
+                    const auto [nAimX, nAimY] = screenPoint2Grid(nMouseX, nMouseY);
+                    getMyHero()->emplaceAction(ActionSpell
+                    {
+                        getMyHero()->currMotion().endX,
+                        getMyHero()->currMotion().endY,
+                        nAimX,
+                        nAimY,
+                        DBCOM_MAGICID(u8"雷电术"),
+                    });
+                }
+                break;
+            }
+        case DBCOM_MAGICID(u8"魔法盾"):
+            {
+
+                getMyHero()->emplaceAction(ActionSpell(getMyHero()->x(), getMyHero()->y(), getMyHero()->UID(), DBCOM_MAGICID(u8"魔法盾")));
+                break;
+            }
+        case DBCOM_MAGICID(u8"召唤骷髅"):
+            {
+
+                getMyHero()->emplaceAction(ActionSpell(getMyHero()->x(), getMyHero()->y(), getMyHero()->UID(), DBCOM_MAGICID(u8"召唤骷髅")));
+                break;
+            }
+        default:
+            {
+                break;
+            }
+    }
 }
