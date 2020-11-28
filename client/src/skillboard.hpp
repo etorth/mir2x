@@ -19,6 +19,7 @@
 #pragma once
 #include <array>
 #include <memory>
+#include "strf.hpp"
 #include "widget.hpp"
 #include "labelboard.hpp"
 #include "texvslider.hpp"
@@ -41,6 +42,7 @@ class SkillBoard: public Widget
             int y;
 
             char key;
+            SkillBoard *board;
         };
 
         class MagicIconButton: public WidgetGroup
@@ -126,8 +128,15 @@ class SkillBoard: public Widget
                               DBCOM_MAGICRECORD(iconDataPtr->magicID).icon,
                           },
 
-                          nullptr,
-                          nullptr,
+                          [iconDataPtr, this]()
+                          {
+                              iconDataPtr->board->setText(str_printf(u8"元素【%s】%s", to_cstr(magicElemName(DBCOM_MAGICRECORD(iconDataPtr->magicID).elem)), to_cstr(DBCOM_MAGICRECORD(iconDataPtr->magicID).name)));
+                          },
+
+                          [iconDataPtr, this]()
+                          {
+                              iconDataPtr->board->setText(str_printf(u8"元素【%s】", to_cstr(magicElemName(iconDataPtr->board->selectedElem()))));
+                          },
                           nullptr,
 
                           0,
@@ -281,5 +290,24 @@ class SkillBoard: public Widget
         static std::array<int, 4> getPageRectange()
         {
             return {18, 44, 304, 329};
+        }
+
+    public:
+        void setText(const std::u8string &s)
+        {
+            m_textBoard.setText(s.c_str());
+        }
+
+        int selectedElem() const
+        {
+            if(m_tabIndex >= 0 && m_tabIndex <= 6){
+                return MET_BEGIN + m_tabIndex;
+            }
+            else if(m_tabIndex == 7){
+                return MET_NONE;
+            }
+            else{
+                throw fflerror("invalid tab index: %d", m_tabIndex);
+            }
         }
 };

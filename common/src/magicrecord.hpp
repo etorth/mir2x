@@ -45,7 +45,7 @@ constexpr inline const char8_t *magicElemName(int type)
         case MET_HOLY     : return u8"神圣";
         case MET_DARK     : return u8"暗黑";
         case MET_PHANTOM  : return u8"幻影";
-        default           : return u8"";
+        default           : return u8"无";
     }
 }
 

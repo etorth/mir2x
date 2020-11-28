@@ -31,9 +31,9 @@ SkillBoard::SkillBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget, bool a
     : Widget(nX, nY, 0, 0, pwidget, autoDelete)
     , m_magicIconDataList
       {
-          {DBCOM_MAGICID(u8"雷电术"),   1,  12,  78, 'T'},
-          {DBCOM_MAGICID(u8"魔法盾"),   2, 252, 143, 'Y'},
-          {DBCOM_MAGICID(u8"召唤骷髅"), 3,  12,  13, 'U'},
+          {DBCOM_MAGICID(u8"雷电术"),   1,  12,  78, 'T', this},
+          {DBCOM_MAGICID(u8"魔法盾"),   2, 252, 143, 'Y', this},
+          {DBCOM_MAGICID(u8"召唤骷髅"), 3,  12,  13, 'U', this},
       }
 
     , m_skillPageList([this]() -> std::vector<SkillBoard::SkillPage *>
@@ -114,7 +114,7 @@ SkillBoard::SkillBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget, bool a
 
                   [i, this]()
                   {
-                      m_textBoard.setText(u8"元素");
+                      m_textBoard.setText(u8"元素【%s】", to_cstr(magicElemName(selectedElem())));
                   },
 
                   [i, this]()
@@ -193,7 +193,7 @@ SkillBoard::SkillBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget, bool a
       {
           30,
           400,
-          u8"元素",
+          u8"元素【火】", // default selected MET_FIRE
 
           1,
           12,
@@ -282,6 +282,10 @@ bool SkillBoard::processEvent(const SDL_Event &event, bool valid)
     }
 
     if(m_slider.processEvent(event, valid)){
+        return focusConsumer(this, true);
+    }
+
+    if(m_skillPageList.at(m_tabIndex)->processEvent(event, valid)){
         return focusConsumer(this, true);
     }
 
