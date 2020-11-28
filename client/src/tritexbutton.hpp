@@ -43,9 +43,9 @@ class TritexButton: public ButtonBase
                 int offXOnClick = 0,
                 int offYOnClick = 0,
 
-                bool    bOnClickDone = true,
-                Widget *pwidget      = nullptr,
-                bool    bFreewidget  = false)
+                bool    onClickDone = true,
+                Widget *widgetPtr   = nullptr,
+                bool    autoDelete  = false)
             : ButtonBase
               {
                   argX,
@@ -62,9 +62,9 @@ class TritexButton: public ButtonBase
                   offXOnClick,
                   offYOnClick,
 
-                  bOnClickDone,
-                  pwidget,
-                  bFreewidget,
+                  onClickDone,
+                  widgetPtr,
+                  autoDelete,
               }
             , m_texID
               {

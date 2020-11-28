@@ -61,11 +61,41 @@ PlayerStatusBoard::PlayerStatusBoard(int argX, int argY, ProcessRun *runPtr, Wid
     , m_processRun(runPtr)
 {
     show(false);
-    auto texPtr = g_progUseDB->Retrieve(0X06000000);
-    if(!texPtr){
+    if(auto texPtr = g_progUseDB->Retrieve(0X06000000)){
+        std::tie(m_w, m_h) = SDLDevice::getTextureSize(texPtr);
+    }
+    else{
         throw fflerror("no valid player status board frame texture");
     }
-    std::tie(m_w, m_h) = SDLDevice::getTextureSize(texPtr);
+
+    for(int r: {0, 1, 2}){
+        for(int i = 0; i < 7; ++i){
+            m_elemStatusList.push_back(new TritexButton
+            {
+                62  + i * 37,
+                374 + r * 30,
+
+                {
+                    SYS_TEXNIL,
+                    0X06000010 + (uint32_t)(i),
+                    0X06000020 + (uint32_t)(i),
+                },
+
+                nullptr,
+                nullptr,
+                nullptr,
+
+                0,
+                0,
+                0,
+                0,
+
+                false,
+                this,
+                true,
+            });
+        }
+    }
 }
 
 void PlayerStatusBoard::update(double)
@@ -77,7 +107,12 @@ void PlayerStatusBoard::drawEx(int dstX, int dstY, int, int, int, int)
     if(auto pTexture = g_progUseDB->Retrieve(0X06000000)){
         g_SDLDevice->drawTexture(pTexture, dstX, dstY);
     }
+
     m_closeButton.draw();
+
+    for(auto buttonPtr: m_elemStatusList){
+        buttonPtr->draw();
+    }
 }
 
 bool PlayerStatusBoard::processEvent(const SDL_Event &event, bool valid)
@@ -87,6 +122,15 @@ bool PlayerStatusBoard::processEvent(const SDL_Event &event, bool valid)
     }
 
     if(!show()){
+        return focusConsumer(this, false);
+    }
+
+    bool consumed = false;
+    for(auto buttonPtr: m_elemStatusList){
+        consumed |= buttonPtr->processEvent(event, !consumed && valid);
+    }
+
+    if(consumed){
         return focusConsumer(this, false);
     }
 
