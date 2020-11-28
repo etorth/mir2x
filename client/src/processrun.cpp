@@ -1525,12 +1525,12 @@ void ProcessRun::drawGroundItem(int x0, int y0, int x1, int y1)
             // draw item shadow
             SDL_SetTextureColorMod(texPtr, 0, 0, 0);
             SDL_SetTextureAlphaMod(texPtr, 128);
-            g_SDLDevice->DrawTexture(texPtr, drawPX + 1, drawPY - 1);
+            g_SDLDevice->drawTexture(texPtr, drawPX + 1, drawPY - 1);
 
             // draw item body
             SDL_SetTextureColorMod(texPtr, 255, 255, 255);
             SDL_SetTextureAlphaMod(texPtr, 255);
-            g_SDLDevice->DrawTexture(texPtr, drawPX, drawPY);
+            g_SDLDevice->drawTexture(texPtr, drawPX, drawPY);
 
             if(mouseOver){
                 LabelBoard itemName(0, 0, ir.name, 1, 12, 0, colorf::RGBA(0XFF, 0XFF, 0X00, 0X00));
@@ -1552,7 +1552,7 @@ void ProcessRun::drawTile(int x0, int y0, int x1, int y1)
             if(m_mir2xMapData.ValidC(x, y) && !(x % 2) && !(y % 2)){
                 if(const auto &tile = m_mir2xMapData.Tile(x, y); tile.Valid()){
                     if(auto texPtr = g_mapDB->Retrieve(tile.Image())){
-                        g_SDLDevice->DrawTexture(texPtr, x * SYS_MAPGRIDXP - m_viewX, y * SYS_MAPGRIDYP - m_viewY);
+                        g_SDLDevice->drawTexture(texPtr, x * SYS_MAPGRIDXP - m_viewX, y * SYS_MAPGRIDYP - m_viewY);
                     }
                 }
             }
@@ -1596,7 +1596,7 @@ void ProcessRun::drawGroundObject(int x, int y, bool ground)
                     SDL_SetTextureBlendMode(texPtr, SDL_BLENDMODE_BLEND);
                     SDL_SetTextureAlphaMod(texPtr, 128);
                 }
-                g_SDLDevice->DrawTexture(texPtr, x * SYS_MAPGRIDXP - m_viewX, (y + 1) * SYS_MAPGRIDYP - m_viewY - texH);
+                g_SDLDevice->drawTexture(texPtr, x * SYS_MAPGRIDXP - m_viewX, (y + 1) * SYS_MAPGRIDYP - m_viewY - texH);
             }
         }
     }

@@ -101,9 +101,9 @@ class SDLDevice final
 
     public:
        void SetWindowIcon();
-       void DrawTexture(SDL_Texture *, int, int);
-       void DrawTexture(SDL_Texture *, int, int, int, int, int, int);
-       void DrawTexture(SDL_Texture *, int, int, int, int, int, int, int, int);
+       void drawTexture(SDL_Texture *, int, int);
+       void drawTexture(SDL_Texture *, int, int, int, int, int, int);
+       void drawTexture(SDL_Texture *, int, int, int, int, int, int, int, int);
 
     public:
        void drawTextureEx(SDL_Texture *,  

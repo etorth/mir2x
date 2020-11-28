@@ -220,7 +220,7 @@ bool Monster::draw(int viewX, int viewY, int focusMask)
 
             const auto stColor = focusColor(nFocusChan);
             if(!SDL_SetTextureColorMod(pTexture, stColor.r, stColor.g, stColor.b)){
-                g_SDLDevice->DrawTexture(pTexture, nX, nY);
+                g_SDLDevice->drawTexture(pTexture, nX, nY);
             }
         }
     };
@@ -253,8 +253,8 @@ bool Monster::draw(int viewX, int viewY, int focusMask)
         const int drawBarYP = startY - 53;
         const int drawBarWidth = (int)(std::lround(nBarW * (m_maxHP ? (std::min<double>)(1.0, (1.0 * m_HP) / m_maxHP) : 1.0)));
 
-        g_SDLDevice->DrawTexture(pBar1, drawBarXP, drawBarYP, 0, 0, drawBarWidth, nBarH);
-        g_SDLDevice->DrawTexture(pBar0, drawBarXP, drawBarYP);
+        g_SDLDevice->drawTexture(pBar1, drawBarXP, drawBarYP, 0, 0, drawBarWidth, nBarH);
+        g_SDLDevice->drawTexture(pBar0, drawBarXP, drawBarYP);
 
         if(g_clientArgParser->alwaysDrawName || (focusMask & (1 << FOCUS_MOUSE))){
             const int nLW = m_nameBoard.w();

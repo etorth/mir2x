@@ -66,14 +66,14 @@ void ProcessSync::draw()
 
     SDL_QueryTexture(pTexture, nullptr, nullptr, &nW, &nH);
 
-    g_SDLDevice->DrawTexture(pTexture,
+    g_SDLDevice->drawTexture(pTexture,
             112,  // dst x
             528,  // dst y
             0,    // src x
             0,    // src y
             std::lround(nW * (m_ratio / 100.0)), // src w
             nH);  // src h
-    g_SDLDevice->DrawTexture(g_progUseDB->Retrieve(0X00000001), 0, 0);
+    g_SDLDevice->drawTexture(g_progUseDB->Retrieve(0X00000001), 0, 0);
 
     const int nInfoX = (800 - m_processBarInfo.w()) / 2;
     const int nInfoY = 528 + (nH - m_processBarInfo.h()) / 2;

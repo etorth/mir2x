@@ -71,8 +71,8 @@ void TexAniBoard::drawEx(int dstX, int dstY, int, int, int, int)
     SDL_SetTextureAlphaMod(currTexPtr, 255 - alpha);
     SDL_SetTextureAlphaMod(nextTexPtr,       alpha);
 
-    g_SDLDevice->DrawTexture(currTexPtr, dstX, dstY);
-    g_SDLDevice->DrawTexture(nextTexPtr, dstX, dstY);
+    g_SDLDevice->drawTexture(currTexPtr, dstX, dstY);
+    g_SDLDevice->drawTexture(nextTexPtr, dstX, dstY);
 }
 
 std::tuple<int, uint8_t> TexAniBoard::getDrawFrame() const

@@ -334,19 +334,19 @@ void InitView::Load()
 void InitView::Draw()
 {
     SDLDevice::RenderNewFrame newFrame;
-    g_SDLDevice->DrawTexture(m_textureV[0], 0, 0);
+    g_SDLDevice->drawTexture(m_textureV[0], 0, 0);
 
     int nX = m_buttonX;
     int nY = m_buttonY;
     switch(m_buttonState){
         case 1:
             {
-                g_SDLDevice->DrawTexture(m_textureV[1], nX, nY,  0, 0, 32, 30);
+                g_SDLDevice->drawTexture(m_textureV[1], nX, nY,  0, 0, 32, 30);
                 break;
             }
         case 2:
             {
-                g_SDLDevice->DrawTexture(m_textureV[1], nX, nY, 32, 0, 32, 30);
+                g_SDLDevice->drawTexture(m_textureV[1], nX, nY, 32, 0, 32, 30);
                 break;
             }
         default:
@@ -403,7 +403,7 @@ void InitView::Draw()
             int nW = -1;
             int nH = -1;
             if(!SDL_QueryTexture(stTextureV[nTextureIndex], nullptr, nullptr, &nW, &nH)){
-                g_SDLDevice->DrawTexture(stTextureV[nTextureIndex], nStartX, nStartY);
+                g_SDLDevice->drawTexture(stTextureV[nTextureIndex], nStartX, nStartY);
                 nStartY += (nH + (nH / 3) + 2);
             }
         }

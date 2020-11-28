@@ -77,7 +77,7 @@ void QuickAccessBoard::drawEx(int dstX, int dstY, int, int, int, int)
         throw fflerror("no valid quick access board texture: texID = %llu", to_llu(m_texID));
     }
 
-    g_SDLDevice->DrawTexture(texPtr, dstX, dstY);
+    g_SDLDevice->drawTexture(texPtr, dstX, dstY);
     m_buttonClose.drawEx(dstX + m_buttonClose.dx(), dstY + m_buttonClose.dy(), 0, 0, m_buttonClose.w(), m_buttonClose.h());
 }
 

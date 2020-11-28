@@ -73,7 +73,7 @@ void AscendStr::Draw(int nViewX, int nViewY)
                 {
                     if(auto pTexture = g_progUseDB->Retrieve(0X03000030)){
                         SDL_SetTextureAlphaMod(pTexture, nCurrA);
-                        g_SDLDevice->DrawTexture(pTexture, nCurrX - nViewX, nCurrY - nViewY);
+                        g_SDLDevice->drawTexture(pTexture, nCurrX - nViewX, nCurrY - nViewY);
                     }
                     break;
                 }
@@ -85,7 +85,7 @@ void AscendStr::Draw(int nViewX, int nViewY)
                         uint32_t nPreKey = 0X03000000 | ((Type() - ASCENDSTR_NUM0) << 4);
                         if(auto pTexture = g_progUseDB->Retrieve(nPreKey | ((Value() < 0) ? 0X0A : 0X0B))){
                             SDL_SetTextureAlphaMod(pTexture, nCurrA);
-                            g_SDLDevice->DrawTexture(pTexture, nCurrX - nViewX, nCurrY - nViewY + ((Value() < 0) ? 4 : 1));
+                            g_SDLDevice->drawTexture(pTexture, nCurrX - nViewX, nCurrY - nViewY + ((Value() < 0) ? 4 : 1));
 
                             int nTextureW;
                             SDL_QueryTexture(pTexture, nullptr, nullptr, &nTextureW, nullptr);
@@ -96,7 +96,7 @@ void AscendStr::Draw(int nViewX, int nViewY)
                         for(auto chNum: szNumStr){
                             if(auto pTexture = g_progUseDB->Retrieve(nPreKey | (chNum - '0'))){
                                 SDL_SetTextureAlphaMod(pTexture, nCurrA);
-                                g_SDLDevice->DrawTexture(pTexture, nCurrX - nViewX, nCurrY - nViewY);
+                                g_SDLDevice->drawTexture(pTexture, nCurrX - nViewX, nCurrY - nViewY);
 
                                 int nTextureW;
                                 SDL_QueryTexture(pTexture, nullptr, nullptr, &nTextureW, nullptr);

@@ -65,7 +65,7 @@ void ProcessLogo::draw()
 
         const auto nWindowW = g_SDLDevice->getRendererWidth();
         const auto nWindowH = g_SDLDevice->getRendererHeight();
-        g_SDLDevice->DrawTexture(pTexture, 0, 0, 0, 0, nWindowW, nWindowH);
+        g_SDLDevice->drawTexture(pTexture, 0, 0, 0, 0, nWindowW, nWindowH);
     }
 }
 

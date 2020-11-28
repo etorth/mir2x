@@ -995,7 +995,7 @@ void XMLTypeset::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int sr
                     {
                         if(auto texPtr = g_fontexDB->Retrieve(tokenPtr->UTF8Char.U64Key)){
                             SDL_SetTextureColorMod(texPtr, colorf::R(fgColor), colorf::G(fgColor), colorf::B(fgColor));
-                            g_SDLDevice->DrawTexture(texPtr, drawDstX, drawDstY, dx, dy, boxW, boxH);
+                            g_SDLDevice->drawTexture(texPtr, drawDstX, drawDstY, dx, dy, boxW, boxH);
                         }
                         else{
                             g_SDLDevice->DrawRectangle(colorf::CompColor(bgColor), drawDstX, drawDstY, boxW, boxH);
@@ -1024,7 +1024,7 @@ void XMLTypeset::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int sr
                         int yOnTex = 0;
 
                         if(auto texPtr = g_emoticonDB->Retrieve(emojiKey, &xOnTex, &yOnTex, 0, 0, 0, 0, 0)){
-                            g_SDLDevice->DrawTexture(texPtr, drawDstX, drawDstY, xOnTex + dx, yOnTex + dy, boxW, boxH);
+                            g_SDLDevice->drawTexture(texPtr, drawDstX, drawDstY, xOnTex + dx, yOnTex + dy, boxW, boxH);
                         }
                         else{
                             g_SDLDevice->DrawRectangle(colorf::CompColor(bgColor), drawDstX, drawDstY, boxW, boxH);

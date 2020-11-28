@@ -125,7 +125,7 @@ void LevelBox::drawEx(int dstX, int dstY, int, int, int, int)
         if(auto *texPtr = g_SDLDevice->getCover(8)){
             SDL_SetTextureColorMod(texPtr, colorf::R(color), colorf::G(color), colorf::B(color));
             SDLDevice::EnableDrawBlendMode enableDrawBlendMode(SDL_BLENDMODE_BLEND);
-            g_SDLDevice->DrawTexture(texPtr, dstX + 1, dstY);
+            g_SDLDevice->drawTexture(texPtr, dstX + 1, dstY);
         }
     };
 

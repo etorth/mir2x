@@ -94,7 +94,7 @@ void AlphaOnButton::drawEx(int dstX, int dstY, int, int, int, int)
                 SDL_SetTextureColorMod(texPtr, colorf::R(m_onColor), colorf::G(m_onColor), colorf::B(m_onColor));
                 SDL_SetTextureAlphaMod(texPtr, m_alphaMod);
                 SDLDevice::EnableDrawBlendMode enableDrawBlendMode(SDL_BLENDMODE_BLEND);
-                g_SDLDevice->DrawTexture(texPtr, dstX + m_onOffX, dstY + m_onOffY);
+                g_SDLDevice->drawTexture(texPtr, dstX + m_onOffX, dstY + m_onOffY);
                 break;
             }
         case BEVENT_DOWN:
@@ -104,7 +104,7 @@ void AlphaOnButton::drawEx(int dstX, int dstY, int, int, int, int)
                     throw fflerror("can't get down texture: texID = %llu", to_llu(m_texID));
                 }
 
-                g_SDLDevice->DrawTexture(texPtr, dstX, dstY);
+                g_SDLDevice->drawTexture(texPtr, dstX, dstY);
                 break;
             }
         default:

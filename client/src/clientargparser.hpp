@@ -32,7 +32,7 @@ struct ClientArgParser
     const bool drawTokenFrame;          // "--draw-token-frame"
     const bool drawBoardFrame;          // "--draw-board-frame"
     const bool debugAlphaCover;         // "--debug-alpha-cover"
-    const bool debugDrawTexture;        // "--debug-draw-texture"
+    const bool debugdrawTexture;        // "--debug-draw-texture"
     const bool debugSlider;             // "--debug-slider"
     const bool drawFPS;                 // "--draw-fps"
 
@@ -52,7 +52,7 @@ struct ClientArgParser
         , drawTokenFrame(cmdParser["draw-token-frame"])
         , drawBoardFrame(cmdParser["draw-board-frame"])
         , debugAlphaCover(cmdParser["debug-alpha-cover"])
-        , debugDrawTexture(cmdParser["debug-draw-texture"])
+        , debugdrawTexture(cmdParser["debug-draw-texture"])
         , debugSlider(cmdParser["debug-slider"])
         , drawFPS(cmdParser["draw-fps"])
         , serverIP(cmdParser("server-ip").str())

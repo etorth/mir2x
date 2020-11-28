@@ -89,7 +89,7 @@ bool Hero::draw(int viewX, int viewY, int)
         if(weaponFrame && shadow){
             SDL_SetTextureAlphaMod(weaponFrame, 128);
         }
-        g_SDLDevice->DrawTexture(weaponFrame, startX + weaponDX, startY + weaponDY);
+        g_SDLDevice->drawTexture(weaponFrame, startX + weaponDX, startY + weaponDY);
     };
 
     fnDrawWeapon(true);
@@ -125,7 +125,7 @@ bool Hero::draw(int viewX, int viewY, int)
     if(pFrame1){
         SDL_SetTextureAlphaMod(pFrame1, 128);
     }
-    g_SDLDevice->DrawTexture(pFrame1, startX + nDX1, startY + nDY1);
+    g_SDLDevice->drawTexture(pFrame1, startX + nDX1, startY + nDY1);
 
     if(true
             && m_weapon
@@ -133,7 +133,7 @@ bool Hero::draw(int viewX, int viewY, int)
         fnDrawWeapon(false);
     }
 
-    g_SDLDevice->DrawTexture(pFrame0, startX + nDX0, startY + nDY0);
+    g_SDLDevice->drawTexture(pFrame0, startX + nDX0, startY + nDY0);
 
     if(true
             && m_weapon
@@ -165,8 +165,8 @@ bool Hero::draw(int viewX, int viewY, int)
                 const int drawHPY = startY - 53;
                 const int drawHPW = (int)(std::lround(nW * (m_maxHP ? (std::min<double>)(1.0, (1.0 * m_HP) / m_maxHP) : 1.0)));
 
-                g_SDLDevice->DrawTexture(pBar1, drawHPX, drawHPY, 0, 0, drawHPW, nH);
-                g_SDLDevice->DrawTexture(pBar0, drawHPX, drawHPY);
+                g_SDLDevice->drawTexture(pBar1, drawHPX, drawHPY, 0, 0, drawHPW, nH);
+                g_SDLDevice->drawTexture(pBar0, drawHPX, drawHPY);
             }
     }
     return true;

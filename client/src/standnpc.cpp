@@ -171,7 +171,7 @@ bool StandNPC::draw(int viewX, int viewY, int focusMask)
         SDL_SetTextureColorMod(texture, color.r, color.g, color.b);
 
         SDL_SetTextureAlphaMod(texture, alpha);
-        g_SDLDevice->DrawTexture(texture, x, y);
+        g_SDLDevice->drawTexture(texture, x, y);
     };
 
     const int   bodyDrawX = x() * SYS_MAPGRIDXP +   bodyDX - viewX;

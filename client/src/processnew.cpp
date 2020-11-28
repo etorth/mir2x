@@ -154,8 +154,8 @@ void ProcessNew::draw()
 {
     SDLDevice::RenderNewFrame newFrame;
 
-    g_SDLDevice->DrawTexture(g_progUseDB->Retrieve(0X00000003), 0, 75);
-    g_SDLDevice->DrawTexture(g_progUseDB->Retrieve(0X00000004), 0, 75, 0, 0, 800, 450);
+    g_SDLDevice->drawTexture(g_progUseDB->Retrieve(0X00000003), 0, 75);
+    g_SDLDevice->drawTexture(g_progUseDB->Retrieve(0X00000004), 0, 75, 0, 0, 800, 450);
 
     m_TBCreate.draw();
     m_TBExit  .draw();

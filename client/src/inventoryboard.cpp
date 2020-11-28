@@ -113,7 +113,7 @@ void InventoryBoard::drawItem(int nDstX, int nDstY, const PackBin &rstBin)
                 const int nInvGridX0 = 18;
                 const int nInvGridY0 = 59;
 
-                g_SDLDevice->DrawTexture(pTexture, 
+                g_SDLDevice->drawTexture(pTexture, 
                         nDstX + nInvGridX0 + rstBin.X * SYS_INVGRIDPW + (rstBin.W * SYS_INVGRIDPW - nItemPW) / 2,
                         nDstY + nInvGridY0 + rstBin.Y * SYS_INVGRIDPH + (rstBin.H * SYS_INVGRIDPH - nItemPH) / 2);
             }
@@ -129,7 +129,7 @@ void InventoryBoard::update(double fUpdateTime)
 void InventoryBoard::drawEx(int nDstX, int nDstY, int, int, int, int)
 {
     if(auto pTexture = g_progUseDB->Retrieve(0X0000001B)){
-        g_SDLDevice->DrawTexture(pTexture, nDstX, nDstY);
+        g_SDLDevice->drawTexture(pTexture, nDstX, nDstY);
     }
 
     if(auto pMyHero = m_processRun->getMyHero()){

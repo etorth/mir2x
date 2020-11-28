@@ -70,13 +70,13 @@ void QuickAccessButton::drawEx(int dstX, int dstY, int, int, int, int)
                 const int texDrawH = texH * 2 / 3;
 
                 SDL_SetTextureAlphaMod(texPtr, 80);
-                g_SDLDevice->DrawTexture(texPtr, dstX + 3, dstY, 0, texDrawH, texW, texDrawH);
+                g_SDLDevice->drawTexture(texPtr, dstX + 3, dstY, 0, texDrawH, texW, texDrawH);
                 break;
             }
         case BEVENT_DOWN:
             {
                 if(auto texPtr = g_progUseDB->Retrieve(m_texID)){
-                    g_SDLDevice->DrawTexture(texPtr, dstX, dstY);
+                    g_SDLDevice->drawTexture(texPtr, dstX, dstY);
                 }
                 break;
             }

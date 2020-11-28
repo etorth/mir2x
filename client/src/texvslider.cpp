@@ -59,7 +59,7 @@ void TexVSlider::drawEx(int, int, int, int, int, int)
     }
 
     const auto [valCenterX, valCenterY] = getValueCenter();
-    g_SDLDevice->DrawTexture(texPtr, valCenterX - getSelfParam().offX, valCenterY - getSelfParam().offY);
+    g_SDLDevice->drawTexture(texPtr, valCenterX - getSelfParam().offX, valCenterY - getSelfParam().offY);
 
     const auto fnDrawCover = [valCenterX, valCenterY, this](uint32_t color)
     {
@@ -67,7 +67,7 @@ void TexVSlider::drawEx(int, int, int, int, int, int)
         if(auto texPtr = g_SDLDevice->getCover(r)){
             SDL_SetTextureColorMod(texPtr, colorf::R(color), colorf::G(color), colorf::B(color));
             SDLDevice::EnableDrawBlendMode enableDrawBlendMode(SDL_BLENDMODE_BLEND);
-            g_SDLDevice->DrawTexture(texPtr, valCenterX - r, valCenterY - r);
+            g_SDLDevice->drawTexture(texPtr, valCenterX - r, valCenterY - r);
         }
     };
 

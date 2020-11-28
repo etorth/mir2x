@@ -233,7 +233,7 @@ SkillBoard::SkillBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget, bool a
 void SkillBoard::drawEx(int dstX, int dstY, int, int, int, int)
 {
     if(auto texPtr = g_progUseDB->Retrieve(0X05000000)){
-        g_SDLDevice->DrawTexture(texPtr, dstX, dstY);
+        g_SDLDevice->drawTexture(texPtr, dstX, dstY);
     }
 
     m_slider.draw();

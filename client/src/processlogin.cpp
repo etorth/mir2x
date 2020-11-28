@@ -115,9 +115,9 @@ void ProcessLogin::draw()
 {
     SDLDevice::RenderNewFrame newFrame;
 
-    g_SDLDevice->DrawTexture(g_progUseDB->Retrieve(0X00000003),   0,  75);
-    g_SDLDevice->DrawTexture(g_progUseDB->Retrieve(0X00000004),   0, 465);
-    g_SDLDevice->DrawTexture(g_progUseDB->Retrieve(0X00000011), 103, 536);
+    g_SDLDevice->drawTexture(g_progUseDB->Retrieve(0X00000003),   0,  75);
+    g_SDLDevice->drawTexture(g_progUseDB->Retrieve(0X00000004),   0, 465);
+    g_SDLDevice->drawTexture(g_progUseDB->Retrieve(0X00000011), 103, 536);
 
     m_button1.draw();
     m_button2.draw();
