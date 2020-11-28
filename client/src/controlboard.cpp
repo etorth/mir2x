@@ -261,7 +261,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           nullptr,
           [this]()
           {
-              if(auto p = m_processRun->getWidget("InventoryBoard")){
+              if(auto p = m_processRun->getWidget("PlayerStatusBoard")){
                   p->show(!p->show());
               }
           },

@@ -68,6 +68,14 @@ GUIManager::GUIManager(ProcessRun *proc)
           proc,
           this,
       }
+
+    , m_playerStatusBoard
+      {
+          g_SDLDevice->getRendererWidth()  / 2 - 164,
+          g_SDLDevice->getRendererHeight() / 2 - 233,
+          proc,
+          this,
+      }
 {
     if(!m_proc){
         throw fflerror("null ProcessRun pointer");
@@ -148,6 +156,10 @@ Widget *GUIManager::getWidget(const std::string &widgetName)
 
     if(widgetName == "SkillBoard"){
         return &m_skillBoard;
+    }
+
+    if(widgetName == "PlayerStatusBoard"){
+        return &m_playerStatusBoard;
     }
 
     return nullptr;
