@@ -107,7 +107,7 @@ class SkillBoard: public Widget
                           0,
                           u8"",
 
-                          1,
+                          3,
                           12,
                           0,
 
@@ -140,12 +140,12 @@ class SkillBoard: public Widget
                           true,
                       }
                 {
-                    m_level.moveTo(m_icon.w(), m_icon.h());
-                    m_w = m_level.dx() + m_level.w();
-                    m_h = m_level.dy() + m_level.h();
-
                     setKey(iconDataPtr->key);
                     setLevel(iconDataPtr->level);
+
+                    m_level.moveTo(m_icon.w() - 2, m_icon.h() - 1);
+                    m_w = m_level.dx() + m_level.w();
+                    m_h = m_level.dy() + m_level.h();
                 }
 
             public:
@@ -231,6 +231,9 @@ class SkillBoard: public Widget
                         this,
                         true,
                     };
+
+                    m_w = m_pageImage->w();
+                    m_h = m_pageImage->h();
                 }
 
             public:

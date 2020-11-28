@@ -32,8 +32,8 @@ SkillBoard::SkillBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget, bool a
     , m_magicIconDataList
       {
           {DBCOM_MAGICID(u8"雷电术"),   1,  12,  78, 'T'},
-          {DBCOM_MAGICID(u8"魔法盾"),   1, 252, 143, 'Y'},
-          {DBCOM_MAGICID(u8"召唤骷髅"), 1,  12,  13, 'U'},
+          {DBCOM_MAGICID(u8"魔法盾"),   2, 252, 143, 'Y'},
+          {DBCOM_MAGICID(u8"召唤骷髅"), 3,  12,  13, 'U'},
       }
 
     , m_skillPageList([this]() -> std::vector<SkillBoard::SkillPage *>
@@ -140,6 +140,11 @@ SkillBoard::SkillBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget, bool a
 
                       m_tabIndex = i;
                       m_slider.setValue(0);
+
+                      const auto r = getPageRectange();
+                      for(auto pagePtr: m_skillPageList){
+                          pagePtr->moveTo(r[0], r[1]);
+                      }
                   },
 
                   0,
