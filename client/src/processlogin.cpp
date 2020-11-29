@@ -99,7 +99,7 @@ ProcessLogin::ProcessLogin()
             1,
             14,
             0,
-            colorf::YELLOW,
+            colorf::YELLOW + 255,
         }
 {
     m_buildSignature.setText(u8"编译版本号:%s", getBuildSignature());

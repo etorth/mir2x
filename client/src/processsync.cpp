@@ -61,22 +61,19 @@ void ProcessSync::update(double fUpdateTime)
 void ProcessSync::draw()
 {
     SDLDevice::RenderNewFrame newFrame;
-    auto pTexture = g_progUseDB->Retrieve(0X00000002);
-    int nW, nH;
+    auto texPtr = g_progUseDB->Retrieve(0X00000002);
+    const auto [texW, texH] = SDLDevice::getTextureSize(texPtr);
 
-    SDL_QueryTexture(pTexture, nullptr, nullptr, &nW, &nH);
-
-    g_SDLDevice->drawTexture(pTexture,
+    g_SDLDevice->drawTexture(texPtr,
             112,  // dst x
             528,  // dst y
             0,    // src x
             0,    // src y
-            std::lround(nW * (m_ratio / 100.0)), // src w
-            nH);  // src h
+            std::lround(texW * (m_ratio / 100.0)), // src w
+            texH);  // src h
     g_SDLDevice->drawTexture(g_progUseDB->Retrieve(0X00000001), 0, 0);
 
-    const int nInfoX = (800 - m_processBarInfo.w()) / 2;
-    const int nInfoY = 528 + (nH - m_processBarInfo.h()) / 2;
-
-    m_processBarInfo.drawEx(nInfoX, nInfoY, 0, 0, m_processBarInfo.w(), m_processBarInfo.h());
+    const int infoX = (800 - m_processBarInfo.w()) / 2;
+    const int infoY = 528 + (texH - m_processBarInfo.h()) / 2;
+    m_processBarInfo.drawEx(infoX, infoY, 0, 0, m_processBarInfo.w(), m_processBarInfo.h());
 }
