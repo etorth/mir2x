@@ -28,7 +28,7 @@ extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_SDLDevice;
 
 SkillBoard::MagicIconButton::MagicIconButton(int argX, int argY, SkillBoard::MagicIconData *iconDataPtr, Widget *widgetPtr, bool autoDelete)
-    : WidgetGroup
+    : Widget
       {
           argX,
           argY,
@@ -50,8 +50,8 @@ SkillBoard::MagicIconButton::MagicIconButton(int argX, int argY, SkillBoard::Mag
           20,
           0,
 
-          colorf::RGBA(0XFF, 0X80, 0X00, 0X80),
-          colorf::RGBA(0X00, 0X00, 0X00, 0X80),
+          colorf::RGBA(0XFF, 0X80, 0X00, 0XE0),
+          colorf::RGBA(0X00, 0X00, 0X00, 0XE0),
 
           this,
           false,
@@ -116,10 +116,9 @@ void SkillBoard::MagicIconButton::drawEx(int dstX, int dstY, int srcX, int srcY,
     // to make sure the key always draw on top
     // otherwise WidgetGroup changes draw order when triggers icon callback, check WidgetGroup::drawEx()
 
-    WidgetGroup::drawEx(dstX, dstY, srcX, srcY, srcW, srcH);
-    const auto fnDrawKey = [dstX, dstY, srcX, srcY, srcW, srcH, this](LabelShadowBoard *b)
+    const auto fnDrawWidget = [dstX, dstY, srcX, srcY, srcW, srcH, this](Widget *widgetPtr)
     {
-        if(!b->show()){
+        if(!widgetPtr->show()){
             return;
         }
 
@@ -138,13 +137,15 @@ void SkillBoard::MagicIconButton::drawEx(int dstX, int dstY, int srcX, int srcY,
                     w(),
                     h(),
 
-                    b->dx(), b->dy(), b->w(), b->h())){
+                    widgetPtr->dx(), widgetPtr->dy(), widgetPtr->w(), widgetPtr->h())){
             return;
         }
-        b->drawEx(dstXCrop, dstYCrop, srcXCrop - b->dx(), srcYCrop - b->dy(), srcWCrop, srcHCrop);
+        widgetPtr->drawEx(dstXCrop, dstYCrop, srcXCrop - widgetPtr->dx(), srcYCrop - widgetPtr->dy(), srcWCrop, srcHCrop);
     };
 
-    fnDrawKey(&m_key);
+    fnDrawWidget(&m_icon);
+    fnDrawWidget(&m_key);
+    fnDrawWidget(&m_level);
 }
 
 SkillBoard::SkillPage::SkillPage(uint32_t pageImage, Widget *widgetPtr, bool autoDelete)

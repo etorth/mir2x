@@ -46,7 +46,7 @@ class SkillBoard: public Widget
             SkillBoard *board;
         };
 
-        class MagicIconButton: public WidgetGroup
+        class MagicIconButton: public Widget
         {
             // +-+-----+
             // |A|     |
