@@ -70,6 +70,12 @@ class SkillBoard: public Widget
                 void drawEx(int, int, int, int, int, int) override;
 
             public:
+                bool processEvent(const SDL_Event &event, bool valid) override
+                {
+                    return m_icon.processEvent(event, valid);
+                }
+
+            public:
                 void setKey(char key)
                 {
                     if(key == '\0'){
