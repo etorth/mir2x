@@ -24,10 +24,12 @@
 extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_SDLDevice;
 
-void TritexButton::drawEx(int dstX, int dstY, int srcX, int srcY, int w, int h)
+void TritexButton::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int srcH)
 {
-    if(auto tex = g_progUseDB->Retrieve(m_texID[m_state])){
-        g_SDLDevice->drawTexture(tex, dstX + m_offset[m_state][0], dstY + m_offset[m_state][1], srcX, srcY, w, h);
+    if(auto texPtr = g_progUseDB->Retrieve(m_texID[m_state])){
+        const int offX = m_offset[m_state][0];
+        const int offY = m_offset[m_state][1];
+        g_SDLDevice->drawTexture(texPtr, dstX + offX, dstY + offY, srcX, srcY, srcW, srcH); // TODO: need to crop src region for offset
     }
 }
 
