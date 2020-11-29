@@ -42,6 +42,8 @@ SkillBoard::MagicIconButton::MagicIconButton(int argX, int argY, SkillBoard::Mag
       {
           2,
           2,
+          2,
+          2,
           u8"",
 
           3,
@@ -49,21 +51,10 @@ SkillBoard::MagicIconButton::MagicIconButton(int argX, int argY, SkillBoard::Mag
           0,
 
           colorf::RGBA(0XFF, 0X80, 0X00, 0X80),
-          this,
-      }
-
-    , m_keyShadow
-      {
-          4,
-          4,
-          u8"",
-
-          3,
-          20,
-          0,
-
           colorf::RGBA(0X00, 0X00, 0X00, 0X80),
+
           this,
+          false,
       }
 
     , m_level
@@ -126,7 +117,7 @@ void SkillBoard::MagicIconButton::drawEx(int dstX, int dstY, int srcX, int srcY,
     // otherwise WidgetGroup changes draw order when triggers icon callback, check WidgetGroup::drawEx()
 
     WidgetGroup::drawEx(dstX, dstY, srcX, srcY, srcW, srcH);
-    const auto fnDrawKey = [dstX, dstY, srcX, srcY, srcW, srcH, this](LabelBoard *b)
+    const auto fnDrawKey = [dstX, dstY, srcX, srcY, srcW, srcH, this](LabelShadowBoard *b)
     {
         if(!b->show()){
             return;
@@ -153,7 +144,6 @@ void SkillBoard::MagicIconButton::drawEx(int dstX, int dstY, int srcX, int srcY,
         b->drawEx(dstXCrop, dstYCrop, srcXCrop - b->dx(), srcYCrop - b->dy(), srcWCrop, srcHCrop);
     };
 
-    fnDrawKey(&m_keyShadow);
     fnDrawKey(&m_key);
 }
 

@@ -114,4 +114,10 @@ class LabelBoard: public Widget
         {
             m_tpset.drawEx(nDstX, nDstY, nSrcX, nSrcY, nW, nH);
         }
+
+    public:
+        void setImageMaskColor(uint32_t color)
+        {
+            m_tpset.setImageMaskColor(color);
+        }
 };

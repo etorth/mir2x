@@ -25,6 +25,7 @@
 #include "texvslider.hpp"
 #include "dbcomrecord.hpp"
 #include "tritexbutton.hpp"
+#include "labelshadowboard.hpp"
 
 class ProcessRun;
 class SkillBoard: public Widget
@@ -56,8 +57,7 @@ class SkillBoard: public Widget
             //         +-+
 
             private:
-                LabelBoard m_key;
-                LabelBoard m_keyShadow;
+                LabelShadowBoard m_key;
 
             private:
                 LabelBoard m_level;
@@ -73,12 +73,10 @@ class SkillBoard: public Widget
                 void setKey(char key)
                 {
                     if(key == '\0'){
-                        m_key      .setText(u8"");
-                        m_keyShadow.setText(u8"");
+                        m_key.setText({});
                     }
                     else{
-                        m_key      .setText(u8"%c", key);
-                        m_keyShadow.setText(u8"%c", key);
+                        m_key.setText(str_printf(u8"%c", key));
                     }
                 }
 

@@ -40,7 +40,15 @@ class LabelShadowBoard: public WidgetGroup
                 uint32_t       fontShadowColor = colorf::BLACK + 128,
                 Widget        *widgetPtr       = nullptr,
                 bool           autoDelete      = false)
-            : Widget(x, y, 0, 0, widgetPtr, autoDelete)
+            : WidgetGroup
+              {
+                  x,
+                  y,
+                  0,
+                  0,
+                  widgetPtr,
+                  autoDelete,
+              }
             , m_label
               {
                   0,
@@ -66,9 +74,8 @@ class LabelShadowBoard: public WidgetGroup
                   false,
               }
         {
-            m_w = m_labelShadow.dx() + m_labelShadow.w();
-            m_h = m_labelShadow.dy() + m_labelShadow.h();
             m_labelShadow.setImageMaskColor(0);
+            updateSize();
         }
 
     public:
@@ -76,5 +83,13 @@ class LabelShadowBoard: public WidgetGroup
         {
             m_label      .setText(s.c_str());
             m_labelShadow.setText(s.c_str());
+            updateSize();
+        }
+
+    private:
+        void updateSize()
+        {
+            m_w = m_labelShadow.dx() + m_labelShadow.w();
+            m_h = m_labelShadow.dy() + m_labelShadow.h();
         }
 };
