@@ -206,4 +206,27 @@ class SkillBoard: public Widget
             }
             return result;
         }
+
+    private:
+        static int getSkillPageIndex(uint32_t magicID)
+        {
+            if(!magicID){
+                return -1;
+            }
+
+            const auto &mr = DBCOM_MAGICRECORD(magicID);
+            if(!mr){
+                return -1;
+            }
+
+            if(mr.elem >= MET_BEGIN && mr.elem < MET_END){
+                return mr.elem - MET_BEGIN;
+            }
+            else if(mr.elem == MET_NONE){
+                return 7;
+            }
+            else{
+                return -1;
+            }
+        }
 };

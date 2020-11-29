@@ -199,9 +199,10 @@ SkillBoard::SkillBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget, bool a
     : Widget(nX, nY, 0, 0, pwidget, autoDelete)
     , m_magicIconDataList
       {
-          {DBCOM_MAGICID(u8"雷电术"),   1,  12,  78, 'T', this},
-          {DBCOM_MAGICID(u8"魔法盾"),   2, 252, 143, 'Y', this},
-          {DBCOM_MAGICID(u8"召唤骷髅"), 3,  12,  13, 'U', this},
+          {DBCOM_MAGICID(u8"雷电术"),   1,  12,  78,  'T', this},
+          {DBCOM_MAGICID(u8"魔法盾"),   2, 252, 143,  'Y', this},
+          {DBCOM_MAGICID(u8"召唤骷髅"), 3,  12,  13,  'U', this},
+          {DBCOM_MAGICID(u8"召唤神兽"), 1,  12,  78, '\0', this},
       }
 
     , m_skillPageList([this]() -> std::vector<SkillBoard::SkillPage *>
@@ -218,25 +219,7 @@ SkillBoard::SkillBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget, bool a
               };
 
               for(auto &iconRef: m_magicIconDataList){
-                  if(!iconRef.magicID){
-                      continue;
-                  }
-
-                  const auto &mr = DBCOM_MAGICRECORD(iconRef.magicID);
-                  const auto tabIndex = [&mr]() -> int
-                  {
-                      if(mr.elem == MET_NONE){
-                          return 0;
-                      }
-                      else if(mr.elem < MET_END){
-                          return mr.elem - 1;
-                      }
-                      else{
-                          return -1;
-                      }
-                  }();
-
-                  if(i == tabIndex){
+                  if(i == getSkillPageIndex(iconRef.magicID)){
                       pagePtr->addIcon(&iconRef);
                   }
               }
