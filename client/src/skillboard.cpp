@@ -76,7 +76,7 @@ SkillBoard::MagicIconButton::MagicIconButton(int argX, int argY, SkillBoard::Mag
           12,
           0,
 
-          colorf::RGBA(0XFF, 0XFF, 0X00, 0X00),
+          colorf::RGBA(0XFF, 0XFF, 0X00, 0XFF),
           this,
       }
 
@@ -373,7 +373,7 @@ SkillBoard::SkillBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget, bool a
           12,
           0,
 
-          colorf::WHITE,
+          colorf::WHITE + 255,
           this,
       }
 

@@ -216,6 +216,7 @@ void LayoutBoard::addPar(int loc, const std::array<int, 4> &parMargin, const tin
         fontStyle,
         fontColor,
         fontBGColor,
+        colorf::RGBA(0XFF, 0XFF, 0XFF, 0XFF),
         lineSpace,
         wordSpace
     );
