@@ -30,12 +30,12 @@
 class Widget
 {
     private:
-        struct childNode
+        struct WidgetChildNode
         {
             Widget *child;
             bool    autoDelete;
 
-            childNode(Widget *pwidget, bool autoDeleteFlag)
+            WidgetChildNode(Widget *pwidget, bool autoDeleteFlag)
                 : child(pwidget)
                 , autoDelete(autoDeleteFlag)
             {}
@@ -45,8 +45,8 @@ class Widget
         Widget * const m_parent;
 
     protected:
-        bool m_show;
-        bool m_focus;
+        bool m_show  = true;
+        bool m_focus = false;
 
     private:
         int m_x;
@@ -57,13 +57,11 @@ class Widget
         int m_h;
 
     protected:
-        std::list<childNode> m_childList;
+        std::list<WidgetChildNode> m_childList;
 
     public:
         Widget(int x, int y, int w = 0, int h = 0, Widget *parent = nullptr, bool autoDelete = false)
             : m_parent(parent)
-            , m_show(true)
-            , m_focus(false)
             , m_x(x)
             , m_y(y)
             , m_w(w)
