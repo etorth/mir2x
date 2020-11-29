@@ -62,6 +62,53 @@ class SDLDevice final
            ~RenderNewFrame();
         };
 
+    public:
+        class EnableRGBAModTexture
+        {
+            private:
+                Uint8 m_r;
+                Uint8 m_g;
+                Uint8 m_b;
+                Uint8 m_a;
+
+            private:
+                SDL_Texture *m_texPtr;
+
+            public:
+                EnableRGBAModTexture(SDL_Texture *texPtr, uint32_t color)
+                    : m_texPtr(texPtr)
+                {
+                    if(!m_texPtr){
+                        return;
+                    }
+
+                    if(SDL_GetTextureColorMod(m_texPtr, &m_r, &m_g, &m_b)){
+                        throw fflerror("SDL_GetTextureColorMod(%p) failed: %s", to_cvptr(m_texPtr), SDL_GetError());
+                    }
+
+                    if(SDL_GetTextureAlphaMod(m_texPtr, &m_a)){
+                        throw fflerror("SDL_GetTextureAlphaMod(%p) failed: %s", to_cvptr(m_texPtr), SDL_GetError());
+                    }
+
+                    if(SDL_SetTextureColorMod(m_texPtr, colorf::R(color), colorf::G(color), colorf::B(color))){
+                        throw fflerror("SDL_SetTextureColorMod(%p) failed: %s", to_cvptr(m_texPtr), SDL_GetError());
+                    }
+
+                    if(SDL_SetTextureAlphaMod(m_texPtr, colorf::A(color))){
+                        throw fflerror("SDL_SetTextureAlphaMod(%p) failed: %s", to_cvptr(m_texPtr), SDL_GetError());
+                    }
+                }
+
+            public:
+                ~EnableRGBAModTexture()
+                {
+                    if(m_texPtr){
+                        SDL_SetTextureColorMod(m_texPtr, m_r, m_g, m_b);
+                        SDL_SetTextureAlphaMod(m_texPtr, m_a);
+                    }
+                }
+        };
+
     private:
         struct ColorStackNode
         {

@@ -40,8 +40,8 @@ class InputLine: public Widget
         double   m_cursorBlink = 0.0;
 
     protected:
-        std::function<void()> m_tabCB;
-        std::function<void()> m_returnCB;
+        std::function<void()> m_onTab;
+        std::function<void()> m_onCR;
 
     public:
         InputLine(
@@ -53,16 +53,16 @@ class InputLine: public Widget
                 uint8_t  font      =  0,
                 uint8_t  fontSize  = 10,
                 uint8_t  fontStyle =  0,
-                uint32_t fontColor =  colorf::WHITE,
+                uint32_t fontColor =  colorf::WHITE + 255,
 
                 int      cursorWidth = 2,
-                uint32_t cursorColor = colorf::WHITE,
+                uint32_t cursorColor = colorf::WHITE + 255,
 
-                std::function<void()>  fnOnTab    = [](){},
-                std::function<void()>  fnOnReturn = [](){},
-                Widget                *parent     = nullptr,
+                std::function<void()>  onTab      = nullptr,
+                std::function<void()>  onCR       = nullptr,
+                Widget                *widgetPtr  = nullptr,
                 bool                   autoDelete = false)
-            : Widget(x, y, w, h, parent, autoDelete)
+            : Widget(x, y, w, h, widgetPtr, autoDelete)
             , m_tpset
               {
                   0,
@@ -75,8 +75,8 @@ class InputLine: public Widget
               }
             , m_cursorWidth(cursorWidth)
             , m_cursorColor(cursorColor)
-            , m_tabCB(fnOnTab)
-            , m_returnCB(fnOnReturn)
+            , m_onTab(onTab)
+            , m_onCR(onCR)
         {}
 
     public:

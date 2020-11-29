@@ -49,10 +49,10 @@ ProcessLogin::ProcessLogin()
           2,
           18,
           0,
-          colorf::WHITE,
+          colorf::WHITE + 255,
 
           2,
-          colorf::WHITE,
+          colorf::WHITE + 255,
 
           [this]()
           {
@@ -75,10 +75,10 @@ ProcessLogin::ProcessLogin()
           2,
           18,
           0,
-          colorf::WHITE,
+          colorf::WHITE + 255,
 
           2,
-          colorf::WHITE,
+          colorf::WHITE + 255,
 
           [this]()
           {

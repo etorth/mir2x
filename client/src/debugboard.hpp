@@ -42,18 +42,18 @@ class NotifyBoard: public Widget
                 int              nX,
                 int              nY,
                 int              nW,
-                uint8_t          nDefaultFont      = 0,
-                uint8_t          nDefaultFontSize  = 10,
-                uint8_t          nDefaultFontStyle = 0,
-                uint32_t         nDefaultFontColor = colorf::WHITE + 255,
-                Widget          *pwidget           = nullptr,
-                bool             bAutoDelete       = false)
-            : Widget(nX, nY, 0, 0, pwidget, bAutoDelete)
+                uint8_t          defaultFont      = 0,
+                uint8_t          defaultFontSize  = 10,
+                uint8_t          defaultFontStyle = 0,
+                uint32_t         defaultFontColor = colorf::WHITE + 255,
+                Widget          *widgetPtr        = nullptr,
+                bool             autoDelete       = false)
+            : Widget(nX, nY, 0, 0, widgetPtr, autoDelete)
             , m_lineW(nW)
-            , m_font(nDefaultFont)
-            , m_fontSize(nDefaultFontSize)
-            , m_fontStyle(nDefaultFontStyle)
-            , m_fontColor(nDefaultFontColor)
+            , m_font(defaultFont)
+            , m_fontSize(defaultFontSize)
+            , m_fontStyle(defaultFontStyle)
+            , m_fontColor(defaultFontColor)
         {}
 
     public:

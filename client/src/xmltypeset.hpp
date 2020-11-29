@@ -54,6 +54,7 @@ class XMLTypeset // means XMLParagraph typeset
         uint8_t  m_fontStyle;
         uint32_t m_fontColor;
         uint32_t m_fontBGColor;
+        uint32_t m_imageMaskColor;
 
     private:
         int m_px;
@@ -73,15 +74,16 @@ class XMLTypeset // means XMLParagraph typeset
     public:
         XMLTypeset(
                 int      maxLineWidth,
-                int      lineAlign          =  LALIGN_LEFT,
-                bool     canThrough         =  true,
-                uint8_t  defaultFont        =  0,
-                uint8_t  defaultFontSize    = 10,
-                uint8_t  defaultFontStyle   =  0,
-                uint32_t defaultFontColor   =  colorf::WHITE + 255,
-                uint32_t defaultFontBGColor =  colorf::WHITE,
-                int      lineSpace          =  0,
-                int      wordSpace          =  0)
+                int      lineAlign             = LALIGN_LEFT,
+                bool     canThrough            = true,
+                uint8_t  defaultFont           = 0,
+                uint8_t  defaultFontSize       = 8,
+                uint8_t  defaultFontStyle      = 0,
+                uint32_t defaultFontColor      = colorf::WHITE + 255,
+                uint32_t defaultFontBGColor    = 0,
+                uint32_t defaultImageMaskColor = colorf::RGBA(0XFF, 0XFF, 0XFF, 0XFF),
+                int      lineSpace             = 0,
+                int      wordSpace             = 0)
             : m_lineWidth(maxLineWidth)
             , m_LAlign(lineAlign)
             , m_canThrough(canThrough)
@@ -92,6 +94,7 @@ class XMLTypeset // means XMLParagraph typeset
             , m_fontStyle(defaultFontStyle)
             , m_fontColor(defaultFontColor)
             , m_fontBGColor(defaultFontBGColor)
+            , m_imageMaskColor(defaultImageMaskColor)
             , m_px(0)
             , m_py(0)
             , m_pw(0)
@@ -260,29 +263,34 @@ class XMLTypeset // means XMLParagraph typeset
         void drawEx(int, int, int, int, int, int) const;
 
     public:
-        void setDefaultFont(uint8_t font)
+        void setFont(uint8_t font)
         {
             m_font = font;
         }
 
-        void setDefaultFontSize(uint8_t fontSize)
+        void setFontSize(uint8_t fontSize)
         {
             m_fontSize = fontSize;
         }
 
-        void setDefaultFontStyle(uint8_t fontStyle)
+        void setFontStyle(uint8_t fontStyle)
         {
             m_fontStyle = fontStyle;
         }
 
-        void setDefaultFontColor(uint32_t fontColor)
+        void setFontColor(uint32_t fontColor)
         {
             m_fontColor = fontColor;
         }
 
-        void setDefaultFontBGColor(uint32_t fontBGColor)
+        void setFontBGColor(uint32_t fontBGColor)
         {
             m_fontBGColor = fontBGColor;
+        }
+
+        void setImageMaskColor(uint32_t imageMaskColor)
+        {
+            m_imageMaskColor = imageMaskColor;
         }
 
     public:

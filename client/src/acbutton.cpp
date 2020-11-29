@@ -70,7 +70,7 @@ ACButton::ACButton(int x, int y, ProcessRun *proc, const std::vector<std::string
           12,
           0,
 
-          colorf::RGBA(0XFF, 0XFF, 0X00, 0X00),
+          colorf::RGBA(0XFF, 0XFF, 0X00, 0XFF),
           this,
       }
 {

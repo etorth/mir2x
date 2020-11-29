@@ -40,15 +40,15 @@ bool InputLine::processEvent(const SDL_Event &event, bool valid)
                 switch(event.key.keysym.sym){
                     case SDLK_TAB:
                         {
-                            if(m_tabCB){
-                                m_tabCB();
+                            if(m_onTab){
+                                m_onTab();
                             }
                             return true;
                         }
                     case SDLK_RETURN:
                         {
-                            if(m_returnCB){
-                                m_returnCB();
+                            if(m_onCR){
+                                m_onCR();
                             }
                             return true;
                         }
@@ -173,7 +173,7 @@ void InputLine::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int src
     int cursorH = std::max<int>(m_tpset.ph(), h());
 
     if(mathf::rectangleOverlapRegion(dstX, dstY, srcW, srcH, &cursorX, &cursorY, &cursorW, &cursorH)){
-        g_SDLDevice->fillRectangle(m_cursorColor + 128, cursorX, cursorY, cursorW, cursorH);
+        g_SDLDevice->fillRectangle(m_cursorColor, cursorX, cursorY, cursorW, cursorH);
     }
 }
 

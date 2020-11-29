@@ -626,7 +626,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           12,
           0,
 
-          colorf::WHITE,
+          colorf::WHITE + 255,
           &m_left,
       }
 
@@ -644,8 +644,8 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           12,
           0,
 
-          colorf::WHITE,
-          colorf::WHITE,
+          colorf::WHITE + 255,
+          0,
 
           LALIGN_JUSTIFY,
           0,

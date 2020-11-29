@@ -37,7 +37,7 @@ InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget
           12,
           0,
 
-          colorf::RGBA(0XFF, 0XFF, 0X00, 0X00),
+          colorf::RGBA(0XFF, 0XFF, 0X00, 0XFF),
           this,
       }
 
@@ -51,7 +51,7 @@ InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget
           12,
           0,
 
-          colorf::WHITE,
+          colorf::WHITE + 255,
           this,
       }
 

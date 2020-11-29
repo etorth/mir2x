@@ -37,13 +37,13 @@ class PasswordBox: public InputLine
                 uint8_t  font      =  0,
                 uint8_t  fontSize  = 10,
                 uint8_t  fontStyle =  0,
-                uint32_t fontColor =  colorf::WHITE,
+                uint32_t fontColor =  colorf::WHITE + 255,
 
                 int      cursorWidth = 2,
-                uint32_t cursorColor = colorf::WHITE,
+                uint32_t cursorColor = colorf::WHITE + 255,
 
-                std::function<void()>  fnOnTab    = [](){},
-                std::function<void()>  fnOnReturn = [](){},
+                std::function<void()>  fnOnTab    = nullptr,
+                std::function<void()>  fnOnReturn = nullptr,
                 Widget                *parent     = nullptr,
                 bool                   autoDelete = false)
             : InputLine 

@@ -36,14 +36,14 @@ class LabelBoard: public Widget
         LabelBoard(
                 int            x,
                 int            y,
-                const char8_t *content     = u8"",
-                uint8_t        font        = 0,
-                uint8_t        fontSize    = 10,
-                uint8_t        fontStyle   = 0,
-                uint32_t       fontColor   = colorf::WHITE + 255,
-                Widget        *pwidget     = nullptr,
+                const char8_t *content    = u8"",
+                uint8_t        font       = 0,
+                uint8_t        fontSize   = 10,
+                uint8_t        fontStyle  = 0,
+                uint32_t       fontColor  = colorf::WHITE + 255,
+                Widget        *widgetPtr  = nullptr,
                 bool           autoDelete = false)
-            : Widget(x, y, 0, 0, pwidget, autoDelete)
+            : Widget(x, y, 0, 0, widgetPtr, autoDelete)
             , m_tpset
               {
                   0,
@@ -79,22 +79,22 @@ class LabelBoard: public Widget
     public:
         void setFont(uint8_t nFont)
         {
-            m_tpset.setDefaultFont(nFont);
+            m_tpset.setFont(nFont);
         }
 
         void setFontSize(uint8_t nFontSize)
         {
-            m_tpset.setDefaultFontSize(nFontSize);
+            m_tpset.setFontSize(nFontSize);
         }
 
         void setFontStyle(uint8_t nFontStyle)
         {
-            m_tpset.setDefaultFontStyle(nFontStyle);
+            m_tpset.setFontStyle(nFontStyle);
         }
 
         void setFontColor(uint32_t nFontColor)
         {
-            m_tpset.setDefaultFontColor(nFontColor);
+            m_tpset.setFontColor(nFontColor);
         }
 
     public:
@@ -110,7 +110,7 @@ class LabelBoard: public Widget
         }
 
     public:
-        void drawEx(int nDstX, int nDstY, int nSrcX, int nSrcY, int nW, int nH)
+        void drawEx(int nDstX, int nDstY, int nSrcX, int nSrcY, int nW, int nH) override
         {
             m_tpset.drawEx(nDstX, nDstY, nSrcX, nSrcY, nW, nH);
         }
