@@ -77,6 +77,9 @@ class ProcessRun: public Process
     private:
         FPSMonitor m_fps;
 
+    private:
+        bool m_drawMagicKey = false;
+
     public:
         bool ValidC(int nX, int nY) const
         {
@@ -347,5 +350,11 @@ class ProcessRun: public Process
         GUIManager *getGUIManager()
         {
             return &m_GUIManager;
+        }
+
+    public:
+        void flipDrawMagicKey()
+        {
+            m_drawMagicKey = !m_drawMagicKey;
         }
 };

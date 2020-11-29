@@ -184,4 +184,22 @@ class SkillBoard: public Widget
 
     public:
         uint32_t key2MagicID(char);
+
+    public:
+        struct MagicKey
+        {
+            uint32_t magicID;
+            char     key;
+        };
+
+        std::vector<MagicKey> getMagicKeyList() const
+        {
+            std::vector<MagicKey> result;
+            for(const auto &iconData: m_magicIconDataList){
+                if(iconData.magicID && iconData.key != '\0'){
+                    result.emplace_back(iconData.magicID, iconData.key);
+                }
+            }
+            return result;
+        }
 };

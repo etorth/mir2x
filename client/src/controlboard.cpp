@@ -220,7 +220,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           nullptr,
           [this]()
           {
-              addLog(0, "magic key doesn't implemented yet.");
+              m_processRun->flipDrawMagicKey();
           },
 
           true,

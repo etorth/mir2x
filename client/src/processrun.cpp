@@ -45,6 +45,7 @@ extern Client *g_client;
 extern PNGTexDB *g_mapDB;
 extern MapBinDB *g_mapBinDB;
 extern SDLDevice *g_SDLDevice;
+extern PNGTexDB *g_progUseDB;
 extern PNGTexDB *g_groundItemDB;
 extern NotifyBoard *g_notifyBoard;
 extern ClientArgParser *g_clientArgParser;
@@ -361,6 +362,16 @@ void ProcessRun::draw()
     for(auto p: m_indepMagicList){
         if(!p->Done()){
             p->Draw(m_viewX, m_viewY);
+        }
+    }
+
+    if(m_drawMagicKey){
+        int magicKeyOffX = 0;
+        for(const auto &magicKey: dynamic_cast<SkillBoard *>(m_GUIManager.getWidget("SkillBoard"))->getMagicKeyList()){
+            if(auto texPtr = g_progUseDB->Retrieve(DBCOM_MAGICRECORD(magicKey.magicID).icon + to_u32(0X00001000))){
+                g_SDLDevice->drawTexture(texPtr, magicKeyOffX, 0);
+                magicKeyOffX += SDLDevice::getTextureWidth(texPtr);
+            }
         }
     }
 
