@@ -295,3 +295,11 @@ inline bool focusConsumer(Widget *widgetPtr, bool setFocus)
     widgetPtr->focus(setFocus);
     return setFocus;
 }
+
+inline void flipShow(Widget *widgetPtr)
+{
+    if(!widgetPtr){
+        throw fflerror("invalid widget pointer: (null)");
+    }
+    widgetPtr->show(!widgetPtr->show());
+}
