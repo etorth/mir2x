@@ -100,7 +100,7 @@ SkillBoard::MagicIconButton::MagicIconButton(int argX, int argY, SkillBoard::Mag
 
           false,
           this,
-          true,
+          false,
       }
 {
     setKey(iconDataPtr->key);
