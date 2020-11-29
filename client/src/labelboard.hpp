@@ -71,9 +71,9 @@ class LabelBoard: public Widget
         void setText(const char8_t *, ...);
 
     public:
-        std::string GetText(bool bTextOnly) const
+        std::string getText(bool textOnly) const
         {
-            return m_tpset.GetText(bTextOnly);
+            return m_tpset.getText(textOnly);
         }
 
     public:

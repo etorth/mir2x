@@ -1058,37 +1058,37 @@ void XMLTypeset::update(double fMS)
     }
 }
 
-std::string XMLTypeset::GetText(bool bTextOnly) const
+std::string XMLTypeset::getText(bool textOnly) const
 {
-    std::string szPlainString;
-    for(int nIndex = 0; nIndex < m_paragraph.leafCount(); ++nIndex){
-        switch(auto nType = m_paragraph.leafRef(nIndex).Type()){
+    std::string plainString;
+    for(int i = 0; i < m_paragraph.leafCount(); ++i){
+        switch(auto leafType = m_paragraph.leafRef(i).Type()){
             case LEAF_UTF8GROUP:
                 {
-                    szPlainString += m_paragraph.leafRef(nIndex).UTF8Text();
+                    plainString += m_paragraph.leafRef(i).UTF8Text();
                     break;
                 }
             case LEAF_IMAGE:
                 {
-                    if(!bTextOnly){
-                        szPlainString += str_printf("\\image{0x%016" PRIx64 "}", m_paragraph.leafRef(nIndex).ImageU64Key());
+                    if(!textOnly){
+                        plainString += str_printf("\\image{0x%016" PRIx64 "}", m_paragraph.leafRef(i).ImageU64Key());
                     }
                     break;
                 }
             case LEAF_EMOJI:
                 {
-                    if(!bTextOnly){
-                        szPlainString += str_printf("\\emoji{0x%016" PRIu64 "}", (uint64_t)(m_paragraph.leafRef(nIndex).emojiU32Key()));
+                    if(!textOnly){
+                        plainString += str_printf("\\emoji{0x%016" PRIu64 "}", (uint64_t)(m_paragraph.leafRef(i).emojiU32Key()));
                     }
                     break;
                 }
             default:
                 {
-                    throw fflerror("invalid leaf type: %d", nType);
+                    throw fflerror("invalid leaf type: %d", leafType);
                 }
         }
     }
-    return szPlainString;
+    return plainString;
 }
 
 int XMLTypeset::GetTokenWordSpace(int nX, int nY) const
