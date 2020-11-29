@@ -1501,7 +1501,7 @@ void ProcessRun::drawGroundItem(int x0, int y0, int x1, int y1)
             g_SDLDevice->drawTexture(texPtr, drawPX, drawPY);
 
             if(mouseOver){
-                LabelBoard itemName(0, 0, ir.name, 1, 12, 0, colorf::RGBA(0XFF, 0XFF, 0X00, 0X00));
+                LabelBoard itemName(0, 0, ir.name, 1, 12, 0, colorf::RGBA(0XFF, 0XFF, 0X00, 0XFF));
                 const int boardW = itemName.w();
                 const int boardH = itemName.h();
 
