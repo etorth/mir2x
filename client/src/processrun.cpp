@@ -1710,15 +1710,11 @@ void ProcessRun::checkMagicSpell(const SDL_Event &event)
                 break;
             }
         case DBCOM_MAGICID(u8"魔法盾"):
-            {
-
-                getMyHero()->emplaceAction(ActionSpell(getMyHero()->x(), getMyHero()->y(), getMyHero()->UID(), DBCOM_MAGICID(u8"魔法盾")));
-                break;
-            }
         case DBCOM_MAGICID(u8"召唤骷髅"):
+        case DBCOM_MAGICID(u8"召唤神兽"):
             {
 
-                getMyHero()->emplaceAction(ActionSpell(getMyHero()->x(), getMyHero()->y(), getMyHero()->UID(), DBCOM_MAGICID(u8"召唤骷髅")));
+                getMyHero()->emplaceAction(ActionSpell(getMyHero()->x(), getMyHero()->y(), getMyHero()->UID(), magicID));
                 break;
             }
         default:
