@@ -20,6 +20,7 @@
 #include "corof.hpp"
 #include "fflerror.hpp"
 #include "charobject.hpp"
+#include "dbcomrecord.hpp"
 #include "monsterrecord.hpp"
 
 class Monster final: public CharObject
@@ -218,4 +219,15 @@ class Monster final: public CharObject
     public:
         static bool isPet(uint64_t);
         static bool isGuard(uint64_t);
+
+    private:
+        int walkWait() const
+        {
+            return DBCOM_MONSTERRECORD(MonsterID()).walkWait;
+        }
+
+        int attackWait() const
+        {
+            return DBCOM_MONSTERRECORD(MonsterID()).walkWait;
+        }
 };
