@@ -95,10 +95,10 @@ class MyHero: public Hero
         }
 
     public:
-        bool StayIdle();
+        bool stayIdle();
 
     public:
-        virtual void PickUp();
+        void pickUp() override;
 
     public:
         bool emplaceAction(const ActionNode &);

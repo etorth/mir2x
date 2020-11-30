@@ -484,7 +484,7 @@ bool Hero::parseAction(const ActionNode &rstAction)
             }
         case ACTION_PICKUP:
             {
-                PickUp();
+                pickUp();
                 break;
             }
         case ACTION_DIE:

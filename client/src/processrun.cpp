@@ -520,7 +520,7 @@ void ProcessRun::processEvent(const SDL_Event &event)
                         }
                     case SDLK_TAB:
                         {
-                            getMyHero()->PickUp();
+                            getMyHero()->pickUp();
                             break;
                         }
                     default:
@@ -1157,7 +1157,7 @@ ClientCreature *ProcessRun::findUID(uint64_t uid, bool checkVisible) const
 bool ProcessRun::trackAttack(bool bForce, uint64_t nUID)
 {
     if(findUID(nUID)){
-        if(bForce || getMyHero()->StayIdle()){
+        if(bForce || getMyHero()->stayIdle()){
             auto nEndX = getMyHero()->currMotion().endX;
             auto nEndY = getMyHero()->currMotion().endY;
             return getMyHero()->emplaceAction(ActionAttack(nEndX, nEndY, DC_PHY_PLAIN, SYS_DEFSPEED, nUID));

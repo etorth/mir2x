@@ -55,7 +55,7 @@ bool MyHero::update(double fUpdateTime)
         switch(m_currMotion.motion){
             case MOTION_STAND:
                 {
-                    if(StayIdle()){
+                    if(stayIdle()){
                         if(m_actionQueue.empty()){
                             return advanceMotionFrame(1);
                         }
@@ -73,7 +73,7 @@ bool MyHero::update(double fUpdateTime)
                 }
             case MOTION_HITTED:
                 {
-                    if(StayIdle()){
+                    if(stayIdle()){
                         if(m_actionQueue.empty()){
                             return updateMotion(false);
                         }
@@ -244,13 +244,13 @@ bool MyHero::DecompActionPickUp()
             && !m_actionQueue.empty()
             &&  m_actionQueue.front().Action == ACTION_PICKUP){
 
-        const auto stCurrPickUp = m_actionQueue.front();
+        const auto currPickUp = m_actionQueue.front();
         m_actionQueue.pop_front();
 
         int nX0 = m_currMotion.endX;
         int nY0 = m_currMotion.endY;
-        int nX1 = stCurrPickUp.X;
-        int nY1 = stCurrPickUp.Y;
+        int nX1 = currPickUp.X;
+        int nY1 = currPickUp.Y;
 
         if(!m_processRun->CanMove(true, 0, nX0, nY0)){
             g_log->addLog(LOGTYPE_WARNING, "Motion start from invalid grid (%d, %d)", nX0, nY0);
@@ -267,7 +267,7 @@ bool MyHero::DecompActionPickUp()
         switch(mathf::LDistance2(nX0, nY0, nX1, nY1)){
             case 0:
                 {
-                    m_actionQueue.emplace_front(stCurrPickUp);
+                    m_actionQueue.emplace_front(currPickUp);
                     return true;
                 }
             default:
@@ -276,14 +276,14 @@ bool MyHero::DecompActionPickUp()
                     int nYm = -1;
 
                     if(DecompMove(true, 1, true, nX0, nY0, nX1, nY1, &nXm, &nYm)){
-                        m_actionQueue.emplace_front(stCurrPickUp);
+                        m_actionQueue.emplace_front(currPickUp);
                         m_actionQueue.emplace_front(ActionMove(nX0, nY0, nXm, nYm, SYS_DEFSPEED, OnHorse() ? 1 : 0));
                         return true;
                     }else{
                         if(DecompMove(true, 0, false, nX0, nY0, nX1, nY1, nullptr, nullptr)){
                             // reachable but blocked
                             // path occupied, we restore it and wait
-                            m_actionQueue.emplace_front(stCurrPickUp);
+                            m_actionQueue.emplace_front(currPickUp);
                         }
 
                         // report failure
@@ -656,16 +656,16 @@ bool MyHero::parseActionQueue()
     return true;
 }
 
-bool MyHero::StayIdle()
+bool MyHero::stayIdle()
 {
     return true
         && m_motionQueue.empty()
         && m_actionQueue.empty();
 }
 
-void MyHero::PickUp()
+void MyHero::pickUp()
 {
-    if(StayIdle()){
+    if(stayIdle()){
 
         const int nX = currMotion().x;
         const int nY = currMotion().y;

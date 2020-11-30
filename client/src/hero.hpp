@@ -112,7 +112,7 @@ class Hero: public CreatureMovable
         int currStep() const override;
 
     public:
-        virtual void PickUp()
+        virtual void pickUp()
         {
             // need to move this to myhero
         }
