@@ -61,24 +61,24 @@ void ProcessRun::net_LOGINOK(const uint8_t *pBuf, size_t nLen)
 
 void ProcessRun::net_ACTION(const uint8_t *pBuf, size_t)
 {
-    SMAction stSMA;
-    std::memcpy(&stSMA, pBuf, sizeof(stSMA));
+    SMAction smA;
+    std::memcpy(&smA, pBuf, sizeof(smA));
 
     ActionNode stAction
     {
-        stSMA.Action,
-        stSMA.Speed,
-        stSMA.Direction,
-        stSMA.X,
-        stSMA.Y,
-        stSMA.AimX,
-        stSMA.AimY,
-        stSMA.AimUID,
-        stSMA.ActionParam,
+        smA.Action,
+        smA.Speed,
+        smA.Direction,
+        smA.X,
+        smA.Y,
+        smA.AimX,
+        smA.AimY,
+        smA.AimUID,
+        smA.ActionParam,
     };
 
-    if(stSMA.MapID != MapID()){
-        if(stSMA.UID != getMyHero()->UID()){
+    if(smA.MapID != MapID()){
+        if(smA.UID != getMyHero()->UID()){
             return;
         }
 
@@ -94,11 +94,11 @@ void ProcessRun::net_ACTION(const uint8_t *pBuf, size_t)
         auto nDress     = getMyHero()->Dress();
         auto nDirection = getMyHero()->currMotion().direction;
 
-        auto nX = stSMA.X;
-        auto nY = stSMA.Y;
+        auto nX = smA.X;
+        auto nY = smA.Y;
 
-        m_UIDPending.clear();
-        loadMap(stSMA.MapID);
+        m_actionBlocker.clear();
+        loadMap(smA.MapID);
 
         m_creatureList.clear();
         m_creatureList[m_myHeroUID] = std::make_unique<MyHero>(nUID, nDBID, bGender, nDress, this, ActionStand(nX, nY, nDirection));
@@ -111,16 +111,16 @@ void ProcessRun::net_ACTION(const uint8_t *pBuf, size_t)
     // map doesn't change
     // action from an existing charobject for current processrun
 
-    if(auto creaturePtr = findUID(stSMA.UID)){
+    if(auto creaturePtr = findUID(smA.UID)){
         // shouldn't accept ACTION_SPAWN
         // we shouldn't have spawn action after co created
-        condcheck(stSMA.Action != ACTION_SPAWN);
+        condcheck(smA.Action != ACTION_SPAWN);
 
         creaturePtr->parseAction(stAction);
         switch(stAction.Action){
             case ACTION_SPACEMOVE2:
                 {
-                    if(stSMA.UID == m_myHeroUID){
+                    if(smA.UID == m_myHeroUID){
                         centerMyHero();
                     }
                     return;
@@ -136,36 +136,37 @@ void ProcessRun::net_ACTION(const uint8_t *pBuf, size_t)
     // map doesn't change
     // action from an non-existing charobject, may need query
 
-    switch(uidf::getUIDType(stSMA.UID)){
+    switch(uidf::getUIDType(smA.UID)){
         case UID_PLY:
             {
                 // do query only for player
                 // can't create new player based on action information
-                queryCORecord(stSMA.UID);
+                queryCORecord(smA.UID);
                 return;
             }
         case UID_MON:
             {
-                switch(stSMA.Action){
+                switch(smA.Action){
                     case ACTION_SPAWN:
                         {
-                            OnActionSpawn(stSMA.UID, stAction);
+                            OnActionSpawn(smA.UID, stAction);
                             return;
                         }
                     default:
                         {
-                            switch(uidf::getMonsterID(stSMA.UID)){
+                            switch(uidf::getMonsterID(smA.UID)){
                                 case DBCOM_MONSTERID(u8"变异骷髅"):
+                                case DBCOM_MONSTERID(u8"神兽"):
                                     {
-                                        if(UIDPending(stSMA.UID)){
+                                        if(m_actionBlocker.contains(smA.UID)){
                                             return;
                                         }
                                         break;
                                     }
                             }
 
-                            if(auto monPtr = Monster::createMonster(stSMA.UID, this, stAction)){
-                                m_creatureList[stSMA.UID].reset(monPtr);
+                            if(auto monPtr = Monster::createMonster(smA.UID, this, stAction)){
+                                m_creatureList[smA.UID].reset(monPtr);
                             }
                             return;
                         }
@@ -174,7 +175,7 @@ void ProcessRun::net_ACTION(const uint8_t *pBuf, size_t)
             }
         case UID_NPC:
             {
-                m_creatureList[stSMA.UID] = std::make_unique<StandNPC>(stSMA.UID, this, stAction);
+                m_creatureList[smA.UID] = std::make_unique<StandNPC>(smA.UID, this, stAction);
                 return;
             }
         default:

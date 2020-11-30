@@ -113,7 +113,7 @@ class ProcessRun: public Process
         std::unordered_map<uint64_t, std::unique_ptr<ClientCreature>> m_creatureList;
 
     private:
-        std::set<uint64_t> m_UIDPending;
+        std::set<uint64_t> m_actionBlocker;
 
     private:
         LabelBoard m_mousePixlLoc;
@@ -148,12 +148,6 @@ class ProcessRun: public Process
         uint32_t MapID() const
         {
             return m_mapID;
-        }
-
-    public:
-        bool UIDPending(uint64_t nUID) const
-        {
-            return m_UIDPending.find(nUID) != m_UIDPending.end();
         }
 
     public:

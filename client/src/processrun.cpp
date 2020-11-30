@@ -1375,7 +1375,7 @@ void ProcessRun::OnActionSpawn(uint64_t nUID, const ActionNode &rstAction)
                     nUID
                 ));
 
-                m_UIDPending.insert(nUID);
+                m_actionBlocker.insert(nUID);
                 m_indepMagicList.back()->AddFunc([this, nUID, rstAction, pMagic = m_indepMagicList.back()]() -> bool
                 {
                     // if(!pMagic->Done()){
@@ -1397,7 +1397,7 @@ void ProcessRun::OnActionSpawn(uint64_t nUID, const ActionNode &rstAction)
                         m_creatureList[nUID].reset(pMonster);
                     }
 
-                    m_UIDPending.erase(nUID);
+                    m_actionBlocker.erase(nUID);
                     queryCORecord(nUID);
                     return true;
                 });
@@ -1421,7 +1421,7 @@ void ProcessRun::OnActionSpawn(uint64_t nUID, const ActionNode &rstAction)
                 //     nUID
                 // ));
                 //
-                // m_UIDPending.insert(nUID);
+                // m_actionBlocker.insert(nUID);
                 // m_indepMagicList.back()->AddFunc([this, nUID, rstAction, pMagic = m_indepMagicList.back()]() -> bool
                 // {
                 //     if(pMagic->Frame() < 10){
@@ -1439,7 +1439,7 @@ void ProcessRun::OnActionSpawn(uint64_t nUID, const ActionNode &rstAction)
                 //         m_creatureList[nUID].reset(pMonster);
                 //     }
                 //
-                //     m_UIDPending.erase(nUID);
+                //     m_actionBlocker.erase(nUID);
                 //     queryCORecord(nUID);
                 //     return true;
                 // });
