@@ -395,7 +395,7 @@ bool Monster::parseAction(const ActionNode &action)
                     auto nY   = pCreature->y();
                     auto nDir = PathFind::GetDirection(action.X, action.Y, nX, nY);
 
-                    if(nDir > DIR_NONE && nDir < DIR_MAX){
+                    if(nDir >= DIR_BEGIN && nDir < DIR_END){
                         m_motionQueue.emplace_back(MOTION_MON_ATTACK0, 0, nDir, action.X, action.Y);
                     }
                 }else{
@@ -420,8 +420,8 @@ bool Monster::motionValid(const MotionNode &rstMotion) const
             && rstMotion.motion > MOTION_MON_NONE
             && rstMotion.motion < MOTION_MON_MAX
 
-            && rstMotion.direction > DIR_NONE
-            && rstMotion.direction < DIR_MAX 
+            && rstMotion.direction >= DIR_BEGIN
+            && rstMotion.direction <  DIR_END
 
             && m_processRun
             && m_processRun->OnMap(m_processRun->MapID(), rstMotion.x,    rstMotion.y)
@@ -523,8 +523,8 @@ int Monster::gfxID(int nMotion, int nDirection) const
             && nLookID >= LID_MIN
             && nLookID <  LID_MAX
 
-            && nDirection > DIR_NONE
-            && nDirection < DIR_MAX
+            && nDirection >= DIR_BEGIN
+            && nDirection <  DIR_END
 
             && nGfxMotionID >= 0){
 

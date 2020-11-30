@@ -132,7 +132,7 @@ namespace PathFind
 
     inline bool ValidDir(int nDirection)
     {
-        return  nDirection > DIR_NONE && nDirection < DIR_MAX;
+        return  nDirection >= DIR_BEGIN && nDirection < DIR_END;
     }
 
     inline const char *GetDirName(int nDirection)
@@ -171,16 +171,16 @@ namespace PathFind
         static constexpr int nDX[] = { 0, +1, +1, +1,  0, -1, -1, -1};
         static constexpr int nDY[] = {-1, -1,  0, +1, +1, +1,  0, -1};
 
-        if(nDirection <= DIR_NONE || nDirection >= DIR_MAX){
+        if(nDirection < DIR_BEGIN || nDirection >= DIR_END){
             throw fflerror("In PathFind::GetFrontLocation(%p, %p, %d, %d, %d, %d)", to_cvptr(pX), to_cvptr(pY), nX, nY, nDirection, nLen);
         }
 
         if(pX){
-            *pX = nX + nLen * nDX[nDirection - (DIR_NONE + 1)];
+            *pX = nX + nLen * nDX[nDirection - DIR_BEGIN];
         }
 
         if(pY){
-            *pY = nY + nLen * nDY[nDirection - (DIR_NONE + 1)];
+            *pY = nY + nLen * nDY[nDirection - DIR_BEGIN];
         }
     }
 

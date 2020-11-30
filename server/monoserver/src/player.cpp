@@ -547,8 +547,8 @@ void Player::OnCMActionStand(CMAction stCMA)
             default:
                 {
                     if(true
-                            && nDirection > DIR_NONE
-                            && nDirection < DIR_MAX){
+                            && nDirection >= DIR_BEGIN
+                            && nDirection <  DIR_END){
                         m_direction = nDirection;
                     }
 

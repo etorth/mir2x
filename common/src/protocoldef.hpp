@@ -29,8 +29,9 @@
 //
 enum DirectionType: int
 {
-    DIR_NONE = 0,
-    DIR_UP,
+    DIR_NONE  = 0,
+    DIR_BEGIN = 1,
+    DIR_UP    = 1,
     DIR_UPRIGHT,
     DIR_RIGHT,
     DIR_DOWNRIGHT,
@@ -38,7 +39,7 @@ enum DirectionType: int
     DIR_DOWNLEFT,
     DIR_LEFT,
     DIR_UPLEFT,
-    DIR_MAX,
+    DIR_END,
 };
 
 enum ActionType: int

@@ -221,8 +221,8 @@ bool Hero::motionValid(const MotionNode &rstMotion) const
             && rstMotion.motion > MOTION_NONE
             && rstMotion.motion < MOTION_MAX
 
-            && rstMotion.direction > DIR_NONE
-            && rstMotion.direction < DIR_MAX 
+            && rstMotion.direction >= DIR_BEGIN
+            && rstMotion.direction <  DIR_END
 
             && m_processRun
             && m_processRun->OnMap(m_processRun->MapID(), rstMotion.x,    rstMotion.y)
@@ -437,7 +437,7 @@ bool Hero::parseAction(const ActionNode &rstAction)
                                 }
                             }
 
-                            if(nDir > DIR_NONE && nDir < DIR_MAX){
+                            if(nDir >= DIR_BEGIN && nDir < DIR_END){
                                 m_motionQueue.emplace_back(nMotionSpell, 0, nDir, SYS_DEFSPEED, rstAction.X, rstAction.Y);
                                 addAttachMagic(rstAction.ActionParam, 0, rstGfxEntry.stage);
                             }
@@ -462,7 +462,7 @@ bool Hero::parseAction(const ActionNode &rstAction)
                     auto nY   = pCreature->y();
                     auto nDir = PathFind::GetDirection(rstAction.X, rstAction.Y, nX, nY);
 
-                    if(nDir > DIR_NONE && nDir < DIR_MAX){
+                    if(nDir >= DIR_BEGIN && nDir < DIR_END){
                         m_motionQueue.emplace_back(nMotion,           0, nDir, rstAction.X, rstAction.Y);
                         m_motionQueue.emplace_back(MOTION_ATTACKMODE, 0, nDir, rstAction.X, rstAction.Y);
                     }
@@ -549,7 +549,7 @@ int Hero::motionFrameCount(int motion, int direction) const
         return -1;
     }
 
-    if(!(direction > DIR_NONE && direction < DIR_MAX)){
+    if(!(direction >= DIR_BEGIN && direction < DIR_END)){
         return -1;
     }
 
@@ -729,9 +729,9 @@ int Hero::GfxWeaponID(int nWeapon, int nMotion, int nDirection) const
 {
     static_assert(sizeof(int) > 2, "GfxWeaponID() overflows because of sizeof(int) too small");
     if(true
-            && (nWeapon    > WEAPON_NONE && nWeapon    < WEAPON_MAX )
-            && (nMotion    > MOTION_NONE && nMotion    < MOTION_MAX )
-            && (nDirection > DIR_NONE    && nDirection < DIR_MAX    )){
+            && (nWeapon    >  WEAPON_NONE  && nWeapon    < WEAPON_MAX )
+            && (nMotion    >  MOTION_NONE  && nMotion    < MOTION_MAX )
+            && (nDirection >= DIR_BEGIN    && nDirection < DIR_END    )){
         const auto nGfxMotionID = gfxMotionID(nMotion);
         if(nGfxMotionID >= 0){
             return ((nWeapon - (WEAPON_NONE + 1)) << 9) + (nGfxMotionID << 3) + (nDirection - (DIR_NONE + 1));
@@ -744,9 +744,9 @@ int Hero::GfxDressID(int nDress, int nMotion, int nDirection) const
 {
     static_assert(sizeof(int) > 2, "GfxDressID() overflows because of sizeof(int) too small");
     if(true
-            && (nDress     > DRESS_NONE  && nDress     < DRESS_MAX  )
-            && (nMotion    > MOTION_NONE && nMotion    < MOTION_MAX )
-            && (nDirection > DIR_NONE    && nDirection < DIR_MAX    )){
+            && (nDress     >  DRESS_NONE   && nDress     < DRESS_MAX  )
+            && (nMotion    >  MOTION_NONE  && nMotion    < MOTION_MAX )
+            && (nDirection >= DIR_BEGIN    && nDirection < DIR_END    )){
         const auto nGfxMotionID = gfxMotionID(nMotion);
         if(nGfxMotionID >= 0){
             return ((nDress - (DRESS_NONE + 1)) << 9) + (nGfxMotionID << 3) + (nDirection - (DIR_NONE + 1));
