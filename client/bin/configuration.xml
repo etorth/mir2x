@@ -22,7 +22,7 @@
         <CommonItemDB>Res/Texture/CommonItemDB.ZSDB</CommonItemDB>
         <MapDB>Res/Texture/MapDB.ZSDB</MapDB>
         <HeroDB>Res/Texture/HeroDB.ZSDB</HeroDB>
-        <MonsterDB>Res/Texture/MonsterDB.ZSDB</MonsterDB>
+        <MonsterDB>Res/Texture/monster.zsdb</MonsterDB>
         <WeaponDB>Res/Texture/WeaponDB.ZSDB</WeaponDB>
         <MagicDB>Res/Texture/MagicDB.ZSDB</MagicDB>
         <standNPCDB>Res/Texture/npc.zsdb</standNPCDB>

@@ -6,19 +6,20 @@
  *    Description: convert monster graphics res to png files, usage:
  *
  *                      monsterwil2png fileIndex            # index for monster files, 0 ~ 19
- *                                     path-to-package      # 
+ *                                     path-to-package      #
  *                                     bodyFileName         # body file
  *                                     bodyFileNameExt      # body file
  *                                     shadowFileName       # shadow file
  *                                     shadowFileNameExt    # shadow file
  *                                     out-dir              # output file path
+ *                                     prefix-width         # add prefix for easier view in file manger, 0 means no prefix
  *
  *                  for one decoding, following two files should exist
  *                      path-to-package/bodyFileName.bodyFileNameExt
  *                      path-to-package/shadowFileName.shadowFileNameExt
  *
  *                  i.e.
- *                      monsterwil2png 13 /home/you Mon-14 wil MonS-14 wil /home/you/out
+ *                      monsterwil2png 13 /home/you Mon-14 wil MonS-14 wil /home/you/out 4
  *
  *                  otherwise get error
  *
@@ -44,6 +45,7 @@
 #include <cinttypes>
 #include <algorithm>
 
+#include "totype.hpp"
 #include "shadow.hpp"
 #include "pngf.hpp"
 #include "filesys.hpp"
@@ -51,12 +53,12 @@
 
 int g_MonWilFileIndex []
 {
-    1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1
+    1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1
 };
 
 void printUsage()
 {
-    const char *szUsage = 
+    const char *szUsage =
         "Usage: convert monster graphics res to png files, usage:\n"
         "\n"
         "                  monsterwil2png fileIndex            # index for monster files, 0 ~ 19\n"
@@ -89,7 +91,9 @@ const char *createOffsetFileName(char *szFileName,
         int  nDirection,
         int  nFrame,
         int  nDX,
-        int  nDY)
+        int  nDY,
+        int  nImgCount,
+        int  nPrefixWidth)
 {
     if(szFileName){
         // refer to client/src/monster.cpp to get encoding strategy
@@ -105,9 +109,18 @@ const char *createOffsetFileName(char *szFileName,
             | (nEncodeDirection <<  5)
             | (nEncodeFrame     <<  0);
 
-        std::sprintf(szFileName, "%s/%08" PRIX32 "%s%s%04X%04X.PNG",
+        char prefixBuf[64];
+        if(nPrefixWidth > 0){
+            std::sprintf(prefixBuf, "%0*d_", nPrefixWidth, nImgCount);
+        }
+        else{
+            prefixBuf[0] = '\0';
+        }
+
+        std::sprintf(szFileName, "%s/%s%08llX%s%s%04X%04X.PNG",
                 szOutDir,
-                nEncode, 
+                prefixBuf,
+                to_llu(nEncode),
                 ((nDX > 0) ? "1" : "0"),
                 ((nDY > 0) ? "1" : "0"),
                 std::abs(nDX),
@@ -122,7 +135,8 @@ bool monsterWil2PNG(int nMonsterFileIndex,
         const char *szBodyFileExt,
         const char *szShadowFileBaseName,
         const char *szShadowFileExt,
-        const char *szOutDir)
+        const char *szOutDir,
+        const char *szPrefixWidth)
 {
     WilImagePackage stPackageBody;
     WilImagePackage stPackageShadow;
@@ -139,6 +153,9 @@ bool monsterWil2PNG(int nMonsterFileIndex,
 
     std::vector<uint32_t> stPNGBuf;
     std::vector<uint32_t> stPNGBufShadow;
+
+    int imgCount = 0;
+    const int prefixWidth = std::stoi(szPrefixWidth);
 
     for(int nInnMonID = 0; nInnMonID < 10; ++nInnMonID){
         for(int nMotion = 0; nMotion < 10; ++nMotion){
@@ -203,7 +220,9 @@ bool monsterWil2PNG(int nMonsterFileIndex,
                                 nDirection,
                                 nFrame,
                                 stInfo.shPX,
-                                stInfo.shPY);
+                                stInfo.shPY,
+                                imgCount++,
+                                prefixWidth);
 
                         if(!pngf::saveRGBABuffer((uint8_t *)(&(stPNGBuf[0])), stInfo.shWidth, stInfo.shHeight, szSaveFileName)){
                             std::printf("save PNG failed: %s", szSaveFileName);
@@ -230,7 +249,9 @@ bool monsterWil2PNG(int nMonsterFileIndex,
                                     nDirection,
                                     nFrame,
                                     stShadowInfo.shPX,
-                                    stShadowInfo.shPY);
+                                    stShadowInfo.shPY,
+                                    imgCount++,
+                                    prefixWidth);
 
                             if(!pngf::saveRGBABuffer((uint8_t *)(&(stPNGBufShadow[0])), stShadowInfo.shWidth, stShadowInfo.shHeight, szSaveShadowFileName)){
                                 std::printf("save PNG failed: %s", szSaveShadowFileName);
@@ -295,7 +316,9 @@ bool monsterWil2PNG(int nMonsterFileIndex,
                                         nDirection,
                                         nFrame,
                                         bProject ? stInfo.shShadowPX : (stInfo.shPX + 3),
-                                        bProject ? stInfo.shShadowPY : (stInfo.shPY + 2));
+                                        bProject ? stInfo.shShadowPY : (stInfo.shPY + 2),
+                                        imgCount++,
+                                        prefixWidth);
 
                                 if(!pngf::saveRGBABuffer((uint8_t *)(&(stPNGBufShadow[0])), nShadowW, nShadowH, szSaveShadowFileName)){
                                     std::printf("save shadow PNG failed: %s", szSaveShadowFileName);
@@ -315,7 +338,7 @@ bool monsterWil2PNG(int nMonsterFileIndex,
 int main(int argc, char *argv[])
 {
     // check arguments
-    if(argc != 8){
+    if(argc != 9){
         printUsage();
         return 1;
     }
@@ -346,5 +369,5 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    return monsterWil2PNG(std::atoi(argv[1]), argv[2], argv[3], argv[4], argv[5], argv[6], argv[7]);
+    return monsterWil2PNG(std::atoi(argv[1]), argv[2], argv[3], argv[4], argv[5], argv[6], argv[7], argv[8]);
 }
