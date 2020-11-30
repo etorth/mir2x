@@ -1554,6 +1554,7 @@ bool Monster::isPet(uint64_t nUID)
 
     switch(uidf::getMonsterID(nUID)){
         case DBCOM_MONSTERID(u8"变异骷髅"):
+        case DBCOM_MONSTERID(u8"神兽"):
             {
                 return true;
             }
