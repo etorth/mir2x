@@ -731,13 +731,6 @@ void Player::OnCMActionSpell(CMAction stCMA)
                 break;
             }
     }
-
-    // sync the location
-    // for spelling magic location is not critical
-    requestMove(nX, nY, SYS_MAXSPEED, false, false, nullptr, [this]()
-    {
-        reportStand();
-    });
 }
 
 void Player::OnCMActionPickUp(CMAction stCMA)
