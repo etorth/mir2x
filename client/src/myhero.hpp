@@ -58,7 +58,7 @@ class MyHero: public Hero
         //          : bCheckCreature  : see ClientPathFinder
         //          : bCheckMove      : true  : srcLoc->decompLoc is valid and non-occupied
         //                            : false : not guaranteed
-        bool DecompMove(bool,   // bCheckGround
+        bool decompMove(bool,   // bCheckGround
                 int,            // nCheckCreature
                 bool,           // bCheckMove
                 int, int,       // srcLoc

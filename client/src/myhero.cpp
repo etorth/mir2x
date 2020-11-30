@@ -133,7 +133,7 @@ bool MyHero::moveNextMotion()
     throw fflerror("Current motion is not valid");
 }
 
-bool MyHero::DecompMove(bool bCheckGround, int nCheckCreature, bool bCheckMove, int nX0, int nY0, int nX1, int nY1, int *pXm, int *pYm)
+bool MyHero::decompMove(bool bCheckGround, int nCheckCreature, bool bCheckMove, int nX0, int nY0, int nX1, int nY1, int *pXm, int *pYm)
 {
     const auto stvPathNode = parseMovePath(nX0, nY0, nX1, nY1, bCheckGround, nCheckCreature);
     switch(stvPathNode.size()){
@@ -275,12 +275,12 @@ bool MyHero::DecompActionPickUp()
                     int nXm = -1;
                     int nYm = -1;
 
-                    if(DecompMove(true, 1, true, nX0, nY0, nX1, nY1, &nXm, &nYm)){
+                    if(decompMove(true, 1, true, nX0, nY0, nX1, nY1, &nXm, &nYm)){
                         m_actionQueue.emplace_front(currPickUp);
                         m_actionQueue.emplace_front(ActionMove(nX0, nY0, nXm, nYm, SYS_DEFSPEED, OnHorse() ? 1 : 0));
                         return true;
                     }else{
-                        if(DecompMove(true, 0, false, nX0, nY0, nX1, nY1, nullptr, nullptr)){
+                        if(decompMove(true, 0, false, nX0, nY0, nX1, nY1, nullptr, nullptr)){
                             // reachable but blocked
                             // path occupied, we restore it and wait
                             m_actionQueue.emplace_front(currPickUp);
@@ -350,13 +350,13 @@ bool MyHero::DecompActionMove()
                     int nYm = -1;
 
                     bool bCheckGround = m_processRun->CanMove(true, 0, nX1, nY1);
-                    if(DecompMove(bCheckGround, 1, true, nX0, nY0, nX1, nY1, &nXm, &nYm)){
+                    if(decompMove(bCheckGround, 1, true, nX0, nY0, nX1, nY1, &nXm, &nYm)){
                         return fnaddHop(nXm, nYm);
                     }else{
                         if(bCheckGround){
                             // means there is no such way to there
                             // move as much as possible
-                            if(DecompMove(false, 1, true, nX0, nY0, nX1, nY1, &nXm, &nYm)){
+                            if(decompMove(false, 1, true, nX0, nY0, nX1, nY1, &nXm, &nYm)){
                                 return fnaddHop(nXm, nYm);
                             }else{
                                 // won't check the ground but failed
@@ -429,7 +429,7 @@ bool MyHero::DecompActionAttack()
                         int nXt = -1;
                         int nYt = -1;
 
-                        if(DecompMove(true, 1, true, nX0, nY0, nX1, nY1, &nXt, &nYt)){
+                        if(decompMove(true, 1, true, nX0, nY0, nX1, nY1, &nXt, &nYt)){
 
                             // decompse the move
                             // but need to check if it's one step distance
@@ -482,7 +482,7 @@ bool MyHero::DecompActionAttack()
                             // if can't reach we need to reject current action
                             // if caused by occupied grids of creatures, we need to keep it
 
-                            if(DecompMove(true, 0, false, nX0, nY0, nX1, nY1, nullptr, nullptr)){
+                            if(decompMove(true, 0, false, nX0, nY0, nX1, nY1, nullptr, nullptr)){
                                 // keep it
                                 // can reach but not now
                                 m_actionQueue.emplace_front(stAttack);
