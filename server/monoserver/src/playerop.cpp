@@ -154,16 +154,16 @@ void Player::on_MPK_ACTION(const MessagePack &rstMPK)
     });
 }
 
-void Player::on_MPK_NOTIFYNEWCO(const MessagePack &rstMPK)
+void Player::on_MPK_NOTIFYNEWCO(const MessagePack &mpk)
 {
-    const auto amNNCO = rstMPK.conv<AMNotifyNewCO>();
+    const auto amNNCO = mpk.conv<AMNotifyNewCO>();
     switch(GetState(STATE_DEAD)){
         case 0:
             {
                 // should make an valid action node and send it
                 // currently just dispatch through map
 
-                dispatchAction(ActionStand(X(), Y(), Direction()));
+                dispatchAction(amNNCO.UID, ActionStand(X(), Y(), Direction()));
                 break;
             }
         default:
