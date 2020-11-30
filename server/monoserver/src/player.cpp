@@ -726,6 +726,28 @@ void Player::OnCMActionSpell(CMAction stCMA)
                 });
                 break;
             }
+        case DBCOM_MAGICID(u8"召唤神兽"):
+            {
+                int nFrontX = -1;
+                int nFrontY = -1;
+                PathFind::GetFrontLocation(&nFrontX, &nFrontY, X(), Y(), Direction(), 2);
+
+                SMFireMagic smFM;
+                std::memset(&smFM, 0, sizeof(smFM));
+
+                smFM.UID   = UID();
+                smFM.MapID = MapID();
+                smFM.Magic = nMagicID;
+                smFM.Speed = MagicSpeed();
+                smFM.AimX  = nFrontX;
+                smFM.AimY  = nFrontY;
+
+                Delay(1000, [this, smFM]()
+                {
+                    addMonster(DBCOM_MONSTERID(u8"神兽"), smFM.AimX, smFM.AimY, false);
+                });
+                break;
+            }
         default:
             {
                 break;
