@@ -391,9 +391,9 @@ bool Player::goGhost()
                             stAMDFO.Y     = Y();
 
                             if(true
-                                    && ActorPodValid()
+                                    && checkActorPod()
                                     && m_map
-                                    && m_map->ActorPodValid()){
+                                    && m_map->checkActorPod()){
                                 m_actorPod->forward(m_map->UID(), {MPK_DEADFADEOUT, stAMDFO});
                             }
 
@@ -464,9 +464,9 @@ bool Player::ActionValid(const ActionNode &)
 void Player::DispatchOffline()
 {
     if(true
-            && ActorPodValid()
+            && checkActorPod()
             && m_map
-            && m_map->ActorPodValid()){
+            && m_map->checkActorPod()){
 
         AMOffline stAMO;
         std::memset(&stAMO, 0, sizeof(stAMO));
@@ -845,8 +845,8 @@ void Player::PullRectCO(int nW, int nH)
     if(true
             && nW > 0
             && nH > 0
-            && ActorPodValid()
-            && m_map->ActorPodValid()){
+            && checkActorPod()
+            && m_map->checkActorPod()){
 
         AMPullCOInfo stAMPCOI;
         std::memset(&stAMPCOI, 0, sizeof(stAMPCOI));

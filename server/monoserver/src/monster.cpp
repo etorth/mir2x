@@ -817,9 +817,9 @@ bool Monster::goGhost()
                             stAMDFO.Y     = Y();
 
                             if(true
-                                    && ActorPodValid()
+                                    && checkActorPod()
                                     && m_map
-                                    && m_map->ActorPodValid()){
+                                    && m_map->checkActorPod()){
                                 m_actorPod->forward(m_map->UID(), {MPK_DEADFADEOUT, stAMDFO});
                             }
 

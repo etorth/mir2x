@@ -56,7 +56,7 @@ ServerObject::ServerObject(uint64_t uid)
         m_stateHook.Install("ReportActorPodMonitor", [this, nLastCheckTick = (uint32_t)(0)]() mutable -> bool
         {
             if(auto nCurrCheckTick = g_monoServer->getCurrTick(); nLastCheckTick + 1000 < nCurrCheckTick){
-                if(ActorPodValid()){
+                if(checkActorPod()){
                     m_actorPod->PrintMonitor();
                 }
                 nLastCheckTick = nCurrCheckTick;

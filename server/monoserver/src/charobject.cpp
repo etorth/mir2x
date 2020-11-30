@@ -137,7 +137,7 @@ CharObject::CharObject(ServiceCore *pServiceCore,
     m_stateHook.Install("RemoveDeadUIDLocation", [this, nLastCheckTick = (uint32_t)(0)]() mutable -> bool
     {
         if(auto nCurrCheckTick = g_monoServer->getCurrTick(); nLastCheckTick + 5000 < nCurrCheckTick){
-            if(ActorPodValid()){
+            if(checkActorPod()){
                 // remove all dead ones
                 // dispatch action requires check location list
                 dispatchAction(ActionStand(X(), Y(), Direction()));
@@ -184,7 +184,7 @@ void CharObject::dispatchAction(const ActionNode &rstAction)
     // should check to avoid dead CO call this function
     // this would cause zombies
 
-    if(!ActorPodValid()){
+    if(!checkActorPod()){
         throw fflerror("can't dispatch action: %s", rstAction.ActionName());
     }
 
@@ -252,7 +252,7 @@ void CharObject::dispatchAction(uint64_t nUID, const ActionNode &rstAction)
     // this would cause zombies
 
     condcheck(nUID);
-    condcheck(ActorPodValid());
+    condcheck(checkActorPod());
 
     AMAction stAMA;
     std::memset(&stAMA, 0, sizeof(stAMA));
@@ -946,9 +946,9 @@ void CharObject::DispatchHealth()
     stAMUHP.HPMax = HPMax();
 
     if(true
-            && ActorPodValid()
+            && checkActorPod()
             && m_map
-            && m_map->ActorPodValid()){
+            && m_map->checkActorPod()){
         m_actorPod->forward(m_map->UID(), {MPK_UPDATEHP, stAMUHP});
     }
 }

@@ -121,7 +121,7 @@ class ServerObject
     public:
         uint64_t UID() const
         {
-            return ActorPodValid() ? rawUID() : 0;
+            return checkActorPod() ? rawUID() : 0;
         }
 
         uint64_t rawUID() const
@@ -131,7 +131,7 @@ class ServerObject
 
         const char *UIDName() const
         {
-            return ActorPodValid() ? m_UIDName.c_str() : "UID_INACTIVE";
+            return checkActorPod() ? m_UIDName.c_str() : "UID_INACTIVE";
         }
 
     protected:
@@ -148,9 +148,16 @@ class ServerObject
         void deactivate();
 
     public:
-        bool ActorPodValid() const
+        bool checkActorPod() const
         {
             return m_actorPod && m_actorPod->UID();
+        }
+
+        void checkActorPodEx() const
+        {
+            if(!checkActorPod()){
+                throw fflerror("invalid ActorPod");
+            }
         }
 
     public:
