@@ -1360,7 +1360,7 @@ void ProcessRun::OnActionSpawn(uint64_t nUID, const ActionNode &rstAction)
                 // TODO how about make it as an action of skeleton
                 // then we don't need to define the callback of a done magic
 
-                addCBLog(CBLOG_SYS, u8"使用魔法: 召唤骷髅"),
+                addCBLog(CBLOG_SYS, u8"使用魔法: 召唤骷髅");
                 m_indepMagicList.emplace_back(std::make_shared<IndepMagic>
                 (
                     rstAction.ActionParam,
@@ -1406,7 +1406,7 @@ void ProcessRun::OnActionSpawn(uint64_t nUID, const ActionNode &rstAction)
             }
         case DBCOM_MONSTERID(u8"神兽"):
             {
-                addCBLog(CBLOG_SYS, u8"使用魔法: 召唤神兽"),
+                addCBLog(CBLOG_SYS, u8"使用魔法: 召唤神兽");
                 // m_indepMagicList.emplace_back(std::make_shared<IndepMagic>
                 // (
                 //     rstAction.ActionParam,
