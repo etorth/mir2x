@@ -246,33 +246,36 @@ void CharObject::dispatchAction(const ActionNode &rstAction)
     }
 }
 
-void CharObject::dispatchAction(uint64_t nUID, const ActionNode &rstAction)
+void CharObject::dispatchAction(uint64_t uid, const ActionNode &action)
 {
     // should check to avoid dead CO call this function
     // this would cause zombies
 
-    condcheck(nUID);
-    condcheck(checkActorPod());
+    if(!uid){
+        return;
+    }
 
-    AMAction stAMA;
-    std::memset(&stAMA, 0, sizeof(stAMA));
+    checkActorPodEx();
 
-    stAMA.UID   = UID();
-    stAMA.MapID = MapID();
+    AMAction amA;
+    std::memset(&amA, 0, sizeof(amA));
 
-    stAMA.Action    = rstAction.Action;
-    stAMA.Speed     = rstAction.Speed;
-    stAMA.Direction = rstAction.Direction;
+    amA.UID   = UID();
+    amA.MapID = MapID();
 
-    stAMA.X    = rstAction.X;
-    stAMA.Y    = rstAction.Y;
-    stAMA.AimX = rstAction.AimX;
-    stAMA.AimY = rstAction.AimY;
+    amA.Action    = action.Action;
+    amA.Speed     = action.Speed;
+    amA.Direction = action.Direction;
 
-    stAMA.AimUID      = rstAction.AimUID;
-    stAMA.ActionParam = rstAction.ActionParam;
+    amA.X    = action.X;
+    amA.Y    = action.Y;
+    amA.AimX = action.AimX;
+    amA.AimY = action.AimY;
 
-    m_actorPod->forward(nUID, {MPK_ACTION, stAMA});
+    amA.AimUID      = action.AimUID;
+    amA.ActionParam = action.ActionParam;
+
+    m_actorPod->forward(uid, {MPK_ACTION, amA});
 }
 
 bool CharObject::requestMove(int nX, int nY, int nSpeed, bool allowHalfMove, bool removeMonster, std::function<void()> fnOnOK, std::function<void()> fnOnError)
