@@ -3,7 +3,7 @@
  *
  *       Filename: processrun.cpp
  *        Created: 08/31/2015 03:43:46
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -219,7 +219,7 @@ uint64_t ProcessRun::FocusUID(int nFocusType)
                         }
                         return false;
                     };
-                    
+
                     int mousePX = -1;
                     int mousePY = -1;
                     SDL_GetMouseState(&mousePX, &mousePY);
@@ -259,7 +259,7 @@ uint64_t ProcessRun::FocusUID(int nFocusType)
                 }
         }
     }
-    
+
     return 0;
 }
 
@@ -357,7 +357,7 @@ void ProcessRun::draw()
     // draw all rotating stars
     // notify players that there is somethig to check
     drawRotateStar(x0, y0, x1, y1);
-    
+
     // draw magics
     for(auto p: m_indepMagicList){
         if(!p->Done()){
@@ -449,7 +449,7 @@ void ProcessRun::processEvent(const SDL_Event &event)
                                         }
                                 }
                             }
-                            
+
                             else if(const auto &itemList = getGroundItemList(mouseGridX, mouseGridY); !itemList.empty()){
                                 getMyHero()->emplaceAction(ActionPickUp(mouseGridX, mouseGridY, itemList.back().ID()));
                             }
@@ -1360,11 +1360,11 @@ void ProcessRun::OnActionSpawn(uint64_t nUID, const ActionNode &rstAction)
                 // TODO how about make it as an action of skeleton
                 // then we don't need to define the callback of a done magic
 
-                addCBLog(CBLOG_SYS, u8"使用魔法: 召唤骷髅"), 
+                addCBLog(CBLOG_SYS, u8"使用魔法: 召唤骷髅"),
                 m_indepMagicList.emplace_back(std::make_shared<IndepMagic>
                 (
                     rstAction.ActionParam,
-                    DBCOM_MAGICID(u8"召唤骷髅"), 
+                    DBCOM_MAGICID(u8"召唤骷髅"),
                     0,
                     EGS_START,
                     rstAction.Direction,
@@ -1402,6 +1402,47 @@ void ProcessRun::OnActionSpawn(uint64_t nUID, const ActionNode &rstAction)
                     return true;
                 });
 
+                return;
+            }
+        case DBCOM_MONSTERID(u8"神兽"):
+            {
+                addCBLog(CBLOG_SYS, u8"使用魔法: 召唤神兽"),
+                // m_indepMagicList.emplace_back(std::make_shared<IndepMagic>
+                // (
+                //     rstAction.ActionParam,
+                //     DBCOM_MAGICID(u8"召唤神兽"),
+                //     0,
+                //     EGS_START,
+                //     rstAction.Direction,
+                //     rstAction.X,
+                //     rstAction.Y,
+                //     rstAction.X,
+                //     rstAction.Y,
+                //     nUID
+                // ));
+                //
+                // m_UIDPending.insert(nUID);
+                // m_indepMagicList.back()->AddFunc([this, nUID, rstAction, pMagic = m_indepMagicList.back()]() -> bool
+                // {
+                //     if(pMagic->Frame() < 10){
+                //         return false;
+                //     }
+                //
+                //     ActionStand stActionStand
+                //     {
+                //         rstAction.X,
+                //         rstAction.Y,
+                //         DIR_DOWNLEFT,
+                //     };
+                //
+                //     if(auto pMonster = Monster::createMonster(nUID, this, stActionStand)){
+                //         m_creatureList[nUID].reset(pMonster);
+                //     }
+                //
+                //     m_UIDPending.erase(nUID);
+                //     queryCORecord(nUID);
+                //     return true;
+                // });
                 return;
             }
         default:
