@@ -3,7 +3,7 @@
  *
  *       Filename: main.cpp
  *        Created: 04/03/2017 18:02:52
- *    Description: convert hero graphics res to png files, usage:
+ *    Description: convert monster graphics res to png files, usage:
  *
  *                      monsterwil2png fileIndex            # index for monster files, 0 ~ 19
  *                                     path-to-package      # 
