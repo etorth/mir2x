@@ -129,7 +129,7 @@ void Player::on_MPK_ACTION(const MessagePack &rstMPK)
         case ACTION_SPAWN:
         case ACTION_SPACEMOVE2:
             {
-                DispatchAction(stAMA.UID, ActionStand(X(), Y(), Direction()));
+                dispatchAction(stAMA.UID, ActionStand(X(), Y(), Direction()));
                 break;
             }
         default:
@@ -156,23 +156,23 @@ void Player::on_MPK_ACTION(const MessagePack &rstMPK)
 
 void Player::on_MPK_NOTIFYNEWCO(const MessagePack &rstMPK)
 {
-    const auto stAMNNCO = rstMPK.conv<AMNotifyNewCO>();
+    const auto amNNCO = rstMPK.conv<AMNotifyNewCO>();
     switch(GetState(STATE_DEAD)){
         case 0:
             {
                 // should make an valid action node and send it
                 // currently just dispatch through map
 
-                DispatchAction(ActionStand(X(), Y(), Direction()));
+                dispatchAction(ActionStand(X(), Y(), Direction()));
                 break;
             }
         default:
             {
-                AMNotifyDead stAMND;
-                std::memset(&stAMND, 0, sizeof(stAMND));
+                AMNotifyDead amND;
+                std::memset(&amND, 0, sizeof(amND));
 
-                stAMND.UID = UID();
-                m_actorPod->forward(stAMNNCO.UID, {MPK_NOTIFYDEAD, stAMND});
+                amND.UID = UID();
+                m_actorPod->forward(amNNCO.UID, {MPK_NOTIFYDEAD, amND});
                 break;
             }
     }
@@ -261,7 +261,7 @@ void Player::on_MPK_ATTACK(const MessagePack &rstMPK)
         }
     }
 
-    DispatchAction(ActionHitted(X(), Y(), Direction()));
+    dispatchAction(ActionHitted(X(), Y(), Direction()));
     StruckDamage({stAMA.UID, stAMA.Type, stAMA.Damage, stAMA.Element});
     ReportAction(UID(), ActionHitted(X(), Y(), Direction()));
 }

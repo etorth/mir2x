@@ -140,7 +140,7 @@ CharObject::CharObject(ServiceCore *pServiceCore,
             if(ActorPodValid()){
                 // remove all dead ones
                 // dispatch action requires check location list
-                DispatchAction(ActionStand(X(), Y(), Direction()));
+                dispatchAction(ActionStand(X(), Y(), Direction()));
             }
             nLastCheckTick = nCurrCheckTick;
         }
@@ -173,13 +173,13 @@ bool CharObject::NextLocation(int *pX, int *pY, int nDirection, int nDistance)
 uint64_t CharObject::activate()
 {
     if(auto nUID = ServerObject::activate(); nUID){
-        DispatchAction(ActionSpawn(X(), Y(), Direction()));
+        dispatchAction(ActionSpawn(X(), Y(), Direction()));
         return nUID;
     }
     return 0;
 }
 
-void CharObject::DispatchAction(const ActionNode &rstAction)
+void CharObject::dispatchAction(const ActionNode &rstAction)
 {
     // should check to avoid dead CO call this function
     // this would cause zombies
@@ -246,7 +246,7 @@ void CharObject::DispatchAction(const ActionNode &rstAction)
     }
 }
 
-void CharObject::DispatchAction(uint64_t nUID, const ActionNode &rstAction)
+void CharObject::dispatchAction(uint64_t nUID, const ActionNode &rstAction)
 {
     // should check to avoid dead CO call this function
     // this would cause zombies
@@ -396,7 +396,7 @@ bool CharObject::requestMove(int nX, int nY, int nSpeed, bool allowHalfMove, boo
                     m_lastMoveTime = g_monoServer->getCurrTick();
 
                     m_actorPod->forward(rstMPK.from(), MPK_OK, rstMPK.ID());
-                    DispatchAction(ActionMove(nOldX, nOldY, X(), Y(), nSpeed, Horse()));
+                    dispatchAction(ActionMove(nOldX, nOldY, X(), Y(), nSpeed, Horse()));
                     SortInViewCO();
 
                     if(fnOnOK){
@@ -495,7 +495,7 @@ bool CharObject::requestSpaceMove(int locX, int locY, bool strictMove, std::func
                                     }
 
                                     // dispatch space move part 1 on old map
-                                    DispatchAction(ActionSpaceMove1(X(), Y(), Direction()));
+                                    dispatchAction(ActionSpaceMove1(X(), Y(), Direction()));
 
                                     // setup new map
                                     // don't use the requested location
@@ -507,7 +507,7 @@ bool CharObject::requestSpaceMove(int locX, int locY, bool strictMove, std::func
                                     m_actorPod->forward(rmpk.from(), MPK_OK, rmpk.ID());
 
                                     //  dispatch/report space move part 2 on new map
-                                    DispatchAction(ActionSpaceMove2(X(), Y(), Direction()));
+                                    dispatchAction(ActionSpaceMove2(X(), Y(), Direction()));
                                     if(uidf::getUIDType(UID()) == UID_PLY){
                                         dynamic_cast<Player *>(this)->ReportAction(UID(), ActionSpaceMove2(X(), Y(), Direction()));
                                     }
@@ -652,7 +652,7 @@ bool CharObject::requestMapSwitch(uint32_t mapID, int locX, int locY, bool stric
                                                     m_actorPod->forward(m_map->UID(), MPK_OK, rmpk.ID());
 
                                                     // 2. notify all players on the new map
-                                                    DispatchAction(ActionStand(X(), Y(), Direction()));
+                                                    dispatchAction(ActionStand(X(), Y(), Direction()));
 
                                                     // 3. inform the client for map swith
                                                     // 4. get neighbors

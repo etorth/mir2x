@@ -115,7 +115,7 @@ void Monster::on_MPK_ACTION(const MessagePack &rstMPK)
         case ACTION_SPAWN:
         case ACTION_SPACEMOVE2:
             {
-                DispatchAction(stAMA.UID, ActionStand(X(), Y(), Direction()));
+                dispatchAction(stAMA.UID, ActionStand(X(), Y(), Direction()));
                 break;
             }
         default:
@@ -136,7 +136,7 @@ void Monster::on_MPK_NOTIFYNEWCO(const MessagePack &rstMPK)
                 // should make an valid action node and send it
                 // currently just dispatch through map
 
-                DispatchAction(ActionStand(X(), Y(), Direction()));
+                dispatchAction(ActionStand(X(), Y(), Direction()));
                 break;
             }
         default:
@@ -179,7 +179,7 @@ void Monster::on_MPK_ATTACK(const MessagePack &rstMPK)
                 }
 
                 AddOffenderDamage(stAMAK.UID, stAMAK.Damage);
-                DispatchAction(ActionHitted(X(), Y(), Direction()));
+                dispatchAction(ActionHitted(X(), Y(), Direction()));
                 StruckDamage({stAMAK.UID, stAMAK.Type, stAMAK.Damage, stAMAK.Element, stAMAK.Effect});
                 return;
             }

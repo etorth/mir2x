@@ -167,7 +167,7 @@ bool Monster::randomMove()
                         // current direction is possible for next move
                         // report the turn and do motion (by chance) in next update
                         m_direction = nDirection;
-                        DispatchAction(ActionStand(X(), Y(), Direction()));
+                        dispatchAction(ActionStand(X(), Y(), Direction()));
 
                         // we won't do reportStand() for monster
                         // monster's moving is only driven by server currently
@@ -227,7 +227,7 @@ bool Monster::randomTurn()
                 // current direction is possible for next move
                 // report the turn and do motion (by chance) in next update
                 m_direction = dir;
-                DispatchAction(ActionStand(X(), Y(), Direction()));
+                dispatchAction(ActionStand(X(), Y(), Direction()));
                 return true;
             }
         }
@@ -276,7 +276,7 @@ void Monster::AttackUID(uint64_t nUID, int nDC, std::function<void()> fnOnOK, st
 
                                 SetTarget(nUID);
                                 m_lastAttackTime = g_monoServer->getCurrTick();
-                                DispatchAction(ActionAttack(X(), Y(), DC_PHY_PLAIN, AttackSpeed(), nUID));
+                                dispatchAction(ActionAttack(X(), Y(), DC_PHY_PLAIN, AttackSpeed(), nUID));
 
                                 // 2. send attack message to target
                                 //    target can ignore this message directly
@@ -419,7 +419,7 @@ void Monster::followMaster(std::function<void()> fnOnOK, std::function<void()> f
 
                         if(Direction() != nDirection){
                             m_direction= nDirection;
-                            DispatchAction(ActionStand(X(), Y(), Direction()));
+                            dispatchAction(ActionStand(X(), Y(), Direction()));
                         }
 
                         fnOnOK();
@@ -770,7 +770,7 @@ bool Monster::goDie()
                             // auto-fade-out is for zombie handling
                             // when client confirms a zombie, client use auto-fade-out die action
 
-                            DispatchAction(ActionDie(X(), Y(), Direction(), false));
+                            dispatchAction(ActionDie(X(), Y(), Direction(), false));
 
                             // let's dispatch ActionDie before mark it dead
                             // theoratically dead actor shouldn't dispatch anything
