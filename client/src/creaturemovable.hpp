@@ -71,8 +71,8 @@ class CreatureMovable: public ClientCreature
                 int);           // nCheckCreature
 
     protected:
-        virtual MotionNode makeMotionWalk(int, int, int, int, int) const = 0;
-        std::deque<MotionNode> makeMotionWalkQueue(int, int, int, int, int);
+        virtual MotionNode makeWalkMotion(int, int, int, int, int) const = 0;
+        std::deque<MotionNode> makeWalkMotionQueue(int, int, int, int, int);
 
     protected:
         bool motionQueueValid() const;

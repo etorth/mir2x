@@ -62,7 +62,7 @@ class StandNPC: public ClientCreature
     public:
         bool moveNextMotion() override
         {
-            m_currMotion = makeMotionIdle();
+            m_currMotion = makeIdleMotion();
             return true;
         }
 };

@@ -23,6 +23,8 @@
 #include "actorpod.hpp"
 #include "mathf.hpp"
 #include "monoserver.hpp"
+#include "taodog.hpp"
+#include "dbcomid.hpp"
 
 extern MonoServer *g_monoServer;
 void Monster::on_MPK_METRONOME(const MessagePack &)
@@ -159,6 +161,10 @@ void Monster::on_MPK_ATTACK(const MessagePack &rstMPK)
     switch(GetState(STATE_DEAD)){
         case 0:
             {
+                if(monsterID() == DBCOM_MONSTERID(u8"神兽")){
+                    dynamic_cast<TaoDog *>(this)->setTransf(true);
+                }
+
                 if(mathf::LDistance2(X(), Y(), stAMAK.X, stAMAK.Y) > 2){
                     switch(uidf::getUIDType(stAMAK.UID)){
                         case UID_MON:
@@ -305,5 +311,19 @@ void Monster::on_MPK_MASTERKILL(const MessagePack &rstMPK)
 {
     if(masterUID() && (rstMPK.from() == masterUID())){
         goDie();
+    }
+}
+
+void Monster::on_MPK_MASTERHITTED(const MessagePack &rstMPK)
+{
+    if(masterUID() && (rstMPK.from() == masterUID())){
+        if(checkMonsterName(u8"神兽")){
+            dynamic_cast<TaoDog *>(this)->setTransf(true);
+            return;
+        }
+
+        if(checkMonsterName(u8"变异骷髅")){
+            return;
+        }
     }
 }

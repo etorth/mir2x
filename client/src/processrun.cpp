@@ -39,6 +39,8 @@
 #include "totype.hpp"
 #include "skillboard.hpp"
 #include "lochashtable.hpp"
+#include "taoskeleton.hpp"
+#include "taodog.hpp"
 
 extern Log *g_log;
 extern Client *g_client;
@@ -131,7 +133,7 @@ void ProcessRun::update(double fUpdateTime)
     const int myHeroX = getMyHero()->x();
     const int myHeroY = getMyHero()->y();
 
-    for(auto p = m_creatureList.begin(); p != m_creatureList.end();){
+    for(auto p = m_coList.begin(); p != m_coList.end();){
         if(p->second.get() == getMyHero()){
             ++p;
             continue;
@@ -147,7 +149,7 @@ void ProcessRun::update(double fUpdateTime)
             ++p;
         }
         else{
-            p = m_creatureList.erase(p);
+            p = m_coList.erase(p);
         }
     }
 
@@ -232,7 +234,7 @@ uint64_t ProcessRun::FocusUID(int nFocusType)
                     }
 
                     ClientCreature *focusCreaturePtr = nullptr;
-                    for(auto p = m_creatureList.begin();;){
+                    for(auto p = m_coList.begin();;){
                         auto pnext = std::next(p);
                         if(fnCheckFocus(p->second->UID(), mousePX, mousePY)){
                             if(false
@@ -244,7 +246,7 @@ uint64_t ProcessRun::FocusUID(int nFocusType)
                             }
                         }
 
-                        if(pnext == m_creatureList.end()){
+                        if(pnext == m_coList.end()){
                             break;
                         }
                         p = pnext;
@@ -304,7 +306,7 @@ void ProcessRun::draw()
 
     // draw dead actors
     // dead actors are shown before all active actors
-    for(auto &p: m_creatureList){
+    for(auto &p: m_coList){
         p.second->draw(m_viewX, m_viewY, 0);
     }
 
@@ -313,7 +315,7 @@ void ProcessRun::draw()
     const auto locHashTable = [this]()
     {
         LocHashTable<std::vector<ClientCreature *>> table;
-        for(auto &p: m_creatureList){
+        for(auto &p: m_coList){
             table[p.second->location()].push_back(p.second.get());
         }
         return table;
@@ -610,7 +612,7 @@ int ProcessRun::CheckPathGrid(int nX, int nY) const
     // because server only checks EndX/EndY, if we use X()/Y() to request move it just fails
 
     bool bLocked = false;
-    for(auto &p: m_creatureList){
+    for(auto &p: m_coList){
         if(true
                 && (p.second)
                 && (p.second->currMotion().endX == nX)
@@ -835,7 +837,7 @@ bool ProcessRun::userCommand(const char *userCmdString)
 std::vector<int> ProcessRun::GetPlayerList()
 {
     std::vector<int> result;
-    for(auto p = m_creatureList.begin(); p != m_creatureList.end();){
+    for(auto p = m_coList.begin(); p != m_coList.end();){
         if(p->second->visible()){
             switch(p->second->type()){
                 case UID_PLY:
@@ -850,7 +852,7 @@ std::vector<int> ProcessRun::GetPlayerList()
             }
             ++p;
         }else{
-            p = m_creatureList.erase(p);
+            p = m_coList.erase(p);
         }
     }
     return result;
@@ -1128,7 +1130,7 @@ void ProcessRun::addCBLog(int logType, const char8_t *format, ...)
     dynamic_cast<ControlBoard *>(getGUIManager()->getWidget("ControlBoard"))->addLog(logType, to_cstr(logStr));
 }
 
-bool ProcessRun::OnMap(uint32_t nMapID, int nX, int nY) const
+bool ProcessRun::onMap(uint32_t nMapID, int nX, int nY) const
 {
     return (MapID() == nMapID) && m_mir2xMapData.ValidC(nX, nY);
 }
@@ -1142,7 +1144,7 @@ ClientCreature *ProcessRun::findUID(uint64_t uid, bool checkVisible) const
     // TODO don't remove invisible creatures, this causes too much crash
     // let ProcessRun::update() loop clean it
 
-    if(auto p = m_creatureList.find(uid); p != m_creatureList.end()){
+    if(auto p = m_coList.find(uid); p != m_coList.end()){
         if(p->second->UID() != uid){
             throw fflerror("invalid creature: %p, UID = %llu", to_cvptr(p->second.get()), to_llu(p->second->UID()));
         }
@@ -1393,10 +1395,8 @@ void ProcessRun::OnActionSpawn(uint64_t nUID, const ActionNode &rstAction)
                         DIR_DOWNLEFT,
                     };
 
-                    if(auto pMonster = Monster::createMonster(nUID, this, stActionStand)){
-                        m_creatureList[nUID].reset(pMonster);
-                    }
 
+                    m_coList[nUID].reset(new TaoSkeleton(nUID, this, stActionStand));
                     m_actionBlocker.erase(nUID);
                     queryCORecord(nUID);
                     return true;
@@ -1407,57 +1407,13 @@ void ProcessRun::OnActionSpawn(uint64_t nUID, const ActionNode &rstAction)
         case DBCOM_MONSTERID(u8"神兽"):
             {
                 addCBLog(CBLOG_SYS, u8"使用魔法: 召唤神兽");
-                // m_indepMagicList.emplace_back(std::make_shared<IndepMagic>
-                // (
-                //     rstAction.ActionParam,
-                //     DBCOM_MAGICID(u8"召唤神兽"),
-                //     0,
-                //     EGS_START,
-                //     rstAction.Direction,
-                //     rstAction.X,
-                //     rstAction.Y,
-                //     rstAction.X,
-                //     rstAction.Y,
-                //     nUID
-                // ));
-                //
-                // m_actionBlocker.insert(nUID);
-                // m_indepMagicList.back()->AddFunc([this, nUID, rstAction, pMagic = m_indepMagicList.back()]() -> bool
-                // {
-                //     if(pMagic->Frame() < 10){
-                //         return false;
-                //     }
-                //
-                //     ActionStand stActionStand
-                //     {
-                //         rstAction.X,
-                //         rstAction.Y,
-                //         DIR_DOWNLEFT,
-                //     };
-                //
-                //     if(auto pMonster = Monster::createMonster(nUID, this, stActionStand)){
-                //         m_creatureList[nUID].reset(pMonster);
-                //     }
-                //
-                //     m_actionBlocker.erase(nUID);
-                //     queryCORecord(nUID);
-                //     return true;
-                // });
+                m_coList[nUID].reset(new TaoDog(nUID, this, rstAction));
+                queryCORecord(nUID);
                 return;
             }
         default:
             {
-                ActionStand stActionStand
-                {
-                    rstAction.X,
-                    rstAction.Y,
-                    PathFind::ValidDir(rstAction.Direction) ? rstAction.Direction : DIR_UP,
-                };
-
-                if(auto pMonster = Monster::createMonster(nUID, this, stActionStand)){
-                    m_creatureList[nUID].reset(pMonster);
-                }
-
+                m_coList[nUID].reset(new Monster(nUID, this, rstAction));
                 queryCORecord(nUID);
                 return;
             }

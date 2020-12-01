@@ -28,6 +28,8 @@
 #include "protocoldef.hpp"
 #include "dbcomrecord.hpp"
 #include "pngtexoffdb.hpp"
+#include "taodog.hpp"
+#include "taoskeleton.hpp"
 #include "creaturemovable.hpp"
 #include "clientargparser.hpp"
 #include "clientpathfinder.hpp"
@@ -38,47 +40,52 @@ extern SDLDevice *g_SDLDevice;
 extern PNGTexOffDB *g_monsterDB;
 extern ClientArgParser *g_clientArgParser;
 
-Monster *Monster::createMonster(uint64_t uid, ProcessRun *proc, const ActionNode &action)
+MotionNode Monster::makeInitMotion(uint32_t monsterID, const ActionNode &action)
 {
-    if(uidf::getUIDType(uid) != UID_MON){
-        throw fflerror("invalid UID for monster type: UIDName = %s", uidf::getUIDString(uid).c_str());
-    }
-
-    Monster *pMonster = nullptr;
-    try{
-        pMonster = new Monster(uid, proc);
-    }
-    catch(...){
-        throw fflerror("create monster failed: UIDName = %s", uidf::getUIDString(uid).c_str());
-    }
-
-    // setup the initial motion
-    // this motion may never be present since we immediately call parseAction()
-
-    switch(pMonster->monsterID()){
+    switch(monsterID){
         case DBCOM_MONSTERID(u8"变异骷髅"):
             {
-                pMonster->m_currMotion = {MOTION_MON_STAND, 0, DIR_DOWNLEFT, action.X, action.Y};
-                break;
+                return MotionNode
+                {
+                    MOTION_MON_STAND,
+                    0,
+                    action.Action == ACTION_SPAWN ? DIR_DOWNLEFT : action.Direction,
+                    action.X,
+                    action.Y,
+                };
+            }
+        case DBCOM_MONSTERID(u8"神兽"):
+            {
+                return MotionNode
+                {
+                    action.Action == ACTION_SPAWN ? MOTION_MON_APPEAR : MOTION_MON_STAND,
+                    0,
+                    action.Direction,
+                    action.X,
+                    action.Y,
+                };
             }
         default:
             {
-                pMonster->m_currMotion = {MOTION_MON_STAND, 0, DIR_UP, action.X, action.Y};
-                break;
+                return MotionNode
+                {
+                    MOTION_MON_STAND,
+                    0,
+                    action.Direction >= DIR_BEGIN && action.Direction < DIR_END ? action.Direction : DIR_UP,
+                    action.X,
+                    action.Y,
+                };
             }
     }
-
-    if(pMonster->parseAction(action)){
-        return pMonster;
-    }
-
-    delete pMonster;
-    return nullptr;
 }
 
 Monster::Monster(uint64_t uid, ProcessRun *proc)
     : CreatureMovable(uid, proc)
 {
+    if(uidf::getUIDType(uid) != UID_MON){
+        throw fflerror("invalid UID for monster type: UIDName = %s", to_cstr(uidf::getUIDString(uid)));
+    }
+
     if(g_clientArgParser->drawUID){
         m_nameBoard.setText(u8"%s(%llu)", DBCOM_MONSTERRECORD(monsterID()).name, to_llu(UID()));
     }
@@ -323,8 +330,13 @@ bool Monster::parseAction(const ActionNode &action)
     m_currMotion.speed = SYS_MAXSPEED;
     m_motionQueue.clear();
 
-    const int endX = m_forceMotionQueue.empty() ? m_currMotion.endX : m_forceMotionQueue.back().endX;
-    const int endY = m_forceMotionQueue.empty() ? m_currMotion.endY : m_forceMotionQueue.back().endY;
+    const auto [endX, endY] = [&action, this]() -> std::array<int, 2>
+    {
+        if(!m_forceMotionQueue.empty()){
+            return {m_forceMotionQueue.back().endX, m_forceMotionQueue.back().endY};
+        }
+        return {m_currMotion.endX, m_currMotion.endY};
+    }();
 
     // 1. prepare before parsing action
     //    additional movement added if necessary but in rush
@@ -334,12 +346,12 @@ bool Monster::parseAction(const ActionNode &action)
         case ACTION_ATTACK:
         case ACTION_HITTED:
             {
-                m_motionQueue = makeMotionWalkQueue(endX, endY, action.X, action.Y, SYS_MAXSPEED);
+                m_motionQueue = makeWalkMotionQueue(endX, endY, action.X, action.Y, SYS_MAXSPEED);
                 break;
             }
         case ACTION_DIE:
             {
-                const auto motionQueue = makeMotionWalkQueue(endX, endY, action.X, action.Y, SYS_MAXSPEED);
+                const auto motionQueue = makeWalkMotionQueue(endX, endY, action.X, action.Y, SYS_MAXSPEED);
                 m_forceMotionQueue.insert(m_forceMotionQueue.end(), motionQueue.begin(), motionQueue.end());
                 break;
             }
@@ -369,7 +381,7 @@ bool Monster::parseAction(const ActionNode &action)
             }
         case ACTION_MOVE:
             {
-                if(auto stMotionNode = makeMotionWalk(action.X, action.Y, action.AimX, action.AimY, action.Speed)){
+                if(auto stMotionNode = makeWalkMotion(action.X, action.Y, action.AimX, action.AimY, action.Speed)){
                     m_motionQueue.push_back(stMotionNode);
                 }
                 break;
@@ -398,9 +410,20 @@ bool Monster::parseAction(const ActionNode &action)
                     if(nDir >= DIR_BEGIN && nDir < DIR_END){
                         m_motionQueue.emplace_back(MOTION_MON_ATTACK0, 0, nDir, action.X, action.Y);
                     }
-                }else{
+                }
+                else{
                     return false;
                 }
+                break;
+            }
+        case ACTION_SPAWN:
+            {
+                onActionSpawn(action);
+                break;
+            }
+        case ACTION_TRANSF:
+            {
+                onActionTransf(action);
                 break;
             }
         default:
@@ -424,8 +447,8 @@ bool Monster::motionValid(const MotionNode &rstMotion) const
             && rstMotion.direction <  DIR_END
 
             && m_processRun
-            && m_processRun->OnMap(m_processRun->MapID(), rstMotion.x,    rstMotion.y)
-            && m_processRun->OnMap(m_processRun->MapID(), rstMotion.endX, rstMotion.endY)
+            && m_processRun->onMap(m_processRun->MapID(), rstMotion.x,    rstMotion.y)
+            && m_processRun->onMap(m_processRun->MapID(), rstMotion.endX, rstMotion.endY)
 
             && rstMotion.speed >= SYS_MINSPEED
             && rstMotion.speed <= SYS_MAXSPEED
@@ -450,6 +473,7 @@ bool Monster::motionValid(const MotionNode &rstMotion) const
             case MOTION_MON_ATTACK0:
             case MOTION_MON_HITTED:
             case MOTION_MON_DIE:
+            case MOTION_MON_APPEAR:
                 {
                     return nLDistance2 == 0;
                 }
@@ -608,7 +632,7 @@ int Monster::motionFrameCount(int motion, int direction) const
     }
 }
 
-MotionNode Monster::makeMotionWalk(int nX0, int nY0, int nX1, int nY1, int nSpeed) const
+MotionNode Monster::makeWalkMotion(int nX0, int nY0, int nX1, int nY1, int nSpeed) const
 {
     if(true
             && m_processRun

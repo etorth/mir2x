@@ -95,7 +95,7 @@ class Hero: public CreatureMovable
         int WeaponOrder(int, int, int);
 
     protected:
-        MotionNode makeMotionWalk(int, int, int, int, int) const override;
+        MotionNode makeWalkMotion(int, int, int, int, int) const override;
 
     protected:
         int gfxMotionID(int) const override;

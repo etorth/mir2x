@@ -27,7 +27,18 @@
 class Monster: public CreatureMovable
 {
     public:
-        static Monster *createMonster(uint64_t, ProcessRun *, const ActionNode &);
+        static MotionNode makeInitMotion(uint32_t, const ActionNode &);
+
+    public:
+        Monster(uint64_t uid, ProcessRun *proc, const ActionNode &action)
+            : Monster(uid, proc)
+        {
+            if(const auto initMotion = Monster::makeInitMotion(uidf::getMonsterID(uid), action)){
+                m_currMotion = initMotion;
+                return;
+            }
+            throw fflerror("failed to assign initial motion");
+        }
 
     protected:
         Monster(uint64_t, ProcessRun *);
@@ -46,7 +57,7 @@ class Monster: public CreatureMovable
         std::tuple<int, int> location() const override;
 
     public:
-        bool parseAction(const ActionNode &);
+        bool parseAction(const ActionNode &) override;
 
     public:
         bool motionValid(const MotionNode &) const;
@@ -70,7 +81,7 @@ class Monster: public CreatureMovable
         int motionFrameCount(int, int) const override;
 
     protected:
-        MotionNode makeMotionWalk(int, int, int, int, int) const;
+        MotionNode makeWalkMotion(int, int, int, int, int) const;
 
     public:
         int maxStep() const override
@@ -83,11 +94,59 @@ class Monster: public CreatureMovable
         }
 
     public:
-        int lookID() const
+        virtual int lookID() const
         {
             if(const auto &mr = DBCOM_MONSTERRECORD(monsterID())){
                 return mr.lookID;
             }
             return -1;
+        }
+
+    protected:
+        void checkActionSpawnEx(const ActionNode &action) const
+        {
+            if(action.Action != ACTION_SPAWN){
+                throw fflerror("invalid action: %d", action.Action);
+            }
+        }
+
+        void checkActionTransfEx(const ActionNode &action) const
+        {
+            if(action.Action != ACTION_TRANSF){
+                throw fflerror("invalid action: %d", action.Action);
+            }
+        }
+
+    protected:
+        virtual void onActionSpawn(const ActionNode &action)
+        {
+            checkActionSpawnEx(action);
+            m_currMotion = MotionNode
+            {
+                MOTION_MON_STAND,
+                0,
+
+                [&action]() -> int
+                {
+                    if(action.Direction >= DIR_BEGIN && action.Direction < DIR_END){
+                        return action.Direction;
+                    }
+                    return DIR_UP;
+                }(),
+
+                action.X,
+                action.Y,
+            };
+        }
+
+        virtual void onActionTransf(const ActionNode &)
+        {}
+
+    protected:
+        template<size_t N> void checkMonsterNameEx(const char8_t (&name)[N]) const
+        {
+            if(monsterID() != DBCOM_MONSTERID(name)){
+                throw fflerror("invalid monster name: %s", to_cstr(DBCOM_MONSTERRECORD(monsterID()).name));
+            }
         }
 };

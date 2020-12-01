@@ -261,6 +261,10 @@ void Player::on_MPK_ATTACK(const MessagePack &rstMPK)
         }
     }
 
+    for(auto slaveUID: m_slaveList){
+        m_actorPod->forward(slaveUID, MPK_MASTERHITTED);
+    }
+
     dispatchAction(ActionHitted(X(), Y(), Direction()));
     StruckDamage({stAMA.UID, stAMA.Type, stAMA.Damage, stAMA.Element});
     ReportAction(UID(), ActionHitted(X(), Y(), Direction()));

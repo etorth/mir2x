@@ -169,7 +169,7 @@ bool ClientCreature::visible() const
     }
 }
 
-MotionNode ClientCreature::makeMotionIdle() const
+MotionNode ClientCreature::makeIdleMotion() const
 {
     return MotionNode
     {

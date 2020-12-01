@@ -110,7 +110,7 @@ class ProcessRun: public Process
         std::list<std::shared_ptr<IndepMagic>> m_indepMagicList;
 
     private:
-        std::unordered_map<uint64_t, std::unique_ptr<ClientCreature>> m_creatureList;
+        std::unordered_map<uint64_t, std::unique_ptr<ClientCreature>> m_coList;
 
     private:
         std::set<uint64_t> m_actionBlocker;
@@ -166,7 +166,7 @@ class ProcessRun: public Process
         }
 
     public:
-        bool OnMap(uint32_t, int, int) const;
+        bool onMap(uint32_t, int, int) const;
 
     public:
         void net_EXP(const uint8_t *, size_t);

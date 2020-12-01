@@ -20,10 +20,11 @@
 #include "corof.hpp"
 #include "fflerror.hpp"
 #include "charobject.hpp"
+#include "dbcomid.hpp"
 #include "dbcomrecord.hpp"
 #include "monsterrecord.hpp"
 
-class Monster final: public CharObject
+class Monster: public CharObject
 {
     protected:
         // a-star algorithm is so expensive
@@ -91,7 +92,7 @@ class Monster final: public CharObject
         ~Monster() = default;
 
     public:
-       uint32_t MonsterID() const
+       uint32_t monsterID() const
        {
            return m_monsterID;
        }
@@ -149,6 +150,7 @@ class Monster final: public CharObject
         void on_MPK_METRONOME       (const MessagePack &);
         void on_MPK_MAPSWITCH       (const MessagePack &);
         void on_MPK_MASTERKILL      (const MessagePack &);
+        void on_MPK_MASTERHITTED    (const MessagePack &);
         void on_MPK_NOTIFYDEAD      (const MessagePack &);
         void on_MPK_BADACTORPOD     (const MessagePack &);
         void on_MPK_CHECKMASTER     (const MessagePack &);
@@ -223,11 +225,24 @@ class Monster final: public CharObject
     private:
         int walkWait() const
         {
-            return DBCOM_MONSTERRECORD(MonsterID()).walkWait;
+            return DBCOM_MONSTERRECORD(monsterID()).walkWait;
         }
 
         int attackWait() const
         {
-            return DBCOM_MONSTERRECORD(MonsterID()).walkWait;
+            return DBCOM_MONSTERRECORD(monsterID()).walkWait;
+        }
+
+    protected:
+        template<size_t N> bool checkMonsterName(const char8_t (&name)[N]) const
+        {
+            return monsterID() == DBCOM_MONSTERID(name);
+        }
+
+        template<size_t N> void checkMonsterNameEx(const char8_t (&name)[N]) const
+        {
+            if(!checkMonsterName(name)){
+                throw fflerror("invalid monster name: %s", to_cstr(DBCOM_MONSTERRECORD(monsterID()).name));
+            }
         }
 };

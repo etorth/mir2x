@@ -49,6 +49,21 @@ struct ActionStand
     {}
 };
 
+struct ActionTransf
+{
+    int      X = -1;
+    int      Y = -1;
+    int      Direction   = -1;
+    uint64_t transfParam =  0;
+
+    ActionTransf(int nX, int nY, int nDirection, uint64_t transf)
+        : X(nX)
+        , Y(nY)
+        , Direction(nDirection)
+        , transfParam(transf)
+    {}
+};
+
 struct ActionSpawn
 {
     int X = -1;
@@ -238,6 +253,14 @@ struct ActionNode
         , Direction(rstStand.Direction)
         , X(rstStand.X)
         , Y(rstStand.Y)
+    {}
+
+    ActionNode(const ActionTransf &transf)
+        : Action(ACTION_TRANSF)
+        , Direction(transf.Direction)
+        , X(transf.X)
+        , Y(transf.Y)
+        , ActionParam(transf.transfParam)
     {}
 
     ActionNode(const ActionSpawn &rstSpawn)

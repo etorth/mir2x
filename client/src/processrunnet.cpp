@@ -52,7 +52,7 @@ void ProcessRun::net_LOGINOK(const uint8_t *pBuf, size_t nLen)
         loadMap(nMapID);
 
         m_myHeroUID = nUID;
-        m_creatureList[nUID] = std::make_unique<MyHero>(nUID, nDBID, bGender, nDressID, this, ActionStand(nX, nY, nDirection));
+        m_coList[nUID] = std::make_unique<MyHero>(nUID, nDBID, bGender, nDressID, this, ActionStand(nX, nY, nDirection));
 
         centerMyHero();
         getMyHero()->pullGold();
@@ -100,8 +100,8 @@ void ProcessRun::net_ACTION(const uint8_t *pBuf, size_t)
         m_actionBlocker.clear();
         loadMap(smA.MapID);
 
-        m_creatureList.clear();
-        m_creatureList[m_myHeroUID] = std::make_unique<MyHero>(nUID, nDBID, bGender, nDress, this, ActionStand(nX, nY, nDirection));
+        m_coList.clear();
+        m_coList[m_myHeroUID] = std::make_unique<MyHero>(nUID, nDBID, bGender, nDress, this, ActionStand(nX, nY, nDirection));
 
         centerMyHero();
         getMyHero()->parseAction(stAction);
@@ -165,9 +165,7 @@ void ProcessRun::net_ACTION(const uint8_t *pBuf, size_t)
                                     }
                             }
 
-                            if(auto monPtr = Monster::createMonster(smA.UID, this, stAction)){
-                                m_creatureList[smA.UID].reset(monPtr);
-                            }
+                            m_coList[smA.UID] = std::make_unique<Monster>(smA.UID, this, stAction);
                             return;
                         }
                 }
@@ -175,7 +173,7 @@ void ProcessRun::net_ACTION(const uint8_t *pBuf, size_t)
             }
         case UID_NPC:
             {
-                m_creatureList[smA.UID] = std::make_unique<StandNPC>(smA.UID, this, stAction);
+                m_coList[smA.UID] = std::make_unique<StandNPC>(smA.UID, this, stAction);
                 return;
             }
         default:
@@ -205,7 +203,7 @@ void ProcessRun::net_CORECORD(const uint8_t *pBuf, size_t)
         smCOR.Action.ActionParam,
     };
 
-    if(auto p = m_creatureList.find(smCOR.Action.UID); p != m_creatureList.end()){
+    if(auto p = m_coList.find(smCOR.Action.UID); p != m_coList.end()){
         p->second->parseAction(actionNode);
         return;
     }
@@ -213,14 +211,12 @@ void ProcessRun::net_CORECORD(const uint8_t *pBuf, size_t)
     switch(uidf::getUIDType(smCOR.Action.UID)){
         case UID_MON:
             {
-                if(auto monPtr = Monster::createMonster(smCOR.Action.UID, this, actionNode)){
-                    m_creatureList[smCOR.Action.UID].reset(monPtr);
-                }
+                m_coList[smCOR.Action.UID] = std::make_unique<Monster>(smCOR.Action.UID, this, actionNode);
                 break;
             }
         case UID_PLY:
             {
-                m_creatureList[smCOR.Action.UID] = std::make_unique<Hero>(smCOR.Action.UID, smCOR.Player.DBID, true, 0, this, actionNode);
+                m_coList[smCOR.Action.UID] = std::make_unique<Hero>(smCOR.Action.UID, smCOR.Player.DBID, true, 0, this, actionNode);
                 break;
             }
         default:

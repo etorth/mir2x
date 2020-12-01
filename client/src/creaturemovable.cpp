@@ -132,7 +132,7 @@ std::vector<PathFind::PathNode> CreatureMovable::parseMovePath(int x0, int y0, i
     }
 }
 
-std::deque<MotionNode> CreatureMovable::makeMotionWalkQueue(int startX, int startY, int endX, int endY, int speed)
+std::deque<MotionNode> CreatureMovable::makeWalkMotionQueue(int startX, int startY, int endX, int endY, int speed)
 {
     if(mathf::LDistance2(startX, startY, endX, endY) == 0){
         return {};
@@ -159,7 +159,7 @@ std::deque<MotionNode> CreatureMovable::makeMotionWalkQueue(int startX, int star
                     const auto x1 = pathNodes[nIndex    ].X;
                     const auto y1 = pathNodes[nIndex    ].Y;
 
-                    if(const auto motionNode = makeMotionWalk(x0, y0, x1, y1, speed)){
+                    if(const auto motionNode = makeWalkMotion(x0, y0, x1, y1, speed)){
                         motionQueue.push_back(motionNode);
                     }
                     else{
@@ -205,7 +205,7 @@ bool CreatureMovable::moveNextMotion()
     }
 
     if(m_motionQueue.empty()){
-        m_currMotion = makeMotionIdle();
+        m_currMotion = makeIdleMotion();
         return true;
     }
 
@@ -217,7 +217,7 @@ bool CreatureMovable::moveNextMotion()
 
     g_log->addLog(LOGTYPE_WARNING, "Motion queue invalid, reset idle state");
     m_motionQueue.clear();
-    m_currMotion = makeMotionIdle();
+    m_currMotion = makeIdleMotion();
     return false;
 }
 

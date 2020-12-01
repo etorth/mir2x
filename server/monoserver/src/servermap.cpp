@@ -26,6 +26,8 @@
 #include "dbcomid.hpp"
 #include "monster.hpp"
 #include "actorpod.hpp"
+#include "taodog.hpp"
+#include "taoskeleton.hpp"
 #include "mathf.hpp"
 #include "sysconst.hpp"
 #include "fflerror.hpp"
@@ -964,16 +966,48 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
     }
 
     if(auto [bDstOK, nDstX, nDstY] = GetValidGrid(false, false, (int)(bStrictLoc), nHintX, nHintY); bDstOK){
-        auto pMonster = new Monster
-        {
-            nMonsterID,
-            m_serviceCore,
-            this,
-            nDstX,
-            nDstY,
-            DIR_UP,
-            nMasterUID,
-        };
+        Monster *pMonster = nullptr;
+        switch(nMonsterID){
+            case DBCOM_MONSTERID(u8"变异骷髅"):
+                {
+                    pMonster = new TaoSkeleton
+                    {
+                        m_serviceCore,
+                        this,
+                        nDstX,
+                        nDstY,
+                        nMasterUID,
+                    };
+                    break;
+                }
+            case DBCOM_MONSTERID(u8"神兽"):
+                {
+                    pMonster = new TaoDog
+                    {
+                        m_serviceCore,
+                        this,
+                        nDstX,
+                        nDstY,
+                        DIR_UP, // TODO face its master
+                        nMasterUID,
+                    };
+                    break;
+                }
+            default:
+                {
+                    pMonster = new Monster
+                    {
+                        nMonsterID,
+                        m_serviceCore,
+                        this,
+                        nDstX,
+                        nDstY,
+                        DIR_UP,
+                        nMasterUID,
+                    };
+                    break;
+                }
+        }
 
         pMonster->activate();
 

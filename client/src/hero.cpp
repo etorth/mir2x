@@ -225,8 +225,8 @@ bool Hero::motionValid(const MotionNode &rstMotion) const
             && rstMotion.direction <  DIR_END
 
             && m_processRun
-            && m_processRun->OnMap(m_processRun->MapID(), rstMotion.x,    rstMotion.y)
-            && m_processRun->OnMap(m_processRun->MapID(), rstMotion.endX, rstMotion.endY)
+            && m_processRun->onMap(m_processRun->MapID(), rstMotion.x,    rstMotion.y)
+            && m_processRun->onMap(m_processRun->MapID(), rstMotion.endX, rstMotion.endY)
 
             && rstMotion.speed >= SYS_MINSPEED
             && rstMotion.speed <= SYS_MAXSPEED
@@ -346,7 +346,7 @@ bool Hero::parseAction(const ActionNode &rstAction)
             {
                 // take this as cirtical
                 // server use ReportStand() to do location sync
-                const auto motionQueue = makeMotionWalkQueue(endX, endY, rstAction.X, rstAction.Y, SYS_MAXSPEED);
+                const auto motionQueue = makeWalkMotionQueue(endX, endY, rstAction.X, rstAction.Y, SYS_MAXSPEED);
                 m_forceMotionQueue.insert(m_forceMotionQueue.end(), motionQueue.begin(), motionQueue.end());
                 break;
             }
@@ -354,7 +354,7 @@ bool Hero::parseAction(const ActionNode &rstAction)
         case ACTION_SPELL:
         case ACTION_ATTACK:
             {
-                m_motionQueue = makeMotionWalkQueue(endX, endY, rstAction.X, rstAction.Y, SYS_MAXSPEED);
+                m_motionQueue = makeWalkMotionQueue(endX, endY, rstAction.X, rstAction.Y, SYS_MAXSPEED);
                 break;
             }
         case ACTION_SPACEMOVE2:
@@ -380,7 +380,7 @@ bool Hero::parseAction(const ActionNode &rstAction)
             }
         case ACTION_MOVE:
             {
-                if(auto stMotionNode = makeMotionWalk(rstAction.X, rstAction.Y, rstAction.AimX, rstAction.AimY, rstAction.Speed)){
+                if(auto stMotionNode = makeWalkMotion(rstAction.X, rstAction.Y, rstAction.AimX, rstAction.AimY, rstAction.Speed)){
                     m_motionQueue.push_back(stMotionNode);
                 }else{
                     return false;
@@ -670,7 +670,7 @@ int Hero::WeaponOrder(int nMotion, int nDirection, int nFrame)
     return s_WeaponOrder[nGfxMotionID * 80 + (nDirection - (DIR_NONE + 1)) * 10 + nFrame];
 }
 
-MotionNode Hero::makeMotionWalk(int nX0, int nY0, int nX1, int nY1, int nSpeed) const
+MotionNode Hero::makeWalkMotion(int nX0, int nY0, int nX1, int nY1, int nSpeed) const
 {
     if(true
             && m_processRun

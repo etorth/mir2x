@@ -108,7 +108,7 @@ bool MyHero::moveNextMotion()
 
     if(m_motionQueue.empty()){
         if(m_actionQueue.empty()){
-            m_currMotion = makeMotionIdle();
+            m_currMotion = makeIdleMotion();
             return true;
         }else{
             // there is pending action in the queue

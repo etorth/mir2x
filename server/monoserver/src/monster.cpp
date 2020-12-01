@@ -112,7 +112,7 @@ Monster::Monster(uint32_t   nMonsterID,
     , m_AStarCache()
 {
     if(!m_monsterRecord){
-        throw fflerror("invalid monster record: MonsterID = %d", (int)(MonsterID()));
+        throw fflerror("invalid monster record: MonsterID = %llu", to_llu(monsterID()));
     }
 
     SetState(STATE_DEAD    , 0);
@@ -612,6 +612,11 @@ void Monster::operateAM(const MessagePack &rstMPK)
                 on_MPK_MASTERKILL(rstMPK);
                 break;
             }
+        case MPK_MASTERHITTED:
+            {
+                on_MPK_MASTERHITTED(rstMPK);
+                break;
+            }
         default:
             {
                 throw fflerror("Unsupported message: %s", rstMPK.Name());
@@ -647,7 +652,7 @@ void Monster::reportCO(uint64_t toUID)
     stAMCOR.Action.AimUID      = 0;
     stAMCOR.Action.ActionParam = 0;
 
-    stAMCOR.Monster.MonsterID = MonsterID();
+    stAMCOR.Monster.MonsterID = monsterID();
     m_actorPod->forward(toUID, {MPK_CORECORD, stAMCOR});
 }
 
@@ -1125,7 +1130,7 @@ int Monster::FindPathMethod()
 
 void Monster::RandomDrop()
 {
-    for(auto &rstGroupRecord: DB_MONSTERDROPITEM(MonsterID())){
+    for(auto &rstGroupRecord: DB_MONSTERDROPITEM(monsterID())){
         for(auto &rstItemRecord: rstGroupRecord.second){
             if(std::rand() % rstItemRecord.ProbRecip == 0){
                 AMNewDropItem stAMNDI;
