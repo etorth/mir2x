@@ -22,7 +22,7 @@
 #include "log.hpp"
 #include "client.hpp"
 #include "dbcomid.hpp"
-#include "monster.hpp"
+#include "clientmonster.hpp"
 #include "standnpc.hpp"
 #include "uidf.hpp"
 #include "sysconst.hpp"
@@ -165,7 +165,7 @@ void ProcessRun::net_ACTION(const uint8_t *pBuf, size_t)
                                     }
                             }
 
-                            m_coList[smA.UID] = std::make_unique<Monster>(smA.UID, this, stAction);
+                            m_coList[smA.UID] = std::make_unique<ClientMonster>(smA.UID, this, stAction);
                             return;
                         }
                 }
@@ -211,7 +211,7 @@ void ProcessRun::net_CORECORD(const uint8_t *pBuf, size_t)
     switch(uidf::getUIDType(smCOR.Action.UID)){
         case UID_MON:
             {
-                m_coList[smCOR.Action.UID] = std::make_unique<Monster>(smCOR.Action.UID, this, actionNode);
+                m_coList[smCOR.Action.UID] = std::make_unique<ClientMonster>(smCOR.Action.UID, this, actionNode);
                 break;
             }
         case UID_PLY:

@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename: taoskeleton.hpp
+ *       Filename: clienttaoskeleton.hpp
  *        Created: 08/31/2015 08:26:19
  *    Description:
  *
@@ -17,13 +17,13 @@
  */
 
 #pragma once
-#include "monster.hpp"
+#include "clientmonster.hpp"
 
-class TaoSkeleton: public Monster
+class ClientTaoSkeleton: public ClientMonster
 {
     public:
-        TaoSkeleton(uint64_t uid, ProcessRun *proc, const ActionNode &action)
-            : Monster(uid, proc, action)
+        ClientTaoSkeleton(uint64_t uid, ProcessRun *proc, const ActionNode &action)
+            : ClientMonster(uid, proc, action)
         {
             checkMonsterNameEx(u8"变异骷髅");
         }

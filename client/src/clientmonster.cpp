@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename: monster.cpp
+ *       Filename: clientmonster.cpp
  *        Created: 08/31/2015 08:26:57
  *    Description: 
  *
@@ -19,7 +19,7 @@
 #include "log.hpp"
 #include "totype.hpp"
 #include "dbcomid.hpp"
-#include "monster.hpp"
+#include "clientmonster.hpp"
 #include "uidf.hpp"
 #include "mathf.hpp"
 #include "fflerror.hpp"
@@ -28,8 +28,8 @@
 #include "protocoldef.hpp"
 #include "dbcomrecord.hpp"
 #include "pngtexoffdb.hpp"
-#include "taodog.hpp"
-#include "taoskeleton.hpp"
+#include "clienttaodog.hpp"
+#include "clienttaoskeleton.hpp"
 #include "creaturemovable.hpp"
 #include "clientargparser.hpp"
 #include "clientpathfinder.hpp"
@@ -40,7 +40,7 @@ extern SDLDevice *g_SDLDevice;
 extern PNGTexOffDB *g_monsterDB;
 extern ClientArgParser *g_clientArgParser;
 
-MotionNode Monster::makeInitMotion(uint32_t monsterID, const ActionNode &action)
+MotionNode ClientMonster::makeInitMotion(uint32_t monsterID, const ActionNode &action)
 {
     switch(monsterID){
         case DBCOM_MONSTERID(u8"变异骷髅"):
@@ -79,7 +79,7 @@ MotionNode Monster::makeInitMotion(uint32_t monsterID, const ActionNode &action)
     }
 }
 
-Monster::Monster(uint64_t uid, ProcessRun *proc)
+ClientMonster::ClientMonster(uint64_t uid, ProcessRun *proc)
     : CreatureMovable(uid, proc)
 {
     if(uidf::getUIDType(uid) != UID_MON){
@@ -94,7 +94,7 @@ Monster::Monster(uint64_t uid, ProcessRun *proc)
     }
 }
 
-bool Monster::update(double ms)
+bool ClientMonster::update(double ms)
 {
     updateAttachMagic(ms);
 
@@ -158,7 +158,7 @@ bool Monster::update(double ms)
     }
 }
 
-bool Monster::draw(int viewX, int viewY, int focusMask)
+bool ClientMonster::draw(int viewX, int viewY, int focusMask)
 {
     // monster graphics retrieving key structure
     //
@@ -274,7 +274,7 @@ bool Monster::draw(int viewX, int viewY, int focusMask)
     return true;
 }
 
-std::tuple<int, int> Monster::location() const
+std::tuple<int, int> ClientMonster::location() const
 {
     if(!motionValid(m_currMotion)){
         throw fflerror("invalid current motion");
@@ -306,7 +306,7 @@ std::tuple<int, int> Monster::location() const
     }
 }
 
-bool Monster::parseAction(const ActionNode &action)
+bool ClientMonster::parseAction(const ActionNode &action)
 {
     m_lastActive = SDL_GetTicks();
 
@@ -437,7 +437,7 @@ bool Monster::parseAction(const ActionNode &action)
     return motionQueueValid();
 }
 
-bool Monster::motionValid(const MotionNode &rstMotion) const
+bool ClientMonster::motionValid(const MotionNode &rstMotion) const
 {
     if(true
             && rstMotion.motion > MOTION_MON_NONE
@@ -487,7 +487,7 @@ bool Monster::motionValid(const MotionNode &rstMotion) const
     return false;
 }
 
-bool Monster::canFocus(int pointX, int pointY) const
+bool ClientMonster::canFocus(int pointX, int pointY) const
 {
     switch(m_currMotion.motion){
         case MOTION_MON_DIE:
@@ -530,11 +530,11 @@ bool Monster::canFocus(int pointX, int pointY) const
         && ((nH >= maxTargetH) ? mathf::pointInSegment(pointY, (startY + (nH - maxTargetH) / 2), maxTargetH) : mathf::pointInSegment(pointY, startY, nH));
 }
 
-int Monster::gfxID(int nMotion, int nDirection) const
+int ClientMonster::gfxID(int nMotion, int nDirection) const
 {
-    // see Monster::Draw() for format of nGfxID
+    // see ClientMonster::Draw() for format of nGfxID
     // monster GfxID consists of (LookID, Motion, Direction)
-    static_assert(sizeof(int) > 2, "Monster::GfxID() overflows because of sizeof(int) <= 2");
+    static_assert(sizeof(int) > 2, "ClientMonster::GfxID() overflows because of sizeof(int) <= 2");
 
     if(!monsterID()){
         return -1;
@@ -560,7 +560,7 @@ int Monster::gfxID(int nMotion, int nDirection) const
     return -1;
 }
 
-int Monster::motionFrameCount(int motion, int direction) const
+int ClientMonster::motionFrameCount(int motion, int direction) const
 {
     const auto nGfxID = gfxID(motion, direction);
     if(nGfxID < 0){
@@ -632,7 +632,7 @@ int Monster::motionFrameCount(int motion, int direction) const
     }
 }
 
-MotionNode Monster::makeWalkMotion(int nX0, int nY0, int nX1, int nY1, int nSpeed) const
+MotionNode ClientMonster::makeWalkMotion(int nX0, int nY0, int nX1, int nY1, int nSpeed) const
 {
     if(true
             && m_processRun

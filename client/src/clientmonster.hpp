@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename: monster.hpp
+ *       Filename: clientmonster.hpp
  *        Created: 08/31/2015 08:26:19
  *    Description:
  *
@@ -24,16 +24,16 @@
 #include "protocoldef.hpp"
 #include "creaturemovable.hpp"
 
-class Monster: public CreatureMovable
+class ClientMonster: public CreatureMovable
 {
     public:
         static MotionNode makeInitMotion(uint32_t, const ActionNode &);
 
     public:
-        Monster(uint64_t uid, ProcessRun *proc, const ActionNode &action)
-            : Monster(uid, proc)
+        ClientMonster(uint64_t uid, ProcessRun *proc, const ActionNode &action)
+            : ClientMonster(uid, proc)
         {
-            if(const auto initMotion = Monster::makeInitMotion(uidf::getMonsterID(uid), action)){
+            if(const auto initMotion = ClientMonster::makeInitMotion(uidf::getMonsterID(uid), action)){
                 m_currMotion = initMotion;
                 return;
             }
@@ -41,7 +41,7 @@ class Monster: public CreatureMovable
         }
 
     protected:
-        Monster(uint64_t, ProcessRun *);
+        ClientMonster(uint64_t, ProcessRun *);
 
     public:
         bool update(double) override;

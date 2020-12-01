@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename: taodog.hpp
+ *       Filename: clienttaodog.hpp
  *        Created: 08/31/2015 08:26:19
  *    Description:
  *
@@ -17,16 +17,16 @@
  */
 
 #pragma once
-#include "monster.hpp"
+#include "clientmonster.hpp"
 
-class TaoDog: public Monster
+class ClientTaoDog: public ClientMonster
 {
     private:
         bool m_stand;
 
     public:
-        TaoDog(uint64_t uid, ProcessRun *proc, const ActionNode &action)
-            : Monster(uid, proc, action)
+        ClientTaoDog(uint64_t uid, ProcessRun *proc, const ActionNode &action)
+            : ClientMonster(uid, proc, action)
             , m_stand(action.ActionParam)
         {
             checkMonsterNameEx(u8"神兽");

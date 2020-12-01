@@ -20,7 +20,7 @@
 #include <numeric>
 #include <cstring>
 #include "dbcomid.hpp"
-#include "monster.hpp"
+#include "clientmonster.hpp"
 #include "mathf.hpp"
 #include "sysconst.hpp"
 #include "mapbindb.hpp"
@@ -39,8 +39,8 @@
 #include "totype.hpp"
 #include "skillboard.hpp"
 #include "lochashtable.hpp"
-#include "taoskeleton.hpp"
-#include "taodog.hpp"
+#include "clienttaoskeleton.hpp"
+#include "clienttaodog.hpp"
 
 extern Log *g_log;
 extern Client *g_client;
@@ -1181,7 +1181,7 @@ uint32_t ProcessRun::GetFocusFaceKey()
                     }
                 case UID_MON:
                     {
-                        auto nLookID = ((Monster*)(pCreature))->lookID();
+                        auto nLookID = ((ClientMonster*)(pCreature))->lookID();
                         if(nLookID >= 0){
                             nFaceKey = 0X01000000 + (nLookID - LID_BEGIN);
                         }
@@ -1396,7 +1396,7 @@ void ProcessRun::OnActionSpawn(uint64_t nUID, const ActionNode &rstAction)
                     };
 
 
-                    m_coList[nUID].reset(new TaoSkeleton(nUID, this, stActionStand));
+                    m_coList[nUID].reset(new ClientTaoSkeleton(nUID, this, stActionStand));
                     m_actionBlocker.erase(nUID);
                     queryCORecord(nUID);
                     return true;
@@ -1407,13 +1407,13 @@ void ProcessRun::OnActionSpawn(uint64_t nUID, const ActionNode &rstAction)
         case DBCOM_MONSTERID(u8"神兽"):
             {
                 addCBLog(CBLOG_SYS, u8"使用魔法: 召唤神兽");
-                m_coList[nUID].reset(new TaoDog(nUID, this, rstAction));
+                m_coList[nUID].reset(new ClientTaoDog(nUID, this, rstAction));
                 queryCORecord(nUID);
                 return;
             }
         default:
             {
-                m_coList[nUID].reset(new Monster(nUID, this, rstAction));
+                m_coList[nUID].reset(new ClientMonster(nUID, this, rstAction));
                 queryCORecord(nUID);
                 return;
             }
