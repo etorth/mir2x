@@ -520,8 +520,8 @@ int Monster::gfxID(int nMotion, int nDirection) const
     const auto nGfxMotionID = gfxMotionID(nMotion);
 
     if(true
-            && nLookID >= LID_MIN
-            && nLookID <  LID_MAX
+            && nLookID >= LID_BEGIN
+            && nLookID <  LID_END
 
             && nDirection >= DIR_BEGIN
             && nDirection <  DIR_END
@@ -531,7 +531,7 @@ int Monster::gfxID(int nMotion, int nDirection) const
         // if passed listed simple test
         // we need to check the huge table for it
 
-        return (((nLookID - LID_MIN) & 0X07FF) << 7) + ((nGfxMotionID & 0X000F) << 3) + ((nDirection - (DIR_NONE + 1)) & 0X0007);
+        return (((nLookID - LID_BEGIN) & 0X07FF) << 7) + ((nGfxMotionID & 0X000F) << 3) + ((nDirection - DIR_BEGIN) & 0X0007);
     }
     return -1;
 }

@@ -72,8 +72,8 @@ enum ActExtType: int
 
 enum LookIDType: int
 {
-    LID_MIN = 0,
-    LID_MAX = 2048,
+    LID_BEGIN = 0,
+    LID_END   = LID_BEGIN + 2048,
 };
 
 enum DCType: int

@@ -1181,7 +1181,7 @@ uint32_t ProcessRun::GetFocusFaceKey()
                     {
                         auto nLookID = ((Monster*)(pCreature))->lookID();
                         if(nLookID >= 0){
-                            nFaceKey = 0X01000000 + (nLookID - LID_MIN);
+                            nFaceKey = 0X01000000 + (nLookID - LID_BEGIN);
                         }
                         break;
                     }
