@@ -80,7 +80,13 @@ void magicWil2PNG(const char *dataPath, const char *outDir, int prefixWidth)
     {
         "Magic",
         "MagicEx",
-        "MagicEx2", 
+        "MagicEx2",
+
+        "MonMagic",
+        "MonMagicEx",
+        "MonMagicEx2",
+        "MonMagicEx3",
+        "MonMagicEx4",
     }){
         WilImagePackage imgPackage;
         if(!imgPackage.Load(dataPath, fileBodyName, "wil")){

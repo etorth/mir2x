@@ -9,7 +9,6 @@ ADD_SUBDIRECTORY(herowil2png)
 ADD_SUBDIRECTORY(magicwil2png)
 ADD_SUBDIRECTORY(weaponwil2png)
 ADD_SUBDIRECTORY(monsterwil2png)
-ADD_SUBDIRECTORY(monmagicwil2png)
 
 ADD_SUBDIRECTORY(dbcreator)
 ADD_SUBDIRECTORY(zsdbmaker)
