@@ -24,7 +24,7 @@
 extern SDLDevice *g_SDLDevice;
 extern PNGTexOffDB *g_magicDB;
 
-void ClientTaoDog::ClientTaoDogFire::Draw(int drawOffX, int drawOffY)
+void ClientTaoDog::DogFire::Draw(int drawOffX, int drawOffY)
 {
     if(RefreshCache()){
         if(m_cacheEntry->gfxID >= 0){
@@ -32,7 +32,7 @@ void ClientTaoDog::ClientTaoDogFire::Draw(int drawOffX, int drawOffY)
             int offY = 0;
             if(auto texPtr = g_magicDB->Retrieve(m_cacheEntry->gfxID + Frame() + (m_direction - DIR_BEGIN) * m_cacheEntry->frameCount, &offX, &offY)){
                 SDL_SetTextureBlendMode(texPtr, SDL_BLENDMODE_BLEND);
-                g_SDLDevice->drawTexture(texPtr, drawOffX + offX, drawOffY + offY);
+                g_SDLDevice->drawTexture(texPtr, drawOffX + offX, drawOffY + offY - 5); // seems offset has issue
             }
         }
     }

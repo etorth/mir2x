@@ -23,13 +23,13 @@
 class ClientTaoDog: public ClientMonster
 {
     private:
-        class ClientTaoDogFire: public AttachMagic
+        class DogFire: public AttachMagic
         {
             private:
                 int m_direction;
 
             public:
-                ClientTaoDogFire(int dir)
+                DogFire(int dir)
                     : AttachMagic(DBCOM_MAGICID(u8"神兽-喷火"), 0, EGS_RUN, -1.0)
                     , m_direction(dir)
                 {}
@@ -138,7 +138,7 @@ class ClientTaoDog: public ClientMonster
             }
 
             if(m_currMotion.motion == MOTION_MON_ATTACK0 && m_currMotion.frame == 5 && m_stand){
-                addAttachMagic(new ClientTaoDogFire(m_currMotion.direction));
+                addAttachMagic(new DogFire(m_currMotion.direction));
             }
             return true;
         }
