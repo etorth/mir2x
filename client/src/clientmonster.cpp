@@ -49,7 +49,20 @@ MotionNode ClientMonster::makeInitMotion(uint32_t monsterID, const ActionNode &a
                 {
                     MOTION_MON_STAND,
                     0,
-                    action.Action == ACTION_SPAWN ? DIR_DOWNLEFT : action.Direction,
+
+                    [&action]() -> int
+                    {
+                        if(action.Action == ACTION_SPAWN){
+                            return DIR_DOWNLEFT;
+                        }
+                        else if(action.Direction >= DIR_BEGIN && action.Direction < DIR_END){
+                            return action.Direction;
+                        }
+                        else{
+                            return DIR_UP;
+                        }
+                    }(),
+
                     action.X,
                     action.Y,
                 };
@@ -60,7 +73,17 @@ MotionNode ClientMonster::makeInitMotion(uint32_t monsterID, const ActionNode &a
                 {
                     action.Action == ACTION_SPAWN ? MOTION_MON_APPEAR : MOTION_MON_STAND,
                     0,
-                    action.Direction,
+
+                    [&action]() -> int
+                    {
+                        if(action.Direction >= DIR_BEGIN && action.Direction < DIR_END){
+                            return action.Direction;
+                        }
+                        else{
+                            return DIR_UP;
+                        }
+                    }(),
+
                     action.X,
                     action.Y,
                 };
@@ -71,7 +94,17 @@ MotionNode ClientMonster::makeInitMotion(uint32_t monsterID, const ActionNode &a
                 {
                     MOTION_MON_STAND,
                     0,
-                    action.Direction >= DIR_BEGIN && action.Direction < DIR_END ? action.Direction : DIR_UP,
+
+                    [&action]() -> int
+                    {
+                        if(action.Direction >= DIR_BEGIN && action.Direction < DIR_END){
+                            return action.Direction;
+                        }
+                        else{
+                            return DIR_UP;
+                        }
+                    }(),
+
                     action.X,
                     action.Y,
                 };
