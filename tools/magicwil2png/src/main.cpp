@@ -42,6 +42,7 @@
 #include "totype.hpp"
 #include "fflerror.hpp"
 #include "pngf.hpp"
+#include "alphaf.hpp"
 #include "filesys.hpp"
 #include "wilimagepackage.hpp"
 
@@ -92,6 +93,7 @@ void magicWil2PNG(const char *dataPath, const char *outDir, int prefixWidth)
                 const auto imgInfo = imgPackage.CurrentImageInfo();
                 pngBuf.resize(imgInfo.shWidth * imgInfo.shHeight);
                 imgPackage.Decode(&(pngBuf[0]), 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF);
+                alphaf::autoAlpha(pngBuf.data(), pngBuf.size());
 
                 char saveFileName[256];
                 createOffsetFileName(saveFileName, outDir, fileIndex, i, imgInfo.shPX, imgInfo.shPY, prefixIndex++, prefixWidth);
