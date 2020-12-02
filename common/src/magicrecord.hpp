@@ -79,7 +79,9 @@ struct GfxEntry
 
     const int type;
     const int gfxID;
+
     const int frameCount;
+    const int gfxIDCount;
 
     // motion of the caster
     // can only defined for EGS_INIT (u8"启动")
@@ -100,6 +102,7 @@ struct GfxEntry
 
             int argGfxID      = -1,
             int argFrameCount = -1,
+            int argGfxIDCount = -1,
 
             int argMotion  = -1,
 
@@ -120,6 +123,7 @@ struct GfxEntry
                     u8"跟随", EGT_FOLLOW))
         , gfxID(argGfxID >= -1 ? argGfxID : -1)
         , frameCount(argFrameCount >= -1 ? argFrameCount : -1)
+        , gfxIDCount(argGfxIDCount >= -1 ? argGfxIDCount : -1)
         , motion(constexprf::hasInt(argMotion, -1, 0, 1) ? argMotion : -1)
         , speed(argSpeed)
         , loop(constexprf::hasInt(argLoop, -1, 0, 1) ? argLoop : -1)

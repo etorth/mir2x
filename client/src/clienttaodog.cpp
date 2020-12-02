@@ -30,7 +30,7 @@ void ClientTaoDog::DogFire::Draw(int drawOffX, int drawOffY)
         if(m_cacheEntry->gfxID >= 0){
             int offX = 0;
             int offY = 0;
-            if(auto texPtr = g_magicDB->Retrieve(m_cacheEntry->gfxID + Frame() + (m_direction - DIR_BEGIN) * m_cacheEntry->frameCount, &offX, &offY)){
+            if(auto texPtr = g_magicDB->Retrieve(m_cacheEntry->gfxID + Frame() + (m_direction - DIR_BEGIN) * m_cacheEntry->gfxIDCount, &offX, &offY)){
                 SDL_SetTextureBlendMode(texPtr, SDL_BLENDMODE_BLEND);
                 g_SDLDevice->drawTexture(texPtr, drawOffX + offX + m_dirOff.at(m_direction).at(0), drawOffY + offY + m_dirOff.at(m_direction).at(1));
             }
