@@ -32,6 +32,7 @@ class MonsterRecord
         int coolEye;
 
         int lookID;
+        int deadFadeOut;
 
         int HP;
         int MP;
@@ -81,6 +82,7 @@ class MonsterRecord
                 int argCoolEye,
 
                 int argLookID,
+                int argDeadFadeOut,
 
                 int argHP,
                 int argMP,
@@ -126,6 +128,7 @@ class MonsterRecord
             , coolEye(argCoolEye)
 
             , lookID(argLookID)
+            , deadFadeOut(argDeadFadeOut)
 
             , HP(argHP)
             , MP(argMP)

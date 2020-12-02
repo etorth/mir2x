@@ -781,9 +781,13 @@ bool Monster::goDie()
                             // theoratically dead actor shouldn't dispatch anything
 
                             SetState(STATE_DEAD, 1);
-
-                            Delay(2 * 1000, [this](){ goGhost(); });
-                            return true;
+                            if(DBCOM_MONSTERRECORD(monsterID()).deadFadeOut){
+                                Delay(2 * 1000, [this](){ goGhost(); });
+                                return true;
+                            }
+                            else{
+                                return goGhost();
+                            }
                         }
                     default:
                         {
@@ -821,10 +825,10 @@ bool Monster::goGhost()
                             stAMDFO.X     = X();
                             stAMDFO.Y     = Y();
 
-                            if(true
-                                    && checkActorPod()
-                                    && m_map
-                                    && m_map->checkActorPod()){
+                            // send this to remove the map grid coverage
+                            // for monster don't need fadeout (like Taodog) we shouldn't send the FADEOUT to client
+
+                            if(checkActorPod() && m_map && m_map->checkActorPod()){
                                 m_actorPod->forward(m_map->UID(), {MPK_DEADFADEOUT, stAMDFO});
                             }
 

@@ -106,4 +106,10 @@ class ClientTaoDog: public ClientMonster
             m_stand = standReq;
             m_forceMotionQueue.emplace_back(MOTION_MON_APPEAR, 0, dir, SYS_DEFSPEED, x, y);
         }
+
+    public:
+        bool visible() const override
+        {
+            return ClientCreature::active();
+        }
 };

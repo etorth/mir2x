@@ -189,9 +189,9 @@
         virtual int gfxMotionID(int) const = 0;
 
     public:
-        bool   alive() const;
-        bool  active() const;
-        bool visible() const;
+        virtual bool   alive() const;
+        virtual bool  active() const;
+        virtual bool visible() const;
 
     protected:
         MotionNode makeIdleMotion() const;

@@ -605,7 +605,10 @@ void ServerMap::on_MPK_DEADFADEOUT(const MessagePack &rstMPK)
             if(true || ValidC(nX, nY)){
                 for(auto nUID: getUIDList(nX, nY)){
                     if(nUID != stAMDFO.UID){
-                        if(uidf::getUIDType(nUID) == UID_PLY || uidf::getUIDType(nUID) == UID_MON){
+                        if(uidf::getUIDType(nUID) == UID_PLY){
+                            m_actorPod->forward(nUID, {MPK_DEADFADEOUT, stAMDFO});
+                        }
+                        else if(uidf::getUIDType(nUID) == UID_MON && DBCOM_MONSTERRECORD(uidf::getMonsterID(nUID)).deadFadeOut){
                             m_actorPod->forward(nUID, {MPK_DEADFADEOUT, stAMDFO});
                         }
                     }
