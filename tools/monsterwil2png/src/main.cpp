@@ -202,6 +202,28 @@ bool monsterWil2PNG(int nMonsterFileIndex,
                 for(int nFrame = 0; nFrame < nMaxFrameCount; ++nFrame){
                     int nBaseIndex = nInnMonID * 1000 + nMotion * 80 + nDirection * 10 + nFrame + g_MonWilFileIndex[nMonsterFileIndex];
 
+                    // For taoist dog, nInnMonID = 0, file = Mon-10.wil
+                    // arrangement:
+                    //
+                    // Mon-10:
+                    // TMP000000.PNG ~ TMP000399.PNG taodog motions                   <-------+
+                    // TMP000400.PNG ~ TMP000639.PNG invalid index or unknown images          |
+                    // TMP000640.PNG ~ TMP000719.PNG taodog transform motions         <----+  |
+                    //                                                                     |  |
+                    // MonS-10:                                                            |  |
+                    // TMP000000.PNG ~ TMP000399.PNG taodog motion shadows-----------------+--+
+                    // TMP000400.PNG ~ TMP000479.PNG taodog transform motion shadows ------+
+
+                    int alterShadowBaseIndex = -1;
+                    if(nGlobalMonID == 90){
+                        if(nBaseIndex >= 400 && nBaseIndex <= 639){
+                            continue;
+                        }
+                        else if(nBaseIndex >= 640 && nBaseIndex <= 719){
+                            alterShadowBaseIndex = (nBaseIndex - 640) + 400;
+                        }
+                    }
+
                     if(true
                             && stPackageBody.SetIndex(nBaseIndex)
                             && stPackageBody.CurrentImageValid()){
@@ -231,6 +253,11 @@ bool monsterWil2PNG(int nMonsterFileIndex,
 
                         // to save shadow png file
                         // try shadow file first, failed then try to make a dynamically one
+
+                        if(alterShadowBaseIndex >= 0){
+                            nBaseIndex = alterShadowBaseIndex;
+                        }
+
                         if(true
                                 && stPackageShadow.SetIndex(nBaseIndex)
                                 && stPackageShadow.CurrentImageValid()){
