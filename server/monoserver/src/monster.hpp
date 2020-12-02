@@ -131,8 +131,8 @@ class Monster: public CharObject
         bool InRange(int, int, int);
 
     protected:
-        void SetTarget(uint64_t);
-        void RemoveTarget(uint64_t);
+        virtual void SetTarget(uint64_t);
+        virtual void RemoveTarget(uint64_t);
 
     protected:
         bool StruckDamage(const DamageNode &);

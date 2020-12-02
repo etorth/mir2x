@@ -35,4 +35,10 @@ class TaoDog final: public Monster
             m_stand = stand;
             dispatchAction(ActionTransf(X(), Y(), Direction(), m_stand));
         }
+
+        void SetTarget(uint64_t nUID) override
+        {
+            Monster::SetTarget(nUID);
+            setTransf(true);
+        }
 };
