@@ -137,7 +137,7 @@ class ClientTaoDog: public ClientMonster
                 return false;
             }
 
-            if(m_currMotion.motion == MOTION_MON_ATTACK0 && m_currMotion.frame == 4 && m_stand){
+            if(m_currMotion.motion == MOTION_MON_ATTACK0 && m_currMotion.frame == 5 && m_stand){
                 addAttachMagic(new ClientTaoDogFire(m_currMotion.direction));
             }
             return true;
