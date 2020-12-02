@@ -17,6 +17,7 @@
  */
 
 #pragma once
+#include <unordered_map>
 #include "dbcomid.hpp"
 #include "clientmonster.hpp"
 
@@ -26,12 +27,26 @@ class ClientTaoDog: public ClientMonster
         class DogFire: public AttachMagic
         {
             private:
-                int m_direction;
+                const int m_direction;
+
+            private:
+                const std::unordered_map<int, std::array<int, 2>> m_dirOff;
 
             public:
                 DogFire(int dir)
                     : AttachMagic(DBCOM_MAGICID(u8"神兽-喷火"), 0, EGS_RUN, -1.0)
                     , m_direction(dir)
+                    , m_dirOff
+                      {
+                          {DIR_UP,        { 0,  2}},
+                          {DIR_UPRIGHT,   {-3, -3}},
+                          {DIR_RIGHT,     {-2, -5}},
+                          {DIR_DOWNRIGHT, { 0,  0}},
+                          {DIR_DOWN,      { 0, -5}},
+                          {DIR_DOWNLEFT,  { 0,  0}},
+                          {DIR_LEFT,      { 2, -5}},
+                          {DIR_UPLEFT,    { 3, -3}},
+                      }
                 {}
 
             public:
