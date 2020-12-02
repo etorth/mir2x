@@ -6,6 +6,7 @@ ADD_SUBDIRECTORY(mapdbmaker)
 
 ADD_SUBDIRECTORY(npcwil2png)
 ADD_SUBDIRECTORY(herowil2png)
+ADD_SUBDIRECTORY(magicwil2png)
 ADD_SUBDIRECTORY(weaponwil2png)
 ADD_SUBDIRECTORY(monsterwil2png)
 
