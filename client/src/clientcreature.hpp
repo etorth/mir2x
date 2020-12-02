@@ -154,7 +154,9 @@
         virtual bool advanceMotionFrame(int);
 
     protected:
-        bool updateMotion(bool);
+        virtual bool updateMotion(bool);
+
+    protected:
         void updateAttachMagic(double);
 
     public:
@@ -198,6 +200,7 @@
 
     public:
         bool addAttachMagic(int, int, int);
+        bool addAttachMagic(AttachMagic *);
 
     protected:
         double currMotionDelay() const;

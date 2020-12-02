@@ -30,6 +30,7 @@
 #include "magicrecord.hpp"
 #include "protocoldef.hpp"
 #include "dbcomrecord.hpp"
+#include "attachmagic.hpp"
 #include "clientcreature.hpp"
 
 extern Log *g_log;
@@ -223,6 +224,12 @@ bool ClientCreature::addAttachMagic(int magicID, int magicParam, int magicStage)
             }
         }
     }
+    return true;
+}
+
+bool ClientCreature::addAttachMagic(AttachMagic *magicPtr)
+{
+    m_attachMagicList.emplace_back(std::unique_ptr<AttachMagic>(magicPtr));
     return true;
 }
 

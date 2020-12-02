@@ -17,10 +17,27 @@
  */
 
 #pragma once
+#include "dbcomid.hpp"
 #include "clientmonster.hpp"
 
 class ClientTaoDog: public ClientMonster
 {
+    private:
+        class ClientTaoDogFire: public AttachMagic
+        {
+            private:
+                int m_direction;
+
+            public:
+                ClientTaoDogFire(int dir)
+                    : AttachMagic(DBCOM_MAGICID(u8"神兽-喷火"), 0, EGS_RUN, -1.0)
+                    , m_direction(dir)
+                {}
+
+            public:
+                void Draw(int, int) override;
+        };
+
     private:
         bool m_stand;
 
@@ -111,5 +128,18 @@ class ClientTaoDog: public ClientMonster
         bool visible() const override
         {
             return ClientCreature::active();
+        }
+
+    public:
+        bool updateMotion(bool loop) override
+        {
+            if(!ClientCreature::updateMotion(loop)){
+                return false;
+            }
+
+            if(m_currMotion.motion == MOTION_MON_ATTACK0 && m_currMotion.frame == 4 && m_stand){
+                addAttachMagic(new ClientTaoDogFire(m_currMotion.direction));
+            }
+            return true;
         }
 };

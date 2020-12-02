@@ -26,8 +26,8 @@ class AttachMagic: public MagicBase
         AttachMagic(int, int, int, double);
 
     public:
-        void Update(double);
-        void Draw(int, int);
+        void Update(double) override;
+        void Draw(int, int) override;
 
     public:
         bool Done() const;

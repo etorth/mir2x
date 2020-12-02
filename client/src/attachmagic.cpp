@@ -134,15 +134,15 @@ void AttachMagic::Update(double fTime)
     }
 }
 
-void AttachMagic::Draw(int nDrawOffX, int nDrawOffY)
+void AttachMagic::Draw(int drawOffX, int drawOffY)
 {
     if(RefreshCache()){
         if(m_cacheEntry->gfxID >= 0){
-            int nOffX = 0;
-            int nOffY = 0;
-            if(auto pEffectTexture = g_magicDB->Retrieve(m_cacheEntry->gfxID + Frame(), &nOffX, &nOffY)){
-                SDL_SetTextureBlendMode(pEffectTexture, SDL_BLENDMODE_BLEND);
-                g_SDLDevice->drawTexture(pEffectTexture, nDrawOffX + nOffX, nDrawOffY + nOffY);
+            int offX = 0;
+            int offY = 0;
+            if(auto texPtr = g_magicDB->Retrieve(m_cacheEntry->gfxID + Frame(), &offX, &offY)){
+                SDL_SetTextureBlendMode(texPtr, SDL_BLENDMODE_BLEND);
+                g_SDLDevice->drawTexture(texPtr, drawOffX + offX, drawOffY + offY);
             }
         }
     }
