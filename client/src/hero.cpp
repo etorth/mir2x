@@ -658,7 +658,7 @@ int Hero::WeaponOrder(int nMotion, int nDirection, int nFrame)
     // and this table use gfx index rather than motion index
     // I need to convert nMotion -> nGfxMotionID before get the table item
 
-    const static int s_WeaponOrder[2640]
+    constexpr static int s_WeaponOrder[2640]
     {
         #include "weaponorder.inc"
     };
@@ -667,7 +667,7 @@ int Hero::WeaponOrder(int nMotion, int nDirection, int nFrame)
     if(nGfxMotionID < 0){
         return -1;
     }
-    return s_WeaponOrder[nGfxMotionID * 80 + (nDirection - (DIR_NONE + 1)) * 10 + nFrame];
+    return s_WeaponOrder[nGfxMotionID * 80 + (nDirection - DIR_BEGIN) * 10 + nFrame];
 }
 
 MotionNode Hero::makeWalkMotion(int nX0, int nY0, int nX1, int nY1, int nSpeed) const
