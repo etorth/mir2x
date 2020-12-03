@@ -327,7 +327,7 @@ bool Hero::motionValid(const MotionNode &motion) const
     return false;
 }
 
-bool Hero::parseAction(const ActionNode &rstAction)
+bool Hero::parseAction(const ActionNode &action)
 {
     m_lastActive = SDL_GetTicks();
 
@@ -340,13 +340,13 @@ bool Hero::parseAction(const ActionNode &rstAction)
 
     // 1. prepare before parsing action
     //    additional movement added if necessary but in rush
-    switch(rstAction.Action){
+    switch(action.Action){
         case ACTION_DIE:
         case ACTION_STAND:
             {
                 // take this as cirtical
                 // server use ReportStand() to do location sync
-                const auto motionQueue = makeWalkMotionQueue(endX, endY, rstAction.X, rstAction.Y, SYS_MAXSPEED);
+                const auto motionQueue = makeWalkMotionQueue(endX, endY, action.X, action.Y, SYS_MAXSPEED);
                 m_forceMotionQueue.insert(m_forceMotionQueue.end(), motionQueue.begin(), motionQueue.end());
                 break;
             }
@@ -354,7 +354,7 @@ bool Hero::parseAction(const ActionNode &rstAction)
         case ACTION_SPELL:
         case ACTION_ATTACK:
             {
-                m_motionQueue = makeWalkMotionQueue(endX, endY, rstAction.X, rstAction.Y, SYS_MAXSPEED);
+                m_motionQueue = makeWalkMotionQueue(endX, endY, action.X, action.Y, SYS_MAXSPEED);
                 break;
             }
         case ACTION_SPACEMOVE2:
@@ -367,20 +367,20 @@ bool Hero::parseAction(const ActionNode &rstAction)
 
     // 2. parse the action
     //    now motion list is at the right grid
-    switch(rstAction.Action){
+    switch(action.Action){
         case ACTION_STAND:
             {
                 m_motionQueue.emplace_back(
                         OnHorse() ? MOTION_ONHORSESTAND : MOTION_STAND,
                         0,
-                        rstAction.Direction,
-                        rstAction.X,
-                        rstAction.Y);
+                        action.Direction,
+                        action.X,
+                        action.Y);
                 break;
             }
         case ACTION_MOVE:
             {
-                if(auto stMotionNode = makeWalkMotion(rstAction.X, rstAction.Y, rstAction.AimX, rstAction.AimY, rstAction.Speed)){
+                if(auto stMotionNode = makeWalkMotion(action.X, action.Y, action.AimX, action.AimY, action.Speed)){
                     m_motionQueue.push_back(stMotionNode);
                 }else{
                     return false;
@@ -394,8 +394,8 @@ bool Hero::parseAction(const ActionNode &rstAction)
                     OnHorse() ? MOTION_ONHORSESTAND : MOTION_STAND,
                     0,
                     m_currMotion.direction,
-                    rstAction.X,
-                    rstAction.Y,
+                    action.X,
+                    action.Y,
                 };
 
                 addAttachMagic(DBCOM_MAGICID(u8"瞬息移动"), 0, EGS_DONE);
@@ -404,7 +404,7 @@ bool Hero::parseAction(const ActionNode &rstAction)
         case ACTION_SPELL:
             {
                 int nMotionSpell = MOTION_NONE;
-                if(auto &rstMR = DBCOM_MAGICRECORD(rstAction.ActionParam)){
+                if(auto &rstMR = DBCOM_MAGICRECORD(action.ActionParam)){
                     if(auto &rstGfxEntry = rstMR.getGfxEntry(u8"启动")){
                         switch(rstGfxEntry.motion){
                             case 0  : nMotionSpell = MOTION_SPELL0; break;
@@ -428,18 +428,18 @@ bool Hero::parseAction(const ActionNode &rstAction)
                             };
 
                             int nDir = DIR_NONE;
-                            if(m_processRun->CanMove(true, 0, rstAction.AimX, rstAction.AimY)){
-                                nDir = fnGetSpellDir(rstAction.X, rstAction.Y, rstAction.AimX, rstAction.AimY);
+                            if(m_processRun->CanMove(true, 0, action.AimX, action.AimY)){
+                                nDir = fnGetSpellDir(action.X, action.Y, action.AimX, action.AimY);
                             }
-                            else if(rstAction.AimUID){
-                                if(auto pCreature = m_processRun->findUID(rstAction.AimUID)){
-                                    nDir = fnGetSpellDir(rstAction.X, rstAction.Y, pCreature->x(), pCreature->y());
+                            else if(action.AimUID){
+                                if(auto pCreature = m_processRun->findUID(action.AimUID)){
+                                    nDir = fnGetSpellDir(action.X, action.Y, pCreature->x(), pCreature->y());
                                 }
                             }
 
                             if(nDir >= DIR_BEGIN && nDir < DIR_END){
-                                m_motionQueue.emplace_back(nMotionSpell, 0, nDir, SYS_DEFSPEED, rstAction.X, rstAction.Y);
-                                addAttachMagic(rstAction.ActionParam, 0, rstGfxEntry.stage);
+                                m_motionQueue.emplace_back(nMotionSpell, 0, nDir, SYS_DEFSPEED, action.X, action.Y);
+                                addAttachMagic(action.ActionParam, 0, rstGfxEntry.stage);
                             }
                         }
                     }
@@ -449,7 +449,7 @@ bool Hero::parseAction(const ActionNode &rstAction)
         case ACTION_ATTACK:
             {
                 int nMotion = -1;
-                switch(rstAction.ActionParam){
+                switch(action.ActionParam){
                     default:
                         {
                             nMotion = MOTION_ONEVSWING;
@@ -457,14 +457,14 @@ bool Hero::parseAction(const ActionNode &rstAction)
                         }
                 }
 
-                if(auto pCreature = m_processRun->findUID(rstAction.AimUID)){
+                if(auto pCreature = m_processRun->findUID(action.AimUID)){
                     auto nX   = pCreature->x();
                     auto nY   = pCreature->y();
-                    auto nDir = PathFind::GetDirection(rstAction.X, rstAction.Y, nX, nY);
+                    auto nDir = PathFind::GetDirection(action.X, action.Y, nX, nY);
 
                     if(nDir >= DIR_BEGIN && nDir < DIR_END){
-                        m_motionQueue.emplace_back(nMotion,           0, nDir, rstAction.X, rstAction.Y);
-                        m_motionQueue.emplace_back(MOTION_ATTACKMODE, 0, nDir, rstAction.X, rstAction.Y);
+                        m_motionQueue.emplace_back(nMotion,           0, nDir, action.X, action.Y);
+                        m_motionQueue.emplace_back(MOTION_ATTACKMODE, 0, nDir, action.X, action.Y);
                     }
                 }else{
                     return false;
@@ -492,9 +492,9 @@ bool Hero::parseAction(const ActionNode &rstAction)
                 m_forceMotionQueue.emplace_back(
                         OnHorse() ? MOTION_ONHORSEDIE : MOTION_DIE,
                         0,
-                        rstAction.Direction,
-                        rstAction.X,
-                        rstAction.Y);
+                        action.Direction,
+                        action.X,
+                        action.Y);
                 break;
             }
         default:

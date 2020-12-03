@@ -1670,6 +1670,7 @@ void ProcessRun::checkMagicSpell(const SDL_Event &event)
 
     switch(magicID){
         case DBCOM_MAGICID(u8"雷电术"):
+        case DBCOM_MAGICID(u8"灵魂火符"):
             {
                 if(auto nMouseFocusUID = FocusUID(FOCUS_MOUSE)){
                     m_focusUIDTable[FOCUS_MAGIC] = nMouseFocusUID;
@@ -1686,7 +1687,7 @@ void ProcessRun::checkMagicSpell(const SDL_Event &event)
                         getMyHero()->currMotion().endX,
                         getMyHero()->currMotion().endY,
                         nFocusUID,
-                        DBCOM_MAGICID(u8"雷电术"),
+                        magicID,
                     });
                 }
 
@@ -1701,7 +1702,7 @@ void ProcessRun::checkMagicSpell(const SDL_Event &event)
                         getMyHero()->currMotion().endY,
                         nAimX,
                         nAimY,
-                        DBCOM_MAGICID(u8"雷电术"),
+                        magicID,
                     });
                 }
                 break;
