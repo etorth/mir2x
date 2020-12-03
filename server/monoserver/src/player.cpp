@@ -667,6 +667,25 @@ void Player::OnCMActionSpell(CMAction stCMA)
     int nMagicID = stCMA.ActionParam;
 
     switch(nMagicID){
+        case DBCOM_MAGICID(u8"灵魂火符"):
+            {
+                SMFireMagic smFM;
+                std::memset(&smFM, 0, sizeof(smFM));
+
+                smFM.UID    = UID();
+                smFM.MapID  = MapID();
+                smFM.Magic  = nMagicID;
+                smFM.Speed  = MagicSpeed();
+                smFM.X      = nX;
+                smFM.Y      = nY;
+                smFM.AimUID = stCMA.AimUID;
+
+                Delay(800, [this, smFM]()
+                {
+                    g_netDriver->Post(ChannID(), SM_FIREMAGIC, smFM);
+                });
+                break;
+            }
         case DBCOM_MAGICID(u8"雷电术"):
             {
                 SMFireMagic stSMFM;
