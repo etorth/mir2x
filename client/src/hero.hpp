@@ -98,7 +98,15 @@ class Hero: public CreatureMovable
         MotionNode makeWalkMotion(int, int, int, int, int) const override;
 
     protected:
-        int gfxMotionID(int) const override;
+        int gfxMotionID(int motion) const override
+        {
+            if((motion >= MOTION_BEGIN) && (motion < MOTION_END)){
+                return motion - MOTION_BEGIN;
+            }
+            return -1;
+        }
+
+    protected:
         int GfxDressID (int, int, int) const;
         int GfxWeaponID(int, int, int) const;
 

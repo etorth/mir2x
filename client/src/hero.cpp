@@ -215,27 +215,27 @@ bool Hero::update(double ms)
     }
 }
 
-bool Hero::motionValid(const MotionNode &rstMotion) const
+bool Hero::motionValid(const MotionNode &motion) const
 {
     if(true
-            && rstMotion.motion > MOTION_NONE
-            && rstMotion.motion < MOTION_MAX
+            && motion.motion >= MOTION_BEGIN
+            && motion.motion <  MOTION_END
 
-            && rstMotion.direction >= DIR_BEGIN
-            && rstMotion.direction <  DIR_END
+            && motion.direction >= DIR_BEGIN
+            && motion.direction <  DIR_END
 
             && m_processRun
-            && m_processRun->onMap(m_processRun->MapID(), rstMotion.x,    rstMotion.y)
-            && m_processRun->onMap(m_processRun->MapID(), rstMotion.endX, rstMotion.endY)
+            && m_processRun->onMap(m_processRun->MapID(), motion.x,    motion.y)
+            && m_processRun->onMap(m_processRun->MapID(), motion.endX, motion.endY)
 
-            && rstMotion.speed >= SYS_MINSPEED
-            && rstMotion.speed <= SYS_MAXSPEED
+            && motion.speed >= SYS_MINSPEED
+            && motion.speed <= SYS_MAXSPEED
 
-            && rstMotion.frame >= 0
-            && rstMotion.frame <  motionFrameCount(rstMotion.motion, rstMotion.direction)){
+            && motion.frame >= 0
+            && motion.frame <  motionFrameCount(motion.motion, motion.direction)){
 
-        auto nLDistance2 = mathf::LDistance2(rstMotion.x, rstMotion.y, rstMotion.endX, rstMotion.endY);
-        switch(rstMotion.motion){
+        const auto nLDistance2 = mathf::LDistance2(motion.x, motion.y, motion.endX, motion.endY);
+        switch(motion.motion){
             case MOTION_STAND:
                 {
                     return !OnHorse() && (nLDistance2 == 0);
@@ -545,7 +545,7 @@ std::tuple<int, int> Hero::location() const
 
 int Hero::motionFrameCount(int motion, int direction) const
 {
-    if(!(motion > MOTION_NONE && motion < MOTION_MAX)){
+    if(!(motion >= MOTION_BEGIN && motion < MOTION_END)){
         return -1;
     }
 
@@ -720,21 +720,16 @@ MotionNode Hero::makeWalkMotion(int nX0, int nY0, int nX1, int nY1, int nSpeed) 
     return {};
 }
 
-int Hero::gfxMotionID(int nMotion) const
-{
-    return ((nMotion > MOTION_NONE) && (nMotion < MOTION_MAX)) ? (nMotion - (MOTION_NONE + 1)) : -1;
-}
-
 int Hero::GfxWeaponID(int nWeapon, int nMotion, int nDirection) const
 {
     static_assert(sizeof(int) > 2, "GfxWeaponID() overflows because of sizeof(int) too small");
     if(true
-            && (nWeapon    >  WEAPON_NONE  && nWeapon    < WEAPON_MAX )
-            && (nMotion    >  MOTION_NONE  && nMotion    < MOTION_MAX )
-            && (nDirection >= DIR_BEGIN    && nDirection < DIR_END    )){
+            && (nWeapon    >  WEAPON_NONE  && nWeapon    < WEAPON_MAX)
+            && (nMotion    >= MOTION_BEGIN && nMotion    < MOTION_END)
+            && (nDirection >= DIR_BEGIN    && nDirection < DIR_END   )){
         const auto nGfxMotionID = gfxMotionID(nMotion);
         if(nGfxMotionID >= 0){
-            return ((nWeapon - (WEAPON_NONE + 1)) << 9) + (nGfxMotionID << 3) + (nDirection - (DIR_NONE + 1));
+            return ((nWeapon - (WEAPON_NONE + 1)) << 9) + (nGfxMotionID << 3) + (nDirection - DIR_BEGIN);
         }
     }
     return -1;
@@ -744,12 +739,12 @@ int Hero::GfxDressID(int nDress, int nMotion, int nDirection) const
 {
     static_assert(sizeof(int) > 2, "GfxDressID() overflows because of sizeof(int) too small");
     if(true
-            && (nDress     >  DRESS_NONE   && nDress     < DRESS_MAX  )
-            && (nMotion    >  MOTION_NONE  && nMotion    < MOTION_MAX )
-            && (nDirection >= DIR_BEGIN    && nDirection < DIR_END    )){
+            && (nDress     >  DRESS_NONE   && nDress     < DRESS_MAX )
+            && (nMotion    >= MOTION_BEGIN && nMotion    < MOTION_END)
+            && (nDirection >= DIR_BEGIN    && nDirection < DIR_END   )){
         const auto nGfxMotionID = gfxMotionID(nMotion);
         if(nGfxMotionID >= 0){
-            return ((nDress - (DRESS_NONE + 1)) << 9) + (nGfxMotionID << 3) + (nDirection - (DIR_NONE + 1));
+            return ((nDress - (DRESS_NONE + 1)) << 9) + (nGfxMotionID << 3) + (nDirection - DIR_BEGIN);
         }
     }
     return -1;

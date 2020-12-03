@@ -470,27 +470,27 @@ bool ClientMonster::parseAction(const ActionNode &action)
     return motionQueueValid();
 }
 
-bool ClientMonster::motionValid(const MotionNode &rstMotion) const
+bool ClientMonster::motionValid(const MotionNode &motion) const
 {
     if(true
-            && rstMotion.motion > MOTION_MON_NONE
-            && rstMotion.motion < MOTION_MON_MAX
+            && motion.motion >= MOTION_MON_BEGIN
+            && motion.motion <  MOTION_MON_END
 
-            && rstMotion.direction >= DIR_BEGIN
-            && rstMotion.direction <  DIR_END
+            && motion.direction >= DIR_BEGIN
+            && motion.direction <  DIR_END
 
             && m_processRun
-            && m_processRun->onMap(m_processRun->MapID(), rstMotion.x,    rstMotion.y)
-            && m_processRun->onMap(m_processRun->MapID(), rstMotion.endX, rstMotion.endY)
+            && m_processRun->onMap(m_processRun->MapID(), motion.x,    motion.y)
+            && m_processRun->onMap(m_processRun->MapID(), motion.endX, motion.endY)
 
-            && rstMotion.speed >= SYS_MINSPEED
-            && rstMotion.speed <= SYS_MAXSPEED
+            && motion.speed >= SYS_MINSPEED
+            && motion.speed <= SYS_MAXSPEED
 
-            && rstMotion.frame >= 0
-            && rstMotion.frame <  motionFrameCount(rstMotion.motion, rstMotion.direction)){
+            && motion.frame >= 0
+            && motion.frame <  motionFrameCount(motion.motion, motion.direction)){
 
-        auto nLDistance2 = mathf::LDistance2(rstMotion.x, rstMotion.y, rstMotion.endX, rstMotion.endY);
-        switch(rstMotion.motion){
+        const auto nLDistance2 = mathf::LDistance2(motion.x, motion.y, motion.endX, motion.endY);
+        switch(motion.motion){
             case MOTION_MON_STAND:
                 {
                     return nLDistance2 == 0;
@@ -516,7 +516,6 @@ bool ClientMonster::motionValid(const MotionNode &rstMotion) const
                 }
         }
     }
-
     return false;
 }
 

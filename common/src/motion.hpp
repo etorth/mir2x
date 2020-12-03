@@ -20,14 +20,10 @@
 
 enum MotionType: int
 {
-    // human motion section
-    // 1. for human motion we don't have MOTION_ATTACK
-    //    instead we have more detailed attack motion definition
-    // 2. MOTION_ARROWATTACK is not valid in current DB
-
-    MOTION_NONE = 0,
-
-    MOTION_STAND,
+    //===================================
+    MOTION_NONE  = 0,
+    MOTION_BEGIN = MOTION_NONE + 1,
+    MOTION_STAND = MOTION_BEGIN,
     MOTION_ARROWATTACK,
     MOTION_SPELL0,
     MOTION_SPELL1,
@@ -60,19 +56,12 @@ enum MotionType: int
     MOTION_ONHORSEWALK,
     MOTION_ONHORSERUN,
     MOTION_ONHORSEHITTED,
+    MOTION_END,
 
-    MOTION_MAX,
-
-    // monster motion section
-    // 1. don't share human motion indices
-    //    because when using it we use int rather than the MotionType
-    //    if share the motion index we could confuse ourselves for debug
-    //
-    // 2. monster motion use ATTACK0 and ATTACK1
-    //    the first five motions are usually used and rest are speciall
+    //===================================
     MOTION_MON_NONE,
-
-    MOTION_MON_STAND,
+    MOTION_MON_BEGIN = MOTION_MON_NONE + 1,
+    MOTION_MON_STAND = MOTION_MON_BEGIN,
     MOTION_MON_WALK,
     MOTION_MON_ATTACK0,
     MOTION_MON_HITTED,
@@ -83,12 +72,13 @@ enum MotionType: int
     MOTION_MON_SPELL1,
     MOTION_MON_APPEAR,
     MOTION_MON_SPECIAL,
+    MOTION_MON_END,
 
-    MOTION_MON_MAX,
-
+    //===================================
     MOTION_NPC_NONE,
-    MOTION_NPC_STAND,
+    MOTION_NPC_BEGIN = MOTION_NPC_NONE + 1,
+    MOTION_NPC_STAND = MOTION_NPC_BEGIN,
     MOTION_NPC_ACT,
     MOTION_NPC_ACTEXT,
-    MOTION_NPC_MAX,
+    MOTION_NPC_END,
 };

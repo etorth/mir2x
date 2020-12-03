@@ -68,8 +68,8 @@ class ClientMonster: public CreatureMovable
     protected:
         int gfxMotionID(int motion) const override
         {
-            if((motion > MOTION_MON_NONE) && (motion < MOTION_MON_MAX)){
-                return (motion - (MOTION_MON_NONE + 1));
+            if((motion >= MOTION_MON_BEGIN) && (motion < MOTION_MON_END)){
+                return (motion - MOTION_MON_BEGIN);
             }
             return -1;
         }

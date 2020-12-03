@@ -31,6 +31,7 @@
 #pragma once
 #include "motion.hpp"
 #include "sysconst.hpp"
+#include "fflerror.hpp"
 #include "protocoldef.hpp"
 
 struct MotionNode
@@ -95,8 +96,9 @@ struct MotionNode
     operator bool () const
     {
         return false
-            || ((motion > MOTION_NONE)     && (motion < MOTION_MAX))
-            || ((motion > MOTION_MON_NONE) && (motion < MOTION_MON_MAX));
+            || ((motion >= MOTION_BEGIN)     && (motion < MOTION_END))
+            || ((motion >= MOTION_MON_BEGIN) && (motion < MOTION_MON_END))
+            || ((motion >= MOTION_NPC_BEGIN) && (motion < MOTION_NPC_END));
     }
 
     void print() const;
@@ -105,7 +107,6 @@ struct MotionNode
     {
 #define _addCaseType(t) case t: return #t;
         switch(motion){
-            _addCaseType(MOTION_NONE         )
             _addCaseType(MOTION_STAND        )
             _addCaseType(MOTION_ARROWATTACK  )
             _addCaseType(MOTION_SPELL0       )
@@ -139,9 +140,7 @@ struct MotionNode
             _addCaseType(MOTION_ONHORSEWALK  )
             _addCaseType(MOTION_ONHORSERUN   )
             _addCaseType(MOTION_ONHORSEHITTED)
-            _addCaseType(MOTION_MAX          )
 
-            _addCaseType(MOTION_MON_NONE     )
             _addCaseType(MOTION_MON_STAND    )
             _addCaseType(MOTION_MON_WALK     )
             _addCaseType(MOTION_MON_ATTACK0  )
@@ -152,13 +151,10 @@ struct MotionNode
             _addCaseType(MOTION_MON_SPELL1   )
             _addCaseType(MOTION_MON_APPEAR   )
             _addCaseType(MOTION_MON_SPECIAL  )
-            _addCaseType(MOTION_MON_MAX      )
 
-            _addCaseType(MOTION_NPC_NONE     )
             _addCaseType(MOTION_NPC_STAND    )
             _addCaseType(MOTION_NPC_ACT      )
             _addCaseType(MOTION_NPC_ACTEXT   )
-            _addCaseType(MOTION_NPC_MAX      )
 #undef _addCaseType
             default: return "MOTION_UNKNOWN";
         }
