@@ -15,38 +15,15 @@
  *
  * =====================================================================================
  */
-#include "log.hpp"
+
 #include "dbcomid.hpp"
 #include "sdldevice.hpp"
 #include "dbcomrecord.hpp"
 #include "attachmagic.hpp"
 #include "pngtexoffdb.hpp"
 
-extern Log *g_log;
 extern SDLDevice *g_SDLDevice;
 extern PNGTexOffDB *g_magicDB;
-
-AttachMagic::AttachMagic(int nMagicID, int nMagicParam, int nMagicStage, double fLastTime)
-    : MagicBase(nMagicID, nMagicParam, nMagicStage, fLastTime)
-{
-    if(RefreshCache()){
-        switch(m_cacheEntry->type){
-            case EGT_BOUND:
-                {
-                    break;
-                }
-            default:
-                {
-                    g_log->addLog(LOGTYPE_FATAL, "Invalid GfxEntry::type to AttachMagic");
-                    break;
-                }
-        }
-    }
-}
-
-AttachMagic::AttachMagic(int nMagicID, int nMagicParam, int nMagicStage)
-    : AttachMagic(nMagicID, nMagicParam, nMagicStage, -1.0)
-{}
 
 void AttachMagic::Update(double fTime)
 {
@@ -62,7 +39,10 @@ void AttachMagic::Update(double fTime)
                             if(rstGfxEntry.stage == nNewStage){
                                 return true;
                             }
-                        }else{ break; }
+                        }
+                        else{
+                            break;
+                        }
                     }
                 }
                 return false;
@@ -86,9 +66,11 @@ void AttachMagic::Update(double fTime)
                                 {
                                     if(fnCheckStageValid(EGS_RUN)){
                                         m_stage = EGS_RUN;
-                                    }else if(fnCheckStageValid(EGS_DONE)){
+                                    }
+                                    else if(fnCheckStageValid(EGS_DONE)){
                                         m_stage = EGS_DONE;
-                                    }else{
+                                    }
+                                    else{
                                         m_stage = EGS_NONE;
                                     }
                                     break;
@@ -100,9 +82,11 @@ void AttachMagic::Update(double fTime)
                     {
                         if(fnCheckStageValid(EGS_RUN)){
                             m_stage = EGS_RUN;
-                        }else if(fnCheckStageValid(EGS_DONE)){
+                        }
+                        else if(fnCheckStageValid(EGS_DONE)){
                             m_stage = EGS_DONE;
-                        }else{
+                        }
+                        else{
                             m_stage = EGS_NONE;
                         }
                         break;
@@ -111,7 +95,8 @@ void AttachMagic::Update(double fTime)
                     {
                         if(fnCheckStageValid(EGS_DONE)){
                             m_stage = EGS_DONE;
-                        }else{
+                        }
+                        else{
                             m_stage = EGS_NONE;
                         }
                         break;
@@ -136,11 +121,20 @@ void AttachMagic::Update(double fTime)
 
 void AttachMagic::Draw(int drawOffX, int drawOffY)
 {
-    if(RefreshCache()){
+    if(refreshCache()){
         if(m_cacheEntry->gfxID >= 0){
             int offX = 0;
             int offY = 0;
-            if(auto texPtr = g_magicDB->Retrieve(m_cacheEntry->gfxID + Frame(), &offX, &offY)){
+            const uint32_t texID = [this]()
+            {
+                switch(m_cacheEntry->dirType){
+                    case 1 : return m_cacheEntry->gfxID + Frame();
+                    case 8 : return m_cacheEntry->gfxID + Frame() + (m_direction - DIR_BEGIN) * m_cacheEntry->gfxIDCount;
+                    default: throw  fflerror("invalid dirType: %d", m_cacheEntry->dirType);
+                }
+            }();
+
+            if(auto texPtr = g_magicDB->Retrieve(texID, &offX, &offY)){
                 SDL_SetTextureBlendMode(texPtr, SDL_BLENDMODE_BLEND);
                 g_SDLDevice->drawTexture(texPtr, drawOffX + offX, drawOffY + offY);
             }
@@ -151,7 +145,7 @@ void AttachMagic::Draw(int drawOffX, int drawOffY)
 bool AttachMagic::Done() const
 {
     if(StageDone()){
-        if(RefreshCache()){
+        if(refreshCache()){
             switch(m_cacheEntry->stage){
                 case EGS_INIT:
                     {
@@ -179,10 +173,10 @@ bool AttachMagic::Done() const
             }
         }else{
             // when we deref m_cacheEntry
-            // we should call RefreshCache() first
+            // we should call refreshCache() first
 
             // when really done Update() will make current stage as EGS_NONE
-            // then RefreshCache() makes m_cacheEntry as nullptr
+            // then refreshCache() makes m_cacheEntry as nullptr
             return true;
         }
     }

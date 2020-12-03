@@ -26,7 +26,7 @@ extern PNGTexOffDB *g_magicDB;
 
 void ClientTaoDog::DogFire::Draw(int drawOffX, int drawOffY)
 {
-    if(RefreshCache()){
+    if(refreshCache()){
         if(m_cacheEntry->gfxID >= 0){
             int offX = 0;
             int offY = 0;

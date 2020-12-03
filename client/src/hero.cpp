@@ -439,7 +439,7 @@ bool Hero::parseAction(const ActionNode &action)
 
                             if(nDir >= DIR_BEGIN && nDir < DIR_END){
                                 m_motionQueue.emplace_back(nMotionSpell, 0, nDir, SYS_DEFSPEED, action.X, action.Y);
-                                addAttachMagic(action.ActionParam, 0, rstGfxEntry.stage);
+                                addAttachMagic(new AttachMagic(action.ActionParam, 0, rstGfxEntry.stage, nDir));
                             }
                         }
                     }

@@ -27,15 +27,11 @@ class ClientTaoDog: public ClientMonster
         class DogFire: public AttachMagic
         {
             private:
-                const int m_direction;
-
-            private:
                 const std::unordered_map<int, std::array<int, 2>> m_dirOff;
 
             public:
                 DogFire(int dir)
-                    : AttachMagic(DBCOM_MAGICID(u8"神兽-喷火"), 0, EGS_RUN, -1.0)
-                    , m_direction(dir)
+                    : AttachMagic(DBCOM_MAGICID(u8"神兽-喷火"), 0, EGS_RUN, dir, -1.0)
                     , m_dirOff
                       {
                           {DIR_UP,        { 0,  2}},

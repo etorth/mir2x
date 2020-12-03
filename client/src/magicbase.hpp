@@ -105,14 +105,14 @@ class MagicBase
     public:
         operator bool () const
         {
-            // RefreshCache() makes m_cacheEntry point to correct entry
+            // refreshCache() makes m_cacheEntry point to correct entry
             // if current magic configuration is invalid it fails
 
-            return RefreshCache();
+            return refreshCache();
         }
 
         void Print() const;
 
     protected:
-        bool RefreshCache() const;
+        bool refreshCache() const;
 };

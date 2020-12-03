@@ -90,7 +90,7 @@ bool IndepMagic::Done() const
         return false;
     }
 
-    if(RefreshCache()){
+    if(refreshCache()){
         switch(m_cacheEntry->stage){
             case EGS_DONE:
                 {
@@ -103,10 +103,10 @@ bool IndepMagic::Done() const
         }
     }else{
         // when we deref m_cacheEntry
-        // we should call RefreshCache() first
+        // we should call refreshCache() first
 
         // when really done Update() will make current stage as EGS_NONE
-        // then RefreshCache() makes m_cacheEntry as nullptr
+        // then refreshCache() makes m_cacheEntry as nullptr
         return true;
     }
 }
@@ -187,7 +187,7 @@ void IndepMagic::Update(double fTime)
 void IndepMagic::Draw(int nViewX, int nViewY)
 {
     if(!Done()){
-        if(RefreshCache()){
+        if(refreshCache()){
             if(m_cacheEntry->gfxID >= 0){
                 int nOffX = 0;
                 int nOffY = 0;
@@ -202,7 +202,7 @@ void IndepMagic::Draw(int nViewX, int nViewY)
 
 bool IndepMagic::DrawPLoc(int *pPX, int *pPY) const
 {
-    if(RefreshCache()){
+    if(refreshCache()){
         switch(m_cacheEntry->type){
             case EGT_FIXED:
                 {

@@ -35,7 +35,7 @@ MagicBase::MagicBase(int nMagicID,
     , m_accuTime(0.0)
     , m_cacheEntry(nullptr)
 {
-    if(!RefreshCache()){
+    if(!refreshCache()){
         throw fflerror("invalid argument to MagicBase");
     }
 }
@@ -46,7 +46,7 @@ MagicBase::MagicBase(int nMagicID, int nMagicParam, int nMagicStage)
 
 int MagicBase::Frame() const
 {
-    if(RefreshCache()){
+    if(refreshCache()){
         int nRealFrame = (m_accuTime / 1000.0) * SYS_DEFFPS * (m_cacheEntry->speed / 100.0);
         switch(m_cacheEntry->loop){
             case 0:
@@ -68,7 +68,7 @@ int MagicBase::Frame() const
 
 bool MagicBase::StageDone() const
 {
-    if(!RefreshCache()){
+    if(!refreshCache()){
         return true;
     }
 
@@ -88,7 +88,7 @@ bool MagicBase::StageDone() const
     return true;
 }
 
-bool MagicBase::RefreshCache() const
+bool MagicBase::refreshCache() const
 {
     if(m_cacheEntry && (m_cacheEntry->stage == Stage())){
         return true;
