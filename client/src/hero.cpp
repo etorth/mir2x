@@ -133,6 +133,10 @@ bool Hero::draw(int viewX, int viewY, int)
         fnDrawWeapon(false);
     }
 
+    for(auto &p: m_attachMagicList){
+        p->Draw(startX, startY);
+    }
+
     g_SDLDevice->drawTexture(pFrame0, startX + nDX0, startY + nDY0);
 
     if(true
@@ -141,8 +145,35 @@ bool Hero::draw(int viewX, int viewY, int)
         fnDrawWeapon(false);
     }
 
+    // draw attached magic for the second time
+    // for some direction magic should be on top of body
+
     for(auto &p: m_attachMagicList){
-        p->Draw(startX, startY);
+        switch(p->ID()){
+            case DBCOM_MAGICID(u8"灵魂火符"):
+                {
+                    switch(m_currMotion.direction){
+                        case DIR_UP:
+                        case DIR_UPRIGHT:
+                        case DIR_RIGHT:
+                        case DIR_DOWNRIGHT:
+                            {
+                                break;
+                            }
+                        default:
+                            {
+                                p->Draw(startX, startY);
+                                break;
+                            }
+                    }
+                    break;
+                }
+            default:
+                {
+                    p->Draw(startX, startY);
+                    break;
+                }
+        }
     }
 
     // draw HP bar
