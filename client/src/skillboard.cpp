@@ -203,6 +203,7 @@ SkillBoard::SkillBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget, bool a
           {DBCOM_MAGICID(u8"魔法盾"),   2, 252, 143,  'Y', this},
           {DBCOM_MAGICID(u8"召唤骷髅"), 3,  12,  13,  'U', this},
           {DBCOM_MAGICID(u8"召唤神兽"), 1,  12,  78,  'S', this},
+          {DBCOM_MAGICID(u8"灵魂火符"), 2, 192,  13,  'F', this},
       }
 
     , m_skillPageList([this]() -> std::vector<SkillBoard::SkillPage *>
