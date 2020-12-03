@@ -139,7 +139,7 @@ void Player::on_MPK_ACTION(const MessagePack &rstMPK)
     }
 
     AddInViewCO(stAMA.UID, stAMA.MapID, stAMA.X, stAMA.Y, nDirection);
-    ReportAction(stAMA.UID, ActionNode
+    reportAction(stAMA.UID, ActionNode
     {
         stAMA.Action,
         stAMA.Speed,
@@ -267,7 +267,7 @@ void Player::on_MPK_ATTACK(const MessagePack &rstMPK)
 
     dispatchAction(ActionHitted(X(), Y(), Direction()));
     StruckDamage({stAMA.UID, stAMA.Type, stAMA.Damage, stAMA.Element});
-    ReportAction(UID(), ActionHitted(X(), Y(), Direction()));
+    reportAction(UID(), ActionHitted(X(), Y(), Direction()));
 }
 
 void Player::on_MPK_UPDATEHP(const MessagePack &rstMPK)

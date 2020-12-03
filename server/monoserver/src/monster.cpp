@@ -235,7 +235,7 @@ bool Monster::randomTurn()
     return false;
 }
 
-void Monster::AttackUID(uint64_t nUID, int nDC, std::function<void()> fnOnOK, std::function<void()> fnOnError)
+void Monster::attackUID(uint64_t nUID, int nDC, std::function<void()> fnOnOK, std::function<void()> fnOnError)
 {
     if(!canAttack()){
         fnOnError();
@@ -290,7 +290,7 @@ void Monster::AttackUID(uint64_t nUID, int nDC, std::function<void()> fnOnOK, st
                                     // monster may go dead after this delay
                                     // but don't check canAttack() since that's for attack lock
                                     if(true){
-                                        DispatchAttack(nUID, DC_PHY_PLAIN);
+                                        dispatchAttack(nUID, DC_PHY_PLAIN);
                                     }
                                 });
 
@@ -454,7 +454,7 @@ void Monster::trackAttackUID(uint64_t nTargetUID, std::function<void()> fnOnOK, 
 
     trackUID(nTargetUID, nMinCDistance, [nTargetUID, nProperDC, fnOnOK, fnOnError, this]()
     {
-        AttackUID(nTargetUID, nProperDC, fnOnOK, fnOnError);
+        attackUID(nTargetUID, nProperDC, fnOnOK, fnOnError);
     }, fnOnError);
 }
 
@@ -766,8 +766,8 @@ bool Monster::goDie()
                 switch(GetState(STATE_DEAD)){
                     case 0:
                         {
-                            RandomDrop();
-                            DispatchOffenderExp();
+                            randomDrop();
+                            dispatchOffenderExp();
 
                             // dispatch die acton without auto-fade-out
                             // server send the fade-out request in goGhost()
@@ -869,7 +869,7 @@ bool Monster::StruckDamage(const DamageNode &rstDamage)
 
     if(rstDamage){
         m_HP = (std::max<int>)(0, HP() - rstDamage.Damage);
-        DispatchHealth();
+        dispatchHealth();
 
         if(HP() <= 0){
             goDie();
@@ -1132,7 +1132,7 @@ int Monster::FindPathMethod()
     return FPMETHOD_COMBINE;
 }
 
-void Monster::RandomDrop()
+void Monster::randomDrop()
 {
     for(auto &rstGroupRecord: DB_MONSTERDROPITEM(monsterID())){
         for(auto &rstItemRecord: rstGroupRecord.second){

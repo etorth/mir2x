@@ -266,10 +266,10 @@ void Player::reportCO(uint64_t toUID)
 
 void Player::reportStand()
 {
-    ReportAction(UID(), ActionStand(X(), Y(), Direction()));
+    reportAction(UID(), ActionStand(X(), Y(), Direction()));
 }
 
-void Player::ReportAction(uint64_t nUID, const ActionNode &rstAction)
+void Player::reportAction(uint64_t nUID, const ActionNode &rstAction)
 {
     if(true
             && nUID
@@ -446,7 +446,7 @@ bool Player::StruckDamage(const DamageNode &rstDamage)
     if(rstDamage){
         m_HP = (std::max<int>)(0, HP() - rstDamage.Damage);
         reportHealth();
-        DispatchHealth();
+        dispatchHealth();
 
         if(HP() <= 0){
             goDie();
@@ -461,7 +461,7 @@ bool Player::ActionValid(const ActionNode &)
     return true;
 }
 
-void Player::DispatchOffline()
+void Player::dispatchOffline()
 {
     if(true
             && checkActorPod()
@@ -500,7 +500,7 @@ void Player::reportOffline(uint64_t nUID, uint32_t nMapID)
 
 bool Player::Offline()
 {
-    DispatchOffline();
+    dispatchOffline();
     reportOffline(UID(), MapID());
 
     deactivate();
@@ -621,7 +621,7 @@ void Player::OnCMActionAttack(CMAction stCMA)
                                         case 1:
                                         case 2:
                                             {
-                                                DispatchAttack(nAimUID, nDCType);
+                                                dispatchAttack(nAimUID, nDCType);
                                                 return;
                                             }
                                         default:

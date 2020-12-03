@@ -184,7 +184,7 @@ void Monster::on_MPK_ATTACK(const MessagePack &rstMPK)
                     }
                 }
 
-                AddOffenderDamage(stAMAK.UID, stAMAK.Damage);
+                addOffenderDamage(stAMAK.UID, stAMAK.Damage);
                 dispatchAction(ActionHitted(X(), Y(), Direction()));
                 StruckDamage({stAMAK.UID, stAMAK.Type, stAMAK.Damage, stAMAK.Element, stAMAK.Effect});
                 return;

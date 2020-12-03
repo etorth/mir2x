@@ -512,7 +512,7 @@ bool CharObject::requestSpaceMove(int locX, int locY, bool strictMove, std::func
                                     //  dispatch/report space move part 2 on new map
                                     dispatchAction(ActionSpaceMove2(X(), Y(), Direction()));
                                     if(uidf::getUIDType(UID()) == UID_PLY){
-                                        dynamic_cast<Player *>(this)->ReportAction(UID(), ActionSpaceMove2(X(), Y(), Direction()));
+                                        dynamic_cast<Player *>(this)->reportAction(UID(), ActionSpaceMove2(X(), Y(), Direction()));
                                     }
 
                                     if(fnOnOK){
@@ -855,7 +855,7 @@ void CharObject::retrieveLocation(uint64_t nUID, std::function<void(const COLoca
     });
 }
 
-void CharObject::AddOffenderDamage(uint64_t nUID, int nDamage)
+void CharObject::addOffenderDamage(uint64_t nUID, int nDamage)
 {
     if(!nUID){
         throw fflerror("offender with zero UID");
@@ -875,7 +875,7 @@ void CharObject::AddOffenderDamage(uint64_t nUID, int nDamage)
     m_offenderList.emplace_back(nUID, nDamage, g_monoServer->getCurrTick());
 }
 
-void CharObject::DispatchOffenderExp()
+void CharObject::dispatchOffenderExp()
 {
     for(auto p = m_offenderList.begin(); p != m_offenderList.end();){
         if(g_monoServer->getCurrTick() >= p->ActiveTime + 2 * 60 * 3600){
@@ -936,7 +936,7 @@ int CharObject::OneStepReach(int nDirection, int nMaxDistance, int *pX, int *pY)
     return -1;
 }
 
-void CharObject::DispatchHealth()
+void CharObject::dispatchHealth()
 {
     AMUpdateHP stAMUHP;
     std::memset(&stAMUHP, 0, sizeof(stAMUHP));
@@ -956,7 +956,7 @@ void CharObject::DispatchHealth()
     }
 }
 
-void CharObject::DispatchAttack(uint64_t nUID, int nDC)
+void CharObject::dispatchAttack(uint64_t nUID, int nDC)
 {
     if(nUID && DCValid(nDC, true)){
         AMAttack stAMA;

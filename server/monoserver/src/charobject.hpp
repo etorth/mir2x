@@ -239,8 +239,8 @@ class CharObject: public ServerObject
         virtual void reportCO(uint64_t) = 0;
 
     protected:
-        void DispatchHealth();
-        void DispatchAttack(uint64_t, int);
+        void dispatchHealth();
+        void dispatchAttack(uint64_t, int);
 
     protected:
         virtual void dispatchAction(          const ActionNode &);
@@ -285,8 +285,8 @@ class CharObject: public ServerObject
                 std::function<void()> = nullptr);   // fnOnError
 
     protected:
-        void AddOffenderDamage(uint64_t, int);
-        void DispatchOffenderExp();
+        void addOffenderDamage(uint64_t, int);
+        void dispatchOffenderExp();
 
     protected:
         virtual bool CanAct();

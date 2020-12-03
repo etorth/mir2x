@@ -149,10 +149,10 @@ class Player final: public CharObject
         void reportOffline(uint64_t, uint32_t);
 
     protected:
-        virtual void ReportAction(uint64_t, const ActionNode &);
+        virtual void reportAction(uint64_t, const ActionNode &);
 
     protected:
-        void DispatchOffline();
+        void dispatchOffline();
 
     protected:
         bool StruckDamage(const DamageNode &);
