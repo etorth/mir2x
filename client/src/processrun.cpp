@@ -153,11 +153,20 @@ void ProcessRun::update(double fUpdateTime)
         }
     }
 
-    for(auto p = m_indepMagicList.begin(); p != m_indepMagicList.end();){
-        if((*p)->Done()){
-            p = m_indepMagicList.erase(p);
+    for(auto p = m_fixedLocMagicList.begin(); p != m_fixedLocMagicList.end();){
+        if((*p)->done()){
+            p = m_fixedLocMagicList.erase(p);
         }else{
-            (*p)->Update(fUpdateTime);
+            (*p)->update(fUpdateTime);
+            ++p;
+        }
+    }
+
+    for(auto p = m_followUIDMagicList.begin(); p != m_followUIDMagicList.end();){
+        if((*p)->done()){
+            p = m_followUIDMagicList.erase(p);
+        }else{
+            (*p)->update(fUpdateTime);
             ++p;
         }
     }
@@ -294,7 +303,7 @@ void ProcessRun::draw()
         const int gridX1 = (m_viewX + g_SDLDevice->getRendererWidth()) / SYS_MAPGRIDXP;
         const int gridY1 = (m_viewY + g_SDLDevice->getRendererHeight()) / SYS_MAPGRIDYP;
 
-        SDLDevice::EnableDrawColor drawColor(colorf::RGBA(0, 255, 0, 128));
+        SDLDevice::EnableRenderColor drawColor(colorf::RGBA(0, 255, 0, 128));
         for(int x = gridX0; x <= gridX1; ++x){
             g_SDLDevice->DrawLine(x * SYS_MAPGRIDXP - m_viewX, 0, x * SYS_MAPGRIDXP - m_viewX, g_SDLDevice->getRendererHeight());
         }
@@ -348,8 +357,8 @@ void ProcessRun::draw()
                 }
 
                 if(g_clientArgParser->drawCreatureCover){
-                    SDLDevice::EnableDrawColor enableColor(colorf::RGBA(0, 0, 255, 128));
-                    SDLDevice::EnableDrawBlendMode enableBlendMode(SDL_BLENDMODE_BLEND);
+                    SDLDevice::EnableRenderColor enableColor(colorf::RGBA(0, 0, 255, 128));
+                    SDLDevice::EnableRenderBlendMode enableBlendMode(SDL_BLENDMODE_BLEND);
                     g_SDLDevice->fillRectangle(x * SYS_MAPGRIDXP - m_viewX, y * SYS_MAPGRIDYP - m_viewY, SYS_MAPGRIDXP, SYS_MAPGRIDYP);
                 }
             }
@@ -361,9 +370,15 @@ void ProcessRun::draw()
     drawRotateStar(x0, y0, x1, y1);
 
     // draw magics
-    for(auto p: m_indepMagicList){
-        if(!p->Done()){
-            p->Draw(m_viewX, m_viewY);
+    for(auto &p: m_fixedLocMagicList){
+        if(!p->done()){
+            p->drawViewOff(m_viewX, m_viewY, false);
+        }
+    }
+
+    for(auto &p: m_followUIDMagicList){
+        if(!p->done()){
+            p->drawViewOff(m_viewX, m_viewY, false);
         }
     }
 
@@ -379,11 +394,8 @@ void ProcessRun::draw()
 
     // draw underlay at the bottom
     // there is one pixel transparent rectangle
-    {
-        const auto [winW, winH] = g_SDLDevice->getRendererSize();
-        SDLDevice::EnableDrawColor color(colorf::RGBA(0, 0, 0, 0));
-        g_SDLDevice->fillRectangle(0, winH - 4, winW, 4);
-    }
+    const auto [winW, winH] = g_SDLDevice->getRendererSize();
+    g_SDLDevice->fillRectangle(colorf::RGBA(0, 0, 0, 0), 0, winH - 4, winW, 4);
 
     for(auto p: m_ascendStrList){
         p->Draw(m_viewX, m_viewY);
@@ -399,16 +411,13 @@ void ProcessRun::draw()
         const int y = std::get<1>(g_SDLDevice->getRendererSize()) - h - 133;
 
         {
-            SDLDevice::EnableDrawColor enableColor(colorf::GREEN + 200);
-            SDLDevice::EnableDrawBlendMode enableBlend(SDL_BLENDMODE_BLEND);
+            SDLDevice::EnableRenderColor enableColor(colorf::GREEN + 200);
+            SDLDevice::EnableRenderBlendMode enableBlend(SDL_BLENDMODE_BLEND);
             g_SDLDevice->fillRectangle(x, y, w, h);
         }
 
         g_notifyBoard->drawEx(x, y, 0, 0, w, h);
-        {
-            SDLDevice::EnableDrawColor enableColor(colorf::BLUE + 100);
-            g_SDLDevice->DrawRectangle(x, y, w, h);
-        }
+        g_SDLDevice->DrawRectangle(colorf::BLUE + 100, x, y, w, h);
     }
 
     if(g_clientArgParser->drawMouseLocation){
@@ -1130,11 +1139,6 @@ void ProcessRun::addCBLog(int logType, const char8_t *format, ...)
     dynamic_cast<ControlBoard *>(getGUIManager()->getWidget("ControlBoard"))->addLog(logType, to_cstr(logStr));
 }
 
-bool ProcessRun::onMap(uint32_t nMapID, int nX, int nY) const
-{
-    return (MapID() == nMapID) && m_mir2xMapData.ValidC(nX, nY);
-}
-
 ClientCreature *ProcessRun::findUID(uint64_t uid, bool checkVisible) const
 {
     if(!uid){
@@ -1321,7 +1325,7 @@ bool ProcessRun::requestSpaceMove(uint32_t nMapID, int nX, int nY)
         return false;
     }
 
-    CMReqestSpaceMove cmRSM;
+    CMRequestSpaceMove cmRSM;
     std::memset(&cmRSM, 0, sizeof(cmRSM));
 
     cmRSM.MapID = nMapID;
@@ -1346,75 +1350,67 @@ void ProcessRun::queryCORecord(uint64_t nUID) const
     g_client->send(CM_QUERYCORECORD, stCMQCOR);
 }
 
-void ProcessRun::OnActionSpawn(uint64_t nUID, const ActionNode &rstAction)
+void ProcessRun::onActionSpawn(uint64_t uid, const ActionNode &action)
 {
-    condcheck(nUID);
-    condcheck(rstAction.Action == ACTION_SPAWN);
+    if(!uid){
+        throw fflerror("invalid uid: zero");
+    }
 
-    if(uidf::getUIDType(nUID) != UID_MON){
-        queryCORecord(nUID);
+    if(action.Action != ACTION_SPAWN){
+        throw fflerror("invalid action node: %d", action.Action);
+    }
+
+    if(uidf::getUIDType(uid) != UID_MON){
+        queryCORecord(uid);
         return;
     }
 
-    switch(uidf::getMonsterID(nUID)){
+    switch(uidf::getMonsterID(uid)){
         case DBCOM_MONSTERID(u8"变异骷髅"):
             {
-                // TODO how about make it as an action of skeleton
-                // then we don't need to define the callback of a done magic
-
                 addCBLog(CBLOG_SYS, u8"使用魔法: 召唤骷髅");
-                m_indepMagicList.emplace_back(std::make_shared<IndepMagic>
-                (
-                    rstAction.ActionParam,
-                    DBCOM_MAGICID(u8"召唤骷髅"),
-                    0,
-                    EGS_START,
-                    rstAction.Direction,
-                    rstAction.X,
-                    rstAction.Y,
-                    rstAction.X,
-                    rstAction.Y,
-                    nUID
-                ));
-
-                m_actionBlocker.insert(nUID);
-                m_indepMagicList.back()->AddFunc([this, nUID, rstAction, pMagic = m_indepMagicList.back()]() -> bool
+                auto magicPtr = new FixedLocMagic
                 {
-                    // if(!pMagic->Done()){
-                    //     return false;
-                    // }
+                    u8"召唤骷髅",
+                    u8"开始",
+                    action.X,
+                    action.Y,
+                };
 
-                    if(pMagic->Frame() < 10){
+                magicPtr->addOnUpdate([magicPtr, action, uid, this]() -> bool
+                {
+                    if(magicPtr->frame() < 10){
                         return false;
                     }
 
-                    ActionStand stActionStand
+                    const ActionStand stand 
                     {
-                        rstAction.X,
-                        rstAction.Y,
+                        action.X,
+                        action.Y,
                         DIR_DOWNLEFT,
                     };
 
-
-                    m_coList[nUID].reset(new ClientTaoSkeleton(nUID, this, stActionStand));
-                    m_actionBlocker.erase(nUID);
-                    queryCORecord(nUID);
+                    m_coList[uid].reset(new ClientTaoSkeleton(uid, this, stand));
+                    m_actionBlocker.erase(uid);
+                    queryCORecord(uid);
                     return true;
                 });
 
+                m_actionBlocker.insert(uid);
+                addFixedLocMagic(std::unique_ptr<FixedLocMagic>(magicPtr));
                 return;
             }
         case DBCOM_MONSTERID(u8"神兽"):
             {
                 addCBLog(CBLOG_SYS, u8"使用魔法: 召唤神兽");
-                m_coList[nUID].reset(new ClientTaoDog(nUID, this, rstAction));
-                queryCORecord(nUID);
+                m_coList[uid].reset(new ClientTaoDog(uid, this, action));
+                queryCORecord(uid);
                 return;
             }
         default:
             {
-                m_coList[nUID].reset(new ClientMonster(nUID, this, rstAction));
-                queryCORecord(nUID);
+                m_coList[uid].reset(new ClientMonster(uid, this, action));
+                queryCORecord(uid);
                 return;
             }
     }
@@ -1720,4 +1716,38 @@ void ProcessRun::checkMagicSpell(const SDL_Event &event)
                 break;
             }
     }
+}
+
+void ProcessRun::requestMagicDamage(int magicID, uint64_t aimUID)
+{
+    CMRequestMagicDamage cmRMD;
+    std::memset(&cmRMD, 0, sizeof(cmRMD));
+
+    cmRMD.magicID = magicID;
+    cmRMD.aimUID  = aimUID;
+
+    g_client->send(CM_REQUESTMAGICDAMAGE, cmRMD);
+}
+
+ProcessRun::PixelLocation ProcessRun::findUIDPixelLocation(uint64_t uid) const
+{
+    if(auto coPtr = findUID(uid)){
+        switch(uidf::getUIDType(uid)){
+            case UID_NPC:
+                {
+                    return {coPtr->currMotion().x * SYS_MAPGRIDXP, coPtr->currMotion().y * SYS_MAPGRIDYP};
+                }
+            case UID_PLY:
+            case UID_MON:
+                {
+                    const auto [shiftX, shiftY] = dynamic_cast<CreatureMovable *>(coPtr)->getShift();
+                    return {coPtr->currMotion().x * SYS_MAPGRIDXP + shiftX, coPtr->currMotion().y * SYS_MAPGRIDYP + shiftY};
+                }
+            default:
+                {
+                    break;
+                }
+        }
+    }
+    return {-1, -1};
 }

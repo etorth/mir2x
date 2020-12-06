@@ -102,6 +102,14 @@ class NetDriver final: public Dispatcher
             return false;
         }
 
+        bool Post(uint32_t channID, uint8_t hc, const uint8_t *buf, size_t bufLen)
+        {
+            if(CheckChannID(channID)){
+                return m_channelList[channID]->Post(hc, buf, bufLen);
+            }
+            return false;
+        }
+
         void BindActor(uint32_t nChannID, uint64_t nUID)
         {
             if(CheckChannID(nChannID)){

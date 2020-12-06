@@ -91,9 +91,8 @@ void AlphaOnButton::drawEx(int dstX, int dstY, int, int, int, int)
                     throw fflerror("can't get round cover: radius = %llu", to_llu(m_onRadius));
                 }
 
-                SDL_SetTextureColorMod(texPtr, colorf::R(m_onColor), colorf::G(m_onColor), colorf::B(m_onColor));
-                SDL_SetTextureAlphaMod(texPtr, m_alphaMod);
-                SDLDevice::EnableDrawBlendMode enableDrawBlendMode(SDL_BLENDMODE_BLEND);
+                SDLDevice::EnableRenderBlendMode enableBlendMode(SDL_BLENDMODE_BLEND);
+                SDLDevice::EnableTextureModColor enableModColor(texPtr, colorf::RGBA(m_onColor, m_onColor, m_onColor, m_alphaMod));
                 g_SDLDevice->drawTexture(texPtr, dstX + m_onOffX, dstY + m_onOffY);
                 break;
             }

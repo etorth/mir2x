@@ -44,16 +44,27 @@ class SDLDevice final
         };
 
     public:
-        struct EnableDrawColor
+        class EnableRenderColor
         {
-            EnableDrawColor(uint32_t);
-           ~EnableDrawColor();
+            private:
+                Uint8 m_r;
+                Uint8 m_g;
+                Uint8 m_b;
+                Uint8 m_a;
+
+            public:
+                EnableRenderColor(uint32_t);
+               ~EnableRenderColor();
         };
 
-        struct EnableDrawBlendMode
+        struct EnableRenderBlendMode
         {
-            EnableDrawBlendMode(SDL_BlendMode);
-           ~EnableDrawBlendMode();
+            private:
+                SDL_BlendMode m_blendMode;
+
+            public:
+                EnableRenderBlendMode(SDL_BlendMode);
+               ~EnableRenderBlendMode();
         };
 
         struct RenderNewFrame
@@ -63,7 +74,21 @@ class SDLDevice final
         };
 
     public:
-        class EnableRGBAModTexture
+        class EnableTextureBlendMode
+        {
+            private:
+                SDL_BlendMode m_blendMode;
+
+            private:
+                SDL_Texture *m_texPtr;
+
+            public:
+                EnableTextureBlendMode(SDL_Texture *, SDL_BlendMode);
+               ~EnableTextureBlendMode();
+        };
+
+    public:
+        class EnableTextureModColor
         {
             private:
                 Uint8 m_r;
@@ -75,61 +100,8 @@ class SDLDevice final
                 SDL_Texture *m_texPtr;
 
             public:
-                EnableRGBAModTexture(SDL_Texture *texPtr, uint32_t color)
-                    : m_texPtr(texPtr)
-                {
-                    if(!m_texPtr){
-                        return;
-                    }
-
-                    if(SDL_GetTextureColorMod(m_texPtr, &m_r, &m_g, &m_b)){
-                        throw fflerror("SDL_GetTextureColorMod(%p) failed: %s", to_cvptr(m_texPtr), SDL_GetError());
-                    }
-
-                    if(SDL_GetTextureAlphaMod(m_texPtr, &m_a)){
-                        throw fflerror("SDL_GetTextureAlphaMod(%p) failed: %s", to_cvptr(m_texPtr), SDL_GetError());
-                    }
-
-                    if(SDL_SetTextureColorMod(m_texPtr, colorf::R(color), colorf::G(color), colorf::B(color))){
-                        throw fflerror("SDL_SetTextureColorMod(%p) failed: %s", to_cvptr(m_texPtr), SDL_GetError());
-                    }
-
-                    if(SDL_SetTextureAlphaMod(m_texPtr, colorf::A(color))){
-                        throw fflerror("SDL_SetTextureAlphaMod(%p) failed: %s", to_cvptr(m_texPtr), SDL_GetError());
-                    }
-                }
-
-            public:
-                ~EnableRGBAModTexture()
-                {
-                    if(m_texPtr){
-                        SDL_SetTextureColorMod(m_texPtr, m_r, m_g, m_b);
-                        SDL_SetTextureAlphaMod(m_texPtr, m_a);
-                    }
-                }
-        };
-
-    private:
-        struct ColorStackNode
-        {
-            uint32_t Color;
-            size_t   Repeat;
-
-            ColorStackNode(uint32_t nColor, size_t nRepeat)
-                : Color(nColor)
-                , Repeat(nRepeat)
-            {}
-        };
-
-        struct BlendModeStackNode
-        {
-            SDL_BlendMode BlendMode;
-            size_t        Repeat;
-
-            BlendModeStackNode(SDL_BlendMode stBlendMode, size_t nRepeat)
-                : BlendMode(stBlendMode)
-                , Repeat(nRepeat)
-            {}
+                EnableTextureModColor(SDL_Texture *, uint32_t);
+               ~EnableTextureModColor();
         };
 
     private:
@@ -138,10 +110,6 @@ class SDLDevice final
 
     private:
        FPSMonitor m_fpsMonitor;
-
-    private:
-       std::vector<ColorStackNode>     m_colorStack;
-       std::vector<BlendModeStackNode> m_blendModeStack;
 
     private:
        std::unordered_map<int, SDL_Texture *> m_cover;
@@ -231,6 +199,12 @@ class SDLDevice final
        void drawWidthRectangle(uint32_t, size_t, int, int, int, int);
 
     public:
+       SDL_Renderer *getRenderer()
+       {
+           return m_renderer;
+       }
+
+    public:
        SDL_Texture *CreateTextureFromSurface(SDL_Surface * pSurface)
        {
            return pSurface ? SDL_CreateTextureFromSurface(m_renderer, pSurface) : nullptr;
@@ -275,27 +249,6 @@ class SDLDevice final
        {
            return std::get<1>(getRendererSize());
        }
-
-    public:
-       void PushColor(uint8_t, uint8_t, uint8_t, uint8_t);
-
-    public:
-       void PushColor(uint32_t nRGBA)
-       {
-           PushColor(colorf::R(nRGBA), colorf::G(nRGBA), colorf::B(nRGBA), colorf::A(nRGBA));
-       }
-
-       void PushColor(const SDL_Color &rstColor)
-       {
-           PushColor(rstColor.r, rstColor.g, rstColor.b, rstColor.a);
-       }
-
-    public:
-       void PopColor();
-
-    public:
-       void PushBlendMode(SDL_BlendMode);
-       void PopBlendMode();
 
     public:
        TTF_Font *CreateTTF(const uint8_t *, size_t, uint8_t);

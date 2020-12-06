@@ -354,3 +354,24 @@ struct ActionNode
         }
     }
 };
+
+union ActionParam
+{
+    ActionSpell  spell;
+    ActionTransf transf;
+};
+
+struct ActionNewNode
+{
+    const int action    =  ACTION_NONE;
+    const int speed     = -1;
+    const int direction = -1;
+
+    const int x    = -1;
+    const int y    = -1;
+    const int aimX = -1;
+    const int aimY = -1;
+
+    const uint64_t aimUID = 0;
+    const ActionParam param;
+};

@@ -809,10 +809,7 @@ void ControlBoard::drawMiddleDefault()
     const int nW0 = w();
 
     // draw black underlay for the logBoard and actor face
-    {
-        SDLDevice::EnableDrawColor enableColor(colorf::RGBA(0X00, 0X00, 0X00, 0XFF));
-        g_SDLDevice->fillRectangle(178 + 2, nY0 + 14, nW0 - (178 + 2) - (166 + 2), 120);
-    }
+    g_SDLDevice->fillRectangle(colorf::RGBA(0X00, 0X00, 0X00, 0XFF), 178 + 2, nY0 + 14, nW0 - (178 + 2) - (166 + 2), 120);
 
     m_cmdLine.draw();
     drawLogBoardDefault();
@@ -896,9 +893,8 @@ void ControlBoard::drawMiddleExpand()
 
     // draw black underlay for the big log board
     {
-        SDLDevice::EnableDrawBlendMode enableDrawBlendMode(SDL_BLENDMODE_BLEND);
-        SDLDevice::EnableDrawColor enableColor(colorf::RGBA(0X00, 0X00, 0X00, 0XF0));
-        g_SDLDevice->fillRectangle(178 + 2, startY + 2, nW0 - (178 + 2) - (166 + 2), 47 + m_stretchH);
+        SDLDevice::EnableRenderBlendMode enableDrawBlendMode(SDL_BLENDMODE_BLEND);
+        g_SDLDevice->fillRectangle(colorf::RGBA(0X00, 0X00, 0X00, 0XF0), 178 + 2, startY + 2, nW0 - (178 + 2) - (166 + 2), 47 + m_stretchH);
     }
 
     drawInputGreyBackground();
@@ -1204,7 +1200,7 @@ void ControlBoard::drawInputGreyBackground()
     }
 
     const auto color = colorf::GREY + 48;
-    SDLDevice::EnableDrawBlendMode enableDrawBlendMode(SDL_BLENDMODE_BLEND);
+    SDLDevice::EnableRenderBlendMode enableDrawBlendMode(SDL_BLENDMODE_BLEND);
 
     if(m_expand){
 

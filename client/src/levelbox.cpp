@@ -123,8 +123,8 @@ void LevelBox::drawEx(int dstX, int dstY, int, int, int, int)
     const auto fnDrawCover = [dstX, dstY](uint32_t color)
     {
         if(auto *texPtr = g_SDLDevice->getCover(8)){
-            SDL_SetTextureColorMod(texPtr, colorf::R(color), colorf::G(color), colorf::B(color));
-            SDLDevice::EnableDrawBlendMode enableDrawBlendMode(SDL_BLENDMODE_BLEND);
+            SDLDevice::EnableTextureModColor(texPtr, color);
+            SDLDevice::EnableRenderBlendMode enableDrawBlendMode(SDL_BLENDMODE_BLEND);
             g_SDLDevice->drawTexture(texPtr, dstX + 1, dstY);
         }
     };
@@ -132,12 +132,12 @@ void LevelBox::drawEx(int dstX, int dstY, int, int, int, int)
     switch(m_state){
         case BEVENT_ON:
             {
-                fnDrawCover(colorf::RED);
+                fnDrawCover(colorf::RED + 0XFF);
                 break;
             }
         case BEVENT_DOWN:
             {
-                fnDrawCover(colorf::BLUE);
+                fnDrawCover(colorf::BLUE + 0XFF);
                 break;
             }
         default:
@@ -148,6 +148,5 @@ void LevelBox::drawEx(int dstX, int dstY, int, int, int, int)
 
     const int dx = (w() - m_label.w()) / 2;
     const int dy = (h() - m_label.h()) / 2;
-
     m_label.drawEx(dstX + dx, dstY + dy, 0, 0, m_label.w(), m_label.h());
 }

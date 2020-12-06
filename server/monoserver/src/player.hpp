@@ -90,6 +90,15 @@ class Player final: public CharObject
             return m_channID;
         }
 
+    protected:
+        bool sendNetBuf(uint8_t, const uint8_t *, size_t);
+
+    protected:
+        template<typename T> bool sendNet(uint8_t hc, const T &t)
+        {
+            return sendNetBuf(hc, (const uint8_t *)(&t), sizeof(t));
+        }
+
     public:
         int Speed()
         {
@@ -131,14 +140,15 @@ class Player final: public CharObject
         void on_MPK_REMOVEGROUNDITEM(const MessagePack &);
 
     private:
-        void net_CM_REQUESTKILLPETS (uint8_t, const uint8_t *, size_t);
-        void net_CM_REQUESTSPACEMOVE(uint8_t, const uint8_t *, size_t);
-        void net_CM_QUERYCORECORD   (uint8_t, const uint8_t *, size_t);
-        void net_CM_ACTION          (uint8_t, const uint8_t *, size_t);
-        void net_CM_PICKUP          (uint8_t, const uint8_t *, size_t);
-        void net_CM_PING            (uint8_t, const uint8_t *, size_t);
-        void net_CM_QUERYGOLD       (uint8_t, const uint8_t *, size_t);
-        void net_CM_NPCEVENT        (uint8_t, const uint8_t *, size_t);
+        void net_CM_REQUESTKILLPETS   (uint8_t, const uint8_t *, size_t);
+        void net_CM_REQUESTSPACEMOVE  (uint8_t, const uint8_t *, size_t);
+        void net_CM_REQUESTMAGICDAMAGE(uint8_t, const uint8_t *, size_t);
+        void net_CM_QUERYCORECORD     (uint8_t, const uint8_t *, size_t);
+        void net_CM_ACTION            (uint8_t, const uint8_t *, size_t);
+        void net_CM_PICKUP            (uint8_t, const uint8_t *, size_t);
+        void net_CM_PING              (uint8_t, const uint8_t *, size_t);
+        void net_CM_QUERYGOLD         (uint8_t, const uint8_t *, size_t);
+        void net_CM_NPCEVENT          (uint8_t, const uint8_t *, size_t);
 
     protected:
         void reportGold();
@@ -172,11 +182,11 @@ class Player final: public CharObject
         bool MotionValid(const ActionNode &);
 
     protected:
-        void OnCMActionMove  (CMAction);
-        void OnCMActionStand (CMAction);
-        void OnCMActionSpell (CMAction);
-        void OnCMActionAttack(CMAction);
-        void OnCMActionPickUp(CMAction);
+        void onCMActionMove  (CMAction);
+        void onCMActionStand (CMAction);
+        void onCMActionSpell (CMAction);
+        void onCMActionAttack(CMAction);
+        void onCMActionPickUp(CMAction);
 
     private:
         bool postNetMessage(uint8_t, const uint8_t *, size_t);

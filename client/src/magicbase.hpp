@@ -19,100 +19,183 @@
 #pragma once
 #include <list>
 #include <functional>
+#include "totype.hpp"
+#include "dbcomid.hpp"
+#include "dbcomrecord.hpp"
 #include "magicrecord.hpp"
 
 class MagicBase
 {
     protected:
-        int m_ID;
-        int m_param;
-        int m_stage;
+        const int m_magicID;
+        const MagicRecord *m_magicRecord;
 
     protected:
-        double m_timeOut;
-        double m_accuTime;
+        const MagicGfxEntry *m_gfxEntry;
 
     protected:
-        // mutable means already thread safe
-        // don't use this class in multithread env since not atomic protection
-        mutable const GfxEntry *m_cacheEntry;
+        double m_accuTime = 0.0;
 
     protected:
-        std::list<std::function<bool()>> m_updateFunc;
-
-    public:
-        MagicBase(int,      // MagicID
-                int,        // MagicParam
-                int,        // MagicStage
-                double);    // TimeOut
-
-        MagicBase(int,      // MagicID
-                int,        // MagicParam
-                int);       // MagicStage
-
-    public:
-        virtual ~MagicBase() = default;
-
-    public:
-        int ID() const
-        {
-            return m_ID;
-        }
-
-        int Param() const
-        {
-            return m_param;
-        }
-
-        int Stage() const
-        {
-            return m_stage;
-        }
-
-    public:
-        int Frame() const;
-
-    public:
-        // hard to make an unformed version
-        // different magic we need different method to check done
-        virtual bool Done() const = 0;
-
-    public:
-        virtual void Draw(int, int) = 0;
-        virtual void Update(double) = 0;
-
-    public:
-        void AddFunc(std::function<bool()> fnOnUpdate)
-        {
-            m_updateFunc.push_back(fnOnUpdate);
-        }
+        int m_gfxDirIndex;
 
     protected:
-        void ExecUpdateFunc()
+        std::list<std::function<bool()>> m_onUpdateList;
+
+    protected:
+        bool m_onDoneCalled = false;
+        std::list<std::function<void()>> m_onDoneList;
+
+    public:
+        MagicBase(const char8_t *magicName, const char8_t *magicStage, int gfxDirIndex)
+            : m_magicID([magicName]()
+              {
+                  if(const auto magicID = DBCOM_MAGICID(magicName)){
+                      return magicID;
+                  }
+                  throw fflerror("invalid magicName: %s", to_cstr(magicName));
+              }())
+            , m_magicRecord([this]()
+              {
+                  if(const auto &mr = DBCOM_MAGICRECORD(magicID())){
+                      return &mr;
+                  }
+                  throw fflerror("invalid magicID: %d", magicID());
+              }())
+            , m_gfxEntry([magicStage, this]()
+              {
+                  if(const auto &ge = m_magicRecord->getGfxEntry(magicStage)){
+                      return &ge;
+                  }
+                  throw fflerror("invalid magicStage: %s", to_cstr(magicStage));
+              }())
+            , m_gfxDirIndex(gfxDirIndex)
         {
-            for(auto p = m_updateFunc.begin(); p != m_updateFunc.end();){
-                if((*p)()){
-                    p = m_updateFunc.erase(p);
-                }else{
-                    ++p;
+            switch(m_gfxEntry->gfxDirType){
+                case  4:
+                case  8:
+                case 16:
+                    {
+                        if(!(gfxDirIndex >= 0 && gfxDirIndex < m_gfxEntry->gfxDirType)){
+                            throw fflerror("invalid gfx direction index: %d", m_gfxDirIndex);
+                        }
+                        break;
+                    }
+                default:
+                    {
+                        break;
+                    }
+            }
+        }
+
+    public:
+        virtual ~MagicBase()
+        {
+            if(!m_onDoneCalled){
+                for(auto &f: m_onDoneList){
+                    f();
                 }
             }
         }
 
     public:
-        bool StageDone() const;
-
-    public:
-        operator bool () const
+        int magicID() const
         {
-            // refreshCache() makes m_cacheEntry point to correct entry
-            // if current magic configuration is invalid it fails
-
-            return refreshCache();
+            return m_magicID;
         }
 
-        void Print() const;
+        const char8_t *magicName() const
+        {
+            return DBCOM_MAGICRECORD(magicID()).name;
+        }
+
+        const auto &getGfxEntry() const
+        {
+            return m_gfxEntry[0];
+        }
+
+        int gfxDirIndex() const
+        {
+            return m_gfxDirIndex;
+        }
+
+    public:
+        virtual void update(double ms)
+        {
+            m_accuTime += ms;
+            runOnUpdate();
+
+            if(done()){
+                runOnDone();
+            }
+        }
+
+    public:
+        bool stageDone() const
+        {
+            if(m_gfxEntry->loop){
+                return false;
+            }
+            return absFrame() >= m_gfxEntry->frameCount;
+        }
+
+        int frame() const
+        {
+            switch(m_gfxEntry->loop){
+                case  0: return absFrame();
+                case  1: return absFrame() % m_gfxEntry->frameCount;
+                default: return -1;
+            }
+        }
+
+        int absFrame() const
+        {
+            return (m_accuTime / 1000.0) * SYS_DEFFPS * (m_gfxEntry->speed / 100.0);
+        }
+
+    public:
+        void addOnDone(std::function<void()> onDone)
+        {
+            m_onDoneList.push_back(std::move(onDone));
+        }
+
+        void addOnUpdate(std::function<bool()> onUpdate)
+        {
+            m_onUpdateList.push_back(std::move(onUpdate));
+        }
+
+    public:
+        virtual bool done() const
+        {
+            return stageDone();
+        }
 
     protected:
-        bool refreshCache() const;
+        void runOnDone()
+        {
+            if(!done()){
+                throw fflerror("call runOnDone() while magic is not done yet");
+            }
+
+            if(m_onDoneCalled){
+                throw fflerror("call runOnDone() twice");
+            }
+
+            for(auto &f: m_onDoneList){
+                f();
+            }
+            m_onDoneCalled = true;
+        }
+
+        void runOnUpdate()
+        {
+            for(auto p = m_onUpdateList.begin(); p != m_onUpdateList.end();){
+                if((*p)()){
+                    p = m_onUpdateList.erase(p);
+                }
+                else{
+                    ++p;
+                }
+            }
+        }
 };

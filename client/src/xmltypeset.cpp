@@ -994,7 +994,7 @@ void XMLTypeset::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int sr
                 case LEAF_UTF8GROUP:
                     {
                         if(auto texPtr = g_fontexDB->Retrieve(tokenPtr->UTF8Char.U64Key)){
-                            SDLDevice::EnableRGBAModTexture enableMod(texPtr, fgColor);
+                            SDLDevice::EnableTextureModColor enableMod(texPtr, fgColor);
                             g_SDLDevice->drawTexture(texPtr, drawDstX, drawDstY, dx, dy, boxW, boxH);
                         }
                         else{
@@ -1024,7 +1024,7 @@ void XMLTypeset::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int sr
                         int yOnTex = 0;
 
                         if(auto texPtr = g_emoticonDB->Retrieve(emojiKey, &xOnTex, &yOnTex, 0, 0, 0, 0, 0)){
-                            SDLDevice::EnableRGBAModTexture enableMod(texPtr, m_imageMaskColor);
+                            SDLDevice::EnableTextureModColor enableMod(texPtr, m_imageMaskColor);
                             g_SDLDevice->drawTexture(texPtr, drawDstX, drawDstY, xOnTex + dx, yOnTex + dy, boxW, boxH);
                         }
                         else{

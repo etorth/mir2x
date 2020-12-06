@@ -199,8 +199,10 @@
         MotionNode makeIdleMotion() const;
 
     public:
-        bool addAttachMagic(int, int, int);
-        bool addAttachMagic(AttachMagic *);
+        void addAttachMagic(std::unique_ptr<AttachMagic> magicPtr)
+        {
+            m_attachMagicList.emplace_back(std::move(magicPtr));
+        }
 
     protected:
         double currMotionDelay() const;

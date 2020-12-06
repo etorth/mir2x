@@ -177,7 +177,7 @@ void ProcessNew::draw()
         rstLBCheck.drawEx(nX + rstBox.w() + nDX, nY, 0, 0, rstLBCheck.w(), rstLBCheck.h());
     };
 
-    SDLDevice::EnableDrawColor drawColor(colorf::RGBA(0X00, 0X80, 0X00, 0X00));
+    SDLDevice::EnableRenderColor drawColor(colorf::RGBA(0X00, 0X80, 0X00, 0X00));
     fnDrawInput(300, 200, 10, m_LBID        , m_boxID        , m_LBCheckID        );
     fnDrawInput(300, 300, 10, m_LBPwd       , m_boxPwd       , m_LBCheckPwd       );
     fnDrawInput(300, 400, 10, m_LBPwdConfirm, m_boxPwdConfirm, m_LBCheckPwdConfirm);

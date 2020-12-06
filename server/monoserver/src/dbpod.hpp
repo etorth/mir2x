@@ -26,7 +26,7 @@
 #include "strf.hpp"
 #include "database.hpp"
 
-template<size_t ConnectionCount = 4> class DBPod final
+template<size_t ConnectionCount = 4> class DBPodConnector final
 {
     private:
         class InnDeleter
@@ -74,10 +74,10 @@ template<size_t ConnectionCount = 4> class DBPod final
         std::unique_ptr<DBConnection> m_connVec    [ConnectionCount];
 
     public:
-        DBPod()
+        DBPodConnector()
             : m_current {0}
         {
-            static_assert(ConnectionCount > 0, "DBPod should contain at least one connection handler");
+            static_assert(ConnectionCount > 0, "DBPodConnector should contain at least one connection handler");
         }
 
         void LaunchMySQL(
@@ -160,4 +160,4 @@ template<size_t ConnectionCount = 4> class DBPod final
         }
 };
 
-using DBPodN = DBPod<4>;
+using DBPod = DBPodConnector<4>;

@@ -24,21 +24,34 @@
 
 void Player::net_CM_ACTION(uint8_t, const uint8_t *pBuf, size_t)
 {
-    CMAction stCMA;
-    std::memcpy(&stCMA, pBuf, sizeof(stCMA));
+    CMAction cmA;
+    std::memcpy(&cmA, pBuf, sizeof(cmA));
 
     if(true
-            && stCMA.UID == UID()
-            && stCMA.MapID == MapID()){
+            && cmA.UID == UID()
+            && cmA.MapID == MapID()){
 
-        switch((int)(stCMA.Action)){
-            case ACTION_STAND : OnCMActionStand (stCMA); return;
-            case ACTION_MOVE  : OnCMActionMove  (stCMA); return;
-            case ACTION_ATTACK: OnCMActionAttack(stCMA); return;
-            case ACTION_SPELL : OnCMActionSpell (stCMA); return;
-            case ACTION_PICKUP: OnCMActionPickUp(stCMA); return;
-            default           :                          return;
+        switch((int)(cmA.Action)){
+            case ACTION_STAND : onCMActionStand (cmA); return;
+            case ACTION_MOVE  : onCMActionMove  (cmA); return;
+            case ACTION_ATTACK: onCMActionAttack(cmA); return;
+            case ACTION_SPELL : onCMActionSpell (cmA); return;
+            case ACTION_PICKUP: onCMActionPickUp(cmA); return;
+            default           :                        return;
         }
+
+        dispatchAction(ActionNode
+        {
+            cmA.Action,
+            cmA.Speed,
+            cmA.Direction,
+            cmA.X,
+            cmA.Y,
+            cmA.AimX,
+            cmA.AimY,
+            cmA.AimUID,
+            cmA.ActionParam,
+        });
     }
 }
 
@@ -66,13 +79,19 @@ void Player::net_CM_QUERYCORECORD(uint8_t, const uint8_t *pBuf, size_t)
 
 void Player::net_CM_REQUESTSPACEMOVE(uint8_t, const uint8_t *buf, size_t)
 {
-    const auto cmRSM = ClientMsg::conv<CMReqestSpaceMove>(buf);
+    const auto cmRSM = ClientMsg::conv<CMRequestSpaceMove>(buf);
     if(cmRSM.MapID == MapID()){
         requestSpaceMove(cmRSM.X, cmRSM.Y, false);
     }
     else{
         requestMapSwitch(cmRSM.MapID, cmRSM.X, cmRSM.Y, false);
     }
+}
+
+void Player::net_CM_REQUESTMAGICDAMAGE(uint8_t, const uint8_t *buf, size_t)
+{
+    const auto cmRMD = ClientMsg::conv<CMRequestMagicDamage>(buf);
+    dispatchAttack(cmRMD.aimUID, DC_PHY_PLAIN);
 }
 
 void Player::net_CM_REQUESTKILLPETS(uint8_t, const uint8_t *, size_t)

@@ -189,7 +189,7 @@ bool StandNPC::draw(int viewX, int viewY, int focusMask)
     }
 
     for(auto &p: m_attachMagicList){
-        p->Draw(x() * SYS_MAPGRIDXP - viewX, y() * SYS_MAPGRIDYP - viewY);
+        p->drawShift(x() * SYS_MAPGRIDXP - viewX, y() * SYS_MAPGRIDYP - viewY, false);
     }
     return true;
 }

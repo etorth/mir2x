@@ -20,434 +20,429 @@
  */
 
 {
-    u8"",
-    MET_NONE,
-    0X00000000,
-
-    // empty record
-    // won't put any GfxEntry here
+    // magicID = 0
+    // first empty record
 },
 
 {
-    u8"雷电术",
-    MET_THUNDER,
-    0X0500100A,
+    .name = u8"雷电术",
+    .elem = u8"电",
+    .icon = 0X0500100A,
+
+    .gfxList
+    {
+        {
+            .stage = u8"启动",
+            .type  = u8"附着",
+            .gfxID = 0X00000596,
+            .frameCount = 12,
+            .motion = 1,
+        },
 
-    GfxEntry {u8"启动", u8"附着", 0X00000596, 12, 12,  1, 100, 0, 1},
-    GfxEntry {u8"运行", u8"附着", 0X000005AA,  5,  5, -1, 100, 0, 1},
+        {
+            .stage = u8"运行",
+            .type  = u8"附着",
+            .gfxID = 0X000005AA,
+            .frameCount = 5,
+        },
+    },
 },
 
 {
-    u8"魔法盾",
-    MET_WIND,
-    0X0500101D,
+    .name = u8"魔法盾",
+    .elem = u8"风",
+    .icon = 0X0500101D,
+
+    .gfxList
+    {
+        {
+            .stage = u8"启动",
+            .type  = u8"附着",
+            .gfxID = 0X0000033E,
+            .frameCount = 9,
+            .motion = 1,
+        },
+
+        {
+            .stage = u8"开始",
+            .type  = u8"附着",
+            .gfxID = 0X00000347,
+            .frameCount = 10,
+        },
 
-    GfxEntry {u8"启动", u8"附着", 0X0000033E,  9,  9,  1, 100, 0, 1},
-    GfxEntry {u8"开始", u8"附着", 0X00000347, 10, 10, -1, 100, 0, 1},
-    GfxEntry {u8"运行", u8"附着", 0X00000352,  3,  3, -1, 100, 1, 1},
-    GfxEntry {u8"挨打", u8"附着", 0X00000355,  3,  3, -1, 100, 0, 1},
+        {
+            .stage = u8"运行",
+            .type  = u8"附着",
+            .gfxID = 0X00000352,
+            .frameCount = 3,
+            .loop = 1,
+        },
+
+        {
+            .stage = u8"挨打",
+            .type  = u8"附着",
+            .gfxID = 0X00000355,
+            .frameCount = 3,
+        },
+    },
 },
 
 {
-    u8"召唤骷髅",
-    MET_PHANTOM,
-    0X0500103B,
+    .name = u8"召唤骷髅",
+    .elem = u8"幻影",
+    .icon = 0X0500103B,
+
+    .gfxList
+    {
+        {
+            .stage = u8"启动",
+            .type  = u8"附着",
+            .gfxID = 0X000002E4,
+            .frameCount = 10,
+            .motion = 1,
+            .speed = 80,
+        },
 
-    GfxEntry {u8"启动", u8"附着", 0X000002E4, 10, 10,  1,  80, 0, 1},
-    GfxEntry {u8"开始", u8"固定", 0X000002EE, 10, 10, -1, 200, 0, 1},
+        {
+            .stage = u8"开始",
+            .type  = u8"固定",
+            .gfxID = 0X000002EE,
+            .frameCount = 10,
+            .speed = 200,
+        },
+    }
 },
 
 {
-    u8"火球术",
-    MET_FIRE,
-    0X00000000,
+    .name = u8"火球术",
 },
 
 {
-    u8"治愈术",
-    MET_NONE,
-    0X00000000,
+    .name = u8"治愈术",
 },
 
 {
-    u8"基本剑术",
-    MET_NONE,
-    0X00000000,
+    .name = u8"基本剑术",
 },
 
 {
-    u8"精神力战法",
-    MET_NONE,
-    0X00000000,
+    .name = u8"精神力战法",
 },
 
 {
-    u8"大火球",
-    MET_NONE,
-    0X00000000,
+    .name = u8"大火球",
 },
 
 {
-    u8"施毒术",
-    MET_NONE,
-    0X00000000,
+    .name = u8"施毒术",
 },
 
 {
-    u8"攻杀剑术",
-    MET_NONE,
-    0X00000000,
+    .name = u8"攻杀剑术",
 },
 
 {
-    u8"抗拒火环",
-    MET_NONE,
-    0X00000000,
+    .name = u8"抗拒火环",
 },
 
 {
-    u8"地狱火",
-    MET_NONE,
-    0X00000000,
+    .name = u8"地狱火",
 },
 
 {
-    u8"疾光电影",
-    MET_NONE,
-    0X00000000,
+    .name = u8"疾光电影",
 },
 
 {
-    u8"雷电术",
-    MET_NONE,
-    0X00000000,
+    .name = u8"雷电术",
 },
 
 {
-    u8"刺杀剑术",
-    MET_NONE,
-    0X00000000,
+    .name = u8"刺杀剑术",
 },
 
 {
-    u8"灵魂火符",
-    MET_DARK,
-    0X0500100C,
+    .name = u8"灵魂火符",
+    .elem = u8"暗黑",
+    .icon = 0X0500100C,
 
-    GfxEntry {u8"启动", u8"附着", 0X00000820,  6, 10,  0, 100, 0,  8},
-    GfxEntry {u8"运行", u8"射击", 0X000003D4,  3, 10, -1, 100, 1, 16}, // special, has 16 directions
-    GfxEntry {u8"结束", u8"附着", 0X00000474, 10, 10, -1, 100, 0,  1},
+    .gfxList
+    {
+        {
+            .stage = u8"启动",
+            .type  = u8"附着",
+            .gfxID = 0X00000820,
+            .frameCount = 6,
+            .gfxIDCount = 10,
+            .gfxDirType = 8,
+            .motion = 0,
+        },
+
+        {
+            .stage = u8"运行",
+            .type  = u8"射击",
+            .gfxID = 0X000003D4,
+            .frameCount = 3,
+            .gfxIDCount = 10,
+            .gfxDirType = 16, //special, has 16 directions
+            .loop = 1,
+        },
+
+        {
+            .stage = u8"结束",
+            .type  = u8"附着",
+            .gfxID = 0X00000474,
+            .frameCount = 10,
+        },
+    }
 },
 
 {
-    u8"幽灵盾",
-    MET_NONE,
-    0X00000000,
+    .name = u8"幽灵盾",
 },
 
 {
-    u8"神圣战甲术",
-    MET_NONE,
-    0X00000000,
+    .name = u8"神圣战甲术",
 },
 
 {
-    u8"困魔咒",
-    MET_NONE,
-    0X00000000,
+    .name = u8"困魔咒",
 },
 
 {
-    u8"隐身术",
-    MET_NONE,
-    0X00000000,
+    .name = u8"隐身术",
 },
 
 {
-    u8"集体隐身术",
-    MET_NONE,
-    0X00000000,
+    .name = u8"集体隐身术",
 },
 
 {
-    u8"诱惑之光",
-    MET_NONE,
-    0X00000000,
+    .name = u8"诱惑之光",
 },
 
 {
-    u8"瞬息移动",
-    MET_NONE,
-    0X00000000,
+    .name = u8"瞬息移动",
+    .elem = u8"幻影",
+
+    .gfxList
+    {
+        {
+            .stage = u8"启动",
+            .type  = u8"附着",
+            .gfxID = 0X0000006E,
+            .frameCount = 10,
+            .motion = 0,
+        },
 
-    GfxEntry {u8"启动", u8"附着", 0X0000006E, 10, 10,  0, 100, 0, 1},
-    GfxEntry {u8"结束", u8"附着", 0X00000938, 10, 10, -1, 100, 0, 1},
+        {
+            .stage = u8"结束",
+            .type  = u8"附着",
+            .gfxID = 0X00000938,
+            .frameCount = 10,
+        },
+    },
 },
 
 {
-    u8"火墙",
-    MET_NONE,
-    0X00000000,
+    .name = u8"火墙",
 },
 
 {
-    u8"爆裂火焰",
-    MET_NONE,
-    0X00000000,
+    .name = u8"爆裂火焰",
 },
 
 {
-    u8"地狱雷光",
-    MET_NONE,
-    0X00000000,
+    .name = u8"地狱雷光",
 },
 
 {
-    u8"半月弯刀",
-    MET_NONE,
-    0X00000000,
+    .name = u8"半月弯刀",
 },
 
 {
-    u8"烈火剑法",
-    MET_NONE,
-    0X00000000,
+    .name = u8"烈火剑法",
 },
 
 {
-    u8"野蛮冲撞",
-    MET_NONE,
-    0X00000000,
+    .name = u8"野蛮冲撞",
 },
 
 {
-    u8"心灵启示",
-    MET_NONE,
-    0X00000000,
+    .name = u8"心灵启示",
 },
 
 {
-    u8"群体治愈术",
-    MET_NONE,
-    0X00000000,
+    .name = u8"群体治愈术",
 },
 
 {
-    u8"召唤神兽",
-    MET_PHANTOM,
-    0X0500101C,
+    .name = u8"召唤神兽",
+    .elem = u8"幻影",
+    .icon = 0X0500101C,
 
-    GfxEntry {u8"启动", u8"附着", 0X00000A1E, 19, 19, 1, 150, 0, 1},
+    .gfxList
+    {
+        {
+            .stage = u8"启动",
+            .type  = u8"附着",
+            .gfxID = 0X00000A1E,
+            .frameCount = 19,
+            .motion = 1,
+            .speed = 150,
+        }
+    }
 },
 
 {
-    u8"魔法盾",
-    MET_NONE,
-    0X00000000,
+    .name = u8"魔法盾",
 },
 
 {
-    u8"圣言术",
-    MET_NONE,
-    0X00000000,
+    .name = u8"圣言术",
 },
 
 {
-    u8"冰咆哮",
-    MET_NONE,
-    0X00000000,
+    .name = u8"冰咆哮",
 },
 
 {
-    u8"莲月剑法",
-    MET_NONE,
-    0X00000000,
+    .name = u8"莲月剑法",
 },
 
 {
-    u8"翔空剑法",
-    MET_NONE,
-    0X00000000,
+    .name = u8"翔空剑法",
 },
 
 {
-    u8"空拳刀法",
-    MET_NONE,
-    0X00000000,
+    .name = u8"空拳刀法",
 },
 
 {
-    u8"月魂断玉",
-    MET_NONE,
-    0X00000000,
+    .name = u8"月魂断玉",
 },
 
 {
-    u8"月魂灵波",
-    MET_NONE,
-    0X00000000,
+    .name = u8"月魂灵波",
 },
 
 {
-    u8"冰月神掌",
-    MET_NONE,
-    0X00000000,
+    .name = u8"冰月神掌",
 },
 
 {
-    u8"冰月震天",
-    MET_NONE,
-    0X00000000,
+    .name = u8"冰月震天",
 },
 
 {
-    u8"霹雳掌",
-    MET_NONE,
-    0X00000000,
+    .name = u8"霹雳掌",
 },
 
 {
-    u8"冰沙掌",
-    MET_NONE,
-    0X00000000,
+    .name = u8"冰沙掌",
 },
 
 {
-    u8"风掌",
-    MET_NONE,
-    0X00000000,
+    .name = u8"风掌",
 },
 
 {
-    u8"龙卷风",
-    MET_NONE,
-    0X00000000,
+    .name = u8"龙卷风",
 },
 
 {
-    u8"风震天",
-    MET_NONE,
-    0X00000000,
+    .name = u8"风震天",
 },
 
 {
-    u8"击风",
-    MET_NONE,
-    0X00000000,
+    .name = u8"击风",
 },
 
 {
-    u8"回生术",
-    MET_NONE,
-    0X00000000,
+    .name = u8"回生术",
 },
 
 {
-    u8"强魔震法",
-    MET_NONE,
-    0X00000000,
+    .name = u8"强魔震法",
 },
 
 {
-    u8"猛虎强势",
-    MET_NONE,
-    0X00000000,
+    .name = u8"猛虎强势",
 },
 
 {
-    u8"铁布衫",
-    MET_NONE,
-    0X00000000,
+    .name = u8"铁布衫",
 },
 
 {
-    u8"十方斩",
-    MET_NONE,
-    0X00000000,
+    .name = u8"十方斩",
 },
 
 {
-    u8"异形换位",
-    MET_NONE,
-    0X00000000,
+    .name = u8"异形换位",
 },
 
 {
-    u8"超强召唤骷髅",
-    MET_NONE,
-    0X00000000,
+    .name = u8"超强召唤骷髅",
 },
 
 {
-    u8"破血狂杀",
-    MET_NONE,
-    0X00000000,
+    .name = u8"破血狂杀",
 },
 
 {
-    u8"乾坤大挪移",
-    MET_NONE,
-    0X00000000,
+    .name = u8"乾坤大挪移",
 },
 
 {
-    u8"斗转星移",
-    MET_NONE,
-    0X00000000,
+    .name = u8"斗转星移",
 },
 
 {
-    u8"魄冰刺",
-    MET_NONE,
-    0X00000000,
+    .name = u8"魄冰刺",
 },
 
 {
-    u8"怒神霹雳",
-    MET_NONE,
-    0X00000000,
+    .name = u8"怒神霹雳",
 },
 
 {
-    u8"凝血离魂",
-    MET_NONE,
-    0X00000000,
+    .name = u8"凝血离魂",
 },
 
 {
-    u8"焰天火雨",
-    MET_NONE,
-    0X00000000,
+    .name = u8"焰天火雨",
 },
 
 {
-    u8"云寂术",
-    MET_NONE,
-    0X00000000,
+    .name = u8"云寂术",
 },
 
 {
-    u8"妙影无踪",
-    MET_NONE,
-    0X00000000,
+    .name = u8"妙影无踪",
 },
 
 {
-    u8"阴阳法环",
-    MET_NONE,
-    0X00000000,
+    .name = u8"阴阳法环",
 },
 
 {
-    u8"移花接玉",
-    MET_NONE,
-    0X00000000,
+    .name = u8"移花接玉",
 },
 
 {
-    u8"神兽-喷火",
-    MET_FIRE,
-    0X00000000,
+    .name = u8"神兽-喷火",
+    .elem = u8"火",
 
-    GfxEntry {u8"运行", u8"附着", 0X030003D4, 6, 10, -1, 100, 0, 8},
+    .gfxList
+    {
+        {
+            .stage = u8"运行",
+            .type  = u8"附着",
+            .gfxID = 0X030003D4,
+            .frameCount = 6,
+            .gfxIDCount = 10,
+            .gfxDirType = 8,
+        }
+    },
 },

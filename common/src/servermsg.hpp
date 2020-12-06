@@ -23,8 +23,9 @@
 
 enum SMType: uint8_t
 {
-    SM_NONE_0 = 0,
-    SM_PING,
+    SM_NONE_0  = 0,
+    SM_BEGIN   = 1,
+    SM_PING    = 1,
     SM_LOGINOK,
     SM_LOGINFAIL,
     SM_ACTION,

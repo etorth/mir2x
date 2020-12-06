@@ -45,7 +45,7 @@
 #include "databaseconfigurewindow.hpp"
 
 extern Log *g_log;
-extern DBPodN *g_DBPodN;
+extern DBPod *g_DBPod;
 extern MapBinDB *g_mapBinDB;
 extern ActorPool *g_actorPool;
 extern NetDriver *g_netDriver;
@@ -157,11 +157,11 @@ void MonoServer::addCWLog(uint32_t nCWID, int nLogType, const char *szPrompt, co
 
 void MonoServer::CreateDefaultDatabase()
 {
-    if(std::strcmp(g_DBPodN->DBEngine(), "mysql") == 0){
+    if(std::strcmp(g_DBPod->DBEngine(), "mysql") == 0){
 
     }
 
-    else if(std::strcmp(g_DBPodN->DBEngine(), "sqlite3") == 0){
+    else if(std::strcmp(g_DBPod->DBEngine(), "sqlite3") == 0){
         const char8_t *defSQLCmdList[]
         {
             u8"create table tbl_account("
@@ -197,7 +197,7 @@ void MonoServer::CreateDefaultDatabase()
                 "(5, \'逗逼\', \'比奇省\', 440, 381, 0, 0, 1, 1, 1)",
         };
 
-        auto pDBHDR = g_DBPodN->CreateDBHDR();
+        auto pDBHDR = g_DBPod->CreateDBHDR();
         for(const auto sqlCmd: defSQLCmdList){
             pDBHDR->QueryResult(to_cstr(sqlCmd));
         }
@@ -208,7 +208,7 @@ void MonoServer::CreateDefaultDatabase()
 void MonoServer::CreateDBConnection()
 {
     if(std::strcmp(g_databaseConfigureWindow->SelectedDBEngine(), "mysql") == 0){
-        g_DBPodN->LaunchMySQL(
+        g_DBPod->LaunchMySQL(
                 g_databaseConfigureWindow->DatabaseIP(),
                 g_databaseConfigureWindow->UserName(),
                 g_databaseConfigureWindow->Password(),
@@ -220,10 +220,10 @@ void MonoServer::CreateDBConnection()
     }
 
     else if(std::strcmp(g_databaseConfigureWindow->SelectedDBEngine(), "sqlite3") == 0){
-        g_DBPodN->LaunchSQLite3(g_databaseConfigureWindow->DatabaseName());
+        g_DBPod->LaunchSQLite3(g_databaseConfigureWindow->DatabaseName());
         addLog(LOGTYPE_INFO, "Connect to SQLite3 Database (%s) successfully", g_databaseConfigureWindow->DatabaseName());
 
-        if(!g_DBPodN->CreateDBHDR()->QueryResult("select name from sqlite_master where type=\'table\'")){
+        if(!g_DBPod->CreateDBHDR()->QueryResult("select name from sqlite_master where type=\'table\'")){
             CreateDefaultDatabase();
         }
     }

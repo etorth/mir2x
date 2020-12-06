@@ -25,160 +25,28 @@
 extern SDLDevice *g_SDLDevice;
 extern PNGTexOffDB *g_magicDB;
 
-void AttachMagic::Update(double fTime)
+void AttachMagic::drawShift(int shiftX, int shiftY, bool alpha)
 {
-    if(!Done()){
-        m_accuTime += fTime;
-
-        if(StageDone()){
-            auto fnCheckStageValid = [this](int nNewStage) -> bool
-            {
-                if(auto &rstMR = DBCOM_MAGICRECORD(ID())){
-                    for(int nGfxEntryIndex = 0;; ++nGfxEntryIndex){
-                        if(auto &rstGfxEntry = rstMR.getGfxEntry(nGfxEntryIndex)){
-                            if(rstGfxEntry.stage == nNewStage){
-                                return true;
-                            }
-                        }
-                        else{
-                            break;
-                        }
-                    }
-                }
-                return false;
-            };
-
-            // find next valid stage
-            // if no stage valid set EGS_NONE
-            // MagicBase::Done() returns true for EGS_NONE
-
-            switch(Stage()){
-                case EGS_INIT:
-                    {
-                        switch(ID()){
-                            case DBCOM_MAGICID(u8"雷电术"):
-                            case DBCOM_MAGICID(u8"魔法盾"):
-                                {
-                                    m_stage = EGS_DONE;
-                                    break;
-                                }
-                            default:
-                                {
-                                    if(fnCheckStageValid(EGS_RUN)){
-                                        m_stage = EGS_RUN;
-                                    }
-                                    else if(fnCheckStageValid(EGS_DONE)){
-                                        m_stage = EGS_DONE;
-                                    }
-                                    else{
-                                        m_stage = EGS_NONE;
-                                    }
-                                    break;
-                                }
-                        }
-                        break;
-                    }
-                case EGS_START:
-                    {
-                        if(fnCheckStageValid(EGS_RUN)){
-                            m_stage = EGS_RUN;
-                        }
-                        else if(fnCheckStageValid(EGS_DONE)){
-                            m_stage = EGS_DONE;
-                        }
-                        else{
-                            m_stage = EGS_NONE;
-                        }
-                        break;
-                    }
-                case EGS_RUN:
-                    {
-                        if(fnCheckStageValid(EGS_DONE)){
-                            m_stage = EGS_DONE;
-                        }
-                        else{
-                            m_stage = EGS_NONE;
-                        }
-                        break;
-                    }
-                case EGS_DONE:
-                    {
-                        m_stage = EGS_NONE;
-                        break;
-                    }
-                default:
-                    {
-                        break;
-                    }
-            }
-
-            // clear the accumulated time
-            // should I record the duration in total?
-            m_accuTime = 0.0;
-        }
+    if(m_gfxEntry->gfxID == SYS_TEXNIL){
+        return;
     }
-}
 
-void AttachMagic::Draw(int drawOffX, int drawOffY)
-{
-    if(refreshCache()){
-        if(m_cacheEntry->gfxID >= 0){
-            int offX = 0;
-            int offY = 0;
-            const uint32_t texID = [this]()
-            {
-                switch(m_cacheEntry->dirType){
-                    case 1 : return m_cacheEntry->gfxID + Frame();
-                    case 8 : return m_cacheEntry->gfxID + Frame() + (m_direction - DIR_BEGIN) * m_cacheEntry->gfxIDCount;
-                    default: throw  fflerror("invalid dirType: %d", m_cacheEntry->dirType);
-                }
-            }();
-
-            if(auto texPtr = g_magicDB->Retrieve(texID, &offX, &offY)){
-                SDL_SetTextureBlendMode(texPtr, SDL_BLENDMODE_BLEND);
-                g_SDLDevice->drawTexture(texPtr, drawOffX + offX, drawOffY + offY);
-            }
+    const auto texID = [this]() -> uint32_t
+    {
+        switch(m_gfxEntry->gfxDirType){
+            case  1: return m_gfxEntry->gfxID + frame();
+            case  4:
+            case  8:
+            case 16: return m_gfxEntry->gfxID + frame() + m_gfxDirIndex * m_gfxEntry->gfxIDCount;
+            default: throw fflerror("invalid gfxDirType: %d", m_gfxEntry->gfxDirType);
         }
-    }
-}
+    }();
 
-bool AttachMagic::Done() const
-{
-    if(StageDone()){
-        if(refreshCache()){
-            switch(m_cacheEntry->stage){
-                case EGS_INIT:
-                    {
-                        switch(ID()){
-                            case DBCOM_MAGICID(u8"雷电术"):
-                            case DBCOM_MAGICID(u8"召唤骷髅"):
-                                {
-                                    return true;
-                                }
-                            default:
-                                {
-                                    break;
-                                }
-                        }
-                        break;
-                    }
-                case EGS_DONE:
-                    {
-                        return true;
-                    }
-                default:
-                    {
-                        break;
-                    }
-            }
-        }else{
-            // when we deref m_cacheEntry
-            // we should call refreshCache() first
-
-            // when really done Update() will make current stage as EGS_NONE
-            // then refreshCache() makes m_cacheEntry as nullptr
-            return true;
-        }
+    int offX = 0;
+    int offY = 0;
+    if(auto texPtr = g_magicDB->Retrieve(texID, &offX, &offY)){
+        SDLDevice::EnableTextureModColor enableModColor(texPtr, colorf::RGBA(0XFF, 0XFF, 0XFF, alpha ? 0X80 : 0XFF));
+        SDLDevice::EnableTextureBlendMode enableBlendMode(texPtr, SDL_BLENDMODE_BLEND);
+        g_SDLDevice->drawTexture(texPtr, shiftX + offX, shiftY + offY);
     }
-    return false;
 }

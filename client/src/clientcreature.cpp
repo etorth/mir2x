@@ -63,11 +63,12 @@ bool ClientCreature::updateMotion(bool looped)
 void ClientCreature::updateAttachMagic(double ms)
 {
     for(size_t i = 0; i < m_attachMagicList.size();){
-        m_attachMagicList[i]->Update(ms);
-        if(m_attachMagicList[i]->Done()){
+        m_attachMagicList[i]->update(ms);
+        if(m_attachMagicList[i]->done()){
             std::swap(m_attachMagicList[i], m_attachMagicList.back());
             m_attachMagicList.pop_back();
-        }else{
+        }
+        else{
             i++;
         }
     }
@@ -190,47 +191,6 @@ MotionNode ClientCreature::makeIdleMotion() const
         m_currMotion.endX,
         m_currMotion.endY
     };
-}
-
-bool ClientCreature::addAttachMagic(int magicID, int magicParam, int magicStage)
-{
-    // check if type is u8"附着"
-    // otherwise we shouldn't use AttachMagic
-
-    const auto &mr = DBCOM_MAGICRECORD(magicID);
-    if(!mr){
-        return false;
-    }
-
-    for(size_t i = 0;; ++i){
-        const auto &ge = mr.getGfxEntry(i);
-        if(!ge){
-            // scan all GE and done
-            // can't find the stage, stop here
-            break;
-        }
-
-        if(ge.stage == magicStage){
-            switch(ge.type){
-                case EGT_BOUND:
-                    {
-                        m_attachMagicList.emplace_back(std::make_unique<AttachMagic>(magicID, magicParam, magicStage));
-                        return true;
-                    }
-                default:
-                    {
-                        break;
-                    }
-            }
-        }
-    }
-    return true;
-}
-
-bool ClientCreature::addAttachMagic(AttachMagic *magicPtr)
-{
-    m_attachMagicList.emplace_back(std::unique_ptr<AttachMagic>(magicPtr));
-    return true;
 }
 
 double ClientCreature::currMotionDelay() const

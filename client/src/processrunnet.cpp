@@ -33,11 +33,11 @@
 #include "dbcomrecord.hpp"
 
 // we get all needed initialization info for init the process run
-void ProcessRun::net_LOGINOK(const uint8_t *pBuf, size_t nLen)
+void ProcessRun::net_LOGINOK(const uint8_t *bufPtr, size_t nLen)
 {
-    if(pBuf && nLen && (nLen == sizeof(SMLoginOK))){
+    if(bufPtr && nLen && (nLen == sizeof(SMLoginOK))){
         SMLoginOK stSMLOK;
-        std::memcpy(&stSMLOK, pBuf, nLen);
+        std::memcpy(&stSMLOK, bufPtr, nLen);
 
         uint64_t nUID     = stSMLOK.UID;
         uint32_t nDBID    = stSMLOK.DBID;
@@ -59,10 +59,10 @@ void ProcessRun::net_LOGINOK(const uint8_t *pBuf, size_t nLen)
     }
 }
 
-void ProcessRun::net_ACTION(const uint8_t *pBuf, size_t)
+void ProcessRun::net_ACTION(const uint8_t *bufPtr, size_t)
 {
     SMAction smA;
-    std::memcpy(&smA, pBuf, sizeof(smA));
+    std::memcpy(&smA, bufPtr, sizeof(smA));
 
     ActionNode stAction
     {
@@ -149,7 +149,7 @@ void ProcessRun::net_ACTION(const uint8_t *pBuf, size_t)
                 switch(smA.Action){
                     case ACTION_SPAWN:
                         {
-                            OnActionSpawn(smA.UID, stAction);
+                            onActionSpawn(smA.UID, stAction);
                             return;
                         }
                     default:
@@ -183,9 +183,9 @@ void ProcessRun::net_ACTION(const uint8_t *pBuf, size_t)
     }
 }
 
-void ProcessRun::net_CORECORD(const uint8_t *pBuf, size_t)
+void ProcessRun::net_CORECORD(const uint8_t *bufPtr, size_t)
 {
-    const auto smCOR = ServerMsg::conv<SMCORecord>(pBuf);
+    const auto smCOR = ServerMsg::conv<SMCORecord>(bufPtr);
     if(smCOR.Action.MapID != MapID()){
         return;
     }
@@ -226,10 +226,10 @@ void ProcessRun::net_CORECORD(const uint8_t *pBuf, size_t)
     }
 }
 
-void ProcessRun::net_UPDATEHP(const uint8_t *pBuf, size_t)
+void ProcessRun::net_UPDATEHP(const uint8_t *bufPtr, size_t)
 {
     SMUpdateHP stSMUHP;
-    std::memcpy(&stSMUHP, pBuf, sizeof(stSMUHP));
+    std::memcpy(&stSMUHP, bufPtr, sizeof(stSMUHP));
 
     if(stSMUHP.MapID == MapID()){
         if(auto p = findUID(stSMUHP.UID)){
@@ -238,20 +238,20 @@ void ProcessRun::net_UPDATEHP(const uint8_t *pBuf, size_t)
     }
 }
 
-void ProcessRun::net_NOTIFYDEAD(const uint8_t *pBuf, size_t)
+void ProcessRun::net_NOTIFYDEAD(const uint8_t *bufPtr, size_t)
 {
     SMNotifyDead stSMND;
-    std::memcpy(&stSMND, pBuf, sizeof(stSMND));
+    std::memcpy(&stSMND, bufPtr, sizeof(stSMND));
 
     if(auto p = findUID(stSMND.UID)){
         p->parseAction(ActionDie(p->x(), p->y(), p->currMotion().direction, true));
     }
 }
 
-void ProcessRun::net_DEADFADEOUT(const uint8_t *pBuf, size_t)
+void ProcessRun::net_DEADFADEOUT(const uint8_t *bufPtr, size_t)
 {
     SMDeadFadeOut stSMDFO;
-    std::memcpy(&stSMDFO, pBuf, sizeof(stSMDFO));
+    std::memcpy(&stSMDFO, bufPtr, sizeof(stSMDFO));
 
     if(stSMDFO.MapID == MapID()){
         if(auto p = findUID(stSMDFO.UID)){
@@ -260,18 +260,18 @@ void ProcessRun::net_DEADFADEOUT(const uint8_t *pBuf, size_t)
     }
 }
 
-void ProcessRun::net_EXP(const uint8_t *pBuf, size_t)
+void ProcessRun::net_EXP(const uint8_t *bufPtr, size_t)
 {
-    const auto smExp = ServerMsg::conv<SMExp>(pBuf);
+    const auto smExp = ServerMsg::conv<SMExp>(bufPtr);
     if(smExp.Exp){
         addCBLog(CBLOG_SYS, u8"你获得了经验值%d", (int)(smExp.Exp));
     }
 }
 
-void ProcessRun::net_MISS(const uint8_t *pBuf, size_t)
+void ProcessRun::net_MISS(const uint8_t *bufPtr, size_t)
 {
     SMMiss stSMM;
-    std::memcpy(&stSMM, pBuf, sizeof(stSMM));
+    std::memcpy(&stSMM, bufPtr, sizeof(stSMM));
 
     if(auto p = findUID(stSMM.UID)){
         int nX = p->x() * SYS_MAPGRIDXP + SYS_MAPGRIDXP / 2 - 20;
@@ -280,14 +280,14 @@ void ProcessRun::net_MISS(const uint8_t *pBuf, size_t)
     }
 }
 
-void ProcessRun::net_PING(const uint8_t *pBuf, size_t)
+void ProcessRun::net_PING(const uint8_t *bufPtr, size_t)
 {
     if(m_lastPingDone){
         throw fflerror("received echo while no ping has been sent to server");
     }
 
     const auto currTick = SDL_GetTicks();
-    const auto smP = ServerMsg::conv<SMPing>(pBuf);
+    const auto smP = ServerMsg::conv<SMPing>(bufPtr);
 
     if(currTick < smP.Tick){
         throw fflerror("invalid ping tick: %llu -> %llu", to_llu(smP.Tick), to_llu(currTick));
@@ -297,9 +297,9 @@ void ProcessRun::net_PING(const uint8_t *pBuf, size_t)
     addCBLog(CBLOG_SYS, u8"延迟%llums", to_llu(currTick - smP.Tick));
 }
 
-void ProcessRun::net_SHOWDROPITEM(const uint8_t *pBuf, size_t)
+void ProcessRun::net_SHOWDROPITEM(const uint8_t *bufPtr, size_t)
 {
-    const auto smSDI = ServerMsg::conv<SMShowDropItem>(pBuf);
+    const auto smSDI = ServerMsg::conv<SMShowDropItem>(bufPtr);
     clearGroundItem(smSDI.X, smSDI.Y);
 
     for(size_t i = 0; i < std::extent<decltype(smSDI.IDList)>::value; ++i){
@@ -311,10 +311,10 @@ void ProcessRun::net_SHOWDROPITEM(const uint8_t *pBuf, size_t)
     }
 }
 
-void ProcessRun::net_FIREMAGIC(const uint8_t *pBuf, size_t)
+void ProcessRun::net_FIREMAGIC(const uint8_t *bufPtr, size_t)
 {
-    const auto smFM = ServerMsg::conv<SMFireMagic>(pBuf);
-    const auto mr = DBCOM_MAGICRECORD(smFM.Magic);
+    const auto smFM = ServerMsg::conv<SMFireMagic>(bufPtr);
+    const auto &mr = DBCOM_MAGICRECORD(smFM.Magic);
 
     if(!mr){
         return;
@@ -324,72 +324,54 @@ void ProcessRun::net_FIREMAGIC(const uint8_t *pBuf, size_t)
     switch(smFM.Magic){
         case DBCOM_MAGICID(u8"魔法盾"):
             {
-                if(auto entry = mr.getGfxEntry(u8"开始")){
-                    if(auto creaturePtr = findUID(smFM.UID)){
-                        creaturePtr->addAttachMagic(smFM.Magic, 0, entry.stage);
-                    }
-                    return;
+                if(auto coPtr = findUID(smFM.UID)){
+                    auto magicPtr = new AttachMagic(u8"魔法盾", u8"开始");
+                    magicPtr->addOnDone([smFM, this]()
+                    {
+                        if(auto coPtr = findUID(smFM.UID)){
+                            coPtr->addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"魔法盾", u8"运行")));
+                        }
+                    });
+                    coPtr->addAttachMagic(std::unique_ptr<AttachMagic>(magicPtr));
                 }
-                break;
+                return;
             }
-        default:
+        case DBCOM_MAGICID(u8"雷电术"):
             {
-                break;
-            }
-    }
-
-    // general default handling
-    // put special magic handling in above switch-cases
-
-    const GfxEntry *gfxEntryPtr = nullptr;
-    if(smFM.UID != getMyHero()->UID()){
-        if(!(gfxEntryPtr && *gfxEntryPtr)){ gfxEntryPtr = &(mr.getGfxEntry(u8"启动")); }
-        if(!(gfxEntryPtr && *gfxEntryPtr)){ gfxEntryPtr = &(mr.getGfxEntry(u8"开始")); }
-        if(!(gfxEntryPtr && *gfxEntryPtr)){ gfxEntryPtr = &(mr.getGfxEntry(u8"运行")); }
-        if(!(gfxEntryPtr && *gfxEntryPtr)){ gfxEntryPtr = &(mr.getGfxEntry(u8"结束")); }
-    }
-    else{
-        if(!(gfxEntryPtr && *gfxEntryPtr)){ gfxEntryPtr = &(mr.getGfxEntry(u8"开始")); }
-        if(!(gfxEntryPtr && *gfxEntryPtr)){ gfxEntryPtr = &(mr.getGfxEntry(u8"运行")); }
-        if(!(gfxEntryPtr && *gfxEntryPtr)){ gfxEntryPtr = &(mr.getGfxEntry(u8"结束")); }
-    }
-
-    if(!(gfxEntryPtr && *gfxEntryPtr)){
-        return;
-    }
-
-    switch(gfxEntryPtr->type){
-        case EGT_BOUND:
-            {
-                if(auto creaturePtr = findUID(smFM.AimUID)){
-                    creaturePtr->addAttachMagic(smFM.Magic, 0, gfxEntryPtr->stage);
+                if(auto coPtr = findUID(smFM.AimUID)){
+                    coPtr->addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"雷电术", u8"运行")));
                 }
-                break;
+                return;
             }
-        case EGT_FIXED:
+        case DBCOM_MAGICID(u8"灵魂火符"):
             {
-                m_indepMagicList.emplace_back(std::make_shared<IndepMagic>
-                (
-                    smFM.UID,
-                    smFM.Magic,
-                    smFM.MagicParam,
-                    gfxEntryPtr->stage,
-                    smFM.Direction,
-                    smFM.X,
-                    smFM.Y,
-                    smFM.AimX,
-                    smFM.AimY,
-                    smFM.AimUID
-                ));
-                break;
-            }
-        case EGT_SHOOT:
-            {
-                break;
-            }
-        case EGT_FOLLOW:
-            {
-                break;
+                if(auto fromCOPtr = findUID(smFM.UID)){
+                    auto magicPtr = new FollowUIDMagic
+                    {
+                        u8"灵魂火符",
+                        u8"运行",
+
+                        fromCOPtr->currMotion().x * SYS_MAPGRIDXP,
+                        fromCOPtr->currMotion().y * SYS_MAPGRIDYP,
+
+                        (fromCOPtr->currMotion().direction - DIR_BEGIN) * 2,
+                        10,
+
+                        smFM.AimUID,
+                        this,
+                    };
+
+                    magicPtr->addOnDone([smFM, this]()
+                    {
+                        addAttachMagic(smFM.AimUID, std::unique_ptr<AttachMagic>(new AttachMagic
+                        {
+                            u8"灵魂火符",
+                            u8"结束",
+                        }));
+                    });
+                    addFollowUIDMagic(std::unique_ptr<FollowUIDMagic>(magicPtr));
+                }
+                return;
             }
         default:
             {
@@ -398,31 +380,31 @@ void ProcessRun::net_FIREMAGIC(const uint8_t *pBuf, size_t)
     }
 }
 
-void ProcessRun::net_OFFLINE(const uint8_t *pBuf, size_t)
+void ProcessRun::net_OFFLINE(const uint8_t *bufPtr, size_t)
 {
     SMOffline stSMO;
-    std::memcpy(&stSMO, pBuf, sizeof(stSMO));
+    std::memcpy(&stSMO, bufPtr, sizeof(stSMO));
 
     if(stSMO.MapID == MapID()){
         if(auto creaturePtr = findUID(stSMO.UID)){
-            creaturePtr->addAttachMagic(DBCOM_MAGICID(u8"瞬息移动"), 0, EGS_INIT);
+            creaturePtr->addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"瞬息移动", u8"启动")));
         }
     }
 }
 
-void ProcessRun::net_PICKUPOK(const uint8_t *pBuf, size_t)
+void ProcessRun::net_PICKUPOK(const uint8_t *bufPtr, size_t)
 {
-    const auto smPUOK = ServerMsg::conv<SMPickUpOK>(pBuf);
+    const auto smPUOK = ServerMsg::conv<SMPickUpOK>(bufPtr);
     getMyHero()->getInvPack().Add(smPUOK.ID);
 
     removeGroundItem(CommonItem(smPUOK.ID, 0), smPUOK.X, smPUOK.Y);
     addCBLog(CBLOG_SYS, u8"捡起%s于坐标(%d, %d)", DBCOM_ITEMRECORD(smPUOK.ID).name, (int)(smPUOK.X), (int)(smPUOK.Y));
 }
 
-void ProcessRun::net_GOLD(const uint8_t *pBuf, size_t)
+void ProcessRun::net_GOLD(const uint8_t *bufPtr, size_t)
 {
     SMGold stSMG;
-    std::memcpy(&stSMG, pBuf, sizeof(stSMG));
+    std::memcpy(&stSMG, bufPtr, sizeof(stSMG));
     getMyHero()->setGold(stSMG.Gold);
 }
 

@@ -22,7 +22,7 @@
 #include "dispatcher.hpp"
 #include "servicecore.hpp"
 
-extern DBPodN *g_DBPodN;
+extern DBPod *g_DBPod;
 extern NetDriver *g_netDriver;
 extern MonoServer *g_monoServer;
 
@@ -40,7 +40,7 @@ void ServiceCore::net_CM_Login(uint32_t nChannID, uint8_t, const uint8_t *pData,
     };
 
     g_monoServer->addLog(LOGTYPE_INFO, "Login requested: (%s:%s)", stCML.ID, "******");
-    auto pDBHDR = g_DBPodN->CreateDBHDR();
+    auto pDBHDR = g_DBPod->CreateDBHDR();
 
     if(!pDBHDR->QueryResult("select fld_id from tbl_account where fld_account = '%s' and fld_password = '%s'", stCML.ID, stCML.Password)){
         g_monoServer->addLog(LOGTYPE_INFO, "can't find account: (%s:%s)", stCML.ID, "******");

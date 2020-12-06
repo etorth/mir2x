@@ -28,7 +28,7 @@
 #include "protocoldef.hpp"
 #include "dbcomrecord.hpp"
 
-extern DBPodN *g_DBPodN;
+extern DBPod *g_DBPod;
 extern NetDriver *g_netDriver;
 extern MonoServer *g_monoServer;
 
@@ -515,7 +515,7 @@ bool Player::postNetMessage(uint8_t nHC, const uint8_t *pData, size_t nDataLen)
     return false;
 }
 
-void Player::OnCMActionStand(CMAction stCMA)
+void Player::onCMActionStand(CMAction stCMA)
 {
     int nX = stCMA.X;
     int nY = stCMA.Y;
@@ -535,7 +535,7 @@ void Player::OnCMActionStand(CMAction stCMA)
                     requestMove(nX, nY, SYS_MAXSPEED, false, false,
                     [this, stCMA]()
                     {
-                        OnCMActionStand(stCMA);
+                        onCMActionStand(stCMA);
                     },
                     [this]()
                     {
@@ -559,7 +559,7 @@ void Player::OnCMActionStand(CMAction stCMA)
     }
 }
 
-void Player::OnCMActionMove(CMAction stCMA)
+void Player::onCMActionMove(CMAction stCMA)
 {
     // server won't do any path finding
     // client should sent action with only one-hop movement
@@ -582,7 +582,7 @@ void Player::OnCMActionMove(CMAction stCMA)
             {
                 requestMove(nX0, nY0, SYS_MAXSPEED, false, false, [this, stCMA]()
                 {
-                    OnCMActionMove(stCMA);
+                    onCMActionMove(stCMA);
                 },
                 [this]()
                 {
@@ -598,7 +598,7 @@ void Player::OnCMActionMove(CMAction stCMA)
     }
 }
 
-void Player::OnCMActionAttack(CMAction stCMA)
+void Player::onCMActionAttack(CMAction stCMA)
 {
     retrieveLocation(stCMA.AimUID, [this, stCMA](const COLocation &rstLocation)
     {
@@ -636,7 +636,7 @@ void Player::OnCMActionAttack(CMAction stCMA)
                                     requestMove(nX0, nY0, SYS_MAXSPEED, false, false,
                                     [this, stCMA]()
                                     {
-                                        OnCMActionAttack(stCMA);
+                                        onCMActionAttack(stCMA);
                                     },
                                     [this]()
                                     {
@@ -660,11 +660,15 @@ void Player::OnCMActionAttack(CMAction stCMA)
     });
 }
 
-void Player::OnCMActionSpell(CMAction stCMA)
+void Player::onCMActionSpell(CMAction cmA)
 {
-    int nX = stCMA.X;
-    int nY = stCMA.Y;
-    int nMagicID = stCMA.ActionParam;
+    if(cmA.Action != ACTION_SPELL){
+        throw fflerror("invalid action type: %d", cmA.Action);
+    }
+
+    int nX = cmA.X;
+    int nY = cmA.Y;
+    int nMagicID = cmA.ActionParam;
 
     switch(nMagicID){
         case DBCOM_MAGICID(u8"灵魂火符"):
@@ -678,7 +682,7 @@ void Player::OnCMActionSpell(CMAction stCMA)
                 smFM.Speed  = MagicSpeed();
                 smFM.X      = nX;
                 smFM.Y      = nY;
-                smFM.AimUID = stCMA.AimUID;
+                smFM.AimUID = cmA.AimUID;
 
                 Delay(800, [this, smFM]()
                 {
@@ -697,7 +701,7 @@ void Player::OnCMActionSpell(CMAction stCMA)
                 stSMFM.Speed  = MagicSpeed();
                 stSMFM.X      = nX;
                 stSMFM.Y      = nY;
-                stSMFM.AimUID = stCMA.AimUID;
+                stSMFM.AimUID = cmA.AimUID;
 
                 Delay(1400, [this, stSMFM]()
                 {
@@ -774,7 +778,7 @@ void Player::OnCMActionSpell(CMAction stCMA)
     }
 }
 
-void Player::OnCMActionPickUp(CMAction stCMA)
+void Player::onCMActionPickUp(CMAction stCMA)
 {
     switch(estimateHop(stCMA.X, stCMA.Y)){
         case 0:
@@ -794,7 +798,7 @@ void Player::OnCMActionPickUp(CMAction stCMA)
                 requestMove(stCMA.X, stCMA.Y, SYS_MAXSPEED, false, false,
                 [this, stCMA]()
                 {
-                    OnCMActionPickUp(stCMA);
+                    onCMActionPickUp(stCMA);
                 },
                 [this]()
                 {
@@ -928,7 +932,7 @@ bool Player::DBUpdate(const char *szTableName, const char *szFieldList, ...)
         return false;
     }
 
-    g_DBPodN->CreateDBHDR()->QueryResult("update %s set %s where fld_dbid = %" PRIu32, szTableName, szSQLCommand.c_str(), DBID());
+    g_DBPod->CreateDBHDR()->QueryResult("update %s set %s where fld_dbid = %" PRIu32, szTableName, szSQLCommand.c_str(), DBID());
     return true;
 }
 
@@ -938,7 +942,7 @@ bool Player::DBAccess(const char *szTableName, const char *szFieldName, std::fun
             && (szTableName && std::strlen(szTableName))
             && (szFieldName && std::strlen(szFieldName))){
 
-        auto pDBHDR = g_DBPodN->CreateDBHDR();
+        auto pDBHDR = g_DBPod->CreateDBHDR();
         if(!pDBHDR->QueryResult("select %s from %s where fld_dbid = %" PRIu32, szFieldName, szTableName, DBID())){
             g_monoServer->addLog(LOGTYPE_INFO, "No dbid created for this player: DBID = %" PRIu32, DBID());
             return false;
@@ -1035,4 +1039,9 @@ void Player::RequestKillPets()
         m_actorPod->forward(uid, {MPK_MASTERKILL});
     }
     m_slaveList.clear();
+}
+
+bool Player::sendNetBuf(uint8_t hc, const uint8_t *buf, size_t bufLen)
+{
+    return g_netDriver->Post(ChannID(), hc, buf, bufLen);
 }

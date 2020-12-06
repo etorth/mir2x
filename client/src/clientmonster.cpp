@@ -278,7 +278,7 @@ bool ClientMonster::draw(int viewX, int viewY, int focusMask)
     }
 
     for(auto &p: m_attachMagicList){
-        p->Draw(startX, startY);
+        p->drawShift(startX, startY, false);
     }
 
     if(m_currMotion.motion != MOTION_MON_DIE){
@@ -430,7 +430,7 @@ bool ClientMonster::parseAction(const ActionNode &action)
                     action.Y,
                 };
 
-                addAttachMagic(DBCOM_MAGICID(u8"瞬息移动"), 0, EGS_DONE);
+                addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"瞬息移动", u8"结束")));
                 break;
             }
         case ACTION_ATTACK:

@@ -134,7 +134,7 @@ bool Hero::draw(int viewX, int viewY, int)
     }
 
     for(auto &p: m_attachMagicList){
-        p->Draw(startX, startY);
+        p->drawShift(startX, startY, true);
     }
 
     g_SDLDevice->drawTexture(pFrame0, startX + nDX0, startY + nDY0);
@@ -149,7 +149,7 @@ bool Hero::draw(int viewX, int viewY, int)
     // for some direction magic should be on top of body
 
     for(auto &p: m_attachMagicList){
-        switch(p->ID()){
+        switch(p->magicID()){
             case DBCOM_MAGICID(u8"灵魂火符"):
                 {
                     switch(m_currMotion.direction){
@@ -162,7 +162,7 @@ bool Hero::draw(int viewX, int viewY, int)
                             }
                         default:
                             {
-                                p->Draw(startX, startY);
+                                p->drawShift(startX, startY, false);
                                 break;
                             }
                     }
@@ -170,7 +170,7 @@ bool Hero::draw(int viewX, int viewY, int)
                 }
             default:
                 {
-                    p->Draw(startX, startY);
+                    p->drawShift(startX, startY, false);
                     break;
                 }
         }
@@ -429,7 +429,7 @@ bool Hero::parseAction(const ActionNode &action)
                     action.Y,
                 };
 
-                addAttachMagic(DBCOM_MAGICID(u8"瞬息移动"), 0, EGS_DONE);
+                addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"瞬息移动", u8"结束", -1)));
                 break;
             }
         case ACTION_SPELL:
@@ -470,7 +470,7 @@ bool Hero::parseAction(const ActionNode &action)
 
                             if(nDir >= DIR_BEGIN && nDir < DIR_END){
                                 m_motionQueue.emplace_back(nMotionSpell, 0, nDir, SYS_DEFSPEED, action.X, action.Y);
-                                addAttachMagic(new AttachMagic(action.ActionParam, 0, rstGfxEntry.stage, nDir));
+                                addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(DBCOM_MAGICRECORD(action.ActionParam).name, u8"启动", nDir - DIR_BEGIN)));
                             }
                         }
                     }

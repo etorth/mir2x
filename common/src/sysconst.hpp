@@ -26,6 +26,7 @@
 // are 26 cells of one object slice at most, then design data structure for object
 // rendering method based on this information
 
+constexpr double SYS_PI = 3.14159265359;
 constexpr int SYS_DEFFPS = 10;
 
 constexpr int SYS_TARGETRGN_GAPX = 10;

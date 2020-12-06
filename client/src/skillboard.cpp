@@ -84,7 +84,7 @@ SkillBoard::MagicIconButton::MagicIconButton(int argX, int argY, SkillBoard::Mag
 
           [iconDataPtr, this]()
           {
-              iconDataPtr->board->setText(str_printf(u8"元素【%s】%s", to_cstr(magicElemName(DBCOM_MAGICRECORD(iconDataPtr->magicID).elem)), to_cstr(DBCOM_MAGICRECORD(iconDataPtr->magicID).name)));
+              iconDataPtr->board->setText(str_printf(u8"元素【%s】%s", to_cstr(DBCOM_MAGICRECORD(iconDataPtr->magicID).elem), to_cstr(DBCOM_MAGICRECORD(iconDataPtr->magicID).name)));
           },
 
           [iconDataPtr, this]()

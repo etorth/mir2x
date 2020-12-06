@@ -31,10 +31,11 @@
 #include "focustype.hpp"
 #include "ascendstr.hpp"
 #include "commonitem.hpp"
-#include "indepmagic.hpp"
 #include "guimanager.hpp"
 #include "lochashtable.hpp"
 #include "mir2xmapdata.hpp"
+#include "fixedlocmagic.hpp"
+#include "followuidmagic.hpp"
 #include "clientcreature.hpp"
 #include "clientluamodule.hpp"
 
@@ -107,7 +108,8 @@ class ProcessRun: public Process
         GUIManager m_GUIManager;
 
     private:
-        std::list<std::shared_ptr<IndepMagic>> m_indepMagicList;
+        std::list<std::unique_ptr<FixedLocMagic>> m_fixedLocMagicList;
+        std::list<std::unique_ptr<FollowUIDMagic>> m_followUIDMagicList;
 
     private:
         std::unordered_map<uint64_t, std::unique_ptr<ClientCreature>> m_coList;
@@ -166,7 +168,15 @@ class ProcessRun: public Process
         }
 
     public:
-        bool onMap(uint32_t, int, int) const;
+        bool onMap(uint32_t mapID, int nX, int nY) const
+        {
+            return (MapID() == mapID) && m_mir2xMapData.ValidC(nX, nY);
+        }
+
+        bool onMap(int x, int y) const
+        {
+            return m_mir2xMapData.ValidC(x, y);
+        }
 
     public:
         void net_EXP(const uint8_t *, size_t);
@@ -311,7 +321,7 @@ class ProcessRun: public Process
 
     public:
         void queryCORecord(uint64_t) const;
-        void OnActionSpawn(uint64_t, const ActionNode &);
+        void onActionSpawn(uint64_t, const ActionNode &);
 
     public:
         Widget *getWidget(const std::string &widgetName)
@@ -351,4 +361,52 @@ class ProcessRun: public Process
         {
             m_drawMagicKey = !m_drawMagicKey;
         }
+
+    public:
+        struct uidPixelLocation
+        {
+            int x = -1;
+            int y = -1;
+
+            operator bool () const
+            {
+                return x >= 0 && y >= 0;
+            }
+        };
+        std::tuple<int, int> getUIDLoc(bool);
+
+    public:
+        void addFixedLocMagic(std::unique_ptr<FixedLocMagic> magicPtr)
+        {
+            m_fixedLocMagicList.emplace_back(std::move(magicPtr));
+        }
+
+        void addFollowUIDMagic(std::unique_ptr<FollowUIDMagic> magicPtr)
+        {
+            m_followUIDMagicList.emplace_back(std::move(magicPtr));
+        }
+
+        void addAttachMagic(uint64_t uid, std::unique_ptr<AttachMagic> magicPtr)
+        {
+            if(auto coPtr = findUID(uid)){
+                coPtr->addAttachMagic(std::move(magicPtr));
+            }
+        }
+
+    public:
+        void requestMagicDamage(int, uint64_t);
+
+    public:
+        struct PixelLocation
+        {
+            int x;
+            int y;
+
+            operator bool () const
+            {
+                return x >= 0 && y >= 0;
+            }
+        };
+
+        PixelLocation findUIDPixelLocation(uint64_t) const;
 };

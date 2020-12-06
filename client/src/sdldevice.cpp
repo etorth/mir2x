@@ -45,24 +45,106 @@ SDLDevice::RenderNewFrame::~RenderNewFrame()
     g_SDLDevice->present();
 }
 
-SDLDevice::EnableDrawColor::EnableDrawColor(uint32_t nRGBA)
+SDLDevice::EnableRenderColor::EnableRenderColor(uint32_t color)
 {
-    g_SDLDevice->PushColor(nRGBA);
+    if(SDL_GetRenderDrawColor(g_SDLDevice->getRenderer(), &m_r, &m_g, &m_b, &m_a)){
+        throw fflerror("get renderer draw color failed: %s", SDL_GetError());
+    }
+
+    if(SDL_SetRenderDrawColor(g_SDLDevice->getRenderer(), colorf::R(color), colorf::G(color), colorf::B(color), colorf::A(color))){
+        throw fflerror("set renderer draw color failed: %s", SDL_GetError());
+    }
 }
 
-SDLDevice::EnableDrawColor::~EnableDrawColor()
+SDLDevice::EnableRenderColor::~EnableRenderColor()
 {
-    g_SDLDevice->PopColor();
+    if(SDL_SetRenderDrawColor(g_SDLDevice->getRenderer(), m_r, m_g, m_b, m_a)){
+        g_log->addLog(LOGTYPE_WARNING, "Set renderer draw color failed: %s", SDL_GetError());
+    }
 }
 
-SDLDevice::EnableDrawBlendMode::EnableDrawBlendMode(SDL_BlendMode stBlendMode)
+SDLDevice::EnableRenderBlendMode::EnableRenderBlendMode(SDL_BlendMode blendMode)
 {
-    g_SDLDevice->PushBlendMode(stBlendMode);
+    if(SDL_GetRenderDrawBlendMode(g_SDLDevice->getRenderer(), &m_blendMode)){
+        throw fflerror("get renderer blend mode failed: %s", SDL_GetError());
+    }
+
+    if(SDL_SetRenderDrawBlendMode(g_SDLDevice->getRenderer(), blendMode)){
+        throw fflerror("set renderer blend mode failed: %s", SDL_GetError());
+    }
 }
 
-SDLDevice::EnableDrawBlendMode::~EnableDrawBlendMode()
+SDLDevice::EnableRenderBlendMode::~EnableRenderBlendMode()
 {
-    g_SDLDevice->PopBlendMode();
+    if(SDL_SetRenderDrawBlendMode(g_SDLDevice->getRenderer(), m_blendMode)){
+        g_log->addLog(LOGTYPE_WARNING, "set renderer blend mode failed: %s", SDL_GetError());
+    }
+}
+
+SDLDevice::EnableTextureBlendMode::EnableTextureBlendMode(SDL_Texture *texPtr, SDL_BlendMode mode)
+    : m_texPtr(texPtr)
+{
+    if(!m_texPtr){
+        return;
+    }
+
+    if(SDL_GetTextureBlendMode(m_texPtr, &m_blendMode)){
+        throw fflerror("get texture blend mode failed: %s", SDL_GetError());
+    }
+
+    if(SDL_SetTextureBlendMode(m_texPtr, mode)){
+        throw fflerror("set texture blend mode failed: %s", SDL_GetError());
+    }
+}
+
+SDLDevice::EnableTextureBlendMode::~EnableTextureBlendMode()
+{
+    if(!m_texPtr){
+        return;
+    }
+
+    if(SDL_SetTextureBlendMode(m_texPtr, m_blendMode)){
+        g_log->addLog(LOGTYPE_WARNING, "Setup texture blend mode failed: %s", SDL_GetError());
+    }
+}
+
+SDLDevice::EnableTextureModColor::EnableTextureModColor(SDL_Texture *texPtr, uint32_t color)
+    : m_texPtr(texPtr)
+{
+    if(!m_texPtr){
+        return;
+    }
+
+    if(SDL_GetTextureColorMod(m_texPtr, &m_r, &m_g, &m_b)){
+        throw fflerror("SDL_GetTextureColorMod(%p) failed: %s", to_cvptr(m_texPtr), SDL_GetError());
+    }
+
+    if(SDL_GetTextureAlphaMod(m_texPtr, &m_a)){
+        throw fflerror("SDL_GetTextureAlphaMod(%p) failed: %s", to_cvptr(m_texPtr), SDL_GetError());
+    }
+
+    if(SDL_SetTextureColorMod(m_texPtr, colorf::R(color), colorf::G(color), colorf::B(color))){
+        throw fflerror("SDL_SetTextureColorMod(%p) failed: %s", to_cvptr(m_texPtr), SDL_GetError());
+    }
+
+    if(SDL_SetTextureAlphaMod(m_texPtr, colorf::A(color))){
+        throw fflerror("SDL_SetTextureAlphaMod(%p) failed: %s", to_cvptr(m_texPtr), SDL_GetError());
+    }
+}
+
+SDLDevice::EnableTextureModColor::~EnableTextureModColor()
+{
+    if(!m_texPtr){
+        return;
+    }
+
+    if(SDL_SetTextureColorMod(m_texPtr, m_r, m_g, m_b)){
+        g_log->addLog(LOGTYPE_WARNING, "set texture mod color failed: %s", SDL_GetError());
+    }
+
+    if(SDL_SetTextureAlphaMod(m_texPtr, m_a)){
+        g_log->addLog(LOGTYPE_WARNING, "set texture mod alpha failed: %s", SDL_GetError());
+    }
 }
 
 SDLDevice::SDLDevice()
@@ -252,87 +334,6 @@ TTF_Font *SDLDevice::CreateTTF(const uint8_t *pMem, size_t nSize, uint8_t nFontP
     return pstTTont;
 }
 
-void SDLDevice::PushColor(uint8_t nR, uint8_t nG, uint8_t nB, uint8_t nA)
-{
-    uint32_t nRGBA = colorf::RGBA(nR, nG, nB, nA);
-    if(m_colorStack.empty() || nRGBA != m_colorStack.back().Color){
-        SetColor(nR, nG, nB, nA);
-        m_colorStack.emplace_back(nRGBA, 1);
-    }
-    else{
-        ++m_colorStack.back().Repeat;
-    }
-}
-
-void SDLDevice::PopColor()
-{
-    if(m_colorStack.empty()){
-        PushColor(0, 0, 0, 0);
-    }else{
-        switch(m_colorStack.back().Repeat){
-            case 0:
-                {
-                    throw fflerror("last color 0x%" PRIx32 "with zero repeat", m_colorStack.back().Color);
-                }
-            case 1:
-                {
-                    m_colorStack.pop_back();
-                    if(m_colorStack.empty()){
-                        PushColor(0, 0, 0, 0);
-                    }else{
-                        SDL_Color stColor = colorf::RGBA2Color(m_colorStack.back().Color);
-                        SetColor(stColor.r, stColor.g, stColor.b, stColor.a);
-                    }
-                    break;
-                }
-            default:
-                {
-                    --m_colorStack.back().Repeat;
-                    break;
-                }
-        }
-    }
-}
-
-void SDLDevice::PushBlendMode(SDL_BlendMode stBlendMode)
-{
-    if(m_blendModeStack.empty() || stBlendMode != m_blendModeStack.back().BlendMode){
-        SDL_SetRenderDrawBlendMode(m_renderer, stBlendMode);
-        m_blendModeStack.emplace_back(stBlendMode, 1);
-    }else{
-        ++m_blendModeStack.back().Repeat;
-    }
-}
-
-void SDLDevice::PopBlendMode()
-{
-    if(m_blendModeStack.empty()){
-        PushBlendMode(SDL_BLENDMODE_NONE);
-    }else{
-        switch(m_blendModeStack.back().Repeat){
-            case 0:
-                {
-                    throw fflerror("last blend mode with zero repeat");
-                }
-            case 1:
-                {
-                    m_blendModeStack.pop_back();
-                    if(m_blendModeStack.empty()){
-                        PushBlendMode(SDL_BLENDMODE_NONE);
-                    }else{
-                        SDL_SetRenderDrawBlendMode(m_renderer, m_blendModeStack.back().BlendMode);
-                    }
-                    break;
-                }
-            default:
-                {
-                    --m_blendModeStack.back().Repeat;
-                    break;
-                }
-        }
-    }
-}
-
 void SDLDevice::CreateInitViewWindow()
 {
     if(m_renderer){
@@ -371,8 +372,14 @@ void SDLDevice::CreateInitViewWindow()
     }
 
     SetWindowIcon();
-    PushColor(0, 0, 0, 0);
-    PushBlendMode(SDL_BLENDMODE_NONE);
+
+    if(SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 255)){
+        throw fflerror("set renderer draw color failed: %s", SDL_GetError());
+    }
+
+    if(SDL_SetRenderDrawBlendMode(m_renderer, SDL_BLENDMODE_BLEND)){
+        throw fflerror("set renderer blend mode failed: %s", SDL_GetError());
+    }
 }
 
 void SDLDevice::CreateMainWindow()
@@ -455,8 +462,14 @@ void SDLDevice::CreateMainWindow()
     }
 
     SetWindowIcon();
-    PushColor(0, 0, 0, 0);
-    PushBlendMode(SDL_BLENDMODE_NONE);
+
+    if(SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 0)){
+        throw fflerror("set renderer draw color failed: %s", SDL_GetError());
+    }
+
+    if(SDL_SetRenderDrawBlendMode(m_renderer, SDL_BLENDMODE_BLEND)){
+        throw fflerror("set renderer blend mode failed: %s", SDL_GetError());
+    }
 
     SDL_StartTextInput();
 }
@@ -567,8 +580,8 @@ void SDLDevice::fillRectangle(int nX, int nY, int nW, int nH)
 void SDLDevice::fillRectangle(uint32_t nRGBA, int nX, int nY, int nW, int nH)
 {
     if(colorf::A(nRGBA)){
-        SDLDevice::EnableDrawColor stEnableColor(nRGBA);
-        SDLDevice::EnableDrawBlendMode enableBlendMode(SDL_BLENDMODE_BLEND);
+        SDLDevice::EnableRenderColor stEnableColor(nRGBA);
+        SDLDevice::EnableRenderBlendMode enableBlendMode(SDL_BLENDMODE_BLEND);
         fillRectangle(nX, nY, nW, nH);
     }
 }
@@ -588,8 +601,8 @@ void SDLDevice::DrawRectangle(int nX, int nY, int nW, int nH)
 void SDLDevice::DrawRectangle(uint32_t color, int nX, int nY, int nW, int nH)
 {
     if(colorf::A(color)){
-        SDLDevice::EnableDrawColor enableColor(color);
-        SDLDevice::EnableDrawBlendMode enableBlendMode(SDL_BLENDMODE_BLEND);
+        SDLDevice::EnableRenderColor enableColor(color);
+        SDLDevice::EnableRenderBlendMode enableBlendMode(SDL_BLENDMODE_BLEND);
         DrawRectangle(nX, nY, nW, nH);
     }
 }
@@ -614,7 +627,7 @@ void SDLDevice::drawWidthRectangle(size_t frameLineWidth, int nX, int nY, int nW
 
 void SDLDevice::drawWidthRectangle(uint32_t color, size_t frameLineWidth, int nX, int nY, int nW, int nH)
 {
-    SDLDevice::EnableDrawColor enableColor(color);
-    SDLDevice::EnableDrawBlendMode enableBlendMode(SDL_BLENDMODE_BLEND);
+    SDLDevice::EnableRenderColor enableColor(color);
+    SDLDevice::EnableRenderBlendMode enableBlendMode(SDL_BLENDMODE_BLEND);
     drawWidthRectangle(frameLineWidth, nX, nY, nW, nH);
 }

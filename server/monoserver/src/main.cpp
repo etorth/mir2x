@@ -35,7 +35,7 @@ ServerArgParser          *g_serverArgParser;
 Log                      *g_log;
 ActorPool                *g_actorPool;
 NetDriver                *g_netDriver;
-DBPodN                   *g_DBPodN;
+DBPod                    *g_DBPod;
 
 MapBinDB                 *g_mapBinDB;
 ScriptWindow             *g_scriptWindow;
@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
         g_serverConfigureWindow    = new ServerConfigureWindow();
         g_databaseConfigureWindow  = new DatabaseConfigureWindow();
         g_actorPool                = new ActorPool(g_serverArgParser->actorPoolThread, 10);
-        g_DBPodN                   = new DBPodN();
+        g_DBPod                    = new DBPod();
         g_netDriver                = new NetDriver();
         g_podMonitorWindow         = new PodMonitorWindow();
         g_actorMonitorWindow       = new ActorMonitorWindow();
