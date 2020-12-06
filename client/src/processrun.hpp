@@ -395,18 +395,4 @@ class ProcessRun: public Process
 
     public:
         void requestMagicDamage(int, uint64_t);
-
-    public:
-        struct PixelLocation
-        {
-            int x;
-            int y;
-
-            operator bool () const
-            {
-                return x >= 0 && y >= 0;
-            }
-        };
-
-        PixelLocation findUIDPixelLocation(uint64_t) const;
 };

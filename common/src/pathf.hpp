@@ -40,4 +40,6 @@ namespace pathf
     std::tuple<int, int> getDir4Off (int /* dir */, int /* distance */);
     std::tuple<int, int> getDir8Off (int /* dir */, int /* distance */);
     std::tuple<int, int> getDir16Off(int /* dir */, int /* distance */);
+
+    std::tuple<int, int> getDirOff(int /* x */, int /* y */, int /* distance */);
 }

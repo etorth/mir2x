@@ -209,4 +209,14 @@
 
     public:
         void querySelf();
+
+    public:
+        virtual std::tuple<int, int> getTargetPixelPoint() const
+        {
+            return
+            {
+                m_currMotion.x * SYS_MAPGRIDXP,
+                m_currMotion.y * SYS_MAPGRIDYP,
+            };
+        }
 };

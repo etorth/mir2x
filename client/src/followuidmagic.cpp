@@ -63,50 +63,33 @@ FollowUIDMagic::FollowUIDMagic(
 void FollowUIDMagic::update(double ms)
 {
     MagicBase::update(ms);
-    const auto loc = m_process->findUIDPixelLocation(m_uid);
 
-    if(loc){
-        switch(m_gfxEntry->gfxDirType){
-            case 16: m_gfxDirIndex = pathf::getDir16(loc.x - m_x, loc.y - m_y); break;
-            case  8: m_gfxDirIndex = pathf::getDir8 (loc.x - m_x, loc.y - m_y); break;
-            case  4: m_gfxDirIndex = pathf::getDir4 (loc.x - m_x, loc.y - m_y); break;
-            case  1: m_gfxDirIndex = 0                                        ; break;
-            default: throw fflerror("invalid gfxDirType: %d", m_gfxEntry->gfxDirType);
-        }
-    }
-
-    const auto [dx, dy] = [this]()
+    const auto [dx, dy] = [this]() -> std::tuple<int, int>
     {
-        switch(m_gfxEntry->gfxDirType){
-            case 16: return pathf::getDir16Off(m_gfxDirIndex, m_moveSpeed);
-            case  8: return pathf::getDir8Off (m_gfxDirIndex, m_moveSpeed);
-            case  4: return pathf::getDir4Off (m_gfxDirIndex, m_moveSpeed);
-            default: throw fflerror("invalid gfxDirType: %d", m_gfxEntry->gfxDirType);
+        if(const auto coPtr = m_process->findUID(m_uid)){
+            const auto [x, y] = coPtr->getTargetPixelPoint();
+            const int xdiff = x - m_x;
+            const int ydiff = y - m_y;
+
+            if(xdiff == 0 && ydiff == 0){
+                return {0, 0};
+            }
+            else{
+                return pathf::getDirOff(xdiff, ydiff, m_moveSpeed);
+            }
+        }
+        else{
+            switch(m_gfxEntry->gfxDirType){
+                case 16: return pathf::getDir16Off(m_gfxDirIndex, m_moveSpeed);
+                case  8: return pathf::getDir8Off (m_gfxDirIndex, m_moveSpeed);
+                case  4: return pathf::getDir4Off (m_gfxDirIndex, m_moveSpeed);
+                default: throw fflerror("invalid gfxDirType: %d", m_gfxEntry->gfxDirType);
+            }
         }
     }();
 
-    if(loc){
-        const int dstDX = loc.x - m_x;
-        const int dstDY = loc.y - m_y;
-
-        if(std::abs(dstDX) < std::abs(dx)){
-            m_x += dstDX;
-        }
-        else{
-            m_x += dx;
-        }
-
-        if(std::abs(dstDY) < std::abs(dy)){
-            m_y += dstDY;
-        }
-        else{
-            m_y += dy;
-        }
-    }
-    else{
-        m_x += dx;
-        m_y += dy;
-    }
+    m_x += dx;
+    m_y += dy;
 }
 
 void FollowUIDMagic::drawViewOff(int viewX, int viewY, bool alpha)
@@ -137,8 +120,8 @@ void FollowUIDMagic::drawViewOff(int viewX, int viewY, bool alpha)
 
 bool FollowUIDMagic::done() const
 {
-    if(const auto loc = m_process->findUIDPixelLocation(m_uid)){
-        if(loc.x == m_x && loc.y == m_y){
+    if(const auto coPtr = m_process->findUID(m_uid)){
+        if(const auto [x, y] = coPtr->getTargetPixelPoint(); x == m_x && y == m_y){
             return true;
         }
     }

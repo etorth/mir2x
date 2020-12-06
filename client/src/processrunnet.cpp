@@ -20,6 +20,7 @@
 #include <cstring>
 
 #include "log.hpp"
+#include "pathf.hpp"
 #include "client.hpp"
 #include "dbcomid.hpp"
 #include "clientmonster.hpp"
@@ -354,7 +355,23 @@ void ProcessRun::net_FIREMAGIC(const uint8_t *bufPtr, size_t)
                         fromCOPtr->currMotion().x * SYS_MAPGRIDXP,
                         fromCOPtr->currMotion().y * SYS_MAPGRIDYP,
 
-                        (fromCOPtr->currMotion().direction - DIR_BEGIN) * 2,
+                        [smFM, fromCOPtr, this]() -> int
+                        {
+                            const auto [x, y] = [smFM, this]() -> std::tuple<int, int>
+                            {
+                                if(const auto coPtr = findUID(smFM.AimUID)){
+                                    return coPtr->getTargetPixelPoint();
+                                }
+                                int mousePX = -1;
+                                int mousePY = -1;
+                                SDL_GetMouseState(&mousePX, &mousePY);
+                                return {mousePX + m_viewX, mousePY + m_viewY};
+                            }();
+
+                            const auto [fromX, fromY] = fromCOPtr->getTargetPixelPoint();
+                            return pathf::getDir16(x - fromX, y - fromY);
+                        }(),
+
                         10,
 
                         smFM.AimUID,

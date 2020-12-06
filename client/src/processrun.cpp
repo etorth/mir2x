@@ -1728,26 +1728,3 @@ void ProcessRun::requestMagicDamage(int magicID, uint64_t aimUID)
 
     g_client->send(CM_REQUESTMAGICDAMAGE, cmRMD);
 }
-
-ProcessRun::PixelLocation ProcessRun::findUIDPixelLocation(uint64_t uid) const
-{
-    if(auto coPtr = findUID(uid)){
-        switch(uidf::getUIDType(uid)){
-            case UID_NPC:
-                {
-                    return {coPtr->currMotion().x * SYS_MAPGRIDXP, coPtr->currMotion().y * SYS_MAPGRIDYP};
-                }
-            case UID_PLY:
-            case UID_MON:
-                {
-                    const auto [shiftX, shiftY] = dynamic_cast<CreatureMovable *>(coPtr)->getShift();
-                    return {coPtr->currMotion().x * SYS_MAPGRIDXP + shiftX, coPtr->currMotion().y * SYS_MAPGRIDYP + shiftY};
-                }
-            default:
-                {
-                    break;
-                }
-        }
-    }
-    return {-1, -1};
-}

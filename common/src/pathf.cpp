@@ -128,3 +128,17 @@ std::tuple<int, int> pathf::getDir16Off(int dirIndex, int d)
     }
     throw fflerror("direction index is not in [0, 16): %d", dirIndex);
 }
+
+std::tuple<int, int> pathf::getDirOff(int x, int y, int distance)
+{
+    if(x == 0 && y == 0){
+        throw fflerror("invalid direction (x = 0, y = 0)");
+    }
+
+    const double r = distance / std::sqrt(1.0 * x * x + 1.0 * y * y);
+    return
+    {
+        (int)(std::lround(x * r)),
+        (int)(std::lround(y * r)),
+    };
+}
