@@ -19,12 +19,44 @@
 #pragma once
 #include <unordered_map>
 #include "dbcomid.hpp"
-#include "humanmagic.hpp"
-#include "monstermagic.hpp"
 #include "clientmonster.hpp"
 
 class ClientTaoDog: public ClientMonster
 {
+    private:
+        class DogFire: public AttachMagic
+        {
+            private:
+                const std::unordered_map<int, std::array<int, 2>> *m_dirOffCPtr;
+
+            public:
+                DogFire(int gfxDirIndex)
+                    : AttachMagic(u8"神兽-喷火", u8"运行", gfxDirIndex)
+                    , m_dirOffCPtr([]()
+                      {
+                          const static std::unordered_map<int, std::array<int, 2>> s_dirOff
+                          {
+                              {DIR_UP,        { 0,  2}},
+                              {DIR_UPRIGHT,   {-3, -3}},
+                              {DIR_RIGHT,     {-2, -5}},
+                              {DIR_DOWNRIGHT, { 0,  0}},
+                              {DIR_DOWN,      { 0, -5}},
+                              {DIR_DOWNLEFT,  { 0,  0}},
+                              {DIR_LEFT,      { 2, -5}},
+                              {DIR_UPLEFT,    { 3, -3}},
+                          };
+                          return &s_dirOff;
+                      }())
+                {}
+
+            public:
+                void drawShift(int drawOffX, int drawOffY, bool alpha) override
+                {
+                    const int dir = gfxDirIndex() + DIR_BEGIN;
+                    AttachMagic::drawShift(drawOffX + m_dirOffCPtr->at(dir).at(0), drawOffY + m_dirOffCPtr->at(dir).at(1), alpha);
+                }
+        };
+
     private:
         bool m_stand;
 
@@ -125,7 +157,7 @@ class ClientTaoDog: public ClientMonster
             }
 
             if(m_currMotion.motion == MOTION_MON_ATTACK0 && m_currMotion.frame == 5 && m_stand){
-                addAttachMagic(std::unique_ptr<AttachMagic>(new MonsterMagic<DBCOM_MAGICID(u8"神兽-喷火"), magicStageID(u8"运行")>
+                addAttachMagic(std::unique_ptr<AttachMagic>(new DogFire
                 {
                     m_currMotion.direction - DIR_BEGIN,
                 }));
