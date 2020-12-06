@@ -176,6 +176,12 @@ class SDLDevice final
            SDL_RenderDrawLine(m_renderer, nX0, nY0, nX1, nY1);
        }
 
+       void DrawLine(uint32_t color, int nX0, int nY0, int nX1, int nY1)
+       {
+           EnableRenderColor enableColor(color);
+           SDL_RenderDrawLine(m_renderer, nX0, nY0, nX1, nY1);
+       }
+
        void SetColor(uint8_t nR, uint8_t nG, uint8_t nB, uint8_t nA)
        {
            SDL_SetRenderDrawColor(m_renderer, nR, nG, nB, nA);

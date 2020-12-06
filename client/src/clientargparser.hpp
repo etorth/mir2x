@@ -30,6 +30,7 @@ struct ClientArgParser
     const bool drawMouseLocation;       // "--draw-mouse-location"
     const bool enableClientMonitor;     // "--enable-client-monitor"
     const bool drawTokenFrame;          // "--draw-token-frame"
+    const bool drawTextureAlignLine;    // "--draw-texture-align-line"
     const bool drawBoardFrame;          // "--draw-board-frame"
     const bool debugAlphaCover;         // "--debug-alpha-cover"
     const bool debugdrawTexture;        // "--debug-draw-texture"
@@ -50,6 +51,7 @@ struct ClientArgParser
         , drawMouseLocation(cmdParser["draw-mouse-location"])
         , enableClientMonitor(cmdParser["enable-client-monitor"])
         , drawTokenFrame(cmdParser["draw-token-frame"])
+        , drawTextureAlignLine(cmdParser["draw-texture-align-line"])
         , drawBoardFrame(cmdParser["draw-board-frame"])
         , debugAlphaCover(cmdParser["debug-alpha-cover"])
         , debugdrawTexture(cmdParser["debug-draw-texture"])

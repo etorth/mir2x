@@ -28,12 +28,14 @@
 #include "attachmagic.hpp"
 #include "dbcomrecord.hpp"
 #include "pngtexoffdb.hpp"
+#include "clientargparser.hpp"
 
 extern Log *g_log;
 extern SDLDevice *g_SDLDevice;
 extern PNGTexDB *g_progUseDB;
 extern PNGTexOffDB *g_heroDB;
 extern PNGTexOffDB *g_weaponDB;
+extern ClientArgParser *g_clientArgParser;
 
 Hero::Hero(uint64_t uid, uint32_t dbid, bool gender, uint32_t nDress, ProcessRun *proc, const ActionNode &action)
     : CreatureMovable(uid, proc)
@@ -143,6 +145,12 @@ bool Hero::draw(int viewX, int viewY, int)
             && m_weapon
             && WeaponOrder(m_currMotion.motion, m_currMotion.direction, m_currMotion.frame) == 0){
         fnDrawWeapon(false);
+    }
+
+    if(g_clientArgParser->drawTextureAlignLine){
+        g_SDLDevice->DrawLine(colorf::RED + 128, startX, startY, startX + nDX0, startY + nDY0);
+        g_SDLDevice->DrawLine(colorf::BLUE + 128, startX - 5, startY, startX + 5, startY);
+        g_SDLDevice->DrawLine(colorf::BLUE + 128, startX, startY - 5, startX, startY + 5);
     }
 
     // draw attached magic for the second time

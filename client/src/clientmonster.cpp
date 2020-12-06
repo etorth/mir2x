@@ -271,6 +271,12 @@ bool ClientMonster::draw(int viewX, int viewY, int focusMask)
     fnBlendFrame(pFrame1, 0, startX + nDX1, startY + nDY1);
     fnBlendFrame(pFrame0, 0, startX + nDX0, startY + nDY0);
 
+    if(g_clientArgParser->drawTextureAlignLine){
+        g_SDLDevice->DrawLine(colorf::RED + 128, startX, startY, startX + nDX0, startY + nDY0);
+        g_SDLDevice->DrawLine(colorf::BLUE + 128, startX - 5, startY, startX + 5, startY);
+        g_SDLDevice->DrawLine(colorf::BLUE + 128, startX, startY - 5, startX, startY + 5);
+    }
+
     for(int nFocusChan = 1; nFocusChan < FOCUS_MAX; ++nFocusChan){
         if(focusMask & (1 << nFocusChan)){
             fnBlendFrame(pFrame0, nFocusChan, startX + nDX0, startY + nDY0);
