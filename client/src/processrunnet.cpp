@@ -360,7 +360,7 @@ void ProcessRun::net_FIREMAGIC(const uint8_t *bufPtr, size_t)
                             const auto [x, y] = [smFM, this]() -> std::tuple<int, int>
                             {
                                 if(const auto coPtr = findUID(smFM.AimUID)){
-                                    return coPtr->getTargetPixelPoint();
+                                    return coPtr->getTargetBox().center();
                                 }
                                 int mousePX = -1;
                                 int mousePY = -1;
@@ -368,7 +368,7 @@ void ProcessRun::net_FIREMAGIC(const uint8_t *bufPtr, size_t)
                                 return {mousePX + m_viewX, mousePY + m_viewY};
                             }();
 
-                            const auto [fromX, fromY] = fromCOPtr->getTargetPixelPoint();
+                            const auto [fromX, fromY] = fromCOPtr->getTargetBox().center();
                             return pathf::getDir16(x - fromX, y - fromY);
                         }(),
 

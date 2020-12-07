@@ -82,15 +82,4 @@ class CreatureMovable: public ClientCreature
 
     public:
         std::tuple<int, int> getShift() const;
-
-    public:
-        std::tuple<int, int> getTargetPixelPoint() const override
-        {
-            const auto [shiftX, shiftY] = getShift();
-            return
-            {
-                m_currMotion.x * SYS_MAPGRIDXP + shiftX,
-                m_currMotion.y * SYS_MAPGRIDYP + shiftY,
-            };
-        }
 };

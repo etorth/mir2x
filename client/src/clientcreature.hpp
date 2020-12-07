@@ -24,6 +24,7 @@
 #include <cstdint>
 
 #include "uidf.hpp"
+#include "mathf.hpp"
 #include "totype.hpp"
 #include "colorf.hpp"
 #include "fflerror.hpp"
@@ -211,15 +212,6 @@
         void querySelf();
 
     public:
-        virtual std::tuple<int, int> getTargetPixelPoint() const
-        {
-            return
-            {
-                m_currMotion.x * SYS_MAPGRIDXP,
-                m_currMotion.y * SYS_MAPGRIDYP,
-            };
-        }
-
         struct TargetBox
         {
             const int x = -1;
@@ -236,9 +228,14 @@
             {
                 return
                 {
-                    (x + w) / 2,
-                    (y + h) / 2,
+                    x + w / 2,
+                    y + h / 2,
                 };
+            }
+
+            bool in(int argX, int argY) const
+            {
+                return this[0] && mathf::pointInRectangle(argX, argY, x, y, w, h);
             }
         };
 

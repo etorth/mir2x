@@ -67,7 +67,7 @@ void FollowUIDMagic::update(double ms)
     const auto [dx, dy] = [this]() -> std::tuple<int, int>
     {
         if(const auto coPtr = m_process->findUID(m_uid)){
-            const auto [x, y] = coPtr->getTargetPixelPoint();
+            const auto [x, y] = coPtr->getTargetBox().center();
             const int xdiff = x - m_x;
             const int ydiff = y - m_y;
 
@@ -120,10 +120,8 @@ void FollowUIDMagic::drawViewOff(int viewX, int viewY, bool alpha)
 
 bool FollowUIDMagic::done() const
 {
-    if(const auto coPtr = m_process->findUID(m_uid)){
-        if(const auto [x, y] = coPtr->getTargetPixelPoint(); x == m_x && y == m_y){
-            return true;
-        }
+    if(const auto coPtr = m_process->findUID(m_uid); coPtr->getTargetBox().in(m_x, m_y)){
+        return true;
     }
     return false;
 }
