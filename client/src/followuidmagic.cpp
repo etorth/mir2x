@@ -54,10 +54,6 @@ FollowUIDMagic::FollowUIDMagic(
     if(!(m_x >= 0 && m_y >= 0 && m_process->onMap(m_x / SYS_MAPGRIDXP, m_y / SYS_MAPGRIDYP))){
         throw fflerror("invalid pixel on map: x = %d, y = %d", m_x, m_y);
     }
-
-    if(!m_uid){
-        throw fflerror("invalid uid: 0");
-    }
 }
 
 void FollowUIDMagic::update(double ms)
@@ -120,7 +116,7 @@ void FollowUIDMagic::drawViewOff(int viewX, int viewY, bool alpha)
 
 bool FollowUIDMagic::done() const
 {
-    if(const auto coPtr = m_process->findUID(m_uid); coPtr->getTargetBox().in(m_x, m_y)){
+    if(const auto coPtr = m_process->findUID(m_uid); coPtr && coPtr->getTargetBox().in(m_x, m_y)){
         return true;
     }
     return false;
