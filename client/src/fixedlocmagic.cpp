@@ -38,7 +38,7 @@ void FixedLocMagic::drawViewOff(int viewX, int viewY, bool alpha)
     int offY = 0;
     if(auto texPtr = g_magicDB->Retrieve(m_gfxEntry->gfxID + frame(), &offX, &offY)){
         SDLDevice::EnableTextureBlendMode enableBlendMode(texPtr, SDL_BLENDMODE_BLEND);
-        SDLDevice::EnableTextureModColor enableModColor(texPtr, colorf::RGBA(0XFF, 0XFF, 0XFF, alpha ? 0X80 : 0XFF));
+        SDLDevice::EnableTextureModColor enableModColor(texPtr, colorf::RGBA(0XFF, 0XFF, 0XFF, alpha ? 0X40 : 0XC0));
         g_SDLDevice->drawTexture(texPtr, m_x * SYS_MAPGRIDXP - viewX + offX, m_y * SYS_MAPGRIDYP - viewY + offY);
     }
 }
