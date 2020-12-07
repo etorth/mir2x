@@ -28,8 +28,8 @@ bool ChannPackQ::AddChannPack(uint8_t nHC, const uint8_t *pData, size_t nDataLen
         g_monoServer->addLog(LOGTYPE_WARNING, "%s: (%d, %p, %d)", (pErrorMessage ? pErrorMessage : "Empty message"), (int)(nHC), pData, (int)(nDataLen));
     };
 
-    ServerMsg stSMSG(nHC);
-    switch(stSMSG.type()){
+    ServerMsg smSG(nHC);
+    switch(smSG.type()){
         case 0:
             {
                 // empty body, head code only
@@ -50,7 +50,7 @@ bool ChannPackQ::AddChannPack(uint8_t nHC, const uint8_t *pData, size_t nDataLen
             {
                 // not empty, fixed size, comperssed
 
-                if(!(pData && (nDataLen == stSMSG.dataLen()))){
+                if(!(pData && (nDataLen == smSG.dataLen()))){
                     fnReportError("Invalid argument");
                     return false;
                 }
@@ -63,7 +63,7 @@ bool ChannPackQ::AddChannPack(uint8_t nHC, const uint8_t *pData, size_t nDataLen
                 // 2. if compressed length more than 254 we need two bytes
                 // 3. we support range in [0, 255 + 255]
 
-                auto pCompBuf = GetPostBuf(stSMSG.maskLen() + ((nDataLen + 7) / 8) + 16);
+                auto pCompBuf = GetPostBuf(smSG.maskLen() + ((nDataLen + 7) / 8) + 16);
                 auto nCompCnt = Compress::Encode(pCompBuf + 4, pData, nDataLen);
 
                 if(nCompCnt < 0){
@@ -73,13 +73,13 @@ bool ChannPackQ::AddChannPack(uint8_t nHC, const uint8_t *pData, size_t nDataLen
                     pCompBuf[2] = nHC;
                     pCompBuf[3] = (uint8_t)(nCompCnt);
 
-                    return AddPackMark(GetBufOff(pCompBuf + 2), 2 + stSMSG.maskLen() + (size_t)(nCompCnt), std::move(rstDoneCB));
+                    return AddPackMark(GetBufOff(pCompBuf + 2), 2 + smSG.maskLen() + (size_t)(nCompCnt), std::move(rstDoneCB));
                 }else if(nCompCnt <= (255 + 255)){
                     pCompBuf[1] = nHC;
                     pCompBuf[2] = 255;
                     pCompBuf[3] = (uint8_t)(nCompCnt - 255);
 
-                    return AddPackMark(GetBufOff(pCompBuf + 1), 3 + stSMSG.maskLen() + (size_t)(nCompCnt), std::move(rstDoneCB));
+                    return AddPackMark(GetBufOff(pCompBuf + 1), 3 + smSG.maskLen() + (size_t)(nCompCnt), std::move(rstDoneCB));
                 }else{
                     fnReportError("Compressed data too long");
                     return false;
@@ -90,7 +90,7 @@ bool ChannPackQ::AddChannPack(uint8_t nHC, const uint8_t *pData, size_t nDataLen
             {
                 // not empty, fixed size, not compressed
 
-                if(!(pData && (nDataLen == stSMSG.dataLen()))){
+                if(!(pData && (nDataLen == smSG.dataLen()))){
                     fnReportError("Invalid argument");
                     return false;
                 }
@@ -98,10 +98,10 @@ bool ChannPackQ::AddChannPack(uint8_t nHC, const uint8_t *pData, size_t nDataLen
                 // for fixed size and uncompressed message
                 // we don't need to send the length info since it's public known
 
-                auto pDst = GetPostBuf(stSMSG.dataLen() + 1);
+                auto pDst = GetPostBuf(smSG.dataLen() + 1);
                 pDst[0] = nHC;
                 std::memcpy(pDst + 1, pData, nDataLen);
-                return AddPackMark(GetBufOff(pDst), 1 + stSMSG.dataLen(), std::move(rstDoneCB));
+                return AddPackMark(GetBufOff(pDst), 1 + smSG.dataLen(), std::move(rstDoneCB));
             }
         case 3:
             {

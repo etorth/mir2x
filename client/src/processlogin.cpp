@@ -177,18 +177,18 @@ void ProcessLogin::doLogin()
         const auto szID  = m_idBox.getRawString();
         const auto szPWD = m_passwordBox.getPasswordString();
 
-        CMLogin stCML;
-        std::memset(&stCML, 0, sizeof(stCML));
+        CMLogin cmL;
+        std::memset(&cmL, 0, sizeof(cmL));
 
-        if((szID.size() >= sizeof(stCML.ID)) || (szPWD.size() >= sizeof(stCML.Password))){
+        if((szID.size() >= sizeof(cmL.ID)) || (szPWD.size() >= sizeof(cmL.Password))){
             g_log->addLog(LOGTYPE_WARNING, "Too long ID/PWD provided");
             return;
         }
 
-        std::memcpy(stCML.ID, szID.c_str(), szID.size());
-        std::memcpy(stCML.Password, szPWD.c_str(), szPWD.size());
+        std::memcpy(cmL.ID, szID.c_str(), szID.size());
+        std::memcpy(cmL.Password, szPWD.c_str(), szPWD.size());
 
-        g_client->send(CM_LOGIN, stCML);
+        g_client->send(CM_LOGIN, cmL);
     }
 }
 

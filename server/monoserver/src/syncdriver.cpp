@@ -52,15 +52,15 @@ MessagePack SyncDriver::forward(uint64_t nUID, const MessageBuf &rstMB, uint32_t
     }
 
     if(!g_actorPool->postMessage(nUID, {rstMB, UID(), nCurrID, nRespond})){
-        AMBadActorPod stAMBAP;
-        std::memset(&stAMBAP, 0, sizeof(stAMBAP));
+        AMBadActorPod amBAP;
+        std::memset(&amBAP, 0, sizeof(amBAP));
 
-        stAMBAP.Type    = rstMB.Type();
-        stAMBAP.from    = UID();
-        stAMBAP.ID      = nCurrID;
-        stAMBAP.Respond = nRespond;
+        amBAP.Type    = rstMB.Type();
+        amBAP.from    = UID();
+        amBAP.ID      = nCurrID;
+        amBAP.Respond = nRespond;
 
-        return {MessageBuf(MPK_BADACTORPOD, stAMBAP), 0, 0, nCurrID};
+        return {MessageBuf(MPK_BADACTORPOD, amBAP), 0, 0, nCurrID};
     }
 
     switch(m_receiver.Wait(nTimeout)){

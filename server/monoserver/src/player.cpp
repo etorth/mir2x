@@ -239,29 +239,29 @@ void Player::reportCO(uint64_t toUID)
         return;
     }
 
-    AMCORecord stAMCOR;
-    std::memset(&stAMCOR, 0, sizeof(stAMCOR));
+    AMCORecord amCOR;
+    std::memset(&amCOR, 0, sizeof(amCOR));
 
-    stAMCOR.Action.UID   = UID();
-    stAMCOR.Action.MapID = MapID();
+    amCOR.Action.UID   = UID();
+    amCOR.Action.MapID = MapID();
 
-    stAMCOR.Action.Action    = ACTION_STAND;
-    stAMCOR.Action.Speed     = SYS_DEFSPEED;
-    stAMCOR.Action.Direction = Direction();
+    amCOR.Action.Action    = ACTION_STAND;
+    amCOR.Action.Speed     = SYS_DEFSPEED;
+    amCOR.Action.Direction = Direction();
 
-    stAMCOR.Action.X    = X();
-    stAMCOR.Action.Y    = Y();
-    stAMCOR.Action.AimX = X();
-    stAMCOR.Action.AimY = Y();
+    amCOR.Action.X    = X();
+    amCOR.Action.Y    = Y();
+    amCOR.Action.AimX = X();
+    amCOR.Action.AimY = Y();
 
-    stAMCOR.Action.AimUID      = 0;
-    stAMCOR.Action.ActionParam = 0;
+    amCOR.Action.AimUID      = 0;
+    amCOR.Action.ActionParam = 0;
 
-    stAMCOR.Player.DBID  = DBID();
-    stAMCOR.Player.JobID = JobID();
-    stAMCOR.Player.Level = Level();
+    amCOR.Player.DBID  = DBID();
+    amCOR.Player.JobID = JobID();
+    amCOR.Player.Level = Level();
 
-    m_actorPod->forward(toUID, {MPK_CORECORD, stAMCOR});
+    m_actorPod->forward(toUID, {MPK_CORECORD, amCOR});
 }
 
 void Player::reportStand()
@@ -275,48 +275,48 @@ void Player::reportAction(uint64_t nUID, const ActionNode &rstAction)
             && nUID
             && ChannID()){
 
-        SMAction stSMA;
-        std::memset(&stSMA, 0, sizeof(stSMA));
+        SMAction smA;
+        std::memset(&smA, 0, sizeof(smA));
 
-        stSMA.UID   = nUID;
-        stSMA.MapID = MapID();
+        smA.UID   = nUID;
+        smA.MapID = MapID();
 
-        stSMA.Action    = rstAction.Action;
-        stSMA.Speed     = rstAction.Speed;
-        stSMA.Direction = rstAction.Direction;
+        smA.Action    = rstAction.Action;
+        smA.Speed     = rstAction.Speed;
+        smA.Direction = rstAction.Direction;
 
-        stSMA.X    = rstAction.X;
-        stSMA.Y    = rstAction.Y;
-        stSMA.AimX = rstAction.AimX;
-        stSMA.AimY = rstAction.AimY;
+        smA.X    = rstAction.X;
+        smA.Y    = rstAction.Y;
+        smA.AimX = rstAction.AimX;
+        smA.AimY = rstAction.AimY;
 
-        stSMA.AimUID      = rstAction.AimUID;
-        stSMA.ActionParam = rstAction.ActionParam;
+        smA.AimUID      = rstAction.AimUID;
+        smA.ActionParam = rstAction.ActionParam;
 
-        g_netDriver->Post(ChannID(), SM_ACTION, stSMA);
+        g_netDriver->Post(ChannID(), SM_ACTION, smA);
     }
 }
 
 void Player::reportDeadUID(uint64_t nDeadUID)
 {
-    SMNotifyDead stSMND;
-    std::memset(&stSMND, 0, sizeof(stSMND));
+    SMNotifyDead smND;
+    std::memset(&smND, 0, sizeof(smND));
 
-    stSMND.UID = nDeadUID;
-    postNetMessage(SM_NOTIFYDEAD, stSMND);
+    smND.UID = nDeadUID;
+    postNetMessage(SM_NOTIFYDEAD, smND);
 }
 
 void Player::reportHealth()
 {
-    SMUpdateHP stSMUHP;
-    std::memset(&stSMUHP, 0, sizeof(stSMUHP));
+    SMUpdateHP smUHP;
+    std::memset(&smUHP, 0, sizeof(smUHP));
 
-    stSMUHP.UID   = UID();
-    stSMUHP.MapID = MapID();
-    stSMUHP.HP    = HP();
-    stSMUHP.HPMax = HPMax();
+    smUHP.UID   = UID();
+    smUHP.MapID = MapID();
+    smUHP.HP    = HP();
+    smUHP.HPMax = HPMax();
 
-    postNetMessage(SM_UPDATEHP, stSMUHP);
+    postNetMessage(SM_UPDATEHP, smUHP);
 }
 
 bool Player::InRange(int nRangeType, int nX, int nY)
@@ -382,19 +382,19 @@ bool Player::goGhost()
                             // 1. setup state and inform all others
                             SetState(STATE_GHOST, 1);
 
-                            AMDeadFadeOut stAMDFO;
-                            std::memset(&stAMDFO, 0, sizeof(stAMDFO));
+                            AMDeadFadeOut amDFO;
+                            std::memset(&amDFO, 0, sizeof(amDFO));
 
-                            stAMDFO.UID   = UID();
-                            stAMDFO.MapID = MapID();
-                            stAMDFO.X     = X();
-                            stAMDFO.Y     = Y();
+                            amDFO.UID   = UID();
+                            amDFO.MapID = MapID();
+                            amDFO.X     = X();
+                            amDFO.Y     = Y();
 
                             if(true
                                     && checkActorPod()
                                     && m_map
                                     && m_map->checkActorPod()){
-                                m_actorPod->forward(m_map->UID(), {MPK_DEADFADEOUT, stAMDFO});
+                                m_actorPod->forward(m_map->UID(), {MPK_DEADFADEOUT, amDFO});
                             }
 
                             // 2. deactivate the actor here
@@ -468,15 +468,15 @@ void Player::dispatchOffline()
             && m_map
             && m_map->checkActorPod()){
 
-        AMOffline stAMO;
-        std::memset(&stAMO, 0, sizeof(stAMO));
+        AMOffline amO;
+        std::memset(&amO, 0, sizeof(amO));
 
-        stAMO.UID   = UID();
-        stAMO.MapID = MapID();
-        stAMO.X     = X();
-        stAMO.Y     = Y();
+        amO.UID   = UID();
+        amO.MapID = MapID();
+        amO.X     = X();
+        amO.Y     = Y();
 
-        m_actorPod->forward(m_map->UID(), {MPK_OFFLINE, stAMO});
+        m_actorPod->forward(m_map->UID(), {MPK_OFFLINE, amO});
         return;
     }
 
@@ -490,11 +490,11 @@ void Player::reportOffline(uint64_t nUID, uint32_t nMapID)
             && nMapID
             && ChannID()){
 
-        SMOffline stSMO;
-        stSMO.UID   = nUID;
-        stSMO.MapID = nMapID;
+        SMOffline smO;
+        smO.UID   = nUID;
+        smO.MapID = nMapID;
 
-        g_netDriver->Post(ChannID(), SM_OFFLINE, stSMO);
+        g_netDriver->Post(ChannID(), SM_OFFLINE, smO);
     }
 }
 
@@ -692,35 +692,35 @@ void Player::onCMActionSpell(CMAction cmA)
             }
         case DBCOM_MAGICID(u8"雷电术"):
             {
-                SMCastMagic stSMFM;
-                std::memset(&stSMFM, 0, sizeof(stSMFM));
+                SMCastMagic smFM;
+                std::memset(&smFM, 0, sizeof(smFM));
 
-                stSMFM.UID    = UID();
-                stSMFM.MapID  = MapID();
-                stSMFM.Magic  = nMagicID;
-                stSMFM.Speed  = MagicSpeed();
-                stSMFM.X      = nX;
-                stSMFM.Y      = nY;
-                stSMFM.AimUID = cmA.AimUID;
+                smFM.UID    = UID();
+                smFM.MapID  = MapID();
+                smFM.Magic  = nMagicID;
+                smFM.Speed  = MagicSpeed();
+                smFM.X      = nX;
+                smFM.Y      = nY;
+                smFM.AimUID = cmA.AimUID;
 
-                Delay(1400, [this, stSMFM]()
+                Delay(1400, [this, smFM]()
                 {
-                    g_netDriver->Post(ChannID(), SM_CASTMAGIC, stSMFM);
+                    g_netDriver->Post(ChannID(), SM_CASTMAGIC, smFM);
                 });
                 break;
             }
         case DBCOM_MAGICID(u8"魔法盾"):
             {
-                SMCastMagic stSMFM;
-                std::memset(&stSMFM, 0, sizeof(stSMFM));
+                SMCastMagic smFM;
+                std::memset(&smFM, 0, sizeof(smFM));
 
-                stSMFM.UID   = UID();
-                stSMFM.Magic = nMagicID;
-                stSMFM.Speed = MagicSpeed();
+                smFM.UID   = UID();
+                smFM.Magic = nMagicID;
+                smFM.Speed = MagicSpeed();
 
-                Delay(800, [this, stSMFM]()
+                Delay(800, [this, smFM]()
                 {
-                    g_netDriver->Post(ChannID(), SM_CASTMAGIC, stSMFM);
+                    g_netDriver->Post(ChannID(), SM_CASTMAGIC, smFM);
                 });
                 break;
             }
@@ -730,19 +730,19 @@ void Player::onCMActionSpell(CMAction cmA)
                 int nFrontY = -1;
                 PathFind::GetFrontLocation(&nFrontX, &nFrontY, X(), Y(), Direction(), 2);
 
-                SMCastMagic stSMFM;
-                std::memset(&stSMFM, 0, sizeof(stSMFM));
+                SMCastMagic smFM;
+                std::memset(&smFM, 0, sizeof(smFM));
 
-                stSMFM.UID   = UID();
-                stSMFM.MapID = MapID();
-                stSMFM.Magic = nMagicID;
-                stSMFM.Speed = MagicSpeed();
-                stSMFM.AimX  = nFrontX;
-                stSMFM.AimY  = nFrontY;
+                smFM.UID   = UID();
+                smFM.MapID = MapID();
+                smFM.Magic = nMagicID;
+                smFM.Speed = MagicSpeed();
+                smFM.AimX  = nFrontX;
+                smFM.AimY  = nFrontY;
 
-                Delay(600, [this, stSMFM]()
+                Delay(600, [this, smFM]()
                 {
-                    addMonster(DBCOM_MONSTERID(u8"变异骷髅"), stSMFM.AimX, stSMFM.AimY, false);
+                    addMonster(DBCOM_MONSTERID(u8"变异骷髅"), smFM.AimX, smFM.AimY, false);
 
                     // addMonster will send ACTION_SPAWN to client
                     // client then use it to play the magic for 召唤骷髅, we don't send magic message here
@@ -783,14 +783,14 @@ void Player::onCMActionPickUp(CMAction stCMA)
     switch(estimateHop(stCMA.X, stCMA.Y)){
         case 0:
             {
-                AMPickUp stAMPU;
-                stAMPU.X    = stCMA.X;
-                stAMPU.Y    = stCMA.Y;
-                stAMPU.UID  = UID();
-                stAMPU.ID   = stCMA.ActionParam;
-                stAMPU.DBID = 0;
+                AMPickUp amPU;
+                amPU.X    = stCMA.X;
+                amPU.Y    = stCMA.Y;
+                amPU.UID  = UID();
+                amPU.ID   = stCMA.ActionParam;
+                amPU.DBID = 0;
 
-                m_actorPod->forward(m_map->UID(), {MPK_PICKUP, stAMPU});
+                m_actorPod->forward(m_map->UID(), {MPK_PICKUP, amPU});
                 return;
             }
         case 1:
@@ -886,16 +886,16 @@ void Player::PullRectCO(int nW, int nH)
             && checkActorPod()
             && m_map->checkActorPod()){
 
-        AMPullCOInfo stAMPCOI;
-        std::memset(&stAMPCOI, 0, sizeof(stAMPCOI));
+        AMPullCOInfo amPCOI;
+        std::memset(&amPCOI, 0, sizeof(amPCOI));
 
-        stAMPCOI.X     = X();
-        stAMPCOI.Y     = Y();
-        stAMPCOI.W     = nW;
-        stAMPCOI.H     = nH;
-        stAMPCOI.UID   = UID();
-        stAMPCOI.MapID = m_map->ID();
-        m_actorPod->forward(m_map->UID(), {MPK_PULLCOINFO, stAMPCOI});
+        amPCOI.X     = X();
+        amPCOI.Y     = Y();
+        amPCOI.W     = nW;
+        amPCOI.H     = nH;
+        amPCOI.UID   = UID();
+        amPCOI.MapID = m_map->ID();
+        m_actorPod->forward(m_map->UID(), {MPK_PULLCOINFO, amPCOI});
     }
 }
 
@@ -974,11 +974,11 @@ bool Player::DBSavePlayer()
 
 void Player::reportGold()
 {
-    SMGold stSMG;
-    std::memset(&stSMG, 0, sizeof(stSMG));
+    SMGold smG;
+    std::memset(&smG, 0, sizeof(smG));
 
-    stSMG.Gold = Gold();
-    postNetMessage(SM_GOLD, stSMG);
+    smG.Gold = Gold();
+    postNetMessage(SM_GOLD, smG);
 }
 
 void Player::checkFriend(uint64_t nUID, std::function<void(int)> fnOp)

@@ -31,8 +31,8 @@ NetIO::SendPack::SendPack(uint8_t hc, const uint8_t *dataBuf, size_t dataLength)
     , data(dataBuf)
     , dataLen(dataLength)
 {
-    const ClientMsg stCMSG(headCode);
-    switch(stCMSG.type()){
+    const ClientMsg cmSG(headCode);
+    switch(cmSG.type()){
         case 0:
             {
                 if(data || dataLen){
@@ -49,17 +49,17 @@ NetIO::SendPack::SendPack(uint8_t hc, const uint8_t *dataBuf, size_t dataLength)
                 if(data[0] == 255){
                     nSizeLen = 2;
                     nCompLen = 255 + (int)(data[1]);
-                    nMaskCnt = Compress::CountMask(data + 2, stCMSG.maskLen());
+                    nMaskCnt = Compress::CountMask(data + 2, cmSG.maskLen());
                 }else{
                     nSizeLen = 1;
                     nCompLen = (int)(data[0]);
-                    nMaskCnt = Compress::CountMask(data + 1, stCMSG.maskLen());
+                    nMaskCnt = Compress::CountMask(data + 1, cmSG.maskLen());
                 }
 
                 if(false
                         || (nMaskCnt < 0)
                         || (nCompLen != nMaskCnt)
-                        || (dataLen != ((size_t)(nSizeLen) + stCMSG.maskLen() + (size_t)(nCompLen)))){
+                        || (dataLen != ((size_t)(nSizeLen) + cmSG.maskLen() + (size_t)(nCompLen)))){
                     throw fflerror("invalid client message: (%lld, %p, %lld)", to_lld(headCode), data, to_lld(dataLen));
                 }
                 break;
@@ -67,7 +67,7 @@ NetIO::SendPack::SendPack(uint8_t hc, const uint8_t *dataBuf, size_t dataLength)
         case 2:
             {
                 // not empty, fixed size and not compressed
-                if(!(data && (dataLen == stCMSG.dataLen()))){
+                if(!(data && (dataLen == cmSG.dataLen()))){
                     throw fflerror("invalid client message: (%lld, %p, %lld)", to_lld(headCode), data, to_lld(dataLen));
                 }
                 break;
@@ -399,8 +399,8 @@ bool NetIO::send(uint8_t nHC, const uint8_t *pData, size_t nDataLen)
         g_log->addLog(LOGTYPE_WARNING, "Invalid message to send: headCode = %d, Data = %p, DataLen = %d", (int)(nHC), pData, (int)(nDataLen));
     };
 
-    ClientMsg stCMSG(nHC);
-    switch(stCMSG.type()){
+    ClientMsg cmSG(nHC);
+    switch(cmSG.type()){
         case 0:
             {
                 if(pData || nDataLen){
@@ -411,17 +411,17 @@ bool NetIO::send(uint8_t nHC, const uint8_t *pData, size_t nDataLen)
             }
         case 1:
             {
-                if(!(pData && (stCMSG.dataLen() == nDataLen))){
+                if(!(pData && (cmSG.dataLen() == nDataLen))){
                     fnReportError();
                     return false;
                 }
 
                 auto nCountData = Compress::CountData(pData, nDataLen);
-                if((nCountData < 0) || (nCountData > (int)(stCMSG.dataLen()))){
+                if((nCountData < 0) || (nCountData > (int)(cmSG.dataLen()))){
                     g_log->addLog(LOGTYPE_WARNING, "Count failed: headCode = %d, DataLen = %d, CountData = %d", (int)(nHC), (int)(nDataLen), nCountData);
                     return false;
                 }else if(nCountData <= 254){
-                    pEncodeData = (uint8_t *)(m_memoryPN.Get(stCMSG.maskLen() + (size_t)(nCountData) + 1));
+                    pEncodeData = (uint8_t *)(m_memoryPN.Get(cmSG.maskLen() + (size_t)(nCountData) + 1));
                     if(Compress::Encode(pEncodeData + 1, pData, nDataLen) != nCountData){
                         g_log->addLog(LOGTYPE_WARNING, "Count failed: headCode = %d, DataLen = %d, CountData = %d", (int)(nHC), (int)(nDataLen), nCountData);
 
@@ -430,9 +430,9 @@ bool NetIO::send(uint8_t nHC, const uint8_t *pData, size_t nDataLen)
                     }
 
                     pEncodeData[0] = (uint8_t)(nCountData);
-                    nEncodeSize    = 1 + stCMSG.maskLen() + (size_t)(nCountData);
+                    nEncodeSize    = 1 + cmSG.maskLen() + (size_t)(nCountData);
                 }else if(nCountData <= (255 + 255)){
-                    pEncodeData = (uint8_t *)(m_memoryPN.Get(stCMSG.maskLen() + (size_t)(nCountData) + 2));
+                    pEncodeData = (uint8_t *)(m_memoryPN.Get(cmSG.maskLen() + (size_t)(nCountData) + 2));
                     if(Compress::Encode(pEncodeData + 2, pData, nDataLen) != nCountData){
                         g_log->addLog(LOGTYPE_WARNING, "Count failed: headCode = %d, DataLen = %d, CountData = %d", (int)(nHC), (int)(nDataLen), nCountData);
 
@@ -442,7 +442,7 @@ bool NetIO::send(uint8_t nHC, const uint8_t *pData, size_t nDataLen)
 
                     pEncodeData[0] = 255;
                     pEncodeData[1] = (uint8_t)(nCountData - 255);
-                    nEncodeSize    = 2 + stCMSG.maskLen() + (size_t)(nCountData);
+                    nEncodeSize    = 2 + cmSG.maskLen() + (size_t)(nCountData);
                 }else{
                     g_log->addLog(LOGTYPE_WARNING, "Count overflows: headCode = %d, DataLen = %d, CountData = %d", (int)(nHC), (int)(nDataLen), nCountData);
 
@@ -453,7 +453,7 @@ bool NetIO::send(uint8_t nHC, const uint8_t *pData, size_t nDataLen)
             }
         case 2:
             {
-                if(!(pData && (nDataLen == stCMSG.dataLen()))){
+                if(!(pData && (nDataLen == cmSG.dataLen()))){
                     fnReportError();
                     return false;
                 }

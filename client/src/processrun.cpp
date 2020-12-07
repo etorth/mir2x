@@ -1343,11 +1343,11 @@ void ProcessRun::RequestKillPets()
 
 void ProcessRun::queryCORecord(uint64_t nUID) const
 {
-    CMQueryCORecord stCMQCOR;
-    std::memset(&stCMQCOR, 0, sizeof(stCMQCOR));
+    CMQueryCORecord cmQCOR;
+    std::memset(&cmQCOR, 0, sizeof(cmQCOR));
 
-    stCMQCOR.AimUID = nUID;
-    g_client->send(CM_QUERYCORECORD, stCMQCOR);
+    cmQCOR.AimUID = nUID;
+    g_client->send(CM_QUERYCORECORD, cmQCOR);
 }
 
 void ProcessRun::onActionSpawn(uint64_t uid, const ActionNode &action)

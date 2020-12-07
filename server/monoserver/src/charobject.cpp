@@ -188,30 +188,30 @@ void CharObject::dispatchAction(const ActionNode &rstAction)
         throw fflerror("can't dispatch action: %s", rstAction.ActionName());
     }
 
-    AMAction stAMA;
-    std::memset(&stAMA, 0, sizeof(stAMA));
+    AMAction amA;
+    std::memset(&amA, 0, sizeof(amA));
 
-    stAMA.UID   = UID();
-    stAMA.MapID = MapID();
+    amA.UID   = UID();
+    amA.MapID = MapID();
 
-    stAMA.Action    = rstAction.Action;
-    stAMA.Speed     = rstAction.Speed;
-    stAMA.Direction = rstAction.Direction;
+    amA.Action    = rstAction.Action;
+    amA.Speed     = rstAction.Speed;
+    amA.Direction = rstAction.Direction;
 
-    stAMA.X    = rstAction.X;
-    stAMA.Y    = rstAction.Y;
-    stAMA.AimX = rstAction.AimX;
-    stAMA.AimY = rstAction.AimY;
+    amA.X    = rstAction.X;
+    amA.Y    = rstAction.Y;
+    amA.AimX = rstAction.AimX;
+    amA.AimY = rstAction.AimY;
 
-    stAMA.AimUID      = rstAction.AimUID;
-    stAMA.ActionParam = rstAction.ActionParam;
+    amA.AimUID      = rstAction.AimUID;
+    amA.ActionParam = rstAction.ActionParam;
 
-    switch(stAMA.Action){
+    switch(amA.Action){
         case ACTION_MOVE:
         case ACTION_SPAWN:
         case ACTION_ATTACK:
             {
-                SetLastAction(stAMA.Action);
+                SetLastAction(amA.Action);
                 break;
             }
         default:
@@ -220,25 +220,25 @@ void CharObject::dispatchAction(const ActionNode &rstAction)
             }
     }
 
-    switch(stAMA.Action){
+    switch(amA.Action){
         case ACTION_MOVE:
         case ACTION_PUSHMOVE:
         case ACTION_SPACEMOVE1:
         case ACTION_SPACEMOVE2:
         case ACTION_SPAWN:
             {
-                m_actorPod->forward(m_map->UID(), {MPK_ACTION, stAMA});
+                m_actorPod->forward(m_map->UID(), {MPK_ACTION, amA});
                 return;
             }
         default:
             {
-                foreachInViewCO([this, stAMA](const COLocation &rstLocation)
+                foreachInViewCO([this, amA](const COLocation &rstLocation)
                 {
                     auto nX = rstLocation.X;
                     auto nY = rstLocation.Y;
                     auto nMapID = rstLocation.MapID;
                     if(InView(nMapID, nX, nY)){
-                        m_actorPod->forward(rstLocation.UID, {MPK_ACTION, stAMA});
+                        m_actorPod->forward(rstLocation.UID, {MPK_ACTION, amA});
                     }
                 });
                 return;
@@ -345,20 +345,20 @@ bool CharObject::requestMove(int nX, int nY, int nSpeed, bool allowHalfMove, boo
             }
     }
 
-    AMTryMove stAMTM;
-    std::memset(&stAMTM, 0, sizeof(stAMTM));
+    AMTryMove amTM;
+    std::memset(&amTM, 0, sizeof(amTM));
 
-    stAMTM.UID           = UID();
-    stAMTM.MapID         = MapID();
-    stAMTM.X             = X();
-    stAMTM.Y             = Y();
-    stAMTM.EndX          = nX;
-    stAMTM.EndY          = nY;
-    stAMTM.AllowHalfMove = allowHalfMove;
-    stAMTM.RemoveMonster = removeMonster;
+    amTM.UID           = UID();
+    amTM.MapID         = MapID();
+    amTM.X             = X();
+    amTM.Y             = Y();
+    amTM.EndX          = nX;
+    amTM.EndY          = nY;
+    amTM.AllowHalfMove = allowHalfMove;
+    amTM.RemoveMonster = removeMonster;
 
     m_moveLock = true;
-    return m_actorPod->forward(MapUID(), {MPK_TRYMOVE, stAMTM}, [this, nX, nY, nSpeed, fnOnOK, fnOnError](const MessagePack &rstMPK)
+    return m_actorPod->forward(MapUID(), {MPK_TRYMOVE, amTM}, [this, nX, nY, nSpeed, fnOnOK, fnOnError](const MessagePack &rstMPK)
     {
         if(!m_moveLock){
             throw fflerror("moveLock released before map responds: UIDName = %s", UIDName());
@@ -371,14 +371,14 @@ bool CharObject::requestMove(int nX, int nY, int nSpeed, bool allowHalfMove, boo
         switch(rstMPK.Type()){
             case MPK_MOVEOK:
                 {
-                    AMMoveOK stAMMOK;
-                    std::memcpy(&stAMMOK, rstMPK.Data(), sizeof(stAMMOK));
+                    AMMoveOK amMOK;
+                    std::memcpy(&amMOK, rstMPK.Data(), sizeof(amMOK));
 
                     // since we may allow half move
                     // servermap permitted dst may not be (nX, nY)
 
-                    if(!m_map->ValidC(stAMMOK.EndX, stAMMOK.EndY)){
-                        throw fflerror("map returns invalid destination: (%" PRIu64 ", %d, %d)", m_map->UID(), stAMMOK.EndX, stAMMOK.EndY);
+                    if(!m_map->ValidC(amMOK.EndX, amMOK.EndY)){
+                        throw fflerror("map returns invalid destination: (%" PRIu64 ", %d, %d)", m_map->UID(), amMOK.EndX, amMOK.EndY);
                     }
 
                     if(!canMove()){
@@ -392,8 +392,8 @@ bool CharObject::requestMove(int nX, int nY, int nSpeed, bool allowHalfMove, boo
                     auto nOldX = m_X;
                     auto nOldY = m_Y;
 
-                    m_X = stAMMOK.EndX;
-                    m_Y = stAMMOK.EndY;
+                    m_X = amMOK.EndX;
+                    m_Y = amMOK.EndY;
 
                     m_direction = PathFind::GetDirection(nOldX, nOldY, X(), Y());
                     m_lastMoveTime = g_monoServer->getCurrTick();
@@ -800,34 +800,34 @@ void CharObject::retrieveLocation(uint64_t nUID, std::function<void(const COLoca
     // can't find uid or expired
     // query the location and put to InViewCOList if applicable
 
-    AMQueryLocation stAMQL;
-    std::memset(&stAMQL, 0, sizeof(stAMQL));
+    AMQueryLocation amQL;
+    std::memset(&amQL, 0, sizeof(amQL));
 
-    stAMQL.UID   = UID();
-    stAMQL.MapID = MapID();
+    amQL.UID   = UID();
+    amQL.MapID = MapID();
 
-    m_actorPod->forward(nUID, {MPK_QUERYLOCATION, stAMQL}, [this, nUID, fnOnOK, fnOnError](const MessagePack &rstRMPK)
+    m_actorPod->forward(nUID, {MPK_QUERYLOCATION, amQL}, [this, nUID, fnOnOK, fnOnError](const MessagePack &rstRMPK)
     {
         switch(rstRMPK.Type()){
             case MPK_LOCATION:
                 {
-                    AMLocation stAML;
-                    std::memcpy(&stAML, rstRMPK.Data(), sizeof(stAML));
+                    AMLocation amL;
+                    std::memcpy(&amL, rstRMPK.Data(), sizeof(amL));
 
                     // TODO when we get this response
                     // it's possible that the co has switched map or dead
 
                     COLocation stCOLoccation
                     {
-                        stAML.UID,
-                        stAML.MapID,
-                        stAML.RecordTime,
-                        stAML.X,
-                        stAML.Y,
-                        stAML.Direction
+                        amL.UID,
+                        amL.MapID,
+                        amL.RecordTime,
+                        amL.X,
+                        amL.Y,
+                        amL.Direction
                     };
 
-                    if((stAML.UID == nUID) && InView(stAML.MapID, stAML.X, stAML.Y)){
+                    if((amL.UID == nUID) && InView(amL.MapID, amL.X, amL.Y)){
                         AddInViewCO(stCOLoccation);
                     }
                     else{
@@ -896,11 +896,11 @@ void CharObject::dispatchOffenderExp()
 
     for(const auto &rstOffender: m_offenderList){
         if(auto nType = uidf::getUIDType(rstOffender.UID); nType == UID_MON || nType == UID_PLY){
-            AMExp stAME;
-            std::memset(&stAME, 0, sizeof(stAME));
+            AMExp amE;
+            std::memset(&amE, 0, sizeof(amE));
 
-            stAME.Exp = fnCalcExp(rstOffender.Damage);
-            m_actorPod->forward(rstOffender.UID, {MPK_EXP, stAME});
+            amE.Exp = fnCalcExp(rstOffender.Damage);
+            m_actorPod->forward(rstOffender.UID, {MPK_EXP, amE});
         }
     }
 }
@@ -938,49 +938,49 @@ int CharObject::OneStepReach(int nDirection, int nMaxDistance, int *pX, int *pY)
 
 void CharObject::dispatchHealth()
 {
-    AMUpdateHP stAMUHP;
-    std::memset(&stAMUHP, 0, sizeof(stAMUHP));
+    AMUpdateHP amUHP;
+    std::memset(&amUHP, 0, sizeof(amUHP));
 
-    stAMUHP.UID   = UID();
-    stAMUHP.MapID = MapID();
-    stAMUHP.X     = X();
-    stAMUHP.Y     = Y();
-    stAMUHP.HP    = HP();
-    stAMUHP.HPMax = HPMax();
+    amUHP.UID   = UID();
+    amUHP.MapID = MapID();
+    amUHP.X     = X();
+    amUHP.Y     = Y();
+    amUHP.HP    = HP();
+    amUHP.HPMax = HPMax();
 
     if(true
             && checkActorPod()
             && m_map
             && m_map->checkActorPod()){
-        m_actorPod->forward(m_map->UID(), {MPK_UPDATEHP, stAMUHP});
+        m_actorPod->forward(m_map->UID(), {MPK_UPDATEHP, amUHP});
     }
 }
 
 void CharObject::dispatchAttack(uint64_t nUID, int nDC)
 {
     if(nUID && DCValid(nDC, true)){
-        AMAttack stAMA;
-        std::memset(&stAMA, 0, sizeof(stAMA));
+        AMAttack amA;
+        std::memset(&amA, 0, sizeof(amA));
 
-        stAMA.UID   = UID();
-        stAMA.MapID = MapID();
+        amA.UID   = UID();
+        amA.MapID = MapID();
 
-        stAMA.X = X();
-        stAMA.Y = Y();
+        amA.X = X();
+        amA.Y = Y();
 
         auto stDamage = GetAttackDamage(nDC);
-        stAMA.Type    = stDamage.Type;
-        stAMA.Damage  = stDamage.Damage;
-        stAMA.Element = stDamage.Element;
+        amA.Type    = stDamage.Type;
+        amA.Damage  = stDamage.Damage;
+        amA.Element = stDamage.Element;
 
-        for(size_t nIndex = 0; nIndex < sizeof(stAMA.Effect) / sizeof(stAMA.Effect[0]); ++nIndex){
+        for(size_t nIndex = 0; nIndex < sizeof(amA.Effect) / sizeof(amA.Effect[0]); ++nIndex){
             if(nIndex < stDamage.EffectArray.EffectLen()){
-                stAMA.Effect[nIndex] = stDamage.EffectArray.Effect()[nIndex];
+                amA.Effect[nIndex] = stDamage.EffectArray.Effect()[nIndex];
             }else{
-                stAMA.Effect[nIndex] = EFF_NONE;
+                amA.Effect[nIndex] = EFF_NONE;
             }
         }
-        m_actorPod->forward(nUID, {MPK_ATTACK, stAMA});
+        m_actorPod->forward(nUID, {MPK_ATTACK, amA});
     }
 }
 
@@ -1004,19 +1004,19 @@ int CharObject::Speed(int nSpeedType) const
 
 void CharObject::addMonster(uint32_t monsterID, int x, int y, bool strictLoc)
 {
-    AMAddCharObject stAMACO;
-    std::memset(&stAMACO, 0, sizeof(stAMACO));
+    AMAddCharObject amACO;
+    std::memset(&amACO, 0, sizeof(amACO));
 
-    stAMACO.type = UID_MON;
-    stAMACO.x = x;
-    stAMACO.y = y;
-    stAMACO.mapID = m_map->ID();
-    stAMACO.strictLoc = strictLoc;
+    amACO.type = UID_MON;
+    amACO.x = x;
+    amACO.y = y;
+    amACO.mapID = m_map->ID();
+    amACO.strictLoc = strictLoc;
 
-    stAMACO.monster.monsterID = monsterID;
-    stAMACO.monster.masterUID = UID();
+    amACO.monster.monsterID = monsterID;
+    amACO.monster.masterUID = UID();
 
-    m_actorPod->forward(m_serviceCore->UID(), {MPK_ADDCHAROBJECT, stAMACO}, [](const MessagePack &rstRMPK)
+    m_actorPod->forward(m_serviceCore->UID(), {MPK_ADDCHAROBJECT, amACO}, [](const MessagePack &rstRMPK)
     {
         switch(rstRMPK.ID()){
             default:
@@ -1386,10 +1386,10 @@ void CharObject::QueryFinalMaster(uint64_t nUID, std::function<void(uint64_t)> f
             switch(rstRMPK.Type()){
                 case MPK_UID:
                     {
-                        AMUID stAMUID;
-                        std::memcpy(&stAMUID, rstRMPK.Data(), sizeof(stAMUID));
+                        AMUID amUID;
+                        std::memcpy(&amUID, rstRMPK.Data(), sizeof(amUID));
 
-                        fnOp(stAMUID.UID);
+                        fnOp(amUID.UID);
                         return;
                     }
                 default:

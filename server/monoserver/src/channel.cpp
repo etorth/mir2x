@@ -528,24 +528,24 @@ bool Channel::ForwardActorMessage(uint8_t nHC, const uint8_t *pData, size_t nDat
             }
     }
 
-    AMNetPackage stAMNP;
-    std::memset(&stAMNP, 0, sizeof(stAMNP));
+    AMNetPackage amNP;
+    std::memset(&amNP, 0, sizeof(amNP));
 
-    stAMNP.ChannID = ID();
-    stAMNP.Type    = nHC;
-    stAMNP.DataLen = nDataLen;
+    amNP.ChannID = ID();
+    amNP.Type    = nHC;
+    amNP.DataLen = nDataLen;
 
     if(pData){
-        if(nDataLen <= std::extent<decltype(stAMNP.DataBuf)>::value){
-            stAMNP.Data = nullptr;
-            std::memcpy(stAMNP.DataBuf, pData, nDataLen);
+        if(nDataLen <= std::extent<decltype(amNP.DataBuf)>::value){
+            amNP.Data = nullptr;
+            std::memcpy(amNP.DataBuf, pData, nDataLen);
         }else{
-            stAMNP.Data = new uint8_t[nDataLen];
-            std::memcpy(stAMNP.Data, pData, nDataLen);
+            amNP.Data = new uint8_t[nDataLen];
+            std::memcpy(amNP.Data, pData, nDataLen);
         }
     }
 
-    return m_dispatcher.forward(m_bindUID, {MPK_NETPACKAGE, stAMNP});
+    return m_dispatcher.forward(m_bindUID, {MPK_NETPACKAGE, amNP});
 }
 
 void Channel::Shutdown(bool bForce)
@@ -559,14 +559,14 @@ void Channel::Shutdown(bool bForce)
                 }
             case CHANNTYPE_RUNNING:
                 {
-                    AMBadChannel stAMBC;
-                    std::memset(&stAMBC, 0, sizeof(stAMBC));
+                    AMBadChannel amBC;
+                    std::memset(&amBC, 0, sizeof(amBC));
 
                     // can forward to servicecore or player
                     // servicecore won't keep pointer *this* then we need to report it
-                    stAMBC.ChannID = pThis->ID();
+                    amBC.ChannID = pThis->ID();
 
-                    pThis->m_dispatcher.forward(pThis->m_bindUID, {MPK_BADCHANNEL, stAMBC});
+                    pThis->m_dispatcher.forward(pThis->m_bindUID, {MPK_BADCHANNEL, amBC});
                     pThis->m_bindUID = 0;
 
                     // if we call shutdown() here

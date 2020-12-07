@@ -64,14 +64,14 @@ void Player::net_CM_QUERYCORECORD(uint8_t, const uint8_t *pBuf, size_t)
             && stCMQCOR.AimUID
             && stCMQCOR.AimUID != UID()){
 
-        AMQueryCORecord stAMQCOR;
-        std::memset(&stAMQCOR, 0, sizeof(stAMQCOR));
+        AMQueryCORecord amQCOR;
+        std::memset(&amQCOR, 0, sizeof(amQCOR));
 
         // target UID can ignore it
         // send the query without response requirement
 
-        stAMQCOR.UID = UID();
-        if(!m_actorPod->forward(stCMQCOR.AimUID, {MPK_QUERYCORECORD, stAMQCOR})){
+        amQCOR.UID = UID();
+        if(!m_actorPod->forward(stCMQCOR.AimUID, {MPK_QUERYCORECORD, amQCOR})){
             reportDeadUID(stCMQCOR.AimUID);
         }
     }
@@ -103,14 +103,14 @@ void Player::net_CM_PICKUP(uint8_t, const uint8_t *pBuf, size_t)
 {
     if(auto pCM = (CMPickUp *)(pBuf); pCM->MapID == m_map->ID()){
         if(CanPickUp(pCM->ID, 0)){
-            AMPickUp stAMPU;
-            std::memset(&stAMPU, 0, sizeof(stAMPU));
-            stAMPU.X    = pCM->X;
-            stAMPU.Y    = pCM->Y;
-            stAMPU.UID  = pCM->UID;
-            stAMPU.ID   = pCM->ID;
-            stAMPU.DBID = pCM->DBID;
-            m_actorPod->forward(m_map->UID(), {MPK_PICKUP, stAMPU});
+            AMPickUp amPU;
+            std::memset(&amPU, 0, sizeof(amPU));
+            amPU.X    = pCM->X;
+            amPU.Y    = pCM->Y;
+            amPU.UID  = pCM->UID;
+            amPU.ID   = pCM->ID;
+            amPU.DBID = pCM->DBID;
+            m_actorPod->forward(m_map->UID(), {MPK_PICKUP, amPU});
         }
     }
 }

@@ -22,15 +22,15 @@
 
 void CharObject::on_MPK_QUERYFRIENDTYPE(const MessagePack &rstMPK)
 {
-    AMQueryFriendType stAMQFT;
-    std::memcpy(&stAMQFT, rstMPK.Data(), sizeof(stAMQFT));
+    AMQueryFriendType amQFT;
+    std::memcpy(&amQFT, rstMPK.Data(), sizeof(amQFT));
 
-    checkFriend(stAMQFT.UID, [this, rstMPK](int nFriendType)
+    checkFriend(amQFT.UID, [this, rstMPK](int nFriendType)
     {
-        AMFriendType stAMFT;
-        std::memset(&stAMFT, 0, sizeof(stAMFT));
+        AMFriendType amFT;
+        std::memset(&amFT, 0, sizeof(amFT));
 
-        stAMFT.Type = nFriendType;
-        m_actorPod->forward(rstMPK.from(), {MPK_FRIENDTYPE, stAMFT}, rstMPK.ID());
+        amFT.Type = nFriendType;
+        m_actorPod->forward(rstMPK.from(), {MPK_FRIENDTYPE, amFT}, rstMPK.ID());
     });
 }

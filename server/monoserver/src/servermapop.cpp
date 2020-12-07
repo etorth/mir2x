@@ -79,16 +79,16 @@ void ServerMap::on_MPK_ACTION(const MessagePack &rstMPK)
 
 void ServerMap::on_MPK_ADDCHAROBJECT(const MessagePack &rstMPK)
 {
-    const auto stAMACO = rstMPK.conv<AMAddCharObject>();
-    const auto nX = stAMACO.x;
-    const auto nY = stAMACO.y;
-    const bool bStrictLoc = stAMACO.strictLoc;
+    const auto amACO = rstMPK.conv<AMAddCharObject>();
+    const auto nX = amACO.x;
+    const auto nY = amACO.y;
+    const bool bStrictLoc = amACO.strictLoc;
 
-    switch(stAMACO.type){
+    switch(amACO.type){
         case UID_MON:
             {
-                const auto nMonsterID = stAMACO.monster.monsterID;
-                const auto nMasterUID = stAMACO.monster.masterUID;
+                const auto nMonsterID = amACO.monster.monsterID;
+                const auto nMasterUID = amACO.monster.masterUID;
 
                 if(addMonster(nMonsterID, nMasterUID, nX, nY, bStrictLoc)){
                     m_actorPod->forward(rstMPK.from(), MPK_OK, rstMPK.ID());
@@ -100,9 +100,9 @@ void ServerMap::on_MPK_ADDCHAROBJECT(const MessagePack &rstMPK)
             }
         case UID_PLY:
             {
-                const auto nDBID      = stAMACO.player.DBID;
-                const auto nChannID   = stAMACO.player.channID;
-                const auto nDirection = stAMACO.player.direction;
+                const auto nDBID      = amACO.player.DBID;
+                const auto nChannID   = amACO.player.channID;
+                const auto nDirection = amACO.player.direction;
 
                 if(auto pPlayer = addPlayer(nDBID, nX, nY, nDirection, bStrictLoc)){
                     m_actorPod->forward(rstMPK.from(), MPK_OK, rstMPK.ID());
@@ -123,10 +123,10 @@ void ServerMap::on_MPK_ADDCHAROBJECT(const MessagePack &rstMPK)
             }
         case UID_NPC:
             {
-                const auto npcID = stAMACO.NPC.NPCID;
-                const auto x     = stAMACO.x;
-                const auto y     = stAMACO.y;
-                const auto strictLoc = stAMACO.strictLoc;
+                const auto npcID = amACO.NPC.NPCID;
+                const auto x     = amACO.x;
+                const auto y     = amACO.y;
+                const auto strictLoc = amACO.strictLoc;
 
                 if(addNPChar(npcID, x, y, strictLoc)){
                     m_actorPod->forward(rstMPK.from(), MPK_OK, rstMPK.ID());
@@ -153,14 +153,14 @@ void ServerMap::on_MPK_ADDCHAROBJECT(const MessagePack &rstMPK)
 
 void ServerMap::on_MPK_TRYSPACEMOVE(const MessagePack &rstMPK)
 {
-    AMTrySpaceMove stAMTSM;
-    std::memcpy(&stAMTSM, rstMPK.Data(), sizeof(stAMTSM));
+    AMTrySpaceMove amTSM;
+    std::memcpy(&amTSM, rstMPK.Data(), sizeof(amTSM));
 
-    int nDstX = stAMTSM.X;
-    int nDstY = stAMTSM.Y;
+    int nDstX = amTSM.X;
+    int nDstY = amTSM.Y;
 
-    if(!ValidC(stAMTSM.X, stAMTSM.Y)){
-        if(stAMTSM.StrictMove){
+    if(!ValidC(amTSM.X, amTSM.Y)){
+        if(amTSM.StrictMove){
             m_actorPod->forward(rstMPK.from(), MPK_ERROR, rstMPK.ID());
             return;
         }
@@ -170,7 +170,7 @@ void ServerMap::on_MPK_TRYSPACEMOVE(const MessagePack &rstMPK)
     }
 
     bool bDstOK = false;
-    std::tie(bDstOK, nDstX, nDstY) = GetValidGrid(false, false, stAMTSM.StrictMove ? 1 : 100, nDstX, nDstY);
+    std::tie(bDstOK, nDstX, nDstY) = GetValidGrid(false, false, amTSM.StrictMove ? 1 : 100, nDstX, nDstY);
 
     if(!bDstOK){
         m_actorPod->forward(rstMPK.from(), MPK_ERROR, rstMPK.ID());
@@ -180,14 +180,14 @@ void ServerMap::on_MPK_TRYSPACEMOVE(const MessagePack &rstMPK)
     // get valid location
     // respond with MPK_SPACEMOVEOK and wait for response
 
-    AMSpaceMoveOK stAMSMOK;
-    std::memset(&stAMSMOK, 0, sizeof(stAMSMOK));
+    AMSpaceMoveOK amSMOK;
+    std::memset(&amSMOK, 0, sizeof(amSMOK));
 
-    stAMSMOK.Ptr = this;
-    stAMSMOK.X   = nDstX;
-    stAMSMOK.Y   = nDstY;
+    amSMOK.Ptr = this;
+    amSMOK.X   = nDstX;
+    amSMOK.Y   = nDstY;
 
-    m_actorPod->forward(rstMPK.from(), {MPK_SPACEMOVEOK, stAMSMOK}, rstMPK.ID(), [this, nUID = stAMTSM.UID, nDstX, nDstY](const MessagePack &rstRMPK)
+    m_actorPod->forward(rstMPK.from(), {MPK_SPACEMOVEOK, amSMOK}, rstMPK.ID(), [this, nUID = amTSM.UID, nDstX, nDstY](const MessagePack &rstRMPK)
     {
         switch(rstRMPK.Type()){
             case MPK_OK:
@@ -213,21 +213,21 @@ void ServerMap::on_MPK_TRYSPACEMOVE(const MessagePack &rstMPK)
 
 void ServerMap::on_MPK_TRYMOVE(const MessagePack &rstMPK)
 {
-    AMTryMove stAMTM;
-    std::memcpy(&stAMTM, rstMPK.Data(), sizeof(stAMTM));
+    AMTryMove amTM;
+    std::memcpy(&amTM, rstMPK.Data(), sizeof(amTM));
 
-    auto fnPrintMoveError = [&stAMTM]()
+    auto fnPrintMoveError = [&amTM]()
     {
-        g_monoServer->addLog(LOGTYPE_WARNING, "TRYMOVE[%p]::UID           = %" PRIu32 , &stAMTM, stAMTM.UID);
-        g_monoServer->addLog(LOGTYPE_WARNING, "TRYMOVE[%p]::MapID         = %" PRIu32 , &stAMTM, stAMTM.MapID);
-        g_monoServer->addLog(LOGTYPE_WARNING, "TRYMOVE[%p]::X             = %d"       , &stAMTM, stAMTM.X);
-        g_monoServer->addLog(LOGTYPE_WARNING, "TRYMOVE[%p]::Y             = %d"       , &stAMTM, stAMTM.Y);
-        g_monoServer->addLog(LOGTYPE_WARNING, "TRYMOVE[%p]::EndX          = %d"       , &stAMTM, stAMTM.EndX);
-        g_monoServer->addLog(LOGTYPE_WARNING, "TRYMOVE[%p]::EndY          = %d"       , &stAMTM, stAMTM.EndY);
-        g_monoServer->addLog(LOGTYPE_WARNING, "TRYMOVE[%p]::AllowHalfMove = %s"       , &stAMTM, stAMTM.AllowHalfMove ? "true" : "false");
+        g_monoServer->addLog(LOGTYPE_WARNING, "TRYMOVE[%p]::UID           = %" PRIu32 , &amTM, amTM.UID);
+        g_monoServer->addLog(LOGTYPE_WARNING, "TRYMOVE[%p]::MapID         = %" PRIu32 , &amTM, amTM.MapID);
+        g_monoServer->addLog(LOGTYPE_WARNING, "TRYMOVE[%p]::X             = %d"       , &amTM, amTM.X);
+        g_monoServer->addLog(LOGTYPE_WARNING, "TRYMOVE[%p]::Y             = %d"       , &amTM, amTM.Y);
+        g_monoServer->addLog(LOGTYPE_WARNING, "TRYMOVE[%p]::EndX          = %d"       , &amTM, amTM.EndX);
+        g_monoServer->addLog(LOGTYPE_WARNING, "TRYMOVE[%p]::EndY          = %d"       , &amTM, amTM.EndY);
+        g_monoServer->addLog(LOGTYPE_WARNING, "TRYMOVE[%p]::AllowHalfMove = %s"       , &amTM, amTM.AllowHalfMove ? "true" : "false");
     };
 
-    if(!In(stAMTM.MapID, stAMTM.X, stAMTM.Y)){
+    if(!In(amTM.MapID, amTM.X, amTM.Y)){
         g_monoServer->addLog(LOGTYPE_WARNING, "Invalid location: (X, Y)");
         fnPrintMoveError();
         m_actorPod->forward(rstMPK.from(), MPK_ERROR, rstMPK.ID());
@@ -237,7 +237,7 @@ void ServerMap::on_MPK_TRYMOVE(const MessagePack &rstMPK)
     // we never allow server to handle motion to invalid grid
     // for client every motion request need to be prepared to avoid this
 
-    if(!In(stAMTM.MapID, stAMTM.EndX, stAMTM.EndY)){
+    if(!In(amTM.MapID, amTM.EndX, amTM.EndY)){
         g_monoServer->addLog(LOGTYPE_WARNING, "Invalid location: (EndX, EndY)");
         fnPrintMoveError();
         m_actorPod->forward(rstMPK.from(), MPK_ERROR, rstMPK.ID());
@@ -245,8 +245,8 @@ void ServerMap::on_MPK_TRYMOVE(const MessagePack &rstMPK)
     }
 
     bool bFindCO = false;
-    for(auto nUID: getUIDList(stAMTM.X, stAMTM.Y)){
-        if(nUID == stAMTM.UID){
+    for(auto nUID: getUIDList(amTM.X, amTM.Y)){
+        if(nUID == amTM.UID){
             bFindCO = true;
             break;
         }
@@ -260,7 +260,7 @@ void ServerMap::on_MPK_TRYMOVE(const MessagePack &rstMPK)
     }
 
     int nStepSize = -1;
-    switch(mathf::LDistance2(stAMTM.X, stAMTM.Y, stAMTM.EndX, stAMTM.EndY)){
+    switch(mathf::LDistance2(amTM.X, amTM.Y, amTM.EndX, amTM.EndY)){
         case 1:
         case 2:
             {
@@ -289,14 +289,14 @@ void ServerMap::on_MPK_TRYMOVE(const MessagePack &rstMPK)
     }
 
     bool bCheckMove = false;
-    auto nMostX = stAMTM.EndX;
-    auto nMostY = stAMTM.EndY;
+    auto nMostX = amTM.EndX;
+    auto nMostY = amTM.EndY;
 
     switch(nStepSize){
         case 1:
             {
                 bCheckMove = false;
-                if(canMove(true, true, stAMTM.EndX, stAMTM.EndY)){
+                if(canMove(true, true, amTM.EndX, amTM.EndY)){
                     bCheckMove = true;
                 }
                 break;
@@ -309,13 +309,13 @@ void ServerMap::on_MPK_TRYMOVE(const MessagePack &rstMPK)
 
                 condcheck(nStepSize == 2 || nStepSize == 3);
 
-                int nDX = (stAMTM.EndX > stAMTM.X) - (stAMTM.EndX < stAMTM.X);
-                int nDY = (stAMTM.EndY > stAMTM.Y) - (stAMTM.EndY < stAMTM.Y);
+                int nDX = (amTM.EndX > amTM.X) - (amTM.EndX < amTM.X);
+                int nDY = (amTM.EndY > amTM.Y) - (amTM.EndY < amTM.Y);
 
                 bCheckMove = true;
-                if(canMove(true, true, stAMTM.EndX, stAMTM.EndY)){
+                if(canMove(true, true, amTM.EndX, amTM.EndY)){
                     for(int nIndex = 1; nIndex < nStepSize; ++nIndex){
-                        if(!canMove(true, false, stAMTM.X + nDX * nIndex, stAMTM.Y + nDY * nIndex)){
+                        if(!canMove(true, false, amTM.X + nDX * nIndex, amTM.Y + nDY * nIndex)){
                             bCheckMove = false;
                             break;
                         }
@@ -324,11 +324,11 @@ void ServerMap::on_MPK_TRYMOVE(const MessagePack &rstMPK)
 
                 if(!bCheckMove){
                     if(true
-                            && stAMTM.AllowHalfMove
-                            && canMove(true, true, stAMTM.X + nDX, stAMTM.Y + nDY)){
+                            && amTM.AllowHalfMove
+                            && canMove(true, true, amTM.X + nDX, amTM.Y + nDY)){
                         bCheckMove = true;
-                        nMostX = stAMTM.X + nDX;
-                        nMostY = stAMTM.Y + nDY;
+                        nMostX = amTM.X + nDX;
+                        nMostY = amTM.Y + nDY;
                     }
                 }
                 break;
@@ -340,18 +340,18 @@ void ServerMap::on_MPK_TRYMOVE(const MessagePack &rstMPK)
         return;
     }
 
-    AMMoveOK stAMMOK;
-    std::memset(&stAMMOK, 0, sizeof(stAMMOK));
+    AMMoveOK amMOK;
+    std::memset(&amMOK, 0, sizeof(amMOK));
 
-    stAMMOK.UID   = UID();
-    stAMMOK.MapID = ID();
-    stAMMOK.X     = stAMTM.X;
-    stAMMOK.Y     = stAMTM.Y;
-    stAMMOK.EndX  = nMostX;
-    stAMMOK.EndY  = nMostY;
+    amMOK.UID   = UID();
+    amMOK.MapID = ID();
+    amMOK.X     = amTM.X;
+    amMOK.Y     = amTM.Y;
+    amMOK.EndX  = nMostX;
+    amMOK.EndY  = nMostY;
 
     getCell(nMostX, nMostY).Locked = true;
-    m_actorPod->forward(rstMPK.from(), {MPK_MOVEOK, stAMMOK}, rstMPK.ID(), [this, stAMTM, nMostX, nMostY](const MessagePack &rstRMPK)
+    m_actorPod->forward(rstMPK.from(), {MPK_MOVEOK, amMOK}, rstMPK.ID(), [this, amTM, nMostX, nMostY](const MessagePack &rstRMPK)
     {
         if(!getCell(nMostX, nMostY).Locked){
             throw fflerror("cell lock released before MOVEOK get responsed: MapUID = %" PRIu64, UID());
@@ -366,10 +366,10 @@ void ServerMap::on_MPK_TRYMOVE(const MessagePack &rstMPK)
 
                     // 1. leave last cell
                     bool bFindCO = false;
-                    auto &rstUIDList = getUIDList(stAMTM.X, stAMTM.Y);
+                    auto &rstUIDList = getUIDList(amTM.X, amTM.Y);
 
                     for(auto &nUID: rstUIDList){
-                        if(nUID == stAMTM.UID){
+                        if(nUID == amTM.UID){
                             bFindCO = true;
                             std::swap(nUID, rstUIDList.back());
                             rstUIDList.pop_back();
@@ -378,21 +378,21 @@ void ServerMap::on_MPK_TRYMOVE(const MessagePack &rstMPK)
                     }
 
                     if(!bFindCO){
-                        throw fflerror("CO location error: (UID = %llu, X = %d, Y = %d)", to_llu(stAMTM.UID), stAMTM.X, stAMTM.Y);
+                        throw fflerror("CO location error: (UID = %llu, X = %d, Y = %d)", to_llu(amTM.UID), amTM.X, amTM.Y);
                     }
 
                     // 2. push to the new cell
                     //    check if it should switch the map
-                    addGridUID(stAMTM.UID, nMostX, nMostY, true);
-                    if(uidf::getUIDType(stAMTM.UID) == UID_PLY && getCell(nMostX, nMostY).mapID){
-                        AMMapSwitch stAMMS;
-                        std::memset(&stAMMS, 0, sizeof(stAMMS));
+                    addGridUID(amTM.UID, nMostX, nMostY, true);
+                    if(uidf::getUIDType(amTM.UID) == UID_PLY && getCell(nMostX, nMostY).mapID){
+                        AMMapSwitch amMS;
+                        std::memset(&amMS, 0, sizeof(amMS));
 
-                        stAMMS.UID   = uidf::buildMapUID(getCell(nMostX, nMostY).mapID); // TODO
-                        stAMMS.MapID = getCell(nMostX, nMostY).mapID;
-                        stAMMS.X     = getCell(nMostX, nMostY).switchX;
-                        stAMMS.Y     = getCell(nMostX, nMostY).switchY;
-                        m_actorPod->forward(stAMTM.UID, {MPK_MAPSWITCH, stAMMS});
+                        amMS.UID   = uidf::buildMapUID(getCell(nMostX, nMostY).mapID); // TODO
+                        amMS.MapID = getCell(nMostX, nMostY).mapID;
+                        amMS.X     = getCell(nMostX, nMostY).switchX;
+                        amMS.Y     = getCell(nMostX, nMostY).switchY;
+                        m_actorPod->forward(amTM.UID, {MPK_MAPSWITCH, amMS});
                     }
                     break;
                 }
@@ -422,21 +422,21 @@ void ServerMap::on_MPK_TRYLEAVE(const MessagePack &mpk)
 
 void ServerMap::on_MPK_PULLCOINFO(const MessagePack &rstMPK)
 {
-    AMPullCOInfo stAMPCOI;
-    std::memcpy(&stAMPCOI, rstMPK.Data(), sizeof(stAMPCOI));
+    AMPullCOInfo amPCOI;
+    std::memcpy(&amPCOI, rstMPK.Data(), sizeof(amPCOI));
 
-    DoCenterSquare(stAMPCOI.X, stAMPCOI.Y, stAMPCOI.W, stAMPCOI.H, false, [this, stAMPCOI](int nX, int nY) -> bool
+    DoCenterSquare(amPCOI.X, amPCOI.Y, amPCOI.W, amPCOI.H, false, [this, amPCOI](int nX, int nY) -> bool
     {
         if(true || ValidC(nX, nY)){
-            doUIDList(nX, nY, [this, stAMPCOI](uint64_t nUID) -> bool
+            doUIDList(nX, nY, [this, amPCOI](uint64_t nUID) -> bool
             {
-                if(nUID != stAMPCOI.UID){
+                if(nUID != amPCOI.UID){
                     if(uidf::getUIDType(nUID) == UID_PLY || uidf::getUIDType(nUID) == UID_MON){
-                        AMQueryCORecord stAMQCOR;
-                        std::memset(&stAMQCOR, 0, sizeof(stAMQCOR));
+                        AMQueryCORecord amQCOR;
+                        std::memset(&amQCOR, 0, sizeof(amQCOR));
 
-                        stAMQCOR.UID = stAMPCOI.UID;
-                        m_actorPod->forward(nUID, {MPK_QUERYCORECORD, stAMQCOR});
+                        amQCOR.UID = amPCOI.UID;
+                        m_actorPod->forward(nUID, {MPK_QUERYCORECORD, amQCOR});
                     }
                 }
                 return false;
@@ -490,41 +490,41 @@ void ServerMap::on_MPK_TRYMAPSWITCH(const MessagePack &mpk)
 
 void ServerMap::on_MPK_PATHFIND(const MessagePack &rstMPK)
 {
-    AMPathFind stAMPF;
-    std::memcpy(&stAMPF, rstMPK.Data(), sizeof(stAMPF));
+    AMPathFind amPF;
+    std::memcpy(&amPF, rstMPK.Data(), sizeof(amPF));
 
-    int nX0 = stAMPF.X;
-    int nY0 = stAMPF.Y;
-    int nX1 = stAMPF.EndX;
-    int nY1 = stAMPF.EndY;
+    int nX0 = amPF.X;
+    int nY0 = amPF.Y;
+    int nX1 = amPF.EndX;
+    int nY1 = amPF.EndY;
 
-    AMPathFindOK stAMPFOK;
-    std::memset(&stAMPFOK, 0, sizeof(stAMPFOK));
+    AMPathFindOK amPFOK;
+    std::memset(&amPFOK, 0, sizeof(amPFOK));
 
-    stAMPFOK.UID   = stAMPF.UID;
-    stAMPFOK.MapID = ID();
+    amPFOK.UID   = amPF.UID;
+    amPFOK.MapID = ID();
 
     // we fill all slots with -1 for initialization
     // won't keep a record of ``how many path nodes are valid"
-    constexpr auto nPathCount = std::extent<decltype(stAMPFOK.Point)>::value;
+    constexpr auto nPathCount = std::extent<decltype(amPFOK.Point)>::value;
     for(int nIndex = 0; nIndex < (int)(nPathCount); ++nIndex){
-        stAMPFOK.Point[nIndex].X = -1;
-        stAMPFOK.Point[nIndex].Y = -1;
+        amPFOK.Point[nIndex].X = -1;
+        amPFOK.Point[nIndex].Y = -1;
     }
 
     // should make sure MaxStep is OK
     if(true
-            && stAMPF.MaxStep != 1
-            && stAMPF.MaxStep != 2
-            && stAMPF.MaxStep != 3){
+            && amPF.MaxStep != 1
+            && amPF.MaxStep != 2
+            && amPF.MaxStep != 3){
 
         // we get a dangerous parameter from actormessage
         // correct here and put an warning in the log system
-        stAMPF.MaxStep = 1;
-        g_monoServer->addLog(LOGTYPE_WARNING, "Invalid MaxStep: %d, should be (1, 2, 3)", stAMPF.MaxStep);
+        amPF.MaxStep = 1;
+        g_monoServer->addLog(LOGTYPE_WARNING, "Invalid MaxStep: %d, should be (1, 2, 3)", amPF.MaxStep);
     }
 
-    ServerPathFinder stPathFinder(this, stAMPF.MaxStep, stAMPF.CheckCO);
+    ServerPathFinder stPathFinder(this, amPF.MaxStep, amPF.CheckCO);
     if(!stPathFinder.Search(nX0, nY0, nX1, nY1)){
         m_actorPod->forward(rstMPK.from(), MPK_ERROR, rstMPK.ID());
         return;
@@ -551,8 +551,8 @@ void ServerMap::on_MPK_PATHFIND(const MessagePack &rstMPK)
             case 1:
             case 2:
                 {
-                    stAMPFOK.Point[nCurrN].X = nCurrX;
-                    stAMPFOK.Point[nCurrN].Y = nCurrY;
+                    amPFOK.Point[nCurrN].X = nCurrX;
+                    amPFOK.Point[nCurrN].Y = nCurrY;
 
                     nCurrN++;
 
@@ -568,22 +568,22 @@ void ServerMap::on_MPK_PATHFIND(const MessagePack &rstMPK)
                 }
         }
     }
-    m_actorPod->forward(rstMPK.from(), {MPK_PATHFINDOK, stAMPFOK}, rstMPK.ID());
+    m_actorPod->forward(rstMPK.from(), {MPK_PATHFINDOK, amPFOK}, rstMPK.ID());
 }
 
 void ServerMap::on_MPK_UPDATEHP(const MessagePack &rstMPK)
 {
-    AMUpdateHP stAMUHP;
-    std::memcpy(&stAMUHP, rstMPK.Data(), sizeof(stAMUHP));
+    AMUpdateHP amUHP;
+    std::memcpy(&amUHP, rstMPK.Data(), sizeof(amUHP));
 
-    if(ValidC(stAMUHP.X, stAMUHP.Y)){
-        doCircle(stAMUHP.X, stAMUHP.Y, 20, [this, stAMUHP](int nX, int nY) -> bool
+    if(ValidC(amUHP.X, amUHP.Y)){
+        doCircle(amUHP.X, amUHP.Y, 20, [this, amUHP](int nX, int nY) -> bool
         {
             if(true || ValidC(nX, nY)){
                 for(auto nUID: getUIDList(nX, nY)){
-                    if(nUID != stAMUHP.UID){
+                    if(nUID != amUHP.UID){
                         if(uidf::getUIDType(nUID) == UID_PLY || uidf::getUIDType(nUID) == UID_MON){
-                            m_actorPod->forward(nUID, {MPK_UPDATEHP, stAMUHP});
+                            m_actorPod->forward(nUID, {MPK_UPDATEHP, amUHP});
                         }
                     }
                 }
@@ -595,21 +595,21 @@ void ServerMap::on_MPK_UPDATEHP(const MessagePack &rstMPK)
 
 void ServerMap::on_MPK_DEADFADEOUT(const MessagePack &rstMPK)
 {
-    AMDeadFadeOut stAMDFO;
-    std::memcpy(&stAMDFO, rstMPK.Data(), sizeof(stAMDFO));
+    AMDeadFadeOut amDFO;
+    std::memcpy(&amDFO, rstMPK.Data(), sizeof(amDFO));
 
-    if(ValidC(stAMDFO.X, stAMDFO.Y)){
-        removeGridUID(stAMDFO.UID, stAMDFO.X, stAMDFO.Y);
-        doCircle(stAMDFO.X, stAMDFO.Y, 20, [this, stAMDFO](int nX, int nY) -> bool
+    if(ValidC(amDFO.X, amDFO.Y)){
+        removeGridUID(amDFO.UID, amDFO.X, amDFO.Y);
+        doCircle(amDFO.X, amDFO.Y, 20, [this, amDFO](int nX, int nY) -> bool
         {
             if(true || ValidC(nX, nY)){
                 for(auto nUID: getUIDList(nX, nY)){
-                    if(nUID != stAMDFO.UID){
+                    if(nUID != amDFO.UID){
                         if(uidf::getUIDType(nUID) == UID_PLY){
-                            m_actorPod->forward(nUID, {MPK_DEADFADEOUT, stAMDFO});
+                            m_actorPod->forward(nUID, {MPK_DEADFADEOUT, amDFO});
                         }
                         else if(uidf::getUIDType(nUID) == UID_MON && DBCOM_MONSTERRECORD(uidf::getMonsterID(nUID)).deadFadeOut){
-                            m_actorPod->forward(nUID, {MPK_DEADFADEOUT, stAMDFO});
+                            m_actorPod->forward(nUID, {MPK_DEADFADEOUT, amDFO});
                         }
                     }
                 }
@@ -621,10 +621,10 @@ void ServerMap::on_MPK_DEADFADEOUT(const MessagePack &rstMPK)
 
 void ServerMap::on_MPK_QUERYCOCOUNT(const MessagePack &rstMPK)
 {
-    AMQueryCOCount stAMQCOC;
-    std::memcpy(&stAMQCOC, rstMPK.Data(), sizeof(stAMQCOC));
+    AMQueryCOCount amQCOC;
+    std::memcpy(&amQCOC, rstMPK.Data(), sizeof(amQCOC));
 
-    if(stAMQCOC.MapID && (stAMQCOC.MapID != ID())){
+    if(amQCOC.MapID && (amQCOC.MapID != ID())){
         m_actorPod->forward(rstMPK.from(), MPK_ERROR, rstMPK.ID());
         return;
     }
@@ -632,57 +632,57 @@ void ServerMap::on_MPK_QUERYCOCOUNT(const MessagePack &rstMPK)
     int nCOCount = 0;
     for(int nX = 0; nX < W(); ++nX){
         for(int nY = 0; nY < H(); ++nY){
-            std::for_each(getUIDList(nX, nY).begin(), getUIDList(nX, nY).end(), [stAMQCOC, &nCOCount](uint64_t nUID){
+            std::for_each(getUIDList(nX, nY).begin(), getUIDList(nX, nY).end(), [amQCOC, &nCOCount](uint64_t nUID){
                 if(uidf::getUIDType(nUID) == UID_PLY || uidf::getUIDType(nUID) == UID_MON){
-                    if(stAMQCOC.Check.NPC    ){ nCOCount++; return; }
-                    if(stAMQCOC.Check.Player ){ nCOCount++; return; }
-                    if(stAMQCOC.Check.Monster){ nCOCount++; return; }
+                    if(amQCOC.Check.NPC    ){ nCOCount++; return; }
+                    if(amQCOC.Check.Player ){ nCOCount++; return; }
+                    if(amQCOC.Check.Monster){ nCOCount++; return; }
                 }
             });
         }
     }
 
-    AMCOCount stAMCOC;
-    std::memset(&stAMCOC, 0, sizeof(stAMCOC));
+    AMCOCount amCOC;
+    std::memset(&amCOC, 0, sizeof(amCOC));
 
-    stAMCOC.Count = nCOCount;
-    m_actorPod->forward(rstMPK.from(), {MPK_COCOUNT, stAMCOC}, rstMPK.ID());
+    amCOC.Count = nCOCount;
+    m_actorPod->forward(rstMPK.from(), {MPK_COCOUNT, amCOC}, rstMPK.ID());
 }
 
 void ServerMap::on_MPK_QUERYRECTUIDLIST(const MessagePack &rstMPK)
 {
-    AMQueryRectUIDList stAMQRUIDL;
-    std::memcpy(&stAMQRUIDL, rstMPK.Data(), sizeof(stAMQRUIDL));
+    AMQueryRectUIDList amQRUIDL;
+    std::memcpy(&amQRUIDL, rstMPK.Data(), sizeof(amQRUIDL));
 
-    AMUIDList stAMUIDL;
-    std::memset(&stAMUIDL, 0, sizeof(stAMUIDL));
+    AMUIDList amUIDL;
+    std::memset(&amUIDL, 0, sizeof(amUIDL));
 
     size_t nIndex = 0;
-    for(int nY = stAMQRUIDL.Y; nY < stAMQRUIDL.Y + stAMQRUIDL.H; ++nY){
-        for(int nX = stAMQRUIDL.X; nX < stAMQRUIDL.X + stAMQRUIDL.W; ++nX){
-            if(In(stAMQRUIDL.MapID, nX, nY)){
+    for(int nY = amQRUIDL.Y; nY < amQRUIDL.Y + amQRUIDL.H; ++nY){
+        for(int nX = amQRUIDL.X; nX < amQRUIDL.X + amQRUIDL.W; ++nX){
+            if(In(amQRUIDL.MapID, nX, nY)){
                 for(auto nUID: getUIDList(nX, nY)){
-                    stAMUIDL.UIDList[nIndex++] = nUID;
+                    amUIDL.UIDList[nIndex++] = nUID;
                 }
             }
         }
     }
 
-    m_actorPod->forward(rstMPK.from(), {MPK_UIDLIST, stAMUIDL}, rstMPK.ID());
+    m_actorPod->forward(rstMPK.from(), {MPK_UIDLIST, amUIDL}, rstMPK.ID());
 }
 
 void ServerMap::on_MPK_NEWDROPITEM(const MessagePack &rstMPK)
 {
-    AMNewDropItem stAMNDI;
-    std::memcpy(&stAMNDI, rstMPK.Data(), sizeof(stAMNDI));
+    AMNewDropItem amNDI;
+    std::memcpy(&amNDI, rstMPK.Data(), sizeof(amNDI));
 
     if(true
-            && stAMNDI.ID
-            && stAMNDI.Value > 0
-            && groundValid(stAMNDI.X, stAMNDI.Y)){
+            && amNDI.ID
+            && amNDI.Value > 0
+            && groundValid(amNDI.X, amNDI.Y)){
 
         bool bHoldInOne = false;
-        switch(stAMNDI.ID){
+        switch(amNDI.ID){
             case DBCOM_ITEMID(u8"金币"):
                 {
                     bHoldInOne = true;
@@ -694,7 +694,7 @@ void ServerMap::on_MPK_NEWDROPITEM(const MessagePack &rstMPK)
                 }
         }
 
-        auto nLoop = bHoldInOne ? 1 : stAMNDI.Value;
+        auto nLoop = bHoldInOne ? 1 : amNDI.Value;
         for(int nIndex = 0; nIndex < nLoop; ++nIndex){
 
             // we check SYS_MAXDROPITEMGRID grids to find a best place to hold current item
@@ -705,7 +705,7 @@ void ServerMap::on_MPK_NEWDROPITEM(const MessagePack &rstMPK)
             int nBestY    = -1;
             int nMinCount = SYS_MAXDROPITEM + 1;
 
-            RotateCoord stRC(stAMNDI.X, stAMNDI.Y, 0, 0, W(), H());
+            RotateCoord stRC(amNDI.X, amNDI.Y, 0, 0, W(), H());
             do{
                 if(groundValid(stRC.X(), stRC.Y())){
 
@@ -728,7 +728,7 @@ void ServerMap::on_MPK_NEWDROPITEM(const MessagePack &rstMPK)
             }while(stRC.forward() && (nCheckGrid++ <= SYS_MAXDROPITEMGRID));
 
             if(groundValid(nBestX, nBestY)){
-                AddGroundItem(CommonItem(stAMNDI.ID, 0), nBestX, nBestY);
+                AddGroundItem(CommonItem(amNDI.ID, 0), nBestX, nBestY);
             }else{
 
                 // we scanned the square but find we can't find a valid place
@@ -741,19 +741,19 @@ void ServerMap::on_MPK_NEWDROPITEM(const MessagePack &rstMPK)
 
 void ServerMap::on_MPK_OFFLINE(const MessagePack &rstMPK)
 {
-    AMOffline stAMO;
-    std::memcpy(&stAMO, rstMPK.Data(), sizeof(stAMO));
+    AMOffline amO;
+    std::memcpy(&amO, rstMPK.Data(), sizeof(amO));
 
     // this may fail
     // because player may get offline at try move
-    removeGridUID(stAMO.UID, stAMO.X, stAMO.Y);
+    removeGridUID(amO.UID, amO.X, amO.Y);
 
-    doCircle(stAMO.X, stAMO.Y, 10, [stAMO, this](int nX, int nY) -> bool
+    doCircle(amO.X, amO.Y, 10, [amO, this](int nX, int nY) -> bool
     {
         if(true || ValidC(nX, nY)){
             for(auto nUID: getUIDList(nX, nY)){
-                if(nUID != stAMO.UID){
-                    m_actorPod->forward(nUID, {MPK_OFFLINE, stAMO});
+                if(nUID != amO.UID){
+                    m_actorPod->forward(nUID, {MPK_OFFLINE, amO});
                 }
             }
         }
@@ -763,31 +763,31 @@ void ServerMap::on_MPK_OFFLINE(const MessagePack &rstMPK)
 
 void ServerMap::on_MPK_PICKUP(const MessagePack &rstMPK)
 {
-    AMPickUp stAMPU;
-    std::memcpy(&stAMPU, rstMPK.Data(), sizeof(stAMPU));
+    AMPickUp amPU;
+    std::memcpy(&amPU, rstMPK.Data(), sizeof(amPU));
 
-    if(!ValidC(stAMPU.X, stAMPU.Y) || !stAMPU.ID){
-        g_monoServer->addLog(LOGTYPE_WARNING, "Invalid pickup request: X = %d, Y = %d, ID = %" PRIu32, stAMPU.X, stAMPU.Y, stAMPU.ID);
+    if(!ValidC(amPU.X, amPU.Y) || !amPU.ID){
+        g_monoServer->addLog(LOGTYPE_WARNING, "Invalid pickup request: X = %d, Y = %d, ID = %" PRIu32, amPU.X, amPU.Y, amPU.ID);
         return;
     }
 
-    if(auto nIndex = FindGroundItem(CommonItem(stAMPU.ID, 0), stAMPU.X, stAMPU.Y); nIndex >= 0){
-        RemoveGroundItem(CommonItem(stAMPU.ID, 0), stAMPU.X, stAMPU.Y);
-        doCircle(stAMPU.X, stAMPU.Y, 10, [this, stAMPU](int nX, int nY) -> bool
+    if(auto nIndex = FindGroundItem(CommonItem(amPU.ID, 0), amPU.X, amPU.Y); nIndex >= 0){
+        RemoveGroundItem(CommonItem(amPU.ID, 0), amPU.X, amPU.Y);
+        doCircle(amPU.X, amPU.Y, 10, [this, amPU](int nX, int nY) -> bool
         {
             if(true || ValidC(nX, nY)){
-                AMRemoveGroundItem stAMRGI;
-                std::memset(&stAMRGI, 0, sizeof(stAMRGI));
+                AMRemoveGroundItem amRGI;
+                std::memset(&amRGI, 0, sizeof(amRGI));
 
-                stAMRGI.X      = nX;
-                stAMRGI.Y      = nY;
-                stAMRGI.DBID   = stAMPU.DBID;
-                stAMRGI.ID = stAMPU.ID;
+                amRGI.X      = nX;
+                amRGI.Y      = nY;
+                amRGI.DBID   = amPU.DBID;
+                amRGI.ID = amPU.ID;
 
-                doUIDList(nX, nY, [this, &stAMRGI](uint64_t nUID) -> bool
+                doUIDList(nX, nY, [this, &amRGI](uint64_t nUID) -> bool
                 {
                     if(uidf::getUIDType(nUID) == UID_PLY){
-                        m_actorPod->forward(nUID, {MPK_REMOVEGROUNDITEM, stAMRGI});
+                        m_actorPod->forward(nUID, {MPK_REMOVEGROUNDITEM, amRGI});
                     }
                     return false;
                 });
@@ -795,15 +795,15 @@ void ServerMap::on_MPK_PICKUP(const MessagePack &rstMPK)
             return false;
         });
 
-        AMPickUpOK stAMPUOK;
-        std::memset(&stAMPUOK, 0, sizeof(stAMPUOK));
+        AMPickUpOK amPUOK;
+        std::memset(&amPUOK, 0, sizeof(amPUOK));
 
-        stAMPUOK.X    = stAMPU.X;
-        stAMPUOK.Y    = stAMPU.Y;
-        stAMPUOK.UID  = stAMPU.UID;
-        stAMPUOK.DBID = 0;
-        stAMPUOK.ID   = stAMPU.ID;
-        m_actorPod->forward(stAMPU.UID, {MPK_PICKUPOK, stAMPUOK});
+        amPUOK.X    = amPU.X;
+        amPUOK.Y    = amPU.Y;
+        amPUOK.UID  = amPU.UID;
+        amPUOK.DBID = 0;
+        amPUOK.ID   = amPU.ID;
+        m_actorPod->forward(amPU.UID, {MPK_PICKUPOK, amPUOK});
     }else{
         // no such item
         // likely the client need re-sync for the gound items

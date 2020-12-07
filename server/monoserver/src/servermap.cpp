@@ -868,18 +868,18 @@ bool ServerMap::AddGroundItem(const CommonItem &rstCommonItem, int nX, int nY)
         auto &rstGroundItemList = GetGroundItemList(nX, nY);
         rstGroundItemList.PushBack(rstCommonItem);
 
-        AMShowDropItem stAMSDI;
-        std::memset(&stAMSDI, 0, sizeof(stAMSDI));
+        AMShowDropItem amSDI;
+        std::memset(&amSDI, 0, sizeof(amSDI));
 
-        stAMSDI.X = nX;
-        stAMSDI.Y = nY;
+        amSDI.X = nX;
+        amSDI.Y = nY;
 
         size_t nCurrLoc = 0;
         for(size_t nIndex = 0; nIndex < rstGroundItemList.Length(); ++nIndex){
             if(rstGroundItemList[nIndex]){
-                if(nCurrLoc < std::extent<decltype(stAMSDI.IDList)>::value){
-                    stAMSDI.IDList[nCurrLoc].ID   = rstGroundItemList[nIndex].ID();
-                    stAMSDI.IDList[nCurrLoc].DBID = rstGroundItemList[nIndex].DBID();
+                if(nCurrLoc < std::extent<decltype(amSDI.IDList)>::value){
+                    amSDI.IDList[nCurrLoc].ID   = rstGroundItemList[nIndex].ID();
+                    amSDI.IDList[nCurrLoc].DBID = rstGroundItemList[nIndex].DBID();
                     nCurrLoc++;
                 }else{
                     break;
@@ -887,12 +887,12 @@ bool ServerMap::AddGroundItem(const CommonItem &rstCommonItem, int nX, int nY)
             }
         }
 
-        auto fnNotifyDropItem = [this, stAMSDI](int nX, int nY) -> bool
+        auto fnNotifyDropItem = [this, amSDI](int nX, int nY) -> bool
         {
             if(true || ValidC(nX, nY)){
                 for(auto nUID: getUIDList(nX, nY)){
                     if(uidf::getUIDType(nUID) == UID_PLY){
-                        m_actorPod->forward(nUID, {MPK_SHOWDROPITEM, stAMSDI});
+                        m_actorPod->forward(nUID, {MPK_SHOWDROPITEM, amSDI});
                     }
                 }
             }
@@ -937,17 +937,17 @@ std::vector<std::u8string> ServerMap::getMonsterList() const
 
 void ServerMap::notifyNewCO(uint64_t nUID, int nX, int nY)
 {
-    AMNotifyNewCO stAMNNCO;
-    std::memset(&stAMNNCO, 0, sizeof(stAMNNCO));
+    AMNotifyNewCO amNNCO;
+    std::memset(&amNNCO, 0, sizeof(amNNCO));
 
-    stAMNNCO.UID = nUID;
-    doCircle(nX, nY, 20, [this, stAMNNCO](int nX, int nY) -> bool
+    amNNCO.UID = nUID;
+    doCircle(nX, nY, 20, [this, amNNCO](int nX, int nY) -> bool
     {
         if(true || ValidC(nX, nY)){
-            doUIDList(nX, nY, [this, stAMNNCO](uint64_t nUID)
+            doUIDList(nX, nY, [this, amNNCO](uint64_t nUID)
             {
-                if(nUID != stAMNNCO.UID){
-                    m_actorPod->forward(nUID, {MPK_NOTIFYNEWCO, stAMNNCO});
+                if(nUID != amNNCO.UID){
+                    m_actorPod->forward(nUID, {MPK_NOTIFYNEWCO, amNNCO});
                 }
                 return false;
             });

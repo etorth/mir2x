@@ -634,26 +634,26 @@ void Monster::reportCO(uint64_t toUID)
         return;
     }
 
-    AMCORecord stAMCOR;
-    std::memset(&stAMCOR, 0, sizeof(stAMCOR));
+    AMCORecord amCOR;
+    std::memset(&amCOR, 0, sizeof(amCOR));
 
-    stAMCOR.Action.UID   = UID();
-    stAMCOR.Action.MapID = MapID();
+    amCOR.Action.UID   = UID();
+    amCOR.Action.MapID = MapID();
 
-    stAMCOR.Action.Action    = ACTION_STAND;
-    stAMCOR.Action.Speed     = SYS_DEFSPEED;
-    stAMCOR.Action.Direction = Direction();
+    amCOR.Action.Action    = ACTION_STAND;
+    amCOR.Action.Speed     = SYS_DEFSPEED;
+    amCOR.Action.Direction = Direction();
 
-    stAMCOR.Action.X    = X();
-    stAMCOR.Action.Y    = Y();
-    stAMCOR.Action.AimX = X();
-    stAMCOR.Action.AimY = Y();
+    amCOR.Action.X    = X();
+    amCOR.Action.Y    = Y();
+    amCOR.Action.AimX = X();
+    amCOR.Action.AimY = Y();
 
-    stAMCOR.Action.AimUID      = 0;
-    stAMCOR.Action.ActionParam = 0;
+    amCOR.Action.AimUID      = 0;
+    amCOR.Action.ActionParam = 0;
 
-    stAMCOR.Monster.MonsterID = monsterID();
-    m_actorPod->forward(toUID, {MPK_CORECORD, stAMCOR});
+    amCOR.Monster.MonsterID = monsterID();
+    m_actorPod->forward(toUID, {MPK_CORECORD, amCOR});
 }
 
 bool Monster::InRange(int nRangeType, int nX, int nY)
@@ -817,19 +817,19 @@ bool Monster::goGhost()
                             // 1. setup state and inform all others
                             SetState(STATE_GHOST, 1);
 
-                            AMDeadFadeOut stAMDFO;
-                            std::memset(&stAMDFO, 0, sizeof(stAMDFO));
+                            AMDeadFadeOut amDFO;
+                            std::memset(&amDFO, 0, sizeof(amDFO));
 
-                            stAMDFO.UID   = UID();
-                            stAMDFO.MapID = MapID();
-                            stAMDFO.X     = X();
-                            stAMDFO.Y     = Y();
+                            amDFO.UID   = UID();
+                            amDFO.MapID = MapID();
+                            amDFO.X     = X();
+                            amDFO.Y     = Y();
 
                             // send this to remove the map grid coverage
                             // for monster don't need fadeout (like Taodog) we shouldn't send the FADEOUT to client
 
                             if(checkActorPod() && m_map && m_map->checkActorPod()){
-                                m_actorPod->forward(m_map->UID(), {MPK_DEADFADEOUT, stAMDFO});
+                                m_actorPod->forward(m_map->UID(), {MPK_DEADFADEOUT, amDFO});
                             }
 
                             // 2. deactivate the actor here
@@ -1070,31 +1070,31 @@ bool Monster::MoveOneStepAStar(int nX, int nY, std::function<void()> fnOnOK, std
         return false;
     }
 
-    AMPathFind stAMPF;
-    std::memset(&stAMPF, 0, sizeof(stAMPF));
+    AMPathFind amPF;
+    std::memset(&amPF, 0, sizeof(amPF));
 
-    stAMPF.UID     = UID();
-    stAMPF.MapID   = MapID();
-    stAMPF.CheckCO = 1;
-    stAMPF.MaxStep = MaxStep();
-    stAMPF.X       = X();
-    stAMPF.Y       = Y();
-    stAMPF.EndX    = nX;
-    stAMPF.EndY    = nY;
+    amPF.UID     = UID();
+    amPF.MapID   = MapID();
+    amPF.CheckCO = 1;
+    amPF.MaxStep = MaxStep();
+    amPF.X       = X();
+    amPF.Y       = Y();
+    amPF.EndX    = nX;
+    amPF.EndY    = nY;
 
-    return m_actorPod->forward(MapUID(), {MPK_PATHFIND, stAMPF}, [this, nX, nY, fnOnOK, fnOnError](const MessagePack &rstRMPK)
+    return m_actorPod->forward(MapUID(), {MPK_PATHFIND, amPF}, [this, nX, nY, fnOnOK, fnOnError](const MessagePack &rstRMPK)
     {
         switch(rstRMPK.Type()){
             case MPK_PATHFINDOK:
                 {
-                    AMPathFindOK stAMPFOK;
-                    std::memcpy(&stAMPFOK, rstRMPK.Data(), sizeof(stAMPFOK));
+                    AMPathFindOK amPFOK;
+                    std::memcpy(&amPFOK, rstRMPK.Data(), sizeof(amPFOK));
 
-                    constexpr auto nNodeCount = std::extent<decltype(stAMPFOK.Point)>::value;
+                    constexpr auto nNodeCount = std::extent<decltype(amPFOK.Point)>::value;
                     static_assert(nNodeCount >= 2);
 
-                    auto pBegin = stAMPFOK.Point;
-                    auto pEnd   = stAMPFOK.Point + nNodeCount;
+                    auto pBegin = amPFOK.Point;
+                    auto pEnd   = amPFOK.Point + nNodeCount;
 
                     std::vector<PathFind::PathNode> stvPathNode;
                     for(auto pCurr = pBegin; pCurr != pEnd; ++pCurr){
@@ -1110,7 +1110,7 @@ bool Monster::MoveOneStepAStar(int nX, int nY, std::function<void()> fnOnOK, std
                     }
                     m_AStarCache.Cache(stvPathNode, MapID());
 
-                    requestMove(stAMPFOK.Point[1].X, stAMPFOK.Point[1].Y, MoveSpeed(), false, false, fnOnOK, fnOnError);
+                    requestMove(amPFOK.Point[1].X, amPFOK.Point[1].Y, MoveSpeed(), false, false, fnOnOK, fnOnError);
                     break;
                 }
             default:
@@ -1137,19 +1137,19 @@ void Monster::randomDrop()
     for(auto &rstGroupRecord: DB_MONSTERDROPITEM(monsterID())){
         for(auto &rstItemRecord: rstGroupRecord.second){
             if(std::rand() % rstItemRecord.ProbRecip == 0){
-                AMNewDropItem stAMNDI;
-                stAMNDI.UID   = UID();
-                stAMNDI.X     = X();
-                stAMNDI.Y     = Y();
-                stAMNDI.ID    = rstItemRecord.ID;
-                stAMNDI.Value = rstItemRecord.Value;
+                AMNewDropItem amNDI;
+                amNDI.UID   = UID();
+                amNDI.X     = X();
+                amNDI.Y     = Y();
+                amNDI.ID    = rstItemRecord.ID;
+                amNDI.Value = rstItemRecord.Value;
 
                 // suggest server map to add a new drop item, but server map
                 // may reject this suggestion silently.
                 //
                 // and if we are not in group-0
                 // break if we select the first one item
-                m_actorPod->forward(m_map->UID(), {MPK_NEWDROPITEM, stAMNDI});
+                m_actorPod->forward(m_map->UID(), {MPK_NEWDROPITEM, amNDI});
                 if(rstGroupRecord.first != 0){
                     break;
                 }
@@ -1236,10 +1236,10 @@ void Monster::QueryMaster(uint64_t nUID, std::function<void(uint64_t)> fnOp)
         switch(rstRMPK.Type()){
             case MPK_UID:
                 {
-                    AMUID stAMUID;
-                    std::memcpy(&stAMUID, rstRMPK.Data(), sizeof(stAMUID));
+                    AMUID amUID;
+                    std::memcpy(&amUID, rstRMPK.Data(), sizeof(amUID));
 
-                    fnOp(stAMUID.UID);
+                    fnOp(amUID.UID);
                     return;
                 }
             default:
@@ -1273,10 +1273,10 @@ void Monster::checkFriend_AsGuard(uint64_t nUID, std::function<void(int)> fnOp)
                     switch(rstMPK.Type()){
                         case MPK_NAMECOLOR:
                             {
-                                AMNameColor stAMNC;
-                                std::memcpy(&stAMNC, rstMPK.Data(), sizeof(stAMNC));
+                                AMNameColor amNC;
+                                std::memcpy(&amNC, rstMPK.Data(), sizeof(amNC));
 
-                                switch(stAMNC.Color){
+                                switch(amNC.Color){
                                     case 'R':
                                         {
                                             fnOp(FT_ENEMY);
@@ -1499,31 +1499,31 @@ void Monster::QueryFriendType(uint64_t nUID, uint64_t nTargetUID, std::function<
         throw fflerror("invalid UID: %" PRIu64 ", %" PRIu64, nUID, nTargetUID);
     }
 
-    AMQueryFriendType stAMQFT;
-    std::memset(&stAMQFT, 0, sizeof(stAMQFT));
+    AMQueryFriendType amQFT;
+    std::memset(&amQFT, 0, sizeof(amQFT));
 
-    stAMQFT.UID = nTargetUID;
+    amQFT.UID = nTargetUID;
 
-    m_actorPod->forward(nUID, {MPK_QUERYFRIENDTYPE, stAMQFT}, [fnOp](const MessagePack &rstMPK)
+    m_actorPod->forward(nUID, {MPK_QUERYFRIENDTYPE, amQFT}, [fnOp](const MessagePack &rstMPK)
     {
         switch(rstMPK.Type()){
             case MPK_FRIENDTYPE:
                 {
-                    AMFriendType stAMFT;
-                    std::memcpy(&stAMFT, rstMPK.Data(), sizeof(stAMFT));
+                    AMFriendType amFT;
+                    std::memcpy(&amFT, rstMPK.Data(), sizeof(amFT));
 
-                    switch(stAMFT.Type){
+                    switch(amFT.Type){
                         case FT_ERROR:
                         case FT_ENEMY:
                         case FT_FRIEND:
                         case FT_NEUTRAL:
                             {
-                                fnOp(stAMFT.Type);
+                                fnOp(amFT.Type);
                                 return;
                             }
                         default:
                             {
-                                throw fflerror("invalid friend type: %d", stAMFT.Type);
+                                throw fflerror("invalid friend type: %d", amFT.Type);
                             }
                     }
                 }

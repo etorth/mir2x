@@ -57,8 +57,8 @@ void ServiceCore::net_CM_Login(uint32_t nChannID, uint8_t, const uint8_t *pData,
         return;
     }
 
-    AMLoginQueryDB stAMLQDBOK;
-    std::memset(&stAMLQDBOK, 0, sizeof(stAMLQDBOK));
+    AMLoginQueryDB amLQDBOK;
+    std::memset(&amLQDBOK, 0, sizeof(amLQDBOK));
 
     auto nDBID      = pDBHDR->Get<int64_t>("fld_dbid");
     auto nMapID     = DBCOM_MAPID(pDBHDR->Get<std::u8string>("fld_mapname").c_str());
@@ -76,19 +76,19 @@ void ServiceCore::net_CM_Login(uint32_t nChannID, uint8_t, const uint8_t *pData,
         return;
     }
 
-    AMAddCharObject stAMACO;
-    std::memset(&stAMACO, 0, sizeof(stAMACO));
+    AMAddCharObject amACO;
+    std::memset(&amACO, 0, sizeof(amACO));
 
-    stAMACO.type             = UID_PLY;
-    stAMACO.x                = nMapX;
-    stAMACO.y                = nMapY;
-    stAMACO.mapID            = nMapID;
-    stAMACO.strictLoc        = false;
-    stAMACO.player.DBID      = nDBID;
-    stAMACO.player.direction = nDirection;
-    stAMACO.player.channID   = nChannID;
+    amACO.type             = UID_PLY;
+    amACO.x                = nMapX;
+    amACO.y                = nMapY;
+    amACO.mapID            = nMapID;
+    amACO.strictLoc        = false;
+    amACO.player.DBID      = nDBID;
+    amACO.player.direction = nDirection;
+    amACO.player.channID   = nChannID;
 
-    m_actorPod->forward(pMap->UID(), {MPK_ADDCHAROBJECT, stAMACO}, [this, fnOnLoginFail](const MessagePack &rstRMPK)
+    m_actorPod->forward(pMap->UID(), {MPK_ADDCHAROBJECT, amACO}, [this, fnOnLoginFail](const MessagePack &rstRMPK)
     {
         switch(rstRMPK.Type()){
             case MPK_OK:

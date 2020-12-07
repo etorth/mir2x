@@ -270,14 +270,14 @@ void ProcessNew::PostAccount(const char *szID, const char *szPWD, int nOperation
             && szID  && std::strlen(szID)
             && szPWD && std::strlen(szPWD)){
 
-        CMAccount stCMA;
-        std::memset(&stCMA, 0, sizeof(stCMA));
+        CMAccount cmA;
+        std::memset(&cmA, 0, sizeof(cmA));
 
-        std::strcpy(stCMA.ID, szID);
-        std::strcpy(stCMA.Password, szPWD);
+        std::strcpy(cmA.ID, szID);
+        std::strcpy(cmA.Password, szPWD);
 
-        stCMA.Operation = nOperation;
-        g_client->send(CM_ACCOUNT, stCMA);
+        cmA.Operation = nOperation;
+        g_client->send(CM_ACCOUNT, cmA);
     }
 }
 

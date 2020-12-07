@@ -35,71 +35,71 @@ void Player::on_MPK_METRONOME(const MessagePack &)
 
 void Player::on_MPK_BADACTORPOD(const MessagePack &rstMPK)
 {
-    AMBadActorPod stAMBAP;
-    std::memcpy(&stAMBAP, rstMPK.Data(), sizeof(stAMBAP));
-    reportDeadUID(stAMBAP.UID);
+    AMBadActorPod amBAP;
+    std::memcpy(&amBAP, rstMPK.Data(), sizeof(amBAP));
+    reportDeadUID(amBAP.UID);
 }
 
 void Player::on_MPK_BINDCHANNEL(const MessagePack &rstMPK)
 {
-    AMBindChannel stAMBC;
-    std::memcpy(&stAMBC, rstMPK.Data(), sizeof(stAMBC));
+    AMBindChannel amBC;
+    std::memcpy(&amBC, rstMPK.Data(), sizeof(amBC));
 
     // bind channel here
     // set the channel actor as this->GetAddress()
-    m_channID = stAMBC.ChannID;
+    m_channID = amBC.ChannID;
 
     g_netDriver->BindActor(ChannID(), UID());
 
-    SMLoginOK stSMLOK;
-    std::memset(&stSMLOK, 0, sizeof(stSMLOK));
+    SMLoginOK smLOK;
+    std::memset(&smLOK, 0, sizeof(smLOK));
 
-    stSMLOK.UID       = UID();
-    stSMLOK.DBID      = DBID();
-    stSMLOK.MapID     = m_map->ID();
-    stSMLOK.X         = X();
-    stSMLOK.Y         = Y();
-    stSMLOK.Male      = true;
-    stSMLOK.Direction = Direction();
-    stSMLOK.JobID     = JobID();
-    stSMLOK.Level     = Level();
+    smLOK.UID       = UID();
+    smLOK.DBID      = DBID();
+    smLOK.MapID     = m_map->ID();
+    smLOK.X         = X();
+    smLOK.Y         = Y();
+    smLOK.Male      = true;
+    smLOK.Direction = Direction();
+    smLOK.JobID     = JobID();
+    smLOK.Level     = Level();
 
-    g_netDriver->Post(ChannID(), SM_LOGINOK, stSMLOK);
+    g_netDriver->Post(ChannID(), SM_LOGINOK, smLOK);
     PullRectCO(10, 10);
 }
 
 void Player::on_MPK_NETPACKAGE(const MessagePack &rstMPK)
 {
-    AMNetPackage stAMNP;
-    std::memcpy(&stAMNP, rstMPK.Data(), sizeof(AMNetPackage));
+    AMNetPackage amNP;
+    std::memcpy(&amNP, rstMPK.Data(), sizeof(AMNetPackage));
 
     uint8_t *pDataBuf = nullptr;
-    if(stAMNP.DataLen){
-        if(stAMNP.Data){
-            pDataBuf = stAMNP.Data;
+    if(amNP.DataLen){
+        if(amNP.Data){
+            pDataBuf = amNP.Data;
         }else{
-            pDataBuf = stAMNP.DataBuf;
+            pDataBuf = amNP.DataBuf;
         }
     }
 
-    operateNet(stAMNP.Type, pDataBuf, stAMNP.DataLen);
+    operateNet(amNP.Type, pDataBuf, amNP.DataLen);
 
-    if(stAMNP.Data){
-        delete [] stAMNP.Data;
+    if(amNP.Data){
+        delete [] amNP.Data;
     }
 }
 
 void Player::on_MPK_ACTION(const MessagePack &rstMPK)
 {
-    AMAction stAMA;
-    std::memcpy(&stAMA, rstMPK.Data(), sizeof(stAMA));
+    AMAction amA;
+    std::memcpy(&amA, rstMPK.Data(), sizeof(amA));
 
-    if(stAMA.UID == UID()){
+    if(amA.UID == UID()){
         return;
     }
 
-    if(stAMA.MapID != MapID()){
-        RemoveInViewCO(stAMA.UID);
+    if(amA.MapID != MapID()){
+        RemoveInViewCO(amA.UID);
         return;
     }
 
@@ -107,12 +107,12 @@ void Player::on_MPK_ACTION(const MessagePack &rstMPK)
     // the x/y are always well-defined
 
     int nDirection = -1;
-    switch(stAMA.Action){
+    switch(amA.Action){
         case ACTION_STAND:
         case ACTION_ATTACK:
         case ACTION_HITTED:
             {
-                nDirection = stAMA.Direction;
+                nDirection = amA.Direction;
                 break;
             }
         default:
@@ -121,15 +121,15 @@ void Player::on_MPK_ACTION(const MessagePack &rstMPK)
             }
     }
 
-    if(mathf::LDistance2(stAMA.X, stAMA.Y, X(), Y()) > 20 * 20){
+    if(mathf::LDistance2(amA.X, amA.Y, X(), Y()) > 20 * 20){
         return;
     }
 
-    switch(stAMA.Action){
+    switch(amA.Action){
         case ACTION_SPAWN:
         case ACTION_SPACEMOVE2:
             {
-                dispatchAction(stAMA.UID, ActionStand(X(), Y(), Direction()));
+                dispatchAction(amA.UID, ActionStand(X(), Y(), Direction()));
                 break;
             }
         default:
@@ -138,19 +138,19 @@ void Player::on_MPK_ACTION(const MessagePack &rstMPK)
             }
     }
 
-    AddInViewCO(stAMA.UID, stAMA.MapID, stAMA.X, stAMA.Y, nDirection);
-    reportAction(stAMA.UID, ActionNode
+    AddInViewCO(amA.UID, amA.MapID, amA.X, amA.Y, nDirection);
+    reportAction(amA.UID, ActionNode
     {
-        stAMA.Action,
-        stAMA.Speed,
-        stAMA.Direction,
+        amA.Action,
+        amA.Speed,
+        amA.Direction,
 
-        stAMA.X,
-        stAMA.Y,
-        stAMA.AimX,
-        stAMA.AimY,
-        stAMA.AimUID,
-        stAMA.ActionParam,
+        amA.X,
+        amA.Y,
+        amA.AimX,
+        amA.AimY,
+        amA.AimUID,
+        amA.ActionParam,
     });
 }
 
@@ -180,10 +180,10 @@ void Player::on_MPK_NOTIFYNEWCO(const MessagePack &mpk)
 
 void Player::on_MPK_QUERYCORECORD(const MessagePack &rstMPK)
 {
-    AMQueryCORecord stAMQCOR;
-    std::memcpy(&stAMQCOR, rstMPK.Data(), sizeof(stAMQCOR));
+    AMQueryCORecord amQCOR;
+    std::memcpy(&amQCOR, rstMPK.Data(), sizeof(amQCOR));
 
-    reportCO(stAMQCOR.UID);
+    reportCO(amQCOR.UID);
 }
 
 void Player::on_MPK_MAPSWITCH(const MessagePack &mpk)
@@ -225,33 +225,33 @@ void Player::on_MPK_NPCQUERY(const MessagePack &mpk)
 
 void Player::on_MPK_QUERYLOCATION(const MessagePack &rstMPK)
 {
-    AMLocation stAML;
-    std::memset(&stAML, 0, sizeof(stAML));
+    AMLocation amL;
+    std::memset(&amL, 0, sizeof(amL));
 
-    stAML.UID       = UID();
-    stAML.MapID     = MapID();
-    stAML.X         = X();
-    stAML.Y         = Y();
-    stAML.Direction = Direction();
+    amL.UID       = UID();
+    amL.MapID     = MapID();
+    amL.X         = X();
+    amL.Y         = Y();
+    amL.Direction = Direction();
 
-    m_actorPod->forward(rstMPK.from(), {MPK_LOCATION, stAML}, rstMPK.ID());
+    m_actorPod->forward(rstMPK.from(), {MPK_LOCATION, amL}, rstMPK.ID());
 }
 
 void Player::on_MPK_ATTACK(const MessagePack &rstMPK)
 {
-    AMAttack stAMA;
-    std::memcpy(&stAMA, rstMPK.Data(), sizeof(stAMA));
+    AMAttack amA;
+    std::memcpy(&amA, rstMPK.Data(), sizeof(amA));
 
-    if(mathf::LDistance2(X(), Y(), stAMA.X, stAMA.Y) > 2){
-        switch(uidf::getUIDType(stAMA.UID)){
+    if(mathf::LDistance2(X(), Y(), amA.X, amA.Y) > 2){
+        switch(uidf::getUIDType(amA.UID)){
             case UID_MON:
             case UID_PLY:
                 {
-                    AMMiss stAMM;
-                    std::memset(&stAMM, 0, sizeof(stAMM));
+                    AMMiss amM;
+                    std::memset(&amM, 0, sizeof(amM));
 
-                    stAMM.UID = stAMA.UID;
-                    m_actorPod->forward(stAMA.UID, {MPK_MISS, stAMM});
+                    amM.UID = amA.UID;
+                    m_actorPod->forward(amA.UID, {MPK_MISS, amM});
                     return;
                 }
             default:
@@ -266,92 +266,92 @@ void Player::on_MPK_ATTACK(const MessagePack &rstMPK)
     }
 
     dispatchAction(ActionHitted(X(), Y(), Direction()));
-    StruckDamage({stAMA.UID, stAMA.Type, stAMA.Damage, stAMA.Element});
+    StruckDamage({amA.UID, amA.Type, amA.Damage, amA.Element});
     reportAction(UID(), ActionHitted(X(), Y(), Direction()));
 }
 
 void Player::on_MPK_UPDATEHP(const MessagePack &rstMPK)
 {
-    AMUpdateHP stAMUHP;
-    std::memcpy(&stAMUHP, rstMPK.Data(), sizeof(stAMUHP));
+    AMUpdateHP amUHP;
+    std::memcpy(&amUHP, rstMPK.Data(), sizeof(amUHP));
 
-    if(stAMUHP.UID != UID()){
-        SMUpdateHP stSMUHP;
-        stSMUHP.UID   = stAMUHP.UID;
-        stSMUHP.MapID = stAMUHP.MapID;
-        stSMUHP.HP    = stAMUHP.HP;
-        stSMUHP.HPMax = stAMUHP.HPMax;
+    if(amUHP.UID != UID()){
+        SMUpdateHP smUHP;
+        smUHP.UID   = amUHP.UID;
+        smUHP.MapID = amUHP.MapID;
+        smUHP.HP    = amUHP.HP;
+        smUHP.HPMax = amUHP.HPMax;
 
-        g_netDriver->Post(ChannID(), SM_UPDATEHP, stSMUHP);
+        g_netDriver->Post(ChannID(), SM_UPDATEHP, smUHP);
     }
 }
 
 void Player::on_MPK_DEADFADEOUT(const MessagePack &rstMPK)
 {
-    AMDeadFadeOut stAMDFO;
-    std::memcpy(&stAMDFO, rstMPK.Data(), sizeof(stAMDFO));
+    AMDeadFadeOut amDFO;
+    std::memcpy(&amDFO, rstMPK.Data(), sizeof(amDFO));
 
-    RemoveInViewCO(stAMDFO.UID);
-    if(stAMDFO.UID != UID()){
-        SMDeadFadeOut stSMDFO;
-        stSMDFO.UID   = stAMDFO.UID;
-        stSMDFO.MapID = stAMDFO.MapID;
-        stSMDFO.X     = stAMDFO.X;
-        stSMDFO.Y     = stAMDFO.Y;
-        g_netDriver->Post(ChannID(), SM_DEADFADEOUT, stSMDFO);
+    RemoveInViewCO(amDFO.UID);
+    if(amDFO.UID != UID()){
+        SMDeadFadeOut smDFO;
+        smDFO.UID   = amDFO.UID;
+        smDFO.MapID = amDFO.MapID;
+        smDFO.X     = amDFO.X;
+        smDFO.Y     = amDFO.Y;
+        g_netDriver->Post(ChannID(), SM_DEADFADEOUT, smDFO);
     }
 }
 
 void Player::on_MPK_EXP(const MessagePack &rstMPK)
 {
-    AMExp stAME;
-    std::memcpy(&stAME, rstMPK.Data(), sizeof(stAME));
+    AMExp amE;
+    std::memcpy(&amE, rstMPK.Data(), sizeof(amE));
 
-    GainExp(stAME.Exp);
+    GainExp(amE.Exp);
 
-    if(stAME.Exp > 0){
-        SMExp stSME;
-        stSME.Exp = stAME.Exp;
-        g_netDriver->Post(ChannID(), SM_EXP, stSME);
+    if(amE.Exp > 0){
+        SMExp smE;
+        smE.Exp = amE.Exp;
+        g_netDriver->Post(ChannID(), SM_EXP, smE);
     }
 }
 
 void Player::on_MPK_MISS(const MessagePack &rstMPK)
 {
-    AMMiss stAMM;
-    std::memcpy(&stAMM, rstMPK.Data(), sizeof(stAMM));
+    AMMiss amM;
+    std::memcpy(&amM, rstMPK.Data(), sizeof(amM));
 
-    SMMiss stSMM;
-    std::memset(&stSMM, 0, sizeof(stSMM));
+    SMMiss smM;
+    std::memset(&smM, 0, sizeof(smM));
 
-    stSMM.UID = stAMM.UID;
-    postNetMessage(SM_MISS, stSMM);
+    smM.UID = amM.UID;
+    postNetMessage(SM_MISS, smM);
 }
 
 void Player::on_MPK_SHOWDROPITEM(const MessagePack &rstMPK)
 {
-    AMShowDropItem stAMSDI;
-    std::memcpy(&stAMSDI, rstMPK.Data(), sizeof(stAMSDI));
+    AMShowDropItem amSDI;
+    std::memcpy(&amSDI, rstMPK.Data(), sizeof(amSDI));
 
-    SMShowDropItem stSMSDI;
-    std::memset(&stSMSDI, 0, sizeof(stSMSDI));
+    SMShowDropItem smSDI;
+    std::memset(&smSDI, 0, sizeof(smSDI));
 
-    stSMSDI.X  = stAMSDI.X;
-    stSMSDI.Y  = stAMSDI.Y;
+    smSDI.X  = amSDI.X;
+    smSDI.Y  = amSDI.Y;
 
-    constexpr auto nSMIDListLen = std::extent<decltype(stSMSDI.IDList)>::value;
-    constexpr auto nAMIDListLen = std::extent<decltype(stAMSDI.IDList)>::value;
+    constexpr auto nSMIDListLen = std::extent<decltype(smSDI.IDList)>::value;
+    constexpr auto nAMIDListLen = std::extent<decltype(amSDI.IDList)>::value;
 
     static_assert(nSMIDListLen >= nAMIDListLen, "");
     for(size_t nIndex = 0; nIndex < nAMIDListLen; ++nIndex){
-        if(stAMSDI.IDList[nIndex].ID){
-            stSMSDI.IDList[nIndex].ID   = stAMSDI.IDList[nIndex].ID;
-            stSMSDI.IDList[nIndex].DBID = stAMSDI.IDList[nIndex].DBID;
+        if(amSDI.IDList[nIndex].ID){
+            smSDI.IDList[nIndex].ID   = amSDI.IDList[nIndex].ID;
+            smSDI.IDList[nIndex].DBID = amSDI.IDList[nIndex].DBID;
         }else{
             break;
         }
     }
-    g_netDriver->Post(ChannID(), SM_SHOWDROPITEM, stSMSDI);
+    g_netDriver->Post(ChannID(), SM_SHOWDROPITEM, smSDI);
 }
 
 void Player::on_MPK_NPCXMLLAYOUT(const MessagePack &msg)
@@ -374,10 +374,10 @@ void Player::on_MPK_NPCXMLLAYOUT(const MessagePack &msg)
 
 void Player::on_MPK_BADCHANNEL(const MessagePack &rstMPK)
 {
-    AMBadChannel stAMBC;
-    std::memcpy(&stAMBC, rstMPK.Data(), sizeof(stAMBC));
+    AMBadChannel amBC;
+    std::memcpy(&amBC, rstMPK.Data(), sizeof(amBC));
 
-    condcheck(ChannID() == stAMBC.ChannID);
+    condcheck(ChannID() == amBC.ChannID);
     g_netDriver->Shutdown(ChannID(), false);
 
     Offline();
@@ -385,42 +385,42 @@ void Player::on_MPK_BADCHANNEL(const MessagePack &rstMPK)
 
 void Player::on_MPK_OFFLINE(const MessagePack &rstMPK)
 {
-    AMOffline stAMO;
-    std::memcpy(&stAMO, rstMPK.Data(), sizeof(stAMO));
+    AMOffline amO;
+    std::memcpy(&amO, rstMPK.Data(), sizeof(amO));
 
-    reportOffline(stAMO.UID, stAMO.MapID);
+    reportOffline(amO.UID, amO.MapID);
 }
 
 void Player::on_MPK_REMOVEGROUNDITEM(const MessagePack &rstMPK)
 {
-    AMRemoveGroundItem stAMRGI;
-    std::memcpy(&stAMRGI, rstMPK.Data(), sizeof(stAMRGI));
+    AMRemoveGroundItem amRGI;
+    std::memcpy(&amRGI, rstMPK.Data(), sizeof(amRGI));
 
-    SMRemoveGroundItem stSMRGI;
-    stSMRGI.X    = stAMRGI.X;
-    stSMRGI.Y    = stAMRGI.Y;
-    stSMRGI.ID   = stAMRGI.ID;
-    stSMRGI.DBID = stAMRGI.DBID;
+    SMRemoveGroundItem smRGI;
+    smRGI.X    = amRGI.X;
+    smRGI.Y    = amRGI.Y;
+    smRGI.ID   = amRGI.ID;
+    smRGI.DBID = amRGI.DBID;
 
-    postNetMessage(SM_REMOVEGROUNDITEM, stSMRGI);
+    postNetMessage(SM_REMOVEGROUNDITEM, smRGI);
 }
 
 void Player::on_MPK_PICKUPOK(const MessagePack &rstMPK)
 {
-    AMPickUpOK stAMPUOK;
-    std::memcpy(&stAMPUOK, rstMPK.Data(), sizeof(stAMPUOK));
+    AMPickUpOK amPUOK;
+    std::memcpy(&amPUOK, rstMPK.Data(), sizeof(amPUOK));
 
-    SMPickUpOK stSMPUOK;
-    std::memset(&stSMPUOK, 0, sizeof(stSMPUOK));
+    SMPickUpOK smPUOK;
+    std::memset(&smPUOK, 0, sizeof(smPUOK));
 
-    stSMPUOK.X    = stAMPUOK.X;
-    stSMPUOK.Y    = stAMPUOK.Y;
-    stSMPUOK.ID   = stAMPUOK.ID;
-    stSMPUOK.DBID = stAMPUOK.DBID;
+    smPUOK.X    = amPUOK.X;
+    smPUOK.Y    = amPUOK.Y;
+    smPUOK.ID   = amPUOK.ID;
+    smPUOK.DBID = amPUOK.DBID;
 
-    postNetMessage(SM_PICKUPOK, stSMPUOK);
+    postNetMessage(SM_PICKUPOK, smPUOK);
 
-    switch(stAMPUOK.ID){
+    switch(amPUOK.ID){
         case DBCOM_ITEMID(u8"金币"):
             {
                 m_gold += std::rand() % 500;
@@ -429,7 +429,7 @@ void Player::on_MPK_PICKUPOK(const MessagePack &rstMPK)
             }
         default:
             {
-                m_inventory.emplace_back(stAMPUOK.ID, stAMPUOK.DBID);
+                m_inventory.emplace_back(amPUOK.ID, amPUOK.DBID);
                 break;
             }
     }
@@ -438,37 +438,37 @@ void Player::on_MPK_PICKUPOK(const MessagePack &rstMPK)
 
 void Player::on_MPK_CORECORD(const MessagePack &rstMPK)
 {
-    const auto stAMCOR = rstMPK.conv<AMCORecord>();
+    const auto amCOR = rstMPK.conv<AMCORecord>();
 
-    SMCORecord stSMCOR;
-    std::memset(&stSMCOR, 0, sizeof(stSMCOR));
+    SMCORecord smCOR;
+    std::memset(&smCOR, 0, sizeof(smCOR));
 
-    stSMCOR.Action.UID   = stAMCOR.Action.UID;
-    stSMCOR.Action.MapID = stAMCOR.Action.MapID;
+    smCOR.Action.UID   = amCOR.Action.UID;
+    smCOR.Action.MapID = amCOR.Action.MapID;
 
-    stSMCOR.Action.Action    = stAMCOR.Action.Action;
-    stSMCOR.Action.Speed     = stAMCOR.Action.Speed;
-    stSMCOR.Action.Direction = stAMCOR.Action.Direction;
+    smCOR.Action.Action    = amCOR.Action.Action;
+    smCOR.Action.Speed     = amCOR.Action.Speed;
+    smCOR.Action.Direction = amCOR.Action.Direction;
 
-    stSMCOR.Action.X    = stAMCOR.Action.X;
-    stSMCOR.Action.Y    = stAMCOR.Action.Y;
-    stSMCOR.Action.AimX = stAMCOR.Action.AimX;
-    stSMCOR.Action.AimY = stAMCOR.Action.AimY;
+    smCOR.Action.X    = amCOR.Action.X;
+    smCOR.Action.Y    = amCOR.Action.Y;
+    smCOR.Action.AimX = amCOR.Action.AimX;
+    smCOR.Action.AimY = amCOR.Action.AimY;
 
-    stSMCOR.Action.AimUID      = stAMCOR.Action.AimUID;
-    stSMCOR.Action.ActionParam = stAMCOR.Action.ActionParam;
+    smCOR.Action.AimUID      = amCOR.Action.AimUID;
+    smCOR.Action.ActionParam = amCOR.Action.ActionParam;
 
-    switch(uidf::getUIDType(stAMCOR.Action.UID)){
+    switch(uidf::getUIDType(amCOR.Action.UID)){
         case UID_PLY:
             {
-                stSMCOR.Player.DBID  = stAMCOR.Player.DBID;
-                stSMCOR.Player.JobID = stAMCOR.Player.JobID;
-                stSMCOR.Player.Level = stAMCOR.Player.Level;
+                smCOR.Player.DBID  = amCOR.Player.DBID;
+                smCOR.Player.JobID = amCOR.Player.JobID;
+                smCOR.Player.Level = amCOR.Player.Level;
                 break;
             }
         case UID_MON:
             {
-                stSMCOR.Monster.MonsterID = stAMCOR.Monster.MonsterID;
+                smCOR.Monster.MonsterID = amCOR.Monster.MonsterID;
                 break;
             }
         default:
@@ -476,7 +476,7 @@ void Player::on_MPK_CORECORD(const MessagePack &rstMPK)
                 break;
             }
     }
-    postNetMessage(SM_CORECORD, stSMCOR);
+    postNetMessage(SM_CORECORD, smCOR);
 }
 
 void Player::on_MPK_NOTIFYDEAD(const MessagePack &)

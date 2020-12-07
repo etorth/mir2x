@@ -685,25 +685,25 @@ bool MyHero::emplaceAction(const ActionNode &rstAction)
 
 void MyHero::ReportAction(const ActionNode &rstAction)
 {
-    CMAction stCMA;
-    std::memset(&stCMA, 0, sizeof(stCMA));
+    CMAction cmA;
+    std::memset(&cmA, 0, sizeof(cmA));
 
-    stCMA.UID   = UID();
-    stCMA.MapID = m_processRun->MapID();
+    cmA.UID   = UID();
+    cmA.MapID = m_processRun->MapID();
 
-    stCMA.Action    = rstAction.Action;
-    stCMA.Speed     = rstAction.Speed;
-    stCMA.Direction = rstAction.Direction;
+    cmA.Action    = rstAction.Action;
+    cmA.Speed     = rstAction.Speed;
+    cmA.Direction = rstAction.Direction;
 
-    stCMA.X    = rstAction.X;
-    stCMA.Y    = rstAction.Y;
-    stCMA.AimX = rstAction.AimX;
-    stCMA.AimY = rstAction.AimY;
+    cmA.X    = rstAction.X;
+    cmA.Y    = rstAction.Y;
+    cmA.AimX = rstAction.AimX;
+    cmA.AimY = rstAction.AimY;
 
-    stCMA.AimUID      = rstAction.AimUID;
-    stCMA.ActionParam = rstAction.ActionParam;
+    cmA.AimUID      = rstAction.AimUID;
+    cmA.ActionParam = rstAction.ActionParam;
 
-    g_client->send(CM_ACTION, stCMA);
+    g_client->send(CM_ACTION, cmA);
 }
 
 void MyHero::pullGold()

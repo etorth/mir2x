@@ -340,20 +340,20 @@ void MonoServer::restart(const std::string &msg)
 
 bool MonoServer::addMonster(uint32_t monsterID, uint32_t mapID, int x, int y, bool strictLoc)
 {
-    AMAddCharObject stAMACO;
-    std::memset(&stAMACO, 0, sizeof(stAMACO));
+    AMAddCharObject amACO;
+    std::memset(&amACO, 0, sizeof(amACO));
 
-    stAMACO.type = UID_MON;
-    stAMACO.x = x;
-    stAMACO.y = y;
-    stAMACO.mapID = mapID;
-    stAMACO.strictLoc = strictLoc;
+    amACO.type = UID_MON;
+    amACO.x = x;
+    amACO.y = y;
+    amACO.mapID = mapID;
+    amACO.strictLoc = strictLoc;
 
-    stAMACO.monster.monsterID = monsterID;
-    stAMACO.monster.masterUID = 0;
+    amACO.monster.monsterID = monsterID;
+    amACO.monster.masterUID = 0;
     addLog(LOGTYPE_INFO, "Try to add monster, monsterID = %llu", to_llu(monsterID));
 
-    switch(auto stRMPK = SyncDriver().forward(m_serviceCore->UID(), {MPK_ADDCHAROBJECT, stAMACO}, 0, 0); stRMPK.Type()){
+    switch(auto stRMPK = SyncDriver().forward(m_serviceCore->UID(), {MPK_ADDCHAROBJECT, amACO}, 0, 0); stRMPK.Type()){
         case MPK_OK:
             {
                 addLog(LOGTYPE_INFO, "Add monster succeeds");
@@ -374,19 +374,19 @@ bool MonoServer::addMonster(uint32_t monsterID, uint32_t mapID, int x, int y, bo
 
 bool MonoServer::addNPChar(uint16_t npcID, uint32_t mapID, int x, int y, bool strictLoc)
 {
-    AMAddCharObject stAMACO;
-    std::memset(&stAMACO, 0, sizeof(stAMACO));
+    AMAddCharObject amACO;
+    std::memset(&amACO, 0, sizeof(amACO));
 
-    stAMACO.type = UID_NPC;
-    stAMACO.x = x;
-    stAMACO.y = y;
-    stAMACO.mapID = mapID;
-    stAMACO.strictLoc = strictLoc;
+    amACO.type = UID_NPC;
+    amACO.x = x;
+    amACO.y = y;
+    amACO.mapID = mapID;
+    amACO.strictLoc = strictLoc;
 
-    stAMACO.NPC.NPCID = npcID;
+    amACO.NPC.NPCID = npcID;
     addLog(LOGTYPE_INFO, "Try to add NPC, NPCID = %llu", to_llu(npcID));
 
-    switch(auto stRMPK = SyncDriver().forward(m_serviceCore->UID(), {MPK_ADDCHAROBJECT, stAMACO}, 0, 0); stRMPK.Type()){
+    switch(auto stRMPK = SyncDriver().forward(m_serviceCore->UID(), {MPK_ADDCHAROBJECT, amACO}, 0, 0); stRMPK.Type()){
         case MPK_OK:
             {
                 addLog(LOGTYPE_INFO, "Add NPC succeeds");
@@ -409,13 +409,13 @@ std::vector<int> MonoServer::GetMapList()
     switch(auto stRMPK = SyncDriver().forward(m_serviceCore->UID(), MPK_QUERYMAPLIST); stRMPK.Type()){
         case MPK_MAPLIST:
             {
-                AMMapList stAMML;
-                std::memcpy(&stAMML, stRMPK.Data(), sizeof(stAMML));
+                AMMapList amML;
+                std::memcpy(&amML, stRMPK.Data(), sizeof(amML));
 
                 std::vector<int> stMapList;
-                for(size_t nIndex = 0; nIndex < std::extent<decltype(stAMML.MapList)>::value; ++nIndex){
-                    if(stAMML.MapList[nIndex]){
-                        stMapList.push_back((int)(stAMML.MapList[nIndex]));
+                for(size_t nIndex = 0; nIndex < std::extent<decltype(amML.MapList)>::value; ++nIndex){
+                    if(amML.MapList[nIndex]){
+                        stMapList.push_back((int)(amML.MapList[nIndex]));
                     }else{
                         break;
                     }
@@ -443,22 +443,22 @@ sol::optional<int> MonoServer::GetMonsterCount(int nMonsterID, int nMapID)
         // OK we send request to service core
         // and poll the result here till we get the sum
 
-        AMQueryCOCount stAMQCOC;
-        std::memset(&stAMQCOC, 0, sizeof(stAMQCOC));
+        AMQueryCOCount amQCOC;
+        std::memset(&amQCOC, 0, sizeof(amQCOC));
 
-        stAMQCOC.MapID                = (uint32_t)(nMapID);
-        stAMQCOC.Check.Monster        = true;
-        stAMQCOC.CheckParam.MonsterID = (uint32_t)(nMonsterID);
+        amQCOC.MapID                = (uint32_t)(nMapID);
+        amQCOC.Check.Monster        = true;
+        amQCOC.CheckParam.MonsterID = (uint32_t)(nMonsterID);
 
-        switch(auto stRMPK = SyncDriver().forward(m_serviceCore->UID(), {MPK_QUERYCOCOUNT, stAMQCOC}); stRMPK.Type()){
+        switch(auto stRMPK = SyncDriver().forward(m_serviceCore->UID(), {MPK_QUERYCOCOUNT, amQCOC}); stRMPK.Type()){
             case MPK_COCOUNT:
                 {
-                    AMCOCount stAMCOC;
-                    std::memcpy(&stAMCOC, stRMPK.Data(), sizeof(stAMCOC));
+                    AMCOCount amCOC;
+                    std::memcpy(&amCOC, stRMPK.Data(), sizeof(amCOC));
 
                     // may overflow
                     // should put some check here
-                    return sol::optional<int>((int)(stAMCOC.Count));
+                    return sol::optional<int>((int)(amCOC.Count));
                 }
             case MPK_ERROR:
             default:

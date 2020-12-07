@@ -83,16 +83,16 @@ void NPChar::on_MPK_QUERYCORECORD(const MessagePack &mpk)
 
 void NPChar::on_MPK_QUERYLOCATION(const MessagePack &mpk)
 {
-    AMLocation stAML;
-    std::memset(&stAML, 0, sizeof(stAML));
+    AMLocation amL;
+    std::memset(&amL, 0, sizeof(amL));
 
-    stAML.UID       = UID();
-    stAML.MapID     = MapID();
-    stAML.X         = X();
-    stAML.Y         = Y();
-    stAML.Direction = Direction();
+    amL.UID       = UID();
+    amL.MapID     = MapID();
+    amL.X         = X();
+    amL.Y         = Y();
+    amL.Direction = Direction();
 
-    m_actorPod->forward(mpk.from(), {MPK_LOCATION, stAML}, mpk.ID());
+    m_actorPod->forward(mpk.from(), {MPK_LOCATION, amL}, mpk.ID());
 }
 
 void NPChar::on_MPK_BADACTORPOD(const MessagePack &mpk)
