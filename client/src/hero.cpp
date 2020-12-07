@@ -484,6 +484,11 @@ bool Hero::parseAction(const ActionNode &action)
 
                             if(nDir >= DIR_BEGIN && nDir < DIR_END){
                                 m_motionQueue.emplace_back(nMotionSpell, 0, nDir, SYS_DEFSPEED, action.X, action.Y);
+                                if(nMotionSpell == MOTION_SPELL0){
+                                    for(int i = 0; i < 4; ++i){
+                                        m_motionQueue.emplace_back(MOTION_ATTACKMODE, 0, nDir, action.X, action.Y);
+                                    }
+                                }
                                 addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(DBCOM_MAGICRECORD(action.ActionParam).name, u8"启动", nDir - DIR_BEGIN)));
                             }
                         }
