@@ -3,7 +3,7 @@
  *
  *       Filename: dropitemconfig.hpp
  *        Created: 07/30/2017 00:11:10
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -34,7 +34,7 @@ struct DropItemConfig
 
             int argGroup,
             int argProbRecip,
-            
+
             int argRepeat,
             int argValue)
         : monsterName(argMonsterName)

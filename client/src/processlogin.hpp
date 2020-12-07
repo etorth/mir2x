@@ -3,7 +3,7 @@
  *
  *       Filename: processlogin.hpp
  *        Created: 08/14/2015 02:47:30 PM
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none

@@ -3,7 +3,7 @@
  *
  *       Filename: channpackq.hpp
  *        Created: 01/27/2018 01:16:08
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -116,7 +116,7 @@ class ChannPackQ
         bool AddChannPack(uint8_t, const uint8_t *, size_t, std::function<void()> &&);
 
     private:
-        bool AddPackMark(size_t, size_t, std::function<void()> &&); 
+        bool AddPackMark(size_t, size_t, std::function<void()> &&);
 
     private:
         uint8_t *GetCompBuf(size_t nBufLen)

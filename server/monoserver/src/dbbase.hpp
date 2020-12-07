@@ -3,7 +3,7 @@
  *
  *       Filename: dbbase.hpp
  *        Created: 01/21/2019 22:03:34
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none

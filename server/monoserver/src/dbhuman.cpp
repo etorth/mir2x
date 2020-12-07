@@ -3,7 +3,7 @@
  *
  *       Filename: dbhuman.cpp
  *        Created: 05/26/2017 19:18:29
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none

@@ -3,7 +3,7 @@
  *
  *       Filename: processsync.hpp
  *        Created: 08/14/2015 02:47:30
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none

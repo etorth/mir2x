@@ -3,7 +3,7 @@
  *
  *       Filename: textbutton.cpp
  *        Created: 03/16/2017 15:04:17
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -24,15 +24,15 @@
 #include "tritexbutton.hpp"
 
 extern Log *g_log;
-extern SDLDevice *g_SDLDevice;
+extern SDLDevice *g_sdlDevice;
 
 void TextButton::drawEx(int nDstX, int nDstY, int nSrcX, int nSrcY, int nW, int nH)
 {
     const auto bgColor = colorf::ARGB2RGBA(m_color[state()][1]);
-    g_SDLDevice->fillRectangle(bgColor, nDstX, nDstY, nW, nH);
+    g_sdlDevice->fillRectangle(bgColor, nDstX, nDstY, nW, nH);
 
     const auto frameLineColor = colorf::ARGB2RGBA(m_frameLineColor[state()]);
-    g_SDLDevice->drawWidthRectangle(frameLineColor, m_frameLineWidth, nDstX, nDstY, nW, nH);
+    g_sdlDevice->drawWidthRectangle(frameLineColor, m_frameLineWidth, nDstX, nDstY, nW, nH);
 
     int nLBX0 = (w() - m_label.w()) / 2;
     int nLBY0 = (h() - m_label.h()) / 2;

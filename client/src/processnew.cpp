@@ -3,7 +3,7 @@
  *
  *       Filename: processnew.cpp
  *        Created: 08/14/2015 02:47:49
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -29,7 +29,7 @@
 #include "processnew.hpp"
 
 extern Client *g_client;
-extern SDLDevice *g_SDLDevice;
+extern SDLDevice *g_sdlDevice;
 extern PNGTexDB *g_progUseDB;
 
 ProcessNew::ProcessNew()
@@ -39,11 +39,11 @@ ProcessNew::ProcessNew()
 
     , m_x([this]() -> int
       {
-          return (g_SDLDevice->getRendererWidth() - m_w) / 2;
+          return (g_sdlDevice->getRendererWidth() - m_w) / 2;
       }())
     , m_y([this]() -> int
       {
-          return (g_SDLDevice->getRendererHeight() - m_h) / 2;
+          return (g_sdlDevice->getRendererHeight() - m_h) / 2;
       }())
 
     , m_checkID(true)
@@ -154,8 +154,8 @@ void ProcessNew::draw()
 {
     SDLDevice::RenderNewFrame newFrame;
 
-    g_SDLDevice->drawTexture(g_progUseDB->Retrieve(0X00000003), 0, 75);
-    g_SDLDevice->drawTexture(g_progUseDB->Retrieve(0X00000004), 0, 75, 0, 0, 800, 450);
+    g_sdlDevice->drawTexture(g_progUseDB->Retrieve(0X00000003), 0, 75);
+    g_sdlDevice->drawTexture(g_progUseDB->Retrieve(0X00000004), 0, 75, 0, 0, 800, 450);
 
     m_TBCreate.draw();
     m_TBExit  .draw();
@@ -171,7 +171,7 @@ void ProcessNew::draw()
 
         rstLB.drawEx(nX - rstLB.w() - nDX, nY, 0, 0, rstLB.w(), rstLB.h());
 
-        g_SDLDevice->DrawRectangle(nX, nY, rstBox.w(), rstBox.h());
+        g_sdlDevice->DrawRectangle(nX, nY, rstBox.w(), rstBox.h());
         rstBox.drawEx(nX, nY, 0, 0, rstBox.w(), rstBox.h());
 
         rstLBCheck.drawEx(nX + rstBox.w() + nDX, nY, 0, 0, rstLBCheck.w(), rstLBCheck.h());

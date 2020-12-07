@@ -1,15 +1,15 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0303 
-header_name {.hpp} 
+version 1.0303
+header_name {.hpp}
 code_name {.cpp}
 decl {\#include "taskhub.hpp"} {public global
-} 
+}
 
 decl {\#include "commandinput.hpp"} {public global
-} 
+}
 
 decl {\#include "commandluamodule.hpp"} {public global
-} 
+}
 
 class CommandWindow {open
 } {
@@ -183,4 +183,4 @@ class CommandWindow {open
     return m_CWID;
 }} {}
   }
-} 
+}

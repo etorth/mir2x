@@ -3,7 +3,7 @@
  *
  *       Filename: dbconst.hpp
  *        Created: 05/12/2017 17:57:04
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none

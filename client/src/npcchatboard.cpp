@@ -25,7 +25,7 @@
 #include "npcchatboard.hpp"
 
 extern PNGTexDB *g_progUseDB;
-extern SDLDevice *g_SDLDevice;
+extern SDLDevice *g_sdlDevice;
 
 NPCChatBoard::NPCChatBoard(ProcessRun *proc, Widget *pwidget, bool autoDelete)
     : Widget(0, 0, 386, 204, pwidget, autoDelete)
@@ -121,7 +121,7 @@ void NPCChatBoard::drawWithNPCFace()
     }
 
     drawFrame();
-    g_SDLDevice->drawTexture(facePtr, m_margin, (h() - SDLDevice::getTextureHeight(facePtr)) / 2);
+    g_sdlDevice->drawTexture(facePtr, m_margin, (h() - SDLDevice::getTextureHeight(facePtr)) / 2);
 
     m_chatBoard.draw();
     m_buttonClose.draw();
@@ -225,9 +225,9 @@ void NPCChatBoard::drawFrame() const
     auto frameMid = g_progUseDB->Retrieve(0X00000052);
     auto frameDown = g_progUseDB->Retrieve(0X00000053);
 
-    g_SDLDevice->drawTexture(frameUp, 0, 0);
+    g_sdlDevice->drawTexture(frameUp, 0, 0);
     for(int i = 0; i < k; ++i){
-        g_SDLDevice->drawTexture(frameMid, 0, 160 + i * 20);
+        g_sdlDevice->drawTexture(frameMid, 0, 160 + i * 20);
     }
-    g_SDLDevice->drawTexture(frameDown, 0, 160 + k * 20);
+    g_sdlDevice->drawTexture(frameDown, 0, 160 + k * 20);
 }

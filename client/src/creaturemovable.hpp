@@ -3,7 +3,7 @@
  *
  *       Filename: creaturemovable.hpp
  *        Created: 04/25/2020 22:25:20
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none

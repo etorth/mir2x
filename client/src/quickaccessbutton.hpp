@@ -3,7 +3,7 @@
  *
  *       Filename: quickaccessbutton.hpp
  *        Created: 03/28/2020 05:43:45
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none

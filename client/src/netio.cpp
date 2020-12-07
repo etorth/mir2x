@@ -336,7 +336,7 @@ bool NetIO::readBody(size_t nMaskLen, size_t nBodyLen)
         return true;
     }
 
-    // I report error when read boyd at mode-0 
+    // I report error when read boyd at mode-0
     // but still if in mode3 and we're transfering empty message we can reach here
     m_msgHandler(m_readHC, nullptr, 0);
     readHeadCode();
@@ -522,7 +522,7 @@ void NetIO::start(const char *IPStr, const char * portStr, const std::function<v
         throw fflerror("invalid message handler");
     }
     m_msgHandler = msgHandler;
- 
+
     // 2. try to connect to server
     //    this just put an handler in the event pool, should pool to drive it
     asio::async_connect(m_socket, m_resolver.resolve({IPStr, portStr}), [this](std::error_code errCode, asio::ip::tcp::resolver::iterator)

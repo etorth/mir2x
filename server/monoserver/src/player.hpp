@@ -3,7 +3,7 @@
  *
  *       Filename: player.hpp
  *        Created: 04/08/2016 22:37:01
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -49,7 +49,7 @@ class Player final: public CharObject
         std::set<uint64_t> m_slaveList;
 
     public:
-        Player(uint32_t,                // DBID 
+        Player(uint32_t,                // DBID
                 ServiceCore *,          //
                 ServerMap *,            //
                 int,                    // map x

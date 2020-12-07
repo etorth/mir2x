@@ -3,7 +3,7 @@
  *
  *       Filename: quickaccessboard.cpp
  *        Created: 03/28/2020 05:43:45
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -25,7 +25,7 @@
 #include "quickaccessboard.hpp"
 
 extern PNGTexDB *g_progUseDB;
-extern SDLDevice *g_SDLDevice;
+extern SDLDevice *g_sdlDevice;
 
 QuickAccessBoard::QuickAccessBoard(int x, int y, ProcessRun *proc, Widget *pwidget, bool autoDelete)
     : Widget
@@ -37,7 +37,7 @@ QuickAccessBoard::QuickAccessBoard(int x, int y, ProcessRun *proc, Widget *pwidg
           pwidget,
           autoDelete,
       }
-     
+
     , m_proc(proc)
     , m_buttonClose
       {
@@ -77,7 +77,7 @@ void QuickAccessBoard::drawEx(int dstX, int dstY, int, int, int, int)
         throw fflerror("no valid quick access board texture: texID = %llu", to_llu(m_texID));
     }
 
-    g_SDLDevice->drawTexture(texPtr, dstX, dstY);
+    g_sdlDevice->drawTexture(texPtr, dstX, dstY);
     m_buttonClose.drawEx(dstX + m_buttonClose.dx(), dstY + m_buttonClose.dy(), 0, 0, m_buttonClose.w(), m_buttonClose.h());
 }
 
@@ -100,7 +100,7 @@ bool QuickAccessBoard::processEvent(const SDL_Event &event, bool valid)
         case SDL_MOUSEMOTION:
             {
                 if((event.motion.state & SDL_BUTTON_LMASK) && (in(event.motion.x, event.motion.y) || focus())){
-                    const auto [rendererW, rendererH] = g_SDLDevice->getRendererSize();
+                    const auto [rendererW, rendererH] = g_sdlDevice->getRendererSize();
                     const int maxX = rendererW - w();
                     const int maxY = rendererH - h();
 

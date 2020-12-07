@@ -23,7 +23,7 @@
 
 extern Client *g_client;
 extern PNGTexDB *g_progUseDB;
-extern SDLDevice *g_SDLDevice;
+extern SDLDevice *g_sdlDevice;
 
 void ProcessLogo::processEvent(const SDL_Event &event)
 {
@@ -63,9 +63,9 @@ void ProcessLogo::draw()
         auto bColor = (Uint8)(std::lround(255 * colorRatio()));
         SDL_SetTextureColorMod(pTexture, bColor, bColor, bColor);
 
-        const auto nWindowW = g_SDLDevice->getRendererWidth();
-        const auto nWindowH = g_SDLDevice->getRendererHeight();
-        g_SDLDevice->drawTexture(pTexture, 0, 0, 0, 0, nWindowW, nWindowH);
+        const auto nWindowW = g_sdlDevice->getRendererWidth();
+        const auto nWindowH = g_sdlDevice->getRendererHeight();
+        g_sdlDevice->drawTexture(pTexture, 0, 0, 0, 0, nWindowW, nWindowH);
     }
 }
 

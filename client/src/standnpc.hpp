@@ -3,7 +3,7 @@
  *
  *       Filename: standnpc.hpp
  *        Created: 04/12/2020 12:49:26
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -16,7 +16,7 @@
  * =====================================================================================
  */
 
-#pragma once 
+#pragma once
 #include <cstdint>
 #include "processrun.hpp"
 #include "actionnode.hpp"

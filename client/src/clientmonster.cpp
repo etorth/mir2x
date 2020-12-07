@@ -3,7 +3,7 @@
  *
  *       Filename: clientmonster.cpp
  *        Created: 08/31/2015 08:26:57
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -36,7 +36,7 @@
 
 extern Log *g_log;
 extern PNGTexDB *g_progUseDB;
-extern SDLDevice *g_SDLDevice;
+extern SDLDevice *g_sdlDevice;
 extern PNGTexOffDB *g_monsterDB;
 extern ClientArgParser *g_clientArgParser;
 
@@ -260,7 +260,7 @@ bool ClientMonster::draw(int viewX, int viewY, int focusMask)
 
             const auto stColor = focusColor(nFocusChan);
             if(!SDL_SetTextureColorMod(pTexture, stColor.r, stColor.g, stColor.b)){
-                g_SDLDevice->drawTexture(pTexture, nX, nY);
+                g_sdlDevice->drawTexture(pTexture, nX, nY);
             }
         }
     };
@@ -272,14 +272,14 @@ bool ClientMonster::draw(int viewX, int viewY, int focusMask)
     fnBlendFrame(pFrame0, 0, startX + nDX0, startY + nDY0);
 
     if(g_clientArgParser->drawTextureAlignLine){
-        g_SDLDevice->DrawLine(colorf::RED + 128, startX, startY, startX + nDX0, startY + nDY0);
-        g_SDLDevice->DrawLine(colorf::BLUE + 128, startX - 5, startY, startX + 5, startY);
-        g_SDLDevice->DrawLine(colorf::BLUE + 128, startX, startY - 5, startX, startY + 5);
+        g_sdlDevice->DrawLine(colorf::RED + 128, startX, startY, startX + nDX0, startY + nDY0);
+        g_sdlDevice->DrawLine(colorf::BLUE + 128, startX - 5, startY, startX + 5, startY);
+        g_sdlDevice->DrawLine(colorf::BLUE + 128, startX, startY - 5, startX, startY + 5);
     }
 
     if(g_clientArgParser->drawTargetBox){
         if(const auto box = getTargetBox()){
-            g_SDLDevice->DrawRectangle(colorf::BLUE + 128, box.x - viewX, box.y - viewY, box.w, box.h);
+            g_sdlDevice->DrawRectangle(colorf::BLUE + 128, box.x - viewX, box.y - viewY, box.w, box.h);
         }
     }
 
@@ -305,8 +305,8 @@ bool ClientMonster::draw(int viewX, int viewY, int focusMask)
         const int drawBarYP = startY - 53;
         const int drawBarWidth = (int)(std::lround(nBarW * (m_maxHP ? (std::min<double>)(1.0, (1.0 * m_HP) / m_maxHP) : 1.0)));
 
-        g_SDLDevice->drawTexture(pBar1, drawBarXP, drawBarYP, 0, 0, drawBarWidth, nBarH);
-        g_SDLDevice->drawTexture(pBar0, drawBarXP, drawBarYP);
+        g_sdlDevice->drawTexture(pBar1, drawBarXP, drawBarYP, 0, 0, drawBarWidth, nBarH);
+        g_sdlDevice->drawTexture(pBar0, drawBarXP, drawBarYP);
 
         if(g_clientArgParser->alwaysDrawName || (focusMask & (1 << FOCUS_MOUSE))){
             const int nLW = m_nameBoard.w();

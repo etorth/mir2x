@@ -3,7 +3,7 @@
  *
  *       Filename: tritexbutton.cpp
  *        Created: 03/16/2017 15:04:17
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -22,14 +22,14 @@
 #include "tritexbutton.hpp"
 
 extern PNGTexDB *g_progUseDB;
-extern SDLDevice *g_SDLDevice;
+extern SDLDevice *g_sdlDevice;
 
 void TritexButton::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int srcH)
 {
     if(auto texPtr = g_progUseDB->Retrieve(m_texID[m_state])){
         const int offX = m_offset[m_state][0];
         const int offY = m_offset[m_state][1];
-        g_SDLDevice->drawTexture(texPtr, dstX + offX, dstY + offY, srcX, srcY, srcW, srcH); // TODO: need to crop src region for offset
+        g_sdlDevice->drawTexture(texPtr, dstX + offX, dstY + offY, srcX, srcY, srcW, srcH); // TODO: need to crop src region for offset
     }
 }
 

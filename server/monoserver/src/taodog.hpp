@@ -3,7 +3,7 @@
  *
  *       Filename: taodog.hpp
  *        Created: 04/10/2016 02:32:45
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none

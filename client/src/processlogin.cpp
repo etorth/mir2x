@@ -31,7 +31,7 @@
 extern Log *g_log;
 extern Client *g_client;
 extern PNGTexDB *g_progUseDB;
-extern SDLDevice *g_SDLDevice;
+extern SDLDevice *g_sdlDevice;
 
 ProcessLogin::ProcessLogin()
 	: Process()
@@ -115,9 +115,9 @@ void ProcessLogin::draw()
 {
     SDLDevice::RenderNewFrame newFrame;
 
-    g_SDLDevice->drawTexture(g_progUseDB->Retrieve(0X00000003),   0,  75);
-    g_SDLDevice->drawTexture(g_progUseDB->Retrieve(0X00000004),   0, 465);
-    g_SDLDevice->drawTexture(g_progUseDB->Retrieve(0X00000011), 103, 536);
+    g_sdlDevice->drawTexture(g_progUseDB->Retrieve(0X00000003),   0,  75);
+    g_sdlDevice->drawTexture(g_progUseDB->Retrieve(0X00000004),   0, 465);
+    g_sdlDevice->drawTexture(g_progUseDB->Retrieve(0X00000011), 103, 536);
 
     m_button1.draw();
     m_button2.draw();

@@ -3,7 +3,7 @@
  *
  *       Filename: sdldevice.cpp
  *        Created: 03/07/2016 23:57:04
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -31,52 +31,52 @@
 
 extern Log *g_log;
 extern XMLConf *g_XMLConf;
-extern SDLDevice *g_SDLDevice;
+extern SDLDevice *g_sdlDevice;
 extern ClientArgParser *g_clientArgParser;
 
 SDLDevice::RenderNewFrame::RenderNewFrame()
 {
-    g_SDLDevice->clearScreen();
+    g_sdlDevice->clearScreen();
 }
 
 SDLDevice::RenderNewFrame::~RenderNewFrame()
 {
-    g_SDLDevice->updateFPS();
-    g_SDLDevice->present();
+    g_sdlDevice->updateFPS();
+    g_sdlDevice->present();
 }
 
 SDLDevice::EnableRenderColor::EnableRenderColor(uint32_t color)
 {
-    if(SDL_GetRenderDrawColor(g_SDLDevice->getRenderer(), &m_r, &m_g, &m_b, &m_a)){
+    if(SDL_GetRenderDrawColor(g_sdlDevice->getRenderer(), &m_r, &m_g, &m_b, &m_a)){
         throw fflerror("get renderer draw color failed: %s", SDL_GetError());
     }
 
-    if(SDL_SetRenderDrawColor(g_SDLDevice->getRenderer(), colorf::R(color), colorf::G(color), colorf::B(color), colorf::A(color))){
+    if(SDL_SetRenderDrawColor(g_sdlDevice->getRenderer(), colorf::R(color), colorf::G(color), colorf::B(color), colorf::A(color))){
         throw fflerror("set renderer draw color failed: %s", SDL_GetError());
     }
 }
 
 SDLDevice::EnableRenderColor::~EnableRenderColor()
 {
-    if(SDL_SetRenderDrawColor(g_SDLDevice->getRenderer(), m_r, m_g, m_b, m_a)){
+    if(SDL_SetRenderDrawColor(g_sdlDevice->getRenderer(), m_r, m_g, m_b, m_a)){
         g_log->addLog(LOGTYPE_WARNING, "Set renderer draw color failed: %s", SDL_GetError());
     }
 }
 
 SDLDevice::EnableRenderBlendMode::EnableRenderBlendMode(SDL_BlendMode blendMode)
 {
-    if(SDL_GetRenderDrawBlendMode(g_SDLDevice->getRenderer(), &m_blendMode)){
+    if(SDL_GetRenderDrawBlendMode(g_sdlDevice->getRenderer(), &m_blendMode)){
         throw fflerror("get renderer blend mode failed: %s", SDL_GetError());
     }
 
-    if(SDL_SetRenderDrawBlendMode(g_SDLDevice->getRenderer(), blendMode)){
+    if(SDL_SetRenderDrawBlendMode(g_sdlDevice->getRenderer(), blendMode)){
         throw fflerror("set renderer blend mode failed: %s", SDL_GetError());
     }
 }
 
 SDLDevice::EnableRenderBlendMode::~EnableRenderBlendMode()
 {
-    if(SDL_SetRenderDrawBlendMode(g_SDLDevice->getRenderer(), m_blendMode)){
+    if(SDL_SetRenderDrawBlendMode(g_sdlDevice->getRenderer(), m_blendMode)){
         g_log->addLog(LOGTYPE_WARNING, "set renderer blend mode failed: %s", SDL_GetError());
     }
 }
@@ -149,7 +149,7 @@ SDLDevice::EnableTextureModColor::~EnableTextureModColor()
 
 SDLDevice::SDLDevice()
 {
-    if(g_SDLDevice){
+    if(g_sdlDevice){
         throw fflerror("multiple initialization for SDLDevice");
     }
 

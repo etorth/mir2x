@@ -71,7 +71,7 @@ class Widget
                 m_parent->m_childList.emplace_back(this, autoDelete);
             }
         }
-        
+
     public:
         virtual ~Widget()
         {

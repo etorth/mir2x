@@ -3,7 +3,7 @@
  *
  *       Filename: channpackq.cpp
  *        Created: 01/27/2018 11:22:45
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none

@@ -3,7 +3,7 @@
  *
  *       Filename: serverluamodule.cpp
  *        Created: 12/19/2017 20:16:03
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none

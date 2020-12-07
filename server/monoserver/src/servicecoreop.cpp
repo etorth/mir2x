@@ -3,7 +3,7 @@
  *
  *       Filename: servicecoreop.cpp
  *        Created: 05/03/2016 21:29:58
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -30,7 +30,7 @@ extern MonoServer *g_monoServer;
 // the player object for a one to one map
 //
 // So servicecore <-> session is 1 to N, means we have to put put pointer of session
-// in the net package otherwise we can't find the session even we have session's 
+// in the net package otherwise we can't find the session even we have session's
 // address, session is a sync-driver, even we have it's address we can't find it
 //
 void ServiceCore::on_MPK_NETPACKAGE(const MessagePack &rstMPK)

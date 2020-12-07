@@ -3,7 +3,7 @@
  *
  *       Filename: sdlkeychar.cpp
  *        Created: 03/12/2016 19:31:23
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -18,7 +18,7 @@
 
 #include <map>
 #include "sdlkeychar.hpp"
-    
+
 char sdlKeyChar(const SDL_Event &event)
 {
     const static std::map<SDL_Keycode, const char *> s_lookupTable

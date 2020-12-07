@@ -3,7 +3,7 @@
  *
  *       Filename: followuidmagic.cpp
  *        Created: 12/07/2020 21:19:44
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -26,13 +26,13 @@
 #include "pngtexoffdb.hpp"
 #include "followuidmagic.hpp"
 
-extern SDLDevice *g_SDLDevice;
+extern SDLDevice *g_sdlDevice;
 extern PNGTexOffDB *g_magicDB;
 
 FollowUIDMagic::FollowUIDMagic(
         const char8_t *magicName,
         const char8_t *magicStage,
-        
+
         int x,
         int y,
         int gfxDirIndex,
@@ -110,7 +110,7 @@ void FollowUIDMagic::drawViewOff(int viewX, int viewY, bool alpha)
     if(auto texPtr = g_magicDB->Retrieve(texID, &offX, &offY)){
         SDLDevice::EnableTextureModColor enableModColor(texPtr, colorf::RGBA(0XFF, 0XFF, 0XFF, alpha ? 0X80 : 0XFF));
         SDLDevice::EnableTextureBlendMode enableBlendMode(texPtr, SDL_BLENDMODE_BLEND);
-        g_SDLDevice->drawTexture(texPtr, m_x - viewX + offX, m_y - viewY + offY);
+        g_sdlDevice->drawTexture(texPtr, m_x - viewX + offX, m_y - viewY + offY);
     }
 }
 
@@ -131,6 +131,6 @@ void TaoFireFigure_RUN::drawViewOff(int viewX, int viewY, bool alpha)
     if(auto texPtr = g_magicDB->Retrieve(m_gfxEntry->gfxID + frame() + m_gfxDirIndex * m_gfxEntry->gfxIDCount, nullptr, nullptr)){
         SDLDevice::EnableTextureModColor enableModColor(texPtr, colorf::RGBA(0XFF, 0XFF, 0XFF, alpha ? 0X40 : 0XC0));
         SDLDevice::EnableTextureBlendMode enableBlendMode(texPtr, SDL_BLENDMODE_BLEND);
-        g_SDLDevice->drawTexture(texPtr, m_x - viewX, m_y - viewY);
+        g_sdlDevice->drawTexture(texPtr, m_x - viewX, m_y - viewY);
     }
 }

@@ -106,8 +106,8 @@ class FontexDB: public innDB<uint64_t, FontexEntry>
             m_TTFCache[nTTFIndex] = [this, nFontSize, nFontIndex]() -> TTF_Font *
             {
                 if(auto &stFontDataBuf = RetrieveFontData(nFontIndex); !stFontDataBuf.empty()){
-                    extern SDLDevice *g_SDLDevice;
-                    return g_SDLDevice->CreateTTF(stFontDataBuf.data(), stFontDataBuf.size(), nFontSize);
+                    extern SDLDevice *g_sdlDevice;
+                    return g_sdlDevice->CreateTTF(stFontDataBuf.data(), stFontDataBuf.size(), nFontSize);
                 }
                 return nullptr;
             }();
@@ -141,7 +141,7 @@ class FontexDB: public innDB<uint64_t, FontexEntry>
             uint64_t nKey = 0
                 + (((uint64_t)nFontIndex) << 48)
                 + (((uint64_t)nFontSize ) << 40)
-                + (((uint64_t)nFontStyle) << 32) 
+                + (((uint64_t)nFontStyle) << 32)
                 + (((uint64_t)nUTF8Code)  <<  0);
             return Retrieve(nKey);
         }
@@ -224,8 +224,8 @@ class FontexDB: public innDB<uint64_t, FontexEntry>
                 return {stEntry, 0};
             }
 
-            extern SDLDevice *g_SDLDevice;
-            stEntry.Texture = g_SDLDevice->CreateTextureFromSurface(pSurface);
+            extern SDLDevice *g_sdlDevice;
+            stEntry.Texture = g_sdlDevice->CreateTextureFromSurface(pSurface);
             SDL_FreeSurface(pSurface);
 
             return {stEntry, stEntry.Texture ? 1 : 0};

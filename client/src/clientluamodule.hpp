@@ -3,7 +3,7 @@
  *
  *       Filename: clientluamodule.hpp
  *        Created: 06/25/2017 18:57:17
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none

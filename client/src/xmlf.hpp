@@ -3,7 +3,7 @@
  *
  *       Filename: xmlf.hpp
  *        Created: 12/11/2018 04:01:50
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none

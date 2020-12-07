@@ -3,7 +3,7 @@
  *
  *       Filename: receiver.hpp
  *        Created: 08/23/2018 04:44:33
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none

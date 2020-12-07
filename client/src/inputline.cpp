@@ -3,7 +3,7 @@
  *
  *       Filename: inputline.cpp
  *        Created: 06/19/2017 11:29:06
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -22,7 +22,7 @@
 #include "sdldevice.hpp"
 #include "sdlkeychar.hpp"
 
-extern SDLDevice *g_SDLDevice;
+extern SDLDevice *g_sdlDevice;
 
 bool InputLine::processEvent(const SDL_Event &event, bool valid)
 {
@@ -173,7 +173,7 @@ void InputLine::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int src
     int cursorH = std::max<int>(m_tpset.ph(), h());
 
     if(mathf::rectangleOverlapRegion(dstX, dstY, srcW, srcH, &cursorX, &cursorY, &cursorW, &cursorH)){
-        g_SDLDevice->fillRectangle(m_cursorColor, cursorX, cursorY, cursorW, cursorH);
+        g_sdlDevice->fillRectangle(m_cursorColor, cursorX, cursorY, cursorW, cursorH);
     }
 }
 

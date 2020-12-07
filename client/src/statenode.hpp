@@ -3,7 +3,7 @@
  *
  *       Filename: statenode.hpp
  *        Created: 04/06/2017 23:31:17
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none

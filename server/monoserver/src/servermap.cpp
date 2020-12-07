@@ -3,7 +3,7 @@
  *
  *       Filename: servermap.cpp
  *        Created: 04/06/2016 08:52:57 PM
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -725,7 +725,7 @@ void ServerMap::removeGridUID(uint64_t uid, int nX, int nY)
     }
 
     auto &uidList = getUIDList(nX, nY);
-    auto p = std::find(uidList.begin(), uidList.end(), uid); 
+    auto p = std::find(uidList.begin(), uidList.end(), uid);
 
     if(p == uidList.end()){
         return;

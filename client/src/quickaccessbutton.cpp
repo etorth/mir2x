@@ -3,7 +3,7 @@
  *
  *       Filename: quickaccessbutton.cpp
  *        Created: 03/28/2020 05:43:45
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -24,7 +24,7 @@
 #include "quickaccessbutton.hpp"
 
 extern PNGTexDB *g_progUseDB;
-extern SDLDevice *g_SDLDevice;
+extern SDLDevice *g_sdlDevice;
 
 QuickAccessButton::QuickAccessButton(const std::function<void()> &fnOnClick, Widget *pwidget, bool autoDelete)
     : ButtonBase
@@ -61,7 +61,7 @@ void QuickAccessButton::drawEx(int dstX, int dstY, int, int, int, int)
         case BEVENT_ON:
             {
                 constexpr int radius = 9;
-                auto texPtr = g_SDLDevice->getCover(radius);
+                auto texPtr = g_sdlDevice->getCover(radius);
                 if(!texPtr){
                     throw fflerror("can't get round cover: radius = %d", radius);
                 }
@@ -70,13 +70,13 @@ void QuickAccessButton::drawEx(int dstX, int dstY, int, int, int, int)
                 const int texDrawH = texH * 2 / 3;
 
                 SDL_SetTextureAlphaMod(texPtr, 80);
-                g_SDLDevice->drawTexture(texPtr, dstX + 3, dstY, 0, texDrawH, texW, texDrawH);
+                g_sdlDevice->drawTexture(texPtr, dstX + 3, dstY, 0, texDrawH, texW, texDrawH);
                 break;
             }
         case BEVENT_DOWN:
             {
                 if(auto texPtr = g_progUseDB->Retrieve(m_texID)){
-                    g_SDLDevice->drawTexture(texPtr, dstX, dstY);
+                    g_sdlDevice->drawTexture(texPtr, dstX, dstY);
                 }
                 break;
             }

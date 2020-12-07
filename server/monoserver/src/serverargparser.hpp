@@ -3,7 +3,7 @@
  *
  *       Filename: serverargparser.hpp
  *        Created: 11/26/2018 07:34:22
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none

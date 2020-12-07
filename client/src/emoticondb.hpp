@@ -3,7 +3,7 @@
  *
  *       Filename: emoticondb.hpp
  *        Created: 02/26/2016 21:48:43
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -151,8 +151,8 @@ class emoticonDB: public innDB<uint32_t, emojiEntry>
                 entry.FrameH     = (int)hexstr::to_hex<uint16_t, 2>(fileName + 16);
                 entry.FrameH1    = (int)hexstr::to_hex<uint16_t, 2>(fileName + 20);
 
-                extern SDLDevice *g_SDLDevice;
-                entry.Texture = g_SDLDevice->CreateTexture(dataBuf.data(), dataBuf.size());
+                extern SDLDevice *g_sdlDevice;
+                entry.Texture = g_sdlDevice->CreateTexture(dataBuf.data(), dataBuf.size());
             }
             return {entry, entry.Texture ? 1 : 0};
         }

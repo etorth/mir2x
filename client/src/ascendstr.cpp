@@ -3,7 +3,7 @@
  *
  *       Filename: ascendstr.cpp
  *        Created: 07/20/2017 00:34:13
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -23,7 +23,7 @@
 
 extern Log *g_log;
 extern PNGTexDB *g_progUseDB;
-extern SDLDevice *g_SDLDevice;
+extern SDLDevice *g_sdlDevice;
 
 AscendStr::AscendStr(int nType, int nValue, int nX, int nY)
     : m_type(nType)
@@ -73,7 +73,7 @@ void AscendStr::Draw(int nViewX, int nViewY)
                 {
                     if(auto pTexture = g_progUseDB->Retrieve(0X03000030)){
                         SDL_SetTextureAlphaMod(pTexture, nCurrA);
-                        g_SDLDevice->drawTexture(pTexture, nCurrX - nViewX, nCurrY - nViewY);
+                        g_sdlDevice->drawTexture(pTexture, nCurrX - nViewX, nCurrY - nViewY);
                     }
                     break;
                 }
@@ -85,7 +85,7 @@ void AscendStr::Draw(int nViewX, int nViewY)
                         uint32_t nPreKey = 0X03000000 | ((Type() - ASCENDSTR_NUM0) << 4);
                         if(auto pTexture = g_progUseDB->Retrieve(nPreKey | ((Value() < 0) ? 0X0A : 0X0B))){
                             SDL_SetTextureAlphaMod(pTexture, nCurrA);
-                            g_SDLDevice->drawTexture(pTexture, nCurrX - nViewX, nCurrY - nViewY + ((Value() < 0) ? 4 : 1));
+                            g_sdlDevice->drawTexture(pTexture, nCurrX - nViewX, nCurrY - nViewY + ((Value() < 0) ? 4 : 1));
 
                             int nTextureW;
                             SDL_QueryTexture(pTexture, nullptr, nullptr, &nTextureW, nullptr);
@@ -96,7 +96,7 @@ void AscendStr::Draw(int nViewX, int nViewY)
                         for(auto chNum: szNumStr){
                             if(auto pTexture = g_progUseDB->Retrieve(nPreKey | (chNum - '0'))){
                                 SDL_SetTextureAlphaMod(pTexture, nCurrA);
-                                g_SDLDevice->drawTexture(pTexture, nCurrX - nViewX, nCurrY - nViewY);
+                                g_sdlDevice->drawTexture(pTexture, nCurrX - nViewX, nCurrY - nViewY);
 
                                 int nTextureW;
                                 SDL_QueryTexture(pTexture, nullptr, nullptr, &nTextureW, nullptr);

@@ -3,7 +3,7 @@
  *
  *       Filename: monsterco.cpp
  *        Created: 03/19/2019 06:43:21
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none

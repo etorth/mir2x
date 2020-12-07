@@ -54,7 +54,7 @@ class ActorPod final
         // for actors the only chance to update their state is via message driving.
         //
         // conceptually one actor could have more than one trigger
-        // for that we should register / de-register those triggers to m_trigger 
+        // for that we should register / de-register those triggers to m_trigger
         // most likely here we use StateHook::Execute();
         //
         // trigger is provided at initialization and never change
@@ -93,7 +93,7 @@ class ActorPod final
     public:
         explicit ActorPod(uint64_t,
                 const std::function<void()> &,
-                const std::function<void(const MessagePack &)> &, uint32_t = 3600 * 1000);                            
+                const std::function<void(const MessagePack &)> &, uint32_t = 3600 * 1000);
 
     public:
         ~ActorPod();

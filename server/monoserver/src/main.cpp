@@ -3,7 +3,7 @@
  *
  *       Filename: main.cpp
  *        Created: 08/31/2015 08:52:57 PM
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none

@@ -3,7 +3,7 @@
  *
  *       Filename: serverobject.cpp
  *        Created: 04/28/2016 20:51:29
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none

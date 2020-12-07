@@ -3,7 +3,7 @@
  *
  *       Filename: xmlparagraphleaf.hpp
  *        Created: 12/22/2018 07:38:04
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none

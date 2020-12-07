@@ -3,7 +3,7 @@
  *
  *       Filename: standnpc.cpp
  *        Created: 04/12/2020 12:53:00
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -146,7 +146,7 @@ bool StandNPC::draw(int viewX, int viewY, int focusMask)
         SDL_SetTextureColorMod(texture, color.r, color.g, color.b);
 
         SDL_SetTextureAlphaMod(texture, alpha);
-        g_SDLDevice->drawTexture(texture, x, y);
+        g_sdlDevice->drawTexture(texture, x, y);
     };
 
     const int   bodyDrawX = x() * SYS_MAPGRIDXP +   bodyDX - viewX;
@@ -164,14 +164,14 @@ bool StandNPC::draw(int viewX, int viewY, int focusMask)
     }
 
     if(g_clientArgParser->drawTextureAlignLine){
-        g_SDLDevice->DrawLine(colorf::RED + 128, bodyDrawX, bodyDrawY, bodyDrawX + bodyDX, bodyDrawY + bodyDY);
-        g_SDLDevice->DrawLine(colorf::BLUE + 128, bodyDrawX - 5, bodyDrawY, bodyDrawX + 5, bodyDrawY);
-        g_SDLDevice->DrawLine(colorf::BLUE + 128, bodyDrawX, bodyDrawY - 5, bodyDrawX, bodyDrawY + 5);
+        g_sdlDevice->DrawLine(colorf::RED + 128, bodyDrawX, bodyDrawY, bodyDrawX + bodyDX, bodyDrawY + bodyDY);
+        g_sdlDevice->DrawLine(colorf::BLUE + 128, bodyDrawX - 5, bodyDrawY, bodyDrawX + 5, bodyDrawY);
+        g_sdlDevice->DrawLine(colorf::BLUE + 128, bodyDrawX, bodyDrawY - 5, bodyDrawX, bodyDrawY + 5);
     }
 
     if(g_clientArgParser->drawTargetBox){
         if(const auto box = getTargetBox()){
-            g_SDLDevice->DrawRectangle(colorf::BLUE + 128, box.x - viewX, box.y - viewY, box.w, box.h);
+            g_sdlDevice->DrawRectangle(colorf::BLUE + 128, box.x - viewX, box.y - viewY, box.w, box.h);
         }
     }
 

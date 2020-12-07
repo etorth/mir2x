@@ -3,7 +3,7 @@
  *
  *       Filename: attachmagic.cpp
  *        Created: 08/10/2017 12:46:45
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -22,7 +22,7 @@
 #include "attachmagic.hpp"
 #include "pngtexoffdb.hpp"
 
-extern SDLDevice *g_SDLDevice;
+extern SDLDevice *g_sdlDevice;
 extern PNGTexOffDB *g_magicDB;
 
 void AttachMagic::drawShift(int shiftX, int shiftY, bool alpha)
@@ -47,6 +47,6 @@ void AttachMagic::drawShift(int shiftX, int shiftY, bool alpha)
     if(auto texPtr = g_magicDB->Retrieve(texID, &offX, &offY)){
         SDLDevice::EnableTextureModColor enableModColor(texPtr, colorf::RGBA(0XFF, 0XFF, 0XFF, alpha ? 0X40 : 0XC0));
         SDLDevice::EnableTextureBlendMode enableBlendMode(texPtr, SDL_BLENDMODE_BLEND);
-        g_SDLDevice->drawTexture(texPtr, shiftX + offX, shiftY + offY);
+        g_sdlDevice->drawTexture(texPtr, shiftX + offX, shiftY + offY);
     }
 }

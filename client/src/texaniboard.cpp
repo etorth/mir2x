@@ -3,7 +3,7 @@
  *
  *       Filename: texaniboard.cpp
  *        Created: 07/20/2017 00:34:13
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -23,7 +23,7 @@
 #include "texaniboard.hpp"
 
 extern PNGTexDB *g_progUseDB;
-extern SDLDevice *g_SDLDevice;
+extern SDLDevice *g_sdlDevice;
 
 TexAniBoard::TexAniBoard(int x, int y, uint32_t texID, size_t frameCount, size_t fps, bool fadeInout, bool loop, Widget *pwidget, bool autoDelete)
     : Widget(x, y, 0, 0, pwidget, autoDelete)
@@ -71,8 +71,8 @@ void TexAniBoard::drawEx(int dstX, int dstY, int, int, int, int)
     SDL_SetTextureAlphaMod(currTexPtr, 255 - alpha);
     SDL_SetTextureAlphaMod(nextTexPtr,       alpha);
 
-    g_SDLDevice->drawTexture(currTexPtr, dstX, dstY);
-    g_SDLDevice->drawTexture(nextTexPtr, dstX, dstY);
+    g_sdlDevice->drawTexture(currTexPtr, dstX, dstY);
+    g_sdlDevice->drawTexture(nextTexPtr, dstX, dstY);
 }
 
 std::tuple<int, uint8_t> TexAniBoard::getDrawFrame() const

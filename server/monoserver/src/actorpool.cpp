@@ -612,7 +612,7 @@ void ActorPool::clearOneMailbox(Mailbox *mailboxPtr)
     //
     //      a. thread-1 has accquired the lock
     //      b. at the time it accquired the lock, thread-1 didn't see mailbox detached
-    // 
+    //
     // it's possible that when thread-1 reaches line 6 and sleeps, then thread-2 reaches line 2.
     // but thread-2 can't reach line 7 because it can't pass line 3
 

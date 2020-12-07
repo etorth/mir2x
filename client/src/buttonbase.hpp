@@ -4,7 +4,7 @@
  *       Filename: buttonbase.hpp
  *        Created: 08/25/2016 04:12:57
  *    Description:
- *              
+ *
  *              basic button class to handle event logic only
  *              1. no draw
  *              2. no texture id field
@@ -47,7 +47,7 @@ class ButtonBase: public Widget
         std::function<void()> m_onOverIn;
         std::function<void()> m_onOverOut;
         std::function<void()> m_onClick;
-        
+
     public:
         ButtonBase(
                 int argX,

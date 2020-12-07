@@ -3,7 +3,7 @@
  *
  *       Filename: dbhuman.hpp
  *        Created: 05/26/2017 19:13:59
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none

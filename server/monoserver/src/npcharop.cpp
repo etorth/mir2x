@@ -3,7 +3,7 @@
  *
  *       Filename: npcharop.cpp
  *        Created: 04/12/2020 16:27:40
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none

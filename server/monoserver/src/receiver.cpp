@@ -3,7 +3,7 @@
  *
  *       Filename: receiver.cpp
  *        Created: 08/23/2018 04:46:42
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none

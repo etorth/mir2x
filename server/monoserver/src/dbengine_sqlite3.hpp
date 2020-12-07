@@ -3,7 +3,7 @@
  *
  *       Filename: dbengine_sqlite3.hpp
  *        Created: 01/22/2019 07:42:12
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none

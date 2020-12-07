@@ -3,7 +3,7 @@
  *
  *       Filename: editboard.hpp
  *        Created: 03/26/2020 16:15:15
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none

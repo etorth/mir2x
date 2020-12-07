@@ -3,7 +3,7 @@
  *
  *       Filename: fltableimpl.cpp
  *        Created: 12/06/2018 00:29:57
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -123,7 +123,7 @@ void Fl_TableImpl::draw_cell(TableContext nContext, int nRow, int nCol, int nX, 
     switch(nContext){
         case CONTEXT_STARTPAGE:
             {
-                return; 
+                return;
             }
         case CONTEXT_COL_HEADER:
             {

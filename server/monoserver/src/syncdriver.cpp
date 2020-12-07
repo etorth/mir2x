@@ -3,7 +3,7 @@
  *
  *       Filename: syncdriver.cpp
  *        Created: 06/09/2016 17:32:50
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none

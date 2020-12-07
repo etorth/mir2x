@@ -40,7 +40,7 @@
 
 extern Log *g_log;
 extern XMLConf *g_XMLConf;
-extern SDLDevice *g_SDLDevice;
+extern SDLDevice *g_sdlDevice;
 extern NotifyBoard *g_notifyBoard;
 extern ClientArgParser *g_clientArgParser;
 
@@ -52,7 +52,7 @@ Client::Client()
     , m_currentProcess(nullptr)
 {
     InitView(10);
-    g_SDLDevice->CreateMainWindow();
+    g_sdlDevice->CreateMainWindow();
 }
 
 Client::~Client()

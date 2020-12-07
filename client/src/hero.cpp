@@ -3,7 +3,7 @@
  *
  *       Filename: hero.cpp
  *        Created: 09/03/2015 03:49:00
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -31,7 +31,7 @@
 #include "clientargparser.hpp"
 
 extern Log *g_log;
-extern SDLDevice *g_SDLDevice;
+extern SDLDevice *g_sdlDevice;
 extern PNGTexDB *g_progUseDB;
 extern PNGTexOffDB *g_heroDB;
 extern PNGTexOffDB *g_weaponDB;
@@ -91,7 +91,7 @@ bool Hero::draw(int viewX, int viewY, int)
         if(weaponFrame && shadow){
             SDL_SetTextureAlphaMod(weaponFrame, 128);
         }
-        g_SDLDevice->drawTexture(weaponFrame, startX + weaponDX, startY + weaponDY);
+        g_sdlDevice->drawTexture(weaponFrame, startX + weaponDX, startY + weaponDY);
     };
 
     fnDrawWeapon(true);
@@ -127,7 +127,7 @@ bool Hero::draw(int viewX, int viewY, int)
     if(pFrame1){
         SDL_SetTextureAlphaMod(pFrame1, 128);
     }
-    g_SDLDevice->drawTexture(pFrame1, startX + nDX1, startY + nDY1);
+    g_sdlDevice->drawTexture(pFrame1, startX + nDX1, startY + nDY1);
 
     if(true
             && m_weapon
@@ -139,7 +139,7 @@ bool Hero::draw(int viewX, int viewY, int)
         p->drawShift(startX, startY, true);
     }
 
-    g_SDLDevice->drawTexture(pFrame0, startX + nDX0, startY + nDY0);
+    g_sdlDevice->drawTexture(pFrame0, startX + nDX0, startY + nDY0);
 
     if(true
             && m_weapon
@@ -148,14 +148,14 @@ bool Hero::draw(int viewX, int viewY, int)
     }
 
     if(g_clientArgParser->drawTextureAlignLine){
-        g_SDLDevice->DrawLine(colorf::RED + 128, startX, startY, startX + nDX0, startY + nDY0);
-        g_SDLDevice->DrawLine(colorf::BLUE + 128, startX - 5, startY, startX + 5, startY);
-        g_SDLDevice->DrawLine(colorf::BLUE + 128, startX, startY - 5, startX, startY + 5);
+        g_sdlDevice->DrawLine(colorf::RED + 128, startX, startY, startX + nDX0, startY + nDY0);
+        g_sdlDevice->DrawLine(colorf::BLUE + 128, startX - 5, startY, startX + 5, startY);
+        g_sdlDevice->DrawLine(colorf::BLUE + 128, startX, startY - 5, startX, startY + 5);
     }
 
     if(g_clientArgParser->drawTargetBox){
         if(const auto box = getTargetBox()){
-            g_SDLDevice->DrawRectangle(colorf::BLUE + 128, box.x - viewX, box.y - viewY, box.w, box.h);
+            g_sdlDevice->DrawRectangle(colorf::BLUE + 128, box.x - viewX, box.y - viewY, box.w, box.h);
         }
     }
 
@@ -210,8 +210,8 @@ bool Hero::draw(int viewX, int viewY, int)
                 const int drawHPY = startY - 53;
                 const int drawHPW = (int)(std::lround(nW * (m_maxHP ? (std::min<double>)(1.0, (1.0 * m_HP) / m_maxHP) : 1.0)));
 
-                g_SDLDevice->drawTexture(pBar1, drawHPX, drawHPY, 0, 0, drawHPW, nH);
-                g_SDLDevice->drawTexture(pBar0, drawHPX, drawHPY);
+                g_sdlDevice->drawTexture(pBar1, drawHPX, drawHPY, 0, 0, drawHPW, nH);
+                g_sdlDevice->drawTexture(pBar0, drawHPX, drawHPY);
             }
     }
     return true;

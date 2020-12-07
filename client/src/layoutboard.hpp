@@ -3,7 +3,7 @@
  *
  *       Filename: layoutboard.hpp
  *        Created: 03/25/2020 22:27:45
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none

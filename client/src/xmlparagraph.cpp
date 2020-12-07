@@ -3,7 +3,7 @@
  *
  *       Filename: xmlparagraph.cpp
  *        Created: 12/11/2018 04:20:39
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none

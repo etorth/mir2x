@@ -3,7 +3,7 @@
  *
  *       Filename: npcchatboard.hpp
  *        Created: 04/12/2020 18:56:22
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none

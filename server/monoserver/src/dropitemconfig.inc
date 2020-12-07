@@ -3,7 +3,7 @@
  *
  *       Filename: dropitemconfig.inc
  *        Created: 07/28/2017 12:25:39
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none

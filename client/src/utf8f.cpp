@@ -3,7 +3,7 @@
  *
  *       Filename: utf8f.cpp
  *        Created: 12/12/2018 07:27:12
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none

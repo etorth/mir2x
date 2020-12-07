@@ -3,7 +3,7 @@
  *
  *       Filename: xmltypeset.cpp
  *        Created: 12/11/2018 04:44:07
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -31,7 +31,7 @@
 
 extern Log *g_log;
 extern FontexDB *g_fontexDB;
-extern SDLDevice *g_SDLDevice;
+extern SDLDevice *g_sdlDevice;
 extern emoticonDB *g_emoticonDB;
 extern ClientArgParser *g_clientArgParser;
 
@@ -357,11 +357,11 @@ int XMLTypeset::LineIntervalMaxH2(int nLine, int nIntervalStartX, int nIntervalW
     //    has nothing to do with (n-1)th or (n+1)th Line
     //
     // ---------+----+----+-------------+-------  <-BaseLine
-    // |        |    |    |             |    
-    // |        | W2 | W1 |             |       
+    // |        |    |    |             |
+    // |        | W2 | W1 |             |
     // |        |    +----+-------------+
     // |        |    |
-    // +--------+----+                     
+    // +--------+----+
     //             |    |
     //             |    |
     //             |    |
@@ -408,7 +408,7 @@ int XMLTypeset::LineIntervalMaxH2(int nLine, int nIntervalStartX, int nIntervalW
 //      (n-1)th line is valid if exists
 // return:
 //      possible minimal Y for current box
-// 
+//
 // for nth line we try to calculate possible minmal Y for each token then
 // take the max-min as the line start Y, here we don't permit tokens in nth
 // line go through upper than (n - 1)th baseLine
@@ -433,19 +433,19 @@ int XMLTypeset::LineTokenBestY(int nLine, int nTokenX, int nTokenWidth, int nTok
     // negative nMaxH2 means the (n - 1)th line is not long enough
     // directly let the token touch the (n - 1)th baseline
     //
-    //           +----------+                  
-    //           |          |                  
-    // +-------+ |          |                   
-    // | Words | |   Emoji  |  Words             
+    //           +----------+
+    //           |          |
+    // +-------+ |          |
+    // | Words | |   Emoji  |  Words
     // +-------+-+----------+------------------
-    //           |          |   +----------+  
+    //           |          |   +----------+
     //           +----------+   |          |
-    //                          |   TB0    |                  
-    //                +-------+ |          |                   
-    //                | Words | |  Emoji   |  Words             
-    //                +-------+-+----------+-------           
-    //                          |          |                   
-    //                          +----------+                  
+    //                          |   TB0    |
+    //                +-------+ |          |
+    //                | Words | |  Emoji   |  Words
+    //                +-------+-+----------+-------
+    //                          |          |
+    //                          +----------+
     return m_lineList[nLine - 1].startY + m_lineSpace + nTokenHeight;
 }
 
@@ -455,20 +455,20 @@ int XMLTypeset::LineTokenBestY(int nLine, int nTokenX, int nTokenWidth, int nTok
 //      2. nLine is padded already, StartX, W/W1/W2 are OK now
 int XMLTypeset::LineNewStartY(int nLine)
 {
-    //           +----------+                  
-    //           |          |                  
-    // +-------+ |          |                   
-    // | Words | |   Emoji  |  Words             
+    //           +----------+
+    //           |          |
+    // +-------+ |          |
+    // | Words | |   Emoji  |  Words
     // +-------+-+----------+------------------
-    //           |          |   +----------+  
+    //           |          |   +----------+
     //           +----------+   |          |
-    //                          |          |                  
-    //                +-------+ |          |                   
-    //                | Words | |   Emoji  |  Words             
-    //                +-------+-+----------+-------           
-    //                          |          |                   
-    //                          +----------+                  
-    //                                            
+    //                          |          |
+    //                +-------+ |          |
+    //                | Words | |   Emoji  |  Words
+    //                +-------+-+----------+-------
+    //                          |          |
+    //                          +----------+
+    //
     // for nLine we use W only, but for nLine - 1, we use W1 + W + W2
     // reason is clear since W1/2 of nLine won't show, then use them are
     // wasteful for space
@@ -971,7 +971,7 @@ void XMLTypeset::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int sr
                 int bgBoxH = tokenPtr->Box.Info.H;
 
                 if(mathf::rectangleOverlapRegion(srcX, srcY, srcW, srcH, &bgBoxX, &bgBoxY, &bgBoxW, &bgBoxH)){
-                    g_SDLDevice->fillRectangle(bgColor, bgBoxX + dstDX, bgBoxY + dstDY, bgBoxW, bgBoxH);
+                    g_sdlDevice->fillRectangle(bgColor, bgBoxX + dstDX, bgBoxY + dstDY, bgBoxW, bgBoxH);
                 }
             }
 
@@ -995,14 +995,14 @@ void XMLTypeset::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int sr
                     {
                         if(auto texPtr = g_fontexDB->Retrieve(tokenPtr->UTF8Char.U64Key)){
                             SDLDevice::EnableTextureModColor enableMod(texPtr, fgColor);
-                            g_SDLDevice->drawTexture(texPtr, drawDstX, drawDstY, dx, dy, boxW, boxH);
+                            g_sdlDevice->drawTexture(texPtr, drawDstX, drawDstY, dx, dy, boxW, boxH);
                         }
                         else{
-                            g_SDLDevice->DrawRectangle(colorf::CompColor(bgColor), drawDstX, drawDstY, boxW, boxH);
+                            g_sdlDevice->DrawRectangle(colorf::CompColor(bgColor), drawDstX, drawDstY, boxW, boxH);
                         }
 
                         if(g_clientArgParser->drawTokenFrame){
-                            g_SDLDevice->DrawRectangle(colorf::PURPLE + 255, drawDstX, drawDstY, boxW, boxH);
+                            g_sdlDevice->DrawRectangle(colorf::PURPLE + 255, drawDstX, drawDstY, boxW, boxH);
                         }
                         break;
                     }
@@ -1025,10 +1025,10 @@ void XMLTypeset::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int sr
 
                         if(auto texPtr = g_emoticonDB->Retrieve(emojiKey, &xOnTex, &yOnTex, 0, 0, 0, 0, 0)){
                             SDLDevice::EnableTextureModColor enableMod(texPtr, m_imageMaskColor);
-                            g_SDLDevice->drawTexture(texPtr, drawDstX, drawDstY, xOnTex + dx, yOnTex + dy, boxW, boxH);
+                            g_sdlDevice->drawTexture(texPtr, drawDstX, drawDstY, xOnTex + dx, yOnTex + dy, boxW, boxH);
                         }
                         else{
-                            g_SDLDevice->DrawRectangle(colorf::CompColor(bgColor), drawDstX, drawDstY, boxW, boxH);
+                            g_sdlDevice->DrawRectangle(colorf::CompColor(bgColor), drawDstX, drawDstY, boxW, boxH);
                         }
                         break;
                     }
@@ -1038,7 +1038,7 @@ void XMLTypeset::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int sr
     }
 
     if(g_clientArgParser->drawBoardFrame){
-        g_SDLDevice->DrawRectangle(colorf::YELLOW + 255, dstX, dstY, srcW, srcH);
+        g_sdlDevice->DrawRectangle(colorf::YELLOW + 255, dstX, dstY, srcW, srcH);
     }
 }
 

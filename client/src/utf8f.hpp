@@ -3,7 +3,7 @@
  *
  *       Filename: utf8f.hpp
  *        Created: 12/12/2018 07:26:25
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none

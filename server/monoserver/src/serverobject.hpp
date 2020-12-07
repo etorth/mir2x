@@ -44,7 +44,7 @@ enum ObjectType: uint8_t
 
     TYPE_CHAR, TYPE_EVENT,
     TYPE_UTILITY,
-    
+
     // char information
     TYPE_NPC,
     TYPE_PLAYER,

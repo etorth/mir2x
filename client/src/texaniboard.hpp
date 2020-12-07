@@ -3,7 +3,7 @@
  *
  *       Filename: texaniboard.hpp
  *        Created: 07/20/2017 00:34:13
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none

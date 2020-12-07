@@ -3,7 +3,7 @@
  *
  *       Filename: passwordbox.hpp
  *        Created: 07/16/2017 19:06:25
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -46,7 +46,7 @@ class PasswordBox: public InputLine
                 std::function<void()>  fnOnReturn = nullptr,
                 Widget                *parent     = nullptr,
                 bool                   autoDelete = false)
-            : InputLine 
+            : InputLine
               {
                   x,
                   y,

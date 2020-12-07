@@ -3,7 +3,7 @@
  *
  *       Filename: main.cpp
  *        Created: 08/31/2015 08:52:57 PM
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -46,7 +46,7 @@ emoticonDB      *g_emoticonDB      = nullptr; // database for emoticons
 MapBinDB        *g_mapBinDB        = nullptr;
 FontexDB        *g_fontexDB        = nullptr;
 XMLConf         *g_XMLConf         = nullptr; // for client configure XML parsing
-SDLDevice       *g_SDLDevice       = nullptr; // for SDL hardware device
+SDLDevice       *g_sdlDevice       = nullptr; // for SDL hardware device
 NotifyBoard     *g_notifyBoard     = nullptr;
 Client          *g_client          = nullptr; // gobal instance
 
@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
             delete g_clientArgParser; g_clientArgParser = nullptr;
             delete g_log            ; g_log             = nullptr;
             delete g_XMLConf        ; g_XMLConf         = nullptr;
-            delete g_SDLDevice      ; g_SDLDevice       = nullptr;
+            delete g_sdlDevice      ; g_sdlDevice       = nullptr;
             delete g_progUseDB      ; g_progUseDB       = nullptr;
             delete g_groundItemDB   ; g_groundItemDB    = nullptr;
             delete g_commonItemDB   ; g_commonItemDB    = nullptr;
@@ -95,7 +95,7 @@ int main(int argc, char *argv[])
 
     try{
         g_XMLConf         = new XMLConf();
-        g_SDLDevice       = new SDLDevice();
+        g_sdlDevice       = new SDLDevice();
         g_progUseDB       = new PNGTexDB(1024);
         g_groundItemDB    = new PNGTexDB(1024);
         g_commonItemDB    = new PNGTexDB(1024);

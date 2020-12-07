@@ -23,7 +23,7 @@
 #include "processrun.hpp"
 
 extern PNGTexDB *g_progUseDB;
-extern SDLDevice *g_SDLDevice;
+extern SDLDevice *g_sdlDevice;
 
 ACButton::ACButton(int x, int y, ProcessRun *proc, const std::vector<std::string> &buttonList, Widget *pwidget, bool autoDelete)
     : ButtonBase
@@ -111,7 +111,7 @@ void ACButton::drawEx(int dstX, int dstY, int, int, int, int)
     SDL_SetTextureAlphaMod(texPtr, 255);
     SDL_SetTextureColorMod(texPtr, 255, 255, 255);
 
-    g_SDLDevice->drawTexture(texPtr, dstX, dstY);
+    g_sdlDevice->drawTexture(texPtr, dstX, dstY);
     m_labelBoard.drawEx(dstX + w() + 5, dstY, 0, 0, m_labelBoard.w(), m_labelBoard.h());
 
     switch(m_state){
@@ -120,7 +120,7 @@ void ACButton::drawEx(int dstX, int dstY, int, int, int, int)
             {
                 SDL_SetTextureColorMod(texPtr, 255, 0, 0);
                 SDL_SetTextureAlphaMod(texPtr, 128);
-                g_SDLDevice->drawTexture(texPtr, dstX, dstY);
+                g_sdlDevice->drawTexture(texPtr, dstX, dstY);
                 break;
             }
         default:

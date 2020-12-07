@@ -22,7 +22,7 @@
 #include "alphaonbutton.hpp"
 
 extern PNGTexDB *g_progUseDB;
-extern SDLDevice *g_SDLDevice;
+extern SDLDevice *g_sdlDevice;
 
 AlphaOnButton::AlphaOnButton(
         int x,
@@ -44,7 +44,7 @@ AlphaOnButton::AlphaOnButton(
         Widget *pwidget,
         bool    autoDelete)
     : ButtonBase
-      { 
+      {
           x,
           y,
           0,
@@ -86,14 +86,14 @@ void AlphaOnButton::drawEx(int dstX, int dstY, int, int, int, int)
     switch(m_state){
         case BEVENT_ON:
             {
-                auto texPtr = g_SDLDevice->getCover(m_onRadius);
+                auto texPtr = g_sdlDevice->getCover(m_onRadius);
                 if(!texPtr){
                     throw fflerror("can't get round cover: radius = %llu", to_llu(m_onRadius));
                 }
 
                 SDLDevice::EnableRenderBlendMode enableBlendMode(SDL_BLENDMODE_BLEND);
                 SDLDevice::EnableTextureModColor enableModColor(texPtr, colorf::RGBA(m_onColor, m_onColor, m_onColor, m_alphaMod));
-                g_SDLDevice->drawTexture(texPtr, dstX + m_onOffX, dstY + m_onOffY);
+                g_sdlDevice->drawTexture(texPtr, dstX + m_onOffX, dstY + m_onOffY);
                 break;
             }
         case BEVENT_DOWN:
@@ -103,7 +103,7 @@ void AlphaOnButton::drawEx(int dstX, int dstY, int, int, int, int)
                     throw fflerror("can't get down texture: texID = %llu", to_llu(m_texID));
                 }
 
-                g_SDLDevice->drawTexture(texPtr, dstX, dstY);
+                g_sdlDevice->drawTexture(texPtr, dstX, dstY);
                 break;
             }
         default:

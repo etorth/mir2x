@@ -3,7 +3,7 @@
  *
  *       Filename: actormonitortable.hpp
  *        Created: 12/04/2018 23:03:26
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none

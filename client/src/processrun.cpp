@@ -46,7 +46,7 @@ extern Log *g_log;
 extern Client *g_client;
 extern PNGTexDB *g_mapDB;
 extern MapBinDB *g_mapBinDB;
-extern SDLDevice *g_SDLDevice;
+extern SDLDevice *g_sdlDevice;
 extern PNGTexDB *g_progUseDB;
 extern PNGTexDB *g_groundItemDB;
 extern NotifyBoard *g_notifyBoard;
@@ -75,7 +75,7 @@ ProcessRun::ProcessRun()
 
 void ProcessRun::scrollMap()
 {
-    const auto [rendererW, rendererH] = g_SDLDevice->getRendererSize();
+    const auto [rendererW, rendererH] = g_sdlDevice->getRendererSize();
     const auto showWindowW = rendererW;
     const auto showWindowH = rendererH - getWidget("ControlBoard")->h();
 
@@ -284,8 +284,8 @@ void ProcessRun::draw()
 
     const int x0 = fnLimitedRegion(0, m_mir2xMapData.W(), -SYS_OBJMAXW + (m_viewX - 2 * SYS_MAPGRIDXP) / SYS_MAPGRIDXP);
     const int y0 = fnLimitedRegion(0, m_mir2xMapData.H(), -SYS_OBJMAXH + (m_viewY - 2 * SYS_MAPGRIDYP) / SYS_MAPGRIDYP);
-    const int x1 = fnLimitedRegion(0, m_mir2xMapData.W(), +SYS_OBJMAXW + (m_viewX + 2 * SYS_MAPGRIDXP + g_SDLDevice->getRendererWidth() ) / SYS_MAPGRIDXP);
-    const int y1 = fnLimitedRegion(0, m_mir2xMapData.H(), +SYS_OBJMAXH + (m_viewY + 2 * SYS_MAPGRIDYP + g_SDLDevice->getRendererHeight()) / SYS_MAPGRIDYP);
+    const int x1 = fnLimitedRegion(0, m_mir2xMapData.W(), +SYS_OBJMAXW + (m_viewX + 2 * SYS_MAPGRIDXP + g_sdlDevice->getRendererWidth() ) / SYS_MAPGRIDXP);
+    const int y1 = fnLimitedRegion(0, m_mir2xMapData.H(), +SYS_OBJMAXH + (m_viewY + 2 * SYS_MAPGRIDYP + g_sdlDevice->getRendererHeight()) / SYS_MAPGRIDYP);
 
     drawTile(x0, y0, x1, y1);
 
@@ -300,16 +300,16 @@ void ProcessRun::draw()
         const int gridX0 = m_viewX / SYS_MAPGRIDXP;
         const int gridY0 = m_viewY / SYS_MAPGRIDYP;
 
-        const int gridX1 = (m_viewX + g_SDLDevice->getRendererWidth()) / SYS_MAPGRIDXP;
-        const int gridY1 = (m_viewY + g_SDLDevice->getRendererHeight()) / SYS_MAPGRIDYP;
+        const int gridX1 = (m_viewX + g_sdlDevice->getRendererWidth()) / SYS_MAPGRIDXP;
+        const int gridY1 = (m_viewY + g_sdlDevice->getRendererHeight()) / SYS_MAPGRIDYP;
 
         SDLDevice::EnableRenderColor drawColor(colorf::RGBA(0, 255, 0, 128));
         for(int x = gridX0; x <= gridX1; ++x){
-            g_SDLDevice->DrawLine(x * SYS_MAPGRIDXP - m_viewX, 0, x * SYS_MAPGRIDXP - m_viewX, g_SDLDevice->getRendererHeight());
+            g_sdlDevice->DrawLine(x * SYS_MAPGRIDXP - m_viewX, 0, x * SYS_MAPGRIDXP - m_viewX, g_sdlDevice->getRendererHeight());
         }
 
         for(int y = gridY0; y <= gridY1; ++y){
-            g_SDLDevice->DrawLine(0, y * SYS_MAPGRIDYP - m_viewY, g_SDLDevice->getRendererWidth(), y * SYS_MAPGRIDYP - m_viewY);
+            g_sdlDevice->DrawLine(0, y * SYS_MAPGRIDYP - m_viewY, g_sdlDevice->getRendererWidth(), y * SYS_MAPGRIDYP - m_viewY);
         }
     }
 
@@ -359,7 +359,7 @@ void ProcessRun::draw()
                 if(g_clientArgParser->drawCreatureCover){
                     SDLDevice::EnableRenderColor enableColor(colorf::RGBA(0, 0, 255, 128));
                     SDLDevice::EnableRenderBlendMode enableBlendMode(SDL_BLENDMODE_BLEND);
-                    g_SDLDevice->fillRectangle(x * SYS_MAPGRIDXP - m_viewX, y * SYS_MAPGRIDYP - m_viewY, SYS_MAPGRIDXP, SYS_MAPGRIDYP);
+                    g_sdlDevice->fillRectangle(x * SYS_MAPGRIDXP - m_viewX, y * SYS_MAPGRIDYP - m_viewY, SYS_MAPGRIDXP, SYS_MAPGRIDYP);
                 }
             }
         }
@@ -386,7 +386,7 @@ void ProcessRun::draw()
         int magicKeyOffX = 0;
         for(const auto &magicKey: dynamic_cast<SkillBoard *>(m_GUIManager.getWidget("SkillBoard"))->getMagicKeyList()){
             if(auto texPtr = g_progUseDB->Retrieve(DBCOM_MAGICRECORD(magicKey.magicID).icon + to_u32(0X00001000))){
-                g_SDLDevice->drawTexture(texPtr, magicKeyOffX, 0);
+                g_sdlDevice->drawTexture(texPtr, magicKeyOffX, 0);
                 magicKeyOffX += SDLDevice::getTextureWidth(texPtr);
             }
         }
@@ -394,8 +394,8 @@ void ProcessRun::draw()
 
     // draw underlay at the bottom
     // there is one pixel transparent rectangle
-    const auto [winW, winH] = g_SDLDevice->getRendererSize();
-    g_SDLDevice->fillRectangle(colorf::RGBA(0, 0, 0, 0), 0, winH - 4, winW, 4);
+    const auto [winW, winH] = g_sdlDevice->getRendererSize();
+    g_sdlDevice->fillRectangle(colorf::RGBA(0, 0, 0, 0), 0, winH - 4, winW, 4);
 
     for(auto p: m_ascendStrList){
         p->Draw(m_viewX, m_viewY);
@@ -408,16 +408,16 @@ void ProcessRun::draw()
         const int w = std::max<int>(g_notifyBoard->pw() + 10, 160);
         const int h = g_notifyBoard->h();
         const int x = 0;
-        const int y = std::get<1>(g_SDLDevice->getRendererSize()) - h - 133;
+        const int y = std::get<1>(g_sdlDevice->getRendererSize()) - h - 133;
 
         {
             SDLDevice::EnableRenderColor enableColor(colorf::GREEN + 200);
             SDLDevice::EnableRenderBlendMode enableBlend(SDL_BLENDMODE_BLEND);
-            g_SDLDevice->fillRectangle(x, y, w, h);
+            g_sdlDevice->fillRectangle(x, y, w, h);
         }
 
         g_notifyBoard->drawEx(x, y, 0, 0, w, h);
-        g_SDLDevice->DrawRectangle(colorf::BLUE + 100, x, y, w, h);
+        g_sdlDevice->DrawRectangle(colorf::BLUE + 100, x, y, w, h);
     }
 
     if(g_clientArgParser->drawMouseLocation){
@@ -1235,7 +1235,7 @@ void ProcessRun::centerMyHero()
 
     const auto fnSetOff = [this, nX, nY, nDirection, currFrame, frameCount](int stepLen)
     {
-        const auto [rendererWidth, rendererHeight] = g_SDLDevice->getRendererSize();
+        const auto [rendererWidth, rendererHeight] = g_sdlDevice->getRendererSize();
         const auto controlBoardPtr = dynamic_cast<ControlBoard *>(getGUIManager()->getWidget("ControlBoard"));
         const auto showWindowW = rendererWidth;
         const auto showWindowH = rendererHeight - controlBoardPtr->h();
@@ -1383,7 +1383,7 @@ void ProcessRun::onActionSpawn(uint64_t uid, const ActionNode &action)
                         return false;
                     }
 
-                    const ActionStand stand 
+                    const ActionStand stand
                     {
                         action.X,
                         action.Y,
@@ -1486,12 +1486,12 @@ void ProcessRun::drawGroundItem(int x0, int y0, int x1, int y1)
             // draw item shadow
             SDL_SetTextureColorMod(texPtr, 0, 0, 0);
             SDL_SetTextureAlphaMod(texPtr, 128);
-            g_SDLDevice->drawTexture(texPtr, drawPX + 1, drawPY - 1);
+            g_sdlDevice->drawTexture(texPtr, drawPX + 1, drawPY - 1);
 
             // draw item body
             SDL_SetTextureColorMod(texPtr, 255, 255, 255);
             SDL_SetTextureAlphaMod(texPtr, 255);
-            g_SDLDevice->drawTexture(texPtr, drawPX, drawPY);
+            g_sdlDevice->drawTexture(texPtr, drawPX, drawPY);
 
             if(mouseOver){
                 LabelBoard itemName(0, 0, ir.name, 1, 12, 0, colorf::RGBA(0XFF, 0XFF, 0X00, 0XFF));
@@ -1513,7 +1513,7 @@ void ProcessRun::drawTile(int x0, int y0, int x1, int y1)
             if(m_mir2xMapData.ValidC(x, y) && !(x % 2) && !(y % 2)){
                 if(const auto &tile = m_mir2xMapData.Tile(x, y); tile.Valid()){
                     if(auto texPtr = g_mapDB->Retrieve(tile.Image())){
-                        g_SDLDevice->drawTexture(texPtr, x * SYS_MAPGRIDXP - m_viewX, y * SYS_MAPGRIDYP - m_viewY);
+                        g_sdlDevice->drawTexture(texPtr, x * SYS_MAPGRIDXP - m_viewX, y * SYS_MAPGRIDYP - m_viewY);
                     }
                 }
             }
@@ -1557,7 +1557,7 @@ void ProcessRun::drawGroundObject(int x, int y, bool ground)
                     SDL_SetTextureBlendMode(texPtr, SDL_BLENDMODE_BLEND);
                     SDL_SetTextureAlphaMod(texPtr, 128);
                 }
-                g_SDLDevice->drawTexture(texPtr, x * SYS_MAPGRIDXP - m_viewX, (y + 1) * SYS_MAPGRIDYP - m_viewY - texH);
+                g_sdlDevice->drawTexture(texPtr, x * SYS_MAPGRIDXP - m_viewX, (y + 1) * SYS_MAPGRIDYP - m_viewY - texH);
             }
         }
     }
@@ -1594,7 +1594,7 @@ void ProcessRun::drawRotateStar(int x0, int y0, int x1, int y1)
         // use different color of rotating star for different type
 
         SDL_SetTextureAlphaMod(texPtr, 128);
-        g_SDLDevice->drawTextureEx(texPtr, 0, 0, texW, texH, drawPX, drawPY, currSize, currSize, currSize / 2, currSize / 2, std::lround(m_starRatio * 360.0));
+        g_sdlDevice->drawTextureEx(texPtr, 0, 0, texW, texH, drawPX, drawPY, currSize, currSize, currSize / 2, currSize / 2, std::lround(m_starRatio * 360.0));
     }
 }
 
@@ -1623,7 +1623,7 @@ std::tuple<int, int> ProcessRun::getACNum(const std::string &name) const
 
 void ProcessRun::drawMouseLocation()
 {
-    g_SDLDevice->fillRectangle(colorf::RGBA(0, 0, 0, 230), 0, 0, 200, 60);
+    g_sdlDevice->fillRectangle(colorf::RGBA(0, 0, 0, 230), 0, 0, 200, 60);
 
     int mouseX = -1;
     int mouseY = -1;
@@ -1641,14 +1641,14 @@ void ProcessRun::drawMouseLocation()
 
 void ProcessRun::drawFPS()
 {
-    const auto fpsStr = std::to_string(g_SDLDevice->getFPS());
+    const auto fpsStr = std::to_string(g_sdlDevice->getFPS());
     LabelBoard fpsBoard(0, 0, to_u8cstr(fpsStr), 1, 12, 0, colorf::RGBA(0XFF, 0XFF, 0X00, 0X00));
 
-    const int winWidth = g_SDLDevice->getRendererWidth();
+    const int winWidth = g_sdlDevice->getRendererWidth();
     fpsBoard.moveTo(winWidth - fpsBoard.w(), 0);
 
-    g_SDLDevice->fillRectangle(colorf::BLACK + 200, fpsBoard.x() - 1, fpsBoard.y(), fpsBoard.w() + 1, fpsBoard.h());
-    g_SDLDevice->DrawRectangle(colorf::BLUE  + 255, fpsBoard.x() - 1, fpsBoard.y(), fpsBoard.w() + 1, fpsBoard.h());
+    g_sdlDevice->fillRectangle(colorf::BLACK + 200, fpsBoard.x() - 1, fpsBoard.y(), fpsBoard.w() + 1, fpsBoard.h());
+    g_sdlDevice->DrawRectangle(colorf::BLUE  + 255, fpsBoard.x() - 1, fpsBoard.y(), fpsBoard.w() + 1, fpsBoard.h());
     fpsBoard.draw();
 }
 

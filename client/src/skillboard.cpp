@@ -3,7 +3,7 @@
  *
  *       Filename: skillboard.cpp
  *        Created: 10/08/2017 19:22:30
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -25,7 +25,7 @@
 #include "tritexbutton.hpp"
 
 extern PNGTexDB *g_progUseDB;
-extern SDLDevice *g_SDLDevice;
+extern SDLDevice *g_sdlDevice;
 
 SkillBoard::MagicIconButton::MagicIconButton(int argX, int argY, SkillBoard::MagicIconData *iconDataPtr, Widget *widgetPtr, bool autoDelete)
     : Widget
@@ -189,7 +189,7 @@ void SkillBoard::SkillPage::drawEx(int dstX, int dstY, int srcX, int srcY, int s
 
                     texW,
                     texH)){
-            g_SDLDevice->drawTexture(texPtr, dstXCrop, dstYCrop, srcXCrop, srcYCrop, srcWCrop, srcHCrop);
+            g_sdlDevice->drawTexture(texPtr, dstXCrop, dstYCrop, srcXCrop, srcYCrop, srcWCrop, srcHCrop);
         }
     }
     WidgetGroup::drawEx(dstX, dstY, srcX, srcY, srcW, srcH);
@@ -387,7 +387,7 @@ SkillBoard::SkillBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget, bool a
 void SkillBoard::drawEx(int dstX, int dstY, int, int, int, int)
 {
     if(auto texPtr = g_progUseDB->Retrieve(0X05000000)){
-        g_SDLDevice->drawTexture(texPtr, dstX, dstY);
+        g_sdlDevice->drawTexture(texPtr, dstX, dstY);
     }
 
     m_slider.draw();
@@ -446,7 +446,7 @@ bool SkillBoard::processEvent(const SDL_Event &event, bool valid)
         case SDL_MOUSEMOTION:
             {
                 if((event.motion.state & SDL_BUTTON_LMASK) && (in(event.motion.x, event.motion.y) || focus())){
-                    const auto [rendererW, rendererH] = g_SDLDevice->getRendererSize();
+                    const auto [rendererW, rendererH] = g_sdlDevice->getRendererSize();
                     const int maxX = rendererW - w();
                     const int maxY = rendererH - h();
 

@@ -3,7 +3,7 @@
  *
  *       Filename: layoutboard.cpp
  *        Created: 03/25/2020 22:29:47
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none

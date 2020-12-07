@@ -3,7 +3,7 @@
  *
  *       Filename: levelbox.hpp
  *        Created: 03/28/2020 05:43:45
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -24,7 +24,7 @@
 #include "colorf.hpp"
 #include "labelboard.hpp"
 
-extern SDLDevice *g_SDLDevice;
+extern SDLDevice *g_sdlDevice;
 
 class LevelBox: public Widget
 {
@@ -45,7 +45,7 @@ class LevelBox: public Widget
 
                 const std::function<void(int)> &, // drag
                 const std::function<void(   )> &, // double-click
-                
+
                 Widget * = nullptr, // parent
                 bool     = false);  // auto-delete
 

@@ -3,7 +3,7 @@
  *
  *       Filename: dispatcher.cpp
  *        Created: 01/26/2018 15:37:14
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none

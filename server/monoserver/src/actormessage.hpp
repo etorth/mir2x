@@ -3,7 +3,7 @@
  *
  *       Filename: actormessage.hpp
  *        Created: 05/03/2016 13:19:07
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -243,7 +243,7 @@ struct AMAction
 
     int X;
     int Y;
-    
+
     int AimX;
     int AimY;
 
@@ -312,7 +312,7 @@ struct AMLocation
     uint64_t UID;
     uint32_t MapID;
     uint32_t RecordTime;
-    
+
     int X;
     int Y;
     int Direction;

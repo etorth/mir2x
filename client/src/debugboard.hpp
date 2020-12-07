@@ -3,7 +3,7 @@
  *
  *       Filename: debugboard.hpp
  *        Created: 03/22/2020 16:43:00
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none

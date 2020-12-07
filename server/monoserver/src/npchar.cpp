@@ -3,7 +3,7 @@
  *
  *       Filename: npchar.cpp
  *        Created: 04/12/2020 16:01:51
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none

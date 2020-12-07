@@ -3,7 +3,7 @@
  *
  *       Filename: fixedlocmagic.cpp
  *        Created: 08/07/2017 21:31:24
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -21,7 +21,7 @@
 #include "pngtexoffdb.hpp"
 #include "fixedlocmagic.hpp"
 
-extern SDLDevice *g_SDLDevice;
+extern SDLDevice *g_sdlDevice;
 extern PNGTexOffDB *g_magicDB;
 
 void FixedLocMagic::drawViewOff(int viewX, int viewY, bool alpha)
@@ -39,6 +39,6 @@ void FixedLocMagic::drawViewOff(int viewX, int viewY, bool alpha)
     if(auto texPtr = g_magicDB->Retrieve(m_gfxEntry->gfxID + frame(), &offX, &offY)){
         SDLDevice::EnableTextureBlendMode enableBlendMode(texPtr, SDL_BLENDMODE_BLEND);
         SDLDevice::EnableTextureModColor enableModColor(texPtr, colorf::RGBA(0XFF, 0XFF, 0XFF, alpha ? 0X40 : 0XC0));
-        g_SDLDevice->drawTexture(texPtr, m_x * SYS_MAPGRIDXP - viewX + offX, m_y * SYS_MAPGRIDYP - viewY + offY);
+        g_sdlDevice->drawTexture(texPtr, m_x * SYS_MAPGRIDXP - viewX + offX, m_y * SYS_MAPGRIDYP - viewY + offY);
     }
 }

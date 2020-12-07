@@ -3,7 +3,7 @@
  *
  *       Filename: creaturemovable.cpp
  *        Created: 04/25/2020 22:25:23
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none

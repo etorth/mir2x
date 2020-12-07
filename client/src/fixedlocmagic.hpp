@@ -3,7 +3,7 @@
  *
  *       Filename: fixedlocmagic.hpp
  *        Created: 08/07/2017 21:19:44
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none

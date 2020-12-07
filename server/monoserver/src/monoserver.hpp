@@ -3,7 +3,7 @@
  *
  *       Filename: monoserver.hpp
  *        Created: 02/27/2016 16:45:49
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none

@@ -3,7 +3,7 @@
  *
  *       Filename: myhero.hpp
  *        Created: 04/07/2016 03:48:41 AM
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -52,7 +52,7 @@ class MyHero: public Hero
         // notice:
         // 1. we could have decompLoc == dstLoc
         //    which means provided srcLoc->dstLoc is unit motion
-        // 2. 
+        // 2.
 
         // parameter: bCheckGround    : see ClientPathFinder
         //          : bCheckCreature  : see ClientPathFinder

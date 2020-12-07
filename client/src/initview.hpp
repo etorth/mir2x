@@ -11,7 +11,7 @@
  *
  *                 requirement:
  *                 1. SDL
- *                 2. 
+ *                 2.
  *
  *        Version: 1.0
  *       Revision: none

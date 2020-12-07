@@ -3,7 +3,7 @@
  *
  *       Filename: processsync.cpp
  *        Created: 08/14/2015 02:47:49
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -24,13 +24,13 @@
 
 extern Client *g_client;
 extern PNGTexDB *g_progUseDB;
-extern SDLDevice *g_SDLDevice;
+extern SDLDevice *g_sdlDevice;
 
 ProcessSync::ProcessSync()
 	: Process()
     , m_ratio(0)
     , m_processBarInfo(0, 0, u8"Connecting...", 1, 10, 0)
-{} 
+{}
 void ProcessSync::processEvent(const SDL_Event &event)
 {
     switch(event.type){
@@ -64,14 +64,14 @@ void ProcessSync::draw()
     auto texPtr = g_progUseDB->Retrieve(0X00000002);
     const auto [texW, texH] = SDLDevice::getTextureSize(texPtr);
 
-    g_SDLDevice->drawTexture(texPtr,
+    g_sdlDevice->drawTexture(texPtr,
             112,  // dst x
             528,  // dst y
             0,    // src x
             0,    // src y
             std::lround(texW * (m_ratio / 100.0)), // src w
             texH);  // src h
-    g_SDLDevice->drawTexture(g_progUseDB->Retrieve(0X00000001), 0, 0);
+    g_sdlDevice->drawTexture(g_progUseDB->Retrieve(0X00000001), 0, 0);
 
     const int infoX = (800 - m_processBarInfo.w()) / 2;
     const int infoY = 528 + (texH - m_processBarInfo.h()) / 2;

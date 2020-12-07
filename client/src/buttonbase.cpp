@@ -3,7 +3,7 @@
  *
  *       Filename: buttonbase.cpp
  *        Created: 08/21/2015 04:12:57
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none

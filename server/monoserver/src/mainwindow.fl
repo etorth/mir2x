@@ -964,7 +964,7 @@ class MainWindow {} {
 {
     // this function only interact with FLTK
     // for multi-thread lock and unlock, don't put it here
-    // 
+    //
     // refer to http://www.fltk.org/doc-1.3/group_fl_multithread.html
     // FLTK requests to do rendering in main thread, so
     //    1. use Fl::lock() and Fl::unlock() to access FLTK widgets in child threads
@@ -1070,7 +1070,7 @@ class MainWindow {} {
 {
     if(true
             && (nCWID > 0 )                                         // valid command window index
-            && (m_menuItemFirstCW + (nCWID - 1) <= m_menuItemLastCW)      // 
+            && (m_menuItemFirstCW + (nCWID - 1) <= m_menuItemLastCW)      //
             && (m_menuItemFirstCW + (nCWID - 1))->visible()               // menu item is ``in use"
             && (m_menuItemFirstCW + (nCWID - 1))->user_data()){           // menu item contains a command window
 
@@ -1103,7 +1103,7 @@ class MainWindow {} {
 {
     if(true
             && (nCWID > 0 )                                               // valid command window index
-            && (m_menuItemFirstCW + (nCWID - 1) <= m_menuItemLastCW)      // 
+            && (m_menuItemFirstCW + (nCWID - 1) <= m_menuItemLastCW)      //
             && (m_menuItemFirstCW + (nCWID - 1))->visible()               // menu item is ``in use"
             && (m_menuItemFirstCW + (nCWID - 1))->user_data()){           // menu item contains a command window
 

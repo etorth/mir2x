@@ -103,8 +103,8 @@ class PNGTexOffDB: public innDB<uint32_t, PNGTexOffEntry>
                 stEntry.DX *= (int)(hexstr::to_hex<uint32_t, 2>(szFileName + 10));
                 stEntry.DY *= (int)(hexstr::to_hex<uint32_t, 2>(szFileName + 14));
 
-                extern SDLDevice *g_SDLDevice;
-                stEntry.Texture = g_SDLDevice->CreateTexture(stBuf.data(), stBuf.size());
+                extern SDLDevice *g_sdlDevice;
+                stEntry.Texture = g_sdlDevice->CreateTexture(stBuf.data(), stBuf.size());
             }
             return {stEntry, stEntry.Texture ? 1 : 0};
         }

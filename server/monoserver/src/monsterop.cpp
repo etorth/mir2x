@@ -3,7 +3,7 @@
  *
  *       Filename: monsterop.cpp
  *        Created: 05/03/2016 21:49:38
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none

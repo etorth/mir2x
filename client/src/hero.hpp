@@ -3,7 +3,7 @@
  *
  *       Filename: hero.hpp
  *        Created: 09/03/2015 03:48:41
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -16,7 +16,7 @@
  * =====================================================================================
  */
 
-#pragma once 
+#pragma once
 #include <tuple>
 #include "creaturemovable.hpp"
 

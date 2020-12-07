@@ -3,7 +3,7 @@
  *
  *       Filename: charobject.hpp
  *        Created: 04/10/2016 12:05:22
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -326,7 +326,7 @@ class CharObject: public ServerObject
         // estimate how many hops we need
         // this function checks map but can't check CO
         // if we found one-hop distance we need send move request to servermap
-        // return: 
+        // return:
         //          -1: invalid
         //           0: no move needed
         //           1: one-hop can reach

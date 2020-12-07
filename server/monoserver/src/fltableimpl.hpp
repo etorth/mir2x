@@ -3,7 +3,7 @@
  *
  *       Filename: fltableimpl.hpp
  *        Created: 12/04/2018 22:59:06
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -30,7 +30,7 @@ class Fl_TableImpl: public Fl_Table_Row
 
     public:
         Fl_TableImpl(int, int, int, int, const char * = nullptr);
-        
+
     public:
         int getFontWidth() const;
 

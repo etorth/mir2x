@@ -21,15 +21,15 @@
 #include "processrun.hpp"
 #include "guimanager.hpp"
 
-extern SDLDevice *g_SDLDevice;
+extern SDLDevice *g_sdlDevice;
 
 GUIManager::GUIManager(ProcessRun *proc)
     : WidgetGroup
       {
           0,
           0,
-          g_SDLDevice->getRendererWidth(),
-          g_SDLDevice->getRendererHeight(),
+          g_sdlDevice->getRendererWidth(),
+          g_sdlDevice->getRendererHeight(),
       }
 
     , m_proc(proc)
@@ -40,23 +40,23 @@ GUIManager::GUIManager(ProcessRun *proc)
 
     , m_controlBoard
       {
-          g_SDLDevice->getRendererWidth(),
-          g_SDLDevice->getRendererHeight() - 133,
+          g_sdlDevice->getRendererWidth(),
+          g_sdlDevice->getRendererHeight() - 133,
           proc,
       }
 
     , m_skillBoard
       {
-          g_SDLDevice->getRendererWidth()  / 2 - 180,
-          g_SDLDevice->getRendererHeight() / 2 - 224,
+          g_sdlDevice->getRendererWidth()  / 2 - 180,
+          g_sdlDevice->getRendererHeight() / 2 - 224,
           proc,
           this,
       }
 
     , m_inventoryBoard
       {
-          g_SDLDevice->getRendererWidth()  / 2 - 141,
-          g_SDLDevice->getRendererHeight() / 2 - 233,
+          g_sdlDevice->getRendererWidth()  / 2 - 141,
+          g_sdlDevice->getRendererHeight() / 2 - 233,
           proc,
           this,
       }
@@ -64,15 +64,15 @@ GUIManager::GUIManager(ProcessRun *proc)
     , m_quickAccessBoard
       {
           0,
-          g_SDLDevice->getRendererHeight() - m_controlBoard.h(),
+          g_sdlDevice->getRendererHeight() - m_controlBoard.h(),
           proc,
           this,
       }
 
     , m_playerStatusBoard
       {
-          g_SDLDevice->getRendererWidth()  / 2 - 164,
-          g_SDLDevice->getRendererHeight() / 2 - 233,
+          g_sdlDevice->getRendererWidth()  / 2 - 164,
+          g_sdlDevice->getRendererHeight() / 2 - 233,
           proc,
           this,
       }
@@ -87,7 +87,7 @@ void GUIManager::drawEx(int, int, int, int, int, int)
     m_NPCChatBoard.draw();
     m_controlBoard.draw();
 
-    const auto [w, h] = g_SDLDevice->getRendererSize();
+    const auto [w, h] = g_sdlDevice->getRendererSize();
     WidgetGroup::drawEx(0, 0, 0, 0, w, h);
 }
 
@@ -110,7 +110,7 @@ bool GUIManager::processEvent(const SDL_Event &event, bool valid)
                 switch(event.window.event){
                     case SDL_WINDOWEVENT_SIZE_CHANGED:
                         {
-                            std::tie(m_w, m_h) = g_SDLDevice->getRendererSize();
+                            std::tie(m_w, m_h) = g_sdlDevice->getRendererSize();
                             m_controlBoard.onWindowResize(w(), h());
                             m_controlBoard.moveTo(0, h() - 133);
                             return true;

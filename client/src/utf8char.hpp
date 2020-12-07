@@ -3,7 +3,7 @@
  *
  *       Filename: utf8char.hpp
  *        Created: 7/3/2015 2:05:13 PM
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none

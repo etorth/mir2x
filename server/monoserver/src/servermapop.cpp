@@ -3,7 +3,7 @@
  *
  *       Filename: servermapop.cpp
  *        Created: 05/03/2016 20:21:32
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none

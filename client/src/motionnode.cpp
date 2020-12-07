@@ -3,7 +3,7 @@
  *
  *       Filename: motionnode.cpp
  *        Created: 04/05/2017 12:40:09
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none

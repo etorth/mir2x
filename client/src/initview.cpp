@@ -3,7 +3,7 @@
  *
  *       Filename: initview.cpp
  *        Created: 07/18/2017 16:04:25
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -33,7 +33,7 @@
 
 extern Log *g_log;
 extern XMLConf *g_XMLConf;
-extern SDLDevice *g_SDLDevice;
+extern SDLDevice *g_sdlDevice;
 extern emoticonDB *g_emoticonDB;
 
 extern PNGTexDB *g_mapDB;
@@ -143,13 +143,13 @@ InitView::InitView(uint8_t nFontSize)
         return stBufU32V;
     }();
 
-    g_SDLDevice->CreateInitViewWindow();
+    g_sdlDevice->CreateInitViewWindow();
 
     // create window before loading textures
     // in SDL2 textures binds to SDL_Renderer
 
-    m_textureV[0] = g_SDLDevice->CreateTexture((uint8_t *)(&(stBufU32V[1][1])), (size_t)(stBufU32V[1][0]));
-    m_textureV[1] = g_SDLDevice->CreateTexture((uint8_t *)(&(stBufU32V[2][1])), (size_t)(stBufU32V[2][0]));
+    m_textureV[0] = g_sdlDevice->CreateTexture((uint8_t *)(&(stBufU32V[1][1])), (size_t)(stBufU32V[1][0]));
+    m_textureV[1] = g_sdlDevice->CreateTexture((uint8_t *)(&(stBufU32V[2][1])), (size_t)(stBufU32V[2][0]));
 
     if(false
             || !m_textureV[0]
@@ -334,19 +334,19 @@ void InitView::Load()
 void InitView::Draw()
 {
     SDLDevice::RenderNewFrame newFrame;
-    g_SDLDevice->drawTexture(m_textureV[0], 0, 0);
+    g_sdlDevice->drawTexture(m_textureV[0], 0, 0);
 
     int nX = m_buttonX;
     int nY = m_buttonY;
     switch(m_buttonState){
         case 1:
             {
-                g_SDLDevice->drawTexture(m_textureV[1], nX, nY,  0, 0, 32, 30);
+                g_sdlDevice->drawTexture(m_textureV[1], nX, nY,  0, 0, 32, 30);
                 break;
             }
         case 2:
             {
-                g_SDLDevice->drawTexture(m_textureV[1], nX, nY, 32, 0, 32, 30);
+                g_sdlDevice->drawTexture(m_textureV[1], nX, nY, 32, 0, 32, 30);
                 break;
             }
         default:
@@ -367,8 +367,8 @@ void InitView::Draw()
             }
         }();
 
-        if(auto pSurface = TTF_RenderUTF8_Blended(g_SDLDevice->DefaultTTF(m_fontSize), szMessage.c_str(), stColor)){
-            pTexture = g_SDLDevice->CreateTextureFromSurface(pSurface);
+        if(auto pSurface = TTF_RenderUTF8_Blended(g_sdlDevice->DefaultTTF(m_fontSize), szMessage.c_str(), stColor)){
+            pTexture = g_sdlDevice->CreateTextureFromSurface(pSurface);
             SDL_FreeSurface(pSurface);
         }
         return pTexture;
@@ -403,7 +403,7 @@ void InitView::Draw()
             int nW = -1;
             int nH = -1;
             if(!SDL_QueryTexture(stTextureV[nTextureIndex], nullptr, nullptr, &nW, &nH)){
-                g_SDLDevice->drawTexture(stTextureV[nTextureIndex], nStartX, nStartY);
+                g_sdlDevice->drawTexture(stTextureV[nTextureIndex], nStartX, nStartY);
                 nStartY += (nH + (nH / 3) + 2);
             }
         }

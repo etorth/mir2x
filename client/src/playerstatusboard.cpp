@@ -3,7 +3,7 @@
  *
  *       Filename: playerstatusboard.cpp
  *        Created: 10/08/2017 19:22:30
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -22,7 +22,7 @@
 #include "inventoryboard.hpp"
 
 extern PNGTexDB *g_progUseDB;
-extern SDLDevice *g_SDLDevice;
+extern SDLDevice *g_sdlDevice;
 
 PlayerStatusBoard::PlayerStatusBoard(int argX, int argY, ProcessRun *runPtr, Widget *widgetPtr, bool autoDelete)
     : Widget
@@ -105,7 +105,7 @@ void PlayerStatusBoard::update(double)
 void PlayerStatusBoard::drawEx(int dstX, int dstY, int, int, int, int)
 {
     if(auto pTexture = g_progUseDB->Retrieve(0X06000000)){
-        g_SDLDevice->drawTexture(pTexture, dstX, dstY);
+        g_sdlDevice->drawTexture(pTexture, dstX, dstY);
     }
 
     m_closeButton.draw();
@@ -142,7 +142,7 @@ bool PlayerStatusBoard::processEvent(const SDL_Event &event, bool valid)
         case SDL_MOUSEMOTION:
             {
                 if((event.motion.state & SDL_BUTTON_LMASK) && (in(event.motion.x, event.motion.y) || focus())){
-                    const auto [rendererW, rendererH] = g_SDLDevice->getRendererSize();
+                    const auto [rendererW, rendererH] = g_sdlDevice->getRendererSize();
                     const int maxX = rendererW - w();
                     const int maxY = rendererH - h();
 

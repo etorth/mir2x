@@ -3,7 +3,7 @@
  *
  *       Filename: clientluamodule.cpp
  *        Created: 06/25/2017 18:58:33
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none

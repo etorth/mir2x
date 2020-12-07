@@ -3,7 +3,7 @@
  *
  *       Filename: token.hpp
  *        Created: 12/13/2018 00:17:19
- *    Description: 
+ *    Description:
  *
  *                 +-------------+------(*: X, Y)
  *                 |             |

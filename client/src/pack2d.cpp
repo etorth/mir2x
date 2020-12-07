@@ -3,7 +3,7 @@
  *
  *       Filename: pack2d.cpp
  *        Created: 11/07/2017 23:35:04
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -209,7 +209,7 @@ int Pack2D::Add(PackBin *pBinList, size_t nBinCnt)
             switch(auto nRet = FindRoom(pBinList + nIndex)){
                 case 1:
                     {
-                        // find room only 
+                        // find room only
                         // we need to explicitly take this room here
                         switch(Occupy(pBinList[nIndex].X, pBinList[nIndex].Y, pBinList[nIndex].W, pBinList[nIndex].H, true)){
                             case 1:

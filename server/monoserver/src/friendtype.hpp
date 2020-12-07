@@ -3,7 +3,7 @@
  *
  *       Filename: friendtype.hpp
  *        Created: 09/23/2017 22:30:18
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none

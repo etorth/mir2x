@@ -71,7 +71,7 @@
 
 extern Log *g_log;
 extern PNGTexDB *g_progUseDB;
-extern SDLDevice *g_SDLDevice;
+extern SDLDevice *g_sdlDevice;
 
 ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwidget, bool autoDelete)
     : Widget(0, startY, boardW, 133, pwidget, autoDelete)
@@ -543,12 +543,12 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
               }
 
               m_stretchH = std::max<int>(m_stretchH - dy, m_stretchHMin);
-              m_stretchH = std::min<int>(m_stretchH, g_SDLDevice->getRendererHeight() - 47 - 55);
+              m_stretchH = std::min<int>(m_stretchH, g_sdlDevice->getRendererHeight() - 47 - 55);
               setButtonLoc();
           },
           [this]()
           {
-              const int winH = g_SDLDevice->getRendererHeight();
+              const int winH = g_sdlDevice->getRendererHeight();
               if(!m_expand){
                   switchExpandMode();
                   m_stretchH = winH - 47 - 55;
@@ -678,7 +678,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
     fnAssertImage(0X00000022, 127,  41);
     fnAssertImage(0X00000027, 456, 298);
 
-    if(x() != 0 || y() + h() != g_SDLDevice->getRendererHeight() || w() != g_SDLDevice->getRendererWidth()){
+    if(x() != 0 || y() + h() != g_sdlDevice->getRendererHeight() || w() != g_sdlDevice->getRendererWidth()){
         throw fflerror("ControlBoard has wrong location or size");
     }
 
@@ -699,7 +699,7 @@ void ControlBoard::drawLeft()
 
     // draw left part
     if(auto pTexture = g_progUseDB->Retrieve(0X00000012)){
-        g_SDLDevice->drawTexture(pTexture, 0, nY0, 0, 0, 178, 133);
+        g_sdlDevice->drawTexture(pTexture, 0, nY0, 0, 0, 178, 133);
     }
 
     // draw HP and MP texture
@@ -733,8 +733,8 @@ void ControlBoard::drawLeft()
                 auto nLostHPH = (int)(std::lround(nHPH * fLostHPRatio));
                 auto nLostMPH = (int)(std::lround(nMPH * fLostMPRatio));
 
-                g_SDLDevice->drawTexture(pHP, 33, nY0 + 9 + nLostHPH, 0, nLostHPH, nHPW, nHPH - nLostHPH);
-                g_SDLDevice->drawTexture(pMP, 73, nY0 + 9 + nLostMPH, 0, nLostMPH, nMPW, nMPH - nLostMPH);
+                g_sdlDevice->drawTexture(pHP, 33, nY0 + 9 + nLostHPH, 0, nLostHPH, nHPW, nHPH - nLostHPH);
+                g_sdlDevice->drawTexture(pMP, 73, nY0 + 9 + nLostMPH, 0, nLostMPH, nMPW, nMPH - nLostMPH);
             }
         }
     }
@@ -761,7 +761,7 @@ void ControlBoard::drawRight()
 
     // draw right part
     if(auto pTexture = g_progUseDB->Retrieve(0X00000012)){
-        g_SDLDevice->drawTexture(pTexture, nW0 - 166, nY0, 800 - 166, 0, 166, 133);
+        g_sdlDevice->drawTexture(pTexture, nW0 - 166, nY0, 800 - 166, 0, 166, 133);
     }
 
     m_buttonExchange.draw();
@@ -809,7 +809,7 @@ void ControlBoard::drawMiddleDefault()
     const int nW0 = w();
 
     // draw black underlay for the logBoard and actor face
-    g_SDLDevice->fillRectangle(colorf::RGBA(0X00, 0X00, 0X00, 0XFF), 178 + 2, nY0 + 14, nW0 - (178 + 2) - (166 + 2), 120);
+    g_sdlDevice->fillRectangle(colorf::RGBA(0X00, 0X00, 0X00, 0XFF), 178 + 2, nY0 + 14, nW0 - (178 + 2) - (166 + 2), 120);
 
     m_cmdLine.draw();
     drawLogBoardDefault();
@@ -817,27 +817,27 @@ void ControlBoard::drawMiddleDefault()
 
     // draw middle part
     if(auto pTexture = g_progUseDB->Retrieve(0X00000013)){
-        g_SDLDevice->drawTexture(pTexture,             178, nY0 + 2,         0, 0,  50, 131);
-        g_SDLDevice->drawTexture(pTexture, nW0 - 166 - 119, nY0 + 2, 456 - 119, 0, 119, 131);
+        g_sdlDevice->drawTexture(pTexture,             178, nY0 + 2,         0, 0,  50, 131);
+        g_sdlDevice->drawTexture(pTexture, nW0 - 166 - 119, nY0 + 2, 456 - 119, 0, 119, 131);
 
         const int repeatW = 456 - 50 - 119;
         const int drawW   = nW0 - 50 - 119 - 178 - 166;
 
         const auto [repeat, stretch] = scheduleStretch(drawW, repeatW);
         for(int i = 0; i < repeat; ++i){
-            g_SDLDevice->drawTexture(pTexture, 178 + 50 + i * repeatW, nY0 + 2, 50, 0, repeatW, 131);
+            g_sdlDevice->drawTexture(pTexture, 178 + 50 + i * repeatW, nY0 + 2, 50, 0, repeatW, 131);
         }
 
         // for the rest area
         // need to stretch or shrink
         if(stretch > 0){
-            g_SDLDevice->drawTexture(pTexture, 178 + 50 + repeat * repeatW, nY0 + 2, stretch, 131, 50, 0, repeatW, 131);
+            g_sdlDevice->drawTexture(pTexture, 178 + 50 + repeat * repeatW, nY0 + 2, stretch, 131, 50, 0, repeatW, 131);
         }
     }
 
     // draw current creature face
     if(auto pTexture = g_progUseDB->Retrieve(m_processRun->GetFocusFaceKey())){
-        g_SDLDevice->drawTexture(pTexture, nW0 - 266, nY0 + 18);
+        g_sdlDevice->drawTexture(pTexture, nW0 - 266, nY0 + 18);
     }
 
     // draw title
@@ -845,7 +845,7 @@ void ControlBoard::drawMiddleDefault()
         const auto [titleW, titleH] = SDLDevice::getTextureSize(texPtr);
         const int titleDstX = 178 + (nW0 - 178 - 166 - titleW) / 2;
         const int titleDstY = nY0 - 19;
-        g_SDLDevice->drawTexture(texPtr, titleDstX, titleDstY);
+        g_sdlDevice->drawTexture(texPtr, titleDstX, titleDstY);
     }
 
     m_arcAniBoard.draw();
@@ -894,30 +894,30 @@ void ControlBoard::drawMiddleExpand()
     // draw black underlay for the big log board
     {
         SDLDevice::EnableRenderBlendMode enableDrawBlendMode(SDL_BLENDMODE_BLEND);
-        g_SDLDevice->fillRectangle(colorf::RGBA(0X00, 0X00, 0X00, 0XF0), 178 + 2, startY + 2, nW0 - (178 + 2) - (166 + 2), 47 + m_stretchH);
+        g_sdlDevice->fillRectangle(colorf::RGBA(0X00, 0X00, 0X00, 0XF0), 178 + 2, startY + 2, nW0 - (178 + 2) - (166 + 2), 47 + m_stretchH);
     }
 
     drawInputGreyBackground();
     if(auto pTexture = g_progUseDB->Retrieve(0X00000027)){
 
         // draw four corners
-        g_SDLDevice->drawTexture(pTexture,             178,                   startY,         0,        0,  50, 47);
-        g_SDLDevice->drawTexture(pTexture, nW0 - 166 - 119,                   startY, 456 - 119,        0, 119, 47);
-        g_SDLDevice->drawTexture(pTexture,             178, startY + 47 + m_stretchH,         0, 298 - 55,  50, 55);
-        g_SDLDevice->drawTexture(pTexture, nW0 - 166 - 119, startY + 47 + m_stretchH, 456 - 119, 298 - 55, 119, 55);
+        g_sdlDevice->drawTexture(pTexture,             178,                   startY,         0,        0,  50, 47);
+        g_sdlDevice->drawTexture(pTexture, nW0 - 166 - 119,                   startY, 456 - 119,        0, 119, 47);
+        g_sdlDevice->drawTexture(pTexture,             178, startY + 47 + m_stretchH,         0, 298 - 55,  50, 55);
+        g_sdlDevice->drawTexture(pTexture, nW0 - 166 - 119, startY + 47 + m_stretchH, 456 - 119, 298 - 55, 119, 55);
 
         // draw two stretched vertical bars
         const int repeatH = 298 - 47 - 55;
         const auto [repeatHCnt, stretchH] = scheduleStretch(m_stretchH, repeatH);
 
         for(int i = 0; i < repeatHCnt; ++i){
-            g_SDLDevice->drawTexture(pTexture,             178, startY + 47 + i * repeatH,         0, 47,  50, repeatH);
-            g_SDLDevice->drawTexture(pTexture, nW0 - 166 - 119, startY + 47 + i * repeatH, 456 - 119, 47, 119, repeatH);
+            g_sdlDevice->drawTexture(pTexture,             178, startY + 47 + i * repeatH,         0, 47,  50, repeatH);
+            g_sdlDevice->drawTexture(pTexture, nW0 - 166 - 119, startY + 47 + i * repeatH, 456 - 119, 47, 119, repeatH);
         }
 
         if(stretchH > 0){
-            g_SDLDevice->drawTexture(pTexture,             178, startY + 47 + repeatHCnt * repeatH,  50, stretchH,         0, 47,  50, repeatH);
-            g_SDLDevice->drawTexture(pTexture, nW0 - 166 - 119, startY + 47 + repeatHCnt * repeatH, 119, stretchH, 456 - 119, 47, 119, repeatH);
+            g_sdlDevice->drawTexture(pTexture,             178, startY + 47 + repeatHCnt * repeatH,  50, stretchH,         0, 47,  50, repeatH);
+            g_sdlDevice->drawTexture(pTexture, nW0 - 166 - 119, startY + 47 + repeatHCnt * repeatH, 119, stretchH, 456 - 119, 47, 119, repeatH);
         }
 
         // draw horizontal top bar and bottom input area
@@ -926,13 +926,13 @@ void ControlBoard::drawMiddleExpand()
 
         const auto [repeatWCnt, stretchW] = scheduleStretch(drawW, repeatW);
         for(int i = 0; i < repeatWCnt; ++i){
-            g_SDLDevice->drawTexture(pTexture, 178 + 50 + i * repeatW,                   startY, 50,        0, repeatW, 47);
-            g_SDLDevice->drawTexture(pTexture, 178 + 50 + i * repeatW, startY + 47 + m_stretchH, 50, 298 - 55, repeatW, 55);
+            g_sdlDevice->drawTexture(pTexture, 178 + 50 + i * repeatW,                   startY, 50,        0, repeatW, 47);
+            g_sdlDevice->drawTexture(pTexture, 178 + 50 + i * repeatW, startY + 47 + m_stretchH, 50, 298 - 55, repeatW, 55);
         }
 
         if(stretchW > 0){
-            g_SDLDevice->drawTexture(pTexture, 178 + 50 + repeatWCnt * repeatW,                   startY, stretchW, 47, 50,        0, repeatW, 47);
-            g_SDLDevice->drawTexture(pTexture, 178 + 50 + repeatWCnt * repeatW, startY + 47 + m_stretchH, stretchW, 55, 50, 298 - 55, repeatW, 55);
+            g_sdlDevice->drawTexture(pTexture, 178 + 50 + repeatWCnt * repeatW,                   startY, stretchW, 47, 50,        0, repeatW, 47);
+            g_sdlDevice->drawTexture(pTexture, 178 + 50 + repeatWCnt * repeatW, startY + 47 + m_stretchH, stretchW, 55, 50, 298 - 55, repeatW, 55);
         }
     }
 
@@ -944,7 +944,7 @@ void ControlBoard::drawMiddleExpand()
         SDL_QueryTexture(pTexture, 0, 0, &titleW, &titleH);
         const int titleDstX = 178 + (nW0 - 178 - 166 - titleW) / 2;
         const int titleDstY = startY - 2 - 19;
-        g_SDLDevice->drawTexture(pTexture, titleDstX, titleDstY);
+        g_sdlDevice->drawTexture(pTexture, titleDstX, titleDstY);
     }
 
     m_arcAniBoard.draw();
@@ -1171,9 +1171,9 @@ void ControlBoard::setButtonLoc()
 int ControlBoard::logBoardStartY() const
 {
     if(!m_expand){
-        return g_SDLDevice->getRendererHeight() - 120;
+        return g_sdlDevice->getRendererHeight() - 120;
     }
-    return g_SDLDevice->getRendererHeight() - 55 - m_stretchH - 47 + 12; // 12 is texture top-left to log line distane
+    return g_sdlDevice->getRendererHeight() - 55 - m_stretchH - 47 + 12; // 12 is texture top-left to log line distane
 }
 
 void ControlBoard::onWindowResize(int winW, int winH)
@@ -1206,6 +1206,6 @@ void ControlBoard::drawInputGreyBackground()
 
     }
     else{
-        g_SDLDevice->fillRectangle(color, m_middle.x() + 7, m_middle.y() + 104, m_middle.w() - 110, 17);
+        g_sdlDevice->fillRectangle(color, m_middle.x() + 7, m_middle.y() + 104, m_middle.w() - 110, 17);
     }
 }

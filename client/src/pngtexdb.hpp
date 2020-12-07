@@ -3,7 +3,7 @@
  *
  *       Filename: pngtexdbn.hpp
  *        Created: 02/26/2016 21:48:43
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -74,8 +74,8 @@ class PNGTexDB: public innDB<uint32_t, PNGTexEntry>
             PNGTexEntry stEntry {nullptr};
 
             if(std::vector<uint8_t> stBuf; m_zsdbPtr->Decomp(hexstr::to_string<uint32_t, 4>(nKey, szKeyString, true), 8, &stBuf)){
-                extern SDLDevice *g_SDLDevice;
-                stEntry.Texture = g_SDLDevice->CreateTexture(stBuf.data(), stBuf.size());
+                extern SDLDevice *g_sdlDevice;
+                stEntry.Texture = g_sdlDevice->CreateTexture(stBuf.data(), stBuf.size());
             }
             return {stEntry, stEntry.Texture ? 1 : 0};
         }

@@ -392,7 +392,7 @@ void Channel::DoSendPack()
                         m_flushFlag = false;
                         return;
                     }else{
-                        // else we still need to access m_currSendQ 
+                        // else we still need to access m_currSendQ
                         // keep m_flushFlag to pervent other thread to call DoSendHC()
                         std::swap(m_currSendQ, m_nextSendQ);
                     }
@@ -447,7 +447,7 @@ bool Channel::FlushSendQ()
         // but we need lock for m_nextSendQ, in child threads, in asio main loop
 
         // but we need to make sure there is only one procedure in asio main loop accessing m_currSendQ
-        // because packages in m_currSendQ are divided into two parts: HC / Data 
+        // because packages in m_currSendQ are divided into two parts: HC / Data
         // one package only get erased after Data is sent
         // then multiple procesdure in asio main loop may send HC / Data more than one time
 

@@ -3,7 +3,7 @@
  *
  *       Filename: charobjectop.cpp
  *        Created: 03/26/2019 21:37:01
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none

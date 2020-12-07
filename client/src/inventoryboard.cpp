@@ -3,7 +3,7 @@
  *
  *       Filename: inventoryboard.cpp
  *        Created: 10/08/2017 19:22:30
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -23,7 +23,7 @@
 
 extern PNGTexDB *g_progUseDB;
 extern PNGTexDB *g_commonItemDB;
-extern SDLDevice *g_SDLDevice;
+extern SDLDevice *g_sdlDevice;
 
 InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget, bool autoDelete)
     : Widget(nX, nY, 0, 0, pwidget, autoDelete)
@@ -113,7 +113,7 @@ void InventoryBoard::drawItem(int nDstX, int nDstY, const PackBin &rstBin)
                 const int nInvGridX0 = 18;
                 const int nInvGridY0 = 59;
 
-                g_SDLDevice->drawTexture(pTexture, 
+                g_sdlDevice->drawTexture(pTexture,
                         nDstX + nInvGridX0 + rstBin.X * SYS_INVGRIDPW + (rstBin.W * SYS_INVGRIDPW - nItemPW) / 2,
                         nDstY + nInvGridY0 + rstBin.Y * SYS_INVGRIDPH + (rstBin.H * SYS_INVGRIDPH - nItemPH) / 2);
             }
@@ -129,7 +129,7 @@ void InventoryBoard::update(double fUpdateTime)
 void InventoryBoard::drawEx(int nDstX, int nDstY, int, int, int, int)
 {
     if(auto pTexture = g_progUseDB->Retrieve(0X0000001B)){
-        g_SDLDevice->drawTexture(pTexture, nDstX, nDstY);
+        g_sdlDevice->drawTexture(pTexture, nDstX, nDstY);
     }
 
     if(auto pMyHero = m_processRun->getMyHero()){
@@ -167,7 +167,7 @@ bool InventoryBoard::processEvent(const SDL_Event &event, bool valid)
         case SDL_MOUSEMOTION:
             {
                 if((event.motion.state & SDL_BUTTON_LMASK) && (in(event.motion.x, event.motion.y) || focus())){
-                    const auto [rendererW, rendererH] = g_SDLDevice->getRendererSize();
+                    const auto [rendererW, rendererH] = g_sdlDevice->getRendererSize();
                     const int maxX = rendererW - w();
                     const int maxY = rendererH - h();
 

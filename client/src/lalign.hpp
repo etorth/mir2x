@@ -3,7 +3,7 @@
  *
  *       Filename: lalign.hpp
  *        Created: 12/21/2018 20:44:38
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none

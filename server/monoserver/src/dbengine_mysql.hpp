@@ -3,7 +3,7 @@
  *
  *       Filename: dbengine_mysql.hpp
  *        Created: 01/21/2019 07:24:10
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -38,8 +38,8 @@ class DBEngine_MySQL: public DBConnection
                 throw std::runtime_error(str_fflprintf(": mysql_init(%p) returns %p", &m_SQL, p));
             }
 
-            mysql_options(&m_SQL, MYSQL_SET_CHARSET_NAME, "utf8"); 
-            mysql_options(&m_SQL, MYSQL_INIT_COMMAND, "SET NAMES utf8"); 
+            mysql_options(&m_SQL, MYSQL_SET_CHARSET_NAME, "utf8");
+            mysql_options(&m_SQL, MYSQL_INIT_COMMAND, "SET NAMES utf8");
 
             if(!mysql_real_connect(&m_SQL, szHostName, szUserName, szPassword, szDBName, nPort, nullptr, 0)){
                 throw std::runtime_error(str_fflprintf(": mysql_real_connect() failed: %s", mysql_error(&m_SQL)));
