@@ -38,10 +38,12 @@
 #include "monoserver.hpp"
 #include "dbcomrecord.hpp"
 #include "rotatecoord.hpp"
+#include "serverargparser.hpp"
 #include "serverconfigurewindow.hpp"
 
 extern MapBinDB *g_mapBinDB;
 extern MonoServer *g_monoServer;
+extern ServerArgParser *g_serverArgParser;
 extern ServerConfigureWindow *g_serverConfigureWindow;
 
 ServerMap::ServerMapLuaModule::ServerMapLuaModule(ServerMap *mapPtr)
@@ -956,6 +958,10 @@ void ServerMap::notifyNewCO(uint64_t nUID, int nX, int nY)
 
 Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHintX, int nHintY, bool bStrictLoc)
 {
+    if(g_serverArgParser->disableMonsterSpawn){
+        return nullptr;
+    }
+
     if(!ValidC(nHintX, nHintY)){
         if(bStrictLoc){
             return nullptr;

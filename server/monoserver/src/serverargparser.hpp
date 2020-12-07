@@ -28,6 +28,7 @@ struct ServerArgParser
     const bool DisableMapScript;        // "--disable-map-script"
     const bool TraceActorMessage;       // "--trace-actor-message"
     const bool TraceActorMessageCount;  // "--trace-actor-message-count"
+    const bool disableMonsterSpawn;     // "--disable-monster-spawn"
     const bool preloadMap;              // "--preload-map"
     const int  actorPoolThread;         // "--actor-pool-thread"
 
@@ -36,6 +37,7 @@ struct ServerArgParser
         , DisableMapScript(cmdParser["disable-map-script"])
         , TraceActorMessage(cmdParser["trace-actor-message"])
         , TraceActorMessageCount(cmdParser["trace-actor-message-count"])
+        , disableMonsterSpawn(cmdParser["disable-monster-spawn"])
         , preloadMap(cmdParser["preload-map"])
         , actorPoolThread([&cmdParser]()
           {
