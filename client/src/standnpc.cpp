@@ -20,8 +20,10 @@
 #include "mathf.hpp"
 #include "standnpc.hpp"
 #include "pngtexoffdb.hpp"
+#include "clientargparser.hpp"
 
 extern PNGTexOffDB *g_standNPCDB;
+extern ClientArgParser *g_clientArgParser;
 
 StandNPC::StandNPC(uint64_t uid, ProcessRun *proc, const ActionNode &action)
     : ClientCreature(uid, proc)
@@ -158,6 +160,18 @@ bool StandNPC::draw(int viewX, int viewY, int focusMask)
     for(int focusChan = 1; focusChan < FOCUS_MAX; ++focusChan){
         if(focusMask & (1 << focusChan)){
             fnBlendFrame(bodyFrame, focusChan, bodyDrawX, bodyDrawY, 255);
+        }
+    }
+
+    if(g_clientArgParser->drawTextureAlignLine){
+        g_SDLDevice->DrawLine(colorf::RED + 128, bodyDrawX, bodyDrawY, bodyDrawX + bodyDX, bodyDrawY + bodyDY);
+        g_SDLDevice->DrawLine(colorf::BLUE + 128, bodyDrawX - 5, bodyDrawY, bodyDrawX + 5, bodyDrawY);
+        g_SDLDevice->DrawLine(colorf::BLUE + 128, bodyDrawX, bodyDrawY - 5, bodyDrawX, bodyDrawY + 5);
+    }
+
+    if(g_clientArgParser->drawTargetBox){
+        if(const auto box = getTargetBox()){
+            g_SDLDevice->DrawRectangle(colorf::BLUE + 128, box.x - viewX, box.y - viewY, box.w, box.h);
         }
     }
 

@@ -153,6 +153,12 @@ bool Hero::draw(int viewX, int viewY, int)
         g_SDLDevice->DrawLine(colorf::BLUE + 128, startX, startY - 5, startX, startY + 5);
     }
 
+    if(g_clientArgParser->drawTargetBox){
+        if(const auto box = getTargetBox()){
+            g_SDLDevice->DrawRectangle(colorf::BLUE + 128, box.x - viewX, box.y - viewY, box.w, box.h);
+        }
+    }
+
     // draw attached magic for the second time
     // for some direction magic should be on top of body
 

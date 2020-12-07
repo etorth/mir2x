@@ -32,6 +32,7 @@ struct ClientArgParser
     const bool drawTokenFrame;          // "--draw-token-frame"
     const bool drawTextureAlignLine;    // "--draw-texture-align-line"
     const bool drawBoardFrame;          // "--draw-board-frame"
+    const bool drawTargetBox;           // "--draw-target-box"
     const bool debugAlphaCover;         // "--debug-alpha-cover"
     const bool debugdrawTexture;        // "--debug-draw-texture"
     const bool debugSlider;             // "--debug-slider"
@@ -53,6 +54,7 @@ struct ClientArgParser
         , drawTokenFrame(cmdParser["draw-token-frame"])
         , drawTextureAlignLine(cmdParser["draw-texture-align-line"])
         , drawBoardFrame(cmdParser["draw-board-frame"])
+        , drawTargetBox(cmdParser["draw-target-box"])
         , debugAlphaCover(cmdParser["debug-alpha-cover"])
         , debugdrawTexture(cmdParser["debug-draw-texture"])
         , debugSlider(cmdParser["debug-slider"])
