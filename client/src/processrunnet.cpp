@@ -347,7 +347,7 @@ void ProcessRun::net_FIREMAGIC(const uint8_t *bufPtr, size_t)
             {
                 if(auto fromCOPtr = findUID(smFM.UID)){
                     auto [fromX, fromY] = fromCOPtr->getTargetBox().center();
-                    PathFind::GetFrontLocation(&fromX, &fromY, fromX, fromY, fromCOPtr->currMotion().direction, 5);
+                    PathFind::GetFrontLocation(&fromX, &fromY, fromX, fromY, fromCOPtr->currMotion().direction, 8);
                     auto magicPtr = new TaoFireFigure_RUN
                     {
                         fromX,
