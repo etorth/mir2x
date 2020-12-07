@@ -171,12 +171,12 @@ class SDLDevice final
            SDL_RenderClear(m_renderer);
        }
 
-       void DrawLine(int nX0, int nY0, int nX1, int nY1)
+       void drawLine(int nX0, int nY0, int nX1, int nY1)
        {
            SDL_RenderDrawLine(m_renderer, nX0, nY0, nX1, nY1);
        }
 
-       void DrawLine(uint32_t color, int nX0, int nY0, int nX1, int nY1)
+       void drawLine(uint32_t color, int nX0, int nY0, int nX1, int nY1)
        {
            EnableRenderColor enableColor(color);
            SDL_RenderDrawLine(m_renderer, nX0, nY0, nX1, nY1);
@@ -197,8 +197,8 @@ class SDLDevice final
        void fillRectangle(uint32_t, int, int, int, int);
 
     public:
-       void DrawRectangle(          int, int, int, int);
-       void DrawRectangle(uint32_t, int, int, int, int);
+       void drawRectangle(          int, int, int, int);
+       void drawRectangle(uint32_t, int, int, int, int);
 
     public:
        void drawWidthRectangle(          size_t, int, int, int, int);

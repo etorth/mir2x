@@ -305,11 +305,11 @@ void ProcessRun::draw()
 
         SDLDevice::EnableRenderColor drawColor(colorf::RGBA(0, 255, 0, 128));
         for(int x = gridX0; x <= gridX1; ++x){
-            g_sdlDevice->DrawLine(x * SYS_MAPGRIDXP - m_viewX, 0, x * SYS_MAPGRIDXP - m_viewX, g_sdlDevice->getRendererHeight());
+            g_sdlDevice->drawLine(x * SYS_MAPGRIDXP - m_viewX, 0, x * SYS_MAPGRIDXP - m_viewX, g_sdlDevice->getRendererHeight());
         }
 
         for(int y = gridY0; y <= gridY1; ++y){
-            g_sdlDevice->DrawLine(0, y * SYS_MAPGRIDYP - m_viewY, g_sdlDevice->getRendererWidth(), y * SYS_MAPGRIDYP - m_viewY);
+            g_sdlDevice->drawLine(0, y * SYS_MAPGRIDYP - m_viewY, g_sdlDevice->getRendererWidth(), y * SYS_MAPGRIDYP - m_viewY);
         }
     }
 
@@ -417,7 +417,7 @@ void ProcessRun::draw()
         }
 
         g_notifyBoard->drawEx(x, y, 0, 0, w, h);
-        g_sdlDevice->DrawRectangle(colorf::BLUE + 100, x, y, w, h);
+        g_sdlDevice->drawRectangle(colorf::BLUE + 100, x, y, w, h);
     }
 
     if(g_clientArgParser->drawMouseLocation){
@@ -1648,7 +1648,7 @@ void ProcessRun::drawFPS()
     fpsBoard.moveTo(winWidth - fpsBoard.w(), 0);
 
     g_sdlDevice->fillRectangle(colorf::BLACK + 200, fpsBoard.x() - 1, fpsBoard.y(), fpsBoard.w() + 1, fpsBoard.h());
-    g_sdlDevice->DrawRectangle(colorf::BLUE  + 255, fpsBoard.x() - 1, fpsBoard.y(), fpsBoard.w() + 1, fpsBoard.h());
+    g_sdlDevice->drawRectangle(colorf::BLUE  + 255, fpsBoard.x() - 1, fpsBoard.y(), fpsBoard.w() + 1, fpsBoard.h());
     fpsBoard.draw();
 }
 

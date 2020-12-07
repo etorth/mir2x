@@ -998,11 +998,11 @@ void XMLTypeset::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int sr
                             g_sdlDevice->drawTexture(texPtr, drawDstX, drawDstY, dx, dy, boxW, boxH);
                         }
                         else{
-                            g_sdlDevice->DrawRectangle(colorf::CompColor(bgColor), drawDstX, drawDstY, boxW, boxH);
+                            g_sdlDevice->drawRectangle(colorf::CompColor(bgColor), drawDstX, drawDstY, boxW, boxH);
                         }
 
                         if(g_clientArgParser->drawTokenFrame){
-                            g_sdlDevice->DrawRectangle(colorf::PURPLE + 255, drawDstX, drawDstY, boxW, boxH);
+                            g_sdlDevice->drawRectangle(colorf::PURPLE + 255, drawDstX, drawDstY, boxW, boxH);
                         }
                         break;
                     }
@@ -1028,7 +1028,7 @@ void XMLTypeset::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int sr
                             g_sdlDevice->drawTexture(texPtr, drawDstX, drawDstY, xOnTex + dx, yOnTex + dy, boxW, boxH);
                         }
                         else{
-                            g_sdlDevice->DrawRectangle(colorf::CompColor(bgColor), drawDstX, drawDstY, boxW, boxH);
+                            g_sdlDevice->drawRectangle(colorf::CompColor(bgColor), drawDstX, drawDstY, boxW, boxH);
                         }
                         break;
                     }
@@ -1038,7 +1038,7 @@ void XMLTypeset::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int sr
     }
 
     if(g_clientArgParser->drawBoardFrame){
-        g_sdlDevice->DrawRectangle(colorf::YELLOW + 255, dstX, dstY, srcW, srcH);
+        g_sdlDevice->drawRectangle(colorf::YELLOW + 255, dstX, dstY, srcW, srcH);
     }
 }
 

@@ -272,14 +272,14 @@ bool ClientMonster::draw(int viewX, int viewY, int focusMask)
     fnBlendFrame(pFrame0, 0, startX + nDX0, startY + nDY0);
 
     if(g_clientArgParser->drawTextureAlignLine){
-        g_sdlDevice->DrawLine(colorf::RED + 128, startX, startY, startX + nDX0, startY + nDY0);
-        g_sdlDevice->DrawLine(colorf::BLUE + 128, startX - 5, startY, startX + 5, startY);
-        g_sdlDevice->DrawLine(colorf::BLUE + 128, startX, startY - 5, startX, startY + 5);
+        g_sdlDevice->drawLine(colorf::RED + 128, startX, startY, startX + nDX0, startY + nDY0);
+        g_sdlDevice->drawLine(colorf::BLUE + 128, startX - 5, startY, startX + 5, startY);
+        g_sdlDevice->drawLine(colorf::BLUE + 128, startX, startY - 5, startX, startY + 5);
     }
 
     if(g_clientArgParser->drawTargetBox){
         if(const auto box = getTargetBox()){
-            g_sdlDevice->DrawRectangle(colorf::BLUE + 128, box.x - viewX, box.y - viewY, box.w, box.h);
+            g_sdlDevice->drawRectangle(colorf::BLUE + 128, box.x - viewX, box.y - viewY, box.w, box.h);
         }
     }
 

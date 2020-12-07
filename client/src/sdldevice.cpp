@@ -280,7 +280,7 @@ void SDLDevice::drawTexture(SDL_Texture *pstTexture,
         SDL_Rect stDst {nDstX, nDstY, nDstW, nDstH};
         SDL_RenderCopy(m_renderer, pstTexture, &stSrc, &stDst);
         if(g_clientArgParser->debugdrawTexture){
-            DrawRectangle(colorf::BLUE + 128, nDstX, nDstY, nDstW, nDstH);
+            drawRectangle(colorf::BLUE + 128, nDstX, nDstY, nDstW, nDstH);
         }
     }
 }
@@ -586,7 +586,7 @@ void SDLDevice::fillRectangle(uint32_t nRGBA, int nX, int nY, int nW, int nH)
     }
 }
 
-void SDLDevice::DrawRectangle(int nX, int nY, int nW, int nH)
+void SDLDevice::drawRectangle(int nX, int nY, int nW, int nH)
 {
     SDL_Rect rect;
     rect.x = nX;
@@ -598,12 +598,12 @@ void SDLDevice::DrawRectangle(int nX, int nY, int nW, int nH)
     SDL_RenderDrawPoint(m_renderer, rect.x + rect.w - 1, rect.y + rect.h - 1);
 }
 
-void SDLDevice::DrawRectangle(uint32_t color, int nX, int nY, int nW, int nH)
+void SDLDevice::drawRectangle(uint32_t color, int nX, int nY, int nW, int nH)
 {
     if(colorf::A(color)){
         SDLDevice::EnableRenderColor enableColor(color);
         SDLDevice::EnableRenderBlendMode enableBlendMode(SDL_BLENDMODE_BLEND);
-        DrawRectangle(nX, nY, nW, nH);
+        drawRectangle(nX, nY, nW, nH);
     }
 }
 
@@ -614,7 +614,7 @@ void SDLDevice::drawWidthRectangle(size_t frameLineWidth, int nX, int nY, int nW
     }
 
     if(frameLineWidth == 1){
-        DrawRectangle(nX, nY, nW, nH);
+        drawRectangle(nX, nY, nW, nH);
         return;
     }
 

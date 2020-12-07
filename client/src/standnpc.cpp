@@ -164,14 +164,14 @@ bool StandNPC::draw(int viewX, int viewY, int focusMask)
     }
 
     if(g_clientArgParser->drawTextureAlignLine){
-        g_sdlDevice->DrawLine(colorf::RED + 128, bodyDrawX, bodyDrawY, bodyDrawX + bodyDX, bodyDrawY + bodyDY);
-        g_sdlDevice->DrawLine(colorf::BLUE + 128, bodyDrawX - 5, bodyDrawY, bodyDrawX + 5, bodyDrawY);
-        g_sdlDevice->DrawLine(colorf::BLUE + 128, bodyDrawX, bodyDrawY - 5, bodyDrawX, bodyDrawY + 5);
+        g_sdlDevice->drawLine(colorf::RED + 128, bodyDrawX, bodyDrawY, bodyDrawX + bodyDX, bodyDrawY + bodyDY);
+        g_sdlDevice->drawLine(colorf::BLUE + 128, bodyDrawX - 5, bodyDrawY, bodyDrawX + 5, bodyDrawY);
+        g_sdlDevice->drawLine(colorf::BLUE + 128, bodyDrawX, bodyDrawY - 5, bodyDrawX, bodyDrawY + 5);
     }
 
     if(g_clientArgParser->drawTargetBox){
         if(const auto box = getTargetBox()){
-            g_sdlDevice->DrawRectangle(colorf::BLUE + 128, box.x - viewX, box.y - viewY, box.w, box.h);
+            g_sdlDevice->drawRectangle(colorf::BLUE + 128, box.x - viewX, box.y - viewY, box.w, box.h);
         }
     }
 

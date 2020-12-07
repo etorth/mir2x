@@ -171,7 +171,7 @@ void ProcessNew::draw()
 
         rstLB.drawEx(nX - rstLB.w() - nDX, nY, 0, 0, rstLB.w(), rstLB.h());
 
-        g_sdlDevice->DrawRectangle(nX, nY, rstBox.w(), rstBox.h());
+        g_sdlDevice->drawRectangle(nX, nY, rstBox.w(), rstBox.h());
         rstBox.drawEx(nX, nY, 0, 0, rstBox.w(), rstBox.h());
 
         rstLBCheck.drawEx(nX + rstBox.w() + nDX, nY, 0, 0, rstLBCheck.w(), rstLBCheck.h());
