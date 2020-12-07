@@ -958,8 +958,15 @@ void ServerMap::notifyNewCO(uint64_t nUID, int nX, int nY)
 
 Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHintX, int nHintY, bool bStrictLoc)
 {
-    if(g_serverArgParser->disableMonsterSpawn){
-        return nullptr;
+    if(uidf::getUIDType(nMasterUID) == UID_PLY){
+        if(g_serverArgParser->disablePetSpawn){
+            return nullptr;
+        }
+    }
+    else{
+        if(g_serverArgParser->disableMonsterSpawn){
+            return nullptr;
+        }
     }
 
     if(!ValidC(nHintX, nHintY)){
