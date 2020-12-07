@@ -109,7 +109,10 @@
         }
 
     public:
-        virtual bool canFocus(int, int) const = 0;
+        virtual bool canFocus(int pointX, int pointY) const
+        {
+            return getTargetBox().in(pointX, pointY);
+        }
 
     public:
         uint32_t lastActive() const

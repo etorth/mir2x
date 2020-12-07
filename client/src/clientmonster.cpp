@@ -525,49 +525,6 @@ bool ClientMonster::motionValid(const MotionNode &motion) const
     return false;
 }
 
-bool ClientMonster::canFocus(int pointX, int pointY) const
-{
-    switch(m_currMotion.motion){
-        case MOTION_MON_DIE:
-            {
-                return false;
-            }
-        default:
-            {
-                break;
-            }
-    }
-
-    const auto nGfxID = gfxID(m_currMotion.motion, m_currMotion.direction);
-    if(nGfxID < 0){
-        return false;
-    }
-
-    // we only check the body frame
-    // can focus or not is decided by the graphics size
-
-    const uint32_t nKey0 = ((uint32_t)(nGfxID & 0X03FFFF) << 5) + m_currMotion.frame;
-
-    int nDX0 = 0;
-    int nDY0 = 0;
-
-    auto pFrame0 = g_monsterDB->Retrieve(nKey0, &nDX0, &nDY0);
-    const auto [shiftX, shiftY] = getShift();
-
-    const int startX = m_currMotion.x * SYS_MAPGRIDXP + shiftX + nDX0;
-    const int startY = m_currMotion.y * SYS_MAPGRIDYP + shiftY + nDY0;
-
-    int nW = 0;
-    int nH = 0;
-    SDL_QueryTexture(pFrame0, nullptr, nullptr, &nW, &nH);
-
-    const int maxTargetW = SYS_MAPGRIDXP + SYS_TARGETRGN_GAPX;
-    const int maxTargetH = SYS_MAPGRIDYP + SYS_TARGETRGN_GAPY;
-
-    return ((nW >= maxTargetW) ? mathf::pointInSegment(pointX, (startX + (nW - maxTargetW) / 2), maxTargetW) : mathf::pointInSegment(pointX, startX, nW))
-        && ((nH >= maxTargetH) ? mathf::pointInSegment(pointY, (startY + (nH - maxTargetH) / 2), maxTargetH) : mathf::pointInSegment(pointY, startY, nH));
-}
-
 int ClientMonster::gfxID(int nMotion, int nDirection) const
 {
     // see ClientMonster::Draw() for format of nGfxID

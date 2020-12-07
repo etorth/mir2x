@@ -62,9 +62,6 @@ class ClientMonster: public CreatureMovable
     public:
         bool motionValid(const MotionNode &) const;
 
-    public:
-        bool canFocus(int, int) const override;
-
     protected:
         int gfxMotionID(int motion) const override
         {

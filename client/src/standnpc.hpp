@@ -44,7 +44,6 @@ class StandNPC: public ClientCreature
 
     private:
         int32_t gfxShadowID(int32_t) const;
-        bool canFocus(int , int) const override;
 
     public:
         std::tuple<int, int> location() const override

@@ -639,51 +639,6 @@ bool Hero::moving()
         || m_currMotion.motion == MOTION_ONHORSEWALK;
 }
 
-bool Hero::canFocus(int pointX, int pointY) const
-{
-    switch(currMotion().motion){
-        case MOTION_DIE:
-            {
-                return false;
-            }
-        default:
-            {
-                break;
-            }
-    }
-
-    const auto nDress     = Dress();
-    const auto nGender    = Gender();
-    const auto nMotion    = currMotion().motion;
-    const auto nDirection = currMotion().direction;
-
-    const auto nGfxDressID = GfxDressID(nDress, nMotion, nDirection);
-    if(nGfxDressID < 0){
-        return false;
-    }
-
-    int nDX0 = 0;
-    int nDY0 = 0;
-
-    const uint32_t nKey0 = (((uint32_t)(nGender ? 1 : 0)) << 22) + (((uint32_t)(nGfxDressID & 0X01FFFF)) << 5) + currMotion().frame;
-
-    auto pFrame0 = g_heroDB->Retrieve(nKey0, &nDX0, &nDY0);
-    const auto [shiftX, shiftY] = getShift();
-
-    const int startX = m_currMotion.x * SYS_MAPGRIDXP + nDX0 + shiftX;
-    const int startY = m_currMotion.y * SYS_MAPGRIDYP + nDY0 + shiftY;
-
-    int nW = 0;
-    int nH = 0;
-    SDL_QueryTexture(pFrame0, nullptr, nullptr, &nW, &nH);
-
-    const int maxTargetW = SYS_MAPGRIDXP + SYS_TARGETRGN_GAPX;
-    const int maxTargetH = SYS_MAPGRIDYP + SYS_TARGETRGN_GAPY;
-
-    return ((nW >= maxTargetW) ? mathf::pointInSegment(pointX, (startX + (nW - maxTargetW) / 2), maxTargetW) : mathf::pointInSegment(pointX, startX, nW))
-        && ((nH >= maxTargetH) ? mathf::pointInSegment(pointY, (startY + (nH - maxTargetH) / 2), maxTargetH) : mathf::pointInSegment(pointY, startY, nH));
-}
-
 int Hero::WeaponOrder(int nMotion, int nDirection, int nFrame)
 {
     // for player there are 33 motions, each motion has 8 directions

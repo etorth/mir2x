@@ -102,33 +102,6 @@ int32_t StandNPC::gfxShadowID(int32_t gfxId) const
     return gfxId | shadowBit;
 }
 
-bool StandNPC::canFocus(int pointX, int pointY) const
-{
-    const auto bodyKey = gfxID();
-    if(bodyKey < 0){
-        return false;
-    }
-
-    int bodyDX = 0;
-    int bodyDY = 0;
-    auto bodyFrame = g_standNPCDB->Retrieve(bodyKey + m_currMotion.frame, &bodyDX, &bodyDY);
-
-    if(!bodyFrame){
-        return false;
-    }
-
-    const auto [bodyFrameW, bodyFrameH] = SDLDevice::getTextureSize(bodyFrame);
-
-    const int startX = x() * SYS_MAPGRIDXP + bodyDX;
-    const int startY = y() * SYS_MAPGRIDYP + bodyDY;
-
-    const int maxTargetW = SYS_MAPGRIDXP + SYS_TARGETRGN_GAPX;
-    const int maxTargetH = SYS_MAPGRIDYP + SYS_TARGETRGN_GAPY;
-
-    return ((bodyFrameW >= maxTargetW) ? mathf::pointInSegment(pointX, (startX + (bodyFrameW - maxTargetW) / 2), maxTargetW) : mathf::pointInSegment(pointX, startX, bodyFrameW))
-        && ((bodyFrameH >= maxTargetH) ? mathf::pointInSegment(pointY, (startY + (bodyFrameH - maxTargetH) / 2), maxTargetH) : mathf::pointInSegment(pointY, startY, bodyFrameH));
-}
-
 bool StandNPC::draw(int viewX, int viewY, int focusMask)
 {
     const auto bodyKey = gfxID();

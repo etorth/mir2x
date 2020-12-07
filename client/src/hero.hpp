@@ -53,9 +53,6 @@ class Hero: public CreatureMovable
         bool draw(int, int, int) override;
 
     public:
-        bool canFocus(int, int) const override;
-
-    public:
         bool OnHorse() const
         {
             return m_onHorse;
