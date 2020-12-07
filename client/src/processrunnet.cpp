@@ -311,9 +311,9 @@ void ProcessRun::net_SHOWDROPITEM(const uint8_t *bufPtr, size_t)
     }
 }
 
-void ProcessRun::net_FIREMAGIC(const uint8_t *bufPtr, size_t)
+void ProcessRun::net_CASTMAGIC(const uint8_t *bufPtr, size_t)
 {
-    const auto smFM = ServerMsg::conv<SMFireMagic>(bufPtr);
+    const auto smFM = ServerMsg::conv<SMCastMagic>(bufPtr);
     const auto &mr = DBCOM_MAGICRECORD(smFM.Magic);
 
     if(!mr){

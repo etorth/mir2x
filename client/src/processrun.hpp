@@ -189,7 +189,7 @@ class ProcessRun: public Process
         void net_PICKUPOK(const uint8_t *, size_t);
         void net_CORECORD(const uint8_t *, size_t);
         void net_UPDATEHP(const uint8_t *, size_t);
-        void net_FIREMAGIC(const uint8_t *, size_t);
+        void net_CASTMAGIC(const uint8_t *, size_t);
         void net_NOTIFYDEAD(const uint8_t *, size_t);
         void net_DEADFADEOUT(const uint8_t *, size_t);
         void net_MONSTERGINFO(const uint8_t *, size_t);

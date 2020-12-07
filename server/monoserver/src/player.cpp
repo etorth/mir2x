@@ -673,7 +673,7 @@ void Player::onCMActionSpell(CMAction cmA)
     switch(nMagicID){
         case DBCOM_MAGICID(u8"灵魂火符"):
             {
-                SMFireMagic smFM;
+                SMCastMagic smFM;
                 std::memset(&smFM, 0, sizeof(smFM));
 
                 smFM.UID    = UID();
@@ -686,13 +686,13 @@ void Player::onCMActionSpell(CMAction cmA)
 
                 Delay(800, [this, smFM]()
                 {
-                    g_netDriver->Post(ChannID(), SM_FIREMAGIC, smFM);
+                    g_netDriver->Post(ChannID(), SM_CASTMAGIC, smFM);
                 });
                 break;
             }
         case DBCOM_MAGICID(u8"雷电术"):
             {
-                SMFireMagic stSMFM;
+                SMCastMagic stSMFM;
                 std::memset(&stSMFM, 0, sizeof(stSMFM));
 
                 stSMFM.UID    = UID();
@@ -705,13 +705,13 @@ void Player::onCMActionSpell(CMAction cmA)
 
                 Delay(1400, [this, stSMFM]()
                 {
-                    g_netDriver->Post(ChannID(), SM_FIREMAGIC, stSMFM);
+                    g_netDriver->Post(ChannID(), SM_CASTMAGIC, stSMFM);
                 });
                 break;
             }
         case DBCOM_MAGICID(u8"魔法盾"):
             {
-                SMFireMagic stSMFM;
+                SMCastMagic stSMFM;
                 std::memset(&stSMFM, 0, sizeof(stSMFM));
 
                 stSMFM.UID   = UID();
@@ -720,7 +720,7 @@ void Player::onCMActionSpell(CMAction cmA)
 
                 Delay(800, [this, stSMFM]()
                 {
-                    g_netDriver->Post(ChannID(), SM_FIREMAGIC, stSMFM);
+                    g_netDriver->Post(ChannID(), SM_CASTMAGIC, stSMFM);
                 });
                 break;
             }
@@ -730,7 +730,7 @@ void Player::onCMActionSpell(CMAction cmA)
                 int nFrontY = -1;
                 PathFind::GetFrontLocation(&nFrontX, &nFrontY, X(), Y(), Direction(), 2);
 
-                SMFireMagic stSMFM;
+                SMCastMagic stSMFM;
                 std::memset(&stSMFM, 0, sizeof(stSMFM));
 
                 stSMFM.UID   = UID();
@@ -755,7 +755,7 @@ void Player::onCMActionSpell(CMAction cmA)
                 int nFrontY = -1;
                 PathFind::GetFrontLocation(&nFrontX, &nFrontY, X(), Y(), Direction(), 2);
 
-                SMFireMagic smFM;
+                SMCastMagic smFM;
                 std::memset(&smFM, 0, sizeof(smFM));
 
                 smFM.UID   = UID();

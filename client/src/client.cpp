@@ -245,10 +245,10 @@ void Client::onServerMessage(uint8_t headCode, const uint8_t *pData, size_t nDat
                 }
                 break;
             }
-        case SM_FIREMAGIC:
+        case SM_CASTMAGIC:
             {
                 if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
-                    pRun->net_FIREMAGIC(pData, nDataLen);
+                    pRun->net_CASTMAGIC(pData, nDataLen);
                 }
                 break;
             }

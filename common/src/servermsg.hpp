@@ -36,7 +36,7 @@ enum SMType: uint8_t
     SM_EXP,
     SM_MISS,
     SM_SHOWDROPITEM,
-    SM_FIREMAGIC,
+    SM_CASTMAGIC,
     SM_SPACEMOVE,
     SM_OFFLINE,
     SM_REMOVEGROUNDITEM,
@@ -193,7 +193,7 @@ struct SMShowDropItem
     uint16_t Y;
 };
 
-struct SMFireMagic
+struct SMCastMagic
 {
     uint64_t UID;
     uint32_t MapID;
@@ -275,7 +275,7 @@ class ServerMsg final: public MsgBase
                 {SM_EXP,              {1, sizeof(SMExp),                   "SM_EXP"             }},
                 {SM_MISS,             {1, sizeof(SMMiss),                  "SM_MISS"            }},
                 {SM_SHOWDROPITEM,     {1, sizeof(SMShowDropItem),          "SM_SHOWDROPITEM"    }},
-                {SM_FIREMAGIC,        {1, sizeof(SMFireMagic),             "SM_FIREMAGIC"       }},
+                {SM_CASTMAGIC,        {1, sizeof(SMCastMagic),             "SM_CASTMAGIC"       }},
                 {SM_OFFLINE,          {1, sizeof(SMOffline),               "SM_OFFLINE"         }},
                 {SM_PICKUPOK,         {1, sizeof(SMPickUpOK),              "SM_PICKUPOK"        }},
                 {SM_REMOVEGROUNDITEM, {1, sizeof(SMRemoveGroundItem),      "SM_REMOVEGROUNDITEM"}},
@@ -305,7 +305,7 @@ class ServerMsg final: public MsgBase
                     || std::is_same_v<T, SMExp>
                     || std::is_same_v<T, SMMiss>
                     || std::is_same_v<T, SMShowDropItem>
-                    || std::is_same_v<T, SMFireMagic>
+                    || std::is_same_v<T, SMCastMagic>
                     || std::is_same_v<T, SMOffline>
                     || std::is_same_v<T, SMRemoveGroundItem>
                     || std::is_same_v<T, SMPickUpOK>
