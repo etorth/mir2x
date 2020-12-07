@@ -186,6 +186,7 @@
             .gfxIDCount = 10,
             .gfxDirType = 16, //special, has 16 directions
             .loop = 1,
+            .speed = 200,
         },
 
         {
