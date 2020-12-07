@@ -43,12 +43,12 @@ class ClientPathFinder;
 class ProcessRun: public Process
 {
     private:
-        struct UserCommandEntry
+        struct UserCommand
         {
             std::string command;
             std::function<int(const std::vector<std::string> &)> callback;
 
-            UserCommandEntry(const char *cmdString, std::function<int(const std::vector<std::string> &)> cmdCB)
+            UserCommand(const char *cmdString, std::function<int(const std::vector<std::string> &)> cmdCB)
                 : command(cmdString ? cmdString : "")
                 , callback(cmdCB)
             {
@@ -63,7 +63,7 @@ class ProcessRun: public Process
         };
 
     private:
-        std::vector<UserCommandEntry> m_userCommandGroup;
+        std::vector<UserCommand> m_userCommandList;
 
     private:
         uint32_t     m_mapID;

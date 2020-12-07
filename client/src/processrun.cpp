@@ -806,9 +806,9 @@ bool ProcessRun::userCommand(const char *userCmdString)
     }
 
     int matchCount = 0;
-    UserCommandEntry *entryPtr = nullptr;
+    UserCommand *entryPtr = nullptr;
 
-    for(auto &entry : m_userCommandGroup){
+    for(auto &entry : m_userCommandList){
         if(entry.command.substr(0, tokenList[0].size()) == tokenList[0]){
             entryPtr = &entry;
             matchCount++;
@@ -833,7 +833,7 @@ bool ProcessRun::userCommand(const char *userCmdString)
         default:
             {
                 addCBLog(CBLOG_ERR, u8">> Ambiguous user command: %s", tokenList[0].c_str());
-                for(auto &entry : m_userCommandGroup){
+                for(auto &entry : m_userCommandList){
                     if(entry.command.substr(0, tokenList[0].size()) == tokenList[0]){
                         addCBLog(CBLOG_ERR, u8">> Candicate: %s", entry.command.c_str());
                     }
@@ -894,18 +894,18 @@ void ProcessRun::RegisterUserCommand()
         }
     };
 
-    m_userCommandGroup.emplace_back("moveTo", [&fnCreateLuaCmdString, this](const std::vector<std::string> &parmList) -> int
+    m_userCommandList.emplace_back("moveTo", [&fnCreateLuaCmdString, this](const std::vector<std::string> &parmList) -> int
     {
         return luaCommand(fnCreateLuaCmdString("moveTo", parmList).c_str());
     });
 
-    m_userCommandGroup.emplace_back("luaEditor", [this](const std::vector<std::string> &) -> int
+    m_userCommandList.emplace_back("luaEditor", [this](const std::vector<std::string> &) -> int
     {
         addCBLog(CBLOG_ERR, u8">> Lua editor not implemented yet");
         return 0;
     });
 
-    m_userCommandGroup.emplace_back("makeItem", [this](const std::vector<std::string> &parmList) -> int
+    m_userCommandList.emplace_back("makeItem", [this](const std::vector<std::string> &parmList) -> int
     {
         switch(parmList.size()){
             case 1 + 0:
@@ -926,24 +926,24 @@ void ProcessRun::RegisterUserCommand()
         }
     });
 
-    m_userCommandGroup.emplace_back("getAttackUID", [this](const std::vector<std::string> &) -> int
+    m_userCommandList.emplace_back("getAttackUID", [this](const std::vector<std::string> &) -> int
     {
         addCBLog(CBLOG_ERR, to_u8cstr(std::to_string(FocusUID(FOCUS_ATTACK))));
         return 1;
     });
 
-    m_userCommandGroup.emplace_back("killPets", [this](const std::vector<std::string> &) -> int
+    m_userCommandList.emplace_back("killPets", [this](const std::vector<std::string> &) -> int
     {
         RequestKillPets();
         addCBLog(CBLOG_SYS, u8"杀死所有宝宝");
         return 0;
     });
 
-    m_userCommandGroup.emplace_back("help", [this](const std::vector<std::string> &) -> int
+    m_userCommandList.emplace_back("help", [this](const std::vector<std::string> &) -> int
     {
-        addCBLog(CBLOG_SYS, u8"u: 召唤骷髅");
-        addCBLog(CBLOG_SYS, u8"y: 魔法盾");
-        addCBLog(CBLOG_SYS, u8"t: 雷电术");
+        for(const auto &cmd: m_userCommandList){
+            addCBLog(CBLOG_SYS, u8"@%s", cmd.command.c_str());
+        }
         return 0;
     });
 }
