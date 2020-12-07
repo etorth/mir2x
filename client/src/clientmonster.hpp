@@ -149,4 +149,7 @@ class ClientMonster: public CreatureMovable
                 throw fflerror("invalid monster name: %s", to_cstr(DBCOM_MONSTERRECORD(monsterID()).name));
             }
         }
+
+    public:
+        ClientCreature::TargetBox getTargetBox() const override;
 };

@@ -700,3 +700,40 @@ MotionNode ClientMonster::makeWalkMotion(int nX0, int nY0, int nX1, int nY1, int
     }
     return {};
 }
+
+ClientCreature::TargetBox ClientMonster::getTargetBox() const
+{
+    switch(m_currMotion.motion){
+        case MOTION_MON_DIE:
+            {
+                return {};
+            }
+        default:
+            {
+                break;
+            }
+    }
+
+    const auto texBaseID = gfxID(m_currMotion.motion, m_currMotion.direction);
+    if(texBaseID < 0){
+        return {};
+    }
+
+    const uint32_t texID = ((uint32_t)(texBaseID & 0X03FFFF) << 5) + m_currMotion.frame;
+
+    int dx = 0;
+    int dy = 0;
+    auto bodyFrameTexPtr = g_monsterDB->Retrieve(texID, &dx, &dy);
+
+    if(!bodyFrameTexPtr){
+        return {};
+    }
+
+    const auto [bodyFrameW, bodyFrameH] = SDLDevice::getTextureSize(bodyFrameTexPtr);
+
+    const auto [shiftX, shiftY] = getShift();
+    const int startX = m_currMotion.x * SYS_MAPGRIDXP + shiftX + dx;
+    const int startY = m_currMotion.y * SYS_MAPGRIDYP + shiftY + dy;
+
+    return getTargetBoxHelper(startX, startY, bodyFrameW, bodyFrameH);
+}

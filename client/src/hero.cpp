@@ -812,3 +812,45 @@ int Hero::currStep() const
             }
     }
 }
+
+ClientCreature::TargetBox Hero::getTargetBox() const
+{
+    switch(currMotion().motion){
+        case MOTION_DIE:
+            {
+                return {};
+            }
+        default:
+            {
+                break;
+            }
+    }
+
+    const auto nDress     = Dress();
+    const auto nGender    = Gender();
+    const auto nMotion    = currMotion().motion;
+    const auto nDirection = currMotion().direction;
+
+    const auto texBaseID = GfxDressID(nDress, nMotion, nDirection);
+    if(texBaseID < 0){
+        return {};
+    }
+
+    const uint32_t texID = (((uint32_t)(nGender ? 1 : 0)) << 22) + (((uint32_t)(texBaseID & 0X01FFFF)) << 5) + currMotion().frame;
+
+    int dx = 0;
+    int dy = 0;
+    auto bodyFrameTexPtr = g_heroDB->Retrieve(texID, &dx, &dy);
+
+    if(!bodyFrameTexPtr){
+        return {};
+    }
+
+    const auto [bodyFrameW, bodyFrameH] = SDLDevice::getTextureSize(bodyFrameTexPtr);
+
+    const auto [shiftX, shiftY] = getShift();
+    const int startX = m_currMotion.x * SYS_MAPGRIDXP + shiftX + dx;
+    const int startY = m_currMotion.y * SYS_MAPGRIDYP + shiftY + dy;
+
+    return getTargetBoxHelper(startX, startY, bodyFrameW, bodyFrameH);
+}

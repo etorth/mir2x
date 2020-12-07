@@ -124,4 +124,7 @@ class Hero: public CreatureMovable
         {
             // need to move this to myhero
         }
+
+    public:
+        ClientCreature::TargetBox getTargetBox() const override;
 };

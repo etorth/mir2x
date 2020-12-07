@@ -65,4 +65,7 @@ class StandNPC: public ClientCreature
             m_currMotion = makeIdleMotion();
             return true;
         }
+
+    public:
+        TargetBox getTargetBox() const override;
 };

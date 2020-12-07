@@ -299,3 +299,26 @@ int StandNPC::gfxMotionID(int) const
 {
     return -1;
 }
+
+ClientCreature::TargetBox StandNPC::getTargetBox() const
+{
+    const auto texBaseID = gfxID();
+    if(texBaseID < 0){
+        return {};
+    }
+
+    int dx = 0;
+    int dy = 0;
+    auto bodyFrameTexPtr = g_standNPCDB->Retrieve(texBaseID + m_currMotion.frame, &dx, &dy);
+
+    if(!bodyFrameTexPtr){
+        return {};
+    }
+
+    const auto [bodyFrameW, bodyFrameH] = SDLDevice::getTextureSize(bodyFrameTexPtr);
+
+    const int startX = x() * SYS_MAPGRIDXP + dx;
+    const int startY = y() * SYS_MAPGRIDYP + dy;
+
+    return getTargetBoxHelper(startX, startY, bodyFrameW, bodyFrameH);
+}

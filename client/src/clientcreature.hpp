@@ -219,4 +219,43 @@
                 m_currMotion.y * SYS_MAPGRIDYP,
             };
         }
+
+        struct TargetBox
+        {
+            const int x = -1;
+            const int y = -1;
+            const int w = -1;
+            const int h = -1;
+
+            operator bool () const
+            {
+                return x >= 0 && y >= 0 && w > 0 && h > 0;
+            }
+
+            std::tuple<int, int> center() const
+            {
+                return
+                {
+                    (x + w) / 2,
+                    (y + h) / 2,
+                };
+            }
+        };
+
+    protected:
+        static TargetBox getTargetBoxHelper(int startX, int startY, int bodyFrameW, int bodyFrameH)
+        {
+            const int maxTargetW = SYS_MAPGRIDXP + SYS_TARGETRGN_GAPX;
+            const int maxTargetH = SYS_MAPGRIDYP + SYS_TARGETRGN_GAPY;
+            return
+            {
+                .x = startX + std::max<int>((bodyFrameW - maxTargetW) / 2, 0),
+                .y = startY + std::max<int>((bodyFrameH - maxTargetH) / 2, 0),
+                .w = std::min<int>(bodyFrameW, maxTargetW),
+                .h = std::min<int>(bodyFrameH, maxTargetH),
+            };
+        }
+
+    public:
+        virtual TargetBox getTargetBox() const = 0;
 };
