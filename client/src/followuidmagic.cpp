@@ -121,3 +121,16 @@ bool FollowUIDMagic::done() const
     }
     return false;
 }
+
+void TaoFireFigure_RUN::drawViewOff(int viewX, int viewY, bool alpha)
+{
+    if(m_gfxEntry->gfxID == SYS_TEXNIL){
+        return;
+    }
+
+    if(auto texPtr = g_magicDB->Retrieve(m_gfxEntry->gfxID + frame() + m_gfxDirIndex * m_gfxEntry->gfxIDCount, nullptr, nullptr)){
+        SDLDevice::EnableTextureModColor enableModColor(texPtr, colorf::RGBA(0XFF, 0XFF, 0XFF, alpha ? 0X80 : 0XFF));
+        SDLDevice::EnableTextureBlendMode enableBlendMode(texPtr, SDL_BLENDMODE_BLEND);
+        g_SDLDevice->drawTexture(texPtr, m_x - viewX, m_y - viewY);
+    }
+}

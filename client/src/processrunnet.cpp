@@ -29,7 +29,6 @@
 #include "sysconst.hpp"
 #include "pngtexdb.hpp"
 #include "sdldevice.hpp"
-#include "sdldevice.hpp"
 #include "processrun.hpp"
 #include "dbcomrecord.hpp"
 
@@ -347,15 +346,13 @@ void ProcessRun::net_FIREMAGIC(const uint8_t *bufPtr, size_t)
         case DBCOM_MAGICID(u8"灵魂火符"):
             {
                 if(auto fromCOPtr = findUID(smFM.UID)){
-                    auto magicPtr = new FollowUIDMagic
+                    const auto [fromX, fromY] = fromCOPtr->getTargetBox().center();
+                    auto magicPtr = new TaoFireFigure_RUN
                     {
-                        u8"灵魂火符",
-                        u8"运行",
+                        fromX,
+                        fromY,
 
-                        fromCOPtr->currMotion().x * SYS_MAPGRIDXP,
-                        fromCOPtr->currMotion().y * SYS_MAPGRIDYP,
-
-                        [smFM, fromCOPtr, this]() -> int
+                        [smFM, fromX, fromY, this]() -> int
                         {
                             const auto [x, y] = [smFM, this]() -> std::tuple<int, int>
                             {
@@ -367,12 +364,8 @@ void ProcessRun::net_FIREMAGIC(const uint8_t *bufPtr, size_t)
                                 SDL_GetMouseState(&mousePX, &mousePY);
                                 return {mousePX + m_viewX, mousePY + m_viewY};
                             }();
-
-                            const auto [fromX, fromY] = fromCOPtr->getTargetBox().center();
                             return pathf::getDir16(x - fromX, y - fromY);
                         }(),
-
-                        10,
 
                         smFM.AimUID,
                         this,
