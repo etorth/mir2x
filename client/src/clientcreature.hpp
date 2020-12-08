@@ -261,14 +261,14 @@
         virtual TargetBox getTargetBox() const = 0;
 
     protected:
-        struct CallOnExitHelper
+        class CallOnExitHelper final
         {
             private:
                 std::function<void()> m_cb;
 
             public:
-                template<std::invocable<> T> CallOnExitHelper(T t)
-                    : m_cb(std::move(t))
+                CallOnExitHelper(std::function<void()> f)
+                    : m_cb(std::move(f))
                 {}
 
                 ~CallOnExitHelper()
