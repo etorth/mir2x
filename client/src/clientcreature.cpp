@@ -37,7 +37,7 @@ extern Log *g_log;
 
 bool ClientCreature::advanceMotionFrame(int addFrame)
 {
-    const auto frameCount = motionFrameCount(m_currMotion.motion, m_currMotion.direction);
+    const auto frameCount = motionFrameCount(m_currMotion.type, m_currMotion.direction);
     if(frameCount <= 0){
         return false;
     }
@@ -49,7 +49,7 @@ bool ClientCreature::advanceMotionFrame(int addFrame)
 
 bool ClientCreature::updateMotion(bool looped)
 {
-    const auto frameCount = motionFrameCount(m_currMotion.motion, m_currMotion.direction);
+    const auto frameCount = motionFrameCount(m_currMotion.type, m_currMotion.direction);
     if(frameCount <= 0){
         return false;
     }
@@ -92,7 +92,7 @@ void ClientCreature::updateHealth(int hp, int hpMax)
 
 bool ClientCreature::deadFadeOut()
 {
-    switch(m_currMotion.motion){
+    switch(m_currMotion.type){
         case MOTION_DIE:
         case MOTION_MON_DIE:
             {
@@ -114,7 +114,7 @@ bool ClientCreature::alive() const
         throw fflerror("invalid motion detected");
     }
 
-    switch(m_currMotion.motion){
+    switch(m_currMotion.type){
         case MOTION_DIE:
         case MOTION_MON_DIE:
             {
@@ -133,11 +133,11 @@ bool ClientCreature::active() const
         throw fflerror("invalid motion detected");
     }
 
-    switch(m_currMotion.motion){
+    switch(m_currMotion.type){
         case MOTION_DIE:
         case MOTION_MON_DIE:
             {
-                if(auto frameCount = motionFrameCount(m_currMotion.motion, m_currMotion.direction); frameCount > 0){
+                if(auto frameCount = motionFrameCount(m_currMotion.type, m_currMotion.direction); frameCount > 0){
                     return m_currMotion.frame < (frameCount - 1);
                 }
                 throw fflerror("invalid motion detected");
@@ -155,11 +155,11 @@ bool ClientCreature::visible() const
         throw fflerror("invalid motion detected");
     }
 
-    switch(m_currMotion.motion){
+    switch(m_currMotion.type){
         case MOTION_DIE:
         case MOTION_MON_DIE:
             {
-                if(const auto frameCount = motionFrameCount(m_currMotion.motion, m_currMotion.direction); frameCount > 0){
+                if(const auto frameCount = motionFrameCount(m_currMotion.type, m_currMotion.direction); frameCount > 0){
                     return (m_currMotion.frame < (frameCount - 1)) || (m_currMotion.fadeOut < 255);
                 }
                 throw fflerror("invalid motion detected");
@@ -175,7 +175,7 @@ MotionNode ClientCreature::makeIdleMotion() const
 {
     return MotionNode
     {
-        [this]() -> int
+        .type = [this]() -> int
         {
             switch(type()){
                 case UID_PLY: return MOTION_STAND;
@@ -185,11 +185,9 @@ MotionNode ClientCreature::makeIdleMotion() const
             }
         }(),
 
-        0,
-        m_currMotion.direction,
-        SYS_DEFSPEED,
-        m_currMotion.endX,
-        m_currMotion.endY
+        .direction = m_currMotion.direction,
+        .x = m_currMotion.endX,
+        .y = m_currMotion.endY
     };
 }
 

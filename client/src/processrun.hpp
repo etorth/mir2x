@@ -197,8 +197,8 @@ class ProcessRun: public Process
         void net_NPCXMLLAYOUT(const uint8_t *, size_t);
 
     public:
-        bool CanMove(bool, int, int, int);
-        bool CanMove(bool, int, int, int, int, int);
+        bool canMove(bool, int, int, int);
+        bool canMove(bool, int, int, int, int, int);
 
     public:
         double MoveCost(bool, int, int, int, int);

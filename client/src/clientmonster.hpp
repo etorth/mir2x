@@ -33,8 +33,8 @@ class ClientMonster: public CreatureMovable
         ClientMonster(uint64_t uid, ProcessRun *proc, const ActionNode &action)
             : ClientMonster(uid, proc)
         {
-            if(const auto initMotion = ClientMonster::makeInitMotion(uidf::getMonsterID(uid), action)){
-                m_currMotion = initMotion;
+            if(auto initMotion = ClientMonster::makeInitMotion(uidf::getMonsterID(uid), action)){
+                m_currMotion = std::move(initMotion);
                 return;
             }
             throw fflerror("failed to assign initial motion");
@@ -45,7 +45,7 @@ class ClientMonster: public CreatureMovable
 
     public:
         bool update(double) override;
-        bool draw(int, int, int) override;
+        void draw(int, int, int) override;
 
     public:
         uint32_t monsterID() const

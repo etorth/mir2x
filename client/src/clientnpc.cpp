@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename: standnpc.cpp
+ *       Filename: clientnpc.cpp
  *        Created: 04/12/2020 12:53:00
  *    Description:
  *
@@ -18,14 +18,14 @@
 
 #include "uidf.hpp"
 #include "mathf.hpp"
-#include "standnpc.hpp"
+#include "clientnpc.hpp"
 #include "pngtexoffdb.hpp"
 #include "clientargparser.hpp"
 
 extern PNGTexOffDB *g_standNPCDB;
 extern ClientArgParser *g_clientArgParser;
 
-StandNPC::StandNPC(uint64_t uid, ProcessRun *proc, const ActionNode &action)
+ClientNPC::ClientNPC(uint64_t uid, ProcessRun *proc, const ActionNode &action)
     : ClientCreature(uid, proc)
 {
     if(type() != UID_NPC){
@@ -37,7 +37,7 @@ StandNPC::StandNPC(uint64_t uid, ProcessRun *proc, const ActionNode &action)
     }
 }
 
-int StandNPC::motionFrameCount(int motion, int direction) const
+int ClientNPC::motionFrameCount(int motion, int direction) const
 {
     // NPC direction is not the real direction
     // it's like a seq id for the first/second/third valid direction
@@ -91,7 +91,7 @@ int StandNPC::motionFrameCount(int motion, int direction) const
     }
 }
 
-int32_t StandNPC::gfxShadowID(int32_t gfxId) const
+int32_t ClientNPC::gfxShadowID(int32_t gfxId) const
 {
     if(gfxId < 0){
         return -1;
@@ -104,16 +104,16 @@ int32_t StandNPC::gfxShadowID(int32_t gfxId) const
     return gfxId | shadowBit;
 }
 
-bool StandNPC::draw(int viewX, int viewY, int focusMask)
+void ClientNPC::draw(int viewX, int viewY, int focusMask)
 {
     const auto bodyKey = gfxID();
     if(bodyKey < 0){
-        return false;
+        return;
     }
 
     const auto shadowKey = gfxShadowID(bodyKey);
     if(shadowKey < 0){
-        return false;
+        return;
     }
 
     int bodyDX = 0;
@@ -178,10 +178,9 @@ bool StandNPC::draw(int viewX, int viewY, int focusMask)
     for(auto &p: m_attachMagicList){
         p->drawShift(x() * SYS_MAPGRIDXP - viewX, y() * SYS_MAPGRIDYP - viewY, false);
     }
-    return true;
 }
 
-int32_t StandNPC::gfxID() const
+int32_t ClientNPC::gfxID() const
 {
     // stand npc graphics retrieving key structure
     //
@@ -199,13 +198,13 @@ int32_t StandNPC::gfxID() const
     // NPC lookID allows zero
     // check mir2x/tools/npcwil2png/src/main.cpp
 
-    if(motionFrameCount(m_currMotion.motion, m_currMotion.direction) <= 0){
+    if(motionFrameCount(m_currMotion.type, m_currMotion.direction) <= 0){
         return -1;
     }
-    return ((int32_t)(lookID()) << 12) | ((int32_t)(m_currMotion.motion & 0X0F) << 8) | ((int32_t)(m_currMotion.direction) << 5);
+    return ((int32_t)(lookID()) << 12) | ((int32_t)(m_currMotion.type & 0X0F) << 8) | ((int32_t)(m_currMotion.direction) << 5);
 }
 
-bool StandNPC::parseAction(const ActionNode &action)
+bool ClientNPC::parseAction(const ActionNode &action)
 {
     m_lastActive = SDL_GetTicks();
     const int motion = [&action]() -> int
@@ -232,17 +231,16 @@ bool StandNPC::parseAction(const ActionNode &action)
 
     m_currMotion = MotionNode
     {
-        motion,
-        0,
-        action.Direction,
-        action.X,
-        action.Y,
+        .type = motion,
+        .direction = action.Direction,
+        .x = action.X,
+        .y = action.Y,
     };
 
     return motionValid(m_currMotion);
 }
 
-bool StandNPC::update(double ms)
+bool ClientNPC::update(double ms)
 {
     updateAttachMagic(ms);
 
@@ -254,10 +252,10 @@ bool StandNPC::update(double ms)
     m_lastUpdateTime = SDL_GetTicks() * 1.0f;
     const bool doneCurrMotion = [this]()
     {
-        return m_currMotion.frame + 1 == motionFrameCount(m_currMotion.motion, m_currMotion.direction);
+        return m_currMotion.frame + 1 == motionFrameCount(m_currMotion.type, m_currMotion.direction);
     }();
 
-    switch(m_currMotion.motion){
+    switch(m_currMotion.type){
         case MOTION_NPC_STAND:
             {
                 return advanceMotionFrame(1);
@@ -272,22 +270,22 @@ bool StandNPC::update(double ms)
             }
         default:
             {
-                throw fflerror("invalid motion: %d", m_currMotion.motion);
+                throw fflerror("invalid motion: %d", m_currMotion.type);
             }
     }
 }
 
-bool StandNPC::motionValid(const MotionNode &) const
+bool ClientNPC::motionValid(const MotionNode &) const
 {
     return true;
 }
 
-int StandNPC::gfxMotionID(int) const
+int ClientNPC::gfxMotionID(int) const
 {
     return -1;
 }
 
-ClientCreature::TargetBox StandNPC::getTargetBox() const
+ClientCreature::TargetBox ClientNPC::getTargetBox() const
 {
     const auto texBaseID = gfxID();
     if(texBaseID < 0){

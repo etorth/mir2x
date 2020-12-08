@@ -29,134 +29,89 @@
  */
 
 #pragma once
+#include <functional>
 #include "motion.hpp"
 #include "sysconst.hpp"
 #include "fflerror.hpp"
+#include "dbcomid.hpp"
+#include "dbcomrecord.hpp"
 #include "protocoldef.hpp"
 
 struct MotionNode
 {
-    // part-1 : const fields
-    //          description of this motion
-    int motion;
-    int motionParam;
-
-    int direction;
-    int speed;
-
-    int x;
-    int y;
-
-    int endX;
-    int endY;
-
-    // part-2 : mutable field
-    //          always initialized as 0 and get updated later
-    int frame;
-    int fadeOut;
-
-    struct _InterpMotion
+    class MotionEffect
     {
-        int motion      = MOTION_NONE;
-        int motionParam = 0;
+        public:
+            virtual void drawShift(int, int, bool) = 0;
 
-        int frame       = 0;
-    } interpMotion;
+        public:
+            virtual int frame     () const = 0;
+            virtual int frameCount() const = 0;
+    };
 
-    // don't put any simple data memeber check in constructor
-    // in main code there is need to return an invalid motion node
+    // class SwordSwingEffect: public MotionEffect;
 
-    // if put check method in constructor
-    // I need to abort if checking failed this is not good
-    MotionNode(int nMotion, int nMotionParam, int nDirection, int nSpeed, int nX, int nY, int nEndX, int nEndY)
-        : motion(nMotion)
-        , motionParam(nMotionParam)
-        , direction(nDirection)
-        , speed(nSpeed)
-        , x(nX)
-        , y(nY)
-        , endX(nEndX)
-        , endY(nEndY)
-        , frame(0)
-        , fadeOut(0)
-    {}
+    class MagicSpellEffect: public MotionEffect
+    {
+        protected:
+            int m_frame = 0;
+            const MagicGfxEntry * const m_gfxEntry;
 
-    MotionNode(int nMotion, int nMotionParam, int nDirection, int nSpeed, int nX, int nY)
-        : MotionNode(nMotion, nMotionParam, nDirection, nSpeed, nX, nY, nX, nY)
-    {}
+        public:
+            MagicSpellEffect(const MotionNode *);
 
-    MotionNode(int nMotion, int nMotionParam, int nDirection, int nX, int nY)
-        : MotionNode(nMotion, nMotionParam, nDirection, SYS_DEFSPEED, nX, nY, nX, nY)
-    {}
+        public:
+            int frame() const override;
+            int frameCount() const override;
+            void drawShift(int, int, bool) override;
+    };
 
-    MotionNode()
-        : MotionNode(MOTION_NONE, 0, DIR_NONE, 0, 0)
-    {}
+    struct MotionExtParam
+    {
+        struct MotionSpell
+        {
+            int magicID = 0;
+        }spell;
+
+        struct MotionAttack
+        {
+            int motion = 0;
+        }attack;
+    };
+
+    //////////////////////////////////////////////////////////////////
+    ////                                                          ////
+    ////          AGGREGATE INITIALIZATION MEMEBER LIST           ////
+    ////                                                          ////
+    //////////////////////////////////////////////////////////////////
+    /**/                                                          /**/
+    /**/    int type      = MOTION_NONE;                          /**/
+    /**/    int direction = DIR_NONE;                             /**/
+    /**/    int speed     = SYS_DEFSPEED;                         /**/
+    /**/                                                          /**/
+    /**/    int x = -1;                                           /**/
+    /**/    int y = -1;                                           /**/
+    /**/                                                          /**/
+    /**/    int endX = x;                                         /**/
+    /**/    int endY = y;                                         /**/
+    /**/                                                          /**/
+    /**/    int frame   = 0;                                      /**/
+    /**/    int fadeOut = 0;                                      /**/
+    /**/                                                          /**/
+    /**/    MotionExtParam param{};                               /**/
+    /**/    std::unique_ptr<MotionEffect> effect{};               /**/
+    /**/    std::function<void(MotionNode *, bool)> onUpdate{};   /**/
+    /**/                                                          /**/
+    //////////////////////////////////////////////////////////////////
 
     operator bool () const
     {
         return false
-            || ((motion >= MOTION_BEGIN)     && (motion < MOTION_END))
-            || ((motion >= MOTION_MON_BEGIN) && (motion < MOTION_MON_END))
-            || ((motion >= MOTION_NPC_BEGIN) && (motion < MOTION_NPC_END));
+            || ((type >= MOTION_BEGIN)     && (type < MOTION_END))
+            || ((type >= MOTION_MON_BEGIN) && (type < MOTION_MON_END))
+            || ((type >= MOTION_NPC_BEGIN) && (type < MOTION_NPC_END));
     }
 
     void print() const;
-
-    static const char *name(int motion)
-    {
-#define _addCaseType(t) case t: return #t;
-        switch(motion){
-            _addCaseType(MOTION_STAND        )
-            _addCaseType(MOTION_ARROWATTACK  )
-            _addCaseType(MOTION_SPELL0       )
-            _addCaseType(MOTION_SPELL1       )
-            _addCaseType(MOTION_HOLD         )
-            _addCaseType(MOTION_PUSHBACK     )
-            _addCaseType(MOTION_PUSHBACKFLY  )
-            _addCaseType(MOTION_ATTACKMODE   )
-            _addCaseType(MOTION_CUT          )
-            _addCaseType(MOTION_ONEVSWING    )
-            _addCaseType(MOTION_TWOVSWING    )
-            _addCaseType(MOTION_ONEHSWING    )
-            _addCaseType(MOTION_TWOHSWING    )
-            _addCaseType(MOTION_SPEARVSWING  )
-            _addCaseType(MOTION_SPEARHSWING  )
-            _addCaseType(MOTION_HITTED       )
-            _addCaseType(MOTION_WHEELWIND    )
-            _addCaseType(MOTION_RANDSWING    )
-            _addCaseType(MOTION_BACKDROPKICK )
-            _addCaseType(MOTION_DIE          )
-            _addCaseType(MOTION_ONHORSEDIE   )
-            _addCaseType(MOTION_WALK         )
-            _addCaseType(MOTION_RUN          )
-            _addCaseType(MOTION_MOODEPO      )
-            _addCaseType(MOTION_ROLL         )
-            _addCaseType(MOTION_FISHSTAND    )
-            _addCaseType(MOTION_FISHHAND     )
-            _addCaseType(MOTION_FISHTHROW    )
-            _addCaseType(MOTION_FISHPULL     )
-            _addCaseType(MOTION_ONHORSESTAND )
-            _addCaseType(MOTION_ONHORSEWALK  )
-            _addCaseType(MOTION_ONHORSERUN   )
-            _addCaseType(MOTION_ONHORSEHITTED)
-
-            _addCaseType(MOTION_MON_STAND    )
-            _addCaseType(MOTION_MON_WALK     )
-            _addCaseType(MOTION_MON_ATTACK0  )
-            _addCaseType(MOTION_MON_HITTED   )
-            _addCaseType(MOTION_MON_DIE      )
-            _addCaseType(MOTION_MON_ATTACK1  )
-            _addCaseType(MOTION_MON_SPELL0   )
-            _addCaseType(MOTION_MON_SPELL1   )
-            _addCaseType(MOTION_MON_APPEAR   )
-            _addCaseType(MOTION_MON_SPECIAL  )
-
-            _addCaseType(MOTION_NPC_STAND    )
-            _addCaseType(MOTION_NPC_ACT      )
-            _addCaseType(MOTION_NPC_ACTEXT   )
-#undef _addCaseType
-            default: return "MOTION_UNKNOWN";
-        }
-    }
+    static const char *name(int);
 };

@@ -50,7 +50,7 @@ class Hero: public CreatureMovable
 
     public:
         bool update(double) override;
-        bool draw(int, int, int) override;
+        void draw(int, int, int) override;
 
     public:
         bool OnHorse() const

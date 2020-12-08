@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename: standnpc.hpp
+ *       Filename: clientnpc.hpp
  *        Created: 04/12/2020 12:49:26
  *    Description:
  *
@@ -22,10 +22,10 @@
 #include "actionnode.hpp"
 #include "clientcreature.hpp"
 
-class StandNPC: public ClientCreature
+class ClientNPC: public ClientCreature
 {
     public:
-        StandNPC(uint64_t, ProcessRun *, const ActionNode &);
+        ClientNPC(uint64_t, ProcessRun *, const ActionNode &);
 
     public:
         uint16_t lookID() const
@@ -37,7 +37,7 @@ class StandNPC: public ClientCreature
         int32_t gfxID() const;
 
     public:
-        bool draw(int, int, int) override;
+        void draw(int, int, int) override;
 
     public:
         int motionFrameCount(int, int) const override;

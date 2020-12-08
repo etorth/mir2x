@@ -47,10 +47,8 @@ MotionNode ClientMonster::makeInitMotion(uint32_t monsterID, const ActionNode &a
             {
                 return MotionNode
                 {
-                    MOTION_MON_STAND,
-                    0,
-
-                    [&action]() -> int
+                    .type = MOTION_MON_STAND,
+                    .direction = [&action]() -> int
                     {
                         if(action.Action == ACTION_SPAWN){
                             return DIR_DOWNLEFT;
@@ -63,18 +61,25 @@ MotionNode ClientMonster::makeInitMotion(uint32_t monsterID, const ActionNode &a
                         }
                     }(),
 
-                    action.X,
-                    action.Y,
+                    .x = action.X,
+                    .y = action.Y,
                 };
             }
         case DBCOM_MONSTERID(u8"神兽"):
             {
                 return MotionNode
                 {
-                    action.Action == ACTION_SPAWN ? MOTION_MON_APPEAR : MOTION_MON_STAND,
-                    0,
+                    .type = [&action]() -> int
+                    {
+                        if(action.Action == ACTION_SPAWN){
+                            return MOTION_MON_APPEAR;
+                        }
+                        else{
+                            return MOTION_MON_STAND;
+                        }
+                    }(),
 
-                    [&action]() -> int
+                    .direction = [&action]() -> int
                     {
                         if(action.Direction >= DIR_BEGIN && action.Direction < DIR_END){
                             return action.Direction;
@@ -84,18 +89,16 @@ MotionNode ClientMonster::makeInitMotion(uint32_t monsterID, const ActionNode &a
                         }
                     }(),
 
-                    action.X,
-                    action.Y,
+                    .x = action.X,
+                    .y = action.Y,
                 };
             }
         default:
             {
                 return MotionNode
                 {
-                    MOTION_MON_STAND,
-                    0,
-
-                    [&action]() -> int
+                    .type = MOTION_MON_STAND,
+                    .direction = [&action]() -> int
                     {
                         if(action.Direction >= DIR_BEGIN && action.Direction < DIR_END){
                             return action.Direction;
@@ -105,8 +108,8 @@ MotionNode ClientMonster::makeInitMotion(uint32_t monsterID, const ActionNode &a
                         }
                     }(),
 
-                    action.X,
-                    action.Y,
+                    .x = action.X,
+                    .y = action.Y,
                 };
             }
     }
@@ -136,7 +139,7 @@ bool ClientMonster::update(double ms)
     }
 
     m_lastUpdateTime = SDL_GetTicks() * 1.0f;
-    switch(m_currMotion.motion){
+    switch(m_currMotion.type){
         case MOTION_MON_STAND:
             {
                 if(stayIdle()){
@@ -152,7 +155,7 @@ bool ClientMonster::update(double ms)
             }
         case MOTION_MON_DIE:
             {
-                const auto frameCount = motionFrameCount(m_currMotion.motion, m_currMotion.direction);
+                const auto frameCount = motionFrameCount(m_currMotion.type, m_currMotion.direction);
                 if(frameCount <= 0){
                     return false;
                 }
@@ -191,7 +194,7 @@ bool ClientMonster::update(double ms)
     }
 }
 
-bool ClientMonster::draw(int viewX, int viewY, int focusMask)
+void ClientMonster::draw(int viewX, int viewY, int focusMask)
 {
     // monster graphics retrieving key structure
     //
@@ -206,9 +209,9 @@ bool ClientMonster::draw(int viewX, int viewY, int focusMask)
     //             +---------------------------------------    shadow : max =    2
     //
 
-    const auto nGfxID = gfxID(m_currMotion.motion, m_currMotion.direction);
+    const auto nGfxID = gfxID(m_currMotion.type, m_currMotion.direction);
     if(nGfxID < 0){
-        return false;
+        return;
     }
 
     const uint32_t nKey0 = ((uint32_t)(0) << 23) + ((uint32_t)(nGfxID & 0X03FFFF) << 5) + m_currMotion.frame; // body
@@ -235,7 +238,7 @@ bool ClientMonster::draw(int viewX, int viewY, int focusMask)
     }
 
     if(true
-            && (m_currMotion.motion  == MOTION_MON_DIE)
+            && (m_currMotion.type  == MOTION_MON_DIE)
             && (m_currMotion.fadeOut  > 0             )){
         // FadeOut :    0 : normal
         //         : 1-255: fadeOut
@@ -293,7 +296,7 @@ bool ClientMonster::draw(int viewX, int viewY, int focusMask)
         p->drawShift(startX, startY, false);
     }
 
-    if(m_currMotion.motion != MOTION_MON_DIE){
+    if(m_currMotion.type != MOTION_MON_DIE){
         auto pBar0 = g_progUseDB->Retrieve(0X00000014);
         auto pBar1 = g_progUseDB->Retrieve(0X00000015);
 
@@ -316,7 +319,6 @@ bool ClientMonster::draw(int viewX, int viewY, int focusMask)
             m_nameBoard.drawEx(nDrawNameXP, nDrawNameYP, 0, 0, nLW, nLH);
         }
     }
-    return true;
 }
 
 std::tuple<int, int> ClientMonster::location() const
@@ -325,7 +327,7 @@ std::tuple<int, int> ClientMonster::location() const
         throw fflerror("invalid current motion");
     }
 
-    switch(currMotion().motion){
+    switch(currMotion().type){
         case MOTION_MON_WALK:
             {
                 const auto nX0 = m_currMotion.x;
@@ -359,13 +361,13 @@ bool ClientMonster::parseAction(const ActionNode &action)
     // ignore all the following actions till the MOTION_MON_DIE done
 
     for(const auto &m: m_forceMotionQueue){
-        if(m.motion == MOTION_MON_DIE){
+        if(m.type == MOTION_MON_DIE){
             return true;
         }
     }
 
     for(const auto &m: m_motionQueue){
-        if(m.motion == MOTION_MON_DIE){
+        if(m.type == MOTION_MON_DIE){
             throw fflerror("Found MOTION_MON_DIE in pending motion queue");
         }
     }
@@ -396,8 +398,9 @@ bool ClientMonster::parseAction(const ActionNode &action)
             }
         case ACTION_DIE:
             {
-                const auto motionQueue = makeWalkMotionQueue(endX, endY, action.X, action.Y, SYS_MAXSPEED);
-                m_forceMotionQueue.insert(m_forceMotionQueue.end(), motionQueue.begin(), motionQueue.end());
+                for(auto &node: makeWalkMotionQueue(endX, endY, action.X, action.Y, SYS_MAXSPEED)){
+                    m_forceMotionQueue.push_back(std::move(node));
+                }
                 break;
             }
         default:
@@ -410,24 +413,43 @@ bool ClientMonster::parseAction(const ActionNode &action)
     switch(action.Action){
         case ACTION_DIE:
             {
-                m_forceMotionQueue.emplace_back(MOTION_MON_DIE, 0, action.Direction, action.X, action.Y);
+                m_forceMotionQueue.emplace_back(MotionNode
+                {
+                    .type = MOTION_MON_DIE,
+                    .direction = action.Direction,
+                    .x = action.X,
+                    .y = action.Y,
+                });
+
                 m_forceMotionQueue.back().fadeOut = action.ActionParam;
                 break;
             }
         case ACTION_STAND:
             {
-                m_motionQueue.emplace_back(MOTION_MON_STAND, 0, action.Direction, action.X, action.Y);
+                m_motionQueue.emplace_back(MotionNode
+                {
+                    .type = MOTION_MON_STAND, 
+                    .direction = action.Direction,
+                    .x = action.X,
+                    .y = action.Y,
+                });
                 break;
             }
         case ACTION_HITTED:
             {
-                m_motionQueue.emplace_back(MOTION_MON_HITTED, 0, action.Direction, action.X, action.Y);
+                m_motionQueue.emplace_back(MotionNode
+                {
+                    .type = MOTION_MON_HITTED,
+                    .direction = action.Direction,
+                    .x = action.X,
+                    .y = action.Y,
+                });
                 break;
             }
         case ACTION_MOVE:
             {
-                if(auto stMotionNode = makeWalkMotion(action.X, action.Y, action.AimX, action.AimY, action.Speed)){
-                    m_motionQueue.push_back(stMotionNode);
+                if(auto moveNode = makeWalkMotion(action.X, action.Y, action.AimX, action.AimY, action.Speed)){
+                    m_motionQueue.push_back(std::move(moveNode));
                 }
                 break;
             }
@@ -435,11 +457,10 @@ bool ClientMonster::parseAction(const ActionNode &action)
             {
                 m_currMotion = MotionNode
                 {
-                    MOTION_MON_STAND,
-                    0,
-                    m_currMotion.direction,
-                    action.X,
-                    action.Y,
+                    .type = MOTION_MON_STAND,
+                    .direction = m_currMotion.direction,
+                    .x = action.X,
+                    .y = action.Y,
                 };
 
                 addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"瞬息移动", u8"结束")));
@@ -453,7 +474,13 @@ bool ClientMonster::parseAction(const ActionNode &action)
                     auto nDir = PathFind::GetDirection(action.X, action.Y, nX, nY);
 
                     if(nDir >= DIR_BEGIN && nDir < DIR_END){
-                        m_motionQueue.emplace_back(MOTION_MON_ATTACK0, 0, nDir, action.X, action.Y);
+                        m_motionQueue.emplace_back(MotionNode
+                        {
+                            .type = MOTION_MON_ATTACK0,
+                            .direction = nDir,
+                            .x = action.X,
+                            .y = action.Y,
+                        });
                     }
                 }
                 else{
@@ -485,8 +512,8 @@ bool ClientMonster::parseAction(const ActionNode &action)
 bool ClientMonster::motionValid(const MotionNode &motion) const
 {
     if(true
-            && motion.motion >= MOTION_MON_BEGIN
-            && motion.motion <  MOTION_MON_END
+            && motion.type >= MOTION_MON_BEGIN
+            && motion.type <  MOTION_MON_END
 
             && motion.direction >= DIR_BEGIN
             && motion.direction <  DIR_END
@@ -499,10 +526,10 @@ bool ClientMonster::motionValid(const MotionNode &motion) const
             && motion.speed <= SYS_MAXSPEED
 
             && motion.frame >= 0
-            && motion.frame <  motionFrameCount(motion.motion, motion.direction)){
+            && motion.frame <  motionFrameCount(motion.type, motion.direction)){
 
         const auto nLDistance2 = mathf::LDistance2(motion.x, motion.y, motion.endX, motion.endY);
-        switch(motion.motion){
+        switch(motion.type){
             case MOTION_MON_STAND:
                 {
                     return nLDistance2 == 0;
@@ -637,8 +664,8 @@ MotionNode ClientMonster::makeWalkMotion(int nX0, int nY0, int nX1, int nY1, int
 {
     if(true
             && m_processRun
-            && m_processRun->CanMove(true, 0, nX0, nY0)
-            && m_processRun->CanMove(true, 0, nX1, nY1)
+            && m_processRun->canMove(true, 0, nX0, nY0)
+            && m_processRun->canMove(true, 0, nX1, nY1)
 
             && nSpeed >= SYS_MINSPEED
             && nSpeed <= SYS_MAXSPEED){
@@ -658,7 +685,16 @@ MotionNode ClientMonster::makeWalkMotion(int nX0, int nY0, int nX1, int nY1, int
                 || nLDistance2 == 1 * maxStep() * maxStep()
                 || nLDistance2 == 2 * maxStep() * maxStep()){
 
-            return {MOTION_MON_WALK, 0, nDirV[nSDY][nSDX], nSpeed, nX0, nY0, nX1, nY1};
+            return MotionNode
+            {
+                .type = MOTION_MON_WALK,
+                .direction = nDirV[nSDY][nSDX],
+                .speed = nSpeed,
+                .x = nX0,
+                .y = nY0,
+                .endX = nX1,
+                .endY = nY1,
+            };
         }
     }
     return {};
@@ -666,7 +702,7 @@ MotionNode ClientMonster::makeWalkMotion(int nX0, int nY0, int nX1, int nY1, int
 
 ClientCreature::TargetBox ClientMonster::getTargetBox() const
 {
-    switch(m_currMotion.motion){
+    switch(m_currMotion.type){
         case MOTION_MON_DIE:
             {
                 return {};
@@ -677,7 +713,7 @@ ClientCreature::TargetBox ClientMonster::getTargetBox() const
             }
     }
 
-    const auto texBaseID = gfxID(m_currMotion.motion, m_currMotion.direction);
+    const auto texBaseID = gfxID(m_currMotion.type, m_currMotion.direction);
     if(texBaseID < 0){
         return {};
     }

@@ -52,7 +52,7 @@ bool MyHero::update(double fUpdateTime)
         //    needed for next update
         m_lastUpdateTime = fTimeNow;
 
-        switch(m_currMotion.motion){
+        switch(m_currMotion.type){
             case MOTION_STAND:
                 {
                     if(stayIdle()){
@@ -101,7 +101,7 @@ bool MyHero::update(double fUpdateTime)
 bool MyHero::moveNextMotion()
 {
     if(!m_forceMotionQueue.empty()){
-        m_currMotion = m_forceMotionQueue.front();
+        m_currMotion = std::move(m_forceMotionQueue.front());
         m_forceMotionQueue.pop_front();
         return true;
     }
@@ -118,7 +118,7 @@ bool MyHero::moveNextMotion()
     }
 
     if(motionQueueValid()){
-        m_currMotion = m_motionQueue.front();
+        m_currMotion = std::move(m_motionQueue.front());
         m_motionQueue.pop_front();
         return true;
     }
@@ -183,7 +183,7 @@ bool MyHero::decompMove(bool bCheckGround, int nCheckCreature, bool bCheckMove, 
 
                     int nReachIndexMax = 0;
                     for(int nIndex = 1; nIndex <= nIndexMax; ++nIndex){
-                        if(m_processRun->CanMove(true, 2, nX0 + nDX * nIndex, nY0 + nDY * nIndex)){
+                        if(m_processRun->canMove(true, 2, nX0 + nDX * nIndex, nY0 + nDY * nIndex)){
                             nReachIndexMax = nIndex;
                         }else{ break; }
                     }
@@ -252,13 +252,13 @@ bool MyHero::DecompActionPickUp()
         int nX1 = currPickUp.X;
         int nY1 = currPickUp.Y;
 
-        if(!m_processRun->CanMove(true, 0, nX0, nY0)){
+        if(!m_processRun->canMove(true, 0, nX0, nY0)){
             g_log->addLog(LOGTYPE_WARNING, "Motion start from invalid grid (%d, %d)", nX0, nY0);
             m_actionQueue.clear();
             return false;
         }
 
-        if(!m_processRun->CanMove(true, 0, nX1, nY1)){
+        if(!m_processRun->canMove(true, 0, nX1, nY1)){
             g_log->addLog(LOGTYPE_WARNING, "Pick up at an invalid grid (%d, %d)", nX1, nY1);
             m_actionQueue.clear();
             return false;
@@ -310,7 +310,7 @@ bool MyHero::DecompActionMove()
         int nX1 = stCurrMove.AimX;
         int nY1 = stCurrMove.AimY;
 
-        if(!m_processRun->CanMove(true, 0, nX0, nY0)){
+        if(!m_processRun->canMove(true, 0, nX0, nY0)){
             g_log->addLog(LOGTYPE_WARNING, "Motion start from invalid grid (%d, %d)", nX0, nY0);
             m_actionQueue.clear();
             return false;
@@ -349,7 +349,7 @@ bool MyHero::DecompActionMove()
                     int nXm = -1;
                     int nYm = -1;
 
-                    bool bCheckGround = m_processRun->CanMove(true, 0, nX1, nY1);
+                    bool bCheckGround = m_processRun->canMove(true, 0, nX1, nY1);
                     if(decompMove(bCheckGround, 1, true, nX0, nY0, nX1, nY1, &nXm, &nYm)){
                         return fnaddHop(nXm, nYm);
                     }else{
@@ -550,7 +550,9 @@ bool MyHero::parseActionQueue()
 
     // parsing action
     // means pending motion queue must be empty
-    condcheck(m_motionQueue.empty());
+    if(!m_motionQueue.empty()){
+        throw fflerror("motion queue is not empty");
+    }
 
     // all actions in action queue is local and not verfified
     // present the action list immediately and sent it to server for verification
@@ -646,7 +648,7 @@ bool MyHero::parseActionQueue()
             // Like for ACTION_PICKUP
 
             if(!m_motionQueue.empty()){
-                m_currMotion = m_motionQueue.front();
+                m_currMotion = std::move(m_motionQueue.front());
                 m_motionQueue.pop_front();
             }
         }else{

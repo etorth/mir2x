@@ -140,7 +140,13 @@ class ClientTaoDog: public ClientMonster
             }();
 
             m_stand = standReq;
-            m_forceMotionQueue.emplace_back(MOTION_MON_APPEAR, 0, dir, SYS_DEFSPEED, x, y);
+            m_forceMotionQueue.emplace_back(MotionNode
+            {
+                .type = MOTION_MON_APPEAR,
+                .direction = dir,
+                .x = x,
+                .y = y,
+            });
         }
 
     public:
@@ -156,7 +162,7 @@ class ClientTaoDog: public ClientMonster
                 return false;
             }
 
-            if(m_currMotion.motion == MOTION_MON_ATTACK0 && m_currMotion.frame == 5 && m_stand){
+            if(m_currMotion.type == MOTION_MON_ATTACK0 && m_currMotion.frame == 5 && m_stand){
                 addAttachMagic(std::unique_ptr<AttachMagic>(new DogFire
                 {
                     m_currMotion.direction - DIR_BEGIN,

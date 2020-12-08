@@ -569,7 +569,7 @@ void ProcessRun::loadMap(uint32_t mapID)
     m_groundItemList.clear();
 }
 
-bool ProcessRun::CanMove(bool bCheckGround, int nCheckCreature, int nX, int nY)
+bool ProcessRun::canMove(bool bCheckGround, int nCheckCreature, int nX, int nY)
 {
     switch(auto nGrid = CheckPathGrid(nX, nY)){
         case PathFind::FREE:
@@ -638,7 +638,7 @@ int ProcessRun::CheckPathGrid(int nX, int nY) const
     return bLocked ? PathFind::LOCKED : PathFind::FREE;
 }
 
-bool ProcessRun::CanMove(bool bCheckGround, int nCheckCreature, int nX0, int nY0, int nX1, int nY1)
+bool ProcessRun::canMove(bool bCheckGround, int nCheckCreature, int nX0, int nY0, int nX1, int nY1)
 {
     return OneStepCost(nullptr, bCheckGround, nCheckCreature, nX0, nY0, nX1, nY1) >= 0.00;
 }
@@ -1222,7 +1222,7 @@ bool ProcessRun::GetUIDLocation(uint64_t nUID, bool bDrawLoc, int *pX, int *pY)
 
 void ProcessRun::centerMyHero()
 {
-    const auto nMotion     = getMyHero()->currMotion().motion;
+    const auto nMotion     = getMyHero()->currMotion().type;
     const auto nDirection  = getMyHero()->currMotion().direction;
     const auto nX          = getMyHero()->currMotion().x;
     const auto nY          = getMyHero()->currMotion().y;

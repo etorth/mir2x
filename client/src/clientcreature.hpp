@@ -22,6 +22,7 @@
 #include <memory>
 #include <cstddef>
 #include <cstdint>
+#include <concepts>
 
 #include "uidf.hpp"
 #include "mathf.hpp"
@@ -165,7 +166,7 @@
 
     public:
         virtual bool update(double) = 0;
-        virtual bool draw(int, int, int) = 0;
+        virtual void draw(int, int, int) = 0;
 
     public:
         virtual bool motionValid(const MotionNode &) const = 0;
@@ -258,4 +259,23 @@
 
     public:
         virtual TargetBox getTargetBox() const = 0;
+
+    protected:
+        struct CallOnExitHelper
+        {
+            private:
+                std::function<void()> m_cb;
+
+            public:
+                template<std::invocable<> T> CallOnExitHelper(T t)
+                    : m_cb(std::move(t))
+                {}
+
+                ~CallOnExitHelper()
+                {
+                    if(m_cb){
+                        m_cb();
+                    }
+                }
+        };
 };

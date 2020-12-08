@@ -26,7 +26,7 @@ extern Log *g_log;
 
 std::vector<PathFind::PathNode> CreatureMovable::parseMovePath(int x0, int y0, int x1, int y1, bool checkGround, int checkCreature)
 {
-    if(!m_processRun->CanMove(true, 0, x0, y0)){
+    if(!m_processRun->canMove(true, 0, x0, y0)){
         return {};
     }
 
@@ -43,7 +43,7 @@ std::vector<PathFind::PathNode> CreatureMovable::parseMovePath(int x0, int y0, i
                 // so there couldn't be any middle grids blocking
 
                 if(checkGround){
-                    if(m_processRun->CanMove(true, 0, x1, y1)){
+                    if(m_processRun->canMove(true, 0, x1, y1)){
                         // we ignore checkCreature
                         // because this always gives the best path
                         return {{x0, y0}, {x1, y1}};
@@ -71,7 +71,7 @@ std::vector<PathFind::PathNode> CreatureMovable::parseMovePath(int x0, int y0, i
                     // but not with distance = 1 or 2
                     // there could be middle grid blocking this hop
 
-                    if(m_processRun->CanMove(true, 0, x0, y0, x1, y1)){
+                    if(m_processRun->canMove(true, 0, x0, y0, x1, y1)){
                         switch(checkCreature){
                             case 0:
                             case 1:
@@ -88,7 +88,7 @@ std::vector<PathFind::PathNode> CreatureMovable::parseMovePath(int x0, int y0, i
                                     // we need to avoid check the first node
                                     // since it will fail by occupation of itself
 
-                                    if(m_processRun->CanMove(true, 2, x0 + nDX, y0 + nDY, x1, y1)){
+                                    if(m_processRun->canMove(true, 2, x0 + nDX, y0 + nDY, x1, y1)){
                                         // we are checking the creatures
                                         // and no creaturs standing on the one-hop path
                                         return {{x0, y0}, {x1, y1}};
@@ -159,8 +159,8 @@ std::deque<MotionNode> CreatureMovable::makeWalkMotionQueue(int startX, int star
                     const auto x1 = pathNodes[nIndex    ].X;
                     const auto y1 = pathNodes[nIndex    ].Y;
 
-                    if(const auto motionNode = makeWalkMotion(x0, y0, x1, y1, speed)){
-                        motionQueue.push_back(motionNode);
+                    if(auto motionNode = makeWalkMotion(x0, y0, x1, y1, speed)){
+                        motionQueue.push_back(std::move(motionNode));
                     }
                     else{
                         throw fflerror("Can't make a motioni node: (%d, %d) -> (%d, %d)", x0, y0, x1, y1);
@@ -223,7 +223,7 @@ bool CreatureMovable::moveNextMotion()
 
 std::tuple<int, int> CreatureMovable::getShift() const
 {
-    switch(m_currMotion.motion){
+    switch(m_currMotion.type){
         case MOTION_WALK:           // human
         case MOTION_RUN:            // human
         case MOTION_ONHORSEWALK:    // human
@@ -252,7 +252,7 @@ std::tuple<int, int> CreatureMovable::getShift() const
             }
     }
 
-    const auto frameCount = motionFrameCount(m_currMotion.motion, m_currMotion.direction);
+    const auto frameCount = motionFrameCount(m_currMotion.type, m_currMotion.direction);
     if(frameCount <= 0){
         throw fflerror("invalid frame count: %d", frameCount);
     }

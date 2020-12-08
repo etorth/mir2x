@@ -24,7 +24,7 @@
 #include "client.hpp"
 #include "dbcomid.hpp"
 #include "clientmonster.hpp"
-#include "standnpc.hpp"
+#include "clientnpc.hpp"
 #include "uidf.hpp"
 #include "sysconst.hpp"
 #include "pngtexdb.hpp"
@@ -114,7 +114,9 @@ void ProcessRun::net_ACTION(const uint8_t *bufPtr, size_t)
     if(auto creaturePtr = findUID(smA.UID)){
         // shouldn't accept ACTION_SPAWN
         // we shouldn't have spawn action after co created
-        condcheck(smA.Action != ACTION_SPAWN);
+        if(smA.Action == ACTION_SPAWN){
+            throw fflerror("existing CO get spawn action");
+        }
 
         creaturePtr->parseAction(stAction);
         switch(stAction.Action){
@@ -173,7 +175,7 @@ void ProcessRun::net_ACTION(const uint8_t *bufPtr, size_t)
             }
         case UID_NPC:
             {
-                m_coList[smA.UID] = std::make_unique<StandNPC>(smA.UID, this, stAction);
+                m_coList[smA.UID] = std::make_unique<ClientNPC>(smA.UID, this, stAction);
                 return;
             }
         default:
