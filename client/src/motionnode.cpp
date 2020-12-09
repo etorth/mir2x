@@ -92,9 +92,9 @@ void MagicSpellEffect::drawShift(int shiftX, int shiftY, bool alpha)
     const auto texID = [this]() -> uint32_t
     {
         if(m_gfxEntry->gfxDirType > 1){
-            return m_gfxEntry->gfxID + frame() + (m_motion->direction - DIR_BEGIN) * m_gfxEntry->gfxIDCount;
+            return m_gfxEntry->gfxID + m_frame + (m_motion->direction - DIR_BEGIN) * m_gfxEntry->gfxIDCount;
         }
-        return m_gfxEntry->gfxID + frame();
+        return m_gfxEntry->gfxID + m_frame;
     }();
 
     int offX = 0;
@@ -104,6 +104,22 @@ void MagicSpellEffect::drawShift(int shiftX, int shiftY, bool alpha)
         SDLDevice::EnableTextureBlendMode enableBlendMode(texPtr, SDL_BLENDMODE_BLEND);
         g_sdlDevice->drawTexture(texPtr, shiftX + offX, shiftY + offY);
     }
+}
+
+int TaoSumDogEffect::frame() const
+{
+    return MagicSpellEffect::frame() / 2;
+}
+
+int TaoSumDogEffect::frameCount() const
+{
+    return MagicSpellEffect::frameCount() / 2;
+}
+
+void TaoSumDogEffect::nextFrame()
+{
+    MagicSpellEffect::nextFrame();
+    MagicSpellEffect::nextFrame();
 }
 
 void MotionNode::print() const

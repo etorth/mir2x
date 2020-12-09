@@ -578,10 +578,14 @@ bool Hero::parseAction(const ActionNode &action)
                                 });
 
                                 m_motionQueue.back().extParam.spell.magicID = (int)(action.ActionParam);
-                                m_motionQueue.back().extParam.spell.effect = std::unique_ptr<MotionEffectBase>(new MagicSpellEffect
+                                auto magicPtr = [&action, this]() -> MotionEffectBase *
                                 {
-                                    &(m_motionQueue.back()),
-                                });
+                                    switch(action.ActionParam){
+                                        case DBCOM_MAGICID(u8"召唤神兽"): return new TaoSumDogEffect (&(m_motionQueue.back()));
+                                        default                         : return new MagicSpellEffect(&(m_motionQueue.back()));
+                                    }
+                                }();
+                                m_motionQueue.back().extParam.spell.effect = std::unique_ptr<MotionEffectBase>(magicPtr);
 
                                 if(motionSpell == MOTION_SPELL0){
                                     for(int i = 0; i < 2; ++i){

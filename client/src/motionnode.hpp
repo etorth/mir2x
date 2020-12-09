@@ -82,11 +82,25 @@ class MagicSpellEffect: public MotionEffectBase
         void drawShift(int, int, bool) override;
 };
 
+class TaoSumDogEffect: public MagicSpellEffect
+{
+    // drop some frames
+    // summon dog has 19 frames
+    // which holds hero stay to wait too long
+
+    public:
+        using MagicSpellEffect::MagicSpellEffect;
+
+    public:
+        int frame     () const override;
+        int frameCount() const override;
+
+    public:
+        void nextFrame() override;
+};
+
 struct MotionNode
 {
-
-    // class SwordSwingEffect: public MotionEffectBase;
-
     struct MotionExtParam
     {
         struct MotionSpell
