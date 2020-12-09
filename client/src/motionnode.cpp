@@ -93,16 +93,14 @@ uint32_t MagicSpellEffect::frameTexID() const
 
 void MagicSpellEffect::drawShift(int shiftX, int shiftY, bool alpha)
 {
-    if(m_gfxEntry->gfxID == SYS_TEXNIL){
-        return;
-    }
-
-    int offX = 0;
-    int offY = 0;
-    if(auto texPtr = g_magicDB->Retrieve(frameTexID(), &offX, &offY)){
-        SDLDevice::EnableTextureModColor enableModColor(texPtr, colorf::RGBA(0XFF, 0XFF, 0XFF, alpha ? 0X40 : 0XC0));
-        SDLDevice::EnableTextureBlendMode enableBlendMode(texPtr, SDL_BLENDMODE_BLEND);
-        g_sdlDevice->drawTexture(texPtr, shiftX + offX, shiftY + offY);
+    if(const auto texID = frameTexID(); texID != SYS_TEXNIL){
+        int offX = 0;
+        int offY = 0;
+        if(auto texPtr = g_magicDB->Retrieve(texID, &offX, &offY)){
+            SDLDevice::EnableTextureModColor enableModColor(texPtr, colorf::RGBA(0XFF, 0XFF, 0XFF, alpha ? 0X40 : 0XC0));
+            SDLDevice::EnableTextureBlendMode enableBlendMode(texPtr, SDL_BLENDMODE_BLEND);
+            g_sdlDevice->drawTexture(texPtr, shiftX + offX, shiftY + offY);
+        }
     }
 }
 

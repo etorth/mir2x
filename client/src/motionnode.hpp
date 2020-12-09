@@ -118,6 +118,26 @@ class TaoSumDogEffect: public MagicSpellEffect
         }
 };
 
+class TaoFireFigureEffect: public MagicSpellEffect
+{
+    public:
+        using MagicSpellEffect::MagicSpellEffect;
+
+    public:
+        int frameCount() const override
+        {
+            return MagicSpellEffect::frameCount() + 3;
+        }
+
+        uint32_t frameTexID() const override
+        {
+            if(frame() < MagicSpellEffect::frameCount()){
+                return MagicSpellEffect::frameTexID();
+            }
+            return SYS_TEXNIL;
+        }
+};
+
 struct MotionNode
 {
     struct MotionExtParam

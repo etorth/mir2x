@@ -585,8 +585,9 @@ bool Hero::parseAction(const ActionNode &action)
                                 auto magicPtr = [&action, this]() -> MotionEffectBase *
                                 {
                                     switch(action.ActionParam){
-                                        case DBCOM_MAGICID(u8"召唤神兽"): return new TaoSumDogEffect (&(m_motionQueue.back()));
-                                        default                         : return new MagicSpellEffect(&(m_motionQueue.back()));
+                                        case DBCOM_MAGICID(u8"召唤神兽"): return new TaoSumDogEffect    (&(m_motionQueue.back()));
+                                        case DBCOM_MAGICID(u8"灵魂火符"): return new TaoFireFigureEffect(&(m_motionQueue.back()));
+                                        default                         : return new MagicSpellEffect   (&(m_motionQueue.back()));
                                     }
                                 }();
                                 m_motionQueue.back().extParam.spell.effect = std::unique_ptr<MotionEffectBase>(magicPtr);
