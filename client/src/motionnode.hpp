@@ -66,7 +66,7 @@ struct MotionNode
             void drawShift(int, int, bool) override;
     };
 
-    struct MotionExtParam
+    union MotionExtParam
     {
         struct MotionSpell
         {
