@@ -47,19 +47,6 @@ bool ClientCreature::advanceMotionFrame(int addFrame)
     return true;
 }
 
-bool ClientCreature::updateMotion(bool looped)
-{
-    const auto frameCount = motionFrameCount(m_currMotion.type, m_currMotion.direction);
-    if(frameCount <= 0){
-        return false;
-    }
-
-    if(looped || (m_currMotion.frame < (frameCount - 1))){
-        return advanceMotionFrame(1);
-    }
-    return moveNextMotion();
-}
-
 void ClientCreature::updateAttachMagic(double ms)
 {
     for(size_t i = 0; i < m_attachMagicList.size();){

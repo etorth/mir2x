@@ -156,9 +156,9 @@ class ClientTaoDog: public ClientMonster
         }
 
     public:
-        bool updateMotion(bool loop) override
+        bool updateMotion() override
         {
-            if(!ClientCreature::updateMotion(loop)){
+            if(!ClientCreature::updateMotion()){
                 return false;
             }
 

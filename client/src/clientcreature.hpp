@@ -168,7 +168,13 @@
         virtual bool advanceMotionFrame(int);
 
     protected:
-        virtual bool updateMotion(bool);
+        virtual bool updateMotion()
+        {
+            if(m_currMotion.frame < (motionFrameCountEx(m_currMotion.type, m_currMotion.direction) - 1)){
+                return advanceMotionFrame(1);
+            }
+            return moveNextMotion();
+        }
 
     protected:
         void updateAttachMagic(double);

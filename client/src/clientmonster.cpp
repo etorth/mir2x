@@ -189,7 +189,7 @@ bool ClientMonster::update(double ms)
             }
         default:
             {
-                return updateMotion(false);
+                return updateMotion();
             }
     }
 }

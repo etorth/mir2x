@@ -270,7 +270,7 @@ bool Hero::update(double ms)
         case MOTION_HITTED:
             {
                 if(stayIdle()){
-                    return updateMotion(false);
+                    return updateMotion();
                 }
 
                 // move to next motion will reset frame as 0
@@ -284,7 +284,7 @@ bool Hero::update(double ms)
         case MOTION_SPELL1:
             {
                 if(!m_currMotion.extParam.spell.effect){
-                    return updateMotion(false);
+                    return updateMotion();
                 }
 
                 if(m_currMotion.extParam.spell.effect){
@@ -306,7 +306,7 @@ bool Hero::update(double ms)
                     return true;
                 }
                 else{
-                    return updateMotion(false);
+                    return updateMotion();
                 }
             }
         case MOTION_ONEHSWING:
@@ -320,11 +320,11 @@ bool Hero::update(double ms)
                 if(m_currMotion.extParam.swing.effect){
                     m_currMotion.extParam.swing.effect->nextFrame();
                 }
-                return updateMotion(false);
+                return updateMotion();
             }
         default:
             {
-                return updateMotion(false);
+                return updateMotion();
             }
     }
 }
