@@ -78,6 +78,7 @@ struct MotionNode
             int motion = 0;
         }attack;
     };
+    static_assert(std::is_trivially_copyable_v<MotionExtParam>);
 
     //////////////////////////////////////////////////////////////////
     ////                                                          ////
