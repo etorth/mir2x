@@ -693,13 +693,6 @@ bool MyHero::parseActionQueue()
     return true;
 }
 
-bool MyHero::stayIdle()
-{
-    return true
-        && m_motionQueue.empty()
-        && m_actionQueue.empty();
-}
-
 void MyHero::pickUp()
 {
     if(stayIdle()){

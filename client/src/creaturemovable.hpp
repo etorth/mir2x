@@ -42,7 +42,7 @@ class CreatureMovable: public ClientCreature
         virtual int currStep() const = 0;
 
     protected:
-        bool stayIdle() const
+        virtual bool stayIdle() const
         {
             return m_forceMotionQueue.empty() && m_motionQueue.empty();
         }

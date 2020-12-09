@@ -95,7 +95,10 @@ class MyHero: public Hero
         }
 
     public:
-        bool stayIdle();
+        bool stayIdle() const override
+        {
+            return Hero::stayIdle() && m_actionQueue.empty();
+        }
 
     public:
         void pickUp() override;
