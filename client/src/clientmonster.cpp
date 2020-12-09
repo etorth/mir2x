@@ -164,7 +164,7 @@ bool ClientMonster::update(double ms)
                     return advanceMotionFrame(1);
                 }
 
-                switch(m_currMotion.fadeOut){
+                switch(m_currMotion.extParam.die.fadeOut){
                     case 0:
                         {
                             break;
@@ -178,10 +178,10 @@ bool ClientMonster::update(double ms)
                     default:
                         {
                             int nextFadeOut = 0;
-                            nextFadeOut = (std::max<int>)(1, m_currMotion.fadeOut + 10);
+                            nextFadeOut = (std::max<int>)(1, m_currMotion.extParam.die.fadeOut + 10);
                             nextFadeOut = (std::min<int>)(nextFadeOut, 255);
 
-                            m_currMotion.fadeOut = nextFadeOut;
+                            m_currMotion.extParam.die.fadeOut = nextFadeOut;
                             break;
                         }
                 }
@@ -239,15 +239,15 @@ void ClientMonster::draw(int viewX, int viewY, int focusMask)
 
     if(true
             && (m_currMotion.type  == MOTION_MON_DIE)
-            && (m_currMotion.fadeOut  > 0             )){
+            && (m_currMotion.extParam.die.fadeOut  > 0)){
         // FadeOut :    0 : normal
         //         : 1-255: fadeOut
         if(pFrame0){
-            SDL_SetTextureAlphaMod(pFrame0, (255 - m_currMotion.fadeOut) / 1);
+            SDL_SetTextureAlphaMod(pFrame0, (255 - m_currMotion.extParam.die.fadeOut) / 1);
         }
 
         if(pFrame1){
-            SDL_SetTextureAlphaMod(pFrame1, (255 - m_currMotion.fadeOut) / 2);
+            SDL_SetTextureAlphaMod(pFrame1, (255 - m_currMotion.extParam.die.fadeOut) / 2);
         }
     }
 
@@ -421,7 +421,7 @@ bool ClientMonster::parseAction(const ActionNode &action)
                     .y = action.Y,
                 });
 
-                m_forceMotionQueue.back().fadeOut = action.ActionParam;
+                m_forceMotionQueue.back().extParam.die.fadeOut = action.ActionParam;
                 break;
             }
         case ACTION_STAND:

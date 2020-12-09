@@ -77,6 +77,11 @@ struct MotionNode
         {
             int motion = 0;
         }attack;
+
+        struct MotionDie
+        {
+            int fadeOut = 0;
+        }die;
     };
     static_assert(std::is_trivially_copyable_v<MotionExtParam>);
 
@@ -96,10 +101,8 @@ struct MotionNode
     /**/    int endX = x;                                         /**/
     /**/    int endY = y;                                         /**/
     /**/                                                          /**/
-    /**/    int frame   = 0;                                      /**/
-    /**/    int fadeOut = 0;                                      /**/
-    /**/                                                          /**/
-    /**/    MotionExtParam param{};                               /**/
+    /**/    int frame = 0;                                        /**/
+    /**/    MotionExtParam extParam{};                            /**/
     /**/    std::unique_ptr<MotionEffect> effect{};               /**/
     /**/    std::function<void(MotionNode *, bool)> onUpdate{};   /**/
     /**/                                                          /**/

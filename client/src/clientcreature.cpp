@@ -96,8 +96,8 @@ bool ClientCreature::deadFadeOut()
         case MOTION_DIE:
         case MOTION_MON_DIE:
             {
-                if(!m_currMotion.fadeOut){
-                    m_currMotion.fadeOut = 1;
+                if(!m_currMotion.extParam.die.fadeOut){
+                    m_currMotion.extParam.die.fadeOut = 1;
                 }
                 return true;
             }
@@ -160,7 +160,7 @@ bool ClientCreature::visible() const
         case MOTION_MON_DIE:
             {
                 if(const auto frameCount = motionFrameCount(m_currMotion.type, m_currMotion.direction); frameCount > 0){
-                    return (m_currMotion.frame < (frameCount - 1)) || (m_currMotion.fadeOut < 255);
+                    return (m_currMotion.frame < (frameCount - 1)) || (m_currMotion.extParam.die.fadeOut < 255);
                 }
                 throw fflerror("invalid motion detected");
             }

@@ -37,14 +37,14 @@ MotionNode::MagicSpellEffect::MagicSpellEffect(const MotionNode *motionPtr)
               default           : throw fflerror("invalid motion type: %d", motionPtr->type);
           }
 
-          const auto &mr = DBCOM_MAGICRECORD(motionPtr->param.spell.magicID);
+          const auto &mr = DBCOM_MAGICRECORD(motionPtr->extParam.spell.magicID);
           if(!mr){
-              throw fflerror("invalid magic ID: %d", motionPtr->param.spell.magicID);
+              throw fflerror("invalid magic ID: %d", motionPtr->extParam.spell.magicID);
           }
 
           const auto &ge = mr.getGfxEntry(u8"启动");
           if(!ge){
-              throw fflerror("magic ID %d has no stage: %s", motionPtr->param.spell.magicID, to_cstr(u8"启动"));
+              throw fflerror("magic ID %d has no stage: %s", motionPtr->extParam.spell.magicID, to_cstr(u8"启动"));
           }
 
           if(!ge.checkType(u8"附着")){
@@ -81,7 +81,6 @@ void MotionNode::print() const
     g_log->addLog(LOGTYPE_INFO, "MotionNode::0x%016p::endX        = %d", to_cvptr(this), endX                  );
     g_log->addLog(LOGTYPE_INFO, "MotionNode::0x%016p::endY        = %d", to_cvptr(this), endY                  );
     g_log->addLog(LOGTYPE_INFO, "MotionNode::0x%016p::frame       = %d", to_cvptr(this), frame                 );
-    g_log->addLog(LOGTYPE_INFO, "MotionNode::0x%016p::fadeOut     = %d", to_cvptr(this), fadeOut               );
     g_log->addLog(LOGTYPE_INFO, "MotionNode::0x%016p::effect      = %s", to_cvptr(this), effect   ? "1" : "0"  );
     g_log->addLog(LOGTYPE_INFO, "MotionNode::0x%016p::onUpdate    = %s", to_cvptr(this), onUpdate ? "1" : "0"  );
 }
