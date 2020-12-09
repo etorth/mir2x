@@ -63,6 +63,8 @@ struct MotionNode
         public:
             int frame() const override;
             int frameCount() const override;
+
+        public:
             void drawShift(int, int, bool) override;
     };
 
