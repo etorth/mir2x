@@ -126,7 +126,7 @@ class TaoFireFigureEffect: public MagicSpellEffect
     public:
         int frameCount() const override
         {
-            return MagicSpellEffect::frameCount() + 3;
+            return MagicSpellEffect::frameCount() + 2;
         }
 
         uint32_t frameTexID() const override
