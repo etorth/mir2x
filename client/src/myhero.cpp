@@ -37,65 +37,100 @@ MyHero::MyHero(uint64_t nUID, uint32_t nDBID, bool bMale, uint32_t nDressID, Pro
     , m_actionQueue()
 {}
 
-bool MyHero::update(double fUpdateTime)
+bool MyHero::update(double ms)
 {
-    // 1. independent from time control
-    //    attached magic could take different speed
-    updateAttachMagic(fUpdateTime);
+    updateAttachMagic(ms);
 
-    // 2. update this monster
-    //    need fps control for current motion
-    const double fTimeNow = SDL_GetTicks() * 1.0;
-    if(fTimeNow > currMotionDelay() + m_lastUpdateTime){
+    if(SDL_GetTicks() * 1.0f < currMotionDelay() + m_lastUpdateTime){
+        return true;
+    }
 
-        // 1. record update time
-        //    needed for next update
-        m_lastUpdateTime = fTimeNow;
-
-        switch(m_currMotion.type){
-            case MOTION_STAND:
-                {
-                    if(stayIdle()){
-                        if(m_actionQueue.empty()){
-                            return advanceMotionFrame(1);
-                        }
-                        else{
-                            return parseActionQueue();
-                        }
-                    }else{
-                        // move to next motion will reset frame as 0
-                        // if current there is no more motion pending
-                        // it will add a MOTION_STAND
-                        //
-                        // we don't want to reset the frame here
-                        return moveNextMotion();
+    m_lastUpdateTime = SDL_GetTicks() * 1.0f;
+    switch(m_currMotion.type){
+        case MOTION_STAND:
+            {
+                if(stayIdle()){
+                    if(m_actionQueue.empty()){
+                        return advanceMotionFrame(1);
                     }
-                }
-            case MOTION_HITTED:
-                {
-                    if(stayIdle()){
-                        if(m_actionQueue.empty()){
-                            return updateMotion(false);
-                        }
-                        else{
-                            return parseActionQueue();
-                        }
-                    }else{
-                        // move to next motion will reset frame as 0
-                        // if current there is no more motion pending
-                        // it will add a MOTION_STAND
-                        //
-                        // we don't want to reset the frame here
-                        return moveNextMotion();
+                    else{
+                        return parseActionQueue();
                     }
+                }else{
+                    // move to next motion will reset frame as 0
+                    // if current there is no more motion pending
+                    // it will add a MOTION_STAND
+                    //
+                    // we don't want to reset the frame here
+                    return moveNextMotion();
                 }
-            default:
-                {
+            }
+        case MOTION_HITTED:
+            {
+                if(stayIdle()){
+                    if(m_actionQueue.empty()){
+                        return updateMotion(false);
+                    }
+                    else{
+                        return parseActionQueue();
+                    }
+                }else{
+                    // move to next motion will reset frame as 0
+                    // if current there is no more motion pending
+                    // it will add a MOTION_STAND
+                    //
+                    // we don't want to reset the frame here
+                    return moveNextMotion();
+                }
+            }
+        case MOTION_SPELL0:
+        case MOTION_SPELL1:
+            {
+                if(!m_currMotion.extParam.spell.effect){
                     return updateMotion(false);
                 }
-        }
+
+                if(m_currMotion.extParam.spell.effect){
+                    m_currMotion.extParam.spell.effect->nextFrame();
+                }
+
+                const int motionEndFrame = motionFrameCountEx(m_currMotion.type, m_currMotion.direction) - 1;
+                const int effectEndFrame = m_currMotion.extParam.spell.effect->frameCount() - 1;
+                const int syncFrameCount = [this]() -> int
+                {
+                    if(m_currMotion.type == MOTION_SPELL0){
+                        return 2;
+                    }
+                    return 1;
+                }();
+
+                if( m_currMotion.frame >= motionEndFrame - syncFrameCount && m_currMotion.extParam.spell.effect->frame() < effectEndFrame - syncFrameCount){
+                    m_currMotion.frame  = motionEndFrame - syncFrameCount;
+                    return true;
+                }
+                else{
+                    return updateMotion(false);
+                }
+                break;
+            }
+        case MOTION_ONEHSWING:
+        case MOTION_ONEVSWING:
+        case MOTION_TWOHSWING:
+        case MOTION_TWOVSWING:
+        case MOTION_RANDSWING:
+        case MOTION_SPEARHSWING:
+        case MOTION_SPEARVSWING:
+            {
+                if(m_currMotion.extParam.swing.effect){
+                    m_currMotion.extParam.swing.effect->nextFrame();
+                }
+                return updateMotion(false);
+            }
+        default:
+            {
+                return updateMotion(false);
+            }
     }
-    return true;
 }
 
 bool MyHero::moveNextMotion()

@@ -190,6 +190,34 @@ void Hero::draw(int viewX, int viewY, int)
         }
     }
 
+    switch(m_currMotion.type){
+        case MOTION_SPELL0:
+        case MOTION_SPELL1:
+            {
+                if(m_currMotion.extParam.spell.effect){
+                    m_currMotion.extParam.spell.effect->drawShift(startX, startY, false);
+                }
+                break;
+            }
+        case MOTION_ONEHSWING:
+        case MOTION_ONEVSWING:
+        case MOTION_TWOHSWING:
+        case MOTION_TWOVSWING:
+        case MOTION_RANDSWING:
+        case MOTION_SPEARHSWING:
+        case MOTION_SPEARVSWING:
+            {
+                if(m_currMotion.extParam.swing.effect){
+                    m_currMotion.extParam.swing.effect->drawShift(startX, startY, false);
+                }
+                break;
+            }
+        default:
+            {
+                break;
+            }
+    }
+
     // draw HP bar
     // if current m_HPMqx is zero we draw full bar
     switch(m_currMotion.type){
@@ -225,33 +253,6 @@ bool Hero::update(double ms)
     }
 
     m_lastUpdateTime = SDL_GetTicks() * 1.0f;
-    const CallOnExitHelper onExit([this]()
-    {
-        if(m_currMotion.onUpdate){
-            m_currMotion.onUpdate(&m_currMotion, false);
-        }
-
-        if(!m_currMotion.effect){
-            return;
-        }
-
-        const int frameCount = motionFrameCount(m_currMotion.type, m_currMotion.direction);
-        if(m_currMotion.frame + 2 >= frameCount){
-            if(m_currMotion.type == MOTION_SPELL1){
-                if(m_currMotion.effect->frame() + 2 < m_currMotion.effect->frameCount()){
-                    m_currMotion.frame = frameCount - 3;
-                }
-            }
-        }
-        else if(m_currMotion.frame + 4 >= frameCount){
-            if(m_currMotion.type == MOTION_SPELL0){
-                if(m_currMotion.effect->frame() + 5 < m_currMotion.effect->frameCount()){
-                    m_currMotion.frame = frameCount - 5;
-                }
-            }
-        }
-    });
-
     switch(m_currMotion.type){
         case MOTION_STAND:
             {
@@ -278,6 +279,44 @@ bool Hero::update(double ms)
                 //
                 // we don't want to reset the frame here
                 return moveNextMotion();
+            }
+        case MOTION_SPELL0:
+        case MOTION_SPELL1:
+            {
+                if(!m_currMotion.extParam.spell.effect){
+                    return updateMotion(false);
+                }
+
+                const int motionEndFrame = motionFrameCountEx(m_currMotion.type, m_currMotion.direction) - 1;
+                const int effectEndFrame = m_currMotion.extParam.spell.effect->frameCount() - 1;
+                const int syncFrameCount = [this]() -> int
+                {
+                    if(m_currMotion.type == MOTION_SPELL0){
+                        return 2;
+                    }
+                    return 1;
+                }();
+
+                if( m_currMotion.frame >= motionEndFrame - syncFrameCount && m_currMotion.extParam.spell.effect->frame() < effectEndFrame - syncFrameCount){
+                    m_currMotion.frame  = motionEndFrame - syncFrameCount;
+                    return true;
+                }
+                else{
+                    return updateMotion(false);
+                }
+            }
+        case MOTION_ONEHSWING:
+        case MOTION_ONEVSWING:
+        case MOTION_TWOHSWING:
+        case MOTION_TWOVSWING:
+        case MOTION_RANDSWING:
+        case MOTION_SPEARHSWING:
+        case MOTION_SPEARVSWING:
+            {
+                if(m_currMotion.extParam.spell.effect){
+                    m_currMotion.extParam.spell.effect->nextFrame();
+                }
+                return updateMotion(false);
             }
         default:
             {
@@ -538,6 +577,12 @@ bool Hero::parseAction(const ActionNode &action)
                                     .y = action.Y,
                                 });
 
+                                m_motionQueue.back().extParam.spell.magicID = (int)(action.ActionParam);
+                                m_motionQueue.back().extParam.spell.effect = std::unique_ptr<MotionEffectBase>(new MagicSpellEffect
+                                {
+                                    &(m_motionQueue.back()),
+                                });
+
                                 if(motionSpell == MOTION_SPELL0){
                                     for(int i = 0; i < 2; ++i){
                                         m_motionQueue.emplace_back(MotionNode
@@ -549,7 +594,6 @@ bool Hero::parseAction(const ActionNode &action)
                                         });
                                     }
                                 }
-                                addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(DBCOM_MAGICRECORD(action.ActionParam).name, u8"启动", standDir - DIR_BEGIN)));
                             }
                         }
                     }

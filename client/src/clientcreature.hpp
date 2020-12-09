@@ -149,6 +149,15 @@
     public:
         virtual int motionFrameCount(int, int) const = 0;
 
+    public:
+        int motionFrameCountEx(int motion, int direction) const
+        {
+            if(const int result = motionFrameCount(motion, direction); result > 0){
+                return result;
+            }
+            throw fflerror("invalid arguments: motion = %d, direction = %d", motion, direction);
+        }
+
     protected:
         virtual bool moveNextMotion() = 0;
 

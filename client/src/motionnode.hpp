@@ -37,42 +37,62 @@
 #include "dbcomrecord.hpp"
 #include "protocoldef.hpp"
 
+class MotionNode;
+class MotionEffectBase
+{
+    protected:
+        const MotionNode * const m_motion;
+
+    public:
+        MotionEffectBase(const MotionNode *motionPtr)
+            : m_motion(motionPtr)
+        {
+            if(!m_motion){
+                throw fflerror("invalid motion bind: nullptr");
+            }
+        }
+
+    public:
+        virtual ~MotionEffectBase() = default;
+
+    public:
+        virtual int frame     () const = 0;
+        virtual int frameCount() const = 0;
+
+    public:
+        virtual void nextFrame() = 0;
+        virtual void drawShift(int, int, bool) = 0;
+};
+
+class MagicSpellEffect: public MotionEffectBase
+{
+    protected:
+        int m_frame = 0;
+        const MagicGfxEntry * const m_gfxEntry;
+
+    public:
+        MagicSpellEffect(const MotionNode *);
+
+    public:
+        int frame     () const override;
+        int frameCount() const override;
+
+    public:
+        void nextFrame() override;
+        void drawShift(int, int, bool) override;
+};
+
 struct MotionNode
 {
-    class MotionEffect
-    {
-        public:
-            virtual void drawShift(int, int, bool) = 0;
 
-        public:
-            virtual int frame     () const = 0;
-            virtual int frameCount() const = 0;
-    };
+    // class SwordSwingEffect: public MotionEffectBase;
 
-    // class SwordSwingEffect: public MotionEffect;
-
-    class MagicSpellEffect: public MotionEffect
-    {
-        protected:
-            int m_frame = 0;
-            const MagicGfxEntry * const m_gfxEntry;
-
-        public:
-            MagicSpellEffect(const MotionNode *);
-
-        public:
-            int frame() const override;
-            int frameCount() const override;
-
-        public:
-            void drawShift(int, int, bool) override;
-    };
-
-    union MotionExtParam
+    struct MotionExtParam
     {
         struct MotionSpell
         {
             int magicID = 0;
+            std::unique_ptr<MotionEffectBase> effect;
         }spell;
 
         struct MotionAttack
@@ -84,8 +104,13 @@ struct MotionNode
         {
             int fadeOut = 0;
         }die;
+        
+        struct MotionSwing
+        {
+            int magicID = 0;
+            std::unique_ptr<MotionEffectBase> effect;
+        }swing;
     };
-    static_assert(std::is_trivially_copyable_v<MotionExtParam>);
 
     //////////////////////////////////////////////////////////////////
     ////                                                          ////
@@ -105,7 +130,6 @@ struct MotionNode
     /**/                                                          /**/
     /**/    int frame = 0;                                        /**/
     /**/    MotionExtParam extParam{};                            /**/
-    /**/    std::unique_ptr<MotionEffect> effect{};               /**/
     /**/    std::function<void(MotionNode *, bool)> onUpdate{};   /**/
     /**/                                                          /**/
     //////////////////////////////////////////////////////////////////
