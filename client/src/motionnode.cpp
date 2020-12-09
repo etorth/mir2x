@@ -83,43 +83,27 @@ void MagicSpellEffect::nextFrame()
     m_frame++;
 }
 
+uint32_t MagicSpellEffect::frameTexID() const
+{
+    if(m_gfxEntry->gfxDirType > 1){
+        return m_gfxEntry->gfxID + frame() + (m_motion->direction - DIR_BEGIN) * m_gfxEntry->gfxIDCount;
+    }
+    return m_gfxEntry->gfxID + frame();
+}
+
 void MagicSpellEffect::drawShift(int shiftX, int shiftY, bool alpha)
 {
     if(m_gfxEntry->gfxID == SYS_TEXNIL){
         return;
     }
 
-    const auto texID = [this]() -> uint32_t
-    {
-        if(m_gfxEntry->gfxDirType > 1){
-            return m_gfxEntry->gfxID + m_frame + (m_motion->direction - DIR_BEGIN) * m_gfxEntry->gfxIDCount;
-        }
-        return m_gfxEntry->gfxID + m_frame;
-    }();
-
     int offX = 0;
     int offY = 0;
-    if(auto texPtr = g_magicDB->Retrieve(texID, &offX, &offY)){
+    if(auto texPtr = g_magicDB->Retrieve(frameTexID(), &offX, &offY)){
         SDLDevice::EnableTextureModColor enableModColor(texPtr, colorf::RGBA(0XFF, 0XFF, 0XFF, alpha ? 0X40 : 0XC0));
         SDLDevice::EnableTextureBlendMode enableBlendMode(texPtr, SDL_BLENDMODE_BLEND);
         g_sdlDevice->drawTexture(texPtr, shiftX + offX, shiftY + offY);
     }
-}
-
-int TaoSumDogEffect::frame() const
-{
-    return MagicSpellEffect::frame() / 2;
-}
-
-int TaoSumDogEffect::frameCount() const
-{
-    return MagicSpellEffect::frameCount() / 2;
-}
-
-void TaoSumDogEffect::nextFrame()
-{
-    MagicSpellEffect::nextFrame();
-    MagicSpellEffect::nextFrame();
 }
 
 void MotionNode::print() const

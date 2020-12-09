@@ -59,6 +59,12 @@ class MotionEffectBase
         virtual int frame     () const = 0;
         virtual int frameCount() const = 0;
 
+    protected:
+        virtual uint32_t frameTexID() const
+        {
+            return SYS_TEXNIL;
+        }
+
     public:
         virtual void nextFrame() = 0;
         virtual void drawShift(int, int, bool) = 0;
@@ -77,6 +83,9 @@ class MagicSpellEffect: public MotionEffectBase
         int frame     () const override;
         int frameCount() const override;
 
+    protected:
+        uint32_t frameTexID() const override;
+
     public:
         void nextFrame() override;
         void drawShift(int, int, bool) override;
@@ -91,12 +100,22 @@ class TaoSumDogEffect: public MagicSpellEffect
     public:
         using MagicSpellEffect::MagicSpellEffect;
 
-    public:
-        int frame     () const override;
-        int frameCount() const override;
+    private:
+        constexpr static uint32_t m_texID[]
+        {
+            0, 1, 2, 4, 6, 8, 10, 12, 14, 16, 17, 18,
+        };
 
     public:
-        void nextFrame() override;
+        int frameCount() const override
+        {
+            return (int)(std::extent_v<decltype(m_texID)>);
+        }
+
+        uint32_t frameTexID() const override
+        {
+            return m_gfxEntry->gfxID + m_texID[m_frame];
+        }
 };
 
 struct MotionNode
