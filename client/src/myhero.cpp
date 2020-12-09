@@ -99,7 +99,7 @@ bool MyHero::update(double ms)
                 const int syncFrameCount = [this]() -> int
                 {
                     if(m_currMotion.type == MOTION_SPELL0){
-                        return 2;
+                        return 3;
                     }
                     return 1;
                 }();
