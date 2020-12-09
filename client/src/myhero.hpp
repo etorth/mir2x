@@ -39,9 +39,6 @@ class MyHero: public Hero
         ~MyHero() = default;
 
     public:
-        bool update(double) override;
-
-    public:
         // decompose (srcLoc->dstLoc) => (srcLoc->decompLoc->dstLoc)
         // this function is used for parsing ACTION_MOVE and ACTION_ATTACK
         // return true if under setting (bCheckGround, bCheckCreature, bCheckMove) we get

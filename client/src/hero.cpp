@@ -287,6 +287,10 @@ bool Hero::update(double ms)
                     return updateMotion(false);
                 }
 
+                if(m_currMotion.extParam.spell.effect){
+                    m_currMotion.extParam.spell.effect->nextFrame();
+                }
+
                 const int motionEndFrame = motionFrameCountEx(m_currMotion.type, m_currMotion.direction) - 1;
                 const int effectEndFrame = m_currMotion.extParam.spell.effect->frameCount() - 1;
                 const int syncFrameCount = [this]() -> int
@@ -313,8 +317,8 @@ bool Hero::update(double ms)
         case MOTION_SPEARHSWING:
         case MOTION_SPEARVSWING:
             {
-                if(m_currMotion.extParam.spell.effect){
-                    m_currMotion.extParam.spell.effect->nextFrame();
+                if(m_currMotion.extParam.swing.effect){
+                    m_currMotion.extParam.swing.effect->nextFrame();
                 }
                 return updateMotion(false);
             }
