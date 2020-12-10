@@ -315,22 +315,22 @@ void ProcessRun::net_SHOWDROPITEM(const uint8_t *bufPtr, size_t)
 
 void ProcessRun::net_CASTMAGIC(const uint8_t *bufPtr, size_t)
 {
-    const auto smFM = ServerMsg::conv<SMCastMagic>(bufPtr);
-    const auto &mr = DBCOM_MAGICRECORD(smFM.Magic);
+    const auto smCM = ServerMsg::conv<SMCastMagic>(bufPtr);
+    const auto &mr = DBCOM_MAGICRECORD(smCM.Magic);
 
     if(!mr){
         return;
     }
 
     addCBLog(CBLOG_SYS, u8"使用魔法: %s", mr.name);
-    switch(smFM.Magic){
+    switch(smCM.Magic){
         case DBCOM_MAGICID(u8"魔法盾"):
             {
-                if(auto coPtr = findUID(smFM.UID)){
+                if(auto coPtr = findUID(smCM.UID)){
                     auto magicPtr = new AttachMagic(u8"魔法盾", u8"开始");
-                    magicPtr->addOnDone([smFM, this]()
+                    magicPtr->addOnDone([smCM, this]()
                     {
-                        if(auto coPtr = findUID(smFM.UID)){
+                        if(auto coPtr = findUID(smCM.UID)){
                             coPtr->addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"魔法盾", u8"运行")));
                         }
                     });
@@ -340,14 +340,14 @@ void ProcessRun::net_CASTMAGIC(const uint8_t *bufPtr, size_t)
             }
         case DBCOM_MAGICID(u8"雷电术"):
             {
-                if(auto coPtr = findUID(smFM.AimUID)){
+                if(auto coPtr = findUID(smCM.AimUID)){
                     coPtr->addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"雷电术", u8"运行")));
                 }
                 return;
             }
         case DBCOM_MAGICID(u8"灵魂火符"):
             {
-                if(auto fromCOPtr = findUID(smFM.UID)){
+                if(auto fromCOPtr = findUID(smCM.UID)){
                     auto [fromX, fromY] = fromCOPtr->getTargetBox().center();
                     PathFind::GetFrontLocation(&fromX, &fromY, fromX, fromY, fromCOPtr->currMotion()->direction, 8);
                     auto magicPtr = new TaoFireFigure_RUN
@@ -355,11 +355,11 @@ void ProcessRun::net_CASTMAGIC(const uint8_t *bufPtr, size_t)
                         fromX,
                         fromY,
 
-                        [smFM, fromX, fromY, this]() -> int
+                        [smCM, fromX, fromY, this]() -> int
                         {
-                            const auto [x, y] = [smFM, this]() -> std::tuple<int, int>
+                            const auto [x, y] = [smCM, this]() -> std::tuple<int, int>
                             {
-                                if(const auto coPtr = findUID(smFM.AimUID)){
+                                if(const auto coPtr = findUID(smCM.AimUID)){
                                     return coPtr->getTargetBox().center();
                                 }
                                 int mousePX = -1;
@@ -370,13 +370,13 @@ void ProcessRun::net_CASTMAGIC(const uint8_t *bufPtr, size_t)
                             return pathf::getDir16(x - fromX, y - fromY);
                         }(),
 
-                        smFM.AimUID,
+                        smCM.AimUID,
                         this,
                     };
 
-                    magicPtr->addOnDone([smFM, this]()
+                    magicPtr->addOnDone([smCM, this]()
                     {
-                        addAttachMagic(smFM.AimUID, std::unique_ptr<AttachMagic>(new AttachMagic
+                        addAttachMagic(smCM.AimUID, std::unique_ptr<AttachMagic>(new AttachMagic
                         {
                             u8"灵魂火符",
                             u8"结束",

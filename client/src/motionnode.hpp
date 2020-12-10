@@ -145,25 +145,29 @@ struct MotionNode
     {
         struct MotionSpell
         {
-            int magicID = 0;
-            std::unique_ptr<MotionEffectBase> effect;
-        }spell;
+            const int magicID = 0;
+            std::unique_ptr<MotionEffectBase> effect{};
+        }
+        spell{};
 
         struct MotionAttack
         {
-            int motion = 0;
-        }attack;
+            const int motion = 0;
+        }
+        attack{};
 
         struct MotionDie
         {
             int fadeOut = 0;
-        }die;
+        }
+        die{};
         
         struct MotionSwing
         {
-            int magicID = 0;
-            std::unique_ptr<MotionEffectBase> effect;
-        }swing;
+            const int magicID = 0;
+            std::unique_ptr<MotionEffectBase> effect{};
+        }
+        swing{};
     };
 
     //////////////////////////////////////////////////////////////////

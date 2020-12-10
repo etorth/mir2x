@@ -580,28 +580,36 @@ bool Hero::parseAction(const ActionNode &action)
                             }();
 
                             if(standDir >= DIR_BEGIN && standDir < DIR_END){
-                                m_motionQueue.emplace_back(std::unique_ptr<MotionNode>(new MotionNode
+                                auto motionPtr = new MotionNode
                                 {
                                     .type = motionSpell,
                                     .direction = standDir,
                                     .x = action.X,
                                     .y = action.Y,
-                                }));
+                                    .extParam
+                                    {
+                                        .spell
+                                        {
+                                            .magicID = (int)(action.ActionParam),
+                                        },
+                                    },
+                                };
 
-                                m_motionQueue.back()->extParam.spell.magicID = (int)(action.ActionParam);
-                                auto magicPtr = [&action, this]() -> MotionEffectBase *
+                                auto magicPtr = [&action, motionPtr, this]() -> MotionEffectBase *
                                 {
                                     switch(action.ActionParam){
-                                        case DBCOM_MAGICID(u8"召唤神兽"): return new TaoSumDogEffect    (m_motionQueue.back().get());
-                                        case DBCOM_MAGICID(u8"灵魂火符"): return new TaoFireFigureEffect(m_motionQueue.back().get());
-                                        default                         : return new MagicSpellEffect   (m_motionQueue.back().get());
+                                        case DBCOM_MAGICID(u8"召唤神兽"): return new TaoSumDogEffect    (motionPtr);
+                                        case DBCOM_MAGICID(u8"灵魂火符"): return new TaoFireFigureEffect(motionPtr);
+                                        default                         : return new MagicSpellEffect   (motionPtr);
                                     }
                                 }();
-                                m_motionQueue.back()->extParam.spell.effect = std::unique_ptr<MotionEffectBase>(magicPtr);
+
+                                motionPtr->extParam.spell.effect = std::unique_ptr<MotionEffectBase>(magicPtr);
+                                m_motionQueue.push_back(std::unique_ptr<MotionNode>(motionPtr));
 
                                 if(motionSpell == MOTION_SPELL0){
                                     for(int i = 0; i < 2; ++i){
-                                        m_motionQueue.emplace_back(std::unique_ptr<MotionNode>(new MotionNode
+                                        m_motionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
                                         {
                                             .type = MOTION_ATTACKMODE,
                                             .direction = standDir,
