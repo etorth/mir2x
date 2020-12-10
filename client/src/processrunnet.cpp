@@ -347,43 +347,6 @@ void ProcessRun::net_CASTMAGIC(const uint8_t *bufPtr, size_t)
             }
         case DBCOM_MAGICID(u8"灵魂火符"):
             {
-                if(auto fromCOPtr = findUID(smCM.UID)){
-                    auto [fromX, fromY] = fromCOPtr->getTargetBox().center();
-                    PathFind::GetFrontLocation(&fromX, &fromY, fromX, fromY, fromCOPtr->currMotion()->direction, 8);
-                    auto magicPtr = new TaoFireFigure_RUN
-                    {
-                        fromX,
-                        fromY,
-
-                        [smCM, fromX, fromY, this]() -> int
-                        {
-                            const auto [x, y] = [smCM, this]() -> std::tuple<int, int>
-                            {
-                                if(const auto coPtr = findUID(smCM.AimUID)){
-                                    return coPtr->getTargetBox().center();
-                                }
-                                int mousePX = -1;
-                                int mousePY = -1;
-                                SDL_GetMouseState(&mousePX, &mousePY);
-                                return {mousePX + m_viewX, mousePY + m_viewY};
-                            }();
-                            return pathf::getDir16(x - fromX, y - fromY);
-                        }(),
-
-                        smCM.AimUID,
-                        this,
-                    };
-
-                    magicPtr->addOnDone([smCM, this]()
-                    {
-                        addAttachMagic(smCM.AimUID, std::unique_ptr<AttachMagic>(new AttachMagic
-                        {
-                            u8"灵魂火符",
-                            u8"结束",
-                        }));
-                    });
-                    addFollowUIDMagic(std::unique_ptr<FollowUIDMagic>(magicPtr));
-                }
                 return;
             }
         default:

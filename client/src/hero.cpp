@@ -18,6 +18,7 @@
 
 #include "log.hpp"
 #include "hero.hpp"
+#include "pathf.hpp"
 #include "dbcomid.hpp"
 #include "mathf.hpp"
 #include "sysconst.hpp"
@@ -28,6 +29,7 @@
 #include "attachmagic.hpp"
 #include "dbcomrecord.hpp"
 #include "pngtexoffdb.hpp"
+#include "processrun.hpp"
 #include "clientargparser.hpp"
 
 extern Log *g_log;
@@ -605,8 +607,70 @@ bool Hero::parseAction(const ActionNode &action)
                                 }();
 
                                 motionPtr->extParam.spell.effect = std::unique_ptr<MotionEffectBase>(magicPtr);
-                                m_motionQueue.push_back(std::unique_ptr<MotionNode>(motionPtr));
+                                switch(action.ActionParam){
+                                    case DBCOM_MAGICID(u8"灵魂火符"):
+                                        {
+                                            motionPtr->onUpdate = [lastMotionFrame = (int)(-1), this] () mutable
+                                            {
+                                                if(lastMotionFrame == m_currMotion->frame){
+                                                    return;
+                                                }
 
+                                                lastMotionFrame = m_currMotion->frame;
+                                                if(m_currMotion->frame != 4){
+                                                    return;
+                                                }
+
+                                                auto [fromX, fromY] = getTargetBox().center();
+                                                PathFind::GetFrontLocation(&fromX, &fromY, fromX, fromY, m_currMotion->direction, 8);
+
+                                                const auto targetUID = m_processRun->FocusUID(FOCUS_MAGIC);
+                                                auto magicPtr = new TaoFireFigure_RUN
+                                                {
+                                                    fromX,
+                                                    fromY,
+
+                                                    [fromX, fromY, targetUID, this]() -> int
+                                                    {
+                                                        const auto [x, y] = [targetUID, this]() -> std::tuple<int, int>
+                                                        {
+                                                            if(const auto coPtr = m_processRun->findUID(targetUID)){
+                                                                return coPtr->getTargetBox().center();
+                                                            }
+
+                                                            int mousePX = -1;
+                                                            int mousePY = -1;
+                                                            SDL_GetMouseState(&mousePX, &mousePY);
+
+                                                            const auto [viewX, viewY] = m_processRun->getViewShift();
+                                                            return {mousePX + viewX, mousePY + viewY};
+                                                        }();
+                                                        return pathf::getDir16(x - fromX, y - fromY);
+                                                    }(),
+
+                                                    targetUID,
+                                                    m_processRun,
+                                                };
+
+                                                magicPtr->addOnDone([targetUID, this]()
+                                                {
+                                                    m_processRun->addAttachMagic(targetUID, std::unique_ptr<AttachMagic>(new AttachMagic
+                                                    {
+                                                        u8"灵魂火符",
+                                                        u8"结束",
+                                                    }));
+                                                });
+                                                m_processRun->addFollowUIDMagic(std::unique_ptr<FollowUIDMagic>(magicPtr));
+                                            };
+                                            break;
+                                        }
+                                    default:
+                                        {
+                                            break;
+                                        }
+                                }
+
+                                m_motionQueue.push_back(std::unique_ptr<MotionNode>(motionPtr));
                                 if(motionSpell == MOTION_SPELL0){
                                     for(int i = 0; i < 2; ++i){
                                         m_motionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode

@@ -167,6 +167,11 @@ class ProcessRun: public Process
             return {(pixelX + m_viewX) / SYS_MAPGRIDXP, (pixelY + m_viewY) / SYS_MAPGRIDYP};
         }
 
+        std::tuple<int, int> getViewShift() const
+        {
+            return {m_viewX, m_viewY};
+        }
+
     public:
         bool onMap(uint32_t mapID, int nX, int nY) const
         {
@@ -203,7 +208,7 @@ class ProcessRun: public Process
     public:
         double MoveCost(bool, int, int, int, int);
 
-    private:
+    public:
         uint64_t FocusUID(int);
 
     public:
