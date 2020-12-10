@@ -183,7 +183,7 @@ struct MotionNode
     /**/                                                          /**/
     /**/    int frame = 0;                                        /**/
     /**/    MotionExtParam extParam{};                            /**/
-    /**/    std::function<void(MotionNode *, bool)> onUpdate{};   /**/
+    /**/    std::function<void(MotionNode *)> onUpdate{};         /**/
     /**/                                                          /**/
     //////////////////////////////////////////////////////////////////
 

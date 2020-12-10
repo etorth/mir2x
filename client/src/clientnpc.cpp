@@ -250,6 +250,14 @@ bool ClientNPC::update(double ms)
 
     motionValidEx(m_currMotion);
     m_lastUpdateTime = SDL_GetTicks() * 1.0f;
+
+    const CallOnExitHelper motionOnUpdate([this]()
+    {
+        if(m_currMotion.onUpdate){
+            m_currMotion.onUpdate(&m_currMotion);
+        }
+    });
+
     const bool doneCurrMotion = [this]()
     {
         return m_currMotion.frame + 1 == motionFrameCount(m_currMotion.type, m_currMotion.direction);

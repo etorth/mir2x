@@ -139,6 +139,13 @@ bool ClientMonster::update(double ms)
     }
 
     m_lastUpdateTime = SDL_GetTicks() * 1.0f;
+    const CallOnExitHelper motionOnUpdate([this]()
+    {
+        if(m_currMotion.onUpdate){
+            m_currMotion.onUpdate(&m_currMotion);
+        }
+    });
+
     switch(m_currMotion.type){
         case MOTION_MON_STAND:
             {
