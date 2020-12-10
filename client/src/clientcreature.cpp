@@ -37,13 +37,13 @@ extern Log *g_log;
 
 bool ClientCreature::advanceMotionFrame(int addFrame)
 {
-    const auto frameCount = motionFrameCount(m_currMotion.type, m_currMotion.direction);
+    const auto frameCount = motionFrameCount(m_currMotion->type, m_currMotion->direction);
     if(frameCount <= 0){
         return false;
     }
 
-    m_currMotion.frame = (m_currMotion.frame + addFrame  ) % frameCount;
-    m_currMotion.frame = (m_currMotion.frame + frameCount) % frameCount;
+    m_currMotion->frame = (m_currMotion->frame + addFrame  ) % frameCount;
+    m_currMotion->frame = (m_currMotion->frame + frameCount) % frameCount;
     return true;
 }
 
@@ -79,12 +79,12 @@ void ClientCreature::updateHealth(int hp, int hpMax)
 
 bool ClientCreature::deadFadeOut()
 {
-    switch(m_currMotion.type){
+    switch(m_currMotion->type){
         case MOTION_DIE:
         case MOTION_MON_DIE:
             {
-                if(!m_currMotion.extParam.die.fadeOut){
-                    m_currMotion.extParam.die.fadeOut = 1;
+                if(!m_currMotion->extParam.die.fadeOut){
+                    m_currMotion->extParam.die.fadeOut = 1;
                 }
                 return true;
             }
@@ -97,11 +97,11 @@ bool ClientCreature::deadFadeOut()
 
 bool ClientCreature::alive() const
 {
-    if(!motionValid(m_currMotion)){
+    if(!motionValid(*m_currMotion)){
         throw fflerror("invalid motion detected");
     }
 
-    switch(m_currMotion.type){
+    switch(m_currMotion->type){
         case MOTION_DIE:
         case MOTION_MON_DIE:
             {
@@ -116,16 +116,16 @@ bool ClientCreature::alive() const
 
 bool ClientCreature::active() const
 {
-    if(!motionValid(m_currMotion)){
+    if(!motionValid(*m_currMotion)){
         throw fflerror("invalid motion detected");
     }
 
-    switch(m_currMotion.type){
+    switch(m_currMotion->type){
         case MOTION_DIE:
         case MOTION_MON_DIE:
             {
-                if(auto frameCount = motionFrameCount(m_currMotion.type, m_currMotion.direction); frameCount > 0){
-                    return m_currMotion.frame < (frameCount - 1);
+                if(auto frameCount = motionFrameCount(m_currMotion->type, m_currMotion->direction); frameCount > 0){
+                    return m_currMotion->frame < (frameCount - 1);
                 }
                 throw fflerror("invalid motion detected");
             }
@@ -138,16 +138,16 @@ bool ClientCreature::active() const
 
 bool ClientCreature::visible() const
 {
-    if(!motionValid(m_currMotion)){
+    if(!motionValid(*m_currMotion)){
         throw fflerror("invalid motion detected");
     }
 
-    switch(m_currMotion.type){
+    switch(m_currMotion->type){
         case MOTION_DIE:
         case MOTION_MON_DIE:
             {
-                if(const auto frameCount = motionFrameCount(m_currMotion.type, m_currMotion.direction); frameCount > 0){
-                    return (m_currMotion.frame < (frameCount - 1)) || (m_currMotion.extParam.die.fadeOut < 255);
+                if(const auto frameCount = motionFrameCount(m_currMotion->type, m_currMotion->direction); frameCount > 0){
+                    return (m_currMotion->frame < (frameCount - 1)) || (m_currMotion->extParam.die.fadeOut < 255);
                 }
                 throw fflerror("invalid motion detected");
             }
@@ -158,9 +158,9 @@ bool ClientCreature::visible() const
     }
 }
 
-MotionNode ClientCreature::makeIdleMotion() const
+std::unique_ptr<MotionNode> ClientCreature::makeIdleMotion() const
 {
-    return MotionNode
+    return std::unique_ptr<MotionNode>(new MotionNode
     {
         .type = [this]() -> int
         {
@@ -172,15 +172,15 @@ MotionNode ClientCreature::makeIdleMotion() const
             }
         }(),
 
-        .direction = m_currMotion.direction,
-        .x = m_currMotion.endX,
-        .y = m_currMotion.endY
-    };
+        .direction = m_currMotion->direction,
+        .x = m_currMotion->endX,
+        .y = m_currMotion->endY
+    });
 }
 
 double ClientCreature::currMotionDelay() const
 {
-    auto speed = currMotion().speed;
+    auto speed = currMotion()->speed;
     speed = (std::max<int>)(SYS_MINSPEED, speed);
     speed = (std::min<int>)(SYS_MAXSPEED, speed);
 

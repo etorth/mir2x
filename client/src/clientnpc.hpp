@@ -48,7 +48,7 @@ class ClientNPC: public ClientCreature
     public:
         std::tuple<int, int> location() const override
         {
-            return {m_currMotion.endX, m_currMotion.endY};
+            return {m_currMotion->endX, m_currMotion->endY};
         }
 
         bool parseAction(const ActionNode &) override;

@@ -52,7 +52,7 @@
         uint32_t m_maxMP;
 
     protected:
-        MotionNode m_currMotion;
+        std::unique_ptr<MotionNode> m_currMotion;
 
     protected:
         std::vector<std::unique_ptr<AttachMagic>> m_attachMagicList;
@@ -138,9 +138,12 @@
         }
 
     public:
-        const MotionNode &currMotion() const
+        const auto currMotion() const
         {
-            return m_currMotion;
+            if(m_currMotion){
+                return m_currMotion.get();
+            }
+            throw fflerror("creature has no current motion: %p", to_cvptr(this));
         }
 
     public:
@@ -170,7 +173,7 @@
     protected:
         virtual bool updateMotion()
         {
-            if(m_currMotion.frame < (motionFrameCountEx(m_currMotion.type, m_currMotion.direction) - 1)){
+            if(m_currMotion->frame < (motionFrameCountEx(m_currMotion->type, m_currMotion->direction) - 1)){
                 return advanceMotionFrame(1);
             }
             return moveNextMotion();
@@ -216,7 +219,7 @@
         virtual bool visible() const;
 
     protected:
-        MotionNode makeIdleMotion() const;
+        std::unique_ptr<MotionNode> makeIdleMotion() const;
 
     public:
         void addAttachMagic(std::unique_ptr<AttachMagic> magicPtr)

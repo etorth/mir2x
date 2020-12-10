@@ -65,9 +65,9 @@ bool MyHero::moveNextMotion()
     // oops we get invalid motion queue
     g_log->addLog(LOGTYPE_INFO, "Invalid motion queue:");
 
-    m_currMotion.print();
+    m_currMotion->print();
     for(auto &m: m_motionQueue){
-        m.print();
+        m->print();
     }
     throw fflerror("Current motion is not valid");
 }
@@ -186,8 +186,8 @@ bool MyHero::DecompActionPickUp()
         const auto currPickUp = m_actionQueue.front();
         m_actionQueue.pop_front();
 
-        int nX0 = m_currMotion.endX;
-        int nY0 = m_currMotion.endY;
+        int nX0 = m_currMotion->endX;
+        int nY0 = m_currMotion->endY;
         int nX1 = currPickUp.X;
         int nY1 = currPickUp.Y;
 
@@ -328,11 +328,11 @@ bool MyHero::DecompActionAttack()
         // this X/Y is used to send to the server
         // for location verification only
 
-        auto nX0 = m_currMotion.endX;
-        auto nY0 = m_currMotion.endY;
+        auto nX0 = m_currMotion->endX;
+        auto nY0 = m_currMotion->endY;
 
         // use if need to keep the attack node
-        // we use m_currMotion.endX/y instead of rstAction.x/y
+        // we use m_currMotion->endX/y instead of rstAction.x/y
 
         ActionAttack stAttack
         {
@@ -472,10 +472,10 @@ bool MyHero::parseActionQueue()
     // trace move action before parsing
     if(g_clientArgParser->traceMove){
         if((!m_actionQueue.empty()) && (m_actionQueue.front().Action == ACTION_MOVE)){
-            auto nMotionX0 = m_currMotion.x;
-            auto nMotionY0 = m_currMotion.y;
-            auto nMotionX1 = m_currMotion.endX;
-            auto nMotionY1 = m_currMotion.endY;
+            auto nMotionX0 = m_currMotion->x;
+            auto nMotionY0 = m_currMotion->y;
+            auto nMotionX1 = m_currMotion->endX;
+            auto nMotionY1 = m_currMotion->endY;
 
             auto nActionX0 = m_actionQueue.front().X;
             auto nActionY0 = m_actionQueue.front().Y;
@@ -562,10 +562,10 @@ bool MyHero::parseActionQueue()
             // trace move action after parsing
             if(g_clientArgParser->traceMove){
                 for(auto &rstMotion: m_motionQueue){
-                    auto nMotionX0 = rstMotion.x;
-                    auto nMotionY0 = rstMotion.y;
-                    auto nMotionX1 = rstMotion.endX;
-                    auto nMotionY1 = rstMotion.endY;
+                    auto nMotionX0 = rstMotion->x;
+                    auto nMotionY0 = rstMotion->y;
+                    auto nMotionX1 = rstMotion->endX;
+                    auto nMotionY1 = rstMotion->endY;
                     g_log->addLog(LOGTYPE_INFO, "AF: CurrMotion: (%d, %d) -> (%d, %d)", nMotionX0, nMotionY0, nMotionX1, nMotionY1);
                 }
 
@@ -601,8 +601,8 @@ void MyHero::pickUp()
 {
     if(stayIdle()){
 
-        const int nX = currMotion().x;
-        const int nY = currMotion().y;
+        const int nX = currMotion()->x;
+        const int nY = currMotion()->y;
 
         if(const auto &itemList = m_processRun->getGroundItemList(nX, nY); !itemList.empty()){
             ReportAction(ActionPickUp(nX, nY, itemList.back().ID()));

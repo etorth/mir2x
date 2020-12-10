@@ -29,6 +29,7 @@
  */
 
 #pragma once
+#include <memory>
 #include <functional>
 #include "motion.hpp"
 #include "sysconst.hpp"
@@ -171,19 +172,19 @@ struct MotionNode
     ////                                                          ////
     //////////////////////////////////////////////////////////////////
     /**/                                                          /**/
-    /**/    int type      = MOTION_NONE;                          /**/
-    /**/    int direction = DIR_NONE;                             /**/
-    /**/    int speed     = SYS_DEFSPEED;                         /**/
+    /**/    const int type      = MOTION_NONE;                    /**/
+    /**/    const int direction = DIR_NONE;                       /**/
+    /**/    /***/ int speed     = SYS_DEFSPEED;                   /**/
     /**/                                                          /**/
-    /**/    int x = -1;                                           /**/
-    /**/    int y = -1;                                           /**/
+    /**/    const int x = -1;                                     /**/
+    /**/    const int y = -1;                                     /**/
     /**/                                                          /**/
-    /**/    int endX = x;                                         /**/
-    /**/    int endY = y;                                         /**/
+    /**/    const int endX = x;                                   /**/
+    /**/    const int endY = y;                                   /**/
     /**/                                                          /**/
     /**/    int frame = 0;                                        /**/
     /**/    MotionExtParam extParam{};                            /**/
-    /**/    std::function<void(MotionNode *)> onUpdate{};         /**/
+    /**/    std::function<void()> onUpdate{};                     /**/
     /**/                                                          /**/
     //////////////////////////////////////////////////////////////////
 

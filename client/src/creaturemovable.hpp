@@ -29,8 +29,8 @@ class ProcessRun;
 class CreatureMovable: public ClientCreature
 {
     protected:
-        std::deque<MotionNode> m_motionQueue;
-        std::deque<MotionNode> m_forceMotionQueue;
+        std::deque<std::unique_ptr<MotionNode>> m_motionQueue;
+        std::deque<std::unique_ptr<MotionNode>> m_forceMotionQueue;
 
     protected:
         CreatureMovable(uint64_t uid, ProcessRun *pRun)
@@ -71,8 +71,8 @@ class CreatureMovable: public ClientCreature
                 int);           // nCheckCreature
 
     protected:
-        virtual MotionNode makeWalkMotion(int, int, int, int, int) const = 0;
-        std::deque<MotionNode> makeWalkMotionQueue(int, int, int, int, int);
+        virtual std::unique_ptr<MotionNode> makeWalkMotion(int, int, int, int, int) const = 0;
+        std::deque<std::unique_ptr<MotionNode>> makeWalkMotionQueue(int, int, int, int, int);
 
     protected:
         bool motionQueueValid() const;

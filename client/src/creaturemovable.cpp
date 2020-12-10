@@ -132,7 +132,7 @@ std::vector<PathFind::PathNode> CreatureMovable::parseMovePath(int x0, int y0, i
     }
 }
 
-std::deque<MotionNode> CreatureMovable::makeWalkMotionQueue(int startX, int startY, int endX, int endY, int speed)
+std::deque<std::unique_ptr<MotionNode>> CreatureMovable::makeWalkMotionQueue(int startX, int startY, int endX, int endY, int speed)
 {
     if(mathf::LDistance2(startX, startY, endX, endY) == 0){
         return {};
@@ -152,7 +152,7 @@ std::deque<MotionNode> CreatureMovable::makeWalkMotionQueue(int startX, int star
                 // we get a path
                 // make a motion list for the path
 
-                std::deque<MotionNode> motionQueue;
+                std::deque<std::unique_ptr<MotionNode>> motionQueue;
                 for(size_t nIndex = 1; nIndex < pathNodes.size(); ++nIndex){
                     const auto x0 = pathNodes[nIndex - 1].X;
                     const auto y0 = pathNodes[nIndex - 1].Y;
@@ -177,18 +177,18 @@ bool CreatureMovable::motionQueueValid() const
         return true;
     }
 
-    const MotionNode *lastMotionPtr = &m_currMotion;
+    const MotionNode *lastMotionPtr = m_currMotion.get();
     for(const auto &motion: m_motionQueue){
-        if(motionValid(motion)
-                && (lastMotionPtr->endX == motion.x)
-                && (lastMotionPtr->endY == motion.y)){
-            lastMotionPtr = &motion;
+        if(motionValid(*motion)
+                && (lastMotionPtr->endX == motion->x)
+                && (lastMotionPtr->endY == motion->y)){
+            lastMotionPtr = motion.get();
         }
         else{
             g_log->addLog(LOGTYPE_WARNING, "Invalid motion queue:");
-            m_currMotion.print();
+            m_currMotion->print();
             for(auto &node: m_motionQueue){
-                node.print();
+                node->print();
             }
             return false;
         }
@@ -223,7 +223,7 @@ bool CreatureMovable::moveNextMotion()
 
 std::tuple<int, int> CreatureMovable::getShift() const
 {
-    switch(m_currMotion.type){
+    switch(m_currMotion->type){
         case MOTION_WALK:           // human
         case MOTION_RUN:            // human
         case MOTION_ONHORSEWALK:    // human
@@ -252,22 +252,22 @@ std::tuple<int, int> CreatureMovable::getShift() const
             }
     }
 
-    const auto frameCount = motionFrameCount(m_currMotion.type, m_currMotion.direction);
+    const auto frameCount = motionFrameCount(m_currMotion->type, m_currMotion->direction);
     if(frameCount <= 0){
         throw fflerror("invalid frame count: %d", frameCount);
     }
 
-    if(m_currMotion.frame >= frameCount){
-        throw fflerror("invalid frame: %d", m_currMotion.frame);
+    if(m_currMotion->frame >= frameCount){
+        throw fflerror("invalid frame: %d", m_currMotion->frame);
     }
 
     const float shiftDX = 1.0f * SYS_MAPGRIDXP * currStepCount / frameCount;
     const float shiftDY = 1.0f * SYS_MAPGRIDYP * currStepCount / frameCount;
 
-    const int shiftX = (int)(std::lround(shiftDX * (m_currMotion.frame + 1)));
-    const int shiftY = (int)(std::lround(shiftDY * (m_currMotion.frame + 1)));
+    const int shiftX = (int)(std::lround(shiftDX * (m_currMotion->frame + 1)));
+    const int shiftY = (int)(std::lround(shiftDY * (m_currMotion->frame + 1)));
 
-    switch(m_currMotion.direction){
+    switch(m_currMotion->direction){
         case DIR_UP       : return {      0, -shiftY};
         case DIR_UPRIGHT  : return { shiftX, -shiftY};
         case DIR_RIGHT    : return { shiftX,       0};

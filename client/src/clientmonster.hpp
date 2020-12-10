@@ -27,7 +27,7 @@
 class ClientMonster: public CreatureMovable
 {
     public:
-        static MotionNode makeInitMotion(uint32_t, const ActionNode &);
+        static std::unique_ptr<MotionNode> makeInitMotion(uint32_t, const ActionNode &);
 
     public:
         ClientMonster(uint64_t uid, ProcessRun *proc, const ActionNode &action)
@@ -78,7 +78,7 @@ class ClientMonster: public CreatureMovable
         int motionFrameCount(int, int) const override;
 
     protected:
-        MotionNode makeWalkMotion(int, int, int, int, int) const;
+        std::unique_ptr<MotionNode> makeWalkMotion(int, int, int, int, int) const;
 
     public:
         int maxStep() const override
@@ -118,7 +118,7 @@ class ClientMonster: public CreatureMovable
         virtual void onActionSpawn(const ActionNode &action)
         {
             checkActionSpawnEx(action);
-            m_currMotion = MotionNode
+            m_currMotion = std::unique_ptr<MotionNode>(new MotionNode
             {
                 MOTION_MON_STAND,
                 0,
@@ -133,7 +133,7 @@ class ClientMonster: public CreatureMovable
 
                 action.X,
                 action.Y,
-            };
+            });
         }
 
         virtual void onActionTransf(const ActionNode &)

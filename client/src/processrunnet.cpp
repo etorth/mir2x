@@ -92,7 +92,7 @@ void ProcessRun::net_ACTION(const uint8_t *bufPtr, size_t)
         auto nDBID      = getMyHero()->DBID();
         auto bGender    = getMyHero()->Gender();
         auto nDress     = getMyHero()->Dress();
-        auto nDirection = getMyHero()->currMotion().direction;
+        auto nDirection = getMyHero()->currMotion()->direction;
 
         auto nX = smA.X;
         auto nY = smA.Y;
@@ -246,7 +246,7 @@ void ProcessRun::net_NOTIFYDEAD(const uint8_t *bufPtr, size_t)
     std::memcpy(&stSMND, bufPtr, sizeof(stSMND));
 
     if(auto p = findUID(stSMND.UID)){
-        p->parseAction(ActionDie(p->x(), p->y(), p->currMotion().direction, true));
+        p->parseAction(ActionDie(p->x(), p->y(), p->currMotion()->direction, true));
     }
 }
 
@@ -349,7 +349,7 @@ void ProcessRun::net_CASTMAGIC(const uint8_t *bufPtr, size_t)
             {
                 if(auto fromCOPtr = findUID(smFM.UID)){
                     auto [fromX, fromY] = fromCOPtr->getTargetBox().center();
-                    PathFind::GetFrontLocation(&fromX, &fromY, fromX, fromY, fromCOPtr->currMotion().direction, 8);
+                    PathFind::GetFrontLocation(&fromX, &fromY, fromX, fromY, fromCOPtr->currMotion()->direction, 8);
                     auto magicPtr = new TaoFireFigure_RUN
                     {
                         fromX,

@@ -49,13 +49,13 @@ Hero::Hero(uint64_t uid, uint32_t dbid, bool gender, uint32_t nDress, ProcessRun
     , m_dressColor(0)
     , m_onHorse(false)
 {
-    m_currMotion = MotionNode
+    m_currMotion.reset(new MotionNode
     {
         .type = MOTION_STAND,
         .direction = DIR_DOWN,
         .x = action.X,
         .y = action.Y,
-    };
+    });
 
     if(!parseAction(action)){
         throw fflerror("failed to parse action");
@@ -65,8 +65,8 @@ Hero::Hero(uint64_t uid, uint32_t dbid, bool gender, uint32_t nDress, ProcessRun
 void Hero::draw(int viewX, int viewY, int)
 {
     const auto [shiftX, shiftY] = getShift();
-    const auto startX = m_currMotion.x * SYS_MAPGRIDXP + shiftX - viewX;
-    const auto startY = m_currMotion.y * SYS_MAPGRIDYP + shiftY - viewY;
+    const auto startX = m_currMotion->x * SYS_MAPGRIDXP + shiftX - viewX;
+    const auto startY = m_currMotion->y * SYS_MAPGRIDYP + shiftY - viewY;
 
     const auto fnDrawWeapon = [startX, startY, this](bool shadow)
     {
@@ -76,12 +76,12 @@ void Hero::draw(int viewX, int viewY, int)
         // 21 - 14 :    weapon : max = 256 : +----> GfxWeaponID
         //      22 :    gender :
         //      23 :    shadow :
-        const auto nGfxWeaponID = GfxWeaponID(m_weapon, m_currMotion.type, m_currMotion.direction);
+        const auto nGfxWeaponID = GfxWeaponID(m_weapon, m_currMotion->type, m_currMotion->direction);
         if(nGfxWeaponID < 0){
             return;
         }
 
-        const uint32_t weaponKey = (((uint32_t)(shadow ? 1 : 0)) << 23) + (((uint32_t)(m_gender ? 1 : 0)) << 22) + ((nGfxWeaponID & 0X01FFFF) << 5) + m_currMotion.frame;
+        const uint32_t weaponKey = (((uint32_t)(shadow ? 1 : 0)) << 23) + (((uint32_t)(m_gender ? 1 : 0)) << 22) + ((nGfxWeaponID & 0X01FFFF) << 5) + m_currMotion->frame;
 
         int weaponDX = 0;
         int weaponDY = 0;
@@ -97,12 +97,12 @@ void Hero::draw(int viewX, int viewY, int)
     fnDrawWeapon(true);
 
     const auto nDress     = m_dress;
-    const auto nMotion    = m_currMotion.type;
-    const auto nDirection = m_currMotion.direction;
+    const auto nMotion    = m_currMotion->type;
+    const auto nDirection = m_currMotion->direction;
 
     const auto nGfxDressID = GfxDressID(nDress, nMotion, nDirection);
     if(nGfxDressID < 0){
-        m_currMotion.print();
+        m_currMotion->print();
         return;
     }
 
@@ -113,8 +113,8 @@ void Hero::draw(int viewX, int viewY, int)
     // 21 - 14 :     dress : max = 256 : +----> GfxDressID
     //      22 :       sex :
     //      23 :    shadow :
-    const uint32_t nKey0 = ((uint32_t)(0) << 23) + (((uint32_t)(m_gender ? 1 : 0)) << 22) + (((uint32_t)(nGfxDressID & 0X01FFFF)) << 5) + m_currMotion.frame;
-    const uint32_t nKey1 = ((uint32_t)(1) << 23) + (((uint32_t)(m_gender ? 1 : 0)) << 22) + (((uint32_t)(nGfxDressID & 0X01FFFF)) << 5) + m_currMotion.frame;
+    const uint32_t nKey0 = ((uint32_t)(0) << 23) + (((uint32_t)(m_gender ? 1 : 0)) << 22) + (((uint32_t)(nGfxDressID & 0X01FFFF)) << 5) + m_currMotion->frame;
+    const uint32_t nKey1 = ((uint32_t)(1) << 23) + (((uint32_t)(m_gender ? 1 : 0)) << 22) + (((uint32_t)(nGfxDressID & 0X01FFFF)) << 5) + m_currMotion->frame;
 
     int nDX0 = 0;
     int nDY0 = 0;
@@ -131,7 +131,7 @@ void Hero::draw(int viewX, int viewY, int)
 
     if(true
             && m_weapon
-            && WeaponOrder(m_currMotion.type, m_currMotion.direction, m_currMotion.frame) == 1){
+            && WeaponOrder(m_currMotion->type, m_currMotion->direction, m_currMotion->frame) == 1){
         fnDrawWeapon(false);
     }
 
@@ -143,7 +143,7 @@ void Hero::draw(int viewX, int viewY, int)
 
     if(true
             && m_weapon
-            && WeaponOrder(m_currMotion.type, m_currMotion.direction, m_currMotion.frame) == 0){
+            && WeaponOrder(m_currMotion->type, m_currMotion->direction, m_currMotion->frame) == 0){
         fnDrawWeapon(false);
     }
 
@@ -166,7 +166,7 @@ void Hero::draw(int viewX, int viewY, int)
         switch(p->magicID()){
             case DBCOM_MAGICID(u8"灵魂火符"):
                 {
-                    switch(m_currMotion.direction){
+                    switch(m_currMotion->direction){
                         case DIR_UP:
                         case DIR_UPRIGHT:
                         case DIR_RIGHT:
@@ -190,12 +190,12 @@ void Hero::draw(int viewX, int viewY, int)
         }
     }
 
-    switch(m_currMotion.type){
+    switch(m_currMotion->type){
         case MOTION_SPELL0:
         case MOTION_SPELL1:
             {
-                if(m_currMotion.extParam.spell.effect){
-                    m_currMotion.extParam.spell.effect->drawShift(startX, startY, false);
+                if(m_currMotion->extParam.spell.effect){
+                    m_currMotion->extParam.spell.effect->drawShift(startX, startY, false);
                 }
                 break;
             }
@@ -207,8 +207,8 @@ void Hero::draw(int viewX, int viewY, int)
         case MOTION_SPEARHSWING:
         case MOTION_SPEARVSWING:
             {
-                if(m_currMotion.extParam.swing.effect){
-                    m_currMotion.extParam.swing.effect->drawShift(startX, startY, false);
+                if(m_currMotion->extParam.swing.effect){
+                    m_currMotion->extParam.swing.effect->drawShift(startX, startY, false);
                 }
                 break;
             }
@@ -220,7 +220,7 @@ void Hero::draw(int viewX, int viewY, int)
 
     // draw HP bar
     // if current m_HPMqx is zero we draw full bar
-    switch(m_currMotion.type){
+    switch(m_currMotion->type){
         case MOTION_DIE:
             {
                 break;
@@ -255,12 +255,12 @@ bool Hero::update(double ms)
     m_lastUpdateTime = SDL_GetTicks() * 1.0f;
     const CallOnExitHelper motionOnUpdate([this]()
     {
-        if(m_currMotion.onUpdate){
-            m_currMotion.onUpdate(&m_currMotion);
+        if(m_currMotion->onUpdate){
+            m_currMotion->onUpdate();
         }
     });
 
-    switch(m_currMotion.type){
+    switch(m_currMotion->type){
         case MOTION_STAND:
             {
                 if(stayIdle()){
@@ -290,26 +290,26 @@ bool Hero::update(double ms)
         case MOTION_SPELL0:
         case MOTION_SPELL1:
             {
-                if(!m_currMotion.extParam.spell.effect){
+                if(!m_currMotion->extParam.spell.effect){
                     return updateMotion();
                 }
 
-                if(m_currMotion.extParam.spell.effect){
-                    m_currMotion.extParam.spell.effect->nextFrame();
+                if(m_currMotion->extParam.spell.effect){
+                    m_currMotion->extParam.spell.effect->nextFrame();
                 }
 
-                const int motionEndFrame = motionFrameCountEx(m_currMotion.type, m_currMotion.direction) - 1;
-                const int effectEndFrame = m_currMotion.extParam.spell.effect->frameCount() - 1;
+                const int motionEndFrame = motionFrameCountEx(m_currMotion->type, m_currMotion->direction) - 1;
+                const int effectEndFrame = m_currMotion->extParam.spell.effect->frameCount() - 1;
                 const int syncFrameCount = [this]() -> int
                 {
-                    if(m_currMotion.type == MOTION_SPELL0){
+                    if(m_currMotion->type == MOTION_SPELL0){
                         return 3;
                     }
                     return 1;
                 }();
 
-                if( m_currMotion.frame >= motionEndFrame - syncFrameCount && m_currMotion.extParam.spell.effect->frame() < effectEndFrame - syncFrameCount){
-                    m_currMotion.frame  = motionEndFrame - syncFrameCount;
+                if( m_currMotion->frame >= motionEndFrame - syncFrameCount && m_currMotion->extParam.spell.effect->frame() < effectEndFrame - syncFrameCount){
+                    m_currMotion->frame  = motionEndFrame - syncFrameCount;
                     return true;
                 }
                 else{
@@ -324,8 +324,8 @@ bool Hero::update(double ms)
         case MOTION_SPEARHSWING:
         case MOTION_SPEARVSWING:
             {
-                if(m_currMotion.extParam.swing.effect){
-                    m_currMotion.extParam.swing.effect->nextFrame();
+                if(m_currMotion->extParam.swing.effect){
+                    m_currMotion->extParam.swing.effect->nextFrame();
                 }
                 return updateMotion();
             }
@@ -452,12 +452,12 @@ bool Hero::parseAction(const ActionNode &action)
 {
     m_lastActive = SDL_GetTicks();
 
-    m_currMotion.speed = SYS_MAXSPEED;
+    m_currMotion->speed = SYS_MAXSPEED;
     m_motionQueue.clear();
 
-    const int endX   = m_forceMotionQueue.empty() ? m_currMotion.endX      : m_forceMotionQueue.back().endX;
-    const int endY   = m_forceMotionQueue.empty() ? m_currMotion.endY      : m_forceMotionQueue.back().endY;
-    const int endDir = m_forceMotionQueue.empty() ? m_currMotion.direction : m_forceMotionQueue.back().direction;
+    const int endX   = m_forceMotionQueue.empty() ? m_currMotion->endX      : m_forceMotionQueue.back()->endX;
+    const int endY   = m_forceMotionQueue.empty() ? m_currMotion->endY      : m_forceMotionQueue.back()->endY;
+    const int endDir = m_forceMotionQueue.empty() ? m_currMotion->direction : m_forceMotionQueue.back()->direction;
 
     // 1. prepare before parsing action
     //    additional movement added if necessary but in rush
@@ -492,7 +492,7 @@ bool Hero::parseAction(const ActionNode &action)
     switch(action.Action){
         case ACTION_STAND:
             {
-                m_motionQueue.emplace_back(MotionNode
+                m_motionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
                 {
                     .type = [this]()
                     {
@@ -505,7 +505,7 @@ bool Hero::parseAction(const ActionNode &action)
                     .direction = action.Direction,
                     .x = action.X,
                     .y = action.Y,
-                });
+                }));
                 break;
             }
         case ACTION_MOVE:
@@ -520,7 +520,7 @@ bool Hero::parseAction(const ActionNode &action)
             }
         case ACTION_SPACEMOVE2:
             {
-                m_currMotion = MotionNode
+                m_currMotion.reset(new MotionNode
                 {
                     .type = [this]()
                     {
@@ -530,10 +530,10 @@ bool Hero::parseAction(const ActionNode &action)
                         return MOTION_STAND;
                     }(),
 
-                    .direction = m_currMotion.direction,
+                    .direction = m_currMotion->direction,
                     .x = action.X,
                     .y = action.Y,
-                };
+                });
 
                 addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"瞬息移动", u8"结束", -1)));
                 break;
@@ -557,7 +557,7 @@ bool Hero::parseAction(const ActionNode &action)
                                 switch(mathf::LDistance2(nX0, nY0, nX1, nY1)){
                                     case 0:
                                         {
-                                            return m_currMotion.direction;
+                                            return m_currMotion->direction;
                                         }
                                     default:
                                         {
@@ -580,34 +580,34 @@ bool Hero::parseAction(const ActionNode &action)
                             }();
 
                             if(standDir >= DIR_BEGIN && standDir < DIR_END){
-                                m_motionQueue.emplace_back(MotionNode
+                                m_motionQueue.emplace_back(std::unique_ptr<MotionNode>(new MotionNode
                                 {
                                     .type = motionSpell,
                                     .direction = standDir,
                                     .x = action.X,
                                     .y = action.Y,
-                                });
+                                }));
 
-                                m_motionQueue.back().extParam.spell.magicID = (int)(action.ActionParam);
+                                m_motionQueue.back()->extParam.spell.magicID = (int)(action.ActionParam);
                                 auto magicPtr = [&action, this]() -> MotionEffectBase *
                                 {
                                     switch(action.ActionParam){
-                                        case DBCOM_MAGICID(u8"召唤神兽"): return new TaoSumDogEffect    (&(m_motionQueue.back()));
-                                        case DBCOM_MAGICID(u8"灵魂火符"): return new TaoFireFigureEffect(&(m_motionQueue.back()));
-                                        default                         : return new MagicSpellEffect   (&(m_motionQueue.back()));
+                                        case DBCOM_MAGICID(u8"召唤神兽"): return new TaoSumDogEffect    (m_motionQueue.back().get());
+                                        case DBCOM_MAGICID(u8"灵魂火符"): return new TaoFireFigureEffect(m_motionQueue.back().get());
+                                        default                         : return new MagicSpellEffect   (m_motionQueue.back().get());
                                     }
                                 }();
-                                m_motionQueue.back().extParam.spell.effect = std::unique_ptr<MotionEffectBase>(magicPtr);
+                                m_motionQueue.back()->extParam.spell.effect = std::unique_ptr<MotionEffectBase>(magicPtr);
 
                                 if(motionSpell == MOTION_SPELL0){
                                     for(int i = 0; i < 2; ++i){
-                                        m_motionQueue.emplace_back(MotionNode
+                                        m_motionQueue.emplace_back(std::unique_ptr<MotionNode>(new MotionNode
                                         {
                                             .type = MOTION_ATTACKMODE,
                                             .direction = standDir,
                                             .x = action.X,
                                             .y = action.Y,
-                                        });
+                                        }));
                                     }
                                 }
                             }
@@ -620,21 +620,21 @@ bool Hero::parseAction(const ActionNode &action)
             {
                 if(auto coPtr = m_processRun->findUID(action.AimUID)){
                     if(const auto attackDir = PathFind::GetDirection(action.X, action.Y, coPtr->x(), coPtr->y()); attackDir >= DIR_BEGIN && attackDir < DIR_END){
-                        m_motionQueue.emplace_back(MotionNode
+                        m_motionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
                         {
                             .type = MOTION_ONEHSWING,
                             .direction = attackDir,
                             .x = action.X,
                             .y = action.Y,
-                        });
+                        }));
 
-                        m_motionQueue.emplace_back(MotionNode
+                        m_motionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
                         {
                             .type = MOTION_ATTACKMODE,
                             .direction = attackDir,
                             .x = action.X,
                             .y = action.Y,
-                        });
+                        }));
                     }
                 }
                 else{
@@ -645,7 +645,7 @@ bool Hero::parseAction(const ActionNode &action)
             }
         case ACTION_HITTED:
             {
-                m_motionQueue.emplace_front(MotionNode
+                m_motionQueue.push_front(std::unique_ptr<MotionNode>(new MotionNode
                 {
                     .type = [this]() -> int
                     {
@@ -658,7 +658,7 @@ bool Hero::parseAction(const ActionNode &action)
                     .direction = endDir,
                     .x = endX,
                     .y = endY,
-                });
+                }));
                 break;
             }
         case ACTION_PICKUP:
@@ -668,7 +668,7 @@ bool Hero::parseAction(const ActionNode &action)
             }
         case ACTION_DIE:
             {
-                m_forceMotionQueue.emplace_back(MotionNode
+                m_forceMotionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
                 {
                     .type = [this]() -> int
                     {
@@ -681,7 +681,7 @@ bool Hero::parseAction(const ActionNode &action)
                     .direction = action.Direction,
                     .x = action.X,
                     .y = action.Y,
-                });
+                }));
                 break;
             }
         default:
@@ -697,35 +697,35 @@ bool Hero::parseAction(const ActionNode &action)
 
 std::tuple<int, int> Hero::location() const
 {
-    if(!motionValid(m_currMotion)){
+    if(!motionValid(*m_currMotion)){
         throw fflerror("current motion is invalid");
     }
 
-    switch(m_currMotion.type){
+    switch(m_currMotion->type){
         case MOTION_WALK:
         case MOTION_RUN:
         case MOTION_ONHORSEWALK:
         case MOTION_ONHORSERUN:
             {
-                const auto nX0 = m_currMotion.x;
-                const auto nY0 = m_currMotion.y;
-                const auto nX1 = m_currMotion.endX;
-                const auto nY1 = m_currMotion.endY;
+                const auto nX0 = m_currMotion->x;
+                const auto nY0 = m_currMotion->y;
+                const auto nX1 = m_currMotion->endX;
+                const auto nY1 = m_currMotion->endY;
 
-                const auto frameCountMoving = motionFrameCount(m_currMotion.type, m_currMotion.direction);
+                const auto frameCountMoving = motionFrameCount(m_currMotion->type, m_currMotion->direction);
                 if(frameCountMoving <= 0){
                     throw fflerror("invalid player moving frame count: %d", frameCountMoving);
                 }
 
                 return
                 {
-                    (m_currMotion.frame < (frameCountMoving / 2)) ? nX0 : nX1,
-                    (m_currMotion.frame < (frameCountMoving / 2)) ? nY0 : nY1,
+                    (m_currMotion->frame < (frameCountMoving / 2)) ? nX0 : nX1,
+                    (m_currMotion->frame < (frameCountMoving / 2)) ? nY0 : nY1,
                 };
             }
         default:
             {
-                return {m_currMotion.x, m_currMotion.y};
+                return {m_currMotion->x, m_currMotion->y};
             }
     }
 }
@@ -781,10 +781,10 @@ int Hero::motionFrameCount(int motion, int direction) const
 bool Hero::moving()
 {
     return false
-        || m_currMotion.type == MOTION_RUN
-        || m_currMotion.type == MOTION_WALK
-        || m_currMotion.type == MOTION_ONHORSERUN
-        || m_currMotion.type == MOTION_ONHORSEWALK;
+        || m_currMotion->type == MOTION_RUN
+        || m_currMotion->type == MOTION_WALK
+        || m_currMotion->type == MOTION_ONHORSERUN
+        || m_currMotion->type == MOTION_ONHORSEWALK;
 }
 
 int Hero::WeaponOrder(int nMotion, int nDirection, int nFrame)
@@ -812,7 +812,7 @@ int Hero::WeaponOrder(int nMotion, int nDirection, int nFrame)
     return s_WeaponOrder[nGfxMotionID * 80 + (nDirection - DIR_BEGIN) * 10 + nFrame];
 }
 
-MotionNode Hero::makeWalkMotion(int nX0, int nY0, int nX1, int nY1, int nSpeed) const
+std::unique_ptr<MotionNode> Hero::makeWalkMotion(int nX0, int nY0, int nX1, int nY1, int nSpeed) const
 {
     if(true
             && m_processRun
@@ -856,7 +856,7 @@ MotionNode Hero::makeWalkMotion(int nX0, int nY0, int nX1, int nY1, int nSpeed) 
                 }
         }
 
-        return MotionNode
+        return std::unique_ptr<MotionNode>(new MotionNode
         {
             .type = nMotion,
             .direction = nDirV[nSDY][nSDX],
@@ -865,7 +865,7 @@ MotionNode Hero::makeWalkMotion(int nX0, int nY0, int nX1, int nY1, int nSpeed) 
             .y = nY0,
             .endX = nX1,
             .endY = nY1,
-        };
+        });
     }
 
     return {};
@@ -903,8 +903,8 @@ int Hero::GfxDressID(int nDress, int nMotion, int nDirection) const
 
 int Hero::currStep() const
 {
-    motionValidEx(m_currMotion);
-    switch(m_currMotion.type){
+    motionValidEx(*m_currMotion);
+    switch(m_currMotion->type){
         case MOTION_WALK:
         case MOTION_ONHORSEWALK:
             {
@@ -927,7 +927,7 @@ int Hero::currStep() const
 
 ClientCreature::TargetBox Hero::getTargetBox() const
 {
-    switch(currMotion().type){
+    switch(currMotion()->type){
         case MOTION_DIE:
             {
                 return {};
@@ -940,15 +940,15 @@ ClientCreature::TargetBox Hero::getTargetBox() const
 
     const auto nDress     = Dress();
     const auto nGender    = Gender();
-    const auto nMotion    = currMotion().type;
-    const auto nDirection = currMotion().direction;
+    const auto nMotion    = currMotion()->type;
+    const auto nDirection = currMotion()->direction;
 
     const auto texBaseID = GfxDressID(nDress, nMotion, nDirection);
     if(texBaseID < 0){
         return {};
     }
 
-    const uint32_t texID = (((uint32_t)(nGender ? 1 : 0)) << 22) + (((uint32_t)(texBaseID & 0X01FFFF)) << 5) + currMotion().frame;
+    const uint32_t texID = (((uint32_t)(nGender ? 1 : 0)) << 22) + (((uint32_t)(texBaseID & 0X01FFFF)) << 5) + currMotion()->frame;
 
     int dx = 0;
     int dy = 0;
@@ -961,8 +961,8 @@ ClientCreature::TargetBox Hero::getTargetBox() const
     const auto [bodyFrameW, bodyFrameH] = SDLDevice::getTextureSize(bodyFrameTexPtr);
 
     const auto [shiftX, shiftY] = getShift();
-    const int startX = m_currMotion.x * SYS_MAPGRIDXP + shiftX + dx;
-    const int startY = m_currMotion.y * SYS_MAPGRIDYP + shiftY + dy;
+    const int startX = m_currMotion->x * SYS_MAPGRIDXP + shiftX + dx;
+    const int startY = m_currMotion->y * SYS_MAPGRIDYP + shiftY + dy;
 
     return getTargetBoxHelper(startX, startY, bodyFrameW, bodyFrameH);
 }

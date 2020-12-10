@@ -92,7 +92,7 @@ class Hero: public CreatureMovable
         int WeaponOrder(int, int, int);
 
     protected:
-        MotionNode makeWalkMotion(int, int, int, int, int) const override;
+        std::unique_ptr<MotionNode> makeWalkMotion(int, int, int, int, int) const override;
 
     protected:
         int gfxMotionID(int motion) const override

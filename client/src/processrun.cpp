@@ -484,7 +484,7 @@ void ProcessRun::processEvent(const SDL_Event &event)
 
                             else{
                                 const auto [nX, nY] = screenPoint2Grid(event.button.x, event.button.y);
-                                if(mathf::LDistance2(getMyHero()->currMotion().endX, getMyHero()->currMotion().endY, nX, nY)){
+                                if(mathf::LDistance2(getMyHero()->currMotion()->endX, getMyHero()->currMotion()->endY, nX, nY)){
 
                                     // we get a valid dst to go
                                     // provide myHero with new move action command
@@ -494,8 +494,8 @@ void ProcessRun::processEvent(const SDL_Event &event)
 
                                     getMyHero()->emplaceAction(ActionMove
                                     {
-                                        getMyHero()->currMotion().endX,    // don't use X()
-                                        getMyHero()->currMotion().endY,    // don't use Y()
+                                        getMyHero()->currMotion()->endX,    // don't use X()
+                                        getMyHero()->currMotion()->endY,    // don't use Y()
                                         nX,
                                         nY,
                                         SYS_DEFSPEED,
@@ -624,8 +624,8 @@ int ProcessRun::CheckPathGrid(int nX, int nY) const
     for(auto &p: m_coList){
         if(true
                 && (p.second)
-                && (p.second->currMotion().endX == nX)
-                && (p.second->currMotion().endY == nY)){
+                && (p.second->currMotion()->endX == nX)
+                && (p.second->currMotion()->endY == nY)){
             return PathFind::OCCUPIED;
         }
 
@@ -1164,8 +1164,8 @@ bool ProcessRun::trackAttack(bool bForce, uint64_t nUID)
 {
     if(findUID(nUID)){
         if(bForce || getMyHero()->stayIdle()){
-            auto nEndX = getMyHero()->currMotion().endX;
-            auto nEndY = getMyHero()->currMotion().endY;
+            auto nEndX = getMyHero()->currMotion()->endX;
+            auto nEndY = getMyHero()->currMotion()->endY;
             return getMyHero()->emplaceAction(ActionAttack(nEndX, nEndY, DC_PHY_PLAIN, SYS_DEFSPEED, nUID));
         }
     }
@@ -1222,11 +1222,11 @@ bool ProcessRun::GetUIDLocation(uint64_t nUID, bool bDrawLoc, int *pX, int *pY)
 
 void ProcessRun::centerMyHero()
 {
-    const auto nMotion     = getMyHero()->currMotion().type;
-    const auto nDirection  = getMyHero()->currMotion().direction;
-    const auto nX          = getMyHero()->currMotion().x;
-    const auto nY          = getMyHero()->currMotion().y;
-    const auto currFrame   = getMyHero()->currMotion().frame;
+    const auto nMotion     = getMyHero()->currMotion()->type;
+    const auto nDirection  = getMyHero()->currMotion()->direction;
+    const auto nX          = getMyHero()->currMotion()->x;
+    const auto nY          = getMyHero()->currMotion()->y;
+    const auto currFrame   = getMyHero()->currMotion()->frame;
     const auto frameCount = getMyHero()->motionFrameCount(nMotion, nDirection);
 
     if(frameCount <= 0){
@@ -1680,8 +1680,8 @@ void ProcessRun::checkMagicSpell(const SDL_Event &event)
                 if(auto nFocusUID = FocusUID(FOCUS_MAGIC)){
                     getMyHero()->emplaceAction(ActionSpell
                     {
-                        getMyHero()->currMotion().endX,
-                        getMyHero()->currMotion().endY,
+                        getMyHero()->currMotion()->endX,
+                        getMyHero()->currMotion()->endY,
                         nFocusUID,
                         magicID,
                     });
@@ -1694,8 +1694,8 @@ void ProcessRun::checkMagicSpell(const SDL_Event &event)
                     const auto [nAimX, nAimY] = screenPoint2Grid(nMouseX, nMouseY);
                     getMyHero()->emplaceAction(ActionSpell
                     {
-                        getMyHero()->currMotion().endX,
-                        getMyHero()->currMotion().endY,
+                        getMyHero()->currMotion()->endX,
+                        getMyHero()->currMotion()->endY,
                         nAimX,
                         nAimY,
                         magicID,

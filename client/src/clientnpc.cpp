@@ -118,11 +118,11 @@ void ClientNPC::draw(int viewX, int viewY, int focusMask)
 
     int bodyDX = 0;
     int bodyDY = 0;
-    auto bodyFrame = g_standNPCDB->Retrieve(bodyKey + m_currMotion.frame, &bodyDX, &bodyDY);
+    auto bodyFrame = g_standNPCDB->Retrieve(bodyKey + m_currMotion->frame, &bodyDX, &bodyDY);
 
     int shadowDX = 0;
     int shadowDY = 0;
-    auto shadowFrame = g_standNPCDB->Retrieve(shadowKey + m_currMotion.frame, &shadowDX, &shadowDY);
+    auto shadowFrame = g_standNPCDB->Retrieve(shadowKey + m_currMotion->frame, &shadowDX, &shadowDY);
 
     if(bodyFrame){
         SDL_SetTextureAlphaMod(bodyFrame, 255);
@@ -198,10 +198,10 @@ int32_t ClientNPC::gfxID() const
     // NPC lookID allows zero
     // check mir2x/tools/npcwil2png/src/main.cpp
 
-    if(motionFrameCount(m_currMotion.type, m_currMotion.direction) <= 0){
+    if(motionFrameCount(m_currMotion->type, m_currMotion->direction) <= 0){
         return -1;
     }
-    return ((int32_t)(lookID()) << 12) | ((int32_t)(m_currMotion.type & 0X0F) << 8) | ((int32_t)(m_currMotion.direction) << 5);
+    return ((int32_t)(lookID()) << 12) | ((int32_t)(m_currMotion->type & 0X0F) << 8) | ((int32_t)(m_currMotion->direction) << 5);
 }
 
 bool ClientNPC::parseAction(const ActionNode &action)
@@ -229,15 +229,15 @@ bool ClientNPC::parseAction(const ActionNode &action)
         }
     }();
 
-    m_currMotion = MotionNode
+    m_currMotion.reset(new MotionNode
     {
         .type = motion,
         .direction = action.Direction,
         .x = action.X,
         .y = action.Y,
-    };
+    });
 
-    return motionValid(m_currMotion);
+    return motionValid(*m_currMotion);
 }
 
 bool ClientNPC::update(double ms)
@@ -248,22 +248,22 @@ bool ClientNPC::update(double ms)
         return true;
     }
 
-    motionValidEx(m_currMotion);
+    motionValidEx(*m_currMotion);
     m_lastUpdateTime = SDL_GetTicks() * 1.0f;
 
     const CallOnExitHelper motionOnUpdate([this]()
     {
-        if(m_currMotion.onUpdate){
-            m_currMotion.onUpdate(&m_currMotion);
+        if(m_currMotion->onUpdate){
+            m_currMotion->onUpdate();
         }
     });
 
     const bool doneCurrMotion = [this]()
     {
-        return m_currMotion.frame + 1 == motionFrameCount(m_currMotion.type, m_currMotion.direction);
+        return m_currMotion->frame + 1 == motionFrameCount(m_currMotion->type, m_currMotion->direction);
     }();
 
-    switch(m_currMotion.type){
+    switch(m_currMotion->type){
         case MOTION_NPC_STAND:
             {
                 return advanceMotionFrame(1);
@@ -278,7 +278,7 @@ bool ClientNPC::update(double ms)
             }
         default:
             {
-                throw fflerror("invalid motion: %d", m_currMotion.type);
+                throw fflerror("invalid motion: %d", m_currMotion->type);
             }
     }
 }
@@ -302,7 +302,7 @@ ClientCreature::TargetBox ClientNPC::getTargetBox() const
 
     int dx = 0;
     int dy = 0;
-    auto bodyFrameTexPtr = g_standNPCDB->Retrieve(texBaseID + m_currMotion.frame, &dx, &dy);
+    auto bodyFrameTexPtr = g_standNPCDB->Retrieve(texBaseID + m_currMotion->frame, &dx, &dy);
 
     if(!bodyFrameTexPtr){
         return {};

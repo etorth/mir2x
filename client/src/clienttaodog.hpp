@@ -104,7 +104,7 @@ class ClientTaoDog: public ClientMonster
         void onActionSpawn(const ActionNode &action) override
         {
             checkActionSpawnEx(action);
-            m_currMotion = MotionNode
+            m_currMotion.reset(new MotionNode
             {
                 MOTION_MON_APPEAR,
                 0,
@@ -119,7 +119,7 @@ class ClientTaoDog: public ClientMonster
 
                 action.X,
                 action.Y,
-            };
+            });
         }
 
         void onActionTransf(const ActionNode &action) override
@@ -134,19 +134,19 @@ class ClientTaoDog: public ClientMonster
             const auto [x, y, dir] = [this]() -> std::array<int, 3>
             {
                 if(!m_forceMotionQueue.empty()){
-                    return {m_forceMotionQueue.back().endX, m_forceMotionQueue.back().endY, m_forceMotionQueue.back().direction};
+                    return {m_forceMotionQueue.back()->endX, m_forceMotionQueue.back()->endY, m_forceMotionQueue.back()->direction};
                 }
-                return {m_currMotion.endX, m_currMotion.endY, m_currMotion.direction};
+                return {m_currMotion->endX, m_currMotion->endY, m_currMotion->direction};
             }();
 
             m_stand = standReq;
-            m_forceMotionQueue.emplace_back(MotionNode
+            m_forceMotionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
             {
                 .type = MOTION_MON_APPEAR,
                 .direction = dir,
                 .x = x,
                 .y = y,
-            });
+            }));
         }
 
     public:
@@ -162,10 +162,10 @@ class ClientTaoDog: public ClientMonster
                 return false;
             }
 
-            if(m_currMotion.type == MOTION_MON_ATTACK0 && m_currMotion.frame == 5 && m_stand){
+            if(m_currMotion->type == MOTION_MON_ATTACK0 && m_currMotion->frame == 5 && m_stand){
                 addAttachMagic(std::unique_ptr<AttachMagic>(new DogFire
                 {
-                    m_currMotion.direction - DIR_BEGIN,
+                    m_currMotion->direction - DIR_BEGIN,
                 }));
             }
             return true;
