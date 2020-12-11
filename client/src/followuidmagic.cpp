@@ -128,9 +128,11 @@ void TaoFireFigure_RUN::drawViewOff(int viewX, int viewY, bool alpha)
         return;
     }
 
-    if(auto texPtr = g_magicDB->Retrieve(m_gfxEntry->gfxID + frame() + m_gfxDirIndex * m_gfxEntry->gfxIDCount, nullptr, nullptr)){
+    int offX = 0;
+    int offY = 0;
+    if(auto texPtr = g_magicDB->Retrieve(m_gfxEntry->gfxID + frame() + m_gfxDirIndex * m_gfxEntry->gfxIDCount, &offX, &offY)){
         SDLDevice::EnableTextureModColor enableModColor(texPtr, colorf::RGBA(0XFF, 0XFF, 0XFF, alpha ? 0X40 : 0XC0));
         SDLDevice::EnableTextureBlendMode enableBlendMode(texPtr, SDL_BLENDMODE_BLEND);
-        g_sdlDevice->drawTexture(texPtr, m_x - viewX, m_y - viewY);
+        g_sdlDevice->drawTexture(texPtr, m_x - viewX + offX, m_y - viewY + offY);
     }
 }
