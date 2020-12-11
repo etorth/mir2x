@@ -618,7 +618,7 @@ bool Hero::parseAction(const ActionNode &action)
                                                 }
 
                                                 lastMotionFrame = m_currMotion->frame;
-                                                if(m_currMotion->frame != 4){
+                                                if(m_currMotion->frame != 3){
                                                     return;
                                                 }
 
