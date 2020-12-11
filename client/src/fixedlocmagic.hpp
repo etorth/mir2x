@@ -38,7 +38,11 @@ class FixedLocMagic: public MagicBase
             : MagicBase(magicName, magicStage, gfxDirIndex)
             , m_x(x)
             , m_y(y)
-        {}
+        {
+            if(!m_gfxEntry->checkType(u8"固定")){
+                throw fflerror("invalid magic type: %s", to_cstr(m_gfxEntry->type));
+            }
+        }
 
     public:
         int x() const

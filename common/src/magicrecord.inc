@@ -439,7 +439,7 @@
     {
         {
             .stage = u8"运行",
-            .type  = u8"附着",
+            .type  = u8"固定",
             .gfxID = 0X030003D4,
             .frameCount = 6,
             .gfxIDCount = 10,
