@@ -23,6 +23,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <concepts>
+#include <SDL2/SDL.h>
 
 #include "uidf.hpp"
 #include "mathf.hpp"
@@ -60,7 +61,7 @@
     protected:
         uint32_t m_lastActive;
         uint32_t m_lastQuerySelf;
-        double   m_lastUpdateTime;
+        double   m_lastUpdateTime = 0.0;
 
     protected:
         LabelBoard m_nameBoard;
@@ -75,7 +76,6 @@
             , m_maxMP(0)
             , m_lastActive(0)
             , m_lastQuerySelf(0)
-            , m_lastUpdateTime(0.0)
             , m_nameBoard(0, 0, u8"ClientCreature", 1, 12, 0, colorf::RGBA(0XFF, 0XFF, 0XFF, 0X00))
         {
             if(!(m_UID && m_processRun)){
@@ -229,6 +229,17 @@
 
     protected:
         double currMotionDelay() const;
+
+    protected:
+        bool checkUpdate(double)
+        {
+            if(SDL_GetTicks() * 1.0f < currMotionDelay() + m_lastUpdateTime){
+                return false;
+            }
+
+            m_lastUpdateTime = SDL_GetTicks() * 1.0f;
+            return true;
+        }
 
     public:
         void querySelf();

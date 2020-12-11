@@ -290,7 +290,7 @@
             .gfxID = 0X00000A1E,
             .frameCount = 19,
             .motion = 1,
-            .speed = 150,
+            .speed = 180,
         }
     }
 },

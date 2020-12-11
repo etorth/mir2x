@@ -209,8 +209,8 @@ void Hero::draw(int viewX, int viewY, int)
         case MOTION_SPEARHSWING:
         case MOTION_SPEARVSWING:
             {
-                if(m_currMotion->extParam.swing.effect){
-                    m_currMotion->extParam.swing.effect->drawShift(startX, startY, false);
+                if(m_currMotion->extParam.swing.magicID){
+                    //
                 }
                 break;
             }
@@ -249,12 +249,25 @@ void Hero::draw(int viewX, int viewY, int)
 bool Hero::update(double ms)
 {
     updateAttachMagic(ms);
+    switch(m_currMotion->type){
+        case MOTION_SPELL0:
+        case MOTION_SPELL1:
+            {
+                if(m_currMotion->extParam.spell.effect){
+                    m_currMotion->extParam.spell.effect->update(ms);
+                }
+                break;
+            }
+        default:
+            {
+                break;
+            }
+    }
 
-    if(SDL_GetTicks() * 1.0f < currMotionDelay() + m_lastUpdateTime){
+    if(!checkUpdate(ms)){
         return true;
     }
 
-    m_lastUpdateTime = SDL_GetTicks() * 1.0f;
     const CallOnExitHelper motionOnUpdate([this]()
     {
         if(m_currMotion->onUpdate){
@@ -296,22 +309,22 @@ bool Hero::update(double ms)
                     return updateMotion();
                 }
 
-                if(m_currMotion->extParam.spell.effect){
-                    m_currMotion->extParam.spell.effect->nextFrame();
-                }
-
                 const int motionEndFrame = motionFrameCountEx(m_currMotion->type, m_currMotion->direction) - 1;
                 const int effectEndFrame = m_currMotion->extParam.spell.effect->frameCount() - 1;
-                const int syncFrameCount = [this]() -> int
+                const int motionSyncFrameCount = [this]() -> int
                 {
                     if(m_currMotion->type == MOTION_SPELL0){
                         return 3;
                     }
                     return 1;
                 }();
+                const int effectSyncFrameCount = [motionSyncFrameCount, this]() -> int
+                {
+                    return std::lround(m_currMotion->extParam.spell.effect->speed() * motionSyncFrameCount / m_currMotion->speed);
+                }();
 
-                if( m_currMotion->frame >= motionEndFrame - syncFrameCount && m_currMotion->extParam.spell.effect->frame() < effectEndFrame - syncFrameCount){
-                    m_currMotion->frame  = motionEndFrame - syncFrameCount;
+                if( m_currMotion->frame >= motionEndFrame - motionSyncFrameCount && m_currMotion->extParam.spell.effect->frame() < effectEndFrame - effectSyncFrameCount){
+                    m_currMotion->frame  = motionEndFrame - motionSyncFrameCount;
                     return true;
                 }
                 else{
@@ -326,8 +339,8 @@ bool Hero::update(double ms)
         case MOTION_SPEARHSWING:
         case MOTION_SPEARVSWING:
             {
-                if(m_currMotion->extParam.swing.effect){
-                    m_currMotion->extParam.swing.effect->nextFrame();
+                if(m_currMotion->extParam.swing.magicID){
+                    //
                 }
                 return updateMotion();
             }
@@ -598,16 +611,15 @@ bool Hero::parseAction(const ActionNode &action)
                                     },
                                 };
 
-                                auto magicPtr = [&action, motionPtr, this]() -> MotionEffectBase *
+                                auto magicPtr = [&action, motionPtr, this]() -> MagicSpellEffect *
                                 {
                                     switch(action.ActionParam){
-                                        case DBCOM_MAGICID(u8"召唤神兽"): return new TaoSumDogEffect    (motionPtr);
                                         case DBCOM_MAGICID(u8"灵魂火符"): return new TaoFireFigureEffect(motionPtr);
                                         default                         : return new MagicSpellEffect   (motionPtr);
                                     }
                                 }();
 
-                                motionPtr->extParam.spell.effect = std::unique_ptr<MotionEffectBase>(magicPtr);
+                                motionPtr->extParam.spell.effect = std::unique_ptr<MagicSpellEffect>(magicPtr);
                                 switch(action.ActionParam){
                                     case DBCOM_MAGICID(u8"灵魂火符"):
                                         {

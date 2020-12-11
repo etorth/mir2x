@@ -38,107 +38,7 @@
 #include "dbcomrecord.hpp"
 #include "protocoldef.hpp"
 
-class MotionNode;
-class MotionEffectBase
-{
-    protected:
-        const MotionNode * const m_motion;
-
-    public:
-        MotionEffectBase(const MotionNode *motionPtr)
-            : m_motion(motionPtr)
-        {
-            if(!m_motion){
-                throw fflerror("invalid motion bind: nullptr");
-            }
-        }
-
-    public:
-        virtual ~MotionEffectBase() = default;
-
-    public:
-        virtual int frame     () const = 0;
-        virtual int frameCount() const = 0;
-
-    protected:
-        virtual uint32_t frameTexID() const
-        {
-            return SYS_TEXNIL;
-        }
-
-    public:
-        virtual void nextFrame() = 0;
-        virtual void drawShift(int, int, bool) = 0;
-};
-
-class MagicSpellEffect: public MotionEffectBase
-{
-    protected:
-        int m_frame = 0;
-        const MagicGfxEntry * const m_gfxEntry;
-
-    public:
-        MagicSpellEffect(const MotionNode *);
-
-    public:
-        int frame     () const override;
-        int frameCount() const override;
-
-    protected:
-        uint32_t frameTexID() const override;
-
-    public:
-        void nextFrame() override;
-        void drawShift(int, int, bool) override;
-};
-
-class TaoSumDogEffect: public MagicSpellEffect
-{
-    // drop some frames
-    // summon dog has 19 frames
-    // which holds hero stay to wait too long
-
-    public:
-        using MagicSpellEffect::MagicSpellEffect;
-
-    private:
-        constexpr static uint32_t m_texID[]
-        {
-            0, 2, 4, 6, 8, 10, 12, 14, 16, 17, 18,
-        };
-
-    public:
-        int frameCount() const override
-        {
-            return (int)(std::extent_v<decltype(m_texID)>);
-        }
-
-        uint32_t frameTexID() const override
-        {
-            return m_gfxEntry->gfxID + m_texID[m_frame];
-        }
-};
-
-class TaoFireFigureEffect: public MagicSpellEffect
-{
-    public:
-        using MagicSpellEffect::MagicSpellEffect;
-
-    public:
-        int frameCount() const override
-        {
-            return MagicSpellEffect::frameCount() + 2;
-        }
-
-        uint32_t frameTexID() const override
-        {
-            if(frame() < MagicSpellEffect::frameCount()){
-                return MagicSpellEffect::frameTexID();
-            }
-            return SYS_TEXNIL;
-        }
-};
-
+class MagicSpellEffect;
 struct MotionNode final
 {
     struct MotionExtParam
@@ -146,7 +46,7 @@ struct MotionNode final
         struct MotionSpell
         {
             const int magicID = 0;
-            std::unique_ptr<MotionEffectBase> effect{};
+            std::unique_ptr<MagicSpellEffect> effect{};
         }
         spell{};
 
@@ -165,7 +65,6 @@ struct MotionNode final
         struct MotionSwing
         {
             const int magicID = 0;
-            std::unique_ptr<MotionEffectBase> effect{};
         }
         swing{};
     };
@@ -203,3 +102,184 @@ struct MotionNode final
     void print() const;
     static const char *name(int);
 };
+
+class MagicSpellEffect
+{
+    protected:
+        double m_accuTime = 0.0;
+
+    protected:
+        const MotionNode * const m_motion;
+        const MagicGfxEntry * const m_gfxEntry;
+
+    public:
+        MagicSpellEffect(const MotionNode *motionPtr)
+            : m_motion(motionPtr)
+            , m_gfxEntry([this]()
+              {
+                  switch(m_motion->type){
+                      case MOTION_SPELL0:
+                      case MOTION_SPELL1: break;
+                      default           : throw fflerror("invalid motion type: %d", m_motion->type);
+                  }
+
+                  const auto &mr = DBCOM_MAGICRECORD(m_motion->extParam.spell.magicID);
+                  if(!mr){
+                      throw fflerror("invalid magic ID: %d", m_motion->extParam.spell.magicID);
+                  }
+
+                  const auto &ge = mr.getGfxEntry(u8"启动");
+                  if(!ge){
+                      throw fflerror("magic ID %d has no stage: %s", m_motion->extParam.spell.magicID, to_cstr(u8"启动"));
+                  }
+
+                  if(!ge.checkType(u8"附着")){
+                      throw fflerror("magic stage %s type is not type: %s", to_cstr(u8"启动"), to_cstr(u8"附着"));
+                  }
+
+                  if(ge.loop){
+                      throw fflerror("magic stage %s is looped", to_cstr(u8"启动"));
+                  }
+
+                  switch(ge.gfxDirType){
+                      case  1: break;
+                      case  8: break;
+                      default: throw fflerror("effect magic has gfxDirType: %d", ge.gfxDirType);
+                  }
+
+                  if(ge.frameCount <= 0){
+                      throw fflerror("effect magic has invalid frameCount: %d", ge.frameCount);
+                  }
+
+                  if(ge.frameCount > ge.gfxIDCount){
+                      throw fflerror("effect magic has invalid gfxIDCount: %d", ge.gfxIDCount);
+                  }
+
+                  if(!(ge.speed >= SYS_MINSPEED && ge.speed <= SYS_MAXSPEED)){
+                      throw fflerror("effect magic has invalid speed: %d", ge.speed);
+                  }
+
+                  if(!(m_motion->direction >= DIR_BEGIN && m_motion->direction < DIR_END)){
+                      throw fflerror("invalid motion direction: %d", m_motion->direction);
+                  }
+                  return &ge;
+              }())
+        {}
+
+    public:
+        int absFrame() const
+        {
+            return (m_accuTime / 1000.0) * SYS_DEFFPS * (m_gfxEntry->speed / 100.0);
+        }
+
+    public:
+        virtual int frame() const
+        {
+            return absFrame();
+        }
+
+        virtual int frameCount() const
+        {
+            return m_gfxEntry->frameCount;
+        }
+
+        int speed() const
+        {
+            return m_gfxEntry->speed;
+        }
+
+    protected:
+        virtual uint32_t frameTexID() const
+        {
+            if(m_gfxEntry->gfxDirType > 1){
+                return m_gfxEntry->gfxID + frame() + (m_motion->direction - DIR_BEGIN) * m_gfxEntry->gfxIDCount;
+            }
+            return m_gfxEntry->gfxID + frame();
+        }
+
+    public:
+        virtual void drawShift(int, int, bool);
+
+    public:
+        virtual void update(double ms)
+        {
+            m_accuTime += ms;
+        }
+};
+
+class TaoFireFigureEffect: public MagicSpellEffect
+{
+    public:
+        using MagicSpellEffect::MagicSpellEffect;
+
+    public:
+        int frameCount() const override
+        {
+            return MagicSpellEffect::frameCount() + 2;
+        }
+
+        uint32_t frameTexID() const override
+        {
+            if(frame() < MagicSpellEffect::frameCount()){
+                return MagicSpellEffect::frameTexID();
+            }
+            return SYS_TEXNIL;
+        }
+};
+
+inline const char *motionName(int type)
+{
+#define _add_motion_type_case(t) case t: return #t;
+    switch(type){
+        _add_motion_type_case(MOTION_STAND        )
+        _add_motion_type_case(MOTION_ARROWATTACK  )
+        _add_motion_type_case(MOTION_SPELL0       )
+        _add_motion_type_case(MOTION_SPELL1       )
+        _add_motion_type_case(MOTION_HOLD         )
+        _add_motion_type_case(MOTION_PUSHBACK     )
+        _add_motion_type_case(MOTION_PUSHBACKFLY  )
+        _add_motion_type_case(MOTION_ATTACKMODE   )
+        _add_motion_type_case(MOTION_CUT          )
+        _add_motion_type_case(MOTION_ONEVSWING    )
+        _add_motion_type_case(MOTION_TWOVSWING    )
+        _add_motion_type_case(MOTION_ONEHSWING    )
+        _add_motion_type_case(MOTION_TWOHSWING    )
+        _add_motion_type_case(MOTION_SPEARVSWING  )
+        _add_motion_type_case(MOTION_SPEARHSWING  )
+        _add_motion_type_case(MOTION_HITTED       )
+        _add_motion_type_case(MOTION_WHEELWIND    )
+        _add_motion_type_case(MOTION_RANDSWING    )
+        _add_motion_type_case(MOTION_BACKDROPKICK )
+        _add_motion_type_case(MOTION_DIE          )
+        _add_motion_type_case(MOTION_ONHORSEDIE   )
+        _add_motion_type_case(MOTION_WALK         )
+        _add_motion_type_case(MOTION_RUN          )
+        _add_motion_type_case(MOTION_MOODEPO      )
+        _add_motion_type_case(MOTION_ROLL         )
+        _add_motion_type_case(MOTION_FISHSTAND    )
+        _add_motion_type_case(MOTION_FISHHAND     )
+        _add_motion_type_case(MOTION_FISHTHROW    )
+        _add_motion_type_case(MOTION_FISHPULL     )
+        _add_motion_type_case(MOTION_ONHORSESTAND )
+        _add_motion_type_case(MOTION_ONHORSEWALK  )
+        _add_motion_type_case(MOTION_ONHORSERUN   )
+        _add_motion_type_case(MOTION_ONHORSEHITTED)
+
+        _add_motion_type_case(MOTION_MON_STAND    )
+        _add_motion_type_case(MOTION_MON_WALK     )
+        _add_motion_type_case(MOTION_MON_ATTACK0  )
+        _add_motion_type_case(MOTION_MON_HITTED   )
+        _add_motion_type_case(MOTION_MON_DIE      )
+        _add_motion_type_case(MOTION_MON_ATTACK1  )
+        _add_motion_type_case(MOTION_MON_SPELL0   )
+        _add_motion_type_case(MOTION_MON_SPELL1   )
+        _add_motion_type_case(MOTION_MON_APPEAR   )
+        _add_motion_type_case(MOTION_MON_SPECIAL  )
+
+        _add_motion_type_case(MOTION_NPC_STAND    )
+        _add_motion_type_case(MOTION_NPC_ACT      )
+        _add_motion_type_case(MOTION_NPC_ACTEXT   )
+#undef _add_motion_type_case
+        default: return "MOTION_UNKNOWN";
+    }
+}

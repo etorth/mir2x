@@ -133,12 +133,10 @@ ClientMonster::ClientMonster(uint64_t uid, ProcessRun *proc)
 bool ClientMonster::update(double ms)
 {
     updateAttachMagic(ms);
-
-    if(SDL_GetTicks() * 1.0f < currMotionDelay() + m_lastUpdateTime){
+    if(!checkUpdate(ms)){
         return true;
     }
 
-    m_lastUpdateTime = SDL_GetTicks() * 1.0f;
     const CallOnExitHelper motionOnUpdate([this]()
     {
         if(m_currMotion->onUpdate){
