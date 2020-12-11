@@ -97,7 +97,7 @@ bool ClientCreature::deadFadeOut()
 
 bool ClientCreature::alive() const
 {
-    if(!motionValid(*m_currMotion)){
+    if(!motionValid(m_currMotion)){
         throw fflerror("invalid motion detected");
     }
 
@@ -116,7 +116,7 @@ bool ClientCreature::alive() const
 
 bool ClientCreature::active() const
 {
-    if(!motionValid(*m_currMotion)){
+    if(!motionValid(m_currMotion)){
         throw fflerror("invalid motion detected");
     }
 
@@ -138,7 +138,7 @@ bool ClientCreature::active() const
 
 bool ClientCreature::visible() const
 {
-    if(!motionValid(*m_currMotion)){
+    if(!motionValid(m_currMotion)){
         throw fflerror("invalid motion detected");
     }
 

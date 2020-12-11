@@ -53,7 +53,7 @@ class ClientNPC: public ClientCreature
 
         bool parseAction(const ActionNode &) override;
         bool update(double) override;
-        bool motionValid(const MotionNode &) const override;
+        bool motionValid(const std::unique_ptr<MotionNode> &) const override;
 
     public:
         int gfxMotionID(int) const override;

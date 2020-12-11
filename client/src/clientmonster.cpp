@@ -330,7 +330,7 @@ void ClientMonster::draw(int viewX, int viewY, int focusMask)
 
 std::tuple<int, int> ClientMonster::location() const
 {
-    if(!motionValid(*m_currMotion)){
+    if(!motionValid(m_currMotion)){
         throw fflerror("invalid current motion");
     }
 
@@ -397,7 +397,7 @@ bool ClientMonster::onActionDie(const ActionNode &action)
 {
     const auto [endX, endY] = motionEndLocation(END_FORCED);
     for(auto &node: makeWalkMotionQueue(endX, endY, action.X, action.Y, SYS_MAXSPEED)){
-        if(!motionNodeValid(node)){
+        if(!(node && motionValid(node))){
             throw fflerror("current motion node is invalid");
         }
         m_forceMotionQueue.push_back(std::move(node));
@@ -464,7 +464,7 @@ bool ClientMonster::onActionMove(const ActionNode &action)
 {
     const auto [endX, endY] = motionEndLocation(END_FORCED);
     m_motionQueue = makeWalkMotionQueue(endX, endY, action.X, action.Y, SYS_MAXSPEED);
-    if(auto moveNode = makeWalkMotion(action.X, action.Y, action.AimX, action.AimY, action.Speed); motionNodeValid(moveNode)){
+    if(auto moveNode = makeWalkMotion(action.X, action.Y, action.AimX, action.AimY, action.Speed); motionValid(moveNode)){
         m_motionQueue.push_back(std::move(moveNode));
         return true;
     }
@@ -517,27 +517,28 @@ bool ClientMonster::onActionAttack(const ActionNode &action)
     return false;
 }
 
-bool ClientMonster::motionValid(const MotionNode &motion) const
+bool ClientMonster::motionValid(const std::unique_ptr<MotionNode> &motionPtr) const
 {
     if(true
-            && motion.type >= MOTION_MON_BEGIN
-            && motion.type <  MOTION_MON_END
+            && motionPtr
+            && motionPtr->type >= MOTION_MON_BEGIN
+            && motionPtr->type <  MOTION_MON_END
 
-            && motion.direction >= DIR_BEGIN
-            && motion.direction <  DIR_END
+            && motionPtr->direction >= DIR_BEGIN
+            && motionPtr->direction <  DIR_END
 
             && m_processRun
-            && m_processRun->onMap(m_processRun->MapID(), motion.x,    motion.y)
-            && m_processRun->onMap(m_processRun->MapID(), motion.endX, motion.endY)
+            && m_processRun->onMap(m_processRun->MapID(), motionPtr->x,    motionPtr->y)
+            && m_processRun->onMap(m_processRun->MapID(), motionPtr->endX, motionPtr->endY)
 
-            && motion.speed >= SYS_MINSPEED
-            && motion.speed <= SYS_MAXSPEED
+            && motionPtr->speed >= SYS_MINSPEED
+            && motionPtr->speed <= SYS_MAXSPEED
 
-            && motion.frame >= 0
-            && motion.frame <  motionFrameCount(motion.type, motion.direction)){
+            && motionPtr->frame >= 0
+            && motionPtr->frame <  motionFrameCount(motionPtr->type, motionPtr->direction)){
 
-        const auto nLDistance2 = mathf::LDistance2(motion.x, motion.y, motion.endX, motion.endY);
-        switch(motion.type){
+        const auto nLDistance2 = mathf::LDistance2(motionPtr->x, motionPtr->y, motionPtr->endX, motionPtr->endY);
+        switch(motionPtr->type){
             case MOTION_MON_STAND:
                 {
                     return nLDistance2 == 0;

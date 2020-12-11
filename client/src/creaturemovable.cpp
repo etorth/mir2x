@@ -179,7 +179,7 @@ bool CreatureMovable::motionQueueValid() const
 
     const MotionNode *lastMotionPtr = m_currMotion.get();
     for(const auto &motion: m_motionQueue){
-        if(motionValid(*motion)
+        if(motionValid(motion)
                 && (lastMotionPtr->endX == motion->x)
                 && (lastMotionPtr->endY == motion->y)){
             lastMotionPtr = motion.get();

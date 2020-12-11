@@ -59,7 +59,7 @@ class Hero: public CreatureMovable
         }
 
     public:
-        bool motionValid(const MotionNode &) const override;
+        bool motionValid(const std::unique_ptr<MotionNode> &) const override;
 
     public:
         bool parseAction(const ActionNode &) override;

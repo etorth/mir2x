@@ -338,27 +338,28 @@ bool Hero::update(double ms)
     }
 }
 
-bool Hero::motionValid(const MotionNode &motion) const
+bool Hero::motionValid(const std::unique_ptr<MotionNode> &motionPtr) const
 {
     if(true
-            && motion.type >= MOTION_BEGIN
-            && motion.type <  MOTION_END
+            && motionPtr
+            && motionPtr->type >= MOTION_BEGIN
+            && motionPtr->type <  MOTION_END
 
-            && motion.direction >= DIR_BEGIN
-            && motion.direction <  DIR_END
+            && motionPtr->direction >= DIR_BEGIN
+            && motionPtr->direction <  DIR_END
 
             && m_processRun
-            && m_processRun->onMap(m_processRun->MapID(), motion.x,    motion.y)
-            && m_processRun->onMap(m_processRun->MapID(), motion.endX, motion.endY)
+            && m_processRun->onMap(m_processRun->MapID(), motionPtr->x,    motionPtr->y)
+            && m_processRun->onMap(m_processRun->MapID(), motionPtr->endX, motionPtr->endY)
 
-            && motion.speed >= SYS_MINSPEED
-            && motion.speed <= SYS_MAXSPEED
+            && motionPtr->speed >= SYS_MINSPEED
+            && motionPtr->speed <= SYS_MAXSPEED
 
-            && motion.frame >= 0
-            && motion.frame <  motionFrameCount(motion.type, motion.direction)){
+            && motionPtr->frame >= 0
+            && motionPtr->frame <  motionFrameCount(motionPtr->type, motionPtr->direction)){
 
-        const auto nLDistance2 = mathf::LDistance2(motion.x, motion.y, motion.endX, motion.endY);
-        switch(motion.type){
+        const auto nLDistance2 = mathf::LDistance2(motionPtr->x, motionPtr->y, motionPtr->endX, motionPtr->endY);
+        switch(motionPtr->type){
             case MOTION_STAND:
                 {
                     return !OnHorse() && (nLDistance2 == 0);
@@ -769,7 +770,7 @@ bool Hero::parseAction(const ActionNode &action)
 
 std::tuple<int, int> Hero::location() const
 {
-    if(!motionValid(*m_currMotion)){
+    if(!motionValid(m_currMotion)){
         throw fflerror("current motion is invalid");
     }
 
@@ -975,7 +976,7 @@ int Hero::GfxDressID(int nDress, int nMotion, int nDirection) const
 
 int Hero::currStep() const
 {
-    motionValidEx(*m_currMotion);
+    motionValidEx(m_currMotion);
     switch(m_currMotion->type){
         case MOTION_WALK:
         case MOTION_ONHORSEWALK:

@@ -187,12 +187,12 @@
         virtual void draw(int, int, int) = 0;
 
     public:
-        virtual bool motionValid(const MotionNode &) const = 0;
+        virtual bool motionValid(const std::unique_ptr<MotionNode> &) const = 0;
 
     public:
-        void motionValidEx(const MotionNode &motion) const
+        void motionValidEx(const std::unique_ptr<MotionNode> &motionPtr) const
         {
-            if(!motionValid(motion)){
+            if(!motionValid(motionPtr)){
                 throw fflerror("invalid motion");
             }
         }

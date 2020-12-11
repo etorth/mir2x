@@ -237,7 +237,7 @@ bool ClientNPC::parseAction(const ActionNode &action)
         .y = action.Y,
     });
 
-    return motionValid(*m_currMotion);
+    return motionValid(m_currMotion);
 }
 
 bool ClientNPC::update(double ms)
@@ -248,7 +248,7 @@ bool ClientNPC::update(double ms)
         return true;
     }
 
-    motionValidEx(*m_currMotion);
+    motionValidEx(m_currMotion);
     m_lastUpdateTime = SDL_GetTicks() * 1.0f;
 
     const CallOnExitHelper motionOnUpdate([this]()
@@ -283,9 +283,9 @@ bool ClientNPC::update(double ms)
     }
 }
 
-bool ClientNPC::motionValid(const MotionNode &) const
+bool ClientNPC::motionValid(const std::unique_ptr<MotionNode> &motionPtr) const
 {
-    return true;
+    return motionPtr.get() != nullptr;
 }
 
 int ClientNPC::gfxMotionID(int) const
