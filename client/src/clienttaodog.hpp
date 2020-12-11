@@ -24,40 +24,6 @@
 class ClientTaoDog: public ClientMonster
 {
     private:
-        class DogFire: public AttachMagic
-        {
-            private:
-                const std::unordered_map<int, std::array<int, 2>> *m_dirOffCPtr;
-
-            public:
-                DogFire(int gfxDirIndex)
-                    : AttachMagic(u8"神兽-喷火", u8"运行", gfxDirIndex)
-                    , m_dirOffCPtr([]()
-                      {
-                          const static std::unordered_map<int, std::array<int, 2>> s_dirOff
-                          {
-                              {DIR_UP,        { 0,  2}},
-                              {DIR_UPRIGHT,   {-3, -3}},
-                              {DIR_RIGHT,     {-2, -5}},
-                              {DIR_DOWNRIGHT, { 0,  0}},
-                              {DIR_DOWN,      { 0, -5}},
-                              {DIR_DOWNLEFT,  { 0,  0}},
-                              {DIR_LEFT,      { 2, -5}},
-                              {DIR_UPLEFT,    { 3, -3}},
-                          };
-                          return &s_dirOff;
-                      }())
-                {}
-
-            public:
-                void drawShift(int drawOffX, int drawOffY, bool alpha) override
-                {
-                    const int dir = gfxDirIndex() + DIR_BEGIN;
-                    AttachMagic::drawShift(drawOffX + m_dirOffCPtr->at(dir).at(0), drawOffY + m_dirOffCPtr->at(dir).at(1), alpha);
-                }
-        };
-
-    private:
         bool m_stand;
 
     public:
@@ -181,9 +147,13 @@ class ClientTaoDog: public ClientMonster
                     }
 
                     if(m_stand){
-                        addAttachMagic(std::unique_ptr<AttachMagic>(new DogFire
+                        m_processRun->addFixedLocMagic(std::unique_ptr<FixedLocMagic>(new FixedLocMagic
                         {
-                            m_currMotion->direction - DIR_BEGIN,
+                            u8"神兽-喷火",
+                            u8"运行",
+                            currMotion()->x,
+                            currMotion()->y,
+                            currMotion()->direction - DIR_BEGIN,
                         }));
                     }
                 };
