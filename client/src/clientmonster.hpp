@@ -100,44 +100,14 @@ class ClientMonster: public CreatureMovable
         }
 
     protected:
-        void checkActionSpawnEx(const ActionNode &action) const
-        {
-            if(action.Action != ACTION_SPAWN){
-                throw fflerror("invalid action: %d", action.Action);
-            }
-        }
-
-        void checkActionTransfEx(const ActionNode &action) const
-        {
-            if(action.Action != ACTION_TRANSF){
-                throw fflerror("invalid action: %d", action.Action);
-            }
-        }
-
-    protected:
-        virtual void onActionSpawn(const ActionNode &action)
-        {
-            checkActionSpawnEx(action);
-            m_currMotion = std::unique_ptr<MotionNode>(new MotionNode
-            {
-                MOTION_MON_STAND,
-                0,
-
-                [&action]() -> int
-                {
-                    if(action.Direction >= DIR_BEGIN && action.Direction < DIR_END){
-                        return action.Direction;
-                    }
-                    return DIR_UP;
-                }(),
-
-                action.X,
-                action.Y,
-            });
-        }
-
-        virtual void onActionTransf(const ActionNode &)
-        {}
+        virtual bool onActionDie       (const ActionNode &);
+        virtual bool onActionStand     (const ActionNode &);
+        virtual bool onActionHitted    (const ActionNode &);
+        virtual bool onActionMove      (const ActionNode &);
+        virtual bool onActionAttack    (const ActionNode &);
+        virtual bool onActionSpawn     (const ActionNode &);
+        virtual bool onActionTransf    (const ActionNode &);
+        virtual bool onActionSpaceMove2(const ActionNode &);
 
     protected:
         template<size_t N> void checkMonsterNameEx(const char8_t (&name)[N]) const

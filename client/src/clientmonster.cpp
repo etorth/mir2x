@@ -363,10 +363,6 @@ std::tuple<int, int> ClientMonster::location() const
 bool ClientMonster::parseAction(const ActionNode &action)
 {
     m_lastActive = SDL_GetTicks();
-
-    // try find pending motion die
-    // ignore all the following actions till the MOTION_MON_DIE done
-
     for(const auto &m: m_forceMotionQueue){
         if(m->type == MOTION_MON_DIE){
             return true;
@@ -379,141 +375,146 @@ bool ClientMonster::parseAction(const ActionNode &action)
         }
     }
 
-    // make current motion super-fast
-    // can presents those ignored actions, helpful for debug
-    m_currMotion->speed = SYS_MAXSPEED;
     m_motionQueue.clear();
-
-    const auto [endX, endY] = [&action, this]() -> std::array<int, 2>
-    {
-        if(!m_forceMotionQueue.empty()){
-            return {m_forceMotionQueue.back()->endX, m_forceMotionQueue.back()->endY};
-        }
-        return {m_currMotion->endX, m_currMotion->endY};
-    }();
-
-    // 1. prepare before parsing action
-    //    additional movement added if necessary but in rush
     switch(action.Action){
-        case ACTION_STAND:
-        case ACTION_MOVE:
-        case ACTION_ATTACK:
-        case ACTION_HITTED:
-            {
-                m_motionQueue = makeWalkMotionQueue(endX, endY, action.X, action.Y, SYS_MAXSPEED);
-                break;
-            }
-        case ACTION_DIE:
-            {
-                for(auto &node: makeWalkMotionQueue(endX, endY, action.X, action.Y, SYS_MAXSPEED)){
-                    m_forceMotionQueue.push_back(std::move(node));
-                }
-                break;
-            }
-        default:
-            {
-                break;
-            }
-    }
-
-    // 2. parse the action
-    switch(action.Action){
-        case ACTION_DIE:
-            {
-                m_forceMotionQueue.emplace_back(std::unique_ptr<MotionNode>(new MotionNode
-                {
-                    .type = MOTION_MON_DIE,
-                    .direction = action.Direction,
-                    .x = action.X,
-                    .y = action.Y,
-                }));
-
-                m_forceMotionQueue.back()->extParam.die.fadeOut = action.ActionParam;
-                break;
-            }
-        case ACTION_STAND:
-            {
-                m_motionQueue.emplace_back(std::unique_ptr<MotionNode>(new MotionNode
-                {
-                    .type = MOTION_MON_STAND, 
-                    .direction = action.Direction,
-                    .x = action.X,
-                    .y = action.Y,
-                }));
-                break;
-            }
-        case ACTION_HITTED:
-            {
-                m_motionQueue.emplace_back(std::unique_ptr<MotionNode>(new MotionNode
-                {
-                    .type = MOTION_MON_HITTED,
-                    .direction = action.Direction,
-                    .x = action.X,
-                    .y = action.Y,
-                }));
-                break;
-            }
-        case ACTION_MOVE:
-            {
-                if(auto moveNode = makeWalkMotion(action.X, action.Y, action.AimX, action.AimY, action.Speed)){
-                    m_motionQueue.push_back(std::move(moveNode));
-                }
-                break;
-            }
-        case ACTION_SPACEMOVE2:
-            {
-                m_currMotion.reset(new MotionNode
-                {
-                    .type = MOTION_MON_STAND,
-                    .direction = m_currMotion->direction,
-                    .x = action.X,
-                    .y = action.Y,
-                });
-
-                addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"瞬息移动", u8"结束")));
-                break;
-            }
-        case ACTION_ATTACK:
-            {
-                if(auto pCreature = m_processRun->findUID(action.AimUID)){
-                    auto nX   = pCreature->x();
-                    auto nY   = pCreature->y();
-                    auto nDir = PathFind::GetDirection(action.X, action.Y, nX, nY);
-
-                    if(nDir >= DIR_BEGIN && nDir < DIR_END){
-                        m_motionQueue.emplace_back(std::unique_ptr<MotionNode>(new MotionNode
-                        {
-                            .type = MOTION_MON_ATTACK0,
-                            .direction = nDir,
-                            .x = action.X,
-                            .y = action.Y,
-                        }));
-                    }
-                }
-                else{
-                    return false;
-                }
-                break;
-            }
-        case ACTION_SPAWN:
-            {
-                onActionSpawn(action);
-                break;
-            }
-        case ACTION_TRANSF:
-            {
-                onActionTransf(action);
-                break;
-            }
-        default:
-            {
-                return false;
-            }
+        case ACTION_DIE       : return onActionDie       (action);
+        case ACTION_STAND     : return onActionStand     (action);
+        case ACTION_HITTED    : return onActionHitted    (action);
+        case ACTION_MOVE      : return onActionMove      (action);
+        case ACTION_ATTACK    : return onActionAttack    (action);
+        case ACTION_SPAWN     : return onActionSpawn     (action);
+        case ACTION_TRANSF    : return onActionTransf    (action);
+        case ACTION_SPACEMOVE2: return onActionSpaceMove2(action);
+        default               : return false;
     }
 
     // 3. after action parse
     //    verify the whole motion queue
     return motionQueueValid();
+}
+
+bool ClientMonster::onActionDie(const ActionNode &action)
+{
+    const auto [endX, endY] = motionEndLocation(END_FORCED);
+    for(auto &node: makeWalkMotionQueue(endX, endY, action.X, action.Y, SYS_MAXSPEED)){
+        if(!motionNodeValid(node)){
+            throw fflerror("current motion node is invalid");
+        }
+        m_forceMotionQueue.push_back(std::move(node));
+    }
+
+    m_forceMotionQueue.emplace_back(std::unique_ptr<MotionNode>(new MotionNode
+    {
+        .type = MOTION_MON_DIE,
+        .direction = action.Direction,
+        .x = action.X,
+        .y = action.Y,
+    }));
+
+    m_forceMotionQueue.back()->extParam.die.fadeOut = action.ActionParam;
+    return true;
+}
+
+bool ClientMonster::onActionStand(const ActionNode &action)
+{
+    const auto [endX, endY] = motionEndLocation(END_FORCED);
+    m_motionQueue = makeWalkMotionQueue(endX, endY, action.X, action.Y, SYS_MAXSPEED);
+    m_motionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
+    {
+        .type = MOTION_MON_STAND,
+        .direction = action.Direction,
+        .x = action.X,
+        .y = action.Y,
+    }));
+    return true;
+}
+
+bool ClientMonster::onActionHitted(const ActionNode &action)
+{
+    const auto [endX, endY] = motionEndLocation(END_FORCED);
+    m_motionQueue = makeWalkMotionQueue(endX, endY, action.X, action.Y, SYS_MAXSPEED);
+    m_motionQueue.emplace_back(std::unique_ptr<MotionNode>(new MotionNode
+    {
+        .type = MOTION_MON_HITTED,
+        .direction = action.Direction,
+        .x = action.X,
+        .y = action.Y,
+    }));
+    return true;
+}
+
+bool ClientMonster::onActionTransf(const ActionNode &)
+{
+    return false;
+}
+
+bool ClientMonster::onActionSpaceMove2(const ActionNode &action)
+{
+    m_currMotion.reset(new MotionNode
+    {
+        .type = MOTION_MON_STAND,
+        .direction = m_currMotion->direction,
+        .x = action.X,
+        .y = action.Y,
+    });
+    return true;
+}
+
+bool ClientMonster::onActionMove(const ActionNode &action)
+{
+    const auto [endX, endY] = motionEndLocation(END_FORCED);
+    m_motionQueue = makeWalkMotionQueue(endX, endY, action.X, action.Y, SYS_MAXSPEED);
+    if(auto moveNode = makeWalkMotion(action.X, action.Y, action.AimX, action.AimY, action.Speed); motionNodeValid(moveNode)){
+        m_motionQueue.push_back(std::move(moveNode));
+        return true;
+    }
+    return false;
+}
+
+bool ClientMonster::onActionSpawn(const ActionNode &action)
+{
+    m_currMotion = std::unique_ptr<MotionNode>(new MotionNode
+    {
+        MOTION_MON_STAND,
+        0,
+
+        [&action]() -> int
+        {
+            if(action.Direction >= DIR_BEGIN && action.Direction < DIR_END){
+                return action.Direction;
+            }
+            return DIR_UP;
+        }(),
+
+        action.X,
+        action.Y,
+    });
+    return true;
+}
+
+bool ClientMonster::onActionAttack(const ActionNode &action)
+{
+    const auto [endX, endY] = motionEndLocation(END_FORCED);
+    m_motionQueue = makeWalkMotionQueue(endX, endY, action.X, action.Y, SYS_MAXSPEED);
+    if(auto coPtr = m_processRun->findUID(action.AimUID)){
+        const auto nX   = coPtr->x();
+        const auto nY   = coPtr->y();
+        const auto nDir = PathFind::GetDirection(action.X, action.Y, nX, nY);
+
+        if(!(nDir >= DIR_BEGIN && nDir < DIR_END)){
+            throw fflerror("invalid direction: %d", nDir);
+        }
+
+        m_motionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
+        {
+            .type = MOTION_MON_ATTACK0,
+            .direction = nDir,
+            .x = action.X,
+            .y = action.Y,
+        }));
+        return true;
+    }
+    return false;
 }
 
 bool ClientMonster::motionValid(const MotionNode &motion) const

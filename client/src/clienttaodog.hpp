@@ -101,9 +101,8 @@ class ClientTaoDog: public ClientMonster
         }
 
     protected:
-        void onActionSpawn(const ActionNode &action) override
+        bool onActionSpawn(const ActionNode &action) override
         {
-            checkActionSpawnEx(action);
             m_currMotion.reset(new MotionNode
             {
                 MOTION_MON_APPEAR,
@@ -120,15 +119,14 @@ class ClientTaoDog: public ClientMonster
                 action.X,
                 action.Y,
             });
+            return true;
         }
 
-        void onActionTransf(const ActionNode &action) override
+        bool onActionTransf(const ActionNode &action) override
         {
-            checkActionTransfEx(action);
             const auto standReq = (bool)(action.ActionParam);
-
             if(m_stand == standReq){
-                return;
+                return true;
             }
 
             const auto [x, y, dir] = [this]() -> std::array<int, 3>
@@ -147,27 +145,58 @@ class ClientTaoDog: public ClientMonster
                 .x = x,
                 .y = y,
             }));
+            return true;
+        }
+
+        bool onActionAttack(const ActionNode &action) override
+        {
+            const auto [endX, endY] = motionEndLocation(END_FORCED);
+            m_motionQueue = makeWalkMotionQueue(endX, endY, action.X, action.Y, SYS_MAXSPEED);
+            if(auto coPtr = m_processRun->findUID(action.AimUID)){
+                const auto nX   = coPtr->x();
+                const auto nY   = coPtr->y();
+                const auto nDir = PathFind::GetDirection(action.X, action.Y, nX, nY);
+
+                if(!(nDir >= DIR_BEGIN && nDir < DIR_END)){
+                    throw fflerror("invalid direction: %d", nDir);
+                }
+
+                auto motionPtr = new MotionNode
+                {
+                    .type = MOTION_MON_ATTACK0,
+                    .direction = nDir,
+                    .x = action.X,
+                    .y = action.Y,
+                };
+
+                motionPtr->onUpdate = [motionPtr, lastMotionFrame = (int)(-1), this]() mutable
+                {
+                    if(lastMotionFrame == motionPtr->frame){
+                        return;
+                    }
+
+                    lastMotionFrame = motionPtr->frame;
+                    if(motionPtr->frame != 5){
+                        return;
+                    }
+
+                    if(m_stand){
+                        addAttachMagic(std::unique_ptr<AttachMagic>(new DogFire
+                        {
+                            m_currMotion->direction - DIR_BEGIN,
+                        }));
+                    }
+                };
+
+                m_motionQueue.push_back(std::unique_ptr<MotionNode>(motionPtr));
+                return true;
+            }
+            return false;
         }
 
     public:
         bool visible() const override
         {
             return ClientCreature::active();
-        }
-
-    public:
-        bool updateMotion() override
-        {
-            if(!ClientCreature::updateMotion()){
-                return false;
-            }
-
-            if(m_currMotion->type == MOTION_MON_ATTACK0 && m_currMotion->frame == 5 && m_stand){
-                addAttachMagic(std::unique_ptr<AttachMagic>(new DogFire
-                {
-                    m_currMotion->direction - DIR_BEGIN,
-                }));
-            }
-            return true;
         }
 };

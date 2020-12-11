@@ -82,4 +82,13 @@ class CreatureMovable: public ClientCreature
 
     public:
         std::tuple<int, int> getShift() const;
+
+    public:
+        enum endType: int
+        {
+            END_CURRENT,
+            END_FORCED,
+            END_OPTIONAL,
+        };
+        std::tuple<int, int> motionEndLocation(int) const;
 };

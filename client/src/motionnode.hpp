@@ -203,3 +203,8 @@ struct MotionNode final
     void print() const;
     static const char *name(int);
 };
+
+inline bool motionNodeValid(const std::unique_ptr<MotionNode> &motionPtr)
+{
+    return motionPtr && *motionPtr;
+}
