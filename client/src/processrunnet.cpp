@@ -115,7 +115,7 @@ void ProcessRun::net_ACTION(const uint8_t *bufPtr, size_t)
         // shouldn't accept ACTION_SPAWN
         // we shouldn't have spawn action after co created
         if(smA.Action == ACTION_SPAWN){
-            throw fflerror("existing CO get spawn action");
+            throw fflerror("existing CO get spawn action: name = %s", uidf::getUIDString(smA.UID).c_str());
         }
 
         creaturePtr->parseAction(stAction);
