@@ -139,7 +139,7 @@ class TaoFireFigureEffect: public MagicSpellEffect
         }
 };
 
-struct MotionNode
+struct MotionNode final
 {
     struct MotionExtParam
     {
