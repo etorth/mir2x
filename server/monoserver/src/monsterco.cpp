@@ -28,7 +28,7 @@ corof::long_jmper::eval_op<bool> Monster::coro_followMaster()
         p->followMaster([&done](){ done.assign(true); }, [&done](){ done.assign(false); });
 
         if(co_await done){
-            co_await corof::async_wait(1200);
+            co_await corof::async_wait(p->walkWait());
             co_return true;
         }
 
@@ -44,16 +44,16 @@ corof::long_jmper::eval_op<bool> Monster::coro_randomMove()
     {
         if(std::rand() % 10 < 2){
             if(p->randomTurn()){
-                co_await corof::async_wait(200);
+                co_await corof::async_wait(p->walkWait());
             }
             else{
-                co_await corof::async_wait(1000);
+                co_await corof::async_wait(200);
             }
         }
 
         else{
             if(co_await p->coro_moveForward()){
-                co_await corof::async_wait(1200);
+                co_await corof::async_wait(p->walkWait());
             }
             else{
                 co_await corof::async_wait(200);
@@ -103,7 +103,7 @@ corof::long_jmper::eval_op<bool> Monster::coro_trackAttackUID(uint64_t targetUID
         p->trackAttackUID(targetUID, [&done]{ done.assign(true); }, [&done]{ done.assign(false); });
 
         if(co_await done){
-            co_await corof::async_wait(1200);
+            co_await corof::async_wait(p->attackWait());
             co_return true;
         }
 

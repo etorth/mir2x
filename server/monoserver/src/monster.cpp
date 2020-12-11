@@ -724,7 +724,7 @@ bool Monster::canAttack()
 
     auto nCurrTick = g_monoServer->getCurrTick();
 
-    if(nCurrTick < m_lastMoveTime + 800){
+    if(nCurrTick < m_lastMoveTime + walkWait()){
         return false;
     }
 
