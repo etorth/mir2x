@@ -50,7 +50,7 @@ class TaoFireFigure_RUN: public FollowUIDMagic
 {
     public:
         TaoFireFigure_RUN(int x, int y, int gfxDirIndex, uint64_t aimUID, ProcessRun *runPtr)
-            : FollowUIDMagic(u8"灵魂火符", u8"运行", x, y, gfxDirIndex, 25, aimUID, runPtr)
+            : FollowUIDMagic(u8"灵魂火符", u8"运行", x, y, gfxDirIndex, 20, aimUID, runPtr)
         {}
 
     public:
