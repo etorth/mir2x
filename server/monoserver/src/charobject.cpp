@@ -185,7 +185,7 @@ void CharObject::dispatchAction(const ActionNode &rstAction)
     // this would cause zombies
 
     if(!checkActorPod()){
-        throw fflerror("can't dispatch action: %s", rstAction.ActionName());
+        throw fflerror("can't dispatch action: %s", actionName(rstAction.Action));
     }
 
     AMAction amA;
