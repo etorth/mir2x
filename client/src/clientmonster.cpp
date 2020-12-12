@@ -393,7 +393,7 @@ bool ClientMonster::parseAction(const ActionNode &action)
 
 bool ClientMonster::onActionDie(const ActionNode &action)
 {
-    const auto [endX, endY] = motionEndLocation(END_FORCED);
+    const auto [endX, endY, endDir] = motionEndLocation(END_FORCED);
     for(auto &node: makeWalkMotionQueue(endX, endY, action.X, action.Y, SYS_MAXSPEED)){
         if(!(node && motionValid(node))){
             throw fflerror("current motion node is invalid");
@@ -415,7 +415,7 @@ bool ClientMonster::onActionDie(const ActionNode &action)
 
 bool ClientMonster::onActionStand(const ActionNode &action)
 {
-    const auto [endX, endY] = motionEndLocation(END_FORCED);
+    const auto [endX, endY, endDir] = motionEndLocation(END_FORCED);
     m_motionQueue = makeWalkMotionQueue(endX, endY, action.X, action.Y, SYS_MAXSPEED);
     m_motionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
     {
@@ -429,7 +429,7 @@ bool ClientMonster::onActionStand(const ActionNode &action)
 
 bool ClientMonster::onActionHitted(const ActionNode &action)
 {
-    const auto [endX, endY] = motionEndLocation(END_FORCED);
+    const auto [endX, endY, endDir] = motionEndLocation(END_FORCED);
     m_motionQueue = makeWalkMotionQueue(endX, endY, action.X, action.Y, SYS_MAXSPEED);
     m_motionQueue.emplace_back(std::unique_ptr<MotionNode>(new MotionNode
     {
@@ -448,7 +448,13 @@ bool ClientMonster::onActionTransf(const ActionNode &)
 
 bool ClientMonster::onActionSpaceMove2(const ActionNode &action)
 {
-    m_forceMotionQueue.clear();
+    // TODO I don't have a good idea to handle this yet
+    // should I allow cleaning forced motions?
+
+    if(!m_forceMotionQueue.empty()){
+        throw fflerror("forced motion queue is not empty: %s", uidf::getUIDString(UID()).c_str());
+    }
+
     m_currMotion.reset(new MotionNode
     {
         .type = MOTION_MON_STAND,
@@ -461,7 +467,7 @@ bool ClientMonster::onActionSpaceMove2(const ActionNode &action)
 
 bool ClientMonster::onActionMove(const ActionNode &action)
 {
-    const auto [endX, endY] = motionEndLocation(END_FORCED);
+    const auto [endX, endY, endDir] = motionEndLocation(END_FORCED);
     m_motionQueue = makeWalkMotionQueue(endX, endY, action.X, action.Y, SYS_MAXSPEED);
     if(auto moveNode = makeWalkMotion(action.X, action.Y, action.AimX, action.AimY, action.Speed); motionValid(moveNode)){
         m_motionQueue.push_back(std::move(moveNode));
@@ -495,7 +501,7 @@ bool ClientMonster::onActionSpawn(const ActionNode &action)
 
 bool ClientMonster::onActionAttack(const ActionNode &action)
 {
-    const auto [endX, endY] = motionEndLocation(END_FORCED);
+    const auto [endX, endY, endDir] = motionEndLocation(END_FORCED);
     m_motionQueue = makeWalkMotionQueue(endX, endY, action.X, action.Y, SYS_MAXSPEED);
     if(auto coPtr = m_processRun->findUID(action.AimUID)){
         const auto nX   = coPtr->x();

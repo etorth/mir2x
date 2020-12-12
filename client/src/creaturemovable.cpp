@@ -280,26 +280,26 @@ std::tuple<int, int> CreatureMovable::getShift() const
     }
 }
 
-std::tuple<int, int> CreatureMovable::motionEndLocation(int endType) const
+std::tuple<int, int, int> CreatureMovable::motionEndLocation(int endType) const
 {
     switch(endType){
         case END_OPTIONAL:
             {
                 if(!m_motionQueue.empty()){
-                    return {m_motionQueue.back()->endX, m_motionQueue.back()->endY};
+                    return {m_motionQueue.back()->endX, m_motionQueue.back()->endY, m_motionQueue.back()->direction};
                 }
                 [[fallthrough]];
             }
         case END_FORCED:
             {
                 if(!m_forceMotionQueue.empty()){
-                    return {m_forceMotionQueue.back()->endX, m_forceMotionQueue.back()->endY};
+                    return {m_forceMotionQueue.back()->endX, m_forceMotionQueue.back()->endY, m_forceMotionQueue.back()->direction};
                 }
                 [[fallthrough]];
             }
         case END_CURRENT:
             {
-                return {m_currMotion->endX, m_currMotion->endY};
+                return {m_currMotion->endX, m_currMotion->endY, m_currMotion->direction};
             }
         default:
             {

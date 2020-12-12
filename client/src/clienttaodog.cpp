@@ -50,13 +50,7 @@ bool ClientTaoDog::onActionTransf(const ActionNode &action)
         return true;
     }
 
-    const auto [x, y, dir] = [this]() -> std::array<int, 3>
-    {
-        if(!m_forceMotionQueue.empty()){
-            return {m_forceMotionQueue.back()->endX, m_forceMotionQueue.back()->endY, m_forceMotionQueue.back()->direction};
-        }
-        return {m_currMotion->endX, m_currMotion->endY, m_currMotion->direction};
-    }();
+    const auto [x, y, dir] = motionEndLocation(END_FORCED);
 
     m_stand = standReq;
     m_forceMotionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
@@ -71,21 +65,21 @@ bool ClientTaoDog::onActionTransf(const ActionNode &action)
 
 bool ClientTaoDog::onActionAttack(const ActionNode &action)
 {
-    const auto [endX, endY] = motionEndLocation(END_FORCED);
+    const auto [endX, endY, endDir] = motionEndLocation(END_FORCED);
     m_motionQueue = makeWalkMotionQueue(endX, endY, action.X, action.Y, SYS_MAXSPEED);
     if(auto coPtr = m_processRun->findUID(action.AimUID)){
-        const auto nX   = coPtr->x();
-        const auto nY   = coPtr->y();
-        const auto nDir = PathFind::GetDirection(action.X, action.Y, nX, nY);
-
-        if(!(nDir >= DIR_BEGIN && nDir < DIR_END)){
-            throw fflerror("invalid direction: %d", nDir);
-        }
-
         auto motionPtr = new MotionNode
         {
             .type = MOTION_MON_ATTACK0,
-            .direction = nDir,
+            .direction = [&action, endDir, coPtr]() -> int
+            {
+                const auto nX = coPtr->x();
+                const auto nY = coPtr->y();
+                if(mathf::LDistance2(nX, nY, action.X, action.Y) == 0){
+                    return endDir;
+                }
+                return PathFind::GetDirection(action.X, action.Y, nX, nY);
+            }(),
             .x = action.X,
             .y = action.Y,
         };
