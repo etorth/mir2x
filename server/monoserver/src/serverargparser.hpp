@@ -17,6 +17,7 @@
  */
 
 #pragma once
+#include <thread>
 #include <cstdint>
 #include "totype.hpp"
 #include "fflerror.hpp"
@@ -41,7 +42,7 @@ struct ServerArgParser
         , disablePetSpawn(cmdParser["disable-pet-spawn"])
         , disableMonsterSpawn(cmdParser["disable-monster-spawn"])
         , preloadMap(cmdParser["preload-map"])
-        , actorPoolThread([&cmdParser]()
+        , actorPoolThread([&cmdParser]() -> int
           {
               if(const auto numStr = cmdParser("actor-pool-thread").str(); !numStr.empty()){
                   try{
@@ -51,7 +52,12 @@ struct ServerArgParser
                       return 1;
                   }
               }
-              return 1;
+              else if(const auto hw = std::thread::hardware_concurrency(); hw > 0){
+                  return hw;
+              }
+              else{
+                  return 4;
+              }
           }())
     {}
 };
