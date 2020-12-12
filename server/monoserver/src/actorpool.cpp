@@ -147,6 +147,11 @@ void ActorPool::attach(ActorPod *actorPtr, std::function<void()> atStart)
         }
     }
 
+    // attached actor has startup trigger
+    // schedule it ASAP, currently only try its decicated bucket
+    const int bucketId = getBucketID(uid);
+    m_bucketList.at(bucketId).uidQPending.push(uid);
+
     // the mailboxListCache is accessed by index rather than using iterator
     // this helps to insert the new mailbox pointer here
 
@@ -156,7 +161,7 @@ void ActorPool::attach(ActorPod *actorPtr, std::function<void()> atStart)
     // if it's not the dedicated actor thread calling the attach()
     // we can't do this because its dedicated actor thread may immediately remove {uid, mailboxPtr} before here we push it
 
-    if(getWorkerID() == getBucketID(uid)){
+    if(getWorkerID() == bucketId){
         subBucketRef.mailboxListCache.push_back(mailboxRawPtr);
     }
 }
