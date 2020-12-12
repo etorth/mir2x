@@ -979,11 +979,11 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
     }
 
     if(auto [bDstOK, nDstX, nDstY] = GetValidGrid(false, false, (int)(bStrictLoc), nHintX, nHintY); bDstOK){
-        Monster *pMonster = nullptr;
+        Monster *monsterPtr = nullptr;
         switch(nMonsterID){
             case DBCOM_MONSTERID(u8"变异骷髅"):
                 {
-                    pMonster = new TaoSkeleton
+                    monsterPtr = new TaoSkeleton
                     {
                         m_serviceCore,
                         this,
@@ -995,7 +995,7 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
                 }
             case DBCOM_MONSTERID(u8"神兽"):
                 {
-                    pMonster = new TaoDog
+                    monsterPtr = new TaoDog
                     {
                         m_serviceCore,
                         this,
@@ -1008,7 +1008,7 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
                 }
             default:
                 {
-                    pMonster = new Monster
+                    monsterPtr = new Monster
                     {
                         nMonsterID,
                         m_serviceCore,
@@ -1022,12 +1022,12 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
                 }
         }
 
-        pMonster->activate();
+        monsterPtr->activate();
 
-        addGridUID (pMonster->UID(), nDstX, nDstY, true);
-        notifyNewCO(pMonster->UID(), nDstX, nDstY);
+        addGridUID (monsterPtr->UID(), nDstX, nDstY, true);
+        notifyNewCO(monsterPtr->UID(), nDstX, nDstY);
 
-        return pMonster;
+        return monsterPtr;
     }
     return nullptr;
 }
@@ -1075,7 +1075,7 @@ Player *ServerMap::addPlayer(uint32_t nDBID, int nHintX, int nHintY, int nDirect
     }
 
     if(auto [bDstOK, nDstX, nDstY] = GetValidGrid(false, false, (int)(bStrictLoc), nHintX, nHintY); bDstOK){
-        auto pPlayer = new Player
+        auto playerPtr = new Player
         {
             nDBID,
             m_serviceCore,
@@ -1085,12 +1085,12 @@ Player *ServerMap::addPlayer(uint32_t nDBID, int nHintX, int nHintY, int nDirect
             nDirection,
         };
 
-        pPlayer->activate();
+        playerPtr->activate();
 
-        addGridUID (pPlayer->UID(), nDstX, nDstY, true);
-        notifyNewCO(pPlayer->UID(), nDstX, nDstY);
+        addGridUID (playerPtr->UID(), nDstX, nDstY, true);
+        notifyNewCO(playerPtr->UID(), nDstX, nDstY);
 
-        return pPlayer;
+        return playerPtr;
     }
     return nullptr;
 }
