@@ -1176,8 +1176,8 @@ uint32_t ProcessRun::GetFocusFaceKey()
 {
     uint32_t nFaceKey = 0X02000000;
     if(auto nUID = FocusUID(FOCUS_MOUSE)){
-        if(auto pCreature = findUID(nUID)){
-            switch(pCreature->type()){
+        if(auto coPtr = findUID(nUID)){
+            switch(coPtr->type()){
                 case UID_PLY:
                     {
                         nFaceKey = 0X02000000;
@@ -1185,8 +1185,7 @@ uint32_t ProcessRun::GetFocusFaceKey()
                     }
                 case UID_MON:
                     {
-                        auto nLookID = ((ClientMonster*)(pCreature))->lookID();
-                        if(nLookID >= 0){
+                        if(const auto nLookID = dynamic_cast<ClientMonster*>(coPtr)->lookID(); nLookID >= 0){
                             nFaceKey = 0X01000000 + (nLookID - LID_BEGIN);
                         }
                         break;
@@ -1209,11 +1208,15 @@ void ProcessRun::addAscendStr(int nType, int nValue, int nX, int nY)
 
 bool ProcessRun::GetUIDLocation(uint64_t nUID, bool bDrawLoc, int *pX, int *pY)
 {
-    if(auto pCreature = findUID(nUID)){
+    if(auto coPtr = findUID(nUID)){
         if(bDrawLoc){
         }else{
-            if(pX){ *pX = pCreature->x(); }
-            if(pY){ *pY = pCreature->y(); }
+            if(pX){
+                *pX = coPtr->x();
+            }
+            if(pY){
+                *pY = coPtr->y();
+            }
         }
         return true;
     }

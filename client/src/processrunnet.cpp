@@ -24,6 +24,8 @@
 #include "client.hpp"
 #include "dbcomid.hpp"
 #include "clientmonster.hpp"
+#include "clienttaodog.hpp"
+#include "clienttaoskeleton.hpp"
 #include "clientnpc.hpp"
 #include "uidf.hpp"
 #include "sysconst.hpp"
@@ -158,16 +160,25 @@ void ProcessRun::net_ACTION(const uint8_t *bufPtr, size_t)
                         {
                             switch(uidf::getMonsterID(smA.UID)){
                                 case DBCOM_MONSTERID(u8"变异骷髅"):
+                                    {
+                                        if(!m_actionBlocker.contains(smA.UID)){
+                                            m_coList[smA.UID] = std::make_unique<ClientTaoSkeleton>(smA.UID, this, stAction);
+                                        }
+                                        return;
+                                    }
                                 case DBCOM_MONSTERID(u8"神兽"):
                                     {
-                                        if(m_actionBlocker.contains(smA.UID)){
-                                            return;
+                                        if(!m_actionBlocker.contains(smA.UID)){
+                                            m_coList[smA.UID] = std::make_unique<ClientTaoDog>(smA.UID, this, stAction);
                                         }
-                                        break;
+                                        return;
+                                    }
+                                default:
+                                    {
+                                        m_coList[smA.UID] = std::make_unique<ClientMonster>(smA.UID, this, stAction);
+                                        return;
                                     }
                             }
-
-                            m_coList[smA.UID] = std::make_unique<ClientMonster>(smA.UID, this, stAction);
                             return;
                         }
                 }
