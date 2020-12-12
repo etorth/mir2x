@@ -71,10 +71,8 @@ class ClientTaoDog: public ClientMonster
         {
             m_currMotion.reset(new MotionNode
             {
-                MOTION_MON_APPEAR,
-                0,
-
-                [&action]() -> int
+                .type = MOTION_MON_APPEAR,
+                .direction = [&action]() -> int
                 {
                     if(action.Direction >= DIR_BEGIN && action.Direction < DIR_END){
                         return action.Direction;
@@ -82,8 +80,8 @@ class ClientTaoDog: public ClientMonster
                     return DIR_UP;
                 }(),
 
-                action.X,
-                action.Y,
+                .x = action.X,
+                .y = action.Y,
             });
             return true;
         }

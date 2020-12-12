@@ -443,7 +443,7 @@ bool ClientMonster::onActionHitted(const ActionNode &action)
 
 bool ClientMonster::onActionTransf(const ActionNode &)
 {
-    return false;
+    throw fflerror("unexpected ACTION_TRANSF to uid: %s", uidf::getUIDString(UID()).c_str());
 }
 
 bool ClientMonster::onActionSpaceMove2(const ActionNode &action)
@@ -473,10 +473,8 @@ bool ClientMonster::onActionSpawn(const ActionNode &action)
 {
     m_currMotion = std::unique_ptr<MotionNode>(new MotionNode
     {
-        MOTION_MON_STAND,
-        0,
-
-        [&action]() -> int
+        .type = MOTION_MON_STAND,
+        .direction = [&action]() -> int
         {
             if(action.Direction >= DIR_BEGIN && action.Direction < DIR_END){
                 return action.Direction;
@@ -484,8 +482,8 @@ bool ClientMonster::onActionSpawn(const ActionNode &action)
             return DIR_UP;
         }(),
 
-        action.X,
-        action.Y,
+        .x = action.X,
+        .y = action.Y,
     });
     return true;
 }
