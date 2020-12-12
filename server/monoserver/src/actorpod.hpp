@@ -91,9 +91,11 @@ class ActorPod final
         ActorPodMonitor m_podMonitor;
 
     public:
-        explicit ActorPod(uint64_t,
-                const std::function<void()> &,
-                const std::function<void(const MessagePack &)> &, uint32_t = 3600 * 1000);
+        explicit ActorPod(uint64_t,                         // UID
+                std::function<void()>,                      // trigger
+                std::function<void(const MessagePack &)>,   // msgHandler
+                std::function<void()>,                      // atStart
+                uint32_t);                                  // timeout
 
     public:
         ~ActorPod();

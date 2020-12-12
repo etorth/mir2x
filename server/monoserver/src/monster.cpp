@@ -458,22 +458,6 @@ void Monster::trackAttackUID(uint64_t nTargetUID, std::function<void()> fnOnOK, 
     }, fnOnError);
 }
 
-uint64_t Monster::activate()
-{
-    if(auto nUID = CharObject::activate()){
-        if(masterUID()){
-            m_actorPod->forward(masterUID(), {MPK_CHECKMASTER}, [this](const MessagePack &rstRMPK)
-            {
-                if(rstRMPK.Type() != MPK_OK){
-                    goDie();
-                }
-            });
-        }
-        return nUID;
-    }
-    return 0;
-}
-
 corof::long_jmper Monster::updateCoroFunc()
 {
     while(HP() > 0){

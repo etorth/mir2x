@@ -142,7 +142,13 @@ class ServerObject
         uint32_t GetStateTime(uint8_t) const;
 
     public:
-        virtual uint64_t activate();
+        virtual uint64_t activate()
+        {
+            return activateWithStartHandler(nullptr);
+        }
+
+    protected:
+        uint64_t activateWithStartHandler(std::function<void()>);
 
     protected:
         void deactivate();

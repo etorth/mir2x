@@ -170,15 +170,6 @@ bool CharObject::NextLocation(int *pX, int *pY, int nDirection, int nDistance)
     return true;
 }
 
-uint64_t CharObject::activate()
-{
-    if(auto nUID = ServerObject::activate(); nUID){
-        dispatchAction(ActionSpawn(X(), Y(), Direction()));
-        return nUID;
-    }
-    return 0;
-}
-
 void CharObject::dispatchAction(const ActionNode &rstAction)
 {
     // should check to avoid dead CO call this function

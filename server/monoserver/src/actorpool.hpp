@@ -406,6 +406,7 @@ class ActorPool final
             std::vector<std::pair<MessagePack, uint64_t>> currQ;
             std::vector<std::pair<MessagePack, uint64_t>> nextQ;
 
+            std::function<void()> atStart;
             std::function<void()> atExit;
 
             // put a monitor structure and always maintain it
@@ -434,7 +435,7 @@ class ActorPool final
 
             // put ctor in actorpool.cpp
             // ActorPod is incomplete type in actorpool.hpp
-            Mailbox(ActorPod *);
+            Mailbox(ActorPod *, std::function<void()>);
         };
 
         struct MailboxSubBucket
@@ -546,7 +547,7 @@ class ActorPool final
 
     private:
         void attach(Receiver *);
-        void attach(ActorPod *);
+        void attach(ActorPod *, std::function<void()>);
 
     private:
         void detach(const Receiver *);

@@ -233,7 +233,13 @@ class CharObject: public ServerObject
         }
 
     public:
-        uint64_t activate() override;
+        uint64_t activate() override
+        {
+            return ServerObject::activateWithStartHandler([this]()
+            {
+                dispatchAction(ActionSpawn(X(), Y(), Direction()));
+            });
+        }
 
     protected:
         virtual void reportCO(uint64_t) = 0;

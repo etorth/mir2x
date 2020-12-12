@@ -57,9 +57,10 @@ static int getWorkerID()
     return t_workerID;
 }
 
-ActorPool::Mailbox::Mailbox(ActorPod *actorPtr)
+ActorPool::Mailbox::Mailbox(ActorPod *actorPtr, std::function<void()> atStartTrigger)
     : uid(actorPtr->UID())
     , actor(actorPtr)
+    , atStart(std::move(atStartTrigger))
 {}
 
 ActorPool::ActorPool(int bucketCount, int logicFPS)
@@ -106,7 +107,7 @@ ActorPool::~ActorPool()
     }
 }
 
-void ActorPool::attach(ActorPod *actorPtr)
+void ActorPool::attach(ActorPod *actorPtr, std::function<void()> atStart)
 {
     logProfiler();
     if(!(actorPtr && actorPtr->UID())){
@@ -125,7 +126,7 @@ void ActorPool::attach(ActorPod *actorPtr)
     // 2. current thread won't accquire the lock in read mode
 
     const auto uid = actorPtr->UID();
-    auto mailboxPtr = std::make_unique<Mailbox>(actorPtr);
+    auto mailboxPtr = std::make_unique<Mailbox>(actorPtr, std::move(atStart));
     auto mailboxRawPtr = mailboxPtr.get();
     auto &subBucketRef = getSubBucket(uid);
     {
@@ -500,6 +501,17 @@ bool ActorPool::runOneMailbox(Mailbox *mailboxPtr, bool useMetronome)
 {
     if(!isActorThread()){
         throw fflerror("accessing actor message handlers outside of actor threads: %d", getWorkerID());
+    }
+
+    if(mailboxPtr->schedLock.detached()){   // don't need this check
+        return false;                       // any thread want to call runOneMailbox should first grab the schedLoc
+    }                                       // means it's in grabbed status rather than detached status if we can reach here
+
+    // startup point trigger
+    // user can provide a start up tigger function to do spawn notification
+    if(mailboxPtr->atStart){
+        mailboxPtr->atStart();
+        mailboxPtr->atStart = nullptr;
     }
 
     // before every call to innHandler()

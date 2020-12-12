@@ -32,8 +32,10 @@ extern MonoServer *g_monoServer;
 extern ServerArgParser *g_serverArgParser;
 
 ActorPod::ActorPod(uint64_t nUID,
-        const std::function<void()> &fnTrigger,
-        const std::function<void(const MessagePack &)> &fnOperation, uint32_t nExpireTime)
+        std::function<void()> fnTrigger,
+        std::function<void(const MessagePack &)> fnOperation,
+        std::function<void()> fnAtStart,
+        uint32_t nExpireTime)
     : m_UID([nUID]() -> uint64_t
       {
           if(!nUID){
@@ -45,13 +47,13 @@ ActorPod::ActorPod(uint64_t nUID,
           }
           return nUID;
       }())
-    , m_trigger(fnTrigger)
-    , m_operation(fnOperation)
+    , m_trigger(std::move(fnTrigger))
+    , m_operation(std::move(fnOperation))
     , m_validID(0)
     , m_expireTime(nExpireTime)
     , m_respondHandlerGroup()
 {
-    g_actorPool->attach(this);
+    g_actorPool->attach(this, std::move(fnAtStart));
 }
 
 ActorPod::~ActorPod()

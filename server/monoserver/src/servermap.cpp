@@ -680,21 +680,6 @@ std::tuple<bool, int, int> ServerMap::GetValidGrid(bool bCheckCO, bool bCheckLoc
     return {false, -1, -1};
 }
 
-uint64_t ServerMap::activate()
-{
-    const auto uid = ServerObject::activate();
-    if(!uid){
-        return 0;
-    }
-
-    if(m_luaModulePtr){
-        throw fflerror("ServerMap lua module has been loaded twice: %s", to_cstr(DBCOM_MAPRECORD(ID()).name));
-    }
-
-    m_luaModulePtr = std::make_unique<ServerMap::ServerMapLuaModule>(this);
-    return uid;
-}
-
 void ServerMap::addGridUID(uint64_t uid, int nX, int nY, bool bForce)
 {
     if(!ValidC(nX, nY)){

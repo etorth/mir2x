@@ -194,7 +194,13 @@ class ServerMap final: public ServerObject
         }
 
     public:
-        uint64_t activate();
+        uint64_t activate() override
+        {
+            return ServerObject::activateWithStartHandler([this]()
+            {
+                m_luaModulePtr = std::make_unique<ServerMap::ServerMapLuaModule>(this);
+            });
+        }
 
     private:
         bool Load(const char *);
