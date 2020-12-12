@@ -496,6 +496,10 @@ bool Hero::parseAction(const ActionNode &action)
                 break;
             }
         case ACTION_SPACEMOVE2:
+            {
+                m_forceMotionQueue.clear();
+                break;
+            }
         case ACTION_PICKUP:
         default:
             {

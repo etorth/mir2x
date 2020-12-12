@@ -16,11 +16,16 @@
  * =====================================================================================
  */
 
+#include "fflerror.hpp"
 #include "processrun.hpp"
 #include "clienttaodog.hpp"
 
 bool ClientTaoDog::onActionSpawn(const ActionNode &action)
 {
+    if(!m_forceMotionQueue.empty()){
+        throw fflerror("found motion before spawn: %s", uidf::getUIDString(UID()).c_str());
+    }
+
     m_currMotion.reset(new MotionNode
     {
         .type = MOTION_MON_APPEAR,

@@ -448,6 +448,7 @@ bool ClientMonster::onActionTransf(const ActionNode &)
 
 bool ClientMonster::onActionSpaceMove2(const ActionNode &action)
 {
+    m_forceMotionQueue.clear();
     m_currMotion.reset(new MotionNode
     {
         .type = MOTION_MON_STAND,
@@ -471,6 +472,10 @@ bool ClientMonster::onActionMove(const ActionNode &action)
 
 bool ClientMonster::onActionSpawn(const ActionNode &action)
 {
+    if(!m_forceMotionQueue.empty()){
+        throw fflerror("found motion before spawn: %s", uidf::getUIDString(UID()).c_str());
+    }
+
     m_currMotion = std::unique_ptr<MotionNode>(new MotionNode
     {
         .type = MOTION_MON_STAND,
