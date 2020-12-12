@@ -50,7 +50,7 @@ class ServiceCore final: public ServerObject
         const ServerMap *retrieveMap(uint32_t);
 
     public:
-        uint64_t activate() override;
+        void onActivate() override;
 
     private:
         void on_MPK_LOGIN(const MessagePack &);

@@ -201,17 +201,17 @@ class Monster: public CharObject
         bool MoveOneStepNeighbor(int, int, std::function<void()>, std::function<void()>);
 
     public:
-        uint64_t activate() override
+        void onActivate() override
         {
-            return CharObject::activateWithStartHandler([this]()
+            CharObject::onActivate();
+            if(!masterUID()){
+                return;
+            }
+
+            m_actorPod->forward(masterUID(), {MPK_CHECKMASTER}, [this](const MessagePack &rstRMPK)
             {
-                if(masterUID()){
-                    m_actorPod->forward(masterUID(), {MPK_CHECKMASTER}, [this](const MessagePack &rstRMPK)
-                    {
-                        if(rstRMPK.Type() != MPK_OK){
-                            goDie();
-                        }
-                    });
+                if(rstRMPK.Type() != MPK_OK){
+                    goDie();
                 }
             });
         }

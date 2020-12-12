@@ -551,7 +551,7 @@ class ActorPool final
 
     private:
         void detach(const Receiver *);
-        void detach(const ActorPod *, const std::function<void()> &);
+        void detach(const ActorPod *, std::function<void()>);
 
     public:
         void launchPool();

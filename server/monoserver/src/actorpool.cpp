@@ -178,7 +178,7 @@ void ActorPool::attach(Receiver *receriverPtr)
     }
 }
 
-void ActorPool::detach(const ActorPod *actorPtr, const std::function<void()> &fnAtExit)
+void ActorPool::detach(const ActorPod *actorPtr, std::function<void()> fnAtExit)
 {
     logProfiler();
     if(!(actorPtr && actorPtr->UID())){
@@ -328,7 +328,7 @@ void ActorPool::detach(const ActorPod *actorPtr, const std::function<void()> &fn
                         // the fnAtExit can be [](){ delete this; }
 
                         if(fnAtExit){
-                            mailboxPtr->atExit = fnAtExit;
+                            mailboxPtr->atExit = std::move(fnAtExit);
                         }
 
                         mailboxPtr->actor = nullptr;

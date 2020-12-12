@@ -81,7 +81,7 @@ ServerObject::~ServerObject()
 //
 // And if we really want to change the address of current object, maybe we need to
 // delete current object totally and create a new one instead
-uint64_t ServerObject::activateWithStartHandler(std::function<void()> atStart)
+uint64_t ServerObject::activate()
 {
     if(m_actorPod){
         throw fflerror("activation twice: %s", uidf::getUIDString(UID()).c_str());
@@ -100,9 +100,17 @@ uint64_t ServerObject::activateWithStartHandler(std::function<void()> atStart)
             operateAM(rstMPK);
         },
 
-        std::move(atStart),
         3600 * 1000,
     };
+
+    // seperate attach call
+    // this triggers the startup callback, i.e. the onActivate()
+    // if automatically call attach() in ActorPod::ctor() then m_actorPod is invalid yet
+
+    m_actorPod->attach([this]()
+    {
+        onActivate();
+    });
     return UID();
 }
 

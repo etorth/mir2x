@@ -233,12 +233,10 @@ class CharObject: public ServerObject
         }
 
     public:
-        uint64_t activate() override
+        void onActivate() override
         {
-            return ServerObject::activateWithStartHandler([this]()
-            {
-                dispatchAction(ActionSpawn(X(), Y(), Direction()));
-            });
+            ServerObject::onActivate();
+            dispatchAction(ActionSpawn(X(), Y(), Direction()));
         }
 
     protected:

@@ -97,21 +97,19 @@ void ServiceCore::operateNet(uint32_t nSID, uint8_t nType, const uint8_t *pData,
     }
 }
 
-uint64_t ServiceCore::activate()
+void ServiceCore::onActivate()
 {
-    return ServerObject::activateWithStartHandler([this]()
-    {
-        if(!g_serverArgParser->preloadMap){
+    ServerObject::onActivate();
+    if(!g_serverArgParser->preloadMap){
+        return;
+    }
+
+    for(uint32_t mapID = 1;; ++mapID){
+        if(!retrieveMap(mapID)){
             return;
         }
-
-        for(uint32_t mapID = 1;; ++mapID){
-            if(!retrieveMap(mapID)){
-                return;
-            }
-            g_monoServer->addLog(LOGTYPE_INFO, "Preload %s successfully", to_cstr(DBCOM_MAPRECORD(mapID).name));
-        }
-    });
+        g_monoServer->addLog(LOGTYPE_INFO, "Preload %s successfully", to_cstr(DBCOM_MAPRECORD(mapID).name));
+    }
 }
 
 void ServiceCore::loadMap(uint32_t mapID)

@@ -194,12 +194,10 @@ class ServerMap final: public ServerObject
         }
 
     public:
-        uint64_t activate() override
+        void onActivate() override
         {
-            return ServerObject::activateWithStartHandler([this]()
-            {
-                m_luaModulePtr = std::make_unique<ServerMap::ServerMapLuaModule>(this);
-            });
+            ServerObject::onActivate();
+            m_luaModulePtr = std::make_unique<ServerMap::ServerMapLuaModule>(this);
         }
 
     private:

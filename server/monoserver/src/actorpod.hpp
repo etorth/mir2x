@@ -94,7 +94,6 @@ class ActorPod final
         explicit ActorPod(uint64_t,                         // UID
                 std::function<void()>,                      // trigger
                 std::function<void(const MessagePack &)>,   // msgHandler
-                std::function<void()>,                      // atStart
                 uint32_t);                                  // timeout
 
     public:
@@ -129,7 +128,8 @@ class ActorPod final
         }
 
     public:
-        void detach(const std::function<void()> &) const;
+        void attach(std::function<void()>);
+        void detach(std::function<void()>) const;
 
     public:
         static bool checkUIDValid(uint64_t);

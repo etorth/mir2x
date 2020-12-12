@@ -34,7 +34,6 @@ extern ServerArgParser *g_serverArgParser;
 ActorPod::ActorPod(uint64_t nUID,
         std::function<void()> fnTrigger,
         std::function<void(const MessagePack &)> fnOperation,
-        std::function<void()> fnAtStart,
         uint32_t nExpireTime)
     : m_UID([nUID]() -> uint64_t
       {
@@ -52,9 +51,7 @@ ActorPod::ActorPod(uint64_t nUID,
     , m_validID(0)
     , m_expireTime(nExpireTime)
     , m_respondHandlerGroup()
-{
-    g_actorPool->attach(this, std::move(fnAtStart));
-}
+{}
 
 ActorPod::~ActorPod()
 {
@@ -244,7 +241,12 @@ bool ActorPod::forward(uint64_t nUID, const MessageBuf &rstMB, uint32_t nRespond
     }
 }
 
-void ActorPod::detach(const std::function<void()> &fnAtExit) const
+void ActorPod::attach(std::function<void()> fnAtStart)
+{
+    g_actorPool->attach(this, std::move(fnAtStart));
+}
+
+void ActorPod::detach(std::function<void()> fnAtExit) const
 {
     // we can call detach in its message handler
     // remember the message handler can be executed by worker thread or stealing worker thread
@@ -262,7 +264,7 @@ void ActorPod::detach(const std::function<void()> &fnAtExit) const
     // it's worse to call it out of its message handler
     // when detach returns we can't guarantee if the actor is till handling message
     //
-    g_actorPool->detach(this, fnAtExit);
+    g_actorPool->detach(this, std::move(fnAtExit));
 }
 
 bool ActorPod::checkUIDValid(uint64_t uid)
