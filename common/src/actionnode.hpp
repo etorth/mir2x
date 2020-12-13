@@ -21,6 +21,38 @@
 #include <cstdint>
 #include "protocoldef.hpp"
 
+#pragma pack(push, 1)
+union ActionExtParam
+{
+    struct ParamSpell
+    {
+        uint16_t magicID;
+    }spell;
+
+    struct ParamTransf
+    {
+        uint8_t stand : 1;
+    }transf;
+};
+
+struct ActionBuf
+{
+    uint32_t type      :  8;
+    uint32_t speed     : 10;
+    uint32_t direction :  8;
+
+    uint16_t x;
+    uint16_t y;
+
+    uint16_t aimX;
+    uint16_t aimY;
+
+    uint64_t aimUID;
+    ActionExtParam extParam;
+};
+#pragma pack(pop)
+static_assert(std::is_trivially_copyable_v<ActionBuf>);
+
 struct ActionDie
 {
     int X = -1;
