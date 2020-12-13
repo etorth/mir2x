@@ -603,7 +603,7 @@ void Monster::operateAM(const MessagePack &rstMPK)
             }
         default:
             {
-                throw fflerror("Unsupported message: %s", rstMPK.Name());
+                throw fflerror("Unsupported message: %s", mpkName(rstMPK.Type()));
             }
     }
 }

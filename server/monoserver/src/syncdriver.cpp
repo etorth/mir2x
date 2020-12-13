@@ -18,52 +18,51 @@
 
 #include <cinttypes>
 #include "uidf.hpp"
-#include "serverargparser.hpp"
 #include "actorpool.hpp"
 #include "monoserver.hpp"
 #include "syncdriver.hpp"
+#include "serverargparser.hpp"
 
-MessagePack SyncDriver::forward(uint64_t nUID, const MessageBuf &rstMB, uint32_t nRespond, uint32_t nTimeout)
+extern ActorPool *g_actorPool;
+extern MonoServer *g_monoServer;
+extern ServerArgParser *g_serverArgParser;
+
+MessagePack SyncDriver::forward(uint64_t uid, const MessageBuf &mb, uint32_t resp, uint32_t timeout)
 {
-    if(!nUID){
-        extern MonoServer *g_monoServer;
-        g_monoServer->addLog(LOGTYPE_WARNING, "Sending message to UID 0");
-        return {MPK_NONE};
+    if(!uid){
+        throw fflerror("invalid UID: ZERO");
     }
 
     // don't use in actor thread
     // because we can use actor send message directly
     // and this blocks the actor thread caused the wait never finish
 
-    extern ActorPool *g_actorPool;
     if(g_actorPool->isActorThread()){
-        extern MonoServer *g_monoServer;
-        g_monoServer->addLog(LOGTYPE_FATAL, "Calling SyncDriver::forward() in actor thread, SyncDriver = %p, SyncDriver::UID() = %" PRIu64, this, UID());
-        return {MPK_NONE};
+        throw fflerror("calling SyncDriver::forward() in actor thread, uid = %s", uidf::getUIDString(uid).c_str());
     }
 
-    m_currID = (m_currID + 1) ? (m_currID + 1) : 1;
-    auto nCurrID = m_currID;
+    m_currID++;
+    if(m_currID == 0){
+        m_currID = 1;
+    }
 
-    extern ServerArgParser *g_serverArgParser;
     if(g_serverArgParser->TraceActorMessage){
-        extern MonoServer *g_monoServer;
-        g_monoServer->addLog(LOGTYPE_DEBUG, "%s -> %s: (Type: %s, ID: %" PRIu32 ", Resp: %" PRIu32 ")", uidf::getUIDString(UID()).c_str(), uidf::getUIDString(nUID).c_str(), nCurrID, nRespond);
+        g_monoServer->addLog(LOGTYPE_DEBUG, "%s -> %s: (type: %s, ID: %llu, Resp: %llu)", uidf::getUIDString(UID()).c_str(), uidf::getUIDString(uid).c_str(), mpkName(mb.Type()), to_llu(m_currID), to_llu(resp));
     }
 
-    if(!g_actorPool->postMessage(nUID, {rstMB, UID(), nCurrID, nRespond})){
+    if(!g_actorPool->postMessage(uid, {mb, UID(), m_currID, resp})){
         AMBadActorPod amBAP;
         std::memset(&amBAP, 0, sizeof(amBAP));
 
-        amBAP.Type    = rstMB.Type();
+        amBAP.Type    = mb.Type();
         amBAP.from    = UID();
-        amBAP.ID      = nCurrID;
-        amBAP.Respond = nRespond;
+        amBAP.ID      = m_currID;
+        amBAP.Respond = resp;
 
-        return {MessageBuf(MPK_BADACTORPOD, amBAP), 0, 0, nCurrID};
+        return {MessageBuf(MPK_BADACTORPOD, amBAP), 0, 0, m_currID};
     }
 
-    switch(m_receiver.Wait(nTimeout)){
+    switch(m_receiver.Wait(timeout)){
         case 0:
             {
                 break;
@@ -71,9 +70,9 @@ MessagePack SyncDriver::forward(uint64_t nUID, const MessageBuf &rstMB, uint32_t
         case 1:
         default:
             {
-                if(auto stvMPK = m_receiver.Pop(); stvMPK.size()){
-                    for(auto p = stvMPK.begin(); p != stvMPK.end(); ++p){
-                        if(p->Respond() == nCurrID){
+                if(auto mpkList = m_receiver.Pop(); mpkList.size()){
+                    for(auto p = mpkList.begin(); p != mpkList.end(); ++p){
+                        if(p->Respond() == m_currID){
                             return *p;
                         }
                     }

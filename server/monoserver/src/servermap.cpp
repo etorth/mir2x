@@ -485,7 +485,7 @@ void ServerMap::operateAM(const MessagePack &rstMPK)
             }
         default:
             {
-                g_monoServer->addLog(LOGTYPE_FATAL, "Unsupported message: %s", rstMPK.Name());
+                g_monoServer->addLog(LOGTYPE_FATAL, "Unsupported message: %s", mpkName(rstMPK.Type()));
                 break;
             }
     }

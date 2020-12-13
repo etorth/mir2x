@@ -25,15 +25,14 @@
 class SyncDriver final
 {
     private:
-        uint32_t m_currID;
+        uint32_t m_currID = 1;
 
     private:
         Receiver m_receiver;
 
     public:
         SyncDriver()
-            : m_currID(1)
-            , m_receiver()
+            : m_receiver()
         {}
 
     public:

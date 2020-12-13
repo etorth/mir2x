@@ -24,20 +24,19 @@
 #include "dispatcher.hpp"
 #include "messagepack.hpp"
 
+extern ActorPool *g_actorPool;
+extern MonoServer *g_monoServer;
+extern ServerArgParser *g_serverArgParser;
+
 bool Dispatcher::forward(uint64_t nUID, const MessageBuf &rstMB, uint32_t nRespond)
 {
-    extern ServerArgParser *g_serverArgParser;
     if(g_serverArgParser->TraceActorMessage){
-        extern MonoServer *g_monoServer;
-        g_monoServer->addLog(LOGTYPE_DEBUG, "Dispatcher -> (UID: %s, Type: %s, ID: 0, Resp: %" PRIu32 ")", uidf::getUIDString(nUID).c_str(), MessagePack(rstMB.Type()).Name(), nRespond);
+        g_monoServer->addLog(LOGTYPE_DEBUG, "Dispatcher -> (UID: %s, Type: %s, ID: 0, Resp: %llu)", uidf::getUIDString(nUID).c_str(), mpkName(rstMB.Type()), to_llu(nRespond));
     }
 
     if(!nUID){
-        extern MonoServer *g_monoServer;
-        g_monoServer->addLog(LOGTYPE_DEBUG, "Dispatcher -> (UID: %s, Type: %s, ID: 0, Resp: %" PRIu32 "): Try to send message to UID 0", uidf::getUIDString(nUID).c_str(), MessagePack(rstMB.Type()).Name(), nRespond);
+        g_monoServer->addLog(LOGTYPE_DEBUG, "Dispatcher -> (UID: %s, Type: %s, ID: 0, Resp: %llu): Try to send message to UID 0", uidf::getUIDString(nUID).c_str(), mpkName(rstMB.Type()), to_llu(nRespond));
         return false;
     }
-
-    extern ActorPool *g_actorPool;
     return g_actorPool->postMessage(nUID, {rstMB, 0, 0, nRespond});
 }

@@ -217,76 +217,78 @@ template<size_t StaticBufferLength = 64> class InnMessagePack final
         {
             return m_respond;
         }
-
-        const char *Name() const
-        {
-            switch(m_type){
-                case MPK_NONE                : return "MPK_NONE";
-                case MPK_OK                  : return "MPK_OK";
-                case MPK_ERROR               : return "MPK_ERROR";
-                case MPK_BADACTORPOD         : return "MPK_BADACTORPOD";
-                case MPK_BADCHANNEL          : return "MPK_BADCHANNEL";
-                case MPK_TIMEOUT             : return "MPK_TIMEOUT";
-                case MPK_UID                 : return "MPK_UID";
-                case MPK_PING                : return "MPK_PING";
-                case MPK_LOGIN               : return "MPK_LOGIN";
-                case MPK_METRONOME           : return "MPK_METRONOME";
-                case MPK_TRYMOVE             : return "MPK_TRYMOVE";
-                case MPK_TRYSPACEMOVE        : return "MPK_TRYSPACEMOVE";
-                case MPK_MOVEOK              : return "MPK_MOVEOK";
-                case MPK_SPACEMOVEOK         : return "MPK_SPACEMOVEOK";
-                case MPK_TRYLEAVE            : return "MPK_TRYLEAVE";
-                case MPK_LOGINOK             : return "MPK_LOGINOK";
-                case MPK_ADDRESS             : return "MPK_ADDRESS";
-                case MPK_LOGINQUERYDB        : return "MPK_LOGINQUERYDB";
-                case MPK_NETPACKAGE          : return "MPK_NETPACKAGE";
-                case MPK_ADDCHAROBJECT       : return "MPK_ADDCHAROBJECT";
-                case MPK_BINDCHANNEL         : return "MPK_BINDCHANNEL";
-                case MPK_ACTION              : return "MPK_ACTION";
-                case MPK_PULLCOINFO          : return "MPK_PULLCOINFO";
-                case MPK_QUERYMAPLIST        : return "MPK_QUERYMAPLIST";
-                case MPK_MAPLIST             : return "MPK_MAPLIST";
-                case MPK_MAPSWITCH           : return "MPK_MAPSWITCH";
-                case MPK_MAPSWITCHOK         : return "MPK_MAPSWITCHOK";
-                case MPK_TRYMAPSWITCH        : return "MPK_TRYMAPSWITCH";
-                case MPK_QUERYMAPUID         : return "MPK_QUERYMAPUID";
-                case MPK_QUERYLOCATION       : return "MPK_QUERYLOCATION";
-                case MPK_LOCATION            : return "MPK_LOCATION";
-                case MPK_PATHFIND            : return "MPK_PATHFIND";
-                case MPK_PATHFINDOK          : return "MPK_PATHFINDOK";
-                case MPK_ATTACK              : return "MPK_ATTACK";
-                case MPK_UPDATEHP            : return "MPK_UPDATEHP";
-                case MPK_DEADFADEOUT         : return "MPK_DEADFADEOUT";
-                case MPK_QUERYCORECORD       : return "MPK_QUERYCORECORD";
-                case MPK_QUERYCOCOUNT        : return "MPK_QUERYCOCOUNT";
-                case MPK_COCOUNT             : return "MPK_COCOUNT";
-                case MPK_QUERYRECTUIDLIST    : return "MPK_QUERYRECTUIDLIST";
-                case MPK_UIDLIST             : return "MPK_UIDLIST";
-                case MPK_EXP                 : return "MPK_EXP";
-                case MPK_MISS                : return "MPK_MISS";
-                case MPK_NEWDROPITEM         : return "MPK_NEWDROPITEM";
-                case MPK_SHOWDROPITEM        : return "MPK_SHOWDROPITEM";
-                case MPK_NOTIFYDEAD          : return "MPK_NOTIFYDEAD";
-                case MPK_OFFLINE             : return "MPK_OFFLINE";
-                case MPK_PICKUP              : return "MPK_PICKUP";
-                case MPK_PICKUPOK            : return "MPK_PICKUPOK";
-                case MPK_REMOVEGROUNDITEM    : return "MPK_REMOVEGROUNDITEM";
-                case MPK_CORECORD            : return "MPK_CORECORD";
-                case MPK_NOTIFYNEWCO         : return "MPK_NOTIFYNEWCO";
-                case MPK_CHECKMASTER         : return "MPK_CHECKMASTER";
-                case MPK_QUERYMASTER         : return "MPK_QUERYMASTER";
-                case MPK_QUERYFINALMASTER    : return "MPK_QUERYFINALMASTER";
-                case MPK_QUERYFRIENDTYPE     : return "MPK_QUERYFRIENDTYPE";
-                case MPK_FRIENDTYPE          : return "MPK_FRIENDTYPE";
-                case MPK_QUERYNAMECOLOR      : return "MPK_QUERYNAMECOLOR";
-                case MPK_NAMECOLOR           : return "MPK_NAMECOLOR";
-                case MPK_MASTERKILL          : return "MPK_MASTERKILL";
-                case MPK_NPCEVENT            : return "MPK_NPCEVENT";
-                case MPK_NPCXMLLAYOUT        : return "MPK_NPCXMLLAYOUT";
-                case MPK_NPCERROR            : return "MPK_NPCERROR";
-                default                      : return "MPK_UNKNOWN";
-            }
-        }
 };
+
+inline const char *mpkName(int type)
+{
+#define _add_mpk_type_case(t) case t: return #t;
+    switch(type){
+        _add_mpk_type_case(MPK_NONE            )
+        _add_mpk_type_case(MPK_OK              )
+        _add_mpk_type_case(MPK_ERROR           )
+        _add_mpk_type_case(MPK_BADACTORPOD     )
+        _add_mpk_type_case(MPK_BADCHANNEL      )
+        _add_mpk_type_case(MPK_TIMEOUT         )
+        _add_mpk_type_case(MPK_UID             )
+        _add_mpk_type_case(MPK_PING            )
+        _add_mpk_type_case(MPK_LOGIN           )
+        _add_mpk_type_case(MPK_METRONOME       )
+        _add_mpk_type_case(MPK_TRYMOVE         )
+        _add_mpk_type_case(MPK_TRYSPACEMOVE    )
+        _add_mpk_type_case(MPK_MOVEOK          )
+        _add_mpk_type_case(MPK_SPACEMOVEOK     )
+        _add_mpk_type_case(MPK_TRYLEAVE        )
+        _add_mpk_type_case(MPK_LOGINOK         )
+        _add_mpk_type_case(MPK_ADDRESS         )
+        _add_mpk_type_case(MPK_LOGINQUERYDB    )
+        _add_mpk_type_case(MPK_NETPACKAGE      )
+        _add_mpk_type_case(MPK_ADDCHAROBJECT   )
+        _add_mpk_type_case(MPK_BINDCHANNEL     )
+        _add_mpk_type_case(MPK_ACTION          )
+        _add_mpk_type_case(MPK_PULLCOINFO      )
+        _add_mpk_type_case(MPK_QUERYMAPLIST    )
+        _add_mpk_type_case(MPK_MAPLIST         )
+        _add_mpk_type_case(MPK_MAPSWITCH       )
+        _add_mpk_type_case(MPK_MAPSWITCHOK     )
+        _add_mpk_type_case(MPK_TRYMAPSWITCH    )
+        _add_mpk_type_case(MPK_QUERYMAPUID     )
+        _add_mpk_type_case(MPK_QUERYLOCATION   )
+        _add_mpk_type_case(MPK_LOCATION        )
+        _add_mpk_type_case(MPK_PATHFIND        )
+        _add_mpk_type_case(MPK_PATHFINDOK      )
+        _add_mpk_type_case(MPK_ATTACK          )
+        _add_mpk_type_case(MPK_UPDATEHP        )
+        _add_mpk_type_case(MPK_DEADFADEOUT     )
+        _add_mpk_type_case(MPK_QUERYCORECORD   )
+        _add_mpk_type_case(MPK_QUERYCOCOUNT    )
+        _add_mpk_type_case(MPK_COCOUNT         )
+        _add_mpk_type_case(MPK_QUERYRECTUIDLIST)
+        _add_mpk_type_case(MPK_UIDLIST         )
+        _add_mpk_type_case(MPK_EXP             )
+        _add_mpk_type_case(MPK_MISS            )
+        _add_mpk_type_case(MPK_NEWDROPITEM     )
+        _add_mpk_type_case(MPK_SHOWDROPITEM    )
+        _add_mpk_type_case(MPK_NOTIFYDEAD      )
+        _add_mpk_type_case(MPK_OFFLINE         )
+        _add_mpk_type_case(MPK_PICKUP          )
+        _add_mpk_type_case(MPK_PICKUPOK        )
+        _add_mpk_type_case(MPK_REMOVEGROUNDITEM)
+        _add_mpk_type_case(MPK_CORECORD        )
+        _add_mpk_type_case(MPK_NOTIFYNEWCO     )
+        _add_mpk_type_case(MPK_CHECKMASTER     )
+        _add_mpk_type_case(MPK_QUERYMASTER     )
+        _add_mpk_type_case(MPK_QUERYFINALMASTER)
+        _add_mpk_type_case(MPK_QUERYFRIENDTYPE )
+        _add_mpk_type_case(MPK_FRIENDTYPE      )
+        _add_mpk_type_case(MPK_QUERYNAMECOLOR  )
+        _add_mpk_type_case(MPK_NAMECOLOR       )
+        _add_mpk_type_case(MPK_MASTERKILL      )
+        _add_mpk_type_case(MPK_NPCEVENT        )
+        _add_mpk_type_case(MPK_NPCXMLLAYOUT    )
+        _add_mpk_type_case(MPK_NPCERROR        )
+        default: return "MPK_UNKNOWN";
+    }
+#undef _add_mpk_type_case
+}
 
 using MessagePack = InnMessagePack<64>;

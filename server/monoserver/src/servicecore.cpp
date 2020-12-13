@@ -76,7 +76,7 @@ void ServiceCore::operateAM(const MessagePack &rstMPK)
             }
         default:
             {
-                g_monoServer->addLog(LOGTYPE_WARNING, "Unsupported message: %s", rstMPK.Name());
+                g_monoServer->addLog(LOGTYPE_WARNING, "Unsupported message: %s", mpkName(rstMPK.Type()));
                 break;
             }
     }

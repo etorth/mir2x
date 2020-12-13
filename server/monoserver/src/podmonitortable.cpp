@@ -52,7 +52,7 @@ std::string PodMonitorTable::getGridData(int nRow, int nCol) const
     switch(nCol){
         case 0: // TYPE
             {
-                return fnAdjustLength(MessagePack(monitor.amType).Name(), 22, false);
+                return fnAdjustLength(mpkName(monitor.amType), 22, false);
             }
         case 1: // BUSY
             {

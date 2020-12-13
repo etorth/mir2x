@@ -368,7 +368,7 @@ bool ActorPool::postMessage(uint64_t uid, MessagePack msg)
 {
     logProfiler();
     if(!uid){
-        throw fflerror("sending %s to zero UID", msg.Name());
+        throw fflerror("sending %s to zero UID", mpkName(msg.Type()));
     }
 
     if(!msg){

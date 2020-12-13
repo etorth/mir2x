@@ -366,7 +366,7 @@ bool MonoServer::addMonster(uint32_t monsterID, uint32_t mapID, int x, int y, bo
             }
         default:
             {
-                addLog(LOGTYPE_WARNING, "Unsupported message: %s", stRMPK.Name());
+                addLog(LOGTYPE_WARNING, "Unsupported message: %s", mpkName(stRMPK.Type()));
                 return false;
             }
     }
@@ -399,7 +399,7 @@ bool MonoServer::addNPChar(uint16_t npcID, uint32_t mapID, int x, int y, bool st
             }
         default:
             {
-                throw fflerror("Unsupported message: %s", stRMPK.Name());
+                throw fflerror("Unsupported message: %s", mpkName(stRMPK.Type()));
             }
     }
 }

@@ -460,7 +460,7 @@ void NPChar::operateAM(const MessagePack &mpk)
             }
         default:
             {
-                throw fflerror("unsupported message: %s", mpk.Name());
+                throw fflerror("unsupported message: %s", mpkName(mpk.Type()));
             }
     }
 }

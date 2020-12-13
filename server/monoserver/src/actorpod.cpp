@@ -72,8 +72,7 @@ ActorPod::~ActorPod()
 void ActorPod::innHandler(const MessagePack &rstMPK)
 {
     if(g_serverArgParser->TraceActorMessage){
-        g_monoServer->addLog(LOGTYPE_DEBUG, "%s <- %s : (Type: %s, ID: %" PRIu32 ", Resp: %" PRIu32 ")",
-                uidf::getUIDString(UID()).c_str(), uidf::getUIDString(rstMPK.from()).c_str(), rstMPK.Name(), rstMPK.ID(), rstMPK.Respond());
+        g_monoServer->addLog(LOGTYPE_DEBUG, "%s <- %s : (Type: %s, ID: %llu, Resp: %llu)", uidf::getUIDString(UID()).c_str(), uidf::getUIDString(rstMPK.from()).c_str(), mpkName(rstMPK.Type()), to_llu(rstMPK.ID()), to_llu(rstMPK.Respond()));
     }
 
     if(m_expireTime){
@@ -111,9 +110,9 @@ void ActorPod::innHandler(const MessagePack &rstMPK)
                     raii_timer stTimer(&(m_podMonitor.amProcMonitorList[rstMPK.Type()].procTick));
                     p->second.Operation(rstMPK);
                 }
-            }else{
-                throw fflerror("%s <- %s : (Type: %s, ID: %" PRIu32 ", Resp: %" PRIu32 "): Response handler not executable",
-                        uidf::getUIDString(UID()).c_str(), uidf::getUIDString(rstMPK.from()).c_str(), rstMPK.Name(), rstMPK.ID(), rstMPK.Respond());
+            }
+            else{
+                throw fflerror("%s <- %s : (Type: %s, ID: %llu, Resp: %llu): Response handler not executable", uidf::getUIDString(UID()).c_str(), uidf::getUIDString(rstMPK.from()).c_str(), mpkName(rstMPK.Type()), to_llu(rstMPK.ID()), to_llu(rstMPK.Respond()));
             }
             m_respondHandlerGroup.erase(p);
         }else{
@@ -132,8 +131,7 @@ void ActorPod::innHandler(const MessagePack &rstMPK)
         }else{
             // shoud I make it fatal?
             // we may get a lot warning message here
-            throw fflerror("%s <- %s : (Type: %s, ID: %" PRIu32 ", Resp: %" PRIu32 "): Message handler not executable",
-                    uidf::getUIDString(UID()).c_str(), uidf::getUIDString(rstMPK.from()).c_str(), rstMPK.Name(), rstMPK.ID(), rstMPK.Respond());
+            throw fflerror("%s <- %s : (Type: %s, ID: %llu, Resp: %llu): Message handler not executable", uidf::getUIDString(UID()).c_str(), uidf::getUIDString(rstMPK.from()).c_str(), mpkName(rstMPK.Type()), to_llu(rstMPK.ID()), to_llu(rstMPK.Respond()));
         }
     }
 
@@ -170,23 +168,19 @@ uint32_t ActorPod::GetValidID()
 bool ActorPod::forward(uint64_t nUID, const MessageBuf &rstMB, uint32_t nRespond)
 {
     if(!nUID){
-        throw fflerror("%s -> NONE: (Type: %s, ID: 0, Resp: %" PRIu32 "): Try to send message to an empty address",
-                uidf::getUIDString(UID()).c_str(), MessagePack(rstMB.Type()).Name(), nRespond);
+        throw fflerror("%s -> NONE: (Type: %s, ID: 0, Resp: %llu): Try to send message to an empty address", uidf::getUIDString(UID()).c_str(), mpkName(rstMB.Type()), to_llu(nRespond));
     }
 
     if(nUID == UID()){
-        throw fflerror("%s -> %s: (Type: %s, ID: 0, Resp: %" PRIu32 "): Try to send message to itself",
-                uidf::getUIDString(UID()).c_str(), uidf::getUIDString(nUID).c_str(), MessagePack(rstMB.Type()).Name(), nRespond);
+        throw fflerror("%s -> %s: (Type: %s, ID: 0, Resp: %llu): Try to send message to itself", uidf::getUIDString(UID()).c_str(), uidf::getUIDString(nUID).c_str(), mpkName(rstMB.Type()), to_llu(nRespond));
     }
 
     if(!rstMB){
-        throw fflerror("%s -> %s: (Type: MPK_NONE, ID: 0, Resp: %" PRIu32 "): Try to send an empty message",
-                uidf::getUIDString(UID()).c_str(), uidf::getUIDString(nUID).c_str(), nRespond);
+        throw fflerror("%s -> %s: (Type: MPK_NONE, ID: 0, Resp: %llu): Try to send an empty message", uidf::getUIDString(UID()).c_str(), uidf::getUIDString(nUID).c_str(), to_llu(nRespond));
     }
 
     if(g_serverArgParser->TraceActorMessage){
-        g_monoServer->addLog(LOGTYPE_DEBUG, "%s -> %s: (Type: %s, ID: 0, Resp: %" PRIu32 ")",
-                uidf::getUIDString(UID()).c_str(), uidf::getUIDString(nUID).c_str(), MessagePack(rstMB.Type()).Name(), nRespond);
+        g_monoServer->addLog(LOGTYPE_DEBUG, "%s -> %s: (Type: %s, ID: 0, Resp: %llu)", uidf::getUIDString(UID()).c_str(), uidf::getUIDString(nUID).c_str(), mpkName(rstMB.Type()), to_llu(nRespond));
     }
 
     m_podMonitor.amProcMonitorList[rstMB.Type()].sendCount++;
@@ -196,29 +190,24 @@ bool ActorPod::forward(uint64_t nUID, const MessageBuf &rstMB, uint32_t nRespond
 bool ActorPod::forward(uint64_t nUID, const MessageBuf &rstMB, uint32_t nRespond, std::function<void(const MessagePack &)> fnOPR)
 {
     if(!nUID){
-        throw fflerror("%s -> NONE: (Type: %s, ID: 0, Resp: %" PRIu32 "): Try to send message to an empty address",
-                uidf::getUIDString(UID()).c_str(), MessagePack(rstMB.Type()).Name(), nRespond);
+        throw fflerror("%s -> NONE: (Type: %s, ID: 0, Resp: %llu): Try to send message to an empty address", uidf::getUIDString(UID()).c_str(), mpkName(rstMB.Type()), to_llu(nRespond));
     }
 
     if(nUID == UID()){
-        throw fflerror("%s -> %s: (Type: %s, ID: 0, Resp: %" PRIu32 "): Try to send message to itself",
-                uidf::getUIDString(UID()).c_str(), uidf::getUIDString(nUID).c_str(), MessagePack(rstMB.Type()).Name(), nRespond);
+        throw fflerror("%s -> %s: (Type: %s, ID: 0, Resp: %llu): Try to send message to itself", uidf::getUIDString(UID()).c_str(), uidf::getUIDString(nUID).c_str(), mpkName(rstMB.Type()), to_llu(nRespond));
     }
 
     if(!rstMB){
-        throw fflerror("%s -> %s: (Type: MPK_NONE, ID: 0, Resp: %" PRIu32 "): Try to send an empty message",
-                uidf::getUIDString(UID()).c_str(), uidf::getUIDString(nUID).c_str(), nRespond);
+        throw fflerror("%s -> %s: (Type: MPK_NONE, ID: 0, Resp: %llu): Try to send an empty message", uidf::getUIDString(UID()).c_str(), uidf::getUIDString(nUID).c_str(), to_llu(nRespond));
     }
 
     if(!fnOPR){
-        throw fflerror("%s -> %s: (Type: %s, ID: NA, Resp: %" PRIu32 "): Response handler not executable",
-                uidf::getUIDString(UID()).c_str(), uidf::getUIDString(nUID).c_str(), MessagePack(rstMB.Type()).Name(), nRespond);
+        throw fflerror("%s -> %s: (Type: %s, ID: NA, Resp: %llu): Response handler not executable", uidf::getUIDString(UID()).c_str(), uidf::getUIDString(nUID).c_str(), mpkName(rstMB.Type()), to_llu(nRespond));
     }
 
-    auto nID = GetValidID();
+    const auto nID = GetValidID();
     if(g_serverArgParser->TraceActorMessage){
-        g_monoServer->addLog(LOGTYPE_DEBUG, "%s -> %s: (Type: %s, ID: %u, Resp: %u)",
-                uidf::getUIDString(UID()).c_str(), uidf::getUIDString(nUID).c_str(), MessagePack(rstMB.Type()).Name(), nID, nRespond);
+        g_monoServer->addLog(LOGTYPE_DEBUG, "%s -> %s: (Type: %s, ID: %llu, Resp: %llu)", uidf::getUIDString(UID()).c_str(), uidf::getUIDString(nUID).c_str(), mpkName(rstMB.Type()), to_llu(nID), to_llu(nRespond));
     }
 
     m_podMonitor.amProcMonitorList[rstMB.Type()].sendCount++;
@@ -226,7 +215,7 @@ bool ActorPod::forward(uint64_t nUID, const MessageBuf &rstMB, uint32_t nRespond
         if(m_respondHandlerGroup.try_emplace(nID, g_monoServer->getCurrTick() + m_expireTime, std::move(fnOPR)).second){
             return true;
         }
-        throw fflerror("failed to register response handler for posted message: %s", MessagePack(rstMB.Type()).Name());
+        throw fflerror("failed to register response handler for posted message: %s", mpkName(rstMB.Type()));
     }else{
         // respond the response handler here
         // if post failed, it can only be the UID is detached
@@ -282,7 +271,7 @@ void ActorPod::PrintMonitor() const
         const uint32_t nSendCount = m_podMonitor.amProcMonitorList[nIndex].sendCount;
         const uint32_t nRecvCount = m_podMonitor.amProcMonitorList[nIndex].recvCount;
         if(nSendCount || nRecvCount){
-            g_monoServer->addLog(LOGTYPE_DEBUG, "UID: %s %s: procTick %llu ms, sendCount %llu, recvCount %llu", uidf::getUIDString(UID()).c_str(), MessagePack(nIndex).Name(), to_llu(nProcTick), to_llu(nSendCount), to_llu(nRecvCount));
+            g_monoServer->addLog(LOGTYPE_DEBUG, "UID: %s %s: procTick %llu ms, sendCount %llu, recvCount %llu", uidf::getUIDString(UID()).c_str(), mpkName(nIndex), to_llu(nProcTick), to_llu(nSendCount), to_llu(nRecvCount));
         }
     }
 }
