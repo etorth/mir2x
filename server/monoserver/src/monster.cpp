@@ -431,12 +431,18 @@ void Monster::followMaster(std::function<void()> fnOnOK, std::function<void()> f
                     }
             }
         }
+        else{
+            // long distance
+            // need to do spacemove or even mapswitch
 
-        // long distance
-        // slave have to do space move
-
-        auto [nBackX, nBackY] = fnGetBack(nX, nY, nDirection, 3);
-        return requestSpaceMove(nBackX, nBackY, false, fnOnOK, fnOnError);
+            const auto [nBackX, nBackY] = fnGetBack(nX, nY, nDirection, 3);
+            if(nMapID == MapID()){
+                return requestSpaceMove(nBackX, nBackY, false, fnOnOK, fnOnError);
+            }
+            else{
+                return requestMapSwitch(nMapID, nBackX, nBackY, false, fnOnOK, fnOnError);
+            }
+        }
     });
 }
 
