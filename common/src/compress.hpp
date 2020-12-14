@@ -22,9 +22,9 @@
 
 namespace Compress
 {
-    int CountMask(const uint8_t *, size_t);
-    int CountData(const uint8_t *, size_t);
+    int countMask(const uint8_t *, size_t);
+    int countData(const uint8_t *, size_t);
 
-    int Encode(uint8_t *, const uint8_t *, size_t);
-    int Decode(uint8_t *, size_t, const uint8_t *, const uint8_t *);
+    int xorEncode(uint8_t *, const uint8_t *, size_t);
+    int xorDecode(uint8_t *, size_t, const uint8_t *, const uint8_t *);
 }

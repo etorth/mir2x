@@ -19,57 +19,65 @@
 #include <memory>
 #include <cstring>
 #include <libpopcnt.h>
+#include "totype.hpp"
 #include "compress.hpp"
+#include "fflerror.hpp"
 
-int Compress::CountMask(const uint8_t *pData, size_t nDataLen)
+int Compress::countMask(const uint8_t *buf, size_t bufLen)
 {
-    if(!pData){
-        return -1;
+    if(buf){
+        return (int)(popcnt(buf, bufLen));
     }
-    return (int)(popcnt(pData, nDataLen));
+    throw fflerror("invalid buffer: nullptr");
 }
 
-int Compress::CountData(const uint8_t *pData, size_t nDataLen)
+int Compress::countData(const uint8_t *buf, size_t bufLen)
 {
-    if(pData){
-        int nCount = 0;
-        for(size_t nIndex = 0; nIndex < nDataLen; ++nIndex){
-            nCount += (pData[nIndex] ? 1 : 0);
-        }
-        return nCount;
-    }
-    return -1;
-}
-
-int Compress::Encode(uint8_t *pDst, const uint8_t *pData, size_t nDataLen)
-{
-    if(pDst && pData && nDataLen){
-        auto nMaskLen = ((nDataLen + 7) / 8);
-        auto pMask = pDst;
-        auto pComp = pDst + nMaskLen;
-
-        std::memset(pMask, 0, nMaskLen);
-
-        int nDataCount = 0;
-        for(size_t nIndex = 0; nIndex < nDataLen; ++nIndex){
-            if(pData[nIndex]){
-                pMask[nIndex / 8  ] |= (0X01 << (nIndex % 8));
-                pComp[nDataCount++]  = pData[nIndex];
+    if(buf){
+        int count = 0;
+        for(size_t i = 0; i < bufLen; ++i){
+            if(buf[i]){
+                count++;
             }
         }
-        return nDataCount;
+        return count;
     }
-    return -1;
+    throw fflerror("invalid buffer: nullptr");
 }
 
-int Compress::Decode(uint8_t *pOrig, size_t nDataLen, const uint8_t *pMask, const uint8_t *pComp)
+int Compress::xorEncode(uint8_t *dst, const uint8_t *buf, size_t bufLen)
 {
-    if(pOrig && nDataLen && pMask && pComp){
-        int nDecodeCount = 0;
-        for(size_t nIndex = 0; nIndex < nDataLen; ++nIndex){
-            pOrig[nIndex] = (pMask[nIndex / 8] & (0x01 << (nIndex % 8))) ? pComp[nDecodeCount++] : 0;
+    if(dst && buf && bufLen){
+        auto maskLen = ((bufLen + 7) / 8);
+        auto maskPtr = dst;
+        auto compPtr = dst + maskLen;
+        std::memset(maskPtr, 0, maskLen);
+
+        int dataCount = 0;
+        for(size_t i = 0; i < bufLen; ++i){
+            if(buf[i]){
+                maskPtr[i / 8] |= (0X01 << (i % 8));
+                compPtr[dataCount++] = buf[i];
+            }
         }
-        return nDecodeCount;
+        return dataCount;
     }
-    return -1;
+    throw fflerror("invalid arguments: dst = %p, buf = %p, bufPtr = %zu", to_cvptr(dst), to_cvptr(buf), bufLen);
+}
+
+int Compress::xorDecode(uint8_t *dst, size_t bufLen, const uint8_t *maskPtr, const uint8_t *compPtr)
+{
+    if(dst && bufLen && maskPtr && compPtr){
+        int decodeCount = 0;
+        for(size_t i = 0; i < bufLen; ++i){
+            if(maskPtr[i / 8] & (0x01 << (i % 8))){
+                dst[i] = compPtr[decodeCount++];
+            }
+            else{
+                dst[i] = 0;
+            }
+        }
+        return decodeCount;
+    }
+    throw fflerror("invalid arguments: dst = %p, bufLen = %zu, maskPtr = %p, compPtr = %p", to_cvptr(dst), bufLen, to_cvptr(maskPtr), to_cvptr(compPtr));
 }

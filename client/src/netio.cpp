@@ -49,11 +49,11 @@ NetIO::SendPack::SendPack(uint8_t hc, const uint8_t *dataBuf, size_t dataLength)
                 if(data[0] == 255){
                     nSizeLen = 2;
                     nCompLen = 255 + (int)(data[1]);
-                    nMaskCnt = Compress::CountMask(data + 2, cmSG.maskLen());
+                    nMaskCnt = Compress::countMask(data + 2, cmSG.maskLen());
                 }else{
                     nSizeLen = 1;
                     nCompLen = (int)(data[0]);
-                    nMaskCnt = Compress::CountMask(data + 1, cmSG.maskLen());
+                    nMaskCnt = Compress::countMask(data + 1, cmSG.maskLen());
                 }
 
                 if(false
@@ -292,7 +292,7 @@ bool NetIO::readBody(size_t nMaskLen, size_t nBodyLen)
             if(errCode){ fnOnNetError(errCode); }
             else{
                 if(nMaskLen){
-                    auto nMaskCount = Compress::CountMask(&(m_readBuf[0]), nMaskLen);
+                    auto nMaskCount = Compress::countMask(&(m_readBuf[0]), nMaskLen);
                     if(nMaskCount != (int)(nBodyLen)){
                         // we get corrupted data
                         // should we ignore current package or kill the process?
@@ -310,7 +310,7 @@ bool NetIO::readBody(size_t nMaskLen, size_t nBodyLen)
                         auto pMaskData = &(m_readBuf[0]);
                         auto pCompData = &(m_readBuf[nMaskLen]);
                         auto pOrigData = &(m_readBuf[((nMaskLen + nBodyLen + 7) / 8) * 8]);
-                        if(Compress::Decode(pOrigData, stSMSG.dataLen(), pMaskData, pCompData) != (int)(nBodyLen)){
+                        if(Compress::xorDecode(pOrigData, stSMSG.dataLen(), pMaskData, pCompData) != (int)(nBodyLen)){
                             g_log->addLog(LOGTYPE_WARNING, "Decode failed: MaskCount = %d, CompLen = %d", nMaskCount, (int)(nBodyLen));
                             fnReportCurrentMessage();
                             return;
@@ -416,13 +416,13 @@ bool NetIO::send(uint8_t nHC, const uint8_t *pData, size_t nDataLen)
                     return false;
                 }
 
-                auto nCountData = Compress::CountData(pData, nDataLen);
+                auto nCountData = Compress::countData(pData, nDataLen);
                 if((nCountData < 0) || (nCountData > (int)(cmSG.dataLen()))){
                     g_log->addLog(LOGTYPE_WARNING, "Count failed: headCode = %d, DataLen = %d, CountData = %d", (int)(nHC), (int)(nDataLen), nCountData);
                     return false;
                 }else if(nCountData <= 254){
                     pEncodeData = (uint8_t *)(m_memoryPN.Get(cmSG.maskLen() + (size_t)(nCountData) + 1));
-                    if(Compress::Encode(pEncodeData + 1, pData, nDataLen) != nCountData){
+                    if(Compress::xorEncode(pEncodeData + 1, pData, nDataLen) != nCountData){
                         g_log->addLog(LOGTYPE_WARNING, "Count failed: headCode = %d, DataLen = %d, CountData = %d", (int)(nHC), (int)(nDataLen), nCountData);
 
                         m_memoryPN.Free(pEncodeData);
@@ -433,7 +433,7 @@ bool NetIO::send(uint8_t nHC, const uint8_t *pData, size_t nDataLen)
                     nEncodeSize    = 1 + cmSG.maskLen() + (size_t)(nCountData);
                 }else if(nCountData <= (255 + 255)){
                     pEncodeData = (uint8_t *)(m_memoryPN.Get(cmSG.maskLen() + (size_t)(nCountData) + 2));
-                    if(Compress::Encode(pEncodeData + 2, pData, nDataLen) != nCountData){
+                    if(Compress::xorEncode(pEncodeData + 2, pData, nDataLen) != nCountData){
                         g_log->addLog(LOGTYPE_WARNING, "Count failed: headCode = %d, DataLen = %d, CountData = %d", (int)(nHC), (int)(nDataLen), nCountData);
 
                         m_memoryPN.Free(pEncodeData);

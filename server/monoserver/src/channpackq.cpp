@@ -64,7 +64,7 @@ bool ChannPackQ::AddChannPack(uint8_t nHC, const uint8_t *pData, size_t nDataLen
                 // 3. we support range in [0, 255 + 255]
 
                 auto pCompBuf = GetPostBuf(smSG.maskLen() + ((nDataLen + 7) / 8) + 16);
-                auto nCompCnt = Compress::Encode(pCompBuf + 4, pData, nDataLen);
+                auto nCompCnt = Compress::xorEncode(pCompBuf + 4, pData, nDataLen);
 
                 if(nCompCnt < 0){
                     fnReportError("Compression failed");
