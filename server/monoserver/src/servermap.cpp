@@ -473,11 +473,6 @@ void ServerMap::operateAM(const MessagePack &rstMPK)
                 on_MPK_QUERYCOCOUNT(rstMPK);
                 break;
             }
-        case MPK_QUERYRECTUIDLIST:
-            {
-                on_MPK_QUERYRECTUIDLIST(rstMPK);
-                break;
-            }
         case MPK_OFFLINE:
             {
                 on_MPK_OFFLINE(rstMPK);

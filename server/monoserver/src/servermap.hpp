@@ -351,7 +351,6 @@ class ServerMap final: public ServerObject
         void on_MPK_QUERYCOCOUNT(const MessagePack &);
         void on_MPK_TRYSPACEMOVE(const MessagePack &);
         void on_MPK_ADDCHAROBJECT(const MessagePack &);
-        void on_MPK_QUERYRECTUIDLIST(const MessagePack &);
 
     private:
         bool regLuaExport(ServerMapLuaModule *);

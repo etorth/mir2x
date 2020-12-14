@@ -59,8 +59,6 @@ enum MessagePackType: int
     MPK_QUERYCORECORD,
     MPK_QUERYCOCOUNT,
     MPK_COCOUNT,
-    MPK_QUERYRECTUIDLIST,
-    MPK_UIDLIST,
     MPK_EXP,
     MPK_MISS,
     MPK_NEWDROPITEM,
@@ -406,21 +404,6 @@ struct AMQueryCOCount
 struct AMCOCount
 {
     uint32_t Count;
-};
-
-struct AMQueryRectUIDList
-{
-    uint32_t MapID;
-
-    int X;
-    int Y;
-    int W;
-    int H;
-};
-
-struct AMUIDList
-{
-    uint64_t UIDList[128];
 };
 
 struct AMExp

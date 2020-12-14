@@ -649,28 +649,6 @@ void ServerMap::on_MPK_QUERYCOCOUNT(const MessagePack &rstMPK)
     m_actorPod->forward(rstMPK.from(), {MPK_COCOUNT, amCOC}, rstMPK.ID());
 }
 
-void ServerMap::on_MPK_QUERYRECTUIDLIST(const MessagePack &rstMPK)
-{
-    AMQueryRectUIDList amQRUIDL;
-    std::memcpy(&amQRUIDL, rstMPK.Data(), sizeof(amQRUIDL));
-
-    AMUIDList amUIDL;
-    std::memset(&amUIDL, 0, sizeof(amUIDL));
-
-    size_t nIndex = 0;
-    for(int nY = amQRUIDL.Y; nY < amQRUIDL.Y + amQRUIDL.H; ++nY){
-        for(int nX = amQRUIDL.X; nX < amQRUIDL.X + amQRUIDL.W; ++nX){
-            if(In(amQRUIDL.MapID, nX, nY)){
-                for(auto nUID: getUIDList(nX, nY)){
-                    amUIDL.UIDList[nIndex++] = nUID;
-                }
-            }
-        }
-    }
-
-    m_actorPod->forward(rstMPK.from(), {MPK_UIDLIST, amUIDL}, rstMPK.ID());
-}
-
 void ServerMap::on_MPK_NEWDROPITEM(const MessagePack &rstMPK)
 {
     AMNewDropItem amNDI;
