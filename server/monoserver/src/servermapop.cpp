@@ -50,6 +50,13 @@ void ServerMap::on_MPK_ACTION(const MessagePack &rstMPK)
         return;
     }
 
+    // spawn message is sent by startup trigger
+    // before CO send ACTION_SPAWN servermap won't let other know it's ready
+
+    if(amA.Action == ACTION_SPAWN){
+        addGridUID(amA.UID, amA.X, amA.Y, true);
+    }
+
     doCircle(amA.X, amA.Y, 10, [this, amA](int nX, int nY) -> bool
     {
         if(true || ValidC(nX, nY)){

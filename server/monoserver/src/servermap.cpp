@@ -1003,7 +1003,6 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
         }
 
         monsterPtr->activate();
-        addGridUID(monsterPtr->UID(), nDstX, nDstY, true);
         return monsterPtr;
     }
     return nullptr;
@@ -1031,7 +1030,6 @@ NPChar *ServerMap::addNPChar(uint16_t npcID, int hintX, int hintY, bool strictLo
         };
 
         npcPtr->activate();
-        addGridUID(npcPtr->UID(), dstX, dstY, true);
         return npcPtr;
     }
     return nullptr;
@@ -1060,7 +1058,6 @@ Player *ServerMap::addPlayer(uint32_t nDBID, int nHintX, int nHintY, int nDirect
         };
 
         playerPtr->activate();
-        addGridUID(playerPtr->UID(), nDstX, nDstY, true);
         return playerPtr;
     }
     return nullptr;
