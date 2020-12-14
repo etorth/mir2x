@@ -646,7 +646,9 @@ bool CharObject::requestMapSwitch(uint32_t mapID, int locX, int locY, bool stric
                                                     m_actorPod->forward(m_map->UID(), MPK_OK, rmpk.ID());
 
                                                     // 2. notify all players on the new map
-                                                    dispatchAction(ActionStand(X(), Y(), Direction()));
+                                                    //    need to explicitly send to the map, not InViewCO since it's not valid anymore
+                                                    m_inViewCOList.clear();
+                                                    dispatchAction(MapUID(), ActionStand(X(), Y(), Direction()));
 
                                                     // 3. inform the client for map swith
                                                     // 4. get neighbors
