@@ -40,16 +40,16 @@ struct MsgAttribute
     const size_t dataLen;
     const std::string name;
 
-    MsgAttribute(int t, size_t len, const char *nameStr)
-        : type(t)
-        , dataLen(len)
-        , name(nameStr ? nameStr : "")
+    MsgAttribute(int argType, size_t argLen, const char *artNameCStr)
+        : type(argType)
+        , dataLen(argLen)
+        , name(artNameCStr ? artNameCStr : "")
     {
         // we can't use the log system here for error logging
         // since MsgAttribute will be used in both ClientMessage and ServerMessage
 
         if(name.empty()){
-            throw fflerror("invalid message name");
+            throw fflerror("invalid message name: type = %d", type);
         }
 
         switch(type){

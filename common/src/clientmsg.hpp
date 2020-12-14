@@ -32,16 +32,14 @@ enum CMType: uint8_t
     CM_PING   = 1,
     CM_LOGIN,
     CM_ACTION,
-    CM_QUERYMONSTERGINFO,
     CM_QUERYCORECORD,
-    CM_NPCEVENT,
-
     CM_REQUESTKILLPETS,
     CM_REQUESTSPACEMOVE,
     CM_REQUESTMAGICDAMAGE,
     CM_PICKUP,
     CM_QUERYGOLD,
     CM_ACCOUNT,
+    CM_NPCEVENT,
     CM_END,
 };
 
@@ -144,19 +142,20 @@ class ClientMsg final: public MsgBase
                 //  2    : not empty,     fixed size, not compressed
                 //  3    : not empty, not fixed size, not compressed
                 //  4    : not empty, not fixed size,     compressed
-
-                {CM_NONE_0,             {0, 0,                            "CM_NONE"              }},
-                {CM_PING,               {2, sizeof(CMPing),               "CM_PING"              }},
-                {CM_LOGIN,              {1, sizeof(CMLogin),              "CM_LOGIN"             }},
-                {CM_ACTION,             {1, sizeof(CMAction),             "CM_ACTION"            }},
-                {CM_QUERYCORECORD,      {1, sizeof(CMQueryCORecord),      "CM_QUERYCORECORD"     }},
-                {CM_REQUESTKILLPETS,    {0, 0,                            "CM_REQUESTKILLPETS"   }},
-                {CM_REQUESTSPACEMOVE,   {1, sizeof(CMRequestSpaceMove),   "CM_REQUESTSPACEMOVE"  }},
-                {CM_REQUESTMAGICDAMAGE, {1, sizeof(CMRequestMagicDamage), "CM_REQUESTMAGICDAMAGE"}},
-                {CM_PICKUP,             {1, sizeof(CMPickUp),             "CM_PICKUP"            }},
-                {CM_QUERYGOLD,          {0, 0,                            "CM_QUERYGOLD"         }},
-                {CM_ACCOUNT,            {1, sizeof(CMAccount),            "CM_ACCOUNT"           }},
-                {CM_NPCEVENT,           {1, sizeof(CMNPCEvent),           "CM_NPCEVENT"          }},
+#define _add_client_msg_type_case(type, encodeType, length) {type, {encodeType, length, #type}},
+                _add_client_msg_type_case(CM_NONE_0,             0, 0                           )
+                _add_client_msg_type_case(CM_PING,               2, sizeof(CMPing)              )
+                _add_client_msg_type_case(CM_LOGIN,              1, sizeof(CMLogin)             )
+                _add_client_msg_type_case(CM_ACTION,             1, sizeof(CMAction)            )
+                _add_client_msg_type_case(CM_QUERYCORECORD,      1, sizeof(CMQueryCORecord)     )
+                _add_client_msg_type_case(CM_REQUESTKILLPETS,    0, 0                           )
+                _add_client_msg_type_case(CM_REQUESTSPACEMOVE,   1, sizeof(CMRequestSpaceMove)  )
+                _add_client_msg_type_case(CM_REQUESTMAGICDAMAGE, 1, sizeof(CMRequestMagicDamage))
+                _add_client_msg_type_case(CM_PICKUP,             1, sizeof(CMPickUp)            )
+                _add_client_msg_type_case(CM_QUERYGOLD,          0, 0                           )
+                _add_client_msg_type_case(CM_ACCOUNT,            1, sizeof(CMAccount)           )
+                _add_client_msg_type_case(CM_NPCEVENT,           1, sizeof(CMNPCEvent)          )
+#undef _add_client_msg_type_case
             };
 
             if(const auto p = s_msgAttributeTable.find(headCode); p != s_msgAttributeTable.end()){

@@ -26,6 +26,7 @@ enum SMType: uint8_t
     SM_NONE_0  = 0,
     SM_BEGIN   = 1,
     SM_PING    = 1,
+    SM_ACCOUNT,
     SM_LOGINOK,
     SM_LOGINFAIL,
     SM_ACTION,
@@ -39,10 +40,10 @@ enum SMType: uint8_t
     SM_CASTMAGIC,
     SM_SPACEMOVE,
     SM_OFFLINE,
-    SM_REMOVEGROUNDITEM,
     SM_PICKUPOK,
-    SM_GOLD,
+    SM_REMOVEGROUNDITEM,
     SM_NPCXMLLAYOUT,
+    SM_GOLD,
     SM_MAX,
 };
 
@@ -242,7 +243,6 @@ struct SMNPCXMLLayout
     uint64_t NPCUID;
     char xmlLayout[1024];
 };
-
 #pragma pack(pop)
 
 class ServerMsg final: public MsgBase
@@ -262,25 +262,27 @@ class ServerMsg final: public MsgBase
                 //  2    : not empty,     fixed size, not compressed
                 //  3    : not empty, not fixed size, not compressed
                 //  4    : not empty, not fixed size,     compressed
-
-                {SM_NONE_0,           {0, 0,                               "SM_NONE"            }},
-                {SM_PING,             {2, sizeof(SMPing),                  "SM_PING"            }},
-                {SM_LOGINOK,          {1, sizeof(SMLoginOK),               "SM_LOGINOK"         }},
-                {SM_LOGINFAIL,        {2, sizeof(SMLoginFail),             "SM_LOGINFAIL"       }},
-                {SM_ACTION,           {1, sizeof(SMAction),                "SM_ACTION"          }},
-                {SM_CORECORD,         {1, sizeof(SMCORecord),              "SM_CORECORD"        }},
-                {SM_UPDATEHP,         {1, sizeof(SMUpdateHP),              "SM_UPDATEHP"        }},
-                {SM_NOTIFYDEAD,       {1, sizeof(SMNotifyDead),            "SM_NOTIFYDEAD"      }},
-                {SM_DEADFADEOUT,      {1, sizeof(SMDeadFadeOut),           "SM_DEADFADEOUT"     }},
-                {SM_EXP,              {1, sizeof(SMExp),                   "SM_EXP"             }},
-                {SM_MISS,             {1, sizeof(SMMiss),                  "SM_MISS"            }},
-                {SM_SHOWDROPITEM,     {1, sizeof(SMShowDropItem),          "SM_SHOWDROPITEM"    }},
-                {SM_CASTMAGIC,        {1, sizeof(SMCastMagic),             "SM_CASTMAGIC"       }},
-                {SM_OFFLINE,          {1, sizeof(SMOffline),               "SM_OFFLINE"         }},
-                {SM_PICKUPOK,         {1, sizeof(SMPickUpOK),              "SM_PICKUPOK"        }},
-                {SM_REMOVEGROUNDITEM, {1, sizeof(SMRemoveGroundItem),      "SM_REMOVEGROUNDITEM"}},
-                {SM_NPCXMLLAYOUT,     {2, sizeof(SMNPCXMLLayout),          "SM_NPCXMLLAYOUT"    }},
-                {SM_GOLD,             {1, sizeof(SMGold),                  "SM_GOLD"            }},
+#define _add_server_msg_type_case(type, encodeType, length) {type, {encodeType, length, #type}},
+                _add_server_msg_type_case(SM_NONE_0,           0, 0                         )
+                _add_server_msg_type_case(SM_PING,             2, sizeof(SMPing)            )
+                _add_server_msg_type_case(SM_ACCOUNT,          1, sizeof(SMAccount)         )
+                _add_server_msg_type_case(SM_LOGINOK,          1, sizeof(SMLoginOK)         )
+                _add_server_msg_type_case(SM_LOGINFAIL,        2, sizeof(SMLoginFail)       )
+                _add_server_msg_type_case(SM_ACTION,           1, sizeof(SMAction)          )
+                _add_server_msg_type_case(SM_CORECORD,         1, sizeof(SMCORecord)        )
+                _add_server_msg_type_case(SM_UPDATEHP,         1, sizeof(SMUpdateHP)        )
+                _add_server_msg_type_case(SM_NOTIFYDEAD,       1, sizeof(SMNotifyDead)      )
+                _add_server_msg_type_case(SM_DEADFADEOUT,      1, sizeof(SMDeadFadeOut)     )
+                _add_server_msg_type_case(SM_EXP,              1, sizeof(SMExp)             )
+                _add_server_msg_type_case(SM_MISS,             1, sizeof(SMMiss)            )
+                _add_server_msg_type_case(SM_SHOWDROPITEM,     1, sizeof(SMShowDropItem)    )
+                _add_server_msg_type_case(SM_CASTMAGIC,        1, sizeof(SMCastMagic)       )
+                _add_server_msg_type_case(SM_OFFLINE,          1, sizeof(SMOffline)         )
+                _add_server_msg_type_case(SM_PICKUPOK,         1, sizeof(SMPickUpOK)        )
+                _add_server_msg_type_case(SM_REMOVEGROUNDITEM, 1, sizeof(SMRemoveGroundItem))
+                _add_server_msg_type_case(SM_NPCXMLLAYOUT,     2, sizeof(SMNPCXMLLayout)    )
+                _add_server_msg_type_case(SM_GOLD,             1, sizeof(SMGold)            )
+#undef _add_server_msg_type_case
             };
 
             if(const auto p = s_msgAttributeTable.find(headCode); p != s_msgAttributeTable.end()){
@@ -300,17 +302,17 @@ class ServerMsg final: public MsgBase
                     || std::is_same_v<T, SMAction>
                     || std::is_same_v<T, SMCORecord>
                     || std::is_same_v<T, SMUpdateHP>
-                    || std::is_same_v<T, SMDeadFadeOut>
                     || std::is_same_v<T, SMNotifyDead>
+                    || std::is_same_v<T, SMDeadFadeOut>
                     || std::is_same_v<T, SMExp>
                     || std::is_same_v<T, SMMiss>
                     || std::is_same_v<T, SMShowDropItem>
                     || std::is_same_v<T, SMCastMagic>
                     || std::is_same_v<T, SMOffline>
-                    || std::is_same_v<T, SMRemoveGroundItem>
                     || std::is_same_v<T, SMPickUpOK>
-                    || std::is_same_v<T, SMGold>
-                    || std::is_same_v<T, SMNPCXMLLayout>);
+                    || std::is_same_v<T, SMRemoveGroundItem>
+                    || std::is_same_v<T, SMNPCXMLLayout>
+                    || std::is_same_v<T, SMGold>);
 
             if(bufLen && bufLen != sizeof(T)){
                 throw fflerror("invalid buffer length");

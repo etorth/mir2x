@@ -9,7 +9,7 @@
  *                  [    255][0 ~ 255] : length as 0 ~ 255 + 255
  *              
  *                  1. most likely we are using 0 ~ 254
- *                  2. if compressed length more than 254 we need to bytes
+ *                  2. if compressed length more than 254 we need two bytes
  *                  3. we support range in [0, 255 + 255]
  *
  *        Version: 1.0
@@ -55,7 +55,7 @@ class MsgBase
             if(type() == 1){
                 return (dataLen() + 7) / 8;
             }
-            throw fflerror("not compressed by xor");
+            throw fflerror("message is not compressed by XOR: %s", name().c_str());
         }
 
         const std::string &name() const
