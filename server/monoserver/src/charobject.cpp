@@ -648,7 +648,7 @@ bool CharObject::requestMapSwitch(uint32_t mapID, int locX, int locY, bool stric
                                                     // 2. notify all players on the new map
                                                     //    need to explicitly send to the map, not InViewCO since it's not valid anymore
                                                     m_inViewCOList.clear();
-                                                    dispatchAction(MapUID(), ActionStand(X(), Y(), Direction()));
+                                                    dispatchAction(m_map->UID(), ActionStand(X(), Y(), Direction()));
 
                                                     // 3. inform the client for map swith
                                                     // 4. get neighbors
@@ -670,9 +670,10 @@ bool CharObject::requestMapSwitch(uint32_t mapID, int locX, int locY, bool stric
 
                                                     // if an UID can't move
                                                     // then we shouldn't call this function
-
                                                     m_actorPod->forward(((ServerMap *)(amMSOK.Ptr))->UID(), MPK_ERROR, rmpk.ID());
-                                                    g_monoServer->addLog(LOGTYPE_WARNING, "Leave request failed: mapID = %llu, mapUID = %llu", to_llu(m_map->ID()), to_llu(m_map->UID()));
+                                                    if(fnOnError){
+                                                        fnOnError();
+                                                    }
                                                     return;
                                                 }
                                         }
@@ -683,8 +684,9 @@ bool CharObject::requestMapSwitch(uint32_t mapID, int locX, int locY, bool stric
                                 {
                                     // do nothing
                                     // new map reject this switch request
-
-                                    g_monoServer->addLog(LOGTYPE_WARNING, "Can't switch to new map: mapUID = %llu", to_llu(mpk.conv<AMUID>().UID));
+                                    if(fnOnError){
+                                        fnOnError();
+                                    }
                                     return;
                                 }
                         }
