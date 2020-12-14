@@ -493,17 +493,20 @@ bool CharObject::requestSpaceMove(int locX, int locY, bool strictMove, std::func
 
                                     // setup new map
                                     // don't use the requested location
-                                    m_X   = amSMOK.X;
-                                    m_Y   = amSMOK.Y;
-                                    m_map = (ServerMap *)(amSMOK.Ptr);
+                                    m_X = amSMOK.X;
+                                    m_Y = amSMOK.Y;
 
                                     m_lastMoveTime = g_monoServer->getCurrTick();
                                     m_actorPod->forward(rmpk.from(), MPK_OK, rmpk.ID());
 
-                                    //  dispatch/report space move part 2 on new map
-                                    dispatchAction(ActionSpaceMove2(X(), Y(), Direction()));
+                                    // clean the InViewCO list
+                                    // report new location explicitly to map
+                                    m_inViewCOList.clear();
+                                    dispatchAction(m_map->UID(), ActionStand(X(), Y(), Direction()));
+
                                     if(uidf::getUIDType(UID()) == UID_PLY){
                                         dynamic_cast<Player *>(this)->reportAction(UID(), ActionSpaceMove2(X(), Y(), Direction()));
+                                        dynamic_cast<Player *>(this)->PullRectCO(10, 10);
                                     }
 
                                     if(fnOnOK){

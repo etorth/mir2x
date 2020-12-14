@@ -190,9 +190,8 @@ void ServerMap::on_MPK_TRYSPACEMOVE(const MessagePack &rstMPK)
     AMSpaceMoveOK amSMOK;
     std::memset(&amSMOK, 0, sizeof(amSMOK));
 
-    amSMOK.Ptr = this;
-    amSMOK.X   = nDstX;
-    amSMOK.Y   = nDstY;
+    amSMOK.X = nDstX;
+    amSMOK.Y = nDstY;
 
     m_actorPod->forward(rstMPK.from(), {MPK_SPACEMOVEOK, amSMOK}, rstMPK.ID(), [this, nUID = amTSM.UID, nDstX, nDstY](const MessagePack &rstRMPK)
     {
