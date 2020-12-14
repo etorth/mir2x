@@ -458,7 +458,7 @@ void ServerMap::on_MPK_TRYMAPSWITCH(const MessagePack &mpk)
     const auto reqUID = mpk.from();
     const auto amTMS  = mpk.conv<AMTryMapSwitch>();
 
-    if(!canMove(false, false, amTMS.X, amTMS.Y)){
+    if(!canMove(false, true, amTMS.X, amTMS.Y)){
         m_actorPod->forward(mpk.from(), MPK_ERROR, mpk.ID());
         return;
     }
