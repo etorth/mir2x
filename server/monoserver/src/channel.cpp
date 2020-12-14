@@ -17,8 +17,8 @@
  * =====================================================================================
  */
 
+#include "zcompf.hpp"
 #include "channel.hpp"
-#include "compress.hpp"
 #include "netdriver.hpp"
 #include "condcheck.hpp"
 #include "monoserver.hpp"
@@ -301,7 +301,7 @@ void Channel::DoReadPackBody(size_t nMaskLen, size_t nBodyLen)
                         }else{
                             uint8_t *pDecodeMem = nullptr;
                             if(nMaskLen){
-                                auto nMaskCount = Compress::countMask(pMem, nMaskLen);
+                                auto nMaskCount = zcompf::countMask(pMem, nMaskLen);
                                 if(nMaskCount != (int)(nBodyLen)){
                                     // we get corrupted data
                                     // should we ignore current package or kill the process?
@@ -319,7 +319,7 @@ void Channel::DoReadPackBody(size_t nMaskLen, size_t nBodyLen)
                                 // we do have a compressed version of data
                                 if(nBodyLen <= stCMSG.dataLen()){
                                     pDecodeMem = pThis->GetDecodeBuf(stCMSG.dataLen());
-                                    if(Compress::xorDecode(pDecodeMem, stCMSG.dataLen(), pMem, pMem + nMaskLen) != (int)(nBodyLen)){
+                                    if(zcompf::xorDecode(pDecodeMem, stCMSG.dataLen(), pMem, pMem + nMaskLen) != (int)(nBodyLen)){
                                         extern MonoServer *g_monoServer;
                                         g_monoServer->addLog(LOGTYPE_WARNING, "Decode failed: MaskCount = %d, CompLen = %d", nMaskCount, (int)(nBodyLen));
                                         fnReportLastPack();
