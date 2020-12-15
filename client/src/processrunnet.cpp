@@ -224,7 +224,23 @@ void ProcessRun::net_CORECORD(const uint8_t *bufPtr, size_t)
     switch(uidf::getUIDType(smCOR.Action.UID)){
         case UID_MON:
             {
-                m_coList[smCOR.Action.UID] = std::make_unique<ClientMonster>(smCOR.Action.UID, this, actionNode);
+                switch(uidf::getMonsterID(smCOR.Action.UID)){
+                    case DBCOM_MONSTERID(u8"变异骷髅"):
+                        {
+                            m_coList[smCOR.Action.UID].reset(new ClientTaoSkeleton(smCOR.Action.UID, this, actionNode));
+                            break;
+                        }
+                    case DBCOM_MONSTERID(u8"神兽"):
+                        {
+                            m_coList[smCOR.Action.UID].reset(new ClientTaoDog(smCOR.Action.UID, this, actionNode));
+                            break;
+                        }
+                    default:
+                        {
+                            m_coList[smCOR.Action.UID] = std::make_unique<ClientMonster>(smCOR.Action.UID, this, actionNode);
+                            break;
+                        }
+                }
                 break;
             }
         case UID_PLY:

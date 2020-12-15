@@ -504,18 +504,18 @@ bool ClientMonster::onActionAttack(const ActionNode &action)
     const auto [endX, endY, endDir] = motionEndLocation(END_FORCED);
     m_motionQueue = makeWalkMotionQueue(endX, endY, action.X, action.Y, SYS_MAXSPEED);
     if(auto coPtr = m_processRun->findUID(action.AimUID)){
-        const auto nX   = coPtr->x();
-        const auto nY   = coPtr->y();
-        const auto nDir = PathFind::GetDirection(action.X, action.Y, nX, nY);
-
-        if(!(nDir >= DIR_BEGIN && nDir < DIR_END)){
-            throw fflerror("invalid direction: %d", nDir);
-        }
-
         m_motionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
         {
             .type = MOTION_MON_ATTACK0,
-            .direction = nDir,
+            .direction = [&action, endDir, coPtr]() -> int
+            {
+                const auto nX = coPtr->x();
+                const auto nY = coPtr->y();
+                if(mathf::LDistance2(nX, nY, action.X, action.Y) == 0){
+                    return endDir;
+                }
+                return PathFind::GetDirection(action.X, action.Y, nX, nY);
+            }(),
             .x = action.X,
             .y = action.Y,
         }));
