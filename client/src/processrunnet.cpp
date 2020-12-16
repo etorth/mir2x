@@ -398,7 +398,9 @@ void ProcessRun::net_OFFLINE(const uint8_t *bufPtr, size_t)
 void ProcessRun::net_PICKUPOK(const uint8_t *bufPtr, size_t)
 {
     const auto smPUOK = ServerMsg::conv<SMPickUpOK>(bufPtr);
-    getMyHero()->getInvPack().Add(smPUOK.ID);
+    if(smPUOK.ID != DBCOM_ITEMID(u8"金币")){
+        getMyHero()->getInvPack().Add(smPUOK.ID);
+    }
 
     removeGroundItem(CommonItem(smPUOK.ID, 0), smPUOK.X, smPUOK.Y);
     addCBLog(CBLOG_SYS, u8"捡起%s于坐标(%d, %d)", DBCOM_ITEMRECORD(smPUOK.ID).name, (int)(smPUOK.X), (int)(smPUOK.Y));

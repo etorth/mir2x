@@ -346,6 +346,11 @@ void ServerMap::on_MPK_TRYMOVE(const MessagePack &rstMPK)
         return;
     }
 
+    if(getCell(nMostX, nMostY).Locked){
+        m_actorPod->forward(rstMPK.from(), MPK_ERROR, rstMPK.ID());
+        return;
+    }
+
     AMMoveOK amMOK;
     std::memset(&amMOK, 0, sizeof(amMOK));
 

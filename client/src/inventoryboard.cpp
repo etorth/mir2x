@@ -104,7 +104,7 @@ void InventoryBoard::drawItem(int nDstX, int nDstY, const PackBin &rstBin)
             && rstBin.W >  0
             && rstBin.H >  0){
 
-        if(auto pTexture = g_commonItemDB->Retrieve(rstBin.ID)){
+        if(auto pTexture = g_commonItemDB->Retrieve((DBCOM_ITEMRECORD(rstBin.ID).pkgGfxID))){
 
             int nItemPW = -1;
             int nItemPH = -1;
