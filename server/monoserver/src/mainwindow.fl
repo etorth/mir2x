@@ -17,16 +17,18 @@ decl {\#include <mutex>} {private local
 decl {class CommandWindow;} {public global
 }
 
-class MainWindow {} {
-  Function {MainWindow()} {} {
+class MainWindow {open
+} {
+  Function {MainWindow()} {open
+  } {
     Fl_Window m_window {
       label MonoServer
       callback {{
 	// do nothing
-}}
-      xywh {2672 385 720 400} type Double labelfont 4 resizable visible
+}} open
+      xywh {2680 416 720 400} type Double labelfont 4 resizable visible
     } {
-      Fl_Menu_Bar {} {
+      Fl_Menu_Bar {} {open
         xywh {0 0 721 25} box FLAT_BOX labelfont 4 textfont 4
       } {
         Submenu {} {
@@ -58,7 +60,7 @@ class MainWindow {} {
           }
         }
         Submenu {} {
-          label Configure
+          label Configure open
           xywh {0 0 62 20} labelfont 4
         } {
           MenuItem {} {
@@ -69,15 +71,6 @@ class MainWindow {} {
 }}
             xywh {10 10 30 20} labelfont 4 divider
             code0 {\#include "serverconfigurewindow.hpp"}
-          }
-          MenuItem {} {
-            label {Network            }
-            callback {{
-	extern DatabaseConfigureWindow	*g_databaseConfigureWindow;
-	g_databaseConfigureWindow->showAll();
-}}
-            xywh {0 0 30 20} labelfont 4 divider
-            code0 {\#include "databaseconfigurewindow.hpp"}
           }
           Submenu {} {
             label Fonts

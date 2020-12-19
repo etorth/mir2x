@@ -28,7 +28,7 @@
 #include "protocoldef.hpp"
 #include "dbcomrecord.hpp"
 
-extern DBPod *g_DBPod;
+extern DBPod *g_dbPod;
 extern NetDriver *g_netDriver;
 extern MonoServer *g_monoServer;
 
@@ -49,9 +49,9 @@ Player::Player(uint32_t nDBID,
     , m_name([this]() -> std::string
       {
           std::string result;
-          DBAccess("tbl_dbid", "fld_name", [&result](const char8_t *name) -> std::u8string
+          dbAccess("tbl_dbid", "fld_name", [&result](std::string name) -> std::string
           {
-              result = to_cstr(name);
+              result = std::move(name);
               return {};
           });
           return result;
@@ -866,62 +866,41 @@ bool Player::CanPickUp(uint32_t, uint32_t)
     return true;
 }
 
-bool Player::DBUpdate(const char *szTableName, const char *szFieldList, ...)
-{
-    if(false
-            || (!szTableName || !std::strlen(szTableName))
-            || (!szFieldList || !std::strlen(szFieldList))){
-        return false;
-    }
-
-    std::string szSQLCommand;
-    std::string szExceptionStr;
-    {
-        va_list ap;
-        va_start(ap, szFieldList);
-
-        try{
-            szSQLCommand = str_vprintf(szFieldList, ap);
-        }catch(const std::exception &e){
-            szExceptionStr = str_printf("Exception caught in Player::DBUpdate(%s, \"%s\"): %s", szTableName, szFieldList, e.what());
-        }
-
-        va_end(ap);
-    }
-
-    if(!szExceptionStr.empty()){
-        g_monoServer->addLog(LOGTYPE_WARNING, "%s", szExceptionStr.c_str());
-        return false;
-    }
-
-    g_DBPod->CreateDBHDR()->QueryResult("update %s set %s where fld_dbid = %" PRIu32, szTableName, szSQLCommand.c_str(), DBID());
-    return true;
-}
-
-bool Player::DBAccess(const char *szTableName, const char *szFieldName, std::function<std::u8string(const char8_t *)> fnDBOperation)
+size_t Player::dbUpdate(const char *tableName, const char *fieldList, ...)
 {
     if(true
-            && (szTableName && std::strlen(szTableName))
-            && (szFieldName && std::strlen(szFieldName))){
+            && (tableName && tableName[0] != '\0')
+            && (fieldList && fieldList[0] != '\0')){
 
-        auto pDBHDR = g_DBPod->CreateDBHDR();
-        if(!pDBHDR->QueryResult("select %s from %s where fld_dbid = %" PRIu32, szFieldName, szTableName, DBID())){
-            g_monoServer->addLog(LOGTYPE_INFO, "No dbid created for this player: DBID = %" PRIu32, DBID());
-            return false;
-        }
+        std::string sqlCmd;
+        str_format(fieldList, sqlCmd);
+        return g_dbPod->exec("update %s set %s where fld_dbid = %llu", tableName, sqlCmd.c_str(), to_llu(DBID()));
+    }
+    throw fflerror("invalid arguments: tableName = %s, fieldList = %s", to_cstr(tableName), to_cstr(fieldList));
+}
 
-        auto szRes = fnDBOperation(pDBHDR->Get<std::u8string>(szFieldName).c_str());
+size_t Player::dbAccess(const char *tableName, const char *fieldName, std::function<std::string(std::string)> op)
+{
+    if(true
+            && op
+            && (tableName && tableName[0] != '\0')
+            && (fieldName && fieldName[0] != '\0')){
 
         // if need to return a string we should do:
         //     return "\"xxxx\"";
-        // then empty string should be "\"\"", not szRes.empty()
+        // then empty string should be "\"\"", not result.empty()
 
-        if(!szRes.empty()){
-            pDBHDR->QueryResult("update %s set %s = %s where fld_dbid = %" PRIu32, szTableName, szFieldName, szRes.c_str(), DBID());
-            return true;
+        size_t execCount = 0;
+        auto query = g_dbPod->createQuery("select %s from %s where fld_dbid = %llu", fieldName, tableName, to_llu(DBID()));
+        while(query.executeStep()){
+            if(const auto result = op((std::string)(query.getColumn(0))); !result.empty()){
+                g_dbPod->exec("update %s set %s = %s where fld_dbid = %llu", tableName, fieldName, result.c_str(), to_llu(DBID()));
+            }
+            execCount++;
         }
+        return execCount;
     }
-    return false;
+    throw fflerror("invalid arguments: tableName = %s, fieldName = %s, op = %s", to_cstr(tableName), to_cstr(fieldName), op ? "invocable" : "null");
 }
 
 bool Player::DBLoadPlayer()
@@ -931,7 +910,7 @@ bool Player::DBLoadPlayer()
 
 bool Player::DBSavePlayer()
 {
-    return DBUpdate("tbl_dbid", "fld_gold = %d, fld_level = %d", Gold(), Level());
+    return dbUpdate("tbl_dbid", "fld_gold = %d, fld_level = %d", Gold(), Level());
 }
 
 void Player::reportGold()

@@ -31,7 +31,6 @@
 #include "taskhub.hpp"
 #include "message.hpp"
 #include "monster.hpp"
-#include "database.hpp"
 #include "mapbindb.hpp"
 #include "fflerror.hpp"
 #include "actorpool.hpp"
@@ -42,17 +41,15 @@
 #include "servicecore.hpp"
 #include "eventtaskhub.hpp"
 #include "commandwindow.hpp"
-#include "databaseconfigurewindow.hpp"
 
 extern Log *g_log;
-extern DBPod *g_DBPod;
+extern DBPod *g_dbPod;
 extern MapBinDB *g_mapBinDB;
 extern ActorPool *g_actorPool;
 extern NetDriver *g_netDriver;
 extern MonoServer *g_monoServer;
 extern MainWindow *g_mainWindow;
 extern ServerConfigureWindow *g_serverConfigureWindow;
-extern DatabaseConfigureWindow *g_databaseConfigureWindow;
 
 MonoServer::MonoServer()
     : m_logLock()
@@ -157,79 +154,55 @@ void MonoServer::addCWLog(uint32_t nCWID, int nLogType, const char *szPrompt, co
 
 void MonoServer::CreateDefaultDatabase()
 {
-    if(std::strcmp(g_DBPod->DBEngine(), "mysql") == 0){
+    const char8_t *defSQLCmdList[]
+    {
+        u8"create table tbl_account("
+            "fld_id       integer not null primary key autoincrement,"
+            "fld_account  char(32) not null,"
+            "fld_password char(32) not null)",
 
+        u8"insert into tbl_account(fld_account, fld_password) values"
+            "(\'test\',   \'123456\'),"
+            "(\'test0\',  \'123456\'),"
+            "(\'test1\',  \'123456\'),"
+            "(\'test2\',  \'123456\'),"
+            "(\'test3\',  \'123456\')",
+
+        u8"create table tbl_dbid("
+            "fld_dbid      integer not null primary key autoincrement,"
+            "fld_id        int unsigned not null,"
+            "fld_name      varchar(32)  not null,"
+            "fld_mapname   varchar(32)  not null,"
+            "fld_mapx      int unsigned not null,"
+            "fld_mapy      int unsigned not null,"
+            "fld_exp       int unsigned not null,"
+            "fld_gold      int unsigned not null,"
+            "fld_level     int unsigned not null,"
+            "fld_jobid     int unsigned not null,"
+            "fld_direction int unsigned not null)",
+
+        u8"insert into tbl_dbid(fld_id, fld_name, fld_mapname, fld_mapx, fld_mapy, fld_exp, fld_gold, fld_level, fld_jobid, fld_direction) values"
+            "(1, \'亚当\', \'道馆\',   405, 120, 0, 0, 1, 1, 1),"
+            "(2, \'亚01\', \'道馆\',   400, 120, 0, 0, 1, 1, 1),"
+            "(3, \'夏01\', \'道馆\',   401, 120, 0, 0, 1, 1, 1),"
+            "(4, \'夏娃\', \'比奇省\', 441, 381, 0, 0, 1, 1, 1),"
+            "(5, \'逗逼\', \'比奇省\', 440, 381, 0, 0, 1, 1, 1)",
+    };
+
+    for(const auto sqlCmd: defSQLCmdList){
+        g_dbPod->exec(sqlCmd);
     }
-
-    else if(std::strcmp(g_DBPod->DBEngine(), "sqlite3") == 0){
-        const char8_t *defSQLCmdList[]
-        {
-            u8"create table tbl_account("
-                "fld_id       integer not null primary key autoincrement,"
-                "fld_account  char(32) not null,"
-                "fld_password char(32) not null)",
-
-            u8"insert into tbl_account(fld_account, fld_password) values"
-                "(\'test\',   \'123456\'),"
-                "(\'test0\',  \'123456\'),"
-                "(\'test1\',  \'123456\'),"
-                "(\'test2\',  \'123456\'),"
-                "(\'test3\',  \'123456\')",
-
-            u8"create table tbl_dbid("
-                "fld_dbid      integer not null primary key autoincrement,"
-                "fld_id        int unsigned not null,"
-                "fld_name      varchar(32)  not null,"
-                "fld_mapname   varchar(32)  not null,"
-                "fld_mapx      int unsigned not null,"
-                "fld_mapy      int unsigned not null,"
-                "fld_exp       int unsigned not null,"
-                "fld_gold      int unsigned not null,"
-                "fld_level     int unsigned not null,"
-                "fld_jobid     int unsigned not null,"
-                "fld_direction int unsigned not null)",
-
-            u8"insert into tbl_dbid(fld_id, fld_name, fld_mapname, fld_mapx, fld_mapy, fld_exp, fld_gold, fld_level, fld_jobid, fld_direction) values"
-                "(1, \'亚当\', \'道馆\',   405, 120, 0, 0, 1, 1, 1),"
-                "(2, \'亚01\', \'道馆\',   400, 120, 0, 0, 1, 1, 1),"
-                "(3, \'夏01\', \'道馆\',   401, 120, 0, 0, 1, 1, 1),"
-                "(4, \'夏娃\', \'比奇省\', 441, 381, 0, 0, 1, 1, 1),"
-                "(5, \'逗逼\', \'比奇省\', 440, 381, 0, 0, 1, 1, 1)",
-        };
-
-        auto pDBHDR = g_DBPod->CreateDBHDR();
-        for(const auto sqlCmd: defSQLCmdList){
-            pDBHDR->QueryResult(to_cstr(sqlCmd));
-        }
-        addLog(LOGTYPE_INFO, "Create default sqlite3 database done");
-    }
+    addLog(LOGTYPE_INFO, "Create default sqlite3 database done");
 }
 
 void MonoServer::CreateDBConnection()
 {
-    if(std::strcmp(g_databaseConfigureWindow->SelectedDBEngine(), "mysql") == 0){
-        g_DBPod->LaunchMySQL(
-                g_databaseConfigureWindow->DatabaseIP(),
-                g_databaseConfigureWindow->UserName(),
-                g_databaseConfigureWindow->Password(),
-                g_databaseConfigureWindow->DatabaseName(),
-                g_databaseConfigureWindow->DatabasePort());
-        addLog(LOGTYPE_INFO, "Connect to MySQL Database (%s:%d) successfully",
-                g_databaseConfigureWindow->DatabaseIP(),
-                g_databaseConfigureWindow->DatabasePort());
-    }
+    const char *dbName = "mir2x.db3";
+    g_dbPod->launch(dbName);
+    addLog(LOGTYPE_INFO, "Connect to database %s successfully", dbName);
 
-    else if(std::strcmp(g_databaseConfigureWindow->SelectedDBEngine(), "sqlite3") == 0){
-        g_DBPod->LaunchSQLite3(g_databaseConfigureWindow->DatabaseName());
-        addLog(LOGTYPE_INFO, "Connect to SQLite3 Database (%s) successfully", g_databaseConfigureWindow->DatabaseName());
-
-        if(!g_DBPod->CreateDBHDR()->QueryResult("select name from sqlite_master where type=\'table\'")){
-            CreateDefaultDatabase();
-        }
-    }
-
-    else{
-        throw fflerror("No database started");
+    if(!g_dbPod->createQuery("select name from sqlite_master where type=\'table\'").executeStep()){
+        CreateDefaultDatabase();
     }
 }
 

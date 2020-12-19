@@ -29,13 +29,12 @@
 #include "serverargparser.hpp"
 #include "podmonitorwindow.hpp"
 #include "serverconfigurewindow.hpp"
-#include "databaseconfigurewindow.hpp"
 
 ServerArgParser          *g_serverArgParser;
 Log                      *g_log;
 ActorPool                *g_actorPool;
 NetDriver                *g_netDriver;
-DBPod                    *g_DBPod;
+DBPod                    *g_dbPod;
 
 MapBinDB                 *g_mapBinDB;
 ScriptWindow             *g_scriptWindow;
@@ -43,7 +42,6 @@ ProfilerWindow           *g_profilerWindow;
 MainWindow               *g_mainWindow;
 MonoServer               *g_monoServer;
 ServerConfigureWindow    *g_serverConfigureWindow;
-DatabaseConfigureWindow  *g_databaseConfigureWindow;
 PodMonitorWindow         *g_podMonitorWindow;
 ActorMonitorWindow       *g_actorMonitorWindow;
 
@@ -61,19 +59,18 @@ int main(int argc, char *argv[])
         // start FLTK multithreading support
         Fl::lock();
 
-        g_log                      = new Log("mir2x-monoserver-v0.1");
-        g_scriptWindow             = new ScriptWindow();
-        g_profilerWindow           = new ProfilerWindow();
-        g_mainWindow               = new MainWindow();
-        g_monoServer               = new MonoServer();
-        g_mapBinDB                 = new MapBinDB();
-        g_serverConfigureWindow    = new ServerConfigureWindow();
-        g_databaseConfigureWindow  = new DatabaseConfigureWindow();
-        g_actorPool                = new ActorPool(g_serverArgParser->actorPoolThread, 10);
-        g_DBPod                    = new DBPod();
-        g_netDriver                = new NetDriver();
-        g_podMonitorWindow         = new PodMonitorWindow();
-        g_actorMonitorWindow       = new ActorMonitorWindow();
+        g_log                   = new Log("mir2x-monoserver-v0.1");
+        g_scriptWindow          = new ScriptWindow();
+        g_profilerWindow        = new ProfilerWindow();
+        g_mainWindow            = new MainWindow();
+        g_monoServer            = new MonoServer();
+        g_mapBinDB              = new MapBinDB();
+        g_serverConfigureWindow = new ServerConfigureWindow();
+        g_actorPool             = new ActorPool(g_serverArgParser->actorPoolThread, 10);
+        g_dbPod                 = new DBPod();
+        g_netDriver             = new NetDriver();
+        g_podMonitorWindow      = new PodMonitorWindow();
+        g_actorMonitorWindow    = new ActorMonitorWindow();
 
         std::atexit(+[]()
         {

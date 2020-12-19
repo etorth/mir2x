@@ -113,6 +113,20 @@ bool str_nonempty(const char8_t *);
 [[maybe_unused]] const std::u8string &str_printf(std::u8string &, const char8_t *, ...);
 [[maybe_unused]] const std::u8string &str_vprintf(std::u8string &, const char8_t *, va_list);
 
+#define str_format(format, str) do\
+{\
+    va_list ap;\
+    va_start(ap, format);\
+    try{\
+        str = str_vprintf(format, ap);\
+        va_end(ap);\
+    }\
+    catch(...){\
+        va_end(ap);\
+        throw std::runtime_error(str_printf("call str_vprintf(%s) failed", (const char *)(format)));\
+    }\
+}while(0)\
+
 // copy from boost
 // definition of BOOST_CURRENT_FUNCTION
 

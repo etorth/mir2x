@@ -31,7 +31,6 @@
 #include "log.hpp"
 #include "message.hpp"
 #include "taskhub.hpp"
-#include "database.hpp"
 #include "raiitimer.hpp"
 #include "eventtaskhub.hpp"
 #include "commandluamodule.hpp"
@@ -40,12 +39,6 @@ class ServiceCore;
 class ServerObject;
 class MonoServer final
 {
-    struct UIDLockRecord
-    {
-        std::mutex Lock;
-        std::unordered_map<uint32_t, const ServerObject *> Record;
-    };
-
     private:
         std::mutex m_logLock;
         std::vector<char> m_logBuf;

@@ -22,7 +22,7 @@
 #include "dispatcher.hpp"
 #include "servicecore.hpp"
 
-extern DBPod *g_DBPod;
+extern DBPod *g_dbPod;
 extern NetDriver *g_netDriver;
 extern MonoServer *g_monoServer;
 
@@ -31,40 +31,39 @@ void ServiceCore::net_CM_Login(uint32_t nChannID, uint8_t, const uint8_t *pData,
     CMLogin stCML;
     std::memcpy(&stCML, pData, sizeof(stCML));
 
-    auto fnOnLoginFail = [nChannID, stCML]()
+    const auto fnLoginFail = [nChannID, stCML]()
     {
         g_monoServer->addLog(LOGTYPE_INFO, "Login failed for (%s:%s)", stCML.ID, "******");
-
         g_netDriver->Post(nChannID, SM_LOGINFAIL);
         g_netDriver->Shutdown(nChannID, false);
     };
 
     g_monoServer->addLog(LOGTYPE_INFO, "Login requested: (%s:%s)", stCML.ID, "******");
-    auto pDBHDR = g_DBPod->CreateDBHDR();
+    auto queryID = g_dbPod->createQuery("select fld_id from tbl_account where fld_account = '%s' and fld_password = '%s'", stCML.ID, stCML.Password);
 
-    if(!pDBHDR->QueryResult("select fld_id from tbl_account where fld_account = '%s' and fld_password = '%s'", stCML.ID, stCML.Password)){
+    if(!queryID.executeStep()){
         g_monoServer->addLog(LOGTYPE_INFO, "can't find account: (%s:%s)", stCML.ID, "******");
-
-        fnOnLoginFail();
+        fnLoginFail();
         return;
     }
 
-    auto nID = pDBHDR->Get<int64_t>("fld_id");
-    if(!pDBHDR->QueryResult("select * from tbl_dbid where fld_id = %d", (int)(nID))){
-        g_monoServer->addLog(LOGTYPE_INFO, "no dbid created for this account: (%s:%s)", stCML.ID, "******");
+    const int id = queryID.getColumn("fld_id");
+    auto queryDBID = g_dbPod->createQuery("select * from tbl_dbid where fld_id = %d", id);
 
-        fnOnLoginFail();
+    if(!queryDBID.executeStep()){
+        g_monoServer->addLog(LOGTYPE_INFO, "no dbid created for this account: (%s:%s)", stCML.ID, "******");
+        fnLoginFail();
         return;
     }
 
     AMLoginQueryDB amLQDBOK;
     std::memset(&amLQDBOK, 0, sizeof(amLQDBOK));
 
-    auto nDBID      = pDBHDR->Get<int64_t>("fld_dbid");
-    auto nMapID     = DBCOM_MAPID(pDBHDR->Get<std::u8string>("fld_mapname").c_str());
-    auto nMapX      = pDBHDR->Get<int64_t>("fld_mapx");
-    auto nMapY      = pDBHDR->Get<int64_t>("fld_mapy");
-    auto nDirection = pDBHDR->Get<int64_t>("fld_direction");
+    const uint32_t nDBID      = queryDBID.getColumn("fld_dbid");
+    const uint32_t nMapID     = DBCOM_MAPID(to_u8cstr((const char *)(queryDBID.getColumn("fld_mapname"))));
+    const int      nMapX      = queryDBID.getColumn("fld_mapx");
+    const int      nMapY      = queryDBID.getColumn("fld_mapy");
+    const int      nDirection = queryDBID.getColumn("fld_direction");
 
     auto pMap = retrieveMap(nMapID);
     if(false
@@ -72,7 +71,7 @@ void ServiceCore::net_CM_Login(uint32_t nChannID, uint8_t, const uint8_t *pData,
             || !pMap->In(nMapID, nMapX, nMapY)){
         g_monoServer->addLog(LOGTYPE_WARNING, "Invalid db record found: (map, x, y) = (%d, %d, %d)", nMapID, nMapX, nMapY);
 
-        fnOnLoginFail();
+        fnLoginFail();
         return;
     }
 
@@ -88,7 +87,7 @@ void ServiceCore::net_CM_Login(uint32_t nChannID, uint8_t, const uint8_t *pData,
     amACO.player.direction = nDirection;
     amACO.player.channID   = nChannID;
 
-    m_actorPod->forward(pMap->UID(), {MPK_ADDCHAROBJECT, amACO}, [this, fnOnLoginFail](const MessagePack &rstRMPK)
+    m_actorPod->forward(pMap->UID(), {MPK_ADDCHAROBJECT, amACO}, [this, fnLoginFail](const MessagePack &rstRMPK)
     {
         switch(rstRMPK.Type()){
             case MPK_OK:
@@ -97,7 +96,7 @@ void ServiceCore::net_CM_Login(uint32_t nChannID, uint8_t, const uint8_t *pData,
                 }
             default:
                 {
-                    fnOnLoginFail();
+                    fnLoginFail();
                     break;
                 }
         }

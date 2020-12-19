@@ -212,8 +212,8 @@ class Player final: public CharObject
         uint32_t GetLevelExp();
 
     protected:
-        bool DBUpdate(const char *, const char *, ...);
-        bool DBAccess(const char *, const char *, std::function<std::u8string(const char8_t *)>);
+        size_t dbUpdate(const char *, const char *, ...);
+        size_t dbAccess(const char *, const char *, std::function<std::string(std::string)>);
 
     protected:
         void GainExp(int);
