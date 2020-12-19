@@ -709,16 +709,7 @@ bool CharObject::requestMapSwitch(uint32_t mapID, int locX, int locY, bool stric
 
 bool CharObject::canMove()
 {
-    switch(GetState(STATE_DEAD)){
-        case 0:
-            {
-                return !m_moveLock;
-            }
-        default:
-            {
-                return false;
-            }
-    }
+    return !(m_dead.get() || m_moveLock);
 }
 
 bool CharObject::CanAct()
@@ -765,16 +756,7 @@ bool CharObject::CanAct()
 
 bool CharObject::canAttack()
 {
-    switch(GetState(STATE_DEAD)){
-        case 0:
-            {
-                return !m_attackLock;
-            }
-        default:
-            {
-                return false;
-            }
-    }
+    return !(m_dead.get() || m_attackLock);
 }
 
 void CharObject::retrieveLocation(uint64_t nUID, std::function<void(const COLocation &)> fnOnOK, std::function<void()> fnOnError)
@@ -1460,4 +1442,21 @@ bool CharObject::isPlayer() const
 bool CharObject::isMonster() const
 {
     return uidf::getUIDType(UID()) == UID_MON;
+}
+
+void CharObject::notifyDead(uint64_t uid)
+{
+    if(!uid){
+        throw fflerror("bad uid: zero");
+    }
+
+    if(!m_dead.get()){
+        throw fflerror("CO is not dead");
+    }
+
+    AMNotifyDead amND;
+    std::memset(&amND, 0, sizeof(amND));
+
+    amND.UID = UID();
+    m_actorPod->forward(uid, {MPK_NOTIFYDEAD, amND});
 }

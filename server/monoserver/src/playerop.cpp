@@ -157,24 +157,13 @@ void Player::on_MPK_ACTION(const MessagePack &rstMPK)
 void Player::on_MPK_NOTIFYNEWCO(const MessagePack &mpk)
 {
     const auto amNNCO = mpk.conv<AMNotifyNewCO>();
-    switch(GetState(STATE_DEAD)){
-        case 0:
-            {
-                // should make an valid action node and send it
-                // currently just dispatch through map
-
-                dispatchAction(amNNCO.UID, ActionStand(X(), Y(), Direction()));
-                break;
-            }
-        default:
-            {
-                AMNotifyDead amND;
-                std::memset(&amND, 0, sizeof(amND));
-
-                amND.UID = UID();
-                m_actorPod->forward(amNNCO.UID, {MPK_NOTIFYDEAD, amND});
-                break;
-            }
+    if(m_dead.get()){
+        notifyDead(amNNCO.UID);
+    }
+    else{
+        // should make an valid action node and send it
+        // currently just dispatch through map
+        dispatchAction(amNNCO.UID, ActionStand(X(), Y(), Direction()));
     }
 }
 

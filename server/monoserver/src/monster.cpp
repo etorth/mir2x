@@ -115,13 +115,6 @@ Monster::Monster(uint32_t   nMonsterID,
         throw fflerror("invalid monster record: MonsterID = %llu", to_llu(monsterID()));
     }
 
-    SetState(STATE_DEAD    , 0);
-    SetState(STATE_NEVERDIE, 0);
-
-    // set attack mode
-    // SetState(STATE_ATTACKMODE, STATE_ATTACKMODE_NORMAL);
-    SetState(STATE_ATTACKMODE, STATE_ATTACKMODE_ATTACKALL);
-
     m_HP    = m_monsterRecord.HP;
     m_HPMax = m_monsterRecord.HP;
     m_MP    = m_monsterRecord.MP;
@@ -750,95 +743,57 @@ void Monster::SetTarget(uint64_t nUID)
 
 bool Monster::goDie()
 {
-    switch(GetState(STATE_NEVERDIE)){
-        case 0:
-            {
-                switch(GetState(STATE_DEAD)){
-                    case 0:
-                        {
-                            randomDrop();
-                            dispatchOffenderExp();
+    if(m_dead.get()){
+        return true;
+    }
+    m_dead.set(true);
 
-                            // dispatch die acton without auto-fade-out
-                            // server send the fade-out request in goGhost()
+    randomDrop();
+    dispatchOffenderExp();
 
-                            // auto-fade-out is for zombie handling
-                            // when client confirms a zombie, client use auto-fade-out die action
+    // dispatch die acton without auto-fade-out
+    // server send the fade-out request in goGhost()
 
-                            dispatchAction(ActionDie(X(), Y(), Direction(), false));
+    // auto-fade-out is for zombie handling
+    // when client confirms a zombie, client use auto-fade-out die action
 
-                            // let's dispatch ActionDie before mark it dead
-                            // theoratically dead actor shouldn't dispatch anything
+    dispatchAction(ActionDie(X(), Y(), Direction(), false));
 
-                            SetState(STATE_DEAD, 1);
-                            if(DBCOM_MONSTERRECORD(monsterID()).deadFadeOut){
-                                Delay(2 * 1000, [this](){ goGhost(); });
-                                return true;
-                            }
-                            else{
-                                return goGhost();
-                            }
-                        }
-                    default:
-                        {
-                            return true;
-                        }
-                }
-            }
-        default:
-            {
-                return false;
-            }
+    // let's dispatch ActionDie before mark it dead
+    // theoratically dead actor shouldn't dispatch anything
+
+    if(DBCOM_MONSTERRECORD(monsterID()).deadFadeOut){
+        Delay(2 * 1000, [this](){ goGhost(); });
+        return true;
+    }
+    else{
+        return goGhost();
     }
 }
 
 bool Monster::goGhost()
 {
-    switch(GetState(STATE_NEVERDIE)){
-        case 0:
-            {
-                switch(GetState(STATE_DEAD)){
-                    case 0:
-                        {
-                            return false;
-                        }
-                    default:
-                        {
-                            // 1. setup state and inform all others
-                            SetState(STATE_GHOST, 1);
-
-                            AMDeadFadeOut amDFO;
-                            std::memset(&amDFO, 0, sizeof(amDFO));
-
-                            amDFO.UID   = UID();
-                            amDFO.MapID = MapID();
-                            amDFO.X     = X();
-                            amDFO.Y     = Y();
-
-                            // send this to remove the map grid coverage
-                            // for monster don't need fadeout (like Taodog) we shouldn't send the FADEOUT to client
-
-                            if(checkActorPod() && m_map && m_map->checkActorPod()){
-                                m_actorPod->forward(m_map->UID(), {MPK_DEADFADEOUT, amDFO});
-                            }
-
-                            // 2. deactivate the actor here
-                            //    disable the actorpod then no source can drive it
-                            //    then current *this* can't be refered by any actor threads after this invocation
-                            //    then MonoServer::EraseUID() is safe to delete *this*
-                            //
-                            //    don't do delete m_actorPod to disable the actor
-                            //    since currently we are in the actor thread which accquired by m_actorPod
-                            deactivate();
-                            return true;
-                        }
-                }
-            }
-        default:
-            {
-                return false;
-            }
+    if(!m_dead.get()){
+        return false;
     }
+
+    AMDeadFadeOut amDFO;
+    std::memset(&amDFO, 0, sizeof(amDFO));
+
+    amDFO.UID   = UID();
+    amDFO.MapID = MapID();
+    amDFO.X     = X();
+    amDFO.Y     = Y();
+
+    // send this to remove the map grid coverage
+    // for monster don't need fadeout (like Taodog) we shouldn't send the FADEOUT to client
+
+    if(checkActorPod() && m_map && m_map->checkActorPod()){
+        m_actorPod->forward(m_map->UID(), {MPK_DEADFADEOUT, amDFO});
+    }
+
+    deactivate();
+    return true;
 }
 
 bool Monster::StruckDamage(const DamageNode &rstDamage)

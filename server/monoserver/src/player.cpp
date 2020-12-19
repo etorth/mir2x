@@ -344,76 +344,38 @@ bool Player::InRange(int nRangeType, int nX, int nY)
 
 bool Player::goDie()
 {
-    switch(GetState(STATE_NEVERDIE)){
-        case 0:
-            {
-                switch(GetState(STATE_DEAD)){
-                    case 0:
-                        {
-                            SetState(STATE_DEAD, 1);
-                            Delay(2 * 1000, [this](){ goGhost(); });
-                            return true;
-                        }
-                    default:
-                        {
-                            return true;
-                        }
-                }
-            }
-        default:
-            {
-                return false;
-            }
+    if(m_dead.get()){
+        return true;
     }
+    m_dead.set(true);
+
+    Delay(2 * 1000, [this](){ goGhost(); });
+    return true;
 }
 
 bool Player::goGhost()
 {
-    switch(GetState(STATE_NEVERDIE)){
-        case 0:
-            {
-                switch(GetState(STATE_DEAD)){
-                    case 0:
-                        {
-                            return false;
-                        }
-                    default:
-                        {
-                            // 1. setup state and inform all others
-                            SetState(STATE_GHOST, 1);
-
-                            AMDeadFadeOut amDFO;
-                            std::memset(&amDFO, 0, sizeof(amDFO));
-
-                            amDFO.UID   = UID();
-                            amDFO.MapID = MapID();
-                            amDFO.X     = X();
-                            amDFO.Y     = Y();
-
-                            if(true
-                                    && checkActorPod()
-                                    && m_map
-                                    && m_map->checkActorPod()){
-                                m_actorPod->forward(m_map->UID(), {MPK_DEADFADEOUT, amDFO});
-                            }
-
-                            // 2. deactivate the actor here
-                            //    disable the actorpod then no source can drive it
-                            //    then current *this* can't be refered by any actor threads after this invocation
-                            //    then MonoServer::EraseUID() is safe to delete *this*
-                            //
-                            //    don't do delete m_actorPod to disable the actor
-                            //    since currently we are in the actor thread which accquired by m_actorPod
-                            deactivate();
-                            return true;
-                        }
-                }
-            }
-        default:
-            {
-                return false;
-            }
+    if(!m_dead.get()){
+        return false;
     }
+
+    AMDeadFadeOut amDFO;
+    std::memset(&amDFO, 0, sizeof(amDFO));
+
+    amDFO.UID   = UID();
+    amDFO.MapID = MapID();
+    amDFO.X     = X();
+    amDFO.Y     = Y();
+
+    if(true
+            && checkActorPod()
+            && m_map
+            && m_map->checkActorPod()){
+        m_actorPod->forward(m_map->UID(), {MPK_DEADFADEOUT, amDFO});
+    }
+
+    deactivate();
+    return true;
 }
 
 bool Player::DCValid(int, bool)

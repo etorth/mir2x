@@ -37,60 +37,6 @@
 #include "delaycmd.hpp"
 #include "messagepack.hpp"
 
-enum ObjectType: uint8_t
-{
-    TYPE_NONE,
-    TYPE_INFO,
-
-    TYPE_CHAR, TYPE_EVENT,
-    TYPE_UTILITY,
-
-    // char information
-    TYPE_NPC,
-    TYPE_PLAYER,
-    TYPE_MONSTER,
-
-    // event information
-    TYPE_MAGIC,
-    TYPE_XXXXX,
-
-    // utility information
-    TYPE_SERVERMAP,
-    TYPE_SERVICECORE,
-
-    // creature information
-    TYPE_CREATURE,
-
-    TYPE_HUMAN,
-    TYPE_UNDEAD,
-    TYPE_ANIMAL,
-};
-
-enum ObjectState: uint8_t
-{
-    // three states of an active object
-    STATE_NONE = 0,
-
-    STATE_MOTION,
-    STATE_MOVING,
-    STATE_DEAD,
-    STATE_GHOST,
-
-    STATE_MODE,
-    STATE_NEVERDIE,
-    STATE_ATTACKALL,
-    STATE_PEACE,
-    STATE_CANMOVE,
-    STATE_WAITMOVE,
-
-    STATE_ATTACKMODE,
-    STATE_ATTACKMODE_NORMAL,
-    STATE_ATTACKMODE_DOGZ,
-    STATE_ATTACKMODE_ATTACKALL,
-
-    STATE_ONHORSE,
-};
-
 class ServerObject
 {
     private:
@@ -133,13 +79,6 @@ class ServerObject
         {
             return checkActorPod() ? m_UIDName.c_str() : "UID_INACTIVE";
         }
-
-    protected:
-        void SetState(uint8_t, uint8_t);
-
-    protected:
-        uint8_t  GetState    (uint8_t) const;
-        uint32_t GetStateTime(uint8_t) const;
 
     public:
         uint64_t activate();

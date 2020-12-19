@@ -126,19 +126,3 @@ void ServerObject::Delay(uint32_t nDelayTick, const std::function<void()> &fnCmd
     m_delayCmdCount = m_delayCmdQ.empty() ? 0 : (m_delayCmdCount + 1);
     m_delayCmdQ.emplace(nDelayTick + g_monoServer->getCurrTick(), m_delayCmdCount, fnCmd);
 }
-
-void ServerObject::SetState(uint8_t nStateLoc, uint8_t nStateValue)
-{
-    m_stateV[nStateLoc] = nStateValue;
-    m_stateTimeV[nStateLoc] = g_monoServer->getCurrTick();
-}
-
-uint8_t ServerObject::GetState(uint8_t nState) const
-{
-    return m_stateV[nState];
-}
-
-uint32_t ServerObject::GetStateTime(uint8_t nState) const
-{
-    return g_monoServer->getCurrTick() - m_stateTimeV[nState];
-}

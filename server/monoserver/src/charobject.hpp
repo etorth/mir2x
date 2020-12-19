@@ -27,6 +27,7 @@
 #include "servermap.hpp"
 #include "damagenode.hpp"
 #include "actionnode.hpp"
+#include "timedstate.hpp"
 #include "cachequeue.hpp"
 #include "scopedalloc.hpp"
 #include "servicecore.hpp"
@@ -179,6 +180,9 @@ class CharObject: public ServerObject
     protected:
         int      m_lastAction;
         uint32_t m_lastActionTime;
+
+    protected:
+        TimedState<bool> m_dead;
 
     protected:
         Target m_target;
@@ -393,4 +397,7 @@ class CharObject: public ServerObject
     protected:
         bool isPlayer()  const;
         bool isMonster() const;
+
+    protected:
+        void notifyDead(uint64_t);
 };

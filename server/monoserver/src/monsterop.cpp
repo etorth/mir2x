@@ -132,24 +132,13 @@ void Monster::on_MPK_ACTION(const MessagePack &rstMPK)
 void Monster::on_MPK_NOTIFYNEWCO(const MessagePack &rstMPK)
 {
     const auto amNNCO = rstMPK.conv<AMNotifyNewCO>();
-    switch(GetState(STATE_DEAD)){
-        case 0:
-            {
-                // should make an valid action node and send it
-                // currently just dispatch through map
-
-                dispatchAction(ActionStand(X(), Y(), Direction()));
-                break;
-            }
-        default:
-            {
-                AMNotifyDead amND;
-                std::memset(&amND, 0, sizeof(amND));
-
-                amND.UID = UID();
-                m_actorPod->forward(amNNCO.UID, {MPK_NOTIFYDEAD, amND});
-                break;
-            }
+    if(m_dead.get()){
+        notifyDead(amNNCO.UID);
+    }
+    else{
+        // should make an valid action node and send it
+        // currently just dispatch through map
+        dispatchAction(ActionStand(X(), Y(), Direction()));
     }
 }
 
@@ -158,46 +147,36 @@ void Monster::on_MPK_ATTACK(const MessagePack &rstMPK)
     AMAttack amAK;
     std::memcpy(&amAK, rstMPK.Data(), sizeof(amAK));
 
-    switch(GetState(STATE_DEAD)){
-        case 0:
-            {
-                if(monsterID() == DBCOM_MONSTERID(u8"神兽")){
-                    dynamic_cast<TaoDog *>(this)->setTransf(true);
-                }
+    if(m_dead.get()){
+        notifyDead(amAK.UID);
+    }
+    else{
+        if(monsterID() == DBCOM_MONSTERID(u8"神兽")){
+            dynamic_cast<TaoDog *>(this)->setTransf(true);
+        }
 
-                if(mathf::LDistance2(X(), Y(), amAK.X, amAK.Y) > 2){
-                    switch(uidf::getUIDType(amAK.UID)){
-                        case UID_MON:
-                        case UID_PLY:
-                            {
-                                AMMiss amM;
-                                std::memset(&amM, 0, sizeof(amM));
+        if(mathf::LDistance2(X(), Y(), amAK.X, amAK.Y) > 2){
+            switch(uidf::getUIDType(amAK.UID)){
+                case UID_MON:
+                case UID_PLY:
+                    {
+                        AMMiss amM;
+                        std::memset(&amM, 0, sizeof(amM));
 
-                                amM.UID = amAK.UID;
-                                m_actorPod->forward(amAK.UID, {MPK_MISS, amM});
-                                return;
-                            }
-                        default:
-                            {
-                                return;
-                            }
+                        amM.UID = amAK.UID;
+                        m_actorPod->forward(amAK.UID, {MPK_MISS, amM});
+                        return;
                     }
-                }
-
-                addOffenderDamage(amAK.UID, amAK.Damage);
-                dispatchAction(ActionHitted(X(), Y(), Direction()));
-                StruckDamage({amAK.UID, amAK.Type, amAK.Damage, amAK.Element, amAK.Effect});
-                return;
+                default:
+                    {
+                        return;
+                    }
             }
-        default:
-            {
-                AMNotifyDead amND;
-                std::memset(&amND, 0, sizeof(amND));
+        }
 
-                amND.UID = UID();
-                m_actorPod->forward(amAK.UID, {MPK_NOTIFYDEAD, amND});
-                return;
-            }
+        addOffenderDamage(amAK.UID, amAK.Damage);
+        dispatchAction(ActionHitted(X(), Y(), Direction()));
+        StruckDamage({amAK.UID, amAK.Type, amAK.Damage, amAK.Element, amAK.Effect});
     }
 }
 
