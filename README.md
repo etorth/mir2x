@@ -44,7 +44,7 @@ If complains missing dll, you may need to copy .dll files from mir2x/bin to mir2
 
 ### Building from source
 
-mir2x requires [cmake](https://cmake.org/) v3.12 and [gcc](https://gcc.gnu.org/) support c++17 to run. Mir2x needs some pre-installed packages before compile:
+mir2x requires [cmake](https://cmake.org/) v3.12 and [gcc](https://gcc.gnu.org/) support c++20 to run. Mir2x needs some pre-installed packages before compile:
 
 ```sh
 libsdl2-dev
@@ -53,7 +53,6 @@ libsdl2-ttf-dev
 libsdl2-mixer-dev
 libpng-dev
 liblua5.3-dev
-libmysqlclient-dev
 libfltk1.3-dev
 ```
 
@@ -69,14 +68,7 @@ $ make
 $ make install
 ```
 ### First time run
-The above steps install binaries in mir2x/b/install. By default mir2x server uses embeded sqlite3. But if you prefer mysql, you have to start mysql server on your host, and create the default database:
-
-```sh
-$ cd mir2x/b/install/tools/dbcreator/
-$ ./main.sh
-```
-
-Start the monoserver, click menu server/launch to start the service before start client:
+The above steps install binaries in mir2x/b/install, to start the monoserver, click menu server/launch to start the service before start client:
 
 ```sh
 $ cd mir2x/b/install/server
@@ -123,10 +115,9 @@ mir2x uses a number of open source projects to work properly, and of course itse
 * [g3log](https://github.com/KjellKod/g3log) - An asynchronous, "crash safe", logger that is easy to use.
 * [lua](https://www.lua.org/) - A powerful, efficient, lightweight, embeddable scripting language.
 * [sol2](https://github.com/ThePhD/sol2) - A fast, simple C++ and Lua binding.
-* [mariadb](https://mariadb.org/) - A community-developed fork of the MySQL relational database management system.
-* [luasql](https://keplerproject.github.io/luasql/) - LuaSQL is a simple interface from Lua to a DBMS.
 * [tinyxml2](http://www.grinninglizard.com/tinyxml2/) - A simple, small, efficient, C++ XML parser.
 * [utf8-cpp](http://utfcpp.sourceforge.net/) - A simple, portable and lightweigt C++ library for UTF-8 string handling.
 * [libpng](http://www.libpng.org/pub/png/libpng.html) - The official PNG reference library.
 * [ThreadPool](https://github.com/progschj/ThreadPool) - A simple C++11 Thread Pool implementation.
 * [astar-algorithm](https://github.com/justinhj/astar-algorithm-cpp) - Implementation of the A* algorithm in C++ and C#.
+* [SQLiteCpp](https://github.com/SRombauts/SQLiteCpp) - SQLiteC++ (SQLiteCpp) is a smart and easy to use C++ SQLite3 wrapper.
