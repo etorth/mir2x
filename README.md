@@ -26,7 +26,6 @@ mir2x is a c/s based mir2ei implementation with various platforms supported. It 
   - pkgviewer
   - animaker
   - mapeditor
-  - dbcreator
 
 <img src="https://github.com/etorth/mir2x/raw/master/readme/screencapture.gif" width="800" height="600"/>
 <img src="https://github.com/etorth/mir2x/raw/master/readme/screencapture2.gif" width="800" height="600"/>
