@@ -46,13 +46,13 @@ bool ClientTaoDog::onActionSpawn(const ActionNode &action)
 bool ClientTaoDog::onActionTransf(const ActionNode &action)
 {
     const auto standReq = (bool)(action.ActionParam);
-    if(m_stand == standReq){
+    if(m_standMode == standReq){
         return true;
     }
 
     const auto [x, y, dir] = motionEndLocation(END_FORCED);
 
-    m_stand = standReq;
+    m_standMode = standReq;
     m_forceMotionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
     {
         .type = MOTION_MON_APPEAR,
@@ -95,7 +95,7 @@ bool ClientTaoDog::onActionAttack(const ActionNode &action)
                 return;
             }
 
-            if(m_stand){
+            if(m_standMode){
                 m_processRun->addFixedLocMagic(std::unique_ptr<FixedLocMagic>(new FixedLocMagic
                 {
                     u8"神兽-喷火",

@@ -24,12 +24,12 @@
 class ClientTaoDog: public ClientMonster
 {
     private:
-        bool m_stand;
+        bool m_standMode;
 
     public:
         ClientTaoDog(uint64_t uid, ProcessRun *proc, const ActionNode &action)
             : ClientMonster(uid, proc, action)
-            , m_stand(action.ActionParam)
+            , m_standMode(action.ActionParam)
         {
             checkMonsterNameEx(u8"神兽");
         }
@@ -37,7 +37,7 @@ class ClientTaoDog: public ClientMonster
     public:
         int motionFrameCount(int motion, int) const override
         {
-            if(m_stand){
+            if(m_standMode){
                 switch(motion){
                     case MOTION_MON_STAND   : return  4;
                     case MOTION_MON_WALK    : return  6;
@@ -63,7 +63,7 @@ class ClientTaoDog: public ClientMonster
     public:
         int lookID() const override
         {
-            return m_stand ? 0X5A : 0X59;
+            return m_standMode ? 0X5A : 0X59;
         }
 
     protected:
