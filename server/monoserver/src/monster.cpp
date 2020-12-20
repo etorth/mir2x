@@ -267,7 +267,7 @@ void Monster::attackUID(uint64_t nUID, int nDC, std::function<void()> fnOnOK, st
                                     return;
                                 }
 
-                                SetTarget(nUID);
+                                setTarget(nUID);
                                 m_lastAttackTime = g_monoServer->getCurrTick();
                                 dispatchAction(ActionAttack(X(), Y(), DC_PHY_PLAIN, AttackSpeed(), nUID));
 
@@ -317,7 +317,7 @@ void Monster::attackUID(uint64_t nUID, int nDC, std::function<void()> fnOnOK, st
     {
         m_attackLock = false;
 
-        RemoveTarget(nUID);
+        removeTarget(nUID);
         RemoveInViewCO(nUID);
     });
 }
@@ -728,17 +728,18 @@ bool Monster::DCValid(int nDC, bool bCheck)
     return false;
 }
 
-void Monster::RemoveTarget(uint64_t nUID)
+void Monster::removeTarget(uint64_t nUID)
 {
     if(m_target.UID == nUID){
-        m_target = {};
+        m_target.UID = 0;
+        m_target.activeTimer.reset();
     }
 }
 
-void Monster::SetTarget(uint64_t nUID)
+void Monster::setTarget(uint64_t nUID)
 {
     m_target.UID = nUID;
-    m_target.ActiveTime = g_monoServer->getCurrTick();
+    m_target.activeTimer.reset();
 }
 
 bool Monster::goDie()
@@ -1143,27 +1144,25 @@ void Monster::SearchNearestTarget(std::function<void(uint64_t)> fnTarget)
 
 void Monster::GetProperTarget(std::function<void(uint64_t)> fnTarget)
 {
-    if(m_target.UID){
-        if(g_monoServer->getCurrTick() < m_target.ActiveTime + 60 * 1000){
-            checkFriend(m_target.UID, [nTargetUID = m_target.UID, fnTarget, this](int nFriendType)
-            {
-                if(nFriendType == FT_ENEMY){
-                    fnTarget(nTargetUID);
-                    return;
-                }
+    if(m_target.UID && m_target.activeTimer.diff_sec() < 60){
+        checkFriend(m_target.UID, [targetUID = m_target.UID, fnTarget, this](int nFriendType)
+        {
+            if(nFriendType == FT_ENEMY){
+                fnTarget(targetUID);
+                return;
+            }
 
-                // may changed monster
-                // last target is not a target anymore
+            // may changed monster
+            // last target is not a target anymore
 
-                RemoveTarget(nTargetUID);
-                SearchNearestTarget(fnTarget);
-            });
-        }
-        return;
+            removeTarget(targetUID);
+            SearchNearestTarget(fnTarget);
+        });
     }
-
-    RemoveTarget(m_target.UID);
-    SearchNearestTarget(fnTarget);
+    else{
+        removeTarget(m_target.UID);
+        SearchNearestTarget(fnTarget);
+    }
 }
 
 void Monster::QueryMaster(uint64_t nUID, std::function<void(uint64_t)> fnOp)

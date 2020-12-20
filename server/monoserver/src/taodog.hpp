@@ -22,7 +22,7 @@
 class TaoDog final: public Monster
 {
     private:
-        bool m_stand = false;
+        bool m_standMode = false;
 
     public:
         TaoDog(ServiceCore *corePtr, ServerMap *mapPtr, int argX, int argY, int argDir, uint64_t masterUID)
@@ -30,15 +30,23 @@ class TaoDog final: public Monster
         {}
 
     public:
-        void setTransf(bool stand)
+        void setStandMode(bool standMode)
         {
-            m_stand = stand;
-            dispatchAction(ActionTransf(X(), Y(), Direction(), m_stand));
+            if(standMode != m_standMode){
+                m_standMode = standMode;
+                dispatchAction(ActionTransf(X(), Y(), Direction(), m_standMode));
+            }
         }
 
-        void SetTarget(uint64_t nUID) override
+        void setTarget(uint64_t uid) override
         {
-            Monster::SetTarget(nUID);
-            setTransf(true);
+            Monster::setTarget(uid);
+            setStandMode(true);
+        }
+
+    public:
+        bool standMode() const
+        {
+            return m_standMode;
         }
 };

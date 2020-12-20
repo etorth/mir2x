@@ -74,7 +74,7 @@ void Monster::on_MPK_ACTION(const MessagePack &rstMPK)
     }
 
     if(amA.MapID != MapID()){
-        RemoveTarget(amA.UID);
+        removeTarget(amA.UID);
         RemoveInViewCO(amA.UID);
         return;
     }
@@ -103,7 +103,7 @@ void Monster::on_MPK_ACTION(const MessagePack &rstMPK)
             }
         case ACTION_DIE:
             {
-                RemoveTarget(amA.UID);
+                removeTarget(amA.UID);
                 RemoveInViewCO(amA.UID);
                 return;
             }
@@ -151,8 +151,8 @@ void Monster::on_MPK_ATTACK(const MessagePack &rstMPK)
         notifyDead(amAK.UID);
     }
     else{
-        if(monsterID() == DBCOM_MONSTERID(u8"神兽")){
-            dynamic_cast<TaoDog *>(this)->setTransf(true);
+        if(monsterName() == u8"神兽"){
+            dynamic_cast<TaoDog *>(this)->setStandMode(true);
         }
 
         if(mathf::LDistance2(X(), Y(), amAK.X, amAK.Y) > 2){
@@ -211,7 +211,7 @@ void Monster::on_MPK_DEADFADEOUT(const MessagePack &rstMPK)
     AMDeadFadeOut amDFO;
     std::memcpy(&amDFO, rstMPK.Data(), sizeof(amDFO));
 
-    RemoveTarget(amDFO.UID);
+    removeTarget(amDFO.UID);
     RemoveInViewCO(amDFO.UID);
 }
 
@@ -220,7 +220,7 @@ void Monster::on_MPK_NOTIFYDEAD(const MessagePack &rstMPK)
     AMNotifyDead amND;
     std::memcpy(&amND, rstMPK.Data(), sizeof(amND));
 
-    RemoveTarget(amND.UID);
+    removeTarget(amND.UID);
     RemoveInViewCO(amND.UID);
 }
 
@@ -296,13 +296,14 @@ void Monster::on_MPK_MASTERKILL(const MessagePack &rstMPK)
 void Monster::on_MPK_MASTERHITTED(const MessagePack &rstMPK)
 {
     if(masterUID() && (rstMPK.from() == masterUID())){
-        if(checkMonsterName(u8"神兽")){
-            dynamic_cast<TaoDog *>(this)->setTransf(true);
-            return;
+        if(monsterName() == u8"神兽"){
+            dynamic_cast<TaoDog *>(this)->setStandMode(true);
         }
-
-        if(checkMonsterName(u8"变异骷髅")){
-            return;
+        else if(monsterName() == u8"变异骷髅"){
+            // ...
+        }
+        else{
+            // ...
         }
     }
 }

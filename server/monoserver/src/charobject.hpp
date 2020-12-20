@@ -133,12 +133,7 @@ class CharObject: public ServerObject
         struct Target
         {
             uint64_t UID = 0;
-            uint32_t ActiveTime = 0;
-
-            Target(uint64_t nUID = 0, uint32_t nActiveTime = 0)
-                : UID(nUID)
-                , ActiveTime(nActiveTime)
-            {}
+            hres_timer activeTimer;
         };
 
     protected:

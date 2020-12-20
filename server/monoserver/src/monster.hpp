@@ -131,8 +131,8 @@ class Monster: public CharObject
         bool InRange(int, int, int);
 
     protected:
-        virtual void SetTarget(uint64_t);
-        virtual void RemoveTarget(uint64_t);
+        virtual void setTarget(uint64_t);
+        virtual void removeTarget(uint64_t);
 
     protected:
         bool StruckDamage(const DamageNode &);
@@ -246,16 +246,9 @@ class Monster: public CharObject
             return DBCOM_MONSTERRECORD(monsterID()).walkWait;
         }
 
-    protected:
-        template<size_t N> bool checkMonsterName(const char8_t (&name)[N]) const
+    public:
+        std::u8string_view monsterName() const
         {
-            return monsterID() == DBCOM_MONSTERID(name);
-        }
-
-        template<size_t N> void checkMonsterNameEx(const char8_t (&name)[N]) const
-        {
-            if(!checkMonsterName(name)){
-                throw fflerror("invalid monster name: %s", to_cstr(DBCOM_MONSTERRECORD(monsterID()).name));
-            }
+            return DBCOM_MONSTERRECORD(monsterID()).name;
         }
 };
