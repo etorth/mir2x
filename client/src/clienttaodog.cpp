@@ -51,14 +51,16 @@ bool ClientTaoDog::onActionTransf(const ActionNode &action)
     }
 
     const auto [x, y, dir] = motionEndLocation(END_FORCED);
-
-    m_standMode = standReq;
     m_forceMotionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
     {
         .type = MOTION_MON_APPEAR,
         .direction = dir,
         .x = x,
         .y = y,
+        .onUpdate = [standReq, this]()
+        {
+            m_standMode = standReq;
+        },
     }));
     return true;
 }
