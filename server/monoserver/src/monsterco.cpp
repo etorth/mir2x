@@ -89,7 +89,7 @@ corof::long_jmper::eval_op<uint64_t> Monster::coro_getProperTarget()
     const auto fnwait = +[](Monster *p) -> corof::long_jmper
     {
         corof::async_variable<uint64_t> targetUID;
-        p->GetProperTarget([&targetUID](uint64_t uid){ targetUID.assign(uid); });
+        p->getProperTarget([&targetUID](uint64_t uid){ targetUID.assign(uid); });
         const auto result = co_await targetUID;
         co_return result;
     };

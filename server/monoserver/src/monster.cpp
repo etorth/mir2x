@@ -1142,7 +1142,7 @@ void Monster::SearchNearestTarget(std::function<void(uint64_t)> fnTarget)
     RecursiveCheckInViewTarget(0, fnTarget);
 }
 
-void Monster::GetProperTarget(std::function<void(uint64_t)> fnTarget)
+void Monster::getProperTarget(std::function<void(uint64_t)> fnTarget)
 {
     if(m_target.UID && m_target.activeTimer.diff_sec() < 60){
         checkFriend(m_target.UID, [targetUID = m_target.UID, fnTarget, this](int nFriendType)

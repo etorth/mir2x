@@ -173,7 +173,7 @@ class Monster: public CharObject
         bool MoveOneStep(int, int, std::function<void()>, std::function<void()>);
 
     protected:
-        void GetProperTarget(std::function<void(uint64_t)>);
+        void getProperTarget(std::function<void(uint64_t)>);
 
     protected:
         int FindPathMethod();
