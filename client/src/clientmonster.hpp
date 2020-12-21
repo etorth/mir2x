@@ -110,11 +110,9 @@ class ClientMonster: public CreatureMovable
         virtual bool onActionSpaceMove2(const ActionNode &);
 
     protected:
-        template<size_t N> void checkMonsterNameEx(const char8_t (&name)[N]) const
+        std::u8string_view monsterName() const
         {
-            if(monsterID() != DBCOM_MONSTERID(name)){
-                throw fflerror("invalid monster name: %s", to_cstr(DBCOM_MONSTERRECORD(monsterID()).name));
-            }
+            return DBCOM_MONSTERRECORD(monsterID()).name;
         }
 
     public:

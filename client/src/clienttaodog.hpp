@@ -18,6 +18,7 @@
 
 #pragma once
 #include <unordered_map>
+#include "totype.hpp"
 #include "dbcomid.hpp"
 #include "clientmonster.hpp"
 
@@ -31,7 +32,9 @@ class ClientTaoDog: public ClientMonster
             : ClientMonster(uid, proc, action)
             , m_standMode(action.ActionParam)
         {
-            checkMonsterNameEx(u8"神兽");
+            if(monsterName() != u8"神兽"){
+                throw fflerror("bad monster type: %s", to_cstr(monsterName().data()));
+            }
         }
 
     public:

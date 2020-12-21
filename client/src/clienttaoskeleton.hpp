@@ -25,6 +25,8 @@ class ClientTaoSkeleton: public ClientMonster
         ClientTaoSkeleton(uint64_t uid, ProcessRun *proc, const ActionNode &action)
             : ClientMonster(uid, proc, action)
         {
-            checkMonsterNameEx(u8"变异骷髅");
+            if(monsterName() != u8"变异骷髅"){
+                throw fflerror("bad monster type: %s", to_cstr(monsterName().data()));
+            }
         }
 };
