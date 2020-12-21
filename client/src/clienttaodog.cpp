@@ -50,23 +50,52 @@ bool ClientTaoDog::onActionTransf(const ActionNode &action)
         return true;
     }
 
-    const auto [x, y, dir] = motionEndLocation(END_FORCED);
-    m_forceMotionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
+    // change shape immediately
+    // don't wait otherwise there may has transf in the forced motion queue
+
+    const auto [x, y, dir] = motionEndLocation(END_CURRENT);
+    auto motionPtr = new MotionNode
     {
         .type = MOTION_MON_APPEAR,
         .direction = dir,
         .x = x,
         .y = y,
-        .onUpdate = [standReq, this]()
-        {
+    };
+
+    motionPtr->onUpdate = [motionPtr, standReq, lastFrame = (int)(-1), this]() mutable
+    {
+        if(lastFrame != motionPtr->frame && motionPtr->frame == 0){
             m_standMode = standReq;
-        },
-    }));
+        }
+        lastFrame = motionPtr->frame;
+    };
+
+    m_forceMotionQueue.push_front(std::unique_ptr<MotionNode>(motionPtr));
     return true;
 }
 
 bool ClientTaoDog::onActionAttack(const ActionNode &action)
 {
+    if(!m_standMode){
+        const auto [x, y, dir] = motionEndLocation(END_CURRENT);
+        auto motionPtr = new MotionNode
+        {
+            .type = MOTION_MON_APPEAR,
+            .direction = dir,
+            .x = x,
+            .y = y,
+        };
+
+        motionPtr->onUpdate = [motionPtr, lastFrame = (int)(-1), this]() mutable
+        {
+            if(lastFrame != motionPtr->frame && motionPtr->frame == 0){
+                m_standMode = true;
+            }
+            lastFrame = motionPtr->frame;
+        };
+        m_forceMotionQueue.push_front(std::unique_ptr<MotionNode>(motionPtr));
+    }
+
     const auto [endX, endY, endDir] = motionEndLocation(END_FORCED);
     m_motionQueue = makeWalkMotionQueue(endX, endY, action.X, action.Y, SYS_MAXSPEED);
     if(auto coPtr = m_processRun->findUID(action.AimUID)){
