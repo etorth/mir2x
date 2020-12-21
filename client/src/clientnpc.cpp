@@ -243,7 +243,6 @@ bool ClientNPC::parseAction(const ActionNode &action)
 bool ClientNPC::update(double ms)
 {
     updateAttachMagic(ms);
-
     if(!checkUpdate(ms)){
         return true;
     }
@@ -251,9 +250,7 @@ bool ClientNPC::update(double ms)
     motionValidEx(m_currMotion);
     const CallOnExitHelper motionOnUpdate([this]()
     {
-        if(m_currMotion->onUpdate){
-            m_currMotion->onUpdate();
-        }
+        m_currMotion->update();
     });
 
     const bool doneCurrMotion = [this]()

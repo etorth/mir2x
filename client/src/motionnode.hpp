@@ -99,8 +99,9 @@ struct MotionNode final
             || ((type >= MOTION_NPC_BEGIN) && (type < MOTION_NPC_END));
     }
 
+    void update();
+    void updateSpellEffect(double);
     void print() const;
-    static const char *name(int);
 };
 
 class MagicSpellEffect

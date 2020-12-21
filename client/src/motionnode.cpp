@@ -27,6 +27,31 @@ extern Log *g_log;
 extern SDLDevice *g_sdlDevice;
 extern PNGTexOffDB *g_magicDB;
 
+void MotionNode::update()
+{
+    if( onUpdate){
+        onUpdate();
+    }
+}
+
+void MotionNode::updateSpellEffect(double ms)
+{
+    switch(type){
+        case MOTION_SPELL0:
+        case MOTION_SPELL1:
+            {
+                if( extParam.spell.effect){
+                    extParam.spell.effect->update(ms);
+                }
+                break;
+            }
+        default:
+            {
+                break;
+            }
+    }
+}
+
 void MagicSpellEffect::drawShift(int shiftX, int shiftY, bool alpha)
 {
     if(const auto texID = frameTexID(); texID != SYS_TEXNIL){

@@ -249,20 +249,7 @@ void Hero::draw(int viewX, int viewY, int)
 bool Hero::update(double ms)
 {
     updateAttachMagic(ms);
-    switch(m_currMotion->type){
-        case MOTION_SPELL0:
-        case MOTION_SPELL1:
-            {
-                if(m_currMotion->extParam.spell.effect){
-                    m_currMotion->extParam.spell.effect->update(ms);
-                }
-                break;
-            }
-        default:
-            {
-                break;
-            }
-    }
+    m_currMotion->updateSpellEffect(ms);
 
     if(!checkUpdate(ms)){
         return true;
@@ -270,9 +257,7 @@ bool Hero::update(double ms)
 
     const CallOnExitHelper motionOnUpdate([this]()
     {
-        if(m_currMotion->onUpdate){
-            m_currMotion->onUpdate();
-        }
+        m_currMotion->update();
     });
 
     switch(m_currMotion->type){
