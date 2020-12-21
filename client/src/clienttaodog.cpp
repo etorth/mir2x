@@ -113,27 +113,29 @@ bool ClientTaoDog::onActionAttack(const ActionNode &action)
             .y = action.Y,
         };
 
-        motionPtr->onUpdate = [motionPtr, lastMotionFrame = (int)(-1), this]() mutable
+        motionPtr->onUpdate = [motionPtr, lastFrame = (int)(-1), this]() mutable
         {
-            if(lastMotionFrame == motionPtr->frame){
+            if(lastFrame == motionPtr->frame){
                 return;
             }
 
-            lastMotionFrame = motionPtr->frame;
+            lastFrame = motionPtr->frame;
             if(motionPtr->frame != 5){
                 return;
             }
 
-            if(m_standMode){
-                m_processRun->addFixedLocMagic(std::unique_ptr<FixedLocMagic>(new FixedLocMagic
-                {
-                    u8"神兽-喷火",
-                    u8"运行",
-                    currMotion()->x,
-                    currMotion()->y,
-                    currMotion()->direction - DIR_BEGIN,
-                }));
+            if(!m_standMode){
+                throw fflerror("ClientTaoDog attacks while not standing");
             }
+
+            m_processRun->addFixedLocMagic(std::unique_ptr<FixedLocMagic>(new FixedLocMagic
+            {
+                u8"神兽-喷火",
+                u8"运行",
+                currMotion()->x,
+                currMotion()->y,
+                currMotion()->direction - DIR_BEGIN,
+            }));
         };
 
         m_motionQueue.push_back(std::unique_ptr<MotionNode>(motionPtr));
