@@ -278,7 +278,7 @@ void Monster::attackUID(uint64_t nUID, int nDC, std::function<void()> fnOnOK, st
                                 //    1. immediately change target CO's HP and MP, but don't report
                                 //    2. delay 550ms, then report RM_ATTACK with CO's new HP and MP
                                 //    3. target CO reports to client for motion change (_MOTION_HITTED) and new HP/MP
-                                Delay(550, [this, nUID]()
+                                addDelay(550, [this, nUID]()
                                 {
                                     // monster may go dead after this delay
                                     // but don't check canAttack() since that's for attack lock
@@ -764,7 +764,7 @@ bool Monster::goDie()
     // theoratically dead actor shouldn't dispatch anything
 
     if(DBCOM_MONSTERRECORD(monsterID()).deadFadeOut){
-        Delay(2 * 1000, [this](){ goGhost(); });
+        addDelay(2 * 1000, [this](){ goGhost(); });
         return true;
     }
     else{

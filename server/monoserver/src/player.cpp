@@ -62,11 +62,11 @@ Player::Player(uint32_t nDBID,
     m_MP    = 10;
     m_MPMax = 10;
 
-    m_stateHook.Install("RecoverHealth", [this, nLastTime = (uint32_t)(0)]() mutable -> bool
+    m_stateTrigger.install([this, lastCheckTick = (uint32_t)(0)]() mutable -> bool
     {
-        if(g_monoServer->getCurrTick() >= (nLastTime + 1000)){
+        if(const auto currTick = g_monoServer->getCurrTick(); currTick >= (lastCheckTick + 1000)){
             RecoverHealth();
-            nLastTime = g_monoServer->getCurrTick();
+            lastCheckTick = currTick;
         }
         return false;
     });
@@ -349,7 +349,7 @@ bool Player::goDie()
     }
     m_dead.set(true);
 
-    Delay(2 * 1000, [this](){ goGhost(); });
+    addDelay(2 * 1000, [this](){ goGhost(); });
     return true;
 }
 
@@ -646,7 +646,7 @@ void Player::onCMActionSpell(CMAction cmA)
                 smFM.Y      = nY;
                 smFM.AimUID = cmA.AimUID;
 
-                Delay(800, [this, smFM]()
+                addDelay(800, [this, smFM]()
                 {
                     g_netDriver->Post(ChannID(), SM_CASTMAGIC, smFM);
                 });
@@ -665,7 +665,7 @@ void Player::onCMActionSpell(CMAction cmA)
                 smFM.Y      = nY;
                 smFM.AimUID = cmA.AimUID;
 
-                Delay(1400, [this, smFM]()
+                addDelay(1400, [this, smFM]()
                 {
                     g_netDriver->Post(ChannID(), SM_CASTMAGIC, smFM);
                 });
@@ -680,7 +680,7 @@ void Player::onCMActionSpell(CMAction cmA)
                 smFM.Magic = nMagicID;
                 smFM.Speed = MagicSpeed();
 
-                Delay(800, [this, smFM]()
+                addDelay(800, [this, smFM]()
                 {
                     g_netDriver->Post(ChannID(), SM_CASTMAGIC, smFM);
                 });
@@ -702,7 +702,7 @@ void Player::onCMActionSpell(CMAction cmA)
                 smFM.AimX  = nFrontX;
                 smFM.AimY  = nFrontY;
 
-                Delay(600, [this, smFM]()
+                addDelay(600, [this, smFM]()
                 {
                     addMonster(DBCOM_MONSTERID(u8"变异骷髅"), smFM.AimX, smFM.AimY, false);
 
@@ -727,7 +727,7 @@ void Player::onCMActionSpell(CMAction cmA)
                 smFM.AimX  = nFrontX;
                 smFM.AimY  = nFrontY;
 
-                Delay(1000, [this, smFM]()
+                addDelay(1000, [this, smFM]()
                 {
                     addMonster(DBCOM_MONSTERID(u8"神兽"), smFM.AimX, smFM.AimY, false);
                 });

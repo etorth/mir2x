@@ -33,9 +33,9 @@
 #include <atomic>
 #include "uidf.hpp"
 #include "actorpod.hpp"
-#include "statehook.hpp"
-#include "delaycmd.hpp"
 #include "messagepack.hpp"
+#include "delaycommand.hpp"
+#include "statetrigger.hpp"
 
 class ServerObject
 {
@@ -44,19 +44,14 @@ class ServerObject
         const std::string m_UIDName;
 
     protected:
-        std::array< uint8_t, 255> m_stateV;
-        std::array<uint32_t, 255> m_stateTimeV;
+        ActorPod *m_actorPod = nullptr;
 
     protected:
-        ActorPod *m_actorPod;
+        StateTrigger m_stateTrigger;
 
     protected:
-        StateHook m_stateHook;
-
-        // keep an incremental counter for DelayCmd
-        // we have to maintain this count to make DelayCmdQ stable for sort
-        uint32_t m_delayCmdCount;
-        std::priority_queue<DelayCmd> m_delayCmdQ;
+        uint32_t m_delayCmdIndex = 0;
+        std::priority_queue<DelayCommand> m_delayCmdQ;
 
     public:
         ServerObject(uint64_t);
@@ -106,5 +101,5 @@ class ServerObject
         virtual void operateAM(const MessagePack &) = 0;
 
     public:
-        void Delay(uint32_t, const std::function<void()> &);
+        void addDelay(uint32_t, std::function<void()>);
 };

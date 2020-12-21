@@ -131,18 +131,18 @@ CharObject::CharObject(ServiceCore *pServiceCore,
     , m_target()
 {
     if(!m_map){
-        throw fflerror("CO has no assciated map");
+        throw fflerror("CO has no associated map");
     }
 
-    m_stateHook.Install("RemoveDeadUIDLocation", [this, nLastCheckTick = (uint32_t)(0)]() mutable -> bool
+    m_stateTrigger.install([this, lastCheckTick = (uint32_t)(0)]() mutable -> bool
     {
-        if(auto nCurrCheckTick = g_monoServer->getCurrTick(); nLastCheckTick + 5000 < nCurrCheckTick){
+        if(const auto currTick = g_monoServer->getCurrTick(); lastCheckTick + 5000 < currTick){
             if(checkActorPod()){
                 // remove all dead ones
                 // dispatch action requires check location list
                 dispatchAction(ActionStand(X(), Y(), Direction()));
             }
-            nLastCheckTick = nCurrCheckTick;
+            lastCheckTick = currTick;
         }
         return false;
     });

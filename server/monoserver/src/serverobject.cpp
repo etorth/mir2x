@@ -31,20 +31,11 @@ extern ServerArgParser *g_serverArgParser;
 ServerObject::ServerObject(uint64_t uid)
     : m_UID(uid)
     , m_UIDName(uidf::getUIDString(uid))
-    , m_stateV()
-    , m_stateTimeV()
-    , m_actorPod(nullptr)
-    , m_stateHook()
-    , m_delayCmdCount(0)
-    , m_delayCmdQ()
 {
-    m_stateV.fill(0);
-    m_stateTimeV.fill(0);
-
-    m_stateHook.Install("DelayCmdQueue", [this]() -> bool
+    m_stateTrigger.install([this]() -> bool
     {
         if(!m_delayCmdQ.empty()){
-            if(g_monoServer->getCurrTick() >= m_delayCmdQ.top().Tick()){
+            if(g_monoServer->getCurrTick() >= m_delayCmdQ.top().tick()){
                 m_delayCmdQ.top()();
                 m_delayCmdQ.pop();
             }
@@ -53,13 +44,13 @@ ServerObject::ServerObject(uint64_t uid)
     });
 
     if(g_serverArgParser->TraceActorMessage){
-        m_stateHook.Install("ReportActorPodMonitor", [this, nLastCheckTick = (uint32_t)(0)]() mutable -> bool
+        m_stateTrigger.install([this, lastCheckTick = (uint32_t)(0)]() mutable -> bool
         {
-            if(auto nCurrCheckTick = g_monoServer->getCurrTick(); nLastCheckTick + 1000 < nCurrCheckTick){
+            if(const auto currTick = g_monoServer->getCurrTick(); lastCheckTick + 1000 < currTick){
                 if(checkActorPod()){
                     m_actorPod->PrintMonitor();
                 }
-                nLastCheckTick = nCurrCheckTick;
+                lastCheckTick = currTick;
             }
             return false;
         });
@@ -92,12 +83,12 @@ uint64_t ServerObject::activate()
         m_UID,
         [this]()
         {
-            m_stateHook.Execute();
+            m_stateTrigger.run();
         },
 
-        [this](const MessagePack &rstMPK)
+        [this](const MessagePack &mpk)
         {
-            operateAM(rstMPK);
+            operateAM(mpk);
         },
 
         3600 * 1000,
@@ -121,8 +112,8 @@ void ServerObject::deactivate()
     }
 }
 
-void ServerObject::Delay(uint32_t nDelayTick, const std::function<void()> &fnCmd)
+void ServerObject::addDelay(uint32_t delayTick, std::function<void()> cmd)
 {
-    m_delayCmdCount = m_delayCmdQ.empty() ? 0 : (m_delayCmdCount + 1);
-    m_delayCmdQ.emplace(nDelayTick + g_monoServer->getCurrTick(), m_delayCmdCount, fnCmd);
+    m_delayCmdIndex = m_delayCmdQ.empty() ? 0 : (m_delayCmdIndex + 1);
+    m_delayCmdQ.emplace(delayTick + g_monoServer->getCurrTick(), m_delayCmdIndex, std::move(cmd));
 }
