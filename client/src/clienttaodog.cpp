@@ -77,23 +77,32 @@ bool ClientTaoDog::onActionTransf(const ActionNode &action)
 bool ClientTaoDog::onActionAttack(const ActionNode &action)
 {
     if(!m_standMode){
-        const auto [x, y, dir] = motionEndLocation(END_CURRENT);
-        auto motionPtr = new MotionNode
-        {
-            .type = MOTION_MON_APPEAR,
-            .direction = dir,
-            .x = x,
-            .y = y,
-        };
-
-        motionPtr->onUpdate = [motionPtr, lastFrame = (int)(-1), this]() mutable
-        {
-            if(lastFrame != motionPtr->frame && motionPtr->frame == 0){
-                m_standMode = true;
+        bool hasTransf = false;
+        for(const auto &motionPtr: m_forceMotionQueue){
+            if(motionPtr->type == MOTION_MON_APPEAR){
+                hasTransf = true;
             }
-            lastFrame = motionPtr->frame;
-        };
-        m_forceMotionQueue.push_front(std::unique_ptr<MotionNode>(motionPtr));
+        }
+
+        if(!hasTransf){
+            const auto [x, y, dir] = motionEndLocation(END_CURRENT);
+            auto motionPtr = new MotionNode
+            {
+                .type = MOTION_MON_APPEAR,
+                .direction = dir,
+                .x = x,
+                .y = y,
+            };
+
+            motionPtr->onUpdate = [motionPtr, lastFrame = (int)(-1), this]() mutable
+            {
+                if(lastFrame != motionPtr->frame && motionPtr->frame == 0){
+                    m_standMode = true;
+                }
+                lastFrame = motionPtr->frame;
+            };
+            m_forceMotionQueue.push_front(std::unique_ptr<MotionNode>(motionPtr));
+        }
     }
 
     const auto [endX, endY, endDir] = motionEndLocation(END_FORCED);
