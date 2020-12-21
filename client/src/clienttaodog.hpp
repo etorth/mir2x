@@ -79,4 +79,7 @@ class ClientTaoDog: public ClientMonster
         {
             return ClientCreature::active();
         }
+
+    private:
+        void addTransf(bool);
 };

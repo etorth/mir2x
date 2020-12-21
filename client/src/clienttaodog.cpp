@@ -20,6 +20,28 @@
 #include "processrun.hpp"
 #include "clienttaodog.hpp"
 
+void ClientTaoDog::addTransf(bool /* standMode */)
+{
+    const auto [x, y, dir] = motionEndLocation(END_CURRENT);
+    auto motionPtr = new MotionNode
+    {
+        .type = MOTION_MON_APPEAR,
+        .direction = dir,
+        .x = x,
+        .y = y,
+    };
+
+    motionPtr->onUpdate = [motionPtr, lastFrame = (int)(-1), this]() mutable
+    {
+        if(lastFrame != motionPtr->frame && motionPtr->frame == 0){
+            m_standMode = true;
+        }
+        lastFrame = motionPtr->frame;
+    };
+
+    m_forceMotionQueue.push_front(std::unique_ptr<MotionNode>(motionPtr));
+}
+
 bool ClientTaoDog::onActionSpawn(const ActionNode &action)
 {
     if(!m_forceMotionQueue.empty()){
@@ -53,24 +75,7 @@ bool ClientTaoDog::onActionTransf(const ActionNode &action)
     // change shape immediately
     // don't wait otherwise there may has transf in the forced motion queue
 
-    const auto [x, y, dir] = motionEndLocation(END_CURRENT);
-    auto motionPtr = new MotionNode
-    {
-        .type = MOTION_MON_APPEAR,
-        .direction = dir,
-        .x = x,
-        .y = y,
-    };
-
-    motionPtr->onUpdate = [motionPtr, standReq, lastFrame = (int)(-1), this]() mutable
-    {
-        if(lastFrame != motionPtr->frame && motionPtr->frame == 0){
-            m_standMode = standReq;
-        }
-        lastFrame = motionPtr->frame;
-    };
-
-    m_forceMotionQueue.push_front(std::unique_ptr<MotionNode>(motionPtr));
+    addTransf(true);
     return true;
 }
 
@@ -85,23 +90,7 @@ bool ClientTaoDog::onActionAttack(const ActionNode &action)
         }
 
         if(!hasTransf){
-            const auto [x, y, dir] = motionEndLocation(END_CURRENT);
-            auto motionPtr = new MotionNode
-            {
-                .type = MOTION_MON_APPEAR,
-                .direction = dir,
-                .x = x,
-                .y = y,
-            };
-
-            motionPtr->onUpdate = [motionPtr, lastFrame = (int)(-1), this]() mutable
-            {
-                if(lastFrame != motionPtr->frame && motionPtr->frame == 0){
-                    m_standMode = true;
-                }
-                lastFrame = motionPtr->frame;
-            };
-            m_forceMotionQueue.push_front(std::unique_ptr<MotionNode>(motionPtr));
+            addTransf(true);
         }
     }
 
