@@ -17,18 +17,16 @@ decl {\#include <mutex>} {private local
 decl {class CommandWindow;} {public global
 }
 
-class MainWindow {open
-} {
-  Function {MainWindow()} {open
-  } {
+class MainWindow {} {
+  Function {MainWindow()} {} {
     Fl_Window m_window {
       label MonoServer
       callback {{
 	// do nothing
-}} open
-      xywh {2680 416 720 400} type Double labelfont 4 resizable visible
+}}
+      xywh {2719 216 720 400} type Double labelfont 4 resizable visible
     } {
-      Fl_Menu_Bar {} {open
+      Fl_Menu_Bar {} {
         xywh {0 0 721 25} box FLAT_BOX labelfont 4 textfont 4
       } {
         Submenu {} {
@@ -36,7 +34,7 @@ class MainWindow {open
           xywh {0 0 62 20} labelfont 4
         } {
           MenuItem {} {
-            label {Launch          }
+            label {Launch        }
             callback {{
 	extern MonoServer *g_monoServer;
 	delete g_monoServer;
@@ -56,15 +54,15 @@ class MainWindow {open
             callback {{
 	exit(0);
 }}
-            xywh {20 20 30 20} labelfont 4
+            xywh {20 20 30 20} shortcut 0x40071 labelfont 4
           }
         }
         Submenu {} {
-          label Configure open
+          label Configure
           xywh {0 0 62 20} labelfont 4
         } {
           MenuItem {} {
-            label Server
+            label {Server        }
             callback {{
 	extern ServerConfigureWindow	*g_serverConfigureWindow;
 	g_serverConfigureWindow->showAll();
@@ -583,7 +581,7 @@ class MainWindow {open
           xywh {15 15 62 20} labelfont 4
         } {
           MenuItem m_subMenuRunCommand {
-            label {Run Command    }
+            label {Run            }
             callback {// create a new command window if pressed
 // to retrieve the created windows, use cwid to find it
 {
@@ -595,7 +593,7 @@ class MainWindow {open
             xywh {0 0 36 20} labelfont 4 divider
           }
           MenuItem m_menuItemToggleAll {
-            label {Toggle All   }
+            label {Toggle All}
             callback {// toggle all
 // if all open close all
 // if all close then open all
