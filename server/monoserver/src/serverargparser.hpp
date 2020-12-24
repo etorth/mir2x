@@ -27,8 +27,8 @@ struct ServerArgParser
 {
     const bool disableProfiler;         // "--disable-profiler"
     const bool DisableMapScript;        // "--disable-map-script"
-    const bool TraceActorMessage;       // "--trace-actor-message"
-    const bool TraceActorMessageCount;  // "--trace-actor-message-count"
+    const bool traceActorMessage;       // "--trace-actor-message"
+    const bool traceActorMessageCount;  // "--trace-actor-message-count"
     const bool disablePetSpawn;         // "--disable-pet-spawn"
     const bool disableMonsterSpawn;     // "--disable-monster-spawn"
     const bool preloadMap;              // "--preload-map"
@@ -37,8 +37,8 @@ struct ServerArgParser
     ServerArgParser(const argh::parser &cmdParser)
         : disableProfiler(cmdParser["disable-profiler"])
         , DisableMapScript(cmdParser["disable-map-script"])
-        , TraceActorMessage(cmdParser["trace-actor-message"])
-        , TraceActorMessageCount(cmdParser["trace-actor-message-count"])
+        , traceActorMessage(cmdParser["trace-actor-message"])
+        , traceActorMessageCount(cmdParser["trace-actor-message-count"])
         , disablePetSpawn(cmdParser["disable-pet-spawn"])
         , disableMonsterSpawn(cmdParser["disable-monster-spawn"])
         , preloadMap(cmdParser["preload-map"])

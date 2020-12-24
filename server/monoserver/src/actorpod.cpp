@@ -71,7 +71,7 @@ ActorPod::~ActorPod()
 
 void ActorPod::innHandler(const MessagePack &rstMPK)
 {
-    if(g_serverArgParser->TraceActorMessage){
+    if(g_serverArgParser->traceActorMessage){
         g_monoServer->addLog(LOGTYPE_DEBUG, "%s <- %s : (Type: %s, ID: %llu, Resp: %llu)", uidf::getUIDString(UID()).c_str(), uidf::getUIDString(rstMPK.from()).c_str(), mpkName(rstMPK.Type()), to_llu(rstMPK.ID()), to_llu(rstMPK.Respond()));
     }
 
@@ -146,8 +146,8 @@ void ActorPod::innHandler(const MessagePack &rstMPK)
 
 uint32_t ActorPod::GetValidID()
 {
-    // previously I use g_serverArgParser->TraceActorMessage to select use this one
-    // this is dangerous since if we can change g_serverArgParser->TraceActorMessage during runtime then it's dead
+    // previously I use g_serverArgParser->traceActorMessage to select use this one
+    // this is dangerous since if we can change g_serverArgParser->traceActorMessage during runtime then it's dead
     if(1){
         static std::atomic<uint32_t> s_ValidID(1);
         auto nNewValidID = s_ValidID.fetch_add(1);
@@ -179,7 +179,7 @@ bool ActorPod::forward(uint64_t nUID, const MessageBuf &rstMB, uint32_t nRespond
         throw fflerror("%s -> %s: (Type: MPK_NONE, ID: 0, Resp: %llu): Try to send an empty message", uidf::getUIDString(UID()).c_str(), uidf::getUIDString(nUID).c_str(), to_llu(nRespond));
     }
 
-    if(g_serverArgParser->TraceActorMessage){
+    if(g_serverArgParser->traceActorMessage){
         g_monoServer->addLog(LOGTYPE_DEBUG, "%s -> %s: (Type: %s, ID: 0, Resp: %llu)", uidf::getUIDString(UID()).c_str(), uidf::getUIDString(nUID).c_str(), mpkName(rstMB.Type()), to_llu(nRespond));
     }
 
@@ -206,7 +206,7 @@ bool ActorPod::forward(uint64_t nUID, const MessageBuf &rstMB, uint32_t nRespond
     }
 
     const auto nID = GetValidID();
-    if(g_serverArgParser->TraceActorMessage){
+    if(g_serverArgParser->traceActorMessage){
         g_monoServer->addLog(LOGTYPE_DEBUG, "%s -> %s: (Type: %s, ID: %llu, Resp: %llu)", uidf::getUIDString(UID()).c_str(), uidf::getUIDString(nUID).c_str(), mpkName(rstMB.Type()), to_llu(nID), to_llu(nRespond));
     }
 

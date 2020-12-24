@@ -30,7 +30,7 @@ extern ServerArgParser *g_serverArgParser;
 
 bool Dispatcher::forward(uint64_t nUID, const MessageBuf &rstMB, uint32_t nRespond)
 {
-    if(g_serverArgParser->TraceActorMessage){
+    if(g_serverArgParser->traceActorMessage){
         g_monoServer->addLog(LOGTYPE_DEBUG, "Dispatcher -> (UID: %s, Type: %s, ID: 0, Resp: %llu)", uidf::getUIDString(nUID).c_str(), mpkName(rstMB.Type()), to_llu(nRespond));
     }
 

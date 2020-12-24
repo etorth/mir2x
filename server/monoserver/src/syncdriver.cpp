@@ -46,7 +46,7 @@ MessagePack SyncDriver::forward(uint64_t uid, const MessageBuf &mb, uint32_t res
         m_currID = 1;
     }
 
-    if(g_serverArgParser->TraceActorMessage){
+    if(g_serverArgParser->traceActorMessage){
         g_monoServer->addLog(LOGTYPE_DEBUG, "%s -> %s: (type: %s, ID: %llu, Resp: %llu)", uidf::getUIDString(UID()).c_str(), uidf::getUIDString(uid).c_str(), mpkName(mb.Type()), to_llu(m_currID), to_llu(resp));
     }
 
