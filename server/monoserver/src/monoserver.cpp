@@ -189,8 +189,12 @@ void MonoServer::CreateDefaultDatabase()
             "(5, \'逗逼\', \'比奇省\', 440, 381, 0, 0, 1, 1, 1)",
     };
 
-    for(const auto sqlCmd: defSQLCmdList){
-        g_dbPod->exec(sqlCmd);
+    {
+        auto dbTrans = g_dbPod->createTransaction();
+        for(const auto sqlCmd: defSQLCmdList){
+            g_dbPod->exec(sqlCmd);
+        }
+        dbTrans.commit();
     }
     addLog(LOGTYPE_INFO, "Create default sqlite3 database done");
 }
