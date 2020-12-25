@@ -744,6 +744,7 @@ bool Hero::parseAction(const ActionNode &action)
             }
         case ACTION_DIE:
             {
+                const auto [dieX, dieY, dieDir] = motionEndLocation(END_FORCED);
                 m_forceMotionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
                 {
                     .type = [this]() -> int
@@ -754,9 +755,9 @@ bool Hero::parseAction(const ActionNode &action)
                         return MOTION_DIE;
                     }(),
 
-                    .direction = action.direction,
-                    .x = action.x,
-                    .y = action.y,
+                    .direction = dieDir,
+                    .x = dieX,
+                    .y = dieY,
                 }));
                 break;
             }

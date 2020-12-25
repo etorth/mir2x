@@ -401,12 +401,13 @@ bool ClientMonster::onActionDie(const ActionNode &action)
         m_forceMotionQueue.push_back(std::move(node));
     }
 
+    const auto [dieX, dieY, dieDir] = motionEndLocation(END_FORCED);
     m_forceMotionQueue.emplace_back(std::unique_ptr<MotionNode>(new MotionNode
     {
         .type = MOTION_MON_DIE,
-        .direction = action.direction,
-        .x = action.x,
-        .y = action.y,
+        .direction = dieDir,
+        .x = dieX,
+        .y = dieY,
     }));
 
     m_forceMotionQueue.back()->extParam.die.fadeOut = action.extParam.die.fadeOut;
