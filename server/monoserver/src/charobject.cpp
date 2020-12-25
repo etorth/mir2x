@@ -1467,7 +1467,7 @@ ActionNode CharObject::makeActionStand() const
                 // x: stand
                 // 1: act
                 // 2: actEx
-                stand.extParam.stand.npc.act = std::rand() % 3;
+                stand.extParam.stand.npc.act = 0;
                 break;
             }
         default:
