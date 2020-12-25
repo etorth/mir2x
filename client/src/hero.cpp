@@ -576,18 +576,18 @@ bool Hero::parseAction(const ActionNode &action)
 
                             const auto standDir = [&fnGetSpellDir, &action, this]() -> int
                             {
-                                if(m_processRun->canMove(true, 0, action.aimX, action.aimY)){
-                                    return fnGetSpellDir(action.x, action.y, action.aimX, action.aimY);
-                                }
-                                else if(action.aimUID){
+                                if(action.aimUID){
                                     if(auto coPtr = m_processRun->findUID(action.aimUID)){
                                         return fnGetSpellDir(action.x, action.y, coPtr->x(), coPtr->y());
                                     }
                                 }
+                                else if(m_processRun->canMove(true, 0, action.aimX, action.aimY)){
+                                    return fnGetSpellDir(action.x, action.y, action.aimX, action.aimY);
+                                }
                                 return DIR_NONE;
                             }();
 
-                            if(standDir >= DIR_BEGIN && standDir < DIR_END){
+                            if(directionValid(standDir)){
                                 auto motionPtr = new MotionNode
                                 {
                                     .type = motionSpell,

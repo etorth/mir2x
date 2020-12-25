@@ -477,6 +477,46 @@ bool MyHero::decompActionSpell()
     const auto currAction = m_actionQueue.front();
     m_actionQueue.pop_front();
 
+    const auto fnGetSpellDir = [this](int nX0, int nY0, int nX1, int nY1) -> int
+    {
+        switch(mathf::LDistance2<int>(nX0, nY0, nX1, nY1)){
+            case 0:
+                {
+                    return m_currMotion->direction;
+                }
+            default:
+                {
+                    return PathFind::GetDirection(nX0, nY0, nX1, nY1);
+                }
+        }
+    };
+
+    const auto standDir = [&fnGetSpellDir, &currAction, this]() -> int
+    {
+        if(currAction.aimUID){
+            if(auto coPtr = m_processRun->findUID(currAction.aimUID)){
+                return fnGetSpellDir(currAction.x, currAction.y, coPtr->x(), coPtr->y());
+            }
+        }
+        else if(m_processRun->canMove(true, 0, currAction.aimX, currAction.aimY)){
+            return fnGetSpellDir(currAction.x, currAction.y, currAction.aimX, currAction.aimY);
+        }
+        return DIR_NONE;
+    }();
+
+    // adjust the direction and acknowledge server
+    // otherwise server doesn't know client has made direction turn
+    // when summon skeleton or dog it appears at wrong place, not in front
+
+    if(directionValid(standDir) && m_currMotion->direction != standDir){
+        m_actionQueue.emplace_front(_ActionStand
+        {
+            .x = currAction.x,
+            .y = currAction.y,
+            .direction = standDir,
+        });
+    }
+
     // TODO like dual axe
     // some magic it has a attack distance
 
@@ -564,7 +604,7 @@ bool MyHero::parseActionQueue()
     // present current *local* action without verification
     // later if server refused current action we'll do correction by pullback
 
-    ReportAction(currAction);
+    reportAction(currAction);
     if(parseAction(currAction)){
         // trace message
         // trace move action after parsing
@@ -613,7 +653,7 @@ void MyHero::pickUp()
         const int nY = currMotion()->y;
 
         if(const auto &itemList = m_processRun->getGroundItemList(nX, nY); !itemList.empty()){
-            ReportAction(_ActionPickUp
+            reportAction(_ActionPickUp
             {
                 .x = nX,
                 .y = nY,
@@ -630,7 +670,7 @@ bool MyHero::emplaceAction(const ActionNode &action)
     return true;
 }
 
-void MyHero::ReportAction(const ActionNode &action)
+void MyHero::reportAction(const ActionNode &action)
 {
     CMAction cmA;
     std::memset(&cmA, 0, sizeof(cmA));

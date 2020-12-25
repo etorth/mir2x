@@ -1723,7 +1723,6 @@ void ProcessRun::checkMagicSpell(const SDL_Event &event)
         case DBCOM_MAGICID(u8"召唤骷髅"):
         case DBCOM_MAGICID(u8"召唤神兽"):
             {
-
                 getMyHero()->emplaceAction(_ActionSpell
                 {
                     .x = getMyHero()->x(),

@@ -104,7 +104,7 @@ class MyHero: public Hero
         bool emplaceAction(const ActionNode &);
 
     public:
-        void ReportAction(const ActionNode &);
+        void reportAction(const ActionNode &);
 
     public:
         void pullGold();
