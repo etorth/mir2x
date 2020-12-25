@@ -45,7 +45,7 @@ struct MotionNode final
     {
         struct MotionSpell
         {
-            const int magicID = 0;
+            const uint32_t magicID = 0;
             std::unique_ptr<MagicSpellEffect> effect{};
         }
         spell{};
@@ -64,7 +64,7 @@ struct MotionNode final
         
         struct MotionSwing
         {
-            const int magicID = 0;
+            const uint32_t magicID = 0;
         }
         swing{};
     };
@@ -126,12 +126,12 @@ class MagicSpellEffect
 
                   const auto &mr = DBCOM_MAGICRECORD(m_motion->extParam.spell.magicID);
                   if(!mr){
-                      throw fflerror("invalid magic ID: %d", m_motion->extParam.spell.magicID);
+                      throw fflerror("invalid magic ID: %llu", to_llu(m_motion->extParam.spell.magicID));
                   }
 
                   const auto &ge = mr.getGfxEntry(u8"启动");
                   if(!ge){
-                      throw fflerror("magic ID %d has no stage: %s", m_motion->extParam.spell.magicID, to_cstr(u8"启动"));
+                      throw fflerror("magic ID %llu has no stage: %s", to_llu(m_motion->extParam.spell.magicID), to_cstr(u8"启动"));
                   }
 
                   if(!ge.checkType(u8"附着")){

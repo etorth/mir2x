@@ -107,12 +107,12 @@ void Player::on_MPK_ACTION(const MessagePack &rstMPK)
     // the x/y are always well-defined
 
     int nDirection = -1;
-    switch(amA.Action){
+    switch(amA.action.type){
         case ACTION_STAND:
         case ACTION_ATTACK:
         case ACTION_HITTED:
             {
-                nDirection = amA.Direction;
+                nDirection = amA.action.direction;
                 break;
             }
         default:
@@ -121,15 +121,20 @@ void Player::on_MPK_ACTION(const MessagePack &rstMPK)
             }
     }
 
-    if(mathf::LDistance2(amA.X, amA.Y, X(), Y()) > 20 * 20){
+    if(mathf::LDistance2<int>(amA.action.x, amA.action.y, X(), Y()) > 20 * 20){
         return;
     }
 
-    switch(amA.Action){
+    switch(amA.action.type){
         case ACTION_SPAWN:
         case ACTION_SPACEMOVE2:
             {
-                dispatchAction(amA.UID, ActionStand(X(), Y(), Direction()));
+                dispatchAction(amA.UID, _ActionStand
+                {
+                    .x = X(),
+                    .y = Y(),
+                    .direction = Direction(),
+                });
                 break;
             }
         default:
@@ -138,20 +143,8 @@ void Player::on_MPK_ACTION(const MessagePack &rstMPK)
             }
     }
 
-    AddInViewCO(amA.UID, amA.MapID, amA.X, amA.Y, nDirection);
-    reportAction(amA.UID, ActionNode
-    {
-        amA.Action,
-        amA.Speed,
-        amA.Direction,
-
-        amA.X,
-        amA.Y,
-        amA.AimX,
-        amA.AimY,
-        amA.AimUID,
-        amA.ActionParam,
-    });
+    AddInViewCO(amA.UID, amA.MapID, amA.action.x, amA.action.y, nDirection);
+    reportAction(amA.UID, amA.action);
 }
 
 void Player::on_MPK_NOTIFYNEWCO(const MessagePack &mpk)
@@ -163,7 +156,12 @@ void Player::on_MPK_NOTIFYNEWCO(const MessagePack &mpk)
     else{
         // should make an valid action node and send it
         // currently just dispatch through map
-        dispatchAction(amNNCO.UID, ActionStand(X(), Y(), Direction()));
+        dispatchAction(amNNCO.UID, _ActionStand
+        {
+            .x = X(),
+            .y = Y(),
+            .direction = Direction(),
+        });
     }
 }
 
@@ -254,9 +252,19 @@ void Player::on_MPK_ATTACK(const MessagePack &rstMPK)
         m_actorPod->forward(slaveUID, MPK_MASTERHITTED);
     }
 
-    dispatchAction(ActionHitted(X(), Y(), Direction()));
+    dispatchAction(_ActionHitted
+    {
+        .x = X(),
+        .y = Y(),
+        .direction = Direction(),
+    });
     StruckDamage({amA.UID, amA.Type, amA.Damage, amA.Element});
-    reportAction(UID(), ActionHitted(X(), Y(), Direction()));
+    reportAction(UID(), _ActionHitted
+    {
+        .x = X(),
+        .y = Y(),
+        .direction = Direction(),
+    });
 }
 
 void Player::on_MPK_UPDATEHP(const MessagePack &rstMPK)
@@ -425,29 +433,18 @@ void Player::on_MPK_PICKUPOK(const MessagePack &rstMPK)
 
 }
 
-void Player::on_MPK_CORECORD(const MessagePack &rstMPK)
+void Player::on_MPK_CORECORD(const MessagePack &mpk)
 {
-    const auto amCOR = rstMPK.conv<AMCORecord>();
+    const auto amCOR = mpk.conv<AMCORecord>();
 
     SMCORecord smCOR;
     std::memset(&smCOR, 0, sizeof(smCOR));
 
-    smCOR.Action.UID   = amCOR.Action.UID;
-    smCOR.Action.MapID = amCOR.Action.MapID;
+    smCOR.UID = amCOR.UID;
+    smCOR.MapID = amCOR.MapID;
+    smCOR.action = amCOR.action;
 
-    smCOR.Action.Action    = amCOR.Action.Action;
-    smCOR.Action.Speed     = amCOR.Action.Speed;
-    smCOR.Action.Direction = amCOR.Action.Direction;
-
-    smCOR.Action.X    = amCOR.Action.X;
-    smCOR.Action.Y    = amCOR.Action.Y;
-    smCOR.Action.AimX = amCOR.Action.AimX;
-    smCOR.Action.AimY = amCOR.Action.AimY;
-
-    smCOR.Action.AimUID      = amCOR.Action.AimUID;
-    smCOR.Action.ActionParam = amCOR.Action.ActionParam;
-
-    switch(uidf::getUIDType(amCOR.Action.UID)){
+    switch(uidf::getUIDType(amCOR.UID)){
         case UID_PLY:
             {
                 smCOR.Player.DBID  = amCOR.Player.DBID;

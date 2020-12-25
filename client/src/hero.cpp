@@ -55,8 +55,8 @@ Hero::Hero(uint64_t uid, uint32_t dbid, bool gender, uint32_t nDress, ProcessRun
     {
         .type = MOTION_STAND,
         .direction = DIR_DOWN,
-        .x = action.X,
-        .y = action.Y,
+        .x = action.x,
+        .y = action.y,
     });
 
     if(!parseAction(action)){
@@ -462,13 +462,13 @@ bool Hero::parseAction(const ActionNode &action)
 
     // 1. prepare before parsing action
     //    additional movement added if necessary but in rush
-    switch(action.Action){
+    switch(action.type){
         case ACTION_DIE:
         case ACTION_STAND:
             {
                 // take this as cirtical
                 // server use ReportStand() to do location sync
-                for(auto &motion: makeWalkMotionQueue(endX, endY, action.X, action.Y, SYS_MAXSPEED)){
+                for(auto &motion: makeWalkMotionQueue(endX, endY, action.x, action.y, SYS_MAXSPEED)){
                     m_forceMotionQueue.insert(m_forceMotionQueue.end(), std::move(motion));
                 }
                 break;
@@ -477,7 +477,7 @@ bool Hero::parseAction(const ActionNode &action)
         case ACTION_SPELL:
         case ACTION_ATTACK:
             {
-                m_motionQueue = makeWalkMotionQueue(endX, endY, action.X, action.Y, SYS_MAXSPEED);
+                m_motionQueue = makeWalkMotionQueue(endX, endY, action.x, action.y, SYS_MAXSPEED);
                 break;
             }
         case ACTION_SPACEMOVE2:
@@ -493,7 +493,7 @@ bool Hero::parseAction(const ActionNode &action)
 
     // 2. parse the action
     //    now motion list is at the right grid
-    switch(action.Action){
+    switch(action.type){
         case ACTION_STAND:
             {
                 m_motionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
@@ -506,15 +506,15 @@ bool Hero::parseAction(const ActionNode &action)
                         return MOTION_STAND;
                     }(),
 
-                    .direction = action.Direction,
-                    .x = action.X,
-                    .y = action.Y,
+                    .direction = action.direction,
+                    .x = action.x,
+                    .y = action.y,
                 }));
                 break;
             }
         case ACTION_MOVE:
             {
-                if(auto moveNode = makeWalkMotion(action.X, action.Y, action.AimX, action.AimY, action.Speed)){
+                if(auto moveNode = makeWalkMotion(action.x, action.y, action.aimX, action.aimY, action.speed)){
                     m_motionQueue.push_back(std::move(moveNode));
                 }
                 else{
@@ -539,8 +539,8 @@ bool Hero::parseAction(const ActionNode &action)
                     }(),
 
                     .direction = m_currMotion->direction,
-                    .x = action.X,
-                    .y = action.Y,
+                    .x = action.x,
+                    .y = action.y,
                 });
 
                 addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"瞬息移动", u8"结束", -1)));
@@ -548,7 +548,7 @@ bool Hero::parseAction(const ActionNode &action)
             }
         case ACTION_SPELL:
             {
-                if(auto &mr = DBCOM_MAGICRECORD(action.ActionParam)){
+                if(auto &mr = DBCOM_MAGICRECORD(action.extParam.spell.magicID)){
                     if(auto &gfxEntry = mr.getGfxEntry(u8"启动")){
                         const auto motionSpell = [&gfxEntry]() -> int
                         {
@@ -576,12 +576,12 @@ bool Hero::parseAction(const ActionNode &action)
 
                             const auto standDir = [&fnGetSpellDir, &action, this]() -> int
                             {
-                                if(m_processRun->canMove(true, 0, action.AimX, action.AimY)){
-                                    return fnGetSpellDir(action.X, action.Y, action.AimX, action.AimY);
+                                if(m_processRun->canMove(true, 0, action.aimX, action.aimY)){
+                                    return fnGetSpellDir(action.x, action.y, action.aimX, action.aimY);
                                 }
-                                else if(action.AimUID){
-                                    if(auto coPtr = m_processRun->findUID(action.AimUID)){
-                                        return fnGetSpellDir(action.X, action.Y, coPtr->x(), coPtr->y());
+                                else if(action.aimUID){
+                                    if(auto coPtr = m_processRun->findUID(action.aimUID)){
+                                        return fnGetSpellDir(action.x, action.y, coPtr->x(), coPtr->y());
                                     }
                                 }
                                 return DIR_NONE;
@@ -592,27 +592,27 @@ bool Hero::parseAction(const ActionNode &action)
                                 {
                                     .type = motionSpell,
                                     .direction = standDir,
-                                    .x = action.X,
-                                    .y = action.Y,
+                                    .x = action.x,
+                                    .y = action.y,
                                     .extParam
                                     {
                                         .spell
                                         {
-                                            .magicID = (int)(action.ActionParam),
+                                            .magicID = action.extParam.spell.magicID,
                                         },
                                     },
                                 };
 
                                 auto magicPtr = [&action, motionPtr, this]() -> MagicSpellEffect *
                                 {
-                                    switch(action.ActionParam){
+                                    switch(action.extParam.spell.magicID){
                                         case DBCOM_MAGICID(u8"灵魂火符"): return new TaoFireFigureEffect(motionPtr);
                                         default                         : return new MagicSpellEffect   (motionPtr);
                                     }
                                 }();
 
                                 motionPtr->extParam.spell.effect = std::unique_ptr<MagicSpellEffect>(magicPtr);
-                                switch(action.ActionParam){
+                                switch(action.extParam.spell.magicID){
                                     case DBCOM_MAGICID(u8"灵魂火符"):
                                         {
                                             motionPtr->onUpdate = [lastMotionFrame = (int)(-1), this] () mutable
@@ -681,8 +681,8 @@ bool Hero::parseAction(const ActionNode &action)
                                         {
                                             .type = MOTION_ATTACKMODE,
                                             .direction = standDir,
-                                            .x = action.X,
-                                            .y = action.Y,
+                                            .x = action.x,
+                                            .y = action.y,
                                         }));
                                     }
                                 }
@@ -694,22 +694,22 @@ bool Hero::parseAction(const ActionNode &action)
             }
         case ACTION_ATTACK:
             {
-                if(auto coPtr = m_processRun->findUID(action.AimUID)){
-                    if(const auto attackDir = PathFind::GetDirection(action.X, action.Y, coPtr->x(), coPtr->y()); attackDir >= DIR_BEGIN && attackDir < DIR_END){
+                if(auto coPtr = m_processRun->findUID(action.aimUID)){
+                    if(const auto attackDir = PathFind::GetDirection(action.x, action.y, coPtr->x(), coPtr->y()); attackDir >= DIR_BEGIN && attackDir < DIR_END){
                         m_motionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
                         {
                             .type = MOTION_ONEHSWING,
                             .direction = attackDir,
-                            .x = action.X,
-                            .y = action.Y,
+                            .x = action.x,
+                            .y = action.y,
                         }));
 
                         m_motionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
                         {
                             .type = MOTION_ATTACKMODE,
                             .direction = attackDir,
-                            .x = action.X,
-                            .y = action.Y,
+                            .x = action.x,
+                            .y = action.y,
                         }));
                     }
                 }
@@ -754,9 +754,9 @@ bool Hero::parseAction(const ActionNode &action)
                         return MOTION_DIE;
                     }(),
 
-                    .direction = action.Direction,
-                    .x = action.X,
-                    .y = action.Y,
+                    .direction = action.direction,
+                    .x = action.x,
+                    .y = action.y,
                 }));
                 break;
             }

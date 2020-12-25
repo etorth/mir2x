@@ -42,24 +42,10 @@ enum DirectionType: int
     DIR_END,
 };
 
-enum ActionType: int
+inline bool directionValid(int direction)
 {
-    ACTION_NONE  = 0,
-    ACTION_BEGIN = 1,
-    ACTION_SPAWN = 1,
-    ACTION_STAND,
-    ACTION_PICKUP,
-    ACTION_MOVE,
-    ACTION_PUSHMOVE,
-    ACTION_SPACEMOVE1,
-    ACTION_SPACEMOVE2,
-    ACTION_ATTACK,
-    ACTION_SPELL,
-    ACTION_TRANSF,
-    ACTION_HITTED,
-    ACTION_DIE,
-    ACTION_END,
-};
+    return direction >= DIR_BEGIN && direction < DIR_END;
+}
 
 enum ActExtType: int
 {

@@ -66,10 +66,10 @@ class MyHero: public Hero
         bool moveNextMotion() override;
 
     protected:
-        bool DecompActionMove();
-        bool DecompActionSpell();
-        bool DecompActionPickUp();
-        bool DecompActionAttack();
+        bool decompActionMove();
+        bool decompActionSpell();
+        bool decompActionPickUp();
+        bool decompActionAttack();
 
     public:
         bool parseActionQueue();

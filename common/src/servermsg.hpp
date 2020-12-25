@@ -20,6 +20,7 @@
 #include <cstdint>
 #include <unordered_map>
 #include "msgbase.hpp"
+#include "actionnode.hpp"
 
 enum SMType: uint8_t
 {
@@ -90,39 +91,14 @@ struct SMAction
 {
     uint64_t UID;
     uint32_t MapID;
-
-    uint8_t Action;
-    uint8_t Speed;
-    uint8_t Direction;
-
-    uint16_t X;
-    uint16_t Y;
-    uint16_t AimX;
-    uint16_t AimY;
-
-    uint64_t AimUID;
-    uint64_t ActionParam;
+    ActionNode action;
 };
 
 struct SMCORecord
 {
-    struct _Action
-    {
-        uint64_t UID;
-        uint32_t MapID;
-
-        uint8_t Action;
-        uint8_t Speed;
-        uint8_t Direction;
-
-        uint16_t X;
-        uint16_t Y;
-        uint16_t AimX;
-        uint16_t AimY;
-
-        uint64_t AimUID;
-        uint64_t ActionParam;
-    }Action;
+    uint64_t UID;
+    uint32_t MapID;
+    ActionNode action;
 
     struct _SMCORecord_Monster
     {

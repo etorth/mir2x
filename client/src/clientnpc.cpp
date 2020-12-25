@@ -209,14 +209,14 @@ bool ClientNPC::parseAction(const ActionNode &action)
     m_lastActive = SDL_GetTicks();
     const int motion = [&action]() -> int
     {
-        switch(action.Action){
+        switch(action.type){
             case ACTION_SPAWN:
                 {
                     return MOTION_NPC_STAND;
                 }
             case ACTION_STAND:
                 {
-                    switch(action.ActionParam){
+                    switch(action.extParam.npc.act){
                         case 1 : return MOTION_NPC_ACT;
                         case 2 : return MOTION_NPC_ACTEXT;
                         default: return MOTION_NPC_STAND;
@@ -224,7 +224,7 @@ bool ClientNPC::parseAction(const ActionNode &action)
                 }
             default:
                 {
-                    throw fflerror("invalid action node: type = %d", action.Action);
+                    throw fflerror("invalid action node: type = %d", action.type);
                 }
         }
     }();
@@ -232,9 +232,9 @@ bool ClientNPC::parseAction(const ActionNode &action)
     m_currMotion.reset(new MotionNode
     {
         .type = motion,
-        .direction = action.Direction,
-        .x = action.X,
-        .y = action.Y,
+        .direction = action.direction,
+        .x = action.x,
+        .y = action.y,
     });
 
     return motionValid(m_currMotion);

@@ -30,7 +30,7 @@ class ClientTaoDog: public ClientMonster
     public:
         ClientTaoDog(uint64_t uid, ProcessRun *proc, const ActionNode &action)
             : ClientMonster(uid, proc, action)
-            , m_standMode(action.ActionParam)
+            , m_standMode(action.extParam.dogStand.standMode)
         {
             if(monsterName() != u8"神兽"){
                 throw fflerror("bad monster type: %s", to_cstr(monsterName().data()));

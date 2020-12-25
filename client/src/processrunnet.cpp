@@ -54,7 +54,12 @@ void ProcessRun::net_LOGINOK(const uint8_t *bufPtr, size_t nLen)
         loadMap(nMapID);
 
         m_myHeroUID = nUID;
-        m_coList[nUID] = std::make_unique<MyHero>(nUID, nDBID, bGender, nDressID, this, ActionStand(nX, nY, nDirection));
+        m_coList[nUID] = std::make_unique<MyHero>(nUID, nDBID, bGender, nDressID, this, _ActionStand
+        {
+            .x = nX,
+            .y = nY,
+            .direction = nDirection,
+        });
 
         centerMyHero();
         getMyHero()->pullGold();
@@ -65,19 +70,6 @@ void ProcessRun::net_ACTION(const uint8_t *bufPtr, size_t)
 {
     SMAction smA;
     std::memcpy(&smA, bufPtr, sizeof(smA));
-
-    ActionNode stAction
-    {
-        smA.Action,
-        smA.Speed,
-        smA.Direction,
-        smA.X,
-        smA.Y,
-        smA.AimX,
-        smA.AimY,
-        smA.AimUID,
-        smA.ActionParam,
-    };
 
     if(smA.MapID != MapID()){
         if(smA.UID != getMyHero()->UID()){
@@ -96,17 +88,22 @@ void ProcessRun::net_ACTION(const uint8_t *bufPtr, size_t)
         auto nDress     = getMyHero()->Dress();
         auto nDirection = getMyHero()->currMotion()->direction;
 
-        auto nX = smA.X;
-        auto nY = smA.Y;
+        auto nX = smA.action.x;
+        auto nY = smA.action.y;
 
         m_actionBlocker.clear();
         loadMap(smA.MapID);
 
         m_coList.clear();
-        m_coList[m_myHeroUID] = std::make_unique<MyHero>(nUID, nDBID, bGender, nDress, this, ActionStand(nX, nY, nDirection));
+        m_coList[m_myHeroUID] = std::make_unique<MyHero>(nUID, nDBID, bGender, nDress, this, _ActionStand
+        {
+            .x = nX,
+            .y = nY,
+            .direction = nDirection,
+        });
 
         centerMyHero();
-        getMyHero()->parseAction(stAction);
+        getMyHero()->parseAction(smA.action);
         return;
     }
 
@@ -116,12 +113,12 @@ void ProcessRun::net_ACTION(const uint8_t *bufPtr, size_t)
     if(auto creaturePtr = findUID(smA.UID)){
         // shouldn't accept ACTION_SPAWN
         // we shouldn't have spawn action after co created
-        if(smA.Action == ACTION_SPAWN){
+        if(smA.action.type == ACTION_SPAWN){
             throw fflerror("existing CO get spawn action: name = %s", uidf::getUIDString(smA.UID).c_str());
         }
 
-        creaturePtr->parseAction(stAction);
-        switch(stAction.Action){
+        creaturePtr->parseAction(smA.action);
+        switch(smA.action.type){
             case ACTION_SPACEMOVE2:
                 {
                     if(smA.UID == m_myHeroUID){
@@ -150,10 +147,10 @@ void ProcessRun::net_ACTION(const uint8_t *bufPtr, size_t)
             }
         case UID_MON:
             {
-                switch(smA.Action){
+                switch(smA.action.type){
                     case ACTION_SPAWN:
                         {
-                            onActionSpawn(smA.UID, stAction);
+                            onActionSpawn(smA.UID, smA.action);
                             return;
                         }
                     default:
@@ -162,20 +159,20 @@ void ProcessRun::net_ACTION(const uint8_t *bufPtr, size_t)
                                 case DBCOM_MONSTERID(u8"变异骷髅"):
                                     {
                                         if(!m_actionBlocker.contains(smA.UID)){
-                                            m_coList[smA.UID] = std::make_unique<ClientTaoSkeleton>(smA.UID, this, stAction);
+                                            m_coList[smA.UID] = std::make_unique<ClientTaoSkeleton>(smA.UID, this, smA.action);
                                         }
                                         return;
                                     }
                                 case DBCOM_MONSTERID(u8"神兽"):
                                     {
                                         if(!m_actionBlocker.contains(smA.UID)){
-                                            m_coList[smA.UID] = std::make_unique<ClientTaoDog>(smA.UID, this, stAction);
+                                            m_coList[smA.UID] = std::make_unique<ClientTaoDog>(smA.UID, this, smA.action);
                                         }
                                         return;
                                     }
                                 default:
                                     {
-                                        m_coList[smA.UID] = std::make_unique<ClientMonster>(smA.UID, this, stAction);
+                                        m_coList[smA.UID] = std::make_unique<ClientMonster>(smA.UID, this, smA.action);
                                         return;
                                     }
                             }
@@ -186,7 +183,7 @@ void ProcessRun::net_ACTION(const uint8_t *bufPtr, size_t)
             }
         case UID_NPC:
             {
-                m_coList[smA.UID] = std::make_unique<ClientNPC>(smA.UID, this, stAction);
+                m_coList[smA.UID] = std::make_unique<ClientNPC>(smA.UID, this, smA.action);
                 return;
             }
         default:
@@ -199,45 +196,32 @@ void ProcessRun::net_ACTION(const uint8_t *bufPtr, size_t)
 void ProcessRun::net_CORECORD(const uint8_t *bufPtr, size_t)
 {
     const auto smCOR = ServerMsg::conv<SMCORecord>(bufPtr);
-    if(smCOR.Action.MapID != MapID()){
+    if(smCOR.MapID != MapID()){
         return;
     }
 
-    const ActionNode actionNode
-    {
-        smCOR.Action.Action,
-        smCOR.Action.Speed,
-        smCOR.Action.Direction,
-        smCOR.Action.X,
-        smCOR.Action.Y,
-        smCOR.Action.AimX,
-        smCOR.Action.AimY,
-        smCOR.Action.AimUID,
-        smCOR.Action.ActionParam,
-    };
-
-    if(auto p = m_coList.find(smCOR.Action.UID); p != m_coList.end()){
-        p->second->parseAction(actionNode);
+    if(auto p = m_coList.find(smCOR.UID); p != m_coList.end()){
+        p->second->parseAction(smCOR.action);
         return;
     }
 
-    switch(uidf::getUIDType(smCOR.Action.UID)){
+    switch(uidf::getUIDType(smCOR.UID)){
         case UID_MON:
             {
-                switch(uidf::getMonsterID(smCOR.Action.UID)){
+                switch(uidf::getMonsterID(smCOR.UID)){
                     case DBCOM_MONSTERID(u8"变异骷髅"):
                         {
-                            m_coList[smCOR.Action.UID].reset(new ClientTaoSkeleton(smCOR.Action.UID, this, actionNode));
+                            m_coList[smCOR.UID].reset(new ClientTaoSkeleton(smCOR.UID, this, smCOR.action));
                             break;
                         }
                     case DBCOM_MONSTERID(u8"神兽"):
                         {
-                            m_coList[smCOR.Action.UID].reset(new ClientTaoDog(smCOR.Action.UID, this, actionNode));
+                            m_coList[smCOR.UID].reset(new ClientTaoDog(smCOR.UID, this, smCOR.action));
                             break;
                         }
                     default:
                         {
-                            m_coList[smCOR.Action.UID] = std::make_unique<ClientMonster>(smCOR.Action.UID, this, actionNode);
+                            m_coList[smCOR.UID] = std::make_unique<ClientMonster>(smCOR.UID, this, smCOR.action);
                             break;
                         }
                 }
@@ -245,7 +229,7 @@ void ProcessRun::net_CORECORD(const uint8_t *bufPtr, size_t)
             }
         case UID_PLY:
             {
-                m_coList[smCOR.Action.UID] = std::make_unique<Hero>(smCOR.Action.UID, smCOR.Player.DBID, true, 0, this, actionNode);
+                m_coList[smCOR.UID] = std::make_unique<Hero>(smCOR.UID, smCOR.Player.DBID, true, 0, this, smCOR.action);
                 break;
             }
         default:
@@ -273,7 +257,12 @@ void ProcessRun::net_NOTIFYDEAD(const uint8_t *bufPtr, size_t)
     std::memcpy(&stSMND, bufPtr, sizeof(stSMND));
 
     if(auto p = findUID(stSMND.UID)){
-        p->parseAction(ActionDie(p->x(), p->y(), p->currMotion()->direction, true));
+        p->parseAction(_ActionDie
+        {
+            .x = p->x(),
+            .y = p->y(),
+            .fadeOut = true,
+        });
     }
 }
 

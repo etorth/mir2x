@@ -160,7 +160,12 @@ bool Monster::randomMove()
                         // current direction is possible for next move
                         // report the turn and do motion (by chance) in next update
                         m_direction = nDirection;
-                        dispatchAction(ActionStand(X(), Y(), Direction()));
+                        dispatchAction(_ActionStand
+                        {
+                            .x = X(),
+                            .y = Y(),
+                            .direction = Direction(),
+                        });
 
                         // we won't do reportStand() for monster
                         // monster's moving is only driven by server currently
@@ -220,7 +225,12 @@ bool Monster::randomTurn()
                 // current direction is possible for next move
                 // report the turn and do motion (by chance) in next update
                 m_direction = dir;
-                dispatchAction(ActionStand(X(), Y(), Direction()));
+                dispatchAction(_ActionStand
+                {
+                    .x = X(),
+                    .y = Y(),
+                    .direction = Direction(),
+                });
                 return true;
             }
         }
@@ -269,7 +279,14 @@ void Monster::attackUID(uint64_t nUID, int nDC, std::function<void()> fnOnOK, st
 
                                 setTarget(nUID);
                                 m_lastAttackTime = g_monoServer->getCurrTick();
-                                dispatchAction(ActionAttack(X(), Y(), DC_PHY_PLAIN, AttackSpeed(), nUID));
+                                dispatchAction(_ActionAttack
+                                {
+                                    .speed = AttackSpeed(),
+                                    .x = X(),
+                                    .y = Y(),
+                                    .aimUID = nUID,
+                                    .damageID = DC_PHY_PLAIN,
+                                });
 
                                 // 2. send attack message to target
                                 //    target can ignore this message directly
@@ -412,7 +429,12 @@ void Monster::followMaster(std::function<void()> fnOnOK, std::function<void()> f
 
                         if(Direction() != nDirection){
                             m_direction= nDirection;
-                            dispatchAction(ActionStand(X(), Y(), Direction()));
+                            dispatchAction(_ActionStand
+                            {
+                                .x = X(),
+                                .y = Y(),
+                                .direction = Direction(),
+                            });
                         }
 
                         fnOnOK();
@@ -620,20 +642,14 @@ void Monster::reportCO(uint64_t toUID)
     AMCORecord amCOR;
     std::memset(&amCOR, 0, sizeof(amCOR));
 
-    amCOR.Action.UID   = UID();
-    amCOR.Action.MapID = MapID();
-
-    amCOR.Action.Action    = ACTION_STAND;
-    amCOR.Action.Speed     = SYS_DEFSPEED;
-    amCOR.Action.Direction = Direction();
-
-    amCOR.Action.X    = X();
-    amCOR.Action.Y    = Y();
-    amCOR.Action.AimX = X();
-    amCOR.Action.AimY = Y();
-
-    amCOR.Action.AimUID      = 0;
-    amCOR.Action.ActionParam = 0;
+    amCOR.UID = UID();
+    amCOR.MapID = MapID();
+    amCOR.action = _ActionStand
+    {
+        .x = X(),
+        .y = Y(),
+        .direction = Direction(),
+    };
 
     amCOR.Monster.MonsterID = monsterID();
     m_actorPod->forward(toUID, {MPK_CORECORD, amCOR});
@@ -758,7 +774,12 @@ bool Monster::goDie()
     // auto-fade-out is for zombie handling
     // when client confirms a zombie, client use auto-fade-out die action
 
-    dispatchAction(ActionDie(X(), Y(), Direction(), false));
+    dispatchAction(_ActionDie
+    {
+        .x = X(),
+        .y = Y(),
+        .fadeOut = false,
+    });
 
     // let's dispatch ActionDie before mark it dead
     // theoratically dead actor shouldn't dispatch anything

@@ -50,19 +50,19 @@ std::unique_ptr<MotionNode> ClientMonster::makeInitMotion(uint32_t monsterID, co
                     .type = MOTION_MON_STAND,
                     .direction = [&action]() -> int
                     {
-                        if(action.Action == ACTION_SPAWN){
+                        if(action.type == ACTION_SPAWN){
                             return DIR_DOWNLEFT;
                         }
-                        else if(action.Direction >= DIR_BEGIN && action.Direction < DIR_END){
-                            return action.Direction;
+                        else if(directionValid(action.direction)){
+                            return action.direction;
                         }
                         else{
                             return DIR_UP;
                         }
                     }(),
 
-                    .x = action.X,
-                    .y = action.Y,
+                    .x = action.x,
+                    .y = action.y,
                 });
             }
         case DBCOM_MONSTERID(u8"神兽"):
@@ -71,7 +71,7 @@ std::unique_ptr<MotionNode> ClientMonster::makeInitMotion(uint32_t monsterID, co
                 {
                     .type = [&action]() -> int
                     {
-                        if(action.Action == ACTION_SPAWN){
+                        if(action.type == ACTION_SPAWN){
                             return MOTION_MON_APPEAR;
                         }
                         else{
@@ -81,16 +81,16 @@ std::unique_ptr<MotionNode> ClientMonster::makeInitMotion(uint32_t monsterID, co
 
                     .direction = [&action]() -> int
                     {
-                        if(action.Direction >= DIR_BEGIN && action.Direction < DIR_END){
-                            return action.Direction;
+                    if(directionValid(action.direction)){
+                            return action.direction;
                         }
                         else{
                             return DIR_UP;
                         }
                     }(),
 
-                    .x = action.X,
-                    .y = action.Y,
+                    .x = action.x,
+                    .y = action.y,
                 });
             }
         default:
@@ -100,16 +100,16 @@ std::unique_ptr<MotionNode> ClientMonster::makeInitMotion(uint32_t monsterID, co
                     .type = MOTION_MON_STAND,
                     .direction = [&action]() -> int
                     {
-                        if(action.Direction >= DIR_BEGIN && action.Direction < DIR_END){
-                            return action.Direction;
+                        if(directionValid(action.direction)){
+                            return action.direction;
                         }
                         else{
                             return DIR_UP;
                         }
                     }(),
 
-                    .x = action.X,
-                    .y = action.Y,
+                    .x = action.x,
+                    .y = action.y,
                 });
             }
     }
@@ -374,7 +374,7 @@ bool ClientMonster::parseAction(const ActionNode &action)
     }
 
     m_motionQueue.clear();
-    switch(action.Action){
+    switch(action.type){
         case ACTION_DIE       : return onActionDie       (action);
         case ACTION_STAND     : return onActionStand     (action);
         case ACTION_HITTED    : return onActionHitted    (action);
@@ -394,7 +394,7 @@ bool ClientMonster::parseAction(const ActionNode &action)
 bool ClientMonster::onActionDie(const ActionNode &action)
 {
     const auto [endX, endY, endDir] = motionEndLocation(END_FORCED);
-    for(auto &node: makeWalkMotionQueue(endX, endY, action.X, action.Y, SYS_MAXSPEED)){
+    for(auto &node: makeWalkMotionQueue(endX, endY, action.x, action.y, SYS_MAXSPEED)){
         if(!(node && motionValid(node))){
             throw fflerror("current motion node is invalid");
         }
@@ -404,25 +404,25 @@ bool ClientMonster::onActionDie(const ActionNode &action)
     m_forceMotionQueue.emplace_back(std::unique_ptr<MotionNode>(new MotionNode
     {
         .type = MOTION_MON_DIE,
-        .direction = action.Direction,
-        .x = action.X,
-        .y = action.Y,
+        .direction = action.direction,
+        .x = action.x,
+        .y = action.y,
     }));
 
-    m_forceMotionQueue.back()->extParam.die.fadeOut = action.ActionParam;
+    m_forceMotionQueue.back()->extParam.die.fadeOut = action.extParam.die.fadeOut;
     return true;
 }
 
 bool ClientMonster::onActionStand(const ActionNode &action)
 {
     const auto [endX, endY, endDir] = motionEndLocation(END_FORCED);
-    m_motionQueue = makeWalkMotionQueue(endX, endY, action.X, action.Y, SYS_MAXSPEED);
+    m_motionQueue = makeWalkMotionQueue(endX, endY, action.x, action.y, SYS_MAXSPEED);
     m_motionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
     {
         .type = MOTION_MON_STAND,
-        .direction = action.Direction,
-        .x = action.X,
-        .y = action.Y,
+        .direction = action.direction,
+        .x = action.x,
+        .y = action.y,
     }));
     return true;
 }
@@ -430,13 +430,13 @@ bool ClientMonster::onActionStand(const ActionNode &action)
 bool ClientMonster::onActionHitted(const ActionNode &action)
 {
     const auto [endX, endY, endDir] = motionEndLocation(END_FORCED);
-    m_motionQueue = makeWalkMotionQueue(endX, endY, action.X, action.Y, SYS_MAXSPEED);
+    m_motionQueue = makeWalkMotionQueue(endX, endY, action.x, action.y, SYS_MAXSPEED);
     m_motionQueue.emplace_back(std::unique_ptr<MotionNode>(new MotionNode
     {
         .type = MOTION_MON_HITTED,
-        .direction = action.Direction,
-        .x = action.X,
-        .y = action.Y,
+        .direction = action.direction,
+        .x = action.x,
+        .y = action.y,
     }));
     return true;
 }
@@ -459,8 +459,8 @@ bool ClientMonster::onActionSpaceMove2(const ActionNode &action)
     {
         .type = MOTION_MON_STAND,
         .direction = m_currMotion->direction,
-        .x = action.X,
-        .y = action.Y,
+        .x = action.x,
+        .y = action.y,
     });
     return true;
 }
@@ -468,8 +468,8 @@ bool ClientMonster::onActionSpaceMove2(const ActionNode &action)
 bool ClientMonster::onActionMove(const ActionNode &action)
 {
     const auto [endX, endY, endDir] = motionEndLocation(END_FORCED);
-    m_motionQueue = makeWalkMotionQueue(endX, endY, action.X, action.Y, SYS_MAXSPEED);
-    if(auto moveNode = makeWalkMotion(action.X, action.Y, action.AimX, action.AimY, action.Speed); motionValid(moveNode)){
+    m_motionQueue = makeWalkMotionQueue(endX, endY, action.x, action.y, SYS_MAXSPEED);
+    if(auto moveNode = makeWalkMotion(action.x, action.y, action.aimX, action.aimY, action.speed); motionValid(moveNode)){
         m_motionQueue.push_back(std::move(moveNode));
         return true;
     }
@@ -487,14 +487,14 @@ bool ClientMonster::onActionSpawn(const ActionNode &action)
         .type = MOTION_MON_STAND,
         .direction = [&action]() -> int
         {
-            if(action.Direction >= DIR_BEGIN && action.Direction < DIR_END){
-                return action.Direction;
+            if(directionValid(action.direction)){
+                return action.direction;
             }
             return DIR_UP;
         }(),
 
-        .x = action.X,
-        .y = action.Y,
+        .x = action.x,
+        .y = action.y,
     });
     return true;
 }
@@ -502,8 +502,8 @@ bool ClientMonster::onActionSpawn(const ActionNode &action)
 bool ClientMonster::onActionAttack(const ActionNode &action)
 {
     const auto [endX, endY, endDir] = motionEndLocation(END_FORCED);
-    m_motionQueue = makeWalkMotionQueue(endX, endY, action.X, action.Y, SYS_MAXSPEED);
-    if(auto coPtr = m_processRun->findUID(action.AimUID)){
+    m_motionQueue = makeWalkMotionQueue(endX, endY, action.x, action.y, SYS_MAXSPEED);
+    if(auto coPtr = m_processRun->findUID(action.aimUID)){
         m_motionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
         {
             .type = MOTION_MON_ATTACK0,
@@ -511,13 +511,13 @@ bool ClientMonster::onActionAttack(const ActionNode &action)
             {
                 const auto nX = coPtr->x();
                 const auto nY = coPtr->y();
-                if(mathf::LDistance2(nX, nY, action.X, action.Y) == 0){
+                if(mathf::LDistance2<int>(nX, nY, action.x, action.y) == 0){
                     return endDir;
                 }
-                return PathFind::GetDirection(action.X, action.Y, nX, nY);
+                return PathFind::GetDirection(action.x, action.y, nX, nY);
             }(),
-            .x = action.X,
-            .y = action.Y,
+            .x = action.x,
+            .y = action.y,
         }));
         return true;
     }

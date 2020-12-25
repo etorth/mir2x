@@ -46,18 +46,18 @@ void ServerMap::on_MPK_BADACTORPOD(const MessagePack &)
 void ServerMap::on_MPK_ACTION(const MessagePack &rstMPK)
 {
     const auto amA = rstMPK.conv<AMAction>();
-    if(!ValidC(amA.X, amA.Y)){
+    if(!ValidC(amA.action.x, amA.action.y)){
         return;
     }
 
     // spawn message is sent by startup trigger
     // before CO send ACTION_SPAWN servermap won't let other know it's ready
 
-    if(amA.Action == ACTION_SPAWN){
-        addGridUID(amA.UID, amA.X, amA.Y, true);
+    if(amA.action.type == ACTION_SPAWN){
+        addGridUID(amA.UID, amA.action.x, amA.action.y, true);
     }
 
-    doCircle(amA.X, amA.Y, 10, [this, amA](int nX, int nY) -> bool
+    doCircle(amA.action.x, amA.action.y, 10, [this, amA](int nX, int nY) -> bool
     {
         if(true || ValidC(nX, nY)){
             doUIDList(nX, nY, [this, amA](uint64_t nUID) -> bool

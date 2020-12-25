@@ -22,6 +22,7 @@
 #include <type_traits>
 #include <unordered_map>
 #include "msgbase.hpp"
+#include "actionnode.hpp"
 
 enum CMType: uint8_t
 {
@@ -59,18 +60,7 @@ struct CMAction
 {
     uint64_t UID;
     uint32_t MapID;
-
-    uint8_t Action;
-    uint8_t Speed;
-    uint8_t Direction;
-
-    uint16_t X;
-    uint16_t Y;
-    uint16_t AimX;
-    uint16_t AimY;
-
-    uint64_t AimUID;
-    uint64_t ActionParam;
+    ActionNode action;
 };
 
 struct CMQueryCORecord

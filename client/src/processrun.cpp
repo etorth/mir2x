@@ -19,6 +19,7 @@
 #include <memory>
 #include <numeric>
 #include <cstring>
+#include "actionnode.hpp"
 #include "dbcomid.hpp"
 #include "clientmonster.hpp"
 #include "mathf.hpp"
@@ -462,7 +463,12 @@ void ProcessRun::processEvent(const SDL_Event &event)
                             }
 
                             else if(const auto &itemList = getGroundItemList(mouseGridX, mouseGridY); !itemList.empty()){
-                                getMyHero()->emplaceAction(ActionPickUp(mouseGridX, mouseGridY, itemList.back().ID()));
+                                getMyHero()->emplaceAction(_ActionPickUp
+                                {
+                                    .x = mouseGridX,
+                                    .y = mouseGridY,
+                                    .itemID = itemList.back().ID(),
+                                });
                             }
                             break;
                         }
@@ -492,14 +498,14 @@ void ProcessRun::processEvent(const SDL_Event &event)
                                     // when post move action don't use X() and Y()
                                     // since if clicks during hero moving then X() may not equal to EndX
 
-                                    getMyHero()->emplaceAction(ActionMove
+                                    getMyHero()->emplaceAction(_ActionMove
                                     {
-                                        getMyHero()->currMotion()->endX,    // don't use X()
-                                        getMyHero()->currMotion()->endY,    // don't use Y()
-                                        nX,
-                                        nY,
-                                        SYS_DEFSPEED,
-                                        getMyHero()->OnHorse() ? 1 : 0
+                                        .speed = SYS_DEFSPEED,
+                                        .x = getMyHero()->currMotion()->endX,    // don't use X()
+                                        .y = getMyHero()->currMotion()->endY,    // don't use Y()
+                                        .aimX = nX,
+                                        .aimY = nY,
+                                        .onHorse = getMyHero()->OnHorse(),
                                     });
                                 }
                             }
@@ -1166,7 +1172,14 @@ bool ProcessRun::trackAttack(bool bForce, uint64_t nUID)
         if(bForce || getMyHero()->stayIdle()){
             auto nEndX = getMyHero()->currMotion()->endX;
             auto nEndY = getMyHero()->currMotion()->endY;
-            return getMyHero()->emplaceAction(ActionAttack(nEndX, nEndY, DC_PHY_PLAIN, SYS_DEFSPEED, nUID));
+            return getMyHero()->emplaceAction(_ActionAttack
+            {
+                .speed = SYS_DEFSPEED,
+                .x = nEndX,
+                .y = nEndY,
+                .aimUID = nUID,
+                .damageID = DC_PHY_PLAIN,
+            });
         }
     }
     return false;
@@ -1359,8 +1372,8 @@ void ProcessRun::onActionSpawn(uint64_t uid, const ActionNode &action)
         throw fflerror("invalid uid: zero");
     }
 
-    if(action.Action != ACTION_SPAWN){
-        throw fflerror("invalid action node: %d", action.Action);
+    if(action.type != ACTION_SPAWN){
+        throw fflerror("invalid action node: %s", actionName(action));
     }
 
     if(uidf::getUIDType(uid) != UID_MON){
@@ -1376,8 +1389,8 @@ void ProcessRun::onActionSpawn(uint64_t uid, const ActionNode &action)
                 {
                     u8"召唤骷髅",
                     u8"开始",
-                    action.X,
-                    action.Y,
+                    action.x,
+                    action.y,
                 };
 
                 magicPtr->addOnUpdate([magicPtr, action, uid, this]() -> bool
@@ -1386,11 +1399,11 @@ void ProcessRun::onActionSpawn(uint64_t uid, const ActionNode &action)
                         return false;
                     }
 
-                    const ActionStand stand
+                    const _ActionStand stand
                     {
-                        action.X,
-                        action.Y,
-                        DIR_DOWNLEFT,
+                        .x = action.x,
+                        .y = action.y,
+                        .direction = DIR_DOWNLEFT,
                     };
 
                     m_coList[uid].reset(new ClientTaoSkeleton(uid, this, stand));
@@ -1681,12 +1694,12 @@ void ProcessRun::checkMagicSpell(const SDL_Event &event)
                 }
 
                 if(auto nFocusUID = FocusUID(FOCUS_MAGIC)){
-                    getMyHero()->emplaceAction(ActionSpell
+                    getMyHero()->emplaceAction(_ActionSpell
                     {
-                        getMyHero()->currMotion()->endX,
-                        getMyHero()->currMotion()->endY,
-                        nFocusUID,
-                        magicID,
+                        .x = getMyHero()->currMotion()->endX,
+                        .y = getMyHero()->currMotion()->endY,
+                        .aimUID = nFocusUID,
+                        .magicID = magicID,
                     });
                 }
 
@@ -1695,13 +1708,13 @@ void ProcessRun::checkMagicSpell(const SDL_Event &event)
                     int nMouseY = -1;
                     SDL_GetMouseState(&nMouseX, &nMouseY);
                     const auto [nAimX, nAimY] = screenPoint2Grid(nMouseX, nMouseY);
-                    getMyHero()->emplaceAction(ActionSpell
+                    getMyHero()->emplaceAction(_ActionSpell
                     {
-                        getMyHero()->currMotion()->endX,
-                        getMyHero()->currMotion()->endY,
-                        nAimX,
-                        nAimY,
-                        magicID,
+                        .x = getMyHero()->currMotion()->endX,
+                        .y = getMyHero()->currMotion()->endY,
+                        .aimX = nAimX,
+                        .aimY = nAimY,
+                        .magicID = magicID,
                     });
                 }
                 break;
@@ -1711,7 +1724,13 @@ void ProcessRun::checkMagicSpell(const SDL_Event &event)
         case DBCOM_MAGICID(u8"召唤神兽"):
             {
 
-                getMyHero()->emplaceAction(ActionSpell(getMyHero()->x(), getMyHero()->y(), getMyHero()->UID(), magicID));
+                getMyHero()->emplaceAction(_ActionSpell
+                {
+                    .x = getMyHero()->x(),
+                    .y = getMyHero()->y(),
+                    .aimUID = getMyHero()->UID(),
+                    .magicID = magicID,
+                });
                 break;
             }
         default:

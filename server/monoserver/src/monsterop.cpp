@@ -83,22 +83,22 @@ void Monster::on_MPK_ACTION(const MessagePack &rstMPK)
     int nY   = -1;
     int nDir = -1;
 
-    switch(amA.Action){
+    switch(amA.action.type){
         case ACTION_STAND:
         case ACTION_ATTACK:
         case ACTION_HITTED:
             {
-                nX   = amA.X;
-                nY   = amA.Y;
-                nDir = amA.Direction;
+                nX   = amA.action.x;
+                nY   = amA.action.y;
+                nDir = amA.action.direction;
                 break;
             }
         case ACTION_MOVE:
         case ACTION_SPELL:
         case ACTION_SPAWN:
             {
-                nX = amA.X;
-                nY = amA.Y;
+                nX = amA.action.x;
+                nY = amA.action.y;
                 break;
             }
         case ACTION_DIE:
@@ -113,11 +113,16 @@ void Monster::on_MPK_ACTION(const MessagePack &rstMPK)
             }
     }
 
-    switch(amA.Action){
+    switch(amA.action.type){
         case ACTION_SPAWN:
         case ACTION_SPACEMOVE2:
             {
-                dispatchAction(amA.UID, ActionStand(X(), Y(), Direction()));
+                dispatchAction(amA.UID, _ActionStand
+                {
+                    .x = X(),
+                    .y = Y(),
+                    .direction = Direction(),
+                });
                 break;
             }
         default:
@@ -138,7 +143,12 @@ void Monster::on_MPK_NOTIFYNEWCO(const MessagePack &rstMPK)
     else{
         // should make an valid action node and send it
         // currently just dispatch through map
-        dispatchAction(ActionStand(X(), Y(), Direction()));
+        dispatchAction(_ActionStand
+        {
+            .x = X(),
+            .y = Y(),
+            .direction = Direction(),
+        });
     }
 }
 
@@ -175,7 +185,12 @@ void Monster::on_MPK_ATTACK(const MessagePack &rstMPK)
         }
 
         addOffenderDamage(amAK.UID, amAK.Damage);
-        dispatchAction(ActionHitted(X(), Y(), Direction()));
+        dispatchAction(_ActionHitted
+        {
+            .x = X(),
+            .y = Y(),
+            .direction = Direction(),
+        });
         StruckDamage({amAK.UID, amAK.Type, amAK.Damage, amAK.Element, amAK.Effect});
     }
 }

@@ -242,20 +242,14 @@ void Player::reportCO(uint64_t toUID)
     AMCORecord amCOR;
     std::memset(&amCOR, 0, sizeof(amCOR));
 
-    amCOR.Action.UID   = UID();
-    amCOR.Action.MapID = MapID();
-
-    amCOR.Action.Action    = ACTION_STAND;
-    amCOR.Action.Speed     = SYS_DEFSPEED;
-    amCOR.Action.Direction = Direction();
-
-    amCOR.Action.X    = X();
-    amCOR.Action.Y    = Y();
-    amCOR.Action.AimX = X();
-    amCOR.Action.AimY = Y();
-
-    amCOR.Action.AimUID      = 0;
-    amCOR.Action.ActionParam = 0;
+    amCOR.UID = UID();
+    amCOR.MapID = MapID();
+    amCOR.action = _ActionStand
+    {
+        .x = X(),
+        .y = Y(),
+        .direction = Direction(),
+    };
 
     amCOR.Player.DBID  = DBID();
     amCOR.Player.JobID = JobID();
@@ -266,10 +260,15 @@ void Player::reportCO(uint64_t toUID)
 
 void Player::reportStand()
 {
-    reportAction(UID(), ActionStand(X(), Y(), Direction()));
+    reportAction(UID(), _ActionStand
+    {
+        .x = X(),
+        .y = Y(),
+        .direction = Direction(),
+    });
 }
 
-void Player::reportAction(uint64_t nUID, const ActionNode &rstAction)
+void Player::reportAction(uint64_t nUID, const ActionNode &action)
 {
     if(true
             && nUID
@@ -278,20 +277,9 @@ void Player::reportAction(uint64_t nUID, const ActionNode &rstAction)
         SMAction smA;
         std::memset(&smA, 0, sizeof(smA));
 
-        smA.UID   = nUID;
+        smA.UID = nUID;
         smA.MapID = MapID();
-
-        smA.Action    = rstAction.Action;
-        smA.Speed     = rstAction.Speed;
-        smA.Direction = rstAction.Direction;
-
-        smA.X    = rstAction.X;
-        smA.Y    = rstAction.Y;
-        smA.AimX = rstAction.AimX;
-        smA.AimY = rstAction.AimY;
-
-        smA.AimUID      = rstAction.AimUID;
-        smA.ActionParam = rstAction.ActionParam;
+        smA.action = action;
 
         g_netDriver->Post(ChannID(), SM_ACTION, smA);
     }
@@ -479,9 +467,9 @@ bool Player::postNetMessage(uint8_t nHC, const uint8_t *pData, size_t nDataLen)
 
 void Player::onCMActionStand(CMAction stCMA)
 {
-    int nX = stCMA.X;
-    int nY = stCMA.Y;
-    int nDirection = stCMA.Direction;
+    int nX = stCMA.action.x;
+    int nY = stCMA.action.y;
+    int nDirection = stCMA.action.direction;
 
     if(true
             && m_map
@@ -508,9 +496,7 @@ void Player::onCMActionStand(CMAction stCMA)
             case 0:
             default:
                 {
-                    if(true
-                            && nDirection >= DIR_BEGIN
-                            && nDirection <  DIR_END){
+                    if(directionValid(nDirection)){
                         m_direction = nDirection;
                     }
 
@@ -526,10 +512,10 @@ void Player::onCMActionMove(CMAction stCMA)
     // server won't do any path finding
     // client should sent action with only one-hop movement
 
-    int nX0 = stCMA.X;
-    int nY0 = stCMA.Y;
-    int nX1 = stCMA.AimX;
-    int nY1 = stCMA.AimY;
+    int nX0 = stCMA.action.x;
+    int nY0 = stCMA.action.y;
+    int nX1 = stCMA.action.aimX;
+    int nY1 = stCMA.action.aimY;
 
     switch(estimateHop(nX0, nY0)){
         case 0:
@@ -562,13 +548,13 @@ void Player::onCMActionMove(CMAction stCMA)
 
 void Player::onCMActionAttack(CMAction stCMA)
 {
-    retrieveLocation(stCMA.AimUID, [this, stCMA](const COLocation &rstLocation)
+    retrieveLocation(stCMA.action.aimUID, [this, stCMA](const COLocation &rstLocation)
     {
-        int nX0 = stCMA.X;
-        int nY0 = stCMA.Y;
+        int nX0 = stCMA.action.x;
+        int nY0 = stCMA.action.y;
 
-        int nDCType = stCMA.ActionParam;
-        uint64_t nAimUID = stCMA.AimUID;
+        int nDCType = stCMA.action.extParam.attack.damageID;
+        uint64_t nAimUID = stCMA.action.aimUID;
 
         if(rstLocation.MapID == MapID()){
             switch(nDCType){
@@ -624,13 +610,13 @@ void Player::onCMActionAttack(CMAction stCMA)
 
 void Player::onCMActionSpell(CMAction cmA)
 {
-    if(cmA.Action != ACTION_SPELL){
-        throw fflerror("invalid action type: %d", cmA.Action);
+    if(cmA.action.type != ACTION_SPELL){
+        throw fflerror("invalid action type: %s", actionName(cmA.action));
     }
 
-    int nX = cmA.X;
-    int nY = cmA.Y;
-    int nMagicID = cmA.ActionParam;
+    int nX = cmA.action.x;
+    int nY = cmA.action.y;
+    int nMagicID = cmA.action.extParam.spell.magicID;
 
     switch(nMagicID){
         case DBCOM_MAGICID(u8"灵魂火符"):
@@ -644,7 +630,7 @@ void Player::onCMActionSpell(CMAction cmA)
                 smFM.Speed  = MagicSpeed();
                 smFM.X      = nX;
                 smFM.Y      = nY;
-                smFM.AimUID = cmA.AimUID;
+                smFM.AimUID = cmA.action.aimUID;
 
                 addDelay(800, [this, smFM]()
                 {
@@ -663,7 +649,7 @@ void Player::onCMActionSpell(CMAction cmA)
                 smFM.Speed  = MagicSpeed();
                 smFM.X      = nX;
                 smFM.Y      = nY;
-                smFM.AimUID = cmA.AimUID;
+                smFM.AimUID = cmA.action.aimUID;
 
                 addDelay(1400, [this, smFM]()
                 {
@@ -742,14 +728,14 @@ void Player::onCMActionSpell(CMAction cmA)
 
 void Player::onCMActionPickUp(CMAction stCMA)
 {
-    switch(estimateHop(stCMA.X, stCMA.Y)){
+    switch(estimateHop(stCMA.action.x, stCMA.action.y)){
         case 0:
             {
                 AMPickUp amPU;
-                amPU.X    = stCMA.X;
-                amPU.Y    = stCMA.Y;
+                amPU.X    = stCMA.action.x;
+                amPU.Y    = stCMA.action.y;
                 amPU.UID  = UID();
-                amPU.ID   = stCMA.ActionParam;
+                amPU.ID   = stCMA.action.extParam.pickUp.itemID;
                 amPU.DBID = 0;
 
                 m_actorPod->forward(m_map->UID(), {MPK_PICKUP, amPU});
@@ -757,7 +743,7 @@ void Player::onCMActionPickUp(CMAction stCMA)
             }
         case 1:
             {
-                requestMove(stCMA.X, stCMA.Y, SYS_MAXSPEED, false, false,
+                requestMove(stCMA.action.x, stCMA.action.y, SYS_MAXSPEED, false, false,
                 [this, stCMA]()
                 {
                     onCMActionPickUp(stCMA);

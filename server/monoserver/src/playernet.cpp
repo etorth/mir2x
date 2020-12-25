@@ -31,7 +31,7 @@ void Player::net_CM_ACTION(uint8_t, const uint8_t *pBuf, size_t)
             && cmA.UID == UID()
             && cmA.MapID == MapID()){
 
-        switch((int)(cmA.Action)){
+        switch((int)(cmA.action.type)){
             case ACTION_STAND : onCMActionStand (cmA); return;
             case ACTION_MOVE  : onCMActionMove  (cmA); return;
             case ACTION_ATTACK: onCMActionAttack(cmA); return;
@@ -39,19 +39,7 @@ void Player::net_CM_ACTION(uint8_t, const uint8_t *pBuf, size_t)
             case ACTION_PICKUP: onCMActionPickUp(cmA); return;
             default           :                        return;
         }
-
-        dispatchAction(ActionNode
-        {
-            cmA.Action,
-            cmA.Speed,
-            cmA.Direction,
-            cmA.X,
-            cmA.Y,
-            cmA.AimX,
-            cmA.AimY,
-            cmA.AimUID,
-            cmA.ActionParam,
-        });
+        dispatchAction(cmA.action);
     }
 }
 

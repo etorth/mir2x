@@ -18,6 +18,8 @@
 
 #pragma once
 #include <cstdint>
+#include "actionnode.hpp"
+
 enum MessagePackType: int
 {
     MPK_NONE = 0,
@@ -233,19 +235,7 @@ struct AMAction
 {
     uint64_t UID;
     uint32_t MapID;
-
-    int Action;
-    int Speed;
-    int Direction;
-
-    int X;
-    int Y;
-
-    int AimX;
-    int AimY;
-
-    uint64_t AimUID;
-    uint64_t ActionParam;
+    ActionNode action;
 };
 
 struct AMPullCOInfo
@@ -482,23 +472,9 @@ struct AMRemoveGroundItem
 
 struct AMCORecord
 {
-    struct _Action
-    {
-        uint64_t UID;
-        uint32_t MapID;
-
-        int Action;
-        int Speed;
-        int Direction;
-
-        int X;
-        int Y;
-        int AimX;
-        int AimY;
-
-        uint64_t AimUID;
-        uint64_t ActionParam;
-    }Action;
+    uint64_t UID;
+    uint32_t MapID;
+    ActionNode action;
 
     // instantiation of anonymous struct is supported in C11
     // not C++11, so we define structs outside of anonymous union

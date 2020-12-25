@@ -140,7 +140,12 @@ CharObject::CharObject(ServiceCore *pServiceCore,
             if(checkActorPod()){
                 // remove all dead ones
                 // dispatch action requires check location list
-                dispatchAction(ActionStand(X(), Y(), Direction()));
+                dispatchAction(_ActionStand
+                {
+                    .x = X(),
+                    .y = Y(),
+                    .direction = Direction(),
+                });
             }
             lastCheckTick = currTick;
         }
@@ -170,39 +175,23 @@ bool CharObject::NextLocation(int *pX, int *pY, int nDirection, int nDistance)
     return true;
 }
 
-void CharObject::dispatchAction(const ActionNode &rstAction)
+void CharObject::dispatchAction(const ActionNode &action)
 {
-    // should check to avoid dead CO call this function
-    // this would cause zombies
-
-    if(!checkActorPod()){
-        throw fflerror("can't dispatch action: %s", actionName(rstAction.Action));
-    }
+    checkActorPodEx();
 
     AMAction amA;
     std::memset(&amA, 0, sizeof(amA));
 
-    amA.UID   = UID();
+    amA.UID = UID();
     amA.MapID = MapID();
+    amA.action = action;
 
-    amA.Action    = rstAction.Action;
-    amA.Speed     = rstAction.Speed;
-    amA.Direction = rstAction.Direction;
-
-    amA.X    = rstAction.X;
-    amA.Y    = rstAction.Y;
-    amA.AimX = rstAction.AimX;
-    amA.AimY = rstAction.AimY;
-
-    amA.AimUID      = rstAction.AimUID;
-    amA.ActionParam = rstAction.ActionParam;
-
-    switch(amA.Action){
+    switch(action.type){
         case ACTION_MOVE:
         case ACTION_SPAWN:
         case ACTION_ATTACK:
             {
-                SetLastAction(amA.Action);
+                SetLastAction(amA.action.type);
                 break;
             }
         default:
@@ -211,7 +200,7 @@ void CharObject::dispatchAction(const ActionNode &rstAction)
             }
     }
 
-    switch(amA.Action){
+    switch(amA.action.type){
         case ACTION_MOVE:
         case ACTION_PUSHMOVE:
         case ACTION_SPACEMOVE1:
@@ -239,33 +228,14 @@ void CharObject::dispatchAction(const ActionNode &rstAction)
 
 void CharObject::dispatchAction(uint64_t uid, const ActionNode &action)
 {
-    // should check to avoid dead CO call this function
-    // this would cause zombies
-
-    if(!uid){
-        return;
-    }
-
     checkActorPodEx();
 
     AMAction amA;
     std::memset(&amA, 0, sizeof(amA));
 
-    amA.UID   = UID();
+    amA.UID = UID();
     amA.MapID = MapID();
-
-    amA.Action    = action.Action;
-    amA.Speed     = action.Speed;
-    amA.Direction = action.Direction;
-
-    amA.X    = action.X;
-    amA.Y    = action.Y;
-    amA.AimX = action.AimX;
-    amA.AimY = action.AimY;
-
-    amA.AimUID      = action.AimUID;
-    amA.ActionParam = action.ActionParam;
-
+    amA.action = action;
     m_actorPod->forward(uid, {MPK_ACTION, amA});
 }
 
@@ -390,7 +360,15 @@ bool CharObject::requestMove(int nX, int nY, int nSpeed, bool allowHalfMove, boo
                     m_lastMoveTime = g_monoServer->getCurrTick();
 
                     m_actorPod->forward(rstMPK.from(), MPK_OK, rstMPK.ID());
-                    dispatchAction(ActionMove(nOldX, nOldY, X(), Y(), nSpeed, Horse()));
+                    dispatchAction(_ActionMove
+                    {
+                        .speed = nSpeed,
+                        .x = nOldX,
+                        .y = nOldY,
+                        .aimX = X(),
+                        .aimY = Y(),
+                        .onHorse = (bool)(Horse()),
+                    });
                     SortInViewCO();
 
                     if(fnOnOK){
@@ -489,7 +467,12 @@ bool CharObject::requestSpaceMove(int locX, int locY, bool strictMove, std::func
                                     }
 
                                     // dispatch space move part 1 on old map
-                                    dispatchAction(ActionSpaceMove1(X(), Y(), Direction()));
+                                    dispatchAction(_ActionSpaceMove1
+                                    {
+                                        .x = X(),
+                                        .y = Y(),
+                                        .direction = Direction(),
+                                    });
 
                                     // setup new map
                                     // don't use the requested location
@@ -502,10 +485,20 @@ bool CharObject::requestSpaceMove(int locX, int locY, bool strictMove, std::func
                                     // clean the InViewCO list
                                     // report new location explicitly to map
                                     m_inViewCOList.clear();
-                                    dispatchAction(m_map->UID(), ActionStand(X(), Y(), Direction()));
+                                    dispatchAction(m_map->UID(), _ActionStand
+                                    {
+                                        .x = X(),
+                                        .y = Y(),
+                                        .direction = Direction(),
+                                    });
 
                                     if(uidf::getUIDType(UID()) == UID_PLY){
-                                        dynamic_cast<Player *>(this)->reportAction(UID(), ActionSpaceMove2(X(), Y(), Direction()));
+                                        dynamic_cast<Player *>(this)->reportAction(UID(), _ActionSpaceMove2
+                                        {
+                                            .x = X(),
+                                            .y = Y(),
+                                            .direction = Direction(),
+                                        });
                                         dynamic_cast<Player *>(this)->PullRectCO(10, 10);
                                     }
 
@@ -651,7 +644,12 @@ bool CharObject::requestMapSwitch(uint32_t mapID, int locX, int locY, bool stric
                                                     // 2. notify all players on the new map
                                                     //    need to explicitly send to the map, not InViewCO since it's not valid anymore
                                                     m_inViewCOList.clear();
-                                                    dispatchAction(m_map->UID(), ActionStand(X(), Y(), Direction()));
+                                                    dispatchAction(m_map->UID(), _ActionStand
+                                                    {
+                                                        .x = X(),
+                                                        .y = Y(),
+                                                        .direction = Direction(),
+                                                    });
 
                                                     // 3. inform the client for map swith
                                                     // 4. get neighbors

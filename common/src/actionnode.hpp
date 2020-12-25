@@ -19,355 +19,358 @@
 
 #pragma once
 #include <cstdint>
+#include <cstring>
+#include "sysconst.hpp"
 #include "protocoldef.hpp"
 
-#pragma pack(push, 1)
-union ActionExtParam
+enum ActionType: int
 {
-    struct ParamSpell
-    {
-        uint16_t magicID;
-    }spell;
-
-    struct ParamTransf
-    {
-        uint8_t stand : 1;
-    }transf;
+    ACTION_NONE  = 0,
+    ACTION_BEGIN = 1,
+    ACTION_SPAWN = 1,
+    ACTION_STAND,
+    ACTION_PICKUP,
+    ACTION_MOVE,
+    ACTION_PUSHMOVE,
+    ACTION_SPACEMOVE1,
+    ACTION_SPACEMOVE2,
+    ACTION_ATTACK,
+    ACTION_SPELL,
+    ACTION_TRANSF,
+    ACTION_HITTED,
+    ACTION_DIE,
+    ACTION_END,
 };
 
-struct ActionBuf
+#pragma pack(push, 1)
+struct ActionNode
 {
-    uint32_t type      :  8;
-    uint32_t speed     : 10;
-    uint32_t direction :  8;
+    uint16_t type      : 5;
+    uint16_t speed     : 9;
+    uint16_t direction : 5;
 
     uint16_t x;
     uint16_t y;
-
     uint16_t aimX;
     uint16_t aimY;
 
     uint64_t aimUID;
-    ActionExtParam extParam;
+    union ActionExtParam
+    {
+        struct ExtParamNPCStand
+        {
+            uint8_t act;
+        }npc;
+
+        struct ExtParamDie
+        {
+            uint8_t fadeOut;
+        }die;
+
+        struct ExtParamDogStand
+        {
+            uint8_t standMode;
+        }dogStand;
+
+        struct ExtParamSpell
+        {
+            uint32_t magicID;
+        }spell;
+
+        struct ExtParamDogTransf
+        {
+            uint8_t standMode;
+        }transf;
+
+        struct ExtParamMove
+        {
+            uint8_t onHorse;
+        }move;
+
+        struct ExtParamAttack
+        {
+            uint32_t damageID;
+        }attack;
+
+        struct ExtParamPickUp
+        {
+            uint32_t itemID;
+        }pickUp;
+    } extParam;
 };
 #pragma pack(pop)
-static_assert(std::is_trivially_copyable_v<ActionBuf>);
 
-struct ActionDie
+struct _ActionDie
 {
-    int X = -1;
-    int Y = -1;
-    int Direction   = -1;
-    int AutoFadeOut =  1;
+    const int x = -1;
+    const int y = -1;
+    const bool fadeOut = true;
 
-    ActionDie(int nX, int nY, int nDirection, bool bAutoFadeOut)
-        : X(nX)
-        , Y(nY)
-        , Direction(nDirection)
-        , AutoFadeOut((int)(bAutoFadeOut))
-    {}
-};
-
-struct ActionStand
-{
-    int X = -1;
-    int Y = -1;
-    int Direction = -1;
-
-    ActionStand(int nX, int nY, int nDirection)
-        : X(nX)
-        , Y(nY)
-        , Direction(nDirection)
-    {}
-};
-
-struct ActionTransf
-{
-    int      X = -1;
-    int      Y = -1;
-    int      Direction   = -1;
-    uint64_t transfParam =  0;
-
-    ActionTransf(int nX, int nY, int nDirection, uint64_t transf)
-        : X(nX)
-        , Y(nY)
-        , Direction(nDirection)
-        , transfParam(transf)
-    {}
-};
-
-struct ActionSpawn
-{
-    int X = -1;
-    int Y = -1;
-    int Direction = -1;
-
-    ActionSpawn(int nX, int nY, int nDirection)
-        : X(nX)
-        , Y(nY)
-        , Direction(nDirection)
-    {}
-};
-
-struct ActionSpell
-{
-    int X    = -1;
-    int Y    = -1;
-    int AimX = -1;
-    int AimY = -1;
-
-    uint64_t AimUID  = 0;
-    uint32_t MagicID = 0;
-
-    ActionSpell(int nX, int nY, uint64_t nAimUID, uint32_t nMagicID)
-        : X(nX)
-        , Y(nY)
-        , AimUID(nAimUID)
-        , MagicID(nMagicID)
-    {}
-
-    ActionSpell(int nX, int nY, int nAimX, int nAimY, uint32_t nMagicID)
-        : X(nX)
-        , Y(nY)
-        , AimX(nAimX)
-        , AimY(nAimY)
-        , MagicID(nMagicID)
-    {}
-};
-
-struct ActionMove
-{
-    int X     = -1;
-    int Y     = -1;
-    int AimX  = -1;
-    int AimY  = -1;
-    int Speed = -1;
-    int Horse = -1;
-
-    ActionMove(int nX, int nY, int nAimX, int nAimY, int nSpeed, int nHorse)
-        : X(nX)
-        , Y(nY)
-        , AimX(nAimX)
-        , AimY(nAimY)
-        , Speed(nSpeed)
-        , Horse(nHorse)
-    {}
-};
-
-struct ActionPushMove
-{
-    int X = -1;
-    int Y = -1;
-
-    int AimX = -1;
-    int AimY = -1;
-
-    ActionPushMove(int nX, int nY, int nAimX, int nAimY)
-        : X(nX)
-        , Y(nY)
-        , AimX(nAimX)
-        , AimY(nAimY)
-    {}
-};
-
-struct ActionSpaceMove1
-{
-    int X = -1;
-    int Y = -1;
-    int Direction = -1;
-
-    ActionSpaceMove1(int nX, int nY, int nDirection)
-        : X(nX)
-        , Y(nY)
-        , Direction(nDirection)
-    {}
-};
-
-struct ActionSpaceMove2
-{
-    int X = -1;
-    int Y = -1;
-    int Direction = -1;
-
-    ActionSpaceMove2(int nX, int nY, int nDirection)
-        : X(nX)
-        , Y(nY)
-        , Direction(nDirection)
-    {}
-};
-
-struct ActionAttack
-{
-    int X = -1;
-    int Y = -1;
-
-    int DC    = -1;
-    int Speed = -1;
-
-    uint64_t AimUID = 0;
-
-    ActionAttack(int nX, int nY, int nDC, int nSpeed, uint64_t nAimUID)
-        : X(nX)
-        , Y(nY)
-        , DC(nDC)
-        , Speed(nSpeed)
-        , AimUID(nAimUID)
-    {}
-};
-
-struct ActionHitted
-{
-    int X = -1;
-    int Y = -1;
-    int Direction = -1;
-
-    ActionHitted(int nX, int nY, int nDirection)
-        : X(nX)
-        , Y(nY)
-        , Direction(nDirection)
-    {}
-};
-
-struct ActionPickUp
-{
-    int X = -1;
-    int Y = -1;
-
-    uint32_t ItemID = 0;
-
-    ActionPickUp(int nX, int nY, uint32_t nItemID)
-        : X(nX)
-        , Y(nY)
-        , ItemID(nItemID)
-    {}
-};
-
-struct ActionNode
-{
-    const int Action    =  ACTION_NONE;
-    const int Speed     = -1;
-    const int Direction = -1;
-
-    const int X    = -1;
-    const int Y    = -1;
-    const int AimX = -1;
-    const int AimY = -1;
-
-    const uint64_t AimUID      = 0;
-    const uint64_t ActionParam = 0;
-
-    ActionNode()
-        : Action(ACTION_NONE)
-    {}
-
-    ActionNode(int nAction, int nSpeed, int nDirection, int nX, int nY, int nAimX, int nAimY, uint64_t nAimUID, uint64_t nActionParam)
-        : Action(nAction)
-        , Speed(nSpeed)
-        , Direction(nDirection)
-        , X(nX)
-        , Y(nY)
-        , AimX(nAimX)
-        , AimY(nAimY)
-        , AimUID(nAimUID)
-        , ActionParam(nActionParam)
-    {}
-
-    ActionNode(const ActionDie &rstDie)
-        : Action(ACTION_DIE)
-        , Direction(rstDie.Direction)
-        , X(rstDie.X)
-        , Y(rstDie.Y)
-        , ActionParam(rstDie.AutoFadeOut)
-    {}
-
-    ActionNode(const ActionStand &rstStand)
-        : Action(ACTION_STAND)
-        , Direction(rstStand.Direction)
-        , X(rstStand.X)
-        , Y(rstStand.Y)
-    {}
-
-    ActionNode(const ActionTransf &transf)
-        : Action(ACTION_TRANSF)
-        , Direction(transf.Direction)
-        , X(transf.X)
-        , Y(transf.Y)
-        , ActionParam(transf.transfParam)
-    {}
-
-    ActionNode(const ActionSpawn &rstSpawn)
-        : Action(ACTION_SPAWN)
-        , Direction(rstSpawn.Direction)
-        , X(rstSpawn.X)
-        , Y(rstSpawn.Y)
-    {}
-
-    ActionNode(const ActionMove &rstMove)
-        : Action(ACTION_MOVE)
-        , Speed(rstMove.Speed)
-        , X(rstMove.X)
-        , Y(rstMove.Y)
-        , AimX(rstMove.AimX)
-        , AimY(rstMove.AimY)
-        , ActionParam(rstMove.Horse)
-    {}
-
-    ActionNode(const ActionSpell &rstSpell)
-        : Action(ACTION_SPELL)
-        , X(rstSpell.X)
-        , Y(rstSpell.Y)
-        , AimX(rstSpell.AimX)
-        , AimY(rstSpell.AimY)
-        , AimUID(rstSpell.AimUID)
-        , ActionParam(rstSpell.MagicID)
-    {}
-
-    ActionNode(const ActionPushMove &rstPushMove)
-        : Action(ACTION_PUSHMOVE)
-        , X(rstPushMove.X)
-        , Y(rstPushMove.Y)
-    {}
-
-    ActionNode(const ActionSpaceMove1 &rstSpaceMove1)
-        : Action(ACTION_SPACEMOVE1)
-        , X(rstSpaceMove1.X)
-        , Y(rstSpaceMove1.Y)
-    {}
-
-    ActionNode(const ActionSpaceMove2 &rstSpaceMove2)
-        : Action(ACTION_SPACEMOVE2)
-        , X(rstSpaceMove2.X)
-        , Y(rstSpaceMove2.Y)
-    {}
-
-    ActionNode(const ActionAttack &rstAttack)
-        : Action(ACTION_ATTACK)
-        , Speed(rstAttack.Speed)
-        , X(rstAttack.X)
-        , Y(rstAttack.Y)
-        , AimUID(rstAttack.AimUID)
-        , ActionParam(rstAttack.DC)
-    {}
-
-    ActionNode(const ActionHitted &rstHitted)
-        : Action(ACTION_HITTED)
-        , Direction(rstHitted.Direction)
-        , X(rstHitted.X)
-        , Y(rstHitted.Y)
-    {}
-
-    ActionNode(const ActionPickUp &rstPickUp)
-        : Action(ACTION_PICKUP)
-        , X(rstPickUp.X)
-        , Y(rstPickUp.Y)
-        , ActionParam(rstPickUp.ItemID)
-    {}
-
-    operator bool () const
+    operator ActionNode () const
     {
-        return Action != ACTION_NONE;
+        ActionNode node;
+        std::memset(&node, 0, sizeof(node));
+
+        node.type = ACTION_DIE;
+
+        node.x = x;
+        node.y = y;
+
+        node.extParam.die.fadeOut = fadeOut;
+        return node;
     }
 };
+
+struct _ActionStand
+{
+    const int x = -1;
+    const int y = -1;
+    const int direction = DIR_NONE;
+
+    operator ActionNode () const
+    {
+        ActionNode node;
+        std::memset(&node, 0, sizeof(node));
+
+        node.type = ACTION_STAND;
+        node.direction = direction;
+
+        node.x = x;
+        node.y = y;
+
+        return node;
+    }
+};
+
+struct _ActionTransf
+{
+    const int x = -1;
+    const int y = -1;
+    const int direction = DIR_NONE;
+    const bool standMode = false;
+
+    operator ActionNode () const
+    {
+        ActionNode node;
+        std::memset(&node, 0, sizeof(node));
+
+        node.type = ACTION_TRANSF;
+        node.direction = direction;
+
+        node.x = x;
+        node.y = y;
+
+        node.extParam.transf.standMode = standMode;
+        return node;
+    }
+};
+
+struct _ActionSpawn
+{
+    const int x = -1;
+    const int y = -1;
+    const int direction = DIR_NONE;
+
+    operator ActionNode () const
+    {
+        ActionNode node;
+        std::memset(&node, 0, sizeof(node));
+
+        node.type = ACTION_SPAWN;
+        node.direction = direction;
+
+        node.x = x;
+        node.y = y;
+
+        return node;
+    }
+};
+
+struct _ActionSpell
+{
+    const int speed = SYS_DEFSPEED;
+
+    const int x = -1;
+    const int y = -1;
+
+    const int aimX = x;
+    const int aimY = y;
+
+    const uint64_t aimUID  = 0;
+    const uint32_t magicID = 0;
+
+    operator ActionNode () const
+    {
+        ActionNode node;
+        std::memset(&node, 0, sizeof(node));
+
+        node.type = ACTION_SPELL;
+        node.speed  = speed;
+
+        node.x = x;
+        node.y = y;
+
+        node.aimX = aimX;
+        node.aimY = aimY;
+
+        node.aimUID = aimUID;
+        node.extParam.spell.magicID = magicID;
+        return node;
+    }
+};
+
+struct _ActionMove
+{
+    const int speed = SYS_DEFSPEED;
+
+    const int x = -1;
+    const int y = -1;
+
+    const int aimX = -1;
+    const int aimY = -1;
+
+    const bool onHorse = false;
+
+    operator ActionNode () const
+    {
+        ActionNode node;
+        std::memset(&node, 0, sizeof(node));
+
+        node.type = ACTION_MOVE;
+        node.speed  = speed;
+
+        node.x = x;
+        node.y = y;
+
+        node.aimX = aimX;
+        node.aimY = aimY;
+
+        node.extParam.move.onHorse = onHorse;
+        return node;
+    }
+};
+
+struct _ActionSpaceMove1
+{
+    const int x = -1;
+    const int y = -1;
+    const int direction = DIR_NONE;
+
+    operator ActionNode () const
+    {
+        ActionNode node;
+        std::memset(&node, 0, sizeof(node));
+
+        node.type = ACTION_SPACEMOVE1;
+        node.direction = direction;
+
+        node.x = x;
+        node.y = y;
+
+        return node;
+    }
+};
+
+struct _ActionSpaceMove2
+{
+    const int x = -1;
+    const int y = -1;
+    const int direction = DIR_NONE;
+
+    operator ActionNode () const
+    {
+        ActionNode node;
+        std::memset(&node, 0, sizeof(node));
+
+        node.type = ACTION_SPACEMOVE2;
+        node.direction = direction;
+
+        node.x = x;
+        node.y = y;
+
+        return node;
+    }
+};
+
+struct _ActionAttack
+{
+    const int speed = SYS_DEFSPEED;
+
+    const int x = -1;
+    const int y = -1;
+
+    const uint64_t aimUID = 0;
+    const uint32_t damageID = 0;
+
+    operator ActionNode () const
+    {
+        ActionNode node;
+        std::memset(&node, 0, sizeof(node));
+
+        node.type = ACTION_ATTACK;
+        node.speed = speed;
+
+        node.x = x;
+        node.y = y;
+
+        node.aimUID = aimUID;
+        node.extParam.attack.damageID = damageID;
+        return node;
+    }
+};
+
+struct _ActionHitted
+{
+    const int x = -1;
+    const int y = -1;
+    const int direction = DIR_NONE;
+
+    operator ActionNode () const
+    {
+        ActionNode node;
+        std::memset(&node, 0, sizeof(node));
+
+        node.type = ACTION_HITTED;
+
+        node.x = x;
+        node.y = y;
+        node.direction = direction;
+
+        return node;
+    }
+};
+
+struct _ActionPickUp
+{
+    int x = -1;
+    int y = -1;
+
+    uint32_t itemID = 0;
+
+    operator ActionNode () const
+    {
+        ActionNode node;
+        std::memset(&node, 0, sizeof(node));
+
+        node.type = ACTION_PICKUP;
+
+        node.x = x;
+        node.y = y;
+
+        node.extParam.pickUp.itemID = itemID;
+        return node;
+    }
+};
+
+inline bool actionValid(int type)
+{
+    return type >= ACTION_BEGIN && type < ACTION_END;
+}
+
+inline bool actionValid(const ActionNode &node)
+{
+    return actionValid(node.type);
+}
 
 inline const char *actionName(int type)
 {
@@ -389,4 +392,9 @@ inline const char *actionName(int type)
         default: return "ACTION_UNKNOWN";
     }
 #undef _add_action_type_case
+}
+
+inline const char *actionName(const ActionNode &node)
+{
+    return actionName(node.type);
 }

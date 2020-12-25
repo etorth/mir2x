@@ -53,21 +53,21 @@ bool ClientTaoDog::onActionSpawn(const ActionNode &action)
         .type = MOTION_MON_APPEAR,
         .direction = [&action]() -> int
         {
-            if(action.Direction >= DIR_BEGIN && action.Direction < DIR_END){
-                return action.Direction;
+            if(directionValid(action.direction)){
+                return action.direction;
             }
             return DIR_UP;
         }(),
 
-        .x = action.X,
-        .y = action.Y,
+        .x = action.x,
+        .y = action.y,
     });
     return true;
 }
 
 bool ClientTaoDog::onActionTransf(const ActionNode &action)
 {
-    const auto standReq = (bool)(action.ActionParam);
+    const auto standReq = (bool)(action.extParam.transf.standMode);
     if(m_standMode == standReq){
         return true;
     }
@@ -95,8 +95,8 @@ bool ClientTaoDog::onActionAttack(const ActionNode &action)
     }
 
     const auto [endX, endY, endDir] = motionEndLocation(END_FORCED);
-    m_motionQueue = makeWalkMotionQueue(endX, endY, action.X, action.Y, SYS_MAXSPEED);
-    if(auto coPtr = m_processRun->findUID(action.AimUID)){
+    m_motionQueue = makeWalkMotionQueue(endX, endY, action.x, action.y, SYS_MAXSPEED);
+    if(auto coPtr = m_processRun->findUID(action.aimUID)){
         auto motionPtr = new MotionNode
         {
             .type = MOTION_MON_ATTACK0,
@@ -104,13 +104,13 @@ bool ClientTaoDog::onActionAttack(const ActionNode &action)
             {
                 const auto nX = coPtr->x();
                 const auto nY = coPtr->y();
-                if(mathf::LDistance2(nX, nY, action.X, action.Y) == 0){
+                if(mathf::LDistance2<int>(nX, nY, action.x, action.y) == 0){
                     return endDir;
                 }
-                return PathFind::GetDirection(action.X, action.Y, nX, nY);
+                return PathFind::GetDirection(action.x, action.y, nX, nY);
             }(),
-            .x = action.X,
-            .y = action.Y,
+            .x = action.x,
+            .y = action.y,
         };
 
         motionPtr->onUpdate = [motionPtr, lastFrame = (int)(-1), this]() mutable
