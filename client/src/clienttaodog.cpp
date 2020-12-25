@@ -20,7 +20,7 @@
 #include "processrun.hpp"
 #include "clienttaodog.hpp"
 
-void ClientTaoDog::addTransf(bool /* standMode */)
+void ClientTaoDog::addActionTransf(bool /* standMode */)
 {
     const auto [x, y, dir] = motionEndLocation(END_CURRENT);
     auto motionPtr = new MotionNode
@@ -67,7 +67,7 @@ bool ClientTaoDog::onActionSpawn(const ActionNode &action)
 
 bool ClientTaoDog::onActionTransf(const ActionNode &action)
 {
-    const auto standReq = (bool)(action.extParam.transf.standMode);
+    const auto standReq = (bool)(action.extParam.transf.dog.standMode);
     if(m_standMode == standReq){
         return true;
     }
@@ -75,7 +75,7 @@ bool ClientTaoDog::onActionTransf(const ActionNode &action)
     // change shape immediately
     // don't wait otherwise there may has transf in the forced motion queue
 
-    addTransf(true);
+    addActionTransf(m_standMode);
     return true;
 }
 
@@ -90,7 +90,7 @@ bool ClientTaoDog::onActionAttack(const ActionNode &action)
         }
 
         if(!hasTransf){
-            addTransf(true);
+            addActionTransf(true);
         }
     }
 

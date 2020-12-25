@@ -160,12 +160,7 @@ bool Monster::randomMove()
                         // current direction is possible for next move
                         // report the turn and do motion (by chance) in next update
                         m_direction = nDirection;
-                        dispatchAction(ActionStand
-                        {
-                            .x = X(),
-                            .y = Y(),
-                            .direction = Direction(),
-                        });
+                        dispatchAction(makeActionStand());
 
                         // we won't do reportStand() for monster
                         // monster's moving is only driven by server currently
@@ -225,12 +220,7 @@ bool Monster::randomTurn()
                 // current direction is possible for next move
                 // report the turn and do motion (by chance) in next update
                 m_direction = dir;
-                dispatchAction(ActionStand
-                {
-                    .x = X(),
-                    .y = Y(),
-                    .direction = Direction(),
-                });
+                dispatchAction(makeActionStand());
                 return true;
             }
         }
@@ -429,12 +419,7 @@ void Monster::followMaster(std::function<void()> fnOnOK, std::function<void()> f
 
                         if(Direction() != nDirection){
                             m_direction= nDirection;
-                            dispatchAction(ActionStand
-                            {
-                                .x = X(),
-                                .y = Y(),
-                                .direction = Direction(),
-                            });
+                            dispatchAction(makeActionStand());
                         }
 
                         fnOnOK();

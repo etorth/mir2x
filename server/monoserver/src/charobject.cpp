@@ -22,6 +22,7 @@
 #include "dbcomid.hpp"
 #include "monster.hpp"
 #include "mathf.hpp"
+#include "taodog.hpp"
 #include "fflerror.hpp"
 #include "actorpod.hpp"
 #include "condcheck.hpp"
@@ -140,12 +141,7 @@ CharObject::CharObject(ServiceCore *pServiceCore,
             if(checkActorPod()){
                 // remove all dead ones
                 // dispatch action requires check location list
-                dispatchAction(ActionStand
-                {
-                    .x = X(),
-                    .y = Y(),
-                    .direction = Direction(),
-                });
+                dispatchAction(makeActionStand());
             }
             lastCheckTick = currTick;
         }
@@ -485,12 +481,7 @@ bool CharObject::requestSpaceMove(int locX, int locY, bool strictMove, std::func
                                     // clean the InViewCO list
                                     // report new location explicitly to map
                                     m_inViewCOList.clear();
-                                    dispatchAction(m_map->UID(), ActionStand
-                                    {
-                                        .x = X(),
-                                        .y = Y(),
-                                        .direction = Direction(),
-                                    });
+                                    dispatchAction(m_map->UID(), makeActionStand());
 
                                     if(uidf::getUIDType(UID()) == UID_PLY){
                                         dynamic_cast<Player *>(this)->reportAction(UID(), ActionSpaceMove2
@@ -644,12 +635,7 @@ bool CharObject::requestMapSwitch(uint32_t mapID, int locX, int locY, bool stric
                                                     // 2. notify all players on the new map
                                                     //    need to explicitly send to the map, not InViewCO since it's not valid anymore
                                                     m_inViewCOList.clear();
-                                                    dispatchAction(m_map->UID(), ActionStand
-                                                    {
-                                                        .x = X(),
-                                                        .y = Y(),
-                                                        .direction = Direction(),
-                                                    });
+                                                    dispatchAction(m_map->UID(), makeActionStand());
 
                                                     // 3. inform the client for map swith
                                                     // 4. get neighbors
@@ -1457,4 +1443,37 @@ void CharObject::notifyDead(uint64_t uid)
 
     amND.UID = UID();
     m_actorPod->forward(uid, {MPK_NOTIFYDEAD, amND});
+}
+
+ActionNode CharObject::makeActionStand() const
+{
+    ActionNode stand = ActionStand
+    {
+        .x = X(),
+        .y = Y(),
+        .direction = Direction(),
+    };
+
+    switch(uidf::getUIDType(UID())){
+        case UID_MON:
+            {
+                if(dynamic_cast<const Monster *>(this)->monsterName() == u8"神兽"){
+                    stand.extParam.stand.dog.standMode = dynamic_cast<const TaoDog *>(this)->standMode();
+                }
+                break;
+            }
+        case UID_NPC:
+            {
+                // x: stand
+                // 1: act
+                // 2: actEx
+                stand.extParam.stand.npc.act = std::rand() % 3;
+                break;
+            }
+        default:
+            {
+                break;
+            }
+    }
+    return stand;
 }

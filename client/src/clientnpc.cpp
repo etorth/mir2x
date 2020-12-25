@@ -216,7 +216,7 @@ bool ClientNPC::parseAction(const ActionNode &action)
                 }
             case ACTION_STAND:
                 {
-                    switch(action.extParam.npc.act){
+                    switch(action.extParam.stand.npc.act){
                         case 1 : return MOTION_NPC_ACT;
                         case 2 : return MOTION_NPC_ACTEXT;
                         default: return MOTION_NPC_STAND;

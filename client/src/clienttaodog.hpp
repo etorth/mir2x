@@ -30,7 +30,15 @@ class ClientTaoDog: public ClientMonster
     public:
         ClientTaoDog(uint64_t uid, ProcessRun *proc, const ActionNode &action)
             : ClientMonster(uid, proc, action)
-            , m_standMode(action.extParam.dogStand.standMode)
+            , m_standMode([&action]() -> bool
+              {
+                  switch(action.type){
+                      case ACTION_SPAWN : return false;
+                      case ACTION_STAND : return action.extParam. stand.dog.standMode;
+                      case ACTION_TRANSF: return action.extParam.transf.dog.standMode;
+                      default           : return false;
+                  }
+              }())
         {
             if(monsterName() != u8"神兽"){
                 throw fflerror("bad monster type: %s", to_cstr(monsterName().data()));
@@ -81,5 +89,5 @@ class ClientTaoDog: public ClientMonster
         }
 
     private:
-        void addTransf(bool);
+        void addActionTransf(bool);
 };

@@ -400,4 +400,7 @@ class CharObject: public ServerObject
 
     protected:
         void notifyDead(uint64_t);
+
+    protected:
+        ActionNode makeActionStand() const;
 };

@@ -57,29 +57,46 @@ struct ActionNode
     uint64_t aimUID;
     union ActionExtParam
     {
-        struct ExtParamNPCStand
+        struct ExtParamStand
         {
-            uint8_t act;
-        }npc;
+            struct DogStand
+            {
+                uint8_t standMode;
+            };
+
+            struct NPCStand
+            {
+                uint8_t act;
+            };
+
+            union
+            {
+                DogStand dog;
+                NPCStand npc;
+            };
+        }stand;
 
         struct ExtParamDie
         {
             uint8_t fadeOut;
         }die;
 
-        struct ExtParamDogStand
-        {
-            uint8_t standMode;
-        }dogStand;
-
         struct ExtParamSpell
         {
             uint32_t magicID;
         }spell;
 
-        struct ExtParamDogTransf
+        struct ExtParamTransf
         {
-            uint8_t standMode;
+            struct DogTransf
+            {
+                uint8_t standMode;
+            };
+
+            union
+            {
+                DogTransf dog;
+            };
         }transf;
 
         struct ExtParamMove
@@ -160,7 +177,7 @@ struct ActionTransf
         node.x = x;
         node.y = y;
 
-        node.extParam.transf.standMode = standMode;
+        node.extParam.transf.dog.standMode = standMode;
         return node;
     }
 };

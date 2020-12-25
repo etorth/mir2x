@@ -129,12 +129,7 @@ void Player::on_MPK_ACTION(const MessagePack &rstMPK)
         case ACTION_SPAWN:
         case ACTION_SPACEMOVE2:
             {
-                dispatchAction(amA.UID, ActionStand
-                {
-                    .x = X(),
-                    .y = Y(),
-                    .direction = Direction(),
-                });
+                dispatchAction(amA.UID, makeActionStand());
                 break;
             }
         default:
@@ -156,12 +151,7 @@ void Player::on_MPK_NOTIFYNEWCO(const MessagePack &mpk)
     else{
         // should make an valid action node and send it
         // currently just dispatch through map
-        dispatchAction(amNNCO.UID, ActionStand
-        {
-            .x = X(),
-            .y = Y(),
-            .direction = Direction(),
-        });
+        dispatchAction(amNNCO.UID, makeActionStand());
     }
 }
 
