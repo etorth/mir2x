@@ -316,6 +316,18 @@ void CreatureMovable::flushMotionPending()
 
     const auto fnFlushMotion = [this](std::unique_ptr<MotionNode> &motionPtr)
     {
+        switch(motionPtr->type){
+            case MOTION_DIE:
+            case MOTION_MON_DIE:
+                {
+                    throw fflerror("can't flush dying CO: %llu", to_llu(UID()));
+                }
+            default:
+                {
+                    break;
+                }
+        }
+
         while(motionPtr->frame < motionFrameCount(motionPtr->type, motionPtr->direction)){
             motionPtr->update();
             motionPtr->frame++;
