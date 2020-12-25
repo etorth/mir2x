@@ -480,16 +480,18 @@ bool CharObject::requestSpaceMove(int locX, int locY, bool strictMove, std::func
 
                                     // clean the InViewCO list
                                     // report new location explicitly to map
+                                    // don't use ActionStand since it forces client to parse for a path to dst location
                                     m_inViewCOList.clear();
-                                    dispatchAction(m_map->UID(), makeActionStand());
+                                    const ActionSpaceMove2 spaceMove2
+                                    {
+                                        .x = X(),
+                                        .y = Y(),
+                                        .direction = Direction(),
+                                    };
 
+                                    dispatchAction(m_map->UID(), spaceMove2);
                                     if(uidf::getUIDType(UID()) == UID_PLY){
-                                        dynamic_cast<Player *>(this)->reportAction(UID(), ActionSpaceMove2
-                                        {
-                                            .x = X(),
-                                            .y = Y(),
-                                            .direction = Direction(),
-                                        });
+                                        dynamic_cast<Player *>(this)->reportAction(UID(), spaceMove2);
                                         dynamic_cast<Player *>(this)->PullRectCO(10, 10);
                                     }
 
