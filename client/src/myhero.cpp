@@ -217,7 +217,7 @@ bool MyHero::decompActionPickUp()
 
                 if(decompMove(true, 1, true, nX0, nY0, nX1, nY1, &nXm, &nYm)){
                     m_actionQueue.emplace_front(currAction);
-                    m_actionQueue.emplace_front(_ActionMove
+                    m_actionQueue.emplace_front(ActionMove
                     {
                         .x = nX0,
                         .y = nY0,
@@ -285,7 +285,7 @@ bool MyHero::decompActionMove()
                             }
                         default:
                             {
-                                m_actionQueue.emplace_front(_ActionMove
+                                m_actionQueue.emplace_front(ActionMove
                                 {
                                     .speed = currAction.speed,
                                     .x = nXm,
@@ -295,7 +295,7 @@ bool MyHero::decompActionMove()
                                     .onHorse = false,
                                 });
 
-                                m_actionQueue.emplace_front(_ActionMove
+                                m_actionQueue.emplace_front(ActionMove
                                 {
                                     .speed = currAction.speed,
                                     .x = currAction.x,
@@ -359,7 +359,7 @@ bool MyHero::decompActionAttack()
     // use if need to keep the attack node
     // we use m_currMotion->endX/y instead of rstAction.x/y
 
-    const _ActionAttack attack
+    const ActionAttack attack
     {
         .speed = currAction.speed,
         .x = nX0,
@@ -420,7 +420,7 @@ bool MyHero::decompActionAttack()
                                 }
                         }
 
-                        m_actionQueue.emplace_front(_ActionAttack
+                        m_actionQueue.emplace_front(ActionAttack
                         {
                             .speed = currAction.speed,
                             .x = nXt,
@@ -429,7 +429,7 @@ bool MyHero::decompActionAttack()
                             .damageID = currAction.extParam.attack.damageID,
                         });
 
-                        m_actionQueue.emplace_front(_ActionMove
+                        m_actionQueue.emplace_front(ActionMove
                         {
                             .speed = SYS_DEFSPEED,
                             .x = nX0,
@@ -509,7 +509,7 @@ bool MyHero::decompActionSpell()
     // when summon skeleton or dog it appears at wrong place, not in front
 
     if(directionValid(standDir) && m_currMotion->direction != standDir){
-        m_actionQueue.emplace_front(_ActionStand
+        m_actionQueue.emplace_front(ActionStand
         {
             .x = currAction.x,
             .y = currAction.y,
@@ -653,7 +653,7 @@ void MyHero::pickUp()
         const int nY = currMotion()->y;
 
         if(const auto &itemList = m_processRun->getGroundItemList(nX, nY); !itemList.empty()){
-            reportAction(_ActionPickUp
+            reportAction(ActionPickUp
             {
                 .x = nX,
                 .y = nY,

@@ -235,7 +235,7 @@ class CharObject: public ServerObject
         void onActivate() override
         {
             ServerObject::onActivate();
-            dispatchAction(_ActionSpawn
+            dispatchAction(ActionSpawn
             {
                 .x = X(),
                 .y = Y(),

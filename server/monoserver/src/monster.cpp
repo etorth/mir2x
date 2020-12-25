@@ -160,7 +160,7 @@ bool Monster::randomMove()
                         // current direction is possible for next move
                         // report the turn and do motion (by chance) in next update
                         m_direction = nDirection;
-                        dispatchAction(_ActionStand
+                        dispatchAction(ActionStand
                         {
                             .x = X(),
                             .y = Y(),
@@ -225,7 +225,7 @@ bool Monster::randomTurn()
                 // current direction is possible for next move
                 // report the turn and do motion (by chance) in next update
                 m_direction = dir;
-                dispatchAction(_ActionStand
+                dispatchAction(ActionStand
                 {
                     .x = X(),
                     .y = Y(),
@@ -279,7 +279,7 @@ void Monster::attackUID(uint64_t nUID, int nDC, std::function<void()> fnOnOK, st
 
                                 setTarget(nUID);
                                 m_lastAttackTime = g_monoServer->getCurrTick();
-                                dispatchAction(_ActionAttack
+                                dispatchAction(ActionAttack
                                 {
                                     .speed = AttackSpeed(),
                                     .x = X(),
@@ -429,7 +429,7 @@ void Monster::followMaster(std::function<void()> fnOnOK, std::function<void()> f
 
                         if(Direction() != nDirection){
                             m_direction= nDirection;
-                            dispatchAction(_ActionStand
+                            dispatchAction(ActionStand
                             {
                                 .x = X(),
                                 .y = Y(),
@@ -644,7 +644,7 @@ void Monster::reportCO(uint64_t toUID)
 
     amCOR.UID = UID();
     amCOR.MapID = MapID();
-    amCOR.action = _ActionStand
+    amCOR.action = ActionStand
     {
         .x = X(),
         .y = Y(),
@@ -774,7 +774,7 @@ bool Monster::goDie()
     // auto-fade-out is for zombie handling
     // when client confirms a zombie, client use auto-fade-out die action
 
-    dispatchAction(_ActionDie
+    dispatchAction(ActionDie
     {
         .x = X(),
         .y = Y(),

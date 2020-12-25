@@ -34,7 +34,7 @@ class TaoDog final: public Monster
         {
             if(standMode != m_standMode){
                 m_standMode = standMode;
-                dispatchAction(_ActionTransf
+                dispatchAction(ActionTransf
                 {
                     .x = X(),
                     .y = Y(),

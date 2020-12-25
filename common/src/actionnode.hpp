@@ -100,7 +100,7 @@ struct ActionNode
 };
 #pragma pack(pop)
 
-struct _ActionDie
+struct ActionDie
 {
     const int x = -1;
     const int y = -1;
@@ -121,7 +121,7 @@ struct _ActionDie
     }
 };
 
-struct _ActionStand
+struct ActionStand
 {
     const int x = -1;
     const int y = -1;
@@ -142,7 +142,7 @@ struct _ActionStand
     }
 };
 
-struct _ActionTransf
+struct ActionTransf
 {
     const int x = -1;
     const int y = -1;
@@ -165,7 +165,7 @@ struct _ActionTransf
     }
 };
 
-struct _ActionSpawn
+struct ActionSpawn
 {
     const int x = -1;
     const int y = -1;
@@ -186,7 +186,7 @@ struct _ActionSpawn
     }
 };
 
-struct _ActionSpell
+struct ActionSpell
 {
     const int speed = SYS_DEFSPEED;
 
@@ -219,7 +219,7 @@ struct _ActionSpell
     }
 };
 
-struct _ActionMove
+struct ActionMove
 {
     const int speed = SYS_DEFSPEED;
 
@@ -250,7 +250,7 @@ struct _ActionMove
     }
 };
 
-struct _ActionSpaceMove1
+struct ActionSpaceMove1
 {
     const int x = -1;
     const int y = -1;
@@ -271,7 +271,7 @@ struct _ActionSpaceMove1
     }
 };
 
-struct _ActionSpaceMove2
+struct ActionSpaceMove2
 {
     const int x = -1;
     const int y = -1;
@@ -292,7 +292,7 @@ struct _ActionSpaceMove2
     }
 };
 
-struct _ActionAttack
+struct ActionAttack
 {
     const int speed = SYS_DEFSPEED;
 
@@ -319,7 +319,7 @@ struct _ActionAttack
     }
 };
 
-struct _ActionHitted
+struct ActionHitted
 {
     const int x = -1;
     const int y = -1;
@@ -340,7 +340,7 @@ struct _ActionHitted
     }
 };
 
-struct _ActionPickUp
+struct ActionPickUp
 {
     int x = -1;
     int y = -1;

@@ -129,7 +129,7 @@ void Player::on_MPK_ACTION(const MessagePack &rstMPK)
         case ACTION_SPAWN:
         case ACTION_SPACEMOVE2:
             {
-                dispatchAction(amA.UID, _ActionStand
+                dispatchAction(amA.UID, ActionStand
                 {
                     .x = X(),
                     .y = Y(),
@@ -156,7 +156,7 @@ void Player::on_MPK_NOTIFYNEWCO(const MessagePack &mpk)
     else{
         // should make an valid action node and send it
         // currently just dispatch through map
-        dispatchAction(amNNCO.UID, _ActionStand
+        dispatchAction(amNNCO.UID, ActionStand
         {
             .x = X(),
             .y = Y(),
@@ -252,14 +252,14 @@ void Player::on_MPK_ATTACK(const MessagePack &rstMPK)
         m_actorPod->forward(slaveUID, MPK_MASTERHITTED);
     }
 
-    dispatchAction(_ActionHitted
+    dispatchAction(ActionHitted
     {
         .x = X(),
         .y = Y(),
         .direction = Direction(),
     });
     StruckDamage({amA.UID, amA.Type, amA.Damage, amA.Element});
-    reportAction(UID(), _ActionHitted
+    reportAction(UID(), ActionHitted
     {
         .x = X(),
         .y = Y(),

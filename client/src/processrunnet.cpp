@@ -54,7 +54,7 @@ void ProcessRun::net_LOGINOK(const uint8_t *bufPtr, size_t nLen)
         loadMap(nMapID);
 
         m_myHeroUID = nUID;
-        m_coList[nUID] = std::make_unique<MyHero>(nUID, nDBID, bGender, nDressID, this, _ActionStand
+        m_coList[nUID] = std::make_unique<MyHero>(nUID, nDBID, bGender, nDressID, this, ActionStand
         {
             .x = nX,
             .y = nY,
@@ -95,7 +95,7 @@ void ProcessRun::net_ACTION(const uint8_t *bufPtr, size_t)
         loadMap(smA.MapID);
 
         m_coList.clear();
-        m_coList[m_myHeroUID] = std::make_unique<MyHero>(nUID, nDBID, bGender, nDress, this, _ActionStand
+        m_coList[m_myHeroUID] = std::make_unique<MyHero>(nUID, nDBID, bGender, nDress, this, ActionStand
         {
             .x = nX,
             .y = nY,
@@ -257,7 +257,7 @@ void ProcessRun::net_NOTIFYDEAD(const uint8_t *bufPtr, size_t)
     std::memcpy(&stSMND, bufPtr, sizeof(stSMND));
 
     if(auto p = findUID(stSMND.UID)){
-        p->parseAction(_ActionDie
+        p->parseAction(ActionDie
         {
             .x = p->x(),
             .y = p->y(),

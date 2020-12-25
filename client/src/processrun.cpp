@@ -463,7 +463,7 @@ void ProcessRun::processEvent(const SDL_Event &event)
                             }
 
                             else if(const auto &itemList = getGroundItemList(mouseGridX, mouseGridY); !itemList.empty()){
-                                getMyHero()->emplaceAction(_ActionPickUp
+                                getMyHero()->emplaceAction(ActionPickUp
                                 {
                                     .x = mouseGridX,
                                     .y = mouseGridY,
@@ -498,7 +498,7 @@ void ProcessRun::processEvent(const SDL_Event &event)
                                     // when post move action don't use X() and Y()
                                     // since if clicks during hero moving then X() may not equal to EndX
 
-                                    getMyHero()->emplaceAction(_ActionMove
+                                    getMyHero()->emplaceAction(ActionMove
                                     {
                                         .speed = SYS_DEFSPEED,
                                         .x = getMyHero()->currMotion()->endX,    // don't use X()
@@ -1172,7 +1172,7 @@ bool ProcessRun::trackAttack(bool bForce, uint64_t nUID)
         if(bForce || getMyHero()->stayIdle()){
             auto nEndX = getMyHero()->currMotion()->endX;
             auto nEndY = getMyHero()->currMotion()->endY;
-            return getMyHero()->emplaceAction(_ActionAttack
+            return getMyHero()->emplaceAction(ActionAttack
             {
                 .speed = SYS_DEFSPEED,
                 .x = nEndX,
@@ -1399,7 +1399,7 @@ void ProcessRun::onActionSpawn(uint64_t uid, const ActionNode &action)
                         return false;
                     }
 
-                    const _ActionStand stand
+                    const ActionStand stand
                     {
                         .x = action.x,
                         .y = action.y,
@@ -1694,7 +1694,7 @@ void ProcessRun::checkMagicSpell(const SDL_Event &event)
                 }
 
                 if(auto nFocusUID = FocusUID(FOCUS_MAGIC)){
-                    getMyHero()->emplaceAction(_ActionSpell
+                    getMyHero()->emplaceAction(ActionSpell
                     {
                         .x = getMyHero()->currMotion()->endX,
                         .y = getMyHero()->currMotion()->endY,
@@ -1708,7 +1708,7 @@ void ProcessRun::checkMagicSpell(const SDL_Event &event)
                     int nMouseY = -1;
                     SDL_GetMouseState(&nMouseX, &nMouseY);
                     const auto [nAimX, nAimY] = screenPoint2Grid(nMouseX, nMouseY);
-                    getMyHero()->emplaceAction(_ActionSpell
+                    getMyHero()->emplaceAction(ActionSpell
                     {
                         .x = getMyHero()->currMotion()->endX,
                         .y = getMyHero()->currMotion()->endY,
@@ -1723,7 +1723,7 @@ void ProcessRun::checkMagicSpell(const SDL_Event &event)
         case DBCOM_MAGICID(u8"召唤骷髅"):
         case DBCOM_MAGICID(u8"召唤神兽"):
             {
-                getMyHero()->emplaceAction(_ActionSpell
+                getMyHero()->emplaceAction(ActionSpell
                 {
                     .x = getMyHero()->x(),
                     .y = getMyHero()->y(),

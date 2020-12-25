@@ -140,7 +140,7 @@ CharObject::CharObject(ServiceCore *pServiceCore,
             if(checkActorPod()){
                 // remove all dead ones
                 // dispatch action requires check location list
-                dispatchAction(_ActionStand
+                dispatchAction(ActionStand
                 {
                     .x = X(),
                     .y = Y(),
@@ -360,7 +360,7 @@ bool CharObject::requestMove(int nX, int nY, int nSpeed, bool allowHalfMove, boo
                     m_lastMoveTime = g_monoServer->getCurrTick();
 
                     m_actorPod->forward(rstMPK.from(), MPK_OK, rstMPK.ID());
-                    dispatchAction(_ActionMove
+                    dispatchAction(ActionMove
                     {
                         .speed = nSpeed,
                         .x = nOldX,
@@ -467,7 +467,7 @@ bool CharObject::requestSpaceMove(int locX, int locY, bool strictMove, std::func
                                     }
 
                                     // dispatch space move part 1 on old map
-                                    dispatchAction(_ActionSpaceMove1
+                                    dispatchAction(ActionSpaceMove1
                                     {
                                         .x = X(),
                                         .y = Y(),
@@ -485,7 +485,7 @@ bool CharObject::requestSpaceMove(int locX, int locY, bool strictMove, std::func
                                     // clean the InViewCO list
                                     // report new location explicitly to map
                                     m_inViewCOList.clear();
-                                    dispatchAction(m_map->UID(), _ActionStand
+                                    dispatchAction(m_map->UID(), ActionStand
                                     {
                                         .x = X(),
                                         .y = Y(),
@@ -493,7 +493,7 @@ bool CharObject::requestSpaceMove(int locX, int locY, bool strictMove, std::func
                                     });
 
                                     if(uidf::getUIDType(UID()) == UID_PLY){
-                                        dynamic_cast<Player *>(this)->reportAction(UID(), _ActionSpaceMove2
+                                        dynamic_cast<Player *>(this)->reportAction(UID(), ActionSpaceMove2
                                         {
                                             .x = X(),
                                             .y = Y(),
@@ -644,7 +644,7 @@ bool CharObject::requestMapSwitch(uint32_t mapID, int locX, int locY, bool stric
                                                     // 2. notify all players on the new map
                                                     //    need to explicitly send to the map, not InViewCO since it's not valid anymore
                                                     m_inViewCOList.clear();
-                                                    dispatchAction(m_map->UID(), _ActionStand
+                                                    dispatchAction(m_map->UID(), ActionStand
                                                     {
                                                         .x = X(),
                                                         .y = Y(),

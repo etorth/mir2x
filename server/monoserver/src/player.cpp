@@ -244,7 +244,7 @@ void Player::reportCO(uint64_t toUID)
 
     amCOR.UID = UID();
     amCOR.MapID = MapID();
-    amCOR.action = _ActionStand
+    amCOR.action = ActionStand
     {
         .x = X(),
         .y = Y(),
@@ -260,7 +260,7 @@ void Player::reportCO(uint64_t toUID)
 
 void Player::reportStand()
 {
-    reportAction(UID(), _ActionStand
+    reportAction(UID(), ActionStand
     {
         .x = X(),
         .y = Y(),

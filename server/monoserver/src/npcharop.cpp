@@ -27,7 +27,7 @@ void NPChar::on_MPK_ACTION(const MessagePack &mpk)
         case UID_PLY:
         case UID_MON:
             {
-                dispatchAction(amA.UID, _ActionStand
+                dispatchAction(amA.UID, ActionStand
                 {
                     .x = X(),
                     .y = Y(),
@@ -73,7 +73,7 @@ void NPChar::on_MPK_NPCEVENT(const MessagePack &mpk)
 void NPChar::on_MPK_NOTIFYNEWCO(const MessagePack &mpk)
 {
     if(uidf::getUIDType(mpk.from()) == UID_PLY){
-        dispatchAction(mpk.from(), _ActionStand
+        dispatchAction(mpk.from(), ActionStand
         {
             .x = X(),
             .y = Y(),
@@ -88,7 +88,7 @@ void NPChar::on_MPK_QUERYCORECORD(const MessagePack &mpk)
     if(uidf::getUIDType(fromUID) != UID_PLY){
         throw fflerror("NPC get AMQueryCORecord from %s", uidf::getUIDTypeString(fromUID));
     }
-    dispatchAction(fromUID, _ActionStand
+    dispatchAction(fromUID, ActionStand
     {
         .x = X(),
         .y = Y(),
