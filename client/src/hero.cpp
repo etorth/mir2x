@@ -524,7 +524,7 @@ bool Hero::parseAction(const ActionNode &action)
             }
         case ACTION_SPACEMOVE2:
             {
-                flushForceMotionQueue();
+                flushMotionPending();
                 m_currMotion.reset(new MotionNode
                 {
                     .type = [this]()

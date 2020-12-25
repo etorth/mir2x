@@ -450,7 +450,7 @@ bool ClientMonster::onActionTransf(const ActionNode &)
 
 bool ClientMonster::onActionSpaceMove2(const ActionNode &action)
 {
-    flushForceMotionQueue();
+    flushMotionPending();
     m_currMotion.reset(new MotionNode
     {
         .type = MOTION_MON_STAND,

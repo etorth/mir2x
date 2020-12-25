@@ -308,7 +308,7 @@ std::tuple<int, int, int> CreatureMovable::motionEndLocation(int endType) const
     }
 }
 
-void CreatureMovable::flushForceMotionQueue()
+void CreatureMovable::flushMotionPending()
 {
     // TODO
     // helper function to handle space move, I don't have a good idea to handle it for now
@@ -332,5 +332,7 @@ void CreatureMovable::flushForceMotionQueue()
         m_currMotion = std::move(m_forceMotionQueue.back());
         m_forceMotionQueue.clear();
     }
+
+    m_motionQueue.clear();
     m_currMotion = makeIdleMotion();
 }

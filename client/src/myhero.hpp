@@ -108,4 +108,7 @@ class MyHero: public Hero
 
     public:
         void pullGold();
+
+    public:
+        void flushMotionPending() override;
 };

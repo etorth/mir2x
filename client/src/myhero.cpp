@@ -686,3 +686,9 @@ void MyHero::pullGold()
 {
     g_client->send(CM_QUERYGOLD);
 }
+
+void MyHero::flushMotionPending()
+{
+    Hero::flushMotionPending();
+    m_actionQueue.clear();
+}
