@@ -91,4 +91,7 @@ class CreatureMovable: public ClientCreature
             END_OPTIONAL,
         };
         std::tuple<int, int, int> motionEndLocation(int) const;
+
+    public:
+        void flushForceMotionQueue();
 };

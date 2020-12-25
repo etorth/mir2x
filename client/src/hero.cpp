@@ -524,10 +524,7 @@ bool Hero::parseAction(const ActionNode &action)
             }
         case ACTION_SPACEMOVE2:
             {
-                if(!m_forceMotionQueue.empty()){
-                    throw fflerror("forced motion queue is not empty: %s", uidf::getUIDString(UID()).c_str());
-                }
-
+                flushForceMotionQueue();
                 m_currMotion.reset(new MotionNode
                 {
                     .type = [this]()

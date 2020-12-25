@@ -16,6 +16,7 @@
  * =====================================================================================
  */
 #include <SDL2/SDL.h>
+#include <algorithm>
 #include "log.hpp"
 #include "totype.hpp"
 #include "dbcomid.hpp"
@@ -449,13 +450,7 @@ bool ClientMonster::onActionTransf(const ActionNode &)
 
 bool ClientMonster::onActionSpaceMove2(const ActionNode &action)
 {
-    // TODO I don't have a good idea to handle this yet
-    // should I allow cleaning forced motions?
-
-    if(!m_forceMotionQueue.empty()){
-        throw fflerror("forced motion queue is not empty: %s", uidf::getUIDString(UID()).c_str());
-    }
-
+    flushForceMotionQueue();
     m_currMotion.reset(new MotionNode
     {
         .type = MOTION_MON_STAND,

@@ -307,3 +307,30 @@ std::tuple<int, int, int> CreatureMovable::motionEndLocation(int endType) const
             }
     }
 }
+
+void CreatureMovable::flushForceMotionQueue()
+{
+    // TODO
+    // helper function to handle space move, I don't have a good idea to handle it for now
+    // current solution is just flush (but not clean) all forced motions including currMotion, then it's ready to do space move
+
+    const auto fnFlushMotion = [this](std::unique_ptr<MotionNode> &motionPtr)
+    {
+        while(motionPtr->frame < motionFrameCount(motionPtr->type, motionPtr->direction)){
+            motionPtr->update();
+            motionPtr->frame++;
+        }
+    };
+
+    fnFlushMotion(m_currMotion);
+    std::ranges::for_each(m_forceMotionQueue, fnFlushMotion);
+
+    // setup the final motion
+    // makeIdleMotion needs it for final location
+
+    if(!m_forceMotionQueue.empty()){
+        m_currMotion = std::move(m_forceMotionQueue.back());
+        m_forceMotionQueue.clear();
+    }
+    m_currMotion = makeIdleMotion();
+}
