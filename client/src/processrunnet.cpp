@@ -110,14 +110,14 @@ void ProcessRun::net_ACTION(const uint8_t *bufPtr, size_t)
     // map doesn't change
     // action from an existing charobject for current processrun
 
-    if(auto creaturePtr = findUID(smA.UID)){
+    if(auto coPtr = findUID(smA.UID)){
         // shouldn't accept ACTION_SPAWN
         // we shouldn't have spawn action after co created
         if(smA.action.type == ACTION_SPAWN){
             throw fflerror("existing CO get spawn action: name = %s", uidf::getUIDString(smA.UID).c_str());
         }
 
-        creaturePtr->parseAction(smA.action);
+        coPtr->parseAction(smA.action);
         switch(smA.action.type){
             case ACTION_SPACEMOVE2:
                 {
@@ -378,8 +378,8 @@ void ProcessRun::net_OFFLINE(const uint8_t *bufPtr, size_t)
     std::memcpy(&stSMO, bufPtr, sizeof(stSMO));
 
     if(stSMO.MapID == MapID()){
-        if(auto creaturePtr = findUID(stSMO.UID)){
-            creaturePtr->addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"瞬息移动", u8"启动")));
+        if(auto coPtr = findUID(stSMO.UID)){
+            coPtr->addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"瞬息移动", u8"启动")));
         }
     }
 }
