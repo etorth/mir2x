@@ -90,6 +90,7 @@
 #pragma once
 #include <string>
 #include <cstdarg>
+#include <concepts>
 #include <filesystem>
 
 #ifdef __GNUC__
@@ -100,6 +101,38 @@
 
 bool str_nonempty(const char *);
 bool str_nonempty(const char8_t *);
+
+template<std::integral T> [[nodiscard]] std::string str_ksep(T t, char sep = ',')
+{
+    std::string result;
+    std::string numstr = std::to_string(t);
+
+    bool neg = false;
+    std::reverse(numstr.begin(), numstr.end());
+
+    if(numstr.back() == '-'){
+        numstr.pop_back();
+        neg = true;
+    }
+
+    for(size_t i = 0; i < numstr.size(); ++i){
+        result.push_back(numstr[i]);
+        if(i % 3 == 2){
+            result.push_back(sep);
+        }
+    }
+
+    if(result.back() == sep){
+        result.pop_back();
+    }
+
+    if(neg){
+        result.push_back('-');
+    }
+
+    std::reverse(result.begin(), result.end());
+    return result;
+}
 
 [[nodiscard]] std::string str_printf(const char *, ...) STR_PRINTF_CHECK_FORMAT(1);
 [[nodiscard]] std::string str_vprintf(const char *, va_list);

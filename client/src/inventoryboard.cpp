@@ -213,27 +213,11 @@ bool InventoryBoard::processEvent(const SDL_Event &event, bool valid)
 
 std::string InventoryBoard::getGoldStr() const
 {
-    std::string result;
-    std::string goldStr = std::to_string([this]() -> int
+    return str_ksep([this]() -> int
     {
         if(auto p = m_processRun->getMyHero()){
             return p->GetGold();
         }
         return 0;
-    }());
-
-    std::reverse(goldStr.begin(), goldStr.end());
-    for(size_t i = 0; i < goldStr.size(); ++i){
-        result.push_back(goldStr[i]);
-        if(i % 3 == 2){
-            result.push_back(',');
-        }
-    }
-
-    if(result.back() == ','){
-        result.pop_back();
-    }
-
-    std::reverse(result.begin(), result.end());
-    return result;
+    }(), ',');
 }
