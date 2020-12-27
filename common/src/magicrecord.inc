@@ -26,7 +26,7 @@
 
 {
     .name = u8"雷电术",
-    .elem = u8"电",
+    .elem = u8"雷",
     .icon = 0X0500100A,
 
     .gfxList
