@@ -19,6 +19,7 @@
 #include <chrono>
 #include <thread>
 #include "log.hpp"
+#include "uidf.hpp"
 #include "totype.hpp"
 #include "sysconst.hpp"
 #include "fflerror.hpp"
@@ -34,6 +35,15 @@ LuaModule::LuaModule()
             R"###( LOGTYPE_WARNING = 1 )###""\n"
             R"###( LOGTYPE_FATAL   = 2 )###""\n"
             R"###( LOGTYPE_DEBUG   = 3 )###""\n");
+
+    m_luaState.script(str_printf("UID_ERR = %d", UID_ERR));
+    m_luaState.script(str_printf("UID_COR = %d", UID_COR));
+    m_luaState.script(str_printf("UID_NPC = %d", UID_NPC));
+    m_luaState.script(str_printf("UID_MAP = %d", UID_MAP));
+    m_luaState.script(str_printf("UID_PLY = %d", UID_PLY));
+    m_luaState.script(str_printf("UID_MON = %d", UID_MON));
+    m_luaState.script(str_printf("UID_ETC = %d", UID_ETC));
+    m_luaState.script(str_printf("UID_INN = %d", UID_INN));
 
     m_luaState.script(str_printf("SYS_NPCINIT  = \"%s\"", SYS_NPCINIT ));
     m_luaState.script(str_printf("SYS_NPCDONE  = \"%s\"", SYS_NPCDONE ));
@@ -108,6 +118,11 @@ LuaModule::LuaModule()
             R"###(     -- else we need to give warning                                  )###""\n"
             R"###(     addLog(1, 'addExtLog(logType: int, logInfo: string)')            )###""\n"
             R"###( end                                                                  )###""\n");
+
+    m_luaState.set_function("uidType", [](std::string uidString)
+    {
+        return uidf::getUIDType(uidf::toUIDEx(uidString));
+    });
 
     m_luaState.set_function("mapID2Name", [](int nMapID) -> std::string
     {
