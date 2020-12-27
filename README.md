@@ -81,7 +81,7 @@ $ cd mir2x/b/install/client
 $ ./client
 ```
 
-Currently the magic spell part is not fully done yet, you can try:
+Currently the magic spell part is not fully done yet, you can press key to trigger:
 
 ```sh
 t: Thunder
