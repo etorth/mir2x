@@ -464,7 +464,6 @@ bool Hero::parseAction(const ActionNode &action)
     //    additional movement added if necessary but in rush
     switch(action.type){
         case ACTION_DIE:
-        case ACTION_STAND:
             {
                 // take this as cirtical
                 // server use ReportStand() to do location sync
@@ -474,6 +473,7 @@ bool Hero::parseAction(const ActionNode &action)
                 break;
             }
         case ACTION_MOVE:
+        case ACTION_STAND:
         case ACTION_SPELL:
         case ACTION_ATTACK:
             {

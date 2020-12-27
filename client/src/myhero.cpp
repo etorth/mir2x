@@ -50,7 +50,8 @@ bool MyHero::moveNextMotion()
         if(m_actionQueue.empty()){
             m_currMotion = makeIdleMotion();
             return true;
-        }else{
+        }
+        else{
             // there is pending action in the queue
             // try to present it and return false if failed
             return parseActionQueue();
