@@ -81,6 +81,16 @@ $ cd mir2x/b/install/client
 $ ./client
 ```
 
+Currently the magic spell part is not fully done yet, you can try:
+
+```sh
+t: Thunder
+s: Summon Taoist Dog
+u: Summon Taoist Skeleton
+f: Taoist Fire
+y: Shield
+```
+
 ### Code style
 
 Global variables:
