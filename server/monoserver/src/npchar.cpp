@@ -52,9 +52,9 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npc)
         return std::string(to_cstr(DBCOM_MAPRECORD(uidf::getMapID(npc->m_map->UID())).name)) + "." + std::string(to_cstr(DBCOM_NPCRECORD(uidf::getNPCID(npc->rawUID())).name));
     });
 
-    m_luaState.set_function("sendQuery", [npc](std::string uidString, std::string query)
+    m_luaState.set_function("sendQuery", [npc](std::string s, std::string uidString, std::string query)
     {
-        npc->sendQuery(uidf::toUIDEx(uidString), query);
+        npc->sendQuery(uidf::toUIDEx(s), uidf::toUIDEx(uidString), query);
     });
 
     m_luaState.set_function("sayXML", [npc, this](std::string uidString, std::string xmlString)
@@ -160,9 +160,9 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npc)
         R"###(     end                                                                                                                       )###""\n"
         R"###( end                                                                                                                           )###""\n"
         R"###(                                                                                                                               )###""\n"
-        R"###( function queryName(uid)                                                                                                       )###""\n"
-        R"###(     sendQuery(uid, 'NAME')                                                                                                    )###""\n"
-        R"###(     local event, value = waitEvent(uid)                                                                                       )###""\n"
+        R"###( function queryName(s, uid)                                                                                                    )###""\n"
+        R"###(     sendQuery(s, uid or s, 'NAME')                                                                                            )###""\n"
+        R"###(     local event, value = waitEvent(s)                                                                                         )###""\n"
         R"###(     if event ~= SYS_NPCQUERY then                                                                                             )###""\n"
         R"###(         addLog(LOGTYPE_WARNING, 'Wait event as SYS_NPCQUERY but get ' .. tostring(event))                                     )###""\n"
         R"###(         return nil                                                                                                            )###""\n"
@@ -171,9 +171,9 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npc)
         R"###(     end                                                                                                                       )###""\n"
         R"###( end                                                                                                                           )###""\n"
         R"###(                                                                                                                               )###""\n"
-        R"###( function queryLevel(uid)                                                                                                      )###""\n"
-        R"###(     sendQuery(uid, 'LEVEL')                                                                                                   )###""\n"
-        R"###(     local event, value = waitEvent(uid)                                                                                       )###""\n"
+        R"###( function queryLevel(s, uid)                                                                                                   )###""\n"
+        R"###(     sendQuery(s, uid or s, 'LEVEL')                                                                                           )###""\n"
+        R"###(     local event, value = waitEvent(s)                                                                                         )###""\n"
         R"###(     if event ~= SYS_NPCQUERY then                                                                                             )###""\n"
         R"###(         addLog(LOGTYPE_WARNING, 'Wait event as SYS_NPCQUERY but get ' .. tostring(event))                                     )###""\n"
         R"###(         return nil                                                                                                            )###""\n"
@@ -182,9 +182,9 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npc)
         R"###(     end                                                                                                                       )###""\n"
         R"###( end                                                                                                                           )###""\n"
         R"###(                                                                                                                               )###""\n"
-        R"###( function queryGold(uid)                                                                                                       )###""\n"
-        R"###(     sendQuery(uid, 'GOLD')                                                                                                    )###""\n"
-        R"###(     local event, value = waitEvent(uid)                                                                                       )###""\n"
+        R"###( function queryGold(s, uid)                                                                                                    )###""\n"
+        R"###(     sendQuery(s, uid or s, 'GOLD')                                                                                            )###""\n"
+        R"###(     local event, value = waitEvent(s)                                                                                         )###""\n"
         R"###(     if event ~= SYS_NPCQUERY then                                                                                             )###""\n"
         R"###(         addLog(LOGTYPE_WARNING, 'Wait event as SYS_NPCQUERY but get ' .. tostring(event))                                     )###""\n"
         R"###(         return nil                                                                                                            )###""\n"
@@ -375,7 +375,7 @@ bool NPChar::goGhost()
     return true;
 }
 
-void NPChar::sendQuery(uint64_t uid, const std::string &query)
+void NPChar::sendQuery(uint64_t s, uint64_t uid, const std::string &query)
 {
     AMNPCQuery amNPCQ;
     std::memset(&amNPCQ, 0, sizeof(amNPCQ));
@@ -385,18 +385,18 @@ void NPChar::sendQuery(uint64_t uid, const std::string &query)
     }
 
     std::strcpy(amNPCQ.query, query.c_str());
-    m_actorPod->forward(uid, {MPK_NPCQUERY, amNPCQ}, [uid, this](const MessagePack &mpk)
+    m_actorPod->forward(uid, {MPK_NPCQUERY, amNPCQ}, [s, this](const MessagePack &mpk)
     {
         switch(mpk.Type()){
             case MPK_NPCEVENT:
                 {
                     const auto amNPCE = mpk.conv<AMNPCEvent>();
-                    m_luaModulePtr->setEvent(mpk.from(), amNPCE.event, amNPCE.value);
+                    m_luaModulePtr->setEvent(s, amNPCE.event, amNPCE.value);
                     return;
                 }
             default:
                 {
-                    m_luaModulePtr->close(uid);
+                    m_luaModulePtr->close(s);
                     return;
                 }
         }
