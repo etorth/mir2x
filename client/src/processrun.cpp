@@ -1585,7 +1585,7 @@ void ProcessRun::drawRotateStar(int x0, int y0, int x1, int y1)
         return;
     }
 
-    auto texPtr = g_progUseDB->Retrieve(0X00000080);
+    auto texPtr = g_progUseDB->Retrieve(0X00000090);
     if(!texPtr){
         return;
     }
