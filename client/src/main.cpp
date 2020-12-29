@@ -34,8 +34,7 @@
 ClientArgParser *g_clientArgParser = nullptr;
 Log             *g_log             = nullptr; // log information handler, must be inited first
 PNGTexDB        *g_progUseDB       = nullptr; // database for all PNG texture only
-PNGTexDB        *g_groundItemDB    = nullptr; // database for all PNG texture only
-PNGTexDB        *g_commonItemDB    = nullptr; // database for all PNG texture only
+PNGTexDB        *g_itemDB          = nullptr; // database for all PNG texture only
 PNGTexDB        *g_mapDB           = nullptr;
 PNGTexOffDB     *g_heroDB          = nullptr; // database for hero
 PNGTexOffDB     *g_monsterDB       = nullptr; // database for monster
@@ -68,8 +67,7 @@ int main(int argc, char *argv[])
             delete g_XMLConf        ; g_XMLConf         = nullptr;
             delete g_sdlDevice      ; g_sdlDevice       = nullptr;
             delete g_progUseDB      ; g_progUseDB       = nullptr;
-            delete g_groundItemDB   ; g_groundItemDB    = nullptr;
-            delete g_commonItemDB   ; g_commonItemDB    = nullptr;
+            delete g_itemDB         ; g_itemDB          = nullptr;
             delete g_mapDB          ; g_mapDB           = nullptr;
             delete g_heroDB         ; g_heroDB          = nullptr;
             delete g_monsterDB      ; g_monsterDB       = nullptr;
@@ -97,8 +95,7 @@ int main(int argc, char *argv[])
         g_XMLConf         = new XMLConf();
         g_sdlDevice       = new SDLDevice();
         g_progUseDB       = new PNGTexDB(1024);
-        g_groundItemDB    = new PNGTexDB(1024);
-        g_commonItemDB    = new PNGTexDB(1024);
+        g_itemDB          = new PNGTexDB(1024);
         g_mapDB           = new PNGTexDB(8192);
         g_heroDB          = new PNGTexOffDB(1024);
         g_monsterDB       = new PNGTexOffDB(1024);

@@ -18,8 +18,7 @@
     <Font><FontexDB>Res/Font/FontexDB.ZSDB</FontexDB></Font>
     <Texture>
         <ProgUseDB>Res/Texture/proguse.zsdb</ProgUseDB>
-        <GroundItemDB>Res/Texture/GroundItemDB.ZSDB</GroundItemDB>
-        <CommonItemDB>Res/Texture/CommonItemDB.ZSDB</CommonItemDB>
+        <itemDB>Res/Texture/item.zsdb</itemDB>
         <MapDB>Res/Texture/MapDB.ZSDB</MapDB>
         <HeroDB>Res/Texture/HeroDB.ZSDB</HeroDB>
         <MonsterDB>Res/Texture/monster.zsdb</MonsterDB>

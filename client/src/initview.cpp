@@ -40,8 +40,7 @@ extern PNGTexDB *g_mapDB;
 extern MapBinDB *g_mapBinDB;
 extern FontexDB *g_fontexDB;
 extern PNGTexDB *g_progUseDB;
-extern PNGTexDB *g_commonItemDB;
-extern PNGTexDB *g_groundItemDB;
+extern PNGTexDB *g_itemDB;
 
 extern PNGTexOffDB *g_heroDB;
 extern PNGTexOffDB *g_magicDB;
@@ -66,12 +65,7 @@ InitView::InitView(uint8_t nFontSize)
 
     m_loadProcV.emplace_back(1, [this](size_t nIndex) -> bool
     {
-        return LoadDB(nIndex, g_XMLConf, g_groundItemDB, "Root/Texture/GroundItemDB");
-    });
-
-    m_loadProcV.emplace_back(1, [this](size_t nIndex) -> bool
-    {
-        return LoadDB(nIndex, g_XMLConf, g_commonItemDB, "Root/Texture/CommonItemDB");
+        return LoadDB(nIndex, g_XMLConf, g_itemDB, "Root/Texture/itemDB");
     });
 
     m_loadProcV.emplace_back(1, [this](size_t nIndex) -> bool

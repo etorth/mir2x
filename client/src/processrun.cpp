@@ -49,7 +49,7 @@ extern PNGTexDB *g_mapDB;
 extern MapBinDB *g_mapBinDB;
 extern SDLDevice *g_sdlDevice;
 extern PNGTexDB *g_progUseDB;
-extern PNGTexDB *g_groundItemDB;
+extern PNGTexDB *g_itemDB;
 extern NotifyBoard *g_notifyBoard;
 extern ClientArgParser *g_clientArgParser;
 
@@ -1474,7 +1474,7 @@ void ProcessRun::drawGroundItem(int x0, int y0, int x1, int y1)
                 continue;
             }
 
-            auto texPtr = g_groundItemDB->Retrieve(ir.pkgGfxID);
+            auto texPtr = g_itemDB->Retrieve(ir.pkgGfxID);
             if(!texPtr){
                 continue;
             }
@@ -1585,7 +1585,7 @@ void ProcessRun::drawRotateStar(int x0, int y0, int x1, int y1)
         return;
     }
 
-    auto texPtr = g_groundItemDB->Retrieve(0X01000000);
+    auto texPtr = g_progUseDB->Retrieve(0X00000080);
     if(!texPtr){
         return;
     }

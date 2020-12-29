@@ -22,7 +22,7 @@
 #include "inventoryboard.hpp"
 
 extern PNGTexDB *g_progUseDB;
-extern PNGTexDB *g_commonItemDB;
+extern PNGTexDB *g_itemDB;
 extern SDLDevice *g_sdlDevice;
 
 InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget, bool autoDelete)
@@ -104,7 +104,7 @@ void InventoryBoard::drawItem(int nDstX, int nDstY, const PackBin &rstBin)
             && rstBin.W >  0
             && rstBin.H >  0){
 
-        if(auto pTexture = g_commonItemDB->Retrieve((DBCOM_ITEMRECORD(rstBin.ID).pkgGfxID))){
+        if(auto pTexture = g_itemDB->Retrieve(DBCOM_ITEMRECORD(rstBin.ID).pkgGfxID | 0X01000000)){
 
             int nItemPW = -1;
             int nItemPH = -1;

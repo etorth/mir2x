@@ -21,7 +21,7 @@
 #include "pngtexdb.hpp"
 #include "dbcomrecord.hpp"
 
-extern PNGTexDB *g_commonItemDB;
+extern PNGTexDB *g_itemDB;
 
 bool InvPack::Repack()
 {
@@ -89,7 +89,7 @@ bool InvPack::Remove(uint32_t nItemID, int nX, int nY)
 
 PackBin InvPack::MakePackBin(uint32_t nItemID)
 {
-    if(auto pTexture = g_commonItemDB->Retrieve(DBCOM_ITEMRECORD(nItemID).pkgGfxID)){
+    if(auto pTexture = g_itemDB->Retrieve(DBCOM_ITEMRECORD(nItemID).pkgGfxID | 0X01000000)){
 
         int nItemPW = -1;
         int nItemPH = -1;
