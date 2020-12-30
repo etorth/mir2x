@@ -19,6 +19,8 @@
 #pragma once
 #include <set>
 #include <cstdint>
+#include <cstring>
+#include <type_traits>
 #include "monoserver.hpp"
 #include "charobject.hpp"
 
@@ -190,8 +192,11 @@ class Player final: public CharObject
 
     private:
         bool postNetMessage(uint8_t, const void *, size_t);
+
+    private:
         template<typename T> bool postNetMessage(uint8_t nHC, T& stMessage)
         {
+            static_assert(std::is_trivially_copyable_v<T>);
             return postNetMessage(nHC, (const uint8_t *)(&stMessage), sizeof(stMessage));
         }
 

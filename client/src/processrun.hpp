@@ -186,6 +186,7 @@ class ProcessRun: public Process
     public:
         void net_EXP(const uint8_t *, size_t);
         void net_MISS(const uint8_t *, size_t);
+        void net_TEXT(const uint8_t *, size_t);
         void net_PING(const uint8_t *, size_t);
         void net_GOLD(const uint8_t *, size_t);
         void net_ACTION(const uint8_t *, size_t);

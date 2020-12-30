@@ -411,3 +411,8 @@ void ProcessRun::net_NPCXMLLAYOUT(const uint8_t *buf, size_t bufSize)
     chatBoardPtr->loadXML(sdNPCXMLL.npcUID, sdNPCXMLL.xmlLayout.c_str());
     chatBoardPtr->show(true);
 }
+
+void ProcessRun::net_TEXT(const uint8_t *buf, size_t)
+{
+    addCBLog(CBLOG_SYS, u8"%s", to_cstr((const char *)(buf)));
+}

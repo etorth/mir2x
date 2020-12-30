@@ -259,6 +259,13 @@ void Client::onServerMessage(uint8_t headCode, const uint8_t *pData, size_t nDat
                 }
                 break;
             }
+        case SM_TEXT:
+            {
+                if(auto p = processRun(); p){
+                    p->net_TEXT(pData, nDataLen);
+                }
+                break;
+            }
         case SM_SHOWDROPITEM:
             {
                 if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){

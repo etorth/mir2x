@@ -45,6 +45,7 @@ enum SMType: uint8_t
     SM_REMOVEGROUNDITEM,
     SM_NPCXMLLAYOUT,
     SM_GOLD,
+    SM_TEXT,
     SM_MAX,
 };
 
@@ -251,6 +252,7 @@ class ServerMsg final: public MsgBase
                 _add_server_msg_type_case(SM_REMOVEGROUNDITEM, 1, sizeof(SMRemoveGroundItem))
                 _add_server_msg_type_case(SM_NPCXMLLAYOUT,     3, 0                         )
                 _add_server_msg_type_case(SM_GOLD,             1, sizeof(SMGold)            )
+                _add_server_msg_type_case(SM_TEXT,             3, 0                         )
 #undef _add_server_msg_type_case
             };
 

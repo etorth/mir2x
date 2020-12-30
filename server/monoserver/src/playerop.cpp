@@ -26,6 +26,7 @@
 #include "monoserver.hpp"
 #include "cerealf.hpp"
 #include "serdesmsg.hpp"
+#include "buildconfig.hpp"
 
 extern NetDriver *g_netDriver;
 extern MonoServer *g_monoServer;
@@ -50,7 +51,6 @@ void Player::on_MPK_BINDCHANNEL(const MessagePack &rstMPK)
     // bind channel here
     // set the channel actor as this->GetAddress()
     m_channID = amBC.ChannID;
-
     g_netDriver->BindActor(ChannID(), UID());
 
     SMLoginOK smLOK;
@@ -65,8 +65,10 @@ void Player::on_MPK_BINDCHANNEL(const MessagePack &rstMPK)
     smLOK.Direction = Direction();
     smLOK.JobID     = JobID();
     smLOK.Level     = Level();
+    postNetMessage(SM_LOGINOK, smLOK);
 
-    g_netDriver->Post(ChannID(), SM_LOGINOK, smLOK);
+    const auto versionStr = str_printf(u8"服务器版本号：%s", getBuildSignature());
+    postNetMessage(SM_TEXT, versionStr.data(), versionStr.size() + 1);
     PullRectCO(10, 10);
 }
 
