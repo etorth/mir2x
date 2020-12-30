@@ -11,6 +11,7 @@ TARGET_LINK_LIBRARIES(client common               )
 TARGET_LINK_LIBRARIES(client SDL2_ttf             )
 TARGET_LINK_LIBRARIES(client SDL2_image           )
 TARGET_LINK_LIBRARIES(client ${LUA_LIBRARIES}     )
+TARGET_LINK_LIBRARIES(client ${LZ4_LIBRARIES}     )
 TARGET_LINK_LIBRARIES(client ${ZSTD_LIBRARIES}    )
 TARGET_LINK_LIBRARIES(client Threads::Threads     )
 

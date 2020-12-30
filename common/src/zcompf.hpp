@@ -20,19 +20,21 @@
 #include <vector>
 #include <cstdint>
 #include <cstddef>
+#include <string>
 #include <memory>
 #include <cstring>
 #include <libpopcnt.h>
 #include <type_traits>
 #include "lz4.h"
+#include "zstd.h"
 #include "totype.hpp"
 #include "fflerror.hpp"
 
 namespace zcompf
 {
-    template<typename T> void lz4Encode(std::vector<uint8_t> &dst, const T *src, size_t srcSize)
+    template<typename T, typename C = std::string> void lz4Encode(C &dst, const T *src, size_t srcSize)
     {
-        static_assert(std::is_trivially_copyable<T>::value);
+        static_assert(std::is_trivially_copyable_v<T>);
         if(!(src && srcSize)){
             throw fflerror("invalid argument: src = %p, srcSize = %zu", src, srcSize);
         }
@@ -49,17 +51,12 @@ namespace zcompf
         dst.resize(compSize);
     }
 
-    template<typename T> void lz4Encode(std::vector<uint8_t> &dst, const std::vector<T> &src)
-    {
-        lz4Encode<T>(dst, src.data(), src.size());
-    }
-
     // lz4 has no reverse function of LZ4_compressBound()
     // the decompression bound is 255 * srcLen, this is too large, so need to provide the maxDstSize 
 
     template<typename T> void lz4Decode(std::vector<T> &dst, size_t maxDstSize, const uint8_t *src, size_t srcSize)
     {
-        static_assert(std::is_trivially_copyable<T>::value);
+        static_assert(std::is_trivially_copyable_v<T>);
         if(!(maxDstSize && src && srcSize)){
             throw fflerror("invalid argument: maxDstSize = %zu, src = %p, srcSize = %zu", maxDstSize, src, srcSize);
         }
@@ -78,9 +75,49 @@ namespace zcompf
         dst.resize(decompSize / sizeof(T));
     }
 
-    template<typename T> void lz4Decode(std::vector<T> &dst, size_t maxDstSize, const std::vector<uint8_t> &src)
+    // zstd compression/decompression
+    template<typename T, typename C = std::string> void zstdEncode(C &dst, const T *src, size_t srcSize)
     {
-        lz4Decode<T>(dst, maxDstSize, src.data(), src.size());
+        static_assert(std::is_trivially_copyable_v<T>);
+        if(!(src && srcSize)){
+            throw fflerror("invalid argument: src = %p, srcSize = %zu", src, srcSize);
+        }
+
+        dst.clear();
+        dst.resize(ZSTD_compressBound(srcSize * sizeof(T)));
+
+        const size_t rc = ZSTD_compress(dst.data(), dst.size(), src, srcSize * sizeof(T), ZSTD_maxCLevel());
+        if(ZSTD_isError(rc)){
+            throw fflerror("failed to compress file: %s", ZSTD_getErrorName(rc));
+        }
+        dst.resize(rc);
+    }
+
+    template<typename T> void zstdDecode(std::vector<T> &dst, const uint8_t *src, size_t srcSize)
+    {
+        static_assert(std::is_trivially_copyable_v<T>);
+        switch(const auto decompSize = ZSTD_getFrameContentSize(src, srcSize)){
+            case ZSTD_CONTENTSIZE_ERROR:
+            case ZSTD_CONTENTSIZE_UNKNOWN:
+                {
+                    throw fflerror("not a zstd compressed data buffer: src = %p, srcSize = %zu", to_cvptr(src), srcSize);
+                }
+            default:
+                {
+                    dst.resize(decompSize / sizeof(T) + 1);
+                    break;
+                }
+        }
+
+        const size_t rc = ZSTD_decompress(dst.data(), dst.size() * sizeof(T), src, srcSize);
+        if(ZSTD_isError(rc)){
+            throw fflerror("failed to decompress data buffer: %s", ZSTD_getErrorName(rc));
+        }
+
+        if(rc % sizeof(T)){
+            throw fflerror("decompressed data buffer is not aligned by class type: size = %zu, sizeof(T) = %zu", rc, sizeof(T));
+        }
+        dst.resize(rc / sizeof(T));
     }
 
     // xor compression/decompression

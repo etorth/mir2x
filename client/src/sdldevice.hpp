@@ -257,7 +257,7 @@ class SDLDevice final
        }
 
     public:
-       TTF_Font *CreateTTF(const uint8_t *, size_t, uint8_t);
+       TTF_Font *createTTF(const uint8_t *, size_t, uint8_t);
 
     public:
        void CreateMainWindow();

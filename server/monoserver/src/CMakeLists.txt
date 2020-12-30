@@ -35,6 +35,7 @@ TARGET_LINK_LIBRARIES(monoserver ${SQLITECPP_LIBRARIES})
 TARGET_LINK_LIBRARIES(monoserver ${CMAKE_DL_LIBS}      )
 TARGET_LINK_LIBRARIES(monoserver common                )
 TARGET_LINK_LIBRARIES(monoserver ${G3LOG_LIBRARIES}    )
+TARGET_LINK_LIBRARIES(monoserver ${LZ4_LIBRARIES}      )
 TARGET_LINK_LIBRARIES(monoserver ${ZSTD_LIBRARIES}     )
 TARGET_LINK_LIBRARIES(monoserver Threads::Threads      )
 

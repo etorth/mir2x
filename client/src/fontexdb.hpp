@@ -107,7 +107,7 @@ class FontexDB: public innDB<uint64_t, FontexEntry>
             {
                 if(auto &stFontDataBuf = RetrieveFontData(nFontIndex); !stFontDataBuf.empty()){
                     extern SDLDevice *g_sdlDevice;
-                    return g_sdlDevice->CreateTTF(stFontDataBuf.data(), stFontDataBuf.size(), nFontSize);
+                    return g_sdlDevice->createTTF(stFontDataBuf.data(), stFontDataBuf.size(), nFontSize);
                 }
                 return nullptr;
             }();

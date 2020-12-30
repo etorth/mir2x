@@ -34,21 +34,21 @@ class Rawbuf final
         ~Rawbuf() = default;
 
     public:
-        const uint8_t *Data() const
+        const uint8_t *data() const
         {
-            return (DataLen() == 0) ? nullptr : m_data.data();
+            return (size() == 0) ? nullptr : m_data.data();
         }
 
     public:
-        size_t DataLen() const
+        size_t size() const
         {
             return m_data.size();
         }
 
     public:
-        static std::vector<uint8_t> BuildBuf(const char *);
+        static std::vector<uint8_t> buildBuf(const char *);
 
     public:
-        static void BuildBinFile(const char *, const char *);
-        static void BuildHexFile(const char *, const char *, size_t);
+        static void buildBinFile(const char *, const char *);
+        static void buildHexFile(const char *, const char *, size_t);
 };

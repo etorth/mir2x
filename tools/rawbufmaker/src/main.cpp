@@ -52,7 +52,7 @@ static int cmd_create_hex(const argh::parser &cmd)
         }
     }();
 
-    Rawbuf::BuildHexFile(szInFileName.c_str(), szOutFileName.c_str(), 8);
+    Rawbuf::buildHexFile(szInFileName.c_str(), szOutFileName.c_str(), 8);
     return 0;
 }
 

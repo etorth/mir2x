@@ -303,7 +303,7 @@ void SDLDevice::drawTexture(SDL_Texture *pstTexture, int nX, int nY)
     }
 }
 
-TTF_Font *SDLDevice::CreateTTF(const uint8_t *pMem, size_t nSize, uint8_t nFontPointSize)
+TTF_Font *SDLDevice::createTTF(const uint8_t *pMem, size_t nSize, uint8_t nFontPointSize)
 {
     SDL_RWops *pstRWops = nullptr;
     TTF_Font  *pstTTont = nullptr;
@@ -509,7 +509,7 @@ SDL_Texture *SDLDevice::createTexture(const uint32_t *buf, int w, int h)
 
 TTF_Font *SDLDevice::DefaultTTF(uint8_t fontSize)
 {
-    const static Rawbuf s_DefaultTTFData
+    const static Rawbuf s_defaultTTFData
     {
         #include "monaco.rawbuf"
     };
@@ -518,7 +518,7 @@ TTF_Font *SDLDevice::DefaultTTF(uint8_t fontSize)
         return p->second;
     }
 
-    if(auto ttfPtr = CreateTTF(s_DefaultTTFData.Data(), s_DefaultTTFData.DataLen(), fontSize); ttfPtr){
+    if(auto ttfPtr = createTTF(s_defaultTTFData.data(), s_defaultTTFData.size(), fontSize); ttfPtr){
         return m_fontList[fontSize] = ttfPtr;
     }
     throw fflerror("can't build default ttf with point: %llu", to_llu(fontSize));
