@@ -120,18 +120,12 @@ bool ChannPackQ::AddChannPack(uint8_t nHC, const uint8_t *pData, size_t nDataLen
                 }
 
                 auto pDst = GetPostBuf(nDataLen + 4);
+                const auto nDataLenU32 = (uint32_t)(nDataLen);
+                std::memcpy(pDst, &nDataLenU32, sizeof(nDataLenU32));
 
-                // 1. setup the message length encoding
-                {
-                    auto nDataLenU32 = (uint32_t)(nDataLen);
-                    std::memcpy(pDst, &nDataLenU32, sizeof(nDataLenU32));
-                }
-
-                // 2. copy data if there is
                 if(pData){
                     std::memcpy(pDst + 4, pData, nDataLen);
                 }
-
                 return AddPackMark(GetBufOff(pDst), nDataLen + 4, std::move(rstDoneCB));
             }
         default:

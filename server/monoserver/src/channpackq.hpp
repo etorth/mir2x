@@ -62,19 +62,14 @@ struct PackMark
 class ChannPackQ
 {
     private:
-        std::vector<uint8_t> m_compBuf;
         std::vector<uint8_t> m_packBuf;
-
-    private:
         std::deque<PackMark> m_packMarkQ;
 
     public:
         ChannPackQ()
-            : m_compBuf()
-            , m_packBuf()
+            : m_packBuf()
             , m_packMarkQ()
         {
-            m_compBuf.reserve(1024 * 1024);
             m_packBuf.reserve(1024 * 1024 * 1024);
         }
 
@@ -90,7 +85,6 @@ class ChannPackQ
     public:
         void Clear()
         {
-            m_compBuf.clear();
             m_packBuf.clear();
             m_packMarkQ.clear();
         }
@@ -119,12 +113,6 @@ class ChannPackQ
         bool AddPackMark(size_t, size_t, std::function<void()> &&);
 
     private:
-        uint8_t *GetCompBuf(size_t nBufLen)
-        {
-            m_compBuf.resize(nBufLen);
-            return &(m_compBuf[0]);
-        }
-
         size_t GetBufOff(const uint8_t *pDst) const
         {
             return pDst - &(m_packBuf[0]);
