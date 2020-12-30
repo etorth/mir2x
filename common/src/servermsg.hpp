@@ -223,7 +223,7 @@ class ServerMsg final: public MsgBase
         {}
 
     private:
-        const MsgAttribute &getAttribute(uint8_t headCode) const override
+        const MsgAttribute &getAttribute() const override
         {
             static const std::unordered_map<uint8_t, MsgAttribute> s_msgAttributeTable
             {
@@ -254,7 +254,7 @@ class ServerMsg final: public MsgBase
 #undef _add_server_msg_type_case
             };
 
-            if(const auto p = s_msgAttributeTable.find(headCode); p != s_msgAttributeTable.end()){
+            if(const auto p = s_msgAttributeTable.find(m_headCode); p != s_msgAttributeTable.end()){
                 return p->second;
             }
             return s_msgAttributeTable.at(SM_NONE_0);

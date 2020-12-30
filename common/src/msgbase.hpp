@@ -31,7 +31,7 @@
 
 class MsgBase
 {
-    private:
+    protected:
         const uint8_t m_headCode;
 
     protected:
@@ -42,12 +42,12 @@ class MsgBase
     public:
         int type() const
         {
-            return getAttribute(m_headCode).type;
+            return getAttribute().type;
         }
 
         size_t dataLen() const
         {
-            return getAttribute(m_headCode).dataLen;
+            return getAttribute().dataLen;
         }
 
         size_t maskLen() const
@@ -60,9 +60,9 @@ class MsgBase
 
         const std::string &name() const
         {
-            return getAttribute(m_headCode).name;
+            return getAttribute().name;
         }
 
     private:
-        virtual const MsgAttribute &getAttribute(uint8_t) const = 0;
+        virtual const MsgAttribute &getAttribute() const = 0;
 };
