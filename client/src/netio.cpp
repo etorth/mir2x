@@ -277,7 +277,7 @@ bool NetIO::readBody(size_t nMaskLen, size_t nBodyLen)
                     fnReportInvalidArg();
                     return false;
                 }
-                m_readBuf.resize(stSMSG.dataLen());
+                m_readBuf.resize(nBodyLen);
                 break;
             }
         default:

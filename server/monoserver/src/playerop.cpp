@@ -24,6 +24,8 @@
 #include "actorpod.hpp"
 #include "netdriver.hpp"
 #include "monoserver.hpp"
+#include "cerealf.hpp"
+#include "serdesmsg.hpp"
 
 extern NetDriver *g_netDriver;
 extern MonoServer *g_monoServer;
@@ -348,15 +350,14 @@ void Player::on_MPK_NPCXMLLAYOUT(const MessagePack &msg)
     }
 
     const auto amNPCXMLL = msg.conv<AMNPCXMLLayout>();
-    SMNPCXMLLayout smNPCXMLL;
-    std::memset(&smNPCXMLL, 0, sizeof(smNPCXMLL));
+    NPCXMLLayout xmlLayout
+    {
+        .npcUID = msg.from(),
+        .xmlLayout = amNPCXMLL.xmlLayout,
+    };
 
-    smNPCXMLL.NPCUID = msg.from();
-    if(std::strlen(amNPCXMLL.xmlLayout) >= sizeof(smNPCXMLL.xmlLayout)){
-        throw fflerror("actor message is too long: %zu", std::strlen(amNPCXMLL.xmlLayout));
-    }
-    std::strcpy(smNPCXMLL.xmlLayout, amNPCXMLL.xmlLayout);
-    postNetMessage(SM_NPCXMLLAYOUT, smNPCXMLL);
+    const auto buf = cerealf::serialize(xmlLayout, true);
+    postNetMessage(SM_NPCXMLLAYOUT, buf.data(), buf.size());
 }
 
 void Player::on_MPK_BADCHANNEL(const MessagePack &rstMPK)

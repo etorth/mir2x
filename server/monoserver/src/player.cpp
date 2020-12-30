@@ -457,10 +457,10 @@ bool Player::Offline()
     return true;
 }
 
-bool Player::postNetMessage(uint8_t nHC, const uint8_t *pData, size_t nDataLen)
+bool Player::postNetMessage(uint8_t nHC, const void *pData, size_t nDataLen)
 {
     if(ChannID()){
-        return g_netDriver->Post(ChannID(), nHC, pData, nDataLen);
+        return g_netDriver->Post(ChannID(), nHC, (const uint8_t *)(pData), nDataLen);
     }
     return false;
 }

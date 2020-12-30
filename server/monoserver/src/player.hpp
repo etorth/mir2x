@@ -189,7 +189,7 @@ class Player final: public CharObject
         void onCMActionPickUp(CMAction);
 
     private:
-        bool postNetMessage(uint8_t, const uint8_t *, size_t);
+        bool postNetMessage(uint8_t, const void *, size_t);
         template<typename T> bool postNetMessage(uint8_t nHC, T& stMessage)
         {
             return postNetMessage(nHC, (const uint8_t *)(&stMessage), sizeof(stMessage));

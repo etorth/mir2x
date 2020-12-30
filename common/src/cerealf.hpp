@@ -48,12 +48,12 @@ namespace cerealf
         return compBuf;
     }
 
-    template<typename T> T deserialize(const char *buf, size_t size, bool decompress)
+    template<typename T> T deserialize(const void *buf, size_t size, bool decompress)
     {
         std::istringstream ss([buf, size, decompress]() -> std::string
         {
             if(!decompress){
-                return std::string(buf, size);
+                return std::string((const char *)(buf), size);
             }
 
             std::vector<char> decompBuf;

@@ -213,12 +213,6 @@ struct SMGold
 {
     uint32_t Gold;
 };
-
-struct SMNPCXMLLayout
-{
-    uint64_t NPCUID;
-    char xmlLayout[1024];
-};
 #pragma pack(pop)
 
 class ServerMsg final: public MsgBase
@@ -255,7 +249,7 @@ class ServerMsg final: public MsgBase
                 _add_server_msg_type_case(SM_OFFLINE,          1, sizeof(SMOffline)         )
                 _add_server_msg_type_case(SM_PICKUPOK,         1, sizeof(SMPickUpOK)        )
                 _add_server_msg_type_case(SM_REMOVEGROUNDITEM, 1, sizeof(SMRemoveGroundItem))
-                _add_server_msg_type_case(SM_NPCXMLLAYOUT,     2, sizeof(SMNPCXMLLayout)    )
+                _add_server_msg_type_case(SM_NPCXMLLAYOUT,     3, 0                         )
                 _add_server_msg_type_case(SM_GOLD,             1, sizeof(SMGold)            )
 #undef _add_server_msg_type_case
             };
@@ -286,7 +280,6 @@ class ServerMsg final: public MsgBase
                     || std::is_same_v<T, SMOffline>
                     || std::is_same_v<T, SMPickUpOK>
                     || std::is_same_v<T, SMRemoveGroundItem>
-                    || std::is_same_v<T, SMNPCXMLLayout>
                     || std::is_same_v<T, SMGold>);
 
             if(bufLen && bufLen != sizeof(T)){

@@ -33,6 +33,8 @@
 #include "sdldevice.hpp"
 #include "processrun.hpp"
 #include "dbcomrecord.hpp"
+#include "cerealf.hpp"
+#include "serdesmsg.hpp"
 
 // we get all needed initialization info for init the process run
 void ProcessRun::net_LOGINOK(const uint8_t *bufPtr, size_t nLen)
@@ -402,10 +404,10 @@ void ProcessRun::net_GOLD(const uint8_t *bufPtr, size_t)
     getMyHero()->setGold(stSMG.Gold);
 }
 
-void ProcessRun::net_NPCXMLLAYOUT(const uint8_t *buf, size_t)
+void ProcessRun::net_NPCXMLLAYOUT(const uint8_t *buf, size_t bufSize)
 {
-    const auto smNPCXMLL = ServerMsg::conv<SMNPCXMLLayout>(buf);
+    const auto sdNPCXMLL = cerealf::deserialize<NPCXMLLayout>(buf, bufSize, true);
     auto chatBoardPtr = dynamic_cast<NPCChatBoard *>(getGUIManager()->getWidget("NPCChatBoard"));
-    chatBoardPtr->loadXML(smNPCXMLL.NPCUID, smNPCXMLL.xmlLayout);
+    chatBoardPtr->loadXML(sdNPCXMLL.npcUID, sdNPCXMLL.xmlLayout.c_str());
     chatBoardPtr->show(true);
 }
