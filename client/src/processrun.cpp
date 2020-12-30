@@ -71,7 +71,6 @@ ProcessRun::ProcessRun()
 
     std::memset(m_aniSaveTick, 0, sizeof(m_aniSaveTick));
     std::memset(m_aniTileFrame, 0, sizeof(m_aniTileFrame));
-    addCBLog(CBLOG_SYS, u8"欢迎光临山寨传奇，输入@help获得详细帮助。");
 }
 
 void ProcessRun::scrollMap()
