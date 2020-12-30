@@ -406,17 +406,13 @@ void NPChar::sendQuery(uint64_t s, uint64_t uid, const std::string &query)
 void NPChar::sendXMLLayout(uint64_t uid, const char *xmlString)
 {
     if(!xmlString){
-        throw fflerror("xmlString null");
+        throw fflerror("invalid xmlString: %s", to_cstr(xmlString));
     }
 
     AMNPCXMLLayout amNPCXMLL;
     std::memset(&amNPCXMLL, 0, sizeof(amNPCXMLL));
 
-    if(std::strlen(xmlString) > sizeof(amNPCXMLL.xmlLayout)){
-        throw fflerror("xmlString is too long");
-    }
-
-    std::strcpy(amNPCXMLL.xmlLayout, xmlString);
+    amNPCXMLL.xmlLayout = new std::string(xmlString);
     m_actorPod->forward(uid, {MPK_NPCXMLLAYOUT, amNPCXMLL});
 }
 

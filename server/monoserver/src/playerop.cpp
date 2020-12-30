@@ -345,18 +345,28 @@ void Player::on_MPK_SHOWDROPITEM(const MessagePack &rstMPK)
 
 void Player::on_MPK_NPCXMLLAYOUT(const MessagePack &msg)
 {
+    const auto amNPCXMLL = msg.conv<AMNPCXMLLayout>();
+    if(!amNPCXMLL.xmlLayout){
+        throw fflerror("invalid AMNPCXMLLayout::xmlLayout: nullptr");
+    }
+
+    auto xmlLayoutPtr = (std::string *)(amNPCXMLL.xmlLayout);
+    if(xmlLayoutPtr->empty()){
+        throw fflerror("invalid xmlLayout: %s", to_cstr(xmlLayoutPtr->c_str()));
+    }
+
+    std::string xmlLayout = std::move(*xmlLayoutPtr);
+    delete xmlLayoutPtr;
+
     if(uidf::getUIDType(msg.from()) != UID_NPC){
         throw fflerror("actor message AMNPCXMLLayout from %s", uidf::getUIDTypeString(msg.from()));
     }
 
-    const auto amNPCXMLL = msg.conv<AMNPCXMLLayout>();
-    NPCXMLLayout xmlLayout
+    const auto buf = cerealf::serialize(NPCXMLLayout
     {
         .npcUID = msg.from(),
-        .xmlLayout = amNPCXMLL.xmlLayout,
-    };
-
-    const auto buf = cerealf::serialize(xmlLayout, true);
+        .xmlLayout = std::move(xmlLayout),
+    }, true);
     postNetMessage(SM_NPCXMLLAYOUT, buf.data(), buf.size());
 }
 
