@@ -119,14 +119,16 @@ bool ChannPackQ::AddChannPack(uint8_t nHC, const uint8_t *pData, size_t nDataLen
                     }
                 }
 
-                auto pDst = GetPostBuf(nDataLen + 4);
+                auto pDst = GetPostBuf(nDataLen + 5);
+                pDst[0] = nHC;
+
                 const auto nDataLenU32 = (uint32_t)(nDataLen);
-                std::memcpy(pDst, &nDataLenU32, sizeof(nDataLenU32));
+                std::memcpy(pDst + 1, &nDataLenU32, sizeof(nDataLenU32));
 
                 if(pData){
-                    std::memcpy(pDst + 4, pData, nDataLen);
+                    std::memcpy(pDst + 5, pData, nDataLen);
                 }
-                return AddPackMark(GetBufOff(pDst), nDataLen + 4, std::move(rstDoneCB));
+                return AddPackMark(GetBufOff(pDst), nDataLen + 5, std::move(rstDoneCB));
             }
         default:
             {
