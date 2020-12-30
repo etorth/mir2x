@@ -131,7 +131,6 @@ class ClientMsg final: public MsgBase
                 //  1    : not empty,     fixed size,     compressed
                 //  2    : not empty,     fixed size, not compressed
                 //  3    : not empty, not fixed size, not compressed
-                //  4    : not empty, not fixed size,     compressed
 #define _add_client_msg_type_case(type, encodeType, length) {type, {encodeType, length, #type}},
                 _add_client_msg_type_case(CM_NONE_0,             0, 0                           )
                 _add_client_msg_type_case(CM_PING,               2, sizeof(CMPing)              )

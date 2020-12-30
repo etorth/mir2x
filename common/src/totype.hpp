@@ -19,6 +19,7 @@
 #pragma once
 #include <string>
 #include <cstdint>
+#include <cstring>
 #include <stdexcept>
 
 #define to_lld(x) static_cast<         long long>(x)
@@ -28,6 +29,19 @@
 #define to_u64(x) static_cast<uint64_t>(x)
 
 #define to_cvptr(x) static_cast<const void *>(x)
+
+template<typename T> T as_type(const void *buf)
+{
+    static_assert(std::is_trivially_copyable_v<T>);
+
+    T t;
+    std::memcpy(&t, buf, sizeof(t));
+    return t;
+}
+
+inline uint16_t as_u16(const void *buf) { return as_type<uint16_t>(buf); }
+inline uint32_t as_u32(const void *buf) { return as_type<uint32_t>(buf); }
+inline uint64_t as_u64(const void *buf) { return as_type<uint64_t>(buf); }
 
 inline const char * to_cstr(const char *s)
 {
