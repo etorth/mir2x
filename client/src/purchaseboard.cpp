@@ -216,8 +216,11 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
           nullptr,
           [this]()
           {
-              m_processRun->getWidget("PurchaseCountBoard")->show (true);
-              m_processRun->getWidget("PurchaseCountBoard")->focus(true);
+              if(auto purchaseCountBoardPtr = dynamic_cast<PurchaseCountBoard *>(m_processRun->getWidget("PurchaseCountBoard"))){
+                  purchaseCountBoardPtr->clear();
+                  purchaseCountBoardPtr->show (true);
+                  purchaseCountBoardPtr->focus(true);
+              }
           },
 
           0,

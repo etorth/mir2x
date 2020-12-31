@@ -43,4 +43,13 @@ class PurchaseCountBoard: public Widget
         void update(double) override;
         void drawEx(int, int, int, int, int, int) override;
         bool processEvent(const SDL_Event &, bool) override;
+
+    private:
+        void inputLineDone();
+
+    public:
+        void clear()
+        {
+            m_input.clear();
+        }
 };

@@ -19,6 +19,7 @@
 #include "pngtexdb.hpp"
 #include "sdldevice.hpp"
 #include "processrun.hpp"
+#include "controlboard.hpp"
 #include "purchasecountboard.hpp"
 
 extern PNGTexDB *g_progUseDB;
@@ -55,6 +56,7 @@ PurchaseCountBoard::PurchaseCountBoard(int x, int y, ProcessRun *runPtr, Widget 
           nullptr,
           [this]()
           {
+              inputLineDone();
           },
 
           this,
@@ -71,6 +73,7 @@ PurchaseCountBoard::PurchaseCountBoard(int x, int y, ProcessRun *runPtr, Widget 
           nullptr,
           [this]()
           {
+              inputLineDone();
           },
 
           0,
@@ -95,6 +98,7 @@ PurchaseCountBoard::PurchaseCountBoard(int x, int y, ProcessRun *runPtr, Widget 
           [this]()
           {
               show(false);
+              m_input.clear();
           },
 
           0,
@@ -161,4 +165,19 @@ bool PurchaseCountBoard::processEvent(const SDL_Event &event, bool valid)
         return true;
     }
     return true;
+}
+
+void PurchaseCountBoard::inputLineDone()
+{
+    const std::string fullInput = m_input.getRawString();
+    const auto inputPos = fullInput.find_first_not_of(" \n\r\t");
+    const std::string realInput = (inputPos == std::string::npos) ? "" : fullInput.substr(inputPos);
+
+    m_input.clear();
+    m_input.focus(false);
+
+    if(realInput.empty()){
+        return;
+    }
+    m_processRun->addCBLog(CBLOG_SYS, u8"buy %s", to_cstr(realInput));
 }
