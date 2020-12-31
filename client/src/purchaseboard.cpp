@@ -21,6 +21,7 @@
 #include "processrun.hpp"
 #include "purchaseboard.hpp"
 
+extern PNGTexDB *g_itemDB;
 extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 
@@ -106,6 +107,40 @@ void PurchaseBoard::drawEx(int dstX, int dstY, int, int, int, int)
 
     m_closeButton .draw();
     m_selectButton.draw();
+
+    // NPC sell items in the small box
+    // +--------------------
+    // | (19, 15)
+    // |  *-----+-----------
+    // |  |     |
+    // |  |     |(57, 53)
+    // |  +-----*-----------
+    // | (19, 57)
+    // |  *-----+-----------
+    // |  |     |
+    // |  |     |
+    // |  +-----+-----------
+    // |
+    // +--------------------
+
+    constexpr int startX = 19;
+    /*     */ int startY = 15;
+
+    constexpr int boxW  = 57 - 19;
+    constexpr int boxH  = 53 - 15;
+    constexpr int lineH = 57 - 15;
+
+    for(const auto itemID: m_itemList){
+        if(const auto &ir = DBCOM_ITEMRECORD(itemID)){
+            if(auto texPtr = g_itemDB->Retrieve(ir.pkgGfxID | 0X02000000)){
+                const auto [texW, texH] = SDLDevice::getTextureSize(texPtr);
+                const int drawX = startX + (boxW - texW) / 2;
+                const int drawY = startY + (boxH - texH) / 2;
+                g_sdlDevice->drawTexture(texPtr, x() + drawX, y() + drawY);
+                startY += lineH;
+            }
+        }
+    }
 }
 
 bool PurchaseBoard::processEvent(const SDL_Event &event, bool valid)
