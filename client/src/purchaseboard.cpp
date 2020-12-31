@@ -122,12 +122,12 @@ void PurchaseBoard::drawEx(int dstX, int dstY, int, int, int, int)
     m_slider      .draw();
 
     // NPC sell items in the small box
-    // +--------------------
-    // | (19, 15)
-    // |  *-----+-----------
-    // |  |     |
-    // |  |     |(57, 53)
-    // |  +-----*-----------
+    // +----------------------------
+    // | (19, 15)                (252, 15)
+    // |  *-----+----------------*
+    // |  |     |                |
+    // |  |     |(57, 53)        |
+    // |  +-----*----------------+
     // | (19, 57)
     // |  *-----+-----------
     // |  |     |
@@ -143,14 +143,6 @@ void PurchaseBoard::drawEx(int dstX, int dstY, int, int, int, int)
     constexpr int boxH  = 53 - 15;
     constexpr int lineH = 57 - 15;
 
-    const auto startIndex = [this]() -> size_t
-    {
-        if(m_itemList.size() <= 4){
-            return 0;
-        }
-        return std::lround((m_itemList.size() - 4) * m_slider.getValue());
-    }();
-
     LabelBoard label
     {
         0, // reset when drawing item
@@ -165,16 +157,21 @@ void PurchaseBoard::drawEx(int dstX, int dstY, int, int, int, int)
         this,
     };
 
-    for(size_t i = startIndex; i < std::min<size_t>(m_itemList.size(), startIndex + 4); ++i){
+    for(size_t startIndex = getStartIndex(), i = startIndex; i < std::min<size_t>(m_itemList.size(), startIndex + 4); ++i){
         if(const auto &ir = DBCOM_ITEMRECORD(m_itemList[i])){
             if(auto texPtr = g_itemDB->Retrieve(ir.pkgGfxID | 0X02000000)){
                 const auto [texW, texH] = SDLDevice::getTextureSize(texPtr);
                 const int drawX = startX + (boxW - texW) / 2;
                 const int drawY = startY + (boxH - texH) / 2;
                 g_sdlDevice->drawTexture(texPtr, x() + drawX, y() + drawY);
+
                 label.setText(u8"%s", to_cstr(ir.name));
                 label.moveTo(dx() + startX + boxW + 10, startY + (boxH - label.h()) / 2);
                 label.draw();
+
+                if(m_selected == (int)(i)){
+                    g_sdlDevice->fillRectangle(colorf::WHITE + 64, startX, startY, 252 - 19, boxH);
+                }
                 startY += lineH;
             }
         }
@@ -202,11 +199,41 @@ bool PurchaseBoard::processEvent(const SDL_Event &event, bool valid)
     if(m_slider.processEvent(event, valid)){
         return true;
     }
-    return false;
+
+    switch(event.type){
+        case SDL_MOUSEBUTTONDOWN:
+            {
+                int selected = -1;
+                for(int i = 0; i < 4; ++i){
+                    if(mathf::pointInRectangle<int>(event.button.x - x(), event.button.y - y(), 19, 15 + (57 - 15) * i, 252 - 19, 53 - 15)){
+                        selected = i;
+                        break;
+                    }
+                }
+
+                if(selected >= 0){
+                    m_selected = selected + getStartIndex();
+                }
+                break;
+            }
+        default:
+            {
+                break;
+            }
+    }
+    return true;
 }
 
 void PurchaseBoard::loadSell(uint64_t npcUID, std::vector<uint32_t> itemList)
 {
     m_npcUID = npcUID;
     m_itemList = std::move(itemList);
+}
+
+size_t PurchaseBoard::getStartIndex() const
+{
+    if(m_itemList.size() <= 4){
+        return 0;
+    }
+    return std::lround((m_itemList.size() - 4) * m_slider.getValue());
 }

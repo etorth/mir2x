@@ -27,6 +27,7 @@ class ProcessRun;
 class PurchaseBoard: public Widget
 {
     private:
+        int m_selected = -1;
         uint64_t m_npcUID = 0;
         std::vector<uint32_t> m_itemList;
 
@@ -50,4 +51,7 @@ class PurchaseBoard: public Widget
 
     public:
         void loadSell(uint64_t, std::vector<uint32_t>);
+
+    private:
+        size_t getStartIndex() const;
 };
