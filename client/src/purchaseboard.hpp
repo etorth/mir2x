@@ -34,11 +34,17 @@ class PurchaseBoard: public Widget
 
     private:
         TritexButton m_closeButton;
-        TritexButton m_closeExt1Button;
-        TritexButton m_closeExt2Button;
+        TritexButton m_selectButton;
 
     private:
-        TritexButton m_selectButton;
+        TritexButton m_closeExt1Button;
+        TritexButton m_leftExt1Button;
+        TritexButton m_selectExt1Button;
+        TritexButton m_rightExt1Button;
+
+    private:
+        TritexButton m_closeExt2Button;
+        TritexButton m_selectExt2Button;
 
     private:
         TexVSlider m_slider;

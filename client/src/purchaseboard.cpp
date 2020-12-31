@@ -62,6 +62,32 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
           false,
       }
 
+    , m_selectButton
+      {
+          105,
+          185,
+          {SYS_TEXNIL, 0X08000003, 0X08000004},
+
+          nullptr,
+          nullptr,
+          [this]()
+          {
+              m_extended = 1;
+              m_closeExt1Button.setOff();
+              m_closeExt2Button.setOff();
+          },
+
+          0,
+          0,
+          0,
+          0,
+
+          true,
+          true,
+          this,
+          false,
+      }
+
     , m_closeExt1Button
       {
           448,
@@ -73,6 +99,75 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
           [this]()
           {
               m_extended = 0;
+          },
+
+          0,
+          0,
+          0,
+          0,
+
+          true,
+          true,
+          this,
+          false,
+      }
+
+    , m_leftExt1Button
+      {
+          315,
+          163,
+          {SYS_TEXNIL, 0X08000007, 0X08000008},
+
+          nullptr,
+          nullptr,
+          [this]()
+          {
+          },
+
+          0,
+          0,
+          0,
+          0,
+
+          true,
+          true,
+          this,
+          false,
+      }
+
+    , m_selectExt1Button
+      {
+          357,
+          163,
+          {SYS_TEXNIL, 0X08000005, 0X08000006},
+
+          nullptr,
+          nullptr,
+          [this]()
+          {
+          },
+
+          0,
+          0,
+          0,
+          0,
+
+          true,
+          true,
+          this,
+          false,
+      }
+
+    , m_rightExt1Button
+      {
+          405,
+          163,
+          {SYS_TEXNIL, 0X08000009, 0X0800000A},
+
+          nullptr,
+          nullptr,
+          [this]()
+          {
           },
 
           0,
@@ -110,19 +205,17 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
           false,
       }
 
-    , m_selectButton
+    , m_selectExt2Button
       {
-          105,
-          185,
-          {SYS_TEXNIL, 0X08000003, 0X08000004},
+          365,
+          61,
+          {SYS_TEXNIL, 0X0800000B, 0X0800000C},
 
           nullptr,
           nullptr,
           [this]()
           {
-              m_extended = 1;
-              m_closeExt1Button.setOff();
-              m_closeExt2Button.setOff();
+              m_extended = 0;
           },
 
           0,
@@ -231,12 +324,16 @@ void PurchaseBoard::drawEx(int dstX, int dstY, int, int, int, int)
     switch(m_extended){
         case 1:
             {
-                m_closeExt1Button.draw();
+                m_closeExt1Button .draw();
+                m_leftExt1Button  .draw();
+                m_selectExt1Button.draw();
+                m_rightExt1Button .draw();
                 break;
             }
         case 2:
             {
-                m_closeExt2Button.draw();
+                m_closeExt2Button .draw();
+                m_selectExt2Button.draw();
                 break;
             }
         case 0:
@@ -278,11 +375,26 @@ bool PurchaseBoard::processEvent(const SDL_Event &event, bool valid)
                 if(m_closeExt1Button.processEvent(event, valid)){
                     return true;
                 }
+
+                if(m_leftExt1Button.processEvent(event, valid)){
+                    return true;
+                }
+
+                if(m_selectExt1Button.processEvent(event, valid)){
+                    return true;
+                }
+                if(m_rightExt1Button.processEvent(event, valid)){
+                    return true;
+                }
                 break;
             }
         case 2:
             {
                 if(m_closeExt2Button.processEvent(event, valid)){
+                    return true;
+                }
+
+                if(m_selectExt2Button.processEvent(event, valid)){
                     return true;
                 }
                 break;
