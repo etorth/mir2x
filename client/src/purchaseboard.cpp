@@ -318,7 +318,7 @@ bool PurchaseBoard::processEvent(const SDL_Event &event, bool valid)
                 int mousePX = -1;
                 int mousePY = -1;
                 SDL_GetMouseState(&mousePX, &mousePY);
-                if(mathf::pointInRectangle<int>(mousePX - x(), mousePY - y(), 19, 15, 252 - 19, 15 + (57 - 15) * 3)){
+                if(mathf::pointInRectangle<int>(mousePX - x(), mousePY - y(), 19, 15, 252 - 19, 15 + (57 - 15) * 4)){
                     if(m_itemList.size() > 4){
                         m_slider.addValue((event.wheel.y > 0 ? -1.0 : 1.0) / (m_itemList.size() - 4));
                     }
