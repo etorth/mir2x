@@ -27,16 +27,7 @@ local function randomHeadString()
 end
 
 local function getSell()
-    local r = math.random(0, 2)
-    if r == 0 then
-        return {'布鞋', '五彩鞋'}
-    end
-
-    if r == 1 then
-        return {'草鞋', '五彩鞋'}
-    end
-
-    return {'草鞋', '布鞋', '五彩鞋'}
+    return {'草鞋', '布鞋', '皮靴', '五彩鞋', '鹿皮靴', '钢靴', '天掌靴', '赤飞靴', '黑皮靴', '长皮靴', '月光鞋', '无影靴', '仙云靴', '武神靴', '踏浪靴', '锦靴', '黄金靴', '紫金靴', '乌金靴'}
 end
 
 processNPCEvent =

@@ -84,6 +84,18 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
           this,
           false,
       }
+
+    , m_slider
+      {
+          267,
+          27,
+
+          123,
+          2,
+
+          nullptr,
+          this,
+      }
     , m_processRun(runPtr)
 {
     show(false);
@@ -107,6 +119,7 @@ void PurchaseBoard::drawEx(int dstX, int dstY, int, int, int, int)
 
     m_closeButton .draw();
     m_selectButton.draw();
+    m_slider      .draw();
 
     // NPC sell items in the small box
     // +--------------------
@@ -130,8 +143,16 @@ void PurchaseBoard::drawEx(int dstX, int dstY, int, int, int, int)
     constexpr int boxH  = 53 - 15;
     constexpr int lineH = 57 - 15;
 
-    for(const auto itemID: m_itemList){
-        if(const auto &ir = DBCOM_ITEMRECORD(itemID)){
+    const auto startIndex = [this]() -> size_t
+    {
+        if(m_itemList.size() <= 4){
+            return 0;
+        }
+        return std::lround((m_itemList.size() - 4) * m_slider.getValue());
+    }();
+
+    for(size_t i = startIndex; i < std::min<size_t>(m_itemList.size(), startIndex + 4); ++i){
+        if(const auto &ir = DBCOM_ITEMRECORD(m_itemList[i])){
             if(auto texPtr = g_itemDB->Retrieve(ir.pkgGfxID | 0X02000000)){
                 const auto [texW, texH] = SDLDevice::getTextureSize(texPtr);
                 const int drawX = startX + (boxW - texW) / 2;
@@ -158,6 +179,10 @@ bool PurchaseBoard::processEvent(const SDL_Event &event, bool valid)
     }
 
     if(m_selectButton.processEvent(event, valid)){
+        return true;
+    }
+
+    if(m_slider.processEvent(event, valid)){
         return true;
     }
     return false;

@@ -20,6 +20,7 @@
 #include <vector>
 #include <cstdint>
 #include "widget.hpp"
+#include "texvslider.hpp"
 #include "tritexbutton.hpp"
 
 class ProcessRun;
@@ -32,6 +33,9 @@ class PurchaseBoard: public Widget
     private:
         TritexButton m_closeButton;
         TritexButton m_selectButton;
+
+    private:
+        TexVSlider m_slider;
 
     private:
         ProcessRun *m_processRun;
