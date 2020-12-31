@@ -48,6 +48,7 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
           [this]()
           {
               show(false);
+              m_extended = 0;
           },
 
           0,
@@ -71,7 +72,7 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
           nullptr,
           [this]()
           {
-              show(false);
+              m_extended = 1;
           },
 
           0,
@@ -113,7 +114,7 @@ void PurchaseBoard::update(double)
 
 void PurchaseBoard::drawEx(int dstX, int dstY, int, int, int, int)
 {
-    if(auto pTexture = g_progUseDB->Retrieve(0X08000000)){
+    if(auto pTexture = g_progUseDB->Retrieve(0X08000000 + m_extended)){
         g_sdlDevice->drawTexture(pTexture, dstX, dstY);
     }
 
