@@ -99,6 +99,7 @@ SkillBoard::MagicIconButton::MagicIconButton(int argX, int argY, SkillBoard::Mag
           0,
 
           false,
+          false,
           this,
           false,
       }
@@ -302,6 +303,7 @@ SkillBoard::SkillBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget, bool a
                   0,
 
                   false,
+                  false,
                   this,
                   true,
               });
@@ -370,6 +372,7 @@ SkillBoard::SkillBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget, bool a
           0,
           0,
 
+          true,
           true,
           this,
       }

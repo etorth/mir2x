@@ -58,6 +58,7 @@ QuickAccessBoard::QuickAccessBoard(int x, int y, ProcessRun *proc, Widget *pwidg
           0,
 
           true,
+          true,
           this
       }
 {

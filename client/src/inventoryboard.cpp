@@ -81,6 +81,7 @@ InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget
           0,
 
           true,
+          true,
           this,
       }
     , m_processRun(pRun)

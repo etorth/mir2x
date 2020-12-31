@@ -27,6 +27,9 @@ class TritexButton: public ButtonBase
     private:
         uint32_t m_texID[3];
 
+    private:
+        const bool m_alterColor;
+
     public:
         TritexButton(
                 int argX,
@@ -44,6 +47,7 @@ class TritexButton: public ButtonBase
                 int offYOnClick = 0,
 
                 bool    onClickDone = true,
+                bool    alterColor  = true,
                 Widget *widgetPtr   = nullptr,
                 bool    autoDelete  = false)
             : ButtonBase
@@ -72,6 +76,7 @@ class TritexButton: public ButtonBase
                   texID[1],
                   texID[2],
               }
+            , m_alterColor(alterColor)
         {
             // hide PNGTexDB and SDLDevice
             // query texture size and setup the button size

@@ -55,6 +55,7 @@ PlayerStatusBoard::PlayerStatusBoard(int argX, int argY, ProcessRun *runPtr, Wid
           0,
 
           true,
+          true,
           this,
           false,
       }
@@ -91,6 +92,7 @@ PlayerStatusBoard::PlayerStatusBoard(int argX, int argY, ProcessRun *runPtr, Wid
                 0,
 
                 false,
+                true,
                 this,
                 true,
             });

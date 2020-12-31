@@ -55,6 +55,7 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
           0,
 
           true,
+          true,
           this,
           false,
       }
@@ -77,6 +78,7 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
           0,
           0,
 
+          true,
           true,
           this,
           false,

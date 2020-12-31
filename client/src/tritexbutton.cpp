@@ -29,6 +29,14 @@ void TritexButton::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int 
     if(auto texPtr = g_progUseDB->Retrieve(m_texID[m_state])){
         const int offX = m_offset[m_state][0];
         const int offY = m_offset[m_state][1];
+        const auto modG = [this]() -> uint8_t
+        {
+            if(m_alterColor && (m_state != BEVENT_OFF)){
+                return 200;
+            }
+            return 255;
+        }();
+        SDLDevice::EnableTextureModColor enableColor(texPtr, colorf::RGBA(255, modG, 255, 255));
         g_sdlDevice->drawTexture(texPtr, dstX + offX, dstY + offY, srcX, srcY, srcW, srcH); // TODO: need to crop src region for offset
     }
 }
