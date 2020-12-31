@@ -72,7 +72,7 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
           nullptr,
           [this]()
           {
-              m_extended = 1;
+              m_extended = 2;
               m_closeExt1Button.setOff();
               m_closeExt2Button.setOff();
           },
@@ -183,8 +183,8 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
 
     , m_closeExt2Button
       {
-          482,
-          65,
+          474,
+          56,
           {SYS_TEXNIL, 0X0000001C, 0X0000001D},
 
           nullptr,
@@ -207,15 +207,14 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
 
     , m_selectExt2Button
       {
-          365,
-          61,
+          366,
+          60,
           {SYS_TEXNIL, 0X0800000B, 0X0800000C},
 
           nullptr,
           nullptr,
           [this]()
           {
-              m_extended = 0;
           },
 
           0,
