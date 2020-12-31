@@ -151,6 +151,20 @@ void PurchaseBoard::drawEx(int dstX, int dstY, int, int, int, int)
         return std::lround((m_itemList.size() - 4) * m_slider.getValue());
     }();
 
+    LabelBoard label
+    {
+        0, // reset when drawing item
+        0,
+        u8"",
+
+        1,
+        12,
+        0,
+
+        colorf::RGBA(0XFF, 0XFF, 0X00, 0XFF),
+        this,
+    };
+
     for(size_t i = startIndex; i < std::min<size_t>(m_itemList.size(), startIndex + 4); ++i){
         if(const auto &ir = DBCOM_ITEMRECORD(m_itemList[i])){
             if(auto texPtr = g_itemDB->Retrieve(ir.pkgGfxID | 0X02000000)){
@@ -158,6 +172,9 @@ void PurchaseBoard::drawEx(int dstX, int dstY, int, int, int, int)
                 const int drawX = startX + (boxW - texW) / 2;
                 const int drawY = startY + (boxH - texH) / 2;
                 g_sdlDevice->drawTexture(texPtr, x() + drawX, y() + drawY);
+                label.setText(u8"%s", to_cstr(ir.name));
+                label.moveTo(dx() + startX + boxW + 10, startY + (boxH - label.h()) / 2);
+                label.draw();
                 startY += lineH;
             }
         }
