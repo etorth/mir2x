@@ -34,6 +34,10 @@ class PurchaseBoard: public Widget
 
     private:
         TritexButton m_closeButton;
+        TritexButton m_closeExt1Button;
+        TritexButton m_closeExt2Button;
+
+    private:
         TritexButton m_selectButton;
 
     private:

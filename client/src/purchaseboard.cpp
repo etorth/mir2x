@@ -62,6 +62,54 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
           false,
       }
 
+    , m_closeExt1Button
+      {
+          448,
+          159,
+          {SYS_TEXNIL, 0X0000001C, 0X0000001D},
+
+          nullptr,
+          nullptr,
+          [this]()
+          {
+              m_extended = 0;
+          },
+
+          0,
+          0,
+          0,
+          0,
+
+          true,
+          true,
+          this,
+          false,
+      }
+
+    , m_closeExt2Button
+      {
+          482,
+          65,
+          {SYS_TEXNIL, 0X0000001C, 0X0000001D},
+
+          nullptr,
+          nullptr,
+          [this]()
+          {
+              m_extended = 0;
+          },
+
+          0,
+          0,
+          0,
+          0,
+
+          true,
+          true,
+          this,
+          false,
+      }
+
     , m_selectButton
       {
           105,
@@ -73,6 +121,8 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
           [this]()
           {
               m_extended = 1;
+              m_closeExt1Button.setOff();
+              m_closeExt2Button.setOff();
           },
 
           0,
@@ -177,6 +227,27 @@ void PurchaseBoard::drawEx(int dstX, int dstY, int, int, int, int)
             }
         }
     }
+
+    switch(m_extended){
+        case 1:
+            {
+                m_closeExt1Button.draw();
+                break;
+            }
+        case 2:
+            {
+                m_closeExt2Button.draw();
+                break;
+            }
+        case 0:
+            {
+                break;
+            }
+        default:
+            {
+                throw fflerror("invalid extended argument: %d", m_extended);
+            }
+    }
 }
 
 bool PurchaseBoard::processEvent(const SDL_Event &event, bool valid)
@@ -201,6 +272,31 @@ bool PurchaseBoard::processEvent(const SDL_Event &event, bool valid)
         return true;
     }
 
+    switch(m_extended){
+        case 1:
+            {
+                if(m_closeExt1Button.processEvent(event, valid)){
+                    return true;
+                }
+                break;
+            }
+        case 2:
+            {
+                if(m_closeExt2Button.processEvent(event, valid)){
+                    return true;
+                }
+                break;
+            }
+        case 0:
+            {
+                break;
+            }
+        default:
+            {
+                throw fflerror("invalid extended argument: %d", m_extended);
+            }
+    }
+
     switch(event.type){
         case SDL_MOUSEBUTTONDOWN:
             {
@@ -214,6 +310,18 @@ bool PurchaseBoard::processEvent(const SDL_Event &event, bool valid)
 
                 if(selected >= 0){
                     m_selected = selected + getStartIndex();
+                }
+                break;
+            }
+        case SDL_MOUSEWHEEL:
+            {
+                int mousePX = -1;
+                int mousePY = -1;
+                SDL_GetMouseState(&mousePX, &mousePY);
+                if(mathf::pointInRectangle<int>(mousePX - x(), mousePY - y(), 19, 15, 252 - 19, 15 + (57 - 15) * 3)){
+                    if(m_itemList.size() > 4){
+                        m_slider.addValue((event.wheel.y > 0 ? -1.0 : 1.0) / (m_itemList.size() - 4));
+                    }
                 }
                 break;
             }
