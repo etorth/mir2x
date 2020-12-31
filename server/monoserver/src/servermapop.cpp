@@ -529,7 +529,7 @@ void ServerMap::on_MPK_PATHFIND(const MessagePack &rstMPK)
             && amPF.MaxStep != 2
             && amPF.MaxStep != 3){
 
-        // we get a dangerous parameter from actormessage
+        // we get a dangerous parameter from actormsg
         // correct here and put an warning in the log system
         amPF.MaxStep = 1;
         g_monoServer->addLog(LOGTYPE_WARNING, "Invalid MaxStep: %d, should be (1, 2, 3)", amPF.MaxStep);

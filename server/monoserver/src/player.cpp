@@ -205,6 +205,11 @@ void Player::operateAM(const MessagePack &rstMPK)
                 on_MPK_NPCXMLLAYOUT(rstMPK);
                 break;
             }
+        case MPK_NPCSELL:
+            {
+                on_MPK_NPCSELL(rstMPK);
+                break;
+            }
         default:
             {
                 g_monoServer->addLog(LOGTYPE_WARNING, "Unsupported message: %s", mpkName(rstMPK.Type()));

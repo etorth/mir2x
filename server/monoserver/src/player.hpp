@@ -120,6 +120,7 @@ class Player final: public CharObject
         void on_MPK_MISS(const MessagePack &);
         void on_MPK_ACTION(const MessagePack &);
         void on_MPK_ATTACK(const MessagePack &);
+        void on_MPK_NPCSELL(const MessagePack &);
         void on_MPK_OFFLINE(const MessagePack &);
         void on_MPK_CORECORD(const MessagePack &);
         void on_MPK_PICKUPOK(const MessagePack &);

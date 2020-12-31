@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename: actormessage.hpp
+ *       Filename: actormsg.hpp
  *        Created: 05/03/2016 13:19:07
  *    Description:
  *
@@ -85,6 +85,7 @@ enum MessagePackType: int
     MPK_NPCEVENT,
     MPK_NPCXMLLAYOUT,
     MPK_NPCERROR,
+    MPK_NPCSELL,
     MPK_MAX,
 };
 
@@ -547,4 +548,9 @@ struct AMNPCError
 struct AMNPCXMLLayout
 {
     void *xmlLayout;
+};
+
+struct AMNPCSell
+{
+    void *ptr;
 };

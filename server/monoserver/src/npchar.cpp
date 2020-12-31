@@ -21,12 +21,16 @@
 #include "npchar.hpp"
 #include "totype.hpp"
 #include "filesys.hpp"
+#include "dbcomid.hpp"
+#include "cerealf.hpp"
 #include "fflerror.hpp"
+#include "serdesmsg.hpp"
 #include "friendtype.hpp"
 #include "monoserver.hpp"
 #include "dbcomrecord.hpp"
 #include "serverconfigurewindow.hpp"
 
+extern MonoServer *g_monoServer;
 extern ServerConfigureWindow *g_serverConfigureWindow;
 
 NPChar::LuaNPCModule::LuaNPCModule(NPChar *npc)
@@ -50,6 +54,21 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npc)
     m_luaState.set_function("getNPCFullName", [npc]() -> std::string
     {
         return std::string(to_cstr(DBCOM_MAPRECORD(uidf::getMapID(npc->m_map->UID())).name)) + "." + std::string(to_cstr(DBCOM_NPCRECORD(uidf::getNPCID(npc->rawUID())).name));
+    });
+
+    m_luaState.set_function("sendSell", [npc, this](std::string uidString, std::string listName)
+    {
+        if(const sol::object checkObj = m_luaState[listName]; checkObj == sol::nil){
+            throw fflerror("lua script has no variable defined: %s", to_cstr(listName));
+        }
+
+        std::vector<std::string> itemList;
+        sol::table luaTable = m_luaState[listName];
+
+        for(const auto &p: luaTable){
+            itemList.push_back(p.second.as<std::string>());
+        }
+        npc->sendSell(uidf::toUIDEx(uidString), itemList);
     });
 
     m_luaState.set_function("sendQuery", [npc](std::string s, std::string uidString, std::string query)
@@ -373,6 +392,31 @@ bool NPChar::goDie()
 bool NPChar::goGhost()
 {
     return true;
+}
+
+void NPChar::sendSell(uint64_t uid, const std::vector<std::string> &itemList)
+{
+    AMNPCSell amNPCS;
+    std::memset(&amNPCS, 0, sizeof(amNPCS));
+
+    amNPCS.ptr = new std::string(cerealf::serialize(SDNPCSell
+    {
+        .npcUID = uid,
+        .itemList = [&itemList]()
+        {
+            std::vector<uint32_t> itemIDList;
+            for(const auto &itemName: itemList){
+                if(const uint32_t itemID = DBCOM_ITEMID(to_u8cstr(itemName))){
+                    itemIDList.push_back(itemID);
+                }
+                else{
+                    g_monoServer->addLog(LOGTYPE_WARNING, "invalid NPC selling item: %s", to_cstr(itemName));
+                }
+            }
+            return itemIDList;
+        }()
+    }, true));
+    m_actorPod->forward(uid, {MPK_NPCSELL, amNPCS});
 }
 
 void NPChar::sendQuery(uint64_t s, uint64_t uid, const std::string &query)

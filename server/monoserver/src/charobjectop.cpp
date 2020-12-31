@@ -18,7 +18,7 @@
 
 #include "charobject.hpp"
 #include "messagepack.hpp"
-#include "actormessage.hpp"
+#include "actormsg.hpp"
 
 void CharObject::on_MPK_QUERYFRIENDTYPE(const MessagePack &rstMPK)
 {

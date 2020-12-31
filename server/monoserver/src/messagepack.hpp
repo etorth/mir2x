@@ -24,7 +24,7 @@
 #include <type_traits>
 #include "fflerror.hpp"
 #include "messagebuf.hpp"
-#include "actormessage.hpp"
+#include "actormsg.hpp"
 
 template<size_t StaticBufferLength = 64> class InnMessagePack final
 {

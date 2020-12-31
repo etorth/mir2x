@@ -18,7 +18,7 @@
 
 #pragma once
 #include <cstdint>
-#include "actormessage.hpp"
+#include "actormsg.hpp"
 
 struct ActorMonitor
 {

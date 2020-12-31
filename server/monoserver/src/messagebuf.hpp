@@ -19,7 +19,7 @@
 
 #pragma once
 #include <cstdint>
-#include "actormessage.hpp"
+#include "actormsg.hpp"
 
 class MessageBuf
 {

@@ -364,7 +364,7 @@ void Player::on_MPK_NPCXMLLAYOUT(const MessagePack &msg)
         throw fflerror("actor message AMNPCXMLLayout from %s", uidf::getUIDTypeString(msg.from()));
     }
 
-    const auto buf = cerealf::serialize(NPCXMLLayout
+    const auto buf = cerealf::serialize(SDNPCXMLLayout
     {
         .npcUID = msg.from(),
         .xmlLayout = std::move(xmlLayout),
@@ -476,4 +476,25 @@ void Player::on_MPK_CHECKMASTER(const MessagePack &rstMPK)
 {
     m_slaveList.insert(rstMPK.from());
     m_actorPod->forward(rstMPK.from(), MPK_OK, rstMPK.ID());
+}
+
+void Player::on_MPK_NPCSELL(const MessagePack &msg)
+{
+    const auto amNPCS = msg.conv<AMNPCSell>();
+    if(!amNPCS.ptr){
+        throw fflerror("invalid AMNPCSell::ptr: nullptr");
+    }
+
+    auto bufPtr = (std::string *)(amNPCS.ptr);
+    if(bufPtr->empty()){
+        throw fflerror("invalid SDNPCSell: (empty)");
+    }
+
+    const std::string buf = std::move(*bufPtr);
+    delete bufPtr;
+
+    if(uidf::getUIDType(msg.from()) != UID_NPC){
+        throw fflerror("actor message AMNPCSell from %s", uidf::getUIDTypeString(msg.from()));
+    }
+    postNetMessage(SM_NPCSELL, buf.data(), buf.size());
 }
