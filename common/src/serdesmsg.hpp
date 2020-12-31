@@ -20,13 +20,24 @@
 #include <string>
 #include "cerealf.hpp"
 
-struct NPCXMLLayout
+struct SDNPCXMLLayout
 {
-    uint64_t npcUID;
+    uint64_t npcUID = 0;
     std::string xmlLayout;
 
     template<typename Archive> void serialize(Archive & ar)
     {
         ar(npcUID, xmlLayout);
+    }
+};
+
+struct SDNPCSell
+{
+    uint64_t npcUID = 0;
+    std::vector<uint32_t> itemList;
+
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(npcUID, itemList);
     }
 };
