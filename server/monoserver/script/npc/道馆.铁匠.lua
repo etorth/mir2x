@@ -26,6 +26,19 @@ local function randomHeadString()
     end
 end
 
+local function getSell()
+    local r = math.random(0, 2)
+    if r == 0 then
+        return {'布鞋', '五彩鞋'}
+    end
+
+    if r == 1 then
+        return {'草鞋', '五彩鞋'}
+    end
+
+    return {'草鞋', '布鞋', '五彩鞋'}
+end
+
 processNPCEvent =
 {
     [SYS_NPCINIT] = function(uid, value)
@@ -41,12 +54,6 @@ processNPCEvent =
     end,
 
     ["event_1"] = function(uid, value)
-        sellList = {
-            '草鞋',
-            '布鞋',
-            '五彩鞋'}
-
-        sendSell(uid, 'sellList')
-        sellList = nil
+        postSell(uid, getSell())
     end,
 }
