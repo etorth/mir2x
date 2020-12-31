@@ -406,10 +406,21 @@ void ProcessRun::net_GOLD(const uint8_t *bufPtr, size_t)
 
 void ProcessRun::net_NPCXMLLAYOUT(const uint8_t *buf, size_t bufSize)
 {
-    const auto sdNPCXMLL = cerealf::deserialize<NPCXMLLayout>(buf, bufSize, true);
+    const auto sdNPCXMLL = cerealf::deserialize<SDNPCXMLLayout>(buf, bufSize, true);
     auto chatBoardPtr = dynamic_cast<NPCChatBoard *>(getGUIManager()->getWidget("NPCChatBoard"));
     chatBoardPtr->loadXML(sdNPCXMLL.npcUID, sdNPCXMLL.xmlLayout.c_str());
     chatBoardPtr->show(true);
+}
+
+void ProcessRun::net_NPCSELL(const uint8_t *buf, size_t bufSize)
+{
+    auto sdNPCS = cerealf::deserialize<SDNPCSell>(buf, bufSize, true);
+    auto purchaseBoardPtr = dynamic_cast<PurchaseBoard *>(getGUIManager()->getWidget("PurchaseBoard"));
+    auto npcChatBoardPtr  = dynamic_cast<NPCChatBoard  *>(getGUIManager()->getWidget("NPCChatBoard"));
+
+    purchaseBoardPtr->loadSell(sdNPCS.npcUID, std::move(sdNPCS.itemList));
+    purchaseBoardPtr->show(true);
+    npcChatBoardPtr->show(false);
 }
 
 void ProcessRun::net_TEXT(const uint8_t *buf, size_t)

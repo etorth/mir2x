@@ -53,6 +53,12 @@ GUIManager::GUIManager(ProcessRun *proc)
           this,
       }
 
+    , m_purchaseBoard
+      {
+          proc,
+          this,
+      }
+
     , m_inventoryBoard
       {
           g_sdlDevice->getRendererWidth()  / 2 - 141,
@@ -84,8 +90,9 @@ GUIManager::GUIManager(ProcessRun *proc)
 
 void GUIManager::drawEx(int, int, int, int, int, int)
 {
-    m_NPCChatBoard.draw();
-    m_controlBoard.draw();
+    m_NPCChatBoard .draw();
+    m_controlBoard .draw();
+    m_purchaseBoard.draw();
 
     const auto [w, h] = g_sdlDevice->getRendererSize();
     WidgetGroup::drawEx(0, 0, 0, 0, w, h);
@@ -160,6 +167,10 @@ Widget *GUIManager::getWidget(const std::string &widgetName)
 
     if(widgetName == "PlayerStatusBoard"){
         return &m_playerStatusBoard;
+    }
+
+    if(widgetName == "PurchaseBoard"){
+        return &m_purchaseBoard;
     }
 
     return nullptr;

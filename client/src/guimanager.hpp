@@ -21,6 +21,7 @@
 #include "skillboard.hpp"
 #include "npcchatboard.hpp"
 #include "controlboard.hpp"
+#include "purchaseboard.hpp"
 #include "inventoryboard.hpp"
 #include "quickaccessboard.hpp"
 #include "playerstatusboard.hpp"
@@ -37,6 +38,7 @@ class GUIManager: public WidgetGroup
 
     private:
         SkillBoard m_skillBoard;
+        PurchaseBoard m_purchaseBoard;
         InventoryBoard m_inventoryBoard;
         QuickAccessBoard m_quickAccessBoard;
         PlayerStatusBoard m_playerStatusBoard;
