@@ -282,9 +282,9 @@ class WidgetGroup: public Widget
 //
 // this function helps to simplify the code to:
 //
-//     return focusConsumer(this, ...)
+//     return focusConsume(this, ...)
 //
-inline bool focusConsumer(Widget *widgetPtr, bool setFocus)
+inline bool focusConsume(Widget *widgetPtr, bool setFocus)
 {
     if(!widgetPtr){
         throw fflerror("invalid widget pointer: (null)");

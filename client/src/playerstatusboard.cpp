@@ -120,11 +120,11 @@ void PlayerStatusBoard::drawEx(int dstX, int dstY, int, int, int, int)
 bool PlayerStatusBoard::processEvent(const SDL_Event &event, bool valid)
 {
     if(!valid){
-        return focusConsumer(this, false);
+        return focusConsume(this, false);
     }
 
     if(!show()){
-        return focusConsumer(this, false);
+        return focusConsume(this, false);
     }
 
     bool consumed = false;
@@ -133,7 +133,7 @@ bool PlayerStatusBoard::processEvent(const SDL_Event &event, bool valid)
     }
 
     if(consumed){
-        return focusConsumer(this, false);
+        return focusConsume(this, false);
     }
 
     if(m_closeButton.processEvent(event, valid)){
@@ -151,26 +151,26 @@ bool PlayerStatusBoard::processEvent(const SDL_Event &event, bool valid)
                     const int newX = std::max<int>(0, std::min<int>(maxX, x() + event.motion.xrel));
                     const int newY = std::max<int>(0, std::min<int>(maxY, y() + event.motion.yrel));
                     moveBy(newX - x(), newY - y());
-                    return focusConsumer(this, true);
+                    return focusConsume(this, true);
                 }
-                return focusConsumer(this, false);
+                return focusConsume(this, false);
             }
         case SDL_MOUSEBUTTONDOWN:
             {
                 switch(event.button.button){
                     case SDL_BUTTON_LEFT:
                         {
-                            return focusConsumer(this, in(event.button.x, event.button.y));
+                            return focusConsume(this, in(event.button.x, event.button.y));
                         }
                     default:
                         {
-                            return focusConsumer(this, false);
+                            return focusConsume(this, false);
                         }
                 }
             }
         default:
             {
-                return focusConsumer(this, false);
+                return focusConsume(this, false);
             }
     }
 }

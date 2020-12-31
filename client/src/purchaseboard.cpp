@@ -20,6 +20,7 @@
 #include "sdldevice.hpp"
 #include "processrun.hpp"
 #include "purchaseboard.hpp"
+#include "purchasecountboard.hpp"
 
 extern PNGTexDB *g_itemDB;
 extern PNGTexDB *g_progUseDB;
@@ -215,6 +216,8 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
           nullptr,
           [this]()
           {
+              m_processRun->getWidget("PurchaseCountBoard")->show (true);
+              m_processRun->getWidget("PurchaseCountBoard")->focus(true);
           },
 
           0,
@@ -349,11 +352,11 @@ void PurchaseBoard::drawEx(int dstX, int dstY, int, int, int, int)
 bool PurchaseBoard::processEvent(const SDL_Event &event, bool valid)
 {
     if(!valid){
-        return focusConsumer(this, false);
+        return focusConsume(this, false);
     }
 
     if(!show()){
-        return focusConsumer(this, false);
+        return focusConsume(this, false);
     }
 
     if(m_closeButton.processEvent(event, valid)){
@@ -382,6 +385,7 @@ bool PurchaseBoard::processEvent(const SDL_Event &event, bool valid)
                 if(m_selectExt1Button.processEvent(event, valid)){
                     return true;
                 }
+
                 if(m_rightExt1Button.processEvent(event, valid)){
                     return true;
                 }
@@ -394,7 +398,10 @@ bool PurchaseBoard::processEvent(const SDL_Event &event, bool valid)
                 }
 
                 if(m_selectExt2Button.processEvent(event, valid)){
-                    return true;
+                    if(m_processRun->getWidget("PurchaseCountBoard")->focus()){
+                        focus(false);
+                    }
+                    return false;
                 }
                 break;
             }

@@ -82,6 +82,14 @@ GUIManager::GUIManager(ProcessRun *proc)
           proc,
           this,
       }
+
+    , m_purchaseCountBoard
+      {
+          g_sdlDevice->getRendererWidth()  / 2 - 179,
+          g_sdlDevice->getRendererHeight() / 2 - 134,
+          proc,
+          this,
+      }
 {
     if(!m_proc){
         throw fflerror("null ProcessRun pointer");
@@ -171,6 +179,10 @@ Widget *GUIManager::getWidget(const std::string &widgetName)
 
     if(widgetName == "PurchaseBoard"){
         return &m_purchaseBoard;
+    }
+
+    if(widgetName == "PurchaseCountBoard"){
+        return &m_purchaseCountBoard;
     }
 
     return nullptr;

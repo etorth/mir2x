@@ -413,15 +413,15 @@ void SkillBoard::update(double)
 bool SkillBoard::processEvent(const SDL_Event &event, bool valid)
 {
     if(!valid){
-        return focusConsumer(this, false);
+        return focusConsume(this, false);
     }
 
     if(!show()){
-        return focusConsumer(this, false);
+        return focusConsume(this, false);
     }
 
     if(m_closeButton.processEvent(event, valid)){
-        return focusConsumer(this, show());
+        return focusConsume(this, show());
     }
 
     bool tabConsumed = false;
@@ -430,11 +430,11 @@ bool SkillBoard::processEvent(const SDL_Event &event, bool valid)
     }
 
     if(tabConsumed){
-        return focusConsumer(this, true);
+        return focusConsume(this, true);
     }
 
     if(m_slider.processEvent(event, valid)){
-        return focusConsumer(this, true);
+        return focusConsume(this, true);
     }
 
     const auto r = getPageRectange();
@@ -442,7 +442,7 @@ bool SkillBoard::processEvent(const SDL_Event &event, bool valid)
     const bool captureEvent = loc && mathf::pointInRectangle(loc.x, loc.y, x() + r[0], y() + r[1], r[2], r[3]);
 
     if(m_skillPageList.at(m_tabIndex)->processEvent(event, captureEvent && valid)){
-        return focusConsumer(this, true);
+        return focusConsume(this, true);
     }
 
     switch(event.type){
@@ -457,26 +457,26 @@ bool SkillBoard::processEvent(const SDL_Event &event, bool valid)
                     const int newY = std::max<int>(0, std::min<int>(maxY, y() + event.motion.yrel));
 
                     moveBy(newX - x(), newY - y());
-                    return focusConsumer(this, true);
+                    return focusConsume(this, true);
                 }
-                return focusConsumer(this, false);
+                return focusConsume(this, false);
             }
         case SDL_MOUSEBUTTONDOWN:
             {
                 switch(event.button.button){
                     case SDL_BUTTON_LEFT:
                         {
-                            return focusConsumer(this, in(event.button.x, event.button.y));
+                            return focusConsume(this, in(event.button.x, event.button.y));
                         }
                     default:
                         {
-                            return focusConsumer(this, false);
+                            return focusConsume(this, false);
                         }
                 }
             }
         default:
             {
-                return focusConsumer(this, false);
+                return focusConsume(this, false);
             }
     }
 }

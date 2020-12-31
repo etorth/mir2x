@@ -30,7 +30,7 @@ bool ButtonBase::processEvent(const SDL_Event &event, bool valid)
         }
 
         m_state = BEVENT_OFF;
-        return focusConsumer(this, false);
+        return focusConsume(this, false);
     }
 
     switch(event.type){
@@ -42,11 +42,11 @@ bool ButtonBase::processEvent(const SDL_Event &event, bool valid)
                     }
 
                     m_state = BEVENT_ON;
-                    return focusConsumer(this, true);
+                    return focusConsume(this, true);
                 }
                 else{
                     m_state = BEVENT_OFF;
-                    return focusConsumer(this, false);
+                    return focusConsume(this, false);
                 }
             }
 
@@ -58,11 +58,11 @@ bool ButtonBase::processEvent(const SDL_Event &event, bool valid)
                     }
 
                     m_state = BEVENT_DOWN;
-                    return focusConsumer(this, true);
+                    return focusConsume(this, true);
                 }
                 else{
                     m_state = BEVENT_OFF;
-                    return focusConsumer(this, false);
+                    return focusConsume(this, false);
                 }
             }
         case SDL_MOUSEMOTION:
@@ -75,7 +75,7 @@ bool ButtonBase::processEvent(const SDL_Event &event, bool valid)
                     }
 
                     m_state = BEVENT_ON;
-                    return focusConsumer(this, true);
+                    return focusConsume(this, true);
                 }
                 else{
                     if(m_state != BEVENT_OFF){
@@ -85,12 +85,12 @@ bool ButtonBase::processEvent(const SDL_Event &event, bool valid)
                     }
 
                     m_state = BEVENT_OFF;
-                    return focusConsumer(this, false);
+                    return focusConsume(this, false);
                 }
             }
         default:
             {
-                return focusConsumer(this, false);
+                return focusConsume(this, false);
             }
     }
 }
