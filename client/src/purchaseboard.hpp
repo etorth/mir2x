@@ -31,6 +31,7 @@ class PurchaseBoard: public Widget
 
     private:
         TritexButton m_closeButton;
+        TritexButton m_selectButton;
 
     private:
         ProcessRun *m_processRun;

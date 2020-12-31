@@ -58,6 +58,29 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
           this,
           false,
       }
+
+    , m_selectButton
+      {
+          105,
+          185,
+          {SYS_TEXNIL, 0X08000003, 0X08000004},
+
+          nullptr,
+          nullptr,
+          [this]()
+          {
+              show(false);
+          },
+
+          0,
+          0,
+          0,
+          0,
+
+          true,
+          this,
+          false,
+      }
     , m_processRun(runPtr)
 {
     show(false);
@@ -78,7 +101,9 @@ void PurchaseBoard::drawEx(int dstX, int dstY, int, int, int, int)
     if(auto pTexture = g_progUseDB->Retrieve(0X08000000)){
         g_sdlDevice->drawTexture(pTexture, dstX, dstY);
     }
-    m_closeButton.draw();
+
+    m_closeButton .draw();
+    m_selectButton.draw();
 }
 
 bool PurchaseBoard::processEvent(const SDL_Event &event, bool valid)
@@ -92,6 +117,10 @@ bool PurchaseBoard::processEvent(const SDL_Event &event, bool valid)
     }
 
     if(m_closeButton.processEvent(event, valid)){
+        return true;
+    }
+
+    if(m_selectButton.processEvent(event, valid)){
         return true;
     }
     return false;
