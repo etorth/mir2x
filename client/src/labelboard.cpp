@@ -27,26 +27,9 @@ extern Log *g_log;
 
 void LabelBoard::setText(const char8_t *format, ...)
 {
-    std::string szText;
-    bool bError = false;
-    {
-        va_list ap;
-        va_start(ap, format);
-
-        try{
-            szText = str_vprintf(to_cstr(format), ap);
-        }catch(const std::exception &e){
-            bError = true;
-            szText = str_printf("Exception caught in labelBoard::setText(\"%s\", ...): %s", to_cstr(format), e.what());
-        }
-
-        va_end(ap);
-    }
-
-    if(bError){
-        g_log->addLog(LOGTYPE_WARNING, "%s", szText.c_str());
-    }
-    loadXML(str_printf("<par>%s</par>", szText.c_str()).c_str());
+    std::u8string text;
+    str_format(format, text);
+    loadXML(str_printf("<par>%s</par>", to_cstr(text)).c_str());
 }
 
 void LabelBoard::loadXML(const char *xmlString)

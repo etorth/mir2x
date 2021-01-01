@@ -16,37 +16,17 @@
  * =====================================================================================
  */
 
-#include "log.hpp"
-#include "totype.hpp"
 #include "strf.hpp"
+#include "totype.hpp"
 #include "xmltypeset.hpp"
 #include "mathf.hpp"
 #include "colorf.hpp"
 #include "debugboard.hpp"
 
-extern Log *g_log;
-
-void NotifyBoard::addLog(const char8_t * formatString, ...)
+void NotifyBoard::addLog(const char8_t * format, ...)
 {
-    std::string text;
-    bool error = false;
-    {
-        va_list ap;
-        va_start(ap, formatString);
-
-        try{
-            text = str_vprintf(to_cstr(formatString), ap);
-        }catch(const std::exception &e){
-            error = true;
-            text = str_printf("Exception caught in NotifyBoard::addLog(\"%s\", ...): %s", to_cstr(formatString), e.what());
-        }
-
-        va_end(ap);
-    }
-
-    if(error){
-        g_log->addLog(LOGTYPE_WARNING, "%s", text.c_str());
-    }
+    std::u8string text;
+    str_format(format, text);
 
     if(m_boardList.size() < 5){
         m_boardList.push_back(std::make_shared<XMLTypeset>(m_lineW, LALIGN_LEFT, false, m_font, m_fontSize, m_fontStyle, m_fontColor));
@@ -56,7 +36,7 @@ void NotifyBoard::addLog(const char8_t * formatString, ...)
         m_boardList.pop_front();
     }
 
-    const auto xmlString = str_printf("<par>%s</par>", text.c_str());
+    const auto xmlString = str_printf("<par>%s</par>", to_cstr(text));
     m_boardList.back()->loadXML(xmlString.c_str());
 
     m_w = m_lineW;

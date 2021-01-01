@@ -17,6 +17,7 @@
  */
 
 #pragma once
+#include <deque>
 #include "widget.hpp"
 #include "lalign.hpp"
 #include "xmltypeset.hpp"
