@@ -24,6 +24,7 @@
 #pragma once
 #include "widget.hpp"
 #include "labelboard.hpp"
+#include "texvslider.hpp"
 #include "tritexbutton.hpp"
 
 class ProcessRun;
@@ -33,6 +34,9 @@ class InventoryBoard: public Widget
         LabelBoard m_goldBoard;
         LabelBoard m_opNameBoard;
         WMDAniBoard m_wmdAniBoard;
+
+    private:
+        TexVSlider m_slider;
 
     private:
         TritexButton m_closeButton;

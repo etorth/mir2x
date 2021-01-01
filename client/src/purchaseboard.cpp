@@ -236,7 +236,7 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
 
     , m_slider
       {
-          267,
+          266,
           27,
 
           123,

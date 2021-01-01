@@ -62,6 +62,18 @@ InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget
           this,
       }
 
+    , m_slider
+      {
+          258,
+          64,
+
+          291,
+          2,
+
+          nullptr,
+          this,
+      }
+
     , m_closeButton
       {
           242,
@@ -143,9 +155,10 @@ void InventoryBoard::drawEx(int nDstX, int nDstY, int, int, int, int)
         }
     }
 
-    m_goldBoard.draw();
+    m_goldBoard  .draw();
     m_opNameBoard.draw();
     m_wmdAniBoard.draw();
+    m_slider     .draw();
     m_closeButton.draw();
 }
 
@@ -164,6 +177,10 @@ bool InventoryBoard::processEvent(const SDL_Event &event, bool valid)
         return true;
     }
 
+    if(m_slider.processEvent(event, valid)){
+        return true;
+    }
+
     switch(event.type){
         case SDL_MOUSEMOTION:
             {
@@ -175,39 +192,26 @@ bool InventoryBoard::processEvent(const SDL_Event &event, bool valid)
                     const int newX = std::max<int>(0, std::min<int>(maxX, x() + event.motion.xrel));
                     const int newY = std::max<int>(0, std::min<int>(maxY, y() + event.motion.yrel));
                     moveBy(newX - x(), newY - y());
-
-                    focus(true);
-                    return true;
+                    return focusConsume(this, true);
                 }
-
-                focus(false);
-                return false;
+                return focusConsume(this, false);
             }
         case SDL_MOUSEBUTTONDOWN:
             {
                 switch(event.button.button){
                     case SDL_BUTTON_LEFT:
                         {
-                            if(in(event.button.x, event.button.y)){
-                                focus(true);
-                                return true;
-                            }
-                            else{
-                                focus(false);
-                                return false;
-                            }
+                            return focusConsume(this, in(event.button.x, event.button.y));
                         }
                     default:
                         {
-                            focus(false);
-                            return false;
+                            return focusConsume(this, false);
                         }
                 }
             }
         default:
             {
-                focus(false);
-                return false;
+                return focusConsume(this, false);
             }
     }
 }
