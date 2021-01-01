@@ -62,12 +62,7 @@ class LabelBoard: public Widget
         ~LabelBoard() = default;
 
     public:
-        void loadXML(const char *szXMLString)
-        {
-            m_tpset.loadXML(szXMLString);
-        }
-
-    public:
+        void loadXML(const char *);
         void setText(const char8_t *, ...);
 
     public:

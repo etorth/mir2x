@@ -46,11 +46,15 @@ void LabelBoard::setText(const char8_t *format, ...)
     if(bError){
         g_log->addLog(LOGTYPE_WARNING, "%s", szText.c_str());
     }
+    loadXML(str_printf("<par>%s</par>", szText.c_str()).c_str());
+}
 
+void LabelBoard::loadXML(const char *xmlString)
+{
     // use the fallback values of m_tpset
     // don't need to specify the font/size/style info here
-    m_tpset.loadXML(str_printf("<par>%s</par>", szText.c_str()).c_str());
 
+    m_tpset.loadXML(xmlString);
     m_w = m_tpset.px() + m_tpset.pw();
     m_h = m_tpset.py() + m_tpset.ph();
 }

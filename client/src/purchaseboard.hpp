@@ -65,4 +65,7 @@ class PurchaseBoard: public Widget
 
     private:
         size_t getStartIndex() const;
+
+    public:
+        uint32_t selectedItemID() const;
 };

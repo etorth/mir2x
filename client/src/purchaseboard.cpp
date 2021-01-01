@@ -467,3 +467,11 @@ size_t PurchaseBoard::getStartIndex() const
     }
     return std::lround((m_itemList.size() - 4) * m_slider.getValue());
 }
+
+uint32_t PurchaseBoard::selectedItemID() const
+{
+    if((m_selected >= 0) && (m_selected < (int)(m_itemList.size()))){
+        return m_itemList.at(m_selected);
+    }
+    return 0;
+}

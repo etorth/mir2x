@@ -138,6 +138,27 @@ void PurchaseCountBoard::drawEx(int dstX, int dstY, int, int, int, int)
     m_yesButton.draw();
     m_nopButton.draw();
 
+    const uint32_t selectedItemID = dynamic_cast<PurchaseBoard *>(m_processRun->getWidget("PurchaseBoard"))->selectedItemID();
+    if(const auto &ir = DBCOM_ITEMRECORD(selectedItemID)){
+        LabelBoard label
+        {
+            0, // reset when drawing item
+            0,
+            u8"",
+
+            1,
+            12,
+            0,
+
+            colorf::WHITE + 255,
+            this,
+        };
+
+        label.loadXML(to_cstr(str_printf(u8"<par>请输入你要购买<name font_color=\"0xffff00ff\">%s</name>的数量</par>", to_cstr(ir.name))));
+        label.moveBy((w() - label.w()) / 2, 120);
+        label.draw();
+    }
+
     if(m_input.focus()){
         g_sdlDevice->fillRectangle(colorf::WHITE + 32, m_input.x(), m_input.y(), m_input.w(), m_input.h());
     }
