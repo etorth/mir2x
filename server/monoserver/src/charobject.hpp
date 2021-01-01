@@ -100,15 +100,6 @@ class CharObject: public ServerObject
         };
 
     protected:
-        enum QueryType: int
-        {
-            QUERY_NONE    = 0,
-            QUERY_OK      = 1,
-            QUERY_ERROR   = 2,
-            QUERY_PENDING = 3,
-        };
-
-    protected:
         enum SpeedType: int
         {
             SPEED_NONE = 0,
