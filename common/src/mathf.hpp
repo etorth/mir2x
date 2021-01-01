@@ -177,6 +177,23 @@ namespace mathf
         return !(nfX1 + nfW1 <= nfX2 || nfX2 + nfW2 <= nfX1);
     }
 
+    template<typename T> bool intervalOverlapRegion(T nfX1, T nfW1, T *nfX2, T *nfW2)
+    {
+        static_assert(std::is_arithmetic<T>::value);
+        if(!(nfX2 && nfW2)){
+            throw fflerror("invalid arguments");
+        }
+
+        if(!intervalOverlap(nfX1, nfW1, *nfX2, *nfW2)){
+            return false;
+        }
+
+        const T nfX2End = *nfX2 + *nfW2;
+        *nfX2 = std::max<T>(nfX1, *nfX2);
+        *nfW2 = std::min<T>(nfX1 + nfW1, nfX2End) - *nfX2;
+        return true;
+    }
+
     template<typename T> bool rectangleOverlapRegion(T nfX1, T nfY1, T nfW1, T nfH1, T *nfX2, T *nfY2, T *nfW2, T *nfH2)
     {
         // 1. check parameters, since we use them to provide arguments

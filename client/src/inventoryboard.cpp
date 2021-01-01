@@ -108,7 +108,7 @@ InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget
     m_goldBoard.moveTo(105 - m_goldBoard.w() / 2, 401);
 }
 
-void InventoryBoard::drawItem(int dstX, int dstY, const PackBin &bin)
+void InventoryBoard::drawItem(int dstX, int dstY, size_t startRow, const PackBin &bin)
 {
     if(true
             && bin
@@ -121,9 +121,15 @@ void InventoryBoard::drawItem(int dstX, int dstY, const PackBin &bin)
             constexpr int invGridX0 = 18;
             constexpr int invGridY0 = 59;
             const auto [itemPW, itemPH] = SDLDevice::getTextureSize(texPtr);
-            g_sdlDevice->drawTexture(texPtr,
-                    dstX + invGridX0 + bin.X * SYS_INVGRIDPW + (bin.W * SYS_INVGRIDPW - itemPW) / 2,
-                    dstY + invGridY0 + bin.Y * SYS_INVGRIDPH + (bin.H * SYS_INVGRIDPH - itemPH) / 2);
+            const auto itemGridH = (itemPH + (SYS_INVGRIDPH - 1)) / SYS_INVGRIDPH;
+
+            int drawGridY = startRow;
+            int drawGridH = 8;
+            if(mathf::intervalOverlapRegion<int>(bin.Y, itemGridH, &drawGridY, &drawGridH)){
+                g_sdlDevice->drawTexture(texPtr,
+                        dstX + invGridX0 + bin.X * SYS_INVGRIDPW + (bin.W * SYS_INVGRIDPW - itemPW) / 2,
+                        dstY + invGridY0 + bin.Y * SYS_INVGRIDPH + (bin.H * SYS_INVGRIDPH - itemPH) / 2);
+            }
         }
     }
 }
@@ -143,9 +149,9 @@ void InventoryBoard::drawEx(int dstX, int dstY, int, int, int, int)
         m_goldBoard.setText(u8"%s", getGoldStr().c_str());
         m_goldBoard.moveTo(105 - m_goldBoard.w() / 2, 401);
 
-        // 2. draw all items
+        const size_t startRow = getStartRow();
         for(auto &bin: pMyHero->getInvPack().GetPackBinList()){
-            drawItem(dstX, dstY, bin);
+            drawItem(dstX, dstY, startRow, bin);
         }
     }
 

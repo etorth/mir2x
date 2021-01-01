@@ -48,7 +48,7 @@ class InventoryBoard: public Widget
         InventoryBoard(int, int, ProcessRun *, Widget * = nullptr, bool = false);
 
     private:
-        void drawItem(int, int, const PackBin &);
+        void drawItem(int, int, size_t, const PackBin &);
 
     public:
         void update(double) override;
