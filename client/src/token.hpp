@@ -43,9 +43,9 @@ struct TOKEN
     int Leaf;
     int SelectID;
 
-    struct __TokenBox
+    struct _TokenBox
     {
-        struct __TokenBoxInfo
+        struct _TokenBoxInfo
         {
             // general static information
             // keep unchanged after token initialization
@@ -54,7 +54,7 @@ struct TOKEN
             uint16_t    H;
         }Info;
 
-        struct __TokenBoxState
+        struct _TokenBoxState
         {
             // we put mutable attributes here
             // should be valid after token board layout done
