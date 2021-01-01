@@ -52,29 +52,12 @@ void TextButton::drawEx(int nDstX, int nDstY, int nSrcX, int nSrcY, int nW, int 
     }
 }
 
-void TextButton::FormatText(const char *szFormatText, ...)
+void TextButton::FormatText(const char *format, ...)
 {
-    std::string szText;
-    std::string szError;
-    {
-        va_list ap;
-        va_start(ap, szFormatText);
+    std::string text;
+    str_format(format, text);
 
-        try{
-            szText = str_vprintf(szFormatText, ap);
-        }catch(const std::exception &e){
-            szText = "INTERNAL_ERROR";
-            szError = str_printf("Exception caught in TextButton::FormatText(\"%s\", ...): %s", szFormatText, e.what());
-        }
-
-        va_end(ap);
-    }
-
-    if(!szError.empty()){
-        g_log->addLog(LOGTYPE_WARNING, "%s", szError.c_str());
-    }
-
-    m_label.setText(u8"%s", szText.c_str());
+    m_label.setText(u8"%s", text.c_str());
     m_w = (std::max<int>)(m_w, m_label.w());
     m_h = (std::max<int>)(m_h, m_label.h());
 }
