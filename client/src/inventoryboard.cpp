@@ -108,28 +108,22 @@ InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget
     m_goldBoard.moveTo(105 - m_goldBoard.w() / 2, 401);
 }
 
-void InventoryBoard::drawItem(int nDstX, int nDstY, const PackBin &rstBin)
+void InventoryBoard::drawItem(int dstX, int dstY, const PackBin &bin)
 {
     if(true
-            && rstBin
-            && rstBin.X >= 0
-            && rstBin.Y >= 0
-            && rstBin.W >  0
-            && rstBin.H >  0){
+            && bin
+            && bin.X >= 0
+            && bin.Y >= 0
+            && bin.W >  0
+            && bin.H >  0){
 
-        if(auto pTexture = g_itemDB->Retrieve(DBCOM_ITEMRECORD(rstBin.ID).pkgGfxID | 0X01000000)){
-
-            int nItemPW = -1;
-            int nItemPH = -1;
-            if(!SDL_QueryTexture(pTexture, nullptr, nullptr, &nItemPW, &nItemPH)){
-
-                const int nInvGridX0 = 18;
-                const int nInvGridY0 = 59;
-
-                g_sdlDevice->drawTexture(pTexture,
-                        nDstX + nInvGridX0 + rstBin.X * SYS_INVGRIDPW + (rstBin.W * SYS_INVGRIDPW - nItemPW) / 2,
-                        nDstY + nInvGridY0 + rstBin.Y * SYS_INVGRIDPH + (rstBin.H * SYS_INVGRIDPH - nItemPH) / 2);
-            }
+        if(auto texPtr = g_itemDB->Retrieve(DBCOM_ITEMRECORD(bin.ID).pkgGfxID | 0X01000000)){
+            constexpr int invGridX0 = 18;
+            constexpr int invGridY0 = 59;
+            const auto [itemPW, itemPH] = SDLDevice::getTextureSize(texPtr);
+            g_sdlDevice->drawTexture(texPtr,
+                    dstX + invGridX0 + bin.X * SYS_INVGRIDPW + (bin.W * SYS_INVGRIDPW - itemPW) / 2,
+                    dstY + invGridY0 + bin.Y * SYS_INVGRIDPH + (bin.H * SYS_INVGRIDPH - itemPH) / 2);
         }
     }
 }
@@ -139,10 +133,10 @@ void InventoryBoard::update(double fUpdateTime)
     m_wmdAniBoard.update(fUpdateTime);
 }
 
-void InventoryBoard::drawEx(int nDstX, int nDstY, int, int, int, int)
+void InventoryBoard::drawEx(int dstX, int dstY, int, int, int, int)
 {
     if(auto pTexture = g_progUseDB->Retrieve(0X0000001B)){
-        g_sdlDevice->drawTexture(pTexture, nDstX, nDstY);
+        g_sdlDevice->drawTexture(pTexture, dstX, dstY);
     }
 
     if(auto pMyHero = m_processRun->getMyHero()){
@@ -150,8 +144,8 @@ void InventoryBoard::drawEx(int nDstX, int nDstY, int, int, int, int)
         m_goldBoard.moveTo(105 - m_goldBoard.w() / 2, 401);
 
         // 2. draw all items
-        for(auto &rstBin: pMyHero->getInvPack().GetPackBinList()){
-            drawItem(nDstX, nDstY, rstBin);
+        for(auto &bin: pMyHero->getInvPack().GetPackBinList()){
+            drawItem(dstX, dstY, bin);
         }
     }
 
@@ -225,4 +219,29 @@ std::string InventoryBoard::getGoldStr() const
         }
         return 0;
     }(), ',');
+}
+
+size_t InventoryBoard::getRowCount() const
+{
+    const auto &packBinList = m_processRun->getMyHero()->getInvPack().GetPackBinList();
+    if(packBinList.empty()){
+        return 0;
+    }
+
+    size_t rowCount = 0;
+    for(const auto &bin: packBinList){
+        rowCount = std::max<size_t>(rowCount, bin.Y + bin.H);
+    }
+    return rowCount;
+}
+
+size_t InventoryBoard::getStartRow() const
+{
+    const size_t rowGfxCount = 8;
+    const size_t rowCount = getRowCount();
+
+    if(rowCount <= rowGfxCount){
+        return 0;
+    }
+    return std::lround((rowCount - rowGfxCount) * m_slider.getValue());
 }

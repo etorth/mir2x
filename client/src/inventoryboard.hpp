@@ -57,4 +57,8 @@ class InventoryBoard: public Widget
 
     private:
         std::string getGoldStr() const;
+
+    private:
+        size_t getStartRow() const;
+        size_t getRowCount() const;
 };
