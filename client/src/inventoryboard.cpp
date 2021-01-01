@@ -121,14 +121,30 @@ void InventoryBoard::drawItem(int dstX, int dstY, size_t startRow, const PackBin
             constexpr int invGridX0 = 18;
             constexpr int invGridY0 = 59;
             const auto [itemPW, itemPH] = SDLDevice::getTextureSize(texPtr);
-            const auto itemGridH = (itemPH + (SYS_INVGRIDPH - 1)) / SYS_INVGRIDPH;
 
-            int drawGridY = startRow;
-            int drawGridH = 8;
-            if(mathf::intervalOverlapRegion<int>(bin.Y, itemGridH, &drawGridY, &drawGridH)){
-                g_sdlDevice->drawTexture(texPtr,
-                        dstX + invGridX0 + bin.X * SYS_INVGRIDPW + (bin.W * SYS_INVGRIDPW - itemPW) / 2,
-                        dstY + invGridY0 + bin.Y * SYS_INVGRIDPH + (bin.H * SYS_INVGRIDPH - itemPH) / 2);
+            const int startX = dstX + invGridX0;
+            const int startY = dstY + invGridY0 - startRow * SYS_INVGRIDPH;
+            const int  viewX = dstX + invGridX0;
+            const int  viewY = dstY + invGridY0;
+
+            int drawDstX = startX + bin.X * SYS_INVGRIDPW + (bin.W * SYS_INVGRIDPW - itemPW) / 2;
+            int drawDstY = startY + bin.Y * SYS_INVGRIDPH + (bin.H * SYS_INVGRIDPH - itemPH) / 2;
+            int drawSrcX = 0;
+            int drawSrcY = 0;
+            int drawSrcW = itemPW;
+            int drawSrcH = itemPH;
+
+            if(mathf::ROICrop(
+                        &drawSrcX, &drawSrcY,
+                        &drawSrcW, &drawSrcH,
+                        &drawDstX, &drawDstY,
+
+                        drawSrcW,
+                        drawSrcH,
+
+                        0, 0, -1, -1,
+                        viewX, viewY, SYS_INVGRIDPW * 6, SYS_INVGRIDPH * 8)){
+                g_sdlDevice->drawTexture(texPtr, drawDstX, drawDstY, drawSrcX, drawSrcY, drawSrcW, drawSrcH);
             }
         }
     }
