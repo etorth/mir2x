@@ -231,10 +231,7 @@ uint64_t ProcessRun::FocusUID(int nFocusType)
                         return false;
                     };
 
-                    int mousePX = -1;
-                    int mousePY = -1;
-                    SDL_GetMouseState(&mousePX, &mousePY);
-
+                    auto [mousePX, mousePY] = g_sdlDevice->getMousePLoc();
                     mousePX += m_viewX;
                     mousePY += m_viewY;
 
@@ -1482,10 +1479,7 @@ void ProcessRun::drawGroundItem(int x0, int y0, int x1, int y1)
             const int drawPX = x * SYS_MAPGRIDXP - m_viewX + SYS_MAPGRIDXP / 2 - texW / 2;
             const int drawPY = y * SYS_MAPGRIDYP - m_viewY + SYS_MAPGRIDYP / 2 - texH / 2;
 
-            int mouseX = -1;
-            int mouseY = -1;
-            SDL_GetMouseState(&mouseX, &mouseY);
-
+            const auto [mouseX, mouseY] = g_sdlDevice->getMousePLoc();
             const int mouseGridX = (mouseX + m_viewX) / SYS_MAPGRIDXP;
             const int mouseGridY = (mouseY + m_viewY) / SYS_MAPGRIDYP;
 
@@ -1640,10 +1634,7 @@ void ProcessRun::drawMouseLocation()
 {
     g_sdlDevice->fillRectangle(colorf::RGBA(0, 0, 0, 230), 0, 0, 200, 60);
 
-    int mouseX = -1;
-    int mouseY = -1;
-    SDL_GetMouseState(&mouseX, &mouseY);
-
+    const auto [mouseX, mouseY] = g_sdlDevice->getMousePLoc();
     const auto locPixel = str_printf(u8"Pixel: %d, %d", mouseX, mouseY);
     const auto locGrid  = str_printf(u8"Grid: %d, %d", (mouseX + m_viewX) / SYS_MAPGRIDXP, (mouseY + m_viewY) / SYS_MAPGRIDYP);
 
@@ -1703,9 +1694,7 @@ void ProcessRun::checkMagicSpell(const SDL_Event &event)
                 }
 
                 else{
-                    int nMouseX = -1;
-                    int nMouseY = -1;
-                    SDL_GetMouseState(&nMouseX, &nMouseY);
+                    const auto [nMouseX, nMouseY] = g_sdlDevice->getMousePLoc();
                     const auto [nAimX, nAimY] = screenPoint2Grid(nMouseX, nMouseY);
                     getMyHero()->emplaceAction(ActionSpell
                     {

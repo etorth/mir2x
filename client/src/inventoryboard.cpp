@@ -225,6 +225,21 @@ bool InventoryBoard::processEvent(const SDL_Event &event, bool valid)
                         }
                 }
             }
+        case SDL_MOUSEWHEEL:
+            {
+                constexpr int invGridX0 = 18;
+                constexpr int invGridY0 = 59;
+                const auto [mousePX, mousePY] = g_sdlDevice->getMousePLoc();
+
+                if(mathf::pointInRectangle<int>(mousePX, mousePY, x() + invGridX0, y() + invGridY0, 6 * SYS_INVGRIDPW, 8 * SYS_INVGRIDPH)){
+                    const auto rowCount = getRowCount();
+                    if(rowCount > 8){
+                        m_slider.addValue((event.wheel.y > 0 ? -1.0 : 1.0) / (rowCount - 8));
+                    }
+                    return focusConsume(this, true);
+                }
+                return false;
+            }
         default:
             {
                 return focusConsume(this, false);

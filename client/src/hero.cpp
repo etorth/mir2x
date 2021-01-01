@@ -639,11 +639,8 @@ bool Hero::parseAction(const ActionNode &action)
                                                                 return coPtr->getTargetBox().center();
                                                             }
 
-                                                            int mousePX = -1;
-                                                            int mousePY = -1;
-                                                            SDL_GetMouseState(&mousePX, &mousePY);
-
                                                             const auto [viewX, viewY] = m_processRun->getViewShift();
+                                                            const auto [mousePX, mousePY] = g_sdlDevice->getMousePLoc();
                                                             return {mousePX + viewX, mousePY + viewY};
                                                         }();
                                                         return pathf::getDir16(x - fromX, y - fromY);

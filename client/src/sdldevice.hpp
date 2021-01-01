@@ -335,4 +335,18 @@ class SDLDevice final
                    }
            }
        }
+
+    public:
+       std::tuple<int, int> getMousePLoc() const
+       {
+           int mousePX = -1;
+           int mousePY = -1;
+           SDL_GetMouseState(&mousePX, &mousePY);
+
+           return
+           {
+               mousePX,
+               mousePY,
+           };
+       }
 };
