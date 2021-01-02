@@ -54,9 +54,11 @@ namespace zcompf
     // lz4 has no reverse function of LZ4_compressBound()
     // the decompression bound is 255 * srcLen, this is too large, so need to provide the maxDstSize 
 
-    template<typename T> void lz4Decode(std::vector<T> &dst, size_t maxDstSize, const uint8_t *src, size_t srcSize)
+    template<typename C> void lz4Decode(C &dst, size_t maxDstSize, const uint8_t *src, size_t srcSize)
     {
-        static_assert(std::is_trivially_copyable_v<T>);
+        using VALUE_TYPE = C::value_type;
+        static_assert(std::is_trivially_copyable_v<VALUE_TYPE>);
+
         if(!(maxDstSize && src && srcSize)){
             throw fflerror("invalid argument: maxDstSize = %zu, src = %p, srcSize = %zu", maxDstSize, src, srcSize);
         }
@@ -64,15 +66,15 @@ namespace zcompf
         dst.clear();
         dst.resize(maxDstSize);
 
-        const int decompSize = LZ4_decompress_safe(reinterpret_cast<const char *>(src), reinterpret_cast<char *>(dst.data()), srcSize, maxDstSize * sizeof(T));
+        const int decompSize = LZ4_decompress_safe(reinterpret_cast<const char *>(src), reinterpret_cast<char *>(dst.data()), srcSize, maxDstSize * sizeof(VALUE_TYPE));
         if(decompSize <= 0){
             throw fflerror("LZ4_decompress_safe() return error code: %d", decompSize);
         }
 
-        if(decompSize % sizeof(T)){
-            throw fflerror("decompressed data is not aligned by object type T");
+        if(decompSize % sizeof(VALUE_TYPE)){
+            throw fflerror("decompressed data buffer is not aligned by class value type: size = %zu, sizeof(value_type) = %zu", decompSize, sizeof(VALUE_TYPE));
         }
-        dst.resize(decompSize / sizeof(T));
+        dst.resize(decompSize / sizeof(VALUE_TYPE));
     }
 
     // zstd compression/decompression
@@ -93,9 +95,11 @@ namespace zcompf
         dst.resize(rc);
     }
 
-    template<typename T> void zstdDecode(std::vector<T> &dst, const uint8_t *src, size_t srcSize)
+    template<typename C> void zstdDecode(C &dst, const uint8_t *src, size_t srcSize)
     {
-        static_assert(std::is_trivially_copyable_v<T>);
+        using VALUE_TYPE = C::value_type;
+        static_assert(std::is_trivially_copyable_v<VALUE_TYPE>);
+
         switch(const auto decompSize = ZSTD_getFrameContentSize(src, srcSize)){
             case ZSTD_CONTENTSIZE_ERROR:
             case ZSTD_CONTENTSIZE_UNKNOWN:
@@ -104,20 +108,20 @@ namespace zcompf
                 }
             default:
                 {
-                    dst.resize(decompSize / sizeof(T) + 1);
+                    dst.resize(decompSize / sizeof(VALUE_TYPE) + 1);
                     break;
                 }
         }
 
-        const size_t rc = ZSTD_decompress(dst.data(), dst.size() * sizeof(T), src, srcSize);
+        const size_t rc = ZSTD_decompress(dst.data(), dst.size() * sizeof(VALUE_TYPE), src, srcSize);
         if(ZSTD_isError(rc)){
             throw fflerror("failed to decompress data buffer: %s", ZSTD_getErrorName(rc));
         }
 
-        if(rc % sizeof(T)){
-            throw fflerror("decompressed data buffer is not aligned by class type: size = %zu, sizeof(T) = %zu", rc, sizeof(T));
+        if(rc % sizeof(VALUE_TYPE)){
+            throw fflerror("decompressed data buffer is not aligned by class value type: size = %zu, sizeof(value_type) = %zu", rc, sizeof(VALUE_TYPE));
         }
-        dst.resize(rc / sizeof(T));
+        dst.resize(rc / sizeof(VALUE_TYPE));
     }
 
     // xor compression/decompression

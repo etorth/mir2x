@@ -56,9 +56,9 @@ namespace cerealf
                 return std::string((const char *)(buf), size);
             }
 
-            std::vector<char> decompBuf;
+            std::string decompBuf;
             zcompf::zstdDecode(decompBuf, (const uint8_t *)(buf), size);
-            return std::string(decompBuf.data(), decompBuf.size());
+            return decompBuf;
         }(), std::ios::binary);
         cereal::BinaryInputArchive ar(ss);
 
@@ -75,9 +75,9 @@ namespace cerealf
                 return std::string(std::move(buf));
             }
 
-            std::vector<char> decompBuf;
+            std::string decompBuf;
             zcompf::zstdDecode(decompBuf, (const uint8_t *)(buf.data()), buf.size());
-            return std::string(decompBuf.data(), decompBuf.size());
+            return decompBuf;
         }(), std::ios::binary);
         cereal::BinaryInputArchive ar(ss);
 
