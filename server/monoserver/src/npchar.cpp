@@ -254,6 +254,8 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npc)
         R"###( end                                                                                                                           )###""\n"
         R"###(                                                                                                                               )###""\n"
         R"###( function main(uid)                                                                                                            )###""\n"
+        R"###(     -- TODO setup the session here                                                                                            )###""\n"
+        R"###(     -- currently we spawn lua thread which still access the global table                                                      )###""\n"
         R"###(     setSessionUID(uid)                                                                                                        )###""\n"
         R"###(     while true do                                                                                                             )###""\n"
         R"###(         local from, event, value = waitEvent()                                                                                )###""\n"
