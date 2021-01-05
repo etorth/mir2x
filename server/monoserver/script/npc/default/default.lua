@@ -30,12 +30,12 @@ processNPCEvent =
                 <par><event id="event_1">如何玩得开心</event></par>
                 <par><event id="%s">关闭</event></par>
             </layout>
-        ]], queryName(uid), getNPCName(), SYS_NPCDONE))
+        ]], uidQueryName(uid), getNPCName(), SYS_NPCDONE))
     end,
 
     ["event_1"] = function(uid, value)
-        local gold  = queryGold(uid)
-        local level = queryLevel(uid)
+        local gold  = uidQueryGold(uid)
+        local level = uidQueryLevel(uid)
         if gold < 1000 then
             sayXML(uid, string.format(
             [[

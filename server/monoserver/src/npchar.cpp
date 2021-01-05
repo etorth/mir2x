@@ -71,9 +71,9 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npc)
         npc->sendSell(uidf::toUIDEx(uidString), itemList);
     });
 
-    m_luaState.set_function("sendQuery", [npc](std::string s, std::string uidString, std::string query)
+    m_luaState.set_function("sendSessionQuery", [npc](std::string sessionUID, std::string uidString, std::string query)
     {
-        npc->sendQuery(uidf::toUIDEx(s), uidf::toUIDEx(uidString), query);
+        npc->sendQuery(uidf::toUIDEx(sessionUID), uidf::toUIDEx(uidString), query);
     });
 
     m_luaState.set_function("sayXML", [npc, this](std::string uidString, std::string xmlString)
@@ -98,12 +98,12 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npc)
         }
     });
 
-    m_luaState.set_function("pollEvent", [this](std::string uidString)
+    m_luaState.set_function("pollSessionEvent", [this](std::string sessionUID)
     {
-        const uint64_t uid = [&uidString]() -> uint64_t
+        const uint64_t uid = [&sessionUID]() -> uint64_t
         {
             try{
-                return std::stoull(uidString);
+                return std::stoull(sessionUID);
             }
             catch(...){
                 //
@@ -114,16 +114,24 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npc)
         return sol::as_returns([uid, this]() -> std::vector<std::string>
         {
             if(auto p = m_sessionList.find(uid); p != m_sessionList.end()){
-                if(p->second.event.empty()){
+                const auto fromUID = p->second.from;
+                p->second.from = 0;
+
+                if(!fromUID){
                     return {};
                 }
 
-                if(p->second.value.empty()){
-                    return {std::move(p->second.event)};
+                if(p->second.event.empty()){
+                    throw fflerror("detected uid %llu with empty event", to_llu(fromUID));
                 }
-                return {std::move(p->second.event), std::move(p->second.value)};
+
+
+                if(p->second.value.empty()){
+                    return {std::to_string(fromUID), std::move(p->second.event)};
+                }
+                return {std::to_string(fromUID), std::move(p->second.event), std::move(p->second.value)};
             }
-            throw fflerror("can't find session for UID = %llu", to_llu(uid));
+            throw fflerror("can't find session UID = %llu", to_llu(uid));
         }());
     });
 
@@ -179,43 +187,50 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npc)
         R"###(     end                                                                                                                       )###""\n"
         R"###( end                                                                                                                           )###""\n"
         R"###(                                                                                                                               )###""\n"
-        R"###( function queryName(s, uid)                                                                                                    )###""\n"
-        R"###(     sendQuery(s, uid or s, 'NAME')                                                                                            )###""\n"
-        R"###(     local event, value = waitEvent(s)                                                                                         )###""\n"
-        R"###(     if event ~= SYS_NPCQUERY then                                                                                             )###""\n"
-        R"###(         addLog(LOGTYPE_WARNING, 'Wait event as SYS_NPCQUERY but get ' .. tostring(event))                                     )###""\n"
-        R"###(         return nil                                                                                                            )###""\n"
-        R"###(     else                                                                                                                      )###""\n"
-        R"###(         return value                                                                                                          )###""\n"
+        R"###( function sendQuery(uid, query)                                                                                                )###""\n"
+        R"###(     sendSessionQuery(getSessionUID(), uid, query)                                                                             )###""\n"
+        R"###( end                                                                                                                           )###""\n"
+        R"###(                                                                                                                               )###""\n"
+        R"###( function waitEvent()                                                                                                          )###""\n"
+        R"###(     local sessionUID = getSessionUID()                                                                                        )###""\n"
+        R"###(     while true do                                                                                                             )###""\n"
+        R"###(         local uid, event, value = pollSessionEvent(sessionUID)                                                                )###""\n"
+        R"###(         if uid then                                                                                                           )###""\n"
+        R"###(             return uid, event, value                                                                                          )###""\n"
+        R"###(         end                                                                                                                   )###""\n"
+        R"###(         coroutine.yield()                                                                                                     )###""\n"
         R"###(     end                                                                                                                       )###""\n"
         R"###( end                                                                                                                           )###""\n"
         R"###(                                                                                                                               )###""\n"
-        R"###( function queryLevel(s, uid)                                                                                                   )###""\n"
-        R"###(     sendQuery(s, uid or s, 'LEVEL')                                                                                           )###""\n"
-        R"###(     local event, value = waitEvent(s)                                                                                         )###""\n"
-        R"###(     if event ~= SYS_NPCQUERY then                                                                                             )###""\n"
-        R"###(         addLog(LOGTYPE_WARNING, 'Wait event as SYS_NPCQUERY but get ' .. tostring(event))                                     )###""\n"
-        R"###(         return nil                                                                                                            )###""\n"
-        R"###(     else                                                                                                                      )###""\n"
-        R"###(         return tonumber(value)                                                                                                )###""\n"
+        R"###( function uidQuery(uid, query)                                                                                                 )###""\n"
+        R"###(     sendQuery(uid, query)                                                                                                     )###""\n"
+        R"###(     local from, event, value = waitEvent()                                                                                    )###""\n"
+        R"###(                                                                                                                               )###""\n"
+        R"###(     if from ~= uid then                                                                                                       )###""\n"
+        R"###(         error('Send query to uid ' .. uid .. ' but get response from ' .. from)                                               )###""\n"
         R"###(     end                                                                                                                       )###""\n"
+        R"###(                                                                                                                               )###""\n"
+        R"###(     if event ~= SYS_NPCQUERY then                                                                                             )###""\n"
+        R"###(         error('Wait event as SYS_NPCQUERY but get ' .. tostring(event))                                                       )###""\n"
+        R"###(     end                                                                                                                       )###""\n"
+        R"###(     return value                                                                                                              )###""\n"
         R"###( end                                                                                                                           )###""\n"
         R"###(                                                                                                                               )###""\n"
-        R"###( function queryGold(s, uid)                                                                                                    )###""\n"
-        R"###(     sendQuery(s, uid or s, 'GOLD')                                                                                            )###""\n"
-        R"###(     local event, value = waitEvent(s)                                                                                         )###""\n"
-        R"###(     if event ~= SYS_NPCQUERY then                                                                                             )###""\n"
-        R"###(         addLog(LOGTYPE_WARNING, 'Wait event as SYS_NPCQUERY but get ' .. tostring(event))                                     )###""\n"
-        R"###(         return nil                                                                                                            )###""\n"
-        R"###(     else                                                                                                                      )###""\n"
-        R"###(         return tonumber(value)                                                                                                )###""\n"
-        R"###(     end                                                                                                                       )###""\n"
+        R"###( function uidQueryName(uid)                                                                                                    )###""\n"
+        R"###(     return uidQuery(uid, 'NAME')                                                                                              )###""\n"
         R"###( end                                                                                                                           )###""\n"
         R"###(                                                                                                                               )###""\n"
-        R"###( function postSell(uid, sell)                                                                                                  )###""\n"
+        R"###( function uidQueryLevel(uid)                                                                                                   )###""\n"
+        R"###(     return tonumber(uidQuery(uid, 'LEVEL'))                                                                                   )###""\n"
+        R"###( end                                                                                                                           )###""\n"
+        R"###(                                                                                                                               )###""\n"
+        R"###( function uidQueryGold(uid)                                                                                                    )###""\n"
+        R"###(     return tonumber(uidQuery(uid, 'GOLD'))                                                                                    )###""\n"
+        R"###( end                                                                                                                           )###""\n"
+        R"###(                                                                                                                               )###""\n"
+        R"###( function uidPostSell(uid, sell)                                                                                               )###""\n"
         R"###(     if type(sell) ~= 'table' then                                                                                             )###""\n"
-        R"###(         addLog(LOGTYPE_WARNING, 'postSell() expectes a table but get ' .. type(sell))                                         )###""\n"
-        R"###(         return                                                                                                                )###""\n"
+        R"###(         error('uidPostSell() expectes a table but get ' .. type(sell))                                                        )###""\n"
         R"###(     end                                                                                                                       )###""\n"
         R"###(                                                                                                                               )###""\n"
         R"###(     local randListName = 'varName_' .. randString(12)                                                                         )###""\n"
@@ -224,21 +239,26 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npc)
         R"###(     _G[randListName] = nil                                                                                                    )###""\n"
         R"###( end                                                                                                                           )###""\n"
         R"###(                                                                                                                               )###""\n"
-        R"###( function waitEvent(uid)                                                                                                       )###""\n"
-        R"###(     while true do                                                                                                             )###""\n"
-        R"###(         local event, value = pollEvent(uid)                                                                                   )###""\n"
-        R"###(         if event then                                                                                                         )###""\n"
-        R"###(             return event, value                                                                                               )###""\n"
-        R"###(         end                                                                                                                   )###""\n"
-        R"###(         coroutine.yield()                                                                                                     )###""\n"
+        R"###( -- set/get global session uid                                                                                                 )###""\n"
+        R"###( -- this global session uid works as an implicit parameter                                                                     )###""\n"
+        R"###(                                                                                                                               )###""\n"
+        R"###( function setSessionUID(uid)                                                                                                   )###""\n"
+        R"###(     if not uid then                                                                                                           )###""\n"
+        R"###(         error("invalid session uid: nil")                                                                                     )###""\n"
         R"###(     end                                                                                                                       )###""\n"
+        R"###(     g_sessionUID = uid                                                                                                        )###""\n"
+        R"###( end                                                                                                                           )###""\n"
+        R"###(                                                                                                                               )###""\n"
+        R"###( function getSessionUID()                                                                                                      )###""\n"
+        R"###(     return g_sessionUID                                                                                                       )###""\n"
         R"###( end                                                                                                                           )###""\n"
         R"###(                                                                                                                               )###""\n"
         R"###( function main(uid)                                                                                                            )###""\n"
+        R"###(     setSessionUID(uid)                                                                                                        )###""\n"
         R"###(     while true do                                                                                                             )###""\n"
-        R"###(         local event, value = waitEvent(uid)                                                                                   )###""\n"
+        R"###(         local from, event, value = waitEvent()                                                                                )###""\n"
         R"###(         if has_processNPCEvent(false, event) then                                                                             )###""\n"
-        R"###(             processNPCEvent[event](uid, value)                                                                                )###""\n"
+        R"###(             processNPCEvent[event](from, value)                                                                               )###""\n"
         R"###(         else                                                                                                                  )###""\n"
         R"###(             -- don't exit this loop                                                                                           )###""\n"
         R"###(             -- always consume the event no matter if the NPC can handle it                                                    )###""\n"
@@ -289,14 +309,14 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npc)
         R"###( has_processNPCEvent(true, SYS_NPCINIT)                          )###""\n");
 }
 
-void NPChar::LuaNPCModule::setEvent(uint64_t uid, std::string event, std::string value)
+void NPChar::LuaNPCModule::setEvent(uint64_t sessionUID, uint64_t from, std::string event, std::string value)
 {
-    if(!(uid && !event.empty())){
-        throw fflerror("invalid argument: uid = %llu, event = %s, value = %s", to_llu(uid), to_cstr(event), to_cstr(value));
+    if(!(sessionUID && from && !event.empty())){
+        throw fflerror("invalid argument: sessionUID = %llu, from = %llu, event = %s, value = %s", to_llu(sessionUID), to_llu(from), to_cstr(event), to_cstr(value));
     }
 
     if(event == SYS_NPCDONE){
-        m_sessionList.erase(uid);
+        m_sessionList.erase(sessionUID);
         return;
     }
 
@@ -315,29 +335,31 @@ void NPChar::LuaNPCModule::setEvent(uint64_t uid, std::string event, std::string
         }
     };
 
-    auto p = m_sessionList.find(uid);
+    auto p = m_sessionList.find(sessionUID);
     if(p == m_sessionList.end()){
         if(event != SYS_NPCINIT){
             throw fflerror("get script event %s while no communication initialized", event.c_str());
         }
 
         LuaNPCModule::LuaNPCSession session;
-        session.uid = uid;
+        session.uid    = sessionUID;
         session.module = this;
 
         session.co_handler.runner = sol::thread::create(getLuaState().lua_state());
         session.co_handler.callback = sol::state_view(session.co_handler.runner.state())["main"];
 
-        p = m_sessionList.insert({uid, std::move(session)}).first;
+        p = m_sessionList.insert({sessionUID, std::move(session)}).first;
 
+        p->second.from = 0;
         p->second.event.clear();
         p->second.value.clear();
-        const auto result = p->second.co_handler.callback(std::to_string(uid));
+
+        const auto result = p->second.co_handler.callback(std::to_string(sessionUID));
         fnCheckCOResult(result);
     }
 
-    if(p->second.uid != uid){
-        throw fflerror("invalid session: key = %llu, value.key = %llu", to_llu(uid), to_llu(p->second.uid));
+    if(p->second.uid != sessionUID){
+        throw fflerror("invalid session: session::uid = %llu, sessionUID = %llu", to_llu(p->second.uid), to_llu(sessionUID));
     }
 
     if(!p->second.co_handler.callback){
@@ -347,6 +369,7 @@ void NPChar::LuaNPCModule::setEvent(uint64_t uid, std::string event, std::string
     // clear the event
     // call the coroutine to make it stuck at pollEvent()
 
+    p->second.from  = from;
     p->second.event = std::move(event);
     p->second.value = std::move(value);
 
@@ -431,7 +454,7 @@ void NPChar::sendSell(uint64_t uid, const std::vector<std::string> &itemList)
     m_actorPod->forward(uid, {MPK_NPCSELL, amNPCS});
 }
 
-void NPChar::sendQuery(uint64_t s, uint64_t uid, const std::string &query)
+void NPChar::sendQuery(uint64_t sessionUID, uint64_t uid, const std::string &query)
 {
     AMNPCQuery amNPCQ;
     std::memset(&amNPCQ, 0, sizeof(amNPCQ));
@@ -441,18 +464,22 @@ void NPChar::sendQuery(uint64_t s, uint64_t uid, const std::string &query)
     }
 
     std::strcpy(amNPCQ.query, query.c_str());
-    m_actorPod->forward(uid, {MPK_NPCQUERY, amNPCQ}, [s, this](const MessagePack &mpk)
+    m_actorPod->forward(uid, {MPK_NPCQUERY, amNPCQ}, [sessionUID, uid, this](const MessagePack &mpk)
     {
+        if(uid != mpk.from()){
+            throw fflerror("query sent to uid %llu but get response from %llu", to_llu(uid), to_llu(mpk.from()));
+        }
+
         switch(mpk.Type()){
             case MPK_NPCEVENT:
                 {
                     const auto amNPCE = mpk.conv<AMNPCEvent>();
-                    m_luaModulePtr->setEvent(s, amNPCE.event, amNPCE.value);
+                    m_luaModulePtr->setEvent(sessionUID, uid, amNPCE.event, amNPCE.value);
                     return;
                 }
             default:
                 {
-                    m_luaModulePtr->close(s);
+                    m_luaModulePtr->close(sessionUID);
                     return;
                 }
         }

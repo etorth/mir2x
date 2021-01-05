@@ -47,13 +47,13 @@ processNPCEvent =
             <layout>
                 <par>客官%s你好我是%s，%s<emoji id="0"/></par>
                 <par></par>
-                <par><event id="event_1">购买武器</event></par>
+                <par><event id="event_post_sell">购买武器</event></par>
                 <par><event id="%s">关闭</event></par>
             </layout>
-        ]], queryName(uid), getNPCName(), randomHeadString(), SYS_NPCDONE))
+        ]], uidQueryName(uid), getNPCName(), randomHeadString(), SYS_NPCDONE))
     end,
 
-    ["event_1"] = function(uid, value)
-        postSell(uid, getSell())
+    ["event_post_sell"] = function(uid, value)
+        uidPostSell(uid, getSell())
     end,
 }

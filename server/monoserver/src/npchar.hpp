@@ -32,6 +32,7 @@ class NPChar final: public CharObject
                 struct LuaNPCSession
                 {
                     uint64_t uid;
+                    uint64_t from;
                     std::string event;
                     std::string value;
 
@@ -51,7 +52,7 @@ class NPChar final: public CharObject
                 LuaNPCModule(NPChar *);
 
             public:
-                void setEvent(uint64_t uid, std::string event, std::string value);
+                void setEvent(uint64_t sessionUID, uint64_t from, std::string event, std::string value);
 
             public:
                 void close(uint64_t uid)

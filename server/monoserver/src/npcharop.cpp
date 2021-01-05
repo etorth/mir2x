@@ -45,13 +45,22 @@ void NPChar::on_MPK_NPCEVENT(const MessagePack &mpk)
 
     const auto amNPCE = mpk.conv<AMNPCEvent>();
 
-    // for NPC query we don't check location
-    // it's sent by NPC itself
+    // when CO initiatively sends a message to NPC, we assume it's UID is the sessionUID
+    // when NPC querys CO attributes the response should be handled in actor response handler, not here
 
-    if(std::string(amNPCE.event) == SYS_NPCQUERY || std::string(amNPCE.event) == SYS_NPCDONE){
-        m_luaModulePtr->setEvent(mpk.from(), amNPCE.event, amNPCE.value);
+    if(false
+            || std::string(amNPCE.event) == SYS_NPCDONE
+            || std::string(amNPCE.event) == SYS_NPCERROR){
+        m_luaModulePtr->close(mpk.from());
         return;
     }
+
+    if(std::string(amNPCE.event) == SYS_NPCQUERY){
+        throw fflerror("unexcepted NPC event: event = %s, value = %s", to_cstr(amNPCE.event), to_cstr(amNPCE.value));
+    }
+
+    // can be SYS_NPCINIT or scritp event
+    // script event defines like text button pressed etc
 
     if(amNPCE.mapID != MapID() || mathf::LDistance2(amNPCE.x, amNPCE.y, X(), Y()) >= SYS_MAXNPCDISTANCE * SYS_MAXNPCDISTANCE){
         AMNPCError amNPCE;
@@ -63,7 +72,7 @@ void NPChar::on_MPK_NPCEVENT(const MessagePack &mpk)
         m_luaModulePtr->close(mpk.from());
         return;
     }
-    m_luaModulePtr->setEvent(mpk.from(), amNPCE.event, amNPCE.value);
+    m_luaModulePtr->setEvent(mpk.from(), mpk.from(), amNPCE.event, amNPCE.value);
 }
 
 void NPChar::on_MPK_NOTIFYNEWCO(const MessagePack &mpk)
