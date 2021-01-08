@@ -56,9 +56,9 @@ class ButtonBase: public Widget
                 int argW,
                 int argH,
 
-                const std::function<void()> &fnOnOverIn  = nullptr,
-                const std::function<void()> &fnOnOverOut = nullptr,
-                const std::function<void()> &fnOnClick   = nullptr,
+                std::function<void()> fnOnOverIn  = nullptr,
+                std::function<void()> fnOnOverOut = nullptr,
+                std::function<void()> fnOnClick   = nullptr,
 
                 int offXOnOver  = 0,
                 int offYOnOver  = 0,
@@ -76,9 +76,9 @@ class ButtonBase: public Widget
                   {offXOnOver   , offYOnOver },
                   {offXOnClick  , offYOnClick},
               }
-            , m_onOverIn(fnOnOverIn)
-            , m_onOverOut(fnOnOverOut)
-            , m_onClick(fnOnClick)
+            , m_onOverIn (std::move(fnOnOverIn))
+            , m_onOverOut(std::move(fnOnOverOut))
+            , m_onClick  (std::move(fnOnClick))
         {
             // we don't fail even if x, y, w, h are invalid
             // because derived class could do reset in its constructor

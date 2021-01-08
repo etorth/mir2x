@@ -37,9 +37,9 @@ class TritexButton: public ButtonBase
 
                 const uint32_t (&texID)[3],
 
-                const std::function<void()> &fnOnOverIn  = nullptr,
-                const std::function<void()> &fnOnOverOut = nullptr,
-                const std::function<void()> &fnOnClick   = nullptr,
+                std::function<void()> fnOnOverIn  = nullptr,
+                std::function<void()> fnOnOverOut = nullptr,
+                std::function<void()> fnOnClick   = nullptr,
 
                 int offXOnOver  = 0,
                 int offYOnOver  = 0,
@@ -57,9 +57,9 @@ class TritexButton: public ButtonBase
                   0,
                   0,
 
-                  fnOnOverIn,
-                  fnOnOverOut,
-                  fnOnClick,
+                  std::move(fnOnOverIn),
+                  std::move(fnOnOverOut),
+                  std::move(fnOnClick),
 
                   offXOnOver,
                   offYOnOver,

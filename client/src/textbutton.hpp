@@ -54,9 +54,9 @@ class TextButton: public ButtonBase
                 uint8_t        nSize  = 10,
                 uint8_t        nStyle =  0,
 
-                const std::function<void()> &fnOnOverIn  = nullptr,
-                const std::function<void()> &fnOnOverOut = nullptr,
-                const std::function<void()> &fnOnClick   = nullptr,
+                std::function<void()> fnOnOverIn  = nullptr,
+                std::function<void()> fnOnOverOut = nullptr,
+                std::function<void()> fnOnClick   = nullptr,
 
                 const uint32_t (&rstColor)[2][3] =
                 {
@@ -97,9 +97,9 @@ class TextButton: public ButtonBase
                   nW,
                   nH,
 
-                  fnOnOverIn,
-                  fnOnOverOut,
-                  fnOnClick,
+                  std::move(fnOnOverIn),
+                  std::move(fnOnOverOut),
+                  std::move(fnOnClick),
 
                   nOffXOnOver,
                   nOffYOnOver,
