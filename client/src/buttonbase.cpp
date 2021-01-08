@@ -34,11 +34,25 @@ bool ButtonBase::processEvent(const SDL_Event &event, bool valid)
         case SDL_MOUSEBUTTONUP:
             {
                 if(in(event.button.x, event.button.y)){
-                    if(getState() != BEVENT_ON){
-                        setState(BEVENT_ON);
-                        if(m_onClickDone){
-                            onClick();
-                        }
+                    switch(getState()){
+                        case BEVENT_OFF:
+                            {
+                                setState(BEVENT_ON);
+                                onBadEvent();
+                                break;
+                            }
+                        case BEVENT_DOWN:
+                            {
+                                setState(BEVENT_ON);
+                                if(m_onClickDone){
+                                    onClick();
+                                }
+                                break;
+                            }
+                        default:
+                            {
+                                break;
+                            }
                     }
                     return focusConsume(this, true);
                 }
@@ -54,11 +68,25 @@ bool ButtonBase::processEvent(const SDL_Event &event, bool valid)
         case SDL_MOUSEBUTTONDOWN:
             {
                 if(in(event.button.x, event.button.y)){
-                    if(getState() != BEVENT_DOWN){
-                        setState(BEVENT_DOWN);
-                        if(!m_onClickDone){
-                            onClick();
-                        }
+                    switch(getState()){
+                        case BEVENT_OFF:
+                            {
+                                setState(BEVENT_DOWN);
+                                onBadEvent();
+                                break;
+                            }
+                        case BEVENT_ON:
+                            {
+                                setState(BEVENT_DOWN);
+                                if(!m_onClickDone){
+                                    onClick();
+                                }
+                                break;
+                            }
+                        default:
+                            {
+                                break;
+                            }
                     }
                     return focusConsume(this, true);
                 }
@@ -84,11 +112,11 @@ bool ButtonBase::processEvent(const SDL_Event &event, bool valid)
                             {
                                 if(event.motion.state & SDL_BUTTON_LMASK){
                                     // hold the button and moving
-                                    // trigger nothing
+                                    // don't trigger
                                 }
                                 else{
                                     setState(BEVENT_ON);
-                                    onOverIn();
+                                    onBadEvent();
                                 }
                                 break;
                             }
