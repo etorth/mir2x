@@ -31,5 +31,5 @@ class QuickAccessButton: public ButtonBase
         QuickAccessButton(const std::function<void()> &, Widget * pwidget = nullptr, bool autoDelete = false);
 
     public:
-        void drawEx(int, int, int, int, int, int) override;
+        void drawEx(int, int, int, int, int, int) const override;
 };

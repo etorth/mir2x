@@ -105,7 +105,7 @@ class LabelBoard: public Widget
         }
 
     public:
-        void drawEx(int nDstX, int nDstY, int nSrcX, int nSrcY, int nW, int nH) override
+        void drawEx(int nDstX, int nDstY, int nSrcX, int nSrcY, int nW, int nH) const override
         {
             m_tpset.drawEx(nDstX, nDstY, nSrcX, nSrcY, nW, nH);
         }

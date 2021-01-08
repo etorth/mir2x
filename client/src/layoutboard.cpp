@@ -252,7 +252,7 @@ void LayoutBoard::addParXML(int loc, const std::array<int, 4> &parMargin, const 
     addPar(loc, parMargin, xmlDoc.RootElement(), true);
 }
 
-void LayoutBoard::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int srcH)
+void LayoutBoard::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int srcH) const
 {
     for(const auto &node: m_parNodeList){
         int srcXCrop = srcX;

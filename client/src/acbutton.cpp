@@ -99,7 +99,7 @@ ACButton::ACButton(int x, int y, ProcessRun *proc, const std::vector<std::string
     setLabel();
 }
 
-void ACButton::drawEx(int dstX, int dstY, int, int, int, int)
+void ACButton::drawEx(int dstX, int dstY, int, int, int, int) const
 {
     const auto buttonName = m_buttonNameList.at(m_currButtonName);
     auto texPtr = g_progUseDB->Retrieve(m_texMap.at(buttonName));

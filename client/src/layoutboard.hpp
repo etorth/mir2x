@@ -191,7 +191,9 @@ class LayoutBoard: public Widget
         void setLineWidth(int);
 
     public:
-        void drawEx(int, int, int, int, int, int) override;
+        void drawEx(int, int, int, int, int, int) const override;
+
+    public:
         bool processEvent(const SDL_Event &, bool) override;
 
     private:

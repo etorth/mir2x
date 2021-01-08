@@ -93,5 +93,5 @@ class NotifyBoard: public Widget
         int pw();
 
     public:
-        void drawEx(int, int, int, int, int, int);
+        void drawEx(int, int, int, int, int, int) const override;
 };

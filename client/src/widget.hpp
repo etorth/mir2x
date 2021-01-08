@@ -26,6 +26,7 @@
 #include "lalign.hpp"
 #include "bevent.hpp"
 #include "fflerror.hpp"
+#include "protocoldef.hpp"
 
 class Widget
 {
@@ -83,7 +84,7 @@ class Widget
         }
 
     public:
-        virtual void draw()
+        virtual void draw() const
         {
             if(show()){
                 drawEx(x(), y(), 0, 0, w(), h());
@@ -91,12 +92,12 @@ class Widget
         }
 
     public:
-        virtual void drawEx(int,        // dst x on the screen coordinate
-                            int,        // dst y on the screen coordinate
-                            int,        // src x on the widget, take top-left as origin
-                            int,        // src y on the widget, take top-left as origin
-                            int,        // size to draw
-                            int) = 0;   // size to draw
+        virtual void drawEx(int,            // dst x on the screen coordinate
+                            int,            // dst y on the screen coordinate
+                            int,            // src x on the widget, take top-left as origin
+                            int,            // src y on the widget, take top-left as origin
+                            int,            // size to draw
+                            int) const = 0; // size to draw
 
     public:
         virtual void update(double fUpdateTime)
@@ -124,7 +125,8 @@ class Widget
         {
             if(m_parent){
                 return m_parent->x() + m_x;
-            }else{
+            }
+            else{
                 return m_x;
             }
         }
@@ -133,7 +135,8 @@ class Widget
         {
             if(m_parent){
                 return m_parent->y() + m_y;
-            }else{
+            }
+            else{
                 return m_y;
             }
         }
@@ -198,6 +201,66 @@ class Widget
             m_x = x;
             m_y = y;
         }
+
+        void moveAt(int dir, int x, int y)
+        {
+            switch(dir){
+                case DIR_UPLEFT:
+                    {
+                        m_x = x;
+                        m_y = y;
+                        return;
+                    }
+                case DIR_UP:
+                    {
+                        m_x = x - w() / 2;
+                        m_y = y;
+                        return;
+                    }
+                case DIR_UPRIGHT:
+                    {
+                        m_x = x - w();
+                        m_y = y;
+                        return;
+                    }
+                case DIR_RIGHT:
+                    {
+                        m_x = x - w();
+                        m_y = y - h() / 2;
+                        return;
+                    }
+                case DIR_DOWNRIGHT:
+                    {
+                        m_x = x - w();
+                        m_y = y - h();
+                        return;
+                    }
+                case DIR_DOWN:
+                    {
+                        m_x = x - w() / 2;
+                        m_y = y - h();
+                        return;
+                    }
+                case DIR_DOWNLEFT:
+                    {
+                        m_x = x;
+                        m_y = y - h();
+                        return;
+                    }
+                case DIR_LEFT:
+                    {
+                        m_x = x;
+                        m_y = y - h() / 2;
+                        return;
+                    }
+                default:
+                    {
+                        m_x = x - w() / 2;
+                        m_y = y - h() / 2;
+                        return;
+                    }
+            }
+        }
 };
 
 // simple *tiling* widget group
@@ -238,7 +301,7 @@ class WidgetGroup: public Widget
         }
 
     public:
-        void drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int srcH) override
+        void drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int srcH) const override
         {
             for(auto p = m_childList.rbegin(); p != m_childList.rend(); ++p){
                 if(!p->child->show()){

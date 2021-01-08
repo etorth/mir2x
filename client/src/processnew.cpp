@@ -139,8 +139,8 @@ ProcessNew::ProcessNew()
     , m_LBCheckPwd       (0, 0, u8"ID", 0, 15, 0, colorf::RGBA(0xFF, 0X00, 0X00, 0X00))
     , m_LBCheckPwdConfirm(0, 0, u8"ID", 0, 15, 0, colorf::RGBA(0xFF, 0X00, 0X00, 0X00))
 
-	, m_TBCreate(150, 482, 200, 40, u8"CREATE", 0, 16, 0, []{}, [this](){ DoPostAccount(); })
-	, m_TBExit  (352, 482, 200, 40, u8"EXIT",   0, 16, 0, []{}, [this](){ DoExit();        })
+	, m_tbCreate(150, 482, 200, 40, u8"CREATE", 0, 16, 0, []{}, [this](){ DoPostAccount(); })
+	, m_tbExit  (352, 482, 200, 40, u8"EXIT",   0, 16, 0, []{}, [this](){ DoExit();        })
 {}
 
 void ProcessNew::update(double fUpdateTime)
@@ -157,8 +157,8 @@ void ProcessNew::draw()
     g_sdlDevice->drawTexture(g_progUseDB->Retrieve(0X00000003), 0, 75);
     g_sdlDevice->drawTexture(g_progUseDB->Retrieve(0X00000004), 0, 75, 0, 0, 800, 450);
 
-    m_TBCreate.draw();
-    m_TBExit  .draw();
+    m_tbCreate.draw();
+    m_tbExit  .draw();
 
     auto fnDrawInput = [](int nX, int nY, int nDX, auto &rstLB, auto &rstBox, auto &rstLBCheck)
     {
@@ -214,8 +214,8 @@ void ProcessNew::processEvent(const SDL_Event &event)
             }
     }
 
-    m_TBCreate.processEvent(event, true);
-    m_TBExit  .processEvent(event, true);
+    m_tbCreate.processEvent(event, true);
+    m_tbExit  .processEvent(event, true);
 
     // widget idbox and pwdbox are not independent from each other
     // tab in one box will grant focus to another

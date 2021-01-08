@@ -37,6 +37,8 @@ class QuickAccessBoard: public Widget
         QuickAccessBoard(int, int, ProcessRun *, Widget *pwidget = nullptr, bool autoDelete = false);
 
     public:
-        void drawEx(int, int, int, int, int, int) override;
+        void drawEx(int, int, int, int, int, int) const override;
+
+    public:
         bool processEvent(const SDL_Event &, bool) override;
 };

@@ -31,7 +31,6 @@ class ProcessRun;
 class InventoryBoard: public Widget
 {
     private:
-        LabelBoard m_goldBoard;
         LabelBoard m_opNameBoard;
         WMDAniBoard m_wmdAniBoard;
 
@@ -48,11 +47,16 @@ class InventoryBoard: public Widget
         InventoryBoard(int, int, ProcessRun *, Widget * = nullptr, bool = false);
 
     private:
-        void drawItem(int, int, size_t, const PackBin &);
+        void drawGold() const;
+        void drawItem(int, int, size_t, const PackBin &) const;
 
     public:
         void update(double) override;
-        void drawEx(int, int, int, int, int, int) override;
+
+    public:
+        void drawEx(int, int, int, int, int, int) const override;
+
+    public:
         bool processEvent(const SDL_Event &, bool) override;
 
     private:

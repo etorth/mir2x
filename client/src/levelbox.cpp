@@ -115,7 +115,7 @@ bool LevelBox::processEvent(const SDL_Event &event, bool valid)
     }
 }
 
-void LevelBox::drawEx(int dstX, int dstY, int, int, int, int)
+void LevelBox::drawEx(int dstX, int dstY, int, int, int, int) const
 {
     // don't worry too much here
     // we always draw fully for LevelBox

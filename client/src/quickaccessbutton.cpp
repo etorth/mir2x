@@ -55,7 +55,7 @@ QuickAccessButton::QuickAccessButton(const std::function<void()> &fnOnClick, Wid
     std::tie(m_w, m_h) = SDLDevice::getTextureSize(texPtr);
 }
 
-void QuickAccessButton::drawEx(int dstX, int dstY, int, int, int, int)
+void QuickAccessButton::drawEx(int dstX, int dstY, int, int, int, int) const
 {
     switch(m_state){
         case BEVENT_ON:

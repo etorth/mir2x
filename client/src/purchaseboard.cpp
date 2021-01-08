@@ -260,7 +260,7 @@ void PurchaseBoard::update(double)
 {
 }
 
-void PurchaseBoard::drawEx(int dstX, int dstY, int, int, int, int)
+void PurchaseBoard::drawEx(int dstX, int dstY, int, int, int, int) const
 {
     if(auto pTexture = g_progUseDB->Retrieve(0X08000000 + m_extended)){
         g_sdlDevice->drawTexture(pTexture, dstX, dstY);
@@ -303,7 +303,6 @@ void PurchaseBoard::drawEx(int dstX, int dstY, int, int, int, int)
         0,
 
         colorf::RGBA(0XFF, 0XFF, 0X00, 0XFF),
-        this,
     };
 
     for(size_t startIndex = getStartIndex(), i = startIndex; i < std::min<size_t>(m_itemList.size(), startIndex + 4); ++i){
@@ -315,7 +314,7 @@ void PurchaseBoard::drawEx(int dstX, int dstY, int, int, int, int)
                 g_sdlDevice->drawTexture(texPtr, x() + drawX, y() + drawY);
 
                 label.setText(u8"%s", to_cstr(ir.name));
-                label.moveTo(dx() + startX + boxW + 10, startY + (boxH - label.h()) / 2);
+                label.moveTo(x() + startX + boxW + 10, y() + startY + (boxH - label.h()) / 2);
                 label.draw();
 
                 if(m_selected == (int)(i)){

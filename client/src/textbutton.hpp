@@ -143,18 +143,25 @@ class TextButton: public ButtonBase
         }
 
     public:
-        void drawEx(int,    // dst x on the screen coordinate
-                int,        // dst y on the screen coordinate
-                int,        // src x on the widget, take top-left as origin
-                int,        // src y on the widget, take top-left as origin
-                int,        // size to draw
-                int);       // size to draw
+        void drawEx(int,                 // dst x on the screen coordinate
+                    int,                 // dst y on the screen coordinate
+                    int,                 // src x on the widget, take top-left as origin
+                    int,                 // src y on the widget, take top-left as origin
+                    int,                 // size to draw
+                    int) const override; // size to draw
 
     public:
-        void FormatText(const char *, ...);
+        void update(double fUpdateTime) override
+        {
+            ButtonBase::update(fUpdateTime);
+            m_label.setFontColor(m_color[state()][0]);
+        }
 
     public:
-        const LabelBoard &GetlabelBoard()
+        void setText(const char *, ...);
+
+    public:
+        const LabelBoard &getlabelBoard()
         {
             return m_label;
         }

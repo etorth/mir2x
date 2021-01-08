@@ -630,20 +630,6 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           &m_middle,
       }
 
-    , m_locBoard
-      {
-          0, // need reset
-          109,
-
-          u8"",
-          1,
-          12,
-          0,
-
-          colorf::WHITE + 255,
-          &m_left,
-      }
-
     , m_logBoard
       {
           9,
@@ -707,7 +693,7 @@ void ControlBoard::update(double fUpdateTime)
     m_arcAniBoard.update(fUpdateTime);
 }
 
-void ControlBoard::drawLeft()
+void ControlBoard::drawLeft() const
 {
     const int nY0 = y();
 
@@ -753,22 +739,13 @@ void ControlBoard::drawLeft()
         }
     }
 
-    // draw current location
-    {
-        const int nX = m_processRun->getMyHero()->x();
-        const int nY = m_processRun->getMyHero()->y();
-        m_locBoard.setText(u8"%s: %d %d", DBCOM_MAPRECORD(m_processRun->MapID()).name, nX, nY);
-
-        const int locBoardStartX = (136 - m_locBoard.w()) / 2;
-        m_locBoard.drawEx(locBoardStartX, m_locBoard.y(), 0, 0, m_locBoard.w(), m_locBoard.h());
-    }
-
+    drawHeroLoc();
     m_buttonClose.draw();
     m_buttonMinize.draw();
     m_buttonQuickAccess.draw();
 }
 
-void ControlBoard::drawRight()
+void ControlBoard::drawRight() const
 {
     const int nY0 = y();
     const int nW0 = w();
@@ -817,7 +794,7 @@ std::tuple<int, int> ControlBoard::scheduleStretch(int dstSize, int srcSize)
     return {dstSize / srcSize, dstSize % srcSize};
 }
 
-void ControlBoard::drawMiddleDefault()
+void ControlBoard::drawMiddleDefault() const
 {
     const int nY0 = y();
     const int nW0 = w();
@@ -868,7 +845,7 @@ void ControlBoard::drawMiddleDefault()
     m_slider.draw();
 }
 
-void ControlBoard::drawLogBoardDefault()
+void ControlBoard::drawLogBoardDefault() const
 {
     const int dstX = 187;
     const int dstY = logBoardStartY();
@@ -881,7 +858,7 @@ void ControlBoard::drawLogBoardDefault()
     m_logBoard.drawEx(dstX, dstY, srcX, srcY, srcW, srcH);
 }
 
-void ControlBoard::drawLogBoardExpand()
+void ControlBoard::drawLogBoardExpand() const
 {
     const int dstX = 187;
     const int dstY = logBoardStartY();
@@ -895,7 +872,7 @@ void ControlBoard::drawLogBoardExpand()
     m_logBoard.drawEx(dstX, dstY, srcX, srcY, srcW, srcH);
 }
 
-void ControlBoard::drawMiddleExpand()
+void ControlBoard::drawMiddleExpand() const
 {
     const int nY0 = y();
     const int nW0 = w();
@@ -971,7 +948,7 @@ void ControlBoard::drawMiddleExpand()
     m_slider.draw();
 }
 
-void ControlBoard::drawEx(int, int, int, int, int, int)
+void ControlBoard::drawEx(int, int, int, int, int, int) const
 {
     drawLeft();
 
@@ -1207,7 +1184,7 @@ void ControlBoard::onWindowResize(int winW, int winH)
     setButtonLoc();
 }
 
-void ControlBoard::drawInputGreyBackground()
+void ControlBoard::drawInputGreyBackground() const
 {
     if(!m_cmdLine.focus()){
         return;
@@ -1222,4 +1199,27 @@ void ControlBoard::drawInputGreyBackground()
     else{
         g_sdlDevice->fillRectangle(color, m_middle.x() + 7, m_middle.y() + 104, m_middle.w() - 110, 17);
     }
+}
+
+void ControlBoard::drawHeroLoc() const
+{
+    const auto locStr = str_printf(u8"%s: %d %d", DBCOM_MAPRECORD(m_processRun->MapID()).name, m_processRun->getMyHero()->x(), m_processRun->getMyHero()->y());
+    LabelBoard locBoard
+    {
+        0, // need reset
+        0,
+
+        locStr.c_str(),
+        1,
+        12,
+        0,
+
+        colorf::WHITE + 255,
+    };
+
+    const int locBoardStartX = (136 - locBoard.w()) / 2;
+    const int locBoardStartY = 109;
+
+    locBoard.moveBy(m_left.x() + locBoardStartX, m_left.y() + locBoardStartY);
+    locBoard.draw();
 }

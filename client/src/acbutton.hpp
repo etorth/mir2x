@@ -45,7 +45,7 @@ class ACButton: public ButtonBase
         ACButton(int, int, ProcessRun *, const std::vector<std::string> &, Widget * = nullptr, bool = false);
 
     public:
-        void drawEx(int, int, int, int, int, int) override;
+        void drawEx(int, int, int, int, int, int) const override;
 
     private:
         void setLabel();

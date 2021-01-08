@@ -123,7 +123,7 @@ bool InputLine::processEvent(const SDL_Event &event, bool valid)
     }
 }
 
-void InputLine::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int srcH)
+void InputLine::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int srcH) const
 {
     int srcCropX = srcX;
     int srcCropY = srcY;

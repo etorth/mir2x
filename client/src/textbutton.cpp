@@ -26,7 +26,7 @@
 extern Log *g_log;
 extern SDLDevice *g_sdlDevice;
 
-void TextButton::drawEx(int nDstX, int nDstY, int nSrcX, int nSrcY, int nW, int nH)
+void TextButton::drawEx(int nDstX, int nDstY, int nSrcX, int nSrcY, int nW, int nH) const
 {
     const auto bgColor = colorf::ARGB2RGBA(m_color[state()][1]);
     g_sdlDevice->fillRectangle(bgColor, nDstX, nDstY, nW, nH);
@@ -47,12 +47,11 @@ void TextButton::drawEx(int nDstX, int nDstY, int nSrcX, int nSrcY, int nW, int 
     int nLBH = nLBH0;
 
     if(mathf::rectangleOverlapRegion(nSrcX, nSrcY, nW, nH, &nLBX, &nLBY, &nLBW, &nLBH)){
-        m_label.setFontColor(m_color[state()][0]);
         m_label.drawEx(nDstX + (nLBX - nSrcX) + offX(), nDstY + (nLBY - nSrcY) + offY(), nLBX - nLBX0, nLBY - nLBY0, nLBW, nLBH);
     }
 }
 
-void TextButton::FormatText(const char *format, ...)
+void TextButton::setText(const char *format, ...)
 {
     std::string text;
     str_format(format, text);

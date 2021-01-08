@@ -47,7 +47,7 @@ void NotifyBoard::addLog(const char8_t * format, ...)
     }
 }
 
-void NotifyBoard::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int srcH)
+void NotifyBoard::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int srcH) const
 {
     int startX = 0;
     int startY = 0;

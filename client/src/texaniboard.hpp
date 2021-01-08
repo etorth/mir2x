@@ -37,7 +37,9 @@ class TexAniBoard: public Widget
 
     public:
         void update(double) override;
-        void drawEx(int, int, int, int, int, int) override;
+
+    public:
+        void drawEx(int, int, int, int, int, int) const override;
 
     private:
         std::tuple<int, uint8_t> getDrawFrame() const;

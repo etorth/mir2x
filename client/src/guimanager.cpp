@@ -96,7 +96,7 @@ GUIManager::GUIManager(ProcessRun *proc)
     }
 }
 
-void GUIManager::drawEx(int, int, int, int, int, int)
+void GUIManager::drawEx(int, int, int, int, int, int) const
 {
     m_NPCChatBoard .draw();
     m_controlBoard .draw();

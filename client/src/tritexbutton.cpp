@@ -24,7 +24,7 @@
 extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 
-void TritexButton::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int srcH)
+void TritexButton::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int srcH) const
 {
     if(auto texPtr = g_progUseDB->Retrieve(m_texID[m_state])){
         const int offX = m_offset[m_state][0];

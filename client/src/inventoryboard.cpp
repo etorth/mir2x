@@ -27,20 +27,6 @@ extern SDLDevice *g_sdlDevice;
 
 InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget, bool autoDelete)
     : Widget(nX, nY, 0, 0, pwidget, autoDelete)
-    , m_goldBoard
-      {
-          0, // reset by new width
-          0,
-          u8"0",
-
-          1,
-          12,
-          0,
-
-          colorf::RGBA(0XFF, 0XFF, 0X00, 0XFF),
-          this,
-      }
-
     , m_opNameBoard
       {
           132,
@@ -103,12 +89,10 @@ InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget
     if(!texPtr){
         throw fflerror("no valid inventory frame texture");
     }
-
     std::tie(m_w, m_h) = SDLDevice::getTextureSize(texPtr);
-    m_goldBoard.moveTo(105 - m_goldBoard.w() / 2, 401);
 }
 
-void InventoryBoard::drawItem(int dstX, int dstY, size_t startRow, const PackBin &bin)
+void InventoryBoard::drawItem(int dstX, int dstY, size_t startRow, const PackBin &bin) const
 {
     if(true
             && bin
@@ -155,23 +139,20 @@ void InventoryBoard::update(double fUpdateTime)
     m_wmdAniBoard.update(fUpdateTime);
 }
 
-void InventoryBoard::drawEx(int dstX, int dstY, int, int, int, int)
+void InventoryBoard::drawEx(int dstX, int dstY, int, int, int, int) const
 {
     if(auto pTexture = g_progUseDB->Retrieve(0X0000001B)){
         g_sdlDevice->drawTexture(pTexture, dstX, dstY);
     }
 
-    if(auto pMyHero = m_processRun->getMyHero()){
-        m_goldBoard.setText(u8"%s", getGoldStr().c_str());
-        m_goldBoard.moveTo(105 - m_goldBoard.w() / 2, 401);
-
+    if(auto myHeroPtr = m_processRun->getMyHero()){
         const size_t startRow = getStartRow();
-        for(auto &bin: pMyHero->getInvPack().GetPackBinList()){
+        for(auto &bin: myHeroPtr->getInvPack().GetPackBinList()){
             drawItem(dstX, dstY, startRow, bin);
         }
     }
 
-    m_goldBoard  .draw();
+    drawGold();
     m_opNameBoard.draw();
     m_wmdAniBoard.draw();
     m_slider     .draw();
@@ -281,4 +262,23 @@ size_t InventoryBoard::getStartRow() const
         return 0;
     }
     return std::lround((rowCount - rowGfxCount) * m_slider.getValue());
+}
+
+void InventoryBoard::drawGold() const
+{
+    LabelBoard goldBoard
+    {
+        0, // reset by new width
+        0,
+        to_u8cstr(getGoldStr()),
+
+        1,
+        12,
+        0,
+
+        colorf::RGBA(0XFF, 0XFF, 0X00, 0XFF),
+    };
+
+    goldBoard.moveBy(x() + 105 - goldBoard.w() / 2, y() + 401);
+    goldBoard.draw();
 }

@@ -97,8 +97,8 @@ class ProcessNew: public Process
         LabelBoard m_LBCheckPwdConfirm;
 
     private:
-        TextButton m_TBCreate;
-        TextButton m_TBExit;
+        TextButton m_tbCreate;
+        TextButton m_tbExit;
 
     private:
         std::set<std::string> m_IDCache[2];

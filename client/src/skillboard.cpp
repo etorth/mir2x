@@ -112,12 +112,12 @@ SkillBoard::MagicIconButton::MagicIconButton(int argX, int argY, SkillBoard::Mag
     m_h = m_level.dy() + m_level.h();
 }
 
-void SkillBoard::MagicIconButton::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int srcH)
+void SkillBoard::MagicIconButton::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int srcH) const
 {
     // to make sure the key always draw on top
     // otherwise WidgetGroup changes draw order when triggers icon callback, check WidgetGroup::drawEx()
 
-    const auto fnDrawWidget = [dstX, dstY, srcX, srcY, srcW, srcH, this](Widget *widgetPtr)
+    const auto fnDrawWidget = [dstX, dstY, srcX, srcY, srcW, srcH, this](const Widget *widgetPtr)
     {
         if(!widgetPtr->show()){
             return;
@@ -172,7 +172,7 @@ SkillBoard::SkillPage::SkillPage(uint32_t pageImage, Widget *widgetPtr, bool aut
     }();
 }
 
-void SkillBoard::SkillPage::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int srcH)
+void SkillBoard::SkillPage::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int srcH) const
 {
     if(auto texPtr = g_progUseDB->Retrieve(m_pageImage)){
         int srcXCrop = srcX;
@@ -387,7 +387,7 @@ SkillBoard::SkillBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget, bool a
     }
 }
 
-void SkillBoard::drawEx(int dstX, int dstY, int, int, int, int)
+void SkillBoard::drawEx(int dstX, int dstY, int, int, int, int) const
 {
     if(auto texPtr = g_progUseDB->Retrieve(0X05000000)){
         g_sdlDevice->drawTexture(texPtr, dstX, dstY);

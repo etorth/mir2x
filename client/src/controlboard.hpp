@@ -125,8 +125,7 @@ class ControlBoard: public Widget
         TexVSlider m_slider;
 
     private:
-        InputLine  m_cmdLine;
-        LabelBoard m_locBoard;
+        InputLine m_cmdLine;
 
     private:
         LayoutBoard m_logBoard;
@@ -143,19 +142,22 @@ class ControlBoard: public Widget
         ~ControlBoard() = default;
 
     public:
-        void drawEx(int, int, int, int, int, int);
+        void drawEx(int, int, int, int, int, int) const override;
 
     private:
         static std::tuple<int, int> scheduleStretch(int, int);
 
     private:
-        void drawLeft();
-        void drawRight();
-        void drawMiddleExpand();
-        void drawMiddleDefault();
-        void drawLogBoardExpand();
-        void drawLogBoardDefault();
-        void drawInputGreyBackground();
+        void drawHeroLoc() const;
+
+    private:
+        void drawLeft() const;
+        void drawRight() const;
+        void drawMiddleExpand() const;
+        void drawMiddleDefault() const;
+        void drawLogBoardExpand() const;
+        void drawLogBoardDefault() const;
+        void drawInputGreyBackground() const;
 
     public:
         void update(double) override;

@@ -83,7 +83,7 @@ class InputLine: public Widget
         bool processEvent(const SDL_Event &, bool);
 
     public:
-        void drawEx(int, int, int, int, int, int) override;
+        void drawEx(int, int, int, int, int, int) const override;
 
     public:
         void update(double ms) override

@@ -104,7 +104,7 @@ void PlayerStatusBoard::update(double)
 {
 }
 
-void PlayerStatusBoard::drawEx(int dstX, int dstY, int, int, int, int)
+void PlayerStatusBoard::drawEx(int dstX, int dstY, int, int, int, int) const
 {
     if(auto pTexture = g_progUseDB->Retrieve(0X06000000)){
         g_sdlDevice->drawTexture(pTexture, dstX, dstY);

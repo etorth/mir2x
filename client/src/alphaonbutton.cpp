@@ -81,7 +81,7 @@ AlphaOnButton::AlphaOnButton(
     m_h = texH;
 }
 
-void AlphaOnButton::drawEx(int dstX, int dstY, int, int, int, int)
+void AlphaOnButton::drawEx(int dstX, int dstY, int, int, int, int) const
 {
     switch(m_state){
         case BEVENT_ON:

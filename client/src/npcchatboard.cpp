@@ -105,7 +105,7 @@ NPCChatBoard::NPCChatBoard(ProcessRun *proc, Widget *pwidget, bool autoDelete)
     show(false);
 }
 
-void NPCChatBoard::drawWithNPCFace()
+void NPCChatBoard::drawWithNPCFace() const
 {
     // |<------------386 ----------->|
     // +-----------------------------+ ---
@@ -128,7 +128,7 @@ void NPCChatBoard::drawWithNPCFace()
     m_buttonClose.draw();
 }
 
-void NPCChatBoard::drawPlain()
+void NPCChatBoard::drawPlain() const
 {
     // |<------------386 ----------->|
     // +-----------------------------+ ---
@@ -144,7 +144,7 @@ void NPCChatBoard::drawPlain()
     m_buttonClose.draw();
 }
 
-void NPCChatBoard::drawEx(int, int, int, int, int, int)
+void NPCChatBoard::drawEx(int, int, int, int, int, int) const
 {
     if(g_progUseDB->Retrieve(getNPCFaceKey())){
         drawWithNPCFace();

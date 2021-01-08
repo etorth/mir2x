@@ -40,14 +40,14 @@ class NPCChatBoard: public Widget
         NPCChatBoard(ProcessRun *, Widget *pwidget = nullptr, bool autoDelete = false);
 
     public:
-        void drawEx(int, int, int, int, int, int) override;
+        void drawEx(int, int, int, int, int, int) const override;
 
     private:
         void drawFrame() const;
 
     private:
-        void drawPlain();
-        void drawWithNPCFace();
+        void drawPlain() const;
+        void drawWithNPCFace() const;
 
     public:
         void loadXML(uint64_t, const char *);

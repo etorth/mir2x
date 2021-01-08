@@ -67,7 +67,7 @@ class SkillBoard: public Widget
                 MagicIconButton(int, int, SkillBoard::MagicIconData *, Widget *widgetPtr = nullptr, bool autoDelete = false);
 
             public:
-                void drawEx(int, int, int, int, int, int) override;
+                void drawEx(int, int, int, int, int, int) const override;
 
             public:
                 bool processEvent(const SDL_Event &event, bool valid) override
@@ -124,7 +124,7 @@ class SkillBoard: public Widget
                 }
 
             public:
-                void drawEx(int, int, int, int, int, int) override;
+                void drawEx(int, int, int, int, int, int) const override;
         };
 
     private:
@@ -158,7 +158,11 @@ class SkillBoard: public Widget
 
     public:
         void update(double) override;
-        void drawEx(int, int, int, int, int, int) override;
+
+    public:
+        void drawEx(int, int, int, int, int, int) const override;
+
+    public:
         bool processEvent(const SDL_Event &, bool) override;
 
     private:

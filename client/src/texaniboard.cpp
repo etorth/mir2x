@@ -59,7 +59,7 @@ void TexAniBoard::update(double fUpdateTime)
     m_accuTime += fUpdateTime;
 }
 
-void TexAniBoard::drawEx(int dstX, int dstY, int, int, int, int)
+void TexAniBoard::drawEx(int dstX, int dstY, int, int, int, int) const
 {
     const auto [frame, alpha] = getDrawFrame();
     const uint32_t currTexId = m_texSeq[(frame + 0) % m_texSeq.size()];

@@ -45,7 +45,7 @@ TexVSlider::TexVSlider(int x, int y, int h, int paramIndex, const std::function<
     , m_sliderParamIndex(paramIndex)
 {}
 
-void TexVSlider::drawEx(int, int, int, int, int, int)
+void TexVSlider::drawEx(int, int, int, int, int, int) const
 {
     if(g_clientArgParser->debugSlider){
         g_sdlDevice->drawRectangle(colorf::GREEN + 255, x(), y(), w(), h());

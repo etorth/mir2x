@@ -71,7 +71,7 @@ QuickAccessBoard::QuickAccessBoard(int x, int y, ProcessRun *proc, Widget *pwidg
     std::tie(m_w, m_h) = SDLDevice::getTextureSize(texPtr);
 }
 
-void QuickAccessBoard::drawEx(int dstX, int dstY, int, int, int, int)
+void QuickAccessBoard::drawEx(int dstX, int dstY, int, int, int, int) const
 {
     auto texPtr = g_progUseDB->Retrieve(m_texID);
     if(!texPtr){

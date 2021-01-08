@@ -75,5 +75,5 @@ class TexVSlider: public Slider
         }
 
     public:
-        void drawEx(int, int, int, int, int, int) override;
+        void drawEx(int, int, int, int, int, int) const override;
 };

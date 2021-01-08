@@ -57,7 +57,11 @@ class PurchaseBoard: public Widget
 
     public:
         void update(double) override;
-        void drawEx(int, int, int, int, int, int) override;
+
+    public:
+        void drawEx(int, int, int, int, int, int) const override;
+
+    public:
         bool processEvent(const SDL_Event &, bool) override;
 
     public:
