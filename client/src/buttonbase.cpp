@@ -23,13 +23,13 @@
 bool ButtonBase::processEvent(const SDL_Event &event, bool valid)
 {
     if(!valid){
-        if(m_state != BEVENT_OFF){
+        if(getState() != BEVENT_OFF){
             if(m_onOverOut){
                 m_onOverOut();
             }
         }
 
-        m_state = BEVENT_OFF;
+        setState(BEVENT_OFF);
         return focusConsume(this, false);
     }
 
@@ -41,11 +41,11 @@ bool ButtonBase::processEvent(const SDL_Event &event, bool valid)
                         m_onClick();
                     }
 
-                    m_state = BEVENT_ON;
+                    setState(BEVENT_ON);
                     return focusConsume(this, true);
                 }
                 else{
-                    m_state = BEVENT_OFF;
+                    setState(BEVENT_OFF);
                     return focusConsume(this, false);
                 }
             }
@@ -57,34 +57,34 @@ bool ButtonBase::processEvent(const SDL_Event &event, bool valid)
                         m_onClick();
                     }
 
-                    m_state = BEVENT_DOWN;
+                    setState(BEVENT_DOWN);
                     return focusConsume(this, true);
                 }
                 else{
-                    m_state = BEVENT_OFF;
+                    setState(BEVENT_OFF);
                     return focusConsume(this, false);
                 }
             }
         case SDL_MOUSEMOTION:
             {
                 if(in(event.motion.x, event.motion.y)){
-                    if(m_state != BEVENT_ON){
+                    if(getState() != BEVENT_ON){
                         if(m_onOverIn){
                             m_onOverIn();
                         }
                     }
 
-                    m_state = BEVENT_ON;
+                    setState(BEVENT_ON);
                     return focusConsume(this, true);
                 }
                 else{
-                    if(m_state != BEVENT_OFF){
+                    if(getState() != BEVENT_OFF){
                         if(m_onOverOut){
                             m_onOverOut();
                         }
                     }
 
-                    m_state = BEVENT_OFF;
+                    setState(BEVENT_OFF);
                     return focusConsume(this, false);
                 }
             }

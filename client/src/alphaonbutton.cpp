@@ -83,7 +83,7 @@ AlphaOnButton::AlphaOnButton(
 
 void AlphaOnButton::drawEx(int dstX, int dstY, int, int, int, int) const
 {
-    switch(m_state){
+    switch(getState()){
         case BEVENT_ON:
             {
                 auto texPtr = g_sdlDevice->getCover(m_onRadius);

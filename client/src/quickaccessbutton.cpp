@@ -57,7 +57,7 @@ QuickAccessButton::QuickAccessButton(const std::function<void()> &fnOnClick, Wid
 
 void QuickAccessButton::drawEx(int dstX, int dstY, int, int, int, int) const
 {
-    switch(m_state){
+    switch(getState()){
         case BEVENT_ON:
             {
                 constexpr int radius = 9;

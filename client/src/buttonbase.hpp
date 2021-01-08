@@ -34,8 +34,9 @@
 
 class ButtonBase: public Widget
 {
-    protected:
-        int m_state;
+    private:
+        int m_state     = BEVENT_OFF;
+        int m_lastState = BEVENT_OFF;
 
     protected:
         const bool m_onClickDone;
@@ -68,7 +69,6 @@ class ButtonBase: public Widget
                 Widget *widgetPtr   = nullptr,
                 bool    autoFree    = false)
             : Widget(argX, argY, argW, argH, widgetPtr, autoFree)
-            , m_state(BEVENT_OFF)
             , m_onClickDone(onClickDone)
             , m_offset
               {
@@ -93,17 +93,30 @@ class ButtonBase: public Widget
     protected:
         int offX() const
         {
-            return m_offset[state()][0];
+            return m_offset[getState()][0];
         }
 
         int offY() const
         {
-            return m_offset[state()][1];
+            return m_offset[getState()][1];
         }
 
-        int state() const
+    public:
+        int getState() const
         {
             return m_state;
+        }
+
+        int getLastState() const
+        {
+            return m_lastState;
+        }
+
+    public:
+        void setState(int state)
+        {
+            m_lastState = m_state;
+            m_state = state;
         }
 
     public:
@@ -111,6 +124,6 @@ class ButtonBase: public Widget
         // sometimes when we invoke the callback it changes the button location
         void setOff()
         {
-            m_state = BEVENT_OFF;
+            setState(BEVENT_OFF);
         }
 };

@@ -154,7 +154,7 @@ class TextButton: public ButtonBase
         void update(double fUpdateTime) override
         {
             ButtonBase::update(fUpdateTime);
-            m_label.setFontColor(m_color[state()][0]);
+            m_label.setFontColor(m_color[getState()][0]);
         }
 
     public:

@@ -26,12 +26,12 @@ extern SDLDevice *g_sdlDevice;
 
 void TritexButton::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int srcH) const
 {
-    if(auto texPtr = g_progUseDB->Retrieve(m_texID[m_state])){
-        const int offX = m_offset[m_state][0];
-        const int offY = m_offset[m_state][1];
+    if(auto texPtr = g_progUseDB->Retrieve(m_texID[getState()])){
+        const int offX = m_offset[getState()][0];
+        const int offY = m_offset[getState()][1];
         const auto modG = [this]() -> uint8_t
         {
-            if(m_alterColor && (m_state != BEVENT_OFF)){
+            if(m_alterColor && (getState() != BEVENT_OFF)){
                 return 200;
             }
             return 255;

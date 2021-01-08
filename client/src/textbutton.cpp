@@ -28,10 +28,10 @@ extern SDLDevice *g_sdlDevice;
 
 void TextButton::drawEx(int nDstX, int nDstY, int nSrcX, int nSrcY, int nW, int nH) const
 {
-    const auto bgColor = colorf::ARGB2RGBA(m_color[state()][1]);
+    const auto bgColor = colorf::ARGB2RGBA(m_color[getState()][1]);
     g_sdlDevice->fillRectangle(bgColor, nDstX, nDstY, nW, nH);
 
-    const auto frameLineColor = colorf::ARGB2RGBA(m_frameLineColor[state()]);
+    const auto frameLineColor = colorf::ARGB2RGBA(m_frameLineColor[getState()]);
     g_sdlDevice->drawWidthRectangle(frameLineColor, m_frameLineWidth, nDstX, nDstY, nW, nH);
 
     int nLBX0 = (w() - m_label.w()) / 2;

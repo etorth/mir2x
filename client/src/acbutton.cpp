@@ -114,7 +114,7 @@ void ACButton::drawEx(int dstX, int dstY, int, int, int, int) const
     g_sdlDevice->drawTexture(texPtr, dstX, dstY);
     m_labelBoard.drawEx(dstX + w() + 5, dstY, 0, 0, m_labelBoard.w(), m_labelBoard.h());
 
-    switch(m_state){
+    switch(getState()){
         case BEVENT_ON:
         case BEVENT_DOWN:
             {
