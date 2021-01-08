@@ -266,7 +266,7 @@ size_t InventoryBoard::getStartRow() const
 
 void InventoryBoard::drawGold() const
 {
-    LabelBoard goldBoard
+    const LabelBoard goldBoard
     {
         0, // reset by new width
         0,
@@ -278,7 +278,5 @@ void InventoryBoard::drawGold() const
 
         colorf::RGBA(0XFF, 0XFF, 0X00, 0XFF),
     };
-
-    goldBoard.moveBy(x() + 105 - goldBoard.w() / 2, y() + 401);
-    goldBoard.draw();
+    goldBoard.drawAt(DIR_NONE, x() + 106, y() + 409);
 }
