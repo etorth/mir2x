@@ -35,8 +35,38 @@
 class ButtonBase: public Widget
 {
     private:
-        int m_state     = BEVENT_OFF;
-        int m_lastState = BEVENT_OFF;
+        class InnButtonState final
+        {
+            // encapsulate it as a class
+            // don't let button class to manipulate m_state directly
+            private:
+                int m_state[2]
+                {
+                    BEVENT_OFF,
+                    BEVENT_OFF,
+                };
+
+            public:
+                void setState(int state)
+                {
+                    m_state[0] = m_state[1];
+                    m_state[1] = state;
+                }
+
+            public:
+                int getState() const
+                {
+                    return m_state[1];
+                }
+
+                int getLastState() const
+                {
+                    return m_state[0];
+                }
+        };
+
+    private:
+        InnButtonState m_state;
 
     protected:
         const bool m_onClickDone;
@@ -104,19 +134,18 @@ class ButtonBase: public Widget
     public:
         int getState() const
         {
-            return m_state;
+            return m_state.getState();
         }
 
         int getLastState() const
         {
-            return m_lastState;
+            return m_state.getLastState();
         }
 
     public:
         void setState(int state)
         {
-            m_lastState = m_state;
-            m_state = state;
+            m_state.setState(state);
         }
 
     public:
