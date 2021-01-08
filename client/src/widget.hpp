@@ -20,6 +20,7 @@
 
 #pragma once
 #include <list>
+#include <array>
 #include <cstdint>
 #include <SDL2/SDL.h>
 #include "mathf.hpp"
@@ -98,6 +99,54 @@ class Widget
                             int,            // src y on the widget, take top-left as origin
                             int,            // size to draw
                             int) const = 0; // size to draw
+
+    public:
+        void drawAt(
+                int dir,
+                int dstX,
+                int dstY,
+
+                int dstRgnX = 0,
+                int dstRgnY = 0,
+
+                int dstRgnW = -1,
+                int dstRgnH = -1) const
+        {
+            const auto [dstUpLeftX, dstUpLeftY] = [dir, dstX, dstY, this]() -> std::array<int, 2>
+            {
+                switch(dir){
+                    case DIR_UPLEFT   : return {dstX          , dstY          };
+                    case DIR_UP       : return {dstX - w() / 2, dstY          };
+                    case DIR_UPRIGHT  : return {dstX - w()    , dstY          };
+                    case DIR_RIGHT    : return {dstX - w()    , dstY - h() / 2};
+                    case DIR_DOWNRIGHT: return {dstX - w()    , dstY - h()    };
+                    case DIR_DOWN     : return {dstX - w() / 2, dstY - h()    };
+                    case DIR_DOWNLEFT : return {dstX          , dstY - h()    };
+                    case DIR_LEFT     : return {dstX          , dstY - h() / 2};
+                    default           : return {dstX - w() / 2, dstY - h() / 2};
+                }
+            }();
+
+            int srcXCrop = 0;
+            int srcYCrop = 0;
+            int dstXCrop = dstUpLeftX;
+            int dstYCrop = dstUpLeftY;
+            int srcWCrop = w();
+            int srcHCrop = h();
+
+            if(mathf::ROICrop(
+                        &srcXCrop, &srcYCrop,
+                        &srcWCrop, &srcHCrop,
+                        &dstXCrop, &dstYCrop,
+
+                        w(),
+                        h(),
+
+                        0, 0, -1, -1,
+                        dstRgnX, dstRgnY, dstRgnW, dstRgnH)){
+                drawEx(dstXCrop, dstYCrop, srcXCrop, srcYCrop, srcWCrop, srcHCrop);
+            }
+        }
 
     public:
         virtual void update(double fUpdateTime)
