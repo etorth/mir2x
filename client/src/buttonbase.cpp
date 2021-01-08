@@ -25,9 +25,7 @@ bool ButtonBase::processEvent(const SDL_Event &event, bool valid)
     if(!valid){
         if(getState() != BEVENT_OFF){
             setState(BEVENT_OFF);
-            if(m_onOverOut){
-                m_onOverOut();
-            }
+            onOverOut();
         }
         return focusConsume(this, false);
     }
@@ -38,8 +36,8 @@ bool ButtonBase::processEvent(const SDL_Event &event, bool valid)
                 if(in(event.button.x, event.button.y)){
                     if(getState() != BEVENT_ON){
                         setState(BEVENT_ON);
-                        if(m_onClickDone && m_onClick){
-                            m_onClick();
+                        if(m_onClickDone){
+                            onClick();
                         }
                     }
                     return focusConsume(this, true);
@@ -47,9 +45,7 @@ bool ButtonBase::processEvent(const SDL_Event &event, bool valid)
                 else{
                     if(getState() != BEVENT_OFF){
                         setState(BEVENT_OFF);
-                        if(m_onOverOut){
-                            m_onOverOut();
-                        }
+                        onOverOut();
                     }
                     return focusConsume(this, false);
                 }
@@ -60,8 +56,8 @@ bool ButtonBase::processEvent(const SDL_Event &event, bool valid)
                 if(in(event.button.x, event.button.y)){
                     if(getState() != BEVENT_DOWN){
                         setState(BEVENT_DOWN);
-                        if(!m_onClickDone && m_onClick){
-                            m_onClick();
+                        if(!m_onClickDone){
+                            onClick();
                         }
                     }
                     return focusConsume(this, true);
@@ -69,9 +65,7 @@ bool ButtonBase::processEvent(const SDL_Event &event, bool valid)
                 else{
                     if(getState() != BEVENT_OFF){
                         setState(BEVENT_OFF);
-                        if(m_onOverOut){
-                            m_onOverOut();
-                        }
+                        onOverOut();
                     }
                     return focusConsume(this, false);
                 }
@@ -83,9 +77,7 @@ bool ButtonBase::processEvent(const SDL_Event &event, bool valid)
                         case BEVENT_OFF:
                             {
                                 setState(BEVENT_ON);
-                                if(m_onOverIn){
-                                    m_onOverIn();
-                                }
+                                onOverIn();
                                 break;
                             }
                         case BEVENT_DOWN:
@@ -96,9 +88,7 @@ bool ButtonBase::processEvent(const SDL_Event &event, bool valid)
                                 }
                                 else{
                                     setState(BEVENT_ON);
-                                    if(m_onOverIn){
-                                        m_onOverIn();
-                                    }
+                                    onOverIn();
                                 }
                                 break;
                             }
@@ -112,9 +102,7 @@ bool ButtonBase::processEvent(const SDL_Event &event, bool valid)
                 else{
                     if(getState() != BEVENT_OFF){
                         setState(BEVENT_OFF);
-                        if(m_onOverOut){
-                            m_onOverOut();
-                        }
+                        onOverOut();
                     }
                     return focusConsume(this, false);
                 }
@@ -124,4 +112,29 @@ bool ButtonBase::processEvent(const SDL_Event &event, bool valid)
                 return focusConsume(this, false);
             }
     }
+}
+
+void ButtonBase::onClick()
+{
+    if(m_onClick){
+        m_onClick();
+    }
+}
+
+void ButtonBase::onOverIn()
+{
+    if(m_onOverIn){
+        m_onOverIn();
+    }
+}
+
+void ButtonBase::onOverOut()
+{
+    if(m_onOverOut){
+        m_onOverOut();
+    }
+}
+
+void ButtonBase::onBadEvent()
+{
 }

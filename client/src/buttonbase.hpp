@@ -155,4 +155,10 @@ class ButtonBase: public Widget
         {
             setState(BEVENT_OFF);
         }
+
+    private:
+        void onClick();
+        void onOverIn();
+        void onOverOut();
+        void onBadEvent();
 };
