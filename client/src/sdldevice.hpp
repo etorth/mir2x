@@ -31,15 +31,15 @@
 class SDLDevice final
 {
     public:
-        struct EventLocation
+        struct SDLEventPLoc
         {
-            int  x = -1;
-            int  y = -1;
-            bool hasLocation = false;
+            const int  x = -1;
+            const int  y = -1;
+            const bool hasPLoc = false;
 
             operator bool () const
             {
-                return hasLocation;
+                return hasPLoc;
             }
         };
 
@@ -317,7 +317,7 @@ class SDLDevice final
        SDL_Texture *getCover(int);
 
     public:
-       static EventLocation getEventLocation(const SDL_Event &event)
+       static SDLEventPLoc getEventPLoc(const SDL_Event &event)
        {
            switch(event.type){
                case SDL_MOUSEMOTION:
