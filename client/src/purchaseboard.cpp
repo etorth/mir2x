@@ -337,6 +337,17 @@ void PurchaseBoard::drawEx(int dstX, int dstY, int, int, int, int)
             }
         case 2:
             {
+                if(const auto &ir = DBCOM_ITEMRECORD(selectedItemID())){
+                    if(auto texPtr = g_itemDB->Retrieve(ir.pkgGfxID | 0X02000000)){
+                        constexpr int rightStartX = 303;
+                        constexpr int rightStartY =  16;
+                        const auto [texW, texH] = SDLDevice::getTextureSize(texPtr);
+                        const int rightDrawX = rightStartX + (boxW - texW) / 2;
+                        const int rightDrawY = rightStartY + (boxH - texH) / 2;
+                        g_sdlDevice->drawTexture(texPtr, x() + rightDrawX, y() + rightDrawY);
+                    }
+                }
+
                 m_closeExt2Button .draw();
                 m_selectExt2Button.draw();
                 break;
@@ -425,6 +436,9 @@ bool PurchaseBoard::processEvent(const SDL_Event &event, bool valid)
                 for(int i = 0; i < 4; ++i){
                     if(mathf::pointInRectangle<int>(event.button.x - x(), event.button.y - y(), 19, 15 + (57 - 15) * i, 252 - 19, 53 - 15)){
                         selected = i;
+                        if(event.button.clicks >= 2){
+                            m_extended = 2;
+                        }
                         break;
                     }
                 }

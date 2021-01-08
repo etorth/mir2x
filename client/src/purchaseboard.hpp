@@ -27,8 +27,8 @@ class ProcessRun;
 class PurchaseBoard: public Widget
 {
     private:
-        int m_extended =  0;
-        int m_selected = -1;
+        int m_extended = 0;
+        int m_selected = 0;
         uint64_t m_npcUID = 0;
         std::vector<uint32_t> m_itemList;
 
