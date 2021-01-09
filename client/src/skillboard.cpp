@@ -38,6 +38,14 @@ SkillBoard::MagicIconButton::MagicIconButton(int argX, int argY, SkillBoard::Mag
           autoDelete,
       }
 
+    , m_magicIconDataPtr([iconDataPtr]()
+      {
+          if(!iconDataPtr){
+              throw fflerror("invalid iconDataPtr: nullptr");
+          }
+          return iconDataPtr;
+      }())
+
     , m_key
       {
           2,
@@ -77,20 +85,13 @@ SkillBoard::MagicIconButton::MagicIconButton(int argX, int argY, SkillBoard::Mag
           0,
 
           {
-              DBCOM_MAGICRECORD(iconDataPtr->magicID).icon,
-              DBCOM_MAGICRECORD(iconDataPtr->magicID).icon,
-              DBCOM_MAGICRECORD(iconDataPtr->magicID).icon,
+              DBCOM_MAGICRECORD(m_magicIconDataPtr->magicID).icon,
+              DBCOM_MAGICRECORD(m_magicIconDataPtr->magicID).icon,
+              DBCOM_MAGICRECORD(m_magicIconDataPtr->magicID).icon,
           },
 
-          [iconDataPtr, this]()
-          {
-              iconDataPtr->board->setText(str_printf(u8"元素【%s】%s", to_cstr(DBCOM_MAGICRECORD(iconDataPtr->magicID).elem), to_cstr(DBCOM_MAGICRECORD(iconDataPtr->magicID).name)));
-          },
-
-          [iconDataPtr, this]()
-          {
-              iconDataPtr->board->setText(str_printf(u8"元素【%s】", to_cstr(magicElemName(iconDataPtr->board->selectedElem()))));
-          },
+          nullptr,
+          nullptr,
           nullptr,
 
           0,
@@ -104,8 +105,8 @@ SkillBoard::MagicIconButton::MagicIconButton(int argX, int argY, SkillBoard::Mag
           false,
       }
 {
-    setKey(iconDataPtr->key);
-    setLevel(iconDataPtr->level);
+    setKey(m_magicIconDataPtr->key);
+    setLevel(m_magicIconDataPtr->level);
 
     m_level.moveTo(m_icon.w() - 2, m_icon.h() - 1);
     m_w = m_level.dx() + m_level.w();
@@ -196,15 +197,15 @@ void SkillBoard::SkillPage::drawEx(int dstX, int dstY, int srcX, int srcY, int s
     WidgetGroup::drawEx(dstX, dstY, srcX, srcY, srcW, srcH);
 }
 
-SkillBoard::SkillBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget, bool autoDelete)
+SkillBoard::SkillBoard(int nX, int nY, ProcessRun *runPtr, Widget *pwidget, bool autoDelete)
     : Widget(nX, nY, 0, 0, pwidget, autoDelete)
     , m_magicIconDataList
       {
-          {DBCOM_MAGICID(u8"雷电术"),   1,  12,  78,  'T', this},
-          {DBCOM_MAGICID(u8"魔法盾"),   2, 252, 143,  'Y', this},
-          {DBCOM_MAGICID(u8"召唤骷髅"), 3,  12,  13,  'U', this},
-          {DBCOM_MAGICID(u8"召唤神兽"), 1,  12,  78,  'S', this},
-          {DBCOM_MAGICID(u8"灵魂火符"), 2, 192,  13,  'F', this},
+          {DBCOM_MAGICID(u8"雷电术"),   1,  12,  78,  'T'},
+          {DBCOM_MAGICID(u8"魔法盾"),   2, 252, 143,  'Y'},
+          {DBCOM_MAGICID(u8"召唤骷髅"), 3,  12,  13,  'U'},
+          {DBCOM_MAGICID(u8"召唤神兽"), 1,  12,  78,  'S'},
+          {DBCOM_MAGICID(u8"灵魂火符"), 2, 192,  13,  'F'},
       }
 
     , m_skillPageList([this]() -> std::vector<SkillBoard::SkillPage *>
@@ -249,22 +250,23 @@ SkillBoard::SkillBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget, bool a
                   tabX + tabW * i,
                   tabY,
 
-                  {SYS_TEXNIL, 0X05000020 + (uint32_t)(i), 0X05000030 + (uint32_t)(i)},
+                  {
+                      SYS_TEXNIL,
+                      0X05000020 + (uint32_t)(i),
+                      0X05000030 + (uint32_t)(i),
+                  },
 
                   [i, this]()
                   {
-                      const int meType = i + 1;
-                      if(meType >= MET_BEGIN && meType < MET_END){
-                          m_textBoard.setText(u8"元素【%s】", to_cstr(magicElemName(i + 1)));
-                      }
-                      else{
-                          m_textBoard.setText(u8"元素【无】");
-                      }
+                      m_cursorOnTabIndex = i;
                   },
 
-                  [this]()
+                  [i, this]()
                   {
-                      m_textBoard.setText(u8"元素【%s】", to_cstr(magicElemName(selectedElem())));
+                      if(i != m_cursorOnTabIndex){
+                          return;
+                      }
+                      m_cursorOnTabIndex = -1;
                   },
 
                   [i, this]()
@@ -340,20 +342,6 @@ SkillBoard::SkillBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget, bool a
           this,
       }
 
-    , m_textBoard
-      {
-          30,
-          400,
-          u8"元素【火】", // default selected MET_FIRE
-
-          1,
-          12,
-          0,
-
-          colorf::WHITE + 255,
-          this,
-      }
-
     , m_closeButton
       {
           317,
@@ -376,7 +364,7 @@ SkillBoard::SkillBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget, bool a
           true,
           this,
       }
-    , m_processRun(pRun)
+    , m_processRun(runPtr)
 {
     show(false);
     if(auto texPtr = g_progUseDB->Retrieve(0X05000000)){
@@ -393,8 +381,8 @@ void SkillBoard::drawEx(int dstX, int dstY, int, int, int, int) const
         g_sdlDevice->drawTexture(texPtr, dstX, dstY);
     }
 
+    drawTabName();
     m_slider.draw();
-    m_textBoard.draw();
     m_closeButton.draw();
 
     for(auto buttonPtr: m_tabButtonList){
@@ -489,4 +477,45 @@ uint32_t SkillBoard::key2MagicID(char key)
         }
     }
     return 0;
+}
+
+void SkillBoard::drawTabName() const
+{
+    const LabelBoard tabName
+    {
+        0,
+        0,
+
+        to_u8cstr([this]() -> std::u8string
+        {
+            if(m_cursorOnTabIndex >= 0){
+                return str_printf(u8"元素【%s】", to_cstr(magicElemName(cursorOnElem())));
+            }
+
+            if(m_selectedTabIndex >= 0){
+                for(const auto magicIconPtr: m_skillPageList.at(m_selectedTabIndex)->getMagicIconButtonList()){
+                    if(magicIconPtr->cursorOn()){
+                        if(const auto &mr = DBCOM_MAGICRECORD(magicIconPtr->getMagicIconDataPtr()->magicID)){
+                            return str_printf(u8"元素【%s】%s", to_cstr(mr.elem), to_cstr(mr.name));
+                        }
+                        else{
+                            return str_printf(u8"元素【无】");
+                        }
+                    }
+                }
+                return str_printf(u8"元素【%s】", to_cstr(magicElemName(selectedElem())));
+            }
+
+            // fallback
+            // shouldn't reach here
+            return str_printf(u8"元素【无】");
+        }()),
+
+        1,
+        12,
+        0,
+
+        colorf::WHITE + 255,
+    };
+    tabName.drawAt(DIR_UPLEFT, x() + 30, y() + 400);
 }

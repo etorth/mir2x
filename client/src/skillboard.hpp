@@ -17,6 +17,7 @@
  */
 
 #pragma once
+#include <list>
 #include <array>
 #include <memory>
 #include "strf.hpp"
@@ -41,9 +42,7 @@ class SkillBoard: public Widget
 
             int x;
             int y;
-
             char key;
-            SkillBoard *board;
         };
 
         class MagicIconButton: public Widget
@@ -55,6 +54,9 @@ class SkillBoard: public Widget
             // +-------+-+
             //         |1|
             //         +-+
+
+            private:
+                const SkillBoard::MagicIconData *m_magicIconDataPtr = nullptr;
 
             private:
                 LabelShadowBoard m_key;
@@ -96,12 +98,24 @@ class SkillBoard: public Widget
                         default: throw fflerror("invalid skill level: %d", level);
                     }
                 }
+
+            public:
+                bool cursorOn() const
+                {
+                    return m_icon.getState() != BEVENT_OFF;
+                }
+
+                const auto getMagicIconDataPtr() const
+                {
+                    return m_magicIconDataPtr;
+                }
         };
 
         class SkillPage: public WidgetGroup
         {
             private:
                 const uint32_t m_pageImage;
+                std::vector<SkillBoard::MagicIconButton *> m_magicIconButtonList;
 
             public:
                 SkillPage(uint32_t, Widget *widgetPtr = nullptr, bool autoDelete = false);
@@ -113,23 +127,28 @@ class SkillBoard: public Widget
                         throw fflerror("invalid icon data pointer: (null)");
                     }
 
-                    new SkillBoard::MagicIconButton
+                    m_magicIconButtonList.push_back(new SkillBoard::MagicIconButton
                     {
                         iconDataPtr->x,
                         iconDataPtr->y,
                         iconDataPtr,
                         this,
                         true,
-                    };
+                    });
                 }
 
             public:
                 void drawEx(int, int, int, int, int, int) const override;
+
+            public:
+                const auto &getMagicIconButtonList() const
+                {
+                    return m_magicIconButtonList;
+                }
         };
 
     private:
-        int m_magicIconIndex = -1;
-        std::vector<MagicIconData> m_magicIconDataList;
+        std::list<MagicIconData> m_magicIconDataList;
 
     private:
         std::vector<SkillPage *> m_skillPageList;
@@ -146,9 +165,6 @@ class SkillBoard: public Widget
         TexVSlider m_slider;
 
     private:
-        LabelBoard m_textBoard;
-
-    private:
         TritexButton m_closeButton;
 
     private:
@@ -161,6 +177,7 @@ class SkillBoard: public Widget
         void update(double) override;
 
     public:
+        void drawTabName() const;
         void drawEx(int, int, int, int, int, int) const override;
 
     public:
@@ -173,11 +190,6 @@ class SkillBoard: public Widget
         }
 
     public:
-        void setText(const std::u8string &s)
-        {
-            m_textBoard.setText(s.c_str());
-        }
-
         static int tabElem(int tabIndex)
         {
             if(tabIndex >= 0 && tabIndex <= 6){
