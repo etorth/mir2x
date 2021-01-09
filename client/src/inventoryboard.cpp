@@ -92,7 +92,7 @@ InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget
     std::tie(m_w, m_h) = SDLDevice::getTextureSize(texPtr);
 }
 
-void InventoryBoard::drawItem(int dstX, int dstY, size_t startRow, const PackBin &bin) const
+void InventoryBoard::drawItem(int dstX, int dstY, size_t startRow, bool selected, const PackBin &bin) const
 {
     if(true
             && bin
@@ -130,6 +130,19 @@ void InventoryBoard::drawItem(int dstX, int dstY, size_t startRow, const PackBin
                         viewX, viewY, SYS_INVGRIDPW * 6, SYS_INVGRIDPH * 8)){
                 g_sdlDevice->drawTexture(texPtr, drawDstX, drawDstY, drawSrcX, drawSrcY, drawSrcW, drawSrcH);
             }
+
+            int binGridX = bin.X;
+            int binGridY = bin.Y;
+            int binGridW = bin.W;
+            int binGridH = bin.H;
+
+            if(selected && mathf::rectangleOverlapRegion<int>(0, 6, startRow, 8, &binGridX, &binGridY, &binGridW, &binGridH)){
+                g_sdlDevice->fillRectangle(colorf::WHITE + 128,
+                        startX + (binGridX - 0       ) * SYS_INVGRIDPW,
+                        startY + (binGridY - startRow) * SYS_INVGRIDPH,
+                        binGridW * SYS_INVGRIDPW,
+                        binGridH * SYS_INVGRIDPH);
+            }
         }
     }
 }
@@ -146,9 +159,10 @@ void InventoryBoard::drawEx(int dstX, int dstY, int, int, int, int) const
     }
 
     if(auto myHeroPtr = m_processRun->getMyHero()){
-        const size_t startRow = getStartRow();
-        for(auto &bin: myHeroPtr->getInvPack().GetPackBinList()){
-            drawItem(dstX, dstY, startRow, bin);
+        const auto startRow = getStartRow();
+        const auto &packBinListCRef = myHeroPtr->getInvPack().GetPackBinList();
+        for(int i = 0; i < (int)(packBinListCRef.size()); ++i){
+            drawItem(dstX, dstY, startRow, (i == m_selectedPackBinIndex), packBinListCRef.at(i));
         }
     }
 
