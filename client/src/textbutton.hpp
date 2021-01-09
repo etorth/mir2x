@@ -97,9 +97,29 @@ class TextButton: public ButtonBase
                   nW,
                   nH,
 
-                  std::move(fnOnOverIn),
-                  std::move(fnOnOverOut),
-                  std::move(fnOnClick),
+                  [cbOnOverIn = std::move(fnOnOverIn), this]()
+                  {
+                      if(cbOnOverIn){
+                          cbOnOverIn();
+                      }
+                      m_label.setFontColor(m_color[getState()][0]);
+                  },
+
+                  [cbOnOverOut = std::move(fnOnOverOut), this]()
+                  {
+                      if(cbOnOverOut){
+                          cbOnOverOut();
+                      }
+                      m_label.setFontColor(m_color[getState()][0]);
+                  },
+
+                  [cbOnClick = std::move(fnOnClick), this]()
+                  {
+                      if(cbOnClick){
+                          cbOnClick();
+                      }
+                      m_label.setFontColor(m_color[getState()][0]);
+                  },
 
                   nOffXOnOver,
                   nOffYOnOver,
@@ -149,13 +169,6 @@ class TextButton: public ButtonBase
                     int,                 // src y on the widget, take top-left as origin
                     int,                 // size to draw
                     int) const override; // size to draw
-
-    public:
-        void update(double fUpdateTime) override
-        {
-            ButtonBase::update(fUpdateTime);
-            m_label.setFontColor(m_color[getState()][0]);
-        }
 
     public:
         void setText(const char *, ...);
