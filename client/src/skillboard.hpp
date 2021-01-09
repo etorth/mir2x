@@ -138,7 +138,8 @@ class SkillBoard: public Widget
         // no need to introduce a new type
         // use two tritex button to micmic the tab button
 
-        int m_tabIndex = 0;
+        int m_selectedTabIndex =  0;
+        int m_cursorOnTabIndex = -1;
         std::vector<TritexButton *> m_tabButtonList;
 
     private:
@@ -177,17 +178,27 @@ class SkillBoard: public Widget
             m_textBoard.setText(s.c_str());
         }
 
-        int selectedElem() const
+        static int tabElem(int tabIndex)
         {
-            if(m_tabIndex >= 0 && m_tabIndex <= 6){
-                return MET_BEGIN + m_tabIndex;
+            if(tabIndex >= 0 && tabIndex <= 6){
+                return MET_BEGIN + tabIndex;
             }
-            else if(m_tabIndex == 7){
+            else if(tabIndex == 7){
                 return MET_NONE;
             }
             else{
-                throw fflerror("invalid tab index: %d", m_tabIndex);
+                throw fflerror("invalid tab index: %d", tabIndex);
             }
+        }
+
+        int selectedElem() const
+        {
+            return tabElem(m_selectedTabIndex);
+        }
+
+        int cursorOnElem() const
+        {
+            return tabElem(m_cursorOnTabIndex);
         }
 
     public:

@@ -262,14 +262,14 @@ SkillBoard::SkillBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget, bool a
                       }
                   },
 
-                  [i, this]()
+                  [this]()
                   {
                       m_textBoard.setText(u8"元素【%s】", to_cstr(magicElemName(selectedElem())));
                   },
 
                   [i, this]()
                   {
-                      if(m_tabIndex == i){
+                      if(m_selectedTabIndex == i){
                           return;
                       }
 
@@ -280,15 +280,15 @@ SkillBoard::SkillBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget, bool a
                           0X05000030 + (uint32_t)(i),
                       });
 
-                      m_tabButtonList.at(m_tabIndex)->setOff();
-                      m_tabButtonList.at(m_tabIndex)->setTexID(
+                      m_tabButtonList.at(m_selectedTabIndex)->setOff();
+                      m_tabButtonList.at(m_selectedTabIndex)->setTexID(
                       {
                           SYS_TEXNIL,
-                          0X05000020 + (uint32_t)(m_tabIndex),
-                          0X05000030 + (uint32_t)(m_tabIndex),
+                          0X05000020 + (uint32_t)(m_selectedTabIndex),
+                          0X05000030 + (uint32_t)(m_selectedTabIndex),
                       });
 
-                      m_tabIndex = i;
+                      m_selectedTabIndex = i;
                       m_slider.setValue(0);
 
                       const auto r = getPageRectange();
@@ -308,7 +308,7 @@ SkillBoard::SkillBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget, bool a
                   true,
               });
 
-              if(i == m_tabIndex){
+              if(i == m_selectedTabIndex){
                   m_tabButtonList.at(i)->setTexID(
                   {
                       0X05000030 + (uint32_t)(i),
@@ -331,7 +331,7 @@ SkillBoard::SkillBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget, bool a
           [this](float value)
           {
               const auto r = SkillBoard::getPageRectange();
-              auto pagePtr = m_skillPageList.at(m_tabIndex);
+              auto pagePtr = m_skillPageList.at(m_selectedTabIndex);
 
               if(r[3] < pagePtr->h()){
                   pagePtr->moveTo(r[0], r[1] - (pagePtr->h() - r[3]) * value);
@@ -402,7 +402,7 @@ void SkillBoard::drawEx(int dstX, int dstY, int, int, int, int) const
     }
 
     const auto r = SkillBoard::getPageRectange();
-    auto pagePtr = m_skillPageList.at(m_tabIndex);
+    auto pagePtr = m_skillPageList.at(m_selectedTabIndex);
     pagePtr->drawEx(dstX + r[0], dstY + r[1], r[0] - pagePtr->dx(), r[1] - pagePtr->dy(), r[2], r[3]);
 }
 
@@ -441,7 +441,7 @@ bool SkillBoard::processEvent(const SDL_Event &event, bool valid)
     const auto loc = SDLDevice::getEventPLoc(event);
     const bool captureEvent = loc && mathf::pointInRectangle(loc.x, loc.y, x() + r[0], y() + r[1], r[2], r[3]);
 
-    if(m_skillPageList.at(m_tabIndex)->processEvent(event, captureEvent && valid)){
+    if(m_skillPageList.at(m_selectedTabIndex)->processEvent(event, captureEvent && valid)){
         return focusConsume(this, true);
     }
 
