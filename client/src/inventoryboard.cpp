@@ -136,10 +136,10 @@ void InventoryBoard::drawItem(int dstX, int dstY, size_t startRow, bool selected
             int binGridW = bin.W;
             int binGridH = bin.H;
 
-            if(selected && mathf::rectangleOverlapRegion<int>(0, 6, startRow, 8, &binGridX, &binGridY, &binGridW, &binGridH)){
+            if(selected && mathf::rectangleOverlapRegion<int>(0, startRow, 6, 8, &binGridX, &binGridY, &binGridW, &binGridH)){
                 g_sdlDevice->fillRectangle(colorf::WHITE + 128,
-                        startX + (binGridX - 0       ) * SYS_INVGRIDPW,
-                        startY + (binGridY - startRow) * SYS_INVGRIDPH,
+                        startX + binGridX * SYS_INVGRIDPW,
+                        startY + binGridY * SYS_INVGRIDPH, // startY is for (0, 0), not for (0, startRow)
                         binGridW * SYS_INVGRIDPW,
                         binGridH * SYS_INVGRIDPH);
             }
@@ -212,7 +212,26 @@ bool InventoryBoard::processEvent(const SDL_Event &event, bool valid)
                 switch(event.button.button){
                     case SDL_BUTTON_LEFT:
                         {
-                            return focusConsume(this, in(event.button.x, event.button.y));
+                            if(in(event.button.x, event.button.y)){
+                                if(const auto [gridX, gridY] = getInvGrid(event.button.x, event.button.y); gridX >= 0 && gridY >= 0){
+                                    if(auto myHeroPtr = m_processRun->getMyHero()){
+                                        const auto startRow = getStartRow();
+                                        const auto &packBinListCRef = myHeroPtr->getInvPack().GetPackBinList();
+                                        for(int i = 0; i < (int)(packBinListCRef.size()); ++i){
+                                            const auto &packBinCRef = packBinListCRef.at(i);
+                                            if(mathf::pointInRectangle<int>(gridX, gridY, packBinCRef.X, packBinCRef.Y - startRow, packBinCRef.W, packBinCRef.H)){
+                                                m_selectedPackBinIndex = i;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                                else{
+                                    m_selectedPackBinIndex = -1;
+                                }
+                                return focusConsume(this, true);
+                            }
+                            return focusConsume(this, false);
                         }
                     default:
                         {
@@ -293,4 +312,21 @@ void InventoryBoard::drawGold() const
         colorf::RGBA(0XFF, 0XFF, 0X00, 0XFF),
     };
     goldBoard.drawAt(DIR_NONE, x() + 106, y() + 409);
+}
+
+std::tuple<int, int> InventoryBoard::getInvGrid(int locPX, int locPY) const
+{
+    constexpr int invGridX0 = 18;
+    constexpr int invGridY0 = 59;
+    const     int gridPX0 = invGridX0 + x();
+    const     int gridPY0 = invGridY0 + y();
+
+    if(mathf::pointInRectangle<int>(locPX, locPY, gridPX0, gridPY0, 6 * SYS_INVGRIDPW, 8 * SYS_INVGRIDPH)){
+        return
+        {
+            (locPX - gridPX0) / SYS_INVGRIDPW,
+            (locPY - gridPY0) / SYS_INVGRIDPH,
+        };
+    }
+    return {-1, -1};
 }

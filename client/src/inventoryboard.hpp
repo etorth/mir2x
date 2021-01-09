@@ -68,4 +68,7 @@ class InventoryBoard: public Widget
     private:
         size_t getStartRow() const;
         size_t getRowCount() const;
+
+    private:
+        std::tuple<int, int> getInvGrid(int, int) const;
 };
