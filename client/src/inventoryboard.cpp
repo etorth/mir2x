@@ -213,18 +213,8 @@ bool InventoryBoard::processEvent(const SDL_Event &event, bool valid)
                     case SDL_BUTTON_LEFT:
                         {
                             if(in(event.button.x, event.button.y)){
-                                if(const auto [gridX, gridY] = getInvGrid(event.button.x, event.button.y); gridX >= 0 && gridY >= 0){
-                                    if(auto myHeroPtr = m_processRun->getMyHero()){
-                                        const auto startRow = getStartRow();
-                                        const auto &packBinListCRef = myHeroPtr->getInvPack().GetPackBinList();
-                                        for(int i = 0; i < (int)(packBinListCRef.size()); ++i){
-                                            const auto &packBinCRef = packBinListCRef.at(i);
-                                            if(mathf::pointInRectangle<int>(gridX, gridY, packBinCRef.X, packBinCRef.Y - startRow, packBinCRef.W, packBinCRef.H)){
-                                                m_selectedPackBinIndex = i;
-                                                break;
-                                            }
-                                        }
-                                    }
+                                if(const int selectedPackIndex = getPackBinIndex(event.button.x, event.button.y); selectedPackIndex >= 0){
+                                    m_selectedPackBinIndex = selectedPackIndex;
                                 }
                                 else{
                                     m_selectedPackBinIndex = -1;
@@ -314,6 +304,29 @@ void InventoryBoard::drawGold() const
     goldBoard.drawAt(DIR_NONE, x() + 106, y() + 409);
 }
 
+int InventoryBoard::getPackBinIndex(int locPX, int locPY) const
+{
+    const auto [gridX, gridY] = getInvGrid(locPX, locPY);
+    if(gridX < 0 || gridY < 0){
+        return -1;
+    }
+
+    const auto myHeroPtr = m_processRun->getMyHero();
+    if(!myHeroPtr){
+        return -1;
+    }
+
+    const auto startRow = getStartRow();
+    const auto &packBinListCRef = myHeroPtr->getInvPack().GetPackBinList();
+    for(int i = 0; i < (int)(packBinListCRef.size()); ++i){
+        const auto &packBinCRef = packBinListCRef.at(i);
+        if(mathf::pointInRectangle<int>(gridX, gridY, packBinCRef.X, packBinCRef.Y - startRow, packBinCRef.W, packBinCRef.H)){
+            return i;
+        }
+    }
+    return -1;
+}
+
 std::tuple<int, int> InventoryBoard::getInvGrid(int locPX, int locPY) const
 {
     constexpr int invGridX0 = 18;
@@ -321,12 +334,13 @@ std::tuple<int, int> InventoryBoard::getInvGrid(int locPX, int locPY) const
     const     int gridPX0 = invGridX0 + x();
     const     int gridPY0 = invGridY0 + y();
 
-    if(mathf::pointInRectangle<int>(locPX, locPY, gridPX0, gridPY0, 6 * SYS_INVGRIDPW, 8 * SYS_INVGRIDPH)){
-        return
-        {
-            (locPX - gridPX0) / SYS_INVGRIDPW,
-            (locPY - gridPY0) / SYS_INVGRIDPH,
-        };
+    if(!mathf::pointInRectangle<int>(locPX, locPY, gridPX0, gridPY0, 6 * SYS_INVGRIDPW, 8 * SYS_INVGRIDPH)){
+        return {-1, -1};
     }
-    return {-1, -1};
+
+    return
+    {
+        (locPX - gridPX0) / SYS_INVGRIDPW,
+        (locPY - gridPY0) / SYS_INVGRIDPH,
+    };
 }
