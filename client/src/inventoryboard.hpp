@@ -31,6 +31,10 @@ class ProcessRun;
 class InventoryBoard: public Widget
 {
     private:
+        const int m_invGridX0 = 18;
+        const int m_invGridY0 = 59;
+
+    private:
         LabelBoard m_opNameBoard;
         WMDAniBoard m_wmdAniBoard;
 

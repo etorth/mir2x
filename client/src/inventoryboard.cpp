@@ -102,15 +102,12 @@ void InventoryBoard::drawItem(int dstX, int dstY, size_t startRow, bool selected
             && bin.H >  0){
 
         if(auto texPtr = g_itemDB->Retrieve(DBCOM_ITEMRECORD(bin.ID).pkgGfxID | 0X01000000)){
-            constexpr int invGridX0 = 18;
-            constexpr int invGridY0 = 59;
+            const int startX = dstX + m_invGridX0;
+            const int startY = dstY + m_invGridY0 - startRow * SYS_INVGRIDPH;
+            const int  viewX = dstX + m_invGridX0;
+            const int  viewY = dstY + m_invGridY0;
+
             const auto [itemPW, itemPH] = SDLDevice::getTextureSize(texPtr);
-
-            const int startX = dstX + invGridX0;
-            const int startY = dstY + invGridY0 - startRow * SYS_INVGRIDPH;
-            const int  viewX = dstX + invGridX0;
-            const int  viewY = dstY + invGridY0;
-
             int drawDstX = startX + bin.X * SYS_INVGRIDPW + (bin.W * SYS_INVGRIDPW - itemPW) / 2;
             int drawDstY = startY + bin.Y * SYS_INVGRIDPH + (bin.H * SYS_INVGRIDPH - itemPH) / 2;
             int drawSrcX = 0;
@@ -237,11 +234,8 @@ bool InventoryBoard::processEvent(const SDL_Event &event, bool valid)
             }
         case SDL_MOUSEWHEEL:
             {
-                constexpr int invGridX0 = 18;
-                constexpr int invGridY0 = 59;
                 const auto [mousePX, mousePY] = g_sdlDevice->getMousePLoc();
-
-                if(mathf::pointInRectangle<int>(mousePX, mousePY, x() + invGridX0, y() + invGridY0, 6 * SYS_INVGRIDPW, 8 * SYS_INVGRIDPH)){
+                if(mathf::pointInRectangle<int>(mousePX, mousePY, x() + m_invGridX0, y() + m_invGridY0, 6 * SYS_INVGRIDPW, 8 * SYS_INVGRIDPH)){
                     const auto rowCount = getRowCount();
                     if(rowCount > 8){
                         m_slider.addValue((event.wheel.y > 0 ? -1.0 : 1.0) / (rowCount - 8));
@@ -335,10 +329,8 @@ int InventoryBoard::getPackBinIndex(int locPX, int locPY) const
 
 std::tuple<int, int> InventoryBoard::getInvGrid(int locPX, int locPY) const
 {
-    constexpr int invGridX0 = 18;
-    constexpr int invGridY0 = 59;
-    const     int gridPX0 = invGridX0 + x();
-    const     int gridPY0 = invGridY0 + y();
+    const int gridPX0 = m_invGridX0 + x();
+    const int gridPY0 = m_invGridY0 + y();
 
     if(!mathf::pointInRectangle<int>(locPX, locPY, gridPX0, gridPY0, 6 * SYS_INVGRIDPW, 8 * SYS_INVGRIDPH)){
         return {-1, -1};
