@@ -252,7 +252,7 @@ void XMLTypeset::LineJustifyPadding(int nLine)
     if(fnLeafPadding([this](int x, int y) -> bool
     {
         const auto tokenPtr = getToken(x, y);
-        switch(m_paragraph.leafRef(tokenPtr->Leaf).Type()){
+        switch(m_paragraph.leafRef(tokenPtr->leaf).Type()){
             case LEAF_IMAGE:
             case LEAF_EMOJI: return tokenPtr->Box.State.W1 + tokenPtr->Box.State.W2 < tokenPtr->Box.Info.W / 5;
             default        : return false;
@@ -276,7 +276,7 @@ void XMLTypeset::LineJustifyPadding(int nLine)
 
     if(fnLeafPadding([this](int x, int y) -> bool
     {
-        return m_paragraph.leafRef(getToken(x, y)->Leaf).Type() == LEAF_UTF8GROUP;
+        return m_paragraph.leafRef(getToken(x, y)->leaf).Type() == LEAF_UTF8GROUP;
     }) == MaxLineWidth()){
         return;
     }
@@ -555,7 +555,7 @@ TOKEN XMLTypeset::buildUTF8Token(int leaf, uint8_t nFont, uint8_t nFontSize, uin
     std::memset(&(stToken), 0, sizeof(stToken));
     auto nU64Key = utf8f::buildU64Key(nFont, nFontSize, nFontStyle, nUTF8Code);
 
-    stToken.Leaf = leaf;
+    stToken.leaf = leaf;
     if(auto pTexture = g_fontexDB->Retrieve(nU64Key)){
         int nBoxW = -1;
         int nBoxH = -1;
@@ -605,7 +605,7 @@ TOKEN XMLTypeset::buildEmojiToken(int leaf, uint32_t emoji) const
 {
     TOKEN token;
     std::memset(&(token), 0, sizeof(token));
-    token.Leaf = leaf;
+    token.leaf = leaf;
 
     int tokenW     = -1;
     int tokenH     = -1;
@@ -740,10 +740,10 @@ std::tuple<int, int> XMLTypeset::leafLocInXMLParagraph(int tokenX, int tokenY) c
         throw fflerror("invalid token location: (%d, %d)", tokenX, tokenY);
     }
 
-    const int leaf = getToken(tokenX, tokenY)->Leaf;
+    const int leaf = getToken(tokenX, tokenY)->leaf;
     const auto [startTokenX, startTokenY] = leafTokenLoc(leaf);
 
-    if(getToken(startTokenX, startTokenY)->Leaf != leaf){
+    if(getToken(startTokenX, startTokenY)->leaf != leaf){
         throw fflerror("invalid start token location");
     }
 
@@ -911,8 +911,8 @@ void XMLTypeset::insertUTF8String(int x, int y, const char *text)
     }
 
     const auto [prevTX, prevTY] = prevTokenLoc(x, y);
-    const auto currLeaf = getToken(x, y)->Leaf;
-    const auto prevLeaf = getToken(prevTX, prevTY)->Leaf;
+    const auto currLeaf = getToken(x, y)->leaf;
+    const auto prevLeaf = getToken(prevTX, prevTY)->leaf;
 
     if(prevLeaf == currLeaf){
         if(m_paragraph.leafRef(prevLeaf).Type() != LEAF_UTF8GROUP){
@@ -953,12 +953,12 @@ void XMLTypeset::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int sr
     for(int line = 0; line < lineCount(); ++line){
         for(int token = 0; token < lineTokenCount(line); ++token){
             const auto tokenPtr = getToken(token, line);
-            const auto &leaf = m_paragraph.leafRef(tokenPtr->Leaf);
+            const auto &leaf = m_paragraph.leafRef(tokenPtr->leaf);
 
-            if(lastLeaf != tokenPtr->Leaf){
+            if(lastLeaf != tokenPtr->leaf){
                 fgColor  = leaf.  Color().value_or(  Color());
                 bgColor  = leaf.BGColor().value_or(BGColor());
-                lastLeaf = tokenPtr->Leaf;
+                lastLeaf = tokenPtr->leaf;
             }
 
             // draw bgColor
@@ -1253,7 +1253,7 @@ bool XMLTypeset::blankToken(int x, int y) const
     }
 
     const auto tokenPtr = getToken(x, y);
-    const auto &leaf = m_paragraph.leafRef(tokenPtr->Leaf);
+    const auto &leaf = m_paragraph.leafRef(tokenPtr->leaf);
 
     const auto fnCheckBlank = [](uint64_t u64Key)
     {
