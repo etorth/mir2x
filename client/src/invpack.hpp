@@ -29,7 +29,7 @@ class InvPack
         std::vector<PackBin> m_packBinList;
 
     public:
-        InvPack(size_t nW = SYS_INVGRIDW)
+        InvPack(size_t nW = SYS_INVGRIDCW)
             : m_w(nW)
             , m_packBinList()
         {}
