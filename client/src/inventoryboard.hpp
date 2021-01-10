@@ -51,7 +51,7 @@ class InventoryBoard: public Widget
 
     private:
         void drawGold() const;
-        void drawItem(int, int, size_t, bool, const PackBin &) const;
+        void drawItem(int, int, size_t, bool, bool, const PackBin &) const;
 
     public:
         void update(double) override;

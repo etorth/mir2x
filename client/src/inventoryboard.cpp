@@ -92,7 +92,7 @@ InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget
     std::tie(m_w, m_h) = SDLDevice::getTextureSize(texPtr);
 }
 
-void InventoryBoard::drawItem(int dstX, int dstY, size_t startRow, bool selected, const PackBin &bin) const
+void InventoryBoard::drawItem(int dstX, int dstY, size_t startRow, bool selected, bool cursorOn, const PackBin &bin) const
 {
     if(true
             && bin
@@ -136,8 +136,9 @@ void InventoryBoard::drawItem(int dstX, int dstY, size_t startRow, bool selected
             int binGridW = bin.W;
             int binGridH = bin.H;
 
-            if(selected && mathf::rectangleOverlapRegion<int>(0, startRow, 6, 8, &binGridX, &binGridY, &binGridW, &binGridH)){
-                g_sdlDevice->fillRectangle(colorf::WHITE + 128,
+            if((selected || cursorOn) && mathf::rectangleOverlapRegion<int>(0, startRow, 6, 8, &binGridX, &binGridY, &binGridW, &binGridH)){
+                const uint32_t maskColor = selected ? (colorf::BLUE + 96) : (colorf::WHITE + 96);
+                g_sdlDevice->fillRectangle(maskColor,
                         startX + binGridX * SYS_INVGRIDPW,
                         startY + binGridY * SYS_INVGRIDPH, // startY is for (0, 0), not for (0, startRow)
                         binGridW * SYS_INVGRIDPW,
@@ -158,12 +159,17 @@ void InventoryBoard::drawEx(int dstX, int dstY, int, int, int, int) const
         g_sdlDevice->drawTexture(pTexture, dstX, dstY);
     }
 
-    if(auto myHeroPtr = m_processRun->getMyHero()){
-        const auto startRow = getStartRow();
-        const auto &packBinListCRef = myHeroPtr->getInvPack().GetPackBinList();
-        for(int i = 0; i < (int)(packBinListCRef.size()); ++i){
-            drawItem(dstX, dstY, startRow, (i == m_selectedPackBinIndex), packBinListCRef.at(i));
-        }
+    const auto myHeroPtr = m_processRun->getMyHero();
+    if(!myHeroPtr){
+        return;
+    }
+
+    const auto startRow = getStartRow();
+    const auto [mousePX, mousePY] = g_sdlDevice->getMousePLoc();
+    const auto &packBinListCRef = myHeroPtr->getInvPack().GetPackBinList();
+    const auto cursorOnIndex = getPackBinIndex(mousePX, mousePY);
+    for(int i = 0; i < (int)(packBinListCRef.size()); ++i){
+        drawItem(dstX, dstY, startRow, (i == m_selectedPackBinIndex), (i == cursorOnIndex), packBinListCRef.at(i));
     }
 
     drawGold();
