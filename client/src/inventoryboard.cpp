@@ -143,19 +143,21 @@ void InventoryBoard::drawItem(int dstX, int dstY, size_t startRow, bool selected
                             binGridH * SYS_INVGRIDPH);
                 }
 
-                const LabelBoard itemCount
-                {
-                    0, // reset by new width
-                    0,
-                    to_u8cstr(std::to_string(bin.count)),
+                if(bin.count > 1){
+                    const LabelBoard itemCount
+                    {
+                        0, // reset by new width
+                        0,
+                        to_u8cstr(std::to_string(bin.count)),
 
-                    1,
-                    12,
-                    0,
+                        1,
+                        10,
+                        0,
 
-                    colorf::RGBA(0XFF, 0XFF, 0X00, 0XFF),
-                };
-                itemCount.drawAt(DIR_UPRIGHT, startX + (binGridX + binGridW) * SYS_INVGRIDPW, startY + binGridY * SYS_INVGRIDPH);
+                        colorf::RGBA(0XFF, 0XFF, 0X00, 0XFF),
+                    };
+                    itemCount.drawAt(DIR_UPRIGHT, startX + (binGridX + binGridW) * SYS_INVGRIDPW, startY + binGridY * SYS_INVGRIDPH - 2 /* pixel adjust */);
+                }
             }
         }
     }
