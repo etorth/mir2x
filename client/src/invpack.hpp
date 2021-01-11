@@ -23,36 +23,41 @@
 class InvPack
 {
     private:
+        // TODO: Leave it as a variable, not using SYS_INVGRIDCW directly
+        //       Later I may change the texture width of inventory board to make it bigger
         const size_t m_w;
 
     private:
         std::vector<PackBin> m_packBinList;
 
     public:
-        InvPack(size_t nW = SYS_INVGRIDCW)
-            : m_w(nW)
+        InvPack(size_t argW = SYS_INVGRIDCW)
+            : m_w(argW)
             , m_packBinList()
         {}
 
     public:
-        const std::vector<PackBin> &GetPackBinList() const
+        const auto &getPackBinList() const
         {
             return m_packBinList;
         }
 
     public:
-        size_t W() const
+        size_t w() const
         {
             return m_w;
         }
 
     public:
-        bool Repack();
+        void repack()
+        {
+            Pack2D(w()).pack(m_packBinList);
+        }
 
     public:
-        bool Add(uint32_t);
-        bool Remove(uint32_t, int, int);
+        void add(uint32_t, size_t);
+        size_t remove(uint32_t, size_t, int, int);
 
     private:
-        static PackBin MakePackBin(uint32_t);
+        static PackBin makePackBin(uint32_t, size_t);
 };

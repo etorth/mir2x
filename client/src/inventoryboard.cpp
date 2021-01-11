@@ -96,20 +96,20 @@ void InventoryBoard::drawItem(int dstX, int dstY, size_t startRow, bool selected
 {
     if(true
             && bin
-            && bin.X >= 0
-            && bin.Y >= 0
-            && bin.W >  0
-            && bin.H >  0){
+            && bin.x >= 0
+            && bin.y >= 0
+            && bin.w >  0
+            && bin.h >  0){
 
-        if(auto texPtr = g_itemDB->Retrieve(DBCOM_ITEMRECORD(bin.ID).pkgGfxID | 0X01000000)){
+        if(auto texPtr = g_itemDB->Retrieve(DBCOM_ITEMRECORD(bin.id).pkgGfxID | 0X01000000)){
             const int startX = dstX + m_invGridX0;
             const int startY = dstY + m_invGridY0 - startRow * SYS_INVGRIDPH;
             const int  viewX = dstX + m_invGridX0;
             const int  viewY = dstY + m_invGridY0;
 
             const auto [itemPW, itemPH] = SDLDevice::getTextureSize(texPtr);
-            int drawDstX = startX + bin.X * SYS_INVGRIDPW + (bin.W * SYS_INVGRIDPW - itemPW) / 2;
-            int drawDstY = startY + bin.Y * SYS_INVGRIDPH + (bin.H * SYS_INVGRIDPH - itemPH) / 2;
+            int drawDstX = startX + bin.x * SYS_INVGRIDPW + (bin.w * SYS_INVGRIDPW - itemPW) / 2;
+            int drawDstY = startY + bin.y * SYS_INVGRIDPH + (bin.h * SYS_INVGRIDPH - itemPH) / 2;
             int drawSrcX = 0;
             int drawSrcY = 0;
             int drawSrcW = itemPW;
@@ -128,18 +128,34 @@ void InventoryBoard::drawItem(int dstX, int dstY, size_t startRow, bool selected
                 g_sdlDevice->drawTexture(texPtr, drawDstX, drawDstY, drawSrcX, drawSrcY, drawSrcW, drawSrcH);
             }
 
-            int binGridX = bin.X;
-            int binGridY = bin.Y;
-            int binGridW = bin.W;
-            int binGridH = bin.H;
+            int binGridX = bin.x;
+            int binGridY = bin.y;
+            int binGridW = bin.w;
+            int binGridH = bin.h;
 
-            if((selected || cursorOn) && mathf::rectangleOverlapRegion<int>(0, startRow, 6, 8, &binGridX, &binGridY, &binGridW, &binGridH)){
-                const uint32_t maskColor = selected ? (colorf::BLUE + 96) : (colorf::WHITE + 96);
-                g_sdlDevice->fillRectangle(maskColor,
-                        startX + binGridX * SYS_INVGRIDPW,
-                        startY + binGridY * SYS_INVGRIDPH, // startY is for (0, 0), not for (0, startRow)
-                        binGridW * SYS_INVGRIDPW,
-                        binGridH * SYS_INVGRIDPH);
+            if(mathf::rectangleOverlapRegion<int>(0, startRow, 6, 8, &binGridX, &binGridY, &binGridW, &binGridH)){
+                if(selected || cursorOn){
+                    const uint32_t gridColor = selected ? (colorf::BLUE + 96) : (colorf::WHITE + 96);
+                    g_sdlDevice->fillRectangle(gridColor,
+                            startX + binGridX * SYS_INVGRIDPW,
+                            startY + binGridY * SYS_INVGRIDPH, // startY is for (0, 0), not for (0, startRow)
+                            binGridW * SYS_INVGRIDPW,
+                            binGridH * SYS_INVGRIDPH);
+                }
+
+                const LabelBoard itemCount
+                {
+                    0, // reset by new width
+                    0,
+                    to_u8cstr(std::to_string(bin.count)),
+
+                    1,
+                    12,
+                    0,
+
+                    colorf::RGBA(0XFF, 0XFF, 0X00, 0XFF),
+                };
+                itemCount.drawAt(DIR_UPRIGHT, startX + (binGridX + binGridW) * SYS_INVGRIDPW, startY + binGridY * SYS_INVGRIDPH);
             }
         }
     }
@@ -163,7 +179,7 @@ void InventoryBoard::drawEx(int dstX, int dstY, int, int, int, int) const
 
     const auto startRow = getStartRow();
     const auto [mousePX, mousePY] = g_sdlDevice->getMousePLoc();
-    const auto &packBinListCRef = myHeroPtr->getInvPack().GetPackBinList();
+    const auto &packBinListCRef = myHeroPtr->getInvPack().getPackBinList();
     const auto cursorOnIndex = getPackBinIndex(mousePX, mousePY);
     for(int i = 0; i < (int)(packBinListCRef.size()); ++i){
         drawItem(dstX, dstY, startRow, (i == m_selectedPackBinIndex), (i == cursorOnIndex), packBinListCRef.at(i));
@@ -264,14 +280,14 @@ std::string InventoryBoard::getGoldStr() const
 
 size_t InventoryBoard::getRowCount() const
 {
-    const auto &packBinList = m_processRun->getMyHero()->getInvPack().GetPackBinList();
+    const auto &packBinList = m_processRun->getMyHero()->getInvPack().getPackBinList();
     if(packBinList.empty()){
         return 0;
     }
 
     size_t rowCount = 0;
     for(const auto &bin: packBinList){
-        rowCount = std::max<size_t>(rowCount, bin.Y + bin.H);
+        rowCount = std::max<size_t>(rowCount, bin.y + bin.h);
     }
     return rowCount;
 }
@@ -317,10 +333,10 @@ int InventoryBoard::getPackBinIndex(int locPX, int locPY) const
     }
 
     const auto startRow = getStartRow();
-    const auto &packBinListCRef = myHeroPtr->getInvPack().GetPackBinList();
+    const auto &packBinListCRef = myHeroPtr->getInvPack().getPackBinList();
     for(int i = 0; i < (int)(packBinListCRef.size()); ++i){
-        const auto &packBinCRef = packBinListCRef.at(i);
-        if(mathf::pointInRectangle<int>(gridX, gridY, packBinCRef.X, packBinCRef.Y - startRow, packBinCRef.W, packBinCRef.H)){
+        const auto &binCRef = packBinListCRef.at(i);
+        if(mathf::pointInRectangle<int>(gridX, gridY, binCRef.x, binCRef.y - startRow, binCRef.w, binCRef.h)){
             return i;
         }
     }

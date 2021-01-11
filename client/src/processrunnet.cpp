@@ -390,7 +390,7 @@ void ProcessRun::net_PICKUPOK(const uint8_t *bufPtr, size_t)
 {
     const auto smPUOK = ServerMsg::conv<SMPickUpOK>(bufPtr);
     if(smPUOK.ID != DBCOM_ITEMID(u8"金币")){
-        getMyHero()->getInvPack().Add(smPUOK.ID);
+        getMyHero()->getInvPack().add(smPUOK.ID, 1);
     }
 
     removeGroundItem(CommonItem(smPUOK.ID, 0), smPUOK.X, smPUOK.Y);

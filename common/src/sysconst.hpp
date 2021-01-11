@@ -56,6 +56,7 @@ constexpr int SYS_INVGRIDCW =  6;
 constexpr int SYS_INVGRIDCH =  8;
 constexpr int SYS_INVGRIDPW = 38;
 constexpr int SYS_INVGRIDPH = 38;
+constexpr int SYS_INVGRIDMAXHOLD = 99;
 
 constexpr int SYS_MAXTARGET = 8;
 constexpr int SYS_MAXACTOR  = 65521;

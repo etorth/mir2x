@@ -19,87 +19,78 @@
 #include "dbcomid.hpp"
 #include "invpack.hpp"
 #include "pngtexdb.hpp"
+#include "fflerror.hpp"
+#include "sdldevice.hpp"
 #include "dbcomrecord.hpp"
 
 extern PNGTexDB *g_itemDB;
-
-bool InvPack::Repack()
+void InvPack::add(uint32_t itemID, size_t count)
 {
-    Pack2D stPack2D(W());
-    switch(stPack2D.Pack(&m_packBinList)){
-        case 1:
-            {
-                return true;
-            }
-        default:
-            {
-                return false;
-            }
+    if(!(itemID && count)){
+        throw fflerror("invalid arguments: itemID = %llu, count = %zu", to_llu(itemID), count);
     }
-}
 
-bool InvPack::Add(uint32_t nItemID)
-{
-    if(nItemID){
-        Pack2D stPack2D(W());
-        for(auto &rstPackBin: m_packBinList){
-            switch(stPack2D.Put(rstPackBin.X, rstPackBin.Y, rstPackBin.W, rstPackBin.H)){
-                case 1:
-                    {
-                        break;
-                    }
-                default:
-                    {
-                        return false;
-                    }
+    for(auto &bin: m_packBinList){
+        if(bin.id == itemID){
+            if(bin.count + count <= SYS_INVGRIDMAXHOLD){
+                bin.count += count;
+                return;
             }
-        }
 
-        if(auto stPackBin = MakePackBin(nItemID)){
-            switch(stPack2D.Add(&stPackBin)){
-                case 1:
-                    {
-                        m_packBinList.push_back(stPackBin);
-                        return true;
-                    }
-                default:
-                    {
-                        return false;
-                    }
-            }
+            count = bin.count + count - SYS_INVGRIDMAXHOLD;
+            bin.count = SYS_INVGRIDMAXHOLD;;
         }
     }
-    return false;
+
+    // when reaching here
+    // means we need a new grid for the item
+
+    Pack2D pack2D(w());
+    for(auto &bin: m_packBinList){
+        pack2D.put(bin.x, bin.y, bin.w, bin.h);
+    }
+
+    auto addedBin = makePackBin(itemID, count);
+    pack2D.add(&addedBin, 1);
+    m_packBinList.push_back(addedBin);
 }
 
-bool InvPack::Remove(uint32_t nItemID, int nX, int nY)
+size_t InvPack::remove(uint32_t itemID, size_t count, int x, int y)
 {
-    for(size_t nIndex = 0; nIndex < m_packBinList.size(); ++nIndex){
+    for(auto &bin: m_packBinList){
         if(true
-                && m_packBinList[nIndex].X  == nX
-                && m_packBinList[nIndex].Y  == nY
-                && m_packBinList[nIndex].ID == nItemID){
-            std::swap(m_packBinList[nIndex], m_packBinList.back());
-            m_packBinList.pop_back();
-            return true;
+                && bin.x  == x
+                && bin.y  == y
+                && bin.id == itemID){
+
+            if(bin.count <= count){
+                std::swap(bin, m_packBinList.back());
+                m_packBinList.pop_back();
+                return bin.count;
+            }
+            else{
+                bin.count -= count;
+                return count;
+            }
         }
     }
-    return false;
+    return 0;
 }
 
-PackBin InvPack::MakePackBin(uint32_t nItemID)
+PackBin InvPack::makePackBin(uint32_t itemID, size_t count)
 {
-    if(auto pTexture = g_itemDB->Retrieve(DBCOM_ITEMRECORD(nItemID).pkgGfxID | 0X01000000)){
+    if(auto texPtr = g_itemDB->Retrieve(DBCOM_ITEMRECORD(itemID).pkgGfxID | 0X01000000)){
+        const auto [itemPW, itemPH] = SDLDevice::getTextureSize(texPtr);
+        return
+        {
+            .id    = itemID,
+            .count = count,
 
-        int nItemPW = -1;
-        int nItemPH = -1;
-        if(!SDL_QueryTexture(pTexture, nullptr, nullptr, &nItemPW, &nItemPH)){
-
-            int nItemGW = (nItemPW + (SYS_INVGRIDPW - 1)) / SYS_INVGRIDPW;
-            int nItemGH = (nItemPH + (SYS_INVGRIDPH - 1)) / SYS_INVGRIDPH;
-
-            return {nItemID, -1, -1, nItemGW, nItemGH};
-        }
+            .x = -1,
+            .y = -1,
+            .w = (itemPW + (SYS_INVGRIDPW - 1)) / SYS_INVGRIDPW,
+            .h = (itemPH + (SYS_INVGRIDPH - 1)) / SYS_INVGRIDPH,
+        };
     }
-    return {0};
+    return {};
 }

@@ -23,29 +23,23 @@
  */
 
 #pragma once
+#include <cstdint>
+#include "fflerror.hpp"
 #include "sysconst.hpp"
-#include "condcheck.hpp"
 
 struct PackBin
 {
-    uint32_t ID;
+    uint32_t id    = 0;
+    size_t   count = 1;
 
-    int X;
-    int Y;
-    int W;
-    int H;
-
-    PackBin(uint32_t nID = 0, int nX = -1, int nY = -1, int nW = -1, int nH = -1)
-        : ID(nID)
-        , X(nX)
-        , Y(nY)
-        , W(nW)
-        , H(nH)
-    {}
+    int x = -1;
+    int y = -1;
+    int w =  1;
+    int h =  1;
 
     operator bool () const
     {
-        return ID != 0;
+        return id != 0;
     }
 };
 
@@ -55,58 +49,86 @@ class Pack2D
         const size_t m_w;
 
     private:
-        std::vector<int> m_packMap;
+        std::vector<uint64_t> m_packMap;
 
     public:
-        size_t H()
+        size_t h() const
         {
-            Shrink();
             return m_packMap.size();
         }
 
-        size_t W() const
+        size_t w() const
         {
             return m_w;
         }
 
     public:
-        Pack2D(size_t nW)
-            : m_w(nW)
+        Pack2D(size_t width)
+            : m_w(width)
         {
-            condcheck(m_w < sizeof(decltype(m_packMap)::value_type) * 8);
+            if(m_w > sizeof(decltype(m_packMap)::value_type) * 8){
+                throw fflerror("invalid Pack2D width: %zu", m_w);
+            }
         }
 
     public:
-        int Occupied(int, int);
-        int Occupied(int, int, int, int, bool = true);
-
-        int Occupy(int, int, bool);
-        int Occupy(int, int, int, int, bool);
+        bool occupied(int, int) const;
+        bool occupied(int, int, int, int, bool = true) const;
 
     public:
-        int Pack(std::vector<PackBin> *);
+        void occupy(int, int, bool);
+        void occupy(int, int, int, int, bool);
+
+    public:
+        void pack(std::vector<PackBin> &);
 
     private:
-        int FindRoom(PackBin *);
+        void findRoom(PackBin *);
 
     public:
-        int Put(int, int, int, int);
+        void add(PackBin *, size_t = 1);
 
     public:
-        int Add(PackBin *, size_t = 1);
-
-    public:
-        int Remove(const PackBin &);
-
-    private:
-        void Shrink()
+        bool put(int x, int y, int argW, int argH)
         {
-            while(!m_packMap.empty()){
-                if(m_packMap.back()){
-                    break;
-                }else{
-                    m_packMap.pop_back();
-                }
+            if(!occupied(x, y, argW, argH, true)){
+                occupy  (x, y, argW, argH, true);
+                return true;
+            }
+            return false;
+        }
+
+        bool remove(const PackBin &bin)
+        {
+            if(occupied(bin.x, bin.y, bin.w, bin.h, false)){
+                occupy (bin.x, bin.y, bin.w, bin.h, false);
+                return true;
+            }
+            return false;
+        }
+
+    private:
+        void shrink()
+        {
+            while(!(m_packMap.empty() || m_packMap.back())){
+                m_packMap.pop_back();
+            }
+        }
+
+        bool validC(int x, int y, int argW, int argH) const
+        {
+            return true
+                && x >= 0
+                && y >= 0
+                && argW > 0
+                && argH > 0
+                && x + argW <= (int)(w());
+        }
+
+        void validCEx(int x, int y, int argW, int argH) const
+        {
+            if(!validC(x, y, argW, argH)){
+                throw fflerror("invalid arguments: x = %d, y = %d, w = %d, h = %d, pack2D::w = %zu", x, y, argW, argH, w());
             }
         }
 };

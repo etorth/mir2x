@@ -18,228 +18,107 @@
 
 #include <algorithm>
 #include "pack2d.hpp"
-int Pack2D::Occupied(int nX, int nY)
+#include "totype.hpp"
+#include "fflerror.hpp"
+
+bool Pack2D::occupied(int x, int y) const
 {
-    if((nX >= 0) && (nX < (int)(W()))){
-
-        // 1. box is outside current memory map
-        //    always return not occupied
-        if(nY >= (int)(m_packMap.size())){
-            return 0;
-        }
-
-        // 2. box is inside current memory map
-        //    need to check memory bit
-        if(nY >= 0){
-            return (m_packMap[nY] & (1 << nX)) ? 1 : 0;
-        }
+    if(!((x >= 0) && (x < (int)(w())) && (y >= 0))){
+        throw fflerror("invalid arguments: x = %d, y = %d", x, y);
     }
-    return -1;
+
+    if(y >= (int)(m_packMap.size())){
+        return false;
+    }
+    return (bool)(m_packMap[y] & (1 << x));
 }
 
-int Pack2D::Occupied(int nX, int nY, int nW, int nH, bool bAny)
+bool Pack2D::occupied(int x, int y, int argW, int argH, bool occupiedAny) const
 {
-    if(true
-            && nX >= 0
-            && nY >= 0
-            && nW >  0
-            && nH >  0){
+    validCEx(x, y, argW, argH);
 
-        for(int nCurrX = nX; nCurrX < nX + nW; ++nCurrX){
-            for(int nCurrY = nY; nCurrY < nY + nH; ++nCurrY){
-                switch(Occupied(nCurrX, nCurrY)){
-                    case 0:
-                        {
-                            if(!bAny){
-                                return 0;
-                            }
-                            break;
-                        }
-                    case 1:
-                        {
-                            if(bAny){
-                                return 1;
-                            }
-                            break;
-                        }
-                    default:
-                        {
-                            return -1;
-                        }
-                }
+    int occupiedCount = 0;
+    for(int xi = x; xi < x + argW; ++xi){
+        for(int yi = y; yi < y + argH; ++yi){
+            if(occupied(xi, yi)){
+                occupiedCount++;
             }
         }
-        return bAny? 0 : 1;
     }
-    return -1;
+
+    if(occupiedAny){
+        return occupiedCount > 0;
+    }
+    return occupiedCount == argW * argH;
 }
 
-int Pack2D::Occupy(int nX, int nY, bool bOccup)
+void Pack2D::occupy(int x, int y, bool takeIt)
 {
-    if(true
-            && nX >= 0 && nX < (int)(W())
-            && nY >= 0){
-
-        if((nY >= (int)(m_packMap.size()))){
-            m_packMap.resize(nY + 1);
-        }
-
-        if(bOccup){
-            m_packMap[nY] |= (1 << nX);
-        }else{
-            m_packMap[nY] |= (1 << nX);
-            m_packMap[nY] ^= (1 << nX);
-        }
-
-        Shrink();
-        return bOccup ? 1 : 0;
+    validCEx(x, y, 1, 1);
+    if((y >= (int)(m_packMap.size()))){
+        m_packMap.resize(y + 1);
     }
-    return -1;
+
+    if(takeIt){
+        m_packMap[y] |= (1 << x);
+    }
+    else{
+        m_packMap[y] |= (1 << x);
+        m_packMap[y] ^= (1 << x);
+    }
+    shrink();
 }
 
-int Pack2D::Occupy(int nX, int nY, int nW, int nH, bool bOccup)
+void Pack2D::occupy(int x, int y, int argW, int argH, bool takeIt)
 {
-    if(true
-            && (nX >= 0)
-            && (nY >= 0)
-            && (nW >= 0)
-            && (nH >= 0)
+    validCEx(x, y, argW, argH);
+    for(int xi = x; xi < x + argW; ++xi){
+        for(int yi = y; yi < y + argH; ++yi){
+            occupy(xi, yi, takeIt);
+        }
+    }
+}
 
-            && ((nX + nW) <= (int)(W()))){
+void Pack2D::findRoom(PackBin *binPtr)
+{
+    if(!binPtr){
+        throw fflerror("invalid arguments: binPtr = %p", to_cvptr(binPtr));
+    }
 
-        for(int nCurrX = nX; nCurrX < nX + nW; ++nCurrX){
-            for(int nCurrY = nY; nCurrY < nY + nH; ++nCurrY){
-                switch(Occupy(nCurrX, nCurrY, bOccup)){
-                    case 0:
-                    case 1:
-                        {
-                            break;
-                        }
-                    default:
-                        {
-                            return -1;
-                        }
-                }
+    validCEx(0, 0, binPtr->w, binPtr->h);
+    for(int yi = 0; yi <= (int)(m_packMap.size()); ++yi){
+        for(int xi = 0; xi + binPtr->w <= (int)(w()); ++xi){
+            if(!occupied(xi, yi, binPtr->w, binPtr->h, true)){
+                binPtr->x = xi;
+                binPtr->y = yi;
+                return;
             }
         }
-        return bOccup ? 1 : 0;
     }
-    return -1;
+    throw bad_reach();
 }
 
-int Pack2D::FindRoom(PackBin *pBin)
-{
-    if(true
-            && pBin
-            && pBin->W >= 0
-            && pBin->H >= 0){
-
-        if(pBin->W <= (int)(W())){
-            for(int nCurrY = 0; nCurrY <= (int)(m_packMap.size()); ++nCurrY){
-                for(int nCurrX = 0; nCurrX <= (int)(W()) - pBin->W; ++nCurrX){
-                    switch(Occupied(nCurrX, nCurrY, pBin->W, pBin->H, true)){
-                        case 0:
-                            {
-                                pBin->X = nCurrX;
-                                pBin->Y = nCurrY;
-                                return 1;
-                            }
-                        case 1:
-                            {
-                                break;
-                            }
-                        default:
-                            {
-                                return -1;
-                            }
-                    }
-                }
-            }
-
-            // shouldn't be here, since if the size fix
-            // we should always put it inside successfully
-            return 1;
-        }
-        return 0;
-    }
-    return -1;
-}
-
-int Pack2D::Pack(std::vector<PackBin> *pBinList)
+void Pack2D::pack(std::vector<PackBin> &binList)
 {
     m_packMap.clear();
-    if(pBinList){
-        if(pBinList->empty()){
-            return 1;
-        }else{
-            return Add(&((*pBinList)[0]), pBinList->size());
-        }
-    }
-    return -1;
-}
-
-int Pack2D::Put(int nX, int nY, int nW, int nH)
-{
-    switch(Occupied(nX, nY, nW, nH, true)){
-        case 0:
-            {
-                return Occupy(nX, nY, nW, nH, true);
-            }
-        case 1:
-            {
-                return 0;
-            }
-        default:
-            {
-                return -1;
-            }
+    if(!binList.empty()){
+        add(binList.data(), binList.size());
     }
 }
 
-int Pack2D::Add(PackBin *pBinList, size_t nBinCnt)
+void Pack2D::add(PackBin *binListPtr, size_t binListSize)
 {
-    if(pBinList && nBinCnt){
-        auto fnBinCmp = [](const PackBin &rstLHS, const PackBin &rstRHS) -> bool
-        {
-            return rstLHS.ID < rstRHS.ID;
-        };
-        std::sort(pBinList, pBinList + nBinCnt, fnBinCmp);
-
-        for(size_t nIndex = 0; nIndex < nBinCnt; ++nIndex){
-            switch(auto nRet = FindRoom(pBinList + nIndex)){
-                case 1:
-                    {
-                        // find room only
-                        // we need to explicitly take this room here
-                        switch(Occupy(pBinList[nIndex].X, pBinList[nIndex].Y, pBinList[nIndex].W, pBinList[nIndex].H, true)){
-                            case 1:
-                                {
-                                    break;
-                                }
-                            default:
-                                {
-                                    return -1;
-                                }
-                        }
-                        break;
-                    }
-                case 0:
-                default:
-                    {
-                        return nRet;
-                    }
-            }
-        }
-        return 1;
+    if(!(binListPtr && binListSize)){
+        throw fflerror("invalid binList: (%p, %zu)", to_cvptr(binListPtr), binListSize);
     }
-    return -1;
-}
 
-int Pack2D::Remove(const PackBin &rstBin)
-{
-    if(Occupied(rstBin.X, rstBin.Y, rstBin.W, rstBin.H, false)){
-        return Occupy(rstBin.X, rstBin.Y, rstBin.W, rstBin.H, false);
-    }else{
-        return -1;
+    std::sort(binListPtr, binListPtr + binListSize, [](const auto &x, const auto &y) -> bool
+    {
+        return x.w * x.h < y.w * y.h;
+    });
+
+    for(size_t i = 0; i < binListSize; ++i){
+        findRoom(binListPtr + i);
+        occupy(binListPtr[i].x, binListPtr[i].y, binListPtr[i].w, binListPtr[i].h, true);
     }
 }
