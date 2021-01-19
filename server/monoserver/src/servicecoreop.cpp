@@ -37,7 +37,7 @@ void ServiceCore::on_MPK_RECVPACKAGE(const MessagePack &mpk)
 {
     /* const */ auto amRP = mpk.conv<AMRecvPackage>();
     operateNet(amRP.channID, amRP.package.type, amRP.package.buf(), amRP.package.size);
-    freeNetPackage(&(amRP.package));
+    freeActorDataPackage(&(amRP.package));
 }
 
 void ServiceCore::on_MPK_METRONOME(const MessagePack &)

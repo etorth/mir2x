@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename: netpackage.hpp
+ *       Filename: actordatapackage.hpp
  *        Created: 05/03/2016 13:19:07
  *    Description:
  *
@@ -20,7 +20,9 @@
 #include <cstdint>
 #include <type_traits>
 
-struct NetPackage // keep this POD
+// keep this POD, used only in ActorMsg to 1. pass net package
+//                                         2. pass serdes package
+struct ActorDataPackage
 {
     uint8_t  type;
     uint8_t *dbuf;
@@ -32,11 +34,11 @@ struct NetPackage // keep this POD
         return dbuf ? dbuf : sbuf;
     }
 };
-static_assert(std::is_trivially_copyable_v<NetPackage>);
+static_assert(std::is_trivially_copyable_v<ActorDataPackage>);
 
-inline void buildNetPackage(NetPackage *pkg, uint8_t type, const void *data, size_t dataLen)
+inline void buildActorDataPackage(ActorDataPackage *pkg, uint8_t type, const void *data, size_t dataLen)
 {
-    std::memset(pkg, 0, sizeof(NetPackage));
+    std::memset(pkg, 0, sizeof(ActorDataPackage));
     pkg->type = type;
     pkg->size = dataLen;
     if(dataLen <= sizeof(pkg->sbuf)){
@@ -48,12 +50,12 @@ inline void buildNetPackage(NetPackage *pkg, uint8_t type, const void *data, siz
     }
 }
 
-template<typename T> void buildNetPackage(NetPackage *pkg, uint8_t type, const T &t)
+template<typename T> void buildActorDataPackage(ActorDataPackage *pkg, uint8_t type, const T &t)
 {
-    buildNetPackage(pkg, type, &t, sizeof(t));
+    buildActorDataPackage(pkg, type, &t, sizeof(t));
 }
 
-inline void freeNetPackage(NetPackage *pkg)
+inline void freeActorDataPackage(ActorDataPackage *pkg)
 {
     delete [] pkg->dbuf;
 }

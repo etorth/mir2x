@@ -76,14 +76,14 @@ void Player::on_MPK_SENDPACKAGE(const MessagePack &mpk)
 {
     /* const */ auto amSP = mpk.conv<AMSendPackage>();
     sendNetBuf(amSP.package.type, amSP.package.buf(), amSP.package.size);
-    freeNetPackage(&(amSP.package));
+    freeActorDataPackage(&(amSP.package));
 }
 
 void Player::on_MPK_RECVPACKAGE(const MessagePack &mpk)
 {
     /* const */ auto amRP = mpk.conv<AMRecvPackage>();
     operateNet(amRP.package.type, amRP.package.buf(), amRP.package.size);
-    freeNetPackage(&(amRP.package));
+    freeActorDataPackage(&(amRP.package));
 }
 
 void Player::on_MPK_ACTION(const MessagePack &rstMPK)

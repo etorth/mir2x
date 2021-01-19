@@ -41,3 +41,56 @@ struct SDNPCSell
         ar(npcUID, itemList);
     }
 };
+
+struct SDSellItem
+{
+    uint32_t itemID = 0;
+    struct SellItemSingle
+    {
+        uint32_t price = 0;
+        template<typename Archive> void serialize(Archive & ar)
+        {
+            ar(price);
+        }
+
+        void clear()
+        {
+            price = 0;
+        }
+    }single;
+
+    struct SellItemList
+    {
+        struct ListNode
+        {
+            uint32_t price = 0;
+            template<typename Archive> void serialize(Archive & ar)
+            {
+                ar(price);
+            }
+        };
+
+        std::vector<ListNode> data;
+        template<typename Archive> void serialize(Archive & ar)
+        {
+            ar(data);
+        }
+
+        void clear()
+        {
+            data.clear();
+        }
+    }list;
+
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(itemID, single, list);
+    }
+
+    void clear()
+    {
+        itemID = 0;
+        single.clear();
+        list  .clear();
+    }
+};

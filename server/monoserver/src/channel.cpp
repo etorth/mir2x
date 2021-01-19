@@ -532,7 +532,7 @@ bool Channel::forwardActorMessage(uint8_t nHC, const uint8_t *pData, size_t nDat
     std::memset(&amRP, 0, sizeof(amRP));
 
     amRP.channID = ID();
-    buildNetPackage(&(amRP.package), nHC, pData, nDataLen);
+    buildActorDataPackage(&(amRP.package), nHC, pData, nDataLen);
     return m_dispatcher.forward(m_bindUID, {MPK_RECVPACKAGE, amRP});
 }
 

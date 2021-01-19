@@ -19,7 +19,7 @@
 #pragma once
 #include <cstdint>
 #include "actionnode.hpp"
-#include "netpackage.hpp"
+#include "actordatapackage.hpp"
 
 enum MessagePackType: int
 {
@@ -221,13 +221,13 @@ struct AMLoginQueryDB
 
 struct AMSendPackage
 {
-    NetPackage package;
+    ActorDataPackage package;
 };
 
 struct AMRecvPackage
 {
     uint32_t channID;
-    NetPackage package;
+    ActorDataPackage package;
 };
 
 struct AMBindChannel

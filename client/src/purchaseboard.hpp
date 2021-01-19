@@ -20,6 +20,7 @@
 #include <vector>
 #include <cstdint>
 #include "widget.hpp"
+#include "serdesmsg.hpp"
 #include "texvslider.hpp"
 #include "tritexbutton.hpp"
 
@@ -31,7 +32,7 @@ class PurchaseBoard: public Widget
 
     private:
         uint64_t m_extendedItemID = 0;
-        SMSellItem m_sellItem;
+        SDSellItem m_sellItem;
 
     private:
         int m_ext1Page = 0;
@@ -85,7 +86,7 @@ class PurchaseBoard: public Widget
         void setExtendedItemID(uint32_t);
 
     public:
-        void setSellItem(const SMSellItem &);
+        void setSellItem(SDSellItem);
 
     private:
         int extendedBoardGfxID() const

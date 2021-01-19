@@ -172,7 +172,7 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
           nullptr,
           [this]()
           {
-              m_ext1Page = std::min<int>((int)(m_sellItem.list.size / 4 / 3) - 1, m_ext1Page + 1);
+              m_ext1Page = std::min<int>((int)(m_sellItem.list.data.size() / 3 / 4) - 1, m_ext1Page + 1);
           },
 
           0,
@@ -338,14 +338,14 @@ void PurchaseBoard::drawEx(int dstX, int dstY, int, int, int, int) const
                             constexpr int rightStartX = 313;
                             constexpr int rightStartY =  41;
                             const auto [texW, texH] = SDLDevice::getTextureSize(texPtr);
-                            if(m_ext1Page * 3 * 4 >= m_sellItem.list.size){
-                                throw fflerror("invalid ext1Page: ext1Page = %d, listSize = %llu", m_ext1Page, to_llu(m_sellItem.list.size));
+                            if(m_ext1Page * 3 * 4 >= (int)(m_sellItem.list.data.size())){
+                                throw fflerror("invalid ext1Page: ext1Page = %d, listSize = %zu", m_ext1Page, m_sellItem.list.data.size());
                             }
 
                             for(int r = 0; r < 3; ++r){
                                 for(int c = 0; c < 4; ++c){
                                     const size_t i = m_ext1Page * 3 * 4 + r * 4 + c;
-                                    if(i >= m_sellItem.list.size){
+                                    if(i >= m_sellItem.list.data.size()){
                                         break;
                                     }
 
@@ -377,7 +377,7 @@ void PurchaseBoard::drawEx(int dstX, int dstY, int, int, int, int) const
                     {
                         0, // reset by new width
                         0,
-                        str_printf(u8"第%d/%d页", m_ext1Page + 1, (int)(m_sellItem.list.size / 3 / 4)).c_str(),
+                        str_printf(u8"第%d/%zu页", m_ext1Page + 1, m_sellItem.list.data.size() / 3 / 4).c_str(),
 
                         1,
                         10,
@@ -562,17 +562,17 @@ void PurchaseBoard::setExtendedItemID(uint32_t itemID)
         g_client->send(CM_QUERYSELLITEM, cmQSI);
     }
     else{
-        std::memset(&m_sellItem, 0, sizeof(m_sellItem));
+        m_sellItem.clear();
     }
 }
 
-void PurchaseBoard::setSellItem(const SMSellItem &smSI)
+void PurchaseBoard::setSellItem(SDSellItem sdSI)
 {
-    if(m_extendedItemID == smSI.itemID){
-        std::memcpy(&m_sellItem, &smSI, sizeof(m_sellItem));
+    if(m_extendedItemID == sdSI.itemID){
+        m_sellItem = std::move(sdSI);
     }
     else{
-        std::memset(&m_sellItem, 0, sizeof(m_sellItem));
+        m_sellItem.clear();
     }
     m_ext1Page = 0;
 }

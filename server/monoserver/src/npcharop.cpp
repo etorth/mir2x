@@ -18,6 +18,7 @@
 
 #include "npchar.hpp"
 #include "mathf.hpp"
+#include "serdesmsg.hpp"
 #include "messagepack.hpp"
 #include "dbcomrecord.hpp"
 
@@ -109,25 +110,30 @@ void NPChar::on_MPK_QUERYLOCATION(const MessagePack &mpk)
 void NPChar::on_MPK_QUERYSELLITEM(const MessagePack &mpk)
 {
     const auto amQSI = mpk.conv<AMQuerySellItem>();
-    SMSellItem smSI;
+    SDSellItem sdSI;
 
-    std::memset(&smSI, 0, sizeof(smSI));
-    smSI.itemID = amQSI.itemID;
-
-    if(DBCOM_ITEMRECORD(smSI.itemID).hasDBID()){
-        smSI.list.size = 20 + std::rand() % 32;
-        for(size_t i = 0; i < smSI.list.size; ++i){
-            smSI.list.data[i].price = 12 + std::rand() % 100;
+    sdSI.itemID = amQSI.itemID;
+    if(DBCOM_ITEMRECORD(sdSI.itemID).hasDBID()){
+        for(size_t i = 0, count = 20 + std::rand() % 100; i < count; ++i){
+            sdSI.list.data.push_back(
+            {
+                .price = (uint32_t)(20 + std::rand() % 100),
+            });
         }
     }
     else{
-        smSI.single.price = 100 + std::rand() % 20;
+        sdSI.single.price = 100 + std::rand() % 20;
     }
 
     AMSendPackage amSP;
     std::memset(&amSP, 0, sizeof(amSP));
 
-    buildNetPackage(&(amSP.package), SM_SELLITEM, smSI);
+    const auto buf = cerealf::serialize<SDSellItem>(sdSI, true);
+    buildActorDataPackage(&(amSP.package), SM_SELLITEM, buf.data(), buf.length());
+
+    if(uidf::getUIDType(mpk.from()) != UID_PLY){
+        throw fflerror("sending MPK_SENDPACKAGE to %s, expect UID_PLY only", uidf::getUIDTypeString(mpk.from()));
+    }
     m_actorPod->forward(mpk.from(), {MPK_SENDPACKAGE, amSP});
 }
 

@@ -68,11 +68,11 @@ void ProcessRun::net_LOGINOK(const uint8_t *bufPtr, size_t nLen)
     }
 }
 
-void ProcessRun::net_SELLITEM(const uint8_t *bufPtr, size_t)
+void ProcessRun::net_SELLITEM(const uint8_t *buf, size_t bufSize)
 {
-    const auto smSI = ServerMsg::conv<SMSellItem>(bufPtr);
+    auto sdSI = cerealf::deserialize<SDSellItem>(buf, bufSize, true);
     auto purchaseBoardPtr = dynamic_cast<PurchaseBoard *>(getGUIManager()->getWidget("PurchaseBoard"));
-    purchaseBoardPtr->setSellItem(smSI);
+    purchaseBoardPtr->setSellItem(std::move(sdSI));
 }
 
 void ProcessRun::net_ACTION(const uint8_t *bufPtr, size_t)
