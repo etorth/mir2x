@@ -172,7 +172,7 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
           nullptr,
           [this]()
           {
-              m_ext1Page = std::min<int>((int)(m_sellItem.list.data.size() / 3 / 4) - 1, m_ext1Page + 1);
+              m_ext1Page = std::min<int>((int)((m_sellItem.list.data.size() + 11) / 12) - 1, m_ext1Page + 1);
           },
 
           0,
@@ -333,12 +333,13 @@ void PurchaseBoard::drawEx(int dstX, int dstY, int, int, int, int) const
         case 1:
             {
                 if(m_extendedItemID == m_sellItem.itemID){
+                    const int ext1PageCount = (m_sellItem.list.data.size() + 11) / 12;
                     if(const auto &ir = DBCOM_ITEMRECORD(m_extendedItemID)){
                         if(auto texPtr = g_itemDB->Retrieve(ir.pkgGfxID | 0X02000000)){
                             constexpr int rightStartX = 313;
                             constexpr int rightStartY =  41;
                             const auto [texW, texH] = SDLDevice::getTextureSize(texPtr);
-                            if(m_ext1Page * 3 * 4 >= (int)(m_sellItem.list.data.size())){
+                            if(m_ext1Page >= ext1PageCount){
                                 throw fflerror("invalid ext1Page: ext1Page = %d, listSize = %zu", m_ext1Page, m_sellItem.list.data.size());
                             }
 
@@ -377,10 +378,10 @@ void PurchaseBoard::drawEx(int dstX, int dstY, int, int, int, int) const
                     {
                         0, // reset by new width
                         0,
-                        str_printf(u8"第%d/%zu页", m_ext1Page + 1, m_sellItem.list.data.size() / 3 / 4).c_str(),
+                        str_printf(u8"第%d/%d页", m_ext1Page + 1, ext1PageCount).c_str(),
 
                         1,
-                        10,
+                        12,
                         0,
 
                         colorf::RGBA(0XFF, 0XFF, 0X00, 0XFF),
@@ -412,12 +413,12 @@ void PurchaseBoard::drawEx(int dstX, int dstY, int, int, int, int) const
                                 str_printf(u8"%s 金币", to_cstr(str_ksep(m_sellItem.single.price))).c_str(),
 
                                 1,
-                                10,
+                                13,
                                 0,
 
                                 colorf::RGBA(0XFF, 0XFF, 0X00, 0XFF),
                             };
-                            itemPrice.drawAt(DIR_LEFT, x() + 350, y() + 35);
+                            itemPrice.drawAt(DIR_LEFT, x() + 350 + 3, y() + 35);
                         }
                     }
                 }
