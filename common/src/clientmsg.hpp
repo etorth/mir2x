@@ -41,6 +41,7 @@ enum CMType: uint8_t
     CM_QUERYGOLD,
     CM_ACCOUNT,
     CM_NPCEVENT,
+    CM_QUERYSELLITEM,
     CM_END,
 };
 
@@ -109,6 +110,12 @@ struct CMNPCEvent
     char event[32];
     char value[32];
 };
+
+struct CMQuerySellItem
+{
+    uint64_t npcUID;
+    uint32_t itemID;
+};
 #pragma pack(pop)
 
 // I was using class name ClientMessage
@@ -144,6 +151,7 @@ class ClientMsg final: public MsgBase
                 _add_client_msg_type_case(CM_QUERYGOLD,          0, 0                           )
                 _add_client_msg_type_case(CM_ACCOUNT,            1, sizeof(CMAccount)           )
                 _add_client_msg_type_case(CM_NPCEVENT,           1, sizeof(CMNPCEvent)          )
+                _add_client_msg_type_case(CM_QUERYSELLITEM,      1, sizeof(CMQuerySellItem)     )
 #undef _add_client_msg_type_case
             };
 
@@ -165,7 +173,8 @@ class ClientMsg final: public MsgBase
                     || std::is_same_v<T, CMRequestMagicDamage>
                     || std::is_same_v<T, CMPickUp>
                     || std::is_same_v<T, CMAccount>
-                    || std::is_same_v<T, CMNPCEvent>);
+                    || std::is_same_v<T, CMNPCEvent>
+                    || std::is_same_v<T, CMQuerySellItem>);
 
             if(bufLen && bufLen != sizeof(T)){
                 throw fflerror("invalid buffer length");

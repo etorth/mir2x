@@ -469,7 +469,7 @@ void NPChar::sendSell(uint64_t uid, const std::vector<std::string> &itemList)
 
     amNPCS.ptr = new std::string(cerealf::serialize(SDNPCSell
     {
-        .npcUID = uid,
+        .npcUID = UID(),
         .itemList = [&itemList]()
         {
             std::vector<uint32_t> itemIDList;
@@ -563,6 +563,11 @@ void NPChar::operateAM(const MessagePack &mpk)
         case MPK_QUERYLOCATION:
             {
                 on_MPK_QUERYLOCATION(mpk);
+                break;
+            }
+        case MPK_QUERYSELLITEM:
+            {
+                on_MPK_QUERYSELLITEM(mpk);
                 break;
             }
         case MPK_BADACTORPOD:

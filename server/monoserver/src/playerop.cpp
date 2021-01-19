@@ -72,25 +72,18 @@ void Player::on_MPK_BINDCHANNEL(const MessagePack &rstMPK)
     PullRectCO(10, 10);
 }
 
-void Player::on_MPK_NETPACKAGE(const MessagePack &rstMPK)
+void Player::on_MPK_SENDPACKAGE(const MessagePack &mpk)
 {
-    AMNetPackage amNP;
-    std::memcpy(&amNP, rstMPK.Data(), sizeof(AMNetPackage));
+    /* const */ auto amSP = mpk.conv<AMSendPackage>();
+    sendNetBuf(amSP.package.type, amSP.package.buf(), amSP.package.size);
+    freeNetPackage(&(amSP.package));
+}
 
-    uint8_t *pDataBuf = nullptr;
-    if(amNP.DataLen){
-        if(amNP.Data){
-            pDataBuf = amNP.Data;
-        }else{
-            pDataBuf = amNP.DataBuf;
-        }
-    }
-
-    operateNet(amNP.Type, pDataBuf, amNP.DataLen);
-
-    if(amNP.Data){
-        delete [] amNP.Data;
-    }
+void Player::on_MPK_RECVPACKAGE(const MessagePack &mpk)
+{
+    /* const */ auto amRP = mpk.conv<AMRecvPackage>();
+    operateNet(amRP.package.type, amRP.package.buf(), amRP.package.size);
+    freeNetPackage(&(amRP.package));
 }
 
 void Player::on_MPK_ACTION(const MessagePack &rstMPK)

@@ -16,11 +16,11 @@
  * =====================================================================================
  */
 
-// Name-----------------+-Type----------+-Rarity---+-Weight-+-PkgGfxID-+-UseGfxID-+-NeedJob---+-NeedLevel-+-NeedDC-+-NeedSPC-+-NeedMAC-+-NeedAC-+-NeedMAC-+
+// name-----------------+-type----------+-rarity---+-weight-+-pkgGfxID-+-useGfxID-+-needJob---+-needLevel-+-needDC-+-needSPC-+-needMDC-+-needAC-+-needMAC-+
 {  u8""                 , u8""          , u8""     , 0      ,-1        ,-1        , u8""      , 0         , 0      , 0       , 0       , 0      , 0       },
 {  u8"金币"             , u8"金币"      , u8"普通" , 0      , 0X0078   ,-1        , u8"共用"  , 0         , 0      , 0       , 0       , 0      , 0       },
 
-// Name-----------------+-Type----------+-Rarity---+-Weight-+-PkgGfxID-+-UseGfxID-+-NeedJob---+-NeedLevel-+-NeedDC-+-NeedSPC-+-NeedMAC-+-NeedAC-+-NeedMAC-+
+// name-----------------+-type----------+-rarity---+-weight-+-pkgGfxID-+-useGfxID-+-needJob---+-needLevel-+-needDC-+-needSPC-+-needMAC-+-needAC-+-needMAC-+
 {  u8"金创药（小）"     , u8"恢复药水"  , u8"普通" , 1      , 0X0005   ,-1        , u8"共用"  , 0         , 0      , 0       , 0       , 0      , 0       },
 {  u8"金创药（中）"     , u8"恢复药水"  , u8"普通" , 1      , 0X0006   ,-1        , u8"共用"  , 0         , 0      , 0       , 0       , 0      , 0       },
 {  u8"金创药（大）"     , u8"恢复药水"  , u8"普通" , 1      , 0X0007   ,-1        , u8"共用"  , 0         , 0      , 0       , 0       , 0      , 0       },
@@ -37,13 +37,13 @@
 {  u8"鸡血"             , u8"恢复药水"  , u8"普通" , 1      , 0X001F   ,-1        , u8"共用"  , 0         , 0      , 0       , 0       , 0      , 0       },
 {  u8"鹿血"             , u8"恢复药水"  , u8"普通" , 1      , 0X0020   ,-1        , u8"共用"  , 0         , 0      , 0       , 0       , 0      , 0       },
 
-// Name-----------------+-Type----------+-Rarity---+-Weight-+-PkgGfxID-+-UseGfxID-+-NeedJob---+-NeedLevel-+-NeedDC-+-NeedSPC-+-NeedMAC-+-NeedAC-+-NeedMAC-+
+// name-----------------+-type----------+-rarity---+-weight-+-pkgGfxID-+-useGfxID-+-needJob---+-needLevel-+-needDC-+-needSPC-+-needMAC-+-needAC-+-needMAC-+
 {  u8"武器强化油"       , u8"强化药水"  , u8"普通" , 1      , 0X0035   ,-1        , u8"共用"  , 0         , 0      , 0       , 0       , 0      , 0       },
 {  u8"修复油"           , u8"强化药水"  , u8"普通" , 1      , 0X0035   ,-1        , u8"共用"  , 0         , 0      , 0       , 0       , 0      , 0       },
 {  u8"战神油"           , u8"强化药水"  , u8"普通" , 1      , 0X003D   ,-1        , u8"共用"  , 0         , 0      , 0       , 0       , 0      , 0       },
 {  u8"祝福油"           , u8"强化药水"  , u8"普通" , 1      , 0X003F   ,-1        , u8"共用"  , 0         , 0      , 0       , 0       , 0      , 0       },
 
-// Name-----------------+-Type----------+-Rarity---+-Weight-+-PkgGfxID-+-UseGfxID-+-NeedJob---+-NeedLevel-+-NeedDC-+-NeedSPC-+-NeedMAC-+-NeedAC-+-NeedMAC-+
+// name-----------------+-type----------+-rarity---+-weight-+-pkgGfxID-+-useGfxID-+-needJob---+-needLevel-+-needDC-+-needSPC-+-needMAC-+-needAC-+-needMAC-+
 {  u8"金条"             , u8"材料"      , u8"普通" , 0      , 0X007D   ,-1        , u8"共用"  , 0         , 0      , 0       , 0       , 0      , 0       },
 {  u8"金砖"             , u8"材料"      , u8"普通" , 0      , 0X007E   ,-1        , u8"共用"  , 0         , 0      , 0       , 0       , 0      , 0       },
 {  u8"金盒"             , u8"材料"      , u8"普通" , 0      , 0X007F   ,-1        , u8"共用"  , 0         , 0      , 0       , 0       , 0      , 0       },
@@ -54,7 +54,7 @@
 {  u8"蚂蚁卵"           , u8"材料"      , u8"普通" , 1      , 0X0066   ,-1        , u8"共用"  , 0         , 0      , 0       , 0       , 0      , 0       },
 {  u8"骷髅骨"           , u8"材料"      , u8"普通" , 1      , 0X0067   ,-1        , u8"共用"  , 0         , 0      , 0       , 0       , 0      , 0       },
 
-// Name-----------------+-Type----------+-Rarity---+-Weight-+-PkgGfxID-+-UseGfxID-+-NeedJob---+-NeedLevel-+-NeedDC-+-NeedSPC-+-NeedMAC-+-NeedAC-+-NeedMAC-+
+// name-----------------+-type----------+-rarity---+-weight-+-pkgGfxID-+-useGfxID-+-needJob---+-needLevel-+-needDC-+-needSPC-+-needMAC-+-needAC-+-needMAC-+
 {  u8"干肉"             , u8"肉"        , u8"普通" , 1      , 0X005D   ,-1        , u8"共用"  , 0         , 0      , 0       , 0       , 0      , 0       },
 {  u8"鸡肉"             , u8"肉"        , u8"普通" , 1      , 0X012D   ,-1        , u8"共用"  , 0         , 0      , 0       , 0       , 0      , 0       },
 {  u8"牛肉"             , u8"肉"        , u8"普通" , 1      , 0X012C   ,-1        , u8"共用"  , 0         , 0      , 0       , 0       , 0      , 0       },
@@ -62,14 +62,14 @@
 {  u8"羊肉"             , u8"肉"        , u8"普通" , 1      , 0X012C   ,-1        , u8"共用"  , 0         , 0      , 0       , 0       , 0      , 0       },
 {  u8"狼肉"             , u8"肉"        , u8"普通" , 1      , 0X012C   ,-1        , u8"共用"  , 0         , 0      , 0       , 0       , 0      , 0       },
 
-// Name-----------------+-Type----------+-Rarity---+-Weight-+-PkgGfxID-+-UseGfxID-+-NeedJob---+-NeedLevel-+-NeedDC-+-NeedSPC-+-NeedMAC-+-NeedAC-+-NeedMAC-+
+// name-----------------+-type----------+-rarity---+-weight-+-pkgGfxID-+-useGfxID-+-needJob---+-needLevel-+-needDC-+-needSPC-+-needMAC-+-needAC-+-needMAC-+
 {  u8"黄色药粉"         , u8"毒粉"      , u8"普通" , 1      , 0X0082   ,-1        , u8"共用"  , 0         , 0      , 0       , 0       , 0      , 0       },
 {  u8"灰色药粉"         , u8"毒粉"      , u8"普通" , 1      , 0X0083   ,-1        , u8"共用"  , 0         , 0      , 0       , 0       , 0      , 0       },
 {  u8"蓝色药粉"         , u8"毒粉"      , u8"普通" , 1      , 0X0084   ,-1        , u8"共用"  , 0         , 0      , 0       , 0       , 0      , 0       },
 {  u8"红色药粉"         , u8"毒粉"      , u8"普通" , 1      , 0X0085   ,-1        , u8"共用"  , 0         , 0      , 0       , 0       , 0      , 0       },
 {  u8"绿色药粉"         , u8"毒粉"      , u8"普通" , 1      , 0X0086   ,-1        , u8"共用"  , 0         , 0      , 0       , 0       , 0      , 0       },
 
-// Name-----------------+-Type----------+-Rarity---+-Weight-+-PkgGfxID-+-UseGfxID-+-NeedJob---+-NeedLevel-+-NeedDC-+-NeedSPC-+-NeedMAC-+-NeedAC-+-NeedMAC-+
+// name-----------------+-type----------+-rarity---+-weight-+-pkgGfxID-+-useGfxID-+-needJob---+-needLevel-+-needDC-+-needSPC-+-needMAC-+-needAC-+-needMAC-+
 {  u8"护身符"           , u8"护身符"    , u8"普通" , 1      , 0X014A   ,-1        , u8"道士"  , 0         , 0      , 0       , 0       , 0      , 0       },
 {  u8"神圣护身符"       , u8"护身符"    , u8"普通" , 1      , 0X014B   ,-1        , u8"道士"  , 0         , 0      , 0       , 0       , 0      , 0       },
 {  u8"火焰护身符"       , u8"护身符"    , u8"普通" , 1      , 0X014C   ,-1        , u8"道士"  , 0         , 0      , 0       , 0       , 0      , 0       },
@@ -78,7 +78,7 @@
 {  u8"狂风护身符"       , u8"护身符"    , u8"普通" , 1      , 0X014F   ,-1        , u8"道士"  , 0         , 0      , 0       , 0       , 0      , 0       },
 {  u8"威魂深怨护身符"   , u8"护身符"    , u8"普通" , 1      , 0X012F   ,-1        , u8"道士"  , 0         , 0      , 0       , 0       , 0      , 0       },
 
-// Name-----------------+-Type----------+-Rarity---+-Weight-+-PkgGfxID-+-UseGfxID-+-NeedJob---+-NeedLevel-+-NeedDC-+-NeedSPC-+-NeedMAC-+-NeedAC-+-NeedMAC-+
+// name-----------------+-type----------+-rarity---+-weight-+-pkgGfxID-+-useGfxID-+-needJob---+-needLevel-+-needDC-+-needSPC-+-needMAC-+-needAC-+-needMAC-+
 {  u8"疾光电影"          , u8"技能书"   , u8"普通" , 1      , 0X0130   ,-1        , u8"法师"  , 0         , 0      , 0       , 0       , 0      , 0       },
 {  u8"困魔咒"            , u8"技能书"   , u8"普通" , 1      , 0X0130   ,-1        , u8"道士"  , 0         , 0      , 0       , 0       , 0      , 0       },
 {  u8"火墙"              , u8"技能书"   , u8"普通" , 1      , 0X0130   ,-1        , u8"法师"  , 0         , 0      , 0       , 0       , 0      , 0       },
@@ -140,7 +140,7 @@
 {  u8"怒神霹雳"          , u8"技能书"   , u8"普通" , 1      , 0X0135   ,-1        , u8"法师"  , 0         , 0      , 0       , 0       , 0      , 0       },
 {  u8"移花接玉"          , u8"技能书"   , u8"普通" , 1      , 0X0135   ,-1        , u8"道士"  , 0         , 0      , 0       , 0       , 0      , 0       },
 
-// Name-----------------+-Type----------+-Rarity---+-Weight-+-PkgGfxID-+-UseGfxID-+-NeedJob---+-NeedLevel-+-NeedDC-+-NeedSPC-+-NeedMAC-+-NeedAC-+-NeedMAC-+
+// name-----------------+-type----------+-rarity---+-weight-+-pkgGfxID-+-useGfxID-+-needJob---+-needLevel-+-needDC-+-needSPC-+-needMAC-+-needAC-+-needMAC-+
 {  u8"草鞋"              , u8"鞋"       , u8"普通" , 1      , 0X0550   ,-1        , u8"共用"  , 0         , 0      , 0       , 0       , 0      , 0       },
 {  u8"布鞋"              , u8"鞋"       , u8"普通" , 1      , 0X0566   ,-1        , u8"共用"  , 0         , 0      , 0       , 0       , 0      , 0       },
 {  u8"皮靴"              , u8"鞋"       , u8"普通" , 1      , 0X0551   ,-1        , u8"共用"  , 0         , 0      , 0       , 0       , 0      , 0       },
@@ -161,6 +161,6 @@
 {  u8"紫金靴"            , u8"鞋"       , u8"普通" , 1      , 0X0565   ,-1        , u8"共用"  , 0         , 0      , 0       , 0       , 0      , 0       },
 {  u8"乌金靴"            , u8"鞋"       , u8"普通" , 1      , 0X0567   ,-1        , u8"共用"  , 0         , 0      , 0       , 0       , 0      , 0       },
 
-// Name-----------------+-Type----------+-Rarity---+-Weight-+-PkgGfxID-+-UseGfxID-+-NeedJob---+-NeedLevel-+-NeedDC-+-NeedSPC-+-NeedMAC-+-NeedAC-+-NeedMAC-+
+// name-----------------+-type----------+-rarity---+-weight-+-pkgGfxID-+-useGfxID-+-needJob---+-needLevel-+-needDC-+-needSPC-+-needMAC-+-needAC-+-needMAC-+
 {  u8"布衣（男）"        , u8"衣服"     , u8"普通" , 1      , 0X03AC   ,-1        , u8"共用"  , 0         , 0      , 0       , 0       , 0      , 0       },
 {  u8"布衣（女）"        , u8"衣服"     , u8"普通" , 1      , 0X03B6   ,-1        , u8"共用"  , 0         , 0      , 0       , 0       , 0      , 0       },

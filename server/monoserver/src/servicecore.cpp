@@ -54,9 +54,9 @@ void ServiceCore::operateAM(const MessagePack &rstMPK)
                 on_MPK_ADDCHAROBJECT(rstMPK);
                 break;
             }
-        case MPK_NETPACKAGE:
+        case MPK_RECVPACKAGE:
             {
-                on_MPK_NETPACKAGE(rstMPK);
+                on_MPK_RECVPACKAGE(rstMPK);
                 break;
             }
         case MPK_QUERYMAPLIST:

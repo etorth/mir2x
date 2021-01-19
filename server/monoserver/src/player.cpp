@@ -160,9 +160,14 @@ void Player::operateAM(const MessagePack &rstMPK)
                 on_MPK_BINDCHANNEL(rstMPK);
                 break;
             }
-        case MPK_NETPACKAGE:
+        case MPK_SENDPACKAGE:
             {
-                on_MPK_NETPACKAGE(rstMPK);
+                on_MPK_SENDPACKAGE(rstMPK);
+                break;
+            }
+        case MPK_RECVPACKAGE:
+            {
+                on_MPK_RECVPACKAGE(rstMPK);
                 break;
             }
         case MPK_QUERYCORECORD:
@@ -229,6 +234,7 @@ void Player::operateNet(uint8_t nType, const uint8_t *pData, size_t nDataLen)
         case CM_PING            : net_CM_PING            (nType, pData, nDataLen); break;
         case CM_QUERYGOLD       : net_CM_QUERYGOLD       (nType, pData, nDataLen); break;
         case CM_NPCEVENT        : net_CM_NPCEVENT        (nType, pData, nDataLen); break;
+        case CM_QUERYSELLITEM   : net_CM_QUERYSELLITEM   (nType, pData, nDataLen); break;
         default                 :                                                  break;
     }
 }

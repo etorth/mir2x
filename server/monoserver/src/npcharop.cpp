@@ -19,6 +19,7 @@
 #include "npchar.hpp"
 #include "mathf.hpp"
 #include "messagepack.hpp"
+#include "dbcomrecord.hpp"
 
 void NPChar::on_MPK_ACTION(const MessagePack &mpk)
 {
@@ -103,6 +104,31 @@ void NPChar::on_MPK_QUERYLOCATION(const MessagePack &mpk)
     amL.Direction = Direction();
 
     m_actorPod->forward(mpk.from(), {MPK_LOCATION, amL}, mpk.ID());
+}
+
+void NPChar::on_MPK_QUERYSELLITEM(const MessagePack &mpk)
+{
+    const auto amQSI = mpk.conv<AMQuerySellItem>();
+    SMSellItem smSI;
+
+    std::memset(&smSI, 0, sizeof(smSI));
+    smSI.itemID = amQSI.itemID;
+
+    if(DBCOM_ITEMRECORD(smSI.itemID).hasDBID()){
+        smSI.list.size = 20 + std::rand() % 32;
+        for(size_t i = 0; i < smSI.list.size; ++i){
+            smSI.list.data[i].price = 12 + std::rand() % 100;
+        }
+    }
+    else{
+        smSI.single.price = 100 + std::rand() % 20;
+    }
+
+    AMSendPackage amSP;
+    std::memset(&amSP, 0, sizeof(amSP));
+
+    buildNetPackage(&(amSP.package), SM_SELLITEM, smSI);
+    m_actorPod->forward(mpk.from(), {MPK_SENDPACKAGE, amSP});
 }
 
 void NPChar::on_MPK_BADACTORPOD(const MessagePack &mpk)

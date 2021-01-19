@@ -129,3 +129,13 @@ void Player::net_CM_NPCEVENT(uint8_t, const uint8_t *buf, size_t bufLen)
     std::strcpy(amNPCEvent.value, cmNPCE.value);
     m_actorPod->forward(cmNPCE.uid, {MPK_NPCEVENT, amNPCEvent});
 }
+
+void Player::net_CM_QUERYSELLITEM(uint8_t, const uint8_t *buf, size_t bufLen)
+{
+    const auto cmQSI = ClientMsg::conv<CMQuerySellItem>(buf, bufLen);
+    AMQuerySellItem amQSI;
+
+    std::memset(&amQSI, 0, sizeof(amQSI));
+    amQSI.itemID = cmQSI.itemID;
+    m_actorPod->forward(cmQSI.npcUID, {MPK_QUERYSELLITEM, amQSI});
+}

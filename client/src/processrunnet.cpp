@@ -68,6 +68,13 @@ void ProcessRun::net_LOGINOK(const uint8_t *bufPtr, size_t nLen)
     }
 }
 
+void ProcessRun::net_SELLITEM(const uint8_t *bufPtr, size_t)
+{
+    const auto smSI = ServerMsg::conv<SMSellItem>(bufPtr);
+    auto purchaseBoardPtr = dynamic_cast<PurchaseBoard *>(getGUIManager()->getWidget("PurchaseBoard"));
+    purchaseBoardPtr->setSellItem(smSI);
+}
+
 void ProcessRun::net_ACTION(const uint8_t *bufPtr, size_t)
 {
     SMAction smA;

@@ -19,6 +19,7 @@
 #pragma once
 #include <cstdint>
 #include "actionnode.hpp"
+#include "netpackage.hpp"
 
 enum MessagePackType: int
 {
@@ -40,7 +41,8 @@ enum MessagePackType: int
     MPK_LOGINOK,
     MPK_ADDRESS,
     MPK_LOGINQUERYDB,
-    MPK_NETPACKAGE,
+    MPK_SENDPACKAGE,
+    MPK_RECVPACKAGE,
     MPK_ADDCHAROBJECT,
     MPK_BINDCHANNEL,
     MPK_ACTION,
@@ -52,6 +54,7 @@ enum MessagePackType: int
     MPK_TRYMAPSWITCH,
     MPK_QUERYMAPUID,
     MPK_QUERYLOCATION,
+    MPK_QUERYSELLITEM,
     MPK_LOCATION,
     MPK_PATHFIND,
     MPK_PATHFINDOK,
@@ -216,15 +219,15 @@ struct AMLoginQueryDB
     int      Direction;
 };
 
-struct AMNetPackage
+struct AMSendPackage
 {
-    uint32_t ChannID;
-    uint8_t  Type;
+    NetPackage package;
+};
 
-    uint8_t *Data;
-    uint8_t  DataBuf[256];
-
-    size_t DataLen;
+struct AMRecvPackage
+{
+    uint32_t channID;
+    NetPackage package;
 };
 
 struct AMBindChannel
@@ -293,6 +296,11 @@ struct AMQueryLocation
 {
     uint64_t UID;
     uint32_t MapID;
+};
+
+struct AMQuerySellItem
+{
+    uint32_t itemID;
 };
 
 struct AMLocation

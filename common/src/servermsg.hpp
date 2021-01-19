@@ -46,6 +46,7 @@ enum SMType: uint8_t
     SM_NPCXMLLAYOUT,
     SM_NPCSELL,
     SM_GOLD,
+    SM_SELLITEM,
     SM_TEXT,
     SM_MAX,
 };
@@ -215,6 +216,33 @@ struct SMGold
 {
     uint32_t Gold;
 };
+
+struct SMSellItem
+{
+    uint32_t itemID;
+    struct SellItemSingle
+    {
+        uint32_t price;
+    };
+
+    struct SellItemList
+    {
+        struct ListNode
+        {
+            uint32_t price;
+            // extra attributes
+        };
+
+        uint8_t size;
+        ListNode data[64];
+    };
+
+    union
+    {
+        SellItemList list;
+        SellItemSingle single;
+    };
+};
 #pragma pack(pop)
 
 class ServerMsg final: public MsgBase
@@ -254,6 +282,7 @@ class ServerMsg final: public MsgBase
                 _add_server_msg_type_case(SM_NPCXMLLAYOUT,     3, 0                         )
                 _add_server_msg_type_case(SM_NPCSELL,          3, 0                         )
                 _add_server_msg_type_case(SM_GOLD,             1, sizeof(SMGold)            )
+                _add_server_msg_type_case(SM_SELLITEM,         1, sizeof(SMSellItem)        )
                 _add_server_msg_type_case(SM_TEXT,             3, 0                         )
 #undef _add_server_msg_type_case
             };
@@ -284,7 +313,8 @@ class ServerMsg final: public MsgBase
                     || std::is_same_v<T, SMOffline>
                     || std::is_same_v<T, SMPickUpOK>
                     || std::is_same_v<T, SMRemoveGroundItem>
-                    || std::is_same_v<T, SMGold>);
+                    || std::is_same_v<T, SMGold>
+                    || std::is_same_v<T, SMSellItem>);
 
             if(bufLen && bufLen != sizeof(T)){
                 throw fflerror("invalid buffer length");

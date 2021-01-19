@@ -95,6 +95,7 @@ class NPChar final: public CharObject
         void on_MPK_BADACTORPOD(const MessagePack &);
         void on_MPK_QUERYCORECORD(const MessagePack &);
         void on_MPK_QUERYLOCATION(const MessagePack &);
+        void on_MPK_QUERYSELLITEM(const MessagePack &);
 
     private:
         void sendSell(uint64_t, const std::vector<std::string> &);

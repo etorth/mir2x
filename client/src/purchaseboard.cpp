@@ -16,12 +16,14 @@
  * =====================================================================================
  */
 
+#include "client.hpp"
 #include "pngtexdb.hpp"
 #include "sdldevice.hpp"
 #include "processrun.hpp"
 #include "purchaseboard.hpp"
 #include "purchasecountboard.hpp"
 
+extern Client *g_client;
 extern PNGTexDB *g_itemDB;
 extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
@@ -49,7 +51,7 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
           [this]()
           {
               show(false);
-              m_extended = 0;
+              setExtendedItemID(0);
           },
 
           0,
@@ -73,7 +75,7 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
           nullptr,
           [this]()
           {
-              m_extended = 2;
+              setExtendedItemID(selectedItemID());
               m_closeExt1Button.setOff();
               m_closeExt2Button.setOff();
           },
@@ -99,7 +101,7 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
           nullptr,
           [this]()
           {
-              m_extended = 0;
+              setExtendedItemID(0);
           },
 
           0,
@@ -123,6 +125,7 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
           nullptr,
           [this]()
           {
+              m_ext1Page = std::max<int>(0, m_ext1Page - 1);
           },
 
           0,
@@ -169,6 +172,7 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
           nullptr,
           [this]()
           {
+              m_ext1Page = std::min<int>((int)(m_sellItem.list.size / 4 / 3) - 1, m_ext1Page + 1);
           },
 
           0,
@@ -192,7 +196,7 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
           nullptr,
           [this]()
           {
-              m_extended = 0;
+              setExtendedItemID(0);
           },
 
           0,
@@ -262,7 +266,7 @@ void PurchaseBoard::update(double)
 
 void PurchaseBoard::drawEx(int dstX, int dstY, int, int, int, int) const
 {
-    if(auto pTexture = g_progUseDB->Retrieve(0X08000000 + m_extended)){
+    if(auto pTexture = g_progUseDB->Retrieve(0X08000000 + extendedBoardGfxID())){
         g_sdlDevice->drawTexture(pTexture, dstX, dstY);
     }
 
@@ -325,9 +329,65 @@ void PurchaseBoard::drawEx(int dstX, int dstY, int, int, int, int) const
         }
     }
 
-    switch(m_extended){
+    switch(extendedBoardGfxID()){
         case 1:
             {
+                if(m_extendedItemID == m_sellItem.itemID){
+                    if(const auto &ir = DBCOM_ITEMRECORD(m_extendedItemID)){
+                        if(auto texPtr = g_itemDB->Retrieve(ir.pkgGfxID | 0X02000000)){
+                            constexpr int rightStartX = 313;
+                            constexpr int rightStartY =  41;
+                            const auto [texW, texH] = SDLDevice::getTextureSize(texPtr);
+                            if(m_ext1Page * 3 * 4 >= m_sellItem.list.size){
+                                throw fflerror("invalid ext1Page: ext1Page = %d, listSize = %llu", m_ext1Page, to_llu(m_sellItem.list.size));
+                            }
+
+                            for(int r = 0; r < 3; ++r){
+                                for(int c = 0; c < 4; ++c){
+                                    const size_t i = m_ext1Page * 3 * 4 + r * 4 + c;
+                                    if(i >= m_sellItem.list.size){
+                                        break;
+                                    }
+
+                                    const int rightBoxX = rightStartX + c * boxW;
+                                    const int rightBoxY = rightStartY + r * boxH;
+                                    const int rightDrawX = rightBoxX + (boxW - texW) / 2;
+                                    const int rightDrawY = rightBoxY + (boxH - texH) / 2;
+                                    const LabelBoard itemPrice
+                                    {
+                                        0, // reset by new width
+                                        0,
+                                        to_u8cstr(std::to_string(m_sellItem.list.data[i].price)),
+
+                                        1,
+                                        10,
+                                        0,
+
+                                        colorf::RGBA(0XFF, 0XFF, 0X00, 0XFF),
+                                    };
+
+                                    g_sdlDevice->drawTexture(texPtr, x() + rightDrawX, y() + rightDrawY);
+                                    itemPrice.drawAt(DIR_UPLEFT, x() + rightBoxX, y() + rightBoxY);
+                                }
+                            }
+                        }
+                    }
+
+                    const LabelBoard pageIndexLabel
+                    {
+                        0, // reset by new width
+                        0,
+                        str_printf(u8"第%d/%d页", m_ext1Page + 1, (int)(m_sellItem.list.size / 3 / 4)).c_str(),
+
+                        1,
+                        10,
+                        0,
+
+                        colorf::RGBA(0XFF, 0XFF, 0X00, 0XFF),
+                    };
+                    pageIndexLabel.drawAt(DIR_NONE, x() + 389, y() + 18);
+                }
+
                 m_closeExt1Button .draw();
                 m_leftExt1Button  .draw();
                 m_selectExt1Button.draw();
@@ -336,7 +396,7 @@ void PurchaseBoard::drawEx(int dstX, int dstY, int, int, int, int) const
             }
         case 2:
             {
-                if(const auto &ir = DBCOM_ITEMRECORD(selectedItemID())){
+                if(const auto &ir = DBCOM_ITEMRECORD(m_extendedItemID)){
                     if(auto texPtr = g_itemDB->Retrieve(ir.pkgGfxID | 0X02000000)){
                         constexpr int rightStartX = 303;
                         constexpr int rightStartY =  16;
@@ -344,6 +404,21 @@ void PurchaseBoard::drawEx(int dstX, int dstY, int, int, int, int) const
                         const int rightDrawX = rightStartX + (boxW - texW) / 2;
                         const int rightDrawY = rightStartY + (boxH - texH) / 2;
                         g_sdlDevice->drawTexture(texPtr, x() + rightDrawX, y() + rightDrawY);
+                        if(m_extendedItemID == m_sellItem.itemID){
+                            const LabelBoard itemPrice
+                            {
+                                0, // reset by new width
+                                0,
+                                str_printf(u8"%s 金币", to_cstr(str_ksep(m_sellItem.single.price))).c_str(),
+
+                                1,
+                                10,
+                                0,
+
+                                colorf::RGBA(0XFF, 0XFF, 0X00, 0XFF),
+                            };
+                            itemPrice.drawAt(DIR_LEFT, x() + 350, y() + 35);
+                        }
                     }
                 }
 
@@ -351,13 +426,9 @@ void PurchaseBoard::drawEx(int dstX, int dstY, int, int, int, int) const
                 m_selectExt2Button.draw();
                 break;
             }
-        case 0:
-            {
-                break;
-            }
         default:
             {
-                throw fflerror("invalid extended argument: %d", m_extended);
+                break;
             }
     }
 }
@@ -384,7 +455,7 @@ bool PurchaseBoard::processEvent(const SDL_Event &event, bool valid)
         return true;
     }
 
-    switch(m_extended){
+    switch(extendedBoardGfxID()){
         case 1:
             {
                 if(m_closeExt1Button.processEvent(event, valid)){
@@ -418,32 +489,25 @@ bool PurchaseBoard::processEvent(const SDL_Event &event, bool valid)
                 }
                 break;
             }
-        case 0:
-            {
-                break;
-            }
         default:
             {
-                throw fflerror("invalid extended argument: %d", m_extended);
+                break;
             }
     }
 
     switch(event.type){
         case SDL_MOUSEBUTTONDOWN:
             {
-                int selected = -1;
                 for(int i = 0; i < 4; ++i){
                     if(mathf::pointInRectangle<int>(event.button.x - x(), event.button.y - y(), 19, 15 + (57 - 15) * i, 252 - 19, 53 - 15)){
-                        selected = i;
+                        m_selected = i + getStartIndex();
                         if(event.button.clicks >= 2){
-                            m_extended = 2;
+                            if(const auto itemID = selectedItemID()){
+                                setExtendedItemID(itemID);
+                            }
                         }
                         break;
                     }
-                }
-
-                if(selected >= 0){
-                    m_selected = selected + getStartIndex();
                 }
                 break;
             }
@@ -485,4 +549,30 @@ uint32_t PurchaseBoard::selectedItemID() const
         return m_itemList.at(m_selected);
     }
     return 0;
+}
+
+void PurchaseBoard::setExtendedItemID(uint32_t itemID)
+{
+    m_extendedItemID = itemID;
+    if(m_extendedItemID){
+        CMQuerySellItem cmQSI;
+        std::memset(&cmQSI, 0, sizeof(cmQSI));
+        cmQSI.npcUID = m_npcUID;
+        cmQSI.itemID = m_extendedItemID;
+        g_client->send(CM_QUERYSELLITEM, cmQSI);
+    }
+    else{
+        std::memset(&m_sellItem, 0, sizeof(m_sellItem));
+    }
+}
+
+void PurchaseBoard::setSellItem(const SMSellItem &smSI)
+{
+    if(m_extendedItemID == smSI.itemID){
+        std::memcpy(&m_sellItem, &smSI, sizeof(m_sellItem));
+    }
+    else{
+        std::memset(&m_sellItem, 0, sizeof(m_sellItem));
+    }
+    m_ext1Page = 0;
 }

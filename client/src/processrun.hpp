@@ -193,6 +193,7 @@ class ProcessRun: public Process
         void net_OFFLINE(const uint8_t *, size_t);
         void net_NPCSELL(const uint8_t *, size_t);
         void net_LOGINOK(const uint8_t *, size_t);
+        void net_SELLITEM(const uint8_t *, size_t);
         void net_PICKUPOK(const uint8_t *, size_t);
         void net_CORECORD(const uint8_t *, size_t);
         void net_UPDATEHP(const uint8_t *, size_t);

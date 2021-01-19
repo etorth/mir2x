@@ -96,7 +96,7 @@ void Channel::DoReadPackHC()
                         switch(stCMSG.type()){
                             case 0:
                                 {
-                                    pThis->ForwardActorMessage(pThis->m_readHC, nullptr, 0);
+                                    pThis->forwardActorMessage(pThis->m_readHC, nullptr, 0);
                                     pThis->DoReadPackHC();
                                     return;
                                 }
@@ -335,7 +335,7 @@ void Channel::DoReadPackBody(size_t nMaskLen, size_t nBodyLen)
 
                             // decoding and verification done
                             // we forward the (decoded/origin) data to the bind actor
-                            pThis->ForwardActorMessage(pThis->m_readHC, pDecodeMem ? pDecodeMem : pMem, nMaskLen ? stCMSG.dataLen() : nBodyLen);
+                            pThis->forwardActorMessage(pThis->m_readHC, pDecodeMem ? pDecodeMem : pMem, nMaskLen ? stCMSG.dataLen() : nBodyLen);
                             pThis->DoReadPackHC();
                         }
                     };
@@ -346,7 +346,7 @@ void Channel::DoReadPackBody(size_t nMaskLen, size_t nBodyLen)
                 // possibilities to reach here
                 // 1. call DoReadPackBody() with m_readHC as empty message type
                 // 2. read a body with empty body in mode 3
-                ForwardActorMessage(m_readHC, nullptr, 0);
+                forwardActorMessage(m_readHC, nullptr, 0);
                 DoReadPackHC();
                 return;
             }
@@ -480,7 +480,7 @@ bool Channel::Post(uint8_t nHC, const uint8_t *pData, size_t nDataLen, std::func
     return FlushSendQ();
 }
 
-bool Channel::ForwardActorMessage(uint8_t nHC, const uint8_t *pData, size_t nDataLen)
+bool Channel::forwardActorMessage(uint8_t nHC, const uint8_t *pData, size_t nDataLen)
 {
     auto fnReportBadArgs = [nHC, pData, nDataLen]()
     {
@@ -528,24 +528,12 @@ bool Channel::ForwardActorMessage(uint8_t nHC, const uint8_t *pData, size_t nDat
             }
     }
 
-    AMNetPackage amNP;
-    std::memset(&amNP, 0, sizeof(amNP));
+    AMRecvPackage amRP;
+    std::memset(&amRP, 0, sizeof(amRP));
 
-    amNP.ChannID = ID();
-    amNP.Type    = nHC;
-    amNP.DataLen = nDataLen;
-
-    if(pData){
-        if(nDataLen <= std::extent<decltype(amNP.DataBuf)>::value){
-            amNP.Data = nullptr;
-            std::memcpy(amNP.DataBuf, pData, nDataLen);
-        }else{
-            amNP.Data = new uint8_t[nDataLen];
-            std::memcpy(amNP.Data, pData, nDataLen);
-        }
-    }
-
-    return m_dispatcher.forward(m_bindUID, {MPK_NETPACKAGE, amNP});
+    amRP.channID = ID();
+    buildNetPackage(&(amRP.package), nHC, pData, nDataLen);
+    return m_dispatcher.forward(m_bindUID, {MPK_RECVPACKAGE, amRP});
 }
 
 void Channel::Shutdown(bool bForce)

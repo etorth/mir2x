@@ -56,7 +56,7 @@ class ServiceCore final: public ServerObject
         void on_MPK_LOGIN(const MessagePack &);
         void on_MPK_METRONOME(const MessagePack &);
         void on_MPK_BADCHANNEL(const MessagePack &);
-        void on_MPK_NETPACKAGE(const MessagePack &);
+        void on_MPK_RECVPACKAGE(const MessagePack &);
         void on_MPK_QUERYMAPUID(const MessagePack &);
         void on_MPK_QUERYMAPLIST(const MessagePack &);
         void on_MPK_QUERYCOCOUNT(const MessagePack &);

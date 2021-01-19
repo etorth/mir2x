@@ -199,7 +199,7 @@ class Channel final: public std::enable_shared_from_this<Channel>
     private:
         // called by asio main loop only
         // only called in Channel::DoReadHC()/DoReadBody()
-        bool ForwardActorMessage(uint8_t, const uint8_t *, size_t);
+        bool forwardActorMessage(uint8_t, const uint8_t *, size_t);
 
     private:
         // called by one server thread

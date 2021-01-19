@@ -27,9 +27,17 @@ class ProcessRun;
 class PurchaseBoard: public Widget
 {
     private:
-        int m_extended = 0;
-        int m_selected = 0;
         uint64_t m_npcUID = 0;
+
+    private:
+        uint64_t m_extendedItemID = 0;
+        SMSellItem m_sellItem;
+
+    private:
+        int m_ext1Page = 0;
+
+    private:
+        int m_selected = 0;
         std::vector<uint32_t> m_itemList;
 
     private:
@@ -72,4 +80,19 @@ class PurchaseBoard: public Widget
 
     public:
         uint32_t selectedItemID() const;
+
+    private:
+        void setExtendedItemID(uint32_t);
+
+    public:
+        void setSellItem(const SMSellItem &);
+
+    private:
+        int extendedBoardGfxID() const
+        {
+            if(m_extendedItemID){
+                return DBCOM_ITEMRECORD(m_extendedItemID).hasDBID() ? 1 : 2;
+            }
+            return 0;
+        }
 };

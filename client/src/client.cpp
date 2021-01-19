@@ -294,6 +294,13 @@ void Client::onServerMessage(uint8_t headCode, const uint8_t *pData, size_t nDat
                 }
                 break;
             }
+        case SM_SELLITEM:
+            {
+                if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+                    pRun->net_SELLITEM(pData, nDataLen);
+                }
+                break;
+            }
         case SM_LOGINOK:
             {
                 SwitchProcess(m_currentProcess->ID(), PROCESSID_RUN);

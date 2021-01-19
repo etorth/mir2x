@@ -33,25 +33,11 @@ extern MonoServer *g_monoServer;
 // in the net package otherwise we can't find the session even we have session's
 // address, session is a sync-driver, even we have it's address we can't find it
 //
-void ServiceCore::on_MPK_NETPACKAGE(const MessagePack &rstMPK)
+void ServiceCore::on_MPK_RECVPACKAGE(const MessagePack &mpk)
 {
-    AMNetPackage amNP;
-    std::memcpy(&amNP, rstMPK.Data(), sizeof(AMNetPackage));
-
-    uint8_t *pDataBuf = nullptr;
-    if(amNP.DataLen){
-        if(amNP.Data){
-            pDataBuf = amNP.Data;
-        }else{
-            pDataBuf = amNP.DataBuf;
-        }
-    }
-
-    operateNet(amNP.ChannID, amNP.Type, pDataBuf, amNP.DataLen);
-
-    if(amNP.Data){
-        delete [] amNP.Data;
-    }
+    /* const */ auto amRP = mpk.conv<AMRecvPackage>();
+    operateNet(amRP.channID, amRP.package.type, amRP.package.buf(), amRP.package.size);
+    freeNetPackage(&(amRP.package));
 }
 
 void ServiceCore::on_MPK_METRONOME(const MessagePack &)

@@ -128,7 +128,8 @@ class Player final: public CharObject
         void on_MPK_NPCQUERY(const MessagePack &);
         void on_MPK_METRONOME(const MessagePack &);
         void on_MPK_MAPSWITCH(const MessagePack &);
-        void on_MPK_NETPACKAGE(const MessagePack &);
+        void on_MPK_SENDPACKAGE(const MessagePack &);
+        void on_MPK_RECVPACKAGE(const MessagePack &);
         void on_MPK_BADCHANNEL(const MessagePack &);
         void on_MPK_NOTIFYDEAD(const MessagePack &);
         void on_MPK_NOTIFYNEWCO(const MessagePack &);
@@ -147,6 +148,7 @@ class Player final: public CharObject
         void net_CM_REQUESTSPACEMOVE  (uint8_t, const uint8_t *, size_t);
         void net_CM_REQUESTMAGICDAMAGE(uint8_t, const uint8_t *, size_t);
         void net_CM_QUERYCORECORD     (uint8_t, const uint8_t *, size_t);
+        void net_CM_QUERYSELLITEM     (uint8_t, const uint8_t *, size_t);
         void net_CM_ACTION            (uint8_t, const uint8_t *, size_t);
         void net_CM_PICKUP            (uint8_t, const uint8_t *, size_t);
         void net_CM_PING              (uint8_t, const uint8_t *, size_t);
