@@ -90,7 +90,7 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npc)
         }();
 
         if(uid){
-            npc->sendXMLLayout(uid, xmlString.c_str());
+            npc->sendXMLLayout(uid, std::move(xmlString));
         }
 
         else{
@@ -464,10 +464,7 @@ bool NPChar::goGhost()
 
 void NPChar::sendSell(uint64_t uid, const std::vector<std::string> &itemList)
 {
-    AMNPCSell amNPCS;
-    std::memset(&amNPCS, 0, sizeof(amNPCS));
-
-    amNPCS.ptr = new std::string(cerealf::serialize(SDNPCSell
+    sendNetPackage(uid, SM_NPCSELL, cerealf::serialize(SDNPCSell
     {
         .npcUID = UID(),
         .itemList = [&itemList]()
@@ -484,7 +481,6 @@ void NPChar::sendSell(uint64_t uid, const std::vector<std::string> &itemList)
             return itemIDList;
         }()
     }, true));
-    m_actorPod->forward(uid, {MPK_NPCSELL, amNPCS});
 }
 
 void NPChar::sendQuery(uint64_t sessionUID, uint64_t uid, const std::string &query)
@@ -519,17 +515,13 @@ void NPChar::sendQuery(uint64_t sessionUID, uint64_t uid, const std::string &que
     });
 }
 
-void NPChar::sendXMLLayout(uint64_t uid, const char *xmlString)
+void NPChar::sendXMLLayout(uint64_t uid, std::string xmlString)
 {
-    if(!xmlString){
-        throw fflerror("invalid xmlString: %s", to_cstr(xmlString));
-    }
-
-    AMNPCXMLLayout amNPCXMLL;
-    std::memset(&amNPCXMLL, 0, sizeof(amNPCXMLL));
-
-    amNPCXMLL.xmlLayout = new std::string(xmlString);
-    m_actorPod->forward(uid, {MPK_NPCXMLLAYOUT, amNPCXMLL});
+    sendNetPackage(uid, SM_NPCXMLLAYOUT, cerealf::serialize(SDNPCXMLLayout
+    {
+        .npcUID = UID(),
+        .xmlLayout = std::move(xmlString),
+    }, true));
 }
 
 void NPChar::operateAM(const MessagePack &mpk)

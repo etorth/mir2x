@@ -86,9 +86,7 @@ enum MessagePackType: int
     MPK_MASTERHITTED,
     MPK_NPCQUERY,
     MPK_NPCEVENT,
-    MPK_NPCXMLLAYOUT,
     MPK_NPCERROR,
-    MPK_NPCSELL,
     MPK_MAX,
 };
 
@@ -551,14 +549,4 @@ struct AMNPCQuery
 struct AMNPCError
 {
     int errorID;
-};
-
-struct AMNPCXMLLayout
-{
-    void *xmlLayout;
-};
-
-struct AMNPCSell
-{
-    void *ptr;
 };

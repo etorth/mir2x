@@ -338,33 +338,6 @@ void Player::on_MPK_SHOWDROPITEM(const MessagePack &rstMPK)
     g_netDriver->Post(ChannID(), SM_SHOWDROPITEM, smSDI);
 }
 
-void Player::on_MPK_NPCXMLLAYOUT(const MessagePack &msg)
-{
-    const auto amNPCXMLL = msg.conv<AMNPCXMLLayout>();
-    if(!amNPCXMLL.xmlLayout){
-        throw fflerror("invalid AMNPCXMLLayout::xmlLayout: nullptr");
-    }
-
-    auto xmlLayoutPtr = (std::string *)(amNPCXMLL.xmlLayout);
-    if(xmlLayoutPtr->empty()){
-        throw fflerror("invalid xmlLayout: %s", to_cstr(xmlLayoutPtr->c_str()));
-    }
-
-    std::string xmlLayout = std::move(*xmlLayoutPtr);
-    delete xmlLayoutPtr;
-
-    if(uidf::getUIDType(msg.from()) != UID_NPC){
-        throw fflerror("actor message AMNPCXMLLayout from %s", uidf::getUIDTypeString(msg.from()));
-    }
-
-    const auto buf = cerealf::serialize(SDNPCXMLLayout
-    {
-        .npcUID = msg.from(),
-        .xmlLayout = std::move(xmlLayout),
-    }, true);
-    postNetMessage(SM_NPCXMLLAYOUT, buf.data(), buf.size());
-}
-
 void Player::on_MPK_BADCHANNEL(const MessagePack &rstMPK)
 {
     AMBadChannel amBC;
@@ -469,25 +442,4 @@ void Player::on_MPK_CHECKMASTER(const MessagePack &rstMPK)
 {
     m_slaveList.insert(rstMPK.from());
     m_actorPod->forward(rstMPK.from(), MPK_OK, rstMPK.ID());
-}
-
-void Player::on_MPK_NPCSELL(const MessagePack &msg)
-{
-    const auto amNPCS = msg.conv<AMNPCSell>();
-    if(!amNPCS.ptr){
-        throw fflerror("invalid AMNPCSell::ptr: nullptr");
-    }
-
-    auto bufPtr = (std::string *)(amNPCS.ptr);
-    if(bufPtr->empty()){
-        throw fflerror("invalid SDNPCSell: (empty)");
-    }
-
-    const std::string buf = std::move(*bufPtr);
-    delete bufPtr;
-
-    if(uidf::getUIDType(msg.from()) != UID_NPC){
-        throw fflerror("actor message AMNPCSell from %s", uidf::getUIDTypeString(msg.from()));
-    }
-    postNetMessage(SM_NPCSELL, buf.data(), buf.size());
 }

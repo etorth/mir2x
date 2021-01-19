@@ -98,9 +98,11 @@ class NPChar final: public CharObject
         void on_MPK_QUERYSELLITEM(const MessagePack &);
 
     private:
-        void sendSell(uint64_t, const std::vector<std::string> &);
         void sendQuery(uint64_t, uint64_t, const std::string &);
-        void sendXMLLayout(uint64_t, const char *);
+
+    private:
+        void sendSell(uint64_t, const std::vector<std::string> &);
+        void sendXMLLayout(uint64_t, std::string);
 
     public:
         void operateAM(const MessagePack &) override;

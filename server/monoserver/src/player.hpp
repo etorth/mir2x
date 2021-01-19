@@ -120,7 +120,6 @@ class Player final: public CharObject
         void on_MPK_MISS(const MessagePack &);
         void on_MPK_ACTION(const MessagePack &);
         void on_MPK_ATTACK(const MessagePack &);
-        void on_MPK_NPCSELL(const MessagePack &);
         void on_MPK_OFFLINE(const MessagePack &);
         void on_MPK_CORECORD(const MessagePack &);
         void on_MPK_PICKUPOK(const MessagePack &);
@@ -138,7 +137,6 @@ class Player final: public CharObject
         void on_MPK_BINDCHANNEL(const MessagePack &);
         void on_MPK_CHECKMASTER(const MessagePack &);
         void on_MPK_SHOWDROPITEM(const MessagePack &);
-        void on_MPK_NPCXMLLAYOUT(const MessagePack &);
         void on_MPK_QUERYCORECORD(const MessagePack &);
         void on_MPK_QUERYLOCATION(const MessagePack &);
         void on_MPK_REMOVEGROUNDITEM(const MessagePack &);

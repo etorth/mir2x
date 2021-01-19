@@ -1479,3 +1479,15 @@ ActionNode CharObject::makeActionStand() const
     }
     return stand;
 }
+
+void CharObject::sendNetPackage(uint64_t uid, uint8_t type, const void *buf, size_t bufLen)
+{
+    AMSendPackage amSP;
+    std::memset(&amSP, 0, sizeof(amSP));
+
+    buildActorDataPackage(&(amSP.package), type, buf, bufLen);
+    if(uidf::getUIDType(uid) != UID_PLY){
+        throw fflerror("sending MPK_SENDPACKAGE to %s, expect UID_PLY: type = %llu", uidf::getUIDTypeString(uid), to_llu(type));
+    }
+    m_actorPod->forward(uid, {MPK_SENDPACKAGE, amSP});
+}

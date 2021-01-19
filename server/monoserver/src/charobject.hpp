@@ -394,4 +394,11 @@ class CharObject: public ServerObject
 
     protected:
         ActionNode makeActionStand() const;
+
+    protected:
+        void sendNetPackage(uint64_t, uint8_t, const void *, size_t);
+        void sendNetPackage(uint64_t uid, uint8_t type, const std::string &buf)
+        {
+            sendNetPackage(uid, type, buf.data(), buf.length());
+        }
 };

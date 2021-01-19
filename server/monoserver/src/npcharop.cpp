@@ -124,17 +124,7 @@ void NPChar::on_MPK_QUERYSELLITEM(const MessagePack &mpk)
     else{
         sdSI.single.price = 100 + std::rand() % 20;
     }
-
-    AMSendPackage amSP;
-    std::memset(&amSP, 0, sizeof(amSP));
-
-    const auto buf = cerealf::serialize<SDSellItem>(sdSI, true);
-    buildActorDataPackage(&(amSP.package), SM_SELLITEM, buf.data(), buf.length());
-
-    if(uidf::getUIDType(mpk.from()) != UID_PLY){
-        throw fflerror("sending MPK_SENDPACKAGE to %s, expect UID_PLY only", uidf::getUIDTypeString(mpk.from()));
-    }
-    m_actorPod->forward(mpk.from(), {MPK_SENDPACKAGE, amSP});
+    sendNetPackage(mpk.from(), SM_SELLITEM, cerealf::serialize<SDSellItem>(sdSI, true));
 }
 
 void NPChar::on_MPK_BADACTORPOD(const MessagePack &mpk)

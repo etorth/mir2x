@@ -284,7 +284,6 @@ inline const char *mpkName(int type)
         _add_mpk_type_case(MPK_NAMECOLOR       )
         _add_mpk_type_case(MPK_MASTERKILL      )
         _add_mpk_type_case(MPK_NPCEVENT        )
-        _add_mpk_type_case(MPK_NPCXMLLAYOUT    )
         _add_mpk_type_case(MPK_NPCERROR        )
         default: return "MPK_UNKNOWN";
     }
