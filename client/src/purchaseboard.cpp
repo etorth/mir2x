@@ -175,6 +175,9 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
               if(const auto ext1PageCount = extendedPageCount()){
                   m_ext1Page = std::min<int>((int)(ext1PageCount) - 1, m_ext1Page + 1);
               }
+              else{
+                  m_ext1Page = 0;
+              }
           },
 
           0,
