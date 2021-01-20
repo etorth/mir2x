@@ -98,5 +98,5 @@ class PurchaseBoard: public Widget
         }
 
     private:
-        size_t extendedPageCount() const;
+        int extendedPageCount() const;
 };
