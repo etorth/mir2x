@@ -96,4 +96,7 @@ class PurchaseBoard: public Widget
             }
             return 0;
         }
+
+    private:
+        size_t extendedPageCount() const;
 };

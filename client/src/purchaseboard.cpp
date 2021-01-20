@@ -172,7 +172,9 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
           nullptr,
           [this]()
           {
-              m_ext1Page = std::min<int>((int)((m_sellItem.list.data.size() + 11) / 12) - 1, m_ext1Page + 1);
+              if(const auto ext1PageCount = extendedPageCount()){
+                  m_ext1Page = std::min<int>((int)(ext1PageCount) - 1, m_ext1Page + 1);
+              }
           },
 
           0,
@@ -333,7 +335,7 @@ void PurchaseBoard::drawEx(int dstX, int dstY, int, int, int, int) const
         case 1:
             {
                 if(m_extendedItemID == m_sellItem.itemID){
-                    const int ext1PageCount = (m_sellItem.list.data.size() + 11) / 12;
+                    const int ext1PageCount = (int)(extendedPageCount());
                     if(const auto &ir = DBCOM_ITEMRECORD(m_extendedItemID)){
                         if(auto texPtr = g_itemDB->Retrieve(ir.pkgGfxID | 0X02000000)){
                             constexpr int rightStartX = 313;
@@ -527,7 +529,7 @@ bool PurchaseBoard::processEvent(const SDL_Event &event, bool valid)
                     else{
                         m_ext1Page++;
                     }
-                    m_ext1Page = std::max<int>(0, std::min<int>((int)((m_sellItem.list.data.size() + 11) / 12) - 1, m_ext1Page));
+                    m_ext1Page = std::max<int>(0, std::min<int>((int)(extendedPageCount()) - 1, m_ext1Page));
                 }
                 break;
             }
@@ -585,4 +587,20 @@ void PurchaseBoard::setSellItem(SDSellItem sdSI)
         m_sellItem.clear();
     }
     m_ext1Page = 0;
+}
+
+size_t PurchaseBoard::extendedPageCount() const
+{
+    if(extendedBoardGfxID() != 1){
+        throw fflerror("no extended page available");
+    }
+
+    if(m_extendedItemID != m_sellItem.itemID){
+        return 0;
+    }
+
+    if(m_sellItem.list.data.empty()){
+        return 0;
+    }
+    return (m_sellItem.list.data.size() + 11) / 12;
 }
