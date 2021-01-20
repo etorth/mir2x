@@ -520,6 +520,15 @@ bool PurchaseBoard::processEvent(const SDL_Event &event, bool valid)
                         m_slider.addValue((event.wheel.y > 0 ? -1.0 : 1.0) / (m_itemList.size() - 4));
                     }
                 }
+                else if(extendedBoardGfxID() == 1 && !m_sellItem.list.data.empty() && mathf::pointInRectangle<int>(mousePX - x(), mousePY - y(), 313, 41, 152, 114)){
+                    if(event.wheel.y > 0){
+                        m_ext1Page--;
+                    }
+                    else{
+                        m_ext1Page++;
+                    }
+                    m_ext1Page = std::max<int>(0, std::min<int>((int)((m_sellItem.list.data.size() + 11) / 12) - 1, m_ext1Page));
+                }
                 break;
             }
         default:
