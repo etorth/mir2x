@@ -89,13 +89,7 @@ class PurchaseBoard: public Widget
         void setSellItem(SDSellItem);
 
     private:
-        int extendedBoardGfxID() const
-        {
-            if(m_extendedItemID){
-                return DBCOM_ITEMRECORD(m_extendedItemID).hasDBID() ? 1 : 2;
-            }
-            return 0;
-        }
+        int extendedBoardGfxID() const;
 
     private:
         int extendedPageCount() const;

@@ -172,7 +172,7 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
           nullptr,
           [this]()
           {
-              if(const auto ext1PageCount = extendedPageCount()){
+              if(const auto ext1PageCount = extendedPageCount(); ext1PageCount > 0){
                   m_ext1Page = std::min<int>(ext1PageCount - 1, m_ext1Page + 1);
               }
               else{
@@ -337,8 +337,8 @@ void PurchaseBoard::drawEx(int dstX, int dstY, int, int, int, int) const
     switch(extendedBoardGfxID()){
         case 1:
             {
-                if(m_extendedItemID == m_sellItem.itemID){
-                    const int ext1PageCount = extendedPageCount();
+                const int ext1PageCount = extendedPageCount();
+                if(ext1PageCount > 0 && m_extendedItemID == m_sellItem.itemID){
                     if(const auto &ir = DBCOM_ITEMRECORD(m_extendedItemID)){
                         if(auto texPtr = g_itemDB->Retrieve(ir.pkgGfxID | 0X02000000)){
                             constexpr int rightStartX = 313;
@@ -525,7 +525,7 @@ bool PurchaseBoard::processEvent(const SDL_Event &event, bool valid)
                         m_slider.addValue((event.wheel.y > 0 ? -1.0 : 1.0) / (m_itemList.size() - 4));
                     }
                 }
-                else if(extendedBoardGfxID() == 1 && !m_sellItem.list.data.empty() && mathf::pointInRectangle<int>(mousePX - x(), mousePY - y(), 313, 41, 152, 114)){
+                else if(extendedBoardGfxID() == 1 && extendedPageCount() > 0 && mathf::pointInRectangle<int>(mousePX - x(), mousePY - y(), 313, 41, 152, 114)){
                     if(event.wheel.y > 0){
                         m_ext1Page--;
                     }
@@ -592,10 +592,18 @@ void PurchaseBoard::setSellItem(SDSellItem sdSI)
     m_ext1Page = 0;
 }
 
+int PurchaseBoard::extendedBoardGfxID() const
+{
+    if(m_extendedItemID){
+        return DBCOM_ITEMRECORD(m_extendedItemID).hasDBID() ? 1 : 2;
+    }
+    return 0;
+}
+
 int PurchaseBoard::extendedPageCount() const
 {
     if(extendedBoardGfxID() != 1){
-        throw fflerror("no extended page available");
+        return -1;
     }
 
     if(m_extendedItemID != m_sellItem.itemID){
