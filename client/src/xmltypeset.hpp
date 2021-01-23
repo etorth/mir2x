@@ -102,7 +102,7 @@ class XMLTypeset // means XMLParagraph typeset
             , m_paragraph()
             , m_lineList()
         {
-            checkDefaultFont();
+            checkDefaultFontEx();
         }
 
     public:
@@ -128,6 +128,9 @@ class XMLTypeset // means XMLParagraph typeset
             if(m_paragraph.leafCount() > 0){
                 buildTypeset(0, 0);
             }
+            else{
+                m_ph = getDefaultFontHeight();
+            }
         }
 
         void loadXMLNode(const tinyxml2::XMLNode *node)
@@ -137,6 +140,9 @@ class XMLTypeset // means XMLParagraph typeset
 
             if(m_paragraph.leafCount() > 0){
                 buildTypeset(0, 0);
+            }
+            else{
+                m_ph = getDefaultFontHeight();
             }
         }
 
@@ -309,7 +315,7 @@ class XMLTypeset // means XMLParagraph typeset
         }
 
     private:
-        void checkDefaultFont() const;
+        void checkDefaultFontEx() const;
 
     private:
         void resetOneLine(int, bool);
@@ -476,4 +482,7 @@ class XMLTypeset // means XMLParagraph typeset
 
     public:
         bool blankToken(int, int) const;
+
+    public:
+        int getDefaultFontHeight() const;
 };

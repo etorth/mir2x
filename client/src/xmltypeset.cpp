@@ -541,7 +541,7 @@ void XMLTypeset::SetLineTokenStartY(int nLine)
     }
 }
 
-void XMLTypeset::checkDefaultFont() const
+void XMLTypeset::checkDefaultFontEx() const
 {
     const uint64_t u64key = utf8f::buildU64Key(m_font, m_fontSize, 0, utf8f::peekUTF8Code("0"));
     if(!g_fontexDB->Retrieve(u64key)){
@@ -1267,4 +1267,12 @@ void XMLTypeset::setLineWidth(int lineWidth)
 {
     m_lineWidth = lineWidth;
     buildTypeset(0, 0);
+}
+
+int XMLTypeset::getDefaultFontHeight() const
+{
+    if(auto texPtr = g_fontexDB->Retrieve(utf8f::buildU64Key(m_font, m_fontSize, m_fontStyle, utf8f::peekUTF8Code(" ")))){
+        return SDLDevice::getTextureHeight(texPtr);
+    }
+    return 20;
 }
