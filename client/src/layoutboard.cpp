@@ -222,18 +222,18 @@ void LayoutBoard::addPar(int loc, const std::array<int, 4> &parMargin, const tin
     );
 
     pNew->loadXMLNode(node);
-    auto pInsert = m_parNodeList.insert(ithParIterator(loc), {-1, parMargin, std::move(pNew)});
+    auto currNode = m_parNodeList.insert(ithParIterator(loc), {-1, parMargin, std::move(pNew)});
 
-    if(pInsert == m_parNodeList.begin()){
-        pInsert->startY = parMargin[1];
+    if(currNode == m_parNodeList.begin()){
+        currNode->startY = parMargin[1];
     }
     else{
-        const auto prevNode = std::prev(pInsert);
-        pInsert->startY = prevNode->startY + prevNode->margin[0] + prevNode->margin[1] + prevNode->tpset->ph();
+        const auto prevNode = std::prev(currNode);
+        currNode->startY = prevNode->startY + prevNode->margin[0] + prevNode->margin[1] + prevNode->tpset->ph();
     }
 
-    const int extraH = pInsert->tpset->ph() + pInsert->margin[0] + pInsert->margin[1];
-    for(auto p = std::next(pInsert); p != m_parNodeList.end(); ++p){
+    const int extraH = currNode->tpset->ph() + currNode->margin[0] + currNode->margin[1];
+    for(auto p = std::next(currNode); p != m_parNodeList.end(); ++p){
         p->startY += extraH;
     }
 
