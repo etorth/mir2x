@@ -762,7 +762,7 @@ std::tuple<int, int> XMLTypeset::leafLocInXMLParagraph(int tokenX, int tokenY) c
 
 void XMLTypeset::resetBoardPixelRegion()
 {
-    if(!lineCount()){
+    if(lineCount() == 0){
         m_px = 0;
         m_py = 0;
         m_pw = 0;
@@ -772,8 +772,8 @@ void XMLTypeset::resetBoardPixelRegion()
 
     int nMaxPX = 0;
     int nMaxPY = 0;
-    int nMinPX = std::numeric_limits<int>::max();
-    int nMinPY = std::numeric_limits<int>::max();
+    int nMinPX = INT_MAX;
+    int nMinPY = INT_MAX;
 
     for(int nLine = 0; lineValid(nLine); ++nLine){
         if(!lineTokenCount(nLine)){
