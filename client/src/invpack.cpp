@@ -30,15 +30,17 @@ void InvPack::add(uint32_t itemID, size_t count)
         throw fflerror("invalid arguments: itemID = %llu, count = %zu", to_llu(itemID), count);
     }
 
-    for(auto &bin: m_packBinList){
-        if(bin.id == itemID){
-            if(bin.count + count <= SYS_INVGRIDMAXHOLD){
-                bin.count += count;
-                return;
-            }
+    if(!DBCOM_ITEMRECORD(itemID).hasDBID()){
+        for(auto &bin: m_packBinList){
+            if(bin.id == itemID){
+                if(bin.count + count <= SYS_INVGRIDMAXHOLD){
+                    bin.count += count;
+                    return;
+                }
 
-            count = bin.count + count - SYS_INVGRIDMAXHOLD;
-            bin.count = SYS_INVGRIDMAXHOLD;;
+                count = bin.count + count - SYS_INVGRIDMAXHOLD;
+                bin.count = SYS_INVGRIDMAXHOLD;;
+            }
         }
     }
 
