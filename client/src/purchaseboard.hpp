@@ -28,6 +28,10 @@ class ProcessRun;
 class PurchaseBoard: public Widget
 {
     private:
+        const int m_boxW = 38;
+        const int m_boxH = 38;
+
+    private:
         uint64_t m_npcUID = 0;
 
     private:
@@ -36,6 +40,7 @@ class PurchaseBoard: public Widget
 
     private:
         int m_ext1Page = 0;
+        int m_ext1PageGridSelected = -1;
 
     private:
         int m_selected = 0;
@@ -93,4 +98,7 @@ class PurchaseBoard: public Widget
 
     private:
         int extendedPageCount() const;
+
+    private:
+        int getExt1PageGrid() const;
 };

@@ -374,6 +374,18 @@ void PurchaseBoard::drawEx(int dstX, int dstY, int, int, int, int) const
 
                                     g_sdlDevice->drawTexture(texPtr, x() + rightDrawX, y() + rightDrawY);
                                     itemPrice.drawAt(DIR_UPLEFT, x() + rightBoxX, y() + rightBoxY);
+
+                                    const bool gridSelected = (m_ext1PageGridSelected >= 0) && ((size_t)(m_ext1PageGridSelected) == i);
+                                    const auto cursorOn = [rightBoxX, rightBoxY, boxW, boxH, this]() -> bool
+                                    {
+                                        const auto [mousePX, mousePY] = g_sdlDevice->getMousePLoc();
+                                        return mathf::pointInRectangle<int>(mousePX, mousePY, x() + rightBoxX, y() + rightBoxY, boxW, boxH);
+                                    }();
+
+                                    if(gridSelected || cursorOn){
+                                        const uint32_t gridColor = gridSelected ? (colorf::BLUE + 96) : (colorf::WHITE + 96);
+                                        g_sdlDevice->fillRectangle(gridColor, x() + rightBoxX, y() + rightBoxY, boxW, boxH);
+                                    }
                                 }
                             }
                         }
@@ -515,6 +527,10 @@ bool PurchaseBoard::processEvent(const SDL_Event &event, bool valid)
                         break;
                     }
                 }
+
+                if(const int gridIndex = getExt1PageGrid(); gridIndex >= 0 && extendedPageCount() > 0 && m_ext1Page * 3 * 4 + gridIndex < (int)(m_sellItem.list.data.size())){
+                    m_ext1PageGridSelected = m_ext1Page * 3 * 4 + gridIndex;
+                }
                 break;
             }
         case SDL_MOUSEWHEEL:
@@ -569,6 +585,8 @@ uint32_t PurchaseBoard::selectedItemID() const
 void PurchaseBoard::setExtendedItemID(uint32_t itemID)
 {
     m_extendedItemID = itemID;
+    m_ext1PageGridSelected = -1;
+
     if(m_extendedItemID){
         CMQuerySellItem cmQSI;
         std::memset(&cmQSI, 0, sizeof(cmQSI));
@@ -614,4 +632,19 @@ int PurchaseBoard::extendedPageCount() const
         return 0;
     }
     return (int)(m_sellItem.list.data.size() + 11) / 12;
+}
+
+int PurchaseBoard::getExt1PageGrid() const
+{
+    if(extendedBoardGfxID() != 1){
+        return -1;
+    }
+
+    const auto [mousePX, mousePY] = g_sdlDevice->getMousePLoc();
+    if(mathf::pointInRectangle<int>(mousePX - x(), mousePY - y(), 313, 41, 152, 114)){
+        const int r = (mousePY - y() -  41) / m_boxH;
+        const int c = (mousePX - x() - 313) / m_boxW;
+        return r * 4 + c;
+    }
+    return -1;
 }
