@@ -648,3 +648,17 @@ int PurchaseBoard::getExt1PageGrid() const
     }
     return -1;
 }
+
+std::tuple<int, int, int, int> PurchaseBoard::getExt1PageGridLoc(int gridX, int gridY)
+{
+    if(gridX >= 0 && gridX < 4 && gridY >= 0 && gridY < 3){
+        return
+        {
+            313 + m_boxW * gridX,
+            41  + m_boxH * gridY,
+            m_boxW,
+            m_boxH,
+        };
+    }
+    throw fflerror("invalid grid location: (%d, %d)", gridX, gridY);
+}

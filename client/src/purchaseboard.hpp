@@ -28,8 +28,8 @@ class ProcessRun;
 class PurchaseBoard: public Widget
 {
     private:
-        const int m_boxW = 38;
-        const int m_boxH = 38;
+        constexpr static int m_boxW = 38;
+        constexpr static int m_boxH = 38;
 
     private:
         uint64_t m_npcUID = 0;
@@ -101,4 +101,5 @@ class PurchaseBoard: public Widget
 
     private:
         int getExt1PageGrid() const;
+        static std::tuple<int, int, int, int> getExt1PageGridLoc(int, int);
 };
