@@ -54,6 +54,8 @@ struct ItemRecord
     int needAC;
     int needMAC;
 
+    const char8_t * const description;
+
     operator bool() const
     {
         return std::u8string_view(name) != u8"";

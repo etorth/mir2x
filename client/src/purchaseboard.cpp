@@ -420,15 +420,16 @@ void PurchaseBoard::drawEx(int dstX, int dstY, int, int, int, int) const
                     const auto ir = DBCOM_ITEMRECORD(selectedItemID());
                     const auto hoverText = str_printf
                     (
-                        u8R"###(  <layout>                                                                                  )###""\n"
-                        u8R"###(      <par>[名称]:%s</par>                                                                  )###""\n"
-                        u8R"###(      <par>[售价]:%llu金币</par>                                                            )###""\n"
-                        u8R"###(      <par></par>                                                                           )###""\n"
-                        u8R"###(      <par>拥有这种戒指的高级战士，使用起高级技巧时攻击力是非常惊人的！但是一般的战士却无法使用这种神奇的戒指，据说戒指之上附有其前代主人的灵魂，实力不足的话，戒指是不会承认持有者为主人的。</par> )###""\n"
-                        u8R"###(  </layout>                                                                                 )###""\n",
+                        u8R"###( <layout>                        )###""\n"
+                        u8R"###(     <par>【名称】%s</par>       )###""\n"
+                        u8R"###(     <par>【售价】%llu金币</par> )###""\n"
+                        u8R"###(     <par></par>                 )###""\n"
+                        u8R"###(     <par>%s</par>               )###""\n"
+                        u8R"###( </layout>                       )###""\n",
 
                         ir.name,
-                        to_llu(m_sellItem.list.data.at(cursorOnGridIndex).price)
+                        to_llu(m_sellItem.list.data.at(cursorOnGridIndex).price),
+                        str_nonempty(ir.description) ? ir.description : u8"暂无描述"
                     );
 
                     LayoutBoard hoverTextBoard
