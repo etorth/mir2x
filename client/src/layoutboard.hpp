@@ -115,6 +115,12 @@ class LayoutBoard: public Widget
             , m_canSelect(canSelect)
             , m_eventCB(eventCB)
         {
+            for(size_t i = 0; i < m_parNodeConfig.margin.size(); ++i){
+                if(m_parNodeConfig.margin[i] < 0){
+                    throw fflerror("invalid parNodeConfig::margin[%zu]: %d", i, m_parNodeConfig.margin[i]);
+                }
+            }
+
             if(m_parNodeConfig.lineWidth <= m_parNodeConfig.margin[2] + m_parNodeConfig.margin[3]){
                 throw fflerror("invalid default paragraph parameters");
             }
