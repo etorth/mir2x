@@ -337,6 +337,7 @@ void PurchaseBoard::drawEx(int dstX, int dstY, int, int, int, int) const
     switch(extendedBoardGfxID()){
         case 1:
             {
+                int cursorOnGridIndex = -1;
                 const int ext1PageCount = extendedPageCount();
                 if(ext1PageCount > 0 && m_extendedItemID == m_sellItem.itemID){
                     if(const auto &ir = DBCOM_ITEMRECORD(m_extendedItemID)){
@@ -375,16 +376,20 @@ void PurchaseBoard::drawEx(int dstX, int dstY, int, int, int, int) const
                                     g_sdlDevice->drawTexture(texPtr, x() + rightDrawX, y() + rightDrawY);
                                     itemPrice.drawAt(DIR_UPLEFT, x() + rightBoxX, y() + rightBoxY);
 
+                                    const auto [mousePX, mousePY] = g_sdlDevice->getMousePLoc();
                                     const bool gridSelected = (m_ext1PageGridSelected >= 0) && ((size_t)(m_ext1PageGridSelected) == i);
-                                    const auto cursorOn = [rightBoxX, rightBoxY, boxW, boxH, this]() -> bool
+                                    const bool cursorOn = [rightBoxX, rightBoxY, boxW, boxH, mousePX, mousePY, this]() -> bool
                                     {
-                                        const auto [mousePX, mousePY] = g_sdlDevice->getMousePLoc();
                                         return mathf::pointInRectangle<int>(mousePX, mousePY, x() + rightBoxX, y() + rightBoxY, boxW, boxH);
                                     }();
 
                                     if(gridSelected || cursorOn){
                                         const uint32_t gridColor = gridSelected ? (colorf::BLUE + 96) : (colorf::WHITE + 96);
                                         g_sdlDevice->fillRectangle(gridColor, x() + rightBoxX, y() + rightBoxY, boxW, boxH);
+                                    }
+
+                                    if(cursorOn){
+                                        cursorOnGridIndex = (int)(i);
                                     }
                                 }
                             }
@@ -410,6 +415,42 @@ void PurchaseBoard::drawEx(int dstX, int dstY, int, int, int, int) const
                 m_leftExt1Button  .draw();
                 m_selectExt1Button.draw();
                 m_rightExt1Button .draw();
+
+                if(cursorOnGridIndex >= 0){
+                    const auto ir = DBCOM_ITEMRECORD(selectedItemID());
+                    const auto hoverText = str_printf
+                    (
+                        u8R"###(  <layout>                                                                                  )###""\n"
+                        u8R"###(      <par>[名称]:%s</par>                                                                  )###""\n"
+                        u8R"###(      <par>[售价]:%llu金币</par>                                                            )###""\n"
+                        u8R"###(      <par></par>                                                                           )###""\n"
+                        u8R"###(      <par>拥有这种戒指的高级战士，使用起高级技巧时攻击力是非常惊人的！但是一般的战士却无法使用这种神奇的戒指，据说戒指之上附有其前代主人的灵魂，实力不足的话，戒指是不会承认持有者为主人的。</par> )###""\n"
+                        u8R"###(  </layout>                                                                                 )###""\n",
+
+                        ir.name,
+                        to_llu(m_sellItem.list.data.at(cursorOnGridIndex).price)
+                    );
+
+                    LayoutBoard hoverTextBoard
+                    {
+                        0,
+                        0,
+                        200,
+
+                        false,
+                        {0, 0, 0, 0},
+
+                        false,
+                        1,
+                        12,
+                    };
+
+                    hoverTextBoard.loadXML(to_cstr(hoverText));
+                    const auto [mousePX, mousePY] = g_sdlDevice->getMousePLoc();
+                    g_sdlDevice->fillRectangle(colorf::RGBA(0, 0, 0, 200), mousePX, mousePY, hoverTextBoard.w() + 20, hoverTextBoard.h() + 20);
+                    hoverTextBoard.drawAt(DIR_UPLEFT, mousePX + 10, mousePY + 10);
+                }
+
                 break;
             }
         case 2:
