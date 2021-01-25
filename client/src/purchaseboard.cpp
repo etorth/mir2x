@@ -417,41 +417,8 @@ void PurchaseBoard::drawEx(int dstX, int dstY, int, int, int, int) const
                 m_rightExt1Button .draw();
 
                 if(cursorOnGridIndex >= 0){
-                    const auto ir = DBCOM_ITEMRECORD(selectedItemID());
-                    const auto hoverText = str_printf
-                    (
-                        u8R"###( <layout>                                               )###""\n"
-                        u8R"###(     <par>【名称】%s</par>                              )###""\n"
-                        u8R"###(     <par>【售价】<t color='red+255'>%llu</t>金币</par> )###""\n"
-                        u8R"###(     <par></par>                                        )###""\n"
-                        u8R"###(     <par>%s</par>                                      )###""\n"
-                        u8R"###( </layout>                                              )###""\n",
-
-                        ir.name,
-                        to_llu(m_sellItem.list.data.at(cursorOnGridIndex).price),
-                        str_nonempty(ir.description) ? ir.description : u8"暂无描述"
-                    );
-
-                    LayoutBoard hoverTextBoard
-                    {
-                        0,
-                        0,
-                        200,
-
-                        false,
-                        {0, 0, 0, 0},
-
-                        false,
-                        1,
-                        12,
-                    };
-
-                    hoverTextBoard.loadXML(to_cstr(hoverText));
-                    const auto [mousePX, mousePY] = g_sdlDevice->getMousePLoc();
-                    g_sdlDevice->fillRectangle(colorf::RGBA(0, 0, 0, 200), mousePX, mousePY, hoverTextBoard.w() + 20, hoverTextBoard.h() + 20);
-                    hoverTextBoard.drawAt(DIR_UPLEFT, mousePX + 10, mousePY + 10);
+                    drawExt1GridHoverText(cursorOnGridIndex);
                 }
-
                 break;
             }
         case 2:
@@ -703,4 +670,49 @@ std::tuple<int, int, int, int> PurchaseBoard::getExt1PageGridLoc(int gridX, int 
         };
     }
     throw fflerror("invalid grid location: (%d, %d)", gridX, gridY);
+}
+
+void PurchaseBoard::drawExt1GridHoverText(int itemIndex) const
+{
+    if(extendedPageCount() <= 0){
+        throw bad_reach();
+    }
+
+    if(!(itemIndex >= 0 && itemIndex < (int)(m_sellItem.list.data.size()))){
+        throw fflerror("invalid argument: itemIndex = %d", itemIndex);
+    }
+
+    const auto ir = DBCOM_ITEMRECORD(selectedItemID());
+    const auto hoverText = str_printf
+    (
+        u8R"###( <layout>                                               )###""\n"
+        u8R"###(     <par>【名称】%s</par>                              )###""\n"
+        u8R"###(     <par>【售价】<t color='red+255'>%llu</t>金币</par> )###""\n"
+        u8R"###(     <par></par>                                        )###""\n"
+        u8R"###(     <par>%s</par>                                      )###""\n"
+        u8R"###( </layout>                                              )###""\n",
+
+        ir.name,
+        to_llu(m_sellItem.list.data.at(itemIndex).price),
+        str_nonempty(ir.description) ? ir.description : u8"暂无描述"
+    );
+
+    LayoutBoard hoverTextBoard
+    {
+        0,
+        0,
+        200,
+
+        false,
+        {0, 0, 0, 0},
+
+        false,
+        1,
+        12,
+    };
+
+    hoverTextBoard.loadXML(to_cstr(hoverText));
+    const auto [mousePX, mousePY] = g_sdlDevice->getMousePLoc();
+    g_sdlDevice->fillRectangle(colorf::RGBA(0, 0, 0, 200), mousePX, mousePY, std::max<int>(hoverTextBoard.w(), 200) + 20, hoverTextBoard.h() + 20);
+    hoverTextBoard.drawAt(DIR_UPLEFT, mousePX + 10, mousePY + 10);
 }
