@@ -117,9 +117,9 @@ uint32_t XMLParagraphLeaf::peekUTF8Code(int leafOff) const
     return utf8f::peekUTF8Code(xmlNode()->Value() + utf8CharOffRef()[leafOff]);
 }
 
-std::optional<uint32_t> XMLParagraphLeaf::Color() const
+std::optional<uint32_t> XMLParagraphLeaf::color() const
 {
-    if(const auto pszColor = xmlf::findAttribute(xmlNode(), "font_color", true)){
+    if(const auto pszColor = xmlf::findAttribute(xmlNode(), "color", true)){
         try{
             return colorf::String2RGBA(pszColor);
         }catch(...){}
@@ -136,9 +136,9 @@ std::optional<uint32_t> XMLParagraphLeaf::Color() const
     return {};
 }
 
-std::optional<uint32_t> XMLParagraphLeaf::BGColor() const
+std::optional<uint32_t> XMLParagraphLeaf::bgColor() const
 {
-    if(const auto pszBGColor = xmlf::findAttribute(xmlNode(), "font_bgcolor", true)){
+    if(const auto pszBGColor = xmlf::findAttribute(xmlNode(), "bgcolor", true)){
         try{
             return colorf::String2RGBA(pszBGColor);
         }catch(...){}

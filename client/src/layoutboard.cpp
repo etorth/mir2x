@@ -206,7 +206,7 @@ void LayoutBoard::addPar(int loc, const std::array<int, 4> &parMargin, const tin
         return wordSpace;
     }();
 
-    auto pNew = std::make_unique<XMLTypeset>
+    auto parNodePtr = std::make_unique<XMLTypeset>
     (
         lineWidth,
         lineAlign,
@@ -221,8 +221,8 @@ void LayoutBoard::addPar(int loc, const std::array<int, 4> &parMargin, const tin
         wordSpace
     );
 
-    pNew->loadXMLNode(node);
-    auto currNode = m_parNodeList.insert(ithParIterator(loc), {-1, parMargin, std::move(pNew)});
+    parNodePtr->loadXMLNode(node);
+    auto currNode = m_parNodeList.insert(ithParIterator(loc), {-1, parMargin, std::move(parNodePtr)});
 
     if(currNode == m_parNodeList.begin()){
         currNode->startY = parMargin[1];

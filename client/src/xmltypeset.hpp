@@ -462,12 +462,12 @@ class XMLTypeset // means XMLParagraph typeset
         int LineIntervalMaxH2(int, int, int) const;
 
     public:
-        uint32_t Color() const
+        uint32_t color() const
         {
             return m_fontColor;
         }
 
-        uint32_t BGColor() const
+        uint32_t bgColor() const
         {
             return m_fontBGColor;
         }

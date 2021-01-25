@@ -36,46 +36,65 @@ uint32_t colorf::String2RGBA(const char *colorString)
     // only for some color
     // check www.w3schools.com/cssref/css_colors.asp
 
+    const auto fnAlpha = [colorString]() -> uint8_t
+    {
+        if(const auto p = std::strstr(colorString, "+")){
+            if(const auto num = std::stoi(p + 1); num < 0){
+                throw fflerror("invalid color string: %s", colorString);
+            }
+            else
+            {
+                return std::min<int>(num, 255);
+            }
+        }
+        return 255;
+    };
+
+    const auto fnStartWith = [colorString](const char *s) -> bool
+    {
+        return std::strncmp(colorString, s, std::strlen(s)) == 0;
+    };
+
     if(false
-            || !std::strcmp(colorString, "WHITE")
-            || !std::strcmp(colorString, "White")
-            || !std::strcmp(colorString, "white")){
-        return colorf::WHITE;
+            || fnStartWith("WHITE")
+            || fnStartWith("White")
+            || fnStartWith("white")){
+        return colorf::WHITE + fnAlpha();
     }
 
     if(false
-            || !std::strcmp(colorString, "RED")
-            || !std::strcmp(colorString, "Red")
-            || !std::strcmp(colorString, "red")){
-        return colorf::RED;
+            || fnStartWith("RED")
+            || fnStartWith("Red")
+            || fnStartWith("red")){
+        return colorf::RED + fnAlpha();
     }
 
     if(false
-            || !std::strcmp(colorString, "GREEN")
-            || !std::strcmp(colorString, "Green")
-            || !std::strcmp(colorString, "green")){
-        return colorf::GREEN;
+            || fnStartWith("GREEN")
+            || fnStartWith("Green")
+            || fnStartWith("green")){
+        return colorf::GREEN + fnAlpha();
     }
 
     if(false
-            || !std::strcmp(colorString, "BLUE")
-            || !std::strcmp(colorString, "Blue")
-            || !std::strcmp(colorString, "blue")){
-        return colorf::BLUE;
+            || fnStartWith("BLUE")
+            || fnStartWith("Blue")
+            || fnStartWith("blue")){
+        return colorf::BLUE + fnAlpha();
     }
 
     if(false
-            || !std::strcmp(colorString, "YELLOW")
-            || !std::strcmp(colorString, "Yellow")
-            || !std::strcmp(colorString, "yellow")){
-        return colorf::YELLOW;
+            || fnStartWith("YELLOW")
+            || fnStartWith("Yellow")
+            || fnStartWith("yellow")){
+        return colorf::YELLOW + fnAlpha();
     }
 
     if(false
-            || !std::strcmp(colorString, "PURPLE")
-            || !std::strcmp(colorString, "Purple")
-            || !std::strcmp(colorString, "purple")){
-        return colorf::PURPLE;
+            || fnStartWith("PURPLE")
+            || fnStartWith("Purple")
+            || fnStartWith("purple")){
+        return colorf::PURPLE + fnAlpha();
     }
 
     uint32_t nRGBA = 0XFFFFFFFF;

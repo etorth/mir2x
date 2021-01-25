@@ -420,12 +420,12 @@ void PurchaseBoard::drawEx(int dstX, int dstY, int, int, int, int) const
                     const auto ir = DBCOM_ITEMRECORD(selectedItemID());
                     const auto hoverText = str_printf
                     (
-                        u8R"###( <layout>                        )###""\n"
-                        u8R"###(     <par>【名称】%s</par>       )###""\n"
-                        u8R"###(     <par>【售价】%llu金币</par> )###""\n"
-                        u8R"###(     <par></par>                 )###""\n"
-                        u8R"###(     <par>%s</par>               )###""\n"
-                        u8R"###( </layout>                       )###""\n",
+                        u8R"###( <layout>                                               )###""\n"
+                        u8R"###(     <par>【名称】%s</par>                              )###""\n"
+                        u8R"###(     <par>【售价】<t color='red+255'>%llu</t>金币</par> )###""\n"
+                        u8R"###(     <par></par>                                        )###""\n"
+                        u8R"###(     <par>%s</par>                                      )###""\n"
+                        u8R"###( </layout>                                              )###""\n",
 
                         ir.name,
                         to_llu(m_sellItem.list.data.at(cursorOnGridIndex).price),

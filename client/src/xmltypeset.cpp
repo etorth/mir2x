@@ -946,8 +946,8 @@ void XMLTypeset::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int sr
     const int dstDX = dstX - srcX;
     const int dstDY = dstY - srcY;
 
-    uint32_t fgColor = 0;
-    uint32_t bgColor = 0;
+    uint32_t fgColorVal = 0;
+    uint32_t bgColorVal = 0;
 
     int lastLeaf = -1;
     for(int line = 0; line < lineCount(); ++line){
@@ -956,22 +956,22 @@ void XMLTypeset::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int sr
             const auto &leaf = m_paragraph.leafRef(tokenPtr->leaf);
 
             if(lastLeaf != tokenPtr->leaf){
-                fgColor  = leaf.  Color().value_or(  Color());
-                bgColor  = leaf.BGColor().value_or(BGColor());
-                lastLeaf = tokenPtr->leaf;
+                fgColorVal  = leaf.  color().value_or(  color());
+                bgColorVal  = leaf.bgColor().value_or(bgColor());
+                lastLeaf    = tokenPtr->leaf;
             }
 
             // draw bgColor
             // background can be bigger than tokenbox by W1/W2
 
-            if(colorf::A(bgColor)){
+            if(colorf::A(bgColorVal)){
                 int bgBoxX = tokenPtr->Box.State.X - tokenPtr->Box.State.W1;
                 int bgBoxY = tokenPtr->Box.State.Y;
                 int bgBoxW = tokenPtr->Box.Info.W + tokenPtr->Box.State.W1 + tokenPtr->Box.State.W2;
                 int bgBoxH = tokenPtr->Box.Info.H;
 
                 if(mathf::rectangleOverlapRegion(srcX, srcY, srcW, srcH, &bgBoxX, &bgBoxY, &bgBoxW, &bgBoxH)){
-                    g_sdlDevice->fillRectangle(bgColor, bgBoxX + dstDX, bgBoxY + dstDY, bgBoxW, bgBoxH);
+                    g_sdlDevice->fillRectangle(bgColorVal, bgBoxX + dstDX, bgBoxY + dstDY, bgBoxW, bgBoxH);
                 }
             }
 
@@ -994,11 +994,11 @@ void XMLTypeset::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int sr
                 case LEAF_UTF8GROUP:
                     {
                         if(auto texPtr = g_fontexDB->Retrieve(tokenPtr->UTF8Char.U64Key)){
-                            SDLDevice::EnableTextureModColor enableMod(texPtr, fgColor);
+                            SDLDevice::EnableTextureModColor enableMod(texPtr, fgColorVal);
                             g_sdlDevice->drawTexture(texPtr, drawDstX, drawDstY, dx, dy, boxW, boxH);
                         }
                         else{
-                            g_sdlDevice->drawRectangle(colorf::CompColor(bgColor), drawDstX, drawDstY, boxW, boxH);
+                            g_sdlDevice->drawRectangle(colorf::CompColor(bgColorVal), drawDstX, drawDstY, boxW, boxH);
                         }
 
                         if(g_clientArgParser->drawTokenFrame){
@@ -1028,7 +1028,7 @@ void XMLTypeset::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int sr
                             g_sdlDevice->drawTexture(texPtr, drawDstX, drawDstY, xOnTex + dx, yOnTex + dy, boxW, boxH);
                         }
                         else{
-                            g_sdlDevice->drawRectangle(colorf::CompColor(bgColor), drawDstX, drawDstY, boxW, boxH);
+                            g_sdlDevice->drawRectangle(colorf::CompColor(bgColorVal), drawDstX, drawDstY, boxW, boxH);
                         }
                         break;
                     }
