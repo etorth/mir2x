@@ -258,7 +258,7 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
 {
     show(false);
     if(auto texPtr = g_progUseDB->Retrieve(0X08000000)){
-        std::tie(m_w, m_h) = SDLDevice::getTextureSize(texPtr);
+        std::tie(m_w, m_h) = SDLDeviceHelper::getTextureSize(texPtr);
     }
     else{
         throw fflerror("no valid purchase status board frame texture");
@@ -317,7 +317,7 @@ void PurchaseBoard::drawEx(int dstX, int dstY, int, int, int, int) const
     for(size_t startIndex = getStartIndex(), i = startIndex; i < std::min<size_t>(m_itemList.size(), startIndex + 4); ++i){
         if(const auto &ir = DBCOM_ITEMRECORD(m_itemList[i])){
             if(auto texPtr = g_itemDB->Retrieve(ir.pkgGfxID | 0X02000000)){
-                const auto [texW, texH] = SDLDevice::getTextureSize(texPtr);
+                const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);
                 const int drawX = startX + (boxW - texW) / 2;
                 const int drawY = startY + (boxH - texH) / 2;
                 g_sdlDevice->drawTexture(texPtr, x() + drawX, y() + drawY);
@@ -344,7 +344,7 @@ void PurchaseBoard::drawEx(int dstX, int dstY, int, int, int, int) const
                         if(auto texPtr = g_itemDB->Retrieve(ir.pkgGfxID | 0X02000000)){
                             constexpr int rightStartX = 313;
                             constexpr int rightStartY =  41;
-                            const auto [texW, texH] = SDLDevice::getTextureSize(texPtr);
+                            const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);
                             if(m_ext1Page >= ext1PageCount){
                                 throw fflerror("invalid ext1Page: ext1Page = %d, listSize = %zu", m_ext1Page, m_sellItem.list.data.size());
                             }
@@ -376,7 +376,7 @@ void PurchaseBoard::drawEx(int dstX, int dstY, int, int, int, int) const
                                     g_sdlDevice->drawTexture(texPtr, x() + rightDrawX, y() + rightDrawY);
                                     itemPrice.drawAt(DIR_UPLEFT, x() + rightBoxX, y() + rightBoxY);
 
-                                    const auto [mousePX, mousePY] = g_sdlDevice->getMousePLoc();
+                                    const auto [mousePX, mousePY] = SDLDeviceHelper::getMousePLoc();
                                     const bool gridSelected = (m_ext1PageGridSelected >= 0) && ((size_t)(m_ext1PageGridSelected) == i);
                                     const bool cursorOn = [rightBoxX, rightBoxY, boxW, boxH, mousePX, mousePY, this]() -> bool
                                     {
@@ -427,7 +427,7 @@ void PurchaseBoard::drawEx(int dstX, int dstY, int, int, int, int) const
                     if(auto texPtr = g_itemDB->Retrieve(ir.pkgGfxID | 0X02000000)){
                         constexpr int rightStartX = 303;
                         constexpr int rightStartY =  16;
-                        const auto [texW, texH] = SDLDevice::getTextureSize(texPtr);
+                        const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);
                         const int rightDrawX = rightStartX + (boxW - texW) / 2;
                         const int rightDrawY = rightStartY + (boxH - texH) / 2;
                         g_sdlDevice->drawTexture(texPtr, x() + rightDrawX, y() + rightDrawY);
@@ -544,7 +544,7 @@ bool PurchaseBoard::processEvent(const SDL_Event &event, bool valid)
             }
         case SDL_MOUSEWHEEL:
             {
-                const auto [mousePX, mousePY] = g_sdlDevice->getMousePLoc();
+                const auto [mousePX, mousePY] = SDLDeviceHelper::getMousePLoc();
                 if(mathf::pointInRectangle<int>(mousePX - x(), mousePY - y(), 19, 15, 252 - 19, 15 + (57 - 15) * 4)){
                     if(m_itemList.size() > 4){
                         m_slider.addValue((event.wheel.y > 0 ? -1.0 : 1.0) / (m_itemList.size() - 4));
@@ -649,7 +649,7 @@ int PurchaseBoard::getExt1PageGrid() const
         return -1;
     }
 
-    const auto [mousePX, mousePY] = g_sdlDevice->getMousePLoc();
+    const auto [mousePX, mousePY] = SDLDeviceHelper::getMousePLoc();
     if(mathf::pointInRectangle<int>(mousePX - x(), mousePY - y(), 313, 41, 152, 114)){
         const int r = (mousePY - y() -  41) / m_boxH;
         const int c = (mousePX - x() - 313) / m_boxW;
@@ -712,7 +712,7 @@ void PurchaseBoard::drawExt1GridHoverText(int itemIndex) const
     };
 
     hoverTextBoard.loadXML(to_cstr(hoverText));
-    const auto [mousePX, mousePY] = g_sdlDevice->getMousePLoc();
+    const auto [mousePX, mousePY] = SDLDeviceHelper::getMousePLoc();
     g_sdlDevice->fillRectangle(colorf::RGBA(0, 0, 0, 200), mousePX, mousePY, std::max<int>(hoverTextBoard.w(), 200) + 20, hoverTextBoard.h() + 20);
     hoverTextBoard.drawAt(DIR_UPLEFT, mousePX + 10, mousePY + 10);
 }

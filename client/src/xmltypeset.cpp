@@ -994,7 +994,7 @@ void XMLTypeset::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int sr
                 case LEAF_UTF8GROUP:
                     {
                         if(auto texPtr = g_fontexDB->Retrieve(tokenPtr->UTF8Char.U64Key)){
-                            SDLDevice::EnableTextureModColor enableMod(texPtr, fgColorVal);
+                            SDLDeviceHelper::EnableTextureModColor enableMod(texPtr, fgColorVal);
                             g_sdlDevice->drawTexture(texPtr, drawDstX, drawDstY, dx, dy, boxW, boxH);
                         }
                         else{
@@ -1024,7 +1024,7 @@ void XMLTypeset::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int sr
                         int yOnTex = 0;
 
                         if(auto texPtr = g_emoticonDB->Retrieve(emojiKey, &xOnTex, &yOnTex, 0, 0, 0, 0, 0)){
-                            SDLDevice::EnableTextureModColor enableMod(texPtr, m_imageMaskColor);
+                            SDLDeviceHelper::EnableTextureModColor enableMod(texPtr, m_imageMaskColor);
                             g_sdlDevice->drawTexture(texPtr, drawDstX, drawDstY, xOnTex + dx, yOnTex + dy, boxW, boxH);
                         }
                         else{
@@ -1272,7 +1272,7 @@ void XMLTypeset::setLineWidth(int lineWidth)
 int XMLTypeset::getDefaultFontHeight() const
 {
     if(auto texPtr = g_fontexDB->Retrieve(utf8f::buildU64Key(m_font, m_fontSize, m_fontStyle, utf8f::peekUTF8Code(" ")))){
-        return SDLDevice::getTextureHeight(texPtr);
+        return SDLDeviceHelper::getTextureHeight(texPtr);
     }
     return 20;
 }

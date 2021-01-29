@@ -85,7 +85,7 @@ ACButton::ACButton(int x, int y, ProcessRun *proc, const std::vector<std::string
     bool inited = false;
     for(auto &p: m_texMap){
         if(auto texPtr = g_progUseDB->Retrieve(p.second)){
-            const auto [texW, texH] = SDLDevice::getTextureSize(texPtr);
+            const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);
             m_w = std::max<int>(m_w, texW);
             m_h = std::max<int>(m_h, texH);
             inited = true;

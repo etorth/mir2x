@@ -833,7 +833,7 @@ void ControlBoard::drawMiddleDefault() const
 
     // draw title
     if(auto texPtr = g_progUseDB->Retrieve(0X00000022)){
-        const auto [titleW, titleH] = SDLDevice::getTextureSize(texPtr);
+        const auto [titleW, titleH] = SDLDeviceHelper::getTextureSize(texPtr);
         const int titleDstX = 178 + (nW0 - 178 - 166 - titleW) / 2;
         const int titleDstY = nY0 - 19;
         g_sdlDevice->drawTexture(texPtr, titleDstX, titleDstY);
@@ -884,7 +884,7 @@ void ControlBoard::drawMiddleExpand() const
 
     // draw black underlay for the big log board
     {
-        SDLDevice::EnableRenderBlendMode enableDrawBlendMode(SDL_BLENDMODE_BLEND);
+        SDLDeviceHelper::EnableRenderBlendMode enableDrawBlendMode(SDL_BLENDMODE_BLEND);
         g_sdlDevice->fillRectangle(colorf::RGBA(0X00, 0X00, 0X00, 0XF0), 178 + 2, startY + 2, nW0 - (178 + 2) - (166 + 2), 47 + m_stretchH);
     }
 
@@ -1191,7 +1191,7 @@ void ControlBoard::drawInputGreyBackground() const
     }
 
     const auto color = colorf::GREY + 48;
-    SDLDevice::EnableRenderBlendMode enableDrawBlendMode(SDL_BLENDMODE_BLEND);
+    SDLDeviceHelper::EnableRenderBlendMode enableDrawBlendMode(SDL_BLENDMODE_BLEND);
 
     if(m_expand){
 

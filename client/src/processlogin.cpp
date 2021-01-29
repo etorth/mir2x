@@ -113,8 +113,7 @@ void ProcessLogin::update(double fUpdateTime)
 
 void ProcessLogin::draw()
 {
-    SDLDevice::RenderNewFrame newFrame;
-
+    SDLDeviceHelper::RenderNewFrame newFrame;
     g_sdlDevice->drawTexture(g_progUseDB->Retrieve(0X00000003),   0,  75);
     g_sdlDevice->drawTexture(g_progUseDB->Retrieve(0X00000004),   0, 465);
     g_sdlDevice->drawTexture(g_progUseDB->Retrieve(0X00000011), 103, 536);

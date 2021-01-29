@@ -52,7 +52,7 @@ QuickAccessButton::QuickAccessButton(const std::function<void()> &fnOnClick, Wid
     if(!texPtr){
         throw fflerror("no valid texture for quick access button: texID = %llu", to_llu(m_texID));
     }
-    std::tie(m_w, m_h) = SDLDevice::getTextureSize(texPtr);
+    std::tie(m_w, m_h) = SDLDeviceHelper::getTextureSize(texPtr);
 }
 
 void QuickAccessButton::drawEx(int dstX, int dstY, int, int, int, int) const
@@ -66,7 +66,7 @@ void QuickAccessButton::drawEx(int dstX, int dstY, int, int, int, int) const
                     throw fflerror("can't get round cover: radius = %d", radius);
                 }
 
-                const auto [texW, texH] = SDLDevice::getTextureSize(texPtr);
+                const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);
                 const int texDrawH = texH * 2 / 3;
 
                 SDL_SetTextureAlphaMod(texPtr, 80);

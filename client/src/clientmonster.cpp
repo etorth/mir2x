@@ -740,7 +740,7 @@ ClientCreature::TargetBox ClientMonster::getTargetBox() const
         return {};
     }
 
-    const auto [bodyFrameW, bodyFrameH] = SDLDevice::getTextureSize(bodyFrameTexPtr);
+    const auto [bodyFrameW, bodyFrameH] = SDLDeviceHelper::getTextureSize(bodyFrameTexPtr);
 
     const auto [shiftX, shiftY] = getShift();
     const int startX = m_currMotion->x * SYS_MAPGRIDXP + shiftX + dx;

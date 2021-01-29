@@ -108,8 +108,8 @@ void FollowUIDMagic::drawViewOff(int viewX, int viewY, bool alpha)
     int offX = 0;
     int offY = 0;
     if(auto texPtr = g_magicDB->Retrieve(texID, &offX, &offY)){
-        SDLDevice::EnableTextureModColor enableModColor(texPtr, colorf::RGBA(0XFF, 0XFF, 0XFF, alpha ? 0X80 : 0XFF));
-        SDLDevice::EnableTextureBlendMode enableBlendMode(texPtr, SDL_BLENDMODE_BLEND);
+        SDLDeviceHelper::EnableTextureModColor enableModColor(texPtr, colorf::RGBA(0XFF, 0XFF, 0XFF, alpha ? 0X80 : 0XFF));
+        SDLDeviceHelper::EnableTextureBlendMode enableBlendMode(texPtr, SDL_BLENDMODE_BLEND);
         g_sdlDevice->drawTexture(texPtr, m_x - viewX + offX, m_y - viewY + offY);
     }
 }
@@ -131,8 +131,8 @@ void TaoFireFigure_RUN::drawViewOff(int viewX, int viewY, bool alpha)
     int offX = 0;
     int offY = 0;
     if(auto texPtr = g_magicDB->Retrieve(m_gfxEntry->gfxID + frame() + m_gfxDirIndex * m_gfxEntry->gfxIDCount, &offX, &offY)){
-        SDLDevice::EnableTextureModColor enableModColor(texPtr, colorf::RGBA(0XFF, 0XFF, 0XFF, alpha ? 0X40 : 0XC0));
-        SDLDevice::EnableTextureBlendMode enableBlendMode(texPtr, SDL_BLENDMODE_BLEND);
+        SDLDeviceHelper::EnableTextureModColor enableModColor(texPtr, colorf::RGBA(0XFF, 0XFF, 0XFF, alpha ? 0X40 : 0XC0));
+        SDLDeviceHelper::EnableTextureBlendMode enableBlendMode(texPtr, SDL_BLENDMODE_BLEND);
         g_sdlDevice->drawTexture(texPtr, m_x - viewX + offX, m_y - viewY + offY);
     }
 }

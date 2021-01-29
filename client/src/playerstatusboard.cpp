@@ -63,7 +63,7 @@ PlayerStatusBoard::PlayerStatusBoard(int argX, int argY, ProcessRun *runPtr, Wid
 {
     show(false);
     if(auto texPtr = g_progUseDB->Retrieve(0X06000000)){
-        std::tie(m_w, m_h) = SDLDevice::getTextureSize(texPtr);
+        std::tie(m_w, m_h) = SDLDeviceHelper::getTextureSize(texPtr);
     }
     else{
         throw fflerror("no valid player status board frame texture");

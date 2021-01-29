@@ -89,7 +89,7 @@ InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget
     if(!texPtr){
         throw fflerror("no valid inventory frame texture");
     }
-    std::tie(m_w, m_h) = SDLDevice::getTextureSize(texPtr);
+    std::tie(m_w, m_h) = SDLDeviceHelper::getTextureSize(texPtr);
 }
 
 void InventoryBoard::drawItem(int dstX, int dstY, size_t startRow, bool selected, bool cursorOn, const PackBin &bin) const
@@ -107,7 +107,7 @@ void InventoryBoard::drawItem(int dstX, int dstY, size_t startRow, bool selected
             const int  viewX = dstX + m_invGridX0;
             const int  viewY = dstY + m_invGridY0;
 
-            const auto [itemPW, itemPH] = SDLDevice::getTextureSize(texPtr);
+            const auto [itemPW, itemPH] = SDLDeviceHelper::getTextureSize(texPtr);
             int drawDstX = startX + bin.x * SYS_INVGRIDPW + (bin.w * SYS_INVGRIDPW - itemPW) / 2;
             int drawDstY = startY + bin.y * SYS_INVGRIDPH + (bin.h * SYS_INVGRIDPH - itemPH) / 2;
             int drawSrcX = 0;
@@ -180,7 +180,7 @@ void InventoryBoard::drawEx(int dstX, int dstY, int, int, int, int) const
     }
 
     const auto startRow = getStartRow();
-    const auto [mousePX, mousePY] = g_sdlDevice->getMousePLoc();
+    const auto [mousePX, mousePY] = SDLDeviceHelper::getMousePLoc();
     const auto &packBinListCRef = myHeroPtr->getInvPack().getPackBinList();
     const auto cursorOnIndex = getPackBinIndex(mousePX, mousePY);
     for(int i = 0; i < (int)(packBinListCRef.size()); ++i){
@@ -252,7 +252,7 @@ bool InventoryBoard::processEvent(const SDL_Event &event, bool valid)
             }
         case SDL_MOUSEWHEEL:
             {
-                const auto [mousePX, mousePY] = g_sdlDevice->getMousePLoc();
+                const auto [mousePX, mousePY] = SDLDeviceHelper::getMousePLoc();
                 if(mathf::pointInRectangle<int>(mousePX, mousePY, x() + m_invGridX0, y() + m_invGridY0, 6 * SYS_INVGRIDPW, 8 * SYS_INVGRIDPH)){
                     const auto rowCount = getRowCount();
                     if(rowCount > 8){

@@ -76,7 +76,7 @@ AlphaOnButton::AlphaOnButton(
         throw fflerror("can't load down texture: %llu", to_llu(m_texID));
     }
 
-    const auto [texW, texH] = SDLDevice::getTextureSize(texPtr);
+    const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);
     m_w = texW;
     m_h = texH;
 }
@@ -91,8 +91,8 @@ void AlphaOnButton::drawEx(int dstX, int dstY, int, int, int, int) const
                     throw fflerror("can't get round cover: radius = %llu", to_llu(m_onRadius));
                 }
 
-                SDLDevice::EnableRenderBlendMode enableBlendMode(SDL_BLENDMODE_BLEND);
-                SDLDevice::EnableTextureModColor enableModColor(texPtr, colorf::RGBA(m_onColor, m_onColor, m_onColor, m_alphaMod));
+                SDLDeviceHelper::EnableRenderBlendMode enableBlendMode(SDL_BLENDMODE_BLEND);
+                SDLDeviceHelper::EnableTextureModColor enableModColor(texPtr, colorf::RGBA(m_onColor, m_onColor, m_onColor, m_alphaMod));
                 g_sdlDevice->drawTexture(texPtr, dstX + m_onOffX, dstY + m_onOffY);
                 break;
             }

@@ -90,7 +90,7 @@ NPCChatBoard::NPCChatBoard(ProcessRun *proc, Widget *pwidget, bool autoDelete)
     auto fnAssertImage = [](uint32_t key, int w, int h)
     {
         if(auto ptex = g_progUseDB->Retrieve(key)){
-            if(SDLDevice::getTextureSize(ptex) == std::tuple<int, int>{w, h}){
+            if(SDLDeviceHelper::getTextureSize(ptex) == std::tuple<int, int>{w, h}){
                 return;
             }
         }
@@ -122,7 +122,7 @@ void NPCChatBoard::drawWithNPCFace() const
     }
 
     drawFrame();
-    g_sdlDevice->drawTexture(facePtr, m_margin, (h() - SDLDevice::getTextureHeight(facePtr)) / 2);
+    g_sdlDevice->drawTexture(facePtr, m_margin, (h() - SDLDeviceHelper::getTextureHeight(facePtr)) / 2);
 
     m_chatBoard.draw();
     m_buttonClose.draw();
@@ -164,7 +164,7 @@ void NPCChatBoard::loadXML(uint64_t uid, const char *xmlString)
     m_chatBoard.clear();
 
     if(auto texPtr = g_progUseDB->Retrieve(getNPCFaceKey())){
-        m_chatBoard.setLineWidth(386 - m_margin * 3 - SDLDevice::getTextureWidth(texPtr));
+        m_chatBoard.setLineWidth(386 - m_margin * 3 - SDLDeviceHelper::getTextureWidth(texPtr));
     }
     else{
         m_chatBoard.setLineWidth(386 - m_margin * 2);
@@ -176,7 +176,7 @@ void NPCChatBoard::loadXML(uint64_t uid, const char *xmlString)
 
     m_buttonClose.moveTo(w() - 40, h() - 43);
     if(auto texPtr = g_progUseDB->Retrieve(getNPCFaceKey())){
-        m_chatBoard.moveTo(m_margin * 2 + SDLDevice::getTextureWidth(texPtr), (h() - m_chatBoard.h()) / 2);
+        m_chatBoard.moveTo(m_margin * 2 + SDLDeviceHelper::getTextureWidth(texPtr), (h() - m_chatBoard.h()) / 2);
     }
     else{
         m_chatBoard.moveTo(m_margin, (h() - m_chatBoard.h()) / 2);
@@ -195,7 +195,7 @@ void NPCChatBoard::onClickEvent(const std::string &id)
 int NPCChatBoard::getMiddleCount() const
 {
     if(auto texPtr = g_progUseDB->Retrieve(getNPCFaceKey())){
-        const auto [faceW, faceH] = SDLDevice::getTextureSize(texPtr);
+        const auto [faceW, faceH] = SDLDeviceHelper::getTextureSize(texPtr);
         if(faceW + m_margin * 3 + m_chatBoard.w() >= 386){
             throw fflerror("chat board size error");
         }

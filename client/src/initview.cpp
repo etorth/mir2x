@@ -327,7 +327,7 @@ void InitView::Load()
 
 void InitView::Draw()
 {
-    SDLDevice::RenderNewFrame newFrame;
+    SDLDeviceHelper::RenderNewFrame newFrame;
     g_sdlDevice->drawTexture(m_textureV[0], 0, 0);
 
     int nX = m_buttonX;

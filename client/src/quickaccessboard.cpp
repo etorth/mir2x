@@ -68,7 +68,7 @@ QuickAccessBoard::QuickAccessBoard(int x, int y, ProcessRun *proc, Widget *pwidg
     }
 
     show(false);
-    std::tie(m_w, m_h) = SDLDevice::getTextureSize(texPtr);
+    std::tie(m_w, m_h) = SDLDeviceHelper::getTextureSize(texPtr);
 }
 
 void QuickAccessBoard::drawEx(int dstX, int dstY, int, int, int, int) const

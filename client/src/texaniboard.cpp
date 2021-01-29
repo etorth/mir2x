@@ -39,7 +39,7 @@ TexAniBoard::TexAniBoard(int x, int y, uint32_t texID, size_t frameCount, size_t
 
     for(uint32_t id = texID; id < texID + frameCount; ++id){
         if(auto texPtr = g_progUseDB->Retrieve(id)){
-            const auto [texW, texH] = SDLDevice::getTextureSize(texPtr);
+            const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);
             maxW = std::max<int>(maxW, texW);
             maxH = std::max<int>(maxH, texH);
             m_texSeq.push_back(id);

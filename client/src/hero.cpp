@@ -640,7 +640,7 @@ bool Hero::parseAction(const ActionNode &action)
                                                             }
 
                                                             const auto [viewX, viewY] = m_processRun->getViewShift();
-                                                            const auto [mousePX, mousePY] = g_sdlDevice->getMousePLoc();
+                                                            const auto [mousePX, mousePY] = SDLDeviceHelper::getMousePLoc();
                                                             return {mousePX + viewX, mousePY + viewY};
                                                         }();
                                                         return pathf::getDir16(x - fromX, y - fromY);
@@ -1029,7 +1029,7 @@ ClientCreature::TargetBox Hero::getTargetBox() const
         return {};
     }
 
-    const auto [bodyFrameW, bodyFrameH] = SDLDevice::getTextureSize(bodyFrameTexPtr);
+    const auto [bodyFrameW, bodyFrameH] = SDLDeviceHelper::getTextureSize(bodyFrameTexPtr);
 
     const auto [shiftX, shiftY] = getShift();
     const int startX = m_currMotion->x * SYS_MAPGRIDXP + shiftX + dx;

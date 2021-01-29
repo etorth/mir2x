@@ -303,7 +303,7 @@ ClientCreature::TargetBox ClientNPC::getTargetBox() const
         return {};
     }
 
-    const auto [bodyFrameW, bodyFrameH] = SDLDevice::getTextureSize(bodyFrameTexPtr);
+    const auto [bodyFrameW, bodyFrameH] = SDLDeviceHelper::getTextureSize(bodyFrameTexPtr);
 
     const int startX = x() * SYS_MAPGRIDXP + dx;
     const int startY = y() * SYS_MAPGRIDYP + dy;

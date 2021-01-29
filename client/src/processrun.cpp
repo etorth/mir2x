@@ -231,9 +231,10 @@ uint64_t ProcessRun::FocusUID(int nFocusType)
                         return false;
                     };
 
-                    auto [mousePX, mousePY] = g_sdlDevice->getMousePLoc();
-                    mousePX += m_viewX;
-                    mousePY += m_viewY;
+                    const auto [mouseWinPX, mouseWinPY] = SDLDeviceHelper::getMousePLoc();
+
+                    const auto mousePX = mouseWinPX + m_viewX;
+                    const auto mousePY = mouseWinPY + m_viewY;
 
                     if(fnCheckFocus(m_focusUIDTable[FOCUS_MOUSE], mousePX, mousePY)){
                         return m_focusUIDTable[FOCUS_MOUSE];
@@ -273,7 +274,7 @@ uint64_t ProcessRun::FocusUID(int nFocusType)
 
 void ProcessRun::draw()
 {
-    SDLDevice::RenderNewFrame newFrame;
+    SDLDeviceHelper::RenderNewFrame newFrame;
     const auto fnLimitedRegion = [](int mn, int mx, int parm) -> int
     {
         return std::max<int>(std::min<int>(parm, mx), mn);
@@ -300,7 +301,7 @@ void ProcessRun::draw()
         const int gridX1 = (m_viewX + g_sdlDevice->getRendererWidth()) / SYS_MAPGRIDXP;
         const int gridY1 = (m_viewY + g_sdlDevice->getRendererHeight()) / SYS_MAPGRIDYP;
 
-        SDLDevice::EnableRenderColor drawColor(colorf::RGBA(0, 255, 0, 128));
+        SDLDeviceHelper::EnableRenderColor drawColor(colorf::RGBA(0, 255, 0, 128));
         for(int x = gridX0; x <= gridX1; ++x){
             g_sdlDevice->drawLine(x * SYS_MAPGRIDXP - m_viewX, 0, x * SYS_MAPGRIDXP - m_viewX, g_sdlDevice->getRendererHeight());
         }
@@ -354,8 +355,8 @@ void ProcessRun::draw()
                 }
 
                 if(g_clientArgParser->drawCreatureCover){
-                    SDLDevice::EnableRenderColor enableColor(colorf::RGBA(0, 0, 255, 128));
-                    SDLDevice::EnableRenderBlendMode enableBlendMode(SDL_BLENDMODE_BLEND);
+                    SDLDeviceHelper::EnableRenderColor enableColor(colorf::RGBA(0, 0, 255, 128));
+                    SDLDeviceHelper::EnableRenderBlendMode enableBlendMode(SDL_BLENDMODE_BLEND);
                     g_sdlDevice->fillRectangle(x * SYS_MAPGRIDXP - m_viewX, y * SYS_MAPGRIDYP - m_viewY, SYS_MAPGRIDXP, SYS_MAPGRIDYP);
                 }
             }
@@ -384,7 +385,7 @@ void ProcessRun::draw()
         for(const auto &magicKey: dynamic_cast<SkillBoard *>(m_GUIManager.getWidget("SkillBoard"))->getMagicKeyList()){
             if(auto texPtr = g_progUseDB->Retrieve(DBCOM_MAGICRECORD(magicKey.magicID).icon + to_u32(0X00001000))){
                 g_sdlDevice->drawTexture(texPtr, magicKeyOffX, 0);
-                magicKeyOffX += SDLDevice::getTextureWidth(texPtr);
+                magicKeyOffX += SDLDeviceHelper::getTextureWidth(texPtr);
             }
         }
     }
@@ -408,8 +409,8 @@ void ProcessRun::draw()
         const int y = std::get<1>(g_sdlDevice->getRendererSize()) - h - 133;
 
         {
-            SDLDevice::EnableRenderColor enableColor(colorf::GREEN + 200);
-            SDLDevice::EnableRenderBlendMode enableBlend(SDL_BLENDMODE_BLEND);
+            SDLDeviceHelper::EnableRenderColor enableColor(colorf::GREEN + 200);
+            SDLDeviceHelper::EnableRenderBlendMode enableBlend(SDL_BLENDMODE_BLEND);
             g_sdlDevice->fillRectangle(x, y, w, h);
         }
 
@@ -1475,11 +1476,11 @@ void ProcessRun::drawGroundItem(int x0, int y0, int x1, int y1)
                 continue;
             }
 
-            const auto [texW, texH] = SDLDevice::getTextureSize(texPtr);
+            const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);
             const int drawPX = x * SYS_MAPGRIDXP - m_viewX + SYS_MAPGRIDXP / 2 - texW / 2;
             const int drawPY = y * SYS_MAPGRIDYP - m_viewY + SYS_MAPGRIDYP / 2 - texH / 2;
 
-            const auto [mouseX, mouseY] = g_sdlDevice->getMousePLoc();
+            const auto [mouseX, mouseY] = SDLDeviceHelper::getMousePLoc();
             const int mouseGridX = (mouseX + m_viewX) / SYS_MAPGRIDXP;
             const int mouseGridY = (mouseY + m_viewY) / SYS_MAPGRIDYP;
 
@@ -1561,7 +1562,7 @@ void ProcessRun::drawGroundObject(int x, int y, bool ground)
 
             const bool alphaRender = (objArr[4] & 0B00000010);
             if(auto texPtr = g_mapDB->Retrieve(imageId)){
-                const int texH = SDLDevice::getTextureHeight(texPtr);
+                const int texH = SDLDeviceHelper::getTextureHeight(texPtr);
                 if(alphaRender){
                     SDL_SetTextureBlendMode(texPtr, SDL_BLENDMODE_BLEND);
                     SDL_SetTextureAlphaMod(texPtr, 128);
@@ -1583,7 +1584,7 @@ void ProcessRun::drawRotateStar(int x0, int y0, int x1, int y1)
         return;
     }
 
-    const auto [texW, texH] = SDLDevice::getTextureSize(texPtr);
+    const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);
     const auto currSize = (int)(std::lround(m_starRatio * texW / 2.50));
 
     for(const auto &p: m_groundItemList){
@@ -1634,7 +1635,7 @@ void ProcessRun::drawMouseLocation()
 {
     g_sdlDevice->fillRectangle(colorf::RGBA(0, 0, 0, 230), 0, 0, 200, 60);
 
-    const auto [mouseX, mouseY] = g_sdlDevice->getMousePLoc();
+    const auto [mouseX, mouseY] = SDLDeviceHelper::getMousePLoc();
     const auto locPixel = str_printf(u8"Pixel: %d, %d", mouseX, mouseY);
     const auto locGrid  = str_printf(u8"Grid: %d, %d", (mouseX + m_viewX) / SYS_MAPGRIDXP, (mouseY + m_viewY) / SYS_MAPGRIDYP);
 
@@ -1694,7 +1695,7 @@ void ProcessRun::checkMagicSpell(const SDL_Event &event)
                 }
 
                 else{
-                    const auto [nMouseX, nMouseY] = g_sdlDevice->getMousePLoc();
+                    const auto [nMouseX, nMouseY] = SDLDeviceHelper::getMousePLoc();
                     const auto [nAimX, nAimY] = screenPoint2Grid(nMouseX, nMouseY);
                     getMyHero()->emplaceAction(ActionSpell
                     {

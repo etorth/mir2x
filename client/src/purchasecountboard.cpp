@@ -116,7 +116,7 @@ PurchaseCountBoard::PurchaseCountBoard(int x, int y, ProcessRun *runPtr, Widget 
 {
     show(false);
     if(auto texPtr = g_progUseDB->Retrieve(0X07000000)){
-        std::tie(m_w, m_h) = SDLDevice::getTextureSize(texPtr);
+        std::tie(m_w, m_h) = SDLDeviceHelper::getTextureSize(texPtr);
     }
     else{
         throw fflerror("no valid purchase count board frame texture");

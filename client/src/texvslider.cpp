@@ -66,7 +66,7 @@ void TexVSlider::drawEx(int, int, int, int, int, int) const
         const auto r = getSelfParam().sliderCover;
         if(auto texPtr = g_sdlDevice->getCover(r)){
             SDL_SetTextureColorMod(texPtr, colorf::R(color), colorf::G(color), colorf::B(color));
-            SDLDevice::EnableRenderBlendMode enableDrawBlendMode(SDL_BLENDMODE_BLEND);
+            SDLDeviceHelper::EnableRenderBlendMode enableDrawBlendMode(SDL_BLENDMODE_BLEND);
             g_sdlDevice->drawTexture(texPtr, valCenterX - r, valCenterY - r);
         }
     };

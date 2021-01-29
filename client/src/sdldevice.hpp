@@ -28,85 +28,101 @@
 #include "fflerror.hpp"
 #include "fpsmonitor.hpp"
 
+class SDLDevice;
+namespace SDLDeviceHelper
+{
+    class EnableRenderColor final
+    {
+        private:
+            SDLDevice *m_device;
+
+        private:
+            Uint8 m_r;
+            Uint8 m_g;
+            Uint8 m_b;
+            Uint8 m_a;
+
+        public:
+            EnableRenderColor(uint32_t, SDLDevice * = nullptr);
+           ~EnableRenderColor();
+    };
+
+    struct EnableRenderBlendMode
+    {
+        private:
+            SDLDevice *m_device;
+
+        private:
+            SDL_BlendMode m_blendMode;
+
+        public:
+            EnableRenderBlendMode(SDL_BlendMode, SDLDevice * = nullptr);
+           ~EnableRenderBlendMode();
+    };
+
+    class RenderNewFrame final
+    {
+        private:
+            SDLDevice *m_device;
+
+        public:
+            RenderNewFrame(SDLDevice * = nullptr);
+           ~RenderNewFrame();
+    };
+
+    class EnableTextureBlendMode final
+    {
+        private:
+            SDL_BlendMode m_blendMode;
+
+        private:
+            SDL_Texture *m_texPtr;
+
+        public:
+            EnableTextureBlendMode(SDL_Texture *, SDL_BlendMode);
+           ~EnableTextureBlendMode();
+    };
+
+    class EnableTextureModColor final
+    {
+        private:
+            Uint8 m_r;
+            Uint8 m_g;
+            Uint8 m_b;
+            Uint8 m_a;
+
+        private:
+            SDL_Texture *m_texPtr;
+
+        public:
+            EnableTextureModColor(SDL_Texture *, uint32_t);
+           ~EnableTextureModColor();
+    };
+
+    struct SDLEventPLoc final
+    {
+        const int x = -1;
+        const int y = -1;
+
+        operator bool () const
+        {
+            return x < 0 || y < 0;
+        }
+    };
+
+    SDLEventPLoc getMousePLoc();
+    SDLEventPLoc getEventPLoc(const SDL_Event &);
+
+    std::tuple<int, int> getTextureSize(SDL_Texture *);
+    int getTextureWidth(SDL_Texture *);
+    int getTextureHeight(SDL_Texture *);
+}
+
 class SDLDevice final
 {
-    public:
-        struct SDLEventPLoc
-        {
-            const int  x = -1;
-            const int  y = -1;
-            const bool hasPLoc = false;
-
-            operator bool () const
-            {
-                return hasPLoc;
-            }
-        };
-
-    public:
-        class EnableRenderColor
-        {
-            private:
-                Uint8 m_r;
-                Uint8 m_g;
-                Uint8 m_b;
-                Uint8 m_a;
-
-            public:
-                EnableRenderColor(uint32_t);
-               ~EnableRenderColor();
-        };
-
-        struct EnableRenderBlendMode
-        {
-            private:
-                SDL_BlendMode m_blendMode;
-
-            public:
-                EnableRenderBlendMode(SDL_BlendMode);
-               ~EnableRenderBlendMode();
-        };
-
-        struct RenderNewFrame
-        {
-            RenderNewFrame();
-           ~RenderNewFrame();
-        };
-
-    public:
-        class EnableTextureBlendMode
-        {
-            private:
-                SDL_BlendMode m_blendMode;
-
-            private:
-                SDL_Texture *m_texPtr;
-
-            public:
-                EnableTextureBlendMode(SDL_Texture *, SDL_BlendMode);
-               ~EnableTextureBlendMode();
-        };
-
-    public:
-        class EnableTextureModColor
-        {
-            private:
-                Uint8 m_r;
-                Uint8 m_g;
-                Uint8 m_b;
-                Uint8 m_a;
-
-            private:
-                SDL_Texture *m_texPtr;
-
-            public:
-                EnableTextureModColor(SDL_Texture *, uint32_t);
-               ~EnableTextureModColor();
-        };
-
     private:
-       SDL_Window   *m_window   = nullptr;
-       SDL_Renderer *m_renderer = nullptr;
+        SDL_Window   *m_window   = nullptr;
+        SDL_Renderer *m_renderer = nullptr;
 
     private:
        FPSMonitor m_fpsMonitor;
@@ -178,7 +194,7 @@ class SDLDevice final
 
        void drawLine(uint32_t color, int nX0, int nY0, int nX1, int nY1)
        {
-           EnableRenderColor enableColor(color);
+           SDLDeviceHelper::EnableRenderColor enableColor(color, this);
            SDL_RenderDrawLine(m_renderer, nX0, nY0, nX1, nY1);
        }
 
@@ -287,66 +303,5 @@ class SDLDevice final
        }
 
     public:
-       static std::tuple<int, int> getTextureSize(SDL_Texture *texture)
-       {
-           if(!texture){
-               throw fflerror("null texture");
-           }
-
-           int width  = 0;
-           int height = 0;
-
-           if(!SDL_QueryTexture(const_cast<SDL_Texture *>(texture), 0, 0, &width, &height)){
-               return {width, height};
-           }
-
-           throw fflerror("query texture failed: %p", to_cvptr(texture));
-       }
-
-       static int getTextureWidth(SDL_Texture *texture)
-       {
-           return std::get<0>(getTextureSize(texture));
-       }
-
-       static int getTextureHeight(SDL_Texture *texture)
-       {
-           return std::get<1>(getTextureSize(texture));
-       }
-
-    public:
        SDL_Texture *getCover(int);
-
-    public:
-       static SDLEventPLoc getEventPLoc(const SDL_Event &event)
-       {
-           switch(event.type){
-               case SDL_MOUSEMOTION:
-                   {
-                       return {event.motion.x, event.motion.y, true};
-                   }
-               case SDL_MOUSEBUTTONUP:
-               case SDL_MOUSEBUTTONDOWN:
-                   {
-                       return {event.button.x, event.button.y, true};
-                   }
-               default:
-                   {
-                       return {-1, -1, false};
-                   }
-           }
-       }
-
-    public:
-       std::tuple<int, int> getMousePLoc() const
-       {
-           int mousePX = -1;
-           int mousePY = -1;
-           SDL_GetMouseState(&mousePX, &mousePY);
-
-           return
-           {
-               mousePX,
-               mousePY,
-           };
-       }
 };

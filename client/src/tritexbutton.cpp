@@ -36,7 +36,7 @@ void TritexButton::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int 
             }
             return 255;
         }();
-        SDLDevice::EnableTextureModColor enableColor(texPtr, colorf::RGBA(255, modG, 255, 255));
+        SDLDeviceHelper::EnableTextureModColor enableColor(texPtr, colorf::RGBA(255, modG, 255, 255));
         g_sdlDevice->drawTexture(texPtr, dstX + offX, dstY + offY, srcX, srcY, srcW, srcH); // TODO: need to crop src region for offset
     }
 }
@@ -48,7 +48,7 @@ void TritexButton::initButtonSize()
     for(const int state: {0, 1, 2}){
         if(m_texID[state] != SYS_TEXNIL){
             if(auto texPtr = g_progUseDB->Retrieve(m_texID[state])){
-                const auto [texCurrW, texCurrH] = SDLDevice::getTextureSize(texPtr);
+                const auto [texCurrW, texCurrH] = SDLDeviceHelper::getTextureSize(texPtr);
                 maxW = (std::max<int>)(texCurrW, maxW);
                 maxH = (std::max<int>)(texCurrH, maxH);
             }

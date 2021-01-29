@@ -60,9 +60,9 @@ void ProcessSync::update(double fUpdateTime)
 
 void ProcessSync::draw()
 {
-    SDLDevice::RenderNewFrame newFrame;
+    SDLDeviceHelper::RenderNewFrame newFrame;
     auto texPtr = g_progUseDB->Retrieve(0X00000002);
-    const auto [texW, texH] = SDLDevice::getTextureSize(texPtr);
+    const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);
 
     g_sdlDevice->drawTexture(texPtr,
             112,  // dst x

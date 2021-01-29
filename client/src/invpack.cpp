@@ -82,7 +82,7 @@ size_t InvPack::remove(uint32_t itemID, size_t count, int x, int y)
 PackBin InvPack::makePackBin(uint32_t itemID, size_t count)
 {
     if(auto texPtr = g_itemDB->Retrieve(DBCOM_ITEMRECORD(itemID).pkgGfxID | 0X01000000)){
-        const auto [itemPW, itemPH] = SDLDevice::getTextureSize(texPtr);
+        const auto [itemPW, itemPH] = SDLDeviceHelper::getTextureSize(texPtr);
         return
         {
             .id    = itemID,

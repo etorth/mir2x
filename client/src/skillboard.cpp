@@ -165,7 +165,7 @@ SkillBoard::SkillPage::SkillPage(uint32_t pageImage, Widget *widgetPtr, bool aut
     std::tie(m_w, m_h) = [this]() -> std::tuple<int, int>
     {
         if(auto texPtr = g_progUseDB->Retrieve(m_pageImage)){
-            return SDLDevice::getTextureSize(texPtr);
+            return SDLDeviceHelper::getTextureSize(texPtr);
         }
 
         const auto r = SkillBoard::getPageRectange();
@@ -183,7 +183,7 @@ void SkillBoard::SkillPage::drawEx(int dstX, int dstY, int srcX, int srcY, int s
         int srcWCrop = srcW;
         int srcHCrop = srcH;
 
-        const auto [texW, texH] = SDLDevice::getTextureSize(texPtr);
+        const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);
         if(mathf::ROICrop(
                     &srcXCrop, &srcYCrop,
                     &srcWCrop, &srcHCrop,
@@ -368,7 +368,7 @@ SkillBoard::SkillBoard(int nX, int nY, ProcessRun *runPtr, Widget *pwidget, bool
 {
     show(false);
     if(auto texPtr = g_progUseDB->Retrieve(0X05000000)){
-        std::tie(m_w, m_h) = SDLDevice::getTextureSize(texPtr);
+        std::tie(m_w, m_h) = SDLDeviceHelper::getTextureSize(texPtr);
     }
     else{
         throw fflerror("no valid inventory frame texture");
@@ -426,7 +426,7 @@ bool SkillBoard::processEvent(const SDL_Event &event, bool valid)
     }
 
     const auto r = getPageRectange();
-    const auto loc = SDLDevice::getEventPLoc(event);
+    const auto loc = SDLDeviceHelper::getEventPLoc(event);
     const bool captureEvent = loc && mathf::pointInRectangle(loc.x, loc.y, x() + r[0], y() + r[1], r[2], r[3]);
 
     if(m_skillPageList.at(m_selectedTabIndex)->processEvent(event, captureEvent && valid)){
