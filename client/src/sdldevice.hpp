@@ -114,7 +114,7 @@ namespace SDLDeviceHelper
     SDLEventPLoc getEventPLoc(const SDL_Event &);
 
     std::tuple<int, int> getTextureSize(SDL_Texture *);
-    int getTextureWidth(SDL_Texture *);
+    int getTextureWidth (SDL_Texture *);
     int getTextureHeight(SDL_Texture *);
 }
 
