@@ -707,8 +707,14 @@ void PurchaseBoard::drawExt1GridHoverText(int itemIndex) const
         {0, 0, 0, 0},
 
         false,
+
         1,
         12,
+        0,
+        colorf::WHITE + 255,
+        0,
+
+        LALIGN_JUSTIFY,
     };
 
     hoverTextBoard.loadXML(to_cstr(hoverText));
