@@ -292,9 +292,35 @@ void XMLTypeset::resetOneLine(int nLine, bool bCREnd)
 
     // some tokens may have non-zero W1/W2 when reach here
     // need to reset them all
-    for(int nIndex = 0; nIndex < lineTokenCount(nLine); ++nIndex){
-        getToken(nIndex, nLine)->Box.State.W1 = 0;
-        getToken(nIndex, nLine)->Box.State.W2 = 0;
+
+    const auto wordSpace = [this]() -> std::array<int, 2>
+    {
+        switch(LAlign()){
+            case LALIGN_LEFT:
+            case LALIGN_JUSTIFY:
+            case LALIGN_RIGHT:
+            case LALIGN_CENTER:
+                {
+                    return
+                    {
+                        (m_wordSpace + 0) / 2,
+                        (m_wordSpace + 1) / 2,
+                    };
+                }
+            case LALIGN_DISTRIBUTED:
+                {
+                    return {0, 0};
+                }
+            default:
+                {
+                    throw fflerror("invalid line align: %d", LAlign());
+                }
+        }
+    }();
+
+    for(int i = 0, tokenCnt = lineTokenCount(nLine); i < tokenCnt; ++i){
+        getToken(i, nLine)->Box.State.W1 = (i     == 0       ) ? 0 : wordSpace[0];
+        getToken(i, nLine)->Box.State.W2 = (i + 1 == tokenCnt) ? 0 : wordSpace[1];
     }
 
     switch(LAlign()){
@@ -308,6 +334,10 @@ void XMLTypeset::resetOneLine(int nLine, bool bCREnd)
         case LALIGN_DISTRIBUTED:
             {
                 LineDistributedPadding(nLine);
+                break;
+            }
+        default:
+            {
                 break;
             }
     }
