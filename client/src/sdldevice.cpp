@@ -519,6 +519,13 @@ void SDLDevice::drawWidthRectangle(uint32_t color, size_t frameLineWidth, int nX
     drawWidthRectangle(frameLineWidth, nX, nY, nW, nH);
 }
 
+void SDLDevice::drawString(uint32_t color, int x, int y, const char *s)
+{
+    if(stringRGBA(m_renderer, x, y, s, colorf::R(color), colorf::G(color), colorf::B(color), colorf::A(color))){
+        throw fflerror("failed to draw 8x8 string: %s", s);
+    }
+}
+
 SDLDeviceHelper::EnableRenderColor::EnableRenderColor(uint32_t color, SDLDevice *devPtr)
     : m_device(devPtr ? devPtr : g_sdlDevice)
 {

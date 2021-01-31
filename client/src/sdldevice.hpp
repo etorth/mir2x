@@ -23,6 +23,7 @@
 #include <unordered_map>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
+#include <SDL2/SDL2_gfxPrimitives.h>
 #include "totype.hpp"
 #include "colorf.hpp"
 #include "fflerror.hpp"
@@ -304,4 +305,7 @@ class SDLDevice final
 
     public:
        SDL_Texture *getCover(int);
+
+    public:
+       void drawString(uint32_t, int, int, const char *);
 };
