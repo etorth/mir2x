@@ -45,6 +45,11 @@ GUIManager::GUIManager(ProcessRun *proc)
           proc,
       }
 
+    , m_mmapBoard
+      {
+          proc,
+      }
+
     , m_skillBoard
       {
           g_sdlDevice->getRendererWidth()  / 2 - 180,
@@ -98,6 +103,7 @@ GUIManager::GUIManager(ProcessRun *proc)
 
 void GUIManager::drawEx(int, int, int, int, int, int) const
 {
+    m_mmapBoard    .draw();
     m_NPCChatBoard .draw();
     m_controlBoard .draw();
     m_purchaseBoard.draw();
@@ -147,6 +153,7 @@ bool GUIManager::processEvent(const SDL_Event &event, bool valid)
     tookEvent |= WidgetGroup  ::processEvent(event, valid && !tookEvent);
     tookEvent |= m_controlBoard.processEvent(event, valid && !tookEvent);
     tookEvent |= m_NPCChatBoard.processEvent(event, valid && !tookEvent);
+    tookEvent |= m_mmapBoard   .processEvent(event, valid && !tookEvent);
 
     return tookEvent;
 }
@@ -171,6 +178,10 @@ Widget *GUIManager::getWidget(const std::string &widgetName)
 
     if(widgetName == "SkillBoard"){
         return &m_skillBoard;
+    }
+
+    if(widgetName == "MMapBoard"){
+        return &m_mmapBoard;
     }
 
     if(widgetName == "PlayerStatusBoard"){

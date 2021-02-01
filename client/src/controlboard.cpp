@@ -198,7 +198,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           nullptr,
           [this]()
           {
-              addLog(0, "mini map doesn't implemented yet.");
+              dynamic_cast<MMapBoard *>(m_processRun->getWidget("MMapBoard"))->next();
           },
 
           true,
