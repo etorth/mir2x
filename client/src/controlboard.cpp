@@ -806,6 +806,12 @@ void ControlBoard::drawMiddleDefault() const
     drawLogBoardDefault();
     drawInputGreyBackground();
 
+    // draw current creature face
+    if(auto pTexture = g_progUseDB->Retrieve(m_processRun->GetFocusFaceKey())){
+        const auto [texW, texH] = SDLDeviceHelper::getTextureSize(pTexture);
+        g_sdlDevice->drawTexture(pTexture, nW0 - 267, nY0 + 19, 86, 100, 0, 0, texW, texH);
+    }
+
     // draw middle part
     if(auto pTexture = g_progUseDB->Retrieve(0X00000013)){
         g_sdlDevice->drawTexture(pTexture,             178, nY0 + 2,         0, 0,  50, 131);
@@ -824,11 +830,6 @@ void ControlBoard::drawMiddleDefault() const
         if(stretch > 0){
             g_sdlDevice->drawTexture(pTexture, 178 + 50 + repeat * repeatW, nY0 + 2, stretch, 131, 50, 0, repeatW, 131);
         }
-    }
-
-    // draw current creature face
-    if(auto pTexture = g_progUseDB->Retrieve(m_processRun->GetFocusFaceKey())){
-        g_sdlDevice->drawTexture(pTexture, nW0 - 266, nY0 + 18);
     }
 
     // draw title

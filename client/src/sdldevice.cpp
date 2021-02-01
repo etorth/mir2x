@@ -307,8 +307,19 @@ void SDLDevice::drawTexture(SDL_Texture *pstTexture,
         int nSrcW, int nSrcH)
 {
     if(pstTexture){
-        SDL_Rect stSrc {nSrcX, nSrcY, nSrcW, nSrcH};
-        SDL_Rect stDst {nDstX, nDstY, nDstW, nDstH};
+        SDL_Rect stSrc;
+        SDL_Rect stDst;
+
+        stSrc.x = nSrcX;
+        stSrc.y = nSrcY;
+        stSrc.w = nSrcW;
+        stSrc.h = nSrcH;
+
+        stDst.x = nDstX;
+        stDst.y = nDstY;
+        stDst.w = nDstW;
+        stDst.h = nDstH;
+
         SDL_RenderCopy(m_renderer, pstTexture, &stSrc, &stDst);
         if(g_clientArgParser->debugdrawTexture){
             drawRectangle(colorf::BLUE + 128, nDstX, nDstY, nDstW, nDstH);
