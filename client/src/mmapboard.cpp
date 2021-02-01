@@ -16,11 +16,14 @@
  * =====================================================================================
  */
 
+#include <array>
 #include "client.hpp"
 #include "pngtexdb.hpp"
 #include "sdldevice.hpp"
 #include "mmapboard.hpp"
+#include "maprecord.hpp"
 #include "processrun.hpp"
+#include "dbcomrecord.hpp"
 
 extern Client *g_client;
 extern PNGTexDB *g_itemDB;
@@ -127,6 +130,8 @@ void MMapBoard::drawEx(int, int, int, int, int, int) const
                     if(!m_alphaOn){
                         g_sdlDevice->fillRectangle(colorf::BLACK + 255, x(), y(), texW, texH);
                     }
+
+                    drawMmapTexture();
                     g_sdlDevice->drawTexture(texPtr, x(), y());
                 }
 
@@ -136,6 +141,7 @@ void MMapBoard::drawEx(int, int, int, int, int, int) const
             }
         case MMAP_FULLSCREEN:
             {
+                drawMmapTexture();
                 return;
             }
         default:
@@ -211,5 +217,85 @@ void MMapBoard::setLoc()
             {
                 return;
             }
+    }
+}
+
+void MMapBoard::drawMmapTexture() const
+{
+    const auto [mapID, mapW, mapH] = m_processRun->getMap();
+    const auto [xc, yc] = m_processRun->getMyHero()->location();
+
+    auto [dstX, dstY, dstW, dstH] = [this]() -> std::array<int, 4>
+    {
+        switch(m_state){
+            case MMAP_ON:
+            case MMAP_EXTENDED:
+                {
+                    if(auto texPtr = g_progUseDB->Retrieve(m_state == MMAP_ON ? 0X09000000 : 0X09000001); texPtr){
+                        const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);
+                        return {x(), y(), texW, texH};
+                    }
+                    throw fflerror("invalid mmap texture");
+                }
+            case MMAP_FULLSCREEN:
+                {
+                    const auto [rdrW, rdrH] = g_sdlDevice->getRendererSize();
+                    return {0, 0, rdrW, rdrH};
+                }
+            default:
+                {
+                    throw bad_reach();
+                }
+        }
+    }();
+
+    SDL_Texture *texPtr = g_progUseDB->Retrieve(DBCOM_MAPRECORD(mapID).mmapID);
+    if(!texPtr){
+        return;
+    }
+
+    if(m_state == MMAP_FULLSCREEN){
+        g_sdlDevice->fillRectangle(colorf::BLACK + 255, dstX, dstY, dstW, dstH);
+    }
+
+    const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);
+    const int pixelCenterX = (int)(std::lround((xc * 1.0 / mapW) * texW));
+    const int pixelCenterY = (int)(std::lround((yc * 1.0 / mapH) * texH));
+
+    int srcX = pixelCenterX - dstW / 2;
+    int srcY = pixelCenterY - dstH / 2;
+    int srcW = dstW;
+    int srcH = dstH;
+
+    if(srcX < 0){
+        dstX -= srcX;
+        srcW += srcX;
+        srcX  = 0;
+    }
+
+    if(srcY < 0){
+        dstY -= srcY;
+        srcH += srcY;
+        srcY  = 0;
+    }
+
+    srcW = std::min<int>(srcW, texW - srcX);
+    srcH = std::min<int>(srcH, texH - srcY);
+    {
+        SDLDeviceHelper::EnableTextureModColor enableModColor(texPtr, [this]() -> uint32_t
+        {
+            switch(m_state){
+                case MMAP_ON:
+                case MMAP_EXTENDED:
+                    {
+                        return colorf::WHITE + (m_alphaOn ? 128 : 255);
+                    }
+                default:
+                    {
+                        return colorf::WHITE + 255;
+                    }
+            }
+        }());
+        g_sdlDevice->drawTexture(texPtr, dstX, dstY, srcX, srcY, srcW, srcH);
     }
 }

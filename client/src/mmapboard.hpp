@@ -84,4 +84,7 @@ class MMapBoard: public Widget
 
     private:
         void setState(MMapState);
+
+    private:
+        void drawMmapTexture() const;
 };

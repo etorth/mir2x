@@ -17,6 +17,7 @@
  */
 
 #pragma once
+#include <cstdint>
 #include <utility>
 
 struct LinkEntry
@@ -53,13 +54,15 @@ class MapRecord
 {
     public:
         const char8_t *name;
+        const uint32_t mmapID;
 
     public:
         const LinkEntry linkArray[8];
 
     public:
-        template<typename... U> constexpr MapRecord(const char8_t *argName, U&&... u)
+        template<typename... U> constexpr MapRecord(const char8_t *argName, uint32_t argmmapID = 0, U&&... u)
             : name(argName ? argName : u8"")
+            , mmapID(argmmapID)
             , linkArray { std::forward<U>(u)... }
         {}
 };

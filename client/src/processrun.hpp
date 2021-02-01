@@ -403,4 +403,10 @@ class ProcessRun: public Process
 
     public:
         void requestMagicDamage(int, uint64_t);
+
+    public:
+        std::tuple<uint32_t, int, int> getMap() const
+        {
+            return {m_mapID, m_mir2xMapData.W(), m_mir2xMapData.H()};
+        }
 };
