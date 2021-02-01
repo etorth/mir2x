@@ -187,6 +187,10 @@ void InventoryBoard::drawEx(int dstX, int dstY, int, int, int, int) const
         drawItem(dstX, dstY, startRow, (i == m_selectedPackBinIndex), (i == cursorOnIndex), packBinListCRef.at(i));
     }
 
+    if(cursorOnIndex >= 0){
+        drawItemHoverText(packBinListCRef.at(cursorOnIndex));
+    }
+
     drawGold();
     m_opNameBoard.draw();
     m_wmdAniBoard.draw();
@@ -359,4 +363,44 @@ std::tuple<int, int> InventoryBoard::getInvGrid(int locPX, int locPY) const
         (locPX - gridPX0) / SYS_INVGRIDPW,
         (locPY - gridPY0) / SYS_INVGRIDPH,
     };
+}
+
+void InventoryBoard::drawItemHoverText(const PackBin &bin) const
+{
+    const auto ir = DBCOM_ITEMRECORD(bin.id);
+    const auto hoverText = str_printf
+    (
+        u8R"###( <layout>                  )###""\n"
+        u8R"###(     <par>【名称】%s</par> )###""\n"
+        u8R"###(     <par>【描述】%s</par> )###""\n"
+        u8R"###( </layout>                 )###""\n",
+
+        ir.name,
+        str_nonempty(ir.description) ? ir.description : u8"暂无描述"
+    );
+
+    LayoutBoard hoverTextBoard
+    {
+        0,
+        0,
+        200,
+
+        false,
+        {0, 0, 0, 0},
+
+        false,
+
+        1,
+        12,
+        0,
+        colorf::WHITE + 255,
+        0,
+
+        LALIGN_JUSTIFY,
+    };
+
+    hoverTextBoard.loadXML(to_cstr(hoverText));
+    const auto [mousePX, mousePY] = SDLDeviceHelper::getMousePLoc();
+    g_sdlDevice->fillRectangle(colorf::RGBA(0, 0, 0, 200), mousePX, mousePY, std::max<int>(hoverTextBoard.w(), 200) + 20, hoverTextBoard.h() + 20);
+    hoverTextBoard.drawAt(DIR_UPLEFT, mousePX + 10, mousePY + 10);
 }

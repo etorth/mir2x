@@ -76,4 +76,7 @@ class InventoryBoard: public Widget
     private:
         int getPackBinIndex(int, int) const;
         std::tuple<int, int> getInvGrid(int, int) const;
+
+    private:
+        void drawItemHoverText(const PackBin &) const;
 };
