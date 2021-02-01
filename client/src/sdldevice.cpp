@@ -544,7 +544,7 @@ TTF_Font *SDLDevice::DefaultTTF(uint8_t fontSize)
         return p->second;
     }
 
-    const Rawbuf s_defaultTTFData
+    const static Rawbuf s_defaultTTFData
     {
         #include "monaco.rawbuf"
     };
