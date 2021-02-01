@@ -134,6 +134,7 @@ bool GUIManager::processEvent(const SDL_Event &event, bool valid)
                             std::tie(m_w, m_h) = g_sdlDevice->getRendererSize();
                             m_controlBoard.onWindowResize(w(), h());
                             m_controlBoard.moveTo(0, h() - 133);
+                            m_mmapBoard.setLoc();
                             return true;
                         }
                     default:

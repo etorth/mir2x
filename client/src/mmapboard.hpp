@@ -24,20 +24,24 @@ class ProcessRun;
 class MMapBoard: public Widget
 {
     private:
-        enum MMapStatus: int
+        enum MMapState: int
         {
             MMAP_OFF = 0,
             MMAP_ON,
             MMAP_EXTENDED,
             MMAP_FULLSCREEN,
         };
-        MMapStatus m_status = MMAP_OFF;
+        MMapState m_state = MMAP_ON;
 
     private:
         bool m_alphaOn = false;
 
     private:
         ProcessRun *m_processRun;
+
+    private:
+        TritexButton m_buttonAlpha;
+        TritexButton m_buttonExtend;
 
     public:
         MMapBoard(ProcessRun *, Widget * = nullptr, bool = false);
@@ -51,12 +55,33 @@ class MMapBoard: public Widget
     public:
         void next()
         {
-            switch(m_status){
-                case MMAP_OFF       : m_status = MMAP_ON        ; return;
-                case MMAP_ON        : m_status = MMAP_FULLSCREEN; return;
-                case MMAP_EXTENDED  : m_status = MMAP_FULLSCREEN; return;
-                case MMAP_FULLSCREEN: m_status = MMAP_OFF       ; return;
-                default: throw bad_reach();
+            switch(m_state){
+                case MMAP_OFF:
+                    {
+                        setState(MMAP_ON);
+                        return;
+                    }
+                case MMAP_ON:
+                case MMAP_EXTENDED:
+                    {
+                        setState(MMAP_FULLSCREEN);
+                        return;
+                    }
+                case MMAP_FULLSCREEN:
+                    {
+                        setState(MMAP_OFF);
+                        return;
+                    }
+                default:
+                    {
+                        throw bad_reach();
+                    }
             }
         }
+
+    public:
+        void setLoc();
+
+    private:
+        void setState(MMapState);
 };
