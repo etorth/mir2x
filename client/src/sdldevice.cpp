@@ -34,6 +34,179 @@ extern XMLConf *g_XMLConf;
 extern SDLDevice *g_sdlDevice;
 extern ClientArgParser *g_clientArgParser;
 
+SDLDeviceHelper::EnableRenderColor::EnableRenderColor(uint32_t color, SDLDevice *devPtr)
+    : m_device(devPtr ? devPtr : g_sdlDevice)
+{
+    if(SDL_GetRenderDrawColor(m_device->getRenderer(), &m_r, &m_g, &m_b, &m_a)){
+        throw fflerror("get renderer draw color failed: %s", SDL_GetError());
+    }
+
+    if(SDL_SetRenderDrawColor(m_device->getRenderer(), colorf::R(color), colorf::G(color), colorf::B(color), colorf::A(color))){
+        throw fflerror("set renderer draw color failed: %s", SDL_GetError());
+    }
+}
+
+SDLDeviceHelper::EnableRenderColor::~EnableRenderColor()
+{
+    if(SDL_SetRenderDrawColor(m_device->getRenderer(), m_r, m_g, m_b, m_a)){
+        g_log->addLog(LOGTYPE_WARNING, "Set renderer draw color failed: %s", SDL_GetError());
+    }
+}
+
+SDLDeviceHelper::EnableRenderBlendMode::EnableRenderBlendMode(SDL_BlendMode blendMode, SDLDevice *devPtr)
+    : m_device(devPtr ? devPtr : g_sdlDevice)
+{
+    if(SDL_GetRenderDrawBlendMode(m_device->getRenderer(), &m_blendMode)){
+        throw fflerror("get renderer blend mode failed: %s", SDL_GetError());
+    }
+
+    if(SDL_SetRenderDrawBlendMode(m_device->getRenderer(), blendMode)){
+        throw fflerror("set renderer blend mode failed: %s", SDL_GetError());
+    }
+}
+
+SDLDeviceHelper::EnableRenderBlendMode::~EnableRenderBlendMode()
+{
+    if(SDL_SetRenderDrawBlendMode(m_device->getRenderer(), m_blendMode)){
+        g_log->addLog(LOGTYPE_WARNING, "set renderer blend mode failed: %s", SDL_GetError());
+    }
+}
+
+SDLDeviceHelper::RenderNewFrame::RenderNewFrame(SDLDevice *devPtr)
+    : m_device(devPtr ? devPtr : g_sdlDevice)
+{
+    m_device->clearScreen();
+}
+
+SDLDeviceHelper::RenderNewFrame::~RenderNewFrame()
+{
+    m_device->updateFPS();
+    m_device->present();
+}
+
+SDLDeviceHelper::EnableTextureBlendMode::EnableTextureBlendMode(SDL_Texture *texPtr, SDL_BlendMode mode)
+    : m_texPtr(texPtr)
+{
+    if(!m_texPtr){
+        return;
+    }
+
+    if(SDL_GetTextureBlendMode(m_texPtr, &m_blendMode)){
+        throw fflerror("get texture blend mode failed: %s", SDL_GetError());
+    }
+
+    if(SDL_SetTextureBlendMode(m_texPtr, mode)){
+        throw fflerror("set texture blend mode failed: %s", SDL_GetError());
+    }
+}
+
+SDLDeviceHelper::EnableTextureBlendMode::~EnableTextureBlendMode()
+{
+    if(!m_texPtr){
+        return;
+    }
+
+    if(SDL_SetTextureBlendMode(m_texPtr, m_blendMode)){
+        g_log->addLog(LOGTYPE_WARNING, "Setup texture blend mode failed: %s", SDL_GetError());
+    }
+}
+
+SDLDeviceHelper::EnableTextureModColor::EnableTextureModColor(SDL_Texture *texPtr, uint32_t color)
+    : m_texPtr(texPtr)
+{
+    if(!m_texPtr){
+        return;
+    }
+
+    if(SDL_GetTextureColorMod(m_texPtr, &m_r, &m_g, &m_b)){
+        throw fflerror("SDL_GetTextureColorMod(%p) failed: %s", to_cvptr(m_texPtr), SDL_GetError());
+    }
+
+    if(SDL_GetTextureAlphaMod(m_texPtr, &m_a)){
+        throw fflerror("SDL_GetTextureAlphaMod(%p) failed: %s", to_cvptr(m_texPtr), SDL_GetError());
+    }
+
+    if(SDL_SetTextureColorMod(m_texPtr, colorf::R(color), colorf::G(color), colorf::B(color))){
+        throw fflerror("SDL_SetTextureColorMod(%p) failed: %s", to_cvptr(m_texPtr), SDL_GetError());
+    }
+
+    if(SDL_SetTextureAlphaMod(m_texPtr, colorf::A(color))){
+        throw fflerror("SDL_SetTextureAlphaMod(%p) failed: %s", to_cvptr(m_texPtr), SDL_GetError());
+    }
+}
+
+SDLDeviceHelper::EnableTextureModColor::~EnableTextureModColor()
+{
+    if(!m_texPtr){
+        return;
+    }
+
+    if(SDL_SetTextureColorMod(m_texPtr, m_r, m_g, m_b)){
+        g_log->addLog(LOGTYPE_WARNING, "set texture mod color failed: %s", SDL_GetError());
+    }
+
+    if(SDL_SetTextureAlphaMod(m_texPtr, m_a)){
+        g_log->addLog(LOGTYPE_WARNING, "set texture mod alpha failed: %s", SDL_GetError());
+    }
+}
+
+SDLDeviceHelper::SDLEventPLoc SDLDeviceHelper::getMousePLoc()
+{
+    int mousePX = -1;
+    int mousePY = -1;
+    SDL_GetMouseState(&mousePX, &mousePY);
+
+    return
+    {
+        mousePX,
+        mousePY,
+    };
+}
+
+SDLDeviceHelper::SDLEventPLoc SDLDeviceHelper::getEventPLoc(const SDL_Event &event)
+{
+    switch(event.type){
+        case SDL_MOUSEMOTION:
+            {
+                return {event.motion.x, event.motion.y};
+            }
+        case SDL_MOUSEBUTTONUP:
+        case SDL_MOUSEBUTTONDOWN:
+            {
+                return {event.button.x, event.button.y};
+            }
+        default:
+            {
+                return {-1, -1};
+            }
+    }
+}
+
+std::tuple<int, int> SDLDeviceHelper::getTextureSize(SDL_Texture *texture)
+{
+    if(!texture){
+        throw fflerror("null texture");
+    }
+
+    int width  = 0;
+    int height = 0;
+
+    if(!SDL_QueryTexture(const_cast<SDL_Texture *>(texture), 0, 0, &width, &height)){
+        return {width, height};
+    }
+    throw fflerror("query texture failed: %p", to_cvptr(texture));
+}
+
+int SDLDeviceHelper::getTextureWidth(SDL_Texture *texture)
+{
+    return std::get<0>(getTextureSize(texture));
+}
+
+int SDLDeviceHelper::getTextureHeight(SDL_Texture *texture)
+{
+    return std::get<1>(getTextureSize(texture));
+}
+
 SDLDevice::SDLDevice()
 {
     if(g_sdlDevice){
@@ -524,177 +697,4 @@ void SDLDevice::drawString(uint32_t color, int x, int y, const char *s)
     if(stringRGBA(m_renderer, x, y, s, colorf::R(color), colorf::G(color), colorf::B(color), colorf::A(color))){
         throw fflerror("failed to draw 8x8 string: %s", s);
     }
-}
-
-SDLDeviceHelper::EnableRenderColor::EnableRenderColor(uint32_t color, SDLDevice *devPtr)
-    : m_device(devPtr ? devPtr : g_sdlDevice)
-{
-    if(SDL_GetRenderDrawColor(m_device->getRenderer(), &m_r, &m_g, &m_b, &m_a)){
-        throw fflerror("get renderer draw color failed: %s", SDL_GetError());
-    }
-
-    if(SDL_SetRenderDrawColor(m_device->getRenderer(), colorf::R(color), colorf::G(color), colorf::B(color), colorf::A(color))){
-        throw fflerror("set renderer draw color failed: %s", SDL_GetError());
-    }
-}
-
-SDLDeviceHelper::EnableRenderColor::~EnableRenderColor()
-{
-    if(SDL_SetRenderDrawColor(m_device->getRenderer(), m_r, m_g, m_b, m_a)){
-        g_log->addLog(LOGTYPE_WARNING, "Set renderer draw color failed: %s", SDL_GetError());
-    }
-}
-
-SDLDeviceHelper::EnableRenderBlendMode::EnableRenderBlendMode(SDL_BlendMode blendMode, SDLDevice *devPtr)
-    : m_device(devPtr ? devPtr : g_sdlDevice)
-{
-    if(SDL_GetRenderDrawBlendMode(m_device->getRenderer(), &m_blendMode)){
-        throw fflerror("get renderer blend mode failed: %s", SDL_GetError());
-    }
-
-    if(SDL_SetRenderDrawBlendMode(m_device->getRenderer(), blendMode)){
-        throw fflerror("set renderer blend mode failed: %s", SDL_GetError());
-    }
-}
-
-SDLDeviceHelper::EnableRenderBlendMode::~EnableRenderBlendMode()
-{
-    if(SDL_SetRenderDrawBlendMode(m_device->getRenderer(), m_blendMode)){
-        g_log->addLog(LOGTYPE_WARNING, "set renderer blend mode failed: %s", SDL_GetError());
-    }
-}
-
-SDLDeviceHelper::RenderNewFrame::RenderNewFrame(SDLDevice *devPtr)
-    : m_device(devPtr ? devPtr : g_sdlDevice)
-{
-    m_device->clearScreen();
-}
-
-SDLDeviceHelper::RenderNewFrame::~RenderNewFrame()
-{
-    m_device->updateFPS();
-    m_device->present();
-}
-
-SDLDeviceHelper::EnableTextureBlendMode::EnableTextureBlendMode(SDL_Texture *texPtr, SDL_BlendMode mode)
-    : m_texPtr(texPtr)
-{
-    if(!m_texPtr){
-        return;
-    }
-
-    if(SDL_GetTextureBlendMode(m_texPtr, &m_blendMode)){
-        throw fflerror("get texture blend mode failed: %s", SDL_GetError());
-    }
-
-    if(SDL_SetTextureBlendMode(m_texPtr, mode)){
-        throw fflerror("set texture blend mode failed: %s", SDL_GetError());
-    }
-}
-
-SDLDeviceHelper::EnableTextureBlendMode::~EnableTextureBlendMode()
-{
-    if(!m_texPtr){
-        return;
-    }
-
-    if(SDL_SetTextureBlendMode(m_texPtr, m_blendMode)){
-        g_log->addLog(LOGTYPE_WARNING, "Setup texture blend mode failed: %s", SDL_GetError());
-    }
-}
-
-SDLDeviceHelper::EnableTextureModColor::EnableTextureModColor(SDL_Texture *texPtr, uint32_t color)
-    : m_texPtr(texPtr)
-{
-    if(!m_texPtr){
-        return;
-    }
-
-    if(SDL_GetTextureColorMod(m_texPtr, &m_r, &m_g, &m_b)){
-        throw fflerror("SDL_GetTextureColorMod(%p) failed: %s", to_cvptr(m_texPtr), SDL_GetError());
-    }
-
-    if(SDL_GetTextureAlphaMod(m_texPtr, &m_a)){
-        throw fflerror("SDL_GetTextureAlphaMod(%p) failed: %s", to_cvptr(m_texPtr), SDL_GetError());
-    }
-
-    if(SDL_SetTextureColorMod(m_texPtr, colorf::R(color), colorf::G(color), colorf::B(color))){
-        throw fflerror("SDL_SetTextureColorMod(%p) failed: %s", to_cvptr(m_texPtr), SDL_GetError());
-    }
-
-    if(SDL_SetTextureAlphaMod(m_texPtr, colorf::A(color))){
-        throw fflerror("SDL_SetTextureAlphaMod(%p) failed: %s", to_cvptr(m_texPtr), SDL_GetError());
-    }
-}
-
-SDLDeviceHelper::EnableTextureModColor::~EnableTextureModColor()
-{
-    if(!m_texPtr){
-        return;
-    }
-
-    if(SDL_SetTextureColorMod(m_texPtr, m_r, m_g, m_b)){
-        g_log->addLog(LOGTYPE_WARNING, "set texture mod color failed: %s", SDL_GetError());
-    }
-
-    if(SDL_SetTextureAlphaMod(m_texPtr, m_a)){
-        g_log->addLog(LOGTYPE_WARNING, "set texture mod alpha failed: %s", SDL_GetError());
-    }
-}
-
-SDLDeviceHelper::SDLEventPLoc SDLDeviceHelper::getMousePLoc()
-{
-    int mousePX = -1;
-    int mousePY = -1;
-    SDL_GetMouseState(&mousePX, &mousePY);
-
-    return
-    {
-        mousePX,
-        mousePY,
-    };
-}
-
-SDLDeviceHelper::SDLEventPLoc SDLDeviceHelper::getEventPLoc(const SDL_Event &event)
-{
-    switch(event.type){
-        case SDL_MOUSEMOTION:
-            {
-                return {event.motion.x, event.motion.y};
-            }
-        case SDL_MOUSEBUTTONUP:
-        case SDL_MOUSEBUTTONDOWN:
-            {
-                return {event.button.x, event.button.y};
-            }
-        default:
-            {
-                return {-1, -1};
-            }
-    }
-}
-
-std::tuple<int, int> SDLDeviceHelper::getTextureSize(SDL_Texture *texture)
-{
-    if(!texture){
-        throw fflerror("null texture");
-    }
-
-    int width  = 0;
-    int height = 0;
-
-    if(!SDL_QueryTexture(const_cast<SDL_Texture *>(texture), 0, 0, &width, &height)){
-        return {width, height};
-    }
-    throw fflerror("query texture failed: %p", to_cvptr(texture));
-}
-
-int SDLDeviceHelper::getTextureWidth(SDL_Texture *texture)
-{
-    return std::get<0>(getTextureSize(texture));
-}
-
-int SDLDeviceHelper::getTextureHeight(SDL_Texture *texture)
-{
-    return std::get<1>(getTextureSize(texture));
 }
