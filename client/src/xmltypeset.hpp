@@ -39,7 +39,7 @@ class XMLTypeset // means XMLParagraph typeset
         int m_lineWidth;
 
     private:
-        const int m_LAlign;
+        const int m_lineAlign;
 
     private:
         const bool m_canThrough;
@@ -85,7 +85,7 @@ class XMLTypeset // means XMLParagraph typeset
                 int      lineSpace             = 0,
                 int      wordSpace             = 0)
             : m_lineWidth(maxLineWidth)
-            , m_LAlign(lineAlign)
+            , m_lineAlign(lineAlign)
             , m_canThrough(canThrough)
             , m_wordSpace(wordSpace)
             , m_lineSpace(lineSpace)
@@ -443,7 +443,7 @@ class XMLTypeset // means XMLParagraph typeset
         void LineDistributedPadding(int);
 
     public:
-        int LAlign() const;
+        int lineAlign() const;
 
     public:
         int MaxLineWidth() const

@@ -172,8 +172,8 @@ void XMLTypeset::LineJustifyPadding(int nLine)
         throw fflerror("invalid line: %d", nLine);
     }
 
-    if(LAlign() != LALIGN_JUSTIFY){
-        throw fflerror("do line justify-padding while board align is configured as: %d", LAlign());
+    if(lineAlign() != LALIGN_JUSTIFY){
+        throw fflerror("do line justify-padding while board align is configured as: %d", lineAlign());
     }
 
     switch(lineTokenCount(nLine)){
@@ -295,7 +295,7 @@ void XMLTypeset::resetOneLine(int nLine, bool bCREnd)
 
     const auto wordSpace = [this]() -> std::array<int, 2>
     {
-        switch(LAlign()){
+        switch(lineAlign()){
             case LALIGN_LEFT:
             case LALIGN_JUSTIFY:
             case LALIGN_RIGHT:
@@ -313,7 +313,7 @@ void XMLTypeset::resetOneLine(int nLine, bool bCREnd)
                 }
             default:
                 {
-                    throw fflerror("invalid line align: %d", LAlign());
+                    throw fflerror("invalid line align: %d", lineAlign());
                 }
         }
     }();
@@ -323,7 +323,7 @@ void XMLTypeset::resetOneLine(int nLine, bool bCREnd)
         getToken(i, nLine)->Box.State.W2 = (i + 1 == tokenCnt) ? 0 : wordSpace[1];
     }
 
-    switch(LAlign()){
+    switch(lineAlign()){
         case LALIGN_JUSTIFY:
             {
                 if(!bCREnd){
@@ -353,7 +353,7 @@ void XMLTypeset::SetLineTokenStartX(int nLine)
     }
 
     int nLineStartX = 0;
-    switch(LAlign()){
+    switch(lineAlign()){
         case LALIGN_RIGHT:
             {
                 nLineStartX = MaxLineWidth() - LineFullWidth(nLine);
@@ -1193,12 +1193,12 @@ int XMLTypeset::LineMaxHk(int nLine, int k) const
     return nCurrMaxHk;
 }
 
-int XMLTypeset::LAlign() const
+int XMLTypeset::lineAlign() const
 {
     if(MaxLineWidth() == 0){
         return LALIGN_LEFT;
     }
-    return m_LAlign;
+    return m_lineAlign;
 }
 
 std::tuple<int, int> XMLTypeset::locCursor(int xOffPixel, int yOffPixel) const
