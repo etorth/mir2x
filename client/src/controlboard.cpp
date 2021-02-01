@@ -809,7 +809,7 @@ void ControlBoard::drawMiddleDefault() const
     // draw current creature face
     if(auto pTexture = g_progUseDB->Retrieve(m_processRun->GetFocusFaceKey())){
         const auto [texW, texH] = SDLDeviceHelper::getTextureSize(pTexture);
-        g_sdlDevice->drawTexture(pTexture, nW0 - 267, nY0 + 19, 86, 100, 0, 0, texW, texH);
+        g_sdlDevice->drawTexture(pTexture, nW0 - 267, nY0 + 19, 86, 96, 0, 0, texW, texH);
     }
 
     // draw middle part
