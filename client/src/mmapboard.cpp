@@ -159,8 +159,8 @@ void MMapBoard::setLoc()
     const int buttonW = std::max<int>(m_buttonAlpha.w(), m_buttonExtend.w());
     const int buttonH = std::max<int>(m_buttonAlpha.h(), m_buttonExtend.h());
 
-    m_buttonAlpha .moveTo(w() - 2 * buttonW, h() - buttonH);
-    m_buttonExtend.moveTo(w() -     buttonW, h() - buttonH);
+    m_buttonAlpha .moveTo(w() - 2 * buttonW + 1, h() - buttonH);
+    m_buttonExtend.moveTo(w() -     buttonW + 0, h() - buttonH);
 }
 
 void MMapBoard::drawMmapTexture() const
@@ -172,7 +172,7 @@ void MMapBoard::drawMmapTexture() const
 
     const auto [mapID, mapW, mapH] = m_processRun->getMap();
     const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);
-    const auto fnGetMmapPLoc = [mapW, mapH, texW, texH](const std::tuple<int, int> &loc) -> std::tuple<int, int>
+    const auto fnGetMPLoc = [mapW, mapH, texW, texH](const std::tuple<int, int> &loc) -> std::tuple<int, int>
     {
         return
         {
@@ -185,35 +185,35 @@ void MMapBoard::drawMmapTexture() const
         g_sdlDevice->fillRectangle(colorf::BLACK + 255, x(), y(), w(), h());
     }
 
-    const auto [heroMmapPX, heroMmapPY] = fnGetMmapPLoc(m_processRun->getMyHero()->location());
-    const int srcX = std::min<int>(std::max<int>(0, heroMmapPX - w() / 2), texW - w());
-    const int srcY = std::min<int>(std::max<int>(0, heroMmapPY - h() / 2), texH - h());
+    const auto [heroMPX, heroMPY] = fnGetMPLoc(m_processRun->getMyHero()->location());
+    const int srcX = std::min<int>(std::max<int>(0, heroMPX - w() / 2), texW - w());
+    const int srcY = std::min<int>(std::max<int>(0, heroMPY - h() / 2), texH - h());
     {
         SDLDeviceHelper::EnableTextureModColor enableModColor(texPtr, colorf::WHITE + (m_alphaOn ? 200 : 255));
         g_sdlDevice->drawTexture(texPtr, x(), y(), srcX, srcY, w(), h());
     }
 
     for(const auto &p: m_processRun->getCOList()){
-        const auto [coMmapPX, coMmapPY] = fnGetMmapPLoc(p.second->location());
+        const auto [coMPX, coMPY] = fnGetMPLoc(p.second->location());
         const auto [color, r] = [this](uint64_t uid) -> std::tuple<uint32_t, int>
         {
             switch(uidf::getUIDType(uid)){
                 case UID_PLY:
                     {
                         if(uid == m_processRun->getMyHeroUID()){
-                            return {colorf::RED + 255, 2};
+                            return {colorf::RGBA(255, 0, 255, 255), 2};
                         }
                         else{
-                            return {colorf::RED + 255, 1};
+                            return {colorf::RGBA(200, 0, 200, 255), 2};
                         }
                     }
                 case UID_NPC:
                     {
-                        return {colorf::YELLOW + 255, 1};
+                        return {colorf::BLUE+ 255, 2};
                     }
                 case UID_MON:
                     {
-                        return {colorf::BLUE + 255, 1};
+                        return {colorf::RED + 255, 1};
                     }
                 default:
                     {
@@ -223,7 +223,7 @@ void MMapBoard::drawMmapTexture() const
         }(p.first);
 
         if(colorf::A(color)){
-            g_sdlDevice->fillRectangle(color, x() + (coMmapPX - srcX) - r, y() + (coMmapPY - srcY) - r, 2 * r + 1, 2 * r + 1);
+            g_sdlDevice->fillRectangle(color, x() + (coMPX - srcX) - r, y() + (coMPY - srcY) - r, 2 * r + 1, 2 * r + 1);
         }
     }
 }
