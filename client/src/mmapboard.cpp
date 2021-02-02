@@ -242,7 +242,7 @@ int MMapBoard::getFrameSize() const
 {
     const auto [texW, texH] = SDLDeviceHelper::getTextureSize(getMmapTexture());
     if(m_extended){
-        return std::min<int>({texW, texH, 256});
+        return std::min<int>({texW, texH, 300}); // setup window size here
     }else{
         return std::min<int>({texW, texH, 128});
     }
