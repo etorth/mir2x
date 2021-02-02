@@ -59,7 +59,7 @@ $ git clone https://github.com/etorth/mir2x.git
 $ cd mir2x
 $ mkdir b
 $ cd b
-$ cmake .. -DCMAKE_INSTALL_PREFIX=${PWD}/install
+$ cmake .. -DCMAKE_INSTALL_PREFIX=install
 $ make
 $ make install
 ```
