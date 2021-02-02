@@ -34,7 +34,7 @@
 #include "dbcomrecord.hpp"
 #include "clientluamodule.hpp"
 #include "clientpathfinder.hpp"
-#include "debugboard.hpp"
+#include "notifyboard.hpp"
 #include "npcchatboard.hpp"
 #include "fflerror.hpp"
 #include "totype.hpp"

@@ -24,7 +24,7 @@
 #include "fontexdb.hpp"
 #include "mapbindb.hpp"
 #include "emoticondb.hpp"
-#include "debugboard.hpp"
+#include "notifyboard.hpp"
 #include "pngtexoffdb.hpp"
 #include "clientargparser.hpp"
 

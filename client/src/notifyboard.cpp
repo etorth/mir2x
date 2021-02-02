@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename: debugboard.cpp
+ *       Filename: notifyboard.cpp
  *        Created: 03/22/2020 16:45:16
  *    Description:
  *
@@ -21,7 +21,7 @@
 #include "xmltypeset.hpp"
 #include "mathf.hpp"
 #include "colorf.hpp"
-#include "debugboard.hpp"
+#include "notifyboard.hpp"
 
 void NotifyBoard::addLog(const char8_t * format, ...)
 {
