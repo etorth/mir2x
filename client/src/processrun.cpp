@@ -406,16 +406,11 @@ void ProcessRun::draw()
         const int w = std::max<int>(g_notifyBoard->pw() + 10, 160);
         const int h = g_notifyBoard->h();
         const int x = 0;
-        const int y = std::get<1>(g_sdlDevice->getRendererSize()) - h - 133;
+        const int y = g_sdlDevice->getRendererHeight() - h - 133;
 
-        {
-            SDLDeviceHelper::EnableRenderColor enableColor(colorf::GREEN + 200);
-            SDLDeviceHelper::EnableRenderBlendMode enableBlend(SDL_BLENDMODE_BLEND);
-            g_sdlDevice->fillRectangle(x, y, w, h);
-        }
-
-        g_notifyBoard->drawEx(x, y, 0, 0, w, h);
-        g_sdlDevice->drawRectangle(colorf::BLUE + 100, x, y, w, h);
+        g_sdlDevice->fillRectangle(colorf::GREEN + 180, x, y, w, h);
+        g_sdlDevice->drawRectangle(colorf::BLUE  + 255, x, y, w, h);
+        g_notifyBoard->drawAt(DIR_UPLEFT, x, y);
     }
 
     if(g_clientArgParser->drawMouseLocation){
