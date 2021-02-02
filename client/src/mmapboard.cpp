@@ -48,7 +48,7 @@ MMapBoard::MMapBoard(ProcessRun *runPtr, Widget *parent, bool autoDelete)
           {
               0X09000002,
               0X09000002,
-              0X09000003,
+              0X09000002,
           },
 
           nullptr,
@@ -56,6 +56,12 @@ MMapBoard::MMapBoard(ProcessRun *runPtr, Widget *parent, bool autoDelete)
           [this]()
           {
               m_alphaOn = !m_alphaOn;
+              if(m_alphaOn){
+                  m_buttonAlpha.setTexID({0X09000003, 0X09000003, 0X09000003});
+              }
+              else{
+                  m_buttonAlpha.setTexID({0X09000002, 0X09000002, 0X09000002});
+              }
           },
 
           0,
@@ -75,7 +81,7 @@ MMapBoard::MMapBoard(ProcessRun *runPtr, Widget *parent, bool autoDelete)
           {
               0X09000004,
               0X09000004,
-              0X09000005,
+              0X09000004,
           },
 
           nullptr,
@@ -84,6 +90,13 @@ MMapBoard::MMapBoard(ProcessRun *runPtr, Widget *parent, bool autoDelete)
           {
               if(getMmapTexture()){
                   flipExtended();
+              }
+
+              if(m_extended){
+                  m_buttonExtend.setTexID({0X09000005, 0X09000005, 0X09000005});
+              }
+              else{
+                  m_buttonExtend.setTexID({0X09000004, 0X09000004, 0X09000004});
               }
           },
 
