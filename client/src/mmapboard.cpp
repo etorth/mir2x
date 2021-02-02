@@ -181,15 +181,18 @@ void MMapBoard::drawMmapTexture() const
         };
     };
 
+    if(!m_alphaOn){
+        g_sdlDevice->fillRectangle(colorf::BLACK + 255, x(), y(), w(), h());
+    }
+
     const auto [heroMmapPX, heroMmapPY] = fnGetMmapPLoc(m_processRun->getMyHero()->location());
-    const int srcX = std::min<int>(std::max<int>(0, heroMmapPX - w() / 2), texW - w() / 2);
-    const int srcY = std::min<int>(std::max<int>(0, heroMmapPY - h() / 2), texH - h() / 2);
+    const int srcX = std::min<int>(std::max<int>(0, heroMmapPX - w() / 2), texW - w());
+    const int srcY = std::min<int>(std::max<int>(0, heroMmapPY - h() / 2), texH - h());
     {
         SDLDeviceHelper::EnableTextureModColor enableModColor(texPtr, colorf::WHITE + (m_alphaOn ? 200 : 255));
         g_sdlDevice->drawTexture(texPtr, x(), y(), srcX, srcY, w(), h());
     }
 
-    g_sdlDevice->fillRectangle(colorf::RED + 255, x() + (heroMmapPX - srcX) - 2, y() + (heroMmapPY - srcY) - 2, 5, 5);
     for(const auto &p: m_processRun->getCOList()){
         const auto [coMmapPX, coMmapPY] = fnGetMmapPLoc(p.second->location());
         const auto [color, r] = [this](uint64_t uid) -> std::tuple<uint32_t, int>
@@ -218,7 +221,10 @@ void MMapBoard::drawMmapTexture() const
                     }
             }
         }(p.first);
-        g_sdlDevice->fillRectangle(color, x() + (coMmapPX - srcX) - r, y() + (coMmapPY - srcY) - r, 2 * r + 1, 2 * r + 1);
+
+        if(colorf::A(color)){
+            g_sdlDevice->fillRectangle(color, x() + (coMmapPX - srcX) - r, y() + (coMmapPY - srcY) - r, 2 * r + 1, 2 * r + 1);
+        }
     }
 }
 
