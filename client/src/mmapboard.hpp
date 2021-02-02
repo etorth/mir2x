@@ -24,17 +24,8 @@ class ProcessRun;
 class MMapBoard: public Widget
 {
     private:
-        enum MMapState: int
-        {
-            MMAP_OFF = 0,
-            MMAP_ON,
-            MMAP_EXTENDED,
-            MMAP_FULLSCREEN,
-        };
-        MMapState m_state = MMAP_ON;
-
-    private:
-        bool m_alphaOn = false;
+        bool m_alphaOn  = false;
+        bool m_extended = false;
 
     private:
         ProcessRun *m_processRun;
@@ -53,38 +44,15 @@ class MMapBoard: public Widget
         bool processEvent(const SDL_Event &, bool) override;
 
     public:
-        void next()
-        {
-            switch(m_state){
-                case MMAP_OFF:
-                    {
-                        setState(MMAP_ON);
-                        return;
-                    }
-                case MMAP_ON:
-                case MMAP_EXTENDED:
-                    {
-                        setState(MMAP_FULLSCREEN);
-                        return;
-                    }
-                case MMAP_FULLSCREEN:
-                    {
-                        setState(MMAP_OFF);
-                        return;
-                    }
-                default:
-                    {
-                        throw bad_reach();
-                    }
-            }
-        }
-
-    public:
         void setLoc();
+        void flipExtended();
+        void flipMmapShow();
+        SDL_Texture *getMmapTexture() const;
 
     private:
-        void setState(MMapState);
-
-    private:
+        void drawFrame() const;
         void drawMmapTexture() const;
+
+    private:
+        int getFrameSize() const;
 };

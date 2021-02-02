@@ -409,4 +409,9 @@ class ProcessRun: public Process
         {
             return {m_mapID, m_mir2xMapData.W(), m_mir2xMapData.H()};
         }
+
+        const auto &getCOList() const
+        {
+            return m_coList;
+        }
 };

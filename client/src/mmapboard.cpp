@@ -25,8 +25,6 @@
 #include "processrun.hpp"
 #include "dbcomrecord.hpp"
 
-extern Client *g_client;
-extern PNGTexDB *g_itemDB;
 extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 
@@ -84,21 +82,8 @@ MMapBoard::MMapBoard(ProcessRun *runPtr, Widget *parent, bool autoDelete)
           nullptr,
           [this]()
           {
-              switch(m_state){
-                  case MMAP_ON:
-                      {
-                          setState(MMAP_EXTENDED);
-                          return;
-                      }
-                  case MMAP_EXTENDED:
-                      {
-                          setState(MMAP_ON);
-                          return;
-                      }
-                  default:
-                      {
-                          throw bad_reach();
-                      }
+              if(getMmapTexture()){
+                  flipExtended();
               }
           },
 
@@ -112,47 +97,24 @@ MMapBoard::MMapBoard(ProcessRun *runPtr, Widget *parent, bool autoDelete)
           this,
       }
 {
-    setLoc();
+    show(false);
 }
 
 void MMapBoard::drawEx(int, int, int, int, int, int) const
 {
-   switch(m_state){
-        case MMAP_OFF:
-            {
-                return;
-            }
-        case MMAP_ON:
-        case MMAP_EXTENDED:
-            {
-                if(auto texPtr = g_progUseDB->Retrieve(m_state == MMAP_ON ? 0X09000000 : 0X09000001); texPtr){
-                    const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);
-                    if(!m_alphaOn){
-                        g_sdlDevice->fillRectangle(colorf::BLACK + 255, x(), y(), texW, texH);
-                    }
+    drawMmapTexture();
+    drawFrame();
 
-                    drawMmapTexture();
-                    g_sdlDevice->drawTexture(texPtr, x(), y());
-                }
-
-                m_buttonAlpha.draw();
-                m_buttonExtend.draw();
-                return;
-            }
-        case MMAP_FULLSCREEN:
-            {
-                drawMmapTexture();
-                return;
-            }
-        default:
-            {
-                throw bad_reach();
-            }
-    }
+    m_buttonAlpha.draw();
+    m_buttonExtend.draw();
 }
 
 bool MMapBoard::processEvent(const SDL_Event &event, bool valid)
 {
+    if(!show()){
+        return false;
+    }
+
     if(!valid){
         m_buttonAlpha .setOff();
         m_buttonExtend.setOff();
@@ -165,137 +127,125 @@ bool MMapBoard::processEvent(const SDL_Event &event, bool valid)
     return took;
 }
 
-void MMapBoard::setState(MMapState state)
+void MMapBoard::flipExtended()
 {
-    m_state = state;
-    switch(m_state){
-        case MMAP_ON:
-            {
-                setLoc();
-                m_buttonAlpha .setOff();
-                m_buttonExtend.setOff();
-                return;
-            }
-        case MMAP_EXTENDED:
-            {
-                setLoc();
-                m_buttonAlpha .setOff();
-                m_buttonExtend.setOff();
-                return;
-            }
-        default:
-            {
-                return;
-            }
-    }
+    m_extended = !m_extended;
+    setLoc();
+    m_buttonAlpha .setOff();
+    m_buttonExtend.setOff();
 }
 
 void MMapBoard::setLoc()
 {
-    switch(m_state){
-        case MMAP_ON:
-            {
-                const int rdrW = g_sdlDevice->getRendererWidth();
-                const int texW = SDLDeviceHelper::getTextureWidth(g_progUseDB->Retrieve(0X09000000));
-                moveTo(rdrW - texW, 0);
+    const int size = getFrameSize();
+    m_w = size;
+    m_h = size;
 
-                m_buttonAlpha .moveTo( 90, 109);
-                m_buttonExtend.moveTo(109, 109);
-                return;
-            }
-        case MMAP_EXTENDED:
-            {
-                const int rdrW = g_sdlDevice->getRendererWidth();
-                const int texW = SDLDeviceHelper::getTextureWidth(g_progUseDB->Retrieve(0X09000001));
-                moveTo(rdrW - texW, 0);
+    moveTo(g_sdlDevice->getRendererWidth() - w(), 0);
 
-                m_buttonAlpha .moveTo(218, 237);
-                m_buttonExtend.moveTo(237, 237);
-                return;
-            }
-        default:
-            {
-                return;
-            }
-    }
+    const int buttonW = std::max<int>(m_buttonAlpha.w(), m_buttonExtend.w());
+    const int buttonH = std::max<int>(m_buttonAlpha.h(), m_buttonExtend.h());
+
+    m_buttonAlpha .moveTo(w() - 2 * buttonW, h() - buttonH);
+    m_buttonExtend.moveTo(w() -     buttonW, h() - buttonH);
 }
 
 void MMapBoard::drawMmapTexture() const
 {
-    const auto [mapID, mapW, mapH] = m_processRun->getMap();
-    const auto [xc, yc] = m_processRun->getMyHero()->location();
-
-    auto [dstX, dstY, dstW, dstH] = [this]() -> std::array<int, 4>
-    {
-        switch(m_state){
-            case MMAP_ON:
-            case MMAP_EXTENDED:
-                {
-                    if(auto texPtr = g_progUseDB->Retrieve(m_state == MMAP_ON ? 0X09000000 : 0X09000001); texPtr){
-                        const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);
-                        return {x(), y(), texW, texH};
-                    }
-                    throw fflerror("invalid mmap texture");
-                }
-            case MMAP_FULLSCREEN:
-                {
-                    const auto [rdrW, rdrH] = g_sdlDevice->getRendererSize();
-                    return {0, 0, rdrW, rdrH};
-                }
-            default:
-                {
-                    throw bad_reach();
-                }
-        }
-    }();
-
-    SDL_Texture *texPtr = g_progUseDB->Retrieve(DBCOM_MAPRECORD(mapID).mmapID);
+    auto texPtr = getMmapTexture();
     if(!texPtr){
         return;
     }
 
-    if(m_state == MMAP_FULLSCREEN){
-        g_sdlDevice->fillRectangle(colorf::BLACK + 255, dstX, dstY, dstW, dstH);
-    }
-
+    const auto [mapID, mapW, mapH] = m_processRun->getMap();
     const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);
-    const int pixelCenterX = (int)(std::lround((xc * 1.0 / mapW) * texW));
-    const int pixelCenterY = (int)(std::lround((yc * 1.0 / mapH) * texH));
-
-    int srcX = pixelCenterX - dstW / 2;
-    int srcY = pixelCenterY - dstH / 2;
-    int srcW = dstW;
-    int srcH = dstH;
-
-    if(srcX < 0){
-        dstX -= srcX;
-        srcW += srcX;
-        srcX  = 0;
-    }
-
-    if(srcY < 0){
-        dstY -= srcY;
-        srcH += srcY;
-        srcY  = 0;
-    }
-
-    srcW = std::min<int>(srcW, texW - srcX);
-    srcH = std::min<int>(srcH, texH - srcY);
+    const auto fnGetMmapPLoc = [mapW, mapH, texW, texH](const std::tuple<int, int> &loc) -> std::tuple<int, int>
     {
-        SDLDeviceHelper::EnableTextureModColor enableModColor(texPtr, [this]() -> uint32_t
+        return
         {
-            switch(m_state){
-                case MMAP_ON:
-                case MMAP_EXTENDED:
+            (int)(std::lround((std::get<0>(loc) * 1.0 / mapW) * texW)),
+            (int)(std::lround((std::get<1>(loc) * 1.0 / mapH) * texH)),
+        };
+    };
+
+    const auto [heroMmapPX, heroMmapPY] = fnGetMmapPLoc(m_processRun->getMyHero()->location());
+    const int srcX = std::min<int>(std::max<int>(0, heroMmapPX - w() / 2), texW - w() / 2);
+    const int srcY = std::min<int>(std::max<int>(0, heroMmapPY - h() / 2), texH - h() / 2);
+    {
+        SDLDeviceHelper::EnableTextureModColor enableModColor(texPtr, colorf::WHITE + (m_alphaOn ? 200 : 255));
+        g_sdlDevice->drawTexture(texPtr, x(), y(), srcX, srcY, w(), h());
+    }
+
+    g_sdlDevice->fillRectangle(colorf::RED + 255, x() + (heroMmapPX - srcX) - 2, y() + (heroMmapPY - srcY) - 2, 5, 5);
+    for(const auto &p: m_processRun->getCOList()){
+        const auto [coMmapPX, coMmapPY] = fnGetMmapPLoc(p.second->location());
+        const auto [color, r] = [this](uint64_t uid) -> std::tuple<uint32_t, int>
+        {
+            switch(uidf::getUIDType(uid)){
+                case UID_PLY:
                     {
-                        return colorf::WHITE + (m_alphaOn ? 128 : 255);
+                        if(uid == m_processRun->getMyHeroUID()){
+                            return {colorf::RED + 255, 2};
+                        }
+                        else{
+                            return {colorf::RED + 255, 1};
+                        }
+                    }
+                case UID_NPC:
+                    {
+                        return {colorf::YELLOW + 255, 1};
+                    }
+                case UID_MON:
+                    {
+                        return {colorf::BLUE + 255, 1};
                     }
                 default:
                     {
-                        return colorf::WHITE + 255;
+                        return {0, 0};
                     }
             }
-        }());
-        g_sdlDevice->drawTexture(texPtr, dstX, dstY, srcX, srcY, srcW, srcH);
+        }(p.first);
+        g_sdlDevice->fillRectangle(color, x() + (coMmapPX - srcX) - r, y() + (coMmapPY - srcY) - r, 2 * r + 1, 2 * r + 1);
     }
+}
+
+void MMapBoard::drawFrame() const
+{
+    g_sdlDevice->drawRectangle(colorf::RGBA(60, 60, 60, 255), x(), y(), w(), h());
+    if(auto texPtr = g_progUseDB->Retrieve(0X09000006); texPtr){
+        g_sdlDevice->drawTexture(texPtr, x(), y());
+    }
+
+    if(auto texPtr = g_progUseDB->Retrieve(0X09000007); texPtr){
+        g_sdlDevice->drawTexture(texPtr, x() + w() - SDLDeviceHelper::getTextureWidth(texPtr), y());
+    }
+
+    if(auto texPtr = g_progUseDB->Retrieve(0X09000008); texPtr){
+        g_sdlDevice->drawTexture(texPtr, x(), y() + h() - SDLDeviceHelper::getTextureHeight(texPtr));
+    }
+}
+
+int MMapBoard::getFrameSize() const
+{
+    const auto [texW, texH] = SDLDeviceHelper::getTextureSize(getMmapTexture());
+    if(m_extended){
+        return std::min<int>({texW, texH, 256});
+    }else{
+        return std::min<int>({texW, texH, 128});
+    }
+}
+
+SDL_Texture *MMapBoard::getMmapTexture() const
+{
+    [[maybe_unused]] const auto [mapID, mapW, mapH] = m_processRun->getMap();
+    if(const auto mmapID = DBCOM_MAPRECORD(mapID).mmapID){
+        return g_progUseDB->Retrieve(mmapID);
+    }
+    return nullptr;
+}
+
+void MMapBoard::flipMmapShow()
+{
+    flipShow(this);
+    setLoc();
 }

@@ -198,7 +198,14 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           nullptr,
           [this]()
           {
-              dynamic_cast<MMapBoard *>(m_processRun->getWidget("MMapBoard"))->next();
+              if(auto p = dynamic_cast<MMapBoard *>(m_processRun->getWidget("MMapBoard"))){
+                  if(p->getMmapTexture()){
+                      p->flipMmapShow();
+                  }
+                  else{
+                      addLog(CBLOG_ERR, to_cstr(u8"没有可用的地图"));
+                  }
+              }
           },
 
           true,
