@@ -57,6 +57,33 @@ void InvPack::add(uint32_t itemID, size_t count)
     m_packBinList.push_back(addedBin);
 }
 
+void InvPack::add(uint32_t itemID, size_t count, int x, int y)
+{
+    if(!(itemID && count)){
+        throw fflerror("invalid arguments: itemID = %llu, count = %zu", to_llu(itemID), count);
+    }
+
+    auto itemBin = makePackBin(itemID, count);
+    if(!(x >= 0 && x + itemBin.w <= (int)(w()) && y >= 0)){
+        add(itemID, count);
+        return;
+    }
+
+    Pack2D pack2D(w());
+    for(auto &bin: m_packBinList){
+        pack2D.put(bin.x, bin.y, bin.w, bin.h);
+    }
+
+    if(pack2D.occupied(x, y, itemBin.w, itemBin.h, true)){
+        add(itemID, count);
+        return;
+    }
+
+    itemBin.x = x;
+    itemBin.y = y;
+    m_packBinList.push_back(itemBin);
+}
+
 size_t InvPack::remove(uint32_t itemID, size_t count, int x, int y)
 {
     for(auto &bin: m_packBinList){

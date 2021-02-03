@@ -238,14 +238,18 @@ bool InventoryBoard::processEvent(const SDL_Event &event, bool valid)
                         {
                             if(in(event.button.x, event.button.y)){
                                 if(const int selectedPackIndex = getPackBinIndex(event.button.x, event.button.y); selectedPackIndex >= 0){
-                                    if(m_grabbedPackBin){
-                                        m_processRun->getMyHero()->getInvPack().add(m_grabbedPackBin.id, m_grabbedPackBin.count);
-                                    }
+                                    const auto lastGrabbedBin = m_grabbedPackBin;
                                     m_grabbedPackBin = m_processRun->getMyHero()->getInvPack().getPackBinList().at(selectedPackIndex);
-                                    m_processRun->getMyHero()->getInvPack().remove(m_grabbedPackBin.id, m_grabbedPackBin.count, m_grabbedPackBin.x, m_grabbedPackBin.y);
+                                    m_processRun->getMyHero()->getInvPack().removeBin(m_grabbedPackBin);
+                                    if(lastGrabbedBin){
+                                        m_processRun->getMyHero()->getInvPack().addBin(lastGrabbedBin);
+                                    }
                                 }
-                                else{
-                                    m_processRun->getMyHero()->getInvPack().add(m_grabbedPackBin.id, m_grabbedPackBin.count);
+                                else if(m_grabbedPackBin){
+                                    const auto [gridX, gridY] = getInvGrid(event.button.x, event.button.y);
+                                    m_grabbedPackBin.x = gridX - m_grabbedPackBin.w / 2; // can give an invalid (x, y)
+                                    m_grabbedPackBin.y = gridY - m_grabbedPackBin.h / 2;
+                                    m_processRun->getMyHero()->getInvPack().addBin(m_grabbedPackBin);
                                     m_grabbedPackBin = {};
                                 }
                                 return focusConsume(this, true);
@@ -257,7 +261,7 @@ bool InventoryBoard::processEvent(const SDL_Event &event, bool valid)
                             if(in(event.button.x, event.button.y)){
                                 if(const int selectedPackIndex = getPackBinIndex(event.button.x, event.button.y); selectedPackIndex >= 0){
                                     const auto &packBin = m_processRun->getMyHero()->getInvPack().getPackBinList().at(selectedPackIndex);
-                                    m_processRun->getMyHero()->getInvPack().remove(packBin.id, packBin.count, packBin.x, packBin.y);
+                                    m_processRun->getMyHero()->getInvPack().removeBin(packBin);
                                 }
                                 return focusConsume(this, true);
                             }

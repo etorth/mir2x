@@ -56,7 +56,22 @@ class InvPack
 
     public:
         void add(uint32_t, size_t);
+        void add(uint32_t, size_t, int, int);
+
+    public:
+        void addBin(const PackBin &bin)
+        {
+            add(bin.id, bin.count, bin.x, bin.y);
+        }
+
+    public:
         size_t remove(uint32_t, size_t, int, int);
+
+    public:
+        size_t removeBin(const PackBin &bin)
+        {
+            return remove(bin.id, bin.count, bin.x, bin.y);
+        }
 
     private:
         static PackBin makePackBin(uint32_t, size_t);
