@@ -252,6 +252,17 @@ bool InventoryBoard::processEvent(const SDL_Event &event, bool valid)
                             }
                             return focusConsume(this, false);
                         }
+                    case SDL_BUTTON_RIGHT:
+                        {
+                            if(in(event.button.x, event.button.y)){
+                                if(const int selectedPackIndex = getPackBinIndex(event.button.x, event.button.y); selectedPackIndex >= 0){
+                                    const auto &packBin = m_processRun->getMyHero()->getInvPack().getPackBinList().at(selectedPackIndex);
+                                    m_processRun->getMyHero()->getInvPack().remove(packBin.id, packBin.count, packBin.x, packBin.y);
+                                }
+                                return focusConsume(this, true);
+                            }
+                            return focusConsume(this, false);
+                        }
                     default:
                         {
                             return focusConsume(this, false);
