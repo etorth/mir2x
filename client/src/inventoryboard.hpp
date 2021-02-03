@@ -79,4 +79,7 @@ class InventoryBoard: public Widget
 
     private:
         void drawItemHoverText(const PackBin &) const;
+
+    public:
+        uint32_t getGrabbedItemID() const;
 };

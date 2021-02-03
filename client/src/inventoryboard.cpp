@@ -404,3 +404,11 @@ void InventoryBoard::drawItemHoverText(const PackBin &bin) const
     g_sdlDevice->fillRectangle(colorf::RGBA(0, 0, 0, 200), mousePX, mousePY, std::max<int>(hoverTextBoard.w(), 200) + 20, hoverTextBoard.h() + 20);
     hoverTextBoard.drawAt(DIR_UPLEFT, mousePX + 10, mousePY + 10);
 }
+
+uint32_t InventoryBoard::getGrabbedItemID() const
+{
+    if(m_selectedPackBinIndex >= 0){
+        return m_processRun->getMyHero()->getInvPack().getPackBinList().at(m_selectedPackBinIndex).id;
+    }
+    return 0;
+}

@@ -399,6 +399,15 @@ void ProcessRun::draw()
     }
 
     m_GUIManager.draw();
+    if(const auto selectedItemID = dynamic_cast<InventoryBoard *>(m_GUIManager.getWidget("InventoryBoard"))->getGrabbedItemID()){
+        if(const auto &ir = DBCOM_ITEMRECORD(selectedItemID)){
+            if(auto texPtr = g_itemDB->Retrieve(ir.pkgGfxID | 0X01000000)){
+                const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);
+                const auto [ptrX, ptrY] = SDLDeviceHelper::getMousePLoc();
+                g_sdlDevice->drawTexture(texPtr, ptrX - texW / 2, ptrY - texH / 2);
+            }
+        }
+    }
 
     // draw NotifyBoard
     {
