@@ -399,7 +399,7 @@ void ProcessRun::draw()
     }
 
     m_GUIManager.draw();
-    if(const auto selectedItemID = dynamic_cast<InventoryBoard *>(m_GUIManager.getWidget("InventoryBoard"))->getGrabbedItemID()){
+    if(const auto selectedItemID = dynamic_cast<InventoryBoard *>(m_GUIManager.getWidget("InventoryBoard"))->getGrabbedPackBin().id){
         if(const auto &ir = DBCOM_ITEMRECORD(selectedItemID)){
             if(auto texPtr = g_itemDB->Retrieve(ir.pkgGfxID | 0X01000000)){
                 const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);

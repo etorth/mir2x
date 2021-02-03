@@ -92,7 +92,7 @@ InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget
     std::tie(m_w, m_h) = SDLDeviceHelper::getTextureSize(texPtr);
 }
 
-void InventoryBoard::drawItem(int dstX, int dstY, size_t startRow, bool selected, bool cursorOn, const PackBin &bin) const
+void InventoryBoard::drawItem(int dstX, int dstY, size_t startRow, bool cursorOn, const PackBin &bin) const
 {
     if(true
             && bin
@@ -134,9 +134,8 @@ void InventoryBoard::drawItem(int dstX, int dstY, size_t startRow, bool selected
             int binGridH = bin.h;
 
             if(mathf::rectangleOverlapRegion<int>(0, startRow, 6, 8, &binGridX, &binGridY, &binGridW, &binGridH)){
-                if(selected || cursorOn){
-                    const uint32_t gridColor = selected ? (colorf::BLUE + 96) : (colorf::WHITE + 96);
-                    g_sdlDevice->fillRectangle(gridColor,
+                if(cursorOn){
+                    g_sdlDevice->fillRectangle(colorf::WHITE + 96,
                             startX + binGridX * SYS_INVGRIDPW,
                             startY + binGridY * SYS_INVGRIDPH, // startY is for (0, 0), not for (0, startRow)
                             binGridW * SYS_INVGRIDPW,
@@ -184,7 +183,7 @@ void InventoryBoard::drawEx(int dstX, int dstY, int, int, int, int) const
     const auto &packBinListCRef = myHeroPtr->getInvPack().getPackBinList();
     const auto cursorOnIndex = getPackBinIndex(mousePX, mousePY);
     for(int i = 0; i < (int)(packBinListCRef.size()); ++i){
-        drawItem(dstX, dstY, startRow, (i == m_selectedPackBinIndex), (i == cursorOnIndex), packBinListCRef.at(i));
+        drawItem(dstX, dstY, startRow, (i == cursorOnIndex), packBinListCRef.at(i));
     }
 
     if(cursorOnIndex >= 0){
@@ -239,10 +238,15 @@ bool InventoryBoard::processEvent(const SDL_Event &event, bool valid)
                         {
                             if(in(event.button.x, event.button.y)){
                                 if(const int selectedPackIndex = getPackBinIndex(event.button.x, event.button.y); selectedPackIndex >= 0){
-                                    m_selectedPackBinIndex = selectedPackIndex;
+                                    if(m_grabbedPackBin){
+                                        m_processRun->getMyHero()->getInvPack().add(m_grabbedPackBin.id, m_grabbedPackBin.count);
+                                    }
+                                    m_grabbedPackBin = m_processRun->getMyHero()->getInvPack().getPackBinList().at(selectedPackIndex);
+                                    m_processRun->getMyHero()->getInvPack().remove(m_grabbedPackBin.id, m_grabbedPackBin.count, m_grabbedPackBin.x, m_grabbedPackBin.y);
                                 }
                                 else{
-                                    m_selectedPackBinIndex = -1;
+                                    m_processRun->getMyHero()->getInvPack().add(m_grabbedPackBin.id, m_grabbedPackBin.count);
+                                    m_grabbedPackBin = {};
                                 }
                                 return focusConsume(this, true);
                             }
@@ -403,12 +407,4 @@ void InventoryBoard::drawItemHoverText(const PackBin &bin) const
     const auto [mousePX, mousePY] = SDLDeviceHelper::getMousePLoc();
     g_sdlDevice->fillRectangle(colorf::RGBA(0, 0, 0, 200), mousePX, mousePY, std::max<int>(hoverTextBoard.w(), 200) + 20, hoverTextBoard.h() + 20);
     hoverTextBoard.drawAt(DIR_UPLEFT, mousePX + 10, mousePY + 10);
-}
-
-uint32_t InventoryBoard::getGrabbedItemID() const
-{
-    if(m_selectedPackBinIndex >= 0){
-        return m_processRun->getMyHero()->getInvPack().getPackBinList().at(m_selectedPackBinIndex).id;
-    }
-    return 0;
 }

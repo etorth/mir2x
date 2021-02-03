@@ -45,7 +45,7 @@ class InventoryBoard: public Widget
         TritexButton m_closeButton;
 
     private:
-        int m_selectedPackBinIndex = -1;
+        PackBin m_grabbedPackBin;
 
     private:
         ProcessRun *m_processRun;
@@ -55,7 +55,7 @@ class InventoryBoard: public Widget
 
     private:
         void drawGold() const;
-        void drawItem(int, int, size_t, bool, bool, const PackBin &) const;
+        void drawItem(int, int, size_t, bool, const PackBin &) const;
 
     public:
         void update(double) override;
@@ -81,5 +81,8 @@ class InventoryBoard: public Widget
         void drawItemHoverText(const PackBin &) const;
 
     public:
-        uint32_t getGrabbedItemID() const;
+        const auto &getGrabbedPackBin() const
+        {
+            return m_grabbedPackBin;
+        }
 };
