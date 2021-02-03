@@ -21,7 +21,7 @@
 #include "sdldevice.hpp"
 #include "processrun.hpp"
 #include "purchaseboard.hpp"
-#include "purchasecountboard.hpp"
+#include "inputstringboard.hpp"
 
 extern Client *g_client;
 extern PNGTexDB *g_itemDB;
@@ -225,11 +225,11 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
           nullptr,
           [this]()
           {
-              if(auto purchaseCountBoardPtr = dynamic_cast<PurchaseCountBoard *>(m_processRun->getWidget("PurchaseCountBoard"))){
-                  purchaseCountBoardPtr->clear();
-                  purchaseCountBoardPtr->show (true);
-                  purchaseCountBoardPtr->focus(true);
-              }
+              const auto headerString = str_printf(u8"<par>请输入你要购买<t color=\"0xffff00ff\">%s</t>的数量</par>", to_cstr(DBCOM_ITEMRECORD(selectedItemID()).name));
+              dynamic_cast<InputStringBoard *>(m_processRun->getWidget("InputStringBoard"))->waitInput(headerString, [this](std::u8string inputString)
+              {
+                  m_processRun->addCBLog(CBLOG_SYS, u8"buy %s", to_cstr(inputString));
+              });
           },
 
           0,
@@ -509,7 +509,7 @@ bool PurchaseBoard::processEvent(const SDL_Event &event, bool valid)
                 }
 
                 if(m_selectExt2Button.processEvent(event, valid)){
-                    if(m_processRun->getWidget("PurchaseCountBoard")->focus()){
+                    if(m_processRun->getWidget("InputStringBoard")->focus()){
                         focus(false);
                     }
                     return false;

@@ -26,7 +26,7 @@
 #include "inventoryboard.hpp"
 #include "quickaccessboard.hpp"
 #include "playerstatusboard.hpp"
-#include "purchasecountboard.hpp"
+#include "inputstringboard.hpp"
 
 class ProcessRun;
 class GUIManager: public WidgetGroup
@@ -45,7 +45,7 @@ class GUIManager: public WidgetGroup
         InventoryBoard m_inventoryBoard;
         QuickAccessBoard m_quickAccessBoard;
         PlayerStatusBoard m_playerStatusBoard;
-        PurchaseCountBoard m_purchaseCountBoard;
+        InputStringBoard m_inputStringBoard;
 
     public:
         GUIManager(ProcessRun *);

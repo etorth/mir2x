@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename: purchasecountboard.cpp
+ *       Filename: inputstringboard.cpp
  *        Created: 10/08/2017 19:22:30
  *    Description:
  *
@@ -20,12 +20,12 @@
 #include "sdldevice.hpp"
 #include "processrun.hpp"
 #include "controlboard.hpp"
-#include "purchasecountboard.hpp"
+#include "inputstringboard.hpp"
 
 extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 
-PurchaseCountBoard::PurchaseCountBoard(int x, int y, ProcessRun *runPtr, Widget *widgetPtr, bool autoDelete)
+InputStringBoard::InputStringBoard(int x, int y, ProcessRun *runPtr, Widget *widgetPtr, bool autoDelete)
     : Widget
       {
           x,
@@ -123,12 +123,12 @@ PurchaseCountBoard::PurchaseCountBoard(int x, int y, ProcessRun *runPtr, Widget 
     }
 }
 
-void PurchaseCountBoard::update(double ms)
+void InputStringBoard::update(double ms)
 {
     m_input.update(ms);
 }
 
-void PurchaseCountBoard::drawEx(int dstX, int dstY, int, int, int, int) const
+void InputStringBoard::drawEx(int dstX, int dstY, int, int, int, int) const
 {
     if(auto texPtr = g_progUseDB->Retrieve(0X07000000)){
         g_sdlDevice->drawTexture(texPtr, dstX, dstY);
@@ -138,32 +138,28 @@ void PurchaseCountBoard::drawEx(int dstX, int dstY, int, int, int, int) const
     m_yesButton.draw();
     m_nopButton.draw();
 
-    const uint32_t selectedItemID = dynamic_cast<PurchaseBoard *>(m_processRun->getWidget("PurchaseBoard"))->selectedItemID();
-    if(const auto &ir = DBCOM_ITEMRECORD(selectedItemID)){
-        LabelBoard label
-        {
-            0, // reset when drawing item
-            0,
-            u8"",
+    LabelBoard label
+    {
+        0, // reset when drawing item
+        0,
+        u8"",
 
-            1,
-            12,
-            0,
+        1,
+        12,
+        0,
 
-            colorf::WHITE + 255,
-        };
+        colorf::WHITE + 255,
+    };
 
-        label.loadXML(to_cstr(str_printf(u8"<par>请输入你要购买<name font_color=\"0xffff00ff\">%s</name>的数量</par>", to_cstr(ir.name))));
-        label.moveBy(x() + (w() - label.w()) / 2, y() + 120);
-        label.draw();
-    }
+    label.loadXML(to_cstr(m_parXMLString));
+    label.drawAt(DIR_NONE, x() + w() / 2, y() + 120);
 
     if(m_input.focus()){
         g_sdlDevice->fillRectangle(colorf::WHITE + 32, m_input.x(), m_input.y(), m_input.w(), m_input.h());
     }
 }
 
-bool PurchaseCountBoard::processEvent(const SDL_Event &event, bool valid)
+bool InputStringBoard::processEvent(const SDL_Event &event, bool valid)
 {
     if(!valid){
         return focusConsume(this, false);
@@ -187,7 +183,7 @@ bool PurchaseCountBoard::processEvent(const SDL_Event &event, bool valid)
     return true;
 }
 
-void PurchaseCountBoard::inputLineDone()
+void InputStringBoard::inputLineDone()
 {
     const std::string fullInput = m_input.getRawString();
     const auto inputPos = fullInput.find_first_not_of(" \n\r\t");
@@ -196,8 +192,17 @@ void PurchaseCountBoard::inputLineDone()
     m_input.clear();
     m_input.focus(false);
 
-    if(realInput.empty()){
-        return;
+    if(m_onDone){
+        m_onDone(to_u8cstr(realInput));
     }
-    m_processRun->addCBLog(CBLOG_SYS, u8"buy %s", to_cstr(realInput));
+}
+
+void InputStringBoard::waitInput(std::u8string parXMLString, std::function<void(std::u8string)> onDone)
+{
+    m_parXMLString = std::move(parXMLString);
+    m_onDone = std::move(onDone);
+
+    clear();
+    show(true);
+    focus(true);
 }

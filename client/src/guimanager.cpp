@@ -88,7 +88,7 @@ GUIManager::GUIManager(ProcessRun *proc)
           this,
       }
 
-    , m_purchaseCountBoard
+    , m_inputStringBoard
       {
           g_sdlDevice->getRendererWidth()  / 2 - 179,
           g_sdlDevice->getRendererHeight() / 2 - 134,
@@ -193,8 +193,8 @@ Widget *GUIManager::getWidget(const std::string &widgetName)
         return &m_purchaseBoard;
     }
 
-    if(widgetName == "PurchaseCountBoard"){
-        return &m_purchaseCountBoard;
+    if(widgetName == "InputStringBoard"){
+        return &m_inputStringBoard;
     }
 
     return nullptr;

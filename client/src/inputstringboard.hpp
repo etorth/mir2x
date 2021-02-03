@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename: purchasecountboard.hpp
+ *       Filename: inputstringboard.hpp
  *        Created: 10/08/2017 19:06:52
  *    Description:
  *
@@ -24,7 +24,7 @@
 #include "tritexbutton.hpp"
 
 class ProcessRun;
-class PurchaseCountBoard: public Widget
+class InputStringBoard: public Widget
 {
     private:
         InputLine m_input;
@@ -36,8 +36,12 @@ class PurchaseCountBoard: public Widget
     private:
         ProcessRun *m_processRun;
 
+    private:
+        std::u8string m_parXMLString;
+        std::function<void(std::u8string)> m_onDone;
+
     public:
-        PurchaseCountBoard(int, int, ProcessRun *, Widget * = nullptr, bool = false);
+        InputStringBoard(int, int, ProcessRun *, Widget * = nullptr, bool = false);
 
     public:
         void update(double) override;
@@ -56,4 +60,7 @@ class PurchaseCountBoard: public Widget
         {
             m_input.clear();
         }
+
+    public:
+        void waitInput(std::u8string, std::function<void(std::u8string)>);
 };

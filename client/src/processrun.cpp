@@ -64,7 +64,6 @@ ProcessRun::ProcessRun()
     , m_GUIManager(this)
     , m_mousePixlLoc(0, 0, u8"", 0, 15, 0, colorf::RGBA(0XFF, 0X00, 0X00, 0X00))
     , m_mouseGridLoc(0, 0, u8"", 0, 15, 0, colorf::RGBA(0XFF, 0X00, 0X00, 0X00))
-    , m_ascendStrList()
 {
     m_focusUIDTable.fill(0);
     RegisterUserCommand();
@@ -1208,7 +1207,7 @@ uint32_t ProcessRun::GetFocusFaceKey()
 
 void ProcessRun::addAscendStr(int nType, int nValue, int nX, int nY)
 {
-    m_ascendStrList.emplace_back(std::make_shared<AscendStr>(nType, nValue, nX, nY));
+    m_ascendStrList.push_back(std::make_unique<AscendStr>(nType, nValue, nX, nY));
 }
 
 bool ProcessRun::GetUIDLocation(uint64_t nUID, bool bDrawLoc, int *pX, int *pY)
