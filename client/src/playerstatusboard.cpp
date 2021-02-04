@@ -19,6 +19,7 @@
 #include "pngtexdb.hpp"
 #include "sdldevice.hpp"
 #include "processrun.hpp"
+#include "dbcomrecord.hpp"
 #include "pngtexoffdb.hpp"
 #include "inventoryboard.hpp"
 
@@ -115,6 +116,14 @@ void PlayerStatusBoard::drawEx(int dstX, int dstY, int, int, int, int) const
     const auto myHeroPtr = m_processRun->getMyHero();
     if(auto [texPtr, dx, dy] = g_equipDB->Retrieve(myHeroPtr->Gender() ? 0X00000000 : 0X00000001); texPtr){
         g_sdlDevice->drawTexture(texPtr, dstX + m_equipCharX + dx, dstY + m_equipCharY + dy);
+    }
+
+    if(const auto dressItemID = myHeroPtr->Dress()){
+        if(const auto useGfxIndex = DBCOM_ITEMRECORD(dressItemID).useGfxID; useGfxIndex > 0){
+            if(auto [texPtr, dx, dy] = g_equipDB->Retrieve((myHeroPtr->Gender() ? 0X010003AC : 0X010003B6) + useGfxIndex - 1); texPtr){
+                g_sdlDevice->drawTexture(texPtr, dstX + m_equipCharX + dx, dstY + m_equipCharY + dy);
+            }
+        }
     }
 
     if(auto [texPtr, dx, dy] = g_equipDB->Retrieve((myHeroPtr->Gender() ? 0X0000003C : 0X00000046) + 1); texPtr){

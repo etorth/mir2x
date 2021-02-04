@@ -132,8 +132,9 @@ enum WeaponIDType: int
 
 enum DressIDType : int
 {
-    DRESS_NONE =   0,
-    DRESS_MAX  = 256,
+    DRESS_NONE  = 0,
+    DRESS_BEGIN = 1,
+    DRESS_END   = 256,
 };
 
 enum NPCErrorType: int

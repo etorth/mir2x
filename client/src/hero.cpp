@@ -29,7 +29,7 @@
 #include "attachmagic.hpp"
 #include "dbcomrecord.hpp"
 #include "pngtexoffdb.hpp"
-#include "processrun.hpp"
+#include "dbcomrecord.hpp"
 #include "clientargparser.hpp"
 
 extern Log *g_log;
@@ -47,7 +47,7 @@ Hero::Hero(uint64_t uid, uint32_t dbid, bool gender, uint32_t nDress, ProcessRun
     , m_weapon(5)
     , m_hair(0)
     , m_hairColor(0)
-    , m_dress(nDress - nDress + 6)
+    , m_dress(nDress)
     , m_dressColor(0)
     , m_onHorse(false)
 {
@@ -98,7 +98,7 @@ void Hero::draw(int viewX, int viewY, int)
 
     fnDrawWeapon(true);
 
-    const auto nDress     = m_dress;
+    const auto nDress     = std::max<int>(0, DBCOM_ITEMRECORD(Dress()).useGfxID);
     const auto nMotion    = m_currMotion->type;
     const auto nDirection = m_currMotion->direction;
 
@@ -961,12 +961,12 @@ int Hero::GfxDressID(int nDress, int nMotion, int nDirection) const
 {
     static_assert(sizeof(int) > 2, "GfxDressID() overflows because of sizeof(int) too small");
     if(true
-            && (nDress     >  DRESS_NONE   && nDress     < DRESS_MAX )
+            && (nDress     >= DRESS_BEGIN  && nDress     < DRESS_END )
             && (nMotion    >= MOTION_BEGIN && nMotion    < MOTION_END)
             && (nDirection >= DIR_BEGIN    && nDirection < DIR_END   )){
         const auto nGfxMotionID = gfxMotionID(nMotion);
         if(nGfxMotionID >= 0){
-            return ((nDress - (DRESS_NONE + 1)) << 9) + (nGfxMotionID << 3) + (nDirection - DIR_BEGIN);
+            return ((nDress - DRESS_BEGIN + 1 /* 0 means naked */) << 9) + (nGfxMotionID << 3) + (nDirection - DIR_BEGIN);
         }
     }
     return -1;

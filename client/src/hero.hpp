@@ -33,7 +33,7 @@ class Hero: public CreatureMovable
         uint8_t  m_hair;
         uint32_t m_hairColor;
 
-        uint8_t  m_dress;
+        uint32_t m_dress;
         uint32_t m_dressColor;
 
     protected:

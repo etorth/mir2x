@@ -47,7 +47,7 @@ void ProcessRun::net_LOGINOK(const uint8_t *bufPtr, size_t nLen)
         uint32_t nDBID    = stSMLOK.DBID;
         bool     bGender  = stSMLOK.Male;
         uint32_t nMapID   = stSMLOK.MapID;
-        uint32_t nDressID = 0;
+        uint32_t nDressID = stSMLOK.dress;
 
         int nX = stSMLOK.X;
         int nY = stSMLOK.Y;
