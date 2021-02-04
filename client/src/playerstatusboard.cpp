@@ -112,8 +112,9 @@ void PlayerStatusBoard::drawEx(int dstX, int dstY, int, int, int, int) const
         g_sdlDevice->drawTexture(texPtr, dstX, dstY);
     }
 
-    if(auto [texPtr, dx, dy] = g_equipDB->Retrieve(0X00000000); texPtr){
-        g_sdlDevice->drawTexture(texPtr, dstX + dx, dstY + dy);
+    const auto myHeroPtr = m_processRun->getMyHero();
+    if(auto [texPtr, dx, dy] = g_equipDB->Retrieve(myHeroPtr->Gender() ? 0X00000000 : 0X00000001); texPtr){
+        g_sdlDevice->drawTexture(texPtr, dstX + m_equipCharX + dx, dstY + m_equipCharY + dy);
     }
 
     m_closeButton.draw();
