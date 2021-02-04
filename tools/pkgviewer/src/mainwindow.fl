@@ -494,10 +494,10 @@ if(g_WilPackage.CurrentImageValid()){
   } {
     code {{
     if(SaveIndexEnabled()){
-        return str_printf("%08X", d);
+        return str_printf("%06d_%08X", d, d);
     }
     else{
-        return str_printf("%06d_%08X", d, d);
+        return str_printf("%08X", d);
     }
 }} {}
   }
