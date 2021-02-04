@@ -951,7 +951,7 @@ int Hero::GfxWeaponID(int nWeapon, int nMotion, int nDirection) const
             && (nDirection >= DIR_BEGIN    && nDirection < DIR_END   )){
         const auto nGfxMotionID = gfxMotionID(nMotion);
         if(nGfxMotionID >= 0){
-            return ((nWeapon - (WEAPON_NONE + 1)) << 9) + (nGfxMotionID << 3) + (nDirection - DIR_BEGIN);
+            return ((nWeapon - WEAPON_BEGIN) << 9) + (nGfxMotionID << 3) + (nDirection - DIR_BEGIN);
         }
     }
     return -1;
