@@ -164,3 +164,10 @@
 // name-----------------+-type----------+-rarity---+-weight-+-pkgGfxID-+-useGfxID-+-needJob---+-needLevel-+-needDC-+-needSPC-+-needMDC-+-needAC-+-needMAC-+-description--
 {  u8"布衣（男）"        , u8"衣服"     , u8"普通" , 1      , 0X03AC   ,1         , u8"共用"  , 0         , 0      , 0       , 0       , 0      , 0       , u8""},
 {  u8"布衣（女）"        , u8"衣服"     , u8"普通" , 1      , 0X03B6   ,1         , u8"共用"  , 0         , 0      , 0       , 0       , 0      , 0       , u8""},
+
+// name-----------------+-type----------+-rarity---+-weight-+-pkgGfxID-+-useGfxID-+-needJob---+-needLevel-+-needDC-+-needSPC-+-needMDC-+-needAC-+-needMAC-+-description--
+{  u8"木剑"              , u8"武器"     , u8"普通" , 1      , 0X03AC   ,1         , u8"共用"  , 0         , 0      , 0       , 0       , 0      , 0       , u8""},
+{  u8"匕首"              , u8"武器"     , u8"普通" , 1      , 0X03AC   ,1         , u8"共用"  , 3         , 0      , 0       , 0       , 0      , 0       , u8""},
+{  u8"青铜剑"            , u8"武器"     , u8"普通" , 1      , 0X03AC   ,1         , u8"共用"  , 5         , 0      , 0       , 0       , 0      , 0       , u8""},
+{  u8"铁剑"              , u8"武器"     , u8"普通" , 1      , 0X03AC   ,1         , u8"共用"  , 7         , 0      , 0       , 0       , 0      , 0       , u8""},
+{  u8"乌木剑"            , u8"武器"     , u8"普通" , 1      , 0X03AC   ,1         , u8"共用"  , 7         , 0      , 0       , 0       , 0      , 0       , u8""},
