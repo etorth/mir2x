@@ -84,6 +84,7 @@ struct SMLoginOK
     uint32_t JobID;
     uint32_t Level;
     uint32_t dress;
+    uint32_t weapon;
 };
 
 struct SMLoginFail

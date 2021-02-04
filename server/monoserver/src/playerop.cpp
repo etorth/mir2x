@@ -66,6 +66,7 @@ void Player::on_MPK_BINDCHANNEL(const MessagePack &rstMPK)
     smLOK.JobID     = JobID();
     smLOK.Level     = Level();
     smLOK.dress     = DBCOM_ITEMID(u8"布衣（男）");
+    smLOK.weapon    = DBCOM_ITEMID(u8"青铜剑");
     postNetMessage(SM_LOGINOK, smLOK);
 
     const auto versionStr = str_printf(u8"服务器版本号：%s", getBuildSignature());

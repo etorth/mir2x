@@ -39,12 +39,12 @@ extern PNGTexOffDB *g_heroDB;
 extern PNGTexOffDB *g_weaponDB;
 extern ClientArgParser *g_clientArgParser;
 
-Hero::Hero(uint64_t uid, uint32_t dbid, bool gender, uint32_t nDress, ProcessRun *proc, const ActionNode &action)
+Hero::Hero(uint64_t uid, uint32_t dbid, bool gender, uint32_t weapon, uint32_t nDress, ProcessRun *proc, const ActionNode &action)
     : CreatureMovable(uid, proc)
     , m_DBID(dbid)
     , m_gender(gender)
     , m_horse(0)
-    , m_weapon(5)
+    , m_weapon(weapon)
     , m_hair(0)
     , m_hairColor(0)
     , m_dress(nDress)
@@ -78,7 +78,7 @@ void Hero::draw(int viewX, int viewY, int)
         // 21 - 14 :    weapon : max = 256 : +----> GfxWeaponID
         //      22 :    gender :
         //      23 :    shadow :
-        const auto nGfxWeaponID = GfxWeaponID(m_weapon, m_currMotion->type, m_currMotion->direction);
+        const auto nGfxWeaponID = GfxWeaponID(DBCOM_ITEMRECORD(m_weapon).useGfxID, m_currMotion->type, m_currMotion->direction);
         if(nGfxWeaponID < 0){
             return;
         }
@@ -946,7 +946,7 @@ int Hero::GfxWeaponID(int nWeapon, int nMotion, int nDirection) const
 {
     static_assert(sizeof(int) > 2, "GfxWeaponID() overflows because of sizeof(int) too small");
     if(true
-            && (nWeapon    >  WEAPON_NONE  && nWeapon    < WEAPON_MAX)
+            && (nWeapon    >= WEAPON_BEGIN && nWeapon    < WEAPON_END)
             && (nMotion    >= MOTION_BEGIN && nMotion    < MOTION_END)
             && (nDirection >= DIR_BEGIN    && nDirection < DIR_END   )){
         const auto nGfxMotionID = gfxMotionID(nMotion);

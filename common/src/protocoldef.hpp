@@ -126,8 +126,9 @@ enum MonsterAttackType: int
 
 enum WeaponIDType: int
 {
-    WEAPON_NONE =   0,
-    WEAPON_MAX  = 256,
+    WEAPON_NONE  = 0,
+    WEAPON_BEGIN = 1,
+    WEAPON_END   = 256,
 };
 
 enum DressIDType : int

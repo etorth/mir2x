@@ -28,7 +28,7 @@ class Hero: public CreatureMovable
     protected:
         bool     m_gender;
         uint8_t  m_horse;
-        uint16_t m_weapon;
+        uint32_t m_weapon;
 
         uint8_t  m_hair;
         uint32_t m_hairColor;
@@ -40,7 +40,7 @@ class Hero: public CreatureMovable
         bool m_onHorse;
 
     public:
-        Hero(uint64_t, uint32_t, bool, uint32_t, ProcessRun *, const ActionNode &);
+        Hero(uint64_t, uint32_t, bool, uint32_t, uint32_t, ProcessRun *, const ActionNode &);
 
     public:
        ~Hero() = default;
@@ -67,7 +67,7 @@ class Hero: public CreatureMovable
     public:
         bool     Gender() const { return m_gender ; }
         uint8_t  Horse () const { return m_horse  ; }
-        uint16_t Weapon() const { return m_weapon ; }
+        uint32_t Weapon() const { return m_weapon ; }
         uint32_t DBID  () const { return m_DBID   ; }
         uint32_t Dress () const { return m_dress  ; }
 
@@ -77,7 +77,7 @@ class Hero: public CreatureMovable
             m_dress = nDress;
         }
 
-        void Weapon(uint16_t nWeapon)
+        void Weapon(uint32_t nWeapon)
         {
             m_weapon = nWeapon;
         }

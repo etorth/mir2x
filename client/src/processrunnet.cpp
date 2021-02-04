@@ -48,6 +48,7 @@ void ProcessRun::net_LOGINOK(const uint8_t *bufPtr, size_t nLen)
         bool     bGender  = stSMLOK.Male;
         uint32_t nMapID   = stSMLOK.MapID;
         uint32_t nDressID = stSMLOK.dress;
+        uint32_t weapon   = stSMLOK.weapon;
 
         int nX = stSMLOK.X;
         int nY = stSMLOK.Y;
@@ -56,7 +57,7 @@ void ProcessRun::net_LOGINOK(const uint8_t *bufPtr, size_t nLen)
         loadMap(nMapID);
 
         m_myHeroUID = nUID;
-        m_coList[nUID] = std::make_unique<MyHero>(nUID, nDBID, bGender, nDressID, this, ActionStand
+        m_coList[nUID] = std::make_unique<MyHero>(nUID, nDBID, bGender, weapon, nDressID, this, ActionStand
         {
             .x = nX,
             .y = nY,
@@ -95,6 +96,7 @@ void ProcessRun::net_ACTION(const uint8_t *bufPtr, size_t)
         auto nDBID      = getMyHero()->DBID();
         auto bGender    = getMyHero()->Gender();
         auto nDress     = getMyHero()->Dress();
+        auto nWeapon    = getMyHero()->Weapon();
         auto nDirection = getMyHero()->currMotion()->direction;
 
         auto nX = smA.action.x;
@@ -104,7 +106,7 @@ void ProcessRun::net_ACTION(const uint8_t *bufPtr, size_t)
         loadMap(smA.MapID);
 
         m_coList.clear();
-        m_coList[m_myHeroUID] = std::make_unique<MyHero>(nUID, nDBID, bGender, nDress, this, ActionStand
+        m_coList[m_myHeroUID] = std::make_unique<MyHero>(nUID, nDBID, bGender, nWeapon, nDress, this, ActionStand
         {
             .x = nX,
             .y = nY,
@@ -238,7 +240,7 @@ void ProcessRun::net_CORECORD(const uint8_t *bufPtr, size_t)
             }
         case UID_PLY:
             {
-                m_coList[smCOR.UID] = std::make_unique<Hero>(smCOR.UID, smCOR.Player.DBID, true, 0, this, smCOR.action);
+                m_coList[smCOR.UID] = std::make_unique<Hero>(smCOR.UID, smCOR.Player.DBID, true, 0, 0, this, smCOR.action); // TODO
                 break;
             }
         default:
