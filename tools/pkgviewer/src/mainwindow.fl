@@ -20,6 +20,9 @@ decl {\#include <iostream>} {private local
 decl {\#include "pngf.hpp"} {private local
 }
 
+decl {\#include "strf.hpp"} {private local
+}
+
 decl {\#include "wilimagepackage.hpp"} {private local
 }
 
@@ -31,7 +34,7 @@ class MainWindow {} {
 	// don't exit directly
 	// exit(0);
 }}
-      private xywh {2683 227 555 605} type Double labelfont 4 resizable
+      private xywh {2723 259 555 605} type Double labelfont 4 resizable
       code0 {\#include <FL/fl_ask.H>} visible
     } {
       Fl_Menu_Bar m_MenuBar {
@@ -200,14 +203,14 @@ class MainWindow {} {
                     auto imgIdx = SelectedImageIndex();
 
                     if(SaveOffsetEnabled()){
-                        std::sprintf(tmpIndex, "TMP%06d_%s%s%04X%04X",
-                                (int)(imgIdx),
+                        std::sprintf(tmpIndex, "TMP%s_%s%s%04X%04X",
+                                getImageIndexString(imgIdx).c_str(),
                                 ((nDX > 0) ? "1" : "0"),              // sign, postive for 1
                                 ((nDY > 0) ? "1" : "0"),              // sign
                                 (unsigned int)(std::labs(nDX)),
                                 (unsigned int)(std::labs(nDY)));
                     }else{
-                        std::sprintf(tmpIndex, "TMP%06d", (int)(imgIdx));
+                        std::sprintf(tmpIndex, "TMP%s", getImageIndexString(imgIdx).c_str());
                     }
 
                     std::string tmpFilePathName = fileChooser.filename();
@@ -290,14 +293,14 @@ class MainWindow {} {
 
                     char tmpIndex[128];
                     if(SaveOffsetEnabled()){
-                        std::sprintf(tmpIndex, "TMP%06d_%s%s%04X%04X",
-                                (int)(imgIdx),
+                        std::sprintf(tmpIndex, "TMP%s_%s%s%04X%04X",
+                                getImageIndexString(imgIdx).c_str(),
                                 ((nDX > 0) ? "1" : "0"),              // sign, postive for 1
                                 ((nDY > 0) ? "1" : "0"),              // sign
                                 (unsigned int)(std::labs(nDX)),
                                 (unsigned int)(std::labs(nDY)));
                     }else{
-                        std::sprintf(tmpIndex, "TMP%06d", (int)(imgIdx));
+                        std::sprintf(tmpIndex, "TMP%s", getImageIndexString(imgIdx).c_str());
                     }
 
                     std::string tmpFilePathName = fileChooser.filename();
@@ -323,6 +326,10 @@ class MainWindow {} {
           label Config
           xywh {0 0 70 21} labelfont 4
         } {
+          MenuItem m_MenuItemSaveBinary {
+            label {Save binary}
+            xywh {20 20 36 21} type Toggle labelfont 4
+          }
           MenuItem m_MenuItemSaveOffset {
             label {Save offset}
             xywh {10 10 36 21} type Toggle labelfont 4 divider
@@ -471,10 +478,27 @@ if(g_WilPackage.CurrentImageValid()){
     return m_MenuItemSaveOffset->value();
 }} {}
   }
+  Function {SaveBinaryEnabled()} {return_type bool
+  } {
+    code {{
+    return m_MenuItemSaveBinary->value();
+}} {}
+  }
   Function {BlackBG()} {return_type bool
   } {
     code {{
     return m_MenuItemBlackBG->value();
+}} {}
+  }
+  Function {getImageIndexString(int d)} {return_type {std::string}
+  } {
+    code {{
+    if(SaveBinaryEnabled()){
+        return str_printf("%08X", d);
+    }
+    else{
+        return str_printf("%06d", d);
+    }
 }} {}
   }
 }
