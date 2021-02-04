@@ -39,6 +39,7 @@ PNGTexDB        *g_mapDB           = nullptr;
 PNGTexOffDB     *g_heroDB          = nullptr; // database for hero
 PNGTexOffDB     *g_monsterDB       = nullptr; // database for monster
 PNGTexOffDB     *g_weaponDB        = nullptr; // database for weapon
+PNGTexOffDB     *g_equipDB         = nullptr; // database for equipment in player status board
 PNGTexOffDB     *g_magicDB         = nullptr; // database for magic
 PNGTexOffDB     *g_standNPCDB      = nullptr; // database for NPC
 emoticonDB      *g_emoticonDB      = nullptr; // database for emoticons
@@ -100,6 +101,7 @@ int main(int argc, char *argv[])
         g_heroDB          = new PNGTexOffDB(1024);
         g_monsterDB       = new PNGTexOffDB(1024);
         g_weaponDB        = new PNGTexOffDB(1024);
+        g_equipDB         = new PNGTexOffDB(1024);
         g_magicDB         = new PNGTexOffDB(1024);
         g_standNPCDB      = new PNGTexOffDB(1024);
         g_fontexDB        = new FontexDB(1024);

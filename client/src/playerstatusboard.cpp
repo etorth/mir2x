@@ -19,9 +19,11 @@
 #include "pngtexdb.hpp"
 #include "sdldevice.hpp"
 #include "processrun.hpp"
+#include "pngtexoffdb.hpp"
 #include "inventoryboard.hpp"
 
 extern PNGTexDB *g_progUseDB;
+extern PNGTexOffDB *g_equipDB;
 extern SDLDevice *g_sdlDevice;
 
 PlayerStatusBoard::PlayerStatusBoard(int argX, int argY, ProcessRun *runPtr, Widget *widgetPtr, bool autoDelete)
