@@ -17,6 +17,7 @@
  */
 
 #pragma once
+#include <tuple>
 #include <memory>
 #include <vector>
 #include <cstdint>
@@ -59,6 +60,14 @@ class PNGTexOffDB: public innDB<uint32_t, PNGTexOffEntry>
         }
 
     public:
+        std::tuple<SDL_Texture *, int, int> Retrieve(uint32_t key)
+        {
+            int dx = 0;
+            int dy = 0;
+            auto texPtr = Retrieve(key, &dx, &dy);
+            return {texPtr, dx, dy};
+        }
+
         SDL_Texture *Retrieve(uint32_t nKey, int *pDX, int *pDY)
         {
             if(PNGTexOffEntry stEntry {nullptr, 0, 0}; this->RetrieveResource(nKey, &stEntry)){

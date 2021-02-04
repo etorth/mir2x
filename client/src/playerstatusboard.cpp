@@ -108,8 +108,12 @@ void PlayerStatusBoard::update(double)
 
 void PlayerStatusBoard::drawEx(int dstX, int dstY, int, int, int, int) const
 {
-    if(auto pTexture = g_progUseDB->Retrieve(0X06000000)){
-        g_sdlDevice->drawTexture(pTexture, dstX, dstY);
+    if(auto texPtr = g_progUseDB->Retrieve(0X06000000)){
+        g_sdlDevice->drawTexture(texPtr, dstX, dstY);
+    }
+
+    if(auto [texPtr, dx, dy] = g_equipDB->Retrieve(0X00000000); texPtr){
+        g_sdlDevice->drawTexture(texPtr, dstX + dx, dstY + dy);
     }
 
     m_closeButton.draw();
