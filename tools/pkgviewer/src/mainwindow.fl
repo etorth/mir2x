@@ -326,8 +326,8 @@ class MainWindow {} {
           label Config
           xywh {0 0 70 21} labelfont 4
         } {
-          MenuItem m_MenuItemSaveBinary {
-            label {Save binary}
+          MenuItem m_MenuItemSaveIndex {
+            label {Save index}
             xywh {20 20 36 21} type Toggle labelfont 4
           }
           MenuItem m_MenuItemSaveOffset {
@@ -478,10 +478,10 @@ if(g_WilPackage.CurrentImageValid()){
     return m_MenuItemSaveOffset->value();
 }} {}
   }
-  Function {SaveBinaryEnabled()} {return_type bool
+  Function {SaveIndexEnabled()} {return_type bool
   } {
     code {{
-    return m_MenuItemSaveBinary->value();
+    return m_MenuItemSaveIndex->value();
 }} {}
   }
   Function {BlackBG()} {return_type bool
@@ -493,11 +493,11 @@ if(g_WilPackage.CurrentImageValid()){
   Function {getImageIndexString(int d)} {return_type {std::string}
   } {
     code {{
-    if(SaveBinaryEnabled()){
+    if(SaveIndexEnabled()){
         return str_printf("%08X", d);
     }
     else{
-        return str_printf("%06d", d);
+        return str_printf("%06d_%08X", d, d);
     }
 }} {}
   }
