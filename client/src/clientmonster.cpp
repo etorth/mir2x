@@ -302,7 +302,7 @@ void ClientMonster::draw(int viewX, int viewY, int focusMask)
         p->drawShift(startX, startY, false);
     }
 
-    if(m_currMotion->type != MOTION_MON_DIE){
+    if(m_currMotion->type != MOTION_MON_DIE && g_clientArgParser->drawHPBar){
         auto pBar0 = g_progUseDB->Retrieve(0X00000014);
         auto pBar1 = g_progUseDB->Retrieve(0X00000015);
 

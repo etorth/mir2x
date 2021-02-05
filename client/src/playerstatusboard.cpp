@@ -134,8 +134,11 @@ void PlayerStatusBoard::drawEx(int dstX, int dstY, int, int, int, int) const
         }
     }
 
-    if(auto [texPtr, dx, dy] = g_equipDB->Retrieve((myHeroPtr->Gender() ? 0X0000003C : 0X00000046) + 1); texPtr){
-        g_sdlDevice->drawTexture(texPtr, dstX + m_equipCharX + dx, dstY + m_equipCharY + dy);
+    if(myHeroPtr->hair() >= HAIR_BEGIN){
+        if(auto [texPtr, dx, dy] = g_equipDB->Retrieve((myHeroPtr->Gender() ? 0X0000003C : 0X00000046) + myHeroPtr->hair() - HAIR_BEGIN); texPtr){
+            SDLDeviceHelper::EnableTextureModColor enableColor(texPtr, myHeroPtr->hairColor());
+            g_sdlDevice->drawTexture(texPtr, dstX + m_equipCharX + dx, dstY + m_equipCharY + dy);
+        }
     }
 
     m_closeButton.draw();

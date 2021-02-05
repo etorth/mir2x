@@ -138,6 +138,13 @@ enum DressIDType : int
     DRESS_END   = 256,
 };
 
+enum HairIDType: int
+{
+    HAIR_NONE  = 0,
+    HAIR_BEGIN = 1,
+    HAIR_END   = 256,
+};
+
 enum NPCErrorType: int
 {
     NPCE_NONE = 0,

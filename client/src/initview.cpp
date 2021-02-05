@@ -43,6 +43,7 @@ extern PNGTexDB *g_progUseDB;
 extern PNGTexDB *g_itemDB;
 
 extern PNGTexOffDB *g_heroDB;
+extern PNGTexOffDB *g_hairDB;
 extern PNGTexOffDB *g_magicDB;
 extern PNGTexOffDB *g_equipDB;
 extern PNGTexOffDB *g_weaponDB;
@@ -82,6 +83,11 @@ InitView::InitView(uint8_t nFontSize)
     m_loadProcV.emplace_back(1, [this](size_t nIndex) -> bool
     {
         return LoadDB(nIndex, g_XMLConf, g_heroDB, "Root/Texture/HeroDB");
+    });
+
+    m_loadProcV.emplace_back(1, [this](size_t nIndex) -> bool
+    {
+        return LoadDB(nIndex, g_XMLConf, g_hairDB, "Root/Texture/hairDB");
     });
 
     m_loadProcV.emplace_back(1, [this](size_t nIndex) -> bool

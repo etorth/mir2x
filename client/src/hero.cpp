@@ -36,6 +36,7 @@ extern Log *g_log;
 extern SDLDevice *g_sdlDevice;
 extern PNGTexDB *g_progUseDB;
 extern PNGTexOffDB *g_heroDB;
+extern PNGTexOffDB *g_hairDB;
 extern PNGTexOffDB *g_weaponDB;
 extern ClientArgParser *g_clientArgParser;
 
@@ -45,8 +46,8 @@ Hero::Hero(uint64_t uid, uint32_t dbid, bool gender, uint32_t weapon, uint32_t n
     , m_gender(gender)
     , m_horse(0)
     , m_weapon(weapon)
-    , m_hair(0)
-    , m_hairColor(0)
+    , m_hair(2)
+    , m_hairColor(colorf::GREEN + 255)
     , m_dress(nDress)
     , m_dressColor(0)
     , m_onHorse(false)
@@ -142,6 +143,13 @@ void Hero::draw(int viewX, int viewY, int)
     }
 
     g_sdlDevice->drawTexture(pFrame0, startX + nDX0, startY + nDY0);
+    if(const auto nHairGfxID = GfxHairID(hair(), nMotion, nDirection); nHairGfxID >= 0){
+        const uint32_t nHairKey = (((uint32_t)(m_gender ? 1 : 0)) << 22) + (((uint32_t)(nHairGfxID & 0X01FFFF)) << 5) + m_currMotion->frame;
+        if(auto [texPtr, dx, dy] = g_hairDB->Retrieve(nHairKey); texPtr){
+            SDLDeviceHelper::EnableTextureModColor enableColor(texPtr, m_hairColor);
+            g_sdlDevice->drawTexture(texPtr, startX + dx, startY + dy);
+        }
+    }
 
     if(true
             && m_weapon
@@ -222,27 +230,20 @@ void Hero::draw(int viewX, int viewY, int)
 
     // draw HP bar
     // if current m_HPMqx is zero we draw full bar
-    switch(m_currMotion->type){
-        case MOTION_DIE:
-            {
-                break;
-            }
-        default:
-            {
-                auto pBar0 = g_progUseDB->Retrieve(0X00000014);
-                auto pBar1 = g_progUseDB->Retrieve(0X00000015);
+    if(m_currMotion->type != MOTION_DIE && g_clientArgParser->drawHPBar){
+        auto pBar0 = g_progUseDB->Retrieve(0X00000014);
+        auto pBar1 = g_progUseDB->Retrieve(0X00000015);
 
-                int nW = -1;
-                int nH = -1;
-                SDL_QueryTexture(pBar1, nullptr, nullptr, &nW, &nH);
+        int nW = -1;
+        int nH = -1;
+        SDL_QueryTexture(pBar1, nullptr, nullptr, &nW, &nH);
 
-                const int drawHPX = startX +  7;
-                const int drawHPY = startY - 53;
-                const int drawHPW = (int)(std::lround(nW * (m_maxHP ? (std::min<double>)(1.0, (1.0 * m_HP) / m_maxHP) : 1.0)));
+        const int drawHPX = startX +  7;
+        const int drawHPY = startY - 53;
+        const int drawHPW = (int)(std::lround(nW * (m_maxHP ? (std::min<double>)(1.0, (1.0 * m_HP) / m_maxHP) : 1.0)));
 
-                g_sdlDevice->drawTexture(pBar1, drawHPX, drawHPY, 0, 0, drawHPW, nH);
-                g_sdlDevice->drawTexture(pBar0, drawHPX, drawHPY);
-            }
+        g_sdlDevice->drawTexture(pBar1, drawHPX, drawHPY, 0, 0, drawHPW, nH);
+        g_sdlDevice->drawTexture(pBar0, drawHPX, drawHPY);
     }
 }
 
@@ -952,6 +953,21 @@ int Hero::GfxWeaponID(int nWeapon, int nMotion, int nDirection) const
         const auto nGfxMotionID = gfxMotionID(nMotion);
         if(nGfxMotionID >= 0){
             return ((nWeapon - WEAPON_BEGIN) << 9) + (nGfxMotionID << 3) + (nDirection - DIR_BEGIN);
+        }
+    }
+    return -1;
+}
+
+int Hero::GfxHairID(int nHair, int nMotion, int nDirection) const
+{
+    static_assert(sizeof(int) > 2, "GfxHairID() overflows because of sizeof(int) too small");
+    if(true
+            && (nHair      >= HAIR_BEGIN   && nHair      < HAIR_END  )
+            && (nMotion    >= MOTION_BEGIN && nMotion    < MOTION_END)
+            && (nDirection >= DIR_BEGIN    && nDirection < DIR_END   )){
+        const auto nGfxMotionID = gfxMotionID(nMotion);
+        if(nGfxMotionID >= 0){
+            return ((nHair - HAIR_BEGIN /* hair gfx id start from 0 */) << 9) + (nGfxMotionID << 3) + (nDirection - DIR_BEGIN);
         }
     }
     return -1;

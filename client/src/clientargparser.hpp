@@ -26,6 +26,7 @@ struct ClientArgParser
     const bool drawUID;                 // "--draw-uid"
     const bool alwaysDrawName;          // "--always-draw-name"
     const bool drawMapGrid;             // "--draw-map-grid"
+    const bool drawHPBar;               // "--draw-hp-bar"
     const bool drawCreatureCover;       // "--draw-creature-cover"
     const bool drawMouseLocation;       // "--draw-mouse-location"
     const bool enableClientMonitor;     // "--enable-client-monitor"
@@ -48,6 +49,7 @@ struct ClientArgParser
         , drawUID(cmdParser["draw-uid"])
         , alwaysDrawName(cmdParser["always-draw-name"])
         , drawMapGrid(cmdParser["draw-map-grid"])
+        , drawHPBar(cmdParser["draw-hp-bar"])
         , drawCreatureCover(cmdParser["draw-creature-cover"])
         , drawMouseLocation(cmdParser["draw-mouse-location"])
         , enableClientMonitor(cmdParser["enable-client-monitor"])

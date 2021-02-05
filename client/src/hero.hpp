@@ -30,7 +30,7 @@ class Hero: public CreatureMovable
         uint8_t  m_horse;
         uint32_t m_weapon;
 
-        uint8_t  m_hair;
+        uint32_t m_hair;
         uint32_t m_hairColor;
 
         uint32_t m_dress;
@@ -65,11 +65,13 @@ class Hero: public CreatureMovable
         bool parseAction(const ActionNode &) override;
 
     public:
-        bool     Gender() const { return m_gender ; }
-        uint8_t  Horse () const { return m_horse  ; }
-        uint32_t Weapon() const { return m_weapon ; }
-        uint32_t DBID  () const { return m_DBID   ; }
-        uint32_t Dress () const { return m_dress  ; }
+        bool     Gender   () const { return m_gender   ; }
+        uint8_t  Horse    () const { return m_horse    ; }
+        uint32_t Weapon   () const { return m_weapon   ; }
+        uint32_t DBID     () const { return m_DBID     ; }
+        uint32_t Dress    () const { return m_dress    ; }
+        uint32_t hair     () const { return m_hair     ; }
+        uint32_t hairColor() const { return m_hairColor; }
 
     public:
         void Dress(uint32_t nDress)
@@ -104,6 +106,7 @@ class Hero: public CreatureMovable
         }
 
     protected:
+        int GfxHairID  (int, int, int) const;
         int GfxDressID (int, int, int) const;
         int GfxWeaponID(int, int, int) const;
 

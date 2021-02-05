@@ -37,6 +37,7 @@ PNGTexDB        *g_progUseDB       = nullptr; // database for all PNG texture on
 PNGTexDB        *g_itemDB          = nullptr; // database for all PNG texture only
 PNGTexDB        *g_mapDB           = nullptr;
 PNGTexOffDB     *g_heroDB          = nullptr; // database for hero
+PNGTexOffDB     *g_hairDB          = nullptr; // database for hair
 PNGTexOffDB     *g_monsterDB       = nullptr; // database for monster
 PNGTexOffDB     *g_weaponDB        = nullptr; // database for weapon
 PNGTexOffDB     *g_equipDB         = nullptr; // database for equipment in player status board
@@ -71,6 +72,7 @@ int main(int argc, char *argv[])
             delete g_itemDB         ; g_itemDB          = nullptr;
             delete g_mapDB          ; g_mapDB           = nullptr;
             delete g_heroDB         ; g_heroDB          = nullptr;
+            delete g_hairDB         ; g_hairDB          = nullptr;
             delete g_monsterDB      ; g_monsterDB       = nullptr;
             delete g_fontexDB       ; g_fontexDB        = nullptr;
             delete g_mapBinDB       ; g_mapBinDB        = nullptr;
@@ -99,6 +101,7 @@ int main(int argc, char *argv[])
         g_itemDB          = new PNGTexDB(1024);
         g_mapDB           = new PNGTexDB(8192);
         g_heroDB          = new PNGTexOffDB(1024);
+        g_hairDB          = new PNGTexOffDB(1024);
         g_monsterDB       = new PNGTexOffDB(1024);
         g_weaponDB        = new PNGTexOffDB(1024);
         g_equipDB         = new PNGTexOffDB(1024);
