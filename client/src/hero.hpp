@@ -18,6 +18,7 @@
 
 #pragma once
 #include <tuple>
+#include <array>
 #include "creaturemovable.hpp"
 
 class Hero: public CreatureMovable
@@ -36,6 +37,10 @@ class Hero: public CreatureMovable
 
         uint32_t m_dress;
         uint32_t m_dressColor;
+
+    protected:
+        std::array<uint32_t, 2> m_ring;
+        std::array<uint32_t, 2> m_armRing;
 
     protected:
         bool m_onHorse;
@@ -74,6 +79,17 @@ class Hero: public CreatureMovable
         uint32_t Dress    () const { return m_dress    ; }
         uint32_t hair     () const { return m_hair     ; }
         uint32_t hairColor() const { return m_hairColor; }
+
+    public:
+        std::array<uint32_t, 2> armRing() const
+        {
+            return m_armRing;
+        }
+
+        std::array<uint32_t, 2> ring() const
+        {
+            return m_ring;
+        }
 
     public:
         void Dress(uint32_t nDress)
