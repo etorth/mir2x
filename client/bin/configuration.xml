@@ -23,6 +23,7 @@
         <HeroDB>Res/Texture/HeroDB.ZSDB</HeroDB>
         <MonsterDB>Res/Texture/monster.zsdb</MonsterDB>
         <WeaponDB>Res/Texture/WeaponDB.ZSDB</WeaponDB>
+        <helmetDB>Res/Texture/helmet.zsdb</helmetDB>
         <MagicDB>Res/Texture/magic.zsdb</MagicDB>
         <hairDB>Res/Texture/hair.zsdb</hairDB>
         <equipDB>Res/Texture/equip.zsdb</equipDB>

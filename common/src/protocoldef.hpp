@@ -131,6 +131,13 @@ enum WeaponIDType: int
     WEAPON_END   = 256,
 };
 
+enum HelmetIDType: int
+{
+    HELMET_NONE  = 0,
+    HELMET_BEGIN = 1,
+    HELMET_END   = 256,
+};
+
 enum DressIDType : int
 {
     DRESS_NONE  = 0,

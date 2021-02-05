@@ -28,6 +28,7 @@ class Hero: public CreatureMovable
     protected:
         bool     m_gender;
         uint8_t  m_horse;
+        uint32_t m_helmet;
         uint32_t m_weapon;
 
         uint32_t m_hair;
@@ -67,6 +68,7 @@ class Hero: public CreatureMovable
     public:
         bool     Gender   () const { return m_gender   ; }
         uint8_t  Horse    () const { return m_horse    ; }
+        uint32_t helmet   () const { return m_helmet   ; }
         uint32_t Weapon   () const { return m_weapon   ; }
         uint32_t DBID     () const { return m_DBID     ; }
         uint32_t Dress    () const { return m_dress    ; }
@@ -109,6 +111,7 @@ class Hero: public CreatureMovable
         int GfxHairID  (int, int, int) const;
         int GfxDressID (int, int, int) const;
         int GfxWeaponID(int, int, int) const;
+        int gfxHelmetID(int, int, int) const;
 
     public:
         int maxStep() const override

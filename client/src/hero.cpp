@@ -38,6 +38,7 @@ extern PNGTexDB *g_progUseDB;
 extern PNGTexOffDB *g_heroDB;
 extern PNGTexOffDB *g_hairDB;
 extern PNGTexOffDB *g_weaponDB;
+extern PNGTexOffDB *g_helmetDB;
 extern ClientArgParser *g_clientArgParser;
 
 Hero::Hero(uint64_t uid, uint32_t dbid, bool gender, uint32_t weapon, uint32_t nDress, ProcessRun *proc, const ActionNode &action)
@@ -45,6 +46,7 @@ Hero::Hero(uint64_t uid, uint32_t dbid, bool gender, uint32_t weapon, uint32_t n
     , m_DBID(dbid)
     , m_gender(gender)
     , m_horse(0)
+    , m_helmet(DBCOM_ITEMID(u8"青铜头盔"))
     , m_weapon(weapon)
     , m_hair(2)
     , m_hairColor(colorf::GREEN + 255)
@@ -143,11 +145,21 @@ void Hero::draw(int viewX, int viewY, int)
     }
 
     g_sdlDevice->drawTexture(pFrame0, startX + nDX0, startY + nDY0);
-    if(const auto nHairGfxID = GfxHairID(hair(), nMotion, nDirection); nHairGfxID >= 0){
-        const uint32_t nHairKey = (((uint32_t)(m_gender ? 1 : 0)) << 22) + (((uint32_t)(nHairGfxID & 0X01FFFF)) << 5) + m_currMotion->frame;
-        if(auto [texPtr, dx, dy] = g_hairDB->Retrieve(nHairKey); texPtr){
-            SDLDeviceHelper::EnableTextureModColor enableColor(texPtr, m_hairColor);
-            g_sdlDevice->drawTexture(texPtr, startX + dx, startY + dy);
+    if(helmet()){
+        if(const auto nHelmetGfxID = gfxHelmetID(DBCOM_ITEMRECORD(helmet()).useGfxID, nMotion, nDirection); nHelmetGfxID >= 0){
+            const uint32_t nHelmetKey = (((uint32_t)(m_gender ? 1 : 0)) << 22) + (((uint32_t)(nHelmetGfxID & 0X01FFFF)) << 5) + m_currMotion->frame;
+            if(auto [texPtr, dx, dy] = g_helmetDB->Retrieve(nHelmetKey); texPtr){
+                g_sdlDevice->drawTexture(texPtr, startX + dx, startY + dy);
+            }
+        }
+    }
+    else{
+        if(const auto nHairGfxID = GfxHairID(hair(), nMotion, nDirection); nHairGfxID >= 0){
+            const uint32_t nHairKey = (((uint32_t)(m_gender ? 1 : 0)) << 22) + (((uint32_t)(nHairGfxID & 0X01FFFF)) << 5) + m_currMotion->frame;
+            if(auto [texPtr, dx, dy] = g_hairDB->Retrieve(nHairKey); texPtr){
+                SDLDeviceHelper::EnableTextureModColor enableColor(texPtr, m_hairColor);
+                g_sdlDevice->drawTexture(texPtr, startX + dx, startY + dy);
+            }
         }
     }
 
@@ -983,6 +995,21 @@ int Hero::GfxDressID(int nDress, int nMotion, int nDirection) const
         const auto nGfxMotionID = gfxMotionID(nMotion);
         if(nGfxMotionID >= 0){
             return ((nDress - DRESS_BEGIN + 1 /* 0 means naked */) << 9) + (nGfxMotionID << 3) + (nDirection - DIR_BEGIN);
+        }
+    }
+    return -1;
+}
+
+int Hero::gfxHelmetID(int nHelmet, int nMotion, int nDirection) const
+{
+    static_assert(sizeof(int) > 2, "gfxHelmetID() overflows because of sizeof(int) too small");
+    if(true
+            && (nHelmet    >= HELMET_BEGIN && nHelmet    < HELMET_END)
+            && (nMotion    >= MOTION_BEGIN && nMotion    < MOTION_END)
+            && (nDirection >= DIR_BEGIN    && nDirection < DIR_END   )){
+        const auto nGfxMotionID = gfxMotionID(nMotion);
+        if(nGfxMotionID >= 0){
+            return ((nHelmet - HELMET_BEGIN) << 9) + (nGfxMotionID << 3) + (nDirection - DIR_BEGIN);
         }
     }
     return -1;

@@ -40,6 +40,7 @@ PNGTexOffDB     *g_heroDB          = nullptr; // database for hero
 PNGTexOffDB     *g_hairDB          = nullptr; // database for hair
 PNGTexOffDB     *g_monsterDB       = nullptr; // database for monster
 PNGTexOffDB     *g_weaponDB        = nullptr; // database for weapon
+PNGTexOffDB     *g_helmetDB        = nullptr; // database for helmet
 PNGTexOffDB     *g_equipDB         = nullptr; // database for equipment in player status board
 PNGTexOffDB     *g_magicDB         = nullptr; // database for magic
 PNGTexOffDB     *g_standNPCDB      = nullptr; // database for NPC
@@ -61,27 +62,6 @@ int main(int argc, char *argv[])
         if(g_clientArgParser->disableProfiler){
             logDisableProfiler();
         }
-
-        const auto fnAtExit = +[]()
-        {
-            delete g_clientArgParser; g_clientArgParser = nullptr;
-            delete g_log            ; g_log             = nullptr;
-            delete g_XMLConf        ; g_XMLConf         = nullptr;
-            delete g_sdlDevice      ; g_sdlDevice       = nullptr;
-            delete g_progUseDB      ; g_progUseDB       = nullptr;
-            delete g_itemDB         ; g_itemDB          = nullptr;
-            delete g_mapDB          ; g_mapDB           = nullptr;
-            delete g_heroDB         ; g_heroDB          = nullptr;
-            delete g_hairDB         ; g_hairDB          = nullptr;
-            delete g_monsterDB      ; g_monsterDB       = nullptr;
-            delete g_fontexDB       ; g_fontexDB        = nullptr;
-            delete g_mapBinDB       ; g_mapBinDB        = nullptr;
-            delete g_emoticonDB     ; g_emoticonDB      = nullptr;
-            delete g_notifyBoard    ; g_notifyBoard     = nullptr;
-            delete g_client         ; g_client          = nullptr;
-        };
-
-        std::atexit(fnAtExit);
         g_log = new Log("mir2x-client-v0.1");
 
     }
@@ -104,6 +84,7 @@ int main(int argc, char *argv[])
         g_hairDB          = new PNGTexOffDB(1024);
         g_monsterDB       = new PNGTexOffDB(1024);
         g_weaponDB        = new PNGTexOffDB(1024);
+        g_helmetDB        = new PNGTexOffDB(1024);
         g_equipDB         = new PNGTexOffDB(1024);
         g_magicDB         = new PNGTexOffDB(1024);
         g_standNPCDB      = new PNGTexOffDB(1024);
