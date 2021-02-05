@@ -18,6 +18,7 @@
 
 #pragma once
 #include "widget.hpp"
+#include "sysconst.hpp"
 #include "labelboard.hpp"
 #include "tritexbutton.hpp"
 
@@ -25,8 +26,38 @@ class ProcessRun;
 class PlayerStatusBoard: public Widget
 {
     private:
+        struct WearGrid
+        {
+            int x = 0;
+            int y = 0;
+            int w = SYS_INVGRIDPW;
+            int h = SYS_INVGRIDPH;
+        };
+
+        enum WearGridIndex: int
+        {
+            GRID_NONE  = 0,
+            GRID_BEGIN = 1,
+            GRID_DRESS = 1,
+            GRID_HELMET,
+            GRID_WEAPON,
+            GRID_SHOES,
+            GRID_NECKLACE,
+            GRID_ARMRING_L,
+            GRID_ARMRING_R,
+            GRID_RING_L,
+            GRID_RING_R,
+            GRID_TORCH,
+            GRID_CHARM,
+            GRID_END,
+        };
+
+    private:
         static constexpr int m_equipCharX =  90;
         static constexpr int m_equipCharY = 200;
+
+    private:
+        const std::array<WearGrid, GRID_END> m_gridList;
 
     private:
         TritexButton m_closeButton;

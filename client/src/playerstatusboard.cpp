@@ -16,16 +16,19 @@
  * =====================================================================================
  */
 
+#include <type_traits>
 #include "pngtexdb.hpp"
 #include "sdldevice.hpp"
 #include "processrun.hpp"
 #include "dbcomrecord.hpp"
 #include "pngtexoffdb.hpp"
 #include "inventoryboard.hpp"
+#include "clientargparser.hpp"
 
 extern PNGTexDB *g_progUseDB;
 extern PNGTexOffDB *g_equipDB;
 extern SDLDevice *g_sdlDevice;
+extern ClientArgParser *g_clientArgParser;
 
 PlayerStatusBoard::PlayerStatusBoard(int argX, int argY, ProcessRun *runPtr, Widget *widgetPtr, bool autoDelete)
     : Widget
@@ -38,6 +41,52 @@ PlayerStatusBoard::PlayerStatusBoard(int argX, int argY, ProcessRun *runPtr, Wid
           widgetPtr,
           autoDelete
       }
+    , m_gridList([this]()
+      {
+          std::remove_cvref_t<decltype(this->m_gridList)> gridList;
+          gridList.fill({});
+
+          gridList[GRID_DRESS] = WearGrid
+          {
+              .x = m_equipCharX -   0,
+              .y = m_equipCharY - 100,
+              .w =  60,
+              .h = 110,
+          };
+
+          gridList[GRID_HELMET] = WearGrid
+          {
+              .x = m_equipCharX +  15,
+              .y = m_equipCharY - 130,
+              .w = 20,
+              .h = 15,
+          };
+
+          gridList[GRID_WEAPON] = WearGrid
+          {
+              .x = m_equipCharX -  50,
+              .y = m_equipCharY - 120,
+              .w = 45,
+              .h = 90,
+          };
+
+          gridList[GRID_SHOES] = WearGrid
+          {
+              .x =  10,
+              .y = 235,
+              .h =  67,
+          };
+
+          gridList[GRID_NECKLACE ] = WearGrid{.x = 168, .y =  88, };
+          gridList[GRID_ARMRING_L] = WearGrid{.x =  10, .y = 155, };
+          gridList[GRID_ARMRING_R] = WearGrid{.x = 168, .y = 155, };
+          gridList[GRID_RING_L   ] = WearGrid{.x =  10, .y = 195, };
+          gridList[GRID_RING_R   ] = WearGrid{.x = 168, .y = 195, };
+          gridList[GRID_TORCH    ] = WearGrid{.x =  90, .y = 265, };
+          gridList[GRID_CHARM    ] = WearGrid{.x = 130, .y = 265, };
+
+          return gridList;
+      }())
 
     , m_closeButton
       {
@@ -153,6 +202,12 @@ void PlayerStatusBoard::drawEx(int dstX, int dstY, int, int, int, int) const
     m_closeButton.draw();
     for(auto buttonPtr: m_elemStatusList){
         buttonPtr->draw();
+    }
+
+    if(g_clientArgParser->debugPlayerStatusBoard){
+        for(size_t i = GRID_BEGIN; i < GRID_END; ++i){
+            g_sdlDevice->drawRectangle(colorf::BLUE + 255, x() + m_gridList[i].x, y() + m_gridList[i].y, m_gridList[i].w, m_gridList[i].h);
+        }
     }
 }
 
