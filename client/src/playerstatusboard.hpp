@@ -25,7 +25,7 @@ class ProcessRun;
 class PlayerStatusBoard: public Widget
 {
     private:
-        static constexpr int m_equipCharX = 100;
+        static constexpr int m_equipCharX =  90;
         static constexpr int m_equipCharY = 200;
 
     private:

@@ -134,15 +134,23 @@ void PlayerStatusBoard::drawEx(int dstX, int dstY, int, int, int, int) const
         }
     }
 
-    if(myHeroPtr->hair() >= HAIR_BEGIN){
-        if(auto [texPtr, dx, dy] = g_equipDB->Retrieve((myHeroPtr->Gender() ? 0X0000003C : 0X00000046) + myHeroPtr->hair() - HAIR_BEGIN); texPtr){
-            SDLDeviceHelper::EnableTextureModColor enableColor(texPtr, myHeroPtr->hairColor());
-            g_sdlDevice->drawTexture(texPtr, dstX + m_equipCharX + dx, dstY + m_equipCharY + dy);
+    if(const auto helmetItemID = myHeroPtr->helmet()){
+        if(const auto useGfxIndex = DBCOM_ITEMRECORD(helmetItemID).useGfxID; useGfxIndex > 0){
+            if(auto [texPtr, dx, dy] = g_equipDB->Retrieve(0X01000000 + DBCOM_ITEMRECORD(helmetItemID).pkgGfxID); texPtr){
+                g_sdlDevice->drawTexture(texPtr, dstX + m_equipCharX + dx, dstY + m_equipCharY + dy);
+            }
+        }
+    }
+    else{
+        if(myHeroPtr->hair() >= HAIR_BEGIN){
+            if(auto [texPtr, dx, dy] = g_equipDB->Retrieve((myHeroPtr->Gender() ? 0X0000003C : 0X00000046) + myHeroPtr->hair() - HAIR_BEGIN); texPtr){
+                SDLDeviceHelper::EnableTextureModColor enableColor(texPtr, myHeroPtr->hairColor());
+                g_sdlDevice->drawTexture(texPtr, dstX + m_equipCharX + dx, dstY + m_equipCharY + dy);
+            }
         }
     }
 
     m_closeButton.draw();
-
     for(auto buttonPtr: m_elemStatusList){
         buttonPtr->draw();
     }

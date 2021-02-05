@@ -110,7 +110,7 @@ void helmetWil2PNG(bool bGender, int nIndex,
             for(int nDirection = 0; nDirection < 8; ++nDirection){
                 for(int nFrame = 0; nFrame < 10; ++nFrame){
 
-                    const int nHelmetIndex = nHelmet * 3000 + nMotion * 80 + nDirection * 10 + nFrame + 1;
+                    const int nHelmetIndex = nHelmet * 3000 + nMotion * 80 + nDirection * 10 + nFrame;
                     if(true
                             && stHelmetWilPackage.SetIndex(nHelmetIndex)
                             && stHelmetWilPackage.CurrentImageValid()){
