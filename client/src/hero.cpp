@@ -46,7 +46,7 @@ Hero::Hero(uint64_t uid, uint32_t dbid, bool gender, uint32_t weapon, uint32_t n
     , m_DBID(dbid)
     , m_gender(gender)
     , m_horse(0)
-    , m_helmet(DBCOM_ITEMID(u8"青铜头盔"))
+    , m_helmet(DBCOM_ITEMID(u8"骷髅头盔"))
     , m_weapon(weapon)
     , m_hair(2)
     , m_hairColor(colorf::GREEN + 255)
