@@ -78,8 +78,8 @@ PlayerStatusBoard::PlayerStatusBoard(int argX, int argY, ProcessRun *runPtr, Wid
           gridList[WLG_SHOES] = WearGrid
           {
               .x = 10,
-              .y = 235,
-              .h = 67,
+              .y = 240,
+              .h = 56,
               .type = u8"鞋",
           };
 
@@ -209,7 +209,7 @@ void PlayerStatusBoard::drawEx(int, int, int, int, int, int) const
         if(auto texPtr = g_itemDB->Retrieve(DBCOM_ITEMRECORD(m_processRun->getMyHero()->getWLGridItemID(i)).pkgGfxID | 0X01000000)){
             const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);
             const int dstX = x() + m_gridList[i].x + (m_gridList[i].w - texW) / 2;
-            const int dstY = y() + m_gridList[i].y + (m_gridList[i].h - texH) / 2;
+            const int dstY = y() + m_gridList[i].y + (m_gridList[i].h - texH) / (i == WLG_SHOES ? 1 : 2);
             g_sdlDevice->drawTexture(texPtr, dstX, dstY);
         }
     }
