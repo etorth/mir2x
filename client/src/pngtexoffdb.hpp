@@ -94,7 +94,7 @@ class PNGTexOffDB: public innDB<uint32_t, PNGTexOffEntry>
             std::vector<uint8_t> stBuf;
             PNGTexOffEntry stEntry {nullptr, 0, 0};
 
-            if(auto szFileName = m_zsdbPtr->Decomp(hexstr::to_string<uint32_t, 4>(nKey, szKeyString, true), 8, &stBuf); szFileName && (std::strlen(szFileName) >= 18)){
+            if(auto szFileName = m_zsdbPtr->decomp(hexstr::to_string<uint32_t, 4>(nKey, szKeyString, true), 8, &stBuf); szFileName && (std::strlen(szFileName) >= 18)){
                 //
                 // [0 ~ 7] [8] [9] [10 ~ 13] [14 ~ 17]
                 //  <KEY>  <S> <S>   <+DX>     <+DY>

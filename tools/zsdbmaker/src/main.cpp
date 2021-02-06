@@ -18,209 +18,188 @@
 #include <cstdio>
 #include <fstream>
 #include <cinttypes>
+#include "strf.hpp"
 #include "zsdb.hpp"
+#include "totype.hpp"
+#include "fflerror.hpp"
 #include "argparser.hpp"
 
-static int cmd_help()
+static void cmd_help()
 {
     std::printf("--help\n");
     std::printf("--create-db\n");
+    std::printf("--prefix-index\n");
     std::printf("--list\n");
     std::printf("--decomp-db\n");
-    std::printf("--input-data-dir\n");
+    std::printf("--input-dir\n");
     std::printf("--input-dict\n");
-
-    return 0;
+    std::printf("--input-file-name-regex\n");
 }
 
-static bool has_option(const argh::parser &cmd, const std::string &opt)
+static void cmd_create_db(const arg_parser &cmd)
 {
-    if(opt.empty()){
-        throw std::invalid_argument("call has_option() with empty option");
-    }
-
-    return cmd[opt] || cmd(opt);
-}
-
-static int cmd_create_db(const argh::parser &cmd)
-{
-    auto szDBOutputName = [&cmd]() -> std::string
+    const auto outputFileName = [&cmd]() -> std::string
     {
         if(cmd["create-db"]){
             return "out.zsdb";
-        }else{
+        }
+        else{
             if(cmd("create-db").str().empty()){
                 return "out.zsdb";
-            }else{
+            }
+            else{
                 return cmd("create-db").str();
             }
         }
     }();
 
-    auto szFileNameRegex = [&cmd]() -> std::string
+    const auto inputFileNameRegex = [&cmd]() -> std::string
     {
-        if(!has_option(cmd, "input-file-name-regex")){
+        if(!cmd.has_option("input-file-name-regex")){
             return "";
         }
 
-        if(cmd["input-file-name-regex"] || cmd("input-file-name").str().empty()){
-            throw std::invalid_argument("input-file-name-regex requires an argument");
+        if(cmd["input-file-name-regex"] || cmd("input-file-name-regex").str().empty()){
+            throw fflerror("input-file-name-regex requires an argument");
         }
-
-        return cmd("input-file-name").str();
+        return cmd("input-file-name-regex").str();
     }();
 
-    auto szDBInputDirName = [&cmd]() -> std::string
+    const auto inputDirName = [&cmd]() -> std::string
     {
-        if(!has_option(cmd, "input-data-dir")){
+        if(!cmd.has_option("input-dir")){
             return ".";
         }
 
-        if(cmd["input-data-dir"] || cmd("input-data-dir").str().empty()){
-            throw std::invalid_argument("input-data-dir requires an argument");
+        if(cmd["input-dir"] || cmd("input-dir").str().empty()){
+            throw fflerror("input-dir requires an argument");
         }
-
-        return cmd("input-data-dir").str();
+        return cmd("input-dir").str();
     }();
 
-    auto szDictInputName = [&cmd]() -> std::string
+    const auto inputDictName = [&cmd]() -> std::string
     {
-        if(!has_option(cmd, "input-dict")){
+        if(!cmd.has_option("input-dict")){
             return "";
         }
 
         if(cmd["input-dict"] || cmd("input-dict").str().empty()){
-            throw std::invalid_argument("input-dict requires an argument");
+            throw fflerror("input-dict requires an argument");
         }
-
         return cmd("input-dict").str();
     }();
 
-    auto fCompressThreshold = [&cmd]() -> double
+    const auto compressThreshold = [&cmd]() -> double
     {
-        if(!has_option(cmd, "compress-threshold")){
+        if(!cmd.has_option("compress-threshold")){
             return 0.90;
         }
 
         if(cmd["compress-threshold"] || cmd("compress-threshold").str().empty()){
-            throw std::invalid_argument("compress-threshold requires an argument");
+            throw fflerror("compress-threshold requires an argument");
         }
 
-        double fCompressThreshold; cmd("compress-threshold", 0.90) >> fCompressThreshold;
-        return fCompressThreshold;
+        double threshold;
+        cmd("compress-threshold", 0.90) >> threshold;
+        return threshold;
     }();
 
-    if(ZSDB::BuildDB(
-                szDBOutputName.c_str(),
-                szFileNameRegex.empty() ? nullptr : szFileNameRegex.c_str(),
-                szDBInputDirName.c_str(),
-                szDictInputName.empty() ? nullptr : szDictInputName.c_str(),
-                fCompressThreshold
-                )){
-        return 0;
-    }
-
-    std::printf("build zsdb failed...\n");
-    return -1;
+    ZSDB::buildDB(outputFileName.c_str(), inputFileNameRegex.c_str(), inputDirName.c_str(), inputDictName.c_str(), compressThreshold);
 }
 
-static int cmd_list(const argh::parser &cmd)
+static void cmd_list(const arg_parser &cmd)
 {
-    auto szDBFileName = [&cmd]() -> std::string
+    auto dbFileName = [&cmd]() -> std::string
     {
         if(cmd["list"] || cmd("list").str().empty()){
-            throw std::invalid_argument("option list requires an argument");
+            throw fflerror("option list requires an argument");
         }
 
         return cmd("list").str();
     }();
 
-    ZSDB stZSDB(szDBFileName.c_str());
-    auto stEntryList = stZSDB.GetEntryList();
+    ZSDB db(dbFileName.c_str());
+    const auto entryList = db.getEntryList();
 
-    auto szRegex = [&cmd]() -> std::string
+    auto regexStr = [&cmd]() -> std::string
     {
-        if(!has_option(cmd, "data-name-regex")){
+        if(!cmd.has_option("data-name-regex")){
             return "";
         }
 
-        if(auto szRegex = cmd("data-name-regex").str(); !szRegex.empty()){
-            return szRegex;
+        if(auto regexStr = cmd("data-name-regex").str(); !regexStr.empty()){
+            return regexStr;
         }
-
-        throw std::invalid_argument("option --data-name-regex requires an argument");
+        throw fflerror("option --data-name-regex requires an argument");
     }();
 
-    std::regex stFileNameReg(szRegex.empty() ? ".*" : szRegex.c_str());
-    for(auto rstEntry: stEntryList){
-        if(!szRegex.empty()){
-            if(!std::regex_match(rstEntry.FileName, stFileNameReg)){
+    std::regex fileNameReg(regexStr.empty() ? ".*" : regexStr.c_str());
+    for(const auto &entry: entryList){
+        if(!regexStr.empty()){
+            if(!std::regex_match(entry.fileName, fileNameReg)){
                 continue;
             }
         }
-        std::printf("%32s %8zu %8" PRIu64 "\n", rstEntry.FileName, rstEntry.Length, rstEntry.Attribute);
+        std::printf("%32s %8zu %8llu\n", entry.fileName, entry.length, to_llu(entry.attribute));
     }
-    return 0;
 }
 
-static int cmd_uncomp_db(const argh::parser &cmd)
+static void cmd_uncomp_db(const arg_parser &cmd)
 {
-    auto szDBFileName = [&cmd]() -> std::string
+    const auto dbFileName = [&cmd]() -> std::string
     {
         if(cmd["decomp-db"] || cmd("decomp-db").str().empty()){
-            throw std::invalid_argument("option --decomp-db requires an argument");
+            throw fflerror("option --decomp-db requires an argument");
         }
-
         return cmd("decomp-db").str();
     }();
 
-    auto szDataNameRegex = [&cmd]() -> std::string
-    {
-        if(cmd["decomp-db"] || cmd("decomp-db").str().empty()){
-            throw std::invalid_argument("option --decomp-db requires an argument");
-        }
+    ZSDB db(dbFileName.c_str());
+    const auto entryList = db.getEntryList();
+    const bool prefixIndexEnabled = cmd.has_option("prefix-index");
 
-        return cmd("decomp-db").str();
-    }();
+    uint64_t prefixIndex = 0;
+    std::string prefixIndexFileName;
+    std::vector<uint8_t> readBuf;
 
+    for(const auto &entry: entryList){
+        if(db.decomp(entry.fileName, 0, &readBuf)){
+            const auto fileName = [prefixIndexEnabled, &entry, &prefixIndex, &prefixIndexFileName]() -> const char *
+            {
+                if(prefixIndexEnabled){
+                    return str_printf(prefixIndexFileName, "%016llu_%s", to_llu(prefixIndex++), entry.fileName).c_str();
+                }
+                else{
+                    return entry.fileName;
+                }
+            }();
 
-    ZSDB stZSDB(szDBFileName.c_str());
-    auto stEntryList = stZSDB.GetEntryList();
-
-    for(auto rstEntry: stEntryList){
-        std::vector<uint8_t> stReadBuf;
-        if(stZSDB.Decomp(rstEntry.FileName, 0, &stReadBuf)){
-            std::ofstream f(rstEntry.FileName, std::ios::out | std::ios::binary);
-            f.write((const char *)(stReadBuf.data()), stReadBuf.size());
-            std::printf("%32s %8zu -> %8zu [%3d%%] %8" PRIu64 "\n", rstEntry.FileName, rstEntry.Length, stReadBuf.size(), (int)(rstEntry.Length * 100 / stReadBuf.size()), rstEntry.Attribute);
+            auto fptr = make_fileptr(fileName, "wb");
+            if(std::fwrite(readBuf.data(), readBuf.size(), 1, fptr.get()) != 1){
+                throw fflerror("failed to write to file: %s, err = %s", fileName, std::strerror(errno));
+            }
+            std::printf("%32s %8zu -> %8zu [%3d%%] %8llu\n", entry.fileName, entry.length, readBuf.size(), (int)(entry.length * 100 / readBuf.size()), to_llu(entry.attribute));
         }
     }
-    return 0;
 }
 
 int main(int argc, char *argv[])
 {
-    try{
-        arg_parser cmd(argc, argv);
-        if(cmd.has_option("help")){
-            return cmd_help();
-        }
-
-        if(cmd.has_option("create-db")){
-            return cmd_create_db(cmd);
-        }
-
-        if(cmd.has_option("list")){
-            return cmd_list(cmd);
-        }
-
-        if(has_option(cmd, "decomp-db")){
-            return cmd_uncomp_db(cmd);
-        }
-
-    }catch(std::exception &e){
-        std::printf("%s\n", e.what());
-        return -1;
+    arg_parser cmd(argc, argv);
+    if(cmd.has_option("help")){
+        cmd_help();
+    }
+    else if(cmd.has_option("create-db")){
+        cmd_create_db(cmd);
+    }
+    else if(cmd.has_option("list")){
+        cmd_list(cmd);
+    }
+    else if(cmd.has_option("decomp-db")){
+        cmd_uncomp_db(cmd);
+    }
+    else{
+        cmd_help();
     }
     return 0;
 }

@@ -85,7 +85,7 @@ class FontexDB: public innDB<uint64_t, FontexEntry>
             {
                 char szFontIndexString[8];
                 std::vector<uint8_t> stFontDataBuf;
-                if(m_zsdbPtr->Decomp(hexstr::to_string<uint8_t, 1>(nFontIndex, szFontIndexString, true), 2, &stFontDataBuf)){
+                if(m_zsdbPtr->decomp(hexstr::to_string<uint8_t, 1>(nFontIndex, szFontIndexString, true), 2, &stFontDataBuf)){
                     return stFontDataBuf;
                 }
                 return {};
@@ -120,7 +120,7 @@ class FontexDB: public innDB<uint64_t, FontexEntry>
         {
             try{
                 m_zsdbPtr = std::make_unique<ZSDB>(szFontexDBName);
-                m_entryList = m_zsdbPtr->GetEntryList();
+                m_entryList = m_zsdbPtr->getEntryList();
             }catch(...){
                 return false;
             }
@@ -155,8 +155,8 @@ class FontexDB: public innDB<uint64_t, FontexEntry>
 
             const auto fileName = str_printf("%s.TTF", fontName);
             for(const auto &entry: m_entryList){
-                if(fileName == entry.FileName + 3){
-                    return hexstr::to_hex<uint8_t, 1>(entry.FileName);
+                if(fileName == entry.fileName + 3){
+                    return hexstr::to_hex<uint8_t, 1>(entry.fileName);
                 }
             }
             return 0;

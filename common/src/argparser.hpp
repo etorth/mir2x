@@ -44,7 +44,6 @@ class arg_parser: public argh::parser
             if(flag || parm){
                 return 1;
             }
-
             return 0;
         }
 
@@ -58,7 +57,6 @@ class arg_parser: public argh::parser
                 print_message(str_printf("--%s ignores its value: %s", opt.c_str(), (*this)(opt).str().c_str()));
                 return true;
             }
-
             return (*this)[opt];
         }
 

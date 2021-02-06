@@ -51,7 +51,7 @@ namespace uidf
 
     uint64_t buildMapUID(uint32_t);
     uint64_t buildNPCUID(uint16_t);
-    uint64_t buildPlayerUID(uint32_t);
+    uint64_t buildPlayerUID(uint32_t, bool, std::initializer_list<int>);
     uint64_t buildMonsterUID(uint32_t);
 
     uint64_t buildEtcUID();
@@ -88,6 +88,13 @@ namespace uidf
     }
 
     std::string getUIDString(uint64_t);
+}
+
+namespace uidf
+{
+    bool hasPlayerJob(uint64_t, int);
+    bool getPlayerGender(uint64_t);
+    uint32_t getPlayerDBID(uint64_t);
 }
 
 namespace uidf

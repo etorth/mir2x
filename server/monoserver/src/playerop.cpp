@@ -56,18 +56,23 @@ void Player::on_MPK_BINDCHANNEL(const MessagePack &rstMPK)
     SMLoginOK smLOK;
     std::memset(&smLOK, 0, sizeof(smLOK));
 
-    smLOK.UID       = UID();
-    smLOK.DBID      = DBID();
-    smLOK.MapID     = m_map->ID();
-    smLOK.X         = X();
-    smLOK.Y         = Y();
-    smLOK.Male      = true;
+    smLOK.UID   = UID();
+    smLOK.MapID = m_map->ID();
+    smLOK.Level = Level();
+
+    smLOK.X = X();
+    smLOK.Y = Y();
     smLOK.Direction = Direction();
-    smLOK.JobID     = JobID();
-    smLOK.Level     = Level();
-    smLOK.dress     = DBCOM_ITEMID(u8"布衣（男）");
-    smLOK.weapon    = DBCOM_ITEMID(u8"青铜剑");
+
+    smLOK.look = getPlayerLook();
     postNetMessage(SM_LOGINOK, smLOK);
+
+    SMPlayerWear smPW;
+    std::memset(&smPW, 0, sizeof(smPW));
+
+    smPW.uid = UID();
+    smPW.wear = getPlayerWear();
+    postNetMessage(SM_PLAYERWEAR, smPW);
 
     const auto versionStr = str_printf(u8"服务器版本号：%s", getBuildSignature());
     postNetMessage(SM_TEXT, versionStr.data(), versionStr.size() + 1);
@@ -357,6 +362,24 @@ void Player::on_MPK_OFFLINE(const MessagePack &rstMPK)
     std::memcpy(&amO, rstMPK.Data(), sizeof(amO));
 
     reportOffline(amO.UID, amO.MapID);
+}
+
+void Player::on_MPK_QUERYPLAYERLOOK(const MessagePack &mpk)
+{
+    SMPlayerLook smPL;
+    std::memset(&smPL, 0, sizeof(smPL));
+
+    smPL.look = getPlayerLook();
+    sendNetPackage(mpk.from(), SM_PLAYERLOOK, smPL);
+}
+
+void Player::on_MPK_QUERYPLAYERWEAR(const MessagePack &mpk)
+{
+    SMPlayerWear smPW;
+    std::memset(&smPW, 0, sizeof(smPW));
+
+    smPW.wear = getPlayerWear();
+    sendNetPackage(mpk.from(), SM_PLAYERWEAR, smPW);
 }
 
 void Player::on_MPK_REMOVEGROUNDITEM(const MessagePack &rstMPK)

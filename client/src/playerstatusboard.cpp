@@ -17,6 +17,7 @@
  */
 
 #include <type_traits>
+#include "uidf.hpp"
 #include "pngtexdb.hpp"
 #include "sdldevice.hpp"
 #include "processrun.hpp"
@@ -25,6 +26,7 @@
 #include "inventoryboard.hpp"
 #include "clientargparser.hpp"
 
+extern PNGTexDB *g_itemDB;
 extern PNGTexDB *g_progUseDB;
 extern PNGTexOffDB *g_equipDB;
 extern SDLDevice *g_sdlDevice;
@@ -46,7 +48,7 @@ PlayerStatusBoard::PlayerStatusBoard(int argX, int argY, ProcessRun *runPtr, Wid
           std::remove_cvref_t<decltype(this->m_gridList)> gridList;
           gridList.fill({});
 
-          gridList[GRID_DRESS] = WearGrid
+          gridList[WEAR_DRESS] = WearGrid
           {
               .x = m_equipCharX -   0,
               .y = m_equipCharY - 100,
@@ -54,7 +56,7 @@ PlayerStatusBoard::PlayerStatusBoard(int argX, int argY, ProcessRun *runPtr, Wid
               .h = 110,
           };
 
-          gridList[GRID_HELMET] = WearGrid
+          gridList[WEAR_HELMET] = WearGrid
           {
               .x = m_equipCharX +  15,
               .y = m_equipCharY - 130,
@@ -62,7 +64,7 @@ PlayerStatusBoard::PlayerStatusBoard(int argX, int argY, ProcessRun *runPtr, Wid
               .h = 15,
           };
 
-          gridList[GRID_WEAPON] = WearGrid
+          gridList[WEAR_WEAPON] = WearGrid
           {
               .x = m_equipCharX -  50,
               .y = m_equipCharY - 120,
@@ -70,20 +72,20 @@ PlayerStatusBoard::PlayerStatusBoard(int argX, int argY, ProcessRun *runPtr, Wid
               .h = 90,
           };
 
-          gridList[GRID_SHOES] = WearGrid
+          gridList[WEAR_SHOES] = WearGrid
           {
               .x =  10,
               .y = 235,
               .h =  67,
           };
 
-          gridList[GRID_NECKLACE ] = WearGrid{.x = 168, .y =  88, };
-          gridList[GRID_ARMRING_L] = WearGrid{.x =  10, .y = 155, };
-          gridList[GRID_ARMRING_R] = WearGrid{.x = 168, .y = 155, };
-          gridList[GRID_RING_L   ] = WearGrid{.x =  10, .y = 195, };
-          gridList[GRID_RING_R   ] = WearGrid{.x = 168, .y = 195, };
-          gridList[GRID_TORCH    ] = WearGrid{.x =  90, .y = 265, };
-          gridList[GRID_CHARM    ] = WearGrid{.x = 130, .y = 265, };
+          gridList[WEAR_NECKLACE ] = WearGrid{.x = 168, .y =  88, };
+          gridList[WEAR_ARMRING_L] = WearGrid{.x =  10, .y = 155, };
+          gridList[WEAR_ARMRING_R] = WearGrid{.x = 168, .y = 155, };
+          gridList[WEAR_RING_L   ] = WearGrid{.x =  10, .y = 195, };
+          gridList[WEAR_RING_R   ] = WearGrid{.x = 168, .y = 195, };
+          gridList[WEAR_TORCH    ] = WearGrid{.x =  90, .y = 265, };
+          gridList[WEAR_CHARM    ] = WearGrid{.x = 130, .y = 265, };
 
           return gridList;
       }())
@@ -156,46 +158,55 @@ void PlayerStatusBoard::update(double)
 {
 }
 
-void PlayerStatusBoard::drawEx(int dstX, int dstY, int, int, int, int) const
+void PlayerStatusBoard::drawEx(int, int, int, int, int, int) const
 {
     if(auto texPtr = g_progUseDB->Retrieve(0X06000000)){
-        g_sdlDevice->drawTexture(texPtr, dstX, dstY);
+        g_sdlDevice->drawTexture(texPtr, x(), y());
     }
 
     const auto myHeroPtr = m_processRun->getMyHero();
-    if(auto [texPtr, dx, dy] = g_equipDB->Retrieve(myHeroPtr->Gender() ? 0X00000000 : 0X00000001); texPtr){
-        g_sdlDevice->drawTexture(texPtr, dstX + m_equipCharX + dx, dstY + m_equipCharY + dy);
+    if(auto [texPtr, dx, dy] = g_equipDB->Retrieve(uidf::getPlayerGender(myHeroPtr->UID()) ? 0X00000000 : 0X00000001); texPtr){
+        g_sdlDevice->drawTexture(texPtr, x() + m_equipCharX + dx, y() + m_equipCharY + dy);
     }
 
-    if(const auto dressItemID = myHeroPtr->Dress()){
+    if(const auto dressItemID = myHeroPtr->getPlayerLook().dress){
         if(const auto useGfxIndex = DBCOM_ITEMRECORD(dressItemID).useGfxID; useGfxIndex > 0){
-            if(auto [texPtr, dx, dy] = g_equipDB->Retrieve((myHeroPtr->Gender() ? 0X010003AC : 0X010003B6) + useGfxIndex - 1); texPtr){
-                g_sdlDevice->drawTexture(texPtr, dstX + m_equipCharX + dx, dstY + m_equipCharY + dy);
+            if(auto [texPtr, dx, dy] = g_equipDB->Retrieve((uidf::getPlayerGender(myHeroPtr->UID()) ? 0X010003AC : 0X010003B6) + useGfxIndex - 1); texPtr){
+                g_sdlDevice->drawTexture(texPtr, x() + m_equipCharX + dx, y() + m_equipCharY + dy);
             }
         }
     }
 
-    if(const auto weaponItemID = myHeroPtr->Weapon()){
+    if(const auto weaponItemID = myHeroPtr->getPlayerLook().weapon){
         if(const auto useGfxIndex = DBCOM_ITEMRECORD(weaponItemID).useGfxID; useGfxIndex > 0){
             if(auto [texPtr, dx, dy] = g_equipDB->Retrieve(0X01000000 + DBCOM_ITEMRECORD(weaponItemID).pkgGfxID); texPtr){
-                g_sdlDevice->drawTexture(texPtr, dstX + m_equipCharX + dx, dstY + m_equipCharY + dy);
+                g_sdlDevice->drawTexture(texPtr, x() + m_equipCharX + dx, y() + m_equipCharY + dy);
             }
         }
     }
 
-    if(const auto helmetItemID = myHeroPtr->helmet()){
+    if(const auto helmetItemID = myHeroPtr->getPlayerLook().helmet){
         if(const auto useGfxIndex = DBCOM_ITEMRECORD(helmetItemID).useGfxID; useGfxIndex > 0){
             if(auto [texPtr, dx, dy] = g_equipDB->Retrieve(0X01000000 + DBCOM_ITEMRECORD(helmetItemID).pkgGfxID); texPtr){
-                g_sdlDevice->drawTexture(texPtr, dstX + m_equipCharX + dx, dstY + m_equipCharY + dy);
+                g_sdlDevice->drawTexture(texPtr, x() + m_equipCharX + dx, y() + m_equipCharY + dy);
             }
         }
     }
     else{
-        if(myHeroPtr->hair() >= HAIR_BEGIN){
-            if(auto [texPtr, dx, dy] = g_equipDB->Retrieve((myHeroPtr->Gender() ? 0X0000003C : 0X00000046) + myHeroPtr->hair() - HAIR_BEGIN); texPtr){
-                SDLDeviceHelper::EnableTextureModColor enableColor(texPtr, myHeroPtr->hairColor());
-                g_sdlDevice->drawTexture(texPtr, dstX + m_equipCharX + dx, dstY + m_equipCharY + dy);
+        if(myHeroPtr->getPlayerLook().hair >= HAIR_BEGIN){
+            if(auto [texPtr, dx, dy] = g_equipDB->Retrieve((uidf::getPlayerGender(myHeroPtr->UID()) ? 0X0000003C : 0X00000046) + myHeroPtr->getPlayerLook().hair - HAIR_BEGIN); texPtr){
+                SDLDeviceHelper::EnableTextureModColor enableColor(texPtr, myHeroPtr->getPlayerLook().hairColor);
+                g_sdlDevice->drawTexture(texPtr, x() + m_equipCharX + dx, y() + m_equipCharY + dy);
             }
+        }
+    }
+
+    for(size_t i = WEAR_GRID_BEGIN; i < WEAR_GRID_END; ++i){
+        if(auto texPtr = g_itemDB->Retrieve(DBCOM_ITEMRECORD(getGridItemID(i)).pkgGfxID | 0X01000000)){
+            const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);
+            const int dstX = x() + m_gridList[i].x + (m_gridList[i].w - texW) / 2;
+            const int dstY = y() + m_gridList[i].y + (m_gridList[i].h - texH) / 2;
+            g_sdlDevice->drawTexture(texPtr, dstX, dstY);
         }
     }
 
@@ -205,7 +216,7 @@ void PlayerStatusBoard::drawEx(int dstX, int dstY, int, int, int, int) const
     }
 
     if(g_clientArgParser->debugPlayerStatusBoard){
-        for(size_t i = GRID_BEGIN; i < GRID_END; ++i){
+        for(size_t i = WEAR_BEGIN; i < WEAR_END; ++i){
             g_sdlDevice->drawRectangle(colorf::BLUE + 255, x() + m_gridList[i].x, y() + m_gridList[i].y, m_gridList[i].w, m_gridList[i].h);
         }
     }
@@ -266,5 +277,24 @@ bool PlayerStatusBoard::processEvent(const SDL_Event &event, bool valid)
             {
                 return focusConsume(this, false);
             }
+    }
+}
+
+uint32_t PlayerStatusBoard::getGridItemID(int grid) const
+{
+    if(!(grid >= WEAR_GRID_BEGIN && grid < WEAR_GRID_END)){
+        throw fflerror("bad grid: %d", grid);
+    }
+
+    switch(grid){
+        case WEAR_SHOES    : return m_processRun->getMyHero()->getPlayerWear().shoes;
+        case WEAR_NECKLACE : return m_processRun->getMyHero()->getPlayerWear().necklace;
+        case WEAR_ARMRING_L: return m_processRun->getMyHero()->getPlayerWear().armring[0];
+        case WEAR_ARMRING_R: return m_processRun->getMyHero()->getPlayerWear().armring[1];
+        case WEAR_RING_L   : return m_processRun->getMyHero()->getPlayerWear().ring[0];
+        case WEAR_RING_R   : return m_processRun->getMyHero()->getPlayerWear().ring[1];
+        case WEAR_TORCH    : return m_processRun->getMyHero()->getPlayerWear().torch;
+        case WEAR_CHARM    : return m_processRun->getMyHero()->getPlayerWear().charm;
+        default            : return 0;
     }
 }

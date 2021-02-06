@@ -21,21 +21,16 @@
 #include <cstdio>
 #include <cstdint>
 #include "zstd.h"
+#include "fileptr.hpp"
 
 class ZSDB final
 {
     public:
         struct Entry
         {
-            const char *FileName;
-            size_t      Length;
-            uint64_t    Attribute;
-
-            Entry(const char *szFileName, size_t nLength, uint64_t nAttribute)
-                : FileName(szFileName)
-                , Length(nLength)
-                , Attribute(nAttribute)
-            {}
+            const char *fileName  = nullptr;
+            size_t      length    = 0;
+            uint64_t    attribute = 0;
         };
 
     public:
@@ -48,37 +43,37 @@ class ZSDB final
 #pragma pack(push, 1)
         struct ZSDBHeader
         {
-            uint64_t ZStdVersion;
-            uint64_t EntryNum;
+            uint64_t zstdVersion;
+            uint64_t entryNum;
 
-            uint64_t DictOffset;
-            uint64_t DictLength;
+            uint64_t dictOffset;
+            uint64_t dictLength;
 
-            uint64_t EntryOffset;
-            uint64_t EntryLength;
+            uint64_t entryOffset;
+            uint64_t entryLength;
 
-            uint64_t FileNameOffset;
-            uint64_t FileNameLength;
+            uint64_t fileNameOffset;
+            uint64_t fileNameLength;
 
-            uint64_t StreamOffset;
-            uint64_t StreamLength;
+            uint64_t streamOffset;
+            uint64_t streamLength;
         };
 
         struct InnEntry
         {
-            uint64_t Offset;
-            uint64_t Length;
-            uint64_t FileName;
-            uint64_t Attribute;
+            uint64_t offset;
+            uint64_t length;
+            uint64_t fileName;
+            uint64_t attribute;
         };
 #pragma pack(pop)
 
     private:
-        std::FILE *m_fp;
+        fileptr_t m_fp;
 
     private:
-        ZSTD_DCtx  *m_DCtx;
-        ZSTD_DDict *m_DDict;
+        ZSTD_DCtx  *m_DCtx  = nullptr;
+        ZSTD_DDict *m_DDict = nullptr;
 
     private:
         ZSDBHeader m_header;
@@ -96,17 +91,17 @@ class ZSDB final
         ~ZSDB();
 
     public:
-        const char *Decomp(const char *, size_t, std::vector<uint8_t> *);
+        const char *decomp(const char *, size_t, std::vector<uint8_t> *);
 
     private:
-        bool DecompEntry(const InnEntry &, std::vector<uint8_t> *);
+        bool decompEntry(const InnEntry &, std::vector<uint8_t> *);
 
     private:
-        static const InnEntry &GetErrorEntry();
+        static const InnEntry &getErrorEntry();
 
     public:
-        std::vector<ZSDB::Entry> GetEntryList() const;
+        std::vector<ZSDB::Entry> getEntryList() const;
 
     public:
-        static bool BuildDB(const char *, const char *, const char *, const char *, double);
+        static void buildDB(const char *, const char *, const char *, const char *, double);
 };

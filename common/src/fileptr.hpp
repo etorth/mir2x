@@ -16,12 +16,14 @@
  * =====================================================================================
  */
 
+#pragma once
 #include <cstdio>
 #include <memory>
 #include <cerrno>
 #include <cstring>
 #include <type_traits>
 #include "strf.hpp"
+#include "totype.hpp"
 #include "fflerror.hpp"
 
 inline auto make_fileptr_helper(const char *path, const char *mode)
@@ -41,12 +43,7 @@ inline auto make_fileptr_helper(const char *path, const char *mode)
         // avoid pass standard lib's function pointer
         return std::unique_ptr<std::FILE, decltype(fileptr_deleter)>(fp, fileptr_deleter);
     }
-
-    auto fnSafeStr = [](const char *str) -> const char *
-    {
-        return str ? str : "(null)";
-    };
-    throw fflerror("failed to open file: [%p]%s, mode: [%p]%s: %s", path, fnSafeStr(path), mode, fnSafeStr(path), std::strerror(errno));
+    throw fflerror("failed to open file: [%p]%s, mode: [%p]%s: %s", to_cvptr(path), to_cstr(path), to_cvptr(mode), to_cstr(mode), std::strerror(errno));
 }
 
 inline auto make_fileptr(const char *path, const char *mode)
@@ -59,21 +56,21 @@ inline auto make_fileptr(const char8_t *path, const char *mode)
     return make_fileptr_helper(reinterpret_cast<const char *>(path), mode);
 }
 
-// define a standalone type of fileptr
+// define a standalone type of fileptr_t
 // but can't use it to instantiate an uninitalized object:
 //
-// fileptr p_null;                                // wrong: std::unique<std::FILE, deleter> doesn't have default constructor
-// fileptr p_good = make_fileptr("123.txt", "r"); // good!
+// fileptr_t p_null;                                // wrong: std::unique<std::FILE, deleter> doesn't have default constructor
+// fileptr_t p_good = make_fileptr("123.txt", "r"); // good!
 // 
 //
 // struct test
 // {
-//     fileptr m_good_ptr;
-//     fileptr m_null_ptr;
+//     fileptr_t m_good_ptr;
+//     fileptr_t m_null_ptr;
 //     test()
 //       : m_good_ptr(make_fileptr("123.txt", "r"))    // good
 //       , m_null_ptr(nullptr)                         // wrong
 //       , m_null_ptr()                                // wrong
 //     {}
 // }
-using fileptr = std::invoke_result_t<decltype(&make_fileptr_helper), const char *, const char *>;
+using fileptr_t = std::invoke_result_t<decltype(&make_fileptr_helper), const char *, const char *>;

@@ -24,29 +24,15 @@
 class Hero: public CreatureMovable
 {
     protected:
-        const uint32_t m_DBID;
+        uint8_t m_horse;
+        bool    m_onHorse;
 
     protected:
-        bool     m_gender;
-        uint8_t  m_horse;
-        uint32_t m_helmet;
-        uint32_t m_weapon;
-
-        uint32_t m_hair;
-        uint32_t m_hairColor;
-
-        uint32_t m_dress;
-        uint32_t m_dressColor;
-
-    protected:
-        std::array<uint32_t, 2> m_ring;
-        std::array<uint32_t, 2> m_armRing;
-
-    protected:
-        bool m_onHorse;
+        PlayerLook m_look;
+        PlayerWear m_wear;
 
     public:
-        Hero(uint64_t, uint32_t, bool, uint32_t, uint32_t, ProcessRun *, const ActionNode &);
+        Hero(uint64_t, const PlayerLook &, ProcessRun *, const ActionNode &);
 
     public:
        ~Hero() = default;
@@ -71,36 +57,14 @@ class Hero: public CreatureMovable
         bool parseAction(const ActionNode &) override;
 
     public:
-        bool     Gender   () const { return m_gender   ; }
-        uint8_t  Horse    () const { return m_horse    ; }
-        uint32_t helmet   () const { return m_helmet   ; }
-        uint32_t Weapon   () const { return m_weapon   ; }
-        uint32_t DBID     () const { return m_DBID     ; }
-        uint32_t Dress    () const { return m_dress    ; }
-        uint32_t hair     () const { return m_hair     ; }
-        uint32_t hairColor() const { return m_hairColor; }
-
-    public:
-        std::array<uint32_t, 2> armRing() const
+        uint8_t horse() const
         {
-            return m_armRing;
-        }
-
-        std::array<uint32_t, 2> ring() const
-        {
-            return m_ring;
+            return m_horse;
         }
 
     public:
-        void Dress(uint32_t nDress)
-        {
-            m_dress = nDress;
-        }
-
-        void Weapon(uint32_t nWeapon)
-        {
-            m_weapon = nWeapon;
-        }
+        const PlayerLook & getPlayerLook() const { return m_look; }
+        const PlayerWear & getPlayerWear() const { return m_wear; }
 
     public:
         bool moving();
@@ -146,4 +110,25 @@ class Hero: public CreatureMovable
 
     public:
         ClientCreature::TargetBox getTargetBox() const override;
+
+    public:
+        void setWear(const PlayerWear &wear)
+        {
+            m_wear = wear;
+        }
+
+        void setLook(const PlayerLook &look)
+        {
+            m_look = look;
+        }
+
+        void setDress(uint32_t dress)
+        {
+            m_look.dress = dress;
+        }
+
+        void setWeapon(uint32_t weapon)
+        {
+            m_look.weapon = weapon;
+        }
 };

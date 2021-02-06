@@ -81,12 +81,12 @@ bool str_nonempty(const char8_t *s)
     } \
 }while(0)
 
-const std::string &str_vprintf(std::string &s, const char *format, va_list ap)
+std::string &str_vprintf(std::string &s, const char *format, va_list ap)
 {
     _macro_str_vprintf_body_s(s, format, ap);
 }
 
-const std::u8string &str_vprintf(std::u8string &s, const char8_t *format, va_list ap)
+std::u8string &str_vprintf(std::u8string &s, const char8_t *format, va_list ap)
 {
     _macro_str_vprintf_body_s(s, format, ap);
 }
@@ -122,33 +122,28 @@ std::u8string str_vprintf(const char8_t *format, va_list ap)
     _macro_str_vprintf_body(std::u8string, format, ap);
 }
 
-#define _macro_str_printf_body(type, format) do \
-{ \
-    if(!format){ \
-        throw std::invalid_argument("str_printf(nullptr, ...)"); \
-    } \
-\
-    va_list ap; \
-    va_start(ap, format); \
-\
-    try{ \
-        type s; \
-        str_vprintf(s, format, ap); \
-        va_end(ap); \
-        return s; \
-    } \
-    catch(...){ \
-        va_end(ap); \
-        throw; \
-    } \
-}while(0)
-
 std::string str_printf(const char *format, ...)
 {
-    _macro_str_printf_body(std::string, format);
+    std::string s;
+    str_format(format, s);
+    return s;
 }
 
 std::u8string str_printf(const char8_t *format, ...)
 {
-    _macro_str_printf_body(std::u8string, format);
+    std::u8string s;
+    str_format(format, s);
+    return s;
+}
+
+std::string &str_printf(std::string &s, const char *format, ...)
+{
+    str_format(format, s);
+    return s;
+}
+
+std::u8string &str_printf(std::u8string &s, const char8_t *format, ...)
+{
+    str_format(format, s);
+    return s;
 }

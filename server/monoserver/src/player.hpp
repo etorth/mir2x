@@ -41,6 +41,10 @@ class Player final: public CharObject
         uint32_t m_level;
 
     protected:
+        PlayerLook m_look;
+        PlayerWear m_wear;
+
+    protected:
         uint32_t m_gold;
         std::vector<CommonItem> m_inventory;
 
@@ -139,6 +143,8 @@ class Player final: public CharObject
         void on_MPK_SHOWDROPITEM(const MessagePack &);
         void on_MPK_QUERYCORECORD(const MessagePack &);
         void on_MPK_QUERYLOCATION(const MessagePack &);
+        void on_MPK_QUERYPLAYERLOOK(const MessagePack &);
+        void on_MPK_QUERYPLAYERWEAR(const MessagePack &);
         void on_MPK_REMOVEGROUNDITEM(const MessagePack &);
 
     private:
@@ -147,6 +153,8 @@ class Player final: public CharObject
         void net_CM_REQUESTMAGICDAMAGE(uint8_t, const uint8_t *, size_t);
         void net_CM_QUERYCORECORD     (uint8_t, const uint8_t *, size_t);
         void net_CM_QUERYSELLITEM     (uint8_t, const uint8_t *, size_t);
+        void net_CM_QUERYPLAYERLOOK   (uint8_t, const uint8_t *, size_t);
+        void net_CM_QUERYPLAYERWEAR   (uint8_t, const uint8_t *, size_t);
         void net_CM_ACTION            (uint8_t, const uint8_t *, size_t);
         void net_CM_PICKUP            (uint8_t, const uint8_t *, size_t);
         void net_CM_PING              (uint8_t, const uint8_t *, size_t);
@@ -236,4 +244,15 @@ class Player final: public CharObject
 
     protected:
         void checkFriend(uint64_t, std::function<void(int)>) override;
+
+    public:
+        const auto &getPlayerLook() const
+        {
+            return m_look;
+        }
+
+        const auto &getPlayerWear() const
+        {
+            return m_wear;
+        }
 };

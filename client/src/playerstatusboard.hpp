@@ -36,20 +36,24 @@ class PlayerStatusBoard: public Widget
 
         enum WearGridIndex: int
         {
-            GRID_NONE  = 0,
-            GRID_BEGIN = 1,
-            GRID_DRESS = 1,
-            GRID_HELMET,
-            GRID_WEAPON,
-            GRID_SHOES,
-            GRID_NECKLACE,
-            GRID_ARMRING_L,
-            GRID_ARMRING_R,
-            GRID_RING_L,
-            GRID_RING_R,
-            GRID_TORCH,
-            GRID_CHARM,
-            GRID_END,
+            WEAR_NONE  = 0,
+            WEAR_BEGIN = 1,
+            WEAR_DRESS = 1,
+            WEAR_HELMET,
+            WEAR_WEAPON,
+
+            WEAR_GRID_BEGIN,
+            WEAR_SHOES = WEAR_GRID_BEGIN,
+            WEAR_NECKLACE,
+            WEAR_ARMRING_L,
+            WEAR_ARMRING_R,
+            WEAR_RING_L,
+            WEAR_RING_R,
+            WEAR_TORCH,
+            WEAR_CHARM,
+            WEAR_GRID_END,
+
+            WEAR_END = WEAR_GRID_END,
         };
 
     private:
@@ -57,7 +61,7 @@ class PlayerStatusBoard: public Widget
         static constexpr int m_equipCharY = 200;
 
     private:
-        const std::array<WearGrid, GRID_END> m_gridList;
+        const std::array<WearGrid, WEAR_END> m_gridList;
 
     private:
         TritexButton m_closeButton;
@@ -76,7 +80,11 @@ class PlayerStatusBoard: public Widget
 
     public:
         void drawEx(int, int, int, int, int, int) const override;
+        void drawWear();
 
     public:
         bool processEvent(const SDL_Event &, bool) override;
+
+    private:
+        uint32_t getGridItemID(int) const;
 };

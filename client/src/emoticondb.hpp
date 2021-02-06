@@ -144,7 +144,7 @@ class emoticonDB: public innDB<uint32_t, emojiEntry>
             std::vector<uint8_t> dataBuf;
             emojiEntry entry {nullptr, 0, 0, 0, 0, 0};
 
-            if(auto fileName = m_zsdbPtr->Decomp(hexstr::to_string<uint32_t, 4>(nKey, keyString, true), 8, &dataBuf); fileName && (std::strlen(fileName) >= 22)){
+            if(auto fileName = m_zsdbPtr->decomp(hexstr::to_string<uint32_t, 4>(nKey, keyString, true), 8, &dataBuf); fileName && (std::strlen(fileName) >= 22)){
                 entry.frameCount = (int)hexstr::to_hex< uint8_t, 1>(fileName +  8);
                 entry.FPS        = (int)hexstr::to_hex< uint8_t, 1>(fileName + 10);
                 entry.FrameW     = (int)hexstr::to_hex<uint16_t, 2>(fileName + 12);

@@ -20,6 +20,7 @@
 #include "player.hpp"
 #include "uidf.hpp"
 #include "mathf.hpp"
+#include "colorf.hpp"
 #include "dbcomid.hpp"
 #include "sysconst.hpp"
 #include "netdriver.hpp"
@@ -38,7 +39,7 @@ Player::Player(uint32_t nDBID,
         int             nMapX,
         int             nMapY,
         int             nDirection)
-    : CharObject(pServiceCore, pServerMap, uidf::buildPlayerUID(nDBID), nMapX, nMapY, nDirection)
+    : CharObject(pServiceCore, pServerMap, uidf::buildPlayerUID(nDBID, true, {JOB_WARRIOR, JOB_TAOIST}), nMapX, nMapY, nDirection)
     , m_DBID(nDBID)
     , m_jobID(0)        // will provide after bind
     , m_channID(0)    // provide by bind
@@ -61,6 +62,44 @@ Player::Player(uint32_t nDBID,
     m_HPMax = 10;
     m_MP    = 10;
     m_MPMax = 10;
+
+    std::memset(&m_look, 0, sizeof(m_look));
+    std::memset(&m_wear, 0, sizeof(m_wear));
+
+    m_look = PlayerLook
+    {
+        .hair = 2,
+        .hairColor = colorf::GREEN + 255,
+
+        .helmet = DBCOM_ITEMID(u8"骷髅头盔"),
+        .helmetColor = 0,
+
+        .dress = DBCOM_ITEMID(u8"布衣（男）"),
+        .dressColor = 0,
+
+        .weapon = DBCOM_ITEMID(u8"青铜剑"),
+        .weaponColor = 0,
+    };
+
+    m_wear = PlayerWear
+    {
+        .necklace = DBCOM_ITEMID(u8"放大镜"),
+        .armring
+        {
+            DBCOM_ITEMID(u8"坚固手套"),
+            DBCOM_ITEMID(u8"幽灵手套"),
+        },
+
+        .ring
+        {
+            DBCOM_ITEMID(u8"金戒指"),
+            DBCOM_ITEMID(u8"降妖除魔戒指"),
+        },
+
+        .shoes = DBCOM_ITEMID(u8"草鞋"),
+        .torch = 0,
+        .charm = 0,
+    };
 
     m_stateTrigger.install([this, lastCheckTick = (uint32_t)(0)]() mutable -> bool
     {
@@ -185,6 +224,16 @@ void Player::operateAM(const MessagePack &rstMPK)
                 on_MPK_OFFLINE(rstMPK);
                 break;
             }
+        case MPK_QUERYPLAYERLOOK:
+            {
+                on_MPK_QUERYPLAYERLOOK(rstMPK);
+                break;
+            }
+        case MPK_QUERYPLAYERWEAR:
+            {
+                on_MPK_QUERYPLAYERWEAR(rstMPK);
+                break;
+            }
         case MPK_REMOVEGROUNDITEM:
             {
                 on_MPK_REMOVEGROUNDITEM(rstMPK);
@@ -225,6 +274,8 @@ void Player::operateNet(uint8_t nType, const uint8_t *pData, size_t nDataLen)
         case CM_QUERYGOLD       : net_CM_QUERYGOLD       (nType, pData, nDataLen); break;
         case CM_NPCEVENT        : net_CM_NPCEVENT        (nType, pData, nDataLen); break;
         case CM_QUERYSELLITEM   : net_CM_QUERYSELLITEM   (nType, pData, nDataLen); break;
+        case CM_QUERYPLAYERLOOK : net_CM_QUERYPLAYERLOOK (nType, pData, nDataLen); break;
+        case CM_QUERYPLAYERWEAR : net_CM_QUERYPLAYERWEAR (nType, pData, nDataLen); break;
         default                 :                                                  break;
     }
 }

@@ -36,37 +36,21 @@
 #include "cerealf.hpp"
 #include "serdesmsg.hpp"
 
-// we get all needed initialization info for init the process run
-void ProcessRun::net_LOGINOK(const uint8_t *bufPtr, size_t nLen)
+void ProcessRun::net_LOGINOK(const uint8_t *bufPtr, size_t)
 {
-    if(bufPtr && nLen && (nLen == sizeof(SMLoginOK))){
-        SMLoginOK stSMLOK;
-        std::memcpy(&stSMLOK, bufPtr, nLen);
+    const auto smLO = ServerMsg::conv<SMLoginOK>(bufPtr);
+    loadMap(smLO.MapID);
 
-        uint64_t nUID     = stSMLOK.UID;
-        uint32_t nDBID    = stSMLOK.DBID;
-        bool     bGender  = stSMLOK.Male;
-        uint32_t nMapID   = stSMLOK.MapID;
-        uint32_t nDressID = stSMLOK.dress;
-        uint32_t weapon   = stSMLOK.weapon;
+    m_myHeroUID = smLO.UID;
+    m_coList[m_myHeroUID] = std::make_unique<MyHero>(m_myHeroUID, smLO.look, this, ActionStand
+    {
+        .x = smLO.X,
+        .y = smLO.Y,
+        .direction = smLO.Direction,
+    });
 
-        int nX = stSMLOK.X;
-        int nY = stSMLOK.Y;
-        int nDirection = stSMLOK.Direction;
-
-        loadMap(nMapID);
-
-        m_myHeroUID = nUID;
-        m_coList[nUID] = std::make_unique<MyHero>(nUID, nDBID, bGender, weapon, nDressID, this, ActionStand
-        {
-            .x = nX,
-            .y = nY,
-            .direction = nDirection,
-        });
-
-        centerMyHero();
-        getMyHero()->pullGold();
-    }
+    centerMyHero();
+    getMyHero()->pullGold();
 }
 
 void ProcessRun::net_SELLITEM(const uint8_t *buf, size_t bufSize)
@@ -92,25 +76,18 @@ void ProcessRun::net_ACTION(const uint8_t *bufPtr, size_t)
         // call getMyHero before loadMap()
         // getMyHero() checks if current creature is on current map
 
-        auto nUID       = getMyHero()->UID();
-        auto nDBID      = getMyHero()->DBID();
-        auto bGender    = getMyHero()->Gender();
-        auto nDress     = getMyHero()->Dress();
-        auto nWeapon    = getMyHero()->Weapon();
-        auto nDirection = getMyHero()->currMotion()->direction;
-
-        auto nX = smA.action.x;
-        auto nY = smA.action.y;
+        const auto look = getMyHero()->getPlayerLook();
+        const auto direction = getMyHero()->currMotion()->direction;
 
         m_actionBlocker.clear();
         loadMap(smA.MapID);
 
         m_coList.clear();
-        m_coList[m_myHeroUID] = std::make_unique<MyHero>(nUID, nDBID, bGender, nWeapon, nDress, this, ActionStand
+        m_coList[m_myHeroUID] = std::make_unique<MyHero>(m_myHeroUID, look, this, ActionStand
         {
-            .x = nX,
-            .y = nY,
-            .direction = nDirection,
+            .x = smA.action.x,
+            .y = smA.action.y,
+            .direction = direction,
         });
 
         centerMyHero();
@@ -240,7 +217,8 @@ void ProcessRun::net_CORECORD(const uint8_t *bufPtr, size_t)
             }
         case UID_PLY:
             {
-                m_coList[smCOR.UID] = std::make_unique<Hero>(smCOR.UID, smCOR.Player.DBID, true, 0, 0, this, smCOR.action); // TODO
+                m_coList[smCOR.UID] = std::make_unique<Hero>(smCOR.UID, PlayerLook{}, this, smCOR.action);
+                queryPlayerLook(smCOR.UID);
                 break;
             }
         default:
@@ -438,4 +416,24 @@ void ProcessRun::net_NPCSELL(const uint8_t *buf, size_t bufSize)
 void ProcessRun::net_TEXT(const uint8_t *buf, size_t)
 {
     addCBLog(CBLOG_SYS, u8"%s", to_cstr((const char *)(buf)));
+}
+
+void ProcessRun::net_PLAYERLOOK(const uint8_t *buf, size_t)
+{
+    const auto smPL = ServerMsg::conv<SMPlayerLook>(buf);
+    if(uidf::getUIDType(smPL.uid) == UID_PLY){
+        if(auto playerPtr = dynamic_cast<Hero *>(findUID(smPL.uid)); playerPtr){
+            playerPtr->setLook(smPL.look);
+        }
+    }
+}
+
+void ProcessRun::net_PLAYERWEAR(const uint8_t *buf, size_t)
+{
+    const auto smPW = ServerMsg::conv<SMPlayerWear>(buf);
+    if(uidf::getUIDType(smPW.uid) == UID_PLY){
+        if(auto playerPtr = dynamic_cast<Hero *>(findUID(smPW.uid)); playerPtr){
+            playerPtr->setWear(smPW.wear);
+        }
+    }
 }

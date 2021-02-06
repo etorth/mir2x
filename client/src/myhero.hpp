@@ -24,7 +24,7 @@
 class MyHero: public Hero
 {
     private:
-        uint32_t m_gold;
+        uint32_t m_gold = 0;
 
     private:
         InvPack m_invPack;
@@ -33,7 +33,7 @@ class MyHero: public Hero
         std::deque<ActionNode> m_actionQueue;
 
     public:
-        MyHero(uint64_t, uint32_t, bool, uint32_t, uint32_t, ProcessRun *, const ActionNode &);
+        MyHero(uint64_t, const PlayerLook &, ProcessRun *, const ActionNode &);
 
     public:
         ~MyHero() = default;

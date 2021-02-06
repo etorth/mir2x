@@ -39,6 +39,8 @@ enum CMType: uint8_t
     CM_REQUESTMAGICDAMAGE,
     CM_PICKUP,
     CM_QUERYGOLD,
+    CM_QUERYPLAYERLOOK,
+    CM_QUERYPLAYERWEAR,
     CM_ACCOUNT,
     CM_NPCEVENT,
     CM_QUERYSELLITEM,
@@ -90,6 +92,16 @@ struct CMPickUp
     uint32_t MapID;
     uint32_t ID;
     uint32_t DBID;
+};
+
+struct CMQueryPlayerLook
+{
+    uint64_t uid;
+};
+
+struct CMQueryPlayerWear
+{
+    uint64_t uid;
 };
 
 struct CMAccount
@@ -149,6 +161,8 @@ class ClientMsg final: public MsgBase
                 _add_client_msg_type_case(CM_REQUESTMAGICDAMAGE, 1, sizeof(CMRequestMagicDamage))
                 _add_client_msg_type_case(CM_PICKUP,             1, sizeof(CMPickUp)            )
                 _add_client_msg_type_case(CM_QUERYGOLD,          0, 0                           )
+                _add_client_msg_type_case(CM_QUERYPLAYERLOOK,    1, sizeof(CMQueryPlayerLook)   )
+                _add_client_msg_type_case(CM_QUERYPLAYERWEAR,    1, sizeof(CMQueryPlayerWear)   )
                 _add_client_msg_type_case(CM_ACCOUNT,            1, sizeof(CMAccount)           )
                 _add_client_msg_type_case(CM_NPCEVENT,           1, sizeof(CMNPCEvent)          )
                 _add_client_msg_type_case(CM_QUERYSELLITEM,      1, sizeof(CMQuerySellItem)     )
@@ -172,6 +186,8 @@ class ClientMsg final: public MsgBase
                     || std::is_same_v<T, CMRequestSpaceMove>
                     || std::is_same_v<T, CMRequestMagicDamage>
                     || std::is_same_v<T, CMPickUp>
+                    || std::is_same_v<T, CMQueryPlayerLook>
+                    || std::is_same_v<T, CMQueryPlayerWear>
                     || std::is_same_v<T, CMAccount>
                     || std::is_same_v<T, CMNPCEvent>
                     || std::is_same_v<T, CMQuerySellItem>);

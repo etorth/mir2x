@@ -30,6 +30,8 @@ enum SMType: uint8_t
     SM_ACCOUNT,
     SM_LOGINOK,
     SM_LOGINFAIL,
+    SM_PLAYERLOOK,
+    SM_PLAYERWEAR,
     SM_ACTION,
     SM_CORECORD,
     SM_UPDATEHP,
@@ -73,23 +75,31 @@ struct SMAccount
 struct SMLoginOK
 {
     uint64_t UID;
-    uint32_t DBID;
     uint32_t MapID;
+    uint32_t Level;
+
     uint16_t X;
     uint16_t Y;
-
-    uint8_t Male;
     uint8_t Direction;
 
-    uint32_t JobID;
-    uint32_t Level;
-    uint32_t dress;
-    uint32_t weapon;
+    PlayerLook look;
 };
 
 struct SMLoginFail
 {
     uint32_t FailID;
+};
+
+struct SMPlayerLook
+{
+    uint64_t uid;
+    PlayerLook look;
+};
+
+struct SMPlayerWear
+{
+    uint64_t uid;
+    PlayerWear wear;
 };
 
 struct SMAction
@@ -242,6 +252,8 @@ class ServerMsg final: public MsgBase
                 _add_server_msg_type_case(SM_ACCOUNT,          1, sizeof(SMAccount)         )
                 _add_server_msg_type_case(SM_LOGINOK,          1, sizeof(SMLoginOK)         )
                 _add_server_msg_type_case(SM_LOGINFAIL,        2, sizeof(SMLoginFail)       )
+                _add_server_msg_type_case(SM_PLAYERLOOK,       1, sizeof(SMPlayerLook)      )
+                _add_server_msg_type_case(SM_PLAYERWEAR,       1, sizeof(SMPlayerWear)      )
                 _add_server_msg_type_case(SM_ACTION,           1, sizeof(SMAction)          )
                 _add_server_msg_type_case(SM_CORECORD,         1, sizeof(SMCORecord)        )
                 _add_server_msg_type_case(SM_UPDATEHP,         1, sizeof(SMUpdateHP)        )
@@ -276,6 +288,8 @@ class ServerMsg final: public MsgBase
                     || std::is_same_v<T, SMAccount>
                     || std::is_same_v<T, SMLoginOK>
                     || std::is_same_v<T, SMLoginFail>
+                    || std::is_same_v<T, SMPlayerLook>
+                    || std::is_same_v<T, SMPlayerWear>
                     || std::is_same_v<T, SMAction>
                     || std::is_same_v<T, SMCORecord>
                     || std::is_same_v<T, SMUpdateHP>

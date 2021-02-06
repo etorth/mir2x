@@ -40,9 +40,57 @@ uint64_t uidf::buildNPCUID(uint16_t npcId)
     return ((uint64_t)(UID_NPC) << 44) + ((uint64_t)(npcId) << 16) + s_NPCSeqID.fetch_add(1);
 }
 
-uint64_t uidf::buildPlayerUID(uint32_t dbid)
+static constexpr uint64_t playerUID_gender     = 0X0000080000000000ULL;
+static constexpr uint64_t playerUID_jobTaoist  = 0X0000040000000000ULL;
+static constexpr uint64_t playerUID_jobWarrior = 0X0000020000000000ULL;
+static constexpr uint64_t playerUID_jobMage    = 0X0000010000000000ULL;
+
+uint64_t uidf::buildPlayerUID(uint32_t dbid, bool gender, std::initializer_list<int> jobList)
 {
-    return ((uint64_t)(UID_PLY) << 44) + dbid;
+    uint64_t jobMask = 0;
+    for(int job: jobList){
+        switch(job){
+            case JOB_WARRIOR: jobMask |= playerUID_jobWarrior; break;
+            case JOB_TAOIST : jobMask |= playerUID_jobTaoist ; break;
+            case JOB_MAGE   : jobMask |= playerUID_jobMage   ; break;
+            default: throw fflerror("invalid job: %d", job);
+        }
+    }
+
+    if(jobMask == 0){
+        throw fflerror("no job specified");
+    }
+    return ((uint64_t)(UID_PLY) << 44) | (gender ? playerUID_gender : 0ULL)  | jobMask | (uint64_t)(dbid);
+}
+
+bool uidf::hasPlayerJob(uint64_t uid, int job)
+{
+    if(uidf::getUIDType(uid) != UID_PLY){
+        throw fflerror("invalid uid type: %s", uidf::getUIDTypeString(uid));
+    }
+
+    switch(job){
+        case JOB_WARRIOR: return uid & playerUID_jobWarrior;
+        case JOB_TAOIST : return uid & playerUID_jobTaoist ;
+        case JOB_MAGE   : return uid & playerUID_jobMage   ;
+        default: throw fflerror("invalid job: %d", job);
+    }
+}
+
+bool uidf::getPlayerGender(uint64_t uid)
+{
+    if(uidf::getUIDType(uid) == UID_PLY){
+        return uid & playerUID_gender;
+    }
+    throw fflerror("bad arguments: uid = 0X%016llX, uidType = %s", to_llu(uid), uidf::getUIDTypeString(uid));
+}
+
+uint32_t uidf::getPlayerDBID(uint64_t uid)
+{
+    if(uidf::getUIDType(uid) == UID_PLY){
+        return to_u32(uid & 0X00000000FFFFFFFFULL);
+    }
+    throw fflerror("bad arguments: uid = 0X%016llX, uidType = %s", to_llu(uid), uidf::getUIDTypeString(uid));
 }
 
 uint64_t uidf::buildMonsterUID(uint32_t monsterId)
@@ -77,7 +125,7 @@ uint64_t uidf::buildMonsterUID(uint32_t monsterId)
     return 0;
 }
 
-constexpr uint64_t receiverUID_mask = 0X00FF000000000000ULL;
+static constexpr uint64_t receiverUID_mask = 0X00FF000000000000ULL;
 bool uidf::isReceiver(uint64_t uid)
 {
     return uid & receiverUID_mask;

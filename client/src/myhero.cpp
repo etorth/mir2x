@@ -31,11 +31,8 @@ extern Log *g_log;
 extern Client *g_client;
 extern ClientArgParser *g_clientArgParser;
 
-MyHero::MyHero(uint64_t nUID, uint32_t nDBID, bool bMale, uint32_t weapon, uint32_t nDressID, ProcessRun *pRun, const ActionNode &action)
-	: Hero(nUID, nDBID, bMale, weapon, nDressID, pRun, action)
-    , m_gold(0)
-    , m_invPack()
-    , m_actionQueue()
+MyHero::MyHero(uint64_t nUID, const PlayerLook &look, ProcessRun *pRun, const ActionNode &action)
+	: Hero(nUID, look, pRun, action)
 {}
 
 bool MyHero::moveNextMotion()

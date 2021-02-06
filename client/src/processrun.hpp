@@ -199,6 +199,8 @@ class ProcessRun: public Process
         void net_UPDATEHP(const uint8_t *, size_t);
         void net_CASTMAGIC(const uint8_t *, size_t);
         void net_NOTIFYDEAD(const uint8_t *, size_t);
+        void net_PLAYERLOOK(const uint8_t *, size_t);
+        void net_PLAYERWEAR(const uint8_t *, size_t);
         void net_DEADFADEOUT(const uint8_t *, size_t);
         void net_MONSTERGINFO(const uint8_t *, size_t);
         void net_SHOWDROPITEM(const uint8_t *, size_t);
@@ -330,6 +332,10 @@ class ProcessRun: public Process
     public:
         void queryCORecord(uint64_t) const;
         void onActionSpawn(uint64_t, const ActionNode &);
+
+    public:
+        void queryPlayerLook(uint64_t) const;
+        void queryPlayerWear(uint64_t) const;
 
     public:
         Widget *getWidget(const std::string &widgetName)

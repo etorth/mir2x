@@ -1106,7 +1106,7 @@ void ProcessRun::RegisterLuaExport(ClientLuaModule *luaModulePtr)
     luaModulePtr->getLuaState().set_function("myHero_dress", [this](int nDress)
     {
         if(nDress >= 0){
-            getMyHero()->Dress((uint32_t)(nDress));
+            getMyHero()->setDress((uint32_t)(nDress));
         }
     });
 
@@ -1115,7 +1115,7 @@ void ProcessRun::RegisterLuaExport(ClientLuaModule *luaModulePtr)
     luaModulePtr->getLuaState().set_function("myHero_weapon", [this](int nWeapon)
     {
         if(nWeapon >= 0){
-            getMyHero()->Weapon((uint32_t)(nWeapon));
+            getMyHero()->setWeapon((uint32_t)(nWeapon));
         }
     });
 }
@@ -1123,25 +1123,7 @@ void ProcessRun::RegisterLuaExport(ClientLuaModule *luaModulePtr)
 void ProcessRun::addCBLog(int logType, const char8_t *format, ...)
 {
     std::u8string logStr;
-    bool hasError = false;
-    {
-        va_list ap;
-        va_start(ap, format);
-
-        try{
-            logStr = str_vprintf(format, ap);
-        }
-        catch(const std::exception &e){
-            hasError = true;
-            logStr = str_printf(u8"Parsing failed in ProcessRun::addCBLog(\"%s\", ...): %s", format, e.what());
-        }
-
-        va_end(ap);
-    }
-
-    if(hasError){
-        logType = CBLOG_ERR;
-    }
+    str_format(format, logStr);
     dynamic_cast<ControlBoard *>(getGUIManager()->getWidget("ControlBoard"))->addLog(logType, to_cstr(logStr));
 }
 
@@ -1740,4 +1722,28 @@ void ProcessRun::requestMagicDamage(int magicID, uint64_t aimUID)
     cmRMD.aimUID  = aimUID;
 
     g_client->send(CM_REQUESTMAGICDAMAGE, cmRMD);
+}
+
+void ProcessRun::queryPlayerLook(uint64_t uid) const
+{
+    if(uidf::getUIDType(uid) != UID_PLY){
+        CMQueryPlayerLook cmQPL;
+        std::memset(&cmQPL, 0, sizeof(cmQPL));
+
+        cmQPL.uid = uid;
+        g_client->send(CM_QUERYPLAYERLOOK, cmQPL);
+    }
+    throw fflerror("invalid uid: %llu, type: %s", to_llu(uid), uidf::getUIDTypeString(uid));
+}
+
+void ProcessRun::queryPlayerWear(uint64_t uid) const
+{
+    if(uidf::getUIDType(uid) != UID_PLY){
+        CMQueryPlayerWear cmQPW;
+        std::memset(&cmQPW, 0, sizeof(cmQPW));
+
+        cmQPW.uid = uid;
+        g_client->send(CM_QUERYPLAYERWEAR, cmQPW);
+    }
+    throw fflerror("invalid uid: %llu, type: %s", to_llu(uid), uidf::getUIDTypeString(uid));
 }

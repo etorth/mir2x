@@ -16,6 +16,7 @@
  * =====================================================================================
  */
 #pragma once
+#include <cstdint>
 #include "motion.hpp"
 
 // define of directioin
@@ -45,6 +46,21 @@ enum DirectionType: int
 inline bool directionValid(int direction)
 {
     return direction >= DIR_BEGIN && direction < DIR_END;
+}
+
+inline const char *directionName(int direction)
+{
+    switch(direction){
+        case DIR_UP       : return "DIR_UP";
+        case DIR_UPRIGHT  : return "DIR_UPRIGHT";
+        case DIR_RIGHT    : return "DIR_RIGHT";
+        case DIR_DOWNRIGHT: return "DIR_DOWNRIGHT";
+        case DIR_DOWN     : return "DIR_DOWN";
+        case DIR_DOWNLEFT : return "DIR_DOWNLEFT";
+        case DIR_LEFT     : return "DIR_LEFT";
+        case DIR_UPLEFT   : return "DIR_UPLEFT";
+        default           : return "UNKNOWN";
+    }
 }
 
 enum ActExtType: int
@@ -157,4 +173,58 @@ enum NPCErrorType: int
     NPCE_NONE = 0,
     NPCE_TOOFAR,
     NPCE_BADEVENTID,
+};
+
+enum JobType: int
+{
+    JOB_NONE    = 0,
+    JOB_BEGIN   = 1,
+    JOB_WARRIOR = 1,
+    JOB_TAOIST,
+    JOB_MAGE,
+    JOB_END,
+};
+
+inline bool jobValid(int job)
+{
+    return job >= JOB_BEGIN && job < JOB_END;
+}
+
+inline const char * jobName(int job)
+{
+    switch(job){
+        case JOB_WARRIOR: return "WARRIOR";
+        case JOB_TAOIST : return "TAOIST" ;
+        case JOB_MAGE   : return "MAGE"   ;
+        default         : return "UNKNOWN";
+    }
+}
+
+// keep it POD
+// used in actor/server/client message
+// this only includes player look to draw, no necklace, rings etc
+struct PlayerLook
+{
+    uint32_t hair;
+    uint32_t hairColor;
+
+    uint32_t helmet;
+    uint32_t helmetColor;
+
+    uint32_t dress;
+    uint32_t dressColor;
+
+    uint32_t weapon;
+    uint32_t weaponColor;
+};
+
+struct PlayerWear
+{
+    uint32_t necklace;
+    uint32_t armring[2];
+    uint32_t ring[2];
+
+    uint32_t shoes;
+    uint32_t torch;
+    uint32_t charm;
 };

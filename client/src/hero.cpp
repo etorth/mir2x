@@ -41,19 +41,13 @@ extern PNGTexOffDB *g_weaponDB;
 extern PNGTexOffDB *g_helmetDB;
 extern ClientArgParser *g_clientArgParser;
 
-Hero::Hero(uint64_t uid, uint32_t dbid, bool gender, uint32_t weapon, uint32_t nDress, ProcessRun *proc, const ActionNode &action)
+Hero::Hero(uint64_t uid, const PlayerLook &look, ProcessRun *proc, const ActionNode &action)
     : CreatureMovable(uid, proc)
-    , m_DBID(dbid)
-    , m_gender(gender)
     , m_horse(0)
-    , m_helmet(DBCOM_ITEMID(u8"骷髅头盔"))
-    , m_weapon(weapon)
-    , m_hair(2)
-    , m_hairColor(colorf::GREEN + 255)
-    , m_dress(nDress)
-    , m_dressColor(0)
     , m_onHorse(false)
+    , m_look(look)
 {
+    std::memset(&m_wear, 0, sizeof(m_wear));
     m_currMotion.reset(new MotionNode
     {
         .type = MOTION_STAND,
@@ -81,12 +75,12 @@ void Hero::draw(int viewX, int viewY, int)
         // 21 - 14 :    weapon : max = 256 : +----> GfxWeaponID
         //      22 :    gender :
         //      23 :    shadow :
-        const auto nGfxWeaponID = GfxWeaponID(DBCOM_ITEMRECORD(m_weapon).useGfxID, m_currMotion->type, m_currMotion->direction);
+        const auto nGfxWeaponID = GfxWeaponID(DBCOM_ITEMRECORD(getPlayerLook().weapon).useGfxID, m_currMotion->type, m_currMotion->direction);
         if(nGfxWeaponID < 0){
             return;
         }
 
-        const uint32_t weaponKey = (((uint32_t)(shadow ? 1 : 0)) << 23) + (((uint32_t)(m_gender ? 1 : 0)) << 22) + ((nGfxWeaponID & 0X01FFFF) << 5) + m_currMotion->frame;
+        const uint32_t weaponKey = (((uint32_t)(shadow ? 1 : 0)) << 23) + (((uint32_t)(uidf::getPlayerGender(UID()) ? 1 : 0)) << 22) + ((nGfxWeaponID & 0X01FFFF) << 5) + m_currMotion->frame;
 
         int weaponDX = 0;
         int weaponDY = 0;
@@ -101,7 +95,7 @@ void Hero::draw(int viewX, int viewY, int)
 
     fnDrawWeapon(true);
 
-    const auto nDress     = std::max<int>(0, DBCOM_ITEMRECORD(Dress()).useGfxID);
+    const auto nDress     = std::max<int>(0, DBCOM_ITEMRECORD(getPlayerLook().dress).useGfxID);
     const auto nMotion    = m_currMotion->type;
     const auto nDirection = m_currMotion->direction;
 
@@ -118,8 +112,8 @@ void Hero::draw(int viewX, int viewY, int)
     // 21 - 14 :     dress : max = 256 : +----> GfxDressID
     //      22 :       sex :
     //      23 :    shadow :
-    const uint32_t nKey0 = ((uint32_t)(0) << 23) + (((uint32_t)(m_gender ? 1 : 0)) << 22) + (((uint32_t)(nGfxDressID & 0X01FFFF)) << 5) + m_currMotion->frame;
-    const uint32_t nKey1 = ((uint32_t)(1) << 23) + (((uint32_t)(m_gender ? 1 : 0)) << 22) + (((uint32_t)(nGfxDressID & 0X01FFFF)) << 5) + m_currMotion->frame;
+    const uint32_t nKey0 = ((uint32_t)(0) << 23) + (((uint32_t)(uidf::getPlayerGender(UID()) ? 1 : 0)) << 22) + (((uint32_t)(nGfxDressID & 0X01FFFF)) << 5) + m_currMotion->frame;
+    const uint32_t nKey1 = ((uint32_t)(1) << 23) + (((uint32_t)(uidf::getPlayerGender(UID()) ? 1 : 0)) << 22) + (((uint32_t)(nGfxDressID & 0X01FFFF)) << 5) + m_currMotion->frame;
 
     int nDX0 = 0;
     int nDY0 = 0;
@@ -135,7 +129,7 @@ void Hero::draw(int viewX, int viewY, int)
     g_sdlDevice->drawTexture(pFrame1, startX + nDX1, startY + nDY1);
 
     if(true
-            && m_weapon
+            && getPlayerLook().weapon
             && WeaponOrder(m_currMotion->type, m_currMotion->direction, m_currMotion->frame) == 1){
         fnDrawWeapon(false);
     }
@@ -145,26 +139,26 @@ void Hero::draw(int viewX, int viewY, int)
     }
 
     g_sdlDevice->drawTexture(pFrame0, startX + nDX0, startY + nDY0);
-    if(helmet()){
-        if(const auto nHelmetGfxID = gfxHelmetID(DBCOM_ITEMRECORD(helmet()).useGfxID, nMotion, nDirection); nHelmetGfxID >= 0){
-            const uint32_t nHelmetKey = (((uint32_t)(m_gender ? 1 : 0)) << 22) + (((uint32_t)(nHelmetGfxID & 0X01FFFF)) << 5) + m_currMotion->frame;
+    if(getPlayerLook().helmet){
+        if(const auto nHelmetGfxID = gfxHelmetID(DBCOM_ITEMRECORD(getPlayerLook().helmet).useGfxID, nMotion, nDirection); nHelmetGfxID >= 0){
+            const uint32_t nHelmetKey = (((uint32_t)(uidf::getPlayerGender(UID()) ? 1 : 0)) << 22) + (((uint32_t)(nHelmetGfxID & 0X01FFFF)) << 5) + m_currMotion->frame;
             if(auto [texPtr, dx, dy] = g_helmetDB->Retrieve(nHelmetKey); texPtr){
                 g_sdlDevice->drawTexture(texPtr, startX + dx, startY + dy);
             }
         }
     }
     else{
-        if(const auto nHairGfxID = GfxHairID(hair(), nMotion, nDirection); nHairGfxID >= 0){
-            const uint32_t nHairKey = (((uint32_t)(m_gender ? 1 : 0)) << 22) + (((uint32_t)(nHairGfxID & 0X01FFFF)) << 5) + m_currMotion->frame;
+        if(const auto nHairGfxID = GfxHairID(getPlayerLook().hair, nMotion, nDirection); nHairGfxID >= 0){
+            const uint32_t nHairKey = (((uint32_t)(uidf::getPlayerGender(UID()) ? 1 : 0)) << 22) + (((uint32_t)(nHairGfxID & 0X01FFFF)) << 5) + m_currMotion->frame;
             if(auto [texPtr, dx, dy] = g_hairDB->Retrieve(nHairKey); texPtr){
-                SDLDeviceHelper::EnableTextureModColor enableColor(texPtr, m_hairColor);
+                SDLDeviceHelper::EnableTextureModColor enableColor(texPtr, getPlayerLook().hairColor);
                 g_sdlDevice->drawTexture(texPtr, startX + dx, startY + dy);
             }
         }
     }
 
     if(true
-            && m_weapon
+            && getPlayerLook().weapon
             && WeaponOrder(m_currMotion->type, m_currMotion->direction, m_currMotion->frame) == 0){
         fnDrawWeapon(false);
     }
@@ -1052,8 +1046,8 @@ ClientCreature::TargetBox Hero::getTargetBox() const
             }
     }
 
-    const auto nDress     = Dress();
-    const auto nGender    = Gender();
+    const auto nDress     = getPlayerLook().dress;
+    const auto nGender    = uidf::getPlayerGender(UID());
     const auto nMotion    = currMotion()->type;
     const auto nDirection = currMotion()->direction;
 

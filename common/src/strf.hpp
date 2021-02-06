@@ -137,21 +137,24 @@ template<std::integral T> [[nodiscard]] std::string str_ksep(T t, char sep = ','
 [[nodiscard]] std::string str_printf(const char *, ...) STR_PRINTF_CHECK_FORMAT(1);
 [[nodiscard]] std::string str_vprintf(const char *, va_list);
 
-[[maybe_unused]] const std::string &str_printf(std::string &, const char *, ...) STR_PRINTF_CHECK_FORMAT(2);
-[[maybe_unused]] const std::string &str_vprintf(std::string &, const char *, va_list);
+[[maybe_unused]] std::string &str_printf(std::string &, const char *, ...) STR_PRINTF_CHECK_FORMAT(2);
+[[maybe_unused]] std::string &str_vprintf(std::string &, const char *, va_list);
 
 [[nodiscard]] std::u8string str_printf(const char8_t *, ...);
 [[nodiscard]] std::u8string str_vprintf(const char8_t *, va_list);
 
-[[maybe_unused]] const std::u8string &str_printf(std::u8string &, const char8_t *, ...);
-[[maybe_unused]] const std::u8string &str_vprintf(std::u8string &, const char8_t *, va_list);
+[[maybe_unused]] std::u8string &str_printf(std::u8string &, const char8_t *, ...);
+[[maybe_unused]] std::u8string &str_vprintf(std::u8string &, const char8_t *, va_list);
 
 #define str_format(format, str) do\
 {\
+    if(!format){\
+        throw std::invalid_argument("str_format(nullptr, ap)"); \
+    }\
     va_list ap;\
     va_start(ap, format);\
     try{\
-        str = str_vprintf(format, ap);\
+        str_vprintf(str, format, ap);\
         va_end(ap);\
     }\
     catch(...){\

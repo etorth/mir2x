@@ -245,6 +245,20 @@ void Client::onServerMessage(uint8_t headCode, const uint8_t *pData, size_t nDat
                 }
                 break;
             }
+        case SM_PLAYERLOOK:
+            {
+                if(auto runPtr = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+                    runPtr->net_PLAYERLOOK(pData, nDataLen);
+                }
+                break;
+            }
+        case SM_PLAYERWEAR:
+            {
+                if(auto runPtr = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+                    runPtr->net_PLAYERWEAR(pData, nDataLen);
+                }
+                break;
+            }
         case SM_CASTMAGIC:
             {
                 if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){

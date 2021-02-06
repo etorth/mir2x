@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename: pngtexdbn.hpp
+ *       Filename: pngtexdb.hpp
  *        Created: 02/26/2016 21:48:43
  *    Description:
  *
@@ -73,8 +73,8 @@ class PNGTexDB: public innDB<uint32_t, PNGTexEntry>
             char szKeyString[16];
             PNGTexEntry stEntry {nullptr};
 
-            if(std::vector<uint8_t> stBuf; m_zsdbPtr->Decomp(hexstr::to_string<uint32_t, 4>(nKey, szKeyString, true), 8, &stBuf)){
-                extern SDLDevice *g_sdlDevice;
+            if(std::vector<uint8_t> stBuf; m_zsdbPtr->decomp(hexstr::to_string<uint32_t, 4>(nKey, szKeyString, true), 8, &stBuf)){
+                extern SDLDevice *g_sdlDevice; // TODO
                 stEntry.Texture = g_sdlDevice->CreateTexture(stBuf.data(), stBuf.size());
             }
             return {stEntry, stEntry.Texture ? 1 : 0};

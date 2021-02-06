@@ -401,4 +401,9 @@ class CharObject: public ServerObject
         {
             sendNetPackage(uid, type, buf.data(), buf.length());
         }
+
+        template<typename T> void sendNetPackage(uint64_t uid, uint8_t type, const T &t)
+        {
+            sendNetPackage(uid, type, &t, sizeof(t));
+        }
 };

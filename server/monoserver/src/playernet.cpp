@@ -139,3 +139,41 @@ void Player::net_CM_QUERYSELLITEM(uint8_t, const uint8_t *buf, size_t bufLen)
     amQSI.itemID = cmQSI.itemID;
     m_actorPod->forward(cmQSI.npcUID, {MPK_QUERYSELLITEM, amQSI});
 }
+
+void Player::net_CM_QUERYPLAYERLOOK(uint8_t, const uint8_t *buf, size_t bufLen)
+{
+    const auto cmQPL = ClientMsg::conv<CMQueryPlayerLook>(buf, bufLen);
+    if(cmQPL.uid == UID()){
+        SMPlayerLook smPL;
+        std::memset(&smPL, 0, sizeof(smPL));
+
+        smPL.uid = UID();
+        smPL.look = getPlayerLook();
+        postNetMessage(SM_PLAYERLOOK, smPL);
+    }
+    else if(uidf::getUIDType(cmQPL.uid) == UID_PLY){
+        m_actorPod->forward(cmQPL.uid, {MPK_QUERYPLAYERLOOK});
+    }
+    else{
+        throw fflerror("invalid uid: %llu, type: %s", to_llu(cmQPL.uid), uidf::getUIDTypeString(cmQPL.uid));
+    }
+}
+
+void Player::net_CM_QUERYPLAYERWEAR(uint8_t, const uint8_t *buf, size_t bufLen)
+{
+    const auto cmQPW = ClientMsg::conv<CMQueryPlayerWear>(buf, bufLen);
+    if(cmQPW.uid == UID()){
+        SMPlayerWear smPW;
+        std::memset(&smPW, 0, sizeof(smPW));
+
+        smPW.uid = UID();
+        smPW.wear = getPlayerWear();
+        postNetMessage(SM_PLAYERWEAR, smPW);
+    }
+    else if(uidf::getUIDType(cmQPW.uid) == UID_PLY){
+        m_actorPod->forward(cmQPW.uid, {MPK_QUERYPLAYERWEAR});
+    }
+    else{
+        throw fflerror("invalid uid: %llu, type: %s", to_llu(cmQPW.uid), uidf::getUIDTypeString(cmQPW.uid));
+    }
+}
