@@ -122,8 +122,6 @@ struct SMCORecord
 
     struct _SMCORecord_Player
     {
-        uint32_t DBID;
-        uint32_t JobID;
         uint32_t Level;
     };
 

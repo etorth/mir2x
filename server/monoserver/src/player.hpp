@@ -30,10 +30,6 @@ class Player final: public CharObject
         friend class CharObject;
 
     protected:
-        const uint32_t m_DBID;
-        const uint32_t m_jobID;
-
-    protected:
         uint32_t m_channID;
 
     protected:
@@ -79,16 +75,6 @@ class Player final: public CharObject
         uint32_t Level() const
         {
             return m_level;
-        }
-
-        uint32_t DBID() const
-        {
-            return m_DBID;
-        }
-
-        uint32_t JobID() const
-        {
-            return m_jobID;
         }
 
         uint32_t ChannID()

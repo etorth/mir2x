@@ -62,7 +62,7 @@ class ServerObject
     public:
         uint64_t UID() const
         {
-            return checkActorPod() ? rawUID() : 0;
+            return rawUID();
         }
 
         uint64_t rawUID() const

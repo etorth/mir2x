@@ -40,11 +40,9 @@ Player::Player(uint32_t nDBID,
         int             nMapY,
         int             nDirection)
     : CharObject(pServiceCore, pServerMap, uidf::buildPlayerUID(nDBID, true, {JOB_WARRIOR, JOB_TAOIST}), nMapX, nMapY, nDirection)
-    , m_DBID(nDBID)
-    , m_jobID(0)        // will provide after bind
     , m_channID(0)    // provide by bind
     , m_exp(0)
-    , m_level(0)        // after bind
+    , m_level(0)       // after bind
     , m_gold(0)
     , m_inventory()
     , m_name([this]() -> std::string
@@ -303,10 +301,7 @@ void Player::reportCO(uint64_t toUID)
         .direction = Direction(),
     };
 
-    amCOR.Player.DBID  = DBID();
-    amCOR.Player.JobID = JobID();
     amCOR.Player.Level = Level();
-
     m_actorPod->forward(toUID, {MPK_CORECORD, amCOR});
 }
 
@@ -875,7 +870,7 @@ uint32_t Player::GetLevelExp()
         }
         return -1;
     };
-    return fnGetLevelExp(Level(), JobID());
+    return fnGetLevelExp(Level(), uidf::hasPlayerJob(UID(), JOB_TAOIST) ? JOB_TAOIST : JOB_WARRIOR);
 }
 
 void Player::PullRectCO(int nW, int nH)
@@ -912,7 +907,7 @@ size_t Player::dbUpdate(const char *tableName, const char *fieldList, ...)
 
         std::string sqlCmd;
         str_format(fieldList, sqlCmd);
-        return g_dbPod->exec("update %s set %s where fld_dbid = %llu", tableName, sqlCmd.c_str(), to_llu(DBID()));
+        return g_dbPod->exec("update %s set %s where fld_dbid = %llu", tableName, sqlCmd.c_str(), to_llu(uidf::getPlayerDBID(UID())));
     }
     throw fflerror("invalid arguments: tableName = %s, fieldList = %s", to_cstr(tableName), to_cstr(fieldList));
 }
@@ -929,10 +924,10 @@ size_t Player::dbAccess(const char *tableName, const char *fieldName, std::funct
         // then empty string should be "\"\"", not result.empty()
 
         size_t execCount = 0;
-        auto query = g_dbPod->createQuery("select %s from %s where fld_dbid = %llu", fieldName, tableName, to_llu(DBID()));
+        auto query = g_dbPod->createQuery("select %s from %s where fld_dbid = %llu", fieldName, tableName, to_llu(uidf::getPlayerDBID(UID())));
         while(query.executeStep()){
             if(const auto result = op((std::string)(query.getColumn(0))); !result.empty()){
-                g_dbPod->exec("update %s set %s = %s where fld_dbid = %llu", tableName, fieldName, result.c_str(), to_llu(DBID()));
+                g_dbPod->exec("update %s set %s = %s where fld_dbid = %llu", tableName, fieldName, result.c_str(), to_llu(uidf::getPlayerDBID(UID())));
             }
             execCount++;
         }

@@ -441,8 +441,6 @@ void Player::on_MPK_CORECORD(const MessagePack &mpk)
     switch(uidf::getUIDType(amCOR.UID)){
         case UID_PLY:
             {
-                smCOR.Player.DBID  = amCOR.Player.DBID;
-                smCOR.Player.JobID = amCOR.Player.JobID;
                 smCOR.Player.Level = amCOR.Player.Level;
                 break;
             }
