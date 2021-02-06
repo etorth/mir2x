@@ -149,6 +149,11 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
           nullptr,
           [this]()
           {
+              const auto itemID = selectedItemID();
+              if(const auto &ir = DBCOM_ITEMRECORD(itemID)){
+                  m_processRun->getMyHero()->getInvPack().add(itemID, 1);
+                  m_processRun->addCBLog(CBLOG_SYS, u8"直接获得1个%s", to_cstr(ir.name));
+              }
           },
 
           0,
@@ -228,7 +233,21 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
               const auto headerString = str_printf(u8"<par>请输入你要购买<t color=\"0xffff00ff\">%s</t>的数量</par>", to_cstr(DBCOM_ITEMRECORD(selectedItemID()).name));
               dynamic_cast<InputStringBoard *>(m_processRun->getWidget("InputStringBoard"))->waitInput(headerString, [this](std::u8string inputString)
               {
-                  m_processRun->addCBLog(CBLOG_SYS, u8"buy %s", to_cstr(inputString));
+                  const auto itemID = selectedItemID();
+                  const auto &ir = DBCOM_ITEMRECORD(itemID);
+
+                  int count = 0;
+                  try{
+                      count = std::stoi(to_cstr(inputString));
+                  }
+                  catch(...){
+                      m_processRun->addCBLog(CBLOG_ERR, u8"无效输入:%s", to_cstr(inputString));
+                  }
+
+                  if(ir && count > 0){
+                      m_processRun->getMyHero()->getInvPack().add(itemID, count);
+                      m_processRun->addCBLog(CBLOG_SYS, u8"直接获得 %d个%s", count, to_cstr(ir.name));
+                  }
               });
           },
 
