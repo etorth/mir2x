@@ -20,6 +20,7 @@
 #include "widget.hpp"
 #include "sysconst.hpp"
 #include "labelboard.hpp"
+#include "protocoldef.hpp"
 #include "tritexbutton.hpp"
 
 class ProcessRun;
@@ -32,28 +33,7 @@ class PlayerStatusBoard: public Widget
             int y = 0;
             int w = SYS_INVGRIDPW;
             int h = SYS_INVGRIDPH;
-        };
-
-        enum WearGridIndex: int
-        {
-            WEAR_NONE  = 0,
-            WEAR_BEGIN = 1,
-            WEAR_DRESS = 1,
-            WEAR_HELMET,
-            WEAR_WEAPON,
-
-            WEAR_GRID_BEGIN,
-            WEAR_SHOES = WEAR_GRID_BEGIN,
-            WEAR_NECKLACE,
-            WEAR_ARMRING_L,
-            WEAR_ARMRING_R,
-            WEAR_RING_L,
-            WEAR_RING_R,
-            WEAR_TORCH,
-            WEAR_CHARM,
-            WEAR_GRID_END,
-
-            WEAR_END = WEAR_GRID_END,
+            const char8_t *type = nullptr;
         };
 
     private:
@@ -61,7 +41,7 @@ class PlayerStatusBoard: public Widget
         static constexpr int m_equipCharY = 200;
 
     private:
-        const std::array<WearGrid, WEAR_END> m_gridList;
+        const std::array<WearGrid, WLG_END> m_gridList;
 
     private:
         TritexButton m_closeButton;
@@ -84,7 +64,4 @@ class PlayerStatusBoard: public Widget
 
     public:
         bool processEvent(const SDL_Event &, bool) override;
-
-    private:
-        uint32_t getGridItemID(int) const;
 };

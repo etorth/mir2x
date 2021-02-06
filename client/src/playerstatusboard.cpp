@@ -48,44 +48,48 @@ PlayerStatusBoard::PlayerStatusBoard(int argX, int argY, ProcessRun *runPtr, Wid
           std::remove_cvref_t<decltype(this->m_gridList)> gridList;
           gridList.fill({});
 
-          gridList[WEAR_DRESS] = WearGrid
+          gridList[WLG_DRESS] = WearGrid
           {
-              .x = m_equipCharX -   0,
+              .x = m_equipCharX,
               .y = m_equipCharY - 100,
-              .w =  60,
+              .w = 60,
               .h = 110,
+              .type = u8"衣服",
           };
 
-          gridList[WEAR_HELMET] = WearGrid
+          gridList[WLG_HELMET] = WearGrid
           {
-              .x = m_equipCharX +  15,
+              .x = m_equipCharX + 15,
               .y = m_equipCharY - 130,
               .w = 20,
               .h = 15,
+              .type = u8"头盔",
           };
 
-          gridList[WEAR_WEAPON] = WearGrid
+          gridList[WLG_WEAPON] = WearGrid
           {
-              .x = m_equipCharX -  50,
+              .x = m_equipCharX - 50,
               .y = m_equipCharY - 120,
               .w = 45,
               .h = 90,
+              .type = u8"武器",
           };
 
-          gridList[WEAR_SHOES] = WearGrid
+          gridList[WLG_SHOES] = WearGrid
           {
-              .x =  10,
+              .x = 10,
               .y = 235,
-              .h =  67,
+              .h = 67,
+              .type = u8"鞋",
           };
 
-          gridList[WEAR_NECKLACE ] = WearGrid{.x = 168, .y =  88, };
-          gridList[WEAR_ARMRING_L] = WearGrid{.x =  10, .y = 155, };
-          gridList[WEAR_ARMRING_R] = WearGrid{.x = 168, .y = 155, };
-          gridList[WEAR_RING_L   ] = WearGrid{.x =  10, .y = 195, };
-          gridList[WEAR_RING_R   ] = WearGrid{.x = 168, .y = 195, };
-          gridList[WEAR_TORCH    ] = WearGrid{.x =  90, .y = 265, };
-          gridList[WEAR_CHARM    ] = WearGrid{.x = 130, .y = 265, };
+          gridList[WLG_NECKLACE] = WearGrid{.x = 168, .y =  88, .type = u8"项链"};
+          gridList[WLG_ARMRING0] = WearGrid{.x =  10, .y = 155, .type = u8"手镯"};
+          gridList[WLG_ARMRING1] = WearGrid{.x = 168, .y = 155, .type = u8"手镯"};
+          gridList[WLG_RING0   ] = WearGrid{.x =  10, .y = 195, .type = u8"戒指"};
+          gridList[WLG_RING1   ] = WearGrid{.x = 168, .y = 195, .type = u8"戒指"};
+          gridList[WLG_TORCH   ] = WearGrid{.x =  90, .y = 265, .type = u8"火把"};
+          gridList[WLG_CHARM   ] = WearGrid{.x = 130, .y = 265, .type = u8"魅力"};
 
           return gridList;
       }())
@@ -201,8 +205,8 @@ void PlayerStatusBoard::drawEx(int, int, int, int, int, int) const
         }
     }
 
-    for(size_t i = WEAR_GRID_BEGIN; i < WEAR_GRID_END; ++i){
-        if(auto texPtr = g_itemDB->Retrieve(DBCOM_ITEMRECORD(getGridItemID(i)).pkgGfxID | 0X01000000)){
+    for(size_t i = WLG_W_BEGIN; i < WLG_W_END; ++i){
+        if(auto texPtr = g_itemDB->Retrieve(DBCOM_ITEMRECORD(m_processRun->getMyHero()->getWLGridItemID(i)).pkgGfxID | 0X01000000)){
             const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);
             const int dstX = x() + m_gridList[i].x + (m_gridList[i].w - texW) / 2;
             const int dstY = y() + m_gridList[i].y + (m_gridList[i].h - texH) / 2;
@@ -216,7 +220,7 @@ void PlayerStatusBoard::drawEx(int, int, int, int, int, int) const
     }
 
     if(g_clientArgParser->debugPlayerStatusBoard){
-        for(size_t i = WEAR_BEGIN; i < WEAR_END; ++i){
+        for(size_t i = WLG_BEGIN; i < WLG_END; ++i){
             g_sdlDevice->drawRectangle(colorf::BLUE + 255, x() + m_gridList[i].x, y() + m_gridList[i].y, m_gridList[i].w, m_gridList[i].h);
         }
     }
@@ -265,6 +269,27 @@ bool PlayerStatusBoard::processEvent(const SDL_Event &event, bool valid)
                 switch(event.button.button){
                     case SDL_BUTTON_LEFT:
                         {
+                            for(size_t i = WLG_BEGIN; i < WLG_END; ++i){
+                                if(mathf::pointInRectangle(event.button.x, event.button.y, x() + m_gridList[i].x, y() + m_gridList[i].y, m_gridList[i].w, m_gridList[i].h)){
+                                    const uint32_t inGridItemID = m_processRun->getMyHero()->getWLGridItemID(i);
+                                    const auto bin = dynamic_cast<InventoryBoard *>(m_processRun->getWidget("InventoryBoard"))->getGrabbedPackBin();
+
+                                    if(bin){
+                                        if(m_processRun->getMyHero()->setWLGridItemID(i, bin.id)){
+                                            dynamic_cast<InventoryBoard *>(m_processRun->getWidget("InventoryBoard"))->setGrabbedItemID(inGridItemID);
+                                        }
+                                        else{
+                                            m_processRun->getMyHero()->getInvPack().add(bin.id, 1);
+                                            dynamic_cast<InventoryBoard *>(m_processRun->getWidget("InventoryBoard"))->setGrabbedItemID(0);
+                                        }
+                                    }
+                                    else{
+                                        m_processRun->getMyHero()->setWLGridItemID(i, 0);
+                                        dynamic_cast<InventoryBoard *>(m_processRun->getWidget("InventoryBoard"))->setGrabbedItemID(inGridItemID);
+                                    }
+                                    break;
+                                }
+                            }
                             return focusConsume(this, in(event.button.x, event.button.y));
                         }
                     default:
@@ -277,24 +302,5 @@ bool PlayerStatusBoard::processEvent(const SDL_Event &event, bool valid)
             {
                 return focusConsume(this, false);
             }
-    }
-}
-
-uint32_t PlayerStatusBoard::getGridItemID(int grid) const
-{
-    if(!(grid >= WEAR_GRID_BEGIN && grid < WEAR_GRID_END)){
-        throw fflerror("bad grid: %d", grid);
-    }
-
-    switch(grid){
-        case WEAR_SHOES    : return m_processRun->getMyHero()->getPlayerWear().shoes;
-        case WEAR_NECKLACE : return m_processRun->getMyHero()->getPlayerWear().necklace;
-        case WEAR_ARMRING_L: return m_processRun->getMyHero()->getPlayerWear().armring[0];
-        case WEAR_ARMRING_R: return m_processRun->getMyHero()->getPlayerWear().armring[1];
-        case WEAR_RING_L   : return m_processRun->getMyHero()->getPlayerWear().ring[0];
-        case WEAR_RING_R   : return m_processRun->getMyHero()->getPlayerWear().ring[1];
-        case WEAR_TORCH    : return m_processRun->getMyHero()->getPlayerWear().torch;
-        case WEAR_CHARM    : return m_processRun->getMyHero()->getPlayerWear().charm;
-        default            : return 0;
     }
 }

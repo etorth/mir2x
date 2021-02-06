@@ -228,3 +228,28 @@ struct PlayerWear
     uint32_t torch;
     uint32_t charm;
 };
+
+enum WearLookGridType: int
+{
+    WLG_NONE  = 0,
+    WLG_BEGIN = 1,
+
+    WLG_L_BEGIN = WLG_BEGIN,
+    WLG_DRESS   = WLG_L_BEGIN,
+    WLG_HELMET,
+    WLG_WEAPON,
+    WLG_L_END,
+
+    WLG_W_BEGIN = WLG_L_END,
+    WLG_SHOES   = WLG_W_BEGIN,
+    WLG_NECKLACE,
+    WLG_ARMRING0,
+    WLG_ARMRING1,
+    WLG_RING0,
+    WLG_RING1,
+    WLG_TORCH,
+    WLG_CHARM,
+    WLG_W_END,
+
+    WLG_END = WLG_W_END,
+};

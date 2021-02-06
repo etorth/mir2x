@@ -73,6 +73,6 @@ class InvPack
             return remove(bin.id, bin.count, bin.x, bin.y);
         }
 
-    private:
+    public:
         static PackBin makePackBin(uint32_t, size_t);
 };

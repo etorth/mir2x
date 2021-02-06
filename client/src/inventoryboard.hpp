@@ -85,4 +85,7 @@ class InventoryBoard: public Widget
         {
             return m_grabbedPackBin;
         }
+
+    public:
+        void setGrabbedItemID(uint32_t itemID);
 };

@@ -122,13 +122,7 @@ class Hero: public CreatureMovable
             m_look = look;
         }
 
-        void setDress(uint32_t dress)
-        {
-            m_look.dress = dress;
-        }
-
-        void setWeapon(uint32_t weapon)
-        {
-            m_look.weapon = weapon;
-        }
+    public:
+        uint32_t getWLGridItemID(int);
+        bool     setWLGridItemID(int, uint32_t);
 };

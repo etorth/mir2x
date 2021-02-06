@@ -1106,7 +1106,7 @@ void ProcessRun::RegisterLuaExport(ClientLuaModule *luaModulePtr)
     luaModulePtr->getLuaState().set_function("myHero_dress", [this](int nDress)
     {
         if(nDress >= 0){
-            getMyHero()->setDress((uint32_t)(nDress));
+            getMyHero()->setWLGridItemID(WLG_DRESS, (uint32_t)(nDress));
         }
     });
 
@@ -1115,7 +1115,7 @@ void ProcessRun::RegisterLuaExport(ClientLuaModule *luaModulePtr)
     luaModulePtr->getLuaState().set_function("myHero_weapon", [this](int nWeapon)
     {
         if(nWeapon >= 0){
-            getMyHero()->setWeapon((uint32_t)(nWeapon));
+            getMyHero()->setWLGridItemID(WLG_WEAPON, (uint32_t)(nWeapon));
         }
     });
 }

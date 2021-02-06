@@ -1074,3 +1074,53 @@ ClientCreature::TargetBox Hero::getTargetBox() const
 
     return getTargetBoxHelper(startX, startY, bodyFrameW, bodyFrameH);
 }
+
+uint32_t Hero::getWLGridItemID(int wlType)
+{
+    if(!(wlType >= WLG_BEGIN && wlType < WLG_END)){
+        throw fflerror("invalid wear/look type: %d", wlType);
+    }
+
+    switch(wlType){
+        case WLG_DRESS:    return m_look.dress;
+        case WLG_HELMET:   return m_look.helmet;
+        case WLG_WEAPON:   return m_look.weapon;
+        case WLG_SHOES:    return m_wear.shoes;
+        case WLG_NECKLACE: return m_wear.necklace;
+        case WLG_ARMRING0: return m_wear.armring[0];
+        case WLG_ARMRING1: return m_wear.armring[1];
+        case WLG_RING0:    return m_wear.ring[0];
+        case WLG_RING1:    return m_wear.ring[1];
+        case WLG_TORCH:    return m_wear.torch;
+        case WLG_CHARM:    return m_wear.charm;
+        default: throw fflerror("invalid wear/look type: %d", wlType);
+    }
+}
+
+bool Hero::setWLGridItemID(int wlType, uint32_t itemID)
+{
+    if(!(wlType >= WLG_BEGIN && wlType < WLG_END)){
+        throw fflerror("invalid wear/look type: %d", wlType);
+    }
+
+    const auto &ir = DBCOM_ITEMRECORD(itemID);
+    if(itemID && !ir){
+        throw fflerror("invalid itemID: %llu", to_llu(itemID));
+    }
+
+    const auto typeStr = std::u8string_view(ir.type);
+    switch(wlType){
+        case WLG_DRESS:    { if(itemID && (typeStr != u8"衣服")){ return false; } m_look.dress      = itemID; return true; }
+        case WLG_HELMET:   { if(itemID && (typeStr != u8"头盔")){ return false; } m_look.helmet     = itemID; return true; }
+        case WLG_WEAPON:   { if(itemID && (typeStr != u8"武器")){ return false; } m_look.weapon     = itemID; return true; }
+        case WLG_SHOES:    { if(itemID && (typeStr != u8"鞋"  )){ return false; } m_wear.shoes      = itemID; return true; }
+        case WLG_NECKLACE: { if(itemID && (typeStr != u8"项链")){ return false; } m_wear.necklace   = itemID; return true; }
+        case WLG_ARMRING0: { if(itemID && (typeStr != u8"手镯")){ return false; } m_wear.armring[0] = itemID; return true; }
+        case WLG_ARMRING1: { if(itemID && (typeStr != u8"手镯")){ return false; } m_wear.armring[1] = itemID; return true; }
+        case WLG_RING0:    { if(itemID && (typeStr != u8"戒指")){ return false; } m_wear.ring[0]    = itemID; return true; }
+        case WLG_RING1:    { if(itemID && (typeStr != u8"戒指")){ return false; } m_wear.ring[1]    = itemID; return true; }
+        case WLG_TORCH:    { if(itemID && (typeStr != u8"火把")){ return false; } m_wear.torch      = itemID; return true; }
+        case WLG_CHARM:    { if(itemID && (typeStr != u8"魅力")){ return false; } m_wear.charm      = itemID; return true; }
+        default: throw fflerror("invalid wear type: %d", wlType);
+    }
+}

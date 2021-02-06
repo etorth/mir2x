@@ -423,3 +423,13 @@ void InventoryBoard::drawItemHoverText(const PackBin &bin) const
     g_sdlDevice->fillRectangle(colorf::RGBA(0, 0, 0, 200), mousePX, mousePY, std::max<int>(hoverTextBoard.w(), 200) + 20, hoverTextBoard.h() + 20);
     hoverTextBoard.drawAt(DIR_UPLEFT, mousePX + 10, mousePY + 10);
 }
+
+void InventoryBoard::setGrabbedItemID(uint32_t itemID)
+{
+    if(DBCOM_ITEMRECORD(itemID)){
+        m_grabbedPackBin = InvPack::makePackBin(itemID, 1);
+    }
+    else{
+        m_grabbedPackBin = {};
+    }
+}
