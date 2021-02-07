@@ -21,6 +21,7 @@
 #include <cstdint>
 #include <cstring>
 #include <stdexcept>
+#include <string_view>
 
 #define to_lld(x) static_cast<         long long>(x)
 #define to_llu(x) static_cast<unsigned long long>(x)
@@ -120,6 +121,16 @@ inline const char *to_boolcstr(bool b)
 inline const char8_t *to_boolu8cstr(bool b)
 {
     return b ? u8"true" : u8"false";
+}
+
+template<typename T> auto to_sv(const T &t)
+{
+    return std::string_view(to_cstr(t));
+}
+
+template<typename T> auto to_u8sv(const T &t)
+{
+    return std::u8string_view(to_u8cstr(t));
 }
 
 template<typename T, typename F> static T check_cast(F from)

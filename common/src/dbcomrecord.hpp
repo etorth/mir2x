@@ -39,3 +39,5 @@ const MapRecord &DBCOM_MAPRECORD(const char *);
 
 const NPCRecord &DBCOM_NPCRECORD(uint32_t);
 const NPCRecord &DBCOM_NPCRECORD(const char *);
+
+bool getClothGender(uint32_t);

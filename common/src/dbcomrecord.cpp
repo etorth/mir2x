@@ -21,7 +21,10 @@
  * =====================================================================================
  */
 
+#include <string_view>
+#include "totype.hpp"
 #include "dbcomid.hpp"
+#include "fflerror.hpp"
 #include "itemrecord.hpp"
 #include "monsterrecord.hpp"
 
@@ -41,3 +44,16 @@ const MagicRecord   &DBCOM_MAGICRECORD  (const char8_t *name) { return DBCOM_MAG
 const MonsterRecord &DBCOM_MONSTERRECORD(const char8_t *name) { return DBCOM_MONSTERRECORD(DBCOM_MONSTERID(name)); }
 const MapRecord     &DBCOM_MAPRECORD    (const char8_t *name) { return DBCOM_MAPRECORD    (DBCOM_MAPID    (name)); }
 const NPCRecord     &DBCOM_NPCRECORD    (const char8_t *name) { return DBCOM_NPCRECORD    (DBCOM_NPCID    (name)); }
+
+bool getClothGender(uint32_t itemID)
+{
+    if(const auto &ir = DBCOM_ITEMRECORD(itemID); ir && (to_u8sv(ir.type) == u8"衣服")){
+        if(to_u8sv(ir.name).find(u8"（男）") != std::u8string_view::npos){
+            return true;
+        }
+        else if(to_u8sv(ir.name).find(u8"（女）") != std::u8string_view::npos){
+            return false;
+        }
+    }
+    throw fflerror("invalid argument: itemID = %llu", to_llu(itemID));
+}

@@ -69,11 +69,10 @@ function main()
                     local x, y = getRandLoc()
                     addMonster(monsterName, x, y, true)
                 end
+            end
 
-                if math.random(1, 20) == 1 then
-                    addMonster(monsterName, 400 + math.random(1, 5), 120 + math.random(1, 5), true)
-                end
-
+            if math.random(1, 10) == 1 then
+                addMonster('沙漠石人', 400 + math.random(1, 5), 120 + math.random(1, 5), true)
             end
         end
         coroutine.yield()
