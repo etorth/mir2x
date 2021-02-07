@@ -75,7 +75,7 @@ void Hero::draw(int viewX, int viewY, int)
         // 21 - 14 :    weapon : max = 256 : +----> GfxWeaponID
         //      22 :    gender :
         //      23 :    shadow :
-        const auto nGfxWeaponID = GfxWeaponID(DBCOM_ITEMRECORD(getPlayerLook().weapon).useGfxID, m_currMotion->type, m_currMotion->direction);
+        const auto nGfxWeaponID = GfxWeaponID(DBCOM_ITEMRECORD(getPlayerLook().weapon).shape, m_currMotion->type, m_currMotion->direction);
         if(nGfxWeaponID < 0){
             return;
         }
@@ -95,7 +95,7 @@ void Hero::draw(int viewX, int viewY, int)
 
     fnDrawWeapon(true);
 
-    const auto nDress     = std::max<int>(0, DBCOM_ITEMRECORD(getPlayerLook().dress).useGfxID);
+    const auto nDress     = std::max<int>(0, DBCOM_ITEMRECORD(getPlayerLook().dress).shape);
     const auto nMotion    = m_currMotion->type;
     const auto nDirection = m_currMotion->direction;
 
@@ -140,7 +140,7 @@ void Hero::draw(int viewX, int viewY, int)
 
     g_sdlDevice->drawTexture(pFrame0, startX + nDX0, startY + nDY0);
     if(getPlayerLook().helmet){
-        if(const auto nHelmetGfxID = gfxHelmetID(DBCOM_ITEMRECORD(getPlayerLook().helmet).useGfxID, nMotion, nDirection); nHelmetGfxID >= 0){
+        if(const auto nHelmetGfxID = gfxHelmetID(DBCOM_ITEMRECORD(getPlayerLook().helmet).shape, nMotion, nDirection); nHelmetGfxID >= 0){
             const uint32_t nHelmetKey = (((uint32_t)(uidf::getPlayerGender(UID()) ? 1 : 0)) << 22) + (((uint32_t)(nHelmetGfxID & 0X01FFFF)) << 5) + m_currMotion->frame;
             if(auto [texPtr, dx, dy] = g_helmetDB->Retrieve(nHelmetKey); texPtr){
                 g_sdlDevice->drawTexture(texPtr, startX + dx, startY + dy);

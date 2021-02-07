@@ -43,7 +43,7 @@ struct ItemRecord
 
     int weight;
     int pkgGfxID;
-    int useGfxID;
+    uint32_t shape;
 
     const char8_t * const needJob;
 

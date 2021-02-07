@@ -174,7 +174,7 @@ void PlayerStatusBoard::drawEx(int, int, int, int, int, int) const
     }
 
     if(const auto dressItemID = myHeroPtr->getPlayerLook().dress){
-        if(const auto useGfxIndex = DBCOM_ITEMRECORD(dressItemID).useGfxID; useGfxIndex > 0){
+        if(const auto useGfxIndex = DBCOM_ITEMRECORD(dressItemID).shape; useGfxIndex > 0){
             if(auto [texPtr, dx, dy] = g_equipDB->Retrieve((uidf::getPlayerGender(myHeroPtr->UID()) ? 0X010003AC : 0X010003B6) + useGfxIndex - 1); texPtr){
                 g_sdlDevice->drawTexture(texPtr, x() + m_equipCharX + dx, y() + m_equipCharY + dy);
             }
@@ -182,7 +182,7 @@ void PlayerStatusBoard::drawEx(int, int, int, int, int, int) const
     }
 
     if(const auto weaponItemID = myHeroPtr->getPlayerLook().weapon){
-        if(const auto useGfxIndex = DBCOM_ITEMRECORD(weaponItemID).useGfxID; useGfxIndex > 0){
+        if(const auto useGfxIndex = DBCOM_ITEMRECORD(weaponItemID).shape; useGfxIndex > 0){
             if(auto [texPtr, dx, dy] = g_equipDB->Retrieve(0X01000000 + DBCOM_ITEMRECORD(weaponItemID).pkgGfxID); texPtr){
                 g_sdlDevice->drawTexture(texPtr, x() + m_equipCharX + dx, y() + m_equipCharY + dy);
             }
@@ -190,7 +190,7 @@ void PlayerStatusBoard::drawEx(int, int, int, int, int, int) const
     }
 
     if(const auto helmetItemID = myHeroPtr->getPlayerLook().helmet){
-        if(const auto useGfxIndex = DBCOM_ITEMRECORD(helmetItemID).useGfxID; useGfxIndex > 0){
+        if(const auto useGfxIndex = DBCOM_ITEMRECORD(helmetItemID).shape; useGfxIndex > 0){
             if(auto [texPtr, dx, dy] = g_equipDB->Retrieve(0X01000000 + DBCOM_ITEMRECORD(helmetItemID).pkgGfxID); texPtr){
                 g_sdlDevice->drawTexture(texPtr, x() + m_equipCharX + dx, y() + m_equipCharY + dy);
             }
