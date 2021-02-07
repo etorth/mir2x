@@ -27,7 +27,15 @@ local function randomHeadString()
 end
 
 local function getSell()
-    return {'太阳水', '草鞋', '布鞋', '皮靴', '五彩鞋', '鹿皮靴', '钢靴', '天掌靴', '赤飞靴', '黑皮靴', '长皮靴', '月光鞋', '无影靴', '仙云靴', '武神靴', '踏浪靴', '锦靴', '黄金靴', '紫金靴', '乌金靴', '青铜头盔', '道士头盔', '骷髅头盔', '虎面头盔', '破山剑', '青铜剑', '旋风流星刀', '破魂'}
+    -- return {'太阳水', '紫金靴', '乌金靴', '青铜头盔', '虎面头盔', '破山剑', '旋风流星刀', '破魂'}
+    --
+    local result = {}
+    local itemList = getSellItemList();
+
+    for i = 1, #itemList do
+        table.insert(result, itemList[i])
+    end
+    return result
 end
 
 processNPCEvent =

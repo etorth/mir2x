@@ -76,6 +76,17 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npc)
         npc->sendQuery(uidf::toUIDEx(sessionUID), uidf::toUIDEx(uidString), query);
     });
 
+    m_luaState.set_function("getSellItemList", [](sol::this_state luaPtr)
+    {
+        std::vector<std::string> itemNameList;
+        for(uint32_t i = 1; i < 1000; ++i){
+            if(const auto &ir = DBCOM_ITEMRECORD(i)){
+                itemNameList.push_back(to_cstr(ir.name));
+            }
+        }
+        return sol::make_object(sol::state_view(luaPtr), itemNameList);
+    });
+
     m_luaState.set_function("sayXML", [npc, this](std::string uidString, std::string xmlString)
     {
         const uint64_t uid = [&uidString]() -> uint64_t
