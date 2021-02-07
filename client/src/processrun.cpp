@@ -410,7 +410,7 @@ void ProcessRun::draw()
     }
 
     // draw NotifyBoard
-    {
+    if(false){
         const int w = std::max<int>(g_notifyBoard->pw() + 10, 160);
         const int h = g_notifyBoard->h();
         const int x = 0;
