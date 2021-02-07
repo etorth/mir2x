@@ -80,7 +80,7 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npc)
     {
         std::vector<std::string> itemNameList;
         for(uint32_t i = 1; i < 1000; ++i){
-            if(const auto &ir = DBCOM_ITEMRECORD(i)){
+            if(const auto &ir = DBCOM_ITEMRECORD(i); ir && (std::u8string_view(ir.name) != u8"未知")){
                 itemNameList.push_back(to_cstr(ir.name));
             }
         }

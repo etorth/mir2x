@@ -340,16 +340,16 @@ void PurchaseBoard::drawEx(int dstX, int dstY, int, int, int, int) const
                 const int drawX = startX + (boxW - texW) / 2;
                 const int drawY = startY + (boxH - texH) / 2;
                 g_sdlDevice->drawTexture(texPtr, x() + drawX, y() + drawY);
-
-                label.setText(u8"%s", to_cstr(ir.name));
-                label.moveTo(x() + startX + boxW + 10, y() + startY + (boxH - label.h()) / 2);
-                label.draw();
-
-                if(m_selected == (int)(i)){
-                    g_sdlDevice->fillRectangle(colorf::WHITE + 64, startX, startY, 252 - 19, boxH);
-                }
-                startY += lineH;
             }
+
+            label.setText(u8"%s", to_cstr(ir.name));
+            label.moveTo(x() + startX + boxW + 10, y() + startY + (boxH - label.h()) / 2);
+            label.draw();
+
+            if(m_selected == (int)(i)){
+                g_sdlDevice->fillRectangle(colorf::WHITE + 64, startX, startY, 252 - 19, boxH);
+            }
+            startY += lineH;
         }
     }
 

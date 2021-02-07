@@ -59,10 +59,10 @@ PlayerStatusBoard::PlayerStatusBoard(int argX, int argY, ProcessRun *runPtr, Wid
 
           gridList[WLG_HELMET] = WearGrid
           {
-              .x = m_equipCharX + 15,
-              .y = m_equipCharY - 130,
-              .w = 20,
-              .h = 15,
+              .x = m_equipCharX + 10,
+              .y = m_equipCharY - 135,
+              .w = 30,
+              .h = 25,
               .type = u8"头盔",
           };
 
