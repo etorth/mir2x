@@ -242,7 +242,9 @@ bool InventoryBoard::processEvent(const SDL_Event &event, bool valid)
                                     m_grabbedPackBin = m_processRun->getMyHero()->getInvPack().getPackBinList().at(selectedPackIndex);
                                     m_processRun->getMyHero()->getInvPack().removeBin(m_grabbedPackBin);
                                     if(lastGrabbedBin){
-                                        m_processRun->getMyHero()->getInvPack().addBin(lastGrabbedBin);
+                                        // when swapping
+                                        // prefer to use current location to store
+                                        m_processRun->getMyHero()->getInvPack().add(lastGrabbedBin.id, lastGrabbedBin.count, m_grabbedPackBin.x, m_grabbedPackBin.y);
                                     }
                                 }
                                 else if(m_grabbedPackBin){

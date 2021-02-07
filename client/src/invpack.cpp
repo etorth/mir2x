@@ -98,9 +98,10 @@ size_t InvPack::remove(uint32_t itemID, size_t count, int x, int y)
                 && bin.id == itemID){
 
             if(bin.count <= count){
+                const auto doneCount = bin.count;
                 std::swap(bin, m_packBinList.back());
                 m_packBinList.pop_back();
-                return bin.count;
+                return doneCount;;
             }
             else{
                 bin.count -= count;
