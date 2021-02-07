@@ -201,6 +201,7 @@ class ProcessRun: public Process
         void net_NOTIFYDEAD(const uint8_t *, size_t);
         void net_PLAYERLOOK(const uint8_t *, size_t);
         void net_PLAYERWEAR(const uint8_t *, size_t);
+        void net_PLAYERNAME(const uint8_t *, size_t);
         void net_DEADFADEOUT(const uint8_t *, size_t);
         void net_MONSTERGINFO(const uint8_t *, size_t);
         void net_SHOWDROPITEM(const uint8_t *, size_t);

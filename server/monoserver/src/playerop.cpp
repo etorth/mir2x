@@ -24,6 +24,7 @@
 #include "actorpod.hpp"
 #include "netdriver.hpp"
 #include "monoserver.hpp"
+#include "colorf.hpp"
 #include "cerealf.hpp"
 #include "serdesmsg.hpp"
 #include "buildconfig.hpp"
@@ -73,6 +74,14 @@ void Player::on_MPK_BINDCHANNEL(const MessagePack &rstMPK)
     smPW.uid = UID();
     smPW.wear = getPlayerWear();
     postNetMessage(SM_PLAYERWEAR, smPW);
+
+    SMPlayerName smPN;
+    std::memset(&smPN, 0, sizeof(smPN));
+
+    smPN.uid = UID();
+    std::strcpy(smPN.name, to_cstr(m_name));
+    smPN.nameColor = colorf::RED + 255;
+    postNetMessage(SM_PLAYERNAME, smPN);
 
     const auto versionStr = str_printf(u8"服务器版本号：%s", getBuildSignature());
     postNetMessage(SM_TEXT, versionStr.data(), versionStr.size() + 1);

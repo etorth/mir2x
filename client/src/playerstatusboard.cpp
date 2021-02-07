@@ -173,6 +173,7 @@ void PlayerStatusBoard::drawEx(int, int, int, int, int, int) const
         g_sdlDevice->drawTexture(texPtr, x() + m_equipCharX + dx, y() + m_equipCharY + dy);
     }
 
+    LabelBoard(0, 0, to_u8cstr(myHeroPtr->getName()), 1, 12, 0, myHeroPtr->getNameColor()).drawAt(DIR_NONE, x() + 164, y() + 38);
     if(const auto dressItemID = myHeroPtr->getPlayerLook().dress){
         if(const auto useGfxIndex = DBCOM_ITEMRECORD(dressItemID).shape; useGfxIndex > 0){
             if(auto [texPtr, dx, dy] = g_equipDB->Retrieve((uidf::getPlayerGender(myHeroPtr->UID()) ? 0X010003AC : 0X010003B6) + useGfxIndex - 1); texPtr){

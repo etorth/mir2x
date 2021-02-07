@@ -437,3 +437,13 @@ void ProcessRun::net_PLAYERWEAR(const uint8_t *buf, size_t)
         }
     }
 }
+
+void ProcessRun::net_PLAYERNAME(const uint8_t *buf, size_t)
+{
+    const auto smPN = ServerMsg::conv<SMPlayerName>(buf);
+    if(uidf::getUIDType(smPN.uid) == UID_PLY){
+        if(auto playerPtr = dynamic_cast<Hero *>(findUID(smPN.uid)); playerPtr){
+            playerPtr->setName(smPN.name, smPN.nameColor);
+        }
+    }
+}

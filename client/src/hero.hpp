@@ -28,6 +28,10 @@ class Hero: public CreatureMovable
         bool    m_onHorse;
 
     protected:
+        std::string m_name;
+        uint32_t    m_nameColor;
+
+    protected:
         PlayerLook m_look;
         PlayerWear m_wear;
 
@@ -120,6 +124,23 @@ class Hero: public CreatureMovable
         void setLook(const PlayerLook &look)
         {
             m_look = look;
+        }
+
+        void setName(const char *name, uint32_t nameColor)
+        {
+            m_name = to_cstr(name);
+            m_nameColor = nameColor;
+        }
+
+    public:
+        std::string getName() const
+        {
+            return m_name;
+        }
+
+        uint32_t getNameColor() const
+        {
+            return m_nameColor;
         }
 
     public:

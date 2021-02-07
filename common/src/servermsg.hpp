@@ -50,6 +50,7 @@ enum SMType: uint8_t
     SM_GOLD,
     SM_SELLITEM,
     SM_TEXT,
+    SM_PLAYERNAME,
     SM_MAX,
 };
 
@@ -226,6 +227,13 @@ struct SMGold
 {
     uint32_t Gold;
 };
+
+struct SMPlayerName
+{
+    uint64_t uid;
+    char name[128];
+    uint32_t nameColor;
+};
 #pragma pack(pop)
 
 class ServerMsg final: public MsgBase
@@ -269,6 +277,7 @@ class ServerMsg final: public MsgBase
                 _add_server_msg_type_case(SM_GOLD,             1, sizeof(SMGold)            )
                 _add_server_msg_type_case(SM_SELLITEM,         3, 0                         )
                 _add_server_msg_type_case(SM_TEXT,             3, 0                         )
+                _add_server_msg_type_case(SM_PLAYERNAME,       1, sizeof(SMPlayerName)      )
 #undef _add_server_msg_type_case
             };
 
@@ -300,6 +309,7 @@ class ServerMsg final: public MsgBase
                     || std::is_same_v<T, SMOffline>
                     || std::is_same_v<T, SMPickUpOK>
                     || std::is_same_v<T, SMRemoveGroundItem>
+                    || std::is_same_v<T, SMPlayerName>
                     || std::is_same_v<T, SMGold>);
 
             if(bufLen && bufLen != sizeof(T)){
