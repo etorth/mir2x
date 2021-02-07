@@ -956,8 +956,7 @@ int Hero::GfxWeaponID(int nWeapon, int nMotion, int nDirection) const
             && (nWeapon    >= WEAPON_BEGIN && nWeapon    < WEAPON_END)
             && (nMotion    >= MOTION_BEGIN && nMotion    < MOTION_END)
             && (nDirection >= DIR_BEGIN    && nDirection < DIR_END   )){
-        const auto nGfxMotionID = gfxMotionID(nMotion);
-        if(nGfxMotionID >= 0){
+        if(const auto nGfxMotionID = gfxMotionID(nMotion); nGfxMotionID >= 0){
             return ((nWeapon - WEAPON_BEGIN) << 9) + (nGfxMotionID << 3) + (nDirection - DIR_BEGIN);
         }
     }
@@ -971,8 +970,7 @@ int Hero::GfxHairID(int nHair, int nMotion, int nDirection) const
             && (nHair      >= HAIR_BEGIN   && nHair      < HAIR_END  )
             && (nMotion    >= MOTION_BEGIN && nMotion    < MOTION_END)
             && (nDirection >= DIR_BEGIN    && nDirection < DIR_END   )){
-        const auto nGfxMotionID = gfxMotionID(nMotion);
-        if(nGfxMotionID >= 0){
+        if(const auto nGfxMotionID = gfxMotionID(nMotion); nGfxMotionID >= 0){
             return ((nHair - HAIR_BEGIN /* hair gfx id start from 0 */) << 9) + (nGfxMotionID << 3) + (nDirection - DIR_BEGIN);
         }
     }
@@ -983,12 +981,11 @@ int Hero::GfxDressID(int nDress, int nMotion, int nDirection) const
 {
     static_assert(sizeof(int) > 2, "GfxDressID() overflows because of sizeof(int) too small");
     if(true
-            && (nDress     >= DRESS_BEGIN  && nDress     < DRESS_END )
+            && (nDress     >= DRESS_NONE   && nDress     < DRESS_END )  // support DRESS_NONE as naked
             && (nMotion    >= MOTION_BEGIN && nMotion    < MOTION_END)
             && (nDirection >= DIR_BEGIN    && nDirection < DIR_END   )){
-        const auto nGfxMotionID = gfxMotionID(nMotion);
-        if(nGfxMotionID >= 0){
-            return ((nDress - DRESS_BEGIN + 1 /* 0 means naked */) << 9) + (nGfxMotionID << 3) + (nDirection - DIR_BEGIN);
+        if(const auto nGfxMotionID = gfxMotionID(nMotion); nGfxMotionID >= 0){
+            return ((nDress - DRESS_NONE) << 9) + (nGfxMotionID << 3) + (nDirection - DIR_BEGIN);
         }
     }
     return -1;
@@ -1001,8 +998,7 @@ int Hero::gfxHelmetID(int nHelmet, int nMotion, int nDirection) const
             && (nHelmet    >= HELMET_BEGIN && nHelmet    < HELMET_END)
             && (nMotion    >= MOTION_BEGIN && nMotion    < MOTION_END)
             && (nDirection >= DIR_BEGIN    && nDirection < DIR_END   )){
-        const auto nGfxMotionID = gfxMotionID(nMotion);
-        if(nGfxMotionID >= 0){
+        if(const auto nGfxMotionID = gfxMotionID(nMotion); nGfxMotionID >= 0){
             return ((nHelmet - HELMET_BEGIN) << 9) + (nGfxMotionID << 3) + (nDirection - DIR_BEGIN);
         }
     }

@@ -3,7 +3,7 @@
  *
  *       Filename: protocoldef.hpp
  *        Created: 06/03/2016 11:40:51
- *    Description: 
+ *    Description: always: XXX_BEGIN = XXX_NONE + 1
  *
  *        Version: 1.0
  *       Revision: none
