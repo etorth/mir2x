@@ -33,7 +33,6 @@ class InvPack
     public:
         InvPack(size_t argW = SYS_INVGRIDCW)
             : m_w(argW)
-            , m_packBinList()
         {}
 
     public:
