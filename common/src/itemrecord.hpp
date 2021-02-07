@@ -66,6 +66,11 @@ struct ItemRecord
         using namespace std::literals;
         return false
             || type == u8"鞋"sv
-            || type == u8"衣服"sv;
+            || type == u8"衣服"sv
+            || type == u8"武器"sv
+            || type == u8"头盔"sv
+            || type == u8"项链"sv
+            || type == u8"戒指"sv
+            || type == u8"手镯"sv;
     }
 };
