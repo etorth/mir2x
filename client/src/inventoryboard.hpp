@@ -88,4 +88,7 @@ class InventoryBoard: public Widget
 
     public:
         void setGrabbedItemID(uint32_t itemID);
+
+    private:
+        void packBinConsume(const PackBin &);
 };

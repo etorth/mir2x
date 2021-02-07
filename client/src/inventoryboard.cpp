@@ -260,8 +260,7 @@ bool InventoryBoard::processEvent(const SDL_Event &event, bool valid)
                         {
                             if(in(event.button.x, event.button.y)){
                                 if(const int selectedPackIndex = getPackBinIndex(event.button.x, event.button.y); selectedPackIndex >= 0){
-                                    const auto &packBin = m_processRun->getMyHero()->getInvPack().getPackBinList().at(selectedPackIndex);
-                                    m_processRun->getMyHero()->getInvPack().removeBin(packBin);
+                                    packBinConsume(m_processRun->getMyHero()->getInvPack().getPackBinList().at(selectedPackIndex));
                                 }
                                 return focusConsume(this, true);
                             }
@@ -431,5 +430,17 @@ void InventoryBoard::setGrabbedItemID(uint32_t itemID)
     }
     else{
         m_grabbedPackBin = {};
+    }
+}
+
+void InventoryBoard::packBinConsume(const PackBin &bin)
+{
+    const auto &ir = DBCOM_ITEMRECORD(bin.id);
+    const auto type = std::u8string_view(ir.type);
+
+    if(false
+            || type == u8"恢复药水"
+            || type == u8"强化药水"){
+        m_processRun->getMyHero()->getInvPack().remove(bin.id, 1, bin.x, bin.y);
     }
 }

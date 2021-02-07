@@ -26,11 +26,12 @@
 extern PNGTexDB *g_itemDB;
 void InvPack::add(uint32_t itemID, size_t count)
 {
-    if(!(itemID && count)){
+    const auto &ir = DBCOM_ITEMRECORD(itemID);
+    if(!(ir && count)){
         throw fflerror("invalid arguments: itemID = %llu, count = %zu", to_llu(itemID), count);
     }
 
-    if(!DBCOM_ITEMRECORD(itemID).hasDBID()){
+    if(!ir.hasDBID()){
         for(auto &bin: m_packBinList){
             if(bin.id == itemID){
                 if(bin.count + count <= SYS_INVGRIDMAXHOLD){
@@ -52,9 +53,13 @@ void InvPack::add(uint32_t itemID, size_t count)
         pack2D.put(bin.x, bin.y, bin.w, bin.h);
     }
 
-    auto addedBin = makePackBin(itemID, count);
-    pack2D.add(&addedBin, 1);
-    m_packBinList.push_back(addedBin);
+    for(size_t doneCount = 0; doneCount < count;){
+        const auto currAdd = std::min<size_t>(ir.hasDBID() ? 1 : SYS_INVGRIDMAXHOLD, count - doneCount);
+        auto addedBin = makePackBin(itemID, currAdd);
+        pack2D.add(&addedBin, 1);
+        m_packBinList.push_back(addedBin);
+        doneCount += currAdd;
+    }
 }
 
 void InvPack::add(uint32_t itemID, size_t count, int x, int y)

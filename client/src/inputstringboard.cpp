@@ -57,6 +57,7 @@ InputStringBoard::InputStringBoard(int x, int y, ProcessRun *runPtr, Widget *wid
           [this]()
           {
               inputLineDone();
+              show(false);
           },
 
           this,
@@ -74,6 +75,7 @@ InputStringBoard::InputStringBoard(int x, int y, ProcessRun *runPtr, Widget *wid
           [this]()
           {
               inputLineDone();
+              show(false);
           },
 
           0,
