@@ -717,7 +717,6 @@
 {  u8"裁决之杖"           , u8"武器"      , u8"高级" , 1      , 0X042D   ,15       , u8"共用"  , 3         , 0      , 0       , 0       , 0      , 0       , u8""},
 {  u8"屠龙"               , u8"武器"      , u8"高级" , 1      , 0X042E   , 4       , u8"共用"  , 3         , 0      , 0       , 0       , 0      , 0       , u8""},
 
-
 // above items includes all in itemDB with continuous index till 0X042E
 // name-------------------+-type----------+-rarity---+-weight-+-pkgGfxID-+-shape---+-needJob---+-needLevel-+-needDC-+-needSPC-+-needMDC-+-needAC-+-needMAC-+-description--
 {  u8"草鞋"               , u8"鞋"        , u8"普通" , 1      , 0X0550   , 0       , u8"共用"  , 0         , 0      , 0       , 0       , 0      , 0       , u8"用香蒲编成的凉鞋，价格低廉，是老百姓常穿的鞋子。"},
