@@ -396,7 +396,7 @@ void InventoryBoard::drawItemHoverText(const PackBin &bin) const
         u8R"###( </layout>                 )###""\n",
 
         ir.name,
-        str_nonempty(ir.description) ? ir.description : u8"暂无描述"
+        str_haschar(ir.description) ? ir.description : u8"暂无描述"
     );
 
     LayoutBoard hoverTextBoard

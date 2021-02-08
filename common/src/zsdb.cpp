@@ -234,7 +234,7 @@ ZSDB::~ZSDB()
 
 const char *ZSDB::decomp(const char *fileName, size_t checkLen, std::vector<uint8_t> *dstBuf)
 {
-    if(!str_nonempty(fileName)){
+    if(!str_haschar(fileName)){
         throw fflerror("invalid arguments: %s", fileName);
     }
 
@@ -302,14 +302,14 @@ std::vector<ZSDB::Entry> ZSDB::getEntryList() const
 
 void ZSDB::buildDB(const char *savePath, const char *fileNameRegex, const char *dataPath, const char *dictPath, double compRatio)
 {
-    if(!(str_nonempty(savePath) && str_nonempty(dataPath))){
+    if(!(str_haschar(savePath) && str_haschar(dataPath))){
         throw fflerror("invalid arguments: savePath = %s, dataPath = %s", to_cstr(savePath), to_cstr(dataPath));
     }
 
     ZSTD_CDict *cdictPtr = nullptr;
     std::vector<uint8_t> cdictBuf;
 
-    if(str_nonempty(dictPath)){
+    if(str_haschar(dictPath)){
         cdictBuf = readFileData(dictPath);
         if(cdictBuf.empty()){
             throw fflerror("dict file is empty: %s", dictPath);
@@ -331,7 +331,7 @@ void ZSDB::buildDB(const char *savePath, const char *fileNameRegex, const char *
     std::vector<InnEntry> entryList;
 
     size_t entryCount = 0;
-    std::regex fileNameMatchRegex(str_nonempty(fileNameRegex) ? fileNameRegex : ".*");
+    std::regex fileNameMatchRegex(str_haschar(fileNameRegex) ? fileNameRegex : ".*");
 
     for(auto &p: std::filesystem::directory_iterator(dataPath)){
         if(!p.is_regular_file()){
@@ -339,7 +339,7 @@ void ZSDB::buildDB(const char *savePath, const char *fileNameRegex, const char *
         }
 
         auto fileName = p.path().filename().u8string();
-        if(str_nonempty(fileNameRegex)){
+        if(str_haschar(fileNameRegex)){
             if(!std::regex_match(reinterpret_cast<const char *>(fileName.c_str()), fileNameMatchRegex)){
                 continue;
             }

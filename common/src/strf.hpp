@@ -99,8 +99,8 @@
     #define STR_PRINTF_CHECK_FORMAT(n)
 #endif
 
-bool str_nonempty(const char *);
-bool str_nonempty(const char8_t *);
+bool str_haschar(const char *);
+bool str_haschar(const char8_t *);
 
 template<std::integral T> [[nodiscard]] std::string str_ksep(T t, char sep = ',')
 {

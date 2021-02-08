@@ -713,7 +713,7 @@ void PurchaseBoard::drawExt1GridHoverText(int itemIndex) const
 
         ir.name,
         to_llu(m_sellItem.list.data.at(itemIndex).price),
-        str_nonempty(ir.description) ? ir.description : u8"暂无描述"
+        str_haschar(ir.description) ? ir.description : u8"暂无描述"
     );
 
     LayoutBoard hoverTextBoard

@@ -21,14 +21,14 @@
 #include <stdexcept>
 #include "strf.hpp"
 
-bool str_nonempty(const char *s)
+bool str_haschar(const char *s)
 {
     return s && s[0] != '\0';
 }
 
-bool str_nonempty(const char8_t *s)
+bool str_haschar(const char8_t *s)
 {
-    return str_nonempty(reinterpret_cast<const char *>(s));
+    return str_haschar(reinterpret_cast<const char *>(s));
 }
 
 #define _macro_str_vprintf_body_s(s, format, ap) do \
