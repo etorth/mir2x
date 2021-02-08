@@ -18,6 +18,7 @@
 
 #include <future>
 #include <thread>
+#include <cstring>
 #include <cinttypes>
 
 #include "log.hpp"
@@ -28,14 +29,15 @@
 #include "pngtexdb.hpp"
 #include "fontexdb.hpp"
 #include "sdldevice.hpp"
+#include "servermsg.hpp"
 #include "processnew.hpp"
 #include "processrun.hpp"
 #include "processlogo.hpp"
 #include "processsync.hpp"
 #include "pngtexoffdb.hpp"
 #include "notifyboard.hpp"
+#include "buildconfig.hpp"
 #include "processlogin.hpp"
-#include "servermsg.hpp"
 #include "clientargparser.hpp"
 
 extern Log *g_log;
@@ -355,6 +357,13 @@ void Client::onServerMessage(uint8_t headCode, const uint8_t *pData, size_t nDat
             {
                 if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
                     pRun->net_OFFLINE(pData, nDataLen);
+                }
+                break;
+            }
+        case SM_BUILDVERSION:
+            {
+                if(const auto smBV = ServerMsg::conv<SMBuildVersion>(pData); std::strcmp(smBV.version, getBuildSignature())){
+                    throw fflerror("client/server version mismatches");
                 }
                 break;
             }

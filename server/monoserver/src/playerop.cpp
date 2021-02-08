@@ -83,8 +83,11 @@ void Player::on_MPK_BINDCHANNEL(const MessagePack &rstMPK)
     smPN.nameColor = colorf::RED + 255;
     postNetMessage(SM_PLAYERNAME, smPN);
 
-    const auto versionStr = str_printf(u8"服务器版本号：%s", getBuildSignature());
-    postNetMessage(SM_TEXT, versionStr.data(), versionStr.size() + 1);
+    SMBuildVersion smBV;
+    std::memset(&smBV, 0, sizeof(smBV));
+    std::strcpy(smBV.version, getBuildSignature());
+    postNetMessage(SM_BUILDVERSION, smBV);
+
     PullRectCO(10, 10);
 }
 
