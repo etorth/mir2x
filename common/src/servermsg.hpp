@@ -284,7 +284,7 @@ class ServerMsg final: public MsgBase
                 _add_server_msg_type_case(SM_SELLITEM,         3, 0                         )
                 _add_server_msg_type_case(SM_TEXT,             3, 0                         )
                 _add_server_msg_type_case(SM_PLAYERNAME,       1, sizeof(SMPlayerName)      )
-                _add_server_msg_type_case(SM_PLAYERNAME,       1, sizeof(SMBuildVersion)    )
+                _add_server_msg_type_case(SM_BUILDVERSION,     1, sizeof(SMBuildVersion)    )
 #undef _add_server_msg_type_case
             };
 
