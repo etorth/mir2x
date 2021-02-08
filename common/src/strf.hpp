@@ -146,7 +146,7 @@ template<std::integral T> [[nodiscard]] std::string str_ksep(T t, char sep = ','
 [[maybe_unused]] std::u8string &str_printf(std::u8string &, const char8_t *, ...);
 [[maybe_unused]] std::u8string &str_vprintf(std::u8string &, const char8_t *, va_list);
 
-#define str_format(format, str) do\
+#define str_format(format, s) do\
 {\
     if(!format){\
         throw std::invalid_argument("str_format(nullptr, ap)"); \
@@ -154,7 +154,7 @@ template<std::integral T> [[nodiscard]] std::string str_ksep(T t, char sep = ','
     va_list ap;\
     va_start(ap, format);\
     try{\
-        str_vprintf(str, format, ap);\
+        str_vprintf(s, format, ap);\
         va_end(ap);\
     }\
     catch(...){\
