@@ -387,7 +387,7 @@ std::tuple<int, int> InventoryBoard::getInvGrid(int locPX, int locPY) const
 
 void InventoryBoard::drawItemHoverText(const PackBin &bin) const
 {
-    const auto ir = DBCOM_ITEMRECORD(bin.id);
+    const auto &ir = DBCOM_ITEMRECORD(bin.id);
     const auto hoverText = str_printf
     (
         u8R"###( <layout>                  )###""\n"
@@ -396,7 +396,7 @@ void InventoryBoard::drawItemHoverText(const PackBin &bin) const
         u8R"###( </layout>                 )###""\n",
 
         ir.name,
-        str_haschar(ir.description) ? ir.description : u8"暂无描述"
+        str_haschar(ir.description) ? ir.description : u8"游戏处于开发阶段，此物品暂无描述。"
     );
 
     LayoutBoard hoverTextBoard
@@ -421,7 +421,11 @@ void InventoryBoard::drawItemHoverText(const PackBin &bin) const
 
     hoverTextBoard.loadXML(to_cstr(hoverText));
     const auto [mousePX, mousePY] = SDLDeviceHelper::getMousePLoc();
-    g_sdlDevice->fillRectangle(colorf::RGBA(0, 0, 0, 200), mousePX, mousePY, std::max<int>(hoverTextBoard.w(), 200) + 20, hoverTextBoard.h() + 20);
+    const auto textBoxW = std::max<int>(hoverTextBoard.w(), 200) + 20;
+    const auto textBoxH = hoverTextBoard.h() + 20;
+
+    g_sdlDevice->fillRectangle(colorf::RGBA(0, 0,   0, 200), mousePX, mousePY, textBoxW, textBoxH);
+    g_sdlDevice->drawRectangle(colorf::RGBA(0, 0, 255, 255), mousePX, mousePY, textBoxW, textBoxH);
     hoverTextBoard.drawAt(DIR_UPLEFT, mousePX + 10, mousePY + 10);
 }
 

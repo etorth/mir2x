@@ -64,4 +64,7 @@ class PlayerStatusBoard: public Widget
 
     public:
         bool processEvent(const SDL_Event &, bool) override;
+
+    private:
+        void drawItemHoverText(int) const;
 };

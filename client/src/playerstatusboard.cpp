@@ -220,6 +220,14 @@ void PlayerStatusBoard::drawEx(int, int, int, int, int, int) const
         buttonPtr->draw();
     }
 
+    const auto [mouseX, mouseY] = SDLDeviceHelper::getMousePLoc();
+    for(size_t i = WLG_BEGIN; i < WLG_END; ++i){
+        if(mathf::pointInRectangle(mouseX, mouseY, x() + m_gridList[i].x, y() + m_gridList[i].y, m_gridList[i].w, m_gridList[i].h)){
+            drawItemHoverText(i);
+            break;
+        }
+    }
+
     if(g_clientArgParser->debugPlayerStatusBoard){
         for(size_t i = WLG_BEGIN; i < WLG_END; ++i){
             g_sdlDevice->drawRectangle(colorf::BLUE + 255, x() + m_gridList[i].x, y() + m_gridList[i].y, m_gridList[i].w, m_gridList[i].h);
@@ -304,4 +312,54 @@ bool PlayerStatusBoard::processEvent(const SDL_Event &event, bool valid)
                 return focusConsume(this, false);
             }
     }
+}
+
+void PlayerStatusBoard::drawItemHoverText(int wlType) const
+{
+    const auto itemID = m_processRun->getMyHero()->getWLGridItemID(wlType);
+    const auto &ir = DBCOM_ITEMRECORD(itemID);
+
+    if(!(itemID && ir)){
+        return;
+    }
+
+    const auto hoverText = str_printf
+    (
+        u8R"###( <layout>                  )###""\n"
+        u8R"###(     <par>【名称】%s</par> )###""\n"
+        u8R"###(     <par>【描述】%s</par> )###""\n"
+        u8R"###( </layout>                 )###""\n",
+
+        ir.name,
+        str_haschar(ir.description) ? ir.description : u8"游戏处于开发阶段，此物品暂无描述。"
+    );
+
+    LayoutBoard hoverTextBoard
+    {
+        0,
+        0,
+        200,
+
+        false,
+        {0, 0, 0, 0},
+
+        false,
+
+        1,
+        12,
+        0,
+        colorf::WHITE + 255,
+        0,
+
+        LALIGN_JUSTIFY,
+    };
+
+    hoverTextBoard.loadXML(to_cstr(hoverText));
+    const auto [mousePX, mousePY] = SDLDeviceHelper::getMousePLoc();
+    const auto textBoxW = std::max<int>(hoverTextBoard.w(), 200) + 20;
+    const auto textBoxH = hoverTextBoard.h() + 20;
+
+    g_sdlDevice->fillRectangle(colorf::RGBA(0, 0,   0, 200), mousePX, mousePY, textBoxW, textBoxH);
+    g_sdlDevice->drawRectangle(colorf::RGBA(0, 0, 255, 255), mousePX, mousePY, textBoxW, textBoxH);
+    hoverTextBoard.drawAt(DIR_UPLEFT, mousePX + 10, mousePY + 10);
 }
