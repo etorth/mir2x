@@ -117,11 +117,11 @@ bool heroWil2PNG(bool bGender,
 
     std::vector<uint32_t> stPNGBuf;
     std::vector<uint32_t> stPNGBufShadow;
-    for(int nDress = 0; nDress < 8; ++nDress){
+    for(int nDress = 0; nDress < 9; ++nDress){
         for(int nMotion = 0; nMotion < 33; ++nMotion){
             for(int nDirection = 0; nDirection < 8; ++nDirection){
                 for(int nFrame = 0; nFrame < 10; ++nFrame){
-                    int nBaseIndex = nDress * 3000 + nMotion * 80 + nDirection * 10 + nFrame + 1;
+                    int nBaseIndex = nDress * 3000 + nMotion * 80 + nDirection * 10 + nFrame;
                     if(true
                             && stPackage.SetIndex(nBaseIndex)
                             && stPackage.CurrentImageValid()){

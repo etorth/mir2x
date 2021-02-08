@@ -95,7 +95,7 @@ void Hero::draw(int viewX, int viewY, int)
 
     fnDrawWeapon(true);
 
-    const auto nDress     = std::max<int>(0, DBCOM_ITEMRECORD(getPlayerLook().dress).shape);
+    const auto nDress     = DBCOM_ITEMRECORD(getPlayerLook().dress).shape;
     const auto nMotion    = m_currMotion->type;
     const auto nDirection = m_currMotion->direction;
 
