@@ -149,7 +149,7 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
           nullptr,
           [this]()
           {
-              const auto itemID = selectedItemID();
+              const auto itemID = extendedItemID();
               if(const auto &ir = DBCOM_ITEMRECORD(itemID)){
                   m_processRun->getMyHero()->getInvPack().add(itemID, 1);
                   m_processRun->addCBLog(CBLOG_SYS, u8"直接获得1个%s", to_cstr(ir.name));
@@ -230,12 +230,11 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
           nullptr,
           [this]()
           {
-              const auto headerString = str_printf(u8"<par>请输入你要购买<t color=\"0xffff00ff\">%s</t>的数量</par>", to_cstr(DBCOM_ITEMRECORD(selectedItemID()).name));
-              dynamic_cast<InputStringBoard *>(m_processRun->getWidget("InputStringBoard"))->waitInput(headerString, [this](std::u8string inputString)
+              const auto itemID = extendedItemID();
+              const auto headerString = str_printf(u8"<par>请输入你要购买<t color=\"0xffff00ff\">%s</t>的数量</par>", to_cstr(DBCOM_ITEMRECORD(itemID).name));
+              dynamic_cast<InputStringBoard *>(m_processRun->getWidget("InputStringBoard"))->waitInput(headerString, [itemID, this](std::u8string inputString)
               {
-                  const auto itemID = selectedItemID();
                   const auto &ir = DBCOM_ITEMRECORD(itemID);
-
                   int count = 0;
                   try{
                       count = std::stoi(to_cstr(inputString));
@@ -740,4 +739,11 @@ void PurchaseBoard::drawExt1GridHoverText(int itemIndex) const
     const auto [mousePX, mousePY] = SDLDeviceHelper::getMousePLoc();
     g_sdlDevice->fillRectangle(colorf::RGBA(0, 0, 0, 200), mousePX, mousePY, std::max<int>(hoverTextBoard.w(), 200) + 20, hoverTextBoard.h() + 20);
     hoverTextBoard.drawAt(DIR_UPLEFT, mousePX + 10, mousePY + 10);
+}
+
+uint32_t PurchaseBoard::extendedItemID() const
+{
+    // TODO
+    // for ext1 we should return the grid, not the item id
+    return m_extendedItemID;
 }

@@ -86,6 +86,7 @@ class PurchaseBoard: public Widget
 
     public:
         uint32_t selectedItemID() const;
+        uint32_t extendedItemID() const;
 
     private:
         void setExtendedItemID(uint32_t);
