@@ -22,6 +22,7 @@
 #include <functional>
 #include <string_view>
 #include <type_traits>
+#include "raiitimer.hpp"
 
 namespace _logProf
 {
@@ -55,9 +56,7 @@ namespace _logProf
 
     inline long long getCurrTick()
     {
-        timespec now;
-        clock_gettime(CLOCK_REALTIME, &now);
-        return ((long long)(now.tv_sec) * 1000000000LL + (long long)(now.tv_nsec));
+        return hres_tstamp().to_nsec();
     }
 
     struct logProfilerEntry

@@ -20,6 +20,7 @@
 #include <cstring>
 #include "strf.hpp"
 #include "logprof.hpp"
+#include "raiitimer.hpp"
 
 void logDisableProfiler()
 {

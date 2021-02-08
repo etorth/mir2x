@@ -26,82 +26,45 @@
 #include <atomic>
 #include <cstdint>
 
+class hres_tstamp
+{
+    private:
+#ifdef _MSC_VER
+        LARGE_INTEGER m_tstamp;
+#else
+        struct timespec m_tstamp;
+#endif
+    public:
+        hres_tstamp();
+        uint64_t to_nsec() const;
+};
+
 class hres_timer
 {
-#ifdef _MSC_VER
     private:
-        LARGE_INTEGER m_start;
-        LARGE_INTEGER m_freq;
-#else
-    private:
-        struct timespec m_start;
-#endif
-    public:
-        explicit hres_timer()
-        {
-#ifdef _MSC_VER
-            // not sure how heavy is it
-            // msdn document recommends to cache this value
-            QueryPerformanceFrequency(&m_freq);
-            if(m_freq.QuadPart == 0){
-                // hr-counter not supported
-                // after WinXP this error won't happen
-            }
-#endif
-            reset();
-        }
+        hres_tstamp m_start;
 
     public:
-        ~hres_timer() = default;
-
-    public:
-        uint64_t diff_nsec() const
-        {
-#ifdef _MSC_VER
-            LARGE_INTEGER curr_time;
-            QueryPerformanceCounter(&curr_time);
-            return ((uint64_t)(curr_time.QuadPart - m_start.QuadPart) * 1000000000ULL) / (uint64_t)(m_freq.QuadPart);
-#else
-            struct timespec curr_time;
-            if(clock_gettime(CLOCK_MONOTONIC, &curr_time)){
-                return 0;
-            }
-
-            // for 32bit machines it's easy to overflow
-            // convert all to uint64_t then do addition then subtraction
-            return ((uint64_t)(curr_time.tv_sec - m_start.tv_sec) * 1000000000ULL + (uint64_t)(curr_time.tv_nsec)) - (uint64_t)(m_start.tv_nsec);
-#endif
-        }
-
-        uint64_t diff_usec() const
-        {
-            return diff_nsec() / 1000ULL;
-        }
-
-        uint64_t diff_msec() const
-        {
-            return diff_nsec() / 1000000ULL;
-        }
-
-        uint64_t diff_sec() const
-        {
-            return diff_nsec() / 1000000000ULL;
-        }
+        hres_timer()
+            : m_start()
+        {}
 
     public:
         void reset()
         {
-#ifdef _MSC_VER
-            QueryPerformanceCounter(&m_start);
-            if(m_start.QuadPart == 0){
-
-            }
-#else
-            if(clock_gettime(CLOCK_MONOTONIC, &m_start)){
-                // ...
-            }
-#endif
+            m_start = hres_tstamp();
         }
+
+    public:
+        uint64_t diff_nsec() const
+        {
+            return hres_tstamp().to_nsec() - m_start.to_nsec();
+        }
+
+    public:
+        uint64_t diff_usec() const { return diff_nsec() / 1000ULL; }
+        uint64_t diff_msec() const { return diff_nsec() / 1000000ULL; }
+        uint64_t diff_sec () const { return diff_nsec() / 1000000000ULL; }
 
     public:
         const auto &origin() const
