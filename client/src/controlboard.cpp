@@ -890,13 +890,12 @@ void ControlBoard::drawMiddleExpand() const
     // the Y-axis on screen that the big chat-frame starts
     const int startY = nY0 + nH0 - 55 - m_stretchH - 47;
 
-    // draw black underlay for the big log board
-    {
-        SDLDeviceHelper::EnableRenderBlendMode enableDrawBlendMode(SDL_BLENDMODE_BLEND);
-        g_sdlDevice->fillRectangle(colorf::RGBA(0X00, 0X00, 0X00, 0XF0), 178 + 2, startY + 2, nW0 - (178 + 2) - (166 + 2), 47 + m_stretchH);
-    }
+    // draw black underlay for the big log board and input box
+    g_sdlDevice->fillRectangle(colorf::RGBA(0X00, 0X00, 0X00, 0XF0), 178 + 2, startY + 2, nW0 - (178 + 2) - (166 + 2), 47 + m_stretchH + 55);
 
     drawInputGreyBackground();
+    m_cmdLine.draw(); // cursor can be over-sized
+
     if(auto texPtr = g_progUseDB->Retrieve(0X00000027)){
 
         // draw four corners
@@ -937,10 +936,7 @@ void ControlBoard::drawMiddleExpand() const
 
     // draw title
     if(auto texPtr = g_progUseDB->Retrieve(0X00000022)){
-        int titleW = -1;
-        int titleH = -1;
-
-        SDL_QueryTexture(texPtr, 0, 0, &titleW, &titleH);
+        const auto [titleW, titleH] = SDLDeviceHelper::getTextureSize(texPtr);
         const int titleDstX = 178 + (nW0 - 178 - 166 - titleW) / 2;
         const int titleDstY = startY - 2 - 19;
         g_sdlDevice->drawTexture(texPtr, titleDstX, titleDstY);
@@ -949,7 +945,6 @@ void ControlBoard::drawMiddleExpand() const
     m_arcAniBoard.draw();
     m_buttonSwitchMode.draw();
     m_levelBox.draw();
-    m_cmdLine.draw(); // cursor can be over-sized
     m_buttonEmoji.draw();
     m_buttonMute.draw();
     drawLogBoardExpand();
