@@ -65,7 +65,7 @@ class XMLParagraphLeaf
         explicit XMLParagraphLeaf(tinyxml2::XMLNode *);
 
     public:
-        int Type() const
+        int type() const
         {
             return m_type;
         }
@@ -82,7 +82,7 @@ class XMLParagraphLeaf
 
         int length() const
         {
-            if(Type() == LEAF_UTF8GROUP){
+            if(type() == LEAF_UTF8GROUP){
                 return (int)(utf8CharOffRef().size());
             }
             return 1;
@@ -90,7 +90,7 @@ class XMLParagraphLeaf
 
         const std::vector<int> &utf8CharOffRef() const
         {
-            if(Type() != LEAF_UTF8GROUP){
+            if(type() != LEAF_UTF8GROUP){
                 throw fflerror("leaf is not an utf8 string");
             }
 
@@ -108,7 +108,7 @@ class XMLParagraphLeaf
 
         const char *UTF8Text() const
         {
-            if(Type() != LEAF_UTF8GROUP){
+            if(type() != LEAF_UTF8GROUP){
                 return nullptr;
             }
             return xmlNode()->Value();
@@ -116,7 +116,7 @@ class XMLParagraphLeaf
 
         uint64_t ImageU64Key() const
         {
-            if(Type() != LEAF_IMAGE){
+            if(type() != LEAF_IMAGE){
                 throw fflerror("leaf is not an image");
             }
             return m_U64Key;
@@ -124,7 +124,7 @@ class XMLParagraphLeaf
 
         uint32_t emojiU32Key() const
         {
-            if(Type() != LEAF_EMOJI){
+            if(type() != LEAF_EMOJI){
                 throw fflerror("leaf is not an emoji");
             }
             return m_U64Key;
@@ -155,7 +155,7 @@ class XMLParagraphLeaf
 
         const char *hasEvent() const
         {
-            if(Type() == LEAF_UTF8GROUP){
+            if(type() == LEAF_UTF8GROUP){
                 if(auto par = m_node->Parent(); par && par->ToElement() && (std::strcmp(par->ToElement()->Name(), "event") == 0)){
                     if(const auto *value = par->ToElement()->Attribute("id"); value){
                         return value;

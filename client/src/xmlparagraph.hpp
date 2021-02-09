@@ -37,7 +37,7 @@ class XMLParagraph
         std::vector<XMLParagraphLeaf> m_leafList;
 
     public:
-        XMLParagraph();
+        XMLParagraph() = default;
 
     public:
         ~XMLParagraph() = default;

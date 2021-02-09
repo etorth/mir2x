@@ -123,31 +123,44 @@ int XMLTypeset::LineRawWidth(int nLine, bool bWithWordSpace) const
     }
 }
 
-bool XMLTypeset::addRawToken(int nLine, const TOKEN &rstToken)
+bool XMLTypeset::addRawTokenLine(int nLine, const std::vector<TOKEN> &tokenLine)
 {
     if(!lineValid(nLine)){
         throw fflerror("invalid line: %d", nLine);
     }
 
+    if(tokenLine.empty()){
+        throw fflerror("empty token line");
+    }
+
     if(m_lineWidth <= 0){
-        m_lineList[nLine].content.push_back(rstToken);
+        m_lineList[nLine].content.insert(m_lineList[nLine].content.end(), tokenLine.begin(), tokenLine.end());
         return true;
     }
 
     // if we have a defined width but too small
     // need to accept but give warnings
 
-    if(m_lineWidth < rstToken.Box.Info.W && lineTokenCount(nLine) == 0){
-        g_log->addLog(LOGTYPE_WARNING, "XMLTypeset width is too small to hold the token: (%d < %d)", (int)(m_lineWidth), (int)(rstToken.Box.Info.W));
-        m_lineList[nLine].content.push_back(rstToken);
+    const auto rawExtraWidth = [&tokenLine]() -> int
+    {
+        int result = 0;
+        for(const auto &token: tokenLine){
+            result += token.Box.Info.W;
+        }
+        return result;
+    }();
+
+    if((lineTokenCount(nLine) == 0) && (m_lineWidth < (int)(rawExtraWidth + (tokenLine.size() - 1) * m_wordSpace))){
+        g_log->addLog(LOGTYPE_WARNING, "XMLTypeset width is too small to hold the token line: lineWidth = %d", m_lineWidth);
+        m_lineList[nLine].content.insert(m_lineList[nLine].content.end(), tokenLine.begin(), tokenLine.end());
         return true;
     }
 
-    if((LineRawWidth(nLine, true) + rstToken.Box.Info.W) > m_lineWidth){
+    if(m_lineWidth < LineRawWidth(nLine, false) + rawExtraWidth + (int)(lineTokenCount(nLine) + tokenLine.size() - 1) * m_wordSpace){
         return false;
     }
 
-    m_lineList[nLine].content.push_back(rstToken);
+    m_lineList[nLine].content.insert(m_lineList[nLine].content.end(), tokenLine.begin(), tokenLine.end());
     return true;
 }
 
@@ -252,7 +265,7 @@ void XMLTypeset::LineJustifyPadding(int nLine)
     if(fnLeafPadding([this](int x, int y) -> bool
     {
         const auto tokenPtr = getToken(x, y);
-        switch(m_paragraph.leafRef(tokenPtr->leaf).Type()){
+        switch(m_paragraph.leafRef(tokenPtr->leaf).type()){
             case LEAF_IMAGE:
             case LEAF_EMOJI: return tokenPtr->Box.State.W1 + tokenPtr->Box.State.W2 < tokenPtr->Box.Info.W / 5;
             default        : return false;
@@ -276,7 +289,7 @@ void XMLTypeset::LineJustifyPadding(int nLine)
 
     if(fnLeafPadding([this](int x, int y) -> bool
     {
-        return m_paragraph.leafRef(getToken(x, y)->leaf).Type() == LEAF_UTF8GROUP;
+        return m_paragraph.leafRef(getToken(x, y)->leaf).type() == LEAF_UTF8GROUP;
     }) == MaxLineWidth()){
         return;
     }
@@ -662,7 +675,7 @@ TOKEN XMLTypeset::buildEmojiToken(int leaf, uint32_t emoji) const
 
 TOKEN XMLTypeset::createToken(int leaf, int leafOff) const
 {
-    switch(auto &rstLeaf = m_paragraph.leafRef(leaf); rstLeaf.Type()){
+    switch(auto &rstLeaf = m_paragraph.leafRef(leaf); rstLeaf.type()){
         case LEAF_UTF8GROUP:
             {
                 auto nFont      = rstLeaf.font()     .value_or(m_font);
@@ -680,9 +693,36 @@ TOKEN XMLTypeset::createToken(int leaf, int leafOff) const
             }
         default:
             {
-                throw fflerror("invalid type: %d", rstLeaf.Type());
+                throw fflerror("invalid type: %d", rstLeaf.type());
             }
     }
+}
+
+std::vector<TOKEN> XMLTypeset::createTokenLine(int leaf, int leafOff, std::vector<TOKEN> *tokenListPtr) const
+{
+    std::vector<TOKEN> tokenList;
+    if(tokenListPtr){
+        std::swap(tokenList, *tokenListPtr);
+    }
+
+    tokenList.clear();
+    if(m_paragraph.leafRef(leaf).wrap().value_or(true)){
+        tokenList.push_back(createToken(leaf, leafOff));
+    }
+    else{
+        if(leafOff != 0){
+            throw fflerror("pick up token in middle of non-wrap leaf");
+        }
+
+        if(m_paragraph.leafRef(leaf).type() != LEAF_UTF8GROUP){
+            throw fflerror("non-text leaf node has wrap attribute disabled");
+        }
+
+        for(int i = 0; i < m_paragraph.leafRef(leaf).length(); ++i){
+            tokenList.push_back(createToken(leaf, i));
+        }
+    }
+    return tokenList;
 }
 
 // rebuild the board from token (x, y)
@@ -737,9 +777,10 @@ void XMLTypeset::buildTypeset(int x, int y)
     int advanced = 1;
     int currLine = y;
 
+    std::vector<TOKEN> tokenList;
     for(; advanced; std::tie(leaf, leafOff, advanced) = m_paragraph.nextLeafOff(leaf, leafOff, 1)){
-        const TOKEN token = createToken(leaf, leafOff);
-        if(addRawToken(currLine, token)){
+        tokenList = createTokenLine(leaf, leafOff, &tokenList); // TODO: well-defined ???
+        if(addRawTokenLine(currLine, tokenList)){
             if(leafOff == 0){
                 m_leaf2TokenLoc.push_back({m_lineList[currLine].content.size() - 1, currLine});
             }
@@ -751,8 +792,8 @@ void XMLTypeset::buildTypeset(int x, int y)
         currLine++;
         m_lineList.resize(currLine + 1);
 
-        if(!addRawToken(currLine, token)){
-            throw fflerror("insert token to a new line failed: line = %d", (int)(currLine));
+        if(!addRawTokenLine(currLine, tokenList)){
+            throw fflerror("insert token to a new line failed: line = %d", currLine);
         }
 
         if(leafOff == 0){
@@ -916,7 +957,7 @@ void XMLTypeset::insertUTF8String(int x, int y, const char *text)
     // need to parse here
 
     if(x == 0 && y == 0){
-        if(m_paragraph.leafRef(0).Type() != LEAF_UTF8GROUP){
+        if(m_paragraph.leafRef(0).type() != LEAF_UTF8GROUP){
             m_paragraph.insertLeafXML(0, fnParXMLString(text));
         }
         else{
@@ -930,7 +971,7 @@ void XMLTypeset::insertUTF8String(int x, int y, const char *text)
     // can't call prevTokenLoc() because this tokenLoc is invalid
 
     if((y == lineCount() - 1) && (x == lineTokenCount(y))){
-        if(m_paragraph.backLeafRef().Type() != LEAF_UTF8GROUP){
+        if(m_paragraph.backLeafRef().type() != LEAF_UTF8GROUP){
             m_paragraph.insertLeafXML(leafCount(), fnParXMLString(text));
         }
         else{
@@ -945,7 +986,7 @@ void XMLTypeset::insertUTF8String(int x, int y, const char *text)
     const auto prevLeaf = getToken(prevTX, prevTY)->leaf;
 
     if(prevLeaf == currLeaf){
-        if(m_paragraph.leafRef(prevLeaf).Type() != LEAF_UTF8GROUP){
+        if(m_paragraph.leafRef(prevLeaf).type() != LEAF_UTF8GROUP){
             throw fflerror("only UTF8 leaf can have length great than 1");
         }
 
@@ -953,10 +994,10 @@ void XMLTypeset::insertUTF8String(int x, int y, const char *text)
         m_paragraph.insertUTF8String(currLeaf, leafOff, text);
     }
     else{
-        if(m_paragraph.leafRef(prevLeaf).Type() == LEAF_UTF8GROUP){
+        if(m_paragraph.leafRef(prevLeaf).type() == LEAF_UTF8GROUP){
             m_paragraph.insertUTF8String(prevLeaf, m_paragraph.leafRef(prevLeaf).utf8CharOffRef().size(), text);
         }
-        if(m_paragraph.leafRef(currLeaf).Type() == LEAF_UTF8GROUP){
+        if(m_paragraph.leafRef(currLeaf).type() == LEAF_UTF8GROUP){
             m_paragraph.insertUTF8String(currLeaf, 0, text);
         }
         else{
@@ -1020,7 +1061,7 @@ void XMLTypeset::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int sr
             const int dx = boxX - tokenPtr->Box.State.X;
             const int dy = boxY - tokenPtr->Box.State.Y;
 
-            switch(leaf.Type()){
+            switch(leaf.type()){
                 case LEAF_UTF8GROUP:
                     {
                         if(auto texPtr = g_fontexDB->Retrieve(tokenPtr->UTF8Char.U64Key)){
@@ -1075,7 +1116,7 @@ void XMLTypeset::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int sr
 void XMLTypeset::update(double fMS)
 {
     for(int leaf = 0; leaf < m_paragraph.leafCount(); ++leaf){
-        if(m_paragraph.leafRef(leaf).Type() == LEAF_EMOJI){
+        if(m_paragraph.leafRef(leaf).type() == LEAF_EMOJI){
             const auto [x, y] = leafTokenLoc(leaf);
             if(auto pToken= getToken(x, y); pToken->Emoji.FPS != 0){
                 double fPeroidMS = 1000.0 / pToken->Emoji.FPS;
@@ -1093,7 +1134,7 @@ std::string XMLTypeset::getText(bool textOnly) const
 {
     std::string plainString;
     for(int i = 0; i < m_paragraph.leafCount(); ++i){
-        switch(auto leafType = m_paragraph.leafRef(i).Type()){
+        switch(auto leafType = m_paragraph.leafRef(i).type()){
             case LEAF_UTF8GROUP:
                 {
                     plainString += m_paragraph.leafRef(i).UTF8Text();
@@ -1290,7 +1331,7 @@ bool XMLTypeset::blankToken(int x, int y) const
         return (u64Key & 0X00000000FFFFFFFFULL) == ' ';
     };
 
-    return (leaf.Type() == LEAF_UTF8GROUP) && fnCheckBlank(tokenPtr->UTF8Char.U64Key);
+    return (leaf.type() == LEAF_UTF8GROUP) && fnCheckBlank(tokenPtr->UTF8Char.U64Key);
 }
 
 void XMLTypeset::setLineWidth(int lineWidth)

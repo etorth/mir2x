@@ -83,7 +83,7 @@ XMLParagraphLeaf::XMLParagraphLeaf(tinyxml2::XMLNode *pNode)
       }())
     , m_event(BEVENT_OFF)
 {
-    if(Type() == LEAF_UTF8GROUP){
+    if(type() == LEAF_UTF8GROUP){
         m_UTF8CharOff = utf8f::buildUTF8Off(UTF8Text());
     }
 }
@@ -111,8 +111,8 @@ uint32_t XMLParagraphLeaf::peekUTF8Code(int leafOff) const
         throw fflerror("provided LeafOff exceeds leaf length: %d", length());
     }
 
-    if(Type() != LEAF_UTF8GROUP){
-        throw fflerror("try peek utf8 code from a leaf with type: %d", Type());
+    if(type() != LEAF_UTF8GROUP){
+        throw fflerror("try peek utf8 code from a leaf with type: %d", type());
     }
 
     return utf8f::peekUTF8Code(xmlNode()->Value() + utf8CharOffRef()[leafOff]);
