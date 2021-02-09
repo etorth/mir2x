@@ -814,28 +814,40 @@ void ControlBoard::drawMiddleDefault() const
     drawInputGreyBackground();
 
     // draw current creature face
-    if(auto pTexture = g_progUseDB->Retrieve(m_processRun->GetFocusFaceKey())){
-        const auto [texW, texH] = SDLDeviceHelper::getTextureSize(pTexture);
-        g_sdlDevice->drawTexture(pTexture, nW0 - 267, nY0 + 19, 86, 96, 0, 0, texW, texH);
+    // draw '?' when the face texture is not available
+    if(auto faceTexPtr = [this]() -> SDL_Texture *
+    {
+        if(auto texPtr = g_progUseDB->Retrieve(m_processRun->GetFocusFaceKey())){
+            return texPtr;
+        }
+        else if(auto texPtr = g_progUseDB->Retrieve(0X010007CF)){
+            return texPtr;
+        }
+        else{
+            return nullptr;
+        }
+    }()){
+        const auto [texW, texH] = SDLDeviceHelper::getTextureSize(faceTexPtr);
+        g_sdlDevice->drawTexture(faceTexPtr, nW0 - 267, nY0 + 19, 86, 96, 0, 0, texW, texH);
     }
 
     // draw middle part
-    if(auto pTexture = g_progUseDB->Retrieve(0X00000013)){
-        g_sdlDevice->drawTexture(pTexture,             178, nY0 + 2,         0, 0,  50, 131);
-        g_sdlDevice->drawTexture(pTexture, nW0 - 166 - 119, nY0 + 2, 456 - 119, 0, 119, 131);
+    if(auto texPtr = g_progUseDB->Retrieve(0X00000013)){
+        g_sdlDevice->drawTexture(texPtr,             178, nY0 + 2,         0, 0,  50, 131);
+        g_sdlDevice->drawTexture(texPtr, nW0 - 166 - 119, nY0 + 2, 456 - 119, 0, 119, 131);
 
         const int repeatW = 456 - 50 - 119;
         const int drawW   = nW0 - 50 - 119 - 178 - 166;
 
         const auto [repeat, stretch] = scheduleStretch(drawW, repeatW);
         for(int i = 0; i < repeat; ++i){
-            g_sdlDevice->drawTexture(pTexture, 178 + 50 + i * repeatW, nY0 + 2, 50, 0, repeatW, 131);
+            g_sdlDevice->drawTexture(texPtr, 178 + 50 + i * repeatW, nY0 + 2, 50, 0, repeatW, 131);
         }
 
         // for the rest area
         // need to stretch or shrink
         if(stretch > 0){
-            g_sdlDevice->drawTexture(pTexture, 178 + 50 + repeat * repeatW, nY0 + 2, stretch, 131, 50, 0, repeatW, 131);
+            g_sdlDevice->drawTexture(texPtr, 178 + 50 + repeat * repeatW, nY0 + 2, stretch, 131, 50, 0, repeatW, 131);
         }
     }
 
