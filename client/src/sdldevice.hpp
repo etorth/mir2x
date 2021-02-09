@@ -210,12 +210,12 @@ class SDLDevice final
        }
 
     public:
-       void fillRectangle(          int, int, int, int);
-       void fillRectangle(uint32_t, int, int, int, int);
+       void fillRectangle(          int, int, int, int, int = 0);
+       void fillRectangle(uint32_t, int, int, int, int, int = 0);
 
     public:
-       void drawRectangle(          int, int, int, int);
-       void drawRectangle(uint32_t, int, int, int, int);
+       void drawRectangle(          int, int, int, int, int = 0);
+       void drawRectangle(uint32_t, int, int, int, int, int = 0);
 
     public:
        void drawWidthRectangle(          size_t, int, int, int, int);

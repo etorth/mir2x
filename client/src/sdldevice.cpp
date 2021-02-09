@@ -608,44 +608,61 @@ SDL_Texture *SDLDevice::getCover(int r)
     throw fflerror("creature texture failed: radius = %d", r);
 }
 
-void SDLDevice::fillRectangle(int nX, int nY, int nW, int nH)
+void SDLDevice::fillRectangle(int nX, int nY, int nW, int nH, int nRad)
 {
-    SDL_Rect stRect;
-    stRect.x = nX;
-    stRect.y = nY;
-    stRect.w = nW;
-    stRect.h = nH;
+    Uint8 r = 0;
+    Uint8 g = 0;
+    Uint8 b = 0;
+    Uint8 a = 0;
 
-    SDL_RenderFillRect(m_renderer, &stRect);
+    if(SDL_GetRenderDrawColor(getRenderer(), &r, &g, &b, &a)){
+        throw fflerror("get renderer draw color failed: %s", SDL_GetError());
+    }
+
+    if(a == 0){
+        return;
+    }
+
+    if(roundedBoxRGBA(getRenderer(), nX, nY, nX + nW - 1, nY + nH - 1, nRad, r, g, b, a)){
+        throw fflerror("roundedRectangleRGBA() failed");
+    }
 }
 
-void SDLDevice::fillRectangle(uint32_t nRGBA, int nX, int nY, int nW, int nH)
+void SDLDevice::fillRectangle(uint32_t nRGBA, int nX, int nY, int nW, int nH, int nRad)
 {
     if(colorf::A(nRGBA)){
         SDLDeviceHelper::EnableRenderColor stEnableColor(nRGBA, this);
         SDLDeviceHelper::EnableRenderBlendMode enableBlendMode(SDL_BLENDMODE_BLEND, this);
-        fillRectangle(nX, nY, nW, nH);
+        fillRectangle(nX, nY, nW, nH, nRad);
     }
 }
 
-void SDLDevice::drawRectangle(int nX, int nY, int nW, int nH)
+void SDLDevice::drawRectangle(int nX, int nY, int nW, int nH, int nRad)
 {
-    SDL_Rect rect;
-    rect.x = nX;
-    rect.y = nY;
-    rect.w = nW;
-    rect.h = nH;
+    Uint8 r = 0;
+    Uint8 g = 0;
+    Uint8 b = 0;
+    Uint8 a = 0;
 
-    SDL_RenderDrawRect(m_renderer, &rect);
-    SDL_RenderDrawPoint(m_renderer, rect.x + rect.w - 1, rect.y + rect.h - 1);
+    if(SDL_GetRenderDrawColor(getRenderer(), &r, &g, &b, &a)){
+        throw fflerror("get renderer draw color failed: %s", SDL_GetError());
+    }
+
+    if(a == 0){
+        return;
+    }
+
+    if(roundedRectangleRGBA(getRenderer(), nX, nY, nX + nW - 1, nY + nH - 1, nRad, r, g, b, a)){
+        throw fflerror("roundedRectangleRGBA() failed");
+    }
 }
 
-void SDLDevice::drawRectangle(uint32_t color, int nX, int nY, int nW, int nH)
+void SDLDevice::drawRectangle(uint32_t color, int nX, int nY, int nW, int nH, int nRad)
 {
     if(colorf::A(color)){
         SDLDeviceHelper::EnableRenderColor enableColor(color, this);
         SDLDeviceHelper::EnableRenderBlendMode enableBlendMode(SDL_BLENDMODE_BLEND, this);
-        drawRectangle(nX, nY, nW, nH);
+        drawRectangle(nX, nY, nW, nH, nRad);
     }
 }
 
