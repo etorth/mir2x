@@ -778,7 +778,7 @@ void XMLTypeset::buildTypeset(int x, int y)
     int currLine = y;
 
     std::vector<TOKEN> tokenList;
-    for(; advanced; std::tie(leaf, leafOff, advanced) = m_paragraph.nextLeafOff(leaf, leafOff, 1)){
+    for(; advanced; std::tie(leaf, leafOff, advanced) = m_paragraph.nextLeafOff(leaf, leafOff, tokenList.size())){
         tokenList = createTokenLine(leaf, leafOff, &tokenList); // TODO: well-defined ???
         if(addRawTokenLine(currLine, tokenList)){
             if(leafOff == 0){

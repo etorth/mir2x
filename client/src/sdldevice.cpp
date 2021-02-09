@@ -623,7 +623,7 @@ void SDLDevice::fillRectangle(int nX, int nY, int nW, int nH, int nRad)
         return;
     }
 
-    if(roundedBoxRGBA(getRenderer(), nX, nY, nX + nW - 1, nY + nH - 1, nRad, r, g, b, a)){
+    if(roundedBoxRGBA(getRenderer(), nX, nY, nX + nW, nY + nH, nRad, r, g, b, a)){
         throw fflerror("roundedRectangleRGBA() failed");
     }
 }
@@ -652,7 +652,7 @@ void SDLDevice::drawRectangle(int nX, int nY, int nW, int nH, int nRad)
         return;
     }
 
-    if(roundedRectangleRGBA(getRenderer(), nX, nY, nX + nW - 1, nY + nH - 1, nRad, r, g, b, a)){
+    if(roundedRectangleRGBA(getRenderer(), nX, nY, nX + nW, nY + nH, nRad, r, g, b, a)){
         throw fflerror("roundedRectangleRGBA() failed");
     }
 }
