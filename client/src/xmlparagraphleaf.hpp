@@ -136,6 +136,9 @@ class XMLParagraphLeaf
         int markEvent(int);
 
     public:
+        std::optional<bool> wrap() const;
+
+    public:
         std::optional<uint32_t>   color() const;
         std::optional<uint32_t> bgColor() const;
 

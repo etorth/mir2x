@@ -23,7 +23,7 @@
 #include "colorf.hpp"
 #include "fflerror.hpp"
 
-uint32_t colorf::String2RGBA(const char *colorString)
+uint32_t colorf::string2RGBA(const char *colorString)
 {
     if(colorString == nullptr){
         throw fflerror("invalid color string: nullptr");
@@ -42,8 +42,7 @@ uint32_t colorf::String2RGBA(const char *colorString)
             if(const auto num = std::stoi(p + 1); num < 0){
                 throw fflerror("invalid color string: %s", colorString);
             }
-            else
-            {
+            else{
                 return std::min<int>(num, 255);
             }
         }

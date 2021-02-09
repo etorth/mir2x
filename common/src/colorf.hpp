@@ -207,5 +207,5 @@ namespace colorf
         return RGBA(255 - R(nColor), 255 - G(nColor), 255 - B(nColor), 255 - A(nColor));
     }
 
-    uint32_t String2RGBA(const char *);
+    uint32_t string2RGBA(const char *);
 }
