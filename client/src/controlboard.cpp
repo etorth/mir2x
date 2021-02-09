@@ -897,26 +897,26 @@ void ControlBoard::drawMiddleExpand() const
     }
 
     drawInputGreyBackground();
-    if(auto pTexture = g_progUseDB->Retrieve(0X00000027)){
+    if(auto texPtr = g_progUseDB->Retrieve(0X00000027)){
 
         // draw four corners
-        g_sdlDevice->drawTexture(pTexture,             178,                   startY,         0,        0,  50, 47);
-        g_sdlDevice->drawTexture(pTexture, nW0 - 166 - 119,                   startY, 456 - 119,        0, 119, 47);
-        g_sdlDevice->drawTexture(pTexture,             178, startY + 47 + m_stretchH,         0, 298 - 55,  50, 55);
-        g_sdlDevice->drawTexture(pTexture, nW0 - 166 - 119, startY + 47 + m_stretchH, 456 - 119, 298 - 55, 119, 55);
+        g_sdlDevice->drawTexture(texPtr,             178,                   startY,         0,        0,  50, 47);
+        g_sdlDevice->drawTexture(texPtr, nW0 - 166 - 119,                   startY, 456 - 119,        0, 119, 47);
+        g_sdlDevice->drawTexture(texPtr,             178, startY + 47 + m_stretchH,         0, 298 - 55,  50, 55);
+        g_sdlDevice->drawTexture(texPtr, nW0 - 166 - 119, startY + 47 + m_stretchH, 456 - 119, 298 - 55, 119, 55);
 
         // draw two stretched vertical bars
         const int repeatH = 298 - 47 - 55;
         const auto [repeatHCnt, stretchH] = scheduleStretch(m_stretchH, repeatH);
 
         for(int i = 0; i < repeatHCnt; ++i){
-            g_sdlDevice->drawTexture(pTexture,             178, startY + 47 + i * repeatH,         0, 47,  50, repeatH);
-            g_sdlDevice->drawTexture(pTexture, nW0 - 166 - 119, startY + 47 + i * repeatH, 456 - 119, 47, 119, repeatH);
+            g_sdlDevice->drawTexture(texPtr,             178, startY + 47 + i * repeatH,         0, 47,  50, repeatH);
+            g_sdlDevice->drawTexture(texPtr, nW0 - 166 - 119, startY + 47 + i * repeatH, 456 - 119, 47, 119, repeatH);
         }
 
         if(stretchH > 0){
-            g_sdlDevice->drawTexture(pTexture,             178, startY + 47 + repeatHCnt * repeatH,  50, stretchH,         0, 47,  50, repeatH);
-            g_sdlDevice->drawTexture(pTexture, nW0 - 166 - 119, startY + 47 + repeatHCnt * repeatH, 119, stretchH, 456 - 119, 47, 119, repeatH);
+            g_sdlDevice->drawTexture(texPtr,             178, startY + 47 + repeatHCnt * repeatH,  50, stretchH,         0, 47,  50, repeatH);
+            g_sdlDevice->drawTexture(texPtr, nW0 - 166 - 119, startY + 47 + repeatHCnt * repeatH, 119, stretchH, 456 - 119, 47, 119, repeatH);
         }
 
         // draw horizontal top bar and bottom input area
@@ -925,31 +925,31 @@ void ControlBoard::drawMiddleExpand() const
 
         const auto [repeatWCnt, stretchW] = scheduleStretch(drawW, repeatW);
         for(int i = 0; i < repeatWCnt; ++i){
-            g_sdlDevice->drawTexture(pTexture, 178 + 50 + i * repeatW,                   startY, 50,        0, repeatW, 47);
-            g_sdlDevice->drawTexture(pTexture, 178 + 50 + i * repeatW, startY + 47 + m_stretchH, 50, 298 - 55, repeatW, 55);
+            g_sdlDevice->drawTexture(texPtr, 178 + 50 + i * repeatW,                   startY, 50,        0, repeatW, 47);
+            g_sdlDevice->drawTexture(texPtr, 178 + 50 + i * repeatW, startY + 47 + m_stretchH, 50, 298 - 55, repeatW, 55);
         }
 
         if(stretchW > 0){
-            g_sdlDevice->drawTexture(pTexture, 178 + 50 + repeatWCnt * repeatW,                   startY, stretchW, 47, 50,        0, repeatW, 47);
-            g_sdlDevice->drawTexture(pTexture, 178 + 50 + repeatWCnt * repeatW, startY + 47 + m_stretchH, stretchW, 55, 50, 298 - 55, repeatW, 55);
+            g_sdlDevice->drawTexture(texPtr, 178 + 50 + repeatWCnt * repeatW,                   startY, stretchW, 47, 50,        0, repeatW, 47);
+            g_sdlDevice->drawTexture(texPtr, 178 + 50 + repeatWCnt * repeatW, startY + 47 + m_stretchH, stretchW, 55, 50, 298 - 55, repeatW, 55);
         }
     }
 
     // draw title
-    if(auto pTexture = g_progUseDB->Retrieve(0X00000022)){
+    if(auto texPtr = g_progUseDB->Retrieve(0X00000022)){
         int titleW = -1;
         int titleH = -1;
 
-        SDL_QueryTexture(pTexture, 0, 0, &titleW, &titleH);
+        SDL_QueryTexture(texPtr, 0, 0, &titleW, &titleH);
         const int titleDstX = 178 + (nW0 - 178 - 166 - titleW) / 2;
         const int titleDstY = startY - 2 - 19;
-        g_sdlDevice->drawTexture(pTexture, titleDstX, titleDstY);
+        g_sdlDevice->drawTexture(texPtr, titleDstX, titleDstY);
     }
 
     m_arcAniBoard.draw();
     m_buttonSwitchMode.draw();
     m_levelBox.draw();
-    m_cmdLine.draw();
+    m_cmdLine.draw(); // cursor can be over-sized
     m_buttonEmoji.draw();
     m_buttonMute.draw();
     drawLogBoardExpand();
