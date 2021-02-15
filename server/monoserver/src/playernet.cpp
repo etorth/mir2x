@@ -125,7 +125,7 @@ void Player::net_CM_PICKUP(uint8_t, const uint8_t *buf, size_t)
             throw fflerror("pick up lock released before get response");
         }
 
-        m_pickUpLock = true;
+        m_pickUpLock = false;
         switch(mpk.type()){
             case AM_PICKUPITEMIDLIST:
                 {
