@@ -102,6 +102,7 @@ struct MotionNode final
     void update();
     void updateSpellEffect(double);
     void print() const;
+    void addUpdate(bool, std::function<void()>);
 };
 
 class MagicSpellEffect

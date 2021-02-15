@@ -77,3 +77,25 @@ void MotionNode::print() const
     g_log->addLog(LOGTYPE_INFO, "MotionNode::0x%016p::frame       = %d", to_cvptr(this), frame               );
     g_log->addLog(LOGTYPE_INFO, "MotionNode::0x%016p::onUpdate    = %s", to_cvptr(this), onUpdate ? "1" : "0");
 }
+
+void MotionNode::addUpdate(bool addBefore, std::function<void()> op)
+{
+    onUpdate = [lastUpdate = std::move(onUpdate), newUpdate = std::move(op), addBefore]()
+    {
+        if(addBefore){
+            if(newUpdate){
+                newUpdate();
+            }
+        }
+
+        if(lastUpdate){
+            lastUpdate();
+        }
+
+        if(!addBefore){
+            if(newUpdate){
+                newUpdate();
+            }
+        }
+    };
+}

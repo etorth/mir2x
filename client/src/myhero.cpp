@@ -238,7 +238,7 @@ bool MyHero::decompActionMove()
                                     .y = currAction.y,
                                     .aimX = nXm,
                                     .aimY = nYm,
-                                    .pickUp = (bool)(currAction.extParam.move.pickUp),
+                                    .pickUp = false,
                                     .onHorse = (bool)(currAction.extParam.move.onHorse),
                                 });
                                 return true;

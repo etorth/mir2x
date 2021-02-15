@@ -520,13 +520,20 @@ bool Hero::parseAction(const ActionNode &action)
             {
                 if(auto moveNode = makeWalkMotion(action.x, action.y, action.aimX, action.aimY, action.speed)){
                     m_motionQueue.push_back(std::move(moveNode));
-                }
-                else if(action.extParam.move.pickUp){
-                    if(dynamic_cast<MyHero *>(this) != m_processRun->getMyHero()){
-                        throw fflerror("action move with pickup setup is not MyHero");
+                    if(action.extParam.move.pickUp){
+                        m_motionQueue.back()->addUpdate(false, [doneReq = false, this]() mutable
+                        {
+                            // TODO
+                            // should wait till arrival
+                            if(!doneReq){
+                                if(dynamic_cast<MyHero *>(this) != m_processRun->getMyHero()){
+                                    throw fflerror("non-MyHero type gets pickUp action");
+                                }
+                                m_processRun->requestPickUp();
+                                doneReq = true;
+                            }
+                        });
                     }
-                    m_processRun->requestPickUp();
-                    return true;
                 }
                 else{
                     return false;
