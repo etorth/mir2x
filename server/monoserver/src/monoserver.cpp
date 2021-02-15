@@ -312,8 +312,8 @@ void MonoServer::createDefaultDatabase()
     createAccount("id_1", "123456");
     createAccount("id_2", "123456");
 
-    createAccountCharacter("test", to_cstr(u8"亚当"), to_cstr(u8"战士|法师"));
-    createAccountCharacter("good", to_cstr(u8"夏娃"), to_cstr(u8"道士|法师"));
+    createAccountCharacter("test", to_cstr(u8"亚当"), to_cstr(u8"道士|法师"));
+    createAccountCharacter("good", to_cstr(u8"夏娃"), to_cstr(u8"战士|法师"));
     createAccountCharacter("id_1", to_cstr(u8"逗逼"), to_cstr(u8"法师"));
     createAccountCharacter("id_2", to_cstr(u8"搞笑"), to_cstr(u8"法师"));
 
