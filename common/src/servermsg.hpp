@@ -39,7 +39,6 @@ enum SMType: uint8_t
     SM_EXP,
     SM_MISS,
     SM_CASTMAGIC,
-    SM_SPACEMOVE,
     SM_OFFLINE,
     SM_PICKUPERROR,
     SM_REMOVEGROUNDITEM,
@@ -57,7 +56,6 @@ enum SMType: uint8_t
     SM_BUYSUCCEED,
     SM_BUYERROR,
     SM_GROUNDITEMIDLIST,
-    SM_EXEEDINVWEIGHT,
     SM_END,
 };
 
@@ -130,6 +128,11 @@ struct SMUpdateHP
     uint32_t HPMax;
 };
 
+struct SMNotifyDead
+{
+    uint64_t UID;
+};
+
 struct SMDeadFadeOut
 {
     uint64_t UID;
@@ -137,11 +140,6 @@ struct SMDeadFadeOut
 
     uint32_t X;
     uint32_t Y;
-};
-
-struct SMNotifyDead
-{
-    uint64_t UID;
 };
 
 struct SMExp
@@ -175,6 +173,11 @@ struct SMOffline
 {
     uint64_t UID;
     uint32_t mapID;
+};
+
+struct SMPickUpError
+{
+    uint32_t failedItemID;
 };
 
 struct SMRemoveGroundItem
@@ -223,11 +226,6 @@ struct SMGroundItemIDList
     uint16_t y;
     uint32_t itemIDList[SYS_MAXDROPITEM];
 };
-
-struct SMPickUpError
-{
-    uint32_t failedItemID;
-};
 #pragma pack(pop)
 
 class ServerMsg final: public MsgBase
@@ -262,6 +260,7 @@ class ServerMsg final: public MsgBase
                 _add_server_msg_type_case(SM_MISS,             1, sizeof(SMMiss)            )
                 _add_server_msg_type_case(SM_CASTMAGIC,        1, sizeof(SMCastMagic)       )
                 _add_server_msg_type_case(SM_OFFLINE,          1, sizeof(SMOffline)         )
+                _add_server_msg_type_case(SM_PICKUPERROR,      1, sizeof(SMPickUpError)     )
                 _add_server_msg_type_case(SM_REMOVEGROUNDITEM, 1, sizeof(SMRemoveGroundItem))
                 _add_server_msg_type_case(SM_NPCXMLLAYOUT,     3, 0                         )
                 _add_server_msg_type_case(SM_NPCSELL,          3, 0                         )
@@ -271,12 +270,12 @@ class ServerMsg final: public MsgBase
                 _add_server_msg_type_case(SM_PLAYERNAME,       1, sizeof(SMPlayerName)      )
                 _add_server_msg_type_case(SM_BUILDVERSION,     1, sizeof(SMBuildVersion)    )
                 _add_server_msg_type_case(SM_INVENTORY,        3, 0                         )
+                _add_server_msg_type_case(SM_BELTITEMLIST,     3, 0                         )
                 _add_server_msg_type_case(SM_ADDITEM,          3, 0                         )
                 _add_server_msg_type_case(SM_REMOVEITEM,       1, sizeof(SMRemoveItem)      )
                 _add_server_msg_type_case(SM_BUYSUCCEED,       3, 0                         )
                 _add_server_msg_type_case(SM_BUYERROR,         1, sizeof(SMBuyError)        )
                 _add_server_msg_type_case(SM_GROUNDITEMIDLIST, 1, sizeof(SMGroundItemIDList))
-                _add_server_msg_type_case(SM_PICKUPERROR,      1, sizeof(SMPickUpError)     )
 #undef _add_server_msg_type_case
             };
 

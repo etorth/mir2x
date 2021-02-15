@@ -44,7 +44,6 @@ enum CMType: uint8_t
     CM_NPCEVENT,
     CM_QUERYSELLITEMLIST,
     CM_DROPITEM,
-    CM_REMOVEITEM,
     CM_CONSUMEITEM,
     CM_BUY,
     CM_END,

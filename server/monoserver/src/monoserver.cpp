@@ -60,30 +60,16 @@ MonoServer::MonoServer()
     , m_hrtimer()
 {}
 
-void MonoServer::addLog(const std::array<std::string, 4> &stLogDesc, const char *szLogFormat, ...)
+void MonoServer::addLog(const std::array<std::string, 4> &logDesc, const char *format, ...)
 {
-    std::string szLog;
-    bool bError = false;
-    {
-        va_list ap;
-        va_start(ap, szLogFormat);
+    std::string s;
+    str_format(format, s);
+    const int logType = std::atoi(logDesc[0].c_str());
 
-        try{
-            szLog = str_vprintf(szLogFormat, ap);
-        }catch(const std::exception &e){
-            bError = true;
-            szLog = str_printf("Exception caught in MonoServer::addLog(\"%s\", ...): %s", szLogFormat, e.what());
-        }
-
-        va_end(ap);
-    }
-
-    int nLogType = bError ? Log::LOGTYPEV_WARNING : std::atoi(stLogDesc[0].c_str());
-
-    switch(nLogType){
+    switch(logType){
         case Log::LOGTYPEV_DEBUG:
             {
-                g_log->addLog(stLogDesc, "%s", szLog.c_str());
+                g_log->addLog(logDesc, "%s", s.c_str());
                 return;
             }
         default:
@@ -91,13 +77,13 @@ void MonoServer::addLog(const std::array<std::string, 4> &stLogDesc, const char 
                 // flush the log window
                 // make LOGTYPEV_FATAL be seen before process crash
                 {
-                    std::lock_guard<std::mutex> stLockGuard(m_logLock);
-                    m_logBuf.push_back((char)(nLogType));
-                    m_logBuf.insert(m_logBuf.end(), szLog.c_str(), szLog.c_str() + std::strlen(szLog.c_str()) + 1);
+                    std::lock_guard<std::mutex> lockGuard(m_logLock);
+                    m_logBuf.push_back((char)(logType));
+                    m_logBuf.insert(m_logBuf.end(), s.c_str(), s.c_str() + std::strlen(s.c_str()) + 1);
                 }
                 notifyGUI("FlushBrowser");
 
-                g_log->addLog(stLogDesc, "%s", szLog.c_str());
+                g_log->addLog(logDesc, "%s", s.c_str());
                 return;
             }
     }

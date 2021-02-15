@@ -29,17 +29,17 @@ extern DBPod *g_dbPod;
 extern NetDriver *g_netDriver;
 extern MonoServer *g_monoServer;
 
-void ServiceCore::net_CM_Login(uint32_t chanID, uint8_t, const uint8_t *buf, size_t)
+void ServiceCore::net_CM_Login(uint32_t channID, uint8_t, const uint8_t *buf, size_t)
 {
     const auto cmL = ClientMsg::conv<CMLogin>(buf);
-    const auto fnOnLoginFail = [chanID, cmL](int error)
+    const auto fnOnLoginFail = [channID, cmL](int error)
     {
         SMLoginFail smLF;
         std::memset(&smLF, 0, sizeof(smLF));
 
         smLF.error = error;
-        g_netDriver->Post(chanID, SM_LOGINFAIL, smLF);
-        g_netDriver->Shutdown(chanID, false);
+        g_netDriver->Post(channID, SM_LOGINFAIL, smLF);
+        g_netDriver->Shutdown(channID, false);
         g_monoServer->addLog(LOGTYPE_WARNING, "Login failed for account: %s", cmL.id);
     };
 
@@ -63,6 +63,7 @@ void ServiceCore::net_CM_Login(uint32_t chanID, uint8_t, const uint8_t *buf, siz
     const auto dbBuf = cerealf::serialize(SDInitPlayer
     {
         .dbid      = queryChar.getColumn("fld_dbid"),
+        .channID   = channID,
         .name      = queryChar.getColumn("fld_name"),
         .nameColor = queryChar.getColumn("fld_namecolor"),
         .x         = mapX,

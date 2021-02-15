@@ -27,6 +27,7 @@
 struct SDInitPlayer
 {
     uint32_t dbid = 0;
+    uint32_t channID = 0;
 
     std::string name;
     uint32_t nameColor = 0;
@@ -48,7 +49,7 @@ struct SDInitPlayer
 
     template<typename Archive> void serialize(Archive & ar)
     {
-        ar(dbid, name, nameColor, x, y, mapID, exp, gold, level, jobList, hair, hairColor);
+        ar(dbid, channID, name, nameColor, x, y, mapID, exp, gold, level, jobList, hair, hairColor);
     }
 };
 

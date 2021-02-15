@@ -107,10 +107,11 @@ void ServerMap::on_AM_ADDCHAROBJECT(const ActorMsgPack &rstMPK)
             }
         case UID_PLY:
             {
-                if(auto playerPtr = addPlayer(cerealf::deserialize<SDInitPlayer>(amACO.buf.data, amACO.buf.size, true))){
+                const auto initParam = cerealf::deserialize<SDInitPlayer>(amACO.buf.data, amACO.buf.size, true);
+                if(auto playerPtr = addPlayer(initParam)){
                     AMBindChannel amBC;
                     std::memset(&amBC, 0, sizeof(amBC));
-                    amBC.channID = amACO.player.channID;
+                    amBC.channID = initParam.channID;
 
                     m_actorPod->forward(rstMPK.from(), AM_OK, rstMPK.seqID());
                     m_actorPod->forward(playerPtr->UID(), {AM_BINDCHANNEL, amBC});
