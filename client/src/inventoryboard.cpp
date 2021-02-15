@@ -101,7 +101,7 @@ void InventoryBoard::drawItem(int dstX, int dstY, size_t startRow, bool cursorOn
             && bin.w >  0
             && bin.h >  0){
 
-        if(auto texPtr = g_itemDB->Retrieve(DBCOM_ITEMRECORD(bin.id).pkgGfxID | 0X01000000)){
+        if(auto texPtr = g_itemDB->Retrieve(DBCOM_ITEMRECORD(bin.item.itemID).pkgGfxID | 0X01000000)){
             const int startX = dstX + m_invGridX0;
             const int startY = dstY + m_invGridY0 - startRow * SYS_INVGRIDPH;
             const int  viewX = dstX + m_invGridX0;
@@ -142,12 +142,12 @@ void InventoryBoard::drawItem(int dstX, int dstY, size_t startRow, bool cursorOn
                             binGridH * SYS_INVGRIDPH);
                 }
 
-                if(bin.count > 1){
+                if(bin.item.count > 1){
                     const LabelBoard itemCount
                     {
                         0, // reset by new width
                         0,
-                        to_u8cstr(std::to_string(bin.count)),
+                        to_u8cstr(std::to_string(bin.item.count)),
 
                         1,
                         10,
@@ -233,26 +233,31 @@ bool InventoryBoard::processEvent(const SDL_Event &event, bool valid)
             }
         case SDL_MOUSEBUTTONDOWN:
             {
+                auto myHeroPtr = m_processRun->getMyHero();
+                auto &invPackRef = myHeroPtr->getInvPack();
+                auto lastGrabbedItem = invPackRef.getGrabbedItem();
+
                 switch(event.button.button){
                     case SDL_BUTTON_LEFT:
                         {
                             if(in(event.button.x, event.button.y)){
                                 if(const int selectedPackIndex = getPackBinIndex(event.button.x, event.button.y); selectedPackIndex >= 0){
-                                    const auto lastGrabbedBin = m_grabbedPackBin;
-                                    m_grabbedPackBin = m_processRun->getMyHero()->getInvPack().getPackBinList().at(selectedPackIndex);
-                                    m_processRun->getMyHero()->getInvPack().removeBin(m_grabbedPackBin);
-                                    if(lastGrabbedBin){
+                                    auto selectedPackBin = invPackRef.getPackBinList().at(selectedPackIndex);
+                                    invPackRef.setGrabbedItem(selectedPackBin.item);
+                                    invPackRef.remove(selectedPackBin.item);
+                                    if(lastGrabbedItem){
                                         // when swapping
                                         // prefer to use current location to store
-                                        m_processRun->getMyHero()->getInvPack().add(lastGrabbedBin.id, lastGrabbedBin.count, m_grabbedPackBin.x, m_grabbedPackBin.y);
+                                        invPackRef.add(lastGrabbedItem, selectedPackBin.x, selectedPackBin.y);
                                     }
                                 }
-                                else if(m_grabbedPackBin){
+                                else if(lastGrabbedItem){
                                     const auto [gridX, gridY] = getInvGrid(event.button.x, event.button.y);
-                                    m_grabbedPackBin.x = gridX - m_grabbedPackBin.w / 2; // can give an invalid (x, y)
-                                    m_grabbedPackBin.y = gridY - m_grabbedPackBin.h / 2;
-                                    m_processRun->getMyHero()->getInvPack().addBin(m_grabbedPackBin);
-                                    m_grabbedPackBin = {};
+                                    const auto [gridW, gridH] = InvPack::getPackBinSize(lastGrabbedItem.itemID);
+                                    const auto startGridX = gridX - gridW / 2; // can give an invalid (x, y)
+                                    const auto startGridY = gridY - gridH / 2;
+                                    invPackRef.add(lastGrabbedItem, startGridX, startGridY);
+                                    invPackRef.setGrabbedItem({});
                                 }
                                 return focusConsume(this, true);
                             }
@@ -262,7 +267,7 @@ bool InventoryBoard::processEvent(const SDL_Event &event, bool valid)
                         {
                             if(in(event.button.x, event.button.y)){
                                 if(const int selectedPackIndex = getPackBinIndex(event.button.x, event.button.y); selectedPackIndex >= 0){
-                                    packBinConsume(m_processRun->getMyHero()->getInvPack().getPackBinList().at(selectedPackIndex));
+                                    packBinConsume(invPackRef.getPackBinList().at(selectedPackIndex));
                                 }
                                 return focusConsume(this, true);
                             }
@@ -353,12 +358,8 @@ int InventoryBoard::getPackBinIndex(int locPX, int locPY) const
         return -1;
     }
 
-    const auto myHeroPtr = m_processRun->getMyHero();
-    if(!myHeroPtr){
-        return -1;
-    }
-
     const auto startRow = getStartRow();
+    const auto myHeroPtr = m_processRun->getMyHero();
     const auto &packBinListCRef = myHeroPtr->getInvPack().getPackBinList();
     for(int i = 0; i < (int)(packBinListCRef.size()); ++i){
         const auto &binCRef = packBinListCRef.at(i);
@@ -387,7 +388,7 @@ std::tuple<int, int> InventoryBoard::getInvGrid(int locPX, int locPY) const
 
 void InventoryBoard::drawItemHoverText(const PackBin &bin) const
 {
-    const auto &ir = DBCOM_ITEMRECORD(bin.id);
+    const auto &ir = DBCOM_ITEMRECORD(bin.item.itemID);
     const auto hoverText = str_printf
     (
         u8R"###( <layout>                  )###""\n"
@@ -429,24 +430,12 @@ void InventoryBoard::drawItemHoverText(const PackBin &bin) const
     hoverTextBoard.drawAt(DIR_UPLEFT, mousePX + 10, mousePY + 10);
 }
 
-void InventoryBoard::setGrabbedItemID(uint32_t itemID)
-{
-    if(DBCOM_ITEMRECORD(itemID)){
-        m_grabbedPackBin = InvPack::makePackBin(itemID, 1);
-    }
-    else{
-        m_grabbedPackBin = {};
-    }
-}
-
 void InventoryBoard::packBinConsume(const PackBin &bin)
 {
-    const auto &ir = DBCOM_ITEMRECORD(bin.id);
-    const auto type = std::u8string_view(ir.type);
-
+    const auto &ir = DBCOM_ITEMRECORD(bin.item.itemID);
     if(false
-            || type == u8"恢复药水"
-            || type == u8"强化药水"){
-        m_processRun->getMyHero()->getInvPack().remove(bin.id, 1, bin.x, bin.y);
+            || to_u8sv(ir.type) == u8"恢复药水"
+            || to_u8sv(ir.type) == u8"强化药水"){
+        m_processRun->requestConsumeItem(bin.item.itemID, bin.item.seqID, 1);
     }
 }

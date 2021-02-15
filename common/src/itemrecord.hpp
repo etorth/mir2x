@@ -61,16 +61,11 @@ struct ItemRecord
         return std::u8string_view(name) != u8"";
     }
 
-    constexpr bool hasDBID() const
+    constexpr bool packable() const
     {
-        using namespace std::literals;
         return false
-            || type == u8"鞋"sv
-            || type == u8"衣服"sv
-            || type == u8"武器"sv
-            || type == u8"头盔"sv
-            || type == u8"项链"sv
-            || type == u8"戒指"sv
-            || type == u8"手镯"sv;
+            || std::u8string_view(type) == u8"恢复药水"
+            || std::u8string_view(type) == u8"传送卷轴"
+            || std::u8string_view(type) == u8"护身符";
     }
 };

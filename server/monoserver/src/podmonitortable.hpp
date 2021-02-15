@@ -53,7 +53,7 @@ class PodMonitorTable: public Fl_TableImpl
         bool m_sortOrder;
 
     private:
-        int m_selectedAMType = MPK_NONE;
+        int m_selectedAMType = AM_NONE;
 
     public:
         PodMonitorTable(int argX, int argY, int argW, int argH, const char *labelCPtr = nullptr)
@@ -89,7 +89,7 @@ class PodMonitorTable: public Fl_TableImpl
     public:
         void onClickOff() override
         {
-            m_selectedAMType = MPK_NONE;
+            m_selectedAMType = AM_NONE;
         }
 
         void onClickCell(int row, int) override

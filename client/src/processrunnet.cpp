@@ -36,28 +36,31 @@
 #include "cerealf.hpp"
 #include "serdesmsg.hpp"
 
-void ProcessRun::net_LOGINOK(const uint8_t *bufPtr, size_t)
+void ProcessRun::net_LOGINOK(const uint8_t *buf, size_t bufSize)
 {
-    const auto smLO = ServerMsg::conv<SMLoginOK>(bufPtr);
-    loadMap(smLO.MapID);
+    auto sdLOK = cerealf::deserialize<SDLoginOK>(buf, bufSize, true);
+    loadMap(sdLOK.mapID);
 
-    m_myHeroUID = smLO.UID;
-    m_coList[m_myHeroUID] = std::make_unique<MyHero>(m_myHeroUID, smLO.look, this, ActionStand
+    m_myHeroUID = sdLOK.uid;
+    m_coList[m_myHeroUID] = std::make_unique<MyHero>(m_myHeroUID, this, ActionStand
     {
-        .x = smLO.X,
-        .y = smLO.Y,
-        .direction = smLO.Direction,
+        .x = sdLOK.x,
+        .y = sdLOK.y,
+        .direction = DIR_DOWN,
     });
+
+    getMyHero()->setName(to_cstr(sdLOK.name), sdLOK.nameColor);
+    getMyHero()->setWLDesp(std::move(sdLOK.desp));
 
     centerMyHero();
     getMyHero()->pullGold();
 }
 
-void ProcessRun::net_SELLITEM(const uint8_t *buf, size_t bufSize)
+void ProcessRun::net_SELLITEMLIST(const uint8_t *buf, size_t bufSize)
 {
-    auto sdSI = cerealf::deserialize<SDSellItem>(buf, bufSize, true);
+    auto sdSIL = cerealf::deserialize<SDSellItemList>(buf, bufSize, true);
     auto purchaseBoardPtr = dynamic_cast<PurchaseBoard *>(getGUIManager()->getWidget("PurchaseBoard"));
-    purchaseBoardPtr->setSellItem(std::move(sdSI));
+    purchaseBoardPtr->setSellItemList(std::move(sdSIL));
 }
 
 void ProcessRun::net_ACTION(const uint8_t *bufPtr, size_t)
@@ -65,7 +68,7 @@ void ProcessRun::net_ACTION(const uint8_t *bufPtr, size_t)
     SMAction smA;
     std::memcpy(&smA, bufPtr, sizeof(smA));
 
-    if(smA.MapID != MapID()){
+    if(smA.mapID != mapID()){
         if(smA.UID != getMyHero()->UID()){
             return;
         }
@@ -76,19 +79,17 @@ void ProcessRun::net_ACTION(const uint8_t *bufPtr, size_t)
         // call getMyHero before loadMap()
         // getMyHero() checks if current creature is on current map
 
-        const auto look = getMyHero()->getPlayerLook();
-        const auto direction = getMyHero()->currMotion()->direction;
-
         m_actionBlocker.clear();
-        loadMap(smA.MapID);
+        getMyHero()->flushMotionPending();
+
+        const auto oldDir = getMyHero()->currMotion()->direction;
+        auto myHeroPtr = std::move(m_coList[m_myHeroUID]);
+
+        loadMap(smA.mapID);
 
         m_coList.clear();
-        m_coList[m_myHeroUID] = std::make_unique<MyHero>(m_myHeroUID, look, this, ActionStand
-        {
-            .x = smA.action.x,
-            .y = smA.action.y,
-            .direction = direction,
-        });
+        m_coList[m_myHeroUID] = std::move(myHeroPtr);
+        getMyHero()->jumpLoc(smA.action.x, smA.action.y, oldDir);
 
         centerMyHero();
         getMyHero()->parseAction(smA.action);
@@ -184,7 +185,7 @@ void ProcessRun::net_ACTION(const uint8_t *bufPtr, size_t)
 void ProcessRun::net_CORECORD(const uint8_t *bufPtr, size_t)
 {
     const auto smCOR = ServerMsg::conv<SMCORecord>(bufPtr);
-    if(smCOR.MapID != MapID()){
+    if(smCOR.mapID != mapID()){
         return;
     }
 
@@ -217,8 +218,8 @@ void ProcessRun::net_CORECORD(const uint8_t *bufPtr, size_t)
             }
         case UID_PLY:
             {
-                m_coList[smCOR.UID] = std::make_unique<Hero>(smCOR.UID, PlayerLook{}, this, smCOR.action);
-                queryPlayerLook(smCOR.UID);
+                m_coList[smCOR.UID] = std::make_unique<Hero>(smCOR.UID, this, smCOR.action);
+                queryPlayerWLDesp(smCOR.UID);
                 break;
             }
         default:
@@ -233,7 +234,7 @@ void ProcessRun::net_UPDATEHP(const uint8_t *bufPtr, size_t)
     SMUpdateHP stSMUHP;
     std::memcpy(&stSMUHP, bufPtr, sizeof(stSMUHP));
 
-    if(stSMUHP.MapID == MapID()){
+    if(stSMUHP.mapID == mapID()){
         if(auto p = findUID(stSMUHP.UID)){
             p->updateHealth(stSMUHP.HP, stSMUHP.HPMax);
         }
@@ -260,7 +261,7 @@ void ProcessRun::net_DEADFADEOUT(const uint8_t *bufPtr, size_t)
     SMDeadFadeOut stSMDFO;
     std::memcpy(&stSMDFO, bufPtr, sizeof(stSMDFO));
 
-    if(stSMDFO.MapID == MapID()){
+    if(stSMDFO.mapID == mapID()){
         if(auto p = findUID(stSMDFO.UID)){
             p->deadFadeOut();
         }
@@ -304,17 +305,20 @@ void ProcessRun::net_PING(const uint8_t *bufPtr, size_t)
     addCBLog(CBLOG_SYS, u8"延迟%llums", to_llu(currTick - smP.Tick));
 }
 
-void ProcessRun::net_SHOWDROPITEM(const uint8_t *bufPtr, size_t)
+void ProcessRun::net_GROUNDITEMIDLIST(const uint8_t *buf, size_t)
 {
-    const auto smSDI = ServerMsg::conv<SMShowDropItem>(bufPtr);
-    clearGroundItem(smSDI.X, smSDI.Y);
+    const auto smGIIDL = ServerMsg::conv<SMGroundItemIDList>(buf);
+    clearGroundItemIDList(smGIIDL.x, smGIIDL.y);
 
-    for(size_t i = 0; i < std::extent<decltype(smSDI.IDList)>::value; ++i){
-        const CommonItem item(smSDI.IDList[i].ID, smSDI.IDList[i].DBID);
-        if(!item){
+    for(const auto itemID: smGIIDL.itemIDList){
+        if(!itemID){
             break;
         }
-        addGroundItem(item, smSDI.X, smSDI.Y);
+
+        if(!DBCOM_ITEMRECORD(itemID)){
+            throw fflerror("invalid itemID = %llu", to_llu(itemID));
+        }
+        addGroundItemID(itemID, smGIIDL.x, smGIIDL.y);
     }
 }
 
@@ -366,29 +370,32 @@ void ProcessRun::net_OFFLINE(const uint8_t *bufPtr, size_t)
     SMOffline stSMO;
     std::memcpy(&stSMO, bufPtr, sizeof(stSMO));
 
-    if(stSMO.MapID == MapID()){
+    if(stSMO.mapID == mapID()){
         if(auto coPtr = findUID(stSMO.UID)){
             coPtr->addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"瞬息移动", u8"启动")));
         }
     }
 }
 
-void ProcessRun::net_PICKUPOK(const uint8_t *bufPtr, size_t)
+void ProcessRun::net_PICKUPERROR(const uint8_t *buf, size_t)
 {
-    const auto smPUOK = ServerMsg::conv<SMPickUpOK>(bufPtr);
-    if(smPUOK.ID != DBCOM_ITEMID(u8"金币")){
-        getMyHero()->getInvPack().add(smPUOK.ID, 1);
+    const auto smPUE = ServerMsg::conv<SMPickUpError>(buf);
+    if(smPUE.failedItemID){
+        if(const auto &ir = DBCOM_ITEMRECORD(smPUE.failedItemID)){
+            addCBLog(CBLOG_SYS, u8"无法捡起%s", to_cstr(ir.name));
+        }
+        else{
+            addCBLog(CBLOG_SYS, u8"无法捡起物品ID = %llu", to_cstr(ir.name), to_llu(smPUE.failedItemID));
+        }
     }
-
-    removeGroundItem(CommonItem(smPUOK.ID, 0), smPUOK.X, smPUOK.Y);
-    addCBLog(CBLOG_SYS, u8"捡起%s于坐标(%d, %d)", DBCOM_ITEMRECORD(smPUOK.ID).name, (int)(smPUOK.X), (int)(smPUOK.Y));
+    else{
+        addCBLog(CBLOG_SYS, u8"当前无法捡起物品，请稍后再试");
+    }
 }
 
-void ProcessRun::net_GOLD(const uint8_t *bufPtr, size_t)
+void ProcessRun::net_GOLD(const uint8_t *buf, size_t)
 {
-    SMGold stSMG;
-    std::memcpy(&stSMG, bufPtr, sizeof(stSMG));
-    getMyHero()->setGold(stSMG.Gold);
+    getMyHero()->setGold(ServerMsg::conv<SMGold>(buf).gold);
 }
 
 void ProcessRun::net_NPCXMLLAYOUT(const uint8_t *buf, size_t bufSize)
@@ -418,23 +425,15 @@ void ProcessRun::net_TEXT(const uint8_t *buf, size_t)
     addCBLog(CBLOG_SYS, u8"%s", to_cstr((const char *)(buf)));
 }
 
-void ProcessRun::net_PLAYERLOOK(const uint8_t *buf, size_t)
+void ProcessRun::net_PLAYERWLDESP(const uint8_t *buf, size_t bufSize)
 {
-    const auto smPL = ServerMsg::conv<SMPlayerLook>(buf);
-    if(uidf::getUIDType(smPL.uid) == UID_PLY){
-        if(auto playerPtr = dynamic_cast<Hero *>(findUID(smPL.uid)); playerPtr){
-            playerPtr->setLook(smPL.look);
-        }
+    auto sdUIDWLD = cerealf::deserialize<SDUIDWLDesp>(buf, bufSize, true);
+    if(uidf::getUIDType(sdUIDWLD.uid) != UID_PLY){
+        throw fflerror("invalid uid type: %s", uidf::getUIDTypeCStr(sdUIDWLD.uid));
     }
-}
 
-void ProcessRun::net_PLAYERWEAR(const uint8_t *buf, size_t)
-{
-    const auto smPW = ServerMsg::conv<SMPlayerWear>(buf);
-    if(uidf::getUIDType(smPW.uid) == UID_PLY){
-        if(auto playerPtr = dynamic_cast<Hero *>(findUID(smPW.uid)); playerPtr){
-            playerPtr->setWear(smPW.wear);
-        }
+    if(auto playerPtr = dynamic_cast<Hero *>(findUID(sdUIDWLD.uid)); playerPtr){
+        playerPtr->setWLDesp(std::move(sdUIDWLD.desp));
     }
 }
 
@@ -446,4 +445,15 @@ void ProcessRun::net_PLAYERNAME(const uint8_t *buf, size_t)
             playerPtr->setName(smPN.name, smPN.nameColor);
         }
     }
+}
+
+void ProcessRun::net_ADDITEM(const uint8_t *buf, size_t bufSize)
+{
+    getMyHero()->getInvPack().add(cerealf::deserialize<SDAddItem>(buf, bufSize).item);
+}
+
+void ProcessRun::net_REMOVEITEM(const uint8_t *buf, size_t)
+{
+    const auto smRI = ServerMsg::conv<SMRemoveItem>(buf);
+    getMyHero()->getInvPack().remove(smRI.itemID, smRI.seqID, smRI.count);
 }

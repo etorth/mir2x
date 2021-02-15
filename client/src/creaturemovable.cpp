@@ -23,7 +23,6 @@
 #include "creaturemovable.hpp"
 
 extern Log *g_log;
-
 std::vector<PathFind::PathNode> CreatureMovable::parseMovePath(int x0, int y0, int x1, int y1, bool checkGround, int checkCreature)
 {
     if(!m_processRun->canMove(true, 0, x0, y0)){

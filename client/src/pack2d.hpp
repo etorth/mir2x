@@ -23,14 +23,15 @@
  */
 
 #pragma once
+#include <tuple>
 #include <cstdint>
 #include "fflerror.hpp"
 #include "sysconst.hpp"
+#include "serdesmsg.hpp"
 
 struct PackBin
 {
-    uint32_t id    = 0;
-    size_t   count = 1;
+    SDItem item;
 
     int x = -1;
     int y = -1;
@@ -39,8 +40,11 @@ struct PackBin
 
     operator bool () const
     {
-        return id != 0;
+        return item.itemID != 0;
     }
+
+    static PackBin makePackBin(SDItem);
+    static std::tuple<int, int> getPackBinSize(const SDItem &);
 };
 
 class Pack2D

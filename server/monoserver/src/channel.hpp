@@ -91,7 +91,7 @@ class Channel final: public std::enable_shared_from_this<Channel>
 
     public:
         // only asio main loop calls the destructor
-        // when one channel eventually get released, recycle the ChannID
+        // when one channel eventually get released, recycle the channID
         virtual ~Channel();
 
     public:

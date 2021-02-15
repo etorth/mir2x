@@ -28,76 +28,28 @@
 #include "friendtype.hpp"
 #include "protocoldef.hpp"
 #include "dbcomrecord.hpp"
+#include "buildconfig.hpp"
 
 extern DBPod *g_dbPod;
 extern NetDriver *g_netDriver;
 extern MonoServer *g_monoServer;
 
-Player::Player(uint32_t nDBID,
-        ServiceCore    *pServiceCore,
-        ServerMap      *pServerMap,
-        int             nMapX,
-        int             nMapY,
-        int             nDirection)
-    : CharObject(pServiceCore, pServerMap, uidf::buildPlayerUID(nDBID, true, {JOB_WARRIOR, JOB_TAOIST}), nMapX, nMapY, nDirection)
-    , m_channID(0)    // provide by bind
-    , m_exp(0)
-    , m_level(0)       // after bind
-    , m_gold(0)
-    , m_inventory()
-    , m_name([this]() -> std::string
-      {
-          std::string result;
-          dbAccess("tbl_dbid", "fld_name", [&result](std::string name) -> std::string
-          {
-              result = std::move(name);
-              return {};
-          });
-          return result;
-      }())
+Player::Player(const SDInitPlayer &initParam, ServiceCore *corePtr, ServerMap *mapPtr)
+    : CharObject(corePtr, mapPtr, uidf::buildPlayerUID(initParam.dbid, true, initParam.jobList), initParam.x, initParam.y, DIR_DOWN)
+    , m_exp(initParam.exp)
+    , m_level(initParam.level)
+    , m_name(initParam.name)
+    , m_nameColor(initParam.nameColor)
+    , m_hair(initParam.hair)
+    , m_hairColor(initParam.hairColor)
 {
-    m_HP    = 10;
-    m_HPMax = 10;
-    m_MP    = 10;
-    m_MPMax = 10;
+    m_HP = initParam.hp;
+    m_MP = initParam.mp;
+    m_sdItemStorage.gold = initParam.gold;
 
-    std::memset(&m_look, 0, sizeof(m_look));
-    std::memset(&m_wear, 0, sizeof(m_wear));
-
-    m_look = PlayerLook
-    {
-        .hair = 2,
-        .hairColor = colorf::GREEN + 255,
-
-        .helmet = DBCOM_ITEMID(u8"骷髅头盔"),
-        .helmetColor = 0,
-
-        .dress = DBCOM_ITEMID(u8"布衣（男）"),
-        .dressColor = 0,
-
-        .weapon = DBCOM_ITEMID(u8"青铜剑"),
-        .weaponColor = 0,
-    };
-
-    m_wear = PlayerWear
-    {
-        .necklace = DBCOM_ITEMID(u8"放大镜"),
-        .armring
-        {
-            DBCOM_ITEMID(u8"坚固手套"),
-            DBCOM_ITEMID(u8"幽灵手套"),
-        },
-
-        .ring
-        {
-            DBCOM_ITEMID(u8"金戒指"),
-            DBCOM_ITEMID(u8"降妖除魔戒指"),
-        },
-
-        .shoes = DBCOM_ITEMID(u8"草鞋"),
-        .torch = 0,
-        .charm = 0,
-    };
+    dbLoadWear();
+    dbLoadBelt();
+    dbLoadInventory();
 
     m_stateTrigger.install([this, lastCheckTick = (uint32_t)(0)]() mutable -> bool
     {
@@ -109,152 +61,132 @@ Player::Player(uint32_t nDBID,
     });
 }
 
-Player::~Player()
+void Player::operateAM(const ActorMsgPack &rstMPK)
 {
-    DBSavePlayer();
-}
-
-void Player::operateAM(const MessagePack &rstMPK)
-{
-    switch(rstMPK.Type()){
-        case MPK_METRONOME:
+    switch(rstMPK.type()){
+        case AM_METRONOME:
             {
-                on_MPK_METRONOME(rstMPK);
+                on_AM_METRONOME(rstMPK);
                 break;
             }
-        case MPK_BADACTORPOD:
+        case AM_BADACTORPOD:
             {
-                on_MPK_BADACTORPOD(rstMPK);
+                on_AM_BADACTORPOD(rstMPK);
                 break;
             }
-        case MPK_NOTIFYNEWCO:
+        case AM_NOTIFYNEWCO:
             {
-                on_MPK_NOTIFYNEWCO(rstMPK);
+                on_AM_NOTIFYNEWCO(rstMPK);
                 break;
             }
-        case MPK_CHECKMASTER:
+        case AM_CHECKMASTER:
             {
-                on_MPK_CHECKMASTER(rstMPK);
+                on_AM_CHECKMASTER(rstMPK);
                 break;
             }
-        case MPK_MAPSWITCH:
+        case AM_MAPSWITCH:
             {
-                on_MPK_MAPSWITCH(rstMPK);
+                on_AM_MAPSWITCH(rstMPK);
                 break;
             }
-        case MPK_NPCQUERY:
+        case AM_NPCQUERY:
             {
-                on_MPK_NPCQUERY(rstMPK);
+                on_AM_NPCQUERY(rstMPK);
                 break;
             }
-        case MPK_QUERYLOCATION:
+        case AM_QUERYLOCATION:
             {
-                on_MPK_QUERYLOCATION(rstMPK);
+                on_AM_QUERYLOCATION(rstMPK);
                 break;
             }
-        case MPK_QUERYFRIENDTYPE:
+        case AM_QUERYFRIENDTYPE:
             {
-                on_MPK_QUERYFRIENDTYPE(rstMPK);
+                on_AM_QUERYFRIENDTYPE(rstMPK);
                 break;
             }
-        case MPK_EXP:
+        case AM_EXP:
             {
-                on_MPK_EXP(rstMPK);
+                on_AM_EXP(rstMPK);
                 break;
             }
-        case MPK_MISS:
+        case AM_MISS:
             {
-                on_MPK_MISS(rstMPK);
+                on_AM_MISS(rstMPK);
                 break;
             }
-        case MPK_ACTION:
+        case AM_ACTION:
             {
-                on_MPK_ACTION(rstMPK);
+                on_AM_ACTION(rstMPK);
                 break;
             }
-        case MPK_ATTACK:
+        case AM_ATTACK:
             {
-                on_MPK_ATTACK(rstMPK);
+                on_AM_ATTACK(rstMPK);
                 break;
             }
-        case MPK_UPDATEHP:
+        case AM_UPDATEHP:
             {
-                on_MPK_UPDATEHP(rstMPK);
+                on_AM_UPDATEHP(rstMPK);
                 break;
             }
-        case MPK_DEADFADEOUT:
+        case AM_DEADFADEOUT:
             {
-                on_MPK_DEADFADEOUT(rstMPK);
+                on_AM_DEADFADEOUT(rstMPK);
                 break;
             }
-        case MPK_SHOWDROPITEM:
+        case AM_BINDCHANNEL:
             {
-                on_MPK_SHOWDROPITEM(rstMPK);
+                on_AM_BINDCHANNEL(rstMPK);
                 break;
             }
-        case MPK_BINDCHANNEL:
+        case AM_SENDPACKAGE:
             {
-                on_MPK_BINDCHANNEL(rstMPK);
+                on_AM_SENDPACKAGE(rstMPK);
                 break;
             }
-        case MPK_SENDPACKAGE:
+        case AM_RECVPACKAGE:
             {
-                on_MPK_SENDPACKAGE(rstMPK);
+                on_AM_RECVPACKAGE(rstMPK);
                 break;
             }
-        case MPK_RECVPACKAGE:
+        case AM_QUERYCORECORD:
             {
-                on_MPK_RECVPACKAGE(rstMPK);
+                on_AM_QUERYCORECORD(rstMPK);
                 break;
             }
-        case MPK_QUERYCORECORD:
+        case AM_BADCHANNEL:
             {
-                on_MPK_QUERYCORECORD(rstMPK);
+                on_AM_BADCHANNEL(rstMPK);
                 break;
             }
-        case MPK_BADCHANNEL:
+        case AM_OFFLINE:
             {
-                on_MPK_BADCHANNEL(rstMPK);
+                on_AM_OFFLINE(rstMPK);
                 break;
             }
-        case MPK_OFFLINE:
+        case AM_QUERYPLAYERWLDESP:
             {
-                on_MPK_OFFLINE(rstMPK);
+                on_AM_QUERYPLAYERWLDESP(rstMPK);
                 break;
             }
-        case MPK_QUERYPLAYERLOOK:
+        case AM_REMOVEGROUNDITEM:
             {
-                on_MPK_QUERYPLAYERLOOK(rstMPK);
+                on_AM_REMOVEGROUNDITEM(rstMPK);
                 break;
             }
-        case MPK_QUERYPLAYERWEAR:
+        case AM_CORECORD:
             {
-                on_MPK_QUERYPLAYERWEAR(rstMPK);
+                on_AM_CORECORD(rstMPK);
                 break;
             }
-        case MPK_REMOVEGROUNDITEM:
+        case AM_NOTIFYDEAD:
             {
-                on_MPK_REMOVEGROUNDITEM(rstMPK);
-                break;
-            }
-        case MPK_PICKUPOK:
-            {
-                on_MPK_PICKUPOK(rstMPK);
-                break;
-            }
-        case MPK_CORECORD:
-            {
-                on_MPK_CORECORD(rstMPK);
-                break;
-            }
-        case MPK_NOTIFYDEAD:
-            {
-                on_MPK_NOTIFYDEAD(rstMPK);
+                on_AM_NOTIFYDEAD(rstMPK);
                 break;
             }
         default:
             {
-                g_monoServer->addLog(LOGTYPE_WARNING, "Unsupported message: %s", mpkName(rstMPK.Type()));
+                g_monoServer->addLog(LOGTYPE_WARNING, "Unsupported message: %s", mpkName(rstMPK.type()));
                 break;
             }
     }
@@ -263,18 +195,18 @@ void Player::operateAM(const MessagePack &rstMPK)
 void Player::operateNet(uint8_t nType, const uint8_t *pData, size_t nDataLen)
 {
     switch(nType){
-        case CM_QUERYCORECORD   : net_CM_QUERYCORECORD   (nType, pData, nDataLen); break;
-        case CM_REQUESTKILLPETS : net_CM_REQUESTKILLPETS (nType, pData, nDataLen); break;
-        case CM_REQUESTSPACEMOVE: net_CM_REQUESTSPACEMOVE(nType, pData, nDataLen); break;
-        case CM_ACTION          : net_CM_ACTION          (nType, pData, nDataLen); break;
-        case CM_PICKUP          : net_CM_PICKUP          (nType, pData, nDataLen); break;
-        case CM_PING            : net_CM_PING            (nType, pData, nDataLen); break;
-        case CM_QUERYGOLD       : net_CM_QUERYGOLD       (nType, pData, nDataLen); break;
-        case CM_NPCEVENT        : net_CM_NPCEVENT        (nType, pData, nDataLen); break;
-        case CM_QUERYSELLITEM   : net_CM_QUERYSELLITEM   (nType, pData, nDataLen); break;
-        case CM_QUERYPLAYERLOOK : net_CM_QUERYPLAYERLOOK (nType, pData, nDataLen); break;
-        case CM_QUERYPLAYERWEAR : net_CM_QUERYPLAYERWEAR (nType, pData, nDataLen); break;
-        default                 :                                                  break;
+        case CM_QUERYCORECORD    : net_CM_QUERYCORECORD    (nType, pData, nDataLen); break;
+        case CM_REQUESTKILLPETS  : net_CM_REQUESTKILLPETS  (nType, pData, nDataLen); break;
+        case CM_REQUESTSPACEMOVE : net_CM_REQUESTSPACEMOVE (nType, pData, nDataLen); break;
+        case CM_ACTION           : net_CM_ACTION           (nType, pData, nDataLen); break;
+        case CM_PICKUP           : net_CM_PICKUP           (nType, pData, nDataLen); break;
+        case CM_PING             : net_CM_PING             (nType, pData, nDataLen); break;
+        case CM_BUY              : net_CM_BUY              (nType, pData, nDataLen); break;
+        case CM_QUERYGOLD        : net_CM_QUERYGOLD        (nType, pData, nDataLen); break;
+        case CM_NPCEVENT         : net_CM_NPCEVENT         (nType, pData, nDataLen); break;
+        case CM_QUERYSELLITEMLIST: net_CM_QUERYSELLITEMLIST(nType, pData, nDataLen); break;
+        case CM_QUERYPLAYERWLDESP: net_CM_QUERYPLAYERWLDESP(nType, pData, nDataLen); break;
+        default                  :                                                   break;
     }
 }
 
@@ -293,7 +225,7 @@ void Player::reportCO(uint64_t toUID)
     std::memset(&amCOR, 0, sizeof(amCOR));
 
     amCOR.UID = UID();
-    amCOR.MapID = MapID();
+    amCOR.mapID = mapID();
     amCOR.action = ActionStand
     {
         .x = X(),
@@ -301,8 +233,8 @@ void Player::reportCO(uint64_t toUID)
         .direction = Direction(),
     };
 
-    amCOR.Player.Level = Level();
-    m_actorPod->forward(toUID, {MPK_CORECORD, amCOR});
+    amCOR.Player.Level = level();
+    m_actorPod->forward(toUID, {AM_CORECORD, amCOR});
 }
 
 void Player::reportStand()
@@ -319,16 +251,16 @@ void Player::reportAction(uint64_t nUID, const ActionNode &action)
 {
     if(true
             && nUID
-            && ChannID()){
+            && channID()){
 
         SMAction smA;
         std::memset(&smA, 0, sizeof(smA));
 
         smA.UID = nUID;
-        smA.MapID = MapID();
+        smA.mapID = mapID();
         smA.action = action;
 
-        g_netDriver->Post(ChannID(), SM_ACTION, smA);
+        g_netDriver->Post(channID(), SM_ACTION, smA);
     }
 }
 
@@ -347,7 +279,7 @@ void Player::reportHealth()
     std::memset(&smUHP, 0, sizeof(smUHP));
 
     smUHP.UID   = UID();
-    smUHP.MapID = MapID();
+    smUHP.mapID = mapID();
     smUHP.HP    = HP();
     smUHP.HPMax = HPMax();
 
@@ -356,7 +288,7 @@ void Player::reportHealth()
 
 bool Player::InRange(int nRangeType, int nX, int nY)
 {
-    if(!m_map->ValidC(nX, nY)){
+    if(!m_map->validC(nX, nY)){
         return false;
     }
 
@@ -398,7 +330,7 @@ bool Player::goGhost()
     std::memset(&amDFO, 0, sizeof(amDFO));
 
     amDFO.UID   = UID();
-    amDFO.MapID = MapID();
+    amDFO.mapID = mapID();
     amDFO.X     = X();
     amDFO.Y     = Y();
 
@@ -406,7 +338,7 @@ bool Player::goGhost()
             && checkActorPod()
             && m_map
             && m_map->checkActorPod()){
-        m_actorPod->forward(m_map->UID(), {MPK_DEADFADEOUT, amDFO});
+        m_actorPod->forward(m_map->UID(), {AM_DEADFADEOUT, amDFO});
     }
 
     deactivate();
@@ -469,11 +401,11 @@ void Player::dispatchOffline()
         std::memset(&amO, 0, sizeof(amO));
 
         amO.UID   = UID();
-        amO.MapID = MapID();
+        amO.mapID = mapID();
         amO.X     = X();
         amO.Y     = Y();
 
-        m_actorPod->forward(m_map->UID(), {MPK_OFFLINE, amO});
+        m_actorPod->forward(m_map->UID(), {AM_OFFLINE, amO});
         return;
     }
 
@@ -485,20 +417,20 @@ void Player::reportOffline(uint64_t nUID, uint32_t nMapID)
     if(true
             && nUID
             && nMapID
-            && ChannID()){
+            && channID()){
 
         SMOffline smO;
         smO.UID   = nUID;
-        smO.MapID = nMapID;
+        smO.mapID = nMapID;
 
-        g_netDriver->Post(ChannID(), SM_OFFLINE, smO);
+        g_netDriver->Post(channID(), SM_OFFLINE, smO);
     }
 }
 
 bool Player::Offline()
 {
     dispatchOffline();
-    reportOffline(UID(), MapID());
+    reportOffline(UID(), mapID());
 
     deactivate();
     return true;
@@ -506,8 +438,8 @@ bool Player::Offline()
 
 bool Player::postNetMessage(uint8_t nHC, const void *pData, size_t nDataLen)
 {
-    if(ChannID()){
-        return g_netDriver->Post(ChannID(), nHC, (const uint8_t *)(pData), nDataLen);
+    if(channID()){
+        return g_netDriver->Post(channID(), nHC, (const uint8_t *)(pData), nDataLen);
     }
     return false;
 }
@@ -520,7 +452,7 @@ void Player::onCMActionStand(CMAction stCMA)
 
     if(true
             && m_map
-            && m_map->ValidC(nX, nY)){
+            && m_map->validC(nX, nY)){
 
         // server get report stand
         // means client is trying to re-sync
@@ -603,7 +535,7 @@ void Player::onCMActionAttack(CMAction stCMA)
         int nDCType = stCMA.action.extParam.attack.damageID;
         uint64_t nAimUID = stCMA.action.aimUID;
 
-        if(rstLocation.MapID == MapID()){
+        if(rstLocation.mapID == mapID()){
             switch(nDCType){
                 case DC_PHY_PLAIN:
                 case DC_PHY_WIDESWORD:
@@ -672,7 +604,7 @@ void Player::onCMActionSpell(CMAction cmA)
                 std::memset(&smFM, 0, sizeof(smFM));
 
                 smFM.UID    = UID();
-                smFM.MapID  = MapID();
+                smFM.mapID  = mapID();
                 smFM.Magic  = nMagicID;
                 smFM.Speed  = MagicSpeed();
                 smFM.X      = nX;
@@ -681,7 +613,7 @@ void Player::onCMActionSpell(CMAction cmA)
 
                 addDelay(800, [this, smFM]()
                 {
-                    g_netDriver->Post(ChannID(), SM_CASTMAGIC, smFM);
+                    g_netDriver->Post(channID(), SM_CASTMAGIC, smFM);
                 });
                 break;
             }
@@ -691,7 +623,7 @@ void Player::onCMActionSpell(CMAction cmA)
                 std::memset(&smFM, 0, sizeof(smFM));
 
                 smFM.UID    = UID();
-                smFM.MapID  = MapID();
+                smFM.mapID  = mapID();
                 smFM.Magic  = nMagicID;
                 smFM.Speed  = MagicSpeed();
                 smFM.X      = nX;
@@ -700,7 +632,7 @@ void Player::onCMActionSpell(CMAction cmA)
 
                 addDelay(1400, [this, smFM]()
                 {
-                    g_netDriver->Post(ChannID(), SM_CASTMAGIC, smFM);
+                    g_netDriver->Post(channID(), SM_CASTMAGIC, smFM);
                 });
                 break;
             }
@@ -715,7 +647,7 @@ void Player::onCMActionSpell(CMAction cmA)
 
                 addDelay(800, [this, smFM]()
                 {
-                    g_netDriver->Post(ChannID(), SM_CASTMAGIC, smFM);
+                    g_netDriver->Post(channID(), SM_CASTMAGIC, smFM);
                 });
                 break;
             }
@@ -729,7 +661,7 @@ void Player::onCMActionSpell(CMAction cmA)
                 std::memset(&smFM, 0, sizeof(smFM));
 
                 smFM.UID   = UID();
-                smFM.MapID = MapID();
+                smFM.mapID = mapID();
                 smFM.Magic = nMagicID;
                 smFM.Speed = MagicSpeed();
                 smFM.AimX  = nFrontX;
@@ -754,7 +686,7 @@ void Player::onCMActionSpell(CMAction cmA)
                 std::memset(&smFM, 0, sizeof(smFM));
 
                 smFM.UID   = UID();
-                smFM.MapID = MapID();
+                smFM.mapID = mapID();
                 smFM.Magic = nMagicID;
                 smFM.Speed = MagicSpeed();
                 smFM.AimX  = nFrontX;
@@ -769,41 +701,6 @@ void Player::onCMActionSpell(CMAction cmA)
         default:
             {
                 break;
-            }
-    }
-}
-
-void Player::onCMActionPickUp(CMAction stCMA)
-{
-    switch(estimateHop(stCMA.action.x, stCMA.action.y)){
-        case 0:
-            {
-                AMPickUp amPU;
-                amPU.X    = stCMA.action.x;
-                amPU.Y    = stCMA.action.y;
-                amPU.UID  = UID();
-                amPU.ID   = stCMA.action.extParam.pickUp.itemID;
-                amPU.DBID = 0;
-
-                m_actorPod->forward(m_map->UID(), {MPK_PICKUP, amPU});
-                return;
-            }
-        case 1:
-            {
-                requestMove(stCMA.action.x, stCMA.action.y, SYS_MAXSPEED, false, false,
-                [this, stCMA]()
-                {
-                    onCMActionPickUp(stCMA);
-                },
-                [this]()
-                {
-                    reportStand();
-                });
-                return;
-            }
-        default:
-            {
-                return;
             }
     }
 }
@@ -870,7 +767,7 @@ uint32_t Player::GetLevelExp()
         }
         return -1;
     };
-    return fnGetLevelExp(Level(), uidf::hasPlayerJob(UID(), JOB_TAOIST) ? JOB_TAOIST : JOB_WARRIOR);
+    return fnGetLevelExp(level(), uidf::hasPlayerJob(UID(), JOB_TAOIST) ? JOB_TAOIST : JOB_WARRIOR);
 }
 
 void Player::PullRectCO(int nW, int nH)
@@ -889,8 +786,8 @@ void Player::PullRectCO(int nW, int nH)
         amPCOI.W     = nW;
         amPCOI.H     = nH;
         amPCOI.UID   = UID();
-        amPCOI.MapID = m_map->ID();
-        m_actorPod->forward(m_map->UID(), {MPK_PULLCOINFO, amPCOI});
+        amPCOI.mapID = m_map->ID();
+        m_actorPod->forward(m_map->UID(), {AM_PULLCOINFO, amPCOI});
     }
 }
 
@@ -899,60 +796,23 @@ bool Player::CanPickUp(uint32_t, uint32_t)
     return true;
 }
 
-size_t Player::dbUpdate(const char *tableName, const char *fieldList, ...)
-{
-    if(true
-            && (tableName && tableName[0] != '\0')
-            && (fieldList && fieldList[0] != '\0')){
-
-        std::string sqlCmd;
-        str_format(fieldList, sqlCmd);
-        return g_dbPod->exec("update %s set %s where fld_dbid = %llu", tableName, sqlCmd.c_str(), to_llu(uidf::getPlayerDBID(UID())));
-    }
-    throw fflerror("invalid arguments: tableName = %s, fieldList = %s", to_cstr(tableName), to_cstr(fieldList));
-}
-
-size_t Player::dbAccess(const char *tableName, const char *fieldName, std::function<std::string(std::string)> op)
-{
-    if(true
-            && op
-            && (tableName && tableName[0] != '\0')
-            && (fieldName && fieldName[0] != '\0')){
-
-        // if need to return a string we should do:
-        //     return "\"xxxx\"";
-        // then empty string should be "\"\"", not result.empty()
-
-        size_t execCount = 0;
-        auto query = g_dbPod->createQuery("select %s from %s where fld_dbid = %llu", fieldName, tableName, to_llu(uidf::getPlayerDBID(UID())));
-        while(query.executeStep()){
-            if(const auto result = op((std::string)(query.getColumn(0))); !result.empty()){
-                g_dbPod->exec("update %s set %s = %s where fld_dbid = %llu", tableName, fieldName, result.c_str(), to_llu(uidf::getPlayerDBID(UID())));
-            }
-            execCount++;
-        }
-        return execCount;
-    }
-    throw fflerror("invalid arguments: tableName = %s, fieldName = %s, op = %s", to_cstr(tableName), to_cstr(fieldName), op ? "invocable" : "null");
-}
-
-bool Player::DBLoadPlayer()
-{
-    return true;
-}
-
-bool Player::DBSavePlayer()
-{
-    return dbUpdate("tbl_dbid", "fld_gold = %d, fld_level = %d", Gold(), Level());
-}
-
 void Player::reportGold()
 {
     SMGold smG;
     std::memset(&smG, 0, sizeof(smG));
-
-    smG.Gold = Gold();
+    smG.gold = gold();
     postNetMessage(SM_GOLD, smG);
+}
+
+void Player::reportRemoveItem(uint32_t itemID, uint32_t seqID, size_t count)
+{
+    SMRemoveItem smRI;
+    std::memset(&smRI, 0, sizeof(smRI));
+
+    smRI.itemID = itemID;
+    smRI. seqID =  seqID;
+    smRI. count =  count;
+    postNetMessage(SM_REMOVEITEM, smRI);
 }
 
 void Player::checkFriend(uint64_t nUID, std::function<void(int)> fnOp)
@@ -1002,7 +862,7 @@ void Player::checkFriend(uint64_t nUID, std::function<void(int)> fnOp)
             }
         default:
             {
-                throw fflerror("checking friend type for: %s", uidf::getUIDTypeString(nUID));
+                throw fflerror("checking friend type for: %s", uidf::getUIDTypeCStr(nUID));
             }
     }
 }
@@ -1010,12 +870,99 @@ void Player::checkFriend(uint64_t nUID, std::function<void(int)> fnOp)
 void Player::RequestKillPets()
 {
     for(auto uid: m_slaveList){
-        m_actorPod->forward(uid, {MPK_MASTERKILL});
+        m_actorPod->forward(uid, {AM_MASTERKILL});
     }
     m_slaveList.clear();
 }
 
 bool Player::sendNetBuf(uint8_t hc, const uint8_t *buf, size_t bufLen)
 {
-    return g_netDriver->Post(ChannID(), hc, buf, bufLen);
+    return g_netDriver->Post(channID(), hc, buf, bufLen);
+}
+
+void Player::postLoginOK()
+{
+    SMBuildVersion smBV;
+    std::memset(&smBV, 0, sizeof(smBV));
+    std::strcpy(smBV.version, getBuildSignature());
+    postNetMessage(SM_BUILDVERSION, smBV);
+
+    postNetMessage(SM_LOGINOK, cerealf::serialize<SDLoginOK>(SDLoginOK
+    {
+        .uid = UID(),
+        .mapID = mapID(),
+
+        .x = X(),
+        .y = Y(),
+        .direction = Direction(),
+
+        .desp
+        {
+            .wear = m_sdItemStorage.wear,
+            .hair = m_hair,
+            .hairColor = m_hairColor,
+        },
+
+        .name = m_name,
+        .nameColor = m_nameColor,
+    }, true));
+
+    postNetMessage(SM_INVENTORY,    cerealf::serialize(m_sdItemStorage.inventory, true));
+    postNetMessage(SM_BELTITEMLIST, cerealf::serialize(m_sdItemStorage.belt));
+}
+
+bool Player::hasInventoryItem(uint32_t itemID, uint32_t seqID, size_t count) const
+{
+    return m_sdItemStorage.inventory.has(itemID, seqID) >= count;
+}
+
+void Player::addInventoryItem(uint32_t itemID)
+{
+    addInventoryItem(SDItem
+    {
+        .itemID = itemID,
+    }, false);
+}
+
+void Player::addInventoryItem(SDItem item, bool keepSeqID)
+{
+    const auto &addedItem = m_sdItemStorage.inventory.add(std::move(item), keepSeqID);
+    dbUpdateInventoryItem(addedItem);
+    postNetMessage(SM_ADDITEM, cerealf::serialize(SDAddItem
+    {
+        .item = addedItem,
+    }));
+}
+
+size_t Player::removeInventoryItem(uint32_t itemID, uint32_t seqID, size_t count)
+{
+    if(!(DBCOM_ITEMRECORD(itemID) && count > 0)){
+        throw fflerror("invalid arguments: itemID = %llu, seqID = %llu, count = %zu", to_llu(itemID), to_llu(seqID), count);
+    }
+
+    if(itemID == DBCOM_ITEMID(u8"金币")){
+        throw fflerror("invalid item type: 金币");
+    }
+
+    size_t doneCount = 0;
+    while(doneCount < count){
+        const auto [removedCount, removedSeqID, itemPtr] = m_sdItemStorage.inventory.remove(itemID, seqID, count - doneCount);
+        if(itemPtr){
+            dbUpdateInventoryItem(*itemPtr);
+        }
+        else{
+            dbRemoveInventoryItem(itemID, removedSeqID);
+        }
+
+        doneCount += removedCount;
+        reportRemoveItem(itemID, removedSeqID, removedCount);
+    }
+    return doneCount;
+}
+
+void Player::setGold(size_t gold)
+{
+    m_sdItemStorage.gold = gold;
+    g_dbPod->exec("update tbl_dbid set fld_gold = %llu where fld_dbid = %llu", to_llu(m_sdItemStorage.gold), to_llu(dbid()));
+    reportGold();
 }

@@ -39,11 +39,14 @@ enum CMType: uint8_t
     CM_REQUESTMAGICDAMAGE,
     CM_PICKUP,
     CM_QUERYGOLD,
-    CM_QUERYPLAYERLOOK,
-    CM_QUERYPLAYERWEAR,
+    CM_QUERYPLAYERWLDESP,
     CM_ACCOUNT,
     CM_NPCEVENT,
-    CM_QUERYSELLITEM,
+    CM_QUERYSELLITEMLIST,
+    CM_DROPITEM,
+    CM_REMOVEITEM,
+    CM_CONSUMEITEM,
+    CM_BUY,
     CM_END,
 };
 
@@ -55,14 +58,14 @@ struct CMPing
 
 struct CMLogin
 {
-    char ID[64];
-    char Password[128];
+    char id[64];
+    char password[64];
 };
 
 struct CMAction
 {
     uint64_t UID;
-    uint32_t MapID;
+    uint32_t mapID;
     ActionNode action;
 };
 
@@ -73,7 +76,7 @@ struct CMQueryCORecord
 
 struct CMRequestSpaceMove
 {
-    uint32_t MapID;
+    uint32_t mapID;
     uint16_t X;
     uint16_t Y;
 };
@@ -86,20 +89,12 @@ struct CMRequestMagicDamage
 
 struct CMPickUp
 {
-    uint16_t X;
-    uint16_t Y;
-    uint64_t UID;
-    uint32_t MapID;
-    uint32_t ID;
-    uint32_t DBID;
+    uint16_t x;
+    uint16_t y;
+    uint32_t mapID;
 };
 
-struct CMQueryPlayerLook
-{
-    uint64_t uid;
-};
-
-struct CMQueryPlayerWear
+struct CMQueryPlayerWLDesp
 {
     uint64_t uid;
 };
@@ -123,10 +118,32 @@ struct CMNPCEvent
     char value[32];
 };
 
-struct CMQuerySellItem
+struct CMQuerySellItemList
 {
     uint64_t npcUID;
     uint32_t itemID;
+};
+
+struct CMDropItem
+{
+    uint32_t itemID;
+    uint32_t seqID;
+    uint16_t count;
+};
+
+struct CMConsumeItem
+{
+    uint32_t itemID;
+    uint32_t seqID;
+    uint16_t count;
+};
+
+struct CMBuy
+{
+    uint64_t npcUID;
+    uint32_t itemID;
+    uint32_t seqID;
+    uint32_t count;
 };
 #pragma pack(pop)
 
@@ -161,11 +178,13 @@ class ClientMsg final: public MsgBase
                 _add_client_msg_type_case(CM_REQUESTMAGICDAMAGE, 1, sizeof(CMRequestMagicDamage))
                 _add_client_msg_type_case(CM_PICKUP,             1, sizeof(CMPickUp)            )
                 _add_client_msg_type_case(CM_QUERYGOLD,          0, 0                           )
-                _add_client_msg_type_case(CM_QUERYPLAYERLOOK,    1, sizeof(CMQueryPlayerLook)   )
-                _add_client_msg_type_case(CM_QUERYPLAYERWEAR,    1, sizeof(CMQueryPlayerWear)   )
+                _add_client_msg_type_case(CM_QUERYPLAYERWLDESP,  1, sizeof(CMQueryPlayerWLDesp) )
                 _add_client_msg_type_case(CM_ACCOUNT,            1, sizeof(CMAccount)           )
                 _add_client_msg_type_case(CM_NPCEVENT,           1, sizeof(CMNPCEvent)          )
-                _add_client_msg_type_case(CM_QUERYSELLITEM,      1, sizeof(CMQuerySellItem)     )
+                _add_client_msg_type_case(CM_QUERYSELLITEMLIST,  1, sizeof(CMQuerySellItemList) )
+                _add_client_msg_type_case(CM_DROPITEM,           1, sizeof(CMDropItem)          )
+                _add_client_msg_type_case(CM_CONSUMEITEM,        1, sizeof(CMConsumeItem)       )
+                _add_client_msg_type_case(CM_BUY,                1, sizeof(CMBuy)               )
 #undef _add_client_msg_type_case
             };
 
@@ -186,11 +205,13 @@ class ClientMsg final: public MsgBase
                     || std::is_same_v<T, CMRequestSpaceMove>
                     || std::is_same_v<T, CMRequestMagicDamage>
                     || std::is_same_v<T, CMPickUp>
-                    || std::is_same_v<T, CMQueryPlayerLook>
-                    || std::is_same_v<T, CMQueryPlayerWear>
+                    || std::is_same_v<T, CMQueryPlayerWLDesp>
                     || std::is_same_v<T, CMAccount>
                     || std::is_same_v<T, CMNPCEvent>
-                    || std::is_same_v<T, CMQuerySellItem>);
+                    || std::is_same_v<T, CMQuerySellItemList>
+                    || std::is_same_v<T, CMDropItem>
+                    || std::is_same_v<T, CMConsumeItem>
+                    || std::is_same_v<T, CMBuy>);
 
             if(bufLen && bufLen != sizeof(T)){
                 throw fflerror("invalid buffer length");

@@ -52,7 +52,7 @@ std::string ActorMonitorTable::getGridData(int nRow, int nCol) const
             }
         case 1: // TYPE
             {
-                return uidf::getUIDTypeString(monitor.uid);
+                return uidf::getUIDTypeCStr(monitor.uid);
             }
         case 2: // GROUP
             {

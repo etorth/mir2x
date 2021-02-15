@@ -86,7 +86,7 @@ uint64_t ServerObject::activate()
             m_stateTrigger.run();
         },
 
-        [this](const MessagePack &mpk)
+        [this](const ActorMsgPack &mpk)
         {
             operateAM(mpk);
         },
@@ -116,4 +116,16 @@ void ServerObject::addDelay(uint32_t delayTick, std::function<void()> cmd)
 {
     m_delayCmdIndex = m_delayCmdQ.empty() ? 0 : (m_delayCmdIndex + 1);
     m_delayCmdQ.emplace(delayTick + g_monoServer->getCurrTick(), m_delayCmdIndex, std::move(cmd));
+}
+
+void ServerObject::sendNetPackage(uint64_t uid, uint8_t type, const void *buf, size_t bufLen)
+{
+    AMSendPackage amSP;
+    std::memset(&amSP, 0, sizeof(amSP));
+
+    buildActorDataPackage(&(amSP.package), type, buf, bufLen);
+    if(uidf::getUIDType(uid) != UID_PLY){
+        throw fflerror("sending AM_SENDPACKAGE to %s, expect UID_PLY: type = %llu", uidf::getUIDTypeCStr(uid), to_llu(type));
+    }
+    m_actorPod->forward(uid, {AM_SENDPACKAGE, amSP});
 }

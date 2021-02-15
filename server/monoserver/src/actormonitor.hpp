@@ -61,7 +61,7 @@ struct ActorPodMonitor
 {
     uint64_t uid = 0;
     TriggerMonitor triggerMonitor;
-    std::array<AMProcMonitor, MPK_MAX> amProcMonitorList;
+    std::array<AMProcMonitor, AM_MAX> amProcMonitorList;
 
     operator bool () const
     {

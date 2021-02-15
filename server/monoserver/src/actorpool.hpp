@@ -33,7 +33,7 @@
 #include "uidf.hpp"
 #include "condcheck.hpp"
 #include "raiitimer.hpp"
-#include "messagepack.hpp"
+#include "actormsgpack.hpp"
 #include "actormonitor.hpp"
 #include "parallel_hashmap/phmap.h"
 
@@ -403,8 +403,8 @@ class ActorPool final
             MailboxMutex schedLock;
             std::mutex   nextQLock;
 
-            std::vector<std::pair<MessagePack, uint64_t>> currQ;
-            std::vector<std::pair<MessagePack, uint64_t>> nextQ;
+            std::vector<std::pair<ActorMsgPack, uint64_t>> currQ;
+            std::vector<std::pair<ActorMsgPack, uint64_t>> nextQ;
 
             std::function<void()> atStart;
             std::function<void()> atExit;
@@ -561,7 +561,7 @@ class ActorPool final
         uint64_t GetInnActorUID();
 
     private:
-        bool postMessage(uint64_t, MessagePack);
+        bool postMessage(uint64_t, ActorMsgPack);
 
     private:
         void runOneUID(uint64_t);

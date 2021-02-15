@@ -33,7 +33,7 @@
 #include <atomic>
 #include "uidf.hpp"
 #include "actorpod.hpp"
-#include "messagepack.hpp"
+#include "actormsgpack.hpp"
 #include "delaycommand.hpp"
 #include "statetrigger.hpp"
 
@@ -98,8 +98,20 @@ class ServerObject
         }
 
     public:
-        virtual void operateAM(const MessagePack &) = 0;
+        virtual void operateAM(const ActorMsgPack &) = 0;
 
     public:
         void addDelay(uint32_t, std::function<void()>);
+
+    protected:
+        void sendNetPackage(uint64_t, uint8_t, const void *, size_t);
+        void sendNetPackage(uint64_t uid, uint8_t type, const std::string &buf)
+        {
+            sendNetPackage(uid, type, buf.data(), buf.length());
+        }
+
+        template<typename T> void sendNetPackage(uint64_t uid, uint8_t type, const T &t)
+        {
+            sendNetPackage(uid, type, &t, sizeof(t));
+        }
 };

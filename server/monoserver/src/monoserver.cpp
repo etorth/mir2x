@@ -26,6 +26,7 @@
 #include <FL/fl_ask.H>
 
 #include "log.hpp"
+#include "jobf.hpp"
 #include "dbpod.hpp"
 #include "totype.hpp"
 #include "taskhub.hpp"
@@ -152,41 +153,164 @@ void MonoServer::addCWLog(uint32_t nCWID, int nLogType, const char *szPrompt, co
     fnCWRecordLog(nCWID, nLogType, szPrompt, szLog.c_str());
 }
 
-void MonoServer::CreateDefaultDatabase()
+bool MonoServer::hasDatabase() const
+{
+    return g_dbPod->createQuery(u8R"###(select name from sqlite_master where type='table')###").executeStep();
+}
+
+bool MonoServer::hasCharacter(const char *charName) const
+{
+    if(!str_haschar(charName)){
+        throw fflerror("invalid char name: %s", to_cstr(charName));
+    }
+    return g_dbPod->createQuery(u8R"###(select fld_dbid from tbl_dbid where fld_name = '%s')###", charName).executeStep();
+}
+
+bool MonoServer::createAccount(const char *id, const char *password)
+{
+    if(!(str_haschar(id) && (str_haschar(password)))){
+        throw fflerror("bad account: id = %s, password = %s", to_cstr(id), to_cstr(password));
+    }
+
+    if(!hasDatabase()){
+        throw fflerror("no available database");
+    }
+
+    if(g_dbPod->createQuery(u8R"###(select fld_dbid from tbl_account where fld_account ='%s')###", id).executeStep()){
+        return false;
+    }
+
+    g_dbPod->exec(u8R"###(insert into tbl_account(fld_account, fld_password) values ('%s', '%s'))###", id, password);
+    return true;
+}
+
+bool MonoServer::createAccountCharacter(const char *id, const char *charName, const char *job)
+{
+    if(!(str_haschar(id) && str_haschar(charName) && str_haschar(job))){
+        throw fflerror("invalid argumets: id = %s, charName = %s, job = %s", to_cstr(id), to_cstr(charName), to_cstr(job));
+    }
+
+    if(!hasDatabase()){
+        throw fflerror("no available database");
+    }
+
+    if(hasCharacter(charName)){
+        return false;
+    }
+
+    auto queryAccount = g_dbPod->createQuery(u8R"###(select fld_dbid from tbl_account where fld_account ='%s')###", id);
+    if(!queryAccount.executeStep()){
+        return false;
+    }
+
+    const auto dbid = check_cast<uint32_t, unsigned>(queryAccount.getColumn("fld_dbid"));
+    const auto jobList = jobf::getJobList(job);
+
+    if(jobList.empty()){
+        throw fflerror("invalid job string: %s", to_cstr(job));
+    }
+
+    const auto [mapName, mapx, mapy] = [&jobList]() -> std::tuple<const char8_t *, int, int>
+    {
+        switch(jobList.front()){
+            case JOB_MAGE:
+            case JOB_WARRIOR:
+                {
+                    return {u8"比奇省", 441, 381};
+                }
+            case JOB_TAOIST:
+                {
+                    return {u8"道馆", 405, 120};
+                }
+            default:
+                {
+                    throw bad_reach();
+                }
+        }
+    }();
+
+    g_dbPod->exec
+    (
+        u8R"###( insert into tbl_dbid(fld_dbid, fld_name, fld_job, fld_mapname, fld_mapx, fld_mapy) )###"
+        u8R"###( values                                                                             )###"
+        u8R"###(     (%llu, '%s', '%s', '%s', %d, %d);                                              )###",
+
+        to_llu(dbid),
+        charName,
+        to_cstr(jobf::getJobString(jobList)),
+        to_cstr(mapName),
+        mapx,
+        mapy
+    );
+    return true;
+}
+
+void MonoServer::createDefaultDatabase()
 {
     const char8_t *defSQLCmdList[]
     {
-        u8"create table tbl_account("
-            "fld_id       integer not null primary key autoincrement,"
-            "fld_account  char(32) not null,"
-            "fld_password char(32) not null)",
+        u8R"###( create table tbl_account(                                        )###"
+        u8R"###(     fld_dbid        integer  not null primary key autoincrement, )###"
+        u8R"###(     fld_account     char(64) not null,                           )###"
+        u8R"###(     fld_password    char(64) not null                            )###"
+        u8R"###( );                                                               )###",
 
-        u8"insert into tbl_account(fld_account, fld_password) values"
-            "(\'test\',   \'123456\'),"
-            "(\'test0\',  \'123456\'),"
-            "(\'test1\',  \'123456\'),"
-            "(\'test2\',  \'123456\'),"
-            "(\'test3\',  \'123456\')",
+        u8R"###( insert into tbl_account(fld_dbid, fld_account, fld_password)     )###"
+        u8R"###( values                                                           )###"
+        u8R"###(     (1, 'admin', 'admin');                                       )###",
 
-        u8"create table tbl_dbid("
-            "fld_dbid      integer not null primary key autoincrement,"
-            "fld_id        int unsigned not null,"
-            "fld_name      varchar(32)  not null,"
-            "fld_mapname   varchar(32)  not null,"
-            "fld_mapx      int unsigned not null,"
-            "fld_mapy      int unsigned not null,"
-            "fld_exp       int unsigned not null,"
-            "fld_gold      int unsigned not null,"
-            "fld_level     int unsigned not null,"
-            "fld_jobid     int unsigned not null,"
-            "fld_direction int unsigned not null)",
+        u8R"###( create table tbl_dbid(                                           )###"
+        u8R"###(     fld_dbid        integer      not null primary key,           )###"
+        u8R"###(     fld_name        varchar(32)  not null,                       )###"
+        u8R"###(     fld_namecolor   int unsigned default 0,                      )###"
+        u8R"###(     fld_job         varchar(32)  not null,                       )###"
+        u8R"###(     fld_mapname     varchar(32)  not null,                       )###"
+        u8R"###(     fld_mapx        int unsigned not null,                       )###"
+        u8R"###(     fld_mapy        int unsigned not null,                       )###"
+        u8R"###(     fld_hp          int unsigned default 10,                     )###"
+        u8R"###(     fld_mp          int unsigned default 10,                     )###"
+        u8R"###(     fld_exp         int unsigned default 0,                      )###"
+        u8R"###(     fld_gold        int unsigned default 10000,                  )###"
+        u8R"###(     fld_level       int unsigned default 1,                      )###"
+        u8R"###(     fld_hair        int unsigned default 0,                      )###"
+        u8R"###(     fld_haircolor   int unsigned default 0                       )###"
+        u8R"###( );                                                               )###",
 
-        u8"insert into tbl_dbid(fld_id, fld_name, fld_mapname, fld_mapx, fld_mapy, fld_exp, fld_gold, fld_level, fld_jobid, fld_direction) values"
-            "(1, \'亚当\', \'道馆\',   405, 120, 0, 0, 1, 1, 1),"
-            "(2, \'亚01\', \'道馆\',   400, 120, 0, 0, 1, 1, 1),"
-            "(3, \'夏01\', \'道馆\',   401, 120, 0, 0, 1, 1, 1),"
-            "(4, \'夏娃\', \'比奇省\', 441, 381, 0, 0, 1, 1, 1),"
-            "(5, \'逗逼\', \'比奇省\', 440, 381, 0, 0, 1, 1, 1)",
+        u8R"###( create table tbl_belt(                                           )###"
+        u8R"###(     fld_dbid        int unsigned not null,                       )###"
+        u8R"###(     fld_belt        int unsigned not null,                       )###"
+        u8R"###(                                                                  )###"
+        u8R"###(     fld_itemid      int unsigned not null,                       )###"
+        u8R"###(     fld_count       int unsigned not null,                       )###"
+        u8R"###(                                                                  )###"
+        u8R"###(     foreign key (fld_dbid) references tbl_dbid(fld_dbid),        )###"
+        u8R"###(     primary key (fld_dbid, fld_belt)                             )###"
+        u8R"###( );                                                               )###",
+
+        u8R"###( create table tbl_wear(                                           )###"
+        u8R"###(     fld_dbid        int unsigned not null,                       )###"
+        u8R"###(     fld_wear        int unsigned not null,                       )###"
+        u8R"###(                                                                  )###"
+        u8R"###(     fld_itemid      int unsigned not null,                       )###"
+        u8R"###(     fld_count       int unsigned not null,                       )###"
+        u8R"###(     fld_duration    int unsigned not null,                       )###"
+        u8R"###(     fld_extattrlist blob null default (x''),                     )###"
+        u8R"###(                                                                  )###"
+        u8R"###(     foreign key (fld_dbid) references tbl_dbid(fld_dbid),        )###"
+        u8R"###(     primary key (fld_dbid, fld_wear)                             )###"
+        u8R"###( );                                                               )###",
+
+        u8R"###( create table tbl_inventory(                                      )###"
+        u8R"###(     fld_dbid        int unsigned not null,                       )###"
+        u8R"###(     fld_itemid      int unsigned not null,                       )###"
+        u8R"###(     fld_seqid       int unsigned not null,                       )###"
+        u8R"###(     fld_count       int unsigned not null,                       )###"
+        u8R"###(     fld_duration    int unsigned not null,                       )###"
+        u8R"###(     fld_extattrlist blob         not null,                       )###"
+        u8R"###(                                                                  )###"
+        u8R"###(     foreign key (fld_dbid) references tbl_dbid(fld_dbid),        )###"
+        u8R"###(     primary key (fld_dbid, fld_itemid, fld_seqid)                )###"
+        u8R"###( );                                                               )###",
     };
 
     {
@@ -196,6 +320,17 @@ void MonoServer::CreateDefaultDatabase()
         }
         dbTrans.commit();
     }
+
+    createAccount("test", "123456");
+    createAccount("good", "123456");
+    createAccount("id_1", "123456");
+    createAccount("id_2", "123456");
+
+    createAccountCharacter("test", to_cstr(u8"亚当"), to_cstr(u8"战士|法师"));
+    createAccountCharacter("good", to_cstr(u8"夏娃"), to_cstr(u8"道士|法师"));
+    createAccountCharacter("id_1", to_cstr(u8"逗逼"), to_cstr(u8"法师"));
+    createAccountCharacter("id_2", to_cstr(u8"搞笑"), to_cstr(u8"法师"));
+
     addLog(LOGTYPE_INFO, "Create default sqlite3 database done");
 }
 
@@ -203,11 +338,11 @@ void MonoServer::CreateDBConnection()
 {
     const char *dbName = "mir2x.db3";
     g_dbPod->launch(dbName);
-    addLog(LOGTYPE_INFO, "Connect to database %s successfully", dbName);
 
-    if(!g_dbPod->createQuery("select name from sqlite_master where type=\'table\'").executeStep()){
-        CreateDefaultDatabase();
+    if(!hasDatabase()){
+        createDefaultDatabase();
     }
+    addLog(LOGTYPE_INFO, "Connect to database %s successfully", dbName);
 }
 
 void MonoServer::LoadMapBinDB()
@@ -330,20 +465,20 @@ bool MonoServer::addMonster(uint32_t monsterID, uint32_t mapID, int x, int y, bo
     amACO.monster.masterUID = 0;
     addLog(LOGTYPE_INFO, "Try to add monster, monsterID = %llu", to_llu(monsterID));
 
-    switch(auto stRMPK = SyncDriver().forward(m_serviceCore->UID(), {MPK_ADDCHAROBJECT, amACO}, 0, 0); stRMPK.Type()){
-        case MPK_OK:
+    switch(auto stRMPK = SyncDriver().forward(m_serviceCore->UID(), {AM_ADDCHAROBJECT, amACO}, 0, 0); stRMPK.type()){
+        case AM_OK:
             {
                 addLog(LOGTYPE_INFO, "Add monster succeeds");
                 return true;
             }
-        case MPK_ERROR:
+        case AM_ERROR:
             {
                 addLog(LOGTYPE_WARNING, "Add monster failed");
                 return false;
             }
         default:
             {
-                addLog(LOGTYPE_WARNING, "Unsupported message: %s", mpkName(stRMPK.Type()));
+                addLog(LOGTYPE_WARNING, "Unsupported message: %s", mpkName(stRMPK.type()));
                 return false;
             }
     }
@@ -363,31 +498,31 @@ bool MonoServer::addNPChar(uint16_t npcID, uint32_t mapID, int x, int y, bool st
     amACO.NPC.NPCID = npcID;
     addLog(LOGTYPE_INFO, "Try to add NPC, NPCID = %llu", to_llu(npcID));
 
-    switch(auto stRMPK = SyncDriver().forward(m_serviceCore->UID(), {MPK_ADDCHAROBJECT, amACO}, 0, 0); stRMPK.Type()){
-        case MPK_OK:
+    switch(auto stRMPK = SyncDriver().forward(m_serviceCore->UID(), {AM_ADDCHAROBJECT, amACO}, 0, 0); stRMPK.type()){
+        case AM_OK:
             {
                 addLog(LOGTYPE_INFO, "Add NPC succeeds");
                 return true;
             }
-        case MPK_ERROR:
+        case AM_ERROR:
             {
                 addLog(LOGTYPE_WARNING, "Add NPC failed");
                 return false;
             }
         default:
             {
-                throw fflerror("Unsupported message: %s", mpkName(stRMPK.Type()));
+                throw fflerror("Unsupported message: %s", mpkName(stRMPK.type()));
             }
     }
 }
 
 std::vector<int> MonoServer::GetMapList()
 {
-    switch(auto stRMPK = SyncDriver().forward(m_serviceCore->UID(), MPK_QUERYMAPLIST); stRMPK.Type()){
-        case MPK_MAPLIST:
+    switch(auto stRMPK = SyncDriver().forward(m_serviceCore->UID(), AM_QUERYMAPLIST); stRMPK.type()){
+        case AM_MAPLIST:
             {
                 AMMapList amML;
-                std::memcpy(&amML, stRMPK.Data(), sizeof(amML));
+                std::memcpy(&amML, stRMPK.data(), sizeof(amML));
 
                 std::vector<int> stMapList;
                 for(size_t nIndex = 0; nIndex < std::extent<decltype(amML.MapList)>::value; ++nIndex){
@@ -423,21 +558,21 @@ sol::optional<int> MonoServer::GetMonsterCount(int nMonsterID, int nMapID)
         AMQueryCOCount amQCOC;
         std::memset(&amQCOC, 0, sizeof(amQCOC));
 
-        amQCOC.MapID                = (uint32_t)(nMapID);
+        amQCOC.mapID                = (uint32_t)(nMapID);
         amQCOC.Check.Monster        = true;
         amQCOC.CheckParam.MonsterID = (uint32_t)(nMonsterID);
 
-        switch(auto stRMPK = SyncDriver().forward(m_serviceCore->UID(), {MPK_QUERYCOCOUNT, amQCOC}); stRMPK.Type()){
-            case MPK_COCOUNT:
+        switch(auto stRMPK = SyncDriver().forward(m_serviceCore->UID(), {AM_QUERYCOCOUNT, amQCOC}); stRMPK.type()){
+            case AM_COCOUNT:
                 {
                     AMCOCount amCOC;
-                    std::memcpy(&amCOC, stRMPK.Data(), sizeof(amCOC));
+                    std::memcpy(&amCOC, stRMPK.data(), sizeof(amCOC));
 
                     // may overflow
                     // should put some check here
                     return sol::optional<int>((int)(amCOC.Count));
                 }
-            case MPK_ERROR:
+            case AM_ERROR:
             default:
                 {
                     break;
@@ -680,7 +815,7 @@ void MonoServer::regLuaExport(CommandLuaModule *pModule, uint32_t nCWID)
     {
         auto nRet = GetMonsterCount(nMonsterID, nMapID).value_or(-1);
         if(nRet < 0){
-            addCWLog(nCWID, 2, ">>> ", "countMonster(MonsterID: int, MapID: int) failed");
+            addCWLog(nCWID, 2, ">>> ", "countMonster(MonsterID: int, mapID: int) failed");
         }
         return nRet;
     });
@@ -701,9 +836,9 @@ void MonoServer::regLuaExport(CommandLuaModule *pModule, uint32_t nCWID)
     {
         auto fnPrintUsage = [this, nCWID]()
         {
-            addCWLog(nCWID, 2, ">>> ", "addMonster(MonsterID: int, MapID: int)");
-            addCWLog(nCWID, 2, ">>> ", "addMonster(MonsterID: int, MapID: int, X: int, Y: int)");
-            addCWLog(nCWID, 2, ">>> ", "addMonster(MonsterID: int, MapID: int, X: int, Y: int, Random: bool)");
+            addCWLog(nCWID, 2, ">>> ", "addMonster(MonsterID: int, mapID: int)");
+            addCWLog(nCWID, 2, ">>> ", "addMonster(MonsterID: int, mapID: int, X: int, Y: int)");
+            addCWLog(nCWID, 2, ">>> ", "addMonster(MonsterID: int, mapID: int, X: int, Y: int, Random: bool)");
         };
 
         std::vector<sol::object> stArgList(stVariadicArgs.begin(), stVariadicArgs.end());
@@ -752,9 +887,9 @@ void MonoServer::regLuaExport(CommandLuaModule *pModule, uint32_t nCWID)
     {
         const auto fnUsage = [this, nCWID]()
         {
-            addCWLog(nCWID, 2, ">>> ", "addNPC(NPCID: int, MapID: int)");
-            addCWLog(nCWID, 2, ">>> ", "addNPC(NPCID: int, MapID: int, X: int, Y: int)");
-            addCWLog(nCWID, 2, ">>> ", "addNPC(NPCID: int, MapID: int, X: int, Y: int, Random: bool)");
+            addCWLog(nCWID, 2, ">>> ", "addNPC(NPCID: int, mapID: int)");
+            addCWLog(nCWID, 2, ">>> ", "addNPC(NPCID: int, mapID: int, X: int, Y: int)");
+            addCWLog(nCWID, 2, ">>> ", "addNPC(NPCID: int, mapID: int, X: int, Y: int, Random: bool)");
         };
 
         const std::vector<sol::object> argList(args.begin(), args.end());

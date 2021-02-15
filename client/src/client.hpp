@@ -33,18 +33,13 @@ class Client final
     private:
         struct SMProcMonitor
         {
-            uint64_t ProcTick;
-            uint32_t RecvCount;
-
-            SMProcMonitor()
-                : ProcTick(0)
-                , RecvCount(0)
-            {}
+            uint64_t procTick  = 0;
+            uint32_t recvCount = 0;
         };
 
         struct ClientMonitor
         {
-            std::array<SMProcMonitor, SM_MAX> SMProcMonitorList;
+            std::array<SMProcMonitor, SM_END> SMProcMonitorList;
             ClientMonitor()
                 : SMProcMonitorList()
             {}

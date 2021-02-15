@@ -364,11 +364,11 @@ void ActorPool::detach(const Receiver *receiverPtr)
     }
 }
 
-bool ActorPool::postMessage(uint64_t uid, MessagePack msg)
+bool ActorPool::postMessage(uint64_t uid, ActorMsgPack msg)
 {
     logProfiler();
     if(!uid){
-        throw fflerror("sending %s to zero UID", mpkName(msg.Type()));
+        throw fflerror("sending %s to zero UID", mpkName(msg.type()));
     }
 
     if(!msg){
@@ -385,7 +385,7 @@ bool ActorPool::postMessage(uint64_t uid, MessagePack msg)
     }
 
     const auto bucketId = getBucketID(uid);
-    const auto fnPostMessage = [uid](Mailbox *mailboxPtr, MessagePack msg) -> bool
+    const auto fnPostMessage = [uid](Mailbox *mailboxPtr, ActorMsgPack msg) -> bool
     {
         logScopedProfiler("pushMailbox");
 
@@ -411,7 +411,7 @@ bool ActorPool::postMessage(uint64_t uid, MessagePack msg)
             // we can't guarantee, the only thing we can do is:
             //   1. don't run an already detached actor
             //   2. clear all pending message in a detached actor by clearOneMailbox()
-            mailboxPtr->nextQ.push_back(std::pair<MessagePack, uint64_t>(std::move(msg), nowTime));
+            mailboxPtr->nextQ.push_back(std::pair<ActorMsgPack, uint64_t>(std::move(msg), nowTime));
         }
         return true;
     };
@@ -538,7 +538,7 @@ bool ActorPool::runOneMailbox(Mailbox *mailboxPtr, bool useMetronome)
 
         {
             raii_timer procTimer(&(mailboxPtr->monitor.procTick));
-            mailboxPtr->actor->innHandler({MPK_METRONOME, 0, 0});
+            mailboxPtr->actor->innHandler({AM_METRONOME, 0, 0});
         }
 
         mailboxPtr->monitor.messageDone.fetch_add(1);
@@ -569,7 +569,7 @@ bool ActorPool::runOneMailbox(Mailbox *mailboxPtr, bool useMetronome)
         for(auto p = mailboxPtr->currQ.begin(); p != mailboxPtr->currQ.end(); ++p){
             if(mailboxPtr->schedLock.detached()){
                 // need to erase messages already done: [begin, p)
-                // otherwise in clearOneMailbox() it will get handled again with MPK_BADACTORPOD
+                // otherwise in clearOneMailbox() it will get handled again with AM_BADACTORPOD
                 mailboxPtr->currQ.erase(mailboxPtr->currQ.begin(), p);
                 return false;
             }
@@ -603,7 +603,7 @@ void ActorPool::clearOneMailbox(Mailbox *mailboxPtr)
     // clean one mailbox means:
     // 1. make sure all actor/application threads DONE posting to it
     // 2. make sure all actor/application threads can not post new messages to it
-    // 3. make sure all queued message are responded with MPK_BADACTORPOD
+    // 3. make sure all queued message are responded with AM_BADACTORPOD
 
     // I call this function that:
     // 1. without accquiring writer lock
@@ -652,12 +652,12 @@ void ActorPool::clearOneMailbox(Mailbox *mailboxPtr)
         AMBadActorPod amBAP;
         std::memset(&amBAP, 0, sizeof(amBAP));
 
-        amBAP.Type    = p.first.Type();
+        amBAP.Type    = p.first.type();
         amBAP.from    = p.first.from();
-        amBAP.ID      = p.first.ID();
-        amBAP.Respond = p.first.Respond();
+        amBAP.ID      = p.first.seqID();
+        amBAP.Respond = p.first.respID();
         amBAP.UID     = mailboxPtr->uid;
-        postMessage(p.first.from(), {MessageBuf(MPK_BADACTORPOD, amBAP), 0, 0, p.first.ID()});
+        postMessage(p.first.from(), {ActorMsgBuf(AM_BADACTORPOD, amBAP), 0, 0, p.first.seqID()});
     }
     mailboxPtr->currQ.clear();
 }

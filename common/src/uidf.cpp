@@ -45,7 +45,7 @@ static constexpr uint64_t playerUID_jobTaoist  = 0X0000040000000000ULL;
 static constexpr uint64_t playerUID_jobWarrior = 0X0000020000000000ULL;
 static constexpr uint64_t playerUID_jobMage    = 0X0000010000000000ULL;
 
-uint64_t uidf::buildPlayerUID(uint32_t dbid, bool gender, std::initializer_list<int> jobList)
+uint64_t uidf::buildPlayerUID(uint32_t dbid, bool gender, const std::vector<int> &jobList)
 {
     uint64_t jobMask = 0;
     for(int job: jobList){
@@ -66,7 +66,7 @@ uint64_t uidf::buildPlayerUID(uint32_t dbid, bool gender, std::initializer_list<
 bool uidf::hasPlayerJob(uint64_t uid, int job)
 {
     if(uidf::getUIDType(uid) != UID_PLY){
-        throw fflerror("invalid uid type: %s", uidf::getUIDTypeString(uid));
+        throw fflerror("invalid uid type: %s", uidf::getUIDTypeCStr(uid));
     }
 
     switch(job){
@@ -82,7 +82,7 @@ bool uidf::getPlayerGender(uint64_t uid)
     if(uidf::getUIDType(uid) == UID_PLY){
         return uid & playerUID_gender;
     }
-    throw fflerror("bad arguments: uid = 0X%016llX, uidType = %s", to_llu(uid), uidf::getUIDTypeString(uid));
+    throw fflerror("bad arguments: uid = 0X%016llX, uidType = %s", to_llu(uid), uidf::getUIDTypeCStr(uid));
 }
 
 uint32_t uidf::getPlayerDBID(uint64_t uid)
@@ -90,7 +90,7 @@ uint32_t uidf::getPlayerDBID(uint64_t uid)
     if(uidf::getUIDType(uid) == UID_PLY){
         return to_u32(uid & 0X00000000FFFFFFFFULL);
     }
-    throw fflerror("bad arguments: uid = 0X%016llX, uidType = %s", to_llu(uid), uidf::getUIDTypeString(uid));
+    throw fflerror("bad arguments: uid = 0X%016llX, uidType = %s", to_llu(uid), uidf::getUIDTypeCStr(uid));
 }
 
 uint64_t uidf::buildMonsterUID(uint32_t monsterId)
@@ -192,7 +192,7 @@ std::string uidf::getUIDString(uint64_t uid)
 uint32_t uidf::getMapID(uint64_t uid)
 {
     if(uidf::getUIDType(uid) != UID_MAP){
-        throw fflerror("invalid uid type: %s", uidf::getUIDTypeString(uid));
+        throw fflerror("invalid uid type: %s", uidf::getUIDTypeCStr(uid));
     }
     return uid & 0XFFFFFFFFULL;
 }
@@ -200,7 +200,7 @@ uint32_t uidf::getMapID(uint64_t uid)
 uint16_t uidf::getNPCID(uint64_t uid)
 {
     if(uidf::getUIDType(uid) != UID_NPC){
-        throw fflerror("invalid uid type: %s", uidf::getUIDTypeString(uid));
+        throw fflerror("invalid uid type: %s", uidf::getUIDTypeCStr(uid));
     }
     return (uid & 0XFFFFFFFFULL) >> 16;
 }
@@ -208,7 +208,7 @@ uint16_t uidf::getNPCID(uint64_t uid)
 uint16_t uidf::getNPCSeqID(uint64_t uid)
 {
     if(uidf::getUIDType(uid) != UID_NPC){
-        throw fflerror("invalid uid type: %s", uidf::getUIDTypeString(uid));
+        throw fflerror("invalid uid type: %s", uidf::getUIDTypeCStr(uid));
     }
     return (uid & 0XFFFFULL);
 }
@@ -222,7 +222,7 @@ uint16_t uidf::getLookID(uint64_t uid)
             }
         default:
             {
-                throw fflerror("uid type %s doesn't support lookID", uidf::getUIDTypeString(uid));
+                throw fflerror("uid type %s doesn't support lookID", uidf::getUIDTypeCStr(uid));
             }
     }
 }

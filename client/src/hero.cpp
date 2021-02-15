@@ -41,13 +41,11 @@ extern PNGTexOffDB *g_weaponDB;
 extern PNGTexOffDB *g_helmetDB;
 extern ClientArgParser *g_clientArgParser;
 
-Hero::Hero(uint64_t uid, const PlayerLook &look, ProcessRun *proc, const ActionNode &action)
+Hero::Hero(uint64_t uid, ProcessRun *proc, const ActionNode &action)
     : CreatureMovable(uid, proc)
     , m_horse(0)
     , m_onHorse(false)
-    , m_look(look)
 {
-    std::memset(&m_wear, 0, sizeof(m_wear));
     m_currMotion.reset(new MotionNode
     {
         .type = MOTION_STAND,
@@ -75,7 +73,7 @@ void Hero::draw(int viewX, int viewY, int)
         // 21 - 14 :    weapon : max = 256 : +----> GfxWeaponID
         //      22 :    gender :
         //      23 :    shadow :
-        const auto nGfxWeaponID = GfxWeaponID(DBCOM_ITEMRECORD(getPlayerLook().weapon).shape, m_currMotion->type, m_currMotion->direction);
+        const auto nGfxWeaponID = GfxWeaponID(DBCOM_ITEMRECORD(getWLItem(WLG_WEAPON).itemID).shape, m_currMotion->type, m_currMotion->direction);
         if(nGfxWeaponID < 0){
             return;
         }
@@ -95,7 +93,7 @@ void Hero::draw(int viewX, int viewY, int)
 
     fnDrawWeapon(true);
 
-    const auto nDress     = DBCOM_ITEMRECORD(getPlayerLook().dress).shape;
+    const auto nDress     = DBCOM_ITEMRECORD(getWLItem(WLG_DRESS).itemID).shape;
     const auto nMotion    = m_currMotion->type;
     const auto nDirection = m_currMotion->direction;
 
@@ -129,7 +127,7 @@ void Hero::draw(int viewX, int viewY, int)
     g_sdlDevice->drawTexture(pFrame1, startX + nDX1, startY + nDY1);
 
     if(true
-            && getPlayerLook().weapon
+            && getWLItem(WLG_WEAPON)
             && WeaponOrder(m_currMotion->type, m_currMotion->direction, m_currMotion->frame) == 1){
         fnDrawWeapon(false);
     }
@@ -139,8 +137,8 @@ void Hero::draw(int viewX, int viewY, int)
     }
 
     g_sdlDevice->drawTexture(pFrame0, startX + nDX0, startY + nDY0);
-    if(getPlayerLook().helmet){
-        if(const auto nHelmetGfxID = gfxHelmetID(DBCOM_ITEMRECORD(getPlayerLook().helmet).shape, nMotion, nDirection); nHelmetGfxID >= 0){
+    if(getWLItem(WLG_HELMET)){
+        if(const auto nHelmetGfxID = gfxHelmetID(DBCOM_ITEMRECORD(getWLItem(WLG_HELMET).itemID).shape, nMotion, nDirection); nHelmetGfxID >= 0){
             const uint32_t nHelmetKey = (((uint32_t)(uidf::getPlayerGender(UID()) ? 1 : 0)) << 22) + (((uint32_t)(nHelmetGfxID & 0X01FFFF)) << 5) + m_currMotion->frame;
             if(auto [texPtr, dx, dy] = g_helmetDB->Retrieve(nHelmetKey); texPtr){
                 g_sdlDevice->drawTexture(texPtr, startX + dx, startY + dy);
@@ -148,17 +146,17 @@ void Hero::draw(int viewX, int viewY, int)
         }
     }
     else{
-        if(const auto nHairGfxID = GfxHairID(getPlayerLook().hair, nMotion, nDirection); nHairGfxID >= 0){
+        if(const auto nHairGfxID = GfxHairID(m_sdWLDesp.hair, nMotion, nDirection); nHairGfxID >= 0){
             const uint32_t nHairKey = (((uint32_t)(uidf::getPlayerGender(UID()) ? 1 : 0)) << 22) + (((uint32_t)(nHairGfxID & 0X01FFFF)) << 5) + m_currMotion->frame;
             if(auto [texPtr, dx, dy] = g_hairDB->Retrieve(nHairKey); texPtr){
-                SDLDeviceHelper::EnableTextureModColor enableColor(texPtr, getPlayerLook().hairColor);
+                SDLDeviceHelper::EnableTextureModColor enableColor(texPtr, m_sdWLDesp.hairColor);
                 g_sdlDevice->drawTexture(texPtr, startX + dx, startY + dy);
             }
         }
     }
 
     if(true
-            && getPlayerLook().weapon
+            && getWLItem(WLG_WEAPON)
             && WeaponOrder(m_currMotion->type, m_currMotion->direction, m_currMotion->frame) == 0){
         fnDrawWeapon(false);
     }
@@ -354,8 +352,8 @@ bool Hero::motionValid(const std::unique_ptr<MotionNode> &motionPtr) const
             && motionPtr->direction <  DIR_END
 
             && m_processRun
-            && m_processRun->onMap(m_processRun->MapID(), motionPtr->x,    motionPtr->y)
-            && m_processRun->onMap(m_processRun->MapID(), motionPtr->endX, motionPtr->endY)
+            && m_processRun->onMap(m_processRun->mapID(), motionPtr->x,    motionPtr->y)
+            && m_processRun->onMap(m_processRun->mapID(), motionPtr->endX, motionPtr->endY)
 
             && motionPtr->speed >= SYS_MINSPEED
             && motionPtr->speed <= SYS_MAXSPEED
@@ -491,7 +489,6 @@ bool Hero::parseAction(const ActionNode &action)
             {
                 break;
             }
-        case ACTION_PICKUP:
         default:
             {
                 break;
@@ -524,6 +521,13 @@ bool Hero::parseAction(const ActionNode &action)
                 if(auto moveNode = makeWalkMotion(action.x, action.y, action.aimX, action.aimY, action.speed)){
                     m_motionQueue.push_back(std::move(moveNode));
                 }
+                else if(action.extParam.move.pickUp){
+                    if(dynamic_cast<MyHero *>(this) != m_processRun->getMyHero()){
+                        throw fflerror("action move with pickup setup is not MyHero");
+                    }
+                    m_processRun->requestPickUp();
+                    return true;
+                }
                 else{
                     return false;
                 }
@@ -532,21 +536,7 @@ bool Hero::parseAction(const ActionNode &action)
         case ACTION_SPACEMOVE2:
             {
                 flushMotionPending();
-                m_currMotion.reset(new MotionNode
-                {
-                    .type = [this]()
-                    {
-                        if(OnHorse()){
-                            return MOTION_ONHORSESTAND;
-                        }
-                        return MOTION_STAND;
-                    }(),
-
-                    .direction = m_currMotion->direction,
-                    .x = action.x,
-                    .y = action.y,
-                });
-
+                jumpLoc(action.x, action.y, m_currMotion->direction);
                 addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"瞬息移动", u8"结束", -1)));
                 break;
             }
@@ -736,11 +726,6 @@ bool Hero::parseAction(const ActionNode &action)
                     .x = endX,
                     .y = endY,
                 }));
-                break;
-            }
-        case ACTION_PICKUP:
-            {
-                pickUp();
                 break;
             }
         case ACTION_DIE:
@@ -1042,7 +1027,7 @@ ClientCreature::TargetBox Hero::getTargetBox() const
             }
     }
 
-    const auto nDress     = getPlayerLook().dress;
+    const auto nDress     = getWLItem(WLG_DRESS).itemID;
     const auto nGender    = uidf::getPlayerGender(UID());
     const auto nMotion    = currMotion()->type;
     const auto nDirection = currMotion()->direction;
@@ -1071,60 +1056,69 @@ ClientCreature::TargetBox Hero::getTargetBox() const
     return getTargetBoxHelper(startX, startY, bodyFrameW, bodyFrameH);
 }
 
-uint32_t Hero::getWLGridItemID(int wlType)
+const SDItem &Hero::getWLItem(int wlType) const
 {
     if(!(wlType >= WLG_BEGIN && wlType < WLG_END)){
-        throw fflerror("invalid wear/look type: %d", wlType);
+        throw fflerror("invalid wlType: %d", wlType);
     }
-
-    switch(wlType){
-        case WLG_DRESS:    return m_look.dress;
-        case WLG_HELMET:   return m_look.helmet;
-        case WLG_WEAPON:   return m_look.weapon;
-        case WLG_SHOES:    return m_wear.shoes;
-        case WLG_NECKLACE: return m_wear.necklace;
-        case WLG_ARMRING0: return m_wear.armring[0];
-        case WLG_ARMRING1: return m_wear.armring[1];
-        case WLG_RING0:    return m_wear.ring[0];
-        case WLG_RING1:    return m_wear.ring[1];
-        case WLG_TORCH:    return m_wear.torch;
-        case WLG_CHARM:    return m_wear.charm;
-        default: throw fflerror("invalid wear/look type: %d", wlType);
-    }
+    return m_sdWLDesp.wear.getWLItem(wlType);
 }
 
-bool Hero::setWLGridItemID(int wlType, uint32_t itemID)
+bool Hero::setWLItem(int wlType, SDItem item)
 {
     if(!(wlType >= WLG_BEGIN && wlType < WLG_END)){
         throw fflerror("invalid wear/look type: %d", wlType);
     }
 
-    const auto &ir = DBCOM_ITEMRECORD(itemID);
-    if(itemID && !ir){
-        throw fflerror("invalid itemID: %llu", to_llu(itemID));
+    if(item.itemID == 0){
+        m_sdWLDesp.wear.list.erase(wlType);
+        return true;
+    }
+
+    if(!item){
+        throw fflerror("invalid itemID: %llu", to_llu(item.itemID));
+    }
+
+    const auto &ir = DBCOM_ITEMRECORD(item.itemID);
+    if(!ir){
+        throw fflerror("invalid itemID: %llu", to_llu(item.itemID));
     }
 
     switch(wlType){
         case WLG_DRESS:
             {
-                if(itemID && (to_u8sv(ir.type) != u8"衣服" || getClothGender(itemID) != uidf::getPlayerGender(UID()))){
+                if((to_u8sv(ir.type) != u8"衣服") || (getClothGender(item.itemID) != uidf::getPlayerGender(UID()))){
                     return false;
                 }
-
-                m_look.dress = itemID;
-                return true;
+                break;
             }
-
-        case WLG_HELMET:   { if(itemID && (to_u8sv(ir.type) != u8"头盔")){ return false; } m_look.helmet     = itemID; return true; }
-        case WLG_WEAPON:   { if(itemID && (to_u8sv(ir.type) != u8"武器")){ return false; } m_look.weapon     = itemID; return true; }
-        case WLG_SHOES:    { if(itemID && (to_u8sv(ir.type) != u8"鞋"  )){ return false; } m_wear.shoes      = itemID; return true; }
-        case WLG_NECKLACE: { if(itemID && (to_u8sv(ir.type) != u8"项链")){ return false; } m_wear.necklace   = itemID; return true; }
-        case WLG_ARMRING0: { if(itemID && (to_u8sv(ir.type) != u8"手镯")){ return false; } m_wear.armring[0] = itemID; return true; }
-        case WLG_ARMRING1: { if(itemID && (to_u8sv(ir.type) != u8"手镯")){ return false; } m_wear.armring[1] = itemID; return true; }
-        case WLG_RING0:    { if(itemID && (to_u8sv(ir.type) != u8"戒指")){ return false; } m_wear.ring[0]    = itemID; return true; }
-        case WLG_RING1:    { if(itemID && (to_u8sv(ir.type) != u8"戒指")){ return false; } m_wear.ring[1]    = itemID; return true; }
-        case WLG_TORCH:    { if(itemID && (to_u8sv(ir.type) != u8"火把")){ return false; } m_wear.torch      = itemID; return true; }
-        case WLG_CHARM:    { if(itemID && (to_u8sv(ir.type) != u8"魅力")){ return false; } m_wear.charm      = itemID; return true; }
-        default: throw fflerror("invalid wear type: %d", wlType);
+        default:
+            {
+                if(to_u8sv(ir.type) != wlGridItemType(wlType)){
+                    return false;
+                }
+                break;
+            }
     }
+
+    m_sdWLDesp.wear.list[WLG_DRESS] = std::move(item);
+    return true;
+}
+
+void Hero::jumpLoc(int x, int y, int direction)
+{
+    m_currMotion.reset(new MotionNode
+    {
+        .type = [this]()
+        {
+            if(OnHorse()){
+                return MOTION_ONHORSESTAND;
+            }
+            return MOTION_STAND;
+        }(),
+
+        .direction = direction,
+        .x = x,
+        .y = y,
+    });
 }

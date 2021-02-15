@@ -190,13 +190,13 @@ inline bool jobValid(int job)
     return job >= JOB_BEGIN && job < JOB_END;
 }
 
-inline const char * jobName(int job)
+inline const char8_t * jobName(int job)
 {
     switch(job){
-        case JOB_WARRIOR: return "WARRIOR";
-        case JOB_TAOIST : return "TAOIST" ;
-        case JOB_MAGE   : return "MAGE"   ;
-        default         : return "UNKNOWN";
+        case JOB_WARRIOR: return u8"战士";
+        case JOB_TAOIST : return u8"道士";
+        case JOB_MAGE   : return u8"法师";
+        default         : return nullptr;
     }
 }
 
@@ -252,4 +252,62 @@ enum WearLookGridType: int
     WLG_W_END,
 
     WLG_END = WLG_W_END,
+};
+
+inline constexpr const char8_t *wlGridItemType(int wlType)
+{
+    switch(wlType){
+        case WLG_DRESS   : return u8"衣服";
+        case WLG_HELMET  : return u8"头盔";
+        case WLG_WEAPON  : return u8"武器";
+        case WLG_SHOES   : return u8"鞋";
+        case WLG_NECKLACE: return u8"项链";
+        case WLG_ARMRING0: return u8"手镯";
+        case WLG_ARMRING1: return u8"手镯";
+        case WLG_RING0   : return u8"戒指";
+        case WLG_RING1   : return u8"戒指";
+        case WLG_TORCH   : return u8"火把";
+        case WLG_CHARM   : return u8"魅力";
+        default          : return nullptr;
+    }
+}
+
+enum AttributeType: int
+{
+    ATR_NONE  = 0,
+    ATR_BEGIN = 1,
+    ATR_DC    = 1,
+    ATR_MC,
+    ATR_SC,
+    ATR_AC,
+    ATR_MAC,
+    ATR_HP,
+    ATR_MP,
+    ATR_HPR,
+    ATR_MPR,
+    ATR_HIT,
+    ATR_SPD,
+    ATR_END,
+};
+
+enum LoginErrorType: int
+{
+    LOGINERR_NONE = 0,
+    LOGINERR_BEGIN = 1,
+    LOGINERR_NOACCOUNT = 1,
+    LOGINERR_NODBID,
+    LOGINERR_BADRECORD,
+    LOGINERR_UNKNOWN,
+    LOGINERR_END,
+};
+
+enum BuyErrorType: int
+{
+    BUYERR_NONE    = 0,
+    BUYERR_BEGIN   = 1,
+    BUYERR_BADITEM = 1,
+    BUYERR_LOCKED,
+    BUYERR_SOLDOUT,
+    BUYERR_INSUFFCIENT,
+    BUYERR_END,
 };

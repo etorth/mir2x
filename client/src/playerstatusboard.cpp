@@ -174,7 +174,7 @@ void PlayerStatusBoard::drawEx(int, int, int, int, int, int) const
     }
 
     LabelBoard(0, 0, to_u8cstr(myHeroPtr->getName()), 1, 12, 0, myHeroPtr->getNameColor()).drawAt(DIR_NONE, x() + 164, y() + 38);
-    if(const auto dressItemID = myHeroPtr->getPlayerLook().dress){
+    if(const auto dressItemID = myHeroPtr->getWLItem(WLG_DRESS).itemID){
         if(const auto dressGfxID = DBCOM_ITEMRECORD(dressItemID).pkgGfxID; dressGfxID >= 0){
             if(auto [texPtr, dx, dy] = g_equipDB->Retrieve(to_u32(dressGfxID) | 0X01000000); texPtr){
                 g_sdlDevice->drawTexture(texPtr, x() + m_equipCharX + dx, y() + m_equipCharY + dy);
@@ -182,7 +182,7 @@ void PlayerStatusBoard::drawEx(int, int, int, int, int, int) const
         }
     }
 
-    if(const auto weaponItemID = myHeroPtr->getPlayerLook().weapon){
+    if(const auto weaponItemID = myHeroPtr->getWLItem(WLG_WEAPON).itemID){
         if(const auto useGfxIndex = DBCOM_ITEMRECORD(weaponItemID).shape; useGfxIndex > 0){
             if(auto [texPtr, dx, dy] = g_equipDB->Retrieve(0X01000000 + DBCOM_ITEMRECORD(weaponItemID).pkgGfxID); texPtr){
                 g_sdlDevice->drawTexture(texPtr, x() + m_equipCharX + dx, y() + m_equipCharY + dy);
@@ -190,7 +190,7 @@ void PlayerStatusBoard::drawEx(int, int, int, int, int, int) const
         }
     }
 
-    if(const auto helmetItemID = myHeroPtr->getPlayerLook().helmet){
+    if(const auto helmetItemID = myHeroPtr->getWLItem(WLG_HELMET).itemID){
         if(const auto useGfxIndex = DBCOM_ITEMRECORD(helmetItemID).shape; useGfxIndex > 0){
             if(auto [texPtr, dx, dy] = g_equipDB->Retrieve(0X01000000 + DBCOM_ITEMRECORD(helmetItemID).pkgGfxID); texPtr){
                 g_sdlDevice->drawTexture(texPtr, x() + m_equipCharX + dx, y() + m_equipCharY + dy);
@@ -198,16 +198,16 @@ void PlayerStatusBoard::drawEx(int, int, int, int, int, int) const
         }
     }
     else{
-        if(myHeroPtr->getPlayerLook().hair >= HAIR_BEGIN){
-            if(auto [texPtr, dx, dy] = g_equipDB->Retrieve((uidf::getPlayerGender(myHeroPtr->UID()) ? 0X0000003C : 0X00000046) + myHeroPtr->getPlayerLook().hair - HAIR_BEGIN); texPtr){
-                SDLDeviceHelper::EnableTextureModColor enableColor(texPtr, myHeroPtr->getPlayerLook().hairColor);
+        if(myHeroPtr->getWLDesp().hair >= HAIR_BEGIN){
+            if(auto [texPtr, dx, dy] = g_equipDB->Retrieve((uidf::getPlayerGender(myHeroPtr->UID()) ? 0X0000003C : 0X00000046) + myHeroPtr->getWLDesp().hair - HAIR_BEGIN); texPtr){
+                SDLDeviceHelper::EnableTextureModColor enableColor(texPtr, myHeroPtr->getWLDesp().hairColor);
                 g_sdlDevice->drawTexture(texPtr, x() + m_equipCharX + dx, y() + m_equipCharY + dy);
             }
         }
     }
 
     for(size_t i = WLG_W_BEGIN; i < WLG_W_END; ++i){
-        if(auto texPtr = g_itemDB->Retrieve(DBCOM_ITEMRECORD(m_processRun->getMyHero()->getWLGridItemID(i)).pkgGfxID | 0X01000000)){
+        if(auto texPtr = g_itemDB->Retrieve(DBCOM_ITEMRECORD(m_processRun->getMyHero()->getWLItem(i).itemID).pkgGfxID | 0X01000000)){
             const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);
             const int dstX = x() + m_gridList[i].x + (m_gridList[i].w - texW) / 2;
             const int dstY = y() + m_gridList[i].y + (m_gridList[i].h - texH) / (i == WLG_SHOES ? 1 : 2);
@@ -278,23 +278,23 @@ bool PlayerStatusBoard::processEvent(const SDL_Event &event, bool valid)
                 switch(event.button.button){
                     case SDL_BUTTON_LEFT:
                         {
+                            auto myHeroPtr = m_processRun->getMyHero();
+                            auto &invPackRef = myHeroPtr->getInvPack();
                             for(size_t i = WLG_BEGIN; i < WLG_END; ++i){
                                 if(mathf::pointInRectangle(event.button.x, event.button.y, x() + m_gridList[i].x, y() + m_gridList[i].y, m_gridList[i].w, m_gridList[i].h)){
-                                    const uint32_t inGridItemID = m_processRun->getMyHero()->getWLGridItemID(i);
-                                    const auto bin = dynamic_cast<InventoryBoard *>(m_processRun->getWidget("InventoryBoard"))->getGrabbedPackBin();
-
-                                    if(bin){
-                                        if(m_processRun->getMyHero()->setWLGridItemID(i, bin.id)){
-                                            dynamic_cast<InventoryBoard *>(m_processRun->getWidget("InventoryBoard"))->setGrabbedItemID(inGridItemID);
+                                    const auto inGridItem = myHeroPtr->getWLItem(i);
+                                    if(const auto grabbedItem = invPackRef.getGrabbedItem()){
+                                        if(myHeroPtr->setWLItem(i, grabbedItem)){
+                                            invPackRef.setGrabbedItem(inGridItem);
                                         }
                                         else{
-                                            m_processRun->getMyHero()->getInvPack().add(bin.id, 1);
-                                            dynamic_cast<InventoryBoard *>(m_processRun->getWidget("InventoryBoard"))->setGrabbedItemID(0);
+                                            invPackRef.add(grabbedItem);
+                                            invPackRef.setGrabbedItem({});
                                         }
                                     }
                                     else{
-                                        m_processRun->getMyHero()->setWLGridItemID(i, 0);
-                                        dynamic_cast<InventoryBoard *>(m_processRun->getWidget("InventoryBoard"))->setGrabbedItemID(inGridItemID);
+                                        myHeroPtr->setWLItem(i, {});
+                                        invPackRef.setGrabbedItem(inGridItem);
                                     }
                                     break;
                                 }
@@ -316,7 +316,7 @@ bool PlayerStatusBoard::processEvent(const SDL_Event &event, bool valid)
 
 void PlayerStatusBoard::drawItemHoverText(int wlType) const
 {
-    const auto itemID = m_processRun->getMyHero()->getWLGridItemID(wlType);
+    const auto itemID = m_processRun->getMyHero()->getWLItem(wlType).itemID;
     const auto &ir = DBCOM_ITEMRECORD(itemID);
 
     if(!(itemID && ir)){

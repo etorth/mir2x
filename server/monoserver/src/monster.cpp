@@ -34,7 +34,7 @@
 #include "randompick.hpp"
 #include "monoserver.hpp"
 #include "dbcomrecord.hpp"
-#include "messagepack.hpp"
+#include "actormsgpack.hpp"
 #include "protocoldef.hpp"
 #include "serverargparser.hpp"
 
@@ -43,7 +43,7 @@ extern ServerArgParser *g_serverArgParser;
 
 Monster::AStarCache::AStarCache()
     : Time(0)
-    , MapID(0)
+    , mapID(0)
     , Path()
 {}
 
@@ -57,7 +57,7 @@ bool Monster::AStarCache::Retrieve(int *pX, int *pY, int nX0, int nY0, int nX1, 
     // if cache doesn't match we won't clean it
     // only cleared by timeout
 
-    if((nMapID == MapID) && (Path.size() >= 3)){
+    if((nMapID == mapID) && (Path.size() >= 3)){
         auto fnFindIndex = [this](int nX, int nY) -> int
         {
             for(int nIndex = 0; nIndex < (int)(Path.size()); ++nIndex){
@@ -92,7 +92,7 @@ bool Monster::AStarCache::Retrieve(int *pX, int *pY, int nX0, int nY0, int nX1, 
 
 void Monster::AStarCache::Cache(std::vector<PathFind::PathNode> stvPathNode, uint32_t nMapID)
 {
-    MapID = nMapID;
+    mapID = nMapID;
     Path.swap(stvPathNode);
 
     Time = g_monoServer->getCurrTick();
@@ -339,7 +339,7 @@ void Monster::trackUID(uint64_t nUID, int nMinCDistance, std::function<void()> f
     {
         auto nX     = rstCOLocation.X;
         auto nY     = rstCOLocation.Y;
-        auto nMapID = rstCOLocation.MapID;
+        auto nMapID = rstCOLocation.mapID;
 
         if(!m_map->In(nMapID, nX, nY)){
             fnOnError();
@@ -384,7 +384,7 @@ void Monster::followMaster(std::function<void()> fnOnOK, std::function<void()> f
 
         auto nX         = rstCOLocation.X;
         auto nY         = rstCOLocation.Y;
-        auto nMapID     = rstCOLocation.MapID;
+        auto nMapID     = rstCOLocation.mapID;
         auto nDirection = rstCOLocation.Direction;
 
         // get back location with different distance
@@ -405,7 +405,7 @@ void Monster::followMaster(std::function<void()> fnOnOK, std::function<void()> f
             return {nBackX, nBackY};
         };
 
-        if((nMapID == MapID()) && (mathf::LDistance<double>(nX, nY, X(), Y()) < 10.0)){
+        if((nMapID == mapID()) && (mathf::LDistance<double>(nX, nY, X(), Y()) < 10.0)){
 
             // not that long
             // slave should move step by step
@@ -436,7 +436,7 @@ void Monster::followMaster(std::function<void()> fnOnOK, std::function<void()> f
             // need to do spacemove or even mapswitch
 
             const auto [nBackX, nBackY] = fnGetBack(nX, nY, nDirection, 3);
-            if(nMapID == MapID()){
+            if(nMapID == mapID()){
                 return requestSpaceMove(nBackX, nBackY, false, fnOnOK, fnOnError);
             }
             else{
@@ -504,112 +504,112 @@ bool Monster::update()
     return true;
 }
 
-void Monster::operateAM(const MessagePack &rstMPK)
+void Monster::operateAM(const ActorMsgPack &rstMPK)
 {
-    switch(rstMPK.Type()){
-        case MPK_METRONOME:
+    switch(rstMPK.type()){
+        case AM_METRONOME:
             {
-                on_MPK_METRONOME(rstMPK);
+                on_AM_METRONOME(rstMPK);
                 break;
             }
-        case MPK_CHECKMASTER:
+        case AM_CHECKMASTER:
             {
-                on_MPK_CHECKMASTER(rstMPK);
+                on_AM_CHECKMASTER(rstMPK);
                 break;
             }
-        case MPK_QUERYFINALMASTER:
+        case AM_QUERYFINALMASTER:
             {
-                on_MPK_QUERYFINALMASTER(rstMPK);
+                on_AM_QUERYFINALMASTER(rstMPK);
                 break;
             }
-        case MPK_QUERYFRIENDTYPE:
+        case AM_QUERYFRIENDTYPE:
             {
-                on_MPK_QUERYFRIENDTYPE(rstMPK);
+                on_AM_QUERYFRIENDTYPE(rstMPK);
                 break;
             }
-        case MPK_QUERYNAMECOLOR:
+        case AM_QUERYNAMECOLOR:
             {
-                on_MPK_QUERYNAMECOLOR(rstMPK);
+                on_AM_QUERYNAMECOLOR(rstMPK);
                 break;
             }
-        case MPK_NOTIFYNEWCO:
+        case AM_NOTIFYNEWCO:
             {
-                on_MPK_NOTIFYNEWCO(rstMPK);
+                on_AM_NOTIFYNEWCO(rstMPK);
                 break;
             }
-        case MPK_DEADFADEOUT:
+        case AM_DEADFADEOUT:
             {
-                on_MPK_DEADFADEOUT(rstMPK);
+                on_AM_DEADFADEOUT(rstMPK);
                 break;
             }
-        case MPK_NOTIFYDEAD:
+        case AM_NOTIFYDEAD:
             {
-                on_MPK_NOTIFYDEAD(rstMPK);
+                on_AM_NOTIFYDEAD(rstMPK);
                 break;
             }
-        case MPK_UPDATEHP:
+        case AM_UPDATEHP:
             {
-                on_MPK_UPDATEHP(rstMPK);
+                on_AM_UPDATEHP(rstMPK);
                 break;
             }
-        case MPK_EXP:
+        case AM_EXP:
             {
-                on_MPK_EXP(rstMPK);
+                on_AM_EXP(rstMPK);
                 break;
             }
-        case MPK_MISS:
+        case AM_MISS:
             {
-                on_MPK_MISS(rstMPK);
+                on_AM_MISS(rstMPK);
                 break;
             }
-        case MPK_ACTION:
+        case AM_ACTION:
             {
-                on_MPK_ACTION(rstMPK);
+                on_AM_ACTION(rstMPK);
                 break;
             }
-        case MPK_ATTACK:
+        case AM_ATTACK:
             {
-                on_MPK_ATTACK(rstMPK);
+                on_AM_ATTACK(rstMPK);
                 break;
             }
-        case MPK_MAPSWITCH:
+        case AM_MAPSWITCH:
             {
-                on_MPK_MAPSWITCH(rstMPK);
+                on_AM_MAPSWITCH(rstMPK);
                 break;
             }
-        case MPK_QUERYLOCATION:
+        case AM_QUERYLOCATION:
             {
-                on_MPK_QUERYLOCATION(rstMPK);
+                on_AM_QUERYLOCATION(rstMPK);
                 break;
             }
-        case MPK_QUERYCORECORD:
+        case AM_QUERYCORECORD:
             {
-                on_MPK_QUERYCORECORD(rstMPK);
+                on_AM_QUERYCORECORD(rstMPK);
                 break;
             }
-        case MPK_BADACTORPOD:
+        case AM_BADACTORPOD:
             {
-                on_MPK_BADACTORPOD(rstMPK);
+                on_AM_BADACTORPOD(rstMPK);
                 break;
             }
-        case MPK_OFFLINE:
+        case AM_OFFLINE:
             {
-                on_MPK_OFFLINE(rstMPK);
+                on_AM_OFFLINE(rstMPK);
                 break;
             }
-        case MPK_MASTERKILL:
+        case AM_MASTERKILL:
             {
-                on_MPK_MASTERKILL(rstMPK);
+                on_AM_MASTERKILL(rstMPK);
                 break;
             }
-        case MPK_MASTERHITTED:
+        case AM_MASTERHITTED:
             {
-                on_MPK_MASTERHITTED(rstMPK);
+                on_AM_MASTERHITTED(rstMPK);
                 break;
             }
         default:
             {
-                throw fflerror("Unsupported message: %s", mpkName(rstMPK.Type()));
+                throw fflerror("Unsupported message: %s", mpkName(rstMPK.type()));
             }
     }
 }
@@ -628,7 +628,7 @@ void Monster::reportCO(uint64_t toUID)
     std::memset(&amCOR, 0, sizeof(amCOR));
 
     amCOR.UID = UID();
-    amCOR.MapID = MapID();
+    amCOR.mapID = mapID();
     amCOR.action = ActionStand
     {
         .x = X(),
@@ -637,14 +637,14 @@ void Monster::reportCO(uint64_t toUID)
     };
 
     amCOR.Monster.MonsterID = monsterID();
-    m_actorPod->forward(toUID, {MPK_CORECORD, amCOR});
+    m_actorPod->forward(toUID, {AM_CORECORD, amCOR});
 }
 
 bool Monster::InRange(int nRangeType, int nX, int nY)
 {
     if(true
             && m_map
-            && m_map->ValidC(nX, nY)){
+            && m_map->validC(nX, nY)){
         switch(nRangeType){
             case RANGE_VISIBLE:
                 {
@@ -788,7 +788,7 @@ bool Monster::goGhost()
     std::memset(&amDFO, 0, sizeof(amDFO));
 
     amDFO.UID   = UID();
-    amDFO.MapID = MapID();
+    amDFO.mapID = mapID();
     amDFO.X     = X();
     amDFO.Y     = Y();
 
@@ -796,7 +796,7 @@ bool Monster::goGhost()
     // for monster don't need fadeout (like Taodog) we shouldn't send the FADEOUT to client
 
     if(checkActorPod() && m_map && m_map->checkActorPod()){
-        m_actorPod->forward(m_map->UID(), {MPK_DEADFADEOUT, amDFO});
+        m_actorPod->forward(m_map->UID(), {AM_DEADFADEOUT, amDFO});
     }
 
     deactivate();
@@ -865,7 +865,7 @@ bool Monster::MoveOneStep(int nX, int nY, std::function<void()> fnOnOK, std::fun
     int nXm = -1;
     int nYm = -1;
 
-    if(m_AStarCache.Retrieve(&nXm, &nYm, X(), Y(), nX, nY, MapID())){
+    if(m_AStarCache.Retrieve(&nXm, &nYm, X(), Y(), nX, nY, mapID())){
         if(OneStepCost(nullptr, 1, X(), Y(), nXm, nYm) >= 0.00){
             return requestMove(nXm, nYm, MoveSpeed(), false, false, fnOnOK, fnOnError);
         }
@@ -918,7 +918,7 @@ bool Monster::MoveOneStepNeighbor(int nX, int nY, std::function<void()> fnOnOK, 
         throw fflerror("incorrect pathnode number: %zu", nNodeNum);
     }
 
-    m_AStarCache.Cache({stPathNode.begin(), stPathNode.begin() + nNodeNum}, MapID());
+    m_AStarCache.Cache({stPathNode.begin(), stPathNode.begin() + nNodeNum}, mapID());
     return requestMove(stPathNode[1].X, stPathNode[1].Y, MoveSpeed(), false, false, fnOnOK, fnOnError);
 }
 
@@ -1026,7 +1026,7 @@ bool Monster::MoveOneStepAStar(int nX, int nY, std::function<void()> fnOnOK, std
     std::memset(&amPF, 0, sizeof(amPF));
 
     amPF.UID     = UID();
-    amPF.MapID   = MapID();
+    amPF.mapID   = mapID();
     amPF.CheckCO = 1;
     amPF.MaxStep = MaxStep();
     amPF.X       = X();
@@ -1034,13 +1034,13 @@ bool Monster::MoveOneStepAStar(int nX, int nY, std::function<void()> fnOnOK, std
     amPF.EndX    = nX;
     amPF.EndY    = nY;
 
-    return m_actorPod->forward(MapUID(), {MPK_PATHFIND, amPF}, [this, nX, nY, fnOnOK, fnOnError](const MessagePack &rstRMPK)
+    return m_actorPod->forward(MapUID(), {AM_PATHFIND, amPF}, [this, nX, nY, fnOnOK, fnOnError](const ActorMsgPack &rstRMPK)
     {
-        switch(rstRMPK.Type()){
-            case MPK_PATHFINDOK:
+        switch(rstRMPK.type()){
+            case AM_PATHFINDOK:
                 {
                     AMPathFindOK amPFOK;
-                    std::memcpy(&amPFOK, rstRMPK.Data(), sizeof(amPFOK));
+                    std::memcpy(&amPFOK, rstRMPK.data(), sizeof(amPFOK));
 
                     constexpr auto nNodeCount = std::extent<decltype(amPFOK.Point)>::value;
                     static_assert(nNodeCount >= 2);
@@ -1060,7 +1060,7 @@ bool Monster::MoveOneStepAStar(int nX, int nY, std::function<void()> fnOnOK, std
                     if(!stvPathNode.back().Eq(nX, nY)){
                         stvPathNode.emplace_back(nX, nY);
                     }
-                    m_AStarCache.Cache(stvPathNode, MapID());
+                    m_AStarCache.Cache(stvPathNode, mapID());
 
                     requestMove(amPFOK.Point[1].X, amPFOK.Point[1].Y, MoveSpeed(), false, false, fnOnOK, fnOnError);
                     break;
@@ -1101,7 +1101,7 @@ void Monster::randomDrop()
                 //
                 // and if we are not in group-0
                 // break if we select the first one item
-                m_actorPod->forward(m_map->UID(), {MPK_NEWDROPITEM, amNDI});
+                m_actorPod->forward(m_map->UID(), {AM_NEWDROPITEM, amNDI});
                 if(rstGroupRecord.first != 0){
                     break;
                 }
@@ -1181,13 +1181,13 @@ void Monster::QueryMaster(uint64_t nUID, std::function<void(uint64_t)> fnOp)
         throw fflerror("query self for masterUID()");
     }
 
-    m_actorPod->forward(nUID, MPK_QUERYMASTER, [this, nUID, fnOp](const MessagePack &rstRMPK)
+    m_actorPod->forward(nUID, AM_QUERYMASTER, [this, nUID, fnOp](const ActorMsgPack &rstRMPK)
     {
-        switch(rstRMPK.Type()){
-            case MPK_UID:
+        switch(rstRMPK.type()){
+            case AM_UID:
                 {
                     AMUID amUID;
-                    std::memcpy(&amUID, rstRMPK.Data(), sizeof(amUID));
+                    std::memcpy(&amUID, rstRMPK.data(), sizeof(amUID));
 
                     fnOp(amUID.UID);
                     return;
@@ -1218,13 +1218,13 @@ void Monster::checkFriend_AsGuard(uint64_t nUID, std::function<void(int)> fnOp)
             }
         case UID_PLY:
             {
-                m_actorPod->forward(nUID, MPK_QUERYNAMECOLOR, [fnOp](const MessagePack &rstMPK)
+                m_actorPod->forward(nUID, AM_QUERYNAMECOLOR, [fnOp](const ActorMsgPack &rstMPK)
                 {
-                    switch(rstMPK.Type()){
-                        case MPK_NAMECOLOR:
+                    switch(rstMPK.type()){
+                        case AM_NAMECOLOR:
                             {
                                 AMNameColor amNC;
-                                std::memcpy(&amNC, rstMPK.Data(), sizeof(amNC));
+                                std::memcpy(&amNC, rstMPK.data(), sizeof(amNC));
 
                                 switch(amNC.Color){
                                     case 'R':
@@ -1250,7 +1250,7 @@ void Monster::checkFriend_AsGuard(uint64_t nUID, std::function<void(int)> fnOp)
             }
         default:
             {
-                throw fflerror("invalid UID type: %s", uidf::getUIDTypeString(nUID));
+                throw fflerror("invalid UID type: %s", uidf::getUIDTypeCStr(nUID));
             }
     }
 }
@@ -1294,7 +1294,7 @@ void Monster::checkFriend_CtrlByMonster(uint64_t nUID, std::function<void(int)> 
                             }
                         default:
                             {
-                                throw fflerror("invalid final master type: %s", uidf::getUIDTypeString(nFMasterUID));
+                                throw fflerror("invalid final master type: %s", uidf::getUIDTypeCStr(nFMasterUID));
                             }
                     }
                 });
@@ -1306,7 +1306,7 @@ void Monster::checkFriend_CtrlByMonster(uint64_t nUID, std::function<void(int)> 
             }
         default:
             {
-                throw fflerror("invalid UID type: %s", uidf::getUIDTypeString(nUID));
+                throw fflerror("invalid UID type: %s", uidf::getUIDTypeCStr(nUID));
             }
     }
 }
@@ -1353,7 +1353,7 @@ void Monster::checkFriend_CtrlByPlayer(uint64_t nUID, std::function<void(int)> f
                             }
                         default:
                             {
-                                throw fflerror("invalid final master type: %s", uidf::getUIDTypeString(nFMasterUID));
+                                throw fflerror("invalid final master type: %s", uidf::getUIDTypeCStr(nFMasterUID));
                             }
                     }
                 });
@@ -1437,7 +1437,7 @@ void Monster::checkFriend(uint64_t nUID, std::function<void(int)> fnOp)
                 }
             default:
                 {
-                    throw fflerror("Monster can't be controlled by type: %s", uidf::getUIDTypeString(nFMasterUID));
+                    throw fflerror("Monster can't be controlled by type: %s", uidf::getUIDTypeCStr(nFMasterUID));
                 }
         }
     });
@@ -1454,13 +1454,13 @@ void Monster::QueryFriendType(uint64_t nUID, uint64_t nTargetUID, std::function<
 
     amQFT.UID = nTargetUID;
 
-    m_actorPod->forward(nUID, {MPK_QUERYFRIENDTYPE, amQFT}, [fnOp](const MessagePack &rstMPK)
+    m_actorPod->forward(nUID, {AM_QUERYFRIENDTYPE, amQFT}, [fnOp](const ActorMsgPack &rstMPK)
     {
-        switch(rstMPK.Type()){
-            case MPK_FRIENDTYPE:
+        switch(rstMPK.type()){
+            case AM_FRIENDTYPE:
                 {
                     AMFriendType amFT;
-                    std::memcpy(&amFT, rstMPK.Data(), sizeof(amFT));
+                    std::memcpy(&amFT, rstMPK.data(), sizeof(amFT));
 
                     switch(amFT.Type){
                         case FT_ERROR:

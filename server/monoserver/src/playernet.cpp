@@ -21,6 +21,7 @@
 #include "message.hpp"
 #include "actorpod.hpp"
 #include "monoserver.hpp"
+#include "dbcomrecord.hpp"
 
 void Player::net_CM_ACTION(uint8_t, const uint8_t *pBuf, size_t)
 {
@@ -29,14 +30,13 @@ void Player::net_CM_ACTION(uint8_t, const uint8_t *pBuf, size_t)
 
     if(true
             && cmA.UID == UID()
-            && cmA.MapID == MapID()){
+            && cmA.mapID == mapID()){
 
         switch((int)(cmA.action.type)){
             case ACTION_STAND : onCMActionStand (cmA); return;
             case ACTION_MOVE  : onCMActionMove  (cmA); return;
             case ACTION_ATTACK: onCMActionAttack(cmA); return;
             case ACTION_SPELL : onCMActionSpell (cmA); return;
-            case ACTION_PICKUP: onCMActionPickUp(cmA); return;
             default           :                        return;
         }
         dispatchAction(cmA.action);
@@ -59,7 +59,7 @@ void Player::net_CM_QUERYCORECORD(uint8_t, const uint8_t *pBuf, size_t)
         // send the query without response requirement
 
         amQCOR.UID = UID();
-        if(!m_actorPod->forward(stCMQCOR.AimUID, {MPK_QUERYCORECORD, amQCOR})){
+        if(!m_actorPod->forward(stCMQCOR.AimUID, {AM_QUERYCORECORD, amQCOR})){
             reportDeadUID(stCMQCOR.AimUID);
         }
     }
@@ -68,11 +68,11 @@ void Player::net_CM_QUERYCORECORD(uint8_t, const uint8_t *pBuf, size_t)
 void Player::net_CM_REQUESTSPACEMOVE(uint8_t, const uint8_t *buf, size_t)
 {
     const auto cmRSM = ClientMsg::conv<CMRequestSpaceMove>(buf);
-    if(cmRSM.MapID == MapID()){
+    if(cmRSM.mapID == mapID()){
         requestSpaceMove(cmRSM.X, cmRSM.Y, false);
     }
     else{
-        requestMapSwitch(cmRSM.MapID, cmRSM.X, cmRSM.Y, false);
+        requestMapSwitch(cmRSM.mapID, cmRSM.X, cmRSM.Y, false);
     }
 }
 
@@ -87,20 +87,72 @@ void Player::net_CM_REQUESTKILLPETS(uint8_t, const uint8_t *, size_t)
     RequestKillPets();
 }
 
-void Player::net_CM_PICKUP(uint8_t, const uint8_t *pBuf, size_t)
+void Player::net_CM_PICKUP(uint8_t, const uint8_t *buf, size_t)
 {
-    if(auto pCM = (CMPickUp *)(pBuf); pCM->MapID == m_map->ID()){
-        if(CanPickUp(pCM->ID, 0)){
-            AMPickUp amPU;
-            std::memset(&amPU, 0, sizeof(amPU));
-            amPU.X    = pCM->X;
-            amPU.Y    = pCM->Y;
-            amPU.UID  = pCM->UID;
-            amPU.ID   = pCM->ID;
-            amPU.DBID = pCM->DBID;
-            m_actorPod->forward(m_map->UID(), {MPK_PICKUP, amPU});
-        }
+    const auto cmPU = ClientMsg::conv<CMPickUp>(buf);
+    if(cmPU.mapID != m_map->ID()){
+        return;
     }
+
+    if(!(cmPU.x == X() && cmPU.y == Y())){
+        reportStand();
+        return;
+    }
+
+    const auto fnPostPickUpError = [this](uint32_t itemID)
+    {
+        SMPickUpError smPUE;
+        std::memset(&smPUE, 0, sizeof(smPUE));
+        smPUE.failedItemID = itemID;
+        postNetMessage(SM_PICKUPERROR, smPUE);
+    };
+
+    if(m_pickUpLock){
+        fnPostPickUpError(0);
+        return;
+    }
+
+    AMPickUp amPU;
+    std::memset(&amPU, 0, sizeof(amPU));
+    amPU.x = cmPU.x;
+    amPU.y = cmPU.y;
+    amPU.availableWeight = 500;
+
+    m_pickUpLock = true;
+    m_actorPod->forward(m_map->UID(), {AM_PICKUP, amPU}, [fnPostPickUpError, this](const ActorMsgPack &mpk)
+    {
+        if(!m_pickUpLock){
+            throw fflerror("pick up lock released before get response");
+        }
+
+        m_pickUpLock = true;
+        switch(mpk.type()){
+            case AM_PICKUPITEMIDLIST:
+                {
+                    const auto amPUIIDL = mpk.conv<AMPickUpItemIDList>();
+                    for(const auto itemID: amPUIIDL.itemIDList){
+                        if(!itemID){
+                            break;
+                        }
+
+                        const auto &ir = DBCOM_ITEMRECORD(itemID);
+                        if(!ir){
+                            throw fflerror("bad itemID: %llu", to_llu(itemID));
+                        }
+                        addInventoryItem(itemID);
+                    }
+
+                    if(amPUIIDL.failedItemID){
+                        fnPostPickUpError(amPUIIDL.failedItemID);
+                    }
+                    break;
+                }
+            default:
+                {
+                    break;
+                }
+        }
+    });
 }
 
 void Player::net_CM_PING(uint8_t, const uint8_t *pBuf, size_t)
@@ -124,56 +176,123 @@ void Player::net_CM_NPCEVENT(uint8_t, const uint8_t *buf, size_t bufLen)
     std::memset(&amNPCEvent, 0, sizeof(amNPCEvent));
     amNPCEvent.x = X();
     amNPCEvent.y = Y();
-    amNPCEvent.mapID = MapID();
+    amNPCEvent.mapID = mapID();
     std::strcpy(amNPCEvent.event, cmNPCE.event);
     std::strcpy(amNPCEvent.value, cmNPCE.value);
-    m_actorPod->forward(cmNPCE.uid, {MPK_NPCEVENT, amNPCEvent});
+    m_actorPod->forward(cmNPCE.uid, {AM_NPCEVENT, amNPCEvent});
 }
 
-void Player::net_CM_QUERYSELLITEM(uint8_t, const uint8_t *buf, size_t bufLen)
+void Player::net_CM_QUERYSELLITEMLIST(uint8_t, const uint8_t *buf, size_t)
 {
-    const auto cmQSI = ClientMsg::conv<CMQuerySellItem>(buf, bufLen);
-    AMQuerySellItem amQSI;
+    const auto cmQSIL = ClientMsg::conv<CMQuerySellItemList>(buf);
+    AMQuerySellItemList amQSIL;
 
-    std::memset(&amQSI, 0, sizeof(amQSI));
-    amQSI.itemID = cmQSI.itemID;
-    m_actorPod->forward(cmQSI.npcUID, {MPK_QUERYSELLITEM, amQSI});
+    std::memset(&amQSIL, 0, sizeof(amQSIL));
+    amQSIL.itemID = cmQSIL.itemID;
+    m_actorPod->forward(cmQSIL.npcUID, {AM_QUERYSELLITEMLIST, amQSIL});
 }
 
-void Player::net_CM_QUERYPLAYERLOOK(uint8_t, const uint8_t *buf, size_t bufLen)
+void Player::net_CM_QUERYPLAYERWLDESP(uint8_t, const uint8_t *buf, size_t)
 {
-    const auto cmQPL = ClientMsg::conv<CMQueryPlayerLook>(buf, bufLen);
-    if(cmQPL.uid == UID()){
-        SMPlayerLook smPL;
-        std::memset(&smPL, 0, sizeof(smPL));
-
-        smPL.uid = UID();
-        smPL.look = getPlayerLook();
-        postNetMessage(SM_PLAYERLOOK, smPL);
+    const auto cmQPWLD = ClientMsg::conv<CMQueryPlayerWLDesp>(buf);
+    if(cmQPWLD.uid == UID()){
+        postNetMessage(SM_PLAYERWLDESP, cerealf::serialize(SDUIDWLDesp
+        {
+            .uid = UID(),
+            .desp
+            {
+                .wear = m_sdItemStorage.wear,
+                .hair = m_hair,
+                .hairColor = m_hairColor,
+            },
+        }, true));
     }
-    else if(uidf::getUIDType(cmQPL.uid) == UID_PLY){
-        m_actorPod->forward(cmQPL.uid, {MPK_QUERYPLAYERLOOK});
+    else if(uidf::getUIDType(cmQPWLD.uid) == UID_PLY){
+        m_actorPod->forward(cmQPWLD.uid, AM_QUERYPLAYERWLDESP);
     }
     else{
-        throw fflerror("invalid uid: %llu, type: %s", to_llu(cmQPL.uid), uidf::getUIDTypeString(cmQPL.uid));
+        throw fflerror("invalid uid: %llu, type: %s", to_llu(cmQPWLD.uid), uidf::getUIDTypeCStr(cmQPWLD.uid));
     }
 }
 
-void Player::net_CM_QUERYPLAYERWEAR(uint8_t, const uint8_t *buf, size_t bufLen)
+void Player::net_CM_BUY(uint8_t, const uint8_t *buf, size_t)
 {
-    const auto cmQPW = ClientMsg::conv<CMQueryPlayerWear>(buf, bufLen);
-    if(cmQPW.uid == UID()){
-        SMPlayerWear smPW;
-        std::memset(&smPW, 0, sizeof(smPW));
+    const auto cmB = ClientMsg::conv<CMBuy>(buf);
+    if(uidf::getUIDType(cmB.npcUID) != UID_NPC){
+        throw fflerror("invalid uid: %llu, type: %s", to_llu(cmB.npcUID), uidf::getUIDTypeCStr(cmB.npcUID));
+    }
 
-        smPW.uid = UID();
-        smPW.wear = getPlayerWear();
-        postNetMessage(SM_PLAYERWEAR, smPW);
-    }
-    else if(uidf::getUIDType(cmQPW.uid) == UID_PLY){
-        m_actorPod->forward(cmQPW.uid, {MPK_QUERYPLAYERWEAR});
-    }
-    else{
-        throw fflerror("invalid uid: %llu, type: %s", to_llu(cmQPW.uid), uidf::getUIDTypeString(cmQPW.uid));
-    }
+    AMBuy amB;
+    std::memset(&amB, 0, sizeof(amB));
+
+    amB.itemID = cmB.itemID;
+    amB.seqID  = cmB.seqID;
+    amB.count  = cmB.count;
+    m_actorPod->forward(cmB.npcUID, {AM_BUY, amB}, [cmB, this](const ActorMsgPack &mpk)
+    {
+        const auto fnPostBuyError = [&cmB, &mpk, this](int buyError)
+        {
+            SMBuyError smBE;
+            std::memset(&smBE, 0, sizeof(smBE));
+
+            smBE.npcUID = mpk.from();
+            smBE.itemID = cmB.itemID;
+            smBE. seqID = cmB. seqID;
+            smBE. error =   buyError;
+            postNetMessage(SM_BUYERROR, smBE);
+        };
+
+        switch(mpk.type()){
+            case AM_BUYCOST:
+                {
+                    uint32_t lackItemID = 0;
+                    const auto amBC = mpk.conv<AMBuyCost>();
+                    for(size_t i = 0; (i < std::extent_v<decltype(amBC.itemList)>) && amBC.itemList[i].itemID; ++i){
+                        if(!hasInventoryItem(amBC.itemList[i].itemID, 0, amBC.itemList[i].count)){
+                            lackItemID = amBC.itemList[i].itemID;
+                            break;
+                        }
+                    }
+
+                    if(lackItemID){
+                        m_actorPod->forward(mpk.from(), AM_ERROR, mpk.seqID());
+                        fnPostBuyError(BUYERR_INSUFFCIENT);
+                    }
+                    else{
+                        for(size_t i = 0; (i < std::extent_v<decltype(amBC.itemList)>) && amBC.itemList[i].itemID; ++i){
+                            removeInventoryItem(amBC.itemList[i].itemID, 0, amBC.itemList[i].count);
+                        }
+
+                        const auto buyItem = cerealf::deserialize<SDItem>(amBC.itemBuf.data, amBC.itemBuf.size);
+                        const auto addedItem = m_sdItemStorage.inventory.add(buyItem, false);
+
+                        m_actorPod->forward(mpk.from(), AM_OK, mpk.seqID());
+                        postNetMessage(SM_BUYSUCCEED, cerealf::serialize(SDBuySucceed
+                        {
+                            .item   = addedItem,
+                            .npcUID = mpk.from(),
+                            .itemID = cmB.itemID,
+                            .seqID  = cmB.seqID,
+                        }));
+                    }
+                    return;
+                }
+            case AM_BUYERROR:
+                {
+                    SMBuyError smBE;
+                    std::memset(&smBE, 0, sizeof(smBE));
+
+                    smBE.npcUID = cmB.npcUID;
+                    smBE.itemID = cmB.itemID;
+                    smBE. seqID = cmB. seqID;
+                    smBE. error = mpk.conv<AMBuyError>().error;
+                    postNetMessage(SM_BUYERROR, smBE);
+                    return;
+                }
+            default:
+                {
+                    throw bad_reach();
+                }
+        }
+    });
 }

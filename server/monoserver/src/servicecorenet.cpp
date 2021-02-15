@@ -15,88 +15,97 @@
  *
  * =====================================================================================
  */
+#include "jobf.hpp"
 #include "dbpod.hpp"
 #include "dbcomid.hpp"
+#include "dbcomrecord.hpp"
 #include "servermap.hpp"
 #include "monoserver.hpp"
 #include "dispatcher.hpp"
+#include "protocoldef.hpp"
 #include "servicecore.hpp"
 
 extern DBPod *g_dbPod;
 extern NetDriver *g_netDriver;
 extern MonoServer *g_monoServer;
 
-void ServiceCore::net_CM_Login(uint32_t nChannID, uint8_t, const uint8_t *pData, size_t)
+void ServiceCore::net_CM_Login(uint32_t chanID, uint8_t, const uint8_t *buf, size_t)
 {
-    CMLogin stCML;
-    std::memcpy(&stCML, pData, sizeof(stCML));
-
-    const auto fnLoginFail = [nChannID, stCML]()
+    const auto cmL = ClientMsg::conv<CMLogin>(buf);
+    const auto fnOnLoginFail = [chanID, cmL](int error)
     {
-        g_monoServer->addLog(LOGTYPE_INFO, "Login failed for (%s:%s)", stCML.ID, "******");
-        g_netDriver->Post(nChannID, SM_LOGINFAIL);
-        g_netDriver->Shutdown(nChannID, false);
+        SMLoginFail smLF;
+        std::memset(&smLF, 0, sizeof(smLF));
+
+        smLF.error = error;
+        g_netDriver->Post(chanID, SM_LOGINFAIL, smLF);
+        g_netDriver->Shutdown(chanID, false);
+        g_monoServer->addLog(LOGTYPE_WARNING, "Login failed for account: %s", cmL.id);
     };
 
-    g_monoServer->addLog(LOGTYPE_INFO, "Login requested: (%s:%s)", stCML.ID, "******");
-    auto queryID = g_dbPod->createQuery("select fld_id from tbl_account where fld_account = '%s' and fld_password = '%s'", stCML.ID, stCML.Password);
-
-    if(!queryID.executeStep()){
-        g_monoServer->addLog(LOGTYPE_INFO, "can't find account: (%s:%s)", stCML.ID, "******");
-        fnLoginFail();
+    auto queryAccount = g_dbPod->createQuery("select fld_dbid from tbl_account where fld_account = '%s' and fld_password = '%s'", cmL.id, cmL.password);
+    if(!queryAccount.executeStep()){
+        fnOnLoginFail(LOGINERR_NOACCOUNT);
         return;
     }
 
-    const int id = queryID.getColumn("fld_id");
-    auto queryDBID = g_dbPod->createQuery("select * from tbl_dbid where fld_id = %d", id);
-
-    if(!queryDBID.executeStep()){
-        g_monoServer->addLog(LOGTYPE_INFO, "no dbid created for this account: (%s:%s)", stCML.ID, "******");
-        fnLoginFail();
+    const auto dbid = check_cast<uint32_t, unsigned>(queryAccount.getColumn("fld_dbid"));
+    auto queryChar = g_dbPod->createQuery("select * from tbl_dbid where fld_dbid = %llu", to_llu(dbid));
+    if(!queryChar.executeStep()){
+        fnOnLoginFail(LOGINERR_NODBID);
         return;
     }
 
-    AMLoginQueryDB amLQDBOK;
-    std::memset(&amLQDBOK, 0, sizeof(amLQDBOK));
+    const int mapX = queryChar.getColumn("fld_mapx");
+    const int mapY = queryChar.getColumn("fld_mapy");
+    const uint32_t mapID = DBCOM_MAPID(to_u8cstr((const char *)(queryChar.getColumn("fld_mapname"))));
 
-    const uint32_t nDBID      = queryDBID.getColumn("fld_dbid");
-    const uint32_t nMapID     = DBCOM_MAPID(to_u8cstr((const char *)(queryDBID.getColumn("fld_mapname"))));
-    const int      nMapX      = queryDBID.getColumn("fld_mapx");
-    const int      nMapY      = queryDBID.getColumn("fld_mapy");
-    const int      nDirection = queryDBID.getColumn("fld_direction");
+    const auto dbBuf = cerealf::serialize(SDInitPlayer
+    {
+        .dbid      = queryChar.getColumn("fld_dbid"),
+        .name      = queryChar.getColumn("fld_name"),
+        .nameColor = queryChar.getColumn("fld_namecolor"),
+        .x         = mapX,
+        .y         = mapY,
+        .mapID     = mapID,
+        .hp        = queryChar.getColumn("fld_hp"),
+        .mp        = queryChar.getColumn("fld_mp"),
+        .exp       = queryChar.getColumn("fld_exp"),
+        .gold      = queryChar.getColumn("fld_gold"),
+        .level     = queryChar.getColumn("fld_level"),
+        .jobList   = jobf::getJobList(queryChar.getColumn("fld_job")),
+        .hair      = queryChar.getColumn("fld_hair"),
+        .hairColor = queryChar.getColumn("fld_haircolor"),
+    }, true);
 
-    auto pMap = retrieveMap(nMapID);
-    if(false
-            || !pMap
-            || !pMap->In(nMapID, nMapX, nMapY)){
-        g_monoServer->addLog(LOGTYPE_WARNING, "Invalid db record found: (map, x, y) = (%d, %d, %d)", nMapID, nMapX, nMapY);
-
-        fnLoginFail();
+    auto mapPtr = retrieveMap(mapID);
+    if(!(mapPtr && mapPtr->In(mapID, mapX, mapY))){
+        g_monoServer->addLog(LOGTYPE_WARNING, "Invalid db record found: (map, x, y) = (%s, %d, %d)", to_cstr(DBCOM_MAPRECORD(mapID).name), mapX, mapY);
+        fnOnLoginFail(LOGINERR_BADRECORD);
         return;
     }
 
     AMAddCharObject amACO;
     std::memset(&amACO, 0, sizeof(amACO));
 
-    amACO.type             = UID_PLY;
-    amACO.x                = nMapX;
-    amACO.y                = nMapY;
-    amACO.mapID            = nMapID;
-    amACO.strictLoc        = false;
-    amACO.player.DBID      = nDBID;
-    amACO.player.direction = nDirection;
-    amACO.player.channID   = nChannID;
+    amACO.type = UID_PLY;
+    if(dbBuf.length() > sizeof(amACO.buf.data)){
+        throw fflerror("actor message buffer is too small");
+    }
 
-    m_actorPod->forward(pMap->UID(), {MPK_ADDCHAROBJECT, amACO}, [this, fnLoginFail](const MessagePack &rstRMPK)
+    amACO.buf.size = dbBuf.length();
+    std::copy(dbBuf.begin(), dbBuf.end(), amACO.buf.data);
+
+    m_actorPod->forward(mapPtr->UID(), {AM_ADDCHAROBJECT, amACO}, [this, fnOnLoginFail](const ActorMsgPack &rmpk)
     {
-        switch(rstRMPK.Type()){
-            case MPK_OK:
+        switch(rmpk.type()){
+            case AM_OK:
                 {
                     break;
                 }
             default:
                 {
-                    fnLoginFail();
+                    fnOnLoginFail(LOGINERR_UNKNOWN);
                     break;
                 }
         }

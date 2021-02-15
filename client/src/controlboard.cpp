@@ -1218,7 +1218,7 @@ void ControlBoard::drawInputGreyBackground() const
 
 void ControlBoard::drawHeroLoc() const
 {
-    const auto locStr = str_printf(u8"%s: %d %d", DBCOM_MAPRECORD(m_processRun->MapID()).name, m_processRun->getMyHero()->x(), m_processRun->getMyHero()->y());
+    const auto locStr = str_printf(u8"%s: %d %d", DBCOM_MAPRECORD(m_processRun->mapID()).name, m_processRun->getMyHero()->x(), m_processRun->getMyHero()->y());
     LabelBoard locBoard
     {
         0, // need reset

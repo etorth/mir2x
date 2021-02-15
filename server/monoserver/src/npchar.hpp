@@ -61,8 +61,16 @@ class NPChar final: public CharObject
                 }
         };
 
+        struct SellItem
+        {
+            SDItem item;
+            bool locked = false;
+            std::vector<SDCostItem> costList;
+        };
+
     private:
         std::unique_ptr<LuaNPCModule> m_luaModulePtr;
+        std::unordered_map<uint32_t, std::map<uint32_t, SellItem>> m_sellItemList;
 
     public:
         NPChar(uint16_t, ServiceCore *, ServerMap *, int, int);
@@ -89,13 +97,14 @@ class NPChar final: public CharObject
         void checkFriend(uint64_t, std::function<void(int)>) override;
 
     private:
-        void on_MPK_ACTION(const MessagePack &);
-        void on_MPK_NPCEVENT(const MessagePack &);
-        void on_MPK_NOTIFYNEWCO(const MessagePack &);
-        void on_MPK_BADACTORPOD(const MessagePack &);
-        void on_MPK_QUERYCORECORD(const MessagePack &);
-        void on_MPK_QUERYLOCATION(const MessagePack &);
-        void on_MPK_QUERYSELLITEM(const MessagePack &);
+        void on_AM_BUY(const ActorMsgPack &);
+        void on_AM_ACTION(const ActorMsgPack &);
+        void on_AM_NPCEVENT(const ActorMsgPack &);
+        void on_AM_NOTIFYNEWCO(const ActorMsgPack &);
+        void on_AM_BADACTORPOD(const ActorMsgPack &);
+        void on_AM_QUERYCORECORD(const ActorMsgPack &);
+        void on_AM_QUERYLOCATION(const ActorMsgPack &);
+        void on_AM_QUERYSELLITEMLIST(const ActorMsgPack &);
 
     private:
         void sendQuery(uint64_t, uint64_t, const std::string &);
@@ -105,5 +114,13 @@ class NPChar final: public CharObject
         void sendXMLLayout(uint64_t, std::string);
 
     public:
-        void operateAM(const MessagePack &) override;
+        void operateAM(const ActorMsgPack &) override;
+
+    private:
+        std::set<uint32_t> getSellItemIDList() const;
+        std::vector<SDCostItem> getCostItemList(const SDItem &) const;
+
+    private:
+        void fillSellItemList();
+        SDItem createSellItem(uint32_t, uint32_t) const;
 };

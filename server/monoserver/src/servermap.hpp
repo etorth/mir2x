@@ -28,7 +28,7 @@
 #include "totype.hpp"
 #include "sysconst.hpp"
 #include "querytype.hpp"
-#include "commonitem.hpp"
+#include "serdesmsg.hpp"
 #include "pathfinder.hpp"
 #include "cachequeue.hpp"
 #include "mir2xmapdata.hpp"
@@ -99,33 +99,21 @@ class ServerMap final: public ServerObject
         friend class ServerPathFinder;
 
     private:
-        struct MapCell
+        struct MapGrid
         {
-            bool Locked;
-            std::vector<uint64_t> UIDList;
+            bool locked = false;
+            std::vector<uint64_t> uidList;
+            std::vector<uint32_t> itemIDList;
 
-            uint32_t mapID;
-            int      switchX;
-            int      switchY;
-
-            CacheQueue<CommonItem, SYS_MAXDROPITEM> GroundItemQueue;
-
-            MapCell()
-                : Locked(false)
-                , mapID(0)
-                , switchX(-1)
-                , switchY(-1)
-                , GroundItemQueue()
-            {}
+            uint32_t mapID   =  0;
+            int      switchX = -1;
+            int      switchY = -1;
 
             bool empty() const
             {
-                return !Locked && UIDList.empty() && (mapID == 0) && GroundItemQueue.Empty();
+                return !locked && uidList.empty() && itemIDList.empty() && (mapID == 0);
             }
         };
-
-    private:
-        template<typename T> using Vec2D = std::vector<std::vector<T>>;
 
     private:
         const uint32_t     m_ID;
@@ -135,13 +123,13 @@ class ServerMap final: public ServerObject
         ServiceCore *m_serviceCore;
 
     private:
-        Vec2D<MapCell> m_cellVec2D;
+        std::vector<std::vector<MapGrid>> m_gridList;
 
     private:
         std::unique_ptr<ServerMapLuaModule> m_luaModulePtr;
 
     private:
-        void operateAM(const MessagePack &);
+        void operateAM(const ActorMsgPack &);
 
     public:
         ServerMap(ServiceCore *, uint32_t);
@@ -153,7 +141,7 @@ class ServerMap final: public ServerObject
     public:
         bool In(uint32_t nMapID, int nX, int nY) const
         {
-            return (nMapID == m_ID) && ValidC(nX, nY);
+            return (nMapID == m_ID) && validC(nX, nY);
         }
 
     public:
@@ -183,12 +171,12 @@ class ServerMap final: public ServerObject
         }
 
     public:
-        bool ValidC(int nX, int nY) const
+        bool validC(int nX, int nY) const
         {
             return m_mir2xMapData.ValidC(nX, nY);
         }
 
-        bool ValidP(int nX, int nY) const
+        bool validP(int nX, int nY) const
         {
             return m_mir2xMapData.ValidP(nX, nY);
         }
@@ -216,7 +204,9 @@ class ServerMap final: public ServerObject
         void notifyNewCO(uint64_t, int, int);
 
     private:
-        Player  *addPlayer (uint32_t,      int, int, int, bool);
+        Player *addPlayer(const SDInitPlayer &);
+
+    private:
         NPChar  *addNPChar (uint16_t,      int, int,      bool);
         Monster *addMonster(uint32_t, uint64_t, int, int, bool);
 
@@ -225,52 +215,60 @@ class ServerMap final: public ServerObject
         std::vector<std::u8string> getMonsterList() const;
 
     private:
-        auto &getCell(int nX, int nY)
+        const auto &getGrid(int x, int y) const
         {
-            if(!ValidC(nX, nY)){
-                throw fflerror("invalid location: x = %d, y = %d", nX, nY);
+            if(!validC(x, y)){
+                throw fflerror("invalid location: x = %d, y = %d", x, y);
             }
-            return m_cellVec2D[nX][nY];
+            return m_gridList.at(x).at(y);
         }
 
-        const auto &getCell(int nX, int nY) const
+        auto &getGrid(int x, int y)
         {
-            if(!ValidC(nX, nY)){
-                throw fflerror("invalid location: x = %d, y = %d", nX, nY);
+            return const_cast<MapGrid &>(static_cast<const ServerMap *>(this)->getGrid(x, y));
+        }
+
+    private:
+        const auto &getUIDList(int x, int y) const
+        {
+            return getGrid(x, y).uidList;
+        }
+
+        auto &getUIDList(int x, int y)
+        {
+            return getGrid(x, y).uidList;
+        }
+
+    private:
+        const auto &getGroundItemIDList(int x, int y) const
+        {
+            return getGrid(x, y).itemIDList;
+        }
+
+        auto &getGroundItemIDList(int x, int y)
+        {
+            return getGrid(x, y).itemIDList;
+        }
+
+    private:
+        void clearGroundItemIDList(int x, int y, bool post = true)
+        {
+            getGroundItemIDList(x, y).clear();
+            if(post){
+                postGroundItemIDList(x, y);
             }
-            return m_cellVec2D[nX][nY];
         }
 
     private:
-        auto &getUIDList(int nX, int nY)
-        {
-            return getCell(nX, nY).UIDList;
-        }
-
-        const auto &getUIDList(int nX, int nY) const
-        {
-            return getCell(nX, nY).UIDList;
-        }
+        bool hasGroundItemID(uint32_t, int, int) const;
+        size_t getGroundItemIDCount(uint32_t, int, int) const;
 
     private:
-        auto &GetGroundItemList(int nX, int nY)
-        {
-            return getCell(nX, nY).GroundItemQueue;
-        }
-
-        const auto &GetGroundItemList(int nX, int nY) const
-        {
-            return getCell(nX, nY).GroundItemQueue;
-        }
+        bool    addGroundItemID(uint32_t, int, int, bool = true);
+        void removeGroundItemID(uint32_t, int, int, bool = true);
 
     private:
-        int FindGroundItem(const CommonItem &, int, int);
-        int GroundItemCount(const CommonItem &, int, int);
-
-        bool AddGroundItem(const CommonItem &, int, int);
-        void RemoveGroundItem(const CommonItem &, int, int);
-
-        void ClearGroundItem(int, int);
+        void postGroundItemIDList(int, int);
 
     private:
         int CheckPathGrid(int, int) const;
@@ -278,7 +276,7 @@ class ServerMap final: public ServerObject
     private:
         template<std::predicate<uint64_t> F> bool doUIDList(int x, int y, const F &func)
         {
-            if(!ValidC(x, y)){
+            if(!validC(x, y)){
                 return false;
             }
 
@@ -302,7 +300,7 @@ class ServerMap final: public ServerObject
             if((doW > 0) && (doH > 0) && mathf::rectangleOverlapRegion(0, 0, W(), H(), &x0, &y0, &doW, &doH)){
                 for(int x = x0; x < x0 + doW; ++x){
                     for(int y = y0; y < y0 + doH; ++y){
-                        if(true || ValidC(x, y)){
+                        if(true || validC(x, y)){
                             if(mathf::LDistance2(x, y, cx0, cy0) <= (r - 1) * (r - 1)){
                                 if(f(x, y)){
                                     return true;
@@ -320,7 +318,7 @@ class ServerMap final: public ServerObject
             if((doW > 0) && (doH > 0) && mathf::rectangleOverlapRegion(0, 0, W(), H(), &x0, &y0, &doW, &doH)){
                 for(int x = x0; x < x0 + doW; ++x){
                     for(int y = y0; y < y0 + doH; ++y){
-                        if(true || ValidC(x, y)){
+                        if(true || validC(x, y)){
                             if(f(x, y)){
                                 return true;
                             }
@@ -335,22 +333,22 @@ class ServerMap final: public ServerObject
         bool DoCenterSquare(int, int, int, int, bool, const std::function<bool(int, int)> &);
 
     private:
-        void on_MPK_ACTION(const MessagePack &);
-        void on_MPK_PICKUP(const MessagePack &);
-        void on_MPK_OFFLINE(const MessagePack &);
-        void on_MPK_TRYMOVE(const MessagePack &);
-        void on_MPK_TRYLEAVE(const MessagePack &);
-        void on_MPK_PATHFIND(const MessagePack &);
-        void on_MPK_UPDATEHP(const MessagePack &);
-        void on_MPK_METRONOME(const MessagePack &);
-        void on_MPK_PULLCOINFO(const MessagePack &);
-        void on_MPK_BADACTORPOD(const MessagePack &);
-        void on_MPK_DEADFADEOUT(const MessagePack &);
-        void on_MPK_NEWDROPITEM(const MessagePack &);
-        void on_MPK_TRYMAPSWITCH(const MessagePack &);
-        void on_MPK_QUERYCOCOUNT(const MessagePack &);
-        void on_MPK_TRYSPACEMOVE(const MessagePack &);
-        void on_MPK_ADDCHAROBJECT(const MessagePack &);
+        void on_AM_ACTION(const ActorMsgPack &);
+        void on_AM_PICKUP(const ActorMsgPack &);
+        void on_AM_OFFLINE(const ActorMsgPack &);
+        void on_AM_TRYMOVE(const ActorMsgPack &);
+        void on_AM_TRYLEAVE(const ActorMsgPack &);
+        void on_AM_PATHFIND(const ActorMsgPack &);
+        void on_AM_UPDATEHP(const ActorMsgPack &);
+        void on_AM_METRONOME(const ActorMsgPack &);
+        void on_AM_PULLCOINFO(const ActorMsgPack &);
+        void on_AM_BADACTORPOD(const ActorMsgPack &);
+        void on_AM_DEADFADEOUT(const ActorMsgPack &);
+        void on_AM_NEWDROPITEM(const ActorMsgPack &);
+        void on_AM_TRYMAPSWITCH(const ActorMsgPack &);
+        void on_AM_QUERYCOCOUNT(const ActorMsgPack &);
+        void on_AM_TRYSPACEMOVE(const ActorMsgPack &);
+        void on_AM_ADDCHAROBJECT(const ActorMsgPack &);
 
     private:
         bool regLuaExport(ServerMapLuaModule *);

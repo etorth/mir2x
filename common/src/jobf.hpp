@@ -1,0 +1,64 @@
+/*
+ * =====================================================================================
+ *
+ *       Filename: jobf.hpp
+ *        Created: 08/31/2015 10:45:48 PM
+ *    Description:
+ *
+ *        Version: 1.0
+ *       Revision: none
+ *       Compiler: gcc
+ *
+ *         Author: ANHONG
+ *          Email: anhonghe@gmail.com
+ *   Organization: USTC
+ *
+ * =====================================================================================
+ */
+
+#include <vector>
+#include <string>
+#include "totype.hpp"
+#include "fflerror.hpp"
+#include "protocoldef.hpp"
+
+namespace jobf
+{
+    inline std::vector<int> getJobList(const std::string &s)
+    {
+        std::vector<int> jobList;
+        if(s.find(to_cstr(u8"道士")) != std::string::npos){
+            jobList.push_back(JOB_TAOIST);
+        }
+
+        if(s.find(to_cstr(u8"战士")) != std::string::npos){
+            jobList.push_back(JOB_WARRIOR);
+        }
+
+        if(s.find(to_cstr(u8"法师")) != std::string::npos){
+            jobList.push_back(JOB_MAGE);
+        }
+        return jobList;
+    }
+
+    inline std::u8string getJobString(const std::vector<int> &jobList)
+    {
+        if(jobList.empty()){
+            throw fflerror("empty job list");
+        }
+
+        std::u8string result;
+        for(const auto job: jobList){
+            if(const auto name = jobName(job); str_haschar(name)){
+                if(!result.empty()){
+                    result.push_back('|');
+                }
+                result += name;
+            }
+            else{
+                throw fflerror("invalid job id: %d", job);
+            }
+        }
+        return result;
+    }
+}

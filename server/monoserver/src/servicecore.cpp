@@ -36,47 +36,47 @@ ServiceCore::ServiceCore()
     , m_mapList()
 {}
 
-void ServiceCore::operateAM(const MessagePack &rstMPK)
+void ServiceCore::operateAM(const ActorMsgPack &rstMPK)
 {
-    switch(rstMPK.Type()){
-        case MPK_BADCHANNEL:
+    switch(rstMPK.type()){
+        case AM_BADCHANNEL:
             {
-                on_MPK_BADCHANNEL(rstMPK);
+                on_AM_BADCHANNEL(rstMPK);
                 break;
             }
-        case MPK_METRONOME:
+        case AM_METRONOME:
             {
-                on_MPK_METRONOME(rstMPK);
+                on_AM_METRONOME(rstMPK);
                 break;
             }
-        case MPK_ADDCHAROBJECT:
+        case AM_ADDCHAROBJECT:
             {
-                on_MPK_ADDCHAROBJECT(rstMPK);
+                on_AM_ADDCHAROBJECT(rstMPK);
                 break;
             }
-        case MPK_RECVPACKAGE:
+        case AM_RECVPACKAGE:
             {
-                on_MPK_RECVPACKAGE(rstMPK);
+                on_AM_RECVPACKAGE(rstMPK);
                 break;
             }
-        case MPK_QUERYMAPLIST:
+        case AM_QUERYMAPLIST:
             {
-                on_MPK_QUERYMAPLIST(rstMPK);
+                on_AM_QUERYMAPLIST(rstMPK);
                 break;
             }
-        case MPK_QUERYCOCOUNT:
+        case AM_QUERYCOCOUNT:
             {
-                on_MPK_QUERYCOCOUNT(rstMPK);
+                on_AM_QUERYCOCOUNT(rstMPK);
                 break;
             }
-        case MPK_QUERYMAPUID:
+        case AM_QUERYMAPUID:
             {
-                on_MPK_QUERYMAPUID(rstMPK);
+                on_AM_QUERYMAPUID(rstMPK);
                 break;
             }
         default:
             {
-                g_monoServer->addLog(LOGTYPE_WARNING, "Unsupported message: %s", mpkName(rstMPK.Type()));
+                g_monoServer->addLog(LOGTYPE_WARNING, "Unsupported message: %s", mpkName(rstMPK.type()));
                 break;
             }
     }

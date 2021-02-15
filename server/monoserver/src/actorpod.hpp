@@ -22,8 +22,8 @@
 #include <string>
 #include <functional>
 
-#include "messagebuf.hpp"
-#include "messagepack.hpp"
+#include "actormsgbuf.hpp"
+#include "actormsgpack.hpp"
 #include "actormonitor.hpp"
 
 class ActorPod final
@@ -34,12 +34,12 @@ class ActorPod final
     private:
         struct RespondHandler
         {
-            uint32_t ExpireTime;
-            std::function<void(const MessagePack &)> Operation;
+            uint32_t expireTime;
+            std::function<void(const ActorMsgPack &)> op;
 
-            RespondHandler(uint32_t nExpireTime, std::function<void(const MessagePack &)> stOperation)
-                : ExpireTime(nExpireTime)
-                , Operation(std::move(stOperation))
+            RespondHandler(uint32_t argExpireTime, std::function<void(const ActorMsgPack &)> argOp)
+                : expireTime(argExpireTime)
+                , op(std::move(argOp))
             {}
         };
 
@@ -63,7 +63,7 @@ class ActorPod final
         // handler to handle every informing messages
         // informing messges means we didn't register an handler for it
         // this handler is provided at the initialization time and never change
-        const std::function<void(const MessagePack &)> m_operation;
+        const std::function<void(const ActorMsgPack &)> m_operation;
 
     private:
         // used by ValidID()
@@ -93,7 +93,7 @@ class ActorPod final
     public:
         explicit ActorPod(uint64_t,                         // UID
                 std::function<void()>,                      // trigger
-                std::function<void(const MessagePack &)>,   // msgHandler
+                std::function<void(const ActorMsgPack &)>,   // msgHandler
                 uint32_t);                                  // timeout
 
     public:
@@ -103,23 +103,23 @@ class ActorPod final
         uint32_t GetValidID();
 
     private:
-        void innHandler(const MessagePack &);
+        void innHandler(const ActorMsgPack &);
 
     public:
-        bool forward(uint64_t nUID, const MessageBuf &rstMB)
+        bool forward(uint64_t nUID, const ActorMsgBuf &rstMB)
         {
             return forward(nUID, rstMB, 0);
         }
 
     public:
-        bool forward(uint64_t nUID, const MessageBuf &rstMB, std::function<void(const MessagePack &)> fnOPR)
+        bool forward(uint64_t nUID, const ActorMsgBuf &rstMB, std::function<void(const ActorMsgPack &)> fnOPR)
         {
             return forward(nUID, rstMB, 0, std::move(fnOPR));
         }
 
     public:
-        bool forward(uint64_t, const MessageBuf &, uint32_t);
-        bool forward(uint64_t, const MessageBuf &, uint32_t, std::function<void(const MessagePack &)>);
+        bool forward(uint64_t, const ActorMsgBuf &, uint32_t);
+        bool forward(uint64_t, const ActorMsgBuf &, uint32_t, std::function<void(const ActorMsgPack &)>);
 
     public:
         uint64_t UID() const

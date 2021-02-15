@@ -19,6 +19,7 @@
 #include <vector>
 #include "pack2d.hpp"
 #include "sysconst.hpp"
+#include "serdesmsg.hpp"
 
 class InvPack
 {
@@ -28,6 +29,10 @@ class InvPack
         const size_t m_w;
 
     private:
+        size_t m_gold = 0;
+
+    private:
+        SDItem m_grabbedItem;
         std::vector<PackBin> m_packBinList;
 
     public:
@@ -36,6 +41,11 @@ class InvPack
         {}
 
     public:
+        const auto &getGrabbedItem() const
+        {
+            return m_grabbedItem;
+        }
+
         const auto &getPackBinList() const
         {
             return m_packBinList;
@@ -54,24 +64,29 @@ class InvPack
         }
 
     public:
-        void add(uint32_t, size_t);
-        void add(uint32_t, size_t, int, int);
+        void add(SDItem);
+        void add(SDItem, int, int);
 
     public:
-        void addBin(const PackBin &bin)
+        size_t remove(uint32_t, uint32_t, size_t);
+
+    public:
+        size_t remove(const SDItem &item)
         {
-            add(bin.id, bin.count, bin.x, bin.y);
+            return remove(item.itemID, item.seqID, item.count);
         }
 
     public:
-        size_t remove(uint32_t, size_t, int, int);
+        static PackBin makePackBin(SDItem);
+        static std::tuple<int, int> getPackBinSize(uint32_t);
 
     public:
-        size_t removeBin(const PackBin &bin)
-        {
-            return remove(bin.id, bin.count, bin.x, bin.y);
-        }
+        void setGrabbedItem(SDItem);
 
     public:
-        static PackBin makePackBin(uint32_t, size_t);
+        void setGold(int);
+        void addGold(int);
+
+    public:
+        size_t getGold() const;
 };

@@ -27,20 +27,38 @@
 class ProcessRun;
 class PurchaseBoard: public Widget
 {
+    // NPC sell items in the small box
+    // +----------------------------
+    // | (19, 15)                (252, 15)
+    // |  *-----+----------------*
+    // |  |     |                |
+    // |  |     |(57, 53)        |
+    // |  +-----*----------------+
+    // | (19, 57)
+    // |  *-----+-----------
+    // |  |     |
+    // |  |     |
+    // |  +-----+-----------
+    // |
+    // +--------------------
+
     private:
-        constexpr static int m_boxW = 38;
-        constexpr static int m_boxH = 38;
+        constexpr static int m_startX = 19;
+        constexpr static int m_startY = 15;
+
+        constexpr static int m_boxW  = 57 - 19;
+        constexpr static int m_boxH  = 53 - 15;
+        constexpr static int m_lineH = 57 - 15;
 
     private:
         uint64_t m_npcUID = 0;
 
     private:
-        uint64_t m_extendedItemID = 0;
-        SDSellItem m_sellItem;
-
-    private:
         int m_ext1Page = 0;
         int m_ext1PageGridSelected = -1;
+
+    private:
+        SDSellItemList m_sdSellItemList;
 
     private:
         int m_selected = 0;
@@ -86,13 +104,12 @@ class PurchaseBoard: public Widget
 
     public:
         uint32_t selectedItemID() const;
-        uint32_t extendedItemID() const;
 
     private:
         void setExtendedItemID(uint32_t);
 
     public:
-        void setSellItem(SDSellItem);
+        void setSellItemList(SDSellItemList);
 
     private:
         int extendedBoardGfxID() const;
@@ -105,5 +122,13 @@ class PurchaseBoard: public Widget
         static std::tuple<int, int, int, int> getExt1PageGridLoc(int, int);
 
     private:
+        void drawExt1() const;
+        void drawExt2() const;
         void drawExt1GridHoverText(int) const;
+
+    private:
+        std::tuple<uint32_t, uint32_t> getExtSelectedItemSeqID() const;
+
+    private:
+        size_t getItemPrice(int) const;
 };

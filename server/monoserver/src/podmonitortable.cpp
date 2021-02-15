@@ -132,7 +132,7 @@ void PodMonitorTable::sortTable()
 
 int PodMonitorTable::selectAMTypeRow(int amType)
 {
-    if(amType == MPK_NONE){
+    if(amType == AM_NONE){
         return -1;
     }
 
@@ -176,7 +176,7 @@ void PodMonitorTable::updateTable()
 PodMonitorTable::PodMonitorDrawHelper PodMonitorTable::getPodMonitorDrawHelper(const ActorPodMonitor &podMonitor)
 {
     PodMonitorDrawHelper result;
-    result.amProcMonitorList.reserve(MPK_MAX / 10);
+    result.amProcMonitorList.reserve(AM_MAX / 10);
 
     for(int amType = 0; const auto &monitor: podMonitor.amProcMonitorList){
         result.maxSendCount   = std::max<size_t>(result.maxSendCount, monitor.sendCount);

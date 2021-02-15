@@ -30,8 +30,7 @@ enum SMType: uint8_t
     SM_ACCOUNT,
     SM_LOGINOK,
     SM_LOGINFAIL,
-    SM_PLAYERLOOK,
-    SM_PLAYERWEAR,
+    SM_PLAYERWLDESP,
     SM_ACTION,
     SM_CORECORD,
     SM_UPDATEHP,
@@ -39,20 +38,27 @@ enum SMType: uint8_t
     SM_DEADFADEOUT,
     SM_EXP,
     SM_MISS,
-    SM_SHOWDROPITEM,
     SM_CASTMAGIC,
     SM_SPACEMOVE,
     SM_OFFLINE,
-    SM_PICKUPOK,
+    SM_PICKUPERROR,
     SM_REMOVEGROUNDITEM,
     SM_NPCXMLLAYOUT,
     SM_NPCSELL,
     SM_GOLD,
-    SM_SELLITEM,
+    SM_SELLITEMLIST,
     SM_TEXT,
     SM_PLAYERNAME,
     SM_BUILDVERSION,
-    SM_MAX,
+    SM_INVENTORY,
+    SM_BELTITEMLIST,
+    SM_ADDITEM,
+    SM_REMOVEITEM,
+    SM_BUYSUCCEED,
+    SM_BUYERROR,
+    SM_GROUNDITEMIDLIST,
+    SM_EXEEDINVWEIGHT,
+    SM_END,
 };
 
 #pragma pack(push, 1)
@@ -74,47 +80,22 @@ struct SMAccount
     char Password[128];
 };
 
-struct SMLoginOK
-{
-    uint64_t UID;
-    uint32_t MapID;
-    uint32_t Level;
-
-    uint16_t X;
-    uint16_t Y;
-    uint8_t Direction;
-
-    PlayerLook look;
-};
-
 struct SMLoginFail
 {
-    uint32_t FailID;
-};
-
-struct SMPlayerLook
-{
-    uint64_t uid;
-    PlayerLook look;
-};
-
-struct SMPlayerWear
-{
-    uint64_t uid;
-    PlayerWear wear;
+    uint32_t error;
 };
 
 struct SMAction
 {
     uint64_t UID;
-    uint32_t MapID;
+    uint32_t mapID;
     ActionNode action;
 };
 
 struct SMCORecord
 {
     uint64_t UID;
-    uint32_t MapID;
+    uint32_t mapID;
     ActionNode action;
 
     struct _SMCORecord_Monster
@@ -143,7 +124,7 @@ struct SMCORecord
 struct SMUpdateHP
 {
     uint64_t UID;
-    uint32_t MapID;
+    uint32_t mapID;
 
     uint32_t HP;
     uint32_t HPMax;
@@ -152,7 +133,7 @@ struct SMUpdateHP
 struct SMDeadFadeOut
 {
     uint64_t UID;
-    uint32_t MapID;
+    uint32_t mapID;
 
     uint32_t X;
     uint32_t Y;
@@ -173,22 +154,10 @@ struct SMMiss
     uint64_t UID;
 };
 
-struct SMShowDropItem
-{
-    struct _CommonItem
-    {
-        uint32_t ID;
-        uint32_t DBID;
-    }IDList[16];
-
-    uint16_t X;
-    uint16_t Y;
-};
-
 struct SMCastMagic
 {
     uint64_t UID;
-    uint32_t MapID;
+    uint32_t mapID;
 
     uint8_t Magic;
     uint8_t MagicParam;
@@ -205,7 +174,7 @@ struct SMCastMagic
 struct SMOffline
 {
     uint64_t UID;
-    uint32_t MapID;
+    uint32_t mapID;
 };
 
 struct SMRemoveGroundItem
@@ -216,17 +185,9 @@ struct SMRemoveGroundItem
     uint32_t DBID;
 };
 
-struct SMPickUpOK
-{
-    uint16_t X;
-    uint16_t Y;
-    uint32_t ID;
-    uint32_t DBID;
-};
-
 struct SMGold
 {
-    uint32_t Gold;
+    uint32_t gold;
 };
 
 struct SMPlayerName
@@ -239,6 +200,33 @@ struct SMPlayerName
 struct SMBuildVersion
 {
     char version[128];
+};
+
+struct SMRemoveItem
+{
+    uint32_t itemID;
+    uint32_t  seqID;
+    uint16_t  count;
+};
+
+struct SMBuyError
+{
+    uint64_t npcUID;
+    uint32_t itemID;
+    uint32_t  seqID;
+    uint16_t  error;
+};
+
+struct SMGroundItemIDList
+{
+    uint16_t x;
+    uint16_t y;
+    uint32_t itemIDList[SYS_MAXDROPITEM];
+};
+
+struct SMPickUpError
+{
+    uint32_t failedItemID;
 };
 #pragma pack(pop)
 
@@ -262,10 +250,9 @@ class ServerMsg final: public MsgBase
                 _add_server_msg_type_case(SM_NONE_0,           0, 0                         )
                 _add_server_msg_type_case(SM_PING,             2, sizeof(SMPing)            )
                 _add_server_msg_type_case(SM_ACCOUNT,          1, sizeof(SMAccount)         )
-                _add_server_msg_type_case(SM_LOGINOK,          1, sizeof(SMLoginOK)         )
+                _add_server_msg_type_case(SM_LOGINOK,          3, 0                         )
                 _add_server_msg_type_case(SM_LOGINFAIL,        2, sizeof(SMLoginFail)       )
-                _add_server_msg_type_case(SM_PLAYERLOOK,       1, sizeof(SMPlayerLook)      )
-                _add_server_msg_type_case(SM_PLAYERWEAR,       1, sizeof(SMPlayerWear)      )
+                _add_server_msg_type_case(SM_PLAYERWLDESP,     3, 0                         )
                 _add_server_msg_type_case(SM_ACTION,           1, sizeof(SMAction)          )
                 _add_server_msg_type_case(SM_CORECORD,         1, sizeof(SMCORecord)        )
                 _add_server_msg_type_case(SM_UPDATEHP,         1, sizeof(SMUpdateHP)        )
@@ -273,18 +260,23 @@ class ServerMsg final: public MsgBase
                 _add_server_msg_type_case(SM_DEADFADEOUT,      1, sizeof(SMDeadFadeOut)     )
                 _add_server_msg_type_case(SM_EXP,              1, sizeof(SMExp)             )
                 _add_server_msg_type_case(SM_MISS,             1, sizeof(SMMiss)            )
-                _add_server_msg_type_case(SM_SHOWDROPITEM,     1, sizeof(SMShowDropItem)    )
                 _add_server_msg_type_case(SM_CASTMAGIC,        1, sizeof(SMCastMagic)       )
                 _add_server_msg_type_case(SM_OFFLINE,          1, sizeof(SMOffline)         )
-                _add_server_msg_type_case(SM_PICKUPOK,         1, sizeof(SMPickUpOK)        )
                 _add_server_msg_type_case(SM_REMOVEGROUNDITEM, 1, sizeof(SMRemoveGroundItem))
                 _add_server_msg_type_case(SM_NPCXMLLAYOUT,     3, 0                         )
                 _add_server_msg_type_case(SM_NPCSELL,          3, 0                         )
                 _add_server_msg_type_case(SM_GOLD,             1, sizeof(SMGold)            )
-                _add_server_msg_type_case(SM_SELLITEM,         3, 0                         )
+                _add_server_msg_type_case(SM_SELLITEMLIST,     3, 0                         )
                 _add_server_msg_type_case(SM_TEXT,             3, 0                         )
                 _add_server_msg_type_case(SM_PLAYERNAME,       1, sizeof(SMPlayerName)      )
                 _add_server_msg_type_case(SM_BUILDVERSION,     1, sizeof(SMBuildVersion)    )
+                _add_server_msg_type_case(SM_INVENTORY,        3, 0                         )
+                _add_server_msg_type_case(SM_ADDITEM,          3, 0                         )
+                _add_server_msg_type_case(SM_REMOVEITEM,       1, sizeof(SMRemoveItem)      )
+                _add_server_msg_type_case(SM_BUYSUCCEED,       3, 0                         )
+                _add_server_msg_type_case(SM_BUYERROR,         1, sizeof(SMBuyError)        )
+                _add_server_msg_type_case(SM_GROUNDITEMIDLIST, 1, sizeof(SMGroundItemIDList))
+                _add_server_msg_type_case(SM_PICKUPERROR,      1, sizeof(SMPickUpError)     )
 #undef _add_server_msg_type_case
             };
 
@@ -300,10 +292,7 @@ class ServerMsg final: public MsgBase
             static_assert(false
                     || std::is_same_v<T, SMPing>
                     || std::is_same_v<T, SMAccount>
-                    || std::is_same_v<T, SMLoginOK>
                     || std::is_same_v<T, SMLoginFail>
-                    || std::is_same_v<T, SMPlayerLook>
-                    || std::is_same_v<T, SMPlayerWear>
                     || std::is_same_v<T, SMAction>
                     || std::is_same_v<T, SMCORecord>
                     || std::is_same_v<T, SMUpdateHP>
@@ -311,14 +300,16 @@ class ServerMsg final: public MsgBase
                     || std::is_same_v<T, SMDeadFadeOut>
                     || std::is_same_v<T, SMExp>
                     || std::is_same_v<T, SMMiss>
-                    || std::is_same_v<T, SMShowDropItem>
                     || std::is_same_v<T, SMCastMagic>
                     || std::is_same_v<T, SMOffline>
-                    || std::is_same_v<T, SMPickUpOK>
                     || std::is_same_v<T, SMRemoveGroundItem>
                     || std::is_same_v<T, SMPlayerName>
                     || std::is_same_v<T, SMBuildVersion>
-                    || std::is_same_v<T, SMGold>);
+                    || std::is_same_v<T, SMRemoveItem>
+                    || std::is_same_v<T, SMGold>
+                    || std::is_same_v<T, SMGroundItemIDList>
+                    || std::is_same_v<T, SMBuyError>
+                    || std::is_same_v<T, SMPickUpError>);
 
             if(bufLen && bufLen != sizeof(T)){
                 throw fflerror("invalid buffer length");

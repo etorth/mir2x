@@ -20,7 +20,7 @@
 #include <vector>
 #include <cstdint>
 #include <condition_variable>
-#include "messagepack.hpp"
+#include "actormsgpack.hpp"
 
 class Receiver
 {
@@ -35,7 +35,7 @@ class Receiver
         std::condition_variable m_condition;
 
     private:
-        std::vector<MessagePack> m_messageList;
+        std::vector<ActorMsgPack> m_messageList;
 
     public:
         Receiver();
@@ -50,11 +50,11 @@ class Receiver
         }
 
     private:
-        void pushMessage(MessagePack);
+        void pushMessage(ActorMsgPack);
 
     public:
         size_t Wait(uint32_t = 0);
 
     public:
-        std::vector<MessagePack> Pop();
+        std::vector<ActorMsgPack> Pop();
 };

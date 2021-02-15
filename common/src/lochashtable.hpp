@@ -28,10 +28,10 @@ struct LocHashHelper
     size_t operator() (const std::tuple<int, int> &parm) const
     {
         const auto [x, y] = parm;
-        if(x >= 0 && x < INT16_MAX && y >= 0 && y < INT16_MAX){
-            return (size_t)(y) * (size_t)(INT16_MAX) + (size_t)(x);
+        if(x < 0 || y < 0){
+            throw fflerror("invalid location: x = %d, y = %d", x, y);
         }
-        throw fflerror("invalid location: x = %lld, y = %lld", to_lld(x), to_lld(y));
+        return to_uz((to_u64(y) << 32) | to_u64(x));
     }
 };
 

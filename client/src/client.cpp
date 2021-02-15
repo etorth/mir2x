@@ -200,8 +200,8 @@ void Client::onServerMessage(uint8_t headCode, const uint8_t *pData, size_t nDat
         sendSMsgLog(headCode);
     }
 
-    m_clientMonitor.SMProcMonitorList[headCode].RecvCount++;
-    raii_timer stTimer(&(m_clientMonitor.SMProcMonitorList[headCode].ProcTick));
+    m_clientMonitor.SMProcMonitorList[headCode].recvCount++;
+    raii_timer stTimer(&(m_clientMonitor.SMProcMonitorList[headCode].procTick));
 
     // 2. handle messages
     switch(headCode){
@@ -247,17 +247,10 @@ void Client::onServerMessage(uint8_t headCode, const uint8_t *pData, size_t nDat
                 }
                 break;
             }
-        case SM_PLAYERLOOK:
+        case SM_PLAYERWLDESP:
             {
                 if(auto runPtr = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
-                    runPtr->net_PLAYERLOOK(pData, nDataLen);
-                }
-                break;
-            }
-        case SM_PLAYERWEAR:
-            {
-                if(auto runPtr = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
-                    runPtr->net_PLAYERWEAR(pData, nDataLen);
+                    runPtr->net_PLAYERWLDESP(pData, nDataLen);
                 }
                 break;
             }
@@ -296,17 +289,17 @@ void Client::onServerMessage(uint8_t headCode, const uint8_t *pData, size_t nDat
                 }
                 break;
             }
-        case SM_SHOWDROPITEM:
+        case SM_GROUNDITEMIDLIST:
             {
                 if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
-                    pRun->net_SHOWDROPITEM(pData, nDataLen);
+                    pRun->net_GROUNDITEMIDLIST(pData, nDataLen);
                 }
                 break;
             }
-        case SM_PICKUPOK:
+        case SM_PICKUPERROR:
             {
                 if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
-                    pRun->net_PICKUPOK(pData, nDataLen);
+                    pRun->net_PICKUPERROR(pData, nDataLen);
                 }
                 break;
             }
@@ -317,10 +310,10 @@ void Client::onServerMessage(uint8_t headCode, const uint8_t *pData, size_t nDat
                 }
                 break;
             }
-        case SM_SELLITEM:
+        case SM_SELLITEMLIST:
             {
                 if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
-                    pRun->net_SELLITEM(pData, nDataLen);
+                    pRun->net_SELLITEMLIST(pData, nDataLen);
                 }
                 break;
             }
@@ -329,8 +322,9 @@ void Client::onServerMessage(uint8_t headCode, const uint8_t *pData, size_t nDat
                 SwitchProcess(m_currentProcess->ID(), PROCESSID_RUN);
                 if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
                     pRun->net_LOGINOK(pData, nDataLen);
-                }else{
-                    g_log->addLog(LOGTYPE_INFO, "failed to jump into main loop");
+                }
+                else{
+                    throw fflerror("failed to switch to ProcessRun");
                 }
                 break;
             }
@@ -343,13 +337,27 @@ void Client::onServerMessage(uint8_t headCode, const uint8_t *pData, size_t nDat
             }
         case SM_LOGINFAIL:
             {
-                g_log->addLog(LOGTYPE_WARNING, "Login failed: ID = %d", (int)(((SMLoginFail *)(pData))->FailID));
+                g_log->addLog(LOGTYPE_WARNING, "Login failed: error = %llu", to_llu(ServerMsg::conv<SMLoginFail>(pData).error));
                 break;
             }
         case SM_ACTION:
             {
                 if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
                     pRun->net_ACTION(pData, nDataLen);
+                }
+                break;
+            }
+        case SM_ADDITEM:
+            {
+                if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+                    pRun->net_ADDITEM(pData, nDataLen);
+                }
+                break;
+            }
+        case SM_REMOVEITEM:
+            {
+                if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+                    pRun->net_REMOVEITEM(pData, nDataLen);
                 }
                 break;
             }
@@ -498,12 +506,12 @@ void Client::sendSMsgLog(uint8_t headCode)
 
 void Client::PrintMonitor() const
 {
-    g_log->addLog(LOGTYPE_DEBUG, "Client runs %" PRIu64 " msec", m_clientTimer.diff_msec());
-    for(size_t nIndex = 0; nIndex < SM_MAX; ++nIndex){
-        uint64_t nProcTick  = m_clientMonitor.SMProcMonitorList[nIndex].ProcTick / 1000000;
-        uint64_t nRecvCount = m_clientMonitor.SMProcMonitorList[nIndex].RecvCount;
+    g_log->addLog(LOGTYPE_DEBUG, "Client runs %llu msec", to_llu(m_clientTimer.diff_msec()));
+    for(size_t nIndex = 0; nIndex < SM_END; ++nIndex){
+        uint64_t nProcTick  = m_clientMonitor.SMProcMonitorList[nIndex].procTick / 1000000;
+        uint64_t nRecvCount = m_clientMonitor.SMProcMonitorList[nIndex].recvCount;
         if(nRecvCount > 0){
-            g_log->addLog(LOGTYPE_DEBUG, "%s: RecvCount = %" PRIu64 ", ProcTick = %" PRIu64 "msec", ServerMsg(nIndex).name().c_str(), nRecvCount, nProcTick);
+            g_log->addLog(LOGTYPE_DEBUG, "%s: recvCount = %llu, procTick = %llumsec", ServerMsg(nIndex).name().c_str(), to_llu(nRecvCount), to_llu(nProcTick));
         }
     }
 }

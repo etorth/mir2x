@@ -149,10 +149,9 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
           nullptr,
           [this]()
           {
-              const auto itemID = extendedItemID();
-              if(const auto &ir = DBCOM_ITEMRECORD(itemID)){
-                  m_processRun->getMyHero()->getInvPack().add(itemID, 1);
-                  m_processRun->addCBLog(CBLOG_SYS, u8"直接获得1个%s", to_cstr(ir.name));
+              const auto [itemID, seqID] = getExtSelectedItemSeqID();
+              if(itemID){
+                  m_processRun->requestBuy(m_npcUID, itemID, seqID, 1);
               }
           },
 
@@ -230,9 +229,17 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
           nullptr,
           [this]()
           {
-              const auto itemID = extendedItemID();
+              const auto [itemID, seqID] = getExtSelectedItemSeqID();
+              if(!itemID){
+                  return;
+              }
+
+              if(seqID != 0){
+                  throw fflerror("unexpected seqID = %llu", to_llu(seqID));
+              }
+
               const auto headerString = str_printf(u8"<par>请输入你要购买<t color=\"0xffff00ff\">%s</t>的数量</par>", to_cstr(DBCOM_ITEMRECORD(itemID).name));
-              dynamic_cast<InputStringBoard *>(m_processRun->getWidget("InputStringBoard"))->waitInput(headerString, [itemID, this](std::u8string inputString)
+              dynamic_cast<InputStringBoard *>(m_processRun->getWidget("InputStringBoard"))->waitInput(headerString, [itemID, npcUID = m_npcUID, this](std::u8string inputString)
               {
                   const auto &ir = DBCOM_ITEMRECORD(itemID);
                   int count = 0;
@@ -244,8 +251,7 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
                   }
 
                   if(ir && count > 0){
-                      m_processRun->getMyHero()->getInvPack().add(itemID, count);
-                      m_processRun->addCBLog(CBLOG_SYS, u8"直接获得 %d个%s", count, to_cstr(ir.name));
+                      m_processRun->requestBuy(npcUID, itemID, 0, count);
                   }
               });
           },
@@ -297,28 +303,7 @@ void PurchaseBoard::drawEx(int dstX, int dstY, int, int, int, int) const
     m_selectButton.draw();
     m_slider      .draw();
 
-    // NPC sell items in the small box
-    // +----------------------------
-    // | (19, 15)                (252, 15)
-    // |  *-----+----------------*
-    // |  |     |                |
-    // |  |     |(57, 53)        |
-    // |  +-----*----------------+
-    // | (19, 57)
-    // |  *-----+-----------
-    // |  |     |
-    // |  |     |
-    // |  +-----+-----------
-    // |
-    // +--------------------
-
-    constexpr int startX = 19;
-    /*     */ int startY = 15;
-
-    constexpr int boxW  = 57 - 19;
-    constexpr int boxH  = 53 - 15;
-    constexpr int lineH = 57 - 15;
-
+    int startY = m_startY;
     LabelBoard label
     {
         0, // reset when drawing item
@@ -336,145 +321,26 @@ void PurchaseBoard::drawEx(int dstX, int dstY, int, int, int, int) const
         if(const auto &ir = DBCOM_ITEMRECORD(m_itemList[i])){
             if(auto texPtr = g_itemDB->Retrieve(ir.pkgGfxID | 0X02000000)){
                 const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);
-                const int drawX = startX + (boxW - texW) / 2;
-                const int drawY = startY + (boxH - texH) / 2;
+                const int drawX = m_startX + (m_boxW - texW) / 2;
+                const int drawY =   startY + (m_boxH - texH) / 2;
                 g_sdlDevice->drawTexture(texPtr, x() + drawX, y() + drawY);
             }
 
             label.setText(u8"%s", to_cstr(ir.name));
-            label.moveTo(x() + startX + boxW + 10, y() + startY + (boxH - label.h()) / 2);
+            label.moveTo(x() + m_startX + m_boxW + 10, y() + startY + (m_boxH - label.h()) / 2);
             label.draw();
 
             if(m_selected == (int)(i)){
-                g_sdlDevice->fillRectangle(colorf::WHITE + 64, startX, startY, 252 - 19, boxH);
+                g_sdlDevice->fillRectangle(colorf::WHITE + 64, m_startX, startY, 252 - 19, m_boxH);
             }
-            startY += lineH;
+            startY += m_lineH;
         }
     }
 
     switch(extendedBoardGfxID()){
-        case 1:
-            {
-                int cursorOnGridIndex = -1;
-                const int ext1PageCount = extendedPageCount();
-                if(ext1PageCount > 0 && m_extendedItemID == m_sellItem.itemID){
-                    if(const auto &ir = DBCOM_ITEMRECORD(m_extendedItemID)){
-                        if(auto texPtr = g_itemDB->Retrieve(ir.pkgGfxID | 0X02000000)){
-                            constexpr int rightStartX = 313;
-                            constexpr int rightStartY =  41;
-                            const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);
-                            if(m_ext1Page >= ext1PageCount){
-                                throw fflerror("invalid ext1Page: ext1Page = %d, listSize = %zu", m_ext1Page, m_sellItem.list.data.size());
-                            }
-
-                            for(int r = 0; r < 3; ++r){
-                                for(int c = 0; c < 4; ++c){
-                                    const size_t i = m_ext1Page * 3 * 4 + r * 4 + c;
-                                    if(i >= m_sellItem.list.data.size()){
-                                        break;
-                                    }
-
-                                    const int rightBoxX = rightStartX + c * boxW;
-                                    const int rightBoxY = rightStartY + r * boxH;
-                                    const int rightDrawX = rightBoxX + (boxW - texW) / 2;
-                                    const int rightDrawY = rightBoxY + (boxH - texH) / 2;
-                                    const LabelBoard itemPrice
-                                    {
-                                        0, // reset by new width
-                                        0,
-                                        to_u8cstr(std::to_string(m_sellItem.list.data[i].price)),
-
-                                        1,
-                                        10,
-                                        0,
-
-                                        colorf::RGBA(0XFF, 0XFF, 0X00, 0XFF),
-                                    };
-
-                                    g_sdlDevice->drawTexture(texPtr, x() + rightDrawX, y() + rightDrawY);
-                                    itemPrice.drawAt(DIR_UPLEFT, x() + rightBoxX, y() + rightBoxY);
-
-                                    const auto [mousePX, mousePY] = SDLDeviceHelper::getMousePLoc();
-                                    const bool gridSelected = (m_ext1PageGridSelected >= 0) && ((size_t)(m_ext1PageGridSelected) == i);
-                                    const bool cursorOn = [rightBoxX, rightBoxY, boxW, boxH, mousePX, mousePY, this]() -> bool
-                                    {
-                                        return mathf::pointInRectangle<int>(mousePX, mousePY, x() + rightBoxX, y() + rightBoxY, boxW, boxH);
-                                    }();
-
-                                    if(gridSelected || cursorOn){
-                                        const uint32_t gridColor = gridSelected ? (colorf::BLUE + 96) : (colorf::WHITE + 96);
-                                        g_sdlDevice->fillRectangle(gridColor, x() + rightBoxX, y() + rightBoxY, boxW, boxH);
-                                    }
-
-                                    if(cursorOn){
-                                        cursorOnGridIndex = (int)(i);
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    const LabelBoard pageIndexLabel
-                    {
-                        0, // reset by new width
-                        0,
-                        str_printf(u8"第%d/%d页", m_ext1Page + 1, ext1PageCount).c_str(),
-
-                        1,
-                        12,
-                        0,
-
-                        colorf::RGBA(0XFF, 0XFF, 0X00, 0XFF),
-                    };
-                    pageIndexLabel.drawAt(DIR_NONE, x() + 389, y() + 18);
-                }
-
-                m_closeExt1Button .draw();
-                m_leftExt1Button  .draw();
-                m_selectExt1Button.draw();
-                m_rightExt1Button .draw();
-
-                if(cursorOnGridIndex >= 0){
-                    drawExt1GridHoverText(cursorOnGridIndex);
-                }
-                break;
-            }
-        case 2:
-            {
-                if(const auto &ir = DBCOM_ITEMRECORD(m_extendedItemID)){
-                    if(auto texPtr = g_itemDB->Retrieve(ir.pkgGfxID | 0X02000000)){
-                        constexpr int rightStartX = 303;
-                        constexpr int rightStartY =  16;
-                        const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);
-                        const int rightDrawX = rightStartX + (boxW - texW) / 2;
-                        const int rightDrawY = rightStartY + (boxH - texH) / 2;
-                        g_sdlDevice->drawTexture(texPtr, x() + rightDrawX, y() + rightDrawY);
-                        if(m_extendedItemID == m_sellItem.itemID){
-                            const LabelBoard itemPrice
-                            {
-                                0, // reset by new width
-                                0,
-                                str_printf(u8"%s 金币", to_cstr(str_ksep(m_sellItem.single.price))).c_str(),
-
-                                1,
-                                13,
-                                0,
-
-                                colorf::RGBA(0XFF, 0XFF, 0X00, 0XFF),
-                            };
-                            itemPrice.drawAt(DIR_LEFT, x() + 350 + 3, y() + 35);
-                        }
-                    }
-                }
-
-                m_closeExt2Button .draw();
-                m_selectExt2Button.draw();
-                break;
-            }
-        default:
-            {
-                break;
-            }
+        case 1: drawExt1(); break;
+        case 2: drawExt2(); break;
+        default: break;
     }
 }
 
@@ -555,7 +421,7 @@ bool PurchaseBoard::processEvent(const SDL_Event &event, bool valid)
                     }
                 }
 
-                if(const int gridIndex = getExt1PageGrid(); gridIndex >= 0 && extendedPageCount() > 0 && m_ext1Page * 3 * 4 + gridIndex < (int)(m_sellItem.list.data.size())){
+                if(const int gridIndex = getExt1PageGrid(); gridIndex >= 0 && extendedPageCount() > 0 && m_ext1Page * 3 * 4 + gridIndex < (int)(m_sdSellItemList.list.size())){
                     m_ext1PageGridSelected = m_ext1Page * 3 * 4 + gridIndex;
                 }
                 break;
@@ -611,36 +477,34 @@ uint32_t PurchaseBoard::selectedItemID() const
 
 void PurchaseBoard::setExtendedItemID(uint32_t itemID)
 {
-    m_extendedItemID = itemID;
     m_ext1PageGridSelected = -1;
-
-    if(m_extendedItemID){
-        CMQuerySellItem cmQSI;
-        std::memset(&cmQSI, 0, sizeof(cmQSI));
-        cmQSI.npcUID = m_npcUID;
-        cmQSI.itemID = m_extendedItemID;
-        g_client->send(CM_QUERYSELLITEM, cmQSI);
+    if(itemID){
+        CMQuerySellItemList cmQSIL;
+        std::memset(&cmQSIL, 0, sizeof(cmQSIL));
+        cmQSIL.npcUID = m_npcUID;
+        cmQSIL.itemID =   itemID;
+        g_client->send(CM_QUERYSELLITEMLIST, cmQSIL);
     }
     else{
-        m_sellItem.clear();
+        m_sdSellItemList.clear();
     }
 }
 
-void PurchaseBoard::setSellItem(SDSellItem sdSI)
+void PurchaseBoard::setSellItemList(SDSellItemList sdSIL)
 {
-    if(m_extendedItemID == sdSI.itemID){
-        m_sellItem = std::move(sdSI);
+    if(m_npcUID == sdSIL.npcUID){
+        m_sdSellItemList = std::move(sdSIL);
     }
     else{
-        m_sellItem.clear();
+        m_sdSellItemList.clear();
     }
     m_ext1Page = 0;
 }
 
 int PurchaseBoard::extendedBoardGfxID() const
 {
-    if(m_extendedItemID){
-        return DBCOM_ITEMRECORD(m_extendedItemID).hasDBID() ? 1 : 2;
+    if(m_sdSellItemList.npcUID && !m_sdSellItemList.list.empty()){
+        return DBCOM_ITEMRECORD(m_sdSellItemList.list.front().item.itemID).packable() ? 1 : 2;
     }
     return 0;
 }
@@ -651,14 +515,10 @@ int PurchaseBoard::extendedPageCount() const
         return -1;
     }
 
-    if(m_extendedItemID != m_sellItem.itemID){
+    if(m_sdSellItemList.list.empty()){
         return 0;
     }
-
-    if(m_sellItem.list.data.empty()){
-        return 0;
-    }
-    return (int)(m_sellItem.list.data.size() + 11) / 12;
+    return (int)(m_sdSellItemList.list.size() + 11) / 12;
 }
 
 int PurchaseBoard::getExt1PageGrid() const
@@ -696,7 +556,7 @@ void PurchaseBoard::drawExt1GridHoverText(int itemIndex) const
         throw bad_reach();
     }
 
-    if(!(itemIndex >= 0 && itemIndex < (int)(m_sellItem.list.data.size()))){
+    if(!(itemIndex >= 0 && itemIndex < (int)(m_sdSellItemList.list.size()))){
         throw fflerror("invalid argument: itemIndex = %d", itemIndex);
     }
 
@@ -711,7 +571,7 @@ void PurchaseBoard::drawExt1GridHoverText(int itemIndex) const
         u8R"###( </layout>                                              )###""\n",
 
         ir.name,
-        to_llu(m_sellItem.list.data.at(itemIndex).price),
+        to_llu(getItemPrice(itemIndex)),
         str_haschar(ir.description) ? ir.description : u8"暂无描述"
     );
 
@@ -741,9 +601,187 @@ void PurchaseBoard::drawExt1GridHoverText(int itemIndex) const
     hoverTextBoard.drawAt(DIR_UPLEFT, mousePX + 10, mousePY + 10);
 }
 
-uint32_t PurchaseBoard::extendedItemID() const
+void PurchaseBoard::drawExt1() const
 {
-    // TODO
-    // for ext1 we should return the grid, not the item id
-    return m_extendedItemID;
+    if(extendedBoardGfxID() != 1){
+        throw bad_reach();
+    }
+
+    m_closeExt1Button .draw();
+    m_leftExt1Button  .draw();
+    m_selectExt1Button.draw();
+    m_rightExt1Button .draw();
+
+    const int ext1PageCount = extendedPageCount();
+    if(ext1PageCount <= 0){
+        return;
+    }
+
+    if(m_ext1Page >= ext1PageCount){
+        throw fflerror("invalid ext1Page: ext1Page = %d, listSize = %zu", m_ext1Page, m_sdSellItemList.list.size());
+    }
+
+    int cursorOnGridIndex = -1;
+    for(int r = 0; r < 3; ++r){
+        for(int c = 0; c < 4; ++c){
+            const size_t i = m_ext1Page * 3 * 4 + r * 4 + c;
+            if(i >= m_sdSellItemList.list.size()){
+                break;
+            }
+
+            const auto &sellItem = m_sdSellItemList.list.at(i);
+            const auto &ir = DBCOM_ITEMRECORD(sellItem.item.itemID);
+            if(!ir){
+                throw fflerror("bad item in sell list: itemID = %llu, seqID = %llu", to_llu(sellItem.item.itemID), to_llu(sellItem.item.seqID));
+            }
+
+            constexpr int rightStartX = 313;
+            constexpr int rightStartY =  41;
+            const int rightBoxX = rightStartX + c * m_boxW;
+            const int rightBoxY = rightStartY + r * m_boxH;
+
+            if(auto texPtr = g_itemDB->Retrieve(ir.pkgGfxID | 0X02000000)){
+                const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);
+                const int rightDrawX = rightBoxX + (m_boxW - texW) / 2;
+                const int rightDrawY = rightBoxY + (m_boxH - texH) / 2;
+                g_sdlDevice->drawTexture(texPtr, x() + rightDrawX, y() + rightDrawY);
+            }
+
+            LabelBoard
+            {
+                0,
+                0,
+                to_u8cstr(str_ksep(getItemPrice(i))),
+
+                1,
+                10,
+                0,
+
+                colorf::RGBA(0XFF, 0XFF, 0X00, 0XFF),
+            }.drawAt(DIR_UPLEFT, x() + rightBoxX, y() + rightBoxY);
+
+            const auto [mousePX, mousePY] = SDLDeviceHelper::getMousePLoc();
+            const bool gridSelected = (m_ext1PageGridSelected >= 0) && ((size_t)(m_ext1PageGridSelected) == i);
+            const bool cursorOn = [rightBoxX, rightBoxY, mousePX, mousePY, this]() -> bool
+            {
+                return mathf::pointInRectangle<int>(mousePX, mousePY, x() + rightBoxX, y() + rightBoxY, m_boxW, m_boxH);
+            }();
+
+            if(gridSelected || cursorOn){
+                const uint32_t gridColor = gridSelected ? (colorf::BLUE + 96) : (colorf::WHITE + 96);
+                g_sdlDevice->fillRectangle(gridColor, x() + rightBoxX, y() + rightBoxY, m_boxW, m_boxH);
+            }
+
+            if(cursorOn){
+                cursorOnGridIndex = (int)(i);
+            }
+        }
+    }
+
+    LabelBoard
+    {
+        0,
+        0,
+        str_printf(u8"第%d/%d页", m_ext1Page + 1, ext1PageCount).c_str(),
+
+        1,
+        12,
+        0,
+
+        colorf::RGBA(0XFF, 0XFF, 0X00, 0XFF),
+    }.drawAt(DIR_NONE, x() + 389, y() + 18);
+
+    if(cursorOnGridIndex >= 0){
+        drawExt1GridHoverText(cursorOnGridIndex);
+    }
+}
+
+void PurchaseBoard::drawExt2() const
+{
+    if(extendedBoardGfxID() != 2){
+        throw bad_reach();
+    }
+
+    const auto [extItemID, extSeqID] = getExtSelectedItemSeqID();
+    if(extSeqID){
+        throw fflerror("unexpected extSeqID: %llu", to_llu(extSeqID));
+    }
+
+    m_closeExt2Button .draw();
+    m_selectExt2Button.draw();
+
+    if(m_sdSellItemList.list.empty()){
+        return;
+    }
+
+    const auto &sellItem = m_sdSellItemList.list.at(0);
+    const auto &ir = DBCOM_ITEMRECORD(sellItem.item.itemID);
+    if(!ir){
+        throw fflerror("bad item in sell list: itemID = %llu, seqID = %llu", to_llu(sellItem.item.itemID), to_llu(sellItem.item.seqID));
+    }
+
+    if(auto texPtr = g_itemDB->Retrieve(ir.pkgGfxID | 0X02000000)){
+        constexpr int rightStartX = 303;
+        constexpr int rightStartY =  16;
+        const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);
+        const int rightDrawX = rightStartX + (m_boxW - texW) / 2;
+        const int rightDrawY = rightStartY + (m_boxH - texH) / 2;
+        g_sdlDevice->drawTexture(texPtr, x() + rightDrawX, y() + rightDrawY);
+    }
+
+    LabelBoard
+    {
+        0,
+        0,
+        to_u8cstr(str_ksep(getItemPrice(m_ext1PageGridSelected)) + to_cstr(u8" 金币")),
+
+        1,
+        13,
+        0,
+
+        colorf::RGBA(0XFF, 0XFF, 0X00, 0XFF),
+    }.drawAt(DIR_LEFT, x() + 350 + 3, y() + 35);
+}
+
+std::tuple<uint32_t, uint32_t> PurchaseBoard::getExtSelectedItemSeqID() const
+{
+    switch(extendedBoardGfxID()){
+        case 1:
+            {
+                if(m_ext1PageGridSelected >= 0 && m_ext1PageGridSelected < (int)(m_sdSellItemList.list.size())){
+                    const auto &sellItem = m_sdSellItemList.list.at(m_ext1PageGridSelected);
+                    return {sellItem.item.itemID, sellItem.item.seqID};
+                }
+                return {0, 0};
+            }
+        case 2:
+            {
+                if(m_sdSellItemList.list.empty()){
+                    return {0, 0};
+                }
+                return {m_sdSellItemList.list.front().item.itemID, 0};
+            }
+        default:
+            {
+                throw bad_reach();
+            }
+    }
+}
+
+size_t PurchaseBoard::getItemPrice(int itemIndex) const
+{
+    if(extendedPageCount() <= 0){
+        throw bad_reach();
+    }
+
+    if(!(itemIndex >= 0 && itemIndex < (int)(m_sdSellItemList.list.size()))){
+        throw fflerror("invalid argument: itemIndex = %d", itemIndex);
+    }
+
+    for(const auto &costItem: m_sdSellItemList.list.at(itemIndex).costList){
+        if(costItem.itemID == DBCOM_ITEMID(u8"金币")){
+            return costItem.count;
+        }
+    }
+    return 0;
 }

@@ -27,7 +27,7 @@ extern ActorPool *g_actorPool;
 extern MonoServer *g_monoServer;
 extern ServerArgParser *g_serverArgParser;
 
-MessagePack SyncDriver::forward(uint64_t uid, const MessageBuf &mb, uint32_t resp, uint32_t timeout)
+ActorMsgPack SyncDriver::forward(uint64_t uid, const ActorMsgBuf &mb, uint32_t resp, uint32_t timeout)
 {
     if(!uid){
         throw fflerror("invalid UID: ZERO");
@@ -47,19 +47,19 @@ MessagePack SyncDriver::forward(uint64_t uid, const MessageBuf &mb, uint32_t res
     }
 
     if(g_serverArgParser->traceActorMessage){
-        g_monoServer->addLog(LOGTYPE_DEBUG, "%s -> %s: (type: %s, ID: %llu, Resp: %llu)", uidf::getUIDString(UID()).c_str(), uidf::getUIDString(uid).c_str(), mpkName(mb.Type()), to_llu(m_currID), to_llu(resp));
+        g_monoServer->addLog(LOGTYPE_DEBUG, "%s -> %s: (type: %s, ID: %llu, Resp: %llu)", uidf::getUIDString(UID()).c_str(), uidf::getUIDString(uid).c_str(), mpkName(mb.type()), to_llu(m_currID), to_llu(resp));
     }
 
     if(!g_actorPool->postMessage(uid, {mb, UID(), m_currID, resp})){
         AMBadActorPod amBAP;
         std::memset(&amBAP, 0, sizeof(amBAP));
 
-        amBAP.Type    = mb.Type();
+        amBAP.Type    = mb.type();
         amBAP.from    = UID();
         amBAP.ID      = m_currID;
         amBAP.Respond = resp;
 
-        return {MessageBuf(MPK_BADACTORPOD, amBAP), 0, 0, m_currID};
+        return {ActorMsgBuf(AM_BADACTORPOD, amBAP), 0, 0, m_currID};
     }
 
     switch(m_receiver.Wait(timeout)){
@@ -72,12 +72,12 @@ MessagePack SyncDriver::forward(uint64_t uid, const MessageBuf &mb, uint32_t res
             {
                 if(auto mpkList = m_receiver.Pop(); mpkList.size()){
                     for(auto p = mpkList.begin(); p != mpkList.end(); ++p){
-                        if(p->Respond() == m_currID){
+                        if(p->respID() == m_currID){
                             return *p;
                         }
                     }
                 }
             }
     }
-    return {MPK_NONE};
+    return {AM_NONE};
 }

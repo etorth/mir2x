@@ -19,6 +19,7 @@
 #pragma once
 #include <tuple>
 #include <array>
+#include "serdesmsg.hpp"
 #include "creaturemovable.hpp"
 
 class Hero: public CreatureMovable
@@ -32,11 +33,10 @@ class Hero: public CreatureMovable
         uint32_t    m_nameColor;
 
     protected:
-        PlayerLook m_look;
-        PlayerWear m_wear;
+        SDWLDesp m_sdWLDesp;
 
     public:
-        Hero(uint64_t, const PlayerLook &, ProcessRun *, const ActionNode &);
+        Hero(uint64_t, ProcessRun *, const ActionNode &);
 
     public:
        ~Hero() = default;
@@ -65,10 +65,6 @@ class Hero: public CreatureMovable
         {
             return m_horse;
         }
-
-    public:
-        const PlayerLook & getPlayerLook() const { return m_look; }
-        const PlayerWear & getPlayerWear() const { return m_wear; }
 
     public:
         bool moving();
@@ -107,29 +103,23 @@ class Hero: public CreatureMovable
         int currStep() const override;
 
     public:
-        virtual void pickUp()
-        {
-            // need to move this to myhero
-        }
-
-    public:
         ClientCreature::TargetBox getTargetBox() const override;
 
     public:
-        void setWear(const PlayerWear &wear)
+        void setWLDesp(SDWLDesp desp)
         {
-            m_wear = wear;
-        }
-
-        void setLook(const PlayerLook &look)
-        {
-            m_look = look;
+            m_sdWLDesp = std::move(desp);
         }
 
         void setName(const char *name, uint32_t nameColor)
         {
             m_name = to_cstr(name);
             m_nameColor = nameColor;
+        }
+
+        const auto &getWLDesp() const
+        {
+            return m_sdWLDesp;
         }
 
     public:
@@ -144,6 +134,9 @@ class Hero: public CreatureMovable
         }
 
     public:
-        uint32_t getWLGridItemID(int);
-        bool     setWLGridItemID(int, uint32_t);
+        const SDItem &getWLItem(int) const;
+        bool          setWLItem(int, SDItem);
+
+    public:
+        void jumpLoc(int, int, int);
 };

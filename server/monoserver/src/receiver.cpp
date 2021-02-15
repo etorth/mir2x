@@ -43,7 +43,7 @@ Receiver::~Receiver()
     }
 }
 
-void Receiver::pushMessage(MessagePack stMPK)
+void Receiver::pushMessage(ActorMsgPack stMPK)
 {
     std::unique_lock<std::mutex> stLock(m_lock);
     m_messageList.push_back(std::move(stMPK));
@@ -67,9 +67,9 @@ size_t Receiver::Wait(uint32_t nTimeout)
     return m_messageList.size();
 }
 
-std::vector<MessagePack> Receiver::Pop()
+std::vector<ActorMsgPack> Receiver::Pop()
 {
-    std::vector<MessagePack> stvPop;
+    std::vector<ActorMsgPack> stvPop;
     {
         std::lock_guard<std::mutex> stLockGuard(m_lock);
         std::swap(stvPop, m_messageList);

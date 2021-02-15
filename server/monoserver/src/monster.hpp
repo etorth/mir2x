@@ -42,7 +42,7 @@ class Monster: public CharObject
             const static uint32_t Refresh = 2000;
 
             uint32_t Time;
-            uint32_t MapID;
+            uint32_t mapID;
             std::vector<PathFind::PathNode> Path;
 
             AStarCache();
@@ -141,30 +141,30 @@ class Monster: public CharObject
         DamageNode GetAttackDamage(int);
 
     private:
-        void on_MPK_EXP             (const MessagePack &);
-        void on_MPK_MISS            (const MessagePack &);
-        void on_MPK_ATTACK          (const MessagePack &);
-        void on_MPK_ACTION          (const MessagePack &);
-        void on_MPK_OFFLINE         (const MessagePack &);
-        void on_MPK_UPDATEHP        (const MessagePack &);
-        void on_MPK_METRONOME       (const MessagePack &);
-        void on_MPK_MAPSWITCH       (const MessagePack &);
-        void on_MPK_MASTERKILL      (const MessagePack &);
-        void on_MPK_MASTERHITTED    (const MessagePack &);
-        void on_MPK_NOTIFYDEAD      (const MessagePack &);
-        void on_MPK_BADACTORPOD     (const MessagePack &);
-        void on_MPK_CHECKMASTER     (const MessagePack &);
-        void on_MPK_QUERYMASTER     (const MessagePack &);
-        void on_MPK_DEADFADEOUT     (const MessagePack &);
-        void on_MPK_NOTIFYNEWCO     (const MessagePack &);
-        void on_MPK_QUERYCORECORD   (const MessagePack &);
-        void on_MPK_QUERYLOCATION   (const MessagePack &);
-        void on_MPK_QUERYNAMECOLOR  (const MessagePack &);
-        void on_MPK_QUERYFRIENDTYPE (const MessagePack &);
-        void on_MPK_QUERYFINALMASTER(const MessagePack &);
+        void on_AM_EXP             (const ActorMsgPack &);
+        void on_AM_MISS            (const ActorMsgPack &);
+        void on_AM_ATTACK          (const ActorMsgPack &);
+        void on_AM_ACTION          (const ActorMsgPack &);
+        void on_AM_OFFLINE         (const ActorMsgPack &);
+        void on_AM_UPDATEHP        (const ActorMsgPack &);
+        void on_AM_METRONOME       (const ActorMsgPack &);
+        void on_AM_MAPSWITCH       (const ActorMsgPack &);
+        void on_AM_MASTERKILL      (const ActorMsgPack &);
+        void on_AM_MASTERHITTED    (const ActorMsgPack &);
+        void on_AM_NOTIFYDEAD      (const ActorMsgPack &);
+        void on_AM_BADACTORPOD     (const ActorMsgPack &);
+        void on_AM_CHECKMASTER     (const ActorMsgPack &);
+        void on_AM_QUERYMASTER     (const ActorMsgPack &);
+        void on_AM_DEADFADEOUT     (const ActorMsgPack &);
+        void on_AM_NOTIFYNEWCO     (const ActorMsgPack &);
+        void on_AM_QUERYCORECORD   (const ActorMsgPack &);
+        void on_AM_QUERYLOCATION   (const ActorMsgPack &);
+        void on_AM_QUERYNAMECOLOR  (const ActorMsgPack &);
+        void on_AM_QUERYFRIENDTYPE (const ActorMsgPack &);
+        void on_AM_QUERYFINALMASTER(const ActorMsgPack &);
 
     protected:
-        void operateAM(const MessagePack &);
+        void operateAM(const ActorMsgPack &);
 
     protected:
         void reportCO(uint64_t);
@@ -208,9 +208,9 @@ class Monster: public CharObject
                 return;
             }
 
-            m_actorPod->forward(masterUID(), {MPK_CHECKMASTER}, [this](const MessagePack &rstRMPK)
+            m_actorPod->forward(masterUID(), {AM_CHECKMASTER}, [this](const ActorMsgPack &rstRMPK)
             {
-                if(rstRMPK.Type() != MPK_OK){
+                if(rstRMPK.type() != AM_OK){
                     goDie();
                 }
             });

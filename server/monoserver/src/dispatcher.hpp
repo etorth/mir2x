@@ -20,7 +20,7 @@
 
 #pragma once
 #include <cstdint>
-#include "messagebuf.hpp"
+#include "actormsgbuf.hpp"
 
 class Dispatcher
 {
@@ -31,5 +31,5 @@ class Dispatcher
         virtual ~Dispatcher() = default;
 
     public:
-        bool forward(uint64_t, const MessageBuf &, uint32_t = 0);
+        bool forward(uint64_t, const ActorMsgBuf &, uint32_t = 0);
 };

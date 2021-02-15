@@ -27,15 +27,15 @@
 #include "dbcomid.hpp"
 
 extern MonoServer *g_monoServer;
-void Monster::on_MPK_METRONOME(const MessagePack &)
+void Monster::on_AM_METRONOME(const ActorMsgPack &)
 {
     update();
 }
 
-void Monster::on_MPK_MISS(const MessagePack &rstMPK)
+void Monster::on_AM_MISS(const ActorMsgPack &rstMPK)
 {
     AMMiss amM;
-    std::memcpy(&amM, rstMPK.Data(), sizeof(amM));
+    std::memcpy(&amM, rstMPK.data(), sizeof(amM));
 
     if(amM.UID != UID()){
         return;
@@ -44,36 +44,36 @@ void Monster::on_MPK_MISS(const MessagePack &rstMPK)
     foreachInViewCO([this, amM](const COLocation &rstLocation)
     {
         if(uidf::getUIDType(rstLocation.UID) == UID_PLY){
-            m_actorPod->forward(rstLocation.UID, {MPK_MISS, amM});
+            m_actorPod->forward(rstLocation.UID, {AM_MISS, amM});
         }
     });
 }
 
-void Monster::on_MPK_QUERYCORECORD(const MessagePack &rstMPK)
+void Monster::on_AM_QUERYCORECORD(const ActorMsgPack &rstMPK)
 {
     AMQueryCORecord amQCOR;
-    std::memcpy(&amQCOR, rstMPK.Data(), sizeof(amQCOR));
+    std::memcpy(&amQCOR, rstMPK.data(), sizeof(amQCOR));
 
     reportCO(amQCOR.UID);
 }
 
-void Monster::on_MPK_EXP(const MessagePack &rstMPK)
+void Monster::on_AM_EXP(const ActorMsgPack &rstMPK)
 {
     if(masterUID()){
-        m_actorPod->forward(masterUID(), {rstMPK.Type(), rstMPK.Data(), rstMPK.DataLen()});
+        m_actorPod->forward(masterUID(), {rstMPK.type(), rstMPK.data(), rstMPK.size()});
     }
 }
 
-void Monster::on_MPK_ACTION(const MessagePack &rstMPK)
+void Monster::on_AM_ACTION(const ActorMsgPack &rstMPK)
 {
     AMAction amA;
-    std::memcpy(&amA, rstMPK.Data(), sizeof(amA));
+    std::memcpy(&amA, rstMPK.data(), sizeof(amA));
 
     if(amA.UID == UID()){
         return;
     }
 
-    if(amA.MapID != MapID()){
+    if(amA.mapID != mapID()){
         removeTarget(amA.UID);
         RemoveInViewCO(amA.UID);
         return;
@@ -126,10 +126,10 @@ void Monster::on_MPK_ACTION(const MessagePack &rstMPK)
             }
     }
 
-    AddInViewCO(amA.UID, amA.MapID, nX, nY, nDir);
+    AddInViewCO(amA.UID, amA.mapID, nX, nY, nDir);
 }
 
-void Monster::on_MPK_NOTIFYNEWCO(const MessagePack &rstMPK)
+void Monster::on_AM_NOTIFYNEWCO(const ActorMsgPack &rstMPK)
 {
     const auto amNNCO = rstMPK.conv<AMNotifyNewCO>();
     if(m_dead.get()){
@@ -142,10 +142,10 @@ void Monster::on_MPK_NOTIFYNEWCO(const MessagePack &rstMPK)
     }
 }
 
-void Monster::on_MPK_ATTACK(const MessagePack &rstMPK)
+void Monster::on_AM_ATTACK(const ActorMsgPack &rstMPK)
 {
     AMAttack amAK;
-    std::memcpy(&amAK, rstMPK.Data(), sizeof(amAK));
+    std::memcpy(&amAK, rstMPK.data(), sizeof(amAK));
 
     if(m_dead.get()){
         notifyDead(amAK.UID);
@@ -164,7 +164,7 @@ void Monster::on_MPK_ATTACK(const MessagePack &rstMPK)
                         std::memset(&amM, 0, sizeof(amM));
 
                         amM.UID = amAK.UID;
-                        m_actorPod->forward(amAK.UID, {MPK_MISS, amM});
+                        m_actorPod->forward(amAK.UID, {AM_MISS, amM});
                         return;
                     }
                 default:
@@ -185,54 +185,54 @@ void Monster::on_MPK_ATTACK(const MessagePack &rstMPK)
     }
 }
 
-void Monster::on_MPK_MAPSWITCH(const MessagePack &)
+void Monster::on_AM_MAPSWITCH(const ActorMsgPack &)
 {
 }
 
-void Monster::on_MPK_QUERYLOCATION(const MessagePack &rstMPK)
+void Monster::on_AM_QUERYLOCATION(const ActorMsgPack &rstMPK)
 {
     AMLocation amL;
     std::memset(&amL, 0, sizeof(amL));
 
     amL.UID       = UID();
-    amL.MapID     = MapID();
+    amL.mapID     = mapID();
     amL.X         = X();
     amL.Y         = Y();
     amL.Direction = Direction();
 
-    m_actorPod->forward(rstMPK.from(), {MPK_LOCATION, amL}, rstMPK.ID());
+    m_actorPod->forward(rstMPK.from(), {AM_LOCATION, amL}, rstMPK.seqID());
 }
 
-void Monster::on_MPK_UPDATEHP(const MessagePack &)
+void Monster::on_AM_UPDATEHP(const ActorMsgPack &)
 {
 }
 
-void Monster::on_MPK_BADACTORPOD(const MessagePack &)
+void Monster::on_AM_BADACTORPOD(const ActorMsgPack &)
 {
 }
 
-void Monster::on_MPK_DEADFADEOUT(const MessagePack &rstMPK)
+void Monster::on_AM_DEADFADEOUT(const ActorMsgPack &rstMPK)
 {
     AMDeadFadeOut amDFO;
-    std::memcpy(&amDFO, rstMPK.Data(), sizeof(amDFO));
+    std::memcpy(&amDFO, rstMPK.data(), sizeof(amDFO));
 
     removeTarget(amDFO.UID);
     RemoveInViewCO(amDFO.UID);
 }
 
-void Monster::on_MPK_NOTIFYDEAD(const MessagePack &rstMPK)
+void Monster::on_AM_NOTIFYDEAD(const ActorMsgPack &rstMPK)
 {
     AMNotifyDead amND;
-    std::memcpy(&amND, rstMPK.Data(), sizeof(amND));
+    std::memcpy(&amND, rstMPK.data(), sizeof(amND));
 
     removeTarget(amND.UID);
     RemoveInViewCO(amND.UID);
 }
 
-void Monster::on_MPK_OFFLINE(const MessagePack &rstMPK)
+void Monster::on_AM_OFFLINE(const ActorMsgPack &rstMPK)
 {
     AMOffline amO;
-    std::memcpy(&amO, rstMPK.Data(), sizeof(amO));
+    std::memcpy(&amO, rstMPK.data(), sizeof(amO));
 
     if(true
             && amO.UID
@@ -241,21 +241,21 @@ void Monster::on_MPK_OFFLINE(const MessagePack &rstMPK)
     }
 }
 
-void Monster::on_MPK_CHECKMASTER(const MessagePack &rstMPK)
+void Monster::on_AM_CHECKMASTER(const ActorMsgPack &rstMPK)
 {
-    m_actorPod->forward(rstMPK.from(), MPK_OK, rstMPK.ID());
+    m_actorPod->forward(rstMPK.from(), AM_OK, rstMPK.seqID());
 }
 
-void Monster::on_MPK_QUERYMASTER(const MessagePack &rstMPK)
+void Monster::on_AM_QUERYMASTER(const ActorMsgPack &rstMPK)
 {
     AMUID amUID;
     std::memset(&amUID, 0, sizeof(amUID));
 
     amUID.UID = masterUID() ? masterUID() : UID();
-    m_actorPod->forward(rstMPK.from(), {MPK_UID, amUID}, rstMPK.ID());
+    m_actorPod->forward(rstMPK.from(), {AM_UID, amUID}, rstMPK.seqID());
 }
 
-void Monster::on_MPK_QUERYFINALMASTER(const MessagePack &rstMPK)
+void Monster::on_AM_QUERYFINALMASTER(const ActorMsgPack &rstMPK)
 {
     QueryFinalMaster(UID(), [this, rstMPK](uint64_t nFMasterUID)
     {
@@ -263,14 +263,14 @@ void Monster::on_MPK_QUERYFINALMASTER(const MessagePack &rstMPK)
         std::memset(&amUID, 0, sizeof(amUID));
 
         amUID.UID = nFMasterUID;
-        m_actorPod->forward(rstMPK.from(), {MPK_UID, amUID}, rstMPK.ID());
+        m_actorPod->forward(rstMPK.from(), {AM_UID, amUID}, rstMPK.seqID());
     });
 }
 
-void Monster::on_MPK_QUERYFRIENDTYPE(const MessagePack &rstMPK)
+void Monster::on_AM_QUERYFRIENDTYPE(const ActorMsgPack &rstMPK)
 {
     AMQueryFriendType amQFT;
-    std::memcpy(&amQFT, rstMPK.Data(), sizeof(amQFT));
+    std::memcpy(&amQFT, rstMPK.data(), sizeof(amQFT));
 
     checkFriend(amQFT.UID, [this, rstMPK](int nFriendType)
     {
@@ -278,27 +278,27 @@ void Monster::on_MPK_QUERYFRIENDTYPE(const MessagePack &rstMPK)
         std::memset(&amFT, 0, sizeof(amFT));
 
         amFT.Type = nFriendType;
-        m_actorPod->forward(rstMPK.from(), {MPK_FRIENDTYPE, amFT}, rstMPK.ID());
+        m_actorPod->forward(rstMPK.from(), {AM_FRIENDTYPE, amFT}, rstMPK.seqID());
     });
 }
 
-void Monster::on_MPK_QUERYNAMECOLOR(const MessagePack &rstMPK)
+void Monster::on_AM_QUERYNAMECOLOR(const ActorMsgPack &rstMPK)
 {
     AMNameColor amNC;
     std::memset(&amNC, 0, sizeof(amNC));
 
     amNC.Color = 'W';
-    m_actorPod->forward(rstMPK.from(), {MPK_NAMECOLOR, amNC}, rstMPK.ID());
+    m_actorPod->forward(rstMPK.from(), {AM_NAMECOLOR, amNC}, rstMPK.seqID());
 }
 
-void Monster::on_MPK_MASTERKILL(const MessagePack &rstMPK)
+void Monster::on_AM_MASTERKILL(const ActorMsgPack &rstMPK)
 {
     if(masterUID() && (rstMPK.from() == masterUID())){
         goDie();
     }
 }
 
-void Monster::on_MPK_MASTERHITTED(const MessagePack &rstMPK)
+void Monster::on_AM_MASTERHITTED(const ActorMsgPack &rstMPK)
 {
     if(masterUID() && (rstMPK.from() == masterUID())){
         if(monsterName() == u8"神兽"){

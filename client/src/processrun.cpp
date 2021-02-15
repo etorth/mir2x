@@ -399,7 +399,7 @@ void ProcessRun::draw()
     }
 
     m_GUIManager.draw();
-    if(const auto selectedItemID = dynamic_cast<InventoryBoard *>(m_GUIManager.getWidget("InventoryBoard"))->getGrabbedPackBin().id){
+    if(const auto selectedItemID = getMyHero()->getInvPack().getGrabbedItem().itemID){
         if(const auto &ir = DBCOM_ITEMRECORD(selectedItemID)){
             if(auto texPtr = g_itemDB->Retrieve(ir.pkgGfxID | 0X01000000)){
                 const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);
@@ -439,7 +439,7 @@ void ProcessRun::processEvent(const SDL_Event &event)
     switch(event.type){
         case SDL_MOUSEBUTTONDOWN:
             {
-                const auto [mouseGridX, mouseGridY] = screenPoint2Grid(event.button.x, event.button.y);
+                const auto [mouseGridX, mouseGridY] = fromPLoc2Grid(event.button.x, event.button.y);
                 switch(event.button.button){
                     case SDL_BUTTON_LEFT:
                         {
@@ -462,12 +462,16 @@ void ProcessRun::processEvent(const SDL_Event &event)
                                 }
                             }
 
-                            else if(const auto &itemList = getGroundItemList(mouseGridX, mouseGridY); !itemList.empty()){
-                                getMyHero()->emplaceAction(ActionPickUp
+                            else if(!getGroundItemIDList(mouseGridX, mouseGridY).empty()){
+                                getMyHero()->emplaceAction(ActionMove
                                 {
-                                    .x = mouseGridX,
-                                    .y = mouseGridY,
-                                    .itemID = itemList.back().ID(),
+                                    .speed = SYS_DEFSPEED,
+                                    .x = getMyHero()->currMotion()->endX,    // don't use X()
+                                    .y = getMyHero()->currMotion()->endY,    // don't use Y()
+                                    .aimX = mouseGridX,
+                                    .aimY = mouseGridY,
+                                    .pickUp = true,
+                                    .onHorse = getMyHero()->OnHorse(),
                                 });
                             }
                             break;
@@ -489,7 +493,7 @@ void ProcessRun::processEvent(const SDL_Event &event)
                             }
 
                             else{
-                                const auto [nX, nY] = screenPoint2Grid(event.button.x, event.button.y);
+                                const auto [nX, nY] = fromPLoc2Grid(event.button.x, event.button.y);
                                 if(mathf::LDistance2(getMyHero()->currMotion()->endX, getMyHero()->currMotion()->endY, nX, nY)){
 
                                     // we get a valid dst to go
@@ -537,7 +541,7 @@ void ProcessRun::processEvent(const SDL_Event &event)
                         }
                     case SDLK_TAB:
                         {
-                            getMyHero()->pickUp();
+                            requestPickUp();
                             break;
                         }
                     default:
@@ -572,7 +576,7 @@ void ProcessRun::loadMap(uint32_t mapID)
 
     m_mapID = mapID;
     m_mir2xMapData = *mapBinPtr;
-    m_groundItemList.clear();
+    m_groundItemIDList.clear();
 }
 
 bool ProcessRun::canMove(bool bCheckGround, int nCheckCreature, int nX, int nY)
@@ -1012,14 +1016,14 @@ void ProcessRun::RegisterLuaExport(ClientLuaModule *luaModulePtr)
     {
         int locX = 0;
         int locY = 0;
-        uint32_t mapID = 0;
+        uint32_t argMapID = 0;
 
         const std::vector<sol::object> argList(args.begin(), args.end());
         switch(argList.size()){
             case 0:
                 {
-                    mapID = MapID();
-                    std::tie(locX, locY) = getRandLoc(MapID());
+                    argMapID = mapID();
+                    std::tie(locX, locY) = getRandLoc(mapID());
                     break;
                 }
             case 1:
@@ -1028,8 +1032,8 @@ void ProcessRun::RegisterLuaExport(ClientLuaModule *luaModulePtr)
                         throw fflerror("invalid arguments: moveTo(mapID: int)");
                     }
 
-                    mapID = argList[0].as<int>();
-                    std::tie(locX, locY) = getRandLoc(mapID);
+                    argMapID = argList[0].as<int>();
+                    std::tie(locX, locY) = getRandLoc(argMapID);
                     break;
                 }
             case 2:
@@ -1038,7 +1042,7 @@ void ProcessRun::RegisterLuaExport(ClientLuaModule *luaModulePtr)
                         throw fflerror("invalid arguments: moveTo(x: int, y: int)");
                     }
 
-                    mapID = MapID();
+                    argMapID = mapID();
                     locX  = argList[0].as<int>();
                     locY  = argList[1].as<int>();
                     break;
@@ -1049,9 +1053,9 @@ void ProcessRun::RegisterLuaExport(ClientLuaModule *luaModulePtr)
                         throw fflerror("invalid arguments: moveTo(mapID: int, x: int, y: int)");
                     }
 
-                    mapID = argList[0].as<int>();
-                    locX  = argList[1].as<int>();
-                    locY  = argList[2].as<int>();
+                    argMapID = argList[0].as<int>();
+                    locX = argList[1].as<int>();
+                    locY = argList[2].as<int>();
                     break;
                 }
             default:
@@ -1060,11 +1064,11 @@ void ProcessRun::RegisterLuaExport(ClientLuaModule *luaModulePtr)
                 }
         }
 
-        if(requestSpaceMove(mapID, locX, locY)){
-            addCBLog(CBLOG_SYS, u8"Move request (mapName = %s, x = %d, y = %d) sent", DBCOM_MAPRECORD(mapID).name, locX, locY);
+        if(requestSpaceMove(argMapID, locX, locY)){
+            addCBLog(CBLOG_SYS, u8"Move request (mapName = %s, x = %d, y = %d) sent", to_cstr(DBCOM_MAPRECORD(argMapID).name), locX, locY);
         }
         else{
-            addCBLog(CBLOG_ERR, u8"Move request (mapName = %s, x = %d, y = %d) failed", DBCOM_MAPRECORD(mapID).name, locX, locY);
+            addCBLog(CBLOG_ERR, u8"Move request (mapName = %s, x = %d, y = %d) failed", to_cstr(DBCOM_MAPRECORD(argMapID).name), locX, locY);
         }
     });
 
@@ -1106,7 +1110,11 @@ void ProcessRun::RegisterLuaExport(ClientLuaModule *luaModulePtr)
     luaModulePtr->getLuaState().set_function("myHero_dress", [this](int nDress)
     {
         if(nDress >= 0){
-            getMyHero()->setWLGridItemID(WLG_DRESS, (uint32_t)(nDress));
+            getMyHero()->setWLItem(WLG_DRESS, SDItem
+            {
+                .itemID = to_u32(nDress),
+                .extAttrList = {},
+            });
         }
     });
 
@@ -1115,7 +1123,10 @@ void ProcessRun::RegisterLuaExport(ClientLuaModule *luaModulePtr)
     luaModulePtr->getLuaState().set_function("myHero_weapon", [this](int nWeapon)
     {
         if(nWeapon >= 0){
-            getMyHero()->setWLGridItemID(WLG_WEAPON, (uint32_t)(nWeapon));
+            getMyHero()->setWLItem(WLG_WEAPON, SDItem
+            {
+                .itemID = to_u32(nWeapon),
+            });
         }
     });
 }
@@ -1290,7 +1301,7 @@ std::tuple<int, int> ProcessRun::getRandLoc(uint32_t nMapID)
 {
     const auto mapBinPtr = [nMapID, this]() -> const Mir2xMapData *
     {
-        if(nMapID == 0 || nMapID == MapID()){
+        if(nMapID == 0 || nMapID == mapID()){
             return &m_mir2xMapData;
         }
         return g_mapBinDB->Retrieve(nMapID);
@@ -1326,7 +1337,7 @@ bool ProcessRun::requestSpaceMove(uint32_t nMapID, int nX, int nY)
     CMRequestSpaceMove cmRSM;
     std::memset(&cmRSM, 0, sizeof(cmRSM));
 
-    cmRSM.MapID = nMapID;
+    cmRSM.mapID = nMapID;
     cmRSM.X     = nX;
     cmRSM.Y     = nY;
 
@@ -1440,16 +1451,16 @@ void ProcessRun::sendNPCEvent(uint64_t uid, const char *event, const char *value
 
 void ProcessRun::drawGroundItem(int x0, int y0, int x1, int y1)
 {
-    for(const auto &p: m_groundItemList){
+    for(const auto &p: m_groundItemIDList){
         const auto [x, y] = p.first;
         if(!(x >= x0 && x < x1 && y >= y0 && y < y1)){
             continue;
         }
 
-        for(auto &item: p.second){
-            const auto &ir = DBCOM_ITEMRECORD(item.ID());
+        for(const auto itemID: p.second){
+            const auto &ir = DBCOM_ITEMRECORD(itemID);
             if(!ir){
-                throw fflerror("invalid item record");
+                throw fflerror("invalid itemID: %llu", to_llu(itemID));
             }
 
             if(ir.pkgGfxID < 0){
@@ -1572,7 +1583,7 @@ void ProcessRun::drawRotateStar(int x0, int y0, int x1, int y1)
     const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);
     const auto currSize = (int)(std::lround(m_starRatio * texW / 2.50));
 
-    for(const auto &p: m_groundItemList){
+    for(const auto &p: m_groundItemIDList){
         const auto [x, y] = p.first;
         if(p.second.empty()){
             throw fflerror("empty ground item list at (%d, %d)", x, y);
@@ -1681,7 +1692,7 @@ void ProcessRun::checkMagicSpell(const SDL_Event &event)
 
                 else{
                     const auto [nMouseX, nMouseY] = SDLDeviceHelper::getMousePLoc();
-                    const auto [nAimX, nAimY] = screenPoint2Grid(nMouseX, nMouseY);
+                    const auto [nAimX, nAimY] = fromPLoc2Grid(nMouseX, nMouseY);
                     getMyHero()->emplaceAction(ActionSpell
                     {
                         .x = getMyHero()->currMotion()->endX,
@@ -1713,6 +1724,27 @@ void ProcessRun::checkMagicSpell(const SDL_Event &event)
     }
 }
 
+void ProcessRun::requestPickUp()
+{
+    if(!getMyHero()->stayIdle()){
+        return;
+    }
+
+    const int x = getMyHero()->currMotion()->x;
+    const int y = getMyHero()->currMotion()->y;
+    if(getGroundItemIDList(x, y).empty()){
+        return;
+    }
+
+    CMPickUp cmPU;
+    std::memset(&cmPU, 0, sizeof(cmPU));
+
+    cmPU.x = x;
+    cmPU.y = y;
+    cmPU.mapID = mapID();
+    g_client->send(CM_PICKUP, cmPU);
+}
+
 void ProcessRun::requestMagicDamage(int magicID, uint64_t aimUID)
 {
     CMRequestMagicDamage cmRMD;
@@ -1724,26 +1756,93 @@ void ProcessRun::requestMagicDamage(int magicID, uint64_t aimUID)
     g_client->send(CM_REQUESTMAGICDAMAGE, cmRMD);
 }
 
-void ProcessRun::queryPlayerLook(uint64_t uid) const
+void ProcessRun::queryPlayerWLDesp(uint64_t uid) const
 {
-    if(uidf::getUIDType(uid) != UID_PLY){
-        CMQueryPlayerLook cmQPL;
-        std::memset(&cmQPL, 0, sizeof(cmQPL));
+    if(uidf::getUIDType(uid) == UID_PLY){
+        CMQueryPlayerWLDesp cmQPWLD;
+        std::memset(&cmQPWLD, 0, sizeof(cmQPWLD));
 
-        cmQPL.uid = uid;
-        g_client->send(CM_QUERYPLAYERLOOK, cmQPL);
+        cmQPWLD.uid = uid;
+        g_client->send(CM_QUERYPLAYERWLDESP, cmQPWLD);
     }
-    throw fflerror("invalid uid: %llu, type: %s", to_llu(uid), uidf::getUIDTypeString(uid));
+    throw fflerror("invalid uid: %llu, type: %s", to_llu(uid), uidf::getUIDTypeCStr(uid));
 }
 
-void ProcessRun::queryPlayerWear(uint64_t uid) const
+void ProcessRun::requestBuy(uint64_t npcUID, uint32_t itemID, uint32_t seqID, size_t count)
 {
-    if(uidf::getUIDType(uid) != UID_PLY){
-        CMQueryPlayerWear cmQPW;
-        std::memset(&cmQPW, 0, sizeof(cmQPW));
-
-        cmQPW.uid = uid;
-        g_client->send(CM_QUERYPLAYERWEAR, cmQPW);
+    if(uidf::getUIDType(npcUID) != UID_NPC){
+        throw fflerror("invalid uid: %llu, type: %s", to_llu(npcUID), uidf::getUIDTypeCStr(npcUID));
     }
-    throw fflerror("invalid uid: %llu, type: %s", to_llu(uid), uidf::getUIDTypeString(uid));
+
+    SDItem
+    {
+        .itemID = itemID,
+        . seqID =  seqID,
+        . count =  count,
+    }.checkEx();
+
+    CMBuy cmB;
+    std::memset(&cmB, 0, sizeof(cmB));
+
+    cmB.npcUID = npcUID;
+    cmB.itemID = itemID;
+    cmB. seqID =  seqID;
+    cmB. count =  count;
+    g_client->send(CM_BUY, cmB);
+}
+
+
+void ProcessRun::requestConsumeItem(uint32_t itemID, uint32_t seqID, size_t count)
+{
+    CMConsumeItem cmCI;
+    std::memset(&cmCI, 0, sizeof(cmCI));
+
+    cmCI.itemID = itemID;
+    cmCI.seqID  =  seqID;
+    cmCI.count  =  count;
+    g_client->send(CM_CONSUMEITEM, cmCI);
+}
+
+bool ProcessRun::hasGroundItemID(uint32_t itemID, int x, int y) const
+{
+    for(const auto id: getGroundItemIDList(x, y)){
+        if(id == itemID){
+            return true;
+        }
+    }
+    return false;
+}
+
+bool ProcessRun::addGroundItemID(uint32_t itemID, int x, int y)
+{
+    if(!m_mir2xMapData.ValidC(x, y)){
+        return false;
+    }
+
+    if(!DBCOM_ITEMRECORD(itemID)){
+        throw fflerror("invalid itemID: %llu", to_llu(itemID));
+    }
+
+    m_groundItemIDList[{x, y}].push_back(itemID);
+    return true;
+}
+
+bool ProcessRun::removeGroundItemID(uint32_t itemID, int x, int y)
+{
+    auto p = m_groundItemIDList.find({x, y});
+    if(p == m_groundItemIDList.end()){
+        return false;
+    }
+
+    for(auto i = to_lld(p->second.size()) - 1; i >= 0; --i){
+        if(p->second[i] == itemID){
+            p->second.erase(p->second.begin() + i);
+            return true;
+        }
+    }
+
+    if(p->second.empty()){
+        m_groundItemIDList.erase(p);
+    }
+    return false;
 }

@@ -33,7 +33,7 @@ class MyHero: public Hero
         std::deque<ActionNode> m_actionQueue;
 
     public:
-        MyHero(uint64_t, const PlayerLook &, ProcessRun *, const ActionNode &);
+        MyHero(uint64_t, ProcessRun *, const ActionNode &);
 
     public:
         ~MyHero() = default;
@@ -68,7 +68,6 @@ class MyHero: public Hero
     protected:
         bool decompActionMove();
         bool decompActionSpell();
-        bool decompActionPickUp();
         bool decompActionAttack();
 
     public:
@@ -96,9 +95,6 @@ class MyHero: public Hero
         {
             return Hero::stayIdle() && m_actionQueue.empty();
         }
-
-    public:
-        void pickUp() override;
 
     public:
         bool emplaceAction(const ActionNode &);

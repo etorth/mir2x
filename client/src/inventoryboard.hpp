@@ -45,9 +45,6 @@ class InventoryBoard: public Widget
         TritexButton m_closeButton;
 
     private:
-        PackBin m_grabbedPackBin;
-
-    private:
         ProcessRun *m_processRun;
 
     public:
@@ -79,15 +76,6 @@ class InventoryBoard: public Widget
 
     private:
         void drawItemHoverText(const PackBin &) const;
-
-    public:
-        const auto &getGrabbedPackBin() const
-        {
-            return m_grabbedPackBin;
-        }
-
-    public:
-        void setGrabbedItemID(uint32_t itemID);
 
     private:
         void packBinConsume(const PackBin &);

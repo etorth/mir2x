@@ -33,55 +33,55 @@ extern MonoServer *g_monoServer;
 // in the net package otherwise we can't find the session even we have session's
 // address, session is a sync-driver, even we have it's address we can't find it
 //
-void ServiceCore::on_MPK_RECVPACKAGE(const MessagePack &mpk)
+void ServiceCore::on_AM_RECVPACKAGE(const ActorMsgPack &mpk)
 {
     /* const */ auto amRP = mpk.conv<AMRecvPackage>();
     operateNet(amRP.channID, amRP.package.type, amRP.package.buf(), amRP.package.size);
     freeActorDataPackage(&(amRP.package));
 }
 
-void ServiceCore::on_MPK_METRONOME(const MessagePack &)
+void ServiceCore::on_AM_METRONOME(const ActorMsgPack &)
 {
 }
 
-void ServiceCore::on_MPK_ADDCHAROBJECT(const MessagePack &rstMPK)
+void ServiceCore::on_AM_ADDCHAROBJECT(const ActorMsgPack &rstMPK)
 {
     const auto amACO = rstMPK.conv<AMAddCharObject>();
     if(!amACO.mapID){
-        m_actorPod->forward(rstMPK.from(), MPK_ERROR, rstMPK.ID());
+        m_actorPod->forward(rstMPK.from(), AM_ERROR, rstMPK.seqID());
         return;
     }
 
     auto pMap = retrieveMap(amACO.mapID);
 
     if(!pMap){
-        m_actorPod->forward(rstMPK.from(), MPK_ERROR, rstMPK.ID());
+        m_actorPod->forward(rstMPK.from(), AM_ERROR, rstMPK.seqID());
         return;
     }
 
     if(!pMap->In(amACO.mapID, amACO.x, amACO.y) && amACO.strictLoc){
-        m_actorPod->forward(rstMPK.from(), MPK_ERROR, rstMPK.ID());
+        m_actorPod->forward(rstMPK.from(), AM_ERROR, rstMPK.seqID());
         return;
     }
 
-    m_actorPod->forward(pMap->UID(), {MPK_ADDCHAROBJECT, amACO}, [this, amACO, rstMPK](const MessagePack &rstRMPK)
+    m_actorPod->forward(pMap->UID(), {AM_ADDCHAROBJECT, amACO}, [this, amACO, rstMPK](const ActorMsgPack &rstRMPK)
     {
-        switch(rstRMPK.Type()){
-            case MPK_OK:
+        switch(rstRMPK.type()){
+            case AM_OK:
                 {
-                    m_actorPod->forward(rstMPK.from(), MPK_OK, rstMPK.ID());
+                    m_actorPod->forward(rstMPK.from(), AM_OK, rstMPK.seqID());
                     break;
                 }
             default:
                 {
-                    m_actorPod->forward(rstMPK.from(), MPK_ERROR, rstMPK.ID());
+                    m_actorPod->forward(rstMPK.from(), AM_ERROR, rstMPK.seqID());
                     break;
                 }
         }
     });
 }
 
-void ServiceCore::on_MPK_QUERYMAPLIST(const MessagePack &rstMPK)
+void ServiceCore::on_AM_QUERYMAPLIST(const ActorMsgPack &rstMPK)
 {
     AMMapList amML;
     std::memset(&amML, 0, sizeof(amML));
@@ -96,16 +96,16 @@ void ServiceCore::on_MPK_QUERYMAPLIST(const MessagePack &rstMPK)
             }
         }
     }
-    m_actorPod->forward(rstMPK.from(), {MPK_MAPLIST, amML}, rstMPK.ID());
+    m_actorPod->forward(rstMPK.from(), {AM_MAPLIST, amML}, rstMPK.seqID());
 }
 
-void ServiceCore::on_MPK_QUERYMAPUID(const MessagePack &mpk)
+void ServiceCore::on_AM_QUERYMAPUID(const ActorMsgPack &mpk)
 {
     const auto amQMUID = mpk.conv<AMQueryMapUID>();
-    const auto mapPtr = retrieveMap(amQMUID.MapID);
+    const auto mapPtr = retrieveMap(amQMUID.mapID);
 
     if(!mapPtr){
-        m_actorPod->forward(mpk.from(), MPK_ERROR, mpk.ID());
+        m_actorPod->forward(mpk.from(), AM_ERROR, mpk.seqID());
         return;
     }
 
@@ -113,17 +113,17 @@ void ServiceCore::on_MPK_QUERYMAPUID(const MessagePack &mpk)
     std::memset(&amUID, 0, sizeof(amUID));
 
     amUID.UID = mapPtr->UID();
-    m_actorPod->forward(mpk.from(), {MPK_UID, amUID}, mpk.ID());
+    m_actorPod->forward(mpk.from(), {AM_UID, amUID}, mpk.seqID());
 }
 
-void ServiceCore::on_MPK_QUERYCOCOUNT(const MessagePack &rstMPK)
+void ServiceCore::on_AM_QUERYCOCOUNT(const ActorMsgPack &rstMPK)
 {
     AMQueryCOCount amQCOC;
-    std::memcpy(&amQCOC, rstMPK.Data(), sizeof(amQCOC));
+    std::memcpy(&amQCOC, rstMPK.data(), sizeof(amQCOC));
 
     int nCheckCount = 0;
-    if(amQCOC.MapID){
-        if(m_mapList.find(amQCOC.MapID) == m_mapList.end()){
+    if(amQCOC.mapID){
+        if(m_mapList.find(amQCOC.mapID) == m_mapList.end()){
             nCheckCount = 0;
         }else{
             nCheckCount = 1;
@@ -135,32 +135,32 @@ void ServiceCore::on_MPK_QUERYCOCOUNT(const MessagePack &rstMPK)
     switch(nCheckCount){
         case 0:
             {
-                m_actorPod->forward(rstMPK.from(), MPK_ERROR, rstMPK.ID());
+                m_actorPod->forward(rstMPK.from(), AM_ERROR, rstMPK.seqID());
                 return;
             }
         case 1:
             {
-                if(auto pMap = (amQCOC.MapID ? m_mapList[amQCOC.MapID] : m_mapList.begin()->second)){
-                    m_actorPod->forward(pMap->UID(), {MPK_QUERYCOCOUNT, amQCOC}, [this, rstMPK](const MessagePack &rstRMPK)
+                if(auto pMap = (amQCOC.mapID ? m_mapList[amQCOC.mapID] : m_mapList.begin()->second)){
+                    m_actorPod->forward(pMap->UID(), {AM_QUERYCOCOUNT, amQCOC}, [this, rstMPK](const ActorMsgPack &rstRMPK)
                     {
-                        switch(rstRMPK.Type()){
-                            case MPK_COCOUNT:
+                        switch(rstRMPK.type()){
+                            case AM_COCOUNT:
                                 {
-                                    m_actorPod->forward(rstMPK.from(), {MPK_COCOUNT, rstRMPK.Data(), rstRMPK.DataLen()}, rstMPK.ID());
+                                    m_actorPod->forward(rstMPK.from(), {AM_COCOUNT, rstRMPK.data(), rstRMPK.size()}, rstMPK.seqID());
                                     return;
                                 }
-                            case MPK_ERROR:
+                            case AM_ERROR:
                             default:
                                 {
-                                    m_actorPod->forward(rstMPK.from(), MPK_ERROR, rstMPK.ID());
+                                    m_actorPod->forward(rstMPK.from(), AM_ERROR, rstMPK.seqID());
                                     return;
                                 }
                         }
                     });
                     return;
                 }else{
-                    m_mapList.erase(amQCOC.MapID);
-                    m_actorPod->forward(rstMPK.from(), MPK_ERROR, rstMPK.ID());
+                    m_mapList.erase(amQCOC.mapID);
+                    m_actorPod->forward(rstMPK.from(), AM_ERROR, rstMPK.seqID());
                     return;
                 }
             }
@@ -190,10 +190,10 @@ void ServiceCore::on_MPK_QUERYCOCOUNT(const MessagePack &rstMPK)
                 // to solve this issue, we can install an state hook but for simplity not now
 
                 auto pSharedState = std::make_shared<SharedState>(nCheckCount);
-                auto fnOnResp = [pSharedState, this, rstMPK](const MessagePack &rstRMPK)
+                auto fnOnResp = [pSharedState, this, rstMPK](const ActorMsgPack &rstRMPK)
                 {
-                    switch(rstRMPK.Type()){
-                        case MPK_COCOUNT:
+                    switch(rstRMPK.type()){
+                        case AM_COCOUNT:
                             {
                                 if(pSharedState->Done){
                                     // we get response but shared state shows ``done"
@@ -203,11 +203,11 @@ void ServiceCore::on_MPK_QUERYCOCOUNT(const MessagePack &rstMPK)
                                     // get one more valid response
                                     // need to check if we need to response to sender
                                     AMCOCount amCOC;
-                                    std::memcpy(&amCOC, rstRMPK.Data(), sizeof(amCOC));
+                                    std::memcpy(&amCOC, rstRMPK.data(), sizeof(amCOC));
 
                                     if(pSharedState->CheckCount == 1){
                                         amCOC.Count += pSharedState->COCount;
-                                        m_actorPod->forward(rstMPK.from(), {MPK_COCOUNT, amCOC}, rstMPK.ID());
+                                        m_actorPod->forward(rstMPK.from(), {AM_COCOUNT, amCOC}, rstMPK.seqID());
                                     }else{
                                         pSharedState->CheckCount--;
                                         pSharedState->COCount += (int)(amCOC.Count);
@@ -215,7 +215,7 @@ void ServiceCore::on_MPK_QUERYCOCOUNT(const MessagePack &rstMPK)
                                 }
                                 return;
                             }
-                        case MPK_ERROR:
+                        case AM_ERROR:
                         default:
                             {
                                 if(pSharedState->Done){
@@ -224,7 +224,7 @@ void ServiceCore::on_MPK_QUERYCOCOUNT(const MessagePack &rstMPK)
                                     // do nothing
                                 }else{
                                     // get first error
-                                    m_actorPod->forward(rstMPK.from(), MPK_ERROR, rstMPK.ID());
+                                    m_actorPod->forward(rstMPK.from(), AM_ERROR, rstMPK.seqID());
                                 }
                                 return;
                             }
@@ -232,20 +232,20 @@ void ServiceCore::on_MPK_QUERYCOCOUNT(const MessagePack &rstMPK)
                 };
 
                 for(auto p: m_mapList){
-                    m_actorPod->forward(p.second->UID(), {MPK_QUERYCOCOUNT, amQCOC}, fnOnResp);
+                    m_actorPod->forward(p.second->UID(), {AM_QUERYCOCOUNT, amQCOC}, fnOnResp);
                 }
                 return;
             }
     }
 }
 
-void ServiceCore::on_MPK_BADCHANNEL(const MessagePack &rstMPK)
+void ServiceCore::on_AM_BADCHANNEL(const ActorMsgPack &rstMPK)
 {
     // channel may go down before bind to one actor
     // then stop it here
 
     AMBadChannel amBC;
-    std::memcpy(&amBC, rstMPK.Data(), sizeof(amBC));
+    std::memcpy(&amBC, rstMPK.data(), sizeof(amBC));
 
-    g_netDriver->Shutdown(amBC.ChannID, false);
+    g_netDriver->Shutdown(amBC.channID, false);
 }

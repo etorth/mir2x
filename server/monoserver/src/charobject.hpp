@@ -50,7 +50,7 @@ enum _RangeType: uint8_t
 struct COLocation
 {
     uint64_t UID;
-    uint32_t MapID;
+    uint32_t mapID;
     uint32_t RecordTime;
 
     int X;
@@ -66,7 +66,7 @@ struct COLocation
             int nY = -1,
             int nDirection = DIR_NONE)
         : UID(nUID)
-        , MapID(nMapID)
+        , mapID(nMapID)
         , RecordTime(nRecordTime)
         , X(nX)
         , Y(nY)
@@ -201,7 +201,7 @@ class CharObject: public ServerObject
             return m_direction;
         }
 
-        uint32_t MapID() const
+        uint32_t mapID() const
         {
             return m_map ? m_map->ID() : 0;
         }
@@ -383,7 +383,7 @@ class CharObject: public ServerObject
         bool isOffender(uint64_t);
 
     protected:
-        virtual void on_MPK_QUERYFRIENDTYPE(const MessagePack &);
+        virtual void on_AM_QUERYFRIENDTYPE(const ActorMsgPack &);
 
     protected:
         bool isPlayer()  const;
@@ -394,16 +394,4 @@ class CharObject: public ServerObject
 
     protected:
         ActionNode makeActionStand() const;
-
-    protected:
-        void sendNetPackage(uint64_t, uint8_t, const void *, size_t);
-        void sendNetPackage(uint64_t uid, uint8_t type, const std::string &buf)
-        {
-            sendNetPackage(uid, type, buf.data(), buf.length());
-        }
-
-        template<typename T> void sendNetPackage(uint64_t uid, uint8_t type, const T &t)
-        {
-            sendNetPackage(uid, type, &t, sizeof(t));
-        }
 };

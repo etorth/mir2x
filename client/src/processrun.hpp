@@ -30,7 +30,6 @@
 #include "message.hpp"
 #include "focustype.hpp"
 #include "ascendstr.hpp"
-#include "commonitem.hpp"
 #include "guimanager.hpp"
 #include "lochashtable.hpp"
 #include "mir2xmapdata.hpp"
@@ -70,7 +69,7 @@ class ProcessRun: public Process
         Mir2xMapData m_mir2xMapData;
 
     private:
-        LocHashTable<std::vector<CommonItem>> m_groundItemList;
+        LocHashTable<std::vector<uint32_t>> m_groundItemIDList;
 
     private:
         uint64_t m_myHeroUID;
@@ -147,7 +146,7 @@ class ProcessRun: public Process
             return PROCESSID_RUN;
         }
 
-        uint32_t MapID() const
+        uint32_t mapID() const
         {
             return m_mapID;
         }
@@ -162,7 +161,7 @@ class ProcessRun: public Process
         virtual void processEvent(const SDL_Event &) override;
 
     public:
-        std::tuple<int, int> screenPoint2Grid(int pixelX, int pixelY)
+        std::tuple<int, int> fromPLoc2Grid(int pixelX, int pixelY)
         {
             return {(pixelX + m_viewX) / SYS_MAPGRIDXP, (pixelY + m_viewY) / SYS_MAPGRIDYP};
         }
@@ -173,9 +172,9 @@ class ProcessRun: public Process
         }
 
     public:
-        bool onMap(uint32_t mapID, int nX, int nY) const
+        bool onMap(uint32_t id, int nX, int nY) const
         {
-            return (MapID() == mapID) && m_mir2xMapData.ValidC(nX, nY);
+            return (mapID() == id) && m_mir2xMapData.ValidC(nX, nY);
         }
 
         bool onMap(int x, int y) const
@@ -193,19 +192,20 @@ class ProcessRun: public Process
         void net_OFFLINE(const uint8_t *, size_t);
         void net_NPCSELL(const uint8_t *, size_t);
         void net_LOGINOK(const uint8_t *, size_t);
-        void net_SELLITEM(const uint8_t *, size_t);
-        void net_PICKUPOK(const uint8_t *, size_t);
         void net_CORECORD(const uint8_t *, size_t);
         void net_UPDATEHP(const uint8_t *, size_t);
         void net_CASTMAGIC(const uint8_t *, size_t);
         void net_NOTIFYDEAD(const uint8_t *, size_t);
-        void net_PLAYERLOOK(const uint8_t *, size_t);
-        void net_PLAYERWEAR(const uint8_t *, size_t);
         void net_PLAYERNAME(const uint8_t *, size_t);
+        void net_PICKUPERROR(const uint8_t *, size_t);
+        void net_PLAYERWLDESP(const uint8_t *, size_t);
+        void net_ADDITEM(const uint8_t *, size_t);
+        void net_REMOVEITEM(const uint8_t *, size_t);
         void net_DEADFADEOUT(const uint8_t *, size_t);
         void net_MONSTERGINFO(const uint8_t *, size_t);
-        void net_SHOWDROPITEM(const uint8_t *, size_t);
+        void net_SELLITEMLIST(const uint8_t *, size_t);
         void net_NPCXMLLAYOUT(const uint8_t *, size_t);
+        void net_GROUNDITEMIDLIST(const uint8_t *, size_t);
 
     public:
         bool canMove(bool, int, int, int);
@@ -259,65 +259,32 @@ class ProcessRun: public Process
 
         MyHero *getMyHero() const
         {
-            if(getMyHeroUID()){
-                return dynamic_cast<MyHero *>(findUID(getMyHeroUID()));
+            if(auto myHeroPtr = dynamic_cast<MyHero *>(findUID(getMyHeroUID()))){
+                return myHeroPtr;
             }
-            return nullptr;
+            throw fflerror("failed to get MyHero pointer: uid = %llu", to_llu(getMyHeroUID()));
         }
 
     public:
-        const auto &getGroundItemList(int x, int y) const
+        const auto &getGroundItemIDList(int x, int y) const
         {
-            if(auto p = m_groundItemList.find({x, y}); p != m_groundItemList.end()){
+            if(auto p = m_groundItemIDList.find({x, y}); p != m_groundItemIDList.end()){
                 return p->second;
             }
 
-            const static std::vector<CommonItem> emptyList;
-            return emptyList;
+            const static std::vector<uint32_t> s_emptyList;
+            return s_emptyList;
         }
 
-        int findGroundItem(const CommonItem &item, int x, int y) const
+        void clearGroundItemIDList(int x, int y)
         {
-            const auto &itemList = getGroundItemList(x, y);
-            if(itemList.empty()){
-                return -1;
-            }
-
-            for(int i = (int)(itemList.size()) - 1; i >= 0; --i){
-                if(itemList[i] == item){
-                    return i;
-                }
-            }
-            return -1;
+            m_groundItemIDList.erase({x, y});
         }
 
-        bool addGroundItem(const CommonItem &item, int x, int y)
-        {
-            if(!(item && m_mir2xMapData.ValidC(x, y))){
-                return false;
-            }
-
-            m_groundItemList[{x, y}].push_back(item);
-            return true;
-        }
-
-        void removeGroundItem(const CommonItem &item, int x, int y)
-        {
-            auto p = m_groundItemList.find({x, y});
-            if(p == m_groundItemList.end()){
-                return;
-            }
-
-            p->second.erase(std::remove(p->second.begin(), p->second.end(), item), p->second.end());
-            if(p->second.empty()){
-                m_groundItemList.erase(p);
-            }
-        }
-
-        void clearGroundItem(int x, int y)
-        {
-            m_groundItemList.erase({x, y});
-        }
+    public:
+        bool    hasGroundItemID(uint32_t, int, int) const;
+        bool    addGroundItemID(uint32_t, int, int);
+        bool removeGroundItemID(uint32_t, int, int);
 
     public:
         int CheckPathGrid(int, int) const;
@@ -335,8 +302,7 @@ class ProcessRun: public Process
         void onActionSpawn(uint64_t, const ActionNode &);
 
     public:
-        void queryPlayerLook(uint64_t) const;
-        void queryPlayerWear(uint64_t) const;
+        void queryPlayerWLDesp(uint64_t) const;
 
     public:
         Widget *getWidget(const std::string &widgetName)
@@ -409,7 +375,10 @@ class ProcessRun: public Process
         }
 
     public:
+        void requestPickUp();
         void requestMagicDamage(int, uint64_t);
+        void requestBuy(uint64_t, uint32_t, uint32_t, size_t count);
+        void requestConsumeItem(uint32_t, uint32_t, size_t);
 
     public:
         std::tuple<uint32_t, int, int> getMap() const

@@ -42,7 +42,7 @@ class ServiceCore final: public ServerObject
        ~ServiceCore() = default;
 
     protected:
-        void operateAM(const MessagePack &);
+        void operateAM(const ActorMsgPack &);
         void operateNet(uint32_t, uint8_t, const uint8_t *, size_t);
 
     protected:
@@ -53,14 +53,14 @@ class ServiceCore final: public ServerObject
         void onActivate() override;
 
     private:
-        void on_MPK_LOGIN(const MessagePack &);
-        void on_MPK_METRONOME(const MessagePack &);
-        void on_MPK_BADCHANNEL(const MessagePack &);
-        void on_MPK_RECVPACKAGE(const MessagePack &);
-        void on_MPK_QUERYMAPUID(const MessagePack &);
-        void on_MPK_QUERYMAPLIST(const MessagePack &);
-        void on_MPK_QUERYCOCOUNT(const MessagePack &);
-        void on_MPK_ADDCHAROBJECT(const MessagePack &);
+        void on_AM_LOGIN(const ActorMsgPack &);
+        void on_AM_METRONOME(const ActorMsgPack &);
+        void on_AM_BADCHANNEL(const ActorMsgPack &);
+        void on_AM_RECVPACKAGE(const ActorMsgPack &);
+        void on_AM_QUERYMAPUID(const ActorMsgPack &);
+        void on_AM_QUERYMAPLIST(const ActorMsgPack &);
+        void on_AM_QUERYCOCOUNT(const ActorMsgPack &);
+        void on_AM_ADDCHAROBJECT(const ActorMsgPack &);
 
     private:
         void net_CM_Login(uint32_t, uint8_t, const uint8_t *, size_t);

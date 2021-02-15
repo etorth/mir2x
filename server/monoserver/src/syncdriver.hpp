@@ -20,7 +20,7 @@
 #pragma once
 #include <cstdint>
 #include "receiver.hpp"
-#include "messagepack.hpp"
+#include "actormsgpack.hpp"
 
 class SyncDriver final
 {
@@ -45,5 +45,5 @@ class SyncDriver final
         }
 
     public:
-        MessagePack forward(uint64_t, const MessageBuf &, uint32_t = 0, uint32_t = 0);
+        ActorMsgPack forward(uint64_t, const ActorMsgBuf &, uint32_t = 0, uint32_t = 0);
 };

@@ -84,7 +84,13 @@ class MonoServer final
         void LoadMapBinDB();
 
     private:
-        void CreateDefaultDatabase();
+        bool hasDatabase() const;
+        bool hasCharacter(const char *) const;
+
+    private:
+        void createDefaultDatabase();
+        bool createAccount(const char *, const char *);
+        bool createAccountCharacter(const char *, const char *, const char *);
 
     public:
         void checkException();
@@ -101,9 +107,6 @@ class MonoServer final
 
         void addLog(const std::array<std::string, 4> &,     // argument list, compatible to Log::addLog()
                 const char *, ...);                         // variadic argument list supported by std::vsnprintf()
-
-    private:
-        bool addPlayer(uint32_t, uint32_t);
 
     private:
         void StartNetwork();

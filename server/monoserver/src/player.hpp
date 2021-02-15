@@ -30,54 +30,51 @@ class Player final: public CharObject
         friend class CharObject;
 
     protected:
-        uint32_t m_channID;
+        uint32_t m_channID = 0;
 
     protected:
         uint32_t m_exp;
         uint32_t m_level;
 
     protected:
-        PlayerLook m_look;
-        PlayerWear m_wear;
+        std::string m_name;
+        uint32_t m_nameColor;
 
-    protected:
-        uint32_t m_gold;
-        std::vector<CommonItem> m_inventory;
-
-    protected:
-        const std::string m_name;
+        uint32_t m_hair;
+        uint32_t m_hairColor;
 
     protected:
         std::set<uint64_t> m_slaveList;
 
-    public:
-        Player(uint32_t,                // DBID
-                ServiceCore *,          //
-                ServerMap *,            //
-                int,                    // map x
-                int,                    // map y
-                int);                   // direction
+    private:
+        bool m_pickUpLock = false;
+
+    private:
+        SDItemStorage m_sdItemStorage;
 
     public:
-        ~Player();
+        Player(const SDInitPlayer &, ServiceCore *, ServerMap *);
+
+    public:
+        ~Player() = default;
 
     protected:
-        uint32_t Exp() const
+        uint32_t exp() const
         {
             return m_exp;
         }
 
-        uint32_t Gold() const
+        uint32_t gold() const
         {
-            return m_gold;
+            return m_sdItemStorage.gold;
         }
 
-        uint32_t Level() const
+        uint32_t level() const
         {
             return m_level;
         }
 
-        uint32_t ChannID()
+        uint32_t channID()
         {
             return m_channID;
         }
@@ -103,47 +100,44 @@ class Player final: public CharObject
         void operateNet(uint8_t, const uint8_t *, size_t);
 
     protected:
-        void operateAM(const MessagePack &);
+        void operateAM(const ActorMsgPack &);
 
     private:
-        void on_MPK_EXP(const MessagePack &);
-        void on_MPK_MISS(const MessagePack &);
-        void on_MPK_ACTION(const MessagePack &);
-        void on_MPK_ATTACK(const MessagePack &);
-        void on_MPK_OFFLINE(const MessagePack &);
-        void on_MPK_CORECORD(const MessagePack &);
-        void on_MPK_PICKUPOK(const MessagePack &);
-        void on_MPK_UPDATEHP(const MessagePack &);
-        void on_MPK_NPCQUERY(const MessagePack &);
-        void on_MPK_METRONOME(const MessagePack &);
-        void on_MPK_MAPSWITCH(const MessagePack &);
-        void on_MPK_SENDPACKAGE(const MessagePack &);
-        void on_MPK_RECVPACKAGE(const MessagePack &);
-        void on_MPK_BADCHANNEL(const MessagePack &);
-        void on_MPK_NOTIFYDEAD(const MessagePack &);
-        void on_MPK_NOTIFYNEWCO(const MessagePack &);
-        void on_MPK_DEADFADEOUT(const MessagePack &);
-        void on_MPK_BADACTORPOD(const MessagePack &);
-        void on_MPK_BINDCHANNEL(const MessagePack &);
-        void on_MPK_CHECKMASTER(const MessagePack &);
-        void on_MPK_SHOWDROPITEM(const MessagePack &);
-        void on_MPK_QUERYCORECORD(const MessagePack &);
-        void on_MPK_QUERYLOCATION(const MessagePack &);
-        void on_MPK_QUERYPLAYERLOOK(const MessagePack &);
-        void on_MPK_QUERYPLAYERWEAR(const MessagePack &);
-        void on_MPK_REMOVEGROUNDITEM(const MessagePack &);
+        void on_AM_EXP(const ActorMsgPack &);
+        void on_AM_MISS(const ActorMsgPack &);
+        void on_AM_ACTION(const ActorMsgPack &);
+        void on_AM_ATTACK(const ActorMsgPack &);
+        void on_AM_OFFLINE(const ActorMsgPack &);
+        void on_AM_CORECORD(const ActorMsgPack &);
+        void on_AM_UPDATEHP(const ActorMsgPack &);
+        void on_AM_NPCQUERY(const ActorMsgPack &);
+        void on_AM_METRONOME(const ActorMsgPack &);
+        void on_AM_MAPSWITCH(const ActorMsgPack &);
+        void on_AM_SENDPACKAGE(const ActorMsgPack &);
+        void on_AM_RECVPACKAGE(const ActorMsgPack &);
+        void on_AM_BADCHANNEL(const ActorMsgPack &);
+        void on_AM_NOTIFYDEAD(const ActorMsgPack &);
+        void on_AM_NOTIFYNEWCO(const ActorMsgPack &);
+        void on_AM_DEADFADEOUT(const ActorMsgPack &);
+        void on_AM_BADACTORPOD(const ActorMsgPack &);
+        void on_AM_BINDCHANNEL(const ActorMsgPack &);
+        void on_AM_CHECKMASTER(const ActorMsgPack &);
+        void on_AM_QUERYCORECORD(const ActorMsgPack &);
+        void on_AM_QUERYLOCATION(const ActorMsgPack &);
+        void on_AM_REMOVEGROUNDITEM(const ActorMsgPack &);
+        void on_AM_QUERYPLAYERWLDESP(const ActorMsgPack &);
 
     private:
         void net_CM_REQUESTKILLPETS   (uint8_t, const uint8_t *, size_t);
         void net_CM_REQUESTSPACEMOVE  (uint8_t, const uint8_t *, size_t);
         void net_CM_REQUESTMAGICDAMAGE(uint8_t, const uint8_t *, size_t);
         void net_CM_QUERYCORECORD     (uint8_t, const uint8_t *, size_t);
-        void net_CM_QUERYSELLITEM     (uint8_t, const uint8_t *, size_t);
-        void net_CM_QUERYPLAYERLOOK   (uint8_t, const uint8_t *, size_t);
-        void net_CM_QUERYPLAYERWEAR   (uint8_t, const uint8_t *, size_t);
+        void net_CM_QUERYSELLITEMLIST (uint8_t, const uint8_t *, size_t);
+        void net_CM_QUERYPLAYERWLDESP (uint8_t, const uint8_t *, size_t);
         void net_CM_ACTION            (uint8_t, const uint8_t *, size_t);
         void net_CM_PICKUP            (uint8_t, const uint8_t *, size_t);
         void net_CM_PING              (uint8_t, const uint8_t *, size_t);
+        void net_CM_BUY               (uint8_t, const uint8_t *, size_t);
         void net_CM_QUERYGOLD         (uint8_t, const uint8_t *, size_t);
         void net_CM_NPCEVENT          (uint8_t, const uint8_t *, size_t);
 
@@ -154,6 +148,7 @@ class Player final: public CharObject
         void reportDeadUID(uint64_t);
         void reportCO(uint64_t);
         void reportOffline(uint64_t, uint32_t);
+        void reportRemoveItem(uint32_t, uint32_t, size_t);
 
     protected:
         virtual void reportAction(uint64_t, const ActionNode &);
@@ -183,12 +178,26 @@ class Player final: public CharObject
         void onCMActionStand (CMAction);
         void onCMActionSpell (CMAction);
         void onCMActionAttack(CMAction);
-        void onCMActionPickUp(CMAction);
 
     private:
         bool postNetMessage(uint8_t, const void *, size_t);
 
     private:
+        bool postNetMessage(uint8_t hc)
+        {
+            return postNetMessage(hc, 0, 0);
+        }
+
+        bool postNetMessage(uint8_t hc, const std::string &buf)
+        {
+            return postNetMessage(hc, buf.data(), buf.length());
+        }
+
+        bool postNetMessage(uint8_t hc, const std::u8string &buf)
+        {
+            return postNetMessage(hc, buf.data(), buf.length());
+        }
+
         template<typename T> bool postNetMessage(uint8_t nHC, T& stMessage)
         {
             static_assert(std::is_trivially_copyable_v<T>);
@@ -212,10 +221,6 @@ class Player final: public CharObject
         uint32_t GetLevelExp();
 
     protected:
-        size_t dbUpdate(const char *, const char *, ...);
-        size_t dbAccess(const char *, const char *, std::function<std::string(std::string)>);
-
-    protected:
         void GainExp(int);
 
     protected:
@@ -224,21 +229,48 @@ class Player final: public CharObject
     protected:
         bool CanPickUp(uint32_t, uint32_t);
 
-    protected:
-        bool DBLoadPlayer();
-        bool DBSavePlayer();
+    private:
+        void dbLoadInventory();
+        void dbUpdateInventoryItem(const SDItem &);
+        void dbRemoveInventoryItem(const SDItem &);
+        void dbRemoveInventoryItem(uint32_t, uint32_t);
+
+    private:
+        void dbLoadBelt();
+        void dbUpdateBeltItem(size_t, const SDItem &);
+        void dbRemoveBeltItem(size_t);
+
+    private:
+        void dbLoadWear();
+        void dbUpdateWearItem(int, const SDItem &);
+        void dbRemoveWearItem(int);
 
     protected:
         void checkFriend(uint64_t, std::function<void(int)>) override;
 
-    public:
-        const auto &getPlayerLook() const
+    private:
+        void postLoginOK();
+
+    private:
+        bool hasInventoryItem(uint32_t, uint32_t, size_t) const;
+        void addInventoryItem(uint32_t);
+        void addInventoryItem(SDItem, bool);
+        size_t removeInventoryItem(uint32_t, uint32_t, size_t);
+
+    private:
+        size_t getGold() const
         {
-            return m_look;
+            return m_sdItemStorage.gold;
         }
 
-        const auto &getPlayerWear() const
+        void setGold(size_t);
+
+    public:
+        uint32_t dbid() const
         {
-            return m_wear;
+            return uidf::getPlayerDBID(UID());
         }
+
+    private:
+        SDItem createItem(uint32_t);
 };

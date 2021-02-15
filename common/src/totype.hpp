@@ -26,7 +26,8 @@
 #define to_lld(x) static_cast<         long long>(x)
 #define to_llu(x) static_cast<unsigned long long>(x)
 
-#define to_u8( x)  static_cast<uint8_t >(x)
+#define to_uz( x) static_cast<size_t  >(x)
+#define to_u8( x) static_cast<uint8_t >(x)
 #define to_u16(x) static_cast<uint16_t>(x)
 #define to_u32(x) static_cast<uint32_t>(x)
 #define to_u64(x) static_cast<uint64_t>(x)

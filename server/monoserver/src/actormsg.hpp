@@ -21,75 +21,77 @@
 #include "actionnode.hpp"
 #include "actordatapackage.hpp"
 
-enum MessagePackType: int
+enum ActorMsgPackType: int
 {
-    MPK_NONE = 0,
-    MPK_OK,
-    MPK_ERROR,
-    MPK_BADACTORPOD,
-    MPK_BADCHANNEL,
-    MPK_TIMEOUT,
-    MPK_UID,
-    MPK_PING,
-    MPK_LOGIN,
-    MPK_METRONOME,
-    MPK_TRYMOVE,
-    MPK_TRYSPACEMOVE,
-    MPK_MOVEOK,
-    MPK_SPACEMOVEOK,
-    MPK_TRYLEAVE,
-    MPK_LOGINOK,
-    MPK_ADDRESS,
-    MPK_LOGINQUERYDB,
-    MPK_SENDPACKAGE,
-    MPK_RECVPACKAGE,
-    MPK_ADDCHAROBJECT,
-    MPK_BINDCHANNEL,
-    MPK_ACTION,
-    MPK_PULLCOINFO,
-    MPK_QUERYMAPLIST,
-    MPK_MAPLIST,
-    MPK_MAPSWITCH,
-    MPK_MAPSWITCHOK,
-    MPK_TRYMAPSWITCH,
-    MPK_QUERYMAPUID,
-    MPK_QUERYLOCATION,
-    MPK_QUERYSELLITEM,
-    MPK_LOCATION,
-    MPK_PATHFIND,
-    MPK_PATHFINDOK,
-    MPK_ATTACK,
-    MPK_UPDATEHP,
-    MPK_DEADFADEOUT,
-    MPK_QUERYCORECORD,
-    MPK_QUERYCOCOUNT,
-    MPK_QUERYPLAYERLOOK,
-    MPK_QUERYPLAYERWEAR,
-    MPK_COCOUNT,
-    MPK_EXP,
-    MPK_MISS,
-    MPK_NEWDROPITEM,
-    MPK_SHOWDROPITEM,
-    MPK_NOTIFYDEAD,
-    MPK_OFFLINE,
-    MPK_PICKUP,
-    MPK_PICKUPOK,
-    MPK_REMOVEGROUNDITEM,
-    MPK_CORECORD,
-    MPK_NOTIFYNEWCO,
-    MPK_CHECKMASTER,
-    MPK_QUERYMASTER,
-    MPK_QUERYFINALMASTER,
-    MPK_QUERYFRIENDTYPE,
-    MPK_FRIENDTYPE,
-    MPK_QUERYNAMECOLOR,
-    MPK_NAMECOLOR,
-    MPK_MASTERKILL,
-    MPK_MASTERHITTED,
-    MPK_NPCQUERY,
-    MPK_NPCEVENT,
-    MPK_NPCERROR,
-    MPK_MAX,
+    AM_NONE = 0,
+    AM_OK,
+    AM_ERROR,
+    AM_BADACTORPOD,
+    AM_BADCHANNEL,
+    AM_TIMEOUT,
+    AM_UID,
+    AM_PING,
+    AM_LOGIN,
+    AM_METRONOME,
+    AM_TRYMOVE,
+    AM_TRYSPACEMOVE,
+    AM_MOVEOK,
+    AM_SPACEMOVEOK,
+    AM_TRYLEAVE,
+    AM_LOGINOK,
+    AM_ADDRESS,
+    AM_LOGINQUERYDB,
+    AM_SENDPACKAGE,
+    AM_RECVPACKAGE,
+    AM_ADDCHAROBJECT,
+    AM_BINDCHANNEL,
+    AM_ACTION,
+    AM_PULLCOINFO,
+    AM_QUERYMAPLIST,
+    AM_MAPLIST,
+    AM_MAPSWITCH,
+    AM_MAPSWITCHOK,
+    AM_TRYMAPSWITCH,
+    AM_QUERYMAPUID,
+    AM_QUERYLOCATION,
+    AM_QUERYSELLITEMLIST,
+    AM_LOCATION,
+    AM_PATHFIND,
+    AM_PATHFINDOK,
+    AM_ATTACK,
+    AM_UPDATEHP,
+    AM_DEADFADEOUT,
+    AM_QUERYCORECORD,
+    AM_QUERYCOCOUNT,
+    AM_QUERYPLAYERWLDESP,
+    AM_COCOUNT,
+    AM_EXP,
+    AM_MISS,
+    AM_NEWDROPITEM,
+    AM_SHOWDROPITEM,
+    AM_NOTIFYDEAD,
+    AM_OFFLINE,
+    AM_PICKUP,
+    AM_PICKUPITEMIDLIST,
+    AM_REMOVEGROUNDITEM,
+    AM_CORECORD,
+    AM_NOTIFYNEWCO,
+    AM_CHECKMASTER,
+    AM_QUERYMASTER,
+    AM_QUERYFINALMASTER,
+    AM_QUERYFRIENDTYPE,
+    AM_FRIENDTYPE,
+    AM_QUERYNAMECOLOR,
+    AM_NAMECOLOR,
+    AM_MASTERKILL,
+    AM_MASTERHITTED,
+    AM_NPCQUERY,
+    AM_NPCEVENT,
+    AM_NPCERROR,
+    AM_BUY,
+    AM_BUYCOST,
+    AM_BUYERROR,
+    AM_MAX,
 };
 
 struct AMBadActorPod
@@ -103,7 +105,7 @@ struct AMBadActorPod
 
 struct AMBadChannel
 {
-    uint32_t ChannID;
+    uint32_t channID;
 };
 
 struct AMTryLeave
@@ -149,6 +151,14 @@ struct AMAddCharObject
         _playerType player;
         _monsterType monster;
     };
+
+    struct sdBuf
+    {
+        char   data[256];
+        size_t size;
+    };
+
+    sdBuf buf;
 };
 
 struct AMLogin
@@ -156,7 +166,7 @@ struct AMLogin
     uint32_t DBID;
     uint64_t UID;
     uint32_t SID;
-    uint32_t MapID;
+    uint32_t mapID;
     uint64_t Key;
 
     int X;
@@ -182,7 +192,7 @@ struct AMSpaceMoveOK
 struct AMTryMove
 {
     uint64_t UID;
-    uint32_t MapID;
+    uint32_t mapID;
 
     int X;
     int Y;
@@ -197,7 +207,7 @@ struct AMTryMove
 struct AMMoveOK
 {
     uint64_t UID;
-    uint32_t MapID;
+    uint32_t mapID;
 
     int X;
     int Y;
@@ -208,10 +218,10 @@ struct AMMoveOK
 
 struct AMLoginQueryDB
 {
-    uint32_t ChannID;
+    uint32_t channID;
 
     uint32_t DBID;
-    uint32_t MapID;
+    uint32_t mapID;
     int      MapX;
     int      MapY;
     int      Level;
@@ -232,13 +242,13 @@ struct AMRecvPackage
 
 struct AMBindChannel
 {
-    uint32_t ChannID;
+    uint32_t channID;
 };
 
 struct AMAction
 {
     uint64_t UID;
-    uint32_t MapID;
+    uint32_t mapID;
     ActionNode action;
 };
 
@@ -250,7 +260,7 @@ struct AMPullCOInfo
     int H;
 
     uint64_t UID;
-    uint32_t MapID;
+    uint32_t mapID;
 };
 
 struct AMMapList
@@ -260,7 +270,7 @@ struct AMMapList
 
 struct AMMapSwitch
 {
-    uint32_t MapID;
+    uint32_t mapID;
     uint64_t UID;
 
     int X;
@@ -276,7 +286,7 @@ struct AMTryMapSwitch
 
 struct AMQueryMapUID
 {
-    uint32_t MapID;
+    uint32_t mapID;
 };
 
 struct AMUID
@@ -295,10 +305,10 @@ struct AMMapSwitchOK
 struct AMQueryLocation
 {
     uint64_t UID;
-    uint32_t MapID;
+    uint32_t mapID;
 };
 
-struct AMQuerySellItem
+struct AMQuerySellItemList
 {
     uint32_t itemID;
 };
@@ -306,7 +316,7 @@ struct AMQuerySellItem
 struct AMLocation
 {
     uint64_t UID;
-    uint32_t MapID;
+    uint32_t mapID;
     uint32_t RecordTime;
 
     int X;
@@ -317,7 +327,7 @@ struct AMLocation
 struct AMPathFind
 {
     uint64_t UID;
-    uint32_t MapID;
+    uint32_t mapID;
 
     int CheckCO;
     int MaxStep;
@@ -331,7 +341,7 @@ struct AMPathFind
 struct AMPathFindOK
 {
     uint64_t UID;
-    uint32_t MapID;
+    uint32_t mapID;
 
     struct _Point
     {
@@ -343,7 +353,7 @@ struct AMPathFindOK
 struct AMAttack
 {
     uint64_t UID;
-    uint32_t MapID;
+    uint32_t mapID;
 
     int X;
     int Y;
@@ -357,7 +367,7 @@ struct AMAttack
 struct AMUpdateHP
 {
     uint64_t UID;
-    uint32_t MapID;
+    uint32_t mapID;
 
     int X;
     int Y;
@@ -369,7 +379,7 @@ struct AMUpdateHP
 struct AMDeadFadeOut
 {
     uint64_t UID;
-    uint32_t MapID;
+    uint32_t mapID;
 
     int X;
     int Y;
@@ -382,7 +392,7 @@ struct AMQueryCORecord
 
 struct AMQueryCOCount
 {
-    uint32_t MapID;
+    uint32_t mapID;
     struct _Check
     {
         bool NPC;
@@ -444,7 +454,7 @@ struct AMNotifyDead
 struct AMOffline
 {
     uint64_t UID;
-    uint32_t MapID;
+    uint32_t mapID;
 
     int X;
     int Y;
@@ -452,22 +462,15 @@ struct AMOffline
 
 struct AMPickUp
 {
-    uint64_t UID;
-    uint32_t ID;
-    uint32_t DBID;
-
-    int X;
-    int Y;
+    int x;
+    int y;
+    uint32_t availableWeight;
 };
 
-struct AMPickUpOK
+struct AMPickUpItemIDList
 {
-    uint64_t UID;
-    uint32_t ID;
-    uint32_t DBID;
-
-    int X;
-    int Y;
+    uint32_t failedItemID;
+    uint32_t itemIDList[SYS_MAXDROPITEM];
 };
 
 struct AMRemoveGroundItem
@@ -482,7 +485,7 @@ struct AMRemoveGroundItem
 struct AMCORecord
 {
     uint64_t UID;
-    uint32_t MapID;
+    uint32_t mapID;
     ActionNode action;
 
     // instantiation of anonymous struct is supported in C11
@@ -549,4 +552,34 @@ struct AMNPCQuery
 struct AMNPCError
 {
     int errorID;
+};
+
+struct AMBuy
+{
+    uint32_t itemID;
+    uint32_t seqID;
+    size_t   count;
+};
+
+struct AMBuyCost
+{
+    struct ItemBuf
+    {
+        char   data[256];
+        size_t size;
+    };
+
+    struct ItemListElement
+    {
+        uint32_t itemID;
+        size_t   count;
+    };
+
+    ItemBuf itemBuf;
+    ItemListElement itemList[8];
+};
+
+struct AMBuyError
+{
+    int error;
 };

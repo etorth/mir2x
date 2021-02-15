@@ -18,6 +18,7 @@
 
 #pragma once
 #include <string>
+#include <vector>
 #include <cstdint>
 #include <cinttypes>
 #include "totype.hpp"
@@ -51,7 +52,7 @@ namespace uidf
 
     uint64_t buildMapUID(uint32_t);
     uint64_t buildNPCUID(uint16_t);
-    uint64_t buildPlayerUID(uint32_t, bool, std::initializer_list<int>);
+    uint64_t buildPlayerUID(uint32_t, bool, const std::vector<int> &);
     uint64_t buildMonsterUID(uint32_t);
 
     uint64_t buildEtcUID();
@@ -74,7 +75,7 @@ namespace uidf
         return (int)((uid & 0X0000F00000000000ULL) >> 44);
     }
 
-    inline const char *getUIDTypeString(uint64_t uid)
+    inline const char *getUIDTypeCStr(uint64_t uid)
     {
         switch(getUIDType(uid)){
             case UID_MON: return "MON";

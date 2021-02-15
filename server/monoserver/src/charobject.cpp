@@ -28,7 +28,7 @@
 #include "condcheck.hpp"
 #include "monoserver.hpp"
 #include "charobject.hpp"
-#include "messagepack.hpp"
+#include "actormsgpack.hpp"
 #include "protocoldef.hpp"
 #include "eventtaskhub.hpp"
 
@@ -96,7 +96,7 @@ CharObject::COPathFinder::COPathFinder(const CharObject *pCO, int nCheckCO)
 
 int CharObject::COPathFinder::GetGrid(int nX, int nY) const
 {
-    if(!m_CO->GetServerMap()->ValidC(nX, nY)){
+    if(!m_CO->GetServerMap()->validC(nX, nY)){
         return PathFind::INVALID;
     }
 
@@ -179,7 +179,7 @@ void CharObject::dispatchAction(const ActionNode &action)
     std::memset(&amA, 0, sizeof(amA));
 
     amA.UID = UID();
-    amA.MapID = MapID();
+    amA.mapID = mapID();
     amA.action = action;
 
     switch(action.type){
@@ -203,7 +203,7 @@ void CharObject::dispatchAction(const ActionNode &action)
         case ACTION_SPACEMOVE2:
         case ACTION_SPAWN:
             {
-                m_actorPod->forward(m_map->UID(), {MPK_ACTION, amA});
+                m_actorPod->forward(m_map->UID(), {AM_ACTION, amA});
                 return;
             }
         default:
@@ -212,9 +212,9 @@ void CharObject::dispatchAction(const ActionNode &action)
                 {
                     auto nX = rstLocation.X;
                     auto nY = rstLocation.Y;
-                    auto nMapID = rstLocation.MapID;
+                    auto nMapID = rstLocation.mapID;
                     if(InView(nMapID, nX, nY)){
-                        m_actorPod->forward(rstLocation.UID, {MPK_ACTION, amA});
+                        m_actorPod->forward(rstLocation.UID, {AM_ACTION, amA});
                     }
                 });
                 return;
@@ -230,15 +230,15 @@ void CharObject::dispatchAction(uint64_t uid, const ActionNode &action)
     std::memset(&amA, 0, sizeof(amA));
 
     amA.UID = UID();
-    amA.MapID = MapID();
+    amA.mapID = mapID();
     amA.action = action;
-    m_actorPod->forward(uid, {MPK_ACTION, amA});
+    m_actorPod->forward(uid, {AM_ACTION, amA});
 }
 
 bool CharObject::requestMove(int nX, int nY, int nSpeed, bool allowHalfMove, bool removeMonster, std::function<void()> fnOnOK, std::function<void()> fnOnError)
 {
     if(!m_map->groundValid(nX, nY)){
-        throw fflerror("invalid destination: (mapID = %lld, x = %d, y = %d)", to_lld(MapID()), nX, nY);
+        throw fflerror("invalid destination: (mapID = %lld, x = %d, y = %d)", to_lld(mapID()), nX, nY);
     }
 
     if(!canMove()){
@@ -306,7 +306,7 @@ bool CharObject::requestMove(int nX, int nY, int nSpeed, bool allowHalfMove, boo
     std::memset(&amTM, 0, sizeof(amTM));
 
     amTM.UID           = UID();
-    amTM.MapID         = MapID();
+    amTM.mapID         = mapID();
     amTM.X             = X();
     amTM.Y             = Y();
     amTM.EndX          = nX;
@@ -315,7 +315,7 @@ bool CharObject::requestMove(int nX, int nY, int nSpeed, bool allowHalfMove, boo
     amTM.RemoveMonster = removeMonster;
 
     m_moveLock = true;
-    return m_actorPod->forward(MapUID(), {MPK_TRYMOVE, amTM}, [this, nX, nY, nSpeed, fnOnOK, fnOnError](const MessagePack &rstMPK)
+    return m_actorPod->forward(MapUID(), {AM_TRYMOVE, amTM}, [this, nX, nY, nSpeed, fnOnOK, fnOnError](const ActorMsgPack &rmpk)
     {
         if(!m_moveLock){
             throw fflerror("moveLock released before map responds: UIDName = %s", UIDName());
@@ -325,21 +325,19 @@ bool CharObject::requestMove(int nX, int nY, int nSpeed, bool allowHalfMove, boo
         // handle move, CO may be dead
         // need to check if current CO can move
 
-        switch(rstMPK.Type()){
-            case MPK_MOVEOK:
+        switch(rmpk.type()){
+            case AM_MOVEOK:
                 {
-                    AMMoveOK amMOK;
-                    std::memcpy(&amMOK, rstMPK.Data(), sizeof(amMOK));
-
+                    const auto amMOK = rmpk.conv<AMMoveOK>();
                     // since we may allow half move
                     // servermap permitted dst may not be (nX, nY)
 
-                    if(!m_map->ValidC(amMOK.EndX, amMOK.EndY)){
+                    if(!m_map->validC(amMOK.EndX, amMOK.EndY)){
                         throw fflerror("map returns invalid destination: (%" PRIu64 ", %d, %d)", m_map->UID(), amMOK.EndX, amMOK.EndY);
                     }
 
                     if(!canMove()){
-                        m_actorPod->forward(rstMPK.from(), MPK_ERROR, rstMPK.ID());
+                        m_actorPod->forward(rmpk.from(), AM_ERROR, rmpk.seqID());
                         if(fnOnError){
                             fnOnError();
                         }
@@ -355,7 +353,7 @@ bool CharObject::requestMove(int nX, int nY, int nSpeed, bool allowHalfMove, boo
                     m_direction = PathFind::GetDirection(nOldX, nOldY, X(), Y());
                     m_lastMoveTime = g_monoServer->getCurrTick();
 
-                    m_actorPod->forward(rstMPK.from(), MPK_OK, rstMPK.ID());
+                    m_actorPod->forward(rmpk.from(), AM_OK, rmpk.seqID());
                     dispatchAction(ActionMove
                     {
                         .speed = nSpeed,
@@ -387,12 +385,12 @@ bool CharObject::requestSpaceMove(int locX, int locY, bool strictMove, std::func
 {
     if(strictMove){
         if(!m_map->groundValid(locX, locY)){
-            throw fflerror("invalid destination: (mapID = %lld, x = %d, y = %d)", to_llu(MapID()), locX, locY);
+            throw fflerror("invalid destination: (mapID = %lld, x = %d, y = %d)", to_llu(mapID()), locX, locY);
         }
     }
     else{
-        if(!m_map->ValidC(locX, locY)){
-            throw fflerror("invalid destination: (mapID = %lld, x = %d, y = %d)", to_llu(MapID()), locX, locY);
+        if(!m_map->validC(locX, locY)){
+            throw fflerror("invalid destination: (mapID = %lld, x = %d, y = %d)", to_llu(mapID()), locX, locY);
         }
     }
 
@@ -412,7 +410,7 @@ bool CharObject::requestSpaceMove(int locX, int locY, bool strictMove, std::func
     amTSM.StrictMove = strictMove;
 
     m_moveLock = true;
-    return m_actorPod->forward(MapUID(), {MPK_TRYSPACEMOVE, amTSM}, [this, fnOnOK, fnOnError](const MessagePack &rmpk)
+    return m_actorPod->forward(MapUID(), {AM_TRYSPACEMOVE, amTSM}, [this, fnOnOK, fnOnError](const ActorMsgPack &rmpk)
     {
         if(!m_moveLock){
             throw fflerror("moveLock released before map responds: UIDName = %s", UIDName());
@@ -422,14 +420,14 @@ bool CharObject::requestSpaceMove(int locX, int locY, bool strictMove, std::func
         // handle move, CO can be dead already
         // check if current CO can move even we checked before
 
-        switch(rmpk.Type()){
-            case MPK_SPACEMOVEOK:
+        switch(rmpk.type()){
+            case AM_SPACEMOVEOK:
                 {
                     // need to leave src map
                     // dst map already says OK for current move
 
                     if(!canMove()){
-                        m_actorPod->forward(rmpk.from(), MPK_ERROR, rmpk.ID());
+                        m_actorPod->forward(rmpk.from(), AM_ERROR, rmpk.seqID());
                         if(fnOnError){
                             fnOnError();
                         }
@@ -443,19 +441,19 @@ bool CharObject::requestSpaceMove(int locX, int locY, bool strictMove, std::func
                     amTL.Y = Y();
 
                     m_moveLock = true;
-                    m_actorPod->forward(m_map->UID(), {MPK_TRYLEAVE, amTL}, [this, rmpk, fnOnOK, fnOnError](const MessagePack &leavermpk)
+                    m_actorPod->forward(m_map->UID(), {AM_TRYLEAVE, amTL}, [this, rmpk, fnOnOK, fnOnError](const ActorMsgPack &leavermpk)
                     {
                         if(!m_moveLock){
                             throw fflerror("moveLock released before map responds: UIDName = %s", UIDName());
                         }
                         m_moveLock = false;
 
-                        switch(leavermpk.Type()){
-                            case MPK_OK:
+                        switch(leavermpk.type()){
+                            case AM_OK:
                                 {
                                     const auto amSMOK = rmpk.conv<AMSpaceMoveOK>();
                                     if(!canMove()){
-                                        m_actorPod->forward(rmpk.from(), MPK_ERROR, rmpk.ID());
+                                        m_actorPod->forward(rmpk.from(), AM_ERROR, rmpk.seqID());
                                         if(fnOnError){
                                             fnOnError();
                                         }
@@ -476,7 +474,7 @@ bool CharObject::requestSpaceMove(int locX, int locY, bool strictMove, std::func
                                     m_Y = amSMOK.Y;
 
                                     m_lastMoveTime = g_monoServer->getCurrTick();
-                                    m_actorPod->forward(rmpk.from(), MPK_OK, rmpk.ID());
+                                    m_actorPod->forward(rmpk.from(), AM_OK, rmpk.seqID());
 
                                     // clean the InViewCO list
                                     // report new location explicitly to map
@@ -502,7 +500,7 @@ bool CharObject::requestSpaceMove(int locX, int locY, bool strictMove, std::func
                                 }
                             default:
                                 {
-                                    m_actorPod->forward(rmpk.from(), MPK_ERROR, rmpk.ID());
+                                    m_actorPod->forward(rmpk.from(), AM_ERROR, rmpk.seqID());
                                     if(fnOnError){
                                         fnOnError();
                                     }
@@ -523,14 +521,14 @@ bool CharObject::requestSpaceMove(int locX, int locY, bool strictMove, std::func
     });
 }
 
-bool CharObject::requestMapSwitch(uint32_t mapID, int locX, int locY, bool strictMove, std::function<void()> fnOnOK, std::function<void()> fnOnError)
+bool CharObject::requestMapSwitch(uint32_t argMapID, int locX, int locY, bool strictMove, std::function<void()> fnOnOK, std::function<void()> fnOnError)
 {
-    if(mapID == MapID()){
-        throw fflerror("request to switch on same map: mapID = %llu", to_llu(mapID));
+    if(argMapID == mapID()){
+        throw fflerror("request to switch on same map: mapID = %llu", to_llu(argMapID));
     }
 
     if(locX < 0 || locY < 0){
-        throw fflerror("invalid argument: mapID = %llu, locX = %d, locY = %d", to_llu(mapID), locX, locY);
+        throw fflerror("invalid argument: mapID = %llu, locX = %d, locY = %d", to_llu(argMapID), locX, locY);
     }
 
     if(!canMove()){
@@ -543,11 +541,11 @@ bool CharObject::requestMapSwitch(uint32_t mapID, int locX, int locY, bool stric
     AMQueryMapUID amQMUID;
     std::memset(&amQMUID, 0, sizeof(amQMUID));
 
-    amQMUID.MapID = mapID;
-    return m_actorPod->forward(m_serviceCore->UID(), {MPK_QUERYMAPUID, amQMUID}, [locX, locY, strictMove, fnOnOK, fnOnError, this](const MessagePack &mpk)
+    amQMUID.mapID = argMapID;
+    return m_actorPod->forward(m_serviceCore->UID(), {AM_QUERYMAPUID, amQMUID}, [locX, locY, strictMove, fnOnOK, fnOnError, this](const ActorMsgPack &mpk)
     {
-        switch(mpk.Type()){
-            case MPK_UID:
+        switch(mpk.type()){
+            case AM_UID:
                 {
                     AMTryMapSwitch amTMS;
                     std::memset(&amTMS, 0, sizeof(amTMS));
@@ -560,21 +558,21 @@ bool CharObject::requestMapSwitch(uint32_t mapID, int locX, int locY, bool stric
                     // if request rejected then it stays in current map
 
                     m_moveLock = true;
-                    m_actorPod->forward(mpk.conv<AMUID>().UID, {MPK_TRYMAPSWITCH, amTMS}, [mpk, fnOnOK, fnOnError, this](const MessagePack &rmpk)
+                    m_actorPod->forward(mpk.conv<AMUID>().UID, {AM_TRYMAPSWITCH, amTMS}, [mpk, fnOnOK, fnOnError, this](const ActorMsgPack &rmpk)
                     {
                         if(!m_moveLock){
                             throw fflerror("moveLock released before map responds: UIDName = %s", UIDName());
                         }
                         m_moveLock = false;
 
-                        switch(rmpk.Type()){
-                            case MPK_MAPSWITCHOK:
+                        switch(rmpk.type()){
+                            case AM_MAPSWITCHOK:
                                 {
                                     // new map accepts this switch request
                                     // new map will guarantee to outlive current object
 
                                     if(!canMove()){
-                                        m_actorPod->forward(rmpk.from(), MPK_ERROR, rmpk.ID());
+                                        m_actorPod->forward(rmpk.from(), AM_ERROR, rmpk.seqID());
                                         if(fnOnError){
                                             fnOnError();
                                         }
@@ -587,12 +585,12 @@ bool CharObject::requestMapSwitch(uint32_t mapID, int locX, int locY, bool stric
                                     if(!(true && newMapPtr
                                               && newMapPtr->ID()
                                               && newMapPtr->UID()
-                                              && newMapPtr->ValidC(amMSOK.X, amMSOK.Y))){
+                                              && newMapPtr->validC(amMSOK.X, amMSOK.Y))){
 
                                         // fake map
                                         // invalid argument, this is not good place to call fnOnError()
 
-                                        m_actorPod->forward(rmpk.from(), MPK_ERROR, rmpk.ID());
+                                        m_actorPod->forward(rmpk.from(), AM_ERROR, rmpk.seqID());
                                         if(fnOnError){
                                             fnOnError();
                                         }
@@ -609,19 +607,19 @@ bool CharObject::requestMapSwitch(uint32_t mapID, int locX, int locY, bool stric
                                     // dangerous here, we should keep m_map always valid
 
                                     m_moveLock = true;
-                                    m_actorPod->forward(m_map->UID(), {MPK_TRYLEAVE, amTL}, [this, amMSOK, rmpk, fnOnOK, fnOnError](const MessagePack &leavermpk)
+                                    m_actorPod->forward(m_map->UID(), {AM_TRYLEAVE, amTL}, [this, amMSOK, rmpk, fnOnOK, fnOnError](const ActorMsgPack &leavermpk)
                                     {
                                         if(!m_moveLock){
                                             throw fflerror("moveLock released before map responds: UIDName = %s", UIDName());
                                         }
                                         m_moveLock = false;
 
-                                        switch(leavermpk.Type()){
-                                            case MPK_OK:
+                                        switch(leavermpk.type()){
+                                            case AM_OK:
                                                 {
                                                     const auto amMSOK = rmpk.conv<AMMapSwitchOK>();
                                                     if(!canMove()){
-                                                        m_actorPod->forward(rmpk.from(), MPK_ERROR, rmpk.ID());
+                                                        m_actorPod->forward(rmpk.from(), AM_ERROR, rmpk.seqID());
                                                         if(fnOnError){
                                                             fnOnError();
                                                         }
@@ -632,7 +630,7 @@ bool CharObject::requestMapSwitch(uint32_t mapID, int locX, int locY, bool stric
                                                     m_map = (ServerMap *)(amMSOK.Ptr);
                                                     m_X = amMSOK.X;
                                                     m_Y = amMSOK.Y;
-                                                    m_actorPod->forward(m_map->UID(), MPK_OK, rmpk.ID());
+                                                    m_actorPod->forward(m_map->UID(), AM_OK, rmpk.seqID());
 
                                                     // 2. notify all players on the new map
                                                     //    need to explicitly send to the map, not InViewCO since it's not valid anymore
@@ -659,7 +657,7 @@ bool CharObject::requestMapSwitch(uint32_t mapID, int locX, int locY, bool stric
 
                                                     // if an UID can't move
                                                     // then we shouldn't call this function
-                                                    m_actorPod->forward(((ServerMap *)(amMSOK.Ptr))->UID(), MPK_ERROR, rmpk.ID());
+                                                    m_actorPod->forward(((ServerMap *)(amMSOK.Ptr))->UID(), AM_ERROR, rmpk.seqID());
                                                     if(fnOnError){
                                                         fnOnError();
                                                     }
@@ -770,15 +768,15 @@ void CharObject::retrieveLocation(uint64_t nUID, std::function<void(const COLoca
     std::memset(&amQL, 0, sizeof(amQL));
 
     amQL.UID   = UID();
-    amQL.MapID = MapID();
+    amQL.mapID = mapID();
 
-    m_actorPod->forward(nUID, {MPK_QUERYLOCATION, amQL}, [this, nUID, fnOnOK, fnOnError](const MessagePack &rstRMPK)
+    m_actorPod->forward(nUID, {AM_QUERYLOCATION, amQL}, [this, nUID, fnOnOK, fnOnError](const ActorMsgPack &rstRMPK)
     {
-        switch(rstRMPK.Type()){
-            case MPK_LOCATION:
+        switch(rstRMPK.type()){
+            case AM_LOCATION:
                 {
                     AMLocation amL;
-                    std::memcpy(&amL, rstRMPK.Data(), sizeof(amL));
+                    std::memcpy(&amL, rstRMPK.data(), sizeof(amL));
 
                     // TODO when we get this response
                     // it's possible that the co has switched map or dead
@@ -786,14 +784,14 @@ void CharObject::retrieveLocation(uint64_t nUID, std::function<void(const COLoca
                     COLocation stCOLoccation
                     {
                         amL.UID,
-                        amL.MapID,
+                        amL.mapID,
                         amL.RecordTime,
                         amL.X,
                         amL.Y,
                         amL.Direction
                     };
 
-                    if((amL.UID == nUID) && InView(amL.MapID, amL.X, amL.Y)){
+                    if((amL.UID == nUID) && InView(amL.mapID, amL.X, amL.Y)){
                         AddInViewCO(stCOLoccation);
                     }
                     else{
@@ -806,7 +804,7 @@ void CharObject::retrieveLocation(uint64_t nUID, std::function<void(const COLoca
             default:
                 {
                     // TODO dangerous part here
-                    // when nUID is not detached ActorPod::forward receives MPK_BADACTORPOD immedately
+                    // when nUID is not detached ActorPod::forward receives AM_BADACTORPOD immedately
                     // then this branch get called, then m_inViewCOList get updated implicitly
 
                     RemoveInViewCO(nUID);
@@ -866,7 +864,7 @@ void CharObject::dispatchOffenderExp()
             std::memset(&amE, 0, sizeof(amE));
 
             amE.Exp = fnCalcExp(rstOffender.Damage);
-            m_actorPod->forward(rstOffender.UID, {MPK_EXP, amE});
+            m_actorPod->forward(rstOffender.UID, {AM_EXP, amE});
         }
     }
 }
@@ -908,7 +906,7 @@ void CharObject::dispatchHealth()
     std::memset(&amUHP, 0, sizeof(amUHP));
 
     amUHP.UID   = UID();
-    amUHP.MapID = MapID();
+    amUHP.mapID = mapID();
     amUHP.X     = X();
     amUHP.Y     = Y();
     amUHP.HP    = HP();
@@ -918,7 +916,7 @@ void CharObject::dispatchHealth()
             && checkActorPod()
             && m_map
             && m_map->checkActorPod()){
-        m_actorPod->forward(m_map->UID(), {MPK_UPDATEHP, amUHP});
+        m_actorPod->forward(m_map->UID(), {AM_UPDATEHP, amUHP});
     }
 }
 
@@ -929,7 +927,7 @@ void CharObject::dispatchAttack(uint64_t nUID, int nDC)
         std::memset(&amA, 0, sizeof(amA));
 
         amA.UID   = UID();
-        amA.MapID = MapID();
+        amA.mapID = mapID();
 
         amA.X = X();
         amA.Y = Y();
@@ -946,7 +944,7 @@ void CharObject::dispatchAttack(uint64_t nUID, int nDC)
                 amA.Effect[nIndex] = EFF_NONE;
             }
         }
-        m_actorPod->forward(nUID, {MPK_ATTACK, amA});
+        m_actorPod->forward(nUID, {AM_ATTACK, amA});
     }
 }
 
@@ -982,9 +980,9 @@ void CharObject::addMonster(uint32_t monsterID, int x, int y, bool strictLoc)
     amACO.monster.monsterID = monsterID;
     amACO.monster.masterUID = UID();
 
-    m_actorPod->forward(m_serviceCore->UID(), {MPK_ADDCHAROBJECT, amACO}, [](const MessagePack &rstRMPK)
+    m_actorPod->forward(m_serviceCore->UID(), {AM_ADDCHAROBJECT, amACO}, [](const ActorMsgPack &rstRMPK)
     {
-        switch(rstRMPK.ID()){
+        switch(rstRMPK.seqID()){
             default:
                 {
                     break;
@@ -996,7 +994,7 @@ void CharObject::addMonster(uint32_t monsterID, int x, int y, bool strictLoc)
 int CharObject::estimateHop(int nX, int nY)
 {
     condcheck(m_map);
-    if(!m_map->ValidC(nX, nY)){
+    if(!m_map->validC(nX, nY)){
         return -1;
     }
 
@@ -1241,7 +1239,7 @@ void CharObject::SetLastAction(int nAction)
 
 void CharObject::AddInViewCO(const COLocation &rstCOLocation)
 {
-    if(!InView(rstCOLocation.MapID, rstCOLocation.X, rstCOLocation.Y)){
+    if(!InView(rstCOLocation.mapID, rstCOLocation.X, rstCOLocation.Y)){
         return;
     }
 
@@ -1290,7 +1288,7 @@ void CharObject::RemoveInViewCO(uint64_t nUID)
 {
     m_inViewCOList.erase(std::remove_if(m_inViewCOList.begin(), m_inViewCOList.end(), [this, nUID](const auto &rstCOLoc)
     {
-        return rstCOLoc.UID == nUID || !InView(rstCOLoc.MapID, rstCOLoc.X, rstCOLoc.Y);
+        return rstCOLoc.UID == nUID || !InView(rstCOLoc.mapID, rstCOLoc.X, rstCOLoc.Y);
     }), m_inViewCOList.end());
 
     if((m_inViewCOList.size() < m_inViewCOList.capacity() / 2) && (m_inViewCOList.capacity() > 20)){
@@ -1342,18 +1340,18 @@ void CharObject::QueryFinalMaster(uint64_t nUID, std::function<void(uint64_t)> f
     }
 
     if(uidf::getUIDType(nUID) != UID_MON){
-        throw fflerror("%s can't have master", uidf::getUIDTypeString(nUID));
+        throw fflerror("%s can't have master", uidf::getUIDTypeCStr(nUID));
     }
 
     auto fnQuery = [this, fnOp](uint64_t nQueryUID)
     {
-        m_actorPod->forward(nQueryUID, MPK_QUERYFINALMASTER, [this, nQueryUID, fnOp](const MessagePack &rstRMPK)
+        m_actorPod->forward(nQueryUID, AM_QUERYFINALMASTER, [this, nQueryUID, fnOp](const ActorMsgPack &rstRMPK)
         {
-            switch(rstRMPK.Type()){
-                case MPK_UID:
+            switch(rstRMPK.type()){
+                case AM_UID:
                     {
                         AMUID amUID;
-                        std::memcpy(&amUID, rstRMPK.Data(), sizeof(amUID));
+                        std::memcpy(&amUID, rstRMPK.data(), sizeof(amUID));
 
                         fnOp(amUID.UID);
                         return;
@@ -1398,7 +1396,7 @@ void CharObject::QueryFinalMaster(uint64_t nUID, std::function<void(uint64_t)> f
                             }
                         default:
                             {
-                                throw fflerror("invalid master type: %s", uidf::getUIDTypeString(nMasterUID));
+                                throw fflerror("invalid master type: %s", uidf::getUIDTypeCStr(nMasterUID));
                             }
                     }
                 }
@@ -1415,7 +1413,7 @@ void CharObject::QueryFinalMaster(uint64_t nUID, std::function<void(uint64_t)> f
                     fnQuery(nUID);
                     return;
                 }
-                throw fflerror("%s can't query self for final master", uidf::getUIDTypeString(UID()));
+                throw fflerror("%s can't query self for final master", uidf::getUIDTypeCStr(UID()));
             }
     }
 }
@@ -1444,7 +1442,7 @@ void CharObject::notifyDead(uint64_t uid)
     std::memset(&amND, 0, sizeof(amND));
 
     amND.UID = UID();
-    m_actorPod->forward(uid, {MPK_NOTIFYDEAD, amND});
+    m_actorPod->forward(uid, {AM_NOTIFYDEAD, amND});
 }
 
 ActionNode CharObject::makeActionStand() const
@@ -1478,16 +1476,4 @@ ActionNode CharObject::makeActionStand() const
             }
     }
     return stand;
-}
-
-void CharObject::sendNetPackage(uint64_t uid, uint8_t type, const void *buf, size_t bufLen)
-{
-    AMSendPackage amSP;
-    std::memset(&amSP, 0, sizeof(amSP));
-
-    buildActorDataPackage(&(amSP.package), type, buf, bufLen);
-    if(uidf::getUIDType(uid) != UID_PLY){
-        throw fflerror("sending MPK_SENDPACKAGE to %s, expect UID_PLY: type = %llu", uidf::getUIDTypeString(uid), to_llu(type));
-    }
-    m_actorPod->forward(uid, {MPK_SENDPACKAGE, amSP});
 }

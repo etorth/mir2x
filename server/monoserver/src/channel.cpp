@@ -22,7 +22,7 @@
 #include "netdriver.hpp"
 #include "condcheck.hpp"
 #include "monoserver.hpp"
-#include "messagepack.hpp"
+#include "actormsgpack.hpp"
 
 Channel::Channel(uint32_t nChannID, asio::ip::tcp::socket stSocket)
     : m_ID(nChannID)
@@ -533,7 +533,7 @@ bool Channel::forwardActorMessage(uint8_t nHC, const uint8_t *pData, size_t nDat
 
     amRP.channID = ID();
     buildActorDataPackage(&(amRP.package), nHC, pData, nDataLen);
-    return m_dispatcher.forward(m_bindUID, {MPK_RECVPACKAGE, amRP});
+    return m_dispatcher.forward(m_bindUID, {AM_RECVPACKAGE, amRP});
 }
 
 void Channel::Shutdown(bool bForce)
@@ -552,9 +552,9 @@ void Channel::Shutdown(bool bForce)
 
                     // can forward to servicecore or player
                     // servicecore won't keep pointer *this* then we need to report it
-                    amBC.ChannID = pThis->ID();
+                    amBC.channID = pThis->ID();
 
-                    pThis->m_dispatcher.forward(pThis->m_bindUID, {MPK_BADCHANNEL, amBC});
+                    pThis->m_dispatcher.forward(pThis->m_bindUID, {AM_BADCHANNEL, amBC});
                     pThis->m_bindUID = 0;
 
                     // if we call shutdown() here

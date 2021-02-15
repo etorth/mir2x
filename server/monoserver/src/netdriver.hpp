@@ -33,7 +33,7 @@
 #include "monoserver.hpp"
 #include "cachequeue.hpp"
 #include "dispatcher.hpp"
-#include "messagepack.hpp"
+#include "actormsgpack.hpp"
 
 class Channel;
 class NetDriver final: public Dispatcher
@@ -110,7 +110,7 @@ class NetDriver final: public Dispatcher
             return false;
         }
 
-        void BindActor(uint32_t nChannID, uint64_t nUID)
+        void bindActor(uint32_t nChannID, uint64_t nUID)
         {
             if(CheckChannID(nChannID)){
                 m_channelList[nChannID]->BindActor(nUID);

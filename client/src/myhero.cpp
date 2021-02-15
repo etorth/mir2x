@@ -31,8 +31,8 @@ extern Log *g_log;
 extern Client *g_client;
 extern ClientArgParser *g_clientArgParser;
 
-MyHero::MyHero(uint64_t nUID, const PlayerLook &look, ProcessRun *pRun, const ActionNode &action)
-	: Hero(nUID, look, pRun, action)
+MyHero::MyHero(uint64_t nUID, ProcessRun *pRun, const ActionNode &action)
+	: Hero(nUID, pRun, action)
 {}
 
 bool MyHero::moveNextMotion()
@@ -176,70 +176,6 @@ bool MyHero::decompMove(bool bCheckGround, int nCheckCreature, bool bCheckMove, 
     }
 }
 
-bool MyHero::decompActionPickUp()
-{
-    if(m_actionQueue.empty() || m_actionQueue.front().type != ACTION_PICKUP){
-        throw bad_reach();
-    }
-
-    const auto currAction = m_actionQueue.front();
-    m_actionQueue.pop_front();
-
-    int nX0 = m_currMotion->endX;
-    int nY0 = m_currMotion->endY;
-    int nX1 = currAction.x;
-    int nY1 = currAction.y;
-
-    if(!m_processRun->canMove(true, 0, nX0, nY0)){
-        g_log->addLog(LOGTYPE_WARNING, "Motion start from invalid grid (%d, %d)", nX0, nY0);
-        m_actionQueue.clear();
-        return false;
-    }
-
-    if(!m_processRun->canMove(true, 0, nX1, nY1)){
-        g_log->addLog(LOGTYPE_WARNING, "Pick up at an invalid grid (%d, %d)", nX1, nY1);
-        m_actionQueue.clear();
-        return false;
-    }
-
-    switch(mathf::LDistance2(nX0, nY0, nX1, nY1)){
-        case 0:
-            {
-                m_actionQueue.emplace_front(currAction);
-                return true;
-            }
-        default:
-            {
-                int nXm = -1;
-                int nYm = -1;
-
-                if(decompMove(true, 1, true, nX0, nY0, nX1, nY1, &nXm, &nYm)){
-                    m_actionQueue.emplace_front(currAction);
-                    m_actionQueue.emplace_front(ActionMove
-                    {
-                        .x = nX0,
-                        .y = nY0,
-                        .aimX = nXm,
-                        .aimY = nYm,
-                        .onHorse = OnHorse(),
-                    });
-                    return true;
-                }
-                else{
-                    if(decompMove(true, 0, false, nX0, nY0, nX1, nY1, nullptr, nullptr)){
-                        // reachable but blocked
-                        // path occupied, we restore it and wait
-                        m_actionQueue.emplace_front(currAction);
-                    }
-
-                    // report failure
-                    // head is not simple action
-                    return false;
-                }
-            }
-    }
-}
-
 bool MyHero::decompActionMove()
 {
     if(m_actionQueue.empty() || m_actionQueue.front().type != ACTION_MOVE){
@@ -263,6 +199,7 @@ bool MyHero::decompActionMove()
     switch(mathf::LDistance2(nX0, nY0, nX1, nY1)){
         case 0:
             {
+                // pickup is done in Hero::parseAction()
                 g_log->addLog(LOGTYPE_WARNING, "Motion invalid (%d, %d) -> (%d, %d)", nX0, nY0, nX1, nY1);
 
                 // I have to clear all pending actions
@@ -273,7 +210,7 @@ bool MyHero::decompActionMove()
             }
         default:
             {
-                auto fnaddHop = [this, currAction](int nXm, int nYm) -> bool
+                const auto fnaddHop = [this, currAction](int nXm, int nYm) -> bool
                 {
                     switch(mathf::LDistance2<int>(currAction.aimX, currAction.aimY, nXm, nYm)){
                         case 0:
@@ -290,7 +227,8 @@ bool MyHero::decompActionMove()
                                     .y = nYm,
                                     .aimX = currAction.aimX,
                                     .aimY = currAction.aimY,
-                                    .onHorse = false,
+                                    .pickUp = (bool)(currAction.extParam.move.pickUp),
+                                    .onHorse = (bool)(currAction.extParam.move.onHorse),
                                 });
 
                                 m_actionQueue.emplace_front(ActionMove
@@ -300,7 +238,8 @@ bool MyHero::decompActionMove()
                                     .y = currAction.y,
                                     .aimX = nXm,
                                     .aimY = nYm,
-                                    .onHorse = false,
+                                    .pickUp = (bool)(currAction.extParam.move.pickUp),
+                                    .onHorse = (bool)(currAction.extParam.move.onHorse),
                                 });
                                 return true;
                             }
@@ -562,13 +501,6 @@ bool MyHero::parseActionQueue()
     // 3. present the action simultaneously
 
     switch(m_actionQueue.front().type){
-        case ACTION_PICKUP:
-            {
-                if(!decompActionPickUp()){
-                    return false;
-                }
-                break;
-            }
         case ACTION_MOVE:
             {
                 if(!decompActionMove()){
@@ -643,24 +575,6 @@ bool MyHero::parseActionQueue()
     return false;
 }
 
-void MyHero::pickUp()
-{
-    if(stayIdle()){
-
-        const int nX = currMotion()->x;
-        const int nY = currMotion()->y;
-
-        if(const auto &itemList = m_processRun->getGroundItemList(nX, nY); !itemList.empty()){
-            reportAction(ActionPickUp
-            {
-                .x = nX,
-                .y = nY,
-                .itemID = itemList.back().ID(),
-            });
-        }
-    }
-}
-
 bool MyHero::emplaceAction(const ActionNode &action)
 {
     m_actionQueue.clear();
@@ -674,7 +588,7 @@ void MyHero::reportAction(const ActionNode &action)
     std::memset(&cmA, 0, sizeof(cmA));
 
     cmA.UID = UID();
-    cmA.MapID = m_processRun->MapID();
+    cmA.mapID = m_processRun->mapID();
     cmA.action = action;
 
     g_client->send(CM_ACTION, cmA);

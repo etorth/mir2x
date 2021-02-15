@@ -21,8 +21,10 @@
 #include <sstream>
 #include <cereal/types/map.hpp>
 #include <cereal/types/set.hpp>
+#include <cereal/types/array.hpp>
 #include <cereal/types/string.hpp>
 #include <cereal/types/vector.hpp>
+#include <cereal/types/variant.hpp>
 #include <cereal/types/unordered_set.hpp>
 #include <cereal/types/unordered_map.hpp>
 #include <cereal/archives/binary.hpp>
@@ -31,7 +33,7 @@
 
 namespace cerealf
 {
-    template<typename T> std::string serialize(const T &t, bool compress)
+    template<typename T> std::string serialize(const T &t, bool compress = false)
     {
         std::ostringstream ss(std::ios::binary);
         cereal::BinaryOutputArchive ar(ss);
@@ -48,7 +50,7 @@ namespace cerealf
         return compBuf;
     }
 
-    template<typename T> T deserialize(const void *buf, size_t size, bool decompress)
+    template<typename T> T deserialize(const void *buf, size_t size, bool decompress = false)
     {
         std::istringstream ss([buf, size, decompress]() -> std::string
         {
@@ -67,7 +69,7 @@ namespace cerealf
         return t;
     }
 
-    template<typename T> T deserialize(std::string buf, bool decompress)
+    template<typename T> T deserialize(std::string buf, bool decompress = false)
     {
         std::istringstream ss([&buf, decompress]() -> std::string
         {

@@ -17,20 +17,18 @@
  */
 
 #include "charobject.hpp"
-#include "messagepack.hpp"
+#include "actormsgpack.hpp"
 #include "actormsg.hpp"
 
-void CharObject::on_MPK_QUERYFRIENDTYPE(const MessagePack &rstMPK)
+void CharObject::on_AM_QUERYFRIENDTYPE(const ActorMsgPack &mpk)
 {
-    AMQueryFriendType amQFT;
-    std::memcpy(&amQFT, rstMPK.Data(), sizeof(amQFT));
-
-    checkFriend(amQFT.UID, [this, rstMPK](int nFriendType)
+    const auto amQFT = mpk.conv<AMQueryFriendType>();
+    checkFriend(amQFT.UID, [this, mpk](int nFriendType)
     {
         AMFriendType amFT;
         std::memset(&amFT, 0, sizeof(amFT));
 
         amFT.Type = nFriendType;
-        m_actorPod->forward(rstMPK.from(), {MPK_FRIENDTYPE, amFT}, rstMPK.ID());
+        m_actorPod->forward(mpk.from(), {AM_FRIENDTYPE, amFT}, mpk.seqID());
     });
 }

@@ -76,11 +76,11 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npc)
         npc->sendQuery(uidf::toUIDEx(sessionUID), uidf::toUIDEx(uidString), query);
     });
 
-    m_luaState.set_function("getSellItemList", [](sol::this_state luaPtr)
+    m_luaState.set_function("getSellItemList", [npc](sol::this_state luaPtr)
     {
         std::vector<std::string> itemNameList;
-        for(uint32_t i = 1; i < 1000; ++i){
-            if(const auto &ir = DBCOM_ITEMRECORD(i); ir && (std::u8string_view(ir.name) != u8"未知")){
+        for(const auto itemID: npc->getSellItemIDList()){
+            if(const auto &ir = DBCOM_ITEMRECORD(itemID); ir && (std::u8string_view(ir.name) != u8"未知")){
                 itemNameList.push_back(to_cstr(ir.name));
             }
         }
@@ -426,6 +426,7 @@ NPChar::NPChar(uint16_t npcId, ServiceCore *core, ServerMap *serverMap, int mapX
     // LuaNPCModule(this) can access ``this"
     // when constructing LuaNPCModule we need to confirm ``this" is ready
     m_luaModulePtr = std::make_unique<NPChar::LuaNPCModule>(this);
+    fillSellItemList();
 }
 
 bool NPChar::update()
@@ -503,14 +504,14 @@ void NPChar::sendQuery(uint64_t sessionUID, uint64_t uid, const std::string &que
     }
 
     std::strcpy(amNPCQ.query, query.c_str());
-    m_actorPod->forward(uid, {MPK_NPCQUERY, amNPCQ}, [sessionUID, uid, this](const MessagePack &mpk)
+    m_actorPod->forward(uid, {AM_NPCQUERY, amNPCQ}, [sessionUID, uid, this](const ActorMsgPack &mpk)
     {
         if(uid != mpk.from()){
             throw fflerror("query sent to uid %llu but get response from %llu", to_llu(uid), to_llu(mpk.from()));
         }
 
-        switch(mpk.Type()){
-            case MPK_NPCEVENT:
+        switch(mpk.type()){
+            case AM_NPCEVENT:
                 {
                     const auto amNPCE = mpk.conv<AMNPCEvent>();
                     m_luaModulePtr->setEvent(sessionUID, uid, amNPCE.event, amNPCE.value);
@@ -534,52 +535,111 @@ void NPChar::sendXMLLayout(uint64_t uid, std::string xmlString)
     }, true));
 }
 
-void NPChar::operateAM(const MessagePack &mpk)
+void NPChar::operateAM(const ActorMsgPack &mpk)
 {
-    switch(mpk.Type()){
-        case MPK_OFFLINE:
-        case MPK_METRONOME:
+    switch(mpk.type()){
+        case AM_OFFLINE:
+        case AM_METRONOME:
             {
                 break;
             }
-        case MPK_ACTION:
+        case AM_BUY:
             {
-                on_MPK_ACTION(mpk);
+                on_AM_BUY(mpk);
                 break;
             }
-        case MPK_NPCEVENT:
+        case AM_ACTION:
             {
-                on_MPK_NPCEVENT(mpk);
+                on_AM_ACTION(mpk);
                 break;
             }
-        case MPK_NOTIFYNEWCO:
+        case AM_NPCEVENT:
             {
-                on_MPK_NOTIFYNEWCO(mpk);
+                on_AM_NPCEVENT(mpk);
                 break;
             }
-        case MPK_QUERYCORECORD:
+        case AM_NOTIFYNEWCO:
             {
-                on_MPK_QUERYCORECORD(mpk);
+                on_AM_NOTIFYNEWCO(mpk);
                 break;
             }
-        case MPK_QUERYLOCATION:
+        case AM_QUERYCORECORD:
             {
-                on_MPK_QUERYLOCATION(mpk);
+                on_AM_QUERYCORECORD(mpk);
                 break;
             }
-        case MPK_QUERYSELLITEM:
+        case AM_QUERYLOCATION:
             {
-                on_MPK_QUERYSELLITEM(mpk);
+                on_AM_QUERYLOCATION(mpk);
                 break;
             }
-        case MPK_BADACTORPOD:
+        case AM_QUERYSELLITEMLIST:
             {
-                on_MPK_BADACTORPOD(mpk);
+                on_AM_QUERYSELLITEMLIST(mpk);
+                break;
+            }
+        case AM_BADACTORPOD:
+            {
+                on_AM_BADACTORPOD(mpk);
                 break;
             }
         default:
             {
-                throw fflerror("unsupported message: %s", mpkName(mpk.Type()));
+                throw fflerror("unsupported message: %s", mpkName(mpk.type()));
             }
     }
+}
+
+std::vector<SDCostItem> NPChar::getCostItemList(const SDItem &) const
+{
+    SDCostItem cost;
+    std::vector<SDCostItem> result;
+
+    cost.itemID = DBCOM_ITEMID(u8"金币");
+    cost.count  = 100 + std::rand() % 10;
+
+    result.push_back(cost);
+    return result;
+}
+
+std::set<uint32_t> NPChar::getSellItemIDList() const
+{
+    std::set<uint32_t> itemIDList;
+    for(uint32_t itemID = 1; itemID < 1000; ++itemID){
+        if(const auto &ir = DBCOM_ITEMRECORD(itemID); ir && (std::u8string_view(ir.name) != u8"未知")){
+            itemIDList.insert(itemID);
+        }
+    }
+    return itemIDList;
+}
+
+void NPChar::fillSellItemList()
+{
+    for(const uint32_t itemID: getSellItemIDList()){
+        if(auto &itemListRef = m_sellItemList[itemID]; itemListRef.size() < 20){
+            uint32_t seqID = itemListRef.empty() ? 1 : (itemListRef.rbegin()->first + 1);
+            for(int i = 0; itemListRef.size() < 20; ++i){
+                auto item = createSellItem(itemID, seqID++);
+                auto cost = getCostItemList(item);
+                itemListRef[seqID] = NPChar::SellItem
+                {
+                    .item = item,
+                    .locked = false,
+                    .costList = cost,
+                };
+            }
+        }
+    }
+}
+
+SDItem NPChar::createSellItem(uint32_t itemID, uint32_t seqID) const
+{
+    return SDItem
+    {
+        .itemID = itemID,
+        .seqID =  seqID,
+        .count = 1,
+        .duration = 0,
+        .extAttrList = {},
+    };
 }

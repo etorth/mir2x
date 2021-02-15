@@ -157,7 +157,7 @@ void NPCChatBoard::drawEx(int, int, int, int, int, int) const
 void NPCChatBoard::loadXML(uint64_t uid, const char *xmlString)
 {
     if(uidf::getUIDType(uid) != UID_NPC){
-        throw fflerror("invalid uid type: %s", uidf::getUIDTypeString(uid));
+        throw fflerror("invalid uid type: %s", uidf::getUIDTypeCStr(uid));
     }
 
     m_NPCUID = uid;

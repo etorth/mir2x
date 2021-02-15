@@ -368,25 +368,25 @@ ServerMap::ServerMap(ServiceCore *pServiceCore, uint32_t nMapID)
         throw fflerror("load map failed: ID = %d, Name = %s", nMapID, to_cstr(DBCOM_MAPRECORD(nMapID).name));
     }
 
-    m_cellVec2D.resize(W());
-    m_cellVec2D.shrink_to_fit();
+    m_gridList.resize(W());
+    m_gridList.shrink_to_fit();
 
-    for(auto &rstStateLine: m_cellVec2D){
-        rstStateLine.resize(H());
-        rstStateLine.shrink_to_fit();
+    for(auto &gridLine: m_gridList){
+        gridLine.resize(H());
+        gridLine.shrink_to_fit();
     }
 
     for(const auto &entry: DBCOM_MAPRECORD(nMapID).linkArray){
         if(true
                 && entry.w > 0
                 && entry.h > 0
-                && ValidC(entry.x, entry.y)){
+                && validC(entry.x, entry.y)){
 
             for(int nW = 0; nW < entry.w; ++nW){
                 for(int nH = 0; nH < entry.h; ++nH){
-                    getCell(entry.x + nW, entry.y + nH).mapID   = DBCOM_MAPID(entry.endName);
-                    getCell(entry.x + nW, entry.y + nH).switchX = entry.endX;
-                    getCell(entry.x + nW, entry.y + nH).switchY = entry.endY;
+                    getGrid(entry.x + nW, entry.y + nH).mapID   = DBCOM_MAPID(entry.endName);
+                    getGrid(entry.x + nW, entry.y + nH).switchX = entry.endX;
+                    getGrid(entry.x + nW, entry.y + nH).switchY = entry.endY;
                 }
             }
         }else{
@@ -395,92 +395,92 @@ ServerMap::ServerMap(ServiceCore *pServiceCore, uint32_t nMapID)
     }
 }
 
-void ServerMap::operateAM(const MessagePack &rstMPK)
+void ServerMap::operateAM(const ActorMsgPack &rstMPK)
 {
-    switch(rstMPK.Type()){
-        case MPK_PICKUP:
+    switch(rstMPK.type()){
+        case AM_PICKUP:
             {
-                on_MPK_PICKUP(rstMPK);
+                on_AM_PICKUP(rstMPK);
                 break;
             }
-        case MPK_NEWDROPITEM:
+        case AM_NEWDROPITEM:
             {
-                on_MPK_NEWDROPITEM(rstMPK);
+                on_AM_NEWDROPITEM(rstMPK);
                 break;
             }
-        case MPK_TRYLEAVE:
+        case AM_TRYLEAVE:
             {
-                on_MPK_TRYLEAVE(rstMPK);
+                on_AM_TRYLEAVE(rstMPK);
                 break;
             }
-        case MPK_UPDATEHP:
+        case AM_UPDATEHP:
             {
-                on_MPK_UPDATEHP(rstMPK);
+                on_AM_UPDATEHP(rstMPK);
                 break;
             }
-        case MPK_DEADFADEOUT:
+        case AM_DEADFADEOUT:
             {
-                on_MPK_DEADFADEOUT(rstMPK);
+                on_AM_DEADFADEOUT(rstMPK);
                 break;
             }
-        case MPK_ACTION:
+        case AM_ACTION:
             {
-                on_MPK_ACTION(rstMPK);
+                on_AM_ACTION(rstMPK);
                 break;
             }
-        case MPK_BADACTORPOD:
+        case AM_BADACTORPOD:
             {
-                on_MPK_BADACTORPOD(rstMPK);
+                on_AM_BADACTORPOD(rstMPK);
                 break;
             }
-        case MPK_TRYMOVE:
+        case AM_TRYMOVE:
             {
-                on_MPK_TRYMOVE(rstMPK);
+                on_AM_TRYMOVE(rstMPK);
                 break;
             }
-        case MPK_PATHFIND:
+        case AM_PATHFIND:
             {
-                on_MPK_PATHFIND(rstMPK);
+                on_AM_PATHFIND(rstMPK);
                 break;
             }
-        case MPK_TRYMAPSWITCH:
+        case AM_TRYMAPSWITCH:
             {
-                on_MPK_TRYMAPSWITCH(rstMPK);
+                on_AM_TRYMAPSWITCH(rstMPK);
                 break;
             }
-        case MPK_METRONOME:
+        case AM_METRONOME:
             {
-                on_MPK_METRONOME(rstMPK);
+                on_AM_METRONOME(rstMPK);
                 break;
             }
-        case MPK_TRYSPACEMOVE:
+        case AM_TRYSPACEMOVE:
             {
-                on_MPK_TRYSPACEMOVE(rstMPK);
+                on_AM_TRYSPACEMOVE(rstMPK);
                 break;
             }
-        case MPK_ADDCHAROBJECT:
+        case AM_ADDCHAROBJECT:
             {
-                on_MPK_ADDCHAROBJECT(rstMPK);
+                on_AM_ADDCHAROBJECT(rstMPK);
                 break;
             }
-        case MPK_PULLCOINFO:
+        case AM_PULLCOINFO:
             {
-                on_MPK_PULLCOINFO(rstMPK);
+                on_AM_PULLCOINFO(rstMPK);
                 break;
             }
-        case MPK_QUERYCOCOUNT:
+        case AM_QUERYCOCOUNT:
             {
-                on_MPK_QUERYCOCOUNT(rstMPK);
+                on_AM_QUERYCOCOUNT(rstMPK);
                 break;
             }
-        case MPK_OFFLINE:
+        case AM_OFFLINE:
             {
-                on_MPK_OFFLINE(rstMPK);
+                on_AM_OFFLINE(rstMPK);
                 break;
             }
         default:
             {
-                g_monoServer->addLog(LOGTYPE_FATAL, "Unsupported message: %s", mpkName(rstMPK.Type()));
+                g_monoServer->addLog(LOGTYPE_FATAL, "Unsupported message: %s", mpkName(rstMPK.type()));
                 break;
             }
     }
@@ -506,7 +506,7 @@ bool ServerMap::canMove(bool bCheckCO, bool bCheckLock, int nX, int nY) const
         }
 
         if(bCheckLock){
-            if(getCell(nX, nY).Locked){
+            if(getGrid(nX, nY).locked){
                 return false;
             }
         }
@@ -677,7 +677,7 @@ std::tuple<bool, int, int> ServerMap::GetValidGrid(bool bCheckCO, bool bCheckLoc
 
 void ServerMap::addGridUID(uint64_t uid, int nX, int nY, bool bForce)
 {
-    if(!ValidC(nX, nY)){
+    if(!validC(nX, nY)){
         throw fflerror("invalid location: (%d, %d)", nX, nY);
     }
 
@@ -690,7 +690,7 @@ void ServerMap::addGridUID(uint64_t uid, int nX, int nY, bool bForce)
 
 bool ServerMap::hasGridUID(uint64_t uid, int nX, int nY) const
 {
-    if(!ValidC(nX, nY)){
+    if(!validC(nX, nY)){
         throw fflerror("invalid location: (%d, %d)", nX, nY);
     }
 
@@ -700,7 +700,7 @@ bool ServerMap::hasGridUID(uint64_t uid, int nX, int nY) const
 
 void ServerMap::removeGridUID(uint64_t uid, int nX, int nY)
 {
-    if(!ValidC(nX, nY)){
+    if(!validC(nX, nY)){
         throw fflerror("invalid location: (%d, %d)", nX, nY);
     }
 
@@ -744,7 +744,7 @@ bool ServerMap::DoCenterCircle(int nCX0, int nCY0, int nCR, bool bPriority, cons
             const int nX = stRC.X();
             const int nY = stRC.Y();
 
-            if(true || ValidC(nX, nY)){
+            if(true || validC(nX, nY)){
                 if(mathf::LDistance2(nX, nY, nCX0, nCY0) <= (nCR - 1) * (nCR - 1)){
                     if(!fnOP){
                         return false;
@@ -782,7 +782,7 @@ bool ServerMap::DoCenterSquare(int nCX, int nCY, int nW, int nH, bool bPriority,
             const int nX = stRC.X();
             const int nY = stRC.Y();
 
-            if(true || ValidC(nX, nY)){
+            if(true || validC(nX, nY)){
                 if(!fnOP){
                     return false;
                 }
@@ -796,93 +796,91 @@ bool ServerMap::DoCenterSquare(int nCX, int nCY, int nW, int nH, bool bPriority,
     return false;
 }
 
-int ServerMap::FindGroundItem(const CommonItem &rstCommonItem, int nX, int nY)
+bool ServerMap::hasGroundItemID(uint32_t itemID, int x, int y) const
 {
-    if(ValidC(nX, nY)){
-        auto &rstGroundItemList = GetGroundItemList(nX, nY);
-        for(size_t nIndex = 0; nIndex < rstGroundItemList.Length(); ++nIndex){
-            if(rstGroundItemList[nIndex] == rstCommonItem){
-                return (int)(nIndex);
-            }
-        }
-    }
-    return -1;
+    return getGroundItemIDCount(itemID, x, y) > 0;
 }
 
-int ServerMap::GroundItemCount(const CommonItem &rstCommonItem, int nX, int nY)
+size_t ServerMap::getGroundItemIDCount(uint32_t itemID, int x, int y) const
 {
-    if(ValidC(nX, nY)){
-        auto &rstGroundItemList = GetGroundItemList(nX, nY);
-        int nCount = 0;
-        for(size_t nIndex = 0; nIndex < rstGroundItemList.Length(); ++nIndex){
-            if(rstGroundItemList[nIndex] == rstCommonItem){
-                nCount++;
-            }
-        }
-        return nCount;
+    if(!validC(x, y)){
+        return 0;
     }
-    return -1;
+
+    size_t count = 0;
+    for(const auto id: getGroundItemIDList(x, y)){
+        if(id == itemID){
+            count++;
+        }
+    }
+    return count;
 }
 
-void ServerMap::RemoveGroundItem(const CommonItem &rstCommonItem, int nX, int nY)
+bool ServerMap::addGroundItemID(uint32_t itemID, int x, int y, bool post)
 {
-    auto nFind = FindGroundItem(rstCommonItem, nX, nY);
-    if(nFind >= 0){
-        auto &rstGroundItemList = GetGroundItemList(nX, nY);
-        for(int nIndex = nFind; nIndex < ((int)(rstGroundItemList.Length()) - 1); ++nIndex){
-            rstGroundItemList[nIndex] = rstGroundItemList[nIndex + 1];
+    if(!(DBCOM_ITEMRECORD(itemID) && groundValid(x, y))){
+        throw fflerror("invalid arguments: itemID = %llu, x = %d, y = %d", to_llu(itemID), x, y);
+    }
+
+    auto &itemIDList = getGroundItemIDList(x, y);
+    if(itemIDList.size() >= std::extent_v<decltype(SMGroundItemIDList::itemIDList)>){
+        return false;
+    }
+
+    itemIDList.push_back(itemID);
+    if(post){
+        postGroundItemIDList(x, y);
+    }
+    return true;
+}
+
+void ServerMap::removeGroundItemID(uint32_t itemID, int x, int y, bool post)
+{
+    if(!hasGroundItemID(itemID, x, y)){
+        return;
+    }
+
+    auto &itemIDList = getGroundItemIDList(x, y);
+    for(int i = (int)(itemIDList.size()) - 1; i >= 0; --i){
+        if(itemIDList[i] == itemID){
+            itemIDList.erase(itemIDList.begin() + i);
+            if(post){
+                postGroundItemIDList(x, y);
+            }
+            return;
         }
-        rstGroundItemList.PopBack();
     }
 }
 
-bool ServerMap::AddGroundItem(const CommonItem &rstCommonItem, int nX, int nY)
+void ServerMap::postGroundItemIDList(int x, int y)
 {
-    if(true
-            && rstCommonItem
-            && groundValid(nX, nY)){
+    if(!groundValid(x, y)){
+        throw fflerror("invalid arguments: x = %d, y = %d", x, y);
+    }
 
-        // check if item is valid
-        // then push back and report, would override if already full
+    SMGroundItemIDList smGIIDL;
+    std::memset(&smGIIDL, 0, sizeof(smGIIDL));
 
-        auto &rstGroundItemList = GetGroundItemList(nX, nY);
-        rstGroundItemList.PushBack(rstCommonItem);
+    auto &itemIDList = getGroundItemIDList(x, y);
+    if(itemIDList.size() >= std::extent_v<decltype(SMGroundItemIDList::itemIDList)>){
+        throw fflerror("ground item id list too long: %zu", itemIDList.size());
+    }
 
-        AMShowDropItem amSDI;
-        std::memset(&amSDI, 0, sizeof(amSDI));
+    smGIIDL.x = x;
+    smGIIDL.y = y;
+    std::copy(itemIDList.begin(), itemIDList.end(), smGIIDL.itemIDList);
 
-        amSDI.X = nX;
-        amSDI.Y = nY;
-
-        size_t nCurrLoc = 0;
-        for(size_t nIndex = 0; nIndex < rstGroundItemList.Length(); ++nIndex){
-            if(rstGroundItemList[nIndex]){
-                if(nCurrLoc < std::extent<decltype(amSDI.IDList)>::value){
-                    amSDI.IDList[nCurrLoc].ID   = rstGroundItemList[nIndex].ID();
-                    amSDI.IDList[nCurrLoc].DBID = rstGroundItemList[nIndex].DBID();
-                    nCurrLoc++;
-                }else{
-                    break;
-                }
-            }
-        }
-
-        auto fnNotifyDropItem = [this, amSDI](int nX, int nY) -> bool
+    doCircle(smGIIDL.x, smGIIDL.y, 20, [&smGIIDL, this](int x, int y) -> bool
+    {
+        doUIDList(x, y, [&smGIIDL, this](uint64_t uid) -> bool
         {
-            if(true || ValidC(nX, nY)){
-                for(auto nUID: getUIDList(nX, nY)){
-                    if(uidf::getUIDType(nUID) == UID_PLY){
-                        m_actorPod->forward(nUID, {MPK_SHOWDROPITEM, amSDI});
-                    }
-                }
+            if(uidf::getUIDType(uid) == UID_PLY){
+                sendNetPackage(uid, SM_GROUNDITEMIDLIST, smGIIDL);
             }
             return false;
-        };
-
-        doCircle(nX, nY, 10, fnNotifyDropItem);
-        return true;
-    }
-    return false;
+        });
+        return false;
+    });
 }
 
 int ServerMap::GetMonsterCount(uint32_t nMonsterID)
@@ -923,11 +921,11 @@ void ServerMap::notifyNewCO(uint64_t nUID, int nX, int nY)
     amNNCO.UID = nUID;
     doCircle(nX, nY, 20, [this, amNNCO](int nX, int nY) -> bool
     {
-        if(true || ValidC(nX, nY)){
+        if(true || validC(nX, nY)){
             doUIDList(nX, nY, [this, amNNCO](uint64_t nUID)
             {
                 if(nUID != amNNCO.UID){
-                    m_actorPod->forward(nUID, {MPK_NOTIFYNEWCO, amNNCO});
+                    m_actorPod->forward(nUID, {AM_NOTIFYNEWCO, amNNCO});
                 }
                 return false;
             });
@@ -949,7 +947,7 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
         }
     }
 
-    if(!ValidC(nHintX, nHintY)){
+    if(!validC(nHintX, nHintY)){
         if(bStrictLoc){
             return nullptr;
         }
@@ -1010,7 +1008,7 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
 
 NPChar *ServerMap::addNPChar(uint16_t npcID, int hintX, int hintY, bool strictLoc)
 {
-    if(!ValidC(hintX, hintY)){
+    if(!validC(hintX, hintY)){
         if(strictLoc){
             return nullptr;
         }
@@ -1035,9 +1033,13 @@ NPChar *ServerMap::addNPChar(uint16_t npcID, int hintX, int hintY, bool strictLo
     return nullptr;
 }
 
-Player *ServerMap::addPlayer(uint32_t nDBID, int nHintX, int nHintY, int nDirection, bool bStrictLoc)
+Player *ServerMap::addPlayer(const SDInitPlayer &initPlayer)
 {
-    if(!ValidC(nHintX, nHintY)){
+    int nHintX = initPlayer.x;
+    int nHintY = initPlayer.y;
+    bool bStrictLoc = false;
+
+    if(!validC(nHintX, nHintY)){
         if(bStrictLoc){
             return nullptr;
         }
@@ -1049,12 +1051,9 @@ Player *ServerMap::addPlayer(uint32_t nDBID, int nHintX, int nHintY, int nDirect
     if(auto [bDstOK, nDstX, nDstY] = GetValidGrid(false, false, (int)(bStrictLoc), nHintX, nHintY); bDstOK){
         auto playerPtr = new Player
         {
-            nDBID,
+            initPlayer,
             m_serviceCore,
             this,
-            nDstX,
-            nDstY,
-            nDirection,
         };
 
         playerPtr->activate();
@@ -1083,7 +1082,7 @@ int ServerMap::CheckPathGrid(int nX, int nY) const
         return PathFind::OCCUPIED;
     }
 
-    if(getCell(nX, nY).Locked){
+    if(getGrid(nX, nY).locked){
         return PathFind::LOCKED;
     }
 

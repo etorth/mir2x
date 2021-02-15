@@ -29,7 +29,6 @@ enum ActionType: int
     ACTION_BEGIN = 1,
     ACTION_SPAWN = 1,
     ACTION_STAND,
-    ACTION_PICKUP,
     ACTION_MOVE,
     ACTION_PUSHMOVE,
     ACTION_SPACEMOVE1,
@@ -101,18 +100,14 @@ struct ActionNode
 
         struct ExtParamMove
         {
-            uint8_t onHorse;
+            uint8_t pickUp  : 1;
+            uint8_t onHorse : 1;
         }move;
 
         struct ExtParamAttack
         {
             uint32_t damageID;
         }attack;
-
-        struct ExtParamPickUp
-        {
-            uint32_t itemID;
-        }pickUp;
     } extParam;
 };
 #pragma pack(pop)
@@ -246,6 +241,7 @@ struct ActionMove
     const int aimX = -1;
     const int aimY = -1;
 
+    const bool pickUp  = false;
     const bool onHorse = false;
 
     operator ActionNode () const
@@ -262,6 +258,7 @@ struct ActionMove
         node.aimX = aimX;
         node.aimY = aimY;
 
+        node.extParam.move.pickUp = pickUp;
         node.extParam.move.onHorse = onHorse;
         return node;
     }
@@ -357,28 +354,6 @@ struct ActionHitted
     }
 };
 
-struct ActionPickUp
-{
-    int x = -1;
-    int y = -1;
-
-    uint32_t itemID = 0;
-
-    operator ActionNode () const
-    {
-        ActionNode node;
-        std::memset(&node, 0, sizeof(node));
-
-        node.type = ACTION_PICKUP;
-
-        node.x = x;
-        node.y = y;
-
-        node.extParam.pickUp.itemID = itemID;
-        return node;
-    }
-};
-
 inline bool actionValid(int type)
 {
     return type >= ACTION_BEGIN && type < ACTION_END;
@@ -396,7 +371,6 @@ inline const char *actionName(int type)
         _add_action_type_case(ACTION_NONE      )
         _add_action_type_case(ACTION_SPAWN     )
         _add_action_type_case(ACTION_STAND     )
-        _add_action_type_case(ACTION_PICKUP    )
         _add_action_type_case(ACTION_MOVE      )
         _add_action_type_case(ACTION_PUSHMOVE  )
         _add_action_type_case(ACTION_SPACEMOVE1)
