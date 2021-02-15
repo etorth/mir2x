@@ -27,6 +27,7 @@
 #include "monster.hpp"
 #include "actorpod.hpp"
 #include "taodog.hpp"
+#include "filesys.hpp"
 #include "taoskeleton.hpp"
 #include "mathf.hpp"
 #include "sysconst.hpp"
@@ -259,12 +260,12 @@ ServerMap::ServerMapLuaModule::ServerMapLuaModule(ServerMap *mapPtr)
         const auto scriptPath = configScriptPath.empty() ? std::string("script/map") : configScriptPath;
 
         const auto scriptName = str_printf("%s/%s.lua", scriptPath.c_str(), to_cstr(DBCOM_MAPRECORD(mapPtr->ID()).name));
-        if(std::filesystem::exists(scriptName)){
+        if(filesys::hasFile(scriptName.c_str())){
             return scriptName;
         }
 
         const auto defaultScriptName = scriptPath + "/default.lua";
-        if(std::filesystem::exists(defaultScriptName)){
+        if(filesys::hasFile(defaultScriptName.c_str())){
             return defaultScriptName;
         }
         throw fflerror("can't load proper script for map %s", to_cstr(DBCOM_MAPRECORD(mapPtr->ID()).name));

@@ -28,7 +28,7 @@
 struct ServerArgParser
 {
     const bool disableProfiler;         // "--disable-profiler"
-    const bool DisableMapScript;        // "--disable-map-script"
+    const bool disableMapScript;        // "--disable-map-script"
     const bool traceActorMessage;       // "--trace-actor-message"
     const bool traceActorMessageCount;  // "--trace-actor-message-count"
     const bool disablePetSpawn;         // "--disable-pet-spawn"
@@ -39,7 +39,7 @@ struct ServerArgParser
 
     ServerArgParser(const argh::parser &cmdParser)
         : disableProfiler(cmdParser["disable-profiler"])
-        , DisableMapScript(cmdParser["disable-map-script"])
+        , disableMapScript(cmdParser["disable-map-script"])
         , traceActorMessage(cmdParser["trace-actor-message"])
         , traceActorMessageCount(cmdParser["trace-actor-message-count"])
         , disablePetSpawn(cmdParser["disable-pet-spawn"])
