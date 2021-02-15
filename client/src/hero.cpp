@@ -521,17 +521,23 @@ bool Hero::parseAction(const ActionNode &action)
                 if(auto moveNode = makeWalkMotion(action.x, action.y, action.aimX, action.aimY, action.speed)){
                     m_motionQueue.push_back(std::move(moveNode));
                     if(action.extParam.move.pickUp){
-                        m_motionQueue.back()->addUpdate(false, [doneReq = false, this]() mutable
+                        if(UID() != m_processRun->getMyHeroUID()){
+                            throw fflerror("invalid UID to trigger pickUp action: uid = %llu", to_llu(UID()));
+                        }
+
+                        const auto lastNodePtr = m_motionQueue.back().get();
+                        lastNodePtr->addUpdate(false, [doneReq = false, lastNodePtr, this]() mutable
                         {
-                            // TODO
-                            // should wait till arrival
-                            if(!doneReq){
-                                if(dynamic_cast<MyHero *>(this) != m_processRun->getMyHero()){
-                                    throw fflerror("non-MyHero type gets pickUp action");
-                                }
-                                m_processRun->requestPickUp();
-                                doneReq = true;
+                            if(lastNodePtr->frame < 4){
+                                return;
                             }
+
+                            if(doneReq){
+                                return;
+                            }
+
+                            m_processRun->requestPickUp();
+                            doneReq = true;
                         });
                     }
                 }

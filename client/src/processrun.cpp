@@ -1726,10 +1726,6 @@ void ProcessRun::checkMagicSpell(const SDL_Event &event)
 
 void ProcessRun::requestPickUp()
 {
-    if(!getMyHero()->stayIdle()){
-        return;
-    }
-
     const int x = getMyHero()->currMotion()->x;
     const int y = getMyHero()->currMotion()->y;
     if(getGroundItemIDList(x, y).empty()){
