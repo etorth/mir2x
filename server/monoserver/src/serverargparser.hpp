@@ -22,6 +22,8 @@
 #include "totype.hpp"
 #include "fflerror.hpp"
 #include "argparser.hpp"
+#include "dbcomid.hpp"
+#include "dbcomrecord.hpp"
 
 struct ServerArgParser
 {
@@ -32,6 +34,7 @@ struct ServerArgParser
     const bool disablePetSpawn;         // "--disable-pet-spawn"
     const bool disableMonsterSpawn;     // "--disable-monster-spawn"
     const bool preloadMap;              // "--preload-map"
+    const int  preloadMapID;            // "--preload-map-id"
     const int  actorPoolThread;         // "--actor-pool-thread"
 
     ServerArgParser(const argh::parser &cmdParser)
@@ -42,6 +45,35 @@ struct ServerArgParser
         , disablePetSpawn(cmdParser["disable-pet-spawn"])
         , disableMonsterSpawn(cmdParser["disable-monster-spawn"])
         , preloadMap(cmdParser["preload-map"])
+        , preloadMapID([&cmdParser]() -> int
+          {
+              if(const auto s = cmdParser("preload-map-id").str(); !s.empty()){
+                  const auto mapID = [&s]() -> uint32_t
+                  {
+                      try{
+                          return to_u32(std::stoi(s));
+                      }
+                      catch(...){
+                          return 0;
+                      }
+                  }();
+
+                  if(mapID > 0){
+                      if(DBCOM_MAPRECORD(mapID)){
+                          return mapID;
+                      }
+                      else{
+                          throw fflerror("no valid map for mapID: %llu", to_llu(mapID));
+                      }
+                  }
+
+                  if(const auto mapIDFromName = DBCOM_MAPID(to_u8cstr(s)); mapIDFromName > 0){
+                      return mapIDFromName;
+                  }
+                  throw fflerror("failed to parse mapID: %s", to_cstr(s));
+              }
+              return 0;
+          }())
         , actorPoolThread([&cmdParser]() -> int
           {
               if(const auto numStr = cmdParser("actor-pool-thread").str(); !numStr.empty()){

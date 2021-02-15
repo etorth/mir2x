@@ -257,8 +257,8 @@ int MMapBoard::getFrameSize() const
 SDL_Texture *MMapBoard::getMmapTexture() const
 {
     [[maybe_unused]] const auto [mapID, mapW, mapH] = m_processRun->getMap();
-    if(const auto mmapID = DBCOM_MAPRECORD(mapID).mmapID){
-        return g_progUseDB->Retrieve(mmapID);
+    if(const auto miniMapID = DBCOM_MAPRECORD(mapID).miniMapID){
+        return g_progUseDB->Retrieve(miniMapID);
     }
     return nullptr;
 }

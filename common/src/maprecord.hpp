@@ -54,15 +54,21 @@ class MapRecord
 {
     public:
         const char8_t *name;
-        const uint32_t mmapID;
+        const uint32_t miniMapID;
 
     public:
         const LinkEntry linkArray[8];
 
     public:
-        template<typename... U> constexpr MapRecord(const char8_t *argName, uint32_t argmmapID = 0, U&&... u)
+        template<typename... U> constexpr MapRecord(const char8_t *argName, uint32_t argMiniMapID = 0, U&&... u)
             : name(argName ? argName : u8"")
-            , mmapID(argmmapID)
+            , miniMapID(argMiniMapID)
             , linkArray { std::forward<U>(u)... }
         {}
+
+    public:
+        operator bool () const
+        {
+            return name[0] != '\0';
+        }
 };

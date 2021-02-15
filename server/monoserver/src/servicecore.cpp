@@ -100,15 +100,19 @@ void ServiceCore::operateNet(uint32_t nSID, uint8_t nType, const uint8_t *pData,
 void ServiceCore::onActivate()
 {
     ServerObject::onActivate();
-    if(!g_serverArgParser->preloadMap){
-        return;
+    if(const auto mapID = g_serverArgParser->preloadMapID; mapID > 0){
+        if(retrieveMap(mapID)){
+            g_monoServer->addLog(LOGTYPE_INFO, "Preload %s successfully", to_cstr(DBCOM_MAPRECORD(mapID).name));
+        }
     }
 
-    for(uint32_t mapID = 1;; ++mapID){
-        if(!retrieveMap(mapID)){
-            return;
+    if(g_serverArgParser->preloadMap){
+        for(uint32_t mapID = 1;; ++mapID){
+            if(!retrieveMap(mapID)){
+                break;
+            }
+            g_monoServer->addLog(LOGTYPE_INFO, "Preload %s successfully", to_cstr(DBCOM_MAPRECORD(mapID).name));
         }
-        g_monoServer->addLog(LOGTYPE_INFO, "Preload %s successfully", to_cstr(DBCOM_MAPRECORD(mapID).name));
     }
 }
 
