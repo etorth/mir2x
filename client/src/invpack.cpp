@@ -24,32 +24,9 @@
 #include "dbcomrecord.hpp"
 
 extern PNGTexDB *g_itemDB;
-
-static void checkSDItemEx(const SDItem &item)
-{
-    if(!item){
-        throw fflerror("bad item: %s", to_cstr(item.str()));
-    }
-
-    const auto &ir = DBCOM_ITEMRECORD(item.itemID);
-    if(!ir){
-        throw fflerror("bad item: %s", to_cstr(item.str()));
-    }
-
-    if(item.count > 1){
-        if(!ir.packable()){
-            throw fflerror("item has count > 1: %s", to_cstr(item.str()));
-        }
-
-        if(item.count > SYS_INVGRIDMAXHOLD){
-            throw fflerror("item has count > %d: %s", SYS_INVGRIDMAXHOLD, to_cstr(item.str()));
-        }
-    }
-}
-
 void InvPack::add(SDItem item)
 {
-    checkSDItemEx(item);
+    item.checkEx();
     for(auto &bin: m_packBinList){
         if((bin.item.itemID == item.itemID) && (bin.item.seqID == item.seqID)){
             if(bin.item.count + item.count <= SYS_INVGRIDMAXHOLD){
@@ -77,7 +54,7 @@ void InvPack::add(SDItem item)
 
 void InvPack::add(SDItem item, int x, int y)
 {
-    checkSDItemEx(item);
+    item.checkEx();
     auto itemBin = makePackBin(item);
 
     if(!(x >= 0 && x + itemBin.w <= (int)(w()) && y >= 0)){
@@ -148,7 +125,7 @@ PackBin InvPack::makePackBin(SDItem item)
 void InvPack::setGrabbedItem(SDItem item)
 {
     if(item.itemID){
-        checkSDItemEx(item);
+        item.checkEx();
         m_grabbedItem = std::move(item);
     }
     else{
