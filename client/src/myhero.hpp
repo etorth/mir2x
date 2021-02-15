@@ -27,6 +27,7 @@ class MyHero: public Hero
         uint32_t m_gold = 0;
 
     private:
+        SDBelt m_sdBelt;
         InvPack m_invPack;
 
     private:
@@ -90,6 +91,11 @@ class MyHero: public Hero
             return m_invPack;
         }
 
+        SDBelt &getBelt()
+        {
+            return m_sdBelt;
+        }
+
     public:
         bool stayIdle() const override
         {
@@ -107,4 +113,10 @@ class MyHero: public Hero
 
     public:
         void flushMotionPending() override;
+
+    public:
+        void setBelt(SDBelt belt)
+        {
+            m_sdBelt = std::move(belt);
+        }
 };

@@ -50,7 +50,7 @@ enum SMType: uint8_t
     SM_PLAYERNAME,
     SM_BUILDVERSION,
     SM_INVENTORY,
-    SM_BELTITEMLIST,
+    SM_BELT,
     SM_ADDITEM,
     SM_REMOVEITEM,
     SM_BUYSUCCEED,
@@ -270,7 +270,7 @@ class ServerMsg final: public MsgBase
                 _add_server_msg_type_case(SM_PLAYERNAME,       1, sizeof(SMPlayerName)      )
                 _add_server_msg_type_case(SM_BUILDVERSION,     1, sizeof(SMBuildVersion)    )
                 _add_server_msg_type_case(SM_INVENTORY,        3, 0                         )
-                _add_server_msg_type_case(SM_BELTITEMLIST,     3, 0                         )
+                _add_server_msg_type_case(SM_BELT,             3, 0                         )
                 _add_server_msg_type_case(SM_ADDITEM,          3, 0                         )
                 _add_server_msg_type_case(SM_REMOVEITEM,       1, sizeof(SMRemoveItem)      )
                 _add_server_msg_type_case(SM_BUYSUCCEED,       3, 0                         )

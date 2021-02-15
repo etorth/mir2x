@@ -38,7 +38,7 @@
 
 void ProcessRun::net_LOGINOK(const uint8_t *buf, size_t bufSize)
 {
-    auto sdLOK = cerealf::deserialize<SDLoginOK>(buf, bufSize, true);
+    auto sdLOK = cerealf::deserialize<SDLoginOK>(buf, bufSize);
     loadMap(sdLOK.mapID);
 
     m_myHeroUID = sdLOK.uid;
@@ -58,7 +58,7 @@ void ProcessRun::net_LOGINOK(const uint8_t *buf, size_t bufSize)
 
 void ProcessRun::net_SELLITEMLIST(const uint8_t *buf, size_t bufSize)
 {
-    auto sdSIL = cerealf::deserialize<SDSellItemList>(buf, bufSize, true);
+    auto sdSIL = cerealf::deserialize<SDSellItemList>(buf, bufSize);
     auto purchaseBoardPtr = dynamic_cast<PurchaseBoard *>(getGUIManager()->getWidget("PurchaseBoard"));
     purchaseBoardPtr->setSellItemList(std::move(sdSIL));
 }
@@ -400,7 +400,7 @@ void ProcessRun::net_GOLD(const uint8_t *buf, size_t)
 
 void ProcessRun::net_NPCXMLLAYOUT(const uint8_t *buf, size_t bufSize)
 {
-    const auto sdNPCXMLL = cerealf::deserialize<SDNPCXMLLayout>(buf, bufSize, true);
+    const auto sdNPCXMLL = cerealf::deserialize<SDNPCXMLLayout>(buf, bufSize);
     auto npcChatBoardPtr  = dynamic_cast<NPCChatBoard  *>(getGUIManager()->getWidget("NPCChatBoard"));
     auto purchaseBoardPtr = dynamic_cast<PurchaseBoard *>(getGUIManager()->getWidget("PurchaseBoard"));
 
@@ -411,7 +411,7 @@ void ProcessRun::net_NPCXMLLAYOUT(const uint8_t *buf, size_t bufSize)
 
 void ProcessRun::net_NPCSELL(const uint8_t *buf, size_t bufSize)
 {
-    auto sdNPCS = cerealf::deserialize<SDNPCSell>(buf, bufSize, true);
+    auto sdNPCS = cerealf::deserialize<SDNPCSell>(buf, bufSize);
     auto purchaseBoardPtr = dynamic_cast<PurchaseBoard *>(getGUIManager()->getWidget("PurchaseBoard"));
     auto npcChatBoardPtr  = dynamic_cast<NPCChatBoard  *>(getGUIManager()->getWidget("NPCChatBoard"));
 
@@ -427,7 +427,7 @@ void ProcessRun::net_TEXT(const uint8_t *buf, size_t)
 
 void ProcessRun::net_PLAYERWLDESP(const uint8_t *buf, size_t bufSize)
 {
-    auto sdUIDWLD = cerealf::deserialize<SDUIDWLDesp>(buf, bufSize, true);
+    auto sdUIDWLD = cerealf::deserialize<SDUIDWLDesp>(buf, bufSize);
     if(uidf::getUIDType(sdUIDWLD.uid) != UID_PLY){
         throw fflerror("invalid uid type: %s", uidf::getUIDTypeCStr(sdUIDWLD.uid));
     }
@@ -456,4 +456,14 @@ void ProcessRun::net_REMOVEITEM(const uint8_t *buf, size_t)
 {
     const auto smRI = ServerMsg::conv<SMRemoveItem>(buf);
     getMyHero()->getInvPack().remove(smRI.itemID, smRI.seqID, smRI.count);
+}
+
+void ProcessRun::net_INVENTORY(const uint8_t *buf, size_t bufSize)
+{
+    getMyHero()->getInvPack().setInventory(cerealf::deserialize<SDInventory>(buf, bufSize));
+}
+
+void ProcessRun::net_BELT(const uint8_t *buf, size_t bufSize)
+{
+    getMyHero()->setBelt(cerealf::deserialize<SDBelt>(buf, bufSize));
 }

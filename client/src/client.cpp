@@ -354,6 +354,20 @@ void Client::onServerMessage(uint8_t headCode, const uint8_t *pData, size_t nDat
                 }
                 break;
             }
+        case SM_INVENTORY:
+            {
+                if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+                    pRun->net_INVENTORY(pData, nDataLen);
+                }
+                break;
+            }
+        case SM_BELT:
+            {
+                if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+                    pRun->net_BELT(pData, nDataLen);
+                }
+                break;
+            }
         case SM_REMOVEITEM:
             {
                 if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){

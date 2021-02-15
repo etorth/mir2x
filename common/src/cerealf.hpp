@@ -29,11 +29,18 @@
 #include <cereal/types/unordered_map.hpp>
 #include <cereal/archives/binary.hpp>
 #include "zcompf.hpp"
+#include "totype.hpp"
 #include "fflerror.hpp"
 
 namespace cerealf
 {
-    template<typename T> std::string serialize(const T &t, bool compress = false)
+    enum CerealfFlagType: char
+    {
+        CF_NONE     = 0,
+        CF_COMPRESS = 1,
+    };
+
+    template<typename T> std::string serialize(const T &t, bool tryComp = false)
     {
         std::ostringstream ss(std::ios::binary);
         cereal::BinaryOutputArchive ar(ss);
@@ -41,17 +48,31 @@ namespace cerealf
         ar(t);
         std::string rawBuf = ss.str();
 
-        if(!compress){
-            return rawBuf; // no NRVO, using move
+        if(!tryComp){
+            rawBuf.push_back(CF_NONE);
+            return rawBuf;
         }
 
         std::string compBuf;
         zcompf::zstdEncode(compBuf, (const uint8_t *)(rawBuf.data()), rawBuf.size());
+
+        if(compBuf.size() >= rawBuf.size()){
+            rawBuf.push_back(CF_NONE);
+            return rawBuf;
+        }
+
+        compBuf.push_back(CF_COMPRESS);
         return compBuf;
     }
 
-    template<typename T> T deserialize(const void *buf, size_t size, bool decompress = false)
+    template<typename T> T deserialize(const void *buf, size_t size)
     {
+        if(!(buf && (size >= 1))){
+            throw fflerror("invalid arguments: buf = %p, size = %zu", to_cvptr(buf), size);
+        }
+
+        const auto flag = ((char *)(buf))[--size];
+        const bool decompress = flag & CF_COMPRESS;
         std::istringstream ss([buf, size, decompress]() -> std::string
         {
             if(!decompress){
@@ -69,8 +90,16 @@ namespace cerealf
         return t;
     }
 
-    template<typename T> T deserialize(std::string buf, bool decompress = false)
+    template<typename T> T deserialize(std::string buf)
     {
+        if(buf.size() < 1){
+            throw fflerror("invalid buf size: %zu", buf.size());
+        }
+
+        const auto flag = buf.back();
+        const bool decompress = flag & CF_COMPRESS;
+
+        buf.pop_back();
         std::istringstream ss([&buf, decompress]() -> std::string
         {
             if(!decompress){

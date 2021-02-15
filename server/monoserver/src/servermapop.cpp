@@ -107,7 +107,7 @@ void ServerMap::on_AM_ADDCHAROBJECT(const ActorMsgPack &rstMPK)
             }
         case UID_PLY:
             {
-                const auto initParam = cerealf::deserialize<SDInitPlayer>(amACO.buf.data, amACO.buf.size, true);
+                const auto initParam = cerealf::deserialize<SDInitPlayer>(amACO.buf.data, amACO.buf.size);
                 if(auto playerPtr = addPlayer(initParam)){
                     AMBindChannel amBC;
                     std::memset(&amBC, 0, sizeof(amBC));

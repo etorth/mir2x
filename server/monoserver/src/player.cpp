@@ -907,8 +907,8 @@ void Player::postLoginOK()
         .nameColor = m_nameColor,
     }, true));
 
-    postNetMessage(SM_INVENTORY,    cerealf::serialize(m_sdItemStorage.inventory, true));
-    postNetMessage(SM_BELTITEMLIST, cerealf::serialize(m_sdItemStorage.belt));
+    postNetMessage(SM_INVENTORY, cerealf::serialize(m_sdItemStorage.inventory, true));
+    postNetMessage(SM_BELT,      cerealf::serialize(m_sdItemStorage.belt));
 }
 
 bool Player::hasInventoryItem(uint32_t itemID, uint32_t seqID, size_t count) const

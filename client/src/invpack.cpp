@@ -171,3 +171,11 @@ void InvPack::addGold(int gold)
     }
     throw fflerror("invalid argument: gold = %d", gold);
 }
+
+void InvPack::setInventory(const SDInventory &sdInv)
+{
+    m_packBinList.clear();
+    for(const auto &item: sdInv.getItemList()){
+        add(item);
+    }
+}

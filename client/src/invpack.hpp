@@ -89,4 +89,7 @@ class InvPack
 
     public:
         size_t getGold() const;
+
+    public:
+        void setInventory(const SDInventory &);
 };
