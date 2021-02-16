@@ -199,7 +199,7 @@ class ProcessRun: public Process
         void net_PLAYERNAME(const uint8_t *, size_t);
         void net_PICKUPERROR(const uint8_t *, size_t);
         void net_PLAYERWLDESP(const uint8_t *, size_t);
-        void net_ADDITEM(const uint8_t *, size_t);
+        void net_UPDATEITEM(const uint8_t *, size_t);
         void net_BELT(const uint8_t *, size_t);
         void net_INVENTORY(const uint8_t *, size_t);
         void net_REMOVEITEM(const uint8_t *, size_t);

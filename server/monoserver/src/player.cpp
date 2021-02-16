@@ -928,7 +928,7 @@ void Player::addInventoryItem(SDItem item, bool keepSeqID)
 {
     const auto &addedItem = m_sdItemStorage.inventory.add(std::move(item), keepSeqID);
     dbUpdateInventoryItem(addedItem);
-    postNetMessage(SM_ADDITEM, cerealf::serialize(SDAddItem
+    postNetMessage(SM_UPDATEITEM, cerealf::serialize(SDUpdateItem
     {
         .item = addedItem,
     }));

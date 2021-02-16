@@ -347,10 +347,10 @@ void Client::onServerMessage(uint8_t headCode, const uint8_t *pData, size_t nDat
                 }
                 break;
             }
-        case SM_ADDITEM:
+        case SM_UPDATEITEM:
             {
                 if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
-                    pRun->net_ADDITEM(pData, nDataLen);
+                    pRun->net_UPDATEITEM(pData, nDataLen);
                 }
                 break;
             }

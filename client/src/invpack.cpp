@@ -77,6 +77,22 @@ void InvPack::add(SDItem item, int x, int y)
     m_packBinList.push_back(itemBin);
 }
 
+void InvPack::update(SDItem item)
+{
+    item.checkEx();
+    if(item.seqID <= 0){
+        throw fflerror("udpate item with zero seqID: %s", to_cstr(item.str()));
+    }
+
+    for(auto &bin: m_packBinList){
+        if((bin.item.itemID == item.itemID) && (bin.item.seqID == item.seqID)){
+            bin.item = std::move(item);
+            return;
+        }
+    }
+    add(std::move(item));
+}
+
 size_t InvPack::remove(uint32_t itemID, uint32_t seqID, size_t count)
 {
     for(auto &bin: m_packBinList){

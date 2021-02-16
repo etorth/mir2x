@@ -68,6 +68,9 @@ class InvPack
         void add(SDItem, int, int);
 
     public:
+        void update(SDItem);
+
+    public:
         size_t remove(uint32_t, uint32_t, size_t);
 
     public:

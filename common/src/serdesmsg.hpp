@@ -195,7 +195,7 @@ struct SDSellItemList
     }
 };
 
-struct SDAddItem
+struct SDUpdateItem
 {
     SDItem item;
     template<typename Archive> void serialize(Archive & ar)

@@ -447,9 +447,9 @@ void ProcessRun::net_PLAYERNAME(const uint8_t *buf, size_t)
     }
 }
 
-void ProcessRun::net_ADDITEM(const uint8_t *buf, size_t bufSize)
+void ProcessRun::net_UPDATEITEM(const uint8_t *buf, size_t bufSize)
 {
-    getMyHero()->getInvPack().add(cerealf::deserialize<SDAddItem>(buf, bufSize).item);
+    getMyHero()->getInvPack().update(cerealf::deserialize<SDUpdateItem>(buf, bufSize).item);
 }
 
 void ProcessRun::net_REMOVEITEM(const uint8_t *buf, size_t)
