@@ -141,11 +141,16 @@ void Player::net_CM_PICKUP(uint8_t, const uint8_t *buf, size_t)
                             throw fflerror("bad itemID: %llu", to_llu(itemID));
                         }
 
-                        const SDItem addedItem
-                        {
-                            .itemID = itemID,
-                        };
-                        addInventoryItem(addedItem, false);
+                        if(to_u8sv(ir.type) == u8"金币"){
+                            setGold(m_sdItemStorage.gold + std::rand() % 1000 + 20000);
+                        }
+                        else{
+                            const SDItem addedItem
+                            {
+                                .itemID = itemID,
+                            };
+                            addInventoryItem(addedItem, false);
+                        }
                     }
 
                     if(sdPUIIDL.failedItemID){
