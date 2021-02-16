@@ -208,6 +208,7 @@ void Player::operateNet(uint8_t nType, const uint8_t *pData, size_t nDataLen)
         case CM_QUERYPLAYERWLDESP: net_CM_QUERYPLAYERWLDESP(nType, pData, nDataLen); break;
         case CM_REQUESTEQUIPWEAR : net_CM_REQUESTEQUIPWEAR (nType, pData, nDataLen); break;
         case CM_REQUESTGRABWEAR  : net_CM_REQUESTGRABWEAR  (nType, pData, nDataLen); break;
+        case CM_DROPITEM         : net_CM_DROPITEM         (nType, pData, nDataLen); break;
         default                  :                                                   break;
     }
 }

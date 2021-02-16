@@ -416,3 +416,29 @@ void Player::net_CM_REQUESTGRABWEAR(uint8_t, const uint8_t *buf, size_t)
         .item = addedItem,
     }));
 }
+
+void Player::net_CM_DROPITEM(uint8_t, const uint8_t *buf, size_t)
+{
+    const auto cmDI = ClientMsg::conv<CMDropItem>(buf);
+    const SDItem dropItem
+    {
+        .itemID = cmDI.itemID,
+        .seqID = cmDI.seqID,
+        .count = to_uz(cmDI.count),
+    };
+
+    dropItem.checkEx();
+    removeInventoryItem(dropItem);
+
+    // TODO
+    // we should drop the identical item
+
+    AMNewDropItem amNDI;
+    std::memset(&amNDI, 0, sizeof(amNDI));
+    amNDI.UID   = UID();
+    amNDI.X     = X();
+    amNDI.Y     = Y();
+    amNDI.ID    = cmDI.itemID;
+    amNDI.Value = to_d(cmDI.count);
+    m_actorPod->forward(m_map->UID(), {AM_NEWDROPITEM, amNDI});
+}

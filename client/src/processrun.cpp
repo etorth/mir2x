@@ -462,6 +462,10 @@ void ProcessRun::processEvent(const SDL_Event &event)
                                 }
                             }
 
+                            else if(const auto grabbedItem = getMyHero()->getInvPack().getGrabbedItem(); grabbedItem){
+                                requestDropItem(grabbedItem.itemID, grabbedItem.seqID, grabbedItem.count);
+                            }
+
                             else if(!getGroundItemIDList(mouseGridX, mouseGridY).empty()){
                                 getMyHero()->emplaceAction(ActionMove
                                 {
@@ -1842,6 +1846,24 @@ void ProcessRun::requestGrabWear(int wltype)
     std::memset(&cmRGW, 0, sizeof(cmRGW));
     cmRGW.wltype = wltype;
     g_client->send(CM_REQUESTGRABWEAR, cmRGW);
+}
+
+void ProcessRun::requestDropItem(uint32_t itemID, uint32_t seqID, size_t count)
+{
+    SDItem
+    {
+        .itemID = itemID,
+        .seqID = seqID,
+        .count = count,
+    }.checkEx();
+
+    CMDropItem cmDI;
+    std::memset(&cmDI, 0, sizeof(cmDI));
+
+    cmDI.itemID = itemID;
+    cmDI.seqID = seqID;
+    cmDI.count = count;
+    g_client->send(CM_DROPITEM, cmDI);
 }
 
 bool ProcessRun::hasGroundItemID(uint32_t itemID, int x, int y) const

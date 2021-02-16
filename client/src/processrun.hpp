@@ -389,6 +389,7 @@ class ProcessRun: public Process
         void requestConsumeItem(uint32_t, uint32_t, size_t);
         void requestEquipWear(uint32_t, uint32_t, int);
         void requestGrabWear(int);
+        void requestDropItem(uint32_t, uint32_t, size_t);
 
     public:
         std::tuple<uint32_t, int, int> getMap() const
