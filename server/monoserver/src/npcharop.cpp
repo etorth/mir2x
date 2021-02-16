@@ -110,11 +110,21 @@ void NPChar::on_AM_QUERYLOCATION(const ActorMsgPack &mpk)
 
 void NPChar::on_AM_QUERYSELLITEMLIST(const ActorMsgPack &mpk)
 {
+    // 
+    // query all selling items for one specified itemID
+
     const auto amQSIL = mpk.conv<AMQuerySellItemList>();
     SDSellItemList sdSIL;
-
+    sdSIL.npcUID = UID();
     if(DBCOM_ITEMRECORD(amQSIL.itemID).packable()){
-        if(auto p = m_sellItemList.begin(); p != m_sellItemList.end()){
+        sdSIL.list.push_back(SDSellItem
+        {
+            .item     = m_sellItemList.at(amQSIL.itemID).at(0).item,
+            .costList = m_sellItemList.at(amQSIL.itemID).at(0).costList,
+        });
+    }
+    else{
+        if(auto p = m_sellItemList.find(amQSIL.itemID); p != m_sellItemList.end()){
             for(const auto &[seqID, sellItem]: p->second){
                 sdSIL.list.push_back(SDSellItem
                 {
@@ -123,21 +133,6 @@ void NPChar::on_AM_QUERYSELLITEMLIST(const ActorMsgPack &mpk)
                 });
             }
         }
-    }
-    else{
-        SDSellItem single;
-        single.item = SDItem
-        {
-            .itemID = amQSIL.itemID,
-            . seqID = 0,
-        };
-
-        single.costList.push_back(SDCostItem
-        {
-            .itemID = DBCOM_ITEMID(u8"金币"),
-            .count  = (size_t)(80 + std::rand() % 20),
-        });
-        sdSIL.list.push_back(std::move(single));
     }
     sendNetPackage(mpk.from(), SM_SELLITEMLIST, cerealf::serialize(sdSIL, true));
 }
@@ -159,13 +154,18 @@ void NPChar::on_AM_BUY(const ActorMsgPack &mpk)
     };
 
     const auto amB = mpk.conv<AMBuy>();
+    const auto &ir = DBCOM_ITEMRECORD(amB.itemID);
+    if(!ir){
+        throw fflerror("invalid itemID = %llu", to_llu(amB.itemID));
+    }
+
     auto p = m_sellItemList.find(amB.itemID);
     if(p == m_sellItemList.end()){
         fnSendBuyError(BUYERR_BADITEM);
         return;
     }
 
-    auto q = p->second.find(amB.seqID);
+    auto q = p->second.find(ir.packable() ? 0 : amB.seqID);
     if(q == p->second.end()){
         fnSendBuyError(BUYERR_SOLDOUT);
         return;
@@ -188,33 +188,44 @@ void NPChar::on_AM_BUY(const ActorMsgPack &mpk)
         i++;
     }
 
-    q->second.locked = true;
+    if(!ir.packable()){
+        q->second.locked = true;
+    }
+
     m_actorPod->forward(mpk.from(), {AM_BUYCOST, amBC}, mpk.seqID(), [amB, this](const ActorMsgPack &rmpk)
     {
+        const auto &ir = DBCOM_ITEMRECORD(amB.itemID);
+        if(!ir){
+            throw fflerror("invalid itemID = %llu", to_llu(amB.itemID));
+        }
+
         auto p = m_sellItemList.find(amB.itemID);
         if(p == m_sellItemList.end()){
-            throw fflerror("item list released with locked item inside: %llu", to_llu(amB.itemID));
+            throw fflerror("no item selling: itemID = %llu", to_llu(amB.itemID));
         }
 
-        auto q = p->second.find(amB.seqID);
+        auto q = p->second.find(ir.packable() ? 0 : amB.seqID);
         if(q == p->second.end()){
-            throw fflerror("can't find locked item: itemID = %llu, seqID = %llu", to_llu(amB.itemID), to_llu(amB.seqID));
+            throw fflerror("no item selling: itemID = %llu, seqID = %llu", to_llu(amB.itemID), to_llu(amB.seqID));
         }
 
-        if(!q->second.locked){
-            throw fflerror("item lock released before get response");
+        if(!ir.packable()){
+            if(!q->second.locked){
+                throw fflerror("item lock released before get response");
+            }
+            q->second.locked = false;
         }
 
-        q->second.locked = false;
         switch(rmpk.type()){
             case AM_OK:
                 {
-                    p->second.erase(q);
+                    if(!ir.packable()){
+                        p->second.erase(q);
+                    }
                     return;
                 }
             case AM_ERROR:
                 {
-                    q->second.locked = false;
                     return;
                 }
             default:

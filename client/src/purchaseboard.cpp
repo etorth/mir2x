@@ -504,7 +504,7 @@ void PurchaseBoard::setSellItemList(SDSellItemList sdSIL)
 int PurchaseBoard::extendedBoardGfxID() const
 {
     if(m_sdSellItemList.npcUID && !m_sdSellItemList.list.empty()){
-        return DBCOM_ITEMRECORD(m_sdSellItemList.list.front().item.itemID).packable() ? 1 : 2;
+        return DBCOM_ITEMRECORD(m_sdSellItemList.list.front().item.itemID).packable() ? 2 : 1;
     }
     return 0;
 }
@@ -733,7 +733,7 @@ void PurchaseBoard::drawExt2() const
     {
         0,
         0,
-        to_u8cstr(str_ksep(getItemPrice(m_ext1PageGridSelected)) + to_cstr(u8" 金币")),
+        to_u8cstr(str_ksep(getItemPrice(0)) + to_cstr(u8" 金币")),
 
         1,
         13,
@@ -770,10 +770,6 @@ std::tuple<uint32_t, uint32_t> PurchaseBoard::getExtSelectedItemSeqID() const
 
 size_t PurchaseBoard::getItemPrice(int itemIndex) const
 {
-    if(extendedPageCount() <= 0){
-        throw bad_reach();
-    }
-
     if(!(itemIndex >= 0 && itemIndex < (int)(m_sdSellItemList.list.size()))){
         throw fflerror("invalid argument: itemIndex = %d", itemIndex);
     }

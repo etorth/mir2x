@@ -21,6 +21,7 @@
 #include "message.hpp"
 #include "actorpod.hpp"
 #include "monoserver.hpp"
+#include "dbcomid.hpp"
 #include "dbcomrecord.hpp"
 
 void Player::net_CM_ACTION(uint8_t, const uint8_t *pBuf, size_t)
@@ -248,7 +249,13 @@ void Player::net_CM_BUY(uint8_t, const uint8_t *buf, size_t)
                     uint32_t lackItemID = 0;
                     const auto amBC = mpk.conv<AMBuyCost>();
                     for(size_t i = 0; (i < std::extent_v<decltype(amBC.itemList)>) && amBC.itemList[i].itemID; ++i){
-                        if(!hasInventoryItem(amBC.itemList[i].itemID, 0, amBC.itemList[i].count)){
+                        if(amBC.itemList[i].itemID == DBCOM_ITEMID(u8"金币")){
+                            if(m_sdItemStorage.gold < amBC.itemList[i].count){
+                                lackItemID = amBC.itemList[i].itemID;
+                                break;
+                            }
+                        }
+                        else if(!hasInventoryItem(amBC.itemList[i].itemID, 0, amBC.itemList[i].count)){
                             lackItemID = amBC.itemList[i].itemID;
                             break;
                         }
@@ -260,7 +267,12 @@ void Player::net_CM_BUY(uint8_t, const uint8_t *buf, size_t)
                     }
                     else{
                         for(size_t i = 0; (i < std::extent_v<decltype(amBC.itemList)>) && amBC.itemList[i].itemID; ++i){
-                            removeInventoryItem(amBC.itemList[i].itemID, 0, amBC.itemList[i].count);
+                            if(amBC.itemList[i].itemID == DBCOM_ITEMID(u8"金币")){
+                                setGold(m_sdItemStorage.gold - amBC.itemList[i].count);
+                            }
+                            else{
+                                removeInventoryItem(amBC.itemList[i].itemID, 0, amBC.itemList[i].count);
+                            }
                         }
 
                         const auto buyItem = cerealf::deserialize<SDItem>(amBC.itemBuf.data, amBC.itemBuf.size);

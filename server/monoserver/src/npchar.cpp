@@ -616,11 +616,36 @@ std::set<uint32_t> NPChar::getSellItemIDList() const
 void NPChar::fillSellItemList()
 {
     for(const uint32_t itemID: getSellItemIDList()){
-        if(auto &itemListRef = m_sellItemList[itemID]; itemListRef.size() < 20){
-            uint32_t seqID = itemListRef.empty() ? 1 : (itemListRef.rbegin()->first + 1);
-            for(int i = 0; itemListRef.size() < 20; ++i){
-                auto item = createSellItem(itemID, seqID++);
-                auto cost = getCostItemList(item);
+        const auto &ir = DBCOM_ITEMRECORD(itemID);
+        if(!ir){
+            throw fflerror("selling invalid item: itemID = %llu", to_llu(itemID));
+        }
+
+        auto &itemListRef = m_sellItemList[itemID];
+        if(ir.packable()){
+            // refresh the price for packable item
+            // always use seqID = 0 for packable item in the list
+
+            const auto item = createSellItem(itemID, 0);
+            const auto cost = getCostItemList(item);
+
+            itemListRef[0] = NPChar::SellItem
+            {
+                .item = item,
+                .locked = false,
+                .costList = cost,
+            };
+
+            if(itemListRef.size() != 1){
+                throw fflerror("failed to reset packable item");
+            }
+        }
+        else{
+            const auto fillSize = std::max<size_t>(itemListRef.size(), 20 + std::rand() % 5);
+            while(itemListRef.size() < fillSize){
+                const uint32_t seqID = itemListRef.empty() ? 1 : (itemListRef.rbegin()->first + 1);
+                const auto item = createSellItem(itemID, seqID);
+                const auto cost = getCostItemList(item);
                 itemListRef[seqID] = NPChar::SellItem
                 {
                     .item = item,
