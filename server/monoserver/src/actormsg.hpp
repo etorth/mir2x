@@ -467,12 +467,6 @@ struct AMPickUp
     uint32_t availableWeight;
 };
 
-struct AMPickUpItemIDList
-{
-    uint32_t failedItemID;
-    uint32_t itemIDList[SYS_MAXDROPITEM];
-};
-
 struct AMRemoveGroundItem
 {
     int X;

@@ -364,3 +364,13 @@ struct SDBuyCost
         ar(item, costList);
     }
 };
+
+struct SDPickUpItemIDList
+{
+    uint32_t failedItemID = 0;
+    std::vector<uint32_t> itemIDList;
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(failedItemID, itemIDList);
+    }
+};

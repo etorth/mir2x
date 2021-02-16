@@ -130,8 +130,8 @@ void Player::net_CM_PICKUP(uint8_t, const uint8_t *buf, size_t)
         switch(mpk.type()){
             case AM_PICKUPITEMIDLIST:
                 {
-                    const auto amPUIIDL = mpk.conv<AMPickUpItemIDList>();
-                    for(const auto itemID: amPUIIDL.itemIDList){
+                    const auto sdPUIIDL = cerealf::deserialize<SDPickUpItemIDList>(mpk.data(), mpk.size());
+                    for(const auto itemID: sdPUIIDL.itemIDList){
                         if(!itemID){
                             break;
                         }
@@ -148,8 +148,8 @@ void Player::net_CM_PICKUP(uint8_t, const uint8_t *buf, size_t)
                         addInventoryItem(addedItem, false);
                     }
 
-                    if(amPUIIDL.failedItemID){
-                        fnPostPickUpError(amPUIIDL.failedItemID);
+                    if(sdPUIIDL.failedItemID){
+                        fnPostPickUpError(sdPUIIDL.failedItemID);
                     }
                     break;
                 }

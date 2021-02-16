@@ -842,7 +842,7 @@ void ServerMap::removeGroundItemID(uint32_t itemID, int x, int y, bool post)
     }
 
     auto &itemIDList = getGroundItemIDList(x, y);
-    for(int i = (int)(itemIDList.size()) - 1; i >= 0; --i){
+    for(int i = to_d(itemIDList.size()) - 1; i >= 0; --i){
         if(itemIDList[i] == itemID){
             itemIDList.erase(itemIDList.begin() + i);
             if(post){

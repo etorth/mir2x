@@ -758,12 +758,23 @@ void ServerMap::on_AM_PICKUP(const ActorMsgPack &mpk)
         return;
     }
 
-    size_t pickedWeight = 0;
     std::vector<uint32_t> pickedItemIDList;
     auto &itemIDList = getGroundItemIDList(amPU.x, amPU.y);
 
-    for(auto p = itemIDList.rbegin(); p != itemIDList.rend(); ++p){
+    for(auto p = itemIDList.begin(); p != itemIDList.end();){
         const auto itemID = *p;
+        if(to_u8sv(DBCOM_ITEMRECORD(itemID).type) == u8"金币"){
+            pickedItemIDList.push_back(itemID);
+            p = itemIDList.erase(p);
+        }
+        else{
+            p++;
+        }
+    }
+
+    size_t pickedWeight = 0;
+    while(!itemIDList.empty()){
+        const auto itemID = itemIDList.back();
         const auto &ir = DBCOM_ITEMRECORD(itemID);
 
         if(!ir){
@@ -776,21 +787,17 @@ void ServerMap::on_AM_PICKUP(const ActorMsgPack &mpk)
 
         pickedWeight += ir.weight;
         pickedItemIDList.push_back(itemID);
-        removeGroundItemID(itemID, amPU.x, amPU.y, false);
+        itemIDList.pop_back();
     }
 
-    AMPickUpItemIDList amPIIDL;
-    std::memset(&amPIIDL, 0, sizeof(amPIIDL));
+    const SDPickUpItemIDList sdPUIIDL
+    {
+        .failedItemID = itemIDList.empty() ? 0 : itemIDList.back(),
+        .itemIDList = std::move(pickedItemIDList),
+    };
 
-    if(pickedItemIDList.size() >= std::extent_v<decltype(amPIIDL.itemIDList)>){
-        throw fflerror("picked item list too long: %zu", pickedItemIDList.size());
+    if(!sdPUIIDL.itemIDList.empty()){
+        postGroundItemIDList(amPU.x, amPU.y);
     }
-
-    std::copy(pickedItemIDList.begin(), pickedItemIDList.end(), amPIIDL.itemIDList);
-    if(!itemIDList.empty()){
-        amPIIDL.failedItemID = itemIDList.back();
-    }
-
-    postGroundItemIDList(amPU.x, amPU.y);
-    m_actorPod->forward(mpk.from(), {AM_PICKUPITEMIDLIST, amPIIDL}, mpk.seqID());
+    m_actorPod->forward(mpk.from(), {AM_PICKUPITEMIDLIST, cerealf::serialize(sdPUIIDL)}, mpk.seqID());
 }
