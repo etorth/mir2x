@@ -216,6 +216,13 @@ struct SMRemoveItem
     uint16_t  count;
 };
 
+struct SMBuySucceed
+{
+    uint64_t npcUID;
+    uint32_t itemID;
+    uint32_t  seqID;
+};
+
 struct SMBuyError
 {
     uint64_t npcUID;
@@ -289,7 +296,7 @@ class ServerMsg final: public MsgBase
                 _add_server_msg_type_case(SM_BELT,             3, 0                         )
                 _add_server_msg_type_case(SM_UPDATEITEM,       3, 0                         )
                 _add_server_msg_type_case(SM_REMOVEITEM,       1, sizeof(SMRemoveItem)      )
-                _add_server_msg_type_case(SM_BUYSUCCEED,       3, 0                         )
+                _add_server_msg_type_case(SM_BUYSUCCEED,       1, sizeof(SMBuySucceed)      )
                 _add_server_msg_type_case(SM_BUYERROR,         1, sizeof(SMBuyError)        )
                 _add_server_msg_type_case(SM_GROUNDITEMIDLIST, 1, sizeof(SMGroundItemIDList))
                 _add_server_msg_type_case(SM_EQUIPWEAR,        3, 0                         )
@@ -327,6 +334,7 @@ class ServerMsg final: public MsgBase
                     || std::is_same_v<T, SMRemoveItem>
                     || std::is_same_v<T, SMGold>
                     || std::is_same_v<T, SMGroundItemIDList>
+                    || std::is_same_v<T, SMBuySucceed>
                     || std::is_same_v<T, SMBuyError>
                     || std::is_same_v<T, SMPickUpError>
                     || std::is_same_v<T, SMEquipWearError>

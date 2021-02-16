@@ -159,6 +159,10 @@ void NPChar::on_AM_BUY(const ActorMsgPack &mpk)
         throw fflerror("invalid itemID = %llu", to_llu(amB.itemID));
     }
 
+    if(!ir.packable() && amB.count > 1){
+        throw fflerror("buying multiple unpackable items");
+    }
+
     auto p = m_sellItemList.find(amB.itemID);
     if(p == m_sellItemList.end()){
         fnSendBuyError(BUYERR_BADITEM);
@@ -176,23 +180,16 @@ void NPChar::on_AM_BUY(const ActorMsgPack &mpk)
         return;
     }
 
-    AMBuyCost amBC;
-    std::memset(&amBC, 0, sizeof(amBC));
-    if(std::extent_v<decltype(amBC.itemList)> < q->second.costList.size()){
-        throw fflerror("too many exchange items: itemID = %llu", to_llu(amB.itemID));
-    }
-
-    for(size_t i = 0; const auto &item: q->second.costList){
-        amBC.itemList[i].itemID = item.itemID;
-        amBC.itemList[i].count  = item.count;
-        i++;
-    }
+    SDBuyCost sdBC;
+    sdBC.item = q->second.item;
+    sdBC.item.count = amB.count;
+    sdBC.costList = q->second.costList;
 
     if(!ir.packable()){
         q->second.locked = true;
     }
 
-    m_actorPod->forward(mpk.from(), {AM_BUYCOST, amBC}, mpk.seqID(), [amB, this](const ActorMsgPack &rmpk)
+    m_actorPod->forward(mpk.from(), {AM_BUYCOST, cerealf::serialize(sdBC)}, mpk.seqID(), [amB, this](const ActorMsgPack &rmpk)
     {
         const auto &ir = DBCOM_ITEMRECORD(amB.itemID);
         if(!ir){

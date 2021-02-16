@@ -561,24 +561,6 @@ struct AMBuy
     size_t   count;
 };
 
-struct AMBuyCost
-{
-    struct ItemBuf
-    {
-        char   data[256];
-        size_t size;
-    };
-
-    struct ItemListElement
-    {
-        uint32_t itemID;
-        size_t   count;
-    };
-
-    ItemBuf itemBuf;
-    ItemListElement itemList[8];
-};
-
 struct AMBuyError
 {
     int error;

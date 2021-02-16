@@ -48,6 +48,10 @@ class ActorMsgBuf final
             , m_size(argSize)
         {}
 
+        ActorMsgBuf(int argType, const std::string &argBuf)
+            : ActorMsgBuf(argType, (const uint8_t *)(argBuf.data()), argBuf.size())
+        {}
+
         // actually you can put a pointer here
         // which makes a ActorMsgPack contain a pointer value
         //

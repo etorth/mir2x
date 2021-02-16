@@ -307,19 +307,6 @@ struct SDLoginOK
     }
 };
 
-struct SDBuySucceed
-{
-    SDItem item;
-    uint64_t npcUID = 0;
-    uint32_t itemID = 0;
-    uint32_t  seqID = 0;
-
-    template<typename Archive> void serialize(Archive & ar)
-    {
-        ar(item, npcUID, itemID, seqID);
-    }
-};
-
 struct SDGroundItemIDList
 {
     int x = 0;
@@ -372,5 +359,15 @@ struct SDGrabWear
     template<typename Archive> void serialize(Archive & ar)
     {
         ar(wltype, item);
+    }
+};
+
+struct SDBuyCost
+{
+    SDItem item;
+    std::vector<SDCostItem> costList;
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(item, costList);
     }
 };

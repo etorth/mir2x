@@ -305,6 +305,29 @@ void ProcessRun::net_PING(const uint8_t *bufPtr, size_t)
     addCBLog(CBLOG_SYS, u8"延迟%llums", to_llu(currTick - smP.Tick));
 }
 
+void ProcessRun::net_BUYERROR(const uint8_t *buf, size_t bufSize)
+{
+    const auto smBE = ServerMsg::conv<SMBuyError>(buf, bufSize);
+    switch(smBE.error){
+        case BUYERR_INSUFFCIENT:
+            {
+                addCBLog(CBLOG_ERR, u8"金币不够");
+                break;
+            }
+        default:
+            {
+                addCBLog(CBLOG_ERR, u8"购买失败");
+                break;
+            }
+    }
+}
+
+void ProcessRun::net_BUYSUCCEED(const uint8_t *buf, size_t)
+{
+    const auto smBS = ServerMsg::conv<SMBuySucceed>(buf);
+    dynamic_cast<PurchaseBoard *>(getWidget("PurchaseBoard"))->onBuySucceed(smBS.npcUID, smBS.itemID, smBS.seqID);
+}
+
 void ProcessRun::net_GROUNDITEMIDLIST(const uint8_t *buf, size_t)
 {
     const auto smGIIDL = ServerMsg::conv<SMGroundItemIDList>(buf);

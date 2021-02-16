@@ -247,16 +247,21 @@ void Player::net_CM_BUY(uint8_t, const uint8_t *buf, size_t)
             case AM_BUYCOST:
                 {
                     uint32_t lackItemID = 0;
-                    const auto amBC = mpk.conv<AMBuyCost>();
-                    for(size_t i = 0; (i < std::extent_v<decltype(amBC.itemList)>) && amBC.itemList[i].itemID; ++i){
-                        if(amBC.itemList[i].itemID == DBCOM_ITEMID(u8"金币")){
-                            if(m_sdItemStorage.gold < amBC.itemList[i].count){
-                                lackItemID = amBC.itemList[i].itemID;
+                    const auto sdBC = cerealf::deserialize<SDBuyCost>(mpk.data(), mpk.size());
+
+                    if(cmB.itemID != sdBC.item.itemID || cmB.seqID != sdBC.item.seqID){
+                        throw fflerror("item asked and sold are not same: buyItemID = %llu, buySeqID = %llu, soldItemID = %llu, soldSeqID = %llu", to_llu(cmB.itemID), to_llu(cmB.seqID), to_llu(sdBC.item.itemID), to_llu(sdBC.item.seqID));
+                    }
+
+                    for(const auto &costItem: sdBC.costList){
+                        if(costItem.itemID == DBCOM_ITEMID(u8"金币")){
+                            if(m_sdItemStorage.gold < costItem.count){
+                                lackItemID = costItem.itemID;
                                 break;
                             }
                         }
-                        else if(!hasInventoryItem(amBC.itemList[i].itemID, 0, amBC.itemList[i].count)){
-                            lackItemID = amBC.itemList[i].itemID;
+                        else if(!hasInventoryItem(costItem.itemID, 0, costItem.count)){
+                            lackItemID = costItem.itemID;
                             break;
                         }
                     }
@@ -266,26 +271,27 @@ void Player::net_CM_BUY(uint8_t, const uint8_t *buf, size_t)
                         fnPostBuyError(BUYERR_INSUFFCIENT);
                     }
                     else{
-                        for(size_t i = 0; (i < std::extent_v<decltype(amBC.itemList)>) && amBC.itemList[i].itemID; ++i){
-                            if(amBC.itemList[i].itemID == DBCOM_ITEMID(u8"金币")){
-                                setGold(m_sdItemStorage.gold - amBC.itemList[i].count);
+                        for(const auto &costItem: sdBC.costList){
+                            if(costItem.itemID == DBCOM_ITEMID(u8"金币")){
+                                setGold(m_sdItemStorage.gold - costItem.count);
                             }
                             else{
-                                removeInventoryItem(amBC.itemList[i].itemID, 0, amBC.itemList[i].count);
+                                removeInventoryItem(costItem.itemID, 0, costItem.count);
                             }
                         }
 
-                        const auto buyItem = cerealf::deserialize<SDItem>(amBC.itemBuf.data, amBC.itemBuf.size);
-                        const auto addedItem = m_sdItemStorage.inventory.add(buyItem, false);
-
+                        addInventoryItem(sdBC.item, false);
                         m_actorPod->forward(mpk.from(), AM_OK, mpk.seqID());
-                        postNetMessage(SM_BUYSUCCEED, cerealf::serialize(SDBuySucceed
-                        {
-                            .item   = addedItem,
-                            .npcUID = mpk.from(),
-                            .itemID = cmB.itemID,
-                            .seqID  = cmB.seqID,
-                        }));
+
+                        if(!DBCOM_ITEMRECORD(sdBC.item.itemID).packable()){
+                            SMBuySucceed smBS;
+                            std::memset(&smBS, 0, sizeof(smBS));
+
+                            smBS.npcUID = mpk.from();
+                            smBS.itemID = sdBC.item.itemID;
+                            smBS. seqID = sdBC.item.seqID;
+                            postNetMessage(SM_BUYSUCCEED, smBS);
+                        }
                     }
                     return;
                 }

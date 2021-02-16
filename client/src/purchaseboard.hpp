@@ -109,6 +109,7 @@ class PurchaseBoard: public Widget
         void setExtendedItemID(uint32_t);
 
     public:
+        void onBuySucceed(uint64_t, uint32_t, uint32_t);
         void setSellItemList(SDSellItemList);
 
     private:

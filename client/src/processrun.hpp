@@ -207,6 +207,8 @@ class ProcessRun: public Process
         void net_MONSTERGINFO(const uint8_t *, size_t);
         void net_SELLITEMLIST(const uint8_t *, size_t);
         void net_NPCXMLLAYOUT(const uint8_t *, size_t);
+        void net_BUYERROR(const uint8_t *, size_t);
+        void net_BUYSUCCEED(const uint8_t *, size_t);
         void net_GROUNDITEMIDLIST(const uint8_t *, size_t);
         void net_EQUIPWEAR(const uint8_t *, size_t);
         void net_EQUIPWEARERROR(const uint8_t *, size_t);

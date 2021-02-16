@@ -781,3 +781,25 @@ size_t PurchaseBoard::getItemPrice(int itemIndex) const
     }
     return 0;
 }
+
+void PurchaseBoard::onBuySucceed(uint64_t npcUID, uint32_t itemID, uint32_t seqID)
+{
+    if(npcUID != m_npcUID){
+        return;
+    }
+
+    if(npcUID != m_sdSellItemList.npcUID){
+        return;
+    }
+
+    if(DBCOM_ITEMRECORD(itemID).packable()){
+        return;
+    }
+
+    for(auto p = m_sdSellItemList.list.begin(); p != m_sdSellItemList.list.end(); ++p){
+        if(p->item.itemID == itemID && p->item.seqID == seqID){
+            m_sdSellItemList.list.erase(p);
+            return;
+        }
+    }
+}
