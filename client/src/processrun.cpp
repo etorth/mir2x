@@ -1754,14 +1754,15 @@ void ProcessRun::requestMagicDamage(int magicID, uint64_t aimUID)
 
 void ProcessRun::queryPlayerWLDesp(uint64_t uid) const
 {
-    if(uidf::getUIDType(uid) == UID_PLY){
-        CMQueryPlayerWLDesp cmQPWLD;
-        std::memset(&cmQPWLD, 0, sizeof(cmQPWLD));
-
-        cmQPWLD.uid = uid;
-        g_client->send(CM_QUERYPLAYERWLDESP, cmQPWLD);
+    if(uidf::getUIDType(uid) != UID_PLY){
+        throw fflerror("invalid uid: %llu, type: %s", to_llu(uid), uidf::getUIDTypeCStr(uid));
     }
-    throw fflerror("invalid uid: %llu, type: %s", to_llu(uid), uidf::getUIDTypeCStr(uid));
+
+    CMQueryPlayerWLDesp cmQPWLD;
+    std::memset(&cmQPWLD, 0, sizeof(cmQPWLD));
+
+    cmQPWLD.uid = uid;
+    g_client->send(CM_QUERYPLAYERWLDESP, cmQPWLD);
 }
 
 void ProcessRun::requestBuy(uint64_t npcUID, uint32_t itemID, uint32_t seqID, size_t count)
