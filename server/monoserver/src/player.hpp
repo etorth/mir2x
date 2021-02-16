@@ -280,5 +280,8 @@ class Player final: public CharObject
         }
 
     private:
+        void setWLItem(int, SDItem);
+
+    private:
         SDItem createItem(uint32_t);
 };

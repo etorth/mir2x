@@ -363,7 +363,7 @@ void Player::net_CM_REQUESTEQUIPWEAR(uint8_t, const uint8_t *buf, size_t)
     }
 
     const auto currItem = m_sdItemStorage.wear.getWLItem(wltype);
-    m_sdItemStorage.wear.setWLItem(cmREW.wltype, item);
+    setWLItem(cmREW.wltype, item);
 
     removeInventoryItem(item);
     dbUpdateWearItem(wltype, item);
@@ -404,7 +404,7 @@ void Player::net_CM_REQUESTGRABWEAR(uint8_t, const uint8_t *buf, size_t)
     // server doesn not track if item is grabbed or in inventory
     // when disarms the wear item, server always put it into the inventory
 
-    m_sdItemStorage.wear.setWLItem(wltype, {});
+    setWLItem(wltype, {});
     dbRemoveWearItem(wltype);
 
     const auto &addedItem = m_sdItemStorage.inventory.add(currItem, false);

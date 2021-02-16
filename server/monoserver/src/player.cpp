@@ -985,3 +985,24 @@ void Player::setGold(size_t gold)
     g_dbPod->exec("update tbl_dbid set fld_gold = %llu where fld_dbid = %llu", to_llu(m_sdItemStorage.gold), to_llu(dbid()));
     reportGold();
 }
+
+void Player::setWLItem(int wltype, SDItem item)
+{
+    if(!(wltype >= WLG_BEGIN && wltype < WLG_END)){
+        throw fflerror("bad wltype: %d", wltype);
+    }
+
+    m_sdItemStorage.wear.setWLItem(wltype, item);
+    const auto sdEquipWearBuf = cerealf::serialize(SDEquipWear
+    {
+        .uid = UID(),
+        .wltype = wltype,
+        .item = item,
+    });
+
+    for(const auto &coLoc: m_inViewCOList){
+        if(uidf::getUIDType(coLoc.UID) == UID_PLY){
+            sendNetPackage(coLoc.UID, SM_EQUIPWEAR, sdEquipWearBuf);
+        }
+    }
+}
