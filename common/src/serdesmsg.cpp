@@ -88,13 +88,30 @@ size_t SDInventory::has(uint32_t itemID, uint32_t seqID) const
 
 const SDItem &SDInventory::add(SDItem newItem, bool keepSeqID)
 {
+    newItem.checkEx();
     const auto itemSeqIDSet = getItemSeqIDSet();
+
     if(keepSeqID){
         if(itemSeqIDSet.count(buildItemSeqID(newItem.itemID, newItem.seqID))){
             throw fflerror("found duplication with given item: itemID = %llu, seqID = %llu", to_llu(newItem.itemID), to_llu(newItem.seqID));
         }
         m_list.push_back(std::move(newItem));
         return m_list.back();
+    }
+
+    if(DBCOM_ITEMRECORD(newItem.itemID).packable()){
+        for(auto &item: m_list){
+            if(item.itemID != newItem.itemID){
+                continue;
+            }
+
+            // TODO we only support change one item
+            // currently can't do automatically merge: (55 + 56) -> (99, 12)
+            if(item.count + newItem.count <= SYS_INVGRIDMAXHOLD){
+                item.count += newItem.count;
+                return item;
+            }
+        }
     }
 
     for(uint32_t seqID = 1;; ++seqID){
