@@ -479,8 +479,11 @@ corof::long_jmper Monster::updateCoroFunc()
                 break;
             }
         }
-        else{
+        else if(hasPlayerNeighbor()){
             co_await coro_randomMove();
+        }
+        else{
+            co_await corof::async_wait(200);
         }
     }
 
@@ -1522,4 +1525,14 @@ bool Monster::isPet(uint64_t nUID)
                 return false;
             }
     }
+}
+
+bool Monster::hasPlayerNeighbor() const
+{
+    for(const auto &loc: m_inViewCOList){
+        if(uidf::getUIDType(loc.UID) == UID_PLY){
+            return true;
+        }
+    }
+    return false;
 }

@@ -251,4 +251,7 @@ class Monster: public CharObject
         {
             return DBCOM_MONSTERRECORD(monsterID()).name;
         }
+
+    public:
+        bool hasPlayerNeighbor() const;
 };
