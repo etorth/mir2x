@@ -550,7 +550,7 @@ void ProcessRun::net_GRABWEAR(const uint8_t *buf, size_t bufSize)
     }
 
     auto myHeroPtr = getMyHero();
-    auto invPackRef = myHeroPtr->getInvPack();
+    auto &invPackRef = myHeroPtr->getInvPack();
 
     myHeroPtr->setWLItem(wltype, {});
     if(auto currItem = invPackRef.getGrabbedItem()){

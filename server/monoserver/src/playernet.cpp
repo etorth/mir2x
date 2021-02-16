@@ -356,7 +356,7 @@ void Player::net_CM_REQUESTEQUIPWEAR(uint8_t, const uint8_t *buf, size_t)
         return;
     }
 
-    const auto &item = findInventoryItem(cmREW.itemID, cmREW.seqID);
+    const auto item = findInventoryItem(cmREW.itemID, cmREW.seqID);
     if(!item){
         fnPostEquipError(EQWERR_NOITEM);
         return;
@@ -365,8 +365,8 @@ void Player::net_CM_REQUESTEQUIPWEAR(uint8_t, const uint8_t *buf, size_t)
     const auto currItem = m_sdItemStorage.wear.getWLItem(wltype);
     m_sdItemStorage.wear.setWLItem(cmREW.wltype, item);
 
+    removeInventoryItem(item);
     dbUpdateWearItem(wltype, item);
-    removeInventoryItem(item.itemID, item.seqID);
     postNetMessage(SM_EQUIPWEAR, cerealf::serialize(SDEquipWear
     {
         .uid = UID(),

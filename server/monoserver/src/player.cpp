@@ -928,6 +928,11 @@ void Player::addInventoryItem(SDItem item, bool keepSeqID)
     }));
 }
 
+size_t Player::removeInventoryItem(const SDItem &item)
+{
+    return removeInventoryItem(item.itemID, item.seqID);
+}
+
 size_t Player::removeInventoryItem(uint32_t itemID, uint32_t seqID)
 {
     if(!(DBCOM_ITEMRECORD(itemID) && seqID > 0)){

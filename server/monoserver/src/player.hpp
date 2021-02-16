@@ -256,6 +256,9 @@ class Player final: public CharObject
     private:
         bool hasInventoryItem(uint32_t, uint32_t, size_t) const;
         void addInventoryItem(SDItem, bool);
+
+    private:
+        size_t removeInventoryItem(const SDItem &);
         size_t removeInventoryItem(uint32_t, uint32_t);
         size_t removeInventoryItem(uint32_t, uint32_t, size_t);
 
