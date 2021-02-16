@@ -140,6 +140,8 @@ class Player final: public CharObject
         void net_CM_BUY               (uint8_t, const uint8_t *, size_t);
         void net_CM_QUERYGOLD         (uint8_t, const uint8_t *, size_t);
         void net_CM_NPCEVENT          (uint8_t, const uint8_t *, size_t);
+        void net_CM_REQUESTEQUIPWEAR  (uint8_t, const uint8_t *, size_t);
+        void net_CM_REQUESTGRABWEAR   (uint8_t, const uint8_t *, size_t);
 
     protected:
         void reportGold();
@@ -255,7 +257,11 @@ class Player final: public CharObject
         bool hasInventoryItem(uint32_t, uint32_t, size_t) const;
         void addInventoryItem(uint32_t);
         void addInventoryItem(SDItem, bool);
+        size_t removeInventoryItem(uint32_t, uint32_t);
         size_t removeInventoryItem(uint32_t, uint32_t, size_t);
+
+    private:
+        const SDItem &findInventoryItem(uint32_t, uint32_t) const;
 
     private:
         size_t getGold() const

@@ -208,6 +208,10 @@ class ProcessRun: public Process
         void net_SELLITEMLIST(const uint8_t *, size_t);
         void net_NPCXMLLAYOUT(const uint8_t *, size_t);
         void net_GROUNDITEMIDLIST(const uint8_t *, size_t);
+        void net_EQUIPWEAR(const uint8_t *, size_t);
+        void net_EQUIPWEARERROR(const uint8_t *, size_t);
+        void net_GRABWEAR(const uint8_t *, size_t);
+        void net_GRABWEARERROR(const uint8_t *, size_t);
 
     public:
         bool canMove(bool, int, int, int);
@@ -381,6 +385,8 @@ class ProcessRun: public Process
         void requestMagicDamage(int, uint64_t);
         void requestBuy(uint64_t, uint32_t, uint32_t, size_t count);
         void requestConsumeItem(uint32_t, uint32_t, size_t);
+        void requestEquipWear(uint32_t, uint32_t, int);
+        void requestGrabWear(int);
 
     public:
         std::tuple<uint32_t, int, int> getMap() const

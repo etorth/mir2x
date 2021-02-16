@@ -1069,22 +1069,22 @@ ClientCreature::TargetBox Hero::getTargetBox() const
     return getTargetBoxHelper(startX, startY, bodyFrameW, bodyFrameH);
 }
 
-const SDItem &Hero::getWLItem(int wlType) const
+const SDItem &Hero::getWLItem(int wltype) const
 {
-    if(!(wlType >= WLG_BEGIN && wlType < WLG_END)){
-        throw fflerror("invalid wlType: %d", wlType);
+    if(!(wltype >= WLG_BEGIN && wltype < WLG_END)){
+        throw fflerror("invalid wltype: %d", wltype);
     }
-    return m_sdWLDesp.wear.getWLItem(wlType);
+    return m_sdWLDesp.wear.getWLItem(wltype);
 }
 
-bool Hero::setWLItem(int wlType, SDItem item)
+bool Hero::setWLItem(int wltype, SDItem item)
 {
-    if(!(wlType >= WLG_BEGIN && wlType < WLG_END)){
-        throw fflerror("invalid wear/look type: %d", wlType);
+    if(!(wltype >= WLG_BEGIN && wltype < WLG_END)){
+        throw fflerror("invalid wear/look type: %d", wltype);
     }
 
     if(item.itemID == 0){
-        m_sdWLDesp.wear.list.erase(wlType);
+        m_sdWLDesp.wear.list.erase(wltype);
         return true;
     }
 
@@ -1097,7 +1097,7 @@ bool Hero::setWLItem(int wlType, SDItem item)
         throw fflerror("invalid itemID: %llu", to_llu(item.itemID));
     }
 
-    switch(wlType){
+    switch(wltype){
         case WLG_DRESS:
             {
                 if((to_u8sv(ir.type) != u8"衣服") || (getClothGender(item.itemID) != uidf::getPlayerGender(UID()))){
@@ -1107,7 +1107,7 @@ bool Hero::setWLItem(int wlType, SDItem item)
             }
         default:
             {
-                if(to_u8sv(ir.type) != wlGridItemType(wlType)){
+                if(to_u8sv(ir.type) != wlGridItemType(wltype)){
                     return false;
                 }
                 break;

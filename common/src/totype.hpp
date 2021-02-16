@@ -23,6 +23,10 @@
 #include <stdexcept>
 #include <string_view>
 
+#define to_d(x) static_cast<int>(x)
+#define to_u(x) static_cast<unsigned int>(x)
+#define to_f(x) static_cast<float>(x)
+
 #define to_lld(x) static_cast<         long long>(x)
 #define to_llu(x) static_cast<unsigned long long>(x)
 

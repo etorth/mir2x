@@ -282,19 +282,17 @@ bool PlayerStatusBoard::processEvent(const SDL_Event &event, bool valid)
                             auto &invPackRef = myHeroPtr->getInvPack();
                             for(size_t i = WLG_BEGIN; i < WLG_END; ++i){
                                 if(mathf::pointInRectangle(event.button.x, event.button.y, x() + m_gridList[i].x, y() + m_gridList[i].y, m_gridList[i].w, m_gridList[i].h)){
-                                    const auto inGridItem = myHeroPtr->getWLItem(i);
                                     if(const auto grabbedItem = invPackRef.getGrabbedItem()){
-                                        if(myHeroPtr->setWLItem(i, grabbedItem)){
-                                            invPackRef.setGrabbedItem(inGridItem);
+                                        if(to_u8sv(DBCOM_ITEMRECORD(grabbedItem.itemID).type) == wlGridItemType(i)){
+                                            m_processRun->requestEquipWear(grabbedItem.itemID, grabbedItem.seqID, i);
                                         }
                                         else{
                                             invPackRef.add(grabbedItem);
                                             invPackRef.setGrabbedItem({});
                                         }
                                     }
-                                    else{
-                                        myHeroPtr->setWLItem(i, {});
-                                        invPackRef.setGrabbedItem(inGridItem);
+                                    else if(myHeroPtr->getWLItem(i)){
+                                        m_processRun->requestGrabWear(i);
                                     }
                                     break;
                                 }
@@ -314,9 +312,9 @@ bool PlayerStatusBoard::processEvent(const SDL_Event &event, bool valid)
     }
 }
 
-void PlayerStatusBoard::drawItemHoverText(int wlType) const
+void PlayerStatusBoard::drawItemHoverText(int wltype) const
 {
-    const auto itemID = m_processRun->getMyHero()->getWLItem(wlType).itemID;
+    const auto itemID = m_processRun->getMyHero()->getWLItem(wltype).itemID;
     const auto &ir = DBCOM_ITEMRECORD(itemID);
 
     if(!(itemID && ir)){

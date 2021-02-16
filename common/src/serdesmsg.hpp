@@ -226,6 +226,7 @@ class SDInventory final
 
     public:
         size_t has(uint32_t, uint32_t) const;
+        const SDItem &find(uint32_t, uint32_t) const;
 
     public:
         const SDItem &add(SDItem, bool);
@@ -349,5 +350,27 @@ struct SDItemStorage
         wear.clear();
         belt.clear();
         inventory.clear();
+    }
+};
+
+struct SDEquipWear
+{
+    uint64_t uid = 0;
+    int wltype = WLG_NONE;
+    SDItem item;
+
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(uid, wltype, item);
+    }
+};
+
+struct SDGrabWear
+{
+    int wltype = WLG_NONE;
+    SDItem item;
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(wltype, item);
     }
 };

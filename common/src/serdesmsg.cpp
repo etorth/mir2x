@@ -86,6 +86,32 @@ size_t SDInventory::has(uint32_t itemID, uint32_t seqID) const
     return count;
 }
 
+const SDItem &SDInventory::find(uint32_t itemID, uint32_t seqID) const
+{
+    const auto &ir = DBCOM_ITEMRECORD(itemID);
+    if(!ir){
+        throw fflerror("invalid itemID: %llu", to_llu(itemID));
+    }
+
+    if(itemID == DBCOM_ITEMID(u8"金币")){
+        throw fflerror("invalid type: 金币");
+    }
+
+    for(const auto &item: m_list){
+        if(item.itemID != itemID){
+            continue;
+        }
+
+        if(!(seqID && (seqID == item.seqID))){
+            continue;
+        }
+        return item;
+    }
+
+    const static SDItem s_item;
+    return s_item;
+}
+
 const SDItem &SDInventory::add(SDItem newItem, bool keepSeqID)
 {
     newItem.checkEx();

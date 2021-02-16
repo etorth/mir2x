@@ -311,3 +311,23 @@ enum BuyErrorType: int
     BUYERR_INSUFFCIENT,
     BUYERR_END,
 };
+
+enum EquipWearErrorType: int
+{
+    EQWERR_NONE = 0,
+    EQWERR_BEGIN = 1,
+    EQWERR_NOITEM = 1,
+    EQWERR_BADITEM,
+    EQWERR_BADWLTYPE,
+    EQWERR_INSUFF,
+    EQWERR_END,
+};
+
+enum GrabWearErrorType: int
+{
+    GWERR_NONE = 0,
+    GWERR_BEGIN = 1,
+    GWERR_NOITEM = 1,
+    GWERR_BIND, // some item you can't manually remove it after wear
+    GWERR_END,
+};

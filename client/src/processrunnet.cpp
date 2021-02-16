@@ -455,7 +455,19 @@ void ProcessRun::net_UPDATEITEM(const uint8_t *buf, size_t bufSize)
 void ProcessRun::net_REMOVEITEM(const uint8_t *buf, size_t)
 {
     const auto smRI = ServerMsg::conv<SMRemoveItem>(buf);
-    getMyHero()->getInvPack().remove(smRI.itemID, smRI.seqID, smRI.count);
+    /* */ auto grabbedItem = getMyHero()->getInvPack().getGrabbedItem();
+    if((smRI.itemID == grabbedItem.itemID) && (smRI.seqID == grabbedItem.seqID)){
+        if(smRI.count < grabbedItem.count){
+            grabbedItem.count -= smRI.count;
+            getMyHero()->getInvPack().setGrabbedItem(grabbedItem);
+        }
+        else{
+            getMyHero()->getInvPack().setGrabbedItem({});
+        }
+    }
+    else{
+        getMyHero()->getInvPack().remove(smRI.itemID, smRI.seqID, smRI.count);
+    }
 }
 
 void ProcessRun::net_INVENTORY(const uint8_t *buf, size_t bufSize)
@@ -466,4 +478,71 @@ void ProcessRun::net_INVENTORY(const uint8_t *buf, size_t bufSize)
 void ProcessRun::net_BELT(const uint8_t *buf, size_t bufSize)
 {
     getMyHero()->setBelt(cerealf::deserialize<SDBelt>(buf, bufSize));
+}
+
+void ProcessRun::net_EQUIPWEAR(const uint8_t *buf, size_t bufSize)
+{
+    auto sdEW = cerealf::deserialize<SDEquipWear>(buf, bufSize);
+    if(uidf::getUIDType(sdEW.uid) != UID_PLY){
+        throw fflerror("invalid uid type to equip wear item: %s", uidf::getUIDTypeCStr(sdEW.uid));
+    }
+
+    if(auto coPtr = dynamic_cast<Hero *>(findUID(sdEW.uid))){
+        coPtr->setWLItem(sdEW.wltype, std::move(sdEW.item));
+    }
+}
+
+void ProcessRun::net_EQUIPWEARERROR(const uint8_t *buf, size_t)
+{
+    const auto smEWE = ServerMsg::conv<SMEquipWearError>(buf);
+    switch(smEWE.error){
+        case EQWERR_NOITEM:
+        case EQWERR_BADITEM:
+            {
+                addCBLog(CBLOG_ERR, u8"无效的装备");
+                return;
+            }
+        case EQWERR_BADWLTYPE:
+            {
+                addCBLog(CBLOG_ERR, u8"无法装备：%s", to_cstr(DBCOM_ITEMRECORD(smEWE.itemID).name));
+                return;
+            }
+        default:
+            {
+                return;
+            }
+    }
+}
+
+void ProcessRun::net_GRABWEAR(const uint8_t *buf, size_t bufSize)
+{
+    auto sdGW = cerealf::deserialize<SDGrabWear>(buf, bufSize);
+    if(!sdGW.item){
+        throw fflerror("invalid wear item: itemID = %s", to_cstr(sdGW.item.str()));
+    }
+
+    const auto wltype = to_d(sdGW.wltype);
+    if(!(wltype >= WLG_BEGIN && wltype < WLG_END)){
+        throw fflerror("invalid wear grid type: %d", wltype);
+    }
+
+    getMyHero()->setWLItem(wltype, {});
+    getMyHero()->getInvPack().setGrabbedItem(std::move(sdGW.item));
+}
+
+void ProcessRun::net_GRABWEARERROR(const uint8_t *buf, size_t)
+{
+    const auto smGWE = ServerMsg::conv<SMGrabWearError>(buf);
+    switch(smGWE.error){
+        case GWERR_BIND:
+            {
+                addCBLog(CBLOG_ERR, u8"无法取下装备");
+                return;
+            }
+        case GWERR_NOITEM:
+        default:
+            {
+                break;
+            }
+    }
 }

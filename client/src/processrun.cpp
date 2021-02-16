@@ -1799,6 +1799,50 @@ void ProcessRun::requestConsumeItem(uint32_t itemID, uint32_t seqID, size_t coun
     g_client->send(CM_CONSUMEITEM, cmCI);
 }
 
+void ProcessRun::requestEquipWear(uint32_t itemID, uint32_t seqID, int wltype)
+{
+    if(!(wltype >= WLG_BEGIN && wltype < WLG_END)){
+        throw fflerror("invalid wltype: %d", wltype);
+    }
+
+    const auto &ir = DBCOM_ITEMRECORD(itemID);
+    if(!ir){
+        throw fflerror("invalid itemID: %llu", to_llu(itemID));
+    }
+
+    if(!seqID){
+        throw fflerror("invalid seqID: %llu", to_llu(seqID));
+    }
+
+    if(to_u8sv(ir.type) != wlGridItemType(wltype)){
+        throw fflerror("can't equip %s to wltype %d", to_cstr(ir.name), wltype);
+    }
+
+    CMRequestEquipWear cmREW;
+    std::memset(&cmREW, 0, sizeof(cmREW));
+
+    cmREW.itemID = itemID;
+    cmREW.seqID  = seqID;
+    cmREW.wltype = wltype;
+    g_client->send(CM_REQUESTEQUIPWEAR, cmREW);
+}
+
+void ProcessRun::requestGrabWear(int wltype)
+{
+    if(!(wltype >= WLG_BEGIN && wltype < WLG_END)){
+        throw fflerror("invalid wltype: %d", wltype);
+    }
+
+    if(!getMyHero()->getWLItem(wltype)){
+        return;
+    }
+
+    CMRequestGrabWear cmRGW;
+    std::memset(&cmRGW, 0, sizeof(cmRGW));
+    cmRGW.wltype = wltype;
+    g_client->send(CM_REQUESTGRABWEAR, cmRGW);
+}
+
 bool ProcessRun::hasGroundItemID(uint32_t itemID, int x, int y) const
 {
     for(const auto id: getGroundItemIDList(x, y)){

@@ -296,3 +296,94 @@ void Player::net_CM_BUY(uint8_t, const uint8_t *buf, size_t)
         }
     });
 }
+
+void Player::net_CM_REQUESTEQUIPWEAR(uint8_t, const uint8_t *buf, size_t)
+{
+    const auto cmREW = ClientMsg::conv<CMRequestEquipWear>(buf);
+    const auto fnPostEquipError = [&cmREW, this](int equipError)
+    {
+        SMEquipWearError smEWE;
+        std::memset(&smEWE, 0, sizeof(smEWE));
+
+        smEWE.itemID = cmREW.itemID;
+        smEWE.seqID = cmREW.seqID;
+        smEWE.error = equipError;
+        postNetMessage(SM_EQUIPWEARERROR, smEWE);
+    };
+
+    const auto &ir = DBCOM_ITEMRECORD(cmREW.itemID);
+    if(!ir){
+        fnPostEquipError(EQWERR_BADITEM);
+        return;
+    }
+
+    const auto wltype = to_d(cmREW.wltype);
+    if(!(wltype >= WLG_BEGIN && wltype < WLG_END)){
+        fnPostEquipError(EQWERR_BADWLTYPE);
+        return;
+    }
+
+    if(to_u8sv(ir.type) != wlGridItemType(wltype)){
+        fnPostEquipError(EQWERR_BADWLTYPE);
+        return;
+    }
+
+    const auto &item = findInventoryItem(cmREW.itemID, cmREW.seqID);
+    if(!item){
+        fnPostEquipError(EQWERR_NOITEM);
+        return;
+    }
+
+    const auto currItem = m_sdItemStorage.wear.getWLItem(wltype);
+    m_sdItemStorage.wear.list[cmREW.wltype] = item;
+
+    dbUpdateWearItem(wltype, item);
+    removeInventoryItem(item.itemID, item.seqID);
+    postNetMessage(SM_EQUIPWEAR, cerealf::serialize(SDEquipWear
+    {
+        .uid = UID(),
+        .wltype = wltype,
+        .item = item,
+    }));
+
+    // put last item into inventory
+    // should I support to set it as grabbed?
+    // when user finishes item switch, they usually directly put it into inventory
+
+    if(currItem){
+        addInventoryItem(currItem);
+    }
+}
+
+void Player::net_CM_REQUESTGRABWEAR(uint8_t, const uint8_t *buf, size_t)
+{
+    const auto cmRGW = ClientMsg::conv<CMRequestGrabWear>(buf);
+    const auto wltype = to_d(cmRGW.wltype);
+    const auto &currItem = m_sdItemStorage.wear.getWLItem(wltype);
+    const auto fnPostGrabError = [&cmRGW, this](int grabError)
+    {
+        SMGrabWearError smGWE;
+        std::memset(&smGWE, 0, sizeof(smGWE));
+        smGWE.error = grabError;
+        postNetMessage(SM_GRABWEARERROR, smGWE);
+    };
+
+    if(!currItem){
+        fnPostGrabError(GWERR_NOITEM);
+        return;
+    }
+
+    // server doesn not track if item is grabbed or in inventory
+    // when disarms the wear item, server always put it into the inventory
+
+    dbRemoveWearItem(wltype);
+
+    const auto &addedItem = m_sdItemStorage.inventory.add(currItem, false);
+    dbUpdateInventoryItem(addedItem);
+
+    postNetMessage(SM_GRABWEAR, cerealf::serialize(SDGrabWear
+    {
+        .wltype = wltype,
+        .item = addedItem,
+    }));
+}

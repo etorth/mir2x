@@ -206,6 +206,8 @@ void Player::operateNet(uint8_t nType, const uint8_t *pData, size_t nDataLen)
         case CM_NPCEVENT         : net_CM_NPCEVENT         (nType, pData, nDataLen); break;
         case CM_QUERYSELLITEMLIST: net_CM_QUERYSELLITEMLIST(nType, pData, nDataLen); break;
         case CM_QUERYPLAYERWLDESP: net_CM_QUERYPLAYERWLDESP(nType, pData, nDataLen); break;
+        case CM_REQUESTEQUIPWEAR : net_CM_REQUESTEQUIPWEAR (nType, pData, nDataLen); break;
+        case CM_REQUESTGRABWEAR  : net_CM_REQUESTGRABWEAR  (nType, pData, nDataLen); break;
         default                  :                                                   break;
     }
 }
@@ -934,6 +936,14 @@ void Player::addInventoryItem(SDItem item, bool keepSeqID)
     }));
 }
 
+size_t Player::removeInventoryItem(uint32_t itemID, uint32_t seqID)
+{
+    if(!(DBCOM_ITEMRECORD(itemID) && seqID > 0)){
+        throw fflerror("invalid arguments: itemID = %llu, seqID = %llu", to_llu(itemID), to_llu(seqID));
+    }
+    return removeInventoryItem(itemID, seqID, SIZE_MAX);
+}
+
 size_t Player::removeInventoryItem(uint32_t itemID, uint32_t seqID, size_t count)
 {
     if(!(DBCOM_ITEMRECORD(itemID) && count > 0)){
@@ -947,6 +957,10 @@ size_t Player::removeInventoryItem(uint32_t itemID, uint32_t seqID, size_t count
     size_t doneCount = 0;
     while(doneCount < count){
         const auto [removedCount, removedSeqID, itemPtr] = m_sdItemStorage.inventory.remove(itemID, seqID, count - doneCount);
+        if(!removedCount){
+            break;
+        }
+
         if(itemPtr){
             dbUpdateInventoryItem(*itemPtr);
         }
@@ -958,6 +972,14 @@ size_t Player::removeInventoryItem(uint32_t itemID, uint32_t seqID, size_t count
         reportRemoveItem(itemID, removedSeqID, removedCount);
     }
     return doneCount;
+}
+
+const SDItem &Player::findInventoryItem(uint32_t itemID, uint32_t seqID) const
+{
+    if(!DBCOM_ITEMRECORD(itemID)){
+        throw fflerror("invalid itemID = %llu", to_llu(itemID));
+    }
+    return m_sdItemStorage.inventory.find(itemID, seqID);
 }
 
 void Player::setGold(size_t gold)

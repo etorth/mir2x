@@ -46,6 +46,8 @@ enum CMType: uint8_t
     CM_DROPITEM,
     CM_CONSUMEITEM,
     CM_BUY,
+    CM_REQUESTEQUIPWEAR,
+    CM_REQUESTGRABWEAR,
     CM_END,
 };
 
@@ -144,6 +146,18 @@ struct CMBuy
     uint32_t seqID;
     uint32_t count;
 };
+
+struct CMRequestEquipWear
+{
+    uint16_t wltype;
+    uint32_t itemID;
+    uint32_t  seqID;
+};
+
+struct CMRequestGrabWear
+{
+    uint16_t wltype;
+};
 #pragma pack(pop)
 
 // I was using class name ClientMessage
@@ -184,6 +198,8 @@ class ClientMsg final: public MsgBase
                 _add_client_msg_type_case(CM_DROPITEM,           1, sizeof(CMDropItem)          )
                 _add_client_msg_type_case(CM_CONSUMEITEM,        1, sizeof(CMConsumeItem)       )
                 _add_client_msg_type_case(CM_BUY,                1, sizeof(CMBuy)               )
+                _add_client_msg_type_case(CM_REQUESTEQUIPWEAR,   1, sizeof(CMRequestEquipWear)  )
+                _add_client_msg_type_case(CM_REQUESTGRABWEAR,    1, sizeof(CMRequestGrabWear)   )
 #undef _add_client_msg_type_case
             };
 
@@ -210,7 +226,9 @@ class ClientMsg final: public MsgBase
                     || std::is_same_v<T, CMQuerySellItemList>
                     || std::is_same_v<T, CMDropItem>
                     || std::is_same_v<T, CMConsumeItem>
-                    || std::is_same_v<T, CMBuy>);
+                    || std::is_same_v<T, CMBuy>
+                    || std::is_same_v<T, CMRequestEquipWear>
+                    || std::is_same_v<T, CMRequestGrabWear>);
 
             if(bufLen && bufLen != sizeof(T)){
                 throw fflerror("invalid buffer length");

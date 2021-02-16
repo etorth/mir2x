@@ -56,6 +56,10 @@ enum SMType: uint8_t
     SM_BUYSUCCEED,
     SM_BUYERROR,
     SM_GROUNDITEMIDLIST,
+    SM_EQUIPWEAR,
+    SM_EQUIPWEARERROR,
+    SM_GRABWEAR,
+    SM_GRABWEARERROR,
     SM_END,
 };
 
@@ -226,6 +230,18 @@ struct SMGroundItemIDList
     uint16_t y;
     uint32_t itemIDList[SYS_MAXDROPITEM];
 };
+
+struct SMEquipWearError
+{
+    uint32_t itemID;
+    uint32_t  seqID;
+    uint16_t  error;
+};
+
+struct SMGrabWearError
+{
+    uint16_t error;
+};
 #pragma pack(pop)
 
 class ServerMsg final: public MsgBase
@@ -276,6 +292,10 @@ class ServerMsg final: public MsgBase
                 _add_server_msg_type_case(SM_BUYSUCCEED,       3, 0                         )
                 _add_server_msg_type_case(SM_BUYERROR,         1, sizeof(SMBuyError)        )
                 _add_server_msg_type_case(SM_GROUNDITEMIDLIST, 1, sizeof(SMGroundItemIDList))
+                _add_server_msg_type_case(SM_EQUIPWEAR,        3, 0                         )
+                _add_server_msg_type_case(SM_EQUIPWEARERROR,   1, sizeof(SMEquipWearError)  )
+                _add_server_msg_type_case(SM_GRABWEAR,         3, 0                         )
+                _add_server_msg_type_case(SM_GRABWEARERROR,    1, sizeof(SMGrabWearError)   )
 #undef _add_server_msg_type_case
             };
 
@@ -308,7 +328,9 @@ class ServerMsg final: public MsgBase
                     || std::is_same_v<T, SMGold>
                     || std::is_same_v<T, SMGroundItemIDList>
                     || std::is_same_v<T, SMBuyError>
-                    || std::is_same_v<T, SMPickUpError>);
+                    || std::is_same_v<T, SMPickUpError>
+                    || std::is_same_v<T, SMEquipWearError>
+                    || std::is_same_v<T, SMGrabWearError>);
 
             if(bufLen && bufLen != sizeof(T)){
                 throw fflerror("invalid buffer length");
