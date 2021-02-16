@@ -48,6 +48,37 @@ SDItem::operator bool () const
     return true;
 }
 
+void SDWear::setWLItem(int i, SDItem item)
+{
+    if(!(i >= WLG_BEGIN && i < WLG_END)){
+        throw fflerror("bad wltype: %d", i);
+    }
+
+    if(item.itemID){
+        if(!item){
+            throw fflerror("bad item: %s", to_cstr(item.str()));
+        }
+        m_list[i] = std::move(item);
+    }
+    else{
+        m_list.erase(i);
+    }
+}
+
+const SDItem &SDWear::getWLItem(int i) const
+{
+    if(!(i >= WLG_BEGIN && i < WLG_END)){
+        throw fflerror("bad wltype: %d", i);
+    }
+
+    if(const auto p = m_list.find(i); p != m_list.end()){
+        return p->second;
+    }
+
+    const static SDItem s_item{};
+    return s_item;
+}
+
 std::unordered_set<uint64_t> SDInventory::getItemSeqIDSet() const
 {
     std::unordered_set<uint64_t> result;

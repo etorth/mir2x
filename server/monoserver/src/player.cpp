@@ -918,14 +918,6 @@ bool Player::hasInventoryItem(uint32_t itemID, uint32_t seqID, size_t count) con
     return m_sdItemStorage.inventory.has(itemID, seqID) >= count;
 }
 
-void Player::addInventoryItem(uint32_t itemID)
-{
-    addInventoryItem(SDItem
-    {
-        .itemID = itemID,
-    }, false);
-}
-
 void Player::addInventoryItem(SDItem item, bool keepSeqID)
 {
     const auto &addedItem = m_sdItemStorage.inventory.add(std::move(item), keepSeqID);

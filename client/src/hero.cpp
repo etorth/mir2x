@@ -1084,7 +1084,7 @@ bool Hero::setWLItem(int wltype, SDItem item)
     }
 
     if(item.itemID == 0){
-        m_sdWLDesp.wear.list.erase(wltype);
+        m_sdWLDesp.wear.setWLItem(wltype, {});
         return true;
     }
 
@@ -1114,7 +1114,7 @@ bool Hero::setWLItem(int wltype, SDItem item)
             }
     }
 
-    m_sdWLDesp.wear.list[WLG_DRESS] = std::move(item);
+    m_sdWLDesp.wear.setWLItem(wltype, std::move(item));
     return true;
 }
 

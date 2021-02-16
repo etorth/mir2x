@@ -140,7 +140,12 @@ void Player::net_CM_PICKUP(uint8_t, const uint8_t *buf, size_t)
                         if(!ir){
                             throw fflerror("bad itemID: %llu", to_llu(itemID));
                         }
-                        addInventoryItem(itemID);
+
+                        const SDItem addedItem
+                        {
+                            .itemID = itemID,
+                        };
+                        addInventoryItem(addedItem, false);
                     }
 
                     if(amPUIIDL.failedItemID){
@@ -353,7 +358,7 @@ void Player::net_CM_REQUESTEQUIPWEAR(uint8_t, const uint8_t *buf, size_t)
     }
 
     const auto currItem = m_sdItemStorage.wear.getWLItem(wltype);
-    m_sdItemStorage.wear.list[cmREW.wltype] = item;
+    m_sdItemStorage.wear.setWLItem(cmREW.wltype, item);
 
     dbUpdateWearItem(wltype, item);
     removeInventoryItem(item.itemID, item.seqID);
@@ -369,7 +374,7 @@ void Player::net_CM_REQUESTEQUIPWEAR(uint8_t, const uint8_t *buf, size_t)
     // when user finishes item switch, they usually directly put it into inventory
 
     if(currItem){
-        addInventoryItem(currItem);
+        addInventoryItem(currItem, false);
     }
 }
 
@@ -377,7 +382,6 @@ void Player::net_CM_REQUESTGRABWEAR(uint8_t, const uint8_t *buf, size_t)
 {
     const auto cmRGW = ClientMsg::conv<CMRequestGrabWear>(buf);
     const auto wltype = to_d(cmRGW.wltype);
-    const auto &currItem = m_sdItemStorage.wear.getWLItem(wltype);
     const auto fnPostGrabError = [&cmRGW, this](int grabError)
     {
         SMGrabWearError smGWE;
@@ -386,6 +390,7 @@ void Player::net_CM_REQUESTGRABWEAR(uint8_t, const uint8_t *buf, size_t)
         postNetMessage(SM_GRABWEARERROR, smGWE);
     };
 
+    const auto currItem = m_sdItemStorage.wear.getWLItem(wltype);
     if(!currItem){
         fnPostGrabError(GWERR_NOITEM);
         return;
@@ -394,6 +399,7 @@ void Player::net_CM_REQUESTGRABWEAR(uint8_t, const uint8_t *buf, size_t)
     // server doesn not track if item is grabbed or in inventory
     // when disarms the wear item, server always put it into the inventory
 
+    m_sdItemStorage.wear.setWLItem(wltype, {});
     dbRemoveWearItem(wltype);
 
     const auto &addedItem = m_sdItemStorage.inventory.add(currItem, false);

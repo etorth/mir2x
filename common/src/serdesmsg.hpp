@@ -143,30 +143,23 @@ struct SDBelt // belt items don't have seqID constraint
 
 struct SDWear // wear items don't have seqID constraint
 {
-    std::unordered_map<int, SDItem> list;
-    template<typename Archive> void serialize(Archive & ar)
-    {
-        ar(list);
-    }
+    private:
+        std::unordered_map<int, SDItem> m_list;
 
-    const SDItem &getWLItem(int i) const
-    {
-        if(!(i >= WLG_BEGIN && i < WLG_END)){
-            throw fflerror("bad wltype: %d", i);
+    public:
+        template<typename Archive> void serialize(Archive & ar)
+        {
+            ar(m_list);
         }
 
-        if(const auto p = list.find(i); p != list.end()){
-            return p->second;
+        void clear()
+        {
+            m_list.clear();
         }
 
-        const static SDItem s_item{};
-        return s_item;
-    }
-
-    void clear()
-    {
-        list.clear();
-    }
+    public:
+        void setWLItem(int, SDItem);
+        const SDItem &getWLItem(int) const;
 };
 
 struct SDSellItem

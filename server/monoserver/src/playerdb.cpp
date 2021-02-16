@@ -166,7 +166,7 @@ void Player::dbLoadWear()
     auto query = g_dbPod->createQuery("select * from tbl_wear where fld_dbid = %llu", to_llu(dbid()));
 
     while(query.executeStep()){
-        const auto wlType = check_cast<int, unsigned>(query.getColumn("fld_wear"));
+        const auto wltype = check_cast<int, unsigned>(query.getColumn("fld_wear"));
         SDItem item
         {
             .itemID = check_cast<uint32_t, unsigned>(query.getColumn("fld_itemid")),
@@ -176,27 +176,27 @@ void Player::dbLoadWear()
             .extAttrList = cerealf::deserialize<SDItemExtAttrList>(query.getColumn("fld_extattrlist")),
         };
 
-        if(to_u8sv(DBCOM_ITEMRECORD(item.itemID).type) != wlGridItemType(wlType)){
+        if(to_u8sv(DBCOM_ITEMRECORD(item.itemID).type) != wlGridItemType(wltype)){
             throw fflerror("invalid item type to wear grid");
         }
 
         item.checkEx();
-        m_sdItemStorage.wear.list[wlType] = std::move(item);
+        m_sdItemStorage.wear.setWLItem(wltype, std::move(item));
     }
 }
 
-void Player::dbUpdateWearItem(int wlType, const SDItem &item)
+void Player::dbUpdateWearItem(int wltype, const SDItem &item)
 {
-    if(!(wlType >= WLG_BEGIN && wlType < WLG_END)){
-        throw fflerror("bad wltype: %d", wlType);
+    if(!(wltype >= WLG_BEGIN && wltype < WLG_END)){
+        throw fflerror("bad wltype: %d", wltype);
     }
 
     item.checkEx();
-    if(to_u8sv(DBCOM_ITEMRECORD(item.itemID).type) != wlGridItemType(wlType)){
+    if(to_u8sv(DBCOM_ITEMRECORD(item.itemID).type) != wlGridItemType(wltype)){
         throw fflerror("invalid item type to wear grid");
     }
 
-    // only save itemID and wlType
+    // only save itemID and wltype
     // drop the seqID when saving to database
 
     const auto attrBuf = cerealf::serialize(item.extAttrList);
@@ -206,7 +206,7 @@ void Player::dbUpdateWearItem(int wlType, const SDItem &item)
             u8R"###(     (%llu, %llu, %llu, %llu, %llu, ?)                                                           )###",
 
             to_llu(dbid()),
-            to_llu(wlType),
+            to_llu(wltype),
             to_llu(item.itemID),
             to_llu(item.count),
             to_llu(item.duration));
@@ -215,10 +215,10 @@ void Player::dbUpdateWearItem(int wlType, const SDItem &item)
     query.exec();
 }
 
-void Player::dbRemoveWearItem(int wlType)
+void Player::dbRemoveWearItem(int wltype)
 {
-    if(!(wlType >= WLG_BEGIN && wlType < WLG_END)){
-        throw fflerror("bad wltype: %d", wlType);
+    if(!(wltype >= WLG_BEGIN && wltype < WLG_END)){
+        throw fflerror("bad wltype: %d", wltype);
     }
-    g_dbPod->exec("delete from tbl_wear where fld_dbid = %llu and fld_wear = %llu", to_llu(dbid()), to_llu(wlType));
+    g_dbPod->exec("delete from tbl_wear where fld_dbid = %llu and fld_wear = %llu", to_llu(dbid()), to_llu(wltype));
 }
