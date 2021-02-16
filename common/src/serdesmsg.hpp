@@ -98,6 +98,11 @@ struct SDItemExtAttrList
     {
         return {};
     }
+
+    bool empty() const
+    {
+        return list.empty();
+    }
 };
 
 struct SDItem
