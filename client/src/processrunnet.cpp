@@ -549,8 +549,14 @@ void ProcessRun::net_GRABWEAR(const uint8_t *buf, size_t bufSize)
         throw fflerror("invalid wear grid type: %d", wltype);
     }
 
-    getMyHero()->setWLItem(wltype, {});
-    getMyHero()->getInvPack().setGrabbedItem(std::move(sdGW.item));
+    auto myHeroPtr = getMyHero();
+    auto invPackRef = myHeroPtr->getInvPack();
+
+    myHeroPtr->setWLItem(wltype, {});
+    if(auto currItem = invPackRef.getGrabbedItem()){
+        invPackRef.add(std::move(currItem));
+    }
+    invPackRef.setGrabbedItem(std::move(sdGW.item));
 }
 
 void ProcessRun::net_GRABWEARERROR(const uint8_t *buf, size_t)
