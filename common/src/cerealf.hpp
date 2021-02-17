@@ -40,7 +40,10 @@ namespace cerealf
         CF_COMPRESS = 1,
     };
 
-    template<typename T> std::string serialize(const T &t, bool tryComp = false)
+    // tryComp : -1 : auto
+    //            0 : don't try compress
+    //          >=1 :       try compress
+    template<typename T> std::string serialize(const T &t, int tryComp = -1)
     {
         std::ostringstream ss(std::ios::binary);
         cereal::BinaryOutputArchive ar(ss);
@@ -48,7 +51,7 @@ namespace cerealf
         ar(t);
         std::string rawBuf = ss.str();
 
-        if(!tryComp){
+        if((tryComp < 0 && rawBuf.size() < 16) || tryComp == 0){
             rawBuf.push_back(CF_NONE);
             return rawBuf;
         }
