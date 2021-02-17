@@ -42,10 +42,18 @@ SDItem::operator bool () const
         return false;
     }
 
-    if(const size_t maxCount = ir.packable() ? SYS_INVGRIDMAXHOLD : 1; count <= 0 || count > maxCount){
-        return false;
-    }
-    return true;
+    const auto maxCount = [&ir]() -> size_t
+    {
+        if(to_u8sv(ir.type) == u8"金币"){
+            return SIZE_MAX;
+        }
+
+        if(ir.packable()){
+            return SYS_INVGRIDMAXHOLD;
+        }
+        return 1;
+    }();
+    return count > 0 && count <= maxCount;
 }
 
 void SDWear::setWLItem(int i, SDItem item)
