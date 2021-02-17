@@ -442,3 +442,15 @@ void Player::net_CM_DROPITEM(uint8_t, const uint8_t *buf, size_t)
     amNDI.Value = to_d(cmDI.count);
     m_actorPod->forward(m_map->UID(), {AM_NEWDROPITEM, amNDI});
 }
+
+void Player::net_CM_CONSUMEITEM(uint8_t, const uint8_t *buf, size_t)
+{
+    const auto cmCI = ClientMsg::conv<CMDropItem>(buf);
+    SDItem
+    {
+        .itemID = cmCI.itemID,
+        .seqID = cmCI.seqID,
+        .count = to_uz(cmCI.count),
+    }.checkEx();
+    removeInventoryItem(cmCI.itemID, cmCI.seqID, cmCI.count);
+}
