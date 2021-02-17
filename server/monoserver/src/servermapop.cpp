@@ -401,6 +401,10 @@ void ServerMap::on_AM_TRYMOVE(const ActorMsgPack &rstMPK)
                     // 2. push to the new cell
                     //    check if it should switch the map
                     addGridUID(amTM.UID, nMostX, nMostY, true);
+                    if(uidf::getUIDType(amTM.UID) == UID_PLY){
+                        postGroundItemIDList(amTM.UID, nMostX, nMostY); // doesn't help if switched map
+                    }
+
                     if(uidf::getUIDType(amTM.UID) == UID_PLY && getGrid(nMostX, nMostY).mapID){
                         AMMapSwitch amMS;
                         std::memset(&amMS, 0, sizeof(amMS));
