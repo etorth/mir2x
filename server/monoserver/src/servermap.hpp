@@ -240,35 +240,39 @@ class ServerMap final: public ServerObject
         }
 
     private:
-        const auto &getGroundItemIDList(int x, int y) const
+        const auto &getGridItemIDList(int x, int y) const
         {
             return getGrid(x, y).itemIDList;
         }
 
-        auto &getGroundItemIDList(int x, int y)
+        auto &getGridItemIDList(int x, int y)
         {
             return getGrid(x, y).itemIDList;
         }
 
     private:
-        void clearGroundItemIDList(int x, int y, bool post = true)
+        void clearGridItemIDList(int x, int y, bool post = true)
         {
-            getGroundItemIDList(x, y).clear();
+            getGridItemIDList(x, y).clear();
             if(post){
-                postGroundItemIDList(x, y);
+                postGridItemIDList(x, y);
             }
         }
 
     private:
-        bool hasGroundItemID(uint32_t, int, int) const;
-        size_t getGroundItemIDCount(uint32_t, int, int) const;
+        bool hasGridItemID(uint32_t, int, int) const;
+        size_t getGridItemIDCount(uint32_t, int, int) const;
 
     private:
-        bool    addGroundItemID(uint32_t, int, int, bool = true);
-        void removeGroundItemID(uint32_t, int, int, bool = true);
+        void    addGridItemID(uint32_t, int, int, bool = true);
+        void removeGridItemID(uint32_t, int, int, bool = true);
 
     private:
-        void postGroundItemIDList(int, int);
+        SDGroundItemIDList getGroundItemIDList(int, int, size_t) const;
+
+    private:
+        void postGridItemIDList(int, int);
+        void postGroundItemIDList(uint64_t, int, int);
 
     private:
         int CheckPathGrid(int, int) const;
@@ -300,7 +304,7 @@ class ServerMap final: public ServerObject
             if((doW > 0) && (doH > 0) && mathf::rectangleOverlapRegion(0, 0, W(), H(), &x0, &y0, &doW, &doH)){
                 for(int x = x0; x < x0 + doW; ++x){
                     for(int y = y0; y < y0 + doH; ++y){
-                        if(true || validC(x, y)){
+                        if(validC(x, y)){
                             if(mathf::LDistance2(x, y, cx0, cy0) <= (r - 1) * (r - 1)){
                                 if(f(x, y)){
                                     return true;
@@ -313,12 +317,17 @@ class ServerMap final: public ServerObject
             return false;
         }
 
+        template<std::predicate<int, int> F> bool doCircle(int cx0, int cy0, int r, const F &f) const
+        {
+            return const_cast<ServerMap *>(this)->doCircle(cx0, cy0, r, f);
+        }
+
         template<std::predicate<int, int> F> bool doSquare(int x0, int y0, int doW, int doH, const F &f)
         {
             if((doW > 0) && (doH > 0) && mathf::rectangleOverlapRegion(0, 0, W(), H(), &x0, &y0, &doW, &doH)){
                 for(int x = x0; x < x0 + doW; ++x){
                     for(int y = y0; y < y0 + doH; ++y){
-                        if(true || validC(x, y)){
+                        if(validC(x, y)){
                             if(f(x, y)){
                                 return true;
                             }
@@ -327,6 +336,11 @@ class ServerMap final: public ServerObject
                 }
             }
             return false;
+        }
+
+        template<std::predicate<int, int> F> bool doSquare(int x0, int y0, int doW, int doH, const F &f) const
+        {
+            return const_cast<ServerMap *>(this)->doSquare(x0, y0, doW, doH, f);
         }
 
         bool DoCenterCircle(int, int, int,      bool, const std::function<bool(int, int)> &);

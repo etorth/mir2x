@@ -231,13 +231,6 @@ struct SMBuyError
     uint16_t  error;
 };
 
-struct SMGroundItemIDList
-{
-    uint16_t x;
-    uint16_t y;
-    uint32_t itemIDList[SYS_MAXDROPITEM];
-};
-
 struct SMEquipWearError
 {
     uint32_t itemID;
@@ -298,7 +291,7 @@ class ServerMsg final: public MsgBase
                 _add_server_msg_type_case(SM_REMOVEITEM,       1, sizeof(SMRemoveItem)      )
                 _add_server_msg_type_case(SM_BUYSUCCEED,       1, sizeof(SMBuySucceed)      )
                 _add_server_msg_type_case(SM_BUYERROR,         1, sizeof(SMBuyError)        )
-                _add_server_msg_type_case(SM_GROUNDITEMIDLIST, 1, sizeof(SMGroundItemIDList))
+                _add_server_msg_type_case(SM_GROUNDITEMIDLIST, 3, 0                         )
                 _add_server_msg_type_case(SM_EQUIPWEAR,        3, 0                         )
                 _add_server_msg_type_case(SM_EQUIPWEARERROR,   1, sizeof(SMEquipWearError)  )
                 _add_server_msg_type_case(SM_GRABWEAR,         3, 0                         )
@@ -333,7 +326,6 @@ class ServerMsg final: public MsgBase
                     || std::is_same_v<T, SMBuildVersion>
                     || std::is_same_v<T, SMRemoveItem>
                     || std::is_same_v<T, SMGold>
-                    || std::is_same_v<T, SMGroundItemIDList>
                     || std::is_same_v<T, SMBuySucceed>
                     || std::is_same_v<T, SMBuyError>
                     || std::is_same_v<T, SMPickUpError>

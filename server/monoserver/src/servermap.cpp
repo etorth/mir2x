@@ -745,7 +745,7 @@ bool ServerMap::DoCenterCircle(int nCX0, int nCY0, int nCR, bool bPriority, cons
             const int nX = stRC.X();
             const int nY = stRC.Y();
 
-            if(true || validC(nX, nY)){
+            if(validC(nX, nY)){
                 if(mathf::LDistance2(nX, nY, nCX0, nCY0) <= (nCR - 1) * (nCR - 1)){
                     if(!fnOP){
                         return false;
@@ -783,7 +783,7 @@ bool ServerMap::DoCenterSquare(int nCX, int nCY, int nW, int nH, bool bPriority,
             const int nX = stRC.X();
             const int nY = stRC.Y();
 
-            if(true || validC(nX, nY)){
+            if(validC(nX, nY)){
                 if(!fnOP){
                     return false;
                 }
@@ -797,19 +797,19 @@ bool ServerMap::DoCenterSquare(int nCX, int nCY, int nW, int nH, bool bPriority,
     return false;
 }
 
-bool ServerMap::hasGroundItemID(uint32_t itemID, int x, int y) const
+bool ServerMap::hasGridItemID(uint32_t itemID, int x, int y) const
 {
-    return getGroundItemIDCount(itemID, x, y) > 0;
+    return getGridItemIDCount(itemID, x, y) > 0;
 }
 
-size_t ServerMap::getGroundItemIDCount(uint32_t itemID, int x, int y) const
+size_t ServerMap::getGridItemIDCount(uint32_t itemID, int x, int y) const
 {
     if(!validC(x, y)){
         return 0;
     }
 
     size_t count = 0;
-    for(const auto id: getGroundItemIDList(x, y)){
+    for(const auto id: getGridItemIDList(x, y)){
         if(id == itemID){
             count++;
         }
@@ -817,71 +817,95 @@ size_t ServerMap::getGroundItemIDCount(uint32_t itemID, int x, int y) const
     return count;
 }
 
-bool ServerMap::addGroundItemID(uint32_t itemID, int x, int y, bool post)
+void ServerMap::addGridItemID(uint32_t itemID, int x, int y, bool post)
 {
     if(!(DBCOM_ITEMRECORD(itemID) && groundValid(x, y))){
         throw fflerror("invalid arguments: itemID = %llu, x = %d, y = %d", to_llu(itemID), x, y);
     }
 
-    auto &itemIDList = getGroundItemIDList(x, y);
-    if(itemIDList.size() >= std::extent_v<decltype(SMGroundItemIDList::itemIDList)>){
-        return false;
-    }
-
-    itemIDList.push_back(itemID);
+    getGridItemIDList(x, y).push_back(itemID);
     if(post){
-        postGroundItemIDList(x, y);
+        postGridItemIDList(x, y);
     }
-    return true;
 }
 
-void ServerMap::removeGroundItemID(uint32_t itemID, int x, int y, bool post)
+void ServerMap::removeGridItemID(uint32_t itemID, int x, int y, bool post)
 {
-    if(!hasGroundItemID(itemID, x, y)){
+    if(!hasGridItemID(itemID, x, y)){
         return;
     }
 
-    auto &itemIDList = getGroundItemIDList(x, y);
+    auto &itemIDList = getGridItemIDList(x, y);
     for(int i = to_d(itemIDList.size()) - 1; i >= 0; --i){
         if(itemIDList[i] == itemID){
             itemIDList.erase(itemIDList.begin() + i);
             if(post){
-                postGroundItemIDList(x, y);
+                postGridItemIDList(x, y);
             }
             return;
         }
     }
 }
 
-void ServerMap::postGroundItemIDList(int x, int y)
+SDGroundItemIDList ServerMap::getGroundItemIDList(int x, int y, size_t r) const
+{
+    if(r <= 0){
+        throw fflerror("invalid cover radus: 0");
+    }
+
+    // center (x, y) can be invalid
+    // an invalid center can cover valid grids
+
+    SDGroundItemIDList groundItemIDList;
+    groundItemIDList.mapID = ID();
+
+    doCircle(x, y, r, [&groundItemIDList, this](int x, int y) -> bool
+    {
+        if(groundValid(x, y)){
+            groundItemIDList.gridItemIDList.push_back(SDGroundItemIDList::GridItemIDList
+            {
+                .x = x,
+                .y = y,
+                .itemIDList = getGridItemIDList(x, y),
+            });
+        }
+        return false;
+    });
+    return groundItemIDList;
+}
+
+void ServerMap::postGridItemIDList(int x, int y)
 {
     if(!groundValid(x, y)){
         throw fflerror("invalid arguments: x = %d, y = %d", x, y);
     }
 
-    SMGroundItemIDList smGIIDL;
-    std::memset(&smGIIDL, 0, sizeof(smGIIDL));
-
-    auto &itemIDList = getGroundItemIDList(x, y);
-    if(itemIDList.size() >= std::extent_v<decltype(SMGroundItemIDList::itemIDList)>){
-        throw fflerror("ground item id list too long: %zu", itemIDList.size());
-    }
-
-    smGIIDL.x = x;
-    smGIIDL.y = y;
-    std::copy(itemIDList.begin(), itemIDList.end(), smGIIDL.itemIDList);
-
-    doCircle(smGIIDL.x, smGIIDL.y, 20, [&smGIIDL, this](int x, int y) -> bool
+    const auto sdBuf = cerealf::serialize(getGroundItemIDList(x, y, 1), true);
+    doCircle(x, y, 20, [&sdBuf, this](int x, int y) -> bool
     {
-        doUIDList(x, y, [&smGIIDL, this](uint64_t uid) -> bool
-        {
-            if(uidf::getUIDType(uid) == UID_PLY){
-                sendNetPackage(uid, SM_GROUNDITEMIDLIST, smGIIDL);
-            }
-            return false;
-        });
+        if(groundValid(x, y)){
+            doUIDList(x, y, [&sdBuf, this](uint64_t uid) -> bool
+            {
+                if(uidf::getUIDType(uid) == UID_PLY){
+                    sendNetPackage(uid, SM_GROUNDITEMIDLIST, sdBuf);
+                }
+                return false;
+            });
+        }
         return false;
     });
+}
+
+void ServerMap::postGroundItemIDList(uint64_t uid, int x, int y)
+{
+    if(!groundValid(x, y)){
+        throw fflerror("invalid arguments: x = %d, y = %d", x, y);
+    }
+
+    if(uidf::getUIDType(uid) != UID_PLY){
+        throw fflerror("post ground item list to non-player: %s", uidf::getUIDTypeCStr(uid));
+    }
+    sendNetPackage(uid, SM_GROUNDITEMIDLIST, cerealf::serialize(getGroundItemIDList(x, y, 20)));
 }
 
 int ServerMap::GetMonsterCount(uint32_t nMonsterID)

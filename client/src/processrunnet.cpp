@@ -328,20 +328,25 @@ void ProcessRun::net_BUYSUCCEED(const uint8_t *buf, size_t)
     dynamic_cast<PurchaseBoard *>(getWidget("PurchaseBoard"))->onBuySucceed(smBS.npcUID, smBS.itemID, smBS.seqID);
 }
 
-void ProcessRun::net_GROUNDITEMIDLIST(const uint8_t *buf, size_t)
+void ProcessRun::net_GROUNDITEMIDLIST(const uint8_t *buf, size_t bufSize)
 {
-    const auto smGIIDL = ServerMsg::conv<SMGroundItemIDList>(buf);
-    clearGroundItemIDList(smGIIDL.x, smGIIDL.y);
+    const auto sdGIIDL = cerealf::deserialize<SDGroundItemIDList>(buf, bufSize);
+    if(sdGIIDL.mapID != m_mapID){
+        return;
+    }
 
-    for(const auto itemID: smGIIDL.itemIDList){
-        if(!itemID){
-            break;
+    for(const auto &[x, y, itemIDList]: sdGIIDL.gridItemIDList){
+        if(!onMap(x, y)){
+            throw fflerror("invalid grid: x= %d, y = %d", x, y);
         }
 
-        if(!DBCOM_ITEMRECORD(itemID)){
-            throw fflerror("invalid itemID = %llu", to_llu(itemID));
+        clearGroundItemIDList(x, y);
+        for(const auto itemID: itemIDList){
+            if(!DBCOM_ITEMRECORD(itemID)){
+                throw fflerror("invalid itemID = %llu", to_llu(itemID));
+            }
+            addGroundItemID(itemID, x, y);
         }
-        addGroundItemID(itemID, smGIIDL.x, smGIIDL.y);
     }
 }
 

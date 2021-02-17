@@ -300,17 +300,6 @@ struct SDLoginOK
     }
 };
 
-struct SDGroundItemIDList
-{
-    int x = 0;
-    int y = 0;
-    std::vector<uint32_t> itemIDList;
-    template<typename Archive> void serialize(Archive & ar)
-    {
-        ar(x, y, itemIDList);
-    }
-};
-
 struct SDItemStorage
 {
     size_t gold = 0;
@@ -372,5 +361,33 @@ struct SDPickUpItemIDList
     template<typename Archive> void serialize(Archive & ar)
     {
         ar(failedItemID, itemIDList);
+    }
+};
+
+struct SDGroundItemIDList
+{
+    struct GridItemIDList
+    {
+        int x = -1;
+        int y = -1;
+        std::vector<uint32_t> itemIDList;
+        template<typename Archive> void serialize(Archive & ar)
+        {
+            ar(x, y, itemIDList);
+        }
+    };
+
+    uint32_t mapID = 0;
+    std::vector<GridItemIDList> gridItemIDList;
+
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(mapID, gridItemIDList);
+    }
+
+    void clear()
+    {
+        mapID = 0;
+        gridItemIDList.clear();
     }
 };

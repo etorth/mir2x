@@ -55,6 +55,9 @@ void ServerMap::on_AM_ACTION(const ActorMsgPack &rstMPK)
 
     if(amA.action.type == ACTION_SPAWN){
         addGridUID(amA.UID, amA.action.x, amA.action.y, true);
+        if(uidf::getUIDType(amA.UID) == UID_PLY){
+            postGroundItemIDList(amA.UID, amA.action.x, amA.action.y);
+        }
     }
 
     doCircle(amA.action.x, amA.action.y, 10, [this, amA](int nX, int nY) -> bool
@@ -207,6 +210,9 @@ void ServerMap::on_AM_TRYSPACEMOVE(const ActorMsgPack &rstMPK)
                     // 3. we don't take reservation of the dstination cell
 
                     addGridUID(nUID, nDstX, nDstY, true);
+                    if(uidf::getUIDType(nUID) == UID_PLY){
+                        postGroundItemIDList(nUID, nDstX, nDstY);
+                    }
                     break;
                 }
             default:
@@ -701,7 +707,7 @@ void ServerMap::on_AM_NEWDROPITEM(const ActorMsgPack &rstMPK)
                     // valid grid
                     // check if grid good to hold
 
-                    if(const auto nCurrCount = getGroundItemIDList(stRC.X(), stRC.Y()).size(); (int)(nCurrCount) < nMinCount){
+                    if(const auto nCurrCount = getGridItemIDList(stRC.X(), stRC.Y()).size(); (int)(nCurrCount) < nMinCount){
                         nMinCount = nCurrCount;
                         nBestX    = stRC.X();
                         nBestY    = stRC.Y();
@@ -717,7 +723,7 @@ void ServerMap::on_AM_NEWDROPITEM(const ActorMsgPack &rstMPK)
             }while(stRC.forward() && (nCheckGrid++ <= SYS_MAXDROPITEMGRID));
 
             if(groundValid(nBestX, nBestY)){
-                addGroundItemID(amNDI.ID, nBestX, nBestY);
+                addGridItemID(amNDI.ID, nBestX, nBestY);
             }
             else{
 
@@ -759,7 +765,7 @@ void ServerMap::on_AM_PICKUP(const ActorMsgPack &mpk)
     }
 
     std::vector<uint32_t> pickedItemIDList;
-    auto &itemIDList = getGroundItemIDList(amPU.x, amPU.y);
+    auto &itemIDList = getGridItemIDList(amPU.x, amPU.y);
 
     for(auto p = itemIDList.begin(); p != itemIDList.end();){
         const auto itemID = *p;
@@ -797,7 +803,7 @@ void ServerMap::on_AM_PICKUP(const ActorMsgPack &mpk)
     };
 
     if(!sdPUIIDL.itemIDList.empty()){
-        postGroundItemIDList(amPU.x, amPU.y);
+        postGridItemIDList(amPU.x, amPU.y);
     }
     m_actorPod->forward(mpk.from(), {AM_PICKUPITEMIDLIST, cerealf::serialize(sdPUIIDL)}, mpk.seqID());
 }
