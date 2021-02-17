@@ -423,7 +423,14 @@ void ProcessRun::net_PICKUPERROR(const uint8_t *buf, size_t)
 
 void ProcessRun::net_GOLD(const uint8_t *buf, size_t)
 {
-    getMyHero()->setGold(ServerMsg::conv<SMGold>(buf).gold);
+    auto myHeroPtr = getMyHero();
+    const int lastGold = to_d(myHeroPtr->getGold());
+    const int newGold = to_d(ServerMsg::conv<SMGold>(buf).gold);
+
+    myHeroPtr->setGold(newGold);
+    if(lastGold != newGold){
+        addCBLog(CBLOG_SYS, u8"你%s了%d金币", to_cstr((lastGold < newGold) ? u8"获得" : u8"失去"), std::abs(lastGold - newGold));
+    }
 }
 
 void ProcessRun::net_NPCXMLLAYOUT(const uint8_t *buf, size_t bufSize)
@@ -477,7 +484,21 @@ void ProcessRun::net_PLAYERNAME(const uint8_t *buf, size_t)
 
 void ProcessRun::net_UPDATEITEM(const uint8_t *buf, size_t bufSize)
 {
-    getMyHero()->getInvPack().update(cerealf::deserialize<SDUpdateItem>(buf, bufSize).item);
+    const auto sdUI = cerealf::deserialize<SDUpdateItem>(buf, bufSize);
+    const auto &ir = DBCOM_ITEMRECORD(sdUI.item.itemID);
+    if(!ir){
+        throw fflerror("bad item: itemID = %llu", to_llu(sdUI.item.itemID));
+    }
+
+    const auto changed = getMyHero()->getInvPack().update(sdUI.item);
+    if(changed != 0){
+        if(ir.packable()){
+            addCBLog(CBLOG_SYS, u8"你%s了%d个%s", to_cstr((changed > 0) ? u8"获得" : u8"失去"), std::abs(changed), to_cstr(ir.name));
+        }
+        else{
+            addCBLog(CBLOG_SYS, u8"你%s了%s", to_cstr((changed > 0) ? u8"获得" : u8"失去"), to_cstr(ir.name));
+        }
+    }
 }
 
 void ProcessRun::net_REMOVEITEM(const uint8_t *buf, size_t)

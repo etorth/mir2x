@@ -75,7 +75,7 @@ class MyHero: public Hero
         bool parseActionQueue();
 
     public:
-        uint32_t GetGold() const
+        uint32_t getGold() const
         {
             return m_gold;
         }

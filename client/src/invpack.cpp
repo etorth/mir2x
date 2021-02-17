@@ -77,7 +77,7 @@ void InvPack::add(SDItem item, int x, int y)
     m_packBinList.push_back(itemBin);
 }
 
-void InvPack::update(SDItem item)
+int InvPack::update(SDItem item)
 {
     item.checkEx();
     if(item.seqID <= 0){
@@ -86,11 +86,15 @@ void InvPack::update(SDItem item)
 
     for(auto &bin: m_packBinList){
         if((bin.item.itemID == item.itemID) && (bin.item.seqID == item.seqID)){
+            const int changed = to_d(item.count) - to_d(bin.item.count);
             bin.item = std::move(item);
-            return;
+            return changed;
         }
     }
+
+    const int changed = to_d(item.count);
     add(std::move(item));
+    return changed;
 }
 
 size_t InvPack::remove(uint32_t itemID, uint32_t seqID, size_t count)

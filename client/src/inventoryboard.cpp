@@ -303,7 +303,7 @@ std::string InventoryBoard::getGoldStr() const
     return str_ksep([this]() -> int
     {
         if(auto p = m_processRun->getMyHero()){
-            return p->GetGold();
+            return p->getGold();
         }
         return 0;
     }(), ',');
