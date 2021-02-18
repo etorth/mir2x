@@ -416,7 +416,7 @@ struct AMCOCount
 
 struct AMExp
 {
-    int Exp;
+    int exp;
 };
 
 struct AMMiss

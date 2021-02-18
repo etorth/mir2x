@@ -19,6 +19,7 @@
 #pragma once
 #include <vector>
 #include <cstdint>
+#include <type_traits>
 
 // In code of mirx, the MAX_Y_COUNT_FOR_OBJ_H is 44, means we need to check 44 * 32 in
 // height when drawing map because of the long object slice. Do some math the screen
@@ -71,7 +72,6 @@ constexpr char SYS_NPCERROR[] = "RSVD_NPC_ERROR_8619263917692639";
 
 constexpr uint32_t SYS_NEEDEXP[]
 {
-             0 , // 0
            100 , // 1
            200 , // 2
            300 , // 3
@@ -123,3 +123,16 @@ constexpr uint32_t SYS_NEEDEXP[]
     3500000000 , //49
     4000000000 , //50
 };
+
+constexpr inline uint32_t SYS_LEVEL(size_t exp)
+{
+    for(uint32_t level = 0, neededExpSum = 0; const auto neededExp: SYS_NEEDEXP){
+        if(exp < neededExpSum){
+            return level;
+        }
+
+        level++;
+        neededExpSum += neededExp;
+    }
+    return std::extent_v<decltype(SYS_NEEDEXP)>;
+}

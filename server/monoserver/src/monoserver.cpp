@@ -257,7 +257,6 @@ void MonoServer::createDefaultDatabase()
         u8R"###(     fld_mp          int unsigned default 10,                     )###"
         u8R"###(     fld_exp         int unsigned default 0,                      )###"
         u8R"###(     fld_gold        int unsigned default 10000,                  )###"
-        u8R"###(     fld_level       int unsigned default 1,                      )###"
         u8R"###(     fld_hair        int unsigned default 0,                      )###"
         u8R"###(     fld_haircolor   int unsigned default 0                       )###"
         u8R"###( );                                                               )###",

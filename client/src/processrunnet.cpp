@@ -268,11 +268,14 @@ void ProcessRun::net_DEADFADEOUT(const uint8_t *bufPtr, size_t)
     }
 }
 
-void ProcessRun::net_EXP(const uint8_t *bufPtr, size_t)
+void ProcessRun::net_EXP(const uint8_t *buf, size_t)
 {
-    const auto smExp = ServerMsg::conv<SMExp>(bufPtr);
-    if(smExp.Exp){
-        addCBLog(CBLOG_SYS, u8"你获得了经验值%d", (int)(smExp.Exp));
+    const auto smExp = ServerMsg::conv<SMExp>(buf);
+    const uint32_t currExp = getMyHero()->getExp();
+
+    getMyHero()->setExp(smExp.exp);
+    if(smExp.exp > currExp){
+        addCBLog(CBLOG_SYS, u8"你获得了经验值%llu", to_llu(smExp.exp - currExp));
     }
 }
 

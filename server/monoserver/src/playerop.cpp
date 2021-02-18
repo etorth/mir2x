@@ -168,7 +168,7 @@ void Player::on_AM_NPCQUERY(const ActorMsgPack &mpk)
     }
 
     else if(queryName == "LEVEL"){
-        std::sprintf(amNPCE.value, "%llu", to_llu(m_level));
+        std::sprintf(amNPCE.value, "%llu", to_llu(level()));
     }
 
     else if(queryName == "NAME"){
@@ -272,18 +272,10 @@ void Player::on_AM_DEADFADEOUT(const ActorMsgPack &rstMPK)
     }
 }
 
-void Player::on_AM_EXP(const ActorMsgPack &rstMPK)
+void Player::on_AM_EXP(const ActorMsgPack &mpk)
 {
-    AMExp amE;
-    std::memcpy(&amE, rstMPK.data(), sizeof(amE));
-
-    GainExp(amE.Exp);
-
-    if(amE.Exp > 0){
-        SMExp smE;
-        smE.Exp = amE.Exp;
-        g_netDriver->Post(channID(), SM_EXP, smE);
-    }
+    const auto amE = mpk.conv<AMExp>();
+    gainExp(amE.exp);
 }
 
 void Player::on_AM_MISS(const ActorMsgPack &rstMPK)

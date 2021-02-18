@@ -863,7 +863,7 @@ void CharObject::dispatchOffenderExp()
             AMExp amE;
             std::memset(&amE, 0, sizeof(amE));
 
-            amE.Exp = fnCalcExp(rstOffender.Damage);
+            amE.exp = fnCalcExp(rstOffender.Damage);
             m_actorPod->forward(rstOffender.UID, {AM_EXP, amE});
         }
     }

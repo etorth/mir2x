@@ -21,6 +21,7 @@
 #include <cstdint>
 #include <cstring>
 #include <type_traits>
+#include "totype.hpp"
 #include "monoserver.hpp"
 #include "charobject.hpp"
 
@@ -34,7 +35,6 @@ class Player final: public CharObject
 
     protected:
         uint32_t m_exp;
-        uint32_t m_level;
 
     protected:
         std::string m_name;
@@ -71,7 +71,7 @@ class Player final: public CharObject
 
         uint32_t level() const
         {
-            return m_level;
+            return to_u32(SYS_LEVEL(exp()));
         }
 
         uint32_t channID()
@@ -222,16 +222,16 @@ class Player final: public CharObject
         virtual void RecoverHealth();
 
     protected:
-        uint32_t GetLevelExp();
-
-    protected:
-        void GainExp(int);
+        void gainExp(int);
 
     protected:
         void PullRectCO(int, int);
 
     protected:
         bool CanPickUp(uint32_t, uint32_t);
+
+    private:
+        void dbUpdateExp();
 
     private:
         void dbLoadInventory();

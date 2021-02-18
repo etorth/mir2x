@@ -689,7 +689,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
         throw fflerror("ControlBoard has wrong location or size");
     }
 
-    m_levelBox.setLevel(7);
+    m_levelBox.setLevel(0);
     m_levelBox.moveTo((w() - 178 - 166 - m_levelBox.w()) / 2, 4 - m_levelBox.h() / 2);
 }
 

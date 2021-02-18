@@ -148,7 +148,7 @@ struct SMDeadFadeOut
 
 struct SMExp
 {
-    uint32_t Exp;
+    uint32_t exp;
 };
 
 struct SMMiss

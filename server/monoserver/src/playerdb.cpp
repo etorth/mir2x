@@ -24,6 +24,11 @@
 extern DBPod *g_dbPod;
 extern MonoServer *g_monoServer;
 
+void Player::dbUpdateExp()
+{
+    g_dbPod->exec(u8R"###( update tbl_dbid set fld_exp = %llu where fld_dbid = %llu )###", to_llu(exp()), to_llu(dbid()));
+}
+
 void Player::dbLoadInventory()
 {
     // tbl_inventory:

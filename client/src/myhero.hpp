@@ -24,6 +24,7 @@
 class MyHero: public Hero
 {
     private:
+        uint32_t m_exp  = 0;
         uint32_t m_gold = 0;
 
     private:
@@ -75,6 +76,16 @@ class MyHero: public Hero
         bool parseActionQueue();
 
     public:
+        uint32_t getExp() const
+        {
+            return m_exp;
+        }
+
+        void setExp(uint32_t exp)
+        {
+            m_exp = exp;
+        }
+
         uint32_t getGold() const
         {
             return m_gold;

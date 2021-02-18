@@ -37,7 +37,6 @@ extern MonoServer *g_monoServer;
 Player::Player(const SDInitPlayer &initParam, ServiceCore *corePtr, ServerMap *mapPtr)
     : CharObject(corePtr, mapPtr, uidf::buildPlayerUID(initParam.dbid, true, initParam.jobList), initParam.x, initParam.y, DIR_DOWN)
     , m_exp(initParam.exp)
-    , m_level(initParam.level)
     , m_name(initParam.name)
     , m_nameColor(initParam.nameColor)
     , m_hair(initParam.hair)
@@ -745,33 +744,20 @@ void Player::RecoverHealth()
     }
 }
 
-void Player::GainExp(int nExp)
+void Player::gainExp(int addedExp)
 {
-    if(nExp){
-        if((int)(m_exp) + nExp < 0){
-            m_exp = 0;
-        }else{
-            m_exp += (uint32_t)(nExp);
-        }
-
-        auto nLevelExp = GetLevelExp();
-        if(m_exp >= nLevelExp){
-            m_exp    = m_exp - nLevelExp;
-            m_level += 1;
-        }
+    if(addedExp <= 0){
+        return;
     }
-}
 
-uint32_t Player::GetLevelExp()
-{
-    auto fnGetLevelExp = [](int nLevel, int nJobID) -> int
-    {
-        if(nLevel > 0 && nJobID >= 0){
-            return 1000;
-        }
-        return -1;
-    };
-    return fnGetLevelExp(level(), uidf::hasPlayerJob(UID(), JOB_TAOIST) ? JOB_TAOIST : JOB_WARRIOR);
+    m_exp += addedExp;
+    dbUpdateExp();
+
+    SMExp smE;
+    std::memset(&smE, 0, sizeof(smE));
+
+    smE.exp = exp();
+    postNetMessage(SM_EXP, smE);
 }
 
 void Player::PullRectCO(int nW, int nH)
