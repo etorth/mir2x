@@ -186,15 +186,15 @@ void InventoryBoard::drawEx(int dstX, int dstY, int, int, int, int) const
         drawItem(dstX, dstY, startRow, (i == cursorOnIndex), packBinListCRef.at(i));
     }
 
-    if(cursorOnIndex >= 0){
-        drawItemHoverText(packBinListCRef.at(cursorOnIndex));
-    }
-
     drawGold();
     m_opNameBoard.draw();
     m_wmdAniBoard.draw();
     m_slider     .draw();
     m_closeButton.draw();
+
+    if(cursorOnIndex >= 0){
+        drawItemHoverText(packBinListCRef.at(cursorOnIndex));
+    }
 }
 
 bool InventoryBoard::processEvent(const SDL_Event &event, bool valid)
