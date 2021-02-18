@@ -114,7 +114,7 @@ class Hero: public CreatureMovable
         void setName(const char *name, uint32_t nameColor)
         {
             m_name = to_cstr(name);
-            m_nameColor = nameColor;
+            m_nameColor = (colorf::RGBMask(nameColor) ? nameColor : colorf::WHITE) | 0XFF;
         }
 
         const auto &getWLDesp() const

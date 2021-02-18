@@ -59,6 +59,11 @@ namespace colorf
         return (nRGBA & MASK_A) >> SHIFT_A;
     }
 
+    constexpr uint32_t RGBMask(uint32_t color)
+    {
+        return color & 0XFFFFFF00;
+    }
+
     constexpr uint32_t RGBA(uint8_t nR, uint8_t nG, uint8_t nB, uint8_t nA)
     {
         return ((uint32_t)(nR) << SHIFT_R) | ((uint32_t)(nG) << SHIFT_G) | ((uint32_t)(nB) << SHIFT_B)  | ((uint32_t)(nA) << SHIFT_A);
