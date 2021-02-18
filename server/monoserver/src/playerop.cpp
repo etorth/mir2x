@@ -54,7 +54,7 @@ void Player::on_AM_BINDCHANNEL(const ActorMsgPack &rstMPK)
     m_channID = amBC.channID;
     g_netDriver->bindActor(channID(), UID());
 
-    postLoginOK();
+    postOnLoginOK();
     PullRectCO(10, 10);
 }
 

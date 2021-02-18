@@ -274,7 +274,7 @@ void ProcessRun::net_EXP(const uint8_t *buf, size_t)
     const uint32_t currExp = getMyHero()->getExp();
 
     getMyHero()->setExp(smExp.exp);
-    if(smExp.exp > currExp){
+    if((smExp.exp > currExp) && (currExp > 0)){
         addCBLog(CBLOG_SYS, u8"你获得了经验值%llu", to_llu(smExp.exp - currExp));
     }
 }

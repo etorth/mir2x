@@ -123,8 +123,7 @@ void LevelBox::drawEx(int dstX, int dstY, int, int, int, int) const
     const auto fnDrawCover = [dstX, dstY](uint32_t color)
     {
         if(auto *texPtr = g_sdlDevice->getCover(8)){
-            SDLDeviceHelper::EnableTextureModColor(texPtr, color);
-            SDLDeviceHelper::EnableRenderBlendMode enableDrawBlendMode(SDL_BLENDMODE_BLEND);
+            SDLDeviceHelper::EnableTextureModColor enableColor(texPtr, color);
             g_sdlDevice->drawTexture(texPtr, dstX + 1, dstY);
         }
     };

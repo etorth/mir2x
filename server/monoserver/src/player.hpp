@@ -253,7 +253,11 @@ class Player final: public CharObject
         void checkFriend(uint64_t, std::function<void(int)>) override;
 
     private:
-        void postLoginOK();
+        void postExp();
+        void postBuildVersion();
+
+    private:
+        void postOnLoginOK();
 
     private:
         bool hasInventoryItem(uint32_t, uint32_t, size_t) const;

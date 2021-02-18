@@ -50,7 +50,7 @@ Player::Player(const SDInitPlayer &initParam, ServiceCore *corePtr, ServerMap *m
     dbLoadBelt();
     dbLoadInventory();
 
-    m_stateTrigger.install([this, lastCheckTick = (uint32_t)(0)]() mutable -> bool
+    m_stateTrigger.install([this, lastCheckTick = to_u32(0)]() mutable -> bool
     {
         if(const auto currTick = g_monoServer->getCurrTick(); currTick >= (lastCheckTick + 1000)){
             RecoverHealth();
@@ -752,12 +752,7 @@ void Player::gainExp(int addedExp)
 
     m_exp += addedExp;
     dbUpdateExp();
-
-    SMExp smE;
-    std::memset(&smE, 0, sizeof(smE));
-
-    smE.exp = exp();
-    postNetMessage(SM_EXP, smE);
+    postExp();
 }
 
 void Player::PullRectCO(int nW, int nH)
@@ -870,13 +865,9 @@ bool Player::sendNetBuf(uint8_t hc, const uint8_t *buf, size_t bufLen)
     return g_netDriver->Post(channID(), hc, buf, bufLen);
 }
 
-void Player::postLoginOK()
+void Player::postOnLoginOK()
 {
-    SMBuildVersion smBV;
-    std::memset(&smBV, 0, sizeof(smBV));
-    std::strcpy(smBV.version, getBuildSignature());
-    postNetMessage(SM_BUILDVERSION, smBV);
-
+    postBuildVersion();
     postNetMessage(SM_LOGINOK, cerealf::serialize<SDLoginOK>(SDLoginOK
     {
         .uid = UID(),
@@ -897,6 +888,7 @@ void Player::postLoginOK()
         .nameColor = m_nameColor,
     }, true));
 
+    postExp();
     postNetMessage(SM_INVENTORY, cerealf::serialize(m_sdItemStorage.inventory, true));
     postNetMessage(SM_BELT,      cerealf::serialize(m_sdItemStorage.belt));
 }
@@ -993,4 +985,20 @@ void Player::setWLItem(int wltype, SDItem item)
             sendNetPackage(coLoc.UID, SM_EQUIPWEAR, sdEquipWearBuf);
         }
     }
+}
+
+void Player::postBuildVersion()
+{
+    SMBuildVersion smBV;
+    std::memset(&smBV, 0, sizeof(smBV));
+    std::strcpy(smBV.version, getBuildSignature());
+    postNetMessage(SM_BUILDVERSION, smBV);
+}
+
+void Player::postExp()
+{
+    SMExp smE;
+    std::memset(&smE, 0, sizeof(smE));
+    smE.exp = exp();
+    postNetMessage(SM_EXP, smE);
 }
