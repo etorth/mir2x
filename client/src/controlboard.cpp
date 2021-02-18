@@ -698,6 +698,7 @@ void ControlBoard::update(double fUpdateTime)
     m_cmdLine.update(fUpdateTime);
     m_logBoard.update(fUpdateTime);
     m_arcAniBoard.update(fUpdateTime);
+    m_levelBox.setLevel(SYS_LEVEL(m_processRun->getMyHero()->getExp()));
 }
 
 void ControlBoard::drawLeft() const
