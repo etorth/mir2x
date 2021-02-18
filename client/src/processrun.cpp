@@ -1778,9 +1778,13 @@ void ProcessRun::requestBuy(uint64_t npcUID, uint32_t itemID, uint32_t seqID, si
     SDItem
     {
         .itemID = itemID,
-        . seqID =  seqID,
-        . count =  count,
+        .seqID = seqID,
+        .count = 1, // can buy more than SYS_INVGRIDMAXHOLD
     }.checkEx();
+
+    if(count <= 0){
+        throw fflerror("invalid buy count: %zu", count);
+    }
 
     CMBuy cmB;
     std::memset(&cmB, 0, sizeof(cmB));

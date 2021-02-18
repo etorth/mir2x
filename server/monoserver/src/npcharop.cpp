@@ -183,7 +183,7 @@ void NPChar::on_AM_BUY(const ActorMsgPack &mpk)
     SDBuyCost sdBC;
     sdBC.item = q->second.item;
     sdBC.item.count = amB.count;
-    sdBC.costList = q->second.costList;
+    sdBC.costList = q->second.costList; // TODO: for packable cost = itemCost x count
 
     if(!ir.packable()){
         q->second.locked = true;

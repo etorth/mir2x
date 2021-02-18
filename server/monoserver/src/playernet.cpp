@@ -290,10 +290,28 @@ void Player::net_CM_BUY(uint8_t, const uint8_t *buf, size_t)
                             }
                         }
 
-                        addInventoryItem(sdBC.item, false);
+                        const auto &ir = DBCOM_ITEMRECORD(sdBC.item.itemID);
+                        if(!ir){
+                            throw fflerror("bad item: itemID = %llu", to_llu(sdBC.item.itemID));
+                        }
+
+                        if(ir.packable()){
+                            size_t doneCount = 0;
+                            while(doneCount < sdBC.item.count){
+                                const auto currCount = std::min<size_t>(SYS_INVGRIDMAXHOLD, sdBC.item.count - doneCount);
+                                doneCount += addInventoryItem(SDItem
+                                {
+                                    .itemID = sdBC.item.itemID,
+                                    .count = currCount,
+                                }, false).count;
+                            }
+                        }
+                        else{
+                            addInventoryItem(sdBC.item, false);
+                        }
                         m_actorPod->forward(mpk.from(), AM_OK, mpk.seqID());
 
-                        if(!DBCOM_ITEMRECORD(sdBC.item.itemID).packable()){
+                        if(!ir.packable()){
                             SMBuySucceed smBS;
                             std::memset(&smBS, 0, sizeof(smBS));
 
