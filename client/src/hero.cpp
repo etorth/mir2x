@@ -1107,7 +1107,7 @@ bool Hero::setWLItem(int wltype, SDItem item)
             }
         default:
             {
-                if(to_u8sv(ir.type) != wlGridItemType(wltype)){
+                if(!ir.wearable(wltype)){
                     return false;
                 }
                 break;

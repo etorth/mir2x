@@ -254,24 +254,6 @@ enum WearLookGridType: int
     WLG_END = WLG_W_END,
 };
 
-inline constexpr const char8_t *wlGridItemType(int wlType)
-{
-    switch(wlType){
-        case WLG_DRESS   : return u8"衣服";
-        case WLG_HELMET  : return u8"头盔";
-        case WLG_WEAPON  : return u8"武器";
-        case WLG_SHOES   : return u8"鞋";
-        case WLG_NECKLACE: return u8"项链";
-        case WLG_ARMRING0: return u8"手镯";
-        case WLG_ARMRING1: return u8"手镯";
-        case WLG_RING0   : return u8"戒指";
-        case WLG_RING1   : return u8"戒指";
-        case WLG_TORCH   : return u8"火把";
-        case WLG_CHARM   : return u8"魅力";
-        default          : return nullptr;
-    }
-}
-
 enum AttributeType: int
 {
     ATR_NONE  = 0,

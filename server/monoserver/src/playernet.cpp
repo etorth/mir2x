@@ -369,7 +369,7 @@ void Player::net_CM_REQUESTEQUIPWEAR(uint8_t, const uint8_t *buf, size_t)
         return;
     }
 
-    if(to_u8sv(ir.type) != wlGridItemType(wltype)){
+    if(!ir.wearable(wltype)){
         fnPostEquipError(EQWERR_BADWLTYPE);
         return;
     }

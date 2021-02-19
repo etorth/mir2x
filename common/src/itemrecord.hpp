@@ -34,6 +34,7 @@
 #include <string>
 #include <cstdint>
 #include <string_view>
+#include "protocoldef.hpp"
 
 struct ItemRecord
 {
@@ -67,5 +68,23 @@ struct ItemRecord
             || std::u8string_view(type) == u8"恢复药水"
             || std::u8string_view(type) == u8"传送卷轴"
             || std::u8string_view(type) == u8"护身符";
+    }
+
+    constexpr bool wearable(int wltype) const
+    {
+        switch(wltype){
+            case WLG_DRESS   : return std::u8string_view(u8"衣服") == type;
+            case WLG_HELMET  : return std::u8string_view(u8"头盔") == type;
+            case WLG_WEAPON  : return std::u8string_view(u8"武器") == type;
+            case WLG_SHOES   : return std::u8string_view(u8"鞋"  ) == type;
+            case WLG_NECKLACE: return std::u8string_view(u8"项链") == type;
+            case WLG_ARMRING0: return std::u8string_view(u8"手镯") == type;
+            case WLG_ARMRING1: return std::u8string_view(u8"手镯") == type;
+            case WLG_RING0   : return std::u8string_view(u8"戒指") == type;
+            case WLG_RING1   : return std::u8string_view(u8"戒指") == type;
+            case WLG_TORCH   : return std::u8string_view(u8"火把") == type;
+            case WLG_CHARM   : return std::u8string_view(u8"魅力|护身符").find(type) != std::u8string_view::npos;
+            default          : return false;
+        }
     }
 };

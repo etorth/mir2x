@@ -181,7 +181,7 @@ void Player::dbLoadWear()
             .extAttrList = cerealf::deserialize<SDItemExtAttrList>(query.getColumn("fld_extattrlist")),
         };
 
-        if(to_u8sv(DBCOM_ITEMRECORD(item.itemID).type) != wlGridItemType(wltype)){
+        if(!DBCOM_ITEMRECORD(item.itemID).wearable(wltype)){
             throw fflerror("invalid item type to wear grid");
         }
 
@@ -197,7 +197,7 @@ void Player::dbUpdateWearItem(int wltype, const SDItem &item)
     }
 
     item.checkEx();
-    if(to_u8sv(DBCOM_ITEMRECORD(item.itemID).type) != wlGridItemType(wltype)){
+    if(!DBCOM_ITEMRECORD(item.itemID).wearable(wltype)){
         throw fflerror("invalid item type to wear grid");
     }
 

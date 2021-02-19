@@ -1823,7 +1823,7 @@ void ProcessRun::requestEquipWear(uint32_t itemID, uint32_t seqID, int wltype)
         throw fflerror("invalid seqID: %llu", to_llu(seqID));
     }
 
-    if(to_u8sv(ir.type) != wlGridItemType(wltype)){
+    if(!ir.wearable(wltype)){
         throw fflerror("can't equip %s to wltype %d", to_cstr(ir.name), wltype);
     }
 

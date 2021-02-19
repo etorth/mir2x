@@ -89,7 +89,7 @@ PlayerStatusBoard::PlayerStatusBoard(int argX, int argY, ProcessRun *runPtr, Wid
           gridList[WLG_RING0   ] = WearGrid{.x =  10, .y = 195, .type = u8"戒指"};
           gridList[WLG_RING1   ] = WearGrid{.x = 168, .y = 195, .type = u8"戒指"};
           gridList[WLG_TORCH   ] = WearGrid{.x =  90, .y = 265, .type = u8"火把"};
-          gridList[WLG_CHARM   ] = WearGrid{.x = 130, .y = 265, .type = u8"魅力"};
+          gridList[WLG_CHARM   ] = WearGrid{.x = 130, .y = 265, .type = u8"魅力|护身符"};
 
           return gridList;
       }())
@@ -283,7 +283,7 @@ bool PlayerStatusBoard::processEvent(const SDL_Event &event, bool valid)
                             for(size_t i = WLG_BEGIN; i < WLG_END; ++i){
                                 if(mathf::pointInRectangle(event.button.x, event.button.y, x() + m_gridList[i].x, y() + m_gridList[i].y, m_gridList[i].w, m_gridList[i].h)){
                                     if(const auto grabbedItem = invPackRef.getGrabbedItem()){
-                                        if(to_u8sv(DBCOM_ITEMRECORD(grabbedItem.itemID).type) == wlGridItemType(i)){
+                                        if(DBCOM_ITEMRECORD(grabbedItem.itemID).wearable(i)){
                                             m_processRun->requestEquipWear(grabbedItem.itemID, grabbedItem.seqID, i);
                                         }
                                         else{
