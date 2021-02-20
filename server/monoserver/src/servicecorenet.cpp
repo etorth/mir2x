@@ -73,6 +73,7 @@ void ServiceCore::net_CM_Login(uint32_t channID, uint8_t, const uint8_t *buf, si
         .mp        = queryChar.getColumn("fld_mp"),
         .exp       = queryChar.getColumn("fld_exp"),
         .gold      = queryChar.getColumn("fld_gold"),
+        .gender    = (bool)((int)(queryChar.getColumn("fld_gender"))),
         .jobList   = jobf::getJobList(queryChar.getColumn("fld_job")),
         .hair      = queryChar.getColumn("fld_hair"),
         .hairColor = queryChar.getColumn("fld_haircolor"),

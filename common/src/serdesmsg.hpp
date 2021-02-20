@@ -41,6 +41,7 @@ struct SDInitPlayer
 
     int exp = 0;
     int gold = 0;
+    bool gender = true;
     std::vector<int> jobList = {};
 
     int hair = 0;

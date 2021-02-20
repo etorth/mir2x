@@ -170,10 +170,10 @@ bool MonoServer::createAccount(const char *id, const char *password)
     return true;
 }
 
-bool MonoServer::createAccountCharacter(const char *id, const char *charName, const char *job)
+bool MonoServer::createAccountCharacter(const char *id, const char *charName, bool gender, const char *job)
 {
     if(!(str_haschar(id) && str_haschar(charName) && str_haschar(job))){
-        throw fflerror("invalid argumets: id = %s, charName = %s, job = %s", to_cstr(id), to_cstr(charName), to_cstr(job));
+        throw fflerror("invalid argumets: id = %s, charName = %s, gender = %s, job = %s", to_cstr(id), to_cstr(charName), gender ? "male" : "female", to_cstr(job));
     }
 
     if(!hasDatabase()){
@@ -217,16 +217,17 @@ bool MonoServer::createAccountCharacter(const char *id, const char *charName, co
 
     g_dbPod->exec
     (
-        u8R"###( insert into tbl_dbid(fld_dbid, fld_name, fld_job, fld_mapname, fld_mapx, fld_mapy) )###"
-        u8R"###( values                                                                             )###"
-        u8R"###(     (%llu, '%s', '%s', '%s', %d, %d);                                              )###",
+        u8R"###( insert into tbl_dbid(fld_dbid, fld_name, fld_job, fld_mapname, fld_mapx, fld_mapy, fld_gender) )###"
+        u8R"###( values                                                                                         )###"
+        u8R"###(     (%llu, '%s', '%s', '%s', %d, %d, %d);                                                      )###",
 
         to_llu(dbid),
         charName,
         to_cstr(jobf::getJobString(jobList)),
         to_cstr(mapName),
         mapx,
-        mapy
+        mapy,
+        (int)(gender)
     );
     return true;
 }
@@ -257,6 +258,7 @@ void MonoServer::createDefaultDatabase()
         u8R"###(     fld_mp          int unsigned default 10,                     )###"
         u8R"###(     fld_exp         int unsigned default 0,                      )###"
         u8R"###(     fld_gold        int unsigned default 10000,                  )###"
+        u8R"###(     fld_gender      boolean not null,                            )###"
         u8R"###(     fld_hair        int unsigned default 0,                      )###"
         u8R"###(     fld_haircolor   int unsigned default 0                       )###"
         u8R"###( );                                                               )###",
@@ -311,10 +313,10 @@ void MonoServer::createDefaultDatabase()
     createAccount("id_1", "123456");
     createAccount("id_2", "123456");
 
-    createAccountCharacter("test", to_cstr(u8"亚当"), to_cstr(u8"道士|法师"));
-    createAccountCharacter("good", to_cstr(u8"夏娃"), to_cstr(u8"战士|法师"));
-    createAccountCharacter("id_1", to_cstr(u8"逗逼"), to_cstr(u8"法师"));
-    createAccountCharacter("id_2", to_cstr(u8"搞笑"), to_cstr(u8"法师"));
+    createAccountCharacter("test", to_cstr(u8"亚当"),  true, to_cstr(u8"道士|法师"));
+    createAccountCharacter("good", to_cstr(u8"夏娃"), false, to_cstr(u8"战士|法师"));
+    createAccountCharacter("id_1", to_cstr(u8"逗逼"),  true, to_cstr(u8"法师"));
+    createAccountCharacter("id_2", to_cstr(u8"搞笑"),  true, to_cstr(u8"法师"));
 
     addLog(LOGTYPE_INFO, "Create default sqlite3 database done");
 }

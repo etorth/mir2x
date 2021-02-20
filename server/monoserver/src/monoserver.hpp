@@ -90,7 +90,7 @@ class MonoServer final
     private:
         void createDefaultDatabase();
         bool createAccount(const char *, const char *);
-        bool createAccountCharacter(const char *, const char *, const char *);
+        bool createAccountCharacter(const char *, const char *, bool, const char *);
 
     public:
         void checkException();
