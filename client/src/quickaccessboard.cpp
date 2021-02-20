@@ -93,6 +93,17 @@ void QuickAccessBoard::drawEx(int dstX, int dstY, int, int, int, int) const
             g_sdlDevice->drawTexture(texPtr, drawDstX, drawDstY);
         }
     }
+
+    const auto [mouseX, mouseY] = SDLDeviceHelper::getMousePLoc();
+    for(int slot = 0; slot < 6; ++slot){
+        const auto [gridX, gridY, gridW, gridH] = getGridLoc(slot);
+        const auto gridStartX = x() + gridX;
+        const auto gridStartY = y() + gridY;
+        if(mathf::pointInRectangle(mouseX, mouseY, gridStartX, gridStartY, gridW, gridH)){
+            g_sdlDevice->fillRectangle(colorf::WHITE + 64, gridStartX, gridStartY, gridW, gridH);
+            break;
+        }
+    }
 }
 
 bool QuickAccessBoard::processEvent(const SDL_Event &event, bool valid)
