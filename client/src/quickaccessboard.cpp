@@ -24,6 +24,7 @@
 #include "processrun.hpp"
 #include "quickaccessboard.hpp"
 
+extern PNGTexDB *g_itemDB;
 extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 
@@ -38,7 +39,7 @@ QuickAccessBoard::QuickAccessBoard(int x, int y, ProcessRun *proc, Widget *pwidg
           autoDelete,
       }
 
-    , m_proc(proc)
+    , m_processRun(proc)
     , m_buttonClose
       {
           263,
@@ -73,13 +74,24 @@ QuickAccessBoard::QuickAccessBoard(int x, int y, ProcessRun *proc, Widget *pwidg
 
 void QuickAccessBoard::drawEx(int dstX, int dstY, int, int, int, int) const
 {
-    auto texPtr = g_progUseDB->Retrieve(m_texID);
-    if(!texPtr){
-        throw fflerror("no valid quick access board texture: texID = %llu", to_llu(m_texID));
+    if(auto texPtr = g_progUseDB->Retrieve(m_texID)){
+        g_sdlDevice->drawTexture(texPtr, dstX, dstY);
     }
 
-    g_sdlDevice->drawTexture(texPtr, dstX, dstY);
     m_buttonClose.drawEx(dstX + m_buttonClose.dx(), dstY + m_buttonClose.dy(), 0, 0, m_buttonClose.w(), m_buttonClose.h());
+    for(int i = 0; const auto &item: m_processRun->getMyHero()->getBelt().list){
+        if(!item){
+            continue;
+        }
+
+        if(auto texPtr = g_itemDB->Retrieve(DBCOM_ITEMRECORD(item.itemID).pkgGfxID | 0X01000000)){
+            const auto [x, y, w, h] = getGridLoc(i++);
+            const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);
+            const auto drawDstX = this->x() + x + (w - texW) / 2;
+            const auto drawDstY = this->y() + y + (h - texH) / 2;
+            g_sdlDevice->drawTexture(texPtr, drawDstX, drawDstY);
+        }
+    }
 }
 
 bool QuickAccessBoard::processEvent(const SDL_Event &event, bool valid)

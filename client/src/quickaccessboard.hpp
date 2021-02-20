@@ -17,6 +17,7 @@
  */
 
 #pragma once
+#include <tuple>
 #include <cstdint>
 #include "widget.hpp"
 #include "tritexbutton.hpp"
@@ -25,7 +26,7 @@ class ProcessRun;
 class QuickAccessBoard: public Widget
 {
     private:
-        ProcessRun *m_proc;
+        ProcessRun *m_processRun;
 
     private:
         TritexButton m_buttonClose;
@@ -41,4 +42,13 @@ class QuickAccessBoard: public Widget
 
     public:
         bool processEvent(const SDL_Event &, bool) override;
+
+    public:
+        static std::tuple<int, int, int, int> getGridLoc(int i)
+        {
+            if(i >= 0 && i < 6){
+                return {17 + 42 * i, 6, 36, 36};
+            }
+            throw fflerror("invalid quick access grid index: %d", i);
+        }
 };
