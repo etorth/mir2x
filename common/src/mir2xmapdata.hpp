@@ -36,7 +36,7 @@ class Mir2xMapData final
         // pod types
         // can be initialized by { xx, xx, xxx }
 #pragma pack(push, 1)
-        typedef struct
+        struct TILE
         {
             uint32_t Param;     // bit field definition:
             //      31 : valid
@@ -53,12 +53,12 @@ class Mir2xMapData final
             {
                 return Param & 0X00FFFFFF;
             }
-        }TILE;
+        };
 
         // define OBJ as ``one frame of OBJ"
         // then move the animation information out
         // since we can define a sequence of animated obj as an animation
-        typedef struct
+        struct OBJ
         {
             uint32_t Param;     // bit field definition:
                                 //      31 : valid
@@ -75,9 +75,9 @@ class Mir2xMapData final
             {
                 return Param & 0X00FFFFFF;
             }
-        }OBJ;
+        };
 
-        typedef struct
+        struct CELL
         {
             // removed the ``valid" field for cell
             // one cell should always be there and ``valid"
@@ -183,13 +183,13 @@ class Mir2xMapData final
 
                 return {{0, 0, 0, 0, 0}};
             }
-        }CELL;
+        };
 
-        typedef struct
+        struct BLOCK
         {
             TILE   Tile[1];
             CELL   Cell[4];
-        }BLOCK;
+        };
 #pragma pack(pop)
 
     private:
