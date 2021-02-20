@@ -78,7 +78,7 @@ void Hero::draw(int viewX, int viewY, int)
             return;
         }
 
-        const uint32_t weaponKey = (((uint32_t)(shadow ? 1 : 0)) << 23) + (((uint32_t)(uidf::getPlayerGender(UID()) ? 1 : 0)) << 22) + ((nGfxWeaponID & 0X01FFFF) << 5) + m_currMotion->frame;
+        const uint32_t weaponKey = (((uint32_t)(shadow ? 1 : 0)) << 23) + (to_u32(gender()) << 22) + ((nGfxWeaponID & 0X01FFFF) << 5) + m_currMotion->frame;
 
         int weaponDX = 0;
         int weaponDY = 0;
@@ -110,8 +110,8 @@ void Hero::draw(int viewX, int viewY, int)
     // 21 - 14 :     dress : max = 256 : +----> GfxDressID
     //      22 :       sex :
     //      23 :    shadow :
-    const uint32_t nKey0 = ((uint32_t)(0) << 23) + (((uint32_t)(uidf::getPlayerGender(UID()) ? 1 : 0)) << 22) + (((uint32_t)(nGfxDressID & 0X01FFFF)) << 5) + m_currMotion->frame;
-    const uint32_t nKey1 = ((uint32_t)(1) << 23) + (((uint32_t)(uidf::getPlayerGender(UID()) ? 1 : 0)) << 22) + (((uint32_t)(nGfxDressID & 0X01FFFF)) << 5) + m_currMotion->frame;
+    const uint32_t nKey0 = ((uint32_t)(0) << 23) + (to_u32(gender()) << 22) + (((uint32_t)(nGfxDressID & 0X01FFFF)) << 5) + m_currMotion->frame;
+    const uint32_t nKey1 = ((uint32_t)(1) << 23) + (to_u32(gender()) << 22) + (((uint32_t)(nGfxDressID & 0X01FFFF)) << 5) + m_currMotion->frame;
 
     int nDX0 = 0;
     int nDY0 = 0;
@@ -139,7 +139,7 @@ void Hero::draw(int viewX, int viewY, int)
     g_sdlDevice->drawTexture(pFrame0, startX + nDX0, startY + nDY0);
     if(getWLItem(WLG_HELMET)){
         if(const auto nHelmetGfxID = gfxHelmetID(DBCOM_ITEMRECORD(getWLItem(WLG_HELMET).itemID).shape, nMotion, nDirection); nHelmetGfxID >= 0){
-            const uint32_t nHelmetKey = (((uint32_t)(uidf::getPlayerGender(UID()) ? 1 : 0)) << 22) + (((uint32_t)(nHelmetGfxID & 0X01FFFF)) << 5) + m_currMotion->frame;
+            const uint32_t nHelmetKey = (to_u32(gender()) << 22) + (((uint32_t)(nHelmetGfxID & 0X01FFFF)) << 5) + m_currMotion->frame;
             if(auto [texPtr, dx, dy] = g_helmetDB->Retrieve(nHelmetKey); texPtr){
                 g_sdlDevice->drawTexture(texPtr, startX + dx, startY + dy);
             }
@@ -147,7 +147,7 @@ void Hero::draw(int viewX, int viewY, int)
     }
     else{
         if(const auto nHairGfxID = GfxHairID(m_sdWLDesp.hair, nMotion, nDirection); nHairGfxID >= 0){
-            const uint32_t nHairKey = (((uint32_t)(uidf::getPlayerGender(UID()) ? 1 : 0)) << 22) + (((uint32_t)(nHairGfxID & 0X01FFFF)) << 5) + m_currMotion->frame;
+            const uint32_t nHairKey = (to_u32(gender()) << 22) + (((uint32_t)(nHairGfxID & 0X01FFFF)) << 5) + m_currMotion->frame;
             if(auto [texPtr, dx, dy] = g_hairDB->Retrieve(nHairKey); texPtr){
                 SDLDeviceHelper::EnableTextureModColor enableColor(texPtr, m_sdWLDesp.hairColor);
                 g_sdlDevice->drawTexture(texPtr, startX + dx, startY + dy);
@@ -1041,7 +1041,7 @@ ClientCreature::TargetBox Hero::getTargetBox() const
     }
 
     const auto nDress     = getWLItem(WLG_DRESS).itemID;
-    const auto nGender    = uidf::getPlayerGender(UID());
+    const auto nGender    = gender();
     const auto nMotion    = currMotion()->type;
     const auto nDirection = currMotion()->direction;
 
@@ -1100,7 +1100,7 @@ bool Hero::setWLItem(int wltype, SDItem item)
     switch(wltype){
         case WLG_DRESS:
             {
-                if((to_u8sv(ir.type) != u8"衣服") || (getClothGender(item.itemID) != uidf::getPlayerGender(UID()))){
+                if((to_u8sv(ir.type) != u8"衣服") || (getClothGender(item.itemID) != gender())){
                     return false;
                 }
                 break;

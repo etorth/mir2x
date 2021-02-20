@@ -169,7 +169,7 @@ void PlayerStatusBoard::drawEx(int, int, int, int, int, int) const
     }
 
     const auto myHeroPtr = m_processRun->getMyHero();
-    if(auto [texPtr, dx, dy] = g_equipDB->Retrieve(uidf::getPlayerGender(myHeroPtr->UID()) ? 0X00000000 : 0X00000001); texPtr){
+    if(auto [texPtr, dx, dy] = g_equipDB->Retrieve(myHeroPtr->gender() ? 0X00000000 : 0X00000001); texPtr){
         g_sdlDevice->drawTexture(texPtr, x() + m_equipCharX + dx, y() + m_equipCharY + dy);
     }
 
@@ -199,7 +199,7 @@ void PlayerStatusBoard::drawEx(int, int, int, int, int, int) const
     }
     else{
         if(myHeroPtr->getWLDesp().hair >= HAIR_BEGIN){
-            if(auto [texPtr, dx, dy] = g_equipDB->Retrieve((uidf::getPlayerGender(myHeroPtr->UID()) ? 0X0000003C : 0X00000046) + myHeroPtr->getWLDesp().hair - HAIR_BEGIN); texPtr){
+            if(auto [texPtr, dx, dy] = g_equipDB->Retrieve((myHeroPtr->gender() ? 0X0000003C : 0X00000046) + myHeroPtr->getWLDesp().hair - HAIR_BEGIN); texPtr){
                 SDLDeviceHelper::EnableTextureModColor enableColor(texPtr, myHeroPtr->getWLDesp().hairColor);
                 g_sdlDevice->drawTexture(texPtr, x() + m_equipCharX + dx, y() + m_equipCharY + dy);
             }
