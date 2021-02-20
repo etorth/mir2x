@@ -34,7 +34,7 @@ namespace _logProf
 
     template<size_t N> constexpr size_t fileName2Index(const char (&str)[N])
     {
-        for(size_t i = 0; i < std::extent<decltype(_inn_logFileList)>::value; ++i){
+        for(size_t i = 0; i < std::extent_v<decltype(_inn_logFileList)>; ++i){
             if(std::string_view(str).ends_with(_inn_logFileList[i])){
                 return i;
             }
@@ -45,14 +45,14 @@ namespace _logProf
     constexpr size_t maxProfInOneFile = 4096;
     template<size_t fileIndex, int counter> constexpr size_t loc2Hash()
     {
-        static_assert(fileIndex < std::extent<decltype(_inn_logFileList)>::value);
+        static_assert(fileIndex < std::extent_v<decltype(_inn_logFileList)>);
         static_assert(counter   < _logProf::maxProfInOneFile);
         return fileIndex * _logProf::maxProfInOneFile + counter;
     }
 
     constexpr size_t maxProfilerCount()
     {
-        return std::extent<decltype(_inn_logFileList)>::value * _logProf::maxProfInOneFile;
+        return std::extent_v<decltype(_inn_logFileList)> * _logProf::maxProfInOneFile;
     }
 
     inline long long getCurrTick()
