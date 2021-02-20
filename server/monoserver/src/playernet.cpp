@@ -380,6 +380,11 @@ void Player::net_CM_REQUESTEQUIPWEAR(uint8_t, const uint8_t *buf, size_t)
         return;
     }
 
+    if(!canWear(cmREW.itemID, wltype)){
+        fnPostEquipError(EQWERR_INSUFF);
+        return;
+    }
+
     const auto currItem = m_sdItemStorage.wear.getWLItem(wltype);
     setWLItem(cmREW.wltype, item);
 

@@ -1005,3 +1005,32 @@ void Player::postExp()
     smE.exp = exp();
     postNetMessage(SM_EXP, smE);
 }
+
+bool Player::canWear(uint32_t itemID, int wltype) const
+{
+    if(!(wltype >= WLG_BEGIN && wltype < WLG_END)){
+        throw fflerror("invalid wltype: %d", wltype);
+    }
+
+    if(!itemID){
+        throw fflerror("invalid itemID: %llu", to_llu(itemID));
+    }
+
+    const auto &ir = DBCOM_ITEMRECORD(itemID);
+    if(!ir){
+        return false;
+    }
+
+    if(!ir.wearable(wltype)){
+        return false;
+    }
+
+    if(wltype == WLG_DRESS && getClothGender(itemID) != gender()){
+        return false;
+    }
+
+    // TODO
+    // check item requirement
+
+    return true;
+}

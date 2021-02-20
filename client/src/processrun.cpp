@@ -1827,6 +1827,10 @@ void ProcessRun::requestEquipWear(uint32_t itemID, uint32_t seqID, int wltype)
         throw fflerror("can't equip %s to wltype %d", to_cstr(ir.name), wltype);
     }
 
+    if(!getMyHero()->canWear(itemID, wltype)){
+        return;
+    }
+
     CMRequestEquipWear cmREW;
     std::memset(&cmREW, 0, sizeof(cmREW));
 

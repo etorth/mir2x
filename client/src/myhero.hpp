@@ -140,4 +140,7 @@ class MyHero: public Hero
         {
             m_sdBelt.list.at(slot) = std::move(item);
         }
+
+    public:
+        bool canWear(uint32_t, int) const;
 };

@@ -66,6 +66,11 @@ class Hero: public CreatureMovable
             return m_horse;
         }
 
+        bool gender() const
+        {
+            return uidf::getPlayerGender(UID());
+        }
+
     public:
         bool moving();
 

@@ -287,9 +287,17 @@ class Player final: public CharObject
             return uidf::getPlayerDBID(UID());
         }
 
+        bool gender() const
+        {
+            return uidf::getPlayerGender(UID());
+        }
+
     private:
         void setWLItem(int, SDItem);
 
     private:
         SDItem createItem(uint32_t);
+
+    private:
+        bool canWear(uint32_t, int) const;
 };

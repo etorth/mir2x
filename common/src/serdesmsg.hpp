@@ -49,7 +49,7 @@ struct SDInitPlayer
 
     template<typename Archive> void serialize(Archive & ar)
     {
-        ar(dbid, channID, name, nameColor, x, y, mapID, exp, gold, jobList, hair, hairColor);
+        ar(dbid, channID, name, nameColor, x, y, mapID, exp, gold, gender, jobList, hair, hairColor);
     }
 };
 

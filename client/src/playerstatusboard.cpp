@@ -283,7 +283,7 @@ bool PlayerStatusBoard::processEvent(const SDL_Event &event, bool valid)
                             for(size_t i = WLG_BEGIN; i < WLG_END; ++i){
                                 if(mathf::pointInRectangle(event.button.x, event.button.y, x() + m_gridList[i].x, y() + m_gridList[i].y, m_gridList[i].w, m_gridList[i].h)){
                                     if(const auto grabbedItem = invPackRef.getGrabbedItem()){
-                                        if(DBCOM_ITEMRECORD(grabbedItem.itemID).wearable(i)){
+                                        if(myHeroPtr->canWear(grabbedItem.itemID, i)){
                                             m_processRun->requestEquipWear(grabbedItem.itemID, grabbedItem.seqID, i);
                                         }
                                         else{
