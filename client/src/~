@@ -652,13 +652,85 @@ void ProcessRun::net_GRABBELT(const uint8_t *buf, size_t bufSize)
     auto myHeroPtr = getMyHero();
     auto &invPackRef = myHeroPtr->getInvPack();
 
-    myHeroPtr->setBelt(sdGB.slot, {});
+    myHeroPtr->setWLItem(slot, {});
     if(auto currItem = invPackRef.getGrabbedItem()){
         invPackRef.add(std::move(currItem));
     }
     invPackRef.setGrabbedItem(std::move(sdGB.item));
 }
 
+void ProcessRun::net_GRABBELTERROR(const uint8_t *buf, size_t)
+{
+    const auto smGBE = ServerMsg::conv<SMGrabBeltError>(buf);
+    switch(smGBE.error){
+        default:
+            {
+                break;
+            }
+    }
+}
+
+void ProcessRun::net_GRABWEAR(const uint8_t *buf, size_t bufSize)
+{
+    auto sdGW = cerealf::deserialize<SDGrabWear>(buf, bufSize);
+    if(!sdGW.item){
+        throw fflerror("invalid wear item: %s", to_cstr(sdGW.item.str()));
+    }
+
+    const auto wltype = to_d(sdGW.wltype);
+    if(!(wltype >= WLG_BEGIN && wltype < WLG_END)){
+        throw fflerror("invalid wear grid type: %d", wltype);
+    }
+
+    auto myHeroPtr = getMyHero();
+    auto &invPackRef = myHeroPtr->getInvPack();
+
+    myHeroPtr->setWLItem(wltype, {});
+    if(auto currItem = invPackRef.getGrabbedItem()){
+        invPackRef.add(std::move(currItem));
+    }
+    invPackRef.setGrabbedItem(std::move(sdGW.item));
+}
+
+void ProcessRun::net_GRABWEARERROR(const uint8_t *buf, size_t)
+{
+    const auto smGWE = ServerMsg::conv<SMGrabWearError>(buf);
+    switch(smGWE.error){
+        case GWERR_BIND:
+            {
+                addCBLog(CBLOG_ERR, u8"无法取下装备");
+                return;
+            }
+        case GWERR_NOITEM:
+        default:
+            {
+                break;
+            }
+    }
+}
+
+
+void ProcessRun::net_GRABBELT(const uint8_t *buf, size_t bufSize)
+{
+    auto sdGB = cerealf::deserialize<SDGrabBelt>(buf, bufSize);
+    if(!sdGB.item){
+        throw fflerror("invalid belt item: %s", to_cstr(sdGB.item.str()));
+    }
+
+    const auto slot = to_d(sdGB.slot);
+    if(!(slot >= 0 && slot < 6)){
+        throw fflerror("invalid belt slot: %d", slot);
+    }
+
+    auto myHeroPtr = getMyHero();
+    auto &invPackRef = myHeroPtr->getInvPack();
+
+    myHeroPtr->setWLItem(slot, {});
+    if(auto currItem = invPackRef.getGrabbedItem()){
+        invPackRef.add(std::move(currItem));
+    }
+    invPackRef.setGrabbedItem(std::move(sdGB.item));
+}
 void ProcessRun::net_GRABBELTERROR(const uint8_t *buf, size_t)
 {
     const auto smGBE = ServerMsg::conv<SMGrabBeltError>(buf);

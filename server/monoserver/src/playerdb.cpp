@@ -126,10 +126,10 @@ void Player::dbLoadBelt()
     }
 }
 
-void Player::dbUpdateBeltItem(size_t index, const SDItem &item)
+void Player::dbUpdateBeltItem(size_t slot, const SDItem &item)
 {
-    if(index >= 6){
-        throw fflerror("invalid belt slot index: %zu", index);
+    if(slot >= 6){
+        throw fflerror("invalid belt slot: %zu", slot);
     }
 
     item.checkEx();
@@ -146,17 +146,17 @@ void Player::dbUpdateBeltItem(size_t index, const SDItem &item)
             u8R"###(     (%llu, %llu, %llu, %llu)                                     )###",
 
             to_llu(dbid()),
-            to_llu(index),
+            to_llu(slot),
             to_llu(item.itemID),
             to_llu(item.count));
 }
 
-void Player::dbRemoveBeltItem(size_t index)
+void Player::dbRemoveBeltItem(size_t slot)
 {
-    if(index >= 6){
-        throw fflerror("invalid belt slot index: %zu", index);
+    if(slot >= 6){
+        throw fflerror("invalid belt slot: %zu", slot);
     }
-    g_dbPod->exec("delete from tbl_belt where fld_dbid = %llu and fld_belt = %zu", to_llu(dbid()), index);
+    g_dbPod->exec("delete from tbl_belt where fld_dbid = %llu and fld_belt = %zu", to_llu(dbid()), slot);
 }
 
 void Player::dbLoadWear()

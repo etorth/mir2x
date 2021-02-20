@@ -343,6 +343,26 @@ struct SDGrabWear
     }
 };
 
+struct SDEquipBelt
+{
+    int slot = -1;
+    SDItem item;
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(slot, item);
+    }
+};
+
+struct SDGrabBelt
+{
+    int slot = -1;
+    SDItem item;
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(slot, item);
+    }
+};
+
 struct SDBuyCost
 {
     SDItem item;

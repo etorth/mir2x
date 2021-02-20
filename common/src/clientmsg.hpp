@@ -48,6 +48,8 @@ enum CMType: uint8_t
     CM_BUY,
     CM_REQUESTEQUIPWEAR,
     CM_REQUESTGRABWEAR,
+    CM_REQUESTEQUIPBELT,
+    CM_REQUESTGRABBELT,
     CM_END,
 };
 
@@ -149,14 +151,26 @@ struct CMBuy
 
 struct CMRequestEquipWear
 {
-    uint16_t wltype;
     uint32_t itemID;
-    uint32_t  seqID;
+    uint32_t seqID;
+    uint16_t wltype;
 };
 
 struct CMRequestGrabWear
 {
     uint16_t wltype;
+};
+
+struct CMRequestEquipBelt
+{
+    uint32_t itemID;
+    uint32_t seqID;
+    uint16_t slot;
+};
+
+struct CMRequestGrabBelt
+{
+    uint16_t slot;
 };
 #pragma pack(pop)
 
@@ -200,6 +214,8 @@ class ClientMsg final: public MsgBase
                 _add_client_msg_type_case(CM_BUY,                1, sizeof(CMBuy)               )
                 _add_client_msg_type_case(CM_REQUESTEQUIPWEAR,   1, sizeof(CMRequestEquipWear)  )
                 _add_client_msg_type_case(CM_REQUESTGRABWEAR,    1, sizeof(CMRequestGrabWear)   )
+                _add_client_msg_type_case(CM_REQUESTEQUIPBELT,   1, sizeof(CMRequestEquipBelt)  )
+                _add_client_msg_type_case(CM_REQUESTGRABBELT,    1, sizeof(CMRequestGrabBelt)   )
 #undef _add_client_msg_type_case
             };
 
@@ -228,7 +244,9 @@ class ClientMsg final: public MsgBase
                     || std::is_same_v<T, CMConsumeItem>
                     || std::is_same_v<T, CMBuy>
                     || std::is_same_v<T, CMRequestEquipWear>
-                    || std::is_same_v<T, CMRequestGrabWear>);
+                    || std::is_same_v<T, CMRequestGrabWear>
+                    || std::is_same_v<T, CMRequestEquipBelt>
+                    || std::is_same_v<T, CMRequestGrabBelt>);
 
             if(bufLen && bufLen != sizeof(T)){
                 throw fflerror("invalid buffer length");

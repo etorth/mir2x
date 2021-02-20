@@ -431,6 +431,34 @@ void Client::onServerMessage(uint8_t headCode, const uint8_t *pData, size_t nDat
                 }
                 break;
             }
+        case SM_EQUIPBELT:
+            {
+                if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+                    pRun->net_EQUIPBELT(pData, nDataLen);
+                }
+                break;
+            }
+        case SM_EQUIPBELTERROR:
+            {
+                if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+                    pRun->net_EQUIPBELTERROR(pData, nDataLen);
+                }
+                break;
+            }
+        case SM_GRABBELT:
+            {
+                if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+                    pRun->net_GRABBELT(pData, nDataLen);
+                }
+                break;
+            }
+        case SM_GRABBELTERROR:
+            {
+                if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+                    pRun->net_GRABBELTERROR(pData, nDataLen);
+                }
+                break;
+            }
         default:
             {
                 break;

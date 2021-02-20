@@ -401,6 +401,63 @@ void Player::net_CM_REQUESTEQUIPWEAR(uint8_t, const uint8_t *buf, size_t)
     }
 }
 
+void Player::net_CM_REQUESTEQUIPBELT(uint8_t, const uint8_t *buf, size_t)
+{
+    const auto cmREB = ClientMsg::conv<CMRequestEquipBelt>(buf);
+    const auto fnPostEquipError = [&cmREB, this](int equipError)
+    {
+        SMEquipBeltError smEBE;
+        std::memset(&smEBE, 0, sizeof(smEBE));
+
+        smEBE.itemID = cmREB.itemID;
+        smEBE.seqID = cmREB.seqID;
+        smEBE.error = equipError;
+        postNetMessage(SM_EQUIPBELTERROR, smEBE);
+    };
+
+    const auto &ir = DBCOM_ITEMRECORD(cmREB.itemID);
+    if(!ir){
+        fnPostEquipError(EQBERR_BADITEM);
+        return;
+    }
+
+    if(!ir.beltable()){
+        fnPostEquipError(EQBERR_BADITEMTYPE);
+        return;
+    }
+
+    const auto slot = to_d(cmREB.slot);
+    if(!(slot >= 0 && slot < 6)){
+        fnPostEquipError(EQBERR_BADSLOT);
+        return;
+    }
+
+    const auto item = findInventoryItem(cmREB.itemID, cmREB.seqID);
+    if(!item){
+        fnPostEquipError(EQBERR_NOITEM);
+        return;
+    }
+
+    const auto currItem = m_sdItemStorage.belt.list.at(slot);
+    m_sdItemStorage.belt.list.at(slot) = item;
+
+    removeInventoryItem(item);
+    dbUpdateBeltItem(slot, item);
+    postNetMessage(SM_EQUIPBELT, cerealf::serialize(SDEquipBelt
+    {
+        .slot = slot,
+        .item = item,
+    }));
+
+    // put last item into inventory
+    // should I support to set it as grabbed?
+    // when user finishes item switch, they usually directly put it into inventory
+
+    if(currItem){
+        addInventoryItem(currItem, false);
+    }
+}
+
 void Player::net_CM_REQUESTGRABWEAR(uint8_t, const uint8_t *buf, size_t)
 {
     const auto cmRGW = ClientMsg::conv<CMRequestGrabWear>(buf);
@@ -431,6 +488,39 @@ void Player::net_CM_REQUESTGRABWEAR(uint8_t, const uint8_t *buf, size_t)
     postNetMessage(SM_GRABWEAR, cerealf::serialize(SDGrabWear
     {
         .wltype = wltype,
+        .item = addedItem,
+    }));
+}
+
+void Player::net_CM_REQUESTGRABBELT(uint8_t, const uint8_t *buf, size_t)
+{
+    const auto cmRGB = ClientMsg::conv<CMRequestGrabBelt>(buf);
+    const auto fnPostGrabError = [&cmRGB, this](int grabError)
+    {
+        SMGrabBeltError smGBE;
+        std::memset(&smGBE, 0, sizeof(smGBE));
+        smGBE.error = grabError;
+        postNetMessage(SM_GRABBELTERROR, smGBE);
+    };
+
+    const auto currItem = m_sdItemStorage.belt.list.at(cmRGB.slot);
+    if(!currItem){
+        fnPostGrabError(GBERR_NOITEM);
+        return;
+    }
+
+    // server doesn not track if item is grabbed or in inventory
+    // when disarms the wear item, server always put it into the inventory
+
+    m_sdItemStorage.belt.list.at(cmRGB.slot) = {};
+    dbRemoveBeltItem(cmRGB.slot);
+
+    const auto &addedItem = m_sdItemStorage.inventory.add(currItem, false);
+    dbUpdateInventoryItem(addedItem);
+
+    postNetMessage(SM_GRABBELT, cerealf::serialize(SDGrabBelt
+    {
+        .slot = to_d(cmRGB.slot),
         .item = addedItem,
     }));
 }

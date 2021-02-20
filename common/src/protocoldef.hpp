@@ -313,3 +313,22 @@ enum GrabWearErrorType: int
     GWERR_BIND, // some item you can't manually remove it after wear
     GWERR_END,
 };
+
+enum EquipBeltErrorType: int
+{
+    EQBERR_NONE = 0,
+    EQBERR_BEGIN = 1,
+    EQBERR_NOITEM = 1,
+    EQBERR_BADITEM,
+    EQBERR_BADITEMTYPE,
+    EQBERR_BADSLOT,
+    EQBERR_END,
+};
+
+enum GrabBeltErrorType: int
+{
+    GBERR_NONE = 0,
+    GBERR_BEGIN = 1,
+    GBERR_NOITEM = 1,
+    GBERR_END,
+};

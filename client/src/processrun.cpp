@@ -1852,6 +1852,50 @@ void ProcessRun::requestGrabWear(int wltype)
     g_client->send(CM_REQUESTGRABWEAR, cmRGW);
 }
 
+void ProcessRun::requestEquipBelt(uint32_t itemID, uint32_t seqID, int slot)
+{
+    if(!(slot >= 0 && slot < 6)){
+        throw fflerror("invalid slot: %d", slot);
+    }
+
+    const auto &ir = DBCOM_ITEMRECORD(itemID);
+    if(!ir){
+        throw fflerror("invalid itemID: %llu", to_llu(itemID));
+    }
+
+    if(!seqID){
+        throw fflerror("invalid seqID: %llu", to_llu(seqID));
+    }
+
+    if(!ir.beltable()){
+        throw fflerror("can't equip %s to slot %d", to_cstr(ir.name), slot);
+    }
+
+    CMRequestEquipBelt cmREB;
+    std::memset(&cmREB, 0, sizeof(cmREB));
+
+    cmREB.itemID = itemID;
+    cmREB.seqID = seqID;
+    cmREB.slot = slot;
+    g_client->send(CM_REQUESTEQUIPBELT, cmREB);
+}
+
+void ProcessRun::requestGrabBelt(int slot)
+{
+    if(!(slot >= 0 && slot < 6)){
+        throw fflerror("invalid slot: %d", slot);
+    }
+
+    if(!getMyHero()->getBelt(slot)){
+        return;
+    }
+
+    CMRequestGrabBelt cmRGB;
+    std::memset(&cmRGB, 0, sizeof(cmRGB));
+    cmRGB.slot = slot;
+    g_client->send(CM_REQUESTGRABBELT, cmRGB);
+}
+
 void ProcessRun::requestDropItem(uint32_t itemID, uint32_t seqID, size_t count)
 {
     SDItem

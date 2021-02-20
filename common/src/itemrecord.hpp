@@ -71,6 +71,13 @@ struct ItemRecord
             || std::u8string_view(type) == u8"药粉";
     }
 
+    constexpr bool beltable() const
+    {
+        return false
+            || std::u8string_view(type) == u8"恢复药水"
+            || std::u8string_view(type) == u8"传送卷轴";
+    }
+
     constexpr bool wearable(int wltype) const
     {
         switch(wltype){

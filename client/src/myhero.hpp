@@ -107,6 +107,11 @@ class MyHero: public Hero
             return m_sdBelt;
         }
 
+        SDItem &getBelt(size_t i)
+        {
+            return m_sdBelt.list.at(i);
+        }
+
     public:
         bool stayIdle() const override
         {
@@ -129,5 +134,10 @@ class MyHero: public Hero
         void setBelt(SDBelt belt)
         {
             m_sdBelt = std::move(belt);
+        }
+
+        void setBelt(int slot, SDItem item)
+        {
+            m_sdBelt.list.at(slot) = std::move(item);
         }
 };

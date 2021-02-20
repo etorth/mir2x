@@ -214,6 +214,10 @@ class ProcessRun: public Process
         void net_EQUIPWEARERROR(const uint8_t *, size_t);
         void net_GRABWEAR(const uint8_t *, size_t);
         void net_GRABWEARERROR(const uint8_t *, size_t);
+        void net_EQUIPBELT(const uint8_t *, size_t);
+        void net_EQUIPBELTERROR(const uint8_t *, size_t);
+        void net_GRABBELT(const uint8_t *, size_t);
+        void net_GRABBELTERROR(const uint8_t *, size_t);
 
     public:
         bool canMove(bool, int, int, int);
@@ -389,6 +393,8 @@ class ProcessRun: public Process
         void requestConsumeItem(uint32_t, uint32_t, size_t);
         void requestEquipWear(uint32_t, uint32_t, int);
         void requestGrabWear(int);
+        void requestEquipBelt(uint32_t, uint32_t, int);
+        void requestGrabBelt(int);
         void requestDropItem(uint32_t, uint32_t, size_t);
 
     public:

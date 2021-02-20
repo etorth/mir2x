@@ -79,16 +79,17 @@ void QuickAccessBoard::drawEx(int dstX, int dstY, int, int, int, int) const
     }
 
     m_buttonClose.drawEx(dstX + m_buttonClose.dx(), dstY + m_buttonClose.dy(), 0, 0, m_buttonClose.w(), m_buttonClose.h());
-    for(int i = 0; const auto &item: m_processRun->getMyHero()->getBelt().list){
+    for(int slot = 0; slot < 6; ++slot){
+        const auto &item = m_processRun->getMyHero()->getBelt(slot);
         if(!item){
             continue;
         }
 
+        const auto [gridX, gridY, gridW, gridH] = getGridLoc(slot);
         if(auto texPtr = g_itemDB->Retrieve(DBCOM_ITEMRECORD(item.itemID).pkgGfxID | 0X01000000)){
-            const auto [x, y, w, h] = getGridLoc(i++);
             const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);
-            const auto drawDstX = this->x() + x + (w - texW) / 2;
-            const auto drawDstY = this->y() + y + (h - texH) / 2;
+            const auto drawDstX = x() + gridX + (gridW - texW) / 2;
+            const auto drawDstY = y() + gridY + (gridH - texH) / 2;
             g_sdlDevice->drawTexture(texPtr, drawDstX, drawDstY);
         }
     }
@@ -133,6 +134,28 @@ bool QuickAccessBoard::processEvent(const SDL_Event &event, bool valid)
                 switch(event.button.button){
                     case SDL_BUTTON_LEFT:
                         {
+                            auto &beltRef = m_processRun->getMyHero()->getBelt();
+                            auto &invPackRef = m_processRun->getMyHero()->getInvPack();
+                            for(int i = 0; i < 6; ++i){
+                                const auto [gridX, gridY, gridW, gridH] = getGridLoc(i);
+                                if(mathf::pointInRectangle(event.button.x, event.button.y, x() + gridX, y() + gridY, gridW, gridH)){
+                                    if(const auto grabbedItem = invPackRef.getGrabbedItem()){
+                                        const auto &ir = DBCOM_ITEMRECORD(grabbedItem.itemID);
+                                        if(ir.beltable()){
+                                            m_processRun->requestEquipBelt(grabbedItem.itemID, grabbedItem.seqID, i);
+                                        }
+                                        else{
+                                            invPackRef.add(grabbedItem);
+                                            invPackRef.setGrabbedItem({});
+                                        }
+                                    }
+                                    else if(beltRef.list.at(i)){
+                                        m_processRun->requestGrabBelt(i);
+                                    }
+                                    break;
+                                }
+                            }
+
                             if(in(event.button.x, event.button.y)){
                                 focus(true);
                                 return true;

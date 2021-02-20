@@ -143,6 +143,8 @@ class Player final: public CharObject
         void net_CM_NPCEVENT          (uint8_t, const uint8_t *, size_t);
         void net_CM_REQUESTEQUIPWEAR  (uint8_t, const uint8_t *, size_t);
         void net_CM_REQUESTGRABWEAR   (uint8_t, const uint8_t *, size_t);
+        void net_CM_REQUESTEQUIPBELT  (uint8_t, const uint8_t *, size_t);
+        void net_CM_REQUESTGRABBELT   (uint8_t, const uint8_t *, size_t);
         void net_CM_DROPITEM          (uint8_t, const uint8_t *, size_t);
 
     protected:
