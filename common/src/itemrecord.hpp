@@ -67,7 +67,8 @@ struct ItemRecord
         return false
             || std::u8string_view(type) == u8"恢复药水"
             || std::u8string_view(type) == u8"传送卷轴"
-            || std::u8string_view(type) == u8"护身符";
+            || std::u8string_view(type) == u8"护身符"
+            || std::u8string_view(type) == u8"药粉";
     }
 
     constexpr bool wearable(int wltype) const
@@ -83,7 +84,7 @@ struct ItemRecord
             case WLG_RING0   : return std::u8string_view(u8"戒指") == type;
             case WLG_RING1   : return std::u8string_view(u8"戒指") == type;
             case WLG_TORCH   : return std::u8string_view(u8"火把") == type;
-            case WLG_CHARM   : return std::u8string_view(u8"魅力|护身符").find(type) != std::u8string_view::npos;
+            case WLG_CHARM   : return std::u8string_view(u8"魅力|护身符|药粉").find(type) != std::u8string_view::npos;
             default          : return false;
         }
     }
