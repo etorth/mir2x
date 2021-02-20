@@ -10,6 +10,7 @@ environment:
     PATH: $(VCPKG_INSTALLED_TOOLS_PATH%);$(VCPKG_INSTALLED_TOOLS_PATH)\fltk;$(VCPKG_INSTALLED_TOOLS_PATH)\lua;$(PATH)
     CMAKE_GENERATOR: -G"Visual Studio 16 2019"
     CMAKE_TOOLCHAIN_FILE: -DCMAKE_TOOLCHAIN_FILE="C:\Tools\vcpkg\scripts\buildsystems\vcpkg.cmake"
+    CMAKE_VERBOSE_MAKEFILE: -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON
     VCPKG_DEFAULT_TRIPLET: x64-windows
     VCPKG_TARGET_TRIPLET: -DVCPKG_TARGET_TRIPLET=x64-windows-static
 
@@ -47,7 +48,7 @@ before_build:
         mkdir build
         cd build
         cmake --version
-        cmake .. %CMAKE_GENERATOR% %CMAKE_TOOLCHAIN_FILE% %VCPKG_TARGET_TRIPLET%
+        cmake .. %CMAKE_GENERATOR% %CMAKE_TOOLCHAIN_FILE% %CMAKE_VERBOSE_MAKEFILE% %VCPKG_TARGET_TRIPLET%
         cmake --build . --target package --config Release
 
 build_script:
