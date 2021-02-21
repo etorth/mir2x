@@ -21,7 +21,9 @@ enum FocusType: int
 {
     FOCUS_NONE  = 0,
     FOCUS_BEGIN = 1,
-    FOCUS_MOUSE = 1,
+    FOCUS_SOLID = 1, // draw everything normally, rest only draw body
+    FOCUS_ALPHA,     // draw body with alpha, used when behind buildings
+    FOCUS_MOUSE,
     FOCUS_MAGIC,
     FOCUS_FOLLOW,
     FOCUS_ATTACK,
