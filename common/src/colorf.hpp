@@ -94,7 +94,7 @@ namespace colorf
         return ((uint32_t)(R(colorRGBA)) << 0) | ((uint32_t)(G(colorRGBA)) << 8) | ((uint32_t)(B(colorRGBA)) << 16) | ((uint32_t)(A(colorRGBA)) << 24);
     }
 
-    template<typename T> constexpr uint8_t Round255(T nValue)
+    template<typename T> constexpr uint8_t round255(T nValue)
     {
         if(nValue < T(0)){
             return 0;
@@ -109,7 +109,7 @@ namespace colorf
 
     constexpr uint32_t RGBA_F(double fR, double fG, double fB, double fA)
     {
-        return RGBA(Round255(fR * 255.0), Round255(fG * 255.0), Round255(fB * 255.0), Round255(fA * 255.0));
+        return RGBA(round255(fR * 255.0), round255(fG * 255.0), round255(fB * 255.0), round255(fA * 255.0));
     }
 
     constexpr uint32_t RED     = RGBA(0XFF, 0X00, 0X00, 0X00);
@@ -123,29 +123,29 @@ namespace colorf
     constexpr uint32_t PURPLE  = RGBA(0XAB, 0X27, 0X4F, 0X00);
 
 
-    constexpr uint32_t RenderRGBA(uint32_t nDstColor, uint32_t nSrcColor)
+    constexpr uint32_t renderRGBA(uint32_t dstColor, uint32_t srcColor)
     {
-        auto nDstR = R(nDstColor);
-        auto nDstG = G(nDstColor);
-        auto nDstB = B(nDstColor);
-        auto nDstA = A(nDstColor);
+        auto dstR = R(dstColor);
+        auto dstG = G(dstColor);
+        auto dstB = B(dstColor);
+        auto dstA = A(dstColor);
 
-        auto nSrcR = R(nSrcColor);
-        auto nSrcG = G(nSrcColor);
-        auto nSrcB = B(nSrcColor);
-        auto nSrcA = A(nSrcColor);
+        auto srcR = R(srcColor);
+        auto srcG = G(srcColor);
+        auto srcB = B(srcColor);
+        auto srcA = A(srcColor);
 
-        double fAlpha = nSrcA / 255.0;
+        double fAlpha = srcA / 255.0;
 
-        nDstR = Round255(fAlpha * nSrcR + (1.0 - fAlpha) * nDstR);
-        nDstG = Round255(fAlpha * nSrcG + (1.0 - fAlpha) * nDstG);
-        nDstB = Round255(fAlpha * nSrcB + (1.0 - fAlpha) * nDstB);
-        nDstA = Round255(         nSrcA + (1.0 - fAlpha) * nDstA);
+        dstR = round255(fAlpha * srcR + (1.0 - fAlpha) * dstR);
+        dstG = round255(fAlpha * srcG + (1.0 - fAlpha) * dstG);
+        dstB = round255(fAlpha * srcB + (1.0 - fAlpha) * dstB);
+        dstA = round255(         srcA + (1.0 - fAlpha) * dstA);
 
-        return RGBA(nDstR, nDstG, nDstB, nDstA);
+        return RGBA(dstR, dstG, dstB, dstA);
     }
 
-    constexpr uint32_t RenderABGR(uint32_t dstColor, uint32_t srcColor)
+    constexpr uint32_t renderABGR(uint32_t dstColor, uint32_t srcColor)
     {
         uint8_t dstR = (dstColor & 0X000000FF) >>  0;
         uint8_t dstG = (dstColor & 0X0000FF00) >>  8;
@@ -159,10 +159,10 @@ namespace colorf
 
         const double alpha = srcA / 255.0;
 
-        dstR = Round255(alpha * srcR + (1.0 - alpha) * dstR);
-        dstG = Round255(alpha * srcG + (1.0 - alpha) * dstG);
-        dstB = Round255(alpha * srcB + (1.0 - alpha) * dstB);
-        dstA = Round255(        srcA + (1.0 - alpha) * dstA);
+        dstR = round255(alpha * srcR + (1.0 - alpha) * dstR);
+        dstG = round255(alpha * srcG + (1.0 - alpha) * dstG);
+        dstB = round255(alpha * srcB + (1.0 - alpha) * dstB);
+        dstA = round255(        srcA + (1.0 - alpha) * dstA);
 
         return ((uint32_t)(dstA) << 24) | ((uint32_t)(dstB) << 16) | ((uint32_t)(dstG) <<  8) | ((uint32_t)(dstR) <<  0);
     }
@@ -178,10 +178,10 @@ namespace colorf
         auto fDA = ((float)(A(nColor1)) - (float)(A(nColor0))) / (GradientCount - 1.0);
 
         for(size_t nIndex = 0; nIndex < GradientCount; ++nIndex){
-            uint8_t nR = Round255(R(nColor0) + nIndex * fDR);
-            uint8_t nG = Round255(G(nColor0) + nIndex * fDG);
-            uint8_t nB = Round255(B(nColor0) + nIndex * fDB);
-            uint8_t nA = Round255(A(nColor0) + nIndex * fDA);
+            uint8_t nR = round255(R(nColor0) + nIndex * fDR);
+            uint8_t nG = round255(G(nColor0) + nIndex * fDG);
+            uint8_t nB = round255(B(nColor0) + nIndex * fDB);
+            uint8_t nA = round255(A(nColor0) + nIndex * fDA);
             stvGradientColor[nIndex] = RGBA(nR, nG, nB, nA);
         }
         return stvGradientColor;

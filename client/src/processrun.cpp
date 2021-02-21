@@ -350,7 +350,7 @@ void ProcessRun::draw()
                             focusMask |= (1 << f);
                         }
                     }
-                    creaturePtr->draw(m_viewX, m_viewY, focusMask | (1 << FOCUS_SOLID));
+                    creaturePtr->draw(m_viewX, m_viewY, focusMask);
                 }
 
                 if(g_clientArgParser->drawCreatureCover){
@@ -359,12 +359,6 @@ void ProcessRun::draw()
                     g_sdlDevice->fillRectangle(x * SYS_MAPGRIDXP - m_viewX, y * SYS_MAPGRIDYP - m_viewY, SYS_MAPGRIDXP, SYS_MAPGRIDYP);
                 }
             }
-        }
-    }
-
-    for(const auto [p, coList]: coLocList){
-        for(const auto coPtr: coList){
-            coPtr->draw(m_viewX, m_viewY, FOCUS_ALPHA);
         }
     }
 
