@@ -203,16 +203,10 @@ const WILIMAGEINFO &WilImagePackage::CurrentImageInfo()
 {
     if(m_currentImageValid){
         return m_currentWilImageInfo;
-    }else{
-        const static WILIMAGEINFO rstEmptyImageInfo = []()
-        {
-            WILIMAGEINFO stWilImageInfo;
-            std::memset(&stWilImageInfo, 0, sizeof(stWilImageInfo));
-            return stWilImageInfo;
-        }();
-
-        return rstEmptyImageInfo;
     }
+
+    const static WILIMAGEINFO s_emptyImageInfo{};
+    return s_emptyImageInfo;
 }
 
 void WilImagePackage::Decode(uint32_t *rectImageBuffer, uint32_t dwColor0, uint32_t dwColor1, uint32_t dwColor2)

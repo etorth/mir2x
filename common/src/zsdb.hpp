@@ -97,7 +97,7 @@ class ZSDB final
         bool decompEntry(const InnEntry &, std::vector<uint8_t> *);
 
     private:
-        static const InnEntry &getErrorEntry();
+        static InnEntry getErrorEntry();
 
     public:
         std::vector<ZSDB::Entry> getEntryList() const;

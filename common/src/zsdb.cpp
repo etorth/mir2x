@@ -145,20 +145,16 @@ static std::vector<uint8_t> decompFileOffData(std::FILE *fp, size_t dataOff, siz
     return decompressDataBuf(compBuf.data(), compBuf.size(), dctxPtr, ddictPtr);
 }
 
-const ZSDB::InnEntry &ZSDB::getErrorEntry()
+ZSDB::InnEntry ZSDB::getErrorEntry()
 {
-    const static auto s_errorEntry = []() -> InnEntry
-    {
-        InnEntry errorEntry;
-        std::memset(&errorEntry, 0, sizeof(errorEntry));
+    InnEntry errorEntry;
+    std::memset(&errorEntry, 0, sizeof(errorEntry));
 
-        errorEntry.offset    = 0X0123456789ABCDEF;
-        errorEntry.length    = 0XFEDCBA9876543210;
-        errorEntry.fileName  = 0X0123456789ABCDEF;
-        errorEntry.attribute = 0XFEDCBA9876543210;
-        return errorEntry;
-    }();
-    return s_errorEntry;
+    errorEntry.offset    = 0X0123456789ABCDEF;
+    errorEntry.length    = 0XFEDCBA9876543210;
+    errorEntry.fileName  = 0X0123456789ABCDEF;
+    errorEntry.attribute = 0XFEDCBA9876543210;
+    return errorEntry;
 }
 
 ZSDB::ZSDB(const char *filePath)
@@ -205,7 +201,8 @@ ZSDB::ZSDB(const char *filePath)
             m_entryList.clear();
             m_entryList.insert(m_entryList.end(), headPtr, headPtr + m_header.entryNum + 1);
 
-            if(std::memcmp(&m_entryList.back(), &getErrorEntry(), sizeof(InnEntry))){
+            const auto errEntry = getErrorEntry();
+            if(std::memcmp(&m_entryList.back(), &errEntry, sizeof(InnEntry))){
                 throw fflerror("zsdb database file corrupted");
             }
             m_entryList.pop_back();
