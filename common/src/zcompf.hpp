@@ -56,7 +56,7 @@ namespace zcompf
 
     template<typename C> void lz4Decode(C &dst, size_t maxDstSize, const uint8_t *src, size_t srcSize)
     {
-        using VALUE_TYPE = C::value_type;
+        using VALUE_TYPE = typename C::value_type;
         static_assert(std::is_trivially_copyable_v<VALUE_TYPE>);
 
         if(!(maxDstSize && src && srcSize)){
@@ -97,7 +97,7 @@ namespace zcompf
 
     template<typename C> void zstdDecode(C &dst, const uint8_t *src, size_t srcSize)
     {
-        using VALUE_TYPE = C::value_type;
+        using VALUE_TYPE = typename C::value_type;
         static_assert(std::is_trivially_copyable_v<VALUE_TYPE>);
 
         switch(const auto decompSize = ZSTD_getFrameContentSize(src, srcSize)){
