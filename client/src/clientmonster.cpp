@@ -262,7 +262,7 @@ void ClientMonster::draw(int viewX, int viewY, int focusMask)
         if(true
                 && pTexture
                 && nFocusChan >= 0
-                && nFocusChan <  FOCUS_MAX){
+                && nFocusChan <  FOCUS_END){
 
             // if provided channel as 0
             // just blend it using the original color
@@ -292,7 +292,7 @@ void ClientMonster::draw(int viewX, int viewY, int focusMask)
         }
     }
 
-    for(int nFocusChan = 1; nFocusChan < FOCUS_MAX; ++nFocusChan){
+    for(int nFocusChan = 1; nFocusChan < FOCUS_END; ++nFocusChan){
         if(focusMask & (1 << nFocusChan)){
             fnBlendFrame(pFrame0, nFocusChan, startX + nDX0, startY + nDY0);
         }

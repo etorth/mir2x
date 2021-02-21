@@ -138,7 +138,7 @@ void ClientNPC::draw(int viewX, int viewY, int focusMask)
             return;
         }
 
-        if(!(focusChan >= 0 && focusChan < FOCUS_MAX)){
+        if(!(focusChan >= 0 && focusChan < FOCUS_END)){
             return;
         }
 
@@ -157,7 +157,7 @@ void ClientNPC::draw(int viewX, int viewY, int focusMask)
     fnBlendFrame(shadowFrame, FOCUS_NONE, shadowDrawX, shadowDrawY, 128);
     fnBlendFrame(  bodyFrame, FOCUS_NONE,   bodyDrawX,   bodyDrawY, 255);
 
-    for(int focusChan = 1; focusChan < FOCUS_MAX; ++focusChan){
+    for(int focusChan = 1; focusChan < FOCUS_END; ++focusChan){
         if(focusMask & (1 << focusChan)){
             fnBlendFrame(bodyFrame, focusChan, bodyDrawX, bodyDrawY, 255);
         }

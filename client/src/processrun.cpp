@@ -345,7 +345,7 @@ void ProcessRun::draw()
                     }
 
                     int focusMask = 0;
-                    for(auto focusType = 0; focusType < FOCUS_MAX; ++focusType){
+                    for(auto focusType = 0; focusType < FOCUS_END; ++focusType){
                         if(FocusUID(focusType) == creaturePtr->UID()){
                             focusMask |= (1 << focusType);
                         }

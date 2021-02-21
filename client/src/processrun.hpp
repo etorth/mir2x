@@ -87,7 +87,7 @@ class ProcessRun: public Process
         }
 
     private:
-        std::array<uint64_t, FOCUS_MAX> m_focusUIDTable;
+        std::array<uint64_t, FOCUS_END> m_focusUIDTable;
 
     private:
         int m_viewX;
