@@ -2,7 +2,7 @@
 version 1.0304
 header_name {.hpp}
 code_name {.cpp}
-decl {\#include <string>} {private local
+decl {\#include <string>} {public global
 }
 
 decl {\#include <cmath>} {private local
@@ -34,7 +34,7 @@ class MainWindow {} {
 	// don't exit directly
 	// exit(0);
 }}
-      private xywh {2723 259 555 605} type Double labelfont 4 resizable
+      private xywh {2731 290 555 605} type Double labelfont 4 resizable
       code0 {\#include <FL/fl_ask.H>} visible
     } {
       Fl_Menu_Bar m_MenuBar {

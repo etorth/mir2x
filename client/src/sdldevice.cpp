@@ -481,8 +481,8 @@ void SDLDevice::CreateMainWindow()
 
     SDL_DisplayMode stDesktop;
     if(!SDL_GetDesktopDisplayMode(0, &stDesktop)){
-        nWindowW = std::min(nWindowW, stDesktop.w);
-        nWindowH = std::min(nWindowH, stDesktop.h);
+        nWindowW = std::min<int>(nWindowW, stDesktop.w);
+        nWindowH = std::min<int>(nWindowH, stDesktop.h);
     }
 
     if(nWindowW < 800 || nWindowH < 600){
