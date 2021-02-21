@@ -635,7 +635,7 @@ bool Hero::parseAction(const ActionNode &action)
 
                                                 const auto fromX = currMotion()->x * SYS_MAPGRIDXP;
                                                 const auto fromY = currMotion()->y * SYS_MAPGRIDYP;
-                                                const auto targetUID = m_processRun->FocusUID(FOCUS_MAGIC);
+                                                const auto targetUID = m_processRun->focusUID(FOCUS_MAGIC);
                                                 auto magicPtr = new TaoFireFigure_RUN
                                                 {
                                                     fromX,

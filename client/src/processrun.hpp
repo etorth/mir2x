@@ -227,7 +227,7 @@ class ProcessRun: public Process
         double MoveCost(bool, int, int, int, int);
 
     public:
-        uint64_t FocusUID(int);
+        uint64_t focusUID(int);
 
     public:
         bool  luaCommand(const char *);

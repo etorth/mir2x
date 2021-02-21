@@ -205,7 +205,7 @@ void ProcessRun::update(double fUpdateTime)
     }
 }
 
-uint64_t ProcessRun::FocusUID(int nFocusType)
+uint64_t ProcessRun::focusUID(int nFocusType)
 {
     if(nFocusType < (int)(m_focusUIDTable.size())){
         switch(nFocusType){
@@ -318,7 +318,7 @@ void ProcessRun::draw()
 
     drawGroundItem(x0, y0, x1, y1);
 
-    const auto locHashTable = [this]()
+    const auto coLocList = [this]()
     {
         LocHashTable<std::vector<ClientCreature *>> table;
         for(auto &p: m_coList){
@@ -334,7 +334,7 @@ void ProcessRun::draw()
         }
 
         for(int x = x0; x <= x1; ++x){
-            if(auto p = locHashTable.find({x, y}); p != locHashTable.end()){
+            if(auto p = coLocList.find({x, y}); p != coLocList.end()){
                 for(auto creaturePtr: p->second){
                     if(!(creaturePtr && creaturePtr->location() == std::make_tuple(x, y))){
                         throw fflerror("invalid creature location table");
@@ -345,12 +345,12 @@ void ProcessRun::draw()
                     }
 
                     int focusMask = 0;
-                    for(auto focusType = 0; focusType < FOCUS_END; ++focusType){
-                        if(FocusUID(focusType) == creaturePtr->UID()){
-                            focusMask |= (1 << focusType);
+                    for(int f = FOCUS_BEGIN; f < FOCUS_END; ++f){
+                        if(focusUID(f) == creaturePtr->UID()){
+                            focusMask |= (1 << f);
                         }
                     }
-                    creaturePtr->draw(m_viewX, m_viewY, focusMask);
+                    creaturePtr->draw(m_viewX, m_viewY, focusMask | (1 << FOCUS_SOLID));
                 }
 
                 if(g_clientArgParser->drawCreatureCover){
@@ -359,6 +359,12 @@ void ProcessRun::draw()
                     g_sdlDevice->fillRectangle(x * SYS_MAPGRIDXP - m_viewX, y * SYS_MAPGRIDYP - m_viewY, SYS_MAPGRIDXP, SYS_MAPGRIDYP);
                 }
             }
+        }
+    }
+
+    for(const auto [p, coList]: coLocList){
+        for(const auto coPtr: coList){
+            coPtr->draw(m_viewX, m_viewY, FOCUS_ALPHA);
         }
     }
 
@@ -443,7 +449,7 @@ void ProcessRun::processEvent(const SDL_Event &event)
                 switch(event.button.button){
                     case SDL_BUTTON_LEFT:
                         {
-                            if(const auto uid = FocusUID(FOCUS_MOUSE)){
+                            if(const auto uid = focusUID(FOCUS_MOUSE)){
                                 switch(uidf::getUIDType(uid)){
                                     case UID_MON:
                                         {
@@ -492,7 +498,7 @@ void ProcessRun::processEvent(const SDL_Event &event)
                             m_focusUIDTable[FOCUS_ATTACK] = 0;
                             m_focusUIDTable[FOCUS_FOLLOW] = 0;
 
-                            if(auto nUID = FocusUID(FOCUS_MOUSE)){
+                            if(auto nUID = focusUID(FOCUS_MOUSE)){
                                 m_focusUIDTable[FOCUS_FOLLOW] = nUID;
                             }
 
@@ -942,7 +948,7 @@ void ProcessRun::RegisterUserCommand()
 
     m_userCommandList.emplace_back("getAttackUID", [this](const std::vector<std::string> &) -> int
     {
-        addCBLog(CBLOG_ERR, to_u8cstr(std::to_string(FocusUID(FOCUS_ATTACK))));
+        addCBLog(CBLOG_ERR, to_u8cstr(std::to_string(focusUID(FOCUS_ATTACK))));
         return 1;
     });
 
@@ -1185,7 +1191,7 @@ bool ProcessRun::trackAttack(bool bForce, uint64_t nUID)
 uint32_t ProcessRun::GetFocusFaceKey()
 {
     uint32_t nFaceKey = 0X02000000;
-    if(auto nUID = FocusUID(FOCUS_MOUSE)){
+    if(auto nUID = focusUID(FOCUS_MOUSE)){
         if(auto coPtr = findUID(nUID)){
             switch(coPtr->type()){
                 case UID_PLY:
@@ -1675,7 +1681,7 @@ void ProcessRun::checkMagicSpell(const SDL_Event &event)
         case DBCOM_MAGICID(u8"雷电术"):
         case DBCOM_MAGICID(u8"灵魂火符"):
             {
-                if(auto nMouseFocusUID = FocusUID(FOCUS_MOUSE)){
+                if(auto nMouseFocusUID = focusUID(FOCUS_MOUSE)){
                     m_focusUIDTable[FOCUS_MAGIC] = nMouseFocusUID;
                 }
                 else{
@@ -1684,7 +1690,7 @@ void ProcessRun::checkMagicSpell(const SDL_Event &event)
                     }
                 }
 
-                if(auto nFocusUID = FocusUID(FOCUS_MAGIC)){
+                if(auto nFocusUID = focusUID(FOCUS_MAGIC)){
                     getMyHero()->emplaceAction(ActionSpell
                     {
                         .x = getMyHero()->currMotion()->endX,
