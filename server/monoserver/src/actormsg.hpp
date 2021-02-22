@@ -23,8 +23,9 @@
 
 enum ActorMsgPackType: int
 {
-    AM_NONE = 0,
-    AM_OK,
+    AM_NONE  = 0,
+    AM_BEGIN = 1,
+    AM_OK    = 1,
     AM_ERROR,
     AM_BADACTORPOD,
     AM_BADCHANNEL,
@@ -91,7 +92,7 @@ enum ActorMsgPackType: int
     AM_BUY,
     AM_BUYCOST,
     AM_BUYERROR,
-    AM_MAX,
+    AM_END,
 };
 
 struct AMBadActorPod

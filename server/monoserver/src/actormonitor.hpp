@@ -17,6 +17,7 @@
  */
 
 #pragma once
+#include <array>
 #include <cstdint>
 #include "actormsg.hpp"
 
@@ -61,7 +62,7 @@ struct ActorPodMonitor
 {
     uint64_t uid = 0;
     TriggerMonitor triggerMonitor;
-    std::array<AMProcMonitor, AM_MAX> amProcMonitorList;
+    std::array<AMProcMonitor, AM_END> amProcMonitorList;
 
     operator bool () const
     {

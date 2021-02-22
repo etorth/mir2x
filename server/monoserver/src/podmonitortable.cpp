@@ -176,7 +176,7 @@ void PodMonitorTable::updateTable()
 PodMonitorTable::PodMonitorDrawHelper PodMonitorTable::getPodMonitorDrawHelper(const ActorPodMonitor &podMonitor)
 {
     PodMonitorDrawHelper result;
-    result.amProcMonitorList.reserve(AM_MAX / 10);
+    result.amProcMonitorList.reserve(AM_END / 10);
 
     for(int amType = 0; const auto &monitor: podMonitor.amProcMonitorList){
         result.maxSendCount   = std::max<size_t>(result.maxSendCount, monitor.sendCount);
