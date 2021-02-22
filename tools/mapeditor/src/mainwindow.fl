@@ -1146,7 +1146,7 @@ if(g_EditorMap.Valid()){
                             for(int nOnSrcDY = 0; nOnSrcDY < nOnSrcH; ++nOnSrcDY){
                                 auto &nSrc = pSrc[(nOnSrcX + nOnSrcDX) + (nOnSrcY + nOnSrcDY) * nSrcW];
                                 auto &nDst = pDst[(nOnDstX + nOnSrcDX) + (nOnDstY + nOnSrcDY) * nDstW];
-                                nDst = colorf::RenderABGR(nDst, nSrc);
+                                nDst = colorf::renderABGR(nDst, nSrc);
                             }
                         }
                     }
