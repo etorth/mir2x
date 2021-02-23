@@ -916,10 +916,10 @@ void MonoServer::regLuaExport(CommandLuaModule *pModule, uint32_t nCWID)
         return sol::make_object(sol::state_view(stThisLua), GetMapList());
     });
 
-    pModule->getLuaState().script(
-        R"###( function mapID2Name(mapID)                                              )###""\n"
-        R"###(     return "map_name"                                                   )###""\n"
-        R"###( end                                                                     )###""\n");
+    pModule->getLuaState().set_function("mapID2Name", [](int mapID) -> std::string
+    {
+        return to_cstr(DBCOM_MAPRECORD(mapID).name);
+    });
 
     // register command ``listAllMap"
     // this command call getMapIDList to get a table and print to CommandWindow
