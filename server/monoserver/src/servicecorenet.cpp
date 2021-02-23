@@ -125,10 +125,6 @@ void ServiceCore::net_CM_Account(uint32_t channID, uint8_t, const uint8_t *buf, 
         g_netDriver->Post(channID, SM_ACCOUNT, smA);
     };
 
-    if(g_monoServer->createAccount(cmA.id, cmA.password)){
-        fnOnDone(CAERR_NONE);
-    }
-    else{
-        fnOnDone(CAERR_EXIST);
-    }
+    const auto errcode = g_monoServer->createAccount(cmA.id, cmA.password);
+    fnOnDone(errcode);
 }

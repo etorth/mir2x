@@ -152,7 +152,7 @@ bool MonoServer::hasCharacter(const char *charName) const
     return g_dbPod->createQuery(u8R"###(select fld_dbid from tbl_dbid where fld_name = '%s')###", charName).executeStep();
 }
 
-bool MonoServer::createAccount(const char *id, const char *password)
+int MonoServer::createAccount(const char *id, const char *password)
 {
     if(!(str_haschar(id) && (str_haschar(password)))){
         throw fflerror("bad account: id = %s, password = %s", to_cstr(id), to_cstr(password));
@@ -163,11 +163,11 @@ bool MonoServer::createAccount(const char *id, const char *password)
     }
 
     if(g_dbPod->createQuery(u8R"###(select fld_dbid from tbl_account where fld_account ='%s')###", id).executeStep()){
-        return false;
+        return CAERR_EXIST;
     }
 
     g_dbPod->exec(u8R"###(insert into tbl_account(fld_account, fld_password) values ('%s', '%s'))###", id, password);
-    return true;
+    return CAERR_NONE;
 }
 
 bool MonoServer::createAccountCharacter(const char *id, const char *charName, bool gender, const char *job)

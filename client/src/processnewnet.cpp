@@ -42,9 +42,9 @@ void ProcessNew::net_ACCOUNT(const uint8_t *buf, size_t)
                 m_boxPwdConfirm.focus(false);
                 return;
             }
-        case CAERR_BADID:
+        case CAERR_INVALID:
             {
-                setInfoStr(u8"无效的账号", 2);
+                setInfoStr(u8"无效的账号或密码", 2);
                 clearInput();
 
                 m_boxID.focus(true);

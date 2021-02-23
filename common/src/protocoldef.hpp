@@ -338,6 +338,6 @@ enum CreateAccountErrorType: int
     CAERR_NONE = 0,
     CAERR_BEGIN = 1,
     CAERR_EXIST = 1,
-    CAERR_BADID,
+    CAERR_INVALID,
     CAERR_END,
 };
