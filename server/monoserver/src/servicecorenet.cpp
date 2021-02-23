@@ -112,3 +112,23 @@ void ServiceCore::net_CM_Login(uint32_t channID, uint8_t, const uint8_t *buf, si
         }
     });
 }
+
+void ServiceCore::net_CM_Account(uint32_t channID, uint8_t, const uint8_t *buf, size_t)
+{
+    const auto cmA = ClientMsg::conv<CMAccount>(buf);
+    const auto fnOnDone = [channID, cmA](bool error)
+    {
+        SMAccount smA;
+        std::memset(&smA, 0, sizeof(smA));
+
+        smA.error = error;
+        g_netDriver->Post(channID, SM_ACCOUNT, smA);
+    };
+
+    if(g_monoServer->createAccount(cmA.id, cmA.password)){
+        fnOnDone(CAERR_NONE);
+    }
+    else{
+        fnOnDone(CAERR_EXIST);
+    }
+}

@@ -119,9 +119,9 @@ ProcessNew::ProcessNew()
           },
       }
 
-    , m_LBCheckID        (DIR_UPLEFT, 0, 0, u8"√", 0, 15, 0, colorf::RGBA(0xFF, 0X00, 0X00, 0XFF))
-    , m_LBCheckPwd       (DIR_UPLEFT, 0, 0, u8"√", 0, 15, 0, colorf::RGBA(0xFF, 0X00, 0X00, 0XFF))
-    , m_LBCheckPwdConfirm(DIR_UPLEFT, 0, 0, u8"√", 0, 15, 0, colorf::RGBA(0xFF, 0X00, 0X00, 0XFF))
+    , m_LBCheckID        (DIR_UPLEFT, 0, 0, u8"", 0, 15, 0, colorf::RGBA(0xFF, 0X00, 0X00, 0XFF))
+    , m_LBCheckPwd       (DIR_UPLEFT, 0, 0, u8"", 0, 15, 0, colorf::RGBA(0xFF, 0X00, 0X00, 0XFF))
+    , m_LBCheckPwdConfirm(DIR_UPLEFT, 0, 0, u8"", 0, 15, 0, colorf::RGBA(0xFF, 0X00, 0X00, 0XFF))
 
     , m_submit
       {
@@ -345,22 +345,14 @@ void ProcessNew::doPostAccount()
         return;
     }
 
-    setInfoStr(u8"提交...");
-    postAccount(idStr.c_str(), pwdStr.c_str(), 1);
-}
+    setInfoStr(u8"提交中");
 
-void ProcessNew::postAccount(const char *id, const char *pwd, int op)
-{
-    if(str_haschar(id) && str_haschar(pwd)){
-        CMAccount cmA;
-        std::memset(&cmA, 0, sizeof(cmA));
+    CMAccount cmA;
+    std::memset(&cmA, 0, sizeof(cmA));
 
-        std::strcpy(cmA.ID, id);
-        std::strcpy(cmA.Password, pwd);
-
-        cmA.Operation = op;
-        g_client->send(CM_ACCOUNT, cmA);
-    }
+    std::strcpy(cmA.id, idStr.c_str());
+    std::strcpy(cmA.password, pwdStr.c_str());
+    g_client->send(CM_ACCOUNT, cmA);
 }
 
 void ProcessNew::localCheck()

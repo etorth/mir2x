@@ -76,14 +76,6 @@ class ProcessNew: public Process
         void doExit();
 
     private:
-        // post account operation to server
-        // server should respond with SMAccount for the post
-        // operation : 0 : validate only
-        //             1 : create
-        //             2 : login
-        void postAccount(const char *, const char *, int);
-
-    private:
         bool localCheckID (const char *) const;
         bool localCheckPwd(const char *) const;
 
@@ -97,4 +89,7 @@ class ProcessNew: public Process
         bool hasInfo() const;
         void setInfoStr(const char8_t *);
         void setInfoStr(const char8_t *, uint32_t);
+
+    public:
+        void net_ACCOUNT(const uint8_t *, size_t);
 };

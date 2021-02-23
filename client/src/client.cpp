@@ -205,6 +205,13 @@ void Client::onServerMessage(uint8_t headCode, const uint8_t *pData, size_t nDat
 
     // 2. handle messages
     switch(headCode){
+        case SM_ACCOUNT:
+            {
+                if(auto proc = (ProcessNew *)(ProcessValid(PROCESSID_NEW))){
+                    proc->net_ACCOUNT(pData, nDataLen);
+                }
+                break;
+            }
         case SM_UPDATEHP:
             {
                 if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){

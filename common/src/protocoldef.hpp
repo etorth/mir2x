@@ -332,3 +332,12 @@ enum GrabBeltErrorType: int
     GBERR_NOITEM = 1,
     GBERR_END,
 };
+
+enum CreateAccountErrorType: int
+{
+    CAERR_NONE = 0,
+    CAERR_BEGIN = 1,
+    CAERR_EXIST = 1,
+    CAERR_BADID,
+    CAERR_END,
+};

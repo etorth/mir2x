@@ -102,4 +102,10 @@ class PasswordBox: public InputLine
         {
             return m_security ? m_passwordString : getRawString();
         }
+
+        void clear() override
+        {
+            InputLine::clear();
+            m_passwordString.clear();
+        }
 };

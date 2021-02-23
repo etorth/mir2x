@@ -104,14 +104,8 @@ struct CMQueryPlayerWLDesp
 
 struct CMAccount
 {
-    // register operation for the account
-    // 0 : validate this account
-    // 1 : create account
-    // 2 : login
-    uint8_t Operation;
-
-    char ID[64];
-    char Password[128];
+    char id[64];
+    char password[128];
 };
 
 struct CMNPCEvent

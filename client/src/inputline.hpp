@@ -94,7 +94,7 @@ class InputLine: public Widget
             return m_tpset.getRawString();
         }
 
-        void clear()
+        virtual void clear()
         {
             m_cursor = 0;
             m_cursorBlink = 0.0;

@@ -90,6 +90,11 @@ void ServiceCore::operateNet(uint32_t nSID, uint8_t nType, const uint8_t *pData,
                 net_CM_Login(nSID, nType, pData, nDataLen);
                 break;
             }
+        case CM_ACCOUNT:
+            {
+                net_CM_Account(nSID, nType, pData, nDataLen);
+                break;
+            }
         default:
             {
                 break;
