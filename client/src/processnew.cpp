@@ -50,9 +50,9 @@ ProcessNew::ProcessNew()
     , m_checkPwd(true)
     , m_checkPwdConfirm(true)
 
-    , m_LBID        (0, 0, u8"ID"              , 0, 15, 0, colorf::RGBA(0xFF, 0X00, 0X00, 0X00))
-    , m_LBPwd       (0, 0, u8"Password"        , 0, 15, 0, colorf::RGBA(0xFF, 0X00, 0X00, 0X00))
-    , m_LBPwdConfirm(0, 0, u8"Confirm Passowrd", 0, 15, 0, colorf::RGBA(0xFF, 0X00, 0X00, 0X00))
+    , m_LBID        (0, 0, u8"ID"              , 0, 15, 0, colorf::RGBA(0xFF, 0X00, 0X00, 0XFF))
+    , m_LBPwd       (0, 0, u8"Password"        , 0, 15, 0, colorf::RGBA(0xFF, 0X00, 0X00, 0XFF))
+    , m_LBPwdConfirm(0, 0, u8"Confirm Passowrd", 0, 15, 0, colorf::RGBA(0xFF, 0X00, 0X00, 0XFF))
 
 	, m_boxID
       {
@@ -64,10 +64,10 @@ ProcessNew::ProcessNew()
           2,
           15,
           0,
-          colorf::WHITE,
+          colorf::WHITE + 255,
 
           2,
-          colorf::WHITE,
+          colorf::WHITE + 255,
 
           [this]()
           {
@@ -91,10 +91,10 @@ ProcessNew::ProcessNew()
           2,
           15,
           0,
-          colorf::WHITE,
+          colorf::WHITE + 255,
 
           2,
-          colorf::WHITE,
+          colorf::WHITE + 255,
 
           [this]()
           {
@@ -118,10 +118,10 @@ ProcessNew::ProcessNew()
           2,
           15,
           0,
-          colorf::WHITE,
+          colorf::WHITE + 255,
 
           2,
-          colorf::WHITE,
+          colorf::WHITE + 255,
 
           [this]()
           {
@@ -139,8 +139,8 @@ ProcessNew::ProcessNew()
     , m_LBCheckPwd       (0, 0, u8"ID", 0, 15, 0, colorf::RGBA(0xFF, 0X00, 0X00, 0X00))
     , m_LBCheckPwdConfirm(0, 0, u8"ID", 0, 15, 0, colorf::RGBA(0xFF, 0X00, 0X00, 0X00))
 
-	, m_tbCreate(150, 482, 200, 40, u8"CREATE", 0, 16, 0, []{}, [this](){ DoPostAccount(); })
-	, m_tbExit  (352, 482, 200, 40, u8"EXIT",   0, 16, 0, []{}, [this](){ DoExit();        })
+	, m_tbCreate(150, 482, 200, 40, u8"CREATE", 0, 16, 0, nullptr, nullptr, [this](){ DoPostAccount(); })
+	, m_tbExit  (352, 482, 200, 40, u8"EXIT",   0, 16, 0, nullptr, nullptr, [this](){ DoExit();        })
 {}
 
 void ProcessNew::update(double fUpdateTime)
