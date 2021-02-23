@@ -135,6 +135,9 @@ void InputLine::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int src
     int dstCropX = dstX;
     int dstCropY = dstY;
 
+    const int tpsetX = 0;
+    const int tpsetY = 0 + (h() - m_tpset.ph()) / 2;
+
     const auto needDraw = mathf::ROICrop(
             &srcCropX, &srcCropY,
             &srcCropW, &srcCropH,
@@ -143,10 +146,10 @@ void InputLine::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int src
             w(),
             h(),
 
-            m_tpsetX, m_tpsetY, m_tpset.pw(), m_tpset.ph());
+            tpsetX, tpsetY, m_tpset.pw(), m_tpset.ph());
 
     if(needDraw){
-        m_tpset.drawEx(dstCropX, dstCropY, srcCropX - m_tpsetX, srcCropY - m_tpsetY, srcCropW, srcCropH);
+        m_tpset.drawEx(dstCropX, dstCropY, srcCropX - tpsetX, srcCropY - tpsetY, srcCropW, srcCropH);
     }
 
     if(std::fmod(m_cursorBlink, 1000.0) > 500.0){
@@ -157,8 +160,8 @@ void InputLine::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int src
         return;
     }
 
-    int cursorY = y() + m_tpsetY;
-    int cursorX = x() + m_tpsetX + [this]()
+    int cursorY = y() + tpsetY;
+    int cursorX = x() + tpsetX + [this]()
     {
         if(m_tpset.empty() || m_cursor == 0){
             return 0;

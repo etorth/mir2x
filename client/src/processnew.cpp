@@ -32,14 +32,14 @@ extern SDLDevice *g_sdlDevice;
 
 ProcessNew::ProcessNew()
 	: Process()
-    , m_LBID        (0, 0, u8"账号"    , 0, 15, 0, colorf::RGBA(0xFF, 0X00, 0X00, 0XFF))
-    , m_LBPwd       (0, 0, u8"密码"    , 0, 15, 0, colorf::RGBA(0xFF, 0X00, 0X00, 0XFF))
-    , m_LBPwdConfirm(0, 0, u8"确认密码", 0, 15, 0, colorf::RGBA(0xFF, 0X00, 0X00, 0XFF))
-
+    , m_LBID        (DIR_UPLEFT, 0, 0, u8"账号"    , 0, 15, 0, colorf::WHITE + 255)
+    , m_LBPwd       (DIR_UPLEFT, 0, 0, u8"密码"    , 0, 15, 0, colorf::WHITE + 255)
+    , m_LBPwdConfirm(DIR_UPLEFT, 0, 0, u8"确认密码", 0, 15, 0, colorf::WHITE + 255)
 	, m_boxID
       {
-          0,
-          0,
+          DIR_LEFT,
+          m_x + 129 + 3, // offset + start of box in gfx + offset for input char
+          m_y +  85,
           186,
           28,
 
@@ -64,8 +64,9 @@ ProcessNew::ProcessNew()
       }
 	, m_boxPwd
       {
-          0,
-          0,
+          DIR_LEFT,
+          m_x + 129 + 3,
+          m_y + 143,
           186,
           28,
           true,
@@ -91,8 +92,9 @@ ProcessNew::ProcessNew()
       }
 	, m_boxPwdConfirm
       {
-          0,
-          0,
+          DIR_LEFT,
+          m_x + 129 + 3,
+          m_y + 198,
           186,
           28,
           true,
@@ -117,12 +119,13 @@ ProcessNew::ProcessNew()
           },
       }
 
-    , m_LBCheckID        (0, 0, u8"√", 0, 15, 0, colorf::RGBA(0xFF, 0X00, 0X00, 0XFF))
-    , m_LBCheckPwd       (0, 0, u8"√", 0, 15, 0, colorf::RGBA(0xFF, 0X00, 0X00, 0XFF))
-    , m_LBCheckPwdConfirm(0, 0, u8"√", 0, 15, 0, colorf::RGBA(0xFF, 0X00, 0X00, 0XFF))
+    , m_LBCheckID        (DIR_UPLEFT, 0, 0, u8"√", 0, 15, 0, colorf::RGBA(0xFF, 0X00, 0X00, 0XFF))
+    , m_LBCheckPwd       (DIR_UPLEFT, 0, 0, u8"√", 0, 15, 0, colorf::RGBA(0xFF, 0X00, 0X00, 0XFF))
+    , m_LBCheckPwdConfirm(DIR_UPLEFT, 0, 0, u8"√", 0, 15, 0, colorf::RGBA(0xFF, 0X00, 0X00, 0XFF))
 
     , m_submit
       {
+          DIR_UPLEFT,
           m_x + 189,
           m_y + 233,
           {
@@ -149,6 +152,7 @@ ProcessNew::ProcessNew()
 
     , m_quit
       {
+          DIR_UPLEFT,
           m_x + 400,
           m_y + 267,
           {SYS_TEXNIL, 0X0000001C, 0X0000001D},
@@ -175,10 +179,6 @@ void ProcessNew::update(double fUpdateTime)
     m_boxID        .update(fUpdateTime);
     m_boxPwd       .update(fUpdateTime);
     m_boxPwdConfirm.update(fUpdateTime);
-
-    m_boxID        .moveAt(DIR_LEFT, m_x + 129, m_y +  85);
-    m_boxPwd       .moveAt(DIR_LEFT, m_x + 129, m_y + 143);
-    m_boxPwdConfirm.moveAt(DIR_LEFT, m_x + 129, m_y + 198);
 }
 
 void ProcessNew::draw()
@@ -186,9 +186,13 @@ void ProcessNew::draw()
     const SDLDeviceHelper::RenderNewFrame newFrame;
     g_sdlDevice->drawTexture(g_progUseDB->Retrieve(0X00000003), 0, 75);
     g_sdlDevice->drawTexture(g_progUseDB->Retrieve(0X00000004), 0, 75, 0, 0, 800, 450);
+
+    m_boxID.draw();
+    m_boxPwd.draw();
+    m_boxPwdConfirm.draw();
     g_sdlDevice->drawTexture(g_progUseDB->Retrieve(0X0A000000), m_x, m_y);
 
-    const auto fnDrawInput = [](int x, int y, int dx, auto &title, auto &input, auto &check)
+    const auto fnDrawInput = [](int x, int y, int dx, auto &title, auto &check)
     {
         //           (x, y)
         // +-------+  +-------------+  +-------+
@@ -200,16 +204,15 @@ void ProcessNew::draw()
         //          dx               dx
 
         title.drawAt(DIR_RIGHT, x - dx      , y);
-        input.drawAt(DIR_LEFT , x           , y);
         check.drawAt(DIR_LEFT , x + dx + 186, y);
     };
 
-    fnDrawInput(m_x + 129, m_y +  85, 10, m_LBID        , m_boxID        , m_LBCheckID        );
-    fnDrawInput(m_x + 129, m_y + 143, 10, m_LBPwd       , m_boxPwd       , m_LBCheckPwd       );
-    fnDrawInput(m_x + 129, m_y + 198, 10, m_LBPwdConfirm, m_boxPwdConfirm, m_LBCheckPwdConfirm);
+    fnDrawInput(m_x + 129, m_y +  85, 10, m_LBID        , m_LBCheckID        );
+    fnDrawInput(m_x + 129, m_y + 143, 10, m_LBPwd       , m_LBCheckPwd       );
+    fnDrawInput(m_x + 129, m_y + 198, 10, m_LBPwdConfirm, m_LBCheckPwdConfirm);
 
     m_submit.draw();
-    m_quit  .draw();
+    m_quit.draw();
 }
 
 void ProcessNew::processEvent(const SDL_Event &event)

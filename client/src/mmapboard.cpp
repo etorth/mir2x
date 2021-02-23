@@ -31,6 +31,7 @@ extern SDLDevice *g_sdlDevice;
 MMapBoard::MMapBoard(ProcessRun *runPtr, Widget *parent, bool autoDelete)
     : Widget
       {
+          DIR_UPLEFT,
           0,
           0,
           0,
@@ -42,6 +43,7 @@ MMapBoard::MMapBoard(ProcessRun *runPtr, Widget *parent, bool autoDelete)
     , m_processRun(runPtr)
     , m_buttonAlpha
       {
+          DIR_UPLEFT,
           0,
           0,
 
@@ -75,6 +77,7 @@ MMapBoard::MMapBoard(ProcessRun *runPtr, Widget *parent, bool autoDelete)
       }
     , m_buttonExtend
       {
+          DIR_UPLEFT,
           0,
           0,
 

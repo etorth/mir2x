@@ -53,7 +53,7 @@ class TexVSlider: public Slider
         const int m_sliderParamIndex;
 
     public:
-        TexVSlider(int, int, int, int, const std::function<void(float)> &, Widget * parent = nullptr, bool autoDelete = false);
+        TexVSlider(dir8_t, int, int, int, int, const std::function<void(float)> &, Widget * parent = nullptr, bool autoDelete = false);
 
     private:
         static const auto &getParam(int paramIndex)

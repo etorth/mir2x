@@ -20,6 +20,7 @@
 #include "sdldevice.hpp"
 
 LevelBox::LevelBox(
+        dir8_t dir,
         int x,
         int y,
 
@@ -28,9 +29,10 @@ LevelBox::LevelBox(
 
         Widget *parent,
         bool autoDelete)
-    : Widget(x, y, 0, 0, parent, autoDelete)
+    : Widget(dir, x, y, 0, 0, parent, autoDelete)
     , m_label
       {
+          DIR_UPLEFT,
           0,
           0,
           u8"",

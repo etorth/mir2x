@@ -31,10 +31,6 @@ class InputLine: public Widget
         int m_cursor = 0;
 
     protected:
-        int m_tpsetX = 0;
-        int m_tpsetY = 0;
-
-    protected:
         int      m_cursorWidth;
         uint32_t m_cursorColor;
         double   m_cursorBlink = 0.0;
@@ -45,6 +41,7 @@ class InputLine: public Widget
 
     public:
         InputLine(
+                dir8_t   dir,
                 int      x,
                 int      y,
                 int      w,
@@ -62,7 +59,7 @@ class InputLine: public Widget
                 std::function<void()>  onCR       = nullptr,
                 Widget                *widgetPtr  = nullptr,
                 bool                   autoDelete = false)
-            : Widget(x, y, w, h, widgetPtr, autoDelete)
+            : Widget(dir, x, y, w, h, widgetPtr, autoDelete)
             , m_tpset
               {
                   0,

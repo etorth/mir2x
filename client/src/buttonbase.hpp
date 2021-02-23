@@ -81,6 +81,7 @@ class ButtonBase: public Widget
 
     public:
         ButtonBase(
+                dir8_t argDir,
                 int argX,
                 int argY,
                 int argW,
@@ -98,7 +99,7 @@ class ButtonBase: public Widget
                 bool    onClickDone = true,
                 Widget *widgetPtr   = nullptr,
                 bool    autoFree    = false)
-            : Widget(argX, argY, argW, argH, widgetPtr, autoFree)
+            : Widget(argDir, argX, argY, argW, argH, widgetPtr, autoFree)
             , m_onClickDone(onClickDone)
             , m_offset
               {

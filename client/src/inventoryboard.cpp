@@ -26,9 +26,10 @@ extern PNGTexDB *g_itemDB;
 extern SDLDevice *g_sdlDevice;
 
 InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget, bool autoDelete)
-    : Widget(nX, nY, 0, 0, pwidget, autoDelete)
+    : Widget(DIR_UPLEFT, nX, nY, 0, 0, pwidget, autoDelete)
     , m_opNameBoard
       {
+          DIR_UPLEFT,
           132,
           16,
           u8"【背包】",
@@ -43,6 +44,7 @@ InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget
 
     , m_wmdAniBoard
       {
+          DIR_UPLEFT,
           23,
           14,
           this,
@@ -50,6 +52,7 @@ InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget
 
     , m_slider
       {
+          DIR_UPLEFT,
           258,
           64,
 
@@ -62,6 +65,7 @@ InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget
 
     , m_closeButton
       {
+          DIR_UPLEFT,
           242,
           422,
           {SYS_TEXNIL, 0X0000001C, 0X0000001D},
@@ -145,6 +149,7 @@ void InventoryBoard::drawItem(int dstX, int dstY, size_t startRow, bool cursorOn
                 if(bin.item.count > 1){
                     const LabelBoard itemCount
                     {
+                        DIR_UPLEFT,
                         0, // reset by new width
                         0,
                         to_u8cstr(std::to_string(bin.item.count)),
@@ -338,6 +343,7 @@ void InventoryBoard::drawGold() const
 {
     const LabelBoard goldBoard
     {
+        DIR_UPLEFT,
         0, // reset by new width
         0,
         to_u8cstr(getGoldStr()),
@@ -402,6 +408,7 @@ void InventoryBoard::drawItemHoverText(const PackBin &bin) const
 
     LayoutBoard hoverTextBoard
     {
+        DIR_UPLEFT,
         0,
         0,
         200,

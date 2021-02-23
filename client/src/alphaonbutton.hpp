@@ -39,6 +39,7 @@ class AlphaOnButton: public ButtonBase
 
     public:
         AlphaOnButton(
+                dir8_t,
                 int,
                 int,
 

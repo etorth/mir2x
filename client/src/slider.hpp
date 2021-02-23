@@ -47,8 +47,8 @@ class Slider: public Widget
         std::function<void(float)> m_onChanged;
 
     public:
-        Slider(int x, int y, int w, int h, std::function<void(float)> onChanged, bool hslider, int sliderW, int sliderH, Widget *parent = nullptr, bool autoDelete = false)
-            : Widget(x, y, w, h, parent, autoDelete)
+        Slider(dir8_t dir, int x, int y, int w, int h, std::function<void(float)> onChanged, bool hslider, int sliderW, int sliderH, Widget *parent = nullptr, bool autoDelete = false)
+            : Widget(dir, x, y, w, h, parent, autoDelete)
             , m_hslider(hslider)
             , m_sliderW(sliderW)
             , m_sliderH(sliderH)

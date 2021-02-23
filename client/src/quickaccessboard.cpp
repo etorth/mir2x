@@ -31,6 +31,7 @@ extern SDLDevice *g_sdlDevice;
 QuickAccessBoard::QuickAccessBoard(int x, int y, ProcessRun *proc, Widget *pwidget, bool autoDelete)
     : Widget
       {
+          DIR_UPLEFT,
           x,
           y,
           0,
@@ -42,6 +43,7 @@ QuickAccessBoard::QuickAccessBoard(int x, int y, ProcessRun *proc, Widget *pwidg
     , m_processRun(proc)
     , m_buttonClose
       {
+          DIR_UPLEFT,
           263,
           32,
           {SYS_TEXNIL, 0X00000061, 0X00000062},

@@ -28,6 +28,7 @@ class PasswordBox: public InputLine
 
     public:
         PasswordBox(
+                dir8_t dir,
                 int  x,
                 int  y,
                 int  w,
@@ -48,6 +49,7 @@ class PasswordBox: public InputLine
                 bool                   autoDelete = false)
             : InputLine
               {
+                  dir,
                   x,
                   y,
                   w,

@@ -34,6 +34,7 @@ class LabelBoard: public Widget
 
     public:
         LabelBoard(
+                dir8_t         dir,
                 int            x,
                 int            y,
                 const char8_t *content    = u8"",
@@ -43,7 +44,7 @@ class LabelBoard: public Widget
                 uint32_t       fontColor  = colorf::WHITE + 255,
                 Widget        *widgetPtr  = nullptr,
                 bool           autoDelete = false)
-            : Widget(x, y, 0, 0, widgetPtr, autoDelete)
+            : Widget(dir, x, y, 0, 0, widgetPtr, autoDelete)
             , m_tpset
               {
                   0,

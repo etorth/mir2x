@@ -28,11 +28,12 @@ extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 
 NPCChatBoard::NPCChatBoard(ProcessRun *proc, Widget *pwidget, bool autoDelete)
-    : Widget(0, 0, 386, 204, pwidget, autoDelete)
+    : Widget(DIR_UPLEFT, 0, 0, 386, 204, pwidget, autoDelete)
     , m_margin(20)
     , m_processRun(proc)
     , m_chatBoard
       {
+          DIR_UPLEFT,
           m_margin,
           m_margin,
           386 - m_margin * 2,
@@ -62,6 +63,7 @@ NPCChatBoard::NPCChatBoard(ProcessRun *proc, Widget *pwidget, bool autoDelete)
       }
     , m_buttonClose
       {
+          DIR_UPLEFT,
           100,
           100,
           {SYS_TEXNIL, 0X0000001C, 0X0000001D},

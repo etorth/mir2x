@@ -92,7 +92,7 @@ int main(int argc, char *argv[])
         g_mapBinDB        = new MapBinDB();
         g_emoticonDB      = new emoticonDB();
         g_client          = new Client();       // loads fontex resource
-        g_notifyBoard     = new NotifyBoard(0, 0, 10240, 0, 15, 0, colorf::RED + 255);
+        g_notifyBoard     = new NotifyBoard(DIR_UPLEFT, 0, 0, 10240, 0, 15, 0, colorf::RED + 255);
 
         g_client->mainLoop();
     }

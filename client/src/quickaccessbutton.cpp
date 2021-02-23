@@ -29,6 +29,7 @@ extern SDLDevice *g_sdlDevice;
 QuickAccessButton::QuickAccessButton(const std::function<void()> &fnOnClick, Widget *pwidget, bool autoDelete)
     : ButtonBase
       {
+          DIR_UPLEFT,
           148,
           2,
           0,

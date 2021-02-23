@@ -25,9 +25,10 @@
 extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 
-ACButton::ACButton(int x, int y, ProcessRun *proc, const std::vector<std::string> &buttonList, Widget *pwidget, bool autoDelete)
+ACButton::ACButton(dir8_t dir, int x, int y, ProcessRun *proc, const std::vector<std::string> &buttonList, Widget *pwidget, bool autoDelete)
     : ButtonBase
       {
+          dir,
           x,
           y,
           0,
@@ -62,6 +63,7 @@ ACButton::ACButton(int x, int y, ProcessRun *proc, const std::vector<std::string
     , m_buttonNameList(buttonList)
     , m_labelBoard
       {
+          DIR_UPLEFT,
           0,
           0,
           u8"0-0",

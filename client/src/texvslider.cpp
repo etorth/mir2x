@@ -25,9 +25,10 @@ extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 extern ClientArgParser *g_clientArgParser;
 
-TexVSlider::TexVSlider(int x, int y, int h, int paramIndex, const std::function<void(float)> &onChanged, Widget *parent, bool autoDelete)
+TexVSlider::TexVSlider(dir8_t dir, int x, int y, int h, int paramIndex, const std::function<void(float)> &onChanged, Widget *parent, bool autoDelete)
     : Slider
       {
+          dir,
           x,
           y,
           TexVSlider::getParam(paramIndex).w,

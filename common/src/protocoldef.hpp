@@ -28,7 +28,7 @@
 //               V
 //               4
 //
-enum DirectionType: int
+enum dir8_t: int
 {
     DIR_NONE  = 0,
     DIR_BEGIN = 1,

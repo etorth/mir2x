@@ -35,6 +35,7 @@ extern ClientArgParser *g_clientArgParser;
 PlayerStatusBoard::PlayerStatusBoard(int argX, int argY, ProcessRun *runPtr, Widget *widgetPtr, bool autoDelete)
     : Widget
       {
+          DIR_UPLEFT,
           argX,
           argY,
           0,
@@ -96,6 +97,7 @@ PlayerStatusBoard::PlayerStatusBoard(int argX, int argY, ProcessRun *runPtr, Wid
 
     , m_closeButton
       {
+          DIR_UPLEFT,
           288,
           13,
           {SYS_TEXNIL, 0X0000001C, 0X0000001D},
@@ -131,6 +133,7 @@ PlayerStatusBoard::PlayerStatusBoard(int argX, int argY, ProcessRun *runPtr, Wid
         for(int i = 0; i < 7; ++i){
             m_elemStatusList.push_back(new TritexButton
             {
+                DIR_UPLEFT,
                 62  + i * 37,
                 374 + r * 30,
 
@@ -173,7 +176,7 @@ void PlayerStatusBoard::drawEx(int, int, int, int, int, int) const
         g_sdlDevice->drawTexture(texPtr, x() + m_equipCharX + dx, y() + m_equipCharY + dy);
     }
 
-    LabelBoard(0, 0, to_u8cstr(myHeroPtr->getName()), 1, 12, 0, myHeroPtr->getNameColor() | 0XFF).drawAt(DIR_NONE, x() + 164, y() + 38);
+    LabelBoard(DIR_UPLEFT, 0, 0, to_u8cstr(myHeroPtr->getName()), 1, 12, 0, myHeroPtr->getNameColor() | 0XFF).drawAt(DIR_NONE, x() + 164, y() + 38);
     if(const auto dressItemID = myHeroPtr->getWLItem(WLG_DRESS).itemID){
         if(const auto dressGfxID = DBCOM_ITEMRECORD(dressItemID).pkgGfxID; dressGfxID >= 0){
             if(auto [texPtr, dx, dy] = g_equipDB->Retrieve(to_u32(dressGfxID) | 0X01000000); texPtr){
@@ -334,6 +337,7 @@ void PlayerStatusBoard::drawItemHoverText(int wltype) const
 
     LayoutBoard hoverTextBoard
     {
+        DIR_UPLEFT,
         0,
         0,
         200,

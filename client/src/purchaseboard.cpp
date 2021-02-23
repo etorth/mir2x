@@ -31,6 +31,7 @@ extern SDLDevice *g_sdlDevice;
 PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDelete)
     : Widget
       {
+          DIR_UPLEFT,
           0,
           0,
           0,
@@ -42,6 +43,7 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
 
     , m_closeButton
       {
+          DIR_UPLEFT,
           257,
           183,
           {SYS_TEXNIL, 0X0000001C, 0X0000001D},
@@ -67,6 +69,7 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
 
     , m_selectButton
       {
+          DIR_UPLEFT,
           105,
           185,
           {SYS_TEXNIL, 0X08000003, 0X08000004},
@@ -93,6 +96,7 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
 
     , m_closeExt1Button
       {
+          DIR_UPLEFT,
           448,
           159,
           {SYS_TEXNIL, 0X0000001C, 0X0000001D},
@@ -117,6 +121,7 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
 
     , m_leftExt1Button
       {
+          DIR_UPLEFT,
           315,
           163,
           {SYS_TEXNIL, 0X08000007, 0X08000008},
@@ -141,6 +146,7 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
 
     , m_selectExt1Button
       {
+          DIR_UPLEFT,
           357,
           163,
           {SYS_TEXNIL, 0X08000005, 0X08000006},
@@ -168,6 +174,7 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
 
     , m_rightExt1Button
       {
+          DIR_UPLEFT,
           405,
           163,
           {SYS_TEXNIL, 0X08000009, 0X0800000A},
@@ -197,6 +204,7 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
 
     , m_closeExt2Button
       {
+          DIR_UPLEFT,
           474,
           56,
           {SYS_TEXNIL, 0X0000001C, 0X0000001D},
@@ -221,6 +229,7 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
 
     , m_selectExt2Button
       {
+          DIR_UPLEFT,
           366,
           60,
           {SYS_TEXNIL, 0X0800000B, 0X0800000C},
@@ -269,6 +278,7 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
 
     , m_slider
       {
+          DIR_UPLEFT,
           266,
           27,
 
@@ -306,6 +316,7 @@ void PurchaseBoard::drawEx(int dstX, int dstY, int, int, int, int) const
     int startY = m_startY;
     LabelBoard label
     {
+        DIR_UPLEFT,
         0, // reset when drawing item
         0,
         u8"",
@@ -577,6 +588,7 @@ void PurchaseBoard::drawExt1GridHoverText(int itemIndex) const
 
     LayoutBoard hoverTextBoard
     {
+        DIR_UPLEFT,
         0,
         0,
         200,
@@ -649,6 +661,7 @@ void PurchaseBoard::drawExt1() const
 
             LabelBoard
             {
+                DIR_UPLEFT,
                 0,
                 0,
                 to_u8cstr(str_ksep(getItemPrice(i))),
@@ -680,6 +693,7 @@ void PurchaseBoard::drawExt1() const
 
     LabelBoard
     {
+        DIR_UPLEFT,
         0,
         0,
         str_printf(u8"第%d/%d页", m_ext1Page + 1, ext1PageCount).c_str(),
@@ -731,6 +745,7 @@ void PurchaseBoard::drawExt2() const
 
     LabelBoard
     {
+        DIR_UPLEFT,
         0,
         0,
         to_u8cstr(str_ksep(getItemPrice(0)) + to_cstr(u8" 金币")),

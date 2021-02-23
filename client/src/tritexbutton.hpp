@@ -32,6 +32,7 @@ class TritexButton: public ButtonBase
 
     public:
         TritexButton(
+                dir8_t argDir,
                 int argX,
                 int argY,
 
@@ -52,6 +53,7 @@ class TritexButton: public ButtonBase
                 bool    autoDelete  = false)
             : ButtonBase
               {
+                  argDir,
                   argX,
                   argY,
                   0,

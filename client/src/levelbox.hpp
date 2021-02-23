@@ -40,6 +40,7 @@ class LevelBox: public Widget
 
     public:
         LevelBox(
+                dir8_t dir,
                 int, // x
                 int, // y
 

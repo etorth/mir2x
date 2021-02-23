@@ -26,6 +26,7 @@ extern SDLDevice *g_sdlDevice;
 GUIManager::GUIManager(ProcessRun *proc)
     : WidgetGroup
       {
+          DIR_UPLEFT,
           0,
           0,
           g_sdlDevice->getRendererWidth(),

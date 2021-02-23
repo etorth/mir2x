@@ -28,6 +28,7 @@ class LabelShadowBoard: public WidgetGroup
 
     public:
         LabelShadowBoard(
+                dir8_t         dir,
                 int            x,
                 int            y,
                 int            xShadowOff,
@@ -42,6 +43,7 @@ class LabelShadowBoard: public WidgetGroup
                 bool           autoDelete      = false)
             : WidgetGroup
               {
+                  dir,
                   x,
                   y,
                   0,
@@ -51,6 +53,7 @@ class LabelShadowBoard: public WidgetGroup
               }
             , m_label
               {
+                  DIR_UPLEFT,
                   0,
                   0,
                   content,
@@ -63,6 +66,7 @@ class LabelShadowBoard: public WidgetGroup
               }
             , m_labelShadow
               {
+                  DIR_UPLEFT,
                   std::max<int>(0, xShadowOff),
                   std::max<int>(0, yShadowOff),
                   content,

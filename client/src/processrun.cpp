@@ -62,8 +62,8 @@ ProcessRun::ProcessRun()
     , m_mapScrolling(false)
     , m_luaModule(this)
     , m_GUIManager(this)
-    , m_mousePixlLoc(0, 0, u8"", 0, 15, 0, colorf::RGBA(0XFF, 0X00, 0X00, 0X00))
-    , m_mouseGridLoc(0, 0, u8"", 0, 15, 0, colorf::RGBA(0XFF, 0X00, 0X00, 0X00))
+    , m_mousePixlLoc(DIR_UPLEFT, 0, 0, u8"", 0, 15, 0, colorf::RGBA(0XFF, 0X00, 0X00, 0X00))
+    , m_mouseGridLoc(DIR_UPLEFT, 0, 0, u8"", 0, 15, 0, colorf::RGBA(0XFF, 0X00, 0X00, 0X00))
 {
     m_focusUIDTable.fill(0);
     RegisterUserCommand();
@@ -1504,7 +1504,7 @@ void ProcessRun::drawGroundItem(int x0, int y0, int x1, int y1)
             g_sdlDevice->drawTexture(texPtr, drawPX, drawPY);
 
             if(mouseOver){
-                LabelBoard itemName(0, 0, ir.name, 1, 12, 0, colorf::RGBA(0XFF, 0XFF, 0X00, 0XFF));
+                LabelBoard itemName(DIR_UPLEFT, 0, 0, ir.name, 1, 12, 0, colorf::RGBA(0XFF, 0XFF, 0X00, 0XFF));
                 const int boardW = itemName.w();
                 const int boardH = itemName.h();
 
@@ -1639,8 +1639,8 @@ void ProcessRun::drawMouseLocation()
     const auto locPixel = str_printf(u8"Pixel: %d, %d", mouseX, mouseY);
     const auto locGrid  = str_printf(u8"Grid: %d, %d", (mouseX + m_viewX) / SYS_MAPGRIDXP, (mouseY + m_viewY) / SYS_MAPGRIDYP);
 
-    LabelBoard locPixelBoard(10, 10, locPixel.c_str(), 1, 12, 0, colorf::RGBA(0XFF, 0XFF, 0X00, 0X00));
-    LabelBoard locGridBoard (10, 30, locGrid .c_str(), 1, 12, 0, colorf::RGBA(0XFF, 0XFF, 0X00, 0X00));
+    LabelBoard locPixelBoard(DIR_UPLEFT, 10, 10, locPixel.c_str(), 1, 12, 0, colorf::RGBA(0XFF, 0XFF, 0X00, 0X00));
+    LabelBoard locGridBoard (DIR_UPLEFT, 10, 30, locGrid .c_str(), 1, 12, 0, colorf::RGBA(0XFF, 0XFF, 0X00, 0X00));
 
     locPixelBoard.draw();
     locGridBoard .draw();
@@ -1649,7 +1649,7 @@ void ProcessRun::drawMouseLocation()
 void ProcessRun::drawFPS()
 {
     const auto fpsStr = std::to_string(g_sdlDevice->getFPS());
-    LabelBoard fpsBoard(0, 0, to_u8cstr(fpsStr), 1, 12, 0, colorf::RGBA(0XFF, 0XFF, 0X00, 0XFF));
+    LabelBoard fpsBoard(DIR_UPLEFT, 0, 0, to_u8cstr(fpsStr), 1, 12, 0, colorf::RGBA(0XFF, 0XFF, 0X00, 0XFF));
 
     const int winWidth = g_sdlDevice->getRendererWidth();
     fpsBoard.moveTo(winWidth - fpsBoard.w(), 0);

@@ -74,10 +74,11 @@ extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 
 ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwidget, bool autoDelete)
-    : Widget(0, startY, boardW, 133, pwidget, autoDelete)
+    : Widget(DIR_UPLEFT, 0, startY, boardW, 133, pwidget, autoDelete)
     , m_processRun(proc)
     , m_left
       {
+          DIR_UPLEFT,
           0,
           0,
           178,
@@ -87,6 +88,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
 
     , m_right
       {
+          DIR_UPLEFT,
           boardW - 166,
           0,
           166,
@@ -116,6 +118,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
 
     , m_buttonClose
       {
+          DIR_UPLEFT,
           8,
           72,
           {SYS_TEXNIL, 0X0000001E, 0X0000001F},
@@ -139,6 +142,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
 
     , m_buttonMinize
       {
+          DIR_UPLEFT,
           109,
           72,
           {SYS_TEXNIL, 0X00000020, 0X00000021},
@@ -159,6 +163,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
 
     , m_buttonExchange
       {
+          DIR_UPLEFT,
           4,
           6,
 
@@ -183,6 +188,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
 
     , m_buttonMiniMap
       {
+          DIR_UPLEFT,
           4,
           40,
 
@@ -214,6 +220,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
 
     , m_buttonMagicKey
       {
+          DIR_UPLEFT,
           4,
           75,
 
@@ -238,6 +245,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
 
     , m_buttonInventory
       {
+          DIR_UPLEFT,
           48,
           33,
           {SYS_TEXNIL, 0X00000030, 0X00000031},
@@ -263,6 +271,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
 
     , m_buttonHeroStatus
       {
+          DIR_UPLEFT,
           77,
           31,
           {SYS_TEXNIL, 0X00000033, 0X00000032},
@@ -288,6 +297,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
 
     , m_buttonHeroMagic
       {
+          DIR_UPLEFT,
           105,
           33,
           {SYS_TEXNIL, 0X00000035, 0X00000034},
@@ -313,6 +323,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
 
     , m_buttonGuild
       {
+          DIR_UPLEFT,
           40,
           11,
           {SYS_TEXNIL, 0X00000036, 0X00000037},
@@ -338,6 +349,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
 
     , m_buttonTeam
       {
+          DIR_UPLEFT,
           72,
           8,
           {SYS_TEXNIL, 0X00000038, 0X00000039},
@@ -363,6 +375,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
 
     , m_buttonTask
       {
+          DIR_UPLEFT,
           108,
           11,
           {SYS_TEXNIL, 0X0000003A, 0X0000003B},
@@ -388,6 +401,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
 
     , m_buttonHorse
       {
+          DIR_UPLEFT,
           40,
           61,
           {SYS_TEXNIL, 0X0000003C, 0X0000003D},
@@ -413,6 +427,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
 
     , m_buttonEnvConfig
       {
+          DIR_UPLEFT,
           72,
           72,
           {SYS_TEXNIL, 0X0000003E, 0X0000003F},
@@ -438,6 +453,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
 
     , m_buttonSysMessage
       {
+          DIR_UPLEFT,
           108,
           61,
           {SYS_TEXNIL, 0X00000040, 0X00000041},
@@ -463,6 +479,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
 
     , m_buttonAC
       {
+          DIR_UPLEFT,
           1,
           105,
 
@@ -477,6 +494,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
 
     , m_buttonDC
       {
+          DIR_UPLEFT,
           84,
           105,
 
@@ -491,6 +509,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
 
     , m_buttonSwitchMode
       {
+          DIR_UPLEFT,
           boardW - 178 - 181,
           3,
           {SYS_TEXNIL, 0X00000028, 0X00000029},
@@ -514,6 +533,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
 
     , m_buttonEmoji
       {
+          DIR_UPLEFT,
           boardW - 178 - 260,
           87,
           {SYS_TEXNIL, 0X00000023, 0X00000024},
@@ -534,6 +554,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
 
     , m_buttonMute
       {
+          DIR_UPLEFT,
           boardW - 178 - 220,
           87,
           {SYS_TEXNIL, 0X00000025, 0X00000026},
@@ -554,6 +575,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
 
     , m_levelBox
       {
+          DIR_UPLEFT,
           0, // need reset
           0, // need reset
 
@@ -590,6 +612,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
 
     , m_arcAniBoard
       {
+          DIR_UPLEFT,
           (boardW - 178 - 166) / 2 - 18,
          -13,
           0X04000000,
@@ -602,6 +625,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
 
     , m_slider
       {
+          DIR_UPLEFT,
           boardW - 178 - 176,
           40,
 
@@ -614,6 +638,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
 
     , m_cmdLine
       {
+          DIR_UPLEFT,
           7,
           105,
           343 + (boardW - 800),
@@ -639,6 +664,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
 
     , m_logBoard
       {
+          DIR_UPLEFT,
           9,
           0, // need reset
           341 + (boardW - 800),
@@ -1222,6 +1248,7 @@ void ControlBoard::drawHeroLoc() const
     const auto locStr = str_printf(u8"%s: %d %d", DBCOM_MAPRECORD(m_processRun->mapID()).name, m_processRun->getMyHero()->x(), m_processRun->getMyHero()->y());
     LabelBoard locBoard
     {
+        DIR_UPLEFT,
         0, // need reset
         0,
 

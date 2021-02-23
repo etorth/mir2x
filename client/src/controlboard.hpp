@@ -52,7 +52,7 @@ class ControlBoard: public Widget
         {
             public:
                 WidgetMiddleGroup(int x, int y, int w, int h, Widget *parent = nullptr, bool autoDelete = false)
-                    : WidgetGroup(x, y, w, h, parent, autoDelete)
+                    : WidgetGroup(DIR_UPLEFT, x, y, w, h, parent, autoDelete)
                 {}
 
             public:

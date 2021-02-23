@@ -34,13 +34,8 @@ class Widget
     private:
         struct WidgetChildNode
         {
-            Widget *child;
-            bool    autoDelete;
-
-            WidgetChildNode(Widget *pwidget, bool autoDeleteFlag)
-                : child(pwidget)
-                , autoDelete(autoDeleteFlag)
-            {}
+            Widget   *child = nullptr;
+            bool autoDelete = false;
         };
 
     protected:
@@ -49,6 +44,9 @@ class Widget
     protected:
         bool m_show  = true;
         bool m_focus = false;
+
+    private:
+        dir8_t m_dir;
 
     private:
         int m_x;
@@ -62,15 +60,20 @@ class Widget
         std::list<WidgetChildNode> m_childList;
 
     public:
-        Widget(int x, int y, int w = 0, int h = 0, Widget *parent = nullptr, bool autoDelete = false)
+        Widget(dir8_t dir, int x, int y, int w = 0, int h = 0, Widget *parent = nullptr, bool autoDelete = false)
             : m_parent(parent)
+            , m_dir(dir)
             , m_x(x)
             , m_y(y)
             , m_w(w)
             , m_h(h)
         {
             if(m_parent){
-                m_parent->m_childList.emplace_back(this, autoDelete);
+                m_parent->m_childList.push_back(WidgetChildNode
+                {
+                    .child = this,
+                    .autoDelete = autoDelete,
+                });
             }
         }
 
@@ -82,6 +85,7 @@ class Widget
                     delete node.child;
                 }
             }
+            m_childList.clear();
         }
 
     public:
@@ -172,32 +176,62 @@ class Widget
     public:
         int x() const
         {
-            if(m_parent){
-                return m_parent->x() + m_x;
-            }
-            else{
-                return m_x;
+            const auto anchorX = [this]() -> int
+            {
+                if(m_parent){
+                    return m_parent->x() + m_x;
+                }
+                else{
+                    return m_x;
+                }
+            }();
+
+            switch(m_dir){
+                case DIR_UPLEFT   : return anchorX;
+                case DIR_UP       : return anchorX - w() / 2;
+                case DIR_UPRIGHT  : return anchorX - w();
+                case DIR_RIGHT    : return anchorX - w();
+                case DIR_DOWNRIGHT: return anchorX - w();
+                case DIR_DOWN     : return anchorX - w() / 2;
+                case DIR_DOWNLEFT : return anchorX;
+                case DIR_LEFT     : return anchorX;
+                default           : return anchorX - w() / 2;
             }
         }
 
         int y() const
         {
-            if(m_parent){
-                return m_parent->y() + m_y;
-            }
-            else{
-                return m_y;
+            const auto anchorY = [this]() -> int
+            {
+                if(m_parent){
+                    return m_parent->y() + m_y;
+                }
+                else{
+                    return m_y;
+                }
+            }();
+
+            switch(m_dir){
+                case DIR_UPLEFT   : return anchorY;
+                case DIR_UP       : return anchorY;
+                case DIR_UPRIGHT  : return anchorY;
+                case DIR_RIGHT    : return anchorY - h() / 2;
+                case DIR_DOWNRIGHT: return anchorY - h();
+                case DIR_DOWN     : return anchorY - h();
+                case DIR_DOWNLEFT : return anchorY - h();
+                case DIR_LEFT     : return anchorY - h() / 2;
+                default           : return anchorY - h() / 2;
             }
         }
 
         int dx() const
         {
-            return m_x;
+            return x() - (m_parent ? m_parent->x() : 0);
         }
 
         int dy() const
         {
-            return m_y;
+            return y() - (m_parent ? m_parent->y() : 0);
         }
 
         int w() const
@@ -251,64 +285,11 @@ class Widget
             m_y = y;
         }
 
-        void moveAt(int dir, int x, int y)
+        void moveAt(dir8_t dir, int x, int y)
         {
-            switch(dir){
-                case DIR_UPLEFT:
-                    {
-                        m_x = x;
-                        m_y = y;
-                        return;
-                    }
-                case DIR_UP:
-                    {
-                        m_x = x - w() / 2;
-                        m_y = y;
-                        return;
-                    }
-                case DIR_UPRIGHT:
-                    {
-                        m_x = x - w();
-                        m_y = y;
-                        return;
-                    }
-                case DIR_RIGHT:
-                    {
-                        m_x = x - w();
-                        m_y = y - h() / 2;
-                        return;
-                    }
-                case DIR_DOWNRIGHT:
-                    {
-                        m_x = x - w();
-                        m_y = y - h();
-                        return;
-                    }
-                case DIR_DOWN:
-                    {
-                        m_x = x - w() / 2;
-                        m_y = y - h();
-                        return;
-                    }
-                case DIR_DOWNLEFT:
-                    {
-                        m_x = x;
-                        m_y = y - h();
-                        return;
-                    }
-                case DIR_LEFT:
-                    {
-                        m_x = x;
-                        m_y = y - h() / 2;
-                        return;
-                    }
-                default:
-                    {
-                        m_x = x - w() / 2;
-                        m_y = y - h() / 2;
-                        return;
-                    }
-            }
+            m_dir = dir;
+            m_x   = x;
+            m_y   = y;
         }
 };
 
@@ -318,8 +299,8 @@ class Widget
 class WidgetGroup: public Widget
 {
     public:
-        WidgetGroup(int x, int y, int w, int h, Widget *parent = nullptr, bool autoDelete = false)
-            : Widget(x, y, w, h, parent, autoDelete)
+        WidgetGroup(dir8_t dir, int x, int y, int w, int h, Widget *parent = nullptr, bool autoDelete = false)
+            : Widget(dir, x, y, w, h, parent, autoDelete)
         {}
 
     public:

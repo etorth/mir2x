@@ -30,6 +30,7 @@ extern SDLDevice *g_sdlDevice;
 SkillBoard::MagicIconButton::MagicIconButton(int argX, int argY, SkillBoard::MagicIconData *iconDataPtr, Widget *widgetPtr, bool autoDelete)
     : Widget
       {
+          DIR_UPLEFT,
           argX,
           argY,
           0,
@@ -48,6 +49,7 @@ SkillBoard::MagicIconButton::MagicIconButton(int argX, int argY, SkillBoard::Mag
 
     , m_key
       {
+          DIR_UPLEFT,
           2,
           2,
           2,
@@ -67,6 +69,7 @@ SkillBoard::MagicIconButton::MagicIconButton(int argX, int argY, SkillBoard::Mag
 
     , m_level
       {
+          DIR_UPLEFT,
           0,
           0,
           u8"",
@@ -81,6 +84,7 @@ SkillBoard::MagicIconButton::MagicIconButton(int argX, int argY, SkillBoard::Mag
 
     , m_icon
       {
+          DIR_UPLEFT,
           0,
           0,
 
@@ -153,6 +157,7 @@ void SkillBoard::MagicIconButton::drawEx(int dstX, int dstY, int srcX, int srcY,
 SkillBoard::SkillPage::SkillPage(uint32_t pageImage, Widget *widgetPtr, bool autoDelete)
     : WidgetGroup
       {
+          DIR_UPLEFT,
           SkillBoard::getPageRectange().at(0),
           SkillBoard::getPageRectange().at(1),
           0, // reset in ctor body
@@ -198,7 +203,7 @@ void SkillBoard::SkillPage::drawEx(int dstX, int dstY, int srcX, int srcY, int s
 }
 
 SkillBoard::SkillBoard(int nX, int nY, ProcessRun *runPtr, Widget *pwidget, bool autoDelete)
-    : Widget(nX, nY, 0, 0, pwidget, autoDelete)
+    : Widget(DIR_UPLEFT, nX, nY, 0, 0, pwidget, autoDelete)
     , m_magicIconDataList
       {
           {DBCOM_MAGICID(u8"雷电术"),   1,  12,  78,  'T'},
@@ -247,6 +252,7 @@ SkillBoard::SkillBoard(int nX, int nY, ProcessRun *runPtr, Widget *pwidget, bool
           for(int i = 0; i < 8; ++i){
               tabButtonList.push_back(new TritexButton
               {
+                  DIR_UPLEFT,
                   tabX + tabW * i,
                   tabY,
 
@@ -324,6 +330,7 @@ SkillBoard::SkillBoard(int nX, int nY, ProcessRun *runPtr, Widget *pwidget, bool
 
     , m_slider
       {
+          DIR_UPLEFT,
           326,
           74,
 
@@ -344,6 +351,7 @@ SkillBoard::SkillBoard(int nX, int nY, ProcessRun *runPtr, Widget *pwidget, bool
 
     , m_closeButton
       {
+          DIR_UPLEFT,
           317,
           402,
           {SYS_TEXNIL, 0X0000001C, 0X0000001D},
@@ -483,6 +491,7 @@ void SkillBoard::drawTabName() const
 {
     const LabelBoard tabName
     {
+        DIR_UPLEFT,
         0,
         0,
 

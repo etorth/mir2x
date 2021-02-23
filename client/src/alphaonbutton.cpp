@@ -25,6 +25,7 @@ extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 
 AlphaOnButton::AlphaOnButton(
+        dir8_t dir,
         int x,
         int y,
 
@@ -45,6 +46,7 @@ AlphaOnButton::AlphaOnButton(
         bool    autoDelete)
     : ButtonBase
       {
+          dir,
           x,
           y,
           0,

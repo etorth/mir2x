@@ -28,6 +28,7 @@ extern SDLDevice *g_sdlDevice;
 InputStringBoard::InputStringBoard(int x, int y, ProcessRun *runPtr, Widget *widgetPtr, bool autoDelete)
     : Widget
       {
+          DIR_UPLEFT,
           x,
           y,
           0,
@@ -39,6 +40,7 @@ InputStringBoard::InputStringBoard(int x, int y, ProcessRun *runPtr, Widget *wid
 
     , m_input
       {
+          DIR_UPLEFT,
           22,
           225,
           315,
@@ -66,6 +68,7 @@ InputStringBoard::InputStringBoard(int x, int y, ProcessRun *runPtr, Widget *wid
 
     , m_yesButton
       {
+          DIR_UPLEFT,
           66,
           190,
           {0X07000001, 0X07000002, 0X07000003},
@@ -91,6 +94,7 @@ InputStringBoard::InputStringBoard(int x, int y, ProcessRun *runPtr, Widget *wid
 
     , m_nopButton
       {
+          DIR_UPLEFT,
           212,
           190,
           {0X07000004, 0X07000005, 0X07000006},
@@ -142,6 +146,7 @@ void InputStringBoard::drawEx(int dstX, int dstY, int, int, int, int) const
 
     LabelBoard label
     {
+        DIR_UPLEFT,
         0, // reset when drawing item
         0,
         u8"",
