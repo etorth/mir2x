@@ -136,7 +136,7 @@ void InputLine::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int src
     int dstCropY = dstY;
 
     const int tpsetX = 0;
-    const int tpsetY = 0 + (h() - m_tpset.ph()) / 2;
+    const int tpsetY = 0 + (h() - (m_tpset.empty() ? m_tpset.getDefaultFontHeight() : m_tpset.ph())) / 2;
 
     const auto needDraw = mathf::ROICrop(
             &srcCropX, &srcCropY,
