@@ -79,4 +79,7 @@ class ProcessNew: public Process
     private:
         bool localCheckID (const char *) const;
         bool localCheckPwd(const char *) const;
+
+    private:
+        void localCheck();
 };

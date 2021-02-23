@@ -32,13 +32,13 @@ extern SDLDevice *g_sdlDevice;
 
 ProcessNew::ProcessNew()
 	: Process()
-    , m_LBID        (DIR_UPLEFT, 0, 0, u8"账号"    , 0, 15, 0, colorf::WHITE + 255)
-    , m_LBPwd       (DIR_UPLEFT, 0, 0, u8"密码"    , 0, 15, 0, colorf::WHITE + 255)
-    , m_LBPwdConfirm(DIR_UPLEFT, 0, 0, u8"确认密码", 0, 15, 0, colorf::WHITE + 255)
+    , m_LBID        (DIR_UPLEFT, 0, 0, u8"账号"    , 1, 15, 0, colorf::WHITE + 255)
+    , m_LBPwd       (DIR_UPLEFT, 0, 0, u8"密码"    , 1, 15, 0, colorf::WHITE + 255)
+    , m_LBPwdConfirm(DIR_UPLEFT, 0, 0, u8"确认密码", 1, 15, 0, colorf::WHITE + 255)
 	, m_boxID
       {
           DIR_LEFT,
-          m_x + 129 + 3, // offset + start of box in gfx + offset for input char
+          m_x + 129 + 6, // offset + start of box in gfx + offset for input char
           m_y +  85,
           186,
           28,
@@ -65,7 +65,7 @@ ProcessNew::ProcessNew()
 	, m_boxPwd
       {
           DIR_LEFT,
-          m_x + 129 + 3,
+          m_x + 129 + 6,
           m_y + 143,
           186,
           28,
@@ -93,7 +93,7 @@ ProcessNew::ProcessNew()
 	, m_boxPwdConfirm
       {
           DIR_LEFT,
-          m_x + 129 + 3,
+          m_x + 129 + 6,
           m_y + 198,
           186,
           28,
@@ -172,7 +172,11 @@ ProcessNew::ProcessNew()
           true,
           true,
       }
-{}
+{
+    m_boxID.focus(true);
+    m_boxPwd.focus(false);
+    m_boxPwdConfirm.focus(false);
+}
 
 void ProcessNew::update(double fUpdateTime)
 {
@@ -231,16 +235,24 @@ void ProcessNew::processEvent(const SDL_Event &event)
                 switch(event.key.keysym.sym){
                     case SDLK_TAB:
                         {
-                            if(true
-                                    && !m_boxID.focus()
-                                    && !m_boxPwd.focus()
-                                    && !m_boxPwdConfirm.focus()){
-
+                            if(m_boxID.focus()){
+                                m_boxID.focus(false);
+                                m_boxPwd.focus(true);
+                            }
+                            else if(m_boxPwd.focus()){
+                                m_boxPwd.focus(false);
+                                m_boxPwdConfirm.focus(true);
+                            }
+                            else if(m_boxPwdConfirm.focus()){
+                                m_boxPwdConfirm.focus(false);
+                                m_boxID.focus(true);
+                            }
+                            else{
                                 m_boxID.focus(true);
                                 m_boxPwd.focus(false);
                                 m_boxPwdConfirm.focus(false);
-                                return;
                             }
+                            return;
                         }
                     default:
                         {
@@ -260,6 +272,8 @@ void ProcessNew::processEvent(const SDL_Event &event)
     m_boxID        .processEvent(event, true);
     m_boxPwd       .processEvent(event, true);
     m_boxPwdConfirm.processEvent(event, true);
+
+    localCheck();
 }
 
 bool ProcessNew::localCheckID(const char *id) const
@@ -301,4 +315,28 @@ void ProcessNew::postAccount(const char *id, const char *pwd, int op)
         cmA.Operation = op;
         g_client->send(CM_ACCOUNT, cmA);
     }
+}
+
+void ProcessNew::localCheck()
+{
+    const auto idStr = m_boxID.getRawString();
+    const auto pwdStr = m_boxPwd.getPasswordString();
+    const auto pwdConfirmStr = m_boxPwdConfirm.getPasswordString();
+
+    const auto fnCheckInput = [](const std::string &s, auto &check, bool good)
+    {
+        if(s.empty()){
+            check.setText(u8"");
+        }
+        else if(good){
+            check.loadXML(to_cstr(str_printf(u8"<par><t color=\"0x00ff00ff\">√</t></par>").c_str()));
+        }
+        else{
+            check.loadXML(to_cstr(str_printf(u8"<par><t color=\"0xff0000ff\">×</t></par>").c_str()));
+        }
+    };
+
+    fnCheckInput(idStr, m_LBCheckID, localCheckID(idStr.c_str()));
+    fnCheckInput(pwdStr, m_LBCheckPwd, localCheckPwd(pwdStr.c_str()));
+    fnCheckInput(pwdConfirmStr, m_LBCheckPwdConfirm, localCheckPwd(pwdConfirmStr.c_str()) && pwdStr == pwdConfirmStr);
 }
