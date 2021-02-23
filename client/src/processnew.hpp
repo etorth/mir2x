@@ -18,7 +18,9 @@
 #pragma once
 
 #include <cstdint>
+#include <optional>
 #include "process.hpp"
+#include "raiitimer.hpp"
 #include "labelboard.hpp"
 #include "inputline.hpp"
 #include "passwordbox.hpp"
@@ -48,6 +50,11 @@ class ProcessNew: public Process
     private:
         TritexButton m_submit;
         TritexButton m_quit;
+
+    private:
+        LabelBoard m_infoStr;
+        uint32_t   m_infoStrSec;
+        hres_timer m_infoStrTimer;
 
     public:
         ProcessNew();
@@ -82,4 +89,12 @@ class ProcessNew: public Process
 
     private:
         void localCheck();
+
+    private:
+        void clearInput();
+
+    private:
+        bool hasInfo() const;
+        void setInfoStr(const char8_t *);
+        void setInfoStr(const char8_t *, uint32_t);
 };

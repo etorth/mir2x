@@ -172,6 +172,19 @@ ProcessNew::ProcessNew()
           true,
           true,
       }
+
+    , m_infoStr
+      {
+          DIR_NONE,
+          400,
+          190,
+
+          u8"",
+          1,
+          15,
+          0,
+          colorf::YELLOW + 255
+      }
 {
     m_boxID.focus(true);
     m_boxPwd.focus(false);
@@ -217,15 +230,25 @@ void ProcessNew::draw()
 
     m_submit.draw();
     m_quit.draw();
+
+    if(hasInfo()){
+        g_sdlDevice->fillRectangle(colorf::BLUE + 32, 0, 75, 800, 450);
+        m_infoStr.draw();
+    }
 }
 
 void ProcessNew::processEvent(const SDL_Event &event)
 {
-    if(m_submit.processEvent(event, true)){
+    if(m_quit.processEvent(event, true)){
         return;
     }
 
-    if(m_quit.processEvent(event, true)){
+    if(hasInfo()){
+        SDL_FlushEvent(SDL_KEYDOWN);
+        return;
+    }
+
+    if(m_submit.processEvent(event, true)){
         return;
     }
 
@@ -300,7 +323,30 @@ void ProcessNew::doExit()
 
 void ProcessNew::doPostAccount()
 {
-    postAccount(m_boxID.getRawString().c_str(), m_boxPwd.getRawString().c_str(), 1);
+    const auto idStr = m_boxID.getRawString();
+    const auto pwdStr = m_boxPwd.getPasswordString();
+    const auto pwdConfirmStr = m_boxPwdConfirm.getPasswordString();
+
+    if(!localCheckID(idStr.c_str())){
+        setInfoStr(u8"无效账号", 2);
+        clearInput();
+        return;
+    }
+    else if(!localCheckPwd(pwdStr.c_str())){
+        setInfoStr(u8"无效密码", 2);
+        m_boxPwd.clear();
+        m_boxPwdConfirm.clear();
+        return;
+    }
+    else if(pwdStr != pwdConfirmStr){
+        setInfoStr(u8"两次密码输入不一致", 2);
+        m_boxPwd.clear();
+        m_boxPwdConfirm.clear();
+        return;
+    }
+
+    setInfoStr(u8"提交...");
+    postAccount(idStr.c_str(), pwdStr.c_str(), 1);
 }
 
 void ProcessNew::postAccount(const char *id, const char *pwd, int op)
@@ -339,4 +385,36 @@ void ProcessNew::localCheck()
     fnCheckInput(idStr, m_LBCheckID, localCheckID(idStr.c_str()));
     fnCheckInput(pwdStr, m_LBCheckPwd, localCheckPwd(pwdStr.c_str()));
     fnCheckInput(pwdConfirmStr, m_LBCheckPwdConfirm, localCheckPwd(pwdConfirmStr.c_str()) && pwdStr == pwdConfirmStr);
+}
+
+void ProcessNew::clearInput()
+{
+    m_boxID.clear();
+    m_boxPwd.clear();
+    m_boxPwdConfirm.clear();
+}
+
+bool ProcessNew::hasInfo() const
+{
+    if(m_infoStr.empty()){
+        return false;
+    }
+
+    if(m_infoStrSec == 0){
+        return true;
+    }
+    return m_infoStrTimer.diff_sec() < m_infoStrSec;
+}
+
+void ProcessNew::setInfoStr(const char8_t *s)
+{
+    m_infoStr.setText(str_haschar(s) ? s : u8"");
+    m_infoStrSec = 0;
+}
+
+void ProcessNew::setInfoStr(const char8_t *s, uint32_t sec)
+{
+    m_infoStr.setText(str_haschar(s) ? s : u8"");
+    m_infoStrSec = sec;
+    m_infoStrTimer.reset();
 }

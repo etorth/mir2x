@@ -116,4 +116,10 @@ class LabelBoard: public Widget
         {
             m_tpset.setImageMaskColor(color);
         }
+
+    public:
+        bool empty() const
+        {
+            return m_tpset.empty();
+        }
 };
