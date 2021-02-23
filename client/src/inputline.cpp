@@ -18,11 +18,14 @@
 
 #include <cmath>
 #include "mathf.hpp"
+#include "colorf.hpp"
 #include "inputline.hpp"
 #include "sdldevice.hpp"
 #include "sdlkeychar.hpp"
+#include "clientargparser.hpp"
 
 extern SDLDevice *g_sdlDevice;
+extern ClientArgParser *g_clientArgParser;
 
 bool InputLine::processEvent(const SDL_Event &event, bool valid)
 {
@@ -174,6 +177,10 @@ void InputLine::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int src
 
     if(mathf::rectangleOverlapRegion(dstX, dstY, srcW, srcH, &cursorX, &cursorY, &cursorW, &cursorH)){
         g_sdlDevice->fillRectangle(m_cursorColor, cursorX, cursorY, cursorW, cursorH);
+    }
+
+    if(g_clientArgParser->debugDrawInputLine){
+        g_sdlDevice->drawRectangle(colorf::BLUE + 255, x(), y(), w(), h());
     }
 }
 

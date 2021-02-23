@@ -35,7 +35,8 @@ struct ClientArgParser
     const bool drawBoardFrame;          // "--draw-board-frame"
     const bool drawTargetBox;           // "--draw-target-box"
     const bool debugAlphaCover;         // "--debug-alpha-cover"
-    const bool debugdrawTexture;        // "--debug-draw-texture"
+    const bool debugDrawTexture;        // "--debug-draw-texture"
+    const bool debugDrawInputLine;      // "--debug-draw-input-line"
     const bool debugPlayerStatusBoard;  // "--debug-player-status-board"
     const bool debugSlider;             // "--debug-slider"
     const bool drawFPS;                 // "--draw-fps"
@@ -59,7 +60,8 @@ struct ClientArgParser
         , drawBoardFrame(cmdParser["draw-board-frame"])
         , drawTargetBox(cmdParser["draw-target-box"])
         , debugAlphaCover(cmdParser["debug-alpha-cover"])
-        , debugdrawTexture(cmdParser["debug-draw-texture"])
+        , debugDrawTexture(cmdParser["debug-draw-texture"])
+        , debugDrawInputLine(cmdParser["debug-draw-input-line"])
         , debugPlayerStatusBoard(cmdParser["debug-player-status-board"])
         , debugSlider(cmdParser["debug-slider"])
         , drawFPS(cmdParser["draw-fps"])

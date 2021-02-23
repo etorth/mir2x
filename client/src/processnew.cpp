@@ -18,48 +18,30 @@
 
 #include <regex>
 #include <cstring>
-#include <iostream>
 #include <algorithm>
 
 #include "log.hpp"
 #include "client.hpp"
-#include "message.hpp"
 #include "pngtexdb.hpp"
 #include "sdldevice.hpp"
 #include "processnew.hpp"
 
 extern Client *g_client;
-extern SDLDevice *g_sdlDevice;
 extern PNGTexDB *g_progUseDB;
+extern SDLDevice *g_sdlDevice;
 
 ProcessNew::ProcessNew()
 	: Process()
-    , m_w(400)
-    , m_h(300)
-
-    , m_x([this]() -> int
-      {
-          return (g_sdlDevice->getRendererWidth() - m_w) / 2;
-      }())
-    , m_y([this]() -> int
-      {
-          return (g_sdlDevice->getRendererHeight() - m_h) / 2;
-      }())
-
-    , m_checkID(true)
-    , m_checkPwd(true)
-    , m_checkPwdConfirm(true)
-
-    , m_LBID        (0, 0, u8"ID"              , 0, 15, 0, colorf::RGBA(0xFF, 0X00, 0X00, 0XFF))
-    , m_LBPwd       (0, 0, u8"Password"        , 0, 15, 0, colorf::RGBA(0xFF, 0X00, 0X00, 0XFF))
-    , m_LBPwdConfirm(0, 0, u8"Confirm Passowrd", 0, 15, 0, colorf::RGBA(0xFF, 0X00, 0X00, 0XFF))
+    , m_LBID        (0, 0, u8"账号"    , 0, 15, 0, colorf::RGBA(0xFF, 0X00, 0X00, 0XFF))
+    , m_LBPwd       (0, 0, u8"密码"    , 0, 15, 0, colorf::RGBA(0xFF, 0X00, 0X00, 0XFF))
+    , m_LBPwdConfirm(0, 0, u8"确认密码", 0, 15, 0, colorf::RGBA(0xFF, 0X00, 0X00, 0XFF))
 
 	, m_boxID
       {
-          159,
-          540,
-          146,
-          18,
+          0,
+          0,
+          186,
+          28,
 
           2,
           15,
@@ -77,15 +59,15 @@ ProcessNew::ProcessNew()
           },
           [this]()
           {
-              DoPostAccount();
+              doPostAccount();
           },
       }
 	, m_boxPwd
       {
-          409,
-          540,
-          146,
-          18,
+          0,
+          0,
+          186,
+          28,
           true,
 
           2,
@@ -104,15 +86,15 @@ ProcessNew::ProcessNew()
           },
           [this]()
           {
-              DoPostAccount();
+              doPostAccount();
           },
       }
 	, m_boxPwdConfirm
       {
-          409,
-          540,
-          146,
-          18,
+          0,
+          0,
+          186,
+          28,
           true,
 
           2,
@@ -131,16 +113,61 @@ ProcessNew::ProcessNew()
           },
           [this]()
           {
-              DoPostAccount();
+              doPostAccount();
           },
       }
 
-    , m_LBCheckID        (0, 0, u8"ID", 0, 15, 0, colorf::RGBA(0xFF, 0X00, 0X00, 0X00))
-    , m_LBCheckPwd       (0, 0, u8"ID", 0, 15, 0, colorf::RGBA(0xFF, 0X00, 0X00, 0X00))
-    , m_LBCheckPwdConfirm(0, 0, u8"ID", 0, 15, 0, colorf::RGBA(0xFF, 0X00, 0X00, 0X00))
+    , m_LBCheckID        (0, 0, u8"√", 0, 15, 0, colorf::RGBA(0xFF, 0X00, 0X00, 0XFF))
+    , m_LBCheckPwd       (0, 0, u8"√", 0, 15, 0, colorf::RGBA(0xFF, 0X00, 0X00, 0XFF))
+    , m_LBCheckPwdConfirm(0, 0, u8"√", 0, 15, 0, colorf::RGBA(0xFF, 0X00, 0X00, 0XFF))
 
-	, m_tbCreate(150, 482, 200, 40, u8"CREATE", 0, 16, 0, nullptr, nullptr, [this](){ DoPostAccount(); })
-	, m_tbExit  (352, 482, 200, 40, u8"EXIT",   0, 16, 0, nullptr, nullptr, [this](){ DoExit();        })
+    , m_submit
+      {
+          m_x + 189,
+          m_y + 233,
+          {
+              SYS_TEXNIL,
+              0X0800000B,
+              0X0800000C,
+          },
+
+          nullptr,
+          nullptr,
+          [this]()
+          {
+              doPostAccount();
+          },
+
+          0,
+          0,
+          0,
+          0,
+
+          true,
+          true,
+      }
+
+    , m_quit
+      {
+          m_x + 400,
+          m_y + 267,
+          {SYS_TEXNIL, 0X0000001C, 0X0000001D},
+
+          nullptr,
+          nullptr,
+          [this]()
+          {
+              doExit();
+          },
+
+          0,
+          0,
+          0,
+          0,
+
+          true,
+          true,
+      }
 {}
 
 void ProcessNew::update(double fUpdateTime)
@@ -148,42 +175,53 @@ void ProcessNew::update(double fUpdateTime)
     m_boxID        .update(fUpdateTime);
     m_boxPwd       .update(fUpdateTime);
     m_boxPwdConfirm.update(fUpdateTime);
+
+    m_boxID        .moveAt(DIR_LEFT, m_x + 129, m_y +  85);
+    m_boxPwd       .moveAt(DIR_LEFT, m_x + 129, m_y + 143);
+    m_boxPwdConfirm.moveAt(DIR_LEFT, m_x + 129, m_y + 198);
 }
 
 void ProcessNew::draw()
 {
-    SDLDeviceHelper::RenderNewFrame newFrame;
+    const SDLDeviceHelper::RenderNewFrame newFrame;
     g_sdlDevice->drawTexture(g_progUseDB->Retrieve(0X00000003), 0, 75);
     g_sdlDevice->drawTexture(g_progUseDB->Retrieve(0X00000004), 0, 75, 0, 0, 800, 450);
+    g_sdlDevice->drawTexture(g_progUseDB->Retrieve(0X0A000000), m_x, m_y);
 
-    m_tbCreate.draw();
-    m_tbExit  .draw();
-
-    auto fnDrawInput = [](int nX, int nY, int nDX, auto &rstLB, auto &rstBox, auto &rstLBCheck)
+    const auto fnDrawInput = [](int x, int y, int dx, auto &title, auto &input, auto &check)
     {
-        //          (nX, nY)
-        // +------+ x-------------+ +-----------+
-        // |  ID  | | anhong      | | check ... |
-        // +------+ +-------------+ +-----------+
-        //     -->| |<--       -->| |<--
-        //        nDX             nDX
+        //           (x, y)
+        // +-------+  +-------------+  +-------+
+        // |       |  |             |  |       |
+        // | title |  x anhong      |  | check |
+        // |       |  |             |  |       |
+        // +-------+  +-------------+  +-------+
+        //      -->|  |<--  186  -->|  |<--
+        //          dx               dx
 
-        rstLB.drawEx(nX - rstLB.w() - nDX, nY, 0, 0, rstLB.w(), rstLB.h());
-
-        g_sdlDevice->drawRectangle(nX, nY, rstBox.w(), rstBox.h());
-        rstBox.drawEx(nX, nY, 0, 0, rstBox.w(), rstBox.h());
-
-        rstLBCheck.drawEx(nX + rstBox.w() + nDX, nY, 0, 0, rstLBCheck.w(), rstLBCheck.h());
+        title.drawAt(DIR_RIGHT, x - dx      , y);
+        input.drawAt(DIR_LEFT , x           , y);
+        check.drawAt(DIR_LEFT , x + dx + 186, y);
     };
 
-    SDLDeviceHelper::EnableRenderColor drawColor(colorf::RGBA(0X00, 0X80, 0X00, 0X00));
-    fnDrawInput(300, 200, 10, m_LBID        , m_boxID        , m_LBCheckID        );
-    fnDrawInput(300, 300, 10, m_LBPwd       , m_boxPwd       , m_LBCheckPwd       );
-    fnDrawInput(300, 400, 10, m_LBPwdConfirm, m_boxPwdConfirm, m_LBCheckPwdConfirm);
+    fnDrawInput(m_x + 129, m_y +  85, 10, m_LBID        , m_boxID        , m_LBCheckID        );
+    fnDrawInput(m_x + 129, m_y + 143, 10, m_LBPwd       , m_boxPwd       , m_LBCheckPwd       );
+    fnDrawInput(m_x + 129, m_y + 198, 10, m_LBPwdConfirm, m_boxPwdConfirm, m_LBCheckPwdConfirm);
+
+    m_submit.draw();
+    m_quit  .draw();
 }
 
 void ProcessNew::processEvent(const SDL_Event &event)
 {
+    if(m_submit.processEvent(event, true)){
+        return;
+    }
+
+    if(m_quit.processEvent(event, true)){
+        return;
+    }
+
     switch(event.type){
         case SDL_KEYDOWN:
             {
@@ -191,11 +229,11 @@ void ProcessNew::processEvent(const SDL_Event &event)
                     case SDLK_TAB:
                         {
                             if(true
-                                    && !m_boxID       .focus()
+                                    && !m_boxID.focus()
                                     && !m_boxPwd.focus()
                                     && !m_boxPwdConfirm.focus()){
 
-                                m_boxID       .focus(true);
+                                m_boxID.focus(true);
                                 m_boxPwd.focus(false);
                                 m_boxPwdConfirm.focus(false);
                                 return;
@@ -213,125 +251,51 @@ void ProcessNew::processEvent(const SDL_Event &event)
             }
     }
 
-    m_tbCreate.processEvent(event, true);
-    m_tbExit  .processEvent(event, true);
-
     // widget idbox and pwdbox are not independent from each other
     // tab in one box will grant focus to another
 
     m_boxID        .processEvent(event, true);
     m_boxPwd       .processEvent(event, true);
     m_boxPwdConfirm.processEvent(event, true);
-
-    CheckInput();
 }
 
-bool ProcessNew::LocalCheckID(const char *szID)
+bool ProcessNew::localCheckID(const char *id) const
 {
-    if(szID && std::strlen(szID)){
-        std::regex stPattern
+    if(str_haschar(id)){
+        std::regex ptn
         {
             "(\\w+)(\\.|_)?(\\w*)@(\\w+)(\\.(\\w+))+"
         };
-        return std::regex_match(szID, stPattern);
+        return std::regex_match(id, ptn);
     }
     return false;
 }
 
-bool ProcessNew::LocalCheckPwd(const char *szPwd)
+bool ProcessNew::localCheckPwd(const char *pwd) const
 {
-    if(szPwd){
-        return std::strlen(szPwd) < 16;
-    }
-    return false;
+    return str_haschar(pwd);
 }
 
-void ProcessNew::DoExit()
+void ProcessNew::doExit()
 {
     g_client->RequestProcess(PROCESSID_LOGIN);
 }
 
-void ProcessNew::DoPostAccount()
+void ProcessNew::doPostAccount()
 {
-    if(false
-            || m_checkID
-            || m_checkPwd
-            || m_checkPwdConfirm){
-        return;
-    }
-
-    PostAccount(m_boxID.getRawString().c_str(), m_boxPwd.getRawString().c_str(), 1);
+    postAccount(m_boxID.getRawString().c_str(), m_boxPwd.getRawString().c_str(), 1);
 }
 
-void ProcessNew::PostAccount(const char *szID, const char *szPWD, int nOperation)
+void ProcessNew::postAccount(const char *id, const char *pwd, int op)
 {
-    if(true
-            && szID  && std::strlen(szID)
-            && szPWD && std::strlen(szPWD)){
-
+    if(str_haschar(id) && str_haschar(pwd)){
         CMAccount cmA;
         std::memset(&cmA, 0, sizeof(cmA));
 
-        std::strcpy(cmA.ID, szID);
-        std::strcpy(cmA.Password, szPWD);
+        std::strcpy(cmA.ID, id);
+        std::strcpy(cmA.Password, pwd);
 
-        cmA.Operation = nOperation;
+        cmA.Operation = op;
         g_client->send(CM_ACCOUNT, cmA);
-    }
-}
-
-void ProcessNew::CheckInput()
-{
-    auto szID         = m_boxID.getRawString();
-    auto szPwd        = m_boxPwd.getRawString();
-    auto szPwdConfirm = m_boxPwdConfirm.getRawString();
-
-    if(CacheFind(true, szID)){
-        m_checkID = CHECK_OK;
-        m_LBCheckID.clear();
-    }else if(CacheFind(false, szID)){
-        m_checkID = CHECK_ERROR;
-        m_LBCheckID.setFontColor(colorf::RED);
-        m_LBCheckID.setText(u8"ID has been used by others");
-    }else{
-        if(szID.empty()){
-            m_checkID = CHECK_NONE;
-        }else{
-            if(LocalCheckID(szID.c_str())){
-                m_checkID = CHECK_PENDING;
-                m_LBCheckID.setFontColor(colorf::GREEN);
-                m_LBCheckID.setText(u8"Pending...");
-            }else{
-                m_checkID = CHECK_ERROR;
-                m_LBCheckID.setFontColor(colorf::RED);
-                m_LBCheckID.setText(u8"Invalid ID");
-            }
-        }
-    }
-
-    if(szPwd.empty()){
-        m_checkPwd = CHECK_NONE;
-    }else{
-        if(LocalCheckPwd(szPwd.c_str())){
-            m_checkPwd = CHECK_OK;
-            m_LBCheckPwd.clear();
-        }else{
-            m_checkPwd = CHECK_ERROR;
-            m_LBCheckPwd.setFontColor(colorf::RED);
-            m_LBCheckPwd.setText(u8"Invalid password");
-        }
-    }
-
-    if(szPwdConfirm.empty()){
-        m_checkPwdConfirm = CHECK_NONE;
-    }else{
-        if(szPwdConfirm == szPwd){
-            m_checkPwdConfirm = CHECK_OK;
-            m_LBCheckPwdConfirm.clear();
-        }else{
-            m_checkPwdConfirm = CHECK_ERROR;
-            m_LBCheckPwdConfirm.setFontColor(colorf::RED);
-            m_LBCheckPwdConfirm.setText(u8"Password doesn't match");
-        }
     }
 }

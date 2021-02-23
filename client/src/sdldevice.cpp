@@ -321,7 +321,7 @@ void SDLDevice::drawTexture(SDL_Texture *pstTexture,
         stDst.h = nDstH;
 
         SDL_RenderCopy(m_renderer, pstTexture, &stSrc, &stDst);
-        if(g_clientArgParser->debugdrawTexture){
+        if(g_clientArgParser->debugDrawTexture){
             drawRectangle(colorf::BLUE + 128, nDstX, nDstY, nDstW, nDstH);
         }
     }

@@ -5,35 +5,6 @@
  *        Created: 08/14/2015 02:47:30 PM
  *    Description:
  *
- *  (0, 0): screen coord origin
- *
- *   +---------------------------------------------------------------------------------
- *   |
- *   |  (OffX, OffY)
- *   |
- *   |       - xooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo+
- *   |       ^ 0                                                                   0
- *   |       | 0                       +------------------+                        0
- *   |       | 0                  ID : |                  |                        0
- *   |       | 0                       +------------------+                        0
- *   |       | 0                       +------------------+                        0
- *   |       | 0                 PWD : |                  |                        0
- *   |       | 0                       +------------------+                        0
- *   |       H 0                       +------------------+                        0
- *   |       | 0         CONFIRM PWD : |                  |                        0
- *   |       | 0                       +------------------+                        0
- *   |       | 0                                                                   0
- *   |       | 0                                                                   0
- *   |       | 0                 +----------+         +----------+                 0
- *   |       | 0                 |  Create  |         |   Exit   |                 0
- *   |       | 0                 +----------+         +----------+                 0
- *   |       | 0                                                                   0
- *   |       v 0                                                                   0
- *   |       - +ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo+
- *   |         |<-----------------------------W----------------------------------->|
- *   |
- *
- *
  *        Version: 1.0
  *       Revision: none
  *       Compiler: gcc
@@ -46,40 +17,18 @@
  */
 #pragma once
 
-#include "set"
 #include <cstdint>
-#include <SDL2/SDL.h>
-
 #include "process.hpp"
-#include "message.hpp"
-#include "textbutton.hpp"
 #include "labelboard.hpp"
+#include "inputline.hpp"
 #include "passwordbox.hpp"
 #include "tritexbutton.hpp"
 
 class ProcessNew: public Process
 {
     private:
-        enum CheckState: int
-        {
-            CHECK_NONE    = 0,
-            CHECK_OK      = 1,
-            CHECK_ERROR   = 2,
-            CHECK_PENDING = 3,
-        };
-
-    private:
-        const int m_w;
-        const int m_h;
-
-    private:
-        const int m_x;
-        const int m_y;
-
-    private:
-        int m_checkID;
-        int m_checkPwd;
-        int m_checkPwdConfirm;
+        constexpr static int m_x = 180;
+        constexpr static int m_y = 145;
 
     private:
         LabelBoard m_LBID;
@@ -97,11 +46,8 @@ class ProcessNew: public Process
         LabelBoard m_LBCheckPwdConfirm;
 
     private:
-        TextButton m_tbCreate;
-        TextButton m_tbExit;
-
-    private:
-        std::set<std::string> m_IDCache[2];
+        TritexButton m_submit;
+        TritexButton m_quit;
 
     public:
         ProcessNew();
@@ -119,8 +65,8 @@ class ProcessNew: public Process
         void processEvent(const SDL_Event &) override;
 
     private:
-        void DoPostAccount();
-        void DoExit();
+        void doPostAccount();
+        void doExit();
 
     private:
         // post account operation to server
@@ -128,33 +74,9 @@ class ProcessNew: public Process
         // operation : 0 : validate only
         //             1 : create
         //             2 : login
-        void PostAccount(const char *, const char *, int);
+        void postAccount(const char *, const char *, int);
 
     private:
-        bool LocalCheckID(const char *);
-        bool LocalCheckPwd(const char *);
-
-    private:
-        void CacheAdd(bool bValid, std::string szID)
-        {
-            m_IDCache[bValid ? 0 : 1].insert(szID);
-        }
-
-        void CacheRemove(bool bValid, std::string szID)
-        {
-            m_IDCache[bValid ? 0 : 1].erase(szID);
-        }
-
-        void CacheClear(bool bValid)
-        {
-            m_IDCache[bValid ? 0 : 1].clear();
-        }
-
-        bool CacheFind(bool bValid, std::string szID)
-        {
-            return m_IDCache[bValid ? 0 : 1].find(szID) != m_IDCache[bValid ? 0 : 1].end();
-        }
-
-    private:
-        void CheckInput();
+        bool localCheckID (const char *) const;
+        bool localCheckPwd(const char *) const;
 };
