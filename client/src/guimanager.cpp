@@ -76,7 +76,7 @@ GUIManager::GUIManager(ProcessRun *proc)
     , m_quickAccessBoard
       {
           0,
-          g_sdlDevice->getRendererHeight() - m_controlBoard.h(),
+          g_sdlDevice->getRendererHeight() - m_controlBoard.h() - 48,
           proc,
           this,
       }
