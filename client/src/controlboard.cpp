@@ -107,12 +107,27 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
 
     , m_buttonQuickAccess
       {
+          DIR_UPLEFT,
+          148,
+          2,
+          {SYS_TEXNIL, 0X0B000000, 0X0B000001},
+
+          nullptr,
+          nullptr,
           [this]()
           {
               if(auto p = m_processRun->getWidget("QuickAccessBoard")){
                   flipShow(p);
               }
           },
+
+          0,
+          0,
+          0,
+          0,
+
+          true,
+          true,
           &m_left,
       }
 
