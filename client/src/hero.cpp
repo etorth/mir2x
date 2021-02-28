@@ -702,7 +702,7 @@ bool Hero::parseAction(const ActionNode &action)
                     if(const auto attackDir = PathFind::GetDirection(action.x, action.y, coPtr->x(), coPtr->y()); attackDir >= DIR_BEGIN && attackDir < DIR_END){
                         m_motionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
                         {
-                            .type = MOTION_ONEHSWING,
+                            .type = MOTION_ONEVSWING,
                             .direction = attackDir,
                             .x = action.x,
                             .y = action.y,
