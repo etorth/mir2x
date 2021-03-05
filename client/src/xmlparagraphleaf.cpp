@@ -185,22 +185,7 @@ std::optional<uint8_t> XMLParagraphLeaf::fontStyle() const
 std::optional<bool> XMLParagraphLeaf::wrap() const
 {
     if(const auto wrapStr = xmlf::findAttribute(xmlNode(), "wrap", true)){
-        const auto s = std::string(wrapStr);
-        if(false
-                || s == "1"
-                || s == "true"
-                || s == "TRUE"){
-            return true;
-        }
-        else if(false
-                || s == "0"
-                || s == "false"
-                || s == "FALSE"){
-            return false;
-        }
-        else{
-            throw fflerror("invliad boolean string: %s", to_cstr(s));
-        }
+        return to_bool(wrapStr);
     }
     return {};
 }

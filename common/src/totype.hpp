@@ -140,6 +140,45 @@ template<typename T> auto to_u8sv(const T &t)
     return std::u8string_view(to_u8cstr(t));
 }
 
+inline bool to_bool(const char *s)
+{
+    if(!s){
+        throw std::runtime_error("to_bool: null string");
+    }
+
+    if(s[0]){
+        throw std::runtime_error("to_bool: zero-length string");
+    }
+
+    if(false
+            || to_sv(s) == "1"
+            || to_sv(s) == "true"
+            || to_sv(s) == "True"
+            || to_sv(s) == "TRUE"){
+        return true;
+    }
+
+    if(false
+            || to_sv(s) == "0"
+            || to_sv(s) == "false"
+            || to_sv(s) == "False"
+            || to_sv(s) == "FALSE"){
+        return false;
+    }
+
+    throw std::runtime_error(std::string("to_bool: invalid boolean string: ") + s);
+}
+
+inline bool to_bool(const std::string &s)
+{
+    return to_bool(s.c_str());
+}
+
+inline bool to_bool(const std::string_view &s)
+{
+    return to_bool(s.data());
+}
+
 template<typename T, typename F> static T check_cast(F from)
 {
     auto to = static_cast<T>(from);
