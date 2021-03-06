@@ -27,7 +27,7 @@ class NPCChatBoard: public Widget
 {
     private:
         int m_margin;
-        ProcessRun *m_processRun;
+        ProcessRun *m_process;
 
     private:
         LayoutBoard  m_chatBoard;

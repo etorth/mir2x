@@ -1425,8 +1425,8 @@ void ProcessRun::sendNPCEvent(uint64_t uid, const char *event, const char *value
         throw fflerror("sending npc event to a non-npc UID");
     }
 
-    if(!(event && std::strlen(event))){
-        throw fflerror("invalid event name: [%p]%s", event, event ? event : "(null)");
+    if(!str_haschar(event)){
+        throw fflerror("invalid event name: [%p]%s", event, to_cstr(event));
     }
 
     CMNPCEvent cmNPCE;

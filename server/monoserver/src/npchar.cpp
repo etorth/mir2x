@@ -294,26 +294,36 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npc)
         R"###(     return sessionTable['SESSION_UID']                                                                                        )###""\n"
         R"###( end                                                                                                                           )###""\n"
         R"###(                                                                                                                               )###""\n"
+        R"###( -- entry coroutine for event handling                                                                                         )###""\n"
+        R"###( -- it's event driven, i.e. if the event sink has no event, this coroutine won't get scheduled                                 )###""\n"
+        R"###(                                                                                                                               )###""\n"
         R"###( function main(uid)                                                                                                            )###""\n"
+        R"###(     -- setup current session uid                                                                                              )###""\n"
+        R"###(     -- all functions in current session can use this implicit argument as *this*                                              )###""\n"
         R"###(     setSessionUID(uid)                                                                                                        )###""\n"
-        R"###(     while true do                                                                                                             )###""\n"
-        R"###(         local from, event, value = waitEvent()                                                                                )###""\n"
-        R"###(         if has_processNPCEvent(false, event) then                                                                             )###""\n"
-        R"###(             processNPCEvent[event](from, value)                                                                               )###""\n"
-        R"###(         elseif event == SYS_NPCDONE then                                                                                      )###""\n"
-        R"###(             clearSessionTable()                                                                                               )###""\n"
-        R"###(         else                                                                                                                  )###""\n"
-        R"###(             -- don't exit this loop                                                                                           )###""\n"
-        R"###(             -- always consume the event no matter if the NPC can handle it                                                    )###""\n"
-        R"###(             sayXML(uid, string.format(                                                                                        )###""\n"
-        R"###(             [[                                                                                                                )###""\n"
-        R"###(                 <layout>                                                                                                      )###""\n"
-        R"###(                     <par>我听不懂你在说什么...</par>                                                                          )###""\n"
-        R"###(                     <par><event id="%s">关闭</event></par>                                                                    )###""\n"
-        R"###(                 </layout>                                                                                                     )###""\n"
-        R"###(             ]], SYS_NPCDONE))                                                                                                 )###""\n"
-        R"###(         end                                                                                                                   )###""\n"
+        R"###(                                                                                                                               )###""\n"
+        R"###(     -- poll the event sink                                                                                                    )###""\n"
+        R"###(     -- current session only process 1 event and then clean itself                                                             )###""\n"
+        R"###(     local from, event, value = waitEvent()                                                                                    )###""\n"
+        R"###(     if has_processNPCEvent(false, event) then                                                                                 )###""\n"
+        R"###(         processNPCEvent[event](from, value)                                                                                   )###""\n"
+        R"###(     elseif event == SYS_NPCDONE then                                                                                          )###""\n"
+        R"###(         clearSessionTable()                                                                                                   )###""\n"
+        R"###(     else                                                                                                                      )###""\n"
+        R"###(         -- don't exit this loop                                                                                               )###""\n"
+        R"###(         -- always consume the event no matter if the NPC can handle it                                                        )###""\n"
+        R"###(         sayXML(uid, string.format(                                                                                            )###""\n"
+        R"###(         [[                                                                                                                    )###""\n"
+        R"###(             <layout>                                                                                                          )###""\n"
+        R"###(                 <par>我听不懂你在说什么...</par>                                                                              )###""\n"
+        R"###(                 <par><event id="%s">关闭</event></par>                                                                        )###""\n"
+        R"###(             </layout>                                                                                                         )###""\n"
+        R"###(         ]], SYS_NPCDONE))                                                                                                     )###""\n"
         R"###(     end                                                                                                                       )###""\n"
+        R"###(                                                                                                                               )###""\n"
+        R"###(     -- event process done                                                                                                     )###""\n"
+        R"###(     -- clean the session itself, next event needs another session                                                             )###""\n"
+        R"###(     clearSessionTable()                                                                                                       )###""\n"
         R"###( end                                                                                                                           )###""\n");
 
     m_luaState.script_file([npc]() -> std::string
@@ -380,10 +390,14 @@ void NPChar::LuaNPCModule::setEvent(uint64_t sessionUID, uint64_t from, std::str
 
     auto p = m_sessionList.find(sessionUID);
     if(p == m_sessionList.end()){
-        if(event != SYS_NPCINIT){
-            throw fflerror("get script event %s while no communication initialized", event.c_str());
-        }
-
+        // TODO bug:
+        // 1. received an event which triggers processNPCEvent(event)
+        // 2. inside processNPCEvent(event) the script emits query to other actor
+        // 3. when waiting for the response of the query, user clicked the close button to end up the session
+        // 4. receives the query response, we should ignore it
+        //
+        // to fix this bug we have to give every session an uniq seqID
+        // and the query response needs to match the seqID, not implemented yet
         LuaNPCModule::LuaNPCSession session;
         session.uid    = sessionUID;
         session.module = this;
@@ -396,6 +410,9 @@ void NPChar::LuaNPCModule::setEvent(uint64_t sessionUID, uint64_t from, std::str
         p->second.from = 0;
         p->second.event.clear();
         p->second.value.clear();
+
+        // initial call to make main reaches its event polling point
+        // need to assign event to let it advance
 
         const auto result = p->second.co_handler.callback(std::to_string(sessionUID));
         fnCheckCOResult(result);
@@ -418,6 +435,20 @@ void NPChar::LuaNPCModule::setEvent(uint64_t sessionUID, uint64_t from, std::str
 
     const auto result = p->second.co_handler.callback();
     fnCheckCOResult(result);
+
+    if(!p->second.co_handler.callback){
+        // not invocable anymore after the event-driven call
+        // the event handling coroutine is done
+        //
+        // remove the session when an event sequence is done, i.e.
+        // 1. get event SYS_NPCINIT from player, init main()
+        // 2. in processNPCEvent(SYS_NPCINIT), script calls uidQueryName(), this sends QUERY_NAME
+        // 3. get event NAME
+        // 4. in processNPCEvent(SYS_NPCINIT), script calls uidQueryLevel(), this sends QUERY_LEVEL
+        // 5. get event LEVEL
+        // 6. send sayXML() to player, done main()
+        m_sessionList.erase(p);
+    }
 }
 
 NPChar::NPChar(uint16_t npcId, ServiceCore *core, ServerMap *serverMap, int mapX, int mapY)

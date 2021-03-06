@@ -30,7 +30,7 @@ extern SDLDevice *g_sdlDevice;
 NPCChatBoard::NPCChatBoard(ProcessRun *proc, Widget *pwidget, bool autoDelete)
     : Widget(DIR_UPLEFT, 0, 0, 386, 204, pwidget, autoDelete)
     , m_margin(20)
-    , m_processRun(proc)
+    , m_process(proc)
     , m_chatBoard
       {
           DIR_UPLEFT,
@@ -73,6 +73,7 @@ NPCChatBoard::NPCChatBoard(ProcessRun *proc, Widget *pwidget, bool autoDelete)
           [this]()
           {
               show(false);
+              m_process->sendNPCEvent(m_NPCUID, SYS_NPCDONE);
           },
 
           0,
@@ -187,11 +188,11 @@ void NPCChatBoard::loadXML(uint64_t uid, const char *xmlString)
 
 void NPCChatBoard::onClickEvent(const std::string &id)
 {
-    m_processRun->addCBLog(CBLOG_SYS, u8"clickEvent id: %s", id.c_str());
+    m_process->addCBLog(CBLOG_SYS, u8"clickEvent id: %s", id.c_str());
     if(id == SYS_NPCDONE){
         show(false);
     }
-    m_processRun->sendNPCEvent(m_NPCUID, id.c_str());
+    m_process->sendNPCEvent(m_NPCUID, id.c_str());
 }
 
 int NPCChatBoard::getMiddleCount() const
