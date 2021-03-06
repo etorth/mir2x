@@ -81,15 +81,17 @@ void ProcessRun::net_ACTION(const uint8_t *bufPtr, size_t)
 
         m_actionBlocker.clear();
         getMyHero()->flushMotionPending();
-
-        const auto oldDir = getMyHero()->currMotion()->direction;
-        auto myHeroPtr = std::move(m_coList[m_myHeroUID]);
-
         loadMap(smA.mapID);
+
+        // directly assign a stand motion
+        // this need to skip all location validation
+
+        auto myHeroPtr = std::move(m_coList[m_myHeroUID]);
+        const auto oldDir = myHeroPtr->currMotion()->direction;
+        dynamic_cast<Hero *>(myHeroPtr.get())->jumpLoc(smA.action.x, smA.action.y, oldDir);
 
         m_coList.clear();
         m_coList[m_myHeroUID] = std::move(myHeroPtr);
-        getMyHero()->jumpLoc(smA.action.x, smA.action.y, oldDir);
 
         centerMyHero();
         getMyHero()->parseAction(smA.action);
