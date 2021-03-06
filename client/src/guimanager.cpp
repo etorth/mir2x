@@ -182,7 +182,7 @@ Widget *GUIManager::getWidget(const std::string &widgetName)
         return &m_skillBoard;
     }
 
-    if(widgetName == "MMapBoard"){
+    if(widgetName == "MiniMapBoard"){
         return &m_mmapBoard;
     }
 

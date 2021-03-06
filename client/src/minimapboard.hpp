@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename: mmapboard.hpp
+ *       Filename: minimapboard.hpp
  *        Created: 10/08/2017 19:22:30
  *    Description:
  *
@@ -21,7 +21,7 @@
 #include "tritexbutton.hpp"
 
 class ProcessRun;
-class MMapBoard: public Widget
+class MiniMapBoard: public Widget
 {
     private:
         bool m_alphaOn  = false;
@@ -35,7 +35,7 @@ class MMapBoard: public Widget
         TritexButton m_buttonExtend;
 
     public:
-        MMapBoard(ProcessRun *, Widget * = nullptr, bool = false);
+        MiniMapBoard(ProcessRun *, Widget * = nullptr, bool = false);
 
     public:
         void drawEx(int, int, int, int, int, int) const override;
@@ -46,12 +46,12 @@ class MMapBoard: public Widget
     public:
         void setLoc();
         void flipExtended();
-        void flipMmapShow();
-        SDL_Texture *getMmapTexture() const;
+        void flipMiniMapShow();
+        SDL_Texture *getMiniMapTexture() const;
 
     private:
         void drawFrame() const;
-        void drawMmapTexture() const;
+        void drawMiniMapTexture() const;
 
     private:
         int getFrameSize() const;

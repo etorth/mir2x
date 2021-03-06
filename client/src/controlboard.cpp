@@ -219,9 +219,9 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           nullptr,
           [this]()
           {
-              if(auto p = dynamic_cast<MMapBoard *>(m_processRun->getWidget("MMapBoard"))){
-                  if(p->getMmapTexture()){
-                      p->flipMmapShow();
+              if(auto p = dynamic_cast<MiniMapBoard *>(m_processRun->getWidget("MiniMapBoard"))){
+                  if(p->getMiniMapTexture()){
+                      p->flipMiniMapShow();
                   }
                   else{
                       addLog(CBLOG_ERR, to_cstr(u8"没有可用的地图"));

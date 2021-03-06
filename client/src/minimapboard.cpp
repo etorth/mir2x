@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename: mmapboard.cpp
+ *       Filename: minimapboard.cpp
  *        Created: 10/08/2017 19:22:30
  *    Description:
  *
@@ -20,7 +20,7 @@
 #include "client.hpp"
 #include "pngtexdb.hpp"
 #include "sdldevice.hpp"
-#include "mmapboard.hpp"
+#include "minimapboard.hpp"
 #include "maprecord.hpp"
 #include "processrun.hpp"
 #include "dbcomrecord.hpp"
@@ -28,7 +28,7 @@
 extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 
-MMapBoard::MMapBoard(ProcessRun *runPtr, Widget *parent, bool autoDelete)
+MiniMapBoard::MiniMapBoard(ProcessRun *runPtr, Widget *parent, bool autoDelete)
     : Widget
       {
           DIR_UPLEFT,
@@ -91,7 +91,7 @@ MMapBoard::MMapBoard(ProcessRun *runPtr, Widget *parent, bool autoDelete)
           nullptr,
           [this]()
           {
-              if(getMmapTexture()){
+              if(getMiniMapTexture()){
                   flipExtended();
               }
 
@@ -116,16 +116,16 @@ MMapBoard::MMapBoard(ProcessRun *runPtr, Widget *parent, bool autoDelete)
     show(false);
 }
 
-void MMapBoard::drawEx(int, int, int, int, int, int) const
+void MiniMapBoard::drawEx(int, int, int, int, int, int) const
 {
-    drawMmapTexture();
+    drawMiniMapTexture();
     drawFrame();
 
     m_buttonAlpha.draw();
     m_buttonExtend.draw();
 }
 
-bool MMapBoard::processEvent(const SDL_Event &event, bool valid)
+bool MiniMapBoard::processEvent(const SDL_Event &event, bool valid)
 {
     if(!show()){
         return false;
@@ -143,7 +143,7 @@ bool MMapBoard::processEvent(const SDL_Event &event, bool valid)
     return took;
 }
 
-void MMapBoard::flipExtended()
+void MiniMapBoard::flipExtended()
 {
     m_extended = !m_extended;
     setLoc();
@@ -151,7 +151,7 @@ void MMapBoard::flipExtended()
     m_buttonExtend.setOff();
 }
 
-void MMapBoard::setLoc()
+void MiniMapBoard::setLoc()
 {
     const int size = getFrameSize();
     m_w = size;
@@ -166,9 +166,9 @@ void MMapBoard::setLoc()
     m_buttonExtend.moveTo(w() -     buttonW + 0, h() - buttonH);
 }
 
-void MMapBoard::drawMmapTexture() const
+void MiniMapBoard::drawMiniMapTexture() const
 {
-    auto texPtr = getMmapTexture();
+    auto texPtr = getMiniMapTexture();
     if(!texPtr){
         return;
     }
@@ -231,7 +231,7 @@ void MMapBoard::drawMmapTexture() const
     }
 }
 
-void MMapBoard::drawFrame() const
+void MiniMapBoard::drawFrame() const
 {
     g_sdlDevice->drawRectangle(colorf::RGBA(60, 60, 60, 255), x(), y(), w(), h());
     if(auto texPtr = g_progUseDB->Retrieve(0X09000006); texPtr){
@@ -247,9 +247,9 @@ void MMapBoard::drawFrame() const
     }
 }
 
-int MMapBoard::getFrameSize() const
+int MiniMapBoard::getFrameSize() const
 {
-    const auto [texW, texH] = SDLDeviceHelper::getTextureSize(getMmapTexture());
+    const auto [texW, texH] = SDLDeviceHelper::getTextureSize(getMiniMapTexture());
     if(m_extended){
         return std::min<int>({texW, texH, 300}); // setup window size here
     }else{
@@ -257,7 +257,7 @@ int MMapBoard::getFrameSize() const
     }
 }
 
-SDL_Texture *MMapBoard::getMmapTexture() const
+SDL_Texture *MiniMapBoard::getMiniMapTexture() const
 {
     [[maybe_unused]] const auto [mapID, mapW, mapH] = m_processRun->getMap();
     if(const auto miniMapID = DBCOM_MAPRECORD(mapID).miniMapID){
@@ -266,7 +266,7 @@ SDL_Texture *MMapBoard::getMmapTexture() const
     return nullptr;
 }
 
-void MMapBoard::flipMmapShow()
+void MiniMapBoard::flipMiniMapShow()
 {
     flipShow(this);
     setLoc();

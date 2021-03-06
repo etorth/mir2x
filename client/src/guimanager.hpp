@@ -18,7 +18,7 @@
 
 #pragma once
 #include "widget.hpp"
-#include "mmapboard.hpp"
+#include "minimapboard.hpp"
 #include "skillboard.hpp"
 #include "npcchatboard.hpp"
 #include "controlboard.hpp"
@@ -39,7 +39,7 @@ class GUIManager: public WidgetGroup
         ControlBoard m_controlBoard;
 
     private:
-        MMapBoard m_mmapBoard;
+        MiniMapBoard m_mmapBoard;
         SkillBoard m_skillBoard;
         PurchaseBoard m_purchaseBoard;
         InventoryBoard m_inventoryBoard;
