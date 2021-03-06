@@ -736,7 +736,7 @@ bool Hero::parseAction(const ActionNode &action)
             }
         case ACTION_HITTED:
             {
-                m_motionQueue.push_front(std::unique_ptr<MotionNode>(new MotionNode
+                auto motionPtr = new MotionNode
                 {
                     .type = [this]() -> int
                     {
@@ -749,7 +749,39 @@ bool Hero::parseAction(const ActionNode &action)
                     .direction = endDir,
                     .x = endX,
                     .y = endY,
-                }));
+                };
+
+                m_motionQueue.push_front(std::unique_ptr<MotionNode>(motionPtr));
+                motionPtr->addUpdate(true, [motionPtr, done = false, this]() mutable
+                {
+                    if(done){
+                        return;
+                    }
+
+                    for(auto &p: m_attachMagicList){
+                        if(to_u32(p->magicID()) == DBCOM_MAGICID(u8"魔法盾")){
+                            p.reset(new AttachMagic(u8"魔法盾", u8"挨打"));
+                            p->addOnDone([this, done = false]() mutable
+                            {
+                                if(done){
+                                    return;
+                                }
+
+                                // don't use p, the m_attachMagicList may re-allocate
+                                // and don't replace the ptr holding by p, just add a new magic, since the callback is by ptr holding by p
+                                for(auto &p: m_attachMagicList){
+                                    if(to_u32(p->magicID()) == DBCOM_MAGICID(u8"魔法盾")){
+                                        addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"魔法盾", u8"运行")));
+                                        break;
+                                    }
+                                }
+                                done = true;
+                            });
+                            break;
+                        }
+                    }
+                    done = true;
+                });
                 break;
             }
         case ACTION_DIE:
