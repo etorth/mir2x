@@ -192,7 +192,7 @@ void MiniMapBoard::drawMiniMapTexture() const
     const int srcX = std::min<int>(std::max<int>(0, heroMPX - w() / 2), texW - w());
     const int srcY = std::min<int>(std::max<int>(0, heroMPY - h() / 2), texH - h());
     {
-        SDLDeviceHelper::EnableTextureModColor enableModColor(texPtr, colorf::WHITE + (m_alphaOn ? 200 : 255));
+        SDLDeviceHelper::EnableTextureModColor enableModColor(texPtr, colorf::WHITE + (m_alphaOn ? 128 : 255));
         g_sdlDevice->drawTexture(texPtr, x(), y(), srcX, srcY, w(), h());
     }
 

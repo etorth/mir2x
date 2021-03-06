@@ -133,7 +133,18 @@ void Hero::draw(int viewX, int viewY, int)
     }
 
     for(auto &p: m_attachMagicList){
-        p->drawShift(startX, startY, true);
+        switch(p->magicID()){
+            case DBCOM_MAGICID(u8"魔法盾"):
+                {
+                    p->drawShift(startX, startY, true);
+                    break;
+                }
+            default:
+                {
+                    p->drawShift(startX, startY, false);
+                    break;
+                }
+        }
     }
 
     g_sdlDevice->drawTexture(pFrame0, startX + nDX0, startY + nDY0);
@@ -190,7 +201,7 @@ void Hero::draw(int viewX, int viewY, int)
                             }
                         default:
                             {
-                                p->drawShift(startX, startY, false);
+                                p->drawShift(startX, startY, true);
                                 break;
                             }
                     }
@@ -198,7 +209,7 @@ void Hero::draw(int viewX, int viewY, int)
                 }
             default:
                 {
-                    p->drawShift(startX, startY, false);
+                    p->drawShift(startX, startY, true);
                     break;
                 }
         }
