@@ -258,9 +258,6 @@ class ProcessRun: public Process
         void addAscendStr(int, int, int, int);
 
     public:
-        bool GetUIDLocation(uint64_t, bool, int *, int *);
-
-    public:
         void centerMyHero();
 
     public:
@@ -335,7 +332,7 @@ class ProcessRun: public Process
         void drawRotateStar(int, int, int, int);
 
     private:
-        void drawGroundObject(int, int, bool);
+        void drawGroundObject(int, int, bool, bool);
 
     private:
         void checkMagicSpell(const SDL_Event &);

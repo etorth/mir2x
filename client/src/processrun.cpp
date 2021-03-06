@@ -289,7 +289,14 @@ void ProcessRun::draw()
     // ground objects
     for(int y = y0; y <= y1; ++y){
         for(int x = x0; x <= x1; ++x){
-            drawGroundObject(x, y, true);
+            drawGroundObject(x, y, true, false);
+        }
+    }
+
+    // over ground object
+    for(int y = y0; y <= y1; ++y){
+        for(int x = x0; x <= x1; ++x){
+            drawGroundObject(x, y, false, false);
         }
     }
 
@@ -330,7 +337,7 @@ void ProcessRun::draw()
     // over ground objects
     for(int y = y0; y <= y1; ++y){
         for(int x = x0; x <= x1; ++x){
-            drawGroundObject(x, y, false);
+            drawGroundObject(x, y, false, true);
         }
 
         for(int x = x0; x <= x1; ++x){
@@ -1216,23 +1223,6 @@ void ProcessRun::addAscendStr(int nType, int nValue, int nX, int nY)
     m_ascendStrList.push_back(std::make_unique<AscendStr>(nType, nValue, nX, nY));
 }
 
-bool ProcessRun::GetUIDLocation(uint64_t nUID, bool bDrawLoc, int *pX, int *pY)
-{
-    if(auto coPtr = findUID(nUID)){
-        if(bDrawLoc){
-        }else{
-            if(pX){
-                *pX = coPtr->x();
-            }
-            if(pY){
-                *pY = coPtr->y();
-            }
-        }
-        return true;
-    }
-    return false;
-}
-
 void ProcessRun::centerMyHero()
 {
     const auto nMotion     = getMyHero()->currMotion()->type;
@@ -1531,7 +1521,7 @@ void ProcessRun::drawTile(int x0, int y0, int x1, int y1)
     }
 }
 
-void ProcessRun::drawGroundObject(int x, int y, bool ground)
+void ProcessRun::drawGroundObject(int x, int y, bool ground, bool alpha)
 {
     if(!m_mir2xMapData.ValidC(x, y)){
         return;
@@ -1560,13 +1550,21 @@ void ProcessRun::drawGroundObject(int x, int y, bool ground)
                 }
             }
 
-            const bool alphaRender = (objArr[4] & 0B00000010);
             if(auto texPtr = g_mapDB->Retrieve(imageId)){
                 const int texH = SDLDeviceHelper::getTextureHeight(texPtr);
-                if(alphaRender){
-                    SDL_SetTextureBlendMode(texPtr, SDL_BLENDMODE_BLEND);
-                    SDL_SetTextureAlphaMod(texPtr, 128);
-                }
+                const auto drawAlphaObj = [&objArr, alpha]() -> uint8_t
+                {
+                    if(objArr[4] & 0B00000010){
+                        return 96;
+                    }
+
+                    if(alpha){
+                        return 128;
+                    }
+                    return 255;
+                }();
+
+                SDLDeviceHelper::EnableTextureModColor enableColor(texPtr, colorf::RGBA(0XFF, 0XFF, 0XFF, drawAlphaObj));
                 g_sdlDevice->drawTexture(texPtr, x * SYS_MAPGRIDXP - m_viewX, (y + 1) * SYS_MAPGRIDYP - m_viewY - texH);
             }
         }
