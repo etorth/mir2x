@@ -59,8 +59,8 @@ class Client final
         NetIO m_netIO;
 
     private:
-        int m_requestProcess;
-        Process *m_currentProcess;
+        int m_requestProcess = PROCESSID_NONE;
+        std::unique_ptr<Process> m_currentProcess;
 
     private:
         std::string m_clipboardBuf;
@@ -89,9 +89,9 @@ class Client final
             return m_requestProcess;
         }
 
-        void RequestProcess(int nProcessID)
+        void RequestProcess(int processID)
         {
-            m_requestProcess = nProcessID;
+            m_requestProcess = processID;
         }
 
     private:
@@ -125,15 +125,15 @@ class Client final
         }
 
     public:
-        Process *ProcessValid(int nProcessID)
+        Process *ProcessValid(int processID)
         {
-            return (m_currentProcess && m_currentProcess->ID() == nProcessID) ? m_currentProcess : nullptr;
+            return (m_currentProcess && m_currentProcess->ID() == processID) ? m_currentProcess.get() : nullptr;
         }
 
     public:
         ProcessRun *processRun()
         {
-            return ProcessValid(PROCESSID_RUN) ? (ProcessRun *)(m_currentProcess) : nullptr;
+            return ProcessValid(PROCESSID_RUN) ? (ProcessRun *)(m_currentProcess.get()) : nullptr;
         }
 
         ProcessRun *processRunEx()

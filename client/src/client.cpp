@@ -50,8 +50,6 @@ Client::Client()
     : m_clientMonitor()
     , m_serverDelay( 0.00)
     , m_netPackTick(-1.00)
-    , m_requestProcess(PROCESSID_NONE)
-    , m_currentProcess(nullptr)
 {
     InitView(10);
     g_sdlDevice->CreateMainWindow();
@@ -488,21 +486,18 @@ void Client::SwitchProcess(int nNewID)
     SwitchProcess((m_currentProcess ? m_currentProcess->ID() : PROCESSID_NONE), nNewID);
 }
 
-void Client::SwitchProcess(int nOldID, int nNewID)
+void Client::SwitchProcess(int oldID, int newID)
 {
-    delete m_currentProcess;
-    m_currentProcess = nullptr;
-
-    switch(nOldID)
-    {
+    m_currentProcess.reset();
+    switch(oldID){
         case PROCESSID_NONE:
             {
-                switch(nNewID)
+                switch(newID)
                 {
                     case PROCESSID_LOGO:
                         {
                             // on initialization
-                            m_currentProcess = new ProcessLogo();
+                            m_currentProcess = std::make_unique<ProcessLogo>();
                             SDL_ShowCursor(0);
                             break;
                         }
@@ -520,12 +515,12 @@ void Client::SwitchProcess(int nOldID, int nNewID)
             }
         case PROCESSID_LOGO:
             {
-                switch(nNewID)
+                switch(newID)
                 {
                     case PROCESSID_SYRC:
                         {
                             // on initialization
-                            m_currentProcess = new ProcessSync();
+                            m_currentProcess = std::make_unique<ProcessSync>();
                             SDL_ShowCursor(1);
                             break;
                         }
@@ -543,11 +538,11 @@ void Client::SwitchProcess(int nOldID, int nNewID)
             }
         case PROCESSID_SYRC:
             {
-                switch(nNewID)
+                switch(newID)
                 {
                     case PROCESSID_LOGIN:
                         {
-                            m_currentProcess = new ProcessLogin();
+                            m_currentProcess = std::make_unique<ProcessLogin>();
                             SDL_ShowCursor(1);
                             break;
                         }
@@ -561,15 +556,30 @@ void Client::SwitchProcess(int nOldID, int nNewID)
             }
         case PROCESSID_LOGIN:
             {
-                switch(nNewID){
+                switch(newID){
                     case PROCESSID_NEW:
                         {
-                            m_currentProcess = new ProcessNew();
+                            m_currentProcess = std::make_unique<ProcessNew>();
                             break;
                         }
                     case PROCESSID_RUN:
                         {
-                            m_currentProcess = new ProcessRun();
+                            m_currentProcess = std::make_unique<ProcessRun>();
+                            break;
+                        }
+                    default:
+                        {
+                            break;
+                        }
+                }
+                break;
+            }
+        case PROCESSID_NEW:
+            {
+                switch(newID){
+                    case PROCESSID_LOGIN:
+                        {
+                            m_currentProcess = std::make_unique<ProcessLogin>();
                             break;
                         }
                     default:
