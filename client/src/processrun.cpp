@@ -586,6 +586,13 @@ void ProcessRun::loadMap(uint32_t mapID)
     m_mapID = mapID;
     m_mir2xMapData = *mapBinPtr;
     m_groundItemIDList.clear();
+
+    if(auto boardPtr = dynamic_cast<MiniMapBoard *>(getWidget("MiniMapBoard"))){
+        if(boardPtr->show() && !boardPtr->getMiniMapTexture()){
+            boardPtr->show(false);
+            addCBLog(CBLOG_ERR, u8"没有可用的地图");
+        }
+    }
 }
 
 bool ProcessRun::canMove(bool bCheckGround, int nCheckCreature, int nX, int nY)
