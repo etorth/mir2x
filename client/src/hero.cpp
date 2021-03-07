@@ -743,6 +743,8 @@ bool Hero::parseAction(const ActionNode &action)
                 {
                     for(auto &p: m_attachMagicList){
                         if(p->magicID() == DBCOM_MAGICID(u8"魔法盾")){
+                            // here we replace the old 魔法盾 with a new one
+                            // it's possible the old one haven't trigger its onDone callback yet, but doesn't matter
                             p.reset(new AttachMagic(u8"魔法盾", u8"挨打"));
                             p->addOnDone([this](MagicBase *)
                             {
