@@ -93,6 +93,21 @@ void QuickAccessBoard::drawEx(int dstX, int dstY, int, int, int, int) const
             const auto drawDstX = x() + gridX + (gridW - texW) / 2;
             const auto drawDstY = y() + gridY + (gridH - texH) / 2;
             g_sdlDevice->drawTexture(texPtr, drawDstX, drawDstY);
+            if(item.count > 1){
+                LabelBoard
+                {
+                    DIR_UPRIGHT,
+                    x() + gridX + gridW,
+                    y() + gridY,
+                    to_u8cstr(std::to_string(item.count)),
+
+                    1,
+                    10,
+                    0,
+
+                    colorf::RGBA(0XFF, 0XFF, 0X00, 0XFF),
+                }.draw();
+            }
         }
     }
 
