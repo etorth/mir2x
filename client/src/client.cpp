@@ -16,6 +16,7 @@
  * =====================================================================================
  */
 
+#include <set>
 #include <future>
 #include <thread>
 #include <cstring>
@@ -474,8 +475,8 @@ void Client::onServerMessage(uint8_t headCode, const uint8_t *pData, size_t nDat
 void Client::SwitchProcess()
 {
     if(true
-            && m_requestProcess > PROCESSID_NONE
-            && m_requestProcess < PROCESSID_MAX){
+            && m_requestProcess >= PROCESSID_BEGIN
+            && m_requestProcess <  PROCESSID_END){
         SwitchProcess((m_currentProcess ? m_currentProcess->ID() : PROCESSID_NONE), m_requestProcess);
     }
     m_requestProcess = PROCESSID_NONE;
