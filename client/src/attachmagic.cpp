@@ -27,18 +27,18 @@ extern PNGTexOffDB *g_magicDB;
 
 void AttachMagic::drawShift(int shiftX, int shiftY, bool alpha)
 {
-    if(m_gfxEntry->gfxID == SYS_TEXNIL){
+    if(m_gfxEntry.gfxID == SYS_TEXNIL){
         return;
     }
 
     const auto texID = [this]() -> uint32_t
     {
-        switch(m_gfxEntry->gfxDirType){
-            case  1: return m_gfxEntry->gfxID + frame();
+        switch(m_gfxEntry.gfxDirType){
+            case  1: return m_gfxEntry.gfxID + frame();
             case  4:
             case  8:
-            case 16: return m_gfxEntry->gfxID + frame() + m_gfxDirIndex * m_gfxEntry->gfxIDCount;
-            default: throw fflerror("invalid gfxDirType: %d", m_gfxEntry->gfxDirType);
+            case 16: return m_gfxEntry.gfxID + frame() + m_gfxDirIndex * m_gfxEntry.gfxIDCount;
+            default: throw fflerror("invalid gfxDirType: %d", m_gfxEntry.gfxDirType);
         }
     }();
 

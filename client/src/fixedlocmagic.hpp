@@ -39,8 +39,8 @@ class FixedLocMagic: public MagicBase
             , m_x(x)
             , m_y(y)
         {
-            if(!m_gfxEntry->checkType(u8"固定")){
-                throw fflerror("invalid magic type: %s", to_cstr(m_gfxEntry->type));
+            if(!m_gfxEntry.checkType(u8"固定")){
+                throw fflerror("invalid magic type: %s", to_cstr(m_gfxEntry.type));
             }
         }
 

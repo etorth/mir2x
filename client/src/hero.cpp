@@ -536,19 +536,14 @@ bool Hero::parseAction(const ActionNode &action)
                             throw fflerror("invalid UID to trigger pickUp action: uid = %llu", to_llu(UID()));
                         }
 
-                        const auto lastNodePtr = m_motionQueue.back().get();
-                        lastNodePtr->addUpdate(false, [doneReq = false, lastNodePtr, this]() mutable
+                        m_motionQueue.back()->addUpdate(false, [this](MotionNode *motionPtr) -> bool
                         {
-                            if(lastNodePtr->frame < 4){
-                                return;
-                            }
-
-                            if(doneReq){
-                                return;
+                            if(motionPtr->frame < 4){
+                                return false;
                             }
 
                             m_processRun->requestPickUp();
-                            doneReq = true;
+                            return true;
                         });
                     }
                 }
@@ -606,7 +601,7 @@ bool Hero::parseAction(const ActionNode &action)
                             }();
 
                             if(directionValid(standDir)){
-                                auto motionPtr = new MotionNode
+                                m_motionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
                                 {
                                     .type = motionSpell,
                                     .direction = standDir,
@@ -619,35 +614,32 @@ bool Hero::parseAction(const ActionNode &action)
                                             .magicID = action.extParam.spell.magicID,
                                         },
                                     },
-                                };
+                                }));
 
-                                auto magicPtr = [&action, motionPtr, this]() -> MagicSpellEffect *
+                                m_motionQueue.back()->extParam.spell.effect = std::unique_ptr<MagicSpellEffect>([&action, this]() -> MagicSpellEffect *
                                 {
                                     switch(action.extParam.spell.magicID){
-                                        case DBCOM_MAGICID(u8"灵魂火符"): return new TaoFireFigureEffect(motionPtr);
-                                        default                         : return new MagicSpellEffect   (motionPtr);
+                                        case DBCOM_MAGICID(u8"灵魂火符"): return new TaoFireFigureEffect(m_motionQueue.back().get());
+                                        default                         : return new MagicSpellEffect   (m_motionQueue.back().get());
                                     }
-                                }();
+                                }());
 
-                                motionPtr->extParam.spell.effect = std::unique_ptr<MagicSpellEffect>(magicPtr);
                                 switch(action.extParam.spell.magicID){
                                     case DBCOM_MAGICID(u8"灵魂火符"):
                                         {
-                                            motionPtr->onUpdate = [lastMotionFrame = (int)(-1), this] () mutable
+                                            m_motionQueue.back()->addUpdate(true, [this](MotionNode *motionPtr) -> bool
                                             {
-                                                if(lastMotionFrame == m_currMotion->frame){
-                                                    return;
+                                                // usually when reaches this cb the current motion is motionPtr
+                                                // but not true if in flushMotionPending()
+
+                                                if(motionPtr->frame < 3){
+                                                    return false;
                                                 }
 
-                                                lastMotionFrame = m_currMotion->frame;
-                                                if(m_currMotion->frame != 3){
-                                                    return;
-                                                }
-
-                                                const auto fromX = currMotion()->x * SYS_MAPGRIDXP;
-                                                const auto fromY = currMotion()->y * SYS_MAPGRIDYP;
+                                                const auto fromX = motionPtr->x * SYS_MAPGRIDXP;
+                                                const auto fromY = motionPtr->y * SYS_MAPGRIDYP;
                                                 const auto targetUID = m_processRun->focusUID(FOCUS_MAGIC);
-                                                auto magicPtr = new TaoFireFigure_RUN
+                                                m_processRun->addFollowUIDMagic(std::unique_ptr<FollowUIDMagic>(new TaoFireFigure_RUN
                                                 {
                                                     fromX,
                                                     fromY,
@@ -669,18 +661,15 @@ bool Hero::parseAction(const ActionNode &action)
 
                                                     targetUID,
                                                     m_processRun,
-                                                };
 
-                                                magicPtr->addOnDone([targetUID, this]()
+                                                }))->addOnDone([targetUID, this](MagicBase *)
                                                 {
-                                                    m_processRun->addAttachMagic(targetUID, std::unique_ptr<AttachMagic>(new AttachMagic
-                                                    {
-                                                        u8"灵魂火符",
-                                                        u8"结束",
-                                                    }));
+                                                    if(auto coPtr = m_processRun->findUID(targetUID)){
+                                                        coPtr->addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"灵魂火符", u8"结束")));
+                                                    }
                                                 });
-                                                m_processRun->addFollowUIDMagic(std::unique_ptr<FollowUIDMagic>(magicPtr));
-                                            };
+                                                return true;
+                                            });
                                             break;
                                         }
                                     default:
@@ -689,7 +678,6 @@ bool Hero::parseAction(const ActionNode &action)
                                         }
                                 }
 
-                                m_motionQueue.push_back(std::unique_ptr<MotionNode>(motionPtr));
                                 if(motionSpell == MOTION_SPELL0){
                                     for(int i = 0; i < 2; ++i){
                                         m_motionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
@@ -736,7 +724,7 @@ bool Hero::parseAction(const ActionNode &action)
             }
         case ACTION_HITTED:
             {
-                auto motionPtr = new MotionNode
+                m_motionQueue.push_front(std::unique_ptr<MotionNode>(new MotionNode
                 {
                     .type = [this]() -> int
                     {
@@ -749,38 +737,28 @@ bool Hero::parseAction(const ActionNode &action)
                     .direction = endDir,
                     .x = endX,
                     .y = endY,
-                };
+                }));
 
-                m_motionQueue.push_front(std::unique_ptr<MotionNode>(motionPtr));
-                motionPtr->addUpdate(true, [motionPtr, done = false, this]() mutable
+                m_motionQueue.front()->addUpdate(true, [this](MotionNode *) -> bool
                 {
-                    if(done){
-                        return;
-                    }
-
                     for(auto &p: m_attachMagicList){
-                        if(to_u32(p->magicID()) == DBCOM_MAGICID(u8"魔法盾")){
+                        if(p->magicID() == DBCOM_MAGICID(u8"魔法盾")){
                             p.reset(new AttachMagic(u8"魔法盾", u8"挨打"));
-                            p->addOnDone([this, done = false]() mutable
+                            p->addOnDone([this](MagicBase *)
                             {
-                                if(done){
-                                    return;
-                                }
-
                                 // don't use p, the m_attachMagicList may re-allocate
-                                // and don't replace the ptr holding by p, just add a new magic, since the callback is by ptr holding by p
+                                // don't replace the ptr holding by p, just add a new magic, since the callback is by ptr holding by p
                                 for(auto &p: m_attachMagicList){
-                                    if(to_u32(p->magicID()) == DBCOM_MAGICID(u8"魔法盾")){
+                                    if(p->magicID() == DBCOM_MAGICID(u8"魔法盾")){
                                         addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"魔法盾", u8"运行")));
                                         break;
                                     }
                                 }
-                                done = true;
                             });
                             break;
                         }
                     }
-                    done = true;
+                    return true;
                 });
                 break;
             }

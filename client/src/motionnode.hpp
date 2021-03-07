@@ -29,6 +29,7 @@
  */
 
 #pragma once
+#include <list>
 #include <memory>
 #include <functional>
 #include "motion.hpp"
@@ -69,27 +70,27 @@ struct MotionNode final
         swing{};
     };
 
-    //////////////////////////////////////////////////////////////////
-    ////                                                          ////
-    ////          AGGREGATE INITIALIZATION MEMEBER LIST           ////
-    ////                                                          ////
-    //////////////////////////////////////////////////////////////////
-    /**/                                                          /**/
-    /**/    const int type      = MOTION_NONE;                    /**/
-    /**/    const int direction = DIR_NONE;                       /**/
-    /**/    /***/ int speed     = SYS_DEFSPEED;                   /**/
-    /**/                                                          /**/
-    /**/    const int x = -1;                                     /**/
-    /**/    const int y = -1;                                     /**/
-    /**/                                                          /**/
-    /**/    const int endX = x;                                   /**/
-    /**/    const int endY = y;                                   /**/
-    /**/                                                          /**/
-    /**/    int frame = 0;                                        /**/
-    /**/    MotionExtParam extParam{};                            /**/
-    /**/    std::function<void()> onUpdate{};                     /**/
-    /**/                                                          /**/
-    //////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////
+    ////                                                                   ////
+    ////          AGGREGATE INITIALIZATION MEMEBER LIST                    ////
+    ////                                                                   ////
+    ///////////////////////////////////////////////////////////////////////////
+    /**/                                                                   /**/
+    /**/    const int type      = MOTION_NONE;                             /**/
+    /**/    const int direction = DIR_NONE;                                /**/
+    /**/    /***/ int speed     = SYS_DEFSPEED;                            /**/
+    /**/                                                                   /**/
+    /**/    const int x = -1;                                              /**/
+    /**/    const int y = -1;                                              /**/
+    /**/                                                                   /**/
+    /**/    const int endX = x;                                            /**/
+    /**/    const int endY = y;                                            /**/
+    /**/                                                                   /**/
+    /**/    int frame = 0;                                                 /**/
+    /**/    MotionExtParam extParam{};                                     /**/
+    /**/    std::list<std::function<bool(MotionNode *)>> onUpdateCBList{}; /**/
+    /**/                                                                   /**/
+    ///////////////////////////////////////////////////////////////////////////
 
     operator bool () const
     {
@@ -102,7 +103,7 @@ struct MotionNode final
     void update();
     void updateSpellEffect(double);
     void print() const;
-    void addUpdate(bool, std::function<void()>);
+    void addUpdate(bool, std::function<bool(MotionNode *)>);
 };
 
 class MagicSpellEffect

@@ -1371,36 +1371,32 @@ void ProcessRun::onActionSpawn(uint64_t uid, const ActionNode &action)
     switch(uidf::getMonsterID(uid)){
         case DBCOM_MONSTERID(u8"变异骷髅"):
             {
+                m_actionBlocker.insert(uid);
                 addCBLog(CBLOG_SYS, u8"使用魔法: 召唤骷髅");
-                auto magicPtr = new FixedLocMagic
+                addFixedLocMagic(std::unique_ptr<FixedLocMagic>(new FixedLocMagic
                 {
                     u8"召唤骷髅",
                     u8"开始",
                     action.x,
                     action.y,
-                };
 
-                magicPtr->addOnUpdate([magicPtr, action, uid, this]() -> bool
+                }))->addOnUpdate([action, uid, this](MagicBase *magicPtr) -> bool
                 {
                     if(magicPtr->frame() < 10){
                         return false;
                     }
 
-                    const ActionStand stand
+                    m_coList[uid].reset(new ClientTaoSkeleton(uid, this, ActionStand
                     {
                         .x = action.x,
                         .y = action.y,
                         .direction = DIR_DOWNLEFT,
-                    };
+                    }));
 
-                    m_coList[uid].reset(new ClientTaoSkeleton(uid, this, stand));
                     m_actionBlocker.erase(uid);
                     queryCORecord(uid);
                     return true;
                 });
-
-                m_actionBlocker.insert(uid);
-                addFixedLocMagic(std::unique_ptr<FixedLocMagic>(magicPtr));
                 return;
             }
         case DBCOM_MONSTERID(u8"神兽"):

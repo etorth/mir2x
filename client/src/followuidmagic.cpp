@@ -75,11 +75,11 @@ void FollowUIDMagic::update(double ms)
             }
         }
         else{
-            switch(m_gfxEntry->gfxDirType){
+            switch(m_gfxEntry.gfxDirType){
                 case 16: return pathf::getDir16Off(m_gfxDirIndex, m_moveSpeed);
                 case  8: return pathf::getDir8Off (m_gfxDirIndex, m_moveSpeed);
                 case  4: return pathf::getDir4Off (m_gfxDirIndex, m_moveSpeed);
-                default: throw fflerror("invalid gfxDirType: %d", m_gfxEntry->gfxDirType);
+                default: throw fflerror("invalid gfxDirType: %d", m_gfxEntry.gfxDirType);
             }
         }
     }();
@@ -90,18 +90,18 @@ void FollowUIDMagic::update(double ms)
 
 void FollowUIDMagic::drawViewOff(int viewX, int viewY, bool alpha)
 {
-    if(m_gfxEntry->gfxID == SYS_TEXNIL){
+    if(m_gfxEntry.gfxID == SYS_TEXNIL){
         return;
     }
 
     const auto texID = [this]() -> uint32_t
     {
-        switch(m_gfxEntry->gfxDirType){
-            case  1: return m_gfxEntry->gfxID + frame();
+        switch(m_gfxEntry.gfxDirType){
+            case  1: return m_gfxEntry.gfxID + frame();
             case  4:
             case  8:
-            case 16: return m_gfxEntry->gfxID + frame() + m_gfxDirIndex * m_gfxEntry->gfxIDCount;
-            default: throw fflerror("invalid gfxDirType: %d", m_gfxEntry->gfxDirType);
+            case 16: return m_gfxEntry.gfxID + frame() + m_gfxDirIndex * m_gfxEntry.gfxIDCount;
+            default: throw fflerror("invalid gfxDirType: %d", m_gfxEntry.gfxDirType);
         }
     }();
 
@@ -124,13 +124,13 @@ bool FollowUIDMagic::done() const
 
 void TaoFireFigure_RUN::drawViewOff(int viewX, int viewY, bool alpha)
 {
-    if(m_gfxEntry->gfxID == SYS_TEXNIL){
+    if(m_gfxEntry.gfxID == SYS_TEXNIL){
         return;
     }
 
     int offX = 0;
     int offY = 0;
-    if(auto texPtr = g_magicDB->Retrieve(m_gfxEntry->gfxID + frame() + m_gfxDirIndex * m_gfxEntry->gfxIDCount, &offX, &offY)){
+    if(auto texPtr = g_magicDB->Retrieve(m_gfxEntry.gfxID + frame() + m_gfxDirIndex * m_gfxEntry.gfxIDCount, &offX, &offY)){
         SDLDeviceHelper::EnableTextureModColor enableModColor(texPtr, colorf::RGBA(0XFF, 0XFF, 0XFF, alpha ? 0X40 : 0XC0));
         SDLDeviceHelper::EnableTextureBlendMode enableBlendMode(texPtr, SDL_BLENDMODE_BLEND);
         g_sdlDevice->drawTexture(texPtr, m_x - viewX + offX, m_y - viewY + offY);

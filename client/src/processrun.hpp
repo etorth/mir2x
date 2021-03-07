@@ -366,21 +366,16 @@ class ProcessRun: public Process
         std::tuple<int, int> getUIDLoc(bool);
 
     public:
-        void addFixedLocMagic(std::unique_ptr<FixedLocMagic> magicPtr)
+        FixedLocMagic *addFixedLocMagic(std::unique_ptr<FixedLocMagic> magicPtr)
         {
             m_fixedLocMagicList.emplace_back(std::move(magicPtr));
+            return m_fixedLocMagicList.back().get();
         }
 
-        void addFollowUIDMagic(std::unique_ptr<FollowUIDMagic> magicPtr)
+        FollowUIDMagic *addFollowUIDMagic(std::unique_ptr<FollowUIDMagic> magicPtr)
         {
             m_followUIDMagicList.emplace_back(std::move(magicPtr));
-        }
-
-        void addAttachMagic(uint64_t uid, std::unique_ptr<AttachMagic> magicPtr)
-        {
-            if(auto coPtr = findUID(uid)){
-                coPtr->addAttachMagic(std::move(magicPtr));
-            }
+            return m_followUIDMagicList.back().get();
         }
 
     public:

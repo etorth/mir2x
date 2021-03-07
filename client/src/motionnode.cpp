@@ -29,8 +29,17 @@ extern PNGTexOffDB *g_magicDB;
 
 void MotionNode::update()
 {
-    if( onUpdate){
-        onUpdate();
+    for(auto p = onUpdateCBList.begin(); p != onUpdateCBList.end();){
+        if(!(*p)){
+            throw fflerror("op in onUpdateCBList is not callable");
+        }
+
+        if((*p)(this)){
+            p = onUpdateCBList.erase(p);
+        }
+        else{
+            p++;
+        }
     }
 }
 
@@ -67,35 +76,27 @@ void MagicSpellEffect::drawShift(int shiftX, int shiftY, bool alpha)
 
 void MotionNode::print() const
 {
-    g_log->addLog(LOGTYPE_INFO, "MotionNode::0x%016p::motion      = %s", to_cvptr(this), motionName(type)    );
-    g_log->addLog(LOGTYPE_INFO, "MotionNode::0x%016p::direction   = %d", to_cvptr(this), direction           );
-    g_log->addLog(LOGTYPE_INFO, "MotionNode::0x%016p::speed       = %d", to_cvptr(this), speed               );
-    g_log->addLog(LOGTYPE_INFO, "MotionNode::0x%016p::x           = %d", to_cvptr(this), x                   );
-    g_log->addLog(LOGTYPE_INFO, "MotionNode::0x%016p::y           = %d", to_cvptr(this), y                   );
-    g_log->addLog(LOGTYPE_INFO, "MotionNode::0x%016p::endX        = %d", to_cvptr(this), endX                );
-    g_log->addLog(LOGTYPE_INFO, "MotionNode::0x%016p::endY        = %d", to_cvptr(this), endY                );
-    g_log->addLog(LOGTYPE_INFO, "MotionNode::0x%016p::frame       = %d", to_cvptr(this), frame               );
-    g_log->addLog(LOGTYPE_INFO, "MotionNode::0x%016p::onUpdate    = %s", to_cvptr(this), onUpdate ? "1" : "0");
+    g_log->addLog(LOGTYPE_INFO, "MotionNode::0x%016p::motion               = %s", to_cvptr(this), motionName(type)           );
+    g_log->addLog(LOGTYPE_INFO, "MotionNode::0x%016p::direction            = %d", to_cvptr(this), direction                  );
+    g_log->addLog(LOGTYPE_INFO, "MotionNode::0x%016p::speed                = %d", to_cvptr(this), speed                      );
+    g_log->addLog(LOGTYPE_INFO, "MotionNode::0x%016p::x                    = %d", to_cvptr(this), x                          );
+    g_log->addLog(LOGTYPE_INFO, "MotionNode::0x%016p::y                    = %d", to_cvptr(this), y                          );
+    g_log->addLog(LOGTYPE_INFO, "MotionNode::0x%016p::endX                 = %d", to_cvptr(this), endX                       );
+    g_log->addLog(LOGTYPE_INFO, "MotionNode::0x%016p::endY                 = %d", to_cvptr(this), endY                       );
+    g_log->addLog(LOGTYPE_INFO, "MotionNode::0x%016p::frame                = %d", to_cvptr(this), frame                      );
+    g_log->addLog(LOGTYPE_INFO, "MotionNode::0x%016p::onUpdateCBList::size = %d", to_cvptr(this), to_d(onUpdateCBList.size()));
 }
 
-void MotionNode::addUpdate(bool addBefore, std::function<void()> op)
+void MotionNode::addUpdate(bool addBefore, std::function<bool(MotionNode *)> op)
 {
-    onUpdate = [lastUpdate = std::move(onUpdate), newUpdate = std::move(op), addBefore]()
-    {
-        if(addBefore){
-            if(newUpdate){
-                newUpdate();
-            }
-        }
+    if(!op){
+        throw fflerror("op is not callable");
+    }
 
-        if(lastUpdate){
-            lastUpdate();
-        }
-
-        if(!addBefore){
-            if(newUpdate){
-                newUpdate();
-            }
-        }
-    };
+    if(addBefore){
+        onUpdateCBList.push_front(std::move(op));
+    }
+    else{
+        onUpdateCBList.push_back(std::move(op));
+    }
 }

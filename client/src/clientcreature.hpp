@@ -222,9 +222,10 @@
         std::unique_ptr<MotionNode> makeIdleMotion() const;
 
     public:
-        void addAttachMagic(std::unique_ptr<AttachMagic> magicPtr)
+        AttachMagic *addAttachMagic(std::unique_ptr<AttachMagic> magicPtr)
         {
             m_attachMagicList.emplace_back(std::move(magicPtr));
+            return m_attachMagicList.back().get();
         }
 
     protected:

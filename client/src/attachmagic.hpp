@@ -28,8 +28,8 @@ class AttachMagic: public MagicBase
         AttachMagic(const char8_t *magicName, const char8_t *magicStage, int gfxDirIndex = -1)
             : MagicBase(magicName, magicStage, gfxDirIndex)
         {
-            if(!m_gfxEntry->checkType(u8"附着")){
-                throw fflerror("invalid magic type: %s", to_cstr(m_gfxEntry->type));
+            if(!m_gfxEntry.checkType(u8"附着")){
+                throw fflerror("invalid magic type: %s", to_cstr(m_gfxEntry.type));
             }
         }
 
