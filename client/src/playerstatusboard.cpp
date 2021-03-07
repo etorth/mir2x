@@ -89,8 +89,8 @@ PlayerStatusBoard::PlayerStatusBoard(int argX, int argY, ProcessRun *runPtr, Wid
           gridList[WLG_ARMRING1] = WearGrid{.x = 168, .y = 155, .type = u8"手镯"};
           gridList[WLG_RING0   ] = WearGrid{.x =  10, .y = 195, .type = u8"戒指"};
           gridList[WLG_RING1   ] = WearGrid{.x = 168, .y = 195, .type = u8"戒指"};
-          gridList[WLG_TORCH   ] = WearGrid{.x =  90, .y = 265, .type = u8"火把"};
-          gridList[WLG_CHARM   ] = WearGrid{.x = 130, .y = 265, .type = u8"魅力|护身符"};
+          gridList[WLG_TORCH   ] = WearGrid{.x =  88, .y = 265, .type = u8"火把"};
+          gridList[WLG_CHARM   ] = WearGrid{.x = 128, .y = 265, .type = u8"魅力|护身符"};
 
           return gridList;
       }())
@@ -226,6 +226,22 @@ void PlayerStatusBoard::drawEx(int, int, int, int, int, int) const
     const auto [mouseX, mouseY] = SDLDeviceHelper::getMousePLoc();
     for(size_t i = WLG_BEGIN; i < WLG_END; ++i){
         if(mathf::pointInRectangle(mouseX, mouseY, x() + m_gridList[i].x, y() + m_gridList[i].y, m_gridList[i].w, m_gridList[i].h)){
+            if(i >= WLG_W_BEGIN && i < WLG_W_END){
+                const auto [texID, dx, dy] = [i]() -> std::tuple<uint32_t, int, int>
+                {
+                    if(i == WLG_SHOES){
+                        return {0X06000002, -1, -6};
+                    }
+                    else{
+                        return {0X06000001, -1, -3};
+                    }
+                }();
+
+                if(auto texPtr = g_progUseDB->Retrieve(texID)){
+                    SDLDeviceHelper::EnableTextureModColor enableColor(texPtr, colorf::WHITE + 128);
+                    g_sdlDevice->drawTexture(texPtr, x() + m_gridList[i].x + dx, y() + m_gridList[i].y + dy);
+                }
+            }
             drawItemHoverText(i);
             break;
         }
