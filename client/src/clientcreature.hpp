@@ -18,6 +18,7 @@
 
 #pragma once
 
+#include <list>
 #include <deque>
 #include <memory>
 #include <cstddef>
@@ -56,7 +57,7 @@
         std::unique_ptr<MotionNode> m_currMotion;
 
     protected:
-        std::vector<std::unique_ptr<AttachMagic>> m_attachMagicList;
+        std::list<std::unique_ptr<AttachMagic>> m_attachMagicList;
 
     protected:
         uint32_t m_lastActive;

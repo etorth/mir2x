@@ -47,16 +47,14 @@ bool ClientCreature::advanceMotionFrame(int addFrame)
     return true;
 }
 
-void ClientCreature::updateAttachMagic(double ms)
+void ClientCreature::updateAttachMagic(double fUpdateTime)
 {
-    for(size_t i = 0; i < m_attachMagicList.size();){
-        m_attachMagicList[i]->update(ms);
-        if(m_attachMagicList[i]->done()){
-            std::swap(m_attachMagicList[i], m_attachMagicList.back());
-            m_attachMagicList.pop_back();
+    for(auto p = m_attachMagicList.begin(); p != m_attachMagicList.end();){
+        if((*p)->update(fUpdateTime)){
+            p = m_attachMagicList.erase(p);
         }
         else{
-            i++;
+            ++p;
         }
     }
 }

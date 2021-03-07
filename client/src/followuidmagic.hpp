@@ -40,7 +40,7 @@ class FollowUIDMagic: public MagicBase
         bool done() const override;
 
     public:
-        void update(double) override;
+        bool update(double) override;
 
     public:
         virtual void drawViewOff(int, int, bool);

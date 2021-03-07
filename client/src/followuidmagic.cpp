@@ -56,10 +56,8 @@ FollowUIDMagic::FollowUIDMagic(
     }
 }
 
-void FollowUIDMagic::update(double ms)
+bool FollowUIDMagic::update(double ms)
 {
-    MagicBase::update(ms);
-
     const auto [dx, dy] = [this]() -> std::tuple<int, int>
     {
         if(const auto coPtr = m_process->findUID(m_uid)){
@@ -86,6 +84,7 @@ void FollowUIDMagic::update(double ms)
 
     m_x += dx;
     m_y += dy;
+    return MagicBase::update(ms);
 }
 
 void FollowUIDMagic::drawViewOff(int viewX, int viewY, bool alpha)

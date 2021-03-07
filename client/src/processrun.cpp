@@ -153,19 +153,19 @@ void ProcessRun::update(double fUpdateTime)
     }
 
     for(auto p = m_fixedLocMagicList.begin(); p != m_fixedLocMagicList.end();){
-        if((*p)->done()){
+        if((*p)->update(fUpdateTime)){
             p = m_fixedLocMagicList.erase(p);
-        }else{
-            (*p)->update(fUpdateTime);
+        }
+        else{
             ++p;
         }
     }
 
     for(auto p = m_followUIDMagicList.begin(); p != m_followUIDMagicList.end();){
-        if((*p)->done()){
+        if((*p)->update(fUpdateTime)){
             p = m_followUIDMagicList.erase(p);
-        }else{
-            (*p)->update(fUpdateTime);
+        }
+        else{
             ++p;
         }
     }
@@ -375,9 +375,7 @@ void ProcessRun::draw()
 
     // draw magics
     for(auto &p: m_fixedLocMagicList){
-        if(!p->done()){
-            p->drawViewOff(m_viewX, m_viewY, false);
-        }
+        p->drawViewOff(m_viewX, m_viewY, false);
     }
 
     for(auto &p: m_followUIDMagicList){

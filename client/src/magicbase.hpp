@@ -111,14 +111,46 @@ class MagicBase
         }
 
     public:
-        virtual void update(double ms)
+        // why return bool
+        // we usually use following code to update magic
+        //
+        // 1   for(auto p = magicList.begin(); p != magicList.end()){
+        // 2       p->update(fUpdateTime);
+        // 3       if(p->done()){
+        // 4           p = magicList.erase(p);
+        // 5       }
+        // 6       else{
+        // 7           ++p;
+        // 8       }
+        // 9   }
+        //
+        // this function has one issue:
+        // line 2 inside update() the done() returns false, but line 3 it can returns true, especially when we use timing to calculate current frame index
+        // this causes we missed to call the onDone callback
+        // instead use following code:
+        //
+        // 1   for(auto p = magicList.begin(); p != magicList.end()){
+        // 3       if(p->update(fUpdateTime)){
+        // 4           p = magicList.erase(p);
+        // 5       }
+        // 6       else{
+        // 7           ++p;
+        // 8       }
+        // 9   }
+        //
+        // we mark done() as protected
+        // user shouldn't call it directly
+
+        virtual bool update(double ms)
         {
             m_accuTime += ms;
             runOnUpdate();
 
             if(done()){
                 runOnDone();
+                return true;
             }
+            return false;
         }
 
     public:
@@ -155,7 +187,7 @@ class MagicBase
             m_onUpdateCBList.push_back(std::move(onUpdate));
         }
 
-    public:
+    protected:
         virtual bool done() const
         {
             return stageDone();
