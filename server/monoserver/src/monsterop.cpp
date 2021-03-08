@@ -109,7 +109,7 @@ void Monster::on_AM_ACTION(const ActorMsgPack &rstMPK)
             }
         default:
             {
-                return;
+                break;
             }
     }
 
