@@ -227,7 +227,7 @@ bool MonoServer::createAccountCharacter(const char *id, const char *charName, bo
         to_cstr(mapName),
         mapx,
         mapy,
-        (int)(gender)
+        to_d(gender)
     );
     return true;
 }
@@ -514,7 +514,7 @@ std::vector<int> MonoServer::GetMapList()
                 std::vector<int> stMapList;
                 for(size_t nIndex = 0; nIndex < std::extent<decltype(amML.MapList)>::value; ++nIndex){
                     if(amML.MapList[nIndex]){
-                        stMapList.push_back((int)(amML.MapList[nIndex]));
+                        stMapList.push_back(to_d(amML.MapList[nIndex]));
                     }else{
                         break;
                     }
@@ -545,9 +545,9 @@ sol::optional<int> MonoServer::GetMonsterCount(int nMonsterID, int nMapID)
         AMQueryCOCount amQCOC;
         std::memset(&amQCOC, 0, sizeof(amQCOC));
 
-        amQCOC.mapID                = (uint32_t)(nMapID);
+        amQCOC.mapID                = to_u32(nMapID);
         amQCOC.Check.Monster        = true;
-        amQCOC.CheckParam.MonsterID = (uint32_t)(nMonsterID);
+        amQCOC.CheckParam.MonsterID = to_u32(nMonsterID);
 
         switch(auto stRMPK = SyncDriver().forward(m_serviceCore->UID(), {AM_QUERYCOCOUNT, amQCOC}); stRMPK.type()){
             case AM_COCOUNT:
@@ -557,7 +557,7 @@ sol::optional<int> MonoServer::GetMonsterCount(int nMonsterID, int nMapID)
 
                     // may overflow
                     // should put some check here
-                    return sol::optional<int>((int)(amCOC.Count));
+                    return sol::optional<int>(to_d(amCOC.Count));
                 }
             case AM_ERROR:
             default:
@@ -704,7 +704,7 @@ void MonoServer::FlushBrowser()
     {
         auto nCurrLoc = (size_t)(0);
         while(nCurrLoc < m_logBuf.size()){
-            g_mainWindow->addLog((int)(m_logBuf[nCurrLoc]), &(m_logBuf[nCurrLoc + 1]));
+            g_mainWindow->addLog(to_d(m_logBuf[nCurrLoc]), &(m_logBuf[nCurrLoc + 1]));
             nCurrLoc += (1 + 1 + std::strlen(&(m_logBuf[nCurrLoc + 1])));
         }
         m_logBuf.clear();
@@ -734,7 +734,7 @@ void MonoServer::FlushCWBrowser()
             auto pInfo0 = &(m_CWLogBuf[nCurrLoc + sizeof(nCWID) + 1]);
             auto pInfo1 = &(m_CWLogBuf[nCurrLoc + sizeof(nCWID) + 1 + nInfoLen0 + 1]);
 
-            g_mainWindow->addCWLog(nCWID, (int)(m_CWLogBuf[nCurrLoc + sizeof(nCWID)]), pInfo0, pInfo1);
+            g_mainWindow->addCWLog(nCWID, to_d(m_CWLogBuf[nCurrLoc + sizeof(nCWID)]), pInfo0, pInfo1);
             nCurrLoc += (sizeof(nCWID) + 1 + nInfoLen0 + 1 + nInfoLen1 + 1);
         }
         m_CWLogBuf.clear();
@@ -832,7 +832,7 @@ void MonoServer::regLuaExport(CommandLuaModule *pModule, uint32_t nCWID)
         switch(stArgList.size()){
             case 0:
                 {
-                    return addMonster((uint32_t)(nMonsterID), (uint32_t)(nMapID), -1, -1, false);
+                    return addMonster(to_u32(nMonsterID), to_u32(nMapID), -1, -1, false);
                 }
             case 1:
                 {
@@ -844,7 +844,7 @@ void MonoServer::regLuaExport(CommandLuaModule *pModule, uint32_t nCWID)
                     if(true
                             && stArgList[0].is<int>()
                             && stArgList[1].is<int>()){
-                        return addMonster((uint32_t)(nMonsterID), (uint32_t)(nMapID), stArgList[0].as<int>(), stArgList[1].as<int>(), false);
+                        return addMonster(to_u32(nMonsterID), to_u32(nMapID), stArgList[0].as<int>(), stArgList[1].as<int>(), false);
                     }else{
                         fnPrintUsage();
                         return false;
@@ -856,7 +856,7 @@ void MonoServer::regLuaExport(CommandLuaModule *pModule, uint32_t nCWID)
                             && stArgList[0].is<int >()
                             && stArgList[1].is<int >()
                             && stArgList[2].is<bool>()){
-                        return addMonster((uint32_t)(nMonsterID), (uint32_t)(nMapID), stArgList[0].as<int>(), stArgList[1].as<int>(), stArgList[2].as<bool>());
+                        return addMonster(to_u32(nMonsterID), to_u32(nMapID), stArgList[0].as<int>(), stArgList[1].as<int>(), stArgList[2].as<bool>());
                     }else{
                         fnPrintUsage();
                         return false;
@@ -883,19 +883,19 @@ void MonoServer::regLuaExport(CommandLuaModule *pModule, uint32_t nCWID)
         switch(argList.size()){
             case 0:
                 {
-                    return addNPChar((uint16_t)(npcID), (uint32_t)(mapID), -1, -1, false);
+                    return addNPChar(to_u16(npcID), to_u32(mapID), -1, -1, false);
                 }
             case 2:
                 {
                     if(argList[0].is<int>() && argList[1].is<int>()){
-                        return addNPChar((uint32_t)(npcID), (uint32_t)(mapID), argList[0].as<int>(), argList[1].as<int>(), false);
+                        return addNPChar(to_u32(npcID), to_u32(mapID), argList[0].as<int>(), argList[1].as<int>(), false);
                     }
                     break;
                 }
             case 3:
                 {
                     if(argList[0].is<int >() && argList[1].is<int >() && argList[2].is<bool>()){
-                        return addNPChar((uint32_t)(npcID), (uint32_t)(mapID), argList[0].as<int>(), argList[1].as<int>(), argList[2].as<bool>());
+                        return addNPChar(to_u32(npcID), to_u32(mapID), argList[0].as<int>(), argList[1].as<int>(), argList[2].as<bool>());
                     }
                     break;
                 }

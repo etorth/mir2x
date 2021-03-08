@@ -26,6 +26,7 @@
 #include <cstdint>
 #include <functional>
 #include "strf.hpp"
+#include "totype.hpp"
 #include "landtype.hpp"
 #include "sysconst.hpp"
 #include "fflerror.hpp"
@@ -154,14 +155,14 @@ class Mir2xMapData final
                         && (Obj[0].Param & 0X80000000)){
 
                     uint8_t nByte4 = 0
-                        | (((uint8_t)((Obj[0].Param & 0X80000000) ? 1 : 0)) << 7)   // valid
-                        | (((uint8_t)((ObjParam     & 0X00000080) ? 1 : 0)) << 1)   // alpha
-                        | (((uint8_t)((ObjParam     & 0X00000040) ? 1 : 0)) << 0);  // ground
+                        | ((to_u8((Obj[0].Param & 0X80000000) ? 1 : 0)) << 7)   // valid
+                        | ((to_u8((ObjParam     & 0X00000080) ? 1 : 0)) << 1)   // alpha
+                        | ((to_u8((ObjParam     & 0X00000040) ? 1 : 0)) << 0);  // ground
 
-                    uint8_t nByte3 = (uint8_t)((ObjParam     & 0X0000FF00) >>  8);
-                    uint8_t nByte2 = (uint8_t)((Obj[0].Param & 0X00FF0000) >> 16);
-                    uint8_t nByte1 = (uint8_t)((Obj[0].Param & 0X0000FF00) >>  8);
-                    uint8_t nByte0 = (uint8_t)((Obj[0].Param & 0X000000FF) >>  0);
+                    uint8_t nByte3 = to_u8((ObjParam     & 0X0000FF00) >>  8);
+                    uint8_t nByte2 = to_u8((Obj[0].Param & 0X00FF0000) >> 16);
+                    uint8_t nByte1 = to_u8((Obj[0].Param & 0X0000FF00) >>  8);
+                    uint8_t nByte0 = to_u8((Obj[0].Param & 0X000000FF) >>  0);
                     return {{nByte0, nByte1, nByte2, nByte3, nByte4}};
                 }
 
@@ -170,14 +171,14 @@ class Mir2xMapData final
                         && (Obj[1].Param & 0X80000000)){
 
                     uint8_t nByte4 = 0
-                        | (((uint8_t)((Obj[1].Param & 0X80000000) ? 1 : 0)) << 7)   // valid
-                        | (((uint8_t)((ObjParam     & 0X00800000) ? 1 : 0)) << 1)   // alpha
-                        | (((uint8_t)((ObjParam     & 0X00400000) ? 1 : 0)) << 0);  // ground
+                        | ((to_u8((Obj[1].Param & 0X80000000) ? 1 : 0)) << 7)   // valid
+                        | ((to_u8((ObjParam     & 0X00800000) ? 1 : 0)) << 1)   // alpha
+                        | ((to_u8((ObjParam     & 0X00400000) ? 1 : 0)) << 0);  // ground
 
-                    uint8_t nByte3 = (uint8_t)((ObjParam     & 0XFF000000) >> 24);
-                    uint8_t nByte2 = (uint8_t)((Obj[1].Param & 0X00FF0000) >> 16);
-                    uint8_t nByte1 = (uint8_t)((Obj[1].Param & 0X0000FF00) >>  8);
-                    uint8_t nByte0 = (uint8_t)((Obj[1].Param & 0X000000FF) >>  0);
+                    uint8_t nByte3 = to_u8((ObjParam     & 0XFF000000) >> 24);
+                    uint8_t nByte2 = to_u8((Obj[1].Param & 0X00FF0000) >> 16);
+                    uint8_t nByte1 = to_u8((Obj[1].Param & 0X0000FF00) >>  8);
+                    uint8_t nByte0 = to_u8((Obj[1].Param & 0X000000FF) >>  0);
                     return {{nByte0, nByte1, nByte2, nByte3, nByte4}};
                 }
 

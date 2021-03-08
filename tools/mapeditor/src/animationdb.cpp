@@ -19,6 +19,7 @@
 #include <cstring>
 #include <filesystem>
 #include "hexstr.hpp"
+#include "totype.hpp"
 #include "animationdb.hpp"
 
 bool AnimationDB::Load(const char *szDBPath)
@@ -67,8 +68,8 @@ bool AnimationDB::Load(const char *szDBPath)
 
         auto nOffset = hexstr::to_hex<uint32_t, 4>(reinterpret_cast<const char *>(szFileName.c_str() + 10));
 
-        int nDX = ((szFileName[8] == '0') ? -1 : 1) * (int)((nOffset & 0XFFFF0000) >> 16);
-        int nDY = ((szFileName[9] == '0') ? -1 : 1) * (int)((nOffset & 0X0000FFFF) >>  0);
+        int nDX = ((szFileName[8] == '0') ? -1 : 1) * to_d((nOffset & 0XFFFF0000) >> 16);
+        int nDY = ((szFileName[9] == '0') ? -1 : 1) * to_d((nOffset & 0X0000FFFF) >>  0);
 
         Add(nMonsterID, nAction, nDirection, nFrame, (szFileName[1] == '1'), nDX, nDY, ((m_DBPath + "/") + reinterpret_cast<const char *>(szFileName.c_str())));
         // since we didn't update this directory, so we don't need rewinddir()

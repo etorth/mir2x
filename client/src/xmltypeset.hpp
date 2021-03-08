@@ -171,7 +171,7 @@ class XMLTypeset // means XMLParagraph typeset
 
         int lineCount() const
         {
-            return (int)(m_lineList.size());
+            return to_d(m_lineList.size());
         }
 
         int lineTokenCount(int nLine) const

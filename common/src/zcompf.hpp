@@ -130,7 +130,7 @@ namespace zcompf
     inline int countMask(const uint8_t *buf, size_t bufLen)
     {
         if(buf){
-            return (int)(popcnt(buf, bufLen));
+            return to_d(popcnt(buf, bufLen));
         }
         throw fflerror("invalid buffer: nullptr");
     }

@@ -111,7 +111,7 @@ bool pngf::saveRGBABuffer(const uint8_t *bufRGBA, uint32_t imgWidth, uint32_t im
     CHECK_PNG_MALLOC_RESULT(imgPtr, rowPtrBuf);
     std::memset(rowPtrBuf, 0, rowPtrBufLen);
 
-    for(int y = 0; y < (int)(imgHeight); ++y){
+    for(int y = 0; y < to_d(imgHeight); ++y){
         const size_t rowBufLen = sizeof(uint8_t) * pixelSize * imgWidth;
         auto rowBuf =(png_byte *)(png_malloc(imgPtr, rowBufLen));
 
@@ -130,7 +130,7 @@ bool pngf::saveRGBABuffer(const uint8_t *bufRGBA, uint32_t imgWidth, uint32_t im
 
 pngf_saveRGBABuffer_failed:
     if(rowPtrBuf){
-        for(int y = 0; y < (int)(imgHeight); y++){
+        for(int y = 0; y < to_d(imgHeight); y++){
             if(rowPtrBuf[y]){
                 png_free(imgPtr, rowPtrBuf[y]);
             }

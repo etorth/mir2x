@@ -14,6 +14,9 @@ decl {\#include "mainwindow.hpp"} {private global
 decl {\#include "animationset.hpp"} {public local
 } 
 
+decl {\#include "totype.hpp"} {public local
+} 
+
 widget_class ActionSetTestGroup {open selected
   xywh {348 138 261 439} type Double visible position_relative
 } {
@@ -171,7 +174,7 @@ widget_class ActionSetTestGroup {open selected
   } {
     code {{
     auto pRoot = (ActionSetTestGroup *)(pWidget->parent());
-    auto nArg  = (uint32_t)(uintptr_t)pData;
+    auto nArg  = to_u32((uintptr_t)(pData));
     pRoot->AddValidDirection((0X0000FF00 & nArg) >> 8, 0X000000FF & nArg);
 }} {}
   }
@@ -266,19 +269,19 @@ widget_class ActionSetTestGroup {open selected
     { // status
         auto pStatusMenu = stStatusChoiceArr[nIndex - 1]->menu();
         auto nSelected   = stStatusChoiceArr[nIndex - 1]->value();
-        nStatus = (uint32_t)(uintptr_t)(pStatusMenu[nSelected].user_data());
+        nStatus = to_u32((uintptr_t)(pStatusMenu[nSelected].user_data()));
     }
 
     { // direction
         auto pDirectionMenu = stDirectionChoiceArr[nIndex - 1]->menu();
         auto nSelected      = stDirectionChoiceArr[nIndex - 1]->value();
-        nDirection = (uint32_t)(uintptr_t)(pDirectionMenu[nSelected].user_data());
+        nDirection = to_u32((uintptr_t)(pDirectionMenu[nSelected].user_data()));
     }
 
     { // round count
         auto pRoundCountMenu = stRoundCountChoiceArr[nIndex - 1]->menu();
         auto nSelected       = stRoundCountChoiceArr[nIndex - 1]->value();
-        nRoundCount = (uint32_t)(uintptr_t)(pRoundCountMenu[nSelected].user_data());
+        nRoundCount = to_u32((uintptr_t)(pRoundCountMenu[nSelected].user_data()));
     }
 
     return 0

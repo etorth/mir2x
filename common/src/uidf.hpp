@@ -72,7 +72,7 @@ namespace uidf
         if(uid & 0X00FF000000000000ULL){
             return UID_INN;
         }
-        return (int)((uid & 0X0000F00000000000ULL) >> 44);
+        return to_d((uid & 0X0000F00000000000ULL) >> 44);
     }
 
     inline const char *getUIDTypeCStr(uint64_t uid)
@@ -105,7 +105,7 @@ namespace uidf
         if(getUIDType(uid) != UID_MON){
             throw fflerror("not a monster uid");
         }
-        return (uint32_t)((uid & 0X00000FFE00000000ULL) >> 33);
+        return to_u32((uid & 0X00000FFE00000000ULL) >> 33);
     }
 
     inline uint32_t getMonsterSeq(uint64_t uid)
@@ -113,7 +113,7 @@ namespace uidf
         if(getUIDType(uid) != UID_MON){
             throw fflerror("not a monster uid");
         }
-        return (uint32_t)(uid & 0XFFFFFFFFULL);
+        return to_u32(uid & 0XFFFFFFFFULL);
     }
 
     uint32_t getMapID(uint64_t);

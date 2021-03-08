@@ -220,8 +220,8 @@ void ClientMonster::draw(int viewX, int viewY, int focusMask)
         return;
     }
 
-    const uint32_t nKey0 = ((uint32_t)(0) << 23) + ((uint32_t)(nGfxID & 0X03FFFF) << 5) + m_currMotion->frame; // body
-    const uint32_t nKey1 = ((uint32_t)(1) << 23) + ((uint32_t)(nGfxID & 0X03FFFF) << 5) + m_currMotion->frame; // shadow
+    const uint32_t nKey0 = (to_u32(0) << 23) + (to_u32(nGfxID & 0X03FFFF) << 5) + m_currMotion->frame; // body
+    const uint32_t nKey1 = (to_u32(1) << 23) + (to_u32(nGfxID & 0X03FFFF) << 5) + m_currMotion->frame; // shadow
 
     int nDX0 = 0;
     int nDY0 = 0;
@@ -312,7 +312,7 @@ void ClientMonster::draw(int viewX, int viewY, int focusMask)
 
         const int drawBarXP = startX +  7;
         const int drawBarYP = startY - 53;
-        const int drawBarWidth = (int)(std::lround(nBarW * (m_maxHP ? (std::min<double>)(1.0, (1.0 * m_HP) / m_maxHP) : 1.0)));
+        const int drawBarWidth = to_d(std::lround(nBarW * (m_maxHP ? (std::min<double>)(1.0, (1.0 * m_HP) / m_maxHP) : 1.0)));
 
         g_sdlDevice->drawTexture(pBar1, drawBarXP, drawBarYP, 0, 0, drawBarWidth, nBarH);
         g_sdlDevice->drawTexture(pBar0, drawBarXP, drawBarYP);
@@ -730,7 +730,7 @@ ClientCreature::TargetBox ClientMonster::getTargetBox() const
         return {};
     }
 
-    const uint32_t texID = ((uint32_t)(texBaseID & 0X03FFFF) << 5) + m_currMotion->frame;
+    const uint32_t texID = (to_u32(texBaseID & 0X03FFFF) << 5) + m_currMotion->frame;
 
     int dx = 0;
     int dy = 0;

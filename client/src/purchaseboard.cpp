@@ -341,7 +341,7 @@ void PurchaseBoard::drawEx(int dstX, int dstY, int, int, int, int) const
             label.moveTo(x() + m_startX + m_boxW + 10, y() + startY + (m_boxH - label.h()) / 2);
             label.draw();
 
-            if(m_selected == (int)(i)){
+            if(m_selected == to_d(i)){
                 g_sdlDevice->fillRectangle(colorf::WHITE + 64, m_startX, startY, 252 - 19, m_boxH);
             }
             startY += m_lineH;
@@ -432,7 +432,7 @@ bool PurchaseBoard::processEvent(const SDL_Event &event, bool valid)
                     }
                 }
 
-                if(const int gridIndex = getExt1PageGrid(); gridIndex >= 0 && extendedPageCount() > 0 && m_ext1Page * 3 * 4 + gridIndex < (int)(m_sdSellItemList.list.size())){
+                if(const int gridIndex = getExt1PageGrid(); gridIndex >= 0 && extendedPageCount() > 0 && m_ext1Page * 3 * 4 + gridIndex < to_d(m_sdSellItemList.list.size())){
                     m_ext1PageGridSelected = m_ext1Page * 3 * 4 + gridIndex;
                 }
                 break;
@@ -480,7 +480,7 @@ size_t PurchaseBoard::getStartIndex() const
 
 uint32_t PurchaseBoard::selectedItemID() const
 {
-    if((m_selected >= 0) && (m_selected < (int)(m_itemList.size()))){
+    if((m_selected >= 0) && (m_selected < to_d(m_itemList.size()))){
         return m_itemList.at(m_selected);
     }
     return 0;
@@ -529,7 +529,7 @@ int PurchaseBoard::extendedPageCount() const
     if(m_sdSellItemList.list.empty()){
         return 0;
     }
-    return (int)(m_sdSellItemList.list.size() + 11) / 12;
+    return to_d(m_sdSellItemList.list.size() + 11) / 12;
 }
 
 int PurchaseBoard::getExt1PageGrid() const
@@ -567,7 +567,7 @@ void PurchaseBoard::drawExt1GridHoverText(int itemIndex) const
         throw bad_reach();
     }
 
-    if(!(itemIndex >= 0 && itemIndex < (int)(m_sdSellItemList.list.size()))){
+    if(!(itemIndex >= 0 && itemIndex < to_d(m_sdSellItemList.list.size()))){
         throw fflerror("invalid argument: itemIndex = %d", itemIndex);
     }
 
@@ -686,7 +686,7 @@ void PurchaseBoard::drawExt1() const
             }
 
             if(cursorOn){
-                cursorOnGridIndex = (int)(i);
+                cursorOnGridIndex = to_d(i);
             }
         }
     }
@@ -763,7 +763,7 @@ std::tuple<uint32_t, uint32_t> PurchaseBoard::getExtSelectedItemSeqID() const
     switch(extendedBoardGfxID()){
         case 1:
             {
-                if(m_ext1PageGridSelected >= 0 && m_ext1PageGridSelected < (int)(m_sdSellItemList.list.size())){
+                if(m_ext1PageGridSelected >= 0 && m_ext1PageGridSelected < to_d(m_sdSellItemList.list.size())){
                     const auto &sellItem = m_sdSellItemList.list.at(m_ext1PageGridSelected);
                     return {sellItem.item.itemID, sellItem.item.seqID};
                 }
@@ -785,7 +785,7 @@ std::tuple<uint32_t, uint32_t> PurchaseBoard::getExtSelectedItemSeqID() const
 
 size_t PurchaseBoard::getItemPrice(int itemIndex) const
 {
-    if(!(itemIndex >= 0 && itemIndex < (int)(m_sdSellItemList.list.size()))){
+    if(!(itemIndex >= 0 && itemIndex < to_d(m_sdSellItemList.list.size()))){
         throw fflerror("invalid argument: itemIndex = %d", itemIndex);
     }
 

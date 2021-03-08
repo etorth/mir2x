@@ -64,7 +64,7 @@ class PNGTexDB: public innDB<uint32_t, PNGTexEntry>
 
         SDL_Texture *Retrieve(uint8_t nIndex, uint16_t nImage)
         {
-            return Retrieve((uint32_t)(((uint32_t)(nIndex) << 16) + nImage));
+            return Retrieve(to_u32((to_u32(nIndex) << 16) + nImage));
         }
 
     public:

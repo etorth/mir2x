@@ -44,7 +44,7 @@ ServerObject::ServerObject(uint64_t uid)
     });
 
     if(g_serverArgParser->traceActorMessage){
-        m_stateTrigger.install([this, lastCheckTick = (uint32_t)(0)]() mutable -> bool
+        m_stateTrigger.install([this, lastCheckTick = to_u32(0)]() mutable -> bool
         {
             if(const auto currTick = g_monoServer->getCurrTick(); lastCheckTick + 1000 < currTick){
                 if(checkActorPod()){

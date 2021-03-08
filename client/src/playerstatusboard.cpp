@@ -139,8 +139,8 @@ PlayerStatusBoard::PlayerStatusBoard(int argX, int argY, ProcessRun *runPtr, Wid
 
                 {
                     SYS_TEXNIL,
-                    0X06000010 + (uint32_t)(i),
-                    0X06000020 + (uint32_t)(i),
+                    0X06000010 + to_u32(i),
+                    0X06000020 + to_u32(i),
                 },
 
                 nullptr,

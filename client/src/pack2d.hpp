@@ -126,7 +126,7 @@ class Pack2D
                 && y >= 0
                 && argW > 0
                 && argH > 0
-                && x + argW <= (int)(w());
+                && x + argW <= to_d(w());
         }
 
         void validCEx(int x, int y, int argW, int argH) const

@@ -451,7 +451,7 @@ bool ActorPool::postMessage(uint64_t uid, ActorMsgPack msg)
 
     {
         logScopedProfiler("pushUIDQPending");
-        const auto bucketCount = (int)(m_bucketList.size());
+        const auto bucketCount = to_d(m_bucketList.size());
         for(int i = 0; i < bucketCount; ++i){
             if(m_bucketList.at((bucketId + i) % bucketCount).uidQPending.try_push(uid)){
                 return true;
@@ -780,7 +780,7 @@ void ActorPool::launchPool()
     // one bucket has one dedicated thread
     // it will feed the update message METRNOME and can steal jobs when not busy
 
-    for(int bucketId = 0; bucketId < (int)(m_bucketList.size()); ++bucketId){
+    for(int bucketId = 0; bucketId < to_d(m_bucketList.size()); ++bucketId){
         m_bucketList.at(bucketId).runThread = std::async(std::launch::async, [bucketId, this]()
         {
             // setup the worker id
@@ -808,8 +808,8 @@ void ActorPool::launchPool()
                             lastUpdateTime = currTime;
                         }
 
-                        for(int i = 0; i < (int)(m_bucketList.size()) * 32; ++i){
-                            const int currBucketId = (bucketId + i) % (int)(m_bucketList.size());
+                        for(int i = 0; i < to_d(m_bucketList.size()) * 32; ++i){
+                            const int currBucketId = (bucketId + i) % to_d(m_bucketList.size());
                             const size_t maxPopCount = (currBucketId == bucketId) ? 0 : 4;
                             if(m_bucketList[currBucketId].uidQPending.try_pop(uidList, maxPopCount) && !uidList.empty()){
                                 break;
@@ -876,7 +876,7 @@ bool ActorPool::isActorThread() const
 
 bool ActorPool::isActorThread(int workerId) const
 {
-    return (workerId >= 0) && (workerId < (int)(m_bucketList.size()));
+    return (workerId >= 0) && (workerId < to_d(m_bucketList.size()));
 }
 
 ActorMonitor ActorPool::getActorMonitor(uint64_t uid) const

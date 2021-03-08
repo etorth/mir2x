@@ -73,7 +73,7 @@ namespace PathFind
             int m_Y;
 
         private:
-            static constexpr int m_gridBit       = (int)(N);
+            static constexpr int m_gridBit       = to_d(N);
             static constexpr int m_gridBitMask   = (1 << m_gridBit) - 1;
             static constexpr int m_gridPerInt    = sizeof(int) * 8 / m_gridBit;
             static constexpr int m_gridLineWidth = ((2 * R - 1) + (m_gridPerInt - 1)) / m_gridPerInt;
@@ -83,8 +83,8 @@ namespace PathFind
 
         public:
             GridMaskMap(int nCenterX, int nCenterY)
-                : m_X(nCenterX - (int)(R) + 1)
-                , m_Y(nCenterY - (int)(R) + 1)
+                : m_X(nCenterX - to_d(R) + 1)
+                , m_Y(nCenterY - to_d(R) + 1)
                 , m_buf()
             {
                 static_assert(R > 0, "Requires a non-zero radius");
@@ -96,12 +96,12 @@ namespace PathFind
             int GetGrid(int nX, int nY) const
             {
                 int nDX = nX - m_X;
-                if(nDX < 0 || nDX >= (int)(2 * R - 1)){
+                if(nDX < 0 || nDX >= to_d(2 * R - 1)){
                     return 0;
                 }
 
                 int nDY = nY - m_Y;
-                if(nDY < 0 || nDY >= (int)(2 * R - 1)){
+                if(nDY < 0 || nDY >= to_d(2 * R - 1)){
                     return 0;
                 }
 
@@ -113,12 +113,12 @@ namespace PathFind
             void SetGrid(int nX, int nY, int nVal)
             {
                 int nDX = nX - m_X;
-                if(nDX < 0 || nDX >= (int)(2 * R - 1)){
+                if(nDX < 0 || nDX >= to_d(2 * R - 1)){
                     return;
                 }
 
                 int nDY = nY - m_Y;
-                if(nDY < 0 || nDY >= (int)(2 * R - 1)){
+                if(nDY < 0 || nDY >= to_d(2 * R - 1)){
                     return;
                 }
 

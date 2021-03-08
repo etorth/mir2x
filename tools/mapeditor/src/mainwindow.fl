@@ -212,7 +212,7 @@ fl_alert("%s", "Haven't implement yet!");}
         char szHexString[64];
         std::memset(szHexString, 0, sizeof(szHexString));
 
-        uint32_t nKey = (((uint32_t)(nFileIndex)) << 16) + ((uint32_t)(nImageIndex));
+        uint32_t nKey = ((to_u32(nFileIndex)) << 16) + (to_u32(nImageIndex));
         hexstr::to_string<uint32_t, 4>(nKey, szHexString, true);
 
         std::string szIMGPNGName = ((g_WorkingPathName + "/IMG/") + szHexString) + ".PNG";
@@ -583,7 +583,7 @@ extern EditorMap g_EditorMap;
 if(g_EditorMap.Valid()){
 	int nValidYOffset = g_EditorMap.H() * SYS_MAPGRIDYP - m_DrawArea->h();
 	nValidYOffset = (std::max<int>)(0, nValidYOffset);
-	int nYOffset = (int)(nValidYOffset * fValue * 1.0);
+	int nYOffset = to_d(nValidYOffset * fValue * 1.0);
     	m_DrawArea->SetOffset(0, true, nYOffset, false);
 	m_Window->redraw();
 }}
@@ -598,7 +598,7 @@ extern EditorMap g_EditorMap;
 if(g_EditorMap.Valid()){
 	int nValidXOffset = g_EditorMap.W() * SYS_MAPGRIDXP - m_DrawArea->w();
 	nValidXOffset = (std::max<int>)(0, nValidXOffset);
-	int nXOffset = (int)(nValidXOffset * fValue * 1.0);
+	int nXOffset = to_d(nValidXOffset * fValue * 1.0);
     	m_DrawArea->SetOffset(nXOffset, false, 0, true);
 	m_Window->redraw();
 }}
@@ -1210,7 +1210,7 @@ if(g_EditorMap.Valid()){
         exportBufPtr = overviewBuf.data();
     }
 
-    if(pngf::saveRGBABuffer((const uint8_t *)(exportBufPtr), (uint32_t)(exportW), (uint32_t)(exportH), szOverviewFullFileName.c_str())){
+    if(pngf::saveRGBABuffer((const uint8_t *)(exportBufPtr), to_u32(exportW), to_u32(exportH), szOverviewFullFileName.c_str())){
         fl_alert("Done overview map image: %s", szOverviewFileName.c_str());
     }
     else{

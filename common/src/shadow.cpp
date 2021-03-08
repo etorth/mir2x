@@ -20,6 +20,7 @@
 #include <cstdio>
 #include <cstring>
 #include "shadow.hpp"
+#include "totype.hpp"
 
 uint32_t *Shadow::MakeShadow(uint32_t *pDst,
         bool bProject,
@@ -51,7 +52,7 @@ uint32_t *Shadow::MakeShadow(uint32_t *pDst,
     }
 
     if(pDst == nullptr){
-        std::printf("allocate memory failed : %d x %d x %d", nNewW, nNewH, (int)(sizeof(uint32_t)));
+        std::printf("allocate memory failed : %d x %d x %d", nNewW, nNewH, to_d(sizeof(uint32_t)));
         return nullptr;
     }
 

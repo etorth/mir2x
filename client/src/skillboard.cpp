@@ -221,7 +221,7 @@ SkillBoard::SkillBoard(int nX, int nY, ProcessRun *runPtr, Widget *pwidget, bool
           for(int i = 0; i < 8; ++i){
               auto pagePtr = new SkillBoard::SkillPage
               {
-                  to_u32(0X05000010 + (uint32_t)(i)),
+                  to_u32(0X05000010 + to_u32(i)),
                   this,
                   true,
               };
@@ -258,8 +258,8 @@ SkillBoard::SkillBoard(int nX, int nY, ProcessRun *runPtr, Widget *pwidget, bool
 
                   {
                       SYS_TEXNIL,
-                      0X05000020 + (uint32_t)(i),
-                      0X05000030 + (uint32_t)(i),
+                      0X05000020 + to_u32(i),
+                      0X05000030 + to_u32(i),
                   },
 
                   [i, this]()
@@ -283,17 +283,17 @@ SkillBoard::SkillBoard(int nX, int nY, ProcessRun *runPtr, Widget *pwidget, bool
 
                       m_tabButtonList.at(i)->setTexID(
                       {
-                          0X05000030 + (uint32_t)(i),
-                          0X05000030 + (uint32_t)(i),
-                          0X05000030 + (uint32_t)(i),
+                          0X05000030 + to_u32(i),
+                          0X05000030 + to_u32(i),
+                          0X05000030 + to_u32(i),
                       });
 
                       m_tabButtonList.at(m_selectedTabIndex)->setOff();
                       m_tabButtonList.at(m_selectedTabIndex)->setTexID(
                       {
                           SYS_TEXNIL,
-                          0X05000020 + (uint32_t)(m_selectedTabIndex),
-                          0X05000030 + (uint32_t)(m_selectedTabIndex),
+                          0X05000020 + to_u32(m_selectedTabIndex),
+                          0X05000030 + to_u32(m_selectedTabIndex),
                       });
 
                       m_selectedTabIndex = i;
@@ -319,9 +319,9 @@ SkillBoard::SkillBoard(int nX, int nY, ProcessRun *runPtr, Widget *pwidget, bool
               if(i == m_selectedTabIndex){
                   m_tabButtonList.at(i)->setTexID(
                   {
-                      0X05000030 + (uint32_t)(i),
-                      0X05000030 + (uint32_t)(i),
-                      0X05000030 + (uint32_t)(i),
+                      0X05000030 + to_u32(i),
+                      0X05000030 + to_u32(i),
+                      0X05000030 + to_u32(i),
                   });
               }
           }

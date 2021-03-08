@@ -100,7 +100,7 @@ int CharObject::COPathFinder::GetGrid(int nX, int nY) const
         return PathFind::INVALID;
     }
 
-    const uint32_t nKey = ((uint32_t)(nX) << 16) | (uint32_t)(nY);
+    const uint32_t nKey = (to_u32(nX) << 16) | to_u32(nY);
     if(auto p = m_cache.find(nKey); p != m_cache.end()){
         return p->second;
     }
@@ -135,7 +135,7 @@ CharObject::CharObject(ServiceCore *pServiceCore,
         throw fflerror("CO has no associated map");
     }
 
-    m_stateTrigger.install([this, lastCheckTick = (uint32_t)(0)]() mutable -> bool
+    m_stateTrigger.install([this, lastCheckTick = to_u32(0)]() mutable -> bool
     {
         if(const auto currTick = g_monoServer->getCurrTick(); lastCheckTick + 5000 < currTick){
             if(checkActorPod()){

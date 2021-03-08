@@ -23,11 +23,11 @@
 
 bool Pack2D::occupied(int x, int y) const
 {
-    if(!((x >= 0) && (x < (int)(w())) && (y >= 0))){
+    if(!((x >= 0) && (x < to_d(w())) && (y >= 0))){
         throw fflerror("invalid arguments: x = %d, y = %d", x, y);
     }
 
-    if(y >= (int)(m_packMap.size())){
+    if(y >= to_d(m_packMap.size())){
         return false;
     }
     return (bool)(m_packMap[y] & (1 << x));
@@ -55,7 +55,7 @@ bool Pack2D::occupied(int x, int y, int argW, int argH, bool occupiedAny) const
 void Pack2D::occupy(int x, int y, bool takeIt)
 {
     validCEx(x, y, 1, 1);
-    if((y >= (int)(m_packMap.size()))){
+    if((y >= to_d(m_packMap.size()))){
         m_packMap.resize(y + 1);
     }
 
@@ -86,8 +86,8 @@ void Pack2D::findRoom(PackBin *binPtr)
     }
 
     validCEx(0, 0, binPtr->w, binPtr->h);
-    for(int yi = 0; yi <= (int)(m_packMap.size()); ++yi){
-        for(int xi = 0; xi + binPtr->w <= (int)(w()); ++xi){
+    for(int yi = 0; yi <= to_d(m_packMap.size()); ++yi){
+        for(int xi = 0; xi + binPtr->w <= to_d(w()); ++xi){
             if(!occupied(xi, yi, binPtr->w, binPtr->h, true)){
                 binPtr->x = xi;
                 binPtr->y = yi;

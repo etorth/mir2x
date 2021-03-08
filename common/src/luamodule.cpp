@@ -126,7 +126,7 @@ LuaModule::LuaModule()
 
     m_luaState.set_function("mapID2Name", [](int nMapID) -> std::string
     {
-        return std::string(reinterpret_cast<const char *>(DBCOM_MAPRECORD((uint32_t)(nMapID)).name));
+        return std::string(reinterpret_cast<const char *>(DBCOM_MAPRECORD(to_u32(nMapID)).name));
     });
 
     m_luaState.set_function("sleep", [](int nSleepMS)

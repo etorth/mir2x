@@ -31,13 +31,13 @@ uint64_t uidf::buildMapUID(uint32_t mapID)
     if(!mapID){
         throw fflerror("invalid map ID: %llu", to_llu(mapID));
     }
-    return ((uint64_t)(UID_MAP) << 44) + (uint64_t)(mapID);
+    return (to_u64(UID_MAP) << 44) + to_u64(mapID);
 }
 
 uint64_t uidf::buildNPCUID(uint16_t npcId)
 {
     static std::atomic<uint16_t> s_NPCSeqID {1};
-    return ((uint64_t)(UID_NPC) << 44) + ((uint64_t)(npcId) << 16) + s_NPCSeqID.fetch_add(1);
+    return (to_u64(UID_NPC) << 44) + (to_u64(npcId) << 16) + s_NPCSeqID.fetch_add(1);
 }
 
 static constexpr uint64_t playerUID_gender     = 0X0000080000000000ULL;
@@ -60,7 +60,7 @@ uint64_t uidf::buildPlayerUID(uint32_t dbid, bool gender, const std::vector<int>
     if(jobMask == 0){
         throw fflerror("no job specified");
     }
-    return ((uint64_t)(UID_PLY) << 44) | (gender ? playerUID_gender : 0ULL)  | jobMask | (uint64_t)(dbid);
+    return (to_u64(UID_PLY) << 44) | (gender ? playerUID_gender : 0ULL)  | jobMask | to_u64(dbid);
 }
 
 bool uidf::hasPlayerJob(uint64_t uid, int job)
@@ -120,7 +120,7 @@ uint64_t uidf::buildMonsterUID(uint32_t monsterId)
     }();
 
     if(uint32_t nSeq = s_monsterIDSeqPtr->at(monsterId).fetch_add(1); nSeq){
-        return ((uint64_t)(UID_MON) << 44) + ((uint64_t)(monsterId) << 33) + (uint64_t)(nSeq);
+        return (to_u64(UID_MON) << 44) + (to_u64(monsterId) << 33) + to_u64(nSeq);
     }
     return 0;
 }
@@ -141,14 +141,14 @@ uint64_t uidf::buildEtcUID()
 {
     static std::atomic<uint32_t> s_ETCUID {1};
     if(auto nSeq = s_ETCUID.fetch_add(1); nSeq){
-        return ((uint64_t)(UID_ETC) << 44) + (uint64_t)(nSeq);
+        return (to_u64(UID_ETC) << 44) + to_u64(nSeq);
     }
     return 0;
 }
 
 uint64_t uidf::buildServiceCoreUID()
 {
-    return (uint64_t)(UID_COR) << 44;
+    return to_u64(UID_COR) << 44;
 }
 
 std::string uidf::getUIDString(uint64_t uid)

@@ -79,6 +79,6 @@ void Rawbuf::buildHexFile(const char *inFileName, const char *outFileName, size_
     for(size_t off = 0; off < compBuf.size(); ++off){
         const bool newLine   = (((off % byteCountPerLine) == 0) && (off != 0));
         const bool needSpace = (((off % byteCountPerLine) != (byteCountPerLine - 1)) && (off != (compBuf.size() - 1)));
-        std::fprintf(fp, "%s0x%02x,%s", newLine ? "\n" : "", (int)(compBuf[off]), needSpace ? " " : "");
+        std::fprintf(fp, "%s0x%02x,%s", newLine ? "\n" : "", to_d(compBuf[off]), needSpace ? " " : "");
     }
 }

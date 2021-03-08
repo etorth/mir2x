@@ -179,8 +179,8 @@ void MiniMapBoard::drawMiniMapTexture() const
     {
         return
         {
-            (int)(std::lround((std::get<0>(loc) * 1.0 / mapW) * texW)),
-            (int)(std::lround((std::get<1>(loc) * 1.0 / mapH) * texH)),
+            to_d(std::lround((std::get<0>(loc) * 1.0 / mapW) * texW)),
+            to_d(std::lround((std::get<1>(loc) * 1.0 / mapH) * texH)),
         };
     };
 

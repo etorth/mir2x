@@ -69,7 +69,7 @@ namespace alphaf
             g = fnRoundU8(1.0 * g * 255.0 / a);
             b = fnRoundU8(1.0 * b * 255.0 / a);
 
-            pData[nIndex] = ((uint32_t)(a) << 24) | ((uint32_t)(r) << 16) | ((uint32_t)(g) << 8) | (uint32_t)(b);
+            pData[nIndex] = (to_u32(a) << 24) | (to_u32(r) << 16) | (to_u32(g) << 8) | to_u32(b);
         }
     }
 

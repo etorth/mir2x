@@ -157,18 +157,18 @@ class EditorMap
             {
                 if(Valid){
                     uint8_t nByte4 = 0
-                        | (((uint8_t)(Valid  ? 1 : 0)) << 7)
-                        | (((uint8_t)(Alpha  ? 1 : 0)) << 1)
-                        | (((uint8_t)(Ground ? 1 : 0)) << 0);
+                        | ((to_u8(Valid  ? 1 : 0)) << 7)
+                        | ((to_u8(Alpha  ? 1 : 0)) << 1)
+                        | ((to_u8(Ground ? 1 : 0)) << 0);
 
                     uint8_t nByte3 = 0
-                        | (((uint8_t)(Animated ? 1 : 0)) << 7)
-                        | (((uint8_t)(AniType  & 0X07 )) << 4)
-                        | (((uint8_t)(AniCount & 0X0F )) << 0);
+                        | ((to_u8(Animated ? 1 : 0)) << 7)
+                        | ((to_u8(AniType  & 0X07 )) << 4)
+                        | ((to_u8(AniCount & 0X0F )) << 0);
 
-                    uint8_t nByte2 = (uint8_t)((Image & 0X00FF0000) >> 16);
-                    uint8_t nByte1 = (uint8_t)((Image & 0X0000FF00) >>  8);
-                    uint8_t nByte0 = (uint8_t)((Image & 0X000000FF) >>  0);
+                    uint8_t nByte2 = to_u8((Image & 0X00FF0000) >> 16);
+                    uint8_t nByte1 = to_u8((Image & 0X0000FF00) >>  8);
+                    uint8_t nByte0 = to_u8((Image & 0X000000FF) >>  0);
 
                     return {{nByte0, nByte1, nByte2, nByte3, nByte4}};
                 }else{
@@ -195,10 +195,10 @@ class EditorMap
             {
                 if(Valid){
                     return 0
-                        | (((uint8_t)(Valid ? 1 : 0)) << 7)     // [ :7]
-                        | (((uint8_t)(Radius & 0X03)) << 5)     // [6:5]
-                        | (((uint8_t)(Alpha  & 0X03)) << 3)     // [4:3]
-                        | (((uint8_t)(Color  & 0X07)) << 0);    // [2:0]
+                        | ((to_u8(Valid ? 1 : 0)) << 7)     // [ :7]
+                        | ((to_u8(Radius & 0X03)) << 5)     // [6:5]
+                        | ((to_u8(Alpha  & 0X03)) << 3)     // [4:3]
+                        | ((to_u8(Color  & 0X07)) << 0);    // [2:0]
                 }else{
                     return 0X00;
                 }
@@ -223,9 +223,9 @@ class EditorMap
             uint8_t MakeLandU8() const
             {
                 return 0
-                    | (((uint8_t)(CanWalk ? 1 : 0)) << 7)   // [  7]
-                    | (((uint8_t)(CanFly  ? 1 : 0)) << 6)   // [  6]
-                    | (((uint8_t)(LandType & 0X3F)) << 0);  // [5:0]
+                    | ((to_u8(CanWalk ? 1 : 0)) << 7)   // [  7]
+                    | ((to_u8(CanFly  ? 1 : 0)) << 6)   // [  6]
+                    | ((to_u8(LandType & 0X3F)) << 0);  // [5:0]
             }
 
             bool CanThrough()

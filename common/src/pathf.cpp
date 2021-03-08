@@ -86,7 +86,7 @@ int pathf::getDir4(int x, int y)
     if(x == 0 && y == 0){
         return -1;
     }
-    return (int)(findNearestPoint(g_dir4Off, x, y));
+    return to_d(findNearestPoint(g_dir4Off, x, y));
 }
 
 int pathf::getDir8(int x, int y)
@@ -94,7 +94,7 @@ int pathf::getDir8(int x, int y)
     if(x == 0 && y == 0){
         return -1;
     }
-    return (int)(findNearestPoint(g_dir8Off, x, y));
+    return to_d(findNearestPoint(g_dir8Off, x, y));
 }
 
 int pathf::getDir16(int x, int y)
@@ -102,13 +102,13 @@ int pathf::getDir16(int x, int y)
     if(x == 0 && y == 0){
         return -1;
     }
-    return (int)(findNearestPoint(g_dir16Off, x, y));
+    return to_d(findNearestPoint(g_dir16Off, x, y));
 }
 
 std::tuple<int, int> pathf::getDir4Off(int dirIndex, int d)
 {
     if(dirIndex >= 0 && dirIndex < 4){
-        return {(int)(std::lround(g_dir4Off[dirIndex][0] * d)), (int)(std::lround(g_dir4Off[dirIndex][1] * d))};
+        return {to_d(std::lround(g_dir4Off[dirIndex][0] * d)), to_d(std::lround(g_dir4Off[dirIndex][1] * d))};
     }
     throw fflerror("direction index is not in [0, 4): %d", dirIndex);
 }
@@ -116,7 +116,7 @@ std::tuple<int, int> pathf::getDir4Off(int dirIndex, int d)
 std::tuple<int, int> pathf::getDir8Off(int dirIndex, int d)
 {
     if(dirIndex >= 0 && dirIndex < 8){
-        return {(int)(std::lround(g_dir8Off[dirIndex][0] * d)), (int)(std::lround(g_dir8Off[dirIndex][1] * d))};
+        return {to_d(std::lround(g_dir8Off[dirIndex][0] * d)), to_d(std::lround(g_dir8Off[dirIndex][1] * d))};
     }
     throw fflerror("direction index is not in [0, 8): %d", dirIndex);
 }
@@ -124,7 +124,7 @@ std::tuple<int, int> pathf::getDir8Off(int dirIndex, int d)
 std::tuple<int, int> pathf::getDir16Off(int dirIndex, int d)
 {
     if(dirIndex >= 0 && dirIndex < 16){
-        return {(int)(std::lround(g_dir16Off[dirIndex][0] * d)), (int)(std::lround(g_dir16Off[dirIndex][1] * d))};
+        return {to_d(std::lround(g_dir16Off[dirIndex][0] * d)), to_d(std::lround(g_dir16Off[dirIndex][1] * d))};
     }
     throw fflerror("direction index is not in [0, 16): %d", dirIndex);
 }
@@ -138,7 +138,7 @@ std::tuple<int, int> pathf::getDirOff(int x, int y, int distance)
     const double r = distance / std::sqrt(1.0 * x * x + 1.0 * y * y);
     return
     {
-        (int)(std::lround(x * r)),
-        (int)(std::lround(y * r)),
+        to_d(std::lround(x * r)),
+        to_d(std::lround(y * r)),
     };
 }

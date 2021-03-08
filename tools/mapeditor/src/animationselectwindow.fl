@@ -14,6 +14,9 @@ decl {\#include <algorithm>} {public global
 decl {\#include "animationdb.hpp"} {private local
 }
 
+decl {\#include "totype.hpp"} {private local
+}
+
 class AnimationSelectWindow {open
 } {
   decl {uint32_t m_Frame;} {private local
@@ -70,7 +73,7 @@ class AnimationSelectWindow {open
         // we do have a valid monster id
         int nAction0 = Action();
         if(nAction0 >= 0){
-            uint32_t nAction = (uint32_t)(nAction0);
+            uint32_t nAction = to_u32(nAction0);
             for(uint32_t nDirection = 0; nDirection < 8; ++nDirection){
                 extern AnimationDB g_AnimationDB;
                 if(g_AnimationDB.RetrieveAnimation(nMonsterID).DirectionValid(nAction, nDirection)){
@@ -94,7 +97,7 @@ class AnimationSelectWindow {open
     if(MonsterID() && Action() >= 0 && Direction() >= 0){
         extern AnimationDB g_AnimationDB;
         auto &rstRecord = g_AnimationDB.RetrieveAnimation(MonsterID());
-        if(rstRecord.Valid() && rstRecord.DirectionValid((uint32_t)(Action()), (uint32_t)(Direction()))){
+        if(rstRecord.Valid() && rstRecord.DirectionValid(to_u32(Action()), to_u32(Direction()))){
             // ok we have a valid animation, reset it's frame index
             m_Frame = 0;
             Fl::add_timeout(0.2, TimeoutCallback, nullptr);
@@ -160,7 +163,7 @@ class AnimationSelectWindow {open
     
     for(int i = 1; i <= m_BrowserAnimation->size(); ++i){
         if(m_BrowserAnimation->selected(i)){
-            nMonsterID = (uint32_t)(uintptr_t)m_BrowserAnimation->data(i);
+            nMonsterID = to_u32((uintptr_t)(m_BrowserAnimation->data(i)));
         }
     }
     
@@ -171,7 +174,7 @@ class AnimationSelectWindow {open
   } {
     code {{
     if(!MonsterID()){ return -1; }
-    return (int)(std::lround(m_SliderR->value()));
+    return to_d(std::lround(m_SliderR->value()));
 }} {}
   }
   Function {Action()} {return_type int
@@ -190,7 +193,7 @@ class AnimationSelectWindow {open
      
     // we do select an action
     if(nSelectedActionIndex){
-        return (int)(intptr_t)m_BrowserAction->data(nSelectedActionIndex);
+        return to_d((intptr_t)(m_BrowserAction->data(nSelectedActionIndex)));
     }
      
     return -1;
@@ -213,7 +216,7 @@ class AnimationSelectWindow {open
      
     // we do select an action
     if(nSelectedDirectionIndex){
-        return (int)(intptr_t)m_BrowserDirection->data(nSelectedDirectionIndex);
+        return to_d((intptr_t)(m_BrowserDirection->data(nSelectedDirectionIndex)));
     }
      
     return -1;
@@ -249,8 +252,8 @@ class AnimationSelectWindow {open
     code {{
     if(MonsterID() && Action() >= 0 && Direction() >= 0){
         uint32_t nMonsterID = MonsterID();
-        uint32_t nAction = (uint32_t)(Action());
-        uint32_t nDirection = (uint32_t)(Direction());
+        uint32_t nAction = to_u32(Action());
+        uint32_t nDirection = to_u32(Direction());
 
         extern AnimationDB g_AnimationDB;
         auto &rstRecord = g_AnimationDB.RetrieveAnimation(nMonsterID);

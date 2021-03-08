@@ -178,7 +178,7 @@ static void cmd_uncomp_db(const arg_parser &cmd)
             if(std::fwrite(readBuf.data(), readBuf.size(), 1, fptr.get()) != 1){
                 throw fflerror("failed to write to file: %s, err = %s", fileName, std::strerror(errno));
             }
-            std::printf("%32s %8zu -> %8zu [%3d%%] %8llu\n", entry.fileName, entry.length, readBuf.size(), (int)(entry.length * 100 / readBuf.size()), to_llu(entry.attribute));
+            std::printf("%32s %8zu -> %8zu [%3d%%] %8llu\n", entry.fileName, entry.length, readBuf.size(), to_d(entry.length * 100 / readBuf.size()), to_llu(entry.attribute));
         }
     }
 }

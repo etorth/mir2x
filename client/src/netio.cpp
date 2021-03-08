@@ -48,11 +48,11 @@ NetIO::SendPack::SendPack(uint8_t hc, const uint8_t *dataBuf, size_t dataLength)
 
                 if(data[0] == 255){
                     nSizeLen = 2;
-                    nCompLen = 255 + (int)(data[1]);
+                    nCompLen = 255 + to_d(data[1]);
                     nMaskCnt = zcompf::countMask(data + 2, cmSG.maskLen());
                 }else{
                     nSizeLen = 1;
-                    nCompLen = (int)(data[0]);
+                    nCompLen = to_d(data[0]);
                     nMaskCnt = zcompf::countMask(data + 1, cmSG.maskLen());
                 }
 
@@ -113,10 +113,10 @@ NetIO::~NetIO()
 void NetIO::readHeadCode()
 {
     auto fnReportCurrentMessage = [this](){
-        g_log->addLog(LOGTYPE_WARNING, "Current ServerMsg::headCode = %d", (int)(m_readHC));
-        g_log->addLog(LOGTYPE_WARNING, "                 ::type     = %d", (int)(ServerMsg(m_readHC).type()));
-        g_log->addLog(LOGTYPE_WARNING, "                 ::daskLen  = %d", (int)(ServerMsg(m_readHC).maskLen()));
-        g_log->addLog(LOGTYPE_WARNING, "                 ::dataLen  = %d", (int)(ServerMsg(m_readHC).dataLen()));
+        g_log->addLog(LOGTYPE_WARNING, "Current ServerMsg::headCode = %d", to_d(m_readHC));
+        g_log->addLog(LOGTYPE_WARNING, "                 ::type     = %d", to_d(ServerMsg(m_readHC).type()));
+        g_log->addLog(LOGTYPE_WARNING, "                 ::daskLen  = %d", to_d(ServerMsg(m_readHC).maskLen()));
+        g_log->addLog(LOGTYPE_WARNING, "                 ::dataLen  = %d", to_d(ServerMsg(m_readHC).dataLen()));
     };
 
     auto fnOnNetError = [this, fnReportCurrentMessage](std::error_code errCode)
@@ -156,7 +156,7 @@ void NetIO::readHeadCode()
                                     shutdown();
 
                                     // 2. record the error code but not exit?
-                                    g_log->addLog(LOGTYPE_WARNING, "Invalid package: CompLen = %d", (int)(m_readLen[0]));
+                                    g_log->addLog(LOGTYPE_WARNING, "Invalid package: CompLen = %d", to_d(m_readLen[0]));
                                     fnReportCurrentMessage();
 
                                     // 3. we stop here
@@ -175,7 +175,7 @@ void NetIO::readHeadCode()
                                             shutdown();
 
                                             // 2. record the error code but not exit?
-                                            g_log->addLog(LOGTYPE_WARNING, "Invalid package: CompLen = %d", (int)(nCompLen));
+                                            g_log->addLog(LOGTYPE_WARNING, "Invalid package: CompLen = %d", to_d(nCompLen));
                                             fnReportCurrentMessage();
 
                                             // 3. we stop here
@@ -223,10 +223,10 @@ void NetIO::readHeadCode()
 bool NetIO::readBody(size_t nMaskLen, size_t nBodyLen)
 {
     auto fnReportCurrentMessage = [this](){
-        g_log->addLog(LOGTYPE_WARNING, "Current ServerMsg::headCode = %d", (int)(m_readHC));
-        g_log->addLog(LOGTYPE_WARNING, "                 ::Type     = %d", (int)(ServerMsg(m_readHC).type()));
-        g_log->addLog(LOGTYPE_WARNING, "                 ::MaskLen  = %d", (int)(ServerMsg(m_readHC).maskLen()));
-        g_log->addLog(LOGTYPE_WARNING, "                 ::DataLen  = %d", (int)(ServerMsg(m_readHC).dataLen()));
+        g_log->addLog(LOGTYPE_WARNING, "Current ServerMsg::headCode = %d", to_d(m_readHC));
+        g_log->addLog(LOGTYPE_WARNING, "                 ::Type     = %d", to_d(ServerMsg(m_readHC).type()));
+        g_log->addLog(LOGTYPE_WARNING, "                 ::MaskLen  = %d", to_d(ServerMsg(m_readHC).maskLen()));
+        g_log->addLog(LOGTYPE_WARNING, "                 ::DataLen  = %d", to_d(ServerMsg(m_readHC).dataLen()));
     };
 
     auto fnOnNetError = [this, fnReportCurrentMessage](std::error_code errCode){
@@ -242,7 +242,7 @@ bool NetIO::readBody(size_t nMaskLen, size_t nBodyLen)
 
     auto fnReportInvalidArg = [nMaskLen, nBodyLen, fnReportCurrentMessage]()
     {
-        g_log->addLog(LOGTYPE_WARNING, "Invalid argument to readBody(MaskLen = %d, BodyLen = %d)", (int)(nMaskLen), (int)(nBodyLen));
+        g_log->addLog(LOGTYPE_WARNING, "Invalid argument to readBody(MaskLen = %d, BodyLen = %d)", to_d(nMaskLen), to_d(nBodyLen));
         fnReportCurrentMessage();
     };
 
@@ -293,12 +293,12 @@ bool NetIO::readBody(size_t nMaskLen, size_t nBodyLen)
             else{
                 if(nMaskLen){
                     auto nMaskCount = zcompf::countMask(&(m_readBuf[0]), nMaskLen);
-                    if(nMaskCount != (int)(nBodyLen)){
+                    if(nMaskCount != to_d(nBodyLen)){
                         // we get corrupted data
                         // should we ignore current package or kill the process?
 
                         // 1. keep a log for the corrupted message
-                        g_log->addLog(LOGTYPE_WARNING, "Corrupted data: MaskCount = %d, CompLen = %d", nMaskCount, (int)(nBodyLen));
+                        g_log->addLog(LOGTYPE_WARNING, "Corrupted data: MaskCount = %d, CompLen = %d", nMaskCount, to_d(nBodyLen));
                         fnReportCurrentMessage();
 
                         // 2. we ignore this message
@@ -310,13 +310,13 @@ bool NetIO::readBody(size_t nMaskLen, size_t nBodyLen)
                         auto pMaskData = &(m_readBuf[0]);
                         auto pCompData = &(m_readBuf[nMaskLen]);
                         auto pOrigData = &(m_readBuf[((nMaskLen + nBodyLen + 7) / 8) * 8]);
-                        if(zcompf::xorDecode(pOrigData, stSMSG.dataLen(), pMaskData, pCompData) != (int)(nBodyLen)){
-                            g_log->addLog(LOGTYPE_WARNING, "Decode failed: MaskCount = %d, CompLen = %d", nMaskCount, (int)(nBodyLen));
+                        if(zcompf::xorDecode(pOrigData, stSMSG.dataLen(), pMaskData, pCompData) != to_d(nBodyLen)){
+                            g_log->addLog(LOGTYPE_WARNING, "Decode failed: MaskCount = %d, CompLen = %d", nMaskCount, to_d(nBodyLen));
                             fnReportCurrentMessage();
                             return;
                         }
                     }else{
-                        g_log->addLog(LOGTYPE_WARNING, "Corrupted data: DataLen = %d, CompLen = %d", (int)(stSMSG.dataLen()), (int)(nBodyLen));
+                        g_log->addLog(LOGTYPE_WARNING, "Corrupted data: DataLen = %d, CompLen = %d", to_d(stSMSG.dataLen()), to_d(nBodyLen));
                         fnReportCurrentMessage();
                         return;
                     }
@@ -396,7 +396,7 @@ bool NetIO::send(uint8_t nHC, const uint8_t *pData, size_t nDataLen)
 
     auto fnReportError = [nHC, pData, nDataLen]()
     {
-        g_log->addLog(LOGTYPE_WARNING, "Invalid message to send: headCode = %d, Data = %p, DataLen = %d", (int)(nHC), pData, (int)(nDataLen));
+        g_log->addLog(LOGTYPE_WARNING, "Invalid message to send: headCode = %d, Data = %p, DataLen = %d", to_d(nHC), pData, to_d(nDataLen));
     };
 
     ClientMsg cmSG(nHC);
@@ -417,34 +417,34 @@ bool NetIO::send(uint8_t nHC, const uint8_t *pData, size_t nDataLen)
                 }
 
                 auto nCountData = zcompf::countData(pData, nDataLen);
-                if((nCountData < 0) || (nCountData > (int)(cmSG.dataLen()))){
-                    g_log->addLog(LOGTYPE_WARNING, "Count failed: headCode = %d, DataLen = %d, CountData = %d", (int)(nHC), (int)(nDataLen), nCountData);
+                if((nCountData < 0) || (nCountData > to_d(cmSG.dataLen()))){
+                    g_log->addLog(LOGTYPE_WARNING, "Count failed: headCode = %d, DataLen = %d, CountData = %d", to_d(nHC), to_d(nDataLen), nCountData);
                     return false;
                 }else if(nCountData <= 254){
                     pEncodeData = (uint8_t *)(m_memoryPN.Get(cmSG.maskLen() + (size_t)(nCountData) + 1));
                     if(zcompf::xorEncode(pEncodeData + 1, pData, nDataLen) != nCountData){
-                        g_log->addLog(LOGTYPE_WARNING, "Count failed: headCode = %d, DataLen = %d, CountData = %d", (int)(nHC), (int)(nDataLen), nCountData);
+                        g_log->addLog(LOGTYPE_WARNING, "Count failed: headCode = %d, DataLen = %d, CountData = %d", to_d(nHC), to_d(nDataLen), nCountData);
 
                         m_memoryPN.Free(pEncodeData);
                         return false;
                     }
 
-                    pEncodeData[0] = (uint8_t)(nCountData);
+                    pEncodeData[0] = to_u8(nCountData);
                     nEncodeSize    = 1 + cmSG.maskLen() + (size_t)(nCountData);
                 }else if(nCountData <= (255 + 255)){
                     pEncodeData = (uint8_t *)(m_memoryPN.Get(cmSG.maskLen() + (size_t)(nCountData) + 2));
                     if(zcompf::xorEncode(pEncodeData + 2, pData, nDataLen) != nCountData){
-                        g_log->addLog(LOGTYPE_WARNING, "Count failed: headCode = %d, DataLen = %d, CountData = %d", (int)(nHC), (int)(nDataLen), nCountData);
+                        g_log->addLog(LOGTYPE_WARNING, "Count failed: headCode = %d, DataLen = %d, CountData = %d", to_d(nHC), to_d(nDataLen), nCountData);
 
                         m_memoryPN.Free(pEncodeData);
                         return false;
                     }
 
                     pEncodeData[0] = 255;
-                    pEncodeData[1] = (uint8_t)(nCountData - 255);
+                    pEncodeData[1] = to_u8(nCountData - 255);
                     nEncodeSize    = 2 + cmSG.maskLen() + (size_t)(nCountData);
                 }else{
-                    g_log->addLog(LOGTYPE_WARNING, "Count overflows: headCode = %d, DataLen = %d, CountData = %d", (int)(nHC), (int)(nDataLen), nCountData);
+                    g_log->addLog(LOGTYPE_WARNING, "Count overflows: headCode = %d, DataLen = %d, CountData = %d", to_d(nHC), to_d(nDataLen), nCountData);
 
                     m_memoryPN.Free(pEncodeData);
                     return false;
@@ -482,7 +482,7 @@ bool NetIO::send(uint8_t nHC, const uint8_t *pData, size_t nDataLen)
 
                 // 1. setup the message length encoding
                 {
-                    auto nDataLenU32 = (uint32_t)(nDataLen);
+                    auto nDataLenU32 = to_u32(nDataLen);
                     std::memcpy(pEncodeData, &nDataLenU32, sizeof(nDataLenU32));
                 }
 

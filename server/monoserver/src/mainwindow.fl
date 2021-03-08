@@ -606,7 +606,7 @@ class MainWindow {} {
         bOpen = true;
     }
 
-    for(int nIndex = 1; nIndex <= (1 + (int)(m_menuItemLastCW - m_menuItemFirstCW)); ++nIndex){
+    for(int nIndex = 1; nIndex <= (1 + to_d(m_menuItemLastCW - m_menuItemFirstCW)); ++nIndex){
         if(auto pCW = GetCommandWindow(nIndex)){
             if(bOpen){
                 pCW->showAll();
@@ -920,12 +920,12 @@ class MainWindow {} {
     auto fnCallback = [](Fl_Widget *, void *pArg) -> void
     {
         extern MainWindow *g_mainWindow;
-        g_mainWindow->SetGUIFont((int)((intptr_t)(pArg)));
+        g_mainWindow->SetGUIFont(to_d((intptr_t)(pArg)));
     };
 
     int nFontCount = Fl::set_fonts("-*");
     for(auto pMenuItem = m_menuItemFirstFont; pMenuItem <= m_menuItemLastFont; ++pMenuItem){
-        auto nIndex = (int)(pMenuItem - m_menuItemFirstFont);
+        auto nIndex = to_d(pMenuItem - m_menuItemFirstFont);
         if(nIndex >= nFontCount){
             pMenuItem->hide();
             continue;
@@ -1040,7 +1040,7 @@ class MainWindow {} {
             pMenuItem->deactivate();
             pMenuItem->show();
 
-            pCW->BindLuaModule((uint32_t)(pMenuItem - m_menuItemFirstCW + 1));
+            pCW->BindLuaModule(to_u32(pMenuItem - m_menuItemFirstCW + 1));
             pCW->showAll();
 
             // the first item return 1

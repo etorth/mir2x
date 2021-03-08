@@ -60,7 +60,7 @@ ServerMap::ServerMapLuaModule::ServerMapLuaModule(ServerMap *mapPtr)
 
     getLuaState().set_function("getMapID", [mapPtr]() -> int
     {
-        return (int)(mapPtr->ID());
+        return to_d(mapPtr->ID());
     });
 
     getLuaState().set_function("getMapName", [mapPtr]() -> std::string
@@ -73,7 +73,7 @@ ServerMap::ServerMapLuaModule::ServerMapLuaModule(ServerMap *mapPtr)
         return sol::as_returns(std::vector<int>{mapPtr->W(), mapPtr->H()});
     });
 
-    getLuaState().set_function("getCanThroughGridCount", [mapPtr, gridCount = (int)(-1)]() mutable -> int
+    getLuaState().set_function("getCanThroughGridCount", [mapPtr, gridCount = to_d(-1)]() mutable -> int
     {
         if(gridCount >= 0){
             return gridCount;
@@ -223,26 +223,26 @@ ServerMap::ServerMapLuaModule::ServerMapLuaModule(ServerMap *mapPtr)
         switch(argList.size()){
             case 0:
                 {
-                    return mapPtr->addNPChar((uint16_t)(npcID), -1, -1, false);
+                    return mapPtr->addNPChar(to_u16(npcID), -1, -1, false);
                 }
             case 2:
                 {
                     if(argList[0].is<int>() && argList[1].is<int>()){
-                        return mapPtr->addNPChar((uint16_t)(npcID), argList[0].as<int>(), argList[1].as<int>(), false);
+                        return mapPtr->addNPChar(to_u16(npcID), argList[0].as<int>(), argList[1].as<int>(), false);
                     }
                     break;
                 }
             case 3:
                 {
                     if(argList[0].is<int>() && argList[1].is<int>() && argList[2].is<bool>()){
-                        return mapPtr->addNPChar((uint16_t)(npcID), argList[0].as<int>(), argList[1].as<int>(), argList[2].as<bool>());
+                        return mapPtr->addNPChar(to_u16(npcID), argList[0].as<int>(), argList[1].as<int>(), argList[2].as<bool>());
                     }
                     break;
                 }
             case 4:
                 {
                     if(argList[0].is<int>() && argList[1].is<int>() && argList[2].is<bool>()){
-                        return mapPtr->addNPChar((uint16_t)(npcID), argList[0].as<int>(), argList[1].as<int>(), argList[2].as<bool>());
+                        return mapPtr->addNPChar(to_u16(npcID), argList[0].as<int>(), argList[1].as<int>(), argList[2].as<bool>());
                     }
                     break;
                 }
@@ -981,7 +981,7 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
         nHintY = std::rand() % H();
     }
 
-    if(auto [bDstOK, nDstX, nDstY] = GetValidGrid(false, false, (int)(bStrictLoc), nHintX, nHintY); bDstOK){
+    if(auto [bDstOK, nDstX, nDstY] = GetValidGrid(false, false, to_d(bStrictLoc), nHintX, nHintY); bDstOK){
         Monster *monsterPtr = nullptr;
         switch(nMonsterID){
             case DBCOM_MONSTERID(u8"变异骷髅"):
@@ -1042,7 +1042,7 @@ NPChar *ServerMap::addNPChar(uint16_t npcID, int hintX, int hintY, bool strictLo
         hintY = std::rand() % H();
     }
 
-    if(const auto [dstOK, dstX, dstY] = GetValidGrid(false, false, (int)(strictLoc), hintX, hintY); dstOK){
+    if(const auto [dstOK, dstX, dstY] = GetValidGrid(false, false, to_d(strictLoc), hintX, hintY); dstOK){
         auto npcPtr = new NPChar
         {
             npcID,
@@ -1073,7 +1073,7 @@ Player *ServerMap::addPlayer(const SDInitPlayer &initPlayer)
         nHintY = std::rand() % H();
     }
 
-    if(auto [bDstOK, nDstX, nDstY] = GetValidGrid(false, false, (int)(bStrictLoc), nHintX, nHintY); bDstOK){
+    if(auto [bDstOK, nDstX, nDstY] = GetValidGrid(false, false, to_d(bStrictLoc), nHintX, nHintY); bDstOK){
         auto playerPtr = new Player
         {
             initPlayer,

@@ -141,7 +141,7 @@ class CommandWindow {open
 
             m_CWID             = nCWID;
             m_luaModuleTaskHub = new TaskHub();
-            m_luaModule        = new CommandLuaModule((uint32_t)(nCWID));
+            m_luaModule        = new CommandLuaModule(to_u32(nCWID));
 
             // start the hub now
             m_luaModuleTaskHub->Launch();

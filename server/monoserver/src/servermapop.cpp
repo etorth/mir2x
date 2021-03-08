@@ -528,7 +528,7 @@ void ServerMap::on_AM_PATHFIND(const ActorMsgPack &rstMPK)
     // we fill all slots with -1 for initialization
     // won't keep a record of ``how many path nodes are valid"
     constexpr auto nPathCount = std::extent<decltype(amPFOK.Point)>::value;
-    for(int nIndex = 0; nIndex < (int)(nPathCount); ++nIndex){
+    for(int nIndex = 0; nIndex < to_d(nPathCount); ++nIndex){
         amPFOK.Point[nIndex].X = -1;
         amPFOK.Point[nIndex].Y = -1;
     }
@@ -563,7 +563,7 @@ void ServerMap::on_AM_PATHFIND(const ActorMsgPack &rstMPK)
     int nCurrY = nY0;
 
     while(auto pNode1 = stPathFinder.GetSolutionNext()){
-        if(nCurrN >= (int)(nPathCount)){
+        if(nCurrN >= to_d(nPathCount)){
             break;
         }
         int nEndX = pNode1->X();
@@ -711,7 +711,7 @@ void ServerMap::on_AM_NEWDROPITEM(const ActorMsgPack &rstMPK)
                     // valid grid
                     // check if grid good to hold
 
-                    if(const auto nCurrCount = getGridItemIDList(stRC.X(), stRC.Y()).size(); (int)(nCurrCount) < nMinCount){
+                    if(const auto nCurrCount = getGridItemIDList(stRC.X(), stRC.Y()).size(); to_d(nCurrCount) < nMinCount){
                         nMinCount = nCurrCount;
                         nBestX    = stRC.X();
                         nBestY    = stRC.Y();

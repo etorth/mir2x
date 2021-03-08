@@ -351,7 +351,7 @@ bool ActionSet::Export(
     char szLookID[16];
     std::memset(szLookID, 0, sizeof(szLookID));
 
-    uint32_t nLookID = (uint32_t)((m_FileIndex - 1) * 10 + m_AnimationIndex) & 0X00000FFF;
+    uint32_t nLookID = to_u32((m_FileIndex - 1) * 10 + m_AnimationIndex) & 0X00000FFF;
     hexstr::to_string<uint32_t, 2>(nLookID, szLookID, true);
 
     for(int nFrame = 0; nFrame < FrameCount(); ++nFrame){

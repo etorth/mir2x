@@ -70,12 +70,12 @@ class emoticonDB: public innDB<uint32_t, emojiEntry>
     public:
         static uint32_t U32Key(uint8_t emojiSet, uint16_t emojiSubset)
         {
-            return ((uint32_t)(emojiSet) << 24) | ((uint32_t)(emojiSubset) << 8);
+            return (to_u32(emojiSet) << 24) | (to_u32(emojiSubset) << 8);
         }
 
         static uint32_t U32Key(uint8_t emojiSet, uint16_t emojiSubset, uint8_t emojiIndex)
         {
-            return U32Key(emojiSet, emojiSubset) | (uint32_t)(emojiIndex);
+            return U32Key(emojiSet, emojiSubset) | to_u32(emojiIndex);
         }
 
     public:
@@ -113,7 +113,7 @@ class emoticonDB: public innDB<uint32_t, emojiEntry>
             SDL_QueryTexture(entry.Texture, nullptr, nullptr, &nW, &nH);
 
             const int nCountX = nW / entry.FrameW;
-            const int nFrameIndex = (int)(key & 0X000000FF);
+            const int nFrameIndex = to_d(key & 0X000000FF);
 
             if(pSrcX      ){ *pSrcX       = (nFrameIndex % nCountX) * entry.FrameW; }
             if(pSrcY      ){ *pSrcY       = (nFrameIndex / nCountX) * entry.FrameH; }
@@ -133,7 +133,7 @@ class emoticonDB: public innDB<uint32_t, emojiEntry>
                 int *pH1,
                 int *pFrameCount)
         {
-            uint32_t nKey = ((uint32_t)(nSet) << 24) + (uint32_t)(nSubset << 8) + (uint32_t)(nIndex);
+            uint32_t nKey = (to_u32(nSet) << 24) + to_u32(nSubset << 8) + to_u32(nIndex);
             return Retrieve(nKey, pSrcX, pSrcY, pSrcW, pSrcH, pH1, pFPS, pFrameCount);
         }
 

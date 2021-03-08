@@ -142,7 +142,7 @@ class LayerBrowserWindow {open
     // update the tatus bar and redraw
     if(pEditorMap){
         char szEntry[1024];
-        std::sprintf(szEntry, "layer: %d x %d", (int)(pEditorMap->W()), (int)(pEditorMap->H()));
+        std::sprintf(szEntry, "layer: %d x %d", to_d(pEditorMap->W()), to_d(pEditorMap->H()));
 
         m_Browser->add(szEntry, pEditorMap);
     }

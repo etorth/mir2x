@@ -151,7 +151,7 @@ void DrawArea::DrawDoneSelectByObject(bool bGround)
                                 || (!bGround && rstCell.SelectConf.OverGroundObj)){
 
                             auto nFileIndex  = (uint8_t )((rstObj.Image & 0X00FF0000) >> 16);
-                            auto nImageIndex = (uint16_t)((rstObj.Image & 0X0000FFFF) >>  0);
+                            auto nImageIndex = to_u16((rstObj.Image & 0X0000FFFF) >>  0);
 
                             if(auto pImage = RetrievePNG(nFileIndex, nImageIndex)){
                                 int nW = pImage->w();
@@ -211,7 +211,7 @@ void DrawArea::DrawSelectByObjectGround(bool bGround)
                         && rstObject.Ground == bGround){
 
                     auto nFileIndex  = (uint8_t )((rstObject.Image & 0X00FF0000) >> 16);
-                    auto nImageIndex = (uint16_t)((rstObject.Image & 0X0000FFFF) >>  0);
+                    auto nImageIndex = to_u16((rstObject.Image & 0X0000FFFF) >>  0);
 
                     if(auto pImage = RetrievePNG(nFileIndex, nImageIndex)){
                         int nW = pImage->w();
@@ -281,7 +281,7 @@ void DrawArea::AddSelectByObject(bool bGround)
                         && rstObject.Ground == bGround){
 
                     auto nFileIndex  = (uint8_t )((rstObject.Image & 0X00FF0000) >> 16);
-                    auto nImageIndex = (uint16_t)((rstObject.Image & 0X0000FFFF) >>  0);
+                    auto nImageIndex = to_u16((rstObject.Image & 0X0000FFFF) >>  0);
 
                     if(auto pImage = RetrievePNG(nFileIndex, nImageIndex)){
                         int nW = pImage->w();
@@ -923,8 +923,8 @@ Fl_Image *DrawArea::CreateRoundImage(int nRadius, uint32_t nColor)
                 auto nRY = nY - nRadius + 1;
                 auto nR2 = mathf::LDistance2<int>(nRX, nRY, 0, 0);
                 if(nR2 <= nRadius * nRadius){
-                    auto nA = (uint8_t)(0X02 + std::lround(0X2F * (1.0 - 1.0 * nR2 / (nRadius * nRadius))));
-                    stvBuf[nX + nY * nSize] = (((uint32_t)(nA)) << 24) | (nColor & 0X00FFFFFF);
+                    auto nA = to_u8(0X02 + std::lround(0X2F * (1.0 - 1.0 * nR2 / (nRadius * nRadius))));
+                    stvBuf[nX + nY * nSize] = ((to_u32(nA)) << 24) | (nColor & 0X00FFFFFF);
                 }
             }
         }
@@ -1080,7 +1080,7 @@ void DrawArea::DrawFloatObject(int nX, int nY, int nFOType, int nWinX, int nWinY
                         auto &rstTile = g_EditorMap.Tile(nX, nY);
                         if(rstTile.Valid){
                             nFileIndex  = (uint8_t )((rstTile.Image & 0X00FF0000) >> 16);
-                            nImageIndex = (uint16_t)((rstTile.Image & 0X0000FFFF) >>  0);
+                            nImageIndex = to_u16((rstTile.Image & 0X0000FFFF) >>  0);
                             pImage = RetrievePNG(nFileIndex, nImageIndex);
                         }
                     }
@@ -1092,7 +1092,7 @@ void DrawArea::DrawFloatObject(int nX, int nY, int nFOType, int nWinX, int nWinY
                     auto &rstObject = g_EditorMap.Object(nX, nY, (nFOType == FOTYPE_OBJ0) ? 0 : 1);
                     if(rstObject.Valid){
                         nFileIndex  = (uint8_t )((rstObject.Image & 0X00FF0000) >> 16);
-                        nImageIndex = (uint16_t)((rstObject.Image & 0X0000FFFF) >>  0);
+                        nImageIndex = to_u16((rstObject.Image & 0X0000FFFF) >>  0);
                         pImage = RetrievePNG(nFileIndex, nImageIndex);
                     }
                     break;
@@ -1187,10 +1187,10 @@ void DrawArea::DrawFloatObject(int nX, int nY, int nFOType, int nWinX, int nWinY
                         DrawText(nTextStartX, nTextStartY, "     Tile");
                         nTextStartY += 20;
 
-                        DrawText(nTextStartX, nTextStartY, "Index0 : %d", (int)(nFileIndex));
+                        DrawText(nTextStartX, nTextStartY, "Index0 : %d", to_d(nFileIndex));
                         nTextStartY += 20;
 
-                        DrawText(nTextStartX, nTextStartY, "Index1 : %d", (int)(nImageIndex));
+                        DrawText(nTextStartX, nTextStartY, "Index1 : %d", to_d(nImageIndex));
                         nTextStartY += 20;
 
                         extern ImageDB g_ImageDB;
@@ -1211,10 +1211,10 @@ void DrawArea::DrawFloatObject(int nX, int nY, int nFOType, int nWinX, int nWinY
                         DrawText(nTextStartX, nTextStartY, "    Obj[%d]", (nFOType == FOTYPE_OBJ0) ? 0 : 1);
                         nTextStartY += 20;
 
-                        DrawText(nTextStartX, nTextStartY, "Index0 : %d", (int)(nFileIndex));
+                        DrawText(nTextStartX, nTextStartY, "Index0 : %d", to_d(nFileIndex));
                         nTextStartY += 20;
 
-                        DrawText(nTextStartX, nTextStartY, "Index1 : %d", (int)(nImageIndex));
+                        DrawText(nTextStartX, nTextStartY, "Index1 : %d", to_d(nImageIndex));
                         nTextStartY += 20;
 
                         extern ImageDB g_ImageDB;
@@ -1238,16 +1238,16 @@ void DrawArea::DrawFloatObject(int nX, int nY, int nFOType, int nWinX, int nWinY
                         auto nPX = rstImageInfo.shPX;
                         auto nPY = rstImageInfo.shPY;
 
-                        DrawText(nTextStartX, nTextStartY, "OffseX : %d", (int)(nPX));
+                        DrawText(nTextStartX, nTextStartY, "OffseX : %d", to_d(nPX));
                         nTextStartY += 20;
 
-                        DrawText(nTextStartX, nTextStartY, "OffseY : %d", (int)(nPY));
+                        DrawText(nTextStartX, nTextStartY, "OffseY : %d", to_d(nPY));
                         nTextStartY += 20;
 
                         auto &rstHeader = g_ImageDB.GetPackage(nFileIndex).HeaderInfo();
                         auto nVersion = rstHeader.shVer;
 
-                        DrawText(nTextStartX, nTextStartY, "Versio : %d", (int)(nVersion));
+                        DrawText(nTextStartX, nTextStartY, "Versio : %d", to_d(nVersion));
                         nTextStartY += 20;
 
                         PopColor();

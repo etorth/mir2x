@@ -28,6 +28,7 @@
 #include "zsdb.hpp"
 #include "inndb.hpp"
 #include "hexstr.hpp"
+#include "totype.hpp"
 #include "sdldevice.hpp"
 
 struct PNGTexOffEntry
@@ -84,7 +85,7 @@ class PNGTexOffDB: public innDB<uint32_t, PNGTexOffEntry>
 
         SDL_Texture *Retrieve(uint8_t nIndex, uint16_t nImage, int *pDX, int *pDY)
         {
-            return Retrieve((uint32_t)(((uint32_t)(nIndex) << 16) + nImage), pDX, pDY);
+            return Retrieve(to_u32((to_u32(nIndex) << 16) + nImage), pDX, pDY);
         }
 
     public:
@@ -109,8 +110,8 @@ class PNGTexOffDB: public innDB<uint32_t, PNGTexOffEntry>
                 stEntry.DX = (szFileName[8] != '0') ? 1 : (-1);
                 stEntry.DY = (szFileName[9] != '0') ? 1 : (-1);
 
-                stEntry.DX *= (int)(hexstr::to_hex<uint32_t, 2>(szFileName + 10));
-                stEntry.DY *= (int)(hexstr::to_hex<uint32_t, 2>(szFileName + 14));
+                stEntry.DX *= to_d(hexstr::to_hex<uint32_t, 2>(szFileName + 10));
+                stEntry.DY *= to_d(hexstr::to_hex<uint32_t, 2>(szFileName + 14));
 
                 extern SDLDevice *g_sdlDevice;
                 stEntry.Texture = g_sdlDevice->CreateTexture(stBuf.data(), stBuf.size());

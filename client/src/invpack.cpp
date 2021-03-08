@@ -57,7 +57,7 @@ void InvPack::add(SDItem item, int x, int y)
     item.checkEx();
     auto itemBin = makePackBin(item);
 
-    if(!(x >= 0 && x + itemBin.w <= (int)(w()) && y >= 0)){
+    if(!(x >= 0 && x + itemBin.w <= to_d(w()) && y >= 0)){
         add(item);
         return;
     }
@@ -163,7 +163,7 @@ void InvPack::setGold(int gold)
 
 void InvPack::addGold(int gold)
 {
-    if(const auto newGold = (int)(m_gold) + gold; newGold >= 0){
+    if(const auto newGold = to_d(m_gold) + gold; newGold >= 0){
         m_gold = (size_t)(newGold);
     }
     throw fflerror("invalid argument: gold = %d", gold);

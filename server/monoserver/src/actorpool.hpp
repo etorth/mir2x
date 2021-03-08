@@ -581,12 +581,12 @@ class ActorPool final
     public:
         int getBucketID(uint64_t uid) const
         {
-            return static_cast<int>(uid % (uint64_t)(m_bucketList.size()));
+            return static_cast<int>(uid % to_u64(m_bucketList.size()));
         }
 
         int getSubBucketID(uint64_t uid) const
         {
-            return static_cast<int>((uid / (uint64_t)(m_bucketList.size())) % (uint64_t)(m_subBucketCount));
+            return static_cast<int>((uid / to_u64(m_bucketList.size())) % to_u64(m_subBucketCount));
         }
 
     public:

@@ -47,14 +47,14 @@ g_MainWindow->RedrawAll();}
   }
   Function {RectangleSize()} {return_type int
   } {
-    code {return (int)(m_ValueSliderRectangle->value());} {}
+    code {return to_d(m_ValueSliderRectangle->value());} {}
   }
   Function {RhombusSize()} {return_type int
   } {
-    code {return (int)(m_ValueSliderRhombus->value());} {}
+    code {return to_d(m_ValueSliderRhombus->value());} {}
   }
   Function {AttributeSize()} {return_type int
   } {
-    code {return (int)(m_ValueSliderAttribute->value());} {}
+    code {return to_d(m_ValueSliderAttribute->value());} {}
   }
 } 

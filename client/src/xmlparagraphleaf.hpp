@@ -83,7 +83,7 @@ class XMLParagraphLeaf
         int length() const
         {
             if(type() == LEAF_UTF8GROUP){
-                return (int)(utf8CharOffRef().size());
+                return to_d(utf8CharOffRef().size());
             }
             return 1;
         }

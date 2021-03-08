@@ -98,7 +98,7 @@ int ClientPathFinder::GetGrid(int nX, int nY) const
     int32_t nX32 = nX;
     int32_t nY32 = nY;
 
-    uint64_t nKey = ((uint64_t)(nX32) << 32) | nY32;
+    uint64_t nKey = (to_u64(nX32) << 32) | nY32;
     if(auto p = m_cache.find(nKey); p != m_cache.end()){
         return p->second;
     }

@@ -20,6 +20,7 @@
 #include <concepts>
 #include <Fl/Fl_Table_Row.H>
 #include "strf.hpp"
+#include "totype.hpp"
 #include "fflerror.hpp"
 
 class Fl_TableImpl: public Fl_Table_Row
@@ -88,12 +89,12 @@ class Fl_TableImpl: public Fl_Table_Row
     public:
         static std::string getTimeString(uint64_t msec)
         {
-            const int h = (int)(msec / 3600000ULL); msec -= (h * 3600000ULL);
-            const int m = (int)(msec /   60000ULL); msec -= (m *   60000ULL);
-            const int s = (int)(msec /    1000ULL); msec -= (s *    1000ULL);
+            const int h = to_d(msec / 3600000ULL); msec -= (h * 3600000ULL);
+            const int m = to_d(msec /   60000ULL); msec -= (m *   60000ULL);
+            const int s = to_d(msec /    1000ULL); msec -= (s *    1000ULL);
 
             char timeBuf[128];
-            std::sprintf(timeBuf, "%dh:%02dm:%02ds:%03dms", h, m, s, (int)(msec));
+            std::sprintf(timeBuf, "%dh:%02dm:%02ds:%03dms", h, m, s, to_d(msec));
             return timeBuf;
         }
 

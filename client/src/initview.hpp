@@ -154,7 +154,7 @@ class InitView final
                     return stArray;
                 }();
 
-                auto nPercent = (int)(std::lround(stArray[1] * 100.0 / (0.1 + stArray[0])));
+                auto nPercent = to_d(std::lround(stArray[1] * 100.0 / (0.1 + stArray[0])));
                 AddIVLog(LOGIV_INFO, "[%03d%%]Loading %s", nPercent, szNodePath);
                 if(auto pNode = pXMLConf->GetXMLNode(szNodePath)){
                     if(auto szPath = pNode->GetText()){
@@ -174,7 +174,7 @@ class InitView final
                     return false;
                 }
             }
-            AddIVLog(LOGIV_WARNING, "[%%---]Loading parameters invalid for LoadDB(%d, %p, %p, %p)", (int)(nCurrIndex), pXMLConf, pDB, szNodePath);
+            AddIVLog(LOGIV_WARNING, "[%%---]Loading parameters invalid for LoadDB(%d, %p, %p, %p)", to_d(nCurrIndex), pXMLConf, pDB, szNodePath);
             return false;
         }
 };

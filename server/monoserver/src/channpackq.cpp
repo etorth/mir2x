@@ -25,7 +25,7 @@ bool ChannPackQ::AddChannPack(uint8_t nHC, const uint8_t *pData, size_t nDataLen
     auto fnReportError = [nHC, pData, nDataLen](const char *pErrorMessage)
     {
         extern MonoServer *g_monoServer;
-        g_monoServer->addLog(LOGTYPE_WARNING, "%s: (%d, %p, %d)", (pErrorMessage ? pErrorMessage : "Empty message"), (int)(nHC), pData, (int)(nDataLen));
+        g_monoServer->addLog(LOGTYPE_WARNING, "%s: (%d, %p, %d)", (pErrorMessage ? pErrorMessage : "Empty message"), to_d(nHC), pData, to_d(nDataLen));
     };
 
     ServerMsg smSG(nHC);
@@ -71,13 +71,13 @@ bool ChannPackQ::AddChannPack(uint8_t nHC, const uint8_t *pData, size_t nDataLen
                     return false;
                 }else if(nCompCnt <= 254){
                     pCompBuf[2] = nHC;
-                    pCompBuf[3] = (uint8_t)(nCompCnt);
+                    pCompBuf[3] = to_u8(nCompCnt);
 
                     return AddPackMark(GetBufOff(pCompBuf + 2), 2 + smSG.maskLen() + (size_t)(nCompCnt), std::move(rstDoneCB));
                 }else if(nCompCnt <= (255 + 255)){
                     pCompBuf[1] = nHC;
                     pCompBuf[2] = 255;
-                    pCompBuf[3] = (uint8_t)(nCompCnt - 255);
+                    pCompBuf[3] = to_u8(nCompCnt - 255);
 
                     return AddPackMark(GetBufOff(pCompBuf + 1), 3 + smSG.maskLen() + (size_t)(nCompCnt), std::move(rstDoneCB));
                 }else{
@@ -122,7 +122,7 @@ bool ChannPackQ::AddChannPack(uint8_t nHC, const uint8_t *pData, size_t nDataLen
                 auto pDst = GetPostBuf(nDataLen + 5);
                 pDst[0] = nHC;
 
-                const auto nDataLenU32 = (uint32_t)(nDataLen);
+                const auto nDataLenU32 = to_u32(nDataLen);
                 std::memcpy(pDst + 1, &nDataLenU32, sizeof(nDataLenU32));
 
                 if(pData){

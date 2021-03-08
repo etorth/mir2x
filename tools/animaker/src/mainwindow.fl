@@ -27,6 +27,9 @@ decl {\#include "mathf.hpp"} {public local
 decl {\#include "filesys.hpp"} {public local
 } 
 
+decl {\#include "totype.hpp"} {public local
+} 
+
 class MainWindow {open
 } {
   Function {MainWindow()} {} {
@@ -490,7 +493,7 @@ m_Window->redraw();} {}
         for(int nDirection = 0; nDirection < 7; ++nDirection){
             if(g_AnimationSet.Valid(nStatus, nDirection)){
                 extern const char *g_StatusNameList[];
-                m_ChoiceStatus->add(g_StatusNameList[nStatus], 0, StatusItemCallback, (void *)(uintptr_t)nStatus, 0);
+                m_ChoiceStatus->add(g_StatusNameList[nStatus], 0, StatusItemCallback, (void *)(uintptr_t)(nStatus), 0);
                 break;
             }
         }
@@ -523,7 +526,7 @@ m_Window->redraw();} {}
         if(g_AnimationSet.Valid(nStatus, nDirection)){
             m_ChoiceDirection->add(
                     (std::string("Direction ") + std::to_string(nDirection)).c_str(),
-                    0, DirectionItemCallback, (void *)(uintptr_t)nDirection, 0);
+                    0, DirectionItemCallback, (void *)(uintptr_t)(nDirection), 0);
         }
     }
 
@@ -553,17 +556,17 @@ m_Window->redraw();} {}
   } {
     code {{
     extern AnimationSet g_AnimationSet;
-    g_AnimationSet.SetStatus((int)(uintptr_t)pData);
+    g_AnimationSet.SetStatus(to_d((uintptr_t)(pData)));
     // printf("I am called here with: %d \\n", (int)pData);
     extern MainWindow *g_MainWindow;
-    g_MainWindow->AddDirectionItem((int)(uintptr_t)pData);
+    g_MainWindow->AddDirectionItem(to_d((uintptr_t)(pData)));
 }} {}
   }
   Function {DirectionItemCallback(Fl_Widget *, void *pData)} {return_type {static void}
   } {
     code {{
     extern AnimationSet g_AnimationSet;
-    g_AnimationSet.SetDirection((int)(uintptr_t)pData);
+    g_AnimationSet.SetDirection(to_d((uintptr_t)(pData)));
 }} {}
   }
   Function {MakeWorkingFolder()} {return_type void

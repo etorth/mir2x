@@ -150,13 +150,13 @@ bool XMLTypeset::addRawTokenLine(int nLine, const std::vector<TOKEN> &tokenLine)
         return result;
     }();
 
-    if((lineTokenCount(nLine) == 0) && (m_lineWidth < (int)(rawExtraWidth + (tokenLine.size() - 1) * m_wordSpace))){
+    if((lineTokenCount(nLine) == 0) && (m_lineWidth < to_d(rawExtraWidth + (tokenLine.size() - 1) * m_wordSpace))){
         g_log->addLog(LOGTYPE_WARNING, "XMLTypeset width is too small to hold the token line: lineWidth = %d", m_lineWidth);
         m_lineList[nLine].content.insert(m_lineList[nLine].content.end(), tokenLine.begin(), tokenLine.end());
         return true;
     }
 
-    if(m_lineWidth < LineRawWidth(nLine, false) + rawExtraWidth + (int)(lineTokenCount(nLine) + tokenLine.size() - 1) * m_wordSpace){
+    if(m_lineWidth < LineRawWidth(nLine, false) + rawExtraWidth + to_d(lineTokenCount(nLine) + tokenLine.size() - 1) * m_wordSpace){
         return false;
     }
 
@@ -470,7 +470,7 @@ int XMLTypeset::LineTokenBestY(int nLine, int nTokenX, int nTokenWidth, int nTok
     }
 
     if(int nMaxH2 = LineIntervalMaxH2(nLine - 1, nTokenX, nTokenWidth); nMaxH2 >= 0){
-        return m_lineList[nLine - 1].startY + (int)(nMaxH2) + m_lineSpace + nTokenHeight;
+        return m_lineList[nLine - 1].startY + to_d(nMaxH2) + m_lineSpace + nTokenHeight;
     }
 
     // negative nMaxH2 means the (n - 1)th line is not long enough
@@ -568,7 +568,7 @@ int XMLTypeset::LineNewStartY(int nLine)
     // -+--+--+----+ |    | ------ nth
     //               +----+
 
-    return (int)((std::max<int>)(nCurrentY, LineReachMaxY(nLine - 1) + 1));
+    return to_d((std::max<int>)(nCurrentY, LineReachMaxY(nLine - 1) + 1));
 }
 
 void XMLTypeset::SetLineTokenStartY(int nLine)
@@ -577,7 +577,7 @@ void XMLTypeset::SetLineTokenStartY(int nLine)
         throw fflerror("invalid line: %d", nLine);
     }
 
-    m_lineList[nLine].startY = (int)(LineNewStartY(nLine));
+    m_lineList[nLine].startY = to_d(LineNewStartY(nLine));
     for(int nIndex = 0; nIndex < lineTokenCount(nLine); ++nIndex){
         auto pToken = getToken(nIndex, nLine);
         pToken->Box.State.Y = m_lineList[nLine].startY - pToken->Box.State.H1;
@@ -588,7 +588,7 @@ void XMLTypeset::checkDefaultFontEx() const
 {
     const uint64_t u64key = utf8f::buildU64Key(m_font, m_fontSize, 0, utf8f::peekUTF8Code("0"));
     if(!g_fontexDB->Retrieve(u64key)){
-        throw fflerror("invalid default font: font = %d, fontsize = %d", (int)(m_font), (int)(m_fontSize));
+        throw fflerror("invalid default font: font = %d, fontsize = %d", to_d(m_font), to_d(m_fontSize));
     }
 }
 
@@ -631,7 +631,7 @@ TOKEN XMLTypeset::buildUTF8Token(int leaf, uint8_t nFont, uint8_t nFontSize, uin
         int nBoxW = -1;
         int nBoxH = -1;
         if(!SDL_QueryTexture(pTexture, nullptr, nullptr, &nBoxW, &nBoxH)){
-            g_log->addLog(LOGTYPE_WARNING, "Fallback to default font: font: %d -> %d, fontsize: %d -> %d", (int)(nFont), (int)(m_font), (int)(nFontSize), (int)(m_fontSize));
+            g_log->addLog(LOGTYPE_WARNING, "Fallback to default font: font: %d -> %d, fontsize: %d -> %d", to_d(nFont), to_d(m_font), to_d(nFontSize), to_d(m_fontSize));
             stToken.Box.Info.W      = nBoxW;
             stToken.Box.Info.H      = nBoxH;
             stToken.Box.State.H1    = stToken.Box.Info.H;
@@ -641,7 +641,7 @@ TOKEN XMLTypeset::buildUTF8Token(int leaf, uint8_t nFont, uint8_t nFontSize, uin
         }
         throw fflerror("SDL_QueryTexture(%p) failed", to_cvptr(pTexture));
     }
-    throw fflerror("fallback to default font failed: font: %d -> %d, fontsize: %d -> %d", (int)(nFont), (int)(m_font), (int)(nFontSize), (int)(m_fontSize));
+    throw fflerror("fallback to default font failed: font: %d -> %d, fontsize: %d -> %d", to_d(nFont), to_d(m_font), to_d(nFontSize), to_d(m_fontSize));
 }
 
 TOKEN XMLTypeset::buildEmojiToken(int leaf, uint32_t emoji) const
@@ -768,7 +768,7 @@ void XMLTypeset::buildTypeset(int x, int y)
 
     // we start to push token from (leaf, leafOff)
     // if current it's a utf8String and not start from the beginning, we should keep the leaf record
-    m_leaf2TokenLoc.resize(leaf + (int)(leafOff > 0));
+    m_leaf2TokenLoc.resize(leaf + to_d(leafOff > 0));
 
     m_lineList.resize(y + 1);
     m_lineList[y].startY = 0;
@@ -1122,8 +1122,8 @@ void XMLTypeset::update(double fMS)
                 double fPeroidMS = 1000.0 / pToken->Emoji.FPS;
                 double fCurrTick = fMS + pToken->Emoji.Tick;
 
-                auto nAdvancedFrame  = (uint8_t)(fCurrTick / fPeroidMS);
-                pToken->Emoji.Tick   = (uint8_t)(fCurrTick - nAdvancedFrame * fPeroidMS);
+                auto nAdvancedFrame  = to_u8(fCurrTick / fPeroidMS);
+                pToken->Emoji.Tick   = to_u8(fCurrTick - nAdvancedFrame * fPeroidMS);
                 pToken->Emoji.Frame += nAdvancedFrame;
             }
         }
@@ -1150,7 +1150,7 @@ std::string XMLTypeset::getText(bool textOnly) const
             case LEAF_EMOJI:
                 {
                     if(!textOnly){
-                        plainString += str_printf("\\emoji{0x%016" PRIu64 "}", (uint64_t)(m_paragraph.leafRef(i).emojiU32Key()));
+                        plainString += str_printf("\\emoji{0x%016" PRIu64 "}", to_u64(m_paragraph.leafRef(i).emojiU32Key()));
                     }
                     break;
                 }
@@ -1258,7 +1258,7 @@ std::tuple<int, int> XMLTypeset::locCursor(int xOffPixel, int yOffPixel) const
         if(pLine == m_lineList.end()){
             return lineCount() - 1;
         }
-        return (int)(std::distance(m_lineList.begin(), pLine));
+        return to_d(std::distance(m_lineList.begin(), pLine));
     }();
 
     if(lineEmpty(cursorY)){

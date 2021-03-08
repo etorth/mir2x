@@ -30,7 +30,7 @@
 
 template<typename T, size_t N> const T &DBCOM_REFHELPER(const T (&itemList)[N], uint32_t id)
 {
-    return (id < (uint32_t)(N)) ? itemList[id] : itemList[0];
+    return (id < to_u32(N)) ? itemList[id] : itemList[0];
 }
 
 const ItemRecord    &DBCOM_ITEMRECORD   (uint32_t id) { return DBCOM_REFHELPER(_inn_ItemRecordList,    id); }

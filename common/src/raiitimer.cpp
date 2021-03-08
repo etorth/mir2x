@@ -16,6 +16,7 @@
  * =====================================================================================
  */
 
+#include "totype.hpp"
 #include "fflerror.hpp"
 #include "raiitimer.hpp"
 
@@ -45,8 +46,8 @@ hres_tstamp::hres_tstamp()
 uint64_t hres_tstamp::to_nsec() const
 {
 #ifdef _MSC_VER
-    return ((uint64_t)(m_tstamp.QuadPart) * 1000000000ULL) / (uint64_t)(g_winFreq.QuadPart);
+    return (to_u64(m_tstamp.QuadPart) * 1000000000ULL) / to_u64(g_winFreq.QuadPart);
 #else
-    return ((uint64_t)(m_tstamp.tv_sec  ) * 1000000000ULL) + (uint64_t)(m_tstamp.tv_nsec  );
+    return (to_u64(m_tstamp.tv_sec  ) * 1000000000ULL) + to_u64(m_tstamp.tv_nsec  );
 #endif
 }

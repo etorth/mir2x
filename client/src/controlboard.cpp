@@ -779,8 +779,8 @@ void ControlBoard::drawLeft() const
                 double fLostHPRatio = 1.0 - fHPRatio;
                 double fLostMPRatio = 1.0 - fMPRatio;
 
-                auto nLostHPH = (int)(std::lround(nHPH * fLostHPRatio));
-                auto nLostMPH = (int)(std::lround(nMPH * fLostMPRatio));
+                auto nLostHPH = to_d(std::lround(nHPH * fLostHPRatio));
+                auto nLostMPH = to_d(std::lround(nMPH * fLostMPRatio));
 
                 g_sdlDevice->drawTexture(pHP, 33, nY0 + 9 + nLostHPH, 0, nLostHPH, nHPW, nHPH - nLostHPH);
                 g_sdlDevice->drawTexture(pMP, 73, nY0 + 9 + nLostMPH, 0, nLostMPH, nMPW, nMPH - nLostMPH);

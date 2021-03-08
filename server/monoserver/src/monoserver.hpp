@@ -30,6 +30,7 @@
 
 #include "log.hpp"
 #include "message.hpp"
+#include "totype.hpp"
 #include "taskhub.hpp"
 #include "raiitimer.hpp"
 #include "eventtaskhub.hpp"
@@ -131,7 +132,7 @@ class MonoServer final
     public:
         uint32_t getCurrTick() const
         {
-            return (uint32_t)(m_hrtimer.diff_msec());
+            return to_u32(m_hrtimer.diff_msec());
         }
 
     public:

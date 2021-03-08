@@ -51,7 +51,7 @@ class XMLParagraph
     public:
         int leafCount() const
         {
-            return (int)(m_leafList.size());
+            return to_d(m_leafList.size());
         }
 
     public:

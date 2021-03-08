@@ -54,7 +54,7 @@ NetDriver::~NetDriver()
 bool NetDriver::CheckPort(uint32_t nPort)
 {
     if(nPort <= 1024){
-        g_monoServer->addLog(LOGTYPE_WARNING, "Don't use reserved port: %d", (int)(nPort));
+        g_monoServer->addLog(LOGTYPE_WARNING, "Don't use reserved port: %d", to_d(nPort));
         return false;
     }
 

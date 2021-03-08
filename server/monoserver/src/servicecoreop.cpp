@@ -129,7 +129,7 @@ void ServiceCore::on_AM_QUERYCOCOUNT(const ActorMsgPack &rstMPK)
             nCheckCount = 1;
         }
     }else{
-        nCheckCount = (int)(m_mapList.size());
+        nCheckCount = to_d(m_mapList.size());
     }
 
     switch(nCheckCount){
@@ -210,7 +210,7 @@ void ServiceCore::on_AM_QUERYCOCOUNT(const ActorMsgPack &rstMPK)
                                         m_actorPod->forward(rstMPK.from(), {AM_COCOUNT, amCOC}, rstMPK.seqID());
                                     }else{
                                         pSharedState->CheckCount--;
-                                        pSharedState->COCount += (int)(amCOC.Count);
+                                        pSharedState->COCount += to_d(amCOC.Count);
                                     }
                                 }
                                 return;

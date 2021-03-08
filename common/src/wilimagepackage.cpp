@@ -21,26 +21,27 @@
 #include <cstdio>
 #include <cstring>
 
+#include "totype.hpp"
 #include "condcheck.hpp"
 #include "wilimagepackage.hpp"
 
 static uint32_t Color16To32Mapping(uint16_t srcColor, uint32_t chColor)
 {
-    uint8_t r  = (uint8_t)((srcColor & 0XF800) >> 8);
-    uint8_t g  = (uint8_t)((srcColor & 0X07E0) >> 3);
-    uint8_t b  = (uint8_t)((srcColor & 0X001F) << 3);
+    uint8_t r  = to_u8((srcColor & 0XF800) >> 8);
+    uint8_t g  = to_u8((srcColor & 0X07E0) >> 3);
+    uint8_t b  = to_u8((srcColor & 0X001F) << 3);
 
     if((chColor & 0X00FFFFFF) != 0X00FFFFFF){
-        uint8_t br = (uint8_t)((chColor & 0X00FF0000) >> 16);
-        uint8_t bg = (uint8_t)((chColor & 0X0000FF00) >>  8);
-        uint8_t bb = (uint8_t)((chColor & 0X000000FF) >>  0);
+        uint8_t br = to_u8((chColor & 0X00FF0000) >> 16);
+        uint8_t bg = to_u8((chColor & 0X0000FF00) >>  8);
+        uint8_t bb = to_u8((chColor & 0X000000FF) >>  0);
 
         r = (br <= r) ? br : (uint8_t)std::lround(255.0 * r / br);
         g = (bg <= g) ? bg : (uint8_t)std::lround(255.0 * g / bg);
         b = (bb <= b) ? bb : (uint8_t)std::lround(255.0 * b / bb);
     }
 
-    return (chColor & 0XFF000000) + (((uint32_t)(b)) << 16) + (((uint32_t)(g)) << 8) + (uint32_t)(r);
+    return (chColor & 0XFF000000) + ((to_u32(b)) << 16) + ((to_u32(g)) << 8) + to_u32(r);
 }
 
 static void Memcpy16To32(uint32_t *dst, const uint16_t *src, int32_t n, uint32_t dwColor)
@@ -82,15 +83,15 @@ bool WilImagePackage::SetIndex(uint32_t dwIndex)
 {
     if(false
             || m_wilFile == nullptr
-            || dwIndex   >= (uint32_t)(m_wilPosition.size())
-            || dwIndex   >= (uint32_t)(m_wixImageInfo.nIndexCount)){
+            || dwIndex   >= to_u32(m_wilPosition.size())
+            || dwIndex   >= to_u32(m_wixImageInfo.nIndexCount)){
 
         m_currentImageValid = false;
         m_currentImageIndex = -1;
         return false;
     }
 
-    if((dwIndex == (uint32_t)(m_currentImageIndex)) && m_currentImageValid){
+    if((dwIndex == to_u32(m_currentImageIndex)) && m_currentImageValid){
         return true;
     }
 

@@ -297,7 +297,7 @@ void npcWil2PNG(const char *path, const char *baseName, const char *fileExt, con
             for(const auto &p: frameSeqMap){
                 const int dir = p.first.at(0);
                 if(!dirMap.count(dir)){
-                    dirMap.insert(std::make_pair(dir, (int)(dirMap.size())));
+                    dirMap.insert(std::make_pair(dir, to_d(dirMap.size())));
                 }
             }
 

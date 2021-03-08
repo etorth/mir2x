@@ -57,12 +57,12 @@ class AscendStr
     private:
         int X() const
         {
-            return m_x + (int)(std::lround(Ratio() * 50.0));
+            return m_x + to_d(std::lround(Ratio() * 50.0));
         }
 
         int Y() const
         {
-            return m_y - (int)(std::lround(Ratio() * 50.0));
+            return m_y - to_d(std::lround(Ratio() * 50.0));
         }
 
     private:

@@ -69,9 +69,9 @@ void Channel::DoReadPackHC()
                 {
                     extern MonoServer *g_monoServer;
                     g_monoServer->addLog(LOGTYPE_WARNING, "Last ClientMsg::HC      = %s", (ClientMsg(pThis->m_readHC).name().c_str()));
-                    g_monoServer->addLog(LOGTYPE_WARNING, "              ::Type    = %d", (int)(ClientMsg(pThis->m_readHC).type()));
-                    g_monoServer->addLog(LOGTYPE_WARNING, "              ::MaskLen = %d", (int)(ClientMsg(pThis->m_readHC).maskLen()));
-                    g_monoServer->addLog(LOGTYPE_WARNING, "              ::DataLen = %d", (int)(ClientMsg(pThis->m_readHC).dataLen()));
+                    g_monoServer->addLog(LOGTYPE_WARNING, "              ::Type    = %d", to_d(ClientMsg(pThis->m_readHC).type()));
+                    g_monoServer->addLog(LOGTYPE_WARNING, "              ::MaskLen = %d", to_d(ClientMsg(pThis->m_readHC).maskLen()));
+                    g_monoServer->addLog(LOGTYPE_WARNING, "              ::DataLen = %d", to_d(ClientMsg(pThis->m_readHC).dataLen()));
                 };
 
                 auto fnOnNetError = [pThis = shared_from_this(), fnReportLastPack](std::error_code stEC)
@@ -82,7 +82,7 @@ void Channel::DoReadPackHC()
 
                         // 2. record the error code to log
                         extern MonoServer *g_monoServer;
-                        g_monoServer->addLog(LOGTYPE_WARNING, "Network error on channel %d: %s", (int)(pThis->ID()), stEC.message().c_str());
+                        g_monoServer->addLog(LOGTYPE_WARNING, "Network error on channel %d: %s", to_d(pThis->ID()), stEC.message().c_str());
                         fnReportLastPack();
                     }
                 };
@@ -115,7 +115,7 @@ void Channel::DoReadPackHC()
 
                                                     // 2. record the error code but not exit?
                                                     extern MonoServer *g_monoServer;
-                                                    g_monoServer->addLog(LOGTYPE_WARNING, "Invalid package: CompLen = %d", (int)(pThis->m_readLen[0]));
+                                                    g_monoServer->addLog(LOGTYPE_WARNING, "Invalid package: CompLen = %d", to_d(pThis->m_readLen[0]));
                                                     fnReportLastPack();
 
                                                     // 3. we stop here
@@ -141,7 +141,7 @@ void Channel::DoReadPackHC()
 
                                                             // 2. record the error code but not exit?
                                                             extern MonoServer *g_monoServer;
-                                                            g_monoServer->addLog(LOGTYPE_WARNING, "Invalid package: CompLen = %d", (int)(nCompLen));
+                                                            g_monoServer->addLog(LOGTYPE_WARNING, "Invalid package: CompLen = %d", to_d(nCompLen));
                                                             fnReportLastPack();
 
                                                             // 3. we stop here
@@ -226,10 +226,10 @@ void Channel::DoReadPackBody(size_t nMaskLen, size_t nBodyLen)
                 auto fnReportLastPack = [pThis = shared_from_this()]()
                 {
                     extern MonoServer *g_monoServer;
-                    g_monoServer->addLog(LOGTYPE_WARNING, "Current serverMsg::HC      = %d", (int)(pThis->m_readHC));
-                    g_monoServer->addLog(LOGTYPE_WARNING, "                 ::Type    = %d", (int)(ClientMsg(pThis->m_readHC).type()));
-                    g_monoServer->addLog(LOGTYPE_WARNING, "                 ::MaskLen = %d", (int)(ClientMsg(pThis->m_readHC).maskLen()));
-                    g_monoServer->addLog(LOGTYPE_WARNING, "                 ::DataLen = %d", (int)(ClientMsg(pThis->m_readHC).dataLen()));
+                    g_monoServer->addLog(LOGTYPE_WARNING, "Current serverMsg::HC      = %d", to_d(pThis->m_readHC));
+                    g_monoServer->addLog(LOGTYPE_WARNING, "                 ::Type    = %d", to_d(ClientMsg(pThis->m_readHC).type()));
+                    g_monoServer->addLog(LOGTYPE_WARNING, "                 ::MaskLen = %d", to_d(ClientMsg(pThis->m_readHC).maskLen()));
+                    g_monoServer->addLog(LOGTYPE_WARNING, "                 ::DataLen = %d", to_d(ClientMsg(pThis->m_readHC).dataLen()));
                 };
 
                 auto fnOnNetError = [pThis = shared_from_this(), fnReportLastPack](std::error_code stEC)
@@ -240,7 +240,7 @@ void Channel::DoReadPackBody(size_t nMaskLen, size_t nBodyLen)
 
                         // 2. record the error code to log
                         extern MonoServer *g_monoServer;
-                        g_monoServer->addLog(LOGTYPE_WARNING, "Network error on channel %d: %s", (int)(pThis->ID()), stEC.message().c_str());
+                        g_monoServer->addLog(LOGTYPE_WARNING, "Network error on channel %d: %s", to_d(pThis->ID()), stEC.message().c_str());
                         fnReportLastPack();
                     }
                 };
@@ -248,7 +248,7 @@ void Channel::DoReadPackBody(size_t nMaskLen, size_t nBodyLen)
                 auto fnReportInvalidArg = [nMaskLen, nBodyLen, fnReportLastPack]()
                 {
                     extern MonoServer *g_monoServer;
-                    g_monoServer->addLog(LOGTYPE_WARNING, "Invalid argument to DoReadPackBody(MaskLen = %d, BodyLen = %d)", (int)(nMaskLen), (int)(nBodyLen));
+                    g_monoServer->addLog(LOGTYPE_WARNING, "Invalid argument to DoReadPackBody(MaskLen = %d, BodyLen = %d)", to_d(nMaskLen), to_d(nBodyLen));
                     fnReportLastPack();
                 };
 
@@ -302,13 +302,13 @@ void Channel::DoReadPackBody(size_t nMaskLen, size_t nBodyLen)
                             uint8_t *pDecodeMem = nullptr;
                             if(nMaskLen){
                                 auto nMaskCount = zcompf::countMask(pMem, nMaskLen);
-                                if(nMaskCount != (int)(nBodyLen)){
+                                if(nMaskCount != to_d(nBodyLen)){
                                     // we get corrupted data
                                     // should we ignore current package or kill the process?
 
                                     // 1. keep a log for the corrupted message
                                     extern MonoServer *g_monoServer;
-                                    g_monoServer->addLog(LOGTYPE_WARNING, "Corrupted data: MaskCount = %d, CompLen = %d", nMaskCount, (int)(nBodyLen));
+                                    g_monoServer->addLog(LOGTYPE_WARNING, "Corrupted data: MaskCount = %d, CompLen = %d", nMaskCount, to_d(nBodyLen));
 
                                     // 2. we ignore this message
                                     //    won't shutdown current channel, just return?
@@ -319,15 +319,15 @@ void Channel::DoReadPackBody(size_t nMaskLen, size_t nBodyLen)
                                 // we do have a compressed version of data
                                 if(nBodyLen <= stCMSG.dataLen()){
                                     pDecodeMem = pThis->GetDecodeBuf(stCMSG.dataLen());
-                                    if(zcompf::xorDecode(pDecodeMem, stCMSG.dataLen(), pMem, pMem + nMaskLen) != (int)(nBodyLen)){
+                                    if(zcompf::xorDecode(pDecodeMem, stCMSG.dataLen(), pMem, pMem + nMaskLen) != to_d(nBodyLen)){
                                         extern MonoServer *g_monoServer;
-                                        g_monoServer->addLog(LOGTYPE_WARNING, "Decode failed: MaskCount = %d, CompLen = %d", nMaskCount, (int)(nBodyLen));
+                                        g_monoServer->addLog(LOGTYPE_WARNING, "Decode failed: MaskCount = %d, CompLen = %d", nMaskCount, to_d(nBodyLen));
                                         fnReportLastPack();
                                         return;
                                     }
                                 }else{
                                     extern MonoServer *g_monoServer;
-                                    g_monoServer->addLog(LOGTYPE_WARNING, "Corrupted data: DataLen = %d, CompLen = %d", (int)(stCMSG.dataLen()), (int)(nBodyLen));
+                                    g_monoServer->addLog(LOGTYPE_WARNING, "Corrupted data: DataLen = %d, CompLen = %d", to_d(stCMSG.dataLen()), to_d(nBodyLen));
                                     fnReportLastPack();
                                     return;
                                 }
@@ -407,7 +407,7 @@ void Channel::DoSendPack()
 
                         // report message and abort current process
                         extern MonoServer *g_monoServer;
-                        g_monoServer->addLog(LOGTYPE_WARNING, "Network error on channel %d: %s", (int)(pThis->ID()), stEC.message().c_str());
+                        g_monoServer->addLog(LOGTYPE_WARNING, "Network error on channel %d: %s", to_d(pThis->ID()), stEC.message().c_str());
                         return;
                     }
 
@@ -485,7 +485,7 @@ bool Channel::forwardActorMessage(uint8_t nHC, const uint8_t *pData, size_t nDat
     auto fnReportBadArgs = [nHC, pData, nDataLen]()
     {
         extern MonoServer *g_monoServer;
-        g_monoServer->addLog(LOGTYPE_WARNING, "Invalid argument: (%d, %p, %d)", (int)(nHC), pData, (int)(nDataLen));
+        g_monoServer->addLog(LOGTYPE_WARNING, "Invalid argument: (%d, %p, %d)", to_d(nHC), pData, to_d(nDataLen));
     };
 
     ClientMsg stCMSG(nHC);

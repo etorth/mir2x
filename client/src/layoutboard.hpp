@@ -144,7 +144,7 @@ class LayoutBoard: public Widget
     public:
         int parCount() const
         {
-            return (int)(m_parNodeList.size());
+            return to_d(m_parNodeList.size());
         }
 
     private:

@@ -61,7 +61,7 @@ void EditorMap::ExtractOneTile(int nX, int nY, std::function<void(uint8_t, uint1
             &&  Tile(nX, nY).Valid){
 
         auto nFileIndex  = (uint8_t )((Tile(nX, nY).Image & 0X00FF0000) >> 16);
-        auto nImageIndex = (uint16_t)((Tile(nX, nY).Image & 0X0000FFFF) >>  0);
+        auto nImageIndex = to_u16((Tile(nX, nY).Image & 0X0000FFFF) >>  0);
         fnWritePNG(nFileIndex, nImageIndex);
     }
 }
@@ -113,7 +113,7 @@ void EditorMap::DrawTile(int nCX, int nCY, int nCW,  int nCH, std::function<void
                 }
 
                 auto nFileIndex  = (uint8_t )((Tile(nX, nY).Image & 0X00FF0000) >> 16);
-                auto nImageIndex = (uint16_t)((Tile(nX, nY).Image & 0X0000FFFF) >>  0);
+                auto nImageIndex = to_u16((Tile(nX, nY).Image & 0X0000FFFF) >>  0);
 
                 // provide cell-coordinates on map
                 // fnDrawTile should convert it to drawarea pixel-coordinates
@@ -134,13 +134,13 @@ void EditorMap::ExtractOneObject(int nXCnt, int nYCnt, int nIndex, std::function
         auto &rstObj = Object(nXCnt, nYCnt, nIndex);
         if(rstObj.Valid){
             auto nFileIndex  = (uint8_t )((rstObj.Image & 0X00FF0000) >> 16);
-            auto nImageIndex = (uint16_t)((rstObj.Image & 0X0000FFFF) >>  0);
+            auto nImageIndex = to_u16((rstObj.Image & 0X0000FFFF) >>  0);
 
             int      nFrameCount = (rstObj.Animated ? rstObj.AniCount : 1);
             uint32_t nImageColor = (rstObj.Alpha ? 0X80FFFFFF : 0XFFFFFFFF);
 
             for(int nIndex = 0; nIndex < nFrameCount; ++nIndex){
-                fnWritePNG(nFileIndex, nImageIndex + (uint16_t)(nIndex), nImageColor);
+                fnWritePNG(nFileIndex, nImageIndex + to_u16(nIndex), nImageColor);
             }
         }
     }
@@ -177,7 +177,7 @@ void EditorMap::DrawObject(int nCX, int nCY, int nCW, int nCH, bool bGround,
                                 && rstObj.Ground == bGround){
 
                             auto nFileIndex  = (uint8_t )((rstObj.Image & 0X00FF0000) >> 16);
-                            auto nImageIndex = (uint16_t)((rstObj.Image & 0X0000FFFF) >>  0);
+                            auto nImageIndex = to_u16((rstObj.Image & 0X0000FFFF) >>  0);
                             auto nAnimated   = (bool    )((rstObj.Animated));
                             auto nAniType    = (uint8_t )((rstObj.AniType ));
                             auto nAniCount   = (uint8_t )((rstObj.AniCount));
@@ -190,7 +190,7 @@ void EditorMap::DrawObject(int nCX, int nCY, int nCW, int nCH, bool bGround,
                                         || nFileIndex == 56
                                         || nFileIndex == 71){
 
-                                    nImageIndex += (uint16_t)(m_AniTileFrame[nAniType][nAniCount]);
+                                    nImageIndex += to_u16(m_AniTileFrame[nAniType][nAniCount]);
                                 }
                             }
 
@@ -428,10 +428,10 @@ void EditorMap::SetBufTile(int nX, int nY)
             && !(nX % 2) && !(nY % 2)
 
             && nX >= 0
-            && nX / 2 < (int)(m_BlockBuf.size())
+            && nX / 2 < to_d(m_BlockBuf.size())
 
             && nY >= 0
-            && nY / 2 < (int)(m_BlockBuf[nX / 2].size())){
+            && nY / 2 < to_d(m_BlockBuf[nX / 2].size())){
 
         if(m_Mir2Map && m_Mir2Map->Valid()){
             extern ImageDB g_ImageDB;
@@ -452,10 +452,10 @@ void EditorMap::SetBufGround(int nX, int nY)
 {
     if(true
             && nX >= 0
-            && nX / 2 < (int)(m_BlockBuf.size())
+            && nX / 2 < to_d(m_BlockBuf.size())
 
             && nY >= 0
-            && nY / 2 < (int)(m_BlockBuf[nX / 2].size())){
+            && nY / 2 < to_d(m_BlockBuf[nX / 2].size())){
 
         bool    bCanFly    = false;
         bool    bCanWalk   = false;
@@ -487,10 +487,10 @@ void EditorMap::SetBufObj(int nX, int nY, int nIndex)
             && nIndex <= 1
 
             && nX >= 0
-            && nX / 2 < (int)(m_BlockBuf.size())
+            && nX / 2 < to_d(m_BlockBuf.size())
 
             && nY >= 0
-            && nY / 2 < (int)(m_BlockBuf[nX / 2].size())){
+            && nY / 2 < to_d(m_BlockBuf[nX / 2].size())){
 
         uint32_t nObj       = 0;
         bool     bObjValid  = false;
@@ -524,7 +524,7 @@ void EditorMap::SetBufObj(int nX, int nY, int nIndex)
                 auto nObjDesc = m_Mir2Map->Object(nX, nY, nIndex);
                 nAniType  = (uint8_t )((nObjDesc & 0X70000000) >> (4 + 8 + 16));
                 nAniCount = (uint8_t )((nObjDesc & 0X0F000000) >> (0 + 8 + 16));
-                nObj      = (uint32_t)((nObjDesc & 0X00FFFFFF));
+                nObj      = to_u32((nObjDesc & 0X00FFFFFF));
 
                 // in mir2map if an object is not animated
                 // then it shouldn't be alpha-blended, check GameProc.cpp
@@ -541,9 +541,9 @@ void EditorMap::SetBufObj(int nX, int nY, int nIndex)
             if(stArray[4] & 0X80){
                 bObjValid = true;
                 nObj = 0
-                    | (((uint32_t)(stArray[2])) << 16)
-                    | (((uint32_t)(stArray[1])) <<  8)
-                    | (((uint32_t)(stArray[0])) <<  0);
+                    | ((to_u32(stArray[2])) << 16)
+                    | ((to_u32(stArray[1])) <<  8)
+                    | ((to_u32(stArray[0])) <<  0);
 
                 if(stArray[4] & 0X01){
                     bGroundObj = true;
@@ -575,10 +575,10 @@ void EditorMap::SetBufLight(int nX, int nY)
 {
     if(true
             && nX >= 0
-            && nX / 2 < (int)(m_BlockBuf.size())
+            && nX / 2 < to_d(m_BlockBuf.size())
 
             && nY >= 0
-            && nY / 2 < (int)(m_BlockBuf[nX / 2].size())){
+            && nY / 2 < to_d(m_BlockBuf[nX / 2].size())){
 
         if(m_Mir2Map && m_Mir2Map->Valid()){
             if(m_Mir2Map->LightValid(nX, nY)){
@@ -650,21 +650,21 @@ bool EditorMap::SaveMir2xMapData(const char *szFullName)
             std::memset(&rstDstCell, 0, sizeof(rstDstCell));
 
             // cell::land
-            rstDstCell.Param |= (((uint32_t)(Cell(nX, nY).MakeLandU8())) << 16);
+            rstDstCell.Param |= ((to_u32(Cell(nX, nY).MakeLandU8())) << 16);
 
             // cell::light
-            rstDstCell.Param |= (((uint32_t)(Light(nX, nY).MakeU8())) << 8);
+            rstDstCell.Param |= ((to_u32(Light(nX, nY).MakeU8())) << 8);
 
             // cell::obj[0]
             {
                 auto stArray = Object(nX, nY, 0).MakeArray();
                 if(stArray[4] & 0X80){
                     rstDstCell.Obj[0].Param = 0X80000000
-                        | (((uint32_t)(stArray[2])) << 16)
-                        | (((uint32_t)(stArray[1])) <<  8)
-                        | (((uint32_t)(stArray[0])) <<  0);
-                    rstDstCell.ObjParam |= (((uint32_t)(stArray[3] & 0XFF)) << 8);
-                    rstDstCell.ObjParam |= (((uint32_t)(stArray[4] & 0X03)) << 6);
+                        | ((to_u32(stArray[2])) << 16)
+                        | ((to_u32(stArray[1])) <<  8)
+                        | ((to_u32(stArray[0])) <<  0);
+                    rstDstCell.ObjParam |= ((to_u32(stArray[3] & 0XFF)) << 8);
+                    rstDstCell.ObjParam |= ((to_u32(stArray[4] & 0X03)) << 6);
                 }else{
                     rstDstCell.Obj[0].Param = 0;
                     rstDstCell.ObjParam &= 0XFFFF0000;
@@ -676,11 +676,11 @@ bool EditorMap::SaveMir2xMapData(const char *szFullName)
                 auto stArray = Object(nX, nY, 1).MakeArray();
                 if(stArray[4] & 0X80){
                     rstDstCell.Obj[1].Param = 0X80000000
-                        | (((uint32_t)(stArray[2])) << 16)
-                        | (((uint32_t)(stArray[1])) <<  8)
-                        | (((uint32_t)(stArray[0])) <<  0);
-                    rstDstCell.ObjParam |= (((uint32_t)(stArray[3] & 0XFF)) << 24);
-                    rstDstCell.ObjParam |= (((uint32_t)(stArray[4] & 0X03)) << 22);
+                        | ((to_u32(stArray[2])) << 16)
+                        | ((to_u32(stArray[1])) <<  8)
+                        | ((to_u32(stArray[0])) <<  0);
+                    rstDstCell.ObjParam |= ((to_u32(stArray[3] & 0XFF)) << 24);
+                    rstDstCell.ObjParam |= ((to_u32(stArray[4] & 0X03)) << 22);
                 }else{
                     rstDstCell.Obj[1].Param = 0;
                     rstDstCell.ObjParam &= 0X0000FFFF;

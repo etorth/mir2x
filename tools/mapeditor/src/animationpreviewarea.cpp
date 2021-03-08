@@ -46,8 +46,8 @@ int AnimationPreviewArea::handle(int nEvent)
                 // we have a new setting, use it, otherwise just keep the old one
                 if(nMonsterID && nAction0 >= 0 && nDirection0 >= 0){
                     g_AnimationDraw.MonsterID = nMonsterID;
-                    g_AnimationDraw.Action    = (uint32_t)(nAction0);
-                    g_AnimationDraw.Direction = (uint32_t)(nDirection0);
+                    g_AnimationDraw.Action    = to_u32(nAction0);
+                    g_AnimationDraw.Direction = to_u32(nDirection0);
                 }
 
                 // 1. remove animationselectwindow's callback
@@ -79,9 +79,9 @@ void AnimationPreviewArea::draw()
 
     if(nMonsterID == 0 || nAction0 < 0 || nDirection0 < 0 || nFrame0 < 0){ return; }
 
-    uint32_t nFrame = (uint32_t)(nFrame0);
-    uint32_t nAction = (uint32_t)(nAction0);
-    uint32_t nDirection = (uint32_t)(nDirection0);
+    uint32_t nFrame = to_u32(nFrame0);
+    uint32_t nAction = to_u32(nAction0);
+    uint32_t nDirection = to_u32(nDirection0);
 
     extern AnimationDB g_AnimationDB;
     auto & rstRecord = g_AnimationDB.RetrieveAnimation(nMonsterID);

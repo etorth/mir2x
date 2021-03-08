@@ -53,7 +53,7 @@ class ValidAnimationWindow {open
         if(m_ValidAnimationBrowser->selected(i)){
             extern AnimationPreviewWindow *g_AnimationPreviewWindow;
             delete g_AnimationPreviewWindow;
-            g_AnimationPreviewWindow = new AnimationPreviewWindow(m_FileIndex, (int)(uintptr_t)m_ValidAnimationBrowser->data(i));
+            g_AnimationPreviewWindow = new AnimationPreviewWindow(m_FileIndex, to_d((uintptr_t)(m_ValidAnimationBrowser->data(i))));
             g_AnimationPreviewWindow->ShowAll();
             return;
         }

@@ -187,7 +187,7 @@ void InventoryBoard::drawEx(int dstX, int dstY, int, int, int, int) const
     const auto [mousePX, mousePY] = SDLDeviceHelper::getMousePLoc();
     const auto &packBinListCRef = myHeroPtr->getInvPack().getPackBinList();
     const auto cursorOnIndex = getPackBinIndex(mousePX, mousePY);
-    for(int i = 0; i < (int)(packBinListCRef.size()); ++i){
+    for(int i = 0; i < to_d(packBinListCRef.size()); ++i){
         drawItem(dstX, dstY, startRow, (i == cursorOnIndex), packBinListCRef.at(i));
     }
 
@@ -367,7 +367,7 @@ int InventoryBoard::getPackBinIndex(int locPX, int locPY) const
     const auto startRow = getStartRow();
     const auto myHeroPtr = m_processRun->getMyHero();
     const auto &packBinListCRef = myHeroPtr->getInvPack().getPackBinList();
-    for(int i = 0; i < (int)(packBinListCRef.size()); ++i){
+    for(int i = 0; i < to_d(packBinListCRef.size()); ++i){
         const auto &binCRef = packBinListCRef.at(i);
         if(mathf::pointInRectangle<int>(gridX, gridY, binCRef.x, binCRef.y - startRow, binCRef.w, binCRef.h)){
             return i;

@@ -26,7 +26,7 @@ ServerLuaModule::ServerLuaModule()
 {
     m_luaState.set_function("getTime", []() -> int
     {
-        return (int)(g_monoServer->getCurrTick());
+        return to_d(g_monoServer->getCurrTick());
     });
 
     m_luaState.script(R"#(math.randomseed(getTime()))#");

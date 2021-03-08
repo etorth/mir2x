@@ -23,6 +23,7 @@
 #include <type_traits>
 
 #include "strf.hpp"
+#include "totype.hpp"
 #include "fflerror.hpp"
 
 namespace mathf
@@ -429,13 +430,13 @@ namespace mathf
                     && fnClipT(-(nY - *pY1) - nH + 1, -nDY, ftE, ftL)){
 
                 if(ftL < 1.0){
-                    *pX2 = (int)(std::lround(*pX1 + ftL * nDX));
-                    *pY2 = (int)(std::lround(*pY1 + ftL * nDY));
+                    *pX2 = to_d(std::lround(*pX1 + ftL * nDX));
+                    *pY2 = to_d(std::lround(*pY1 + ftL * nDY));
                 }
 
                 if(ftE > 0.0){
-                    *pX1 += (int)(std::lround(ftE * nDX));
-                    *pY1 += (int)(std::lround(ftE * nDY));
+                    *pX1 += to_d(std::lround(ftE * nDX));
+                    *pY1 += to_d(std::lround(ftE * nDY));
                 }
                 return true;
             }

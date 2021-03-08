@@ -18,6 +18,7 @@
 
 #include <string>
 #include <cstring>
+#include "totype.hpp"
 #include "autoalpha.hpp"
 #include "flwrapper.hpp"
 #include "mainwindow.hpp"
@@ -78,8 +79,8 @@ bool PreviewWindow::LoadImage()
     m_Image = std::make_unique<Fl_RGB_Image>((uchar *)(m_Buf.data()), nW, nH, 4);
     m_ImageIndex.emplace(g_MainWindow->SelectedImageIndex());
 
-    size_t nWinH = (std::max<int>)(((std::min<int>)(((int)(nH * 1.5)), (int)(nH + 40))), (int)200);
-    size_t nWinW = (std::max<int>)(((std::min<int>)(((int)(nW * 1.5)), (int)(nW + 40))), (int)200);
+    size_t nWinH = (std::max<int>)(((std::min<int>)((to_d(nH * 1.5)), to_d(nH + 40))), (int)200);
+    size_t nWinW = (std::max<int>)(((std::min<int>)((to_d(nW * 1.5)), to_d(nW + 40))), (int)200);
 
     // resize the window
     // don't call this function in the ::draw()

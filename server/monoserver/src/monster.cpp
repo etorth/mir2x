@@ -60,7 +60,7 @@ bool Monster::AStarCache::Retrieve(int *pX, int *pY, int nX0, int nY0, int nX1, 
     if((nMapID == mapID) && (Path.size() >= 3)){
         auto fnFindIndex = [this](int nX, int nY) -> int
         {
-            for(int nIndex = 0; nIndex < (int)(Path.size()); ++nIndex){
+            for(int nIndex = 0; nIndex < to_d(Path.size()); ++nIndex){
                 if(true
                         && Path[nIndex].X == nX
                         && Path[nIndex].Y == nY){
@@ -148,8 +148,8 @@ bool Monster::randomMove()
                 DIR_UPLEFT,
             };
 
-            auto nDirCount = (int)(std::extent<decltype(nDirV)>::value);
-            auto nDirStart = (int)(std::rand() % nDirCount);
+            auto nDirCount = to_d(std::extent<decltype(nDirV)>::value);
+            auto nDirStart = to_d(std::rand() % nDirCount);
 
             for(int nIndex = 0; nIndex < nDirCount; ++nIndex){
                 auto nDirection = nDirV[(nDirStart + nIndex) % nDirCount];
@@ -208,8 +208,8 @@ bool Monster::randomTurn()
         DIR_UPLEFT,
     };
 
-    const auto dirCount = (int)(std::extent<decltype(dirs)>::value);
-    const auto dirStart = (int)(std::rand() % dirCount);
+    const auto dirCount = to_d(std::extent<decltype(dirs)>::value);
+    const auto dirStart = to_d(std::rand() % dirCount);
 
     for(int i = 0; i < dirCount; ++i){
         const auto dir = dirs[(dirStart + i) % dirCount];

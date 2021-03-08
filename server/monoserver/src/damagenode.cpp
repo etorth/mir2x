@@ -34,13 +34,13 @@ void DamageNode::EffectArrayType::LogError(int nLogType, const char *szLogInfo) 
 void DamageNode::Print() const
 {
     extern MonoServer *g_monoServer;
-    g_monoServer->addLog(LOGTYPE_INFO, "DamageNode::0X%0*" PRIXPTR "::UID       = %d", (int)(2 * sizeof(this)), (uintptr_t)(this), (int)(UID));
-    g_monoServer->addLog(LOGTYPE_INFO, "DamageNode::0X%0*" PRIXPTR "::Damage    = %d", (int)(2 * sizeof(this)), (uintptr_t)(this), Damage    );
-    g_monoServer->addLog(LOGTYPE_INFO, "DamageNode::0X%0*" PRIXPTR "::Element   = %d", (int)(2 * sizeof(this)), (uintptr_t)(this), Element   );
+    g_monoServer->addLog(LOGTYPE_INFO, "DamageNode::0X%0*" PRIXPTR "::UID       = %d", to_d(2 * sizeof(this)), (uintptr_t)(this), to_d(UID));
+    g_monoServer->addLog(LOGTYPE_INFO, "DamageNode::0X%0*" PRIXPTR "::Damage    = %d", to_d(2 * sizeof(this)), (uintptr_t)(this), Damage    );
+    g_monoServer->addLog(LOGTYPE_INFO, "DamageNode::0X%0*" PRIXPTR "::Element   = %d", to_d(2 * sizeof(this)), (uintptr_t)(this), Element   );
 
     for(size_t nIndex = 0; nIndex < EffectArray.EffectLen(); ++nIndex){
         if(EffectArray.Effect()[nIndex] != EFF_NONE){
-            g_monoServer->addLog(LOGTYPE_INFO, "DamageNode::0X%0*" PRIXPTR "::Effect[%d] = %d", (int)(2 * sizeof(this)), (uintptr_t)(this), (int)(nIndex), EffectArray.Effect()[nIndex]);
+            g_monoServer->addLog(LOGTYPE_INFO, "DamageNode::0X%0*" PRIXPTR "::Effect[%d] = %d", to_d(2 * sizeof(this)), (uintptr_t)(this), to_d(nIndex), EffectArray.Effect()[nIndex]);
         }
     }
 }

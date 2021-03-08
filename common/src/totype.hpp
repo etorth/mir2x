@@ -23,20 +23,17 @@
 #include <stdexcept>
 #include <string_view>
 
-#define to_d(x) static_cast<int>(x)
-#define to_u(x) static_cast<unsigned int>(x)
-#define to_f(x) static_cast<float>(x)
-
-#define to_lld(x) static_cast<         long long>(x)
-#define to_llu(x) static_cast<unsigned long long>(x)
-
-#define to_uz( x) static_cast<size_t  >(x)
-#define to_u8( x) static_cast<uint8_t >(x)
-#define to_u16(x) static_cast<uint16_t>(x)
-#define to_u32(x) static_cast<uint32_t>(x)
-#define to_u64(x) static_cast<uint64_t>(x)
-
-#define to_cvptr(x) static_cast<const void *>(x)
+inline auto to_d    (auto x){ return static_cast<               int>(x); }
+inline auto to_u    (auto x){ return static_cast<      unsigned int>(x); }
+inline auto to_f    (auto x){ return static_cast<             float>(x); }
+inline auto to_lld  (auto x){ return static_cast<         long long>(x); }
+inline auto to_llu  (auto x){ return static_cast<unsigned long long>(x); }
+inline auto to_uz   (auto x){ return static_cast<            size_t>(x); }
+inline auto to_u8   (auto x){ return static_cast<           uint8_t>(x); }
+inline auto to_u16  (auto x){ return static_cast<          uint16_t>(x); }
+inline auto to_u32  (auto x){ return static_cast<          uint32_t>(x); }
+inline auto to_u64  (auto x){ return static_cast<          uint64_t>(x); }
+inline auto to_cvptr(auto x){ return static_cast<      const void *>(x); }
 
 template<typename T> T as_type(const void *buf)
 {

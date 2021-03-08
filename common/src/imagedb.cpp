@@ -17,6 +17,7 @@
  */
 
 #include <cstring>
+#include "totype.hpp"
 #include "imagedb.hpp"
 
 const static char *g_DBFileName[]
@@ -103,7 +104,7 @@ const char *ImageDB::DBName(int nIndex) const
 {
     if(true
             && nIndex >= 0
-            && nIndex <  (int)(std::extent<decltype(g_DBFileName)>::value)){
+            && nIndex <  to_d(std::extent<decltype(g_DBFileName)>::value)){
         return g_DBFileName[nIndex];
     }
     return nullptr;
@@ -112,7 +113,7 @@ const char *ImageDB::DBName(int nIndex) const
 bool ImageDB::LoadDB(const char *szPathName)
 {
     for(int nIndex = 0; std::strlen(g_DBFileName[nIndex]) > 0; ++nIndex){
-        Load((uint8_t)(nIndex), szPathName, g_DBFileName[nIndex], ".wil");
+        Load(to_u8(nIndex), szPathName, g_DBFileName[nIndex], ".wil");
     }
     return true;
 }

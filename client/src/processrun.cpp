@@ -90,8 +90,8 @@ void ProcessRun::scrollMap()
 
         m_mapScrolling = true;
 
-        m_viewX += (int)(std::lround(std::copysign((std::min<int>)(3, std::abs(nDViewX)), nDViewX)));
-        m_viewY += (int)(std::lround(std::copysign((std::min<int>)(2, std::abs(nDViewY)), nDViewY)));
+        m_viewX += to_d(std::lround(std::copysign((std::min<int>)(3, std::abs(nDViewX)), nDViewX)));
+        m_viewY += to_d(std::lround(std::copysign((std::min<int>)(2, std::abs(nDViewY)), nDViewY)));
 
         m_viewX = (std::max<int>)(0, m_viewX);
         m_viewY = (std::max<int>)(0, m_viewY);
@@ -207,7 +207,7 @@ void ProcessRun::update(double fUpdateTime)
 
 uint64_t ProcessRun::focusUID(int nFocusType)
 {
-    if(nFocusType < (int)(m_focusUIDTable.size())){
+    if(nFocusType < to_d(m_focusUIDTable.size())){
         switch(nFocusType){
             case FOCUS_NONE:
                 {
@@ -1534,9 +1534,9 @@ void ProcessRun::drawGroundObject(int x, int y, bool ground, bool alpha)
                 && ((bool)(objArr[4] & 0X80))
                 && ((bool)(objArr[4] & 0X01) == ground)){
             uint32_t imageId = 0
-                | (((uint32_t)(objArr[2])) << 16)
-                | (((uint32_t)(objArr[1])) <<  8)
-                | (((uint32_t)(objArr[0])) <<  0);
+                | ((to_u32(objArr[2])) << 16)
+                | ((to_u32(objArr[1])) <<  8)
+                | ((to_u32(objArr[0])) <<  0);
 
             if(objArr[3] & 0X80){
                 if(false
@@ -1584,7 +1584,7 @@ void ProcessRun::drawRotateStar(int x0, int y0, int x1, int y1)
     }
 
     const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);
-    const auto currSize = (int)(std::lround(m_starRatio * texW / 2.50));
+    const auto currSize = to_d(std::lround(m_starRatio * texW / 2.50));
 
     for(const auto &p: m_groundItemIDList){
         const auto [x, y] = p.first;
