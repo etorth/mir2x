@@ -22,6 +22,7 @@
 #include <list>
 #include <array>
 #include <cstdint>
+#include <optional>
 #include <SDL2/SDL.h>
 #include "mathf.hpp"
 #include "lalign.hpp"
@@ -74,6 +75,10 @@ class Widget
                     .child = this,
                     .autoDelete = autoDelete,
                 });
+            }
+
+            if(!(m_w >= 0 && m_h >= 0)){
+                throw fflerror("invalid size: w = %d, h = %d", m_w, m_h);
             }
         }
 
@@ -273,23 +278,23 @@ class Widget
         }
 
     public:
-        void moveBy(int dx, int dy)
+        void moveBy(std::optional<int> dx, std::optional<int> dy)
         {
-            m_x += dx;
-            m_y += dy;
+            m_x += dx.value_or(0);
+            m_y += dy.value_or(0);
         }
 
-        void moveTo(int x, int y)
+        void moveTo(std::optional<int> x, std::optional<int> y)
         {
-            m_x = x;
-            m_y = y;
+            m_x = x.value_or(m_x);
+            m_y = y.value_or(m_y);
         }
 
-        void moveAt(dir8_t dir, int x, int y)
+        void moveAt(std::optional<dir8_t> dir, std::optional<int> x, std::optional<int> y)
         {
-            m_dir = dir;
-            m_x   = x;
-            m_y   = y;
+            m_dir = dir.value_or(m_dir);
+            m_x = x.value_or(m_x);
+            m_y = y.value_or(m_y);
         }
 };
 

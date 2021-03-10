@@ -445,7 +445,7 @@ namespace mathf
     }
 
     inline bool ROICrop(
-            int *pSrcX, int *pSrcY,  // the default parameters we used in DrawEx
+            int *pSrcX, int *pSrcY,  // the default parameters we used in Widget::drawEx
             int *pSrcW, int *pSrcH,  // ...
             int *pDstX, int *pDstY,  // ...
 

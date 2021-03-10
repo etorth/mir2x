@@ -70,69 +70,76 @@ constexpr char SYS_NPCDONE [] = "RSVD_NPC_DONE__6381083734343264";
 constexpr char SYS_NPCQUERY[] = "RSVD_NPC_QUERY_8619263917692639";
 constexpr char SYS_NPCERROR[] = "RSVD_NPC_ERROR_8619263917692639";
 
-constexpr uint32_t SYS_NEEDEXP[]
+constexpr size_t SYS_EXP[]
 {
-           100 , // 1
-           200 , // 2
-           300 , // 3
-           400 , // 4
-           600 , // 5
-           900 , // 6
-          1200 , // 7
-          1700 , // 8
-          2500 , // 9
-          6000 , //10
-          8000 , //11
-         10000 , //12
-         15000 , //13
-         30000 , //14
-         40000 , //15
-         50000 , //16
-         70000 , //17
-        100000 , //18
-        120000 , //19
-        140000 , //20
-        250000 , //21
-        300000 , //22
-        350000 , //23
-        400000 , //24
-        500000 , //25
-        700000 , //26
-       1000000 , //27
-       1400000 , //28
-       1800000 , //29
-       2000000 , //30
-       2400000 , //31
-       2800000 , //32
-       3200000 , //33
-       3600000 , //34
-       4000000 , //35
-       4800000 , //36
-       5600000 , //37
-       8200000 , //38
-       9000000 , //39
-      12000000 , //40
-      16000000 , //41
-      30000000 , //42
-      50000000 , //43
-      80000000 , //44
-     120000000 , //45
-     480000000 , //46
-    1000000000 , //47
-    3000000000 , //48
-    3500000000 , //49
-    4000000000 , //50
+       100,  //  0: need 100 to reach next level from current level 0
+       165,  //  1: need 165 to reach next level from current level 1
+       333,  //  2: ...
+       604,  //  3
+       977,  //  4
+      1454,  //  5
+      2036,  //  6
+      2722,  //  7
+      3514,  //  8
+      4412,  //  9
+      5417,  // 10
+      6531,  // 11
+      7755,  // 12
+      9091,  // 13
+     10539,  // 14
+     12102,  // 15
+     13783,  // 16
+     15584,  // 17
+     17508,  // 18
+     19559,  // 19
+     21741,  // 20
+     24059,  // 21
+     26517,  // 22
+     29123,  // 23
+     31883,  // 24
+     34807,  // 25
+     37903,  // 26
+     41183,  // 27
+     44660,  // 28
+     48348,  // 29
+     52265,  // 30
+     56431,  // 31
+     60868,  // 32
+     65603,  // 33
+     70666,  // 34
+     76091,  // 35
+     81920,  // 36
+     88200,  // 37
+     94982,  // 38
+    102331,  // 39
+    110317,  // 40
+    119022,  // 41
+    128543,  // 42
+    138988,  // 43
+    150485,  // 44
+    163179,  // 45
+    177239,  // 46
+    192859,  // 47
+    210265,  // 48
+    229713,  // 49
+    251504,  // 50
 };
+
+constexpr inline size_t SYS_SUMEXP(uint32_t level)
+{
+    size_t sumExp = 0;
+    for(size_t i = 0; i < level && i < std::extent_v<decltype(SYS_EXP)>; ++i){
+        sumExp += SYS_EXP[i];
+    }
+    return sumExp;
+}
 
 constexpr inline uint32_t SYS_LEVEL(size_t exp)
 {
-    for(uint32_t level = 0, neededExpSum = 0; const auto neededExp: SYS_NEEDEXP){
-        if(exp < neededExpSum){
+    for(uint32_t level = 0; level + 1 < std::extent_v<decltype(SYS_EXP)>; ++level){
+        if(exp >= SYS_SUMEXP(level) && exp < SYS_SUMEXP(level + 1)){
             return level;
         }
-
-        level++;
-        neededExpSum += neededExp;
     }
-    return std::extent_v<decltype(SYS_NEEDEXP)>;
+    return std::extent_v<decltype(SYS_EXP)>;
 }

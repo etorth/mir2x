@@ -21,29 +21,27 @@
 #include "widget.hpp"
 #include "bevent.hpp"
 #include "sdldevice.hpp"
-#include "colorf.hpp"
-#include "labelboard.hpp"
 
-extern SDLDevice *g_sdlDevice;
-
+class ProcessRun;
 class LevelBox: public Widget
 {
     private:
-        LabelBoard m_label;
+        ProcessRun *m_processRun;
 
     private:
         int m_state = BEVENT_OFF;
 
     private:
         std::function<void(int)> m_onDrag;
-        std::function<void()> m_onDoubleClick;
+        std::function<void(   )> m_onDoubleClick;
 
     public:
         LevelBox(
                 dir8_t dir,
-                int, // x
-                int, // y
+                int,
+                int,
 
+                ProcessRun *,
                 const std::function<void(int)> &, // drag
                 const std::function<void(   )> &, // double-click
 
@@ -55,15 +53,4 @@ class LevelBox: public Widget
 
     public:
         void drawEx(int, int, int, int, int, int) const override;
-
-    public:
-        void setLevel(int level)
-        {
-            m_label.setText(u8"%d", level);
-
-            m_w = std::max<int>(m_label.w(), 18);
-            m_h = std::max<int>(m_label.h(), 10);
-
-            m_label.moveTo((w() - m_label.w()) / 2,(h() - m_label.h()) / 2);
-        }
 };

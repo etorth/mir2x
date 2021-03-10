@@ -97,6 +97,18 @@ class MyHero: public Hero
         }
 
     public:
+        uint32_t getLevel() const
+        {
+            return SYS_LEVEL(getExp());
+        }
+
+        float getLevelRatio() const
+        {
+            const auto level = getLevel();
+            return to_f(to_df(getExp() - SYS_SUMEXP(level)) / SYS_EXP[level]);
+        }
+
+    public:
         InvPack &getInvPack()
         {
             return m_invPack;

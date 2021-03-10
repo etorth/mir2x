@@ -21,9 +21,11 @@
 #include <functional>
 
 #include "log.hpp"
+#include "colorf.hpp"
 #include "totype.hpp"
 #include "pngtexdb.hpp"
 #include "sdldevice.hpp"
+#include "imageboard.hpp"
 #include "processrun.hpp"
 #include "dbcomrecord.hpp"
 #include "controlboard.hpp"
@@ -590,9 +592,10 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
 
     , m_levelBox
       {
-          DIR_UPLEFT,
-          0, // need reset
-          0, // need reset
+          DIR_NONE,
+          m_middle.w() / 2,
+          4,
+          proc,
 
           [this](int dy)
           {
@@ -729,9 +732,6 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
     if(x() != 0 || y() + h() != g_sdlDevice->getRendererHeight() || w() != g_sdlDevice->getRendererWidth()){
         throw fflerror("ControlBoard has wrong location or size");
     }
-
-    m_levelBox.setLevel(0);
-    m_levelBox.moveTo((w() - 178 - 166 - m_levelBox.w()) / 2, 4 - m_levelBox.h() / 2);
 }
 
 void ControlBoard::update(double fUpdateTime)
@@ -739,7 +739,6 @@ void ControlBoard::update(double fUpdateTime)
     m_cmdLine.update(fUpdateTime);
     m_logBoard.update(fUpdateTime);
     m_arcAniBoard.update(fUpdateTime);
-    m_levelBox.setLevel(SYS_LEVEL(m_processRun->getMyHero()->getExp()));
 }
 
 void ControlBoard::drawLeft() const
@@ -792,6 +791,9 @@ void ControlBoard::drawLeft() const
     m_buttonClose.draw();
     m_buttonMinize.draw();
     m_buttonQuickAccess.draw();
+
+    drawRatioBar(153, nY0 + 115, m_processRun->getMyHero()->getLevelRatio());
+    drawRatioBar(166, nY0 + 115, 0.5);
 }
 
 void ControlBoard::drawRight() const
@@ -894,9 +896,12 @@ void ControlBoard::drawMiddleDefault() const
     }
 
     // draw title
+    // the title texture is not symmetric, add 1 pixel offset
+    // then the levelBox can anchor at the middle by m_middle.w() / 2
+
     if(auto texPtr = g_progUseDB->Retrieve(0X00000022)){
         const auto [titleW, titleH] = SDLDeviceHelper::getTextureSize(texPtr);
-        const int titleDstX = 178 + (nW0 - 178 - 166 - titleW) / 2;
+        const int titleDstX = 178 + (nW0 - 178 - 166 - titleW) / 2 + 1;
         const int titleDstY = nY0 - 19;
         g_sdlDevice->drawTexture(texPtr, titleDstX, titleDstY);
     }
@@ -988,10 +993,9 @@ void ControlBoard::drawMiddleExpand() const
         }
     }
 
-    // draw title
     if(auto texPtr = g_progUseDB->Retrieve(0X00000022)){
         const auto [titleW, titleH] = SDLDeviceHelper::getTextureSize(texPtr);
-        const int titleDstX = 178 + (nW0 - 178 - 166 - titleW) / 2;
+        const int titleDstX = 178 + (nW0 - 178 - 166 - titleW) / 2 + 1;
         const int titleDstY = startY - 2 - 19;
         g_sdlDevice->drawTexture(texPtr, titleDstX, titleDstY);
     }
@@ -1197,7 +1201,7 @@ void ControlBoard::setButtonLoc()
 
     if(m_expand){
         m_buttonSwitchMode.moveTo(boardW - 178 - 181, 3 - modeDiffY);
-        m_levelBox.moveTo((boardW - 178 - 166 - m_levelBox.w()) / 2, 4 - m_levelBox.h() / 2 - modeDiffY);
+        m_levelBox.moveTo((boardW - 178 - 166) / 2, 4 - modeDiffY);
         m_arcAniBoard.moveTo((boardW - 178 - 166 - m_arcAniBoard.w()) / 2, -13 - modeDiffY);
 
         m_buttonEmoji.moveTo(boardW - 178 - 260, 87);
@@ -1208,7 +1212,7 @@ void ControlBoard::setButtonLoc()
     }
     else{
         m_buttonSwitchMode.moveTo(boardW - 178 - 181, 3);
-        m_levelBox.moveTo((boardW - 178 - 166 - m_levelBox.w()) / 2, 4 - m_levelBox.h() / 2);
+        m_levelBox.moveTo((boardW - 178 - 166) / 2, 4);
         m_arcAniBoard.moveTo((boardW - 178 - 166 - m_arcAniBoard.w()) / 2, -13);
 
         m_slider.moveTo(w() - 178 - 176, 40);
@@ -1280,4 +1284,24 @@ void ControlBoard::drawHeroLoc() const
 
     locBoard.moveBy(m_left.x() + locBoardStartX, m_left.y() + locBoardStartY);
     locBoard.draw();
+}
+
+void ControlBoard::drawRatioBar(int x, int y, float r) const
+{
+    ImageBoard barImage
+    {
+        DIR_DOWN,
+        x,
+        y,
+
+        [](const ImageBoard *)
+        {
+            return g_progUseDB->Retrieve(0X000000A0);
+        },
+
+        colorf::RGBA(to_u8(255 * r), to_u8(255 * (1 - r)), 0, 255),
+    };
+
+    barImage.setSizeRatio({}, r);
+    barImage.draw();
 }

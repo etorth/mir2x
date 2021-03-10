@@ -16,38 +16,29 @@
  * =====================================================================================
  */
 
+#include "widget.hpp"
 #include "levelbox.hpp"
 #include "sdldevice.hpp"
+#include "processrun.hpp"
+#include "imageboard.hpp"
 
+extern SDLDevice *g_sdlDevice;
 LevelBox::LevelBox(
         dir8_t dir,
         int x,
         int y,
 
+        ProcessRun *proc,
         const std::function<void(int)> &onDrag,
         const std::function<void(   )> &onDoubleClick,
 
         Widget *parent,
-        bool autoDelete)
-    : Widget(dir, x, y, 0, 0, parent, autoDelete)
-    , m_label
-      {
-          DIR_UPLEFT,
-          0,
-          0,
-          u8"",
-          0,
-          12,
-          0,
-          colorf::YELLOW + 128,
-          this,
-          false,
-      }
+        bool    autoDelete)
+    : Widget(dir, x, y, 16, 16, parent, autoDelete)
+    , m_processRun(proc)
     , m_onDrag(onDrag)
     , m_onDoubleClick(onDoubleClick)
-{
-    setLevel(0);
-}
+{}
 
 bool LevelBox::processEvent(const SDL_Event &event, bool valid)
 {
@@ -117,37 +108,71 @@ bool LevelBox::processEvent(const SDL_Event &event, bool valid)
     }
 }
 
-void LevelBox::drawEx(int dstX, int dstY, int, int, int, int) const
+void LevelBox::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int srcH) const
 {
-    // don't worry too much here
-    // we always draw fully for LevelBox
-
-    const auto fnDrawCover = [dstX, dstY](uint32_t color)
+    class DrawHelper: public WidgetGroup
     {
-        if(auto *texPtr = g_sdlDevice->getCover(8)){
-            SDLDeviceHelper::EnableTextureModColor enableColor(texPtr, color);
-            g_sdlDevice->drawTexture(texPtr, dstX + 1, dstY);
-        }
+        public:
+            DrawHelper(int argX, int argY, int argW, int argH, uint32_t color, uint32_t level)
+                : WidgetGroup
+                  {
+                      DIR_UPLEFT,
+                      argX,
+                      argY,
+                      argW,
+                      argH,
+                  }
+            {
+                new LabelBoard
+                {
+                    DIR_NONE,
+                    w() / 2,
+                    h() / 2,
+
+                    to_u8cstr(str_printf(u8"%d", to_d(level))),
+
+                    0,
+                    12,
+                    0,
+                    colorf::YELLOW + 250,
+
+                    this,
+                    true,
+                };
+
+                new ImageBoard
+                {
+                    DIR_NONE,
+                    w() / 2,
+                    h() / 2,
+
+                    [](const ImageBoard *)
+                    {
+                        return g_sdlDevice->getCover(8);
+                    },
+
+                    color,
+                    this,
+                    true,
+                };
+            }
     };
 
-    switch(m_state){
-        case BEVENT_ON:
-            {
-                fnDrawCover(colorf::RED + 0XFF);
-                break;
-            }
-        case BEVENT_DOWN:
-            {
-                fnDrawCover(colorf::BLUE + 0XFF);
-                break;
-            }
-        default:
-            {
-                break;
-            }
-    }
+    DrawHelper
+    {
+        x(),
+        y(),
+        w(),
+        h(),
 
-    const int dx = (w() - m_label.w()) / 2;
-    const int dy = (h() - m_label.h()) / 2;
-    m_label.drawEx(dstX + dx, dstY + dy, 0, 0, m_label.w(), m_label.h());
+        [this]() -> uint32_t
+        {
+            switch(m_state){
+                case BEVENT_ON  : return colorf::BLUE + 0XFF;
+                case BEVENT_DOWN: return colorf::RED  + 0XFF;
+                default         : return 0;
+            }
+        }(),
+        m_processRun->getMyHero()->getLevel(),
+    }.drawEx(dstX, dstY, srcX, srcY, srcW, srcH);
 }

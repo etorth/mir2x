@@ -18,10 +18,12 @@
 
 #include "uidf.hpp"
 #include "mathf.hpp"
+#include "sdldevice.hpp"
 #include "clientnpc.hpp"
 #include "pngtexoffdb.hpp"
 #include "clientargparser.hpp"
 
+extern SDLDevice *g_sdlDevice;
 extern PNGTexOffDB *g_standNPCDB;
 extern ClientArgParser *g_clientArgParser;
 
