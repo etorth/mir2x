@@ -134,7 +134,7 @@ void LevelBox::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int srcH
                     0,
                     12,
                     0,
-                    colorf::YELLOW + 250,
+                    colorf::YELLOW + 255,
 
                     this,
                     true,
