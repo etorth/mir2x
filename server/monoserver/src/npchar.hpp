@@ -31,17 +31,17 @@ class NPChar final: public CharObject
             private:
                 struct LuaNPCSession
                 {
-                    uint64_t from  = 0;
-                    uint64_t seqID = 0;
-
+                    uint64_t from = 0;
                     std::string event;
                     std::string value;
 
-                    sol::thread    co_runner;
+                    const uint64_t seqID;
+                    sol::thread co_runner;
                     sol::coroutine co_callback;
 
                     LuaNPCSession(LuaNPCModule *luaModulePtr)
-                        : co_runner(sol::thread::create(luaModulePtr->getLuaState().lua_state()))
+                        : seqID(luaModulePtr->peekSeqID())
+                        , co_runner(sol::thread::create(luaModulePtr->getLuaState().lua_state()))
                         , co_callback(sol::state_view(co_runner.state())["main"])
                     {}
                 };
@@ -60,6 +60,12 @@ class NPChar final: public CharObject
                 void close(uint64_t uid)
                 {
                     m_sessionList.erase(uid);
+                }
+
+            public:
+                uint64_t peekSeqID()
+                {
+                    return m_seqID++;
                 }
         };
 

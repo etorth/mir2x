@@ -415,7 +415,6 @@ void NPChar::LuaNPCModule::setEvent(uint64_t sessionUID, uint64_t from, std::str
     // call the coroutine to make it stuck at pollEvent()
 
     p->second.from  = from;
-    p->second.seqID = m_seqID++;
     p->second.event = std::move(event);
     p->second.value = std::move(value);
 
