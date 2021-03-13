@@ -75,7 +75,7 @@ void NPChar::on_AM_NPCEVENT(const ActorMsgPack &mpk)
         m_luaModulePtr->close(mpk.from());
         return;
     }
-    m_luaModulePtr->setEvent(mpk.from(), mpk.from(), amNPCE.event, amNPCE.value, 0);
+    m_luaModulePtr->setEvent(mpk.from(), mpk.from(), amNPCE.event, amNPCE.value);
 }
 
 void NPChar::on_AM_NOTIFYNEWCO(const ActorMsgPack &mpk)

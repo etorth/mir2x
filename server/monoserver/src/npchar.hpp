@@ -35,6 +35,15 @@ class NPChar final: public CharObject
                     std::string event;
                     std::string value;
 
+                    // scenario why adding seqID:
+                    // 1. received an event which triggers processNPCEvent(event)
+                    // 2. inside processNPCEvent(event) the script emits query to other actor
+                    // 3. when waiting for the response of the query, user clicked the close button to end up the session
+                    // 4. receives the query response, we should ignore it
+                    //
+                    // to fix this we have to give every session an uniq seqID
+                    // and the query response needs to match the seqID
+
                     const uint64_t seqID;
                     sol::thread co_runner;
                     sol::coroutine co_callback;
@@ -54,7 +63,7 @@ class NPChar final: public CharObject
                 LuaNPCModule(NPChar *);
 
             public:
-                void setEvent(uint64_t sessionUID, uint64_t from, std::string event, std::string value, uint64_t seqID);
+                void setEvent(uint64_t sessionUID, uint64_t from, std::string event, std::string value);
 
             public:
                 void close(uint64_t uid)

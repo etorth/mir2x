@@ -362,10 +362,10 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npc)
         R"###( has_processNPCEvent(true, SYS_NPCINIT)                          )###""\n");
 }
 
-void NPChar::LuaNPCModule::setEvent(uint64_t sessionUID, uint64_t from, std::string event, std::string value, uint64_t seqID)
+void NPChar::LuaNPCModule::setEvent(uint64_t sessionUID, uint64_t from, std::string event, std::string value)
 {
     if(!(sessionUID && from && !event.empty())){
-        throw fflerror("invalid argument: sessionUID = %llu, from = %llu, event = %s, value = %s, seqID = %llu", to_llu(sessionUID), to_llu(from), to_cstr(event), to_cstr(value), to_llu(seqID));
+        throw fflerror("invalid argument: sessionUID = %llu, from = %llu, event = %s, value = %s", to_llu(sessionUID), to_llu(from), to_cstr(event), to_cstr(value));
     }
 
     if(event == SYS_NPCDONE){
@@ -390,19 +390,10 @@ void NPChar::LuaNPCModule::setEvent(uint64_t sessionUID, uint64_t from, std::str
 
     auto p = m_sessionList.find(sessionUID);
     if(p == m_sessionList.end()){
-        // TODO bug:
-        // 1. received an event which triggers processNPCEvent(event)
-        // 2. inside processNPCEvent(event) the script emits query to other actor
-        // 3. when waiting for the response of the query, user clicked the close button to end up the session
-        // 4. receives the query response, we should ignore it
-        //
-        // to fix this bug we have to give every session an uniq seqID
-        // and the query response needs to match the seqID, not implemented yet
         p = m_sessionList.insert({sessionUID, LuaNPCModule::LuaNPCSession(this)}).first;
 
         // initial call to make main reaches its event polling point
         // need to assign event to let it advance
-
         const auto result = p->second.co_callback(std::to_string(sessionUID));
         fnCheckCOResult(result);
     }
@@ -531,11 +522,19 @@ void NPChar::sendQuery(uint64_t sessionUID, uint64_t uid, const std::string &que
             throw fflerror("query sent to uid %llu but get response from %llu", to_llu(uid), to_llu(mpk.from()));
         }
 
+        if(mpk.seqID()){
+            throw fflerror("query result expects response");
+        }
+
+        if(m_luaModulePtr->getSessionSeqID(sessionUID) != seqID){
+            return;
+        }
+
         switch(mpk.type()){
             case AM_NPCEVENT:
                 {
                     const auto amNPCE = mpk.conv<AMNPCEvent>();
-                    m_luaModulePtr->setEvent(sessionUID, uid, amNPCE.event, amNPCE.value, seqID);
+                    m_luaModulePtr->setEvent(sessionUID, uid, amNPCE.event, amNPCE.value);
                     return;
                 }
             default:
