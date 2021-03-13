@@ -54,7 +54,7 @@ class NPChar final: public CharObject
                 LuaNPCModule(NPChar *);
 
             public:
-                void setEvent(uint64_t sessionUID, uint64_t from, std::string event, std::string value);
+                void setEvent(uint64_t sessionUID, uint64_t from, std::string event, std::string value, uint64_t seqID);
 
             public:
                 void close(uint64_t uid)
@@ -65,7 +65,21 @@ class NPChar final: public CharObject
             public:
                 uint64_t peekSeqID()
                 {
-                    return m_seqID++;
+                    m_seqID++;
+                    if(m_seqID == 0){
+                        m_seqID = 1;
+                    }
+                    return m_seqID;
+                }
+
+                uint64_t getSessionSeqID(uint64_t sessionUID) const
+                {
+                    if(const auto p = m_sessionList.find(sessionUID); p != m_sessionList.end()){
+                        return p->second.seqID;
+                    }
+                    else{
+                        return 0;
+                    }
                 }
         };
 

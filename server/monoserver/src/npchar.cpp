@@ -362,10 +362,10 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npc)
         R"###( has_processNPCEvent(true, SYS_NPCINIT)                          )###""\n");
 }
 
-void NPChar::LuaNPCModule::setEvent(uint64_t sessionUID, uint64_t from, std::string event, std::string value)
+void NPChar::LuaNPCModule::setEvent(uint64_t sessionUID, uint64_t from, std::string event, std::string value, uint64_t seqID)
 {
     if(!(sessionUID && from && !event.empty())){
-        throw fflerror("invalid argument: sessionUID = %llu, from = %llu, event = %s, value = %s", to_llu(sessionUID), to_llu(from), to_cstr(event), to_cstr(value));
+        throw fflerror("invalid argument: sessionUID = %llu, from = %llu, event = %s, value = %s, seqID = %llu", to_llu(sessionUID), to_llu(from), to_cstr(event), to_cstr(value), to_llu(seqID));
     }
 
     if(event == SYS_NPCDONE){
@@ -515,12 +515,17 @@ void NPChar::sendQuery(uint64_t sessionUID, uint64_t uid, const std::string &que
     AMNPCQuery amNPCQ;
     std::memset(&amNPCQ, 0, sizeof(amNPCQ));
 
+    const auto seqID = m_luaModulePtr->getSessionSeqID(sessionUID);
+    if(!seqID){
+        throw fflerror("calling sendQuery(%llu, %llu, %s) outside of LuaNPCSession", to_llu(sessionUID), to_llu(uid), to_cstr(query));
+    }
+
     if(query.size() >= sizeof(amNPCQ.query)){
         throw fflerror("query name is too long: %s", query.c_str());
     }
 
     std::strcpy(amNPCQ.query, query.c_str());
-    m_actorPod->forward(uid, {AM_NPCQUERY, amNPCQ}, [sessionUID, uid, this](const ActorMsgPack &mpk)
+    m_actorPod->forward(uid, {AM_NPCQUERY, amNPCQ}, [sessionUID, uid, seqID, this](const ActorMsgPack &mpk)
     {
         if(uid != mpk.from()){
             throw fflerror("query sent to uid %llu but get response from %llu", to_llu(uid), to_llu(mpk.from()));
@@ -530,7 +535,7 @@ void NPChar::sendQuery(uint64_t sessionUID, uint64_t uid, const std::string &que
             case AM_NPCEVENT:
                 {
                     const auto amNPCE = mpk.conv<AMNPCEvent>();
-                    m_luaModulePtr->setEvent(sessionUID, uid, amNPCE.event, amNPCE.value);
+                    m_luaModulePtr->setEvent(sessionUID, uid, amNPCE.event, amNPCE.value, seqID);
                     return;
                 }
             default:
