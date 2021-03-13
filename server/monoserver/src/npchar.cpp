@@ -398,31 +398,16 @@ void NPChar::LuaNPCModule::setEvent(uint64_t sessionUID, uint64_t from, std::str
         //
         // to fix this bug we have to give every session an uniq seqID
         // and the query response needs to match the seqID, not implemented yet
-        LuaNPCModule::LuaNPCSession session;
-        session.uid    = sessionUID;
-        session.module = this;
-
-        session.co_handler.runner = sol::thread::create(getLuaState().lua_state());
-        session.co_handler.callback = sol::state_view(session.co_handler.runner.state())["main"];
-
-        p = m_sessionList.insert({sessionUID, std::move(session)}).first;
-
-        p->second.from = 0;
-        p->second.event.clear();
-        p->second.value.clear();
+        p = m_sessionList.insert({sessionUID, LuaNPCModule::LuaNPCSession(this)}).first;
 
         // initial call to make main reaches its event polling point
         // need to assign event to let it advance
 
-        const auto result = p->second.co_handler.callback(std::to_string(sessionUID));
+        const auto result = p->second.co_callback(std::to_string(sessionUID));
         fnCheckCOResult(result);
     }
 
-    if(p->second.uid != sessionUID){
-        throw fflerror("invalid session: session::uid = %llu, sessionUID = %llu", to_llu(p->second.uid), to_llu(sessionUID));
-    }
-
-    if(!p->second.co_handler.callback){
+    if(!p->second.co_callback){
         throw fflerror("lua coroutine is not callable");
     }
 
@@ -430,13 +415,14 @@ void NPChar::LuaNPCModule::setEvent(uint64_t sessionUID, uint64_t from, std::str
     // call the coroutine to make it stuck at pollEvent()
 
     p->second.from  = from;
+    p->second.seqID = m_seqID++;
     p->second.event = std::move(event);
     p->second.value = std::move(value);
 
-    const auto result = p->second.co_handler.callback();
+    const auto result = p->second.co_callback();
     fnCheckCOResult(result);
 
-    if(!p->second.co_handler.callback){
+    if(!p->second.co_callback){
         // not invocable anymore after the event-driven call
         // the event handling coroutine is done
         //

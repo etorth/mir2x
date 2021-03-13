@@ -31,21 +31,23 @@ class NPChar final: public CharObject
             private:
                 struct LuaNPCSession
                 {
-                    uint64_t uid;
-                    uint64_t from;
+                    uint64_t from  = 0;
+                    uint64_t seqID = 0;
+
                     std::string event;
                     std::string value;
 
-                    LuaNPCModule *module;
+                    sol::thread    co_runner;
+                    sol::coroutine co_callback;
 
-                    struct LuaCORunner
-                    {
-                        sol::thread runner;
-                        sol::coroutine callback;
-                    } co_handler;
+                    LuaNPCSession(LuaNPCModule *luaModulePtr)
+                        : co_runner(sol::thread::create(luaModulePtr->getLuaState().lua_state()))
+                        , co_callback(sol::state_view(co_runner.state())["main"])
+                    {}
                 };
 
             private:
+                uint64_t m_seqID = 0;
                 std::unordered_map<uint64_t, LuaNPCSession> m_sessionList;
 
             public:
