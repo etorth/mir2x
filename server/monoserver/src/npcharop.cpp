@@ -75,6 +75,14 @@ void NPChar::on_AM_NPCEVENT(const ActorMsgPack &mpk)
         m_luaModulePtr->close(mpk.from());
         return;
     }
+
+    // last session has not been done yet
+    // but player initializes new session, have to abandon last session and start a new one
+
+    if(m_luaModulePtr->getSessionSeqID(mpk.from())){
+        m_luaModulePtr->close(mpk.from());
+    }
+
     m_luaModulePtr->setEvent(mpk.from(), mpk.from(), amNPCE.event, amNPCE.value);
 }
 

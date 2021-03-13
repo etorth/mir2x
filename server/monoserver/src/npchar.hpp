@@ -38,7 +38,7 @@ class NPChar final: public CharObject
                     // scenario why adding seqID:
                     // 1. received an event which triggers processNPCEvent(event)
                     // 2. inside processNPCEvent(event) the script emits query to other actor
-                    // 3. when waiting for the response of the query, user clicked the close button to end up the session
+                    // 3. when waiting for the response of the query, user clicked the close button or click init button to end up the current session
                     // 4. receives the query response, we should ignore it
                     //
                     // to fix this we have to give every session an uniq seqID
