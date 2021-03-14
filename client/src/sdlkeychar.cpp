@@ -16,12 +16,12 @@
  * =====================================================================================
  */
 
-#include <map>
+#include <unordered_map>
 #include "sdlkeychar.hpp"
 
 char sdlKeyChar(const SDL_Event &event)
 {
-    const static std::map<SDL_Keycode, const char *> s_lookupTable
+    const static std::unordered_map<SDL_Keycode, const char *> s_lookupTable
     {
         {SDLK_SPACE,        " "   " " },
         {SDLK_QUOTE,        "'"   "\""},
@@ -73,7 +73,7 @@ char sdlKeyChar(const SDL_Event &event)
         {SDLK_z,            "z"   "Z" },
     };
 
-    if(auto p = s_lookupTable.find(event.key.keysym.sym); p != s_lookupTable.end()){
+    if(const auto p = s_lookupTable.find(event.key.keysym.sym); p != s_lookupTable.end()){
         return p->second[((event.key.keysym.mod & KMOD_LSHIFT) || (event.key.keysym.mod & KMOD_RSHIFT)) ? 1 : 0];
     }
     return '\0';
