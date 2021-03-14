@@ -65,11 +65,11 @@ class LuaModule
 //
 
 #define INCLUA_BEGIN(script_byte_type) \
-    []() \
+[]() \
 { \
     using _INCLUA_BYTE_TYPE = script_byte_type; \
     const char8_t *_dummy_cstr = u8"?"; \
-    \
+\
     const char8_t *_consume_decr_op = _dummy_cstr + 1; \
     const char8_t *_use_second_cstr[] \
     { \
