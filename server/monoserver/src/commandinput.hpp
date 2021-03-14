@@ -18,6 +18,7 @@
  */
 
 #pragma once
+#include <vector>
 #include "flinc.hpp"
 
 class CommandWindow;
@@ -27,9 +28,8 @@ class CommandInput : public Fl_Multiline_Input
         CommandWindow *m_window = nullptr;
 
     private:
-        // to support history scan
-        // int m_inputListPos;
-        // std::vector<std::string> m_inputList;
+        int m_inputListPos = 0;
+        std::vector<std::string> m_inputList;
 
     public:
         CommandInput(int argX, int argY, int argW, int argH, const char *labelCPtr = nullptr)

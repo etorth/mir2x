@@ -16,6 +16,7 @@
  * =====================================================================================
  */
 
+#include "totype.hpp"
 #include "monoserver.hpp"
 #include "threadpool.hpp"
 #include "commandinput.hpp"
@@ -27,21 +28,47 @@ int CommandInput::handle(int event)
     switch(event){
         case FL_KEYBOARD:
             {
-                switch(Fl::event_key()){
+                const std::string currCmdStr = value() ? value() : "";
+                switch(const auto key = Fl::event_key()){
                     case FL_Up:
+                    case FL_Down:
                         {
-                            // to check history
-                            break;
+                            if(!currCmdStr.empty()){
+                                return Fl_Multiline_Input::handle(event);
+                            }
+
+                            m_inputListPos += ((key == FL_Up) ? -1 : 1);
+                            if(m_inputListPos < 0){
+                                // stop at first line if push many UP key
+                                m_inputListPos = 0;
+                            }
+                            else if(m_inputListPos > to_d(m_inputList.size())){
+                                // stop at last blank line if push many DOWN key
+                                m_inputListPos = to_d(m_inputList.size());
+                            }
+
+                            if(m_inputListPos >= 0 && m_inputListPos < to_d(m_inputList.size())){
+                                value(m_inputList.at(m_inputListPos).c_str());
+                            }
+                            else{
+                                value("");
+                            }
+
+                            // to inform fltk that we have handled this event
+                            return 1;
                         }
                     case FL_Enter:
                         {
                             // if last char is escape as ``\"
                             // don't commit the command for execution
-                            const std::string cmdStr = value() ? value() : "";
-                            if(true && !cmdStr.empty()
-                                    &&  cmdStr.back() == '\\'){
+                            if(true && !currCmdStr.empty()
+                                    &&  currCmdStr.back() == '\\'){
                                 return Fl_Multiline_Input::handle(event);
                             }
+
+                            value("");
+                            m_inputList.push_back(currCmdStr);
+                            m_inputListPos = to_d(m_inputList.size());
 
                             if(true && m_window
                                     && m_window->getLuaModule()){
@@ -57,30 +84,30 @@ int CommandInput::handle(int event)
                                 // enter in command string will be commit to lua machine
                                 // but for echo we need to remove it
                                 size_t currLoc = 0;
-                                while(currLoc < cmdStr.size()){
-                                    const auto enterLoc = cmdStr.find_first_of('\n', currLoc);
+                                while(currLoc < currCmdStr.size()){
+                                    const auto enterLoc = currCmdStr.find_first_of('\n', currLoc);
                                     if(true
                                             && (enterLoc >= currLoc)
                                             && (enterLoc != std::string::npos)){
 
                                         // we do find an enter
                                         // remove the enter and print it
-                                        g_monoServer->addCWLogString(cwid, 0, "> ", cmdStr.substr(currLoc, enterLoc - currLoc).c_str());
+                                        g_monoServer->addCWLogString(cwid, 0, "> ", currCmdStr.substr(currLoc, enterLoc - currLoc).c_str());
                                         currLoc = enterLoc + 1;
                                     }else{
                                         // can't find a enter
                                         // we done here for the whole string
-                                        g_monoServer->addCWLogString(cwid, 0, "> ", cmdStr.substr(currLoc).c_str());
+                                        g_monoServer->addCWLogString(cwid, 0, "> ", currCmdStr.substr(currLoc).c_str());
                                         break;
                                     }
                                 }
 
                                 // 2. put a task in the LuaModule::TaskHub
                                 //    and return immediately for current thread
-                                globalThreadPool::postEvalTask([this, cwid, cmdStr](int)
+                                globalThreadPool::postEvalTask([this, cwid, currCmdStr](int)
                                 {
                                     const DisableFlWidget disable(this);
-                                    auto callResult = m_window->getLuaModule()->getLuaState().script(cmdStr.c_str(), [](lua_State *, sol::protected_function_result stResult)
+                                    auto callResult = m_window->getLuaModule()->getLuaState().script(currCmdStr.c_str(), [](lua_State *, sol::protected_function_result stResult)
                                     {
                                         // default handler
                                         // do nothing and let the call site handle the errors
@@ -106,8 +133,6 @@ int CommandInput::handle(int event)
                                     }
                                     m_window->redrawAll();
                                 });
-
-                                value("");
 
                                 // to inform fltk that we have handled this event
                                 return 1;
