@@ -101,15 +101,10 @@ class MonoServer final
         void logException(const std::exception &, std::string * = nullptr) noexcept;
 
     public:
-        void addCWLog(uint32_t,         // command window id
-                int,                    // log color in command window
-                                        // we don't support fileName/functionName here
-                                        // since addCWLog() is dedicated for lua command ``printLine"
-                const char *,           // prompt
-                const char *, ...);     // variadic argument list support std::vsnprintf()
+        void addCWLogString(uint32_t, int, const char *, const char *);
 
-        void addLog(const std::array<std::string, 4> &,     // argument list, compatible to Log::addLog()
-                const char *, ...);                         // variadic argument list supported by std::vsnprintf()
+    public:
+        void addLog(const std::array<std::string, 4> &, const char *, ...);
 
     private:
         void StartNetwork();

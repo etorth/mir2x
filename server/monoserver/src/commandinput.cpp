@@ -20,6 +20,7 @@
 #include "commandinput.hpp"
 #include "commandwindow.hpp"
 
+extern MonoServer *g_monoServer;
 int CommandInput::handle(int nEvent)
 {
     switch(nEvent){
@@ -66,17 +67,12 @@ int CommandInput::handle(int nEvent)
 
                                         // we do find an enter
                                         // remove the enter and print it
-
-                                        extern MonoServer *g_monoServer;
-                                        g_monoServer->addCWLog(nCWID, 0, "> ", szCommandStr.substr(nCurrLoc, nEnterLoc - nCurrLoc).c_str());
-
+                                        g_monoServer->addCWLogString(nCWID, 0, "> ", szCommandStr.substr(nCurrLoc, nEnterLoc - nCurrLoc).c_str());
                                         nCurrLoc = nEnterLoc + 1;
                                     }else{
                                         // can't find a enter
                                         // we done here for the whole string
-
-                                        extern MonoServer *g_monoServer;
-                                        g_monoServer->addCWLog(nCWID, 0, "> ", szCommandStr.substr(nCurrLoc).c_str());
+                                        g_monoServer->addCWLogString(nCWID, 0, "> ", szCommandStr.substr(nCurrLoc).c_str());
                                         break;
                                     }
                                 }
@@ -106,8 +102,7 @@ int CommandInput::handle(int nEvent)
 
                                         std::string szErrorLine;
                                         while(std::getline(stErrorStream, szErrorLine, '\n')){
-                                            extern MonoServer *g_monoServer;
-                                            g_monoServer->addCWLog(nCWID, 2, ">>> ", szErrorLine.c_str());
+                                            g_monoServer->addCWLogString(nCWID, 2, ">>> ", szErrorLine.c_str());
                                         }
                                     }
                                 });

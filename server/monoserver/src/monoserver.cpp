@@ -89,54 +89,26 @@ void MonoServer::addLog(const std::array<std::string, 4> &logDesc, const char *f
     }
 }
 
-void MonoServer::addCWLog(uint32_t nCWID, int nLogType, const char *szPrompt, const char *szLogFormat, ...)
+void MonoServer::addCWLogString(uint32_t cwID, int logType, const char *prompt, const char *log)
 {
-    auto fnCWRecordLog = [this](uint32_t nCWID, int nLogType, const char *szPrompt, const char *szLogMsg){
-        if(true
-                && (nCWID)
-                && (nLogType == 0 || nLogType == 1 || nLogType == 2)){
+    if(!str_haschar(prompt)){
+        prompt = "";
+    }
 
-            szPrompt = szPrompt ? szPrompt : "";
-            szLogMsg = szLogMsg ? szLogMsg : "";
+    if(cwID && (logType == 0 || logType == 1 || logType == 2)){
+        // we should lock the internal buffer record
+        // we won't assess any gui instance in this function
+        {
+            std::lock_guard<std::mutex> lockGuard(m_CWLogLock);
+            m_CWLogBuf.insert(m_CWLogBuf.end(), (char *)(&cwID), (char *)(&cwID) + sizeof(cwID));
+            m_CWLogBuf.push_back((char)(logType));
 
-            // we should lock the internal buffer record
-            // we won't assess any gui instance in this function
-            {
-                std::lock_guard<std::mutex> stLockGuard(m_CWLogLock);
-                m_CWLogBuf.insert(m_CWLogBuf.end(), (char *)(&nCWID), (char *)(&nCWID) + sizeof(nCWID));
-                m_CWLogBuf.push_back((char)(nLogType));
-
-                m_CWLogBuf.insert(m_CWLogBuf.end(), szPrompt, szPrompt + std::strlen(szPrompt) + 1);
-                m_CWLogBuf.insert(m_CWLogBuf.end(), szLogMsg, szLogMsg + std::strlen(szLogMsg) + 1);
-            }
-            notifyGUI("FlushCWBrowser");
+            const auto logString = to_cstr(log);
+            m_CWLogBuf.insert(m_CWLogBuf.end(), prompt, prompt + std::strlen(prompt) + 1);
+            m_CWLogBuf.insert(m_CWLogBuf.end(), logString, logString + std::strlen(logString) + 1);
         }
-    };
-
-    std::string szLog;
-    bool bError = false;
-    {
-        va_list ap;
-        va_start(ap, szLogFormat);
-
-        try{
-            szLog = str_vprintf(szLogFormat, ap);
-        }catch(const std::exception &e){
-            bError = true;
-            szLog = str_printf("Exception caught in MonoServer::addCWLog(CWID = %" PRIu32 ", \"%s\", ...): %s", nCWID, szLogFormat, e.what());
-        }
-
-        va_end(ap);
+        notifyGUI("FlushCWBrowser");
     }
-
-    if(bError){
-        addLog(LOGTYPE_WARNING, "%s", szLog.c_str());
-    }
-
-    if(bError){
-        nLogType = Log::LOGTYPEV_WARNING;
-    }
-    fnCWRecordLog(nCWID, nLogType, szPrompt, szLog.c_str());
 }
 
 bool MonoServer::hasDatabase() const
@@ -734,7 +706,7 @@ void MonoServer::FlushCWBrowser()
             auto pInfo0 = &(m_CWLogBuf[nCurrLoc + sizeof(nCWID) + 1]);
             auto pInfo1 = &(m_CWLogBuf[nCurrLoc + sizeof(nCWID) + 1 + nInfoLen0 + 1]);
 
-            g_mainWindow->addCWLog(nCWID, to_d(m_CWLogBuf[nCurrLoc + sizeof(nCWID)]), pInfo0, pInfo1);
+            g_mainWindow->addCWLogString(nCWID, to_d(m_CWLogBuf[nCurrLoc + sizeof(nCWID)]), pInfo0, pInfo1);
             nCurrLoc += (sizeof(nCWID) + 1 + nInfoLen0 + 1 + nInfoLen1 + 1);
         }
         m_CWLogBuf.clear();
@@ -772,7 +744,7 @@ void MonoServer::regLuaExport(CommandLuaModule *pModule, uint32_t nCWID)
     pModule->getLuaState().set_function("quit", [this, nCWID]()
     {
         // 1. show exiting messages
-        addCWLog(nCWID, 0, "> ", "Command window is requested to exit now...");
+        addCWLogString(nCWID, 0, "> ", "Command window is requested to exit now...");
 
         // 2. flush command windows
         //    we need to flush message before exit the command window
@@ -789,12 +761,12 @@ void MonoServer::regLuaExport(CommandLuaModule *pModule, uint32_t nCWID)
                 && stLogType.is<int>()
                 && stPrompt.is<std::string>()
                 && stLogInfo.is<std::string>()){
-            addCWLog(nCWID, stLogType.as<int>(), stPrompt.as<std::string>().c_str(), stLogInfo.as<std::string>().c_str());
+            addCWLogString(nCWID, stLogType.as<int>(), stPrompt.as<std::string>().c_str(), stLogInfo.as<std::string>().c_str());
             return;
         }
 
         // invalid argument provided
-        addCWLog(nCWID, 2, ">>> ", "printLine(LogType: int, Prompt: string, LogInfo: string)");
+        addCWLogString(nCWID, 2, ">>> ", "printLine(LogType: int, Prompt: string, LogInfo: string)");
     });
 
     // register command countMonster(monsterID, mapID)
@@ -802,7 +774,7 @@ void MonoServer::regLuaExport(CommandLuaModule *pModule, uint32_t nCWID)
     {
         auto nRet = GetMonsterCount(nMonsterID, nMapID).value_or(-1);
         if(nRet < 0){
-            addCWLog(nCWID, 2, ">>> ", "countMonster(MonsterID: int, mapID: int) failed");
+            addCWLogString(nCWID, 2, ">>> ", "countMonster(MonsterID: int, mapID: int) failed");
         }
         return nRet;
     });
@@ -823,9 +795,9 @@ void MonoServer::regLuaExport(CommandLuaModule *pModule, uint32_t nCWID)
     {
         auto fnPrintUsage = [this, nCWID]()
         {
-            addCWLog(nCWID, 2, ">>> ", "addMonster(MonsterID: int, mapID: int)");
-            addCWLog(nCWID, 2, ">>> ", "addMonster(MonsterID: int, mapID: int, X: int, Y: int)");
-            addCWLog(nCWID, 2, ">>> ", "addMonster(MonsterID: int, mapID: int, X: int, Y: int, Random: bool)");
+            addCWLogString(nCWID, 2, ">>> ", "addMonster(MonsterID: int, mapID: int)");
+            addCWLogString(nCWID, 2, ">>> ", "addMonster(MonsterID: int, mapID: int, X: int, Y: int)");
+            addCWLogString(nCWID, 2, ">>> ", "addMonster(MonsterID: int, mapID: int, X: int, Y: int, Random: bool)");
         };
 
         std::vector<sol::object> stArgList(stVariadicArgs.begin(), stVariadicArgs.end());
@@ -874,9 +846,9 @@ void MonoServer::regLuaExport(CommandLuaModule *pModule, uint32_t nCWID)
     {
         const auto fnUsage = [this, nCWID]()
         {
-            addCWLog(nCWID, 2, ">>> ", "addNPC(NPCID: int, mapID: int)");
-            addCWLog(nCWID, 2, ">>> ", "addNPC(NPCID: int, mapID: int, X: int, Y: int)");
-            addCWLog(nCWID, 2, ">>> ", "addNPC(NPCID: int, mapID: int, X: int, Y: int, Random: bool)");
+            addCWLogString(nCWID, 2, ">>> ", "addNPC(NPCID: int, mapID: int)");
+            addCWLogString(nCWID, 2, ">>> ", "addNPC(NPCID: int, mapID: int, X: int, Y: int)");
+            addCWLogString(nCWID, 2, ">>> ", "addNPC(NPCID: int, mapID: int, X: int, Y: int, Random: bool)");
         };
 
         const std::vector<sol::object> argList(args.begin(), args.end());

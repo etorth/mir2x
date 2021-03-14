@@ -985,9 +985,9 @@ class MainWindow {} {
 	m_browser->bottomline(m_browser->size());
 }} {}
   }
-  Function {addCWLog(int nCWID, int nLogType, const char *szPrompt, const char *szMessage)} {return_type void
+  Function {addCWLogString(int nCWID, int nLogType, const char *szPrompt, const char *szMessage)} {return_type void
   } {
-    code {// addCWLog(int nCWID, int nLogType, const char *szPrompt, const char *szMessage)
+    code {// addCWLogString(int nCWID, int nLogType, const char *szPrompt, const char *szMessage)
 {
     // this function only interact with FLTK
     // for multi-thread lock and unlock, don't put it here
