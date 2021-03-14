@@ -1,8 +1,11 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0303
+version 1.0304
 header_name {.hpp}
 code_name {.cpp}
-decl {\#include "taskhub.hpp"} {public global
+decl {\#include <memory>} {public global
+}
+
+decl {\#include "totype.hpp"} {public global
 }
 
 decl {\#include "commandinput.hpp"} {public global
@@ -15,24 +18,21 @@ class CommandWindow {open
 } {
   decl {int m_CWID;} {private local
   }
-  decl {TaskHub *m_luaModuleTaskHub;} {private local
+  decl {std::unique_ptr<CommandLuaModule> m_luaModule;} {private local
   }
-  decl {CommandLuaModule *m_luaModule;} {private local
-  }
-  Function {CommandWindow()} {open
-  } {
+  Function {CommandWindow()} {} {
     Fl_Window m_window {
       callback {// when get esc
 // 1. hide current window
 // 2. activate its menuitem in main window
 // won't do any destruction inside callback, do it by ``exit()" in lua
 {
-    HideAll();
+    hideAll();
 
     extern MainWindow *g_mainWindow;
-    g_mainWindow->HideCommandWindow(GetCWID());
-}} open
-      xywh {888 311 580 400} type Double resizable
+    g_mainWindow->HideCommandWindow(getCWID());
+}}
+      xywh {2569 270 580 400} type Double resizable
       code0 {\#include "mainwindow.hpp"} visible
     } {
       Fl_Menu_Bar {} {
@@ -71,23 +71,21 @@ class CommandWindow {open
         }
     }
 
-}} selected
+}}
         xywh {0 25 580 350} type Hold labelfont 4 textfont 4
       }
     }
     code {{
-    // initialization of the lua module and its taskhub
-    m_CWID             = 0;
-    m_luaModuleTaskHub = nullptr;
-	m_luaModule        = nullptr;
+    // initialization of the lua module
+    m_CWID = 0;
 	
 	// bind current window to CommandInput
 	// which helps to do event logic handling inside CommandInput
 	// avoid to do it in CommandWindow::handle(int)
-	m_input->Bind(this);
+	m_input->bind(this);
 }} {}
   }
-  Function {HideAll()} {return_type void
+  Function {hideAll()} {return_type void
   } {
     code {{
 	m_window->hide();
@@ -99,57 +97,36 @@ class CommandWindow {open
 	m_window->show();
 }} {}
   }
-  Function {GetTaskHub()} {return_type {TaskHub *}
-  } {
-    code {{
-	// won't put any cv-qualifiers
-	// expose the TaskHub interface to outside
-	return m_luaModuleTaskHub;
-}} {}
-  }
-  Function {GetLuaModule()} {return_type {CommandLuaModule *}
+  Function {getLuaModule()} {return_type {CommandLuaModule *}
   } {
     code {{
 	// won't put any cv-qualifiers
 	// expose the TaskHub interface to outside
 	// then I don't have do implement CommandWindow::Execute(const char *)
-	return m_luaModule;
+	return m_luaModule.get();
 }} {}
   }
-  Function {DetachLuaModule()} {return_type void
+  Function {detachLuaModule()} {open return_type void
   } {
     code {{
-	// won't put any cv-qualifiers
-	// expose the TaskHub interface to outside
-	// then I don't have do implement CommandWindow::Execute(const char *)
-    m_luaModuleTaskHub->Shutdown();
-
-    delete m_luaModule;        m_luaModule        = nullptr;
-    delete m_luaModuleTaskHub; m_luaModuleTaskHub = nullptr;
+    m_luaModule.reset();
 }} {}
   }
-  Function {BindLuaModule(int nCWID)} {return_type void
+  Function {bindLuaModule(int cwid)} {return_type void
   } {
     code {{
     // activate the internal LuaModule and its TaskHub
     // after this line the LuaModule grants a CWID to print
     // and LuaModuleTaskHub has an LuaModule as command input
     {
-        if(nCWID > 0){
-            condcheck(m_luaModule        == nullptr);
-            condcheck(m_luaModuleTaskHub == nullptr);
-
-            m_CWID             = nCWID;
-            m_luaModuleTaskHub = new TaskHub();
-            m_luaModule        = new CommandLuaModule(to_u32(nCWID));
-
-            // start the hub now
-            m_luaModuleTaskHub->Launch();
+        if(cwid > 0){
+            m_CWID = cwid;
+            m_luaModule = std::make_unique<CommandLuaModule>(to_u32(cwid));
         }
     }
 }} {}
   }
-  Function {addLog(int nLogType, const char *szPrompt, const char *szLogInfo)} {return_type void
+  Function {addLog(int logType, const char *prompt, const char *logInfo)} {return_type void
   } {
     code {{
     // log can be multiply lines but only do one line for this call
@@ -159,25 +136,25 @@ class CommandWindow {open
         m_browser->remove(1);
     }
 
-    const char *pColorCode = nullptr;
-    switch(nLogType){
-        case 0  : pColorCode = "@C4"; break;
-        case 1  : pColorCode = "@C9"; break;
-        default : pColorCode = "@C1"; break;
+    const char *colorCodeCPtr = nullptr;
+    switch(logType){
+        case 0  : colorCodeCPtr = "@C4"; break;
+        case 1  : colorCodeCPtr = "@C9"; break;
+        default : colorCodeCPtr = "@C1"; break;
     }
 
-    m_browser->add(((std::string(pColorCode) + (szPrompt ? szPrompt : "")) + (szLogInfo ? szLogInfo : "")).c_str());
+    m_browser->add(((std::string(colorCodeCPtr) + (prompt ? prompt : "")) + (logInfo ? logInfo : "")).c_str());
     m_browser->bottomline(m_browser->size());
 }} {}
   }
-  Function {ClearBrowser()} {return_type void
+  Function {clearBrowser()} {return_type void
   } {
     code {{
     // clear all history of current browser
     m_browser->clear();
 }} {}
   }
-  Function {GetCWID()} {return_type int
+  Function {getCWID()} {return_type int
   } {
     code {{
     return m_CWID;

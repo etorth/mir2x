@@ -31,9 +31,7 @@
 #include "log.hpp"
 #include "message.hpp"
 #include "totype.hpp"
-#include "taskhub.hpp"
 #include "raiitimer.hpp"
-#include "eventtaskhub.hpp"
 #include "commandluamodule.hpp"
 
 class ServiceCore;

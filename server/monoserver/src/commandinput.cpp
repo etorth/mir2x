@@ -17,6 +17,7 @@
  */
 
 #include "monoserver.hpp"
+#include "threadpool.hpp"
 #include "commandinput.hpp"
 #include "commandwindow.hpp"
 
@@ -43,17 +44,15 @@ int CommandInput::handle(int nEvent)
                                 return Fl_Multiline_Input::handle(nEvent);
                             }
 
-                            if(true
-                                    && m_window
-                                    && m_window->GetTaskHub()
-                                    && m_window->GetLuaModule()){
+                            if(true && m_window
+                                    && m_window->getLuaModule()){
 
                                 // 1. print current command for echo
                                 //    should give method to disable the echo
 
                                 // won't use CommandWindow::AddLog() directly
                                 // use MonoServer::AddCWLog() for thread-safe access
-                                int nCWID = m_window->GetLuaModule()->CWID();
+                                int nCWID = m_window->getLuaModule()->CWID();
 
                                 // we echo the command to the command window
                                 // enter in command string will be commit to lua machine
@@ -79,22 +78,23 @@ int CommandInput::handle(int nEvent)
 
                                 // 2. put a task in the LuaModule::TaskHub
                                 //    and return immediately for current thread
-                                m_window->GetTaskHub()->Add([this, nCWID, szCommandStr]()
+                                globalThreadPool::postEvalTask([this, nCWID, szCommandStr](int)
                                 {
-                                    auto stCallResult = m_window->GetLuaModule()->getLuaState().script(szCommandStr.c_str(),
-                                    [](lua_State *, sol::protected_function_result stResult)
+                                    deactivate();
+                                    auto callResult = m_window->getLuaModule()->getLuaState().script(szCommandStr.c_str(), [](lua_State *, sol::protected_function_result stResult)
                                     {
                                         // default handler
                                         // do nothing and let the call site handle the errors
                                         return stResult;
                                     });
 
-                                    if(stCallResult.valid()){
+                                    if(callResult.valid()){
                                         // default nothing printed
                                         // we can put information here to show call succeeds
                                         // or we can unlock the input widget to allow next command
-                                    }else{
-                                        sol::error stError = stCallResult;
+                                    }
+                                    else{
+                                        sol::error stError = callResult;
                                         std::stringstream stErrorStream(stError.what());
 
                                         // need to handle here
@@ -105,6 +105,7 @@ int CommandInput::handle(int nEvent)
                                             g_monoServer->addCWLogString(nCWID, 2, ">>> ", szErrorLine.c_str());
                                         }
                                     }
+                                    activate();
                                 });
 
                                 value("");

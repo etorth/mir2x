@@ -24,7 +24,7 @@ class CommandWindow;
 class CommandInput : public Fl_Multiline_Input
 {
     private:
-        CommandWindow *m_window;
+        CommandWindow *m_window = nullptr;
 
     private:
         // to support history scan
@@ -34,13 +34,12 @@ class CommandInput : public Fl_Multiline_Input
     public:
         CommandInput(int nX, int nY, int nW, int nH, const char *pLabel = nullptr)
             : Fl_Multiline_Input(nX, nY, nW, nH, pLabel)
-            , m_window(nullptr)
         {}
 
     public:
-        void Bind(CommandWindow *pWindow)
+        void bind(CommandWindow *winPtr)
         {
-            m_window = pWindow;
+            m_window = winPtr;
         }
 
     public:

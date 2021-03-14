@@ -612,7 +612,7 @@ class MainWindow {} {
                 pCW->showAll();
                 (m_menuItemFirstCW + (nIndex - 1))->deactivate();
             }else{
-                pCW->HideAll();
+                pCW->hideAll();
                 (m_menuItemFirstCW + (nIndex - 1))->activate();
             }
         }
@@ -1040,7 +1040,7 @@ class MainWindow {} {
             pMenuItem->deactivate();
             pMenuItem->show();
 
-            pCW->BindLuaModule(to_u32(pMenuItem - m_menuItemFirstCW + 1));
+            pCW->bindLuaModule(to_u32(pMenuItem - m_menuItemFirstCW + 1));
             pCW->showAll();
 
             // the first item return 1
@@ -1071,15 +1071,15 @@ class MainWindow {} {
 
         // 0. clear all history of the window
         //    we need a clean browser when we reuse it next time
-        ((CommandWindow *)(pMenuItem->user_data()))->ClearBrowser();
+        ((CommandWindow *)(pMenuItem->user_data()))->clearBrowser();
 
         // 1. detach the lua module inside it
         //    this will delete the internal lua module and its task hub
-        ((CommandWindow *)(pMenuItem->user_data()))->DetachLuaModule();
+        ((CommandWindow *)(pMenuItem->user_data()))->detachLuaModule();
 
         // 2. hide the command window
         //    won't delete it, avoid delete widgets in FLTK
-        ((CommandWindow *)(pMenuItem->user_data()))->HideAll();
+        ((CommandWindow *)(pMenuItem->user_data()))->hideAll();
 
         // 3. hide the menu item for the command window
         pMenuItem->hide();

@@ -30,7 +30,6 @@
 #include "charobject.hpp"
 #include "actormsgpack.hpp"
 #include "protocoldef.hpp"
-#include "eventtaskhub.hpp"
 
 extern MonoServer *g_monoServer;
 

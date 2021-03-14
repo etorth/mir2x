@@ -29,7 +29,6 @@
 #include "jobf.hpp"
 #include "dbpod.hpp"
 #include "totype.hpp"
-#include "taskhub.hpp"
 #include "message.hpp"
 #include "monster.hpp"
 #include "mapbindb.hpp"
@@ -40,7 +39,6 @@
 #include "monoserver.hpp"
 #include "dispatcher.hpp"
 #include "servicecore.hpp"
-#include "eventtaskhub.hpp"
 #include "commandwindow.hpp"
 
 extern Log *g_log;
