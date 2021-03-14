@@ -18,32 +18,11 @@
  */
 
 #pragma once
-#include <Fl/Fl_Multiline_Input.H>
+#include "flinc.hpp"
 
 class CommandWindow;
 class CommandInput : public Fl_Multiline_Input
 {
-    private:
-        class DisableCommandInput final
-        {
-            private:
-                CommandInput *m_input;
-
-            public:
-                DisableCommandInput(CommandInput *input)
-                    : m_input(input)
-                {
-                    m_input->deactivate();
-                }
-
-            public:
-                ~DisableCommandInput()
-                {
-                    m_input->activate();
-                    m_input->redraw();
-                }
-        };
-
     private:
         CommandWindow *m_window = nullptr;
 

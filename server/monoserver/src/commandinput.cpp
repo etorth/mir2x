@@ -80,7 +80,7 @@ int CommandInput::handle(int nEvent)
                                 //    and return immediately for current thread
                                 globalThreadPool::postEvalTask([this, nCWID, szCommandStr](int)
                                 {
-                                    const DisableCommandInput disable(this);
+                                    const DisableFlWidget disable(this);
                                     auto callResult = m_window->getLuaModule()->getLuaState().script(szCommandStr.c_str(), [](lua_State *, sol::protected_function_result stResult)
                                     {
                                         // default handler
