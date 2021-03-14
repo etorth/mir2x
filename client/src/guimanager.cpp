@@ -46,17 +46,17 @@ GUIManager::GUIManager(ProcessRun *proc)
           proc,
       }
 
-    , m_mmapBoard
-      {
-          proc,
-      }
-
     , m_skillBoard
       {
           g_sdlDevice->getRendererWidth()  / 2 - 180,
           g_sdlDevice->getRendererHeight() / 2 - 224,
           proc,
           this,
+      }
+
+    , m_miniMapBoard
+      {
+          proc,
       }
 
     , m_purchaseBoard
@@ -104,7 +104,7 @@ GUIManager::GUIManager(ProcessRun *proc)
 
 void GUIManager::drawEx(int, int, int, int, int, int) const
 {
-    m_mmapBoard    .draw();
+    m_miniMapBoard .draw();
     m_NPCChatBoard .draw();
     m_controlBoard .draw();
     m_purchaseBoard.draw();
@@ -135,7 +135,9 @@ bool GUIManager::processEvent(const SDL_Event &event, bool valid)
                             std::tie(m_w, m_h) = g_sdlDevice->getRendererSize();
                             m_controlBoard.onWindowResize(w(), h());
                             m_controlBoard.moveTo(0, h() - 133);
-                            m_mmapBoard.setLoc();
+                            if(m_miniMapBoard.getMiniMapTexture()){
+                                m_miniMapBoard.setLoc();
+                            }
                             return true;
                         }
                     default:
@@ -155,7 +157,7 @@ bool GUIManager::processEvent(const SDL_Event &event, bool valid)
     tookEvent |= WidgetGroup  ::processEvent(event, valid && !tookEvent);
     tookEvent |= m_controlBoard.processEvent(event, valid && !tookEvent);
     tookEvent |= m_NPCChatBoard.processEvent(event, valid && !tookEvent);
-    tookEvent |= m_mmapBoard   .processEvent(event, valid && !tookEvent);
+    tookEvent |= m_miniMapBoard.processEvent(event, valid && !tookEvent);
 
     return tookEvent;
 }
@@ -183,7 +185,7 @@ Widget *GUIManager::getWidget(const std::string &widgetName)
     }
 
     if(widgetName == "MiniMapBoard"){
-        return &m_mmapBoard;
+        return &m_miniMapBoard;
     }
 
     if(widgetName == "PlayerStatusBoard"){

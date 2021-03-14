@@ -39,8 +39,8 @@ class GUIManager: public WidgetGroup
         ControlBoard m_controlBoard;
 
     private:
-        MiniMapBoard m_mmapBoard;
         SkillBoard m_skillBoard;
+        MiniMapBoard m_miniMapBoard;
         PurchaseBoard m_purchaseBoard;
         InventoryBoard m_inventoryBoard;
         QuickAccessBoard m_quickAccessBoard;
