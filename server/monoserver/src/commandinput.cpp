@@ -121,11 +121,11 @@ int CommandInput::handle(int event)
                                 globalThreadPool::postEvalTask([this, cwid, currCmdStr](int)
                                 {
                                     const DisableFlWidget disable(this);
-                                    auto callResult = m_window->getLuaModule()->getLuaState().script(currCmdStr.c_str(), [](lua_State *, sol::protected_function_result stResult)
+                                    auto callResult = m_window->getLuaModule()->getLuaState().script(currCmdStr.c_str(), [](lua_State *, sol::protected_function_result result)
                                     {
                                         // default handler
                                         // do nothing and let the call site handle the errors
-                                        return stResult;
+                                        return result;
                                     });
 
                                     if(callResult.valid()){
