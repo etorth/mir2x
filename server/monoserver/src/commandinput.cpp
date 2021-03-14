@@ -33,29 +33,31 @@ int CommandInput::handle(int event)
                     case FL_Up:
                     case FL_Down:
                         {
-                            if(!currCmdStr.empty()){
+                            if(currCmdStr.empty() || (m_inputListPos >= 0 && m_inputListPos < to_d(m_inputList.size()))){
+                                m_inputListPos += ((key == FL_Up) ? -1 : 1);
+                                if(m_inputListPos < 0){
+                                    // stop at first line if push many UP key
+                                    m_inputListPos = 0;
+                                }
+                                else if(m_inputListPos > to_d(m_inputList.size())){
+                                    // stop at last blank line if push many DOWN key
+                                    m_inputListPos = to_d(m_inputList.size());
+                                }
+
+                                if(m_inputListPos >= 0 && m_inputListPos < to_d(m_inputList.size())){
+                                    value(m_inputList.at(m_inputListPos).c_str());
+                                }
+                                else{
+                                    value("");
+                                }
+
+                                // to inform fltk that we have handled this event
+                                return 1;
+                            }
+
+                            else{
                                 return Fl_Multiline_Input::handle(event);
                             }
-
-                            m_inputListPos += ((key == FL_Up) ? -1 : 1);
-                            if(m_inputListPos < 0){
-                                // stop at first line if push many UP key
-                                m_inputListPos = 0;
-                            }
-                            else if(m_inputListPos > to_d(m_inputList.size())){
-                                // stop at last blank line if push many DOWN key
-                                m_inputListPos = to_d(m_inputList.size());
-                            }
-
-                            if(m_inputListPos >= 0 && m_inputListPos < to_d(m_inputList.size())){
-                                value(m_inputList.at(m_inputListPos).c_str());
-                            }
-                            else{
-                                value("");
-                            }
-
-                            // to inform fltk that we have handled this event
-                            return 1;
                         }
                     case FL_Enter:
                         {
@@ -83,6 +85,18 @@ int CommandInput::handle(int event)
                                 // we echo the command to the command window
                                 // enter in command string will be commit to lua machine
                                 // but for echo we need to remove it
+
+                                auto fnGetPrompt = [first = true]() mutable
+                                {
+                                    if(first){
+                                        first = false;
+                                        return "$ ";
+                                    }
+                                    else{
+                                        return "> ";
+                                    }
+                                };
+
                                 size_t currLoc = 0;
                                 while(currLoc < currCmdStr.size()){
                                     const auto enterLoc = currCmdStr.find_first_of('\n', currLoc);
@@ -92,12 +106,12 @@ int CommandInput::handle(int event)
 
                                         // we do find an enter
                                         // remove the enter and print it
-                                        g_monoServer->addCWLogString(cwid, 0, "> ", currCmdStr.substr(currLoc, enterLoc - currLoc).c_str());
+                                        g_monoServer->addCWLogString(cwid, 0, fnGetPrompt(), currCmdStr.substr(currLoc, enterLoc - currLoc).c_str());
                                         currLoc = enterLoc + 1;
                                     }else{
                                         // can't find a enter
                                         // we done here for the whole string
-                                        g_monoServer->addCWLogString(cwid, 0, "> ", currCmdStr.substr(currLoc).c_str());
+                                        g_monoServer->addCWLogString(cwid, 0, fnGetPrompt(), currCmdStr.substr(currLoc).c_str());
                                         break;
                                     }
                                 }
