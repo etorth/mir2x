@@ -30,12 +30,6 @@ LuaModule::LuaModule()
     : m_luaState()
 {
     m_luaState.open_libraries();
-    m_luaState.script(
-            R"###( LOGTYPE_INFO    = 0 )###""\n"
-            R"###( LOGTYPE_WARNING = 1 )###""\n"
-            R"###( LOGTYPE_FATAL   = 2 )###""\n"
-            R"###( LOGTYPE_DEBUG   = 3 )###""\n");
-
     m_luaState.script(str_printf("UID_ERR = %d", UID_ERR));
     m_luaState.script(str_printf("UID_COR = %d", UID_COR));
     m_luaState.script(str_printf("UID_NPC = %d", UID_NPC));
@@ -50,7 +44,7 @@ LuaModule::LuaModule()
     m_luaState.script(str_printf("SYS_NPCQUERY = \"%s\"", SYS_NPCQUERY));
     m_luaState.script(str_printf("SYS_NPCERROR = \"%s\"", SYS_NPCERROR));
 
-    m_luaState.set_function("addLog", [this](sol::object logType, sol::object logInfo)
+    m_luaState.set_function("addLogString", [this](sol::object logType, sol::object logInfo)
     {
         if(logType.is<int>() && logInfo.is<std::string>()){
             addLog(logType.as<int>(), to_u8cstr(logInfo.as<std::string>()));
@@ -58,68 +52,21 @@ LuaModule::LuaModule()
         }
 
         if(logType.is<int>()){
-            addLog(1, to_u8cstr(str_printf("Invalid argument: addLog(%d, \"?\")", logType.as<int>())));
+            addLog(1, to_u8cstr(str_printf("Invalid argument: addLogString(%d, \"?\")", logType.as<int>())));
             return;
         }
 
         if(logInfo.is<std::string>()){
-            addLog(1, to_u8cstr(str_printf("Invalid argument: addLog(?, \"%s\")", logInfo.as<std::string>().c_str())));
+            addLog(1, to_u8cstr(str_printf("Invalid argument: addLogString(?, \"%s\")", logInfo.as<std::string>().c_str())));
             return;
         }
 
-        addLog(1, u8"Invalid argument: addLog(?, \"?\")");
-        return;
+        addLog(1, u8"Invalid argument: addLogString(?, \"?\")");
     });
 
-    m_luaState.script(
-            R"###( function errorPrintf(s, ...)                                             )###""\n"
-            R"###(     if type(s) ~= 'string' then                                          )###""\n"
-            R"###(         error('errorPrintf(s, ...): expects string but get ' .. type(s)) )###""\n"
-            R"###(     end                                                                  )###""\n"
-            R"###(     error(s:format(...))                                                 )###""\n"
-            R"###( end                                                                      )###""\n"
-            R"###(                                                                          )###""\n"
-            R"###( function getFileName()                                                   )###""\n"
-            R"###(     return debug.getinfo(2, 'S').short_src                               )###""\n"
-            R"###( end                                                                      )###""\n"
-            R"###(                                                                          )###""\n"
-            R"###( function getBackTraceLine()                                              )###""\n"
-            R"###(     local info = debug.getinfo(3, "Sl")                                  )###""\n"
-            R"###(                                                                          )###""\n"
-            R"###(     -- check if the backtracing info valid                               )###""\n"
-            R"###(     -- if not valid we return a empty string to addLog()                 )###""\n"
-            R"###(                                                                          )###""\n"
-            R"###(     if not info then                                                     )###""\n"
-            R"###(         return ""                                                        )###""\n"
-            R"###(     end                                                                  )###""\n"
-            R"###(                                                                          )###""\n"
-            R"###(     -- if it's invoked by a C function like:                             )###""\n"
-            R"###(     --     LuaModule["addLog"]("hello world")                            )###""\n"
-            R"###(     -- then return "C_FUNC"                                              )###""\n"
-            R"###(                                                                          )###""\n"
-            R"###(     if info.what == "C" then                                             )###""\n"
-            R"###(        return "C_FUNC"                                                   )###""\n"
-            R"###(     end                                                                  )###""\n"
-            R"###(                                                                          )###""\n"
-            R"###(     -- invoked from a lua function                                       )###""\n"
-            R"###(     -- return the invocation layer information                           )###""\n"
-            R"###(                                                                          )###""\n"
-            R"###(     return string.format("[%s]: %d", info.short_src, info.currentline)   )###""\n"
-            R"###( end                                                                      )###""\n"
-            R"###(                                                                          )###""\n"
-            R"###( function addExtLog(logType, logInfo)                                     )###""\n"
-            R"###(                                                                          )###""\n"
-            R"###(     -- add type checking here                                            )###""\n"
-            R"###(     -- need logType as int and logInfo as string                         )###""\n"
-            R"###(                                                                          )###""\n"
-            R"###(     if type(logType) == 'number' and type(logInfo) == 'string' then      )###""\n"
-            R"###(         addLog(logType, getBackTraceLine() .. ': ' .. logInfo)           )###""\n"
-            R"###(         return                                                           )###""\n"
-            R"###(     end                                                                  )###""\n"
-            R"###(                                                                          )###""\n"
-            R"###(     -- else we need to give warning                                      )###""\n"
-            R"###(     addLog(1, 'addExtLog(logType: int, logInfo: string)')                )###""\n"
-            R"###( end                                                                      )###""\n");
+    m_luaState.script(INCLUA_BEGIN(char)
+#include "luamodule.lua"
+    INCLUA_END());
 
     m_luaState.set_function("uidType", [](std::string uidString)
     {
