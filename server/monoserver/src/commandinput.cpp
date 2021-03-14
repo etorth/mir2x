@@ -80,7 +80,7 @@ int CommandInput::handle(int nEvent)
                                 //    and return immediately for current thread
                                 globalThreadPool::postEvalTask([this, nCWID, szCommandStr](int)
                                 {
-                                    deactivate();
+                                    const DisableCommandInput disable(this);
                                     auto callResult = m_window->getLuaModule()->getLuaState().script(szCommandStr.c_str(), [](lua_State *, sol::protected_function_result stResult)
                                     {
                                         // default handler
@@ -94,18 +94,17 @@ int CommandInput::handle(int nEvent)
                                         // or we can unlock the input widget to allow next command
                                     }
                                     else{
-                                        sol::error stError = callResult;
-                                        std::stringstream stErrorStream(stError.what());
+                                        sol::error err = callResult;
+                                        std::stringstream errStream(err.what());
 
                                         // need to handle here
                                         // error message could be more than one line
 
-                                        std::string szErrorLine;
-                                        while(std::getline(stErrorStream, szErrorLine, '\n')){
-                                            g_monoServer->addCWLogString(nCWID, 2, ">>> ", szErrorLine.c_str());
+                                        std::string errLine;
+                                        while(std::getline(errStream, errLine, '\n')){
+                                            g_monoServer->addCWLogString(nCWID, 2, ">>> ", errLine.c_str());
                                         }
                                     }
-                                    activate();
                                 });
 
                                 value("");
