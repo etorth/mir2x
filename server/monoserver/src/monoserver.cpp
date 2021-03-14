@@ -753,20 +753,20 @@ void MonoServer::regLuaExport(CommandLuaModule *pModule, uint32_t nCWID)
         notifyGUI(std::string("ExitCW\n") + std::to_string(nCWID));
     });
 
-    // register command printLine
+    // register command addCWLogString
     // print one line in command window, won't add message to log system
-    pModule->getLuaState().set_function("printLine", [this, nCWID](sol::object stLogType, sol::object stPrompt, sol::object stLogInfo)
+    pModule->getLuaState().set_function("addCWLogString", [this, nCWID](sol::object logType, sol::object prompt, sol::object logInfo)
     {
         if(true
-                && stLogType.is<int>()
-                && stPrompt.is<std::string>()
-                && stLogInfo.is<std::string>()){
-            addCWLogString(nCWID, stLogType.as<int>(), stPrompt.as<std::string>().c_str(), stLogInfo.as<std::string>().c_str());
+                && logType.is<int>()
+                && prompt.is<std::string>()
+                && logInfo.is<std::string>()){
+            addCWLogString(nCWID, logType.as<int>(), prompt.as<std::string>().c_str(), logInfo.as<std::string>().c_str());
             return;
         }
 
         // invalid argument provided
-        addCWLogString(nCWID, 2, ">>> ", "printLine(LogType: int, Prompt: string, LogInfo: string)");
+        addCWLogString(nCWID, 2, ">>> ", "addCWLogString(logType: int, prompt: string, logInfo: string)");
     });
 
     // register command countMonster(monsterID, mapID)
@@ -893,30 +893,7 @@ void MonoServer::regLuaExport(CommandLuaModule *pModule, uint32_t nCWID)
         return to_cstr(DBCOM_MAPRECORD(mapID).name);
     });
 
-    // register command ``listAllMap"
-    // this command call getMapIDList to get a table and print to CommandWindow
-    pModule->getLuaState().script(
-        R"###( function listMap()                                                      )###""\n"
-        R"###(     local mapNameTable = {}                                             )###""\n"
-        R"###(     for k, v in ipairs(getMapIDList()) do                               )###""\n"
-        R"###(         printLine(0, ".", tostring(v) .. " " .. mapID2Name(v))          )###""\n"
-        R"###(     end                                                                 )###""\n"
-        R"###( end                                                                     )###""\n");
-
-    // register command ``help"
-    // part-1: divide into two parts, part-1 create the table
-
-    pModule->getLuaState().script(
-        R"###( g_helpTable = {}                                                        )###""\n"
-        R"###( g_helpTable["listMap"] = "print all map indices to current window"      )###""\n");
-
-    // part-2: make up the function to print the table entry
-    pModule->getLuaState().script(
-        R"###( function help(queryKey)                                                 )###""\n"
-        R"###(     if g_helpTable[queryKey] then                                       )###""\n"
-        R"###(         printLine(0, "> ", g_helpTable[queryKey])                       )###""\n"
-        R"###(     else                                                                )###""\n"
-        R"###(         printLine(2, "> ", "No registered help information for input")  )###""\n"
-        R"###(     end                                                                 )###""\n"
-        R"###( end                                                                     )###""\n");
+    pModule->getLuaState().script(INCLUA_BEGIN(char)
+#include "monoserver.lua"
+    INCLUA_END());
 }

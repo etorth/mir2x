@@ -3,8 +3,7 @@
  *
  *       Filename: batchluamodule.hpp
  *        Created: 12/19/2017 23:39:38
- *    Description: run non-interactively
- *                 won't support printLine() and command is static inside
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
