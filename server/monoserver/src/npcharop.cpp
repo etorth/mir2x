@@ -48,7 +48,7 @@ void NPChar::on_AM_NPCEVENT(const ActorMsgPack &mpk)
 
     const auto amNPCE = mpk.conv<AMNPCEvent>();
 
-    // when CO initiatively sends a message to NPC, we assume it's UID is the sessionUID
+    // when CO initiatively sends a message to NPC, we assume it's UID is the callStackUID
     // when NPC querys CO attributes the response should be handled in actor response handler, not here
 
     if(false
@@ -76,10 +76,10 @@ void NPChar::on_AM_NPCEVENT(const ActorMsgPack &mpk)
         return;
     }
 
-    // last session has not been done yet
-    // but player initializes new session, have to abandon last session and start a new one
+    // last call stack has not been done yet
+    // but player initializes new call stack, have to abandon last call stack and start a new one
 
-    if(m_luaModulePtr->getSessionSeqID(mpk.from())){
+    if(m_luaModulePtr->getCallStackSeqID(mpk.from())){
         m_luaModulePtr->close(mpk.from());
     }
 

@@ -29,7 +29,7 @@ class NPChar final: public CharObject
         class LuaNPCModule: public ServerLuaModule
         {
             private:
-                struct LuaNPCSession
+                struct LuaCallStack
                 {
                     uint64_t from = 0;
                     std::string event;
@@ -38,17 +38,17 @@ class NPChar final: public CharObject
                     // scenario why adding seqID:
                     // 1. received an event which triggers processNPCEvent(event)
                     // 2. inside processNPCEvent(event) the script emits query to other actor
-                    // 3. when waiting for the response of the query, user clicked the close button or click init button to end up the current session
+                    // 3. when waiting for the response of the query, user clicked the close button or click init button to end up the current call stack
                     // 4. receives the query response, we should ignore it
                     //
-                    // to fix this we have to give every session an uniq seqID
+                    // to fix this we have to give every call stack an uniq seqID
                     // and the query response needs to match the seqID
 
                     const uint64_t seqID;
                     sol::thread co_runner;
                     sol::coroutine co_callback;
 
-                    LuaNPCSession(LuaNPCModule *luaModulePtr)
+                    LuaCallStack(LuaNPCModule *luaModulePtr)
                         : seqID(luaModulePtr->peekSeqID())
                         , co_runner(sol::thread::create(luaModulePtr->getLuaState().lua_state()))
                         , co_callback(sol::state_view(co_runner.state())["main"])
@@ -57,18 +57,18 @@ class NPChar final: public CharObject
 
             private:
                 uint64_t m_seqID = 0;
-                std::unordered_map<uint64_t, LuaNPCSession> m_sessionList;
+                std::unordered_map<uint64_t, LuaCallStack> m_callStackList;
 
             public:
                 LuaNPCModule(NPChar *);
 
             public:
-                void setEvent(uint64_t sessionUID, uint64_t from, std::string event, std::string value);
+                void setEvent(uint64_t callStackUID, uint64_t from, std::string event, std::string value);
 
             public:
                 void close(uint64_t uid)
                 {
-                    m_sessionList.erase(uid);
+                    m_callStackList.erase(uid);
                 }
 
             public:
@@ -81,9 +81,9 @@ class NPChar final: public CharObject
                     return m_seqID;
                 }
 
-                uint64_t getSessionSeqID(uint64_t sessionUID) const
+                uint64_t getCallStackSeqID(uint64_t callStackUID) const
                 {
-                    if(const auto p = m_sessionList.find(sessionUID); p != m_sessionList.end()){
+                    if(const auto p = m_callStackList.find(callStackUID); p != m_callStackList.end()){
                         return p->second.seqID;
                     }
                     else{

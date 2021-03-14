@@ -71,9 +71,9 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npc)
         npc->sendSell(uidf::toUIDEx(uidString), itemList);
     });
 
-    m_luaState.set_function("sendSessionQuery", [npc](std::string sessionUID, std::string uidString, std::string query)
+    m_luaState.set_function("sendCallStackQuery", [npc](std::string callStackUID, std::string uidString, std::string query)
     {
-        npc->sendQuery(uidf::toUIDEx(sessionUID), uidf::toUIDEx(uidString), query);
+        npc->sendQuery(uidf::toUIDEx(callStackUID), uidf::toUIDEx(uidString), query);
     });
 
     m_luaState.set_function("getSellItemList", [npc](sol::this_state luaPtr)
@@ -109,12 +109,12 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npc)
         }
     });
 
-    m_luaState.set_function("pollSessionEvent", [this](std::string sessionUID)
+    m_luaState.set_function("pollCallStackEvent", [this](std::string callStackUID)
     {
-        const uint64_t uid = [&sessionUID]() -> uint64_t
+        const uint64_t uid = [&callStackUID]() -> uint64_t
         {
             try{
-                return std::stoull(sessionUID);
+                return std::stoull(callStackUID);
             }
             catch(...){
                 //
@@ -124,7 +124,7 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npc)
 
         return sol::as_returns([uid, this]() -> std::vector<std::string>
         {
-            if(auto p = m_sessionList.find(uid); p != m_sessionList.end()){
+            if(auto p = m_callStackList.find(uid); p != m_callStackList.end()){
                 const auto fromUID = p->second.from;
                 p->second.from = 0;
 
@@ -142,7 +142,7 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npc)
                 }
                 return {std::to_string(fromUID), std::move(p->second.event), std::move(p->second.value)};
             }
-            throw fflerror("can't find session UID = %llu", to_llu(uid));
+            throw fflerror("can't find call stack UID = %llu", to_llu(uid));
         }());
     });
 
@@ -199,13 +199,13 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npc)
         R"###( end                                                                                                                           )###""\n"
         R"###(                                                                                                                               )###""\n"
         R"###( function sendQuery(uid, query)                                                                                                )###""\n"
-        R"###(     sendSessionQuery(getSessionUID(), uid, query)                                                                             )###""\n"
+        R"###(     sendCallStackQuery(getCallStackUID(), uid, query)                                                                         )###""\n"
         R"###( end                                                                                                                           )###""\n"
         R"###(                                                                                                                               )###""\n"
         R"###( function waitEvent()                                                                                                          )###""\n"
-        R"###(     local sessionUID = getSessionUID()                                                                                        )###""\n"
+        R"###(     local callStackUID = getCallStackUID()                                                                                    )###""\n"
         R"###(     while true do                                                                                                             )###""\n"
-        R"###(         local uid, event, value = pollSessionEvent(sessionUID)                                                                )###""\n"
+        R"###(         local uid, event, value = pollCallStackEvent(callStackUID)                                                            )###""\n"
         R"###(         if uid then                                                                                                           )###""\n"
         R"###(             return uid, event, value                                                                                          )###""\n"
         R"###(         end                                                                                                                   )###""\n"
@@ -244,71 +244,71 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npc)
         R"###(         error('uidPostSell() expectes a table but get ' .. type(sell))                                                        )###""\n"
         R"###(     end                                                                                                                       )###""\n"
         R"###(                                                                                                                               )###""\n"
-        R"###(     local retVarName = 'ret_varName_' .. getSessionUID()                                                                      )###""\n"
+        R"###(     local retVarName = 'ret_varName_' .. getCallStackUID()                                                                    )###""\n"
         R"###(     _G[retVarName] = sell                                                                                                     )###""\n"
         R"###(     sendSell(uid, retVarName)                                                                                                 )###""\n"
         R"###( end                                                                                                                           )###""\n"
         R"###(                                                                                                                               )###""\n"
-        R"###( -- setup session table for thread-based parameters                                                                            )###""\n"
-        R"###( -- we spawn session by sol::thread which still access global table                                                            )###""\n"
-        R"###( -- so we can't have tls per session, have to save session related globals into this table                                     )###""\n"
-        R"###( g_sessionTableList = {}                                                                                                       )###""\n"
+        R"###( -- setup call stack table for thread-based parameters                                                                         )###""\n"
+        R"###( -- we spawn call stack by sol::thread which still access global table                                                         )###""\n"
+        R"###( -- so we can't have tls per call stack, have to save call stack related globals into this table                               )###""\n"
+        R"###( g_callStackTableList = {}                                                                                                     )###""\n"
         R"###(                                                                                                                               )###""\n"
-        R"###( function getSessionTable()                                                                                                    )###""\n"
+        R"###( function getCallStackTable()                                                                                                  )###""\n"
         R"###(     local id, main_thread = coroutine.running()                                                                               )###""\n"
         R"###(     if main_thread then                                                                                                       )###""\n"
-        R"###(         error('calling getSessionTable() in main thead')                                                                      )###""\n"
+        R"###(         error('calling getCallStackTable() in main thead')                                                                    )###""\n"
         R"###(     end                                                                                                                       )###""\n"
         R"###(                                                                                                                               )###""\n"
-        R"###(     if not g_sessionTableList[id] then                                                                                        )###""\n"
-        R"###(         g_sessionTableList[id] = {}                                                                                           )###""\n"
+        R"###(     if not g_callStackTableList[id] then                                                                                      )###""\n"
+        R"###(         g_callStackTableList[id] = {}                                                                                         )###""\n"
         R"###(     end                                                                                                                       )###""\n"
-        R"###(     return g_sessionTableList[id]                                                                                             )###""\n"
+        R"###(     return g_callStackTableList[id]                                                                                           )###""\n"
         R"###( end                                                                                                                           )###""\n"
         R"###(                                                                                                                               )###""\n"
-        R"###( function clearSessionTable()                                                                                                  )###""\n"
+        R"###( function clearCallStackTable()                                                                                                )###""\n"
         R"###(     local id, main_thread = coroutine.running()                                                                               )###""\n"
         R"###(     if main_thread then                                                                                                       )###""\n"
-        R"###(         error('calling clearSessionTable() in main thead')                                                                    )###""\n"
+        R"###(         error('calling clearCallStackTable() in main thead')                                                                  )###""\n"
         R"###(     end                                                                                                                       )###""\n"
-        R"###(     g_sessionTableList[id] = nil                                                                                              )###""\n"
+        R"###(     g_callStackTableList[id] = nil                                                                                            )###""\n"
         R"###( end                                                                                                                           )###""\n"
         R"###(                                                                                                                               )###""\n"
-        R"###( function setSessionUID(uid)                                                                                                   )###""\n"
+        R"###( function setCallStackUID(uid)                                                                                                 )###""\n"
         R"###(     if not uid then                                                                                                           )###""\n"
-        R"###(         error("invalid session uid: nil")                                                                                     )###""\n"
+        R"###(         error("invalid call stack uid: nil")                                                                                  )###""\n"
         R"###(     end                                                                                                                       )###""\n"
         R"###(                                                                                                                               )###""\n"
-        R"###(     local sessionTable = getSessionTable()                                                                                    )###""\n"
-        R"###(     if sessionTable['SESSION_UID'] then                                                                                       )###""\n"
-        R"###(         error('calling setSessionUID() in same thread twice')                                                                 )###""\n"
+        R"###(     local callStackTable = getCallStackTable()                                                                                )###""\n"
+        R"###(     if callStackTable['CS_UID'] then                                                                                          )###""\n"
+        R"###(         error('calling setCallStackUID() in same thread twice')                                                               )###""\n"
         R"###(     end                                                                                                                       )###""\n"
-        R"###(     sessionTable['SESSION_UID'] = uid                                                                                         )###""\n"
+        R"###(     callStackTable['CS_UID'] = uid                                                                                            )###""\n"
         R"###( end                                                                                                                           )###""\n"
         R"###(                                                                                                                               )###""\n"
-        R"###( function getSessionUID()                                                                                                      )###""\n"
-        R"###(     local sessionTable = getSessionTable()                                                                                    )###""\n"
-        R"###(     if not sessionTable['SESSION_UID'] then                                                                                   )###""\n"
-        R"###(         error('session has no uid setup, missed to call setSessionUID(uid) in main()')                                        )###""\n"
+        R"###( function getCallStackUID()                                                                                                    )###""\n"
+        R"###(     local callStackTable = getCallStackTable()                                                                                )###""\n"
+        R"###(     if not callStackTable['CS_UID'] then                                                                                      )###""\n"
+        R"###(         error('call stack has no uid setup, missed to call setCallStackUID(uid) in main()')                                   )###""\n"
         R"###(     end                                                                                                                       )###""\n"
-        R"###(     return sessionTable['SESSION_UID']                                                                                        )###""\n"
+        R"###(     return callStackTable['CS_UID']                                                                                           )###""\n"
         R"###( end                                                                                                                           )###""\n"
         R"###(                                                                                                                               )###""\n"
         R"###( -- entry coroutine for event handling                                                                                         )###""\n"
         R"###( -- it's event driven, i.e. if the event sink has no event, this coroutine won't get scheduled                                 )###""\n"
         R"###(                                                                                                                               )###""\n"
         R"###( function main(uid)                                                                                                            )###""\n"
-        R"###(     -- setup current session uid                                                                                              )###""\n"
-        R"###(     -- all functions in current session can use this implicit argument as *this*                                              )###""\n"
-        R"###(     setSessionUID(uid)                                                                                                        )###""\n"
+        R"###(     -- setup current call stack uid                                                                                           )###""\n"
+        R"###(     -- all functions in current call stack can use this implicit argument as *this*                                           )###""\n"
+        R"###(     setCallStackUID(uid)                                                                                                      )###""\n"
         R"###(                                                                                                                               )###""\n"
         R"###(     -- poll the event sink                                                                                                    )###""\n"
-        R"###(     -- current session only process 1 event and then clean itself                                                             )###""\n"
+        R"###(     -- current call stack only process 1 event and then clean itself                                                          )###""\n"
         R"###(     local from, event, value = waitEvent()                                                                                    )###""\n"
         R"###(     if has_processNPCEvent(false, event) then                                                                                 )###""\n"
         R"###(         processNPCEvent[event](from, value)                                                                                   )###""\n"
         R"###(     elseif event == SYS_NPCDONE then                                                                                          )###""\n"
-        R"###(         clearSessionTable()                                                                                                   )###""\n"
+        R"###(         clearCallStackTable()                                                                                                 )###""\n"
         R"###(     else                                                                                                                      )###""\n"
         R"###(         -- don't exit this loop                                                                                               )###""\n"
         R"###(         -- always consume the event no matter if the NPC can handle it                                                        )###""\n"
@@ -322,8 +322,8 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npc)
         R"###(     end                                                                                                                       )###""\n"
         R"###(                                                                                                                               )###""\n"
         R"###(     -- event process done                                                                                                     )###""\n"
-        R"###(     -- clean the session itself, next event needs another session                                                             )###""\n"
-        R"###(     clearSessionTable()                                                                                                       )###""\n"
+        R"###(     -- clean the call stack itself, next event needs another call stack                                                       )###""\n"
+        R"###(     clearCallStackTable()                                                                                                     )###""\n"
         R"###( end                                                                                                                           )###""\n");
 
     m_luaState.script_file([npc]() -> std::string
@@ -362,14 +362,14 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npc)
         R"###( has_processNPCEvent(true, SYS_NPCINIT)                          )###""\n");
 }
 
-void NPChar::LuaNPCModule::setEvent(uint64_t sessionUID, uint64_t from, std::string event, std::string value)
+void NPChar::LuaNPCModule::setEvent(uint64_t callStackUID, uint64_t from, std::string event, std::string value)
 {
-    if(!(sessionUID && from && !event.empty())){
-        throw fflerror("invalid argument: sessionUID = %llu, from = %llu, event = %s, value = %s", to_llu(sessionUID), to_llu(from), to_cstr(event), to_cstr(value));
+    if(!(callStackUID && from && !event.empty())){
+        throw fflerror("invalid argument: callStackUID = %llu, from = %llu, event = %s, value = %s", to_llu(callStackUID), to_llu(from), to_cstr(event), to_cstr(value));
     }
 
     if(event == SYS_NPCDONE){
-        m_sessionList.erase(sessionUID);
+        m_callStackList.erase(callStackUID);
         return;
     }
 
@@ -388,13 +388,13 @@ void NPChar::LuaNPCModule::setEvent(uint64_t sessionUID, uint64_t from, std::str
         }
     };
 
-    auto p = m_sessionList.find(sessionUID);
-    if(p == m_sessionList.end()){
-        p = m_sessionList.insert({sessionUID, LuaNPCModule::LuaNPCSession(this)}).first;
+    auto p = m_callStackList.find(callStackUID);
+    if(p == m_callStackList.end()){
+        p = m_callStackList.insert({callStackUID, LuaNPCModule::LuaCallStack(this)}).first;
 
         // initial call to make main reaches its event polling point
         // need to assign event to let it advance
-        const auto result = p->second.co_callback(std::to_string(sessionUID));
+        const auto result = p->second.co_callback(std::to_string(callStackUID));
         fnCheckCOResult(result);
     }
 
@@ -416,14 +416,14 @@ void NPChar::LuaNPCModule::setEvent(uint64_t sessionUID, uint64_t from, std::str
         // not invocable anymore after the event-driven call
         // the event handling coroutine is done
         //
-        // remove the session when an event sequence is done, i.e.
+        // remove the call stack when an event sequence is done, i.e.
         // 1. get event SYS_NPCINIT from player, init main()
         // 2. in processNPCEvent(SYS_NPCINIT), script calls uidQueryName(), this sends QUERY_NAME
         // 3. get event NAME
         // 4. in processNPCEvent(SYS_NPCINIT), script calls uidQueryLevel(), this sends QUERY_LEVEL
         // 5. get event LEVEL
         // 6. send sayXML() to player, done main()
-        m_sessionList.erase(p);
+        m_callStackList.erase(p);
     }
 }
 
@@ -501,14 +501,14 @@ void NPChar::sendSell(uint64_t uid, const std::vector<std::string> &itemList)
     }, true));
 }
 
-void NPChar::sendQuery(uint64_t sessionUID, uint64_t uid, const std::string &query)
+void NPChar::sendQuery(uint64_t callStackUID, uint64_t uid, const std::string &query)
 {
     AMNPCQuery amNPCQ;
     std::memset(&amNPCQ, 0, sizeof(amNPCQ));
 
-    const auto seqID = m_luaModulePtr->getSessionSeqID(sessionUID);
+    const auto seqID = m_luaModulePtr->getCallStackSeqID(callStackUID);
     if(!seqID){
-        throw fflerror("calling sendQuery(%llu, %llu, %s) outside of LuaNPCSession", to_llu(sessionUID), to_llu(uid), to_cstr(query));
+        throw fflerror("calling sendQuery(%llu, %llu, %s) outside of LuaCallStack", to_llu(callStackUID), to_llu(uid), to_cstr(query));
     }
 
     if(query.size() >= sizeof(amNPCQ.query)){
@@ -516,7 +516,7 @@ void NPChar::sendQuery(uint64_t sessionUID, uint64_t uid, const std::string &que
     }
 
     std::strcpy(amNPCQ.query, query.c_str());
-    m_actorPod->forward(uid, {AM_NPCQUERY, amNPCQ}, [sessionUID, uid, seqID, this](const ActorMsgPack &mpk)
+    m_actorPod->forward(uid, {AM_NPCQUERY, amNPCQ}, [callStackUID, uid, seqID, this](const ActorMsgPack &mpk)
     {
         if(uid != mpk.from()){
             throw fflerror("query sent to uid %llu but get response from %llu", to_llu(uid), to_llu(mpk.from()));
@@ -526,7 +526,7 @@ void NPChar::sendQuery(uint64_t sessionUID, uint64_t uid, const std::string &que
             throw fflerror("query result expects response");
         }
 
-        if(m_luaModulePtr->getSessionSeqID(sessionUID) != seqID){
+        if(m_luaModulePtr->getCallStackSeqID(callStackUID) != seqID){
             return;
         }
 
@@ -534,12 +534,12 @@ void NPChar::sendQuery(uint64_t sessionUID, uint64_t uid, const std::string &que
             case AM_NPCEVENT:
                 {
                     const auto amNPCE = mpk.conv<AMNPCEvent>();
-                    m_luaModulePtr->setEvent(sessionUID, uid, amNPCE.event, amNPCE.value);
+                    m_luaModulePtr->setEvent(callStackUID, uid, amNPCE.event, amNPCE.value);
                     return;
                 }
             default:
                 {
-                    m_luaModulePtr->close(sessionUID);
+                    m_luaModulePtr->close(callStackUID);
                     return;
                 }
         }
