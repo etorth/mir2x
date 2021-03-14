@@ -111,6 +111,8 @@ namespace SDLDeviceHelper
         }
     };
 
+    char getKeyChar(const SDL_Event &);
+
     SDLEventPLoc getMousePLoc();
     SDLEventPLoc getEventPLoc(const SDL_Event &);
 

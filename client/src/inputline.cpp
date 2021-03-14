@@ -21,7 +21,6 @@
 #include "colorf.hpp"
 #include "inputline.hpp"
 #include "sdldevice.hpp"
-#include "sdlkeychar.hpp"
 #include "clientargparser.hpp"
 
 extern SDLDevice *g_sdlDevice;
@@ -88,7 +87,7 @@ bool InputLine::processEvent(const SDL_Event &event, bool valid)
                         }
                     default:
                         {
-                            const char keyChar = sdlKeyChar(event);
+                            const char keyChar = SDLDeviceHelper::getKeyChar(event);
                             if(keyChar != '\0'){
                                 const char text[] {keyChar, '\0'};
                                 m_tpset.insertUTF8String(m_cursor++, 0, text);

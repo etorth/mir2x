@@ -27,7 +27,6 @@
 #include "mapbindb.hpp"
 #include "pngtexdb.hpp"
 #include "sdldevice.hpp"
-#include "sdlkeychar.hpp"
 #include "clientargparser.hpp"
 #include "pathfinder.hpp"
 #include "processrun.hpp"
@@ -1660,7 +1659,7 @@ void ProcessRun::drawFPS()
 
 void ProcessRun::checkMagicSpell(const SDL_Event &event)
 {
-    const char key = sdlKeyChar(event);
+    const char key = SDLDeviceHelper::getKeyChar(event);
     if(key == '\0'){
         return;
     }
