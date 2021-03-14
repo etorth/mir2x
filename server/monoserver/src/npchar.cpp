@@ -105,7 +105,7 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npc)
         }
 
         else{
-            addLog(0, u8"invalid UID: 0");
+            addLogString(0, u8"invalid UID: 0");
         }
     });
 
@@ -208,7 +208,7 @@ void NPChar::LuaNPCModule::setEvent(uint64_t callStackUID, uint64_t from, std::s
 
         std::string errLine;
         while(std::getline(errStream, errLine, '\n')){
-            addLog(1, to_u8cstr(errLine));
+            addLogString(1, to_u8cstr(errLine));
         }
     };
 

@@ -73,7 +73,7 @@ class ServerMap final: public ServerObject
 
                     std::string errLine;
                     while(std::getline(errStream, errLine, '\n')){
-                        addLog(1, to_u8cstr(errLine));
+                        addLogString(1, to_u8cstr(errLine));
                     }
                 }
         };

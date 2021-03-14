@@ -47,21 +47,21 @@ LuaModule::LuaModule()
     m_luaState.set_function("addLogString", [this](sol::object logType, sol::object logInfo)
     {
         if(logType.is<int>() && logInfo.is<std::string>()){
-            addLog(logType.as<int>(), to_u8cstr(logInfo.as<std::string>()));
+            addLogString(logType.as<int>(), to_u8cstr(logInfo.as<std::string>()));
             return;
         }
 
         if(logType.is<int>()){
-            addLog(1, to_u8cstr(str_printf("Invalid argument: addLogString(%d, \"?\")", logType.as<int>())));
+            addLogString(1, to_u8cstr(str_printf("Invalid argument: addLogString(%d, \"?\")", logType.as<int>())));
             return;
         }
 
         if(logInfo.is<std::string>()){
-            addLog(1, to_u8cstr(str_printf("Invalid argument: addLogString(?, \"%s\")", logInfo.as<std::string>().c_str())));
+            addLogString(1, to_u8cstr(str_printf("Invalid argument: addLogString(?, \"%s\")", logInfo.as<std::string>().c_str())));
             return;
         }
 
-        addLog(1, u8"Invalid argument: addLogString(?, \"?\")");
+        addLogString(1, u8"Invalid argument: addLogString(?, \"?\")");
     });
 
     m_luaState.script(INCLUA_BEGIN(char)

@@ -16,6 +16,7 @@
  * =====================================================================================
  */
 
+#include "totype.hpp"
 #include "fflerror.hpp"
 #include "processrun.hpp"
 #include "clientluamodule.hpp"
@@ -30,10 +31,7 @@ ClientLuaModule::ClientLuaModule(ProcessRun *proc)
     m_proc->RegisterLuaExport(this);
 }
 
-void ClientLuaModule::addLog(int logType, const char8_t *logInfo)
+void ClientLuaModule::addLogString(int logType, const char8_t *logInfo)
 {
-    if(!logInfo){
-        logInfo = u8"(null)";
-    }
-    m_proc->addCBLog(logType, u8"%s", logInfo);
+    m_proc->addCBLog(logType, u8"%s", to_cstr(logInfo));
 }

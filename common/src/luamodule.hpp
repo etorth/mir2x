@@ -40,7 +40,7 @@ class LuaModule
         }
 
     protected:
-        virtual void addLog(int, const char8_t *) = 0;
+        virtual void addLogString(int, const char8_t *) = 0;
 };
 
 // directives to include a lua file to C++ src code
