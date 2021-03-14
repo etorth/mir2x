@@ -22,9 +22,9 @@
 #include "commandwindow.hpp"
 
 extern MonoServer *g_monoServer;
-int CommandInput::handle(int nEvent)
+int CommandInput::handle(int event)
 {
-    switch(nEvent){
+    switch(event){
         case FL_KEYBOARD:
             {
                 switch(Fl::event_key()){
@@ -37,11 +37,10 @@ int CommandInput::handle(int nEvent)
                         {
                             // if last char is escape as ``\"
                             // don't commit the command for execution
-                            std::string szCommandStr = value() ? value() : "";
-                            if(true
-                                    && !szCommandStr.empty()
-                                    &&  szCommandStr.back() == '\\'){
-                                return Fl_Multiline_Input::handle(nEvent);
+                            const std::string cmdStr = value() ? value() : "";
+                            if(true && !cmdStr.empty()
+                                    &&  cmdStr.back() == '\\'){
+                                return Fl_Multiline_Input::handle(event);
                             }
 
                             if(true && m_window
@@ -52,36 +51,36 @@ int CommandInput::handle(int nEvent)
 
                                 // won't use CommandWindow::AddLog() directly
                                 // use MonoServer::AddCWLog() for thread-safe access
-                                int nCWID = m_window->getLuaModule()->CWID();
+                                const int cwid = m_window->getLuaModule()->CWID();
 
                                 // we echo the command to the command window
                                 // enter in command string will be commit to lua machine
                                 // but for echo we need to remove it
-                                size_t nCurrLoc = 0;
-                                while(nCurrLoc < szCommandStr.size()){
-                                    auto nEnterLoc = szCommandStr.find_first_of('\n', nCurrLoc);
+                                size_t currLoc = 0;
+                                while(currLoc < cmdStr.size()){
+                                    const auto enterLoc = cmdStr.find_first_of('\n', currLoc);
                                     if(true
-                                            && (nEnterLoc >= nCurrLoc)
-                                            && (nEnterLoc != std::string::npos)){
+                                            && (enterLoc >= currLoc)
+                                            && (enterLoc != std::string::npos)){
 
                                         // we do find an enter
                                         // remove the enter and print it
-                                        g_monoServer->addCWLogString(nCWID, 0, "> ", szCommandStr.substr(nCurrLoc, nEnterLoc - nCurrLoc).c_str());
-                                        nCurrLoc = nEnterLoc + 1;
+                                        g_monoServer->addCWLogString(cwid, 0, "> ", cmdStr.substr(currLoc, enterLoc - currLoc).c_str());
+                                        currLoc = enterLoc + 1;
                                     }else{
                                         // can't find a enter
                                         // we done here for the whole string
-                                        g_monoServer->addCWLogString(nCWID, 0, "> ", szCommandStr.substr(nCurrLoc).c_str());
+                                        g_monoServer->addCWLogString(cwid, 0, "> ", cmdStr.substr(currLoc).c_str());
                                         break;
                                     }
                                 }
 
                                 // 2. put a task in the LuaModule::TaskHub
                                 //    and return immediately for current thread
-                                globalThreadPool::postEvalTask([this, nCWID, szCommandStr](int)
+                                globalThreadPool::postEvalTask([this, cwid, cmdStr](int)
                                 {
                                     const DisableFlWidget disable(this);
-                                    auto callResult = m_window->getLuaModule()->getLuaState().script(szCommandStr.c_str(), [](lua_State *, sol::protected_function_result stResult)
+                                    auto callResult = m_window->getLuaModule()->getLuaState().script(cmdStr.c_str(), [](lua_State *, sol::protected_function_result stResult)
                                     {
                                         // default handler
                                         // do nothing and let the call site handle the errors
@@ -102,9 +101,10 @@ int CommandInput::handle(int nEvent)
 
                                         std::string errLine;
                                         while(std::getline(errStream, errLine, '\n')){
-                                            g_monoServer->addCWLogString(nCWID, 2, ">>> ", errLine.c_str());
+                                            g_monoServer->addCWLogString(cwid, 2, ">>> ", errLine.c_str());
                                         }
                                     }
+                                    m_window->redrawAll();
                                 });
 
                                 value("");
@@ -126,5 +126,5 @@ int CommandInput::handle(int nEvent)
             }
 
     }
-    return Fl_Multiline_Input::handle(nEvent);
+    return Fl_Multiline_Input::handle(event);
 }

@@ -14,8 +14,7 @@ decl {\#include "commandinput.hpp"} {public global
 decl {\#include "commandluamodule.hpp"} {public global
 }
 
-class CommandWindow {open
-} {
+class CommandWindow {} {
   decl {int m_CWID;} {private local
   }
   decl {std::unique_ptr<CommandLuaModule> m_luaModule;} {private local
@@ -32,7 +31,7 @@ class CommandWindow {open
     extern MainWindow *g_mainWindow;
     g_mainWindow->HideCommandWindow(getCWID());
 }}
-      xywh {2569 270 580 400} type Double resizable
+      xywh {2577 301 580 400} type Double resizable
       code0 {\#include "mainwindow.hpp"} visible
     } {
       Fl_Menu_Bar {} {
@@ -97,6 +96,12 @@ class CommandWindow {open
 	m_window->show();
 }} {}
   }
+  Function {redrawAll()} {return_type void
+  } {
+    code {{
+	m_window->redraw();
+}} {}
+  }
   Function {getLuaModule()} {return_type {CommandLuaModule *}
   } {
     code {{
@@ -106,7 +111,7 @@ class CommandWindow {open
 	return m_luaModule.get();
 }} {}
   }
-  Function {detachLuaModule()} {open return_type void
+  Function {detachLuaModule()} {return_type void
   } {
     code {{
     m_luaModule.reset();

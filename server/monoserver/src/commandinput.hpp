@@ -32,8 +32,8 @@ class CommandInput : public Fl_Multiline_Input
         // std::vector<std::string> m_inputList;
 
     public:
-        CommandInput(int nX, int nY, int nW, int nH, const char *pLabel = nullptr)
-            : Fl_Multiline_Input(nX, nY, nW, nH, pLabel)
+        CommandInput(int argX, int argY, int argW, int argH, const char *labelCPtr = nullptr)
+            : Fl_Multiline_Input(argX, argY, argW, argH, labelCPtr)
         {}
 
     public:
