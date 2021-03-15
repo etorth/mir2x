@@ -891,6 +891,11 @@ void MonoServer::regLuaExport(CommandLuaModule *modulePtr, uint32_t nCWID)
         return to_cstr(DBCOM_MAPRECORD(mapID).name);
     });
 
+    modulePtr->getLuaState().set_function("getCWID", [nCWID]() -> int
+    {
+        return nCWID;
+    });
+
     modulePtr->getLuaState().set_function("history", [nCWID, this]()
     {
         for(const auto &s: g_mainWindow->getCWHistory(nCWID)){
