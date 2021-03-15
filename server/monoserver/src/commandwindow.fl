@@ -32,7 +32,7 @@ class CommandWindow {open
     extern MainWindow *g_mainWindow;
     g_mainWindow->HideCommandWindow(getCWID());
 }}
-      xywh {2585 332 580 400} type Double resizable
+      xywh {2593 363 580 400} type Double resizable
       code0 {\#include "mainwindow.hpp"} visible
     } {
       Fl_Menu_Bar {} {
@@ -166,10 +166,17 @@ class CommandWindow {open
     return m_CWID;
 }} {}
   }
-  Function {getHistory() const} {open return_type {const std::vector<std::string> &}
+  Function {getHistory() const} {return_type {const std::vector<std::string> &}
   } {
     code {{
     return m_input->getHistory();
+}} {}
+  }
+  Function {setGUIFont(int fontID)} {open return_type void
+  } {
+    code {{
+    m_browser->textfont((Fl_Font)(fontID));
+    m_window->redraw();
 }} {}
   }
 }

@@ -98,7 +98,7 @@ class ScriptWindow {} {
     }
 }} {}
   }
-  Function {SetGUIFont(int nFont)} {return_type void
+  Function {setGUIFont(int nFont)} {return_type void
   } {
     code {{
     m_display->textfont((Fl_Font)(nFont));
