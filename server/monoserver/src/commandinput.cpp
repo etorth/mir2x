@@ -66,6 +66,11 @@ int CommandInput::handle(int event)
                         }
                     case FL_Enter:
                         {
+                            if(currCmdStr.empty()){
+                                // to inform fltk that we have handled this event
+                                return 1;
+                            }
+
                             // if last char is escape as ``\"
                             // don't commit the command for execution
                             if(true && !currCmdStr.empty()

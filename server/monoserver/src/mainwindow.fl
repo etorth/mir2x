@@ -24,7 +24,7 @@ class MainWindow {} {
       callback {{
 	// do nothing
 }}
-      xywh {2719 216 720 400} type Double labelfont 4 resizable visible
+      xywh {637 257 720 400} type Double labelfont 4 resizable visible
     } {
       Fl_Menu_Bar {} {
         xywh {0 0 721 25} box FLAT_BOX labelfont 4 textfont 4
@@ -607,7 +607,7 @@ class MainWindow {} {
     }
 
     for(int nIndex = 1; nIndex <= (1 + to_d(m_menuItemLastCW - m_menuItemFirstCW)); ++nIndex){
-        if(auto pCW = GetCommandWindow(nIndex)){
+        if(auto pCW = getCommandWindow(nIndex)){
             if(bOpen){
                 pCW->showAll();
                 (m_menuItemFirstCW + (nIndex - 1))->deactivate();
@@ -626,7 +626,7 @@ class MainWindow {} {
 // it can show it's command window
 {
     int nMenuItem = 1;
-    if(auto pCW = GetCommandWindow(nMenuItem)){
+    if(auto pCW = getCommandWindow(nMenuItem)){
         pCW->showAll();
         (m_menuItemFirstCW + (nMenuItem - 1))->deactivate();
     }
@@ -640,7 +640,7 @@ class MainWindow {} {
 // it can show it's command window
 {
     int nMenuItem = 2;
-    if(auto pCW = GetCommandWindow(nMenuItem)){
+    if(auto pCW = getCommandWindow(nMenuItem)){
         pCW->showAll();
         (m_menuItemFirstCW + (nMenuItem - 1))->deactivate();
     }
@@ -653,7 +653,7 @@ class MainWindow {} {
 // it can show it's command window
 {
     int nMenuItem = 3;
-    if(auto pCW = GetCommandWindow(nMenuItem)){
+    if(auto pCW = getCommandWindow(nMenuItem)){
         pCW->showAll();
         (m_menuItemFirstCW + (nMenuItem - 1))->deactivate();
     }
@@ -666,7 +666,7 @@ class MainWindow {} {
 // it can show it's command window
 {
     int nMenuItem = 4;
-    if(auto pCW = GetCommandWindow(nMenuItem)){
+    if(auto pCW = getCommandWindow(nMenuItem)){
         pCW->showAll();
         (m_menuItemFirstCW + (nMenuItem - 1))->deactivate();
     }
@@ -679,7 +679,7 @@ class MainWindow {} {
 // it can show it's command window
 {
     int nMenuItem = 5;
-    if(auto pCW = GetCommandWindow(nMenuItem)){
+    if(auto pCW = getCommandWindow(nMenuItem)){
         pCW->showAll();
         (m_menuItemFirstCW + (nMenuItem - 1))->deactivate();
     }
@@ -692,7 +692,7 @@ class MainWindow {} {
 // it can show it's command window
 {
     int nMenuItem = 6;
-    if(auto pCW = GetCommandWindow(nMenuItem)){
+    if(auto pCW = getCommandWindow(nMenuItem)){
         pCW->showAll();
         (m_menuItemFirstCW + (nMenuItem - 1))->deactivate();
     }
@@ -705,7 +705,7 @@ class MainWindow {} {
 // it can show it's command window
 {
     int nMenuItem = 7;
-    if(auto pCW = GetCommandWindow(nMenuItem)){
+    if(auto pCW = getCommandWindow(nMenuItem)){
         pCW->showAll();
         (m_menuItemFirstCW + (nMenuItem - 1))->deactivate();
     }
@@ -718,7 +718,7 @@ class MainWindow {} {
 // it can show it's command window
 {
     int nMenuItem = 8;
-    if(auto pCW = GetCommandWindow(nMenuItem)){
+    if(auto pCW = getCommandWindow(nMenuItem)){
         pCW->showAll();
         (m_menuItemFirstCW + (nMenuItem - 1))->deactivate();
     }
@@ -731,7 +731,7 @@ class MainWindow {} {
 // it can show it's command window
 {
     int nMenuItem = 9;
-    if(auto pCW = GetCommandWindow(nMenuItem)){
+    if(auto pCW = getCommandWindow(nMenuItem)){
         pCW->showAll();
         (m_menuItemFirstCW + (nMenuItem - 1))->deactivate();
     }
@@ -744,7 +744,7 @@ class MainWindow {} {
 // it can show it's command window
 {
     int nMenuItem = 10;
-    if(auto pCW = GetCommandWindow(nMenuItem)){
+    if(auto pCW = getCommandWindow(nMenuItem)){
         pCW->showAll();
         (m_menuItemFirstCW + (nMenuItem - 1))->deactivate();
     }
@@ -757,7 +757,7 @@ class MainWindow {} {
 // it can show it's command window
 {
     int nMenuItem = 11;
-    if(auto pCW = GetCommandWindow(nMenuItem)){
+    if(auto pCW = getCommandWindow(nMenuItem)){
         pCW->showAll();
         (m_menuItemFirstCW + (nMenuItem - 1))->deactivate();
     }
@@ -770,7 +770,7 @@ class MainWindow {} {
 // it can show it's command window
 {
     int nMenuItem = 12;
-    if(auto pCW = GetCommandWindow(nMenuItem)){
+    if(auto pCW = getCommandWindow(nMenuItem)){
         pCW->showAll();
         (m_menuItemFirstCW + (nMenuItem - 1))->deactivate();
     }
@@ -783,7 +783,7 @@ class MainWindow {} {
 // it can show it's command window
 {
     int nMenuItem = 13;
-    if(auto pCW = GetCommandWindow(nMenuItem)){
+    if(auto pCW = getCommandWindow(nMenuItem)){
         pCW->showAll();
         (m_menuItemFirstCW + (nMenuItem - 1))->deactivate();
     }
@@ -796,7 +796,7 @@ class MainWindow {} {
 // it can show it's command window
 {
     int nMenuItem = 14;
-    if(auto pCW = GetCommandWindow(nMenuItem)){
+    if(auto pCW = getCommandWindow(nMenuItem)){
         pCW->showAll();
         (m_menuItemFirstCW + (nMenuItem - 1))->deactivate();
     }
@@ -809,7 +809,7 @@ class MainWindow {} {
 // it can show it's command window
 {
     int nMenuItem = 15;
-    if(auto pCW = GetCommandWindow(nMenuItem)){
+    if(auto pCW = getCommandWindow(nMenuItem)){
         pCW->showAll();
         (m_menuItemFirstCW + (nMenuItem - 1))->deactivate();
     }
@@ -822,7 +822,7 @@ class MainWindow {} {
 // it can show it's command window
 {
     int nMenuItem = 16;
-    if(auto pCW = GetCommandWindow(nMenuItem)){
+    if(auto pCW = getCommandWindow(nMenuItem)){
         pCW->showAll();
         (m_menuItemFirstCW + (nMenuItem - 1))->deactivate();
     }
@@ -995,14 +995,14 @@ class MainWindow {} {
 
     // this function forwards all arguments to the command window
     // do nothing if no such command window
-    if(auto pCW = GetCommandWindow(nCWID)){
+    if(auto pCW = getCommandWindow(nCWID)){
         pCW->addLog(nLogType, szPrompt, szMessage);
     }
 }} {}
   }
-  Function {GetCommandWindow(int nCWID)} {return_type {CommandWindow *}
+  Function {getCommandWindow(int nCWID)} {return_type {CommandWindow *}
   } {
-    code {// GetCommandWindow(int nCWID)
+    code {// getCommandWindow(int nCWID)
 // retrieve the command window pointer based on provided ID
 {
     if(true
@@ -1100,6 +1100,20 @@ class MainWindow {} {
 
         (m_menuItemFirstCW + (nCWID - 1))->activate();
     }
+}} {}
+  }
+  Function {getCWHistory(int cwid) const} {return_type {const std::vector<std::string> &}
+  } {
+    code {// getCWHistory(int cwid)
+// call it in callback of commandwindow when handle esc
+// won't detach the lua module or any destruction
+{
+    if(auto cwPtr = const_cast<MainWindow *>(this)->getCommandWindow(cwid)){
+        return cwPtr->getHistory();
+    }
+
+    const static std::vector<std::string> emptyList;
+    return emptyList;
 }} {}
   }
   Function {SetGUIFont(int nFont)} {return_type void

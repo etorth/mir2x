@@ -731,15 +731,15 @@ uint64_t MonoServer::sleepExt(uint64_t tickCount)
     return 0;
 }
 
-void MonoServer::regLuaExport(CommandLuaModule *pModule, uint32_t nCWID)
+void MonoServer::regLuaExport(CommandLuaModule *modulePtr, uint32_t nCWID)
 {
-    if(!(pModule && nCWID)){
-        throw fflerror("invalid argument: module = %p, window ID = %llu", to_cvptr(pModule), to_llu(nCWID));
+    if(!(modulePtr && nCWID)){
+        throw fflerror("invalid argument: module = %p, window ID = %llu", to_cvptr(modulePtr), to_llu(nCWID));
     }
 
     // register command quit
     // exit current command window and free all related resource
-    pModule->getLuaState().set_function("quit", [this, nCWID]()
+    modulePtr->getLuaState().set_function("quit", [this, nCWID]()
     {
         // 1. show exiting messages
         addCWLogString(nCWID, 0, "> ", "Command window is requested to exit now...");
@@ -753,7 +753,7 @@ void MonoServer::regLuaExport(CommandLuaModule *pModule, uint32_t nCWID)
 
     // register command addCWLogString
     // print one line in command window, won't add message to log system
-    pModule->getLuaState().set_function("addCWLogString", [this, nCWID](sol::object logType, sol::object prompt, sol::object logInfo)
+    modulePtr->getLuaState().set_function("addCWLogString", [this, nCWID](sol::object logType, sol::object prompt, sol::object logInfo)
     {
         if(true
                 && logType.is<int>()
@@ -768,7 +768,7 @@ void MonoServer::regLuaExport(CommandLuaModule *pModule, uint32_t nCWID)
     });
 
     // register command countMonster(monsterID, mapID)
-    pModule->getLuaState().set_function("countMonster", [this, nCWID](int nMonsterID, int nMapID) -> int
+    modulePtr->getLuaState().set_function("countMonster", [this, nCWID](int nMonsterID, int nMapID) -> int
     {
         auto nRet = GetMonsterCount(nMonsterID, nMapID).value_or(-1);
         if(nRet < 0){
@@ -789,7 +789,7 @@ void MonoServer::regLuaExport(CommandLuaModule *pModule, uint32_t nCWID)
     //      end
     // here we get an exception from lua caught by sol2: ``std::bad_alloc"
     // but we want more detailed information like print the function usage out
-    pModule->getLuaState().set_function("addMonster", [this, nCWID](int nMonsterID, int nMapID, sol::variadic_args stVariadicArgs) -> bool
+    modulePtr->getLuaState().set_function("addMonster", [this, nCWID](int nMonsterID, int nMapID, sol::variadic_args stVariadicArgs) -> bool
     {
         auto fnPrintUsage = [this, nCWID]()
         {
@@ -840,7 +840,7 @@ void MonoServer::regLuaExport(CommandLuaModule *pModule, uint32_t nCWID)
         }
     });
 
-    pModule->getLuaState().set_function("addNPC", [this, nCWID](int npcID, int mapID, sol::variadic_args args) -> bool
+    modulePtr->getLuaState().set_function("addNPC", [this, nCWID](int npcID, int mapID, sol::variadic_args args) -> bool
     {
         const auto fnUsage = [this, nCWID]()
         {
@@ -881,17 +881,26 @@ void MonoServer::regLuaExport(CommandLuaModule *pModule, uint32_t nCWID)
 
     // register command mapList
     // return a table (userData) to lua for ipairs() check
-    pModule->getLuaState().set_function("getMapIDList", [this](sol::this_state stThisLua)
+    modulePtr->getLuaState().set_function("getMapIDList", [this](sol::this_state stThisLua)
     {
         return sol::make_object(sol::state_view(stThisLua), GetMapList());
     });
 
-    pModule->getLuaState().set_function("mapID2Name", [](int mapID) -> std::string
+    modulePtr->getLuaState().set_function("mapID2Name", [](int mapID) -> std::string
     {
         return to_cstr(DBCOM_MAPRECORD(mapID).name);
     });
 
-    pModule->getLuaState().script(INCLUA_BEGIN(char)
+    modulePtr->getLuaState().set_function("history", [nCWID, this]()
+    {
+        for(const auto &s: g_mainWindow->getCWHistory(nCWID)){
+            if(!s.empty()){
+                addCWLogString(nCWID, 0, "> ", s.c_str());
+            }
+        }
+    });
+
+    modulePtr->getLuaState().script(INCLUA_BEGIN(char)
 #include "monoserver.lua"
     INCLUA_END());
 }

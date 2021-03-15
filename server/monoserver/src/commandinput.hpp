@@ -47,4 +47,10 @@ class CommandInput : public Fl_Multiline_Input
 
     public:
         int handle(int);
+
+    public:
+        const auto &getHistory() const
+        {
+            return m_inputList;
+        }
 };

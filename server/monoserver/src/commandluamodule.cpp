@@ -19,10 +19,10 @@
 #include "monoserver.hpp"
 #include "serverluamodule.hpp"
 
-CommandLuaModule::CommandLuaModule(uint32_t nCWID)
+extern MonoServer *g_monoServer;
+CommandLuaModule::CommandLuaModule(uint32_t cwid)
     : ServerLuaModule()
-    , m_CWID(nCWID)
+    , m_CWID(cwid)
 {
-    extern MonoServer *g_monoServer;
-    g_monoServer->regLuaExport(this, nCWID);
+    g_monoServer->regLuaExport(this, cwid);
 }
