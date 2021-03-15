@@ -20,12 +20,14 @@
 #pragma once
 #include <vector>
 #include "flinc.hpp"
+#include "threadpool.hpp"
 
 class CommandWindow;
 class CommandInput : public Fl_Multiline_Input
 {
     private:
         CommandWindow *m_window = nullptr;
+        std::unique_ptr<threadPool> m_worker;
 
     private:
         int m_inputListPos = 0;
@@ -40,6 +42,7 @@ class CommandInput : public Fl_Multiline_Input
         void bind(CommandWindow *winPtr)
         {
             m_window = winPtr;
+            m_worker = std::make_unique<threadPool>(1);
         }
 
     public:

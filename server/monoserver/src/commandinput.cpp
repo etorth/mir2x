@@ -28,6 +28,11 @@ int CommandInput::handle(int event)
     switch(event){
         case FL_KEYBOARD:
             {
+                if(!active()){
+                    // to inform fltk that we have handled this event
+                    return 1;
+                }
+
                 const std::string currCmdStr = value() ? value() : "";
                 switch(const auto key = Fl::event_key()){
                     case FL_Up:
@@ -118,7 +123,9 @@ int CommandInput::handle(int event)
 
                                 // 2. put a task in the LuaModule::TaskHub
                                 //    and return immediately for current thread
-                                globalThreadPool::postEvalTask([this, cwid, currCmdStr](int)
+
+                                deactivate();
+                                m_worker->addTask([this, cwid, currCmdStr](int)
                                 {
                                     const DisableFlWidget disable(this);
                                     auto callResult = m_window->getLuaModule()->getLuaState().script(currCmdStr.c_str(), [](lua_State *, sol::protected_function_result result)
