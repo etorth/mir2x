@@ -20,4 +20,5 @@
 #include <stdexcept>
 #include "strf.hpp"
 #define fflerror(...) std::runtime_error(str_ffl() + ": " + str_printf(__VA_ARGS__))
-#define bad_reach()   fflerror("can't reach here")
+#define fflassert(x) do{if(x){}else{throw fflerror("assertion failed: %s", #x);}}while(0)
+#define bad_reach() fflerror("can't reach here")

@@ -92,9 +92,7 @@ class ServerObject
 
         void checkActorPodEx() const
         {
-            if(!checkActorPod()){
-                throw fflerror("invalid ActorPod");
-            }
+            fflassert(checkActorPod());
         }
 
     public:
