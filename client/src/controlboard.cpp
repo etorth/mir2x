@@ -1264,7 +1264,17 @@ void ControlBoard::drawInputGreyBackground() const
 
 void ControlBoard::drawHeroLoc() const
 {
-    const auto locStr = str_printf(u8"%s: %d %d", DBCOM_MAPRECORD(m_processRun->mapID()).name, m_processRun->getMyHero()->x(), m_processRun->getMyHero()->y());
+    // support different map uses same map name, i.e.
+    //
+    // 石墓迷宫_1
+    // 石墓迷宫_2
+    // 石墓迷宫_3
+    //
+    // we use same map gfx for different map
+    // but user still see same map name: 石墓迷宫
+
+    const auto mapName = std::string(to_cstr(DBCOM_MAPRECORD(m_processRun->mapID()).name));
+    const auto locStr = str_printf(u8"%s: %d %d", mapName.substr(0, mapName.find('_')).c_str(), m_processRun->getMyHero()->x(), m_processRun->getMyHero()->y());
     LabelBoard locBoard
     {
         DIR_UPLEFT,
