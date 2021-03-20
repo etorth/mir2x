@@ -26,7 +26,7 @@
 class FPSMonitor
 {
     private:
-        size_t m_size;
+        const size_t m_size;
         std::deque<uint32_t> m_timeStamp;
 
     public:
