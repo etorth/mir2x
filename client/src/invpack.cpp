@@ -26,7 +26,7 @@
 extern PNGTexDB *g_itemDB;
 void InvPack::add(SDItem item)
 {
-    item.checkEx();
+    fflassert(item);
     for(auto &bin: m_packBinList){
         if((bin.item.itemID == item.itemID) && (bin.item.seqID == item.seqID)){
             if(bin.item.count + item.count <= SYS_INVGRIDMAXHOLD){
@@ -54,7 +54,7 @@ void InvPack::add(SDItem item)
 
 void InvPack::add(SDItem item, int x, int y)
 {
-    item.checkEx();
+    fflassert(item);
     auto itemBin = makePackBin(item);
 
     if(!(x >= 0 && x + itemBin.w <= to_d(w()) && y >= 0)){
@@ -79,7 +79,7 @@ void InvPack::add(SDItem item, int x, int y)
 
 int InvPack::update(SDItem item)
 {
-    item.checkEx();
+    fflassert(item);
     if(item.seqID <= 0){
         throw fflerror("udpate item with zero seqID: %s", to_cstr(item.str()));
     }
@@ -145,7 +145,7 @@ PackBin InvPack::makePackBin(SDItem item)
 void InvPack::setGrabbedItem(SDItem item)
 {
     if(item.itemID){
-        item.checkEx();
+        fflassert(item);
         m_grabbedItem = std::move(item);
     }
     else{

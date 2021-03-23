@@ -1773,12 +1773,12 @@ void ProcessRun::requestBuy(uint64_t npcUID, uint32_t itemID, uint32_t seqID, si
         throw fflerror("invalid uid: %llu, type: %s", to_llu(npcUID), uidf::getUIDTypeCStr(npcUID));
     }
 
-    SDItem
+    fflassert(SDItem
     {
         .itemID = itemID,
         .seqID = seqID,
         .count = 1, // can buy more than SYS_INVGRIDMAXHOLD
-    }.checkEx();
+    });
 
     if(count <= 0){
         throw fflerror("invalid buy count: %zu", count);
@@ -1900,12 +1900,12 @@ void ProcessRun::requestGrabBelt(int slot)
 
 void ProcessRun::requestDropItem(uint32_t itemID, uint32_t seqID, size_t count)
 {
-    SDItem
+    fflassert(SDItem
     {
         .itemID = itemID,
         .seqID = seqID,
         .count = count,
-    }.checkEx();
+    });
 
     CMDropItem cmDI;
     std::memset(&cmDI, 0, sizeof(cmDI));

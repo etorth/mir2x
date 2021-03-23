@@ -50,14 +50,14 @@ void Player::dbLoadInventory()
             .extAttrList = cerealf::deserialize<SDItemExtAttrList>(query.getColumn("fld_extattrlist")),
         };
 
-        item.checkEx();
+        fflassert(item);
         m_sdItemStorage.inventory.add(std::move(item), true);
     }
 }
 
 void Player::dbUpdateInventoryItem(const SDItem &item)
 {
-    item.checkEx();
+    fflassert(item);
     const auto attrBuf = cerealf::serialize(item.extAttrList);
     auto query = g_dbPod->createQuery(
             u8R"###( replace into tbl_inventory(fld_dbid, fld_itemid, fld_seqid, fld_count, fld_duration, fld_extattrlist) )###"
@@ -121,7 +121,7 @@ void Player::dbLoadBelt()
             .count  = check_cast<size_t, unsigned>(query.getColumn("fld_count")),
         };
 
-        item.checkEx();
+        fflassert(item);
         m_sdItemStorage.belt.list.at(index) = std::move(item);
     }
 }
@@ -132,7 +132,7 @@ void Player::dbUpdateBeltItem(size_t slot, const SDItem &item)
         throw fflerror("invalid belt slot: %zu", slot);
     }
 
-    item.checkEx();
+    fflassert(item);
     const auto typeStr = to_u8sv(DBCOM_ITEMRECORD(item.itemID).type);
     if(true
             && typeStr != u8"恢复药水"
@@ -185,7 +185,7 @@ void Player::dbLoadWear()
             throw fflerror("invalid item type to wear grid");
         }
 
-        item.checkEx();
+        fflassert(item);
         m_sdItemStorage.wear.setWLItem(wltype, std::move(item));
     }
 }
@@ -196,7 +196,7 @@ void Player::dbUpdateWearItem(int wltype, const SDItem &item)
         throw fflerror("bad wltype: %d", wltype);
     }
 
-    item.checkEx();
+    fflassert(item);
     if(!DBCOM_ITEMRECORD(item.itemID).wearable(wltype)){
         throw fflerror("invalid item type to wear grid");
     }

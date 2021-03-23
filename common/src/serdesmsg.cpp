@@ -21,16 +21,6 @@
 #include "serdesmsg.hpp"
 #include "dbcomrecord.hpp"
 
-void SDItem::checkEx() const
-{
-    // called before insert record to database
-    // make it super safe
-
-    if(!this[0]){
-        throw fflerror("invalid item: %s", to_cstr(str()));
-    }
-}
-
 SDItem::operator bool () const
 {
     if(!itemID){
@@ -153,7 +143,7 @@ const SDItem &SDInventory::find(uint32_t itemID, uint32_t seqID) const
 
 const SDItem &SDInventory::add(SDItem newItem, bool keepSeqID)
 {
-    newItem.checkEx();
+    fflassert(newItem);
     const auto itemSeqIDSet = getItemSeqIDSet();
 
     if(keepSeqID){

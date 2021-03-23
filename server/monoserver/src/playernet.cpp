@@ -540,7 +540,7 @@ void Player::net_CM_DROPITEM(uint8_t, const uint8_t *buf, size_t)
         .count = to_uz(cmDI.count),
     };
 
-    dropItem.checkEx();
+    fflassert(dropItem);
     removeInventoryItem(dropItem);
 
     // TODO
@@ -559,11 +559,11 @@ void Player::net_CM_DROPITEM(uint8_t, const uint8_t *buf, size_t)
 void Player::net_CM_CONSUMEITEM(uint8_t, const uint8_t *buf, size_t)
 {
     const auto cmCI = ClientMsg::conv<CMDropItem>(buf);
-    SDItem
+    fflassert(SDItem
     {
         .itemID = cmCI.itemID,
         .seqID = cmCI.seqID,
         .count = to_uz(cmCI.count),
-    }.checkEx();
+    });
     removeInventoryItem(cmCI.itemID, cmCI.seqID, cmCI.count);
 }
