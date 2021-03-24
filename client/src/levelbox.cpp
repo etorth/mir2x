@@ -112,6 +112,10 @@ void LevelBox::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int srcH
 {
     class DrawHelper: public WidgetGroup
     {
+        private:
+            LabelBoard m_label;
+            ImageBoard m_image;
+
         public:
             DrawHelper(int argX, int argY, int argW, int argH, uint32_t color, uint32_t level)
                 : WidgetGroup
@@ -122,40 +126,40 @@ void LevelBox::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int srcH
                       argW,
                       argH,
                   }
-            {
-                new LabelBoard
-                {
-                    DIR_NONE,
-                    w() / 2,
-                    h() / 2,
 
-                    to_u8cstr(str_printf(u8"%d", to_d(level))),
+                , m_label
+                  {
+                      DIR_NONE,
+                      w() / 2,
+                      h() / 2,
 
-                    0,
-                    12,
-                    0,
-                    colorf::YELLOW + 255,
+                      to_u8cstr(str_printf(u8"%d", to_d(level))),
 
-                    this,
-                    true,
-                };
+                      0,
+                      12,
+                      0,
+                      colorf::YELLOW + 255,
 
-                new ImageBoard
-                {
-                    DIR_NONE,
-                    w() / 2,
-                    h() / 2,
+                      this,
+                      false,
+                  }
 
-                    [](const ImageBoard *)
-                    {
-                        return g_sdlDevice->getCover(8);
-                    },
+                , m_image
+                  {
+                      DIR_NONE,
+                      w() / 2,
+                      h() / 2,
 
-                    color,
-                    this,
-                    true,
-                };
-            }
+                      [](const ImageBoard *)
+                      {
+                          return g_sdlDevice->getCover(8);
+                      },
+
+                      color,
+                      this,
+                      false,
+                  }
+            {}
     };
 
     DrawHelper
