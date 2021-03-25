@@ -120,7 +120,7 @@ class MonoServer final
                 bool);                  // use strict loc
 
     public:
-        bool addNPChar(uint16_t, uint32_t, int, int, bool);
+        bool addNPChar(const char *);
 
     public:
         uint32_t getCurrTick() const

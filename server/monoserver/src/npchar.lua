@@ -168,10 +168,10 @@ function main(uid)
         -- always consume the event no matter if the NPC can handle it
         sayXML(uid, string.format(
         [[
-        <layout>
-        <par>我听不懂你在说什么...</par>
-        <par><event id="%s">关闭</event></par>
-        </layout>
+            <layout>
+                <par>我听不懂你在说什么...</par>
+                <par><event id="%s">关闭</event></par>
+            </layout>
         ]], SYS_NPCDONE))
     end
 

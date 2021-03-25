@@ -25,9 +25,12 @@
 
 class NPChar final: public CharObject
 {
-    private:
+    public:
         class LuaNPCModule: public ServerLuaModule
         {
+            private:
+                friend class NPChar;
+
             private:
                 struct LuaCallStack
                 {
@@ -55,12 +58,28 @@ class NPChar final: public CharObject
                     {}
                 };
 
+                struct NPCGLoc
+                {
+                    int x = -1;
+                    int y = -1;
+                };
+
+            private:
+                const std::string m_npcName;
+
             private:
                 uint64_t m_seqID = 0;
                 std::unordered_map<uint64_t, LuaCallStack> m_callStackList;
 
+            private:
+                int m_npcLookID = -1;
+                NPCGLoc m_npcGLoc;
+
+            private:
+                NPChar *m_npc = nullptr;
+
             public:
-                LuaNPCModule(NPChar *);
+                LuaNPCModule(const SDInitNPChar &);
 
             public:
                 void setEvent(uint64_t callStackUID, uint64_t from, std::string event, std::string value);
@@ -90,8 +109,32 @@ class NPChar final: public CharObject
                         return 0;
                     }
                 }
+
+            public:
+                const auto &getNPCName() const
+                {
+                    return m_npcName;
+                }
+
+                const auto &getNPCGLoc() const
+                {
+                    return m_npcGLoc;
+                }
+
+                uint16_t getNPCLookID() const
+                {
+                    return m_npcLookID;
+                }
+
+            public:
+                void bindNPCPtr(NPChar *npc)
+                {
+                    fflassert(npc && !m_npc);
+                    m_npc = npc;
+                }
         };
 
+    private:
         struct SellItem
         {
             SDItem item;
@@ -104,7 +147,7 @@ class NPChar final: public CharObject
         std::unordered_map<uint32_t, std::map<uint32_t, SellItem>> m_sellItemList;
 
     public:
-        NPChar(uint16_t, ServiceCore *, ServerMap *, int, int);
+        NPChar(ServiceCore *, ServerMap *, std::unique_ptr<NPChar::LuaNPCModule>);
 
     public:
         bool update() override;

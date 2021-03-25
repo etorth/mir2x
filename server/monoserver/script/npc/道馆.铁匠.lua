@@ -18,6 +18,9 @@
 -- provides the table: processNPCEvent for event processing
 
 addLog(LOGTYPE_INFO, string.format('NPC %s sources %s', getNPCFullName(), getFileName()))
+setNPCLookID(4)
+setNPCGLoc(400, 125)
+
 local function randomHeadString()
     if math.random(0, 1) == 0 then
         return '与武器有关的事情都可以找我！'

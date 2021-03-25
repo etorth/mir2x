@@ -133,12 +133,7 @@ void ServerMap::on_AM_ADDCHAROBJECT(const ActorMsgPack &rstMPK)
             }
         case UID_NPC:
             {
-                const auto npcID = amACO.NPC.NPCID;
-                const auto x     = amACO.x;
-                const auto y     = amACO.y;
-                const auto strictLoc = amACO.strictLoc;
-
-                if(addNPChar(npcID, x, y, strictLoc)){
+                if(addNPChar(cerealf::deserialize<SDInitNPChar>(amACO.buf.data, amACO.buf.size))){
                     m_actorPod->forward(rstMPK.from(), AM_OK, rstMPK.seqID());
                     doCircle(nX, nY, 20, [this](int nX, int nY) -> bool
                     {

@@ -36,24 +36,8 @@ function main()
         return monCount
     end
 
-    addNPC(3, 400, 120, false)
-    addNPC(1, 400, 300, false)
-    addNPC(1, 401, 300, false)
-    addNPC(2, 402, 300, false)
-    addNPC(3, 403, 300, false)
-    addNPC(4, 404, 300, false)
-    addNPC(5, 405, 300, false)
-    addNPC(6, 406, 300, false)
-    addNPC(7, 407, 300, false)
-    addNPC(8, 408, 300, false)
-    addNPC(9, 409, 300, false)
-    addNPC(3, 397, 133, false)
-    addNPC(3, 388, 122, false)
-
-    -- add 六面神石
-
-    addNPC(56, 416, 179, false)
-
+    -- npc loading is done in ServerMap::onActivate()
+    -- which loads all scripts matches map name
     while not scriptDone() do
         if getTime() - g_LastInvokeTime > g_LogicDelay then
 
@@ -78,5 +62,5 @@ function main()
         coroutine.yield()
     end
 
-    addLog(LOGTYPE_INFO, 'map script ' .. getMapName() .. ' stops.')
+    addLog(LOGTYPE_INFO, 'map script %s stopped', getMapName())
 end

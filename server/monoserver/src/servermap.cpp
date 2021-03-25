@@ -213,47 +213,6 @@ ServerMap::ServerMapLuaModule::ServerMapLuaModule(ServerMap *mapPtr)
         return false;
     });
 
-    getLuaState().set_function("addNPC", [mapPtr](int npcID, sol::variadic_args args) -> bool
-    {
-        if(npcID <= 0){
-            throw fflerror("invalid npc id: %d", npcID);
-        }
-
-        const std::vector<sol::object> argList(args.begin(), args.end());
-        switch(argList.size()){
-            case 0:
-                {
-                    return mapPtr->addNPChar(to_u16(npcID), -1, -1, false);
-                }
-            case 2:
-                {
-                    if(argList[0].is<int>() && argList[1].is<int>()){
-                        return mapPtr->addNPChar(to_u16(npcID), argList[0].as<int>(), argList[1].as<int>(), false);
-                    }
-                    break;
-                }
-            case 3:
-                {
-                    if(argList[0].is<int>() && argList[1].is<int>() && argList[2].is<bool>()){
-                        return mapPtr->addNPChar(to_u16(npcID), argList[0].as<int>(), argList[1].as<int>(), argList[2].as<bool>());
-                    }
-                    break;
-                }
-            case 4:
-                {
-                    if(argList[0].is<int>() && argList[1].is<int>() && argList[2].is<bool>()){
-                        return mapPtr->addNPChar(to_u16(npcID), argList[0].as<int>(), argList[1].as<int>(), argList[2].as<bool>());
-                    }
-                    break;
-                }
-            default:
-                {
-                    break;
-                }
-        }
-        return false;
-    });
-
     getLuaState().script_file([mapPtr]() -> std::string
     {
         const auto configScriptPath = g_serverConfigureWindow->getScriptPath();
@@ -1031,31 +990,21 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
     return nullptr;
 }
 
-NPChar *ServerMap::addNPChar(uint16_t npcID, int hintX, int hintY, bool strictLoc)
+NPChar *ServerMap::addNPChar(const SDInitNPChar &initParam)
 {
-    if(!validC(hintX, hintY)){
-        if(strictLoc){
-            return nullptr;
-        }
-
-        hintX = std::rand() % W();
-        hintY = std::rand() % H();
-    }
-
-    if(const auto [dstOK, dstX, dstY] = GetValidGrid(false, false, to_d(strictLoc), hintX, hintY); dstOK){
-        auto npcPtr = new NPChar
-        {
-            npcID,
-            m_serviceCore,
-            this,
-            dstX,
-            dstY,
-        };
-
+    try{
+        auto npcPtr = new NPChar(m_serviceCore, this, std::make_unique<NPChar::LuaNPCModule>(initParam));
         npcPtr->activate();
         return npcPtr;
     }
-    return nullptr;
+    catch(const std::exception &e){
+        g_monoServer->addLog(LOGTYPE_WARNING, "failed to ServerMap::addNPChar: %s", e.what());
+        return nullptr;
+    }
+    catch(...){
+        g_monoServer->addLog(LOGTYPE_WARNING, "failed to ServerMap::addNPChar");
+        return nullptr;
+    }
 }
 
 Player *ServerMap::addPlayer(const SDInitPlayer &initPlayer)
@@ -1112,4 +1061,28 @@ int ServerMap::CheckPathGrid(int nX, int nY) const
     }
 
     return PathFind::FREE;
+}
+
+void ServerMap::loadNPChar()
+{
+    const auto cfgScriptPath = g_serverConfigureWindow->getScriptPath();
+    const auto scriptPath = cfgScriptPath.empty() ? std::string("script/npc") : cfgScriptPath;
+
+    const auto reg = str_printf("%s\\..*\\.lua", to_cstr(DBCOM_MAPRECORD(ID()).name));
+    for(const auto &fileName: filesys::getFileList(scriptPath.c_str(), reg.c_str())){
+        // file as: "道馆.铁匠.lua"
+        // parse the string to get "铁匠" as npc name
+        const auto p1 = fileName.find('.');
+        fflassert(p1 != std::string::npos);
+
+        const auto p2 = fileName.find('.', p1 + 1);
+        fflassert(p2 != std::string::npos);
+
+        addNPChar(SDInitNPChar
+        {
+            .filePath = scriptPath,
+            .mapID    = ID(),
+            .npcName  = fileName.substr(p1 + 1, p2 - p1 - 1),
+        });
+    }
 }

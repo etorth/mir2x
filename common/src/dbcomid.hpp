@@ -18,7 +18,6 @@
 
 #pragma once
 #include <cstdint>
-#include "npcrecord.hpp"
 #include "maprecord.hpp"
 #include "itemrecord.hpp"
 #include "magicrecord.hpp"
@@ -38,11 +37,6 @@ namespace
     // this is very useful since
     // 1. don't need to think about all monster english name
     // 2. don't need to assign monster ID to each type, just automatically generate one by .inc file
-
-    constexpr NPCRecord _inn_NPCRecordList []
-    {
-        #include "npcrecord.inc"
-    };
 
     constexpr ItemRecord _inn_ItemRecordList []
     {
@@ -81,4 +75,3 @@ constexpr uint32_t DBCOM_ITEMID   (const char8_t *name) { return DBCOM_IDHELPER(
 constexpr uint32_t DBCOM_MONSTERID(const char8_t *name) { return DBCOM_IDHELPER(_inn_MonsterRecordList, name); }
 constexpr uint32_t DBCOM_MAGICID  (const char8_t *name) { return DBCOM_IDHELPER(_inn_MagicRecordList,   name); }
 constexpr uint32_t DBCOM_MAPID    (const char8_t *name) { return DBCOM_IDHELPER(_inn_MapRecordList,     name); }
-constexpr uint32_t DBCOM_NPCID    (const char8_t *name) { return DBCOM_IDHELPER(_inn_NPCRecordList,     name); }

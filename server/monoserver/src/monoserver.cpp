@@ -29,6 +29,7 @@
 #include "jobf.hpp"
 #include "dbpod.hpp"
 #include "totype.hpp"
+#include "filesys.hpp"
 #include "message.hpp"
 #include "monster.hpp"
 #include "mapbindb.hpp"
@@ -441,21 +442,44 @@ bool MonoServer::addMonster(uint32_t monsterID, uint32_t mapID, int x, int y, bo
     }
 }
 
-bool MonoServer::addNPChar(uint16_t npcID, uint32_t mapID, int x, int y, bool strictLoc)
+bool MonoServer::addNPChar(const char *scriptPath)
 {
+    fflassert(str_haschar(scriptPath));
+    fflassert(filesys::hasFile(scriptPath));
+    const auto [filePath, fileName] = filesys::decompFileName(scriptPath);
+
+    char mapName[64];
+    char npcName[64];
+
+    if(std::sscanf(fileName.c_str(), "%[^.].%[^.].lua", mapName, npcName) != 2){
+        throw fflerror("invalid script: %s", scriptPath);
+    }
+
+    const auto mapID = DBCOM_MAPID(to_u8cstr(mapName));
+    fflassert(mapID);
+
     AMAddCharObject amACO;
     std::memset(&amACO, 0, sizeof(amACO));
 
-    amACO.type = UID_NPC;
-    amACO.x = x;
-    amACO.y = y;
+    amACO.type  = UID_NPC;
     amACO.mapID = mapID;
-    amACO.strictLoc = strictLoc;
+    amACO.x = -1;
+    amACO.y = -1;
+    amACO.strictLoc = false;
 
-    amACO.NPC.NPCID = npcID;
-    addLog(LOGTYPE_INFO, "Try to add NPC, NPCID = %llu", to_llu(npcID));
+    const auto buf = cerealf::serialize(SDInitNPChar
+    {
+        .filePath = filePath,
+        .mapID    = mapID,
+        .npcName  = npcName,
+    });
 
-    switch(auto stRMPK = SyncDriver().forward(m_serviceCore->UID(), {AM_ADDCHAROBJECT, amACO}, 0, 0); stRMPK.type()){
+    fflassert(sizeof(amACO.buf.data) >= buf.length());
+    amACO.buf.size = buf.length();
+    std::memcpy(amACO.buf.data, buf.data(), buf.length());
+    addLog(LOGTYPE_INFO, "Try to add NPC, script: %s", to_cstr(scriptPath));
+
+    switch(auto rmpk = SyncDriver().forward(m_serviceCore->UID(), {AM_ADDCHAROBJECT, amACO}, 0, 0); rmpk.type()){
         case AM_OK:
             {
                 addLog(LOGTYPE_INFO, "Add NPC succeeds");
@@ -468,7 +492,7 @@ bool MonoServer::addNPChar(uint16_t npcID, uint32_t mapID, int x, int y, bool st
             }
         default:
             {
-                throw fflerror("Unsupported message: %s", mpkName(stRMPK.type()));
+                throw fflerror("unsupported message: %s", mpkName(rmpk.type()));
             }
     }
 }
@@ -838,45 +862,6 @@ void MonoServer::regLuaExport(CommandLuaModule *modulePtr, uint32_t nCWID)
                     return false;
                 }
         }
-    });
-
-    modulePtr->getLuaState().set_function("addNPC", [this, nCWID](int npcID, int mapID, sol::variadic_args args) -> bool
-    {
-        const auto fnUsage = [this, nCWID]()
-        {
-            addCWLogString(nCWID, 2, ">>> ", "addNPC(NPCID: int, mapID: int)");
-            addCWLogString(nCWID, 2, ">>> ", "addNPC(NPCID: int, mapID: int, X: int, Y: int)");
-            addCWLogString(nCWID, 2, ">>> ", "addNPC(NPCID: int, mapID: int, X: int, Y: int, Random: bool)");
-        };
-
-        const std::vector<sol::object> argList(args.begin(), args.end());
-        switch(argList.size()){
-            case 0:
-                {
-                    return addNPChar(to_u16(npcID), to_u32(mapID), -1, -1, false);
-                }
-            case 2:
-                {
-                    if(argList[0].is<int>() && argList[1].is<int>()){
-                        return addNPChar(to_u32(npcID), to_u32(mapID), argList[0].as<int>(), argList[1].as<int>(), false);
-                    }
-                    break;
-                }
-            case 3:
-                {
-                    if(argList[0].is<int >() && argList[1].is<int >() && argList[2].is<bool>()){
-                        return addNPChar(to_u32(npcID), to_u32(mapID), argList[0].as<int>(), argList[1].as<int>(), argList[2].as<bool>());
-                    }
-                    break;
-                }
-            default:
-                {
-                    break;
-                }
-        }
-
-        fnUsage();
-        return false;
     });
 
     // register command mapList

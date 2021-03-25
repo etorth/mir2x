@@ -218,7 +218,7 @@ uint16_t uidf::getLookID(uint64_t uid)
     switch(uidf::getUIDType(uid)){
         case UID_NPC:
             {
-                return DBCOM_NPCRECORD(uidf::getNPCID(uid)).lookID;
+                return (uid >> 16) & 0XFFFFULL;
             }
         default:
             {

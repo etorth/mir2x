@@ -18,6 +18,9 @@
 -- provides the table: processNPCEvent for event processing
 
 addLog(LOGTYPE_INFO, string.format('NPC %s sources %s', getNPCFullName(), getFileName()))
+setNPCLookID(1)
+setNPCGLoc(400, 120)
+
 local function randomHeadString()
     if math.random(0, 1) == 0 then
         return '与衣服鞋子有关的都可以找我！'

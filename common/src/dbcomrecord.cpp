@@ -37,13 +37,11 @@ const ItemRecord    &DBCOM_ITEMRECORD   (uint32_t id) { return DBCOM_REFHELPER(_
 const MagicRecord   &DBCOM_MAGICRECORD  (uint32_t id) { return DBCOM_REFHELPER(_inn_MagicRecordList,   id); }
 const MonsterRecord &DBCOM_MONSTERRECORD(uint32_t id) { return DBCOM_REFHELPER(_inn_MonsterRecordList, id); }
 const MapRecord     &DBCOM_MAPRECORD    (uint32_t id) { return DBCOM_REFHELPER(_inn_MapRecordList,     id); }
-const NPCRecord     &DBCOM_NPCRECORD    (uint32_t id) { return DBCOM_REFHELPER(_inn_NPCRecordList,     id); }
 
 const ItemRecord    &DBCOM_ITEMRECORD   (const char8_t *name) { return DBCOM_ITEMRECORD   (DBCOM_ITEMID   (name)); }
 const MagicRecord   &DBCOM_MAGICRECORD  (const char8_t *name) { return DBCOM_MAGICRECORD  (DBCOM_MAGICID  (name)); }
 const MonsterRecord &DBCOM_MONSTERRECORD(const char8_t *name) { return DBCOM_MONSTERRECORD(DBCOM_MONSTERID(name)); }
 const MapRecord     &DBCOM_MAPRECORD    (const char8_t *name) { return DBCOM_MAPRECORD    (DBCOM_MAPID    (name)); }
-const NPCRecord     &DBCOM_NPCRECORD    (const char8_t *name) { return DBCOM_NPCRECORD    (DBCOM_NPCID    (name)); }
 
 bool getClothGender(uint32_t itemID)
 {

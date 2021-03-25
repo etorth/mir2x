@@ -186,10 +186,11 @@ class ServerMap final: public ServerObject
         {
             ServerObject::onActivate();
             m_luaModulePtr = std::make_unique<ServerMap::ServerMapLuaModule>(this);
+            loadNPChar();
         }
 
     private:
-        bool Load(const char *);
+        void loadNPChar();
 
     private:
         void    addGridUID(uint64_t, int, int, bool);
@@ -205,9 +206,9 @@ class ServerMap final: public ServerObject
 
     private:
         Player *addPlayer(const SDInitPlayer &);
+        NPChar *addNPChar(const SDInitNPChar &);
 
     private:
-        NPChar  *addNPChar (uint16_t,      int, int,      bool);
         Monster *addMonster(uint32_t, uint64_t, int, int, bool);
 
     private:

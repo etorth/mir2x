@@ -53,6 +53,20 @@ struct SDInitPlayer
     }
 };
 
+struct SDInitNPChar
+{
+    std::string filePath;
+    uint32_t mapID = 0;
+    std::string npcName;
+
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(filePath, mapID, npcName);
+    }
+
+    std::string getFileName() const;
+};
+
 struct SDNPCXMLLayout
 {
     uint64_t npcUID = 0;

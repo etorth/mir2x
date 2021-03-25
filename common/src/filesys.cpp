@@ -16,6 +16,7 @@
  * =====================================================================================
  */
 
+#include <regex>
 #include <cerrno>
 #include <cstdio>
 #include <string>
@@ -78,4 +79,38 @@ void filesys::copyFile(const char *dstFileName, const char *srcFileName)
         }
         copyDone += currCopySize;
     }
+}
+
+std::tuple<std::string, std::string> filesys::decompFileName(const char *fullName)
+{
+    fflassert(str_haschar(fullName));
+    if(const auto p = std::strrchr(fullName, '/')){
+        return {std::string(fullName, p), std::string(p + 1)};
+    }
+    else{
+        return {"", fullName};
+    }
+}
+
+std::vector<std::string> filesys::getFileList(const char *dir, const char *reg)
+{
+    fflassert(str_haschar(dir));
+    std::vector<std::string> result;
+    std::regex matchRegex(str_haschar(reg) ? reg : ".*");
+
+    for(auto &p: std::filesystem::directory_iterator(dir)){
+        if(!p.is_regular_file()){
+            continue;
+        }
+
+        auto fileName = p.path().filename().u8string();
+        if(str_haschar(reg)){
+            if(!std::regex_match(reinterpret_cast<const char *>(fileName.c_str()), matchRegex)){
+                continue;
+            }
+        }
+
+        result.push_back(reinterpret_cast<const char *>(p.path().u8string().c_str()));
+    }
+    return result;
 }
