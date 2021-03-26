@@ -307,7 +307,7 @@ NPChar::NPChar(ServiceCore *core, ServerMap *serverMap, std::unique_ptr<NPChar::
 {
     // LuaNPCModule(this) can access ``this"
     // when constructing LuaNPCModule we need to confirm ``this" is ready
-    m_luaModulePtr->bindNPCPtr(this);
+    m_luaModulePtr->bindNPC(this);
     fillSellItemList();
 }
 

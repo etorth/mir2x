@@ -128,7 +128,7 @@ class NPChar final: public CharObject
                 }
 
             public:
-                void bindNPCPtr(NPChar *npc)
+                void bindNPC(NPChar *npc)
                 {
                     fflassert(npc && !m_npc);
                     m_npc = npc;
