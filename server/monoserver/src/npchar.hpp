@@ -73,8 +73,9 @@ class NPChar final: public CharObject
                 std::unordered_map<uint64_t, LuaCallStack> m_callStackList;
 
             private:
-                int m_npcLookID = -1;
-                NPCGLoc m_npcGLoc;
+                int m_npcLookID = -1;               // setNPCLook
+                NPCGLoc m_npcGLoc;                  // setNPCGLoc
+                std::set<uint32_t> m_npcSell;       // setNPCSell
 
             private:
                 NPChar *m_npc = nullptr;
@@ -125,6 +126,11 @@ class NPChar final: public CharObject
                 uint16_t getNPCLookID() const
                 {
                     return m_npcLookID;
+                }
+
+                const auto &getNPCSell() const
+                {
+                    return m_npcSell;
                 }
 
             public:
@@ -185,14 +191,16 @@ class NPChar final: public CharObject
         void sendQuery(uint64_t, uint64_t, const std::string &);
 
     private:
-        void sendSell(uint64_t, const std::vector<std::string> &);
+        void sendSell(uint64_t);
         void sendXMLLayout(uint64_t, std::string);
 
     public:
         void operateAM(const ActorMsgPack &) override;
 
+    protected:
+        virtual std::set<uint32_t> getDefaultSellItemIDList() const;
+
     private:
-        std::set<uint32_t> getSellItemIDList() const;
         std::vector<SDCostItem> getCostItemList(const SDItem &) const;
 
     private:

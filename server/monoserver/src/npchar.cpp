@@ -74,6 +74,30 @@ NPChar::LuaNPCModule::LuaNPCModule(const SDInitNPChar &initParam)
         done = true;
     });
 
+    m_luaState.set_function("setNPCSell", [this](sol::variadic_args args)
+    {
+        m_npcSell.clear();
+        const std::vector<sol::object> objArgs(args.begin(), args.end());
+        for(const auto &obj: objArgs){
+            fflassert(obj.is<std::string>());
+            if(const auto itemID = DBCOM_ITEMID(to_u8cstr(obj.as<std::string>()))){
+                m_npcSell.insert(itemID);
+            }
+        }
+    });
+
+    m_luaState.set_function("addNPCSell", [this](std::string itemName)
+    {
+        if(const auto itemID = DBCOM_ITEMID(to_u8cstr(itemName))){
+            m_npcSell.insert(itemID);
+        }
+    });
+
+    m_luaState.set_function("clearNPCSell", [this]()
+    {
+        m_npcSell.clear();
+    });
+
     m_luaState.set_function("getUID", [this]() -> std::string
     {
         fflassert(m_npc);
@@ -83,6 +107,11 @@ NPChar::LuaNPCModule::LuaNPCModule(const SDInitNPChar &initParam)
     m_luaState.set_function("getUIDString", [](std::string uidString) -> std::string
     {
         return uidf::getUIDString(uidf::toUID(uidString));
+    });
+
+    m_luaState.set_function("getItemName", [](int itemID) -> std::string
+    {
+        return to_cstr(DBCOM_ITEMRECORD(itemID).name);
     });
 
     m_luaState.set_function("getNPCName", [this]() -> std::string
@@ -95,38 +124,16 @@ NPChar::LuaNPCModule::LuaNPCModule(const SDInitNPChar &initParam)
         return std::string(to_cstr(DBCOM_MAPRECORD(mapID).name)) + "." + m_npcName;
     });
 
-    m_luaState.set_function("sendSell", [this](std::string uidString, std::string listName)
+    m_luaState.set_function("sendSell", [this](std::string uidString)
     {
         fflassert(m_npc);
-        if(const sol::object checkObj = m_luaState[listName]; checkObj == sol::nil){
-            throw fflerror("lua script has no variable defined: %s", to_cstr(listName));
-        }
-
-        std::vector<std::string> itemList;
-        sol::table luaTable = m_luaState[listName];
-
-        for(const auto &p: luaTable){
-            itemList.push_back(p.second.as<std::string>());
-        }
-        m_npc->sendSell(uidf::toUIDEx(uidString), itemList);
+        m_npc->sendSell(uidf::toUIDEx(uidString));
     });
 
     m_luaState.set_function("sendCallStackQuery", [this](std::string callStackUID, std::string uidString, std::string query)
     {
         fflassert(m_npc);
         m_npc->sendQuery(uidf::toUIDEx(callStackUID), uidf::toUIDEx(uidString), query);
-    });
-
-    m_luaState.set_function("getSellItemList", [this](sol::this_state luaPtr)
-    {
-        fflassert(m_npc);
-        std::vector<std::string> itemNameList;
-        for(const auto itemID: m_npc->getSellItemIDList()){
-            if(const auto &ir = DBCOM_ITEMRECORD(itemID); ir && (std::u8string_view(ir.name) != u8"未知")){
-                itemNameList.push_back(to_cstr(ir.name));
-            }
-        }
-        return sol::make_object(sol::state_view(luaPtr), itemNameList);
     });
 
     m_luaState.set_function("sayXML", [this](std::string uidString, std::string xmlString)
@@ -308,7 +315,9 @@ NPChar::NPChar(ServiceCore *core, ServerMap *serverMap, std::unique_ptr<NPChar::
     // LuaNPCModule(this) can access ``this"
     // when constructing LuaNPCModule we need to confirm ``this" is ready
     m_luaModulePtr->bindNPC(this);
-    fillSellItemList();
+    if(!m_luaModulePtr->getNPCSell().empty()){
+        fillSellItemList();
+    }
 }
 
 bool NPChar::update()
@@ -355,24 +364,12 @@ bool NPChar::goGhost()
     return true;
 }
 
-void NPChar::sendSell(uint64_t uid, const std::vector<std::string> &itemList)
+void NPChar::sendSell(uint64_t uid)
 {
     sendNetPackage(uid, SM_NPCSELL, cerealf::serialize(SDNPCSell
     {
         .npcUID = UID(),
-        .itemList = [&itemList]()
-        {
-            std::vector<uint32_t> itemIDList;
-            for(const auto &itemName: itemList){
-                if(const uint32_t itemID = DBCOM_ITEMID(to_u8cstr(itemName))){
-                    itemIDList.push_back(itemID);
-                }
-                else{
-                    g_monoServer->addLog(LOGTYPE_WARNING, "invalid NPC selling item: %s", to_cstr(itemName));
-                }
-            }
-            return itemIDList;
-        }()
+        .itemList = std::vector<uint32_t>(m_luaModulePtr->getNPCSell().begin(), m_luaModulePtr->getNPCSell().end()),
     }, true));
 }
 
@@ -497,7 +494,7 @@ std::vector<SDCostItem> NPChar::getCostItemList(const SDItem &) const
     return result;
 }
 
-std::set<uint32_t> NPChar::getSellItemIDList() const
+std::set<uint32_t> NPChar::getDefaultSellItemIDList() const
 {
     std::set<uint32_t> itemIDList;
     for(uint32_t itemID = 1; itemID < 1000; ++itemID){
@@ -510,7 +507,7 @@ std::set<uint32_t> NPChar::getSellItemIDList() const
 
 void NPChar::fillSellItemList()
 {
-    for(const uint32_t itemID: getSellItemIDList()){
+    for(const uint32_t itemID: m_luaModulePtr->getNPCSell()){
         const auto &ir = DBCOM_ITEMRECORD(itemID);
         if(!ir){
             throw fflerror("selling invalid item: itemID = %llu", to_llu(itemID));

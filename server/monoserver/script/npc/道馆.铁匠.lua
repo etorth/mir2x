@@ -20,6 +20,7 @@
 addLog(LOGTYPE_INFO, string.format('NPC %s sources %s', getNPCFullName(), getFileName()))
 setNPCLook(4)
 setNPCGLoc(400, 125)
+setNPCSell('破山剑', '旋风流星刀', '破魂')
 
 local function randomHeadString()
     if math.random(0, 1) == 0 then
@@ -27,19 +28,6 @@ local function randomHeadString()
     else
         return '有什么可以为你效劳的吗？'
     end
-end
-
-local function getSell()
-    local r = math.random(0, 2)
-    if r == 0 then
-        return {'布鞋', '五彩鞋'}
-    end
-
-    if r == 1 then
-        return {'草鞋', '五彩鞋'}
-    end
-
-    return {'草鞋', '布鞋', '五彩鞋'}
 end
 
 processNPCEvent =
@@ -57,6 +45,6 @@ processNPCEvent =
     end,
 
     ["event_post_sell"] = function(uid, value)
-        uidPostSell(uid, getSell())
+        uidPostSell(uid)
     end,
 }

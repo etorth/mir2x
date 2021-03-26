@@ -93,14 +93,10 @@ function uidQueryGold(uid)
     return tonumber(uidQuery(uid, 'GOLD'))
 end
 
-function uidPostSell(uid, sell)
-    if type(sell) ~= 'table' then
-        errorPrintf('uidPostSell() expectes a table but get %s', type(sell))
-    end
-
-    local retVarName = 'ret_varName_' .. getCallStackUID()
-    _G[retVarName] = sell
-    sendSell(uid, retVarName)
+-- send the sell list to uid
+-- list is setup by setNPCSell(...)
+function uidPostSell(uid)
+    sendSell(uid)
 end
 
 -- setup call stack table for thread-based parameters
