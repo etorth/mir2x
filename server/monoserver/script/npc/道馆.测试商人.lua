@@ -18,8 +18,8 @@
 -- provides the table: processNPCEvent for event processing
 
 addLog(LOGTYPE_INFO, string.format('NPC %s sources %s', getNPCFullName(), getFileName()))
-setNPCLookID(2)
-setNPCGLoc(400, 122)
+setNPCLook(2)
+setNPCGLoc(400, 122, 1)
 
 processNPCEvent =
 {

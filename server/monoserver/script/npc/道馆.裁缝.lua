@@ -18,7 +18,7 @@
 -- provides the table: processNPCEvent for event processing
 
 addLog(LOGTYPE_INFO, string.format('NPC %s sources %s', getNPCFullName(), getFileName()))
-setNPCLookID(1)
+setNPCLook(1)
 setNPCGLoc(400, 120)
 
 local function randomHeadString()

@@ -60,8 +60,9 @@ class NPChar final: public CharObject
 
                 struct NPCGLoc
                 {
-                    int x = -1;
-                    int y = -1;
+                    int   x = -1;
+                    int   y = -1;
+                    int dir = -1;
                 };
 
             private:

@@ -40,7 +40,7 @@ NPChar::LuaNPCModule::LuaNPCModule(const SDInitNPChar &initParam)
     fflassert(DBCOM_MAPRECORD(initParam.mapID));
     fflassert(!initParam.npcName.empty());
 
-    m_luaState.set_function("setNPCLookID", [done = false, this](int lookID) mutable
+    m_luaState.set_function("setNPCLook", [done = false, this](int lookID) mutable
     {
         fflassert(!done);
         fflassert(lookID >= 0);
@@ -49,13 +49,28 @@ NPChar::LuaNPCModule::LuaNPCModule(const SDInitNPChar &initParam)
         done = true;
     });
 
-    m_luaState.set_function("setNPCGLoc", [done = false, this](int x, int y) mutable
+    m_luaState.set_function("setNPCGLoc", [done = false, this](sol::variadic_args args) mutable
     {
-        fflassert(!done);
-        fflassert(x >= 0 && y >= 0);
+        const auto [x, y, dir] = [&args]() -> std::tuple<int, int, int>
+        {
+            const std::vector<sol::object> objArgs(args.begin(), args.end());
+            for(const auto &obj: objArgs){
+                fflassert(obj.is<int>());
+            }
 
-        m_npcGLoc.x = x;
-        m_npcGLoc.y = y;
+            switch(objArgs.size()){
+                case 2 : return {objArgs[0].as<int>(), objArgs[1].as<int>(), 0};
+                case 3 : return {objArgs[0].as<int>(), objArgs[1].as<int>(), objArgs[2].as<int>()};
+                default: throw fflerror("invalid argument length: %zu", objArgs.size());
+            }
+        }();
+
+        fflassert(!done);
+        fflassert(x >= 0 && y >= 0 && dir >= 0);
+
+        m_npcGLoc.x   = x;
+        m_npcGLoc.y   = y;
+        m_npcGLoc.dir = dir;
         done = true;
     });
 
@@ -198,7 +213,7 @@ NPChar::LuaNPCModule::LuaNPCModule(const SDInitNPChar &initParam)
     // confirm in the script follow functions get called:
     //
     //     setNPCGLoc()
-    //     setNPCLookID()
+    //     setNPCLook()
     //
     fflassert(m_npcLookID >= 0);
     fflassert(m_npcGLoc.x >= 0 && m_npcGLoc.y >= 0);
@@ -286,7 +301,7 @@ NPChar::NPChar(ServiceCore *core, ServerMap *serverMap, std::unique_ptr<NPChar::
           uidf::buildNPCUID(luaModulePtr->getNPCLookID()),
           luaModulePtr->getNPCGLoc().x,
           luaModulePtr->getNPCGLoc().y,
-          DIR_NONE,
+          luaModulePtr->getNPCGLoc().dir,
       }
     , m_luaModulePtr(std::move(luaModulePtr))
 {
