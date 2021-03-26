@@ -25,8 +25,9 @@ setNPCGLoc(400, 127)
 -- setNPCSell() requires a variadic string list, not a table
 -- pass a table back to C++ requires to add a global varialbe and pass back the variable name
 do
-    clearNPCSell()
     local itemID = 1
+    local itemNameList = {}
+
     while(true) do
         local itemName = getItemName(itemID)
         if itemName == '' then
@@ -34,11 +35,13 @@ do
         end
 
         if itemName ~= '未知' then
-            addNPCSell(itemName)
+            table.insert(itemNameList, itemName)
         end
 
         itemID = itemID + 1
     end
+
+    setNPCSell(itemNameList)
 end
 
 processNPCEvent =

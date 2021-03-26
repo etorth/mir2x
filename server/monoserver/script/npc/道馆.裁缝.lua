@@ -20,7 +20,7 @@
 addLog(LOGTYPE_INFO, string.format('NPC %s sources %s', getNPCFullName(), getFileName()))
 setNPCLook(1)
 setNPCGLoc(400, 120)
-setNPCSell('紫金靴', '乌金靴', '青铜头盔', '虎面头盔')
+setNPCSell({'紫金靴', '乌金靴', '青铜头盔', '虎面头盔'})
 
 local function randomHeadString()
     if math.random(0, 1) == 0 then

@@ -20,7 +20,7 @@
 addLog(LOGTYPE_INFO, string.format('NPC %s sources %s', getNPCFullName(), getFileName()))
 setNPCLook(4)
 setNPCGLoc(400, 125)
-setNPCSell('破山剑', '旋风流星刀', '破魂')
+setNPCSell({'破山剑', '旋风流星刀', '破魂'})
 
 local function randomHeadString()
     if math.random(0, 1) == 0 then

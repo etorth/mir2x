@@ -74,13 +74,12 @@ NPChar::LuaNPCModule::LuaNPCModule(const SDInitNPChar &initParam)
         done = true;
     });
 
-    m_luaState.set_function("setNPCSell", [this](sol::variadic_args args)
+    // NOTE I didn't understand the different between sol::as_table_t and sol:nested
+    m_luaState.set_function("setNPCSell", [this](sol::as_table_t<std::vector<std::string>> itemNameList)
     {
         m_npcSell.clear();
-        const std::vector<sol::object> objArgs(args.begin(), args.end());
-        for(const auto &obj: objArgs){
-            fflassert(obj.is<std::string>());
-            if(const auto itemID = DBCOM_ITEMID(to_u8cstr(obj.as<std::string>()))){
+        for(const auto &itemName: itemNameList.source){
+            if(const auto itemID = DBCOM_ITEMID(to_u8cstr(itemName))){
                 m_npcSell.insert(itemID);
             }
         }
