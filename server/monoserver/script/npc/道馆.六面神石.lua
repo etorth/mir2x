@@ -31,9 +31,9 @@ processNPCEvent =
                 <par>客官%s你好，我是%s，欢迎来到传奇旧时光！<emoji id="0"/></par>
                 <par>你想去哪里呢？</par>
                 <par></par>
-                <par><event id="goto_1">比奇省</event></par>
-                <par><event id="goto_2">银杏山谷</event></par>
-                <par><event id="goto_3">沙巴克</event></par>
+                <par><event id="goto_1">比奇省（10金币）</event></par>
+                <par><event id="goto_2">银杏山谷（25金币）</event></par>
+                <par><event id="goto_3">沙巴克（50金币）</event></par>
                 <par><event id="%s">关闭</event></par>
             </layout>
         ]], uidQueryName(uid), getNPCName(), SYS_NPCDONE)
@@ -44,10 +44,10 @@ processNPCEvent =
     end,
 
     ["goto_2"] = function(uid, value)
-        tp.uidReqSpaceMove(uid, '银杏山谷', 246, 200, 10, 2)
+        tp.uidReqSpaceMove(uid, '银杏山谷', 246, 200, 25, 2)
     end,
 
     ["goto_3"] = function(uid, value)
-        tp.uidReqSpaceMove(uid, '沙巴克', 216, 148, 10, 3)
+        tp.uidReqSpaceMove(uid, '沙巴克', 216, 148, 50, 3)
     end,
 }

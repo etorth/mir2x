@@ -72,11 +72,11 @@ function uidQuery(uid, query)
     local from, event, value = waitEvent()
 
     if from ~= uid then
-        errorPrintf('Send query to uid %s but get response from %s', uid, from)
+        fatalPrintf('Send query to uid %s but get response from %s', uid, from)
     end
 
     if event ~= SYS_NPCQUERY then
-        errorPrintf('Wait event as SYS_NPCQUERY but get %s', tostring(event))
+        fatalPrintf('Wait event as SYS_NPCQUERY but get %s', tostring(event))
     end
     return value
 end
@@ -91,6 +91,26 @@ end
 
 function uidQueryGold(uid)
     return tonumber(uidQuery(uid, 'GOLD'))
+end
+
+function uidConsumeItem(uid, itemName, count)
+    local itemID = getItemID(itemName)
+    if itemID == 0 then
+        fatalPrintf('invalid item name: %s', itemName)
+    end
+
+    local value = uidQuery(uid, string.format('CONSUME %d %d', itemID, argDef(count, 1)))
+    if value == '1' then
+        return true
+    elseif value == '0' then
+        return false
+    else
+        fatalPrintf('invalid query result: %s', value)
+    end
+end
+
+function uidConsumeGold(uid, count)
+    return uidConsumeItem(uid, '金币', count)
 end
 
 -- send the sell list to uid
@@ -146,11 +166,11 @@ end
 
 function sayXML(uid, xmlFormat, ...)
     if type(uid) ~= 'string' or type(xmlFormat) ~= 'string' then
-        errorPrintf("invalid argument type: uid: %s, xmlFormat: %s", type(uid), type(xmlFormat))
+        fatalPrintf("invalid argument type: uid: %s, xmlFormat: %s", type(uid), type(xmlFormat))
     end
 
     if not isUID(uid) then
-        errorPrintf("not a valid uid string: %s", uid)
+        fatalPrintf("not a valid uid string: %s", uid)
     end
     sayXMLString(uid, xmlFormat:format(...))
 end

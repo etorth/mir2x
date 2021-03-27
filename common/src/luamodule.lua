@@ -17,9 +17,9 @@ function addLog(logType, logString, ...)
     addLogString(logType, logString:format(...))
 end
 
-function errorPrintf(s, ...)
+function fatalPrintf(s, ...)
     if type(s) ~= 'string' then
-        error(string.format('invalid argument type: errorPrintf(%s, ...)', type(s)))
+        error(string.format('invalid argument type: fatalPrintf(%s, ...)', type(s)))
     end
     error(s:format(...))
 end

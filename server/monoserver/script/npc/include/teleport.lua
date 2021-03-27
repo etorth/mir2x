@@ -12,7 +12,7 @@ function tp.uidSpaceMove(uid, mapName, x, y)
     elseif value == '0' then
         return false
     else
-        errorPrintf('invalid value: %s', value)
+        fatalPrintf('invalid value: %s', value)
     end
 end
 
@@ -21,7 +21,7 @@ function tp.uidReqSpaceMove(uid, mapName, x, y, gold, level)
     level = argDef(level, 0)
 
     if type(gold) ~= 'number' or type(level) ~= 'number' then
-        errorPrintf("invalid argument type: gold: %s, level: %s", type(gold), type(level))
+        fatalPrintf("invalid argument type: gold: %s, level: %s", type(gold), type(level))
     end
 
     if gold > 0 and gold > uidQueryGold(uid) then
@@ -47,7 +47,7 @@ function tp.uidReqSpaceMove(uid, mapName, x, y, gold, level)
     end
 
     if tp.uidSpaceMove(uid, mapName, x, y) then
-        -- uidUseGold(uid, gold)
+        uidConsumeGold(uid, gold)
     end
 end
 

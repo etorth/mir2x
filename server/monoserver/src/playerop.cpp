@@ -215,6 +215,26 @@ void Player::on_AM_NPCQUERY(const ActorMsgPack &mpk)
         }
         return;
     }
+
+    if(tokenList.front() == "CONSUME"){
+        const auto argItemID = to_u32(std::stoi(tokenList.at(1)));
+        const auto argCount  = to_uz (std::stoi(tokenList.at(2)));
+
+        if(argItemID == DBCOM_ITEMID(u8"金币")){
+            if(m_sdItemStorage.gold >= argCount){
+                fnResp("1");
+                setGold(m_sdItemStorage.gold - argCount);
+            }
+            else{
+                fnResp("0");
+            }
+        }
+        else{
+            const auto delCount = removeInventoryItem(argItemID, 0, argCount);
+            fnResp(delCount ? "1" : "0");
+        }
+        return;
+    }
     fnResp(SYS_NPCERROR);
 }
 
