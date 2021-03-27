@@ -18,8 +18,10 @@
 
 #include "monoserver.hpp"
 #include "serverluamodule.hpp"
+#include "serverconfigurewindow.hpp"
 
 extern MonoServer *g_monoServer;
+extern ServerConfigureWindow *g_serverConfigureWindow;
 ServerLuaModule::ServerLuaModule()
     : LuaModule()
 {
@@ -29,6 +31,15 @@ ServerLuaModule::ServerLuaModule()
     });
 
     m_luaState.script(R"#(math.randomseed(getTime()))#");
+    m_luaState.script(str_printf("package.path = package.path .. ';%s/?.lua'", []() -> std::string
+    {
+        if(const auto cfgScriptPath = g_serverConfigureWindow->getScriptPath(); cfgScriptPath.empty()){
+            return "script";
+        }
+        else{
+            return cfgScriptPath;
+        }
+    }().c_str()));
 }
 
 void ServerLuaModule::addLogString(int nLogType, const char8_t *logInfo)

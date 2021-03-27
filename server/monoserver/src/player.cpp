@@ -1034,3 +1034,28 @@ bool Player::canWear(uint32_t itemID, int wltype) const
 
     return true;
 }
+
+std::vector<std::string> Player::parseNPCQuery(const char *query)
+{
+    fflassert(str_haschar(query));
+
+    const char *beginPtr = query;
+    const char *endPtr   = query + std::strlen(query);
+
+    std::vector<std::string> result;
+    while(true){
+        beginPtr = std::find_if_not(beginPtr, endPtr, [](char chByte)
+        {
+            return chByte == ' ';
+        });
+
+        if(beginPtr == endPtr){
+            break;
+        }
+
+        const char *donePtr = std::find(beginPtr, endPtr, ' ');
+        result.emplace_back(beginPtr, donePtr);
+        beginPtr = donePtr;
+    }
+    return result;
+}

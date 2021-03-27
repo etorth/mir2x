@@ -300,4 +300,7 @@ class Player final: public CharObject
 
     private:
         bool canWear(uint32_t, int) const;
+
+    private:
+        static std::vector<std::string> parseNPCQuery(const char *);
 };

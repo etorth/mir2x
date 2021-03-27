@@ -24,6 +24,7 @@
 #include "sysconst.hpp"
 #include "fflerror.hpp"
 #include "luamodule.hpp"
+#include "dbcomid.hpp"
 #include "dbcomrecord.hpp"
 
 LuaModule::LuaModule()
@@ -99,6 +100,26 @@ LuaModule::LuaModule()
     m_luaState.set_function("exit", [](int nExitCode)
     {
         std::exit(nExitCode);
+    });
+
+    m_luaState.set_function("getItemName", [](int itemID) -> std::string
+    {
+        return to_cstr(DBCOM_ITEMRECORD(itemID).name);
+    });
+
+    m_luaState.set_function("getItemID", [](std::string itemName) -> int
+    {
+        return DBCOM_ITEMID(to_u8cstr(itemName));
+    });
+
+    m_luaState.set_function("getMapName", [](int mapID) -> std::string
+    {
+        return to_cstr(DBCOM_MAPRECORD(mapID).name);
+    });
+
+    m_luaState.set_function("getMapID", [](std::string mapName) -> int
+    {
+        return DBCOM_ITEMID(to_u8cstr(mapName));
     });
 
     m_luaState.set_function("randString", [this](sol::variadic_args args) -> std::string

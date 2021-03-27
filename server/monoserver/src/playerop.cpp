@@ -157,30 +157,65 @@ void Player::on_AM_MAPSWITCH(const ActorMsgPack &mpk)
 
 void Player::on_AM_NPCQUERY(const ActorMsgPack &mpk)
 {
-    const std::string queryName = mpk.conv<AMNPCQuery>().query;
+    const auto tokenList = parseNPCQuery(mpk.conv<AMNPCQuery>().query);
+    fflassert(!tokenList.empty());
+
     AMNPCEvent amNPCE;
-
     std::memset(&amNPCE, 0, sizeof(amNPCE));
-    std::strcpy(amNPCE.event, queryName.c_str());
+    std::strcpy(amNPCE.event, tokenList.front().c_str());
 
-    if(queryName == "GOLD"){
-        std::sprintf(amNPCE.value, "%llu", to_llu(m_sdItemStorage.gold));
+    auto fnResp = [amNPCE, from = mpk.from(), seqID = mpk.seqID(), this](std::string value) mutable
+    {
+        fflassert(value.length() < std::extent_v<decltype(amNPCE.value)>);
+        std::strcpy(amNPCE.value, value.c_str());
+        m_actorPod->forward(from, {AM_NPCEVENT, amNPCE}, seqID);
+    };
+
+    if(tokenList.front() == "GOLD"){
+        fnResp(std::to_string(m_sdItemStorage.gold));
+        return;
     }
 
-    else if(queryName == "LEVEL"){
-        std::sprintf(amNPCE.value, "%llu", to_llu(level()));
+    if(tokenList.front() == "LEVEL"){
+        fnResp(std::to_string(level()));
+        return;
     }
 
-    else if(queryName == "NAME"){
-        std::sprintf(amNPCE.value, "%s", to_cstr(m_name));
+    if(tokenList.front() == "NAME"){
+        fnResp(to_cstr(m_name));
+        return;
     }
 
-    else{
-        std::strcpy(amNPCE.value, SYS_NPCERROR);
-    }
+    if(tokenList.front() == "SPACEMOVE"){
+        const auto argMapID = std::stoi(tokenList.at(1));
+        const auto argX     = std::stoi(tokenList.at(2));
+        const auto argY     = std::stoi(tokenList.at(3));
 
-    std::strcpy(amNPCE.event, SYS_NPCQUERY);
-    m_actorPod->forward(mpk.from(), {AM_NPCEVENT, amNPCE}, mpk.seqID());
+        if(to_u32(argMapID) == mapID()){
+            requestSpaceMove(argX, argY, false,
+            [fnResp]() mutable
+            {
+                fnResp("1");
+            },
+            [fnResp]() mutable
+            {
+                fnResp("0");
+            });
+        }
+        else{
+            requestMapSwitch(argMapID, argX, argY, false,
+            [fnResp]() mutable
+            {
+                fnResp("1");
+            },
+            [fnResp]() mutable
+            {
+                fnResp("0");
+            });
+        }
+        return;
+    }
+    fnResp(SYS_NPCERROR);
 }
 
 void Player::on_AM_QUERYLOCATION(const ActorMsgPack &rstMPK)

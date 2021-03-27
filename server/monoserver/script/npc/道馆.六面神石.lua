@@ -21,6 +21,7 @@ addLog(LOGTYPE_INFO, string.format('NPC %s sources %s', getNPCFullName(), getFil
 setNPCLook(56)
 setNPCGLoc(416, 179)
 
+local tp = require('npc.include.teleport')
 processNPCEvent =
 {
     [SYS_NPCINIT] = function(uid, value)
@@ -39,92 +40,14 @@ processNPCEvent =
     end,
 
     ["goto_1"] = function(uid, value)
-        local gold  = uidQueryGold(uid)
-        local level = uidQueryLevel(uid)
-        if gold < 1000 then
-            sayXML(uid, string.format(
-            [[
-                <layout>
-                    <par>穷鬼，先去赚点钱吧！<emoji id="2"/></par>
-                    <par><event id="%s">关闭</event></par>
-                </layout>
-            ]], SYS_NPCDONE))
-        elseif level < 10 then
-            sayXML(uid, string.format(
-            [[
-                <layout>
-                    <par>客官你才%d级，先去打怪升级吧！<emoji id="3"/></par>
-                    <par><event id="%s">关闭</event></par>
-                </layout>
-            ]], level, SYS_NPCDONE))
-        else
-            sayXML(uid, string.format(
-            [[
-                <layout>
-                    <par>多多上线打怪升级！<emoji id="1"/></par>
-                    <par><event id="%s">关闭</event></par>
-                </layout>
-            ]], SYS_NPCDONE))
-        end
+        tp.uidReqSpaceMove(uid, '比奇省', 100, 100, 10)
     end,
 
     ["goto_2"] = function(uid, value)
-        local gold  = uidQueryGold(uid)
-        local level = uidQueryLevel(uid)
-        if gold < 1000 then
-            sayXML(uid, string.format(
-            [[
-                <layout>
-                    <par>穷鬼，先去赚点钱吧！<emoji id="2"/></par>
-                    <par><event id="%s">关闭</event></par>
-                </layout>
-            ]], SYS_NPCDONE))
-        elseif level < 10 then
-            sayXML(uid, string.format(
-            [[
-                <layout>
-                    <par>客官你才%d级，先去打怪升级吧！<emoji id="3"/></par>
-                    <par><event id="%s">关闭</event></par>
-                </layout>
-            ]], level, SYS_NPCDONE))
-        else
-            sayXML(uid, string.format(
-            [[
-                <layout>
-                    <par>多多上线打怪升级！<emoji id="1"/></par>
-                    <par><event id="%s">关闭</event></par>
-                </layout>
-            ]], SYS_NPCDONE))
-        end
+        tp.uidReqSpaceMove(uid, '银杏山谷', 100, 100, 10, 2)
     end,
 
     ["goto_3"] = function(uid, value)
-        local gold  = uidQueryGold(uid)
-        local level = uidQueryLevel(uid)
-        if gold < 1000 then
-            sayXML(uid, string.format(
-            [[
-                <layout>
-                    <par>穷鬼，先去赚点钱吧！<emoji id="2"/></par>
-                    <par><event id="%s">关闭</event></par>
-                </layout>
-            ]], SYS_NPCDONE))
-        elseif level < 10 then
-            sayXML(uid, string.format(
-            [[
-                <layout>
-                    <par>客官你才%d级，先去打怪升级吧！<emoji id="3"/></par>
-                    <par><event id="%s">关闭</event></par>
-                </layout>
-            ]], level, SYS_NPCDONE))
-        else
-            sayXML(uid, string.format(
-            [[
-                <layout>
-                    <par>多多上线打怪升级！<emoji id="1"/></par>
-                    <par><event id="%s">关闭</event></par>
-                </layout>
-            ]], SYS_NPCDONE))
-        end
+        tp.uidReqSpaceMove(uid, '沙巴克', 100, 100, 10, 4)
     end,
 }

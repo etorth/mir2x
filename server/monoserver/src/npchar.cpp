@@ -108,11 +108,6 @@ NPChar::LuaNPCModule::LuaNPCModule(const SDInitNPChar &initParam)
         return uidf::getUIDString(uidf::toUID(uidString));
     });
 
-    m_luaState.set_function("getItemName", [](int itemID) -> std::string
-    {
-        return to_cstr(DBCOM_ITEMRECORD(itemID).name);
-    });
-
     m_luaState.set_function("getNPCName", [this]() -> std::string
     {
         return m_npcName;
@@ -387,7 +382,7 @@ void NPChar::sendQuery(uint64_t callStackUID, uint64_t uid, const std::string &q
     }
 
     std::strcpy(amNPCQ.query, query.c_str());
-    m_actorPod->forward(uid, {AM_NPCQUERY, amNPCQ}, [callStackUID, uid, seqID, this](const ActorMsgPack &mpk)
+    m_actorPod->forward(uid, {AM_NPCQUERY, amNPCQ}, [callStackUID, uid, seqID, query /* not ref */, this](const ActorMsgPack &mpk)
     {
         if(uid != mpk.from()){
             throw fflerror("query sent to uid %llu but get response from %llu", to_llu(uid), to_llu(mpk.from()));
@@ -405,7 +400,11 @@ void NPChar::sendQuery(uint64_t callStackUID, uint64_t uid, const std::string &q
             case AM_NPCEVENT:
                 {
                     const auto amNPCE = mpk.conv<AMNPCEvent>();
-                    m_luaModulePtr->setEvent(callStackUID, uid, amNPCE.event, amNPCE.value);
+                    if(!query.starts_with(amNPCE.event)){
+                        throw fflerror("invalid response: query = %s, event = %s", to_cstr(query), to_cstr(amNPCE.event));
+                    }
+
+                    m_luaModulePtr->setEvent(callStackUID, uid, SYS_NPCQUERY, amNPCE.value);
                     return;
                 }
             default:
