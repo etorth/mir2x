@@ -131,7 +131,7 @@ g_callStackTableList = {}
 function getCallStackTable()
     local id, main_thread = coroutine.running()
     if main_thread then
-        error('calling getCallStackTable() in main thead')
+        fatalPrintf('calling getCallStackTable() in main thead')
     end
 
     if not g_callStackTableList[id] then
@@ -143,19 +143,19 @@ end
 function clearCallStackTable()
     local id, main_thread = coroutine.running()
     if main_thread then
-        error('calling clearCallStackTable() in main thead')
+        fatalPrintf('calling clearCallStackTable() in main thead')
     end
     g_callStackTableList[id] = nil
 end
 
 function setCallStackUID(uid)
-    if not uid then
-        error("invalid call stack uid: nil")
+    if not isUID(uid) then
+        fatalPrintf("invalid call stack uid: nil")
     end
 
     local callStackTable = getCallStackTable()
     if callStackTable['CS_UID'] then
-        error('calling setCallStackUID() in same thread twice')
+        fatalPrintf('calling setCallStackUID() in same thread twice')
     end
     callStackTable['CS_UID'] = uid
 end
@@ -163,7 +163,7 @@ end
 function getCallStackUID()
     local callStackTable = getCallStackTable()
     if not callStackTable['CS_UID'] then
-        error('call stack has no uid setup, missed to call setCallStackUID(uid) in main()')
+        fatalPrintf('call stack has no uid setup, missed to call setCallStackUID(uid) in main()')
     end
     return callStackTable['CS_UID']
 end
