@@ -24,6 +24,15 @@ function errorPrintf(s, ...)
     error(s:format(...))
 end
 
+function argDef(arg, def)
+    if arg == nil then
+        assert(def ~= nil)
+        return def
+    else
+        return arg
+    end
+end
+
 function getFileName()
     return debug.getinfo(2, 'S').short_src
 end

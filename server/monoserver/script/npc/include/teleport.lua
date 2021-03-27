@@ -17,8 +17,8 @@ function tp.uidSpaceMove(uid, mapName, x, y)
 end
 
 function tp.uidReqSpaceMove(uid, mapName, x, y, gold, level)
-    if gold  == nil then gold  = 0 end
-    if level == nil then level = 0 end
+    gold  = argDef(gold,  0)
+    level = argDef(level, 0)
 
     if type(gold) ~= 'number' or type(level) ~= 'number' then
         errorPrintf("invalid argument type: gold: %s, level: %s", type(gold), type(level))
