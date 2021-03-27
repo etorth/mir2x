@@ -67,7 +67,7 @@ function waitEvent()
     end
 end
 
-function uidQuery(uid, query)
+function uidQueryString(uid, query)
     sendQuery(uid, query)
     local from, event, value = waitEvent()
 
@@ -79,6 +79,10 @@ function uidQuery(uid, query)
         fatalPrintf('Wait event as SYS_NPCQUERY but get %s', tostring(event))
     end
     return value
+end
+
+function uidQuery(uid, query, ...)
+    return uidQueryString(uid, query:format(...))
 end
 
 function uidQueryName(uid)
@@ -99,7 +103,7 @@ function uidConsumeItem(uid, itemName, count)
         fatalPrintf('invalid item name: %s', itemName)
     end
 
-    local value = uidQuery(uid, string.format('CONSUME %d %d', itemID, argDef(count, 1)))
+    local value = uidQuery(uid, 'CONSUME %d %d', itemID, argDef(count, 1))
     if value == '1' then
         return true
     elseif value == '0' then
