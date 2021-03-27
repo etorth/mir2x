@@ -11,7 +11,7 @@ end
 function listMap()
     local mapNameTable = {}
     for k, v in ipairs(getMapIDList()) do
-        addCWLogString(0, ".", string.format('%s %s', tostring(v), mapID2Name(v)))
+        addCWLogString(0, ".", string.format('%s %s', tostring(v), getMapName(v)))
     end
 end
 

@@ -1,12 +1,12 @@
-local tb = {}
+local tp = {}
 
-function tb.uidSpaceMove(uid, mapName, x, y)
+function tp.uidSpaceMove(uid, mapName, x, y)
     local mapID = getMapID(mapName)
     if mapID == 0 then
         return false
     end
 
-    local value = uidQuery(uid, string:format("SPACEMOVE %d %d %d", mapID, x, y))
+    local value = uidQuery(uid, string.format("SPACEMOVE %d %d %d", mapID, x, y))
     if value == '1' then
         return true
     elseif value == '0' then
@@ -16,7 +16,7 @@ function tb.uidSpaceMove(uid, mapName, x, y)
     end
 end
 
-function tb.uidReqSpaceMove(uid, mapName, x, y, gold, level)
+function tp.uidReqSpaceMove(uid, mapName, x, y, gold, level)
     if gold  == nil then gold  = 0 end
     if level == nil then level = 0 end
 
@@ -42,13 +42,13 @@ function tb.uidReqSpaceMove(uid, mapName, x, y, gold, level)
                 <par>你还没达到%d级！</par>
                 <par><event id="%s">关闭</event></par>
             </layout>
-        ]], gold, SYS_NPCDONE)
+        ]], level, SYS_NPCDONE)
         return
     end
 
-    if tb.uidSpaceMove(uid, mapName, x, y) then
+    if tp.uidSpaceMove(uid, mapName, x, y) then
         -- uidUseGold(uid, gold)
     end
 end
 
-return tb
+return tp

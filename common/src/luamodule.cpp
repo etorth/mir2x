@@ -85,11 +85,6 @@ LuaModule::LuaModule()
         }
     });
 
-    m_luaState.set_function("mapID2Name", [](int nMapID) -> std::string
-    {
-        return std::string(reinterpret_cast<const char *>(DBCOM_MAPRECORD(to_u32(nMapID)).name));
-    });
-
     m_luaState.set_function("sleep", [](int nSleepMS)
     {
         if(nSleepMS > 0){
@@ -119,7 +114,7 @@ LuaModule::LuaModule()
 
     m_luaState.set_function("getMapID", [](std::string mapName) -> int
     {
-        return DBCOM_ITEMID(to_u8cstr(mapName));
+        return DBCOM_MAPID(to_u8cstr(mapName));
     });
 
     m_luaState.set_function("randString", [this](sol::variadic_args args) -> std::string

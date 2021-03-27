@@ -871,11 +871,6 @@ void MonoServer::regLuaExport(CommandLuaModule *modulePtr, uint32_t nCWID)
         return sol::make_object(sol::state_view(stThisLua), GetMapList());
     });
 
-    modulePtr->getLuaState().set_function("mapID2Name", [](int mapID) -> std::string
-    {
-        return to_cstr(DBCOM_MAPRECORD(mapID).name);
-    });
-
     modulePtr->getLuaState().set_function("getCWID", [nCWID]() -> int
     {
         return nCWID;
