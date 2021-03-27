@@ -73,6 +73,17 @@ LuaModule::LuaModule()
         return uidf::getUIDType(uidf::toUIDEx(uidString));
     });
 
+    m_luaState.set_function("isUID", [](std::string uidString)
+    {
+        try{
+            uidf::toUIDEx(uidString);
+            return true;
+        }
+        catch(...){
+            return false;
+        }
+    });
+
     m_luaState.set_function("mapID2Name", [](int nMapID) -> std::string
     {
         return std::string(reinterpret_cast<const char *>(DBCOM_MAPRECORD(to_u32(nMapID)).name));

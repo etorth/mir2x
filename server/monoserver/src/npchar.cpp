@@ -135,7 +135,7 @@ NPChar::LuaNPCModule::LuaNPCModule(const SDInitNPChar &initParam)
         m_npc->sendQuery(uidf::toUIDEx(callStackUID), uidf::toUIDEx(uidString), query);
     });
 
-    m_luaState.set_function("sayXML", [this](std::string uidString, std::string xmlString)
+    m_luaState.set_function("sayXMLString", [this](std::string uidString, std::string xmlString)
     {
         fflassert(m_npc);
         const uint64_t uid = [&uidString]() -> uint64_t

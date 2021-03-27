@@ -144,6 +144,17 @@ function getCallStackUID()
     return callStackTable['CS_UID']
 end
 
+function sayXML(uid, xmlFormat, ...)
+    if type(uid) ~= 'string' or type(xmlFormat) ~= 'string' then
+        errorPrintf("invalid argument type: uid: %s, xmlFormat: %s", type(uid), type(xmlFormat))
+    end
+
+    if not isUID(uid) then
+        errorPrintf("not a valid uid string: %s", uid)
+    end
+    sayXMLString(uid, xmlFormat:format(...))
+end
+
 -- entry coroutine for event handling
 -- it's event driven, i.e. if the event sink has no event, this coroutine won't get scheduled
 
@@ -155,20 +166,20 @@ function main(uid)
     -- poll the event sink
     -- current call stack only process 1 event and then clean itself
     local from, event, value = waitEvent()
-    if has_processNPCEvent(false, event) then
-        processNPCEvent[event](from, value)
-    elseif event == SYS_NPCDONE then
+    if event == SYS_NPCDONE then
         clearCallStackTable()
+    elseif has_processNPCEvent(false, event) then
+        processNPCEvent[event](from, value)
     else
         -- don't exit this loop
         -- always consume the event no matter if the NPC can handle it
-        sayXML(uid, string.format(
+        sayXML(uid,
         [[
             <layout>
                 <par>我听不懂你在说什么...</par>
                 <par><event id="%s">关闭</event></par>
             </layout>
-        ]], SYS_NPCDONE))
+        ]], SYS_NPCDONE)
     end
 
     -- event process done
