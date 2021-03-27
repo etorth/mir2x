@@ -222,7 +222,7 @@ NPChar::LuaNPCModule::LuaNPCModule(const SDInitNPChar &initParam)
     //     setNPCLook()
     //
     fflassert(m_npcLookID >= 0);
-    fflassert(m_npcGLoc.x >= 0 && m_npcGLoc.y >= 0);
+    fflassert(m_npcGLoc.x >= 0 && m_npcGLoc.y >= 0 && m_npcGLoc.dir >= 0);
 
     // NPC script has no state
     // after source it finishes the script, not yield
