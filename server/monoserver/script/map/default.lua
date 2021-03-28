@@ -20,20 +20,9 @@ local logicDelay = 1000
 local monsterList = {'虎卫', '红蛇', '虎蛇'}
 local maxMonsterCount = math.floor(getCanThroughGridCount() / 64)
 
-local function getAllMonsterCount()
-    local monCount = 0
-    for i, v in pairs(monsterList) do
-        monCount = monCount + math.max(0, getMonsterCount(v))
-    end
-    return monCount
-end
-
 function main()
-    while not scriptDone() do
-        -- mark current time
-        -- then next time we start from here
-
-        local monsterCount = getAllMonsterCount()
+    while true do
+        local monsterCount = getMonsterCount(0)
         if monsterCount < maxMonsterCount then
             for i = 1, math.min(50, maxMonsterCount - monsterCount) do
                 local x, y = getRandLoc()
