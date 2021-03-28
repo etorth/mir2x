@@ -90,20 +90,6 @@ ServerMap::ServerMapLuaModule::ServerMapLuaModule(ServerMap *mapPtr)
         return gridCount;
     });
 
-    getLuaState().set_function("getMonsterList", [mapPtr](sol::this_state thisLua)
-    {
-        // convert to std::string
-        // sol don't support std::u8string for now
-        std::vector<std::string> monNameList;
-        const auto monU8NameList = mapPtr->getMonsterList();
-
-        monNameList.reserve(monU8NameList.size());
-        for(const auto &monName: monU8NameList){
-            monNameList.push_back(to_cstr(monName));
-        }
-        return sol::make_object(sol::state_view(thisLua), monNameList);
-    });
-
     getLuaState().set_function("getRandLoc", [mapPtr]() /* -> ? */
     {
         std::array<int, 2> loc;
@@ -126,19 +112,19 @@ ServerMap::ServerMapLuaModule::ServerMapLuaModule(ServerMap *mapPtr)
         switch(argList.size()){
             case 0:
                 {
-                    return mapPtr->GetMonsterCount(0);
+                    return mapPtr->getMonsterCount(0);
                 }
             case 1:
                 {
                     if(argList[0].is<int>()){
                         if(const int monID = argList[0].as<int>(); monID >= 0){
-                            return mapPtr->GetMonsterCount(monID);
+                            return mapPtr->getMonsterCount(monID);
                         }
                     }
 
                     else if(argList[0].is<std::string>()){
                         if(const int monID = DBCOM_MONSTERID(to_u8cstr(argList[0].as<std::string>().c_str())); monID >= 0){
-                            return mapPtr->GetMonsterCount(monID);
+                            return mapPtr->getMonsterCount(monID);
                         }
                     }
                     break;
@@ -867,34 +853,24 @@ void ServerMap::postGroundItemIDList(uint64_t uid, int x, int y)
     sendNetPackage(uid, SM_GROUNDITEMIDLIST, cerealf::serialize(getGroundItemIDList(x, y, 20)));
 }
 
-int ServerMap::GetMonsterCount(uint32_t nMonsterID)
+int ServerMap::getMonsterCount(uint32_t monsterID)
 {
-    int nCount = 0;
+    int result = 0;
     for(int nX = 0; nX < W(); ++nX){
         for(int nY = 0; nY < H(); ++nY){
             for(auto nUID: getUIDList(nX, nY)){
                 if(uidf::getUIDType(nUID) == UID_MON){
-                    if(nMonsterID){
-                        nCount += ((uidf::getMonsterID(nUID) == nMonsterID) ? 1 : 0);
-                    }else{
-                        nCount++;
+                    if(monsterID){
+                        result += ((uidf::getMonsterID(nUID) == monsterID) ? 1 : 0);
+                    }
+                    else{
+                        result++;
                     }
                 }
             }
         }
     }
-    return nCount;
-}
-
-std::vector<std::u8string> ServerMap::getMonsterList() const
-{
-    return
-    {
-        u8"虎卫",
-        u8"沙漠石人",
-        u8"红蛇",
-        u8"虎蛇",
-    };
+    return result;
 }
 
 void ServerMap::notifyNewCO(uint64_t nUID, int nX, int nY)

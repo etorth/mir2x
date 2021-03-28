@@ -24,6 +24,7 @@
 #include "sysconst.hpp"
 #include "fflerror.hpp"
 #include "luamodule.hpp"
+#include "raiitimer.hpp"
 #include "dbcomid.hpp"
 #include "dbcomrecord.hpp"
 
@@ -44,6 +45,7 @@ LuaModule::LuaModule()
     m_luaState.script(str_printf("SYS_NPCDONE  = \"%s\"", SYS_NPCDONE ));
     m_luaState.script(str_printf("SYS_NPCQUERY = \"%s\"", SYS_NPCQUERY));
     m_luaState.script(str_printf("SYS_NPCERROR = \"%s\"", SYS_NPCERROR));
+    m_luaState.script(str_printf("math.randomseed(%d)", to_d(hres_tstamp().to_nsec() % 1000000ULL)));
 
     m_luaState.set_function("addLogString", [this](sol::object logType, sol::object logInfo)
     {
@@ -63,6 +65,11 @@ LuaModule::LuaModule()
         }
 
         addLogString(1, u8"Invalid argument: addLogString(?, \"?\")");
+    });
+
+    m_luaState.set_function("getTime", [timer = hres_timer()]() -> int
+    {
+        return to_d(timer.diff_msec());
     });
 
     m_luaState.script(INCLUA_BEGIN(char)

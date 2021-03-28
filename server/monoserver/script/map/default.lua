@@ -14,47 +14,33 @@
 --
 -- =====================================================================================
 
--- only initialize once
--- initialize all global/constant variables
+addLog(LOGTYPE_INFO, string.format('Map %s sources %s', getMapName(), getFileName()))
+
+local logicDelay = 1000
+local monsterList = {'虎卫', '红蛇', '虎蛇'}
+local maxMonsterCount = math.floor(getCanThroughGridCount() / 64)
+
+local function getAllMonsterCount()
+    local monCount = 0
+    for i, v in pairs(monsterList) do
+        monCount = monCount + math.max(0, getMonsterCount(v))
+    end
+    return monCount
+end
 
 function main()
-    addLog(LOGTYPE_INFO, string.format('Map %s sources %s', getMapName(), getFileName()))
-
-    g_MaxMonsterCount = math.floor(getCanThroughGridCount() / 64)
-    g_LogicDelay      = 1000
-    g_LastInvokeTime  = getTime()
-
-    -- allowed monsters on current map
-
-    g_MonsterList = getMonsterList()
-
-    function getMonsterCountInList()
-        local monCount = 0
-        for i, v in pairs(g_MonsterList) do
-            monCount = monCount + math.max(0, getMonsterCount(v))
-        end
-        return monCount
-    end
-
     while not scriptDone() do
-        if getTime() - g_LastInvokeTime > g_LogicDelay then
+        -- mark current time
+        -- then next time we start from here
 
-            -- mark current time
-            -- then next time we start from here
-
-            g_LastInvokeTime = getTime()
-            local monsterCount = getMonsterCountInList()
-
-            if monsterCount < g_MaxMonsterCount then
-                for i = 1, math.min(50, g_MaxMonsterCount - monsterCount) do
-                    local x, y = getRandLoc()
-                    local monsterName = g_MonsterList[math.random(#g_MonsterList)]
-                    addMonster(monsterName, x, y, true)
-                end
+        local monsterCount = getAllMonsterCount()
+        if monsterCount < maxMonsterCount then
+            for i = 1, math.min(50, maxMonsterCount - monsterCount) do
+                local x, y = getRandLoc()
+                local monsterName = monsterList[math.random(#monsterList)]
+                addMonster(monsterName, x, y, true)
             end
         end
-        coroutine.yield()
+        asyncWait(logicDelay)
     end
-
-    addLog(LOGTYPE_INFO, 'map script ' .. getMapName() .. ' stops, use default.lua')
 end

@@ -25,12 +25,6 @@ extern ServerConfigureWindow *g_serverConfigureWindow;
 ServerLuaModule::ServerLuaModule()
     : LuaModule()
 {
-    m_luaState.set_function("getTime", []() -> int
-    {
-        return to_d(g_monoServer->getCurrTick());
-    });
-
-    m_luaState.script(R"#(math.randomseed(getTime()))#");
     m_luaState.script(str_printf("package.path = package.path .. ';%s/?.lua'", []() -> std::string
     {
         if(const auto cfgScriptPath = g_serverConfigureWindow->getScriptPath(); cfgScriptPath.empty()){

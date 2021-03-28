@@ -33,6 +33,14 @@ function argDef(arg, def)
     end
 end
 
+function asyncWait(ms)
+    local start = getTime()
+    while getTime() < start + ms
+    do
+        coroutine.yield()
+    end
+end
+
 function getFileName()
     return debug.getinfo(2, 'S').short_src
 end

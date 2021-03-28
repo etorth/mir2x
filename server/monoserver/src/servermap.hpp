@@ -212,8 +212,7 @@ class ServerMap final: public ServerObject
         Monster *addMonster(uint32_t, uint64_t, int, int, bool);
 
     private:
-        int GetMonsterCount(uint32_t);
-        std::vector<std::u8string> getMonsterList() const;
+        int getMonsterCount(uint32_t);
 
     private:
         const auto &getGrid(int x, int y) const
