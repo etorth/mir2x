@@ -106,18 +106,19 @@ int CharObject::COPathFinder::GetGrid(int nX, int nY) const
     return (m_cache[nKey] = m_CO->CheckPathGrid(nX, nY));
 }
 
-CharObject::CharObject(ServiceCore *pServiceCore,
-        ServerMap                  *pServerMap,
-        uint64_t                    nUID,
-        int                         nMapX,
-        int                         nMapY,
-        int                         nDirection)
-    : ServerObject(nUID)
-    , m_serviceCore(pServiceCore)
-    , m_map(pServerMap)
-    , m_X(nMapX)
-    , m_Y(nMapY)
-    , m_direction(nDirection)
+CharObject::CharObject(
+        const ServiceCore *coreCPtr,
+        const ServerMap   *mapCPtr,
+        uint64_t           uid,
+        int                mapX,
+        int                mapY,
+        int                direction)
+    : ServerObject(uid)
+    , m_serviceCore(coreCPtr)
+    , m_map(mapCPtr)
+    , m_X(mapX)
+    , m_Y(mapY)
+    , m_direction(direction)
     , m_HP(0)
     , m_HPMax(0)
     , m_MP(0)

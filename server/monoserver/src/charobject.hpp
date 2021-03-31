@@ -177,13 +177,16 @@ class CharObject: public ServerObject
         std::vector<Offender> m_offenderList;
 
     public:
-        CharObject(ServiceCore *,       // service core
-                ServerMap *,            // server map
+        CharObject(
+                const ServiceCore *,    // service core
+                const ServerMap   *,    // server map
                 uint64_t,               // uid
                 int,                    // map x
                 int,                    // map y
                 int);                   // direction
-       ~CharObject() = default;
+
+    public:
+        ~CharObject() = default;
 
     protected:
         int X() const { return m_X; }

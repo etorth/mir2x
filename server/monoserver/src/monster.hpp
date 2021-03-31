@@ -81,8 +81,8 @@ class Monster: public CharObject
 
     public:
         Monster(uint32_t,               // monster id
-                ServiceCore *,          // service core
-                ServerMap *,            // server map
+                const ServiceCore *,    // service core
+                const ServerMap   *,    // server map
                 int,                    // map x
                 int,                    // map y
                 int,                    // direction

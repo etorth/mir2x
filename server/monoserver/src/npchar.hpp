@@ -154,7 +154,7 @@ class NPChar final: public CharObject
         std::unordered_map<uint32_t, std::map<uint32_t, SellItem>> m_sellItemList;
 
     public:
-        NPChar(ServiceCore *, ServerMap *, std::unique_ptr<NPChar::LuaNPCModule>);
+        NPChar(const ServiceCore *, const ServerMap *, std::unique_ptr<NPChar::LuaNPCModule>);
 
     public:
         bool update() override;
