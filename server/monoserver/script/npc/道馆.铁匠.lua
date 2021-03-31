@@ -18,7 +18,7 @@
 -- provides the table: processNPCEvent for event processing
 
 addLog(LOGTYPE_INFO, string.format('NPC %s sources %s', getNPCFullName(), getFileName()))
-setNPCLook(4)
+setNPCLook(0)
 setNPCGLoc(400, 125)
 setNPCSell({'破山剑', '旋风流星刀', '破魂'})
 
