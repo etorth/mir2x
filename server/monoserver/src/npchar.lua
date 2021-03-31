@@ -201,6 +201,7 @@ function main(uid)
         [[
             <layout>
                 <par>我听不懂你在说什么...</par>
+                <par></par>
                 <par><event id="%s">关闭</event></par>
             </layout>
         ]], SYS_NPCDONE)
