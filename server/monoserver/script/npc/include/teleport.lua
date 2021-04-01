@@ -51,4 +51,70 @@ function tp.uidReqSpaceMove(uid, mapName, x, y, gold, level)
     end
 end
 
+-- setup the teleport interface
+-- sample:
+--
+-- tp.setTeleport({
+--     {map = '比奇省',   x = 447, y = 386, gold = 10},
+--     {map = '银杏山谷', x = 246, y = 200, gold = 25, level = 2},
+--     {map = '沙巴克',   x = 216, y = 148, gold = 50, level = 3},
+-- })
+--
+function tp.setTeleport(dst)
+    if processNPCEvent ~= nil then
+        fatalPrintf('processNPCEvent has already been defined')
+    end
+
+    if type(dst) ~= 'table' then
+        fatalPrintf('invalid argument: dst:%s', type(dst))
+    end
+
+    local dstParList = ''
+    local processHandle = {}
+
+    for i, d in ipairs(dst) do
+        if type(d.map) ~= 'string' then
+            addLog(LOGTYPE_WARNING, 'ignore invalid map: npc = %s', getNPCName())
+        elseif type(d.x) ~= 'number' or type(d.y) ~= 'number' then
+            addLog(LOGTYPE_WARNING, 'ignore invalid map location: npc = %s, map = %s', getNPCName(), d.map)
+        else
+            local gold = argDef(d.gold, 0)
+            local level = argDef(d.level, 0)
+            local gotoTag = string.format('tp_goto_%d', i)
+
+            if gold > 0 and level > 0 then
+                dstParList = dstParList .. string.format('<par><event id = "%s">%s（金币%d，等级%d）</event></par>', gotoTag, d.map, gold, level)
+            elseif gold > 0 then
+                dstParList = dstParList .. string.format('<par><event id = "%s">%s（金币%d）</event></par>', gotoTag, d.map, gold)
+            elseif level > 0 then
+                dstParList = dstParList .. string.format('<par><event id = "%s">%s（等级%d）</event></par>', gotoTag, d.map, level)
+            else
+                dstParList = dstParList .. string.format('<par><event id = "%s">%s</event></par>', gotoTag, d.map)
+            end
+
+            processHandle[gotoTag] = function(uid, value)
+                tp.uidReqSpaceMove(uid, d.map, d.x, d.y, gold, level)
+            end
+        end
+    end
+
+    if dstParList == '' then
+        fatalPrintf('no valid destination specified in the argument list')
+    end
+
+    processHandle[SYS_NPCINIT] = function(uid, value)
+        sayXML(uid,
+        [[
+            <layout>
+                <par>客官%s你好，我是%s，欢迎来到传奇旧时光！<emoji id="0"/></par>
+                <par>你想去哪里呢？</par>
+                <par></par>
+                %s
+                <par><event id="%s">关闭</event></par>
+            </layout>
+        ]], uidQueryName(uid), getNPCName(), dstParList, SYS_NPCDONE)
+    end
+    processNPCEvent = processHandle
+end
+
 return tp
