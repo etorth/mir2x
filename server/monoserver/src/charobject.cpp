@@ -1039,11 +1039,11 @@ int CharObject::CheckPathGrid(int nX, int nY, uint32_t nTimeOut) const
         throw fflerror("CO has no map associated");
     }
 
-    if(!m_map->GetMir2xMapData().ValidC(nX, nY)){
+    if(!m_map->getMapData().ValidC(nX, nY)){
         return PathFind::INVALID;
     }
 
-    if(!m_map->GetMir2xMapData().Cell(nX, nY).CanThrough()){
+    if(!m_map->getMapData().Cell(nX, nY).CanThrough()){
         return PathFind::OBSTACLE;
     }
 

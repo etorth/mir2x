@@ -16,12 +16,16 @@
  * =====================================================================================
  */
 
+#include "dbcomid.hpp"
+#include "mapbindb.hpp"
 #include "monoserver.hpp"
 #include "serverluamodule.hpp"
 #include "serverconfigurewindow.hpp"
 
+extern MapBinDB *g_mapBinDB;
 extern MonoServer *g_monoServer;
 extern ServerConfigureWindow *g_serverConfigureWindow;
+
 ServerLuaModule::ServerLuaModule()
     : LuaModule()
 {
@@ -34,6 +38,37 @@ ServerLuaModule::ServerLuaModule()
             return cfgScriptPath;
         }
     }().c_str()));
+
+    m_luaState.set_function("randMapGLoc", [](std::string mapName)
+    {
+        const auto fnGetRandGLoc = [](const auto dataCPtr) -> std::array<int, 2>
+        {
+            while(true){
+                const int x = std::rand() % dataCPtr->W();
+                const int y = std::rand() % dataCPtr->H();
+
+                if(true
+                        && dataCPtr->Valid()
+                        && dataCPtr->ValidC(x, y)
+                        && dataCPtr->Cell(x, y).CanThrough()){
+                    return {x, y};
+                }
+            }
+            throw bad_reach();
+        };
+
+        if(const auto mapID = DBCOM_MAPID(to_u8cstr(mapName))){
+            if(const auto dataCPtr = g_mapBinDB->Retrieve(mapID)){
+                return sol::as_returns(fnGetRandGLoc(dataCPtr));
+            }
+            else{
+                throw fflerror("map %s has no valid mir2x data", to_cstr(mapName));
+            }
+        }
+        else{
+            throw fflerror("invalid map name: %s", to_cstr(mapName));
+        }
+    });
 }
 
 void ServerLuaModule::addLogString(int nLogType, const char8_t *logInfo)

@@ -175,6 +175,7 @@ class CommandWindow {open
   Function {setGUIFont(int fontID)} {open return_type void
   } {
     code {{
+    m_input->textfont((Fl_Font)(fontID));
     m_browser->textfont((Fl_Font)(fontID));
     m_window->redraw();
 }} {}

@@ -108,14 +108,79 @@ NPChar::LuaNPCModule::LuaNPCModule(const SDInitNPChar &initParam)
         return uidf::getUIDString(uidf::toUID(uidString));
     });
 
-    m_luaState.set_function("getNPCName", [this]() -> std::string
+    m_luaState.set_function("getNPCName", [this](sol::variadic_args args) -> std::string
     {
-        return m_npcName.substr(0, m_npcName.find('_'));
+        const auto skip = [&args]() -> bool
+        {
+            switch(args.size()){
+                case 0:
+                    {
+                        return true;
+                    }
+                case 1:
+                    {
+                        const sol::object obj(args[0]);
+                        if(obj.is<bool>()){
+                            return obj.as<bool>();
+                        }
+                        else{
+                            throw fflerror("invalid argument type");
+                        }
+                    }
+                default:
+                    {
+                        throw fflerror("invalid argument count: %zu", args.size());
+                    }
+            }
+        }();
+
+        if(skip){
+            return m_npcName.substr(0, m_npcName.find('_'));
+        }
+        else{
+            return m_npcName;
+        }
     });
 
     m_luaState.set_function("getNPCFullName", [mapID = initParam.mapID, this]() -> std::string
     {
         return std::string(to_cstr(DBCOM_MAPRECORD(mapID).name)) + "." + m_npcName;
+    });
+
+    m_luaState.set_function("getNPCMapName", [this](sol::variadic_args args) -> std::string
+    {
+        fflassert(m_npc);
+        const auto skip = [&args]() -> bool
+        {
+            switch(args.size()){
+                case 0:
+                    {
+                        return true;
+                    }
+                case 1:
+                    {
+                        const sol::object obj(args[0]);
+                        if(obj.is<bool>()){
+                            return obj.as<bool>();
+                        }
+                        else{
+                            throw fflerror("invalid argument type");
+                        }
+                    }
+                default:
+                    {
+                        throw fflerror("invalid argument count: %zu", args.size());
+                    }
+            }
+        }();
+
+        const std::string mapName = to_cstr(DBCOM_MAPRECORD(m_npc->mapID()).name);
+        if(skip){
+            return mapName.substr(0, mapName.find('_'));
+        }
+        else{
+            return mapName;
+        }
     });
 
     m_luaState.set_function("sendSell", [this](std::string uidString)

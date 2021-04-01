@@ -154,7 +154,7 @@ class ServerMap final: public ServerObject
         double OneStepCost(int, int, int, int, int, int) const;
 
     public:
-        const Mir2xMapData &GetMir2xMapData() const
+        const Mir2xMapData &getMapData() const
         {
             return m_mir2xMapData;
         }
