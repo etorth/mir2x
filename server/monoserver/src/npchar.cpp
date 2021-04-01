@@ -110,7 +110,7 @@ NPChar::LuaNPCModule::LuaNPCModule(const SDInitNPChar &initParam)
 
     m_luaState.set_function("getNPCName", [this]() -> std::string
     {
-        return m_npcName;
+        return m_npcName.substr(0, m_npcName.find('_'));
     });
 
     m_luaState.set_function("getNPCFullName", [mapID = initParam.mapID, this]() -> std::string
