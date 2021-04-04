@@ -19,7 +19,7 @@
 
 addLog(LOGTYPE_INFO, string.format('NPC %s sources %s', getNPCFullName(), getFileName()))
 setNPCLook(8)
-setNPCGLoc(400, 123)
+setNPCGLoc(404, 124)
 
 processNPCEvent =
 {

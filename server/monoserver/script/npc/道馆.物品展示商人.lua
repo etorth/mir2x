@@ -19,7 +19,7 @@
 
 addLog(LOGTYPE_INFO, 'NPC %s sources %s', getNPCFullName(), getFileName())
 setNPCLook(5)
-setNPCGLoc(400, 127)
+setNPCGLoc(402, 122)
 
 -- list all possible items for debug
 -- setNPCSell() requires a variadic string list, not a table
