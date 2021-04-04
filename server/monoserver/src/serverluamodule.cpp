@@ -16,12 +16,14 @@
  * =====================================================================================
  */
 
+#include "dbpod.hpp"
 #include "dbcomid.hpp"
 #include "mapbindb.hpp"
 #include "monoserver.hpp"
 #include "serverluamodule.hpp"
 #include "serverconfigurewindow.hpp"
 
+extern DBPod *g_dbPod;
 extern MapBinDB *g_mapBinDB;
 extern MonoServer *g_monoServer;
 extern ServerConfigureWindow *g_serverConfigureWindow;
@@ -69,6 +71,65 @@ ServerLuaModule::ServerLuaModule()
             throw fflerror("invalid map name: %s", to_cstr(mapName));
         }
     });
+
+    m_luaState.set_function("hasDatabase", [](std::string dbName) -> bool
+    {
+        fflassert(!dbName.empty());
+        return g_dbPod->createQuery(u8R"###(select name from sqlite_master where type='table' and name='%s')###", to_cstr(dbName)).executeStep();
+    });
+
+    m_luaState.set_function("dbExecString", [](std::string cmd)
+    {
+        fflassert(!cmd.empty());
+        g_dbPod->exec(to_cstr(cmd));
+    });
+
+    m_luaState.set_function("dbQueryString", [](std::string query, sol::this_state s)
+    {
+        fflassert(!query.empty());
+        auto queryStatement = g_dbPod->createQuery(to_cstr(query));
+
+        sol::state_view sv(s);
+        std::vector<std::map<std::string, sol::object>> queryResult;
+
+        queryResult.reserve(8);
+        while(queryStatement.executeStep()){
+            std::map<std::string, sol::object> rowResult;
+            for(int i = 0; i < queryStatement.getColumnCount(); ++i){
+                switch(const auto column = queryStatement.getColumn(i); column.getType()){
+                    case SQLITE_INTEGER:
+                        {
+                            rowResult[column.getName()] = sol::object(sv, sol::in_place_type<int>, column.getInt());
+                            break;
+                        }
+                    case SQLITE_FLOAT:
+                        {
+                            rowResult[column.getName()] = sol::object(sv, sol::in_place_type<double>, column.getDouble());
+                            break;
+                        }
+                    case SQLITE_TEXT:
+                        {
+                            rowResult[column.getName()] = sol::object(sv, sol::in_place_type<std::string>, column.getText());
+                            break;
+                        }
+                    default:
+                        {
+                            throw fflerror("column type not supported: %d", column.getType());
+                        }
+                }
+            }
+
+            if(rowResult.size() != to_uz(queryStatement.getColumnCount())){
+                throw fflerror("failed to parse query result row: missing column");
+            }
+            queryResult.push_back(std::move(rowResult));
+        }
+        return sol::nested<decltype(queryResult)>(std::move(queryResult));
+    });
+
+    m_luaState.script(INCLUA_BEGIN(char)
+#include "serverluamodule.lua"
+    INCLUA_END());
 }
 
 void ServerLuaModule::addLogString(int nLogType, const char8_t *logInfo)
