@@ -21,6 +21,7 @@
 #include "mathf.hpp"
 #include "player.hpp"
 #include "dbcomid.hpp"
+#include "dbcomrecord.hpp"
 #include "actorpod.hpp"
 #include "netdriver.hpp"
 #include "monoserver.hpp"
@@ -343,6 +344,32 @@ void Player::on_AM_MISS(const ActorMsgPack &rstMPK)
 
     smM.UID = amM.UID;
     postNetMessage(SM_MISS, smM);
+}
+
+void Player::on_AM_GIFT(const ActorMsgPack &mpk)
+{
+    const auto amG = mpk.conv<AMGift>();
+    if(amG.itemID == DBCOM_ITEMID(u8"金币")){
+        setGold(m_sdItemStorage.gold + amG.count);
+    }
+    else{
+        if(DBCOM_ITEMRECORD(amG.itemID).packable()){
+            addInventoryItem(SDItem
+            {
+                .itemID = amG.itemID,
+                .count  = amG.count,
+            }, false);
+        }
+        else{
+            for(size_t i = 0; i < amG.count; ++i){
+                addInventoryItem(SDItem
+                {
+                    .itemID = amG.itemID,
+                    .count  = 1,
+                }, false);
+            }
+        }
+    }
 }
 
 void Player::on_AM_BADCHANNEL(const ActorMsgPack &rstMPK)

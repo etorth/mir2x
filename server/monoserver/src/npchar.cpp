@@ -189,6 +189,17 @@ NPChar::LuaNPCModule::LuaNPCModule(const SDInitNPChar &initParam)
         m_npc->sendSell(uidf::toUIDEx(uidString));
     });
 
+    m_luaState.set_function("sendGift", [this](std::string uidString, std::string itemName, int count)
+    {
+        fflassert(m_npc);
+        fflassert(count > 0);
+
+        const auto itemID = DBCOM_ITEMID(to_u8cstr(itemName));
+        fflassert(itemID);
+
+        m_npc->sendGift(uidf::toUIDEx(uidString), itemID, count);
+    });
+
     m_luaState.set_function("sendCallStackQuery", [this](std::string callStackUID, std::string uidString, std::string query)
     {
         fflassert(m_npc);
@@ -430,6 +441,16 @@ void NPChar::sendSell(uint64_t uid)
         .npcUID = UID(),
         .itemList = std::vector<uint32_t>(m_luaModulePtr->getNPCSell().begin(), m_luaModulePtr->getNPCSell().end()),
     }, true));
+}
+
+void NPChar::sendGift(uint64_t uid, uint32_t itemID, int count)
+{
+    AMGift amG;
+    std::memset(&amG, 0, sizeof(amG));
+
+    amG.itemID = itemID;
+    amG.count  = count;
+    m_actorPod->forward(uid, {AM_GIFT, amG});
 }
 
 void NPChar::sendQuery(uint64_t callStackUID, uint64_t uid, const std::string &query)

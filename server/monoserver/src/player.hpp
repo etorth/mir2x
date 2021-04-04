@@ -105,6 +105,7 @@ class Player final: public CharObject
     private:
         void on_AM_EXP(const ActorMsgPack &);
         void on_AM_MISS(const ActorMsgPack &);
+        void on_AM_GIFT(const ActorMsgPack &);
         void on_AM_ACTION(const ActorMsgPack &);
         void on_AM_ATTACK(const ActorMsgPack &);
         void on_AM_OFFLINE(const ActorMsgPack &);

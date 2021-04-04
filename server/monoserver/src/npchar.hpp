@@ -192,6 +192,7 @@ class NPChar final: public CharObject
 
     private:
         void sendSell(uint64_t);
+        void sendGift(uint64_t, uint32_t, int);
         void sendXMLLayout(uint64_t, std::string);
 
     public:
