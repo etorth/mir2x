@@ -25,7 +25,7 @@ function tp.uidReqSpaceMove(uid, mapName, x, y, gold, level)
     end
 
     if gold > 0 and gold > uidQueryGold(uid) then
-        sayXML(uid,
+        uidPostXML(uid,
         [[
             <layout>
                 <par>你没有%d金币！</par>
@@ -36,7 +36,7 @@ function tp.uidReqSpaceMove(uid, mapName, x, y, gold, level)
     end
 
     if level > 0 and level > uidQueryLevel(uid) then
-        sayXML(uid,
+        uidPostXML(uid,
         [[
             <layout>
                 <par>你还没达到%d级！</par>
@@ -103,7 +103,7 @@ function tp.setTeleport(dst)
     end
 
     processHandle[SYS_NPCINIT] = function(uid, value)
-        sayXML(uid,
+        uidPostXML(uid,
         [[
             <layout>
                 <par>客官%s你好，我是%s，欢迎来到传奇旧时光！<emoji id="0"/></par>

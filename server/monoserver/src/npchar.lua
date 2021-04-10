@@ -117,12 +117,6 @@ function uidConsumeGold(uid, count)
     return uidConsumeItem(uid, '金币', count)
 end
 
--- send the sell list to uid
--- list is setup by setNPCSell(...)
-function uidPostSell(uid)
-    sendSell(uid)
-end
-
 -- setup call stack table for thread-based parameters
 -- we spawn call stack by sol::thread which still access global table
 -- so we can't have tls per call stack, have to save call stack related globals into this table
@@ -168,7 +162,7 @@ function getCallStackUID()
     return callStackTable['CS_UID']
 end
 
-function sayXML(uid, xmlFormat, ...)
+function uidPostXML(uid, xmlFormat, ...)
     if type(uid) ~= 'string' or type(xmlFormat) ~= 'string' then
         fatalPrintf("invalid argument type: uid: %s, xmlFormat: %s", type(uid), type(xmlFormat))
     end
@@ -176,7 +170,7 @@ function sayXML(uid, xmlFormat, ...)
     if not isUID(uid) then
         fatalPrintf("not a valid uid string: %s", uid)
     end
-    sayXMLString(uid, xmlFormat:format(...))
+    uidPostXMLString(uid, xmlFormat:format(...))
 end
 
 -- entry coroutine for event handling
@@ -197,7 +191,7 @@ function main(uid)
     else
         -- don't exit this loop
         -- always consume the event no matter if the NPC can handle it
-        sayXML(uid,
+        uidPostXML(uid,
         [[
             <layout>
                 <par>我听不懂你在说什么...</par>

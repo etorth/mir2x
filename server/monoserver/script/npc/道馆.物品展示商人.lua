@@ -47,7 +47,7 @@ end
 processNPCEvent =
 {
     [SYS_NPCINIT] = function(uid, value)
-        sayXML(uid, string.format(
+        uidPostXML(uid, string.format(
         [[
             <layout>
                 <par>客官%s你好我是%s，我这里有所有的物品哦！<emoji id="0"/></par>

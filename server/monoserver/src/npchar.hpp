@@ -191,9 +191,9 @@ class NPChar final: public CharObject
         void sendQuery(uint64_t, uint64_t, const std::string &);
 
     private:
-        void sendSell(uint64_t);
-        void sendGift(uint64_t, uint32_t, int);
-        void sendXMLLayout(uint64_t, std::string);
+        void postSell(uint64_t);
+        void postGift(uint64_t, uint32_t, int);
+        void postXMLLayout(uint64_t, std::string);
 
     public:
         void operateAM(const ActorMsgPack &) override;

@@ -24,7 +24,7 @@ setNPCGLoc(404, 124)
 processNPCEvent =
 {
     [SYS_NPCINIT] = function(uid, value)
-        sayXML(uid, string.format(
+        uidPostXML(uid, string.format(
         [[
             <layout>
                 <par>客官%s你好我是%s，我可以给你展示系统所有的账号！<emoji id="0"/></par>
@@ -42,7 +42,7 @@ processNPCEvent =
             parStr = parStr .. string.format('<par>fld_id: %d, fld_account: %s</par>', row.fld_dbid, row.fld_account)
         end
 
-        sayXML(uid,
+        uidPostXML(uid,
         [[
             <layout>
                 <par>数据库玩家账号有：</par>

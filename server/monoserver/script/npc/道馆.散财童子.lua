@@ -24,7 +24,7 @@ setNPCGLoc(405, 125)
 processNPCEvent =
 {
     [SYS_NPCINIT] = function(uid, value)
-        sayXML(uid, string.format(
+        uidPostXML(uid, string.format(
         [[
             <layout>
                 <par>客官%s你好我是%s，欢迎领取礼物！<emoji id="0"/></par>
@@ -37,12 +37,12 @@ processNPCEvent =
     end,
 
     ["npc_goto_1"] = function(uid, value)
-        sendGift(uid, '金币', 1000)
+        uidPostGift(uid, '金币', 1000)
     end,
 
     ["npc_goto_2"] = function(uid, value)
-        sendGift(uid, '斩马刀', 2)
-        sendGift(uid, '五彩鞋', 1)
-        sendGift(uid, '井中月', 1)
+        uidPostGift(uid, '斩马刀', 2)
+        uidPostGift(uid, '五彩鞋', 1)
+        uidPostGift(uid, '井中月', 1)
     end,
 }

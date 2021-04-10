@@ -183,13 +183,13 @@ NPChar::LuaNPCModule::LuaNPCModule(const SDInitNPChar &initParam)
         }
     });
 
-    m_luaState.set_function("sendSell", [this](std::string uidString)
+    m_luaState.set_function("uidPostSell", [this](std::string uidString)
     {
         fflassert(m_npc);
-        m_npc->sendSell(uidf::toUIDEx(uidString));
+        m_npc->postSell(uidf::toUIDEx(uidString));
     });
 
-    m_luaState.set_function("sendGift", [this](std::string uidString, std::string itemName, int count)
+    m_luaState.set_function("uidPostGift", [this](std::string uidString, std::string itemName, int count)
     {
         fflassert(m_npc);
         fflassert(count > 0);
@@ -197,16 +197,10 @@ NPChar::LuaNPCModule::LuaNPCModule(const SDInitNPChar &initParam)
         const auto itemID = DBCOM_ITEMID(to_u8cstr(itemName));
         fflassert(itemID);
 
-        m_npc->sendGift(uidf::toUIDEx(uidString), itemID, count);
+        m_npc->postGift(uidf::toUIDEx(uidString), itemID, count);
     });
 
-    m_luaState.set_function("sendCallStackQuery", [this](std::string callStackUID, std::string uidString, std::string query)
-    {
-        fflassert(m_npc);
-        m_npc->sendQuery(uidf::toUIDEx(callStackUID), uidf::toUIDEx(uidString), query);
-    });
-
-    m_luaState.set_function("sayXMLString", [this](std::string uidString, std::string xmlString)
+    m_luaState.set_function("uidPostXMLString", [this](std::string uidString, std::string xmlString)
     {
         fflassert(m_npc);
         const uint64_t uid = [&uidString]() -> uint64_t
@@ -221,12 +215,18 @@ NPChar::LuaNPCModule::LuaNPCModule(const SDInitNPChar &initParam)
         }();
 
         if(uid){
-            m_npc->sendXMLLayout(uid, std::move(xmlString));
+            m_npc->postXMLLayout(uid, std::move(xmlString));
         }
 
         else{
             addLogString(0, u8"invalid UID: 0");
         }
+    });
+
+    m_luaState.set_function("sendCallStackQuery", [this](std::string callStackUID, std::string uidString, std::string query)
+    {
+        fflassert(m_npc);
+        m_npc->sendQuery(uidf::toUIDEx(callStackUID), uidf::toUIDEx(uidString), query);
     });
 
     m_luaState.set_function("pollCallStackEvent", [this](std::string callStackUID)
@@ -365,7 +365,7 @@ void NPChar::LuaNPCModule::setEvent(uint64_t callStackUID, uint64_t from, std::s
         // 3. get event NAME
         // 4. in processNPCEvent(SYS_NPCINIT), script calls uidQueryLevel(), this sends QUERY_LEVEL
         // 5. get event LEVEL
-        // 6. send sayXML() to player, done main()
+        // 6. send uidPostXML() to player, done main()
         m_callStackList.erase(p);
     }
 }
@@ -434,7 +434,7 @@ bool NPChar::goGhost()
     return true;
 }
 
-void NPChar::sendSell(uint64_t uid)
+void NPChar::postSell(uint64_t uid)
 {
     sendNetPackage(uid, SM_NPCSELL, cerealf::serialize(SDNPCSell
     {
@@ -443,7 +443,7 @@ void NPChar::sendSell(uint64_t uid)
     }, true));
 }
 
-void NPChar::sendGift(uint64_t uid, uint32_t itemID, int count)
+void NPChar::postGift(uint64_t uid, uint32_t itemID, int count)
 {
     AMGift amG;
     std::memset(&amG, 0, sizeof(amG));
@@ -502,7 +502,7 @@ void NPChar::sendQuery(uint64_t callStackUID, uint64_t uid, const std::string &q
     });
 }
 
-void NPChar::sendXMLLayout(uint64_t uid, std::string xmlString)
+void NPChar::postXMLLayout(uint64_t uid, std::string xmlString)
 {
     sendNetPackage(uid, SM_NPCXMLLAYOUT, cerealf::serialize(SDNPCXMLLayout
     {

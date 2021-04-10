@@ -24,7 +24,7 @@ setNPCGLoc(403, 123, 1)
 processNPCEvent =
 {
     [SYS_NPCINIT] = function(uid, value)
-        sayXML(uid, string.format(
+        uidPostXML(uid, string.format(
         [[
             <layout>
                 <par>客官%s你好，我是%s，欢迎来到传奇旧时光！<emoji id="0"/></par>
@@ -40,7 +40,7 @@ processNPCEvent =
         local gold  = uidQueryGold(uid)
         local level = uidQueryLevel(uid)
         if gold < 1000 then
-            sayXML(uid, string.format(
+            uidPostXML(uid, string.format(
             [[
                 <layout>
                     <par>穷鬼，先去赚点钱吧！<emoji id="2"/></par>
@@ -48,7 +48,7 @@ processNPCEvent =
                 </layout>
             ]], SYS_NPCDONE))
         elseif level < 10 then
-            sayXML(uid, string.format(
+            uidPostXML(uid, string.format(
             [[
                 <layout>
                     <par>客官你才%d级，先去打怪升级吧！<emoji id="3"/></par>
@@ -56,7 +56,7 @@ processNPCEvent =
                 </layout>
             ]], level, SYS_NPCDONE))
         else
-            sayXML(uid, string.format(
+            uidPostXML(uid, string.format(
             [[
                 <layout>
                     <par>多多上线打怪升级！<emoji id="1"/></par>
