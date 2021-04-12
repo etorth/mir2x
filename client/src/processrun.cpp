@@ -1566,6 +1566,23 @@ void ProcessRun::drawGroundObject(int x, int y, bool ground, bool alpha)
 
                 SDLDeviceHelper::EnableTextureModColor enableColor(texPtr, colorf::RGBA(0XFF, 0XFF, 0XFF, drawAlphaObj));
                 g_sdlDevice->drawTexture(texPtr, x * SYS_MAPGRIDXP - m_viewX, (y + 1) * SYS_MAPGRIDYP - m_viewY - texH);
+
+                if(ground){
+                    for(const auto &entry: DBCOM_MAPRECORD(mapID()).linkArray){
+                        if(true
+                                && entry.w > 0
+                                && entry.h > 0
+                                && m_mir2xMapData.ValidC(entry.x, entry.y)){
+
+                            if(mathf::pointInRectangle(x, y, entry.x, entry.y, entry.w, entry.h)){
+                                g_sdlDevice->fillRectangle(colorf::RGBA(0XFF, 0, 0, 100), x * SYS_MAPGRIDXP - m_viewX, y * SYS_MAPGRIDYP - m_viewY, SYS_MAPGRIDXP, SYS_MAPGRIDYP);
+                            }
+                        }
+                        else{
+                            break;
+                        }
+                    }
+                }
             }
         }
     }
