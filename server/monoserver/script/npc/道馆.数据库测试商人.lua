@@ -50,14 +50,22 @@ processNPCEvent =
                 %s
                 <par></par>
                 <par>上次查询：</par>
-                <par>fld_querytime：%d</par>
-                <par>fld_randomstring：%s</par>
+                <par>fld_float：%f</par>
+                <par>fld_integer：%d</par>
+                <par>fld_text：%s</par>
                 <par></par>
                 <par><event id="%s">关闭</event></par>
             </layout>
-        ]], parStr, argDef(uidDBGetKey(uid, 'fld_querytime'), 0), argDef(uidDBGetKey(uid, 'fld_randomstring'), '(nil)'), SYS_NPCDONE)
+        ]],
 
-        uidDBSetKey(uid, 'fld_querytime', getAbsTime())
-        uidDBSetKey(uid, 'fld_randomstring', randString(12))
+        parStr,
+        argDef(uidDBGetKey(uid, 'fld_float'), 0.0),
+        argDef(uidDBGetKey(uid, 'fld_integer'), 0),
+        argDef(uidDBGetKey(uid, 'fld_text'), '(nil)'),
+        SYS_NPCDONE)
+
+        uidDBSetKey(uid, 'fld_float', 23.74589)
+        uidDBSetKey(uid, 'fld_integer', getAbsTime())
+        uidDBSetKey(uid, 'fld_text', randString(12, 'abcdefg'))
     end,
 }
