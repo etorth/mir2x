@@ -18,6 +18,7 @@
 
 #include <cstdint>
 #include "uidf.hpp"
+#include "dbpod.hpp"
 #include "npchar.hpp"
 #include "totype.hpp"
 #include "filesys.hpp"
@@ -30,6 +31,7 @@
 #include "dbcomrecord.hpp"
 #include "serverconfigurewindow.hpp"
 
+extern DBPod *g_dbPod;
 extern MonoServer *g_monoServer;
 extern ServerConfigureWindow *g_serverConfigureWindow;
 
@@ -180,6 +182,103 @@ NPChar::LuaNPCModule::LuaNPCModule(const SDInitNPChar &initParam)
         }
         else{
             return mapName;
+        }
+    });
+
+    m_luaState.set_function("uidDBSetKey", [mapID = initParam.mapID, this](std::string uidString, std::string key, sol::object obj)
+    {
+        fflassert(m_npc);
+        const auto dbid = uidf::getPlayerDBID(uidf::toUIDEx(uidString));
+        const auto npcDBName = str_printf("tbl_npcdb_%s_%s", to_cstr(DBCOM_MAPRECORD(mapID).name), m_npcName.c_str());
+
+        if(!g_dbPod->createQuery(u8R"###(select name from sqlite_master where type='table' and name='%s')###", npcDBName.c_str()).executeStep()){
+            g_dbPod->exec(u8R"###(create table %s(fld_dbid integer not null primary key))###", npcDBName.c_str());
+        }
+
+        const auto colType = [&npcDBName, &key]() -> std::string
+        {
+            auto queryTableInfo= g_dbPod->createQuery(u8R"###(pragma table_info(%s))###", npcDBName.c_str());
+            while(queryTableInfo.executeStep()){
+                if(queryTableInfo.getColumn("name").getText() == key){
+                    return queryTableInfo.getColumn("type").getText();
+                }
+            }
+            return {};
+        }();
+
+        const auto objType = [&key, &obj]() -> std::string
+        {
+            if(obj.is<int>()){
+                return "integer";
+            }
+            else if(obj.is<double>()){
+                return "real";
+            }
+            else if(obj.is<std::string>()){
+                return "text";
+            }
+            else{
+                throw fflerror("invalid object type: name = %s", to_cstr(key));
+            }
+        }();
+
+        if(colType.empty()){
+            g_dbPod->exec(u8R"###(alter table %s add column %s %s)###", npcDBName.c_str(), key.c_str(), objType.c_str());
+        }
+        else if(colType != objType){
+            throw fflerror("column type mismatch, expected %s:%s, get type %s", npcDBName.c_str(), key.c_str(), objType.c_str());
+        }
+
+        if(objType == "integer"){
+            g_dbPod->exec(u8R"###(insert into %s(fld_dbid, %s) values(%llu, %d) on conflict(fld_dbid) do update set %s=%d)###", npcDBName.c_str(), key.c_str(), to_llu(dbid), obj.as<int>(), key.c_str(), obj.as<int>());
+        }
+        else if(objType == "real"){
+            g_dbPod->exec(u8R"###(insert into %s(fld_dbid, %s) values(%llu, %f) on conflict(fld_dbid) do update set %s=%f)###", npcDBName.c_str(), key.c_str(), to_llu(dbid), obj.as<double>(), key.c_str(), obj.as<double>());
+        }
+        else{
+            g_dbPod->exec(u8R"###(insert into %s(fld_dbid, %s) values(%llu, '%s') on conflict(fld_dbid) do update set %s='%s')###", npcDBName.c_str(), key.c_str(), to_llu(dbid), obj.as<std::string>().c_str(), key.c_str(), obj.as<std::string>().c_str());
+        }
+    });
+
+    m_luaState.set_function("uidDBGetKey", [mapID = initParam.mapID, this](std::string uidString, std::string key, sol::this_state s) -> sol::object
+    {
+        fflassert(m_npc);
+        fflassert(!key.empty());
+
+        const auto dbid = uidf::getPlayerDBID(uidf::toUIDEx(uidString));
+        const auto npcDBName = str_printf("tbl_npcdb_%s_%s", to_cstr(DBCOM_MAPRECORD(mapID).name), m_npcName.c_str());
+
+        sol::state_view sv(s);
+        if(!g_dbPod->createQuery(u8R"###(select name from sqlite_master where type='table' and name='%s')###", npcDBName.c_str()).executeStep()){
+            return sol::make_object(sv, sol::nil);
+        }
+
+        auto queryStatement = g_dbPod->createQuery(u8R"###(select %s from %s where fld_dbid=%llu)###", key.c_str(), npcDBName.c_str(), to_llu(dbid));
+        if(!queryStatement.executeStep()){
+            return sol::make_object(sv, sol::nil);
+        }
+
+        switch(const auto column = queryStatement.getColumn(0); column.getType()){
+            case SQLITE_INTEGER:
+                {
+                    return sol::object(sv, sol::in_place_type<int>, column.getInt());
+                }
+            case SQLITE_FLOAT:
+                {
+                    return sol::object(sv, sol::in_place_type<double>, column.getDouble());
+                }
+            case SQLITE_TEXT:
+                {
+                    return sol::object(sv, sol::in_place_type<std::string>, column.getText());
+                }
+            case SQLITE_NULL:
+                {
+                    return sol::make_object(sv, sol::nil);
+                }
+            default:
+                {
+                    throw fflerror("column type not supported: %d", column.getType());
+                }
         }
     });
 

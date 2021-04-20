@@ -16,6 +16,7 @@
  * =====================================================================================
  */
 
+#include <ctime>
 #include <chrono>
 #include <thread>
 #include "log.hpp"
@@ -70,6 +71,11 @@ LuaModule::LuaModule()
     m_luaState.set_function("getTime", [timer = hres_timer()]() -> int
     {
         return to_d(timer.diff_msec());
+    });
+
+    m_luaState.set_function("getAbsTime", []() -> int
+    {
+        return to_d(std::time(nullptr));
     });
 
     m_luaState.script(INCLUA_BEGIN(char)
