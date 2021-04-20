@@ -37,7 +37,22 @@ processNPCEvent =
     end,
 
     ["npc_goto_1"] = function(uid, value)
-        uidPostGift(uid, '金币', 1000)
+        local currTime = getAbsTime()
+        local lastTime = argDef(uidDBGetKey(uid, 'fld_time'), 0)
+
+        if currTime > lastTime + 10 then
+            uidPostGift(uid, '金币', 1000)
+            uidDBSetKey(uid, 'fld_time', currTime)
+        else
+            uidPostXML(uid,
+            [[
+                <layout>
+                    <par>你刚刚领取过金币了，请稍后再来！<emoji id="1"/></par>
+                    <par></par>
+                    <par><event id="%s">关闭</event></par>
+                </layout>
+            ]], SYS_NPCDONE)
+        end
     end,
 
     ["npc_goto_2"] = function(uid, value)
