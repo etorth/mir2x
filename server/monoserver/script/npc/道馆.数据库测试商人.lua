@@ -54,6 +54,7 @@ processNPCEvent =
                 <par>fld_integer：%d</par>
                 <par>fld_text：%s</par>
                 <par></par>
+                <par><event id="npc_goto_1">刷新</event></par>
                 <par><event id="%s">关闭</event></par>
             </layout>
         ]],
@@ -66,6 +67,6 @@ processNPCEvent =
 
         uidDBSetKey(uid, 'fld_float', 23.74589)
         uidDBSetKey(uid, 'fld_integer', getAbsTime())
-        uidDBSetKey(uid, 'fld_text', randString(12, 'abcdefg'))
+        uidDBSetKey(uid, 'fld_text', randString(20, 'abcdefghijklmn'))
     end,
 }
