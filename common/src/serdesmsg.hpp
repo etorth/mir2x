@@ -19,6 +19,7 @@
 #pragma once
 #include <array>
 #include <string>
+#include "totype.hpp"
 #include "colorf.hpp"
 #include "cerealf.hpp"
 #include "fflerror.hpp"

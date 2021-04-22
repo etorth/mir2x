@@ -18,6 +18,7 @@
 
 #include <cstdint>
 #include "uidf.hpp"
+#include "luaf.hpp"
 #include "dbpod.hpp"
 #include "npchar.hpp"
 #include "totype.hpp"
@@ -183,6 +184,42 @@ NPChar::LuaNPCModule::LuaNPCModule(const SDInitNPChar &initParam)
         else{
             return mapName;
         }
+    });
+
+    m_luaState.set_function("dbSetGKey", [mapID = initParam.mapID, this](std::string key, sol::object obj)
+    {
+        fflassert(m_npc);
+        const auto npcDBName = str_printf("tbl_global_npcdb_%s_%s", to_cstr(DBCOM_MAPRECORD(mapID).name), m_npcName.c_str());
+
+        if(!g_dbPod->createQuery(u8R"###(select name from sqlite_master where type='table' and name='%s')###", npcDBName.c_str()).executeStep()){
+            g_dbPod->exec(
+                    u8R"###( create table %s(                         )###"
+                    u8R"###(     fld_key   text not null primary key, )###"
+                    u8R"###(     fld_value blob not null              )###"
+                    u8R"###( );                                       )###", npcDBName.c_str());
+        }
+
+        auto query = g_dbPod->createQuery(u8R"###(replace into %s(fld_key, fld_value) values('%s', ?))###", npcDBName.c_str(), key.c_str());
+        query.bind(1, luaf::buildSQLBlob(obj));
+        query.exec();
+    });
+
+    m_luaState.set_function("dbGetGKey", [mapID = initParam.mapID, this](std::string key, sol::this_state s) -> sol::object
+    {
+        fflassert(m_npc);
+        fflassert(!key.empty());
+        const auto npcDBName = str_printf("tbl_global_npcdb_%s_%s", to_cstr(DBCOM_MAPRECORD(mapID).name), m_npcName.c_str());
+
+        sol::state_view sv(s);
+        if(!g_dbPod->createQuery(u8R"###(select name from sqlite_master where type='table' and name='%s')###", npcDBName.c_str()).executeStep()){
+            return sol::make_object(sv, sol::nil);
+        }
+
+        auto queryStatement = g_dbPod->createQuery(u8R"###(select fld_value from %s where fld_key='%s')###", npcDBName.c_str(), key.c_str());
+        if(!queryStatement.executeStep()){
+            return sol::make_object(sv, sol::nil);
+        }
+        return luaf::buildLuaObj(sv, queryStatement.getColumn(0).getString());
     });
 
     m_luaState.set_function("uidDBSetKey", [mapID = initParam.mapID, this](std::string uidString, std::string key, sol::object obj)

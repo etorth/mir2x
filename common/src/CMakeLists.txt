@@ -5,7 +5,8 @@ ADD_DEPENDENCIES(common mir2x_3rds)
 IF(NOT WIN32)
     TARGET_LINK_LIBRARIES(common stdc++fs)
 ENDIF()
-TARGET_LINK_LIBRARIES(common Threads::Threads)
+
+TARGET_LINK_LIBRARIES(common Threads::Threads )
 TARGET_LINK_LIBRARIES(common ${ZSTD_LIBRARIES})
 
 IF(WIN32)
