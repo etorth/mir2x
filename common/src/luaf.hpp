@@ -91,7 +91,7 @@ namespace luaf
             case getBlobTypeChar<double        >(): return sol::object(sv, sol::in_place_type<double     >, cerealf::deserialize<double     >(std::move(s)));
             case getBlobTypeChar<std::string   >(): return sol::object(sv, sol::in_place_type<std::string>, cerealf::deserialize<std::string>(std::move(s)));
             case getBlobTypeChar<sol::lua_nil_t>(): return sol::make_object(sv, sol::nil);
-            default : throw fflerror("invalid type char: %c", ch);
+            default: throw fflerror("invalid type char: %c", ch);
         }
     }
 }
