@@ -97,7 +97,7 @@ function uidQueryGold(uid)
     return tonumber(uidQuery(uid, 'GOLD'))
 end
 
-function uidConsumeItem(uid, itemName, count)
+function uidUseItem(uid, itemName, count)
     local itemID = getItemID(itemName)
     if itemID == 0 then
         fatalPrintf('invalid item name: %s', itemName)
@@ -113,8 +113,8 @@ function uidConsumeItem(uid, itemName, count)
     end
 end
 
-function uidConsumeGold(uid, count)
-    return uidConsumeItem(uid, '金币', count)
+function uidUseGold(uid, count)
+    return uidUseItem(uid, '金币', count)
 end
 
 -- setup call stack table for thread-based parameters
