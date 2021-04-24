@@ -93,6 +93,7 @@ namespace uidf
 
 namespace uidf
 {
+    bool isGM(uint64_t);
     bool hasPlayerJob(uint64_t, int);
     bool getPlayerGender(uint64_t);
     uint32_t getPlayerDBID(uint64_t);

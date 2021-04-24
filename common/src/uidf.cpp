@@ -63,6 +63,11 @@ uint64_t uidf::buildPlayerUID(uint32_t dbid, bool gender, const std::vector<int>
     return (to_u64(UID_PLY) << 44) | (gender ? playerUID_gender : 0ULL)  | jobMask | to_u64(dbid);
 }
 
+bool uidf::isGM(uint64_t uid)
+{
+    return (uidf::getUIDType(uid) == UID_PLY) && (uidf::getPlayerDBID(uid) <= 10);
+}
+
 bool uidf::hasPlayerJob(uint64_t uid, int job)
 {
     if(uidf::getUIDType(uid) != UID_PLY){
