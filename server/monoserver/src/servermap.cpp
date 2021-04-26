@@ -27,6 +27,7 @@
 #include "monster.hpp"
 #include "actorpod.hpp"
 #include "taodog.hpp"
+#include "guard.hpp"
 #include "filesys.hpp"
 #include "taoskeleton.hpp"
 #include "mathf.hpp"
@@ -192,6 +193,15 @@ ServerMap::ServerMapLuaModule::ServerMapLuaModule(ServerMap *mapPtr)
         }
 
         return false;
+    });
+
+    getLuaState().set_function("addGuard", [mapPtr](std::string type, int x, int y, int direction) -> bool
+    {
+        const uint32_t monID = DBCOM_MONSTERID(to_u8cstr(type));
+        if(!monID){
+            return false;
+        }
+        return mapPtr->addGuard(monID, x, y, direction);
     });
 
     getLuaState().script_file([mapPtr]() -> std::string
@@ -959,6 +969,25 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
         return monsterPtr;
     }
     return nullptr;
+}
+
+Guard *ServerMap::addGuard(uint32_t monID, int x, int y, int direction)
+{
+    fflassert(monID);
+    fflassert(validC(x, y));
+
+    auto guardPtr = new Guard
+    {
+        monID,
+        m_serviceCore,
+        this,
+        x,
+        y,
+        direction,
+    };
+
+    guardPtr->activate();
+    return guardPtr;
 }
 
 NPChar *ServerMap::addNPChar(const SDInitNPChar &initParam)
