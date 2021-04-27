@@ -20,55 +20,31 @@
 #include <cstdint>
 #include <utility>
 
-struct LinkEntry
+struct MapSwitch
 {
-    const int x;
-    const int y;
+    const int x = -1;
+    const int y = -1;
+    const int w =  1;
+    const int h =  1;
 
-    const int w;
-    const int h;
+    const char8_t *endName = u8"";
+    const int endX = -1;
+    const int endY = -1;
 
-    const int endX;
-    const int endY;
-
-    const char8_t *endName;
-
-    constexpr LinkEntry(
-            int argX = -1,
-            int argY = -1,
-            int argW = -1,
-            int argH = -1,
-            int argEndX = -1,
-            int argEndY = -1,
-            const char8_t *argEndName = u8"")
-        : x(argX)
-        , y(argY)
-        , w(argW)
-        , h(argH)
-        , endX(argEndX)
-        , endY(argEndY)
-        , endName(argEndName ? argEndName : u8"") {}
+    operator bool () const
+    {
+        return endName && endName[0] != '\0';
+    }
 };
 
-class MapRecord
+struct MapRecord
 {
-    public:
-        const char8_t *name;
-        const uint32_t miniMapID;
+    const char8_t *name = u8"";
+    const uint32_t miniMapID = 0;
+    const MapSwitch mapSwitch[16] = {};
 
-    public:
-        const LinkEntry linkArray[8];
-
-    public:
-        template<typename... U> constexpr MapRecord(const char8_t *argName, uint32_t argMiniMapID = 0, U&&... u)
-            : name(argName ? argName : u8"")
-            , miniMapID(argMiniMapID)
-            , linkArray { std::forward<U>(u)... }
-        {}
-
-    public:
-        operator bool () const
-        {
-            return name[0] != '\0';
-        }
+    operator bool () const
+    {
+        return name && name[0] != '\0';
+    }
 };

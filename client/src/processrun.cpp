@@ -1568,7 +1568,7 @@ void ProcessRun::drawGroundObject(int x, int y, bool ground, bool alpha)
                 g_sdlDevice->drawTexture(texPtr, x * SYS_MAPGRIDXP - m_viewX, (y + 1) * SYS_MAPGRIDYP - m_viewY - texH);
 
                 if(ground){
-                    for(const auto &entry: DBCOM_MAPRECORD(mapID()).linkArray){
+                    for(const auto &entry: DBCOM_MAPRECORD(mapID()).mapSwitch){
                         if(true
                                 && entry.w > 0
                                 && entry.h > 0
