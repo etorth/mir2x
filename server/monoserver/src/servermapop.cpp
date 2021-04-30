@@ -218,6 +218,88 @@ void ServerMap::on_AM_TRYSPACEMOVE(const ActorMsgPack &rstMPK)
     });
 }
 
+void ServerMap::on_AM_TRYJUMP(const ActorMsgPack &mpk)
+{
+    const auto amTJ = mpk.conv<AMTryJump>();
+    const auto fnPrintJumpError = [&amTJ]()
+    {
+        g_monoServer->addLog(LOGTYPE_WARNING, "TRYJUMP[%p]::X    = %d", &amTJ, amTJ.X);
+        g_monoServer->addLog(LOGTYPE_WARNING, "TRYJUMP[%p]::Y    = %d", &amTJ, amTJ.Y);
+        g_monoServer->addLog(LOGTYPE_WARNING, "TRYJUMP[%p]::EndX = %d", &amTJ, amTJ.EndX);
+        g_monoServer->addLog(LOGTYPE_WARNING, "TRYJUMP[%p]::EndY = %d", &amTJ, amTJ.EndY);
+    };
+
+    if(!In(ID(), amTJ.X, amTJ.Y)){
+        g_monoServer->addLog(LOGTYPE_WARNING, "Invalid location: (X, Y)");
+        fnPrintJumpError();
+        m_actorPod->forward(mpk.from(), AM_ERROR, mpk.seqID());
+        return;
+    }
+
+    // we never allow server to handle motion to invalid grid
+    // for client every motion request need to be prepared to avoid this
+
+    if(!In(ID(), amTJ.EndX, amTJ.EndY)){
+        g_monoServer->addLog(LOGTYPE_WARNING, "Invalid location: (EndX, EndY)");
+        fnPrintJumpError();
+        m_actorPod->forward(mpk.from(), AM_ERROR, mpk.seqID());
+        return;
+    }
+
+    if(!hasGridUID(amTJ.X, amTJ.Y, mpk.from())){
+        g_monoServer->addLog(LOGTYPE_WARNING, "Can't find CO at current location: (UID, X, Y)");
+        fnPrintJumpError();
+        m_actorPod->forward(mpk.from(), AM_ERROR, mpk.seqID());
+        return;
+    }
+
+    AMJumpOK amJOK;
+    std::memset(&amJOK, 0, sizeof(amJOK));
+
+    amJOK.EndX = amTJ.EndX;
+    amJOK.EndY = amTJ.EndY;
+
+    m_actorPod->forward(mpk.from(), {AM_JUMPOK, amJOK}, mpk.seqID(), [this, amTJ, fromUID = mpk.from()](const ActorMsgPack &rmpk)
+    {
+        switch(rmpk.type()){
+            case AM_OK:
+                {
+                    // the object comfirm to move
+                    // and it's internal state has changed
+
+                    if(!hasGridUID(fromUID, amTJ.X, amTJ.Y)){
+                        throw fflerror("CO location error: (UID = %llu, X = %d, Y = %d)", to_llu(fromUID), amTJ.X, amTJ.Y);
+                    }
+
+                    removeGridUID(fromUID, amTJ.X, amTJ.Y);
+
+                    // 2. push to the new cell
+                    //    check if it should switch the map
+                    addGridUID(fromUID, amTJ.EndX, amTJ.EndY, true);
+                    if(uidf::getUIDType(fromUID) == UID_PLY){
+                        postGroundItemIDList(fromUID, amTJ.EndX, amTJ.EndY); // doesn't help if switched map
+                    }
+
+                    if(uidf::getUIDType(fromUID) == UID_PLY && getGrid(amTJ.EndX, amTJ.EndY).mapID){
+                        AMMapSwitch amMS;
+                        std::memset(&amMS, 0, sizeof(amMS));
+
+                        amMS.UID   = uidf::buildMapUID(getGrid(amTJ.EndX, amTJ.EndY).mapID); // TODO
+                        amMS.mapID = getGrid(amTJ.EndX, amTJ.EndY).mapID;
+                        amMS.X     = getGrid(amTJ.EndX, amTJ.EndY).switchX;
+                        amMS.Y     = getGrid(amTJ.EndX, amTJ.EndY).switchY;
+                        m_actorPod->forward(fromUID, {AM_MAPSWITCH, amMS});
+                    }
+                    break;
+                }
+            default:
+                {
+                    break;
+                }
+        }
+    });
+}
+
 void ServerMap::on_AM_TRYMOVE(const ActorMsgPack &rstMPK)
 {
     AMTryMove amTM;

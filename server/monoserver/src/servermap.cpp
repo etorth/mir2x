@@ -384,6 +384,11 @@ void ServerMap::operateAM(const ActorMsgPack &rstMPK)
                 on_AM_BADACTORPOD(rstMPK);
                 break;
             }
+        case AM_TRYJUMP:
+            {
+                on_AM_TRYJUMP(rstMPK);
+                break;
+            }
         case AM_TRYMOVE:
             {
                 on_AM_TRYMOVE(rstMPK);

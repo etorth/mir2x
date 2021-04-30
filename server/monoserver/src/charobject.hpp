@@ -261,6 +261,14 @@ class CharObject: public ServerObject
         void retrieveLocation(uint64_t, std::function<void(const COLocation &)>, std::function<void()> = []{});
 
     protected:
+        bool requestJump(
+                int,                                // x
+                int,                                // y
+                int,                                // direction
+                std::function<void()> = nullptr,    // fnOnOK
+                std::function<void()> = nullptr);   // fnOnError
+
+    protected:
         bool requestMove(
                 int,                                // x
                 int,                                // y
@@ -278,6 +286,7 @@ class CharObject: public ServerObject
                 std::function<void()> = nullptr,    // fnOnOK
                 std::function<void()> = nullptr);   // fnOnError
 
+    protected:
         bool requestMapSwitch(
                 uint32_t,                           // mapID
                 int,                                // x

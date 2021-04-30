@@ -34,8 +34,10 @@ enum ActorMsgPackType: int
     AM_PING,
     AM_LOGIN,
     AM_METRONOME,
+    AM_TRYJUMP,
     AM_TRYMOVE,
     AM_TRYSPACEMOVE,
+    AM_JUMPOK,
     AM_MOVEOK,
     AM_SPACEMOVEOK,
     AM_TRYLEAVE,
@@ -206,11 +208,29 @@ struct AMTryMove
     bool RemoveMonster;
 };
 
+struct AMTryJump
+{
+    int X;
+    int Y;
+
+    int EndX;
+    int EndY;
+};
+
 struct AMMoveOK
 {
     uint64_t UID;
     uint32_t mapID;
 
+    int X;
+    int Y;
+
+    int EndX;
+    int EndY;
+};
+
+struct AMJumpOK
+{
     int X;
     int Y;
 

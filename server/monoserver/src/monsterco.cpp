@@ -114,3 +114,22 @@ corof::long_jmper::eval_op<bool> Monster::coro_trackAttackUID(uint64_t targetUID
     };
     return fnwait(this, targetUID).eval<bool>();
 }
+
+corof::long_jmper::eval_op<bool> Monster::coro_jumpAttackUID(uint64_t targetUID)
+{
+    const auto fnwait = +[](Monster *p, uint64_t targetUID) -> corof::long_jmper
+    {
+        corof::async_variable<bool> done;
+        p->jumpAttackUID(targetUID, [&done]{ done.assign(true); }, [&done]{ done.assign(false); });
+
+        if(co_await done){
+            co_await corof::async_wait(p->attackWait());
+            co_return true;
+        }
+        else{
+            co_await corof::async_wait(p->isPet(p->UID()) ? 20 : 200);
+            co_return false;
+        }
+    };
+    return fnwait(this, targetUID).eval<bool>();
+}

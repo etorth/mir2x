@@ -114,6 +114,11 @@ class ServerMap final: public ServerObject
             {
                 return !locked && uidList.empty() && itemIDList.empty() && (mapID == 0);
             }
+
+            bool hasUID(uint64_t uid) const
+            {
+                return std::ranges::find(uidList, uid) != uidList.end();
+            }
         };
 
     private:
@@ -354,6 +359,7 @@ class ServerMap final: public ServerObject
         void on_AM_ACTION(const ActorMsgPack &);
         void on_AM_PICKUP(const ActorMsgPack &);
         void on_AM_OFFLINE(const ActorMsgPack &);
+        void on_AM_TRYJUMP(const ActorMsgPack &);
         void on_AM_TRYMOVE(const ActorMsgPack &);
         void on_AM_TRYLEAVE(const ActorMsgPack &);
         void on_AM_PATHFIND(const ActorMsgPack &);

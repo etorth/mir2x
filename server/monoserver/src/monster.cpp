@@ -328,6 +328,33 @@ void Monster::attackUID(uint64_t nUID, int nDC, std::function<void()> fnOnOK, st
     });
 }
 
+void Monster::jumpUID(uint64_t nUID, std::function<void()> fnOnOK, std::function<void()> fnOnError)
+{
+    retrieveLocation(nUID, [this, fnOnOK, fnOnError](const COLocation &rstCOLocation)
+    {
+        auto nX     = rstCOLocation.X;
+        auto nY     = rstCOLocation.Y;
+        auto nDir   = rstCOLocation.Direction;
+        auto nMapID = rstCOLocation.mapID;
+
+        if(!m_map->In(nMapID, nX, nY)){
+            fnOnError();
+            return;
+        }
+
+        int nFrontX = -1;
+        int nFrontY = -1;
+        PathFind::GetFrontLocation(&nFrontX, &nFrontY, nX, nY, nDir);
+
+        if(!m_map->groundValid(nFrontX, nFrontY)){
+            fnOnError();
+            return;
+        }
+
+        requestJump(nFrontX, nFrontY, PathFind::GetBack(nDir), fnOnOK, fnOnError);
+    }, fnOnError);
+}
+
 void Monster::trackUID(uint64_t nUID, int nMinCDistance, std::function<void()> fnOnOK, std::function<void()> fnOnError)
 {
     if(nMinCDistance < 1){
@@ -443,6 +470,22 @@ void Monster::followMaster(std::function<void()> fnOnOK, std::function<void()> f
             }
         }
     });
+}
+
+void Monster::jumpAttackUID(uint64_t nTargetUID, std::function<void()> fnOnOK, std::function<void()> fnOnError)
+{
+    if(!nTargetUID){
+        throw fflerror("invalid zero UID");
+    }
+
+    // TODO choose proper DC
+    // for different monster it may use different DC
+
+    int nProperDC = m_monsterRecord.DCList()[0];
+    jumpUID(nTargetUID, [nTargetUID, nProperDC, fnOnOK, fnOnError, this]()
+    {
+        attackUID(nTargetUID, nProperDC, fnOnOK, fnOnError);
+    }, fnOnError);
 }
 
 void Monster::trackAttackUID(uint64_t nTargetUID, std::function<void()> fnOnOK, std::function<void()> fnOnError)

@@ -122,8 +122,10 @@ class Monster: public CharObject
         void SearchNearestTarget(std::function<void(uint64_t)>);
 
     protected:
+        virtual void jumpUID       (uint64_t,      std::function<void()>, std::function<void()>);
         virtual void trackUID      (uint64_t, int, std::function<void()>, std::function<void()>);
         virtual void attackUID     (uint64_t, int, std::function<void()>, std::function<void()>);
+        virtual void jumpAttackUID (uint64_t,      std::function<void()>, std::function<void()>);
         virtual void trackAttackUID(uint64_t,      std::function<void()>, std::function<void()>);
 
     protected:
@@ -229,6 +231,7 @@ class Monster: public CharObject
         corof::long_jmper::eval_op<bool>     coro_moveForward();
         corof::long_jmper::eval_op<bool>     coro_followMaster();
         corof::long_jmper::eval_op<uint64_t> coro_getProperTarget();
+        corof::long_jmper::eval_op<bool>     coro_jumpAttackUID(uint64_t);
         corof::long_jmper::eval_op<bool>     coro_trackAttackUID(uint64_t);
 
     public:

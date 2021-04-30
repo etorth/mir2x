@@ -30,6 +30,7 @@ enum ActionType: int
     ACTION_SPAWN = 1,
     ACTION_STAND,
     ACTION_MOVE,
+    ACTION_JUMP,
     ACTION_PUSHMOVE,
     ACTION_SPACEMOVE1,
     ACTION_SPACEMOVE2,
@@ -173,6 +174,27 @@ struct ActionTransf
         node.y = y;
 
         node.extParam.transf.dog.standMode = standMode;
+        return node;
+    }
+};
+
+struct ActionJump
+{
+    const int x = -1;
+    const int y = -1;
+    const int direction = DIR_NONE;
+
+    operator ActionNode () const
+    {
+        ActionNode node;
+        std::memset(&node, 0, sizeof(node));
+
+        node.type = ACTION_JUMP;
+        node.direction = direction;
+
+        node.x = x;
+        node.y = y;
+
         return node;
     }
 };
@@ -372,6 +394,7 @@ inline const char *actionName(int type)
         _add_action_type_case(ACTION_SPAWN     )
         _add_action_type_case(ACTION_STAND     )
         _add_action_type_case(ACTION_MOVE      )
+        _add_action_type_case(ACTION_JUMP      )
         _add_action_type_case(ACTION_PUSHMOVE  )
         _add_action_type_case(ACTION_SPACEMOVE1)
         _add_action_type_case(ACTION_SPACEMOVE2)

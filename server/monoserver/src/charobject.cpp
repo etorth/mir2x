@@ -235,6 +235,96 @@ void CharObject::dispatchAction(uint64_t uid, const ActionNode &action)
     m_actorPod->forward(uid, {AM_ACTION, amA});
 }
 
+bool CharObject::requestJump(int nX, int nY, int nDirection, std::function<void()> fnOnOK, std::function<void()> fnOnError)
+{
+    if(!m_map->groundValid(nX, nY)){
+        throw fflerror("invalid destination: (mapID = %lld, x = %d, y = %d)", to_lld(mapID()), nX, nY);
+    }
+
+    if(estimateHop(nX, nY) != 0){
+        if(fnOnError){
+            fnOnError();
+        }
+        return false;
+    }
+
+    if(!canMove()){
+        if(fnOnError){
+            fnOnError();
+        }
+        return false;
+    }
+
+    AMTryJump amTJ;
+    std::memset(&amTJ, 0, sizeof(amTJ));
+
+    amTJ.X    = X();
+    amTJ.Y    = Y();
+    amTJ.EndX = nX;
+    amTJ.EndY = nY;
+
+    m_moveLock = true;
+    return m_actorPod->forward(MapUID(), {AM_TRYJUMP, amTJ}, [this, nX, nY, nDirection, fnOnOK, fnOnError](const ActorMsgPack &rmpk)
+    {
+        if(!m_moveLock){
+            throw fflerror("moveLock released before map responds: UIDName = %s", UIDName());
+        }
+        m_moveLock = false;
+
+        // handle jump, CO may be dead
+        // need to check if current CO can jump
+
+        switch(rmpk.type()){
+            case AM_JUMPOK:
+                {
+                    if(!canMove()){
+                        m_actorPod->forward(rmpk.from(), AM_ERROR, rmpk.seqID());
+                        if(fnOnError){
+                            fnOnError();
+                        }
+                        return;
+                    }
+
+                    const auto nOldX = m_X;
+                    const auto nOldY = m_Y;
+                    const auto amJOK = rmpk.conv<AMJumpOK>();
+
+                    m_X = amJOK.EndX;
+                    m_Y = amJOK.EndY;
+
+                    if(directionValid(nDirection)){
+                        m_direction = nDirection;
+                    }
+                    else{
+                        m_direction = PathFind::GetDirection(nOldX, nOldY, X(), Y());
+                    }
+                    m_lastMoveTime = g_monoServer->getCurrTick();
+
+                    m_actorPod->forward(rmpk.from(), AM_OK, rmpk.seqID());
+                    dispatchAction(ActionJump
+                    {
+                        .x = X(),
+                        .y = Y(),
+                        .direction = Direction(),
+                    });
+                    SortInViewCO();
+
+                    if(fnOnOK){
+                        fnOnOK();
+                    }
+                    return;
+                }
+            default:
+                {
+                    if(fnOnError){
+                        fnOnError();
+                    }
+                    return;
+                }
+        }
+    });
+}
+
 bool CharObject::requestMove(int nX, int nY, int nSpeed, bool allowHalfMove, bool removeMonster, std::function<void()> fnOnOK, std::function<void()> fnOnError)
 {
     if(!m_map->groundValid(nX, nY)){
