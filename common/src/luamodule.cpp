@@ -42,6 +42,15 @@ LuaModule::LuaModule()
     m_luaState.script(str_printf("UID_ETC = %d", UID_ETC));
     m_luaState.script(str_printf("UID_INN = %d", UID_INN));
 
+    m_luaState.script(str_printf("DIR_UP        = %d", DIR_UP       ));
+    m_luaState.script(str_printf("DIR_UPRIGHT   = %d", DIR_UPRIGHT  ));
+    m_luaState.script(str_printf("DIR_RIGHT     = %d", DIR_RIGHT    ));
+    m_luaState.script(str_printf("DIR_DOWNRIGHT = %d", DIR_DOWNRIGHT));
+    m_luaState.script(str_printf("DIR_DOWN      = %d", DIR_DOWN     ));
+    m_luaState.script(str_printf("DIR_DOWNLEFT  = %d", DIR_DOWNLEFT ));
+    m_luaState.script(str_printf("DIR_LEFT      = %d", DIR_LEFT     ));
+    m_luaState.script(str_printf("DIR_UPLEFT    = %d", DIR_UPLEFT   ));
+
     m_luaState.script(str_printf("SYS_NPCINIT  = \"%s\"", SYS_NPCINIT ));
     m_luaState.script(str_printf("SYS_NPCDONE  = \"%s\"", SYS_NPCDONE ));
     m_luaState.script(str_printf("SYS_NPCQUERY = \"%s\"", SYS_NPCQUERY));

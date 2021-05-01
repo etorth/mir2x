@@ -33,6 +33,7 @@ struct ServerArgParser
     const bool traceActorMessageCount;  // "--trace-actor-message-count"
     const bool disablePetSpawn;         // "--disable-pet-spawn"
     const bool disableMonsterSpawn;     // "--disable-monster-spawn"
+    const bool disableNPCSpawn;         // "--disable-npc-spawn"
     const bool preloadMap;              // "--preload-map"
     const int  preloadMapID;            // "--preload-map-id"
     const int  actorPoolThread;         // "--actor-pool-thread"
@@ -44,6 +45,7 @@ struct ServerArgParser
         , traceActorMessageCount(cmdParser["trace-actor-message-count"])
         , disablePetSpawn(cmdParser["disable-pet-spawn"])
         , disableMonsterSpawn(cmdParser["disable-monster-spawn"])
+        , disableNPCSpawn(cmdParser["disable-npc-spawn"])
         , preloadMap(cmdParser["preload-map"])
         , preloadMapID([&cmdParser]() -> int
           {

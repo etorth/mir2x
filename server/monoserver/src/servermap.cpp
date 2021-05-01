@@ -997,6 +997,10 @@ Guard *ServerMap::addGuard(uint32_t monID, int x, int y, int direction)
 
 NPChar *ServerMap::addNPChar(const SDInitNPChar &initParam)
 {
+    if(g_serverArgParser->disableNPCSpawn){
+        return nullptr;
+    }
+
     try{
         auto npcPtr = new NPChar(m_serviceCore, this, std::make_unique<NPChar::LuaNPCModule>(initParam));
         npcPtr->activate();

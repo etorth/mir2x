@@ -110,7 +110,7 @@ class Monster: public CharObject
         bool update() override;
 
     protected:
-        corof::long_jmper updateCoroFunc();
+        virtual corof::long_jmper updateCoroFunc();
 
     protected:
         bool randomMove();

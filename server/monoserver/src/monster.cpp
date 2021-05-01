@@ -332,10 +332,10 @@ void Monster::jumpUID(uint64_t nUID, std::function<void()> fnOnOK, std::function
 {
     retrieveLocation(nUID, [this, fnOnOK, fnOnError](const COLocation &rstCOLocation)
     {
-        auto nX     = rstCOLocation.X;
-        auto nY     = rstCOLocation.Y;
-        auto nDir   = rstCOLocation.Direction;
-        auto nMapID = rstCOLocation.mapID;
+        const auto nX     = rstCOLocation.X;
+        const auto nY     = rstCOLocation.Y;
+        const auto nDir   = directionValid(rstCOLocation.Direction) ? rstCOLocation.Direction : DIR_UP;
+        const auto nMapID = rstCOLocation.mapID;
 
         if(!m_map->In(nMapID, nX, nY)){
             fnOnError();

@@ -20,6 +20,8 @@ local logicDelay = 1000
 local monsterList = {'虎卫', '沙漠石人', '红蛇', '虎蛇'}
 local maxMonsterCount = math.floor(getCanThroughGridCount() / 64)
 
+addGuard('白日门卫士', 411, 115, DIR_DOWNLEFT)
+
 function main()
     while true do
         local monsterCount = getMonsterCount(0)

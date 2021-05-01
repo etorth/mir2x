@@ -22,6 +22,20 @@
 
 class Guard: public Monster
 {
+    private:
+        const int m_standX;
+        const int m_standY;
+        const int m_standDirection;
+
     public:
         Guard(uint32_t, ServiceCore *, ServerMap *, int, int, int);
+
+    protected:
+        corof::long_jmper updateCoroFunc() override;
+
+    protected:
+        corof::long_jmper::eval_op<bool> coro_jumpBack();
+
+    private:
+        void checkFriend(uint64_t, std::function<void(int)>) override;
 };
