@@ -107,14 +107,12 @@ int CharObject::COPathFinder::GetGrid(int nX, int nY) const
 }
 
 CharObject::CharObject(
-        const ServiceCore *coreCPtr,
-        const ServerMap   *mapCPtr,
-        uint64_t           uid,
-        int                mapX,
-        int                mapY,
-        int                direction)
+        const ServerMap *mapCPtr,
+        uint64_t         uid,
+        int              mapX,
+        int              mapY,
+        int              direction)
     : ServerObject(uid)
-    , m_serviceCore(coreCPtr)
     , m_map(mapCPtr)
     , m_X(mapX)
     , m_Y(mapY)
@@ -593,7 +591,7 @@ bool CharObject::requestMapSwitch(uint32_t argMapID, int locX, int locY, bool st
     std::memset(&amQMUID, 0, sizeof(amQMUID));
 
     amQMUID.mapID = argMapID;
-    return m_actorPod->forward(m_serviceCore->UID(), {AM_QUERYMAPUID, amQMUID}, [locX, locY, strictMove, fnOnOK, fnOnError, this](const ActorMsgPack &mpk)
+    return m_actorPod->forward(uidf::getServiceCoreUID(), {AM_QUERYMAPUID, amQMUID}, [locX, locY, strictMove, fnOnOK, fnOnError, this](const ActorMsgPack &mpk)
     {
         switch(mpk.type()){
             case AM_UID:
@@ -1031,7 +1029,7 @@ void CharObject::addMonster(uint32_t monsterID, int x, int y, bool strictLoc)
     amACO.monster.monsterID = monsterID;
     amACO.monster.masterUID = UID();
 
-    m_actorPod->forward(m_serviceCore->UID(), {AM_ADDCHAROBJECT, amACO}, [](const ActorMsgPack &rstRMPK)
+    m_actorPod->forward(uidf::getServiceCoreUID(), {AM_ADDCHAROBJECT, amACO}, [](const ActorMsgPack &rstRMPK)
     {
         switch(rstRMPK.seqID()){
             default:

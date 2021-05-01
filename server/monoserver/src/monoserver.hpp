@@ -51,7 +51,7 @@ class MonoServer final
         std::queue<std::string> m_notifyGUIQ;
 
     private:
-        ServiceCore *m_serviceCore;
+        ServiceCore *m_serviceCore = nullptr;
 
     private:
         std::exception_ptr m_currException;
@@ -68,7 +68,7 @@ class MonoServer final
         void FlushCWBrowser();
 
     public:
-        MonoServer();
+        MonoServer() = default;
        ~MonoServer() = default;
 
     public:

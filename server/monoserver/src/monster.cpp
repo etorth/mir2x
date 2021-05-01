@@ -98,14 +98,13 @@ void Monster::AStarCache::Cache(std::vector<PathFind::PathNode> stvPathNode, uin
     Time = g_monoServer->getCurrTick();
 }
 
-Monster::Monster(uint32_t   monID,
-        const ServiceCore  *coreCPtr,
-        const ServerMap    *mapCPtr,
-        int                 mapX,
-        int                 mapY,
-        int                 direction,
-        uint64_t            masterUID)
-    : CharObject(coreCPtr, mapCPtr, uidf::buildMonsterUID(monID), mapX, mapY, direction)
+Monster::Monster(uint32_t monID,
+        const ServerMap  *mapCPtr,
+        int               mapX,
+        int               mapY,
+        int               direction,
+        uint64_t          masterUID)
+    : CharObject(mapCPtr, uidf::buildMonsterUID(monID), mapX, mapY, direction)
     , m_monsterID(monID)
     , m_masterUID(masterUID)
     , m_monsterRecord(DBCOM_MONSTERRECORD(monID))

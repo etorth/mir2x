@@ -297,7 +297,7 @@ ServerMap::ServerPathFinder::ServerPathFinder(const ServerMap *pMap, int nMaxSte
     }
 }
 
-ServerMap::ServerMap(ServiceCore *pServiceCore, uint32_t nMapID)
+ServerMap::ServerMap(uint32_t nMapID)
     : ServerObject(uidf::getMapUID(nMapID))
     , m_ID(nMapID)
     , m_mir2xMapData(*([nMapID]() -> Mir2xMapData *
@@ -313,7 +313,6 @@ ServerMap::ServerMap(ServiceCore *pServiceCore, uint32_t nMapID)
           // servicecore should test if current nMapID valid
           throw fflerror("load map failed: ID = %d, Name = %s", nMapID, to_cstr(DBCOM_MAPRECORD(nMapID).name));
       }()))
-    , m_serviceCore(pServiceCore)
 {
     if(!m_mir2xMapData.Valid()){
         throw fflerror("load map failed: ID = %d, Name = %s", nMapID, to_cstr(DBCOM_MAPRECORD(nMapID).name));
@@ -934,7 +933,6 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
                 {
                     monsterPtr = new TaoSkeleton
                     {
-                        m_serviceCore,
                         this,
                         nDstX,
                         nDstY,
@@ -946,7 +944,6 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
                 {
                     monsterPtr = new TaoDog
                     {
-                        m_serviceCore,
                         this,
                         nDstX,
                         nDstY,
@@ -960,7 +957,6 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
                     monsterPtr = new Monster
                     {
                         nMonsterID,
-                        m_serviceCore,
                         this,
                         nDstX,
                         nDstY,
@@ -985,7 +981,6 @@ Guard *ServerMap::addGuard(uint32_t monID, int x, int y, int direction)
     auto guardPtr = new Guard
     {
         monID,
-        m_serviceCore,
         this,
         x,
         y,
@@ -1003,7 +998,7 @@ NPChar *ServerMap::addNPChar(const SDInitNPChar &initParam)
     }
 
     try{
-        auto npcPtr = new NPChar(m_serviceCore, this, std::make_unique<NPChar::LuaNPCModule>(initParam));
+        auto npcPtr = new NPChar(this, std::make_unique<NPChar::LuaNPCModule>(initParam));
         npcPtr->activate();
         return npcPtr;
     }
@@ -1036,7 +1031,6 @@ Player *ServerMap::addPlayer(const SDInitPlayer &initPlayer)
         auto playerPtr = new Player
         {
             initPlayer,
-            m_serviceCore,
             this,
         };
 

@@ -51,14 +51,6 @@ extern MonoServer *g_monoServer;
 extern MainWindow *g_mainWindow;
 extern ServerConfigureWindow *g_serverConfigureWindow;
 
-MonoServer::MonoServer()
-    : m_logLock()
-    , m_logBuf()
-    , m_serviceCore(nullptr)
-    , m_currException()
-    , m_hrtimer()
-{}
-
 void MonoServer::addLog(const std::array<std::string, 4> &logDesc, const char *format, ...)
 {
     std::string s;
@@ -323,7 +315,7 @@ void MonoServer::StartServiceCore()
 void MonoServer::StartNetwork()
 {
     uint32_t nPort = g_serverConfigureWindow->Port();
-    if(!g_netDriver->Launch(nPort, m_serviceCore->UID())){
+    if(!g_netDriver->Launch(nPort)){
         throw fflerror("Failed to launch the network");
     }
 }
@@ -423,7 +415,7 @@ bool MonoServer::addMonster(uint32_t monsterID, uint32_t mapID, int x, int y, bo
     amACO.monster.masterUID = 0;
     addLog(LOGTYPE_INFO, "Try to add monster, monsterID = %llu", to_llu(monsterID));
 
-    switch(auto stRMPK = SyncDriver().forward(m_serviceCore->UID(), {AM_ADDCHAROBJECT, amACO}, 0, 0); stRMPK.type()){
+    switch(auto stRMPK = SyncDriver().forward(uidf::getServiceCoreUID(), {AM_ADDCHAROBJECT, amACO}, 0, 0); stRMPK.type()){
         case AM_OK:
             {
                 addLog(LOGTYPE_INFO, "Add monster succeeds");
@@ -479,7 +471,7 @@ bool MonoServer::addNPChar(const char *scriptPath)
     std::memcpy(amACO.buf.data, buf.data(), buf.length());
     addLog(LOGTYPE_INFO, "Try to add NPC, script: %s", to_cstr(scriptPath));
 
-    switch(auto rmpk = SyncDriver().forward(m_serviceCore->UID(), {AM_ADDCHAROBJECT, amACO}, 0, 0); rmpk.type()){
+    switch(auto rmpk = SyncDriver().forward(uidf::getServiceCoreUID(), {AM_ADDCHAROBJECT, amACO}, 0, 0); rmpk.type()){
         case AM_OK:
             {
                 addLog(LOGTYPE_INFO, "Add NPC succeeds");
@@ -499,7 +491,7 @@ bool MonoServer::addNPChar(const char *scriptPath)
 
 std::vector<int> MonoServer::GetMapList()
 {
-    switch(auto stRMPK = SyncDriver().forward(m_serviceCore->UID(), AM_QUERYMAPLIST); stRMPK.type()){
+    switch(auto stRMPK = SyncDriver().forward(uidf::getServiceCoreUID(), AM_QUERYMAPLIST); stRMPK.type()){
         case AM_MAPLIST:
             {
                 AMMapList amML;
@@ -543,7 +535,7 @@ sol::optional<int> MonoServer::GetMonsterCount(int nMonsterID, int nMapID)
         amQCOC.Check.Monster        = true;
         amQCOC.CheckParam.MonsterID = to_u32(nMonsterID);
 
-        switch(auto stRMPK = SyncDriver().forward(m_serviceCore->UID(), {AM_QUERYCOCOUNT, amQCOC}); stRMPK.type()){
+        switch(auto stRMPK = SyncDriver().forward(uidf::getServiceCoreUID(), {AM_QUERYCOCOUNT, amQCOC}); stRMPK.type()){
             case AM_COCOUNT:
                 {
                     AMCOCount amCOC;

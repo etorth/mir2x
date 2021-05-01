@@ -25,8 +25,8 @@ class TaoDog final: public Monster
         bool m_standMode = false;
 
     public:
-        TaoDog(ServiceCore *corePtr, ServerMap *mapPtr, int argX, int argY, int argDir, uint64_t masterUID)
-            : Monster(DBCOM_MONSTERID(u8"神兽"), corePtr, mapPtr, argX, argY, argDir, masterUID)
+        TaoDog(ServerMap *mapPtr, int argX, int argY, int argDir, uint64_t masterUID)
+            : Monster(DBCOM_MONSTERID(u8"神兽"), mapPtr, argX, argY, argDir, masterUID)
         {}
 
     public:

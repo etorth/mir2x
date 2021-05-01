@@ -126,9 +126,6 @@ class ServerMap final: public ServerObject
         const Mir2xMapData m_mir2xMapData;
 
     private:
-        ServiceCore *m_serviceCore;
-
-    private:
         std::vector<std::vector<MapGrid>> m_gridList;
 
     private:
@@ -138,7 +135,7 @@ class ServerMap final: public ServerObject
         void operateAM(const ActorMsgPack &);
 
     public:
-        ServerMap(ServiceCore *, uint32_t);
+        ServerMap(uint32_t);
        ~ServerMap() = default;
 
     public:

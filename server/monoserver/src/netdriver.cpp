@@ -34,7 +34,6 @@ NetDriver::NetDriver()
     , m_acceptor(nullptr)
     , m_socket(nullptr)
     , m_thread()
-    , m_serviceCoreUID(0)
     , m_channIDQ()
 {}
 
@@ -92,19 +91,17 @@ bool NetDriver::InitASIO(uint32_t nPort)
     return true;
 }
 
-bool NetDriver::Launch(uint32_t nPort, uint64_t nUID)
+bool NetDriver::Launch(uint32_t nPort)
 {
     if(!CheckPort(nPort)){
         g_monoServer->addLog(LOGTYPE_WARNING, "Using invalid port: %llu", to_llu(nPort));
         return false;
     }
 
-    if(!g_actorPool->checkUIDValid(nUID)){
-        g_monoServer->addLog(LOGTYPE_WARNING, "Launch with invaid UID: %llu", to_llu(nUID));
+    if(!g_actorPool->checkUIDValid(uidf::getServiceCoreUID())){
+        g_monoServer->addLog(LOGTYPE_WARNING, "Service core is not started");
         return false;
     }
-
-    m_serviceCoreUID = nUID;
 
     if(m_thread.joinable()){
         m_thread.join();
@@ -175,7 +172,7 @@ void NetDriver::AcceptNewConnection()
         // directly lanuch the channel here
         // won't forward the new connection to the service core
 
-        pChann->Launch(m_serviceCoreUID);
+        pChann->Launch(uidf::getServiceCoreUID());
         AcceptNewConnection();
     };
 

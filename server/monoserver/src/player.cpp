@@ -34,8 +34,8 @@ extern DBPod *g_dbPod;
 extern NetDriver *g_netDriver;
 extern MonoServer *g_monoServer;
 
-Player::Player(const SDInitPlayer &initParam, const ServiceCore *corePtr, const ServerMap *mapPtr)
-    : CharObject(corePtr, mapPtr, uidf::buildPlayerUID(initParam.dbid, initParam.gender, initParam.jobList), initParam.x, initParam.y, DIR_DOWN)
+Player::Player(const SDInitPlayer &initParam, const ServerMap *mapPtr)
+    : CharObject(mapPtr, uidf::buildPlayerUID(initParam.dbid, initParam.gender, initParam.jobList), initParam.x, initParam.y, DIR_DOWN)
     , m_exp(initParam.exp)
     , m_name(initParam.name)
     , m_nameColor(initParam.nameColor)

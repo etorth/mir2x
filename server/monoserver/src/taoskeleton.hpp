@@ -22,7 +22,7 @@
 class TaoSkeleton final: public Monster
 {
     public:
-        TaoSkeleton(ServiceCore *corePtr, ServerMap *mapPtr, int argX, int argY, uint64_t masterUID)
-            : Monster(DBCOM_MONSTERID(u8"变异骷髅"), corePtr, mapPtr, argX, argY, DIR_DOWNLEFT, masterUID)
+        TaoSkeleton(ServerMap *mapPtr, int argX, int argY, uint64_t masterUID)
+            : Monster(DBCOM_MONSTERID(u8"变异骷髅"), mapPtr, argX, argY, DIR_DOWNLEFT, masterUID)
         {}
 };

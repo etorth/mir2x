@@ -128,8 +128,7 @@ class CharObject: public ServerObject
         };
 
     protected:
-        const ServiceCore *m_serviceCore;
-        const ServerMap   *m_map;
+        const ServerMap *m_map;
 
     protected:
         const ServerMap *GetServerMap() const
@@ -178,12 +177,11 @@ class CharObject: public ServerObject
 
     public:
         CharObject(
-                const ServiceCore *,    // service core
-                const ServerMap   *,    // server map
-                uint64_t,               // uid
-                int,                    // map x
-                int,                    // map y
-                int);                   // direction
+                const ServerMap *,  // server map
+                uint64_t,           // uid
+                int,                // map x
+                int,                // map y
+                int);               // direction
 
     public:
         ~CharObject() = default;

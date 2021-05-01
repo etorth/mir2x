@@ -28,7 +28,7 @@ class Guard: public Monster
         const int m_standDirection;
 
     public:
-        Guard(uint32_t, ServiceCore *, ServerMap *, int, int, int);
+        Guard(uint32_t, ServerMap *, int, int, int);
 
     protected:
         corof::long_jmper updateCoroFunc() override;

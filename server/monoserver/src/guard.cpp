@@ -19,8 +19,8 @@
 #include "guard.hpp"
 #include "friendtype.hpp"
 
-Guard::Guard(uint32_t monID, ServiceCore *corePtr, ServerMap *mapPtr, int argX, int argY, int argDir)
-    : Monster(monID, corePtr, mapPtr, argX, argY, argDir, 0)
+Guard::Guard(uint32_t monID, ServerMap *mapPtr, int argX, int argY, int argDir)
+    : Monster(monID, mapPtr, argX, argY, argDir, 0)
     , m_standX(argX)
     , m_standY(argY)
     , m_standDirection(argDir)

@@ -53,7 +53,7 @@ class Player final: public CharObject
         SDItemStorage m_sdItemStorage;
 
     public:
-        Player(const SDInitPlayer &, const ServiceCore *, const ServerMap *);
+        Player(const SDInitPlayer &, const ServerMap *);
 
     public:
         ~Player() = default;

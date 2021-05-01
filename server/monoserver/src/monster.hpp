@@ -80,13 +80,12 @@ class Monster: public CharObject
         corof::long_jmper m_updateCoro;
 
     public:
-        Monster(uint32_t,               // monster id
-                const ServiceCore *,    // service core
-                const ServerMap   *,    // server map
-                int,                    // map x
-                int,                    // map y
-                int,                    // direction
-                uint64_t);              // master uid
+        Monster(uint32_t,           // monster id
+                const ServerMap *,  // server map
+                int,                // map x
+                int,                // map y
+                int,                // direction
+                uint64_t);          // master uid
 
     public:
         ~Monster() = default;

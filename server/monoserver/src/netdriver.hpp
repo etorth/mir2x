@@ -52,9 +52,6 @@ class NetDriver final: public Dispatcher
         std::thread m_thread;
 
     private:
-        uint64_t m_serviceCoreUID;
-
-    private:
         CacheQueue<uint32_t, SYS_MAXPLAYERNUM> m_channIDQ;
 
     private:
@@ -83,7 +80,7 @@ class NetDriver final: public Dispatcher
         }
 
     public:
-        // launch the net driver with (port, service_core_address)
+        // launch the net driver with (port)
         // before call this function, the service core should be ready
         // then connection request will be accepted and forward to the service core
         //
@@ -91,7 +88,7 @@ class NetDriver final: public Dispatcher
         //      0: OK
         //      1: invalid argument
         //      2: asio initialization failed
-        bool Launch(uint32_t, uint64_t);
+        bool Launch(uint32_t);
 
     public:
         template<typename... Args> bool Post(uint32_t nChannID, uint8_t nHC, Args&&... args)

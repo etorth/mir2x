@@ -506,10 +506,9 @@ void NPChar::LuaNPCModule::setEvent(uint64_t callStackUID, uint64_t from, std::s
     }
 }
 
-NPChar::NPChar(const ServiceCore *coreCPtr, const ServerMap *mapCPtr, std::unique_ptr<NPChar::LuaNPCModule> luaModulePtr)
+NPChar::NPChar(const ServerMap *mapCPtr, std::unique_ptr<NPChar::LuaNPCModule> luaModulePtr)
     : CharObject
       {
-          coreCPtr,
           mapCPtr,
           uidf::buildNPCUID(luaModulePtr->getNPCLookID()),
           luaModulePtr->getNPCGLoc().x,
