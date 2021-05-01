@@ -179,10 +179,10 @@ struct AMLogin
 
 struct AMTrySpaceMove
 {
-    uint64_t UID;
-
     int X;
     int Y;
+    int EndX;
+    int EndY;
 
     bool StrictMove;
 };
@@ -191,6 +191,8 @@ struct AMSpaceMoveOK
 {
     int X;
     int Y;
+    int EndX;
+    int EndY;
 };
 
 struct AMTryMove

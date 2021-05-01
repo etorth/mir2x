@@ -496,17 +496,16 @@ bool CharObject::requestSpaceMove(int locX, int locY, bool strictMove, std::func
     AMTrySpaceMove amTSM;
     std::memset(&amTSM, 0, sizeof(amTSM));
 
-    amTSM.UID = UID();
-    amTSM.X   = locX;
-    amTSM.Y   = locY;
+    amTSM.X = X();
+    amTSM.Y = Y();
+    amTSM.EndX = locX;
+    amTSM.EndY = locY;
     amTSM.StrictMove = strictMove;
 
     m_moveLock = true;
     return m_actorPod->forward(mapUID(), {AM_TRYSPACEMOVE, amTSM}, [this, fnOnOK, fnOnError](const ActorMsgPack &rmpk)
     {
-        if(!m_moveLock){
-            throw fflerror("moveLock released before map responds: UIDName = %s", UIDName());
-        }
+        fflassert(m_moveLock);
         m_moveLock = false;
 
         // handle move, CO can be dead already
@@ -515,9 +514,6 @@ bool CharObject::requestSpaceMove(int locX, int locY, bool strictMove, std::func
         switch(rmpk.type()){
             case AM_SPACEMOVEOK:
                 {
-                    // need to leave src map
-                    // dst map already says OK for current move
-
                     if(!canMove()){
                         m_actorPod->forward(rmpk.from(), AM_ERROR, rmpk.seqID());
                         if(fnOnError){
@@ -526,80 +522,43 @@ bool CharObject::requestSpaceMove(int locX, int locY, bool strictMove, std::func
                         return;
                     }
 
-                    AMTryLeave amTL;
-                    std::memset(&amTL, 0, sizeof(amTL));
-
-                    amTL.X = X();
-                    amTL.Y = Y();
-
-                    m_moveLock = true;
-                    m_actorPod->forward(m_map->UID(), {AM_TRYLEAVE, amTL}, [this, rmpk, fnOnOK, fnOnError](const ActorMsgPack &leavermpk)
+                    // dispatch space move part 1 on old place
+                    dispatchAction(ActionSpaceMove1
                     {
-                        if(!m_moveLock){
-                            throw fflerror("moveLock released before map responds: UIDName = %s", UIDName());
-                        }
-                        m_moveLock = false;
-
-                        switch(leavermpk.type()){
-                            case AM_OK:
-                                {
-                                    const auto amSMOK = rmpk.conv<AMSpaceMoveOK>();
-                                    if(!canMove()){
-                                        m_actorPod->forward(rmpk.from(), AM_ERROR, rmpk.seqID());
-                                        if(fnOnError){
-                                            fnOnError();
-                                        }
-                                        return;
-                                    }
-
-                                    // dispatch space move part 1 on old map
-                                    dispatchAction(ActionSpaceMove1
-                                    {
-                                        .x = X(),
-                                        .y = Y(),
-                                        .direction = Direction(),
-                                    });
-
-                                    // setup new map
-                                    // don't use the requested location
-                                    m_X = amSMOK.X;
-                                    m_Y = amSMOK.Y;
-
-                                    m_lastMoveTime = g_monoServer->getCurrTick();
-                                    m_actorPod->forward(rmpk.from(), AM_OK, rmpk.seqID());
-
-                                    // clean the InViewCO list
-                                    // report new location explicitly to map
-                                    // don't use ActionStand since it forces client to parse for a path to dst location
-                                    m_inViewCOList.clear();
-                                    const ActionSpaceMove2 spaceMove2
-                                    {
-                                        .x = X(),
-                                        .y = Y(),
-                                        .direction = Direction(),
-                                    };
-
-                                    dispatchAction(m_map->UID(), spaceMove2);
-                                    if(uidf::getUIDType(UID()) == UID_PLY){
-                                        dynamic_cast<Player *>(this)->reportAction(UID(), spaceMove2);
-                                        dynamic_cast<Player *>(this)->PullRectCO(10, 10);
-                                    }
-
-                                    if(fnOnOK){
-                                        fnOnOK();
-                                    }
-                                    return;
-                                }
-                            default:
-                                {
-                                    m_actorPod->forward(rmpk.from(), AM_ERROR, rmpk.seqID());
-                                    if(fnOnError){
-                                        fnOnError();
-                                    }
-                                    return;
-                                }
-                        }
+                        .x = X(),
+                        .y = Y(),
+                        .direction = Direction(),
                     });
+
+                    // setup new map
+                    // don't use the requested location
+                    const auto amSMOK = rmpk.conv<AMSpaceMoveOK>();
+                    m_X = amSMOK.EndX;
+                    m_Y = amSMOK.EndY;
+
+                    m_lastMoveTime = g_monoServer->getCurrTick();
+                    m_actorPod->forward(rmpk.from(), AM_OK, rmpk.seqID());
+
+                    // clean the InViewCO list
+                    // report new location explicitly to map
+                    // don't use ActionStand since it forces client to parse for a path to dst location
+                    m_inViewCOList.clear();
+                    const ActionSpaceMove2 spaceMove2
+                    {
+                        .x = X(),
+                        .y = Y(),
+                        .direction = Direction(),
+                    };
+
+                    dispatchAction(m_map->UID(), spaceMove2);
+                    if(uidf::getUIDType(UID()) == UID_PLY){
+                        dynamic_cast<Player *>(this)->reportAction(UID(), spaceMove2);
+                        dynamic_cast<Player *>(this)->PullRectCO(10, 10);
+                    }
+
+                    if(fnOnOK){
+                        fnOnOK();
+                    }
                     break;
                 }
             default:

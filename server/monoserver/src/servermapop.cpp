@@ -156,17 +156,38 @@ void ServerMap::on_AM_ADDCHAROBJECT(const ActorMsgPack &rstMPK)
     }
 }
 
-void ServerMap::on_AM_TRYSPACEMOVE(const ActorMsgPack &rstMPK)
+void ServerMap::on_AM_TRYSPACEMOVE(const ActorMsgPack &mpk)
 {
-    AMTrySpaceMove amTSM;
-    std::memcpy(&amTSM, rstMPK.data(), sizeof(amTSM));
+    const auto amTSM = mpk.conv<AMTrySpaceMove>();
+    const auto fnPrintMoveError = [&amTSM]()
+    {
+        g_monoServer->addLog(LOGTYPE_WARNING, "TRYSPACEMOVE[%p]::X          = %d", &amTSM, amTSM.X);
+        g_monoServer->addLog(LOGTYPE_WARNING, "TRYSPACEMOVE[%p]::Y          = %d", &amTSM, amTSM.Y);
+        g_monoServer->addLog(LOGTYPE_WARNING, "TRYSPACEMOVE[%p]::EndX       = %d", &amTSM, amTSM.EndX);
+        g_monoServer->addLog(LOGTYPE_WARNING, "TRYSPACEMOVE[%p]::EndY       = %d", &amTSM, amTSM.EndY);
+        g_monoServer->addLog(LOGTYPE_WARNING, "TRYSPACEMOVE[%p]::StrictMove = %s", &amTSM, to_boolcstr(amTSM.StrictMove));
+    };
 
-    int nDstX = amTSM.X;
-    int nDstY = amTSM.Y;
+    if(!In(ID(), amTSM.X, amTSM.Y)){
+        g_monoServer->addLog(LOGTYPE_WARNING, "Invalid location: (X, Y)");
+        fnPrintMoveError();
+        m_actorPod->forward(mpk.from(), AM_ERROR, mpk.seqID());
+        return;
+    }
+
+    if(!hasGridUID(mpk.from(), amTSM.X, amTSM.Y)){
+        g_monoServer->addLog(LOGTYPE_WARNING, "Can't find CO at current location: (UID, X, Y)");
+        fnPrintMoveError();
+        m_actorPod->forward(mpk.from(), AM_ERROR, mpk.seqID());
+        return;
+    }
+
+    int nDstX = amTSM.EndX;
+    int nDstY = amTSM.EndY;
 
     if(!validC(amTSM.X, amTSM.Y)){
         if(amTSM.StrictMove){
-            m_actorPod->forward(rstMPK.from(), AM_ERROR, rstMPK.seqID());
+            m_actorPod->forward(mpk.from(), AM_ERROR, mpk.seqID());
             return;
         }
 
@@ -178,22 +199,21 @@ void ServerMap::on_AM_TRYSPACEMOVE(const ActorMsgPack &rstMPK)
     std::tie(bDstOK, nDstX, nDstY) = GetValidGrid(false, false, amTSM.StrictMove ? 1 : 100, nDstX, nDstY);
 
     if(!bDstOK){
-        m_actorPod->forward(rstMPK.from(), AM_ERROR, rstMPK.seqID());
+        m_actorPod->forward(mpk.from(), AM_ERROR, mpk.seqID());
         return;
     }
-
-    // get valid location
-    // respond with AM_SPACEMOVEOK and wait for response
 
     AMSpaceMoveOK amSMOK;
     std::memset(&amSMOK, 0, sizeof(amSMOK));
 
-    amSMOK.X = nDstX;
-    amSMOK.Y = nDstY;
+    amSMOK.X = amTSM.X;
+    amSMOK.Y = amTSM.Y;
+    amSMOK.EndX = nDstX;
+    amSMOK.EndY = nDstY;
 
-    m_actorPod->forward(rstMPK.from(), {AM_SPACEMOVEOK, amSMOK}, rstMPK.seqID(), [this, nUID = amTSM.UID, nDstX, nDstY](const ActorMsgPack &rstRMPK)
+    m_actorPod->forward(mpk.from(), {AM_SPACEMOVEOK, amSMOK}, mpk.seqID(), [this, fromUID = mpk.from(), amTSM, nDstX, nDstY](const ActorMsgPack &rmpk)
     {
-        switch(rstRMPK.type()){
+        switch(rmpk.type()){
             case AM_OK:
                 {
                     // the object comfirm to move
@@ -201,12 +221,15 @@ void ServerMap::on_AM_TRYSPACEMOVE(const ActorMsgPack &rstMPK)
 
                     // for space move
                     // 1. we won't take care of map switch
-                    // 2. we won't take care of where it comes from
-                    // 3. we don't take reservation of the dstination cell
+                    // 2. we don't take reservation of the dstination cell
 
-                    addGridUID(nUID, nDstX, nDstY, true);
-                    if(uidf::getUIDType(nUID) == UID_PLY){
-                        postGroundItemIDList(nUID, nDstX, nDstY);
+                    if(!removeGridUID(fromUID, amTSM.X, amTSM.Y)){
+                        throw fflerror("CO location error: (UID = %llu, X = %d, Y = %d)", to_llu(fromUID), amTSM.X, amTSM.Y);
+                    }
+
+                    addGridUID(fromUID, nDstX, nDstY, true);
+                    if(uidf::getUIDType(fromUID) == UID_PLY){
+                        postGroundItemIDList(fromUID, nDstX, nDstY); // doesn't help if switched map
                     }
                     break;
                 }
