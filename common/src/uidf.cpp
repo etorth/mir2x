@@ -26,12 +26,17 @@
 #include "fflerror.hpp"
 #include "dbcomrecord.hpp"
 
-uint64_t uidf::buildMapUID(uint32_t mapID)
+uint64_t uidf::getMapUID(uint32_t mapID)
 {
     if(!mapID){
         throw fflerror("invalid map ID: %llu", to_llu(mapID));
     }
     return (to_u64(UID_MAP) << 44) + to_u64(mapID);
+}
+
+uint64_t uidf::getServiceCoreUID()
+{
+    return to_u64(UID_COR) << 44;
 }
 
 uint64_t uidf::buildNPCUID(uint16_t npcId)
@@ -149,11 +154,6 @@ uint64_t uidf::buildEtcUID()
         return (to_u64(UID_ETC) << 44) + to_u64(nSeq);
     }
     return 0;
-}
-
-uint64_t uidf::buildServiceCoreUID()
-{
-    return to_u64(UID_COR) << 44;
 }
 
 std::string uidf::getUIDString(uint64_t uid)

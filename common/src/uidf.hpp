@@ -47,16 +47,13 @@ enum UIDType: int
 
 namespace uidf
 {
-    // based on database id to create UID
-    // always model it as ``build" even some of them are pure mapping
-
-    uint64_t buildMapUID(uint32_t);
+    uint64_t buildEtcUID();
     uint64_t buildNPCUID(uint16_t);
     uint64_t buildPlayerUID(uint32_t, bool, const std::vector<int> &);
     uint64_t buildMonsterUID(uint32_t);
 
-    uint64_t buildEtcUID();
-    uint64_t buildServiceCoreUID();
+    uint64_t getMapUID(uint32_t);
+    uint64_t getServiceCoreUID();
 }
 
 namespace uidf

@@ -1084,7 +1084,7 @@ bool Monster::MoveOneStepAStar(int nX, int nY, std::function<void()> fnOnOK, std
     amPF.EndX    = nX;
     amPF.EndY    = nY;
 
-    return m_actorPod->forward(MapUID(), {AM_PATHFIND, amPF}, [this, nX, nY, fnOnOK, fnOnError](const ActorMsgPack &rstRMPK)
+    return m_actorPod->forward(mapUID(), {AM_PATHFIND, amPF}, [this, nX, nY, fnOnOK, fnOnError](const ActorMsgPack &rstRMPK)
     {
         switch(rstRMPK.type()){
             case AM_PATHFINDOK:

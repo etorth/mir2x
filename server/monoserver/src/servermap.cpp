@@ -298,7 +298,7 @@ ServerMap::ServerPathFinder::ServerPathFinder(const ServerMap *pMap, int nMaxSte
 }
 
 ServerMap::ServerMap(ServiceCore *pServiceCore, uint32_t nMapID)
-    : ServerObject(uidf::buildMapUID(nMapID))
+    : ServerObject(uidf::getMapUID(nMapID))
     , m_ID(nMapID)
     , m_mir2xMapData(*([nMapID]() -> Mir2xMapData *
       {

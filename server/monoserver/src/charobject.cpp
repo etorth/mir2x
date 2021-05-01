@@ -266,7 +266,7 @@ bool CharObject::requestJump(int nX, int nY, int nDirection, std::function<void(
     amTJ.EndY = nY;
 
     m_moveLock = true;
-    return m_actorPod->forward(MapUID(), {AM_TRYJUMP, amTJ}, [this, nX, nY, nDirection, fnOnOK, fnOnError](const ActorMsgPack &rmpk)
+    return m_actorPod->forward(mapUID(), {AM_TRYJUMP, amTJ}, [this, nX, nY, nDirection, fnOnOK, fnOnError](const ActorMsgPack &rmpk)
     {
         if(!m_moveLock){
             throw fflerror("moveLock released before map responds: UIDName = %s", UIDName());
@@ -407,7 +407,7 @@ bool CharObject::requestMove(int nX, int nY, int nSpeed, bool allowHalfMove, boo
     amTM.RemoveMonster = removeMonster;
 
     m_moveLock = true;
-    return m_actorPod->forward(MapUID(), {AM_TRYMOVE, amTM}, [this, nX, nY, nSpeed, fnOnOK, fnOnError](const ActorMsgPack &rmpk)
+    return m_actorPod->forward(mapUID(), {AM_TRYMOVE, amTM}, [this, nX, nY, nSpeed, fnOnOK, fnOnError](const ActorMsgPack &rmpk)
     {
         if(!m_moveLock){
             throw fflerror("moveLock released before map responds: UIDName = %s", UIDName());
@@ -502,7 +502,7 @@ bool CharObject::requestSpaceMove(int locX, int locY, bool strictMove, std::func
     amTSM.StrictMove = strictMove;
 
     m_moveLock = true;
-    return m_actorPod->forward(MapUID(), {AM_TRYSPACEMOVE, amTSM}, [this, fnOnOK, fnOnError](const ActorMsgPack &rmpk)
+    return m_actorPod->forward(mapUID(), {AM_TRYSPACEMOVE, amTSM}, [this, fnOnOK, fnOnError](const ActorMsgPack &rmpk)
     {
         if(!m_moveLock){
             throw fflerror("moveLock released before map responds: UIDName = %s", UIDName());

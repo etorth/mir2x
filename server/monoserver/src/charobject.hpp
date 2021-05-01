@@ -209,7 +209,7 @@ class CharObject: public ServerObject
             return m_map ? m_map->ID() : 0;
         }
 
-        uint64_t MapUID() const
+        uint64_t mapUID() const
         {
             return m_map->UID();
         }

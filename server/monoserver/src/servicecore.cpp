@@ -32,7 +32,7 @@ extern MonoServer *g_monoServer;
 extern ServerArgParser *g_serverArgParser;
 
 ServiceCore::ServiceCore()
-    : ServerObject(uidf::buildServiceCoreUID())
+    : ServerObject(uidf::getServiceCoreUID())
     , m_mapList()
 {}
 
