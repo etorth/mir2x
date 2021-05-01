@@ -379,6 +379,7 @@ bool ClientMonster::parseAction(const ActionNode &action)
         case ACTION_DIE       : return onActionDie       (action);
         case ACTION_STAND     : return onActionStand     (action);
         case ACTION_HITTED    : return onActionHitted    (action);
+        case ACTION_JUMP      : return onActionJump      (action);
         case ACTION_MOVE      : return onActionMove      (action);
         case ACTION_ATTACK    : return onActionAttack    (action);
         case ACTION_SPAWN     : return onActionSpawn     (action);
@@ -455,6 +456,19 @@ bool ClientMonster::onActionSpaceMove2(const ActionNode &action)
     {
         .type = MOTION_MON_STAND,
         .direction = m_currMotion->direction,
+        .x = action.x,
+        .y = action.y,
+    });
+    return true;
+}
+
+bool ClientMonster::onActionJump(const ActionNode &action)
+{
+    flushMotionPending();
+    m_currMotion.reset(new MotionNode
+    {
+        .type = MOTION_MON_STAND,
+        .direction = action.direction,
         .x = action.x,
         .y = action.y,
     });

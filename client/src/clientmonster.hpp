@@ -103,6 +103,7 @@ class ClientMonster: public CreatureMovable
         virtual bool onActionDie       (const ActionNode &);
         virtual bool onActionStand     (const ActionNode &);
         virtual bool onActionHitted    (const ActionNode &);
+        virtual bool onActionJump      (const ActionNode &);
         virtual bool onActionMove      (const ActionNode &);
         virtual bool onActionAttack    (const ActionNode &);
         virtual bool onActionSpawn     (const ActionNode &);

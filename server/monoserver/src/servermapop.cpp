@@ -246,7 +246,7 @@ void ServerMap::on_AM_TRYJUMP(const ActorMsgPack &mpk)
         return;
     }
 
-    if(!hasGridUID(amTJ.X, amTJ.Y, mpk.from())){
+    if(!hasGridUID(mpk.from(), amTJ.X, amTJ.Y)){
         g_monoServer->addLog(LOGTYPE_WARNING, "Can't find CO at current location: (UID, X, Y)");
         fnPrintJumpError();
         m_actorPod->forward(mpk.from(), AM_ERROR, mpk.seqID());

@@ -183,6 +183,7 @@ void CharObject::dispatchAction(const ActionNode &action)
     amA.action = action;
 
     switch(action.type){
+        case ACTION_JUMP:
         case ACTION_MOVE:
         case ACTION_SPAWN:
         case ACTION_ATTACK:
@@ -197,6 +198,7 @@ void CharObject::dispatchAction(const ActionNode &action)
     }
 
     switch(amA.action.type){
+        case ACTION_JUMP:
         case ACTION_MOVE:
         case ACTION_PUSHMOVE:
         case ACTION_SPACEMOVE1:

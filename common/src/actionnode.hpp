@@ -194,7 +194,6 @@ struct ActionJump
 
         node.x = x;
         node.y = y;
-
         return node;
     }
 };
