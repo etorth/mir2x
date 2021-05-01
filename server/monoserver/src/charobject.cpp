@@ -241,7 +241,7 @@ bool CharObject::requestJump(int nX, int nY, int nDirection, std::function<void(
         throw fflerror("invalid destination: (mapID = %lld, x = %d, y = %d)", to_lld(mapID()), nX, nY);
     }
 
-    if(estimateHop(nX, nY) != 0){
+    if(X() == nX && Y() == nY){
         if(fnOnError){
             fnOnError();
         }

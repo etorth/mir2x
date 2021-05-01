@@ -351,7 +351,12 @@ void Monster::jumpUID(uint64_t nUID, std::function<void()> fnOnOK, std::function
             return;
         }
 
-        requestJump(nFrontX, nFrontY, PathFind::GetBack(nDir), fnOnOK, fnOnError);
+        if(nFrontX == X() && nFrontY == Y()){
+            fnOnOK();
+        }
+        else{
+            requestJump(nFrontX, nFrontY, PathFind::GetBack(nDir), fnOnOK, fnOnError);
+        }
     }, fnOnError);
 }
 
