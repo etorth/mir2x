@@ -201,7 +201,7 @@ class ServerMap final: public ServerObject
     private:
         void    addGridUID(uint64_t, int, int, bool);
         bool    hasGridUID(uint64_t, int, int) const;
-        void removeGridUID(uint64_t, int, int);
+        bool removeGridUID(uint64_t, int, int);
 
     private:
         [[maybe_unused]] std::tuple<bool, int, int> GetValidGrid(bool, bool, int) const;

@@ -333,15 +333,7 @@ void ServerMap::on_AM_TRYMOVE(const ActorMsgPack &rstMPK)
         return;
     }
 
-    bool bFindCO = false;
-    for(auto nUID: getUIDList(amTM.X, amTM.Y)){
-        if(nUID == amTM.UID){
-            bFindCO = true;
-            break;
-        }
-    }
-
-    if(!bFindCO){
+    if(!hasGridUID(amTM.UID, amTM.X, amTM.Y)){
         g_monoServer->addLog(LOGTYPE_WARNING, "Can't find CO at current location: (UID, X, Y)");
         fnPrintMoveError();
         m_actorPod->forward(rstMPK.from(), AM_ERROR, rstMPK.seqID());
@@ -448,7 +440,7 @@ void ServerMap::on_AM_TRYMOVE(const ActorMsgPack &rstMPK)
     m_actorPod->forward(rstMPK.from(), {AM_MOVEOK, amMOK}, rstMPK.seqID(), [this, amTM, nMostX, nMostY](const ActorMsgPack &rstRMPK)
     {
         if(!getGrid(nMostX, nMostY).locked){
-            throw fflerror("cell lock released before MOVEOK get responsed: MapUID = %" PRIu64, UID());
+            throw fflerror("cell lock released before MOVEOK get responsed: mapUID = %llu", to_llu(UID()));
         }
         getGrid(nMostX, nMostY).locked = false;
 
@@ -459,19 +451,7 @@ void ServerMap::on_AM_TRYMOVE(const ActorMsgPack &rstMPK)
                     // and it's internal state has changed
 
                     // 1. leave last cell
-                    bool bFindCO = false;
-                    auto &rstUIDList = getUIDList(amTM.X, amTM.Y);
-
-                    for(auto &nUID: rstUIDList){
-                        if(nUID == amTM.UID){
-                            bFindCO = true;
-                            std::swap(nUID, rstUIDList.back());
-                            rstUIDList.pop_back();
-                            break;
-                        }
-                    }
-
-                    if(!bFindCO){
+                    if(!removeGridUID(amTM.UID, amTM.X, amTM.Y)){
                         throw fflerror("CO location error: (UID = %llu, X = %d, Y = %d)", to_llu(amTM.UID), amTM.X, amTM.Y);
                     }
 

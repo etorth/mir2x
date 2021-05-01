@@ -654,7 +654,7 @@ bool ServerMap::hasGridUID(uint64_t uid, int nX, int nY) const
     return std::find(uidList.begin(), uidList.end(), uid) != uidList.end();
 }
 
-void ServerMap::removeGridUID(uint64_t uid, int nX, int nY)
+bool ServerMap::removeGridUID(uint64_t uid, int nX, int nY)
 {
     if(!validC(nX, nY)){
         throw fflerror("invalid location: (%d, %d)", nX, nY);
@@ -664,7 +664,7 @@ void ServerMap::removeGridUID(uint64_t uid, int nX, int nY)
     auto p = std::find(uidList.begin(), uidList.end(), uid);
 
     if(p == uidList.end()){
-        return;
+        return false;
     }
 
     std::swap(uidList.back(), *p);
@@ -673,6 +673,7 @@ void ServerMap::removeGridUID(uint64_t uid, int nX, int nY)
     if(uidList.size() * 2 < uidList.capacity()){
         uidList.shrink_to_fit();
     }
+    return true;
 }
 
 bool ServerMap::DoCenterCircle(int nCX0, int nCY0, int nCR, bool bPriority, const std::function<bool(int, int)> &fnOP)
