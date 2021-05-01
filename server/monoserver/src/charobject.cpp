@@ -266,9 +266,7 @@ bool CharObject::requestJump(int nX, int nY, int nDirection, std::function<void(
     m_moveLock = true;
     return m_actorPod->forward(mapUID(), {AM_TRYJUMP, amTJ}, [this, nX, nY, nDirection, fnOnOK, fnOnError](const ActorMsgPack &rmpk)
     {
-        if(!m_moveLock){
-            throw fflerror("moveLock released before map responds: UIDName = %s", UIDName());
-        }
+        fflassert(m_moveLock);
         m_moveLock = false;
 
         // handle jump, CO may be dead
@@ -407,9 +405,7 @@ bool CharObject::requestMove(int nX, int nY, int nSpeed, bool allowHalfMove, boo
     m_moveLock = true;
     return m_actorPod->forward(mapUID(), {AM_TRYMOVE, amTM}, [this, nX, nY, nSpeed, fnOnOK, fnOnError](const ActorMsgPack &rmpk)
     {
-        if(!m_moveLock){
-            throw fflerror("moveLock released before map responds: UIDName = %s", UIDName());
-        }
+        fflassert(m_moveLock);
         m_moveLock = false;
 
         // handle move, CO may be dead
@@ -609,9 +605,7 @@ bool CharObject::requestMapSwitch(uint32_t argMapID, int locX, int locY, bool st
                     m_moveLock = true;
                     m_actorPod->forward(mpk.conv<AMUID>().UID, {AM_TRYMAPSWITCH, amTMS}, [mpk, fnOnOK, fnOnError, this](const ActorMsgPack &rmpk)
                     {
-                        if(!m_moveLock){
-                            throw fflerror("moveLock released before map responds: UIDName = %s", UIDName());
-                        }
+                        fflassert(m_moveLock);
                         m_moveLock = false;
 
                         switch(rmpk.type()){
@@ -658,9 +652,7 @@ bool CharObject::requestMapSwitch(uint32_t argMapID, int locX, int locY, bool st
                                     m_moveLock = true;
                                     m_actorPod->forward(m_map->UID(), {AM_TRYLEAVE, amTL}, [this, amMSOK, rmpk, fnOnOK, fnOnError](const ActorMsgPack &leavermpk)
                                     {
-                                        if(!m_moveLock){
-                                            throw fflerror("moveLock released before map responds: UIDName = %s", UIDName());
-                                        }
+                                        fflassert(m_moveLock);
                                         m_moveLock = false;
 
                                         switch(leavermpk.type()){
