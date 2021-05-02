@@ -12,6 +12,10 @@ then
     exit 1
 fi
 
+# example:
+#     ~/b/install/tools/monsterwil2png/monsterwil2png.sh ~/win_home/Desktop/mir2x_rawData/Data
+#     ~/b/install/tools/monsterwil2png/monsterwil2png.sh ~/win_home/Desktop/mir2x_rawData/Data 6
+
 mir2ei_install_prefix="$( readlink -m $1 )"
 script_install_prefix="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
