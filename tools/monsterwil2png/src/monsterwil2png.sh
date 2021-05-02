@@ -15,7 +15,7 @@ fi
 mir2ei_install_prefix="$( readlink -m $1 )"
 script_install_prefix="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
-if [ -z "$2" ]
+if [ ! -z "$2" ]
 then
     prefix_length=$2
 else
