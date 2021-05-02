@@ -17,177 +17,65 @@
  */
 
 #pragma once
-#include <array>
+#include <span>
 #include <cstdint>
 #include "protocoldef.hpp"
 
-class MonsterRecord
+struct MonsterRecord
 {
-    public:
-        const char8_t *name;
+    const char8_t *name = u8"";
 
-        int level;
-        int undead;
-        int tamable;
-        int coolEye;
+    const int level   = 0;
+    const int undead  = 0;
+    const int tamable = 0;
+    const int coolEye = 0;
 
-        int lookID;
-        int deadFadeOut;
+    const int lookID      = 0;
+    const int deadFadeOut = 0;
 
-        int HP;
-        int MP;
-        int hit;
-        int exp;
+    const int HP  = 0;
+    const int MP  = 0;
+    const int hit = 0;
+    const int exp = 0;
 
-        int DC;
-        int DCMax;
-        int MDC;
-        int MDCMax;
-        int AC;
-        int ACMax;
-        int MAC;
-        int MACMax;
+    const int DC     = 0;
+    const int DCMax  = 0;
+    const int MDC    = 0;
+    const int MDCMax = 0;
+    const int AC     = 0;
+    const int ACMax  = 0;
+    const int MAC    = 0;
+    const int MACMax = 0;
 
-        int ACFire;
-        int ACIce;
-        int ACLight;
-        int ACWind;
-        int ACHoly;
-        int ACDark;
-        int ACPhantom;
+    const int ACFire    = 0;
+    const int ACIce     = 0;
+    const int ACLight   = 0;
+    const int ACWind    = 0;
+    const int ACHoly    = 0;
+    const int ACDark    = 0;
+    const int ACPhantom = 0;
 
-        int walkWait;
-        int walkSpeed;
+    const int walkWait  = 0;
+    const int walkSpeed = 0;
 
-        int attackMode;
-        int attackWait;
-        int attackEffect;
+    const int attackMode   = 0;
+    const int attackWait   = 0;
+    const int attackEffect = 0;
 
-        int DCType0;
-        int DCType1;
-        int DCType2;
-        int DCType3;
-        int DCType4;
-        int DCType5;
-        int DCType6;
-        int DCType7;
+    const char8_t *dcNameList[8] = {};
 
-    public:
-        constexpr MonsterRecord(
-                const char8_t *argName,
+    operator bool() const
+    {
+        return name && name[0] != '\0';
+    }
 
-                int argLevel,
-                int argUndead,
-                int argTamable,
-                int argCoolEye,
-
-                int argLookID,
-                int argDeadFadeOut,
-
-                int argHP,
-                int argMP,
-                int argHit,
-                int argExp,
-
-                int argDC,
-                int argDCMax,
-                int argMDC,
-                int argMDCMax,
-                int argAC,
-                int argACMax,
-                int argMAC,
-                int argMACMax,
-
-                int argACFire,
-                int argACIce,
-                int argACLight,
-                int argACWind,
-                int argACHoly,
-                int argACDark,
-                int argACPhantom,
-
-                int argWalkWait,
-                int argWalkSpeed,
-
-                int argAttackMode,
-                int argAttackWait,
-                int argAttackEffect,
-
-                const char8_t *argDC0,
-                const char8_t *argDC1,
-                const char8_t *argDC2,
-                const char8_t *argDC3,
-                const char8_t *argDC4,
-                const char8_t *argDC5,
-                const char8_t *argDC6,
-                const char8_t *argDC7)
-            : name(argName ? argName : u8"")
-            , level(argLevel)
-            , undead(argUndead)
-            , tamable(argTamable)
-            , coolEye(argCoolEye)
-
-            , lookID(argLookID)
-            , deadFadeOut(argDeadFadeOut)
-
-            , HP(argHP)
-            , MP(argMP)
-            , hit(argHit)
-            , exp(argExp)
-
-            , DC(argDC)
-            , DCMax(argDCMax)
-            , MDC(argMDC)
-            , MDCMax(argMDCMax)
-            , AC(argAC)
-            , ACMax(argACMax)
-            , MAC(argMAC)
-            , MACMax(argMACMax)
-
-            , ACFire(argACFire)
-            , ACIce(argACIce)
-            , ACLight(argACLight)
-            , ACWind(argACWind)
-            , ACHoly(argACHoly)
-            , ACDark(argACDark)
-            , ACPhantom(argACPhantom)
-
-            , walkWait(argWalkWait)
-            , walkSpeed(argWalkSpeed)
-
-            , attackMode(argAttackMode)
-            , attackWait(argAttackWait)
-            , attackEffect(argAttackEffect)
-
-            , DCType0(_inn_MRDCType(argDC0))
-            , DCType1(_inn_MRDCType(argDC1))
-            , DCType2(_inn_MRDCType(argDC2))
-            , DCType3(_inn_MRDCType(argDC3))
-            , DCType4(_inn_MRDCType(argDC4))
-            , DCType5(_inn_MRDCType(argDC5))
-            , DCType6(_inn_MRDCType(argDC6))
-            , DCType7(_inn_MRDCType(argDC7))
-        {}
-
-    private:
-        static constexpr int _inn_MRDCType(const char8_t *argDCName)
-        {
-            using namespace std::literals;
-            if(argDCName){
-                if(u8"普通攻击"sv == argDCName) return DC_PHY_PLAIN;
-                else                            return DC_NONE;
+    auto dcList() const
+    {
+        for(const auto &p: dcNameList){
+            if(!p){
+                return std::span<const char8_t * const>(dcNameList, &p);
             }
-            return DC_NONE;
         }
-
-    public:
-        operator bool() const
-        {
-            return name[0] != '\0';
-        }
-
-        std::array<int, 8> DCList() const
-        {
-            return {{DCType0, DCType1, DCType2, DCType3, DCType4, DCType5, DCType6, DCType7}};
-        }
+        return std::span<const char8_t * const>(dcNameList, dcNameList + std::extent_v<decltype(dcNameList)>);
+    }
 };

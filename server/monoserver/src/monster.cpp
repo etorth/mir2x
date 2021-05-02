@@ -485,7 +485,7 @@ void Monster::jumpAttackUID(uint64_t nTargetUID, std::function<void()> fnOnOK, s
     // TODO choose proper DC
     // for different monster it may use different DC
 
-    int nProperDC = m_monsterRecord.DCList()[0];
+    const int nProperDC = DC_PHY_PLAIN; // TODO
     jumpUID(nTargetUID, [nTargetUID, nProperDC, fnOnOK, fnOnError, this]()
     {
         attackUID(nTargetUID, nProperDC, fnOnOK, fnOnError);
@@ -501,7 +501,7 @@ void Monster::trackAttackUID(uint64_t nTargetUID, std::function<void()> fnOnOK, 
     // TODO choose proper DC
     // for different monster it may use different DC
 
-    int nProperDC = m_monsterRecord.DCList()[0];
+    const int nProperDC = DC_PHY_PLAIN; // TODO
     int nMinCDistance = 1;
 
     trackUID(nTargetUID, nMinCDistance, [nTargetUID, nProperDC, fnOnOK, fnOnError, this]()
@@ -766,7 +766,7 @@ bool Monster::canAttack()
 
 bool Monster::DCValid(int nDC, bool bCheck)
 {
-    if(std::find(m_monsterRecord.DCList().begin(), m_monsterRecord.DCList().end(), nDC) != m_monsterRecord.DCList().end()){
+    if(true){ // TODO
         if(bCheck){
             if(auto &rstDCR = DB_DCRECORD(nDC)){
                 if(m_HP < rstDCR.HP){ return false; }
