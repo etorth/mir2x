@@ -17,7 +17,7 @@
 addLog(LOGTYPE_INFO, string.format('Map %s sources %s', getMapName(), getFileName()))
 
 local logicDelay = 1000
-local monsterList = {'虎卫', '沙漠石人', '红蛇', '虎蛇'}
+local monsterList = {'鸡', '猪', '牛' , '鹿', '稻草人', '钉耙猫', '狼', '食人花', '多钩猫', '毒蜘蛛'}
 local maxMonsterCount = math.floor(getCanThroughGridCount() / 64)
 
 addGuard('白日门卫士', 411, 115, DIR_DOWNLEFT)
