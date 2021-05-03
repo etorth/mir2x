@@ -32,6 +32,7 @@ struct ServerArgParser
     const bool traceActorMessage;       // "--trace-actor-message"
     const bool traceActorMessageCount;  // "--trace-actor-message-count"
     const bool disablePetSpawn;         // "--disable-pet-spawn"
+    const bool disableGuardSpawn;       // "--disable-guard-spawn"
     const bool disableMonsterSpawn;     // "--disable-monster-spawn"
     const bool disableNPCSpawn;         // "--disable-npc-spawn"
     const bool preloadMap;              // "--preload-map"
@@ -44,6 +45,7 @@ struct ServerArgParser
         , traceActorMessage(cmdParser["trace-actor-message"])
         , traceActorMessageCount(cmdParser["trace-actor-message-count"])
         , disablePetSpawn(cmdParser["disable-pet-spawn"])
+        , disableGuardSpawn(cmdParser["disable-guard-spawn"])
         , disableMonsterSpawn(cmdParser["disable-monster-spawn"])
         , disableNPCSpawn(cmdParser["disable-npc-spawn"])
         , preloadMap(cmdParser["preload-map"])

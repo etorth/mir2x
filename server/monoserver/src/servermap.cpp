@@ -989,6 +989,10 @@ Guard *ServerMap::addGuard(uint32_t monID, int x, int y, int direction)
     fflassert(monID);
     fflassert(validC(x, y));
 
+    if(g_serverArgParser->disableGuardSpawn){
+        return nullptr;
+    }
+
     auto guardPtr = new Guard
     {
         monID,

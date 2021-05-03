@@ -144,7 +144,7 @@ inline bool to_bool(const char *s)
         throw std::runtime_error("to_bool: null string");
     }
 
-    if(s[0]){
+    if(s[0] == '\0'){
         throw std::runtime_error("to_bool: zero-length string");
     }
 

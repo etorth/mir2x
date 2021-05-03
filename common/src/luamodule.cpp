@@ -129,6 +129,16 @@ LuaModule::LuaModule()
         return DBCOM_ITEMID(to_u8cstr(itemName));
     });
 
+    m_luaState.set_function("getMonsterName", [](int monsterID) -> std::string
+    {
+        return to_cstr(DBCOM_MONSTERRECORD(monsterID).name);
+    });
+
+    m_luaState.set_function("getMonsterID", [](std::string monsterName) -> int
+    {
+        return DBCOM_MONSTERID(to_u8cstr(monsterName));
+    });
+
     m_luaState.set_function("getMapName", [](int mapID) -> std::string
     {
         return to_cstr(DBCOM_MAPRECORD(mapID).name);
