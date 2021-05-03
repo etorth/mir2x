@@ -26,19 +26,15 @@ do
     local monsterID = 1
     local monsterNameString = ''
 
-    while(monsterID < 3) do
+    while(true) do
         local monsterName = getMonsterName(monsterID)
         if monsterName == '' then
             break
         end
 
         if monsterName ~= '未知' then
-            if monsterNameString ~= '' then
-                monsterNameString = monsterNameString .. '，'
-            end
-
             local tagName = string.format('goto_tag_%d', monsterID)
-            monsterNameString = monsterNameString .. string.format([[<event id="%s" wrap="false">%s</event>]], tagName, monsterName)
+            monsterNameString = monsterNameString .. string.format([[<event id="%s" wrap="false">%s，</event>]], tagName, monsterName)
 
             processNPCEvent[tagName] = function(uid, value)
                 addMonster(monsterName)
@@ -46,8 +42,6 @@ do
         end
         monsterID = monsterID + 1
     end
-
-    addLog(LOGTYPE_INFO, '%s', monsterNameString)
 
     processNPCEvent[SYS_NPCINIT] = function(uid, value)
         uidPostXML(uid,
