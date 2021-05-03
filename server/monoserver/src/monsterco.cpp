@@ -164,8 +164,8 @@ corof::long_jmper::eval_op<std::tuple<uint32_t, int, int>> Monster::coro_getUIDP
 
         p->retrieveLocation(targetUID, [&x, &y, &mapID, &done](const COLocation &coLoc)
         {
-            x = coLoc.X;
-            y = coLoc.Y;
+            x = coLoc.x;
+            y = coLoc.y;
             mapID = coLoc.mapID;
             done.assign(true);
         },

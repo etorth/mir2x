@@ -45,33 +45,15 @@ enum _RangeType: uint8_t
     RANGE_TRACETARGET,
 };
 
-// cache entry for charobject location
-// should be visible for CharObject and its derived classes
 struct COLocation
 {
-    uint64_t UID;
-    uint32_t mapID;
-    uint32_t RecordTime;
+    uint64_t uid    = 0;
+    uint32_t mapID  = 0;
+    uint32_t tstamp = 0;
 
-    int X;
-    int Y;
-    int Direction;
-
-    COLocation(
-            uint64_t nUID        = 0,
-            uint32_t nMapID      = 0,
-            uint32_t nRecordTime = 0,
-
-            int nX = -1,
-            int nY = -1,
-            int nDirection = DIR_NONE)
-        : UID(nUID)
-        , mapID(nMapID)
-        , RecordTime(nRecordTime)
-        , X(nX)
-        , Y(nY)
-        , Direction(nDirection)
-    {}
+    int x = -1;
+    int y = -1;
+    int direction = DIR_NONE;
 };
 
 class CharObject: public ServerObject

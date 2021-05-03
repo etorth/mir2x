@@ -248,8 +248,8 @@ void Monster::attackUID(uint64_t nUID, int nDC, std::function<void()> fnOnOK, st
         }
         m_attackLock = false;
 
-        auto nX = stCOLocation.X;
-        auto nY = stCOLocation.Y;
+        auto nX = stCOLocation.x;
+        auto nY = stCOLocation.y;
 
         switch(nDC){
             case DC_PHY_PLAIN:
@@ -330,9 +330,9 @@ void Monster::jumpUID(uint64_t nUID, std::function<void()> fnOnOK, std::function
 {
     retrieveLocation(nUID, [this, fnOnOK, fnOnError](const COLocation &rstCOLocation)
     {
-        const auto nX     = rstCOLocation.X;
-        const auto nY     = rstCOLocation.Y;
-        const auto nDir   = directionValid(rstCOLocation.Direction) ? rstCOLocation.Direction : DIR_UP;
+        const auto nX     = rstCOLocation.x;
+        const auto nY     = rstCOLocation.y;
+        const auto nDir   = directionValid(rstCOLocation.direction) ? rstCOLocation.direction : DIR_UP;
         const auto nMapID = rstCOLocation.mapID;
 
         if(!m_map->In(nMapID, nX, nY)){
@@ -366,8 +366,8 @@ void Monster::trackUID(uint64_t nUID, int nMinCDistance, std::function<void()> f
 
     retrieveLocation(nUID, [this, nMinCDistance, fnOnOK, fnOnError](const COLocation &rstCOLocation) -> bool
     {
-        auto nX     = rstCOLocation.X;
-        auto nY     = rstCOLocation.Y;
+        auto nX     = rstCOLocation.x;
+        auto nY     = rstCOLocation.y;
         auto nMapID = rstCOLocation.mapID;
 
         if(!m_map->In(nMapID, nX, nY)){
@@ -401,7 +401,7 @@ void Monster::followMaster(std::function<void()> fnOnOK, std::function<void()> f
         // check if it's still my master?
         // possible during the location query master changed
 
-        if(rstCOLocation.UID != masterUID()){
+        if(rstCOLocation.uid != masterUID()){
             fnOnError();
             return false;
         }
@@ -411,10 +411,10 @@ void Monster::followMaster(std::function<void()> fnOnOK, std::function<void()> f
             return false;
         }
 
-        auto nX         = rstCOLocation.X;
-        auto nY         = rstCOLocation.Y;
+        auto nX         = rstCOLocation.x;
+        auto nY         = rstCOLocation.y;
         auto nMapID     = rstCOLocation.mapID;
-        auto nDirection = rstCOLocation.Direction;
+        auto nDirection = rstCOLocation.direction;
 
         // get back location with different distance
         // here we use different distance if space move and follow
@@ -1165,7 +1165,7 @@ void Monster::RecursiveCheckInViewTarget(size_t nIndex, std::function<void(uint6
         return;
     }
 
-    auto nUID = m_inViewCOList[nIndex].UID;
+    auto nUID = m_inViewCOList[nIndex].uid;
     checkFriend(nUID, [this, nIndex, nUID, fnTarget](int nFriendType)
     {
         // when reach here
@@ -1174,7 +1174,7 @@ void Monster::RecursiveCheckInViewTarget(size_t nIndex, std::function<void(uint6
         // if changed
         // we'd better redo the search
 
-        if(nIndex >= m_inViewCOList.size() || m_inViewCOList[nIndex].UID != nUID){
+        if(nIndex >= m_inViewCOList.size() || m_inViewCOList[nIndex].uid != nUID){
             RecursiveCheckInViewTarget(0, fnTarget);
             return;
         }
@@ -1575,7 +1575,7 @@ bool Monster::isPet(uint64_t nUID)
 bool Monster::hasPlayerNeighbor() const
 {
     for(const auto &loc: m_inViewCOList){
-        if(uidf::getUIDType(loc.UID) == UID_PLY){
+        if(uidf::getUIDType(loc.uid) == UID_PLY){
             return true;
         }
     }

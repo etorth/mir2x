@@ -554,7 +554,7 @@ void Player::onCMActionAttack(CMAction stCMA)
                         switch(estimateHop(nX0, nY0)){
                             case 0:
                                 {
-                                    switch(mathf::LDistance2(nX0, nY0, rstLocation.X, rstLocation.Y)){
+                                    switch(mathf::LDistance2(nX0, nY0, rstLocation.x, rstLocation.y)){
                                         case 1:
                                         case 2:
                                             {
@@ -989,8 +989,8 @@ void Player::setWLItem(int wltype, SDItem item)
     });
 
     for(const auto &coLoc: m_inViewCOList){
-        if(uidf::getUIDType(coLoc.UID) == UID_PLY){
-            sendNetPackage(coLoc.UID, SM_EQUIPWEAR, sdEquipWearBuf);
+        if(uidf::getUIDType(coLoc.uid) == UID_PLY){
+            sendNetPackage(coLoc.uid, SM_EQUIPWEAR, sdEquipWearBuf);
         }
     }
 }

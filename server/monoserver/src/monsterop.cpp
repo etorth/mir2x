@@ -43,8 +43,8 @@ void Monster::on_AM_MISS(const ActorMsgPack &rstMPK)
 
     foreachInViewCO([this, amM](const COLocation &rstLocation)
     {
-        if(uidf::getUIDType(rstLocation.UID) == UID_PLY){
-            m_actorPod->forward(rstLocation.UID, {AM_MISS, amM});
+        if(uidf::getUIDType(rstLocation.uid) == UID_PLY){
+            m_actorPod->forward(rstLocation.uid, {AM_MISS, amM});
         }
     });
 }

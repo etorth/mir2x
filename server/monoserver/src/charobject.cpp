@@ -210,11 +210,11 @@ void CharObject::dispatchAction(const ActionNode &action)
             {
                 foreachInViewCO([this, amA](const COLocation &rstLocation)
                 {
-                    auto nX = rstLocation.X;
-                    auto nY = rstLocation.Y;
-                    auto nMapID = rstLocation.mapID;
+                    const auto nX = rstLocation.x;
+                    const auto nY = rstLocation.y;
+                    const auto nMapID = rstLocation.mapID;
                     if(InView(nMapID, nX, nY)){
-                        m_actorPod->forward(rstLocation.UID, {AM_ACTION, amA});
+                        m_actorPod->forward(rstLocation.uid, {AM_ACTION, amA});
                     }
                 });
                 return;
@@ -797,7 +797,7 @@ void CharObject::retrieveLocation(uint64_t nUID, std::function<void(const COLoca
     // CO dispatches location changes automatically
     // always trust the InViewCOList, can even skip the expiration now
 
-    if(auto p = getInViewCOPtr(nUID); p && g_monoServer->getCurrTick() <= p->RecordTime + 2 * 1000){
+    if(auto p = getInViewCOPtr(nUID); p && g_monoServer->getCurrTick() <= p->tstamp + 2 * 1000){
         fnOnOK(*p);
         return;
     }
@@ -822,14 +822,14 @@ void CharObject::retrieveLocation(uint64_t nUID, std::function<void(const COLoca
                     // TODO when we get this response
                     // it's possible that the co has switched map or dead
 
-                    COLocation stCOLoccation
+                    const COLocation stCOLoccation
                     {
-                        amL.UID,
-                        amL.mapID,
-                        amL.RecordTime,
-                        amL.X,
-                        amL.Y,
-                        amL.Direction
+                        .uid       = amL.UID,
+                        .mapID     = amL.mapID,
+                        .tstamp    = amL.RecordTime,
+                        .x         = amL.X,
+                        .y         = amL.Y,
+                        .direction = amL.Direction
                     };
 
                     if((amL.UID == nUID) && InView(amL.mapID, amL.X, amL.Y)){
@@ -1094,12 +1094,12 @@ int CharObject::CheckPathGrid(int nX, int nY, uint32_t nTimeOut) const
 
     for(auto &rstLocation: m_inViewCOList){
         if(nTimeOut){
-            if(g_monoServer->getCurrTick() > rstLocation.RecordTime + nTimeOut){
+            if(g_monoServer->getCurrTick() > rstLocation.tstamp + nTimeOut){
                 continue;
             }
         }
 
-        if(rstLocation.X == nX && rstLocation.Y == nY){
+        if(rstLocation.x == nX && rstLocation.y == nY){
             return PathFind::OCCUPIED;
         }
     }
@@ -1280,11 +1280,11 @@ void CharObject::SetLastAction(int nAction)
 
 void CharObject::AddInViewCO(const COLocation &rstCOLocation)
 {
-    if(!InView(rstCOLocation.mapID, rstCOLocation.X, rstCOLocation.Y)){
+    if(!InView(rstCOLocation.mapID, rstCOLocation.x, rstCOLocation.y)){
         return;
     }
 
-    if(auto p = getInViewCOPtr(rstCOLocation.UID)){
+    if(auto p = getInViewCOPtr(rstCOLocation.uid)){
         *p = rstCOLocation;
     }
     else{
@@ -1303,7 +1303,7 @@ void CharObject::foreachInViewCO(std::function<void(const COLocation &)> fnOnLoc
 
     scoped_alloc::svobuf_wrapper<uint64_t, 16> uidList;
     for(const auto &rstCOLoc: m_inViewCOList){
-        uidList.c.push_back(rstCOLoc.UID);
+        uidList.c.push_back(rstCOLoc.uid);
     }
 
     for(size_t i = 0; i < uidList.c.size(); ++i){
@@ -1321,7 +1321,7 @@ void CharObject::SortInViewCO()
     RemoveInViewCO(0);
     std::sort(m_inViewCOList.begin(), m_inViewCOList.end(), [this](const auto &rstLoc1, const auto &rstLoc2)
     {
-        return mathf::LDistance2(rstLoc1.X, rstLoc1.Y, X(), Y()) < mathf::LDistance2(rstLoc2.X, rstLoc2.Y, X(), Y());
+        return mathf::LDistance2(rstLoc1.x, rstLoc1.y, X(), Y()) < mathf::LDistance2(rstLoc2.x, rstLoc2.y, X(), Y());
     });
 }
 
@@ -1329,7 +1329,7 @@ void CharObject::RemoveInViewCO(uint64_t nUID)
 {
     m_inViewCOList.erase(std::remove_if(m_inViewCOList.begin(), m_inViewCOList.end(), [this, nUID](const auto &rstCOLoc)
     {
-        return rstCOLoc.UID == nUID || !InView(rstCOLoc.mapID, rstCOLoc.X, rstCOLoc.Y);
+        return rstCOLoc.uid == nUID || !InView(rstCOLoc.mapID, rstCOLoc.x, rstCOLoc.y);
     }), m_inViewCOList.end());
 
     if((m_inViewCOList.size() < m_inViewCOList.capacity() / 2) && (m_inViewCOList.capacity() > 20)){
@@ -1357,7 +1357,7 @@ COLocation &CharObject::GetInViewCORef(uint64_t nUID)
 COLocation *CharObject::getInViewCOPtr(uint64_t nUID)
 {
     for(auto &rstCOLoc: m_inViewCOList){
-        if(rstCOLoc.UID == nUID){
+        if(rstCOLoc.uid == nUID){
             return &rstCOLoc;
         }
     }
