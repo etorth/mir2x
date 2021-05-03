@@ -33,7 +33,7 @@ do
         end
 
         if monsterName ~= '未知' then
-            local tagName = string.format('event_goto_%d', monsterID)
+            local tagName = string.format('goto_tag_%d', monsterID)
             monsterNameEventString = monsterNameEventString .. string.format([[<event id="%s" wrap="false">%s</event>，]], tagName, monsterName)
             processNPCEvent[tagName] = function(uid, value)
                 addMonster(monsterName)
