@@ -24,7 +24,7 @@ setNPCGLoc(20, 40)
 processNPCEvent = {}
 do
     local monsterID = 1
-    local monsterNameEventString = ''
+    local monsterNameString = ''
 
     while(true) do
         local monsterName = getMonsterName(monsterID)
@@ -34,7 +34,8 @@ do
 
         if monsterName ~= '未知' then
             local tagName = string.format('goto_tag_%d', monsterID)
-            monsterNameEventString = monsterNameEventString .. string.format([[<event id="%s" wrap="false">%s</event>，]], tagName, monsterName)
+            monsterNameString = monsterNameString .. string.format([[<event id="%s" wrap="false">%s，</event>]], tagName, monsterName)
+
             processNPCEvent[tagName] = function(uid, value)
                 addMonster(monsterName)
             end
@@ -52,6 +53,6 @@ do
                 <par></par>
                 <par><event id="%s">关闭</event></par>
             </layout>
-        ]], uidQueryName(uid), getNPCName(), monsterNameEventString, SYS_NPCDONE)
+        ]], uidQueryName(uid), getNPCName(), monsterNameString, SYS_NPCDONE)
     end
 end
