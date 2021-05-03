@@ -171,8 +171,15 @@ class Widget
         //         always return false if given event has been take by previous widget
         virtual bool processEvent(const SDL_Event &event, bool valid)
         {
+            if(!show()){
+                return false;
+            }
+
             bool took = false;
             for(auto &node: m_childList){
+                if(!node.child->show()){
+                    continue;
+                }
                 took |= node.child->processEvent(event, valid && !took);
             }
             return took;
@@ -314,11 +321,15 @@ class WidgetGroup: public Widget
             // this function alters the draw order
             // if a WidgetGroup has children having overlapping then be careful
 
+            if(!show()){
+                return false;
+            }
+
             bool took = false;
             auto focusedNode = m_childList.end();
 
             for(auto p = m_childList.begin(); p != m_childList.end(); ++p){
-                if(!show()){
+                if(!p->child->show()){
                     continue;
                 }
 
