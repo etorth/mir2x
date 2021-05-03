@@ -30,7 +30,15 @@ corof::long_jmper Guard::updateCoroFunc()
 {
     while(HP() > 0){
         if(const uint64_t targetUID = co_await coro_getProperTarget()){
-            co_await coro_jumpAttackUID(targetUID);
+            const auto [targetMapID, targetX, targetY] = co_await coro_getUIDPLoc(targetUID);
+            if(mapID() == targetMapID && mathf::CDistance<int>(targetX, targetY, X(), Y()) <= 1){
+                co_await coro_attackUID(targetUID, DC_PHY_PLAIN);
+            }
+            else{
+                co_await coro_jumpAttackUID(targetUID);
+            }
+        }
+        else{
             co_await coro_jumpBack();
         }
         co_await corof::async_wait(200);
@@ -50,7 +58,7 @@ void Guard::checkFriend(uint64_t uid, std::function<void(int)> fnOp)
         throw fflerror("check friend type to self");
     }
 
-    if(uidf::getUIDType(uid) == UID_MON){
+    if((uidf::getUIDType(uid) == UID_MON) && (monsterID() != uidf::getMonsterID(uid))){
         fnOp(FT_ENEMY);
     }
     else{

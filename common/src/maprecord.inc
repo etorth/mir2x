@@ -22,7 +22,7 @@
 {   .name = u8"比奇省",
     .miniMapID = 0X19001000,
 
-    .mapSwitch
+    .mapSwitchList
     {
         {.x = 206, .y =  52, .endName = u8"道馆",       .endX = 506, .endY = 564},
         {.x = 774, .y = 700, .endName = u8"银杏山谷",   .endX =  28, .endY = 454},
@@ -32,7 +32,7 @@
 },
 
 {   .name = u8"比奇省皇宫",
-    .mapSwitch
+    .mapSwitchList
     {
         {.x = 20, .y = 52, .endName = u8"比奇省", .endX = 477, .endY = 358},
     }
@@ -41,21 +41,21 @@
 {   .name = u8"道馆",
     .miniMapID = 0X19001003,
 
-    .mapSwitch
+    .mapSwitchList
     {
         {.x = 504, .y = 562, .endName = u8"比奇省", .endX = 208, .endY = 52},
     }
 },
 
 {   .name = u8"银杏山谷",
-    .mapSwitch
+    .mapSwitchList
     {
         {.x = 28, .y = 453, .endName = u8"比奇省", .endX = 775, .endY = 702},
     }
 },
 
 {   .name = u8"边境城市",
-    .mapSwitch
+    .mapSwitchList
     {
         {.x = 563, .y = 68, .endName = u8"比奇省", .endX = 333, .endY = 773},
     }

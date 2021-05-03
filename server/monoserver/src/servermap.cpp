@@ -327,7 +327,7 @@ ServerMap::ServerMap(uint32_t nMapID)
         gridLine.shrink_to_fit();
     }
 
-    for(const auto &entry: DBCOM_MAPRECORD(nMapID).mapSwitch){
+    for(const auto &entry: DBCOM_MAPRECORD(nMapID).mapSwitch()){
         if(true
                 && entry.w > 0
                 && entry.h > 0

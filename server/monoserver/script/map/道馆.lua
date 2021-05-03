@@ -21,6 +21,7 @@ local monsterList = {'鸡', '猪', '牛' , '鹿', '稻草人', '钉耙猫', '狼
 local maxMonsterCount = math.floor(getCanThroughGridCount() / 64)
 
 addGuard('白日门卫士', 411, 115, DIR_DOWNLEFT)
+addGuard('白日门卫士', 415, 118, DIR_DOWNLEFT)
 
 function main()
     while true do
@@ -31,10 +32,6 @@ function main()
                 local monsterName = monsterList[math.random(#monsterList)]
                 addMonster(monsterName, x, y, true)
             end
-        end
-
-        if math.random(1, 10) == 1 then
-            addMonster('沙漠石人', 400 + math.random(1, 5), 120 + math.random(1, 5), true)
         end
         asyncWait(logicDelay)
     end
