@@ -36,7 +36,7 @@ do
             local tagName = string.format('event_goto_%d', monsterID)
             monsterNameEventString = monsterNameEventString .. string.format([[<event id="%s" wrap="false">%s</event>，]], tagName, monsterName)
             processNPCEvent[tagName] = function(uid, value)
-                addLog(LOGTYPE_INFO, '召唤%s', monsterName)
+                addMonster(monsterName)
             end
         end
         monsterID = monsterID + 1
@@ -46,9 +46,10 @@ do
         uidPostXML(uid,
         [[
             <layout>
-                <par>客官%s你好我是%s，我可以帮你召唤所有的怪物哦！<emoji id="0"/></par>
+                <par>客官%s你好我是%s，我可以召唤所有的怪物哦！<emoji id="0"/></par>
                 <par></par>
-                <par>%s</par>
+                <par align="justify">%s</par>
+                <par></par>
                 <par><event id="%s">关闭</event></par>
             </layout>
         ]], uidQueryName(uid), getNPCName(), monsterNameEventString, SYS_NPCDONE)

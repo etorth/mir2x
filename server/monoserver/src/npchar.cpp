@@ -186,6 +186,16 @@ NPChar::LuaNPCModule::LuaNPCModule(const SDInitNPChar &initParam)
         }
     });
 
+
+    m_luaState.set_function("addMonster", [this](std::string monsterName)
+    {
+        fflassert(m_npc);
+        const auto monsterID = DBCOM_MONSTERID(to_u8cstr(monsterName));
+
+        fflassert(monsterID);
+        m_npc->postAddMonster(monsterID);
+    });
+
     m_luaState.set_function("dbSetGKey", [mapID = initParam.mapID, this](std::string key, sol::object obj)
     {
         fflassert(m_npc);
@@ -644,6 +654,38 @@ void NPChar::postXMLLayout(uint64_t uid, std::string xmlString)
         .npcUID = UID(),
         .xmlLayout = std::move(xmlString),
     }, true));
+}
+
+void NPChar::postAddMonster(uint32_t monsterID)
+{
+    fflassert(monsterID);
+
+    AMAddCharObject amACO;
+    std::memset(&amACO, 0, sizeof(amACO));
+
+    amACO.type = UID_MON;
+    amACO.x = X();
+    amACO.y = Y();
+    amACO.mapID = mapID();
+    amACO.strictLoc = false;
+
+    amACO.monster.monsterID = monsterID;
+    amACO.monster.masterUID = 0;
+
+    m_actorPod->forward(m_map->UID(), {AM_ADDCHAROBJECT, amACO}, [](const ActorMsgPack &rmpk)
+    {
+        switch(rmpk.type()){
+            case AM_OK:
+                {
+                    return;
+                }
+            default:
+                {
+                    g_monoServer->addLog(LOGTYPE_WARNING, "NPC failed to add monster");
+                    return;
+                }
+        }
+    });
 }
 
 void NPChar::operateAM(const ActorMsgPack &mpk)

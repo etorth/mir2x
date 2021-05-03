@@ -194,6 +194,7 @@ class NPChar final: public CharObject
         void postSell(uint64_t);
         void postGift(uint64_t, uint32_t, int);
         void postXMLLayout(uint64_t, std::string);
+        void postAddMonster(uint32_t);
 
     public:
         void operateAM(const ActorMsgPack &) override;
