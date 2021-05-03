@@ -22,6 +22,8 @@ local maxMonsterCount = math.floor(getCanThroughGridCount() / 64)
 
 addGuard('白日门卫士', 411, 115, DIR_DOWNLEFT)
 addGuard('白日门卫士', 415, 118, DIR_DOWNLEFT)
+addGuard('白日门卫士', 371, 160, DIR_DOWNLEFT)
+addGuard('白日门卫士', 375, 164, DIR_DOWNLEFT)
 
 function main()
     while true do
