@@ -32,6 +32,7 @@
 #include "dbcomrecord.hpp"
 #include "attachmagic.hpp"
 #include "clientcreature.hpp"
+#include "clientmonster.hpp"
 
 extern Log *g_log;
 
@@ -170,7 +171,14 @@ std::unique_ptr<MotionNode> ClientCreature::makeIdleMotion() const
             }
         }(),
 
-        .direction = m_currMotion->direction,
+        .direction = [this]() -> int
+        {
+            if(isMonster(u8"食人花")){
+                return DIR_BEGIN;
+            }
+            return m_currMotion->direction;
+        }(),
+
         .x = m_currMotion->endX,
         .y = m_currMotion->endY
     });
@@ -189,4 +197,9 @@ void ClientCreature::querySelf()
 {
     m_lastQuerySelf = SDL_GetTicks();
     m_processRun->queryCORecord(UID());
+}
+
+bool ClientCreature::isMonster(const char8_t *name) const
+{
+    return (type() == UID_MON) && (dynamic_cast<const ClientMonster *>(this)->monsterID() == DBCOM_MONSTERID(name));
 }

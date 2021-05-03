@@ -309,4 +309,7 @@
                     }
                 }
         };
+
+    protected:
+        bool isMonster(const char8_t *) const;
 };
