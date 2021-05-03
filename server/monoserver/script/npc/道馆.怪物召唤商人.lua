@@ -24,23 +24,30 @@ setNPCGLoc(406, 126)
 processNPCEvent = {}
 do
     local monsterID = 1
-    local monsterNameEventString = ''
+    local monsterNameString = ''
 
-    while(true) do
+    while(monsterID < 3) do
         local monsterName = getMonsterName(monsterID)
         if monsterName == '' then
             break
         end
 
         if monsterName ~= '未知' then
+            if monsterNameString ~= '' then
+                monsterNameString = monsterNameString .. '，'
+            end
+
             local tagName = string.format('goto_tag_%d', monsterID)
-            monsterNameEventString = monsterNameEventString .. string.format([[<event id="%s" wrap="false">%s</event>，]], tagName, monsterName)
+            monsterNameString = monsterNameString .. string.format([[<event id="%s" wrap="false">%s</event>]], tagName, monsterName)
+
             processNPCEvent[tagName] = function(uid, value)
                 addMonster(monsterName)
             end
         end
         monsterID = monsterID + 1
     end
+
+    addLog(LOGTYPE_INFO, '%s', monsterNameString)
 
     processNPCEvent[SYS_NPCINIT] = function(uid, value)
         uidPostXML(uid,
@@ -52,6 +59,6 @@ do
                 <par></par>
                 <par><event id="%s">关闭</event></par>
             </layout>
-        ]], uidQueryName(uid), getNPCName(), monsterNameEventString, SYS_NPCDONE)
+        ]], uidQueryName(uid), getNPCName(), monsterNameString, SYS_NPCDONE)
     end
 end
