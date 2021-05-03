@@ -25,12 +25,12 @@ struct MonsterRecord
 {
     const char8_t *name = u8"";
 
-    const int level   = 0;
-    const int undead  = 0;
-    const int tamable = 0;
-    const int coolEye = 0;
+    const int level  = 0;
+    const int lookID = 0;
 
-    const int lookID      = 0;
+    const int undead      = 0;
+    const int tamable     = 0;
+    const int coolEye     = 0;
     const int deadFadeOut = 0;
 
     const int HP  = 0;
