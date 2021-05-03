@@ -115,6 +115,25 @@ corof::long_jmper::eval_op<bool> Monster::coro_trackAttackUID(uint64_t targetUID
     return fnwait(this, targetUID).eval<bool>();
 }
 
+corof::long_jmper::eval_op<bool> Monster::coro_attackUID(uint64_t targetUID, int dcType)
+{
+    const auto fnwait = +[](Monster *p, uint64_t targetUID, int dcType) -> corof::long_jmper
+    {
+        corof::async_variable<bool> done;
+        p->attackUID(targetUID, dcType, [&done]{ done.assign(true); }, [&done]{ done.assign(false); });
+
+        if(co_await done){
+            co_await corof::async_wait(p->attackWait());
+            co_return true;
+        }
+        else{
+            co_await corof::async_wait(p->isPet(p->UID()) ? 20 : 200);
+            co_return false;
+        }
+    };
+    return fnwait(this, targetUID, dcType).eval<bool>();
+}
+
 corof::long_jmper::eval_op<bool> Monster::coro_jumpAttackUID(uint64_t targetUID)
 {
     const auto fnwait = +[](Monster *p, uint64_t targetUID) -> corof::long_jmper
@@ -132,4 +151,36 @@ corof::long_jmper::eval_op<bool> Monster::coro_jumpAttackUID(uint64_t targetUID)
         }
     };
     return fnwait(this, targetUID).eval<bool>();
+}
+
+corof::long_jmper::eval_op<std::tuple<uint32_t, int, int>> Monster::coro_getUIDPLoc(uint64_t targetUID)
+{
+    const auto fnwait = +[](Monster *p, uint64_t targetUID) -> corof::long_jmper
+    {
+        int x = -1;
+        int y = -1;
+        uint32_t mapID = 0;
+        corof::async_variable<bool> done;
+
+        p->retrieveLocation(targetUID, [&x, &y, &mapID, &done](const COLocation &coLoc)
+        {
+            x = coLoc.X;
+            y = coLoc.Y;
+            mapID = coLoc.mapID;
+            done.assign(true);
+        },
+
+        [&done]
+        {
+            done.assign(false);
+        });
+
+        if(co_await done){
+            co_return std::tuple<uint32_t, int, int>(mapID, x, y);
+        }
+        else{
+            co_return std::tuple<uint32_t, int, int>(0, -1, -1);
+        }
+    };
+    return fnwait(this, targetUID).eval<std::tuple<uint32_t, int, int>>();
 }

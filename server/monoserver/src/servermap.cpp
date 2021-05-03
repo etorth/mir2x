@@ -30,6 +30,7 @@
 #include "guard.hpp"
 #include "filesys.hpp"
 #include "taoskeleton.hpp"
+#include "piranhaplant.hpp"
 #include "mathf.hpp"
 #include "sysconst.hpp"
 #include "fflerror.hpp"
@@ -949,6 +950,16 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
                         nDstY,
                         DIR_UP, // TODO face its master
                         nMasterUID,
+                    };
+                    break;
+                }
+            case DBCOM_MONSTERID(u8"食人花"):
+                {
+                    monsterPtr = new PiranhaPlant
+                    {
+                        this,
+                        nDstX,
+                        nDstY,
                     };
                     break;
                 }
