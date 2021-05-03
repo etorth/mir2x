@@ -1469,6 +1469,11 @@ bool CharObject::isMonster() const
     return uidf::getUIDType(UID()) == UID_MON;
 }
 
+bool CharObject::isMonster(const char8_t *name) const
+{
+    return isMonster() && dynamic_cast<const Monster * const>(this)->monsterID() == DBCOM_MONSTERID(name);
+}
+
 void CharObject::notifyDead(uint64_t uid)
 {
     if(!uid){
@@ -1492,7 +1497,13 @@ ActionNode CharObject::makeActionStand() const
     {
         .x = X(),
         .y = Y(),
-        .direction = Direction(),
+        .direction = [this]() -> int
+        {
+            if(isMonster(u8"食人花")){
+                return DIR_BEGIN;
+            }
+            return Direction();
+        }()
     };
 
     switch(uidf::getUIDType(UID())){

@@ -398,6 +398,7 @@ class CharObject: public ServerObject
     protected:
         bool isPlayer()  const;
         bool isMonster() const;
+        bool isMonster(const char8_t *) const;
 
     protected:
         void notifyDead(uint64_t);

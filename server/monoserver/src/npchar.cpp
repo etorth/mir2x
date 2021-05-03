@@ -665,7 +665,7 @@ void NPChar::postAddMonster(uint32_t monsterID)
 
     amACO.type = UID_MON;
     amACO.x = X();
-    amACO.y = Y();
+    amACO.y = Y() + 1;
     amACO.mapID = mapID();
     amACO.strictLoc = false;
 

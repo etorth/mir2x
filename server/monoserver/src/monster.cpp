@@ -105,7 +105,6 @@ Monster::Monster(uint32_t monID,
         int               direction,
         uint64_t          masterUID)
     : CharObject(mapCPtr, uidf::buildMonsterUID(monID), mapX, mapY, direction)
-    , m_monsterID(monID)
     , m_masterUID(masterUID)
     , m_monsterRecord(DBCOM_MONSTERRECORD(monID))
 {

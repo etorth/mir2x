@@ -65,9 +65,6 @@ class Monster: public CharObject
         friend class CharObject;
 
     protected:
-        const uint32_t m_monsterID;
-
-    protected:
         uint64_t m_masterUID;
 
     protected:
@@ -91,10 +88,10 @@ class Monster: public CharObject
         ~Monster() = default;
 
     public:
-       uint32_t monsterID() const
-       {
-           return m_monsterID;
-       }
+        uint32_t monsterID() const
+        {
+            return uidf::getMonsterID(UID());
+        }
 
     protected:
        // don't expose it to public
