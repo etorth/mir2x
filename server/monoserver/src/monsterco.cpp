@@ -115,6 +115,23 @@ corof::long_jmper::eval_op<bool> Monster::coro_trackAttackUID(uint64_t targetUID
     return fnwait(this, targetUID).eval<bool>();
 }
 
+corof::long_jmper::eval_op<bool> Monster::coro_trackUID(uint64_t targetUID, int distance)
+{
+    const auto fnwait = +[](Monster *p, uint64_t targetUID, int distance) -> corof::long_jmper
+    {
+        corof::async_variable<bool> done;
+        p->trackUID(targetUID, distance, [&done]{ done.assign(true); }, [&done]{ done.assign(false); });
+
+        if(co_await done){
+            co_return true;
+        }
+        else{
+            co_return false;
+        }
+    };
+    return fnwait(this, targetUID, distance).eval<bool>();
+}
+
 corof::long_jmper::eval_op<bool> Monster::coro_attackUID(uint64_t targetUID, int dcType)
 {
     const auto fnwait = +[](Monster *p, uint64_t targetUID, int dcType) -> corof::long_jmper
@@ -162,7 +179,7 @@ corof::long_jmper::eval_op<std::tuple<uint32_t, int, int>> Monster::coro_getUIDP
         uint32_t mapID = 0;
         corof::async_variable<bool> done;
 
-        p->retrieveLocation(targetUID, [&x, &y, &mapID, &done](const COLocation &coLoc)
+        p->getCOLocation(targetUID, [&x, &y, &mapID, &done](const COLocation &coLoc)
         {
             x = coLoc.x;
             y = coLoc.y;

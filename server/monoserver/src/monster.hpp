@@ -227,6 +227,7 @@ class Monster: public CharObject
         corof::long_jmper::eval_op<bool> coro_moveForward();
         corof::long_jmper::eval_op<bool> coro_followMaster();
         corof::long_jmper::eval_op<uint64_t> coro_getProperTarget();
+        corof::long_jmper::eval_op<bool> coro_trackUID(uint64_t, int);
         corof::long_jmper::eval_op<bool> coro_attackUID(uint64_t, int);
         corof::long_jmper::eval_op<bool> coro_jumpAttackUID(uint64_t);
         corof::long_jmper::eval_op<bool> coro_trackAttackUID(uint64_t);

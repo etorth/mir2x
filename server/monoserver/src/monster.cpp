@@ -241,7 +241,7 @@ void Monster::attackUID(uint64_t nUID, int nDC, std::function<void()> fnOnOK, st
     // before response received we can't allow any attack request
 
     m_attackLock = true;
-    retrieveLocation(nUID, [this, nDC, nUID, fnOnOK, fnOnError](const COLocation &stCOLocation)
+    getCOLocation(nUID, [this, nDC, nUID, fnOnOK, fnOnError](const COLocation &stCOLocation)
     {
         if(!m_attackLock){
             throw fflerror("attackLock released before location query done");
@@ -328,7 +328,7 @@ void Monster::attackUID(uint64_t nUID, int nDC, std::function<void()> fnOnOK, st
 
 void Monster::jumpUID(uint64_t nUID, std::function<void()> fnOnOK, std::function<void()> fnOnError)
 {
-    retrieveLocation(nUID, [this, fnOnOK, fnOnError](const COLocation &rstCOLocation)
+    getCOLocation(nUID, [this, fnOnOK, fnOnError](const COLocation &rstCOLocation)
     {
         const auto nX     = rstCOLocation.x;
         const auto nY     = rstCOLocation.y;
@@ -364,7 +364,7 @@ void Monster::trackUID(uint64_t nUID, int nMinCDistance, std::function<void()> f
         throw fflerror("invalid distance: %d", nMinCDistance);
     }
 
-    retrieveLocation(nUID, [this, nMinCDistance, fnOnOK, fnOnError](const COLocation &rstCOLocation) -> bool
+    getCOLocation(nUID, [this, nMinCDistance, fnOnOK, fnOnError](const COLocation &rstCOLocation) -> bool
     {
         auto nX     = rstCOLocation.x;
         auto nY     = rstCOLocation.y;
@@ -396,7 +396,7 @@ void Monster::followMaster(std::function<void()> fnOnOK, std::function<void()> f
     // 1. follower always try to stand at the back of the master
     // 2. when distance is too far or master is on different map, follower takes space move
 
-    retrieveLocation(masterUID(), [this, fnOnOK, fnOnError](const COLocation &rstCOLocation) -> bool
+    getCOLocation(masterUID(), [this, fnOnOK, fnOnError](const COLocation &rstCOLocation) -> bool
     {
         // check if it's still my master?
         // possible during the location query master changed

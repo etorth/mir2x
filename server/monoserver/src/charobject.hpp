@@ -238,7 +238,7 @@ class CharObject: public ServerObject
         virtual bool canMove();
 
     protected:
-        void retrieveLocation(uint64_t, std::function<void(const COLocation &)>, std::function<void()> = []{});
+        void getCOLocation(uint64_t, std::function<void(const COLocation &)>, std::function<void()> = []{});
 
     protected:
         bool requestJump(

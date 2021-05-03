@@ -537,7 +537,7 @@ void Player::onCMActionMove(CMAction stCMA)
 
 void Player::onCMActionAttack(CMAction stCMA)
 {
-    retrieveLocation(stCMA.action.aimUID, [this, stCMA](const COLocation &rstLocation)
+    getCOLocation(stCMA.action.aimUID, [this, stCMA](const COLocation &rstLocation)
     {
         int nX0 = stCMA.action.x;
         int nY0 = stCMA.action.y;

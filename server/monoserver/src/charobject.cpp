@@ -784,7 +784,7 @@ bool CharObject::canAttack()
     return !(m_dead.get() || m_attackLock);
 }
 
-void CharObject::retrieveLocation(uint64_t nUID, std::function<void(const COLocation &)> fnOnOK, std::function<void()> fnOnError)
+void CharObject::getCOLocation(uint64_t nUID, std::function<void(const COLocation &)> fnOnOK, std::function<void()> fnOnError)
 {
     if(!nUID){
         throw fflerror("query location with zero UID");
@@ -1296,10 +1296,10 @@ void CharObject::AddInViewCO(const COLocation &rstCOLocation)
 void CharObject::foreachInViewCO(std::function<void(const COLocation &)> fnOnLoc)
 {
     // TODO dangerous part
-    // check comments in retrieveLocation
+    // check comments in getCOLocation
 
     // RemoveInViewCO() may get called in fnOnLoc
-    // RemoveInViewCO() may get called in retrieveLocation
+    // RemoveInViewCO() may get called in getCOLocation
 
     scoped_alloc::svobuf_wrapper<uint64_t, 16> uidList;
     for(const auto &rstCOLoc: m_inViewCOList){
@@ -1307,7 +1307,7 @@ void CharObject::foreachInViewCO(std::function<void(const COLocation &)> fnOnLoc
     }
 
     for(size_t i = 0; i < uidList.c.size(); ++i){
-        retrieveLocation(uidList.c.at(i), fnOnLoc);
+        getCOLocation(uidList.c.at(i), fnOnLoc);
     }
 }
 
