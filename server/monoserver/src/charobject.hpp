@@ -277,9 +277,9 @@ class CharObject: public ServerObject
         void dispatchOffenderExp();
 
     protected:
-        virtual bool canAct();
-        virtual bool canMove();
-        virtual bool canAttack();
+        virtual bool canAct()    const;
+        virtual bool canMove()   const;
+        virtual bool canAttack() const;
 
     protected:
         virtual void SetLastAction(int);

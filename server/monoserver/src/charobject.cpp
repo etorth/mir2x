@@ -732,8 +732,12 @@ bool CharObject::requestMapSwitch(uint32_t argMapID, int locX, int locY, bool st
     });
 }
 
-bool CharObject::canAct()
+bool CharObject::canAct() const
 {
+    if(m_dead.get()){
+        return false;
+    }
+
     switch(m_lastAction){
         case ACTION_SPAWN:
             {
@@ -744,6 +748,10 @@ bool CharObject::canAct()
                                 case DBCOM_MONSTERID(u8"变异骷髅"):
                                     {
                                         return g_monoServer->getCurrTick() > m_lastActionTime + 600;
+                                    }
+                                case DBCOM_MONSTERID(u8"神兽"):
+                                    {
+                                        return g_monoServer->getCurrTick() > m_lastActionTime + 400;
                                     }
                                 default:
                                     {
@@ -758,14 +766,6 @@ bool CharObject::canAct()
                 }
                 return true;
             }
-        case ACTION_ATTACK:
-            {
-                return g_monoServer->getCurrTick() > m_lastActionTime + 600;
-            }
-        case ACTION_MOVE:
-            {
-                return g_monoServer->getCurrTick() > m_lastActionTime + 700;
-            }
         default:
             {
                 break;
@@ -774,14 +774,14 @@ bool CharObject::canAct()
     return true;
 }
 
-bool CharObject::canMove()
+bool CharObject::canMove() const
 {
-    return !(m_dead.get() || m_moveLock);
+    return canAct() && !m_moveLock;
 }
 
-bool CharObject::canAttack()
+bool CharObject::canAttack() const
 {
-    return !(m_dead.get() || m_attackLock);
+    return canAct() && !m_attackLock;
 }
 
 void CharObject::getCOLocation(uint64_t nUID, std::function<void(const COLocation &)> fnOnOK, std::function<void()> fnOnError)

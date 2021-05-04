@@ -28,7 +28,7 @@ corof::long_jmper::eval_op<bool> Monster::coro_followMaster()
         p->followMaster([&done](){ done.assign(true); }, [&done](){ done.assign(false); });
 
         if(co_await done){
-            co_await corof::async_wait(p->walkWait());
+            co_await corof::async_wait(p->getMR().walkWait);
             co_return true;
         }
         else{
@@ -45,7 +45,7 @@ corof::long_jmper::eval_op<bool> Monster::coro_randomMove()
     {
         if(std::rand() % 10 < 2){
             if(p->randomTurn()){
-                co_await corof::async_wait(p->walkWait());
+                co_await corof::async_wait(p->getMR().walkWait);
             }
             else{
                 co_await corof::async_wait(200);
@@ -54,7 +54,7 @@ corof::long_jmper::eval_op<bool> Monster::coro_randomMove()
 
         else{
             if(co_await p->coro_moveForward()){
-                co_await corof::async_wait(p->walkWait());
+                co_await corof::async_wait(p->getMR().walkWait);
             }
             else{
                 co_await corof::async_wait(200);
@@ -104,7 +104,7 @@ corof::long_jmper::eval_op<bool> Monster::coro_trackAttackUID(uint64_t targetUID
         p->trackAttackUID(targetUID, [&done]{ done.assign(true); }, [&done]{ done.assign(false); });
 
         if(co_await done){
-            co_await corof::async_wait(p->attackWait());
+            co_await corof::async_wait(p->getMR().attackWait);
             co_return true;
         }
         else{
@@ -140,7 +140,7 @@ corof::long_jmper::eval_op<bool> Monster::coro_attackUID(uint64_t targetUID, int
         p->attackUID(targetUID, dcType, [&done]{ done.assign(true); }, [&done]{ done.assign(false); });
 
         if(co_await done){
-            co_await corof::async_wait(p->attackWait());
+            co_await corof::async_wait(p->getMR().attackWait);
             co_return true;
         }
         else{
@@ -159,7 +159,7 @@ corof::long_jmper::eval_op<bool> Monster::coro_jumpAttackUID(uint64_t targetUID)
         p->jumpAttackUID(targetUID, [&done]{ done.assign(true); }, [&done]{ done.assign(false); });
 
         if(co_await done){
-            co_await corof::async_wait(p->attackWait());
+            co_await corof::async_wait(p->getMR().attackWait);
             co_return true;
         }
         else{

@@ -212,8 +212,8 @@ class Monster: public CharObject
         }
 
     protected:
-        bool canMove();
-        bool canAttack();
+        bool canMove()   const override;
+        bool canAttack() const override;
 
     protected:
         virtual bool goDie();
@@ -238,17 +238,6 @@ class Monster: public CharObject
         const auto &getMR() const
         {
             return DBCOM_MONSTERRECORD(uidf::getMonsterID(UID()));
-        }
-
-    private:
-        int walkWait() const
-        {
-            return getMR().walkWait;
-        }
-
-        int attackWait() const
-        {
-            return getMR().walkWait;
         }
 
     public:

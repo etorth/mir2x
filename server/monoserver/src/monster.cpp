@@ -726,12 +726,9 @@ DamageNode Monster::GetAttackDamage(int nDC)
     }
 }
 
-bool Monster::canMove()
+bool Monster::canMove() const
 {
-    if(CharObject::canMove() && canAct()){
-        return g_monoServer->getCurrTick() >= m_lastMoveTime + getMR().walkWait;
-    }
-    return false;
+    return CharObject::canMove() && g_monoServer->getCurrTick() >= m_lastMoveTime + getMR().walkWait;
 }
 
 // should have a better way for GCD (global cooldown)
@@ -743,19 +740,14 @@ bool Monster::canMove()
 // if there is no GCD, it jumps to (x, y) and immediately attack player and dispatch the attack result
 // from client we see monster is just start moving, but player already get the ACTION_HITTED
 
-bool Monster::canAttack()
+bool Monster::canAttack() const
 {
-    if(!canAct()){
-        return false;
-    }
-
     if(!CharObject::canAttack()){
         return false;
     }
 
-    auto nCurrTick = g_monoServer->getCurrTick();
-
-    if(nCurrTick < m_lastMoveTime + walkWait()){
+    const auto nCurrTick = g_monoServer->getCurrTick();
+    if(nCurrTick < m_lastMoveTime + getMR().walkWait){
         return false;
     }
 
