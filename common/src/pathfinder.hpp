@@ -166,6 +166,19 @@ namespace PathFind
         }
     }
 
+    inline std::tuple<int, int> getFrontPLoc(int x, int y, int dir, int length = 1)
+    {
+        constexpr static int dx[] = { 0, +1, +1, +1,  0, -1, -1, -1};
+        constexpr static int dy[] = {-1, -1,  0, +1, +1, +1,  0, -1};
+
+        fflassert(directionValid(dir));
+        return
+        {
+            x + length * dx[dir - DIR_BEGIN],
+            y + length * dy[dir - DIR_BEGIN],
+        };
+    }
+
     inline void GetFrontLocation(int *pX, int *pY, int nX, int nY, int nDirection, int nLen = 1)
     {
         static constexpr int nDX[] = { 0, +1, +1, +1,  0, -1, -1, -1};

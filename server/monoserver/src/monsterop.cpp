@@ -142,16 +142,18 @@ void Monster::on_AM_NOTIFYNEWCO(const ActorMsgPack &rstMPK)
     }
 }
 
-void Monster::on_AM_ATTACK(const ActorMsgPack &rstMPK)
+void Monster::on_AM_ATTACK(const ActorMsgPack &mpk)
 {
-    AMAttack amAK;
-    std::memcpy(&amAK, rstMPK.data(), sizeof(amAK));
-
+    const auto amAK = mpk.conv<AMAttack>();
     if(m_dead.get()){
         notifyDead(amAK.UID);
     }
+    else if(getMR().guard){
+        // ignore any attack to guard
+        // because guard has no hitted gfx support
+    }
     else{
-        if(monsterName() == u8"神兽"){
+        if(isMonster(u8"神兽")){
             dynamic_cast<TaoDog *>(this)->setStandMode(true);
         }
 

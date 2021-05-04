@@ -41,11 +41,27 @@ corof::long_jmper Guard::updateCoroFunc()
         else{
             co_await coro_jumpBack();
         }
-        co_await corof::async_wait(200);
     }
 
     goDie();
     co_return true;
+}
+
+void Guard::jumpBack(std::function<void()> onOK, std::function<void()> onError)
+{
+    if(X() == m_standX && Y() == m_standY){
+        if(Direction() != m_standDirection){
+            m_direction = m_standDirection;
+            dispatchAction(makeActionStand());
+        }
+
+        if(onOK){
+            onOK();
+        }
+        return;
+    }
+
+    requestJump(m_standX, m_standY, m_standDirection, onOK, onError);
 }
 
 void Guard::checkFriend(uint64_t uid, std::function<void(int)> fnOp)

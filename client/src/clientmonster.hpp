@@ -60,7 +60,7 @@ class ClientMonster: public CreatureMovable
         bool parseAction(const ActionNode &) override;
 
     public:
-        bool motionValid(const std::unique_ptr<MotionNode> &) const;
+        bool motionValid(const std::unique_ptr<MotionNode> &) const override;
 
     protected:
         int gfxMotionID(int motion) const override

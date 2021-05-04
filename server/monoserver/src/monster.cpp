@@ -224,15 +224,15 @@ bool Monster::randomTurn()
     return false;
 }
 
-void Monster::attackUID(uint64_t nUID, int nDC, std::function<void()> fnOnOK, std::function<void()> fnOnError)
+void Monster::attackUID(uint64_t nUID, int nDC, std::function<void()> onOK, std::function<void()> onError)
 {
     if(!canAttack()){
-        fnOnError();
+        onError();
         return;
     }
 
     if(!DCValid(nDC, true)){
-        fnOnError();
+        onError();
         return;
     }
 
@@ -240,15 +240,13 @@ void Monster::attackUID(uint64_t nUID, int nDC, std::function<void()> fnOnOK, st
     // before response received we can't allow any attack request
 
     m_attackLock = true;
-    getCOLocation(nUID, [this, nDC, nUID, fnOnOK, fnOnError](const COLocation &stCOLocation)
+    getCOLocation(nUID, [this, nDC, nUID, onOK, onError](const COLocation &coLoc)
     {
-        if(!m_attackLock){
-            throw fflerror("attackLock released before location query done");
-        }
+        fflassert(m_attackLock);
         m_attackLock = false;
 
-        auto nX = stCOLocation.x;
-        auto nY = stCOLocation.y;
+        const auto nX = coLoc.x;
+        const auto nY = coLoc.y;
 
         switch(nDC){
             case DC_PHY_PLAIN:
@@ -259,7 +257,7 @@ void Monster::attackUID(uint64_t nUID, int nDC, std::function<void()> fnOnOK, st
                             {
                                 m_direction = PathFind::GetDirection(X(), Y(), nX, nY);
                                 if(!canAttack()){
-                                    fnOnError();
+                                    onError();
                                     return;
                                 }
 
@@ -290,19 +288,19 @@ void Monster::attackUID(uint64_t nUID, int nDC, std::function<void()> fnOnOK, st
                                     }
                                 });
 
-                                fnOnOK();
+                                onOK();
                                 return;
                             }
                         case 0:
                             {
                                 // TODO this can happen
                                 // should I schedule an random move?
-                                fnOnError();
+                                onError();
                                 return;
                             }
                         default:
                             {
-                                fnOnError();
+                                onError();
                                 return;
                             }
                     }
@@ -310,7 +308,7 @@ void Monster::attackUID(uint64_t nUID, int nDC, std::function<void()> fnOnOK, st
             case DC_MAG_FIRE:
             default:
                 {
-                    fnOnError();
+                    onError();
                     return;
                 }
         }
@@ -325,69 +323,66 @@ void Monster::attackUID(uint64_t nUID, int nDC, std::function<void()> fnOnOK, st
     });
 }
 
-void Monster::jumpUID(uint64_t nUID, std::function<void()> fnOnOK, std::function<void()> fnOnError)
+void Monster::jumpUID(uint64_t targetUID, std::function<void()> onOK, std::function<void()> onError)
 {
-    getCOLocation(nUID, [this, fnOnOK, fnOnError](const COLocation &rstCOLocation)
+    getCOLocation(targetUID, [this, onOK, onError](const COLocation &coLoc)
     {
-        const auto nX     = rstCOLocation.x;
-        const auto nY     = rstCOLocation.y;
-        const auto nDir   = directionValid(rstCOLocation.direction) ? rstCOLocation.direction : DIR_UP;
-        const auto nMapID = rstCOLocation.mapID;
+        const auto nX     = coLoc.x;
+        const auto nY     = coLoc.y;
+        const auto nDir   = directionValid(coLoc.direction) ? coLoc.direction : DIR_UP;
+        const auto nMapID = coLoc.mapID;
 
         if(!m_map->In(nMapID, nX, nY)){
-            fnOnError();
+            onError();
             return;
         }
 
-        int nFrontX = -1;
-        int nFrontY = -1;
-        PathFind::GetFrontLocation(&nFrontX, &nFrontY, nX, nY, nDir);
-
+        const auto [nFrontX, nFrontY] = PathFind::getFrontPLoc(nX, nY, nDir, 1);
         if(!m_map->groundValid(nFrontX, nFrontY)){
-            fnOnError();
+            onError();
             return;
         }
 
         if(nFrontX == X() && nFrontY == Y()){
-            fnOnOK();
+            onOK();
         }
         else{
-            requestJump(nFrontX, nFrontY, PathFind::GetBack(nDir), fnOnOK, fnOnError);
+            requestJump(nFrontX, nFrontY, PathFind::GetBack(nDir), onOK, onError);
         }
-    }, fnOnError);
+    }, onError);
 }
 
-void Monster::trackUID(uint64_t nUID, int nMinCDistance, std::function<void()> fnOnOK, std::function<void()> fnOnError)
+void Monster::trackUID(uint64_t nUID, int nMinCDistance, std::function<void()> onOK, std::function<void()> onError)
 {
     if(nMinCDistance < 1){
         throw fflerror("invalid distance: %d", nMinCDistance);
     }
 
-    getCOLocation(nUID, [this, nMinCDistance, fnOnOK, fnOnError](const COLocation &rstCOLocation) -> bool
+    getCOLocation(nUID, [this, nMinCDistance, onOK, onError](const COLocation &coLoc) -> bool
     {
-        auto nX     = rstCOLocation.x;
-        auto nY     = rstCOLocation.y;
-        auto nMapID = rstCOLocation.mapID;
+        auto nX     = coLoc.x;
+        auto nY     = coLoc.y;
+        auto nMapID = coLoc.mapID;
 
         if(!m_map->In(nMapID, nX, nY)){
-            fnOnError();
+            onError();
             return false;
         }
 
         if(mathf::CDistance(X(), Y(), nX, nY) <= nMinCDistance){
-            fnOnOK();
+            onOK();
             return true;
         }
 
-        MoveOneStep(nX, nY, fnOnOK, fnOnError);
+        MoveOneStep(nX, nY, onOK, onError);
         return true;
-    }, fnOnError);
+    }, onError);
 }
 
-void Monster::followMaster(std::function<void()> fnOnOK, std::function<void()> fnOnError)
+void Monster::followMaster(std::function<void()> onOK, std::function<void()> onError)
 {
     if(!(masterUID() && canMove())){
-        fnOnError();
+        onError();
         return;
     }
 
@@ -395,25 +390,25 @@ void Monster::followMaster(std::function<void()> fnOnOK, std::function<void()> f
     // 1. follower always try to stand at the back of the master
     // 2. when distance is too far or master is on different map, follower takes space move
 
-    getCOLocation(masterUID(), [this, fnOnOK, fnOnError](const COLocation &rstCOLocation) -> bool
+    getCOLocation(masterUID(), [this, onOK, onError](const COLocation &coLoc) -> bool
     {
         // check if it's still my master?
         // possible during the location query master changed
 
-        if(rstCOLocation.uid != masterUID()){
-            fnOnError();
+        if(coLoc.uid != masterUID()){
+            onError();
             return false;
         }
 
         if(!canMove()){
-            fnOnError();
+            onError();
             return false;
         }
 
-        auto nX         = rstCOLocation.x;
-        auto nY         = rstCOLocation.y;
-        auto nMapID     = rstCOLocation.mapID;
-        auto nDirection = rstCOLocation.direction;
+        auto nX         = coLoc.x;
+        auto nY         = coLoc.y;
+        auto nMapID     = coLoc.mapID;
+        auto nDirection = coLoc.direction;
 
         // get back location with different distance
         // here we use different distance if space move and follow
@@ -450,12 +445,12 @@ void Monster::followMaster(std::function<void()> fnOnOK, std::function<void()> f
                             dispatchAction(makeActionStand());
                         }
 
-                        fnOnOK();
+                        onOK();
                         return true;
                     }
                 default:
                     {
-                        return MoveOneStep(nBackX, nBackY, fnOnOK, fnOnError);
+                        return MoveOneStep(nBackX, nBackY, onOK, onError);
                     }
             }
         }
@@ -465,16 +460,16 @@ void Monster::followMaster(std::function<void()> fnOnOK, std::function<void()> f
 
             const auto [nBackX, nBackY] = fnGetBack(nX, nY, nDirection, 3);
             if(nMapID == mapID()){
-                return requestSpaceMove(nBackX, nBackY, false, fnOnOK, fnOnError);
+                return requestSpaceMove(nBackX, nBackY, false, onOK, onError);
             }
             else{
-                return requestMapSwitch(nMapID, nBackX, nBackY, false, fnOnOK, fnOnError);
+                return requestMapSwitch(nMapID, nBackX, nBackY, false, onOK, onError);
             }
         }
     });
 }
 
-void Monster::jumpAttackUID(uint64_t nTargetUID, std::function<void()> fnOnOK, std::function<void()> fnOnError)
+void Monster::jumpAttackUID(uint64_t nTargetUID, std::function<void()> onOK, std::function<void()> onError)
 {
     if(!nTargetUID){
         throw fflerror("invalid zero UID");
@@ -484,13 +479,13 @@ void Monster::jumpAttackUID(uint64_t nTargetUID, std::function<void()> fnOnOK, s
     // for different monster it may use different DC
 
     const int nProperDC = DC_PHY_PLAIN; // TODO
-    jumpUID(nTargetUID, [nTargetUID, nProperDC, fnOnOK, fnOnError, this]()
+    jumpUID(nTargetUID, [nTargetUID, nProperDC, onOK, onError, this]()
     {
-        attackUID(nTargetUID, nProperDC, fnOnOK, fnOnError);
-    }, fnOnError);
+        attackUID(nTargetUID, nProperDC, onOK, onError);
+    }, onError);
 }
 
-void Monster::trackAttackUID(uint64_t nTargetUID, std::function<void()> fnOnOK, std::function<void()> fnOnError)
+void Monster::trackAttackUID(uint64_t nTargetUID, std::function<void()> onOK, std::function<void()> onError)
 {
     if(!nTargetUID){
         throw fflerror("invalid zero UID");
@@ -502,10 +497,10 @@ void Monster::trackAttackUID(uint64_t nTargetUID, std::function<void()> fnOnOK, 
     const int nProperDC = DC_PHY_PLAIN; // TODO
     int nMinCDistance = 1;
 
-    trackUID(nTargetUID, nMinCDistance, [nTargetUID, nProperDC, fnOnOK, fnOnError, this]()
+    trackUID(nTargetUID, nMinCDistance, [nTargetUID, nProperDC, onOK, onError, this]()
     {
-        attackUID(nTargetUID, nProperDC, fnOnOK, fnOnError);
-    }, fnOnError);
+        attackUID(nTargetUID, nProperDC, onOK, onError);
+    }, onError);
 }
 
 corof::long_jmper Monster::updateCoroFunc()
@@ -870,23 +865,23 @@ bool Monster::StruckDamage(const DamageNode &rstDamage)
     return false;
 }
 
-bool Monster::MoveOneStep(int nX, int nY, std::function<void()> fnOnOK, std::function<void()> fnOnError)
+bool Monster::MoveOneStep(int nX, int nY, std::function<void()> onOK, std::function<void()> onError)
 {
     if(!canMove()){
-        fnOnError();
+        onError();
         return false;
     }
 
     switch(estimateHop(nX, nY)){
         case 0:
             {
-                fnOnError();
+                onError();
                 return false;
             }
         case 1:
             {
                 if(OneStepCost(nullptr, 1, X(), Y(), nX, nY) >= 0.00){
-                    return requestMove(nX, nY, MoveSpeed(), false, false, fnOnOK, fnOnError);
+                    return requestMove(nX, nY, MoveSpeed(), false, false, onOK, onError);
                 }
                 break;
             }
@@ -896,7 +891,7 @@ bool Monster::MoveOneStep(int nX, int nY, std::function<void()> fnOnOK, std::fun
             }
         default:
             {
-                fnOnError();
+                onError();
                 return false;
             }
     }
@@ -906,49 +901,49 @@ bool Monster::MoveOneStep(int nX, int nY, std::function<void()> fnOnOK, std::fun
 
     if(m_AStarCache.Retrieve(&nXm, &nYm, X(), Y(), nX, nY, mapID())){
         if(OneStepCost(nullptr, 1, X(), Y(), nXm, nYm) >= 0.00){
-            return requestMove(nXm, nYm, MoveSpeed(), false, false, fnOnOK, fnOnError);
+            return requestMove(nXm, nYm, MoveSpeed(), false, false, onOK, onError);
         }
     }
 
     switch(FindPathMethod()){
         case FPMETHOD_ASTAR:
             {
-                return MoveOneStepAStar(nX, nY, fnOnOK, fnOnError);
+                return MoveOneStepAStar(nX, nY, onOK, onError);
             }
         case FPMETHOD_DSTAR:
             {
-                return MoveOneStepDStar(nX, nY, fnOnOK, fnOnError);
+                return MoveOneStepDStar(nX, nY, onOK, onError);
             }
         case FPMETHOD_GREEDY:
             {
-                return MoveOneStepGreedy(nX, nY, fnOnOK, fnOnError);
+                return MoveOneStepGreedy(nX, nY, onOK, onError);
             }
         case FPMETHOD_COMBINE:
             {
-                return MoveOneStepCombine(nX, nY, fnOnOK, fnOnError);
+                return MoveOneStepCombine(nX, nY, onOK, onError);
             }
         case FPMETHOD_NEIGHBOR:
             {
-                return MoveOneStepNeighbor(nX, nY, fnOnOK, fnOnError);
+                return MoveOneStepNeighbor(nX, nY, onOK, onError);
             }
         default:
             {
-                fnOnError();
+                onError();
                 return false;
             }
     }
 }
 
-bool Monster::MoveOneStepNeighbor(int nX, int nY, std::function<void()> fnOnOK, std::function<void()> fnOnError)
+bool Monster::MoveOneStepNeighbor(int nX, int nY, std::function<void()> onOK, std::function<void()> onError)
 {
     if(!canMove()){
-        fnOnError();
+        onError();
         return false;
     }
 
     CharObject::COPathFinder stFinder(this, 1);
     if(!stFinder.Search(X(), Y(), nX, nY)){
-        fnOnError();
+        onError();
         return false;
     }
 
@@ -958,13 +953,13 @@ bool Monster::MoveOneStepNeighbor(int nX, int nY, std::function<void()> fnOnOK, 
     }
 
     m_AStarCache.Cache({stPathNode.begin(), stPathNode.begin() + nNodeNum}, mapID());
-    return requestMove(stPathNode[1].X, stPathNode[1].Y, MoveSpeed(), false, false, fnOnOK, fnOnError);
+    return requestMove(stPathNode[1].X, stPathNode[1].Y, MoveSpeed(), false, false, onOK, onError);
 }
 
-bool Monster::MoveOneStepGreedy(int nX, int nY, std::function<void()> fnOnOK, std::function<void()> fnOnError)
+bool Monster::MoveOneStepGreedy(int nX, int nY, std::function<void()> onOK, std::function<void()> onError)
 {
     if(!canMove()){
-        fnOnError();
+        onError();
         return false;
     }
 
@@ -977,14 +972,14 @@ bool Monster::MoveOneStepGreedy(int nX, int nY, std::function<void()> fnOnOK, st
     }
 
     if(pathNodePtr->c.empty()){
-        fnOnError();
+        onError();
         return false;
     }
 
-    const auto fnOnNodeListError = [nX, nY, longJump, fnOnOK, fnOnError, this]()
+    const auto fnOnNodeListError = [nX, nY, longJump, onOK, onError, this]()
     {
         if(!longJump){
-            fnOnError();
+            onError();
             return;
         }
 
@@ -996,44 +991,44 @@ bool Monster::MoveOneStepGreedy(int nX, int nY, std::function<void()> fnOnOK, st
         }
 
         if(minPathNodePtr->c.empty()){
-            fnOnError();
+            onError();
             return;
         }
 
-        requestMove(minPathNodePtr->c[0].X, minPathNodePtr->c[0].Y, MoveSpeed(), false, false, fnOnOK, [this, minPathNodePtr, fnOnOK, fnOnError]()
+        requestMove(minPathNodePtr->c[0].X, minPathNodePtr->c[0].Y, MoveSpeed(), false, false, onOK, [this, minPathNodePtr, onOK, onError]()
         {
             if(minPathNodePtr->c.size() == 1){
-                fnOnError();
+                onError();
                 return;
             }
 
-            requestMove(minPathNodePtr->c[1].X, minPathNodePtr->c[1].Y, MoveSpeed(), false, false, fnOnOK, [this, minPathNodePtr, fnOnOK, fnOnError]()
+            requestMove(minPathNodePtr->c[1].X, minPathNodePtr->c[1].Y, MoveSpeed(), false, false, onOK, [this, minPathNodePtr, onOK, onError]()
             {
                 if(minPathNodePtr->c.size() == 2){
-                    fnOnError();
+                    onError();
                     return;
                 }
 
-                requestMove(minPathNodePtr->c[2].X, minPathNodePtr->c[2].Y, MoveSpeed(), false, false, fnOnOK, fnOnError);
+                requestMove(minPathNodePtr->c[2].X, minPathNodePtr->c[2].Y, MoveSpeed(), false, false, onOK, onError);
             });
         });
     };
 
-    return requestMove(pathNodePtr->c[0].X, pathNodePtr->c[0].Y, MoveSpeed(), false, false, fnOnOK, [this, longJump, nX, nY, pathNodePtr, fnOnOK, fnOnNodeListError]()
+    return requestMove(pathNodePtr->c[0].X, pathNodePtr->c[0].Y, MoveSpeed(), false, false, onOK, [this, longJump, nX, nY, pathNodePtr, onOK, fnOnNodeListError]()
     {
         if(pathNodePtr->c.size() == 1){
             fnOnNodeListError();
             return;
         }
 
-        requestMove(pathNodePtr->c[1].X, pathNodePtr->c[1].Y, MoveSpeed(), false, false, fnOnOK, [this, longJump, nX, nY, pathNodePtr, fnOnOK, fnOnNodeListError]()
+        requestMove(pathNodePtr->c[1].X, pathNodePtr->c[1].Y, MoveSpeed(), false, false, onOK, [this, longJump, nX, nY, pathNodePtr, onOK, fnOnNodeListError]()
         {
             if(pathNodePtr->c.size() == 2){
                 fnOnNodeListError();
                 return;
             }
 
-            requestMove(pathNodePtr->c[2].X, pathNodePtr->c[2].Y, MoveSpeed(), false, false, fnOnOK, [this, longJump, nX, nY,fnOnOK, fnOnNodeListError]()
+            requestMove(pathNodePtr->c[2].X, pathNodePtr->c[2].Y, MoveSpeed(), false, false, onOK, [this, longJump, nX, nY,onOK, fnOnNodeListError]()
             {
                 fnOnNodeListError();
             });
@@ -1041,23 +1036,23 @@ bool Monster::MoveOneStepGreedy(int nX, int nY, std::function<void()> fnOnOK, st
     });
 }
 
-bool Monster::MoveOneStepCombine(int nX, int nY, std::function<void()> fnOnOK, std::function<void()> fnOnError)
+bool Monster::MoveOneStepCombine(int nX, int nY, std::function<void()> onOK, std::function<void()> onError)
 {
     if(!canMove()){
-        fnOnError();
+        onError();
         return false;
     }
 
-    return MoveOneStepGreedy(nX, nY, fnOnOK, [this, nX, nY, fnOnOK, fnOnError]()
+    return MoveOneStepGreedy(nX, nY, onOK, [this, nX, nY, onOK, onError]()
     {
-        MoveOneStepNeighbor(nX, nY, fnOnOK, fnOnError);
+        MoveOneStepNeighbor(nX, nY, onOK, onError);
     });
 }
 
-bool Monster::MoveOneStepAStar(int nX, int nY, std::function<void()> fnOnOK, std::function<void()> fnOnError)
+bool Monster::MoveOneStepAStar(int nX, int nY, std::function<void()> onOK, std::function<void()> onError)
 {
     if(!canMove()){
-        fnOnError();
+        onError();
         return false;
     }
 
@@ -1073,7 +1068,7 @@ bool Monster::MoveOneStepAStar(int nX, int nY, std::function<void()> fnOnOK, std
     amPF.EndX    = nX;
     amPF.EndY    = nY;
 
-    return m_actorPod->forward(mapUID(), {AM_PATHFIND, amPF}, [this, nX, nY, fnOnOK, fnOnError](const ActorMsgPack &rstRMPK)
+    return m_actorPod->forward(mapUID(), {AM_PATHFIND, amPF}, [this, nX, nY, onOK, onError](const ActorMsgPack &rstRMPK)
     {
         switch(rstRMPK.type()){
             case AM_PATHFINDOK:
@@ -1101,12 +1096,12 @@ bool Monster::MoveOneStepAStar(int nX, int nY, std::function<void()> fnOnOK, std
                     }
                     m_AStarCache.Cache(stvPathNode, mapID());
 
-                    requestMove(amPFOK.Point[1].X, amPFOK.Point[1].Y, MoveSpeed(), false, false, fnOnOK, fnOnError);
+                    requestMove(amPFOK.Point[1].X, amPFOK.Point[1].Y, MoveSpeed(), false, false, onOK, onError);
                     break;
                 }
             default:
                 {
-                    fnOnError();
+                    onError();
                     break;
                 }
         }

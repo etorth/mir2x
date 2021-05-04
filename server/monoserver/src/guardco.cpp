@@ -22,16 +22,8 @@ corof::long_jmper::eval_op<bool> Guard::coro_jumpBack()
 {
     const auto fnwait = +[](Guard *p) -> corof::long_jmper
     {
-        if(p->X() == p->m_standX && p->Y() == p->m_standY){
-            if(p->Direction() != p->m_standDirection){
-                p->m_direction = p->m_standDirection;
-                p->dispatchAction(p->makeActionStand());
-            }
-            co_return true;
-        }
-
         corof::async_variable<bool> done;
-        p->requestJump(p->m_standX, p->m_standY, p->m_standDirection, [&done](){ done.assign(true); }, [&done](){ done.assign(false); });
+        p->jumpBack([&done](){ done.assign(true); }, [&done](){ done.assign(false); });
         const auto result = co_await done;
         co_return result;
     };

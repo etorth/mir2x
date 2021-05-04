@@ -27,6 +27,7 @@
 #include "clienttaodog.hpp"
 #include "clienttaoskeleton.hpp"
 #include "clientnpc.hpp"
+#include "clientguard.hpp"
 #include "uidf.hpp"
 #include "sysconst.hpp"
 #include "pngtexdb.hpp"
@@ -146,7 +147,7 @@ void ProcessRun::net_ACTION(const uint8_t *bufPtr, size_t)
                         }
                     default:
                         {
-                            switch(uidf::getMonsterID(smA.UID)){
+                            switch(const auto monID = uidf::getMonsterID(smA.UID)){
                                 case DBCOM_MONSTERID(u8"变异骷髅"):
                                     {
                                         if(!m_actionBlocker.contains(smA.UID)){
@@ -163,7 +164,12 @@ void ProcessRun::net_ACTION(const uint8_t *bufPtr, size_t)
                                     }
                                 default:
                                     {
-                                        m_coList[smA.UID] = std::make_unique<ClientMonster>(smA.UID, this, smA.action);
+                                        if(DBCOM_MONSTERRECORD(monID).guard){
+                                            m_coList[smA.UID] = std::make_unique<ClientGuard>(smA.UID, this, smA.action);
+                                        }
+                                        else{
+                                            m_coList[smA.UID] = std::make_unique<ClientMonster>(smA.UID, this, smA.action);
+                                        }
                                         return;
                                     }
                             }
@@ -199,7 +205,7 @@ void ProcessRun::net_CORECORD(const uint8_t *bufPtr, size_t)
     switch(uidf::getUIDType(smCOR.UID)){
         case UID_MON:
             {
-                switch(uidf::getMonsterID(smCOR.UID)){
+                switch(const auto monID = uidf::getMonsterID(smCOR.UID)){
                     case DBCOM_MONSTERID(u8"变异骷髅"):
                         {
                             m_coList[smCOR.UID].reset(new ClientTaoSkeleton(smCOR.UID, this, smCOR.action));
@@ -212,7 +218,12 @@ void ProcessRun::net_CORECORD(const uint8_t *bufPtr, size_t)
                         }
                     default:
                         {
-                            m_coList[smCOR.UID] = std::make_unique<ClientMonster>(smCOR.UID, this, smCOR.action);
+                            if(DBCOM_MONSTERRECORD(monID).guard){
+                                m_coList[smCOR.UID] = std::make_unique<ClientGuard>(smCOR.UID, this, smCOR.action);
+                            }
+                            else{
+                                m_coList[smCOR.UID] = std::make_unique<ClientMonster>(smCOR.UID, this, smCOR.action);
+                            }
                             break;
                         }
                 }
