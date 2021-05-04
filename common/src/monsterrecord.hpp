@@ -28,6 +28,7 @@ struct MonsterRecord
     const int level  = 0;
     const int lookID = 0;
 
+    const int guard       = 0;
     const int undead      = 0;
     const int tamable     = 0;
     const int coolEye     = 0;
