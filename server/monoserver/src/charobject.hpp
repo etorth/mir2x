@@ -235,9 +235,6 @@ class CharObject: public ServerObject
         virtual int Speed(int) const;
 
     protected:
-        virtual bool canMove();
-
-    protected:
         void getCOLocation(uint64_t, std::function<void(const COLocation &)>, std::function<void()> = []{});
 
     protected:
@@ -280,7 +277,8 @@ class CharObject: public ServerObject
         void dispatchOffenderExp();
 
     protected:
-        virtual bool CanAct();
+        virtual bool canAct();
+        virtual bool canMove();
         virtual bool canAttack();
 
     protected:

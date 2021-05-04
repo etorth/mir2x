@@ -732,12 +732,7 @@ bool CharObject::requestMapSwitch(uint32_t argMapID, int locX, int locY, bool st
     });
 }
 
-bool CharObject::canMove()
-{
-    return !(m_dead.get() || m_moveLock);
-}
-
-bool CharObject::CanAct()
+bool CharObject::canAct()
 {
     switch(m_lastAction){
         case ACTION_SPAWN:
@@ -777,6 +772,11 @@ bool CharObject::CanAct()
             }
     }
     return true;
+}
+
+bool CharObject::canMove()
+{
+    return !(m_dead.get() || m_moveLock);
 }
 
 bool CharObject::canAttack()

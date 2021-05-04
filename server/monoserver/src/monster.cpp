@@ -728,7 +728,7 @@ DamageNode Monster::GetAttackDamage(int nDC)
 
 bool Monster::canMove()
 {
-    if(CharObject::canMove() && CanAct()){
+    if(CharObject::canMove() && canAct()){
         return g_monoServer->getCurrTick() >= m_lastMoveTime + getMR().walkWait;
     }
     return false;
@@ -745,7 +745,7 @@ bool Monster::canMove()
 
 bool Monster::canAttack()
 {
-    if(!CanAct()){
+    if(!canAct()){
         return false;
     }
 
