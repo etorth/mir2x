@@ -314,12 +314,16 @@ void Monster::attackUID(uint64_t nUID, int nDC, std::function<void()> onOK, std:
         }
     },
 
-    [this, nUID]()
+    [this, nUID, onError]()
     {
         m_attackLock = false;
 
         removeTarget(nUID);
         RemoveInViewCO(nUID);
+
+        if(onError){
+            onError();
+        }
     });
 }
 

@@ -235,22 +235,22 @@ void CharObject::dispatchAction(uint64_t uid, const ActionNode &action)
     m_actorPod->forward(uid, {AM_ACTION, amA});
 }
 
-bool CharObject::requestJump(int nX, int nY, int nDirection, std::function<void()> fnOnOK, std::function<void()> fnOnError)
+bool CharObject::requestJump(int nX, int nY, int nDirection, std::function<void()> onOK, std::function<void()> onError)
 {
     if(!m_map->groundValid(nX, nY)){
         throw fflerror("invalid destination: (mapID = %lld, x = %d, y = %d)", to_lld(mapID()), nX, nY);
     }
 
     if(X() == nX && Y() == nY){
-        if(fnOnError){
-            fnOnError();
+        if(onError){
+            onError();
         }
         return false;
     }
 
     if(!canMove()){
-        if(fnOnError){
-            fnOnError();
+        if(onError){
+            onError();
         }
         return false;
     }
@@ -264,7 +264,7 @@ bool CharObject::requestJump(int nX, int nY, int nDirection, std::function<void(
     amTJ.EndY = nY;
 
     m_moveLock = true;
-    return m_actorPod->forward(mapUID(), {AM_TRYJUMP, amTJ}, [this, nX, nY, nDirection, fnOnOK, fnOnError](const ActorMsgPack &rmpk)
+    return m_actorPod->forward(mapUID(), {AM_TRYJUMP, amTJ}, [this, nX, nY, nDirection, onOK, onError](const ActorMsgPack &rmpk)
     {
         fflassert(m_moveLock);
         m_moveLock = false;
@@ -277,8 +277,8 @@ bool CharObject::requestJump(int nX, int nY, int nDirection, std::function<void(
                 {
                     if(!canMove()){
                         m_actorPod->forward(rmpk.from(), AM_ERROR, rmpk.seqID());
-                        if(fnOnError){
-                            fnOnError();
+                        if(onError){
+                            onError();
                         }
                         return;
                     }
@@ -307,15 +307,15 @@ bool CharObject::requestJump(int nX, int nY, int nDirection, std::function<void(
                     });
                     SortInViewCO();
 
-                    if(fnOnOK){
-                        fnOnOK();
+                    if(onOK){
+                        onOK();
                     }
                     return;
                 }
             default:
                 {
-                    if(fnOnError){
-                        fnOnError();
+                    if(onError){
+                        onError();
                     }
                     return;
                 }
@@ -323,22 +323,22 @@ bool CharObject::requestJump(int nX, int nY, int nDirection, std::function<void(
     });
 }
 
-bool CharObject::requestMove(int nX, int nY, int nSpeed, bool allowHalfMove, bool removeMonster, std::function<void()> fnOnOK, std::function<void()> fnOnError)
+bool CharObject::requestMove(int nX, int nY, int nSpeed, bool allowHalfMove, bool removeMonster, std::function<void()> onOK, std::function<void()> onError)
 {
     if(!m_map->groundValid(nX, nY)){
         throw fflerror("invalid destination: (mapID = %lld, x = %d, y = %d)", to_lld(mapID()), nX, nY);
     }
 
     if(!canMove()){
-        if(fnOnError){
-            fnOnError();
+        if(onError){
+            onError();
         }
         return false;
     }
 
     if(estimateHop(nX, nY) != 1){
-        if(fnOnError){
-            fnOnError();
+        if(onError){
+            onError();
         }
         return false;
     }
@@ -359,8 +359,8 @@ bool CharObject::requestMove(int nX, int nY, int nSpeed, bool allowHalfMove, boo
                     case PathFind::OCCUPIED:
                     default:
                         {
-                            if(fnOnError){
-                                fnOnError();
+                            if(onError){
+                                onError();
                             }
                             return false;
                         }
@@ -380,8 +380,8 @@ bool CharObject::requestMove(int nX, int nY, int nSpeed, bool allowHalfMove, boo
 
                 if(OneStepCost(nullptr, 2, nXm, nYm, nX, nY) < 0.00){
                     if(!allowHalfMove){
-                        if(fnOnError){
-                            fnOnError();
+                        if(onError){
+                            onError();
                         }
                         return false;
                     }
@@ -403,7 +403,7 @@ bool CharObject::requestMove(int nX, int nY, int nSpeed, bool allowHalfMove, boo
     amTM.RemoveMonster = removeMonster;
 
     m_moveLock = true;
-    return m_actorPod->forward(mapUID(), {AM_TRYMOVE, amTM}, [this, nX, nY, nSpeed, fnOnOK, fnOnError](const ActorMsgPack &rmpk)
+    return m_actorPod->forward(mapUID(), {AM_TRYMOVE, amTM}, [this, nX, nY, nSpeed, onOK, onError](const ActorMsgPack &rmpk)
     {
         fflassert(m_moveLock);
         m_moveLock = false;
@@ -424,8 +424,8 @@ bool CharObject::requestMove(int nX, int nY, int nSpeed, bool allowHalfMove, boo
 
                     if(!canMove()){
                         m_actorPod->forward(rmpk.from(), AM_ERROR, rmpk.seqID());
-                        if(fnOnError){
-                            fnOnError();
+                        if(onError){
+                            onError();
                         }
                         return;
                     }
@@ -451,15 +451,15 @@ bool CharObject::requestMove(int nX, int nY, int nSpeed, bool allowHalfMove, boo
                     });
                     SortInViewCO();
 
-                    if(fnOnOK){
-                        fnOnOK();
+                    if(onOK){
+                        onOK();
                     }
                     return;
                 }
             default:
                 {
-                    if(fnOnError){
-                        fnOnError();
+                    if(onError){
+                        onError();
                     }
                     return;
                 }
@@ -467,7 +467,7 @@ bool CharObject::requestMove(int nX, int nY, int nSpeed, bool allowHalfMove, boo
     });
 }
 
-bool CharObject::requestSpaceMove(int locX, int locY, bool strictMove, std::function<void()> fnOnOK, std::function<void()> fnOnError)
+bool CharObject::requestSpaceMove(int locX, int locY, bool strictMove, std::function<void()> onOK, std::function<void()> onError)
 {
     if(strictMove){
         if(!m_map->groundValid(locX, locY)){
@@ -481,8 +481,8 @@ bool CharObject::requestSpaceMove(int locX, int locY, bool strictMove, std::func
     }
 
     if(!canMove()){
-        if(fnOnError){
-            fnOnError();
+        if(onError){
+            onError();
         }
         return false;
     }
@@ -497,7 +497,7 @@ bool CharObject::requestSpaceMove(int locX, int locY, bool strictMove, std::func
     amTSM.StrictMove = strictMove;
 
     m_moveLock = true;
-    return m_actorPod->forward(mapUID(), {AM_TRYSPACEMOVE, amTSM}, [this, fnOnOK, fnOnError](const ActorMsgPack &rmpk)
+    return m_actorPod->forward(mapUID(), {AM_TRYSPACEMOVE, amTSM}, [this, onOK, onError](const ActorMsgPack &rmpk)
     {
         fflassert(m_moveLock);
         m_moveLock = false;
@@ -510,8 +510,8 @@ bool CharObject::requestSpaceMove(int locX, int locY, bool strictMove, std::func
                 {
                     if(!canMove()){
                         m_actorPod->forward(rmpk.from(), AM_ERROR, rmpk.seqID());
-                        if(fnOnError){
-                            fnOnError();
+                        if(onError){
+                            onError();
                         }
                         return;
                     }
@@ -550,15 +550,15 @@ bool CharObject::requestSpaceMove(int locX, int locY, bool strictMove, std::func
                         dynamic_cast<Player *>(this)->PullRectCO(10, 10);
                     }
 
-                    if(fnOnOK){
-                        fnOnOK();
+                    if(onOK){
+                        onOK();
                     }
                     break;
                 }
             default:
                 {
-                    if(fnOnError){
-                        fnOnError();
+                    if(onError){
+                        onError();
                     }
                     break;
                 }
@@ -566,7 +566,7 @@ bool CharObject::requestSpaceMove(int locX, int locY, bool strictMove, std::func
     });
 }
 
-bool CharObject::requestMapSwitch(uint32_t argMapID, int locX, int locY, bool strictMove, std::function<void()> fnOnOK, std::function<void()> fnOnError)
+bool CharObject::requestMapSwitch(uint32_t argMapID, int locX, int locY, bool strictMove, std::function<void()> onOK, std::function<void()> onError)
 {
     if(argMapID == mapID()){
         throw fflerror("request to switch on same map: mapID = %llu", to_llu(argMapID));
@@ -577,8 +577,8 @@ bool CharObject::requestMapSwitch(uint32_t argMapID, int locX, int locY, bool st
     }
 
     if(!canMove()){
-        if(fnOnError){
-            fnOnError();
+        if(onError){
+            onError();
         }
         return false;
     }
@@ -587,7 +587,7 @@ bool CharObject::requestMapSwitch(uint32_t argMapID, int locX, int locY, bool st
     std::memset(&amQMUID, 0, sizeof(amQMUID));
 
     amQMUID.mapID = argMapID;
-    return m_actorPod->forward(uidf::getServiceCoreUID(), {AM_QUERYMAPUID, amQMUID}, [locX, locY, strictMove, fnOnOK, fnOnError, this](const ActorMsgPack &mpk)
+    return m_actorPod->forward(uidf::getServiceCoreUID(), {AM_QUERYMAPUID, amQMUID}, [locX, locY, strictMove, onOK, onError, this](const ActorMsgPack &mpk)
     {
         switch(mpk.type()){
             case AM_UID:
@@ -603,7 +603,7 @@ bool CharObject::requestMapSwitch(uint32_t argMapID, int locX, int locY, bool st
                     // if request rejected then it stays in current map
 
                     m_moveLock = true;
-                    m_actorPod->forward(mpk.conv<AMUID>().UID, {AM_TRYMAPSWITCH, amTMS}, [mpk, fnOnOK, fnOnError, this](const ActorMsgPack &rmpk)
+                    m_actorPod->forward(mpk.conv<AMUID>().UID, {AM_TRYMAPSWITCH, amTMS}, [mpk, onOK, onError, this](const ActorMsgPack &rmpk)
                     {
                         fflassert(m_moveLock);
                         m_moveLock = false;
@@ -616,8 +616,8 @@ bool CharObject::requestMapSwitch(uint32_t argMapID, int locX, int locY, bool st
 
                                     if(!canMove()){
                                         m_actorPod->forward(rmpk.from(), AM_ERROR, rmpk.seqID());
-                                        if(fnOnError){
-                                            fnOnError();
+                                        if(onError){
+                                            onError();
                                         }
                                         return;
                                     }
@@ -631,11 +631,11 @@ bool CharObject::requestMapSwitch(uint32_t argMapID, int locX, int locY, bool st
                                               && newMapPtr->validC(amMSOK.X, amMSOK.Y))){
 
                                         // fake map
-                                        // invalid argument, this is not good place to call fnOnError()
+                                        // invalid argument, this is not good place to call onError()
 
                                         m_actorPod->forward(rmpk.from(), AM_ERROR, rmpk.seqID());
-                                        if(fnOnError){
-                                            fnOnError();
+                                        if(onError){
+                                            onError();
                                         }
                                         return;
                                     }
@@ -650,7 +650,7 @@ bool CharObject::requestMapSwitch(uint32_t argMapID, int locX, int locY, bool st
                                     // dangerous here, we should keep m_map always valid
 
                                     m_moveLock = true;
-                                    m_actorPod->forward(m_map->UID(), {AM_TRYLEAVE, amTL}, [this, amMSOK, rmpk, fnOnOK, fnOnError](const ActorMsgPack &leavermpk)
+                                    m_actorPod->forward(m_map->UID(), {AM_TRYLEAVE, amTL}, [this, amMSOK, rmpk, onOK, onError](const ActorMsgPack &leavermpk)
                                     {
                                         fflassert(m_moveLock);
                                         m_moveLock = false;
@@ -661,8 +661,8 @@ bool CharObject::requestMapSwitch(uint32_t argMapID, int locX, int locY, bool st
                                                     const auto amMSOK = rmpk.conv<AMMapSwitchOK>();
                                                     if(!canMove()){
                                                         m_actorPod->forward(rmpk.from(), AM_ERROR, rmpk.seqID());
-                                                        if(fnOnError){
-                                                            fnOnError();
+                                                        if(onError){
+                                                            onError();
                                                         }
                                                         return;
                                                     }
@@ -686,8 +686,8 @@ bool CharObject::requestMapSwitch(uint32_t argMapID, int locX, int locY, bool st
                                                         dynamic_cast<Player *>(this)->PullRectCO(10, 10);
                                                     }
 
-                                                    if(fnOnOK){
-                                                        fnOnOK();
+                                                    if(onOK){
+                                                        onOK();
                                                     }
                                                     return;
                                                 }
@@ -699,8 +699,8 @@ bool CharObject::requestMapSwitch(uint32_t argMapID, int locX, int locY, bool st
                                                     // if an UID can't move
                                                     // then we shouldn't call this function
                                                     m_actorPod->forward(((ServerMap *)(amMSOK.Ptr))->UID(), AM_ERROR, rmpk.seqID());
-                                                    if(fnOnError){
-                                                        fnOnError();
+                                                    if(onError){
+                                                        onError();
                                                     }
                                                     return;
                                                 }
@@ -712,8 +712,8 @@ bool CharObject::requestMapSwitch(uint32_t argMapID, int locX, int locY, bool st
                                 {
                                     // do nothing
                                     // new map reject this switch request
-                                    if(fnOnError){
-                                        fnOnError();
+                                    if(onError){
+                                        onError();
                                     }
                                     return;
                                 }
@@ -723,8 +723,8 @@ bool CharObject::requestMapSwitch(uint32_t argMapID, int locX, int locY, bool st
                 }
             default:
                 {
-                    if(fnOnError){
-                        fnOnError();
+                    if(onError){
+                        onError();
                     }
                     return;
                 }
@@ -784,7 +784,7 @@ bool CharObject::canAttack() const
     return canAct() && !m_attackLock;
 }
 
-void CharObject::getCOLocation(uint64_t nUID, std::function<void(const COLocation &)> fnOnOK, std::function<void()> fnOnError)
+void CharObject::getCOLocation(uint64_t nUID, std::function<void(const COLocation &)> onOK, std::function<void()> onError)
 {
     if(!nUID){
         throw fflerror("query location with zero UID");
@@ -798,7 +798,7 @@ void CharObject::getCOLocation(uint64_t nUID, std::function<void(const COLocatio
     // always trust the InViewCOList, can even skip the expiration now
 
     if(auto p = getInViewCOPtr(nUID); p && g_monoServer->getCurrTick() <= p->tstamp + 2 * 1000){
-        fnOnOK(*p);
+        onOK(*p);
         return;
     }
 
@@ -811,7 +811,7 @@ void CharObject::getCOLocation(uint64_t nUID, std::function<void(const COLocatio
     amQL.UID   = UID();
     amQL.mapID = mapID();
 
-    m_actorPod->forward(nUID, {AM_QUERYLOCATION, amQL}, [this, nUID, fnOnOK, fnOnError](const ActorMsgPack &rstRMPK)
+    m_actorPod->forward(nUID, {AM_QUERYLOCATION, amQL}, [this, nUID, onOK, onError](const ActorMsgPack &rstRMPK)
     {
         switch(rstRMPK.type()){
             case AM_LOCATION:
@@ -839,7 +839,7 @@ void CharObject::getCOLocation(uint64_t nUID, std::function<void(const COLocatio
                         RemoveInViewCO(nUID);
                     }
 
-                    fnOnOK(stCOLoccation);
+                    onOK(stCOLoccation);
                     return;
                 }
             default:
@@ -853,7 +853,7 @@ void CharObject::getCOLocation(uint64_t nUID, std::function<void(const COLocatio
                         dynamic_cast<Monster *>(this)->removeTarget(nUID);
                     }
 
-                    fnOnError();
+                    onError();
                     return;
                 }
         }
