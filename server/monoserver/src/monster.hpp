@@ -68,9 +68,6 @@ class Monster: public CharObject
         uint64_t m_masterUID;
 
     protected:
-        const MonsterRecord &m_monsterRecord;
-
-    protected:
         AStarCache m_AStarCache;
 
     protected:
@@ -237,21 +234,27 @@ class Monster: public CharObject
         static bool isPet(uint64_t);
         static bool isGuard(uint64_t);
 
+    public:
+        const auto &getMR() const
+        {
+            return DBCOM_MONSTERRECORD(uidf::getMonsterID(UID()));
+        }
+
     private:
         int walkWait() const
         {
-            return DBCOM_MONSTERRECORD(monsterID()).walkWait;
+            return getMR().walkWait;
         }
 
         int attackWait() const
         {
-            return DBCOM_MONSTERRECORD(monsterID()).walkWait;
+            return getMR().walkWait;
         }
 
     public:
         std::u8string_view monsterName() const
         {
-            return DBCOM_MONSTERRECORD(monsterID()).name;
+            return getMR().name;
         }
 
     public:

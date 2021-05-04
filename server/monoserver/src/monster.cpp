@@ -106,16 +106,15 @@ Monster::Monster(uint32_t monID,
         uint64_t          masterUID)
     : CharObject(mapCPtr, uidf::buildMonsterUID(monID), mapX, mapY, direction)
     , m_masterUID(masterUID)
-    , m_monsterRecord(DBCOM_MONSTERRECORD(monID))
 {
-    if(!m_monsterRecord){
+    if(!getMR()){
         throw fflerror("invalid monster record: MonsterID = %llu", to_llu(monsterID()));
     }
 
-    m_HP    = m_monsterRecord.HP;
-    m_HPMax = m_monsterRecord.HP;
-    m_MP    = m_monsterRecord.MP;
-    m_MPMax = m_monsterRecord.MP;
+    m_HP    = getMR().HP;
+    m_HPMax = getMR().HP;
+    m_MP    = getMR().MP;
+    m_MPMax = getMR().MP;
 }
 
 bool Monster::randomMove()
@@ -714,11 +713,11 @@ DamageNode Monster::GetAttackDamage(int nDC)
     switch(nDC){
         case DC_PHY_PLAIN:
             {
-                return {UID(), nDC, m_monsterRecord.DC + std::rand() % (1 + (std::max<int>)(m_monsterRecord.DCMax - m_monsterRecord.DC, 0)), EC_NONE};
+                return {UID(), nDC, getMR().DC + std::rand() % (1 + (std::max<int>)(getMR().DCMax - getMR().DC, 0)), EC_NONE};
             }
         case DC_MAG_FIRE:
             {
-                return {UID(), nDC, m_monsterRecord.MDC + std::rand() % (1 + (std::max<int>)(m_monsterRecord.MDCMax - m_monsterRecord.MDC, 0)), EC_FIRE};
+                return {UID(), nDC, getMR().MDC + std::rand() % (1 + (std::max<int>)(getMR().MDCMax - getMR().MDC, 0)), EC_FIRE};
             }
         default:
             {
@@ -730,7 +729,7 @@ DamageNode Monster::GetAttackDamage(int nDC)
 bool Monster::canMove()
 {
     if(CharObject::canMove() && CanAct()){
-        return g_monoServer->getCurrTick() >= m_lastMoveTime + m_monsterRecord.walkWait;
+        return g_monoServer->getCurrTick() >= m_lastMoveTime + getMR().walkWait;
     }
     return false;
 }
@@ -760,7 +759,7 @@ bool Monster::canAttack()
         return false;
     }
 
-    return nCurrTick >= m_lastAttackTime + m_monsterRecord.attackWait;
+    return nCurrTick >= m_lastAttackTime + getMR().attackWait;
 }
 
 bool Monster::DCValid(int nDC, bool bCheck)
