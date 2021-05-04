@@ -18,7 +18,7 @@
 -- provides the table: processNPCEvent for event processing
 
 addLog(LOGTYPE_INFO, 'NPC %s sources %s', getNPCFullName(), getFileName())
-setNPCLook(5)
+setNPCLook(12)
 setNPCGLoc(20, 40)
 
 processNPCEvent = {}
