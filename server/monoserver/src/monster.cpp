@@ -506,7 +506,7 @@ void Monster::trackAttackUID(uint64_t nTargetUID, std::function<void()> onOK, st
 corof::long_jmper Monster::updateCoroFunc()
 {
     while(HP() > 0){
-        if(const uint64_t targetUID = co_await coro_getProperTarget()){
+        if(const uint64_t targetUID = co_await coro_pickTarget()){
             co_await coro_trackAttackUID(targetUID);
         }
 
@@ -1182,7 +1182,7 @@ void Monster::SearchNearestTarget(std::function<void(uint64_t)> fnTarget)
     RecursiveCheckInViewTarget(0, fnTarget);
 }
 
-void Monster::getProperTarget(std::function<void(uint64_t)> fnTarget)
+void Monster::pickTarget(std::function<void(uint64_t)> fnTarget)
 {
     if(m_target.UID && m_target.activeTimer.diff_sec() < 60){
         checkFriend(m_target.UID, [targetUID = m_target.UID, fnTarget, this](int nFriendType)

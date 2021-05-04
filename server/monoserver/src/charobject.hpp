@@ -23,6 +23,7 @@
 #include <vector>
 
 #include "totype.hpp"
+#include "corof.hpp"
 #include "fflerror.hpp"
 #include "servermap.hpp"
 #include "damagenode.hpp"
@@ -385,4 +386,7 @@ class CharObject: public ServerObject
 
     protected:
         ActionNode makeActionStand() const;
+
+    protected:
+        corof::long_jmper::eval_op<std::tuple<uint32_t, int, int>> coro_getCOPLoc(uint64_t);
 };

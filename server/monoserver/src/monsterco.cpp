@@ -84,12 +84,12 @@ corof::long_jmper::eval_op<bool> Monster::coro_moveForward()
     return fnwait(this).eval<bool>();
 }
 
-corof::long_jmper::eval_op<uint64_t> Monster::coro_getProperTarget()
+corof::long_jmper::eval_op<uint64_t> Monster::coro_pickTarget()
 {
     const auto fnwait = +[](Monster *p) -> corof::long_jmper
     {
         corof::async_variable<uint64_t> targetUID;
-        p->getProperTarget([&targetUID](uint64_t uid){ targetUID.assign(uid); });
+        p->pickTarget([&targetUID](uint64_t uid){ targetUID.assign(uid); });
         const auto result = co_await targetUID;
         co_return result;
     };
@@ -168,36 +168,4 @@ corof::long_jmper::eval_op<bool> Monster::coro_jumpAttackUID(uint64_t targetUID)
         }
     };
     return fnwait(this, targetUID).eval<bool>();
-}
-
-corof::long_jmper::eval_op<std::tuple<uint32_t, int, int>> Monster::coro_getUIDPLoc(uint64_t targetUID)
-{
-    const auto fnwait = +[](Monster *p, uint64_t targetUID) -> corof::long_jmper
-    {
-        int x = -1;
-        int y = -1;
-        uint32_t mapID = 0;
-        corof::async_variable<bool> done;
-
-        p->getCOLocation(targetUID, [&x, &y, &mapID, &done](const COLocation &coLoc)
-        {
-            x = coLoc.x;
-            y = coLoc.y;
-            mapID = coLoc.mapID;
-            done.assign(true);
-        },
-
-        [&done]
-        {
-            done.assign(false);
-        });
-
-        if(co_await done){
-            co_return std::tuple<uint32_t, int, int>(mapID, x, y);
-        }
-        else{
-            co_return std::tuple<uint32_t, int, int>(0, -1, -1);
-        }
-    };
-    return fnwait(this, targetUID).eval<std::tuple<uint32_t, int, int>>();
 }

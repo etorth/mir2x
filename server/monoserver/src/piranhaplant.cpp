@@ -22,8 +22,8 @@
 corof::long_jmper PiranhaPlant::updateCoroFunc()
 {
     while(HP() > 0){
-        if(const uint64_t targetUID = co_await coro_getProperTarget()){
-            const auto [targetMapID, targetX, targetY] = co_await coro_getUIDPLoc(targetUID);
+        if(const uint64_t targetUID = co_await coro_pickTarget()){
+            const auto [targetMapID, targetX, targetY] = co_await coro_getCOPLoc(targetUID);
             if(mapID() == targetMapID && mathf::CDistance<int>(targetX, targetY, X(), Y()) <= 1){
                 co_await coro_attackUID(targetUID, DC_PHY_PLAIN);
             }
