@@ -32,7 +32,7 @@ corof::long_jmper Guard::updateCoroFunc()
         if(const uint64_t targetUID = co_await coro_pickTarget()){
             const auto [targetMapID, targetX, targetY] = co_await coro_getCOPLoc(targetUID);
             if(mapID() == targetMapID){
-                if(mathf::CDistance<int>(targetX, targetY, X(), Y()) <= 1){
+                if(mathf::CDistance<int>(targetX, targetY, X(), Y()) == 1){
                     co_await coro_attackUID(targetUID, DC_PHY_PLAIN);
                 }
                 else{

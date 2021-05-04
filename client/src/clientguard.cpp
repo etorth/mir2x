@@ -51,7 +51,8 @@ bool ClientGuard::parseAction(const ActionNode &action)
                     {
                         if(coPtr){
                             const auto [aimX, aimY] = coPtr->location();
-                            return PathFind::GetDirection(action.x, action.y, aimX, aimY);
+                            const auto newDir = PathFind::GetDirection(action.x, action.y, aimX, aimY); // can return DIR_NONE
+                            return directionValid(newDir) ? newDir : oldDir;
                         }
                         else{
                             return oldDir;
