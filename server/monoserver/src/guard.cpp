@@ -58,10 +58,26 @@ void Guard::checkFriend(uint64_t uid, std::function<void(int)> fnOp)
         throw fflerror("check friend type to self");
     }
 
-    if((uidf::getUIDType(uid) == UID_MON) && (monsterID() != uidf::getMonsterID(uid))){
-        fnOp(FT_ENEMY);
-    }
-    else{
-        fnOp(FT_NEUTRAL);
+    switch(uidf::getUIDType(uid)){
+        case UID_MON:
+            {
+                if(DBCOM_MONSTERRECORD(uidf::getMonsterID(uid)).guard){
+                    fnOp(FT_FRIEND);
+                }
+                else{
+                    fnOp(FT_ENEMY);
+                }
+                return;
+            }
+        case UID_PLY:
+            {
+                fnOp(FT_NEUTRAL);
+                return;
+            }
+        default:
+            {
+                fnOp(FT_FRIEND);
+                return;
+            }
     }
 }
