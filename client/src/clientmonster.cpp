@@ -277,7 +277,15 @@ void ClientMonster::draw(int viewX, int viewY, int focusMask)
     const int startX = currMotion()->x * SYS_MAPGRIDXP + shiftX - viewX;
     const int startY = currMotion()->y * SYS_MAPGRIDYP + shiftY - viewY;
 
-    fnBlendFrame(pFrame1, 0, startX + nDX1, startY + nDY1);
+    // TODO some monter doesn't need to draw seperate shadow texture
+    //      the body frame itself has shadow effect, i.e. 洞穴蜈蚣, later should remove the synthesized shadow texture
+
+    if(isMonster(u8"洞穴蜈蚣")){
+        // sikp shadow
+    }
+    else{
+        fnBlendFrame(pFrame1, 0, startX + nDX1, startY + nDY1);
+    }
     fnBlendFrame(pFrame0, 0, startX + nDX0, startY + nDY0);
 
     if(g_clientArgParser->drawTextureAlignLine){
