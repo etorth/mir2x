@@ -96,6 +96,7 @@ class ClientTaoDog: public ClientMonster
         }
 
     protected:
+        bool onActionStand (const ActionNode &) override;
         bool onActionSpawn (const ActionNode &) override;
         bool onActionTransf(const ActionNode &) override;
         bool onActionAttack(const ActionNode &) override;

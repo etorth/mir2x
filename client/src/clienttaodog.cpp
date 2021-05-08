@@ -90,9 +90,25 @@ ClientTaoDog::ClientTaoDog(uint64_t uid, ProcessRun *proc, const ActionNode &act
                 m_standMode = true;
                 break;
             }
+        case ACTION_SPACEMOVE1:
+        case ACTION_SPACEMOVE2:
+            {
+                m_currMotion.reset(new MotionNode
+                {
+                    .type = MOTION_MON_STAND,
+                    .direction = directionValid(action.direction) ? to_d(action.direction) : DIR_UP,
+                    .x = action.x,
+                    .y = action.y,
+                });
+
+                // TODO use crowling state
+                //      server is supposed to send an ACTION_STAND immediately to fix the standMode
+                m_standMode = false;
+                break;
+            }
         default:
             {
-                throw bad_reach();
+                throw fflerror("Taodog get invalid initial action: %s", actionName(action.type));
             }
     }
 }
@@ -113,6 +129,14 @@ void ClientTaoDog::addActionTransf()
         m_standMode = !m_standMode;
         return true;
     });
+}
+
+bool ClientTaoDog::onActionStand(const ActionNode &action)
+{
+    if(finalStandMode() != action.extParam.stand.dog.standMode){
+        addActionTransf();
+    }
+    return ClientMonster::onActionStand(action);
 }
 
 bool ClientTaoDog::onActionSpawn(const ActionNode &action)
