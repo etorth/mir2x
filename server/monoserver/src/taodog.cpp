@@ -75,8 +75,11 @@ void TaoDog::onAMAttack(const ActorMsgPack &mpk)
             }
         }
 
-        setStandMode(true);
-        addOffenderDamage(amAK.UID, amAK.Damage);
+        if(amAK.UID != masterUID()){
+            setStandMode(true);
+            addOffenderDamage(amAK.UID, amAK.Damage);
+        }
+
         dispatchAction(ActionHitted
         {
             .x = X(),
