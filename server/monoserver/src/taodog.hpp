@@ -67,7 +67,7 @@ class TaoDog final: public Monster
             {
                 .x = X(),
                 .y = Y(),
-                .direction = DIR_BEGIN,
+                .direction = Direction(),
                 .extParam
                 {
                     .dog
@@ -84,14 +84,6 @@ class TaoDog final: public Monster
             setStandMode(true);
         }
 
-        void onAMAttack(const ActorMsgPack &mpk) override
-        {
-            if(m_dead.get()){
-                notifyDead(mpk.from());
-            }
-            else{
-                setStandMode(true);
-                Monster::onAMAttack(mpk);
-            }
-        }
+    protected:
+        void onAMAttack(const ActorMsgPack &) override;
 };

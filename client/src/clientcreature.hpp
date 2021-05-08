@@ -38,6 +38,22 @@
 #include "protocoldef.hpp"
 #include "attachmagic.hpp"
 
+struct MonsterGfxSeq final
+{
+    const int lookID = 0;              // used for lookID recirect
+    const int motionGfx = MOTION_NONE; // used for gfx    redirect
+    const int direction =    DIR_NONE;
+
+    const int  begin = 0;
+    const int  count = 0;
+    const bool reverse = false;
+
+    operator bool() const
+    {
+        return begin >= 0 && count > 0;
+    }
+};
+
 struct FrameSeq final
 {
     const int  begin = 0;

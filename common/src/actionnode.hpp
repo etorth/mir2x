@@ -134,6 +134,19 @@ struct ActionNode
         uint32_t damageID;
     };
 
+    struct ExtParamHitted
+    {
+        struct DogHitted
+        {
+            uint8_t standMode;
+        };
+
+        union
+        {
+            DogHitted dog;
+        };
+    };
+
     union ActionExtParam // prefer named union than anoynmous union
     {
         ExtParamStand  stand;
@@ -142,6 +155,7 @@ struct ActionNode
         ExtParamSpell  spell;
         ExtParamMove   move;
         ExtParamAttack attack;
+        ExtParamHitted hitted;
     } extParam;
 };
 #pragma pack(pop)
@@ -394,6 +408,7 @@ struct ActionHitted
     const int x = -1;
     const int y = -1;
     const int direction = DIR_NONE;
+    const ActionNode::ExtParamHitted extParam = {};
 
     operator ActionNode () const
     {
@@ -406,6 +421,7 @@ struct ActionHitted
         node.y = y;
         node.direction = direction;
 
+        node.extParam.hitted = extParam;
         return node;
     }
 };

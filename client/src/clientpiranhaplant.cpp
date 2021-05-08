@@ -95,7 +95,7 @@ bool ClientPiranhaPlant::finalStandMode() const
     // if current status is MOTION_MON_APPEAR then the m_standMode has already changed
     //
     // the general rule is: we use end frame status as current status
-    // i.e. there is a flower bloom animation, then the m_currMotion->type for this animation is "BLOOMED"
+    // i.e. there is a flower bloom animation, then the m_currMotion->type for this whole animation is "BLOOMED"
 
     // if(m_currMotion->motion == MOTION_MON_APPEAR){
     //     countTransf++;

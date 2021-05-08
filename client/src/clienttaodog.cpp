@@ -51,6 +51,19 @@ ClientTaoDog::ClientTaoDog(uint64_t uid, ProcessRun *proc, const ActionNode &act
                 m_standMode = action.extParam.stand.dog.standMode;
                 break;
             }
+        case ACTION_HITTED:
+            {
+                m_currMotion.reset(new MotionNode
+                {
+                    .type = MOTION_MON_HITTED,
+                    .direction = directionValid(action.direction) ? to_d(action.direction) : DIR_UP,
+                    .x = action.x,
+                    .y = action.y,
+                });
+
+                m_standMode = action.extParam.hitted.dog.standMode;
+                break;
+            }
         case ACTION_DIE:
             {
                 m_currMotion.reset(new MotionNode
@@ -68,13 +81,13 @@ ClientTaoDog::ClientTaoDog(uint64_t uid, ProcessRun *proc, const ActionNode &act
             {
                 m_currMotion.reset(new MotionNode
                 {
-                    .type = MOTION_MON_DIE,
+                    .type = MOTION_MON_ATTACK0,
                     .direction = m_processRun->getAimDirection(action, DIR_UP),
                     .x = action.x,
                     .y = action.y,
                 });
 
-                m_standMode = action.extParam.die.dog.standMode;
+                m_standMode = true;
                 break;
             }
         default:
@@ -84,116 +97,95 @@ ClientTaoDog::ClientTaoDog(uint64_t uid, ProcessRun *proc, const ActionNode &act
     }
 }
 
-void ClientTaoDog::addActionTransf(bool /* standMode */)
+void ClientTaoDog::addActionTransf()
 {
-    const auto [x, y, dir] = motionEndPLoc(END_CURRENT);
-    m_forceMotionQueue.push_front(std::unique_ptr<MotionNode>(new MotionNode
+    const auto [endX, endY, endDir] = motionEndPLoc(END_FORCED);
+    m_forceMotionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
     {
-        .type = MOTION_MON_APPEAR,
-        .direction = dir,
-        .x = x,
-        .y = y,
+        .type = MOTION_MON_SPECIAL,
+        .direction = endDir,
+        .x = endX,
+        .y = endY,
     }));
 
-    m_forceMotionQueue.front()->addUpdate(true, [this](MotionNode *) -> bool
+    m_forceMotionQueue.back()->addUpdate(true, [this](MotionNode *) -> bool
     {
-        m_standMode = true;
+        m_standMode = !m_standMode;
         return true;
     });
 }
 
 bool ClientTaoDog::onActionSpawn(const ActionNode &action)
 {
-    if(!m_forceMotionQueue.empty()){
-        throw fflerror("found motion before spawn: %s", uidf::getUIDString(UID()).c_str());
-    }
-
+    fflassert(m_forceMotionQueue.empty());
     m_currMotion.reset(new MotionNode
     {
         .type = MOTION_MON_APPEAR,
-        .direction = [&action]() -> int
-        {
-            if(directionValid(action.direction)){
-                return action.direction;
-            }
-            return DIR_UP;
-        }(),
-
+        .direction = directionValid(action.direction) ? to_d(action.direction) : DIR_UP,
         .x = action.x,
         .y = action.y,
     });
+
+    m_standMode = false;
     return true;
 }
 
 bool ClientTaoDog::onActionTransf(const ActionNode &action)
 {
     const auto standReq = (bool)(action.extParam.transf.dog.standModeReq);
-    if(m_standMode == standReq){
-        return true;
+    if(finalStandMode() != standReq){
+        addActionTransf();
     }
-
-    // change shape immediately
-    // don't wait otherwise there may has transf in the forced motion queue
-
-    addActionTransf(m_standMode);
     return true;
 }
 
 bool ClientTaoDog::onActionAttack(const ActionNode &action)
 {
-    if(!m_standMode){
-        bool hasTransf = false;
-        for(const auto &motionPtr: m_forceMotionQueue){
-            if(motionPtr->type == MOTION_MON_APPEAR){
-                hasTransf = true;
-            }
-        }
-
-        if(!hasTransf){
-            addActionTransf(true);
-        }
+    if(!finalStandMode()){
+        addActionTransf();
     }
 
     const auto [endX, endY, endDir] = motionEndPLoc(END_FORCED);
     m_motionQueue = makeWalkMotionQueue(endX, endY, action.x, action.y, SYS_MAXSPEED);
-    if(auto coPtr = m_processRun->findUID(action.aimUID)){
-        m_motionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
+    m_motionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
+    {
+        .type = MOTION_MON_ATTACK0,
+        .direction = m_processRun->getAimDirection(action, endDir),
+        .x = action.x,
+        .y = action.y,
+    }));
+
+    m_motionQueue.back()->addUpdate(false, [this](MotionNode *motionPtr) -> bool
+    {
+        if(motionPtr->frame < 5){
+            return false;
+        }
+
+        fflassert(m_standMode);
+        m_processRun->addFixedLocMagic(std::unique_ptr<FixedLocMagic>(new FixedLocMagic
         {
-            .type = MOTION_MON_ATTACK0,
-            .direction = [&action, endDir, coPtr]() -> int
-            {
-                const auto nX = coPtr->x();
-                const auto nY = coPtr->y();
-                if(mathf::LDistance2<int>(nX, nY, action.x, action.y) == 0){
-                    return endDir;
-                }
-                return PathFind::GetDirection(action.x, action.y, nX, nY);
-            }(),
-            .x = action.x,
-            .y = action.y,
+            u8"神兽-喷火",
+            u8"运行",
+            currMotion()->x,
+            currMotion()->y,
+            currMotion()->direction - DIR_BEGIN,
         }));
-
-        m_motionQueue.back()->addUpdate(false, [this](MotionNode *motionPtr) -> bool
-        {
-            if(motionPtr->frame < 5){
-                return false;
-            }
-
-            if(!m_standMode){
-                throw fflerror("ClientTaoDog attacks while not standing");
-            }
-
-            m_processRun->addFixedLocMagic(std::unique_ptr<FixedLocMagic>(new FixedLocMagic
-            {
-                u8"神兽-喷火",
-                u8"运行",
-                currMotion()->x,
-                currMotion()->y,
-                currMotion()->direction - DIR_BEGIN,
-            }));
-            return true;
-        });
         return true;
+    });
+    return true;
+}
+
+bool ClientTaoDog::finalStandMode() const
+{
+    // don't need to count current status
+    // check comments in ClientPiranhaPlant::finalStandMode()
+
+    int countTransf = 0;
+    for(const auto &motionPtr: m_forceMotionQueue){
+        if(motionPtr->type == MOTION_MON_SPECIAL){
+            countTransf++;
+        }
     }
-    return false;
+
+    return (bool)(countTransf % 2) ? !m_standMode : m_standMode;
 }

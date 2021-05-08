@@ -40,8 +40,8 @@ corof::long_jmper PiranhaPlant::updateCoroFunc()
             else if(hres_tstamp().to_nsec() - idleTime.value() > 30ULL * 1000000000ULL /* n x 1 sec*/){
                 setStandMode(false);
             }
+            co_await corof::async_wait(200);
         }
-        co_await corof::async_wait(200);
     }
 
     goDie();

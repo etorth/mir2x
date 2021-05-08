@@ -510,6 +510,10 @@ bool ClientMonster::motionValid(const std::unique_ptr<MotionNode> &motionPtr) co
                 {
                     return nLDistance2 == 0;
                 }
+            case MOTION_MON_SPECIAL:
+                {
+                    return true;
+                }
             default:
                 {
                     break;

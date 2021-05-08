@@ -753,6 +753,10 @@ bool CharObject::canAct() const
                                     {
                                         return g_monoServer->getCurrTick() > m_lastActionTime + 400;
                                     }
+                                case DBCOM_MONSTERID(u8"食人花"):
+                                    {
+                                        return g_monoServer->getCurrTick() > m_lastActionTime + 400;
+                                    }
                                 default:
                                     {
                                         return true;
