@@ -165,7 +165,7 @@ class Player final: public CharObject
         void dispatchOffline();
 
     protected:
-        bool StruckDamage(const DamageNode &);
+        bool struckDamage(const DamageNode &);
 
     protected:
         void RequestKillPets();

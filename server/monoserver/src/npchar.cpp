@@ -559,7 +559,7 @@ DamageNode NPChar::GetAttackDamage(int)
     return {};
 }
 
-bool NPChar::StruckDamage(const DamageNode &)
+bool NPChar::struckDamage(const DamageNode &)
 {
     return true;
 }

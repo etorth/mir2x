@@ -168,7 +168,7 @@ class NPChar final: public CharObject
         DamageNode GetAttackDamage(int) override;
 
     public:
-        bool StruckDamage(const DamageNode &) override;
+        bool struckDamage(const DamageNode &) override;
 
     public:
         bool goDie() override;

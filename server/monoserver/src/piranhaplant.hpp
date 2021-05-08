@@ -51,8 +51,29 @@ class PiranhaPlant final: public Monster
             };
         }
 
+        void setStandMode(bool standMode)
+        {
+            if(standMode != m_standMode){
+                m_standMode = standMode;
+                dispatchAction(ActionTransf
+                {
+                    .x = X(),
+                    .y = Y(),
+
+                    .direction = DIR_BEGIN,
+                    .extParam
+                    {
+                        .piranhaPlant
+                        {
+                            .standModeReq = standMode,
+                        }
+                    },
+                });
+            }
+        }
+
     protected:
-        bool StruckDamage(const DamageNode &damage)
+        bool struckDamage(const DamageNode &damage)
         {
             if(!m_standMode){
                 return true;

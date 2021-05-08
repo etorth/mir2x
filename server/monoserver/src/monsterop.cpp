@@ -23,7 +23,6 @@
 #include "actorpod.hpp"
 #include "mathf.hpp"
 #include "monoserver.hpp"
-#include "taodog.hpp"
 #include "dbcomid.hpp"
 
 extern MonoServer *g_monoServer;
@@ -144,47 +143,7 @@ void Monster::on_AM_NOTIFYNEWCO(const ActorMsgPack &rstMPK)
 
 void Monster::on_AM_ATTACK(const ActorMsgPack &mpk)
 {
-    const auto amAK = mpk.conv<AMAttack>();
-    if(m_dead.get()){
-        notifyDead(amAK.UID);
-    }
-    else if(getMR().guard){
-        // ignore any attack to guard
-        // because guard has no hitted gfx support
-    }
-    else{
-        if(isMonster(u8"神兽")){
-            dynamic_cast<TaoDog *>(this)->setStandMode(true);
-        }
-
-        if(mathf::LDistance2(X(), Y(), amAK.X, amAK.Y) > 2){
-            switch(uidf::getUIDType(amAK.UID)){
-                case UID_MON:
-                case UID_PLY:
-                    {
-                        AMMiss amM;
-                        std::memset(&amM, 0, sizeof(amM));
-
-                        amM.UID = amAK.UID;
-                        m_actorPod->forward(amAK.UID, {AM_MISS, amM});
-                        return;
-                    }
-                default:
-                    {
-                        return;
-                    }
-            }
-        }
-
-        addOffenderDamage(amAK.UID, amAK.Damage);
-        dispatchAction(ActionHitted
-        {
-            .x = X(),
-            .y = Y(),
-            .direction = Direction(),
-        });
-        StruckDamage({amAK.UID, amAK.Type, amAK.Damage, amAK.Element, amAK.Effect});
-    }
+    onAMAttack(mpk);
 }
 
 void Monster::on_AM_MAPSWITCH(const ActorMsgPack &)
@@ -300,17 +259,7 @@ void Monster::on_AM_MASTERKILL(const ActorMsgPack &rstMPK)
     }
 }
 
-void Monster::on_AM_MASTERHITTED(const ActorMsgPack &rstMPK)
+void Monster::on_AM_MASTERHITTED(const ActorMsgPack &mpk)
 {
-    if(masterUID() && (rstMPK.from() == masterUID())){
-        if(monsterName() == u8"神兽"){
-            dynamic_cast<TaoDog *>(this)->setStandMode(true);
-        }
-        else if(monsterName() == u8"变异骷髅"){
-            // ...
-        }
-        else{
-            // ...
-        }
-    }
+    onAMMasterHitted(mpk);
 }

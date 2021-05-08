@@ -365,7 +365,7 @@ DamageNode Player::GetAttackDamage(int nDC)
     return {};
 }
 
-bool Player::StruckDamage(const DamageNode &rstDamage)
+bool Player::struckDamage(const DamageNode &rstDamage)
 {
     // hack for debug
     // make the player never die

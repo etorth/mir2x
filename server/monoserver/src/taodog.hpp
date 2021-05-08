@@ -57,12 +57,6 @@ class TaoDog final: public Monster
             setStandMode(true);
         }
 
-    public:
-        bool standMode() const
-        {
-            return m_standMode;
-        }
-
     protected:
         corof::long_jmper updateCoroFunc() override;
 
@@ -82,5 +76,22 @@ class TaoDog final: public Monster
                     },
                 },
             };
+        }
+
+    protected:
+        void onAMMasterHitted(const ActorMsgPack &) override
+        {
+            setStandMode(true);
+        }
+
+        void onAMAttack(const ActorMsgPack &mpk) override
+        {
+            if(m_dead.get()){
+                notifyDead(mpk.from());
+            }
+            else{
+                setStandMode(true);
+                Monster::onAMAttack(mpk);
+            }
         }
 };

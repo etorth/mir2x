@@ -28,25 +28,8 @@ corof::long_jmper PiranhaPlant::updateCoroFunc()
         if(const uint64_t targetUID = co_await coro_pickTarget()){
             const auto [targetMapID, targetX, targetY] = co_await coro_getCOPLoc(targetUID);
             if((mapID() == targetMapID) && (mathf::CDistance<int>(targetX, targetY, X(), Y()) <= 1)){
-                if(!m_standMode){
-                    m_standMode = true;
-                    dispatchAction(ActionTransf
-                    {
-                        .x = X(),
-                        .y = Y(),
-
-                        .direction = DIR_BEGIN,
-                        .extParam
-                        {
-                            .piranhaPlant
-                            {
-                                .standModeReq = true,
-                            }
-                        },
-                    });
-                }
-
                 idleTime.reset();
+                setStandMode(true);
                 co_await coro_attackUID(targetUID, DC_PHY_PLAIN);
             }
         }
@@ -55,23 +38,7 @@ corof::long_jmper PiranhaPlant::updateCoroFunc()
                 idleTime = hres_tstamp().to_nsec();
             }
             else if(hres_tstamp().to_nsec() - idleTime.value() > 30ULL * 1000000000ULL /* n x 1 sec*/){
-                if(m_standMode){
-                    m_standMode = false;
-                    dispatchAction(ActionTransf
-                    {
-                        .x = X(),
-                        .y = Y(),
-
-                        .direction = DIR_BEGIN,
-                        .extParam
-                        {
-                            .piranhaPlant
-                            {
-                                .standModeReq = false,
-                            }
-                        },
-                    });
-                }
+                setStandMode(false);
             }
         }
         co_await corof::async_wait(200);

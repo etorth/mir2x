@@ -839,7 +839,7 @@ bool Monster::goGhost()
     return true;
 }
 
-bool Monster::StruckDamage(const DamageNode &rstDamage)
+bool Monster::struckDamage(const DamageNode &rstDamage)
 {
     switch(uidf::getMonsterID(UID())){
         case DBCOM_MONSTERID(u8"变异骷髅"):
@@ -1568,4 +1568,46 @@ bool Monster::hasPlayerNeighbor() const
         }
     }
     return false;
+}
+
+void Monster::onAMAttack(const ActorMsgPack &mpk)
+{
+    const auto amAK = mpk.conv<AMAttack>();
+    if(m_dead.get()){
+        notifyDead(amAK.UID);
+    }
+    else{
+        if(mathf::LDistance2(X(), Y(), amAK.X, amAK.Y) > 2){
+            switch(uidf::getUIDType(amAK.UID)){
+                case UID_MON:
+                case UID_PLY:
+                    {
+                        AMMiss amM;
+                        std::memset(&amM, 0, sizeof(amM));
+
+                        amM.UID = amAK.UID;
+                        m_actorPod->forward(amAK.UID, {AM_MISS, amM});
+                        return;
+                    }
+                default:
+                    {
+                        return;
+                    }
+            }
+        }
+
+        addOffenderDamage(amAK.UID, amAK.Damage);
+        dispatchAction(ActionHitted
+        {
+            .x = X(),
+            .y = Y(),
+            .direction = Direction(),
+        });
+        struckDamage({amAK.UID, amAK.Type, amAK.Damage, amAK.Element, amAK.Effect});
+    }
+}
+
+void Monster::onAMMasterHitted(const ActorMsgPack &)
+{
+    // do nothing by default
 }

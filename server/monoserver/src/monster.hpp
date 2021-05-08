@@ -130,7 +130,7 @@ class Monster: public CharObject
         virtual void removeTarget(uint64_t);
 
     protected:
-        bool StruckDamage(const DamageNode &) override;
+        bool struckDamage(const DamageNode &) override;
 
     protected:
         DamageNode GetAttackDamage(int) override;
@@ -247,4 +247,8 @@ class Monster: public CharObject
 
     public:
         bool hasPlayerNeighbor() const;
+
+    protected:
+        virtual void onAMAttack      (const ActorMsgPack &);
+        virtual void onAMMasterHitted(const ActorMsgPack &);
 };

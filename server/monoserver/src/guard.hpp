@@ -41,4 +41,10 @@ class Guard: public Monster
 
     private:
         void checkFriend(uint64_t, std::function<void(int)>) override;
+
+    protected:
+        void onAMAttack(const ActorMsgPack &) override
+        {
+            // guard won't get any damage
+        }
 };
