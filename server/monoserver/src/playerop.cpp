@@ -405,6 +405,19 @@ void Player::on_AM_QUERYPLAYERWLDESP(const ActorMsgPack &mpk)
     }, true));
 }
 
+void Player::on_AM_QUERYFRIENDTYPE(const ActorMsgPack &mpk)
+{
+    const auto amQFT = mpk.conv<AMQueryFriendType>();
+    checkFriend(amQFT.UID, [this, mpk](int nFriendType)
+    {
+        AMFriendType amFT;
+        std::memset(&amFT, 0, sizeof(amFT));
+
+        amFT.Type = nFriendType;
+        m_actorPod->forward(mpk.from(), {AM_FRIENDTYPE, amFT}, mpk.seqID());
+    });
+}
+
 void Player::on_AM_REMOVEGROUNDITEM(const ActorMsgPack &rstMPK)
 {
     AMRemoveGroundItem amRGI;

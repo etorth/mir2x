@@ -374,9 +374,6 @@ class CharObject: public ServerObject
         bool isOffender(uint64_t);
 
     protected:
-        virtual void on_AM_QUERYFRIENDTYPE(const ActorMsgPack &);
-
-    protected:
         bool isPlayer()  const;
         bool isMonster() const;
         bool isMonster(const char8_t *) const;

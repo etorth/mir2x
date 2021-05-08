@@ -125,6 +125,7 @@ class Player final: public CharObject
         void on_AM_CHECKMASTER(const ActorMsgPack &);
         void on_AM_QUERYCORECORD(const ActorMsgPack &);
         void on_AM_QUERYLOCATION(const ActorMsgPack &);
+        void on_AM_QUERYFRIENDTYPE(const ActorMsgPack &);
         void on_AM_REMOVEGROUNDITEM(const ActorMsgPack &);
         void on_AM_QUERYPLAYERWLDESP(const ActorMsgPack &);
 
