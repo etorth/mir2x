@@ -37,10 +37,10 @@ class ClientNPC: public ClientCreature
         int32_t gfxID() const;
 
     public:
-        void draw(int, int, int) override;
+        void drawFrame(int, int, int, int, bool) override;
 
     public:
-        int motionFrameCount(int, int) const override;
+        FrameSeq motionFrameSeq(int, int) const override;
 
     private:
         int32_t gfxShadowID(int32_t) const;
@@ -67,4 +67,16 @@ class ClientNPC: public ClientCreature
 
     public:
         TargetBox getTargetBox() const override;
+
+    protected:
+        std::unique_ptr<MotionNode> makeIdleMotion() const override
+        {
+            return std::unique_ptr<MotionNode>(new MotionNode
+            {
+                .type = MOTION_NPC_ACT,
+                .direction = m_currMotion->direction,
+                .x = m_currMotion->endX,
+                .y = m_currMotion->endY,
+            });
+        }
 };

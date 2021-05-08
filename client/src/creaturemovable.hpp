@@ -81,7 +81,7 @@ class CreatureMovable: public ClientCreature
         bool moveNextMotion() override;
 
     public:
-        std::tuple<int, int> getShift() const;
+        std::tuple<int, int> getShift(int) const;
 
     public:
         enum endType: int
@@ -90,7 +90,7 @@ class CreatureMovable: public ClientCreature
             END_FORCED,
             END_OPTIONAL,
         };
-        std::tuple<int, int, int> motionEndLocation(int) const;
+        std::tuple<int, int, int> motionEndPLoc(int) const;
 
     public:
         virtual void flushMotionPending();

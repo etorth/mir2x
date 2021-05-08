@@ -38,8 +38,20 @@
 #include "protocoldef.hpp"
 #include "attachmagic.hpp"
 
- class ProcessRun;
- class ClientCreature
+struct FrameSeq final
+{
+    const int  begin = 0;
+    const int  count = 0;
+    const bool reverse = false;
+
+    operator bool() const
+    {
+        return begin >= 0 && count > 0;
+    }
+};
+
+class ProcessRun;
+class ClientCreature
 {
     protected:
         const uint64_t m_UID;
@@ -151,7 +163,13 @@
         virtual std::tuple<int, int> location() const = 0;
 
     public:
-        virtual int motionFrameCount(int, int) const = 0;
+        virtual FrameSeq motionFrameSeq(int, int) const = 0;
+
+    public:
+        int motionFrameCount(int motion, int direction) const
+        {
+            return motionFrameSeq(motion, direction).count;
+        }
 
     public:
         int motionFrameCountEx(int motion, int direction) const
@@ -185,7 +203,13 @@
 
     public:
         virtual bool update(double) = 0;
-        virtual void draw(int, int, int) = 0;
+        virtual void drawFrame(int, int, int, int, bool) = 0;
+
+    public:
+        virtual void draw(int viewX, int viewY, int focusMask)
+        {
+            drawFrame(viewX, viewY, focusMask, m_currMotion->frame, false);
+        }
 
     public:
         virtual bool motionValid(const std::unique_ptr<MotionNode> &) const = 0;
@@ -220,7 +244,7 @@
         virtual bool visible() const;
 
     protected:
-        std::unique_ptr<MotionNode> makeIdleMotion() const;
+        virtual std::unique_ptr<MotionNode> makeIdleMotion() const = 0;
 
     public:
         AttachMagic *addAttachMagic(std::unique_ptr<AttachMagic> magicPtr)

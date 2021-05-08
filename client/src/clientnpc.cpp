@@ -39,7 +39,7 @@ ClientNPC::ClientNPC(uint64_t uid, ProcessRun *proc, const ActionNode &action)
     }
 }
 
-int ClientNPC::motionFrameCount(int motion, int direction) const
+FrameSeq ClientNPC::motionFrameSeq(int motion, int direction) const
 {
     // NPC direction is not the real direction
     // it's like a seq id for the first/second/third valid direction
@@ -47,7 +47,7 @@ int ClientNPC::motionFrameCount(int motion, int direction) const
     switch(lookID()){
         case 56: // 六面神石
             {
-                return 12;
+                return {.count = 12};
             }
         default:
             {
@@ -61,11 +61,11 @@ int ClientNPC::motionFrameCount(int motion, int direction) const
                                 case DIR_DOWNLEFT:
                                 case DIR_DOWNRIGHT:
                                     {
-                                        return 4;
+                                        return {.count = 4};
                                     }
                                 default:
                                     {
-                                        return 4; // TODO
+                                        return {.count = 4}; // TODO
                                     }
                             }
                         }
@@ -76,17 +76,17 @@ int ClientNPC::motionFrameCount(int motion, int direction) const
                                 case DIR_DOWNLEFT:
                                 case DIR_DOWNRIGHT:
                                     {
-                                        return 4;
+                                        return {.count = 4};
                                     }
                                 default:
                                     {
-                                        return 4; // TODO
+                                        return {.count = 4}; // TODO
                                     }
                             }
                         }
                     default:
                         {
-                            return -1;
+                            return {};
                         }
                 }
             }
@@ -106,7 +106,7 @@ int32_t ClientNPC::gfxShadowID(int32_t gfxId) const
     return gfxId | shadowBit;
 }
 
-void ClientNPC::draw(int viewX, int viewY, int focusMask)
+void ClientNPC::drawFrame(int viewX, int viewY, int focusMask, int frame, bool)
 {
     const auto bodyKey = gfxID();
     if(bodyKey < 0){
@@ -118,13 +118,8 @@ void ClientNPC::draw(int viewX, int viewY, int focusMask)
         return;
     }
 
-    int bodyDX = 0;
-    int bodyDY = 0;
-    auto bodyFrame = g_standNPCDB->Retrieve(bodyKey + m_currMotion->frame, &bodyDX, &bodyDY);
-
-    int shadowDX = 0;
-    int shadowDY = 0;
-    auto shadowFrame = g_standNPCDB->Retrieve(shadowKey + m_currMotion->frame, &shadowDX, &shadowDY);
+    const auto [  bodyFrame,   bodyDX,   bodyDY] = g_standNPCDB->Retrieve(  bodyKey + frame);
+    const auto [shadowFrame, shadowDX, shadowDY] = g_standNPCDB->Retrieve(shadowKey + frame);
 
     if(bodyFrame){
         SDL_SetTextureAlphaMod(bodyFrame, 255);

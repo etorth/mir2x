@@ -27,17 +27,25 @@
 class ClientMonster: public CreatureMovable
 {
     public:
-        static std::unique_ptr<MotionNode> makeInitMotion(uint32_t, const ActionNode &);
-
-    public:
         ClientMonster(uint64_t uid, ProcessRun *proc, const ActionNode &action)
             : ClientMonster(uid, proc)
         {
-            if(auto initMotion = ClientMonster::makeInitMotion(uidf::getMonsterID(uid), action)){
-                m_currMotion = std::move(initMotion);
-                return;
-            }
-            throw fflerror("failed to assign initial motion");
+            m_currMotion.reset(new MotionNode
+            {
+                .type = MOTION_MON_STAND,
+                .direction = [&action]() -> int
+                {
+                    if(directionValid(action.direction)){
+                        return action.direction;
+                    }
+                    else{
+                        return DIR_UP;
+                    }
+                }(),
+
+                .x = action.x,
+                .y = action.y,
+            });
         }
 
     protected:
@@ -45,7 +53,9 @@ class ClientMonster: public CreatureMovable
 
     public:
         bool update(double) override;
-        void draw(int, int, int) override;
+
+    public:
+        void drawFrame(int, int, int, int, bool) override;
 
     public:
         uint32_t monsterID() const
@@ -72,10 +82,10 @@ class ClientMonster: public CreatureMovable
         }
 
     protected:
-        int gfxID(int, int) const;
+        virtual int gfxID(int, int) const;
 
     public:
-        int motionFrameCount(int, int) const override;
+        FrameSeq motionFrameSeq(int, int) const override;
 
     protected:
         std::unique_ptr<MotionNode> makeWalkMotion(int, int, int, int, int) const;
@@ -118,4 +128,16 @@ class ClientMonster: public CreatureMovable
 
     public:
         ClientCreature::TargetBox getTargetBox() const override;
+
+    protected:
+        std::unique_ptr<MotionNode> makeIdleMotion() const override
+        {
+            return std::unique_ptr<MotionNode>(new MotionNode
+            {
+                .type = MOTION_MON_STAND,
+                .direction = m_currMotion->direction,
+                .x = m_currMotion->endX,
+                .y = m_currMotion->endY,
+            });
+        }
 };

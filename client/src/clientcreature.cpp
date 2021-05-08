@@ -157,33 +157,6 @@ bool ClientCreature::visible() const
     }
 }
 
-std::unique_ptr<MotionNode> ClientCreature::makeIdleMotion() const
-{
-    return std::unique_ptr<MotionNode>(new MotionNode
-    {
-        .type = [this]() -> int
-        {
-            switch(type()){
-                case UID_PLY: return MOTION_STAND;
-                case UID_NPC: return MOTION_NPC_ACT;
-                case UID_MON: return MOTION_MON_STAND;
-                default: throw fflerror("invalid ClientCreature: %s", uidf::getUIDString(UID()).c_str());
-            }
-        }(),
-
-        .direction = [this]() -> int
-        {
-            if(isMonster(u8"食人花")){
-                return DIR_BEGIN;
-            }
-            return m_currMotion->direction;
-        }(),
-
-        .x = m_currMotion->endX,
-        .y = m_currMotion->endY
-    });
-}
-
 double ClientCreature::currMotionDelay() const
 {
     auto speed = currMotion()->speed;

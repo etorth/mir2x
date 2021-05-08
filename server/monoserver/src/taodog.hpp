@@ -15,6 +15,7 @@
  *
  * =====================================================================================
  */
+
 #pragma once
 #include "dbcomid.hpp"
 #include "monster.hpp"
@@ -39,7 +40,13 @@ class TaoDog final: public Monster
                     .x = X(),
                     .y = Y(),
                     .direction = Direction(),
-                    .standMode = m_standMode,
+                    .extParam
+                    {
+                        .dog
+                        {
+                            .standModeReq = m_standMode,
+                        },
+                    },
                 });
             }
         }
@@ -54,5 +61,26 @@ class TaoDog final: public Monster
         bool standMode() const
         {
             return m_standMode;
+        }
+
+    protected:
+        corof::long_jmper updateCoroFunc() override;
+
+    protected:
+        ActionNode makeActionStand() const override
+        {
+            return ActionStand
+            {
+                .x = X(),
+                .y = Y(),
+                .direction = DIR_BEGIN,
+                .extParam
+                {
+                    .dog
+                    {
+                        .standMode = m_standMode,
+                    },
+                },
+            };
         }
 };

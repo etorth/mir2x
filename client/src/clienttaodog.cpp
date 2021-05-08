@@ -20,9 +20,73 @@
 #include "processrun.hpp"
 #include "clienttaodog.hpp"
 
+ClientTaoDog::ClientTaoDog(uint64_t uid, ProcessRun *proc, const ActionNode &action)
+    : ClientMonster(uid, proc, action)
+{
+    fflassert(isMonster(u8"神兽"));
+    switch(action.type){
+        case ACTION_SPAWN:
+            {
+                m_currMotion.reset(new MotionNode
+                {
+                    .type = MOTION_MON_APPEAR,
+                    .direction = directionValid(action.direction) ? to_d(action.direction) : DIR_UP,
+                    .x = action.x,
+                    .y = action.y,
+                });
+
+                m_standMode = false;
+                break;
+            }
+        case ACTION_STAND:
+            {
+                m_currMotion.reset(new MotionNode
+                {
+                    .type = MOTION_MON_STAND,
+                    .direction = directionValid(action.direction) ? to_d(action.direction) : DIR_UP,
+                    .x = action.x,
+                    .y = action.y,
+                });
+
+                m_standMode = action.extParam.stand.dog.standMode;
+                break;
+            }
+        case ACTION_DIE:
+            {
+                m_currMotion.reset(new MotionNode
+                {
+                    .type = MOTION_MON_DIE,
+                    .direction = directionValid(action.direction) ? to_d(action.direction) : DIR_UP,
+                    .x = action.x,
+                    .y = action.y,
+                });
+
+                m_standMode = action.extParam.die.dog.standMode;
+                break;
+            }
+        case ACTION_ATTACK:
+            {
+                m_currMotion.reset(new MotionNode
+                {
+                    .type = MOTION_MON_DIE,
+                    .direction = m_processRun->getAimDirection(action, DIR_UP),
+                    .x = action.x,
+                    .y = action.y,
+                });
+
+                m_standMode = action.extParam.die.dog.standMode;
+                break;
+            }
+        default:
+            {
+                throw bad_reach();
+            }
+    }
+}
+
 void ClientTaoDog::addActionTransf(bool /* standMode */)
 {
-    const auto [x, y, dir] = motionEndLocation(END_CURRENT);
+    const auto [x, y, dir] = motionEndPLoc(END_CURRENT);
     m_forceMotionQueue.push_front(std::unique_ptr<MotionNode>(new MotionNode
     {
         .type = MOTION_MON_APPEAR,
@@ -63,7 +127,7 @@ bool ClientTaoDog::onActionSpawn(const ActionNode &action)
 
 bool ClientTaoDog::onActionTransf(const ActionNode &action)
 {
-    const auto standReq = (bool)(action.extParam.transf.dog.standMode);
+    const auto standReq = (bool)(action.extParam.transf.dog.standModeReq);
     if(m_standMode == standReq){
         return true;
     }
@@ -90,7 +154,7 @@ bool ClientTaoDog::onActionAttack(const ActionNode &action)
         }
     }
 
-    const auto [endX, endY, endDir] = motionEndLocation(END_FORCED);
+    const auto [endX, endY, endDir] = motionEndPLoc(END_FORCED);
     m_motionQueue = makeWalkMotionQueue(endX, endY, action.x, action.y, SYS_MAXSPEED);
     if(auto coPtr = m_processRun->findUID(action.aimUID)){
         m_motionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode

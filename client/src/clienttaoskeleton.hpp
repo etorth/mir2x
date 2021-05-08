@@ -23,10 +23,27 @@ class ClientTaoSkeleton: public ClientMonster
 {
     public:
         ClientTaoSkeleton(uint64_t uid, ProcessRun *proc, const ActionNode &action)
-            : ClientMonster(uid, proc, action)
+            : ClientMonster(uid, proc)
         {
-            if(monsterName() != u8"变异骷髅"){
-                throw fflerror("bad monster type: %s", to_cstr(monsterName().data()));
-            }
+            fflassert(isMonster(u8"变异骷髅"));
+            m_currMotion.reset(new MotionNode
+            {
+                .type = MOTION_MON_STAND,
+                .direction = [&action]() -> int
+                {
+                    if(action.type == ACTION_SPAWN){
+                        return DIR_DOWNLEFT;
+                    }
+                    else if(directionValid(action.direction)){
+                        return action.direction;
+                    }
+                    else{
+                        return DIR_UP;
+                    }
+                }(),
+
+                .x = action.x,
+                .y = action.y,
+            });
         }
 };

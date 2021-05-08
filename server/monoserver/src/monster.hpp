@@ -130,10 +130,10 @@ class Monster: public CharObject
         virtual void removeTarget(uint64_t);
 
     protected:
-        bool StruckDamage(const DamageNode &);
+        bool StruckDamage(const DamageNode &) override;
 
     protected:
-        DamageNode GetAttackDamage(int);
+        DamageNode GetAttackDamage(int) override;
 
     private:
         void on_AM_EXP             (const ActorMsgPack &);

@@ -59,13 +59,13 @@ Hero::Hero(uint64_t uid, ProcessRun *proc, const ActionNode &action)
     }
 }
 
-void Hero::draw(int viewX, int viewY, int)
+void Hero::drawFrame(int viewX, int viewY, int, int frame, bool)
 {
-    const auto [shiftX, shiftY] = getShift();
+    const auto [shiftX, shiftY] = getShift(frame);
     const auto startX = m_currMotion->x * SYS_MAPGRIDXP + shiftX - viewX;
     const auto startY = m_currMotion->y * SYS_MAPGRIDYP + shiftY - viewY;
 
-    const auto fnDrawWeapon = [startX, startY, this](bool shadow)
+    const auto fnDrawWeapon = [startX, startY, frame, this](bool shadow)
     {
         // 04 - 00 :     frame : max =  32
         // 07 - 05 : direction : max =  08 : +
@@ -78,12 +78,8 @@ void Hero::draw(int viewX, int viewY, int)
             return;
         }
 
-        const uint32_t weaponKey = ((to_u32(shadow ? 1 : 0)) << 23) + (to_u32(gender()) << 22) + ((nGfxWeaponID & 0X01FFFF) << 5) + m_currMotion->frame;
-
-        int weaponDX = 0;
-        int weaponDY = 0;
-
-        auto weaponFrame = g_weaponDB->Retrieve(weaponKey, &weaponDX, &weaponDY);
+        const uint32_t weaponKey = ((to_u32(shadow ? 1 : 0)) << 23) + (to_u32(gender()) << 22) + ((nGfxWeaponID & 0X01FFFF) << 5) + frame;
+        const auto [weaponFrame, weaponDX, weaponDY] = g_weaponDB->Retrieve(weaponKey);
 
         if(weaponFrame && shadow){
             SDL_SetTextureAlphaMod(weaponFrame, 128);
@@ -110,16 +106,11 @@ void Hero::draw(int viewX, int viewY, int)
     // 21 - 14 :     dress : max = 256 : +----> GfxDressID
     //      22 :       sex :
     //      23 :    shadow :
-    const uint32_t nKey0 = (to_u32(0) << 23) + (to_u32(gender()) << 22) + ((to_u32(nGfxDressID & 0X01FFFF)) << 5) + m_currMotion->frame;
-    const uint32_t nKey1 = (to_u32(1) << 23) + (to_u32(gender()) << 22) + ((to_u32(nGfxDressID & 0X01FFFF)) << 5) + m_currMotion->frame;
+    const uint32_t nKey0 = (to_u32(0) << 23) + (to_u32(gender()) << 22) + ((to_u32(nGfxDressID & 0X01FFFF)) << 5) + frame;
+    const uint32_t nKey1 = (to_u32(1) << 23) + (to_u32(gender()) << 22) + ((to_u32(nGfxDressID & 0X01FFFF)) << 5) + frame;
 
-    int nDX0 = 0;
-    int nDY0 = 0;
-    int nDX1 = 0;
-    int nDY1 = 0;
-
-    auto pFrame0 = g_heroDB->Retrieve(nKey0, &nDX0, &nDY0);
-    auto pFrame1 = g_heroDB->Retrieve(nKey1, &nDX1, &nDY1);
+    const auto [pFrame0, nDX0, nDY0] = g_heroDB->Retrieve(nKey0);
+    const auto [pFrame1, nDX1, nDY1] = g_heroDB->Retrieve(nKey1);
 
     if(pFrame1){
         SDL_SetTextureAlphaMod(pFrame1, 128);
@@ -128,7 +119,7 @@ void Hero::draw(int viewX, int viewY, int)
 
     if(true
             && getWLItem(WLG_WEAPON)
-            && WeaponOrder(m_currMotion->type, m_currMotion->direction, m_currMotion->frame) == 1){
+            && WeaponOrder(m_currMotion->type, m_currMotion->direction, frame) == 1){
         fnDrawWeapon(false);
     }
 
@@ -150,7 +141,7 @@ void Hero::draw(int viewX, int viewY, int)
     g_sdlDevice->drawTexture(pFrame0, startX + nDX0, startY + nDY0);
     if(getWLItem(WLG_HELMET)){
         if(const auto nHelmetGfxID = gfxHelmetID(DBCOM_ITEMRECORD(getWLItem(WLG_HELMET).itemID).shape, nMotion, nDirection); nHelmetGfxID >= 0){
-            const uint32_t nHelmetKey = (to_u32(gender()) << 22) + ((to_u32(nHelmetGfxID & 0X01FFFF)) << 5) + m_currMotion->frame;
+            const uint32_t nHelmetKey = (to_u32(gender()) << 22) + ((to_u32(nHelmetGfxID & 0X01FFFF)) << 5) + frame;
             if(auto [texPtr, dx, dy] = g_helmetDB->Retrieve(nHelmetKey); texPtr){
                 g_sdlDevice->drawTexture(texPtr, startX + dx, startY + dy);
             }
@@ -158,7 +149,7 @@ void Hero::draw(int viewX, int viewY, int)
     }
     else{
         if(const auto nHairGfxID = GfxHairID(m_sdWLDesp.hair, nMotion, nDirection); nHairGfxID >= 0){
-            const uint32_t nHairKey = (to_u32(gender()) << 22) + ((to_u32(nHairGfxID & 0X01FFFF)) << 5) + m_currMotion->frame;
+            const uint32_t nHairKey = (to_u32(gender()) << 22) + ((to_u32(nHairGfxID & 0X01FFFF)) << 5) + frame;
             if(auto [texPtr, dx, dy] = g_hairDB->Retrieve(nHairKey); texPtr){
                 SDLDeviceHelper::EnableTextureModColor enableColor(texPtr, m_sdWLDesp.hairColor);
                 g_sdlDevice->drawTexture(texPtr, startX + dx, startY + dy);
@@ -168,7 +159,7 @@ void Hero::draw(int viewX, int viewY, int)
 
     if(true
             && getWLItem(WLG_WEAPON)
-            && WeaponOrder(m_currMotion->type, m_currMotion->direction, m_currMotion->frame) == 0){
+            && WeaponOrder(m_currMotion->type, m_currMotion->direction, frame) == 0){
         fnDrawWeapon(false);
     }
 
@@ -766,7 +757,7 @@ bool Hero::parseAction(const ActionNode &action)
             }
         case ACTION_DIE:
             {
-                const auto [dieX, dieY, dieDir] = motionEndLocation(END_FORCED);
+                const auto [dieX, dieY, dieDir] = motionEndPLoc(END_FORCED);
                 m_forceMotionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
                 {
                     .type = [this]() -> int
@@ -829,51 +820,51 @@ std::tuple<int, int> Hero::location() const
     }
 }
 
-int Hero::motionFrameCount(int motion, int direction) const
+FrameSeq Hero::motionFrameSeq(int motion, int direction) const
 {
     if(!(motion >= MOTION_BEGIN && motion < MOTION_END)){
-        return -1;
+        return {};
     }
 
     if(!(direction >= DIR_BEGIN && direction < DIR_END)){
-        return -1;
+        return {};
     }
 
     switch(motion){
-        case MOTION_STAND		    : return  4;
-        case MOTION_ARROWATTACK		: return  6;
-        case MOTION_SPELL0		    : return  5;
-        case MOTION_SPELL1		    : return  5;
-        case MOTION_HOLD		    : return  1;
-        case MOTION_PUSHBACK		: return  1;
-        case MOTION_PUSHBACKFLY		: return  1;
-        case MOTION_ATTACKMODE		: return  3;
-        case MOTION_CUT		        : return  2;
-        case MOTION_ONEVSWING		: return  6;
-        case MOTION_TWOVSWING		: return  6;
-        case MOTION_ONEHSWING		: return  6;
-        case MOTION_TWOHSWING		: return  6;
-        case MOTION_SPEARVSWING     : return  6;
-        case MOTION_SPEARHSWING     : return  6;
-        case MOTION_HITTED          : return  3;
-        case MOTION_WHEELWIND       : return 10;
-        case MOTION_RANDSWING       : return 10;
-        case MOTION_BACKDROPKICK    : return 10;
-        case MOTION_DIE             : return 10;
-        case MOTION_ONHORSEDIE      : return 10;
-        case MOTION_WALK            : return  6;
-        case MOTION_RUN             : return  6;
-        case MOTION_MOODEPO         : return  6;
-        case MOTION_ROLL            : return 10;
-        case MOTION_FISHSTAND       : return  4;
-        case MOTION_FISHHAND        : return  3;
-        case MOTION_FISHTHROW       : return  8;
-        case MOTION_FISHPULL        : return  8;
-        case MOTION_ONHORSESTAND    : return  4;
-        case MOTION_ONHORSEWALK     : return  6;
-        case MOTION_ONHORSERUN      : return  6;
-        case MOTION_ONHORSEHITTED   : return  3;
-        default                     : return -1;
+        case MOTION_STAND		    : return {.count =  4};
+        case MOTION_ARROWATTACK		: return {.count =  6};
+        case MOTION_SPELL0		    : return {.count =  5};
+        case MOTION_SPELL1		    : return {.count =  5};
+        case MOTION_HOLD		    : return {.count =  1};
+        case MOTION_PUSHBACK		: return {.count =  1};
+        case MOTION_PUSHBACKFLY		: return {.count =  1};
+        case MOTION_ATTACKMODE		: return {.count =  3};
+        case MOTION_CUT		        : return {.count =  2};
+        case MOTION_ONEVSWING		: return {.count =  6};
+        case MOTION_TWOVSWING		: return {.count =  6};
+        case MOTION_ONEHSWING		: return {.count =  6};
+        case MOTION_TWOHSWING		: return {.count =  6};
+        case MOTION_SPEARVSWING     : return {.count =  6};
+        case MOTION_SPEARHSWING     : return {.count =  6};
+        case MOTION_HITTED          : return {.count =  3};
+        case MOTION_WHEELWIND       : return {.count = 10};
+        case MOTION_RANDSWING       : return {.count = 10};
+        case MOTION_BACKDROPKICK    : return {.count = 10};
+        case MOTION_DIE             : return {.count = 10};
+        case MOTION_ONHORSEDIE      : return {.count = 10};
+        case MOTION_WALK            : return {.count =  6};
+        case MOTION_RUN             : return {.count =  6};
+        case MOTION_MOODEPO         : return {.count =  6};
+        case MOTION_ROLL            : return {.count = 10};
+        case MOTION_FISHSTAND       : return {.count =  4};
+        case MOTION_FISHHAND        : return {.count =  3};
+        case MOTION_FISHTHROW       : return {.count =  8};
+        case MOTION_FISHPULL        : return {.count =  8};
+        case MOTION_ONHORSESTAND    : return {.count =  4};
+        case MOTION_ONHORSEWALK     : return {.count =  6};
+        case MOTION_ONHORSERUN      : return {.count =  6};
+        case MOTION_ONHORSEHITTED   : return {.count =  3};
+        default                     : return {};
     }
 }
 
@@ -1085,7 +1076,7 @@ ClientCreature::TargetBox Hero::getTargetBox() const
 
     const auto [bodyFrameW, bodyFrameH] = SDLDeviceHelper::getTextureSize(bodyFrameTexPtr);
 
-    const auto [shiftX, shiftY] = getShift();
+    const auto [shiftX, shiftY] = getShift(m_currMotion->frame);
     const int startX = m_currMotion->x * SYS_MAPGRIDXP + shiftX + dx;
     const int startY = m_currMotion->y * SYS_MAPGRIDYP + shiftY + dy;
 

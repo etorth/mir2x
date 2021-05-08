@@ -1497,21 +1497,12 @@ ActionNode CharObject::makeActionStand() const
     {
         .x = X(),
         .y = Y(),
-        .direction = [this]() -> int
-        {
-            if(isMonster(u8"食人花")){
-                return DIR_BEGIN;
-            }
-            return Direction();
-        }()
+        .direction = Direction(),
     };
 
     switch(uidf::getUIDType(UID())){
         case UID_MON:
             {
-                if(dynamic_cast<const Monster *>(this)->monsterName() == u8"神兽"){
-                    stand.extParam.stand.dog.standMode = dynamic_cast<const TaoDog *>(this)->standMode();
-                }
                 break;
             }
         case UID_NPC:

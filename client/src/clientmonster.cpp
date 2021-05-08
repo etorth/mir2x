@@ -41,81 +41,6 @@ extern SDLDevice *g_sdlDevice;
 extern PNGTexOffDB *g_monsterDB;
 extern ClientArgParser *g_clientArgParser;
 
-std::unique_ptr<MotionNode> ClientMonster::makeInitMotion(uint32_t monsterID, const ActionNode &action)
-{
-    switch(monsterID){
-        case DBCOM_MONSTERID(u8"变异骷髅"):
-            {
-                return std::unique_ptr<MotionNode>(new MotionNode
-                {
-                    .type = MOTION_MON_STAND,
-                    .direction = [&action]() -> int
-                    {
-                        if(action.type == ACTION_SPAWN){
-                            return DIR_DOWNLEFT;
-                        }
-                        else if(directionValid(action.direction)){
-                            return action.direction;
-                        }
-                        else{
-                            return DIR_UP;
-                        }
-                    }(),
-
-                    .x = action.x,
-                    .y = action.y,
-                });
-            }
-        case DBCOM_MONSTERID(u8"神兽"):
-            {
-                return std::unique_ptr<MotionNode>(new MotionNode
-                {
-                    .type = [&action]() -> int
-                    {
-                        if(action.type == ACTION_SPAWN){
-                            return MOTION_MON_APPEAR;
-                        }
-                        else{
-                            return MOTION_MON_STAND;
-                        }
-                    }(),
-
-                    .direction = [&action]() -> int
-                    {
-                    if(directionValid(action.direction)){
-                            return action.direction;
-                        }
-                        else{
-                            return DIR_UP;
-                        }
-                    }(),
-
-                    .x = action.x,
-                    .y = action.y,
-                });
-            }
-        default:
-            {
-                return std::unique_ptr<MotionNode>(new MotionNode
-                {
-                    .type = MOTION_MON_STAND,
-                    .direction = [&action]() -> int
-                    {
-                        if(directionValid(action.direction)){
-                            return action.direction;
-                        }
-                        else{
-                            return DIR_UP;
-                        }
-                    }(),
-
-                    .x = action.x,
-                    .y = action.y,
-                });
-            }
-    }
-}
-
 ClientMonster::ClientMonster(uint64_t uid, ProcessRun *proc)
     : CreatureMovable(uid, proc)
 {
@@ -200,7 +125,7 @@ bool ClientMonster::update(double ms)
     }
 }
 
-void ClientMonster::draw(int viewX, int viewY, int focusMask)
+void ClientMonster::drawFrame(int viewX, int viewY, int focusMask, int frame, bool frameOnly)
 {
     // monster graphics retrieving key structure
     //
@@ -220,17 +145,15 @@ void ClientMonster::draw(int viewX, int viewY, int focusMask)
         return;
     }
 
-    const uint32_t nKey0 = (to_u32(0) << 23) + (to_u32(nGfxID & 0X03FFFF) << 5) + m_currMotion->frame; // body
-    const uint32_t nKey1 = (to_u32(1) << 23) + (to_u32(nGfxID & 0X03FFFF) << 5) + m_currMotion->frame; // shadow
+    const auto frameSeq = motionFrameSeq(m_currMotion->type, m_currMotion->direction);
+    const auto absFrame = frameSeq.begin + frame * (frameSeq.reverse ? -1 : 1);
 
-    int nDX0 = 0;
-    int nDY0 = 0;
-    int nDX1 = 0;
-    int nDY1 = 0;
+    const uint32_t nKey0 = (to_u32(0) << 23) + (to_u32(nGfxID & 0X03FFFF) << 5) + absFrame; // body
+    const uint32_t nKey1 = (to_u32(1) << 23) + (to_u32(nGfxID & 0X03FFFF) << 5) + absFrame; // shadow
 
-    auto pFrame0 = g_monsterDB->Retrieve(nKey0, &nDX0, &nDY0);
-    auto pFrame1 = g_monsterDB->Retrieve(nKey1, &nDX1, &nDY1);
-    const auto [shiftX, shiftY] = getShift();
+    const auto [pFrame0, nDX0, nDY0] = g_monsterDB->Retrieve(nKey0);
+    const auto [pFrame1, nDX1, nDY1] = g_monsterDB->Retrieve(nKey1);
+    const auto [shiftX, shiftY] = getShift(frame);
 
     // always reset the alpha mode for each texture because texture is shared
     // one texture to draw can be configured with different alpha mode for other creatures
@@ -288,15 +211,17 @@ void ClientMonster::draw(int viewX, int viewY, int focusMask)
     }
     fnBlendFrame(pFrame0, 0, startX + nDX0, startY + nDY0);
 
-    if(g_clientArgParser->drawTextureAlignLine){
-        g_sdlDevice->drawLine(colorf::RED + 128, startX, startY, startX + nDX0, startY + nDY0);
-        g_sdlDevice->drawLine(colorf::BLUE + 128, startX - 5, startY, startX + 5, startY);
-        g_sdlDevice->drawLine(colorf::BLUE + 128, startX, startY - 5, startX, startY + 5);
-    }
+    if(!frameOnly){
+        if(g_clientArgParser->drawTextureAlignLine){
+            g_sdlDevice->drawLine(colorf::RED + 128, startX, startY, startX + nDX0, startY + nDY0);
+            g_sdlDevice->drawLine(colorf::BLUE + 128, startX - 5, startY, startX + 5, startY);
+            g_sdlDevice->drawLine(colorf::BLUE + 128, startX, startY - 5, startX, startY + 5);
+        }
 
-    if(g_clientArgParser->drawTargetBox){
-        if(const auto box = getTargetBox()){
-            g_sdlDevice->drawRectangle(colorf::BLUE + 128, box.x - viewX, box.y - viewY, box.w, box.h);
+        if(g_clientArgParser->drawTargetBox){
+            if(const auto box = getTargetBox()){
+                g_sdlDevice->drawRectangle(colorf::BLUE + 128, box.x - viewX, box.y - viewY, box.w, box.h);
+            }
         }
     }
 
@@ -306,31 +231,33 @@ void ClientMonster::draw(int viewX, int viewY, int focusMask)
         }
     }
 
-    for(auto &p: m_attachMagicList){
-        p->drawShift(startX, startY, false);
-    }
+    if(!frameOnly){
+        for(auto &p: m_attachMagicList){
+            p->drawShift(startX, startY, false);
+        }
 
-    if(m_currMotion->type != MOTION_MON_DIE && g_clientArgParser->drawHPBar){
-        auto pBar0 = g_progUseDB->Retrieve(0X00000014);
-        auto pBar1 = g_progUseDB->Retrieve(0X00000015);
+        if(m_currMotion->type != MOTION_MON_DIE && g_clientArgParser->drawHPBar){
+            auto pBar0 = g_progUseDB->Retrieve(0X00000014);
+            auto pBar1 = g_progUseDB->Retrieve(0X00000015);
 
-        int nBarW = -1;
-        int nBarH = -1;
-        SDL_QueryTexture(pBar1, nullptr, nullptr, &nBarW, &nBarH);
+            int nBarW = -1;
+            int nBarH = -1;
+            SDL_QueryTexture(pBar1, nullptr, nullptr, &nBarW, &nBarH);
 
-        const int drawBarXP = startX +  7;
-        const int drawBarYP = startY - 53;
-        const int drawBarWidth = to_d(std::lround(nBarW * (m_maxHP ? (std::min<double>)(1.0, (1.0 * m_HP) / m_maxHP) : 1.0)));
+            const int drawBarXP = startX +  7;
+            const int drawBarYP = startY - 53;
+            const int drawBarWidth = to_d(std::lround(nBarW * (m_maxHP ? (std::min<double>)(1.0, (1.0 * m_HP) / m_maxHP) : 1.0)));
 
-        g_sdlDevice->drawTexture(pBar1, drawBarXP, drawBarYP, 0, 0, drawBarWidth, nBarH);
-        g_sdlDevice->drawTexture(pBar0, drawBarXP, drawBarYP);
+            g_sdlDevice->drawTexture(pBar1, drawBarXP, drawBarYP, 0, 0, drawBarWidth, nBarH);
+            g_sdlDevice->drawTexture(pBar0, drawBarXP, drawBarYP);
 
-        if(g_clientArgParser->alwaysDrawName || (focusMask & (1 << FOCUS_MOUSE))){
-            const int nLW = m_nameBoard.w();
-            const int nLH = m_nameBoard.h();
-            const int nDrawNameXP = drawBarXP + nBarW / 2 - nLW / 2;
-            const int nDrawNameYP = drawBarYP + 20;
-            m_nameBoard.drawEx(nDrawNameXP, nDrawNameYP, 0, 0, nLW, nLH);
+            if(g_clientArgParser->alwaysDrawName || (focusMask & (1 << FOCUS_MOUSE))){
+                const int nLW = m_nameBoard.w();
+                const int nLH = m_nameBoard.h();
+                const int nDrawNameXP = drawBarXP + nBarW / 2 - nLW / 2;
+                const int nDrawNameYP = drawBarYP + 20;
+                m_nameBoard.drawEx(nDrawNameXP, nDrawNameYP, 0, 0, nLW, nLH);
+            }
         }
     }
 }
@@ -403,7 +330,7 @@ bool ClientMonster::parseAction(const ActionNode &action)
 
 bool ClientMonster::onActionDie(const ActionNode &action)
 {
-    const auto [endX, endY, endDir] = motionEndLocation(END_FORCED);
+    const auto [endX, endY, endDir] = motionEndPLoc(END_FORCED);
     for(auto &node: makeWalkMotionQueue(endX, endY, action.x, action.y, SYS_MAXSPEED)){
         if(!(node && motionValid(node))){
             throw fflerror("current motion node is invalid");
@@ -411,7 +338,7 @@ bool ClientMonster::onActionDie(const ActionNode &action)
         m_forceMotionQueue.push_back(std::move(node));
     }
 
-    const auto [dieX, dieY, dieDir] = motionEndLocation(END_FORCED);
+    const auto [dieX, dieY, dieDir] = motionEndPLoc(END_FORCED);
     m_forceMotionQueue.emplace_back(std::unique_ptr<MotionNode>(new MotionNode
     {
         .type = MOTION_MON_DIE,
@@ -426,7 +353,7 @@ bool ClientMonster::onActionDie(const ActionNode &action)
 
 bool ClientMonster::onActionStand(const ActionNode &action)
 {
-    const auto [endX, endY, endDir] = motionEndLocation(END_FORCED);
+    const auto [endX, endY, endDir] = motionEndPLoc(END_FORCED);
     m_motionQueue = makeWalkMotionQueue(endX, endY, action.x, action.y, SYS_MAXSPEED);
     m_motionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
     {
@@ -440,7 +367,7 @@ bool ClientMonster::onActionStand(const ActionNode &action)
 
 bool ClientMonster::onActionHitted(const ActionNode &action)
 {
-    const auto [endX, endY, endDir] = motionEndLocation(END_FORCED);
+    const auto [endX, endY, endDir] = motionEndPLoc(END_FORCED);
     m_motionQueue = makeWalkMotionQueue(endX, endY, action.x, action.y, SYS_MAXSPEED);
     m_motionQueue.emplace_back(std::unique_ptr<MotionNode>(new MotionNode
     {
@@ -485,7 +412,7 @@ bool ClientMonster::onActionJump(const ActionNode &action)
 
 bool ClientMonster::onActionMove(const ActionNode &action)
 {
-    const auto [endX, endY, endDir] = motionEndLocation(END_FORCED);
+    const auto [endX, endY, endDir] = motionEndPLoc(END_FORCED);
     m_motionQueue = makeWalkMotionQueue(endX, endY, action.x, action.y, SYS_MAXSPEED);
     if(auto moveNode = makeWalkMotion(action.x, action.y, action.aimX, action.aimY, action.speed); motionValid(moveNode)){
         m_motionQueue.push_back(std::move(moveNode));
@@ -519,7 +446,7 @@ bool ClientMonster::onActionSpawn(const ActionNode &action)
 
 bool ClientMonster::onActionAttack(const ActionNode &action)
 {
-    const auto [endX, endY, endDir] = motionEndLocation(END_FORCED);
+    const auto [endX, endY, endDir] = motionEndPLoc(END_FORCED);
     m_motionQueue = makeWalkMotionQueue(endX, endY, action.x, action.y, SYS_MAXSPEED);
     if(auto coPtr = m_processRun->findUID(action.aimUID)){
         m_motionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
@@ -622,75 +549,24 @@ int ClientMonster::gfxID(int nMotion, int nDirection) const
     return -1;
 }
 
-int ClientMonster::motionFrameCount(int motion, int direction) const
+FrameSeq ClientMonster::motionFrameSeq(int motion, int direction) const
 {
-    const auto nGfxID = gfxID(motion, direction);
-    if(nGfxID < 0){
-        return -1;
+    if(const auto nGfxId = gfxID(motion, direction); nGfxId < 0){
+        return {};
     }
 
     switch(motion){
-        case MOTION_MON_STAND:
-            {
-                return 4;
-            }
-        case MOTION_MON_WALK:
-            {
-                return 6;
-            }
-        case MOTION_MON_ATTACK0:
-            {
-                return 6;
-            }
-        case MOTION_MON_HITTED:
-            {
-                switch(lookID()){
-                    default:
-                        {
-                            return 2;
-                        }
-                }
-            }
-        case MOTION_MON_DIE:
-            {
-                switch(lookID()){
-                    default:
-                        {
-                            return 10;
-                        }
-                }
-            }
-        case MOTION_MON_ATTACK1:
-            {
-                return 6;
-            }
-        case MOTION_MON_SPELL0:
-        case MOTION_MON_SPELL1:
-            {
-                return 10;
-            }
-        case MOTION_MON_APPEAR:
-            {
-                switch(lookID()){
-                    default:
-                        {
-                            return 10;
-                        }
-                }
-            }
-        case MOTION_MON_SPECIAL:
-            {
-                switch(lookID()){
-                    default:
-                        {
-                            return 6;
-                        }
-                }
-            }
-        default:
-            {
-                return -1;
-            }
+        case MOTION_MON_STAND  : return {.count =  4};
+        case MOTION_MON_WALK   : return {.count =  6};
+        case MOTION_MON_ATTACK0: return {.count =  6};
+        case MOTION_MON_HITTED : return {.count =  2};
+        case MOTION_MON_DIE    : return {.count = 10};
+        case MOTION_MON_ATTACK1: return {.count =  6};
+        case MOTION_MON_SPELL0 :
+        case MOTION_MON_SPELL1 : return {.count = 10};
+        case MOTION_MON_APPEAR : return {.count = 10};
+        case MOTION_MON_SPECIAL: return {.count =  6};
+        default                : return {};
     }
 }
 
@@ -764,7 +640,7 @@ ClientCreature::TargetBox ClientMonster::getTargetBox() const
 
     const auto [bodyFrameW, bodyFrameH] = SDLDeviceHelper::getTextureSize(bodyFrameTexPtr);
 
-    const auto [shiftX, shiftY] = getShift();
+    const auto [shiftX, shiftY] = getShift(m_currMotion->frame);
     const int startX = m_currMotion->x * SYS_MAPGRIDXP + shiftX + dx;
     const int startY = m_currMotion->y * SYS_MAPGRIDYP + shiftY + dy;
 

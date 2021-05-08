@@ -220,7 +220,7 @@ bool CreatureMovable::moveNextMotion()
     return false;
 }
 
-std::tuple<int, int> CreatureMovable::getShift() const
+std::tuple<int, int> CreatureMovable::getShift(int frame) const
 {
     switch(m_currMotion->type){
         case MOTION_WALK:           // human
@@ -251,20 +251,16 @@ std::tuple<int, int> CreatureMovable::getShift() const
             }
     }
 
-    const auto frameCount = motionFrameCount(m_currMotion->type, m_currMotion->direction);
-    if(frameCount <= 0){
-        throw fflerror("invalid frame count: %d", frameCount);
-    }
+    const auto seq = motionFrameSeq(m_currMotion->type, m_currMotion->direction);
 
-    if(m_currMotion->frame >= frameCount){
-        throw fflerror("invalid frame: %d", m_currMotion->frame);
-    }
+    fflassert(seq);
+    fflassert(frame >= 0 && frame < seq.count);
 
-    const float shiftDX = 1.0f * SYS_MAPGRIDXP * currStepCount / frameCount;
-    const float shiftDY = 1.0f * SYS_MAPGRIDYP * currStepCount / frameCount;
+    const float shiftDX = 1.0f * SYS_MAPGRIDXP * currStepCount / seq.count;
+    const float shiftDY = 1.0f * SYS_MAPGRIDYP * currStepCount / seq.count;
 
-    const int shiftX = to_d(std::lround(shiftDX * (m_currMotion->frame + 1)));
-    const int shiftY = to_d(std::lround(shiftDY * (m_currMotion->frame + 1)));
+    const int shiftX = to_d(std::lround(shiftDX * (frame + 1)));
+    const int shiftY = to_d(std::lround(shiftDY * (frame + 1)));
 
     switch(m_currMotion->direction){
         case DIR_UP       : return {      0, -shiftY};
@@ -279,7 +275,7 @@ std::tuple<int, int> CreatureMovable::getShift() const
     }
 }
 
-std::tuple<int, int, int> CreatureMovable::motionEndLocation(int endType) const
+std::tuple<int, int, int> CreatureMovable::motionEndPLoc(int endType) const
 {
     switch(endType){
         case END_OPTIONAL:

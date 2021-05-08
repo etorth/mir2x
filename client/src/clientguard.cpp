@@ -41,24 +41,10 @@ bool ClientGuard::parseAction(const ActionNode &action)
             }
         case ACTION_ATTACK:
             {
-                const auto oldDir = m_currMotion->direction;
-                const auto coPtr  = m_processRun->findUID(action.aimUID);
-
                 m_currMotion.reset(new MotionNode
                 {
                     .type = MOTION_MON_ATTACK0,
-                    .direction = [&action, oldDir, coPtr]() -> int
-                    {
-                        if(coPtr){
-                            const auto [aimX, aimY] = coPtr->location();
-                            const auto newDir = PathFind::GetDirection(action.x, action.y, aimX, aimY); // can return DIR_NONE
-                            return directionValid(newDir) ? newDir : oldDir;
-                        }
-                        else{
-                            return oldDir;
-                        }
-                    }(),
-
+                    .direction = m_processRun->getAimDirection(action, m_currMotion->direction),
                     .x = action.x,
                     .y = action.y,
                 });

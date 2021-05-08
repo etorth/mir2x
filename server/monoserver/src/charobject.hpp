@@ -385,7 +385,7 @@ class CharObject: public ServerObject
         void notifyDead(uint64_t);
 
     protected:
-        ActionNode makeActionStand() const;
+        virtual ActionNode makeActionStand() const;
 
     protected:
         corof::long_jmper::eval_op<std::tuple<uint32_t, int, int>> coro_getCOPLoc(uint64_t);

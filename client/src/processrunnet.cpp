@@ -28,6 +28,7 @@
 #include "clienttaoskeleton.hpp"
 #include "clientnpc.hpp"
 #include "clientguard.hpp"
+#include "clientpiranhaplant.hpp"
 #include "uidf.hpp"
 #include "sysconst.hpp"
 #include "pngtexdb.hpp"
@@ -162,6 +163,11 @@ void ProcessRun::net_ACTION(const uint8_t *bufPtr, size_t)
                                         }
                                         return;
                                     }
+                                case DBCOM_MONSTERID(u8"食人花"):
+                                    {
+                                        m_coList[smA.UID] = std::make_unique<ClientPiranhaPlant>(smA.UID, this, smA.action);
+                                        return;
+                                    }
                                 default:
                                     {
                                         if(DBCOM_MONSTERRECORD(monID).guard){
@@ -264,7 +270,11 @@ void ProcessRun::net_NOTIFYDEAD(const uint8_t *bufPtr, size_t)
         {
             .x = p->x(),
             .y = p->y(),
-            .fadeOut = true,
+            .extParam
+            {
+                .fadeOut = true,
+                .none = {},
+            }
         });
     }
 }

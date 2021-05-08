@@ -39,8 +39,9 @@
 #include "totype.hpp"
 #include "skillboard.hpp"
 #include "lochashtable.hpp"
-#include "clienttaoskeleton.hpp"
 #include "clienttaodog.hpp"
+#include "clienttaoskeleton.hpp"
+#include "clientpiranhaplant.hpp"
 
 extern Log *g_log;
 extern Client *g_client;
@@ -1258,7 +1259,7 @@ void ProcessRun::centerMyHero()
             case 2:
             case 3:
                 {
-                    const auto [shiftX, shiftY] = getMyHero()->getShift();
+                    const auto [shiftX, shiftY] = getMyHero()->getShift(getMyHero()->currMotion()->frame);
                     m_viewX = nX * SYS_MAPGRIDXP + shiftX - showWindowW / 2;
                     m_viewY = nY * SYS_MAPGRIDYP + shiftY - showWindowH / 2;
                     return;
@@ -1359,13 +1360,8 @@ void ProcessRun::queryCORecord(uint64_t nUID) const
 
 void ProcessRun::onActionSpawn(uint64_t uid, const ActionNode &action)
 {
-    if(!uid){
-        throw fflerror("invalid uid: zero");
-    }
-
-    if(action.type != ACTION_SPAWN){
-        throw fflerror("invalid action node: %s", actionName(action));
-    }
+    fflassert(uid);
+    fflassert(action.type == ACTION_SPAWN);
 
     if(uidf::getUIDType(uid) != UID_MON){
         queryCORecord(uid);
@@ -1408,6 +1404,11 @@ void ProcessRun::onActionSpawn(uint64_t uid, const ActionNode &action)
                 addCBLog(CBLOG_SYS, u8"使用魔法: 召唤神兽");
                 m_coList[uid].reset(new ClientTaoDog(uid, this, action));
                 queryCORecord(uid);
+                return;
+            }
+        case DBCOM_MONSTERID(u8"食人花"):
+            {
+                m_coList[uid].reset(new ClientPiranhaPlant(uid, this, action));
                 return;
             }
         default:
@@ -1975,4 +1976,15 @@ bool ProcessRun::removeGroundItemID(uint32_t itemID, int x, int y)
         m_groundItemIDList.erase(p);
     }
     return false;
+}
+
+int ProcessRun::getAimDirection(const ActionNode &action, int defDir) const
+{
+    fflassert(action.aimUID);
+    if(const auto coPtr = findUID(action.aimUID)){
+        const auto [aimX, aimY] = coPtr->location();
+        const auto dir = PathFind::GetDirection(action.x, action.y, aimX, aimY); // can return DIR_NONE
+        return directionValid(dir) ? dir : defDir;
+    }
+    return defDir;
 }

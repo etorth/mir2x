@@ -46,7 +46,9 @@ class Hero: public CreatureMovable
 
     public:
         bool update(double) override;
-        void draw(int, int, int) override;
+
+    public:
+        void drawFrame(int, int, int, int, bool) override;
 
     public:
         bool OnHorse() const
@@ -75,7 +77,7 @@ class Hero: public CreatureMovable
         bool moving();
 
     public:
-        int motionFrameCount(int, int) const override;
+        FrameSeq motionFrameSeq(int, int) const override;
 
     public:
         int WeaponOrder(int, int, int);
@@ -144,4 +146,16 @@ class Hero: public CreatureMovable
 
     public:
         void jumpLoc(int, int, int);
+
+    protected:
+        std::unique_ptr<MotionNode> makeIdleMotion() const override
+        {
+            return std::unique_ptr<MotionNode>(new MotionNode
+            {
+                .type = MOTION_STAND,
+                .direction = m_currMotion->direction,
+                .x = m_currMotion->endX,
+                .y = m_currMotion->endY,
+            });
+        }
 };

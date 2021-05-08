@@ -399,4 +399,7 @@ class ProcessRun: public Process
         {
             return m_coList;
         }
+
+    public:
+        int getAimDirection(const ActionNode &, int defDir = DIR_NONE) const;
 };

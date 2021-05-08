@@ -236,25 +236,14 @@ void Player::reportCO(uint64_t toUID)
 
     amCOR.UID = UID();
     amCOR.mapID = mapID();
-    amCOR.action = ActionStand
-    {
-        .x = X(),
-        .y = Y(),
-        .direction = Direction(),
-    };
-
+    amCOR.action = makeActionStand();
     amCOR.Player.Level = level();
     m_actorPod->forward(toUID, {AM_CORECORD, amCOR});
 }
 
 void Player::reportStand()
 {
-    reportAction(UID(), ActionStand
-    {
-        .x = X(),
-        .y = Y(),
-        .direction = Direction(),
-    });
+    reportAction(UID(), makeActionStand());
 }
 
 void Player::reportAction(uint64_t nUID, const ActionNode &action)

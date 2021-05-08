@@ -675,13 +675,7 @@ void Monster::reportCO(uint64_t toUID)
 
     amCOR.UID = UID();
     amCOR.mapID = mapID();
-    amCOR.action = ActionStand
-    {
-        .x = X(),
-        .y = Y(),
-        .direction = Direction(),
-    };
-
+    amCOR.action = makeActionStand();
     amCOR.Monster.MonsterID = monsterID();
     m_actorPod->forward(toUID, {AM_CORECORD, amCOR});
 }
@@ -801,7 +795,11 @@ bool Monster::goDie()
     {
         .x = X(),
         .y = Y(),
-        .fadeOut = false,
+        .extParam
+        {
+            .fadeOut = false,
+            .none = {},
+        },
     });
 
     // let's dispatch ActionDie before mark it dead

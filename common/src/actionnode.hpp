@@ -53,62 +53,95 @@ struct ActionNode
     uint16_t y;
     uint16_t aimX;
     uint16_t aimY;
-
     uint64_t aimUID;
-    union ActionExtParam
+
+    struct ExtParamStand
     {
-        struct ExtParamStand
+        struct DogStand
         {
-            struct DogStand
-            {
-                uint8_t standMode;
-            };
+            uint8_t standMode;
+        };
 
-            struct NPCStand
-            {
-                uint8_t act;
-            };
-
-            union
-            {
-                DogStand dog;
-                NPCStand npc;
-            };
-        }stand;
-
-        struct ExtParamDie
+        struct PiranhaPlantStand
         {
-            uint8_t fadeOut;
-        }die;
+            uint8_t standMode;
+        };
 
-        struct ExtParamSpell
+        struct NPCStand
         {
-            uint32_t magicID;
-        }spell;
+            uint8_t act;
+        };
 
-        struct ExtParamTransf
+        union
         {
-            struct DogTransf
-            {
-                uint8_t standMode;
-            };
+            DogStand dog;
+            PiranhaPlantStand piranhaPlant;
+            NPCStand npc;
+        };
+    };
 
-            union
-            {
-                DogTransf dog;
-            };
-        }transf;
-
-        struct ExtParamMove
+    struct ExtParamTransf
+    {
+        struct DogTransf
         {
-            uint8_t pickUp  : 1;
-            uint8_t onHorse : 1;
-        }move;
+            uint8_t standModeReq;
+        };
 
-        struct ExtParamAttack
+        struct PiranhaPlantTransf
         {
-            uint32_t damageID;
-        }attack;
+            uint8_t standModeReq;
+        };
+
+        union
+        {
+            DogTransf dog;
+            PiranhaPlantTransf piranhaPlant;
+        };
+    };
+
+    struct ExtParamDie
+    {
+        struct NoneDie
+        {
+        };
+
+        struct DogDie
+        {
+            uint8_t standMode;
+        };
+
+        uint8_t fadeOut;
+        union
+        {
+            NoneDie none; // suppress compiler warning
+            DogDie dog;
+        };
+    };
+
+    struct ExtParamSpell
+    {
+        uint32_t magicID;
+    };
+
+    struct ExtParamMove
+    {
+        uint8_t pickUp  : 1;
+        uint8_t onHorse : 1;
+    };
+
+    struct ExtParamAttack
+    {
+        uint32_t damageID;
+    };
+
+    union ActionExtParam // prefer named union than anoynmous union
+    {
+        ExtParamStand  stand;
+        ExtParamTransf transf;
+        ExtParamDie    die;
+        ExtParamSpell  spell;
+        ExtParamMove   move;
+        ExtParamAttack attack;
     } extParam;
 };
 #pragma pack(pop)
@@ -117,7 +150,7 @@ struct ActionDie
 {
     const int x = -1;
     const int y = -1;
-    const bool fadeOut = true;
+    const ActionNode::ExtParamDie extParam = {};
 
     operator ActionNode () const
     {
@@ -129,7 +162,7 @@ struct ActionDie
         node.x = x;
         node.y = y;
 
-        node.extParam.die.fadeOut = fadeOut;
+        node.extParam.die = extParam;
         return node;
     }
 };
@@ -139,6 +172,7 @@ struct ActionStand
     const int x = -1;
     const int y = -1;
     const int direction = DIR_NONE;
+    ActionNode::ExtParamStand extParam = {};
 
     operator ActionNode () const
     {
@@ -151,6 +185,7 @@ struct ActionStand
         node.x = x;
         node.y = y;
 
+        node.extParam.stand = extParam;
         return node;
     }
 };
@@ -160,7 +195,7 @@ struct ActionTransf
     const int x = -1;
     const int y = -1;
     const int direction = DIR_NONE;
-    const bool standMode = false;
+    const ActionNode::ExtParamTransf extParam = {};
 
     operator ActionNode () const
     {
@@ -173,7 +208,7 @@ struct ActionTransf
         node.x = x;
         node.y = y;
 
-        node.extParam.transf.dog.standMode = standMode;
+        node.extParam.transf = extParam;
         return node;
     }
 };

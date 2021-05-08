@@ -28,45 +28,30 @@ class ClientTaoDog: public ClientMonster
         bool m_standMode;
 
     public:
-        ClientTaoDog(uint64_t uid, ProcessRun *proc, const ActionNode &action)
-            : ClientMonster(uid, proc, action)
-            , m_standMode([&action]() -> bool
-              {
-                  switch(action.type){
-                      case ACTION_SPAWN : return false;
-                      case ACTION_STAND : return action.extParam. stand.dog.standMode;
-                      case ACTION_TRANSF: return action.extParam.transf.dog.standMode;
-                      default           : return false;
-                  }
-              }())
-        {
-            if(monsterName() != u8"神兽"){
-                throw fflerror("bad monster type: %s", to_cstr(monsterName().data()));
-            }
-        }
+        ClientTaoDog(uint64_t, ProcessRun *, const ActionNode &);
 
     public:
-        int motionFrameCount(int motion, int) const override
+        FrameSeq motionFrameSeq(int motion, int) const override
         {
             if(m_standMode){
                 switch(motion){
-                    case MOTION_MON_STAND   : return  4;
-                    case MOTION_MON_WALK    : return  6;
-                    case MOTION_MON_ATTACK0 : return  6;
-                    case MOTION_MON_HITTED  : return  2;
-                    case MOTION_MON_DIE     : return 10;
-                    case MOTION_MON_APPEAR  : return 10; // from crawling to stand
-                    default                 : return -1;
+                    case MOTION_MON_STAND   : return {.count =  4};
+                    case MOTION_MON_WALK    : return {.count =  6};
+                    case MOTION_MON_ATTACK0 : return {.count =  6};
+                    case MOTION_MON_HITTED  : return {.count =  2};
+                    case MOTION_MON_DIE     : return {.count = 10};
+                    case MOTION_MON_APPEAR  : return {.count = 10}; // from crawling to stand
+                    default                 : return {};
                 }
             }
             else{
                 switch(motion){
-                    case MOTION_MON_STAND   : return  4;
-                    case MOTION_MON_WALK    : return  6;
-                    case MOTION_MON_HITTED  : return  2;
-                    case MOTION_MON_DIE     : return 10;
-                    case MOTION_MON_APPEAR  : return 10; // from non to crawling
-                    default                 : return -1;
+                    case MOTION_MON_STAND   : return {.count =  4};
+                    case MOTION_MON_WALK    : return {.count =  6};
+                    case MOTION_MON_HITTED  : return {.count =  2};
+                    case MOTION_MON_DIE     : return {.count = 10};
+                    case MOTION_MON_APPEAR  : return {.count = 10}; // from non to crawling
+                    default                 : return {};
                 }
             }
         }
