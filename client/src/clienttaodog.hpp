@@ -101,12 +101,6 @@ class ClientTaoDog: public ClientMonster
         bool onActionTransf(const ActionNode &) override;
         bool onActionAttack(const ActionNode &) override;
 
-    public:
-        bool visible() const override
-        {
-            return ClientCreature::active();
-        }
-
     private:
         void addActionTransf();
 

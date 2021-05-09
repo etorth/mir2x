@@ -123,10 +123,7 @@ bool ClientCreature::active() const
         case MOTION_DIE:
         case MOTION_MON_DIE:
             {
-                if(auto frameCount = motionFrameCount(m_currMotion->type, m_currMotion->direction); frameCount > 0){
-                    return m_currMotion->frame < (frameCount - 1);
-                }
-                throw fflerror("invalid motion detected");
+                return m_currMotion->frame < motionFrameCountEx(m_currMotion->type, m_currMotion->direction);
             }
         default:
             {
@@ -137,18 +134,27 @@ bool ClientCreature::active() const
 
 bool ClientCreature::visible() const
 {
-    if(!motionValid(m_currMotion)){
-        throw fflerror("invalid motion detected");
-    }
-
+    fflassert(motionValid(m_currMotion));
     switch(m_currMotion->type){
         case MOTION_DIE:
+            {
+                fflassert(type() == UID_PLY);
+                return (m_currMotion->frame < motionFrameCountEx(m_currMotion->type, m_currMotion->direction)) || (m_currMotion->extParam.die.fadeOut < 255);
+            }
         case MOTION_MON_DIE:
             {
-                if(const auto frameCount = motionFrameCount(m_currMotion->type, m_currMotion->direction); frameCount > 0){
-                    return (m_currMotion->frame < (frameCount - 1)) || (m_currMotion->extParam.die.fadeOut < 255);
+                fflassert(type() == UID_MON);
+                if(m_currMotion->frame < motionFrameCountEx(m_currMotion->type, m_currMotion->direction)){
+                    return true;
                 }
-                throw fflerror("invalid motion detected");
+
+                const auto monCPtr = dynamic_cast<const ClientMonster *>(this);
+                if(monCPtr->getMR().deadFadeOut){
+                    return m_currMotion->extParam.die.fadeOut < 255;
+                }
+
+                fflassert(m_currMotion->extParam.die.fadeOut == 0);
+                return false;
             }
         default:
             {
