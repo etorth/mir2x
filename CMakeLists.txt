@@ -95,7 +95,7 @@ ELSE()
     FILE(GLOB MIR2X_LOG_SRC_FILELIST
         ${CMAKE_SOURCE_DIR}/common/src/*.[hc]pp
         ${CMAKE_SOURCE_DIR}/client/src/*.[hc]pp
-        ${CMAKE_SOURCE_DIR}/server/monoserver/src/*.[hc]pp
+        ${CMAKE_SOURCE_DIR}/server/src/*.[hc]pp
     )
 
     FOREACH(LOG_SRC ${MIR2X_LOG_SRC_FILELIST})
@@ -103,11 +103,11 @@ ELSE()
         STRING(APPEND MIR2X_LOG_FILELIST "R\"DELIM(${LOG_SRC_BODY})DELIM\",\n")
     ENDFOREACH()
 
-    FILE(GLOB MIR2X_LOG_FL_FILELIST ${CMAKE_SOURCE_DIR}/server/monoserver/src/*.[fF][lL])
+    FILE(GLOB MIR2X_LOG_FL_FILELIST ${CMAKE_SOURCE_DIR}/server/src/*.[fF][lL])
     FOREACH(LOG_FL_SRC ${MIR2X_LOG_FL_FILELIST})
         GET_FILENAME_COMPONENT(FL_SRC_BASENAME ${LOG_FL_SRC} NAME_WE)
-        STRING(APPEND MIR2X_LOG_FILELIST "R\"DELIM(server/monoserver/src/${FL_SRC_BASENAME}.hpp)DELIM\",\n")
-        STRING(APPEND MIR2X_LOG_FILELIST "R\"DELIM(server/monoserver/src/${FL_SRC_BASENAME}.cpp)DELIM\",\n")
+        STRING(APPEND MIR2X_LOG_FILELIST "R\"DELIM(server/src/${FL_SRC_BASENAME}.hpp)DELIM\",\n")
+        STRING(APPEND MIR2X_LOG_FILELIST "R\"DELIM(server/src/${FL_SRC_BASENAME}.cpp)DELIM\",\n")
     ENDFOREACH()
 ENDIF()
 

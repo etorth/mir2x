@@ -1,1 +1,1 @@
-ADD_SUBDIRECTORY(monoserver)
+ADD_SUBDIRECTORY(src)
