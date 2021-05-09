@@ -31,6 +31,7 @@
 #include "filesys.hpp"
 #include "taoskeleton.hpp"
 #include "piranhaplant.hpp"
+#include "batmother.hpp"
 #include "mathf.hpp"
 #include "sysconst.hpp"
 #include "fflerror.hpp"
@@ -960,6 +961,29 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
                         this,
                         nDstX,
                         nDstY,
+                    };
+                    break;
+                }
+            case DBCOM_MONSTERID(u8"角蝇"):
+                {
+                    monsterPtr = new BatMother
+                    {
+                        this,
+                        nDstX,
+                        nDstY,
+                    };
+                    break;
+                }
+            case DBCOM_MONSTERID(u8"蝙蝠"):
+                {
+                    monsterPtr = new Monster
+                    {
+                        nMonsterID,
+                        this,
+                        nDstX,
+                        nDstY,
+                        DIR_LEFT, // direction for initial gfx when born
+                        nMasterUID,
                     };
                     break;
                 }
