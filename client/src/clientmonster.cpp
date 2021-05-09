@@ -347,7 +347,8 @@ bool ClientMonster::onActionDie(const ActionNode &action)
         .y = dieY,
     }));
 
-    m_forceMotionQueue.back()->extParam.die.fadeOut = action.extParam.die.fadeOut;
+    // set motion fadeOut as 0
+    // server later will issue fadeOut on dead body
     return true;
 }
 

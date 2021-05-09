@@ -140,4 +140,10 @@ class ClientMonster: public CreatureMovable
                 .y = m_currMotion->endY,
             });
         }
+
+    public:
+        const auto &getMR() const
+        {
+            return DBCOM_MONSTERRECORD(uidf::getMonsterID(UID()));
+        }
 };

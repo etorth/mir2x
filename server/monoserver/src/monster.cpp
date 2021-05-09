@@ -795,18 +795,13 @@ bool Monster::goDie()
     {
         .x = X(),
         .y = Y(),
-        .extParam
-        {
-            .fadeOut = false,
-            .none = {},
-        },
     });
 
     // let's dispatch ActionDie before mark it dead
     // theoratically dead actor shouldn't dispatch anything
 
-    if(DBCOM_MONSTERRECORD(monsterID()).deadFadeOut){
-        addDelay(2 * 1000, [this](){ goGhost(); });
+    if(getMR().deadFadeOut){
+        addDelay(2 * 1000, [this]() { goGhost(); });
         return true;
     }
     else{

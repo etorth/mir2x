@@ -101,19 +101,13 @@ struct ActionNode
 
     struct ExtParamDie
     {
-        struct NoneDie
-        {
-        };
-
         struct DogDie
         {
             uint8_t standMode;
         };
 
-        uint8_t fadeOut;
         union
         {
-            NoneDie none; // suppress compiler warning
             DogDie dog;
         };
     };

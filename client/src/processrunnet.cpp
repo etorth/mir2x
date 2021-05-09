@@ -270,11 +270,6 @@ void ProcessRun::net_NOTIFYDEAD(const uint8_t *bufPtr, size_t)
         {
             .x = p->x(),
             .y = p->y(),
-            .extParam
-            {
-                .fadeOut = true,
-                .none = {},
-            }
         });
     }
 }
