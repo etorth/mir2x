@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename: batmother.hpp
+ *       Filename: bugbatmaggot.hpp
  *        Created: 04/07/2016 03:48:41 AM
  *    Description:
  *
@@ -20,10 +20,10 @@
 #include "dbcomid.hpp"
 #include "monster.hpp"
 
-class BatMother final: public Monster
+class BugbatMaggot final: public Monster
 {
     public:
-        BatMother(ServerMap *mapPtr, int argX, int argY)
+        BugbatMaggot(ServerMap *mapPtr, int argX, int argY)
             : Monster(DBCOM_MONSTERID(u8"角蝇"), mapPtr, argX, argY, DIR_BEGIN, 0)
         {}
 

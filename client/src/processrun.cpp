@@ -42,7 +42,7 @@
 #include "clienttaodog.hpp"
 #include "clienttaoskeleton.hpp"
 #include "clientpiranhaplant.hpp"
-#include "clientbatmother.hpp"
+#include "clientbugbatmaggot.hpp"
 
 extern Log *g_log;
 extern Client *g_client;
@@ -1414,7 +1414,7 @@ void ProcessRun::onActionSpawn(uint64_t uid, const ActionNode &action)
             }
         case DBCOM_MONSTERID(u8"角蝇"):
             {
-                m_coList[uid].reset(new ClientBatMother(uid, this, action));
+                m_coList[uid].reset(new ClientBugbatMaggot(uid, this, action));
                 return;
             }
         default:

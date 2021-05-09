@@ -31,7 +31,7 @@
 #include "filesys.hpp"
 #include "taoskeleton.hpp"
 #include "piranhaplant.hpp"
-#include "batmother.hpp"
+#include "bugbatmaggot.hpp"
 #include "mathf.hpp"
 #include "sysconst.hpp"
 #include "fflerror.hpp"
@@ -966,7 +966,7 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
                 }
             case DBCOM_MONSTERID(u8"角蝇"):
                 {
-                    monsterPtr = new BatMother
+                    monsterPtr = new BugbatMaggot
                     {
                         this,
                         nDstX,

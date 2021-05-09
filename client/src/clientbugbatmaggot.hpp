@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename: clientbatmother.hpp
+ *       Filename: clientbugbatmaggot.hpp
  *        Created: 08/31/2015 08:26:19
  *    Description:
  *
@@ -22,10 +22,10 @@
 #include "fflerror.hpp"
 #include "clientmonster.hpp"
 
-class ClientBatMother: public ClientMonster
+class ClientBugbatMaggot: public ClientMonster
 {
     public:
-        ClientBatMother(uint64_t uid, ProcessRun *proc, const ActionNode &action)
+        ClientBugbatMaggot(uint64_t uid, ProcessRun *proc, const ActionNode &action)
             : ClientMonster(uid, proc)
         {
             fflassert(isMonster(u8"角蝇"));

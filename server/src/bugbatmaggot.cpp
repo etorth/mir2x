@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename: batmother.cpp
+ *       Filename: bugbatmaggot.cpp
  *        Created: 04/07/2016 03:48:41 AM
  *    Description:
  *
@@ -17,9 +17,9 @@
  */
 
 #include "sysconst.hpp"
-#include "batmother.hpp"
+#include "bugbatmaggot.hpp"
 
-void BatMother::addBat()
+void BugbatMaggot::addBat()
 {
     AMAddCharObject amACO;
     std::memset(&amACO, 0, sizeof(amACO));
@@ -48,7 +48,7 @@ void BatMother::addBat()
     });
 }
 
-corof::long_jmper BatMother::updateCoroFunc()
+corof::long_jmper BugbatMaggot::updateCoroFunc()
 {
     while(HP() > 0){
         dispatchAction(ActionAttack

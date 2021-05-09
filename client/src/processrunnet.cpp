@@ -29,7 +29,7 @@
 #include "clientnpc.hpp"
 #include "clientguard.hpp"
 #include "clientpiranhaplant.hpp"
-#include "clientbatmother.hpp"
+#include "clientbugbatmaggot.hpp"
 #include "uidf.hpp"
 #include "sysconst.hpp"
 #include "pngtexdb.hpp"
@@ -171,7 +171,7 @@ void ProcessRun::net_ACTION(const uint8_t *bufPtr, size_t)
                                     }
                                 case DBCOM_MONSTERID(u8"角蝇"):
                                     {
-                                        m_coList[smA.UID] = std::make_unique<ClientBatMother>(smA.UID, this, smA.action);
+                                        m_coList[smA.UID] = std::make_unique<ClientBugbatMaggot>(smA.UID, this, smA.action);
                                         return;
                                     }
                                 default:
