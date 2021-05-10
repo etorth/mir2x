@@ -21,6 +21,7 @@
 #include "player.hpp"
 #include "uidf.hpp"
 #include "strf.hpp"
+#include "pathf.hpp"
 #include "dbconst.hpp"
 #include "dbcomid.hpp"
 #include "monster.hpp"
@@ -340,7 +341,22 @@ void Monster::jumpUID(uint64_t targetUID, std::function<void()> onOK, std::funct
             return;
         }
 
-        const auto [nFrontX, nFrontY] = PathFind::getFrontPLoc(nX, nY, nDir, 1);
+        // default stand and direction when jump to an UID
+        // this way keeps distance and has best opporitunity to attack if UID is moving forward
+        //
+        // +---+---+---+
+        // |   |   |  /|
+        // |   |   |L  |
+        // +---+---+---+
+        // |   | ^ |   |
+        // |   | | |   |
+        // +---+---+---+
+        // |   |   |   |
+        // |   |   |   |
+        // +---+---+---+
+
+        const auto nextDir = pathf::nextDirection(nDir, 1);
+        const auto [nFrontX, nFrontY] = PathFind::getFrontPLoc(nX, nY, nextDir, 1);
         if(!m_map->groundValid(nFrontX, nFrontY)){
             onError();
             return;
@@ -350,7 +366,7 @@ void Monster::jumpUID(uint64_t targetUID, std::function<void()> onOK, std::funct
             onOK();
         }
         else{
-            requestJump(nFrontX, nFrontY, PathFind::GetBack(nDir), onOK, onError);
+            requestJump(nFrontX, nFrontY, PathFind::GetBack(nextDir), onOK, onError);
         }
     }, onError);
 }

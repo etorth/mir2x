@@ -33,6 +33,13 @@
 
 namespace pathf
 {
+    inline int nextDirection(int dir, int diff = 1)
+    {
+        fflassert(directionValid(dir));
+        constexpr int dirCount = DIR_END - DIR_BEGIN;
+        return DIR_BEGIN + (((((dir - DIR_BEGIN) + diff) % dirCount) + dirCount) % dirCount);
+    }
+
     int getDir4 (int /* x */, int /* y */);
     int getDir8 (int /* x */, int /* y */);
     int getDir16(int /* x */, int /* y */);
