@@ -30,13 +30,15 @@ bool ClientGuard::parseAction(const ActionNode &action)
         case ACTION_STAND:
         case ACTION_SPAWN:
             {
-                m_currMotion.reset(new MotionNode
-                {
-                    .type = MOTION_MON_STAND,
-                    .direction = action.direction,
-                    .x = action.x,
-                    .y = action.y,
-                });
+                if(action.x != m_currMotion->x || action.y != m_currMotion->y){
+                    m_currMotion.reset(new MotionNode
+                    {
+                        .type = MOTION_MON_STAND,
+                        .direction = action.direction,
+                        .x = action.x,
+                        .y = action.y,
+                    });
+                }
                 return true;
             }
         case ACTION_ATTACK:
@@ -45,6 +47,7 @@ bool ClientGuard::parseAction(const ActionNode &action)
                 {
                     .type = MOTION_MON_ATTACK0,
                     .direction = m_processRun->getAimDirection(action, m_currMotion->direction),
+                    .speed = 200,
                     .x = action.x,
                     .y = action.y,
                 });
