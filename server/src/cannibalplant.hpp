@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename: piranhaplant.hpp
+ *       Filename: cannibalplant.hpp
  *        Created: 04/07/2016 03:48:41 AM
  *    Description:
  *
@@ -20,13 +20,13 @@
 #include "dbcomid.hpp"
 #include "monster.hpp"
 
-class PiranhaPlant final: public Monster
+class CannibalPlant final: public Monster
 {
     private:
         bool m_standMode = false;
 
     public:
-        PiranhaPlant(ServerMap *mapPtr, int argX, int argY)
+        CannibalPlant(ServerMap *mapPtr, int argX, int argY)
             : Monster(DBCOM_MONSTERID(u8"食人花"), mapPtr, argX, argY, DIR_BEGIN, 0)
         {}
 
@@ -43,7 +43,7 @@ class PiranhaPlant final: public Monster
                 .direction = DIR_BEGIN,
                 .extParam
                 {
-                    .piranhaPlant
+                    .cannibalPlant
                     {
                         .standMode = m_standMode,
                     },
@@ -63,7 +63,7 @@ class PiranhaPlant final: public Monster
                     .direction = DIR_BEGIN,
                     .extParam
                     {
-                        .piranhaPlant
+                        .cannibalPlant
                         {
                             .standModeReq = standMode,
                         }

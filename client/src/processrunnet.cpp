@@ -28,7 +28,7 @@
 #include "clienttaoskeleton.hpp"
 #include "clientnpc.hpp"
 #include "clientguard.hpp"
-#include "clientpiranhaplant.hpp"
+#include "clientcannibalplant.hpp"
 #include "clientbugbatmaggot.hpp"
 #include "uidf.hpp"
 #include "sysconst.hpp"
@@ -166,7 +166,7 @@ void ProcessRun::net_ACTION(const uint8_t *bufPtr, size_t)
                                     }
                                 case DBCOM_MONSTERID(u8"食人花"):
                                     {
-                                        m_coList[smA.UID] = std::make_unique<ClientPiranhaPlant>(smA.UID, this, smA.action);
+                                        m_coList[smA.UID] = std::make_unique<ClientCannibalPlant>(smA.UID, this, smA.action);
                                         return;
                                     }
                                 case DBCOM_MONSTERID(u8"角蝇"):

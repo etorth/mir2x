@@ -30,7 +30,7 @@
 #include "guard.hpp"
 #include "filesys.hpp"
 #include "taoskeleton.hpp"
-#include "piranhaplant.hpp"
+#include "cannibalplant.hpp"
 #include "bugbatmaggot.hpp"
 #include "mathf.hpp"
 #include "sysconst.hpp"
@@ -956,7 +956,7 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
                 }
             case DBCOM_MONSTERID(u8"食人花"):
                 {
-                    monsterPtr = new PiranhaPlant
+                    monsterPtr = new CannibalPlant
                     {
                         this,
                         nDstX,

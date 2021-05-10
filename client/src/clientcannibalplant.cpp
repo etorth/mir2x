@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename: clientpiranhaplant.cpp
+ *       Filename: clientcannibalplant.cpp
  *        Created: 08/31/2015 08:26:19
  *    Description:
  *
@@ -19,9 +19,9 @@
 #include "fflerror.hpp"
 #include "processrun.hpp"
 #include "clienttaodog.hpp"
-#include "clientpiranhaplant.hpp"
+#include "clientcannibalplant.hpp"
 
-void ClientPiranhaPlant::addActionTransf()
+void ClientCannibalPlant::addActionTransf()
 {
     const auto [endX, endY, endDir] = motionEndPLoc(END_FORCED);
     m_forceMotionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
@@ -39,7 +39,7 @@ void ClientPiranhaPlant::addActionTransf()
     });
 }
 
-bool ClientPiranhaPlant::onActionSpawn(const ActionNode &action)
+bool ClientCannibalPlant::onActionSpawn(const ActionNode &action)
 {
     fflassert(m_forceMotionQueue.empty());
     m_currMotion.reset(new MotionNode
@@ -54,24 +54,24 @@ bool ClientPiranhaPlant::onActionSpawn(const ActionNode &action)
     return true;
 }
 
-bool ClientPiranhaPlant::onActionStand(const ActionNode &action)
+bool ClientCannibalPlant::onActionStand(const ActionNode &action)
 {
-    if(finalStandMode() != action.extParam.stand.piranhaPlant.standMode){
+    if(finalStandMode() != action.extParam.stand.cannibalPlant.standMode){
         addActionTransf();
     }
     return true;
 }
 
-bool ClientPiranhaPlant::onActionTransf(const ActionNode &action)
+bool ClientCannibalPlant::onActionTransf(const ActionNode &action)
 {
-    const auto standReq = (bool)(action.extParam.transf.piranhaPlant.standModeReq);
+    const auto standReq = (bool)(action.extParam.transf.cannibalPlant.standModeReq);
     if(finalStandMode() != standReq){
         addActionTransf();
     }
     return true;
 }
 
-bool ClientPiranhaPlant::onActionAttack(const ActionNode &action)
+bool ClientCannibalPlant::onActionAttack(const ActionNode &action)
 {
     if(!finalStandMode()){
         addActionTransf();
@@ -87,7 +87,7 @@ bool ClientPiranhaPlant::onActionAttack(const ActionNode &action)
     return true;
 }
 
-bool ClientPiranhaPlant::finalStandMode() const
+bool ClientCannibalPlant::finalStandMode() const
 {
     int countTransf = 0;
 
@@ -110,7 +110,7 @@ bool ClientPiranhaPlant::finalStandMode() const
     return (bool)(countTransf % 2) ? !m_standMode : m_standMode;
 }
 
-int ClientPiranhaPlant::gfxID(int motion, int dir) const
+int ClientCannibalPlant::gfxID(int motion, int dir) const
 {
     if(m_standMode){
         return ClientMonster::gfxID(motion, dir);

@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename: piranhaplant.cpp
+ *       Filename: cannibalplant.cpp
  *        Created: 04/07/2016 03:48:41 AM
  *    Description:
  *
@@ -19,9 +19,9 @@
 #include <optional>
 #include "mathf.hpp"
 #include "raiitimer.hpp"
-#include "piranhaplant.hpp"
+#include "cannibalplant.hpp"
 
-corof::long_jmper PiranhaPlant::updateCoroFunc()
+corof::long_jmper CannibalPlant::updateCoroFunc()
 {
     std::optional<uint64_t> idleTime;
     while(HP() > 0){

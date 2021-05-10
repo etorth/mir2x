@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename: clientpiranhaplant.hpp
+ *       Filename: clientcannibalplant.hpp
  *        Created: 08/31/2015 08:26:19
  *    Description:
  *
@@ -22,13 +22,13 @@
 #include "fflerror.hpp"
 #include "clientmonster.hpp"
 
-class ClientPiranhaPlant: public ClientMonster
+class ClientCannibalPlant: public ClientMonster
 {
     private:
         bool m_standMode;
 
     public:
-        ClientPiranhaPlant(uint64_t uid, ProcessRun *proc, const ActionNode &action)
+        ClientCannibalPlant(uint64_t uid, ProcessRun *proc, const ActionNode &action)
             : ClientMonster(uid, proc)
         {
             fflassert(isMonster(u8"食人花"));
@@ -56,7 +56,7 @@ class ClientPiranhaPlant: public ClientMonster
                             .y = action.y,
                         });
 
-                        m_standMode = (bool)(action.extParam.stand.piranhaPlant.standMode);
+                        m_standMode = (bool)(action.extParam.stand.cannibalPlant.standMode);
                         break;
                     }
                 case ACTION_ATTACK:
@@ -82,7 +82,7 @@ class ClientPiranhaPlant: public ClientMonster
                             .y = action.y,
                         });
 
-                        m_standMode = (bool)(action.extParam.transf.piranhaPlant.standModeReq);
+                        m_standMode = (bool)(action.extParam.transf.cannibalPlant.standModeReq);
                         break;
                     }
                 case ACTION_HITTED:

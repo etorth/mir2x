@@ -41,7 +41,7 @@
 #include "lochashtable.hpp"
 #include "clienttaodog.hpp"
 #include "clienttaoskeleton.hpp"
-#include "clientpiranhaplant.hpp"
+#include "clientcannibalplant.hpp"
 #include "clientbugbatmaggot.hpp"
 
 extern Log *g_log;
@@ -1409,7 +1409,7 @@ void ProcessRun::onActionSpawn(uint64_t uid, const ActionNode &action)
             }
         case DBCOM_MONSTERID(u8"食人花"):
             {
-                m_coList[uid].reset(new ClientPiranhaPlant(uid, this, action));
+                m_coList[uid].reset(new ClientCannibalPlant(uid, this, action));
                 return;
             }
         case DBCOM_MONSTERID(u8"角蝇"):

@@ -62,7 +62,7 @@ struct ActionNode
             uint8_t standMode;
         };
 
-        struct PiranhaPlantStand
+        struct CannibalPlantStand
         {
             uint8_t standMode;
         };
@@ -75,7 +75,7 @@ struct ActionNode
         union
         {
             DogStand dog;
-            PiranhaPlantStand piranhaPlant;
+            CannibalPlantStand cannibalPlant;
             NPCStand npc;
         };
     };
@@ -87,7 +87,7 @@ struct ActionNode
             uint8_t standModeReq;
         };
 
-        struct PiranhaPlantTransf
+        struct CannibalPlantTransf
         {
             uint8_t standModeReq;
         };
@@ -95,7 +95,7 @@ struct ActionNode
         union
         {
             DogTransf dog;
-            PiranhaPlantTransf piranhaPlant;
+            CannibalPlantTransf cannibalPlant;
         };
     };
 

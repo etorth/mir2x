@@ -202,7 +202,7 @@ bool ClientTaoDog::onActionAttack(const ActionNode &action)
 bool ClientTaoDog::finalStandMode() const
 {
     // don't need to count current status
-    // check comments in ClientPiranhaPlant::finalStandMode()
+    // check comments in ClientCannibalPlant::finalStandMode()
 
     int countTransf = 0;
     for(const auto &motionPtr: m_forceMotionQueue){
