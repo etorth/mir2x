@@ -47,4 +47,8 @@ class Guard: public Monster
         {
             // guard won't get any damage
         }
+
+    protected:
+        bool canMove()   const override;
+        bool canAttack() const override;
 };

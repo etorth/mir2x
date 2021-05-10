@@ -18,7 +18,9 @@
 
 #include "guard.hpp"
 #include "friendtype.hpp"
+#include "monoserver.hpp"
 
+extern MonoServer *g_monoServer;
 Guard::Guard(uint32_t monID, ServerMap *mapPtr, int argX, int argY, int argDir)
     : Monster(monID, mapPtr, argX, argY, argDir, 0)
     , m_standX(argX)
@@ -101,4 +103,21 @@ void Guard::checkFriend(uint64_t uid, std::function<void(int)> fnOp)
                 return;
             }
     }
+}
+
+bool Guard::canMove() const
+{
+    return CharObject::canMove();
+}
+
+bool Guard::canAttack() const
+{
+    if(!CharObject::canAttack()){
+        return false;
+    }
+
+    if(m_lastAction != ACTION_ATTACK){
+        return true;
+    }
+    return g_monoServer->getCurrTick() >= m_lastActionTime.at(ACTION_ATTACK) + getMR().attackWait;
 }
