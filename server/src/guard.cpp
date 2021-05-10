@@ -48,6 +48,7 @@ corof::long_jmper Guard::updateCoroFunc()
         else{
             co_await coro_jumpBack();
         }
+        co_await corof::async_wait(200);
     }
 
     goDie();
