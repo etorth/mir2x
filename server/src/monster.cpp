@@ -262,7 +262,6 @@ void Monster::attackUID(uint64_t nUID, int nDC, std::function<void()> onOK, std:
                                 }
 
                                 setTarget(nUID);
-                                m_lastAttackTime = g_monoServer->getCurrTick();
                                 dispatchAction(ActionAttack
                                 {
                                     .speed = AttackSpeed(),
@@ -721,7 +720,18 @@ DamageNode Monster::GetAttackDamage(int nDC)
 
 bool Monster::canMove() const
 {
-    return CharObject::canMove() && g_monoServer->getCurrTick() >= m_lastMoveTime + getMR().walkWait;
+    if(!CharObject::canMove()){
+        return false;
+    }
+
+    return g_monoServer->getCurrTick() >= std::max<uint32_t>(
+    {
+        m_lastActionTime.at(m_lastAction     ) + 100,
+        m_lastActionTime.at(ACTION_JUMP      ) + 200,
+        m_lastActionTime.at(ACTION_SPACEMOVE2) + 200,
+        m_lastActionTime.at(ACTION_MOVE      ) + getMR().walkWait,
+        m_lastActionTime.at(ACTION_ATTACK    ) + getMR().attackWait,
+    });
 }
 
 // should have a better way for GCD (global cooldown)
@@ -739,12 +749,12 @@ bool Monster::canAttack() const
         return false;
     }
 
-    const auto nCurrTick = g_monoServer->getCurrTick();
-    if(nCurrTick < m_lastMoveTime + getMR().walkWait){
-        return false;
-    }
-
-    return nCurrTick >= m_lastAttackTime + getMR().attackWait;
+    return g_monoServer->getCurrTick() >= std::max<uint32_t>(
+    {
+        m_lastActionTime.at(m_lastAction ) + 100,
+        m_lastActionTime.at(ACTION_MOVE  ) + getMR().walkWait,
+        m_lastActionTime.at(ACTION_ATTACK) + getMR().attackWait,
+    });
 }
 
 bool Monster::DCValid(int nDC, bool bCheck)

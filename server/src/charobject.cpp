@@ -123,16 +123,11 @@ CharObject::CharObject(
     , m_MPMax(0)
     , m_moveLock(false)
     , m_attackLock(false)
-    , m_lastMoveTime(0)
-    , m_lastAttackTime(0)
     , m_lastAction(ACTION_NONE)
-    , m_lastActionTime(0)
     , m_target()
 {
-    if(!m_map){
-        throw fflerror("CO has no associated map");
-    }
-
+    fflassert(m_map);
+    m_lastActionTime.fill(0);
     m_stateTrigger.install([this, lastCheckTick = to_u32(0)]() mutable -> bool
     {
         if(const auto currTick = g_monoServer->getCurrTick(); lastCheckTick + 5000 < currTick){
@@ -180,21 +175,7 @@ void CharObject::dispatchAction(const ActionNode &action)
     amA.mapID = mapID();
     amA.action = action;
 
-    switch(action.type){
-        case ACTION_JUMP:
-        case ACTION_MOVE:
-        case ACTION_SPAWN:
-        case ACTION_ATTACK:
-            {
-                setLastAction(amA.action.type);
-                break;
-            }
-        default:
-            {
-                break;
-            }
-    }
-
+    setLastAction(amA.action.type);
     switch(amA.action.type){
         case ACTION_JUMP:
         case ACTION_MOVE:
@@ -296,7 +277,6 @@ bool CharObject::requestJump(int nX, int nY, int nDirection, std::function<void(
                     else{
                         m_direction = PathFind::GetDirection(nOldX, nOldY, X(), Y());
                     }
-                    m_lastMoveTime = g_monoServer->getCurrTick();
 
                     m_actorPod->forward(rmpk.from(), AM_OK, rmpk.seqID());
                     dispatchAction(ActionJump
@@ -437,9 +417,8 @@ bool CharObject::requestMove(int nX, int nY, int nSpeed, bool allowHalfMove, boo
                     m_Y = amMOK.EndY;
 
                     m_direction = PathFind::GetDirection(nOldX, nOldY, X(), Y());
-                    m_lastMoveTime = g_monoServer->getCurrTick();
-
                     m_actorPod->forward(rmpk.from(), AM_OK, rmpk.seqID());
+
                     dispatchAction(ActionMove
                     {
                         .speed = nSpeed,
@@ -530,7 +509,6 @@ bool CharObject::requestSpaceMove(int locX, int locY, bool strictMove, std::func
                     m_X = amSMOK.EndX;
                     m_Y = amSMOK.EndY;
 
-                    m_lastMoveTime = g_monoServer->getCurrTick();
                     m_actorPod->forward(rmpk.from(), AM_OK, rmpk.seqID());
 
                     // clean the InViewCO list
@@ -747,15 +725,15 @@ bool CharObject::canAct() const
                             switch(uidf::getMonsterID(UID())){
                                 case DBCOM_MONSTERID(u8"变异骷髅"):
                                     {
-                                        return g_monoServer->getCurrTick() > m_lastActionTime + 600;
+                                        return g_monoServer->getCurrTick() > m_lastActionTime.at(ACTION_SPAWN) + 600;
                                     }
                                 case DBCOM_MONSTERID(u8"神兽"):
                                     {
-                                        return g_monoServer->getCurrTick() > m_lastActionTime + 400;
+                                        return g_monoServer->getCurrTick() > m_lastActionTime.at(ACTION_SPAWN) + 400;
                                     }
                                 case DBCOM_MONSTERID(u8"食人花"):
                                     {
-                                        return g_monoServer->getCurrTick() > m_lastActionTime + 400;
+                                        return g_monoServer->getCurrTick() > m_lastActionTime.at(ACTION_SPAWN) + 400;
                                     }
                                 default:
                                     {
@@ -1276,10 +1254,10 @@ double CharObject::OneStepCost(const CharObject::COPathFinder *pFinder, int nChe
     return 1.00 + nMaxIndex * 0.10 + fExtraPen;
 }
 
-void CharObject::setLastAction(int nAction)
+void CharObject::setLastAction(int type)
 {
-    m_lastAction = nAction;
-    m_lastActionTime = g_monoServer->getCurrTick();
+    m_lastAction = type;
+    m_lastActionTime.at(type) = g_monoServer->getCurrTick();
 }
 
 void CharObject::AddInViewCO(const COLocation &rstCOLocation)

@@ -140,14 +140,12 @@ class CharObject: public ServerObject
         int m_MPMax;
 
     protected:
-        bool     m_moveLock;
-        bool     m_attackLock;
-        uint32_t m_lastMoveTime;
-        uint32_t m_lastAttackTime;
+        bool m_moveLock;
+        bool m_attackLock;
 
     protected:
-        int      m_lastAction;
-        uint32_t m_lastActionTime;
+        int m_lastAction = ACTION_NONE;
+        std::array<uint32_t, ACTION_END> m_lastActionTime;
 
     protected:
         TimedState<bool> m_dead;
@@ -283,7 +281,7 @@ class CharObject: public ServerObject
         virtual bool canAttack() const;
 
     protected:
-        virtual void setLastAction(int);
+        void setLastAction(int);
 
     protected:
         virtual bool DCValid(int, bool) = 0;
