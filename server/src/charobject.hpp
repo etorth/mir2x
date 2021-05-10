@@ -283,7 +283,7 @@ class CharObject: public ServerObject
         virtual bool canAttack() const;
 
     protected:
-        virtual void SetLastAction(int);
+        virtual void setLastAction(int);
 
     protected:
         virtual bool DCValid(int, bool) = 0;

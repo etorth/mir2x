@@ -186,7 +186,7 @@ void CharObject::dispatchAction(const ActionNode &action)
         case ACTION_SPAWN:
         case ACTION_ATTACK:
             {
-                SetLastAction(amA.action.type);
+                setLastAction(amA.action.type);
                 break;
             }
         default:
@@ -1276,7 +1276,7 @@ double CharObject::OneStepCost(const CharObject::COPathFinder *pFinder, int nChe
     return 1.00 + nMaxIndex * 0.10 + fExtraPen;
 }
 
-void CharObject::SetLastAction(int nAction)
+void CharObject::setLastAction(int nAction)
 {
     m_lastAction = nAction;
     m_lastActionTime = g_monoServer->getCurrTick();
