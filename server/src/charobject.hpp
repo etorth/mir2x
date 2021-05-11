@@ -384,4 +384,14 @@ class CharObject: public ServerObject
 
     protected:
         corof::long_jmper::eval_op<std::tuple<uint32_t, int, int>> coro_getCOPLoc(uint64_t);
+
+    protected:
+        template<typename T> void dispatchNetPackage(uint8_t type, const T &t)
+        {
+            for(const auto &coLoc: m_inViewCOList){
+                if(uidf::getUIDType(coLoc.uid) == UID_PLY){
+                    sendNetPackage(coLoc.uid, type, &t, sizeof(t));
+                }
+            }
+        }
 };

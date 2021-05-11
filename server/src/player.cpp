@@ -632,7 +632,7 @@ void Player::onCMActionSpell(CMAction cmA)
 
                 addDelay(1400, [this, smFM]()
                 {
-                    g_netDriver->Post(channID(), SM_CASTMAGIC, smFM);
+                    dispatchNetPackage(SM_CASTMAGIC, smFM);
                 });
                 break;
             }
