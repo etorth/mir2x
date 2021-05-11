@@ -420,13 +420,12 @@ void ProcessRun::net_CASTMAGIC(const uint8_t *bufPtr, size_t)
 
 void ProcessRun::net_OFFLINE(const uint8_t *bufPtr, size_t)
 {
-    SMOffline stSMO;
-    std::memcpy(&stSMO, bufPtr, sizeof(stSMO));
-
-    if(stSMO.mapID == mapID()){
-        if(auto coPtr = findUID(stSMO.UID)){
-            coPtr->addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"瞬息移动", u8"启动")));
-        }
+    const auto smO = ServerMsg::conv<SMOffline>(bufPtr);
+    if(smO.mapID == mapID()){
+        m_coList.erase(smO.UID);
+        // if(auto coPtr = findUID(smO.UID)){
+        //     coPtr->addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"瞬息移动", u8"启动")));
+        // }
     }
 }
 
