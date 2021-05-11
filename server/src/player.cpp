@@ -596,6 +596,7 @@ void Player::onCMActionSpell(CMAction cmA)
     int nY = cmA.action.y;
     int nMagicID = cmA.action.extParam.spell.magicID;
 
+    dispatchAction(cmA.action);
     switch(nMagicID){
         case DBCOM_MAGICID(u8"灵魂火符"):
             {
