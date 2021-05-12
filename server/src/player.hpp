@@ -171,7 +171,7 @@ class Player final: public CharObject
         void RequestKillPets();
 
     protected:
-        DamageNode GetAttackDamage(int);
+        DamageNode getAttackDamage(int);
 
     protected:
         bool DCValid(int, bool);

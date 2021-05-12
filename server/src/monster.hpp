@@ -133,7 +133,7 @@ class Monster: public CharObject
         bool struckDamage(const DamageNode &) override;
 
     protected:
-        DamageNode GetAttackDamage(int) override;
+        DamageNode getAttackDamage(int) override;
 
     private:
         void on_AM_EXP             (const ActorMsgPack &);

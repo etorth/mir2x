@@ -287,7 +287,7 @@ class CharObject: public ServerObject
         virtual bool DCValid(int, bool) = 0;
 
     protected:
-        virtual DamageNode GetAttackDamage(int) = 0;
+        virtual DamageNode getAttackDamage(int) = 0;
 
     protected:
         virtual bool struckDamage(const DamageNode &) = 0;

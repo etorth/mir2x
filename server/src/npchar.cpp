@@ -554,7 +554,7 @@ bool NPChar::DCValid(int, bool)
     return true;
 }
 
-DamageNode NPChar::GetAttackDamage(int)
+DamageNode NPChar::getAttackDamage(int)
 {
     return {};
 }

@@ -716,7 +716,7 @@ bool Monster::InRange(int nRangeType, int nX, int nY)
     return false;
 }
 
-DamageNode Monster::GetAttackDamage(int nDC)
+DamageNode Monster::getAttackDamage(int nDC)
 {
     switch(nDC){
         case DC_PHY_PLAIN:

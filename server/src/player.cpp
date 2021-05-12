@@ -349,7 +349,7 @@ bool Player::DCValid(int, bool)
     return true;
 }
 
-DamageNode Player::GetAttackDamage(int nDC)
+DamageNode Player::getAttackDamage(int nDC)
 {
     switch(nDC){
         case DC_PHY_PLAIN:

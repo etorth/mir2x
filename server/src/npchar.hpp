@@ -165,7 +165,7 @@ class NPChar final: public CharObject
 
     public:
         bool DCValid(int, bool) override;
-        DamageNode GetAttackDamage(int) override;
+        DamageNode getAttackDamage(int) override;
 
     public:
         bool struckDamage(const DamageNode &) override;
