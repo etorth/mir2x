@@ -27,17 +27,6 @@
 #include "dropitemconfig.hpp"
 
 extern MonoServer *g_monoServer;
-
-const DCRecord &DB_DCRECORD(uint32_t nDC)
-{
-    const static std::map<uint32_t, DCRecord> s_DCRecord
-    {
-        {           0, {           0, 0, 0, u8"", u8""}},
-        {DC_PHY_PLAIN, {DC_PHY_PLAIN, 0, 0, u8"", u8""}},
-    };
-    return s_DCRecord.at((s_DCRecord.find(nDC) != s_DCRecord.end()) ? nDC : 0);
-}
-
 const std::map<int, std::vector<DropItem>> &DB_MONSTERDROPITEM(uint32_t nMonsterID)
 {
     using DropItemMap = std::map<int, std::vector<DropItem>>;

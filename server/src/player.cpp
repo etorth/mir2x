@@ -351,28 +351,31 @@ bool Player::DCValid(int, bool)
 
 DamageNode Player::getAttackDamage(int nDC)
 {
+    DamageNode node;
+    std::memset(&node, 0, sizeof(node));
+
     switch(nDC){
-        case DC_PHY_PLAIN:
+        case DBCOM_MAGICID(u8"物理攻击"):
             {
-                return {UID(), nDC, 5, EC_NONE};
+                node.type = nDC;
+                node.damage = 5;
             }
         default:
             {
                 break;
             }
     }
-
-    return {};
+    return node;
 }
 
-bool Player::struckDamage(const DamageNode &rstDamage)
+bool Player::struckDamage(const DamageNode &node)
 {
     // hack for debug
     // make the player never die
     return true;
 
-    if(rstDamage){
-        m_HP = (std::max<int>)(0, HP() - rstDamage.Damage);
+    if(node){
+        m_HP = (std::max<int>)(0, HP() - node.damage);
         reportHealth();
         dispatchHealth();
 
@@ -536,9 +539,7 @@ void Player::onCMActionAttack(CMAction stCMA)
 
         if(rstLocation.mapID == mapID()){
             switch(nDCType){
-                case DC_PHY_PLAIN:
-                case DC_PHY_WIDESWORD:
-                case DC_PHY_FIRESWORD:
+                case DBCOM_MAGICID(u8"物理攻击"):
                     {
                         switch(estimateHop(nX0, nY0)){
                             case 0:

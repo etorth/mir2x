@@ -80,27 +80,6 @@ enum LookIDType: int
     LID_END   = LID_BEGIN + 2048,
 };
 
-enum DCType: int
-{
-    DC_NONE = 0,
-
-    DC_PHY             = (1 << 8),
-    DC_PHY_PLAIN       = (1 << 8) | 0,
-    DC_PHY_WIDESWORD   = (1 << 8) | 1,
-    DC_PHY_FIRESWORD   = (1 << 8) | 2,
-
-    DC_MAG             = (2 << 8),
-    DC_MAG_FIRE        = (2 << 8) | 0,
-    DC_MAG_EXPLODE     = (2 << 8) | 1,
-
-    DC_PHY_MON         = (3 << 8),
-    DC_PHY_MON_PLAIN   = (3 << 8) | 0,
-    DC_PHY_MON_DUALAXE = (3 << 8) | 1,
-
-    DC_MAG_MON         = (4 << 8),
-    DC_MAG_MON_FIRE    = (4 << 8) | 0,
-};
-
 enum ECType: int
 {
     EC_NONE = 0,

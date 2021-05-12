@@ -287,7 +287,7 @@ void Player::on_AM_ATTACK(const ActorMsgPack &rstMPK)
         .y = Y(),
         .direction = Direction(),
     });
-    struckDamage({amA.UID, amA.Type, amA.Damage, amA.Element});
+    struckDamage(amA.damage);
     reportAction(UID(), ActionHitted
     {
         .x = X(),

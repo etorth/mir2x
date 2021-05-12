@@ -19,6 +19,7 @@
 #pragma once
 #include <cstdint>
 #include "actionnode.hpp"
+#include "damagenode.hpp"
 #include "actordatapackage.hpp"
 
 enum ActorMsgPackType: int
@@ -382,10 +383,7 @@ struct AMAttack
     int X;
     int Y;
 
-    int Type;
-    int Damage;
-    int Element;
-    int Effect[32];
+    DamageNode damage;
 };
 
 struct AMUpdateHP

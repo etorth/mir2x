@@ -18,6 +18,7 @@
 
 #include <optional>
 #include "mathf.hpp"
+#include "dbcomid.hpp"
 #include "raiitimer.hpp"
 #include "cannibalplant.hpp"
 
@@ -30,7 +31,7 @@ corof::long_jmper CannibalPlant::updateCoroFunc()
             if((mapID() == targetMapID) && (mathf::CDistance<int>(targetX, targetY, X(), Y()) <= 1)){
                 idleTime.reset();
                 setStandMode(true);
-                co_await coro_attackUID(targetUID, DC_PHY_PLAIN);
+                co_await coro_attackUID(targetUID, DBCOM_MAGICID(u8"物理攻击"));
             }
         }
         else{

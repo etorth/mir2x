@@ -955,18 +955,7 @@ void CharObject::dispatchAttack(uint64_t nUID, int nDC)
         amA.X = X();
         amA.Y = Y();
 
-        auto stDamage = getAttackDamage(nDC);
-        amA.Type    = stDamage.Type;
-        amA.Damage  = stDamage.Damage;
-        amA.Element = stDamage.Element;
-
-        for(size_t nIndex = 0; nIndex < sizeof(amA.Effect) / sizeof(amA.Effect[0]); ++nIndex){
-            if(nIndex < stDamage.EffectArray.EffectLen()){
-                amA.Effect[nIndex] = stDamage.EffectArray.Effect()[nIndex];
-            }else{
-                amA.Effect[nIndex] = EFF_NONE;
-            }
-        }
+        amA.damage = getAttackDamage(nDC);
         m_actorPod->forward(nUID, {AM_ATTACK, amA});
     }
 }

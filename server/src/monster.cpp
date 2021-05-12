@@ -250,7 +250,7 @@ void Monster::attackUID(uint64_t nUID, int nDC, std::function<void()> onOK, std:
         const auto nY = coLoc.y;
 
         switch(nDC){
-            case DC_PHY_PLAIN:
+            case DBCOM_MAGICID(u8"物理攻击"):
                 {
                     switch(mathf::LDistance2(X(), Y(), nX, nY)){
                         case 1:
@@ -269,7 +269,7 @@ void Monster::attackUID(uint64_t nUID, int nDC, std::function<void()> onOK, std:
                                     .x = X(),
                                     .y = Y(),
                                     .aimUID = nUID,
-                                    .damageID = DC_PHY_PLAIN,
+                                    .damageID = DBCOM_MAGICID(u8"物理攻击"),
                                 });
 
                                 // 2. send attack message to target
@@ -284,7 +284,7 @@ void Monster::attackUID(uint64_t nUID, int nDC, std::function<void()> onOK, std:
                                     // monster may go dead after this delay
                                     // but don't check canAttack() since that's for attack lock
                                     if(true){
-                                        dispatchAttack(nUID, DC_PHY_PLAIN);
+                                        dispatchAttack(nUID, DBCOM_MAGICID(u8"物理攻击"));
                                     }
                                 });
 
@@ -305,7 +305,6 @@ void Monster::attackUID(uint64_t nUID, int nDC, std::function<void()> onOK, std:
                             }
                     }
                 }
-            case DC_MAG_FIRE:
             default:
                 {
                     onError();
@@ -497,7 +496,7 @@ void Monster::jumpAttackUID(uint64_t nTargetUID, std::function<void()> onOK, std
     // TODO choose proper DC
     // for different monster it may use different DC
 
-    const int nProperDC = DC_PHY_PLAIN; // TODO
+    const int nProperDC = DBCOM_MAGICID(u8"物理攻击");
     jumpUID(nTargetUID, [nTargetUID, nProperDC, onOK, onError, this]()
     {
         attackUID(nTargetUID, nProperDC, onOK, onError);
@@ -513,7 +512,7 @@ void Monster::trackAttackUID(uint64_t nTargetUID, std::function<void()> onOK, st
     // TODO choose proper DC
     // for different monster it may use different DC
 
-    const int nProperDC = DC_PHY_PLAIN; // TODO
+    const int nProperDC = DBCOM_MAGICID(u8"物理攻击"); // TODO
     int nMinCDistance = 1;
 
     trackUID(nTargetUID, nMinCDistance, [nTargetUID, nProperDC, onOK, onError, this]()
@@ -718,20 +717,22 @@ bool Monster::InRange(int nRangeType, int nX, int nY)
 
 DamageNode Monster::getAttackDamage(int nDC)
 {
+    DamageNode node;
+    std::memset(&node, 0, sizeof(node));
+
     switch(nDC){
-        case DC_PHY_PLAIN:
+        case DBCOM_MAGICID(u8"物理攻击"):
             {
-                return {UID(), nDC, getMR().DC + std::rand() % (1 + (std::max<int>)(getMR().DCMax - getMR().DC, 0)), EC_NONE};
-            }
-        case DC_MAG_FIRE:
-            {
-                return {UID(), nDC, getMR().MDC + std::rand() % (1 + (std::max<int>)(getMR().MDCMax - getMR().MDC, 0)), EC_FIRE};
+                node.type = nDC;
+                node.damage = getMR().DC + std::rand() % (1 + (std::max<int>)(getMR().DCMax - getMR().DC, 0));
+                break;
             }
         default:
             {
-                return {};
+                break;
             }
     }
+    return node;
 }
 
 bool Monster::canMove() const
@@ -773,18 +774,9 @@ bool Monster::canAttack() const
     });
 }
 
-bool Monster::DCValid(int nDC, bool bCheck)
+bool Monster::DCValid(int, bool)
 {
-    if(true){ // TODO
-        if(bCheck){
-            if(auto &rstDCR = DB_DCRECORD(nDC)){
-                if(m_HP < rstDCR.HP){ return false; }
-                if(m_MP < rstDCR.MP){ return false; }
-            }
-        }
-        return true;
-    }
-    return false;
+    return true;
 }
 
 void Monster::removeTarget(uint64_t nUID)
@@ -860,7 +852,7 @@ bool Monster::goGhost()
     return true;
 }
 
-bool Monster::struckDamage(const DamageNode &rstDamage)
+bool Monster::struckDamage(const DamageNode &node)
 {
     switch(uidf::getMonsterID(UID())){
         case DBCOM_MONSTERID(u8"变异骷髅"):
@@ -876,8 +868,8 @@ bool Monster::struckDamage(const DamageNode &rstDamage)
             }
     }
 
-    if(rstDamage){
-        m_HP = (std::max<int>)(0, HP() - rstDamage.Damage);
+    if(node){
+        m_HP = (std::max<int>)(0, HP() - node.damage);
         dispatchHealth();
 
         if(HP() <= 0){
@@ -1617,14 +1609,14 @@ void Monster::onAMAttack(const ActorMsgPack &mpk)
             }
         }
 
-        addOffenderDamage(amAK.UID, amAK.Damage);
+        addOffenderDamage(amAK.UID, amAK.damage);
         dispatchAction(ActionHitted
         {
             .x = X(),
             .y = Y(),
             .direction = Direction(),
         });
-        struckDamage({amAK.UID, amAK.Type, amAK.Damage, amAK.Element, amAK.Effect});
+        struckDamage(amAK.damage);
     }
 }
 

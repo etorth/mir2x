@@ -1188,7 +1188,7 @@ bool ProcessRun::trackAttack(bool bForce, uint64_t nUID)
                 .x = nEndX,
                 .y = nEndY,
                 .aimUID = nUID,
-                .damageID = DC_PHY_PLAIN,
+                .damageID = DBCOM_MAGICID(u8"物理攻击"),
             });
         }
     }

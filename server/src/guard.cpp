@@ -17,6 +17,7 @@
  */
 
 #include "guard.hpp"
+#include "dbcomid.hpp"
 #include "friendtype.hpp"
 #include "monoserver.hpp"
 
@@ -35,7 +36,7 @@ corof::long_jmper Guard::updateCoroFunc()
             const auto [targetMapID, targetX, targetY] = co_await coro_getCOPLoc(targetUID);
             if(mapID() == targetMapID){
                 if(mathf::CDistance<int>(targetX, targetY, X(), Y()) == 1){
-                    co_await coro_attackUID(targetUID, DC_PHY_PLAIN);
+                    co_await coro_attackUID(targetUID, DBCOM_MAGICID(u8"物理攻击"));
                 }
                 else{
                     co_await coro_jumpAttackUID(targetUID);

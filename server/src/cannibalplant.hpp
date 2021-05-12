@@ -80,7 +80,7 @@ class CannibalPlant final: public Monster
             }
 
             if(damage){
-                m_HP = (std::max<int>)(0, HP() - damage.Damage);
+                m_HP = (std::max<int>)(0, HP() - damage.damage);
                 dispatchHealth();
 
                 if(HP() <= 0){
