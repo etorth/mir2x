@@ -38,3 +38,9 @@ struct DamageNode
     }
 };
 static_assert(std::is_trivially_copyable_v<DamageNode>);
+
+struct PlainPhyDamage
+{
+    int damage = 0;
+    operator DamageNode() const;
+};
