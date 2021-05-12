@@ -188,7 +188,7 @@ bool ClientTaoDog::onActionAttack(const ActionNode &action)
         fflassert(m_standMode);
         m_processRun->addFixedLocMagic(std::unique_ptr<FixedLocMagic>(new FixedLocMagic
         {
-            u8"神兽-喷火",
+            u8"神兽_喷火",
             u8"运行",
             currMotion()->x,
             currMotion()->y,
