@@ -18,6 +18,7 @@
 
 #pragma once
 #include <cmath>
+#include <cstdlib>
 #include <algorithm>
 #include <stdexcept>
 #include <type_traits>
@@ -28,6 +29,13 @@
 
 namespace mathf
 {
+    // used for ability calculation
+    // accepts 10-0 which always return 10
+    inline int rand(int min, int max)
+    {
+        return min + std::rand() % (1 + std::max<int>(max - min, 0));
+    }
+
     template<typename T> T CDistance(T nfX, T nfY, T nfX1, T nfY1)
     {
         static_assert(std::is_arithmetic<T>::value, "Arithmetic type required...");

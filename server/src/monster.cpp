@@ -717,22 +717,19 @@ bool Monster::InRange(int nRangeType, int nX, int nY)
 
 DamageNode Monster::getAttackDamage(int nDC)
 {
-    DamageNode node;
-    std::memset(&node, 0, sizeof(node));
-
     switch(nDC){
         case DBCOM_MAGICID(u8"物理攻击"):
             {
-                node.type = nDC;
-                node.damage = getMR().DC + std::rand() % (1 + (std::max<int>)(getMR().DCMax - getMR().DC, 0));
-                break;
+                return PlainPhyDamage
+                {
+                    .damage = mathf::rand(getMR().DC, getMR().DCMax),
+                };
             }
         default:
             {
-                break;
+                return {};
             }
     }
-    return node;
 }
 
 bool Monster::canMove() const

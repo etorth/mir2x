@@ -164,8 +164,15 @@ class NPChar final: public CharObject
         void reportCO(uint64_t) override;
 
     public:
-        bool DCValid(int, bool) override;
-        DamageNode getAttackDamage(int) override;
+        bool DCValid(int, bool) override
+        {
+            return false;
+        }
+
+        DamageNode getAttackDamage(int) override
+        {
+            throw bad_reach();
+        }
 
     public:
         bool struckDamage(const DamageNode &) override;

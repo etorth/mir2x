@@ -351,21 +351,19 @@ bool Player::DCValid(int, bool)
 
 DamageNode Player::getAttackDamage(int nDC)
 {
-    DamageNode node;
-    std::memset(&node, 0, sizeof(node));
-
     switch(nDC){
         case DBCOM_MAGICID(u8"物理攻击"):
             {
-                node.type = nDC;
-                node.damage = 5;
+                return PlainPhyDamage
+                {
+                    .damage = 5,
+                };
             }
         default:
             {
-                break;
+                return {};
             }
     }
-    return node;
 }
 
 bool Player::struckDamage(const DamageNode &node)

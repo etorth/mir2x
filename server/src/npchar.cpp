@@ -549,16 +549,6 @@ void NPChar::reportCO(uint64_t)
 {
 }
 
-bool NPChar::DCValid(int, bool)
-{
-    return true;
-}
-
-DamageNode NPChar::getAttackDamage(int)
-{
-    return {};
-}
-
 bool NPChar::struckDamage(const DamageNode &)
 {
     return true;
