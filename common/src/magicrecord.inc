@@ -26,7 +26,7 @@
 
 {
     .name = u8"物理攻击", // TODO ...
-    .elem = u8"无",
+    .distance = 1,
 },
 
 {
@@ -170,6 +170,7 @@
     .name = u8"灵魂火符",
     .elem = u8"暗黑",
     .icon = 0X0500100C,
+    .checkGround = 1,
 
     .gfxList
     {

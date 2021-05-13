@@ -1587,34 +1587,26 @@ void Monster::onAMAttack(const ActorMsgPack &mpk)
         notifyDead(amAK.UID);
     }
     else{
-        const auto ld2 = mathf::LDistance2(X(), Y(), amAK.X, amAK.Y);
-        switch(amAK.damage.type){
-            case DBCOM_MAGICID(u8"物理攻击"):
-                {
-                    if(ld2 > 2){
-                        switch(uidf::getUIDType(amAK.UID)){
-                            case UID_MON:
-                            case UID_PLY:
-                                {
-                                    AMMiss amM;
-                                    std::memset(&amM, 0, sizeof(amM));
+        const auto &mr = DBCOM_MAGICRECORD(amAK.damage.type);
+        const auto ld2 = mathf::LDistance2<int>(X(), Y(), amAK.X, amAK.Y);
 
-                                    amM.UID = amAK.UID;
-                                    m_actorPod->forward(amAK.UID, {AM_MISS, amM});
-                                    return;
-                                }
-                            default:
-                                {
-                                    return;
-                                }
-                        }
+        if(mr.distance > 0 && ld2 > mr.distance * mr.distance){
+            switch(uidf::getUIDType(amAK.UID)){
+                case UID_MON:
+                case UID_PLY:
+                    {
+                        AMMiss amM;
+                        std::memset(&amM, 0, sizeof(amM));
+
+                        amM.UID = amAK.UID;
+                        m_actorPod->forward(amAK.UID, {AM_MISS, amM});
+                        return;
                     }
-                    break;
-                }
-            default:
-                {
-                    break;
-                }
+                default:
+                    {
+                        return;
+                    }
+            }
         }
 
         addOffenderDamage(amAK.UID, amAK.damage);

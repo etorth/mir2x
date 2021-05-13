@@ -188,9 +188,12 @@ namespace
 
 struct MagicRecord
 {
-    const char8_t *name = nullptr;
-    const char8_t *elem = nullptr;
+    const char8_t *name = 0;
+    const char8_t *elem = u8"无";
     const uint32_t icon = SYS_TEXNIL;
+
+    const int distance = 0;
+    const int checkGround = 0;
     const MagicGfxEntry gfxList[8]{};
 
     constexpr const MagicGfxEntry &getGfxEntry(const char8_t *stage) const
@@ -205,6 +208,6 @@ struct MagicRecord
 
     constexpr operator bool () const
     {
-        return name && name[0] && elem && elem[0];
+        return name && name[0];
     }
 };
