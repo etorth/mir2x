@@ -334,16 +334,18 @@ void Player::on_AM_EXP(const ActorMsgPack &mpk)
     gainExp(amE.exp);
 }
 
-void Player::on_AM_MISS(const ActorMsgPack &rstMPK)
+void Player::on_AM_MISS(const ActorMsgPack &mpk)
 {
-    AMMiss amM;
-    std::memcpy(&amM, rstMPK.data(), sizeof(amM));
+    const auto amM = mpk.conv<AMMiss>();
+    if(amM.UID != UID()){
+        return;
+    }
 
     SMMiss smM;
     std::memset(&smM, 0, sizeof(smM));
 
     smM.UID = amM.UID;
-    postNetMessage(SM_MISS, smM);
+    dispatchNetPackage(true, SM_MISS, smM);
 }
 
 void Player::on_AM_GIFT(const ActorMsgPack &mpk)

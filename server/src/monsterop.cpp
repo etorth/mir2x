@@ -31,21 +31,18 @@ void Monster::on_AM_METRONOME(const ActorMsgPack &)
     update();
 }
 
-void Monster::on_AM_MISS(const ActorMsgPack &rstMPK)
+void Monster::on_AM_MISS(const ActorMsgPack &mpk)
 {
-    AMMiss amM;
-    std::memcpy(&amM, rstMPK.data(), sizeof(amM));
-
+    const auto amM = mpk.conv<AMMiss>();
     if(amM.UID != UID()){
         return;
     }
 
-    foreachInViewCO([this, amM](const COLocation &rstLocation)
-    {
-        if(uidf::getUIDType(rstLocation.uid) == UID_PLY){
-            m_actorPod->forward(rstLocation.uid, {AM_MISS, amM});
-        }
-    });
+    SMMiss smM;
+    std::memset(&smM, 0, sizeof(smM));
+
+    smM.UID = amM.UID;
+    dispatchInViewCONetPackage(SM_MISS, smM);
 }
 
 void Monster::on_AM_QUERYCORECORD(const ActorMsgPack &rstMPK)
