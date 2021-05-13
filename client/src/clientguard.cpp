@@ -47,7 +47,6 @@ bool ClientGuard::parseAction(const ActionNode &action)
                 {
                     .type = MOTION_MON_ATTACK0,
                     .direction = m_processRun->getAimDirection(action, m_currMotion->direction),
-                    .speed = 200,
                     .x = action.x,
                     .y = action.y,
                 });
