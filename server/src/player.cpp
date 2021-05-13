@@ -974,7 +974,7 @@ void Player::setWLItem(int wltype, SDItem item)
 
     for(const auto &coLoc: m_inViewCOList){
         if(uidf::getUIDType(coLoc.uid) == UID_PLY){
-            sendNetPackage(coLoc.uid, SM_EQUIPWEAR, sdEquipWearBuf);
+            forwardNetPackage(coLoc.uid, SM_EQUIPWEAR, sdEquipWearBuf);
         }
     }
 }
@@ -1047,20 +1047,4 @@ std::vector<std::string> Player::parseNPCQuery(const char *query)
         beginPtr = donePtr;
     }
     return result;
-}
-
-void Player::dispatchNetPackageHelper(const DispatchNetPackageParam &param, uint8_t type, const void *data, size_t size)
-{
-    if(param.get_if<uint64_t>()){
-        CharObject::dispatchNetPackageHelper(param, type, data, size);
-    }
-    else if(auto boolPtr = param.get_if<bool>()){
-        if(*boolPtr){
-            postNetMessage(type, data, size);
-        }
-        CharObject::dispatchNetPackageHelper(param, type, data, size);
-    }
-    else{
-        postNetMessage(type, data, size);
-    }
 }

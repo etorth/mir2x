@@ -142,7 +142,7 @@ void NPChar::on_AM_QUERYSELLITEMLIST(const ActorMsgPack &mpk)
             }
         }
     }
-    sendNetPackage(mpk.from(), SM_SELLITEMLIST, cerealf::serialize(sdSIL, true));
+    forwardNetPackage(mpk.from(), SM_SELLITEMLIST, cerealf::serialize(sdSIL, true));
 }
 
 void NPChar::on_AM_BADACTORPOD(const ActorMsgPack &mpk)

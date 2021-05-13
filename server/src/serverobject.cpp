@@ -118,7 +118,7 @@ void ServerObject::addDelay(uint32_t delayTick, std::function<void()> cmd)
     m_delayCmdQ.emplace(delayTick + g_monoServer->getCurrTick(), m_delayCmdIndex, std::move(cmd));
 }
 
-void ServerObject::sendNetPackage(uint64_t uid, uint8_t type, const void *buf, size_t bufLen)
+void ServerObject::forwardNetPackage(uint64_t uid, uint8_t type, const void *buf, size_t bufLen)
 {
     fflassert(uid != UID());
     fflassert(uidf::getUIDType(uid) == UID_PLY);

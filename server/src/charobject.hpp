@@ -21,8 +21,6 @@
 #include <list>
 #include <deque>
 #include <vector>
-#include <variant>
-#include <concepts>
 
 #include "totype.hpp"
 #include "corof.hpp"
@@ -58,12 +56,6 @@ struct COLocation
     int y = -1;
     int direction = DIR_NONE;
 };
-
-// TODO dirty implementation
-//      basically I need a member function which is 1. virtual, 2. explicit bool or uint64_t
-template <class T> concept ExplicitDispatchParamBool = std::same_as<T, bool>;
-template <class T> concept ExplicitDispatchParamUint64  = std::same_as<T, uint64_t>;
-template <class T> concept ExplicitDispatchParamBoolOrUint64  = std::same_as<T, bool> || std::same_as<T, uint64_t>;
 
 class CharObject: public ServerObject
 {
@@ -394,65 +386,12 @@ class CharObject: public ServerObject
         corof::long_jmper::eval_op<std::tuple<uint32_t, int, int>> coro_getCOPLoc(uint64_t);
 
     protected:
-        class DispatchNetPackageParam
+        template<typename... Args> void dispatchInViewCONetPackage(uint8_t type, Args && ... args)
         {
-            private:
-                const std::variant<std::monostate, bool, uint64_t> m_dispatchConfig;
-
-            public:
-                DispatchNetPackageParam()
-                    : m_dispatchConfig()
-                {}
-
-                DispatchNetPackageParam(ExplicitDispatchParamBool auto sendSelf)
-                    : m_dispatchConfig(std::in_place_type_t<bool>(), sendSelf)
-                {}
-
-                DispatchNetPackageParam(ExplicitDispatchParamUint64 auto uid)
-                    : m_dispatchConfig(std::in_place_type_t<uint64_t>(), uid)
-                {}
-
-            public:
-                DispatchNetPackageParam              (const DispatchNetPackageParam  &) = delete;
-                DispatchNetPackageParam              (      DispatchNetPackageParam &&) = delete;
-                DispatchNetPackageParam & operator = (const DispatchNetPackageParam  &) = delete;
-                DispatchNetPackageParam & operator = (      DispatchNetPackageParam &&) = delete;
-
-            public:
-                template<ExplicitDispatchParamBoolOrUint64 T> const auto get_if() const
-                {
-                    return std::get_if<T>(&m_dispatchConfig);
-                }
-        };
-
-        virtual void dispatchNetPackageHelper(const DispatchNetPackageParam &param, uint8_t type, const void *data, size_t size)
-        {
-            if(auto u64CPtr = param.get_if<uint64_t>()){
-                sendNetPackage(*u64CPtr, type, data, size);
-            }
-            else if(param.get_if<bool>()){
-                // only class Player distinguish send self or not
-                // here we only check type, but ignore the contained value
-                for(const auto &coLoc: m_inViewCOList){
-                    if(uidf::getUIDType(coLoc.uid) == UID_PLY){
-                        sendNetPackage(coLoc.uid, type, data, size);
-                    }
+            for(const auto &coLoc: m_inViewCOList){
+                if(uidf::getUIDType(coLoc.uid) == UID_PLY){
+                    forwardNetPackage(coLoc.uid, type, std::forward<Args>(args)...);
                 }
             }
-            else{
-                throw bad_reach();
-            }
-        }
-
-    protected:
-        void dispatchNetPackage(const DispatchNetPackageParam &param, uint8_t type)
-        {
-            dispatchNetPackageHelper(param, type, nullptr, 0);
-        }
-
-        template<typename T> void dispatchNetPackage(const DispatchNetPackageParam &param, uint8_t type, const T &t)
-        {
-            static_assert(std::is_trivially_copyable_v<T>);
-            dispatchNetPackageHelper(param, type, &t, sizeof(t));
         }
 };

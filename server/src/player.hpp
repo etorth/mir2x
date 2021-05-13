@@ -298,5 +298,11 @@ class Player final: public CharObject
         static std::vector<std::string> parseNPCQuery(const char *);
 
     private:
-        void dispatchNetPackageHelper(const DispatchNetPackageParam &, uint8_t, const void *, size_t) override;
+        template<typename... Args> void dispatchNetPackage(bool sendSelf, uint8_t type, Args && ... args)
+        {
+            if(sendSelf){
+                postNetMessage(type, std::forward<Args>(args)...);
+            }
+            dispatchInViewCONetPackage(type, std::forward<Args>(args)...);
+        }
 };

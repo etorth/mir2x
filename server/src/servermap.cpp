@@ -844,7 +844,7 @@ void ServerMap::postGridItemIDList(int x, int y)
             doUIDList(x, y, [&sdBuf, this](uint64_t uid) -> bool
             {
                 if(uidf::getUIDType(uid) == UID_PLY){
-                    sendNetPackage(uid, SM_GROUNDITEMIDLIST, sdBuf);
+                    forwardNetPackage(uid, SM_GROUNDITEMIDLIST, sdBuf);
                 }
                 return false;
             });
@@ -862,7 +862,7 @@ void ServerMap::postGroundItemIDList(uint64_t uid, int x, int y)
     if(uidf::getUIDType(uid) != UID_PLY){
         throw fflerror("post ground item list to non-player: %s", uidf::getUIDTypeCStr(uid));
     }
-    sendNetPackage(uid, SM_GROUNDITEMIDLIST, cerealf::serialize(getGroundItemIDList(x, y, 20)));
+    forwardNetPackage(uid, SM_GROUNDITEMIDLIST, cerealf::serialize(getGroundItemIDList(x, y, 20)));
 }
 
 int ServerMap::getMonsterCount(uint32_t monsterID)

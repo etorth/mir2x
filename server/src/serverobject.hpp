@@ -102,21 +102,22 @@ class ServerObject
         void addDelay(uint32_t, std::function<void()>);
 
     protected:
-        void sendNetPackage(uint64_t, uint8_t, const void *, size_t);
+        void forwardNetPackage(uint64_t, uint8_t, const void *, size_t);
 
     protected:
-        void sendNetPackage(uint64_t uid, uint8_t type)
+        void forwardNetPackage(uint64_t uid, uint8_t type)
         {
-            sendNetPackage(uid, type, nullptr, 0);
+            forwardNetPackage(uid, type, nullptr, 0);
         }
 
-        void sendNetPackage(uint64_t uid, uint8_t type, const std::string &buf)
+        void forwardNetPackage(uint64_t uid, uint8_t type, const std::string &buf)
         {
-            sendNetPackage(uid, type, buf.data(), buf.length());
+            forwardNetPackage(uid, type, buf.data(), buf.length());
         }
 
-        template<typename T> void sendNetPackage(uint64_t uid, uint8_t type, const T &t)
+        template<typename T> void forwardNetPackage(uint64_t uid, uint8_t type, const T &t)
         {
-            sendNetPackage(uid, type, &t, sizeof(t));
+            static_assert(std::is_trivially_copyable_v<T>);
+            forwardNetPackage(uid, type, &t, sizeof(t));
         }
 };

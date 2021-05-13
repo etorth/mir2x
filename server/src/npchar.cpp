@@ -571,7 +571,7 @@ bool NPChar::goGhost()
 
 void NPChar::postSell(uint64_t uid)
 {
-    sendNetPackage(uid, SM_NPCSELL, cerealf::serialize(SDNPCSell
+    forwardNetPackage(uid, SM_NPCSELL, cerealf::serialize(SDNPCSell
     {
         .npcUID = UID(),
         .itemList = std::vector<uint32_t>(m_luaModulePtr->getNPCSell().begin(), m_luaModulePtr->getNPCSell().end()),
@@ -639,7 +639,7 @@ void NPChar::sendQuery(uint64_t callStackUID, uint64_t uid, const std::string &q
 
 void NPChar::postXMLLayout(uint64_t uid, std::string xmlString)
 {
-    sendNetPackage(uid, SM_NPCXMLLAYOUT, cerealf::serialize(SDNPCXMLLayout
+    forwardNetPackage(uid, SM_NPCXMLLAYOUT, cerealf::serialize(SDNPCXMLLayout
     {
         .npcUID = UID(),
         .xmlLayout = std::move(xmlString),

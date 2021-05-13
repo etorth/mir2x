@@ -393,7 +393,7 @@ void Player::on_AM_OFFLINE(const ActorMsgPack &rstMPK)
 
 void Player::on_AM_QUERYPLAYERWLDESP(const ActorMsgPack &mpk)
 {
-    sendNetPackage(mpk.from(), SM_PLAYERWLDESP, cerealf::serialize(SDUIDWLDesp
+    forwardNetPackage(mpk.from(), SM_PLAYERWLDESP, cerealf::serialize(SDUIDWLDesp
     {
         .uid = UID(),
         .desp
