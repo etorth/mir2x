@@ -618,7 +618,7 @@ bool Hero::parseAction(const ActionNode &action)
                                 switch(action.extParam.spell.magicID){
                                     case DBCOM_MAGICID(u8"灵魂火符"):
                                         {
-                                            m_motionQueue.back()->addUpdate(true, [this](MotionNode *motionPtr) -> bool
+                                            m_motionQueue.back()->addUpdate(true, [targetUID = action.aimUID, this](MotionNode *motionPtr) -> bool
                                             {
                                                 // usually when reaches this cb the current motion is motionPtr
                                                 // but not true if in flushMotionPending()
@@ -629,7 +629,6 @@ bool Hero::parseAction(const ActionNode &action)
 
                                                 const auto fromX = motionPtr->x * SYS_MAPGRIDXP;
                                                 const auto fromY = motionPtr->y * SYS_MAPGRIDYP;
-                                                const auto targetUID = m_processRun->focusUID(FOCUS_MAGIC);
                                                 m_processRun->addFollowUIDMagic(std::unique_ptr<FollowUIDMagic>(new TaoFireFigure_RUN
                                                 {
                                                     fromX,
@@ -637,17 +636,20 @@ bool Hero::parseAction(const ActionNode &action)
 
                                                     [fromX, fromY, targetUID, this]() -> int
                                                     {
-                                                        const auto [x, y] = [targetUID, this]() -> std::tuple<int, int>
-                                                        {
-                                                            if(const auto coPtr = m_processRun->findUID(targetUID)){
-                                                                return coPtr->getTargetBox().center();
-                                                            }
-
-                                                            const auto [viewX, viewY] = m_processRun->getViewShift();
+                                                        if(const auto coPtr = m_processRun->findUID(targetUID)){
+                                                            const auto [targetPX, targetPY] = coPtr->getTargetBox().center();
+                                                            return pathf::getDir16(targetPX - fromX, targetPY - fromY);
+                                                        }
+                                                        else if(m_processRun->getMyHeroUID() == UID()){
+                                                            const auto [  viewX,   viewY] = m_processRun->getViewShift();
                                                             const auto [mousePX, mousePY] = SDLDeviceHelper::getMousePLoc();
-                                                            return {mousePX + viewX, mousePY + viewY};
-                                                        }();
-                                                        return pathf::getDir16(x - fromX, y - fromY);
+                                                            return pathf::getDir16(mousePX + viewX - fromX, mousePY + viewY - fromY);
+                                                        }
+                                                        else{
+                                                            // not myHero
+                                                            // use hero's current direction to create magic
+                                                            return (m_currMotion->direction - DIR_BEGIN) * 2;
+                                                        }
                                                     }(),
 
                                                     targetUID,
