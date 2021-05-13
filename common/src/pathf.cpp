@@ -17,8 +17,9 @@
  */
 
 #include <cfloat>
-#include "fflerror.hpp"
 #include "pathf.hpp"
+#include "mathf.hpp"
+#include "fflerror.hpp"
 
 namespace
 {
@@ -141,4 +142,33 @@ std::tuple<int, int> pathf::getDirOff(int x, int y, int distance)
         to_d(std::lround(x * r)),
         to_d(std::lround(y * r)),
     };
+}
+
+bool pathf::inACRange(const ACRange &r, int x0, int y0, int x1, int y1)
+{
+    fflassert(r);
+    switch(r.type){
+        case ACR_DIR:
+            {
+                const auto ld2 = mathf::LDistance2(x0, y0, x1, y1);
+                switch(r.distance){
+                    case 1 : return ld2 == 1 || ld2 == 2;
+                    case 2 : return ld2 == 1 || ld2 == 2 || ld2 == 4 || ld2 == 8;
+                    case 3 : return ld2 == 1 || ld2 == 2 || ld2 == 4 || ld2 == 8 || ld2 == 9 || ld2 == 18;
+                    default: return false;
+                }
+            }
+        case ACR_LONG:
+            {
+                return true;
+            }
+        case ACR_LIMITED:
+            {
+                return r.distance * r.distance <= mathf::LDistance2(x0, y0, x1, y1);
+            }
+        default:
+            {
+                throw bad_reach();
+            }
+    }
 }

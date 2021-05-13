@@ -246,7 +246,7 @@ class SkillBoard: public Widget
                 return -1;
             }
 
-            const int elemID = magicElemID(mr.elem);
+            const int elemID = magicElemID(mr.element);
             if(!elemID){
                 return -1;
             }

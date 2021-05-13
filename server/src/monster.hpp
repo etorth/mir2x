@@ -115,11 +115,11 @@ class Monster: public CharObject
         void SearchNearestTarget(std::function<void(uint64_t)>);
 
     protected:
-        virtual void jumpUID       (uint64_t,      std::function<void()>, std::function<void()>);
-        virtual void trackUID      (uint64_t, int, std::function<void()>, std::function<void()>);
-        virtual void attackUID     (uint64_t, int, std::function<void()>, std::function<void()>);
-        virtual void jumpAttackUID (uint64_t,      std::function<void()>, std::function<void()>);
-        virtual void trackAttackUID(uint64_t,      std::function<void()>, std::function<void()>);
+        virtual void jumpUID       (uint64_t,          std::function<void()>, std::function<void()>);
+        virtual void trackUID      (uint64_t, ACRange, std::function<void()>, std::function<void()>);
+        virtual void attackUID     (uint64_t,     int, std::function<void()>, std::function<void()>);
+        virtual void jumpAttackUID (uint64_t,          std::function<void()>, std::function<void()>);
+        virtual void trackAttackUID(uint64_t,          std::function<void()>, std::function<void()>);
 
     protected:
         bool DCValid(int, bool);
@@ -133,7 +133,7 @@ class Monster: public CharObject
         bool struckDamage(const DamageNode &) override;
 
     protected:
-        DamageNode getAttackDamage(int) override;
+        DamageNode getAttackDamage(int) const override;
 
     private:
         void on_AM_EXP             (const ActorMsgPack &);
@@ -168,7 +168,8 @@ class Monster: public CharObject
         bool MoveOneStep(int, int, std::function<void()>, std::function<void()>);
 
     protected:
-        void pickTarget(std::function<void(uint64_t)>);
+        virtual void pickTarget(std::function<void(uint64_t)>);
+        virtual int  pickAttackMagic(uint64_t) const;
 
     protected:
         int FindPathMethod();
@@ -224,7 +225,7 @@ class Monster: public CharObject
         corof::long_jmper::eval_op<bool>     coro_moveForward();
         corof::long_jmper::eval_op<bool>     coro_followMaster();
         corof::long_jmper::eval_op<uint64_t> coro_pickTarget();
-        corof::long_jmper::eval_op<bool>     coro_trackUID(uint64_t, int);
+        corof::long_jmper::eval_op<bool>     coro_trackUID(uint64_t, ACRange);
         corof::long_jmper::eval_op<bool>     coro_attackUID(uint64_t, int);
         corof::long_jmper::eval_op<bool>     coro_jumpAttackUID(uint64_t);
         corof::long_jmper::eval_op<bool>     coro_trackAttackUID(uint64_t);

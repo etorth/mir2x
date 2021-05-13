@@ -505,7 +505,7 @@ void SkillBoard::drawTabName() const
                 for(const auto magicIconPtr: m_skillPageList.at(m_selectedTabIndex)->getMagicIconButtonList()){
                     if(magicIconPtr->cursorOn()){
                         if(const auto &mr = DBCOM_MAGICRECORD(magicIconPtr->getMagicIconDataPtr()->magicID)){
-                            return str_printf(u8"元素【%s】%s", to_cstr(mr.elem), to_cstr(mr.name));
+                            return str_printf(u8"元素【%s】%s", to_cstr(mr.element), to_cstr(mr.name));
                         }
                         else{
                             return str_printf(u8"元素【无】");

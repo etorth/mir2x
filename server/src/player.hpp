@@ -162,7 +162,7 @@ class Player final: public CharObject
         void RequestKillPets();
 
     protected:
-        DamageNode getAttackDamage(int);
+        DamageNode getAttackDamage(int) const;
 
     protected:
         bool DCValid(int, bool);

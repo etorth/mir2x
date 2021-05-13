@@ -186,14 +186,45 @@ namespace
     constexpr MagicGfxEntry _inn_reservedEmptyMagicGfxEntry;
 }
 
+enum ACRangeType: int
+{
+    ACR_NONE = 0,
+    ACR_BEGIN,
+
+    ACR_DIR = ACR_BEGIN,
+    ACR_LONG,
+    ACR_LIMITED,
+    ACR_END,
+};
+
+struct ACRange
+{
+    const ACRangeType type = ACR_NONE;
+    const int distance = 0;
+
+    operator bool () const
+    {
+        switch(type){
+            case ACR_DIR    : return distance >= 1 && distance <= 3;
+            case ACR_LONG   : return distance == 0;
+            case ACR_LIMITED: return distance >= 1;
+            default         : return false;
+        }
+    }
+};
+
 struct MagicRecord
 {
     const char8_t *name = 0;
-    const char8_t *elem = u8"无";
-    const uint32_t icon = SYS_TEXNIL;
+    const char8_t *element = u8"无";
 
-    const int distance = 0;
+    const ACRange range
+    {
+        .type = ACR_LONG,
+    };
     const int checkGround = 0;
+
+    const uint32_t icon = SYS_TEXNIL;
     const MagicGfxEntry gfxList[8]{};
 
     constexpr const MagicGfxEntry &getGfxEntry(const char8_t *stage) const

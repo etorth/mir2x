@@ -37,6 +37,8 @@ class hres_tstamp
     public:
         hres_tstamp();
         uint64_t to_nsec() const;
+        uint64_t to_usec() const;
+        uint64_t to_msec() const;
 };
 
 class hres_timer

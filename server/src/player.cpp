@@ -349,7 +349,7 @@ bool Player::DCValid(int, bool)
     return true;
 }
 
-DamageNode Player::getAttackDamage(int nDC)
+DamageNode Player::getAttackDamage(int nDC) const
 {
     switch(nDC){
         case DBCOM_MAGICID(u8"物理攻击"):

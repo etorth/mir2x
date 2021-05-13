@@ -246,70 +246,47 @@ void Monster::attackUID(uint64_t nUID, int nDC, std::function<void()> onOK, std:
         fflassert(m_attackLock);
         m_attackLock = false;
 
-        const auto nX = coLoc.x;
-        const auto nY = coLoc.y;
+        if(!pathf::inACRange(DBCOM_MAGICRECORD(nDC).range, X(), Y(), coLoc.x, coLoc.y)){
+            if(onError){
+                onError();
+            }
+            return;
+        }
 
-        switch(nDC){
-            case DBCOM_MAGICID(u8"物理攻击"):
-                {
-                    switch(mathf::LDistance2(X(), Y(), nX, nY)){
-                        case 1:
-                        case 2:
-                            {
-                                m_direction = PathFind::GetDirection(X(), Y(), nX, nY);
-                                if(!canAttack()){
-                                    onError();
-                                    return;
-                                }
+        m_direction = PathFind::GetDirection(X(), Y(), coLoc.x, coLoc.y);
+        if(!canAttack()){
+            if(onError){
+                onError();
+            }
+            return;
+        }
 
-                                setTarget(nUID);
-                                dispatchAction(ActionAttack
-                                {
-                                    .speed = AttackSpeed(),
-                                    .x = X(),
-                                    .y = Y(),
-                                    .aimUID = nUID,
-                                    .damageID = DBCOM_MAGICID(u8"物理攻击"),
-                                });
+        setTarget(nUID);
+        dispatchAction(ActionAttack
+        {
+            .speed = AttackSpeed(),
+            .x = X(),
+            .y = Y(),
+            .aimUID = nUID,
+            .damageID = to_u32(nDC),
+        });
 
-                                // 2. send attack message to target
-                                //    target can ignore this message directly
-                                //
-                                //    For mir2 code, at the time when monster attacks
-                                //    1. immediately change target CO's HP and MP, but don't report
-                                //    2. delay 550ms, then report RM_ATTACK with CO's new HP and MP
-                                //    3. target CO reports to client for motion change (_MOTION_HITTED) and new HP/MP
-                                addDelay(550, [this, nUID]()
-                                {
-                                    // monster may go dead after this delay
-                                    // but don't check canAttack() since that's for attack lock
-                                    if(true){
-                                        dispatchAttack(nUID, DBCOM_MAGICID(u8"物理攻击"));
-                                    }
-                                });
+        // 2. send attack message to target
+        //    target can ignore this message directly
+        //
+        //    For mir2 code, at the time when monster attacks
+        //    1. immediately change target CO's HP and MP, but don't report
+        //    2. delay 550ms, then report RM_ATTACK with CO's new HP and MP
+        //    3. target CO reports to client for motion change (_MOTION_HITTED) and new HP/MP
+        addDelay(550, [this, nUID, nDC]()
+        {
+            // monster may go dead after this delay
+            // but don't check canAttack() since that's for attack lock
+            dispatchAttack(nUID, nDC);
+        });
 
-                                onOK();
-                                return;
-                            }
-                        case 0:
-                            {
-                                // TODO this can happen
-                                // should I schedule an random move?
-                                onError();
-                                return;
-                            }
-                        default:
-                            {
-                                onError();
-                                return;
-                            }
-                    }
-                }
-            default:
-                {
-                    onError();
-                    return;
-                }
+        if(onOK){
+            onOK();
         }
     },
 
@@ -370,30 +347,40 @@ void Monster::jumpUID(uint64_t targetUID, std::function<void()> onOK, std::funct
     }, onError);
 }
 
-void Monster::trackUID(uint64_t nUID, int nMinCDistance, std::function<void()> onOK, std::function<void()> onError)
+void Monster::trackUID(uint64_t nUID, ACRange r, std::function<void()> onOK, std::function<void()> onError)
 {
-    if(nMinCDistance < 1){
-        throw fflerror("invalid distance: %d", nMinCDistance);
-    }
-
-    getCOLocation(nUID, [this, nMinCDistance, onOK, onError](const COLocation &coLoc) -> bool
+    getCOLocation(nUID, [this, r, onOK, onError](const COLocation &coLoc)
     {
-        auto nX     = coLoc.x;
-        auto nY     = coLoc.y;
-        auto nMapID = coLoc.mapID;
-
-        if(!m_map->In(nMapID, nX, nY)){
-            onError();
-            return false;
+        if(!m_map->In(coLoc.mapID, coLoc.x, coLoc.y)){
+            if(onError){
+                onError();
+            }
+            return;
         }
 
-        if(mathf::CDistance(X(), Y(), nX, nY) <= nMinCDistance){
-            onOK();
-            return true;
-        }
+        // patch the track function, r can be provided as {}
+        // if r provided as invalid, we accept it as to follow the uid generally
 
-        MoveOneStep(nX, nY, onOK, onError);
-        return true;
+        if(r){
+            if(pathf::inACRange(r, X(), Y(), coLoc.x, coLoc.y)){
+                if(onOK){
+                    onOK();
+                }
+            }
+            else{
+                MoveOneStep(coLoc.x, coLoc.y, onOK, onError);
+            }
+        }
+        else{
+            if((X() == coLoc.x) && (Y() == coLoc.y)){
+                if(onOK){
+                    onOK();
+                }
+            }
+            else{
+                MoveOneStep(coLoc.x, coLoc.y, onOK, onError);
+            }
+        }
     }, onError);
 }
 
@@ -487,37 +474,45 @@ void Monster::followMaster(std::function<void()> onOK, std::function<void()> onE
     });
 }
 
-void Monster::jumpAttackUID(uint64_t nTargetUID, std::function<void()> onOK, std::function<void()> onError)
+void Monster::jumpAttackUID(uint64_t targetUID, std::function<void()> onOK, std::function<void()> onError)
 {
-    if(!nTargetUID){
+    if(!targetUID){
         throw fflerror("invalid zero UID");
     }
 
-    // TODO choose proper DC
-    // for different monster it may use different DC
+    const auto magicID = pickAttackMagic(targetUID);
+    const auto &mr = DBCOM_MAGICRECORD(magicID);
+    if(!mr){
+        if(onError){
+            onError();
+        }
+        return;
+    }
 
-    const int nProperDC = DBCOM_MAGICID(u8"物理攻击");
-    jumpUID(nTargetUID, [nTargetUID, nProperDC, onOK, onError, this]()
+    jumpUID(targetUID, [targetUID, magicID, onOK, onError, this]()
     {
-        attackUID(nTargetUID, nProperDC, onOK, onError);
+        attackUID(targetUID, magicID, onOK, onError);
     }, onError);
 }
 
-void Monster::trackAttackUID(uint64_t nTargetUID, std::function<void()> onOK, std::function<void()> onError)
+void Monster::trackAttackUID(uint64_t targetUID, std::function<void()> onOK, std::function<void()> onError)
 {
-    if(!nTargetUID){
+    if(!targetUID){
         throw fflerror("invalid zero UID");
     }
 
-    // TODO choose proper DC
-    // for different monster it may use different DC
+    const auto magicID = pickAttackMagic(targetUID);
+    const auto &mr = DBCOM_MAGICRECORD(magicID);
+    if(!mr){
+        if(onError){
+            onError();
+        }
+        return;
+    }
 
-    const int nProperDC = DBCOM_MAGICID(u8"物理攻击"); // TODO
-    int nMinCDistance = 1;
-
-    trackUID(nTargetUID, nMinCDistance, [nTargetUID, nProperDC, onOK, onError, this]()
+    trackUID(targetUID, mr.range, [targetUID, magicID, onOK, onError, this]()
     {
-        attackUID(nTargetUID, nProperDC, onOK, onError);
+        attackUID(targetUID, magicID, onOK, onError);
     }, onError);
 }
 
@@ -715,7 +710,7 @@ bool Monster::InRange(int nRangeType, int nX, int nY)
     return false;
 }
 
-DamageNode Monster::getAttackDamage(int nDC)
+DamageNode Monster::getAttackDamage(int nDC) const
 {
     switch(nDC){
         case DBCOM_MAGICID(u8"物理攻击"):
@@ -1217,6 +1212,11 @@ void Monster::pickTarget(std::function<void(uint64_t)> fnTarget)
     }
 }
 
+int Monster::pickAttackMagic(uint64_t) const
+{
+    return DBCOM_MAGICID(u8"物理攻击");
+}
+
 void Monster::QueryMaster(uint64_t nUID, std::function<void(uint64_t)> fnOp)
 {
     if(!nUID){
@@ -1587,10 +1587,7 @@ void Monster::onAMAttack(const ActorMsgPack &mpk)
         notifyDead(amAK.UID);
     }
     else{
-        const auto &mr = DBCOM_MAGICRECORD(amAK.damage.type);
-        const auto ld2 = mathf::LDistance2<int>(X(), Y(), amAK.X, amAK.Y);
-
-        if(mr.distance > 0 && ld2 > mr.distance * mr.distance){
+        if(const auto &mr = DBCOM_MAGICRECORD(amAK.damage.type); !pathf::inACRange(mr.range, X(), Y(), amAK.X, amAK.Y)){
             switch(uidf::getUIDType(amAK.UID)){
                 case UID_MON:
                 case UID_PLY:

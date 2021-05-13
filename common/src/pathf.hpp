@@ -30,6 +30,7 @@
 #include "fflerror.hpp"
 #include "condcheck.hpp"
 #include "protocoldef.hpp"
+#include "magicrecord.hpp"
 
 namespace pathf
 {
@@ -49,4 +50,5 @@ namespace pathf
     std::tuple<int, int> getDir16Off(int /* dir */, int /* distance */);
 
     std::tuple<int, int> getDirOff(int /* x */, int /* y */, int /* distance */);
+    bool inACRange(const ACRange &, int, int, int, int);
 }

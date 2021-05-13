@@ -86,4 +86,13 @@ class TaoDog final: public Monster
 
     protected:
         void onAMAttack(const ActorMsgPack &) override;
+
+    protected:
+        int pickAttackMagic(uint64_t) const
+        {
+            return DBCOM_MAGICID(u8"神兽_喷火");
+        }
+
+    protected:
+        DamageNode getAttackDamage(int) const override;
 };

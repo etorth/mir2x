@@ -115,12 +115,12 @@ corof::long_jmper::eval_op<bool> Monster::coro_trackAttackUID(uint64_t targetUID
     return fnwait(this, targetUID).eval<bool>();
 }
 
-corof::long_jmper::eval_op<bool> Monster::coro_trackUID(uint64_t targetUID, int distance)
+corof::long_jmper::eval_op<bool> Monster::coro_trackUID(uint64_t targetUID, ACRange r)
 {
-    const auto fnwait = +[](Monster *p, uint64_t targetUID, int distance) -> corof::long_jmper
+    const auto fnwait = +[](Monster *p, uint64_t targetUID, ACRange r) -> corof::long_jmper
     {
         corof::async_variable<bool> done;
-        p->trackUID(targetUID, distance, [&done]{ done.assign(true); }, [&done]{ done.assign(false); });
+        p->trackUID(targetUID, r, [&done]{ done.assign(true); }, [&done]{ done.assign(false); });
 
         if(co_await done){
             co_return true;
@@ -129,7 +129,7 @@ corof::long_jmper::eval_op<bool> Monster::coro_trackUID(uint64_t targetUID, int 
             co_return false;
         }
     };
-    return fnwait(this, targetUID, distance).eval<bool>();
+    return fnwait(this, targetUID, r).eval<bool>();
 }
 
 corof::long_jmper::eval_op<bool> Monster::coro_attackUID(uint64_t targetUID, int dcType)

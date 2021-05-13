@@ -169,7 +169,7 @@ class NPChar final: public CharObject
             return false;
         }
 
-        DamageNode getAttackDamage(int) override
+        DamageNode getAttackDamage(int) const override
         {
             throw bad_reach();
         }

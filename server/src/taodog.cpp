@@ -16,6 +16,7 @@
  * =====================================================================================
  */
 
+#include "pathf.hpp"
 #include "taodog.hpp"
 #include "raiitimer.hpp"
 
@@ -30,9 +31,9 @@ corof::long_jmper TaoDog::updateCoroFunc()
 
         else{
             if(!idleTime.has_value()){
-                idleTime = hres_tstamp().to_nsec();
+                idleTime = hres_tstamp().to_msec();
             }
-            else if(hres_tstamp().to_nsec() - idleTime.value() > 30ULL * 1000000000ULL /* n x 1 sec*/){
+            else if(hres_tstamp().to_msec() - idleTime.value() > 30ULL * 1000ULL){
                 setStandMode(false);
             }
 
@@ -56,10 +57,7 @@ void TaoDog::onAMAttack(const ActorMsgPack &mpk)
         notifyDead(amAK.UID);
     }
     else{
-        const auto &mr = DBCOM_MAGICRECORD(amAK.damage.type);
-        const auto ld2 = mathf::LDistance2<int>(X(), Y(), amAK.X, amAK.Y);
-
-        if(mr.distance > 0 && ld2 > mr.distance * mr.distance){
+        if(const auto &mr = DBCOM_MAGICRECORD(amAK.damage.type); !pathf::inACRange(mr.range, X(), Y(), amAK.X, amAK.Y)){
             switch(uidf::getUIDType(amAK.UID)){
                 case UID_MON:
                 case UID_PLY:
@@ -98,4 +96,14 @@ void TaoDog::onAMAttack(const ActorMsgPack &mpk)
         });
         struckDamage(amAK.damage);
     }
+}
+
+DamageNode TaoDog::getAttackDamage(int dc) const
+{
+    fflassert(to_u32(dc) == DBCOM_MAGICID(u8"神兽_喷火"));
+    return MagicDamage
+    {
+        .type = dc,
+        .damage = 15,
+    };
 }

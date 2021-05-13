@@ -26,14 +26,18 @@
 
 {
     .name = u8"物理攻击", // TODO ...
-    .distance = 1,
+    .range
+    {
+        .type = ACR_DIR,
+        .distance = 1,
+    },
 },
 
 {
     .name = u8"雷电术",
-    .elem = u8"雷",
-    .icon = 0X0500100A,
+    .element = u8"雷",
 
+    .icon = 0X0500100A,
     .gfxList
     {
         {
@@ -55,9 +59,9 @@
 
 {
     .name = u8"魔法盾",
-    .elem = u8"风",
-    .icon = 0X0500101D,
+    .element = u8"风",
 
+    .icon = 0X0500101D,
     .gfxList
     {
         {
@@ -94,9 +98,9 @@
 
 {
     .name = u8"召唤骷髅",
-    .elem = u8"幻影",
-    .icon = 0X0500103B,
+    .element = u8"幻影",
 
+    .icon = 0X0500103B,
     .gfxList
     {
         {
@@ -168,10 +172,10 @@
 
 {
     .name = u8"灵魂火符",
-    .elem = u8"暗黑",
-    .icon = 0X0500100C,
+    .element = u8"暗黑",
     .checkGround = 1,
 
+    .icon = 0X0500100C,
     .gfxList
     {
         {
@@ -230,7 +234,7 @@
 
 {
     .name = u8"瞬息移动",
-    .elem = u8"幻影",
+    .element = u8"幻影",
 
     .gfxList
     {
@@ -285,9 +289,9 @@
 
 {
     .name = u8"召唤神兽",
-    .elem = u8"幻影",
-    .icon = 0X0500101C,
+    .element = u8"幻影",
 
+    .icon = 0X0500101C,
     .gfxList
     {
         {
@@ -439,7 +443,12 @@
 
 {
     .name = u8"神兽_喷火",
-    .elem = u8"火",
+    .element = u8"火",
+    .range
+    {
+        .type = ACR_DIR,
+        .distance = 2,
+    },
 
     .gfxList
     {
