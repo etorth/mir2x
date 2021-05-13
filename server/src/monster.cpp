@@ -278,12 +278,33 @@ void Monster::attackUID(uint64_t nUID, int nDC, std::function<void()> onOK, std:
         //    1. immediately change target CO's HP and MP, but don't report
         //    2. delay 550ms, then report RM_ATTACK with CO's new HP and MP
         //    3. target CO reports to client for motion change (_MOTION_HITTED) and new HP/MP
-        addDelay(550, [this, nUID, nDC]()
-        {
-            // monster may go dead after this delay
-            // but don't check canAttack() since that's for attack lock
-            dispatchAttackDamage(nUID, nDC);
-        });
+
+        switch(nDC){
+            case DBCOM_MAGICID(u8"神兽_喷火"):
+                {
+                    for(const auto &coLoc: m_inViewCOList){
+                        if(false
+                                || std::tie(coLoc.x, coLoc.y) == PathFind::getFrontPLoc(X(), Y(), Direction(), 1)
+                                || std::tie(coLoc.x, coLoc.y) == PathFind::getFrontPLoc(X(), Y(), Direction(), 2)){
+                            addDelay(550, [this, uid = coLoc.uid, nDC]()
+                            {
+                                dispatchAttackDamage(uid, nDC);
+                            });
+                        }
+                    }
+                    break;
+                }
+            default:
+                {
+                    addDelay(550, [this, nUID, nDC]()
+                    {
+                        // monster may go dead after this delay
+                        // but don't check canAttack() since that's for attack lock
+                        dispatchAttackDamage(nUID, nDC);
+                    });
+                    break;
+                }
+        }
 
         if(onOK){
             onOK();
