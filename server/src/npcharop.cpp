@@ -23,6 +23,10 @@
 #include "dbcomrecord.hpp"
 #include "actormsgpack.hpp"
 
+void NPChar::on_AM_ATTACK(const ActorMsgPack &)
+{
+}
+
 void NPChar::on_AM_ACTION(const ActorMsgPack &mpk)
 {
     const auto amA = mpk.conv<AMAction>();

@@ -691,6 +691,11 @@ void NPChar::operateAM(const ActorMsgPack &mpk)
                 on_AM_BUY(mpk);
                 break;
             }
+        case AM_ATTACK:
+            {
+                on_AM_ATTACK(mpk);
+                break;
+            }
         case AM_ACTION:
             {
                 on_AM_ACTION(mpk);

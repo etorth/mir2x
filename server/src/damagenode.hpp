@@ -44,3 +44,10 @@ struct PlainPhyDamage
     int damage = 0;
     operator DamageNode() const;
 };
+
+struct MagicDamage
+{
+    int type   = 0;
+    int damage = 0;
+    operator DamageNode() const;
+};

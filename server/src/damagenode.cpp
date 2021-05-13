@@ -29,3 +29,13 @@ PlainPhyDamage::operator DamageNode() const
     node.damage = damage;
     return node;
 }
+
+MagicDamage::operator DamageNode() const
+{
+    DamageNode node;
+    std::memset(&node, 0, sizeof(node));
+
+    node.type = type;
+    node.damage = damage;
+    return node;
+}

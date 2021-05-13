@@ -359,6 +359,14 @@ DamageNode Player::getAttackDamage(int nDC)
                     .damage = 5,
                 };
             }
+        case DBCOM_MAGICID(u8"雷电术"):
+            {
+                return MagicDamage
+                {
+                    .type = nDC,
+                    .damage = 5,
+                };
+            }
         default:
             {
                 return {};
@@ -632,6 +640,10 @@ void Player::onCMActionSpell(CMAction cmA)
                 addDelay(1400, [this, smFM]()
                 {
                     dispatchNetPackage(true, SM_CASTMAGIC, smFM);
+                    addDelay(300, [smFM, this]()
+                    {
+                        dispatchAttack(smFM.AimUID, DBCOM_MAGICID(u8"雷电术"));
+                    });
                 });
                 break;
             }

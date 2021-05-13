@@ -186,6 +186,7 @@ class NPChar final: public CharObject
 
     private:
         void on_AM_BUY(const ActorMsgPack &);
+        void on_AM_ATTACK(const ActorMsgPack &);
         void on_AM_ACTION(const ActorMsgPack &);
         void on_AM_NPCEVENT(const ActorMsgPack &);
         void on_AM_NOTIFYNEWCO(const ActorMsgPack &);
