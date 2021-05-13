@@ -943,7 +943,7 @@ void CharObject::dispatchHealth()
     }
 }
 
-void CharObject::dispatchAttack(uint64_t nUID, int nDC)
+void CharObject::dispatchAttackDamage(uint64_t nUID, int nDC)
 {
     if(nUID && DCValid(nDC, true)){
         AMAttack amA;

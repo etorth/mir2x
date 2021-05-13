@@ -555,7 +555,7 @@ void Player::onCMActionAttack(CMAction stCMA)
                                         case 1:
                                         case 2:
                                             {
-                                                dispatchAttack(nAimUID, nDCType);
+                                                dispatchAttackDamage(nAimUID, nDCType);
                                                 return;
                                             }
                                         default:
@@ -617,7 +617,7 @@ void Player::onCMActionSpell(CMAction cmA)
 
                         addDelay(delay, [cmA, this]()
                         {
-                            dispatchAttack(cmA.action.aimUID, DBCOM_MAGICID(u8"灵魂火符"));
+                            dispatchAttackDamage(cmA.action.aimUID, DBCOM_MAGICID(u8"灵魂火符"));
                         });
                     });
                 }
@@ -641,7 +641,7 @@ void Player::onCMActionSpell(CMAction cmA)
                     dispatchNetPackage(true, SM_CASTMAGIC, smFM);
                     addDelay(300, [smFM, this]()
                     {
-                        dispatchAttack(smFM.AimUID, DBCOM_MAGICID(u8"雷电术"));
+                        dispatchAttackDamage(smFM.AimUID, DBCOM_MAGICID(u8"雷电术"));
                     });
                 });
                 break;

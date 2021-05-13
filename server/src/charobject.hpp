@@ -221,7 +221,7 @@ class CharObject: public ServerObject
 
     protected:
         void dispatchHealth();
-        void dispatchAttack(uint64_t, int);
+        void dispatchAttackDamage(uint64_t, int);
 
     protected:
         virtual void dispatchAction(          const ActionNode &);

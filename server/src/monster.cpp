@@ -282,7 +282,7 @@ void Monster::attackUID(uint64_t nUID, int nDC, std::function<void()> onOK, std:
         {
             // monster may go dead after this delay
             // but don't check canAttack() since that's for attack lock
-            dispatchAttack(nUID, nDC);
+            dispatchAttackDamage(nUID, nDC);
         });
 
         if(onOK){
