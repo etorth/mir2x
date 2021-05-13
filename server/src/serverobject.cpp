@@ -120,12 +120,12 @@ void ServerObject::addDelay(uint32_t delayTick, std::function<void()> cmd)
 
 void ServerObject::sendNetPackage(uint64_t uid, uint8_t type, const void *buf, size_t bufLen)
 {
+    fflassert(uid != UID());
+    fflassert(uidf::getUIDType(uid) == UID_PLY);
+
     AMSendPackage amSP;
     std::memset(&amSP, 0, sizeof(amSP));
 
     buildActorDataPackage(&(amSP.package), type, buf, bufLen);
-    if(uidf::getUIDType(uid) != UID_PLY){
-        throw fflerror("sending AM_SENDPACKAGE to %s, expect UID_PLY: type = %llu", uidf::getUIDTypeCStr(uid), to_llu(type));
-    }
     m_actorPod->forward(uid, {AM_SENDPACKAGE, amSP});
 }

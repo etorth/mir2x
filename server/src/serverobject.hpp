@@ -103,6 +103,13 @@ class ServerObject
 
     protected:
         void sendNetPackage(uint64_t, uint8_t, const void *, size_t);
+
+    protected:
+        void sendNetPackage(uint64_t uid, uint8_t type)
+        {
+            sendNetPackage(uid, type, nullptr, 0);
+        }
+
         void sendNetPackage(uint64_t uid, uint8_t type, const std::string &buf)
         {
             sendNetPackage(uid, type, buf.data(), buf.length());

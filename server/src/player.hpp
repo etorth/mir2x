@@ -79,15 +79,6 @@ class Player final: public CharObject
             return m_channID;
         }
 
-    protected:
-        bool sendNetBuf(uint8_t, const uint8_t *, size_t);
-
-    protected:
-        template<typename T> bool sendNet(uint8_t hc, const T &t)
-        {
-            return sendNetBuf(hc, (const uint8_t *)(&t), sizeof(t));
-        }
-
     public:
         int Speed()
         {
@@ -305,4 +296,7 @@ class Player final: public CharObject
 
     private:
         static std::vector<std::string> parseNPCQuery(const char *);
+
+    private:
+        void dispatchNetPackageHelper(const DispatchNetPackageParam &, uint8_t, const void *, size_t) override;
 };

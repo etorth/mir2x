@@ -612,7 +612,7 @@ void Player::onCMActionSpell(CMAction cmA)
 
                 addDelay(800, [this, smFM]()
                 {
-                    g_netDriver->Post(channID(), SM_CASTMAGIC, smFM);
+                    dispatchNetPackage(false, SM_CASTMAGIC, smFM);
                 });
                 break;
             }
@@ -631,7 +631,7 @@ void Player::onCMActionSpell(CMAction cmA)
 
                 addDelay(1400, [this, smFM]()
                 {
-                    dispatchNetPackage(SM_CASTMAGIC, smFM);
+                    dispatchNetPackage(true, SM_CASTMAGIC, smFM);
                 });
                 break;
             }
@@ -646,7 +646,7 @@ void Player::onCMActionSpell(CMAction cmA)
 
                 addDelay(800, [this, smFM]()
                 {
-                    g_netDriver->Post(channID(), SM_CASTMAGIC, smFM);
+                    dispatchNetPackage(true, SM_CASTMAGIC, smFM);
                 });
                 break;
             }
@@ -856,11 +856,6 @@ void Player::RequestKillPets()
     m_slaveList.clear();
 }
 
-bool Player::sendNetBuf(uint8_t hc, const uint8_t *buf, size_t bufLen)
-{
-    return g_netDriver->Post(channID(), hc, buf, bufLen);
-}
-
 void Player::postOnLoginOK()
 {
     postBuildVersion();
@@ -1052,4 +1047,20 @@ std::vector<std::string> Player::parseNPCQuery(const char *query)
         beginPtr = donePtr;
     }
     return result;
+}
+
+void Player::dispatchNetPackageHelper(const DispatchNetPackageParam &param, uint8_t type, const void *data, size_t size)
+{
+    if(param.get_if<uint64_t>()){
+        CharObject::dispatchNetPackageHelper(param, type, data, size);
+    }
+    else if(auto boolPtr = param.get_if<bool>()){
+        if(*boolPtr){
+            postNetMessage(type, data, size);
+        }
+        CharObject::dispatchNetPackageHelper(param, type, data, size);
+    }
+    else{
+        postNetMessage(type, data, size);
+    }
 }
