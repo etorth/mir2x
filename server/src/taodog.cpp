@@ -56,7 +56,10 @@ void TaoDog::onAMAttack(const ActorMsgPack &mpk)
         notifyDead(amAK.UID);
     }
     else{
-        if(mathf::LDistance2(X(), Y(), amAK.X, amAK.Y) > 2){
+        const auto &mr = DBCOM_MAGICRECORD(amAK.damage.type);
+        const auto ld2 = mathf::LDistance2<int>(X(), Y(), amAK.X, amAK.Y);
+
+        if(mr.distance > 0 && ld2 > mr.distance * mr.distance){
             switch(uidf::getUIDType(amAK.UID)){
                 case UID_MON:
                 case UID_PLY:
