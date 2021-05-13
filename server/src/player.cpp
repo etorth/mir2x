@@ -360,6 +360,7 @@ DamageNode Player::getAttackDamage(int nDC)
                 };
             }
         case DBCOM_MAGICID(u8"雷电术"):
+        case DBCOM_MAGICID(u8"灵魂火符"):
             {
                 return MagicDamage
                 {
@@ -599,29 +600,27 @@ void Player::onCMActionSpell(CMAction cmA)
         throw fflerror("invalid action type: %s", actionName(cmA.action));
     }
 
-    int nX = cmA.action.x;
-    int nY = cmA.action.y;
-    int nMagicID = cmA.action.extParam.spell.magicID;
-
+    const int magicID = cmA.action.extParam.spell.magicID;
     dispatchAction(cmA.action);
-    switch(nMagicID){
+
+    switch(magicID){
         case DBCOM_MAGICID(u8"灵魂火符"):
             {
-                SMCastMagic smFM;
-                std::memset(&smFM, 0, sizeof(smFM));
+                // 灵魂火符 doesn't need to send back the CASTMAGIC message
+                // the ACTION_SPELL creates the magic
 
-                smFM.UID    = UID();
-                smFM.mapID  = mapID();
-                smFM.Magic  = nMagicID;
-                smFM.Speed  = MagicSpeed();
-                smFM.X      = nX;
-                smFM.Y      = nY;
-                smFM.AimUID = cmA.action.aimUID;
+                if(cmA.action.aimUID){
+                    getCOLocation(cmA.action.aimUID, [this, cmA](const COLocation &coLoc)
+                    {
+                        const auto ld = mathf::LDistance<float>(coLoc.x, coLoc.y, cmA.action.x, cmA.action.y);
+                        const auto delay = ld * 100;
 
-                addDelay(800, [this, smFM]()
-                {
-                    dispatchNetPackage(false, SM_CASTMAGIC, smFM);
-                });
+                        addDelay(delay, [cmA, this]()
+                        {
+                            dispatchAttack(cmA.action.aimUID, DBCOM_MAGICID(u8"灵魂火符"));
+                        });
+                    });
+                }
                 break;
             }
         case DBCOM_MAGICID(u8"雷电术"):
@@ -631,10 +630,10 @@ void Player::onCMActionSpell(CMAction cmA)
 
                 smFM.UID    = UID();
                 smFM.mapID  = mapID();
-                smFM.Magic  = nMagicID;
+                smFM.Magic  = magicID;
                 smFM.Speed  = MagicSpeed();
-                smFM.X      = nX;
-                smFM.Y      = nY;
+                smFM.X      = cmA.action.x;
+                smFM.Y      = cmA.action.y;
                 smFM.AimUID = cmA.action.aimUID;
 
                 addDelay(1400, [this, smFM]()
@@ -653,7 +652,7 @@ void Player::onCMActionSpell(CMAction cmA)
                 std::memset(&smFM, 0, sizeof(smFM));
 
                 smFM.UID   = UID();
-                smFM.Magic = nMagicID;
+                smFM.Magic = magicID;
                 smFM.Speed = MagicSpeed();
 
                 addDelay(800, [this, smFM]()
@@ -673,7 +672,7 @@ void Player::onCMActionSpell(CMAction cmA)
 
                 smFM.UID   = UID();
                 smFM.mapID = mapID();
-                smFM.Magic = nMagicID;
+                smFM.Magic = magicID;
                 smFM.Speed = MagicSpeed();
                 smFM.AimX  = nFrontX;
                 smFM.AimY  = nFrontY;
@@ -698,7 +697,7 @@ void Player::onCMActionSpell(CMAction cmA)
 
                 smFM.UID   = UID();
                 smFM.mapID = mapID();
-                smFM.Magic = nMagicID;
+                smFM.Magic = magicID;
                 smFM.Speed = MagicSpeed();
                 smFM.AimX  = nFrontX;
                 smFM.AimY  = nFrontY;
