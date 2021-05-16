@@ -318,6 +318,14 @@ void ProcessRun::draw()
         }
     }
 
+    // draw ground ash, ice mark etc.
+    // should be draw immediately before dead actors, like over-ground objects
+    for(const auto &p: m_fixedLocMagicList){
+        if(p->checkMagic(u8"火焰灰烬", u8"运行")){
+            dynamic_cast<FireAshEffect_RUN *>(p.get())->drawGroundAsh(m_viewX, m_viewY, colorf::WHITE + 150);
+        }
+    }
+
     // draw dead actors
     // dead actors are shown before all active actors
     for(auto &p: m_coList){

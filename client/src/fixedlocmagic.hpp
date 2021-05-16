@@ -19,7 +19,7 @@
 #pragma once
 #include <cstdint>
 #include <cstdlib>
-#include <optional>
+#include "totype.hpp"
 #include "fflerror.hpp"
 #include "magicbase.hpp"
 #include "magicrecord.hpp"
@@ -70,7 +70,7 @@ class FireAshEffect_RUN: public FixedLocMagic
 
     public:
         FireAshEffect_RUN(int x, int y, int t1 = 2000, int t2 = 5000, int t3 = 3000)
-            : FixedLocMagic(u8"火焰余烬", u8"运行", x, y, std::rand() % 5)
+            : FixedLocMagic(u8"火焰灰烬", u8"运行", x, y, std::rand() % 5)
             , m_absFrameOff(std::rand() % 10)
             , m_alphaTime
               {
@@ -97,7 +97,30 @@ class FireAshEffect_RUN: public FixedLocMagic
         }
 
     private:
+        uint32_t getPlainModColor() const
+        {
+            return colorf::WHITE + colorf::round255(255.0 * [this]() -> float
+            {
+                if(m_accuTime < m_alphaTime[0]){
+                    return to_f(m_accuTime) / m_alphaTime[0];
+                }
+                else if(m_accuTime < m_alphaTime[0] + m_alphaTime[1]){
+                    return 1.0f;
+                }
+                else if(m_accuTime < m_alphaTime[0] + m_alphaTime[1] + m_alphaTime[2]){
+                    return 1.0f - to_f(m_accuTime - m_alphaTime[0] - m_alphaTime[1]) / m_alphaTime[2];
+                }
+                else{
+                    return 0.0f;
+                }
+            }());
+        }
+
+    protected:
         void drawViewOff(int, int, uint32_t) const override;
+
+    public:
+        void drawGroundAsh(int, int, uint32_t) const;
 };
 
 class FireWall_RUN: public FixedLocMagic
@@ -147,4 +170,15 @@ class FireWall_RUN: public FixedLocMagic
 
     protected:
         void drawViewOff(int, int, uint32_t) const override;
+
+    private:
+        uint32_t getPlainModColor() const
+        {
+            if(hasFadeOut()){
+                return colorf::WHITE + colorf::round255(255.0f * (1.0f - std::min<float>((m_accuTime - m_fadeStartTime) / to_f(m_fadeDuration), 1.0f)));
+            }
+            else{
+                return colorf::WHITE + 255;
+            }
+        }
 };

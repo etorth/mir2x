@@ -283,7 +283,7 @@
 },
 
 {
-    .name = u8"火焰余烬", // magic effect, not for specific magic
+    .name = u8"火焰灰烬", // magic effect, not for specific magic
     .gfxList
     {
         {
