@@ -211,6 +211,7 @@ SkillBoard::SkillBoard(int nX, int nY, ProcessRun *runPtr, Widget *pwidget, bool
           {DBCOM_MAGICID(u8"召唤骷髅"), 3,  12,  13,  'U'},
           {DBCOM_MAGICID(u8"召唤神兽"), 1,  12,  78,  'S'},
           {DBCOM_MAGICID(u8"灵魂火符"), 2, 192,  13,  'F'},
+          {DBCOM_MAGICID(u8"地狱火"),   2, 132,  78,  'H'},
           {DBCOM_MAGICID(u8"火墙"),     2, 132, 143,  'W'},
       }
 

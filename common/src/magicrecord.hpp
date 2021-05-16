@@ -142,10 +142,9 @@ struct MagicGfxEntry
 
     // motion of the magic caster
     // can only defined for EGS_INIT (u8"启动")
-    // x : MOTION_NONE
-    // 0 : MOTION_SPELL0
+    // 0 : MOTION_SPELL0, use push front gestur
     // 1 : MOTION_SPELL1
-    const int motion = -1;
+    const int motion = 0;
 
     const int loop = 0;
     const int speed = SYS_DEFSPEED;

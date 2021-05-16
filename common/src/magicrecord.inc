@@ -155,10 +155,6 @@
 },
 
 {
-    .name = u8"地狱火",
-},
-
-{
     .name = u8"疾光电影",
 },
 
@@ -185,7 +181,6 @@
             .frameCount = 6,
             .gfxIDCount = 10,
             .gfxDirType = 8,
-            .motion = 0,
         },
 
         {
@@ -243,7 +238,6 @@
             .type  = u8"附着",
             .gfxID = 0X0000006E,
             .frameCount = 10,
-            .motion = 0,
         },
 
         {
@@ -283,6 +277,33 @@
 },
 
 {
+    .name = u8"地狱火",
+    .element = u8"火",
+
+    .icon = 0X05001008,
+    .gfxList
+    {
+        {
+            .stage = u8"启动",
+            .type  = u8"附着",
+            .gfxID = 0X0000071C,
+            .frameCount = 8,
+            .gfxDirType = 8,
+        },
+
+        {
+            .stage = u8"运行",
+            .type  = u8"固定",
+            .gfxID = 0X0000076C,
+            .frameCount = 30,
+            .gfxDirType = 2,
+            .onGround = 1,
+            .speed = 50,
+        },
+    },
+},
+
+{
     .name = u8"火焰灰烬", // magic effect, not for specific magic
     .gfxList
     {
@@ -291,6 +312,7 @@
             .type  = u8"固定",
             .gfxID = 0X00000992,
             .frameCount = 10,
+            .gfxDirType = 5,
             .onGround = 1,
             .loop = 1,
         },
