@@ -18,6 +18,9 @@
 
 #pragma once
 #include <cstdint>
+#include <cstdlib>
+#include <optional>
+#include "fflerror.hpp"
 #include "magicbase.hpp"
 #include "magicrecord.hpp"
 
@@ -39,9 +42,7 @@ class FixedLocMagic: public MagicBase
             , m_x(x)
             , m_y(y)
         {
-            if(!m_gfxEntry.checkType(u8"固定")){
-                throw fflerror("invalid magic type: %s", to_cstr(m_gfxEntry.type));
-            }
+            fflassert(m_gfxEntry.checkType(u8"固定"));
         }
 
     public:
@@ -56,5 +57,94 @@ class FixedLocMagic: public MagicBase
         }
 
     public:
-        void drawViewOff(int, int, bool);
+        virtual void drawViewOff(int, int, uint32_t) const;
+};
+
+class FireAshEffect_RUN: public FixedLocMagic
+{
+    private:
+        const int m_absFrameOff;
+
+    private:
+        const int m_alphaTime[3];
+
+    public:
+        FireAshEffect_RUN(int x, int y, int t1 = 2000, int t2 = 5000, int t3 = 3000)
+            : FixedLocMagic(u8"火焰余烬", u8"运行", x, y, std::rand() % 5)
+            , m_absFrameOff(std::rand() % 10)
+            , m_alphaTime
+              {
+                  t1,
+                  t2,
+                  t3,
+              }
+        {
+            fflassert(t1 >  0);
+            fflassert(t2 >= 0);
+            fflassert(t3 >  0);
+        }
+
+    private:
+        int absFrame() const override
+        {
+            return FixedLocMagic::absFrame() + m_absFrameOff;
+        }
+
+    private:
+        bool done() const override
+        {
+            return m_accuTime >= m_alphaTime[0] + m_alphaTime[1] + m_alphaTime[2];
+        }
+
+    private:
+        void drawViewOff(int, int, uint32_t) const override;
+};
+
+class FireWall_RUN: public FixedLocMagic
+{
+    private:
+        const int m_absFrameOff;
+
+    private:
+        int m_fadeDuration = 0;
+        double m_fadeStartTime = 0.0f;
+
+    public:
+        FireWall_RUN(int x, int y)
+            : FixedLocMagic(u8"火墙", u8"运行", x, y)
+            , m_absFrameOff(std::rand() % 10)
+        {}
+
+    private:
+        int absFrame() const override
+        {
+            return FixedLocMagic::absFrame() + m_absFrameOff;
+        }
+
+    public:
+        void setFadeOut(int fadeDuration)
+        {
+            fflassert(fadeDuration > 0);
+            m_fadeDuration = fadeDuration;
+            m_fadeStartTime = m_accuTime;
+        }
+
+        bool hasFadeOut() const
+        {
+            return m_fadeDuration > 0;
+        }
+
+    private:
+        bool done() const override
+        {
+            if(hasFadeOut()){
+                return m_accuTime >= m_fadeStartTime + m_fadeDuration;
+            }
+            else{
+                return false;
+            }
+        }
+
+    protected:
+        void drawViewOff(int, int, uint32_t) const override;
 };

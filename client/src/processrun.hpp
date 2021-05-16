@@ -161,7 +161,7 @@ class ProcessRun: public Process
         virtual void processEvent(const SDL_Event &) override;
 
     public:
-        std::tuple<int, int> fromPLoc2Grid(int pixelX, int pixelY)
+        std::tuple<int, int> fromPLoc2Grid(int pixelX, int pixelY) const
         {
             return {(pixelX + m_viewX) / SYS_MAPGRIDXP, (pixelY + m_viewY) / SYS_MAPGRIDYP};
         }
@@ -169,6 +169,12 @@ class ProcessRun: public Process
         std::tuple<int, int> getViewShift() const
         {
             return {m_viewX, m_viewY};
+        }
+
+        std::tuple<int, int> getMouseGLoc() const
+        {
+            const auto [mousePX, mousePY] = SDLDeviceHelper::getMousePLoc();
+            return fromPLoc2Grid(mousePX, mousePY);
         }
 
     public:
@@ -210,6 +216,7 @@ class ProcessRun: public Process
         void net_BUYERROR(const uint8_t *, size_t);
         void net_BUYSUCCEED(const uint8_t *, size_t);
         void net_GROUNDITEMIDLIST(const uint8_t *, size_t);
+        void net_GROUNDFIREWALLLIST(const uint8_t *, size_t);
         void net_EQUIPWEAR(const uint8_t *, size_t);
         void net_EQUIPWEARERROR(const uint8_t *, size_t);
         void net_GRABWEAR(const uint8_t *, size_t);

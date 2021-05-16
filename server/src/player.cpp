@@ -19,6 +19,7 @@
 #include "dbpod.hpp"
 #include "player.hpp"
 #include "uidf.hpp"
+#include "pathf.hpp"
 #include "mathf.hpp"
 #include "colorf.hpp"
 #include "dbcomid.hpp"
@@ -364,7 +365,7 @@ DamageNode Player::getAttackDamage(int nDC) const
             {
                 return MagicDamage
                 {
-                    .type = nDC,
+                    .magicID = nDC,
                     .damage = 5,
                 };
             }
@@ -708,6 +709,36 @@ void Player::onCMActionSpell(CMAction cmA)
                 });
                 break;
             }
+        case DBCOM_MAGICID(u8"火墙"):
+            {
+                addDelay(550, [this, cmA]()
+                {
+                    AMCastFireWall amCFW;
+                    std::memset(&amCFW, 0, sizeof(amCFW));
+
+                    amCFW.minDC = 5;
+                    amCFW.maxDC = 9;
+
+                    amCFW.duration = 10 * 1000;
+                    amCFW.dps      = 3;
+
+                    for(int dir = DIR_NONE; dir < DIR_END; ++dir){
+                        if(dir == DIR_NONE){
+                            amCFW.x = cmA.action.aimX;
+                            amCFW.y = cmA.action.aimY;
+                        }
+                        else{
+                            std::tie(amCFW.x, amCFW.y) = pathf::getFrontPLoc(cmA.action.aimX, cmA.action.aimY, dir, 1);
+                        }
+
+                        if(m_map->groundValid(amCFW.x, amCFW.y)){
+                            m_actorPod->forward(m_map->UID(), {AM_CASTFIREWALL, amCFW});
+                        }
+                    }
+                });
+                break;
+            }
+
         default:
             {
                 break;

@@ -20,6 +20,7 @@
 #include "pathf.hpp"
 #include "mathf.hpp"
 #include "fflerror.hpp"
+#include "dbcomrecord.hpp"
 
 namespace
 {
@@ -144,27 +145,29 @@ std::tuple<int, int> pathf::getDirOff(int x, int y, int distance)
     };
 }
 
-bool pathf::inACRange(const ACRange &r, int x0, int y0, int x1, int y1)
+bool pathf::inDCCastRange(const DCCastRange &r, int x0, int y0, int x1, int y1)
 {
     fflassert(r);
     switch(r.type){
-        case ACR_DIR:
+        case CRT_DIR:
             {
-                const auto ld2 = mathf::LDistance2(x0, y0, x1, y1);
-                switch(r.distance){
-                    case 1 : return ld2 == 1 || ld2 == 2;
-                    case 2 : return ld2 == 1 || ld2 == 2 || ld2 == 4 || ld2 == 8;
-                    case 3 : return ld2 == 1 || ld2 == 2 || ld2 == 4 || ld2 == 8 || ld2 == 9 || ld2 == 18;
-                    default: return false;
-                }
+                const int dx = std::abs(x0 - x1);
+                const int dy = std::abs(y0 - y1);
+
+                const int dmax = std::max<int>(dx, dy);
+                const int dmin = std::min<int>(dx, dy);
+
+                return false
+                    || (dmin == dmax && dmax <= r.distance)
+                    || (dmin == 0    && dmax <= r.distance);
             }
-        case ACR_LONG:
+        case CRT_LONG:
             {
                 return true;
             }
-        case ACR_LIMITED:
+        case CRT_LIMITED:
             {
-                return r.distance * r.distance <= mathf::LDistance2(x0, y0, x1, y1);
+                return mathf::LDistance2(x0, y0, x1, y1) <= r.distance;
             }
         default:
             {

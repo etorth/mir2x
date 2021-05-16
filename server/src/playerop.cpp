@@ -19,6 +19,7 @@
 #include <cinttypes>
 #include "totype.hpp"
 #include "mathf.hpp"
+#include "pathf.hpp"
 #include "player.hpp"
 #include "dbcomid.hpp"
 #include "dbcomrecord.hpp"
@@ -253,12 +254,19 @@ void Player::on_AM_QUERYLOCATION(const ActorMsgPack &rstMPK)
     m_actorPod->forward(rstMPK.from(), {AM_LOCATION, amL}, rstMPK.seqID());
 }
 
-void Player::on_AM_ATTACK(const ActorMsgPack &rstMPK)
+void Player::on_AM_ATTACK(const ActorMsgPack &mpk)
 {
-    AMAttack amA;
-    std::memcpy(&amA, rstMPK.data(), sizeof(amA));
+    const auto amA = mpk.conv<AMAttack>();
+    if(amA.UID != UID()){
+        return;
+    }
 
-    if(mathf::LDistance2(X(), Y(), amA.X, amA.Y) > 2){
+    if(m_dead.get()){
+        notifyDead(amA.UID);
+        return;
+    }
+
+    if(const auto &mr = DBCOM_MAGICRECORD(amA.damage.magicID); !pathf::inDCCastRange(mr.castRange, X(), Y(), amA.X, amA.Y)){
         switch(uidf::getUIDType(amA.UID)){
             case UID_MON:
             case UID_PLY:
@@ -312,19 +320,21 @@ void Player::on_AM_UPDATEHP(const ActorMsgPack &rstMPK)
     }
 }
 
-void Player::on_AM_DEADFADEOUT(const ActorMsgPack &rstMPK)
+void Player::on_AM_DEADFADEOUT(const ActorMsgPack &mpk)
 {
-    AMDeadFadeOut amDFO;
-    std::memcpy(&amDFO, rstMPK.data(), sizeof(amDFO));
-
+    const auto amDFO = mpk.conv<AMDeadFadeOut>();
     RemoveInViewCO(amDFO.UID);
+
     if(amDFO.UID != UID()){
         SMDeadFadeOut smDFO;
+        std::memset(&smDFO, 0, sizeof(smDFO));
+
         smDFO.UID   = amDFO.UID;
         smDFO.mapID = amDFO.mapID;
         smDFO.X     = amDFO.X;
         smDFO.Y     = amDFO.Y;
-        g_netDriver->Post(channID(), SM_DEADFADEOUT, smDFO);
+
+        postNetMessage(SM_DEADFADEOUT, smDFO);
     }
 }
 

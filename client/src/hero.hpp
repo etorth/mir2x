@@ -158,4 +158,7 @@ class Hero: public CreatureMovable
                 .y = m_currMotion->endY,
             });
         }
+
+    protected:
+        bool deadFadeOut() override;
 };

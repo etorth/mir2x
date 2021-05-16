@@ -76,24 +76,6 @@ void ClientCreature::updateHealth(int hp, int hpMax)
     m_maxHP = hpMax;
 }
 
-bool ClientCreature::deadFadeOut()
-{
-    switch(m_currMotion->type){
-        case MOTION_DIE:
-        case MOTION_MON_DIE:
-            {
-                if(!m_currMotion->extParam.die.fadeOut){
-                    m_currMotion->extParam.die.fadeOut = 1;
-                }
-                return true;
-            }
-        default:
-            {
-                return false;
-            }
-    }
-}
-
 bool ClientCreature::alive() const
 {
     if(!motionValid(m_currMotion)){

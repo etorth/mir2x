@@ -20,6 +20,7 @@
 #include <array>
 #include <cstdint>
 #include <SDL2/SDL.h>
+#include "totype.hpp"
 
 namespace colorf
 {
@@ -122,6 +123,20 @@ namespace colorf
     constexpr uint32_t YELLOW  = RGBA(0XFF, 0XFF, 0X00, 0X00);
     constexpr uint32_t PURPLE  = RGBA(0XAB, 0X27, 0X4F, 0X00);
 
+    constexpr uint32_t modRGBA(uint32_t origColor, uint32_t modColor)
+    {
+        const float r_R = 1.0f * R(modColor) / 255.0;
+        const float r_G = 1.0f * G(modColor) / 255.0;
+        const float r_B = 1.0f * B(modColor) / 255.0;
+        const float r_A = 1.0f * A(modColor) / 255.0;
+
+        const auto newR = round255(r_R * R(origColor));
+        const auto newG = round255(r_G * G(origColor));
+        const auto newB = round255(r_B * B(origColor));
+        const auto newA = round255(r_A * A(origColor));
+
+        return RGBA(newR, newG, newB, newA);
+    }
 
     constexpr uint32_t renderRGBA(uint32_t dstColor, uint32_t srcColor)
     {

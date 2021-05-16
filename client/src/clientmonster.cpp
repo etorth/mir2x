@@ -651,3 +651,22 @@ ClientCreature::TargetBox ClientMonster::getTargetBox() const
 
     return getTargetBoxHelper(startX, startY, bodyFrameW, bodyFrameH);
 }
+
+bool ClientMonster::deadFadeOut()
+{
+    switch(m_currMotion->type){
+        case MOTION_MON_DIE:
+            {
+                if(getMR().deadFadeOut){
+                    if(!m_currMotion->extParam.die.fadeOut){
+                        m_currMotion->extParam.die.fadeOut = 1;
+                    }
+                }
+                return true;
+            }
+        default:
+            {
+                return false; // TODO push an ActionDie here
+            }
+    }
+}

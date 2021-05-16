@@ -316,6 +316,13 @@ void Client::onServerMessage(uint8_t headCode, const uint8_t *pData, size_t nDat
                 }
                 break;
             }
+        case SM_GROUNDFIREWALLLIST:
+            {
+                if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+                    pRun->net_GROUNDFIREWALLLIST(pData, nDataLen);
+                }
+                break;
+            }
         case SM_PICKUPERROR:
             {
                 if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){

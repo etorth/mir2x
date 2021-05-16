@@ -87,7 +87,7 @@ bool FollowUIDMagic::update(double ms)
     return MagicBase::update(ms);
 }
 
-void FollowUIDMagic::drawViewOff(int viewX, int viewY, bool alpha)
+void FollowUIDMagic::drawViewOff(int viewX, int viewY, uint32_t modColor) const
 {
     if(m_gfxEntry.gfxID == SYS_TEXNIL){
         return;
@@ -107,7 +107,7 @@ void FollowUIDMagic::drawViewOff(int viewX, int viewY, bool alpha)
     int offX = 0;
     int offY = 0;
     if(auto texPtr = g_magicDB->Retrieve(texID, &offX, &offY)){
-        SDLDeviceHelper::EnableTextureModColor enableModColor(texPtr, colorf::RGBA(0XFF, 0XFF, 0XFF, alpha ? 0X80 : 0XFF));
+        SDLDeviceHelper::EnableTextureModColor enableModColor(texPtr, modColor);
         SDLDeviceHelper::EnableTextureBlendMode enableBlendMode(texPtr, SDL_BLENDMODE_BLEND);
         g_sdlDevice->drawTexture(texPtr, m_x - viewX + offX, m_y - viewY + offY);
     }
@@ -121,7 +121,7 @@ bool FollowUIDMagic::done() const
     return false;
 }
 
-void TaoFireFigure_RUN::drawViewOff(int viewX, int viewY, bool alpha)
+void TaoFireFigure_RUN::drawViewOff(int viewX, int viewY, uint32_t modColor) const
 {
     if(m_gfxEntry.gfxID == SYS_TEXNIL){
         return;
@@ -130,7 +130,7 @@ void TaoFireFigure_RUN::drawViewOff(int viewX, int viewY, bool alpha)
     int offX = 0;
     int offY = 0;
     if(auto texPtr = g_magicDB->Retrieve(m_gfxEntry.gfxID + frame() + m_gfxDirIndex * m_gfxEntry.gfxIDCount, &offX, &offY)){
-        SDLDeviceHelper::EnableTextureModColor enableModColor(texPtr, colorf::RGBA(0XFF, 0XFF, 0XFF, alpha ? 0X40 : 0XC0));
+        SDLDeviceHelper::EnableTextureModColor enableModColor(texPtr, modColor);
         SDLDeviceHelper::EnableTextureBlendMode enableBlendMode(texPtr, SDL_BLENDMODE_BLEND);
         g_sdlDevice->drawTexture(texPtr, m_x - viewX + offX, m_y - viewY + offY);
     }

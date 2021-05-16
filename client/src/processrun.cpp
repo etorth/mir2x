@@ -335,6 +335,17 @@ void ProcessRun::draw()
         return table;
     }();
 
+    const auto fireWallList = [this]()
+    {
+        LocHashTable<std::vector<FixedLocMagic *>> table;
+        for(auto &p: m_fixedLocMagicList){
+            if(p->getGfxEntry().onGround){
+                table[{p->x(), p->y()}].push_back(p.get());
+            }
+        }
+        return table;
+    }();
+
     // over ground objects
     for(int y = y0; y <= y1; ++y){
         for(int x = x0; x <= x1; ++x){
@@ -342,6 +353,12 @@ void ProcessRun::draw()
         }
 
         for(int x = x0; x <= x1; ++x){
+            if(auto p = fireWallList.find({x, y}); p != fireWallList.end()){
+                for(auto magicPtr: p->second){
+                    magicPtr->drawViewOff(m_viewX, m_viewY, colorf::WHITE + 200);
+                }
+            }
+
             if(auto p = coLocList.find({x, y}); p != coLocList.end()){
                 for(auto creaturePtr: p->second){
                     if(!(creaturePtr && creaturePtr->location() == std::make_tuple(x, y))){
@@ -376,12 +393,14 @@ void ProcessRun::draw()
 
     // draw magics
     for(auto &p: m_fixedLocMagicList){
-        p->drawViewOff(m_viewX, m_viewY, false);
+        if(!p->getGfxEntry().onGround){
+            p->drawViewOff(m_viewX, m_viewY, colorf::WHITE + 255);
+        }
     }
 
     for(auto &p: m_followUIDMagicList){
         if(!p->done()){
-            p->drawViewOff(m_viewX, m_viewY, false);
+            p->drawViewOff(m_viewX, m_viewY, colorf::WHITE + 255);
         }
     }
 
@@ -1717,17 +1736,29 @@ void ProcessRun::checkMagicSpell(const SDL_Event &event)
                 }
 
                 else{
-                    const auto [nMouseX, nMouseY] = SDLDeviceHelper::getMousePLoc();
-                    const auto [nAimX, nAimY] = fromPLoc2Grid(nMouseX, nMouseY);
+                    const auto [aimX, aimY] = getMouseGLoc();
                     getMyHero()->emplaceAction(ActionSpell
                     {
                         .x = getMyHero()->currMotion()->endX,
                         .y = getMyHero()->currMotion()->endY,
-                        .aimX = nAimX,
-                        .aimY = nAimY,
+                        .aimX = aimX,
+                        .aimY = aimY,
                         .magicID = magicID,
                     });
                 }
+                break;
+            }
+        case DBCOM_MAGICID(u8"火墙"):
+            {
+                const auto [aimX, aimY] = getMouseGLoc();
+                getMyHero()->emplaceAction(ActionSpell
+                {
+                    .x = getMyHero()->x(),
+                    .y = getMyHero()->y(),
+                    .aimX = aimX,
+                    .aimY = aimY,
+                    .magicID = magicID,
+                });
                 break;
             }
         case DBCOM_MAGICID(u8"魔法盾"):

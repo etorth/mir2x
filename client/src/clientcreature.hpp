@@ -249,7 +249,7 @@ class ClientCreature
         int maxMP() const { return m_maxMP; }
 
     public:
-        bool deadFadeOut();
+        virtual bool deadFadeOut() = 0;
 
     protected:
         virtual int gfxMotionID(int) const = 0;

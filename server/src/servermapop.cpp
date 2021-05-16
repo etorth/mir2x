@@ -34,6 +34,7 @@ extern ServerArgParser *g_serverArgParser;
 
 void ServerMap::on_AM_METRONOME(const ActorMsgPack &)
 {
+    updateFireWall();
     if(m_luaModulePtr && !g_serverArgParser->disableMapScript){
         m_luaModulePtr->resumeLoop();
     }
@@ -57,6 +58,7 @@ void ServerMap::on_AM_ACTION(const ActorMsgPack &rstMPK)
         addGridUID(amA.UID, amA.action.x, amA.action.y, true);
         if(uidf::getUIDType(amA.UID) == UID_PLY){
             postGroundItemIDList(amA.UID, amA.action.x, amA.action.y);
+            postGroundFireWallList(amA.UID, amA.action.x, amA.action.y);
         }
     }
 
@@ -230,6 +232,7 @@ void ServerMap::on_AM_TRYSPACEMOVE(const ActorMsgPack &mpk)
                     addGridUID(fromUID, nDstX, nDstY, true);
                     if(uidf::getUIDType(fromUID) == UID_PLY){
                         postGroundItemIDList(fromUID, nDstX, nDstY); // doesn't help if switched map
+                        postGroundFireWallList(fromUID, nDstX, nDstY);
                     }
                     break;
                 }
@@ -301,6 +304,7 @@ void ServerMap::on_AM_TRYJUMP(const ActorMsgPack &mpk)
                     addGridUID(fromUID, amTJ.EndX, amTJ.EndY, true);
                     if(uidf::getUIDType(fromUID) == UID_PLY){
                         postGroundItemIDList(fromUID, amTJ.EndX, amTJ.EndY); // doesn't help if switched map
+                        postGroundFireWallList(fromUID, amTJ.EndX, amTJ.EndY);
                     }
 
                     if(uidf::getUIDType(fromUID) == UID_PLY && getGrid(amTJ.EndX, amTJ.EndY).mapID){
@@ -482,7 +486,8 @@ void ServerMap::on_AM_TRYMOVE(const ActorMsgPack &rstMPK)
                     //    check if it should switch the map
                     addGridUID(amTM.UID, nMostX, nMostY, true);
                     if(uidf::getUIDType(amTM.UID) == UID_PLY){
-                        postGroundItemIDList(amTM.UID, nMostX, nMostY); // doesn't help if switched map
+                        postGroundItemIDList(amTM.UID, nMostX, nMostY);
+                        postGroundFireWallList(amTM.UID, nMostX, nMostY); // doesn't help if switched map
                     }
 
                     if(uidf::getUIDType(amTM.UID) == UID_PLY && getGrid(nMostX, nMostY).mapID){
@@ -694,11 +699,12 @@ void ServerMap::on_AM_UPDATEHP(const ActorMsgPack &rstMPK)
     }
 }
 
-void ServerMap::on_AM_DEADFADEOUT(const ActorMsgPack &rstMPK)
+void ServerMap::on_AM_DEADFADEOUT(const ActorMsgPack &mpk)
 {
-    AMDeadFadeOut amDFO;
-    std::memcpy(&amDFO, rstMPK.data(), sizeof(amDFO));
+    // CO always send AM_DEADFADEOUT to server map to remove the grid occupation
+    // and server map then boardcast to all its neighbors to remove this CO from their list to do clean
 
+    const auto amDFO = mpk.conv<AMDeadFadeOut>();
     if(validC(amDFO.X, amDFO.Y)){
         removeGridUID(amDFO.UID, amDFO.X, amDFO.Y);
         doCircle(amDFO.X, amDFO.Y, 20, [this, amDFO](int nX, int nY) -> bool
@@ -706,10 +712,7 @@ void ServerMap::on_AM_DEADFADEOUT(const ActorMsgPack &rstMPK)
             if(true || validC(nX, nY)){
                 for(auto nUID: getUIDList(nX, nY)){
                     if(nUID != amDFO.UID){
-                        if(uidf::getUIDType(nUID) == UID_PLY){
-                            m_actorPod->forward(nUID, {AM_DEADFADEOUT, amDFO});
-                        }
-                        else if(uidf::getUIDType(nUID) == UID_MON && DBCOM_MONSTERRECORD(uidf::getMonsterID(nUID)).deadFadeOut){
+                        if(uidf::getUIDType(nUID) == UID_PLY || uidf::getUIDType(nUID) == UID_MON){
                             m_actorPod->forward(nUID, {AM_DEADFADEOUT, amDFO});
                         }
                     }
@@ -890,4 +893,56 @@ void ServerMap::on_AM_PICKUP(const ActorMsgPack &mpk)
         postGridItemIDList(amPU.x, amPU.y);
     }
     m_actorPod->forward(mpk.from(), {AM_PICKUPITEMIDLIST, cerealf::serialize(sdPUIIDL)}, mpk.seqID());
+}
+
+void ServerMap::on_AM_STRIKEFIXEDLOCDAMAGE(const ActorMsgPack &mpk)
+{
+    const auto amSFLD = mpk.conv<AMStrikeFixedLocDamage>();
+    doUIDList(amSFLD.x, amSFLD.y, [fromUID = mpk.from(), amSFLD, this](uint64_t uid) -> bool
+    {
+        switch(uidf::getUIDType(uid)){
+            case UID_PLY:
+            case UID_MON:
+                {
+                    AMAttack amA;
+                    std::memset(&amA, 0, sizeof(amA));
+
+                    amA.UID = fromUID;
+                    amA.mapID = UID();
+
+                    amA.X = amSFLD.x;
+                    amA.Y = amSFLD.y;
+                    amA.damage = amSFLD.damage;
+
+                    m_actorPod->forward(uid, {AM_ATTACK, amA});
+                    break;
+                }
+            default:
+                {
+                    break;
+                }
+        }
+        return false;
+    });
+}
+
+void ServerMap::on_AM_CASTFIREWALL(const ActorMsgPack &mpk)
+{
+    const auto amCFW = mpk.conv<AMCastFireWall>();
+    if(groundValid(amCFW.x, amCFW.y)){
+        getGrid(amCFW.x, amCFW.y).fireWallList.push_back(FireWallMagicNode
+        {
+            .uid = mpk.from(),
+
+            .minDC = amCFW.minDC,
+            .maxDC = amCFW.maxDC,
+
+            .startTime      = g_monoServer->getCurrTick(),
+            .lastAttackTime = g_monoServer->getCurrTick(),
+
+            .duration = amCFW.duration,
+            .dps      = amCFW.dps,
+        });
+        postGridFireWallList(amCFW.x, amCFW.y);
+    }
 }

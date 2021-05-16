@@ -377,6 +377,58 @@ void ProcessRun::net_GROUNDITEMIDLIST(const uint8_t *buf, size_t bufSize)
     }
 }
 
+void ProcessRun::net_GROUNDFIREWALLLIST(const uint8_t *buf, size_t bufSize)
+{
+    const auto sdGFWL = cerealf::deserialize<SDGroundFireWallList>(buf, bufSize);
+    if(sdGFWL.mapID != m_mapID){
+        return;
+    }
+
+    for(auto p = sdGFWL.fireWallList.begin(); p != sdGFWL.fireWallList.end(); ++p){
+        fflassert(p->count >= 0);
+        fflassert(onMap(p->x, p->y));
+
+        std::vector<FireWall_RUN *> runList;
+        for(auto imagic = m_fixedLocMagicList.begin(); imagic != m_fixedLocMagicList.end(); imagic++){
+            if(true
+                    && imagic->get()->x() == p->x
+                    && imagic->get()->y() == p->y
+                    && imagic->get()->checkMagic(u8"火墙", u8"运行")){
+                if(auto magicPtr = dynamic_cast<FireWall_RUN *>(imagic->get()); magicPtr && !magicPtr->hasFadeOut()){
+                    runList.push_back(magicPtr);
+                }
+            }
+        }
+
+        // damage is done by server
+        // client side firewall doesn't need to keep caster infomation
+
+        if(const int irunDiff = to_d(runList.size()) - p->count; irunDiff != 0){
+            if(irunDiff > 0){
+                for(int i = 0; i < irunDiff; ++i){
+                    constexpr int fadeOutTime = 3000;
+                    runList[i]->setFadeOut(fadeOutTime);
+                    addFixedLocMagic(std::unique_ptr<FixedLocMagic>(new FireAshEffect_RUN
+                    {
+                        p->x,
+                        p->y,
+                        fadeOutTime, // use fadeOutTime as FireAsh fadeIn time
+                    }));
+                }
+            }
+            else{
+                for(int i = 0; i < std::abs(irunDiff); ++i){
+                    addFixedLocMagic(std::unique_ptr<FixedLocMagic>(new FireWall_RUN
+                    {
+                        p->x,
+                        p->y,
+                    }));
+                }
+            }
+        }
+    }
+}
+
 void ProcessRun::net_CASTMAGIC(const uint8_t *bufPtr, size_t)
 {
     const auto smCM = ServerMsg::conv<SMCastMagic>(bufPtr);

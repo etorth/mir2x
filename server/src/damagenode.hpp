@@ -26,15 +26,14 @@
 
 struct DamageNode
 {
-    int type;
-    int damage;
+    int magicID;
 
-    int effect;
-    int element;
+    int damage;
+    int effect; // 穿刺 吸血 etc
 
     operator bool () const
     {
-        return type != 0;
+        return magicID != 0;
     }
 };
 static_assert(std::is_trivially_copyable_v<DamageNode>);
@@ -47,7 +46,7 @@ struct PlainPhyDamage
 
 struct MagicDamage
 {
-    int type   = 0;
+    int magicID = 0;
     int damage = 0;
     operator DamageNode() const;
 };

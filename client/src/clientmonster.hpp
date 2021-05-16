@@ -146,4 +146,7 @@ class ClientMonster: public CreatureMovable
         {
             return DBCOM_MONSTERRECORD(uidf::getMonsterID(UID()));
         }
+
+    public:
+        bool deadFadeOut() override;
 };

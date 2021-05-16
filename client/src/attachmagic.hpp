@@ -34,5 +34,5 @@ class AttachMagic: public MagicBase
         }
 
     public:
-        virtual void drawShift(int, int, bool);
+        virtual void drawShift(int, int, bool) const;
 };

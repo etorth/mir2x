@@ -25,7 +25,7 @@ PlainPhyDamage::operator DamageNode() const
     DamageNode node;
     std::memset(&node, 0, sizeof(node));
 
-    node.type = DBCOM_MAGICID(u8"物理攻击");
+    node.magicID = DBCOM_MAGICID(u8"物理攻击");
     node.damage = damage;
     return node;
 }
@@ -35,7 +35,7 @@ MagicDamage::operator DamageNode() const
     DamageNode node;
     std::memset(&node, 0, sizeof(node));
 
-    node.type = type;
+    node.magicID = magicID;
     node.damage = damage;
     return node;
 }

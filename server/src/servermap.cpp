@@ -415,6 +415,11 @@ void ServerMap::operateAM(const ActorMsgPack &rstMPK)
                 on_AM_TRYSPACEMOVE(rstMPK);
                 break;
             }
+        case AM_CASTFIREWALL:
+            {
+                on_AM_CASTFIREWALL(rstMPK);
+                break;
+            }
         case AM_ADDCHAROBJECT:
             {
                 on_AM_ADDCHAROBJECT(rstMPK);
@@ -435,10 +440,14 @@ void ServerMap::operateAM(const ActorMsgPack &rstMPK)
                 on_AM_OFFLINE(rstMPK);
                 break;
             }
+        case AM_STRIKEFIXEDLOCDAMAGE:
+            {
+                on_AM_STRIKEFIXEDLOCDAMAGE(rstMPK);
+                break;
+            }
         default:
             {
-                g_monoServer->addLog(LOGTYPE_FATAL, "Unsupported message: %s", mpkName(rstMPK.type()));
-                break;
+                throw fflerror("unsupported message: %s", mpkName(rstMPK.type()));
             }
     }
 }
@@ -804,11 +813,9 @@ void ServerMap::removeGridItemID(uint32_t itemID, int x, int y, bool post)
     }
 }
 
-SDGroundItemIDList ServerMap::getGroundItemIDList(int x, int y, size_t r) const
+SDGroundItemIDList ServerMap::getGroundItemIDList(int x, int y, size_t r)
 {
-    if(r <= 0){
-        throw fflerror("invalid cover radus: 0");
-    }
+    fflassert(r > 0);
 
     // center (x, y) can be invalid
     // an invalid center can cover valid grids
@@ -833,11 +840,9 @@ SDGroundItemIDList ServerMap::getGroundItemIDList(int x, int y, size_t r) const
 
 void ServerMap::postGridItemIDList(int x, int y)
 {
-    if(!groundValid(x, y)){
-        throw fflerror("invalid arguments: x = %d, y = %d", x, y);
-    }
-
+    fflassert(groundValid(x, y));
     const auto sdBuf = cerealf::serialize(getGroundItemIDList(x, y, 1), true);
+
     doCircle(x, y, 20, [&sdBuf, this](int x, int y) -> bool
     {
         if(groundValid(x, y)){
@@ -855,14 +860,70 @@ void ServerMap::postGridItemIDList(int x, int y)
 
 void ServerMap::postGroundItemIDList(uint64_t uid, int x, int y)
 {
-    if(!groundValid(x, y)){
-        throw fflerror("invalid arguments: x = %d, y = %d", x, y);
-    }
-
-    if(uidf::getUIDType(uid) != UID_PLY){
-        throw fflerror("post ground item list to non-player: %s", uidf::getUIDTypeCStr(uid));
-    }
+    fflassert(groundValid(x, y));
+    fflassert(uidf::getUIDType(uid) == UID_PLY);
     forwardNetPackage(uid, SM_GROUNDITEMIDLIST, cerealf::serialize(getGroundItemIDList(x, y, 20)));
+}
+
+SDGroundFireWallList ServerMap::getGroundFireWallList(int x, int y, size_t r)
+{
+    fflassert(r > 0);
+
+    // center (x, y) can be invalid
+    // an invalid center can cover valid grids
+
+    SDGroundFireWallList groundFireWallList;
+    groundFireWallList.mapID = ID();
+
+    doCircle(x, y, r, [&groundFireWallList, this](int x, int y) -> bool
+    {
+        if(groundValid(x, y)){
+            for(auto p = getGrid(x, y).fireWallList.begin(); p != getGrid(x, y).fireWallList.end();){
+                if(g_monoServer->getCurrTick() >= p->startTime + p->duration){
+                    p = getGrid(x, y).fireWallList.erase(p);
+                }
+                else{
+                    ++p;
+                }
+            }
+
+            groundFireWallList.fireWallList.push_back(SDGridFireWall
+            {
+                .x = x,
+                .y = y,
+                .count = to_d(getGrid(x, y).fireWallList.size()),
+            });
+        }
+        return false;
+    });
+    return groundFireWallList;
+}
+
+void ServerMap::postGridFireWallList(int x, int y)
+{
+    fflassert(groundValid(x, y));
+    const auto sdBuf = cerealf::serialize(getGroundFireWallList(x, y, 1), true);
+
+    doCircle(x, y, 20, [&sdBuf, this](int x, int y) -> bool
+    {
+        if(groundValid(x, y)){
+            doUIDList(x, y, [&sdBuf, this](uint64_t uid) -> bool
+            {
+                if(uidf::getUIDType(uid) == UID_PLY){
+                    forwardNetPackage(uid, SM_GROUNDFIREWALLLIST, sdBuf);
+                }
+                return false;
+            });
+        }
+        return false;
+    });
+}
+
+void ServerMap::postGroundFireWallList(uint64_t uid, int x, int y)
+{
+    fflassert(groundValid(x, y));
+    fflassert(uidf::getUIDType(uid) == UID_PLY);
+    forwardNetPackage(uid, SM_GROUNDFIREWALLLIST, cerealf::serialize(getGroundFireWallList(x, y, 20)));
 }
 
 int ServerMap::getMonsterCount(uint32_t monsterID)
@@ -1104,6 +1165,67 @@ int ServerMap::CheckPathGrid(int nX, int nY) const
     }
 
     return PathFind::FREE;
+}
+
+void ServerMap::updateFireWall()
+{
+    for(int nX = 0; nX < W(); ++nX){
+        for(int nY = 0; nY < H(); ++nY){
+
+            bool hasDoneWallFire = false;
+            const auto currTime = g_monoServer->getCurrTick();
+
+            for(auto p = getGrid(nX, nY).fireWallList.begin(); p != getGrid(nX, nY).fireWallList.end();){
+                if(currTime >= p->startTime + p->duration){
+                    p = getGrid(nX, nY).fireWallList.erase(p);
+                    hasDoneWallFire = true;
+                    continue;
+                }
+
+                if(p->dps > 0 && currTime > p->lastAttackTime + 1000 / p->dps){
+                    AMAttack amA;
+                    std::memset(&amA, 0, sizeof(amA));
+
+                    amA.UID = p->uid;
+                    amA.mapID = UID();
+                    amA.X = nX;
+                    amA.Y = nY;
+
+                    amA.damage = DamageNode
+                    {
+                        .magicID = to_d(DBCOM_MAGICID(u8"火墙")),
+                        .damage  = mathf::rand(p->minDC, p->maxDC),
+                        .effect  = 0,
+                    };
+
+                    doUIDList(nX, nY, [amA, this](uint64_t uid) -> bool
+                    {
+                        if(uid != amA.UID){
+                            switch(uidf::getUIDType(uid)){
+                                case UID_PLY:
+                                case UID_MON:
+                                    {
+                                        m_actorPod->forward(uid, {AM_ATTACK, amA});
+                                        break;
+                                    }
+                                default:
+                                    {
+                                        break;
+                                    }
+                            }
+                        }
+                        return false;
+                    });
+                    p->lastAttackTime = currTime;
+                }
+                p++;
+            }
+
+            if(hasDoneWallFire){
+                postGridFireWallList(nX, nY);
+            }
+        }
+    }
 }
 
 void ServerMap::loadNPChar()

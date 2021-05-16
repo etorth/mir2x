@@ -1447,13 +1447,8 @@ bool CharObject::isMonster(const char8_t *name) const
 
 void CharObject::notifyDead(uint64_t uid)
 {
-    if(!uid){
-        throw fflerror("bad uid: zero");
-    }
-
-    if(!m_dead.get()){
-        throw fflerror("CO is not dead");
-    }
+    fflassert(uid);
+    fflassert(m_dead.get());
 
     AMNotifyDead amND;
     std::memset(&amND, 0, sizeof(amND));

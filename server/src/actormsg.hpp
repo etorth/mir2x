@@ -86,6 +86,8 @@ enum ActorMsgPackType: int
     AM_QUERYFINALMASTER,
     AM_QUERYFRIENDTYPE,
     AM_FRIENDTYPE,
+    AM_CASTFIREWALL,
+    AM_STRIKEFIXEDLOCDAMAGE,
     AM_QUERYNAMECOLOR,
     AM_NAMECOLOR,
     AM_MASTERKILL,
@@ -539,6 +541,26 @@ struct AMCORecord
 struct AMNotifyNewCO
 {
     uint64_t UID;
+};
+
+struct AMCastFireWall
+{
+    int x;
+    int y;
+
+    int minDC;
+    int maxDC;
+
+    int duration;
+    int dps;
+};
+
+struct AMStrikeFixedLocDamage
+{
+    int x;
+    int y;
+
+    DamageNode damage;
 };
 
 struct AMQueryFriendType

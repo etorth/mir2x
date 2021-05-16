@@ -169,11 +169,9 @@ void Monster::on_AM_BADACTORPOD(const ActorMsgPack &)
 {
 }
 
-void Monster::on_AM_DEADFADEOUT(const ActorMsgPack &rstMPK)
+void Monster::on_AM_DEADFADEOUT(const ActorMsgPack &mpk)
 {
-    AMDeadFadeOut amDFO;
-    std::memcpy(&amDFO, rstMPK.data(), sizeof(amDFO));
-
+    const auto amDFO = mpk.conv<AMDeadFadeOut>();
     removeTarget(amDFO.UID);
     RemoveInViewCO(amDFO.UID);
 }

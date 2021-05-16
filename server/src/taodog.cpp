@@ -57,7 +57,7 @@ void TaoDog::onAMAttack(const ActorMsgPack &mpk)
         notifyDead(amAK.UID);
     }
     else{
-        if(const auto &mr = DBCOM_MAGICRECORD(amAK.damage.type); !pathf::inACRange(mr.range, X(), Y(), amAK.X, amAK.Y)){
+        if(const auto &mr = DBCOM_MAGICRECORD(amAK.damage.magicID); !pathf::inDCCastRange(mr.castRange, X(), Y(), amAK.X, amAK.Y)){
             switch(uidf::getUIDType(amAK.UID)){
                 case UID_MON:
                 case UID_PLY:
@@ -103,7 +103,7 @@ DamageNode TaoDog::getAttackDamage(int dc) const
     fflassert(to_u32(dc) == DBCOM_MAGICID(u8"神兽_喷火"));
     return MagicDamage
     {
-        .type = dc,
+        .magicID = dc,
         .damage = 15,
     };
 }

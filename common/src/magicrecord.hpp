@@ -136,6 +136,10 @@ struct MagicGfxEntry
     const int gfxIDCount = frameCount;
     const int gfxDirType = 1;
 
+    // gfx is on ground
+    // player can walk on the magic
+    const int onGround = 0;
+
     // motion of the magic caster
     // can only defined for EGS_INIT (u8"启动")
     // x : MOTION_NONE
@@ -186,28 +190,28 @@ namespace
     constexpr MagicGfxEntry _inn_reservedEmptyMagicGfxEntry;
 }
 
-enum ACRangeType: int
+enum DCCastRangeType: int
 {
-    ACR_NONE = 0,
-    ACR_BEGIN,
+    CRT_NONE = 0,
+    CRT_BEGIN,
 
-    ACR_DIR = ACR_BEGIN,
-    ACR_LONG,
-    ACR_LIMITED,
-    ACR_END,
+    CRT_DIR = CRT_BEGIN,
+    CRT_LONG,
+    CRT_LIMITED,
+    CRT_END,
 };
 
-struct ACRange
+struct DCCastRange
 {
-    const ACRangeType type = ACR_NONE;
+    const DCCastRangeType type = CRT_NONE;
     const int distance = 0;
 
     operator bool () const
     {
         switch(type){
-            case ACR_DIR    : return distance >= 1 && distance <= 3;
-            case ACR_LONG   : return distance == 0;
-            case ACR_LIMITED: return distance >= 1;
+            case CRT_DIR    : return distance >= 1;
+            case CRT_LONG   : return distance == 0;
+            case CRT_LIMITED: return distance >= 1;
             default         : return false;
         }
     }
@@ -218,9 +222,9 @@ struct MagicRecord
     const char8_t *name = 0;
     const char8_t *element = u8"无";
 
-    const ACRange range
+    const DCCastRange castRange
     {
-        .type = ACR_LONG,
+        .type = CRT_LONG,
     };
     const int checkGround = 0;
 

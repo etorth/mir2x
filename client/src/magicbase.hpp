@@ -45,7 +45,7 @@ class MagicBase
         std::list<std::function<bool(MagicBase *)>> m_onUpdateCBList;
 
     public:
-        MagicBase(const char8_t *magicName, const char8_t *magicStage, int gfxDirIndex)
+        MagicBase(const char8_t *magicName, const char8_t *magicStage, int dirIndex)
             : m_magicID([magicName]() -> uint32_t
               {
                   if(const auto magicID = DBCOM_MAGICID(magicName)){
@@ -67,16 +67,14 @@ class MagicBase
                   }
                   throw fflerror("invalid magicStage: %s", to_cstr(magicStage));
               }())
-            , m_gfxDirIndex(gfxDirIndex)
+            , m_gfxDirIndex(dirIndex)
         {
             switch(m_gfxEntry.gfxDirType){
                 case  4:
                 case  8:
                 case 16:
                     {
-                        if(!(gfxDirIndex >= 0 && gfxDirIndex < m_gfxEntry.gfxDirType)){
-                            throw fflerror("invalid gfx direction index: %d", m_gfxDirIndex);
-                        }
+                        fflassert(gfxDirIndex() >= 0 && gfxDirIndex() < getGfxEntry().gfxDirType);
                         break;
                     }
                 default:
@@ -100,7 +98,7 @@ class MagicBase
             return DBCOM_MAGICRECORD(magicID()).name;
         }
 
-        const auto &getGfxEntry() const
+        const MagicGfxEntry &getGfxEntry() const
         {
             return m_gfxEntry;
         }
@@ -108,6 +106,17 @@ class MagicBase
         int gfxDirIndex() const
         {
             return m_gfxDirIndex;
+        }
+
+    public:
+        bool checkMagic(const char8_t *name) const
+        {
+            return magicID() == DBCOM_MAGICID(name);
+        }
+
+        bool checkMagic(const char8_t *name, const char8_t *stage) const
+        {
+            return magicID() == DBCOM_MAGICID(name) && getGfxEntry().checkStage(stage);
         }
 
     public:
@@ -154,14 +163,6 @@ class MagicBase
         }
 
     public:
-        bool stageDone() const
-        {
-            if(m_gfxEntry.loop){
-                return false;
-            }
-            return absFrame() >= m_gfxEntry.frameCount;
-        }
-
         int frame() const
         {
             switch(m_gfxEntry.loop){
@@ -171,7 +172,7 @@ class MagicBase
             }
         }
 
-        int absFrame() const
+        virtual int absFrame() const
         {
             return (m_accuTime / 1000.0) * SYS_DEFFPS * (m_gfxEntry.speed / 100.0);
         }
@@ -190,7 +191,10 @@ class MagicBase
     protected:
         virtual bool done() const
         {
-            return stageDone();
+            if(m_gfxEntry.loop){
+                return false;
+            }
+            return absFrame() >= m_gfxEntry.frameCount;
         }
 
     protected:

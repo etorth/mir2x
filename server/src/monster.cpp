@@ -30,6 +30,7 @@
 #include "netdriver.hpp"
 #include "actorpod.hpp"
 #include "mathf.hpp"
+#include "actormsg.hpp"
 #include "sysconst.hpp"
 #include "friendtype.hpp"
 #include "randompick.hpp"
@@ -246,7 +247,8 @@ void Monster::attackUID(uint64_t nUID, int nDC, std::function<void()> onOK, std:
         fflassert(m_attackLock);
         m_attackLock = false;
 
-        if(!pathf::inACRange(DBCOM_MAGICRECORD(nDC).range, X(), Y(), coLoc.x, coLoc.y)){
+        const auto &mr = DBCOM_MAGICRECORD(nDC);
+        if(!pathf::inDCCastRange(mr.castRange, X(), Y(), coLoc.x, coLoc.y)){
             if(onError){
                 onError();
             }
@@ -271,35 +273,65 @@ void Monster::attackUID(uint64_t nUID, int nDC, std::function<void()> onOK, std:
             .damageID = to_u32(nDC),
         });
 
-        // 2. send attack message to target
-        //    target can ignore this message directly
+        // send attack message to target
+        // target can ignore this message directly
         //
-        //    For mir2 code, at the time when monster attacks
-        //    1. immediately change target CO's HP and MP, but don't report
-        //    2. delay 550ms, then report RM_ATTACK with CO's new HP and MP
-        //    3. target CO reports to client for motion change (_MOTION_HITTED) and new HP/MP
+        // For mir2 code, at the time when monster attacks
+        //   1. immediately change target CO's HP and MP, but don't report
+        //   2. delay 550ms, then report RM_ATTACK with CO's new HP and MP
+        //   3. target CO reports to client for motion change (_MOTION_HITTED) and new HP/MP
 
         switch(nDC){
             case DBCOM_MAGICID(u8"神兽_喷火"):
                 {
-                    for(const auto &coLoc: m_inViewCOList){
-                        if(false
-                                || std::tie(coLoc.x, coLoc.y) == PathFind::getFrontPLoc(X(), Y(), Direction(), 1)
-                                || std::tie(coLoc.x, coLoc.y) == PathFind::getFrontPLoc(X(), Y(), Direction(), 2)){
-                            addDelay(550, [this, uid = coLoc.uid, nDC]()
-                            {
-                                dispatchAttackDamage(uid, nDC);
-                            });
+                    addDelay(550, [nDC, this]()
+                    {
+                        AMStrikeFixedLocDamage amSFLD;
+                        std::memset(&amSFLD, 0, sizeof(amSFLD));
+
+                        for(const auto r: {1, 2}){
+                            std::tie(amSFLD.x, amSFLD.y) = pathf::getFrontPLoc(X(), Y(), Direction(), r);
+                            amSFLD.damage = getAttackDamage(nDC);
+                            m_actorPod->forward(m_map->UID(), {AM_STRIKEFIXEDLOCDAMAGE, amSFLD});
                         }
-                    }
+                    });
                     break;
                 }
+            case DBCOM_MAGICID(u8"火墙"):
+            case DBCOM_MAGICID(u8"祖玛教主_火墙"):
+                {
+                    addDelay(550, [this, coLoc, nDC]()
+                    {
+                        AMCastFireWall amCFW;
+                        std::memset(&amCFW, 0, sizeof(amCFW));
+
+                        amCFW.minDC = 5;
+                        amCFW.maxDC = 9;
+
+                        amCFW.duration = 5 * 1000;
+                        amCFW.dps      = 3;
+
+                        for(int dir = DIR_NONE; dir < DIR_END; ++dir){
+                            if(dir == DIR_NONE){
+                                amCFW.x = coLoc.x;
+                                amCFW.y = coLoc.y;
+                            }
+                            else{
+                                std::tie(amCFW.x, amCFW.y) = pathf::getFrontPLoc(coLoc.x, coLoc.y, dir, 1);
+                            }
+
+                            if(m_map->groundValid(amCFW.x, amCFW.y)){
+                                m_actorPod->forward(m_map->UID(), {AM_CASTFIREWALL, amCFW});
+                            }
+                        }
+                    });
+                    break;
+                }
+            case DBCOM_MAGICID(u8"物理攻击"):
             default:
                 {
                     addDelay(550, [this, nUID, nDC]()
                     {
-                        // monster may go dead after this delay
-                        // but don't check canAttack() since that's for attack lock
                         dispatchAttackDamage(nUID, nDC);
                     });
                     break;
@@ -368,7 +400,7 @@ void Monster::jumpUID(uint64_t targetUID, std::function<void()> onOK, std::funct
     }, onError);
 }
 
-void Monster::trackUID(uint64_t nUID, ACRange r, std::function<void()> onOK, std::function<void()> onError)
+void Monster::trackUID(uint64_t nUID, DCCastRange r, std::function<void()> onOK, std::function<void()> onError)
 {
     getCOLocation(nUID, [this, r, onOK, onError](const COLocation &coLoc)
     {
@@ -383,7 +415,7 @@ void Monster::trackUID(uint64_t nUID, ACRange r, std::function<void()> onOK, std
         // if r provided as invalid, we accept it as to follow the uid generally
 
         if(r){
-            if(pathf::inACRange(r, X(), Y(), coLoc.x, coLoc.y)){
+            if(pathf::inDCCastRange(r, X(), Y(), coLoc.x, coLoc.y)){
                 if(onOK){
                     onOK();
                 }
@@ -531,7 +563,7 @@ void Monster::trackAttackUID(uint64_t targetUID, std::function<void()> onOK, std
         return;
     }
 
-    trackUID(targetUID, mr.range, [targetUID, magicID, onOK, onError, this]()
+    trackUID(targetUID, mr.castRange, [targetUID, magicID, onOK, onError, this]()
     {
         attackUID(targetUID, magicID, onOK, onError);
     }, onError);
@@ -1603,39 +1635,43 @@ bool Monster::hasPlayerNeighbor() const
 
 void Monster::onAMAttack(const ActorMsgPack &mpk)
 {
-    const auto amAK = mpk.conv<AMAttack>();
+    const auto amA = mpk.conv<AMAttack>();
+    if(amA.UID == UID()){
+        return;
+    }
+
     if(m_dead.get()){
-        notifyDead(amAK.UID);
+        notifyDead(amA.UID);
+        return;
     }
-    else{
-        if(const auto &mr = DBCOM_MAGICRECORD(amAK.damage.type); !pathf::inACRange(mr.range, X(), Y(), amAK.X, amAK.Y)){
-            switch(uidf::getUIDType(amAK.UID)){
-                case UID_MON:
-                case UID_PLY:
-                    {
-                        AMMiss amM;
-                        std::memset(&amM, 0, sizeof(amM));
 
-                        amM.UID = amAK.UID;
-                        m_actorPod->forward(amAK.UID, {AM_MISS, amM});
-                        return;
-                    }
-                default:
-                    {
-                        return;
-                    }
-            }
+    if(const auto &mr = DBCOM_MAGICRECORD(amA.damage.magicID); !pathf::inDCCastRange(mr.castRange, X(), Y(), amA.X, amA.Y)){
+        switch(uidf::getUIDType(amA.UID)){
+            case UID_MON:
+            case UID_PLY:
+                {
+                    AMMiss amM;
+                    std::memset(&amM, 0, sizeof(amM));
+
+                    amM.UID = amA.UID;
+                    m_actorPod->forward(amA.UID, {AM_MISS, amM});
+                    return;
+                }
+            default:
+                {
+                    return;
+                }
         }
-
-        addOffenderDamage(amAK.UID, amAK.damage);
-        dispatchAction(ActionHitted
-        {
-            .x = X(),
-            .y = Y(),
-            .direction = Direction(),
-        });
-        struckDamage(amAK.damage);
     }
+
+    addOffenderDamage(amA.UID, amA.damage);
+    dispatchAction(ActionHitted
+    {
+        .x = X(),
+        .y = Y(),
+        .direction = Direction(),
+    });
+    struckDamage(amA.damage);
 }
 
 void Monster::onAMMasterHitted(const ActorMsgPack &)

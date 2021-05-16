@@ -25,7 +25,7 @@
 extern SDLDevice *g_sdlDevice;
 extern PNGTexOffDB *g_magicDB;
 
-void AttachMagic::drawShift(int shiftX, int shiftY, bool alpha)
+void AttachMagic::drawShift(int shiftX, int shiftY, bool alpha) const
 {
     if(m_gfxEntry.gfxID == SYS_TEXNIL){
         return;

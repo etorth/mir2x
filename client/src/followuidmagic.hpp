@@ -43,7 +43,7 @@ class FollowUIDMagic: public MagicBase
         bool update(double) override;
 
     public:
-        virtual void drawViewOff(int, int, bool);
+        virtual void drawViewOff(int, int, uint32_t) const;
 };
 
 class TaoFireFigure_RUN: public FollowUIDMagic
@@ -54,5 +54,5 @@ class TaoFireFigure_RUN: public FollowUIDMagic
         {}
 
     public:
-        void drawViewOff(int, int, bool) override;
+        void drawViewOff(int, int, uint32_t) const override;
 };

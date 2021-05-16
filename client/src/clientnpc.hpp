@@ -59,6 +59,12 @@ class ClientNPC: public ClientCreature
         int gfxMotionID(int) const override;
 
     public:
+        bool deadFadeOut() override
+        {
+            return true; // do nothing
+        }
+
+    public:
         bool moveNextMotion() override
         {
             m_currMotion = makeIdleMotion();

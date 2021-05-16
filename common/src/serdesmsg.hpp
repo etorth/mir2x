@@ -426,3 +426,26 @@ struct SDGroundItemIDList
         gridItemIDList.clear();
     }
 };
+
+struct SDGridFireWall
+{
+    int x = 0;
+    int y = 0;
+    int count = 0;
+
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(x, y, count);
+    }
+};
+
+struct SDGroundFireWallList
+{
+    uint32_t mapID = 0;
+    std::vector<SDGridFireWall> fireWallList;
+
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(mapID, fireWallList);
+    }
+};

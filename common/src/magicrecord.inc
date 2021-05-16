@@ -26,9 +26,9 @@
 
 {
     .name = u8"物理攻击", // TODO ...
-    .range
+    .castRange
     {
-        .type = ACR_DIR,
+        .type = CRT_DIR,
         .distance = 1,
     },
 },
@@ -257,6 +257,44 @@
 
 {
     .name = u8"火墙",
+    .element = u8"火",
+
+    .icon = 0X05001015,
+    .gfxList
+    {
+        {
+            .stage = u8"启动",
+            .type  = u8"附着",
+            .gfxID = 0X0000038E,
+            .frameCount = 10,
+            .motion = 1,
+        },
+
+        {
+            .stage = u8"运行",
+            .type  = u8"固定",
+            .gfxID = 0X00000398,
+            .frameCount = 5,
+            .onGround = 1,
+            .loop = 1,
+            .speed = 50,
+        },
+    },
+},
+
+{
+    .name = u8"火焰余烬", // magic effect, not for specific magic
+    .gfxList
+    {
+        {
+            .stage = u8"运行",
+            .type  = u8"固定",
+            .gfxID = 0X00000992,
+            .frameCount = 10,
+            .onGround = 1,
+            .loop = 1,
+        },
+    },
 },
 
 {
@@ -444,9 +482,9 @@
 {
     .name = u8"神兽_喷火",
     .element = u8"火",
-    .range
+    .castRange
     {
-        .type = ACR_DIR,
+        .type = CRT_DIR,
         .distance = 2,
     },
 

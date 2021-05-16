@@ -76,6 +76,18 @@ class CannibalPlant final: public Monster
         bool struckDamage(const DamageNode &damage)
         {
             if(!m_standMode){
+                switch(damage.magicID){
+                    case DBCOM_MAGICID(u8"火墙"):
+                    case DBCOM_MAGICID(u8"雷电术"):
+                        {
+                            setStandMode(true);
+                            break;
+                        }
+                    default:
+                        {
+                            break;
+                        }
+                }
                 return true;
             }
 

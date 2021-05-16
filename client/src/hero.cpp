@@ -1151,3 +1151,20 @@ void Hero::jumpLoc(int x, int y, int direction)
         .y = y,
     });
 }
+
+bool Hero::deadFadeOut()
+{
+    switch(m_currMotion->type){
+        case MOTION_DIE:
+            {
+                if(!m_currMotion->extParam.die.fadeOut){
+                    m_currMotion->extParam.die.fadeOut = 1;
+                }
+                return true;
+            }
+        default:
+            {
+                return false; // TODO push an ActionDie here
+            }
+    }
+}

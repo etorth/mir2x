@@ -34,6 +34,19 @@
 
 namespace pathf
 {
+    inline std::tuple<int, int> getFrontPLoc(int x, int y, int dir, int length = 1)
+    {
+        constexpr static int dx[] = { 0, +1, +1, +1,  0, -1, -1, -1};
+        constexpr static int dy[] = {-1, -1,  0, +1, +1, +1,  0, -1};
+
+        fflassert(directionValid(dir));
+        return
+        {
+            x + length * dx[dir - DIR_BEGIN],
+            y + length * dy[dir - DIR_BEGIN],
+        };
+    }
+
     inline int nextDirection(int dir, int diff = 1)
     {
         fflassert(directionValid(dir));
@@ -50,5 +63,6 @@ namespace pathf
     std::tuple<int, int> getDir16Off(int /* dir */, int /* distance */);
 
     std::tuple<int, int> getDirOff(int /* x */, int /* y */, int /* distance */);
-    bool inACRange(const ACRange &, int, int, int, int);
+
+    bool inDCCastRange(const DCCastRange &, int, int, int, int);
 }

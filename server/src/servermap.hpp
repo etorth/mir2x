@@ -100,11 +100,26 @@ class ServerMap final: public ServerObject
         friend class ServerPathFinder;
 
     private:
+        struct FireWallMagicNode
+        {
+            uint64_t uid = 0;
+
+            int minDC = 0;
+            int maxDC = 0;
+
+            uint32_t startTime      = 0;
+            uint32_t lastAttackTime = 0;
+
+            int duration = 0;
+            int dps      = 0;
+        };
+
         struct MapGrid
         {
             bool locked = false;
             std::vector<uint64_t> uidList;
             std::vector<uint32_t> itemIDList;
+            std::vector<FireWallMagicNode> fireWallList;
 
             uint32_t mapID   =  0;
             int      switchX = -1;
@@ -274,14 +289,24 @@ class ServerMap final: public ServerObject
         void removeGridItemID(uint32_t, int, int, bool = true);
 
     private:
-        SDGroundItemIDList getGroundItemIDList(int, int, size_t) const;
+        SDGroundItemIDList getGroundItemIDList(int, int, size_t); // may remove expired item
 
     private:
         void postGridItemIDList(int, int);
         void postGroundItemIDList(uint64_t, int, int);
 
     private:
+        SDGroundFireWallList getGroundFireWallList(int, int, size_t); // may remove expired firewall
+
+    private:
+        void postGridFireWallList(int, int);
+        void postGroundFireWallList(uint64_t, int, int);
+
+    private:
         int CheckPathGrid(int, int) const;
+
+    private:
+        void updateFireWall();
 
     private:
         template<std::predicate<uint64_t> F> bool doUIDList(int x, int y, const F &func)
@@ -369,7 +394,9 @@ class ServerMap final: public ServerObject
         void on_AM_TRYMAPSWITCH(const ActorMsgPack &);
         void on_AM_QUERYCOCOUNT(const ActorMsgPack &);
         void on_AM_TRYSPACEMOVE(const ActorMsgPack &);
+        void on_AM_CASTFIREWALL(const ActorMsgPack &);
         void on_AM_ADDCHAROBJECT(const ActorMsgPack &);
+        void on_AM_STRIKEFIXEDLOCDAMAGE(const ActorMsgPack &);
 
     private:
         bool regLuaExport(ServerMapLuaModule *);
