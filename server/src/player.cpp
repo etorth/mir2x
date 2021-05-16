@@ -719,10 +719,21 @@ void Player::onCMActionSpell(CMAction cmA)
                     amCFW.minDC = 5;
                     amCFW.maxDC = 9;
 
-                    amCFW.duration = 10 * 1000;
+                    amCFW.duration = 20 * 1000;
                     amCFW.dps      = 3;
 
-                    for(int dir = DIR_NONE; dir < DIR_END; ++dir){
+                    // not 3x3
+                    // fire wall takes grids as a cross
+                    //
+                    // +---+---+---+
+                    // |   | v |   |
+                    // +---+---+---+
+                    // | v | v | v |
+                    // +---+---+---+
+                    // |   | v |   |
+                    // +---+---+---+
+
+                    for(const int dir: {DIR_NONE, DIR_UP, DIR_DOWN, DIR_LEFT, DIR_RIGHT}){
                         if(dir == DIR_NONE){
                             amCFW.x = cmA.action.aimX;
                             amCFW.y = cmA.action.aimY;

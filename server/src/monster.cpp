@@ -311,7 +311,7 @@ void Monster::attackUID(uint64_t nUID, int nDC, std::function<void()> onOK, std:
                         amCFW.duration = 5 * 1000;
                         amCFW.dps      = 3;
 
-                        for(int dir = DIR_NONE; dir < DIR_END; ++dir){
+                        for(const int dir: {DIR_NONE, DIR_UP, DIR_DOWN, DIR_LEFT, DIR_RIGHT}){
                             if(dir == DIR_NONE){
                                 amCFW.x = coLoc.x;
                                 amCFW.y = coLoc.y;
