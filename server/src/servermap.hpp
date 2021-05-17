@@ -127,7 +127,7 @@ class ServerMap final: public ServerObject
 
             bool empty() const
             {
-                return !locked && uidList.empty() && itemIDList.empty() && (mapID == 0);
+                return !locked && uidList.empty() && itemIDList.empty() && fireWallList.empty() && (mapID == 0);
             }
 
             bool hasUID(uint64_t uid) const
@@ -141,7 +141,7 @@ class ServerMap final: public ServerObject
         const Mir2xMapData m_mir2xMapData;
 
     private:
-        std::vector<std::vector<MapGrid>> m_gridList;
+        std::vector<MapGrid> m_gridList;
 
     private:
         std::unique_ptr<ServerMapLuaModule> m_luaModulePtr;
@@ -238,10 +238,8 @@ class ServerMap final: public ServerObject
     private:
         const auto &getGrid(int x, int y) const
         {
-            if(!validC(x, y)){
-                throw fflerror("invalid location: x = %d, y = %d", x, y);
-            }
-            return m_gridList.at(x).at(y);
+            fflassert(validC(x, y));
+            return m_gridList.at(x + y * W());
         }
 
         auto &getGrid(int x, int y)

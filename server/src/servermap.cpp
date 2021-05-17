@@ -320,14 +320,7 @@ ServerMap::ServerMap(uint32_t nMapID)
         throw fflerror("load map failed: ID = %d, Name = %s", nMapID, to_cstr(DBCOM_MAPRECORD(nMapID).name));
     }
 
-    m_gridList.resize(W());
-    m_gridList.shrink_to_fit();
-
-    for(auto &gridLine: m_gridList){
-        gridLine.resize(H());
-        gridLine.shrink_to_fit();
-    }
-
+    m_gridList.resize(W() * H());
     for(const auto &entry: DBCOM_MAPRECORD(nMapID).mapSwitch()){
         if(true
                 && entry.w > 0
