@@ -418,8 +418,11 @@ void Client::onServerMessage(uint8_t headCode, const uint8_t *pData, size_t nDat
             }
         case SM_BUILDVERSION:
             {
-                if(const auto smBV = ServerMsg::conv<SMBuildVersion>(pData); std::strcmp(smBV.version, getBuildSignature())){
-                    throw fflerror("client/server version mismatches");
+                if(!g_clientArgParser->disableVersionCheck){
+                    const auto smBV = ServerMsg::conv<SMBuildVersion>(pData);
+                    if(std::strcmp(smBV.version, getBuildSignature())){
+                        throw fflerror("client/server version mismatches, client: %s, server: %s", getBuildSignature(), smBV.version);
+                    }
                 }
                 break;
             }

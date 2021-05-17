@@ -23,6 +23,7 @@
 struct ClientArgParser
 {
     const bool disableProfiler;         // "--disable-profiler"
+    const bool disableVersionCheck;     // "--disable-version-check"
     const bool drawUID;                 // "--draw-uid"
     const bool alwaysDrawName;          // "--always-draw-name"
     const bool drawMapGrid;             // "--draw-map-grid"
@@ -48,6 +49,7 @@ struct ClientArgParser
 
     ClientArgParser(const arg_parser &cmdParser)
         : disableProfiler(cmdParser["disable-profiler"])
+        , disableVersionCheck(cmdParser["disable-version-check"])
         , drawUID(cmdParser["draw-uid"])
         , alwaysDrawName(cmdParser["always-draw-name"])
         , drawMapGrid(cmdParser["draw-map-grid"])
