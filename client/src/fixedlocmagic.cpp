@@ -69,13 +69,11 @@ void FireWall_RUN::drawViewOff(int viewX, int viewY, uint32_t modColor) const
 
 void HellFire_RUN::drawViewOff(int viewX, int viewY, uint32_t modColor) const
 {
-    constexpr int repeat = 2;
     const auto [sgnDX, sgnDY] = pathf::getFrontGLoc(0, 0, m_fireDir, 1);
 
-    constexpr int dx = SYS_MAPGRIDXP / repeat;
-    constexpr int dy = SYS_MAPGRIDYP / repeat;
+    constexpr int dx = SYS_MAPGRIDXP / 2;
+    constexpr int dy = SYS_MAPGRIDYP / 2;
 
-    for(int i = 0; i < repeat; ++i){
-        FixedLocMagic::drawViewOff(viewX + sgnDX * dx * i, viewY + sgnDY * dy * i, modColor);
-    }
+    m_fireRun0.drawViewOff(viewX + sgnDX * dx * 0, viewY + sgnDY * dy * 0, modColor);
+    m_fireRun1.drawViewOff(viewX + sgnDX * dx * 1, viewY + sgnDY * dy * 1, modColor);
 }

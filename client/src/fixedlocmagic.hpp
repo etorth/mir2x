@@ -188,14 +188,28 @@ class FireWall_RUN: public FixedLocMagic
 class HellFire_RUN: public FixedLocMagic
 {
     private:
+        FixedLocMagic m_fireRun0;
+        FixedLocMagic m_fireRun1;
+
+    private:
         int m_fireDir;
 
     public:
         HellFire_RUN(int x, int y, int dir)
-            : FixedLocMagic(u8"地狱火", u8"运行", x, y, (dir - DIR_BEGIN) % 2)
+            : FixedLocMagic(u8"地狱火", u8"运行", x, y)
+            , m_fireRun0   (u8"地狱火", u8"运行", x, y, (dir + 0) % 2)
+            , m_fireRun1   (u8"地狱火", u8"运行", x, y, (dir + 1) % 2)
             , m_fireDir(dir)
         {
             fflassert(directionValid(m_fireDir));
+        }
+
+    protected:
+        bool update(double ms) override
+        {
+            m_fireRun0.update(ms);
+            m_fireRun1.update(ms);
+            return FixedLocMagic::update(ms);
         }
 
     protected:
