@@ -35,6 +35,7 @@ struct ServerArgParser
     const bool disableGuardSpawn;       // "--disable-guard-spawn"
     const bool disableMonsterSpawn;     // "--disable-monster-spawn"
     const bool disableNPCSpawn;         // "--disable-npc-spawn"
+    const bool showStrikeGrid;          // "--show-strike-grid"
     const bool preloadMap;              // "--preload-map"
     const int  preloadMapID;            // "--preload-map-id"
     const int  actorPoolThread;         // "--actor-pool-thread"
@@ -48,6 +49,7 @@ struct ServerArgParser
         , disableGuardSpawn(cmdParser["disable-guard-spawn"])
         , disableMonsterSpawn(cmdParser["disable-monster-spawn"])
         , disableNPCSpawn(cmdParser["disable-npc-spawn"])
+        , showStrikeGrid(cmdParser["show-strike-grid"])
         , preloadMap(cmdParser["preload-map"])
         , preloadMapID([&cmdParser]() -> int
           {

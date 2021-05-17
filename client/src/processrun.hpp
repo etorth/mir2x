@@ -82,6 +82,9 @@ class ProcessRun: public Process
         FPSMonitor m_fps;
 
     private:
+        LocHashTable<uint64_t> m_strikeGridList;
+
+    private:
         bool m_drawMagicKey = false;
 
     public:
@@ -215,6 +218,7 @@ class ProcessRun: public Process
         void net_CASTMAGIC(const uint8_t *, size_t);
         void net_NOTIFYDEAD(const uint8_t *, size_t);
         void net_PLAYERNAME(const uint8_t *, size_t);
+        void net_STRIKEGRID(const uint8_t *, size_t);
         void net_PICKUPERROR(const uint8_t *, size_t);
         void net_PLAYERWLDESP(const uint8_t *, size_t);
         void net_UPDATEITEM(const uint8_t *, size_t);

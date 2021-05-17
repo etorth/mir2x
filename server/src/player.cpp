@@ -30,10 +30,12 @@
 #include "protocoldef.hpp"
 #include "dbcomrecord.hpp"
 #include "buildconfig.hpp"
+#include "serverargparser.hpp"
 
 extern DBPod *g_dbPod;
 extern NetDriver *g_netDriver;
 extern MonoServer *g_monoServer;
+extern ServerArgParser *g_serverArgParser;
 
 Player::Player(const SDInitPlayer &initParam, const ServerMap *mapPtr)
     : CharObject(mapPtr, uidf::buildPlayerUID(initParam.dbid, initParam.gender, initParam.jobList), initParam.x, initParam.y, DIR_DOWN)
@@ -748,43 +750,77 @@ void Player::onCMActionSpell(CMAction cmA)
                 break;
             }
         case DBCOM_MAGICID(u8"地狱火"):
+        case DBCOM_MAGICID(u8"魄冰刺"):
+        case DBCOM_MAGICID(u8"疾光电影"):
             {
-                if(const auto dirIndex = pathf::getDir8(cmA.action.aimX - cmA.action.x, cmA.action.aimY - cmA.action.y); dirIndex >= 0){
+                if(const auto dirIndex = pathf::getDir8(cmA.action.aimX - cmA.action.x, cmA.action.aimY - cmA.action.y); (dirIndex >= 0) && directionValid(dirIndex + DIR_BEGIN)){
                     m_direction = dirIndex + DIR_BEGIN;
                 }
 
-                addDelay(550, [this, magicID]()
-                {
-                    AMStrikeFixedLocDamage amSFLD;
-                    std::memset(&amSFLD, 0, sizeof(amSFLD));
+                std::set<std::tuple<int, int>> pathGridList;
+                switch(Direction()){
+                    case DIR_UP:
+                    case DIR_DOWN:
+                    case DIR_LEFT:
+                    case DIR_RIGHT:
+                        {
+                            for(const auto distance: {1, 2, 3, 4, 5, 6}){
+                                const auto [pathGX, pathGY] = pathf::getFrontGLoc(X(), Y(), Direction(), distance);
+                                pathGridList.insert({pathGX, pathGY});
 
-                    // the official mir2 doesn't follow the strict rule of magic path
-                    // actually when close to 8 paths it also sends attack
-
-                    const auto dirList0 = {DIR_NONE};
-                    const auto dirList1 = {DIR_NONE, DIR_UP, DIR_DOWN, DIR_LEFT, DIR_RIGHT};
-
-                    for(const auto distance: {1, 2, 3, 4, 5, 6}){
-                        const auto [pathGX, pathGY] = pathf::getFrontGLoc(X(), Y(), Direction(), distance);
-                        for(const auto dir: (distance <= 2) ? dirList0 : dirList1){
-                            if(directionValid(dir)){
-                                std::tie(amSFLD.x, amSFLD.y) = pathf::getFrontGLoc(pathGX, pathGY, dir, 1);
+                                if(distance > 3){
+                                    const auto [sgnDX, sgnDY] = pathf::getFrontGLoc(0, 0, Direction(), 1);
+                                    pathGridList.insert({pathGX + sgnDY, pathGY + sgnDX}); // switch sgnDX and sgnDY and plus/minus
+                                    pathGridList.insert({pathGX - sgnDY, pathGY - sgnDX});
+                                }
                             }
-                            else{
-                                amSFLD.x = pathGX;
-                                amSFLD.y = pathGY;
-                            }
-
-                            if(m_map->groundValid(amSFLD.x, amSFLD.y)){
-                                amSFLD.damage = getAttackDamage(magicID);
-                                addDelay(distance * 80, [amSFLD, this]()
-                                {
-                                    m_actorPod->forward(m_map->UID(), {AM_STRIKEFIXEDLOCDAMAGE, amSFLD});
-                                });
-                            }
+                            break;
                         }
+                    case DIR_UPLEFT:
+                    case DIR_UPRIGHT:
+                    case DIR_DOWNLEFT:
+                    case DIR_DOWNRIGHT:
+                        {
+                            for(const auto distance: {1, 2, 3, 4, 5, 6}){
+                                const auto [pathGX, pathGY] = pathf::getFrontGLoc(X(), Y(), Direction(), distance);
+                                pathGridList.insert({pathGX, pathGY});
+
+                                const auto [sgnDX, sgnDY] = pathf::getFrontGLoc(0, 0, Direction(), 1);
+                                pathGridList.insert({pathGX + sgnDX, pathGY        });
+                                pathGridList.insert({pathGX        , pathGY + sgnDY});
+                            }
+                            break;
+                        }
+                    default:
+                        {
+                            throw bad_reach();
+                        }
+                }
+
+                AMStrikeFixedLocDamage amSFLD;
+                std::memset(&amSFLD, 0, sizeof(amSFLD));
+
+                for(const auto [pathGX, pathGY]: pathGridList){
+                    if(m_map->groundValid(pathGX, pathGY)){
+                        amSFLD.x = pathGX;
+                        amSFLD.y = pathGY;
+                        amSFLD.damage = getAttackDamage(magicID);
+                        addDelay(550 + mathf::CDistance(X(), Y(), amSFLD.x, amSFLD.y) * 80, [amSFLD, castMapID = mapID(), this]()
+                        {
+                            if(castMapID == mapID()){
+                                m_actorPod->forward(m_map->UID(), {AM_STRIKEFIXEDLOCDAMAGE, amSFLD});
+                                if(g_serverArgParser->showStrikeGrid){
+                                    SMStrikeGrid smSG;
+                                    std::memset(&smSG, 0, sizeof(smSG));
+
+                                    smSG.x = amSFLD.x;
+                                    smSG.y = amSFLD.y;
+                                    postNetMessage(SM_STRIKEGRID, smSG);
+                                }
+                            }
+                        });
                     }
-                });
+                }
                 break;
             }
         default:

@@ -33,6 +33,7 @@
 #include "uidf.hpp"
 #include "sysconst.hpp"
 #include "pngtexdb.hpp"
+#include "raiitimer.hpp"
 #include "sdldevice.hpp"
 #include "processrun.hpp"
 #include "dbcomrecord.hpp"
@@ -556,6 +557,12 @@ void ProcessRun::net_PLAYERNAME(const uint8_t *buf, size_t)
             playerPtr->setName(smPN.name, smPN.nameColor);
         }
     }
+}
+
+void ProcessRun::net_STRIKEGRID(const uint8_t *buf, size_t)
+{
+    const auto smSG = ServerMsg::conv<SMStrikeGrid>(buf);
+    m_strikeGridList[{smSG.x, smSG.y}] = hres_tstamp().to_msec();
 }
 
 void ProcessRun::net_UPDATEITEM(const uint8_t *buf, size_t bufSize)

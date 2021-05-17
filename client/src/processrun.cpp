@@ -24,6 +24,7 @@
 #include "clientmonster.hpp"
 #include "mathf.hpp"
 #include "pathf.hpp"
+#include "raiitimer.hpp"
 #include "sysconst.hpp"
 #include "mapbindb.hpp"
 #include "pngtexdb.hpp"
@@ -130,6 +131,15 @@ void ProcessRun::update(double fUpdateTime)
     scrollMap();
     m_GUIManager.update(fUpdateTime);
     m_delayCmdQ.exec();
+
+    for(auto p = m_strikeGridList.begin(); p != m_strikeGridList.end();){
+        if(hres_tstamp().to_msec() > p->second + 1000){
+            p = m_strikeGridList.erase(p);
+        }
+        else{
+            p++;
+        }
+    }
 
     getMyHero()->update(fUpdateTime);
     const int myHeroX = getMyHero()->x();
@@ -366,6 +376,12 @@ void ProcessRun::draw()
             if(auto p = fireWallList.find({x, y}); p != fireWallList.end()){
                 for(auto magicPtr: p->second){
                     magicPtr->drawViewOff(m_viewX, m_viewY, colorf::WHITE + 200);
+                }
+            }
+
+            if(auto p = m_strikeGridList.find({x, y}); p != m_strikeGridList.end()){
+                if(hres_tstamp().to_msec() <= p->second + 1000){
+                    g_sdlDevice->fillRectangle(colorf::RED + 96, x * SYS_MAPGRIDXP - m_viewX, y * SYS_MAPGRIDYP - m_viewY, SYS_MAPGRIDXP, SYS_MAPGRIDYP);
                 }
             }
 

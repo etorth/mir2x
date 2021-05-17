@@ -45,6 +45,7 @@ enum SMType: uint8_t
     SM_NPCXMLLAYOUT,
     SM_NPCSELL,
     SM_GOLD,
+    SM_STRIKEGRID,
     SM_SELLITEMLIST,
     SM_TEXT,
     SM_PLAYERNAME,
@@ -194,6 +195,12 @@ struct SMGold
     uint32_t gold;
 };
 
+struct SMStrikeGrid
+{
+    uint32_t x;
+    uint32_t y;
+};
+
 struct SMPlayerName
 {
     uint64_t uid;
@@ -290,6 +297,7 @@ class ServerMsg final: public MsgBase
                 _add_server_msg_type_case(SM_NPCXMLLAYOUT,       3, 0                         )
                 _add_server_msg_type_case(SM_NPCSELL,            3, 0                         )
                 _add_server_msg_type_case(SM_GOLD,               1, sizeof(SMGold)            )
+                _add_server_msg_type_case(SM_STRIKEGRID,         1, sizeof(SMStrikeGrid)      )
                 _add_server_msg_type_case(SM_SELLITEMLIST,       3, 0                         )
                 _add_server_msg_type_case(SM_TEXT,               3, 0                         )
                 _add_server_msg_type_case(SM_PLAYERNAME,         1, sizeof(SMPlayerName)      )
@@ -340,6 +348,7 @@ class ServerMsg final: public MsgBase
                     || std::is_same_v<T, SMBuildVersion>
                     || std::is_same_v<T, SMRemoveItem>
                     || std::is_same_v<T, SMGold>
+                    || std::is_same_v<T, SMStrikeGrid>
                     || std::is_same_v<T, SMBuySucceed>
                     || std::is_same_v<T, SMBuyError>
                     || std::is_same_v<T, SMPickUpError>
