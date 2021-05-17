@@ -750,7 +750,7 @@ void Player::onCMActionSpell(CMAction cmA)
                 break;
             }
         case DBCOM_MAGICID(u8"地狱火"):
-        case DBCOM_MAGICID(u8"魄冰刺"):
+        case DBCOM_MAGICID(u8"冰沙掌"):
         case DBCOM_MAGICID(u8"疾光电影"):
             {
                 if(const auto dirIndex = pathf::getDir8(cmA.action.aimX - cmA.action.x, cmA.action.aimY - cmA.action.y); (dirIndex >= 0) && directionValid(dirIndex + DIR_BEGIN)){
@@ -764,7 +764,7 @@ void Player::onCMActionSpell(CMAction cmA)
                     case DIR_LEFT:
                     case DIR_RIGHT:
                         {
-                            for(const auto distance: {1, 2, 3, 4, 5, 6}){
+                            for(const auto distance: {1, 2, 3, 4, 5, 6, 7, 8}){
                                 const auto [pathGX, pathGY] = pathf::getFrontGLoc(X(), Y(), Direction(), distance);
                                 pathGridList.insert({pathGX, pathGY});
 
@@ -781,7 +781,7 @@ void Player::onCMActionSpell(CMAction cmA)
                     case DIR_DOWNLEFT:
                     case DIR_DOWNRIGHT:
                         {
-                            for(const auto distance: {1, 2, 3, 4, 5, 6}){
+                            for(const auto distance: {1, 2, 3, 4, 5, 6, 7, 8}){
                                 const auto [pathGX, pathGY] = pathf::getFrontGLoc(X(), Y(), Direction(), distance);
                                 pathGridList.insert({pathGX, pathGY});
 

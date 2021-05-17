@@ -631,7 +631,7 @@ bool Hero::parseAction(const ActionNode &action)
                                         const auto castX = motionPtr->endX;
                                         const auto castY = motionPtr->endY;
 
-                                        for(const auto distance: {1, 2, 3, 4, 5, 6}){
+                                        for(const auto distance: {1, 2, 3, 4, 5, 6, 7, 8}){
                                             m_processRun->addDelay(distance * 100, [standDir, castX, castY, distance, castMapID = m_processRun->mapID(), this]()
                                             {
                                                 if(m_processRun->mapID() != castMapID){
