@@ -580,17 +580,16 @@ void SDLDevice::CreateMainWindow()
 void SDLDevice::drawTextureEx(SDL_Texture *pTexture,
         int nSrcX, int nSrcY, int nSrcW, int nSrcH,
         int nDstX, int nDstY, int nDstW, int nDstH,
-        int nCenterDstX,
-        int nCenterDstY,
+        int centerSrcX,
+        int centerDstX,
         int nRotateDegree)
 {
     if(pTexture){
         SDL_Rect stSrc {nSrcX, nSrcY, nSrcW, nSrcH};
         SDL_Rect stDst {nDstX, nDstY, nDstW, nDstH};
 
-        double fAngle = 1.00 * (nRotateDegree % 360);
-        SDL_Point stCenter {nCenterDstX, nCenterDstY};
-
+        const double fAngle = 1.00 * (nRotateDegree % 360);
+        SDL_Point stCenter {centerSrcX, centerDstX};
         SDL_RenderCopyEx(m_renderer, pTexture, &stSrc, &stDst, fAngle, &stCenter, SDL_FLIP_NONE);
     }
 }

@@ -51,7 +51,27 @@ void FireAshEffect_RUN::drawGroundAsh(int viewX, int viewY, uint32_t modColor) c
     if(auto [texPtr, offX, offY] = g_magicDB->Retrieve(0X000009C4); texPtr){
         SDLDeviceHelper::EnableTextureModColor enableModColor(texPtr, colorf::modRGBA(getPlainModColor(), modColor));
         SDLDeviceHelper::EnableTextureBlendMode enableBlendMode(texPtr, SDL_BLENDMODE_BLEND);
-        g_sdlDevice->drawTexture(texPtr, x() * SYS_MAPGRIDXP - viewX + offX, y() * SYS_MAPGRIDYP - viewY + offY);
+
+        const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);
+
+        const int useTexW = std::min<int>(102, texW); // crop left up part to rotate
+        const int useTexH = std::min<int>( 72, texH); //
+
+        g_sdlDevice->drawTextureEx(texPtr,
+                0,
+                0,
+                useTexW,
+                useTexH,
+
+                x() * SYS_MAPGRIDXP - viewX + offX,
+                y() * SYS_MAPGRIDYP - viewY + offY,
+                useTexW,
+                useTexH,
+
+                useTexW / 2,
+                useTexH / 2,
+
+                m_rotate);
     }
 }
 
