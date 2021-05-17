@@ -34,12 +34,7 @@ ServerObject::ServerObject(uint64_t uid)
 {
     m_stateTrigger.install([this]() -> bool
     {
-        if(!m_delayCmdQ.empty()){
-            if(g_monoServer->getCurrTick() >= m_delayCmdQ.top().tick()){
-                m_delayCmdQ.top()();
-                m_delayCmdQ.pop();
-            }
-        }
+        m_delayCmdQ.exec();
         return false;
     });
 
@@ -110,12 +105,6 @@ void ServerObject::deactivate()
     if(m_actorPod){
         m_actorPod->detach([this](){ delete this; });
     }
-}
-
-void ServerObject::addDelay(uint32_t delayTick, std::function<void()> cmd)
-{
-    m_delayCmdIndex = m_delayCmdQ.empty() ? 0 : (m_delayCmdIndex + 1);
-    m_delayCmdQ.emplace(delayTick + g_monoServer->getCurrTick(), m_delayCmdIndex, std::move(cmd));
 }
 
 void ServerObject::forwardNetPackage(uint64_t uid, uint8_t type, const void *buf, size_t bufLen)

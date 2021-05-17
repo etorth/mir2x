@@ -31,6 +31,7 @@
 #include "focustype.hpp"
 #include "ascendstr.hpp"
 #include "guimanager.hpp"
+#include "delaycommand.hpp"
 #include "lochashtable.hpp"
 #include "mir2xmapdata.hpp"
 #include "fixedlocmagic.hpp"
@@ -72,6 +73,9 @@ class ProcessRun: public Process
         LocHashTable<std::vector<uint32_t>> m_groundItemIDList;
 
     private:
+        DelayCommandQueue m_delayCmdQ;
+
+    private:
         uint64_t m_myHeroUID;
 
     private:
@@ -84,6 +88,14 @@ class ProcessRun: public Process
         bool ValidC(int nX, int nY) const
         {
             return m_mir2xMapData.ValidC(nX, nY);
+        }
+
+        bool groundValid(int nX, int nY) const
+        {
+            return true
+                && m_mir2xMapData.Valid()
+                && m_mir2xMapData.ValidC(nX, nY)
+                && m_mir2xMapData.Cell(nX, nY).CanThrough();
         }
 
     private:
@@ -409,4 +421,10 @@ class ProcessRun: public Process
 
     public:
         int getAimDirection(const ActionNode &, int defDir = DIR_NONE) const;
+
+    public:
+        void addDelay(uint32_t delayTick, std::function<void()> cmd)
+        {
+            m_delayCmdQ.addDelay(delayTick, std::move(cmd));
+        }
 };

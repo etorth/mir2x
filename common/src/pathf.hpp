@@ -34,7 +34,7 @@
 
 namespace pathf
 {
-    inline std::tuple<int, int> getFrontPLoc(int x, int y, int dir, int length = 1)
+    inline std::tuple<int, int> getFrontGLoc(int x, int y, int dir, int length = 1)
     {
         constexpr static int dx[] = { 0, +1, +1, +1,  0, -1, -1, -1};
         constexpr static int dy[] = {-1, -1,  0, +1, +1, +1,  0, -1};

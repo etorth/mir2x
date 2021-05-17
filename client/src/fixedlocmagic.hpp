@@ -148,6 +148,8 @@ class FireWall_RUN: public FixedLocMagic
         void setFadeOut(int fadeDuration)
         {
             fflassert(fadeDuration > 0);
+            fflassert(!hasFadeOut());
+
             m_fadeDuration = fadeDuration;
             m_fadeStartTime = m_accuTime;
         }
@@ -181,4 +183,21 @@ class FireWall_RUN: public FixedLocMagic
                 return colorf::WHITE + 255;
             }
         }
+};
+
+class HellFire_RUN: public FixedLocMagic
+{
+    private:
+        int m_fireDir;
+
+    public:
+        HellFire_RUN(int x, int y, int dir)
+            : FixedLocMagic(u8"地狱火", u8"运行", x, y, (dir - DIR_BEGIN) % 2)
+            , m_fireDir(dir)
+        {
+            fflassert(directionValid(m_fireDir));
+        }
+
+    protected:
+        void drawViewOff(int, int, uint32_t) const override;
 };

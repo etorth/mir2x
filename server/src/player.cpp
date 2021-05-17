@@ -362,11 +362,12 @@ DamageNode Player::getAttackDamage(int nDC) const
             }
         case DBCOM_MAGICID(u8"雷电术"):
         case DBCOM_MAGICID(u8"灵魂火符"):
+        case DBCOM_MAGICID(u8"地狱火"):
             {
                 return MagicDamage
                 {
                     .magicID = nDC,
-                    .damage = 5,
+                    .damage = 5 + std::rand() % 8,
                 };
             }
         default:
@@ -739,7 +740,7 @@ void Player::onCMActionSpell(CMAction cmA)
                             amCFW.y = cmA.action.aimY;
                         }
                         else{
-                            std::tie(amCFW.x, amCFW.y) = pathf::getFrontPLoc(cmA.action.aimX, cmA.action.aimY, dir, 1);
+                            std::tie(amCFW.x, amCFW.y) = pathf::getFrontGLoc(cmA.action.aimX, cmA.action.aimY, dir, 1);
                         }
 
                         if(m_map->groundValid(amCFW.x, amCFW.y)){
@@ -749,7 +750,26 @@ void Player::onCMActionSpell(CMAction cmA)
                 });
                 break;
             }
+        case DBCOM_MAGICID(u8"地狱火"):
+            {
+                addDelay(550, [this, magicID]()
+                {
+                    AMStrikeFixedLocDamage amSFLD;
+                    std::memset(&amSFLD, 0, sizeof(amSFLD));
 
+                    for(const auto distance: {1, 2, 3, 4, 5, 6}){
+                        std::tie(amSFLD.x, amSFLD.y) = pathf::getFrontGLoc(X(), Y(), Direction(), distance);
+                        if(m_map->groundValid(amSFLD.x, amSFLD.y)){
+                            amSFLD.damage = getAttackDamage(magicID);
+                            addDelay(distance * 80, [amSFLD, this]()
+                            {
+                                m_actorPod->forward(m_map->UID(), {AM_STRIKEFIXEDLOCDAMAGE, amSFLD});
+                            });
+                        }
+                    }
+                });
+                break;
+            }
         default:
             {
                 break;

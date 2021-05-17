@@ -50,8 +50,7 @@ class ServerObject
         StateTrigger m_stateTrigger;
 
     protected:
-        uint32_t m_delayCmdIndex = 0;
-        std::priority_queue<DelayCommand> m_delayCmdQ;
+        DelayCommandQueue m_delayCmdQ;
 
     public:
         ServerObject(uint64_t);
@@ -99,7 +98,10 @@ class ServerObject
         virtual void operateAM(const ActorMsgPack &) = 0;
 
     public:
-        void addDelay(uint32_t, std::function<void()>);
+        void addDelay(uint32_t delayTick, std::function<void()> cmd)
+        {
+            m_delayCmdQ.addDelay(delayTick, std::move(cmd));
+        }
 
     protected:
         void forwardNetPackage(uint64_t, uint8_t, const void *, size_t);

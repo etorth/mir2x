@@ -616,6 +616,58 @@ bool Hero::parseAction(const ActionNode &action)
                                 }());
 
                                 switch(action.extParam.spell.magicID){
+                                    case DBCOM_MAGICID(u8"地狱火"):
+                                        {
+                                            m_motionQueue.back()->addUpdate(true, [standDir, this](MotionNode *motionPtr) -> bool
+                                            {
+                                                // usually when reaches this cb the motionPtr is just currMotion()
+                                                // but not true if in flushMotionPending()
+
+                                                if(motionPtr->frame < 3){
+                                                    return false;
+                                                }
+
+                                                const auto castX = motionPtr->endX;
+                                                const auto castY = motionPtr->endY;
+
+                                                for(const auto distance: {1, 2, 3, 4, 5, 6}){
+                                                    m_processRun->addDelay(distance * 100, [standDir, castX, castY, distance, castMapID = m_processRun->mapID(), this]()
+                                                    {
+                                                        if(m_processRun->mapID() != castMapID){
+                                                            return;
+                                                        }
+
+                                                        const auto [aimX, aimY] = pathf::getFrontGLoc(castX, castY, standDir, distance);
+                                                        if(!m_processRun->groundValid(aimX, aimY)){
+                                                            return;
+                                                        }
+
+                                                        m_processRun->addFixedLocMagic(std::unique_ptr<FixedLocMagic>(new HellFire_RUN
+                                                        {
+                                                            aimX,
+                                                            aimY,
+                                                            standDir,
+                                                        }))->addOnUpdate([aimX, aimY, this](MagicBase *magicPtr)
+                                                        {
+                                                            if(magicPtr->frame() < 10){
+                                                                return false;
+                                                            }
+
+                                                            m_processRun->addFixedLocMagic(std::unique_ptr<FixedLocMagic>(new FireAshEffect_RUN
+                                                            {
+                                                                aimX,
+                                                                aimY,
+                                                                1000,
+                                                            }));
+                                                            return true;
+                                                        });
+
+                                                    });
+                                                }
+                                                return true;
+                                            });
+                                            break;
+                                        }
                                     case DBCOM_MAGICID(u8"灵魂火符"):
                                         {
                                             m_motionQueue.back()->addUpdate(true, [targetUID = action.aimUID, this](MotionNode *motionPtr) -> bool

@@ -16,6 +16,7 @@
  * =====================================================================================
  */
 
+#include "pathf.hpp"
 #include "sdldevice.hpp"
 #include "dbcomrecord.hpp"
 #include "pngtexoffdb.hpp"
@@ -64,4 +65,17 @@ void FireAshEffect_RUN::drawViewOff(int viewX, int viewY, uint32_t modColor) con
 void FireWall_RUN::drawViewOff(int viewX, int viewY, uint32_t modColor) const
 {
     FixedLocMagic::drawViewOff(viewX, viewY, colorf::modRGBA(getPlainModColor(), modColor));
+}
+
+void HellFire_RUN::drawViewOff(int viewX, int viewY, uint32_t modColor) const
+{
+    constexpr int repeat = 2;
+    const auto [sgnDX, sgnDY] = pathf::getFrontGLoc(0, 0, m_fireDir, 1);
+
+    constexpr int dx = SYS_MAPGRIDXP / repeat;
+    constexpr int dy = SYS_MAPGRIDYP / repeat;
+
+    for(int i = 0; i < repeat; ++i){
+        FixedLocMagic::drawViewOff(viewX + sgnDX * dx * i, viewY + sgnDY * dy * i, modColor);
+    }
 }

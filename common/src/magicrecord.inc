@@ -298,7 +298,7 @@
             .frameCount = 30,
             .gfxDirType = 2,
             .onGround = 1,
-            .speed = 50,
+            .speed = 200,
         },
     },
 },

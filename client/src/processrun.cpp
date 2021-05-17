@@ -128,6 +128,7 @@ void ProcessRun::update(double fUpdateTime)
 
     scrollMap();
     m_GUIManager.update(fUpdateTime);
+    m_delayCmdQ.exec();
 
     getMyHero()->update(fUpdateTime);
     const int myHeroX = getMyHero()->x();

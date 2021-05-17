@@ -290,9 +290,11 @@ void Monster::attackUID(uint64_t nUID, int nDC, std::function<void()> onOK, std:
                         std::memset(&amSFLD, 0, sizeof(amSFLD));
 
                         for(const auto r: {1, 2}){
-                            std::tie(amSFLD.x, amSFLD.y) = pathf::getFrontPLoc(X(), Y(), Direction(), r);
-                            amSFLD.damage = getAttackDamage(nDC);
-                            m_actorPod->forward(m_map->UID(), {AM_STRIKEFIXEDLOCDAMAGE, amSFLD});
+                            std::tie(amSFLD.x, amSFLD.y) = pathf::getFrontGLoc(X(), Y(), Direction(), r);
+                            if(m_map->groundValid(amSFLD.x, amSFLD.y)){
+                                amSFLD.damage = getAttackDamage(nDC);
+                                m_actorPod->forward(m_map->UID(), {AM_STRIKEFIXEDLOCDAMAGE, amSFLD});
+                            }
                         }
                     });
                     break;
@@ -317,7 +319,7 @@ void Monster::attackUID(uint64_t nUID, int nDC, std::function<void()> onOK, std:
                                 amCFW.y = coLoc.y;
                             }
                             else{
-                                std::tie(amCFW.x, amCFW.y) = pathf::getFrontPLoc(coLoc.x, coLoc.y, dir, 1);
+                                std::tie(amCFW.x, amCFW.y) = pathf::getFrontGLoc(coLoc.x, coLoc.y, dir, 1);
                             }
 
                             if(m_map->groundValid(amCFW.x, amCFW.y)){
@@ -385,7 +387,7 @@ void Monster::jumpUID(uint64_t targetUID, std::function<void()> onOK, std::funct
         // +---+---+---+
 
         const auto nextDir = pathf::nextDirection(nDir, 1);
-        const auto [nFrontX, nFrontY] = PathFind::getFrontPLoc(nX, nY, nextDir, 1);
+        const auto [nFrontX, nFrontY] = pathf::getFrontGLoc(nX, nY, nextDir, 1);
         if(!m_map->groundValid(nFrontX, nFrontY)){
             onError();
             return;
