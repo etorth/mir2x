@@ -23,6 +23,7 @@
 #include "dbcomid.hpp"
 #include "clientmonster.hpp"
 #include "mathf.hpp"
+#include "pathf.hpp"
 #include "sysconst.hpp"
 #include "mapbindb.hpp"
 #include "pngtexdb.hpp"
@@ -2030,8 +2031,13 @@ int ProcessRun::getAimDirection(const ActionNode &action, int defDir) const
     fflassert(action.aimUID);
     if(const auto coPtr = findUID(action.aimUID)){
         const auto [aimX, aimY] = coPtr->location();
-        const auto dir = PathFind::GetDirection(action.x, action.y, aimX, aimY); // can return DIR_NONE
-        return directionValid(dir) ? dir : defDir;
+        const auto dir = pathf::getDir8(aimX - action.x, aimY - action.y);
+        if(dir >= 0 && directionValid(dir + DIR_BEGIN)){
+            return dir + DIR_BEGIN;
+        }
+        else{
+            return defDir;
+        }
     }
     return defDir;
 }

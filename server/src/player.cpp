@@ -598,10 +598,7 @@ void Player::onCMActionAttack(CMAction stCMA)
 
 void Player::onCMActionSpell(CMAction cmA)
 {
-    if(cmA.action.type != ACTION_SPELL){
-        throw fflerror("invalid action type: %s", actionName(cmA.action));
-    }
-
+    fflassert(cmA.action.type == ACTION_SPELL);
     const int magicID = cmA.action.extParam.spell.magicID;
     dispatchAction(cmA.action);
 
@@ -752,19 +749,39 @@ void Player::onCMActionSpell(CMAction cmA)
             }
         case DBCOM_MAGICID(u8"地狱火"):
             {
+                if(const auto dirIndex = pathf::getDir8(cmA.action.aimX - cmA.action.x, cmA.action.aimY - cmA.action.y); dirIndex >= 0){
+                    m_direction = dirIndex + DIR_BEGIN;
+                }
+
                 addDelay(550, [this, magicID]()
                 {
                     AMStrikeFixedLocDamage amSFLD;
                     std::memset(&amSFLD, 0, sizeof(amSFLD));
 
+                    // the official mir2 doesn't follow the strict rule of magic path
+                    // actually when close to 8 paths it also sends attack
+
+                    const auto dirList0 = {DIR_NONE};
+                    const auto dirList1 = {DIR_NONE, DIR_UP, DIR_DOWN, DIR_LEFT, DIR_RIGHT};
+
                     for(const auto distance: {1, 2, 3, 4, 5, 6}){
-                        std::tie(amSFLD.x, amSFLD.y) = pathf::getFrontGLoc(X(), Y(), Direction(), distance);
-                        if(m_map->groundValid(amSFLD.x, amSFLD.y)){
-                            amSFLD.damage = getAttackDamage(magicID);
-                            addDelay(distance * 80, [amSFLD, this]()
-                            {
-                                m_actorPod->forward(m_map->UID(), {AM_STRIKEFIXEDLOCDAMAGE, amSFLD});
-                            });
+                        const auto [pathGX, pathGY] = pathf::getFrontGLoc(X(), Y(), Direction(), distance);
+                        for(const auto dir: (distance <= 2) ? dirList0 : dirList1){
+                            if(directionValid(dir)){
+                                std::tie(amSFLD.x, amSFLD.y) = pathf::getFrontGLoc(pathGX, pathGY, dir, 1);
+                            }
+                            else{
+                                amSFLD.x = pathGX;
+                                amSFLD.y = pathGY;
+                            }
+
+                            if(m_map->groundValid(amSFLD.x, amSFLD.y)){
+                                amSFLD.damage = getAttackDamage(magicID);
+                                addDelay(distance * 80, [amSFLD, this]()
+                                {
+                                    m_actorPod->forward(m_map->UID(), {AM_STRIKEFIXEDLOCDAMAGE, amSFLD});
+                                });
+                            }
                         }
                     }
                 });

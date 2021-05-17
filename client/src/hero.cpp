@@ -559,181 +559,180 @@ bool Hero::parseAction(const ActionNode &action)
                             switch(gfxEntry.motion){
                                 case 0  : return MOTION_SPELL0;
                                 case 1  : return MOTION_SPELL1;
-                                default : return MOTION_NONE;
+                                default : throw bad_reach();
                             }
                         }();
 
-                        if(motionSpell != MOTION_NONE){
-                            const auto fnGetSpellDir = [this](int nX0, int nY0, int nX1, int nY1) -> int
-                            {
-                                switch(mathf::LDistance2(nX0, nY0, nX1, nY1)){
-                                    case 0:
-                                        {
-                                            return m_currMotion->direction;
-                                        }
-                                    default:
-                                        {
-                                            return PathFind::GetDirection(nX0, nY0, nX1, nY1);
-                                        }
-                                }
-                            };
-
-                            const auto standDir = [&fnGetSpellDir, &action, this]() -> int
-                            {
-                                if(action.aimUID){
-                                    if(auto coPtr = m_processRun->findUID(action.aimUID)){
-                                        return fnGetSpellDir(action.x, action.y, coPtr->x(), coPtr->y());
+                        const auto fnGetSpellDir = [this](int nX0, int nY0, int nX1, int nY1) -> int
+                        {
+                            switch(mathf::LDistance2(nX0, nY0, nX1, nY1)){
+                                case 0:
+                                    {
+                                        return m_currMotion->direction;
                                     }
-                                }
-                                else if(m_processRun->canMove(true, 0, action.aimX, action.aimY)){
-                                    return fnGetSpellDir(action.x, action.y, action.aimX, action.aimY);
-                                }
-                                return DIR_NONE;
-                            }();
+                                default:
+                                    {
+                                        return pathf::getDir8(nX1 - nX0, nY1 - nY0) + DIR_BEGIN;
+                                    }
+                            }
+                        };
 
-                            if(directionValid(standDir)){
+                        const auto standDir = [&fnGetSpellDir, &action, this]() -> int
+                        {
+                            if(action.aimUID){
+                                if(const auto dir = m_processRun->getAimDirection(action, DIR_NONE); dir != DIR_NONE){
+                                    return dir;
+                                }
+                                else{
+                                    return m_currMotion->direction;
+                                }
+                            }
+                            else{
+                                return fnGetSpellDir(action.x, action.y, action.aimX, action.aimY);
+                            }
+                        }();
+
+                        fflassert(directionValid(standDir));
+                        m_motionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
+                        {
+                            .type = motionSpell,
+                            .direction = standDir,
+                            .x = action.x,
+                            .y = action.y,
+                            .extParam
+                            {
+                                .spell
+                                {
+                                    .magicID = action.extParam.spell.magicID,
+                                },
+                            },
+                        }));
+
+                        m_motionQueue.back()->extParam.spell.effect = std::unique_ptr<MagicSpellEffect>([&action, this]() -> MagicSpellEffect *
+                        {
+                            switch(action.extParam.spell.magicID){
+                                case DBCOM_MAGICID(u8"灵魂火符"): return new TaoFireFigureEffect(m_motionQueue.back().get());
+                                default                         : return new MagicSpellEffect   (m_motionQueue.back().get());
+                            }
+                        }());
+
+                        switch(action.extParam.spell.magicID){
+                            case DBCOM_MAGICID(u8"地狱火"):
+                                {
+                                    m_motionQueue.back()->addUpdate(true, [standDir, this](MotionNode *motionPtr) -> bool
+                                    {
+                                        // usually when reaches this cb the motionPtr is just currMotion()
+                                        // but not true if in flushMotionPending()
+
+                                        if(motionPtr->frame < 3){
+                                            return false;
+                                        }
+
+                                        const auto castX = motionPtr->endX;
+                                        const auto castY = motionPtr->endY;
+
+                                        for(const auto distance: {1, 2, 3, 4, 5, 6}){
+                                            m_processRun->addDelay(distance * 100, [standDir, castX, castY, distance, castMapID = m_processRun->mapID(), this]()
+                                            {
+                                                if(m_processRun->mapID() != castMapID){
+                                                    return;
+                                                }
+
+                                                const auto [aimX, aimY] = pathf::getFrontGLoc(castX, castY, standDir, distance);
+                                                if(!m_processRun->groundValid(aimX, aimY)){
+                                                    return;
+                                                }
+
+                                                m_processRun->addFixedLocMagic(std::unique_ptr<FixedLocMagic>(new HellFire_RUN
+                                                {
+                                                    aimX,
+                                                    aimY,
+                                                    standDir,
+                                                }))->addOnUpdate([aimX, aimY, this](MagicBase *magicPtr)
+                                                {
+                                                    if(magicPtr->frame() < 10){
+                                                        return false;
+                                                    }
+
+                                                    m_processRun->addFixedLocMagic(std::unique_ptr<FixedLocMagic>(new FireAshEffect_RUN
+                                                    {
+                                                        aimX,
+                                                        aimY,
+                                                        1000,
+                                                    }));
+                                                    return true;
+                                                });
+
+                                            });
+                                        }
+                                        return true;
+                                    });
+                                    break;
+                                }
+                            case DBCOM_MAGICID(u8"灵魂火符"):
+                                {
+                                    m_motionQueue.back()->addUpdate(true, [targetUID = action.aimUID, this](MotionNode *motionPtr) -> bool
+                                    {
+                                        // usually when reaches this cb the current motion is motionPtr
+                                        // but not true if in flushMotionPending()
+
+                                        if(motionPtr->frame < 3){
+                                            return false;
+                                        }
+
+                                        const auto fromX = motionPtr->x * SYS_MAPGRIDXP;
+                                        const auto fromY = motionPtr->y * SYS_MAPGRIDYP;
+                                        m_processRun->addFollowUIDMagic(std::unique_ptr<FollowUIDMagic>(new TaoFireFigure_RUN
+                                        {
+                                            fromX,
+                                            fromY,
+
+                                            [fromX, fromY, targetUID, this]() -> int
+                                            {
+                                                if(const auto coPtr = m_processRun->findUID(targetUID)){
+                                                    const auto [targetPX, targetPY] = coPtr->getTargetBox().center();
+                                                    return pathf::getDir16(targetPX - fromX, targetPY - fromY);
+                                                }
+                                                else if(m_processRun->getMyHeroUID() == UID()){
+                                                    const auto [  viewX,   viewY] = m_processRun->getViewShift();
+                                                    const auto [mousePX, mousePY] = SDLDeviceHelper::getMousePLoc();
+                                                    return pathf::getDir16(mousePX + viewX - fromX, mousePY + viewY - fromY);
+                                                }
+                                                else{
+                                                    // not myHero
+                                                    // use hero's current direction to create magic
+                                                    return (m_currMotion->direction - DIR_BEGIN) * 2;
+                                                }
+                                            }(),
+
+                                            targetUID,
+                                            m_processRun,
+
+                                        }))->addOnDone([targetUID, this](MagicBase *)
+                                        {
+                                            if(auto coPtr = m_processRun->findUID(targetUID)){
+                                                coPtr->addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"灵魂火符", u8"结束")));
+                                            }
+                                        });
+                                        return true;
+                                    });
+                                    break;
+                                }
+                            default:
+                                {
+                                    break;
+                                }
+                        }
+
+                        if(motionSpell == MOTION_SPELL0){
+                            for(int i = 0; i < 2; ++i){
                                 m_motionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
                                 {
-                                    .type = motionSpell,
+                                    .type = MOTION_ATTACKMODE,
                                     .direction = standDir,
                                     .x = action.x,
                                     .y = action.y,
-                                    .extParam
-                                    {
-                                        .spell
-                                        {
-                                            .magicID = action.extParam.spell.magicID,
-                                        },
-                                    },
                                 }));
-
-                                m_motionQueue.back()->extParam.spell.effect = std::unique_ptr<MagicSpellEffect>([&action, this]() -> MagicSpellEffect *
-                                {
-                                    switch(action.extParam.spell.magicID){
-                                        case DBCOM_MAGICID(u8"灵魂火符"): return new TaoFireFigureEffect(m_motionQueue.back().get());
-                                        default                         : return new MagicSpellEffect   (m_motionQueue.back().get());
-                                    }
-                                }());
-
-                                switch(action.extParam.spell.magicID){
-                                    case DBCOM_MAGICID(u8"地狱火"):
-                                        {
-                                            m_motionQueue.back()->addUpdate(true, [standDir, this](MotionNode *motionPtr) -> bool
-                                            {
-                                                // usually when reaches this cb the motionPtr is just currMotion()
-                                                // but not true if in flushMotionPending()
-
-                                                if(motionPtr->frame < 3){
-                                                    return false;
-                                                }
-
-                                                const auto castX = motionPtr->endX;
-                                                const auto castY = motionPtr->endY;
-
-                                                for(const auto distance: {1, 2, 3, 4, 5, 6}){
-                                                    m_processRun->addDelay(distance * 100, [standDir, castX, castY, distance, castMapID = m_processRun->mapID(), this]()
-                                                    {
-                                                        if(m_processRun->mapID() != castMapID){
-                                                            return;
-                                                        }
-
-                                                        const auto [aimX, aimY] = pathf::getFrontGLoc(castX, castY, standDir, distance);
-                                                        if(!m_processRun->groundValid(aimX, aimY)){
-                                                            return;
-                                                        }
-
-                                                        m_processRun->addFixedLocMagic(std::unique_ptr<FixedLocMagic>(new HellFire_RUN
-                                                        {
-                                                            aimX,
-                                                            aimY,
-                                                            standDir,
-                                                        }))->addOnUpdate([aimX, aimY, this](MagicBase *magicPtr)
-                                                        {
-                                                            if(magicPtr->frame() < 10){
-                                                                return false;
-                                                            }
-
-                                                            m_processRun->addFixedLocMagic(std::unique_ptr<FixedLocMagic>(new FireAshEffect_RUN
-                                                            {
-                                                                aimX,
-                                                                aimY,
-                                                                1000,
-                                                            }));
-                                                            return true;
-                                                        });
-
-                                                    });
-                                                }
-                                                return true;
-                                            });
-                                            break;
-                                        }
-                                    case DBCOM_MAGICID(u8"灵魂火符"):
-                                        {
-                                            m_motionQueue.back()->addUpdate(true, [targetUID = action.aimUID, this](MotionNode *motionPtr) -> bool
-                                            {
-                                                // usually when reaches this cb the current motion is motionPtr
-                                                // but not true if in flushMotionPending()
-
-                                                if(motionPtr->frame < 3){
-                                                    return false;
-                                                }
-
-                                                const auto fromX = motionPtr->x * SYS_MAPGRIDXP;
-                                                const auto fromY = motionPtr->y * SYS_MAPGRIDYP;
-                                                m_processRun->addFollowUIDMagic(std::unique_ptr<FollowUIDMagic>(new TaoFireFigure_RUN
-                                                {
-                                                    fromX,
-                                                    fromY,
-
-                                                    [fromX, fromY, targetUID, this]() -> int
-                                                    {
-                                                        if(const auto coPtr = m_processRun->findUID(targetUID)){
-                                                            const auto [targetPX, targetPY] = coPtr->getTargetBox().center();
-                                                            return pathf::getDir16(targetPX - fromX, targetPY - fromY);
-                                                        }
-                                                        else if(m_processRun->getMyHeroUID() == UID()){
-                                                            const auto [  viewX,   viewY] = m_processRun->getViewShift();
-                                                            const auto [mousePX, mousePY] = SDLDeviceHelper::getMousePLoc();
-                                                            return pathf::getDir16(mousePX + viewX - fromX, mousePY + viewY - fromY);
-                                                        }
-                                                        else{
-                                                            // not myHero
-                                                            // use hero's current direction to create magic
-                                                            return (m_currMotion->direction - DIR_BEGIN) * 2;
-                                                        }
-                                                    }(),
-
-                                                    targetUID,
-                                                    m_processRun,
-
-                                                }))->addOnDone([targetUID, this](MagicBase *)
-                                                {
-                                                    if(auto coPtr = m_processRun->findUID(targetUID)){
-                                                        coPtr->addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"灵魂火符", u8"结束")));
-                                                    }
-                                                });
-                                                return true;
-                                            });
-                                            break;
-                                        }
-                                    default:
-                                        {
-                                            break;
-                                        }
-                                }
-
-                                if(motionSpell == MOTION_SPELL0){
-                                    for(int i = 0; i < 2; ++i){
-                                        m_motionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
-                                        {
-                                            .type = MOTION_ATTACKMODE,
-                                            .direction = standDir,
-                                            .x = action.x,
-                                            .y = action.y,
-                                        }));
-                                    }
-                                }
                             }
                         }
                     }
