@@ -364,6 +364,8 @@ DamageNode Player::getAttackDamage(int nDC) const
             }
         case DBCOM_MAGICID(u8"雷电术"):
         case DBCOM_MAGICID(u8"灵魂火符"):
+        case DBCOM_MAGICID(u8"冰月神掌"):
+        case DBCOM_MAGICID(u8"冰月震天"):
         case DBCOM_MAGICID(u8"地狱火"):
             {
                 return MagicDamage
@@ -606,6 +608,8 @@ void Player::onCMActionSpell(CMAction cmA)
 
     switch(magicID){
         case DBCOM_MAGICID(u8"灵魂火符"):
+        case DBCOM_MAGICID(u8"冰月神掌"):
+        case DBCOM_MAGICID(u8"冰月震天"):
             {
                 // 灵魂火符 doesn't need to send back the CASTMAGIC message
                 // the ACTION_SPELL creates the magic
@@ -618,7 +622,7 @@ void Player::onCMActionSpell(CMAction cmA)
 
                         addDelay(delay, [cmA, this]()
                         {
-                            dispatchAttackDamage(cmA.action.aimUID, DBCOM_MAGICID(u8"灵魂火符"));
+                            dispatchAttackDamage(cmA.action.aimUID, cmA.action.extParam.spell.magicID);
                         });
                     });
                 }

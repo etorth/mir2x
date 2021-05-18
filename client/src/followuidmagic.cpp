@@ -77,6 +77,7 @@ bool FollowUIDMagic::update(double ms)
                 case 16: return pathf::getDir16Off(m_gfxDirIndex, m_moveSpeed);
                 case  8: return pathf::getDir8Off (m_gfxDirIndex, m_moveSpeed);
                 case  4: return pathf::getDir4Off (m_gfxDirIndex, m_moveSpeed);
+                case  1: return pathf::getDir16Off(m_gfxDirIndex, m_moveSpeed); // TODO if magic gfx has no direction I use 16-dir
                 default: throw fflerror("invalid gfxDirType: %d", m_gfxEntry.gfxDirType);
             }
         }
@@ -119,19 +120,4 @@ bool FollowUIDMagic::done() const
         return true;
     }
     return false;
-}
-
-void TaoFireFigure_RUN::drawViewOff(int viewX, int viewY, uint32_t modColor) const
-{
-    if(m_gfxEntry.gfxID == SYS_TEXNIL){
-        return;
-    }
-
-    int offX = 0;
-    int offY = 0;
-    if(auto texPtr = g_magicDB->Retrieve(m_gfxEntry.gfxID + frame() + m_gfxDirIndex * m_gfxEntry.gfxIDCount, &offX, &offY)){
-        SDLDeviceHelper::EnableTextureModColor enableModColor(texPtr, modColor);
-        SDLDeviceHelper::EnableTextureBlendMode enableBlendMode(texPtr, SDL_BLENDMODE_BLEND);
-        g_sdlDevice->drawTexture(texPtr, m_x - viewX + offX, m_y - viewY + offY);
-    }
 }

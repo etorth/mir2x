@@ -670,8 +670,10 @@ bool Hero::parseAction(const ActionNode &action)
                                     break;
                                 }
                             case DBCOM_MAGICID(u8"灵魂火符"):
+                            case DBCOM_MAGICID(u8"冰月神掌"):
+                            case DBCOM_MAGICID(u8"冰月震天"):
                                 {
-                                    m_motionQueue.back()->addUpdate(true, [targetUID = action.aimUID, this](MotionNode *motionPtr) -> bool
+                                    m_motionQueue.back()->addUpdate(true, [targetUID = action.aimUID, magicID = action.extParam.spell.magicID, this](MotionNode *motionPtr) -> bool
                                     {
                                         // usually when reaches this cb the current motion is motionPtr
                                         // but not true if in flushMotionPending()
@@ -682,36 +684,42 @@ bool Hero::parseAction(const ActionNode &action)
 
                                         const auto fromX = motionPtr->x * SYS_MAPGRIDXP;
                                         const auto fromY = motionPtr->y * SYS_MAPGRIDYP;
-                                        m_processRun->addFollowUIDMagic(std::unique_ptr<FollowUIDMagic>(new TaoFireFigure_RUN
+                                        const auto dir16 = [fromX, fromY, targetUID, this]() -> int
                                         {
+                                            if(const auto coPtr = m_processRun->findUID(targetUID)){
+                                                const auto [targetPX, targetPY] = coPtr->getTargetBox().center();
+                                                return pathf::getDir16(targetPX - fromX, (targetPY - fromY) * 1.5);
+                                            }
+                                            else if(m_processRun->getMyHeroUID() == UID()){
+                                                const auto [  viewX,   viewY] = m_processRun->getViewShift();
+                                                const auto [mousePX, mousePY] = SDLDeviceHelper::getMousePLoc();
+                                                return pathf::getDir16(mousePX + viewX - fromX, (mousePY + viewY - fromY) * 1.5);
+                                            }
+                                            else{
+                                                // not myHero
+                                                // use hero's current direction to create magic
+                                                return (m_currMotion->direction - DIR_BEGIN) * 2;
+                                            }
+                                        }();
+
+                                        m_processRun->addFollowUIDMagic(std::unique_ptr<FollowUIDMagic>(new FollowUIDMagic
+                                        {
+                                            DBCOM_MAGICRECORD(magicID).name,
+                                            u8"运行",
+
                                             fromX,
                                             fromY,
 
-                                            [fromX, fromY, targetUID, this]() -> int
-                                            {
-                                                if(const auto coPtr = m_processRun->findUID(targetUID)){
-                                                    const auto [targetPX, targetPY] = coPtr->getTargetBox().center();
-                                                    return pathf::getDir16(targetPX - fromX, targetPY - fromY);
-                                                }
-                                                else if(m_processRun->getMyHeroUID() == UID()){
-                                                    const auto [  viewX,   viewY] = m_processRun->getViewShift();
-                                                    const auto [mousePX, mousePY] = SDLDeviceHelper::getMousePLoc();
-                                                    return pathf::getDir16(mousePX + viewX - fromX, mousePY + viewY - fromY);
-                                                }
-                                                else{
-                                                    // not myHero
-                                                    // use hero's current direction to create magic
-                                                    return (m_currMotion->direction - DIR_BEGIN) * 2;
-                                                }
-                                            }(),
+                                            dir16,
+                                            20,
 
                                             targetUID,
                                             m_processRun,
 
-                                        }))->addOnDone([targetUID, this](MagicBase *)
+                                        }))->addOnDone([targetUID, magicID, this](MagicBase *)
                                         {
                                             if(auto coPtr = m_processRun->findUID(targetUID)){
-                                                coPtr->addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"灵魂火符", u8"结束")));
+                                                coPtr->addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(DBCOM_MAGICRECORD(magicID).name, u8"结束")));
                                             }
                                         });
                                         return true;
