@@ -688,12 +688,12 @@ bool Hero::parseAction(const ActionNode &action)
                                         {
                                             if(const auto coPtr = m_processRun->findUID(targetUID)){
                                                 const auto [targetPX, targetPY] = coPtr->getTargetBox().center();
-                                                return pathf::getDir16(targetPX - fromX, (targetPY - fromY) * 1.5);
+                                                return pathf::getDir16(targetPX - fromX, (targetPY - fromY) * SYS_MAPGRIDXP / SYS_MAPGRIDYP);
                                             }
                                             else if(m_processRun->getMyHeroUID() == UID()){
                                                 const auto [  viewX,   viewY] = m_processRun->getViewShift();
                                                 const auto [mousePX, mousePY] = SDLDeviceHelper::getMousePLoc();
-                                                return pathf::getDir16(mousePX + viewX - fromX, (mousePY + viewY - fromY) * 1.5);
+                                                return pathf::getDir16(mousePX + viewX - fromX, (mousePY + viewY - fromY) * SYS_MAPGRIDXP / SYS_MAPGRIDYP);
                                             }
                                             else{
                                                 // not myHero
@@ -710,6 +710,8 @@ bool Hero::parseAction(const ActionNode &action)
                                             fromX,
                                             fromY,
 
+                                            // gfx to draw magic
+                                            // 冰月震天 has only 1 gfx direction, we use dir16 for default fly direction when aimUID is dead
                                             dir16,
                                             20,
 
