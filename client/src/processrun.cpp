@@ -1778,6 +1778,7 @@ void ProcessRun::checkMagicSpell(const SDL_Event &event)
             }
         case DBCOM_MAGICID(u8"火墙"):
         case DBCOM_MAGICID(u8"地狱火"):
+        case DBCOM_MAGICID(u8"疾光电影"):
             {
                 const auto [aimX, aimY] = getMouseGLoc();
                 getMyHero()->emplaceAction(ActionSpell
@@ -1853,10 +1854,7 @@ void ProcessRun::queryPlayerWLDesp(uint64_t uid) const
 
 void ProcessRun::requestBuy(uint64_t npcUID, uint32_t itemID, uint32_t seqID, size_t count)
 {
-    if(uidf::getUIDType(npcUID) != UID_NPC){
-        throw fflerror("invalid uid: %llu, type: %s", to_llu(npcUID), uidf::getUIDTypeCStr(npcUID));
-    }
-
+    fflassert(uidf::getUIDType(npcUID) == UID_NPC);
     fflassert(SDItem
     {
         .itemID = itemID,

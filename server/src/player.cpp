@@ -366,6 +366,7 @@ DamageNode Player::getAttackDamage(int nDC) const
         case DBCOM_MAGICID(u8"灵魂火符"):
         case DBCOM_MAGICID(u8"冰月神掌"):
         case DBCOM_MAGICID(u8"冰月震天"):
+        case DBCOM_MAGICID(u8"疾光电影"):
         case DBCOM_MAGICID(u8"地狱火"):
             {
                 return MagicDamage

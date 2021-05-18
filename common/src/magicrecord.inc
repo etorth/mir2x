@@ -156,6 +156,29 @@
 
 {
     .name = u8"疾光电影",
+    .element = u8"雷",
+
+    .icon = 0X05001009,
+    .gfxList
+    {
+        {
+            .stage = u8"启动",
+            .type  = u8"附着",
+            .gfxID = 0X000007B2,
+            .frameCount = 10,
+            .gfxIDCount = 10,
+            .gfxDirType = 8,
+        },
+
+        {
+            .stage = u8"运行",
+            .type  = u8"固定",
+            .gfxID = 0X0100049C,
+            .frameCount = 6,
+            .gfxIDCount = 10,
+            .gfxDirType = 8,
+        },
+    }
 },
 
 {

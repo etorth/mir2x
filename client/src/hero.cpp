@@ -550,7 +550,8 @@ bool Hero::parseAction(const ActionNode &action)
             }
         case ACTION_SPELL:
             {
-                if(auto &mr = DBCOM_MAGICRECORD(action.extParam.spell.magicID)){
+                const auto magicID = action.extParam.spell.magicID;
+                if(auto &mr = DBCOM_MAGICRECORD(magicID)){
                     if(auto &gfxEntry = mr.getGfxEntry(u8"启动")){
                         const auto motionSpell = [&gfxEntry]() -> int
                         {
@@ -601,20 +602,20 @@ bool Hero::parseAction(const ActionNode &action)
                             {
                                 .spell
                                 {
-                                    .magicID = action.extParam.spell.magicID,
+                                    .magicID = magicID,
                                 },
                             },
                         }));
 
-                        m_motionQueue.back()->extParam.spell.effect = std::unique_ptr<MagicSpellEffect>([&action, this]() -> MagicSpellEffect *
+                        m_motionQueue.back()->extParam.spell.effect = std::unique_ptr<MagicSpellEffect>([magicID, this]() -> MagicSpellEffect *
                         {
-                            switch(action.extParam.spell.magicID){
+                            switch(magicID){
                                 case DBCOM_MAGICID(u8"灵魂火符"): return new TaoFireFigureEffect(m_motionQueue.back().get());
                                 default                         : return new MagicSpellEffect   (m_motionQueue.back().get());
                             }
                         }());
 
-                        switch(action.extParam.spell.magicID){
+                        switch(magicID){
                             case DBCOM_MAGICID(u8"地狱火"):
                                 {
                                     m_motionQueue.back()->addUpdate(true, [standDir, this](MotionNode *motionPtr) -> bool
@@ -667,11 +668,32 @@ bool Hero::parseAction(const ActionNode &action)
                                     });
                                     break;
                                 }
+                            case DBCOM_MAGICID(u8"疾光电影"):
+                                {
+                                    m_motionQueue.back()->addUpdate(true, [standDir, this](MotionNode *motionPtr) -> bool
+                                    {
+                                        if(motionPtr->frame < 3){
+                                            return false;
+                                        }
+
+                                        m_processRun->addFixedLocMagic(std::unique_ptr<FixedLocMagic>(new FixedLocMagic
+                                        {
+                                            u8"疾光电影",
+                                            u8"运行",
+
+                                            motionPtr->endX,
+                                            motionPtr->endY,
+                                            standDir - DIR_BEGIN,
+                                        }));
+                                        return true;
+                                    });
+                                    break;
+                                }
                             case DBCOM_MAGICID(u8"灵魂火符"):
                             case DBCOM_MAGICID(u8"冰月神掌"):
                             case DBCOM_MAGICID(u8"冰月震天"):
                                 {
-                                    m_motionQueue.back()->addUpdate(true, [targetUID = action.aimUID, magicID = action.extParam.spell.magicID, this](MotionNode *motionPtr) -> bool
+                                    m_motionQueue.back()->addUpdate(true, [targetUID = action.aimUID, magicID, this](MotionNode *motionPtr) -> bool
                                     {
                                         // usually when reaches this cb the current motion is motionPtr
                                         // but not true if in flushMotionPending()
