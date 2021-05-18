@@ -237,19 +237,17 @@ void Hero::drawFrame(int viewX, int viewY, int, int frame, bool)
     // draw HP bar
     // if current m_HPMqx is zero we draw full bar
     if(m_currMotion->type != MOTION_DIE && g_clientArgParser->drawHPBar){
-        auto pBar0 = g_progUseDB->Retrieve(0X00000014);
-        auto pBar1 = g_progUseDB->Retrieve(0X00000015);
+        auto bar0Ptr = g_progUseDB->Retrieve(0X00000014);
+        auto bar1Ptr = g_progUseDB->Retrieve(0X00000015);
 
-        int nW = -1;
-        int nH = -1;
-        SDL_QueryTexture(pBar1, nullptr, nullptr, &nW, &nH);
+        const auto [bar1TexW, bar1TexH] = SDLDeviceHelper::getTextureSize(bar1Ptr);
 
         const int drawHPX = startX +  7;
         const int drawHPY = startY - 53;
-        const int drawHPW = to_d(std::lround(nW * (m_maxHP ? (std::min<double>)(1.0, (1.0 * m_HP) / m_maxHP) : 1.0)));
+        const int drawHPW = to_d(std::lround(bar1TexW * (m_maxHP ? (std::min<double>)(1.0, (1.0 * m_HP) / m_maxHP) : 1.0)));
 
-        g_sdlDevice->drawTexture(pBar1, drawHPX, drawHPY, 0, 0, drawHPW, nH);
-        g_sdlDevice->drawTexture(pBar0, drawHPX, drawHPY);
+        g_sdlDevice->drawTexture(bar1Ptr, drawHPX, drawHPY, 0, 0, drawHPW, bar1TexH);
+        g_sdlDevice->drawTexture(bar0Ptr, drawHPX, drawHPY);
     }
 }
 
