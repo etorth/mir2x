@@ -363,6 +363,8 @@ DamageNode Player::getAttackDamage(int nDC) const
                 };
             }
         case DBCOM_MAGICID(u8"雷电术"):
+        case DBCOM_MAGICID(u8"火球术"):
+        case DBCOM_MAGICID(u8"大火球"):
         case DBCOM_MAGICID(u8"灵魂火符"):
         case DBCOM_MAGICID(u8"冰月神掌"):
         case DBCOM_MAGICID(u8"冰月震天"):
@@ -608,6 +610,8 @@ void Player::onCMActionSpell(CMAction cmA)
     dispatchAction(cmA.action);
 
     switch(magicID){
+        case DBCOM_MAGICID(u8"火球术"):
+        case DBCOM_MAGICID(u8"大火球"):
         case DBCOM_MAGICID(u8"灵魂火符"):
         case DBCOM_MAGICID(u8"冰月神掌"):
         case DBCOM_MAGICID(u8"冰月震天"):

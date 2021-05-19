@@ -100,7 +100,6 @@ enum MagicGfxEntryType: int
     MGT_BEGIN = 1,
     MGT_FIXED = 1,
     MGT_BOUND,
-    MGT_SHOOT,
     MGT_FOLLOW,
     MGT_END,
 };
@@ -110,7 +109,6 @@ constexpr inline const char8_t *magicGfxEntryName(int type)
     switch(type){
         case MGT_FIXED  : return u8"固定";
         case MGT_BOUND  : return u8"附着";
-        case MGT_SHOOT  : return u8"射击";
         case MGT_FOLLOW : return u8"跟随";
         default         : return nullptr ;
     }
@@ -120,7 +118,6 @@ constexpr inline int magicGfxEntryID(const char8_t *type)
 {
     if(type && std::u8string_view(type) == u8"固定") return MGT_FIXED;
     if(type && std::u8string_view(type) == u8"附着") return MGT_BOUND;
-    if(type && std::u8string_view(type) == u8"射击") return MGT_SHOOT;
     if(type && std::u8string_view(type) == u8"跟随") return MGT_FOLLOW;
     return                                                  MGT_NONE;
 }
@@ -179,7 +176,6 @@ struct MagicGfxEntry
         return false
             || checkType(u8"固定")
             || checkType(u8"附着")
-            || checkType(u8"射击")
             || checkType(u8"跟随");
     }
 };

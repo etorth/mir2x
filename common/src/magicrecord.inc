@@ -124,6 +124,76 @@
 
 {
     .name = u8"火球术",
+    .element = u8"火",
+    .checkGround = 1,
+
+    .icon = 0X05001000,
+    .gfxList
+    {
+        {
+            .stage = u8"启动",
+            .type  = u8"附着",
+            .gfxID = 0X0000071C,
+            .frameCount = 8,
+            .gfxIDCount = 10,
+            .gfxDirType = 8,
+        },
+
+        {
+            .stage = u8"运行",
+            .type  = u8"跟随",
+            .gfxID = 0X000001A4,
+            .frameCount = 5,
+            .gfxIDCount = 10,
+            .gfxDirType = 16, //special, has 16 directions
+            .loop = 1,
+            .speed = 200,
+        },
+
+        {
+            .stage = u8"结束",
+            .type  = u8"附着",
+            .gfxID = 0X00000244,
+            .frameCount = 10,
+        },
+    }
+},
+
+{
+    .name = u8"大火球",
+    .element = u8"火",
+    .checkGround = 1,
+
+    .icon = 0X05001004,
+    .gfxList
+    {
+        {
+            .stage = u8"启动",
+            .type  = u8"附着",
+            .gfxID = 0X00000618,
+            .frameCount = 9,
+            .gfxIDCount = 10,
+            .gfxDirType = 8,
+        },
+
+        {
+            .stage = u8"运行",
+            .type  = u8"跟随",
+            .gfxID = 0X00000668,
+            .frameCount = 6,
+            .gfxIDCount = 10,
+            .gfxDirType = 16, //special, has 16 directions
+            .loop = 1,
+            .speed = 200,
+        },
+
+        {
+            .stage = u8"结束",
+            .type  = u8"附着",
+            .gfxID = 0X00000708,
+            .frameCount = 10,
+        },
+    }
 },
 
 {
@@ -136,10 +206,6 @@
 
 {
     .name = u8"精神力战法",
-},
-
-{
-    .name = u8"大火球",
 },
 
 {
@@ -208,7 +274,7 @@
 
         {
             .stage = u8"运行",
-            .type  = u8"射击",
+            .type  = u8"跟随",
             .gfxID = 0X000003D4,
             .frameCount = 3,
             .gfxIDCount = 10,
@@ -311,6 +377,7 @@
             .type  = u8"附着",
             .gfxID = 0X0000071C,
             .frameCount = 8,
+            .gfxIDCount = 10,
             .gfxDirType = 8,
         },
 
@@ -386,10 +453,6 @@
             .speed = 180,
         }
     }
-},
-
-{
-    .name = u8"魔法盾",
 },
 
 {
