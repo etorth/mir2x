@@ -901,20 +901,6 @@ bool Monster::goGhost()
 
 bool Monster::struckDamage(const DamageNode &node)
 {
-    switch(uidf::getMonsterID(UID())){
-        case DBCOM_MONSTERID(u8"变异骷髅"):
-            {
-                if(masterUID()){
-                    return true;
-                }
-                break;
-            }
-        default:
-            {
-                break;
-            }
-    }
-
     if(node){
         m_HP = (std::max<int>)(0, HP() - node.damage);
         dispatchHealth();
