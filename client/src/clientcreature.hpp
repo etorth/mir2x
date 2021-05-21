@@ -352,4 +352,7 @@ class ClientCreature
 
     protected:
         bool isMonster(const char8_t *) const;
+
+    public:
+        virtual void setBuff(int, int);
 };

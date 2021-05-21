@@ -671,6 +671,16 @@ void Player::onCMActionSpell(CMAction cmA)
                 addDelay(800, [this, smFM]()
                 {
                     dispatchNetPackage(true, SM_CASTMAGIC, smFM);
+                    addDelay(10000, [this]()
+                    {
+                        SMBuff smB;
+                        std::memset(&smB, 0, sizeof(smB));
+
+                        smB.uid   = UID();
+                        smB.type  = BFT_SHIELD;
+                        smB.state = BFS_OFF;
+                        dispatchNetPackage(true, SM_BUFF, smB);
+                    });
                 });
                 break;
             }

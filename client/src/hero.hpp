@@ -161,4 +161,7 @@ class Hero: public CreatureMovable
 
     protected:
         bool deadFadeOut() override;
+
+    public:
+        void setBuff(int, int) override;
 };

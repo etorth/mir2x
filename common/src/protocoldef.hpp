@@ -320,3 +320,20 @@ enum CreateAccountErrorType: int
     CAERR_INVALID,
     CAERR_END,
 };
+
+enum BuffType: int
+{
+    BFT_NONE   = 0,
+    BFT_BEGIN  = 1,
+    BFT_SHIELD = BFT_BEGIN,
+    BFT_END,
+};
+
+enum BuffStateType: int
+{
+    BFS_NONE  = 0,
+    BFS_BEGIN = 1,
+    BFS_ON    = BFS_BEGIN,
+    BFS_OFF,
+    BFS_END,
+};

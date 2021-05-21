@@ -205,6 +205,7 @@ class ProcessRun: public Process
 
     public:
         void net_EXP(const uint8_t *, size_t);
+        void net_BUFF(const uint8_t *, size_t);
         void net_MISS(const uint8_t *, size_t);
         void net_TEXT(const uint8_t *, size_t);
         void net_PING(const uint8_t *, size_t);

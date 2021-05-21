@@ -1244,3 +1244,34 @@ bool Hero::deadFadeOut()
             }
     }
 }
+
+void Hero::setBuff(int type, int state)
+{
+    switch(type){
+        case BFT_SHIELD:
+            {
+                switch(state){
+                    case BFS_OFF:
+                        {
+                            for(auto p = m_attachMagicList.begin(); p != m_attachMagicList.end();){
+                                if(p->get()->magicID() == DBCOM_MAGICID(u8"魔法盾")){
+                                    p = m_attachMagicList.erase(p);
+                                }
+                                else{
+                                    p++;
+                                }
+                            }
+                            break;
+                        }
+                    default:
+                        {
+                            break;
+                        }
+                }
+            }
+        default:
+            {
+                break;
+            }
+    }
+}

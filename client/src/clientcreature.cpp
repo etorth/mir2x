@@ -167,3 +167,8 @@ bool ClientCreature::isMonster(const char8_t *name) const
 {
     return (type() == UID_MON) && (dynamic_cast<const ClientMonster *>(this)->monsterID() == DBCOM_MONSTERID(name));
 }
+
+void ClientCreature::setBuff(int, int)
+{
+    // do nothing by default
+}

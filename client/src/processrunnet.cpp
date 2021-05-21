@@ -320,6 +320,14 @@ void ProcessRun::net_EXP(const uint8_t *buf, size_t)
     }
 }
 
+void ProcessRun::net_BUFF(const uint8_t *buf, size_t)
+{
+    const auto smB = ServerMsg::conv<SMBuff>(buf);
+    if(auto coPtr = findUID(smB.uid)){
+        coPtr->setBuff(smB.type, smB.state);
+    }
+}
+
 void ProcessRun::net_MISS(const uint8_t *bufPtr, size_t)
 {
     SMMiss stSMM;
