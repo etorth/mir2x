@@ -37,15 +37,15 @@ class SkillBoard: public Widget
             // icon width : 40
             // icon height: 40
 
-            uint32_t magicID;
-            int level;
+            const uint32_t magicID = 0;
+            const int x = 0;
+            const int y = 0;
 
-            int x;
-            int y;
-            char key;
+            int level = 0;      //  0 means magic is not valid for this user
+            char key  = '\0';   // \0 means magic is not enabled, if level > 0
         };
 
-        class MagicIconButton: public Widget
+        class MagicIconButton: public WidgetGroup
         {
             // +-+-----+
             // |A|     |
@@ -56,13 +56,9 @@ class SkillBoard: public Widget
             //         +-+
 
             private:
-                const SkillBoard::MagicIconData *m_magicIconDataPtr = nullptr;
+                SkillBoard::MagicIconData *m_magicIconDataPtr = nullptr;
 
             private:
-                LabelShadowBoard m_key;
-
-            private:
-                LabelBoard m_level;
                 TritexButton m_icon;
 
             public:
@@ -72,32 +68,7 @@ class SkillBoard: public Widget
                 void drawEx(int, int, int, int, int, int) const override;
 
             public:
-                bool processEvent(const SDL_Event &event, bool valid) override
-                {
-                    return m_icon.processEvent(event, valid);
-                }
-
-            public:
-                void setKey(char key)
-                {
-                    if(key == '\0'){
-                        m_key.setText({});
-                    }
-                    else{
-                        m_key.setText(str_printf(u8"%c", key));
-                    }
-                }
-
-                void setLevel(int level)
-                {
-                    switch(level){
-                        case 0: m_level.setText(u8""); break;
-                        case 1:
-                        case 2:
-                        case 3: m_level.setText(u8"%d", level); break;
-                        default: throw fflerror("invalid skill level: %d", level);
-                    }
-                }
+                bool processEvent(const SDL_Event &, bool) override;
 
             public:
                 bool cursorOn() const
@@ -145,6 +116,11 @@ class SkillBoard: public Widget
                 {
                     return m_magicIconButtonList;
                 }
+
+                void setMagicKey(uint32_t magicID, char key)
+                {
+                    dynamic_cast<SkillBoard *>(m_parent)->setMagicKey(magicID, key);
+                }
         };
 
     private:
@@ -172,9 +148,6 @@ class SkillBoard: public Widget
 
     public:
         SkillBoard(int, int, ProcessRun *, Widget * = nullptr, bool = false);
-
-    public:
-        void update(double) override;
 
     public:
         void drawTabName() const;
@@ -233,6 +206,10 @@ class SkillBoard: public Widget
             }
             return result;
         }
+
+    public:
+        void setMagicLevel(uint32_t, int);
+        void setMagicKey(uint32_t, char);
 
     private:
         static int getSkillPageIndex(uint32_t magicID)

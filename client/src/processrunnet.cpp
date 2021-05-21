@@ -60,6 +60,22 @@ void ProcessRun::net_LOGINOK(const uint8_t *buf, size_t bufSize)
     getMyHero()->pullGold();
 }
 
+void ProcessRun::net_RUNTIMECONFIG(const uint8_t *buf, size_t bufSize)
+{
+    const auto sdRC = cerealf::deserialize<SDRuntimeConfig>(buf, bufSize);
+    for(const auto &[magicID, key]: sdRC.magicKeyList.keyList){
+        dynamic_cast<SkillBoard *>(getWidget("SkillBoard"))->setMagicKey(magicID, key);
+    }
+}
+
+void ProcessRun::net_LEARNEDMAGICLIST(const uint8_t *buf, size_t bufSize)
+{
+    const auto sdLML = cerealf::deserialize<SDLearnedMagicList>(buf, bufSize);
+    for(const auto &magic: sdLML.magicList){
+        dynamic_cast<SkillBoard *>(getWidget("SkillBoard"))->setMagicLevel(magic.magicID, 1);
+    }
+}
+
 void ProcessRun::net_SELLITEMLIST(const uint8_t *buf, size_t bufSize)
 {
     auto sdSIL = cerealf::deserialize<SDSellItemList>(buf, bufSize);
@@ -532,9 +548,9 @@ void ProcessRun::net_NPCSELL(const uint8_t *buf, size_t bufSize)
     npcChatBoardPtr->show(false);
 }
 
-void ProcessRun::net_TEXT(const uint8_t *buf, size_t)
+void ProcessRun::net_TEXT(const uint8_t *buf, size_t bufSize)
 {
-    addCBLog(CBLOG_SYS, u8"%s", to_cstr((const char *)(buf)));
+    addCBLog(CBLOG_SYS, u8"%s", std::string(buf, buf + bufSize).c_str());
 }
 
 void ProcessRun::net_PLAYERWLDESP(const uint8_t *buf, size_t bufSize)

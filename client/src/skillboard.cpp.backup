@@ -28,7 +28,7 @@ extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 
 SkillBoard::MagicIconButton::MagicIconButton(int argX, int argY, SkillBoard::MagicIconData *iconDataPtr, Widget *widgetPtr, bool autoDelete)
-    : WidgetGroup
+    : Widget
       {
           DIR_UPLEFT,
           argX,
@@ -80,15 +80,44 @@ SkillBoard::MagicIconButton::MagicIconButton(int argX, int argY, SkillBoard::Mag
 
 void SkillBoard::MagicIconButton::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int srcH) const
 {
-    if(m_magicIconDataPtr->level > 0){
-        WidgetGroup::drawEx(dstX, dstY, srcX, srcY, srcW, srcH);
+    const auto fnDrawWidget = [dstX, dstY, srcX, srcY, srcW, srcH, this](const Widget *widgetPtr)
+    {
+        if(!widgetPtr->show()){
+            return;
+        }
 
+        int srcXCrop = srcX;
+        int srcYCrop = srcY;
+        int dstXCrop = dstX;
+        int dstYCrop = dstY;
+        int srcWCrop = srcW;
+        int srcHCrop = srcH;
+
+        if(!mathf::ROICrop(
+                    &srcXCrop, &srcYCrop,
+                    &srcWCrop, &srcHCrop,
+                    &dstXCrop, &dstYCrop,
+
+                    w(),
+                    h(),
+
+                    widgetPtr->dx(), widgetPtr->dy(), widgetPtr->w(), widgetPtr->h())){
+            return;
+        }
+        widgetPtr->drawEx(dstXCrop, dstYCrop, srcXCrop - widgetPtr->dx(), srcYCrop - widgetPtr->dy(), srcWCrop, srcHCrop);
+    };
+
+    // to make sure the key always draw on top
+    // otherwise WidgetGroup changes draw order when triggers icon callback, check WidgetGroup::drawEx()
+
+    if(m_magicIconDataPtr->level > 0){
+        fnDrawWidget(&m_icon);
         const LabelBoard magicLevel
         {
             DIR_UPLEFT,
-            0,
-            0,
-            str_printf(u8"%d", m_magicIconDataPtr->level).c_str(),
+            x() + m_icon.w() - 2,
+            y() + m_icon.h() - 1,
+            str_printf(u8"%llu", to_llu(m_magicIconDataPtr->level)).c_str(),
 
             3,
             12,
@@ -96,17 +125,17 @@ void SkillBoard::MagicIconButton::drawEx(int dstX, int dstY, int srcX, int srcY,
 
             colorf::RGBA(0XFF, 0XFF, 0X00, 0XFF),
         };
-        magicLevel.drawAt(DIR_UPLEFT, (dstX - srcX) + (m_icon.w() - 2), (dstY - srcX) + (m_icon.h() - 1), dstX, dstY, srcW, srcH);
+        fnDrawWidget(&magicLevel);
 
         if(m_magicIconDataPtr->key != '\0'){
             const LabelShadowBoard magicKey
             {
                 DIR_UPLEFT,
-                0,
-                0,
+                x() + 2,
+                y() + 2,
                 2,
                 2,
-                str_printf(u8"%c", std::toupper(m_magicIconDataPtr->key)).c_str(),
+                str_printf(u8"%c", m_magicIconDataPtr->key).c_str(),
 
                 3,
                 20,
@@ -115,7 +144,7 @@ void SkillBoard::MagicIconButton::drawEx(int dstX, int dstY, int srcX, int srcY,
                 colorf::RGBA(0XFF, 0X80, 0X00, 0XE0),
                 colorf::RGBA(0X00, 0X00, 0X00, 0XE0),
             };
-            magicKey.drawAt(DIR_UPLEFT, (dstX - srcX + 2), (dstY - srcX + 2), dstX, dstY, srcW, srcH);
+            fnDrawWidget(&magicKey);
         }
     }
 }
@@ -510,44 +539,4 @@ void SkillBoard::drawTabName() const
         colorf::WHITE + 255,
     };
     tabName.drawAt(DIR_UPLEFT, x() + 30, y() + 400);
-}
-
-void SkillBoard::setMagicLevel(uint32_t magicID, int level)
-{
-    fflassert(DBCOM_MAGICRECORD(magicID));
-    fflassert(level >= 1 && level <= 3); // no way to delete a learnt magic
-
-    for(auto &data: m_magicIconDataList){
-        if(data.magicID == magicID){
-            data.level = level;
-            return;
-        }
-    }
-    throw fflerror("no magic icon for magic: %s", to_cstr(DBCOM_MAGICRECORD(magicID).name));
-}
-
-void SkillBoard::setMagicKey(uint32_t magicID, char key)
-{
-    fflassert(DBCOM_MAGICRECORD(magicID));
-    fflassert((key >= 'a' && key <= 'z') || (key >= '0' && key <= '9') || (key == '\0'));
-
-    bool found = false;
-    for(auto &data: m_magicIconDataList){
-        if(data.magicID == magicID){
-            found = true;
-            data.key = key;
-            break;
-        }
-    }
-
-    if(!found){
-        throw fflerror("no magic icon for magic: %s", to_cstr(DBCOM_MAGICRECORD(magicID).name));
-    }
-
-    for(auto &data: m_magicIconDataList){
-        if(data.magicID != magicID && data.key == key){
-            data.key = '\0';
-        }
-    }
-    m_processRun->requestSetMagicKey(magicID, key);
 }

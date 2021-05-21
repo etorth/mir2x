@@ -565,5 +565,35 @@ void Player::net_CM_CONSUMEITEM(uint8_t, const uint8_t *buf, size_t)
         .seqID = cmCI.seqID,
         .count = to_uz(cmCI.count),
     });
+
+    const auto &ir = DBCOM_ITEMRECORD(cmCI.itemID);
+    fflassert(ir);
+
+    if(to_u8sv(ir.type) == u8"技能书"){
+        const uint32_t magicID = DBCOM_MAGICID(ir.name);
+        if(m_sdLearnedMagicList.has(magicID)){
+            postNetMessage(SM_TEXT, str_printf(u8"你已掌握%s", to_cstr(ir.name)));
+            return;
+        }
+        else{
+            m_sdLearnedMagicList.magicList.push_back(SDLearnedMagic
+            {
+                .magicID = magicID,
+            });
+
+            dbLearnMagic(DBCOM_MAGICID(ir.name));
+            postNetMessage(SM_TEXT, str_printf(u8"学习%s", to_cstr(ir.name)));
+            postNetMessage(SM_LEARNEDMAGICLIST, cerealf::serialize(m_sdLearnedMagicList));
+        }
+    }
+    else{
+        // TODO
+    }
     removeInventoryItem(cmCI.itemID, cmCI.seqID, cmCI.count);
+}
+
+void Player::net_CM_SETMAGICKEY(uint8_t, const uint8_t *buf, size_t)
+{
+    const auto cmRC = ClientMsg::conv<CMSetMagicKey>(buf);
+    dbUpdateMagicKey(cmRC.magicID, cmRC.key);
 }

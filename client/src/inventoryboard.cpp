@@ -442,7 +442,8 @@ void InventoryBoard::packBinConsume(const PackBin &bin)
     const auto &ir = DBCOM_ITEMRECORD(bin.item.itemID);
     if(false
             || to_u8sv(ir.type) == u8"恢复药水"
-            || to_u8sv(ir.type) == u8"强化药水"){
+            || to_u8sv(ir.type) == u8"强化药水"
+            || to_u8sv(ir.type) == u8"技能书"){
         m_processRun->requestConsumeItem(bin.item.itemID, bin.item.seqID, 1);
     }
 }

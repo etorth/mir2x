@@ -107,11 +107,11 @@ namespace SDLDeviceHelper
 
         operator bool () const
         {
-            return x < 0 || y < 0;
+            return x >= 0 && y >= 0;
         }
     };
 
-    char getKeyChar(const SDL_Event &);
+    char getKeyChar(const SDL_Event &, bool);
 
     SDLEventPLoc getMousePLoc();
     SDLEventPLoc getEventPLoc(const SDL_Event &);

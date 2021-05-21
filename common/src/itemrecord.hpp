@@ -59,7 +59,7 @@ struct ItemRecord
 
     operator bool() const
     {
-        return std::u8string_view(name) != u8"";
+        return name && std::u8string_view(name) != u8"";
     }
 
     constexpr bool packable() const

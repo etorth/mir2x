@@ -64,7 +64,6 @@ bool ButtonBase::processEvent(const SDL_Event &event, bool valid)
                     return focusConsume(this, false);
                 }
             }
-
         case SDL_MOUSEBUTTONDOWN:
             {
                 if(in(event.button.x, event.button.y)){

@@ -33,6 +33,7 @@ enum CMType: uint8_t
     CM_PING   = 1,
     CM_LOGIN,
     CM_ACTION,
+    CM_SETMAGICKEY,
     CM_QUERYCORECORD,
     CM_REQUESTKILLPETS,
     CM_REQUESTSPACEMOVE,
@@ -63,6 +64,12 @@ struct CMLogin
 {
     char id[64];
     char password[64];
+};
+
+struct CMSetMagicKey
+{
+    uint32_t magicID;
+    uint8_t key;
 };
 
 struct CMAction
@@ -193,6 +200,7 @@ class ClientMsg final: public MsgBase
                 _add_client_msg_type_case(CM_PING,               2, sizeof(CMPing)              )
                 _add_client_msg_type_case(CM_LOGIN,              1, sizeof(CMLogin)             )
                 _add_client_msg_type_case(CM_ACTION,             1, sizeof(CMAction)            )
+                _add_client_msg_type_case(CM_SETMAGICKEY,        1, sizeof(CMSetMagicKey)       )
                 _add_client_msg_type_case(CM_QUERYCORECORD,      1, sizeof(CMQueryCORecord)     )
                 _add_client_msg_type_case(CM_REQUESTKILLPETS,    0, 0                           )
                 _add_client_msg_type_case(CM_REQUESTSPACEMOVE,   1, sizeof(CMRequestSpaceMove)  )
@@ -230,6 +238,7 @@ class ClientMsg final: public MsgBase
                     || std::is_same_v<T, CMRequestSpaceMove>
                     || std::is_same_v<T, CMRequestMagicDamage>
                     || std::is_same_v<T, CMPickUp>
+                    || std::is_same_v<T, CMSetMagicKey>
                     || std::is_same_v<T, CMQueryPlayerWLDesp>
                     || std::is_same_v<T, CMAccount>
                     || std::is_same_v<T, CMNPCEvent>

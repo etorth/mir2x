@@ -19,6 +19,7 @@
 #pragma once
 #include <array>
 #include <string>
+#include <algorithm>
 #include "totype.hpp"
 #include "colorf.hpp"
 #include "cerealf.hpp"
@@ -447,5 +448,70 @@ struct SDGroundFireWallList
     template<typename Archive> void serialize(Archive & ar)
     {
         ar(mapID, fireWallList);
+    }
+};
+
+struct SDLearnedMagic
+{
+    uint32_t magicID = 0;
+    int exp = 0;
+
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(magicID, exp);
+    }
+};
+
+struct SDLearnedMagicList
+{
+    std::vector<SDLearnedMagic> magicList;
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(magicList);
+    }
+
+    bool has(uint32_t magicID) const
+    {
+        return std::ranges::find_if(magicList, [magicID](const auto &param)
+        {
+            return param.magicID == magicID;
+        }) != magicList.end();
+    }
+
+    void clear()
+    {
+        magicList.clear();
+    }
+};
+
+struct SDMagicKeyList
+{
+    std::unordered_map<uint32_t, char> keyList;
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(keyList);
+    }
+
+    void clear()
+    {
+        keyList.clear();
+    }
+
+    bool setMagicKey(uint32_t, char);
+};
+
+struct SDRuntimeConfig
+{
+    int mute = 0;
+    SDMagicKeyList magicKeyList;
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(mute, magicKeyList);
+    }
+
+    void clear()
+    {
+        mute = 0;
+        magicKeyList.clear();
     }
 };

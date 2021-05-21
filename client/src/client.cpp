@@ -362,6 +362,20 @@ void Client::onServerMessage(uint8_t headCode, const uint8_t *pData, size_t nDat
                 }
                 break;
             }
+        case SM_RUNTIMECONFIG:
+            {
+                if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+                    pRun->net_RUNTIMECONFIG(pData, nDataLen);
+                }
+                break;
+            }
+        case SM_LEARNEDMAGICLIST:
+            {
+                if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+                    pRun->net_LEARNEDMAGICLIST(pData, nDataLen);
+                }
+                break;
+            }
         case SM_CORECORD:
             {
                 if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){

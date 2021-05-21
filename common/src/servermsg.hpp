@@ -30,6 +30,8 @@ enum SMType: uint8_t
     SM_ACCOUNT,
     SM_LOGINOK,
     SM_LOGINFAIL,
+    SM_RUNTIMECONFIG,
+    SM_LEARNEDMAGICLIST,
     SM_PLAYERWLDESP,
     SM_ACTION,
     SM_CORECORD,
@@ -281,6 +283,8 @@ class ServerMsg final: public MsgBase
                 _add_server_msg_type_case(SM_PING,               2, sizeof(SMPing)            )
                 _add_server_msg_type_case(SM_ACCOUNT,            1, sizeof(SMAccount)         )
                 _add_server_msg_type_case(SM_LOGINOK,            3, 0                         )
+                _add_server_msg_type_case(SM_RUNTIMECONFIG,      3, 0                         )
+                _add_server_msg_type_case(SM_LEARNEDMAGICLIST,   3, 0                         )
                 _add_server_msg_type_case(SM_LOGINFAIL,          2, sizeof(SMLoginFail)       )
                 _add_server_msg_type_case(SM_PLAYERWLDESP,       3, 0                         )
                 _add_server_msg_type_case(SM_ACTION,             1, sizeof(SMAction)          )

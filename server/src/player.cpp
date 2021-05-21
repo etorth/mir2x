@@ -52,6 +52,8 @@ Player::Player(const SDInitPlayer &initParam, const ServerMap *mapPtr)
     dbLoadWear();
     dbLoadBelt();
     dbLoadInventory();
+    dbLoadLearnedMagic();
+    dbLoadRuntimeConfig();
 
     m_stateTrigger.install([this, lastCheckTick = to_u32(0)]() mutable -> bool
     {
@@ -219,6 +221,7 @@ void Player::operateNet(uint8_t nType, const uint8_t *pData, size_t nDataLen)
         case CM_REQUESTEQUIPBELT : net_CM_REQUESTEQUIPBELT (nType, pData, nDataLen); break;
         case CM_REQUESTGRABBELT  : net_CM_REQUESTGRABBELT  (nType, pData, nDataLen); break;
         case CM_DROPITEM         : net_CM_DROPITEM         (nType, pData, nDataLen); break;
+        case CM_SETMAGICKEY      : net_CM_SETMAGICKEY      (nType, pData, nDataLen); break;
         default                  :                                                   break;
     }
 }
@@ -1015,8 +1018,10 @@ void Player::postOnLoginOK()
     }, true));
 
     postExp();
-    postNetMessage(SM_INVENTORY, cerealf::serialize(m_sdItemStorage.inventory, true));
-    postNetMessage(SM_BELT,      cerealf::serialize(m_sdItemStorage.belt));
+    postNetMessage(SM_INVENTORY,        cerealf::serialize(m_sdItemStorage.inventory));
+    postNetMessage(SM_BELT,             cerealf::serialize(m_sdItemStorage.belt));
+    postNetMessage(SM_LEARNEDMAGICLIST, cerealf::serialize(m_sdLearnedMagicList));
+    postNetMessage(SM_RUNTIMECONFIG,    cerealf::serialize(m_sdRuntimeConfig));
 }
 
 bool Player::hasInventoryItem(uint32_t itemID, uint32_t seqID, size_t count) const

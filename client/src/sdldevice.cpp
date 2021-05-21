@@ -151,7 +151,7 @@ SDLDeviceHelper::EnableTextureModColor::~EnableTextureModColor()
     }
 }
 
-char SDLDeviceHelper::getKeyChar(const SDL_Event &event)
+char SDLDeviceHelper::getKeyChar(const SDL_Event &event, bool checkShiftKey)
 {
     const static std::unordered_map<SDL_Keycode, const char *> s_lookupTable
     {
@@ -206,7 +206,7 @@ char SDLDeviceHelper::getKeyChar(const SDL_Event &event)
     };
 
     if(const auto p = s_lookupTable.find(event.key.keysym.sym); p != s_lookupTable.end()){
-        return p->second[((event.key.keysym.mod & KMOD_LSHIFT) || (event.key.keysym.mod & KMOD_RSHIFT)) ? 1 : 0];
+        return p->second[checkShiftKey && ((event.key.keysym.mod & KMOD_LSHIFT) || (event.key.keysym.mod & KMOD_RSHIFT)) ? 1 : 0];
     }
     return '\0';
 }

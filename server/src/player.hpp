@@ -50,7 +50,9 @@ class Player final: public CharObject
         bool m_pickUpLock = false;
 
     private:
-        SDItemStorage m_sdItemStorage;
+        SDItemStorage      m_sdItemStorage;
+        SDLearnedMagicList m_sdLearnedMagicList;
+        SDRuntimeConfig    m_sdRuntimeConfig;
 
     public:
         Player(const SDInitPlayer &, const ServerMap *);
@@ -139,6 +141,7 @@ class Player final: public CharObject
         void net_CM_REQUESTEQUIPBELT  (uint8_t, const uint8_t *, size_t);
         void net_CM_REQUESTGRABBELT   (uint8_t, const uint8_t *, size_t);
         void net_CM_DROPITEM          (uint8_t, const uint8_t *, size_t);
+        void net_CM_SETMAGICKEY       (uint8_t, const uint8_t *, size_t);
 
     protected:
         void reportGold();
@@ -243,6 +246,17 @@ class Player final: public CharObject
         void dbLoadWear();
         void dbUpdateWearItem(int, const SDItem &);
         void dbRemoveWearItem(int);
+
+    private:
+        void dbLoadRuntimeConfig();
+
+    private:
+        void dbLoadLearnedMagic();
+        void dbUpdateMagicKey(uint32_t, char);
+
+    private:
+        void dbLearnMagic(uint32_t);
+        void dbAddMagicExp(uint32_t, size_t);
 
     protected:
         void checkFriend(uint64_t, std::function<void(int)>) override;

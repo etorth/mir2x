@@ -1390,6 +1390,20 @@ bool ProcessRun::requestSpaceMove(uint32_t nMapID, int nX, int nY)
     return true;
 }
 
+void ProcessRun::requestSetMagicKey(uint32_t magicID, char key)
+{
+    fflassert(DBCOM_MAGICRECORD(magicID));
+    fflassert((key >= 'a' && key <= 'z') || (key >= '0' && key <= '9'));
+
+    CMSetMagicKey cmSMK;
+    std::memset(&cmSMK, 0, sizeof(cmSMK));
+
+    cmSMK.magicID = magicID;
+    cmSMK.key = key;
+
+    g_client->send(CM_SETMAGICKEY, cmSMK);
+}
+
 void ProcessRun::RequestKillPets()
 {
     g_client->send(CM_REQUESTKILLPETS);
@@ -1728,7 +1742,7 @@ void ProcessRun::drawFPS()
 
 void ProcessRun::checkMagicSpell(const SDL_Event &event)
 {
-    const char key = SDLDeviceHelper::getKeyChar(event);
+    const char key = SDLDeviceHelper::getKeyChar(event, false);
     if(key == '\0'){
         return;
     }

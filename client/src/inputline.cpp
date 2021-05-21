@@ -87,7 +87,7 @@ bool InputLine::processEvent(const SDL_Event &event, bool valid)
                         }
                     default:
                         {
-                            const char keyChar = SDLDeviceHelper::getKeyChar(event);
+                            const char keyChar = SDLDeviceHelper::getKeyChar(event, true);
                             if(keyChar != '\0'){
                                 const char text[] {keyChar, '\0'};
                                 m_tpset.insertUTF8String(m_cursor++, 0, text);

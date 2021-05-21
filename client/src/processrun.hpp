@@ -213,6 +213,8 @@ class ProcessRun: public Process
         void net_OFFLINE(const uint8_t *, size_t);
         void net_NPCSELL(const uint8_t *, size_t);
         void net_LOGINOK(const uint8_t *, size_t);
+        void net_RUNTIMECONFIG(const uint8_t *, size_t);
+        void net_LEARNEDMAGICLIST(const uint8_t *, size_t);
         void net_CORECORD(const uint8_t *, size_t);
         void net_UPDATEHP(const uint8_t *, size_t);
         void net_CASTMAGIC(const uint8_t *, size_t);
@@ -411,6 +413,7 @@ class ProcessRun: public Process
         void requestEquipBelt(uint32_t, uint32_t, int);
         void requestGrabBelt(int);
         void requestDropItem(uint32_t, uint32_t, size_t);
+        void requestSetMagicKey(uint32_t, char);
 
     public:
         std::tuple<uint32_t, int, int> getMap() const

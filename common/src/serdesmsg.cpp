@@ -266,3 +266,26 @@ void SDInventory::merge(uint32_t itemID, uint32_t fromSeqID, uint32_t toSeqID)
         m_list.erase(m_list.begin() + fromIndex);
     }
 }
+
+bool SDMagicKeyList::setMagicKey(uint32_t magicID, char key)
+{
+    fflassert(DBCOM_MAGICRECORD(magicID));
+    fflassert((key >= 'a' && key <= 'z') || (key >= '0' && key <= '9'));
+
+    bool changed = false;
+    for(auto p = keyList.begin(); p != keyList.end();){
+        if(p->first != magicID && p->second == key){
+            p = keyList.erase(p);
+            changed = true;
+        }
+        else{
+            p++;
+        }
+    }
+
+    if(auto &magicKey = keyList[magicID]; magicKey != key){
+        changed = true;
+        magicKey = key;
+    }
+    return changed;
+}

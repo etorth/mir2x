@@ -199,68 +199,86 @@ void MonoServer::createDefaultDatabase()
 {
     const char8_t *defSQLCmdList[]
     {
-        u8R"###( create table tbl_account(                                        )###"
-        u8R"###(     fld_dbid        integer  not null primary key autoincrement, )###"
-        u8R"###(     fld_account     char(64) not null,                           )###"
-        u8R"###(     fld_password    char(64) not null                            )###"
-        u8R"###( );                                                               )###",
+        u8R"###( create table tbl_account(                                           )###"
+        u8R"###(     fld_dbid           integer  not null primary key autoincrement, )###"
+        u8R"###(     fld_account        char(64) not null,                           )###"
+        u8R"###(     fld_password       char(64) not null                            )###"
+        u8R"###( );                                                                  )###",
 
-        u8R"###( insert into tbl_account(fld_dbid, fld_account, fld_password)     )###"
-        u8R"###( values                                                           )###"
-        u8R"###(     (1, 'admin', 'admin');                                       )###",
+        u8R"###( insert into tbl_account(fld_dbid, fld_account, fld_password)        )###"
+        u8R"###( values                                                              )###"
+        u8R"###(     (1, 'admin', 'admin');                                          )###",
 
-        u8R"###( create table tbl_dbid(                                           )###"
-        u8R"###(     fld_dbid        integer      not null primary key,           )###"
-        u8R"###(     fld_name        varchar(32)  not null,                       )###"
-        u8R"###(     fld_namecolor   int unsigned default 0,                      )###"
-        u8R"###(     fld_job         varchar(32)  not null,                       )###"
-        u8R"###(     fld_mapname     varchar(32)  not null,                       )###"
-        u8R"###(     fld_mapx        int unsigned not null,                       )###"
-        u8R"###(     fld_mapy        int unsigned not null,                       )###"
-        u8R"###(     fld_hp          int unsigned default 10,                     )###"
-        u8R"###(     fld_mp          int unsigned default 10,                     )###"
-        u8R"###(     fld_exp         int unsigned default 0,                      )###"
-        u8R"###(     fld_gold        int unsigned default 10000,                  )###"
-        u8R"###(     fld_gender      boolean not null,                            )###"
-        u8R"###(     fld_hair        int unsigned default 0,                      )###"
-        u8R"###(     fld_haircolor   int unsigned default 0                       )###"
-        u8R"###( );                                                               )###",
+        u8R"###( create table tbl_dbid(                                              )###"
+        u8R"###(     fld_dbid           integer      not null primary key,           )###"
+        u8R"###(     fld_name           varchar(32)  not null,                       )###"
+        u8R"###(     fld_namecolor      int unsigned default 0,                      )###"
+        u8R"###(     fld_job            varchar(32)  not null,                       )###"
+        u8R"###(     fld_mapname        varchar(32)  not null,                       )###"
+        u8R"###(     fld_mapx           int unsigned not null,                       )###"
+        u8R"###(     fld_mapy           int unsigned not null,                       )###"
+        u8R"###(     fld_hp             int unsigned default 10,                     )###"
+        u8R"###(     fld_mp             int unsigned default 10,                     )###"
+        u8R"###(     fld_exp            int unsigned default 0,                      )###"
+        u8R"###(     fld_gold           int unsigned default 10000,                  )###"
+        u8R"###(     fld_gender         boolean not null,                            )###"
+        u8R"###(     fld_hair           int unsigned default 0,                      )###"
+        u8R"###(     fld_haircolor      int unsigned default 0                       )###"
+        u8R"###( );                                                                  )###",
 
-        u8R"###( create table tbl_belt(                                           )###"
-        u8R"###(     fld_dbid        int unsigned not null,                       )###"
-        u8R"###(     fld_belt        int unsigned not null,                       )###"
-        u8R"###(                                                                  )###"
-        u8R"###(     fld_itemid      int unsigned not null,                       )###"
-        u8R"###(     fld_count       int unsigned not null,                       )###"
-        u8R"###(                                                                  )###"
-        u8R"###(     foreign key (fld_dbid) references tbl_dbid(fld_dbid),        )###"
-        u8R"###(     primary key (fld_dbid, fld_belt)                             )###"
-        u8R"###( );                                                               )###",
+        u8R"###( create table tbl_belt(                                              )###"
+        u8R"###(     fld_dbid           int unsigned not null,                       )###"
+        u8R"###(     fld_belt           int unsigned not null,                       )###"
+        u8R"###(                                                                     )###"
+        u8R"###(     fld_itemid         int unsigned not null,                       )###"
+        u8R"###(     fld_count          int unsigned not null,                       )###"
+        u8R"###(                                                                     )###"
+        u8R"###(     foreign key (fld_dbid) references tbl_dbid(fld_dbid),           )###"
+        u8R"###(     primary key (fld_dbid, fld_belt)                                )###"
+        u8R"###( );                                                                  )###",
 
-        u8R"###( create table tbl_wear(                                           )###"
-        u8R"###(     fld_dbid        int unsigned not null,                       )###"
-        u8R"###(     fld_wear        int unsigned not null,                       )###"
-        u8R"###(                                                                  )###"
-        u8R"###(     fld_itemid      int unsigned not null,                       )###"
-        u8R"###(     fld_count       int unsigned not null,                       )###"
-        u8R"###(     fld_duration    int unsigned not null,                       )###"
-        u8R"###(     fld_extattrlist blob null default (x''),                     )###"
-        u8R"###(                                                                  )###"
-        u8R"###(     foreign key (fld_dbid) references tbl_dbid(fld_dbid),        )###"
-        u8R"###(     primary key (fld_dbid, fld_wear)                             )###"
-        u8R"###( );                                                               )###",
+        u8R"###( create table tbl_wear(                                              )###"
+        u8R"###(     fld_dbid           int unsigned not null,                       )###"
+        u8R"###(     fld_wear           int unsigned not null,                       )###"
+        u8R"###(                                                                     )###"
+        u8R"###(     fld_itemid         int unsigned not null,                       )###"
+        u8R"###(     fld_count          int unsigned not null,                       )###"
+        u8R"###(     fld_duration       int unsigned not null,                       )###"
+        u8R"###(     fld_extattrlist    blob null default (x''),                     )###"
+        u8R"###(                                                                     )###"
+        u8R"###(     foreign key (fld_dbid) references tbl_dbid(fld_dbid),           )###"
+        u8R"###(     primary key (fld_dbid, fld_wear)                                )###"
+        u8R"###( );                                                                  )###",
 
-        u8R"###( create table tbl_inventory(                                      )###"
-        u8R"###(     fld_dbid        int unsigned not null,                       )###"
-        u8R"###(     fld_itemid      int unsigned not null,                       )###"
-        u8R"###(     fld_seqid       int unsigned not null,                       )###"
-        u8R"###(     fld_count       int unsigned not null,                       )###"
-        u8R"###(     fld_duration    int unsigned not null,                       )###"
-        u8R"###(     fld_extattrlist blob         not null,                       )###"
-        u8R"###(                                                                  )###"
-        u8R"###(     foreign key (fld_dbid) references tbl_dbid(fld_dbid),        )###"
-        u8R"###(     primary key (fld_dbid, fld_itemid, fld_seqid)                )###"
-        u8R"###( );                                                               )###",
+        u8R"###( create table tbl_inventory(                                         )###"
+        u8R"###(     fld_dbid           int unsigned not null,                       )###"
+        u8R"###(     fld_itemid         int unsigned not null,                       )###"
+        u8R"###(     fld_seqid          int unsigned not null,                       )###"
+        u8R"###(     fld_count          int unsigned not null,                       )###"
+        u8R"###(     fld_duration       int unsigned not null,                       )###"
+        u8R"###(     fld_extattrlist    blob         not null,                       )###"
+        u8R"###(                                                                     )###"
+        u8R"###(     foreign key (fld_dbid) references tbl_dbid(fld_dbid),           )###"
+        u8R"###(     primary key (fld_dbid, fld_itemid, fld_seqid)                   )###"
+        u8R"###( );                                                                  )###",
+
+        u8R"###( create table tbl_learnedmagiclist(                                  )###"
+        u8R"###(     fld_dbid           int unsigned not null,                       )###"
+        u8R"###(     fld_magicid        int unsigned not null,                       )###"
+        u8R"###(     fld_exp            int unsigned default 0,                      )###"
+        u8R"###(                                                                     )###"
+        u8R"###(     foreign key (fld_dbid) references tbl_dbid(fld_dbid),           )###"
+        u8R"###(     primary key (fld_dbid, fld_magicid)                             )###"
+        u8R"###( );                                                                  )###",
+
+        u8R"###( create table tbl_runtimeconfig(                                     )###"
+        u8R"###(     fld_dbid           int unsigned not null,                       )###"
+        u8R"###(     fld_mute           int unsigned default 0,                      )###"
+        u8R"###(     fld_magickeylist   blob null default (x''),                     )###"
+        u8R"###(                                                                     )###"
+        u8R"###(     foreign key (fld_dbid) references tbl_dbid(fld_dbid),           )###"
+        u8R"###(     primary key (fld_dbid)                                          )###"
+        u8R"###( );                                                                  )###",
     };
 
     {

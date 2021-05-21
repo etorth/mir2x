@@ -90,6 +90,44 @@ void Player::dbRemoveInventoryItem(const SDItem &item)
     dbRemoveInventoryItem(item.itemID, item.seqID);
 }
 
+
+void Player::dbLoadRuntimeConfig()
+{
+    // tbl_runtimeconfig:
+    // +----------+----------+--------------+
+    // | fld_dbid | fld_mute | fld_magickey |
+    // +----------+----------+--------------+
+
+    m_sdRuntimeConfig.clear();
+    auto query = g_dbPod->createQuery("select * from tbl_runtimeconfig where fld_dbid = %llu", to_llu(dbid()));
+
+    if(query.executeStep()){
+        m_sdRuntimeConfig.mute = query.getColumn("fld_mute");
+        m_sdRuntimeConfig.magicKeyList = cerealf::deserialize<SDMagicKeyList>(query.getColumn("fld_magickeylist"));
+    }
+}
+
+void Player::dbUpdateMagicKey(uint32_t magicID, char key)
+{
+    fflassert(m_sdLearnedMagicList.has(magicID));
+    fflassert((key >= 'a' && key <= 'z') || (key >= '0' && key <= '9'));
+
+    if(!m_sdRuntimeConfig.magicKeyList.setMagicKey(magicID, key)){
+        return;
+    }
+
+    const auto keyBuf = cerealf::serialize(m_sdRuntimeConfig.magicKeyList);
+    auto query = g_dbPod->createQuery(
+            u8R"###( replace into tbl_runtimeconfig(fld_dbid, fld_magickeylist) )###"
+            u8R"###( values                                                     )###"
+            u8R"###(     (%llu, ?)                                              )###",
+
+            to_llu(dbid()));
+
+    query.bind(1, keyBuf.data(), keyBuf.length());
+    query.exec();
+}
+
 void Player::dbLoadBelt()
 {
     // tbl_belt:
@@ -226,4 +264,50 @@ void Player::dbRemoveWearItem(int wltype)
         throw fflerror("bad wltype: %d", wltype);
     }
     g_dbPod->exec("delete from tbl_wear where fld_dbid = %llu and fld_wear = %llu", to_llu(dbid()), to_llu(wltype));
+}
+
+void Player::dbLearnMagic(uint32_t magicID)
+{
+    // tbl_learnedmagiclist:
+    // +----------+-------------+---------+
+    // | fld_dbid | fld_magicid | fld_exp |
+    // +----------+-------------+---------+
+    // |<-----primary key------>|
+
+    fflassert(DBCOM_MAGICRECORD(magicID));
+    g_dbPod->exec(
+            u8R"###( insert into tbl_learnedmagiclist(fld_dbid, fld_magicid) )###"
+            u8R"###( values                                                  )###"
+            u8R"###(     (%llu, %llu)                                        )###",
+
+            to_llu(dbid()),
+            to_llu(magicID));
+}
+
+void Player::dbAddMagicExp(uint32_t magicID, size_t exp)
+{
+    fflassert(DBCOM_MAGICRECORD(magicID));
+    if(exp > 0){
+        g_dbPod->exec("update tbl_learnedmagiclist set fld_exp = fld_exp + %llu where fld_dbid = %llu and fld_magic = %zu", to_llu(dbid()), to_llu(magicID), exp);
+    }
+}
+
+void Player::dbLoadLearnedMagic()
+{
+    // tbl_learnedmagiclist:
+    // +----------+-----------+---------+
+    // | fld_dbid | fld_magic | fld_exp |
+    // +----------+-----------+---------+
+    // |<----primary key----->|
+
+    m_sdLearnedMagicList.clear();
+    auto query = g_dbPod->createQuery("select * from tbl_learnedmagiclist where fld_dbid = %llu", to_llu(dbid()));
+
+    while(query.executeStep()){
+        m_sdLearnedMagicList.magicList.push_back(SDLearnedMagic
+        {
+            .magicID = check_cast<uint32_t, unsigned>(query.getColumn("fld_magicid")),
+            .exp = query.getColumn("fld_exp"),
+        });
+    }
 }

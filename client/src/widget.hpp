@@ -308,6 +308,10 @@ class Widget
 // simple *tiling* widget group
 // this class won't handle widget overlapping
 
+// when to use Widget, when to use WidgetGroup:
+// when you are implement a widget from scratch, define how to draw every element, then use Widget
+// if your widget is a composition of other widgets, has many child widgets inside, then you should use WidgetGroup
+
 class WidgetGroup: public Widget
 {
     public:
