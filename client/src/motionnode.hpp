@@ -216,15 +216,21 @@ class MagicSpellEffect
         }
 };
 
-class TaoFireFigureEffect: public MagicSpellEffect
+class CastMagicMotionEffect: public MagicSpellEffect
 {
     public:
-        using MagicSpellEffect::MagicSpellEffect;
+        CastMagicMotionEffect(const MotionNode *motionPtr)
+            : MagicSpellEffect(motionPtr)
+        {}
 
     public:
         int frameCount() const override
         {
-            return MagicSpellEffect::frameCount() + 2;
+            switch(m_motion.type){
+                case MOTION_SPELL0: return std::max<int>(MagicSpellEffect::frameCount(),  8);
+                case MOTION_SPELL1: return std::max<int>(MagicSpellEffect::frameCount(), 10);
+                default           : throw bad_reach();
+            }
         }
 
         uint32_t frameTexID() const override

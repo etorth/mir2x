@@ -607,14 +607,7 @@ bool Hero::parseAction(const ActionNode &action)
                             },
                         }));
 
-                        m_motionQueue.back()->extParam.spell.effect = std::unique_ptr<MagicSpellEffect>([magicID, this]() -> MagicSpellEffect *
-                        {
-                            switch(magicID){
-                                case DBCOM_MAGICID(u8"灵魂火符"): return new TaoFireFigureEffect(m_motionQueue.back().get());
-                                default                         : return new MagicSpellEffect   (m_motionQueue.back().get());
-                            }
-                        }());
-
+                        m_motionQueue.back()->extParam.spell.effect.reset(new CastMagicMotionEffect(m_motionQueue.back().get()));
                         switch(magicID){
                             case DBCOM_MAGICID(u8"地狱火"):
                                 {
