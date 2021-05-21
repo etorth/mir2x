@@ -181,9 +181,11 @@ SkillBoard::SkillBoard(int nX, int nY, ProcessRun *runPtr, Widget *pwidget, bool
           {DBCOM_MAGICID(u8"灵魂火符"), 192,  13},
           {DBCOM_MAGICID(u8"冰月神掌"),  12,  13},
           {DBCOM_MAGICID(u8"冰月震天"),  12,  78},
+          {DBCOM_MAGICID(u8"冰沙掌"  ), 132, 143},
           {DBCOM_MAGICID(u8"地狱火"  ), 132,  78},
           {DBCOM_MAGICID(u8"火球术"  ),  12,  13},
           {DBCOM_MAGICID(u8"大火球"  ),  12,  78},
+          {DBCOM_MAGICID(u8"焰天火雨"),  12, 208},
           {DBCOM_MAGICID(u8"火墙"    ), 132, 143},
           {DBCOM_MAGICID(u8"疾光电影"), 132, 143},
       }

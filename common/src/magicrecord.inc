@@ -561,6 +561,31 @@
 
 {
     .name = u8"冰沙掌",
+    .element = u8"冰",
+    .checkGround = 1,
+
+    .icon = 0X05001028,
+    .gfxList
+    {
+        {
+            .stage = u8"启动",
+            .type  = u8"附着",
+            .gfxID = 0X01000000,
+            .frameCount = 10,
+            .gfxIDCount = 10,
+            .gfxDirType = 8,
+        },
+
+        {
+            .stage = u8"运行",
+            .type  = u8"固定",
+            .gfxID = 0X0100005A,
+            .frameCount = 20,
+            .gfxDirType = 2,
+            .onGround = 1,
+            .speed = 200,
+        },
+    }
 },
 
 {
@@ -633,6 +658,38 @@
 
 {
     .name = u8"焰天火雨",
+    .element = u8"火",
+
+    .icon = 0X05001042,
+    .gfxList
+    {
+        {
+            .stage = u8"启动",
+            .type  = u8"附着",
+            .gfxID = 0X00000618,
+            .frameCount = 9,
+            .gfxIDCount = 10,
+            .gfxDirType = 8,
+        },
+
+        {
+            .stage = u8"运行",
+            .type  = u8"跟随",
+            .gfxID = 0X00000668,
+            .frameCount = 6,
+            .gfxIDCount = 10,
+            .gfxDirType = 16, //special, has 16 directions
+            .loop = 1,
+            .speed = 200,
+        },
+
+        {
+            .stage = u8"结束",
+            .type  = u8"附着",
+            .gfxID = 0X00000708,
+            .frameCount = 10,
+        },
+    },
 },
 
 {

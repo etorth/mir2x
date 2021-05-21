@@ -1794,7 +1794,9 @@ void ProcessRun::checkMagicSpell(const SDL_Event &event)
             }
         case DBCOM_MAGICID(u8"火墙"):
         case DBCOM_MAGICID(u8"地狱火"):
+        case DBCOM_MAGICID(u8"冰沙掌"):
         case DBCOM_MAGICID(u8"疾光电影"):
+        case DBCOM_MAGICID(u8"焰天火雨"):
             {
                 const auto [aimX, aimY] = getMouseGLoc();
                 getMyHero()->emplaceAction(ActionSpell
