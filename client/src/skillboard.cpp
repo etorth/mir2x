@@ -96,7 +96,7 @@ void SkillBoard::MagicIconButton::drawEx(int dstX, int dstY, int srcX, int srcY,
 
             colorf::RGBA(0XFF, 0XFF, 0X00, 0XFF),
         };
-        magicLevel.drawAt(DIR_UPLEFT, (dstX - srcX) + (m_icon.w() - 2), (dstY - srcX) + (m_icon.h() - 1), dstX, dstY, srcW, srcH);
+        magicLevel.drawAt(DIR_UPLEFT, (dstX - srcX) + (m_icon.w() - 2), (dstY - srcY) + (m_icon.h() - 1), dstX, dstY, srcW, srcH);
 
         if(m_magicIconDataPtr->key != '\0'){
             const LabelShadowBoard magicKey
@@ -115,7 +115,7 @@ void SkillBoard::MagicIconButton::drawEx(int dstX, int dstY, int srcX, int srcY,
                 colorf::RGBA(0XFF, 0X80, 0X00, 0XE0),
                 colorf::RGBA(0X00, 0X00, 0X00, 0XE0),
             };
-            magicKey.drawAt(DIR_UPLEFT, (dstX - srcX + 2), (dstY - srcX + 2), dstX, dstY, srcW, srcH);
+            magicKey.drawAt(DIR_UPLEFT, (dstX - srcX + 2), (dstY - srcY + 2), dstX, dstY, srcW, srcH);
         }
     }
 }
