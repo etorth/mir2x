@@ -1166,9 +1166,8 @@ void ServerMap::updateFireWall()
         for(int nY = 0; nY < H(); ++nY){
 
             bool hasDoneWallFire = false;
-            const auto currTime = g_monoServer->getCurrTick();
-
             for(auto p = getGrid(nX, nY).fireWallList.begin(); p != getGrid(nX, nY).fireWallList.end();){
+                const auto currTime = g_monoServer->getCurrTick();
                 if(currTime >= p->startTime + p->duration){
                     p = getGrid(nX, nY).fireWallList.erase(p);
                     hasDoneWallFire = true;
