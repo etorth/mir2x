@@ -32,12 +32,12 @@ class ActorPod final
         friend class ActorPool;
 
     private:
-        struct RespondHandler
+        struct RespondCallback
         {
-            uint32_t expireTime;
+            uint64_t expireTime;
             std::function<void(const ActorMsgPack &)> op;
 
-            RespondHandler(uint32_t argExpireTime, std::function<void(const ActorMsgPack &)> argOp)
+            RespondCallback(uint64_t argExpireTime, std::function<void(const ActorMsgPack &)> argOp)
                 : expireTime(argExpireTime)
                 , op(std::move(argOp))
             {}
@@ -66,14 +66,14 @@ class ActorPod final
         const std::function<void(const ActorMsgPack &)> m_operation;
 
     private:
-        // used by ValidID()
+        // used by rollSeqID()
         // to create unique proper ID for an message expcecting response
-        uint32_t m_validID;
+        uint32_t m_nextSeqID = 1;
 
-        // for expire time check
+        // for expire time check in nanoseconds
         // zero expire time means we never expire any handler for current pod
         // we can put argument to specify the expire time of each handler but not necessary
-        const uint32_t m_expireTime;
+        const uint64_t m_expireTime;
 
         // use std::map instead of std::unordered_map
         //
@@ -85,7 +85,7 @@ class ActorPod final
         // 2. std::map keeps entries in order by Resp number
         //    Resp number gives strict order of expire time, excellent feature by std::map
         //    then when checking expired ones, we start from std::map::begin() and stop at the fist non-expired one
-        std::map<uint32_t, RespondHandler> m_respondHandlerGroup;
+        std::map<uint32_t, RespondCallback> m_respondCBList;
 
     private:
         ActorPodMonitor m_podMonitor;
@@ -93,14 +93,14 @@ class ActorPod final
     public:
         explicit ActorPod(uint64_t,                         // UID
                 std::function<void()>,                      // trigger
-                std::function<void(const ActorMsgPack &)>,   // msgHandler
-                uint32_t);                                  // timeout
+                std::function<void(const ActorMsgPack &)>,  // msgHandler
+                uint64_t);                                  // timeout in nanoseconds
 
     public:
         ~ActorPod();
 
     private:
-        uint32_t GetValidID();
+        uint32_t rollSeqID();
 
     private:
         void innHandler(const ActorMsgPack &);

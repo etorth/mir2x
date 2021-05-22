@@ -86,7 +86,7 @@ uint64_t ServerObject::activate()
             operateAM(mpk);
         },
 
-        3600 * 1000,
+        3600ULL * 1000 * 1000 * 1000,
     };
 
     // seperate attach call

@@ -27,24 +27,29 @@
 
 struct ServerArgParser
 {
-    const bool disableProfiler;         // "--disable-profiler"
-    const bool disableMapScript;        // "--disable-map-script"
-    const bool traceActorMessage;       // "--trace-actor-message"
-    const bool traceActorMessageCount;  // "--trace-actor-message-count"
-    const bool disablePetSpawn;         // "--disable-pet-spawn"
-    const bool disableGuardSpawn;       // "--disable-guard-spawn"
-    const bool disableMonsterSpawn;     // "--disable-monster-spawn"
-    const bool disableNPCSpawn;         // "--disable-npc-spawn"
-    const bool showStrikeGrid;          // "--show-strike-grid"
-    const bool preloadMap;              // "--preload-map"
-    const int  preloadMapID;            // "--preload-map-id"
-    const int  actorPoolThread;         // "--actor-pool-thread"
+    const bool disableProfiler;             // "--disable-profiler"
+    const bool disableMapScript;            // "--disable-map-script"
+
+    const bool traceActorMessage;           // "--trace-actor-message"
+    const bool traceActorMessageCount;      // "--trace-actor-message-count"
+    const bool enableUniqueActorMessageID;  // "--enable-unique-actor-message-id"
+
+    const bool disablePetSpawn;             // "--disable-pet-spawn"
+    const bool disableGuardSpawn;           // "--disable-guard-spawn"
+    const bool disableMonsterSpawn;         // "--disable-monster-spawn"
+    const bool disableNPCSpawn;             // "--disable-npc-spawn"
+
+    const bool showStrikeGrid;              // "--show-strike-grid"
+    const bool preloadMap;                  // "--preload-map"
+    const int  preloadMapID;                // "--preload-map-id"
+    const int  actorPoolThread;             // "--actor-pool-thread"
 
     ServerArgParser(const argh::parser &cmdParser)
         : disableProfiler(cmdParser["disable-profiler"])
         , disableMapScript(cmdParser["disable-map-script"])
         , traceActorMessage(cmdParser["trace-actor-message"])
         , traceActorMessageCount(cmdParser["trace-actor-message-count"])
+        , enableUniqueActorMessageID(cmdParser["enable-unique-actor-message-id"])
         , disablePetSpawn(cmdParser["disable-pet-spawn"])
         , disableGuardSpawn(cmdParser["disable-guard-spawn"])
         , disableMonsterSpawn(cmdParser["disable-monster-spawn"])

@@ -34,7 +34,7 @@ extern ServerArgParser *g_serverArgParser;
 ActorPod::ActorPod(uint64_t nUID,
         std::function<void()> fnTrigger,
         std::function<void(const ActorMsgPack &)> fnOperation,
-        uint32_t nExpireTime)
+        uint64_t nExpireTime)
     : m_UID([nUID]() -> uint64_t
       {
           if(!nUID){
@@ -48,9 +48,7 @@ ActorPod::ActorPod(uint64_t nUID,
       }())
     , m_trigger(std::move(fnTrigger))
     , m_operation(std::move(fnOperation))
-    , m_validID(0)
     , m_expireTime(nExpireTime)
-    , m_respondHandlerGroup()
 {}
 
 ActorPod::~ActorPod()
@@ -76,16 +74,16 @@ void ActorPod::innHandler(const ActorMsgPack &mpk)
     }
 
     if(m_expireTime){
-        while(!m_respondHandlerGroup.empty()){
-            if(g_monoServer->getCurrTick() >= m_respondHandlerGroup.begin()->second.expireTime){
+        while(!m_respondCBList.empty()){
+            if(hres_tstamp().to_nsec() >= m_respondCBList.begin()->second.expireTime){
                 // everytime when we received the new MPK we check if there is handler the timeout
                 // also this time get counted into the monitor entry
                 m_podMonitor.amProcMonitorList[AM_TIMEOUT].recvCount++;
                 {
                     raii_timer stTimer(&(m_podMonitor.amProcMonitorList[AM_TIMEOUT].procTick));
-                    m_respondHandlerGroup.begin()->second.op(AM_TIMEOUT);
+                    m_respondCBList.begin()->second.op(AM_TIMEOUT);
                 }
-                m_respondHandlerGroup.erase(m_respondHandlerGroup.begin());
+                m_respondCBList.erase(m_respondCBList.begin());
                 continue;
             }
 
@@ -103,7 +101,7 @@ void ActorPod::innHandler(const ActorMsgPack &mpk)
         // 1.     find it, good
         // 2. not find it: 1. didn't register for it, we must prevent this at sending
         //                 2. repsonse is too late ooops and the handler has already be deleted
-        if(auto p = m_respondHandlerGroup.find(mpk.respID()); p != m_respondHandlerGroup.end()){
+        if(auto p = m_respondCBList.find(mpk.respID()); p != m_respondCBList.end()){
             if(p->second.op){
                 m_podMonitor.amProcMonitorList[mpk.type()].recvCount++;
                 {
@@ -114,7 +112,7 @@ void ActorPod::innHandler(const ActorMsgPack &mpk)
             else{
                 throw fflerror("%s <- %s : (type: %s, seqID: %llu, respID: %llu): Response handler not executable", to_cstr(uidf::getUIDString(UID())), to_cstr(uidf::getUIDString(mpk.from())), mpkName(mpk.type()), to_llu(mpk.seqID()), to_llu(mpk.respID()));
             }
-            m_respondHandlerGroup.erase(p);
+            m_respondCBList.erase(p);
         }else{
             // should only caused by deletion of timeout
             // do nothing for this case, don't take this as an error
@@ -144,25 +142,30 @@ void ActorPod::innHandler(const ActorMsgPack &mpk)
     }
 }
 
-uint32_t ActorPod::GetValidID()
+uint32_t ActorPod::rollSeqID()
 {
-    // previously I use g_serverArgParser->traceActorMessage to select use this one
-    // this is dangerous since if we can change g_serverArgParser->traceActorMessage during runtime then it's dead
-    if(1){
-        static std::atomic<uint32_t> s_ValidID(1);
-        auto nNewValidID = s_ValidID.fetch_add(1);
+    // NOTE we have to use increasing seqID for one pod to support timeout
+    // previously we reset m_nextSeqID when m_respondCBList is empty, as following:
+    //
+    //     if(m_respondCBList.empty){
+    //         m_nextSeqID = 1;
+    //     }
+    //     else{
+    //         m_nextSeqID++;
+    //     }
+    //     return m_nextSeqID;
+    //
+    // This implementation has bug when we support timeout:
+    // when we sent a message and wait its response but timed out, we remove the respond callback from m_respondCBList
+    // then m_respondCBList can be empty if we reset m_nextSeqID, however the responding actor message can come after the m_nextSeqID reset
 
-        if(nNewValidID){
-            return nNewValidID;
-        }
-        throw fflerror("running out of message seqID");
+    if(g_serverArgParser->enableUniqueActorMessageID){
+        static std::atomic<uint32_t> s_nextSeqID {1}; // shared by all ActorPod
+        return s_nextSeqID.fetch_add(1);
     }
-
-    m_validID = (m_respondHandlerGroup.empty() ? 1 : (m_validID + 1));
-    if(auto p = m_respondHandlerGroup.find(m_validID); p == m_respondHandlerGroup.end()){
-        return m_validID;
+    else{
+        return m_nextSeqID++;
     }
-    throw fflerror("running out of message seqID");
 }
 
 bool ActorPod::forward(uint64_t uid, const ActorMsgBuf &mbuf, uint32_t respID)
@@ -205,14 +208,14 @@ bool ActorPod::forward(uint64_t uid, const ActorMsgBuf &mbuf, uint32_t respID, s
         throw fflerror("%s -> %s: (type: %s, seqID: NA, respID: %llu): Response handler not executable", to_cstr(uidf::getUIDString(UID())), to_cstr(uidf::getUIDString(uid)), mpkName(mbuf.type()), to_llu(respID));
     }
 
-    const auto nID = GetValidID();
+    const auto seqID = rollSeqID();
     if(g_serverArgParser->traceActorMessage){
-        g_monoServer->addLog(LOGTYPE_DEBUG, "%s -> %s: (type: %s, seqID: %llu, respID: %llu)", to_cstr(uidf::getUIDString(UID())), to_cstr(uidf::getUIDString(uid)), mpkName(mbuf.type()), to_llu(nID), to_llu(respID));
+        g_monoServer->addLog(LOGTYPE_DEBUG, "%s -> %s: (type: %s, seqID: %llu, respID: %llu)", to_cstr(uidf::getUIDString(UID())), to_cstr(uidf::getUIDString(uid)), mpkName(mbuf.type()), to_llu(seqID), to_llu(respID));
     }
 
     m_podMonitor.amProcMonitorList[mbuf.type()].sendCount++;
-    if(g_actorPool->postMessage(uid, {mbuf, UID(), nID, respID})){
-        if(m_respondHandlerGroup.try_emplace(nID, g_monoServer->getCurrTick() + m_expireTime, std::move(opr)).second){
+    if(g_actorPool->postMessage(uid, {mbuf, UID(), seqID, respID})){
+        if(m_respondCBList.try_emplace(seqID, hres_tstamp().to_nsec() + m_expireTime, std::move(opr)).second){
             return true;
         }
         throw fflerror("failed to register response handler for posted message: %s", mpkName(mbuf.type()));
