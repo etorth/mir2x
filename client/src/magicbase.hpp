@@ -147,7 +147,7 @@ class MagicBase
         // 8       }
         // 9   }
         //
-        // we mark done() as protected
+        // we mark done() as protected, but when use magic composition I have to keep it public
         // user shouldn't call it directly
 
         virtual bool update(double ms)
@@ -165,10 +165,11 @@ class MagicBase
     public:
         int frame() const
         {
-            switch(m_gfxEntry.loop){
-                case  0: return absFrame();
-                case  1: return absFrame() % m_gfxEntry.frameCount;
-                default: return -1;
+            if(m_gfxEntry.loop){
+                return absFrame() % m_gfxEntry.frameCount;
+            }
+            else{
+                return absFrame();
             }
         }
 
@@ -188,7 +189,7 @@ class MagicBase
             m_onUpdateCBList.push_back(std::move(onUpdate));
         }
 
-    protected:
+    public:
         virtual bool done() const
         {
             if(m_gfxEntry.loop){

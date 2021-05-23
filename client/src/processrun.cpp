@@ -338,6 +338,10 @@ void ProcessRun::draw()
         if(p->checkMagic(u8"火焰灰烬", u8"运行")){
             dynamic_cast<FireAshEffect_RUN *>(p.get())->drawGroundAsh(m_viewX, m_viewY, colorf::WHITE + 150);
         }
+
+        if(p->checkMagic(u8"冰沙掌", u8"运行")){
+            dynamic_cast<IceThrust_RUN *>(p.get())->drawGroundIce(m_viewX, m_viewY, colorf::WHITE + 150);
+        }
     }
 
     // draw dead actors
@@ -377,7 +381,7 @@ void ProcessRun::draw()
         for(int x = x0; x <= x1; ++x){
             if(auto p = fireWallList.find({x, y}); p != fireWallList.end()){
                 for(auto magicPtr: p->second){
-                    magicPtr->drawViewOff(m_viewX, m_viewY, colorf::WHITE + 200);
+                    magicPtr->drawViewOff(m_viewX, m_viewY, colorf::WHITE + 255);
                 }
             }
 

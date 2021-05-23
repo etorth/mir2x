@@ -609,9 +609,10 @@ bool Hero::parseAction(const ActionNode &action)
 
                         m_motionQueue.back()->extParam.spell.effect.reset(new CastMagicMotionEffect(m_motionQueue.back().get()));
                         switch(magicID){
+                            case DBCOM_MAGICID(u8"冰沙掌"):
                             case DBCOM_MAGICID(u8"地狱火"):
                                 {
-                                    m_motionQueue.back()->addUpdate(true, [standDir, this](MotionNode *motionPtr) -> bool
+                                    m_motionQueue.back()->addUpdate(true, [standDir, magicID, this](MotionNode *motionPtr) -> bool
                                     {
                                         // usually when reaches this cb the motionPtr is just currMotion()
                                         // but not true if in flushMotionPending()
@@ -624,7 +625,7 @@ bool Hero::parseAction(const ActionNode &action)
                                         const auto castY = motionPtr->endY;
 
                                         for(const auto distance: {1, 2, 3, 4, 5, 6, 7, 8}){
-                                            m_processRun->addDelay(distance * 100, [standDir, castX, castY, distance, castMapID = m_processRun->mapID(), this]()
+                                            m_processRun->addDelay(distance * 100, [standDir, magicID, castX, castY, distance, castMapID = m_processRun->mapID(), this]()
                                             {
                                                 if(m_processRun->mapID() != castMapID){
                                                     return;
@@ -635,26 +636,33 @@ bool Hero::parseAction(const ActionNode &action)
                                                     return;
                                                 }
 
-                                                m_processRun->addFixedLocMagic(std::unique_ptr<FixedLocMagic>(new HellFire_RUN
-                                                {
-                                                    aimX,
-                                                    aimY,
-                                                    standDir,
-                                                }))->addOnUpdate([aimX, aimY, this](MagicBase *magicPtr)
-                                                {
-                                                    if(magicPtr->frame() < 10){
-                                                        return false;
-                                                    }
-
-                                                    m_processRun->addFixedLocMagic(std::unique_ptr<FixedLocMagic>(new FireAshEffect_RUN
+                                                if(magicID == DBCOM_MAGICID(u8"冰沙掌")){
+                                                    m_processRun->addFixedLocMagic(std::unique_ptr<FixedLocMagic>(new IceThrust_RUN(aimX, aimY, standDir)));
+                                                }
+                                                else if(magicID == DBCOM_MAGICID(u8"地狱火")){
+                                                    m_processRun->addFixedLocMagic(std::unique_ptr<FixedLocMagic>(new HellFire_RUN
                                                     {
                                                         aimX,
                                                         aimY,
-                                                        1000,
-                                                    }));
-                                                    return true;
-                                                });
+                                                        standDir,
+                                                    }))->addOnUpdate([aimX, aimY, this](MagicBase *magicPtr)
+                                                    {
+                                                        if(magicPtr->frame() < 10){
+                                                            return false;
+                                                        }
 
+                                                        m_processRun->addFixedLocMagic(std::unique_ptr<FixedLocMagic>(new FireAshEffect_RUN
+                                                        {
+                                                            aimX,
+                                                            aimY,
+                                                            1000,
+                                                        }));
+                                                        return true;
+                                                    });
+                                                }
+                                                else{
+                                                    throw bad_reach();
+                                                }
                                             });
                                         }
                                         return true;

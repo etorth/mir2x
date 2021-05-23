@@ -79,6 +79,7 @@ class CannibalPlant final: public Monster
                 switch(damage.magicID){
                     case DBCOM_MAGICID(u8"火墙"):
                     case DBCOM_MAGICID(u8"地狱火"):
+                    case DBCOM_MAGICID(u8"冰沙掌"):
                         {
                             setStandMode(true);
                             break;

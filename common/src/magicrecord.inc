@@ -410,6 +410,22 @@
 },
 
 {
+    .name = u8"冰刺", // magic effect, used for 冰沙掌 and 魄冰刺
+    .gfxList
+    {
+        {
+            .stage = u8"运行",
+            .type  = u8"固定",
+            .gfxID = 0X0100005A,
+            .frameCount = 20,
+            .gfxDirType = 2,
+            .onGround = 1,
+            .speed = 200,
+        },
+    },
+},
+
+{
     .name = u8"爆裂火焰",
 },
 
@@ -577,11 +593,8 @@
         },
 
         {
-            .stage = u8"运行",
+            .stage = u8"运行",  // gfx uses 冰刺
             .type  = u8"固定",
-            .gfxID = 0X0100005A,
-            .frameCount = 20,
-            .gfxDirType = 2,
             .onGround = 1,
             .speed = 200,
         },

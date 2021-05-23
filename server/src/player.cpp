@@ -373,6 +373,7 @@ DamageNode Player::getAttackDamage(int nDC) const
         case DBCOM_MAGICID(u8"冰月震天"):
         case DBCOM_MAGICID(u8"疾光电影"):
         case DBCOM_MAGICID(u8"地狱火"):
+        case DBCOM_MAGICID(u8"冰沙掌"):
             {
                 return MagicDamage
                 {
@@ -827,7 +828,7 @@ void Player::onCMActionSpell(CMAction cmA)
                         amSFLD.x = pathGX;
                         amSFLD.y = pathGY;
                         amSFLD.damage = getAttackDamage(magicID);
-                        addDelay(550 + mathf::CDistance(X(), Y(), amSFLD.x, amSFLD.y) * 80, [amSFLD, castMapID = mapID(), this]()
+                        addDelay(550 + mathf::CDistance(X(), Y(), amSFLD.x, amSFLD.y) * 100, [amSFLD, castMapID = mapID(), this]()
                         {
                             if(castMapID == mapID()){
                                 m_actorPod->forward(m_map->UID(), {AM_STRIKEFIXEDLOCDAMAGE, amSFLD});

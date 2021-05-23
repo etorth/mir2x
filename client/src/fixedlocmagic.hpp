@@ -92,7 +92,7 @@ class FireAshEffect_RUN: public FixedLocMagic
             return FixedLocMagic::absFrame() + m_absFrameOff;
         }
 
-    private:
+    public:
         bool done() const override
         {
             return m_accuTime >= m_alphaTime[0] + m_alphaTime[1] + m_alphaTime[2];
@@ -161,7 +161,7 @@ class FireWall_RUN: public FixedLocMagic
             return m_fadeDuration > 0;
         }
 
-    private:
+    public:
         bool done() const override
         {
             if(hasFadeOut()){
@@ -206,6 +206,14 @@ class HellFire_RUN: public FixedLocMagic
             fflassert(directionValid(m_fireDir));
         }
 
+    public:
+        bool done() const override
+        {
+            const auto result0 = m_fireRun0.done();
+            const auto result1 = m_fireRun1.done();
+            return result0 && result1;
+        }
+
     protected:
         bool update(double ms) override
         {
@@ -215,5 +223,114 @@ class HellFire_RUN: public FixedLocMagic
         }
 
     protected:
+        void drawViewOff(int, int, uint32_t) const override;
+};
+
+
+class IceThorn_RUN: public FixedLocMagic
+{
+    private:
+        // there are 20 frames to draw the ice thorn gfx
+        // we use extra frame information to draw ice slag on ground
+    private:
+        const int m_iceSlagFrameCount[3]
+        {
+            10,
+            30,
+            15,
+        };
+
+    private:
+        int m_rotate;
+        int m_iceSlagTexSelect;
+
+    public:
+        IceThorn_RUN(int x, int y, int gfxDirIndex)
+            : FixedLocMagic(u8"冰刺", u8"运行", x, y, gfxDirIndex)
+            , m_rotate(std::rand() % 360)
+            , m_iceSlagTexSelect(std::rand() % 2)
+        {
+            fflassert(m_iceSlagFrameCount[0] >  0);
+            fflassert(m_iceSlagFrameCount[1] >= 0);
+            fflassert(m_iceSlagFrameCount[2] >  0);
+        }
+
+    public:
+        bool done() const override
+        {
+            return absFrame() >= std::max<int>(m_gfxEntry.frameCount, m_iceSlagFrameCount[0] + m_iceSlagFrameCount[1] + m_iceSlagFrameCount[2]);
+        }
+
+    private:
+        uint32_t getPlainModColor() const
+        {
+            return colorf::WHITE + colorf::round255(255.0 * [this]() -> float
+            {
+                if(absFrame() < m_iceSlagFrameCount[0]){
+                    return to_f(absFrame()) / m_iceSlagFrameCount[0];
+                }
+                else if(absFrame() < m_iceSlagFrameCount[0] + m_iceSlagFrameCount[1]){
+                    return 1.0f;
+                }
+                else if(absFrame() < m_iceSlagFrameCount[0] + m_iceSlagFrameCount[1] + m_iceSlagFrameCount[2]){
+                    return 1.0f - to_f(absFrame() - m_iceSlagFrameCount[0] - m_iceSlagFrameCount[1]) / m_iceSlagFrameCount[2];
+                }
+                else{
+                    return 0.0f;
+                }
+            }());
+        }
+
+    public:
+        void drawGroundIce(int, int, uint32_t) const;
+
+    public:
+        void drawViewOff(int viewX, int viewY, uint32_t modColor) const override
+        {
+            if(absFrame() < m_gfxEntry.frameCount){
+                FixedLocMagic::drawViewOff(viewX, viewY, modColor);
+            }
+        }
+};
+
+class IceThrust_RUN: public FixedLocMagic
+{
+    private:
+        IceThorn_RUN m_iceRun0;
+        IceThorn_RUN m_iceRun1;
+
+    private:
+        int m_iceDir;
+
+    public:
+        IceThrust_RUN(int x, int y, int dir)
+            : FixedLocMagic(u8"冰沙掌", u8"运行", x, y)
+            , m_iceRun0(x, y, (dir + 0) % 2)
+            , m_iceRun1(x, y, (dir + 1) % 2)
+            , m_iceDir(dir)
+        {
+            fflassert(directionValid(m_iceDir));
+        }
+
+    public:
+        bool done() const override
+        {
+            const auto result0 = m_iceRun0.done();
+            const auto result1 = m_iceRun1.done();
+            return result0 && result1;
+        }
+
+    protected:
+        bool update(double ms) override
+        {
+            m_iceRun0.update(ms);
+            m_iceRun1.update(ms);
+            return FixedLocMagic::update(ms);
+        }
+
+    public:
+        void drawGroundIce(int, int, uint32_t) const;
+
+    public:
         void drawViewOff(int, int, uint32_t) const override;
 };
