@@ -28,6 +28,7 @@
 #include "clienttaoskeleton.hpp"
 #include "clientnpc.hpp"
 #include "clientguard.hpp"
+#include "clientscarecrow.hpp"
 #include "clientcannibalplant.hpp"
 #include "clientbugbatmaggot.hpp"
 #include "uidf.hpp"
@@ -191,6 +192,11 @@ void ProcessRun::net_ACTION(const uint8_t *bufPtr, size_t)
                                         m_coList[smA.UID] = std::make_unique<ClientBugbatMaggot>(smA.UID, this, smA.action);
                                         return;
                                     }
+                                case DBCOM_MONSTERID(u8"稻草人"):
+                                    {
+                                        m_coList[smA.UID] = std::make_unique<ClientScarecrow>(smA.UID, this, smA.action);
+                                        return;
+                                    }
                                 default:
                                     {
                                         if(DBCOM_MONSTERRECORD(monID).guard){
@@ -243,6 +249,21 @@ void ProcessRun::net_CORECORD(const uint8_t *bufPtr, size_t)
                     case DBCOM_MONSTERID(u8"神兽"):
                         {
                             m_coList[smCOR.UID].reset(new ClientTaoDog(smCOR.UID, this, smCOR.action));
+                            break;
+                        }
+                    case DBCOM_MONSTERID(u8"食人花"):
+                        {
+                            m_coList[smCOR.UID].reset(new ClientCannibalPlant(smCOR.UID, this, smCOR.action));
+                            break;
+                        }
+                    case DBCOM_MONSTERID(u8"角蝇"):
+                        {
+                            m_coList[smCOR.UID].reset(new ClientBugbatMaggot(smCOR.UID, this, smCOR.action));
+                            break;
+                        }
+                    case DBCOM_MONSTERID(u8"稻草人"):
+                        {
+                            m_coList[smCOR.UID].reset(new ClientScarecrow(smCOR.UID, this, smCOR.action));
                             break;
                         }
                     default:

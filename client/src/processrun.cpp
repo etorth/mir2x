@@ -42,6 +42,8 @@
 #include "skillboard.hpp"
 #include "lochashtable.hpp"
 #include "clienttaodog.hpp"
+#include "clientguard.hpp"
+#include "clientscarecrow.hpp"
 #include "clienttaoskeleton.hpp"
 #include "clientcannibalplant.hpp"
 #include "clientbugbatmaggot.hpp"
@@ -1428,7 +1430,7 @@ void ProcessRun::onActionSpawn(uint64_t uid, const ActionNode &action)
         return;
     }
 
-    switch(uidf::getMonsterID(uid)){
+    switch(const auto monID = uidf::getMonsterID(uid)){
         case DBCOM_MONSTERID(u8"变异骷髅"):
             {
                 m_actionBlocker.insert(uid);
@@ -1476,9 +1478,20 @@ void ProcessRun::onActionSpawn(uint64_t uid, const ActionNode &action)
                 m_coList[uid].reset(new ClientBugbatMaggot(uid, this, action));
                 return;
             }
+        case DBCOM_MONSTERID(u8"稻草人"):
+            {
+                m_coList[uid].reset(new ClientScarecrow(uid, this, action));
+                return;
+            }
         default:
             {
-                m_coList[uid].reset(new ClientMonster(uid, this, action));
+                if(DBCOM_MONSTERRECORD(monID).guard){
+                    m_coList[uid].reset(new ClientGuard(uid, this, action));
+                }
+                else{
+                    m_coList[uid].reset(new ClientMonster(uid, this, action));
+                }
+
                 queryCORecord(uid);
                 return;
             }
