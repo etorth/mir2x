@@ -590,18 +590,6 @@ void ProcessRun::processEvent(const SDL_Event &event)
         case SDL_KEYDOWN:
             {
                 switch(event.key.keysym.sym){
-                    case SDLK_e:
-                        {
-                            std::exit(0);
-                            break;
-                        }
-                    case SDLK_f:
-                        {
-                            if(SDLDeviceHelper::getKeyChar(event, true) == 'F'){
-                                g_sdlDevice->toggleWindowFullscreen();
-                            }
-                            break;
-                        }
                     case SDLK_ESCAPE:
                         {
                             centerMyHero();
@@ -614,7 +602,27 @@ void ProcessRun::processEvent(const SDL_Event &event)
                         }
                     default:
                         {
-                            checkMagicSpell(event);
+                            if(event.key.keysym.mod & (KMOD_LALT | KMOD_RALT)){
+                                switch(SDLDeviceHelper::getKeyChar(event, false)){
+                                    case 'e':
+                                        {
+                                            std::exit(0);
+                                            break;
+                                        }
+                                    case 'f':
+                                        {
+                                            g_sdlDevice->toggleWindowFullscreen();
+                                            break;
+                                        }
+                                    default:
+                                        {
+                                            break;
+                                        }
+                                }
+                            }
+                            else{
+                                checkMagicSpell(event);
+                            }
                             break;
                         }
                 }
