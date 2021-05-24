@@ -148,6 +148,9 @@ class SDLDevice final
 
     public:
        void SetWindowIcon();
+       void toggleWindowFullscreen();
+
+    public:
        void drawTexture(SDL_Texture *, int, int);
        void drawTexture(SDL_Texture *, int, int, int, int, int, int);
        void drawTexture(SDL_Texture *, int, int, int, int, int, int, int, int);

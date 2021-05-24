@@ -324,6 +324,19 @@ void SDLDevice::SetWindowIcon()
     }
 }
 
+void SDLDevice::toggleWindowFullscreen()
+{
+    fflassert(m_window);
+    const auto winFlag = SDL_GetWindowFlags(m_window);
+
+    if(winFlag & (SDL_WINDOW_FULLSCREEN | SDL_WINDOW_FULLSCREEN_DESKTOP)){
+        SDL_SetWindowFullscreen(m_window, 0);
+    }
+    else{
+        SDL_SetWindowFullscreen(m_window, SDL_WINDOW_FULLSCREEN);
+    }
+}
+
 SDL_Texture *SDLDevice::CreateTexture(const uint8_t *pMem, size_t nSize)
 {
     // if it's changed

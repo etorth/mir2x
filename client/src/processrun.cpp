@@ -595,6 +595,13 @@ void ProcessRun::processEvent(const SDL_Event &event)
                             std::exit(0);
                             break;
                         }
+                    case SDLK_f:
+                        {
+                            if(SDLDeviceHelper::getKeyChar(event, true) == 'F'){
+                                g_sdlDevice->toggleWindowFullscreen();
+                            }
+                            break;
+                        }
                     case SDLK_ESCAPE:
                         {
                             centerMyHero();
