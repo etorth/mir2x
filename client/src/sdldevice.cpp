@@ -501,60 +501,17 @@ void SDLDevice::CreateMainWindow()
         m_window = nullptr;
     }
 
-    Uint32 nFlags   = 0;
-    int    nWindowW = 0;
-    int    nWindowH = 0;
+    const auto winFlag = []() -> Uint32
+    {
+        switch(g_XMLConf->to_d("Root/Window/ScreenMode").value_or(-1)){
+            case  1: return SDL_WINDOW_RESIZABLE | SDL_WINDOW_FULLSCREEN_DESKTOP;
+            case  2: return SDL_WINDOW_RESIZABLE | SDL_WINDOW_FULLSCREEN;
+            default: return SDL_WINDOW_RESIZABLE;
+        }
+    }();
 
-    int nScreenMode = 0;
-    if(g_XMLConf->NodeAtoi("Root/Window/ScreenMode", &nScreenMode, 0)){
-        g_log->addLog(LOGTYPE_INFO, "screen mode by configuration file: %d", nScreenMode);
-    }else{
-        g_log->addLog(LOGTYPE_WARNING, "Failed to select screen mode by configuration file.");
-    }
-
-    switch(nScreenMode){
-        case 0:
-            break;
-        case 1:
-            nFlags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
-            break;
-        case 2:
-            nFlags |= SDL_WINDOW_FULLSCREEN;
-            break;
-        default:
-            break;
-    }
-
-    if(true
-            && g_XMLConf->NodeAtoi("Root/Window/W", &nWindowW, 800)
-            && g_XMLConf->NodeAtoi("Root/Window/H", &nWindowH, 600)){
-        g_log->addLog(LOGTYPE_INFO, "window size by configuration file: %d x %d", nWindowW, nWindowH);
-    }
-
-    else{
-        g_log->addLog(LOGTYPE_INFO, "Use default window size.");
-        nWindowW = 800;
-        nWindowH = 600;
-    }
-
-    nWindowW = std::max<int>(nWindowW, 800);
-    nWindowH = std::max<int>(nWindowH, 600);
-
-    SDL_DisplayMode stDesktop;
-    if(!SDL_GetDesktopDisplayMode(0, &stDesktop)){
-        nWindowW = std::min<int>(nWindowW, stDesktop.w);
-        nWindowH = std::min<int>(nWindowH, stDesktop.h);
-    }
-
-    if(nWindowW < 800 || nWindowH < 600){
-        throw fflerror("window size is too small: width = %d, height = %d", nWindowW, nWindowH);
-    }
-
-    nFlags |= SDL_WINDOW_RESIZABLE;
-    m_window = SDL_CreateWindow("MIR2X-V0.1", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, nWindowW, nWindowH, nFlags);
-    if(!m_window){
-        throw fflerror("failed to create SDL window handler: %s", SDL_GetError());
-    }
+    m_window = SDL_CreateWindow("MIR2X-V0.1", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 800, 600, winFlag);
+    fflassert(m_window);
 
     SDL_SetWindowMinimumSize(m_window, 800, 600);
     m_renderer = SDL_CreateRenderer(m_window, -1, 0);

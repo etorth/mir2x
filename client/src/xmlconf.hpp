@@ -17,34 +17,17 @@
  */
 
 #pragma once
-#include "log.hpp"
 #include "xmlroot.hpp"
+#include "fflerror.hpp"
 
 class XMLConf: public XMLRoot
 {
     public:
-        XMLConf()
-            : XMLRoot()
+        XMLConf(): XMLRoot()
         {
-            extern XMLConf *g_XMLConf;
-            if(g_XMLConf){
-                extern Log *g_log;
-                g_log->addLog(LOGTYPE_FATAL, "Multiple initialization for XMLConf");
+            if(load("conf.xml") || load("configure.xml") || load("configuration.xml")){
+                return;
             }
-
-            if(false){
-            }else if(!m_XMLDoc.LoadFile("./conf.xml"         )){
-            }else if(!m_XMLDoc.LoadFile("./configure.xml"    )){
-            }else if(!m_XMLDoc.LoadFile("./configuration.xml")){
-            }else{
-                extern Log *g_log;
-                g_log->addLog(LOGTYPE_FATAL, "No configuration file found.");
-                // TODO
-                // if there is no configuration
-                // we need to generate one with default value and remind user to edit it
-                // then we can make this error as non-fatal
-            }
+            throw fflerror("not valid configuration file found");
         }
-
-       ~XMLConf() = default;
 };

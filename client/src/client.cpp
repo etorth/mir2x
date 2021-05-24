@@ -165,7 +165,7 @@ void Client::initASIO()
             return g_clientArgParser->serverIP;
         }
 
-        if(auto nodePtr = g_XMLConf->GetXMLNode("/Root/Network/Server/IP"); nodePtr && nodePtr->GetText()){
+        if(auto nodePtr = g_XMLConf->getXMLNode("/Root/Network/Server/IP"); nodePtr && nodePtr->GetText()){
             return std::string(nodePtr->GetText());
         }
         return "127.0.0.1";
@@ -177,7 +177,7 @@ void Client::initASIO()
             return g_clientArgParser->serverPort;
         }
 
-        if(auto nodePtr = g_XMLConf->GetXMLNode("/Root/Network/Server/Port"); nodePtr && nodePtr->GetText()){
+        if(auto nodePtr = g_XMLConf->getXMLNode("/Root/Network/Server/Port"); nodePtr && nodePtr->GetText()){
             return std::string(nodePtr->GetText());
         }
         return "5000";

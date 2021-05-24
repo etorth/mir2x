@@ -22,6 +22,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 
+#include "log.hpp"
 #include "strf.hpp"
 #include "mathf.hpp"
 #include "initview.hpp"

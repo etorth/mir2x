@@ -10,7 +10,6 @@
  *                          </NODE>
  *                      </ROOT>
  *                 start with root node <ROOT> and format as hierarchical text desc.
- *                 for XML with flat object list, use XMLObjectList
  *
  *        Version: 1.0
  *       Revision: none
@@ -24,45 +23,36 @@
  */
 
 #pragma once
+#include <optional>
 #include <tinyxml2.h>
 
 class XMLRoot
 {
-    protected:
-       tinyxml2::XMLDocument m_XMLDoc;
+    private:
+        tinyxml2::XMLDocument m_xmlDoc;
 
     public:
-        XMLRoot() = default;
-       ~XMLRoot() = default;
+        /* ctor */  XMLRoot() = default;
+        /* dtor */ ~XMLRoot() = default;
 
     public:
-       // throw exception when any error occurs
-       int    NodeAtoi(const char *);
-       bool   NodeAtob(const char *);
-       double NodeAtof(const char *);
+        // pase node
+        // return {} is path is invalid
+        // throw if path exists but failed to convert to expected type
+
+        std::optional<int  > to_d   (const char *) const;
+        std::optional<float> to_f   (const char *) const;
+        std::optional<bool > to_bool(const char *) const;
 
     public:
-       // return false when any error occurs
-       bool NodeAtoi(const char *,    int *,    int);
-       bool NodeAtob(const char *,   bool *,   bool);
-       bool NodeAtof(const char *, double *, double);
+        const tinyxml2::XMLElement *getXMLNode(const char *) const;
 
     public:
-       const tinyxml2::XMLElement *GetXMLNode(const char *) const;
+        bool has(const char *nodePath) const
+        {
+            return getXMLNode(nodePath) != nullptr;
+        }
 
     public:
-       bool Find(const char *szPath) const
-       {
-           return GetXMLNode(szPath) != nullptr;
-       }
-
-       bool Load(const char *szFileName)
-       {
-           return szFileName && (m_XMLDoc.LoadFile(szFileName) == tinyxml2::XML_SUCCESS);
-       }
-
-       bool Parse(const char *szRawBuf)
-       {
-           return szRawBuf && (m_XMLDoc.Parse(szRawBuf) == tinyxml2::XML_SUCCESS);
-       }
+        bool load(const char *);
 };

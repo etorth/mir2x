@@ -25,6 +25,7 @@
  */
 
 #pragma once
+#include <atomic>
 #include <array>
 #include <mutex>
 #include <vector>
@@ -135,11 +136,11 @@ class InitView final
     private:
         // we use nCurrIndex rather than percentage
         // since we may have other events not calling LoadDB()
-        template<typename T> bool LoadDB(size_t nCurrIndex, const XMLConf *pXMLConf, T *pDB, const char *szNodePath)
+        template<typename T> bool LoadDB(size_t nCurrIndex, const XMLConf *xmlConfPtr, T *pDB, const char *szNodePath)
         {
             if(true
                     && nCurrIndex < m_loadProcV.size()
-                    && pXMLConf
+                    && xmlConfPtr
                     && pDB
                     && szNodePath){
 
@@ -156,7 +157,7 @@ class InitView final
 
                 auto nPercent = to_d(std::lround(stArray[1] * 100.0 / (0.1 + stArray[0])));
                 AddIVLog(LOGIV_INFO, "[%03d%%]Loading %s", nPercent, szNodePath);
-                if(auto pNode = pXMLConf->GetXMLNode(szNodePath)){
+                if(auto pNode = xmlConfPtr->getXMLNode(szNodePath)){
                     if(auto szPath = pNode->GetText()){
                         if(pDB->Load(szPath)){
                             AddIVLog(LOGIV_INFO, "[%03d%%]Loading %s done", nPercent, szNodePath);
@@ -174,7 +175,7 @@ class InitView final
                     return false;
                 }
             }
-            AddIVLog(LOGIV_WARNING, "[%%---]Loading parameters invalid for LoadDB(%d, %p, %p, %p)", to_d(nCurrIndex), pXMLConf, pDB, szNodePath);
+            AddIVLog(LOGIV_WARNING, "[%%---]Loading parameters invalid for LoadDB(%d, %p, %p, %p)", to_d(nCurrIndex), xmlConfPtr, pDB, szNodePath);
             return false;
         }
 };
