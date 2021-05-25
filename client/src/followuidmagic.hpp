@@ -33,6 +33,9 @@ class FollowUIDMagic: public MagicBase
         uint64_t m_uid;
         ProcessRun *m_process;
 
+    private:
+        int m_lastLDistance2 = INT_MAX;
+
     public:
         FollowUIDMagic(const char8_t *, const char8_t *, int, int, int, int, uint64_t, ProcessRun *);
 
@@ -44,4 +47,21 @@ class FollowUIDMagic: public MagicBase
 
     public:
         virtual void drawViewOff(int, int, uint32_t) const;
+
+    public:
+        virtual uint32_t frameTexID() const;
+
+    public:
+        std::tuple<int, int> targetOff() const;
+
+    public:
+        std::tuple<int, int> targetPLoc() const
+        {
+            const auto [txOff, tyOff] = targetOff();
+            return
+            {
+                m_x + txOff,
+                m_y + tyOff,
+            };
+        }
 };
