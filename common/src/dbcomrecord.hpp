@@ -25,15 +25,15 @@
 #include "monsterrecord.hpp"
 
 const ItemRecord &DBCOM_ITEMRECORD(uint32_t);
-const ItemRecord &DBCOM_ITEMRECORD(const char *);
+const ItemRecord &DBCOM_ITEMRECORD(const char8_t *);
 
 const MagicRecord &DBCOM_MAGICRECORD(uint32_t);
-const MagicRecord &DBCOM_MAGICRECORD(const char *);
+const MagicRecord &DBCOM_MAGICRECORD(const char8_t *);
 
 const MonsterRecord &DBCOM_MONSTERRECORD(uint32_t);
-const MonsterRecord &DBCOM_MONSTERRECORD(const char *);
+const MonsterRecord &DBCOM_MONSTERRECORD(const char8_t *);
 
 const MapRecord &DBCOM_MAPRECORD(uint32_t);
-const MapRecord &DBCOM_MAPRECORD(const char *);
+const MapRecord &DBCOM_MAPRECORD(const char8_t *);
 
 bool getClothGender(uint32_t);
