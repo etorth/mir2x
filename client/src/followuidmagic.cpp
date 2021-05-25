@@ -25,9 +25,11 @@
 #include "attachmagic.hpp"
 #include "pngtexoffdb.hpp"
 #include "followuidmagic.hpp"
+#include "clientargparser.hpp"
 
 extern SDLDevice *g_sdlDevice;
 extern PNGTexOffDB *g_magicDB;
+extern ClientArgParser *g_clientArgParser;
 
 FollowUIDMagic::FollowUIDMagic(
         const char8_t *magicName,
@@ -110,7 +112,16 @@ void FollowUIDMagic::drawViewOff(int viewX, int viewY, uint32_t modColor) const
     if(auto texPtr = g_magicDB->Retrieve(texID, &offX, &offY)){
         SDLDeviceHelper::EnableTextureModColor enableModColor(texPtr, modColor);
         SDLDeviceHelper::EnableTextureBlendMode enableBlendMode(texPtr, SDL_BLENDMODE_BLEND);
-        g_sdlDevice->drawTexture(texPtr, m_x - viewX + offX, m_y - viewY + offY);
+
+        const int drawPX = m_x - viewX + offX;
+        const int drawPY = m_y - viewY + offY;
+        const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);
+
+        g_sdlDevice->drawTexture(texPtr, drawPX, drawPY);
+        if(g_clientArgParser->drawMagicGrid){
+            g_sdlDevice->drawRectangle(colorf::BLUE + 200, drawPX, drawPY, texW, texH);
+            g_sdlDevice->drawLine(colorf::RED + 200, drawPX, drawPY, drawPX - offX, drawPY - offY);
+        }
     }
 }
 
