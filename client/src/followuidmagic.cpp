@@ -134,13 +134,13 @@ bool FollowUIDMagic::update(double ms)
     const auto [dx, dy] = [this]() -> std::tuple<int, int>
     {
         if(const auto coPtr = m_process->findUID(m_uid)){
-            const auto [targetX, targetY] = targetPLoc();
-            const auto [x, y] = coPtr->getTargetBox().center();
+            const auto [srcTargetX, srcTargetY] = targetPLoc();
+            const auto [dstTargetX, dstTargetY] = coPtr->getTargetBox().targetPLoc();
 
-            const int xdiff = x - targetX;
-            const int ydiff = y - targetY;
+            const int xdiff = dstTargetX - srcTargetX;
+            const int ydiff = dstTargetY - srcTargetY;
 
-            m_lastLDistance2 = mathf::LDistance2(x, y, targetX, targetY);
+            m_lastLDistance2 = mathf::LDistance2(dstTargetX, dstTargetY, srcTargetX, srcTargetY);
             if(xdiff == 0 && ydiff == 0){
                 return {0, 0};
             }
@@ -181,8 +181,8 @@ void FollowUIDMagic::drawViewOff(int viewX, int viewY, uint32_t modColor) const
                 g_sdlDevice->drawRectangle(colorf::BLUE + 200, drawPX, drawPY, texW, texH);
                 g_sdlDevice->drawLine(colorf::RED + 200, drawPX, drawPY, m_x - viewX, m_y - viewY);
 
-                const auto [targetX, targetY] = targetPLoc();
-                g_sdlDevice->drawLine(colorf::GREEN + 200, m_x - viewX, m_y - viewY, targetX - viewX, targetY - viewY);
+                const auto [srcTargetX, srcTargetY] = targetPLoc();
+                g_sdlDevice->drawLine(colorf::GREEN + 200, m_x - viewX, m_y - viewY, srcTargetX - viewX, srcTargetY - viewY);
             }
         }
     }
@@ -191,9 +191,9 @@ void FollowUIDMagic::drawViewOff(int viewX, int viewY, uint32_t modColor) const
 bool FollowUIDMagic::done() const
 {
     if(const auto coPtr = m_process->findUID(m_uid)){
-        const auto [targetX, targetY] = targetPLoc();
-        const auto [centerX, centerY] = coPtr->getTargetBox().center();
-        return (std::abs(targetX - centerX) < 24 && std::abs(targetY - centerY) < 16) || (mathf::LDistance2<int>(targetX, targetY, centerX, centerY) > m_lastLDistance2);
+        const auto [srcTargetX, srcTargetY] = targetPLoc();
+        const auto [dstTargetX, dstTargetY] = coPtr->getTargetBox().targetPLoc();
+        return (std::abs(srcTargetX - dstTargetX) < 24 && std::abs(srcTargetY - dstTargetY) < 16) || (mathf::LDistance2<int>(srcTargetX, srcTargetY, dstTargetX, dstTargetY) > m_lastLDistance2);
     }
     return false;
 }

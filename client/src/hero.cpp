@@ -710,7 +710,7 @@ bool Hero::parseAction(const ActionNode &action)
                                         const auto dir16 = [fromX, fromY, targetUID, this]() -> int
                                         {
                                             if(const auto coPtr = m_processRun->findUID(targetUID)){
-                                                const auto [targetPX, targetPY] = coPtr->getTargetBox().center();
+                                                const auto [targetPX, targetPY] = coPtr->getTargetBox().targetPLoc();
                                                 return pathf::getDir16(targetPX - fromX, (targetPY - fromY) * SYS_MAPGRIDXP / SYS_MAPGRIDYP);
                                             }
                                             else if(m_processRun->getMyHeroUID() == UID()){

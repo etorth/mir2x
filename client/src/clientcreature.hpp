@@ -299,12 +299,21 @@ class ClientCreature
                 return x >= 0 && y >= 0 && w > 0 && h > 0;
             }
 
-            std::tuple<int, int> center() const
+            std::tuple<int, int> centerPLoc() const
             {
                 return
                 {
                     x + w / 2,
                     y + h / 2,
+                };
+            }
+
+            std::tuple<int, int> targetPLoc() const
+            {
+                return
+                {
+                    x + w / 2,
+                    y + h / 4,
                 };
             }
 

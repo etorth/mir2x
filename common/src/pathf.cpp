@@ -73,8 +73,15 @@ namespace
         size_t index = -1;
         double distance = DBL_MAX;
 
+        // normalization of (x, y) is optional
+        // just for better stablity
+
+        const double len = std::sqrt(to_df(x * x + y * y));
+        const double xnorm = to_df(x) / len;
+        const double ynorm = to_df(y) / len;
+
         for(size_t i = 0; i < N; ++i){
-            if(const double curr = (d[i][0] - x) * (d[i][0] - x) + (d[i][1] - y) * (d[i][1] - y); distance > curr){
+            if(const double curr = (d[i][0] - xnorm) * (d[i][0] - xnorm) + (d[i][1] - ynorm) * (d[i][1] - ynorm); distance > curr){
                 index = i;
                 distance = curr;
             }
