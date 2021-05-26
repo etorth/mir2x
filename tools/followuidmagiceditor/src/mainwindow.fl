@@ -34,7 +34,7 @@ class MainWindow {open
 		default :               break;
 	}
 }} open
-      xywh {857 391 985 645} type Double resizable visible
+      xywh {2373 166 985 645} type Double resizable visible
     } {
       Fl_Box m_drawArea {
         xywh {0 20 985 627} labelfont 4 resizable
@@ -95,7 +95,8 @@ Fl::add_timeout(0.1, updateFrameCallback, this);} {}
   }
   Function {updateFrame()} {return_type void
   } {
-    code {m_drawArea->updateFrame();} {}
+    code {m_drawArea->updateFrame();
+redrawAll();} {}
   }
   Function {updateFrameCallback(void *widgetPtr)} {return_type {static void}
   } {
