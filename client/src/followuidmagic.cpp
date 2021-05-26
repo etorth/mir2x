@@ -165,10 +165,7 @@ std::tuple<int, int> FollowUIDMagic::targetOff() const
             }
         case DBCOM_MAGICID(u8"冰月震天"):
             {
-                switch(gfxDirIndex()){
-                    case  0: return { 23, -22};
-                    default: throw bad_reach();
-                }
+                return {23, -22}; // 冰月震天 has only 1 gfxDirIndex but can have 16 moveDirIndex
             }
         case DBCOM_MAGICID(u8"冰月神掌"):
             {
