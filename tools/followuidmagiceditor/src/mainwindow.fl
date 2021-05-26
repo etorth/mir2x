@@ -1,0 +1,105 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0304
+header_name {.hpp}
+code_name {.cpp}
+decl {\#include <vector>} {public local
+}
+
+decl {\#include <cstdint>} {private local
+}
+
+decl {\#include <cstring>} {private local
+}
+
+decl {\#include <FL/fl_ask.H>} {public local
+}
+
+decl {\#include <FL/fl_draw.H>} {public local
+}
+
+decl {\#include <FL/Fl_PNG_Image.H>} {public local
+}
+
+decl {\#include "magicdrawarea.hpp"} {public global
+}
+
+class MainWindow {open
+} {
+  Function {MainWindow(uint32_t magicID, const char *dbPathName)} {open
+  } {
+    Fl_Window m_window {
+      callback {{
+	switch(fl_choice("Quit editor?", nullptr, nullptr, "  Yes  ")){
+		case 2  : std::exit(0); break;
+		default :               break;
+	}
+}} open
+      xywh {857 391 985 645} type Double resizable visible
+    } {
+      Fl_Box m_drawArea {
+        xywh {0 20 985 627} labelfont 4 resizable
+        class MagicDrawArea
+      }
+      Fl_Menu_Bar m_MenuBar {open
+        xywh {0 0 993 20} box THIN_UP_BOX labelfont 4 textfont 4
+      } {
+        Submenu {} {
+          label Project open
+          xywh {0 0 62 20} labelfont 4
+        } {
+          MenuItem {} {
+            label Reset
+            callback {m_drawArea->reset();}
+            xywh {0 0 30 20} labelfont 4
+          }
+          MenuItem {} {
+            label Output
+            callback {m_drawArea->output();}
+            xywh {0 0 30 20} labelfont 4 divider
+          }
+          MenuItem {} {
+            label Quit
+            callback {std::exit(0);}
+            xywh {0 0 30 20} shortcut 0x40071 labelfont 4
+          }
+        }
+        Submenu {} {
+          label About
+          xywh {30 30 62 20} labelfont 4
+        } {
+          MenuItem {} {
+            label {About Me         }
+            callback {extern AboutWindow *g_aboutWindow;
+g_aboutWindow->showAll();}
+            xywh {30 30 30 20} labelfont 4
+            code0 {\#include "aboutwindow.hpp"}
+          }
+        }
+      }
+    }
+    code {m_drawArea->load(magicID, dbPathName);
+Fl::remove_timeout(updateFrameCallback);
+Fl::add_timeout(0.1, updateFrameCallback, this);} {}
+  }
+  Function {showAll()} {return_type void
+  } {
+    code {{
+	m_window->show();
+}} {}
+  }
+  Function {redrawAll()} {return_type void
+  } {
+    code {{
+	m_window->redraw();
+}} {}
+  }
+  Function {updateFrame()} {return_type void
+  } {
+    code {m_drawArea->updateFrame();} {}
+  }
+  Function {updateFrameCallback(void *widgetPtr)} {return_type {static void}
+  } {
+    code {static_cast<MainWindow *>(widgetPtr)->updateFrame();
+Fl::repeat_timeout(0.1, updateFrameCallback, widgetPtr);} {}
+  }
+}
