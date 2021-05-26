@@ -139,7 +139,9 @@ void MagicDrawArea::draw()
     const int centerY = h() / 2;
     drawCircle(FL_RED, centerX, centerY, m_r);
 
-    constexpr float angle16 = 2.0 * 3.1415926535 / 16.0;
+    constexpr float pi = 3.1415926535;
+    constexpr float angle16 = 2.0 * pi / 16.0;
+
     for(int i = 0; i < 16; ++i){
         const float dstX = to_f(m_r) * std::cos(i * angle16);
         const float dstY = to_f(m_r) * std::sin(i * angle16);
@@ -147,8 +149,9 @@ void MagicDrawArea::draw()
     }
 
     for(int i = 0; i < 16; ++i){
-        const float dstX = to_f(m_r) * std::cos(i * angle16);
-        const float dstY = to_f(m_r) * std::sin(i * angle16);
+        const float gfxDirAngle = pi / 2.0 - i * angle16;
+        const float dstX = to_f(m_r) * std::cos(gfxDirAngle);
+        const float dstY = to_f(m_r) * std::sin(gfxDirAngle) * -1.0f; // draw area is flipped on Y-axis
         const auto [image, dx, dy] = getFrameImage(i);
 
         drawImage(image, dstX + dx + centerX, dstY + dy + centerY);
