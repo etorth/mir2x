@@ -26,6 +26,7 @@
 #include <FL/Fl_Box.H>
 #include <FL/Fl_Image.H>
 #include "magicframedb.hpp"
+#include "dbcomrecord.hpp"
 
 class MagicDrawArea: public Fl_Box
 {
@@ -85,4 +86,10 @@ class MagicDrawArea: public Fl_Box
     private:
         std::tuple<int, int> getGfxDirPLoc(int) const;
         std::tuple<Fl_Image *, int, int> getFrameImage(int);
+
+    private:
+        int magicDirCount() const
+        {
+            return DBCOM_MAGICRECORD(m_magicID).getGfxEntry(u8"运行").gfxDirType;
+        }
 };

@@ -140,15 +140,16 @@ void MagicDrawArea::draw()
     const int centerY = h() / 2;
     drawCircle(m_adjustR ? FL_RED : FL_GREEN, centerX, centerY, m_r);
 
-    for(int i = 0; i < 16; ++i){
+    for(int i = 0; i < magicDirCount(); ++i){
         const auto [dstX, dstY] = getGfxDirPLoc(i);
         drawLine(FL_BLUE, centerX, centerY, dstX, dstY);
     }
 
-    for(int i = 0; i < 16; ++i){
+    for(int i = 0; i < magicDirCount(); ++i){
         const auto [dstX, dstY] = getGfxDirPLoc(i);
         const auto [image, dx, dy] = getFrameImage(i);
 
+        fflassert(image);
         drawImage(image, dstX + dx, dstY + dy);
         drawRectangle(FL_BLUE, dstX + dx, dstY + dy, image->w(), image->h());
         drawLine(FL_RED, dstX, dstY, dstX + dx, dstY + dy);
@@ -189,10 +190,11 @@ int MagicDrawArea::handle(int event)
                     fl_cursor(FL_CURSOR_MOVE);
                 }
                 else if(Fl::event_clicks() >= 1){
-                    for(int i = 0; i < 16; ++i){
+                    for(int i = 0; i < magicDirCount(); ++i){
                         const auto [dstX, dstY] = getGfxDirPLoc(i);
                         const auto [image, dx, dy] = getFrameImage(i);
 
+                        fflassert(image);
                         const auto boxX = dstX + dx;
                         const auto boxY = dstY + dy;
 
@@ -231,7 +233,7 @@ void MagicDrawArea::load(uint32_t magicID, const char *dbPathName)
 {
     m_magicID = magicID;
     m_frameDBPtr = std::make_unique<MagicFrameDB>(dbPathName);
-    m_offList.resize(DBCOM_MAGICRECORD(magicID).getGfxEntry(u8"运行").gfxDirType);
+    m_offList.resize(magicDirCount());
 }
 
 void MagicDrawArea::reset()
