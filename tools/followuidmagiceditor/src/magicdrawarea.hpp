@@ -30,6 +30,10 @@
 class MagicDrawArea: public Fl_Box
 {
     private:
+        bool m_adjustR = false;
+        int  m_adjustTargetOff = -1;
+
+    private:
         uint32_t m_r = 160;
         uint32_t m_frame = 0;
 
@@ -79,5 +83,6 @@ class MagicDrawArea: public Fl_Box
         void updateFrame();
 
     private:
+        std::tuple<int, int> getGfxDirPLoc(int) const;
         std::tuple<Fl_Image *, int, int> getFrameImage(int);
 };
