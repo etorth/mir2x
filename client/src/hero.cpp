@@ -579,12 +579,12 @@ bool Hero::parseAction(const ActionNode &action)
                         const auto standDir = [&fnGetSpellDir, &action, this]() -> int
                         {
                             if(action.aimUID){
-                                if(const auto dir = m_processRun->getAimDirection(action, DIR_NONE); dir != DIR_NONE){
-                                    return dir;
+                                if(auto coPtr = m_processRun->findUID(action.aimUID); coPtr && coPtr->getTargetBox()){
+                                    if(const auto dir = m_processRun->getAimDirection(action, DIR_NONE); dir != DIR_NONE){
+                                        return dir;
+                                    }
                                 }
-                                else{
-                                    return m_currMotion->direction;
-                                }
+                                return m_currMotion->direction;
                             }
                             else{
                                 return fnGetSpellDir(action.x, action.y, action.aimX, action.aimY);
@@ -723,6 +723,10 @@ bool Hero::parseAction(const ActionNode &action)
                                                 // when target is dead or invalid
                                                 // we can adjust the current direction here to fit the casted magic
                                                 // but currently I make the MotionNode::direction immutable
+
+                                                // when this ActionSpell get created and pushed to the action queue, the target may be still valid
+                                                // so the standDir is a good one at that time, but when reached here, the target is dead, so we figured out the direction by mouse location
+                                                // this sometimes makes standDir and the magic flyDir doesn't match
                                                 return pathf::getDir16((mousePX + viewX - fromX) * SYS_MAPGRIDYP, (mousePY + viewY - fromY) * SYS_MAPGRIDXP);
                                             }
 
