@@ -203,24 +203,25 @@ bool FollowUIDMagic::update(double ms)
     const auto [dx, dy] = [this]() -> std::tuple<int, int>
     {
         if(const auto coPtr = m_process->findUID(m_uid)){
-            const auto [srcTargetX, srcTargetY] = targetPLoc();
-            const auto [dstTargetX, dstTargetY] = coPtr->getTargetBox().targetPLoc();
+            if(const auto box = coPtr->getTargetBox()){
+                const auto [srcTargetX, srcTargetY] = targetPLoc();
+                const auto [dstTargetX, dstTargetY] = box.targetPLoc();
 
-            const int xdiff = dstTargetX - srcTargetX;
-            const int ydiff = dstTargetY - srcTargetY;
+                const int xdiff = dstTargetX - srcTargetX;
+                const int ydiff = dstTargetY - srcTargetY;
 
-            m_lastLDistance2 = mathf::LDistance2(dstTargetX, dstTargetY, srcTargetX, srcTargetY);
-            if(xdiff == 0 && ydiff == 0){
-                return {0, 0};
-            }
-            else{
-                return pathf::getDirOff(xdiff, ydiff, m_moveSpeed);
+                m_lastLDistance2 = mathf::LDistance2(dstTargetX, dstTargetY, srcTargetX, srcTargetY);
+                if(xdiff == 0 && ydiff == 0){
+                    return {0, 0};
+                }
+                else{
+                    return pathf::getDirOff(xdiff, ydiff, m_moveSpeed);
+                }
             }
         }
-        else{
-            m_lastLDistance2 = INT_MAX;
-            return m_lastFlyOff.value_or(pathf::getDir16Off(m_gfxDirIndex, m_moveSpeed));
-        }
+
+        m_lastLDistance2 = INT_MAX;
+        return m_lastFlyOff.value_or(pathf::getDir16Off(m_flyDirIndex, m_moveSpeed));
     }();
 
     m_x += dx;

@@ -2096,13 +2096,12 @@ int ProcessRun::getAimDirection(const ActionNode &action, int defDir) const
 {
     fflassert(action.aimUID);
     if(const auto coPtr = findUID(action.aimUID)){
-        const auto [aimX, aimY] = coPtr->location();
-        const auto dir = pathf::getDir8(aimX - action.x, aimY - action.y);
-        if(dir >= 0 && directionValid(dir + DIR_BEGIN)){
-            return dir + DIR_BEGIN;
-        }
-        else{
-            return defDir;
+        if(const auto box = coPtr->getTargetBox()){ // just ot check if still a good target
+            const auto [aimX, aimY] = coPtr->location();
+            const auto dir = pathf::getDir8(aimX - action.x, aimY - action.y);
+            if(dir >= 0 && directionValid(dir + DIR_BEGIN)){
+                return dir + DIR_BEGIN;
+            }
         }
     }
     return defDir;

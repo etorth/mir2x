@@ -719,6 +719,10 @@ bool Hero::parseAction(const ActionNode &action)
                                             if(m_processRun->getMyHeroUID() == UID()){
                                                 const auto [  viewX,   viewY] = m_processRun->getViewShift();
                                                 const auto [mousePX, mousePY] = SDLDeviceHelper::getMousePLoc();
+
+                                                // when target is dead or invalid
+                                                // we can adjust the current direction here to fit the casted magic
+                                                // but currently I make the MotionNode::direction immutable
                                                 return pathf::getDir16((mousePX + viewX - fromX) * SYS_MAPGRIDYP, (mousePY + viewY - fromY) * SYS_MAPGRIDXP);
                                             }
 
