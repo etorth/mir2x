@@ -65,7 +65,7 @@ void TexVSlider::drawEx(int, int, int, int, int, int) const
     const auto fnDrawCover = [valCenterX, valCenterY, this](uint32_t color)
     {
         const auto r = getSelfParam().sliderCover;
-        if(auto texPtr = g_sdlDevice->getCover(r)){
+        if(auto texPtr = g_sdlDevice->getCover(r, 360)){
             SDL_SetTextureColorMod(texPtr, colorf::R(color), colorf::G(color), colorf::B(color));
             SDLDeviceHelper::EnableRenderBlendMode enableDrawBlendMode(SDL_BLENDMODE_BLEND);
             g_sdlDevice->drawTexture(texPtr, valCenterX - r, valCenterY - r);

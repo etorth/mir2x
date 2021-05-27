@@ -88,7 +88,7 @@ void AlphaOnButton::drawEx(int dstX, int dstY, int, int, int, int) const
     switch(getState()){
         case BEVENT_ON:
             {
-                auto texPtr = g_sdlDevice->getCover(m_onRadius);
+                auto texPtr = g_sdlDevice->getCover(m_onRadius, 360);
                 if(!texPtr){
                     throw fflerror("can't get round cover: radius = %llu", to_llu(m_onRadius));
                 }

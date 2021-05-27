@@ -36,6 +36,11 @@ namespace mathf
         return min + std::rand() % (1 + std::max<int>(max - min, 0));
     }
 
+    template<typename T> T bound(T val, T min, T max)
+    {
+        return std::min<T>(std::max<T>(val, min), max);
+    }
+
     template<typename T> T CDistance(T nfX, T nfY, T nfX1, T nfY1)
     {
         static_assert(std::is_arithmetic<T>::value, "Arithmetic type required...");

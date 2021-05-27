@@ -309,7 +309,7 @@ class SDLDevice final
        }
 
     public:
-       SDL_Texture *getCover(int);
+       SDL_Texture *getCover(int, int);
 
     public:
        void drawString(uint32_t, int, int, const char *);

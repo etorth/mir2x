@@ -23,6 +23,7 @@
 #include <SDL2/SDL_image.h>
 
 #include "log.hpp"
+#include "mathf.hpp"
 #include "totype.hpp"
 #include "rawbuf.hpp"
 #include "xmlconf.hpp"
@@ -596,17 +597,17 @@ TTF_Font *SDLDevice::DefaultTTF(uint8_t fontSize)
     throw fflerror("can't build default ttf with point: %llu", to_llu(fontSize));
 }
 
-SDL_Texture *SDLDevice::getCover(int r)
+SDL_Texture *SDLDevice::getCover(int r, int angle)
 {
-    if(r <= 0){
-        throw fflerror("invalid argument: radius = %d", r);
-    }
+    fflassert(r > 0);
+    fflassert(angle >= 0 && angle <= 360);
 
-    if(auto p = m_cover.find(r); p != m_cover.end()){
+    const int key = r * 360 + angle;
+    if(auto p = m_cover.find(key); p != m_cover.end()){
         if(p->second){
             return p->second;
         }
-        throw fflerror("invalid registered cover: radius = %d", r);
+        throw fflerror("invalid registered cover: r = %d, angle = %d", r, angle);
     }
 
     const int w = r * 2 - 1;
@@ -615,15 +616,26 @@ SDL_Texture *SDLDevice::getCover(int r)
     std::vector<uint32_t> buf(w * h);
     for(int y = 0; y < h; ++y){
         for(int x = 0; x < w; ++x){
-            const int currR2 = (x - r + 1) * (x - r + 1) + (y - r + 1) * (y - r + 1);
-            const uint8_t alpha = [currR2, r]() -> uint8_t
+            const int rx =  1 * (x - r + 1);
+            const int ry = -1 * (y - r + 1);
+            const int curr_r2 = rx * rx + ry * ry;
+            const uint8_t alpha = [curr_r2, r]() -> uint8_t
             {
                 if(g_clientArgParser->debugAlphaCover){
                     return 255;
                 }
-                return 255 - std::min<uint8_t>(255, std::lround(255.0 * currR2 / (r * r)));
+                return 255 - std::min<uint8_t>(255, std::lround(255.0 * curr_r2 / (r * r)));
             }();
-            if(currR2 < r * r){
+
+            const auto curr_angle = [x, y]() -> int
+            {
+                if(x == 0){
+                    return (y >= 0) ? 0 : 180;
+                }
+                return ((x > 0) ? 0 : 180) + to_d(std::lround((1.0 - 2.0 * std::atan(to_df(y) / x) / 3.14159265358979323846) * 90.0));
+            }();
+
+            if(curr_r2 < r * r && mathf::bound<int>(curr_angle, 0, 360) <= angle){
                 buf[x + y * w] = colorf::RGBA(0XFF, 0XFF, 0XFF, alpha);
             }
             else{
@@ -633,9 +645,9 @@ SDL_Texture *SDLDevice::getCover(int r)
     }
 
     if(auto texPtr = createTexture(buf.data(), w, h)){
-        return m_cover[r] = texPtr;
+        return m_cover[key] = texPtr;
     }
-    throw fflerror("creature texture failed: radius = %d", r);
+    throw fflerror("failed to create texture: r = %d, angle = %d", r, angle);
 }
 
 void SDLDevice::fillRectangle(int nX, int nY, int nW, int nH, int nRad)
