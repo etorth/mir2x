@@ -28,16 +28,30 @@ class FollowUIDMagic: public MagicBase
     protected:
         int m_x;
         int m_y;
+        int m_flyDirIndex;
+
+    protected:
         int m_moveSpeed;
 
+    protected:
         uint64_t m_uid;
         ProcessRun *m_process;
 
     private:
         int m_lastLDistance2 = INT_MAX;
+        std::optional<std::tuple<int, int>> m_lastFlyOff;
 
     public:
-        FollowUIDMagic(const char8_t *, const char8_t *, int, int, int, int, uint64_t, ProcessRun *);
+        FollowUIDMagic(
+                const char8_t *, // magicName
+                const char8_t *, // stageName
+                int,             // x
+                int,             // y
+                int,             // gfxDirIndex, can be [0, m_gfxEntry.gfxDirIndex)
+                int,             // flyDirIndex, flying direction when targetUID is unavailable and lastFlyOff is not set, always use [0, 16)
+                int,             // moveSpeed
+                uint64_t,        // targetUID
+                ProcessRun *);   // ProcessRun
 
     public:
         bool done() const override;

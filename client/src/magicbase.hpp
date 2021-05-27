@@ -69,19 +69,9 @@ class MagicBase
               }())
             , m_gfxDirIndex(dirIndex)
         {
-            switch(m_gfxEntry.gfxDirType){
-                case  4:
-                case  8:
-                case 16:
-                    {
-                        fflassert(gfxDirIndex() >= 0 && gfxDirIndex() < getGfxEntry().gfxDirType);
-                        break;
-                    }
-                default:
-                    {
-                        break;
-                    }
-            }
+            // gfxDirIndex is the index of gfx set
+            // the gfx set can be for different direction or not
+            fflassert(gfxDirIndex() >= 0 && gfxDirIndex() < getGfxEntry().gfxDirType);
         }
 
     public:

@@ -56,6 +56,7 @@ FollowUIDMagic::FollowUIDMagic(
         int x,
         int y,
         int gfxDirIndex,
+        int flyDirIndex,
         int moveSpeed,
 
         uint64_t uid,
@@ -63,17 +64,14 @@ FollowUIDMagic::FollowUIDMagic(
     : MagicBase(magicName, magicStage, gfxDirIndex)
     , m_x(x)
     , m_y(y)
+    , m_flyDirIndex(flyDirIndex)
     , m_moveSpeed(moveSpeed)
     , m_uid(uid)
     , m_process(runPtr)
 {
-    if(!m_process){
-        throw fflerror("invalid process pointer: nullptr");
-    }
-
-    if(!(m_x >= 0 && m_y >= 0 && m_process->onMap(m_x / SYS_MAPGRIDXP, m_y / SYS_MAPGRIDYP))){
-        throw fflerror("invalid pixel on map: x = %d, y = %d", m_x, m_y);
-    }
+    fflassert(m_process);
+    fflassert(flyDirIndex >= 0 && flyDirIndex < 16);
+    fflassert(m_x >= 0 && m_y >= 0 && m_process->onMap(m_x / SYS_MAPGRIDXP, m_y / SYS_MAPGRIDYP));
 }
 
 uint32_t FollowUIDMagic::frameTexID() const
@@ -165,7 +163,11 @@ std::tuple<int, int> FollowUIDMagic::targetOff() const
             }
         case DBCOM_MAGICID(u8"冰月震天"):
             {
-                return {23, -22}; // 冰月震天 has only 1 gfxDirIndex but can have 16 moveDirIndex
+                switch(gfxDirIndex()){
+                    case  0: return { 23, -22}; // 冰月震天 has only 1 gfxDirIndex but can have more flyDirIndex
+                    default: throw bad_reach();
+
+                }
             }
         case DBCOM_MAGICID(u8"冰月神掌"):
             {
@@ -217,18 +219,14 @@ bool FollowUIDMagic::update(double ms)
         }
         else{
             m_lastLDistance2 = INT_MAX;
-            switch(m_gfxEntry.gfxDirType){
-                case 16: return pathf::getDir16Off(m_gfxDirIndex, m_moveSpeed);
-                case  8: return pathf::getDir8Off (m_gfxDirIndex, m_moveSpeed);
-                case  4: return pathf::getDir4Off (m_gfxDirIndex, m_moveSpeed);
-                case  1: return pathf::getDir16Off(m_gfxDirIndex, m_moveSpeed); // TODO if magic gfx has no direction I use 16-dir
-                default: throw fflerror("invalid gfxDirType: %d", m_gfxEntry.gfxDirType);
-            }
+            return m_lastFlyOff.value_or(pathf::getDir16Off(m_gfxDirIndex, m_moveSpeed));
         }
     }();
 
     m_x += dx;
     m_y += dy;
+
+    m_lastFlyOff = {dx, dy};
     return MagicBase::update(ms);
 }
 

@@ -25,7 +25,7 @@ class ProcessRun;
 class AttachMagic: public MagicBase
 {
     public:
-        AttachMagic(const char8_t *magicName, const char8_t *magicStage, int gfxDirIndex = -1)
+        AttachMagic(const char8_t *magicName, const char8_t *magicStage, int gfxDirIndex = 0)
             : MagicBase(magicName, magicStage, gfxDirIndex)
         {
             if(!m_gfxEntry.checkType(u8"附着")){

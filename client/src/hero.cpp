@@ -707,21 +707,31 @@ bool Hero::parseAction(const ActionNode &action)
 
                                         const auto fromX = motionPtr->x * SYS_MAPGRIDXP;
                                         const auto fromY = motionPtr->y * SYS_MAPGRIDYP;
-                                        const auto dir16 = [fromX, fromY, targetUID, this]() -> int
+                                        const auto flyDir16Index = [fromX, fromY, targetUID, this]() -> int
                                         {
                                             if(const auto coPtr = m_processRun->findUID(targetUID)){
-                                                const auto [targetPX, targetPY] = coPtr->getTargetBox().targetPLoc();
-                                                return pathf::getDir16(targetPX - fromX, (targetPY - fromY) * SYS_MAPGRIDXP / SYS_MAPGRIDYP);
+                                                if(const auto targetBox = coPtr->getTargetBox()){
+                                                    const auto [targetPX, targetPY] = targetBox.targetPLoc();
+                                                    return pathf::getDir16((targetPX - fromX) * SYS_MAPGRIDYP, (targetPY - fromY) * SYS_MAPGRIDXP);
+                                                }
                                             }
-                                            else if(m_processRun->getMyHeroUID() == UID()){
+
+                                            if(m_processRun->getMyHeroUID() == UID()){
                                                 const auto [  viewX,   viewY] = m_processRun->getViewShift();
                                                 const auto [mousePX, mousePY] = SDLDeviceHelper::getMousePLoc();
-                                                return pathf::getDir16(mousePX + viewX - fromX, (mousePY + viewY - fromY) * SYS_MAPGRIDXP / SYS_MAPGRIDYP);
+                                                return pathf::getDir16((mousePX + viewX - fromX) * SYS_MAPGRIDYP, (mousePY + viewY - fromY) * SYS_MAPGRIDXP);
                                             }
-                                            else{
-                                                // not myHero
-                                                // use hero's current direction to create magic
-                                                return (m_currMotion->direction - DIR_BEGIN) * 2;
+
+                                            // not myHero
+                                            // use hero's current direction to cast magic
+                                            return (m_currMotion->direction - DIR_BEGIN) * 2;
+                                        }();
+
+                                        const auto gfxDirIndex = [magicID, flyDir16Index]()
+                                        {
+                                            switch(magicID){
+                                                case DBCOM_MAGICID(u8"冰月震天"): return 0;
+                                                default                         : return flyDir16Index;
                                             }
                                         }();
 
@@ -733,9 +743,8 @@ bool Hero::parseAction(const ActionNode &action)
                                             fromX,
                                             fromY,
 
-                                            // gfx to draw magic
-                                            // 冰月震天 has only 1 gfx direction, we use dir16 for default fly direction when aimUID is dead
-                                            dir16,
+                                            gfxDirIndex,
+                                            flyDir16Index,
                                             20,
 
                                             targetUID,

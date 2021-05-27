@@ -37,7 +37,7 @@ class FixedLocMagic: public MagicBase
 
                 int x,
                 int y,
-                int gfxDirIndex = -1)
+                int gfxDirIndex = 0)
             : MagicBase(magicName, magicStage, gfxDirIndex)
             , m_x(x)
             , m_y(y)

@@ -144,7 +144,7 @@ std::tuple<int, int> pathf::getDirOff(int x, int y, int distance)
         throw fflerror("invalid direction (x = 0, y = 0)");
     }
 
-    const double r = distance / std::sqrt(1.0 * x * x + 1.0 * y * y);
+    const double r = to_df(distance) / std::sqrt(1.0 * x * x + 1.0 * y * y);
     return
     {
         to_d(std::lround(x * r)),
