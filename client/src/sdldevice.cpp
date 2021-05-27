@@ -616,9 +616,9 @@ SDL_Texture *SDLDevice::getCover(int r, int angle)
     std::vector<uint32_t> buf(w * h);
     for(int y = 0; y < h; ++y){
         for(int x = 0; x < w; ++x){
-            const int rx =  1 * (x - r + 1);
-            const int ry = -1 * (y - r + 1);
-            const int curr_r2 = rx * rx + ry * ry;
+            const int dx =  1 * (x - r + 1);
+            const int dy = -1 * (y - r + 1);
+            const int curr_r2 = dx * dx + dy * dy;
             const uint8_t alpha = [curr_r2, r]() -> uint8_t
             {
                 if(g_clientArgParser->debugAlphaCover){
@@ -627,12 +627,12 @@ SDL_Texture *SDLDevice::getCover(int r, int angle)
                 return 255 - std::min<uint8_t>(255, std::lround(255.0 * curr_r2 / (r * r)));
             }();
 
-            const auto curr_angle = [x, y]() -> int
+            const auto curr_angle = [dx, dy]() -> int
             {
-                if(x == 0){
-                    return (y >= 0) ? 0 : 180;
+                if(dx == 0){
+                    return (dy >= 0) ? 0 : 180;
                 }
-                return ((x > 0) ? 0 : 180) + to_d(std::lround((1.0 - 2.0 * std::atan(to_df(y) / x) / 3.14159265358979323846) * 90.0));
+                return ((dx > 0) ? 0 : 180) + to_d(std::lround((1.0 - 2.0 * std::atan(to_df(dy) / dx) / 3.14159265358979323846) * 90.0));
             }();
 
             if(curr_r2 < r * r && mathf::bound<int>(curr_angle, 0, 360) <= angle){
