@@ -21,7 +21,9 @@
 #include <array>
 #include <memory>
 #include "strf.hpp"
+#include "mathf.hpp"
 #include "widget.hpp"
+#include "raiitimer.hpp"
 #include "labelboard.hpp"
 #include "texvslider.hpp"
 #include "dbcomrecord.hpp"
@@ -43,6 +45,22 @@ class SkillBoard: public Widget
 
             int level = 0;      //  0 means magic is not valid for this user
             char key  = '\0';   // \0 means magic is not enabled, if level > 0
+
+            int coolDown = 1000;        // cool down time in milliseconds
+            hres_timer lastCastTime{};  // last time cast this magic
+
+            int angle() const
+            {
+                if(level <= 0){
+                    return 0;
+                }
+
+                if(coolDown <= 0 || lastCastTime.diff_msec() >= to_u64(coolDown)){
+                    return 360;
+                }
+
+                return mathf::bound<int>(std::lround(360.0 * to_df(lastCastTime.diff_msec()) / coolDown), 0, 360);
+            }
         };
 
         class MagicIconButton: public WidgetGroup
@@ -187,13 +205,15 @@ class SkillBoard: public Widget
         }
 
     public:
-        uint32_t key2MagicID(char);
+        std::tuple<uint32_t, int> key2MagicID(char) const;
 
     public:
         struct MagicKey
         {
-            uint32_t magicID;
-            char     key;
+            uint32_t magicID = 0;
+
+            char key   = '\0';
+            int  angle =   0;
         };
 
         std::vector<MagicKey> getMagicKeyList() const
@@ -201,7 +221,7 @@ class SkillBoard: public Widget
             std::vector<MagicKey> result;
             for(const auto &iconData: m_magicIconDataList){
                 if(iconData.magicID && iconData.key != '\0'){
-                    result.emplace_back(iconData.magicID, iconData.key);
+                    result.emplace_back(iconData.magicID, iconData.key, iconData.angle());
                 }
             }
             return result;
@@ -210,6 +230,7 @@ class SkillBoard: public Widget
     public:
         void setMagicLevel(uint32_t, int);
         void setMagicKey(uint32_t, char);
+        void setMagicCastTime(uint32_t);
 
     private:
         static int getSkillPageIndex(uint32_t magicID)

@@ -182,6 +182,26 @@ namespace colorf
         return ((uint32_t)(dstA) << 24) | ((uint32_t)(dstB) << 16) | ((uint32_t)(dstG) <<  8) | ((uint32_t)(dstR) <<  0);
     }
 
+    constexpr uint32_t fadeRGBA(uint32_t fromColor, uint32_t toColor, float r)
+    {
+        const uint32_t fromR = colorf::R(fromColor);
+        const uint32_t fromG = colorf::G(fromColor);
+        const uint32_t fromB = colorf::B(fromColor);
+        const uint32_t fromA = colorf::A(fromColor);
+
+        const uint32_t toR = colorf::R(toColor);
+        const uint32_t toG = colorf::G(toColor);
+        const uint32_t toB = colorf::B(toColor);
+        const uint32_t toA = colorf::A(toColor);
+
+        const uint32_t dstR = round255(fromR * (1.0 - r) + toR * r);
+        const uint32_t dstG = round255(fromG * (1.0 - r) + toG * r);
+        const uint32_t dstB = round255(fromB * (1.0 - r) + toB * r);
+        const uint32_t dstA = round255(fromA * (1.0 - r) + toA * r);
+
+        return colorf::RGBA(dstR, dstG, dstB, dstA);
+    }
+
     template<size_t GradientCount> std::array<uint32_t, GradientCount> GradientColor(uint32_t nColor0, uint32_t nColor1)
     {
         static_assert(GradientCount >= 2);
