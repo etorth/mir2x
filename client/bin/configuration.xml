@@ -1,62 +1,41 @@
-<Root>
-    <Window>
-        <W>800</W>
-        <H>600</H>
+<root>
+    <window>
+        <!-- 0: window -->
+        <!-- 1: window with full screen size -->
+        <!-- 2: full screen -->
+        <screenMode>0</screenMode>
+    </window>
 
-        <!-- ScreenMode: -->
-            <!-- 0: window -->
-        <!--     1: window with full screen size -->
-        <!--     2: full screen -->
-        <ScreenMode>0</ScreenMode>
-        <!-- <ScreenMode>1</ScreenMode> -->
-        <!-- <ScreenMode>2</ScreenMode> -->
+    <font>
+        <fontexDB>res/font/fontex.zsdb</fontexDB>
+    </font>
 
-        <Caption>Mir2X</Caption>
-    </Window>
+    <texture>
+        <progUseDB>res/texture/proguse.zsdb</progUseDB>
+        <itemDB>res/texture/item.zsdb</itemDB>
+        <mapDB>res/texture/map.zsdb</mapDB>
+        <heroDB>res/texture/hero.zsdb</heroDB>
+        <monsterDB>res/texture/monster.zsdb</monsterDB>
+        <weaponDB>res/texture/weapon.zsdb</weaponDB>
+        <helmetDB>res/texture/helmet.zsdb</helmetDB>
+        <magicDB>res/texture/magic.zsdb</magicDB>
+        <hairDB>res/texture/hair.zsdb</hairDB>
+        <equipDB>res/texture/equip.zsdb</equipDB>
+        <standNPCDB>res/texture/npc.zsdb</standNPCDB>
+    </texture>
 
+    <map>
+        <mapBinDB>res/map/mapbin.zsdb</mapBinDB>
+    </map>
 
-    <Font><FontexDB>Res/Font/FontexDB.ZSDB</FontexDB></Font>
-    <Texture>
-        <ProgUseDB>Res/Texture/proguse.zsdb</ProgUseDB>
-        <itemDB>Res/Texture/item.zsdb</itemDB>
-        <MapDB>Res/Texture/MapDB.ZSDB</MapDB>
-        <HeroDB>Res/Texture/HeroDB.ZSDB</HeroDB>
-        <MonsterDB>Res/Texture/monster.zsdb</MonsterDB>
-        <WeaponDB>Res/Texture/WeaponDB.ZSDB</WeaponDB>
-        <helmetDB>Res/Texture/helmet.zsdb</helmetDB>
-        <MagicDB>Res/Texture/magic.zsdb</MagicDB>
-        <hairDB>Res/Texture/hair.zsdb</hairDB>
-        <equipDB>Res/Texture/equip.zsdb</equipDB>
-        <standNPCDB>Res/Texture/npc.zsdb</standNPCDB>
-    </Texture>
-    <Map>
-        <MapBinDB>Res/Map/MapBinDB.ZSDB</MapBinDB>
-    </Map>
-    <Font>
-        <FontFile Index="0">
-            <Name>微软雅黑</Name>
-            <FileName>Res/Font/msyh.ttf</FileName>
-        </FontFile>
-        <FontFile Index="1">
-            <Name>文泉驿正黑</Name>
-            <FileName>Res/Font/wqy.ttc</FileName>
-        </FontFile>
-    </Font>
-    <Actor>
-        <LID>
-            <Path>Res/Actor/LID</Path>
-        </LID>
-    </Actor>
-    <Monster>
-        <Path>Res/Monster</Path>
-    </Monster>
-    <Emoticon>
-        <Path>Res/Emoticon/emojidb.zsdb</Path>
-    </Emoticon>
-    <Network>
-        <Server>
-            <IP>127.0.0.1</IP>
-            <Port>5000</Port>
-        </Server>
-    </Network>
-</Root>
+    <emoji>
+        <emojiDB>res/emoji/emoji.zsdb</emojiDB>
+    </emoji>
+
+    <network>
+        <server>
+            <ip>127.0.0.1</ip>
+            <port>5000</port>
+        </server>
+    </network>
+</root>

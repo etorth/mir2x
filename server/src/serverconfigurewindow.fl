@@ -130,7 +130,7 @@ class ServerConfigureWindow {open
     }
     code {// set up the default map path
 {
-    m_mapFullName->value("Map/MapBinDB.ZSDB");
+    m_mapFullName->value("map/mapbin.zsdb");
     m_scriptFullName->value("script/map");
 }} {}
   }
