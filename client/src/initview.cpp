@@ -380,7 +380,7 @@ void InitView::Draw()
             }
         }();
 
-        if(auto pSurface = TTF_RenderUTF8_Blended(g_sdlDevice->DefaultTTF(m_fontSize), szMessage.c_str(), stColor)){
+        if(auto pSurface = TTF_RenderUTF8_Blended(g_sdlDevice->defaultTTF(m_fontSize), szMessage.c_str(), stColor)){
             pTexture = g_sdlDevice->CreateTextureFromSurface(pSurface);
             SDL_FreeSurface(pSurface);
         }

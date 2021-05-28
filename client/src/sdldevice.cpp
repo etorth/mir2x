@@ -580,7 +580,7 @@ SDL_Texture *SDLDevice::createTexture(const uint32_t *buf, int w, int h)
     return nullptr;
 }
 
-TTF_Font *SDLDevice::DefaultTTF(uint8_t fontSize)
+TTF_Font *SDLDevice::defaultTTF(uint8_t fontSize)
 {
     if(auto p = m_fontList.find(fontSize); p != m_fontList.end()){
         return p->second;

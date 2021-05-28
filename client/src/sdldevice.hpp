@@ -289,7 +289,7 @@ class SDLDevice final
        SDL_Texture *createTexture(const uint32_t *, int, int);
 
     public:
-       TTF_Font *DefaultTTF(uint8_t);
+       TTF_Font *defaultTTF(uint8_t);
 
     public:
        void updateFPS()
