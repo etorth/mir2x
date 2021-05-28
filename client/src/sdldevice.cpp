@@ -32,7 +32,7 @@
 #include "clientargparser.hpp"
 
 extern Log *g_log;
-extern XMLConf *g_XMLConf;
+extern XMLConf *g_xmlConf;
 extern SDLDevice *g_sdlDevice;
 extern ClientArgParser *g_clientArgParser;
 
@@ -517,7 +517,7 @@ void SDLDevice::CreateMainWindow()
 
     const auto winFlag = []() -> Uint32
     {
-        switch(g_XMLConf->to_d("root/window/screenMode").value_or(-1)){
+        switch(g_xmlConf->to_d("root/window/screenMode").value_or(-1)){
             case  1: return SDL_WINDOW_RESIZABLE | SDL_WINDOW_FULLSCREEN_DESKTOP;
             case  2: return SDL_WINDOW_RESIZABLE | SDL_WINDOW_FULLSCREEN;
             default: return SDL_WINDOW_RESIZABLE;

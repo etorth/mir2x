@@ -36,7 +36,7 @@
 #include "pngtexoffdb.hpp"
 
 extern Log *g_log;
-extern XMLConf *g_XMLConf;
+extern XMLConf *g_xmlConf;
 extern SDLDevice *g_sdlDevice;
 extern emoticonDB *g_emoticonDB;
 
@@ -59,20 +59,20 @@ InitView::InitView(uint8_t fontSize)
     : m_fontSize(fontSize)
     , m_taskList
       {
-          {1, [this](size_t weight){ loadDB(weight, g_XMLConf, g_progUseDB,  "root/texture/progUseDB" ); }},
-          {1, [this](size_t weight){ loadDB(weight, g_XMLConf, g_itemDB,     "root/texture/itemDB"    ); }},
-          {1, [this](size_t weight){ loadDB(weight, g_XMLConf, g_mapDB,      "root/texture/mapDB"     ); }},
-          {1, [this](size_t weight){ loadDB(weight, g_XMLConf, g_fontexDB,   "root/font/fontexDB"     ); }},
-          {1, [this](size_t weight){ loadDB(weight, g_XMLConf, g_heroDB,     "root/texture/heroDB"    ); }},
-          {1, [this](size_t weight){ loadDB(weight, g_XMLConf, g_hairDB,     "root/texture/hairDB"    ); }},
-          {1, [this](size_t weight){ loadDB(weight, g_XMLConf, g_monsterDB,  "root/texture/monsterDB" ); }},
-          {1, [this](size_t weight){ loadDB(weight, g_XMLConf, g_weaponDB,   "root/texture/weaponDB"  ); }},
-          {1, [this](size_t weight){ loadDB(weight, g_XMLConf, g_helmetDB,   "root/texture/helmetDB"  ); }},
-          {1, [this](size_t weight){ loadDB(weight, g_XMLConf, g_magicDB,    "root/texture/magicDB"   ); }},
-          {1, [this](size_t weight){ loadDB(weight, g_XMLConf, g_equipDB,    "root/texture/equipDB"   ); }},
-          {1, [this](size_t weight){ loadDB(weight, g_XMLConf, g_standNPCDB, "root/texture/standNPCDB"); }},
-          {1, [this](size_t weight){ loadDB(weight, g_XMLConf, g_mapBinDB,   "root/map/mapBinDB"      ); }},
-          {1, [this](size_t weight){ loadDB(weight, g_XMLConf, g_emoticonDB, "root/emoji/emojiDB"     ); }},
+          {1, [this](size_t weight){ loadDB(weight, g_xmlConf, g_progUseDB,  "root/texture/progUseDB" ); }},
+          {1, [this](size_t weight){ loadDB(weight, g_xmlConf, g_itemDB,     "root/texture/itemDB"    ); }},
+          {1, [this](size_t weight){ loadDB(weight, g_xmlConf, g_mapDB,      "root/texture/mapDB"     ); }},
+          {1, [this](size_t weight){ loadDB(weight, g_xmlConf, g_fontexDB,   "root/font/fontexDB"     ); }},
+          {1, [this](size_t weight){ loadDB(weight, g_xmlConf, g_heroDB,     "root/texture/heroDB"    ); }},
+          {1, [this](size_t weight){ loadDB(weight, g_xmlConf, g_hairDB,     "root/texture/hairDB"    ); }},
+          {1, [this](size_t weight){ loadDB(weight, g_xmlConf, g_monsterDB,  "root/texture/monsterDB" ); }},
+          {1, [this](size_t weight){ loadDB(weight, g_xmlConf, g_weaponDB,   "root/texture/weaponDB"  ); }},
+          {1, [this](size_t weight){ loadDB(weight, g_xmlConf, g_helmetDB,   "root/texture/helmetDB"  ); }},
+          {1, [this](size_t weight){ loadDB(weight, g_xmlConf, g_magicDB,    "root/texture/magicDB"   ); }},
+          {1, [this](size_t weight){ loadDB(weight, g_xmlConf, g_equipDB,    "root/texture/equipDB"   ); }},
+          {1, [this](size_t weight){ loadDB(weight, g_xmlConf, g_standNPCDB, "root/texture/standNPCDB"); }},
+          {1, [this](size_t weight){ loadDB(weight, g_xmlConf, g_mapBinDB,   "root/map/mapBinDB"      ); }},
+          {1, [this](size_t weight){ loadDB(weight, g_xmlConf, g_emoticonDB, "root/emoji/emojiDB"     ); }},
       }
 {
     const Rawbuf boardData

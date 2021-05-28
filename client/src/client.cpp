@@ -42,7 +42,7 @@
 #include "clientargparser.hpp"
 
 extern Log *g_log;
-extern XMLConf *g_XMLConf;
+extern XMLConf *g_xmlConf;
 extern SDLDevice *g_sdlDevice;
 extern NotifyBoard *g_notifyBoard;
 extern ClientArgParser *g_clientArgParser;
@@ -158,14 +158,14 @@ void Client::initASIO()
     // make sure there is no data race
 
     // TODO
-    // may need lock here since g_XMLConf may used in main thread also
+    // may need lock here since g_xmlConf may used in main thread also
     const auto ipStr = []()-> std::string
     {
         if(!g_clientArgParser->serverIP.empty()){
             return g_clientArgParser->serverIP;
         }
 
-        if(auto nodePtr = g_XMLConf->getXMLNode("/root/network/server/ip"); nodePtr && nodePtr->GetText()){
+        if(auto nodePtr = g_xmlConf->getXMLNode("/root/network/server/ip"); nodePtr && nodePtr->GetText()){
             return std::string(nodePtr->GetText());
         }
         return "127.0.0.1";
@@ -177,7 +177,7 @@ void Client::initASIO()
             return g_clientArgParser->serverPort;
         }
 
-        if(auto nodePtr = g_XMLConf->getXMLNode("/root/network/server/port"); nodePtr && nodePtr->GetText()){
+        if(auto nodePtr = g_xmlConf->getXMLNode("/root/network/server/port"); nodePtr && nodePtr->GetText()){
             return std::string(nodePtr->GetText());
         }
         return "5000";

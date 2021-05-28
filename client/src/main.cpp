@@ -47,7 +47,7 @@ PNGTexOffDB     *g_standNPCDB      = nullptr; // database for NPC
 emoticonDB      *g_emoticonDB      = nullptr; // database for emoticons
 MapBinDB        *g_mapBinDB        = nullptr;
 FontexDB        *g_fontexDB        = nullptr;
-XMLConf         *g_XMLConf         = nullptr; // for client configure XML parsing
+XMLConf         *g_xmlConf         = nullptr; // for client configure XML parsing
 SDLDevice       *g_sdlDevice       = nullptr; // for SDL hardware device
 NotifyBoard     *g_notifyBoard     = nullptr;
 Client          *g_client          = nullptr; // gobal instance
@@ -75,7 +75,7 @@ int main(int argc, char *argv[])
     }
 
     try{
-        g_XMLConf         = new XMLConf();
+        g_xmlConf         = new XMLConf();
         g_sdlDevice       = new SDLDevice();
         g_progUseDB       = new PNGTexDB(1024);
         g_itemDB          = new PNGTexDB(1024);
