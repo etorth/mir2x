@@ -59,20 +59,20 @@ InitView::InitView(uint8_t fontSize)
     : m_fontSize(fontSize)
     , m_taskList
       {
-          {1, [this](size_t i){ loadDB(i, g_XMLConf, g_progUseDB,  "root/texture/progUseDB" ); }},
-          {1, [this](size_t i){ loadDB(i, g_XMLConf, g_itemDB,     "root/texture/itemDB"    ); }},
-          {1, [this](size_t i){ loadDB(i, g_XMLConf, g_mapDB,      "root/texture/mapDB"     ); }},
-          {1, [this](size_t i){ loadDB(i, g_XMLConf, g_fontexDB,   "root/font/fontexDB"     ); }},
-          {1, [this](size_t i){ loadDB(i, g_XMLConf, g_heroDB,     "root/texture/heroDB"    ); }},
-          {1, [this](size_t i){ loadDB(i, g_XMLConf, g_hairDB,     "root/texture/hairDB"    ); }},
-          {1, [this](size_t i){ loadDB(i, g_XMLConf, g_monsterDB,  "root/texture/monsterDB" ); }},
-          {1, [this](size_t i){ loadDB(i, g_XMLConf, g_weaponDB,   "root/texture/weaponDB"  ); }},
-          {1, [this](size_t i){ loadDB(i, g_XMLConf, g_helmetDB,   "root/texture/helmetDB"  ); }},
-          {1, [this](size_t i){ loadDB(i, g_XMLConf, g_magicDB,    "root/texture/magicDB"   ); }},
-          {1, [this](size_t i){ loadDB(i, g_XMLConf, g_equipDB,    "root/texture/equipDB"   ); }},
-          {1, [this](size_t i){ loadDB(i, g_XMLConf, g_standNPCDB, "root/texture/standNPCDB"); }},
-          {1, [this](size_t i){ loadDB(i, g_XMLConf, g_mapBinDB,   "root/map/mapBinDB"      ); }},
-          {1, [this](size_t i){ loadDB(i, g_XMLConf, g_emoticonDB, "root/emoji/emojiDB"     ); }},
+          {1, [this](size_t weight){ loadDB(weight, g_XMLConf, g_progUseDB,  "root/texture/progUseDB" ); }},
+          {1, [this](size_t weight){ loadDB(weight, g_XMLConf, g_itemDB,     "root/texture/itemDB"    ); }},
+          {1, [this](size_t weight){ loadDB(weight, g_XMLConf, g_mapDB,      "root/texture/mapDB"     ); }},
+          {1, [this](size_t weight){ loadDB(weight, g_XMLConf, g_fontexDB,   "root/font/fontexDB"     ); }},
+          {1, [this](size_t weight){ loadDB(weight, g_XMLConf, g_heroDB,     "root/texture/heroDB"    ); }},
+          {1, [this](size_t weight){ loadDB(weight, g_XMLConf, g_hairDB,     "root/texture/hairDB"    ); }},
+          {1, [this](size_t weight){ loadDB(weight, g_XMLConf, g_monsterDB,  "root/texture/monsterDB" ); }},
+          {1, [this](size_t weight){ loadDB(weight, g_XMLConf, g_weaponDB,   "root/texture/weaponDB"  ); }},
+          {1, [this](size_t weight){ loadDB(weight, g_XMLConf, g_helmetDB,   "root/texture/helmetDB"  ); }},
+          {1, [this](size_t weight){ loadDB(weight, g_XMLConf, g_magicDB,    "root/texture/magicDB"   ); }},
+          {1, [this](size_t weight){ loadDB(weight, g_XMLConf, g_equipDB,    "root/texture/equipDB"   ); }},
+          {1, [this](size_t weight){ loadDB(weight, g_XMLConf, g_standNPCDB, "root/texture/standNPCDB"); }},
+          {1, [this](size_t weight){ loadDB(weight, g_XMLConf, g_mapBinDB,   "root/map/mapBinDB"      ); }},
+          {1, [this](size_t weight){ loadDB(weight, g_XMLConf, g_emoticonDB, "root/emoji/emojiDB"     ); }},
       }
 {
     const Rawbuf boardData
@@ -99,7 +99,8 @@ InitView::InitView(uint8_t fontSize)
     for(size_t i = 0; i < m_taskList.size(); ++i){
         taskPool.addTask(hasError, [i, this](int)
         {
-            std::get<1>(m_taskList.at(i))(i);
+            const auto &[weight, taskFunc] = m_taskList.at(i);
+            taskFunc(weight);
         });
     }
 

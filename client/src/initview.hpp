@@ -107,9 +107,9 @@ class InitView final
         }
 
     private:
-        template<typename T> void loadDB(size_t taskIndex, const XMLConf *xmlConfPtr, T *dbPtr, const char *nodePath)
+        template<typename T> void loadDB(size_t taskWeight, const XMLConf *xmlConfPtr, T *dbPtr, const char *nodePath)
         {
-            fflassert(taskIndex < m_taskList.size());
+            fflassert(taskWeight);
             fflassert(xmlConfPtr);
             fflassert(dbPtr);
             fflassert(str_haschar(nodePath));
@@ -125,7 +125,7 @@ class InitView final
                 if(auto dbPath = nodePtr->GetText()){
                     if(dbPtr->Load(dbPath)){
                         hasError = false;
-                        m_doneWeight += std::get<0>(m_taskList.at(taskIndex));
+                        m_doneWeight += taskWeight;
                         addIVLog(LOGIV_INFO, "[%03d%%]Loading %s done", donePercent(), nodePath);
                     }
                     else{
