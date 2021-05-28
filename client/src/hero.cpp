@@ -545,7 +545,7 @@ bool Hero::parseAction(const ActionNode &action)
             {
                 flushMotionPending();
                 jumpLoc(action.x, action.y, m_currMotion->direction);
-                addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"瞬息移动", u8"结束", -1)));
+                addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"瞬息移动", u8"结束")));
                 break;
             }
         case ACTION_SPELL:
