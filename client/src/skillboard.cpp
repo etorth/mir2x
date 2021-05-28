@@ -98,7 +98,7 @@ void SkillBoard::MagicIconButton::drawEx(int dstX, int dstY, int srcX, int srcY,
         };
         magicLevel.drawAt(DIR_UPLEFT, (dstX - srcX) + (m_icon.w() - 2), (dstY - srcY) + (m_icon.h() - 1), dstX, dstY, srcW, srcH);
 
-        if(m_magicIconDataPtr->key != '\0'){
+        if(m_magicIconDataPtr->magicKey != '\0'){
             const LabelShadowBoard magicKey
             {
                 DIR_UPLEFT,
@@ -106,7 +106,7 @@ void SkillBoard::MagicIconButton::drawEx(int dstX, int dstY, int srcX, int srcY,
                 0,
                 2,
                 2,
-                str_printf(u8"%c", std::toupper(m_magicIconDataPtr->key)).c_str(),
+                str_printf(u8"%c", std::toupper(m_magicIconDataPtr->magicKey)).c_str(),
 
                 3,
                 20,
@@ -465,7 +465,7 @@ bool SkillBoard::processEvent(const SDL_Event &event, bool valid)
 std::tuple<uint32_t, int> SkillBoard::key2MagicID(char key) const
 {
     for(const auto &iconCRef: m_magicIconDataList){
-        if(std::tolower(iconCRef.key) == std::tolower(key)){
+        if(std::tolower(iconCRef.magicKey) == std::tolower(key)){
             return {iconCRef.magicID, iconCRef.angle()};
         }
     }
@@ -537,7 +537,7 @@ void SkillBoard::setMagicKey(uint32_t magicID, char key)
     for(auto &data: m_magicIconDataList){
         if(data.magicID == magicID){
             found = true;
-            data.key = key;
+            data.magicKey = key;
             break;
         }
     }
@@ -547,8 +547,8 @@ void SkillBoard::setMagicKey(uint32_t magicID, char key)
     }
 
     for(auto &data: m_magicIconDataList){
-        if(data.magicID != magicID && data.key == key){
-            data.key = '\0';
+        if(data.magicID != magicID && data.magicKey == key){
+            data.magicKey = '\0';
         }
     }
     m_processRun->requestSetMagicKey(magicID, key);

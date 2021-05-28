@@ -43,11 +43,9 @@ class SkillBoard: public Widget
             const int x = 0;
             const int y = 0;
 
-            int level = 0;      //  0 means magic is not valid for this user
-            char key  = '\0';   // \0 means magic is not enabled, if level > 0
-
-            int coolDown = 1000;        // cool down time in milliseconds
-            hres_timer lastCastTime{};  // last time cast this magic
+            int level = 0;
+            char magicKey = '\0';
+            hres_timer lastCastTime {};
 
             int angle() const
             {
@@ -55,11 +53,14 @@ class SkillBoard: public Widget
                     return 0;
                 }
 
-                if(coolDown <= 0 || lastCastTime.diff_msec() >= to_u64(coolDown)){
+                const auto &mr = DBCOM_MAGICRECORD(magicID);
+                fflassert(mr);
+
+                if(mr.coolDown <= 0 || lastCastTime.diff_msec() >= to_u64(mr.coolDown)){
                     return 360;
                 }
 
-                return mathf::bound<int>(std::lround(360.0 * to_df(lastCastTime.diff_msec()) / coolDown), 0, 360);
+                return mathf::bound<int>(std::lround(360.0 * to_df(lastCastTime.diff_msec()) / mr.coolDown), 0, 360);
             }
         };
 
@@ -220,8 +221,8 @@ class SkillBoard: public Widget
         {
             std::vector<MagicKey> result;
             for(const auto &iconData: m_magicIconDataList){
-                if(iconData.magicID && iconData.key != '\0'){
-                    result.emplace_back(iconData.magicID, iconData.key, iconData.angle());
+                if(iconData.magicID && iconData.magicKey != '\0'){
+                    result.emplace_back(iconData.magicID, iconData.magicKey, iconData.angle());
                 }
             }
             return result;

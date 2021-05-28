@@ -36,6 +36,7 @@
 {
     .name = u8"雷电术",
     .element = u8"雷",
+    .coolDown = 3000,
 
     .icon = 0X0500100A,
     .gfxList
@@ -60,6 +61,7 @@
 {
     .name = u8"魔法盾",
     .element = u8"风",
+    .coolDown = 5000,
 
     .icon = 0X0500101D,
     .gfxList
@@ -99,6 +101,7 @@
 {
     .name = u8"召唤骷髅",
     .element = u8"幻影",
+    .coolDown = 5000,
 
     .icon = 0X0500103B,
     .gfxList
@@ -125,6 +128,8 @@
 {
     .name = u8"火球术",
     .element = u8"火",
+
+    .coolDown = 2000,
     .checkGround = 1,
 
     .icon = 0X05001000,
@@ -162,6 +167,8 @@
 {
     .name = u8"大火球",
     .element = u8"火",
+
+    .coolDown = 2000,
     .checkGround = 1,
 
     .icon = 0X05001004,
@@ -223,6 +230,7 @@
 {
     .name = u8"疾光电影",
     .element = u8"雷",
+    .coolDown = 2000,
 
     .icon = 0X05001009,
     .gfxList
@@ -258,6 +266,8 @@
 {
     .name = u8"灵魂火符",
     .element = u8"暗黑",
+
+    .coolDown = 2000,
     .checkGround = 1,
 
     .icon = 0X0500100C,
@@ -319,6 +329,7 @@
 {
     .name = u8"瞬息移动",
     .element = u8"幻影",
+    .coolDown = 3000,
 
     .gfxList
     {
@@ -341,6 +352,7 @@
 {
     .name = u8"火墙",
     .element = u8"火",
+    .coolDown = 3000,
 
     .icon = 0X05001015,
     .gfxList
@@ -368,6 +380,7 @@
 {
     .name = u8"地狱火",
     .element = u8"火",
+    .coolDown = 3000,
 
     .icon = 0X05001008,
     .gfxList
@@ -456,6 +469,7 @@
 {
     .name = u8"召唤神兽",
     .element = u8"幻影",
+    .coolDown = 10000,
 
     .icon = 0X0500101C,
     .gfxList
@@ -502,6 +516,8 @@
 {
     .name = u8"冰月神掌",
     .element = u8"冰",
+
+    .coolDown = 2000,
     .checkGround = 1,
 
     .icon = 0X05001025,
@@ -539,6 +555,8 @@
 {
     .name = u8"冰月震天",
     .element = u8"冰",
+
+    .coolDown = 2000,
     .checkGround = 1,
 
     .icon = 0X05001026,
@@ -578,6 +596,8 @@
 {
     .name = u8"冰沙掌",
     .element = u8"冰",
+
+    .coolDown = 2000,
     .checkGround = 1,
 
     .icon = 0X05001028,
@@ -672,6 +692,7 @@
 {
     .name = u8"焰天火雨",
     .element = u8"火",
+    .coolDown = 2000,
 
     .icon = 0X05001042,
     .gfxList

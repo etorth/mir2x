@@ -221,6 +221,8 @@ struct MagicRecord
     {
         .type = CRT_LONG,
     };
+
+    const int coolDown = 0;
     const int checkGround = 0;
 
     const uint32_t icon = SYS_TEXNIL;
