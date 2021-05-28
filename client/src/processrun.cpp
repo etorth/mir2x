@@ -1797,6 +1797,18 @@ void ProcessRun::checkMagicSpell(const SDL_Event &event)
         return;
     }
 
+    // always setup the target UID
+    // even the magic itself is cooling down
+
+    if(auto uid = focusUID(FOCUS_MOUSE)){
+        m_focusUIDTable[FOCUS_MAGIC] = uid;
+    }
+    else{
+        if(!findUID(m_focusUIDTable[FOCUS_MAGIC])){
+            m_focusUIDTable[FOCUS_MAGIC] = 0;
+        }
+    }
+
     if(coolDown < 360){
         addCBLog(CBLOG_ERR, u8"%s尚未冷却", to_cstr(DBCOM_MAGICRECORD(magicID).name));
         return;
@@ -1810,26 +1822,19 @@ void ProcessRun::checkMagicSpell(const SDL_Event &event)
         case DBCOM_MAGICID(u8"冰月神掌"):
         case DBCOM_MAGICID(u8"冰月震天"):
             {
-                if(auto nMouseFocusUID = focusUID(FOCUS_MOUSE)){
-                    m_focusUIDTable[FOCUS_MAGIC] = nMouseFocusUID;
-                }
-                else{
-                    if(!findUID(m_focusUIDTable[FOCUS_MAGIC])){
-                        m_focusUIDTable[FOCUS_MAGIC] = 0;
-                    }
-                }
-
-                if(auto nFocusUID = focusUID(FOCUS_MAGIC)){
+                if(const auto uid = focusUID(FOCUS_MAGIC)){
                     getMyHero()->emplaceAction(ActionSpell
                     {
                         .x = getMyHero()->currMotion()->endX,
                         .y = getMyHero()->currMotion()->endY,
-                        .aimUID = nFocusUID,
+                        .aimUID = uid,
                         .magicID = magicID,
                     });
                 }
-
                 else{
+                    // even there is no target UID
+                    // we still cast the magic to show gfx
+
                     const auto [aimX, aimY] = getMouseGLoc();
                     getMyHero()->emplaceAction(ActionSpell
                     {
