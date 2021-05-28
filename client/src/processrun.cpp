@@ -450,7 +450,7 @@ void ProcessRun::draw()
                 const auto texW = SDLDeviceHelper::getTextureWidth(texPtr);
                 const auto coverTexW = std::lround(1.41421356237309504880 * texW);
                 auto coverTexPtr = g_sdlDevice->getCover(coverTexW / 2, magicKey.angle);
-                SDLDeviceHelper::EnableTextureModColor enableModColor(coverTexPtr, colorf::fadeRGBA(colorf::RGBA(255, 51, 51, 255), colorf::GREEN + 100, colorRatio));
+                SDLDeviceHelper::EnableTextureModColor enableModColor(coverTexPtr, colorf::fadeRGBA(colorf::RGBA(255, 51, 51, 255), colorf::GREEN + 80, colorRatio));
 
                 const auto offCoverX = (coverTexW - texW) / 2;
                 g_sdlDevice->drawTexture(coverTexPtr, magicKeyOffX, 0, offCoverX, offCoverX, texW, texW);
