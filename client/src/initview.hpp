@@ -34,7 +34,7 @@
 #include <cstddef>
 #include <SDL2/SDL.h>
 #include <functional>
-
+#include "bevent.hpp"
 #include "xmlconf.hpp"
 #include "sdldevice.hpp"
 
@@ -48,46 +48,11 @@ class InitView final
             LOGIV_FATAL   = 2,
         };
 
-        enum IVProcType: int
+        struct LogEntry
         {
-            IVPROC_LOOP  = 0,
-            IVPROC_DONE  = 1,
-            IVPROC_ERROR = 2,
-        };
-
-    private:
-        struct LoadProc
-        {
-            // this struct may change a lot
-            // avoid to use the std::pair or std::tuple
-            size_t Weight;
-
-            // what to execute during this event
-            // return false means need to stop all rest events
-            std::function<bool(size_t)> Event;
-
-            LoadProc(size_t nWeight, const std::function<bool(size_t)> &fnEvent)
-                : Weight(nWeight)
-                , Event(fnEvent)
-            {}
-        };
-
-        struct MessageEntry
-        {
-            // LogType defines different color
-            // 0 : normal  : white
-            // 1 : warning : yellow
-            // 2 : error   : red
-            int Type;
-
-            std::string  Message;
-            SDL_Texture *Texture;
-
-            MessageEntry(int nLogType = 0, const char *szMessage = "", SDL_Texture *pTexture = nullptr)
-                : Type(nLogType)
-                , Message(szMessage ? szMessage : "")
-                , Texture(pTexture)
-            {}
+            int type = 0;
+            std::string log;
+            SDL_Texture *texture = nullptr;
         };
 
     private:
@@ -97,26 +62,25 @@ class InitView final
         static constexpr int m_buttonH =  30;
 
     private:
-        std::atomic<int> m_procState;
+        std::atomic<bool> m_hasError{false};
+        std::atomic<size_t> m_doneWeight{0};
 
     private:
-        // button status: 0 : normal
-        //                1 : over
-        //                2 : pressed
-        int m_buttonState;
+        int m_buttonState = BEVENT_OFF;
 
     private:
-        uint8_t m_fontSize;
+        const uint8_t m_fontSize;
 
     private:
-        std::vector<LoadProc> m_loadProcV;
+        std::vector<std::tuple<size_t, std::function<void(size_t)>>> m_taskList;
 
     private:
-        std::mutex                m_lock;
-        std::vector<MessageEntry> m_messageList;
+        std::mutex m_lock;
+        std::vector<LogEntry> m_logSink;
 
     private:
-        SDL_Texture *m_textureV[2];
+        SDL_Texture *m_boardTexture  = nullptr;
+        SDL_Texture *m_buttonTexture = nullptr;
 
     public:
         InitView(uint8_t);
@@ -125,57 +89,59 @@ class InitView final
         ~InitView();
 
     private:
-        void Proc();
-        void Load();
-        void Draw();
+        void draw();
         void processEvent();
 
     private:
-        void AddIVLog(int, const char *, ...);
+        void addIVLog(int, const char *, ...);
 
     private:
-        // we use nCurrIndex rather than percentage
-        // since we may have other events not calling LoadDB()
-        template<typename T> bool LoadDB(size_t nCurrIndex, const XMLConf *xmlConfPtr, T *pDB, const char *szNodePath)
+        int donePercent() const
         {
-            if(true
-                    && nCurrIndex < m_loadProcV.size()
-                    && xmlConfPtr
-                    && pDB
-                    && szNodePath){
+            size_t taskWeigthSum = 0;
+            for(const auto &[weight, task]: m_taskList){
+                fflassert(weight);
+                taskWeigthSum += weight;
+            }
+            return to_d(std::lround(to_f(m_doneWeight.load()) * 100.0 / taskWeigthSum));
+        }
 
-                auto stArray = [this, nCurrIndex]() -> std::array<size_t, 2>
-                {
-                    std::array<size_t, 2> stArray {{0, 0}};
-                    for(size_t nIndex = 0; nIndex < m_loadProcV.size(); ++nIndex){
-                        auto nWeight = m_loadProcV[nIndex].Weight ? m_loadProcV[nIndex].Weight : 1;
-                        stArray[0] += (nWeight);
-                        stArray[1] += (nIndex <= nCurrIndex ? nWeight : 0);
-                    }
-                    return stArray;
-                }();
+    private:
+        template<typename T> void loadDB(size_t taskIndex, const XMLConf *xmlConfPtr, T *dbPtr, const char *nodePath)
+        {
+            fflassert(taskIndex < m_taskList.size());
+            fflassert(xmlConfPtr);
+            fflassert(dbPtr);
+            fflassert(str_haschar(nodePath));
 
-                auto nPercent = to_d(std::lround(stArray[1] * 100.0 / (0.1 + stArray[0])));
-                AddIVLog(LOGIV_INFO, "[%03d%%]Loading %s", nPercent, szNodePath);
-                if(auto pNode = xmlConfPtr->getXMLNode(szNodePath)){
-                    if(auto szPath = pNode->GetText()){
-                        if(pDB->Load(szPath)){
-                            AddIVLog(LOGIV_INFO, "[%03d%%]Loading %s done", nPercent, szNodePath);
-                            return true;
-                        }else{
-                            AddIVLog(LOGIV_WARNING, "[%03d%%]Loading %s failed: %s", nPercent, szNodePath, szPath);
-                            return false;
-                        }
-                    }else{
-                        AddIVLog(LOGIV_WARNING, "[%03d%%]Loading %s failed: Invalid text node in configuration", nPercent, szNodePath);
-                        return false;
+            if(m_hasError){
+                return;
+            }
+
+            bool hasError = true;
+            addIVLog(LOGIV_INFO, "[%03d%%]Loading %s", donePercent(), nodePath);
+
+            if(auto nodePtr = xmlConfPtr->getXMLNode(nodePath)){
+                if(auto dbPath = nodePtr->GetText()){
+                    if(dbPtr->Load(dbPath)){
+                        hasError = false;
+                        m_doneWeight += std::get<0>(m_taskList.at(taskIndex));
+                        addIVLog(LOGIV_INFO, "[%03d%%]Loading %s done", donePercent(), nodePath);
                     }
-                }else{
-                    AddIVLog(LOGIV_WARNING, "[%03d%%]Loading %s failed: No text node found in configuration", nPercent, szNodePath);
-                    return false;
+                    else{
+                        addIVLog(LOGIV_WARNING, "[%03d%%]Loading %s failed: %s", donePercent(), nodePath, dbPath);
+                    }
+                }
+                else{
+                    addIVLog(LOGIV_WARNING, "[%03d%%]Loading %s failed: Invalid node in configuration", donePercent(), nodePath);
                 }
             }
-            AddIVLog(LOGIV_WARNING, "[%%---]Loading parameters invalid for LoadDB(%d, %p, %p, %p)", to_d(nCurrIndex), xmlConfPtr, pDB, szNodePath);
-            return false;
+            else{
+                addIVLog(LOGIV_WARNING, "[%03d%%]Loading %s failed: No node found in configuration", donePercent(), nodePath);
+            }
+
+            if(hasError){
+                m_hasError = true;
+            }
         }
 };
