@@ -609,7 +609,7 @@ bool Hero::parseAction(const ActionNode &action)
 
                         m_motionQueue.back()->extParam.spell.effect.reset(new CastMagicMotionEffect(m_motionQueue.back().get()));
                         if(UID() == m_processRun->getMyHeroUID()){
-                            m_processRun->setMagicCastTime(magicID);
+                            m_processRun->getMyHero()->setMagicCastTime(magicID);
                         }
 
                         switch(magicID){

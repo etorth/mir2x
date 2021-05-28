@@ -435,7 +435,4 @@ class ProcessRun: public Process
         {
             m_delayCmdQ.addDelay(delayTick, std::move(cmd));
         }
-
-    public:
-        void setMagicCastTime(uint32_t);
 };

@@ -28,6 +28,9 @@ class MyHero: public Hero
         uint32_t m_gold = 0;
 
     private:
+        std::unordered_map<uint32_t, uint64_t> m_lastCastTime;
+
+    private:
         SDBelt m_sdBelt;
         InvPack m_invPack;
 
@@ -155,4 +158,8 @@ class MyHero: public Hero
 
     public:
         bool canWear(uint32_t, int) const;
+
+    public:
+        void setMagicCastTime(uint32_t);
+        int getMagicCoolDownAngle(uint32_t) const;
 };

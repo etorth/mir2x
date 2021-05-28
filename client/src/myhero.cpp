@@ -633,3 +633,28 @@ bool MyHero::canWear(uint32_t itemID, int wltype) const
 
     return true;
 }
+
+void MyHero::setMagicCastTime(uint32_t magicID)
+{
+    fflassert(DBCOM_MAGICRECORD(magicID));
+    m_lastCastTime[magicID] = hres_tstamp().to_msec();
+}
+
+int MyHero::getMagicCoolDownAngle(uint32_t magicID) const
+{
+    const auto coolDown = DBCOM_MAGICRECORD(magicID).coolDown;
+    if(coolDown <= 0){
+        return 360;
+    }
+
+    auto p = m_lastCastTime.find(magicID);
+    if(p == m_lastCastTime.end()){
+        return 360;
+    }
+
+    const auto castTimeDiff = hres_tstamp().to_msec() - p->second;
+    if(castTimeDiff >= to_u64(coolDown)){
+        return 360;
+    }
+    return mathf::bound<int>(std::lround(360.0 * to_df(castTimeDiff) / coolDown), 0, 360);
+}

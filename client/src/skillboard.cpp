@@ -462,14 +462,14 @@ bool SkillBoard::processEvent(const SDL_Event &event, bool valid)
     }
 }
 
-std::tuple<uint32_t, int> SkillBoard::key2MagicID(char key) const
+uint32_t SkillBoard::key2MagicID(char key) const
 {
     for(const auto &iconCRef: m_magicIconDataList){
         if(std::tolower(iconCRef.magicKey) == std::tolower(key)){
-            return {iconCRef.magicID, iconCRef.angle()};
+            return iconCRef.magicID;
         }
     }
-    return {0, 0};
+    return 0;
 }
 
 void SkillBoard::drawTabName() const
@@ -552,16 +552,4 @@ void SkillBoard::setMagicKey(uint32_t magicID, char key)
         }
     }
     m_processRun->requestSetMagicKey(magicID, key);
-}
-
-void SkillBoard::setMagicCastTime(uint32_t magicID)
-{
-    fflassert(DBCOM_MAGICRECORD(magicID));
-    for(auto &data: m_magicIconDataList){
-        if(data.magicID == magicID){
-            data.lastCastTime.reset();
-            return;
-        }
-    }
-    throw fflerror("no magic icon for magic: %s", to_cstr(DBCOM_MAGICRECORD(magicID).name));
 }

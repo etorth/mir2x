@@ -45,23 +45,6 @@ class SkillBoard: public Widget
 
             int level = 0;
             char magicKey = '\0';
-            hres_timer lastCastTime {};
-
-            int angle() const
-            {
-                if(level <= 0){
-                    return 0;
-                }
-
-                const auto &mr = DBCOM_MAGICRECORD(magicID);
-                fflassert(mr);
-
-                if(mr.coolDown <= 0 || lastCastTime.diff_msec() >= to_u64(mr.coolDown)){
-                    return 360;
-                }
-
-                return mathf::bound<int>(std::lround(360.0 * to_df(lastCastTime.diff_msec()) / mr.coolDown), 0, 360);
-            }
         };
 
         class MagicIconButton: public WidgetGroup
@@ -206,23 +189,15 @@ class SkillBoard: public Widget
         }
 
     public:
-        std::tuple<uint32_t, int> key2MagicID(char) const;
+        uint32_t key2MagicID(char) const;
 
     public:
-        struct MagicKey
+        auto getMagicKeyList() const
         {
-            uint32_t magicID = 0;
-
-            char key   = '\0';
-            int  angle =   0;
-        };
-
-        std::vector<MagicKey> getMagicKeyList() const
-        {
-            std::vector<MagicKey> result;
+            std::vector<std::tuple<uint32_t, char>> result;
             for(const auto &iconData: m_magicIconDataList){
                 if(iconData.magicID && iconData.magicKey != '\0'){
-                    result.emplace_back(iconData.magicID, iconData.magicKey, iconData.angle());
+                    result.emplace_back(iconData.magicID, iconData.magicKey);
                 }
             }
             return result;
@@ -231,7 +206,6 @@ class SkillBoard: public Widget
     public:
         void setMagicLevel(uint32_t, int);
         void setMagicKey(uint32_t, char);
-        void setMagicCastTime(uint32_t);
 
     private:
         static int getSkillPageIndex(uint32_t magicID)
