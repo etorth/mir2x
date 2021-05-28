@@ -85,7 +85,7 @@ class ProcessRun: public Process
         LocHashTable<uint64_t> m_strikeGridList;
 
     private:
-        bool m_drawMagicKey = false;
+        bool m_drawMagicKey = true;
 
     public:
         bool ValidC(int nX, int nY) const
@@ -435,4 +435,7 @@ class ProcessRun: public Process
         {
             m_delayCmdQ.addDelay(delayTick, std::move(cmd));
         }
+
+    public:
+        void setMagicCastTime(uint32_t);
 };

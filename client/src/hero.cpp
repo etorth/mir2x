@@ -608,6 +608,10 @@ bool Hero::parseAction(const ActionNode &action)
                         }));
 
                         m_motionQueue.back()->extParam.spell.effect.reset(new CastMagicMotionEffect(m_motionQueue.back().get()));
+                        if(UID() == m_processRun->getMyHeroUID()){
+                            m_processRun->setMagicCastTime(magicID);
+                        }
+
                         switch(magicID){
                             case DBCOM_MAGICID(u8"冰沙掌"):
                             case DBCOM_MAGICID(u8"地狱火"):

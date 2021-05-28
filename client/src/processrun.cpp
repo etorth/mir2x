@@ -443,15 +443,14 @@ void ProcessRun::draw()
                 g_sdlDevice->drawTexture(texPtr, magicKeyOffX, 0);
                 const auto colorRatio = [magicKey]() -> float
                 {
-                    if(magicKey.angle < 180){
-                        return 0.0;
-                    }
-                    return to_f(magicKey.angle - 180) / 180;
+                    const float r = to_f(magicKey.angle) / 360.0;
+                    return r * r * r * r;
                 }();
+
                 const auto texW = SDLDeviceHelper::getTextureWidth(texPtr);
                 const auto coverTexW = std::lround(1.41421356237309504880 * texW);
                 auto coverTexPtr = g_sdlDevice->getCover(coverTexW / 2, magicKey.angle);
-                SDLDeviceHelper::EnableTextureModColor enableModColor(coverTexPtr, colorf::fadeRGBA(colorf::RED + 255, colorf::GREEN + 100, colorRatio));
+                SDLDeviceHelper::EnableTextureModColor enableModColor(coverTexPtr, colorf::fadeRGBA(colorf::RGBA(255, 51, 51, 255), colorf::GREEN + 100, colorRatio));
 
                 const auto offCoverX = (coverTexW - texW) / 2;
                 g_sdlDevice->drawTexture(coverTexPtr, magicKeyOffX, 0, offCoverX, offCoverX, texW, texW);
@@ -1793,9 +1792,7 @@ void ProcessRun::checkMagicSpell(const SDL_Event &event)
         return;
     }
 
-    auto skillBoardPtr = dynamic_cast<SkillBoard *>(m_GUIManager.getWidget("SkillBoard"));
-    const auto [magicID, coolDown] = skillBoardPtr->key2MagicID(key);
-
+    const auto [magicID, coolDown] = dynamic_cast<SkillBoard *>(m_GUIManager.getWidget("SkillBoard"))->key2MagicID(key);
     if(!magicID){
         return;
     }
@@ -1843,8 +1840,6 @@ void ProcessRun::checkMagicSpell(const SDL_Event &event)
                         .magicID = magicID,
                     });
                 }
-
-                skillBoardPtr->setMagicCastTime(magicID);
                 break;
             }
         case DBCOM_MAGICID(u8"火墙"):
@@ -1862,8 +1857,6 @@ void ProcessRun::checkMagicSpell(const SDL_Event &event)
                     .aimY = aimY,
                     .magicID = magicID,
                 });
-
-                skillBoardPtr->setMagicCastTime(magicID);
                 break;
             }
         case DBCOM_MAGICID(u8"魔法盾"):
@@ -1877,8 +1870,6 @@ void ProcessRun::checkMagicSpell(const SDL_Event &event)
                     .aimUID = getMyHero()->UID(),
                     .magicID = magicID,
                 });
-
-                skillBoardPtr->setMagicCastTime(magicID);
                 break;
             }
         default:
@@ -2132,4 +2123,9 @@ int ProcessRun::getAimDirection(const ActionNode &action, int defDir) const
         }
     }
     return defDir;
+}
+
+void ProcessRun::setMagicCastTime(uint32_t magicID)
+{
+    dynamic_cast<SkillBoard *>(m_GUIManager.getWidget("SkillBoard"))->setMagicCastTime(magicID);
 }
