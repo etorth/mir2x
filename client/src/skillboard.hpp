@@ -200,6 +200,8 @@ class SkillBoard: public Widget
                     result.emplace_back(iconData.magicID, iconData.magicKey);
                 }
             }
+
+            std::sort(result.begin(), result.end());
             return result;
         }
 
