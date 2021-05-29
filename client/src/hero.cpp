@@ -719,23 +719,6 @@ bool Hero::parseAction(const ActionNode &action)
                                                     return pathf::getDir16((targetPX - fromX) * SYS_MAPGRIDYP, (targetPY - fromY) * SYS_MAPGRIDXP);
                                                 }
                                             }
-
-                                            if(m_processRun->getMyHeroUID() == UID()){
-                                                const auto [  viewX,   viewY] = m_processRun->getViewShift();
-                                                const auto [mousePX, mousePY] = SDLDeviceHelper::getMousePLoc();
-
-                                                // when target is dead or invalid
-                                                // we can adjust the current direction here to fit the casted magic
-                                                // but currently I make the MotionNode::direction immutable
-
-                                                // when this ActionSpell get created and pushed to the action queue, the target may be still valid
-                                                // so the standDir is a good one at that time, but when reached here, the target is dead, so we figured out the direction by mouse location
-                                                // this sometimes makes standDir and the magic flyDir doesn't match
-                                                return pathf::getDir16((mousePX + viewX - fromX) * SYS_MAPGRIDYP, (mousePY + viewY - fromY) * SYS_MAPGRIDXP);
-                                            }
-
-                                            // not myHero
-                                            // use hero's current direction to cast magic
                                             return (m_currMotion->direction - DIR_BEGIN) * 2;
                                         }();
 
