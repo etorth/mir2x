@@ -25,9 +25,9 @@ class MagicFrameDB final
     private:
         struct CachedFrame
         {
-            std::unique_ptr<Fl_PNG_Image> image;
-            int dx;
-            int dy;
+            int dx = 0;
+            int dy = 0;
+            std::unique_ptr<Fl_PNG_Image> image = nullptr;
         };
 
     private:
