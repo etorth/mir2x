@@ -1260,13 +1260,11 @@ bool ProcessRun::trackAttack(bool bForce, uint64_t nUID)
 {
     if(findUID(nUID)){
         if(bForce || getMyHero()->stayIdle()){
-            auto nEndX = getMyHero()->currMotion()->endX;
-            auto nEndY = getMyHero()->currMotion()->endY;
             return getMyHero()->emplaceAction(ActionAttack
             {
                 .speed = SYS_DEFSPEED,
-                .x = nEndX,
-                .y = nEndY,
+                .x = getMyHero()->currMotion()->endX,
+                .y = getMyHero()->currMotion()->endY,
                 .aimUID = nUID,
                 .damageID = DBCOM_MAGICID(u8"物理攻击"),
             });
