@@ -246,7 +246,7 @@ bool ClientNPC::update(double ms)
         return true;
     }
 
-    motionValidEx(m_currMotion);
+    fflassert(motionValid(m_currMotion));
     const CallOnExitHelper motionOnUpdate([this]()
     {
         m_currMotion->update();

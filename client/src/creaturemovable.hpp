@@ -41,6 +41,9 @@ class CreatureMovable: public ClientCreature
         virtual int  maxStep() const = 0;
         virtual int currStep() const = 0;
 
+    public:
+        std::tuple<int, int> location() const override;
+
     protected:
         virtual bool stayIdle() const
         {

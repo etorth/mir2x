@@ -877,41 +877,6 @@ bool Hero::parseAction(const ActionNode &action)
     return motionQueueValid();
 }
 
-std::tuple<int, int> Hero::location() const
-{
-    if(!motionValid(m_currMotion)){
-        throw fflerror("current motion is invalid");
-    }
-
-    switch(m_currMotion->type){
-        case MOTION_WALK:
-        case MOTION_RUN:
-        case MOTION_ONHORSEWALK:
-        case MOTION_ONHORSERUN:
-            {
-                const auto nX0 = m_currMotion->x;
-                const auto nY0 = m_currMotion->y;
-                const auto nX1 = m_currMotion->endX;
-                const auto nY1 = m_currMotion->endY;
-
-                const auto frameCountMoving = motionFrameCount(m_currMotion->type, m_currMotion->direction);
-                if(frameCountMoving <= 0){
-                    throw fflerror("invalid player moving frame count: %d", frameCountMoving);
-                }
-
-                return
-                {
-                    (m_currMotion->frame < (frameCountMoving / 2)) ? nX0 : nX1,
-                    (m_currMotion->frame < (frameCountMoving / 2)) ? nY0 : nY1,
-                };
-            }
-        default:
-            {
-                return {m_currMotion->x, m_currMotion->y};
-            }
-    }
-}
-
 FrameSeq Hero::motionFrameSeq(int motion, int direction) const
 {
     if(!(motion >= MOTION_BEGIN && motion < MOTION_END)){
@@ -1111,7 +1076,7 @@ int Hero::gfxHelmetID(int nHelmet, int nMotion, int nDirection) const
 
 int Hero::currStep() const
 {
-    motionValidEx(m_currMotion);
+    fflassert(motionValid(m_currMotion));
     switch(m_currMotion->type){
         case MOTION_WALK:
         case MOTION_ONHORSEWALK:

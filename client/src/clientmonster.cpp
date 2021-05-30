@@ -264,38 +264,6 @@ void ClientMonster::drawFrame(int viewX, int viewY, int focusMask, int frame, bo
     }
 }
 
-std::tuple<int, int> ClientMonster::location() const
-{
-    if(!motionValid(m_currMotion)){
-        throw fflerror("invalid current motion");
-    }
-
-    switch(currMotion()->type){
-        case MOTION_MON_WALK:
-            {
-                const auto nX0 = m_currMotion->x;
-                const auto nY0 = m_currMotion->y;
-                const auto nX1 = m_currMotion->endX;
-                const auto nY1 = m_currMotion->endY;
-
-                const auto frameCountMoving = motionFrameCount(MOTION_MON_WALK, m_currMotion->direction);
-                if(frameCountMoving <= 0){
-                    throw fflerror("invalid monster moving frame count: %d", frameCountMoving);
-                }
-
-                return
-                {
-                    (m_currMotion->frame < (frameCountMoving / 2)) ? nX0 : nX1,
-                    (m_currMotion->frame < (frameCountMoving / 2)) ? nY0 : nY1,
-                };
-            }
-        default:
-            {
-                return {m_currMotion->x, m_currMotion->y};
-            }
-    }
-}
-
 bool ClientMonster::parseAction(const ActionNode &action)
 {
     m_lastActive = SDL_GetTicks();
@@ -669,6 +637,26 @@ bool ClientMonster::deadFadeOut()
         default:
             {
                 return false; // TODO push an ActionDie here
+            }
+    }
+}
+
+int ClientMonster::maxStep() const
+{
+    return 1;
+}
+
+int ClientMonster::currStep() const
+{
+    fflassert(motionValid(m_currMotion));
+    switch(m_currMotion->type){
+        case MOTION_MON_WALK:
+            {
+                return 1;
+            }
+        default:
+            {
+                return 0;
             }
     }
 }

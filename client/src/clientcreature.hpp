@@ -190,8 +190,8 @@ class ClientCreature
     public:
         int motionFrameCountEx(int motion, int direction) const
         {
-            if(const int result = motionFrameCount(motion, direction); result > 0){
-                return result;
+            if(const int count = motionFrameCount(motion, direction); count > 0){
+                return count;
             }
             throw fflerror("invalid arguments: motion = %d, direction = %d", motion, direction);
         }
@@ -229,14 +229,6 @@ class ClientCreature
 
     public:
         virtual bool motionValid(const std::unique_ptr<MotionNode> &) const = 0;
-
-    public:
-        void motionValidEx(const std::unique_ptr<MotionNode> &motionPtr) const
-        {
-            if(!motionValid(motionPtr)){
-                throw fflerror("invalid motion");
-            }
-        }
 
     public:
         void updateHealth(int, int);

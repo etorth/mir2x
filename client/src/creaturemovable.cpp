@@ -18,6 +18,7 @@
 
 #include <vector>
 #include "log.hpp"
+#include "pathf.hpp"
 #include "mathf.hpp"
 #include "processrun.hpp"
 #include "creaturemovable.hpp"
@@ -342,4 +343,12 @@ void CreatureMovable::flushForcedMotion()
 
     m_motionQueue.clear();
     m_currMotion = makeIdleMotion();
+}
+
+std::tuple<int, int> CreatureMovable::location() const
+{
+    fflassert(motionValid(m_currMotion));
+    const auto doneRatio = to_f(currMotion()->frame + 1) / motionFrameCountEx(currMotion()->type, currMotion()->direction); // max is 1.0
+    const auto movedDistance = to_d(std::lround(doneRatio * currStep()));
+    return pathf::getFrontGLoc(currMotion()->x, currMotion()->y, currMotion()->direction, movedDistance);
 }

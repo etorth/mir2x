@@ -63,9 +63,6 @@ class ClientMonster: public CreatureMovable
             return uidf::getMonsterID(UID());
         }
 
-    protected:
-        std::tuple<int, int> location() const override;
-
     public:
         bool parseAction(const ActionNode &) override;
 
@@ -91,14 +88,8 @@ class ClientMonster: public CreatureMovable
         std::unique_ptr<MotionNode> makeWalkMotion(int, int, int, int, int) const;
 
     public:
-        int maxStep() const override
-        {
-            return 1;
-        }
-        int currStep() const override
-        {
-            return 1;
-        }
+        int  maxStep() const override;
+        int currStep() const override;
 
     public:
         virtual int lookID() const

@@ -42,9 +42,6 @@ class Hero: public CreatureMovable
        ~Hero() = default;
 
     public:
-       std::tuple<int, int> location() const override;
-
-    public:
         bool update(double) override;
 
     public:
