@@ -275,7 +275,7 @@ std::tuple<int, int> CreatureMovable::getShift(int frame) const
     }
 }
 
-std::tuple<int, int, int> CreatureMovable::motionEndPLoc(int endType) const
+std::tuple<int, int, int> CreatureMovable::motionEndGLoc(int endType) const
 {
     switch(endType){
         case END_OPTIONAL:

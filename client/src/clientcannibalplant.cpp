@@ -23,7 +23,7 @@
 
 void ClientCannibalPlant::addActionTransf()
 {
-    const auto [endX, endY, endDir] = motionEndPLoc(END_FORCED);
+    const auto [endX, endY, endDir] = motionEndGLoc(END_FORCED);
     m_forceMotionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
     {
         .type = MOTION_MON_APPEAR,

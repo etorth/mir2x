@@ -849,7 +849,7 @@ bool Hero::parseAction(const ActionNode &action)
             }
         case ACTION_DIE:
             {
-                const auto [dieX, dieY, dieDir] = motionEndPLoc(END_FORCED);
+                const auto [dieX, dieY, dieDir] = motionEndGLoc(END_FORCED);
                 m_forceMotionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
                 {
                     .type = [this]() -> int

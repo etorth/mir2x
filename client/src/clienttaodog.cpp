@@ -115,7 +115,7 @@ ClientTaoDog::ClientTaoDog(uint64_t uid, ProcessRun *proc, const ActionNode &act
 
 void ClientTaoDog::addActionTransf()
 {
-    const auto [endX, endY, endDir] = motionEndPLoc(END_FORCED);
+    const auto [endX, endY, endDir] = motionEndGLoc(END_FORCED);
     m_forceMotionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
     {
         .type = MOTION_MON_SPECIAL,
@@ -169,7 +169,7 @@ bool ClientTaoDog::onActionAttack(const ActionNode &action)
         addActionTransf();
     }
 
-    const auto [endX, endY, endDir] = motionEndPLoc(END_FORCED);
+    const auto [endX, endY, endDir] = motionEndGLoc(END_FORCED);
     m_motionQueue = makeWalkMotionQueue(endX, endY, action.x, action.y, SYS_MAXSPEED);
     m_motionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
     {
