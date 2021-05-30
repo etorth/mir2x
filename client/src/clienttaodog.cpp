@@ -116,7 +116,7 @@ ClientTaoDog::ClientTaoDog(uint64_t uid, ProcessRun *proc, const ActionNode &act
 void ClientTaoDog::addActionTransf()
 {
     const auto [endX, endY, endDir] = motionEndGLoc(END_FORCED);
-    m_forceMotionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
+    m_forcedMotionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
     {
         .type = MOTION_MON_SPECIAL,
         .direction = endDir,
@@ -124,7 +124,7 @@ void ClientTaoDog::addActionTransf()
         .y = endY,
     }));
 
-    m_forceMotionQueue.back()->addUpdate(true, [this](MotionNode *) -> bool
+    m_forcedMotionQueue.back()->addUpdate(true, [this](MotionNode *) -> bool
     {
         m_standMode = !m_standMode;
         return true;
@@ -141,7 +141,7 @@ bool ClientTaoDog::onActionStand(const ActionNode &action)
 
 bool ClientTaoDog::onActionSpawn(const ActionNode &action)
 {
-    fflassert(m_forceMotionQueue.empty());
+    fflassert(m_forcedMotionQueue.empty());
     m_currMotion.reset(new MotionNode
     {
         .type = MOTION_MON_APPEAR,
@@ -205,7 +205,7 @@ bool ClientTaoDog::finalStandMode() const
     // check comments in ClientCannibalPlant::finalStandMode()
 
     int countTransf = 0;
-    for(const auto &motionPtr: m_forceMotionQueue){
+    for(const auto &motionPtr: m_forcedMotionQueue){
         if(motionPtr->type == MOTION_MON_SPECIAL){
             countTransf++;
         }

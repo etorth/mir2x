@@ -41,9 +41,9 @@ class ClientScarecrow: public ClientMonster
             const auto result = ClientMonster::onActionDie(action);
 
             fflassert(result);
-            fflassert(m_forceMotionQueue.back()->type == MOTION_MON_DIE);
+            fflassert(m_forcedMotionQueue.back()->type == MOTION_MON_DIE);
 
-            m_forceMotionQueue.back()->addUpdate(true, [this](MotionNode *) -> bool
+            m_forcedMotionQueue.back()->addUpdate(true, [this](MotionNode *) -> bool
             {
                 addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"稻草人_死亡火焰", u8"运行")));
                 return true;

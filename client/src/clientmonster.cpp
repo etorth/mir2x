@@ -299,7 +299,7 @@ std::tuple<int, int> ClientMonster::location() const
 bool ClientMonster::parseAction(const ActionNode &action)
 {
     m_lastActive = SDL_GetTicks();
-    for(const auto &m: m_forceMotionQueue){
+    for(const auto &m: m_forcedMotionQueue){
         if(m->type == MOTION_MON_DIE){
             return true;
         }
@@ -337,11 +337,11 @@ bool ClientMonster::onActionDie(const ActionNode &action)
         if(!(node && motionValid(node))){
             throw fflerror("current motion node is invalid");
         }
-        m_forceMotionQueue.push_back(std::move(node));
+        m_forcedMotionQueue.push_back(std::move(node));
     }
 
     const auto [dieX, dieY, dieDir] = motionEndGLoc(END_FORCED);
-    m_forceMotionQueue.emplace_back(std::unique_ptr<MotionNode>(new MotionNode
+    m_forcedMotionQueue.emplace_back(std::unique_ptr<MotionNode>(new MotionNode
     {
         .type = MOTION_MON_DIE,
         .direction = dieDir,
@@ -389,7 +389,7 @@ bool ClientMonster::onActionTransf(const ActionNode &)
 
 bool ClientMonster::onActionSpaceMove2(const ActionNode &action)
 {
-    flushMotionPending();
+    flushForcedMotion();
     m_currMotion.reset(new MotionNode
     {
         .type = MOTION_MON_STAND,
@@ -402,7 +402,7 @@ bool ClientMonster::onActionSpaceMove2(const ActionNode &action)
 
 bool ClientMonster::onActionJump(const ActionNode &action)
 {
-    flushMotionPending();
+    flushForcedMotion();
     m_currMotion.reset(new MotionNode
     {
         .type = MOTION_MON_STAND,
@@ -426,7 +426,7 @@ bool ClientMonster::onActionMove(const ActionNode &action)
 
 bool ClientMonster::onActionSpawn(const ActionNode &action)
 {
-    if(!m_forceMotionQueue.empty()){
+    if(!m_forcedMotionQueue.empty()){
         throw fflerror("found motion before spawn: %s", uidf::getUIDString(UID()).c_str());
     }
 

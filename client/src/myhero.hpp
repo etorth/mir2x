@@ -143,7 +143,7 @@ class MyHero: public Hero
         void pullGold();
 
     public:
-        void flushMotionPending() override;
+        void flushForcedMotion() override;
 
     public:
         void setBelt(SDBelt belt)

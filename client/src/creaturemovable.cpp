@@ -197,9 +197,9 @@ bool CreatureMovable::motionQueueValid() const
 
 bool CreatureMovable::moveNextMotion()
 {
-    if(!m_forceMotionQueue.empty()){
-        m_currMotion = std::move(m_forceMotionQueue.front());
-        m_forceMotionQueue.pop_front();
+    if(!m_forcedMotionQueue.empty()){
+        m_currMotion = std::move(m_forcedMotionQueue.front());
+        m_forcedMotionQueue.pop_front();
         return true;
     }
 
@@ -278,7 +278,7 @@ std::tuple<int, int> CreatureMovable::getShift(int frame) const
 std::tuple<int, int, int> CreatureMovable::motionEndGLoc(int endType) const
 {
     switch(endType){
-        case END_OPTIONAL:
+        case END_PENDING:
             {
                 if(!m_motionQueue.empty()){
                     return {m_motionQueue.back()->endX, m_motionQueue.back()->endY, m_motionQueue.back()->direction};
@@ -287,12 +287,12 @@ std::tuple<int, int, int> CreatureMovable::motionEndGLoc(int endType) const
             }
         case END_FORCED:
             {
-                if(!m_forceMotionQueue.empty()){
-                    return {m_forceMotionQueue.back()->endX, m_forceMotionQueue.back()->endY, m_forceMotionQueue.back()->direction};
+                if(!m_forcedMotionQueue.empty()){
+                    return {m_forcedMotionQueue.back()->endX, m_forcedMotionQueue.back()->endY, m_forcedMotionQueue.back()->direction};
                 }
                 [[fallthrough]];
             }
-        case END_CURRENT:
+        case END_NOW:
             {
                 return {m_currMotion->endX, m_currMotion->endY, m_currMotion->direction};
             }
@@ -303,7 +303,7 @@ std::tuple<int, int, int> CreatureMovable::motionEndGLoc(int endType) const
     }
 }
 
-void CreatureMovable::flushMotionPending()
+void CreatureMovable::flushForcedMotion()
 {
     // TODO
     // helper function to handle space move, I don't have a good idea to handle it for now
@@ -330,14 +330,14 @@ void CreatureMovable::flushMotionPending()
     };
 
     fnFlushMotion(m_currMotion);
-    std::ranges::for_each(m_forceMotionQueue, fnFlushMotion);
+    std::ranges::for_each(m_forcedMotionQueue, fnFlushMotion);
 
     // setup the final motion
     // makeIdleMotion needs it for final location
 
-    if(!m_forceMotionQueue.empty()){
-        m_currMotion = std::move(m_forceMotionQueue.back());
-        m_forceMotionQueue.clear();
+    if(!m_forcedMotionQueue.empty()){
+        m_currMotion = std::move(m_forcedMotionQueue.back());
+        m_forcedMotionQueue.clear();
     }
 
     m_motionQueue.clear();

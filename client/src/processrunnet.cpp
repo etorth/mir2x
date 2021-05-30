@@ -101,7 +101,7 @@ void ProcessRun::net_ACTION(const uint8_t *bufPtr, size_t)
         // getMyHero() checks if current creature is on current map
 
         m_actionBlocker.clear();
-        getMyHero()->flushMotionPending();
+        getMyHero()->flushForcedMotion();
         loadMap(smA.mapID);
 
         // directly assign a stand motion

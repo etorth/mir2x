@@ -463,9 +463,9 @@ bool Hero::parseAction(const ActionNode &action)
     m_currMotion->speed = SYS_MAXSPEED;
     m_motionQueue.clear();
 
-    const int endX   = m_forceMotionQueue.empty() ? m_currMotion->endX      : m_forceMotionQueue.back()->endX;
-    const int endY   = m_forceMotionQueue.empty() ? m_currMotion->endY      : m_forceMotionQueue.back()->endY;
-    const int endDir = m_forceMotionQueue.empty() ? m_currMotion->direction : m_forceMotionQueue.back()->direction;
+    const int endX   = m_forcedMotionQueue.empty() ? m_currMotion->endX      : m_forcedMotionQueue.back()->endX;
+    const int endY   = m_forcedMotionQueue.empty() ? m_currMotion->endY      : m_forcedMotionQueue.back()->endY;
+    const int endDir = m_forcedMotionQueue.empty() ? m_currMotion->direction : m_forcedMotionQueue.back()->direction;
 
     // 1. prepare before parsing action
     //    additional movement added if necessary but in rush
@@ -475,7 +475,7 @@ bool Hero::parseAction(const ActionNode &action)
                 // take this as cirtical
                 // server use ReportStand() to do location sync
                 for(auto &motion: makeWalkMotionQueue(endX, endY, action.x, action.y, SYS_MAXSPEED)){
-                    m_forceMotionQueue.insert(m_forceMotionQueue.end(), std::move(motion));
+                    m_forcedMotionQueue.insert(m_forcedMotionQueue.end(), std::move(motion));
                 }
                 break;
             }
@@ -545,7 +545,7 @@ bool Hero::parseAction(const ActionNode &action)
             }
         case ACTION_SPACEMOVE2:
             {
-                flushMotionPending();
+                flushForcedMotion();
                 jumpLoc(action.x, action.y, m_currMotion->direction);
                 addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"瞬息移动", u8"结束")));
                 break;
@@ -621,7 +621,7 @@ bool Hero::parseAction(const ActionNode &action)
                                     m_motionQueue.back()->addUpdate(true, [standDir, magicID, this](MotionNode *motionPtr) -> bool
                                     {
                                         // usually when reaches this cb the motionPtr is just currMotion()
-                                        // but not true if in flushMotionPending()
+                                        // but not true if in flushForcedMotion()
 
                                         if(motionPtr->frame < 3){
                                             return false;
@@ -705,7 +705,7 @@ bool Hero::parseAction(const ActionNode &action)
                                     m_motionQueue.back()->addUpdate(true, [targetUID = action.aimUID, magicID, this](MotionNode *motionPtr) -> bool
                                     {
                                         // usually when reaches this cb the current motion is motionPtr
-                                        // but not true if in flushMotionPending()
+                                        // but not true if in flushForcedMotion()
 
                                         if(motionPtr->frame < 3){
                                             return false;
@@ -850,7 +850,7 @@ bool Hero::parseAction(const ActionNode &action)
         case ACTION_DIE:
             {
                 const auto [dieX, dieY, dieDir] = motionEndGLoc(END_FORCED);
-                m_forceMotionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
+                m_forcedMotionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
                 {
                     .type = [this]() -> int
                     {

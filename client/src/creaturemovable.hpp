@@ -30,7 +30,7 @@ class CreatureMovable: public ClientCreature
 {
     protected:
         std::deque<std::unique_ptr<MotionNode>> m_motionQueue;
-        std::deque<std::unique_ptr<MotionNode>> m_forceMotionQueue;
+        std::deque<std::unique_ptr<MotionNode>> m_forcedMotionQueue;
 
     protected:
         CreatureMovable(uint64_t uid, ProcessRun *pRun)
@@ -44,7 +44,7 @@ class CreatureMovable: public ClientCreature
     protected:
         virtual bool stayIdle() const
         {
-            return m_forceMotionQueue.empty() && m_motionQueue.empty();
+            return m_forcedMotionQueue.empty() && m_motionQueue.empty();
         }
 
     protected:
@@ -86,12 +86,12 @@ class CreatureMovable: public ClientCreature
     public:
         enum endType: int
         {
-            END_CURRENT,
+            END_NOW,
             END_FORCED,
-            END_OPTIONAL,
+            END_PENDING,
         };
         std::tuple<int, int, int> motionEndGLoc(int) const;
 
     public:
-        virtual void flushMotionPending();
+        virtual void flushForcedMotion();
 };

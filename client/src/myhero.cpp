@@ -37,9 +37,9 @@ MyHero::MyHero(uint64_t nUID, ProcessRun *pRun, const ActionNode &action)
 
 bool MyHero::moveNextMotion()
 {
-    if(!m_forceMotionQueue.empty()){
-        m_currMotion = std::move(m_forceMotionQueue.front());
-        m_forceMotionQueue.pop_front();
+    if(!m_forcedMotionQueue.empty()){
+        m_currMotion = std::move(m_forcedMotionQueue.front());
+        m_forcedMotionQueue.pop_front();
         return true;
     }
 
@@ -599,9 +599,9 @@ void MyHero::pullGold()
     g_client->send(CM_QUERYGOLD);
 }
 
-void MyHero::flushMotionPending()
+void MyHero::flushForcedMotion()
 {
-    Hero::flushMotionPending();
+    Hero::flushForcedMotion();
     m_actionQueue.clear();
 }
 

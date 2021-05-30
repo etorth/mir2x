@@ -24,7 +24,7 @@
 void ClientCannibalPlant::addActionTransf()
 {
     const auto [endX, endY, endDir] = motionEndGLoc(END_FORCED);
-    m_forceMotionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
+    m_forcedMotionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
     {
         .type = MOTION_MON_APPEAR,
         .direction = endDir,
@@ -32,7 +32,7 @@ void ClientCannibalPlant::addActionTransf()
         .y = endY,
     }));
 
-    m_forceMotionQueue.back()->addUpdate(true, [this](MotionNode *) -> bool
+    m_forcedMotionQueue.back()->addUpdate(true, [this](MotionNode *) -> bool
     {
         m_standMode = !m_standMode;
         return true;
@@ -41,7 +41,7 @@ void ClientCannibalPlant::addActionTransf()
 
 bool ClientCannibalPlant::onActionSpawn(const ActionNode &action)
 {
-    fflassert(m_forceMotionQueue.empty());
+    fflassert(m_forcedMotionQueue.empty());
     m_currMotion.reset(new MotionNode
     {
         .type = MOTION_MON_STAND,
@@ -101,7 +101,7 @@ bool ClientCannibalPlant::finalStandMode() const
     //     countTransf++;
     // }
 
-    for(const auto &motionPtr: m_forceMotionQueue){
+    for(const auto &motionPtr: m_forcedMotionQueue){
         if(motionPtr->type == MOTION_MON_APPEAR){
             countTransf++;
         }
