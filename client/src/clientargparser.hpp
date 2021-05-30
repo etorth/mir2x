@@ -39,7 +39,7 @@ struct ClientArgParser
     const bool debugAlphaCover;         // "--debug-alpha-cover"
     const bool debugDrawTexture;        // "--debug-draw-texture"
     const bool debugDrawInputLine;      // "--debug-draw-input-line"
-    const bool debugPlayerStatusBoard;  // "--debug-player-status-board"
+    const bool debugPlayerStateBoard;   // "--debug-player-state-board"
     const bool debugSlider;             // "--debug-slider"
     const bool drawFPS;                 // "--draw-fps"
 
@@ -66,7 +66,7 @@ struct ClientArgParser
         , debugAlphaCover(cmdParser["debug-alpha-cover"])
         , debugDrawTexture(cmdParser["debug-draw-texture"])
         , debugDrawInputLine(cmdParser["debug-draw-input-line"])
-        , debugPlayerStatusBoard(cmdParser["debug-player-status-board"])
+        , debugPlayerStateBoard(cmdParser["debug-player-state-board"])
         , debugSlider(cmdParser["debug-slider"])
         , drawFPS(cmdParser["draw-fps"])
         , serverIP(cmdParser("server-ip").str())

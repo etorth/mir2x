@@ -81,7 +81,7 @@ GUIManager::GUIManager(ProcessRun *proc)
           this,
       }
 
-    , m_playerStatusBoard
+    , m_playerStateBoard
       {
           g_sdlDevice->getRendererWidth()  / 2 - 164,
           g_sdlDevice->getRendererHeight() / 2 - 233,
@@ -188,8 +188,8 @@ Widget *GUIManager::getWidget(const std::string &widgetName)
         return &m_miniMapBoard;
     }
 
-    if(widgetName == "PlayerStatusBoard"){
-        return &m_playerStatusBoard;
+    if(widgetName == "PlayerStateBoard"){
+        return &m_playerStateBoard;
     }
 
     if(widgetName == "PurchaseBoard"){

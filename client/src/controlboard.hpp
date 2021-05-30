@@ -94,7 +94,7 @@ class ControlBoard: public Widget
 
     private:
         TritexButton m_buttonInventory;
-        TritexButton m_buttonHeroStatus;
+        TritexButton m_buttonHeroState;
         TritexButton m_buttonHeroMagic;
 
     private:

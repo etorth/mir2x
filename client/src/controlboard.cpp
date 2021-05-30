@@ -286,7 +286,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           &m_right,
       }
 
-    , m_buttonHeroStatus
+    , m_buttonHeroState
       {
           DIR_UPLEFT,
           77,
@@ -297,7 +297,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           nullptr,
           [this]()
           {
-              if(auto p = m_processRun->getWidget("PlayerStatusBoard")){
+              if(auto p = m_processRun->getWidget("PlayerStateBoard")){
                   flipShow(p);
               }
           },
@@ -821,7 +821,7 @@ void ControlBoard::drawRight() const
     m_buttonDC.draw();
 
     m_buttonInventory.draw();
-    m_buttonHeroStatus.draw();
+    m_buttonHeroState.draw();
     m_buttonHeroMagic.draw();
 }
 
@@ -1045,7 +1045,7 @@ bool ControlBoard::processEvent(const SDL_Event &event, bool valid)
     takeEvent |= m_buttonAC         .processEvent(event, valid && !takeEvent);
     takeEvent |= m_buttonDC         .processEvent(event, valid && !takeEvent);
     takeEvent |= m_buttonInventory  .processEvent(event, valid && !takeEvent);
-    takeEvent |= m_buttonHeroStatus .processEvent(event, valid && !takeEvent);
+    takeEvent |= m_buttonHeroState  .processEvent(event, valid && !takeEvent);
     takeEvent |= m_buttonHeroMagic  .processEvent(event, valid && !takeEvent);
     takeEvent |= m_buttonSwitchMode .processEvent(event, valid && !takeEvent);
 

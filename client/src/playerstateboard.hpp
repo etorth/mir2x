@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename: playerstatusboard.hpp
+ *       Filename: playerstateboard.hpp
  *        Created: 10/08/2017 19:06:52
  *    Description:
  *
@@ -24,7 +24,7 @@
 #include "tritexbutton.hpp"
 
 class ProcessRun;
-class PlayerStatusBoard: public Widget
+class PlayerStateBoard: public Widget
 {
     private:
         struct WearGrid
@@ -47,13 +47,13 @@ class PlayerStatusBoard: public Widget
         TritexButton m_closeButton;
 
     private:
-        std::vector<TritexButton *> m_elemStatusList;
+        std::vector<TritexButton *> m_elemStateList;
 
     private:
         ProcessRun *m_processRun;
 
     public:
-        PlayerStatusBoard(int, int, ProcessRun *, Widget * = nullptr, bool = false);
+        PlayerStateBoard(int, int, ProcessRun *, Widget * = nullptr, bool = false);
 
     public:
         void update(double) override;

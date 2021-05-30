@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename: playerstatusboard.cpp
+ *       Filename: playerstateboard.cpp
  *        Created: 10/08/2017 19:22:30
  *    Description:
  *
@@ -32,7 +32,7 @@ extern PNGTexOffDB *g_equipDB;
 extern SDLDevice *g_sdlDevice;
 extern ClientArgParser *g_clientArgParser;
 
-PlayerStatusBoard::PlayerStatusBoard(int argX, int argY, ProcessRun *runPtr, Widget *widgetPtr, bool autoDelete)
+PlayerStateBoard::PlayerStateBoard(int argX, int argY, ProcessRun *runPtr, Widget *widgetPtr, bool autoDelete)
     : Widget
       {
           DIR_UPLEFT,
@@ -131,7 +131,7 @@ PlayerStatusBoard::PlayerStatusBoard(int argX, int argY, ProcessRun *runPtr, Wid
 
     for(int r: {0, 1, 2}){
         for(int i = 0; i < 7; ++i){
-            m_elemStatusList.push_back(new TritexButton
+            m_elemStateList.push_back(new TritexButton
             {
                 DIR_UPLEFT,
                 62  + i * 37,
@@ -161,11 +161,11 @@ PlayerStatusBoard::PlayerStatusBoard(int argX, int argY, ProcessRun *runPtr, Wid
     }
 }
 
-void PlayerStatusBoard::update(double)
+void PlayerStateBoard::update(double)
 {
 }
 
-void PlayerStatusBoard::drawEx(int, int, int, int, int, int) const
+void PlayerStateBoard::drawEx(int, int, int, int, int, int) const
 {
     if(auto texPtr = g_progUseDB->Retrieve(0X06000000)){
         g_sdlDevice->drawTexture(texPtr, x(), y());
@@ -219,7 +219,7 @@ void PlayerStatusBoard::drawEx(int, int, int, int, int, int) const
     }
 
     m_closeButton.draw();
-    for(auto buttonPtr: m_elemStatusList){
+    for(auto buttonPtr: m_elemStateList){
         buttonPtr->draw();
     }
 
@@ -247,14 +247,14 @@ void PlayerStatusBoard::drawEx(int, int, int, int, int, int) const
         }
     }
 
-    if(g_clientArgParser->debugPlayerStatusBoard){
+    if(g_clientArgParser->debugPlayerStateBoard){
         for(size_t i = WLG_BEGIN; i < WLG_END; ++i){
             g_sdlDevice->drawRectangle(colorf::BLUE + 255, x() + m_gridList[i].x, y() + m_gridList[i].y, m_gridList[i].w, m_gridList[i].h);
         }
     }
 }
 
-bool PlayerStatusBoard::processEvent(const SDL_Event &event, bool valid)
+bool PlayerStateBoard::processEvent(const SDL_Event &event, bool valid)
 {
     if(!valid){
         return focusConsume(this, false);
@@ -265,7 +265,7 @@ bool PlayerStatusBoard::processEvent(const SDL_Event &event, bool valid)
     }
 
     bool consumed = false;
-    for(auto buttonPtr: m_elemStatusList){
+    for(auto buttonPtr: m_elemStateList){
         consumed |= buttonPtr->processEvent(event, !consumed && valid);
     }
 
@@ -331,7 +331,7 @@ bool PlayerStatusBoard::processEvent(const SDL_Event &event, bool valid)
     }
 }
 
-void PlayerStatusBoard::drawItemHoverText(int wltype) const
+void PlayerStateBoard::drawItemHoverText(int wltype) const
 {
     const auto itemID = m_processRun->getMyHero()->getWLItem(wltype).itemID;
     const auto &ir = DBCOM_ITEMRECORD(itemID);
