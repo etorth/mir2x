@@ -106,16 +106,16 @@ void Hero::drawFrame(int viewX, int viewY, int, int frame, bool)
     // 21 - 14 :     dress : max = 256 : +----> GfxDressID
     //      22 :       sex :
     //      23 :    shadow :
-    const uint32_t nKey0 = (to_u32(0) << 23) + (to_u32(gender()) << 22) + ((to_u32(nGfxDressID & 0X01FFFF)) << 5) + frame;
-    const uint32_t nKey1 = (to_u32(1) << 23) + (to_u32(gender()) << 22) + ((to_u32(nGfxDressID & 0X01FFFF)) << 5) + frame;
+    const uint32_t   bodyKey = (to_u32(0) << 23) + (to_u32(gender()) << 22) + ((to_u32(nGfxDressID & 0X01FFFF)) << 5) + frame;
+    const uint32_t shadowKey = (to_u32(1) << 23) + (to_u32(gender()) << 22) + ((to_u32(nGfxDressID & 0X01FFFF)) << 5) + frame;
 
-    const auto [pFrame0, nDX0, nDY0] = g_heroDB->Retrieve(nKey0);
-    const auto [pFrame1, nDX1, nDY1] = g_heroDB->Retrieve(nKey1);
+    const auto [  bodyFrame,   bodyDX,   bodyDY] = g_heroDB->Retrieve(bodyKey);
+    const auto [shadowFrame, shadowDX, shadowDY] = g_heroDB->Retrieve(shadowKey);
 
-    if(pFrame1){
-        SDL_SetTextureAlphaMod(pFrame1, 128);
+    if(shadowFrame){
+        SDL_SetTextureAlphaMod(shadowFrame, 128);
     }
-    g_sdlDevice->drawTexture(pFrame1, startX + nDX1, startY + nDY1);
+    g_sdlDevice->drawTexture(shadowFrame, startX + shadowDX, startY + shadowDY);
 
     if(true
             && getWLItem(WLG_WEAPON)
@@ -138,7 +138,7 @@ void Hero::drawFrame(int viewX, int viewY, int, int frame, bool)
         }
     }
 
-    g_sdlDevice->drawTexture(pFrame0, startX + nDX0, startY + nDY0);
+    g_sdlDevice->drawTexture(bodyFrame, startX + bodyDX, startY + bodyDY);
     if(getWLItem(WLG_HELMET)){
         if(const auto nHelmetGfxID = gfxHelmetID(DBCOM_ITEMRECORD(getWLItem(WLG_HELMET).itemID).shape, nMotion, nDirection); nHelmetGfxID >= 0){
             const uint32_t nHelmetKey = (to_u32(gender()) << 22) + ((to_u32(nHelmetGfxID & 0X01FFFF)) << 5) + frame;
@@ -164,9 +164,11 @@ void Hero::drawFrame(int viewX, int viewY, int, int frame, bool)
     }
 
     if(g_clientArgParser->drawTextureAlignLine){
-        g_sdlDevice->drawLine(colorf::RED + 128, startX, startY, startX + nDX0, startY + nDY0);
-        g_sdlDevice->drawLine(colorf::BLUE + 128, startX - 5, startY, startX + 5, startY);
-        g_sdlDevice->drawLine(colorf::BLUE + 128, startX, startY - 5, startX, startY + 5);
+        g_sdlDevice->drawLine (colorf::RED  + 128, startX, startY, startX + bodyDX, startY + bodyDY);
+        g_sdlDevice->drawCross(colorf::BLUE + 128, startX, startY, 5);
+
+        const auto [texW, texH] = SDLDeviceHelper::getTextureSize(bodyFrame);
+        g_sdlDevice->drawRectangle(colorf::RED + 128, startX + bodyDX, startY + bodyDY, texW, texH);
     }
 
     if(g_clientArgParser->drawTargetBox){

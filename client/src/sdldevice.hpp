@@ -204,6 +204,13 @@ class SDLDevice final
            SDL_RenderDrawLine(m_renderer, nX0, nY0, nX1, nY1);
        }
 
+       void drawCross(uint32_t color, int x, int y, size_t r)
+       {
+           SDLDeviceHelper::EnableRenderColor enableColor(color, this);
+           SDL_RenderDrawLine(m_renderer, x - to_d(r), y, x + to_d(r), y);
+           SDL_RenderDrawLine(m_renderer, x, y - to_d(r), x, y + to_d(r));
+       }
+
        void SetColor(uint8_t nR, uint8_t nG, uint8_t nB, uint8_t nA)
        {
            SDL_SetRenderDrawColor(m_renderer, nR, nG, nB, nA);

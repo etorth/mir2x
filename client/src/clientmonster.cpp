@@ -148,22 +148,22 @@ void ClientMonster::drawFrame(int viewX, int viewY, int focusMask, int frame, bo
     const auto frameSeq = motionFrameSeq(m_currMotion->type, m_currMotion->direction);
     const auto absFrame = frameSeq.begin + frame * (frameSeq.reverse ? -1 : 1);
 
-    const uint32_t nKey0 = (to_u32(0) << 23) + (to_u32(nGfxID & 0X03FFFF) << 5) + absFrame; // body
-    const uint32_t nKey1 = (to_u32(1) << 23) + (to_u32(nGfxID & 0X03FFFF) << 5) + absFrame; // shadow
+    const uint32_t   bodyKey = (to_u32(0) << 23) + (to_u32(nGfxID & 0X03FFFF) << 5) + absFrame; // body
+    const uint32_t shadowKey = (to_u32(1) << 23) + (to_u32(nGfxID & 0X03FFFF) << 5) + absFrame; // shadow
 
-    const auto [pFrame0, nDX0, nDY0] = g_monsterDB->Retrieve(nKey0);
-    const auto [pFrame1, nDX1, nDY1] = g_monsterDB->Retrieve(nKey1);
+    const auto [  bodyFrame,   bodyDX,   bodyDY] = g_monsterDB->Retrieve(bodyKey);
+    const auto [shadowFrame, shadowDX, shadowDY] = g_monsterDB->Retrieve(shadowKey);
     const auto [shiftX, shiftY] = getShift(frame);
 
     // always reset the alpha mode for each texture because texture is shared
     // one texture to draw can be configured with different alpha mode for other creatures
 
-    if(pFrame0){
-        SDL_SetTextureAlphaMod(pFrame0, 255);
+    if(bodyFrame){
+        SDL_SetTextureAlphaMod(bodyFrame, 255);
     }
 
-    if(pFrame1){
-        SDL_SetTextureAlphaMod(pFrame1, 128);
+    if(shadowFrame){
+        SDL_SetTextureAlphaMod(shadowFrame, 128);
     }
 
     if(true
@@ -171,12 +171,12 @@ void ClientMonster::drawFrame(int viewX, int viewY, int focusMask, int frame, bo
             && (m_currMotion->extParam.die.fadeOut  > 0)){
         // FadeOut :    0 : normal
         //         : 1-255: fadeOut
-        if(pFrame0){
-            SDL_SetTextureAlphaMod(pFrame0, (255 - m_currMotion->extParam.die.fadeOut) / 1);
+        if(bodyFrame){
+            SDL_SetTextureAlphaMod(bodyFrame, (255 - m_currMotion->extParam.die.fadeOut) / 1);
         }
 
-        if(pFrame1){
-            SDL_SetTextureAlphaMod(pFrame1, (255 - m_currMotion->extParam.die.fadeOut) / 2);
+        if(shadowFrame){
+            SDL_SetTextureAlphaMod(shadowFrame, (255 - m_currMotion->extParam.die.fadeOut) / 2);
         }
     }
 
@@ -207,15 +207,17 @@ void ClientMonster::drawFrame(int viewX, int viewY, int focusMask, int frame, bo
         // sikp shadow
     }
     else{
-        fnBlendFrame(pFrame1, 0, startX + nDX1, startY + nDY1);
+        fnBlendFrame(shadowFrame, 0, startX + shadowDX, startY + shadowDY);
     }
-    fnBlendFrame(pFrame0, 0, startX + nDX0, startY + nDY0);
+    fnBlendFrame(bodyFrame, 0, startX + bodyDX, startY + bodyDY);
 
     if(!frameOnly){
         if(g_clientArgParser->drawTextureAlignLine){
-            g_sdlDevice->drawLine(colorf::RED + 128, startX, startY, startX + nDX0, startY + nDY0);
-            g_sdlDevice->drawLine(colorf::BLUE + 128, startX - 5, startY, startX + 5, startY);
-            g_sdlDevice->drawLine(colorf::BLUE + 128, startX, startY - 5, startX, startY + 5);
+            g_sdlDevice->drawLine (colorf::RED  + 128, startX, startY, startX + bodyDX, startY + bodyDY);
+            g_sdlDevice->drawCross(colorf::BLUE + 128, startX, startY, 5);
+
+            const auto [texW, texH] = SDLDeviceHelper::getTextureSize(bodyFrame);
+            g_sdlDevice->drawRectangle(colorf::RED + 128, startX + bodyDX, startY + bodyDY, texW, texH);
         }
 
         if(g_clientArgParser->drawTargetBox){
@@ -227,7 +229,7 @@ void ClientMonster::drawFrame(int viewX, int viewY, int focusMask, int frame, bo
 
     for(int nFocusChan = 1; nFocusChan < FOCUS_END; ++nFocusChan){
         if(focusMask & (1 << nFocusChan)){
-            fnBlendFrame(pFrame0, nFocusChan, startX + nDX0, startY + nDY0);
+            fnBlendFrame(bodyFrame, nFocusChan, startX + bodyDX, startY + bodyDY);
         }
     }
 
