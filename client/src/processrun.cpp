@@ -541,8 +541,8 @@ void ProcessRun::processEvent(const SDL_Event &event)
                                 getMyHero()->emplaceAction(ActionMove
                                 {
                                     .speed = SYS_DEFSPEED,
-                                    .x = getMyHero()->currMotion()->endX,    // don't use X()
-                                    .y = getMyHero()->currMotion()->endY,    // don't use Y()
+                                    .x = getMyHero()->x(),
+                                    .y = getMyHero()->y(),
                                     .aimX = mouseGridX,
                                     .aimY = mouseGridY,
                                     .pickUp = true,
@@ -580,8 +580,8 @@ void ProcessRun::processEvent(const SDL_Event &event)
                                     getMyHero()->emplaceAction(ActionMove
                                     {
                                         .speed = SYS_DEFSPEED,
-                                        .x = getMyHero()->currMotion()->endX,    // don't use X()
-                                        .y = getMyHero()->currMotion()->endY,    // don't use Y()
+                                        .x = getMyHero()->x(),
+                                        .y = getMyHero()->y(),
                                         .aimX = nX,
                                         .aimY = nY,
                                         .onHorse = getMyHero()->OnHorse(),
@@ -1263,8 +1263,8 @@ bool ProcessRun::trackAttack(bool bForce, uint64_t nUID)
             return getMyHero()->emplaceAction(ActionAttack
             {
                 .speed = SYS_DEFSPEED,
-                .x = getMyHero()->currMotion()->endX,
-                .y = getMyHero()->currMotion()->endY,
+                .x = getMyHero()->x(),
+                .y = getMyHero()->y(),
                 .aimUID = nUID,
                 .damageID = DBCOM_MAGICID(u8"物理攻击"),
             });
@@ -1824,8 +1824,8 @@ void ProcessRun::checkMagicSpell(const SDL_Event &event)
                 if(const auto uid = focusUID(FOCUS_MAGIC)){
                     getMyHero()->emplaceAction(ActionSpell
                     {
-                        .x = getMyHero()->currMotion()->endX,
-                        .y = getMyHero()->currMotion()->endY,
+                        .x = getMyHero()->x(),
+                        .y = getMyHero()->y(),
                         .aimUID = uid,
                         .magicID = magicID,
                     });
@@ -1837,8 +1837,8 @@ void ProcessRun::checkMagicSpell(const SDL_Event &event)
                     const auto [aimX, aimY] = getMouseGLoc();
                     getMyHero()->emplaceAction(ActionSpell
                     {
-                        .x = getMyHero()->currMotion()->endX,
-                        .y = getMyHero()->currMotion()->endY,
+                        .x = getMyHero()->x(),
+                        .y = getMyHero()->y(),
                         .aimX = aimX,
                         .aimY = aimY,
                         .magicID = magicID,
@@ -1855,8 +1855,8 @@ void ProcessRun::checkMagicSpell(const SDL_Event &event)
                 const auto [aimX, aimY] = getMouseGLoc();
                 getMyHero()->emplaceAction(ActionSpell
                 {
-                    .x = getMyHero()->currMotion()->endX,
-                    .y = getMyHero()->currMotion()->endY,
+                    .x = getMyHero()->x(),
+                    .y = getMyHero()->y(),
                     .aimX = aimX,
                     .aimY = aimY,
                     .magicID = magicID,
@@ -1869,8 +1869,8 @@ void ProcessRun::checkMagicSpell(const SDL_Event &event)
             {
                 getMyHero()->emplaceAction(ActionSpell
                 {
-                    .x = getMyHero()->currMotion()->endX,
-                    .y = getMyHero()->currMotion()->endY,
+                    .x = getMyHero()->x(),
+                    .y = getMyHero()->y(),
                     .aimUID = getMyHero()->UID(),
                     .magicID = magicID,
                 });

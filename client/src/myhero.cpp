@@ -577,6 +577,37 @@ bool MyHero::parseActionQueue()
 
 bool MyHero::emplaceAction(const ActionNode &action)
 {
+    if(m_forcedMotionQueue.empty()){
+        switch(currMotion()->type){
+            case MOTION_WALK:
+            case MOTION_RUN:
+            case MOTION_ONHORSEWALK:
+            case MOTION_ONHORSERUN:
+                {
+                    // no pending forced motion and is moving
+                    // force stand immediately, this changes the current endX/endY to location()
+
+                    while(m_currMotion->frame < motionFrameCount(m_currMotion->type, m_currMotion->direction)){
+                        m_currMotion->update();
+                        m_currMotion->frame++;
+                    }
+
+                    m_currMotion.reset(new MotionNode
+                    {
+                        .type = MOTION_STAND,
+                        .direction = m_currMotion->direction,
+                        .x = action.x,
+                        .y = action.y,
+                    });
+                    break;
+                }
+            default:
+                {
+                    break;
+                }
+        }
+    }
+
     m_actionQueue.clear();
     m_actionQueue.push_back(action);
     return true;
