@@ -1857,8 +1857,8 @@ void ProcessRun::checkMagicSpell(const SDL_Event &event)
                 const auto [aimX, aimY] = getMouseGLoc();
                 getMyHero()->emplaceAction(ActionSpell
                 {
-                    .x = getMyHero()->x(),
-                    .y = getMyHero()->y(),
+                    .x = getMyHero()->currMotion()->endX,
+                    .y = getMyHero()->currMotion()->endY,
                     .aimX = aimX,
                     .aimY = aimY,
                     .magicID = magicID,
@@ -1871,8 +1871,8 @@ void ProcessRun::checkMagicSpell(const SDL_Event &event)
             {
                 getMyHero()->emplaceAction(ActionSpell
                 {
-                    .x = getMyHero()->x(),
-                    .y = getMyHero()->y(),
+                    .x = getMyHero()->currMotion()->endX,
+                    .y = getMyHero()->currMotion()->endY,
                     .aimUID = getMyHero()->UID(),
                     .magicID = magicID,
                 });
