@@ -34,6 +34,7 @@
 #include "monster.hpp"
 #include "mapbindb.hpp"
 #include "fflerror.hpp"
+#include "serdesmsg.hpp"
 #include "actorpool.hpp"
 #include "syncdriver.hpp"
 #include "mainwindow.hpp"
@@ -192,6 +193,48 @@ bool MonoServer::createAccountCharacter(const char *id, const char *charName, bo
         mapy,
         to_d(gender)
     );
+
+    uint32_t seqID = 1;
+    const auto fnAddInitItem = [dbid, &seqID](const char8_t *itemName, size_t count = 1)
+    {
+        const SDItem item
+        {
+            .itemID = DBCOM_ITEMID(itemName),
+            .seqID  = seqID++,
+            .count  = count,
+        };
+
+        fflassert(item);
+        const auto attrBuf = cerealf::serialize(item.extAttrList);
+        auto query = g_dbPod->createQuery(
+                u8R"###( replace into tbl_inventory(fld_dbid, fld_itemid, fld_seqid, fld_count, fld_duration, fld_extattrlist) )###"
+                u8R"###( values                                                                                                )###"
+                u8R"###(     (%llu, %llu, %llu, %llu, %llu, ?)                                                                 )###",
+
+                to_llu(dbid),
+                to_llu(item.itemID),
+                to_llu(item.seqID),
+                to_llu(item.count),
+                to_llu(item.duration));
+
+        query.bind(1, attrBuf.data(), attrBuf.length());
+        query.exec();
+    };
+
+    fnAddInitItem(u8"火墙");
+    fnAddInitItem(u8"雷电术");
+    fnAddInitItem(u8"召唤神兽");
+
+    fnAddInitItem(u8"木剑");
+    fnAddInitItem(u8"金创药（小）", 10);
+    fnAddInitItem(u8"魔法药（小）", 10);
+
+    if(gender){
+        fnAddInitItem(u8"布衣（男）");
+    }
+    else{
+        fnAddInitItem(u8"布衣（女）");
+    }
     return true;
 }
 
@@ -244,7 +287,7 @@ void MonoServer::createDefaultDatabase()
         u8R"###(     fld_itemid         int unsigned not null,                       )###"
         u8R"###(     fld_count          int unsigned not null,                       )###"
         u8R"###(     fld_duration       int unsigned not null,                       )###"
-        u8R"###(     fld_extattrlist    blob null default (x''),                     )###"
+        u8R"###(     fld_extattrlist    blob         not null,                       )###"
         u8R"###(                                                                     )###"
         u8R"###(     foreign key (fld_dbid) references tbl_dbid(fld_dbid),           )###"
         u8R"###(     primary key (fld_dbid, fld_wear)                                )###"
