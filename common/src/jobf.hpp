@@ -36,7 +36,7 @@ namespace jobf
         }
 
         if(s.find(to_cstr(u8"法师")) != std::string::npos){
-            jobList.push_back(JOB_MAGE);
+            jobList.push_back(JOB_WIZARD);
         }
         return jobList;
     }

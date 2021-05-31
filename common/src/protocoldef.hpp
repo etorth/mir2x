@@ -160,7 +160,7 @@ enum JobType: int
     JOB_BEGIN   = 1,
     JOB_WARRIOR = 1,
     JOB_TAOIST,
-    JOB_MAGE,
+    JOB_WIZARD,
     JOB_END,
 };
 
@@ -174,7 +174,7 @@ inline const char8_t * jobName(int job)
     switch(job){
         case JOB_WARRIOR: return u8"战士";
         case JOB_TAOIST : return u8"道士";
-        case JOB_MAGE   : return u8"法师";
+        case JOB_WIZARD : return u8"法师";
         default         : return nullptr;
     }
 }

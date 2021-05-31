@@ -163,7 +163,7 @@ bool MonoServer::createAccountCharacter(const char *id, const char *charName, bo
     const auto [mapName, mapx, mapy] = [&jobList]() -> std::tuple<const char8_t *, int, int>
     {
         switch(jobList.front()){
-            case JOB_MAGE:
+            case JOB_WIZARD:
             case JOB_WARRIOR:
                 {
                     return {u8"比奇省", 441, 381};

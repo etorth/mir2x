@@ -48,7 +48,7 @@ uint64_t uidf::buildNPCUID(uint16_t npcId)
 static constexpr uint64_t playerUID_gender     = 0X0000080000000000ULL;
 static constexpr uint64_t playerUID_jobTaoist  = 0X0000040000000000ULL;
 static constexpr uint64_t playerUID_jobWarrior = 0X0000020000000000ULL;
-static constexpr uint64_t playerUID_jobMage    = 0X0000010000000000ULL;
+static constexpr uint64_t playerUID_jobWizard  = 0X0000010000000000ULL;
 
 uint64_t uidf::buildPlayerUID(uint32_t dbid, bool gender, const std::vector<int> &jobList)
 {
@@ -57,7 +57,7 @@ uint64_t uidf::buildPlayerUID(uint32_t dbid, bool gender, const std::vector<int>
         switch(job){
             case JOB_WARRIOR: jobMask |= playerUID_jobWarrior; break;
             case JOB_TAOIST : jobMask |= playerUID_jobTaoist ; break;
-            case JOB_MAGE   : jobMask |= playerUID_jobMage   ; break;
+            case JOB_WIZARD : jobMask |= playerUID_jobWizard ; break;
             default: throw fflerror("invalid job: %d", job);
         }
     }
@@ -82,7 +82,7 @@ bool uidf::hasPlayerJob(uint64_t uid, int job)
     switch(job){
         case JOB_WARRIOR: return uid & playerUID_jobWarrior;
         case JOB_TAOIST : return uid & playerUID_jobTaoist ;
-        case JOB_MAGE   : return uid & playerUID_jobMage   ;
+        case JOB_WIZARD : return uid & playerUID_jobWizard ;
         default: throw fflerror("invalid job: %d", job);
     }
 }
