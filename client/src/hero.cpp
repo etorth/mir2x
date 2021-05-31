@@ -367,12 +367,12 @@ bool Hero::motionValid(const std::unique_ptr<MotionNode> &motionPtr) const
         switch(motionPtr->type){
             case MOTION_STAND:
                 {
-                    return !OnHorse() && (nLDistance2 == 0);
+                    return !onHorse() && (nLDistance2 == 0);
                 }
             case MOTION_SPELL0:
             case MOTION_SPELL1:
                 {
-                    return !OnHorse() && (nLDistance2 == 0);
+                    return !onHorse() && (nLDistance2 == 0);
                 }
             case MOTION_ARROWATTACK:
             case MOTION_HOLD:
@@ -383,7 +383,7 @@ bool Hero::motionValid(const std::unique_ptr<MotionNode> &motionPtr) const
                 }
             case MOTION_ATTACKMODE:
                 {
-                    return !OnHorse() && (nLDistance2 == 0);
+                    return !onHorse() && (nLDistance2 == 0);
                 }
             case MOTION_CUT:
                 {
@@ -399,7 +399,7 @@ bool Hero::motionValid(const std::unique_ptr<MotionNode> &motionPtr) const
             case MOTION_WHEELWIND:
             case MOTION_RANDSWING:
                 {
-                    return !OnHorse() && (nLDistance2 == 0);
+                    return !onHorse() && (nLDistance2 == 0);
                 }
             case MOTION_BACKDROPKICK:
                 {
@@ -407,19 +407,19 @@ bool Hero::motionValid(const std::unique_ptr<MotionNode> &motionPtr) const
                 }
             case MOTION_DIE:
                 {
-                    return !OnHorse() && (nLDistance2 == 0);
+                    return !onHorse() && (nLDistance2 == 0);
                 }
             case MOTION_ONHORSEDIE:
                 {
-                    return  OnHorse() && (nLDistance2 == 0);
+                    return  onHorse() && (nLDistance2 == 0);
                 }
             case MOTION_WALK:
                 {
-                    return !OnHorse() && (nLDistance2 == 1 || nLDistance2 == 2);
+                    return !onHorse() && (nLDistance2 == 1 || nLDistance2 == 2);
                 }
             case MOTION_RUN:
                 {
-                    return !OnHorse() && (nLDistance2 == 4 || nLDistance2 == 8);
+                    return !onHorse() && (nLDistance2 == 4 || nLDistance2 == 8);
                 }
             case MOTION_MOODEPO:
             case MOTION_ROLL:
@@ -432,19 +432,19 @@ bool Hero::motionValid(const std::unique_ptr<MotionNode> &motionPtr) const
                 }
             case MOTION_ONHORSESTAND:
                 {
-                    return OnHorse() && (nLDistance2 == 0);
+                    return onHorse() && (nLDistance2 == 0);
                 }
             case MOTION_ONHORSEWALK:
                 {
-                    return OnHorse() && (nLDistance2 == 1 || nLDistance2 == 2);
+                    return onHorse() && (nLDistance2 == 1 || nLDistance2 == 2);
                 }
             case MOTION_ONHORSERUN:
                 {
-                    return OnHorse() && (nLDistance2 == 9 || nLDistance2 == 18);
+                    return onHorse() && (nLDistance2 == 9 || nLDistance2 == 18);
                 }
             case MOTION_ONHORSEHITTED:
                 {
-                    return OnHorse() && (nLDistance2 == 0);
+                    return onHorse() && (nLDistance2 == 0);
                 }
             default:
                 {
@@ -506,7 +506,7 @@ bool Hero::parseAction(const ActionNode &action)
                 {
                     .type = [this]()
                     {
-                        if(OnHorse()){
+                        if(onHorse()){
                             return MOTION_ONHORSESTAND;
                         }
                         return MOTION_STAND;
@@ -811,7 +811,7 @@ bool Hero::parseAction(const ActionNode &action)
                 {
                     .type = [this]() -> int
                     {
-                        if(OnHorse()){
+                        if(onHorse()){
                             return MOTION_ONHORSEHITTED;
                         }
                         return MOTION_HITTED;
@@ -854,7 +854,7 @@ bool Hero::parseAction(const ActionNode &action)
                 {
                     .type = [this]() -> int
                     {
-                        if(OnHorse()){
+                        if(onHorse()){
                             return MOTION_ONHORSEDIE;
                         }
                         return MOTION_DIE;
@@ -982,7 +982,7 @@ std::unique_ptr<MotionNode> Hero::makeWalkMotion(int nX0, int nY0, int nX1, int 
             case 1:
             case 2:
                 {
-                    nMotion = (OnHorse() ? MOTION_ONHORSEWALK : MOTION_WALK);
+                    nMotion = (onHorse() ? MOTION_ONHORSEWALK : MOTION_WALK);
                     break;
                 }
             case 4:
@@ -1195,7 +1195,7 @@ void Hero::jumpLoc(int x, int y, int direction)
     {
         .type = [this]()
         {
-            if(OnHorse()){
+            if(onHorse()){
                 return MOTION_ONHORSESTAND;
             }
             return MOTION_STAND;

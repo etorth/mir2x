@@ -547,7 +547,7 @@ void ProcessRun::processEvent(const SDL_Event &event)
                                     .aimX = mouseGridX,
                                     .aimY = mouseGridY,
                                     .pickUp = true,
-                                    .onHorse = getMyHero()->OnHorse(),
+                                    .onHorse = getMyHero()->onHorse(),
                                 });
                             }
                             break;
@@ -586,7 +586,7 @@ void ProcessRun::processEvent(const SDL_Event &event)
                                         .y = actPLocY,
                                         .aimX = nX,
                                         .aimY = nY,
-                                        .onHorse = getMyHero()->OnHorse(),
+                                        .onHorse = getMyHero()->onHorse(),
                                     });
                                 }
                             }

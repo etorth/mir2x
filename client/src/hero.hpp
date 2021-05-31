@@ -48,7 +48,7 @@ class Hero: public CreatureMovable
         void drawFrame(int, int, int, int, bool) override;
 
     public:
-        bool OnHorse() const
+        bool onHorse() const
         {
             return m_onHorse;
         }
@@ -100,7 +100,7 @@ class Hero: public CreatureMovable
     public:
         int maxStep() const override
         {
-            return OnHorse() ? 3 : 2;
+            return onHorse() ? 3 : 2;
         }
 
     public:

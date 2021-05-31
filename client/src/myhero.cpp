@@ -374,7 +374,7 @@ bool MyHero::decompActionAttack()
                             .y = nY0,
                             .aimX = nXt,
                             .aimY = nYt,
-                            .onHorse = OnHorse(),
+                            .onHorse = onHorse(),
                         });
                         return true;
                     }
@@ -588,18 +588,35 @@ bool MyHero::emplaceAction(const ActionNode &action)
                     // no pending forced motion and is moving
                     // force stand immediately, this changes the current endX/endY to location()
 
+                    const auto [locGX, locGY] = location();
                     while(m_currMotion->frame < motionFrameCount(m_currMotion->type, m_currMotion->direction)){
                         m_currMotion->update();
                         m_currMotion->frame++;
                     }
 
-                    m_currMotion.reset(new MotionNode
-                    {
-                        .type = MOTION_STAND,
-                        .direction = m_currMotion->direction,
-                        .x = action.x,
-                        .y = action.y,
-                    });
+                    if(locGX == action.x && locGY == action.y){
+                        m_currMotion.reset(new MotionNode
+                        {
+                            .type = onHorse() ? MOTION_ONHORSESTAND : MOTION_STAND,
+                            .direction = m_currMotion->direction,
+                            .x = action.x,
+                            .y = action.y,
+                        });
+                    }
+                    else{
+                        m_currMotion.reset(new MotionNode
+                        {
+                            .type = onHorse() ? MOTION_ONHORSEWALK : MOTION_WALK,
+                            .direction = m_currMotion->direction,
+
+                            .x = locGX,
+                            .y = locGY,
+                            .endX = action.x,
+                            .endY = action.y,
+
+                            .frame = 4, // 0 ~ 5, assign a most finished frame here
+                        });
+                    }
                     break;
                 }
             default:
