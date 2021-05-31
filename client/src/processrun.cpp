@@ -538,11 +538,12 @@ void ProcessRun::processEvent(const SDL_Event &event)
                             }
 
                             else if(!getGroundItemIDList(mouseGridX, mouseGridY).empty()){
+                                const auto [actPLocX, actPLocY] = getMyHero()->emplaceActionPLoc();
                                 getMyHero()->emplaceAction(ActionMove
                                 {
                                     .speed = SYS_DEFSPEED,
-                                    .x = getMyHero()->x(),
-                                    .y = getMyHero()->y(),
+                                    .x = actPLocX,
+                                    .y = actPLocY,
                                     .aimX = mouseGridX,
                                     .aimY = mouseGridY,
                                     .pickUp = true,
@@ -577,11 +578,12 @@ void ProcessRun::processEvent(const SDL_Event &event)
                                     // when post move action don't use X() and Y()
                                     // since if clicks during hero moving then X() may not equal to EndX
 
+                                    const auto [actPLocX, actPLocY] = getMyHero()->emplaceActionPLoc();
                                     getMyHero()->emplaceAction(ActionMove
                                     {
                                         .speed = SYS_DEFSPEED,
-                                        .x = getMyHero()->x(),
-                                        .y = getMyHero()->y(),
+                                        .x = actPLocX,
+                                        .y = actPLocY,
                                         .aimX = nX,
                                         .aimY = nY,
                                         .onHorse = getMyHero()->OnHorse(),
@@ -1260,11 +1262,12 @@ bool ProcessRun::trackAttack(bool bForce, uint64_t nUID)
 {
     if(findUID(nUID)){
         if(bForce || getMyHero()->stayIdle()){
+            const auto [actPLocX, actPLocY] = getMyHero()->emplaceActionPLoc();
             return getMyHero()->emplaceAction(ActionAttack
             {
                 .speed = SYS_DEFSPEED,
-                .x = getMyHero()->x(),
-                .y = getMyHero()->y(),
+                .x = actPLocX,
+                .y = actPLocY,
                 .aimUID = nUID,
                 .damageID = DBCOM_MAGICID(u8"物理攻击"),
             });
@@ -1813,6 +1816,7 @@ void ProcessRun::checkMagicSpell(const SDL_Event &event)
         return;
     }
 
+    const auto [actPLocX, actPLocY] = getMyHero()->emplaceActionPLoc();
     switch(magicID){
         case DBCOM_MAGICID(u8"雷电术"):
         case DBCOM_MAGICID(u8"火球术"):
@@ -1824,8 +1828,8 @@ void ProcessRun::checkMagicSpell(const SDL_Event &event)
                 if(const auto uid = focusUID(FOCUS_MAGIC)){
                     getMyHero()->emplaceAction(ActionSpell
                     {
-                        .x = getMyHero()->x(),
-                        .y = getMyHero()->y(),
+                        .x = actPLocX,
+                        .y = actPLocY,
                         .aimUID = uid,
                         .magicID = magicID,
                     });
@@ -1837,8 +1841,8 @@ void ProcessRun::checkMagicSpell(const SDL_Event &event)
                     const auto [aimX, aimY] = getMouseGLoc();
                     getMyHero()->emplaceAction(ActionSpell
                     {
-                        .x = getMyHero()->x(),
-                        .y = getMyHero()->y(),
+                        .x = actPLocX,
+                        .y = actPLocY,
                         .aimX = aimX,
                         .aimY = aimY,
                         .magicID = magicID,
@@ -1855,8 +1859,8 @@ void ProcessRun::checkMagicSpell(const SDL_Event &event)
                 const auto [aimX, aimY] = getMouseGLoc();
                 getMyHero()->emplaceAction(ActionSpell
                 {
-                    .x = getMyHero()->x(),
-                    .y = getMyHero()->y(),
+                    .x = actPLocX,
+                    .y = actPLocY,
                     .aimX = aimX,
                     .aimY = aimY,
                     .magicID = magicID,
@@ -1869,8 +1873,8 @@ void ProcessRun::checkMagicSpell(const SDL_Event &event)
             {
                 getMyHero()->emplaceAction(ActionSpell
                 {
-                    .x = getMyHero()->x(),
-                    .y = getMyHero()->y(),
+                    .x = actPLocX,
+                    .y = actPLocY,
                     .aimUID = getMyHero()->UID(),
                     .magicID = magicID,
                 });

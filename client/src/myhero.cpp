@@ -23,6 +23,7 @@
 #include "message.hpp"
 #include "fflerror.hpp"
 #include "mathf.hpp"
+#include "pathf.hpp"
 #include "clientargparser.hpp"
 #include "processrun.hpp"
 #include "clientpathfinder.hpp"
@@ -611,6 +612,17 @@ bool MyHero::emplaceAction(const ActionNode &action)
     m_actionQueue.clear();
     m_actionQueue.push_back(action);
     return true;
+}
+
+std::tuple<int, int> MyHero::emplaceActionPLoc() const
+{
+    // don't use the CreatureMovable::location(), which uses std::lround()
+    // here need to use std::ceil() to avoid frame shake, because std::lround() can pull back the motion
+
+    fflassert(motionValid(m_currMotion));
+    const auto doneRatio = to_f(currMotion()->frame + 1) / motionFrameCountEx(currMotion()->type, currMotion()->direction); // max is 1.0
+    const auto movedDistance = to_d(std::lround(std::ceil(doneRatio * currStep())));
+    return pathf::getFrontGLoc(currMotion()->x, currMotion()->y, currMotion()->direction, movedDistance);
 }
 
 void MyHero::reportAction(const ActionNode &action)

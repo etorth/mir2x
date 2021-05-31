@@ -135,6 +135,7 @@ class MyHero: public Hero
 
     public:
         bool emplaceAction(const ActionNode &);
+        std::tuple<int, int> emplaceActionPLoc() const;
 
     public:
         void reportAction(const ActionNode &);
