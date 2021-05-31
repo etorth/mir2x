@@ -624,6 +624,10 @@ bool MyHero::emplaceAction(const ActionNode &action)
         }
     }
 
+    // always clear motionQueue if new action provided
+    // for urgent motion must play, push them into forcedMotionQueue
+
+    m_motionQueue.clear();
     m_actionQueue.clear();
     m_actionQueue.push_back(action);
     return true;
