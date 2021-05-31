@@ -83,7 +83,7 @@ ClientPathFinder::ClientPathFinder(bool bCheckGround, int nCheckCreature, int nM
     }
 }
 
-int ClientPathFinder::GetGrid(int nX, int nY) const
+int ClientPathFinder::getGrid(int nX, int nY) const
 {
     auto pRun = (ProcessRun *)(g_client->ProcessValid(PROCESSID_RUN));
 

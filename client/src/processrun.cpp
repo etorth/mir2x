@@ -805,7 +805,7 @@ double ProcessRun::OneStepCost(const ClientPathFinder *pFinder, bool bCheckGroun
     for(int nIndex = 0; nIndex <= nMaxIndex; ++nIndex){
         int nCurrX = nX0 + nDX * nIndex;
         int nCurrY = nY0 + nDY * nIndex;
-        switch(auto nGrid = pFinder ? pFinder->GetGrid(nCurrX, nCurrY) : this->CheckPathGrid(nCurrX, nCurrY)){
+        switch(auto nGrid = pFinder ? pFinder->getGrid(nCurrX, nCurrY) : this->CheckPathGrid(nCurrX, nCurrY)){
             case PathFind::FREE:
                 {
                     break;

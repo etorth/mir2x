@@ -489,9 +489,7 @@ bool MyHero::parseActionQueue()
 
     // parsing action
     // means pending motion queue must be empty
-    if(!m_motionQueue.empty()){
-        throw fflerror("motion queue is not empty");
-    }
+    fflassert(m_motionQueue.empty());
 
     // all actions in action queue is local and not verfified
     // present the action list immediately and sent it to server for verification

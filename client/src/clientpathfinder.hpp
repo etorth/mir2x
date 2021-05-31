@@ -36,8 +36,7 @@ class ClientPathFinder final: public AStarPathFinder
 
     public:
         ClientPathFinder(bool, int, int);
-       ~ClientPathFinder() = default;
 
     private:
-       int GetGrid(int, int) const;
+        int getGrid(int, int) const;
 };
