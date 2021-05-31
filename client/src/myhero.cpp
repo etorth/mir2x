@@ -602,17 +602,24 @@ bool MyHero::emplaceAction(const ActionNode &action)
                         });
                     }
                     else{
+                        // assign a half done walk instead of direct flush
+                        // getGLoc(0) uses std::lround while getGLoc(1) uses std::ceil(), if different means done less half (ratio < n.5)
+
+                        const auto motionType = onHorse() ? MOTION_ONHORSEWALK : MOTION_WALK;
+                        const auto startFrame = motionFrameCountEx(motionType, m_currMotion->direction) / 2;
+
                         m_currMotion.reset(new MotionNode
                         {
-                            .type = onHorse() ? MOTION_ONHORSEWALK : MOTION_WALK,
+                            .type = motionType,
                             .direction = m_currMotion->direction,
+                            .speed = 200,
 
                             .x = locGX,
                             .y = locGY,
                             .endX = action.x,
                             .endY = action.y,
 
-                            .frame = 4, // 0 ~ 5, assign a most finished frame here
+                            .frame = startFrame,
                         });
                     }
                     break;
