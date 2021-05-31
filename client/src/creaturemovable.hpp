@@ -42,7 +42,13 @@ class CreatureMovable: public ClientCreature
         virtual int currStep() const = 0;
 
     public:
-        std::tuple<int, int> location() const override;
+        std::tuple<int, int> location() const override
+        {
+            return getGLoc(0);
+        }
+
+    protected:
+        std::tuple<int, int> getGLoc(int) const;
 
     protected:
         virtual bool stayIdle() const

@@ -618,11 +618,7 @@ std::tuple<int, int> MyHero::emplaceActionPLoc() const
 {
     // don't use the CreatureMovable::location(), which uses std::lround()
     // here need to use std::ceil() to avoid frame shake, because std::lround() can pull back the motion
-
-    fflassert(motionValid(m_currMotion));
-    const auto doneRatio = to_f(currMotion()->frame + 1) / motionFrameCountEx(currMotion()->type, currMotion()->direction); // max is 1.0
-    const auto movedDistance = to_d(std::lround(std::ceil(doneRatio * currStep())));
-    return pathf::getFrontGLoc(currMotion()->x, currMotion()->y, currMotion()->direction, movedDistance);
+    return getGLoc(1);
 }
 
 void MyHero::reportAction(const ActionNode &action)
