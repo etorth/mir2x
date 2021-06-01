@@ -32,6 +32,33 @@ std::string SDInitNPChar::getFileName() const
     }
 }
 
+SDItem SDItem::buildGoldItem(size_t count)
+{
+    fflassert(count > 0);
+    return SDItem
+    {
+        .itemID = [count]() -> uint32_t
+        {
+            if(count < 10){
+                return DBCOM_ITEMID(u8"金币（小）");
+            }
+            else if(count < 100){
+                return DBCOM_ITEMID(u8"金币（中）");
+            }
+            else if(count < 500){
+                return DBCOM_ITEMID(u8"金币（大）");
+            }
+            else if(count < 2000){
+                return DBCOM_ITEMID(u8"金币（特大）");
+            }
+            else{
+                return DBCOM_ITEMID(u8"金币（超级大）");
+            }
+        }(),
+        .count = count,
+    };
+}
+
 SDItem::operator bool () const
 {
     if(!itemID){
@@ -45,7 +72,7 @@ SDItem::operator bool () const
 
     const auto maxCount = [&ir]() -> size_t
     {
-        if(to_u8sv(ir.type) == u8"金币"){
+        if(ir.isGold()){
             return SIZE_MAX;
         }
 
@@ -104,13 +131,9 @@ std::unordered_set<uint64_t> SDInventory::getItemSeqIDSet() const
 size_t SDInventory::has(uint32_t itemID, uint32_t seqID) const
 {
     const auto &ir = DBCOM_ITEMRECORD(itemID);
-    if(!ir){
-        throw fflerror("invalid itemID: %llu", to_llu(itemID));
-    }
 
-    if(itemID == DBCOM_ITEMID(u8"金币")){
-        throw fflerror("invalid type: 金币");
-    }
+    fflassert(ir);
+    fflassert(!ir.isGold());
 
     size_t count = 0;
     for(const auto &item: m_list){
@@ -129,13 +152,9 @@ size_t SDInventory::has(uint32_t itemID, uint32_t seqID) const
 const SDItem &SDInventory::find(uint32_t itemID, uint32_t seqID) const
 {
     const auto &ir = DBCOM_ITEMRECORD(itemID);
-    if(!ir){
-        throw fflerror("invalid itemID: %llu", to_llu(itemID));
-    }
 
-    if(itemID == DBCOM_ITEMID(u8"金币")){
-        throw fflerror("invalid type: 金币");
-    }
+    fflassert(ir);
+    fflassert(!ir.isGold());
 
     for(const auto &item: m_list){
         if(item.itemID != itemID){
@@ -192,13 +211,11 @@ const SDItem &SDInventory::add(SDItem newItem, bool keepSeqID)
 
 std::tuple<size_t, uint32_t, const SDItem *> SDInventory::remove(uint32_t itemID, uint32_t seqID, size_t count)
 {
-    if(!(DBCOM_ITEMRECORD(itemID) && count > 0)){
-        throw fflerror("invalid arguments: itemID = %llu, seqID = %llu, count = %zu", to_llu(itemID), to_llu(seqID), count);
-    }
+    const auto &ir = DBCOM_ITEMRECORD(itemID);
 
-    if(itemID == DBCOM_ITEMID(u8"金币")){
-        throw fflerror("invalid type: 金币");
-    }
+    fflassert(ir);
+    fflassert(count > 0);
+    fflassert(!ir.isGold());
 
     for(auto &item: m_list){
         if(item.itemID != itemID){

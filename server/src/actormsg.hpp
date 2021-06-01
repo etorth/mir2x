@@ -72,7 +72,7 @@ enum ActorMsgPackType: int
     AM_EXP,
     AM_MISS,
     AM_GIFT,
-    AM_NEWDROPITEM,
+    AM_DROPITEM,
     AM_SHOWDROPITEM,
     AM_NOTIFYDEAD,
     AM_OFFLINE,
@@ -452,28 +452,6 @@ struct AMGift
 {
     uint32_t itemID;
     size_t count;
-};
-
-struct AMNewDropItem
-{
-    uint64_t UID;
-    int X;
-    int Y;
-
-    uint32_t ID;
-    int Value;
-};
-
-struct AMShowDropItem
-{
-    struct _CommonItem
-    {
-        uint32_t ID;
-        uint32_t DBID;
-    }IDList[16];
-
-    int X;
-    int Y;
 };
 
 struct AMNotifyDead

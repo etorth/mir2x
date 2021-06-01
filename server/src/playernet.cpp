@@ -136,7 +136,7 @@ void Player::net_CM_PICKUP(uint8_t, const uint8_t *buf, size_t)
                         const auto &ir = DBCOM_ITEMRECORD(item.itemID);
 
                         fflassert(ir);
-                        if(to_u8sv(ir.type) == u8"金币"){
+                        if(item.isGold()){
                             setGold(m_sdItemStorage.gold + item.count);
                         }
                         else{
@@ -255,7 +255,7 @@ void Player::net_CM_BUY(uint8_t, const uint8_t *buf, size_t)
                     }
 
                     for(const auto &costItem: sdBC.costList){
-                        if(costItem.itemID == DBCOM_ITEMID(u8"金币")){
+                        if(costItem.isGold()){
                             if(m_sdItemStorage.gold < costItem.count){
                                 lackItemID = costItem.itemID;
                                 break;
@@ -273,7 +273,7 @@ void Player::net_CM_BUY(uint8_t, const uint8_t *buf, size_t)
                     }
                     else{
                         for(const auto &costItem: sdBC.costList){
-                            if(costItem.itemID == DBCOM_ITEMID(u8"金币")){
+                            if(costItem.isGold()){
                                 setGold(m_sdItemStorage.gold - costItem.count);
                             }
                             else{
@@ -524,7 +524,7 @@ void Player::net_CM_REQUESTGRABBELT(uint8_t, const uint8_t *buf, size_t)
 void Player::net_CM_DROPITEM(uint8_t, const uint8_t *buf, size_t)
 {
     const auto cmDI = ClientMsg::conv<CMDropItem>(buf);
-    const SDItem dropItem
+    SDItem dropItem
     {
         .itemID = cmDI.itemID,
         .seqID = cmDI.seqID,
@@ -534,17 +534,12 @@ void Player::net_CM_DROPITEM(uint8_t, const uint8_t *buf, size_t)
     fflassert(dropItem);
     removeInventoryItem(dropItem);
 
-    // TODO
-    // we should drop the identical item
-
-    AMNewDropItem amNDI;
-    std::memset(&amNDI, 0, sizeof(amNDI));
-    amNDI.UID   = UID();
-    amNDI.X     = X();
-    amNDI.Y     = Y();
-    amNDI.ID    = cmDI.itemID;
-    amNDI.Value = to_d(cmDI.count);
-    m_actorPod->forward(m_map->UID(), {AM_NEWDROPITEM, amNDI});
+    m_actorPod->forward(m_map->UID(), {AM_DROPITEM, cerealf::serialize(SDDropItem
+    {
+        .x = X(),
+        .y = Y(),
+        .item = std::move(dropItem),
+    })});
 }
 
 void Player::net_CM_CONSUMEITEM(uint8_t, const uint8_t *buf, size_t)

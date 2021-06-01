@@ -22,6 +22,7 @@
 #include <cstdint>
 #include <utility>
 #include <type_traits>
+#include "cerealf.hpp"
 #include "fflerror.hpp"
 #include "actormsg.hpp"
 #include "actormsgbuf.hpp"
@@ -175,6 +176,11 @@ template<size_t SBUFSIZE = 64> class InnActorMsgPack final
            return t;
        }
 
+       template<typename T> T deserialize() const
+       {
+           return cerealf::deserialize<T>(data(), size());
+       }
+
     public:
        int type() const
        {
@@ -255,7 +261,7 @@ inline const char *mpkName(int type)
         _add_mpk_type_case(AM_COCOUNT          )
         _add_mpk_type_case(AM_EXP              )
         _add_mpk_type_case(AM_MISS             )
-        _add_mpk_type_case(AM_NEWDROPITEM      )
+        _add_mpk_type_case(AM_DROPITEM         )
         _add_mpk_type_case(AM_SHOWDROPITEM     )
         _add_mpk_type_case(AM_NOTIFYDEAD       )
         _add_mpk_type_case(AM_OFFLINE          )

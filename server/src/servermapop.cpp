@@ -753,71 +753,66 @@ void ServerMap::on_AM_QUERYCOCOUNT(const ActorMsgPack &rstMPK)
     m_actorPod->forward(rstMPK.from(), {AM_COCOUNT, amCOC}, rstMPK.seqID());
 }
 
-void ServerMap::on_AM_NEWDROPITEM(const ActorMsgPack &rstMPK)
+void ServerMap::on_AM_DROPITEM(const ActorMsgPack &mpk)
 {
-    AMNewDropItem amNDI;
-    std::memcpy(&amNDI, rstMPK.data(), sizeof(amNDI));
+    const auto sdDI = mpk.deserialize<SDDropItem>();
+    fflassert(sdDI.item);
+    fflassert(groundValid(sdDI.x, sdDI.y));
 
-    if(true
-            && amNDI.ID
-            && amNDI.Value > 0
-            && groundValid(amNDI.X, amNDI.Y)){
-
-        bool bHoldInOne = false;
-        switch(amNDI.ID){
-            case DBCOM_ITEMID(u8"金币"):
-                {
-                    bHoldInOne = true;
-                    break;
-                }
-            default:
-                {
-                    break;
-                }
+    const auto holdInOne = [&sdDI]() -> bool
+    {
+        if(sdDI.item.isGold()){
+            return true;
         }
 
-        auto nLoop = bHoldInOne ? 1 : amNDI.Value;
-        for(int nIndex = 0; nIndex < nLoop; ++nIndex){
+        if(sdDI.item.count == 1){
+            return true;
+        }
 
-            // we check SYS_MAXDROPITEMGRID grids to find a best place to hold current item
-            // ``best" means there are not too many drop item already
-            int nCheckGrid = 0;
+        if(DBCOM_ITEMRECORD(sdDI.item.itemID).packable()){
+            return true;
+        }
 
-            int nBestX    = -1;
-            int nBestY    = -1;
-            int nMinCount = SYS_MAXDROPITEM + 1;
+        return false;
+    }();
 
-            RotateCoord stRC(amNDI.X, amNDI.Y, 0, 0, W(), H());
-            do{
-                if(groundValid(stRC.X(), stRC.Y())){
+    const int loopCount = holdInOne ? 1 : sdDI.item.count;
+    for(int i = 0; i < loopCount; ++i){
+        // we check SYS_MAXDROPITEMGRID grids to find a best place to hold current item
+        // ``best" means there are not too many drop item already
+        int checkGridCount = 0;
 
-                    // valid grid
-                    // check if grid good to hold
+        int bestX = -1;
+        int bestY = -1;
+        int minCount = SYS_MAXDROPITEM + 1;
 
-                    if(const auto nCurrCount = getGridItemIDList(stRC.X(), stRC.Y()).size(); to_d(nCurrCount) < nMinCount){
-                        nMinCount = nCurrCount;
-                        nBestX    = stRC.X();
-                        nBestY    = stRC.Y();
-
-                        // short it if it's an empty slot
-                        // directly use it and won't compare more
-
-                        if(nMinCount == 0){
-                            break;
-                        }
+        RotateCoord rc(sdDI.x, sdDI.y, 0, 0, W(), H());
+        do{
+            if(groundValid(rc.X(), rc.Y())){
+                if(const auto currCount = to_d(getGridItemIDList(rc.X(), rc.Y()).size()); currCount < minCount){
+                    bestX = rc.X();
+                    bestY = rc.Y();
+                    minCount = currCount;
+                    if(minCount == 0){
+                        break;
                     }
                 }
-            }while(stRC.forward() && (nCheckGrid++ <= SYS_MAXDROPITEMGRID));
+            }
+        }while(rc.forward() && (checkGridCount++ <= SYS_MAXDROPITEMGRID));
 
-            if(groundValid(nBestX, nBestY)){
-                addGridItemID(amNDI.ID, nBestX, nBestY);
+        if(groundValid(bestX, bestY)){
+            if(holdInOne){
+                addGridItem(sdDI.item, bestX, bestY);
             }
             else{
-
-                // we scanned the square but find we can't find a valid place
-                // abort current operation since following check should also fail
-                return;
+                addGridItemID(sdDI.item.itemID, bestX, bestY);
             }
+        }
+        else{
+
+            // we scanned the square but find we can't find a valid place
+            // abort since following check would also fail
+            return;
         }
     }
 }
@@ -854,14 +849,19 @@ void ServerMap::on_AM_PICKUP(const ActorMsgPack &mpk)
     std::vector<SDItem> pickedItemList;
     auto &itemList = getGridItemList(amPU.x, amPU.y);
 
+    size_t goldCount = 0;
     for(auto p = itemList.begin(); p != itemList.end();){
-        if(to_u8sv(DBCOM_ITEMRECORD(p->item.itemID).type) == u8"金币"){
-            pickedItemList.push_back(std::move(p->item));
+        if(p->item.isGold()){
+            goldCount += p->item.count;
             p = itemList.erase(p);
         }
         else{
             p++;
         }
+    }
+
+    if(goldCount > 0){
+        pickedItemList.push_back(SDItem::buildGoldItem(goldCount));
     }
 
     size_t pickedWeight = 0;

@@ -349,9 +349,9 @@ void ServerMap::operateAM(const ActorMsgPack &rstMPK)
                 on_AM_PICKUP(rstMPK);
                 break;
             }
-        case AM_NEWDROPITEM:
+        case AM_DROPITEM:
             {
-                on_AM_NEWDROPITEM(rstMPK);
+                on_AM_DROPITEM(rstMPK);
                 break;
             }
         case AM_TRYLEAVE:
@@ -775,6 +775,22 @@ size_t ServerMap::getGridItemIDCount(uint32_t itemID, int x, int y) const
         }
     }
     return count;
+}
+
+void ServerMap::addGridItem(SDItem item, int x, int y, bool post)
+{
+    fflassert(item);
+    fflassert(groundValid(x, y));
+
+    getGridItemList(x, y).push_back(DroppedItemNode
+    {
+        .item = std::move(item),
+        .dropTime = hres_tstamp().to_msec(),
+    });
+
+    if(post){
+        postGridItemIDList(x, y);
+    }
 }
 
 void ServerMap::addGridItemID(uint32_t itemID, int x, int y, bool post)

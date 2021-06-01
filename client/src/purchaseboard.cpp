@@ -790,7 +790,7 @@ size_t PurchaseBoard::getItemPrice(int itemIndex) const
     }
 
     for(const auto &costItem: m_sdSellItemList.list.at(itemIndex).costList){
-        if(costItem.itemID == DBCOM_ITEMID(u8"金币")){
+        if(costItem.isGold()){
             return costItem.count;
         }
     }

@@ -1058,21 +1058,18 @@ size_t Player::removeInventoryItem(const SDItem &item)
 
 size_t Player::removeInventoryItem(uint32_t itemID, uint32_t seqID)
 {
-    if(!(DBCOM_ITEMRECORD(itemID) && seqID > 0)){
-        throw fflerror("invalid arguments: itemID = %llu, seqID = %llu", to_llu(itemID), to_llu(seqID));
-    }
+    fflassert(DBCOM_ITEMRECORD(itemID));
+    fflassert(seqID > 0);
     return removeInventoryItem(itemID, seqID, SIZE_MAX);
 }
 
 size_t Player::removeInventoryItem(uint32_t itemID, uint32_t seqID, size_t count)
 {
-    if(!(DBCOM_ITEMRECORD(itemID) && count > 0)){
-        throw fflerror("invalid arguments: itemID = %llu, seqID = %llu, count = %zu", to_llu(itemID), to_llu(seqID), count);
-    }
+    const auto &ir = DBCOM_ITEMRECORD(itemID);
 
-    if(itemID == DBCOM_ITEMID(u8"金币")){
-        throw fflerror("invalid item type: 金币");
-    }
+    fflassert(ir);
+    fflassert(count > 0);
+    fflassert(!ir.isGold());
 
     size_t doneCount = 0;
     while(doneCount < count){
@@ -1096,9 +1093,7 @@ size_t Player::removeInventoryItem(uint32_t itemID, uint32_t seqID, size_t count
 
 const SDItem &Player::findInventoryItem(uint32_t itemID, uint32_t seqID) const
 {
-    if(!DBCOM_ITEMRECORD(itemID)){
-        throw fflerror("invalid itemID = %llu", to_llu(itemID));
-    }
+    fflassert(DBCOM_ITEMRECORD(itemID));
     return m_sdItemStorage.inventory.find(itemID, seqID);
 }
 

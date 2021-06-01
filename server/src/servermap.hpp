@@ -302,6 +302,9 @@ class ServerMap final: public ServerObject
         size_t getGridItemIDCount(uint32_t, int, int) const;
 
     private:
+        void addGridItem(SDItem, int, int, bool = true);
+
+    private:
         void    addGridItemID(uint32_t, int, int, bool = true);
         void removeGridItemID(uint32_t, int, int, bool = true);
 
@@ -407,7 +410,7 @@ class ServerMap final: public ServerObject
         void on_AM_PULLCOINFO(const ActorMsgPack &);
         void on_AM_BADACTORPOD(const ActorMsgPack &);
         void on_AM_DEADFADEOUT(const ActorMsgPack &);
-        void on_AM_NEWDROPITEM(const ActorMsgPack &);
+        void on_AM_DROPITEM(const ActorMsgPack &);
         void on_AM_TRYMAPSWITCH(const ActorMsgPack &);
         void on_AM_QUERYCOCOUNT(const ActorMsgPack &);
         void on_AM_TRYSPACEMOVE(const ActorMsgPack &);

@@ -1171,19 +1171,19 @@ void Monster::randomDrop()
     for(auto &rstGroupRecord: DB_MONSTERDROPITEM(monsterID())){
         for(auto &rstItemRecord: rstGroupRecord.second){
             if(std::rand() % rstItemRecord.ProbRecip == 0){
-                AMNewDropItem amNDI;
-                amNDI.UID   = UID();
-                amNDI.X     = X();
-                amNDI.Y     = Y();
-                amNDI.ID    = rstItemRecord.ID;
-                amNDI.Value = rstItemRecord.Value;
+                m_actorPod->forward(m_map->UID(), {AM_DROPITEM, cerealf::serialize(SDDropItem
+                {
+                    .x = X(),
+                    .y = Y(),
 
-                // suggest server map to add a new drop item, but server map
-                // may reject this suggestion silently.
-                //
-                // and if we are not in group-0
-                // break if we select the first one item
-                m_actorPod->forward(m_map->UID(), {AM_NEWDROPITEM, amNDI});
+                    .item
+                    {
+                        .itemID = rstItemRecord.ID,
+                        .seqID  = 1,
+                        .count  = to_uz(rstItemRecord.Value),
+                    },
+                })});
+
                 if(rstGroupRecord.first != 0){
                     break;
                 }

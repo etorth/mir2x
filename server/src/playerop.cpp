@@ -222,7 +222,10 @@ void Player::on_AM_NPCQUERY(const ActorMsgPack &mpk)
         const auto argItemID = to_u32(std::stoi(tokenList.at(1)));
         const auto argCount  = to_uz (std::stoi(tokenList.at(2)));
 
-        if(argItemID == DBCOM_ITEMID(u8"金币")){
+        const auto &ir = DBCOM_ITEMRECORD(argItemID);
+        fflassert(ir);
+
+        if(ir.isGold()){
             if(m_sdItemStorage.gold >= argCount){
                 fnResp("1");
                 setGold(m_sdItemStorage.gold - argCount);
@@ -361,7 +364,7 @@ void Player::on_AM_MISS(const ActorMsgPack &mpk)
 void Player::on_AM_GIFT(const ActorMsgPack &mpk)
 {
     const auto amG = mpk.conv<AMGift>();
-    if(amG.itemID == DBCOM_ITEMID(u8"金币")){
+    if(DBCOM_ITEMRECORD(amG.itemID).isGold()){
         setGold(m_sdItemStorage.gold + amG.count);
     }
     else{

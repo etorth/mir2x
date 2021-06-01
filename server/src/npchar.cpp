@@ -740,14 +740,15 @@ void NPChar::operateAM(const ActorMsgPack &mpk)
 
 std::vector<SDCostItem> NPChar::getCostItemList(const SDItem &) const
 {
-    SDCostItem cost;
-    std::vector<SDCostItem> result;
-
-    cost.itemID = DBCOM_ITEMID(u8"金币");
-    cost.count  = 100 + std::rand() % 10;
-
-    result.push_back(cost);
-    return result;
+    const auto goldItem = SDItem::buildGoldItem(100 + std::rand() % 10);
+    return
+    {
+        SDCostItem
+        {
+            .itemID = goldItem.itemID,
+            .count  = goldItem.count,
+        },
+    };
 }
 
 std::set<uint32_t> NPChar::getDefaultSellItemIDList() const

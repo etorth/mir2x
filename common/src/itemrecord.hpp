@@ -95,4 +95,9 @@ struct ItemRecord
             default          : return false;
         }
     }
+
+    constexpr bool isGold() const
+    {
+        return std::u8string_view(type) == u8"金币";
+    }
 };

@@ -25,6 +25,8 @@
 #include "cerealf.hpp"
 #include "fflerror.hpp"
 #include "protocoldef.hpp"
+#include "dbcomid.hpp"
+#include "dbcomrecord.hpp"
 
 struct SDInitPlayer
 {
@@ -100,6 +102,11 @@ struct SDCostItem
     {
         ar(itemID, count);
     }
+
+    bool isGold() const
+    {
+        return to_u8sv(DBCOM_ITEMRECORD(itemID).type) == u8"金币";
+    }
 };
 
 struct SDItemExtAttrList
@@ -139,8 +146,25 @@ struct SDItem
         return str_printf("(itemID, seqID, count, duration, extAttrList) = (%llu, %llu, %zu, %zu, %s)", to_llu(itemID), to_llu(seqID), count, duration, to_cstr(extAttrList.str()));
     }
 
-    void checkEx() const;
+    bool isGold() const
+    {
+        return to_u8sv(DBCOM_ITEMRECORD(itemID).type) == u8"金币";
+    }
+
     operator bool () const;
+    static SDItem buildGoldItem(size_t);
+};
+
+struct SDDropItem
+{
+    int x = 0;
+    int y = 0;
+    SDItem item;
+
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(x, y, item);
+    }
 };
 
 struct SDBelt // belt items don't have seqID constraint
