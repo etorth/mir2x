@@ -20,9 +20,7 @@
 // code will figure out 小中大 based on SDItem::count
 
 // +-monsterName--------+-itemName-----------+-group-------+-probRecip--------+-repeat-----------+-count--------+
-{  u8"鹿"               , u8"金币（小）"     , 0           , 1                , 1                , 100          },
-{  u8"鹿"               , u8"金币（小）"     , 0           , 1                , 1                , 100          },
-{  u8"鹿"               , u8"金币（小）"     , 0           , 1                , 1                , 100          },
+{  u8"鹿"               , u8"金币（小）"     , 0           , 5                , 5                , 100          },
 
 // +-monsterName--------+-itemName-----------+-group-------+-probRecip--------+-repeat-----------+-count--------+
 {  u8"沙漠石人"         , u8"金币（小）"     , 0           , 10               , 5                , 500          },
