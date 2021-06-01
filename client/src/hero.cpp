@@ -1110,17 +1110,20 @@ ClientCreature::TargetBox Hero::getTargetBox() const
             }
     }
 
-    const auto nDress     = getWLItem(WLG_DRESS).itemID;
-    const auto nGender    = gender();
-    const auto nMotion    = currMotion()->type;
-    const auto nDirection = currMotion()->direction;
+    const auto dressGfxIndex = [this]() -> int
+    {
+        if(const auto &dressItem = getWLItem(WLG_DRESS)){
+            return DBCOM_ITEMRECORD(dressItem.itemID).shape;
+        }
+        return DRESS_BEGIN; // naked
+    }();
 
-    const auto texBaseID = gfxDressID(nDress, nMotion, nDirection);
+    const auto texBaseID = gfxDressID(dressGfxIndex, currMotion()->type, currMotion()->direction);
     if(!texBaseID.has_value()){
         return {};
     }
 
-    const uint32_t texID = ((to_u32(nGender ? 1 : 0)) << 22) + ((to_u32(texBaseID.value() & 0X01FFFF)) << 5) + currMotion()->frame;
+    const uint32_t texID = ((to_u32(gender() ? 1 : 0)) << 22) + ((to_u32(texBaseID.value() & 0X01FFFF)) << 5) + currMotion()->frame;
 
     int dx = 0;
     int dy = 0;
