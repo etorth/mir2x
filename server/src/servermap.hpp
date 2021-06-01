@@ -114,11 +114,17 @@ class ServerMap final: public ServerObject
             int dps      = 0;
         };
 
+        struct DroppedItemNode
+        {
+            SDItem item;
+            uint64_t dropTime = 0;
+        };
+
         struct MapGrid
         {
             bool locked = false;
             std::vector<uint64_t> uidList;
-            std::vector<uint32_t> itemIDList;
+            std::vector<DroppedItemNode> itemList;
             std::vector<FireWallMagicNode> fireWallList;
 
             uint32_t mapID   =  0;
@@ -127,7 +133,7 @@ class ServerMap final: public ServerObject
 
             bool empty() const
             {
-                return !locked && uidList.empty() && itemIDList.empty() && fireWallList.empty() && (mapID == 0);
+                return !locked && uidList.empty() && itemList.empty() && fireWallList.empty() && (mapID == 0);
             }
 
             bool hasUID(uint64_t uid) const
@@ -259,20 +265,33 @@ class ServerMap final: public ServerObject
         }
 
     private:
-        const auto &getGridItemIDList(int x, int y) const
+        const auto &getGridItemList(int x, int y) const
         {
-            return getGrid(x, y).itemIDList;
+            return getGrid(x, y).itemList;
         }
 
-        auto &getGridItemIDList(int x, int y)
+        auto &getGridItemList(int x, int y)
         {
-            return getGrid(x, y).itemIDList;
+            return getGrid(x, y).itemList;
         }
 
     private:
-        void clearGridItemIDList(int x, int y, bool post = true)
+        auto getGridItemIDList(int x, int y) const
         {
-            getGridItemIDList(x, y).clear();
+            std::vector<uint32_t> itemIDList;
+            const auto &itemList = getGridItemList(x, y);
+
+            itemIDList.reserve(itemList.size());
+            for(const auto &item: itemList){
+                itemIDList.push_back(item.item.itemID);
+            }
+            return itemIDList;
+        }
+
+    private:
+        void clearGridItemList(int x, int y, bool post = true)
+        {
+            getGridItemList(x, y).clear();
             if(post){
                 postGridItemIDList(x, y);
             }

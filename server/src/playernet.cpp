@@ -128,33 +128,24 @@ void Player::net_CM_PICKUP(uint8_t, const uint8_t *buf, size_t)
 
         m_pickUpLock = false;
         switch(mpk.type()){
-            case AM_PICKUPITEMIDLIST:
+            case AM_PICKUPITEMLIST:
                 {
-                    const auto sdPUIIDL = cerealf::deserialize<SDPickUpItemIDList>(mpk.data(), mpk.size());
-                    for(const auto itemID: sdPUIIDL.itemIDList){
-                        if(!itemID){
-                            break;
-                        }
+                    const auto sdPUIL = cerealf::deserialize<SDPickUpItemList>(mpk.data(), mpk.size());
+                    for(auto &item: sdPUIL.itemList){
+                        fflassert(item);
+                        const auto &ir = DBCOM_ITEMRECORD(item.itemID);
 
-                        const auto &ir = DBCOM_ITEMRECORD(itemID);
-                        if(!ir){
-                            throw fflerror("bad itemID: %llu", to_llu(itemID));
-                        }
-
+                        fflassert(ir);
                         if(to_u8sv(ir.type) == u8"金币"){
-                            setGold(m_sdItemStorage.gold + std::rand() % 1000 + 20000);
+                            setGold(m_sdItemStorage.gold + item.count);
                         }
                         else{
-                            const SDItem addedItem
-                            {
-                                .itemID = itemID,
-                            };
-                            addInventoryItem(addedItem, false);
+                            addInventoryItem(std::move(item), false);
                         }
                     }
 
-                    if(sdPUIIDL.failedItemID){
-                        fnPostPickUpError(sdPUIIDL.failedItemID);
+                    if(sdPUIL.failedItemID){
+                        fnPostPickUpError(sdPUIL.failedItemID);
                     }
                     break;
                 }

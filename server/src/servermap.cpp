@@ -32,6 +32,7 @@
 #include "taoskeleton.hpp"
 #include "cannibalplant.hpp"
 #include "bugbatmaggot.hpp"
+#include "raiitimer.hpp"
 #include "mathf.hpp"
 #include "sysconst.hpp"
 #include "fflerror.hpp"
@@ -778,11 +779,19 @@ size_t ServerMap::getGridItemIDCount(uint32_t itemID, int x, int y) const
 
 void ServerMap::addGridItemID(uint32_t itemID, int x, int y, bool post)
 {
-    if(!(DBCOM_ITEMRECORD(itemID) && groundValid(x, y))){
-        throw fflerror("invalid arguments: itemID = %llu, x = %d, y = %d", to_llu(itemID), x, y);
-    }
+    fflassert(DBCOM_ITEMRECORD(itemID));
+    fflassert(groundValid(x, y));
 
-    getGridItemIDList(x, y).push_back(itemID);
+    getGridItemList(x, y).push_back(DroppedItemNode
+    {
+        .item
+        {
+            .itemID = itemID,
+            .seqID  = 1,
+        },
+        .dropTime = hres_tstamp().to_msec(),
+    });
+
     if(post){
         postGridItemIDList(x, y);
     }
@@ -794,10 +803,10 @@ void ServerMap::removeGridItemID(uint32_t itemID, int x, int y, bool post)
         return;
     }
 
-    auto &itemIDList = getGridItemIDList(x, y);
-    for(int i = to_d(itemIDList.size()) - 1; i >= 0; --i){
-        if(itemIDList[i] == itemID){
-            itemIDList.erase(itemIDList.begin() + i);
+    auto &itemList = getGridItemList(x, y);
+    for(auto p = itemList.rbegin(); p != itemList.rend(); ++p){
+        if(p->item.itemID == itemID){
+            itemList.erase(std::next(p).base());
             if(post){
                 postGridItemIDList(x, y);
             }

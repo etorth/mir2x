@@ -847,18 +847,17 @@ void ServerMap::on_AM_OFFLINE(const ActorMsgPack &rstMPK)
 void ServerMap::on_AM_PICKUP(const ActorMsgPack &mpk)
 {
     const auto amPU = mpk.conv<AMPickUp>();
-    if(!(validC(amPU.x, amPU.y) && (uidf::getUIDType(mpk.from()) == UID_PLY))){
-        return;
-    }
 
-    std::vector<uint32_t> pickedItemIDList;
-    auto &itemIDList = getGridItemIDList(amPU.x, amPU.y);
+    fflassert(validC(amPU.x, amPU.y));
+    fflassert(uidf::getUIDType(mpk.from()) == UID_PLY);
 
-    for(auto p = itemIDList.begin(); p != itemIDList.end();){
-        const auto itemID = *p;
-        if(to_u8sv(DBCOM_ITEMRECORD(itemID).type) == u8"金币"){
-            pickedItemIDList.push_back(itemID);
-            p = itemIDList.erase(p);
+    std::vector<SDItem> pickedItemList;
+    auto &itemList = getGridItemList(amPU.x, amPU.y);
+
+    for(auto p = itemList.begin(); p != itemList.end();){
+        if(to_u8sv(DBCOM_ITEMRECORD(p->item.itemID).type) == u8"金币"){
+            pickedItemList.push_back(std::move(p->item));
+            p = itemList.erase(p);
         }
         else{
             p++;
@@ -866,33 +865,30 @@ void ServerMap::on_AM_PICKUP(const ActorMsgPack &mpk)
     }
 
     size_t pickedWeight = 0;
-    while(!itemIDList.empty()){
-        const auto itemID = itemIDList.back();
+    while(!itemList.empty()){
+        const auto itemID = itemList.back().item.itemID;
         const auto &ir = DBCOM_ITEMRECORD(itemID);
 
-        if(!ir){
-            throw fflerror("bad itemID: %llu", to_llu(itemID));
-        }
-
+        fflassert(ir);
         if(pickedWeight + ir.weight > amPU.availableWeight){
             break;
         }
 
         pickedWeight += ir.weight;
-        pickedItemIDList.push_back(itemID);
-        itemIDList.pop_back();
+        pickedItemList.push_back(std::move(itemList.back().item));
+        itemList.pop_back();
     }
 
-    const SDPickUpItemIDList sdPUIIDL
+    const SDPickUpItemList sdPUIL
     {
-        .failedItemID = itemIDList.empty() ? 0 : itemIDList.back(),
-        .itemIDList = std::move(pickedItemIDList),
+        .failedItemID = itemList.empty() ? 0 : itemList.back().item.itemID,
+        .itemList = std::move(pickedItemList),
     };
 
-    if(!sdPUIIDL.itemIDList.empty()){
+    if(!sdPUIL.itemList.empty()){
         postGridItemIDList(amPU.x, amPU.y);
     }
-    m_actorPod->forward(mpk.from(), {AM_PICKUPITEMIDLIST, cerealf::serialize(sdPUIIDL)}, mpk.seqID());
+    m_actorPod->forward(mpk.from(), {AM_PICKUPITEMLIST, cerealf::serialize(sdPUIL)}, mpk.seqID());
 }
 
 void ServerMap::on_AM_STRIKEFIXEDLOCDAMAGE(const ActorMsgPack &mpk)
