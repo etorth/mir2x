@@ -77,25 +77,25 @@ class Hero: public CreatureMovable
         FrameSeq motionFrameSeq(int, int) const override;
 
     public:
-        int WeaponOrder(int, int, int);
+        static std::optional<int> weaponOrder(int, int, int);
 
     protected:
         std::unique_ptr<MotionNode> makeWalkMotion(int, int, int, int, int) const override;
 
     protected:
-        int gfxMotionID(int motion) const override
+        static std::optional<uint32_t> gfxMotionID(int motion)
         {
             if((motion >= MOTION_BEGIN) && (motion < MOTION_END)){
                 return motion - MOTION_BEGIN;
             }
-            return -1;
+            return {};
         }
 
     protected:
-        int GfxHairID  (int, int, int) const;
-        int GfxDressID (int, int, int) const;
-        int GfxWeaponID(int, int, int) const;
-        int gfxHelmetID(int, int, int) const;
+        std::optional<uint32_t> gfxHairID  (int, int, int) const;
+        std::optional<uint32_t> gfxDressID (int, int, int) const;
+        std::optional<uint32_t> gfxWeaponID(int, int, int) const;
+        std::optional<uint32_t> gfxHelmetID(int, int, int) const;
 
     public:
         int maxStep() const override

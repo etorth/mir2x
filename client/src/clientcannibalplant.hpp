@@ -172,5 +172,5 @@ class ClientCannibalPlant: public ClientMonster
         bool finalStandMode() const;
 
     protected:
-        int gfxID(int, int) const override;
+        std::optional<uint32_t> gfxID(int, int) const override;
 };

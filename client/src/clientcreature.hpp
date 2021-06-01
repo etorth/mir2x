@@ -23,6 +23,7 @@
 #include <memory>
 #include <cstddef>
 #include <cstdint>
+#include <optional>
 #include <concepts>
 #include <SDL2/SDL.h>
 
@@ -242,9 +243,6 @@ class ClientCreature
 
     public:
         virtual bool deadFadeOut() = 0;
-
-    protected:
-        virtual int gfxMotionID(int) const = 0;
 
     public:
         virtual bool   alive() const;

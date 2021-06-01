@@ -140,16 +140,16 @@ void ClientMonster::drawFrame(int viewX, int viewY, int focusMask, int frame, bo
     //             +---------------------------------------    shadow : max =    2
     //
 
-    const auto nGfxID = gfxID(m_currMotion->type, m_currMotion->direction);
-    if(nGfxID < 0){
+    const auto optGfxID = gfxID(m_currMotion->type, m_currMotion->direction);
+    if(!optGfxID.has_value()){
         return;
     }
 
     const auto frameSeq = motionFrameSeq(m_currMotion->type, m_currMotion->direction);
     const auto absFrame = frameSeq.begin + frame * (frameSeq.reverse ? -1 : 1);
 
-    const uint32_t   bodyKey = (to_u32(0) << 23) + (to_u32(nGfxID & 0X03FFFF) << 5) + absFrame; // body
-    const uint32_t shadowKey = (to_u32(1) << 23) + (to_u32(nGfxID & 0X03FFFF) << 5) + absFrame; // shadow
+    const uint32_t   bodyKey = (to_u32(0) << 23) + (to_u32(optGfxID.value() & 0X03FFFF) << 5) + absFrame; // body
+    const uint32_t shadowKey = (to_u32(1) << 23) + (to_u32(optGfxID.value() & 0X03FFFF) << 5) + absFrame; // shadow
 
     const auto [  bodyFrame,   bodyDX,   bodyDY] = g_monsterDB->Retrieve(bodyKey);
     const auto [shadowFrame, shadowDX, shadowDY] = g_monsterDB->Retrieve(shadowKey);
@@ -494,39 +494,39 @@ bool ClientMonster::motionValid(const std::unique_ptr<MotionNode> &motionPtr) co
     return false;
 }
 
-int ClientMonster::gfxID(int nMotion, int nDirection) const
+std::optional<uint32_t> ClientMonster::gfxID(int motion, int direction) const
 {
-    // see ClientMonster::Draw() for format of nGfxID
-    // monster GfxID consists of (LookID, Motion, Direction)
-    static_assert(sizeof(int) > 2, "ClientMonster::GfxID() overflows because of sizeof(int) <= 2");
-
     if(!monsterID()){
-        return -1;
+        return {};
+    }
+
+    if(!((motion >= MOTION_MON_BEGIN) && (motion < MOTION_MON_END))){
+        return {};
     }
 
     const auto nLookID      = lookID();
-    const auto nGfxMotionID = gfxMotionID(nMotion);
+    const auto nGfxMotionID = motion - MOTION_MON_BEGIN;
 
     if(true
             && nLookID >= LID_BEGIN
             && nLookID <  LID_END
 
-            && nDirection >= DIR_BEGIN
-            && nDirection <  DIR_END
+            && direction >= DIR_BEGIN
+            && direction <  DIR_END
 
             && nGfxMotionID >= 0){
 
         // if passed listed simple test
         // we need to check the huge table for it
 
-        return (((nLookID - LID_BEGIN) & 0X07FF) << 7) + ((nGfxMotionID & 0X000F) << 3) + ((nDirection - DIR_BEGIN) & 0X0007);
+        return ((to_u32(nLookID - LID_BEGIN) & 0X07FF) << 7) + (to_u32(nGfxMotionID & 0X000F) << 3) + (to_u32(direction - DIR_BEGIN) & 0X0007);
     }
-    return -1;
+    return {};
 }
 
 FrameSeq ClientMonster::motionFrameSeq(int motion, int direction) const
 {
-    if(const auto nGfxId = gfxID(motion, direction); nGfxId < 0){
+    if(const auto nGfxId = gfxID(motion, direction); !nGfxId.has_value()){
         return {};
     }
 
@@ -599,11 +599,11 @@ ClientCreature::TargetBox ClientMonster::getTargetBox() const
     }
 
     const auto texBaseID = gfxID(m_currMotion->type, m_currMotion->direction);
-    if(texBaseID < 0){
+    if(!texBaseID.has_value()){
         return {};
     }
 
-    const uint32_t texID = (to_u32(texBaseID & 0X03FFFF) << 5) + m_currMotion->frame;
+    const uint32_t texID = (to_u32(texBaseID.value() & 0X03FFFF) << 5) + m_currMotion->frame;
 
     int dx = 0;
     int dy = 0;

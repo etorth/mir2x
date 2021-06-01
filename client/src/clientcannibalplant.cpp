@@ -110,7 +110,7 @@ bool ClientCannibalPlant::finalStandMode() const
     return (bool)(countTransf % 2) ? !m_standMode : m_standMode;
 }
 
-int ClientCannibalPlant::gfxID(int motion, int dir) const
+std::optional<uint32_t> ClientCannibalPlant::gfxID(int motion, int dir) const
 {
     if(m_standMode){
         return ClientMonster::gfxID(motion, dir);
@@ -129,7 +129,7 @@ int ClientCannibalPlant::gfxID(int motion, int dir) const
                 }
             default:
                 {
-                    return -1;
+                    return {};
                 }
         }
     }

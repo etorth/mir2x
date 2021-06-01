@@ -70,15 +70,15 @@ void Hero::drawFrame(int viewX, int viewY, int, int frame, bool)
         // 04 - 00 :     frame : max =  32
         // 07 - 05 : direction : max =  08 : +
         // 13 - 08 :    motion : max =  64 : +
-        // 21 - 14 :    weapon : max = 256 : +----> GfxWeaponID
+        // 21 - 14 :    weapon : max = 256 : +----> gfxWeaponID
         //      22 :    gender :
         //      23 :    shadow :
-        const auto nGfxWeaponID = GfxWeaponID(DBCOM_ITEMRECORD(getWLItem(WLG_WEAPON).itemID).shape, m_currMotion->type, m_currMotion->direction);
-        if(nGfxWeaponID < 0){
+        const auto nGfxWeaponID = gfxWeaponID(DBCOM_ITEMRECORD(getWLItem(WLG_WEAPON).itemID).shape, m_currMotion->type, m_currMotion->direction);
+        if(!nGfxWeaponID.has_value()){
             return;
         }
 
-        const uint32_t weaponKey = ((to_u32(shadow ? 1 : 0)) << 23) + (to_u32(gender()) << 22) + ((nGfxWeaponID & 0X01FFFF) << 5) + frame;
+        const uint32_t weaponKey = ((to_u32(shadow ? 1 : 0)) << 23) + (to_u32(gender()) << 22) + ((nGfxWeaponID.value() & 0X01FFFF) << 5) + frame;
         const auto [weaponFrame, weaponDX, weaponDY] = g_weaponDB->Retrieve(weaponKey);
 
         if(weaponFrame && shadow){
@@ -93,8 +93,8 @@ void Hero::drawFrame(int viewX, int viewY, int, int frame, bool)
     const auto nMotion    = m_currMotion->type;
     const auto nDirection = m_currMotion->direction;
 
-    const auto nGfxDressID = GfxDressID(nDress, nMotion, nDirection);
-    if(nGfxDressID < 0){
+    const auto nGfxDressID = gfxDressID(nDress, nMotion, nDirection);
+    if(!nGfxDressID.has_value()){
         m_currMotion->print();
         return;
     }
@@ -103,11 +103,11 @@ void Hero::drawFrame(int viewX, int viewY, int, int frame, bool)
     // 04 - 00 :     frame : max =  32
     // 07 - 05 : direction : max =  08 : +
     // 13 - 08 :    motion : max =  64 : +
-    // 21 - 14 :     dress : max = 256 : +----> GfxDressID
+    // 21 - 14 :     dress : max = 256 : +----> gfxDressID
     //      22 :       sex :
     //      23 :    shadow :
-    const uint32_t   bodyKey = (to_u32(0) << 23) + (to_u32(gender()) << 22) + ((to_u32(nGfxDressID & 0X01FFFF)) << 5) + frame;
-    const uint32_t shadowKey = (to_u32(1) << 23) + (to_u32(gender()) << 22) + ((to_u32(nGfxDressID & 0X01FFFF)) << 5) + frame;
+    const uint32_t   bodyKey = (to_u32(0) << 23) + (to_u32(gender()) << 22) + ((to_u32(nGfxDressID.value() & 0X01FFFF)) << 5) + frame;
+    const uint32_t shadowKey = (to_u32(1) << 23) + (to_u32(gender()) << 22) + ((to_u32(nGfxDressID.value() & 0X01FFFF)) << 5) + frame;
 
     const auto [  bodyFrame,   bodyDX,   bodyDY] = g_heroDB->Retrieve(bodyKey);
     const auto [shadowFrame, shadowDX, shadowDY] = g_heroDB->Retrieve(shadowKey);
@@ -119,7 +119,7 @@ void Hero::drawFrame(int viewX, int viewY, int, int frame, bool)
 
     if(true
             && getWLItem(WLG_WEAPON)
-            && WeaponOrder(m_currMotion->type, m_currMotion->direction, frame) == 1){
+            && weaponOrder(m_currMotion->type, m_currMotion->direction, frame).value_or(-1) == 1){
         fnDrawWeapon(false);
     }
 
@@ -140,16 +140,16 @@ void Hero::drawFrame(int viewX, int viewY, int, int frame, bool)
 
     g_sdlDevice->drawTexture(bodyFrame, startX + bodyDX, startY + bodyDY);
     if(getWLItem(WLG_HELMET)){
-        if(const auto nHelmetGfxID = gfxHelmetID(DBCOM_ITEMRECORD(getWLItem(WLG_HELMET).itemID).shape, nMotion, nDirection); nHelmetGfxID >= 0){
-            const uint32_t nHelmetKey = (to_u32(gender()) << 22) + ((to_u32(nHelmetGfxID & 0X01FFFF)) << 5) + frame;
+        if(const auto nHelmetGfxID = gfxHelmetID(DBCOM_ITEMRECORD(getWLItem(WLG_HELMET).itemID).shape, nMotion, nDirection); nHelmetGfxID.has_value()){
+            const uint32_t nHelmetKey = (to_u32(gender()) << 22) + ((to_u32(nHelmetGfxID.value() & 0X01FFFF)) << 5) + frame;
             if(auto [texPtr, dx, dy] = g_helmetDB->Retrieve(nHelmetKey); texPtr){
                 g_sdlDevice->drawTexture(texPtr, startX + dx, startY + dy);
             }
         }
     }
     else{
-        if(const auto nHairGfxID = GfxHairID(m_sdWLDesp.hair, nMotion, nDirection); nHairGfxID >= 0){
-            const uint32_t nHairKey = (to_u32(gender()) << 22) + ((to_u32(nHairGfxID & 0X01FFFF)) << 5) + frame;
+        if(const auto nHairGfxID = gfxHairID(m_sdWLDesp.hair, nMotion, nDirection); nHairGfxID.has_value()){
+            const uint32_t nHairKey = (to_u32(gender()) << 22) + ((to_u32(nHairGfxID.value() & 0X01FFFF)) << 5) + frame;
             if(auto [texPtr, dx, dy] = g_hairDB->Retrieve(nHairKey); texPtr){
                 SDLDeviceHelper::EnableTextureModColor enableColor(texPtr, m_sdWLDesp.hairColor);
                 g_sdlDevice->drawTexture(texPtr, startX + dx, startY + dy);
@@ -159,7 +159,7 @@ void Hero::drawFrame(int viewX, int viewY, int, int frame, bool)
 
     if(true
             && getWLItem(WLG_WEAPON)
-            && WeaponOrder(m_currMotion->type, m_currMotion->direction, frame) == 0){
+            && weaponOrder(m_currMotion->type, m_currMotion->direction, frame).value_or(-1) == 0){
         fnDrawWeapon(false);
     }
 
@@ -934,7 +934,7 @@ bool Hero::moving()
         || m_currMotion->type == MOTION_ONHORSEWALK;
 }
 
-int Hero::WeaponOrder(int nMotion, int nDirection, int nFrame)
+std::optional<int> Hero::weaponOrder(int nMotion, int nDirection, int nFrame)
 {
     // for player there are 33 motions, each motion has 8 directions
     // and each directions has 10 frames at most:
@@ -947,16 +947,15 @@ int Hero::WeaponOrder(int nMotion, int nDirection, int nFrame)
     // and this table use gfx index rather than motion index
     // I need to convert nMotion -> nGfxMotionID before get the table item
 
-    constexpr static int s_WeaponOrder[2640]
+    constexpr static int s_weaponOrder[2640]
     {
         #include "weaponorder.inc"
     };
 
-    const auto nGfxMotionID = gfxMotionID(nMotion);
-    if(nGfxMotionID < 0){
-        return -1;
+    if(const auto nGfxMotionID = gfxMotionID(nMotion); nGfxMotionID.has_value()){
+        return s_weaponOrder[nGfxMotionID.value() * 80 + (nDirection - DIR_BEGIN) * 10 + nFrame];
     }
-    return s_WeaponOrder[nGfxMotionID * 80 + (nDirection - DIR_BEGIN) * 10 + nFrame];
+    return {};
 }
 
 std::unique_ptr<MotionNode> Hero::makeWalkMotion(int nX0, int nY0, int nX1, int nY1, int nSpeed) const
@@ -1018,60 +1017,56 @@ std::unique_ptr<MotionNode> Hero::makeWalkMotion(int nX0, int nY0, int nX1, int 
     return {};
 }
 
-int Hero::GfxWeaponID(int nWeapon, int nMotion, int nDirection) const
+std::optional<uint32_t> Hero::gfxWeaponID(int nWeapon, int nMotion, int nDirection) const
 {
-    static_assert(sizeof(int) > 2, "GfxWeaponID() overflows because of sizeof(int) too small");
     if(true
             && (nWeapon    >= WEAPON_BEGIN && nWeapon    < WEAPON_END)
             && (nMotion    >= MOTION_BEGIN && nMotion    < MOTION_END)
-            && (nDirection >= DIR_BEGIN    && nDirection < DIR_END   )){
-        if(const auto nGfxMotionID = gfxMotionID(nMotion); nGfxMotionID >= 0){
-            return ((nWeapon - WEAPON_BEGIN) << 9) + (nGfxMotionID << 3) + (nDirection - DIR_BEGIN);
+            && (nDirection >=    DIR_BEGIN && nDirection <    DIR_END)){
+        if(const auto nGfxMotionID = gfxMotionID(nMotion); nGfxMotionID.has_value()){
+            return ((nWeapon - WEAPON_BEGIN) << 9) + (nGfxMotionID.value() << 3) + (nDirection - DIR_BEGIN);
         }
     }
-    return -1;
+    return {};
 }
 
-int Hero::GfxHairID(int nHair, int nMotion, int nDirection) const
+std::optional<uint32_t> Hero::gfxHairID(int nHair, int nMotion, int nDirection) const
 {
-    static_assert(sizeof(int) > 2, "GfxHairID() overflows because of sizeof(int) too small");
     if(true
-            && (nHair      >= HAIR_BEGIN   && nHair      < HAIR_END  )
+            && (nHair      >=   HAIR_BEGIN && nHair      <   HAIR_END)
             && (nMotion    >= MOTION_BEGIN && nMotion    < MOTION_END)
-            && (nDirection >= DIR_BEGIN    && nDirection < DIR_END   )){
-        if(const auto nGfxMotionID = gfxMotionID(nMotion); nGfxMotionID >= 0){
-            return ((nHair - HAIR_BEGIN /* hair gfx id start from 0 */) << 9) + (nGfxMotionID << 3) + (nDirection - DIR_BEGIN);
+            && (nDirection >=    DIR_BEGIN && nDirection <    DIR_END)){
+        if(const auto nGfxMotionID = gfxMotionID(nMotion); nGfxMotionID.has_value()){
+            return ((nHair - HAIR_BEGIN /* hair gfx id start from 0 */) << 9) + (nGfxMotionID.value() << 3) + (nDirection - DIR_BEGIN);
         }
     }
-    return -1;
+    return {};
 }
 
-int Hero::GfxDressID(int nDress, int nMotion, int nDirection) const
+std::optional<uint32_t> Hero::gfxDressID(int nDress, int nMotion, int nDirection) const
 {
-    static_assert(sizeof(int) > 2, "GfxDressID() overflows because of sizeof(int) too small");
     if(true
-            && (nDress     >= DRESS_NONE   && nDress     < DRESS_END )  // support DRESS_NONE as naked
+            && (nDress     >=   DRESS_NONE && nDress     <  DRESS_END)  // support DRESS_NONE as naked
             && (nMotion    >= MOTION_BEGIN && nMotion    < MOTION_END)
-            && (nDirection >= DIR_BEGIN    && nDirection < DIR_END   )){
-        if(const auto nGfxMotionID = gfxMotionID(nMotion); nGfxMotionID >= 0){
-            return ((nDress - DRESS_NONE) << 9) + (nGfxMotionID << 3) + (nDirection - DIR_BEGIN);
+            && (nDirection >=    DIR_BEGIN    && nDirection < DIR_END)){
+        if(const auto nGfxMotionID = gfxMotionID(nMotion); nGfxMotionID.has_value()){
+            return ((nDress - DRESS_NONE) << 9) + (nGfxMotionID.value() << 3) + (nDirection - DIR_BEGIN);
         }
     }
-    return -1;
+    return {};
 }
 
-int Hero::gfxHelmetID(int nHelmet, int nMotion, int nDirection) const
+std::optional<uint32_t> Hero::gfxHelmetID(int nHelmet, int nMotion, int nDirection) const
 {
-    static_assert(sizeof(int) > 2, "gfxHelmetID() overflows because of sizeof(int) too small");
     if(true
             && (nHelmet    >= HELMET_BEGIN && nHelmet    < HELMET_END)
             && (nMotion    >= MOTION_BEGIN && nMotion    < MOTION_END)
-            && (nDirection >= DIR_BEGIN    && nDirection < DIR_END   )){
-        if(const auto nGfxMotionID = gfxMotionID(nMotion); nGfxMotionID >= 0){
-            return ((nHelmet - HELMET_BEGIN) << 9) + (nGfxMotionID << 3) + (nDirection - DIR_BEGIN);
+            && (nDirection >=    DIR_BEGIN && nDirection <    DIR_END)){
+        if(const auto nGfxMotionID = gfxMotionID(nMotion); nGfxMotionID.has_value()){
+            return ((nHelmet - HELMET_BEGIN) << 9) + (nGfxMotionID.value() << 3) + (nDirection - DIR_BEGIN);
         }
     }
-    return -1;
+    return {};
 }
 
 int Hero::currStep() const
@@ -1116,12 +1111,12 @@ ClientCreature::TargetBox Hero::getTargetBox() const
     const auto nMotion    = currMotion()->type;
     const auto nDirection = currMotion()->direction;
 
-    const auto texBaseID = GfxDressID(nDress, nMotion, nDirection);
-    if(texBaseID < 0){
+    const auto texBaseID = gfxDressID(nDress, nMotion, nDirection);
+    if(!texBaseID.has_value()){
         return {};
     }
 
-    const uint32_t texID = ((to_u32(nGender ? 1 : 0)) << 22) + ((to_u32(texBaseID & 0X01FFFF)) << 5) + currMotion()->frame;
+    const uint32_t texID = ((to_u32(nGender ? 1 : 0)) << 22) + ((to_u32(texBaseID.value() & 0X01FFFF)) << 5) + currMotion()->frame;
 
     int dx = 0;
     int dy = 0;

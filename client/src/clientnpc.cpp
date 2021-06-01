@@ -93,33 +93,15 @@ FrameSeq ClientNPC::motionFrameSeq(int motion, int direction) const
     }
 }
 
-int32_t ClientNPC::gfxShadowID(int32_t gfxId) const
-{
-    if(gfxId < 0){
-        return -1;
-    }
-
-    constexpr int32_t shadowBit = (int32_t)(1) << 23;
-    if(gfxId & shadowBit){
-        throw fflerror("gfxID shadow bit mask is set");
-    }
-    return gfxId | shadowBit;
-}
-
 void ClientNPC::drawFrame(int viewX, int viewY, int focusMask, int frame, bool)
 {
     const auto bodyKey = gfxID();
-    if(bodyKey < 0){
+    if(!bodyKey.has_value()){
         return;
     }
 
-    const auto shadowKey = gfxShadowID(bodyKey);
-    if(shadowKey < 0){
-        return;
-    }
-
-    const auto [  bodyFrame,   bodyDX,   bodyDY] = g_standNPCDB->Retrieve(  bodyKey + frame);
-    const auto [shadowFrame, shadowDX, shadowDY] = g_standNPCDB->Retrieve(shadowKey + frame);
+    const auto [  bodyFrame,   bodyDX,   bodyDY] = g_standNPCDB->Retrieve((bodyKey.value()                    ) + frame);
+    const auto [shadowFrame, shadowDX, shadowDY] = g_standNPCDB->Retrieve((bodyKey.value() | (to_u32(1) << 23)) + frame);
 
     if(bodyFrame){
         SDL_SetTextureAlphaMod(bodyFrame, 255);
@@ -179,7 +161,7 @@ void ClientNPC::drawFrame(int viewX, int viewY, int focusMask, int frame, bool)
     }
 }
 
-int32_t ClientNPC::gfxID() const
+std::optional<uint32_t> ClientNPC::gfxID() const
 {
     // stand npc graphics retrieving key structure
     //
@@ -198,9 +180,9 @@ int32_t ClientNPC::gfxID() const
     // check mir2x/tools/npcwil2png/src/main.cpp
 
     if(motionFrameCount(m_currMotion->type, m_currMotion->direction) <= 0){
-        return -1;
+        return {};
     }
-    return ((int32_t)(lookID()) << 12) | ((int32_t)(m_currMotion->type & 0X0F) << 8) | ((int32_t)(m_currMotion->direction) << 5);
+    return (to_u32(lookID()) << 12) | (to_u32(m_currMotion->type & 0X0F) << 8) | (to_u32(m_currMotion->direction) << 5);
 }
 
 bool ClientNPC::parseAction(const ActionNode &action)
@@ -282,21 +264,16 @@ bool ClientNPC::motionValid(const std::unique_ptr<MotionNode> &motionPtr) const
     return motionPtr.get() != nullptr;
 }
 
-int ClientNPC::gfxMotionID(int) const
-{
-    return -1;
-}
-
 ClientCreature::TargetBox ClientNPC::getTargetBox() const
 {
     const auto texBaseID = gfxID();
-    if(texBaseID < 0){
+    if(!texBaseID.has_value()){
         return {};
     }
 
     int dx = 0;
     int dy = 0;
-    auto bodyFrameTexPtr = g_standNPCDB->Retrieve(texBaseID + m_currMotion->frame, &dx, &dy);
+    auto bodyFrameTexPtr = g_standNPCDB->Retrieve(texBaseID.value() + m_currMotion->frame, &dx, &dy);
 
     if(!bodyFrameTexPtr){
         return {};

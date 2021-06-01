@@ -108,7 +108,7 @@ class ClientTaoDog: public ClientMonster
         bool finalStandMode() const;
 
     protected:
-        int gfxID(int motion, int direction) const
+        std::optional<uint32_t> gfxID(int motion, int direction) const override
         {
             if(m_standMode){
                 if(motion == MOTION_MON_SPECIAL){

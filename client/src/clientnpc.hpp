@@ -18,6 +18,7 @@
 
 #pragma once
 #include <cstdint>
+#include "totype.hpp"
 #include "processrun.hpp"
 #include "actionnode.hpp"
 #include "clientcreature.hpp"
@@ -34,7 +35,7 @@ class ClientNPC: public ClientCreature
         }
 
     protected:
-        int32_t gfxID() const;
+        std::optional<uint32_t> gfxID() const;
 
     public:
         void drawFrame(int, int, int, int, bool) override;
@@ -42,21 +43,20 @@ class ClientNPC: public ClientCreature
     public:
         FrameSeq motionFrameSeq(int, int) const override;
 
-    private:
-        int32_t gfxShadowID(int32_t) const;
-
     public:
         std::tuple<int, int> location() const override
         {
             return {m_currMotion->endX, m_currMotion->endY};
         }
 
+    public:
         bool parseAction(const ActionNode &) override;
-        bool update(double) override;
-        bool motionValid(const std::unique_ptr<MotionNode> &) const override;
 
     public:
-        int gfxMotionID(int) const override;
+        bool update(double) override;
+
+    public:
+        bool motionValid(const std::unique_ptr<MotionNode> &) const override;
 
     public:
         bool deadFadeOut() override

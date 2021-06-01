@@ -70,16 +70,7 @@ class ClientMonster: public CreatureMovable
         bool motionValid(const std::unique_ptr<MotionNode> &) const override;
 
     protected:
-        int gfxMotionID(int motion) const override
-        {
-            if((motion >= MOTION_MON_BEGIN) && (motion < MOTION_MON_END)){
-                return (motion - MOTION_MON_BEGIN);
-            }
-            return -1;
-        }
-
-    protected:
-        virtual int gfxID(int, int) const;
+        virtual std::optional<uint32_t> gfxID(int, int) const;
 
     public:
         FrameSeq motionFrameSeq(int, int) const override;
