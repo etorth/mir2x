@@ -135,9 +135,9 @@ enum HelmetIDType: int
 
 enum DressIDType : int
 {
-    DRESS_NONE  = 0,
-    DRESS_BEGIN = 1,
-    DRESS_END   = 256,
+    DRESS_NONE  = -1,
+    DRESS_BEGIN =  0,   // zero uses naked gfx
+    DRESS_END   =  256,
 };
 
 enum HairIDType: int

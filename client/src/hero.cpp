@@ -89,11 +89,15 @@ void Hero::drawFrame(int viewX, int viewY, int, int frame, bool)
 
     fnDrawWeapon(true);
 
-    const auto nDress     = DBCOM_ITEMRECORD(getWLItem(WLG_DRESS).itemID).shape;
-    const auto nMotion    = m_currMotion->type;
-    const auto nDirection = m_currMotion->direction;
+    const auto dressGfxIndex = [this]() -> int
+    {
+        if(const auto &dressItem = getWLItem(WLG_DRESS)){
+            return DBCOM_ITEMRECORD(dressItem.itemID).shape;
+        }
+        return DRESS_BEGIN; // naked
+    }();
 
-    const auto nGfxDressID = gfxDressID(nDress, nMotion, nDirection);
+    const auto nGfxDressID = gfxDressID(dressGfxIndex, m_currMotion->type, m_currMotion->direction);
     if(!nGfxDressID.has_value()){
         m_currMotion->print();
         return;
@@ -140,7 +144,7 @@ void Hero::drawFrame(int viewX, int viewY, int, int frame, bool)
 
     g_sdlDevice->drawTexture(bodyFrame, startX + bodyDX, startY + bodyDY);
     if(getWLItem(WLG_HELMET)){
-        if(const auto nHelmetGfxID = gfxHelmetID(DBCOM_ITEMRECORD(getWLItem(WLG_HELMET).itemID).shape, nMotion, nDirection); nHelmetGfxID.has_value()){
+        if(const auto nHelmetGfxID = gfxHelmetID(DBCOM_ITEMRECORD(getWLItem(WLG_HELMET).itemID).shape, m_currMotion->type, m_currMotion->direction); nHelmetGfxID.has_value()){
             const uint32_t nHelmetKey = (to_u32(gender()) << 22) + ((to_u32(nHelmetGfxID.value() & 0X01FFFF)) << 5) + frame;
             if(auto [texPtr, dx, dy] = g_helmetDB->Retrieve(nHelmetKey); texPtr){
                 g_sdlDevice->drawTexture(texPtr, startX + dx, startY + dy);
@@ -148,7 +152,7 @@ void Hero::drawFrame(int viewX, int viewY, int, int frame, bool)
         }
     }
     else{
-        if(const auto nHairGfxID = gfxHairID(m_sdWLDesp.hair, nMotion, nDirection); nHairGfxID.has_value()){
+        if(const auto nHairGfxID = gfxHairID(m_sdWLDesp.hair, m_currMotion->type, m_currMotion->direction); nHairGfxID.has_value()){
             const uint32_t nHairKey = (to_u32(gender()) << 22) + ((to_u32(nHairGfxID.value() & 0X01FFFF)) << 5) + frame;
             if(auto [texPtr, dx, dy] = g_hairDB->Retrieve(nHairKey); texPtr){
                 SDLDeviceHelper::EnableTextureModColor enableColor(texPtr, m_sdWLDesp.hairColor);
@@ -1046,11 +1050,11 @@ std::optional<uint32_t> Hero::gfxHairID(int nHair, int nMotion, int nDirection) 
 std::optional<uint32_t> Hero::gfxDressID(int nDress, int nMotion, int nDirection) const
 {
     if(true
-            && (nDress     >=   DRESS_NONE && nDress     <  DRESS_END)  // support DRESS_NONE as naked
+            && (nDress     >=  DRESS_BEGIN && nDress     <  DRESS_END)  // DRESS_BEGIN is naked
             && (nMotion    >= MOTION_BEGIN && nMotion    < MOTION_END)
-            && (nDirection >=    DIR_BEGIN    && nDirection < DIR_END)){
+            && (nDirection >=    DIR_BEGIN && nDirection <    DIR_END)){
         if(const auto nGfxMotionID = gfxMotionID(nMotion); nGfxMotionID.has_value()){
-            return ((nDress - DRESS_NONE) << 9) + (nGfxMotionID.value() << 3) + (nDirection - DIR_BEGIN);
+            return ((nDress - DRESS_BEGIN) << 9) + (nGfxMotionID.value() << 3) + (nDirection - DIR_BEGIN);
         }
     }
     return {};
