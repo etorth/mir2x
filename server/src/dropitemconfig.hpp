@@ -17,38 +17,17 @@
  */
 
 #pragma once
+#include <map>
+#include <vector>
+#include <cstdint>
+#include "serdesmsg.hpp"
+
 struct DropItemConfig
 {
-    const char8_t *monsterName;     // convert to id internally, monster name who drops this item
-    const char8_t *itemName;        // convert to id internally, item name to drop
-
-    int group;                      // can only drop at most one item in the group, zero means no group
-    int probRecip;                  // 1 / p, zero means disable this entry
-
-    int repeat;                     // try Repeat times for current item record, zero means disable this entry
-    int value;                      // how many items to drop, gold means value, zero means disable this entry
-
-    DropItemConfig(
-            const char8_t *argMonsterName,
-            const char8_t *argItemName,
-
-            int argGroup,
-            int argProbRecip,
-
-            int argRepeat,
-            int argValue)
-        : monsterName(argMonsterName)
-        , itemName(argItemName)
-        , group(argGroup)
-        , probRecip(argProbRecip)
-        , repeat(argRepeat)
-        , value(argValue)
-    {}
-
-    void print() const;
-
-    // check if current entry is valid
-    // 1. check member variables
-    // 2. check if the provided names are legal and practical
-    operator bool() const;
+    uint32_t itemID = 0;
+    int probRecip   = 0;
+    int count       = 0;
 };
+
+std::vector<SDItem> getMonsterDropItemList(uint32_t);
+const std::map<int, std::vector<DropItemConfig>> &getMonsterDropItemConfigList(uint32_t);

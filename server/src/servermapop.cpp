@@ -756,65 +756,31 @@ void ServerMap::on_AM_QUERYCOCOUNT(const ActorMsgPack &rstMPK)
 
 void ServerMap::on_AM_DROPITEM(const ActorMsgPack &mpk)
 {
-    const auto sdDI = mpk.deserialize<SDDropItem>();
+    auto sdDI = mpk.deserialize<SDDropItem>();
     fflassert(sdDI.item);
     fflassert(groundValid(sdDI.x, sdDI.y));
 
-    const auto holdInOne = [&sdDI]() -> bool
-    {
-        if(sdDI.item.isGold()){
-            return true;
-        }
+    int bestX = -1;
+    int bestY = -1;
+    int checkGridCount = 0;
+    int minGridItemCount = SYS_MAXDROPITEM + 1;
 
-        if(sdDI.item.count == 1){
-            return true;
-        }
-
-        if(DBCOM_ITEMRECORD(sdDI.item.itemID).packable()){
-            return true;
-        }
-
-        return false;
-    }();
-
-    const int loopCount = holdInOne ? 1 : sdDI.item.count;
-    for(int i = 0; i < loopCount; ++i){
-        // we check SYS_MAXDROPITEMGRID grids to find a best place to hold current item
-        // ``best" means there are not too many drop item already
-        int checkGridCount = 0;
-
-        int bestX = -1;
-        int bestY = -1;
-        int minCount = SYS_MAXDROPITEM + 1;
-
-        RotateCoord rc(sdDI.x, sdDI.y, 0, 0, W(), H());
-        do{
-            if(groundValid(rc.X(), rc.Y())){
-                if(const auto currCount = to_d(getGridItemIDList(rc.X(), rc.Y()).size()); currCount < minCount){
-                    bestX = rc.X();
-                    bestY = rc.Y();
-                    minCount = currCount;
-                    if(minCount == 0){
-                        break;
-                    }
+    RotateCoord rc(sdDI.x, sdDI.y, 0, 0, W(), H());
+    do{
+        if(groundValid(rc.X(), rc.Y())){
+            if(const auto currCount = to_d(getGridItemList(rc.X(), rc.Y()).size()); currCount < minGridItemCount){
+                bestX = rc.X();
+                bestY = rc.Y();
+                minGridItemCount = currCount;
+                if(minGridItemCount == 0){
+                    break;
                 }
             }
-        }while(rc.forward() && (checkGridCount++ <= SYS_MAXDROPITEMGRID));
-
-        if(groundValid(bestX, bestY)){
-            if(holdInOne){
-                addGridItem(sdDI.item, bestX, bestY);
-            }
-            else{
-                addGridItemID(sdDI.item.itemID, bestX, bestY);
-            }
         }
-        else{
+    }while(rc.forward() && (checkGridCount++ <= SYS_MAXDROPITEMGRID));
 
-            // we scanned the square but find we can't find a valid place
-            // abort since following check would also fail
-            return;
-        }
+    if(groundValid(bestX, bestY)){
+        addGridItem(std::move(sdDI.item), bestX, bestY);
     }
 }
 

@@ -19,12 +19,12 @@
 // always use 金币（小）to represent gold
 // code will figure out 小中大 based on SDItem::count
 
-// +-MonsterName--------+-ItemName-----------+-Group-------+-ProbRecip--------+-Repeat-----------+-Value--------+
+// +-monsterName--------+-itemName-----------+-group-------+-probRecip--------+-repeat-----------+-count--------+
 {  u8"鹿"               , u8"金币（小）"     , 0           , 1                , 1                , 100          },
 {  u8"鹿"               , u8"金币（小）"     , 0           , 1                , 1                , 100          },
 {  u8"鹿"               , u8"金币（小）"     , 0           , 1                , 1                , 100          },
 
-// +-MonsterName--------+-ItemName-----------+-Group-------+-ProbRecip--------+-Repeat-----------+-Value--------+
+// +-monsterName--------+-itemName-----------+-group-------+-probRecip--------+-repeat-----------+-count--------+
 {  u8"沙漠石人"         , u8"金币（小）"     , 0           , 10               , 5                , 500          },
 {  u8"沙漠石人"         , u8"布衣（男）"     , 0           , 10               , 5                , 1            },
 {  u8"沙漠石人"         , u8"布衣（女）"     , 0           , 10               , 5                , 1            },

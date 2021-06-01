@@ -21,15 +21,14 @@
 #include "player.hpp"
 #include "uidf.hpp"
 #include "strf.hpp"
+#include "mathf.hpp"
 #include "pathf.hpp"
-#include "dbconst.hpp"
 #include "dbcomid.hpp"
 #include "monster.hpp"
 #include "fflerror.hpp"
 #include "condcheck.hpp"
 #include "netdriver.hpp"
 #include "actorpod.hpp"
-#include "mathf.hpp"
 #include "actormsg.hpp"
 #include "sysconst.hpp"
 #include "friendtype.hpp"
@@ -38,6 +37,7 @@
 #include "dbcomrecord.hpp"
 #include "actormsgpack.hpp"
 #include "protocoldef.hpp"
+#include "dropitemconfig.hpp"
 #include "serverargparser.hpp"
 
 extern MonoServer *g_monoServer;
@@ -847,8 +847,15 @@ bool Monster::goDie()
     }
     m_dead.set(true);
 
-    randomDrop();
     dispatchOffenderExp();
+    for(auto &item: getMonsterDropItemList(monsterID())){
+        m_actorPod->forward(m_map->UID(), {AM_DROPITEM, cerealf::serialize(SDDropItem
+        {
+            .x = X(),
+            .y = Y(),
+            .item = std::move(item),
+        })});
+    }
 
     // dispatch die acton without auto-fade-out
     // server send the fade-out request in goGhost()
@@ -1164,32 +1171,6 @@ bool Monster::MoveOneStepDStar(int, int, std::function<void()>, std::function<vo
 int Monster::FindPathMethod()
 {
     return FPMETHOD_COMBINE;
-}
-
-void Monster::randomDrop()
-{
-    for(auto &rstGroupRecord: DB_MONSTERDROPITEM(monsterID())){
-        for(auto &rstItemRecord: rstGroupRecord.second){
-            if(std::rand() % rstItemRecord.ProbRecip == 0){
-                m_actorPod->forward(m_map->UID(), {AM_DROPITEM, cerealf::serialize(SDDropItem
-                {
-                    .x = X(),
-                    .y = Y(),
-
-                    .item
-                    {
-                        .itemID = rstItemRecord.ID,
-                        .seqID  = 1,
-                        .count  = to_uz(rstItemRecord.Value),
-                    },
-                })});
-
-                if(rstGroupRecord.first != 0){
-                    break;
-                }
-            }
-        }
-    }
 }
 
 void Monster::RecursiveCheckInViewTarget(size_t nIndex, std::function<void(uint64_t)> fnTarget)

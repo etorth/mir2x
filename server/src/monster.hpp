@@ -175,9 +175,6 @@ class Monster: public CharObject
         int FindPathMethod();
 
     protected:
-        void randomDrop();
-
-    protected:
         void QueryFriendType(uint64_t, uint64_t, std::function<void(int)>);
         void checkFriend(uint64_t, std::function<void(int)>) override;
 
