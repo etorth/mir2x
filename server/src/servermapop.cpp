@@ -23,6 +23,7 @@
 #include "mathf.hpp"
 #include "sysconst.hpp"
 #include "actorpod.hpp"
+#include "raiitimer.hpp"
 #include "servermap.hpp"
 #include "monoserver.hpp"
 #include "rotatecoord.hpp"
@@ -34,7 +35,7 @@ extern ServerArgParser *g_serverArgParser;
 
 void ServerMap::on_AM_METRONOME(const ActorMsgPack &)
 {
-    updateFireWall();
+    updateMapGrid();
     if(m_luaModulePtr && !g_serverArgParser->disableMapScript){
         m_luaModulePtr->resumeLoop();
     }
@@ -933,8 +934,8 @@ void ServerMap::on_AM_CASTFIREWALL(const ActorMsgPack &mpk)
             .minDC = amCFW.minDC,
             .maxDC = amCFW.maxDC,
 
-            .startTime      = g_monoServer->getCurrTick(),
-            .lastAttackTime = g_monoServer->getCurrTick(),
+            .startTime      = hres_tstamp().to_msec(),
+            .lastAttackTime = hres_tstamp().to_msec(),
 
             .duration = amCFW.duration,
             .dps      = amCFW.dps,

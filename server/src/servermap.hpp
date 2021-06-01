@@ -107,8 +107,8 @@ class ServerMap final: public ServerObject
             int minDC = 0;
             int maxDC = 0;
 
-            uint32_t startTime      = 0;
-            uint32_t lastAttackTime = 0;
+            uint64_t startTime      = 0;
+            uint64_t lastAttackTime = 0;
 
             int duration = 0;
             int dps      = 0;
@@ -326,7 +326,7 @@ class ServerMap final: public ServerObject
         int CheckPathGrid(int, int) const;
 
     private:
-        void updateFireWall();
+        void updateMapGrid();
 
     private:
         template<std::predicate<uint64_t> F> bool doUIDList(int x, int y, const F &func)

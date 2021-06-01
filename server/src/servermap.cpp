@@ -897,11 +897,11 @@ SDGroundFireWallList ServerMap::getGroundFireWallList(int x, int y, size_t r)
     {
         if(groundValid(x, y)){
             for(auto p = getGrid(x, y).fireWallList.begin(); p != getGrid(x, y).fireWallList.end();){
-                if(g_monoServer->getCurrTick() >= p->startTime + p->duration){
+                if(hres_tstamp().to_msec() >= p->startTime + p->duration){
                     p = getGrid(x, y).fireWallList.erase(p);
                 }
                 else{
-                    ++p;
+                    p++;
                 }
             }
 
@@ -1185,17 +1185,19 @@ int ServerMap::CheckPathGrid(int nX, int nY) const
     return PathFind::FREE;
 }
 
-void ServerMap::updateFireWall()
+void ServerMap::updateMapGrid()
 {
     for(int nX = 0; nX < W(); ++nX){
         for(int nY = 0; nY < H(); ++nY){
 
             bool hasDoneWallFire = false;
-            for(auto p = getGrid(nX, nY).fireWallList.begin(); p != getGrid(nX, nY).fireWallList.end();){
-                const auto currTime = g_monoServer->getCurrTick();
+            auto &gridFireWallList = getGrid(nX, nY).fireWallList;
+
+            for(auto p = gridFireWallList.begin(); p != gridFireWallList.end();){
+                const auto currTime = hres_tstamp().to_msec();
                 if(currTime >= p->startTime + p->duration){
-                    p = getGrid(nX, nY).fireWallList.erase(p);
                     hasDoneWallFire = true;
+                    p = gridFireWallList.erase(p);
                     continue;
                 }
 
@@ -1240,6 +1242,23 @@ void ServerMap::updateFireWall()
 
             if(hasDoneWallFire){
                 postGridFireWallList(nX, nY);
+            }
+
+            bool hasItemExpired = false;
+            auto &gridItemList = getGridItemList(nX, nY);
+
+            for(auto p = gridItemList.begin(); p != gridItemList.end();){
+                if(hres_tstamp().to_msec() >= p->dropTime + 120 * 1000){
+                    hasItemExpired = true;
+                    p = gridItemList.erase(p);
+                }
+                else{
+                    p++;
+                }
+            }
+
+            if(hasItemExpired){
+                postGridItemIDList(nX, nY);
             }
         }
     }
