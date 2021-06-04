@@ -146,12 +146,12 @@ bool MiniMapBoard::processEvent(const SDL_Event &event, bool valid)
 void MiniMapBoard::flipExtended()
 {
     m_extended = !m_extended;
-    setLoc();
+    setPLoc();
     m_buttonAlpha .setOff();
     m_buttonExtend.setOff();
 }
 
-void MiniMapBoard::setLoc()
+void MiniMapBoard::setPLoc()
 {
     const int size = getFrameSize();
     m_w = size;
@@ -269,5 +269,5 @@ SDL_Texture *MiniMapBoard::getMiniMapTexture() const
 void MiniMapBoard::flipMiniMapShow()
 {
     flipShow(this);
-    setLoc();
+    setPLoc();
 }

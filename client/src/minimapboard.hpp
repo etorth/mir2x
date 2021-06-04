@@ -44,7 +44,7 @@ class MiniMapBoard: public Widget
         bool processEvent(const SDL_Event &, bool) override;
 
     public:
-        void setLoc();
+        void setPLoc();
         void flipExtended();
         void flipMiniMapShow();
         SDL_Texture *getMiniMapTexture() const;

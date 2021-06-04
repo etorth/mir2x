@@ -61,4 +61,7 @@ class GUIManager: public WidgetGroup
 
     public:
         Widget *getWidget(const std::string &);
+
+    private:
+        void onWindowResize();
 };

@@ -132,12 +132,7 @@ bool GUIManager::processEvent(const SDL_Event &event, bool valid)
                 switch(event.window.event){
                     case SDL_WINDOWEVENT_SIZE_CHANGED:
                         {
-                            std::tie(m_w, m_h) = g_sdlDevice->getRendererSize();
-                            m_controlBoard.onWindowResize(w(), h());
-                            m_controlBoard.moveTo(0, h() - 133);
-                            if(m_miniMapBoard.getMiniMapTexture()){
-                                m_miniMapBoard.setLoc();
-                            }
+                            onWindowResize();
                             return true;
                         }
                     default:
@@ -201,4 +196,32 @@ Widget *GUIManager::getWidget(const std::string &widgetName)
     }
 
     return nullptr;
+}
+
+void GUIManager::onWindowResize()
+{
+    std::tie(m_w, m_h) = g_sdlDevice->getRendererSize();
+
+    m_controlBoard.onWindowResize(w(), h());
+    m_controlBoard.moveTo(0, h() - 133);
+
+    if(m_miniMapBoard.getMiniMapTexture()){
+        m_miniMapBoard.setPLoc();
+    }
+
+    const auto fnSetWidgetPLoc = [this](Widget *widgetPtr)
+    {
+        const auto moveDX = std::max<int>(widgetPtr->x() - (m_w - widgetPtr->w()), 0);
+        const auto moveDY = std::max<int>(widgetPtr->y() - (m_h - widgetPtr->h()), 0);
+
+        // move upper-left
+        //
+        widgetPtr->moveBy(-moveDX, -moveDY);
+    };
+
+    fnSetWidgetPLoc(&m_skillBoard);
+    fnSetWidgetPLoc(&m_inventoryBoard);
+    fnSetWidgetPLoc(&m_quickAccessBoard);
+    fnSetWidgetPLoc(&m_playerStateBoard);
+    fnSetWidgetPLoc(&m_inputStringBoard);
 }
