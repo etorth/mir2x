@@ -152,7 +152,7 @@ class emoticonDB: public innDB<uint32_t, emojiEntry>
                 entry.FrameH1    = (int)hexstr::to_hex<uint16_t, 2>(fileName + 20);
 
                 extern SDLDevice *g_sdlDevice;
-                entry.Texture = g_sdlDevice->CreateTexture(dataBuf.data(), dataBuf.size());
+                entry.Texture = g_sdlDevice->createTexture(dataBuf.data(), dataBuf.size());
             }
             return {entry, entry.Texture ? 1 : 0};
         }

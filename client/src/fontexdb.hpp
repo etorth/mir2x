@@ -225,7 +225,7 @@ class FontexDB: public innDB<uint64_t, FontexEntry>
             }
 
             extern SDLDevice *g_sdlDevice;
-            stEntry.Texture = g_sdlDevice->CreateTextureFromSurface(pSurface);
+            stEntry.Texture = g_sdlDevice->createTextureFromSurface(pSurface);
             SDL_FreeSurface(pSurface);
 
             return {stEntry, stEntry.Texture ? 1 : 0};

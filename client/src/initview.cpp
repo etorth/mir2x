@@ -85,10 +85,10 @@ InitView::InitView(uint8_t fontSize)
         #include "ivbutton.inc"
     };
 
-    g_sdlDevice->CreateInitViewWindow();
+    g_sdlDevice->createInitViewWindow();
 
-    m_boardTexture  = g_sdlDevice->CreateTexture( boardData.data(),  boardData.size());
-    m_buttonTexture = g_sdlDevice->CreateTexture(buttonData.data(), buttonData.size());
+    m_boardTexture  = g_sdlDevice->createTexture( boardData.data(),  boardData.size());
+    m_buttonTexture = g_sdlDevice->createTexture(buttonData.data(), buttonData.size());
 
     fflassert(m_boardTexture);
     fflassert(m_buttonTexture);
@@ -242,7 +242,7 @@ void InitView::draw()
 
         SDL_Texture *texPtr = nullptr;
         if(auto surfPtr = TTF_RenderUTF8_Blended(g_sdlDevice->defaultTTF(m_fontSize), log.c_str(), color)){
-            texPtr = g_sdlDevice->CreateTextureFromSurface(surfPtr);
+            texPtr = g_sdlDevice->createTextureFromSurface(surfPtr);
             SDL_FreeSurface(surfPtr);
         }
         return texPtr;

@@ -312,7 +312,7 @@ SDLDevice::~SDLDevice()
     SDL_Quit();
 }
 
-void SDLDevice::SetWindowIcon()
+void SDLDevice::setWindowIcon()
 {
     Uint16 pRawData[16 * 16]
     {
@@ -338,7 +338,7 @@ void SDLDevice::toggleWindowFullscreen()
     }
 }
 
-SDL_Texture *SDLDevice::CreateTexture(const uint8_t *pMem, size_t nSize)
+SDL_Texture *SDLDevice::createTexture(const uint8_t *pMem, size_t nSize)
 {
     // if it's changed
     // all the texture need to be re-load
@@ -451,7 +451,7 @@ TTF_Font *SDLDevice::createTTF(const uint8_t *pMem, size_t nSize, uint8_t nFontP
     return pstTTont;
 }
 
-void SDLDevice::CreateInitViewWindow()
+void SDLDevice::createInitViewWindow()
 {
     if(m_renderer){
         SDL_DestroyRenderer(m_renderer);
@@ -488,7 +488,7 @@ void SDLDevice::CreateInitViewWindow()
         throw fflerror("failed to create SDL renderer: %s", SDL_GetError());
     }
 
-    SetWindowIcon();
+    setWindowIcon();
 
     if(SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 255)){
         throw fflerror("set renderer draw color failed: %s", SDL_GetError());
@@ -499,7 +499,7 @@ void SDLDevice::CreateInitViewWindow()
     }
 }
 
-void SDLDevice::CreateMainWindow()
+void SDLDevice::createMainWindow()
 {
     // need to clean the window resource
     // and abort if window allocation failed
@@ -535,7 +535,7 @@ void SDLDevice::CreateMainWindow()
         throw fflerror("failed to create SDL renderer: %s", SDL_GetError());
     }
 
-    SetWindowIcon();
+    setWindowIcon();
 
     if(SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 0)){
         throw fflerror("set renderer draw color failed: %s", SDL_GetError());

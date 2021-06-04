@@ -53,7 +53,7 @@ Client::Client()
     , m_netPackTick(-1.00)
 {
     InitView(10);
-    g_sdlDevice->CreateMainWindow();
+    g_sdlDevice->createMainWindow();
 }
 
 Client::~Client()

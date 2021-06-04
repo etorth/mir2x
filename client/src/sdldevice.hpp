@@ -144,10 +144,10 @@ class SDLDevice final
        ~SDLDevice();
 
     public:
-       SDL_Texture *CreateTexture(const uint8_t *, size_t);
+       SDL_Texture *createTexture(const uint8_t *, size_t);
 
     public:
-       void SetWindowIcon();
+       void setWindowIcon();
        void toggleWindowFullscreen();
 
     public:
@@ -175,12 +175,12 @@ class SDLDevice final
            SDL_RenderPresent(m_renderer);
        }
 
-       void SetWindowTitle(const char *szUTF8Title)
+       void setWindowTitle(const char *szUTF8Title)
        {
            SDL_SetWindowTitle(m_window, (szUTF8Title) ? szUTF8Title : "");
        }
 
-       void SetGamma(double fGamma)
+       void setGamma(double fGamma)
        {
            Uint16 pRawRamp[256];
            SDL_CalculateGammaRamp((float)((std::min<double>)((std::max<double>)(fGamma, 0.0), 1.0)), pRawRamp);
@@ -189,7 +189,7 @@ class SDLDevice final
 
        void clearScreen()
        {
-           SetColor(0, 0, 0, 0);
+           setColor(0, 0, 0, 0);
            SDL_RenderClear(m_renderer);
        }
 
@@ -211,12 +211,12 @@ class SDLDevice final
            SDL_RenderDrawLine(m_renderer, x, y - to_d(r), x, y + to_d(r));
        }
 
-       void SetColor(uint8_t nR, uint8_t nG, uint8_t nB, uint8_t nA)
+       void setColor(uint8_t nR, uint8_t nG, uint8_t nB, uint8_t nA)
        {
            SDL_SetRenderDrawColor(m_renderer, nR, nG, nB, nA);
        }
 
-       void DrawPixel(int nX, int nY)
+       void drawPixel(int nX, int nY)
        {
            SDL_RenderDrawPoint(m_renderer, nX, nY);
        }
@@ -240,7 +240,7 @@ class SDLDevice final
        }
 
     public:
-       SDL_Texture *CreateTextureFromSurface(SDL_Surface * pSurface)
+       SDL_Texture *createTextureFromSurface(SDL_Surface * pSurface)
        {
            return pSurface ? SDL_CreateTextureFromSurface(m_renderer, pSurface) : nullptr;
        }
@@ -289,8 +289,8 @@ class SDLDevice final
        TTF_Font *createTTF(const uint8_t *, size_t, uint8_t);
 
     public:
-       void CreateMainWindow();
-       void CreateInitViewWindow();
+       void createMainWindow();
+       void createInitViewWindow();
 
     public:
        SDL_Texture *createTexture(const uint32_t *, int, int);
