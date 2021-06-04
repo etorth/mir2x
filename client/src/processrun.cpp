@@ -568,27 +568,25 @@ void ProcessRun::processEvent(const SDL_Event &event)
                                 m_focusUIDTable[FOCUS_FOLLOW] = nUID;
                             }
 
-                            else{
-                                const auto [nX, nY] = fromPLoc2Grid(event.button.x, event.button.y);
-                                if(mathf::LDistance2(getMyHero()->currMotion()->endX, getMyHero()->currMotion()->endY, nX, nY)){
+                            else if(mathf::LDistance2(getMyHero()->currMotion()->endX, getMyHero()->currMotion()->endY, mouseGridX, mouseGridY)){
+                                // we get a valid dst to go
+                                // provide myHero with new move action command
 
-                                    // we get a valid dst to go
-                                    // provide myHero with new move action command
+                                // when post move action don't use X() and Y()
+                                // since if clicks during hero moving then X() may not equal to EndX
 
-                                    // when post move action don't use X() and Y()
-                                    // since if clicks during hero moving then X() may not equal to EndX
-
-                                    const auto [actPLocX, actPLocY] = getMyHero()->emplaceActionPLoc();
-                                    getMyHero()->emplaceAction(ActionMove
-                                    {
-                                        .speed = SYS_DEFSPEED,
-                                        .x = actPLocX,
-                                        .y = actPLocY,
-                                        .aimX = nX,
-                                        .aimY = nY,
-                                        .onHorse = getMyHero()->onHorse(),
-                                    });
-                                }
+                                // TODO player can cheat here
+                                // when player frequently click SDL_BUTTON_RIGHT to emplace ActionMove, they can move quickly
+                                const auto [actPLocX, actPLocY] = getMyHero()->emplaceActionPLoc();
+                                getMyHero()->emplaceAction(ActionMove
+                                {
+                                    .speed = SYS_DEFSPEED,
+                                    .x = actPLocX,
+                                    .y = actPLocY,
+                                    .aimX = mouseGridX,
+                                    .aimY = mouseGridY,
+                                    .onHorse = getMyHero()->onHorse(),
+                                });
                             }
                             break;
                         }
