@@ -138,6 +138,11 @@ template<typename T> auto to_u8sv(const T &t)
     return std::u8string_view(to_u8cstr(t));
 }
 
+template<typename T> int to_boolbit(T t)
+{
+    return (bool)(t) ? 1 : 0;
+}
+
 inline bool to_bool(const char *s)
 {
     if(!s){
