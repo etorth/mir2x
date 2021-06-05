@@ -46,12 +46,13 @@ namespace cerealf
     template<typename T> std::string serialize(const T &t, int tryComp = -1)
     {
         std::ostringstream ss(std::ios::binary);
-        cereal::BinaryOutputArchive ar(ss);
+        {
+            cereal::BinaryOutputArchive ar(ss);
+            ar(t);
+        }
 
-        ar(t);
         std::string rawBuf = ss.str();
-
-        if((tryComp < 0 && rawBuf.size() < 16) || tryComp == 0){
+        if((tryComp < 0 && rawBuf.size() < 32) || tryComp == 0){
             rawBuf.push_back(CF_NONE);
             return rawBuf;
         }
@@ -86,10 +87,12 @@ namespace cerealf
             zcompf::zstdDecode(decompBuf, (const uint8_t *)(buf), size);
             return decompBuf;
         }(), std::ios::binary);
-        cereal::BinaryInputArchive ar(ss);
 
         T t;
-        ar(t);
+        {
+            cereal::BinaryInputArchive ar(ss);
+            ar(t);
+        }
         return t;
     }
 
@@ -113,10 +116,12 @@ namespace cerealf
             zcompf::zstdDecode(decompBuf, (const uint8_t *)(buf.data()), buf.size());
             return decompBuf;
         }(), std::ios::binary);
-        cereal::BinaryInputArchive ar(ss);
 
         T t;
-        ar(t);
+        {
+            cereal::BinaryInputArchive ar(ss);
+            ar(t);
+        }
         return t;
     }
 }
