@@ -767,10 +767,10 @@ void ServerMap::on_AM_DROPITEM(const ActorMsgPack &mpk)
 
     RotateCoord rc(sdDI.x, sdDI.y, 0, 0, W(), H());
     do{
-        if(groundValid(rc.X(), rc.Y())){
-            if(const auto currCount = to_d(getGridItemList(rc.X(), rc.Y()).size()); currCount < minGridItemCount){
-                bestX = rc.X();
-                bestY = rc.Y();
+        if(groundValid(rc.x(), rc.y())){
+            if(const auto currCount = to_d(getGridItemList(rc.x(), rc.y()).size()); currCount < minGridItemCount){
+                bestX = rc.x();
+                bestY = rc.y();
                 minGridItemCount = currCount;
                 if(minGridItemCount == 0){
                     break;

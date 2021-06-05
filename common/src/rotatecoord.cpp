@@ -18,30 +18,30 @@
 
 #include <algorithm>
 #include "mathf.hpp"
+#include "fflerror.hpp"
 #include "rotatecoord.hpp"
 
-RotateCoord::RotateCoord(int nCenterX, int nCenterY, int nStartX, int nStartY, int nW, int nH)
-    : m_centerX(nCenterX)
-    , m_centerY(nCenterY)
-    , m_startX(nStartX)
-    , m_startY(nStartY)
-    , m_stopX(nStartX + nW - 1)
-    , m_stopY(nStartY + nH - 1)
+RotateCoord::RotateCoord(int centerX, int centerY, int startX, int startY, int w, int h)
+    : m_centerX(centerX)
+    , m_centerY(centerY)
+    , m_startX(startX)
+    , m_startY(startY)
+    , m_stopX(startX + w - 1)
+    , m_stopY(startY + h - 1)
 {
-    if(nW <= 0 || nH <= 0){
-        throw fflerror("invalid argument: W = %d, H = %d", nW, nH);
-    }
+    fflassert(w > 0);
+    fflassert(h > 0);
 
     // simpler case
     // center point is inside the rectangle
 
-    if(mathf::pointInRectangle(m_centerX, m_centerY, m_startX, m_startY, nW, nH)){
+    if(mathf::pointInRectangle<int>(m_centerX, m_centerY, m_startX, m_startY, w, h)){
         m_distance  = 0;
         m_direction = DirType::DIR_0;
         m_currentX  = m_centerX;
         m_currentY  = m_centerY;
 
-        CheckOverlap();
+        checkOverlap();
         return;
     }
 
@@ -69,10 +69,10 @@ RotateCoord::RotateCoord(int nCenterX, int nCenterY, int nStartX, int nStartY, i
 
         m_distance  = m_startY - m_centerY;
         m_direction = DirType::DIR_0;
-        m_currentX  = (std::max<int>)(m_startX, m_centerX - m_distance);
+        m_currentX  = std::max<int>(m_startX, m_centerX - m_distance);
         m_currentY  = m_startY;
 
-        CheckOverlap();
+        checkOverlap();
         return;
     }
 
@@ -95,13 +95,14 @@ RotateCoord::RotateCoord(int nCenterX, int nCenterY, int nStartX, int nStartY, i
             // on it we can get one point as start point with direction as 0
             m_direction = DirType::DIR_0;
             m_currentY  = m_centerY + m_distance;
-        }else{
+        }
+        else{
             // set start point with direction = 3
             m_direction = DirType::DIR_3;
-            m_currentY  = (std::max<int>)(m_startY, m_centerY - m_distance);
+            m_currentY  = std::max<int>(m_startY, m_centerY - m_distance);
         }
 
-        CheckOverlap();
+        checkOverlap();
         return;
     }
 
@@ -114,10 +115,10 @@ RotateCoord::RotateCoord(int nCenterX, int nCenterY, int nStartX, int nStartY, i
 
         m_distance  = m_centerY - m_stopY;
         m_direction = DirType::DIR_2;
-        m_currentX  = (std::min<int>)(m_stopX, m_centerX + m_distance);
+        m_currentX  = std::min<int>(m_stopX, m_centerX + m_distance);
         m_currentY  = m_stopY;
 
-        CheckOverlap();
+        checkOverlap();
         return;
     }
 
@@ -131,18 +132,18 @@ RotateCoord::RotateCoord(int nCenterX, int nCenterY, int nStartX, int nStartY, i
         m_distance  = m_startX - m_centerX;
         m_direction = DirType::DIR_1;
         m_currentX  = m_startX;
-        m_currentY  = (std::min<int>)(m_stopY, m_centerY + m_distance);
+        m_currentY  = std::min<int>(m_stopY, m_centerY + m_distance);
 
-        CheckOverlap();
+        checkOverlap();
         return;
     }
 
     // report bug
     // there is case doesn't cover
-    throw fflerror("missed logic");
+    throw bad_reach();
 }
 
-void RotateCoord::CheckOverlap()
+void RotateCoord::checkOverlap()
 {
     m_overlap[0] = mathf::pointInSegment(m_centerY + m_distance, m_startY, m_stopY - m_startY + 1);
     m_overlap[1] = mathf::pointInSegment(m_centerX + m_distance, m_startX, m_stopX - m_startX + 1);
@@ -150,30 +151,41 @@ void RotateCoord::CheckOverlap()
     m_overlap[3] = mathf::pointInSegment(m_centerX - m_distance, m_startX, m_stopX - m_startX + 1);
 }
 
-bool RotateCoord::MoveToNextRound()
+bool RotateCoord::moveToNextRound()
 {
+    // distance has been updated, called as:
+    //
+    //      m_distance++;
+    //      checkOverlap();
+    //      return moveToNextRound();
+    //     
     // always pick the first valid position following current direction
+
     if(m_overlap[0]){
         m_direction = DirType::DIR_0;
-        m_currentX  = (std::max<int>)(m_startX, m_centerX - m_distance);
+        m_currentX  = std::max<int>(m_startX, m_centerX - m_distance);
         m_currentY  = m_centerY + m_distance;
         return true;
-    }else if(m_overlap[1]){
+    }
+    else if(m_overlap[1]){
         m_direction = DirType::DIR_1;
         m_currentX  = m_centerX + m_distance;
-        m_currentY  = (std::min<int>)(m_stopY, m_centerY + m_distance);
+        m_currentY  = std::min<int>(m_stopY, m_centerY + m_distance);
         return true;
-    }else if(m_overlap[2]){
+    }
+    else if(m_overlap[2]){
         m_direction = DirType::DIR_2;
-        m_currentX  = (std::min<int>)(m_stopX, m_centerX + m_distance);
+        m_currentX  = std::min<int>(m_stopX, m_centerX + m_distance);
         m_currentY  = m_centerY - m_distance;
         return true;
-    }else if(m_overlap[3]){
+    }
+    else if(m_overlap[3]){
         m_direction = DirType::DIR_3;
-		m_currentX  = m_centerX - m_distance;
-        m_currentY  = (std::max<int>)(m_startY, m_centerY - m_distance);
+        m_currentX  = m_centerX - m_distance;
+        m_currentY  = std::max<int>(m_startY, m_centerY - m_distance);
         return true;
-    }else{
+    }
+    else{
         return false;
     }
 }
@@ -183,17 +195,15 @@ bool RotateCoord::forward()
     // based on boundary but not current position
     // every time when we reach the boundary, check next boundary
 
-    if(m_distance < 0){
-        throw fflerror("invalid distance %d", m_distance);
-    }
+    fflassert(m_distance >= 0);
 
     // center point is inside the rectangle and we are immediately after calling ctor
     // this is the only case that current X and Y are the center point
 
     if(m_distance == 0){
         m_distance++;
-        CheckOverlap();
-        return MoveToNextRound();
+        checkOverlap();
+        return moveToNextRound();
     }
 
     // distance greater than zero
@@ -202,24 +212,26 @@ bool RotateCoord::forward()
     switch(m_direction){
         case DirType::DIR_0:
             {
-                if(m_currentX == (std::min<int>)(m_stopX, m_centerX + m_distance)){
+                if(m_currentX == std::min<int>(m_stopX, m_centerX + m_distance)){
                     if(m_overlap[1]){
 
                         // 0 and 1 are neighbor
                         // and (NewX, NewY) is the point of next edge direction 1
                         // so need to check if overlap at the endpoint of direction 0
 
-                        int nNewX = m_centerX + m_distance;
-                        int nNewY = (std::min<int>)(m_stopY, m_centerY + m_distance);
+                        const int newX = m_centerX + m_distance;
+                        /* */ int newY = std::min<int>(m_stopY, m_centerY + m_distance);
 
                         if(true
-                                && (nNewX == m_currentX)
-                                && (nNewY == m_currentY)){ nNewY--; }
+                                && (newX == m_currentX)
+                                && (newY == m_currentY)){
+                            newY--;
+                        }
 
-                        if(mathf::pointInRectangle(nNewX, nNewY, m_startX, m_startY, m_stopX - m_startX + 1, m_stopY - m_startY + 1)){
+                        if(mathf::pointInRectangle(newX, newY, m_startX, m_startY, m_stopX - m_startX + 1, m_stopY - m_startY + 1)){
                             m_direction = DirType::DIR_1;
-                            m_currentX  = nNewX;
-                            m_currentY  = nNewY;
+                            m_currentX  = newX;
+                            m_currentY  = newY;
                             return true;
                         }
                     }
@@ -229,7 +241,7 @@ bool RotateCoord::forward()
                         // because they are not neighbor nothing needs to be check
                         // just jump to the first valid point
 
-                        m_currentX  = (std::min<int>)(m_stopX, m_centerX + m_distance);
+                        m_currentX  = std::min<int>(m_stopX, m_centerX + m_distance);
                         m_currentY  = m_centerY - m_distance;
                         m_direction = DirType::DIR_2;
                         return true;
@@ -240,25 +252,26 @@ bool RotateCoord::forward()
                         // 0 and 3 are neighbors and if we need to jump to 3
                         // need to check whether it's overlapping with the start point of direction 0
 
-                        // (NewX, NewY) is starting point of direction 3
-                        int nNewX = m_centerX - m_distance;
-                        int nNewY = (std::max<int>)(m_startY, m_centerY - m_distance);
+                        // (newX, newY) is starting point of direction 3
+                        const int newX = m_centerX - m_distance;
+                        const int newY = std::max<int>(m_startY, m_centerY - m_distance);
 
-                        // (D0StartX, D0StartY) is the starting point of direction 0
+                        // (d0StartX, d0StartY) is the starting point of direction 0
                         // and we have traversed it
-                        int nD0StartX = (std::max<int>)(m_startX, m_centerX - m_distance);
-                        int nD0StartY = m_centerY + m_distance;
+                        const int d0StartX = std::max<int>(m_startX, m_centerX - m_distance);
+                        const int d0StartY = m_centerY + m_distance;
 
                         if(true
-                                && (nNewX == nD0StartX)
-                                && (nNewY == nD0StartY)){
+                                && (newX == d0StartX)
+                                && (newY == d0StartY)){
                             // ooops
                             // start point of direction 3 is the point we have tranversed
                             // do nothing here and wait to jump to next round
-                        }else{
+                        }
+                        else{
                             m_direction = DirType::DIR_3;
-                            m_currentX  = nNewX;
-                            m_currentY  = nNewY;
+                            m_currentX  = newX;
+                            m_currentY  = newY;
                             return true;
                         }
                     }
@@ -266,10 +279,11 @@ bool RotateCoord::forward()
                     // can't take direction 1, 2, 3
                     // means we have done for current round
                     m_distance++;
-                    CheckOverlap();
-                    return MoveToNextRound();
+                    checkOverlap();
+                    return moveToNextRound();
 
-                }else{
+                }
+                else{
                     // move forward to next gird
                     // haven't finish direction 0 yet
                     m_currentX++;
@@ -282,45 +296,50 @@ bool RotateCoord::forward()
                 // for rest cases I won't write detailed comments
                 // refer to case-0 for reasoning
 
-                if(m_currentY == (std::max<int>)(m_startY, m_centerY - m_distance)){
+                if(m_currentY == std::max<int>(m_startY, m_centerY - m_distance)){
                     if(m_overlap[2]){
-                        int nNewX = (std::min<int>)(m_stopX, m_centerX + m_distance);
-                        int nNewY = m_centerY - m_distance;
-                        if(true
-                                && (nNewX == m_currentX)
-                                && (nNewY == m_currentY)){ nNewX--; }
+                        /* */ int newX = std::min<int>(m_stopX, m_centerX + m_distance);
+                        const int newY = m_centerY - m_distance;
 
-                        if(mathf::pointInRectangle(nNewX, nNewY, m_startX, m_startY, m_stopX - m_startX + 1, m_stopY - m_startY + 1)){
+                        if(true
+                                && (newX == m_currentX)
+                                && (newY == m_currentY)){
+                            newX--;
+                        }
+
+                        if(mathf::pointInRectangle(newX, newY, m_startX, m_startY, m_stopX - m_startX + 1, m_stopY - m_startY + 1)){
                             m_direction = DirType::DIR_2;
-                            m_currentX  = nNewX;
-                            m_currentY  = nNewY;
+                            m_currentX  = newX;
+                            m_currentY  = newY;
                             return true;
                         }
                     }
 
                     if(m_overlap[3]){
-                        int nNewX = m_centerX - m_distance;
-                        int nNewY = (std::max<int>)(m_startY, m_centerY - m_distance);
+                        const int newX = m_centerX - m_distance;
+                        const int newY = std::max<int>(m_startY, m_centerY - m_distance);
 
-                        int nD0StartX = (std::max<int>)(m_startX, m_centerX - m_distance);
-                        int nD0StartY = m_centerY + m_distance;
+                        const int d0StartX = std::max<int>(m_startX, m_centerX - m_distance);
+                        const int d0StartY = m_centerY + m_distance;
 
                         if(true
-                                && (nNewX == nD0StartX)
-                                && (nNewY == nD0StartY)){
-                        }else{
+                                && (newX == d0StartX)
+                                && (newY == d0StartY)){
+                            // do nothing here and wait to jump to next round
+                        }
+                        else{
                             m_direction = DirType::DIR_3;
-                            m_currentX  = nNewX;
-                            m_currentY  = nNewY;
+                            m_currentX  = newX;
+                            m_currentY  = newY;
                             return true;
                         }
                     }
 
                     m_distance++;
-                    CheckOverlap();
-                    return MoveToNextRound();
-
-                }else{
+                    checkOverlap();
+                    return moveToNextRound();
+                }
+                else{
                     m_currentY--;
                     return true;
                 }
@@ -328,33 +347,39 @@ bool RotateCoord::forward()
             }
         case DirType::DIR_2:
             {
-                if(m_currentX == (std::max<int>)(m_startX, m_centerX - m_distance)){
+                if(m_currentX == std::max<int>(m_startX, m_centerX - m_distance)){
                     if(m_overlap[3]){
-                        int nNewX = m_centerX - m_distance;
-                        int nNewY = (std::max<int>)(m_startY, m_centerY - m_distance);
-                        if(true
-                                && (nNewX == m_currentX)
-                                && (nNewY == m_currentY)){ nNewY++; }
+                        const int newX = m_centerX - m_distance;
+                        /* */ int newY = std::max<int>(m_startY, m_centerY - m_distance);
 
-                        if(mathf::pointInRectangle(nNewX, nNewY, m_startX, m_startY, m_stopX - m_startX + 1, m_stopY - m_startY + 1)){
-                            int nD0StartX = (std::max<int>)(m_startX, m_centerX - m_distance);
-                            int nD0StartY = m_centerY + m_distance;
+                        if(true
+                                && (newX == m_currentX)
+                                && (newY == m_currentY)){
+                            newY++;
+                        }
+
+                        if(mathf::pointInRectangle(newX, newY, m_startX, m_startY, m_stopX - m_startX + 1, m_stopY - m_startY + 1)){
+                            const int d0StartX = std::max<int>(m_startX, m_centerX - m_distance);
+                            const int d0StartY = m_centerY + m_distance;
                             if(true
-                                    && (nNewX == nD0StartX)
-                                    && (nNewY == nD0StartY)){
-                            }else{
+                                    && (newX == d0StartX)
+                                    && (newY == d0StartY)){
+                                // do nothing here and wait to jump to next round
+                            }
+                            else{
                                 m_direction = DirType::DIR_3;
-                                m_currentX  = nNewX;
-                                m_currentY  = nNewY;
+                                m_currentX  = newX;
+                                m_currentY  = newY;
                                 return true;
                             }
                         }
                     }
 
                     m_distance++;
-                    CheckOverlap();
-                    return MoveToNextRound();
-                }else{
+                    checkOverlap();
+                    return moveToNextRound();
+                }
+                else{
                     m_currentX--;
                     return true;
                 }
@@ -373,18 +398,21 @@ bool RotateCoord::forward()
                         // we make a turn to start next round
 
                         m_distance++;
-                        CheckOverlap();
-                        return MoveToNextRound();
-                    }else{
+                        checkOverlap();
+                        return moveToNextRound();
+                    }
+                    else{
                         m_currentY++;
                         return true;
                     }
-                }else{
+                }
+                else{
                     if(m_currentY == m_stopY){
                         m_distance++;
-                        CheckOverlap();
-                        return MoveToNextRound();
-                    }else{
+                        checkOverlap();
+                        return moveToNextRound();
+                    }
+                    else{
                         m_currentY++;
                         return true;
                     }
@@ -393,7 +421,7 @@ bool RotateCoord::forward()
             }
         default:
             {
-                throw fflerror("invalid inn direction: %d", static_cast<int>(m_direction));
+                throw bad_reach();
             }
     }
 }

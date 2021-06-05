@@ -15,6 +15,7 @@
  *
  * =====================================================================================
  */
+
 #pragma once
 
 class RotateCoord
@@ -30,7 +31,7 @@ class RotateCoord
         //
         enum class DirType
         {
-            DIR_0 = 0,
+            DIR_0,
             DIR_1,
             DIR_2,
             DIR_3,
@@ -43,6 +44,8 @@ class RotateCoord
     private:
         const int m_startX;
         const int m_startY;
+
+    private:
         const int m_stopX;
         const int m_stopY;
 
@@ -66,12 +69,12 @@ class RotateCoord
         ~RotateCoord() = default;
 
     public:
-        int X() const
+        int x() const
         {
             return m_currentX;
         }
 
-        int Y() const
+        int y() const
         {
             return m_currentY;
         }
@@ -80,6 +83,6 @@ class RotateCoord
         bool forward();
 
     private:
-        void CheckOverlap();
-        bool MoveToNextRound();
+        void checkOverlap();
+        bool moveToNextRound();
 };

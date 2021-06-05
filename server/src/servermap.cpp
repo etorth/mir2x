@@ -618,17 +618,17 @@ std::tuple<bool, int, int> ServerMap::GetValidGrid(bool bCheckCO, bool bCheckLoc
         throw fflerror("invalid location: (%d, %d)", nX, nY);
     }
 
-    RotateCoord stRC(nX, nY, 0, 0, W(), H());
+    RotateCoord rc(nX, nY, 0, 0, W(), H());
     for(int nIndex = 0; (nCheckCount <= 0) || (nIndex < nCheckCount); ++nIndex){
 
-        int nCurrX = stRC.X();
-        int nCurrY = stRC.Y();
+        int nCurrX = rc.x();
+        int nCurrY = rc.y();
 
         if(In(ID(), nCurrX, nCurrY) && canMove(bCheckCO, bCheckLock, nCurrX, nCurrY)){
             return {true, nCurrX, nCurrY};
         }
 
-        if(!stRC.forward()){
+        if(!rc.forward()){
             return {false, -1, -1};
         }
     }
@@ -700,10 +700,10 @@ bool ServerMap::DoCenterCircle(int nCX0, int nCY0, int nCR, bool bPriority, cons
         // get the clip region over the map
         // if no valid region we won't do the rest
 
-        RotateCoord stRC(nCX0, nCY0, nX0, nY0, nW, nH);
+        RotateCoord rc(nCX0, nCY0, nX0, nY0, nW, nH);
         do{
-            const int nX = stRC.X();
-            const int nY = stRC.Y();
+            const int nX = rc.x();
+            const int nY = rc.y();
 
             if(validC(nX, nY)){
                 if(mathf::LDistance2(nX, nY, nCX0, nCY0) <= (nCR - 1) * (nCR - 1)){
@@ -716,7 +716,7 @@ bool ServerMap::DoCenterCircle(int nCX0, int nCY0, int nCR, bool bPriority, cons
                     }
                 }
             }
-        }while(stRC.forward());
+        }while(rc.forward());
     }
     return false;
 }
@@ -738,10 +738,10 @@ bool ServerMap::DoCenterSquare(int nCX, int nCY, int nW, int nH, bool bPriority,
         // get the clip region over the map
         // if no valid region we won't do the rest
 
-        RotateCoord stRC(nCX, nCY, nX0, nY0, nW, nH);
+        RotateCoord rc(nCX, nCY, nX0, nY0, nW, nH);
         do{
-            const int nX = stRC.X();
-            const int nY = stRC.Y();
+            const int nX = rc.x();
+            const int nY = rc.y();
 
             if(validC(nX, nY)){
                 if(!fnOP){
@@ -752,7 +752,7 @@ bool ServerMap::DoCenterSquare(int nCX, int nCY, int nW, int nH, bool bPriority,
                     return true;
                 }
             }
-        }while(stRC.forward());
+        }while(rc.forward());
     }
     return false;
 }
