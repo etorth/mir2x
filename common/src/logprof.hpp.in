@@ -107,8 +107,8 @@ namespace _logProf
         std::atomic<const char *> name {nullptr};
     };
 
-    extern bool g_logEnableProfiler;
-    extern std::array<logProfilerEntry, _logProf::maxProfilerCount()> g_logProfilerEntrySink;
+    extern bool logEnableProfiler;
+    extern std::array<_logProf::logProfilerEntry, _logProf::maxProfilerCount()> logProfilerEntrySink;
 
     class logProfilerHelper
     {
@@ -122,7 +122,7 @@ namespace _logProf
         public:
             logProfilerHelper(size_t loc, const char *funcName)
             {
-                if(g_logEnableProfiler){
+                if(_logProf::logEnableProfiler){
                     m_loc = loc;
                     m_funcName = funcName;
                     m_startTime = _logProf::getCurrTick();
@@ -131,11 +131,11 @@ namespace _logProf
 
             ~logProfilerHelper()
             {
-                if(!g_logEnableProfiler){
+                if(!_logProf::logEnableProfiler){
                     return;
                 }
 
-                auto &sinkRef = g_logProfilerEntrySink.at(m_loc);
+                auto &sinkRef = _logProf::logProfilerEntrySink.at(m_loc);
                 sinkRef.count.fetch_add(1, std::memory_order_relaxed);
                 sinkRef.name.store(m_funcName, std::memory_order_relaxed);
 
