@@ -20,6 +20,7 @@
 #pragma once
 #include <array>
 #include <atomic>
+#include <cstdint>
 #include <functional>
 #include <string_view>
 #include <type_traits>
@@ -27,32 +28,70 @@
 
 namespace _logProf
 {
-    constexpr const char * _inn_logFileList []
+    constexpr const char * logFileList[]
     {
         ${MIR2X_LOG_FILELIST}
     };
 
-    template<size_t N> constexpr size_t fileName2Index(const char (&str)[N])
+    constexpr size_t rc_FOUND_NONE  = SIZE_MAX;
+    constexpr size_t rc_FOUND_TWICE = SIZE_MAX - 1;
+
+    template<size_t N> constexpr size_t fileName2Index(const char (&filename)[N])
     {
-        for(size_t i = 0; i < std::extent_v<decltype(_inn_logFileList)>; ++i){
-            if(std::string_view(str).ends_with(_inn_logFileList[i])){
-                return i;
+        static_assert(N >= 1);
+        const auto fnRMatchLogFileList = [filename](size_t i)
+        {
+            const auto filesv = std::string_view(filename);
+            const auto listsv = std::string_view(_logProf::logFileList[i]);
+
+            if(!filesv.ends_with(listsv)){
+                return false;
+            }
+
+            // filesv ends with: "/" + listsv
+            // this prevents false match like: abc/abcdef/abcd.cpp matches def/abcd.cpp
+
+            return (filesv.size() == listsv.size()) || (filesv[filesv.size() - listsv.size() - 1] == '/');
+        };
+
+        size_t found = _logProf::rc_FOUND_NONE;
+        for(size_t i = 0; i < std::extent_v<decltype(_logProf::logFileList)>; ++i){
+            if(fnRMatchLogFileList(i)){
+                found = i;
+                break;
             }
         }
-        return SIZE_MAX;
+
+        if(found == _logProf::rc_FOUND_NONE){
+            return _logProf::rc_FOUND_NONE;
+        }
+
+        // found the filename
+        // need to find if this filename get include twice in the file list 
+
+        for(size_t i = found + 1; i < std::extent<decltype(_logProf::logFileList)>::value; ++i){
+            if(fnRMatchLogFileList(i)){
+                return _logProf::rc_FOUND_TWICE;
+            }
+        }
+        return found;
     }
 
-    constexpr size_t maxProfInOneFile = 4096;
+    constexpr size_t maxProfInOneFile = 512;
     template<size_t fileIndex, int counter> constexpr size_t loc2Hash()
     {
-        static_assert(fileIndex < std::extent_v<decltype(_inn_logFileList)>);
+        static_assert(fileIndex != _logProf::rc_FOUND_NONE);
+        static_assert(fileIndex != _logProf::rc_FOUND_TWICE);
+
+        static_assert(fileIndex < std::extent_v<decltype(_logProf::logFileList)>);
         static_assert(counter   < _logProf::maxProfInOneFile);
+
         return fileIndex * _logProf::maxProfInOneFile + counter;
     }
 
     constexpr size_t maxProfilerCount()
     {
-        return std::extent_v<decltype(_inn_logFileList)> * _logProf::maxProfInOneFile;
+        return std::extent_v<decltype(_logProf::logFileList)> * _logProf::maxProfInOneFile;
     }
 
     inline long long getCurrTick()
