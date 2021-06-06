@@ -41,28 +41,15 @@ void logProfiling(const std::function<void(const std::string &)> &dump)
 		return;
 	}
 
-	const auto binaryName = []() -> std::string
-	{
-#ifdef _GNU_SOURCE
-		return std::string(program_invocation_name);
-#endif
-		std::string line;
-		std::ifstream f("/proc/self/cmdline");
-		if(f && std::getline(f, line)){
-			return std::string(line.c_str());
-		}
-		throw std::runtime_error("can not access /proc/self/cmdline");
-	}();
+#define _FUNC_LOGFUMP(op, ...) op(str_printf(__VA_ARGS__))
 
-#define _FUNC_DUMP_OP(op, ...) op(str_printf(__VA_ARGS__))
-
-    _FUNC_DUMP_OP(dump, "---\n");
-    _FUNC_DUMP_OP(dump, "---\n");
-    _FUNC_DUMP_OP(dump, "--- Binary %s, pid = %lld, dbg_profiler runtime statistics:\n", binaryName.c_str(), to_lld(getpid()));
-    _FUNC_DUMP_OP(dump, "--- \n");
-    _FUNC_DUMP_OP(dump, "--- ---------------------------- ---------------- ---------------- ----------------\n");
-    _FUNC_DUMP_OP(dump, "--- Command Name                            Calls     Longest Time       Total Time\n");
-    _FUNC_DUMP_OP(dump, "--- ---------------------------- ---------------- ---------------- ----------------\n");
+    _FUNC_LOGFUMP(dump, "---\n");
+    _FUNC_LOGFUMP(dump, "---\n");
+    _FUNC_LOGFUMP(dump, "--- Runtime statistics:\n");
+    _FUNC_LOGFUMP(dump, "--- \n");
+    _FUNC_LOGFUMP(dump, "--- ---------------------------- ---------------- ---------------- ----------------\n");
+    _FUNC_LOGFUMP(dump, "--- Command Name                            Calls     Longest Time       Total Time\n");
+    _FUNC_LOGFUMP(dump, "--- ---------------------------- ---------------- ---------------- ----------------\n");
 
     struct logEntry
     {
@@ -104,7 +91,7 @@ void logProfiling(const std::function<void(const std::string &)> &dump)
     });
 
 	for(const auto &entry: logEntryList){
-		_FUNC_DUMP_OP(dump, "--- %-28s %16lld %11.3f secs %11.3f secs\n", entry.name, entry.count, entry.longest / 1000000000.0f, entry.total / 1000000000.0f);
+		_FUNC_LOGFUMP(dump, "--- %-28s %16lld %11.3f secs %11.3f secs\n", entry.name, entry.count, entry.longest / 1000000000.0f, entry.total / 1000000000.0f);
 	}
 
     const auto profilerAvgTime = []() -> float
@@ -118,12 +105,12 @@ void logProfiling(const std::function<void(const std::string &)> &dump)
         return 1.0f * (_logProf::getCurrTick() - startTime) / profilerCount;
     }();
 
-	_FUNC_DUMP_OP(dump, "---\n");
-	_FUNC_DUMP_OP(dump, "--- Profiler ran %lld times, average %.3f nsec/run.\n", totalCount, profilerAvgTime);
-	_FUNC_DUMP_OP(dump, "---\n");
-	_FUNC_DUMP_OP(dump, "---\n");
+	_FUNC_LOGFUMP(dump, "---\n");
+	_FUNC_LOGFUMP(dump, "--- Profiler ran %lld times, average %.3f nsec/run.\n", totalCount, profilerAvgTime);
+	_FUNC_LOGFUMP(dump, "---\n");
+	_FUNC_LOGFUMP(dump, "---\n");
 
-#undef _FUNC_DUMP_OP
+#undef _FUNC_LOGFUMP
 }
 
 bool _logProf::logEnableProfiler = true;
