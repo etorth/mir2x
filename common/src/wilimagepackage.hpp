@@ -73,7 +73,7 @@ class WilImagePackage
 
     public:
         WilImagePackage();
-       ~WilImagePackage();
+        ~WilImagePackage();
 
     public:
         int32_t ImageCount();
