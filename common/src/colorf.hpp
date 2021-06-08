@@ -95,17 +95,17 @@ namespace colorf
         return ((uint32_t)(R(colorRGBA)) << 0) | ((uint32_t)(G(colorRGBA)) << 8) | ((uint32_t)(B(colorRGBA)) << 16) | ((uint32_t)(A(colorRGBA)) << 24);
     }
 
-    template<typename T> constexpr uint8_t round255(T nValue)
+    template<typename T> constexpr uint8_t round255(T val)
     {
-        if(nValue < T(0)){
+        if(val <= T(0)){
             return 0;
         }
 
-        if(nValue > T(255)){
+        if(val >= T(255)){
             return 255;
         }
 
-        return (uint8_t)(nValue);
+        return (uint8_t)(val);
     }
 
     constexpr uint32_t RGBA_F(double fR, double fG, double fB, double fA)

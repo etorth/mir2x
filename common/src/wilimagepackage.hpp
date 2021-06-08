@@ -22,6 +22,7 @@
 #include <cstdio>
 #include <cstdint>
 #include <cstdlib>
+#include "fflerror.hpp"
 
 #pragma pack(push, 1)
 
@@ -97,7 +98,24 @@ class WilImagePackage
         bool                 CurrentImageValid();
         const uint16_t      *CurrentImageBuffer();
 
-    public:
-        static int WixOffset(int);
-        static int WilOffset(int);
+    private:
+        static int wixOff(int version)
+        {
+            switch(version){
+                case   17: return 24;
+                case 5000: return 28;
+                case 6000: return 32;
+                default  : throw bad_reach();
+            }
+        }
+
+        static int wilOff(int version)
+        {
+            switch(version){
+                case   17: return 17;
+                case 5000: return 21;
+                case 6000: return 21;
+                default  : throw bad_reach();
+            }
+        }
 };
