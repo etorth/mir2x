@@ -162,11 +162,37 @@ class Mir2xMapData final
 #pragma pack(pop)
 
     private:
-        int m_w = 0;
-        int m_h = 0;
+        struct InnMapData
+        {
+            int w = 0;
+            int h = 0;
+            std::vector<BLOCK> blockList;
+
+            template<typename Archive> void serialize(Archive &ar)
+            {
+                ar(w, h, blockList);
+            }
+
+            void clear()
+            {
+                w = 0;
+                h = 0;
+                blockList.clear();
+            }
+
+            void allocate(int argW, int argH)
+            {
+                fflassert((argW > 0) && (argW % 2 == 0));
+                fflassert((argH > 0) && (argH % 2 == 0));
+
+                w = argW;
+                h = argH;
+                blockList.resize(argW * argH / 4);
+            }
+        };
 
     private:
-        std::vector<BLOCK> m_data;
+        InnMapData m_data;
 
     public:
         Mir2xMapData() = default;
@@ -174,34 +200,25 @@ class Mir2xMapData final
     public:
         void allocate(int argW, int argH)
         {
-            fflassert((argW > 0) && (argW % 2 == 0));
-            fflassert((argH > 0) && (argH % 2 == 0));
-
             m_data.clear();
-            m_data.resize(argW * argH / 4);
-        }
-
-    public:
-        template<typename Archive> void serialize(Archive &ar)
-        {
-            ar(m_w, m_h, m_data);
+            m_data.allocate(argW, argH);
         }
 
     public:
         int w() const
         {
-            return m_w;
+            return m_data.w;
         }
 
         int h() const
         {
-            return m_h;
+            return m_data.h;
         }
 
     public:
         auto &block(int argX, int argY)
         {
-            return m_data[argX / 2 + (argY / 2) * (m_w / 2)];
+            return m_data.blockList[argX / 2 + (argY / 2) * (m_data.w / 2)];
         }
 
         auto &tile(int argX, int argY)
@@ -217,7 +234,7 @@ class Mir2xMapData final
     public:
         const auto &block(int argX, int argY) const
         {
-            return m_data[argX / 2 + (argY / 2) * (m_w / 2)];
+            return m_data.blockList[argX / 2 + (argY / 2) * (m_data.w / 2)];
         }
 
         const auto &tile(int argX, int argY) const
@@ -233,31 +250,31 @@ class Mir2xMapData final
     public:
         void loadData(const void *data, size_t size)
         {
-            *this = cerealf::deserialize<Mir2xMapData>(data, size);
+            m_data = cerealf::deserialize<Mir2xMapData::InnMapData>(data, size);
         }
 
         void load(const std::string &fileName)
         {
             std::stringstream ss;
             ss << std::ifstream(fileName, std::ifstream::binary).rdbuf();
-            *this = cerealf::deserialize<Mir2xMapData>(ss.str());
+            m_data = cerealf::deserialize<Mir2xMapData::InnMapData>(ss.str());
         }
 
         void save(const std::string &fileName) const
         {
             std::ofstream f(fileName, std::ofstream::binary);
-            const auto s = cerealf::serialize(*this);
+            const auto s = cerealf::serialize(m_data);
             f.write(s.data(), s.size());
         }
 
     public:
         bool validC(int argX, int argY) const
         {
-            return argX >= 0 && argX < m_w && argY >= 0 && argY < m_h;
+            return argX >= 0 && argX < m_data.w && argY >= 0 && argY < m_data.h;
         }
 
         bool validP(int argX, int argY) const
         {
-            return argX >= 0 && argX < m_w * SYS_MAPGRIDXP && argY >= 0 && argY < m_h * SYS_MAPGRIDYP;
+            return argX >= 0 && argX < m_data.w * SYS_MAPGRIDXP && argY >= 0 && argY < m_data.h * SYS_MAPGRIDYP;
         }
 };
