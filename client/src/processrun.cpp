@@ -294,24 +294,25 @@ void ProcessRun::draw()
         return std::max<int>(std::min<int>(parm, mx), mn);
     };
 
-    const int x0 = fnLimitedRegion(0, m_mir2xMapData.W(), -SYS_OBJMAXW + (m_viewX - 2 * SYS_MAPGRIDXP) / SYS_MAPGRIDXP);
-    const int y0 = fnLimitedRegion(0, m_mir2xMapData.H(), -SYS_OBJMAXH + (m_viewY - 2 * SYS_MAPGRIDYP) / SYS_MAPGRIDYP);
-    const int x1 = fnLimitedRegion(0, m_mir2xMapData.W(), +SYS_OBJMAXW + (m_viewX + 2 * SYS_MAPGRIDXP + g_sdlDevice->getRendererWidth() ) / SYS_MAPGRIDXP);
-    const int y1 = fnLimitedRegion(0, m_mir2xMapData.H(), +SYS_OBJMAXH + (m_viewY + 2 * SYS_MAPGRIDYP + g_sdlDevice->getRendererHeight()) / SYS_MAPGRIDYP);
+    const int x0 = fnLimitedRegion(0, m_mir2xMapData.w(), -SYS_OBJMAXW + (m_viewX - 2 * SYS_MAPGRIDXP) / SYS_MAPGRIDXP);
+    const int y0 = fnLimitedRegion(0, m_mir2xMapData.h(), -SYS_OBJMAXH + (m_viewY - 2 * SYS_MAPGRIDYP) / SYS_MAPGRIDYP);
+    const int x1 = fnLimitedRegion(0, m_mir2xMapData.w(), +SYS_OBJMAXW + (m_viewX + 2 * SYS_MAPGRIDXP + g_sdlDevice->getRendererWidth() ) / SYS_MAPGRIDXP);
+    const int y1 = fnLimitedRegion(0, m_mir2xMapData.h(), +SYS_OBJMAXH + (m_viewY + 2 * SYS_MAPGRIDYP + g_sdlDevice->getRendererHeight()) / SYS_MAPGRIDYP);
 
     drawTile(x0, y0, x1, y1);
 
     // ground objects
     for(int y = y0; y <= y1; ++y){
         for(int x = x0; x <= x1; ++x){
-            drawGroundObject(x, y, true, false);
+            drawObject(x, y, OBJD_GROUND, false);
         }
     }
 
     // over ground object
     for(int y = y0; y <= y1; ++y){
         for(int x = x0; x <= x1; ++x){
-            drawGroundObject(x, y, false, false);
+            drawObject(x, y, OBJD_OVERGROUND0, false);
+            drawObject(x, y, OBJD_OVERGROUND1, false);
         }
     }
 
@@ -375,7 +376,7 @@ void ProcessRun::draw()
     // over ground objects
     for(int y = y0; y <= y1; ++y){
         for(int x = x0; x <= x1; ++x){
-            drawGroundObject(x, y, false, true);
+            drawObject(x, y, OBJD_OVERGROUND0, true);
         }
 
         for(int x = x0; x <= x1; ++x){
@@ -416,6 +417,10 @@ void ProcessRun::draw()
                     g_sdlDevice->fillRectangle(x * SYS_MAPGRIDXP - m_viewX, y * SYS_MAPGRIDYP - m_viewY, SYS_MAPGRIDXP, SYS_MAPGRIDYP);
                 }
             }
+        }
+
+        for(int x = x0; x <= x1; ++x){
+            drawObject(x, y, OBJD_OVERGROUND1, true);
         }
     }
 
@@ -716,11 +721,11 @@ bool ProcessRun::canMove(bool bCheckGround, int nCheckCreature, int nX, int nY)
 
 int ProcessRun::CheckPathGrid(int nX, int nY) const
 {
-    if(!m_mir2xMapData.ValidC(nX, nY)){
+    if(!m_mir2xMapData.validC(nX, nY)){
         return PathFind::INVALID;
     }
 
-    if(!m_mir2xMapData.Cell(nX, nY).CanThrough()){
+    if(!m_mir2xMapData.cell(nX, nY).canThrough()){
         return PathFind::OBSTACLE;
     }
 
@@ -1391,10 +1396,10 @@ std::tuple<int, int> ProcessRun::getRandLoc(uint32_t nMapID)
     }
 
     while(true){
-        const int nX = std::rand() % mapBinPtr->W();
-        const int nY = std::rand() % mapBinPtr->H();
+        const int nX = std::rand() % mapBinPtr->w();
+        const int nY = std::rand() % mapBinPtr->h();
 
-        if(mapBinPtr->ValidC(nX, nY) && mapBinPtr->Cell(nX, nY).CanThrough()){
+        if(mapBinPtr->validC(nX, nY) && mapBinPtr->cell(nX, nY).canThrough()){
             return {nX, nY};
         }
     }
@@ -1409,7 +1414,7 @@ bool ProcessRun::requestSpaceMove(uint32_t nMapID, int nX, int nY)
         return false;
     }
 
-    if(!(mapBinPtr->ValidC(nX, nY) && mapBinPtr->Cell(nX, nY).CanThrough())){
+    if(!(mapBinPtr->validC(nX, nY) && mapBinPtr->cell(nX, nY).canThrough())){
         return false;
     }
 
@@ -1621,9 +1626,9 @@ void ProcessRun::drawTile(int x0, int y0, int x1, int y1)
 {
     for(int y = y0; y < y1; ++y){
         for(int x = x0; x <= x1; ++x){
-            if(m_mir2xMapData.ValidC(x, y) && !(x % 2) && !(y % 2)){
-                if(const auto &tile = m_mir2xMapData.Tile(x, y); tile.Valid()){
-                    if(auto texPtr = g_mapDB->Retrieve(tile.Image())){
+            if(m_mir2xMapData.validC(x, y) && !(x % 2) && !(y % 2)){
+                if(const auto &tile = m_mir2xMapData.tile(x, y); tile.texIDValid){
+                    if(auto texPtr = g_mapDB->Retrieve(tile.texID)){
                         g_sdlDevice->drawTexture(texPtr, x * SYS_MAPGRIDXP - m_viewX, y * SYS_MAPGRIDYP - m_viewY);
                     }
                 }
@@ -1632,65 +1637,61 @@ void ProcessRun::drawTile(int x0, int y0, int x1, int y1)
     }
 }
 
-void ProcessRun::drawGroundObject(int x, int y, bool ground, bool alpha)
+void ProcessRun::drawObject(int x, int y, int objd, bool alpha)
 {
-    if(!m_mir2xMapData.ValidC(x, y)){
+    if(!m_mir2xMapData.validC(x, y)){
         return;
     }
 
     for(const int i: {0, 1}){
-        const auto objArr = m_mir2xMapData.Cell(x, y).ObjectArray(i);
-        if(true
-                && ((bool)(objArr[4] & 0X80))
-                && ((bool)(objArr[4] & 0X01) == ground)){
-            uint32_t imageId = 0
-                | ((to_u32(objArr[2])) << 16)
-                | ((to_u32(objArr[1])) <<  8)
-                | ((to_u32(objArr[0])) <<  0);
+        const auto &obj = m_mir2xMapData.cell(x, y).obj[i];
+        if(!obj.texIDValid){
+            continue;
+        }
 
-            if(objArr[3] & 0X80){
-                if(false
-                        || objArr[2] == 11
-                        || objArr[2] == 26
-                        || objArr[2] == 41
-                        || objArr[2] == 56
-                        || objArr[2] == 71){
-                    const int aniType = (objArr[3] & 0B01110000) >> 4;
-                    const int aniFrameType = (objArr[3] & 0B00001111);
-                    imageId += m_aniTileFrame[aniType][aniFrameType];
-                }
+        if(obj.depthType != objd){
+            continue;
+        }
+
+        uint32_t imageId = obj.texID;
+        if(obj.animated){
+            const int fileIndex = to_d(imageId >> 16);
+            if(false
+                    || fileIndex == 11
+                    || fileIndex == 26
+                    || fileIndex == 41
+                    || fileIndex == 56
+                    || fileIndex == 71){ // TODO remove this check
+                imageId += m_aniTileFrame[obj.tickType][obj.frameCount];
             }
+        }
 
-            if(auto texPtr = g_mapDB->Retrieve(imageId)){
-                const int texH = SDLDeviceHelper::getTextureHeight(texPtr);
-                const auto drawAlphaObj = [&objArr, alpha]() -> uint8_t
-                {
-                    if(objArr[4] & 0B00000010){
-                        return 96;
-                    }
+        if(auto texPtr = g_mapDB->Retrieve(imageId)){
+            const int texH = SDLDeviceHelper::getTextureHeight(texPtr);
+            const auto drawAlphaObj = [&obj, alpha]() -> uint8_t
+            {
+                if(obj.alpha){
+                    return 96;
+                }
 
-                    if(alpha){
-                        return 128;
-                    }
-                    return 255;
-                }();
+                if(alpha){
+                    return 128;
+                }
+                return 255;
+            }();
 
-                SDLDeviceHelper::EnableTextureModColor enableColor(texPtr, colorf::RGBA(0XFF, 0XFF, 0XFF, drawAlphaObj));
-                g_sdlDevice->drawTexture(texPtr, x * SYS_MAPGRIDXP - m_viewX, (y + 1) * SYS_MAPGRIDYP - m_viewY - texH);
+            SDLDeviceHelper::EnableTextureModColor enableColor(texPtr, colorf::RGBA(0XFF, 0XFF, 0XFF, drawAlphaObj));
+            g_sdlDevice->drawTexture(texPtr, x * SYS_MAPGRIDXP - m_viewX, (y + 1) * SYS_MAPGRIDYP - m_viewY - texH);
 
-                if(ground){
-                    for(const auto &entry: DBCOM_MAPRECORD(mapID()).mapSwitch()){
-                        if(true
-                                && entry.w > 0
-                                && entry.h > 0
-                                && m_mir2xMapData.ValidC(entry.x, entry.y)){
+            if(objd == OBJD_OVERGROUND0){
+                for(const auto &entry: DBCOM_MAPRECORD(mapID()).mapSwitch()){
+                    if(true
+                            && entry.w > 0
+                            && entry.h > 0
+                            && m_mir2xMapData.validC(entry.x, entry.y)){
 
-                            if(mathf::pointInRectangle(x, y, entry.x, entry.y, entry.w, entry.h)){
-                                g_sdlDevice->fillRectangle(colorf::RGBA(0XFF, 0, 0, 100), x * SYS_MAPGRIDXP - m_viewX, y * SYS_MAPGRIDYP - m_viewY, SYS_MAPGRIDXP, SYS_MAPGRIDYP);
-                            }
-                        }
-                        else{
-                            break;
+                        if(mathf::pointInRectangle(x, y, entry.x, entry.y, entry.w, entry.h)){
+                            g_sdlDevice->fillRectangle(colorf::RGBA(0XFF, 0, 0, 100), x * SYS_MAPGRIDXP - m_viewX, y * SYS_MAPGRIDYP - m_viewY, SYS_MAPGRIDXP, SYS_MAPGRIDYP);
                         }
                     }
                 }
@@ -2084,7 +2085,7 @@ bool ProcessRun::hasGroundItemID(uint32_t itemID, int x, int y) const
 
 bool ProcessRun::addGroundItemID(uint32_t itemID, int x, int y)
 {
-    if(!m_mir2xMapData.ValidC(x, y)){
+    if(!m_mir2xMapData.validC(x, y)){
         return false;
     }
 

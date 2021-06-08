@@ -186,23 +186,23 @@ class ServerMap final: public ServerObject
     public:
         int W() const
         {
-            return m_mir2xMapData.Valid() ? m_mir2xMapData.W() : 0;
+            return m_mir2xMapData.w();
         }
 
         int H() const
         {
-            return m_mir2xMapData.Valid() ? m_mir2xMapData.H() : 0;
+            return m_mir2xMapData.h();
         }
 
     public:
         bool validC(int nX, int nY) const
         {
-            return m_mir2xMapData.ValidC(nX, nY);
+            return m_mir2xMapData.validC(nX, nY);
         }
 
         bool validP(int nX, int nY) const
         {
-            return m_mir2xMapData.ValidP(nX, nY);
+            return m_mir2xMapData.validP(nX, nY);
         }
 
     public:

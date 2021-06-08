@@ -317,10 +317,6 @@ ServerMap::ServerMap(uint32_t nMapID)
           throw fflerror("load map failed: ID = %d, Name = %s", nMapID, to_cstr(DBCOM_MAPRECORD(nMapID).name));
       }()))
 {
-    if(!m_mir2xMapData.Valid()){
-        throw fflerror("load map failed: ID = %d, Name = %s", nMapID, to_cstr(DBCOM_MAPRECORD(nMapID).name));
-    }
-
     m_gridList.resize(W() * H());
     for(const auto &entry: DBCOM_MAPRECORD(nMapID).mapSwitch()){
         if(true
@@ -448,10 +444,7 @@ void ServerMap::operateAM(const ActorMsgPack &rstMPK)
 
 bool ServerMap::groundValid(int nX, int nY) const
 {
-    return true
-        && m_mir2xMapData.Valid()
-        && m_mir2xMapData.ValidC(nX, nY)
-        && m_mir2xMapData.Cell(nX, nY).CanThrough();
+    return m_mir2xMapData.validC(nX, nY) && m_mir2xMapData.cell(nX, nY).canThrough();
 }
 
 bool ServerMap::canMove(bool bCheckCO, bool bCheckLock, int nX, int nY) const
@@ -1160,11 +1153,11 @@ Player *ServerMap::addPlayer(const SDInitPlayer &initPlayer)
 
 int ServerMap::CheckPathGrid(int nX, int nY) const
 {
-    if(!m_mir2xMapData.ValidC(nX, nY)){
+    if(!m_mir2xMapData.validC(nX, nY)){
         return PathFind::INVALID;
     }
 
-    if(!m_mir2xMapData.Cell(nX, nY).CanThrough()){
+    if(!m_mir2xMapData.cell(nX, nY).canThrough()){
         return PathFind::OBSTACLE;
     }
 

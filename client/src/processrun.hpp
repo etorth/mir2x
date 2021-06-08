@@ -88,17 +88,14 @@ class ProcessRun: public Process
         bool m_drawMagicKey = true;
 
     public:
-        bool ValidC(int nX, int nY) const
+        bool validC(int nX, int nY) const
         {
-            return m_mir2xMapData.ValidC(nX, nY);
+            return m_mir2xMapData.validC(nX, nY);
         }
 
         bool groundValid(int nX, int nY) const
         {
-            return true
-                && m_mir2xMapData.Valid()
-                && m_mir2xMapData.ValidC(nX, nY)
-                && m_mir2xMapData.Cell(nX, nY).CanThrough();
+            return m_mir2xMapData.validC(nX, nY) && m_mir2xMapData.cell(nX, nY).canThrough();
         }
 
     private:
@@ -195,12 +192,12 @@ class ProcessRun: public Process
     public:
         bool onMap(uint32_t id, int nX, int nY) const
         {
-            return (mapID() == id) && m_mir2xMapData.ValidC(nX, nY);
+            return (mapID() == id) && m_mir2xMapData.validC(nX, nY);
         }
 
         bool onMap(int x, int y) const
         {
-            return m_mir2xMapData.ValidC(x, y);
+            return m_mir2xMapData.validC(x, y);
         }
 
     public:
@@ -358,7 +355,7 @@ class ProcessRun: public Process
         void drawRotateStar(int, int, int, int);
 
     private:
-        void drawGroundObject(int, int, bool, bool);
+        void drawObject(int, int, int, bool);
 
     private:
         void checkMagicSpell(const SDL_Event &);
@@ -419,7 +416,7 @@ class ProcessRun: public Process
     public:
         std::tuple<uint32_t, int, int> getMap() const
         {
-            return {m_mapID, m_mir2xMapData.W(), m_mir2xMapData.H()};
+            return {m_mapID, m_mir2xMapData.w(), m_mir2xMapData.h()};
         }
 
         const auto &getCOList() const

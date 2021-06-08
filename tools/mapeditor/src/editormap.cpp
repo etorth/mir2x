@@ -325,10 +325,9 @@ bool EditorMap::LoadMir2xMapData(const char *szFullName)
     delete m_Mir2Map     ; m_Mir2Map      = nullptr;
     delete m_Mir2xMapData; m_Mir2xMapData = new Mir2xMapData();
 
-    if(!m_Mir2xMapData->Load(szFullName)){
-        MakeBuf(m_Mir2xMapData->W(), m_Mir2xMapData->H());
-        InitBuf();
-    }
+    m_Mir2xMapData->load(szFullName);
+    MakeBuf(m_Mir2xMapData->w(), m_Mir2xMapData->h());
+    InitBuf();
 
     delete m_Mir2xMapData; m_Mir2xMapData = nullptr;
     delete m_Mir2xMapData; m_Mir2xMapData = nullptr;
@@ -377,9 +376,9 @@ bool EditorMap::InitBuf()
     if(m_Mir2Map && m_Mir2Map->Valid()){
         nW = m_Mir2Map->W();
         nH = m_Mir2Map->H();
-    }else if(m_Mir2xMapData && m_Mir2xMapData->Valid()){
-        nW = m_Mir2xMapData->W();
-        nH = m_Mir2xMapData->H();
+    }else if(m_Mir2xMapData){
+        nW = m_Mir2xMapData->w();
+        nH = m_Mir2xMapData->h();
     }else{
         return false;
     }
@@ -439,10 +438,11 @@ void EditorMap::SetBufTile(int nX, int nY)
                 Tile(nX, nY).Valid = true;
                 Tile(nX, nY).Image = m_Mir2Map->Tile(nX, nY) & 0X00FFFFFF;
             }
-        }else if(m_Mir2xMapData && m_Mir2xMapData->Valid()){
-            if(m_Mir2xMapData->Tile(nX, nY).Param & 0X80000000){
+        }
+        else if(m_Mir2xMapData){
+            if(m_Mir2xMapData->tile(nX, nY).texIDValid){
                 Tile(nX, nY).Valid = true;
-                Tile(nX, nY).Image = m_Mir2xMapData->Tile(nX, nY).Param & 0X00FFFFFF;
+                Tile(nX, nY).Image = m_Mir2xMapData->tile(nX, nY).texID;
             }
         }
     }
@@ -467,11 +467,10 @@ void EditorMap::SetBufGround(int nX, int nY)
                 bCanWalk   = true;
                 nAttribute = 0;
             }
-        }else if(m_Mir2xMapData && m_Mir2xMapData->Valid()){
-            uint8_t nLandByte = m_Mir2xMapData->Cell(nX, nY).LandByte();
-            bCanWalk   = (nLandByte & 0X80) ? true : false;
-            bCanFly    = (nLandByte & 0X40) ? true : false;
-            nAttribute = (nLandByte & 0X3F);
+        }else if(m_Mir2xMapData){
+            bCanWalk   = m_Mir2xMapData->cell(nX, nY).canWalk;
+            bCanFly    = m_Mir2xMapData->cell(nX, nY).canFly;
+            nAttribute = m_Mir2xMapData->cell(nX, nY).landType;
         }
 
         Cell(nX, nY).CanFly    = bCanFly;
@@ -536,28 +535,18 @@ void EditorMap::SetBufObj(int nX, int nY, int nIndex)
                     nAniCount = 0;
                 }
             }
-        }else if(m_Mir2xMapData && m_Mir2xMapData->Valid()){
-            auto stArray = m_Mir2xMapData->Cell(nX, nY).ObjectArray(nIndex);
-            if(stArray[4] & 0X80){
+        }
+        else if(m_Mir2xMapData){
+            const auto &obj = m_Mir2xMapData->cell(nX, nY).obj[nIndex];
+            if(obj.texIDValid){
                 bObjValid = true;
-                nObj = 0
-                    | ((to_u32(stArray[2])) << 16)
-                    | ((to_u32(stArray[1])) <<  8)
-                    | ((to_u32(stArray[0])) <<  0);
+                nObj = obj.texID;
+                bGroundObj = (obj.depthType == OBJD_OVERGROUND0 || obj.depthType == OBJD_OVERGROUND1);
 
-                if(stArray[4] & 0X01){
-                    bGroundObj = true;
-                }
-
-                if(stArray[3] & 0X80){
-                    bAniObj   = true;
-                    nAniType  = ((stArray[3] & 0X70) >> 4);
-                    nAniCount = ((stArray[3] & 0X0F) >> 0);
-                }
-
-                if(stArray[4] & 0X02){
-                    bAlphaObj = true;
-                }
+                bAniObj = obj.animated;
+                nAniType  = obj.tickType;
+                nAniCount = obj.frameCount;
+                bAlphaObj = obj.alpha;
             }
         }
 
@@ -587,9 +576,10 @@ void EditorMap::SetBufLight(int nX, int nY)
                 Light(nX, nY).Alpha  = 0;
                 Light(nX, nY).Radius = 0;
             }
-        }else if(m_Mir2xMapData && m_Mir2xMapData->Valid()){
-            auto nLightByte = m_Mir2xMapData->Cell(nX, nY).LightByte();
-            if(nLightByte & 0X80){
+        }
+        else if(m_Mir2xMapData){
+            const auto &light = m_Mir2xMapData->cell(nX, nY).light;
+            if(light.valid){
                 Light(nX, nY).Valid  = true;
                 Light(nX, nY).Color  = 0;
                 Light(nX, nY).Alpha  = 0;
@@ -635,61 +625,46 @@ bool EditorMap::SaveMir2xMapData(const char *szFullName)
     }
 
     Mir2xMapData stMapData;
-    stMapData.Allocate(W(), H());
+    stMapData.allocate(W(), H());
 
     for(int nX = 0; nX < W(); ++nX){
         for(int nY = 0; nY < H(); ++nY){
 
             // tile
             if(!(nX % 2) && !(nY % 2)){
-                stMapData.Tile(nX, nY).Param = Tile(nX, nY).MakeU32();
+                stMapData.tile(nX, nY).texIDValid = to_boolbit(Tile(nX, nY).Valid);
+                stMapData.tile(nX, nY).texID      = Tile(nX, nY).Image & 0X00FFFFFF;
             }
 
             // cell
-            auto &rstDstCell = stMapData.Cell(nX, nY);
-            std::memset(&rstDstCell, 0, sizeof(rstDstCell));
+            auto &rstDstCell = stMapData.cell(nX, nY);
 
             // cell::land
-            rstDstCell.Param |= ((to_u32(Cell(nX, nY).MakeLandU8())) << 16);
+            rstDstCell.canWalk  = Cell(nX, nY).CanWalk;
+            rstDstCell.canFly   = Cell(nX, nY).CanFly;
+            rstDstCell.landType = Cell(nX, nY).LandType;
 
             // cell::light
-            rstDstCell.Param |= ((to_u32(Light(nX, nY).MakeU8())) << 8);
+            rstDstCell.light.valid  = Light(nX, nY).Valid;
+            rstDstCell.light.radius = Light(nX, nY).Radius;
+            rstDstCell.light.alpha  = Light(nX, nY).Alpha;
+            rstDstCell.light.color  = Light(nX, nY).Color;
 
-            // cell::obj[0]
-            {
-                auto stArray = Object(nX, nY, 0).MakeArray();
-                if(stArray[4] & 0X80){
-                    rstDstCell.Obj[0].Param = 0X80000000
-                        | ((to_u32(stArray[2])) << 16)
-                        | ((to_u32(stArray[1])) <<  8)
-                        | ((to_u32(stArray[0])) <<  0);
-                    rstDstCell.ObjParam |= ((to_u32(stArray[3] & 0XFF)) << 8);
-                    rstDstCell.ObjParam |= ((to_u32(stArray[4] & 0X03)) << 6);
-                }else{
-                    rstDstCell.Obj[0].Param = 0;
-                    rstDstCell.ObjParam &= 0XFFFF0000;
-                }
-            }
-
-            // cell::obj[1]
-            {
-                auto stArray = Object(nX, nY, 1).MakeArray();
-                if(stArray[4] & 0X80){
-                    rstDstCell.Obj[1].Param = 0X80000000
-                        | ((to_u32(stArray[2])) << 16)
-                        | ((to_u32(stArray[1])) <<  8)
-                        | ((to_u32(stArray[0])) <<  0);
-                    rstDstCell.ObjParam |= ((to_u32(stArray[3] & 0XFF)) << 24);
-                    rstDstCell.ObjParam |= ((to_u32(stArray[4] & 0X03)) << 22);
-                }else{
-                    rstDstCell.Obj[1].Param = 0;
-                    rstDstCell.ObjParam &= 0X0000FFFF;
-                }
+            // cell::obj[0:1]
+            for(int nIndex: {0, 1}){
+                rstDstCell.obj[nIndex].texIDValid = Object(nX, nY, nIndex).Valid;
+                rstDstCell.obj[nIndex].texID      = Object(nX, nY, nIndex).Image;
+                rstDstCell.obj[nIndex].animated   = Object(nX, nY, nIndex).Animated;
+                rstDstCell.obj[nIndex].tickType   = Object(nX, nY, nIndex).AniType;
+                rstDstCell.obj[nIndex].frameCount = Object(nX, nY, nIndex).AniCount;
+                rstDstCell.obj[nIndex].alpha      = Object(nX, nY, nIndex).Alpha;
+                rstDstCell.obj[nIndex].depthType  = Object(nX, nY, nIndex).Ground ? OBJD_GROUND : OBJD_OVERGROUND0;
             }
         }
     }
 
-    return stMapData.Save(szFullName) ? false : true;
+    stMapData.save(szFullName);
+    return true;
 }
 
 void EditorMap::ExportOverview(std::function<void(uint8_t, uint16_t, int, int, bool)> fnExportOverview)

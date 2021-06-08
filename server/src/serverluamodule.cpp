@@ -46,13 +46,10 @@ ServerLuaModule::ServerLuaModule()
         const auto fnGetRandGLoc = [](const auto dataCPtr) -> std::array<int, 2>
         {
             while(true){
-                const int x = std::rand() % dataCPtr->W();
-                const int y = std::rand() % dataCPtr->H();
+                const int x = std::rand() % dataCPtr->w();
+                const int y = std::rand() % dataCPtr->h();
 
-                if(true
-                        && dataCPtr->Valid()
-                        && dataCPtr->ValidC(x, y)
-                        && dataCPtr->Cell(x, y).CanThrough()){
+                if(dataCPtr->validC(x, y) && dataCPtr->cell(x, y).canThrough()){
                     return {x, y};
                 }
             }

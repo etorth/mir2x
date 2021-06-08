@@ -69,11 +69,8 @@ class MapBinDB: public innDB<uint32_t, MapBinEntry>
 
             if(std::vector<uint8_t> stBuf; m_ZSDBPtr->decomp(hexstr::to_string<uint32_t, 4>(nKey, szKeyString, true), 8, &stBuf)){
                 auto pMap = new Mir2xMapData();
-                if(pMap->Load(stBuf.data(), stBuf.size())){
-                    stEntry.Map = pMap;
-                }else{
-                    delete pMap;
-                }
+                pMap->loadData(stBuf.data(), stBuf.size());
+                stEntry.Map = pMap;
             }
             return {stEntry, stEntry.Map ? 1 : 0};
         }

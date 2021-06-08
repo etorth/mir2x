@@ -91,7 +91,7 @@ int ClientPathFinder::getGrid(int nX, int nY) const
         throw fflerror("ProcessRun is invalid");
     }
 
-    if(!pRun->ValidC(nX, nY)){
+    if(!pRun->validC(nX, nY)){
         return PathFind::INVALID;
     }
 
