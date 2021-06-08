@@ -1235,8 +1235,8 @@ void DrawArea::DrawFloatObject(int nX, int nY, int nFOType, int nWinX, int nWinY
                         nTextStartY += 20;
 
                         auto &rstImageInfo = g_ImageDB.ImageInfo(nFileIndex, nImageIndex);
-                        auto nPX = rstImageInfo.shPX;
-                        auto nPY = rstImageInfo.shPY;
+                        auto nPX = rstImageInfo.px;
+                        auto nPY = rstImageInfo.py;
 
                         DrawText(nTextStartX, nTextStartY, "OffseX : %d", to_d(nPX));
                         nTextStartY += 20;
@@ -1245,7 +1245,7 @@ void DrawArea::DrawFloatObject(int nX, int nY, int nFOType, int nWinX, int nWinY
                         nTextStartY += 20;
 
                         auto &rstHeader = g_ImageDB.GetPackage(nFileIndex).HeaderInfo();
-                        auto nVersion = rstHeader.shVer;
+                        auto nVersion = rstHeader.version;
 
                         DrawText(nTextStartX, nTextStartY, "Versio : %d", to_d(nVersion));
                         nTextStartY += 20;

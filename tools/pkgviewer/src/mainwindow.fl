@@ -145,7 +145,7 @@ class MainWindow {} {
                 ActivateAll();
                 auto szBottomInfo = std::string("FileName: ") + fileName + "." + fileExt
                     + "    ImageCount: " + std::to_string(nImageCount)
-                    + "    Version: "    + std::to_string(g_WilPackage.Version());
+                    + "    Version: "    + std::to_string(g_WilPackage.version());
 
                 AddBottomLog(szBottomInfo.c_str());
                 break;

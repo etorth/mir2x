@@ -110,7 +110,7 @@ void hairWil2PNG(bool bGender,
                             && stHairWilPackage.CurrentImageValid()){
 
                         const auto stHairInfo = stHairWilPackage.CurrentImageInfo();
-                        stHairPNGBuf.resize(stHairInfo.shWidth * stHairInfo.shHeight);
+                        stHairPNGBuf.resize(stHairInfo.width * stHairInfo.height);
                         stHairWilPackage.Decode(&(stHairPNGBuf[0]), 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF);
 
                         char szSaveFileName[128];
@@ -121,10 +121,10 @@ void hairWil2PNG(bool bGender,
                                 nMotion,
                                 nDirection,
                                 nFrame,
-                                stHairInfo.shPX,
-                                stHairInfo.shPY);
+                                stHairInfo.px,
+                                stHairInfo.py);
 
-                        if(!pngf::saveRGBABuffer((uint8_t *)(&(stHairPNGBuf[0])), stHairInfo.shWidth, stHairInfo.shHeight, szSaveFileName)){
+                        if(!pngf::saveRGBABuffer((uint8_t *)(&(stHairPNGBuf[0])), stHairInfo.width, stHairInfo.height, szSaveFileName)){
                             throw fflerror("save hair PNG failed: %s", szSaveFileName);
                         }
                     }

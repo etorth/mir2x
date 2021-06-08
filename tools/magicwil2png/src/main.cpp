@@ -97,14 +97,14 @@ void magicWil2PNG(const char *dataPath, const char *outDir, int prefixWidth)
         for(int i = 0; i < imgPackage.IndexCount(); ++i){
             if(imgPackage.SetIndex(i) && imgPackage.CurrentImageValid()){
                 const auto imgInfo = imgPackage.CurrentImageInfo();
-                pngBuf.resize(imgInfo.shWidth * imgInfo.shHeight);
+                pngBuf.resize(imgInfo.width * imgInfo.height);
                 imgPackage.Decode(&(pngBuf[0]), 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF);
                 alphaf::autoAlpha(pngBuf.data(), pngBuf.size());
 
                 char saveFileName[256];
-                createOffsetFileName(saveFileName, outDir, fileIndex, i, imgInfo.shPX, imgInfo.shPY, prefixIndex++, prefixWidth);
+                createOffsetFileName(saveFileName, outDir, fileIndex, i, imgInfo.px, imgInfo.py, prefixIndex++, prefixWidth);
 
-                if(!pngf::saveRGBABuffer((uint8_t *)(pngBuf.data()), imgInfo.shWidth, imgInfo.shHeight, saveFileName)){
+                if(!pngf::saveRGBABuffer((uint8_t *)(pngBuf.data()), imgInfo.width, imgInfo.height, saveFileName)){
                     throw fflerror("save PNG failed: %s", saveFileName);
                 }
             }

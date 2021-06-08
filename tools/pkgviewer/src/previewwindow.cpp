@@ -61,8 +61,8 @@ bool PreviewWindow::LoadImage()
         return false;
     }
 
-    auto nW = g_WilPackage.CurrentImageInfo().shWidth;
-    auto nH = g_WilPackage.CurrentImageInfo().shHeight;
+    auto nW = g_WilPackage.CurrentImageInfo().width;
+    auto nH = g_WilPackage.CurrentImageInfo().height;
 
     m_Buf.resize(0);
     m_Buf.resize(nW * nH);

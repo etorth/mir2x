@@ -111,14 +111,14 @@ bool ActionSet::ImportMir2Action(int nFileIndex, int nAnimationIndex, int nStatu
                 std::sprintf(szSaveFileName, "./IMG/0%02d%02d%02d%d%02d.PNG",
                         m_FileIndex, m_AnimationIndex, m_Status, m_Direction, nFrame);
                 if(!filesys::hasFile(szSaveFileName)){
-                    if(nDataLen < stInfo0.shWidth * stInfo0.shHeight){
+                    if(nDataLen < stInfo0.width * stInfo0.height){
                         delete pData;
-                        pData    = new uint32_t[stInfo0.shWidth * stInfo0.shHeight];
-                        nDataLen = stInfo0.shWidth * stInfo0.shHeight;
+                        pData    = new uint32_t[stInfo0.width * stInfo0.height];
+                        nDataLen = stInfo0.width * stInfo0.height;
                     }
                     g_WilImagePackage[0].Decode(pData, 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF);
                     pngf::saveRGBABuffer((uint8_t *)pData,
-                            stInfo0.shWidth, stInfo0.shHeight,
+                            stInfo0.width, stInfo0.height,
                             szSaveFileName);
                 }
                 m_PNG[0][nFrame] = Fl_Shared_Image::get(szSaveFileName);
@@ -137,23 +137,23 @@ bool ActionSet::ImportMir2Action(int nFileIndex, int nAnimationIndex, int nStatu
                 std::sprintf(szSaveFileName, "./IMG/1%02d%02d%02d%d%02d.PNG",
                         m_FileIndex, m_AnimationIndex, m_Status, m_Direction, nFrame);
                 if(!filesys::hasFile(szSaveFileName)){
-                    if(nDataLen < stInfo1.shWidth * stInfo1.shHeight){
+                    if(nDataLen < stInfo1.width * stInfo1.height){
                         delete pData;
-                        pData    = new uint32_t[stInfo1.shWidth * stInfo1.shHeight];
-                        nDataLen = stInfo1.shWidth * stInfo1.shHeight;
+                        pData    = new uint32_t[stInfo1.width * stInfo1.height];
+                        nDataLen = stInfo1.width * stInfo1.height;
                     }
                     g_WilImagePackage[1].Decode(pData, 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF);
                     pngf::saveRGBABuffer((uint8_t *)pData,
-                            stInfo1.shWidth, stInfo1.shHeight,
+                            stInfo1.width, stInfo1.height,
                             szSaveFileName);
                 }
                 m_PNG[1][nFrame] = Fl_Shared_Image::get(szSaveFileName);
             }
 
-            m_DSX[nFrame] = stInfo1.shPX - stInfo0.shPX;
-            m_DSY[nFrame] = stInfo1.shPY - stInfo0.shPY;
-            m_PX [nFrame] = stInfo0.shPX;
-            m_PY [nFrame] = stInfo0.shPY;
+            m_DSX[nFrame] = stInfo1.px - stInfo0.px;
+            m_DSY[nFrame] = stInfo1.py - stInfo0.py;
+            m_PX [nFrame] = stInfo0.px;
+            m_PY [nFrame] = stInfo0.py;
 
             // m_PNG[0]: start: (x - dx, y - dy)
             // m_PNG[1]: start: (x     , y     )

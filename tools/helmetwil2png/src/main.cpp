@@ -116,7 +116,7 @@ void helmetWil2PNG(bool bGender, int nIndex,
                             && stHelmetWilPackage.CurrentImageValid()){
 
                         const auto stHelmetInfo = stHelmetWilPackage.CurrentImageInfo();
-                        stHelmetPNGBuf.resize(stHelmetInfo.shWidth * stHelmetInfo.shHeight);
+                        stHelmetPNGBuf.resize(stHelmetInfo.width * stHelmetInfo.height);
                         stHelmetWilPackage.Decode(&(stHelmetPNGBuf[0]), 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF);
 
                         char szSaveFileName[128];
@@ -127,10 +127,10 @@ void helmetWil2PNG(bool bGender, int nIndex,
                                 nMotion,
                                 nDirection,
                                 nFrame,
-                                stHelmetInfo.shPX,
-                                stHelmetInfo.shPY);
+                                stHelmetInfo.px,
+                                stHelmetInfo.py);
 
-                        if(!pngf::saveRGBABuffer((uint8_t *)(&(stHelmetPNGBuf[0])), stHelmetInfo.shWidth, stHelmetInfo.shHeight, szSaveFileName)){
+                        if(!pngf::saveRGBABuffer((uint8_t *)(&(stHelmetPNGBuf[0])), stHelmetInfo.width, stHelmetInfo.height, szSaveFileName)){
                             throw fflerror("save helmet PNG failed: %s", szSaveFileName);
                         }
                     }

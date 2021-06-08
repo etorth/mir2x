@@ -28,28 +28,28 @@
 
 struct WILFILEHEADER
 {
-    int16_t     shComp;
-    char        szTitle[20];
-    int16_t     shVer;
-    int32_t     nImageCount;
+    uint16_t    comp;
+    char        title[20];
+    uint16_t    version;
+    uint32_t    imageCount;
 };
 
 struct WIXIMAGEINFO
 {
-    char        szTitle[20];
-    int32_t     nIndexCount;
+    char        title[20];
+    uint32_t    indexCount;
 };
 
 struct WILIMAGEINFO
 {
-    int16_t     shWidth;
-    int16_t     shHeight;
-    int16_t     shPX;
-    int16_t     shPY;
-    char        bShadow;                    
-    int16_t     shShadowPX;
-    int16_t     shShadowPY;
-    uint32_t    dwImageLength;
+    uint16_t    width;
+    uint16_t    height;
+    uint16_t    px;
+    uint16_t    py;
+    char        shadow;                    
+    uint16_t    shadowPX;
+    uint16_t    shadowPY;
+    uint32_t    imageLength;
 };
 
 #pragma pack(pop)
@@ -81,7 +81,10 @@ class WilImagePackage
         int32_t IndexCount();
 
     public:
-        int16_t Version();
+        uint16_t version() const
+        {
+            return m_wilFileHeader.version;
+        }
 
     public:
         bool SetIndex(uint32_t);

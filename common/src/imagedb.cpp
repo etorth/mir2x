@@ -130,8 +130,8 @@ bool ImageDB::Valid(uint8_t nFileIndex, uint16_t nImageIndex)
             && nImageIndex != 65535
             && m_imagePackage[nFileIndex].SetIndex(nImageIndex)
             && m_imagePackage[nFileIndex].CurrentImageValid()){
-        int nW = m_imagePackage[nFileIndex].CurrentImageInfo().shWidth;
-        int nH = m_imagePackage[nFileIndex].CurrentImageInfo().shHeight;
+        int nW = m_imagePackage[nFileIndex].CurrentImageInfo().width;
+        int nH = m_imagePackage[nFileIndex].CurrentImageInfo().height;
         if((nW > 0) && (nH > 0)){
             return true;
         }
@@ -141,12 +141,12 @@ bool ImageDB::Valid(uint8_t nFileIndex, uint16_t nImageIndex)
 
 int ImageDB::FastW(uint8_t nFileIndex)
 {
-    return m_imagePackage[nFileIndex].CurrentImageInfo().shWidth;
+    return m_imagePackage[nFileIndex].CurrentImageInfo().width;
 }
 
 int ImageDB::FastH(uint8_t nFileIndex)
 {
-    return m_imagePackage[nFileIndex].CurrentImageInfo().shHeight;
+    return m_imagePackage[nFileIndex].CurrentImageInfo().height;
 }
 
 int ImageDB::W(uint8_t nFileIndex, uint16_t nImageIndex)

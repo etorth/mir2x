@@ -127,7 +127,7 @@ bool heroWil2PNG(bool bGender,
                             && stPackage.CurrentImageValid()){
 
                         auto stInfo = stPackage.CurrentImageInfo();
-                        stPNGBuf.resize(stInfo.shWidth * stInfo.shHeight);
+                        stPNGBuf.resize(stInfo.width * stInfo.height);
                         stPackage.Decode(&(stPNGBuf[0]), 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF);
 
                         // export for HumanGfxDBN
@@ -140,10 +140,10 @@ bool heroWil2PNG(bool bGender,
                                 nMotion,
                                 nDirection,
                                 nFrame,
-                                stInfo.shPX,
-                                stInfo.shPY);
+                                stInfo.px,
+                                stInfo.py);
 
-                        if(!pngf::saveRGBABuffer((uint8_t *)(&(stPNGBuf[0])), stInfo.shWidth, stInfo.shHeight, szSaveFileName)){
+                        if(!pngf::saveRGBABuffer((uint8_t *)(&(stPNGBuf[0])), stInfo.width, stInfo.height, szSaveFileName)){
                             std::printf("save PNG failed: %s", szSaveFileName);
                             return false;
                         }
@@ -154,8 +154,8 @@ bool heroWil2PNG(bool bGender,
                         //  project :  (nW + nH / 2) x (nH / 2 + 1)
                         //          :  (nW x nH)
                         //
-                        int nMaxW = (std::max<int>)(stInfo.shWidth + stInfo.shHeight / 2, stInfo.shWidth ) + 20;
-                        int nMaxH = (std::max<int>)(             1 + stInfo.shHeight / 2, stInfo.shHeight) + 20;
+                        int nMaxW = (std::max<int>)(stInfo.width + stInfo.height / 2, stInfo.width ) + 20;
+                        int nMaxH = (std::max<int>)(           1 + stInfo.height / 2, stInfo.height) + 20;
                         stPNGBufShadow.resize(nMaxW * nMaxH);
 
                         bool bProject = true;
@@ -165,7 +165,7 @@ bool heroWil2PNG(bool bGender,
 
                         int nShadowW = 0;
                         int nShadowH = 0;
-                        Shadow::MakeShadow(&(stPNGBufShadow[0]), bProject, &(stPNGBuf[0]), stInfo.shWidth, stInfo.shHeight, &nShadowW, &nShadowH, 0XFF000000);
+                        Shadow::MakeShadow(&(stPNGBufShadow[0]), bProject, &(stPNGBuf[0]), stInfo.width, stInfo.height, &nShadowW, &nShadowH, 0XFF000000);
 
                         if(true
                                 && nShadowW > 0
@@ -178,8 +178,8 @@ bool heroWil2PNG(bool bGender,
                                     nMotion,
                                     nDirection,
                                     nFrame,
-                                    bProject ? stInfo.shShadowPX : (stInfo.shPX + 3),
-                                    bProject ? stInfo.shShadowPY : (stInfo.shPY + 2));
+                                    bProject ? stInfo.shadowPX : (stInfo.px + 3),
+                                    bProject ? stInfo.shadowPY : (stInfo.py + 2));
 
                             if(!pngf::saveRGBABuffer((uint8_t *)(&(stPNGBufShadow[0])), nShadowW, nShadowH, szSaveFileName)){
                                 std::printf("save shadow PNG failed: %s", szSaveFileName);
