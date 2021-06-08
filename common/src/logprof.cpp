@@ -41,15 +41,15 @@ void logProfiling(const std::function<void(const std::string &)> &dump)
 		return;
 	}
 
-#define _FUNC_LOGFUMP(op, ...) op(str_printf(__VA_ARGS__))
+#define _FUNC_LOG_DUMP(op, ...) op(str_printf(__VA_ARGS__))
 
-    _FUNC_LOGFUMP(dump, "---\n");
-    _FUNC_LOGFUMP(dump, "---\n");
-    _FUNC_LOGFUMP(dump, "--- Runtime statistics:\n");
-    _FUNC_LOGFUMP(dump, "--- \n");
-    _FUNC_LOGFUMP(dump, "--- ---------------------------- ---------------- ---------------- ----------------\n");
-    _FUNC_LOGFUMP(dump, "--- Command Name                            Calls     Longest Time       Total Time\n");
-    _FUNC_LOGFUMP(dump, "--- ---------------------------- ---------------- ---------------- ----------------\n");
+    _FUNC_LOG_DUMP(dump, "---\n");
+    _FUNC_LOG_DUMP(dump, "---\n");
+    _FUNC_LOG_DUMP(dump, "--- Runtime statistics:\n");
+    _FUNC_LOG_DUMP(dump, "--- \n");
+    _FUNC_LOG_DUMP(dump, "--- ---------------------------- ---------------- ---------------- ----------------\n");
+    _FUNC_LOG_DUMP(dump, "--- Command Name                            Calls     Longest Time       Total Time\n");
+    _FUNC_LOG_DUMP(dump, "--- ---------------------------- ---------------- ---------------- ----------------\n");
 
     struct logEntry
     {
@@ -91,7 +91,7 @@ void logProfiling(const std::function<void(const std::string &)> &dump)
     });
 
 	for(const auto &entry: logEntryList){
-		_FUNC_LOGFUMP(dump, "--- %-28s %16lld %11.3f secs %11.3f secs\n", entry.name, entry.count, entry.longest / 1000000000.0f, entry.total / 1000000000.0f);
+		_FUNC_LOG_DUMP(dump, "--- %-28s %16lld %11.3f secs %11.3f secs\n", entry.name, entry.count, entry.longest / 1000000000.0f, entry.total / 1000000000.0f);
 	}
 
     const auto profilerAvgTime = []() -> float
@@ -105,12 +105,12 @@ void logProfiling(const std::function<void(const std::string &)> &dump)
         return 1.0f * (_logProf::getCurrTick() - startTime) / profilerCount;
     }();
 
-	_FUNC_LOGFUMP(dump, "---\n");
-	_FUNC_LOGFUMP(dump, "--- Profiler ran %lld times, average %.3f nsec/run.\n", totalCount, profilerAvgTime);
-	_FUNC_LOGFUMP(dump, "---\n");
-	_FUNC_LOGFUMP(dump, "---\n");
+	_FUNC_LOG_DUMP(dump, "---\n");
+	_FUNC_LOG_DUMP(dump, "--- Profiler ran %lld times, average %.3f nsec/run.\n", totalCount, profilerAvgTime);
+	_FUNC_LOG_DUMP(dump, "---\n");
+	_FUNC_LOG_DUMP(dump, "---\n");
 
-#undef _FUNC_LOGFUMP
+#undef _FUNC_LOG_DUMP
 }
 
 bool _logProf::logEnableProfiler = true;
