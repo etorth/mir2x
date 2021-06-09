@@ -28,27 +28,27 @@
 
 struct WILFILEHEADER
 {
-    uint16_t    comp;
+    int16_t     comp;
     char        title[20];
-    uint16_t    version;
-    uint32_t    imageCount;
+    int16_t     version;
+    int32_t     imageCount;
 };
 
 struct WIXIMAGEINFO
 {
     char        title[20];
-    uint32_t    indexCount;
+    int32_t     indexCount;
 };
 
 struct WILIMAGEINFO
 {
-    uint16_t    width;
-    uint16_t    height;
-    uint16_t    px;
-    uint16_t    py;
+    int16_t     width;
+    int16_t     height;
+    int16_t     px;
+    int16_t     py;
     char        shadow;                    
-    uint16_t    shadowPX;
-    uint16_t    shadowPY;
+    int16_t     shadowPX;
+    int16_t     shadowPY;
     uint32_t    imageLength;
 };
 
