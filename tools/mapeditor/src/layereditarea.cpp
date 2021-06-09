@@ -156,14 +156,12 @@ void LayerEditArea::DrawTile()
 
 Fl_Image *LayerEditArea::RetrievePNG(uint8_t nFileIndex, uint16_t nImageIndex)
 {
-    extern ImageDB    g_ImageDB;
+    extern ImageDB   *g_ImageDB;
     extern ImageCache g_ImageCache;
     auto pImage = g_ImageCache.Retrieve(nFileIndex, nImageIndex);
     if(pImage == nullptr){
-        if(g_ImageDB.Valid(nFileIndex, nImageIndex)){
-            int nW = g_ImageDB.FastW(nFileIndex);
-            int nH = g_ImageDB.FastH(nFileIndex);
-            g_ImageCache.Register(nFileIndex, nImageIndex, g_ImageDB.FastDecode(nFileIndex, 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF), nW, nH);
+        if(const auto [imgBuf, imgW, imgH] = g_ImageDB->decode(nFileIndex, nImageIndex, 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF); imgBuf){
+            g_ImageCache.Register(nFileIndex, nImageIndex, imgBuf, imgW, imgH);
             pImage = g_ImageCache.Retrieve(nFileIndex, nImageIndex);
         }
     }

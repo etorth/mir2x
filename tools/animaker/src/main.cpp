@@ -59,7 +59,7 @@
 #include "validanimationwindow.hpp"
 #include "animationpreviewwindow.hpp"
 
-WilImagePackage         g_WilImagePackage[2];
+WilImagePackage        *g_WilImagePackage[2];
 MainWindow             *g_MainWindow;
 ValidWilFileWindow     *g_ValidWilFileWindow;
 ValidAnimationWindow   *g_ValidAnimationWindow;

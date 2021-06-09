@@ -23,7 +23,7 @@
 
 #include "totype.hpp"
 #include "filesys.hpp"
-#include "fflerror.hpp"
+#include "condcheck.hpp"
 #include "wilimagepackage.hpp"
 
 static uint32_t color_u16_2_u32(uint16_t srcColor, uint32_t modColor)
@@ -63,14 +63,14 @@ static void memset_u32(uint32_t *dst, size_t n, uint32_t src)
 }
 
 WilImagePackage::WilImagePackage(const char* wilFilePath, const char *wilFileName)
-    : m_wilFile(make_fileptr(hasWilFile(wilFilePath, wilFileName, {"wil", "Wil", "WIL"}).c_str(), "rb"))
+    : m_wilFile(make_fileptr(hasWilFile(wilFileName, wilFileName, {"wil", "Wil", "WIL"}).c_str(), "rb"))
 {
     read_fileptr(m_wilFile, &m_wilFileHeader, sizeof(m_wilFileHeader));
 
     wilOff(m_wilFileHeader.version); // check if version supported
     fflassert(m_wilFileHeader.imageCount >= 0);
 
-    auto wixFile = make_fileptr(hasWilFile(wilFilePath, wilFileName, {"wix", "Wix", "WIX"}).c_str(), "rb");
+    auto wixFile = make_fileptr(hasWilFile(wilFileName, wilFileName, {"wix", "Wix", "WIX"}).c_str(), "rb");
 
     read_fileptr(wixFile, &m_wixImageInfo, sizeof(m_wixImageInfo));
     fflassert(m_wixImageInfo.indexCount >= 0);
@@ -79,10 +79,10 @@ WilImagePackage::WilImagePackage(const char* wilFilePath, const char *wilFileNam
     read_fileptr(wixFile, m_wilPositionList, m_wixImageInfo.indexCount);
 }
 
-const WILIMAGEINFO *WilImagePackage::setIndex(uint32_t imageIndex)
+bool WilImagePackage::setIndex(uint32_t imageIndex)
 {
     if(m_currImageIndex.has_value() && m_currImageIndex.value() == imageIndex){
-        return &m_currImageInfo;
+        return true;
     }
 
     m_currImageIndex.reset();
@@ -90,17 +90,14 @@ const WILIMAGEINFO *WilImagePackage::setIndex(uint32_t imageIndex)
             || imageIndex >= to_u32(m_wilPositionList.size())
             || imageIndex >= to_u32(m_wixImageInfo.indexCount)
             || m_wilPositionList.at(imageIndex) <= 0){
-        return nullptr;
+        return false;
     }
 
     seek_fileptr(m_wilFile, m_wilPositionList[imageIndex], SEEK_SET);
     read_fileptr(m_wilFile, &m_currImageInfo, sizeof(m_currImageInfo));
 
-    if(false
-            || m_currImageInfo.width  <= 0
-            || m_currImageInfo.height <= 0
-            || m_currImageInfo.imageLength <= 0){
-        return nullptr;
+    if(m_currImageInfo.imageLength <= 0){
+        return false;
     }
 
     seek_fileptr(m_wilFile, m_wilPositionList[imageIndex],   SEEK_SET);
@@ -108,13 +105,13 @@ const WILIMAGEINFO *WilImagePackage::setIndex(uint32_t imageIndex)
 
     read_fileptr(m_wilFile, m_currImageBuffer, m_currImageInfo.imageLength);
     m_currImageIndex = imageIndex;
-    return &m_currImageInfo;
+    return true;
 }
 
 void WilImagePackage::decode(uint32_t *imageBuffer, uint32_t color0, uint32_t color1, uint32_t color2)
 {
     fflassert(imageBuffer);
-    fflassert(currImageValid());
+    fflasset(currImageValid());
 
     size_t srcBeginPos    = 0;
     size_t srcEndPos      = 0;
@@ -131,7 +128,7 @@ void WilImagePackage::decode(uint32_t *imageBuffer, uint32_t color0, uint32_t co
             uint16_t  cntCopy = m_currImageBuffer[srcNowPos++];
 
             switch(hdCode){
-                case 0XC0: // transparent
+                case 0XC0: // jump code
                     memset_u32(imageBuffer + row * m_currImageInfo.width + dstNowPosInRow, cntCopy, 0X00000000);
                     break;
                 case 0XC1:

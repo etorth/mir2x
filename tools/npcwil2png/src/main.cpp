@@ -88,12 +88,9 @@ std::string createOffsetFileName(const char *outDir, bool shadow, int look, int 
             std::abs(dy));
 }
 
-void npcWil2PNG(const char *path, const char *baseName, const char *fileExt, const char *outDir)
+void npcWil2PNG(const char *path, const char *baseName, const char *, const char *outDir)
 {
-    WilImagePackage package;
-    if(!package.Load(path, baseName, fileExt)){
-        throw fflerror("Load wil file failed: %s/%s/%s", path, baseName, fileExt);
-    }
+    WilImagePackage package(path, baseName);
 
     std::vector<uint32_t> pngBuf;
     std::vector<uint32_t> pngBufShadow;
@@ -320,17 +317,17 @@ void npcWil2PNG(const char *path, const char *baseName, const char *fileExt, con
 
             for(int frame = 0; frame < frameCount; ++frame){
                 const int gfxId = lookId * 100 + frameStart + frame;
-                if(!(package.setIndex(gfxId) && package.CurrentImageValid())){
+                if(!(package.setIndex(gfxId))){
                     throw fflerror("gfx table is wrong");
                 }
 
-                const auto imgInfo = package.CurrentImageInfo();
-                pngBuf.resize(imgInfo.width * imgInfo.height);
-                package.Decode(&(pngBuf[0]), 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF);
+                const auto imgInfo = package.currImageInfo();
+                pngBuf.resize(imgInfo->width * imgInfo->height);
+                package.decode(pngBuf.data(), 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF);
 
                 const int dir = dirMap.at(p.first.at(0));
-                const auto fileName = createOffsetFileName(outDir, false, lookId, encodeMotion, dir, frame, imgInfo.px, imgInfo.py);
-                pngf::saveRGBABuffer(reinterpret_cast<const uint8_t *>(pngBuf.data()), imgInfo.width, imgInfo.height, fileName.c_str());
+                const auto fileName = createOffsetFileName(outDir, false, lookId, encodeMotion, dir, frame, imgInfo->px, imgInfo->py);
+                pngf::saveRGBABuffer(reinterpret_cast<const uint8_t *>(pngBuf.data()), imgInfo->width, imgInfo->height, fileName.c_str());
 
                 const auto [needShadow, projectShadow] = [lookId]() -> std::tuple<bool, bool>
                 {
@@ -357,21 +354,21 @@ void npcWil2PNG(const char *path, const char *baseName, const char *fileExt, con
                 //  project :  (nW + nH / 2) x (nH / 2 + 1)
                 //          :  (nW x nH)
 
-                const int maxShadowW = (std::max<int>)(imgInfo.width + imgInfo.height / 2, imgInfo.width ) + 20;
-                const int maxShadowH = (std::max<int>)(            1 + imgInfo.height / 2, imgInfo.height) + 20;
+                const int maxShadowW = (std::max<int>)(imgInfo->width + imgInfo->height / 2, imgInfo->width ) + 20;
+                const int maxShadowH = (std::max<int>)(             1 + imgInfo->height / 2, imgInfo->height) + 20;
                 pngBufShadow.resize(maxShadowW * maxShadowH);
 
                 int nShadowW = 0;
                 int nShadowH = 0;
-                Shadow::MakeShadow(&(pngBufShadow[0]), projectShadow, &(pngBuf[0]), imgInfo.width, imgInfo.height, &nShadowW, &nShadowH, 0XFF000000);
+                Shadow::MakeShadow(&(pngBufShadow[0]), projectShadow, &(pngBuf[0]), imgInfo->width, imgInfo->height, &nShadowW, &nShadowH, 0XFF000000);
 
                 if(nShadowW <= 0 || nShadowH <= 0){
                     throw fflerror("create shadow image failed");
                 }
 
                 const auto shadowFileName = createOffsetFileName(outDir, true, lookId, encodeMotion, dir, frame, 
-                        projectShadow ? imgInfo.shadowPX : (imgInfo.px + 3),
-                        projectShadow ? imgInfo.shadowPY : (imgInfo.py + 2));
+                        projectShadow ? imgInfo->shadowPX : (imgInfo->px + 3),
+                        projectShadow ? imgInfo->shadowPY : (imgInfo->py + 2));
                 pngf::saveRGBABuffer(reinterpret_cast<const uint8_t *>(pngBufShadow.data()), nShadowW, nShadowH, shadowFileName.c_str());
             }
         }

@@ -132,24 +132,14 @@ const char *createOffsetFileName(char *szFileName,
 bool monsterWil2PNG(int nMonsterFileIndex,
         const char *szPath,
         const char *szBodyFileBaseName,
-        const char *szBodyFileExt,
+        const char *,
         const char *szShadowFileBaseName,
-        const char *szShadowFileExt,
+        const char *,
         const char *szOutDir,
         const char *szPrefixWidth)
 {
-    WilImagePackage stPackageBody;
-    WilImagePackage stPackageShadow;
-
-    if(!stPackageBody.Load(szPath, szBodyFileBaseName, szBodyFileExt)){
-        std::printf("Load wil file failed: %s/%s/%s", szPath, szBodyFileBaseName, szBodyFileExt);
-        return false;
-    }
-
-    if(!stPackageShadow.Load(szPath, szShadowFileBaseName, szShadowFileExt)){
-        std::printf("Load wil file failed: %s/%s/%s", szPath, szShadowFileBaseName, szShadowFileExt);
-        return false;
-    }
+    WilImagePackage stPackageBody(szPath, szBodyFileBaseName);
+    WilImagePackage stPackageShadow(szPath, szShadowFileBaseName);
 
     std::vector<uint32_t> stPNGBuf;
     std::vector<uint32_t> stPNGBufShadow;
@@ -224,13 +214,9 @@ bool monsterWil2PNG(int nMonsterFileIndex,
                         }
                     }
 
-                    if(true
-                            && stPackageBody.setIndex(nBaseIndex)
-                            && stPackageBody.CurrentImageValid()){
-
-                        auto stInfo = stPackageBody.CurrentImageInfo();
-                        stPNGBuf.resize(stInfo.width * stInfo.height);
-                        stPackageBody.Decode(&(stPNGBuf[0]), 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF);
+                    if(const auto bodyImgInfo = stPackageBody.setIndex(nBaseIndex)){
+                        stPNGBuf.resize(bodyImgInfo->width * bodyImgInfo->height);
+                        stPackageBody.decode(stPNGBuf.data(), 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF);
 
                         // export for MonsterDBN
                         char szSaveFileName[128];
@@ -241,12 +227,12 @@ bool monsterWil2PNG(int nMonsterFileIndex,
                                 nMotion,
                                 nDirection,
                                 nFrame,
-                                stInfo.px,
-                                stInfo.py,
+                                bodyImgInfo->px,
+                                bodyImgInfo->py,
                                 imgCount++,
                                 prefixWidth);
 
-                        if(!pngf::saveRGBABuffer((uint8_t *)(&(stPNGBuf[0])), stInfo.width, stInfo.height, szSaveFileName)){
+                        if(!pngf::saveRGBABuffer((uint8_t *)(&(stPNGBuf[0])), bodyImgInfo->width, bodyImgInfo->height, szSaveFileName)){
                             std::printf("save PNG failed: %s", szSaveFileName);
                             return false;
                         }
@@ -258,13 +244,9 @@ bool monsterWil2PNG(int nMonsterFileIndex,
                             nBaseIndex = alterShadowBaseIndex;
                         }
 
-                        if(true
-                                && stPackageShadow.setIndex(nBaseIndex)
-                                && stPackageShadow.CurrentImageValid()){
-
-                            auto stShadowInfo = stPackageShadow.CurrentImageInfo();
-                            stPNGBufShadow.resize(stShadowInfo.width * stShadowInfo.height);
-                            stPackageShadow.Decode(&(stPNGBufShadow[0]), 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF);
+                        if(const auto shadowImgInfo = stPackageShadow.setIndex(nBaseIndex)){
+                            stPNGBufShadow.resize(shadowImgInfo->width * shadowImgInfo->height);
+                            stPackageShadow.decode(stPNGBufShadow.data(), 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF);
 
                             // export for MonsterDBN
                             char szSaveShadowFileName[128];
@@ -275,17 +257,18 @@ bool monsterWil2PNG(int nMonsterFileIndex,
                                     nMotion,
                                     nDirection,
                                     nFrame,
-                                    stShadowInfo.px,
-                                    stShadowInfo.py,
+                                    shadowImgInfo->px,
+                                    shadowImgInfo->py,
                                     imgCount++,
                                     prefixWidth);
 
-                            if(!pngf::saveRGBABuffer((uint8_t *)(&(stPNGBufShadow[0])), stShadowInfo.width, stShadowInfo.height, szSaveShadowFileName)){
+                            if(!pngf::saveRGBABuffer(stPNGBufShadow.data(), shadowImgInfo->width, shadowImgInfo->height, szSaveShadowFileName)){
                                 std::printf("save PNG failed: %s", szSaveShadowFileName);
                                 return false;
                             }
 
-                        }else{
+                        }
+                        else{
 
                             // dynamically create one
 
@@ -295,8 +278,8 @@ bool monsterWil2PNG(int nMonsterFileIndex,
                             //  project :  (nW + nH / 2) x (nH / 2 + 1)
                             //          :  (nW x nH)
                             //
-                            int nMaxW = (std::max<int>)(stInfo.width + stInfo.height / 2, stInfo.width ) + 20;
-                            int nMaxH = (std::max<int>)(           1 + stInfo.height / 2, stInfo.height) + 20;
+                            int nMaxW = (std::max<int>)(bodyImgInfo->width + bodyImgInfo->height / 2, bodyImgInfo->width ) + 20;
+                            int nMaxH = (std::max<int>)(           1 + bodyImgInfo->height / 2, bodyImgInfo->height) + 20;
                             stPNGBufShadow.resize(nMaxW * nMaxH);
 
                             bool bProject = true;
@@ -328,7 +311,7 @@ bool monsterWil2PNG(int nMonsterFileIndex,
 
                             int nShadowW = 0;
                             int nShadowH = 0;
-                            Shadow::MakeShadow(&(stPNGBufShadow[0]), bProject, &(stPNGBuf[0]), stInfo.width, stInfo.height, &nShadowW, &nShadowH, 0XFF000000);
+                            Shadow::MakeShadow(stPNGBufShadow.data(), bProject, &(stPNGBuf[0]), bodyImgInfo->width, bodyImgInfo->height, &nShadowW, &nShadowH, 0XFF000000);
 
                             if(true
                                     && nShadowW > 0
@@ -342,12 +325,12 @@ bool monsterWil2PNG(int nMonsterFileIndex,
                                         nMotion,
                                         nDirection,
                                         nFrame,
-                                        bProject ? stInfo.shadowPX : (stInfo.px + 3),
-                                        bProject ? stInfo.shadowPY : (stInfo.py + 2),
+                                        bProject ? bodyImgInfo->shadowPX : (bodyImgInfo->px + 3),
+                                        bProject ? bodyImgInfo->shadowPY : (bodyImgInfo->py + 2),
                                         imgCount++,
                                         prefixWidth);
 
-                                if(!pngf::saveRGBABuffer((uint8_t *)(&(stPNGBufShadow[0])), nShadowW, nShadowH, szSaveShadowFileName)){
+                                if(!pngf::saveRGBABuffer(stPNGBufShadow.data(), nShadowW, nShadowH, szSaveShadowFileName)){
                                     std::printf("save shadow PNG failed: %s", szSaveShadowFileName);
                                     return false;
                                 }

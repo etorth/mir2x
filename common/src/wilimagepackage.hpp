@@ -22,6 +22,8 @@
 #include <cstdio>
 #include <cstdint>
 #include <cstdlib>
+#include "filesys.hpp"
+#include "fileptr.hpp"
 #include "fflerror.hpp"
 
 #pragma pack(push, 1)
@@ -57,28 +59,35 @@ struct WILIMAGEINFO
 class WilImagePackage
 {
     private:
-        WIXIMAGEINFO  m_wixImageInfo;
-        WILIMAGEINFO  m_currentWilImageInfo;
+        fileptr_t m_wilFile;
+
+    private:
+        std::optional<uint32_t> m_currImageIndex;
+
+    private:
         WILFILEHEADER m_wilFileHeader;
 
     private:
-        int32_t m_currentImageIndex;
-        bool    m_currentImageValid;
+        WIXIMAGEINFO m_wixImageInfo;
+        WILIMAGEINFO m_currImageInfo;
 
     private:
-        std::vector<uint16_t> m_currentImageBuffer;
-        std::vector< int32_t> m_wilPosition;
-
-    private:
-        FILE *m_wilFile;
+        std::vector< int32_t> m_wilPositionList;
+        std::vector<uint16_t> m_currImageBuffer;
 
     public:
-        WilImagePackage();
-        ~WilImagePackage();
+        WilImagePackage(const char *, const char *);
 
     public:
-        int32_t ImageCount();
-        int32_t IndexCount();
+        size_t imageCount() const
+        {
+            return m_wilFileHeader.imageCount;
+        }
+
+        size_t indexCount() const
+        {
+            return m_wixImageInfo.indexCount;
+        }
 
     public:
         uint16_t version() const
@@ -87,19 +96,34 @@ class WilImagePackage
         }
 
     public:
-        bool setIndex(uint32_t);
+        const WILIMAGEINFO *setIndex(uint32_t);
 
     public:
-        bool Load(const char *, const char *, const char *);
-        void Decode(uint32_t *, uint32_t, uint32_t, uint32_t);
+        void decode(uint32_t *, uint32_t, uint32_t, uint32_t);
 
     public:
-        const WILFILEHEADER &HeaderInfo() const;
+        const WILFILEHEADER &header() const
+        {
+            return m_wilFileHeader;
+        }
 
     public:
-        const WILIMAGEINFO  &CurrentImageInfo();
-        bool                 CurrentImageValid();
-        const uint16_t      *CurrentImageBuffer();
+        bool currImageValid() const
+        {
+            return m_currImageIndex.has_value();
+        }
+
+    public:
+        const WILIMAGEINFO *currImageInfo() const
+        {
+            return m_currImageIndex.has_value() ? &m_currImageInfo : nullptr;
+        }
+
+    public:
+        const uint16_t *currImageBuffer() const
+        {
+            return m_currImageIndex.has_value() ? m_currImageBuffer.data() : nullptr;
+        }
 
     private:
         static int wixOff(int version)
@@ -120,5 +144,20 @@ class WilImagePackage
                 case 6000: return 21;
                 default  : throw bad_reach();
             }
+        }
+
+    private:
+        static std::string hasWilFile(const char *path, const char *file, std::initializer_list<const char *> extList)
+        {
+            fflassert(str_haschar(path));
+            fflassert(str_haschar(file));
+
+            for(const auto ext: extList){
+                fflassert(str_haschar(ext));
+                if(const auto fileName = str_printf("%s/%s.%s", path, file, ext); filesys::hasFile(fileName.c_str())){
+                    return fileName;
+                }
+            }
+            throw bad_reach();
         }
 };

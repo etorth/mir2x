@@ -106,15 +106,10 @@ const char *createOffsetFileName(char *szFileName,
 bool heroWil2PNG(bool bGender,
         const char *szPath,
         const char *szBaseName,
-        const char *szExt,
+        const char *,
         const char *szOutDir)
 {
-    WilImagePackage stPackage;
-    if(!stPackage.Load(szPath, szBaseName, szExt)){
-        std::printf("Load wil file failed: %s/%s/%s", szPath, szBaseName, szExt);
-        return false;
-    }
-
+    WilImagePackage stPackage(szPath, szBaseName);
     std::vector<uint32_t> stPNGBuf;
     std::vector<uint32_t> stPNGBufShadow;
     for(int nDress = 0; nDress < 9; ++nDress){
@@ -122,13 +117,11 @@ bool heroWil2PNG(bool bGender,
             for(int nDirection = 0; nDirection < 8; ++nDirection){
                 for(int nFrame = 0; nFrame < 10; ++nFrame){
                     int nBaseIndex = nDress * 3000 + nMotion * 80 + nDirection * 10 + nFrame;
-                    if(true
-                            && stPackage.setIndex(nBaseIndex)
-                            && stPackage.CurrentImageValid()){
+                    if(stPackage.setIndex(nBaseIndex)){
 
-                        auto stInfo = stPackage.CurrentImageInfo();
-                        stPNGBuf.resize(stInfo.width * stInfo.height);
-                        stPackage.Decode(&(stPNGBuf[0]), 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF);
+                        const auto imgInfo = stPackage.currImageInfo();
+                        stPNGBuf.resize(imgInfo->width * imgInfo->height);
+                        stPackage.decode(&(stPNGBuf[0]), 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF);
 
                         // export for HumanGfxDBN
                         char szSaveFileName[128];
@@ -140,10 +133,10 @@ bool heroWil2PNG(bool bGender,
                                 nMotion,
                                 nDirection,
                                 nFrame,
-                                stInfo.px,
-                                stInfo.py);
+                                imgInfo->px,
+                                imgInfo->py);
 
-                        if(!pngf::saveRGBABuffer((uint8_t *)(&(stPNGBuf[0])), stInfo.width, stInfo.height, szSaveFileName)){
+                        if(!pngf::saveRGBABuffer((uint8_t *)(&(stPNGBuf[0])), imgInfo->width, imgInfo->height, szSaveFileName)){
                             std::printf("save PNG failed: %s", szSaveFileName);
                             return false;
                         }
@@ -154,8 +147,8 @@ bool heroWil2PNG(bool bGender,
                         //  project :  (nW + nH / 2) x (nH / 2 + 1)
                         //          :  (nW x nH)
                         //
-                        int nMaxW = (std::max<int>)(stInfo.width + stInfo.height / 2, stInfo.width ) + 20;
-                        int nMaxH = (std::max<int>)(           1 + stInfo.height / 2, stInfo.height) + 20;
+                        int nMaxW = (std::max<int>)(imgInfo->width + imgInfo->height / 2, imgInfo->width ) + 20;
+                        int nMaxH = (std::max<int>)(           1 + imgInfo->height / 2, imgInfo->height) + 20;
                         stPNGBufShadow.resize(nMaxW * nMaxH);
 
                         bool bProject = true;
@@ -165,7 +158,7 @@ bool heroWil2PNG(bool bGender,
 
                         int nShadowW = 0;
                         int nShadowH = 0;
-                        Shadow::MakeShadow(&(stPNGBufShadow[0]), bProject, &(stPNGBuf[0]), stInfo.width, stInfo.height, &nShadowW, &nShadowH, 0XFF000000);
+                        Shadow::MakeShadow(&(stPNGBufShadow[0]), bProject, &(stPNGBuf[0]), imgInfo->width, imgInfo->height, &nShadowW, &nShadowH, 0XFF000000);
 
                         if(true
                                 && nShadowW > 0
@@ -178,8 +171,8 @@ bool heroWil2PNG(bool bGender,
                                     nMotion,
                                     nDirection,
                                     nFrame,
-                                    bProject ? stInfo.shadowPX : (stInfo.px + 3),
-                                    bProject ? stInfo.shadowPY : (stInfo.py + 2));
+                                    bProject ? imgInfo->shadowPX : (imgInfo->px + 3),
+                                    bProject ? imgInfo->shadowPY : (imgInfo->py + 2));
 
                             if(!pngf::saveRGBABuffer((uint8_t *)(&(stPNGBufShadow[0])), nShadowW, nShadowH, szSaveFileName)){
                                 std::printf("save shadow PNG failed: %s", szSaveFileName);

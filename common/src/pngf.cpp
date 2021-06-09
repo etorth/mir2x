@@ -22,7 +22,7 @@
 #include <csetjmp>
 #include "pngf.hpp"
 
-bool pngf::saveRGBABuffer(const uint8_t *bufRGBA, uint32_t imgWidth, uint32_t imgHeight, const char *fileName)
+bool pngf::saveRGBABuffer(const void *bufRGBA, uint32_t imgWidth, uint32_t imgHeight, const char *fileName)
 {
     // libpng uses longjmp
     // requres initializatio at beginning
@@ -116,7 +116,7 @@ bool pngf::saveRGBABuffer(const uint8_t *bufRGBA, uint32_t imgWidth, uint32_t im
         auto rowBuf =(png_byte *)(png_malloc(imgPtr, rowBufLen));
 
         CHECK_PNG_MALLOC_RESULT(imgPtr, rowBuf);
-        std::memcpy(rowBuf, bufRGBA + rowBufLen * y, rowBufLen);
+        std::memcpy(rowBuf, (const uint8_t *)(bufRGBA) + rowBufLen * y, rowBufLen);
         rowPtrBuf[y] = rowBuf;
     }
 

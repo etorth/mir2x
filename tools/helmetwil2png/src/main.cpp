@@ -96,14 +96,10 @@ const char *createOffsetFileName(char *szFileName,
 void helmetWil2PNG(bool bGender, int nIndex,
         const char *szHelmetWilPath,
         const char *szHelmetWilBaseName,
-        const char *szHelmetWilExt,
+        const char *,
         const char *szOutDir)
 {
-    WilImagePackage stHelmetWilPackage;
-    if(!stHelmetWilPackage.Load(szHelmetWilPath, szHelmetWilBaseName, szHelmetWilExt)){
-        throw fflerror("Load helmet wil file failed: %s/%s.%s", szHelmetWilPath, szHelmetWilBaseName, szHelmetWilExt);
-    }
-
+    WilImagePackage stHelmetWilPackage(szHelmetWilPath, szHelmetWilBaseName);
     std::vector<uint32_t> stHelmetPNGBuf;
     for(int nHelmet = 0; nHelmet < 10; ++nHelmet){
         for(int nMotion = 0; nMotion < 33; ++nMotion){
@@ -111,13 +107,9 @@ void helmetWil2PNG(bool bGender, int nIndex,
                 for(int nFrame = 0; nFrame < 10; ++nFrame){
 
                     const int nHelmetIndex = nHelmet * 3000 + nMotion * 80 + nDirection * 10 + nFrame;
-                    if(true
-                            && stHelmetWilPackage.setIndex(nHelmetIndex)
-                            && stHelmetWilPackage.CurrentImageValid()){
-
-                        const auto stHelmetInfo = stHelmetWilPackage.CurrentImageInfo();
-                        stHelmetPNGBuf.resize(stHelmetInfo.width * stHelmetInfo.height);
-                        stHelmetWilPackage.Decode(&(stHelmetPNGBuf[0]), 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF);
+                    if(const auto helmetImgInfo = stHelmetWilPackage.setIndex(nHelmetIndex)){
+                        stHelmetPNGBuf.resize(helmetImgInfo->width * helmetImgInfo->height);
+                        stHelmetWilPackage.decode(stHelmetPNGBuf.data(), 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF);
 
                         char szSaveFileName[128];
                         createOffsetFileName(szSaveFileName,
@@ -127,10 +119,10 @@ void helmetWil2PNG(bool bGender, int nIndex,
                                 nMotion,
                                 nDirection,
                                 nFrame,
-                                stHelmetInfo.px,
-                                stHelmetInfo.py);
+                                helmetImgInfo->px,
+                                helmetImgInfo->py);
 
-                        if(!pngf::saveRGBABuffer((uint8_t *)(&(stHelmetPNGBuf[0])), stHelmetInfo.width, stHelmetInfo.height, szSaveFileName)){
+                        if(!pngf::saveRGBABuffer((uint8_t *)(&(stHelmetPNGBuf[0])), helmetImgInfo->width, helmetImgInfo->height, szSaveFileName)){
                             throw fflerror("save helmet PNG failed: %s", szSaveFileName);
                         }
                     }

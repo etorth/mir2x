@@ -88,23 +88,18 @@ void magicWil2PNG(const char *dataPath, const char *outDir, int prefixWidth)
         "MonMagicEx3",
         "MonMagicEx4",
     }){
-        WilImagePackage imgPackage;
-        if(!imgPackage.Load(dataPath, fileBodyName, "wil")){
-            throw fflerror("load wil file failed: %s/%s.wil", dataPath, fileBodyName);
-        }
-
+        WilImagePackage imgPackage(dataPath, fileBodyName);
         std::vector<uint32_t> pngBuf;
-        for(int i = 0; i < imgPackage.IndexCount(); ++i){
-            if(imgPackage.setIndex(i) && imgPackage.CurrentImageValid()){
-                const auto imgInfo = imgPackage.CurrentImageInfo();
-                pngBuf.resize(imgInfo.width * imgInfo.height);
-                imgPackage.Decode(&(pngBuf[0]), 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF);
+        for(int i = 0; i < to_d(imgPackage.indexCount()); ++i){
+            if(const auto imgInfo = imgPackage.setIndex(i)){
+                pngBuf.resize(imgInfo->width * imgInfo->height);
+                imgPackage.decode(pngBuf.data(), 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF);
                 alphaf::autoAlpha(pngBuf.data(), pngBuf.size());
 
                 char saveFileName[256];
-                createOffsetFileName(saveFileName, outDir, fileIndex, i, imgInfo.px, imgInfo.py, prefixIndex++, prefixWidth);
+                createOffsetFileName(saveFileName, outDir, fileIndex, i, imgInfo->px, imgInfo->py, prefixIndex++, prefixWidth);
 
-                if(!pngf::saveRGBABuffer((uint8_t *)(pngBuf.data()), imgInfo.width, imgInfo.height, saveFileName)){
+                if(!pngf::saveRGBABuffer((uint8_t *)(pngBuf.data()), imgInfo->width, imgInfo->height, saveFileName)){
                     throw fflerror("save PNG failed: %s", saveFileName);
                 }
             }

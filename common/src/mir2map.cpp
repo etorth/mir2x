@@ -133,9 +133,8 @@ bool Mir2Map::GroundObjectValid(int nX, int nY, int nIndex, ImageDB &stImageDB)
             && nFileIndex < 75
 
             && nImageIndex != 65536
-
-            && stImageDB.Valid(to_u8(nFileIndex), to_u16(nImageIndex))){
-        return stImageDB.FastW(nFileIndex) == SYS_MAPGRIDXP && stImageDB.FastH(nFileIndex) == SYS_MAPGRIDYP;
+            && stImageDB.setIndex(to_u8(nFileIndex), to_u16(nImageIndex))){
+        return stImageDB.currImageInfo()->width == SYS_MAPGRIDXP && stImageDB.currImageInfo()->height == SYS_MAPGRIDYP;
     }
     return false;
 }
@@ -158,7 +157,7 @@ bool Mir2Map::ObjectValid(int nX, int nY, int nIndex, ImageDB &stImageDB)
 
             && nImageIndex != 65536
 
-            && stImageDB.Valid(to_u8(nFileIndex), to_u16(nImageIndex))){
+            && stImageDB.setIndex(to_u8(nFileIndex), to_u16(nImageIndex))){
         return true;
     }
     return false;
@@ -186,7 +185,7 @@ bool Mir2Map::TileValid(int nX, int nY, ImageDB &stImageDB)
 {
     uint32_t nFileIndex  = BaseTileInfo(nX, nY).bFileIndex;
     uint32_t nImageIndex = BaseTileInfo(nX, nY).wTileIndex;
-    return stImageDB.Valid(to_u8(nFileIndex), to_u16(nImageIndex));
+    return stImageDB.setIndex(to_u8(nFileIndex), to_u16(nImageIndex));
 }
 
 uint32_t Mir2Map::Tile(int nX, int nY)

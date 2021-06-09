@@ -105,15 +105,12 @@ AnimationPreviewWindow::AnimationPreviewWindow(uint32_t nFileIndex, uint32_t nAn
     int nFrameCount = WilAnimationFrameCount(nFileIndex, nAnimationIndex, 0, 5);
 
     for(int nFrame = 0; nFrame < nFrameCount; ++nFrame){
-        extern WilImagePackage g_WilImagePackage[2];
+        extern WilImagePackage *g_WilImagePackage[2];
         if(true
-                && g_WilImagePackage[0].setIndex(nFrame + nBaseIndex + nBase0)
-                && g_WilImagePackage[0].CurrentImageValid()
-                && g_WilImagePackage[1].setIndex(nFrame + nBaseIndex + nBase1)
-                && g_WilImagePackage[1].CurrentImageValid()
-          ){
-            auto stInfo0 = g_WilImagePackage[0].CurrentImageInfo();
-            auto stInfo1 = g_WilImagePackage[1].CurrentImageInfo();
+                && g_WilImagePackage[0]->setIndex(nFrame + nBaseIndex + nBase0)
+                && g_WilImagePackage[1]->setIndex(nFrame + nBaseIndex + nBase1)){
+            const auto imgInfo0 = g_WilImagePackage[0]->currImageInfo();
+            const auto imgInfo1 = g_WilImagePackage[1]->currImageInfo();
 
             {// non-shadow layer
                 char szSaveFileName[128];
@@ -127,14 +124,14 @@ AnimationPreviewWindow::AnimationPreviewWindow(uint32_t nFileIndex, uint32_t nAn
                 //6: frame index
                 std::sprintf(szSaveFileName, "./IMG/0%02d%02d005%02d.PNG", m_FileIndex, m_AnimationIndex, nFrame);
                 if(!filesys::hasFile(szSaveFileName)){
-                    if(nDataLen < stInfo0.width * stInfo0.height){
+                    if(nDataLen < imgInfo0->width * imgInfo0->height){
                         delete pData;
-                        pData    = new uint32_t[stInfo0.width * stInfo0.height];
-                        nDataLen = stInfo0.width * stInfo0.height;
+                        pData    = new uint32_t[imgInfo0->width * imgInfo0->height];
+                        nDataLen = imgInfo0->width * imgInfo0->height;
                     }
-                    g_WilImagePackage[0].Decode(pData, 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF);
+                    g_WilImagePackage[0]->decode(pData, 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF);
                     pngf::saveRGBABuffer((uint8_t *)pData,
-                            stInfo0.width, stInfo0.height,
+                            imgInfo0->width, imgInfo0->height,
                             szSaveFileName);
                 }
                 m_PNG[0][nFrame] = Fl_Shared_Image::get(szSaveFileName);
@@ -152,23 +149,23 @@ AnimationPreviewWindow::AnimationPreviewWindow(uint32_t nFileIndex, uint32_t nAn
                 //6: frame index
                 std::sprintf(szSaveFileName, "./IMG/1%02d%02d005%02d.PNG", m_FileIndex, m_AnimationIndex, nFrame);
                 if(!filesys::hasFile(szSaveFileName)){
-                    if(nDataLen < stInfo1.width * stInfo1.height){
+                    if(nDataLen < imgInfo1->width * imgInfo1->height){
                         delete pData;
-                        pData    = new uint32_t[stInfo1.width * stInfo1.height];
-                        nDataLen = stInfo1.width * stInfo1.height;
+                        pData    = new uint32_t[imgInfo1->width * imgInfo1->height];
+                        nDataLen = imgInfo1->width * imgInfo1->height;
                     }
-                    g_WilImagePackage[1].Decode(pData, 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF);
+                    g_WilImagePackage[1]->decode(pData, 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF);
                     pngf::saveRGBABuffer((uint8_t *)pData,
-                            stInfo1.width, stInfo1.height,
+                            imgInfo1->width, imgInfo1->height,
                             szSaveFileName);
                 }
                 m_PNG[1][nFrame] = Fl_Shared_Image::get(szSaveFileName);
             }
 
-            m_DSX[nFrame] = stInfo1.px - stInfo0.px;
-            m_DSY[nFrame] = stInfo1.py - stInfo0.py;
-            m_PX [nFrame] = stInfo0.px;
-            m_PY [nFrame] = stInfo0.py;
+            m_DSX[nFrame] = imgInfo1->px - imgInfo0->px;
+            m_DSY[nFrame] = imgInfo1->py - imgInfo0->py;
+            m_PX [nFrame] = imgInfo0->px;
+            m_PY [nFrame] = imgInfo0->py;
 
             // m_PNG[0]: start: (x - dx, y - dy)
             // m_PNG[1]: start: (x     , y     )

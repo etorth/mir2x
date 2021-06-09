@@ -127,7 +127,7 @@ template<typename C> void read_fileptr(fileptr_t &fptr, C &c, size_t size)
     fflassert(size > 0);
 
     c.resize(size);
-    read_fileptr(fptr, c.data(), size);
+    read_fileptr(fptr, c.data(), size * sizeof(typename C::value_type));
 }
 
 template<typename C> C read_fileptr(fileptr_t &fptr, size_t size)
@@ -154,5 +154,10 @@ inline void write_fileptr(fileptr_t &fptr, const void *data, size_t size)
 template<typename C> void write_fileptr(fileptr_t &fptr, const C &c)
 {
     fflassert(fptr);
-    write_fileptr(fptr, c.data(), c.size());
+    if constexpr(std::is_trivially_copyable_v<C>){
+        write_fileptr(fptr, &c, sizeof(c));
+    }
+    else{
+        write_fileptr(fptr, c.data(), c.size() * sizeof(typename C::value_type));
+    }
 }

@@ -51,19 +51,18 @@ class ValidWilFileWindow {open
             std::string szFileName1 = szFileName0;
             szFileName1.replace(szFileName1.find("Mon-"), 4, "MonS-");
 
-            extern WilImagePackage g_WilImagePackage[2];
-
+            extern WilImagePackage *g_WilImagePackage[2];
+            g_WilImagePackage[0] = new WilImagePackage(szPathName.c_str(), szFileName0.c_str());
+            g_WilImagePackage[1] = new WilImagePackage(szPathName.c_str(), szFileName1.c_str());
 
             if(false 
-                    || !g_WilImagePackage[0].Load(szPathName.c_str(), szFileName0.c_str(), "wil")
-                    || !g_WilImagePackage[1].Load(szPathName.c_str(), szFileName1.c_str(), "wil")
-                    ||  g_WilImagePackage[0].ImageCount() != g_WilImagePackage[0].IndexCount()
-                    ||  g_WilImagePackage[1].ImageCount() != g_WilImagePackage[1].IndexCount()
-                    ||  g_WilImagePackage[0].ImageCount() != g_WilImagePackage[1].ImageCount()
-              ){
+                    ||  g_WilImagePackage[0]->imageCount() != g_WilImagePackage[0]->indexCount()
+                    ||  g_WilImagePackage[1]->imageCount() != g_WilImagePackage[1]->indexCount()
+                    ||  g_WilImagePackage[0]->imageCount() != g_WilImagePackage[1]->imageCount()){
                 fl_alert("Invalid .WIL file set: %s", szFileName0.c_str());
-            }else{
-                int32_t nCount = g_WilImagePackage[0].IndexCount();
+            }
+            else{
+                int32_t nCount = g_WilImagePackage[0]->indexCount();
                 int32_t nMaxValidIndex = nCount;
                 for(int nIndex = 0; nIndex < nCount; ++nIndex){
                     extern ProgressBarWindow *g_ProgressBarWindow;
@@ -73,11 +72,8 @@ class ValidWilFileWindow {open
                     Fl::check();
 
                     if(true
-                            && g_WilImagePackage[0].setIndex(nIndex)
-                            && g_WilImagePackage[0].CurrentImageValid()
-                            && g_WilImagePackage[1].setIndex(nIndex)
-                            && g_WilImagePackage[1].CurrentImageValid()
-                      ){
+                            && g_WilImagePackage[0]->setIndex(nIndex)
+                            && g_WilImagePackage[1]->setIndex(nIndex)){
                         nMaxValidIndex = nIndex;
                     }
                 }

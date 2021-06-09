@@ -90,14 +90,10 @@ const char *createOffsetFileName(char *szFileName,
 void hairWil2PNG(bool bGender,
         const char *szHairWilPath,
         const char *szHairWilBaseName,
-        const char *szHairWilExt,
+        const char *,
         const char *szOutDir)
 {
-    WilImagePackage stHairWilPackage;
-    if(!stHairWilPackage.Load(szHairWilPath, szHairWilBaseName, szHairWilExt)){
-        throw fflerror("Load hair wil file failed: %s/%s.%s", szHairWilPath, szHairWilBaseName, szHairWilExt);
-    }
-
+    WilImagePackage stHairWilPackage(szHairWilPath, szHairWilBaseName);
     std::vector<uint32_t> stHairPNGBuf;
     for(int nHair = 0; nHair < 10; ++nHair){ // acturally only 0 ~ 4 valid
         for(int nMotion = 0; nMotion < 33; ++nMotion){
@@ -105,13 +101,11 @@ void hairWil2PNG(bool bGender,
                 for(int nFrame = 0; nFrame < 10; ++nFrame){
 
                     const int nHairIndex = nHair * 3000 + nMotion * 80 + nDirection * 10 + nFrame + 0;
-                    if(true
-                            && stHairWilPackage.setIndex(nHairIndex)
-                            && stHairWilPackage.CurrentImageValid()){
+                    if(stHairWilPackage.setIndex(nHairIndex)){
 
-                        const auto stHairInfo = stHairWilPackage.CurrentImageInfo();
-                        stHairPNGBuf.resize(stHairInfo.width * stHairInfo.height);
-                        stHairWilPackage.Decode(&(stHairPNGBuf[0]), 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF);
+                        const auto hairImgInfo = stHairWilPackage.currImageInfo();
+                        stHairPNGBuf.resize(hairImgInfo->width * hairImgInfo->height);
+                        stHairWilPackage.decode(&(stHairPNGBuf[0]), 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF);
 
                         char szSaveFileName[128];
                         createOffsetFileName(szSaveFileName,
@@ -121,10 +115,10 @@ void hairWil2PNG(bool bGender,
                                 nMotion,
                                 nDirection,
                                 nFrame,
-                                stHairInfo.px,
-                                stHairInfo.py);
+                                hairImgInfo->px,
+                                hairImgInfo->py);
 
-                        if(!pngf::saveRGBABuffer((uint8_t *)(&(stHairPNGBuf[0])), stHairInfo.width, stHairInfo.height, szSaveFileName)){
+                        if(!pngf::saveRGBABuffer((uint8_t *)(&(stHairPNGBuf[0])), hairImgInfo->width, hairImgInfo->height, szSaveFileName)){
                             throw fflerror("save hair PNG failed: %s", szSaveFileName);
                         }
                     }

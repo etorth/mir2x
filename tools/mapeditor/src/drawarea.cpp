@@ -685,14 +685,12 @@ void DrawArea::DrawGrid()
 
 Fl_Image *DrawArea::RetrievePNG(uint8_t nFileIndex, uint16_t nImageIndex)
 {
-    extern ImageDB    g_ImageDB;
+    extern ImageDB   *g_ImageDB;
     extern ImageCache g_ImageCache;
     auto pImage = g_ImageCache.Retrieve(nFileIndex, nImageIndex);
     if(pImage == nullptr){
-        if(g_ImageDB.Valid(nFileIndex, nImageIndex)){
-            int nW = g_ImageDB.FastW(nFileIndex);
-            int nH = g_ImageDB.FastH(nFileIndex);
-            g_ImageCache.Register(nFileIndex, nImageIndex, g_ImageDB.FastDecode(nFileIndex, 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF), nW, nH);
+        if(const auto [imgBuf, imgWidth, imgHeight] = g_ImageDB->decode(nFileIndex, nImageIndex, 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF); imgBuf){
+            g_ImageCache.Register(nFileIndex, nImageIndex, imgBuf, imgWidth, imgHeight);
             pImage = g_ImageCache.Retrieve(nFileIndex, nImageIndex);
         }
     }
@@ -1112,16 +1110,16 @@ void DrawArea::DrawFloatObject(int nX, int nY, int nFOType, int nWinX, int nWinY
         switch(nFOType){
             case FOTYPE_TILE:
                 {
-                    extern ImageDB g_ImageDB;
-                    nTextBoxW = 100 + std::strlen(g_ImageDB.DBName(nFileIndex)) * 10;
+                    extern ImageDB *g_ImageDB;
+                    nTextBoxW = 100 + std::strlen(g_ImageDB->dbName(nFileIndex)) * 10;
                     nTextBoxH = 150;
                     break;
                 }
             case FOTYPE_OBJ0:
             case FOTYPE_OBJ1:
                 {
-                    extern ImageDB g_ImageDB;
-                    nTextBoxW = 100 + std::strlen(g_ImageDB.DBName(nFileIndex)) * 10;
+                    extern ImageDB *g_ImageDB;
+                    nTextBoxW = 100 + std::strlen(g_ImageDB->dbName(nFileIndex)) * 10;
                     nTextBoxH = 260;
                     break;
                 }
@@ -1193,8 +1191,8 @@ void DrawArea::DrawFloatObject(int nX, int nY, int nFOType, int nWinX, int nWinY
                         DrawText(nTextStartX, nTextStartY, "Index1 : %d", to_d(nImageIndex));
                         nTextStartY += 20;
 
-                        extern ImageDB g_ImageDB;
-                        DrawText(nTextStartX, nTextStartY, "DBName : %s", g_ImageDB.DBName(nFileIndex));
+                        extern ImageDB *g_ImageDB;
+                        DrawText(nTextStartX, nTextStartY, "DBName : %s", g_ImageDB->dbName(nFileIndex));
                         nTextStartY += 20;
 
                         PopColor();
@@ -1217,8 +1215,8 @@ void DrawArea::DrawFloatObject(int nX, int nY, int nFOType, int nWinX, int nWinY
                         DrawText(nTextStartX, nTextStartY, "Index1 : %d", to_d(nImageIndex));
                         nTextStartY += 20;
 
-                        extern ImageDB g_ImageDB;
-                        DrawText(nTextStartX, nTextStartY, "DBName : %s", g_ImageDB.DBName(nFileIndex));
+                        extern ImageDB *g_ImageDB;
+                        DrawText(nTextStartX, nTextStartY, "DBName : %s", g_ImageDB->dbName(nFileIndex));
                         nTextStartY += 20;
 
                         auto &rstObject = g_EditorMap.Object(nX, nY, (nFOType == FOTYPE_OBJ0) ? 0 : 1);
@@ -1234,17 +1232,14 @@ void DrawArea::DrawFloatObject(int nX, int nY, int nFOType, int nWinX, int nWinY
                         DrawText(nTextStartX, nTextStartY, "AniCnt : %d", rstObject.AniCount);
                         nTextStartY += 20;
 
-                        auto &rstImageInfo = g_ImageDB.ImageInfo(nFileIndex, nImageIndex);
-                        auto nPX = rstImageInfo.px;
-                        auto nPY = rstImageInfo.py;
-
-                        DrawText(nTextStartX, nTextStartY, "OffseX : %d", to_d(nPX));
+                        const auto imgInfo = g_ImageDB->setIndex(nFileIndex, nImageIndex);
+                        DrawText(nTextStartX, nTextStartY, "OffseX : %d", to_d(imgInfo->px));
                         nTextStartY += 20;
 
-                        DrawText(nTextStartX, nTextStartY, "OffseY : %d", to_d(nPY));
+                        DrawText(nTextStartX, nTextStartY, "OffseY : %d", to_d(imgInfo->py));
                         nTextStartY += 20;
 
-                        auto &rstHeader = g_ImageDB.GetPackage(nFileIndex).HeaderInfo();
+                        const auto &rstHeader = g_ImageDB->getPackage(nFileIndex)->header();
                         auto nVersion = rstHeader.version;
 
                         DrawText(nTextStartX, nTextStartY, "Versio : %d", to_d(nVersion));

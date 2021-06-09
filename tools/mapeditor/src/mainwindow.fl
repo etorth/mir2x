@@ -205,7 +205,7 @@ fl_alert("%s", "Haven't implement yet!");}
 
     auto fnSaveObjPNG = [this](uint8_t nFileIndex, uint16_t nImageIndex, uint32_t nColor)
     {
-        extern ImageDB     g_ImageDB;
+        extern ImageDB    *g_ImageDB;
         extern ImageCache  g_ImageCache;
         extern std::string g_WorkingPathName;
 
@@ -219,10 +219,8 @@ fl_alert("%s", "Haven't implement yet!");}
 
         if(!filesys::hasFile(szIMGPNGName.c_str())){
             if(!g_ImageCache.Retrieve(nFileIndex, nImageIndex)){
-                if(g_ImageDB.Valid(nFileIndex, nImageIndex)){
-                    int nW = g_ImageDB.FastW(nFileIndex);
-                    int nH = g_ImageDB.FastH(nFileIndex);
-                    g_ImageCache.Register(nFileIndex, nImageIndex, g_ImageDB.FastDecode(nFileIndex, nColor, 0XFFFFFFFF, 0XFFFFFFFF), nW, nH);
+                if(const auto [imgBuf, imgW, imgH] = g_ImageDB->decode(nFileIndex, nImageIndex, nColor, 0XFFFFFFFF, 0XFFFFFFFF); imgBuf){
+                    g_ImageCache.Register(nFileIndex, nImageIndex, imgBuf, imgW, imgH);
                 }
             }
         }
@@ -631,8 +629,10 @@ if(g_EditorMap.Valid()){
   } {
     code {{
     extern std::string g_WilFilePathName;
-    extern ImageDB     g_ImageDB;
-    g_ImageDB.LoadDB(g_WilFilePathName.c_str());
+    extern ImageDB    *g_ImageDB;
+    if(!g_ImageDB){
+        g_ImageDB = new ImageDB(g_WilFilePathName.c_str());
+    }
 }} {}
   }
   Function {LoadMir2Map()} {return_type void
@@ -1157,16 +1157,14 @@ if(g_EditorMap.Valid()){
 
     auto fnBufDrawImage = [this, fnBufDraw, pDst, nDstW, nDstH](uint8_t nFileIndex, uint16_t nImageIndex, int nX, int nY, bool bObj)
     {
-        extern ImageDB g_ImageDB;
+        extern ImageDB *g_ImageDB;
         extern EditorMap g_EditorMap;
 
         if(true
                 && g_EditorMap.ValidC(nX, nY)
-                && g_ImageDB.Valid(nFileIndex, nImageIndex)){
+                && g_ImageDB->setIndex(nFileIndex, nImageIndex)){
 
-            auto nSrcW = g_ImageDB.FastW(nFileIndex);
-            auto nSrcH = g_ImageDB.FastH(nFileIndex);
-            if(auto pSrc = g_ImageDB.FastDecode(nFileIndex, 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF)){
+            if(const auto [pSrc, nSrcW, nSrcH] = g_ImageDB->decode(nFileIndex, nImageIndex, 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF); pSrc){
                 fnBufDraw(
                         pDst, nDstW, nDstH,
                         pSrc, nSrcW, nSrcH,

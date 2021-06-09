@@ -25,7 +25,7 @@
 #include "previewwindow.hpp"
 #include "wilimagepackage.hpp"
 
-extern WilImagePackage  g_WilPackage;
+extern WilImagePackage *g_WilPackage;
 extern MainWindow      *g_MainWindow;
 
 void PreviewWindow::draw()
@@ -53,20 +53,16 @@ void PreviewWindow::draw()
 
 bool PreviewWindow::LoadImage()
 {
-    if(!g_WilPackage.setIndex(g_MainWindow->SelectedImageIndex())){
+    if(!g_WilPackage->setIndex(g_MainWindow->SelectedImageIndex())){
         return false;
     }
 
-    if(!g_WilPackage.CurrentImageValid()){
-        return false;
-    }
-
-    auto nW = g_WilPackage.CurrentImageInfo().width;
-    auto nH = g_WilPackage.CurrentImageInfo().height;
+    auto nW = g_WilPackage->currImageInfo()->width;
+    auto nH = g_WilPackage->currImageInfo()->height;
 
     m_Buf.resize(0);
     m_Buf.resize(nW * nH);
-    g_WilPackage.Decode(m_Buf.data(), 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF);
+    g_WilPackage->decode(m_Buf.data(), 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF);
 
     if(g_MainWindow->AutoAlphaEnabled()){
         CalcPixelAutoAlpha(m_Buf.data(), m_Buf.size());

@@ -433,8 +433,8 @@ void EditorMap::SetBufTile(int nX, int nY)
             && nY / 2 < to_d(m_BlockBuf[nX / 2].size())){
 
         if(m_Mir2Map && m_Mir2Map->Valid()){
-            extern ImageDB g_ImageDB;
-            if(m_Mir2Map->TileValid(nX, nY, g_ImageDB)){
+            extern ImageDB *g_ImageDB;
+            if(m_Mir2Map->TileValid(nX, nY, *g_ImageDB)){
                 Tile(nX, nY).Valid = true;
                 Tile(nX, nY).Image = m_Mir2Map->Tile(nX, nY) & 0X00FFFFFF;
             }
@@ -502,17 +502,17 @@ void EditorMap::SetBufObj(int nX, int nY, int nIndex)
         if(m_Mir2Map && m_Mir2Map->Valid()){
             // mir2 map
             // animation info is in Mir2Map::Object() at higher 8 bits
-            extern ImageDB g_ImageDB;
-            if(m_Mir2Map->ObjectValid(nX, nY, nIndex, g_ImageDB)){
+            extern ImageDB *g_ImageDB;
+            if(m_Mir2Map->ObjectValid(nX, nY, nIndex, *g_ImageDB)){
 
                 // I checked the code
                 // here the mir 3 checked CELLINFO::bFlag
 
                 bObjValid = true;
-                if(m_Mir2Map->GroundObjectValid(nX, nY, nIndex, g_ImageDB)){
+                if(m_Mir2Map->GroundObjectValid(nX, nY, nIndex, *g_ImageDB)){
                     bGroundObj = true;
                 }
-                if(m_Mir2Map->AniObjectValid(nX, nY, nIndex, g_ImageDB)){
+                if(m_Mir2Map->AniObjectValid(nX, nY, nIndex, *g_ImageDB)){
                     bAniObj = true;
                 }
 

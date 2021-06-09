@@ -25,7 +25,7 @@
 #include "progressbarwindow.hpp"
 
 std::string          g_FileFullName;
-WilImagePackage      g_WilPackage;
+WilImagePackage     *g_WilPackage;
 MainWindow          *g_MainWindow;
 PreviewWindow       *g_PreviewWindow;
 ProgressBarWindow   *g_ProgressBarWindow;
@@ -33,6 +33,7 @@ ProgressBarWindow   *g_ProgressBarWindow;
 int main()
 {
     g_FileFullName      = "";
+    g_WilPackage        = nullptr;
     g_MainWindow        = nullptr;
     g_PreviewWindow     = nullptr;
     g_ProgressBarWindow = nullptr;

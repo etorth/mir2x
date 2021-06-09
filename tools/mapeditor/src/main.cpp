@@ -35,18 +35,18 @@
 #include "animationselectwindow.hpp"
 #include "attributeselectwindow.hpp"
 
-MainWindow                      *g_MainWindow;
-SelectSettingWindow             *g_SelectSettingWindow;
-AnimationSelectWindow           *g_AnimationSelectWindow;
-AboutWindow                     *g_AboutWindow;
-AttributeSelectWindow           *g_AttributeGridWindow;
-AttributeSelectWindow           *g_AttributeSelectWindow;
-ProgressBarWindow               *g_ProgressBarWindow;
-LayerEditorWindow               *g_LayerEditorWindow;
-LayerBrowserWindow              *g_LayerBrowserWindow;
-CropConfigureWindow             *g_CropConfigureWindow;
+MainWindow                      *g_MainWindow               = nullptr;
+SelectSettingWindow             *g_SelectSettingWindow      = nullptr;
+AnimationSelectWindow           *g_AnimationSelectWindow    = nullptr;
+AboutWindow                     *g_AboutWindow              = nullptr;
+AttributeSelectWindow           *g_AttributeGridWindow      = nullptr;
+AttributeSelectWindow           *g_AttributeSelectWindow    = nullptr;
+ProgressBarWindow               *g_ProgressBarWindow        = nullptr;
+LayerEditorWindow               *g_LayerEditorWindow        = nullptr;
+LayerBrowserWindow              *g_LayerBrowserWindow       = nullptr;
+CropConfigureWindow             *g_CropConfigureWindow      = nullptr;
 EditorMap                        g_EditorMap;
-ImageDB                          g_ImageDB;
+ImageDB                         *g_ImageDB                  = nullptr;
 ImageCache                       g_ImageCache;
 AnimationDB                      g_AnimationDB;
 AnimationDraw                    g_AnimationDraw;
