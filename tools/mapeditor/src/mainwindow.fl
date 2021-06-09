@@ -203,33 +203,24 @@ fl_alert("%s", "Haven't implement yet!");}
         return;
     }
 
-    auto fnSaveObjPNG = [this](uint8_t nFileIndex, uint16_t nImageIndex, uint32_t nColor)
+    const std::string savePNGDir = g_WorkingPathName + "/IMG";
+    filesys::makeDir(savePNGDir.c_str());
+
+    auto fnSaveObjPNG = [savePNGDir, this](uint8_t nFileIndex, uint16_t nImageIndex, uint32_t nColor)
     {
-        extern ImageDB    *g_ImageDB;
-        extern ImageCache  g_ImageCache;
-        extern std::string g_WorkingPathName;
+        extern ImageDB *g_ImageDB;
 
         char szHexString[64];
         std::memset(szHexString, 0, sizeof(szHexString));
 
-        uint32_t nKey = ((to_u32(nFileIndex)) << 16) + (to_u32(nImageIndex));
+        const uint32_t nKey = ((to_u32(nFileIndex)) << 16) + (to_u32(nImageIndex));
         hexstr::to_string<uint32_t, 4>(nKey, szHexString, true);
 
-        std::string szIMGPNGName = ((g_WorkingPathName + "/IMG/") + szHexString) + ".PNG";
-
+        const std::string szIMGPNGName = (savePNGDir + "/" + szHexString) + ".PNG";
         if(!filesys::hasFile(szIMGPNGName.c_str())){
-            if(!g_ImageCache.Retrieve(nFileIndex, nImageIndex)){
-                if(const auto [imgBuf, imgW, imgH] = g_ImageDB->decode(nFileIndex, nImageIndex, nColor, 0XFFFFFFFF, 0XFFFFFFFF); imgBuf){
-                    g_ImageCache.Register(nFileIndex, nImageIndex, imgBuf, imgW, imgH);
-                }
+            if(const auto [imgBuf, imgW, imgH] = g_ImageDB->decode(nFileIndex, nImageIndex, nColor, 0XFFFFFFFF, 0XFFFFFFFF); imgBuf){
+                pngf::saveRGBABuffer(imgBuf, imgW, imgH, szIMGPNGName.c_str());
             }
-        }
-
-        std::string szIMGPNGNameInCache = ((g_ImageCache.Path() + "/CACHE/") + szHexString) + ".PNG";
-        if(true
-                && !filesys::hasFile(szIMGPNGName.c_str())
-                &&  filesys::hasFile(szIMGPNGNameInCache.c_str())){
-            filesys::copyFile(szIMGPNGName.c_str(), szIMGPNGNameInCache.c_str());
         }
     };
 
@@ -923,13 +914,6 @@ if(g_EditorMap.Valid()){
 
     filesys::removeDir(g_WorkingPathName.c_str());
     filesys::makeDir(g_WorkingPathName.c_str());
-
-    std::string szTmpPath = g_WorkingPathName;
-    if(szTmpPath.back() != '/'){
-        szTmpPath += "/";
-    }
-    szTmpPath += "IMG";
-    filesys::makeDir(szTmpPath.c_str());
 }} {}
   }
   Function {SaveMir2xMapData()} {return_type void

@@ -71,8 +71,6 @@ int main()
     g_LayerBrowserWindow    = new LayerBrowserWindow();
     g_CropConfigureWindow   = new CropConfigureWindow();
 
-    g_ImageCache.SetPath(".");
-
     g_MainWindow->ShowAll();
     return Fl::run();
 }

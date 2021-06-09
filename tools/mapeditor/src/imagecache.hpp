@@ -21,28 +21,42 @@
  */
 
 #pragma once
-#include <string>
+#include <memory>
 #include <unordered_map>
-#include <FL/Fl_Shared_Image.H>
+#include <FL/Fl_RGB_Image.H>
+#include "totype.hpp"
+#include "fflerror.hpp"
 
 class ImageCache
 {
     private:
-        std::string m_Path;
-        std::unordered_map<uint32_t, Fl_Shared_Image *> m_Cache;
+        std::unordered_map<uint32_t, std::unique_ptr<Fl_RGB_Image>> m_cache;
 
     public:
-        ImageCache();
-       ~ImageCache();
+        ImageCache() = default;
 
     public:
-        Fl_Shared_Image *Retrieve(uint8_t, uint16_t);
-        bool Register(uint8_t, uint16_t, const uint32_t *, int, int);
-
-    public:
-        void SetPath(const char *);
-        const std::string &Path()
+        Fl_Image *Retrieve(uint8_t fileIndex, uint16_t imageIndex) const
         {
-            return m_Path;
+            if(auto p = m_cache.find((to_u32(fileIndex) << 16) + imageIndex); p != m_cache.end()){
+                return p->second.get();
+            }
+            return nullptr;
+        }
+
+    public:
+        void Register(uint8_t fileIndex, uint16_t imageIndex, const void *data, int w, int h)
+        {
+            fflassert(data);
+            fflassert(w > 0);
+            fflassert(h > 0);
+
+            m_cache[(to_u32(fileIndex) << 16) + imageIndex].reset(new Fl_RGB_Image
+            {
+                static_cast<const uchar *>(data),
+                w,
+                h,
+                4,
+            });
         }
 };
