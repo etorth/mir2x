@@ -106,7 +106,7 @@ void hairWil2PNG(bool bGender,
 
                     const int nHairIndex = nHair * 3000 + nMotion * 80 + nDirection * 10 + nFrame + 0;
                     if(true
-                            && stHairWilPackage.SetIndex(nHairIndex)
+                            && stHairWilPackage.setIndex(nHairIndex)
                             && stHairWilPackage.CurrentImageValid()){
 
                         const auto stHairInfo = stHairWilPackage.CurrentImageInfo();

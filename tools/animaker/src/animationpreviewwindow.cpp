@@ -107,9 +107,9 @@ AnimationPreviewWindow::AnimationPreviewWindow(uint32_t nFileIndex, uint32_t nAn
     for(int nFrame = 0; nFrame < nFrameCount; ++nFrame){
         extern WilImagePackage g_WilImagePackage[2];
         if(true
-                && g_WilImagePackage[0].SetIndex(nFrame + nBaseIndex + nBase0)
+                && g_WilImagePackage[0].setIndex(nFrame + nBaseIndex + nBase0)
                 && g_WilImagePackage[0].CurrentImageValid()
-                && g_WilImagePackage[1].SetIndex(nFrame + nBaseIndex + nBase1)
+                && g_WilImagePackage[1].setIndex(nFrame + nBaseIndex + nBase1)
                 && g_WilImagePackage[1].CurrentImageValid()
           ){
             auto stInfo0 = g_WilImagePackage[0].CurrentImageInfo();

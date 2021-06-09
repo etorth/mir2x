@@ -53,7 +53,7 @@ void PreviewWindow::draw()
 
 bool PreviewWindow::LoadImage()
 {
-    if(!g_WilPackage.SetIndex(g_MainWindow->SelectedImageIndex())){
+    if(!g_WilPackage.setIndex(g_MainWindow->SelectedImageIndex())){
         return false;
     }
 

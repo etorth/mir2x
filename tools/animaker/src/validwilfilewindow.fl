@@ -73,9 +73,9 @@ class ValidWilFileWindow {open
                     Fl::check();
 
                     if(true
-                            && g_WilImagePackage[0].SetIndex(nIndex)
+                            && g_WilImagePackage[0].setIndex(nIndex)
                             && g_WilImagePackage[0].CurrentImageValid()
-                            && g_WilImagePackage[1].SetIndex(nIndex)
+                            && g_WilImagePackage[1].setIndex(nIndex)
                             && g_WilImagePackage[1].CurrentImageValid()
                       ){
                         nMaxValidIndex = nIndex;

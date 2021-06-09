@@ -164,10 +164,10 @@ bool weaponWil2PNG(bool bGender, int nIndex,
                     int nWeaponIndex = nWeapon * 3000 + nMotion * 80 + nDirection * 10 + nFrame + 1;
 
                     if(true
-                            && stHeroWilPackage.SetIndex(nHeroIndex)
+                            && stHeroWilPackage.setIndex(nHeroIndex)
                             && stHeroWilPackage.CurrentImageValid()
 
-                            && stWeaponWilPackage.SetIndex(nWeaponIndex)
+                            && stWeaponWilPackage.setIndex(nWeaponIndex)
                             && stWeaponWilPackage.CurrentImageValid()){
 
                         auto stHeroInfo   =   stHeroWilPackage.CurrentImageInfo();

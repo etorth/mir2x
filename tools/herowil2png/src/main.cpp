@@ -123,7 +123,7 @@ bool heroWil2PNG(bool bGender,
                 for(int nFrame = 0; nFrame < 10; ++nFrame){
                     int nBaseIndex = nDress * 3000 + nMotion * 80 + nDirection * 10 + nFrame;
                     if(true
-                            && stPackage.SetIndex(nBaseIndex)
+                            && stPackage.setIndex(nBaseIndex)
                             && stPackage.CurrentImageValid()){
 
                         auto stInfo = stPackage.CurrentImageInfo();

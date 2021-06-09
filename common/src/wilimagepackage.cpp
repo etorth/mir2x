@@ -79,7 +79,7 @@ WilImagePackage::~WilImagePackage()
     if(m_wilFile){ std::fclose(m_wilFile); }
 }
 
-bool WilImagePackage::SetIndex(uint32_t dwIndex)
+bool WilImagePackage::setIndex(uint32_t dwIndex)
 {
     if(false
             || m_wilFile == nullptr

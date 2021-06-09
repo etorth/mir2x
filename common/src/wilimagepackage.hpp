@@ -87,7 +87,7 @@ class WilImagePackage
         }
 
     public:
-        bool SetIndex(uint32_t);
+        bool setIndex(uint32_t);
 
     public:
         bool Load(const char *, const char *, const char *);

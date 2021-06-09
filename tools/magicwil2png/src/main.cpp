@@ -95,7 +95,7 @@ void magicWil2PNG(const char *dataPath, const char *outDir, int prefixWidth)
 
         std::vector<uint32_t> pngBuf;
         for(int i = 0; i < imgPackage.IndexCount(); ++i){
-            if(imgPackage.SetIndex(i) && imgPackage.CurrentImageValid()){
+            if(imgPackage.setIndex(i) && imgPackage.CurrentImageValid()){
                 const auto imgInfo = imgPackage.CurrentImageInfo();
                 pngBuf.resize(imgInfo.width * imgInfo.height);
                 imgPackage.Decode(&(pngBuf[0]), 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF);

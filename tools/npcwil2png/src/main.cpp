@@ -320,7 +320,7 @@ void npcWil2PNG(const char *path, const char *baseName, const char *fileExt, con
 
             for(int frame = 0; frame < frameCount; ++frame){
                 const int gfxId = lookId * 100 + frameStart + frame;
-                if(!(package.SetIndex(gfxId) && package.CurrentImageValid())){
+                if(!(package.setIndex(gfxId) && package.CurrentImageValid())){
                     throw fflerror("gfx table is wrong");
                 }
 

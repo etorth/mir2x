@@ -225,7 +225,7 @@ bool monsterWil2PNG(int nMonsterFileIndex,
                     }
 
                     if(true
-                            && stPackageBody.SetIndex(nBaseIndex)
+                            && stPackageBody.setIndex(nBaseIndex)
                             && stPackageBody.CurrentImageValid()){
 
                         auto stInfo = stPackageBody.CurrentImageInfo();
@@ -259,7 +259,7 @@ bool monsterWil2PNG(int nMonsterFileIndex,
                         }
 
                         if(true
-                                && stPackageShadow.SetIndex(nBaseIndex)
+                                && stPackageShadow.setIndex(nBaseIndex)
                                 && stPackageShadow.CurrentImageValid()){
 
                             auto stShadowInfo = stPackageShadow.CurrentImageInfo();

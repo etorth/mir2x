@@ -128,7 +128,7 @@ bool ImageDB::Valid(uint8_t nFileIndex, uint16_t nImageIndex)
     if(true
             && nFileIndex  != 255
             && nImageIndex != 65535
-            && m_imagePackage[nFileIndex].SetIndex(nImageIndex)
+            && m_imagePackage[nFileIndex].setIndex(nImageIndex)
             && m_imagePackage[nFileIndex].CurrentImageValid()){
         int nW = m_imagePackage[nFileIndex].CurrentImageInfo().width;
         int nH = m_imagePackage[nFileIndex].CurrentImageInfo().height;
@@ -177,7 +177,7 @@ const uint32_t *ImageDB::Decode(uint8_t nFileIndex, uint16_t nImageIndex, uint32
 
 const WILIMAGEINFO &ImageDB::ImageInfo(uint8_t nFileIndex, uint16_t nImageIndex)
 {
-    m_imagePackage[nFileIndex].SetIndex(nImageIndex);
+    m_imagePackage[nFileIndex].setIndex(nImageIndex);
     return m_imagePackage[nFileIndex].CurrentImageInfo();
 }
 
