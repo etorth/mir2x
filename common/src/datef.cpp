@@ -19,6 +19,7 @@
 #include <ctime>
 #include <sstream>
 #include "datef.hpp"
+#include "totype.hpp"
 #include "fflerror.hpp"
 
 std::string datef::now()
@@ -31,14 +32,10 @@ std::string datef::now()
     // not thread-safe here
     // localtime() return an internal std::tm buffer
 
-    const auto localPtr = std::localtime(&rawTime);
-    if(localPtr){
+    if(const auto localPtr = std::localtime(&rawTime)){
         char timeStrBuf[128];
         std::strftime(timeStrBuf, sizeof(timeStrBuf), "%Y%m%d%H%M%S", localPtr);
         return timeStrBuf;
     }
-
-    std::stringstream ss;
-    ss << rawTime;
-    return ss.str();
+    throw fflerror("std::localtime(%p) failed", to_cvptr(&rawTime));
 }

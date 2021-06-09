@@ -918,14 +918,7 @@ if(g_EditorMap.Valid()){
     code {{
     extern std::string g_WorkingPathName;
     if(g_WorkingPathName == "" || (g_WorkingPathName.size() > 0 && g_WorkingPathName[0] == '.')){
-        time_t     stRawTime;
-        struct tm *stTimeInfo;
-        char       szBuffer[64];
-
-        time(&stRawTime);
-        stTimeInfo = localtime(&stRawTime);
-        strftime(szBuffer, 64, "%Y%m%d%H%M%S", stTimeInfo);
-        g_WorkingPathName = std::string("./") + szBuffer;
+        g_WorkingPathName = std::string("./") + datef::now();
     }
 
     filesys::removeDir(g_WorkingPathName.c_str());
