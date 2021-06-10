@@ -45,8 +45,8 @@ mir2x requires [cmake](https://cmake.org/) v3.12 and [gcc](https://gcc.gnu.org/)
 ```sh
 libsdl2-dev
 libsdl2-image-dev
-libsdl2-ttf-dev
 libsdl2-mixer-dev
+libsdl2-ttf-dev
 libsdl2-gfx-dev
 libpng-dev
 liblua5.3-dev
