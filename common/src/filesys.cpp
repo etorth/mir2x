@@ -28,6 +28,12 @@
 #include "filesys.hpp"
 #include "fflerror.hpp"
 
+bool filesys::hasDir(const char *dirName)
+{
+    fflassert(str_haschar(dirName));
+    return std::filesystem::is_directory(dirName);
+}
+
 bool filesys::makeDir(const char *dirName)
 {
     return std::filesystem::create_directory(dirName);
@@ -81,17 +87,6 @@ void filesys::copyFile(const char *dstFileName, const char *srcFileName)
     }
 }
 
-std::tuple<std::string, std::string> filesys::decompFileName(const char *fullName)
-{
-    fflassert(str_haschar(fullName));
-    if(const auto p = std::strrchr(fullName, '/')){
-        return {std::string(fullName, p), std::string(p + 1)};
-    }
-    else{
-        return {"", fullName};
-    }
-}
-
 std::vector<std::string> filesys::getFileList(const char *dir, const char *reg)
 {
     fflassert(str_haschar(dir));
@@ -113,4 +108,15 @@ std::vector<std::string> filesys::getFileList(const char *dir, const char *reg)
         result.push_back(reinterpret_cast<const char *>(p.path().u8string().c_str()));
     }
     return result;
+}
+
+std::tuple<std::string, std::string> filesys::decompFileName(const char *fullName)
+{
+    fflassert(str_haschar(fullName));
+    if(const auto p = std::strrchr(fullName, '/')){
+        return {std::string(fullName, p), std::string(p + 1)};
+    }
+    else{
+        return {"", fullName};
+    }
 }

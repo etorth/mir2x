@@ -23,13 +23,15 @@
 
 namespace filesys
 {
+    bool    hasDir(const char *);
     bool   makeDir(const char *);
     bool removeDir(const char *);
 
     bool  hasFile(const char *);
     void copyFile(const char *, const char *);
 
-    std::tuple<std::string, std::string> decompFileName(const char *);
     std::vector<std::string> getFileList  (const char *, const char * /* reg */ = nullptr);
     std::vector<std::string> getSubDirList(const char *, const char * /* reg */ = nullptr);
+
+    std::tuple<std::string, std::string> decompFileName(const char *);
 }
