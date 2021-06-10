@@ -35,14 +35,12 @@ class PreviewWindow: public Fl_Double_Window
         std::optional<uint32_t> m_ImageIndex;
 
     private:
-        std::unique_ptr<Fl_RGB_Image> m_Image;
+        std::unique_ptr<Fl_Image> m_Image;
 
     public:
         PreviewWindow()
             : Fl_Double_Window(0, 0, 10, 10)
-            , m_Buf()
             , m_ImageIndex(0)
-            , m_Image()
         {}
 
     public:

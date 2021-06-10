@@ -72,7 +72,10 @@ bool PreviewWindow::LoadImage()
         CalcShadowRemovalAlpha(m_Buf.data(), nW, nH, 0X80000000);
     }
 
-    m_Image = std::make_unique<Fl_RGB_Image>((uchar *)(m_Buf.data()), nW, nH, 4);
+    // Fl_RGB_Image won't copy the RGBA buffer
+    // caller need to maintain m_Buf when m_Image is still used
+
+    m_Image.reset(Fl_RGB_Image((uchar *)(m_Buf.data()), nW, nH, 4).copy());
     m_ImageIndex.emplace(g_MainWindow->SelectedImageIndex());
 
     size_t nWinH = (std::max<int>)(((std::min<int>)((to_d(nH * 1.5)), to_d(nH + 40))), (int)200);

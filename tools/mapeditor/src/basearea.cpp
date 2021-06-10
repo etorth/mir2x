@@ -315,7 +315,7 @@ Fl_Image *BaseArea::CreateImageCover(int nW, int nH, uint32_t nColor)
             && nW > 0
             && nH > 0){
         std::vector<uint32_t> stvBuf(nW * nH, nColor);
-        return Fl_RGB_Image((uchar *)(&(stvBuf[0])), nW, nH, 4, 0).copy(nW, nH);
+        return Fl_RGB_Image((uchar *)(&(stvBuf[0])), nW, nH, 4, 0).copy();
     }else{
         fl_alert("Invalid size for CreateImageCover(%d, %d, 0X%08" PRIu32 ")", nW, nH, nColor);
         return nullptr;

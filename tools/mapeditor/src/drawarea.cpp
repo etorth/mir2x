@@ -926,7 +926,7 @@ Fl_Image *DrawArea::CreateRoundImage(int nRadius, uint32_t nColor)
                 }
             }
         }
-        return Fl_RGB_Image((uchar *)(&(stvBuf[0])), nSize, nSize, 4, 0).copy(nSize, nSize);
+        return Fl_RGB_Image((uchar *)(&(stvBuf[0])), nSize, nSize, 4, 0).copy();
     }else{
         fl_alert("Invalid radius for CreateRoundImage(%d, 0X%08X)", nRadius, nColor);
         return nullptr;
