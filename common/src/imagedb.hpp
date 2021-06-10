@@ -21,6 +21,7 @@
 #include <vector>
 #include <cstdint>
 #include <optional>
+#include "strf.hpp"
 #include "wilimagepackage.hpp"
 
 class ImageDB
@@ -55,10 +56,10 @@ class ImageDB
         const WILIMAGEINFO *setIndex(uint8_t fileIndex, uint16_t imageIndex)
         {
             m_wilImageInfo = nullptr;
-            if(fileIndex >= to_u8(m_packageList.size())){
-                return nullptr;
+            if(to_uz(fileIndex) < m_packageList.size() && m_packageList.at(fileIndex)){
+                m_wilImageInfo = m_packageList.at(fileIndex)->setIndex(imageIndex);
             }
-            return m_wilImageInfo = m_packageList.at(fileIndex)->setIndex(imageIndex);
+            return m_wilImageInfo;
         }
 
     public:
@@ -69,13 +70,12 @@ class ImageDB
 
         std::tuple<const uint32_t *, size_t, size_t> decode(uint8_t fileIndex, uint16_t imageIndex, uint32_t color0, uint32_t color1, uint32_t color2)
         {
-            if(setIndex(fileIndex, imageIndex)){
-                const size_t width  = m_packageList.at(fileIndex)->currImageInfo()->width;
-                const size_t height = m_packageList.at(fileIndex)->currImageInfo()->height;
+            if(const auto imgInfo = setIndex(fileIndex, imageIndex)){
+                m_decodeBuf.resize(0);
+                m_decodeBuf.resize(imgInfo->width * imgInfo->height);
 
-                m_decodeBuf.resize(width * height);
                 m_packageList.at(fileIndex)->decode(m_decodeBuf.data(), color0, color1, color2);
-                return {m_decodeBuf.data(), width, height};
+                return {m_decodeBuf.data(), imgInfo->width, imgInfo->height};
             }
             return {nullptr, 0, 0};
         }
