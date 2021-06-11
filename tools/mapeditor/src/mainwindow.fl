@@ -169,7 +169,7 @@ fl_alert("%s", "Haven't implement yet!");}
 
                     AfterLoadMap();
                     Fl::remove_timeout(UpdateFrame);
-                    Fl::add_timeout(0.5, UpdateFrame);
+                    Fl::add_timeout(0.1, UpdateFrame);
 
                 }else{
                     fl_alert("Invalid Mir2xMapData folder: %s", szPath.c_str());
@@ -656,7 +656,7 @@ if(g_EditorMap.Valid()){
                 AfterLoadMap();
 
                 Fl::remove_timeout(UpdateFrame);
-                Fl::add_timeout(0.5, UpdateFrame);
+                Fl::add_timeout(0.1, UpdateFrame);
             }
             break;
     }
@@ -758,7 +758,7 @@ if(g_EditorMap.Valid()){
         extern MainWindow *g_MainWindow;
         g_MainWindow->RedrawAll();
     }
-    Fl::repeat_timeout(0.50, UpdateFrame);
+    Fl::repeat_timeout(0.1, UpdateFrame);
 }} {}
   }
   Function {UpdateAnimationFrame(void *)} {return_type {static void}
@@ -778,7 +778,7 @@ if(g_EditorMap.Valid()){
                 g_AnimationDraw.Frame = 0;
             }
 
-            Fl::repeat_timeout(0.50, UpdateAnimationFrame);
+            Fl::repeat_timeout(0.1, UpdateAnimationFrame);
             g_MainWindow->RedrawAll();
             return;
         }
