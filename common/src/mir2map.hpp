@@ -173,6 +173,9 @@ class Mir2Map final
             }();
 
             return true
+                && (fileIndex % 15) >  2 // 0 1 2 are for big tiles
+                && (fileIndex % 15) < 14 // 14 is xxx/Custom
+
                 &&  fileIndex !=   255
                 && imageIndex != 65535
                 && imgDB.setIndex(fileIndex, imageIndex)
@@ -193,6 +196,9 @@ class Mir2Map final
             }();
 
             return true
+                && (fileIndex % 15) >  2 // 0 1 2 are for big tiles
+                && (fileIndex % 15) < 14 // 14 is xxx/Custom
+
                 &&  fileIndex !=   255
                 && imageIndex != 65535
                 && imgDB.setIndex(fileIndex, imageIndex);
