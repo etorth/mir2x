@@ -21,6 +21,7 @@
 #include <vector>
 #include <cstdint>
 #include <optional>
+#include <functional>
 #include "strf.hpp"
 #include "wilimagepackage.hpp"
 
@@ -60,6 +61,23 @@ class ImageDB
                 m_wilImageInfo = m_packageList.at(fileIndex)->setIndex(imageIndex);
             }
             return m_wilImageInfo;
+        }
+
+    public:
+        void extract(std::function<void(uint8_t, uint16_t, const void *, size_t, size_t)> op)
+        {
+            fflassert(op);
+            for(uint8_t fileIndex = 0; to_uz(fileIndex) < m_packageList.size(); ++fileIndex){
+                if(!m_packageList[fileIndex]){
+                    continue;
+                }
+
+                for(uint16_t imageIndex = 0; to_uz(imageIndex) < m_packageList[fileIndex]->indexCount(); ++imageIndex){
+                    if(const auto [imgBuf, imgW, imgH] = decode(fileIndex, imageIndex, 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF); imgBuf){
+                        op(fileIndex, imageIndex, imgBuf, imgW, imgH);
+                    }
+                }
+            }
         }
 
     public:
