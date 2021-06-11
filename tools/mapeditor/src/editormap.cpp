@@ -37,18 +37,9 @@ EditorMap::EditorMap()
     : m_W(0)
     , m_H(0)
     , m_Valid(false)
-    , m_Mir2Map(nullptr)
-    , m_Mir2xMapData(nullptr)
-    , m_BlockBuf()
 {
     std::memset(m_AniSaveTime,  0, sizeof(m_AniSaveTime));
     std::memset(m_AniTileFrame, 0, sizeof(m_AniTileFrame));
-}
-
-EditorMap::~EditorMap()
-{
-    delete m_Mir2Map;
-    delete m_Mir2xMapData;
 }
 
 void EditorMap::ExtractOneTile(int nX, int nY, std::function<void(uint8_t, uint16_t)> fnWritePNG)
@@ -306,38 +297,38 @@ bool EditorMap::Resize(
 
 bool EditorMap::LoadMir2Map(const char *szFullName)
 {
-    delete m_Mir2Map     ; m_Mir2Map      = new Mir2Map();
-    delete m_Mir2xMapData; m_Mir2xMapData = nullptr;
+    m_Mir2Map = std::make_unique<Mir2Map>(szFullName);
+    m_Mir2xMapData.reset();
 
-    if(m_Mir2Map->Load(szFullName)){
-        MakeBuf(m_Mir2Map->W(), m_Mir2Map->H());
-        InitBuf();
-    }
+    MakeBuf(m_Mir2Map->w(), m_Mir2Map->h());
+    InitBuf();
 
-    delete m_Mir2xMapData; m_Mir2xMapData = nullptr;
-    delete m_Mir2xMapData; m_Mir2xMapData = nullptr;
+    m_Mir2Map.reset();
+    m_Mir2xMapData.reset();
 
     return Valid();
 }
 
 bool EditorMap::LoadMir2xMapData(const char *szFullName)
 {
-    delete m_Mir2Map     ; m_Mir2Map      = nullptr;
-    delete m_Mir2xMapData; m_Mir2xMapData = new Mir2xMapData();
+    m_Mir2Map.reset();
+    m_Mir2xMapData = std::make_unique<Mir2xMapData>();
 
     m_Mir2xMapData->load(szFullName);
     MakeBuf(m_Mir2xMapData->w(), m_Mir2xMapData->h());
     InitBuf();
 
-    delete m_Mir2xMapData; m_Mir2xMapData = nullptr;
-    delete m_Mir2xMapData; m_Mir2xMapData = nullptr;
+    m_Mir2Map.reset();
+    m_Mir2xMapData.reset();
 
     return Valid();
 }
 
 void EditorMap::Optimize()
 {
-    if(!Valid()){ return; }
+    if(!Valid()){
+        return;
+    }
 
     // try to remove some unnecessary tile/cell
     // tile
@@ -373,13 +364,15 @@ bool EditorMap::InitBuf()
 
     m_Valid = false;
 
-    if(m_Mir2Map && m_Mir2Map->Valid()){
-        nW = m_Mir2Map->W();
-        nH = m_Mir2Map->H();
-    }else if(m_Mir2xMapData){
+    if(m_Mir2Map){
+        nW = m_Mir2Map->w();
+        nH = m_Mir2Map->h();
+    }
+    else if(m_Mir2xMapData){
         nW = m_Mir2xMapData->w();
         nH = m_Mir2xMapData->h();
-    }else{
+    }
+    else{
         return false;
     }
 
@@ -432,11 +425,11 @@ void EditorMap::SetBufTile(int nX, int nY)
             && nY >= 0
             && nY / 2 < to_d(m_BlockBuf[nX / 2].size())){
 
-        if(m_Mir2Map && m_Mir2Map->Valid()){
+        if(m_Mir2Map){
             extern ImageDB *g_ImageDB;
-            if(m_Mir2Map->TileValid(nX, nY, *g_ImageDB)){
+            if(m_Mir2Map->tileValid(nX, nY, *g_ImageDB)){
                 Tile(nX, nY).Valid = true;
-                Tile(nX, nY).Image = m_Mir2Map->Tile(nX, nY) & 0X00FFFFFF;
+                Tile(nX, nY).Image = m_Mir2Map->tile(nX, nY) & 0X00FFFFFF;
             }
         }
         else if(m_Mir2xMapData){
@@ -461,8 +454,8 @@ void EditorMap::SetBufGround(int nX, int nY)
         bool    bCanWalk   = false;
         uint8_t nAttribute = 0;
 
-        if(m_Mir2Map && m_Mir2Map->Valid()){
-            if(m_Mir2Map->GroundValid(nX, nY)){
+        if(m_Mir2Map){
+            if(m_Mir2Map->groundValid(nX, nY)){
                 bCanFly    = true;
                 bCanWalk   = true;
                 nAttribute = 0;
@@ -499,20 +492,20 @@ void EditorMap::SetBufObj(int nX, int nY, int nIndex)
         uint8_t  nAniType   = 0;
         uint8_t  nAniCount  = 0;
 
-        if(m_Mir2Map && m_Mir2Map->Valid()){
+        if(m_Mir2Map){
             // mir2 map
             // animation info is in Mir2Map::Object() at higher 8 bits
             extern ImageDB *g_ImageDB;
-            if(m_Mir2Map->ObjectValid(nX, nY, nIndex, *g_ImageDB)){
+            if(m_Mir2Map->objectValid(nX, nY, nIndex, *g_ImageDB)){
 
                 // I checked the code
                 // here the mir 3 checked CELLINFO::bFlag
 
                 bObjValid = true;
-                if(m_Mir2Map->GroundObjectValid(nX, nY, nIndex, *g_ImageDB)){
+                if(m_Mir2Map->groundObjectValid(nX, nY, nIndex, *g_ImageDB)){
                     bGroundObj = true;
                 }
-                if(m_Mir2Map->AniObjectValid(nX, nY, nIndex, *g_ImageDB)){
+                if(m_Mir2Map->aniObjectValid(nX, nY, nIndex, *g_ImageDB)){
                     bAniObj = true;
                 }
 
@@ -520,7 +513,7 @@ void EditorMap::SetBufObj(int nX, int nY, int nIndex)
                 // [23:16] : file index
                 // [15: 0] : image index
 
-                auto nObjDesc = m_Mir2Map->Object(nX, nY, nIndex);
+                auto nObjDesc = m_Mir2Map->object(nX, nY, nIndex);
                 nAniType  = (uint8_t )((nObjDesc & 0X70000000) >> (4 + 8 + 16));
                 nAniCount = (uint8_t )((nObjDesc & 0X0F000000) >> (0 + 8 + 16));
                 nObj      = to_u32((nObjDesc & 0X00FFFFFF));
@@ -569,8 +562,8 @@ void EditorMap::SetBufLight(int nX, int nY)
             && nY >= 0
             && nY / 2 < to_d(m_BlockBuf[nX / 2].size())){
 
-        if(m_Mir2Map && m_Mir2Map->Valid()){
-            if(m_Mir2Map->LightValid(nX, nY)){
+        if(m_Mir2Map){
+            if(m_Mir2Map->lightValid(nX, nY)){
                 Light(nX, nY).Valid  = true;
                 Light(nX, nY).Color  = 0;
                 Light(nX, nY).Alpha  = 0;

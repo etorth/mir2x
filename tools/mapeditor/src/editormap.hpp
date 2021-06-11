@@ -250,15 +250,14 @@ class EditorMap
         uint8_t  m_AniTileFrame[8][16];
 
     private:
-        Mir2Map      *m_Mir2Map;
-        Mir2xMapData *m_Mir2xMapData;
+        std::unique_ptr<Mir2Map> m_Mir2Map;
+        std::unique_ptr<Mir2xMapData> m_Mir2xMapData;
 
     private:
         std::vector<std::vector<stBlock_t>> m_BlockBuf;
 
     public:
         EditorMap();
-       ~EditorMap();
 
     public:
         bool LoadMir2Map(const char *);

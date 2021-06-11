@@ -1,20 +1,19 @@
 #include <cstdio>
 #include "mir2map.hpp"
+#include "fflerror.hpp"
 
 int main(int argc, char *argv[])
 {
     if(argc < 2){
-        printf("Usage: mapinfo map1 map2 ... mapN\n\n");
+        throw fflerror("Usage: mapinfo map1 map2 ... mapN");
     }
 
-    Mir2Map stMap;
+    for(int i = 1; i < argc; ++i){
+        const auto p = std::make_unique<Mir2Map>(argv[i]);
+        p->openAllDoor();
 
-    for(int nMapCnt = 1; nMapCnt < argc; ++nMapCnt){
-        stMap.Load(argv[nMapCnt]);
-        stMap.OpenAllDoor();
-        std::printf("%s\n", argv[nMapCnt]);
-        std::printf("%s\n", stMap.MapInfo().c_str());
+        std::printf("%s\n", argv[i]);
+        std::printf("%s\n", p->dumpMapInfo().c_str());
     }
-
     return 0;
 }
