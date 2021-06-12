@@ -20,15 +20,13 @@
 #include <memory>
 #include <vector>
 #include <cstdint>
-#include <optional>
 #include <functional>
-#include "strf.hpp"
 #include "wilimagepackage.hpp"
 
 class ImageDB
 {
     private:
-        const WILIMAGEINFO *m_wilImageInfo = nullptr;
+        const WILIMAGEINFO *m_currImageInfo = nullptr;
 
     private:
         std::vector<uint32_t> m_decodeBuf;
@@ -44,7 +42,7 @@ class ImageDB
                         m_packageList.push_back(std::make_unique<WilImagePackage>(pathName, fileName));
                     }
                     catch(...){
-                        m_packageList.push_back({});
+                        m_packageList.push_back({}); // mute failure
                     }
                 }
                 else{
@@ -56,11 +54,9 @@ class ImageDB
     public:
         const WILIMAGEINFO *setIndex(uint8_t fileIndex, uint16_t imageIndex)
         {
-            m_wilImageInfo = nullptr;
-            if(to_uz(fileIndex) < m_packageList.size() && m_packageList.at(fileIndex)){
-                m_wilImageInfo = m_packageList.at(fileIndex)->setIndex(imageIndex);
-            }
-            return m_wilImageInfo;
+            fflassert(to_uz(fileIndex) < m_packageList.size());
+            fflassert(m_packageList.at(fileIndex));
+            return m_currImageInfo = m_packageList.at(fileIndex)->setIndex(imageIndex);
         }
 
     public:
@@ -83,7 +79,7 @@ class ImageDB
     public:
         const WILIMAGEINFO *currImageInfo() const
         {
-            return m_wilImageInfo;
+            return m_currImageInfo;
         }
 
         std::tuple<const uint32_t *, size_t, size_t> decode(uint8_t fileIndex, uint16_t imageIndex, uint32_t color0, uint32_t color1, uint32_t color2)

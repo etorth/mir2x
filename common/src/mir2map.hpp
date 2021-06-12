@@ -297,7 +297,10 @@ class Mir2Map final
     public:
         bool tileValid(int x, int y, ImageDB &imgDB) const
         {
-            return imgDB.setIndex(tileInfo(x, y).fileIndex, tileInfo(x, y).imageIndex);
+            return true
+                && tileInfo(x, y). fileIndex !=   255
+                && tileInfo(x, y).imageIndex != 65535
+                && imgDB.setIndex(tileInfo(x, y).fileIndex, tileInfo(x, y).imageIndex);
         }
 
         uint32_t tile(int x, int y) const
