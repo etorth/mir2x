@@ -42,34 +42,6 @@ EditorMap::EditorMap()
     std::memset(m_AniTileFrame, 0, sizeof(m_AniTileFrame));
 }
 
-void EditorMap::ExtractOneTile(int nX, int nY, std::function<void(uint8_t, uint16_t)> fnWritePNG)
-{
-    if(true
-            &&  Valid()
-            &&  ValidC(nX, nY)
-            && !(nX % 2)
-            && !(nY % 2)
-            &&  Tile(nX, nY).Valid){
-
-        auto nFileIndex  = (uint8_t )((Tile(nX, nY).Image & 0X00FF0000) >> 16);
-        auto nImageIndex = to_u16((Tile(nX, nY).Image & 0X0000FFFF) >>  0);
-        fnWritePNG(nFileIndex, nImageIndex);
-    }
-}
-
-void EditorMap::ExtractTile(std::function<void(uint8_t, uint16_t)> fnWritePNG)
-{
-    if(Valid()){
-        for(int nXCnt = 0; nXCnt < W(); ++nXCnt){
-            for(int nYCnt = 0; nYCnt < H(); ++nYCnt){
-                if(!(nXCnt % 2) && !(nYCnt % 2)){
-                    ExtractOneTile(nXCnt, nYCnt, fnWritePNG);
-                }
-            }
-        }
-    }
-}
-
 void EditorMap::DrawLight(int nX, int nY, int nW, int nH, std::function<void(int, int)> fnDrawLight)
 {
     if(Valid()){
@@ -109,41 +81,6 @@ void EditorMap::DrawTile(int nCX, int nCY, int nCW,  int nCH, std::function<void
                 // provide cell-coordinates on map
                 // fnDrawTile should convert it to drawarea pixel-coordinates
                 fnDrawTile(nFileIndex, nImageIndex, nX, nY);
-            }
-        }
-    }
-}
-
-void EditorMap::ExtractOneObject(int nXCnt, int nYCnt, int nIndex, std::function<void(uint8_t, uint16_t, uint32_t)> fnWritePNG)
-{
-    if(true
-            && Valid()
-            && ValidC(nXCnt, nYCnt)
-            && nIndex >= 0
-            && nIndex <= 1){
-
-        auto &rstObj = Object(nXCnt, nYCnt, nIndex);
-        if(rstObj.Valid){
-            auto nFileIndex  = (uint8_t )((rstObj.Image & 0X00FF0000) >> 16);
-            auto nImageIndex = to_u16((rstObj.Image & 0X0000FFFF) >>  0);
-
-            int      nFrameCount = (rstObj.Animated ? rstObj.AniCount : 1);
-            uint32_t nImageColor = (rstObj.Alpha ? 0X80FFFFFF : 0XFFFFFFFF);
-
-            for(int nIndex = 0; nIndex < nFrameCount; ++nIndex){
-                fnWritePNG(nFileIndex, nImageIndex + to_u16(nIndex), nImageColor);
-            }
-        }
-    }
-}
-
-void EditorMap::ExtractObject(std::function<void(uint8_t, uint16_t, uint32_t)> fnWritePNG)
-{
-    if(Valid()){
-        for(int nYCnt = 0; nYCnt < H(); ++nYCnt){
-            for(int nXCnt = 0; nXCnt < W(); ++nXCnt){
-                ExtractOneObject(nXCnt, nYCnt, 0, fnWritePNG);
-                ExtractOneObject(nXCnt, nYCnt, 1, fnWritePNG);
             }
         }
     }

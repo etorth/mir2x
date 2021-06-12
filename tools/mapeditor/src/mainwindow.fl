@@ -71,26 +71,25 @@ decl {\#include <FL/Fl_Native_File_Chooser.H>} {public local
 class MainWindow {} {
   decl {std::string m_WilFilePathName} {private local
   }
-  Function {MainWindow()} {open
-  } {
+  Function {MainWindow()} {} {
     Fl_Window m_Window {
       callback {{
 	switch(fl_choice("Quit map editor?", nullptr, " No", " Yes ")){
 		case 2  : exit(0); break;
 		default :          break;
 	}
-}} open
-      xywh {164 181 985 665} type Double resizable visible
+}}
+      xywh {5 35 985 665} type Double resizable visible
     } {
       Fl_Box m_DrawArea {
         xywh {0 20 965 627} labelfont 4 resizable
         class DrawArea
       }
-      Fl_Menu_Bar m_MenuBar {open
+      Fl_Menu_Bar m_MenuBar {
         xywh {0 0 993 20} box THIN_UP_BOX labelfont 4 textfont 4
       } {
         Submenu {} {
-          label Project open
+          label Project
           xywh {0 0 62 20} labelfont 4
         } {
           MenuItem {} {
@@ -186,56 +185,6 @@ fl_alert("%s", "Haven't implement yet!");}
     SaveMir2xMapData();
 }}
             xywh {10 10 30 20} labelfont 4 divider
-          }
-          MenuItem {} {
-            label {Export PNG}
-            callback {{
-    extern EditorMap g_EditorMap;
-    if(!g_EditorMap.Valid()){
-        fl_alert("Current editor map is invalid");
-        return;
-    }
-
-    extern std::string g_WorkingPathName;
-    if(g_WorkingPathName == ""){
-        fl_alert("Current editor working path is invalid");
-        return;
-    }
-
-    const std::string savePNGDir = g_WorkingPathName + "/IMG";
-    filesys::makeDir(savePNGDir.c_str());
-
-    auto fnSaveObjPNG = [savePNGDir, this](uint8_t nFileIndex, uint16_t nImageIndex, uint32_t nColor)
-    {
-        extern ImageDB *g_ImageDB;
-
-        char szHexString[64];
-        std::memset(szHexString, 0, sizeof(szHexString));
-
-        const uint32_t nKey = ((to_u32(nFileIndex)) << 16) + (to_u32(nImageIndex));
-        hexstr::to_string<uint32_t, 4>(nKey, szHexString, true);
-
-        const std::string szIMGPNGName = (savePNGDir + "/" + szHexString) + ".PNG";
-        if(!filesys::hasFile(szIMGPNGName.c_str())){
-            if(const auto [imgBuf, imgW, imgH] = g_ImageDB->decode(nFileIndex, nImageIndex, nColor, 0XFFFFFFFF, 0XFFFFFFFF); imgBuf){
-                pngf::saveRGBABuffer(imgBuf, imgW, imgH, szIMGPNGName.c_str());
-            }
-        }
-    };
-
-    auto fnSaveTilePNG = [fnSaveObjPNG](uint8_t nFileIndex, uint16_t nImageIndex)
-    {
-        fnSaveObjPNG(nFileIndex, nImageIndex, 0XFFFFFFFF);
-    };
-
-    g_EditorMap.ExtractTile(fnSaveTilePNG);
-    g_EditorMap.ExtractObject(fnSaveObjPNG);
-}}
-            xywh {10 10 30 20} labelfont 4 divider
-            code0 {\#include <string>}
-            code1 {\#include <FL/Fl_Native_File_Chooser.H>}
-            code2 {\#include "imagecache.hpp"}
-            code3 {\#include "imagedb.hpp"}
           }
           MenuItem {} {
             label {Export Overview 1:1}

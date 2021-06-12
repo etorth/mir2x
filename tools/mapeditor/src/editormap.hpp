@@ -311,13 +311,6 @@ class EditorMap
         }
 
     public:
-        void ExtractTile(std::function<void(uint8_t, uint16_t)>);
-        void ExtractOneTile(int, int, std::function<void(uint8_t, uint16_t)>);
-
-        void ExtractObject(std::function<void(uint8_t, uint16_t, uint32_t)>);
-        void ExtractOneObject(int, int, int, std::function<void(uint8_t, uint16_t, uint32_t)>);
-
-    public:
         void ExportOverview(std::function<void(uint8_t, uint16_t, int, int, bool)>);
 
     public:
