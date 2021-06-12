@@ -43,49 +43,8 @@ void convertMap(std::string fromName, std::string outName, ImageDB &imgDB)
     for(int y = 0; y < to_d(mapPtr->h()); ++y){
         for(int x = 0; x < to_d(mapPtr->w()); ++x){
             if((x % 2) == 0 && (y % 2) == 0){
-                if(mapPtr->tileValid(x, y, imgDB)){
-                    outPtr->tile(x, y).texIDValid = 1;
-                    outPtr->tile(x, y).texID = mapPtr->tile(x, y) & 0X00FFFFFF;
-                }
+                mapPtr->convBlock(x, y, outPtr->block(x, y), imgDB);
             }
-
-            if(mapPtr->lightValid(x, y)){
-                outPtr->cell(x, y).light.valid  = 1;
-                outPtr->cell(x, y).light.radius = mapPtr->lightSize(x, y)  & 0X03;
-                outPtr->cell(x, y).light.alpha  = 0;
-                outPtr->cell(x, y).light.color  = mapPtr->lightColor(x, y) & 0X07;
-            }
-
-            if(mapPtr->groundValid(x, y)){
-                outPtr->cell(x, y).canWalk  = 1;
-                outPtr->cell(x, y).canFly   = 1;
-                outPtr->cell(x, y).landType = 0;
-            }
-
-            for(const int i: {0, 1}){
-                if(mapPtr->objectValid(x, y, i, imgDB)){
-                    outPtr->cell(x, y).obj[i].texIDValid = 1;
-                    outPtr->cell(x, y).obj[i].texID = mapPtr->object(x, y, i);
-                    outPtr->cell(x, y).obj[i].depthType = mapPtr->groundObjectValid(x, y, i, imgDB) ? OBJD_GROUND : OBJD_OVERGROUND0;
-
-                    if(mapPtr->aniObjectValid(x, y, i, imgDB)){
-                        outPtr->cell(x, y).obj[i].animated   = 1;
-                        outPtr->cell(x, y).obj[i].alpha      = to_u8((mapPtr->object(x, y, i) & 0X80000000) >> (7 + 8 + 16));
-                        outPtr->cell(x, y).obj[i].tickType   = to_u8((mapPtr->object(x, y, i) & 0X70000000) >> (4 + 8 + 16));
-                        outPtr->cell(x, y).obj[i].frameCount = to_u8((mapPtr->object(x, y, i) & 0X0F000000) >> (0 + 8 + 16));
-                    }
-                }
-            }
-
-            // optional
-            // sort the objects in same cell
-            std::sort(outPtr->cell(x, y).obj, outPtr->cell(x, y).obj + 2, [](const auto &obj1, const auto &obj2) -> bool
-            {
-                if(obj1.texIDValid && obj2.texIDValid){
-                    return obj1.depthType < obj2.depthType;
-                }
-                return obj1.texIDValid;
-            });
         }
     }
     outPtr->save(outName);
