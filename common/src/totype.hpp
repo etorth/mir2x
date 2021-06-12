@@ -30,6 +30,7 @@ inline auto to_df   (auto x){ return static_cast<            double>(x); }
 inline auto to_lld  (auto x){ return static_cast<         long long>(x); }
 inline auto to_llu  (auto x){ return static_cast<unsigned long long>(x); }
 inline auto to_uz   (auto x){ return static_cast<            size_t>(x); }
+inline auto to_zu   (auto x){ return static_cast<            size_t>(x); }
 inline auto to_u8   (auto x){ return static_cast<           uint8_t>(x); }
 inline auto to_u16  (auto x){ return static_cast<          uint16_t>(x); }
 inline auto to_u32  (auto x){ return static_cast<          uint32_t>(x); }

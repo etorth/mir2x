@@ -35,6 +35,12 @@ decl {\#include <FL/Fl_Shared_Image.H>} {public local
 decl {\#include "filesys.hpp"} {private local
 }
 
+decl {\#include "strf.hpp"} {private local
+}
+
+decl {\#include "totype.hpp"} {private local
+}
+
 decl {\#include "pngf.hpp"} {private local
 }
 
@@ -73,13 +79,14 @@ class MainWindow {} {
   }
   Function {MainWindow()} {} {
     Fl_Window m_Window {
+      label {mapeditor-version-0.0.1}
       callback {{
 	switch(fl_choice("Quit map editor?", nullptr, " No", " Yes ")){
 		case 2  : exit(0); break;
 		default :          break;
 	}
 }}
-      xywh {5 35 985 665} type Double resizable visible
+      xywh {100 100 985 690} type Double resizable visible
     } {
       Fl_Box m_DrawArea {
         xywh {0 20 965 627} labelfont 4 resizable
@@ -165,6 +172,7 @@ fl_alert("%s", "Haven't implement yet!");}
                         fl_alert("Failed to load Mir2xMapData: %s", szPath.c_str());
                     }
 
+                    setFootLog(str_printf("Mir2xMapData: %s, width %zu, height %zu", szPath.c_str(), to_uz(g_EditorMap.W()), to_uz(g_EditorMap.H())).c_str());
                     AfterLoadMap();
                     Fl::remove_timeout(UpdateFrame);
                     Fl::add_timeout(0.1, UpdateFrame);
@@ -549,6 +557,10 @@ if(g_EditorMap.Valid()){
         xywh {0 647 965 20} type Horizontal labelfont 4 step 0.001 deactivate
         code0 {\#include "editormap.hpp"}
       }
+      Fl_Box m_logBar {
+        label label
+        private xywh {0 667 985 25} box THIN_UP_BOX labelfont 4 align 20
+      }
     }
     code {{
     // set slider size
@@ -557,6 +569,8 @@ if(g_EditorMap.Valid()){
 
     ((Fl_Slider *)(m_VSBar))->slider_size(0.08);
     ((Fl_Slider *)(m_SBar ))->slider_size(0.08);
+
+    setFootLog("no map loaded");
 }} {}
   }
   Function {ShowAll()} {return_type void
@@ -608,6 +622,7 @@ if(g_EditorMap.Valid()){
                     fl_alert("Load mir2 map %s failed", fileChooser.filename());
                 }
 
+                setFootLog(str_printf("Mir2Map: %s, width %zu, height %zu", fileChooser.filename(), to_zu(g_EditorMap.W()), to_zu(g_EditorMap.H())).c_str());
                 AfterLoadMap();
 
                 Fl::remove_timeout(UpdateFrame);
@@ -1147,6 +1162,20 @@ if(g_EditorMap.Valid()){
     else{
         fl_alert("Export overview map image failed");
     }
+}} {}
+  }
+  Function {setFootLog(const char *msg)} {return_type void
+  } {
+    code {{
+    if(str_haschar(msg)){
+        m_logBar->copy_label(msg);
+    }
+    else{
+        m_logBar->copy_label("mapeditor-version-0.0.1");
+    }
+
+    m_logBar->redraw();
+    m_Window->redraw();
 }} {}
   }
 }
