@@ -103,10 +103,9 @@ const WILIMAGEINFO *WilImagePackage::setIndex(uint32_t imageIndex)
         return nullptr;
     }
 
-    seek_fileptr(m_wilFile, m_wilPositionList[imageIndex],   SEEK_SET);
-    seek_fileptr(m_wilFile, wilOff(m_wilFileHeader.version), SEEK_CUR);
-
+    seek_fileptr(m_wilFile, m_wilPositionList[imageIndex] + wilOff(m_wilFileHeader.version), SEEK_SET);
     read_fileptr(m_wilFile, m_currImageBuffer, m_currImageInfo.imageLength);
+
     m_currImageIndex = imageIndex;
     return &m_currImageInfo;
 }
