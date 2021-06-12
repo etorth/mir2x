@@ -86,7 +86,7 @@ class MainWindow {} {
 		default :          break;
 	}
 }}
-      xywh {108 131 985 690} type Double resizable visible
+      xywh {116 162 985 690} type Double resizable visible
     } {
       Fl_Box m_DrawArea {
         xywh {0 20 965 627} labelfont 4 resizable
@@ -539,7 +539,7 @@ if(g_EditorMap.Valid()){
     	m_DrawArea->SetOffset(0, true, nYOffset, false);
 	m_Window->redraw();
 }}
-        xywh {965 20 20 647} labelfont 4 step 0.001 slider_size 1 deactivate
+        xywh {965 20 20 647} labelfont 4 step 0.001 slider_size 0.05 deactivate
         code0 {\#include "editormap.hpp"}
       }
       Fl_Scrollbar m_SBar {
@@ -554,7 +554,7 @@ if(g_EditorMap.Valid()){
     	m_DrawArea->SetOffset(nXOffset, false, 0, true);
 	m_Window->redraw();
 }}
-        xywh {0 647 965 20} type Horizontal labelfont 4 step 0.001 slider_size 1 deactivate
+        xywh {0 647 965 20} type Horizontal labelfont 4 step 0.001 slider_size 0.05 deactivate
         code0 {\#include "editormap.hpp"}
       }
       Fl_Box m_logBar {
