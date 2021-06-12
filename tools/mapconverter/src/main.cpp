@@ -25,6 +25,7 @@
 #include "filesys.hpp"
 #include "fflerror.hpp"
 #include "mir2map.hpp"
+#include "threadpool.hpp"
 #include "mir2xmapdata.hpp"
 
 void convertMap(std::string fromName, std::string outName, ImageDB &imgDB)
@@ -81,10 +82,26 @@ int main(int argc, char *argv[])
         throw fflerror("Usage: %s mir2-map-wil-path mir2-map-path mir2x-map-output", argv[0]);
     }
 
-    ImageDB imgDB(argv[1]);
+    threadPool pool(0);
+    threadPool::abortedTag hasError;
+    std::vector<std::unique_ptr<ImageDB>> dbList(pool.poolSize);
+
     for(const auto &mapName: filesys::getFileList(argv[2], false, R"#(.*\.[mM][aA][pP]$)#")){
         const auto srcPath = str_printf("%s/%s",     argv[2], mapName.c_str());
         const auto dstPath = str_printf("%s/%s.bin", argv[3], mapName.c_str());
-        convertMap(srcPath, dstPath, imgDB);
+        pool.addTask(hasError, [argv, srcPath, dstPath, &dbList](int threadId)
+        {
+            // ImageDB is not thread safe
+            // need to allocate for each thread
+
+            if(!dbList[threadId]){
+                dbList[threadId] = std::make_unique<ImageDB>(argv[1]);
+            }
+            convertMap(srcPath, dstPath, *dbList[threadId]);
+        });
     }
+
+    pool.finish();
+    hasError.checkError();
+    return 0;
 }
