@@ -6,9 +6,6 @@
  *    Description: class to record data for mir2x map
  *                 this class won't define operation over the data
  *
- *                 previously I was using grid compression
- *                 but I decide to disable it since I found I can use zip to compress
- *
  *        Version: 1.0
  *       Revision: none
  *       Compiler: gcc
@@ -62,7 +59,7 @@ class Mir2xMapData final
             }
         };
 
-        struct OBJ
+        struct OBJECT
         {
             uint32_t texIDValid :  1 {0};
             uint32_t texID      : 24 {0};
@@ -127,8 +124,8 @@ class Mir2xMapData final
             uint8_t canFly   : 1 {0};
             uint8_t landType : 6 {0};
 
-            LIGHT light;
-            OBJ   obj[2];
+            LIGHT  light;
+            OBJECT obj[2];
 
             template<typename Archive> void serialize(Archive &ar)
             {
