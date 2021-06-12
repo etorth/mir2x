@@ -68,8 +68,7 @@ decl {\#include "animationselectwindow.hpp"} {private local
 decl {\#include <FL/Fl_Native_File_Chooser.H>} {public local
 }
 
-class MainWindow {open
-} {
+class MainWindow {} {
   decl {std::string m_WilFilePathName} {private local
   }
   Function {MainWindow()} {open
@@ -263,7 +262,7 @@ fl_alert("%s", "Haven't implement yet!");}
             label {Export Overview 1:8}
             callback {{
     extractOverview(8);
-}} selected
+}}
             xywh {50 50 30 20} labelfont 4
           }
           MenuItem {} {
@@ -271,7 +270,14 @@ fl_alert("%s", "Haven't implement yet!");}
             callback {{
     extractOverview(16);
 }}
-            xywh {60 60 30 20} labelfont 4 divider
+            xywh {60 60 30 20} labelfont 4
+          }
+          MenuItem {} {
+            label {Export Overview 1:32}
+            callback {{
+    extractOverview(32);
+}}
+            xywh {70 70 30 20} labelfont 4 divider
           }
           MenuItem {} {
             label {Save As}
@@ -1043,6 +1049,7 @@ if(g_EditorMap.Valid()){
         case 4:
         case 8:
         case 16:
+        case 32:
             {
                 break;
             }
