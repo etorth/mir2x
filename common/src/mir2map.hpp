@@ -25,6 +25,8 @@
 #include "totype.hpp"
 #include "imagedb.hpp"
 #include "sysconst.hpp"
+#include "fflerror.hpp"
+#include "mir2xmapdata.hpp"
 #include "wilimagepackage.hpp"
 
 #pragma pack(push, 1)
@@ -143,12 +145,12 @@ class Mir2Map final
             return cellInfo(x, y).flag;
         }
 
-        bool groundValid(int x, int y)
+        bool groundValid(int x, int y) const
         {
             return groundFlag(x, y) & 0X01;
         }
 
-        bool aniObjectValid(int x, int y, int index, ImageDB &imgDB)
+        bool aniObjectValid(int x, int y, int index, ImageDB &imgDB) const
         {
             if(objectValid(x, y, index, imgDB)){
                 if(index == 0){
@@ -161,7 +163,7 @@ class Mir2Map final
             return false;
         }
 
-        bool groundObjectValid(int x, int y, int index, ImageDB &imgDB)
+        bool groundObjectValid(int x, int y, int index, ImageDB &imgDB) const
         {
             const auto [fileIndex, imageIndex] = [x, y, index, this]() -> std::tuple<uint8_t, uint16_t>
             {
@@ -184,7 +186,7 @@ class Mir2Map final
                 && imgDB.currImageInfo()->height == SYS_MAPGRIDYP;
         }
 
-        bool objectValid(int x, int y, int index, ImageDB &imgDB)
+        bool objectValid(int x, int y, int index, ImageDB &imgDB) const
         {
             const auto [fileIndex, imageIndex] = [x, y, index, this]() -> std::tuple<uint8_t, uint16_t>
             {
@@ -322,6 +324,65 @@ class Mir2Map final
         CELLINFO &cellInfo(int x, int y)
         {
             return m_cellInfo[x * h() + y];
+        }
+
+    public:
+        void convBlock(int x, int y, Mir2xMapData::BLOCK &block, ImageDB &imgDB) const
+        {
+            fflassert((x % 2) == 0);
+            fflassert((y % 2) == 0);
+
+            block = {};
+            if(tileValid(x, y, imgDB)){
+                block.tile.texIDValid = 1;
+                block.tile.texID = tile(x, y) & 0X00FFFFFF;
+            }
+
+            for(const int dy: {0, 1}){
+                for(const int dx: {0, 1}){
+                    const int ix = x + dx;
+                    const int iy = y + dy;
+                    const int ic = 2 * dy + dx;
+
+                    if(groundValid(ix, iy)){
+                        block.cell[ic].canWalk  = 1;
+                        block.cell[ic].canFly   = 1;
+                        block.cell[ic].landType = 0;
+                    }
+
+                    if(lightValid(ix, iy)){
+                        block.cell[ic].light.valid  = 1;
+                        block.cell[ic].light.radius = lightSize(ix, iy)  & 0X03;
+                        block.cell[ic].light.alpha  = 0;
+                        block.cell[ic].light.color  = lightColor(ix, iy) & 0X03;
+                    }
+
+                    for(const int io: {0, 1}){
+                        if(objectValid(ix, iy, io, imgDB)){
+                            block.cell[ic].obj[io].texIDValid = 1;
+                            block.cell[ic].obj[io].texID = object(ix, iy, io) & 0X00FFFFFF;
+                            block.cell[ic].obj[io].depthType = groundObjectValid(ix, iy, io, imgDB) ? OBJD_GROUND : OBJD_OVERGROUND0;
+
+                            if(aniObjectValid(ix, iy, io, imgDB)){
+                                block.cell[ic].obj[io].animated   = 1;
+                                block.cell[ic].obj[io].alpha      = to_u8((object(ix, iy, io) & 0X80000000) >> (7 + 8 + 16));
+                                block.cell[ic].obj[io].tickType   = to_u8((object(ix, iy, io) & 0X70000000) >> (4 + 8 + 16));
+                                block.cell[ic].obj[io].frameCount = to_u8((object(ix, iy, io) & 0X0F000000) >> (0 + 8 + 16));
+                            }
+                        }
+                    }
+
+                    // optional
+                    // sort the objects in same cell
+                    std::sort(block.cell[ic].obj, block.cell[ic].obj + 2, [](const auto &obj1, const auto &obj2) -> bool
+                    {
+                        if(obj1.texIDValid && obj2.texIDValid){
+                            return obj1.depthType < obj2.depthType;
+                        }
+                        return obj1.texIDValid;
+                    });
+                }
+            }
         }
 
     public:

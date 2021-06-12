@@ -33,9 +33,13 @@ void convertMap(std::string fromName, std::string outName, ImageDB &imgDB)
 {
     std::cout << str_printf("converting %s", fromName.c_str()) << std::endl;
     auto mapPtr = std::make_unique<Mir2Map>(fromName.c_str());
-    auto outPtr = std::make_unique<Mir2xMapData>();
 
+    fflassert((mapPtr->w() % 2) == 0);
+    fflassert((mapPtr->h() % 2) == 0);
+
+    auto outPtr = std::make_unique<Mir2xMapData>();
     outPtr->allocate(mapPtr->w(), mapPtr->h());
+
     for(int y = 0; y < to_d(mapPtr->h()); ++y){
         for(int x = 0; x < to_d(mapPtr->w()); ++x){
             if((x % 2) == 0 && (y % 2) == 0){
