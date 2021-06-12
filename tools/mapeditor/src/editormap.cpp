@@ -3,8 +3,8 @@
  *
  *       Filename: editormap.cpp
  *        Created: 02/08/2016 22:17:08
- *    Description: EditorMap has no idea of ImageDB, WilImagePackage, etc..
- *                 Use function handler to handle draw, cache, etc
+ *    Description:
+ *
  *        Version: 1.0
  *       Revision: none
  *       Compiler: gcc
