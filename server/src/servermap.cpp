@@ -1263,7 +1263,7 @@ void ServerMap::loadNPChar()
     const auto scriptPath = cfgScriptPath.empty() ? std::string("script/npc") : cfgScriptPath;
 
     const auto reg = str_printf("%s\\..*\\.lua", to_cstr(DBCOM_MAPRECORD(ID()).name));
-    for(const auto &fileName: filesys::getFileList(scriptPath.c_str(), reg.c_str())){
+    for(const auto &fileName: filesys::getFileList(scriptPath.c_str(), true, reg.c_str())){
         // file as: "道馆.铁匠.lua"
         // parse the string to get "铁匠" as npc name
         const auto p1 = fileName.find('.');

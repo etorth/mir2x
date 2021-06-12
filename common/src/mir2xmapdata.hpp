@@ -66,32 +66,32 @@ class Mir2xMapData final
         {
             uint32_t texIDValid :  1 {0};
             uint32_t texID      : 24 {0};
+            uint32_t depthType  :  2 {2};
 
             uint32_t animated   :  1 {0};
+            uint32_t alpha      :  1 {0};
             uint32_t tickType   :  3 {0};
             uint32_t frameCount :  4 {0};
-            uint32_t alpha      :  1 {0};
-            uint32_t depthType  :  2 {2};
 
             template<typename Archive> void serialize(Archive &ar)
             {
                 uint32_t sd_texIDValid = texIDValid;
                 uint32_t sd_texID      = texID;
+                uint32_t sd_depthType  = depthType;
                 uint32_t sd_animated   = animated;
+                uint32_t sd_alpha      = alpha;
                 uint32_t sd_tickType   = tickType;
                 uint32_t sd_frameCount = frameCount;
-                uint32_t sd_alpha      = alpha;
-                uint32_t sd_depthType  = depthType;
 
-                ar(sd_texIDValid, sd_texID, sd_animated, sd_tickType, sd_frameCount, sd_alpha, sd_depthType);
+                ar(sd_texIDValid, sd_texID, sd_depthType, sd_animated, sd_alpha, sd_tickType, sd_frameCount);
 
                 texIDValid = sd_texIDValid;
                 texID      = sd_texID;
+                depthType  = sd_depthType;
                 animated   = sd_animated;
+                alpha      = sd_alpha;
                 tickType   = sd_tickType;
                 frameCount = sd_frameCount;
-                alpha      = sd_alpha;
-                depthType  = sd_depthType;
             }
         };
 
@@ -127,8 +127,8 @@ class Mir2xMapData final
             uint8_t canFly   : 1 {0};
             uint8_t landType : 6 {0};
 
-            OBJ obj[2];
             LIGHT light;
+            OBJ   obj[2];
 
             template<typename Archive> void serialize(Archive &ar)
             {
@@ -136,7 +136,7 @@ class Mir2xMapData final
                 uint8_t sd_canFly   = canFly;
                 uint8_t sd_landType = landType;
 
-                ar(sd_canWalk, sd_canFly, sd_landType, obj[0], obj[1], light);
+                ar(sd_canWalk, sd_canFly, sd_landType, light, obj[0], obj[1]);
 
                 canWalk  = sd_canWalk;
                 canFly   = sd_canFly;

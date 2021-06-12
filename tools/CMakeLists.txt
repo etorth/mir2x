@@ -3,6 +3,7 @@ ADD_SUBDIRECTORY(pkgviewer)
 ADD_SUBDIRECTORY(mapinfo)
 ADD_SUBDIRECTORY(animaker)
 ADD_SUBDIRECTORY(mapdbmaker)
+ADD_SUBDIRECTORY(mapconverter)
 
 ADD_SUBDIRECTORY(mapwil2png)
 ADD_SUBDIRECTORY(npcwil2png)

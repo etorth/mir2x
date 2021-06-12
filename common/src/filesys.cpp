@@ -87,7 +87,7 @@ void filesys::copyFile(const char *dstFileName, const char *srcFileName)
     }
 }
 
-std::vector<std::string> filesys::getFileList(const char *dir, const char *reg)
+std::vector<std::string> filesys::getFileList(const char *dir, bool fullPath, const char *reg)
 {
     fflassert(str_haschar(dir));
     std::vector<std::string> result;
@@ -98,14 +98,19 @@ std::vector<std::string> filesys::getFileList(const char *dir, const char *reg)
             continue;
         }
 
-        auto fileName = p.path().filename().u8string();
+        const auto fileName = p.path().filename().u8string();
         if(str_haschar(reg)){
             if(!std::regex_match(reinterpret_cast<const char *>(fileName.c_str()), matchRegex)){
                 continue;
             }
         }
 
-        result.push_back(reinterpret_cast<const char *>(p.path().u8string().c_str()));
+        if(fullPath){
+            result.push_back(reinterpret_cast<const char *>(p.path().u8string().c_str()));
+        }
+        else{
+            result.push_back(reinterpret_cast<const char *>(p.path().filename().c_str()));
+        }
     }
     return result;
 }
