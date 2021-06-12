@@ -534,7 +534,7 @@ void EditorMap::SetBufObj(int nX, int nY, int nIndex)
             if(obj.texIDValid){
                 bObjValid = true;
                 nObj = obj.texID;
-                bGroundObj = (obj.depthType == OBJD_OVERGROUND0 || obj.depthType == OBJD_OVERGROUND1);
+                bGroundObj = (obj.depthType == OBJD_GROUND);
 
                 bAniObj = obj.animated;
                 nAniType  = obj.tickType;

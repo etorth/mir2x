@@ -20,6 +20,7 @@
 #include <string>
 #include <cstring>
 #include <iostream>
+#include <algorithm>
 #include "strf.hpp"
 #include "imagedb.hpp"
 #include "filesys.hpp"
@@ -65,12 +66,22 @@ void convertMap(std::string fromName, std::string outName, ImageDB &imgDB)
 
                     if(mapPtr->aniObjectValid(x, y, i, imgDB)){
                         outPtr->cell(x, y).obj[i].animated   = 1;
-                        outPtr->cell(x, y).obj[i].alpha      = to_u8(mapPtr->object(x, y, i) & 0X80000000) >> (7 + 8 + 16);
-                        outPtr->cell(x, y).obj[i].tickType   = to_u8(mapPtr->object(x, y, i) & 0X70000000) >> (4 + 8 + 16);
-                        outPtr->cell(x, y).obj[i].frameCount = to_u8(mapPtr->object(x, y, i) & 0X0F000000) >> (0 + 8 + 16);
+                        outPtr->cell(x, y).obj[i].alpha      = to_u8((mapPtr->object(x, y, i) & 0X80000000) >> (7 + 8 + 16));
+                        outPtr->cell(x, y).obj[i].tickType   = to_u8((mapPtr->object(x, y, i) & 0X70000000) >> (4 + 8 + 16));
+                        outPtr->cell(x, y).obj[i].frameCount = to_u8((mapPtr->object(x, y, i) & 0X0F000000) >> (0 + 8 + 16));
                     }
                 }
             }
+
+            // optional
+            // sort the objects in same cell
+            std::sort(outPtr->cell(x, y).obj, outPtr->cell(x, y).obj + 2, [](const auto &obj1, const auto &obj2) -> bool
+            {
+                if(obj1.texIDValid && obj2.texIDValid){
+                    return obj1.depthType < obj2.depthType;
+                }
+                return obj1.texIDValid;
+            });
         }
     }
     outPtr->save(outName);
