@@ -89,7 +89,7 @@ class MainWindow {} {
 		default :          break;
 	}
 }}
-      xywh {140 255 985 690} type Double resizable visible
+      xywh {85 193 985 690} type Double resizable visible
     } {
       Fl_Box m_drawArea {
         xywh {0 20 965 627} labelfont 4 resizable
@@ -531,34 +531,10 @@ g_aboutWindow->ShowAll();}
         }
       }
       Fl_Scrollbar m_vsbar {
-        callback {auto pWidget = ((Fl_Valuator *)(m_vsbar));
-auto fValue  = pWidget->value();
-
-extern EditorMap g_editorMap;
-if(g_editorMap.Valid()){
-	int nValidYOffset = g_editorMap.H() * SYS_MAPGRIDYP - m_drawArea->h();
-	nValidYOffset = (std::max<int>)(0, nValidYOffset);
-	int nYOffset = to_d(nValidYOffset * fValue * 1.0);
-    	m_drawArea->SetOffset(0, true, nYOffset, false);
-	m_window->redraw();
-}}
         xywh {965 20 20 647} labelfont 4 step 0.001 deactivate
-        code0 {\#include "editormap.hpp"}
       }
       Fl_Scrollbar m_hsbar {
-        callback {auto pWidget = ((Fl_Valuator *)(m_hsbar));
-auto fValue  = pWidget->value();
-
-extern EditorMap g_editorMap;
-if(g_editorMap.Valid()){
-	int nValidXOffset = g_editorMap.W() * SYS_MAPGRIDXP - m_drawArea->w();
-	nValidXOffset = (std::max<int>)(0, nValidXOffset);
-	int nXOffset = to_d(nValidXOffset * fValue * 1.0);
-    	m_drawArea->SetOffset(nXOffset, false, 0, true);
-	m_window->redraw();
-}}
         xywh {0 647 965 20} type Horizontal labelfont 4 step 0.001 deactivate
-        code0 {\#include "editormap.hpp"}
       }
       Fl_Box m_logBar {
         label label
@@ -637,15 +613,11 @@ if(g_editorMap.Valid()){
   Function {AfterLoadMap()} {return_type void
   } {
     code {{
-    // should reset the offset
-    // no matter editor map valid or not
-    setScrollBarValue(0.0, 0.0);
-    m_drawArea->SetOffset(0, false, 0, false);
-
     // check if we need to deactivate the scroll bars
     // 1. used after load map
     // 2. used after draw area resize
     checkScrollBar();
+    setScrollBarValue(0.0, 0.0);
     RedrawAll();
 }} {}
   }
@@ -931,69 +903,47 @@ if(g_editorMap.Valid()){
     code {{
     extern AnimationDraw g_animationDraw;
     if(g_animationDraw.MonsterID){
-        int nX = m_drawArea->OffsetX() + m_window->w() / 2;
-        int nY = m_drawArea->OffsetY() + m_window->h() / 2;
-
-        g_animationDraw.X = nX;
-        g_animationDraw.Y = nY;
+        const auto [offX, offY] = m_drawArea->offset();
+        g_animationDraw.X = offX + m_window->w() / 2;
+        g_animationDraw.Y = offY + m_window->h() / 2;
     }
 }} {}
   }
   Function {checkScrollBar()} {return_type void
   } {
     code {{
-    // check if we need to deactivate the scroll bars
+    // check if we need to deactivate the scroll bars, but don't reset the scrollbar value
     // 1. used after load map
     // 2. used after draw area resize
     extern EditorMap g_editorMap;
     if(g_editorMap.Valid()){
         if(g_editorMap.W() * SYS_MAPGRIDXP <= m_drawArea->w()){
             m_hsbar->deactivate();
-            setHScrollBarValue(0.0);
-        }else{
+            setScrollBarValue(0.0, {});
+            setScrollBarSize (1.0, {});
+        }
+        else{
             m_hsbar->activate();
+            setScrollBarSize(to_f(m_drawArea->w()) / (g_editorMap.W() * SYS_MAPGRIDXP), {});
         }
 
         if(g_editorMap.H() * SYS_MAPGRIDYP <= m_drawArea->h()){
             m_vsbar->deactivate();
-            setVScrollBarValue(0.0);
-        }else{
+            setScrollBarValue({}, 0.0);
+            setScrollBarSize ({}, 1.0);
+        }
+        else{
             m_vsbar->activate();
+            setScrollBarSize({}, to_f(m_drawArea->h()) / (g_editorMap.H() * SYS_MAPGRIDYP));
         }
     }
     else{
         m_hsbar->deactivate();
         m_vsbar->deactivate();
 
-        ((Fl_Valuator *)(m_hsbar))->value(0.0);
-        ((Fl_Valuator *)(m_vsbar))->value(0.0);
-
-        ((Fl_Slider *)(m_hsbar))->slider_size(1.0);
-        ((Fl_Slider *)(m_vsbar))->slider_size(1.0);
+        setScrollBarSize (1.0, 1.0);
+        setScrollBarValue(0.0, 0.0);
     }
-}} {}
-  }
-  Function {setScrollBarValue(std::optional<double> fXP, std::optional<double> fYP)} {return_type void
-  } {
-    code {{
-    if(fXP.has_value()) setHScrollBarValue(fXP.value());
-    if(fYP.has_value()) setVScrollBarValue(fYP.value());
-}} {}
-  }
-  Function {setHScrollBarValue(double fXP)} {return_type void
-  } {
-    code {{
-	auto pWidgetX = ((Fl_Valuator *)(m_hsbar));
-	fXP = (std::min<double>)(1.0, (std::max<double>)(0.0, fXP));
-	pWidgetX->value(pWidgetX->round(fXP));
-}} {}
-  }
-  Function {setVScrollBarValue(double fYP)} {return_type void
-  } {
-    code {{
-	auto pWidgetY = ((Fl_Valuator *)(m_vsbar));
-	fYP = (std::min<double>)(1.0, (std::max<double>)(0.0, fYP));
-	pWidgetY->value(pWidgetY->round(fYP));
 }} {}
   }
   Function {Activate()} {return_type void
@@ -1189,18 +1139,45 @@ if(g_editorMap.Valid()){
     m_window->redraw();
 }} {}
   }
-  Function {setScrollBarSize(std::optional<float> vslider, std::optional<float> hslider)} {return_type void
+  Function {setScrollBarSize(std::optional<float> xsize, std::optional<float> ysize)} {return_type void
   } {
     code {{
-    if(vslider.has_value() && vslider.value() >= 0.0 && vslider.value() <= 1.0){
-        ((Fl_Slider *)(m_vsbar))->slider_size(vslider.value());
+    if(xsize.has_value()){
+        ((Fl_Slider *)(m_hsbar))->slider_size(std::max<float>(std::min<float>(xsize.value(), 1.0), 0.0));
     }
 
-    if(hslider.has_value() && hslider.value() >= 0.0 && hslider.value() <= 1.0){
-        ((Fl_Slider *)(m_hsbar))->slider_size(hslider.value());
+    if(ysize.has_value()){
+        ((Fl_Slider *)(m_vsbar))->slider_size(std::max<float>(std::min<float>(ysize.value(), 1.0), 0.0));
+    }
+}} {}
+  }
+  Function {getScrollBarValue()} {return_type {std::tuple<float, float>}
+  } {
+    code {{
+    return
+    {
+        ((Fl_Valuator *)(m_hsbar))->value(),
+        ((Fl_Valuator *)(m_vsbar))->value(),
+    };
+}} {}
+  }
+  Function {addScrollBarValue(float xratio, float yratio)} {return_type void
+  } {
+    code {{
+    const auto [xval, yval] = getScrollBarValue();
+    setScrollBarValue(xval + xratio, yval + yratio);
+}} {}
+  }
+  Function {setScrollBarValue(std::optional<float> xratio, std::optional<float> yratio)} {return_type void
+  } {
+    code {{
+    if(xratio.has_value()){
+        ((Fl_Valuator *)(m_hsbar))->value(std::max<float>(std::min<float>(xratio.value(), 1.0), 0.0));
     }
 
-    m_window->redraw();
+    if(yratio.has_value()){
+        ((Fl_Valuator *)(m_vsbar))->value(std::max<float>(std::min<float>(yratio.value(), 1.0), 0.0));
+    }
 }} {}
   }
 }

@@ -41,23 +41,37 @@
 #include "animationselectwindow.hpp"
 #include "attributeselectwindow.hpp"
 
-DrawArea::DrawArea(int nX, int nY, int nW, int nH)
-    : BaseArea(nX, nY, nW, nH)
-    , m_mouseX(0)
-    , m_mouseY(0)
-    , m_offsetX(0)
-    , m_offsetY(0)
-    , m_lightImge(CreateRoundImage(200, 0X001286FF))
-{}
+extern ImageDB *g_imageDB;
+extern EditorMap g_editorMap;
+extern ImageCache g_imageCache;
+
+extern MainWindow *g_mainWindow;
+extern SelectSettingWindow *g_selectSettingWindow;
+extern AttributeSelectWindow *g_attributeSelectWindow;
+
+std::tuple<int, int> DrawArea::offset() const
+{
+    if(!g_editorMap.Valid()){
+        return {0, 0};
+    }
+
+    const auto [xpCount, ypCount] = getScrollPixelCount();
+    const auto [xratio, yratio] = g_mainWindow->getScrollBarValue();
+
+    return
+    {
+        to_d(std::lround(xratio * xpCount)),
+        to_d(std::lround(yratio * ypCount)),
+    };
+}
 
 void DrawArea::draw()
 {
     BaseArea::draw();
+    if(g_mainWindow->ClearBackground()){
+        Clear();
+    }
 
-    extern MainWindow *g_mainWindow;
-    if(g_mainWindow->ClearBackground()){ Clear(); }
-
-    extern EditorMap g_editorMap;
     if(g_editorMap.Valid()){
         DrawTile();
         DrawObject(true);
@@ -77,34 +91,33 @@ void DrawArea::AddSelectByAttribute()
 {
     auto fnSet = [](int nX, int nY)
     {
-        extern EditorMap g_editorMap;
         if(g_editorMap.ValidC(nX, nY)){
-            extern AttributeSelectWindow *g_attributeSelectWindow;
             if(g_attributeSelectWindow->TestLand(g_editorMap.Cell(nX, nY).MakeLandU8())){
-                extern MainWindow *g_mainWindow;
                 g_editorMap.Cell(nX, nY).SelectConf.Ground = g_mainWindow->Deselect() ? false : true;
             }
         }
     };
 
-    int nMX = m_mouseX + m_offsetX - x();
-    int nMY = m_mouseY + m_offsetY - y();
+    const auto [offsetX, offsetY] = offset();
 
-    extern SelectSettingWindow *g_selectSettingWindow;
+    int nMX = m_mouseX + offsetX - x();
+    int nMY = m_mouseY + offsetY - y();
+
     AttributeCoverOperation(nMX, nMY, g_selectSettingWindow->AttributeSize(), fnSet);
 }
 
 void DrawArea::DrawDoneSelectByTile()
 {
-    int nX0 = m_offsetX / SYS_MAPGRIDXP - SYS_OBJMAXW;
-    int nY0 = m_offsetY / SYS_MAPGRIDYP - SYS_OBJMAXH;
+    const auto [offsetX, offsetY] = offset();
 
-    int nX1 = (m_offsetX + w()) / SYS_MAPGRIDXP + SYS_OBJMAXW;
-    int nY1 = (m_offsetY + h()) / SYS_MAPGRIDYP + SYS_OBJMAXH;
+    int nX0 = offsetX / SYS_MAPGRIDXP - SYS_OBJMAXW;
+    int nY0 = offsetY / SYS_MAPGRIDYP - SYS_OBJMAXH;
+
+    int nX1 = (offsetX + w()) / SYS_MAPGRIDXP + SYS_OBJMAXW;
+    int nY1 = (offsetY + h()) / SYS_MAPGRIDYP + SYS_OBJMAXH;
 
     for(int nX = nX0; nX < nX1; ++nX){
         for(int nY = nY0; nY < nY1; ++nY){
-            extern EditorMap g_editorMap;
             if(true
                     && !(nX % 2)
                     && !(nY % 2)
@@ -115,10 +128,9 @@ void DrawArea::DrawDoneSelectByTile()
                         && rstTile.Valid
                         && rstTile.SelectConf.Tile){
 
-                    int nStartX = nX * SYS_MAPGRIDXP - m_offsetX;
-                    int nStartY = nY * SYS_MAPGRIDYP - m_offsetY;
+                    int nStartX = nX * SYS_MAPGRIDXP - offsetX;
+                    int nStartY = nY * SYS_MAPGRIDYP - offsetY;
 
-                    extern MainWindow *g_mainWindow;
                     FillRectangle(nStartX, nStartY, SYS_MAPGRIDXP * 2, SYS_MAPGRIDYP * 2, g_mainWindow->Deselect() ? 0X80FF0000 : 0X8000FF00);
                 }
             }
@@ -128,16 +140,17 @@ void DrawArea::DrawDoneSelectByTile()
 
 void DrawArea::DrawDoneSelectByObject(bool bGround)
 {
-    int nX0 = m_offsetX / SYS_MAPGRIDXP - SYS_OBJMAXW;
-    int nY0 = m_offsetY / SYS_MAPGRIDYP - SYS_OBJMAXH;
+    const auto [offsetX, offsetY] = offset();
 
-    int nX1 = (m_offsetX + w()) / SYS_MAPGRIDXP + SYS_OBJMAXW;
-    int nY1 = (m_offsetY + h()) / SYS_MAPGRIDYP + SYS_OBJMAXH;
+    int nX0 = offsetX / SYS_MAPGRIDXP - SYS_OBJMAXW;
+    int nY0 = offsetY / SYS_MAPGRIDYP - SYS_OBJMAXH;
+
+    int nX1 = (offsetX + w()) / SYS_MAPGRIDXP + SYS_OBJMAXW;
+    int nY1 = (offsetY + h()) / SYS_MAPGRIDYP + SYS_OBJMAXH;
 
     for(int nX = nX0; nX < nX1; ++nX){
         for(int nY = nY0; nY < nY1; ++nY){
             for(int nIndex = 0; nIndex < 2; ++nIndex){
-                extern EditorMap g_editorMap;
                 if(g_editorMap.ValidC(nX, nY)){
 
                     auto rstObj = g_editorMap.Object(nX, nY, nIndex);
@@ -157,10 +170,9 @@ void DrawArea::DrawDoneSelectByObject(bool bGround)
                                 int nW = pImage->w();
                                 int nH = pImage->h();
 
-                                int nStartX = nX * SYS_MAPGRIDXP - m_offsetX;
-                                int nStartY = nY * SYS_MAPGRIDYP - m_offsetY + SYS_MAPGRIDYP - nH;
+                                int nStartX = nX * SYS_MAPGRIDXP - offsetX;
+                                int nStartY = nY * SYS_MAPGRIDYP - offsetY + SYS_MAPGRIDYP - nH;
 
-                                extern MainWindow *g_mainWindow;
                                 FillRectangle(nStartX, nStartY, nW, nH, g_mainWindow->Deselect() ? 0X80FF0000 : 0X8000FF00);
                             }
                         }
@@ -173,21 +185,21 @@ void DrawArea::DrawDoneSelectByObject(bool bGround)
 
 void DrawArea::DrawTrySelectByTile()
 {
-    int nMouseXOnMap = m_mouseX - x() + m_offsetX;
-    int nMouseYOnMap = m_mouseY - y() + m_offsetY;
+    const auto [offsetX, offsetY] = offset();
+
+    int nMouseXOnMap = m_mouseX - x() + offsetX;
+    int nMouseYOnMap = m_mouseY - y() + offsetY;
 
     int nX = nMouseXOnMap / SYS_MAPGRIDXP;
     int nY = nMouseYOnMap / SYS_MAPGRIDYP;
 
-    extern EditorMap g_editorMap;
     if(true
             && g_editorMap.ValidC(nX, nY)
             && g_editorMap.Tile(nX, nY).Valid){
 
-        int nStartX = (nX / 2) * 2 * SYS_MAPGRIDXP - m_offsetX;
-        int nStartY = (nY / 2) * 2 * SYS_MAPGRIDYP - m_offsetY;
+        int nStartX = (nX / 2) * 2 * SYS_MAPGRIDXP - offsetX;
+        int nStartY = (nY / 2) * 2 * SYS_MAPGRIDYP - offsetY;
 
-        extern MainWindow *g_mainWindow;
         FillRectangle(nStartX, nStartY, SYS_MAPGRIDXP * 2,  SYS_MAPGRIDYP * 2, g_mainWindow->Deselect() ? 0X80FF0000 : 0X8000FF00);
         DrawFloatObject((nX / 2) * 2, (nY / 2) * 2, FOTYPE_TILE, m_mouseX - x(), m_mouseY - y());
     }
@@ -195,13 +207,14 @@ void DrawArea::DrawTrySelectByTile()
 
 void DrawArea::DrawSelectByObjectGround(bool bGround)
 {
-    int nMouseXOnMap = m_mouseX - x() + m_offsetX;
-    int nMouseYOnMap = m_mouseY - y() + m_offsetY;
+    const auto [offsetX, offsetY] = offset();
+
+    int nMouseXOnMap = m_mouseX - x() + offsetX;
+    int nMouseYOnMap = m_mouseY - y() + offsetY;
 
     int nX = nMouseXOnMap / SYS_MAPGRIDXP;
     int nY = nMouseYOnMap / SYS_MAPGRIDYP;
 
-    extern EditorMap g_editorMap;
     for(int nCurrY = nY - 1; nCurrY < g_editorMap.H(); ++nCurrY){
         if(g_editorMap.ValidC(nX, nCurrY)){
             for(int nIndex = 0; nIndex < 2; ++nIndex){
@@ -217,11 +230,10 @@ void DrawArea::DrawSelectByObjectGround(bool bGround)
                         int nW = pImage->w();
                         int nH = pImage->h();
 
-                        int nStartX = nX     * SYS_MAPGRIDXP - m_offsetX;
-                        int nStartY = nCurrY * SYS_MAPGRIDYP - m_offsetY + SYS_MAPGRIDYP - nH;
+                        int nStartX = nX     * SYS_MAPGRIDXP - offsetX;
+                        int nStartY = nCurrY * SYS_MAPGRIDYP - offsetY + SYS_MAPGRIDYP - nH;
 
-                        if(mathf::pointInRectangle(nMouseXOnMap - m_offsetX, nMouseYOnMap - m_offsetY, nStartX, nStartY, nW, nH)){
-                            extern MainWindow *g_mainWindow;
+                        if(mathf::pointInRectangle(nMouseXOnMap - offsetX, nMouseYOnMap - offsetY, nStartX, nStartY, nW, nH)){
                             FillRectangle(nStartX, nStartY, nW, nH, g_mainWindow->Deselect() ? 0X80FF0000 : 0X8000FF00);
                             DrawFloatObject(nX, nCurrY, (nIndex == 0) ? FOTYPE_OBJ0 : FOTYPE_OBJ1, m_mouseX - x(), m_mouseY - y());
                             return;
@@ -235,13 +247,14 @@ void DrawArea::DrawSelectByObjectGround(bool bGround)
 
 void DrawArea::DrawTrySelectBySingle()
 {
-    int nX = (m_mouseX - x() + m_offsetX) / SYS_MAPGRIDXP;
-    int nY = (m_mouseY - y() + m_offsetY) / SYS_MAPGRIDYP;
+    const auto [offsetX, offsetY] = offset();
 
-    extern MainWindow *g_mainWindow;
+    int nX = (m_mouseX - x() + offsetX) / SYS_MAPGRIDXP;
+    int nY = (m_mouseY - y() + offsetY) / SYS_MAPGRIDYP;
+
     FillRectangle(
-            SYS_MAPGRIDXP * nX - m_offsetX,
-            SYS_MAPGRIDYP * nY - m_offsetY,
+            SYS_MAPGRIDXP * nX - offsetX,
+            SYS_MAPGRIDYP * nY - offsetY,
             SYS_MAPGRIDXP,
             SYS_MAPGRIDYP,
             g_mainWindow->Deselect() ? 0X80FF0000 : 0X8000FF00);
@@ -249,13 +262,14 @@ void DrawArea::DrawTrySelectBySingle()
 
 void DrawArea::AddSelectByTile()
 {
-    int nMouseXOnMap = m_mouseX - x() + m_offsetX;
-    int nMouseYOnMap = m_mouseY - y() + m_offsetY;
+    const auto [offsetX, offsetY] = offset();
+
+    int nMouseXOnMap = m_mouseX - x() + offsetX;
+    int nMouseYOnMap = m_mouseY - y() + offsetY;
 
     int nX = nMouseXOnMap / SYS_MAPGRIDXP;
     int nY = nMouseYOnMap / SYS_MAPGRIDYP;
 
-    extern EditorMap g_editorMap;
     if(true
             && g_editorMap.ValidC(nX, nY)
             && g_editorMap.Tile(nX, nY).Valid){
@@ -265,13 +279,14 @@ void DrawArea::AddSelectByTile()
 
 void DrawArea::AddSelectByObject(bool bGround)
 {
-    int nMouseXOnMap = m_mouseX - x() + m_offsetX;
-    int nMouseYOnMap = m_mouseY - y() + m_offsetY;
+    const auto [offsetX, offsetY] = offset();
+
+    int nMouseXOnMap = m_mouseX - x() + offsetX;
+    int nMouseYOnMap = m_mouseY - y() + offsetY;
 
     int nX = nMouseXOnMap / SYS_MAPGRIDXP;
     int nY = nMouseYOnMap / SYS_MAPGRIDYP;
 
-    extern EditorMap g_editorMap;
     for(int nCurrY = nY - 1; nCurrY < g_editorMap.H(); ++nCurrY){
         if(g_editorMap.ValidC(nX, nCurrY)){
             for(int nIndex = 0; nIndex < 2; ++nIndex){
@@ -287,12 +302,11 @@ void DrawArea::AddSelectByObject(bool bGround)
                         int nW = pImage->w();
                         int nH = pImage->h();
 
-                        int nStartX = nX     * SYS_MAPGRIDXP - m_offsetX;
-                        int nStartY = nCurrY * SYS_MAPGRIDYP - m_offsetY + SYS_MAPGRIDYP - nH;
+                        int nStartX = nX     * SYS_MAPGRIDXP - offsetX;
+                        int nStartY = nCurrY * SYS_MAPGRIDYP - offsetY + SYS_MAPGRIDYP - nH;
 
-                        if(mathf::pointInRectangle(nMouseXOnMap - m_offsetX, nMouseYOnMap - m_offsetY, nStartX, nStartY, nW, nH)){
+                        if(mathf::pointInRectangle(nMouseXOnMap - offsetX, nMouseYOnMap - offsetY, nStartX, nStartY, nW, nH)){
                             auto &rstCell = g_editorMap.Cell(nX, nCurrY);
-                            extern MainWindow *g_mainWindow;
                             if(bGround){
                                 rstCell.SelectConf.GroundObj = !g_mainWindow->Deselect();
                             }else{
@@ -309,12 +323,12 @@ void DrawArea::AddSelectByObject(bool bGround)
 
 void DrawArea::AddSelectBySingle()
 {
-    int nX = (m_mouseX - x() + m_offsetX) / SYS_MAPGRIDXP;
-    int nY = (m_mouseY - y() + m_offsetY) / SYS_MAPGRIDYP;
+    const auto [offsetX, offsetY] = offset();
 
-    extern EditorMap g_editorMap;
+    int nX = (m_mouseX - x() + offsetX) / SYS_MAPGRIDXP;
+    int nY = (m_mouseY - y() + offsetY) / SYS_MAPGRIDYP;
+
     if(g_editorMap.ValidC(nX, nY)){
-        extern MainWindow *g_mainWindow;
         g_editorMap.Cell(nX, nY).SelectConf.Ground = (g_mainWindow->Deselect() ? false : true);
     }
 }
@@ -356,14 +370,14 @@ void DrawArea::DrawTrySelectByRhombus()
 {
     auto fnDraw = [this](int nX, int nY)
     {
-        extern MainWindow *g_mainWindow;
         FillMapGrid(nX, nY, 1, 1, g_mainWindow->Deselect() ? 0X80FF0000 : 0X8000FF00);
     };
 
-    int nMX = m_mouseX + m_offsetX - x();
-    int nMY = m_mouseY + m_offsetY - y();
+    const auto [offsetX, offsetY] = offset();
 
-    extern SelectSettingWindow *g_selectSettingWindow;
+    int nMX = m_mouseX + offsetX - x();
+    int nMY = m_mouseY + offsetY - y();
+
     RhombusCoverOperation(nMX, nMY, g_selectSettingWindow->RhombusSize(), fnDraw);
 }
 
@@ -371,17 +385,16 @@ void DrawArea::AddSelectByRhombus()
 {
     auto fnSet = [](int nX, int nY)
     {
-        extern EditorMap g_editorMap;
         if(g_editorMap.ValidC(nX, nY)){
-            extern MainWindow *g_mainWindow;
             g_editorMap.Cell(nX, nY).SelectConf.Ground = g_mainWindow->Deselect() ? false : true;
         }
     };
 
-    int nMX = m_mouseX + m_offsetX - x();
-    int nMY = m_mouseY + m_offsetY - y();
+    const auto [offsetX, offsetY] = offset();
 
-    extern SelectSettingWindow *g_selectSettingWindow;
+    int nMX = m_mouseX + offsetX - x();
+    int nMY = m_mouseY + offsetY - y();
+
     RhombusCoverOperation(nMX, nMY, g_selectSettingWindow->RhombusSize(), fnSet);
 }
 
@@ -393,7 +406,6 @@ void DrawArea::RectangleCoverOperation(int nMouseXOnMap, int nMouseYOnMap, int n
 
         for(int nX = 0; nX < nSize; ++nX){
             for(int nY = 0; nY < nSize; ++nY){
-                extern EditorMap g_editorMap;
                 if(g_editorMap.ValidC(nX + nMX, nY + nMY)){
                     fnOperation(nX + nMX, nY + nMY);
                 }
@@ -406,14 +418,14 @@ void DrawArea::DrawTrySelectByRectangle()
 {
     auto fnDraw = [this](int nX, int nY)
     {
-        extern MainWindow *g_mainWindow;
         FillMapGrid(nX, nY, 1, 1, g_mainWindow->Deselect() ? 0X80FF0000 : 0X8000FF00);
     };
 
-    int nMX = m_mouseX + m_offsetX - x();
-    int nMY = m_mouseY + m_offsetY - y();
+    const auto [offsetX, offsetY] = offset();
 
-    extern SelectSettingWindow *g_selectSettingWindow;
+    int nMX = m_mouseX + offsetX - x();
+    int nMY = m_mouseY + offsetY - y();
+
     RectangleCoverOperation(nMX, nMY, g_selectSettingWindow->RectangleSize(), fnDraw);
 }
 
@@ -421,33 +433,30 @@ void DrawArea::AddSelectByRectangle()
 {
     auto fnSet = [](int nX,  int nY)
     {
-        extern EditorMap g_editorMap;
-        extern MainWindow *g_mainWindow;
         g_editorMap.Cell(nX, nY).SelectConf.Ground = g_mainWindow->Deselect() ? false : true;
     };
 
-    int nMX = m_mouseX + m_offsetX - x();
-    int nMY = m_mouseY + m_offsetY - y();
+    const auto [offsetX, offsetY] = offset();
 
-    extern SelectSettingWindow *g_selectSettingWindow;
+    int nMX = m_mouseX + offsetX - x();
+    int nMY = m_mouseY + offsetY - y();
+
     RectangleCoverOperation(nMX, nMY, g_selectSettingWindow->RectangleSize(), fnSet);
 }
 
 void DrawArea::DrawTrySelectByAttribute()
 {
-    extern SelectSettingWindow *g_selectSettingWindow;
     int nSize = g_selectSettingWindow->AttributeSize();
 
     if(nSize > 0){
 
-        int nMX = m_mouseX + m_offsetX - x();
-        int nMY = m_mouseY + m_offsetY - y();
+        const auto [offsetX, offsetY] = offset();
+
+        int nMX = m_mouseX + offsetX - x();
+        int nMY = m_mouseY + offsetY - y();
 
         auto fnDraw = [this](int nX, int nY) -> void
         {
-            extern EditorMap g_editorMap;
-            extern MainWindow *g_mainWindow;
-            extern AttributeSelectWindow *g_attributeSelectWindow;
 
             if(g_attributeSelectWindow->TestLand(g_editorMap.Cell(nX, nY).MakeLandU8())){
                 FillMapGrid(nX, nY, 1, 1, g_mainWindow->Deselect() ? 0X80FF0000 : 0X8000FF00);
@@ -460,16 +469,16 @@ void DrawArea::DrawTrySelectByAttribute()
 
 void DrawArea::DrawDoneSelectByAttribute()
 {
-    int nX0 = m_offsetX / SYS_MAPGRIDXP - 1;
-    int nY0 = m_offsetY / SYS_MAPGRIDYP - 1;
-    int nX1 = (m_offsetX + w()) / SYS_MAPGRIDXP + 1;
-    int nY1 = (m_offsetY + h()) / SYS_MAPGRIDYP + 1;
+    const auto [offsetX, offsetY] = offset();
+
+    int nX0 = offsetX / SYS_MAPGRIDXP - 1;
+    int nY0 = offsetY / SYS_MAPGRIDYP - 1;
+    int nX1 = (offsetX + w()) / SYS_MAPGRIDXP + 1;
+    int nY1 = (offsetY + h()) / SYS_MAPGRIDYP + 1;
 
     for(int nX = nX0; nX < nX1; ++nX){
         for(int nY = nY0; nY < nY1; ++nY){
-            extern EditorMap g_editorMap;
             if(g_editorMap.ValidC(nX, nY)){
-                extern MainWindow *g_mainWindow;
                 if(g_editorMap.Cell(nX, nY).SelectConf.Attribute == !g_mainWindow->Reversed()){
                     FillMapGrid(nX, nY, 1, 1, g_mainWindow->Deselect() ? 0X80FF0000 : 0X8000FF00);
                 }
@@ -488,7 +497,6 @@ void DrawArea::DrawDoneSelect()
 
 void DrawArea::DrawTrySelect()
 {
-    extern MainWindow *g_mainWindow;
     if(g_mainWindow->EnableSelect()){
         auto nColor = fl_color();
         fl_color(FL_RED);
@@ -532,11 +540,13 @@ void DrawArea::DrawTextBox()
 
     int nY = 20;
 
-    DrawText(10, nY, "OffsetX: %d %d", m_offsetX / SYS_MAPGRIDXP, m_offsetX); nY += 20;
-    DrawText(10, nY, "OffsetY: %d %d", m_offsetY / SYS_MAPGRIDYP, m_offsetY); nY += 20;
+    const auto [offsetX, offsetY] = offset();
 
-    int nMouseX = (std::max<int>)(0, m_mouseX + m_offsetX - x());
-    int nMouseY = (std::max<int>)(0, m_mouseY + m_offsetY - y());
+    DrawText(10, nY, "OffsetX: %d %d", offsetX / SYS_MAPGRIDXP, offsetX); nY += 20;
+    DrawText(10, nY, "OffsetY: %d %d", offsetY / SYS_MAPGRIDYP, offsetY); nY += 20;
+
+    int nMouseX = (std::max<int>)(0, m_mouseX + offsetX - x());
+    int nMouseY = (std::max<int>)(0, m_mouseY + offsetY - y());
 
     DrawText(10, nY, "MouseMX: %d %d", nMouseX / SYS_MAPGRIDXP, nMouseX); nY += 20;
     DrawText(10, nY, "MouseMY: %d %d", nMouseY / SYS_MAPGRIDYP, nMouseY); nY += 20;
@@ -546,7 +556,6 @@ void DrawArea::DrawTextBox()
 
 void DrawArea::DrawObject(bool bGround)
 {
-    extern MainWindow *g_mainWindow;
     auto nColor = fl_color();
     if(false
             || ( bGround && g_mainWindow->ShowObject(bGround))
@@ -556,10 +565,7 @@ void DrawArea::DrawObject(bool bGround)
         auto fnDrawExt = [this, bGround](int /* nXCnt */, int /* nYCnt */) -> void
         {
             // if(!bGround){
-            //     extern MainWindow *g_mainWindow;
             //     if(g_mainWindow->EnableTest()){
-            //         extern AnimationDB g_animationDB;
-            //         extern AnimationDraw g_animationDraw;
             //
             //         if(g_animationDraw.MonsterID){
             //             auto &rstAnimation = g_animationDB.RetrieveAnimation(g_animationDraw.MonsterID);
@@ -569,14 +575,13 @@ void DrawArea::DrawObject(bool bGround)
             //                 if(rstAnimation.ResetFrame(g_animationDraw.Action, g_animationDraw.Direction, g_animationDraw.Frame)){
             //                     auto fnDraw = [this](Fl_Shared_Image *pPNG, int nMapX, int nMapY) -> void
             //                     {
-            //                         DrawImage(pPNG, nMapX - m_offsetX, nMapY - m_offsetY);
+            //                         DrawImage(pPNG, nMapX - offsetX, nMapY - offsetY);
             //                     };
             //
             //                     // use R from the AnimationSelectWindow, rather than the copy in AnimationDraw
             //                     // this enables me to adjust R without reset the animation MonsterID
-            //                     extern AnimationSelectWindow *g_animationSelectWindow;
-            //                     int nAnimationX = g_animationDraw.X - m_offsetX;
-            //                     int nAnimationY = g_animationDraw.Y - m_offsetY;
+            //                     int nAnimationX = g_animationDraw.X - offsetX;
+            //                     int nAnimationY = g_animationDraw.Y - offsetY;
             //                     int nAnimationR = g_animationSelectWindow->R();
             //
             //                     // draw funcitons take coordinates w.r.t the window rather than the widget
@@ -591,7 +596,8 @@ void DrawArea::DrawObject(bool bGround)
             // }
         };
 
-        auto fnDrawObj = [this, bGround](uint8_t nFileIndex, uint16_t nImageIndex, int nXCnt, int nYCnt) -> void
+        const auto [offsetX, offsetY] = offset();
+        auto fnDrawObj = [this, offsetX, offsetY, bGround](uint8_t nFileIndex, uint16_t nImageIndex, int nXCnt, int nYCnt) -> void
         {
             auto pImage = RetrievePNG(nFileIndex, nImageIndex);
             if(pImage){
@@ -607,16 +613,15 @@ void DrawArea::DrawObject(bool bGround)
                 if(false
                         || (pImage->w() == 1 * SYS_MAPGRIDXP && pImage->h() == 1 * SYS_MAPGRIDYP)
                         || (pImage->w() == 2 * SYS_MAPGRIDXP && pImage->h() == 2 * SYS_MAPGRIDYP)){
-                    nStartX = nXCnt * SYS_MAPGRIDXP - m_offsetX;
-                    nStartY = nYCnt * SYS_MAPGRIDYP - m_offsetY;
+                    nStartX = nXCnt * SYS_MAPGRIDXP - offsetX;
+                    nStartY = nYCnt * SYS_MAPGRIDYP - offsetY;
                 }else{
-                    nStartX = nXCnt * SYS_MAPGRIDXP - m_offsetX;
-                    nStartY = nYCnt * SYS_MAPGRIDYP + SYS_MAPGRIDYP - pImage->h() - m_offsetY;
+                    nStartX = nXCnt * SYS_MAPGRIDXP - offsetX;
+                    nStartY = nYCnt * SYS_MAPGRIDYP + SYS_MAPGRIDYP - pImage->h() - offsetY;
                 }
 
                 DrawImage(pImage, nStartX, nStartY);
 
-                extern MainWindow *g_mainWindow;
                 if(bGround){
                     if(g_mainWindow->ShowGroundObjectLine()){
                         DrawRectangle(nStartX, nStartY, pImage->w(), pImage->h());
@@ -630,8 +635,7 @@ void DrawArea::DrawObject(bool bGround)
             }
         };
 
-        extern EditorMap g_editorMap;
-        g_editorMap.DrawObject(m_offsetX / SYS_MAPGRIDXP - 10, m_offsetY / SYS_MAPGRIDYP - 20, w() / SYS_MAPGRIDXP + 20, h() / SYS_MAPGRIDYP + 40, bGround, fnDrawObj, fnDrawExt);
+        g_editorMap.DrawObject(offsetX / SYS_MAPGRIDXP - 10, offsetY / SYS_MAPGRIDYP - 20, w() / SYS_MAPGRIDXP + 20, h() / SYS_MAPGRIDYP + 40, bGround, fnDrawObj, fnDrawExt);
 
         fl_color(nColor);
     }
@@ -639,23 +643,22 @@ void DrawArea::DrawObject(bool bGround)
 
 void DrawArea::DrawAttributeGrid()
 {
-    extern MainWindow *g_mainWindow;
     if(g_mainWindow->ShowAttributeGridLine()){
         PushColor(FL_MAGENTA);  
 
-        int nX0 = m_offsetX / SYS_MAPGRIDXP - 1;
-        int nY0 = m_offsetY / SYS_MAPGRIDYP - 1;
-        int nX1 = (m_offsetX + w()) / SYS_MAPGRIDXP + 1;
-        int nY1 = (m_offsetY + h()) / SYS_MAPGRIDYP + 1;
+        const auto [offsetX, offsetY] = offset();
+
+        int nX0 = offsetX / SYS_MAPGRIDXP - 1;
+        int nY0 = offsetY / SYS_MAPGRIDYP - 1;
+        int nX1 = (offsetX + w()) / SYS_MAPGRIDXP + 1;
+        int nY1 = (offsetY + h()) / SYS_MAPGRIDYP + 1;
 
         for(int nCX = nX0; nCX < nX1; ++nCX){
             for(int nCY = nY0; nCY < nY1; ++nCY){
-                extern EditorMap g_editorMap;
                 if(g_editorMap.ValidC(nCX, nCY)){
-                    extern AttributeSelectWindow *g_attributeSelectWindow;
                     if(g_attributeSelectWindow->TestLand(g_editorMap.Cell(nCX, nCY).MakeLandU8())){
-                        int nPX = nCX * SYS_MAPGRIDXP - m_offsetX;
-                        int nPY = nCY * SYS_MAPGRIDYP - m_offsetY;
+                        int nPX = nCX * SYS_MAPGRIDXP - offsetX;
+                        int nPY = nCY * SYS_MAPGRIDYP - offsetY;
                         DrawRectangle(nPX, nPY, SYS_MAPGRIDXP, SYS_MAPGRIDYP);
                         DrawLine(nPX, nPY, nPX + SYS_MAPGRIDXP, nPY + SYS_MAPGRIDYP);
                         DrawLine(nPX + SYS_MAPGRIDXP, nPY, nPX, nPY + SYS_MAPGRIDYP);
@@ -669,15 +672,15 @@ void DrawArea::DrawAttributeGrid()
 
 void DrawArea::DrawGrid()
 {
-    extern MainWindow *g_mainWindow;
     if(g_mainWindow->ShowGridLine()){
         PushColor(FL_MAGENTA);
-        for(int nCX = m_offsetX / SYS_MAPGRIDXP - 1; nCX < (m_offsetX + w()) / SYS_MAPGRIDXP + 1; ++nCX){
-            DrawLine(nCX * SYS_MAPGRIDXP - m_offsetX, 0, nCX * SYS_MAPGRIDXP - m_offsetX, h());
+        const auto [offsetX, offsetY] = offset();
+        for(int nCX = offsetX / SYS_MAPGRIDXP - 1; nCX < (offsetX + w()) / SYS_MAPGRIDXP + 1; ++nCX){
+            DrawLine(nCX * SYS_MAPGRIDXP - offsetX, 0, nCX * SYS_MAPGRIDXP - offsetX, h());
         }
 
-        for(int nCY = m_offsetY / SYS_MAPGRIDYP - 1; nCY < (m_offsetY + h()) / SYS_MAPGRIDYP + 1; ++nCY){
-            DrawLine(0, nCY * SYS_MAPGRIDYP - m_offsetY, w(), nCY * SYS_MAPGRIDYP - m_offsetY);
+        for(int nCY = offsetY / SYS_MAPGRIDYP - 1; nCY < (offsetY + h()) / SYS_MAPGRIDYP + 1; ++nCY){
+            DrawLine(0, nCY * SYS_MAPGRIDYP - offsetY, w(), nCY * SYS_MAPGRIDYP - offsetY);
         }
         PopColor();
     }
@@ -685,8 +688,6 @@ void DrawArea::DrawGrid()
 
 Fl_Image *DrawArea::RetrievePNG(uint8_t nFileIndex, uint16_t nImageIndex)
 {
-    extern ImageDB   *g_imageDB;
-    extern ImageCache g_imageCache;
     auto pImage = g_imageCache.Retrieve(nFileIndex, nImageIndex);
     if(pImage == nullptr){
         if(const auto [imgBuf, imgWidth, imgHeight] = g_imageDB->decode(nFileIndex, nImageIndex, 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF); imgBuf){
@@ -699,52 +700,28 @@ Fl_Image *DrawArea::RetrievePNG(uint8_t nFileIndex, uint16_t nImageIndex)
 
 void DrawArea::DrawTile()
 {
-    extern MainWindow *g_mainWindow;
     if(g_mainWindow->ShowTile()){
         PushColor(FL_RED);
-        auto fnDraw = [this](uint8_t nFileIndex, uint16_t nImageIndex, int nX, int nY)
+        const auto [offsetX, offsetY] = offset();
+        auto fnDraw = [offsetX, offsetY, this](uint8_t nFileIndex, uint16_t nImageIndex, int nX, int nY)
         {
-            int nStartX = nX * SYS_MAPGRIDXP - m_offsetX;
-            int nStartY = nY * SYS_MAPGRIDYP - m_offsetY;
+            int nStartX = nX * SYS_MAPGRIDXP - offsetX;
+            int nStartY = nY * SYS_MAPGRIDYP - offsetY;
             if(auto pImage = RetrievePNG(nFileIndex, nImageIndex)){
                 DrawImage(pImage, nStartX, nStartY);
-                extern MainWindow *g_mainWindow;
                 if(g_mainWindow->ShowTileLine()){
                     DrawRectangle(nStartX, nStartY, pImage->w(), pImage->h());
                 }
             }
         };
 
-        int nX = m_offsetX / SYS_MAPGRIDXP - 1;
-        int nY = m_offsetY / SYS_MAPGRIDYP - 1;
+        int nX = offsetX / SYS_MAPGRIDXP - 1;
+        int nY = offsetY / SYS_MAPGRIDYP - 1;
         int nW = w() / SYS_MAPGRIDXP + 3;
         int nH = h() / SYS_MAPGRIDYP + 8;
 
-        extern EditorMap g_editorMap;
         g_editorMap.DrawTile(nX, nY, nW, nH, fnDraw);
         PopColor();
-    }
-}
-
-void DrawArea::SetOffset(int nX, bool bRelativeX, int nY, bool bRelativeY)
-{
-    extern EditorMap g_editorMap;
-    if(g_editorMap.Valid()){
-        if(bRelativeX){
-            m_offsetX += nX;
-        }else{
-            m_offsetX = nX;
-        }
-        m_offsetX = (std::max<int>)(m_offsetX, 0);
-        m_offsetX = (std::min<int>)(m_offsetX, (std::max<int>)(0, SYS_MAPGRIDXP * g_editorMap.W() - w()));
-
-        if(bRelativeY){
-            m_offsetY += nY;
-        }else{
-            m_offsetY = nY;
-        }
-        m_offsetY = (std::max<int>)(m_offsetY, 0);
-        m_offsetY = (std::min<int>)(m_offsetY, (std::max<int>)(0, SYS_MAPGRIDYP * g_editorMap.H() - h()));
     }
 }
 
@@ -754,18 +731,14 @@ int DrawArea::handle(int nEvent)
 
     // can't find resize event
     // put it here as a hack and check it every time
-    {
-        extern MainWindow *g_mainWindow;
-        g_mainWindow->checkScrollBar();
-    }
+    g_mainWindow->checkScrollBar();
 
-    extern EditorMap g_editorMap;
     if(g_editorMap.Valid()){
 
-        int nMouseX = m_mouseX;
-        int nMouseY = m_mouseY;
-        m_mouseX    = Fl::event_x();
-        m_mouseY    = Fl::event_y();
+        const int lastMouseX = m_mouseX;
+        const int lastMouseY = m_mouseY;
+        m_mouseX = Fl::event_x();
+        m_mouseY = Fl::event_y();
 
         switch(nEvent){
             case FL_FOCUS:
@@ -776,28 +749,25 @@ int DrawArea::handle(int nEvent)
                 }
             case FL_KEYDOWN:
                 {
-                    int nDX = 0;
-                    int nDY = 0;
+                    float dxratio = 0.0;
+                    float dyratio = 0.0;
+
+                    const auto [dxRatioUnit, dyRatioUnit] = getScrollPixelRatio(SYS_MAPGRIDXP, SYS_MAPGRIDYP);
                     switch(Fl::event_key()){
-                        case FL_Up   : { nDY = -1; break; }
-                        case FL_Down : { nDY =  1; break; }
-                        case FL_Left : { nDX = -1; break; }
-                        case FL_Right: { nDX =  1; break; }
-                        default      : {           break; }
+                        case FL_Up   : { dyratio = -dyRatioUnit; break; }
+                        case FL_Down : { dyratio =  dyRatioUnit; break; }
+                        case FL_Left : { dxratio = -dxRatioUnit; break; }
+                        case FL_Right: { dxratio =  dxRatioUnit; break; }
+                        default      : {                         break; }
                     }
 
-                    SetOffset(nDX * SYS_MAPGRIDXP, true, nDY * SYS_MAPGRIDYP, true);
-                    SetScrollBar();
+                    g_mainWindow->addScrollBarValue(dxratio, dyratio);
                     break;
                 }
             case FL_MOUSEWHEEL:
                 {
-                    int nDX = Fl::event_dx() * SYS_MAPGRIDXP;
-                    int nDY = Fl::event_dy() * SYS_MAPGRIDYP;
-
-                    SetOffset(nDX, true, nDY, true);
-                    SetScrollBar();
-
+                    const auto [dxratio, dyratio] = getScrollPixelRatio(Fl::event_dx() * SYS_MAPGRIDXP, Fl::event_dy() * SYS_MAPGRIDYP);
+                    g_mainWindow->addScrollBarValue(dxratio, dyratio);
                     nRet = 1;
                     break;
                 }
@@ -814,22 +784,21 @@ int DrawArea::handle(int nEvent)
 
             case FL_DRAG:
                 {
-                    extern MainWindow *g_mainWindow;
                     if(g_mainWindow->EnableSelect()){
                         AddSelect();
-                    }else if(g_mainWindow->EnableEdit()){
+                    }
+                    else if(g_mainWindow->EnableEdit()){
                         // TODO
                         //
-                    }else if(g_mainWindow->EnableTest()){
+                    }
+                    else if(g_mainWindow->EnableTest()){
                         // // we are moving the animation to a proper place
                         // // if current position is invalid, then we permit any moving to get a valid
                         // // position, but if current position is valid, we reject any move request
                         // // which make the position invlaid again
                         //
-                        // extern AnimationDraw g_animationDraw;
-                        // extern AnimationSelectWindow *g_animationSelectWindow;
-                        // int nNewX = g_animationDraw.X + (m_mouseX - nMouseX);
-                        // int nNewY = g_animationDraw.Y + (m_mouseY - nMouseY);
+                        // int nNewX = g_animationDraw.X + (m_mouseX - lastMouseX);
+                        // int nNewY = g_animationDraw.Y + (m_mouseY - lastMouseY);
                         //
                         // if(CoverValid(g_animationDraw.X, g_animationDraw.Y, g_animationSelectWindow->R())){
                         //     if(CoverValid(nNewX, nNewY, g_animationSelectWindow->R())){
@@ -861,13 +830,17 @@ int DrawArea::handle(int nEvent)
                         //     g_animationDraw.X = nNewX;
                         //     g_animationDraw.Y = nNewY;
                         // }
-                    }else{
+                    }
+                    else{
                         if(Fl::event_state() & FL_CTRL){
                             // bug of fltk here for windows, when some key is pressed, 
                             // event_x() and event_y() are incorrect!
-                        }else{
-                            SetOffset(-(m_mouseX - nMouseX), true, -(m_mouseY - nMouseY), true);
-                            SetScrollBar();
+                        }
+                        else{
+                            const auto [xpCount, ypCount] = getScrollPixelCount();
+                            const float xratio = (xpCount > 0) ? (-1.0 * to_f(m_mouseX - lastMouseX) / xpCount) : 0.0;
+                            const float yratio = (ypCount > 0) ? (-1.0 * to_f(m_mouseY - lastMouseY) / ypCount) : 0.0;
+                            g_mainWindow->addScrollBarValue(xratio, yratio);
                         }
                     }
 
@@ -875,7 +848,6 @@ int DrawArea::handle(int nEvent)
                 }
             case FL_PUSH:
                 {
-                    extern MainWindow *g_mainWindow;
                     if(g_mainWindow->EnableSelect()){
                         AddSelect();
                     }
@@ -904,7 +876,6 @@ int DrawArea::handle(int nEvent)
         }
     }
 
-    extern MainWindow *g_mainWindow;
     g_mainWindow->RedrawAll();
 
     return nRet;
@@ -935,33 +906,13 @@ Fl_Image *DrawArea::CreateRoundImage(int nRadius, uint32_t nColor)
 
 void DrawArea::ClearGroundSelect()
 {
-    extern EditorMap g_editorMap;
     if(g_editorMap.Valid()){
         g_editorMap.ClearGroundSelect();
     }
 }
 
-void DrawArea::SetScrollBar()
-{
-    double fXP = -1.0;
-    double fYP = -1.0;
-
-    extern EditorMap g_editorMap;
-    if(SYS_MAPGRIDXP * g_editorMap.W() > w()){
-        fXP = m_offsetX * 1.0 / (SYS_MAPGRIDXP * g_editorMap.W() - w());
-    }
-
-    if(SYS_MAPGRIDYP * g_editorMap.H() > h()){
-        fYP = m_offsetY * 1.0 / (SYS_MAPGRIDYP * g_editorMap.H() - h());
-    }
-
-    extern MainWindow *g_mainWindow;
-    g_mainWindow->setScrollBarValue(fXP, fYP);
-}
-
 void DrawArea::AddSelect()
 {
-    extern MainWindow *g_mainWindow;
     if(g_mainWindow->SelectBySingle()){
         AddSelectBySingle();
     }
@@ -999,7 +950,6 @@ void DrawArea::AttributeCoverOperation(int nMouseXOnMap, int nMouseYOnMap, int n
 
         for(int nX = nMX - (nSize / 2); nX < nMX + (nSize + 1) / 2; ++nX){
             for(int nY = nMY - (nSize / 2); nY < nMY + (nSize + 1) / 2; ++nY){
-                extern EditorMap g_editorMap;
                 if(g_editorMap.ValidC(nX, nY)){
                     fnOperation(nX, nY);
                 }
@@ -1010,28 +960,26 @@ void DrawArea::AttributeCoverOperation(int nMouseXOnMap, int nMouseYOnMap, int n
 
 void DrawArea::DrawLight()
 {
-    extern MainWindow *g_mainWindow;
     if(g_mainWindow->ShowLight()){
-        auto fnDrawLight = [this](int nX, int nY) -> void
+        const auto [offsetX, offsetY] = offset();
+        auto fnDrawLight = [offsetX, offsetY, this](int nX, int nY) -> void
         {
             DrawImage(m_lightImge.get(),
-                    nX * SYS_MAPGRIDXP - m_offsetX + SYS_MAPGRIDXP / 2 - (m_lightImge->w() - 1) / 2,
-                    nY * SYS_MAPGRIDYP - m_offsetY + SYS_MAPGRIDYP / 2 - (m_lightImge->h() - 1) / 2);
+                    nX * SYS_MAPGRIDXP - offsetX + SYS_MAPGRIDXP / 2 - (m_lightImge->w() - 1) / 2,
+                    nY * SYS_MAPGRIDYP - offsetY + SYS_MAPGRIDYP / 2 - (m_lightImge->h() - 1) / 2);
 
-            extern MainWindow *g_mainWindow;
             if(g_mainWindow->ShowLightLine()){
                 PushColor(FL_RED);
-                DrawCircle(nX * SYS_MAPGRIDXP - m_offsetX, nY * SYS_MAPGRIDYP - m_offsetY, 10);
+                DrawCircle(nX * SYS_MAPGRIDXP - offsetX, nY * SYS_MAPGRIDYP - offsetY, 10);
                 PopColor();
             }
         };
 
-        int nX = m_offsetX / SYS_MAPGRIDXP - 1;
-        int nY = m_offsetY / SYS_MAPGRIDYP - 1;
+        int nX = offsetX / SYS_MAPGRIDXP - 1;
+        int nY = offsetY / SYS_MAPGRIDYP - 1;
         int nW = w() / SYS_MAPGRIDXP + 3;
         int nH = h() / SYS_MAPGRIDYP + 8;
 
-        extern EditorMap g_editorMap;
         g_editorMap.DrawLight(nX, nY, nW, nH, fnDrawLight);
     }
 }
@@ -1058,7 +1006,6 @@ void DrawArea::DrawFloatObject(int nX, int nY, int nFOType, int nWinX, int nWinY
     // 1: (ImageX, ImageY, image::w(), image::h())
     // 2: (TextBoxX, TextBoxY, TextBoxW, TextBoxH)
 
-    extern EditorMap g_editorMap;
     if(true
             && nFOType > FOTYPE_NONE
             && nFOType < FOTYPE_MAX
@@ -1110,7 +1057,6 @@ void DrawArea::DrawFloatObject(int nX, int nY, int nFOType, int nWinX, int nWinY
         switch(nFOType){
             case FOTYPE_TILE:
                 {
-                    extern ImageDB *g_imageDB;
                     nTextBoxW = 100 + std::strlen(g_imageDB->dbName(nFileIndex)) * 10;
                     nTextBoxH = 150;
                     break;
@@ -1118,7 +1064,6 @@ void DrawArea::DrawFloatObject(int nX, int nY, int nFOType, int nWinX, int nWinY
             case FOTYPE_OBJ0:
             case FOTYPE_OBJ1:
                 {
-                    extern ImageDB *g_imageDB;
                     nTextBoxW = 100 + std::strlen(g_imageDB->dbName(nFileIndex)) * 10;
                     nTextBoxH = 260;
                     break;
@@ -1191,7 +1136,6 @@ void DrawArea::DrawFloatObject(int nX, int nY, int nFOType, int nWinX, int nWinY
                         DrawText(nTextStartX, nTextStartY, "Index1 : %d", to_d(nImageIndex));
                         nTextStartY += 20;
 
-                        extern ImageDB *g_imageDB;
                         DrawText(nTextStartX, nTextStartY, "DBName : %s", g_imageDB->dbName(nFileIndex));
                         nTextStartY += 20;
 
@@ -1215,7 +1159,6 @@ void DrawArea::DrawFloatObject(int nX, int nY, int nFOType, int nWinX, int nWinY
                         DrawText(nTextStartX, nTextStartY, "Index1 : %d", to_d(nImageIndex));
                         nTextStartY += 20;
 
-                        extern ImageDB *g_imageDB;
                         DrawText(nTextStartX, nTextStartY, "DBName : %s", g_imageDB->dbName(nFileIndex));
                         nTextStartY += 20;
 
@@ -1259,11 +1202,49 @@ void DrawArea::DrawFloatObject(int nX, int nY, int nFOType, int nWinX, int nWinY
 
 void DrawArea::FillMapGrid(int nX, int nY, int nW, int nH, uint32_t nARGB)
 {
-    int nPX = nX * SYS_MAPGRIDXP - m_offsetX;
-    int nPY = nY * SYS_MAPGRIDYP - m_offsetY;
+    const auto [offsetX, offsetY] = offset();
+
+    int nPX = nX * SYS_MAPGRIDXP - offsetX;
+    int nPY = nY * SYS_MAPGRIDYP - offsetY;
 
     int nPW = nW * SYS_MAPGRIDXP;
     int nPH = nH * SYS_MAPGRIDYP;
 
     FillRectangle(nPX, nPY, nPW, nPH, nARGB);
+}
+
+std::tuple<size_t, size_t> DrawArea::getScrollPixelCount() const
+{
+    if(!g_editorMap.Valid()){
+        return {0, 0};
+    }
+
+    return
+    {
+        [this]() -> size_t
+        {
+            if(g_editorMap.W() * SYS_MAPGRIDXP > w()){
+                return g_editorMap.W() * SYS_MAPGRIDXP - w();
+            }
+            return 0;
+        }(),
+
+        [this]() -> float
+        {
+            if(g_editorMap.H() * SYS_MAPGRIDYP > h()){
+                return g_editorMap.H() * SYS_MAPGRIDYP - h();
+            }
+            return 0;
+        }(),
+    };
+}
+
+std::tuple<float, float> DrawArea::getScrollPixelRatio(int dx, int dy) const
+{
+    const auto [xpCount, ypCount] = getScrollPixelCount();
+    return
+    {
+        (xpCount > 0) ? to_f(dx) / xpCount : 0.0,
+        (ypCount > 0) ? to_f(dy) / ypCount : 0.0,
+    };
 }

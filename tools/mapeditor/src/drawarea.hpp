@@ -19,6 +19,7 @@
 #pragma once
 #include <vector>
 #include <cstdint>
+#include <utility>
 #include <functional>
 #include "basearea.hpp"
 
@@ -35,18 +36,17 @@ class DrawArea: public BaseArea
         };
 
     private:
-        int m_mouseX;
-        int m_mouseY;
-
-    private:
-        int m_offsetX;
-        int m_offsetY;
+        int m_mouseX = 0;
+        int m_mouseY = 0;
 
     private:
         std::shared_ptr<Fl_Image> m_lightImge;
 
     public:
-        DrawArea(int, int, int, int);
+        DrawArea(int argX, int argY, int argW, int argH)
+            : BaseArea(argX, argY, argW, argH)
+            , m_lightImge(CreateRoundImage(200, 0X001286FF))
+        {}
 
     public:
         ~DrawArea() = default;
@@ -56,18 +56,7 @@ class DrawArea: public BaseArea
         int  handle(int);
 
     public:
-        void SetOffset(int, bool, int, bool);
-
-    public:
-        int OffsetX() const
-        {
-            return m_offsetX;
-        }
-
-        int OffsetY() const
-        {
-            return m_offsetY;
-        }
+        std::tuple<int, int> offset() const;
 
     private:
         void DrawGrid();
@@ -114,9 +103,6 @@ class DrawArea: public BaseArea
         bool LocateAnimation(int, int);
 
     public:
-        void SetScrollBar();
-
-    public:
         void DrawFloatObject(int, int, int, int, int);
 
     public:
@@ -130,4 +116,8 @@ class DrawArea: public BaseArea
 
     protected:
         void FillMapGrid(int, int, int, int, uint32_t);
+
+    private:
+        std::tuple<size_t, size_t> getScrollPixelCount() const;
+        std::tuple<float , float > getScrollPixelRatio(int, int) const;
 };
