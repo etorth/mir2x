@@ -172,7 +172,7 @@ fl_alert("%s", "Haven't implement yet!");}
                         fl_alert("Failed to load Mir2xMapData: %s", szPath.c_str());
                     }
 
-                    setFootLog(str_printf("Mir2xMapData: %s, width %zu, height %zu", szPath.c_str(), to_uz(g_editorMap.W()), to_uz(g_editorMap.H())).c_str());
+                    setFootLog(str_printf("Mir2xMapData %s, width %zu, height %zu", szPath.c_str(), to_uz(g_editorMap.W()), to_uz(g_editorMap.H())).c_str());
                     AfterLoadMap();
                     Fl::remove_timeout(UpdateFrame);
                     Fl::add_timeout(0.1, UpdateFrame);
@@ -622,7 +622,7 @@ if(g_editorMap.Valid()){
                     fl_alert("Load mir2 map %s failed", fileChooser.filename());
                 }
 
-                setFootLog(str_printf("Mir2Map: %s, width %zu, height %zu", fileChooser.filename(), to_zu(g_editorMap.W()), to_zu(g_editorMap.H())).c_str());
+                setFootLog(str_printf("Mir2Map %s, width %zu, height %zu", fileChooser.filename(), to_zu(g_editorMap.W()), to_zu(g_editorMap.H())).c_str());
                 AfterLoadMap();
 
                 Fl::remove_timeout(UpdateFrame);
@@ -1168,10 +1168,10 @@ if(g_editorMap.Valid()){
   } {
     code {{
     if(str_haschar(msg)){
-        m_logBar->copy_label(msg);
+        m_logBar->copy_label(str_printf("[STATUS]: %s", msg).c_str());
     }
     else{
-        m_logBar->copy_label("mapeditor-version-0.0.1");
+        m_logBar->copy_label("[STATUS]");
     }
 
     m_logBar->redraw();
