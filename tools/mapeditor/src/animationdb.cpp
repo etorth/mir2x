@@ -30,16 +30,16 @@ bool AnimationDB::Load(const char *szDBPath)
     }
 
     // 2. record this path
-    m_dBPath = szDBPath;
-    while(m_dBPath.back() == '/'){
-        m_dBPath.pop_back();
+    m_dbPath = szDBPath;
+    while(m_dbPath.back() == '/'){
+        m_dbPath.pop_back();
     }
 
-    if(m_dBPath.empty()){
+    if(m_dbPath.empty()){
         return false;
     }
 
-    for(auto &p: std::filesystem::directory_iterator(m_dBPath.c_str())){
+    for(auto &p: std::filesystem::directory_iterator(m_dbPath.c_str())){
         if(!p.is_regular_file()){
             continue;
         }
@@ -71,7 +71,7 @@ bool AnimationDB::Load(const char *szDBPath)
         int nDX = ((szFileName[8] == '0') ? -1 : 1) * to_d((nOffset & 0XFFFF0000) >> 16);
         int nDY = ((szFileName[9] == '0') ? -1 : 1) * to_d((nOffset & 0X0000FFFF) >>  0);
 
-        Add(nMonsterID, nAction, nDirection, nFrame, (szFileName[1] == '1'), nDX, nDY, ((m_dBPath + "/") + reinterpret_cast<const char *>(szFileName.c_str())));
+        Add(nMonsterID, nAction, nDirection, nFrame, (szFileName[1] == '1'), nDX, nDY, ((m_dbPath + "/") + reinterpret_cast<const char *>(szFileName.c_str())));
         // since we didn't update this directory, so we don't need rewinddir()
     }
     return true;

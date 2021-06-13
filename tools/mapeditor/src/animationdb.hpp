@@ -25,13 +25,13 @@ class AnimationDB
     private:
         std::vector<Animation>  m_animationV;
         Animation               m_emptyRecord;
-        std::string             m_dBPath;
+        std::string             m_dbPath;
 
     public:
         AnimationDB()
             : m_animationV()
             , m_emptyRecord()
-            , m_dBPath("")
+            , m_dbPath("")
         {}
         ~AnimationDB() = default;
 
