@@ -527,8 +527,8 @@ g_aboutWindow->ShowAll();}
           }
         }
       }
-      Fl_Scrollbar m_vSBar {
-        callback {auto pWidget = ((Fl_Valuator *)(m_vSBar));
+      Fl_Scrollbar m_vsbar {
+        callback {auto pWidget = ((Fl_Valuator *)(m_vsbar));
 auto fValue  = pWidget->value();
 
 extern EditorMap g_editorMap;
@@ -542,8 +542,8 @@ if(g_editorMap.Valid()){
         xywh {965 20 20 647} labelfont 4 step 0.001 slider_size 0.05 deactivate
         code0 {\#include "editormap.hpp"}
       }
-      Fl_Scrollbar m_sBar {
-        callback {auto pWidget = ((Fl_Valuator *)(m_sBar));
+      Fl_Scrollbar m_hsbar {
+        callback {auto pWidget = ((Fl_Valuator *)(m_hsbar));
 auto fValue  = pWidget->value();
 
 extern EditorMap g_editorMap;
@@ -567,8 +567,8 @@ if(g_editorMap.Valid()){
     // current the fluid can set the slider_size
     // but when parsing it, it complains ``unknown property: slider_size"
 
-    ((Fl_Slider *)(m_vSBar))->slider_size(0.08);
-    ((Fl_Slider *)(m_sBar ))->slider_size(0.08);
+    ((Fl_Slider *)(m_vsbar))->slider_size(1.0);
+    ((Fl_Slider *)(m_hsbar ))->slider_size(1.0);
 
     setFootLog("no map loaded");
 }} {}
@@ -947,17 +947,17 @@ if(g_editorMap.Valid()){
     extern EditorMap g_editorMap;
     if(g_editorMap.Valid()){
         if(g_editorMap.W() * SYS_MAPGRIDXP <= m_drawArea->w()){
-            m_sBar->deactivate();
+            m_hsbar->deactivate();
             UpdateHScrollBar(0.0);
         }else{
-            m_sBar->activate();
+            m_hsbar->activate();
         }
 
         if(g_editorMap.H() * SYS_MAPGRIDYP <= m_drawArea->h()){
-            m_vSBar->deactivate();
+            m_vsbar->deactivate();
             UpdateVScrollBar(0.0);
         }else{
-            m_vSBar->activate();
+            m_vsbar->activate();
         }
     }
 }} {}
@@ -972,7 +972,7 @@ if(g_editorMap.Valid()){
   Function {UpdateHScrollBar(double fXP)} {return_type void
   } {
     code {{
-	auto pWidgetX = ((Fl_Valuator *)(m_sBar));
+	auto pWidgetX = ((Fl_Valuator *)(m_hsbar));
 	fXP = (std::min<double>)(1.0, (std::max<double>)(0.0, fXP));
 	pWidgetX->value(pWidgetX->round(fXP));
 }} {}
@@ -980,7 +980,7 @@ if(g_editorMap.Valid()){
   Function {UpdateVScrollBar(double fYP)} {return_type void
   } {
     code {{
-	auto pWidgetY = ((Fl_Valuator *)(m_vSBar));
+	auto pWidgetY = ((Fl_Valuator *)(m_vsbar));
 	fYP = (std::min<double>)(1.0, (std::max<double>)(0.0, fYP));
 	pWidgetY->value(pWidgetY->round(fYP));
 }} {}
@@ -988,16 +988,16 @@ if(g_editorMap.Valid()){
   Function {Activate()} {return_type void
   } {
     code {{
-    m_sBar->activate();
-    m_vSBar->activate();
+    m_hsbar->activate();
+    m_vsbar->activate();
     m_menuBar->activate();
 }} {}
   }
   Function {Deactivate()} {return_type void
   } {
     code {{
-    m_sBar->deactivate();
-    m_vSBar->deactivate();
+    m_hsbar->deactivate();
+    m_vsbar->deactivate();
     m_menuBar->deactivate();
 }} {}
   }
