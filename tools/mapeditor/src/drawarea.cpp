@@ -749,18 +749,18 @@ int DrawArea::handle(int nEvent)
                 }
             case FL_KEYDOWN:
                 {
-                    float dxratio = 0.0;
-                    float dyratio = 0.0;
+                    const auto [dx, dy] = [this]() -> std::tuple<int, int>
+                    {
+                        switch(Fl::event_key()){
+                            case FL_Up   : return { 0, -1};
+                            case FL_Down : return { 0,  1};
+                            case FL_Left : return {-1,  0};
+                            case FL_Right: return { 1,  0};
+                            default      : return { 0,  0};
+                        }
+                    }();
 
-                    const auto [dxRatioUnit, dyRatioUnit] = getScrollPixelRatio(SYS_MAPGRIDXP, SYS_MAPGRIDYP);
-                    switch(Fl::event_key()){
-                        case FL_Up   : { dyratio = -dyRatioUnit; break; }
-                        case FL_Down : { dyratio =  dyRatioUnit; break; }
-                        case FL_Left : { dxratio = -dxRatioUnit; break; }
-                        case FL_Right: { dxratio =  dxRatioUnit; break; }
-                        default      : {                         break; }
-                    }
-
+                    const auto [dxratio, dyratio] = getScrollPixelRatio(SYS_MAPGRIDXP * dx, SYS_MAPGRIDYP * dy);
                     g_mainWindow->addScrollBarValue(dxratio, dyratio);
                     break;
                 }

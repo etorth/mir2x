@@ -924,6 +924,7 @@ g_aboutWindow->ShowAll();}
         }
         else{
             m_hsbar->activate();
+            ((Fl_Valuator *)(m_hsbar))->step(1, g_editorMap.W() * SYS_MAPGRIDXP);
             setScrollBarSize(to_f(m_drawArea->w()) / (g_editorMap.W() * SYS_MAPGRIDXP), {});
         }
 
@@ -934,6 +935,7 @@ g_aboutWindow->ShowAll();}
         }
         else{
             m_vsbar->activate();
+            ((Fl_Valuator *)(m_vsbar))->step(1, g_editorMap.H() * SYS_MAPGRIDYP);
             setScrollBarSize({}, to_f(m_drawArea->h()) / (g_editorMap.H() * SYS_MAPGRIDYP));
         }
     }
