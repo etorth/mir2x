@@ -20,6 +20,9 @@ decl {\#include <vector>} {public local
 decl {\#include <cstdint>} {private local
 }
 
+decl {\#include <optional>} {private local
+}
+
 decl {\#include <cstring>} {private local
 }
 
@@ -86,7 +89,7 @@ class MainWindow {} {
 		default :          break;
 	}
 }}
-      xywh {116 162 985 690} type Double resizable visible
+      xywh {124 193 985 690} type Double resizable visible
     } {
       Fl_Box m_drawArea {
         xywh {0 20 965 627} labelfont 4 resizable
@@ -539,7 +542,7 @@ if(g_editorMap.Valid()){
     	m_drawArea->SetOffset(0, true, nYOffset, false);
 	m_window->redraw();
 }}
-        xywh {965 20 20 647} labelfont 4 step 0.001 slider_size 0.05 deactivate
+        xywh {965 20 20 647} labelfont 4 step 0.001 deactivate
         code0 {\#include "editormap.hpp"}
       }
       Fl_Scrollbar m_hsbar {
@@ -554,7 +557,7 @@ if(g_editorMap.Valid()){
     	m_drawArea->SetOffset(nXOffset, false, 0, true);
 	m_window->redraw();
 }}
-        xywh {0 647 965 20} type Horizontal labelfont 4 step 0.001 slider_size 0.05 deactivate
+        xywh {0 647 965 20} type Horizontal labelfont 4 step 0.001 deactivate
         code0 {\#include "editormap.hpp"}
       }
       Fl_Box m_logBar {
@@ -567,9 +570,7 @@ if(g_editorMap.Valid()){
     // current the fluid can set the slider_size
     // but when parsing it, it complains ``unknown property: slider_size"
 
-    ((Fl_Slider *)(m_vsbar))->slider_size(1.0);
-    ((Fl_Slider *)(m_hsbar ))->slider_size(1.0);
-
+    setSliderSize(1.0, 1.0);
     setFootLog("no map loaded");
 }} {}
   }
@@ -1175,6 +1176,20 @@ if(g_editorMap.Valid()){
     }
 
     m_logBar->redraw();
+    m_window->redraw();
+}} {}
+  }
+  Function {setSliderSize(std::optional<float> vslider, std::optional<float> hslider)} {return_type void
+  } {
+    code {{
+    if(vslider.has_value() && vslider.value() >= 0.0 && vslider.value() <= 1.0){
+        ((Fl_Slider *)(m_vsbar))->slider_size(vslider.value());
+    }
+
+    if(hslider.has_value() && hslider.value() >= 0.0 && hslider.value() <= 1.0){
+        ((Fl_Slider *)(m_hsbar))->slider_size(hslider.value());
+    }
+
     m_window->redraw();
 }} {}
   }
