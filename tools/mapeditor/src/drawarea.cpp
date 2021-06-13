@@ -756,7 +756,7 @@ int DrawArea::handle(int nEvent)
     // put it here as a hack and check it every time
     {
         extern MainWindow *g_mainWindow;
-        g_mainWindow->CheckScrollBar();
+        g_mainWindow->checkScrollBar();
     }
 
     extern EditorMap g_editorMap;
@@ -956,7 +956,7 @@ void DrawArea::SetScrollBar()
     }
 
     extern MainWindow *g_mainWindow;
-    g_mainWindow->UpdateScrollBar(fXP, fYP);
+    g_mainWindow->setScrollBarValue(fXP, fYP);
 }
 
 void DrawArea::AddSelect()

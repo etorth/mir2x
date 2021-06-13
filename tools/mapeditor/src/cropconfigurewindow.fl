@@ -46,7 +46,7 @@ class CropConfigureWindow {} {
     int nH      = g_editorMap.H() - nStartY - (std::lround)(m_bottom->value());
 
     g_editorMap.Resize(nStartX, nStartY, nW, nH, 0, 0, nW, nH);
-    g_mainWindow->UpdateScrollBar(0, 0);
+    g_mainWindow->setScrollBarValue(0, 0);
     g_mainWindow->AfterLoadMap();
 
     m_left->value(0);
