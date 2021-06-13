@@ -29,8 +29,8 @@
 
 BaseArea::BaseArea(int nX, int nY, int nW, int nH)
     : Fl_Box(nX, nY, nW, nH)
-    , m_ColorStack()
-    , m_CoverRecord()
+    , m_colorStack()
+    , m_coverRecord()
 {
     PushColor(FL_RED);
 }
@@ -254,38 +254,38 @@ void BaseArea::DrawRectangle(int nX, int nY, int nW, int nH)
 
 void BaseArea::PushColor(Fl_Color stColor)
 {
-    if(m_ColorStack.empty() || stColor != m_ColorStack.back().Color){
+    if(m_colorStack.empty() || stColor != m_colorStack.back().Color){
         fl_color(stColor);
-        m_ColorStack.push_back({stColor, 1});
+        m_colorStack.push_back({stColor, 1});
     }else{
         // have to put it here to reset
         // fl_color() is global and other class may call it
         fl_color(stColor);
-        m_ColorStack.back().Count++;
+        m_colorStack.back().Count++;
     }
 }
 
 void BaseArea::PopColor()
 {
-    if(m_ColorStack.empty()){
+    if(m_colorStack.empty()){
         PushColor(FL_WHITE);
     }else{
-        if(m_ColorStack.back().Count <= 0){
+        if(m_colorStack.back().Count <= 0){
             throw fflerror("color stack empty");
         }
-        if(m_ColorStack.back().Count == 1){
-            m_ColorStack.pop_back();
-            if(m_ColorStack.empty()){
+        if(m_colorStack.back().Count == 1){
+            m_colorStack.pop_back();
+            if(m_colorStack.empty()){
                 PushColor(FL_WHITE);
             }else{
-                fl_color(m_ColorStack.back().Color);
+                fl_color(m_colorStack.back().Color);
             }
         }else{
-            m_ColorStack.back().Count--;
+            m_colorStack.back().Count--;
 
             // have to put it here to reset
             // fl_color() is global and other class may call it
-            fl_color(m_ColorStack.back().Color);
+            fl_color(m_colorStack.back().Color);
         }
     }
 }
@@ -324,12 +324,12 @@ Fl_Image *BaseArea::CreateImageCover(int nW, int nH, uint32_t nColor)
 
 Fl_Image *BaseArea::RetrieveImageCover(uint32_t nARGB)
 {
-    auto pRecord = m_CoverRecord.find(nARGB);
-    if(pRecord != m_CoverRecord.end()){
+    auto pRecord = m_coverRecord.find(nARGB);
+    if(pRecord != m_coverRecord.end()){
         return pRecord->second.get();
     }else{
         auto pImage = CreateImageCover(SYS_MAPGRIDXP, SYS_MAPGRIDYP, nARGB);
-        m_CoverRecord[nARGB].reset(pImage);
+        m_coverRecord[nARGB].reset(pImage);
         return pImage;
     }
 }

@@ -24,12 +24,12 @@ class EditorMap;
 class LayerEditArea: public BaseArea
 {
     private:
-        int m_MouseX;
-        int m_MouseY;
+        int m_mouseX;
+        int m_mouseY;
 
     private:
-        int m_OffsetX;
-        int m_OffsetY;
+        int m_offsetX;
+        int m_offsetY;
 
     public:
         LayerEditArea(int, int, int, int);
@@ -48,12 +48,12 @@ class LayerEditArea: public BaseArea
     public:
         int OffsetX()
         {
-            return m_OffsetX;
+            return m_offsetX;
         }
 
         int OffsetY()
         {
-            return m_OffsetY;
+            return m_offsetY;
         }
 
     private:

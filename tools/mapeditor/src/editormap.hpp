@@ -180,20 +180,20 @@ class EditorMap
         };
 
     private:
-        int     m_W;
-        int     m_H;
-        bool    m_Valid;
+        int     m_w;
+        int     m_h;
+        bool    m_valid;
 
     private:
-        uint32_t m_AniSaveTime [8];
-        uint8_t  m_AniTileFrame[8][16];
+        uint32_t m_aniSaveTime [8];
+        uint8_t  m_aniTileFrame[8][16];
 
     private:
-        std::unique_ptr<Mir2Map> m_Mir2Map;
-        std::unique_ptr<Mir2xMapData> m_Mir2xMapData;
+        std::unique_ptr<Mir2Map> m_mir2Map;
+        std::unique_ptr<Mir2xMapData> m_mir2xMapData;
 
     private:
-        std::vector<std::vector<stBlock_t>> m_BlockBuf;
+        std::vector<std::vector<stBlock_t>> m_blockBuf;
 
     public:
         EditorMap();
@@ -205,7 +205,7 @@ class EditorMap
     public:
         bool Valid() const
         {
-            return m_Valid;
+            return m_valid;
         }
 
         bool ValidC(int nX, int nY) const
@@ -221,22 +221,22 @@ class EditorMap
     public:
         int W() const
         {
-            return m_W;
+            return m_w;
         }
 
         int H() const
         {
-            return m_H;
+            return m_h;
         }
 
         auto &Tile(int nX, int nY)
         {
-            return m_BlockBuf[nX / 2][nY / 2].Tile;
+            return m_blockBuf[nX / 2][nY / 2].Tile;
         }
 
         auto &Cell(int nX, int nY)
         {
-            return m_BlockBuf[nX / 2][nY / 2].Cell[nX % 2][nY % 2];
+            return m_blockBuf[nX / 2][nY / 2].Cell[nX % 2][nY % 2];
         }
 
         auto &Light(int nX, int nY)

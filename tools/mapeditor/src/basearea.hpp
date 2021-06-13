@@ -41,10 +41,10 @@ class BaseArea: public Fl_Box
         };
 
     private:
-        std::vector<ColorStackEntry> m_ColorStack;
+        std::vector<ColorStackEntry> m_colorStack;
 
     private:
-        std::map<uint32_t, std::shared_ptr<Fl_Image>> m_CoverRecord;
+        std::map<uint32_t, std::shared_ptr<Fl_Image>> m_coverRecord;
 
     public:
         BaseArea(int, int, int, int);

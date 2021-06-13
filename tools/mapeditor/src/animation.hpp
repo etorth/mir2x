@@ -73,18 +73,18 @@ class Animation
         }AnimationFrame;
 
     protected:
-        uint32_t m_MonsterID;
-        uint32_t m_Action;
-        uint32_t m_Direction;
-        uint32_t m_Frame;
-        std::vector<std::vector<std::vector<std::array<AnimationFrame, 2>>>> m_AnimationFrameV2D;
+        uint32_t m_monsterID;
+        uint32_t m_action;
+        uint32_t m_direction;
+        uint32_t m_frame;
+        std::vector<std::vector<std::vector<std::array<AnimationFrame, 2>>>> m_animationFrameV2D;
 
     public:
         Animation(uint32_t nMonsterID = 0)
-            : m_MonsterID(nMonsterID)
-            , m_Action(0)
-            , m_Direction(0)
-            , m_Frame(0)
+            : m_monsterID(nMonsterID)
+            , m_action(0)
+            , m_direction(0)
+            , m_frame(0)
         {}
         ~Animation() = default;
 
@@ -95,43 +95,43 @@ class Animation
     public:
         uint32_t MonsterID()
         {
-            return m_MonsterID;
+            return m_monsterID;
         }
 
         uint32_t Action()
         {
-            return m_Action;
+            return m_action;
         }
 
         uint32_t Direction()
         {
-            return m_Direction;
+            return m_direction;
         }
 
     public:
         template<typename... T> bool Add(uint32_t nAction, uint32_t nDirection, uint32_t nFrame, bool bShadow, T... stT)
         {
             if(nAction >= 16 || nDirection >= 8 || nFrame >= 32){ return false; }
-            if(nAction >= (uint32_t)m_AnimationFrameV2D.size()){
-                m_AnimationFrameV2D.resize((size_t)nAction + 1);
+            if(nAction >= (uint32_t)m_animationFrameV2D.size()){
+                m_animationFrameV2D.resize((size_t)nAction + 1);
             }
 
-            if(nDirection >= (uint32_t)m_AnimationFrameV2D[nAction].size()){
-                m_AnimationFrameV2D[nAction].resize((size_t)nDirection + 1);
+            if(nDirection >= (uint32_t)m_animationFrameV2D[nAction].size()){
+                m_animationFrameV2D[nAction].resize((size_t)nDirection + 1);
             }
 
-            if(nFrame >= (uint32_t)m_AnimationFrameV2D[nAction][nDirection].size()){
-                m_AnimationFrameV2D[nAction][nDirection].resize((size_t)nFrame + 1);
+            if(nFrame >= (uint32_t)m_animationFrameV2D[nAction][nDirection].size()){
+                m_animationFrameV2D[nAction][nDirection].resize((size_t)nFrame + 1);
             }
 
-            m_AnimationFrameV2D[nAction][nDirection][nFrame][bShadow ? 1 : 0].ResetFrame(std::forward<T>(stT)...);
+            m_animationFrameV2D[nAction][nDirection][nFrame][bShadow ? 1 : 0].ResetFrame(std::forward<T>(stT)...);
             return true;
         }
 
     public:
         bool Valid()
         {
-            return m_MonsterID != 0;
+            return m_monsterID != 0;
         }
 
     public:
@@ -143,19 +143,19 @@ class Animation
         bool ActionValid(uint32_t);
         bool ActionValid()
         {
-            return ActionValid(m_Action);
+            return ActionValid(m_action);
         }
 
         bool DirectionValid(uint32_t, uint32_t);
         bool DirectionValid()
         {
-            return DirectionValid(m_Action, m_Direction);
+            return DirectionValid(m_action, m_direction);
         }
 
         bool FrameValid(uint32_t, uint32_t, uint32_t, bool);
         bool FrameValid(bool bShadow)
         {
-            return FrameValid(m_Action, m_Direction, m_Frame, bShadow);
+            return FrameValid(m_action, m_direction, m_frame, bShadow);
         }
         bool FrameValid()
         {

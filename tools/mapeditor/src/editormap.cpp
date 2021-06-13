@@ -34,12 +34,12 @@
 #include "progressbarwindow.hpp"
 
 EditorMap::EditorMap()
-    : m_W(0)
-    , m_H(0)
-    , m_Valid(false)
+    : m_w(0)
+    , m_h(0)
+    , m_valid(false)
 {
-    std::memset(m_AniSaveTime,  0, sizeof(m_AniSaveTime));
-    std::memset(m_AniTileFrame, 0, sizeof(m_AniTileFrame));
+    std::memset(m_aniSaveTime,  0, sizeof(m_aniSaveTime));
+    std::memset(m_aniTileFrame, 0, sizeof(m_aniTileFrame));
 }
 
 void EditorMap::DrawLight(int nX, int nY, int nW, int nH, std::function<void(int, int)> fnDrawLight)
@@ -118,7 +118,7 @@ void EditorMap::DrawObject(int nCX, int nCY, int nCW, int nCH, bool bGround,
                                         || nFileIndex == 56
                                         || nFileIndex == 71){
 
-                                    nImageIndex += to_u16(m_AniTileFrame[nAniType][nAniCount]);
+                                    nImageIndex += to_u16(m_aniTileFrame[nAniType][nAniCount]);
                                 }
                             }
 
@@ -141,22 +141,22 @@ void EditorMap::DrawObject(int nCX, int nCY, int nCW, int nCH, bool bGround,
 
 void EditorMap::UpdateFrame(int nLoopTime)
 {
-    // m_AniTileFrame[i][j]:
+    // m_aniTileFrame[i][j]:
     //   i: denotes how fast the animation is.
     //   j: denotes how many frames the animation has.
 
     if(Valid()){
         const static uint32_t nDelayMS[] = {150, 200, 250, 300, 350, 400, 420, 450};
         for(int nCnt = 0; nCnt < 8; ++nCnt){
-            m_AniSaveTime[nCnt] += nLoopTime;
-            if(m_AniSaveTime[nCnt] > nDelayMS[nCnt]){
+            m_aniSaveTime[nCnt] += nLoopTime;
+            if(m_aniSaveTime[nCnt] > nDelayMS[nCnt]){
                 for(int nFrame = 0; nFrame < 16; ++nFrame){
-                    m_AniTileFrame[nCnt][nFrame]++;
-                    if(m_AniTileFrame[nCnt][nFrame] >= nFrame){
-                        m_AniTileFrame[nCnt][nFrame] = 0;
+                    m_aniTileFrame[nCnt][nFrame]++;
+                    if(m_aniTileFrame[nCnt][nFrame] >= nFrame){
+                        m_aniTileFrame[nCnt][nFrame] = 0;
                     }
                 }
-                m_AniSaveTime[nCnt] = 0;
+                m_aniSaveTime[nCnt] = 0;
             }
         }
     }
@@ -200,7 +200,7 @@ bool EditorMap::Resize(
         // region is not empty
         // OK now we have a practical job to do
 
-        auto stOldBlockBuf = m_BlockBuf;
+        auto stOldBlockBuf = m_blockBuf;
         MakeBuf(nNewW, nNewH);
 
         for(int nTY = 0; nTY < nH; ++nTY){
@@ -217,15 +217,15 @@ bool EditorMap::Resize(
                     if(true
                             && !(nDstX % 2) && !(nDstY % 2)
                             && !(nSrcX % 2) && !(nSrcY % 2)){
-                        m_BlockBuf[nDstX / 2][nDstY / 2] = stOldBlockBuf[nSrcX / 2][nSrcY / 2];
+                        m_blockBuf[nDstX / 2][nDstY / 2] = stOldBlockBuf[nSrcX / 2][nSrcY / 2];
                     }
                 }
             }
         }
 
-        m_Valid = true;
-        m_W     = nNewW;
-        m_H     = nNewH;
+        m_valid = true;
+        m_w     = nNewW;
+        m_h     = nNewH;
 
         return true;
     }
@@ -234,29 +234,29 @@ bool EditorMap::Resize(
 
 bool EditorMap::LoadMir2Map(const char *szFullName)
 {
-    m_Mir2Map = std::make_unique<Mir2Map>(szFullName);
-    m_Mir2xMapData.reset();
+    m_mir2Map = std::make_unique<Mir2Map>(szFullName);
+    m_mir2xMapData.reset();
 
-    MakeBuf(m_Mir2Map->w(), m_Mir2Map->h());
+    MakeBuf(m_mir2Map->w(), m_mir2Map->h());
     InitBuf();
 
-    m_Mir2Map.reset();
-    m_Mir2xMapData.reset();
+    m_mir2Map.reset();
+    m_mir2xMapData.reset();
 
     return Valid();
 }
 
 bool EditorMap::LoadMir2xMapData(const char *szFullName)
 {
-    m_Mir2Map.reset();
-    m_Mir2xMapData = std::make_unique<Mir2xMapData>();
+    m_mir2Map.reset();
+    m_mir2xMapData = std::make_unique<Mir2xMapData>();
 
-    m_Mir2xMapData->load(szFullName);
-    MakeBuf(m_Mir2xMapData->w(), m_Mir2xMapData->h());
+    m_mir2xMapData->load(szFullName);
+    MakeBuf(m_mir2xMapData->w(), m_mir2xMapData->h());
     InitBuf();
 
-    m_Mir2Map.reset();
-    m_Mir2xMapData.reset();
+    m_mir2Map.reset();
+    m_mir2xMapData.reset();
 
     return Valid();
 }
@@ -287,11 +287,11 @@ void EditorMap::OptimizeCell(int, int)
 
 void EditorMap::ClearBuf()
 {
-    m_W = 0;
-    m_H = 0;
+    m_w = 0;
+    m_h = 0;
 
-    m_Valid = false;
-    m_BlockBuf.clear();
+    m_valid = false;
+    m_blockBuf.clear();
 }
 
 bool EditorMap::InitBuf()
@@ -299,15 +299,15 @@ bool EditorMap::InitBuf()
     int nW = 0;
     int nH = 0;
 
-    m_Valid = false;
+    m_valid = false;
 
-    if(m_Mir2Map){
-        nW = m_Mir2Map->w();
-        nH = m_Mir2Map->h();
+    if(m_mir2Map){
+        nW = m_mir2Map->w();
+        nH = m_mir2Map->h();
     }
-    else if(m_Mir2xMapData){
-        nW = m_Mir2xMapData->w();
-        nH = m_Mir2xMapData->h();
+    else if(m_mir2xMapData){
+        nW = m_mir2xMapData->w();
+        nH = m_mir2xMapData->h();
     }
     else{
         return false;
@@ -327,9 +327,9 @@ bool EditorMap::InitBuf()
         }
     }
 
-    m_W     = nW;
-    m_H     = nH;
-    m_Valid = true;
+    m_w     = nW;
+    m_h     = nH;
+    m_valid = true;
 
     return true;
 }
@@ -341,8 +341,8 @@ void EditorMap::MakeBuf(int nW, int nH)
     ClearBuf();
     if(nW == 0 || nH == 0 || nW % 2 || nH % 2){ return; }
 
-    m_BlockBuf.resize(nW / 2);
-    for(auto &rstBuf: m_BlockBuf){
+    m_blockBuf.resize(nW / 2);
+    for(auto &rstBuf: m_blockBuf){
         rstBuf.resize(nH / 2);
         std::memset(&(rstBuf[0]), 0, rstBuf.size() * sizeof(rstBuf[0]));
     }
@@ -357,22 +357,22 @@ void EditorMap::SetBufTile(int nX, int nY)
             && !(nX % 2) && !(nY % 2)
 
             && nX >= 0
-            && nX / 2 < to_d(m_BlockBuf.size())
+            && nX / 2 < to_d(m_blockBuf.size())
 
             && nY >= 0
-            && nY / 2 < to_d(m_BlockBuf[nX / 2].size())){
+            && nY / 2 < to_d(m_blockBuf[nX / 2].size())){
 
-        if(m_Mir2Map){
-            extern ImageDB *g_ImageDB;
-            if(m_Mir2Map->tileValid(nX, nY, *g_ImageDB)){
+        if(m_mir2Map){
+            extern ImageDB *g_imageDB;
+            if(m_mir2Map->tileValid(nX, nY, *g_imageDB)){
                 Tile(nX, nY).Valid = true;
-                Tile(nX, nY).Image = m_Mir2Map->tile(nX, nY) & 0X00FFFFFF;
+                Tile(nX, nY).Image = m_mir2Map->tile(nX, nY) & 0X00FFFFFF;
             }
         }
-        else if(m_Mir2xMapData){
-            if(m_Mir2xMapData->tile(nX, nY).texIDValid){
+        else if(m_mir2xMapData){
+            if(m_mir2xMapData->tile(nX, nY).texIDValid){
                 Tile(nX, nY).Valid = true;
-                Tile(nX, nY).Image = m_Mir2xMapData->tile(nX, nY).texID;
+                Tile(nX, nY).Image = m_mir2xMapData->tile(nX, nY).texID;
             }
         }
     }
@@ -382,25 +382,25 @@ void EditorMap::SetBufGround(int nX, int nY)
 {
     if(true
             && nX >= 0
-            && nX / 2 < to_d(m_BlockBuf.size())
+            && nX / 2 < to_d(m_blockBuf.size())
 
             && nY >= 0
-            && nY / 2 < to_d(m_BlockBuf[nX / 2].size())){
+            && nY / 2 < to_d(m_blockBuf[nX / 2].size())){
 
         bool    bCanFly    = false;
         bool    bCanWalk   = false;
         uint8_t nAttribute = 0;
 
-        if(m_Mir2Map){
-            if(m_Mir2Map->groundValid(nX, nY)){
+        if(m_mir2Map){
+            if(m_mir2Map->groundValid(nX, nY)){
                 bCanFly    = true;
                 bCanWalk   = true;
                 nAttribute = 0;
             }
-        }else if(m_Mir2xMapData){
-            bCanWalk   = m_Mir2xMapData->cell(nX, nY).canWalk;
-            bCanFly    = m_Mir2xMapData->cell(nX, nY).canFly;
-            nAttribute = m_Mir2xMapData->cell(nX, nY).landType;
+        }else if(m_mir2xMapData){
+            bCanWalk   = m_mir2xMapData->cell(nX, nY).canWalk;
+            bCanFly    = m_mir2xMapData->cell(nX, nY).canFly;
+            nAttribute = m_mir2xMapData->cell(nX, nY).landType;
         }
 
         Cell(nX, nY).CanFly    = bCanFly;
@@ -416,10 +416,10 @@ void EditorMap::SetBufObj(int nX, int nY, int nIndex)
             && nIndex <= 1
 
             && nX >= 0
-            && nX / 2 < to_d(m_BlockBuf.size())
+            && nX / 2 < to_d(m_blockBuf.size())
 
             && nY >= 0
-            && nY / 2 < to_d(m_BlockBuf[nX / 2].size())){
+            && nY / 2 < to_d(m_blockBuf[nX / 2].size())){
 
         uint32_t nObj       = 0;
         bool     bObjValid  = false;
@@ -429,20 +429,20 @@ void EditorMap::SetBufObj(int nX, int nY, int nIndex)
         uint8_t  nAniType   = 0;
         uint8_t  nAniCount  = 0;
 
-        if(m_Mir2Map){
+        if(m_mir2Map){
             // mir2 map
             // animation info is in Mir2Map::Object() at higher 8 bits
-            extern ImageDB *g_ImageDB;
-            if(m_Mir2Map->objectValid(nX, nY, nIndex, *g_ImageDB)){
+            extern ImageDB *g_imageDB;
+            if(m_mir2Map->objectValid(nX, nY, nIndex, *g_imageDB)){
 
                 // I checked the code
                 // here the mir 3 checked CELLINFO::bFlag
 
                 bObjValid = true;
-                if(m_Mir2Map->groundObjectValid(nX, nY, nIndex, *g_ImageDB)){
+                if(m_mir2Map->groundObjectValid(nX, nY, nIndex, *g_imageDB)){
                     bGroundObj = true;
                 }
-                if(m_Mir2Map->aniObjectValid(nX, nY, nIndex, *g_ImageDB)){
+                if(m_mir2Map->aniObjectValid(nX, nY, nIndex, *g_imageDB)){
                     bAniObj = true;
                 }
 
@@ -450,7 +450,7 @@ void EditorMap::SetBufObj(int nX, int nY, int nIndex)
                 // [23:16] : file index
                 // [15: 0] : image index
 
-                auto nObjDesc = m_Mir2Map->object(nX, nY, nIndex);
+                auto nObjDesc = m_mir2Map->object(nX, nY, nIndex);
                 nAniType  = (uint8_t )((nObjDesc & 0X70000000) >> (4 + 8 + 16));
                 nAniCount = (uint8_t )((nObjDesc & 0X0F000000) >> (0 + 8 + 16));
                 nObj      = to_u32((nObjDesc & 0X00FFFFFF));
@@ -466,8 +466,8 @@ void EditorMap::SetBufObj(int nX, int nY, int nIndex)
                 }
             }
         }
-        else if(m_Mir2xMapData){
-            const auto &obj = m_Mir2xMapData->cell(nX, nY).obj[nIndex];
+        else if(m_mir2xMapData){
+            const auto &obj = m_mir2xMapData->cell(nX, nY).obj[nIndex];
             if(obj.texIDValid){
                 bObjValid = true;
                 nObj = obj.texID;
@@ -494,21 +494,21 @@ void EditorMap::SetBufLight(int nX, int nY)
 {
     if(true
             && nX >= 0
-            && nX / 2 < to_d(m_BlockBuf.size())
+            && nX / 2 < to_d(m_blockBuf.size())
 
             && nY >= 0
-            && nY / 2 < to_d(m_BlockBuf[nX / 2].size())){
+            && nY / 2 < to_d(m_blockBuf[nX / 2].size())){
 
-        if(m_Mir2Map){
-            if(m_Mir2Map->lightValid(nX, nY)){
+        if(m_mir2Map){
+            if(m_mir2Map->lightValid(nX, nY)){
                 Light(nX, nY).Valid  = true;
                 Light(nX, nY).Color  = 0;
                 Light(nX, nY).Alpha  = 0;
                 Light(nX, nY).Radius = 0;
             }
         }
-        else if(m_Mir2xMapData){
-            const auto &light = m_Mir2xMapData->cell(nX, nY).light;
+        else if(m_mir2xMapData){
+            const auto &light = m_mir2xMapData->cell(nX, nY).light;
             if(light.valid){
                 Light(nX, nY).Valid  = true;
                 Light(nX, nY).Color  = 0;
@@ -609,10 +609,10 @@ void EditorMap::ExportOverview(std::function<void(uint8_t, uint16_t, int, int, b
                 nLastPercent = nPercent;
 
                 // 2. update progress bar
-                extern ProgressBarWindow *g_ProgressBarWindow;
-                g_ProgressBarWindow->SetValue(nPercent);
-                g_ProgressBarWindow->Redraw();
-                g_ProgressBarWindow->ShowAll();
+                extern ProgressBarWindow *g_progressBarWindow;
+                g_progressBarWindow->SetValue(nPercent);
+                g_progressBarWindow->Redraw();
+                g_progressBarWindow->ShowAll();
                 Fl::check();
             }
         };
@@ -661,8 +661,8 @@ void EditorMap::ExportOverview(std::function<void(uint8_t, uint16_t, int, int, b
             }
         }
 
-        extern ProgressBarWindow *g_ProgressBarWindow;
-        g_ProgressBarWindow->HideAll();
+        extern ProgressBarWindow *g_progressBarWindow;
+        g_progressBarWindow->HideAll();
     }
 }
 
@@ -689,12 +689,12 @@ EditorMap *EditorMap::ExportLayer()
             nY1 = (std::max<int>)(nY1, nY);
         };
 
-        extern LayerBrowserWindow *g_LayerBrowserWindow;
+        extern LayerBrowserWindow *g_layerBrowserWindow;
         for(int nX = 0; nX < W(); ++nX){
             for(int nY = 0; nY < H(); ++nY){
 
                 // 1. tile
-                if(g_LayerBrowserWindow->ImportTile()){
+                if(g_layerBrowserWindow->ImportTile()){
                     if(true
                             && !(nX % 2)
                             && !(nY % 2)){
@@ -710,7 +710,7 @@ EditorMap *EditorMap::ExportLayer()
 
                 // 2. object, two layers
                 for(int bGroundObj = 0; bGroundObj < 2; ++bGroundObj){
-                    if(g_LayerBrowserWindow->ImportObject((bool)(bGroundObj))){
+                    if(g_layerBrowserWindow->ImportObject((bool)(bGroundObj))){
                         for(int nIndex = 0; nIndex < 2; ++nIndex){
                             auto &rstCell = Cell(nX, nY);
                             if(rstCell.Obj[nIndex].Valid){
@@ -762,18 +762,18 @@ bool EditorMap::Allocate(int nW, int nH)
             && !(nW % 2)
             && !(nH % 2)){
 
-        m_W     = nW;
-        m_H     = nH;
-        m_Valid = true;
+        m_w     = nW;
+        m_h     = nH;
+        m_valid = true;
 
-        std::memset(m_AniSaveTime,  0, sizeof(m_AniSaveTime));
-        std::memset(m_AniTileFrame, 0, sizeof(m_AniTileFrame));
+        std::memset(m_aniSaveTime,  0, sizeof(m_aniSaveTime));
+        std::memset(m_aniTileFrame, 0, sizeof(m_aniTileFrame));
 
-        m_Mir2Map      = nullptr;
-        m_Mir2xMapData = nullptr;
+        m_mir2Map      = nullptr;
+        m_mir2xMapData = nullptr;
 
-        m_BlockBuf.resize(nW / 2);
-        for(auto &rstBuf: m_BlockBuf){
+        m_blockBuf.resize(nW / 2);
+        for(auto &rstBuf: m_blockBuf){
             rstBuf.resize(nH / 2);
             std::memset(&(rstBuf[0]), 0, rstBuf.size() * sizeof(rstBuf[0]));
         }

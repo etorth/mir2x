@@ -22,8 +22,8 @@
 bool Animation::ActionValid(uint32_t nAction)
 {
     if(nAction >= 16){ return false; }
-    if(nAction >= m_AnimationFrameV2D.size()){ return false; }
-    if(m_AnimationFrameV2D[nAction].size() == 0){ return false; }
+    if(nAction >= m_animationFrameV2D.size()){ return false; }
+    if(m_animationFrameV2D[nAction].size() == 0){ return false; }
 
     return true;
 }
@@ -35,8 +35,8 @@ bool Animation::DirectionValid(uint32_t nAction, uint32_t nDirection)
 
     if(!ActionValid(nAction)){ return false; }
 
-    if(nDirection >= m_AnimationFrameV2D[nAction].size()){ return false; }
-    if(m_AnimationFrameV2D[nAction][nDirection].size() == 0){ return false; }
+    if(nDirection >= m_animationFrameV2D[nAction].size()){ return false; }
+    if(m_animationFrameV2D[nAction][nDirection].size() == 0){ return false; }
 
     return true;
 }
@@ -50,10 +50,10 @@ bool Animation::FrameValid(uint32_t nAction, uint32_t nDirection, uint32_t nFram
     if(!ActionValid(nAction)){ return false; }
     if(!DirectionValid(nAction, nDirection)){ return false; }
 
-    if(nFrame >= m_AnimationFrameV2D[nAction][nDirection].size()){ return false; }
+    if(nFrame >= m_animationFrameV2D[nAction][nDirection].size()){ return false; }
 
     // then we will check the image pointer, here we always try to load shadow and body
-    auto &rstFrame = m_AnimationFrameV2D[nAction][nDirection][nFrame];
+    auto &rstFrame = m_animationFrameV2D[nAction][nDirection][nFrame];
     for(size_t nIndex = 0; nIndex < 2; ++nIndex){
         // try to load it if not loaded
         if(!rstFrame[nIndex].Image){
@@ -84,14 +84,14 @@ bool Animation::FrameValid(uint32_t nAction, uint32_t nDirection, uint32_t nFram
 void Animation::Draw(int nX, int nY)
 {
     // shadow
-    if(FrameValid(m_Action, m_Direction, m_Frame, true)){
-        auto &rstFrame = m_AnimationFrameV2D[m_Action][m_Direction][m_Frame];
+    if(FrameValid(m_action, m_direction, m_frame, true)){
+        auto &rstFrame = m_animationFrameV2D[m_action][m_direction][m_frame];
         rstFrame[1].Image->draw(nX + rstFrame[1].DX, nY + rstFrame[1].DY);
     }
 
     // body
-    if(FrameValid(m_Action, m_Direction, m_Frame, false)){
-        auto &rstFrame = m_AnimationFrameV2D[m_Action][m_Direction][m_Frame];
+    if(FrameValid(m_action, m_direction, m_frame, false)){
+        auto &rstFrame = m_animationFrameV2D[m_action][m_direction][m_frame];
         rstFrame[0].Image->draw(nX + rstFrame[0].DX, nY + rstFrame[0].DY);
     }
 }
@@ -99,14 +99,14 @@ void Animation::Draw(int nX, int nY)
 void Animation::Draw(int nX, int nY, std::function<void(Fl_Shared_Image *, int, int)> fnDraw)
 {
     // shadow
-    if(FrameValid(m_Action, m_Direction, m_Frame, true)){
-        auto &rstFrame = m_AnimationFrameV2D[m_Action][m_Direction][m_Frame];
+    if(FrameValid(m_action, m_direction, m_frame, true)){
+        auto &rstFrame = m_animationFrameV2D[m_action][m_direction][m_frame];
         fnDraw(rstFrame[1].Image, nX + rstFrame[1].DX, nY + rstFrame[1].DY);
     }
 
     // body
-    if(FrameValid(m_Action, m_Direction, m_Frame, false)){
-        auto &rstFrame = m_AnimationFrameV2D[m_Action][m_Direction][m_Frame];
+    if(FrameValid(m_action, m_direction, m_frame, false)){
+        auto &rstFrame = m_animationFrameV2D[m_action][m_direction][m_frame];
         fnDraw(rstFrame[0].Image, nX + rstFrame[0].DX, nY + rstFrame[0].DY);
     }
 }
@@ -114,15 +114,15 @@ void Animation::Draw(int nX, int nY, std::function<void(Fl_Shared_Image *, int, 
 void Animation::Update()
 {
     if(FrameValid(false) || FrameValid(true)){
-        m_Frame = ((m_Frame + 1) % m_AnimationFrameV2D[m_Action][m_Direction][m_Frame].size());
+        m_frame = ((m_frame + 1) % m_animationFrameV2D[m_action][m_direction][m_frame].size());
     }
 }
 
 bool Animation::ResetAction(uint32_t nAction)
 {
     if(nAction < 16){
-        m_Frame = 0;
-        m_Action = nAction;
+        m_frame = 0;
+        m_action = nAction;
     }
 
     return true;
@@ -131,8 +131,8 @@ bool Animation::ResetAction(uint32_t nAction)
 bool Animation::ResetDirection(uint32_t nDirection)
 {
     if(nDirection < 8){
-        m_Frame = 0;
-        m_Direction = nDirection;
+        m_frame = 0;
+        m_direction = nDirection;
     }
 
     return true;
@@ -145,7 +145,7 @@ int Animation::AnimationW(uint32_t nAction, uint32_t nDirection)
         nMinX = std::numeric_limits<int>::max();
         nMaxX = std::numeric_limits<int>::min();
 
-        auto &rstFrameV = m_AnimationFrameV2D[nAction][nDirection];
+        auto &rstFrameV = m_animationFrameV2D[nAction][nDirection];
         for(auto &rstFrame: rstFrameV){
             for(int nIndex = 0; nIndex < 2; ++nIndex){
                 if(rstFrame[nIndex].Valid()){
@@ -168,7 +168,7 @@ int Animation::AnimationH(uint32_t nAction, uint32_t nDirection)
         nMinY = std::numeric_limits<int>::max();
         nMaxY = std::numeric_limits<int>::min();
 
-        auto &rstFrameV = m_AnimationFrameV2D[nAction][nDirection];
+        auto &rstFrameV = m_animationFrameV2D[nAction][nDirection];
         for(auto &rstFrame: rstFrameV){
             for(int nIndex = 0; nIndex < 2; ++nIndex){
                 if(rstFrame[nIndex].Valid()){
@@ -187,9 +187,9 @@ int Animation::AnimationH(uint32_t nAction, uint32_t nDirection)
 bool Animation::ResetFrame(uint32_t nAction, uint32_t nDirection, uint32_t nFrame)
 {
     if(FrameValid(nAction, nDirection, nFrame, true) && FrameValid(nAction, nDirection, nFrame, false)){
-        m_Action = nAction;
-        m_Direction = nDirection;
-        m_Frame = nFrame;
+        m_action = nAction;
+        m_direction = nDirection;
+        m_frame = nFrame;
 
         return true;
     }

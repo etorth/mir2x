@@ -19,17 +19,17 @@ decl {\#include "totype.hpp"} {private local
 
 class AnimationSelectWindow {open
 } {
-  decl {uint32_t m_Frame;} {private local
+  decl {uint32_t m_frame;} {private local
   }
   Function {AnimationSelectWindow()} {open
   } {
-    code {m_Frame = -1; // to pointer to first frame
+    code {m_frame = -1; // to pointer to first frame
               // this variable will be updated by time callback functioin
-              // we don't have m_Action and m_Direction since it can be read from the browser->selected(i)} {}
-    Fl_Window m_Window {open
+              // we don't have m_action and m_direction since it can be read from the browser->selected(i)} {}
+    Fl_Window m_window {open
       xywh {831 350 650 500} type Double non_modal visible
     } {
-      Fl_Browser m_BrowserAnimation {
+      Fl_Browser m_browserAnimation {
         callback {{
     // if(!Fl::event_clicks()){
     //     return;
@@ -37,17 +37,17 @@ class AnimationSelectWindow {open
     
     // every time when we get a click, we clear the action & direction
     // even if this click is null
-    m_BrowserAction->clear();
-    m_BrowserDirection->clear();
+    m_browserAction->clear();
+    m_browserDirection->clear();
     
     uint32_t nMonsterID = MonsterID();
     if(nMonsterID){
-        extern AnimationDB g_AnimationDB;
+        extern AnimationDB g_animationDB;
         for(uint32_t nAction = 0; nAction < 16; ++nAction){
-            if(g_AnimationDB.RetrieveAnimation(nMonsterID).ActionValid(nAction)){
+            if(g_animationDB.RetrieveAnimation(nMonsterID).ActionValid(nAction)){
                 char szAction[64];
                 std::sprintf(szAction, "Action: %02d", nAction);
-                m_BrowserAction->add(szAction, (void *)(uintptr_t)(nAction));
+                m_browserAction->add(szAction, (void *)(uintptr_t)(nAction));
             }
         }   
     }
@@ -56,17 +56,17 @@ class AnimationSelectWindow {open
 }}
         xywh {0 0 300 500} type Hold labelfont 4 textfont 4
       }
-      Fl_Box m_AnimationPreviewArea {
+      Fl_Box m_animationPreviewArea {
         xywh {300 0 350 280} box UP_BOX labelfont 4
         code0 {\#include "animationpreviewarea.hpp"}
         class AnimationPreviewArea
       }
-      Fl_Browser m_BrowserAction {
+      Fl_Browser m_browserAction {
         callback {{
     // if(!Fl::event_clicks()){
     //     return;
     // }
-    m_BrowserDirection->clear();
+    m_browserDirection->clear();
     
     uint32_t nMonsterID = MonsterID();
     if(nMonsterID){
@@ -75,11 +75,11 @@ class AnimationSelectWindow {open
         if(nAction0 >= 0){
             uint32_t nAction = to_u32(nAction0);
             for(uint32_t nDirection = 0; nDirection < 8; ++nDirection){
-                extern AnimationDB g_AnimationDB;
-                if(g_AnimationDB.RetrieveAnimation(nMonsterID).DirectionValid(nAction, nDirection)){
+                extern AnimationDB g_animationDB;
+                if(g_animationDB.RetrieveAnimation(nMonsterID).DirectionValid(nAction, nDirection)){
                     char szDirection[64];
                     std::sprintf(szDirection, "Direction: %d", nDirection);
-                    m_BrowserDirection->add(szDirection, (void *)(uintptr_t)(nDirection));
+                    m_browserDirection->add(szDirection, (void *)(uintptr_t)(nDirection));
                 }
             }
         }
@@ -89,17 +89,17 @@ class AnimationSelectWindow {open
 }}
         xywh {300 300 350 100} type Hold labelfont 4 textfont 4
       }
-      Fl_Browser m_BrowserDirection {
+      Fl_Browser m_browserDirection {
         callback {{
     Fl::remove_timeout(TimeoutCallback);
-    m_Frame = -1;
+    m_frame = -1;
     
     if(MonsterID() && Action() >= 0 && Direction() >= 0){
-        extern AnimationDB g_AnimationDB;
-        auto &rstRecord = g_AnimationDB.RetrieveAnimation(MonsterID());
+        extern AnimationDB g_animationDB;
+        auto &rstRecord = g_animationDB.RetrieveAnimation(MonsterID());
         if(rstRecord.Valid() && rstRecord.DirectionValid(to_u32(Action()), to_u32(Direction()))){
             // ok we have a valid animation, reset it's frame index
-            m_Frame = 0;
+            m_frame = 0;
             Fl::add_timeout(0.2, TimeoutCallback, nullptr);
         }
     }
@@ -108,7 +108,7 @@ class AnimationSelectWindow {open
 }}
         xywh {300 400 350 100} type Hold labelfont 4 textfont 4
       }
-      Fl_Slider m_SliderR {
+      Fl_Slider m_sliderR {
         label R
         xywh {300 280 350 20} type Horizontal labelfont 4 align 0 maximum 40 step 1 slider_size 0.1
       }
@@ -119,41 +119,41 @@ class AnimationSelectWindow {open
     code {{
     ClearAll();
     
-    extern AnimationDB g_AnimationDB;
-    size_t nSize = g_AnimationDB.Size();
+    extern AnimationDB g_animationDB;
+    size_t nSize = g_animationDB.Size();
     
     for(size_t nVID = 0; nVID < nSize; ++nVID){
         char szMonsterID[32];
-        std::sprintf(szMonsterID, "Monster ID: %04d", g_AnimationDB.Get(nVID).MonsterID());
+        std::sprintf(szMonsterID, "Monster ID: %04d", g_animationDB.Get(nVID).MonsterID());
         
-        m_BrowserAnimation->add(szMonsterID, (void *)(uintptr_t)(g_AnimationDB.Get(nVID).MonsterID()));
+        m_browserAnimation->add(szMonsterID, (void *)(uintptr_t)(g_animationDB.Get(nVID).MonsterID()));
     }
 }} {}
   }
   Function {HideAll()} {return_type void
   } {
     code {{
-    m_Window->hide();
+    m_window->hide();
 }} {}
   }
   Function {ClearAll()} {return_type void
   } {
     code {{
-    m_BrowserAnimation->clear();
-    m_BrowserAction->clear();
-    m_BrowserDirection->clear();
+    m_browserAnimation->clear();
+    m_browserAction->clear();
+    m_browserDirection->clear();
 }} {}
   }
   Function {ShowAll()} {return_type void
   } {
     code {{
-    m_Window->show();
+    m_window->show();
 }} {}
   }
   Function {RedrawAll()} {return_type void
   } {
     code {{
-    m_Window->redraw();
+    m_window->redraw();
 }} {}
   }
   Function {MonsterID()} {return_type uint32_t
@@ -161,9 +161,9 @@ class AnimationSelectWindow {open
     code {{
     uint32_t nMonsterID = 0;
     
-    for(int i = 1; i <= m_BrowserAnimation->size(); ++i){
-        if(m_BrowserAnimation->selected(i)){
-            nMonsterID = to_u32((uintptr_t)(m_BrowserAnimation->data(i)));
+    for(int i = 1; i <= m_browserAnimation->size(); ++i){
+        if(m_browserAnimation->selected(i)){
+            nMonsterID = to_u32((uintptr_t)(m_browserAnimation->data(i)));
         }
     }
     
@@ -174,7 +174,7 @@ class AnimationSelectWindow {open
   } {
     code {{
     if(!MonsterID()){ return -1; }
-    return to_d(std::lround(m_SliderR->value()));
+    return to_d(std::lround(m_sliderR->value()));
 }} {}
   }
   Function {Action()} {return_type int
@@ -184,8 +184,8 @@ class AnimationSelectWindow {open
     
     // we do have a valid monster id
     int nSelectedActionIndex = 0;
-    for(int i = 1; i <= m_BrowserAction->size(); ++i){
-        if(m_BrowserAction->selected(i)){
+    for(int i = 1; i <= m_browserAction->size(); ++i){
+        if(m_browserAction->selected(i)){
             nSelectedActionIndex = i;
             break;
         }
@@ -193,7 +193,7 @@ class AnimationSelectWindow {open
      
     // we do select an action
     if(nSelectedActionIndex){
-        return to_d((intptr_t)(m_BrowserAction->data(nSelectedActionIndex)));
+        return to_d((intptr_t)(m_browserAction->data(nSelectedActionIndex)));
     }
      
     return -1;
@@ -207,8 +207,8 @@ class AnimationSelectWindow {open
     
     // we do have a valid monster id
     int nSelectedDirectionIndex = 0;
-    for(int i = 1; i <= m_BrowserDirection->size(); ++i){
-        if(m_BrowserDirection->selected(i)){
+    for(int i = 1; i <= m_browserDirection->size(); ++i){
+        if(m_browserDirection->selected(i)){
             nSelectedDirectionIndex = i;
             break;
         }
@@ -216,7 +216,7 @@ class AnimationSelectWindow {open
      
     // we do select an action
     if(nSelectedDirectionIndex){
-        return to_d((intptr_t)(m_BrowserDirection->data(nSelectedDirectionIndex)));
+        return to_d((intptr_t)(m_browserDirection->data(nSelectedDirectionIndex)));
     }
      
     return -1;
@@ -225,26 +225,26 @@ class AnimationSelectWindow {open
   Function {Frame()} {return_type int
   } {
     code {{
-    return m_Frame;
+    return m_frame;
 }} {}
   }
   Function {TimeoutCallback(void *)} {return_type {static void}
   } {
     code {{
-    extern AnimationSelectWindow *g_AnimationSelectWindow;
+    extern AnimationSelectWindow *g_animationSelectWindow;
     if(true
-        && g_AnimationSelectWindow->MonsterID()
-        && g_AnimationSelectWindow->Action() >= 0
-        && g_AnimationSelectWindow->Direction() >= 0){
+        && g_animationSelectWindow->MonsterID()
+        && g_animationSelectWindow->Action() >= 0
+        && g_animationSelectWindow->Direction() >= 0){
         
         // ok currently we have a valid choice
-        g_AnimationSelectWindow->UpdateFrame();
+        g_animationSelectWindow->UpdateFrame();
         Fl::repeat_timeout(0.2, TimeoutCallback, nullptr);
     }else{
         Fl::remove_timeout(TimeoutCallback);
     }
 
-    g_AnimationSelectWindow->RedrawAll();
+    g_animationSelectWindow->RedrawAll();
 }} {}
   }
   Function {UpdateFrame()} {return_type void
@@ -255,15 +255,15 @@ class AnimationSelectWindow {open
         uint32_t nAction = to_u32(Action());
         uint32_t nDirection = to_u32(Direction());
 
-        extern AnimationDB g_AnimationDB;
-        auto &rstRecord = g_AnimationDB.RetrieveAnimation(nMonsterID);
+        extern AnimationDB g_animationDB;
+        auto &rstRecord = g_animationDB.RetrieveAnimation(nMonsterID);
         if(rstRecord.Valid() && rstRecord.DirectionValid(nAction, nDirection)){
             // we assume the frame is contingous, then if one frame is not ok, we just reset it to 0
-            // this will also handle if current m_Frame is -1
-            if(rstRecord.FrameValid(nAction, nDirection, m_Frame + 1, true) && rstRecord.FrameValid(nAction, nDirection, m_Frame + 1, false)){
-                m_Frame = m_Frame + 1;
+            // this will also handle if current m_frame is -1
+            if(rstRecord.FrameValid(nAction, nDirection, m_frame + 1, true) && rstRecord.FrameValid(nAction, nDirection, m_frame + 1, false)){
+                m_frame = m_frame + 1;
             }else{
-                m_Frame = 0;
+                m_frame = 0;
             }
 
             // done here
@@ -272,7 +272,7 @@ class AnimationSelectWindow {open
     }
 
     // otherwise we set a error flag
-    m_Frame = -1;
+    m_frame = -1;
 }} {}
   }
 }

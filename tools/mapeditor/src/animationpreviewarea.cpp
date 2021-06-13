@@ -37,17 +37,17 @@ int AnimationPreviewArea::handle(int nEvent)
     switch(nEvent){
         case FL_PUSH:
             if(Fl::event_clicks()){
-                extern AnimationDraw g_AnimationDraw;
-                extern AnimationSelectWindow *g_AnimationSelectWindow;
-                uint32_t nMonsterID = g_AnimationSelectWindow->MonsterID();
-                int nAction0 = g_AnimationSelectWindow->Action();
-                int nDirection0 = g_AnimationSelectWindow->Direction();
+                extern AnimationDraw g_animationDraw;
+                extern AnimationSelectWindow *g_animationSelectWindow;
+                uint32_t nMonsterID = g_animationSelectWindow->MonsterID();
+                int nAction0 = g_animationSelectWindow->Action();
+                int nDirection0 = g_animationSelectWindow->Direction();
 
                 // we have a new setting, use it, otherwise just keep the old one
                 if(nMonsterID && nAction0 >= 0 && nDirection0 >= 0){
-                    g_AnimationDraw.MonsterID = nMonsterID;
-                    g_AnimationDraw.Action    = to_u32(nAction0);
-                    g_AnimationDraw.Direction = to_u32(nDirection0);
+                    g_animationDraw.MonsterID = nMonsterID;
+                    g_animationDraw.Action    = to_u32(nAction0);
+                    g_animationDraw.Direction = to_u32(nDirection0);
                 }
 
                 // 1. remove animationselectwindow's callback
@@ -58,8 +58,8 @@ int AnimationPreviewArea::handle(int nEvent)
                 Fl::add_timeout(0.2, MainWindow::UpdateAnimationFrame, nullptr);
 
                 // 3. hide all windows for animation selection
-                extern AnimationSelectWindow *g_AnimationSelectWindow;
-                g_AnimationSelectWindow->HideAll();
+                extern AnimationSelectWindow *g_animationSelectWindow;
+                g_animationSelectWindow->HideAll();
             }
             break;
         default:
@@ -71,11 +71,11 @@ int AnimationPreviewArea::handle(int nEvent)
 void AnimationPreviewArea::draw()
 {
     Fl_Box::draw();
-    extern AnimationSelectWindow *g_AnimationSelectWindow;
-    int nFrame0 = g_AnimationSelectWindow->Frame();
-    int nAction0 = g_AnimationSelectWindow->Action();
-    int nDirection0 = g_AnimationSelectWindow->Direction();
-    uint32_t nMonsterID = g_AnimationSelectWindow->MonsterID();
+    extern AnimationSelectWindow *g_animationSelectWindow;
+    int nFrame0 = g_animationSelectWindow->Frame();
+    int nAction0 = g_animationSelectWindow->Action();
+    int nDirection0 = g_animationSelectWindow->Direction();
+    uint32_t nMonsterID = g_animationSelectWindow->MonsterID();
 
     if(nMonsterID == 0 || nAction0 < 0 || nDirection0 < 0 || nFrame0 < 0){ return; }
 
@@ -83,8 +83,8 @@ void AnimationPreviewArea::draw()
     uint32_t nAction = to_u32(nAction0);
     uint32_t nDirection = to_u32(nDirection0);
 
-    extern AnimationDB g_AnimationDB;
-    auto & rstRecord = g_AnimationDB.RetrieveAnimation(nMonsterID);
+    extern AnimationDB g_animationDB;
+    auto & rstRecord = g_animationDB.RetrieveAnimation(nMonsterID);
 
     if(!rstRecord.Valid()){ return; }
     if(!rstRecord.ResetFrame(nAction, nDirection, nFrame)){ return; }
@@ -96,16 +96,16 @@ void AnimationPreviewArea::draw()
     //       if we are drawing inside the draw() of the window, never call
     //       this function, if out side the class, we need to call it
     //
-    //       if(this != m_Window){
-    //          m_Window->make_current();
+    //       if(this != m_window){
+    //          m_window->make_current();
     //       }
     // make_current();
     Fl::check();
 
-    extern AnimationSelectWindow *g_AnimationSelectWindow;
+    extern AnimationSelectWindow *g_animationSelectWindow;
     int nCenterX = nW / 2;
     int nCenterY = nH - 100;
-    int nCenterR = g_AnimationSelectWindow->R(); 
+    int nCenterR = g_animationSelectWindow->R(); 
 
     auto stOldColor = fl_color();
     fl_color(FL_YELLOW);

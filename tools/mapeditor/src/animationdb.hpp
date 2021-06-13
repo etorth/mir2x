@@ -23,15 +23,15 @@
 class AnimationDB
 {
     private:
-        std::vector<Animation>  m_AnimationV;
-        Animation               m_EmptyRecord;
-        std::string             m_DBPath;
+        std::vector<Animation>  m_animationV;
+        Animation               m_emptyRecord;
+        std::string             m_dBPath;
 
     public:
         AnimationDB()
-            : m_AnimationV()
-            , m_EmptyRecord()
-            , m_DBPath("")
+            : m_animationV()
+            , m_emptyRecord()
+            , m_dBPath("")
         {}
         ~AnimationDB() = default;
 
@@ -39,18 +39,18 @@ class AnimationDB
         // TODO: we return non-const ref here since we need to update it
         Animation &RetrieveAnimation(uint32_t nMonsterID)
         {
-            for(auto &rstRecord: m_AnimationV){
+            for(auto &rstRecord: m_animationV){
                 if(rstRecord.MonsterID() == nMonsterID){
                     return rstRecord;
                 }
             }
 
-            return m_EmptyRecord;
+            return m_emptyRecord;
         }
 
         size_t Size()
         {
-            return m_AnimationV.size();
+            return m_animationV.size();
         }
 
         size_t Count()
@@ -61,7 +61,7 @@ class AnimationDB
         // TODO: when using this function, we need to Size() function
         Animation &Get(size_t nVID)
         {
-            return m_AnimationV[nVID];
+            return m_animationV[nVID];
         }
 
         template<typename... T> bool Add(uint32_t nMonsterID, uint32_t nAction, uint32_t nDirection, uint32_t nFrame, bool bShadow, T... stT)
@@ -72,14 +72,14 @@ class AnimationDB
                     || nDirection >=  8
                     || nFrame     >= 32){ return false; }
 
-            for(auto &rstRecord: m_AnimationV){
+            for(auto &rstRecord: m_animationV){
                 if(rstRecord.MonsterID() == nMonsterID){
                     return rstRecord.Add(nAction, nDirection, nFrame, bShadow, std::forward<T>(stT)...);
                 }
             }
 
-            m_AnimationV.emplace_back(nMonsterID);
-            return m_AnimationV.back().Add(nAction, nDirection, nFrame, bShadow, std::forward<T>(stT)...);
+            m_animationV.emplace_back(nMonsterID);
+            return m_animationV.back().Add(nAction, nDirection, nFrame, bShadow, std::forward<T>(stT)...);
         }
     public:
         bool Load(const char *);

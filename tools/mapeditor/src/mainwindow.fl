@@ -75,10 +75,10 @@ decl {\#include <FL/Fl_Native_File_Chooser.H>} {public local
 }
 
 class MainWindow {} {
-  decl {std::string m_WilFilePathName} {private local
+  decl {std::string m_wilFilePathName} {private local
   }
   Function {MainWindow()} {} {
-    Fl_Window m_Window {
+    Fl_Window m_window {
       label {mapeditor-version-0.0.1}
       callback {{
 	switch(fl_choice("Quit map editor?", nullptr, " No", " Yes ")){
@@ -88,11 +88,11 @@ class MainWindow {} {
 }}
       xywh {116 162 985 690} type Double resizable visible
     } {
-      Fl_Box m_DrawArea {
+      Fl_Box m_drawArea {
         xywh {0 20 965 627} labelfont 4 resizable
         class DrawArea
       }
-      Fl_Menu_Bar m_MenuBar {
+      Fl_Menu_Bar m_menuBar {
         xywh {0 0 993 20} box THIN_UP_BOX labelfont 4 textfont 4
       } {
         Submenu {} {
@@ -111,12 +111,12 @@ fl_alert("%s", "Haven't implement yet!");}
     // maybe default or setted one, depends
     MakeWorkingFolder();
 
-    extern std::string g_WilFilePathName;
-    if(g_WilFilePathName == ""){
+    extern std::string g_wilFilePathName;
+    if(g_wilFilePathName == ""){
         SetWilFilePathName();
     }
 
-    if(g_WilFilePathName != ""){
+    if(g_wilFilePathName != ""){
         LoadMir2Map();
     }
 }}
@@ -129,8 +129,8 @@ fl_alert("%s", "Haven't implement yet!");}
           MenuItem {} {
             label {Load Mir2xMapData}
             callback {{
-    extern std::string g_WilFilePathName;
-    if(g_WilFilePathName == ""){
+    extern std::string g_wilFilePathName;
+    if(g_wilFilePathName == ""){
         SetWilFilePathName();
     }
 
@@ -153,8 +153,8 @@ fl_alert("%s", "Haven't implement yet!");}
             }
         default:
             {
-                extern std::string g_WorkingPathName;
-                g_WorkingPathName = "";
+                extern std::string g_workingPathName;
+                g_workingPathName = "";
                 MakeWorkingFolder();
 
                 std::string szPath = stFileChooser.filename();
@@ -167,12 +167,12 @@ fl_alert("%s", "Haven't implement yet!");}
                 }
 
                 if(filesys::hasFile(szPath.c_str())){
-                    extern EditorMap g_EditorMap;
-                    if(!g_EditorMap.LoadMir2xMapData(szPath.c_str()) || !g_EditorMap.Valid()){
+                    extern EditorMap g_editorMap;
+                    if(!g_editorMap.LoadMir2xMapData(szPath.c_str()) || !g_editorMap.Valid()){
                         fl_alert("Failed to load Mir2xMapData: %s", szPath.c_str());
                     }
 
-                    setFootLog(str_printf("Mir2xMapData: %s, width %zu, height %zu", szPath.c_str(), to_uz(g_EditorMap.W()), to_uz(g_EditorMap.H())).c_str());
+                    setFootLog(str_printf("Mir2xMapData: %s, width %zu, height %zu", szPath.c_str(), to_uz(g_editorMap.W()), to_uz(g_editorMap.H())).c_str());
                     AfterLoadMap();
                     Fl::remove_timeout(UpdateFrame);
                     Fl::add_timeout(0.1, UpdateFrame);
@@ -254,33 +254,33 @@ fl_alert("%s", "Haven't implement yet!");}
           label Grid
           xywh {0 0 62 20} labelfont 4
         } {
-          MenuItem m_MenuItemGridLine {
+          MenuItem m_menuItemGridLine {
             label {Step                  }
             xywh {30 30 30 20} type Toggle labelfont 4
           }
-          MenuItem m_MenuItemAttributeGridLine {
+          MenuItem m_menuItemAttributeGridLine {
             label Attribute
             callback {{
-	extern AttributeSelectWindow *g_AttributeGridWindow;
-	if(m_MenuItemAttributeGridLine->value()){
-		g_AttributeGridWindow->ShowAll();
+	extern AttributeSelectWindow *g_attributeGridWindow;
+	if(m_menuItemAttributeGridLine->value()){
+		g_attributeGridWindow->ShowAll();
 	}
 }}
             xywh {30 30 30 20} type Toggle labelfont 4 divider
           }
-          MenuItem m_MenuItemLightLine {
+          MenuItem m_menuItemLightLine {
             label Light
             xywh {0 0 30 20} type Toggle labelfont 4
           }
-          MenuItem m_MenuItemBaseTileLine {
+          MenuItem m_menuItemBaseTileLine {
             label Tile
             xywh {10 10 30 20} type Toggle labelfont 4
           }
-          MenuItem m_MenuItemGroundObjectLine {
+          MenuItem m_menuItemGroundObjectLine {
             label {Ground Object}
             xywh {10 10 30 20} type Toggle labelfont 4
           }
-          MenuItem m_MenuItemOverGroundObjectLine {
+          MenuItem m_menuItemOverGroundObjectLine {
             label {Over Ground Object}
             xywh {20 20 30 20} type Toggle labelfont 4
           }
@@ -289,23 +289,23 @@ fl_alert("%s", "Haven't implement yet!");}
           label Show
           xywh {10 10 62 20} labelfont 4
         } {
-          MenuItem m_MenuItemShowLight {
+          MenuItem m_menuItemShowLight {
             label Light
             xywh {10 10 30 20} type Toggle value 1 labelfont 4
           }
-          MenuItem m_MenuItemShowTile {
+          MenuItem m_menuItemShowTile {
             label Tile
             xywh {20 20 30 20} type Toggle value 1 labelfont 4
           }
-          MenuItem m_MenuItemShowGroundObject {
+          MenuItem m_menuItemShowGroundObject {
             label {Ground Object     }
             xywh {20 20 30 20} type Toggle value 1 labelfont 4
           }
-          MenuItem m_MenuItemShowOverGroundObject {
+          MenuItem m_menuItemShowOverGroundObject {
             label {Over Ground Object          }
             xywh {30 30 30 20} type Toggle value 1 labelfont 4 divider
           }
-          MenuItem m_MenuItemClearBackground {
+          MenuItem m_menuItemClearBackground {
             label {Clear Background         }
             xywh {40 40 30 20} type Toggle value 1 labelfont 4
           }
@@ -314,20 +314,20 @@ fl_alert("%s", "Haven't implement yet!");}
           label Edit
           xywh {20 20 62 20} labelfont 4
         } {
-          MenuItem m_MenuItemEnableEdit {
+          MenuItem m_menuItemEnableEdit {
             label {Enable Edit                    }
             xywh {20 20 30 20} type Toggle labelfont 4
           }
-          MenuItem m_MenuItemEditGround {
+          MenuItem m_menuItemEditGround {
             label {Edit Ground Info}
             xywh {30 30 30 20} type Toggle labelfont 4 divider
           }
           MenuItem {} {
             label Optimize
             callback {{
-    extern EditorMap g_EditorMap;
-        if(g_EditorMap.Valid()){
-        g_EditorMap.Optimize();
+    extern EditorMap g_editorMap;
+        if(g_editorMap.Valid()){
+        g_editorMap.Optimize();
     }
 }}
             xywh {40 40 30 20} labelfont 4
@@ -336,8 +336,8 @@ fl_alert("%s", "Haven't implement yet!");}
           MenuItem {} {
             label Resize
             callback {{
-    extern CropConfigureWindow *g_CropConfigureWindow;
-    g_CropConfigureWindow->ShowAll();
+    extern CropConfigureWindow *g_cropConfigureWindow;
+    g_cropConfigureWindow->ShowAll();
 }}
             xywh {50 50 30 20} labelfont 4
             code0 {\#include "cropconfigurewindow.hpp"}
@@ -347,59 +347,59 @@ fl_alert("%s", "Haven't implement yet!");}
           label Select
           xywh {0 0 62 20} labelfont 4
         } {
-          MenuItem m_MenuItemEnableSelect {
+          MenuItem m_menuItemEnableSelect {
             label {Enable Select         }
             xywh {30 30 30 20} type Toggle labelfont 4 divider
           }
-          MenuItem m_MenuItemSelectBySingle {
+          MenuItem m_menuItemSelectBySingle {
             label Single
             xywh {50 50 30 20} type Radio value 1 labelfont 4
           }
-          MenuItem m_MenuItemSelectByRhombus {
+          MenuItem m_menuItemSelectByRhombus {
             label Rhombus
             xywh {60 60 30 20} type Radio labelfont 4
           }
-          MenuItem m_MenuItemSelectByRectangle {
+          MenuItem m_menuItemSelectByRectangle {
             label Rectangle
             xywh {70 70 30 20} type Radio labelfont 4 divider
           }
-          MenuItem m_MenuItemSelectByAttribute {
+          MenuItem m_menuItemSelectByAttribute {
             label Attribute
             callback {{
-	extern AttributeSelectWindow *g_AttributeSelectWindow;
-	if(m_MenuItemSelectByAttribute->value()){
-		g_AttributeSelectWindow->ShowAll();
+	extern AttributeSelectWindow *g_attributeSelectWindow;
+	if(m_menuItemSelectByAttribute->value()){
+		g_attributeSelectWindow->ShowAll();
 	}
 }}
             xywh {30 30 30 20} type Radio value 1 labelfont 4
             code0 {\#include "attributeselectwindow.hpp"}
           }
-          MenuItem m_MenuItemSelectByTile {
+          MenuItem m_menuItemSelectByTile {
             label Tile
             xywh {40 40 30 20} type Radio labelfont 4
           }
-          MenuItem m_MenuItemSelectByObjectGround {
+          MenuItem m_menuItemSelectByObjectGround {
             label {Ground Object}
             xywh {50 50 30 20} type Radio labelfont 4
           }
-          MenuItem m_MenuItemSelectByObjectOverGround {
+          MenuItem m_menuItemSelectByObjectOverGround {
             label {Over Ground Object}
             xywh {60 60 30 20} type Radio labelfont 4 divider
           }
-          MenuItem m_MenuItemReversed {
+          MenuItem m_menuItemReversed {
             label Reversed
             xywh {10 10 30 20} type Toggle labelfont 4
           }
-          MenuItem m_MenuItemDeselect {
+          MenuItem m_menuItemDeselect {
             label Deselect
             xywh {20 20 30 20} type Toggle labelfont 4 divider
           }
           MenuItem {} {
             label Settings
-            callback {extern SelectSettingWindow *g_SelectSettingWindow;
+            callback {extern SelectSettingWindow *g_selectSettingWindow;
 
-if(g_SelectSettingWindow){
-	g_SelectSettingWindow->ShowAll();
+if(g_selectSettingWindow){
+	g_selectSettingWindow->ShowAll();
 }}
             xywh {30 30 30 20} labelfont 4
             code0 {\#include "selectsettingwindow.hpp"}
@@ -419,8 +419,8 @@ if(g_SelectSettingWindow){
             callback {{
     // show the layer browser window
     // it may or may not hide when click it
-    extern LayerBrowserWindow *g_LayerBrowserWindow;
-    g_LayerBrowserWindow->ShowAll();
+    extern LayerBrowserWindow *g_layerBrowserWindow;
+    g_layerBrowserWindow->ShowAll();
 }}
             xywh {50 50 30 20} labelfont 4 divider
             code0 {\#include "layerbrowserwindow.hpp"}
@@ -445,8 +445,8 @@ if(g_SelectSettingWindow){
             callback {{
     // show the layer browser window
     // it may or may not hide when click it
-    extern LayerBrowserWindow *g_LayerBrowserWindow;
-    g_LayerBrowserWindow->ShowAll();
+    extern LayerBrowserWindow *g_layerBrowserWindow;
+    g_layerBrowserWindow->ShowAll();
 }}
             xywh {30 30 30 20} labelfont 4
             code0 {\#include "layerbrowserwindow.hpp"}
@@ -456,7 +456,7 @@ if(g_SelectSettingWindow){
           label Test
           xywh {0 0 70 20}
         } {
-          MenuItem m_MenuItemEnableTest {
+          MenuItem m_menuItemEnableTest {
             label {Enable Test                }
             callback {{
     CenterAnimation();
@@ -489,14 +489,14 @@ if(g_SelectSettingWindow){
                 std::string szChooseDBPath = stFileChooser.filename();
                 std::replace(szChooseDBPath.begin(), szChooseDBPath.end(), '\\\\', '/');
 
-                extern AnimationDB g_AnimationDB;
-                if(!g_AnimationDB.Load(szChooseDBPath.c_str())){
+                extern AnimationDB g_animationDB;
+                if(!g_animationDB.Load(szChooseDBPath.c_str())){
                     fl_alert("%s", "Load test animation database failed");
                 }
 
-                extern AnimationSelectWindow *g_AnimationSelectWindow;
-                g_AnimationSelectWindow->Load();
-                g_AnimationSelectWindow->ShowAll();
+                extern AnimationSelectWindow *g_animationSelectWindow;
+                g_animationSelectWindow->Load();
+                g_animationSelectWindow->ShowAll();
 
                 break;
             }
@@ -508,8 +508,8 @@ if(g_SelectSettingWindow){
           MenuItem {} {
             label {Animation Configuration      }
             callback {{
-    extern AnimationSelectWindow *g_AnimationSelectWindow;
-    g_AnimationSelectWindow->ShowAll();
+    extern AnimationSelectWindow *g_animationSelectWindow;
+    g_animationSelectWindow->ShowAll();
 }}
             xywh {10 10 34 20} labelfont 4
           }
@@ -520,39 +520,39 @@ if(g_SelectSettingWindow){
         } {
           MenuItem {} {
             label {About Me               }
-            callback {extern AboutWindow *g_AboutWindow;
-g_AboutWindow->ShowAll();}
+            callback {extern AboutWindow *g_aboutWindow;
+g_aboutWindow->ShowAll();}
             xywh {30 30 30 20} labelfont 4
             code0 {\#include "aboutwindow.hpp"}
           }
         }
       }
-      Fl_Scrollbar m_VSBar {
-        callback {auto pWidget = ((Fl_Valuator *)(m_VSBar));
+      Fl_Scrollbar m_vSBar {
+        callback {auto pWidget = ((Fl_Valuator *)(m_vSBar));
 auto fValue  = pWidget->value();
 
-extern EditorMap g_EditorMap;
-if(g_EditorMap.Valid()){
-	int nValidYOffset = g_EditorMap.H() * SYS_MAPGRIDYP - m_DrawArea->h();
+extern EditorMap g_editorMap;
+if(g_editorMap.Valid()){
+	int nValidYOffset = g_editorMap.H() * SYS_MAPGRIDYP - m_drawArea->h();
 	nValidYOffset = (std::max<int>)(0, nValidYOffset);
 	int nYOffset = to_d(nValidYOffset * fValue * 1.0);
-    	m_DrawArea->SetOffset(0, true, nYOffset, false);
-	m_Window->redraw();
+    	m_drawArea->SetOffset(0, true, nYOffset, false);
+	m_window->redraw();
 }}
         xywh {965 20 20 647} labelfont 4 step 0.001 slider_size 0.05 deactivate
         code0 {\#include "editormap.hpp"}
       }
-      Fl_Scrollbar m_SBar {
-        callback {auto pWidget = ((Fl_Valuator *)(m_SBar));
+      Fl_Scrollbar m_sBar {
+        callback {auto pWidget = ((Fl_Valuator *)(m_sBar));
 auto fValue  = pWidget->value();
 
-extern EditorMap g_EditorMap;
-if(g_EditorMap.Valid()){
-	int nValidXOffset = g_EditorMap.W() * SYS_MAPGRIDXP - m_DrawArea->w();
+extern EditorMap g_editorMap;
+if(g_editorMap.Valid()){
+	int nValidXOffset = g_editorMap.W() * SYS_MAPGRIDXP - m_drawArea->w();
 	nValidXOffset = (std::max<int>)(0, nValidXOffset);
 	int nXOffset = to_d(nValidXOffset * fValue * 1.0);
-    	m_DrawArea->SetOffset(nXOffset, false, 0, true);
-	m_Window->redraw();
+    	m_drawArea->SetOffset(nXOffset, false, 0, true);
+	m_window->redraw();
 }}
         xywh {0 647 965 20} type Horizontal labelfont 4 step 0.001 slider_size 0.05 deactivate
         code0 {\#include "editormap.hpp"}
@@ -567,8 +567,8 @@ if(g_EditorMap.Valid()){
     // current the fluid can set the slider_size
     // but when parsing it, it complains ``unknown property: slider_size"
 
-    ((Fl_Slider *)(m_VSBar))->slider_size(0.08);
-    ((Fl_Slider *)(m_SBar ))->slider_size(0.08);
+    ((Fl_Slider *)(m_vSBar))->slider_size(0.08);
+    ((Fl_Slider *)(m_sBar ))->slider_size(0.08);
 
     setFootLog("no map loaded");
 }} {}
@@ -576,29 +576,29 @@ if(g_EditorMap.Valid()){
   Function {ShowAll()} {return_type void
   } {
     code {{
-	m_Window->show();
+	m_window->show();
 }} {}
   }
   Function {RedrawAll()} {return_type void
   } {
     code {{
-	m_Window->redraw();
+	m_window->redraw();
 }} {}
   }
   Function {LoadMir2MapImage()} {return_type void
   } {
     code {{
-    extern std::string g_WilFilePathName;
-    extern ImageDB    *g_ImageDB;
-    if(!g_ImageDB){
-        g_ImageDB = new ImageDB(g_WilFilePathName.c_str());
+    extern std::string g_wilFilePathName;
+    extern ImageDB    *g_imageDB;
+    if(!g_imageDB){
+        g_imageDB = new ImageDB(g_wilFilePathName.c_str());
     }
 }} {}
   }
   Function {LoadMir2Map()} {return_type void
   } {
     code {{
-    extern EditorMap g_EditorMap;
+    extern EditorMap g_editorMap;
 
     Fl_Native_File_Chooser fileChooser;
     fileChooser.title("Select .map file");
@@ -618,11 +618,11 @@ if(g_EditorMap.Valid()){
             break;
         default:
             {
-                if(!g_EditorMap.LoadMir2Map(fileChooser.filename())){
+                if(!g_editorMap.LoadMir2Map(fileChooser.filename())){
                     fl_alert("Load mir2 map %s failed", fileChooser.filename());
                 }
 
-                setFootLog(str_printf("Mir2Map: %s, width %zu, height %zu", fileChooser.filename(), to_zu(g_EditorMap.W()), to_zu(g_EditorMap.H())).c_str());
+                setFootLog(str_printf("Mir2Map: %s, width %zu, height %zu", fileChooser.filename(), to_zu(g_editorMap.W()), to_zu(g_editorMap.H())).c_str());
                 AfterLoadMap();
 
                 Fl::remove_timeout(UpdateFrame);
@@ -630,7 +630,7 @@ if(g_EditorMap.Valid()){
             }
             break;
     }
-    m_DrawArea->redraw();
+    m_drawArea->redraw();
 }} {}
   }
   Function {AfterLoadMap()} {return_type void
@@ -639,7 +639,7 @@ if(g_EditorMap.Valid()){
     // should reset the offset
     // no matter editor map valid or not
     UpdateScrollBar(0.0, 0.0);
-    m_DrawArea->SetOffset(0, false, 0, false);
+    m_drawArea->SetOffset(0, false, 0, false);
 
     // check if we need to deactivate the scroll bars
     // 1. used after load map
@@ -653,7 +653,7 @@ if(g_EditorMap.Valid()){
     code {{
     // set the work folder
     // default CACHE system locates inside
-    extern std::string g_WorkingPathName;
+    extern std::string g_workingPathName;
     Fl_Native_File_Chooser stFileChooser;
 
     stFileChooser.title("Set Working Folder...");
@@ -674,10 +674,10 @@ if(g_EditorMap.Valid()){
             }
         default:
             {
-                g_WorkingPathName = stFileChooser.filename();
-                std::replace(g_WorkingPathName.begin(), g_WorkingPathName.end(), '\\\\', '/');
-                while(!g_WorkingPathName.empty() && g_WorkingPathName.back() == '/'){
-                    g_WorkingPathName.pop_back();
+                g_workingPathName = stFileChooser.filename();
+                std::replace(g_workingPathName.begin(), g_workingPathName.end(), '\\\\', '/');
+                while(!g_workingPathName.empty() && g_workingPathName.back() == '/'){
+                    g_workingPathName.pop_back();
                 }
                 MakeWorkingFolder();
             }
@@ -688,7 +688,7 @@ if(g_EditorMap.Valid()){
   Function {SetWilFilePathName()} {return_type void
   } {
     code {{
-    extern std::string g_WilFilePathName;
+    extern std::string g_wilFilePathName;
     Fl_Native_File_Chooser stFileChooser;
     stFileChooser.title("Set *.wil File Path...");
     stFileChooser.options(Fl_Native_File_Chooser::NO_OPTIONS);
@@ -708,10 +708,10 @@ if(g_EditorMap.Valid()){
             }
         default:
             {
-                std::string szOldWilFilePathName = g_WilFilePathName;
-                g_WilFilePathName = stFileChooser.filename();
-                std::replace(g_WilFilePathName.begin(), g_WilFilePathName.end(), '\\\\', '/');
-                if(szOldWilFilePathName != g_WilFilePathName){
+                std::string szOldWilFilePathName = g_wilFilePathName;
+                g_wilFilePathName = stFileChooser.filename();
+                std::replace(g_wilFilePathName.begin(), g_wilFilePathName.end(), '\\\\', '/');
+                if(szOldWilFilePathName != g_wilFilePathName){
                     LoadMir2MapImage();
                     break;
                 }
@@ -722,11 +722,11 @@ if(g_EditorMap.Valid()){
   Function {UpdateFrame(void *)} {return_type {static void}
   } {
     code {{
-    extern EditorMap g_EditorMap;
-    if(g_EditorMap.Valid()){
-        g_EditorMap.UpdateFrame(50);
-        extern MainWindow *g_MainWindow;
-        g_MainWindow->RedrawAll();
+    extern EditorMap g_editorMap;
+    if(g_editorMap.Valid()){
+        g_editorMap.UpdateFrame(50);
+        extern MainWindow *g_mainWindow;
+        g_mainWindow->RedrawAll();
     }
     Fl::repeat_timeout(0.1, UpdateFrame);
 }} {}
@@ -734,172 +734,172 @@ if(g_EditorMap.Valid()){
   Function {UpdateAnimationFrame(void *)} {return_type {static void}
   } {
     code {{
-    extern EditorMap g_EditorMap;
-    extern MainWindow *g_MainWindow;
-    extern AnimationDB g_AnimationDB;
-    extern AnimationDraw g_AnimationDraw;
+    extern EditorMap g_editorMap;
+    extern MainWindow *g_mainWindow;
+    extern AnimationDB g_animationDB;
+    extern AnimationDraw g_animationDraw;
 
-    if(g_EditorMap.Valid() && g_AnimationDraw.MonsterID){
-        auto &rstRecord = g_AnimationDB.RetrieveAnimation(g_AnimationDraw.MonsterID);
-        if(rstRecord.Valid() && rstRecord.DirectionValid(g_AnimationDraw.Action, g_AnimationDraw.Direction)){
-            if(rstRecord.FrameValid(g_AnimationDraw.Action, g_AnimationDraw.Direction, g_AnimationDraw.Frame + 1, true) && rstRecord.FrameValid(g_AnimationDraw.Action, g_AnimationDraw.Direction, g_AnimationDraw.Frame + 1, false)){
-                g_AnimationDraw.Frame = g_AnimationDraw.Frame + 1;
+    if(g_editorMap.Valid() && g_animationDraw.MonsterID){
+        auto &rstRecord = g_animationDB.RetrieveAnimation(g_animationDraw.MonsterID);
+        if(rstRecord.Valid() && rstRecord.DirectionValid(g_animationDraw.Action, g_animationDraw.Direction)){
+            if(rstRecord.FrameValid(g_animationDraw.Action, g_animationDraw.Direction, g_animationDraw.Frame + 1, true) && rstRecord.FrameValid(g_animationDraw.Action, g_animationDraw.Direction, g_animationDraw.Frame + 1, false)){
+                g_animationDraw.Frame = g_animationDraw.Frame + 1;
             }else{
-                g_AnimationDraw.Frame = 0;
+                g_animationDraw.Frame = 0;
             }
 
             Fl::repeat_timeout(0.1, UpdateAnimationFrame);
-            g_MainWindow->RedrawAll();
+            g_mainWindow->RedrawAll();
             return;
         }
     }
 
     Fl::remove_timeout(UpdateAnimationFrame);
-    g_MainWindow->RedrawAll();
+    g_mainWindow->RedrawAll();
 }} {}
   }
   Function {ShowTileLine()} {return_type bool
   } {
     code {{
-	return m_MenuItemBaseTileLine->value();
+	return m_menuItemBaseTileLine->value();
 }} {}
   }
   Function {ShowGroundObjectLine()} {return_type bool
   } {
     code {{
-	return m_MenuItemGroundObjectLine->value();
+	return m_menuItemGroundObjectLine->value();
 }} {}
   }
   Function {ShowOverGroundObjectLine()} {return_type bool
   } {
     code {{
-	return m_MenuItemOverGroundObjectLine->value();
+	return m_menuItemOverGroundObjectLine->value();
 }} {}
   }
   Function {ShowLightLine()} {return_type bool
   } {
     code {{
-	return m_MenuItemLightLine->value();
+	return m_menuItemLightLine->value();
 }} {}
   }
   Function {ShowGridLine()} {return_type bool
   } {
     code {{
-	return m_MenuItemGridLine->value();
+	return m_menuItemGridLine->value();
 }} {}
   }
   Function {ShowAttributeGridLine()} {return_type bool
   } {
     code {{
-	return m_MenuItemAttributeGridLine->value();
+	return m_menuItemAttributeGridLine->value();
 }} {}
   }
   Function {ShowLight()} {return_type bool
   } {
     code {{
-	return m_MenuItemShowLight->value();
+	return m_menuItemShowLight->value();
 }} {}
   }
   Function {ShowTile()} {return_type bool
   } {
     code {{
-	return m_MenuItemShowTile->value();
+	return m_menuItemShowTile->value();
 }} {}
   }
   Function {ShowObject(bool bGround)} {return_type bool
   } {
     code {{
     if(bGround){
-        return m_MenuItemShowGroundObject->value();
+        return m_menuItemShowGroundObject->value();
     }else{
-        return m_MenuItemShowOverGroundObject->value();
+        return m_menuItemShowOverGroundObject->value();
     }
 }} {}
   }
   Function {EnableEdit()} {return_type bool
   } {
     code {{
-	return m_MenuItemEnableEdit->value();
+	return m_menuItemEnableEdit->value();
 }} {}
   }
   Function {EnableSelect()} {return_type bool
   } {
     code {{
-	return m_MenuItemEnableSelect->value();
+	return m_menuItemEnableSelect->value();
 }} {}
   }
   Function {EnableTest()} {return_type bool
   } {
     code {{
-    return m_MenuItemEnableTest->value();
+    return m_menuItemEnableTest->value();
 }} {}
   }
   Function {SelectByAttribute()} {return_type bool
   } {
     code {{
-	return m_MenuItemSelectByAttribute->value();
+	return m_menuItemSelectByAttribute->value();
 }} {}
   }
   Function {SelectByRhombus()} {return_type bool
   } {
     code {{
-	return m_MenuItemSelectByRhombus->value();
+	return m_menuItemSelectByRhombus->value();
 }} {}
   }
   Function {SelectByRectangle()} {return_type bool
   } {
     code {{
-	return m_MenuItemSelectByRectangle->value();
+	return m_menuItemSelectByRectangle->value();
 }} {}
   }
   Function {SelectBySingle()} {return_type bool
   } {
     code {{
-	return m_MenuItemSelectBySingle->value();
+	return m_menuItemSelectBySingle->value();
 }} {}
   }
   Function {SelectByTile()} {return_type bool
   } {
     code {{
-	return m_MenuItemSelectByTile->value();
+	return m_menuItemSelectByTile->value();
 }} {}
   }
   Function {SelectByObject(bool bGround)} {return_type bool
   } {
     code {{
     if(bGround){
-        return m_MenuItemSelectByObjectGround->value();
+        return m_menuItemSelectByObjectGround->value();
     }else{
-        return m_MenuItemSelectByObjectOverGround->value();
+        return m_menuItemSelectByObjectOverGround->value();
     }
 }} {}
   }
   Function {MakeWorkingFolder()} {return_type void
   } {
     code {{
-    extern std::string g_WorkingPathName;
-    if(g_WorkingPathName == "" || (g_WorkingPathName.size() > 0 && g_WorkingPathName[0] == '.')){
-        g_WorkingPathName = std::string("./") + datef::now();
+    extern std::string g_workingPathName;
+    if(g_workingPathName == "" || (g_workingPathName.size() > 0 && g_workingPathName[0] == '.')){
+        g_workingPathName = std::string("./") + datef::now();
     }
 
-    filesys::removeDir(g_WorkingPathName.c_str());
-    filesys::makeDir(g_WorkingPathName.c_str());
+    filesys::removeDir(g_workingPathName.c_str());
+    filesys::makeDir(g_workingPathName.c_str());
 }} {}
   }
   Function {SaveMir2xMapData()} {return_type void
   } {
     code {{
-	extern EditorMap g_EditorMap;
-	if(g_EditorMap.Valid()){
-		extern std::string g_WorkingPathName;
-    		std::string szTmpFileName = g_WorkingPathName;
+	extern EditorMap g_editorMap;
+	if(g_editorMap.Valid()){
+		extern std::string g_workingPathName;
+    		std::string szTmpFileName = g_workingPathName;
 	
 		if(szTmpFileName.back() == '/'){
         		szTmpFileName += "DESC.BIN";
     		}else{
         		szTmpFileName += "/DESC.BIN";
     		}
-    		g_EditorMap.SaveMir2xMapData(szTmpFileName.c_str());
+    		g_editorMap.SaveMir2xMapData(szTmpFileName.c_str());
     		fl_message("Save map file in mir2xmapdata format successfully!");
     		
 	}else{
@@ -910,31 +910,31 @@ if(g_EditorMap.Valid()){
   Function {ClearBackground()} {return_type bool
   } {
     code {{
-    return m_MenuItemClearBackground->value();
+    return m_menuItemClearBackground->value();
 }} {}
   }
   Function {Deselect()} {return_type bool
   } {
     code {{
-    return m_MenuItemDeselect->value();
+    return m_menuItemDeselect->value();
 }} {}
   }
   Function {Reversed()} {return_type bool
   } {
     code {{
-    return m_MenuItemReversed->value();
+    return m_menuItemReversed->value();
 }} {}
   }
   Function {CenterAnimation()} {return_type void
   } {
     code {{
-    extern AnimationDraw g_AnimationDraw;
-    if(g_AnimationDraw.MonsterID){
-        int nX = m_DrawArea->OffsetX() + m_Window->w() / 2;
-        int nY = m_DrawArea->OffsetY() + m_Window->h() / 2;
+    extern AnimationDraw g_animationDraw;
+    if(g_animationDraw.MonsterID){
+        int nX = m_drawArea->OffsetX() + m_window->w() / 2;
+        int nY = m_drawArea->OffsetY() + m_window->h() / 2;
 
-        g_AnimationDraw.X = nX;
-        g_AnimationDraw.Y = nY;
+        g_animationDraw.X = nX;
+        g_animationDraw.Y = nY;
     }
 }} {}
   }
@@ -944,20 +944,20 @@ if(g_EditorMap.Valid()){
     // check if we need to deactivate the scroll bars
     // 1. used after load map
     // 2. used after draw area resize
-    extern EditorMap g_EditorMap;
-    if(g_EditorMap.Valid()){
-        if(g_EditorMap.W() * SYS_MAPGRIDXP <= m_DrawArea->w()){
-            m_SBar->deactivate();
+    extern EditorMap g_editorMap;
+    if(g_editorMap.Valid()){
+        if(g_editorMap.W() * SYS_MAPGRIDXP <= m_drawArea->w()){
+            m_sBar->deactivate();
             UpdateHScrollBar(0.0);
         }else{
-            m_SBar->activate();
+            m_sBar->activate();
         }
 
-        if(g_EditorMap.H() * SYS_MAPGRIDYP <= m_DrawArea->h()){
-            m_VSBar->deactivate();
+        if(g_editorMap.H() * SYS_MAPGRIDYP <= m_drawArea->h()){
+            m_vSBar->deactivate();
             UpdateVScrollBar(0.0);
         }else{
-            m_VSBar->activate();
+            m_vSBar->activate();
         }
     }
 }} {}
@@ -972,7 +972,7 @@ if(g_EditorMap.Valid()){
   Function {UpdateHScrollBar(double fXP)} {return_type void
   } {
     code {{
-	auto pWidgetX = ((Fl_Valuator *)(m_SBar));
+	auto pWidgetX = ((Fl_Valuator *)(m_sBar));
 	fXP = (std::min<double>)(1.0, (std::max<double>)(0.0, fXP));
 	pWidgetX->value(pWidgetX->round(fXP));
 }} {}
@@ -980,7 +980,7 @@ if(g_EditorMap.Valid()){
   Function {UpdateVScrollBar(double fYP)} {return_type void
   } {
     code {{
-	auto pWidgetY = ((Fl_Valuator *)(m_VSBar));
+	auto pWidgetY = ((Fl_Valuator *)(m_vSBar));
 	fYP = (std::min<double>)(1.0, (std::max<double>)(0.0, fYP));
 	pWidgetY->value(pWidgetY->round(fYP));
 }} {}
@@ -988,17 +988,17 @@ if(g_EditorMap.Valid()){
   Function {Activate()} {return_type void
   } {
     code {{
-    m_SBar->activate();
-    m_VSBar->activate();
-    m_MenuBar->activate();
+    m_sBar->activate();
+    m_vSBar->activate();
+    m_menuBar->activate();
 }} {}
   }
   Function {Deactivate()} {return_type void
   } {
     code {{
-    m_SBar->deactivate();
-    m_VSBar->deactivate();
-    m_MenuBar->deactivate();
+    m_sBar->deactivate();
+    m_vSBar->deactivate();
+    m_menuBar->deactivate();
 }} {}
   }
   Function {extractOverview(int overviewRatio)} {return_type void
@@ -1024,20 +1024,20 @@ if(g_EditorMap.Valid()){
             }
     }
 
-    extern EditorMap g_EditorMap;
-    if(!g_EditorMap.Valid()){
+    extern EditorMap g_editorMap;
+    if(!g_editorMap.Valid()){
         fl_alert("Current editor map is invalid");
         return;
     }
 
-    extern std::string g_WorkingPathName;
-    if(g_WorkingPathName == ""){
+    extern std::string g_workingPathName;
+    if(g_workingPathName == ""){
         fl_alert("Current editor working path is invalid");
         return;
     }
 
-    const int nDstW = g_EditorMap.W() * SYS_MAPGRIDXP;
-    const int nDstH = g_EditorMap.H() * SYS_MAPGRIDYP;
+    const int nDstW = g_editorMap.W() * SYS_MAPGRIDXP;
+    const int nDstH = g_editorMap.H() * SYS_MAPGRIDYP;
 
     if(nDstW % overviewRatio || nDstH % overviewRatio){
         fl_alert("system error: overview ratio can't devide original map pixel size");
@@ -1105,14 +1105,14 @@ if(g_EditorMap.Valid()){
 
     auto fnBufDrawImage = [this, fnBufDraw, pDst, nDstW, nDstH](uint8_t nFileIndex, uint16_t nImageIndex, int nX, int nY, bool bObj)
     {
-        extern ImageDB *g_ImageDB;
-        extern EditorMap g_EditorMap;
+        extern ImageDB *g_imageDB;
+        extern EditorMap g_editorMap;
 
         if(true
-                && g_EditorMap.ValidC(nX, nY)
-                && g_ImageDB->setIndex(nFileIndex, nImageIndex)){
+                && g_editorMap.ValidC(nX, nY)
+                && g_imageDB->setIndex(nFileIndex, nImageIndex)){
 
-            if(const auto [pSrc, nSrcW, nSrcH] = g_ImageDB->decode(nFileIndex, nImageIndex, 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF); pSrc){
+            if(const auto [pSrc, nSrcW, nSrcH] = g_imageDB->decode(nFileIndex, nImageIndex, 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF); pSrc){
                 fnBufDraw(
                         pDst, nDstW, nDstH,
                         pSrc, nSrcW, nSrcH,
@@ -1129,9 +1129,9 @@ if(g_EditorMap.Valid()){
         }
     };
 
-    g_EditorMap.ExportOverview(fnBufDrawImage);
+    g_editorMap.ExportOverview(fnBufDrawImage);
     const std::string szOverviewFileName = datef::now() + ".PNG";
-    const std::string szOverviewFullFileName = g_WorkingPathName + "/" + szOverviewFileName;
+    const std::string szOverviewFullFileName = g_workingPathName + "/" + szOverviewFileName;
 
     int exportW = nDstW;
     int exportH = nDstH;
@@ -1175,7 +1175,7 @@ if(g_EditorMap.Valid()){
     }
 
     m_logBar->redraw();
-    m_Window->redraw();
+    m_window->redraw();
 }} {}
   }
 }

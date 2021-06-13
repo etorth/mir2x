@@ -35,15 +35,15 @@ class DrawArea: public BaseArea
         };
 
     private:
-        int m_MouseX;
-        int m_MouseY;
+        int m_mouseX;
+        int m_mouseY;
 
     private:
-        int m_OffsetX;
-        int m_OffsetY;
+        int m_offsetX;
+        int m_offsetY;
 
     private:
-        std::shared_ptr<Fl_Image> m_LightImge;
+        std::shared_ptr<Fl_Image> m_lightImge;
 
     public:
         DrawArea(int, int, int, int);
@@ -61,12 +61,12 @@ class DrawArea: public BaseArea
     public:
         int OffsetX() const
         {
-            return m_OffsetX;
+            return m_offsetX;
         }
 
         int OffsetY() const
         {
-            return m_OffsetY;
+            return m_offsetY;
         }
 
     private:

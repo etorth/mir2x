@@ -7,35 +7,35 @@ class SelectSettingWindow {open
 } {
   Function {SelectSettingWindow()} {open
   } {
-    Fl_Window m_Window {
+    Fl_Window m_window {
       label {Select Setting Window} open
       private xywh {252 289 575 225} type Double labelfont 5 align 80 resizable modal visible
     } {
-      Fl_Value_Slider m_ValueSliderRectangle {
+      Fl_Value_Slider m_valueSliderRectangle {
         label {Rectangle }
-        callback {extern MainWindow *g_MainWindow;
-g_MainWindow->RedrawAll();}
+        callback {extern MainWindow *g_mainWindow;
+g_mainWindow->RedrawAll();}
         xywh {126 26 345 25} type Horizontal labelfont 4 align 4 maximum 20 step 1 value 5 textfont 4 textsize 14
         code0 {\#include "mainwindow.hpp"}
       }
-      Fl_Value_Slider m_ValueSliderRhombus {
+      Fl_Value_Slider m_valueSliderRhombus {
         label {Rhombus }
-        callback {extern MainWindow *g_MainWindow;
-g_MainWindow->RedrawAll();}
+        callback {extern MainWindow *g_mainWindow;
+g_mainWindow->RedrawAll();}
         xywh {126 71 345 25} type Horizontal labelfont 4 align 4 maximum 20 step 1 value 5 textfont 4 textsize 14
         code0 {\#include "mainwindow.hpp"}
       }
-      Fl_Value_Slider m_ValueSliderAttribute {
+      Fl_Value_Slider m_valueSliderAttribute {
         label {Attribute }
-        callback {extern MainWindow *g_MainWindow;
-g_MainWindow->RedrawAll();}
+        callback {extern MainWindow *g_mainWindow;
+g_mainWindow->RedrawAll();}
         xywh {126 115 345 25} type Horizontal labelfont 4 align 4 maximum 20 step 1 value 5 textfont 4 textsize 14
         code0 {\#include "mainwindow.hpp"}
       }
       Fl_Button {} {
         label OK
         callback {{
-	m_Window->hide();
+	m_window->hide();
 }} selected
         xywh {420 175 80 25}
       }
@@ -43,18 +43,18 @@ g_MainWindow->RedrawAll();}
   }
   Function {ShowAll()} {return_type void
   } {
-    code {m_Window->show();} {}
+    code {m_window->show();} {}
   }
   Function {RectangleSize()} {return_type int
   } {
-    code {return to_d(m_ValueSliderRectangle->value());} {}
+    code {return to_d(m_valueSliderRectangle->value());} {}
   }
   Function {RhombusSize()} {return_type int
   } {
-    code {return to_d(m_ValueSliderRhombus->value());} {}
+    code {return to_d(m_valueSliderRhombus->value());} {}
   }
   Function {AttributeSize()} {return_type int
   } {
-    code {return to_d(m_ValueSliderAttribute->value());} {}
+    code {return to_d(m_valueSliderAttribute->value());} {}
   }
 } 

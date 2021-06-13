@@ -35,42 +35,42 @@
 #include "animationselectwindow.hpp"
 #include "attributeselectwindow.hpp"
 
-MainWindow                      *g_MainWindow               = nullptr;
-SelectSettingWindow             *g_SelectSettingWindow      = nullptr;
-AnimationSelectWindow           *g_AnimationSelectWindow    = nullptr;
-AboutWindow                     *g_AboutWindow              = nullptr;
-AttributeSelectWindow           *g_AttributeGridWindow      = nullptr;
-AttributeSelectWindow           *g_AttributeSelectWindow    = nullptr;
-ProgressBarWindow               *g_ProgressBarWindow        = nullptr;
-LayerEditorWindow               *g_LayerEditorWindow        = nullptr;
-LayerBrowserWindow              *g_LayerBrowserWindow       = nullptr;
-CropConfigureWindow             *g_CropConfigureWindow      = nullptr;
-EditorMap                        g_EditorMap;
-ImageDB                         *g_ImageDB                  = nullptr;
-ImageCache                       g_ImageCache;
-AnimationDB                      g_AnimationDB;
-AnimationDraw                    g_AnimationDraw;
-std::string                      g_WilFilePathName;
-std::string                      g_WorkingPathName;
+MainWindow                      *g_mainWindow               = nullptr;
+SelectSettingWindow             *g_selectSettingWindow      = nullptr;
+AnimationSelectWindow           *g_animationSelectWindow    = nullptr;
+AboutWindow                     *g_aboutWindow              = nullptr;
+AttributeSelectWindow           *g_attributeGridWindow      = nullptr;
+AttributeSelectWindow           *g_attributeSelectWindow    = nullptr;
+ProgressBarWindow               *g_progressBarWindow        = nullptr;
+LayerEditorWindow               *g_layerEditorWindow        = nullptr;
+LayerBrowserWindow              *g_layerBrowserWindow       = nullptr;
+CropConfigureWindow             *g_cropConfigureWindow      = nullptr;
+EditorMap                        g_editorMap;
+ImageDB                         *g_imageDB                  = nullptr;
+ImageCache                       g_imageCache;
+AnimationDB                      g_animationDB;
+AnimationDraw                    g_animationDraw;
+std::string                      g_wilFilePathName;
+std::string                      g_workingPathName;
 
 int main()
 {
     fl_register_images();
 
-    g_WilFilePathName       = "";
-    g_WorkingPathName       = "";
+    g_wilFilePathName       = "";
+    g_workingPathName       = "";
 
-    g_MainWindow            = new MainWindow();
-    g_SelectSettingWindow   = new SelectSettingWindow();
-    g_AnimationSelectWindow = new AnimationSelectWindow();
-    g_AboutWindow           = new AboutWindow();
-    g_AttributeSelectWindow = new AttributeSelectWindow();
-    g_AttributeGridWindow   = new AttributeSelectWindow();
-    g_ProgressBarWindow     = new ProgressBarWindow();
-    g_LayerEditorWindow     = new LayerEditorWindow();
-    g_LayerBrowserWindow    = new LayerBrowserWindow();
-    g_CropConfigureWindow   = new CropConfigureWindow();
+    g_mainWindow            = new MainWindow();
+    g_selectSettingWindow   = new SelectSettingWindow();
+    g_animationSelectWindow = new AnimationSelectWindow();
+    g_aboutWindow           = new AboutWindow();
+    g_attributeSelectWindow = new AttributeSelectWindow();
+    g_attributeGridWindow   = new AttributeSelectWindow();
+    g_progressBarWindow     = new ProgressBarWindow();
+    g_layerEditorWindow     = new LayerEditorWindow();
+    g_layerBrowserWindow    = new LayerBrowserWindow();
+    g_cropConfigureWindow   = new CropConfigureWindow();
 
-    g_MainWindow->ShowAll();
+    g_mainWindow->ShowAll();
     return Fl::run();
 }
