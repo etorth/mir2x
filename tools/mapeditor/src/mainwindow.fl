@@ -1072,7 +1072,7 @@ g_aboutWindow->ShowAll();}
         extern EditorMap g_editorMap;
 
         if(true
-                && g_editorMap.ValidC(nX, nY)
+                && g_editorMap.validC(nX, nY)
                 && g_imageDB->setIndex(nFileIndex, nImageIndex)){
 
             if(const auto [pSrc, nSrcW, nSrcH] = g_imageDB->decode(nFileIndex, nImageIndex, 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF); pSrc){

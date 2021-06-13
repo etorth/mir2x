@@ -26,12 +26,37 @@
 #include "mir2map.hpp"
 #include "sysconst.hpp"
 #include "landtype.hpp"
+#include "fflerror.hpp"
 #include "bitstreamf.hpp"
 #include "mir2xmapdata.hpp"
 #include "wilimagepackage.hpp"
 
 class EditorMap
 {
+    private:
+        struct TileSelectConfig_t
+        {
+            bool tile = false;
+        };
+
+        struct CellSelectConfig_t
+        {
+            bool ground = false;
+            bool attribute = false;
+
+            bool obj[2]
+            {
+                false,
+                false,
+            };
+        };
+
+        struct BlockSelectConfig_t
+        {
+            TileSelectConfig_t tile;
+            CellSelectConfig_t cell[4];
+        };
+
     private:
         struct TileSelectConfig
         {
@@ -188,11 +213,15 @@ class EditorMap
         uint8_t  m_aniTileFrame[8][16];
 
     private:
+        Mir2xMapData m_data;
+
+    private:
         std::unique_ptr<Mir2Map> m_mir2Map;
         std::unique_ptr<Mir2xMapData> m_mir2xMapData;
 
     private:
         std::vector<std::vector<stBlock_t>> m_blockBuf;
+        std::vector<BlockSelectConfig_t> m_selectBuf;
 
     public:
         EditorMap()
@@ -210,12 +239,12 @@ class EditorMap
             return W() > 0 && H() > 0;
         }
 
-        bool ValidC(int nX, int nY) const
+        bool validC(int nX, int nY) const
         {
             return nX >= 0 && nX < W() && nY >= 0 && nY < H();
         }
 
-        bool ValidP(int nX, int nY) const
+        bool validP(int nX, int nY) const
         {
             return nX >= 0 && nX < SYS_MAPGRIDXP * W() && nY >= 0 && nY < SYS_MAPGRIDYP * H();
         }
@@ -249,6 +278,39 @@ class EditorMap
         auto &Object(int nX, int nY, int nIndex)
         {
             return Cell(nX, nY).Obj[nIndex];
+        }
+
+    public:
+        auto &blockSelect(int argX, int argY)
+        {
+            fflassert(validC(argX, argY));
+            return m_selectBuf.at(argX / 2 + (argY / 2) * (m_data.w() / 2));
+        }
+
+        const auto &blockSelect(int argX, int argY) const
+        {
+            fflassert(validC(argX, argY));
+            return m_selectBuf.at(argX / 2 + (argY / 2) * (m_data.w() / 2));
+        }
+
+        auto &tileSelect(int argX, int argY)
+        {
+            return blockSelect(argX, argY).tile;
+        }
+
+        const auto &tileSelect(int argX, int argY) const
+        {
+            return blockSelect(argX, argY).tile;
+        }
+
+        auto &cellSelect(int argX, int argY)
+        {
+            return blockSelect(argX, argY).cell[(argY % 2) * 2 + (argX % 2)];
+        }
+
+        const auto &cellSelect(int argX, int argY) const
+        {
+            return blockSelect(argX, argY).cell[(argY % 2) * 2 + (argX % 2)];
         }
 
     public:

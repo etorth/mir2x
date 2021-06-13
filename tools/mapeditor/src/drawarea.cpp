@@ -91,7 +91,7 @@ void DrawArea::AddSelectByAttribute()
 {
     auto fnSet = [](int nX, int nY)
     {
-        if(g_editorMap.ValidC(nX, nY)){
+        if(g_editorMap.validC(nX, nY)){
             if(g_attributeSelectWindow->TestLand(g_editorMap.Cell(nX, nY).MakeLandU8())){
                 g_editorMap.Cell(nX, nY).SelectConf.Ground = g_mainWindow->Deselect() ? false : true;
             }
@@ -121,7 +121,7 @@ void DrawArea::DrawDoneSelectByTile()
             if(true
                     && !(nX % 2)
                     && !(nY % 2)
-                    &&  (g_editorMap.ValidC(nX, nY))){
+                    &&  (g_editorMap.validC(nX, nY))){
 
                 auto &rstTile = g_editorMap.Tile(nX, nY);
                 if(true
@@ -151,7 +151,7 @@ void DrawArea::DrawDoneSelectByObject(bool bGround)
     for(int nX = nX0; nX < nX1; ++nX){
         for(int nY = nY0; nY < nY1; ++nY){
             for(int nIndex = 0; nIndex < 2; ++nIndex){
-                if(g_editorMap.ValidC(nX, nY)){
+                if(g_editorMap.validC(nX, nY)){
 
                     auto rstObj = g_editorMap.Object(nX, nY, nIndex);
                     if(true
@@ -194,7 +194,7 @@ void DrawArea::DrawTrySelectByTile()
     int nY = nMouseYOnMap / SYS_MAPGRIDYP;
 
     if(true
-            && g_editorMap.ValidC(nX, nY)
+            && g_editorMap.validC(nX, nY)
             && g_editorMap.Tile(nX, nY).Valid){
 
         int nStartX = (nX / 2) * 2 * SYS_MAPGRIDXP - offsetX;
@@ -216,7 +216,7 @@ void DrawArea::DrawSelectByObjectGround(bool bGround)
     int nY = nMouseYOnMap / SYS_MAPGRIDYP;
 
     for(int nCurrY = nY - 1; nCurrY < g_editorMap.H(); ++nCurrY){
-        if(g_editorMap.ValidC(nX, nCurrY)){
+        if(g_editorMap.validC(nX, nCurrY)){
             for(int nIndex = 0; nIndex < 2; ++nIndex){
                 auto &rstObject = g_editorMap.Object(nX, nCurrY, nIndex);
                 if(true
@@ -271,7 +271,7 @@ void DrawArea::AddSelectByTile()
     int nY = nMouseYOnMap / SYS_MAPGRIDYP;
 
     if(true
-            && g_editorMap.ValidC(nX, nY)
+            && g_editorMap.validC(nX, nY)
             && g_editorMap.Tile(nX, nY).Valid){
         g_editorMap.Tile(nX, nY).SelectConf.Tile = true;
     }
@@ -288,7 +288,7 @@ void DrawArea::AddSelectByObject(bool bGround)
     int nY = nMouseYOnMap / SYS_MAPGRIDYP;
 
     for(int nCurrY = nY - 1; nCurrY < g_editorMap.H(); ++nCurrY){
-        if(g_editorMap.ValidC(nX, nCurrY)){
+        if(g_editorMap.validC(nX, nCurrY)){
             for(int nIndex = 0; nIndex < 2; ++nIndex){
                 auto &rstObject = g_editorMap.Object(nX, nCurrY, nIndex);
                 if(true
@@ -328,7 +328,7 @@ void DrawArea::AddSelectBySingle()
     int nX = (m_mouseX - x() + offsetX) / SYS_MAPGRIDXP;
     int nY = (m_mouseY - y() + offsetY) / SYS_MAPGRIDYP;
 
-    if(g_editorMap.ValidC(nX, nY)){
+    if(g_editorMap.validC(nX, nY)){
         g_editorMap.Cell(nX, nY).SelectConf.Ground = (g_mainWindow->Deselect() ? false : true);
     }
 }
@@ -385,7 +385,7 @@ void DrawArea::AddSelectByRhombus()
 {
     auto fnSet = [](int nX, int nY)
     {
-        if(g_editorMap.ValidC(nX, nY)){
+        if(g_editorMap.validC(nX, nY)){
             g_editorMap.Cell(nX, nY).SelectConf.Ground = g_mainWindow->Deselect() ? false : true;
         }
     };
@@ -406,7 +406,7 @@ void DrawArea::RectangleCoverOperation(int nMouseXOnMap, int nMouseYOnMap, int n
 
         for(int nX = 0; nX < nSize; ++nX){
             for(int nY = 0; nY < nSize; ++nY){
-                if(g_editorMap.ValidC(nX + nMX, nY + nMY)){
+                if(g_editorMap.validC(nX + nMX, nY + nMY)){
                     fnOperation(nX + nMX, nY + nMY);
                 }
             }
@@ -478,7 +478,7 @@ void DrawArea::DrawDoneSelectByAttribute()
 
     for(int nX = nX0; nX < nX1; ++nX){
         for(int nY = nY0; nY < nY1; ++nY){
-            if(g_editorMap.ValidC(nX, nY)){
+            if(g_editorMap.validC(nX, nY)){
                 if(g_editorMap.Cell(nX, nY).SelectConf.Attribute == !g_mainWindow->Reversed()){
                     FillMapGrid(nX, nY, 1, 1, g_mainWindow->Deselect() ? 0X80FF0000 : 0X8000FF00);
                 }
@@ -655,7 +655,7 @@ void DrawArea::DrawAttributeGrid()
 
         for(int nCX = nX0; nCX < nX1; ++nCX){
             for(int nCY = nY0; nCY < nY1; ++nCY){
-                if(g_editorMap.ValidC(nCX, nCY)){
+                if(g_editorMap.validC(nCX, nCY)){
                     if(g_attributeSelectWindow->TestLand(g_editorMap.Cell(nCX, nCY).MakeLandU8())){
                         int nPX = nCX * SYS_MAPGRIDXP - offsetX;
                         int nPY = nCY * SYS_MAPGRIDYP - offsetY;
@@ -950,7 +950,7 @@ void DrawArea::AttributeCoverOperation(int nMouseXOnMap, int nMouseYOnMap, int n
 
         for(int nX = nMX - (nSize / 2); nX < nMX + (nSize + 1) / 2; ++nX){
             for(int nY = nMY - (nSize / 2); nY < nMY + (nSize + 1) / 2; ++nY){
-                if(g_editorMap.ValidC(nX, nY)){
+                if(g_editorMap.validC(nX, nY)){
                     fnOperation(nX, nY);
                 }
             }
@@ -1009,7 +1009,7 @@ void DrawArea::DrawFloatObject(int nX, int nY, int nFOType, int nWinX, int nWinY
     if(true
             && nFOType > FOTYPE_NONE
             && nFOType < FOTYPE_MAX
-            && g_editorMap.ValidC(nX, nY)){
+            && g_editorMap.validC(nX, nY)){
 
         uint8_t  nFileIndex  = 0;
         uint16_t nImageIndex = 0;

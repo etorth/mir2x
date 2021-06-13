@@ -38,7 +38,7 @@ void EditorMap::DrawLight(int nX, int nY, int nW, int nH, std::function<void(int
     if(Valid()){
         for(int nTX = 0; nTX < nW; ++nTX){
             for(int nTY = 0; nTY < nH; ++nTY){
-                if(ValidC(nTX + nX, nTY + nY)){
+                if(validC(nTX + nX, nTY + nY)){
                     auto &rstLight = Light(nTX + nX, nTY + nY);
                     if(rstLight.Valid){
                         fnDrawLight(nTX + nX, nTY + nY);
@@ -54,7 +54,7 @@ void EditorMap::DrawTile(int nCX, int nCY, int nCW,  int nCH, std::function<void
     if(Valid()){
         for(int nY = nCY; nY < nCY + nCH; ++nY){
             for(int nX = nCX; nX < nCX + nCW; ++nX){
-                if(!ValidC(nX, nY)){
+                if(!validC(nX, nY)){
                     continue;
                 }
 
@@ -88,7 +88,7 @@ void EditorMap::DrawObject(int nCX, int nCY, int nCW, int nCH, bool bGround,
                 // if(!bGround){ fnDrawExt(nX, nY); }
 
                 // 2. regular draw
-                if(ValidC(nX, nY)){
+                if(validC(nX, nY)){
                     for(int nIndex = 0; nIndex < 2; ++nIndex){
                         auto &rstObj = Object(nX, nY, nIndex);
                         if(true
@@ -334,7 +334,7 @@ void EditorMap::MakeBuf(int nW, int nH)
 
 void EditorMap::SetBufTile(int nX, int nY)
 {
-    // don't check Valid() and ValidC()
+    // don't check Valid() and validC()
     // called in InitBuf() and where Valid() is not set yet
 
     if(true
@@ -509,7 +509,7 @@ void EditorMap::DrawSelectGround(int nX, int nY, int nW, int nH, std::function<v
         for(int nTX = nX; nTX < nX + nW; ++nTX){
             for(int nTY = nY; nTY < nY + nH; ++nTY){
                 for(int nIndex = 0; nIndex < 4; ++nIndex){
-                    if(ValidC(nTX, nTY) && Cell(nTX, nTY).SelectConf.Ground){
+                    if(validC(nTX, nTY) && Cell(nTX, nTY).SelectConf.Ground){
                         fnDrawSelectGround(nX, nY, nIndex);
                     }
                 }
@@ -720,8 +720,8 @@ EditorMap *EditorMap::ExportLayer()
         }
 
         if(true
-                && ValidC(nX0, nY0)
-                && ValidC(nX1, nY1)){
+                && validC(nX0, nY0)
+                && validC(nX1, nY1)){
 
             nX0 = (nX0 / 2) * 2;
             nY0 = (nY0 / 2) * 2;
