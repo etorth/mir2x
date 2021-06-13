@@ -33,15 +33,6 @@
 #include "mainwindow.hpp"
 #include "progressbarwindow.hpp"
 
-EditorMap::EditorMap()
-    : m_w(0)
-    , m_h(0)
-    , m_valid(false)
-{
-    std::memset(m_aniSaveTime,  0, sizeof(m_aniSaveTime));
-    std::memset(m_aniTileFrame, 0, sizeof(m_aniTileFrame));
-}
-
 void EditorMap::DrawLight(int nX, int nY, int nW, int nH, std::function<void(int, int)> fnDrawLight)
 {
     if(Valid()){
@@ -223,9 +214,8 @@ bool EditorMap::Resize(
             }
         }
 
-        m_valid = true;
-        m_w     = nNewW;
-        m_h     = nNewH;
+        m_w = nNewW;
+        m_h = nNewH;
 
         return true;
     }
@@ -289,8 +279,6 @@ void EditorMap::ClearBuf()
 {
     m_w = 0;
     m_h = 0;
-
-    m_valid = false;
     m_blockBuf.clear();
 }
 
@@ -298,8 +286,6 @@ bool EditorMap::InitBuf()
 {
     int nW = 0;
     int nH = 0;
-
-    m_valid = false;
 
     if(m_mir2Map){
         nW = m_mir2Map->w();
@@ -327,10 +313,8 @@ bool EditorMap::InitBuf()
         }
     }
 
-    m_w     = nW;
-    m_h     = nH;
-    m_valid = true;
-
+    m_w = nW;
+    m_h = nH;
     return true;
 }
 
@@ -762,12 +746,10 @@ bool EditorMap::Allocate(int nW, int nH)
             && !(nW % 2)
             && !(nH % 2)){
 
-        m_w     = nW;
-        m_h     = nH;
-        m_valid = true;
+        m_w = nW;
+        m_h = nH;
 
-        std::memset(m_aniSaveTime,  0, sizeof(m_aniSaveTime));
-        std::memset(m_aniTileFrame, 0, sizeof(m_aniTileFrame));
+        clearAniTime();
 
         m_mir2Map      = nullptr;
         m_mir2xMapData = nullptr;

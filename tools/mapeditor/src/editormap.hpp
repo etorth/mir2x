@@ -180,9 +180,8 @@ class EditorMap
         };
 
     private:
-        int     m_w;
-        int     m_h;
-        bool    m_valid;
+        size_t m_w = 0;
+        size_t m_h = 0;
 
     private:
         uint32_t m_aniSaveTime [8];
@@ -196,7 +195,10 @@ class EditorMap
         std::vector<std::vector<stBlock_t>> m_blockBuf;
 
     public:
-        EditorMap();
+        EditorMap()
+        {
+            clearAniTime();
+        }
 
     public:
         bool LoadMir2Map(const char *);
@@ -205,7 +207,7 @@ class EditorMap
     public:
         bool Valid() const
         {
-            return m_valid;
+            return W() > 0 && H() > 0;
         }
 
         bool ValidC(int nX, int nY) const
@@ -286,4 +288,11 @@ class EditorMap
 
     public:
         EditorMap *ExportLayer();
+
+    private:
+        void clearAniTime()
+        {
+            std::memset(m_aniSaveTime,  0, sizeof(m_aniSaveTime));
+            std::memset(m_aniTileFrame, 0, sizeof(m_aniTileFrame));
+        }
 };
