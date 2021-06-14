@@ -284,7 +284,7 @@ fl_alert("%s", "Haven't implement yet!");}
             callback {{
 	extern AttributeSelectWindow *g_attributeGridWindow;
 	if(m_menuItemAttributeGridLine->value()){
-		g_attributeGridWindow->ShowAll();
+		g_attributeGridWindow->showAll();
 	}
 }}
             xywh {30 30 30 20} type Toggle labelfont 4 divider
@@ -390,7 +390,7 @@ fl_alert("%s", "Haven't implement yet!");}
             label Resize
             callback {{
     extern CropConfigureWindow *g_cropConfigureWindow;
-    g_cropConfigureWindow->ShowAll();
+    g_cropConfigureWindow->showAll();
 }}
             xywh {50 50 30 20} labelfont 4
             code0 {\#include "cropconfigurewindow.hpp"}
@@ -421,7 +421,7 @@ fl_alert("%s", "Haven't implement yet!");}
             callback {{
 	extern AttributeSelectWindow *g_attributeSelectWindow;
 	if(m_menuItemSelectByAttribute->value()){
-		g_attributeSelectWindow->ShowAll();
+		g_attributeSelectWindow->showAll();
 	}
 }}
             xywh {30 30 30 20} type Radio labelfont 4
@@ -468,7 +468,7 @@ fl_alert("%s", "Haven't implement yet!");}
             callback {extern SelectSettingWindow *g_selectSettingWindow;
 
 if(g_selectSettingWindow){
-	g_selectSettingWindow->ShowAll();
+	g_selectSettingWindow->showAll();
 }}
             xywh {30 30 30 20} labelfont 4
             code0 {\#include "selectsettingwindow.hpp"}
@@ -489,7 +489,7 @@ if(g_selectSettingWindow){
     // show the layer browser window
     // it may or may not hide when click it
     extern LayerBrowserWindow *g_layerBrowserWindow;
-    g_layerBrowserWindow->ShowAll();
+    g_layerBrowserWindow->showAll();
 }}
             xywh {50 50 30 20} labelfont 4 divider
             code0 {\#include "layerbrowserwindow.hpp"}
@@ -515,7 +515,7 @@ if(g_selectSettingWindow){
     // show the layer browser window
     // it may or may not hide when click it
     extern LayerBrowserWindow *g_layerBrowserWindow;
-    g_layerBrowserWindow->ShowAll();
+    g_layerBrowserWindow->showAll();
 }}
             xywh {30 30 30 20} labelfont 4
             code0 {\#include "layerbrowserwindow.hpp"}
@@ -565,7 +565,7 @@ if(g_selectSettingWindow){
 
                 extern AnimationSelectWindow *g_animationSelectWindow;
                 g_animationSelectWindow->Load();
-                g_animationSelectWindow->ShowAll();
+                g_animationSelectWindow->showAll();
 
                 break;
             }
@@ -578,7 +578,7 @@ if(g_selectSettingWindow){
             label {Animation Configuration      }
             callback {{
     extern AnimationSelectWindow *g_animationSelectWindow;
-    g_animationSelectWindow->ShowAll();
+    g_animationSelectWindow->showAll();
 }}
             xywh {10 10 34 20} labelfont 4
           }
@@ -590,7 +590,7 @@ if(g_selectSettingWindow){
           MenuItem {} {
             label {About Me               }
             callback {extern AboutWindow *g_aboutWindow;
-g_aboutWindow->ShowAll();}
+g_aboutWindow->showAll();}
             xywh {30 30 30 20} labelfont 4
             code0 {\#include "aboutwindow.hpp"}
           }
@@ -616,7 +616,7 @@ g_aboutWindow->ShowAll();}
     setFootLog("no map loaded");
 }} {}
   }
-  Function {ShowAll()} {return_type void
+  Function {showAll()} {return_type void
   } {
     code {{
 	m_window->show();
@@ -792,13 +792,13 @@ g_aboutWindow->ShowAll();}
     g_mainWindow->redrawAll();
 }} {}
   }
-  Function {ShowTileLine()} {return_type bool
+  Function {enableShowTileLine()} {return_type bool
   } {
     code {{
 	return m_menuItemBaseTileLine->value();
 }} {}
   }
-  Function {ShowObjectLine(int depth)} {return_type bool
+  Function {enableShowObjectLine(int depth)} {return_type bool
   } {
     code {{
     switch(depth){
@@ -810,7 +810,7 @@ g_aboutWindow->ShowAll();}
     }
 }} {}
   }
-  Function {ShowObjectIndexLine(int objIndex)} {return_type bool
+  Function {enableShowObjectIndexLine(int objIndex)} {return_type bool
   } {
     code {{
     if(objIndex == 0){
@@ -821,37 +821,37 @@ g_aboutWindow->ShowAll();}
     }
 }} {}
   }
-  Function {ShowLightLine()} {return_type bool
+  Function {enableShowLightLine()} {return_type bool
   } {
     code {{
 	return m_menuItemLightLine->value();
 }} {}
   }
-  Function {ShowGridLine()} {return_type bool
+  Function {enableShowGridLine()} {return_type bool
   } {
     code {{
 	return m_menuItemGridLine->value();
 }} {}
   }
-  Function {ShowAttributeGridLine()} {return_type bool
+  Function {enableShowAttributeGridLine()} {return_type bool
   } {
     code {{
 	return m_menuItemAttributeGridLine->value();
 }} {}
   }
-  Function {ShowLight()} {return_type bool
+  Function {enableShowLight()} {return_type bool
   } {
     code {{
 	return m_menuItemShowLight->value();
 }} {}
   }
-  Function {ShowTile()} {return_type bool
+  Function {enableShowTile()} {return_type bool
   } {
     code {{
 	return m_menuItemShowTile->value();
 }} {}
   }
-  Function {ShowObject(int depth)} {return_type bool
+  Function {enableShowObject(int depth)} {return_type bool
   } {
     code {{
     switch(depth){
@@ -863,7 +863,7 @@ g_aboutWindow->ShowAll();}
     }
 }} {}
   }
-  Function {ShowObjectIndex(int objIndex)} {return_type bool
+  Function {enableShowObjectIndex(int objIndex)} {return_type bool
   } {
     code {{
     if(objIndex == 0){

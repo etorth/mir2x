@@ -41,7 +41,7 @@ class LayerBrowserWindow {} {
             callback {{
     // export all selected layers to the editor
     extern LayerViewWindow *g_layerViewWindow;
-    g_layerViewWindow->ShowAll();
+    g_layerViewWindow->showAll();
 }}
             xywh {0 0 30 20} labelfont 4 divider
             code0 {\#include "layerviewwindow.hpp"}
@@ -108,7 +108,7 @@ class LayerBrowserWindow {} {
     // if more than one entries selected only open first one
     extern LayerViewWindow *g_layerViewWindow;
     if(Fl::event_clicks()){
-        g_layerViewWindow->ShowAll();
+        g_layerViewWindow->showAll();
     }
     
     // always issue redraw
@@ -126,7 +126,7 @@ class LayerBrowserWindow {} {
 	addFootLog("Version 0.0.1");
 }} {}
   }
-  Function {ShowAll()} {return_type void
+  Function {showAll()} {return_type void
   } {
     code {{
 	m_window->show();

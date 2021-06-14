@@ -71,6 +71,6 @@ int main()
     g_layerBrowserWindow    = new LayerBrowserWindow();
     g_cropConfigureWindow   = new CropConfigureWindow();
 
-    g_mainWindow->ShowAll();
+    g_mainWindow->showAll();
     return Fl::run();
 }

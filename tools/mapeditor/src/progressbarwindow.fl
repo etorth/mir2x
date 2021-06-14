@@ -22,7 +22,7 @@ class ProgressBarWindow {open
       }
     }
   }
-  Function {ShowAll()} {return_type void
+  Function {showAll()} {return_type void
   } {
     code {m_window->show();} {}
   }

@@ -570,7 +570,7 @@ void DrawArea::DrawTrySelect()
 void DrawArea::DrawTextBox()
 {
     FillRectangle(0, 0, 250, 150, 0XC0000000);
-    const fl_wrapper::enable_color enable(255, 0, 0);
+    const fl_wrapper::enable_color enable(FL_RED);
 
     int nY = 20;
     const auto [offsetX, offsetY] = offset();
@@ -591,20 +591,9 @@ void DrawArea::drawObject(int depth)
         return;
     }
 
-    if(!g_mainWindow->ShowObject(depth)){
+    if(!g_mainWindow->enableShowObject(depth)){
         return;
     }
-
-    const fl_wrapper::enable_color enable([depth]()
-    {
-        switch(depth){
-            case OBJD_GROUND     : return FL_RED;
-            case OBJD_OVERGROUND0: return FL_BLUE;
-            case OBJD_OVERGROUND1: return FL_MAGENTA;
-            case OBJD_SKY        : return FL_GREEN;
-            default              : throw bad_reach();
-        }
-    }());
 
     const auto [offsetX, offsetY] = offset();
     const int startGX = offsetX / SYS_MAPGRIDXP - 1;
@@ -613,6 +602,7 @@ void DrawArea::drawObject(int depth)
     const int drawGW = w() / SYS_MAPGRIDXP + 10;
     const int drawGH = h() / SYS_MAPGRIDYP + 40;
 
+    const fl_wrapper::enable_color enable(fl_wrapper::color(depth));
     for(int iy = startGY; iy < startGY + drawGH; ++iy){
         for(int ix = startGX; ix < startGX + drawGW; ++ix){
             if(!g_editorMap.validC(ix, iy)){
@@ -636,7 +626,7 @@ void DrawArea::drawObject(int depth)
                         const int startY = iy * SYS_MAPGRIDYP + SYS_MAPGRIDYP - img->h() - offsetY;
 
                         drawImage(img, startX, startY);
-                        if(g_mainWindow->ShowObjectLine(depth) || g_mainWindow->ShowObjectIndexLine(objIndex)){
+                        if(g_mainWindow->enableShowObjectLine(depth) || g_mainWindow->enableShowObjectIndexLine(objIndex)){
                             drawRectangle(startX, startY, img->w(), img->h());
                         }
                     }
@@ -648,7 +638,7 @@ void DrawArea::drawObject(int depth)
 
 void DrawArea::DrawAttributeGrid()
 {
-    if(!g_mainWindow->ShowAttributeGridLine()){
+    if(!g_mainWindow->enableShowAttributeGridLine()){
         return;
     }
 
@@ -677,7 +667,7 @@ void DrawArea::DrawAttributeGrid()
 
 void DrawArea::DrawGrid()
 {
-    if(!g_mainWindow->ShowGridLine()){
+    if(!g_mainWindow->enableShowGridLine()){
         return;
     }
 
@@ -698,7 +688,7 @@ void DrawArea::drawTile()
         return;
     }
 
-    if(!g_mainWindow->ShowTile()){
+    if(!g_mainWindow->enableShowTile()){
         return;
     }
 
@@ -730,7 +720,7 @@ void DrawArea::drawTile()
 
             if(auto img = g_imageCache.retrieve(g_editorMap.tile(ix, iy).texID)){
                 drawImage(img, startX, startY);
-                if(g_mainWindow->ShowTileLine()){
+                if(g_mainWindow->enableShowTileLine()){
                     drawRectangle(startX, startY, img->w(), img->h());
                 }
             }
@@ -975,7 +965,7 @@ void DrawArea::DrawLight()
         return;
     }
 
-    if(!g_mainWindow->ShowLight()){
+    if(!g_mainWindow->enableShowLight()){
         return;
     }
 
@@ -999,7 +989,7 @@ void DrawArea::DrawLight()
                 const int drawCY = iy * SYS_MAPGRIDYP - offsetY + SYS_MAPGRIDYP / 2 - (m_lightImge->h() - 1) / 2;
                 drawImage(m_lightImge.get(), drawCX, drawCY);
 
-                if(g_mainWindow->ShowLightLine()){
+                if(g_mainWindow->enableShowLightLine()){
                     DrawCircle(ix * SYS_MAPGRIDXP - offsetX, iy * SYS_MAPGRIDYP - offsetY, 10);
                 }
             }

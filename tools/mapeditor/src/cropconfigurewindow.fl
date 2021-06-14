@@ -59,7 +59,7 @@ class CropConfigureWindow {} {
       }
     }
   }
-  Function {ShowAll()} {open return_type void
+  Function {showAll()} {open return_type void
   } {
     code {{
     m_window->show();

@@ -117,7 +117,7 @@ class AnimationSelectWindow {open
   Function {Load()} {return_type void
   } {
     code {{
-    ClearAll();
+    clearAll();
     
     extern AnimationDB g_animationDB;
     size_t nSize = g_animationDB.Size();
@@ -136,7 +136,7 @@ class AnimationSelectWindow {open
     m_window->hide();
 }} {}
   }
-  Function {ClearAll()} {return_type void
+  Function {clearAll()} {return_type void
   } {
     code {{
     m_browserAnimation->clear();
@@ -144,7 +144,7 @@ class AnimationSelectWindow {open
     m_browserDirection->clear();
 }} {}
   }
-  Function {ShowAll()} {return_type void
+  Function {showAll()} {return_type void
   } {
     code {{
     m_window->show();
