@@ -34,7 +34,7 @@
 #include "mainwindow.hpp"
 #include "progressbarwindow.hpp"
 
-extern ImageDB g_imageDB;
+extern ImageDB *g_imageDB;
 extern LayerBrowserWindow *g_layerBrowserWindow;
 void EditorMap::drawLight(int argX, int argY, int argW, int argH, std::function<void(int, int)> fnDrawLight)
 {
@@ -125,7 +125,9 @@ bool EditorMap::loadLayer(const char *fullName)
     m_srcType = LAYER;
     m_srcName = fullName;
 
+    m_data.clear();
     m_data.load(fullName);
+
     m_selectBuf.resize(0);
     m_selectBuf.resize(m_data.w() * m_data.h() / 4);
     return valid();
@@ -142,10 +144,13 @@ bool EditorMap::loadMir2Map(const char *fullName)
     for(int y = 0; y < to_d(from.h()); ++y){
         for(int x = 0; x < to_d(from.w()); ++x){
             if((x % 2) == 0 && (y % 2) == 0){
-                from.convBlock(x, y, m_data.block(x, y), g_imageDB);
+                from.convBlock(x, y, m_data.block(x, y), *g_imageDB);
             }
         }
     }
+
+    m_selectBuf.resize(0);
+    m_selectBuf.resize(m_data.w() * m_data.h() / 4);
     return valid();
 }
 
@@ -154,7 +159,9 @@ bool EditorMap::loadMir2xMapData(const char *fullName)
     m_srcType = MIR2XMAPDATA;
     m_srcName = fullName;
 
+    m_data.clear();
     m_data.load(fullName);
+
     m_selectBuf.resize(0);
     m_selectBuf.resize(m_data.w() * m_data.h() / 4);
     return valid();
