@@ -73,23 +73,25 @@ void DrawArea::draw()
         clear();
     }
 
-    if(g_editorMap.valid()){
-        drawTile();
-
-        drawObject(OBJD_GROUND);
-        drawObject(OBJD_OVERGROUND0);
-        drawObject(OBJD_OVERGROUND1);
-        drawObject(OBJD_SKY);
-
-        DrawAttributeGrid();
-
-        DrawLight();
-        DrawGrid();
-
-        DrawDoneSelect();
-        DrawTrySelect();
-        DrawTextBox();
+    if(!g_editorMap.valid()){
+        return;
     }
+
+    drawTile();
+
+    drawObject(OBJD_GROUND);
+    drawObject(OBJD_OVERGROUND0);
+    drawObject(OBJD_OVERGROUND1);
+    drawObject(OBJD_SKY);
+
+    DrawAttributeGrid();
+
+    DrawLight();
+    DrawGrid();
+
+    DrawDoneSelect();
+    DrawTrySelect();
+    DrawTextBox();
 }
 
 void DrawArea::AddSelectByAttribute()
@@ -656,6 +658,10 @@ void DrawArea::DrawGrid()
 
 void DrawArea::drawTile()
 {
+    if(!g_editorMap.valid()){
+        return;
+    }
+
     if(!g_mainWindow->ShowTile()){
         return;
     }
@@ -663,24 +669,37 @@ void DrawArea::drawTile()
     const auto [offsetX, offsetY] = offset();
     const fl_wrapper::enable_color enable(FL_RED);
 
-    const auto fnDraw = [offsetX, offsetY, this](uint32_t nImageIndex, int nX, int nY)
-    {
-        int nStartX = nX * SYS_MAPGRIDXP - offsetX;
-        int nStartY = nY * SYS_MAPGRIDYP - offsetY;
-        if(auto pImage = g_imageCache.retrieve(nImageIndex)){
-            drawImage(pImage, nStartX, nStartY);
-            if(g_mainWindow->ShowTileLine()){
-                drawRectangle(nStartX, nStartY, pImage->w(), pImage->h());
+    const int startGX = offsetX / SYS_MAPGRIDXP - 1;
+    const int startGY = offsetY / SYS_MAPGRIDYP - 1;
+
+    const int drawGW = w() / SYS_MAPGRIDXP + 3;
+    const int drawGH = h() / SYS_MAPGRIDYP + 8;
+
+    for(int iy = startGY; iy < startGY + drawGH; ++iy){
+        for(int ix = startGX; ix < startGX + drawGW; ++ix){
+            if(!g_editorMap.validC(ix, iy)){
+                continue;
+            }
+
+            if(ix % 2 || iy % 2){
+                continue;
+            }
+
+            if(!g_editorMap.tile(ix, iy).valid){
+                continue;
+            }
+
+            const int startX = ix * SYS_MAPGRIDXP - offsetX;
+            const int startY = iy * SYS_MAPGRIDYP - offsetY;
+
+            if(auto img = g_imageCache.retrieve(g_editorMap.tile(ix, iy).texID)){
+                drawImage(img, startX, startY);
+                if(g_mainWindow->ShowTileLine()){
+                    drawRectangle(startX, startY, img->w(), img->h());
+                }
             }
         }
-    };
-
-    int nX = offsetX / SYS_MAPGRIDXP - 1;
-    int nY = offsetY / SYS_MAPGRIDYP - 1;
-    int nW = w() / SYS_MAPGRIDXP + 3;
-    int nH = h() / SYS_MAPGRIDYP + 8;
-
-    g_editorMap.drawTile(nX, nY, nW, nH, fnDraw);
+    }
 }
 
 int DrawArea::handle(int event)

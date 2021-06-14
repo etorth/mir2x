@@ -53,31 +53,6 @@ void EditorMap::drawLight(int argX, int argY, int argW, int argH, std::function<
     }
 }
 
-void EditorMap::drawTile(int argX, int argY, int argW, int argH, std::function<void(uint32_t, int, int)> fnDrawTile)
-{
-    if(!valid()){
-        return;
-    }
-
-    for(int iy = argY; iy < argY + argH; ++iy){
-        for(int ix = argX; ix < argX + argW; ++ix){
-            if(!validC(ix, iy)){
-                continue;
-            }
-
-            if(ix % 2 || iy % 2){
-                continue;
-            }
-
-            if(!m_data.tile(ix, iy).valid){
-                continue;
-            }
-
-            fnDrawTile(m_data.tile(ix, iy).texID, ix, iy);
-        }
-    }
-}
-
 void EditorMap::drawObject(int argX, int argY, int argW, int argH, int depth, std::function<void(uint32_t, int, int)> fnDrawObj, std::function<void(int, int)> fnDrawExt)
 {
     if(!valid()){

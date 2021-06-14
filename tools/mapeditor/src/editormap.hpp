@@ -201,7 +201,6 @@ class EditorMap
         bool exportOverview(std::function<void(uint32_t, int, int, bool)>, std::atomic<int> *) const;
 
     public:
-        void drawTile(int, int, int, int, std::function<void(uint32_t, int, int)>);
         void drawObject(int, int, int, int, int, std::function<void(uint32_t, int, int)>, std::function<void(int, int)>);
         void drawLight(int, int, int, int, std::function<void(int, int)>);
 
