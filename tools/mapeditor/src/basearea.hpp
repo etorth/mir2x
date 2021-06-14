@@ -27,9 +27,13 @@
 #include <FL/Fl_Box.H>
 #include <FL/Fl_Image.H>
 #include "totype.hpp"
+#include "wilanitimer.hpp"
 
 class BaseArea: public Fl_Box
 {
+    protected:
+        WilAniTimer m_aniTimer;
+
     private:
         std::map<uint32_t, std::shared_ptr<Fl_Image>> m_coverRecord;
 
@@ -59,6 +63,12 @@ class BaseArea: public Fl_Box
 
     public:
         void clear();
+
+    public:
+        void update(uint32_t loopTime)
+        {
+            m_aniTimer.update(loopTime);
+        }
 
     public:
         void FillRectangle(int, int, int, int, uint32_t);

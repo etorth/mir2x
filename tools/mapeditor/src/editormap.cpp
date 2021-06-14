@@ -53,40 +53,6 @@ void EditorMap::drawLight(int argX, int argY, int argW, int argH, std::function<
     }
 }
 
-void EditorMap::drawObject(int argX, int argY, int argW, int argH, int depth, std::function<void(uint32_t, int, int)> fnDrawObj, std::function<void(int, int)> fnDrawExt)
-{
-    if(!valid()){
-        return;
-    }
-
-    for(int iy = argY; iy < argY + argH; ++iy){
-        for(int ix = argX; ix < argX + argW; ++ix){
-            if(validC(ix, iy)){
-                for(const int objIndex: {0, 1}){
-                    const auto &obj = m_data.cell(ix, iy).obj[objIndex];
-                    if(obj.valid && obj.depth == depth){
-                        const auto  fileIndex = to_u8 (obj.texID >> 16);
-                        /* */ auto imageIndex = to_u16(obj.texID);
-
-                        if(obj.animated){
-                            // check here if fileIndex == 11, 26, 41, 56, 71, means if the obj comes from xxx/Animationsc.wil
-                            // but can't confirm which mir2 version needs this, skip it
-                            imageIndex += to_u16(m_aniTimer.frame(obj.tickType, obj.frameCount));
-                        }
-                        fnDrawObj((to_u32(fileIndex) << 16) + imageIndex, ix, iy);
-                    }
-                }
-            }
-        }
-
-        for(int ix = argX; ix < argX + argW; ++ix){
-            if(depth == OBJD_OVERGROUND0 || depth == OBJD_OVERGROUND1){
-                fnDrawExt(ix, iy);
-            }
-        }
-    }
-}
-
 void EditorMap::updateFrame(int loopTime)
 {
     if(!valid()){

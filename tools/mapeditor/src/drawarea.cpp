@@ -587,26 +587,62 @@ void DrawArea::DrawTextBox()
 
 void DrawArea::drawObject(int depth)
 {
-    if(g_mainWindow->ShowObject(depth)){
-        const auto fnDrawExt = [](int, int) -> void
-        {
-        };
+    if(!g_editorMap.valid()){
+        return;
+    }
 
-        const auto [offsetX, offsetY] = offset();
-        auto fnDrawObj = [this, offsetX, offsetY, depth](uint32_t imageIndex, int nXCnt, int nYCnt) -> void
-        {
-            if(auto img = g_imageCache.retrieve(imageIndex)){
-                const int startX = nXCnt * SYS_MAPGRIDXP - offsetX;
-                const int startY = nYCnt * SYS_MAPGRIDYP + SYS_MAPGRIDYP - img->h() - offsetY;
+    if(!g_mainWindow->ShowObject(depth)){
+        return;
+    }
 
-                drawImage(img, startX, startY);
-                if(g_mainWindow->ShowObjectLine(depth)){
-                    drawRectangle(startX, startY, img->w(), img->h());
+    const fl_wrapper::enable_color enable([depth]()
+    {
+        switch(depth){
+            case OBJD_GROUND     : return FL_RED;
+            case OBJD_OVERGROUND0: return FL_BLUE;
+            case OBJD_OVERGROUND1: return FL_MAGENTA;
+            case OBJD_SKY        : return FL_GREEN;
+            default              : throw bad_reach();
+        }
+    }());
+
+    const auto [offsetX, offsetY] = offset();
+    const int startGX = offsetX / SYS_MAPGRIDXP - 10;
+    const int startGY = offsetY / SYS_MAPGRIDYP - 20;
+
+    const int drawGW = w() / SYS_MAPGRIDXP + 20;
+    const int drawGH = h() / SYS_MAPGRIDYP + 40;
+
+    for(int iy = startGY; iy < startGY + drawGH; ++iy){
+        for(int ix = startGX; ix < startGX + drawGW; ++ix){
+            if(!g_editorMap.validC(ix, iy)){
+                continue;
+            }
+
+            for(const int objIndex: {0, 1}){
+                const auto &obj = g_editorMap.cell(ix, iy).obj[objIndex];
+                if(obj.valid && obj.depth == depth){
+                    const auto  fileIndex = to_u8 (obj.texID >> 16);
+                    /* */ auto imageIndex = to_u16(obj.texID);
+
+                    if(obj.animated){
+                        // check here if fileIndex == 11, 26, 41, 56, 71, means it requires the obj comes from xxx/Animationsc.wil
+                        // but can't confirm which mir2 version needs this, skip it
+                        imageIndex += to_u16(m_aniTimer.frame(obj.tickType, obj.frameCount));
+                    }
+
+                    if(auto img = g_imageCache.retrieve((to_u32(fileIndex) << 16) + imageIndex)){
+                        const int startX = ix * SYS_MAPGRIDXP - offsetX;
+                        const int startY = iy * SYS_MAPGRIDYP + SYS_MAPGRIDYP - img->h() - offsetY;
+
+                        drawImage(img, startX, startY);
+                        if(g_mainWindow->ShowObjectLine(depth) || g_mainWindow->ShowObjectIndexLine(objIndex)){
+                            drawRectangle(startX, startY, img->w(), img->h());
+                        }
+                    }
                 }
             }
-        };
-
-        g_editorMap.drawObject(offsetX / SYS_MAPGRIDXP - 10, offsetY / SYS_MAPGRIDYP - 20, w() / SYS_MAPGRIDXP + 20, h() / SYS_MAPGRIDYP + 40, depth, fnDrawObj, fnDrawExt);
+        }
     }
 }
 
