@@ -31,28 +31,12 @@
 class BaseArea: public Fl_Box
 {
     private:
-        struct ColorStackEntry
-        {
-            Fl_Color Color;
-            unsigned Count;
-
-            ColorStackEntry(Fl_Color stColor = FL_WHITE, unsigned nCount = 1)
-                : Color(stColor)
-                , Count(nCount)
-            {}
-        };
-
-    private:
-        std::vector<ColorStackEntry> m_colorStack;
-
-    private:
         std::map<uint32_t, std::shared_ptr<Fl_Image>> m_coverRecord;
 
     public:
-        BaseArea(int, int, int, int);
-
-    public:
-        ~BaseArea() = default;
+        BaseArea(int argX, int argY, int argW, int argH)
+            : Fl_Box(argX, argY, argW, argH)
+        {}
 
     public:
         virtual std::tuple<int, int> offset() const = 0;
@@ -72,10 +56,6 @@ class BaseArea: public Fl_Box
         void drawLine(int, int, int, int);
         void DrawLoop(int, int, int, int, int, int);
         void drawRectangle(int, int, int, int);
-
-    public:
-        void PushColor(Fl_Color);
-        void PopColor();
 
     public:
         void clear();

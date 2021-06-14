@@ -27,14 +27,6 @@
 #include "sysconst.hpp"
 #include "drawarea.hpp"
 
-BaseArea::BaseArea(int nX, int nY, int nW, int nH)
-    : Fl_Box(nX, nY, nW, nH)
-    , m_colorStack()
-    , m_coverRecord()
-{
-    PushColor(FL_RED);
-}
-
 void BaseArea::drawImage(Fl_Image *pImage, int nX, int nY)
 {
     if(pImage){
@@ -250,44 +242,6 @@ void BaseArea::drawRectangle(int nX, int nY, int nW, int nH)
     drawLine(nX         , nY         , nX         , nY + nH - 1);
     drawLine(nX + nW - 1, nY         , nX + nW - 1, nY + nH - 1);
     drawLine(nX         , nY + nH - 1, nX + nW - 1, nY + nH - 1);
-}
-
-void BaseArea::PushColor(Fl_Color stColor)
-{
-    if(m_colorStack.empty() || stColor != m_colorStack.back().Color){
-        fl_color(stColor);
-        m_colorStack.push_back({stColor, 1});
-    }else{
-        // have to put it here to reset
-        // fl_color() is global and other class may call it
-        fl_color(stColor);
-        m_colorStack.back().Count++;
-    }
-}
-
-void BaseArea::PopColor()
-{
-    if(m_colorStack.empty()){
-        PushColor(FL_WHITE);
-    }else{
-        if(m_colorStack.back().Count <= 0){
-            throw fflerror("color stack empty");
-        }
-        if(m_colorStack.back().Count == 1){
-            m_colorStack.pop_back();
-            if(m_colorStack.empty()){
-                PushColor(FL_WHITE);
-            }else{
-                fl_color(m_colorStack.back().Color);
-            }
-        }else{
-            m_colorStack.back().Count--;
-
-            // have to put it here to reset
-            // fl_color() is global and other class may call it
-            fl_color(m_colorStack.back().Color);
-        }
-    }
 }
 
 void BaseArea::clear()

@@ -1038,7 +1038,7 @@ g_aboutWindow->ShowAll();}
     else{
         m_vsbar->activate();
         ((Fl_Valuator *)(m_vsbar))->step(1, roiH);
-        setScrollBarSize(to_f(m_drawArea->h()) / roiH, {});
+        setScrollBarSize({}, to_f(m_drawArea->h()) / roiH);
     }
 }} {}
   }

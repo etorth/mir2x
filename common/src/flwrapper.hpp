@@ -17,6 +17,7 @@
  */
 
 #pragma once
+#include <cstdint>
 #include <FL/fl_draw.H>
 
 namespace fl_wrapper
@@ -27,10 +28,16 @@ namespace fl_wrapper
             Fl_Color m_color;
 
         public:
-            enable_color(Fl_Color stColor)
+            enable_color(Fl_Color color)
                 : m_color(fl_color())
             {
-                fl_color(stColor);
+                fl_color(color);
+            }
+
+            enable_color(uint8_t r, uint8_t g, uint8_t b)
+                : m_color(fl_color())
+            {
+                fl_color(fl_rgb_color(r, g, b));
             }
 
         public:

@@ -568,10 +568,9 @@ void DrawArea::DrawTrySelect()
 void DrawArea::DrawTextBox()
 {
     FillRectangle(0, 0, 250, 150, 0XC0000000);
-    PushColor(FL_RED);
+    const fl_wrapper::enable_color enable(255, 0, 0);
 
     int nY = 20;
-
     const auto [offsetX, offsetY] = offset();
 
     DrawText(10, nY, "OffsetX: %d %d", offsetX / SYS_MAPGRIDXP, offsetX); nY += 20;
@@ -582,8 +581,6 @@ void DrawArea::DrawTextBox()
 
     DrawText(10, nY, "MouseMX: %d %d", nMouseX / SYS_MAPGRIDXP, nMouseX); nY += 20;
     DrawText(10, nY, "MouseMY: %d %d", nMouseY / SYS_MAPGRIDYP, nMouseY); nY += 20;
-
-    PopColor();
 }
 
 void DrawArea::drawObject(int depth)
@@ -613,46 +610,47 @@ void DrawArea::drawObject(int depth)
 
 void DrawArea::DrawAttributeGrid()
 {
-    if(g_mainWindow->ShowAttributeGridLine()){
-        PushColor(FL_MAGENTA);  
+    if(!g_mainWindow->ShowAttributeGridLine()){
+        return;
+    }
 
-        const auto [offsetX, offsetY] = offset();
+    const fl_wrapper::enable_color enable(FL_RED);
+    const auto [offsetX, offsetY] = offset();
 
-        int nX0 = offsetX / SYS_MAPGRIDXP - 1;
-        int nY0 = offsetY / SYS_MAPGRIDYP - 1;
-        int nX1 = (offsetX + w()) / SYS_MAPGRIDXP + 1;
-        int nY1 = (offsetY + h()) / SYS_MAPGRIDYP + 1;
+    int nX0 = offsetX / SYS_MAPGRIDXP - 1;
+    int nY0 = offsetY / SYS_MAPGRIDYP - 1;
+    int nX1 = (offsetX + w()) / SYS_MAPGRIDXP + 1;
+    int nY1 = (offsetY + h()) / SYS_MAPGRIDYP + 1;
 
-        for(int nCX = nX0; nCX < nX1; ++nCX){
-            for(int nCY = nY0; nCY < nY1; ++nCY){
-                if(g_editorMap.validC(nCX, nCY)){
-                    if(g_attributeSelectWindow->testLand(g_editorMap.cell(nCX, nCY).land)){
-                        int nPX = nCX * SYS_MAPGRIDXP - offsetX;
-                        int nPY = nCY * SYS_MAPGRIDYP - offsetY;
-                        drawRectangle(nPX, nPY, SYS_MAPGRIDXP, SYS_MAPGRIDYP);
-                        drawLine(nPX, nPY, nPX + SYS_MAPGRIDXP, nPY + SYS_MAPGRIDYP);
-                        drawLine(nPX + SYS_MAPGRIDXP, nPY, nPX, nPY + SYS_MAPGRIDYP);
-                    }
+    for(int nCX = nX0; nCX < nX1; ++nCX){
+        for(int nCY = nY0; nCY < nY1; ++nCY){
+            if(g_editorMap.validC(nCX, nCY)){
+                if(g_attributeSelectWindow->testLand(g_editorMap.cell(nCX, nCY).land)){
+                    int nPX = nCX * SYS_MAPGRIDXP - offsetX;
+                    int nPY = nCY * SYS_MAPGRIDYP - offsetY;
+                    drawRectangle(nPX, nPY, SYS_MAPGRIDXP, SYS_MAPGRIDYP);
+                    drawLine(nPX, nPY, nPX + SYS_MAPGRIDXP, nPY + SYS_MAPGRIDYP);
+                    drawLine(nPX + SYS_MAPGRIDXP, nPY, nPX, nPY + SYS_MAPGRIDYP);
                 }
             }
         }
-        PopColor();
     }
 }
 
 void DrawArea::DrawGrid()
 {
-    if(g_mainWindow->ShowGridLine()){
-        PushColor(FL_MAGENTA);
-        const auto [offsetX, offsetY] = offset();
-        for(int nCX = offsetX / SYS_MAPGRIDXP - 1; nCX < (offsetX + w()) / SYS_MAPGRIDXP + 1; ++nCX){
-            drawLine(nCX * SYS_MAPGRIDXP - offsetX, 0, nCX * SYS_MAPGRIDXP - offsetX, h());
-        }
+    if(!g_mainWindow->ShowGridLine()){
+        return;
+    }
 
-        for(int nCY = offsetY / SYS_MAPGRIDYP - 1; nCY < (offsetY + h()) / SYS_MAPGRIDYP + 1; ++nCY){
-            drawLine(0, nCY * SYS_MAPGRIDYP - offsetY, w(), nCY * SYS_MAPGRIDYP - offsetY);
-        }
-        PopColor();
+    const auto [offsetX, offsetY] = offset();
+    const fl_wrapper::enable_color enable(FL_MAGENTA);
+    for(int nCX = offsetX / SYS_MAPGRIDXP - 1; nCX < (offsetX + w()) / SYS_MAPGRIDXP + 1; ++nCX){
+        drawLine(nCX * SYS_MAPGRIDXP - offsetX, 0, nCX * SYS_MAPGRIDXP - offsetX, h());
+    }
+
+    for(int nCY = offsetY / SYS_MAPGRIDYP - 1; nCY < (offsetY + h()) / SYS_MAPGRIDYP + 1; ++nCY){
+        drawLine(0, nCY * SYS_MAPGRIDYP - offsetY, w(), nCY * SYS_MAPGRIDYP - offsetY);
     }
 }
 
@@ -926,9 +924,8 @@ void DrawArea::DrawLight()
                     nY * SYS_MAPGRIDYP - offsetY + SYS_MAPGRIDYP / 2 - (m_lightImge->h() - 1) / 2);
 
             if(g_mainWindow->ShowLightLine()){
-                PushColor(FL_RED);
+                const fl_wrapper::enable_color enable(FL_RED);
                 DrawCircle(nX * SYS_MAPGRIDXP - offsetX, nY * SYS_MAPGRIDYP - offsetY, 10);
-                PopColor();
             }
         };
 
@@ -1051,22 +1048,25 @@ void DrawArea::DrawFloatObject(int nX, int nY, int nFOType, int nWinX, int nWinY
             drawImage(pImage, nImageX, nImageY);
 
             // draw boundary for window
-            PushColor(FL_YELLOW);
-            drawRectangle(nWinX, nWinY, nWinW, nWinH);
-            PopColor();
+            {
+                const fl_wrapper::enable_color enable(FL_YELLOW);
+                drawRectangle(nWinX, nWinY, nWinW, nWinH);
+            }
 
             // draw boundary for image
-            PushColor(FL_MAGENTA);
-            drawRectangle(nImageX, nImageY, pImage->w(), pImage->h());
-            PopColor();
+            {
+                const fl_wrapper::enable_color enable(FL_MAGENTA);
+                drawRectangle(nImageX, nImageY, pImage->w(), pImage->h());
+            }
 
             // draw textbox
             // after we allocated textbox
             // we have small offset to start inside it
+            {
+                const fl_wrapper::enable_color enable(FL_BLUE);
+                drawRectangle(nTextBoxX, nTextBoxY, nTextBoxW, nTextBoxH);
+            }
 
-            PushColor(FL_BLUE);
-            drawRectangle(nTextBoxX, nTextBoxY, nTextBoxW, nTextBoxH);
-            PopColor();
 
             int nTextOffX = 20;
             int nTextOffY = 20;
@@ -1074,7 +1074,7 @@ void DrawArea::DrawFloatObject(int nX, int nY, int nFOType, int nWinX, int nWinY
             switch(nFOType){
                 case FOTYPE_TILE:
                     {
-                        PushColor(FL_RED);
+                        const fl_wrapper::enable_color enable(FL_RED);
 
                         int nTextStartX = nTextBoxX + nTextOffX;
                         int nTextStartY = nTextBoxY + nTextOffY;
@@ -1090,14 +1090,12 @@ void DrawArea::DrawFloatObject(int nX, int nY, int nFOType, int nWinX, int nWinY
 
                         DrawText(nTextStartX, nTextStartY, "DBName : %s", g_imageDB->dbName(nFileIndex));
                         nTextStartY += 20;
-
-                        PopColor();
                         break;
                     }
                 case FOTYPE_OBJ0:
                 case FOTYPE_OBJ1:
                     {
-                        PushColor(FL_RED);
+                        const fl_wrapper::enable_color enable(FL_RED);
 
                         int nTextStartX = nTextBoxX + nTextOffX;
                         int nTextStartY = nTextBoxY + nTextOffY;
@@ -1139,8 +1137,6 @@ void DrawArea::DrawFloatObject(int nX, int nY, int nFOType, int nWinX, int nWinY
 
                         DrawText(nTextStartX, nTextStartY, "Versio : %d", to_d(nVersion));
                         nTextStartY += 20;
-
-                        PopColor();
                         break;
                     }
                 default:
