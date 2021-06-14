@@ -40,7 +40,7 @@ class DrawArea: public BaseArea
         int m_mouseY = 0;
 
     private:
-        std::shared_ptr<Fl_Image> m_lightImge;
+        std::unique_ptr<Fl_Image> m_lightImge;
 
     public:
         DrawArea(int argX, int argY, int argW, int argH)

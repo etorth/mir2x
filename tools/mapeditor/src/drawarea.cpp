@@ -607,10 +607,10 @@ void DrawArea::drawObject(int depth)
     }());
 
     const auto [offsetX, offsetY] = offset();
-    const int startGX = offsetX / SYS_MAPGRIDXP - 10;
-    const int startGY = offsetY / SYS_MAPGRIDYP - 20;
+    const int startGX = offsetX / SYS_MAPGRIDXP - 1;
+    const int startGY = offsetY / SYS_MAPGRIDYP - 1;
 
-    const int drawGW = w() / SYS_MAPGRIDXP + 20;
+    const int drawGW = w() / SYS_MAPGRIDXP + 10;
     const int drawGH = h() / SYS_MAPGRIDYP + 40;
 
     for(int iy = startGY; iy < startGY + drawGH; ++iy){
@@ -708,8 +708,8 @@ void DrawArea::drawTile()
     const int startGX = offsetX / SYS_MAPGRIDXP - 1;
     const int startGY = offsetY / SYS_MAPGRIDYP - 1;
 
-    const int drawGW = w() / SYS_MAPGRIDXP + 3;
-    const int drawGH = h() / SYS_MAPGRIDYP + 8;
+    const int drawGW = w() / SYS_MAPGRIDXP + 10;
+    const int drawGH = h() / SYS_MAPGRIDYP + 40;
 
     for(int iy = startGY; iy < startGY + drawGH; ++iy){
         for(int ix = startGX; ix < startGX + drawGW; ++ix){
@@ -908,7 +908,8 @@ Fl_Image *DrawArea::CreateRoundImage(int nRadius, uint32_t nColor)
             }
         }
         return Fl_RGB_Image((uchar *)(&(stvBuf[0])), nSize, nSize, 4, 0).copy();
-    }else{
+    }
+    else{
         fl_alert("Invalid radius for CreateRoundImage(%d, 0X%08X)", nRadius, nColor);
         return nullptr;
     }
@@ -970,26 +971,39 @@ void DrawArea::AttributeCoverOperation(int nMouseXOnMap, int nMouseYOnMap, int n
 
 void DrawArea::DrawLight()
 {
-    if(g_mainWindow->ShowLight()){
-        const auto [offsetX, offsetY] = offset();
-        auto fnDrawLight = [offsetX, offsetY, this](int nX, int nY) -> void
-        {
-            drawImage(m_lightImge.get(),
-                    nX * SYS_MAPGRIDXP - offsetX + SYS_MAPGRIDXP / 2 - (m_lightImge->w() - 1) / 2,
-                    nY * SYS_MAPGRIDYP - offsetY + SYS_MAPGRIDYP / 2 - (m_lightImge->h() - 1) / 2);
+    if(!g_editorMap.valid()){
+        return;
+    }
 
-            if(g_mainWindow->ShowLightLine()){
-                const fl_wrapper::enable_color enable(FL_RED);
-                DrawCircle(nX * SYS_MAPGRIDXP - offsetX, nY * SYS_MAPGRIDYP - offsetY, 10);
+    if(!g_mainWindow->ShowLight()){
+        return;
+    }
+
+    const auto [offsetX, offsetY] = offset();
+    const fl_wrapper::enable_color enable(138, 217, 12);
+
+    const int startGX = offsetX / SYS_MAPGRIDXP - 1;
+    const int startGY = offsetY / SYS_MAPGRIDYP - 1;
+
+    const int drawGW = w() / SYS_MAPGRIDXP + 10;
+    const int drawGH = h() / SYS_MAPGRIDYP + 40;
+
+    for(int iy = startGY; iy < startGY + drawGH; ++iy){
+        for(int ix = startGX; ix < startGX + drawGW; ++ix){
+            if(!g_editorMap.validC(ix, iy)){
+                continue;
             }
-        };
 
-        int nX = offsetX / SYS_MAPGRIDXP - 1;
-        int nY = offsetY / SYS_MAPGRIDYP - 1;
-        int nW = w() / SYS_MAPGRIDXP + 3;
-        int nH = h() / SYS_MAPGRIDYP + 8;
+            if(g_editorMap.cell(ix, iy).light.valid){
+                const int drawCX = ix * SYS_MAPGRIDXP - offsetX + SYS_MAPGRIDXP / 2 - (m_lightImge->w() - 1) / 2;
+                const int drawCY = iy * SYS_MAPGRIDYP - offsetY + SYS_MAPGRIDYP / 2 - (m_lightImge->h() - 1) / 2;
+                drawImage(m_lightImge.get(), drawCX, drawCY);
 
-        g_editorMap.drawLight(nX, nY, nW, nH, fnDrawLight);
+                if(g_mainWindow->ShowLightLine()){
+                    DrawCircle(ix * SYS_MAPGRIDXP - offsetX, iy * SYS_MAPGRIDYP - offsetY, 10);
+                }
+            }
+        }
     }
 }
 

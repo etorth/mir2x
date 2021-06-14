@@ -196,7 +196,7 @@ fl_alert("%s", "Haven't implement yet!");}
                     setFootLog(str_printf("Mir2xMapData %s, width %zu, height %zu", szPath.c_str(), to_uz(g_editorMap.w()), to_uz(g_editorMap.h())).c_str());
                     AfterLoadMap();
                     Fl::remove_timeout(updateFrame);
-                    Fl::add_timeout(0.1, updateFrame);
+                    Fl::add_timeout(0.1, updateFrame, this);
 
                 }else{
                     fl_alert("Invalid Mir2xMapData folder: %s", szPath.c_str());
@@ -669,7 +669,7 @@ g_aboutWindow->ShowAll();}
                 AfterLoadMap();
 
                 Fl::remove_timeout(updateFrame);
-                Fl::add_timeout(0.1, updateFrame);
+                Fl::add_timeout(0.1, updateFrame, this);
             }
             break;
     }
@@ -758,16 +758,11 @@ g_aboutWindow->ShowAll();}
     }
 }} {}
   }
-  Function {updateFrame(void *)} {return_type {static void}
+  Function {updateFrame(void *window)} {return_type {static void}
   } {
     code {{
-    extern EditorMap g_editorMap;
-    if(g_editorMap.valid()){
-        g_editorMap.updateFrame(50);
-        extern MainWindow *g_mainWindow;
-        g_mainWindow->redrawAll();
-    }
-    Fl::repeat_timeout(0.1, updateFrame);
+    ((MainWindow *)(window))->update(100);
+    Fl::repeat_timeout(0.1, updateFrame, window);
 }} {}
   }
   Function {UpdateAnimationFrame(void *)} {return_type {static void}
@@ -1216,6 +1211,13 @@ g_aboutWindow->ShowAll();}
     else{
         fl_alert("Export overview map image failed");
     }
+}} {}
+  }
+  Function {update(uint32_t loopTime)} {return_type void
+  } {
+    code {{
+    m_drawArea->update(loopTime);
+    m_window->redraw();
 }} {}
   }
   Function {setFootLog(const char *msg)} {return_type void

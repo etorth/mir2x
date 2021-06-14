@@ -36,30 +36,6 @@
 
 extern ImageDB *g_imageDB;
 extern LayerBrowserWindow *g_layerBrowserWindow;
-void EditorMap::drawLight(int argX, int argY, int argW, int argH, std::function<void(int, int)> fnDrawLight)
-{
-    if(!valid()){
-        return;
-    }
-
-    for(int iy = argY; iy < argY + argH; ++iy){
-        for(int ix = argX; ix < argX + argW; ++ix){
-            if(validC(ix, iy)){
-                if(m_data.cell(ix, iy).light.valid){
-                    fnDrawLight(ix, iy);
-                }
-            }
-        }
-    }
-}
-
-void EditorMap::updateFrame(int loopTime)
-{
-    if(!valid()){
-        return;
-    }
-    m_aniTimer.update(loopTime);
-}
 
 bool EditorMap::loadLayer(const char *fullName)
 {

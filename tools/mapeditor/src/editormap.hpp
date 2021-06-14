@@ -201,12 +201,6 @@ class EditorMap
         bool exportOverview(std::function<void(uint32_t, int, int, bool)>, std::atomic<int> *) const;
 
     public:
-        void drawLight(int, int, int, int, std::function<void(int, int)>);
-
-    public:
-        void updateFrame(int);
-
-    public:
         void allocate(size_t, size_t);
         bool saveMir2xMapData(const char *);
 
