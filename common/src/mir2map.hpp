@@ -337,7 +337,7 @@ class Mir2Map final
 
             block = {};
             if(tileValid(x, y, imgDB)){
-                block.tile.texIDValid = 1;
+                block.tile.valid = 1;
                 block.tile.texID = tile(x, y) & 0X00FFFFFF;
             }
 
@@ -348,9 +348,9 @@ class Mir2Map final
                     const int ic = 2 * dy + dx;
 
                     if(groundValid(ix, iy)){
-                        block.cell[ic].canWalk  = 1;
-                        block.cell[ic].canFly   = 1;
-                        block.cell[ic].landType = 0;
+                        block.cell[ic].land.type    = 0;
+                        block.cell[ic].land.canWalk = 1;
+                        block.cell[ic].land.canFly  = 1;
                     }
 
                     if(lightValid(ix, iy)){
@@ -362,9 +362,9 @@ class Mir2Map final
 
                     for(const int io: {0, 1}){
                         if(objectValid(ix, iy, io, imgDB)){
-                            block.cell[ic].obj[io].texIDValid = 1;
+                            block.cell[ic].obj[io].valid = 1;
                             block.cell[ic].obj[io].texID = object(ix, iy, io) & 0X00FFFFFF;
-                            block.cell[ic].obj[io].depthType = groundObjectValid(ix, iy, io, imgDB) ? OBJD_GROUND : OBJD_OVERGROUND0;
+                            block.cell[ic].obj[io].depth = groundObjectValid(ix, iy, io, imgDB) ? OBJD_GROUND : OBJD_OVERGROUND0;
 
                             if(aniObjectValid(ix, iy, io, imgDB)){
                                 block.cell[ic].obj[io].animated   = 1;
@@ -379,10 +379,10 @@ class Mir2Map final
                     // sort the objects in same cell
                     std::sort(block.cell[ic].obj, block.cell[ic].obj + 2, [](const auto &obj1, const auto &obj2) -> bool
                     {
-                        if(obj1.texIDValid && obj2.texIDValid){
-                            return obj1.depthType < obj2.depthType;
+                        if(obj1.valid && obj2.valid){
+                            return obj1.depth < obj2.depth;
                         }
-                        return obj1.texIDValid;
+                        return obj1.valid;
                     });
                 }
             }

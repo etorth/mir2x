@@ -59,6 +59,11 @@ class ImageDB
             return m_currImageInfo = m_packageList.at(fileIndex)->setIndex(imageIndex);
         }
 
+        const WILIMAGEINFO *setIndex(uint32_t imageIndex)
+        {
+            return setIndex(to_u8(imageIndex >> 16), to_u16(imageIndex));
+        }
+
     public:
         void extract(std::function<void(uint8_t, uint16_t, const void *, size_t, size_t)> op)
         {
@@ -92,6 +97,11 @@ class ImageDB
                 return {m_decodeBuf.data(), imgInfo->width, imgInfo->height};
             }
             return {nullptr, 0, 0};
+        }
+
+        std::tuple<const uint32_t *, size_t, size_t> decode(uint32_t imageIndex, uint32_t color0, uint32_t color1, uint32_t color2)
+        {
+            return decode(to_u8(imageIndex >> 16), to_u16(imageIndex), color0, color1, color2);
         }
 
         const WilImagePackage *getPackage(uint8_t fileIndex) const

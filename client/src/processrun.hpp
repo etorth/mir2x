@@ -31,6 +31,7 @@
 #include "focustype.hpp"
 #include "ascendstr.hpp"
 #include "guimanager.hpp"
+#include "wilanitimer.hpp"
 #include "delaycommand.hpp"
 #include "lochashtable.hpp"
 #include "mir2xmapdata.hpp"
@@ -95,7 +96,7 @@ class ProcessRun: public Process
 
         bool groundValid(int nX, int nY) const
         {
-            return m_mir2xMapData.validC(nX, nY) && m_mir2xMapData.cell(nX, nY).canThrough();
+            return m_mir2xMapData.validC(nX, nY) && m_mir2xMapData.cell(nX, nY).land.canThrough();
         }
 
     private:
@@ -109,8 +110,7 @@ class ProcessRun: public Process
         bool m_mapScrolling;
 
     private:
-        uint32_t m_aniSaveTick[8];
-        uint8_t  m_aniTileFrame[8][16];
+        WilAniTimer m_aniTimer;
 
     private:
         ClientLuaModule m_luaModule;

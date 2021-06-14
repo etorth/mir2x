@@ -35,14 +35,14 @@ BaseArea::BaseArea(int nX, int nY, int nW, int nH)
     PushColor(FL_RED);
 }
 
-void BaseArea::DrawImage(Fl_Image *pImage, int nX, int nY)
+void BaseArea::drawImage(Fl_Image *pImage, int nX, int nY)
 {
     if(pImage){
-        DrawImage(pImage, nX, nY, 0, 0, pImage->w(), pImage->h());
+        drawImage(pImage, nX, nY, 0, 0, pImage->w(), pImage->h());
     }
 }
 
-void BaseArea::DrawImage(Fl_Image *pImage, int nX, int nY, int nImageX, int nImageY, int nImageW, int nImageH)
+void BaseArea::drawImage(Fl_Image *pImage, int nX, int nY, int nImageX, int nImageY, int nImageW, int nImageH)
 {
     if(true
             && w() > 0
@@ -148,7 +148,7 @@ void BaseArea::DrawText(int nX, int nY, const char *szLogFormat, ...)
     }
 }
 
-void BaseArea::DrawImageCover(Fl_Image *pImage, int nX, int nY, int nW, int nH)
+void BaseArea::drawImageCover(Fl_Image *pImage, int nX, int nY, int nW, int nH)
 {
     if(true
             && pImage
@@ -169,13 +169,13 @@ void BaseArea::DrawImageCover(Fl_Image *pImage, int nX, int nY, int nW, int nH)
 
         for(int nGX = 0; nGX < nGXCnt; ++nGX){
             for(int nGY = 0; nGY < nGYCnt; ++nGY){
-                DrawImage(pImage, nX + nGX * pImage->w(), nY + nGY * pImage->h());
+                drawImage(pImage, nX + nGX * pImage->w(), nY + nGY * pImage->h());
             }
         }
 
         if(nGXRes > 0){
             for(int nGY = 0; nGY < nGYCnt; ++nGY){
-                DrawImage(pImage,
+                drawImage(pImage,
                         nX + nGXCnt * pImage->w(),
                         nY + nGY    * pImage->h(),
                         0,
@@ -187,7 +187,7 @@ void BaseArea::DrawImageCover(Fl_Image *pImage, int nX, int nY, int nW, int nH)
 
         if(nGYRes > 0){
             for(int nGX = 0; nGX < nGXCnt; ++nGX){
-                DrawImage(pImage,
+                drawImage(pImage,
                         nX + nGX    * pImage->w(),
                         nY + nGYCnt * pImage->h(),
                         0,
@@ -201,7 +201,7 @@ void BaseArea::DrawImageCover(Fl_Image *pImage, int nX, int nY, int nW, int nH)
                 && nGXRes > 0
                 && nGYRes > 0){
 
-            DrawImage(pImage,
+            drawImage(pImage,
                     nX + nGXCnt * pImage->w(),
                     nY + nGYCnt * pImage->h(),
                     0,
@@ -230,7 +230,7 @@ void BaseArea::DrawCircle(int nX, int nY, int nR)
     }
 }
 
-void BaseArea::DrawLine(int nX0, int nY0, int nX1, int nY1)
+void BaseArea::drawLine(int nX0, int nY0, int nX1, int nY1)
 {
     if(mathf::locateLineSegment(0, 0, w(), h(), &nX0, &nY0, &nX1, &nY1)){
         fl_line(nX0 + x(), nY0 + y(), nX1 + x(), nY1 + y());
@@ -239,17 +239,17 @@ void BaseArea::DrawLine(int nX0, int nY0, int nX1, int nY1)
 
 void BaseArea::DrawLoop(int nX1, int nY1, int nX2, int nY2, int nX3, int nY3)
 {
-    DrawLine(nX1, nY1, nX2, nY2);
-    DrawLine(nX2, nY2, nX3, nY3);
-    DrawLine(nX3, nY3, nX1, nY1);
+    drawLine(nX1, nY1, nX2, nY2);
+    drawLine(nX2, nY2, nX3, nY3);
+    drawLine(nX3, nY3, nX1, nY1);
 }
 
-void BaseArea::DrawRectangle(int nX, int nY, int nW, int nH)
+void BaseArea::drawRectangle(int nX, int nY, int nW, int nH)
 {
-    DrawLine(nX         , nY         , nX + nW - 1, nY         );
-    DrawLine(nX         , nY         , nX         , nY + nH - 1);
-    DrawLine(nX + nW - 1, nY         , nX + nW - 1, nY + nH - 1);
-    DrawLine(nX         , nY + nH - 1, nX + nW - 1, nY + nH - 1);
+    drawLine(nX         , nY         , nX + nW - 1, nY         );
+    drawLine(nX         , nY         , nX         , nY + nH - 1);
+    drawLine(nX + nW - 1, nY         , nX + nW - 1, nY + nH - 1);
+    drawLine(nX         , nY + nH - 1, nX + nW - 1, nY + nH - 1);
 }
 
 void BaseArea::PushColor(Fl_Color stColor)
@@ -290,7 +290,7 @@ void BaseArea::PopColor()
     }
 }
 
-void BaseArea::Clear()
+void BaseArea::clear()
 {
     fl_rectf(x(), y(), w(), h(), 0, 0, 0);
 }
@@ -304,7 +304,7 @@ void BaseArea::FillRectangle(int nX, int nY, int nW, int nH, uint32_t nARGB)
             && ((nARGB & 0XFF000000))){
 
         if(auto pImage = RetrieveImageCover(nARGB)){
-            DrawImageCover(pImage, nX, nY, nW, nH);
+            drawImageCover(pImage, nX, nY, nW, nH);
         }
     }
 }

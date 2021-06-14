@@ -52,7 +52,7 @@ class AnimationSelectWindow {open
         }   
     }
         
-    RedrawAll();
+    redrawAll();
 }}
         xywh {0 0 300 500} type Hold labelfont 4 textfont 4
       }
@@ -85,7 +85,7 @@ class AnimationSelectWindow {open
         }
     }
     
-    RedrawAll();
+    redrawAll();
 }}
         xywh {300 300 350 100} type Hold labelfont 4 textfont 4
       }
@@ -104,7 +104,7 @@ class AnimationSelectWindow {open
         }
     }
     
-    RedrawAll();
+    redrawAll();
 }}
         xywh {300 400 350 100} type Hold labelfont 4 textfont 4
       }
@@ -130,7 +130,7 @@ class AnimationSelectWindow {open
     }
 }} {}
   }
-  Function {HideAll()} {return_type void
+  Function {hideAll()} {return_type void
   } {
     code {{
     m_window->hide();
@@ -150,7 +150,7 @@ class AnimationSelectWindow {open
     m_window->show();
 }} {}
   }
-  Function {RedrawAll()} {return_type void
+  Function {redrawAll()} {return_type void
   } {
     code {{
     m_window->redraw();
@@ -244,7 +244,7 @@ class AnimationSelectWindow {open
         Fl::remove_timeout(TimeoutCallback);
     }
 
-    g_animationSelectWindow->RedrawAll();
+    g_animationSelectWindow->redrawAll();
 }} {}
   }
   Function {UpdateFrame()} {return_type void

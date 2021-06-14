@@ -28,7 +28,7 @@
 #include "aboutwindow.hpp"
 #include "animationdraw.hpp"
 #include "progressbarwindow.hpp"
-#include "layereditorwindow.hpp"
+#include "layerviewwindow.hpp"
 #include "layerbrowserwindow.hpp"
 #include "cropconfigurewindow.hpp"
 #include "selectsettingwindow.hpp"
@@ -42,7 +42,7 @@ AboutWindow                     *g_aboutWindow              = nullptr;
 AttributeSelectWindow           *g_attributeGridWindow      = nullptr;
 AttributeSelectWindow           *g_attributeSelectWindow    = nullptr;
 ProgressBarWindow               *g_progressBarWindow        = nullptr;
-LayerEditorWindow               *g_layerEditorWindow        = nullptr;
+LayerViewWindow               *g_layerViewWindow        = nullptr;
 LayerBrowserWindow              *g_layerBrowserWindow       = nullptr;
 CropConfigureWindow             *g_cropConfigureWindow      = nullptr;
 EditorMap                        g_editorMap;
@@ -67,7 +67,7 @@ int main()
     g_attributeSelectWindow = new AttributeSelectWindow();
     g_attributeGridWindow   = new AttributeSelectWindow();
     g_progressBarWindow     = new ProgressBarWindow();
-    g_layerEditorWindow     = new LayerEditorWindow();
+    g_layerViewWindow     = new LayerViewWindow();
     g_layerBrowserWindow    = new LayerBrowserWindow();
     g_cropConfigureWindow   = new CropConfigureWindow();
 

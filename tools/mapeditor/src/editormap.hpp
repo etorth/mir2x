@@ -17,6 +17,7 @@
  */
 #pragma once
 
+#include <atomic>
 #include <string>
 #include <vector>
 #include <cstdint>
@@ -27,19 +28,27 @@
 #include "sysconst.hpp"
 #include "landtype.hpp"
 #include "fflerror.hpp"
-#include "bitstreamf.hpp"
+#include "wilanitimer.hpp"
 #include "mir2xmapdata.hpp"
-#include "wilimagepackage.hpp"
 
 class EditorMap
 {
+    public:
+        enum
+        {
+            NONE = 0,
+            MIR2MAP,
+            MIR2XMAPDATA,
+            LAYER,
+        };
+
     private:
-        struct TileSelectConfig_t
+        struct TileSelectConfig
         {
             bool tile = false;
         };
 
-        struct CellSelectConfig_t
+        struct CellSelectConfig
         {
             bool ground = false;
             bool attribute = false;
@@ -51,310 +60,163 @@ class EditorMap
             };
         };
 
-        struct BlockSelectConfig_t
+        struct BlockSelectConfig
         {
-            TileSelectConfig_t tile;
-            CellSelectConfig_t cell[4];
+            TileSelectConfig tile;
+            CellSelectConfig cell[4];
         };
 
     private:
-        struct TileSelectConfig
-        {
-            bool Tile;
-
-            bool HasSelect() const
-            {
-                return Tile;
-            }
-        };
-
-        struct CellSelectConfig
-        {
-            bool Attribute;
-
-            bool Ground;
-            bool GroundObj;
-            bool OverGroundObj;
-
-            bool HasSelect() const
-            {
-                return false
-                    || Attribute
-                    || Ground
-                    || GroundObj
-                    || OverGroundObj;
-            }
-        };
-
-    private:
-        struct stTile_t
-        {
-            bool     Valid;
-            uint32_t Image;
-
-            TileSelectConfig SelectConf;
-
-            uint32_t MakeU32() const
-            {
-                if(Valid){
-                    return 0X80000000 | (Image & 0X00FFFFFF);
-                }else{
-                    return 0X00000000;
-                }
-            }
-        };
-
-        struct stObj_t
-        {
-            bool Valid;
-
-            bool Alpha;
-            bool Ground;
-            bool Animated;
-
-            uint8_t AniType;
-            uint8_t AniCount;
-
-            uint32_t Image;
-
-            std::array<uint8_t, 5> MakeArray() const
-            {
-                if(Valid){
-                    uint8_t nByte4 = 0
-                        | ((to_u8(Valid  ? 1 : 0)) << 7)
-                        | ((to_u8(Alpha  ? 1 : 0)) << 1)
-                        | ((to_u8(Ground ? 1 : 0)) << 0);
-
-                    uint8_t nByte3 = 0
-                        | ((to_u8(Animated ? 1 : 0)) << 7)
-                        | ((to_u8(AniType  & 0X07 )) << 4)
-                        | ((to_u8(AniCount & 0X0F )) << 0);
-
-                    uint8_t nByte2 = to_u8((Image & 0X00FF0000) >> 16);
-                    uint8_t nByte1 = to_u8((Image & 0X0000FF00) >>  8);
-                    uint8_t nByte0 = to_u8((Image & 0X000000FF) >>  0);
-
-                    return {{nByte0, nByte1, nByte2, nByte3, nByte4}};
-                }else{
-                    return {{0, 0, 0, 0, 0}};
-                }
-            }
-        };
-
-        struct stLight_t
-        {
-            bool Valid;
-
-            // TODO
-            // need design light struture
-
-            // 1. index of light color
-            // 2. index of light alpha
-            // 3. index of light radius
-            uint8_t Color;
-            uint8_t Alpha;
-            uint8_t Radius;
-
-            uint8_t MakeU8() const
-            {
-                if(Valid){
-                    return 0
-                        | ((to_u8(Valid ? 1 : 0)) << 7)     // [ :7]
-                        | ((to_u8(Radius & 0X03)) << 5)     // [6:5]
-                        | ((to_u8(Alpha  & 0X03)) << 3)     // [4:3]
-                        | ((to_u8(Color  & 0X07)) << 0);    // [2:0]
-                }else{
-                    return 0X00;
-                }
-            }
-        };
-
-        struct stCell_t
-        {
-            bool    CanWalk;
-            bool    CanFly;
-            uint8_t LandType;
-
-            stLight_t Light;
-            stObj_t   Obj[2];
-
-            // used for editor only
-            // when export this field is ignored
-            CellSelectConfig SelectConf;
-
-            // an cell is always valid
-            // it may contains light and objects and indicated by ``Valid"
-            uint8_t MakeLandU8() const
-            {
-                return 0
-                    | ((to_u8(CanWalk ? 1 : 0)) << 7)   // [  7]
-                    | ((to_u8(CanFly  ? 1 : 0)) << 6)   // [  6]
-                    | ((to_u8(LandType & 0X3F)) << 0);  // [5:0]
-            }
-
-            bool CanThrough()
-            {
-                return (CanWalk || CanFly);
-            }
-        };
-
-        struct stBlock_t
-        {
-            stTile_t Tile;
-            stCell_t Cell[2][2];
-        };
-
-    private:
-        size_t m_w = 0;
-        size_t m_h = 0;
-
-    private:
-        uint32_t m_aniSaveTime [8];
-        uint8_t  m_aniTileFrame[8][16];
+        WilAniTimer m_aniTimer;
 
     private:
         Mir2xMapData m_data;
 
     private:
-        std::unique_ptr<Mir2Map> m_mir2Map;
-        std::unique_ptr<Mir2xMapData> m_mir2xMapData;
+        std::vector<BlockSelectConfig> m_selectBuf;
 
     private:
-        std::vector<std::vector<stBlock_t>> m_blockBuf;
-        std::vector<BlockSelectConfig_t> m_selectBuf;
+        int m_srcType = NONE;
+        std::string m_srcName;
 
     public:
-        EditorMap()
+        EditorMap() = default;
+
+    public:
+        int srcType() const
         {
-            clearAniTime();
+            return m_srcType;
+        }
+
+        const std::string &srcName() const
+        {
+            return m_srcName;
         }
 
     public:
-        bool LoadMir2Map(const char *);
-        bool LoadMir2xMapData(const char *);
+        bool loadLayer(const char *);
+        bool loadMir2Map(const char *);
+        bool loadMir2xMapData(const char *);
 
     public:
-        bool Valid() const
+        bool valid() const
         {
-            return W() > 0 && H() > 0;
+            return w() > 0 && h() > 0;
         }
 
         bool validC(int nX, int nY) const
         {
-            return nX >= 0 && nX < W() && nY >= 0 && nY < H();
+            return nX >= 0 && nX < w() && nY >= 0 && nY < h();
         }
 
         bool validP(int nX, int nY) const
         {
-            return nX >= 0 && nX < SYS_MAPGRIDXP * W() && nY >= 0 && nY < SYS_MAPGRIDYP * H();
+            return nX >= 0 && nX < SYS_MAPGRIDXP * w() && nY >= 0 && nY < SYS_MAPGRIDYP * h();
         }
 
     public:
-        int W() const
+        int w() const
         {
-            return m_w;
+            return m_data.w();
         }
 
-        int H() const
+        int h() const
         {
-            return m_h;
-        }
-
-        auto &Tile(int nX, int nY)
-        {
-            return m_blockBuf[nX / 2][nY / 2].Tile;
-        }
-
-        auto &Cell(int nX, int nY)
-        {
-            return m_blockBuf[nX / 2][nY / 2].Cell[nX % 2][nY % 2];
-        }
-
-        auto &Light(int nX, int nY)
-        {
-            return Cell(nX, nY).Light;
-        }
-
-        auto &Object(int nX, int nY, int nIndex)
-        {
-            return Cell(nX, nY).Obj[nIndex];
+            return m_data.h();
         }
 
     public:
-        auto &blockSelect(int argX, int argY)
+        auto &block(int x, int y)
         {
-            fflassert(validC(argX, argY));
-            return m_selectBuf.at(argX / 2 + (argY / 2) * (m_data.w() / 2));
+            return m_data.block(x, y);
         }
 
-        const auto &blockSelect(int argX, int argY) const
+        auto &tile(int x, int y)
         {
-            fflassert(validC(argX, argY));
-            return m_selectBuf.at(argX / 2 + (argY / 2) * (m_data.w() / 2));
+            return m_data.tile(x, y);
         }
 
-        auto &tileSelect(int argX, int argY)
+        auto &cell(int x, int y)
         {
-            return blockSelect(argX, argY).tile;
-        }
-
-        const auto &tileSelect(int argX, int argY) const
-        {
-            return blockSelect(argX, argY).tile;
-        }
-
-        auto &cellSelect(int argX, int argY)
-        {
-            return blockSelect(argX, argY).cell[(argY % 2) * 2 + (argX % 2)];
-        }
-
-        const auto &cellSelect(int argX, int argY) const
-        {
-            return blockSelect(argX, argY).cell[(argY % 2) * 2 + (argX % 2)];
+            return m_data.cell(x, y);
         }
 
     public:
-        void ExportOverview(std::function<void(uint8_t, uint16_t, int, int, bool)>);
-
-    public:
-        void DrawTile(int, int, int, int, std::function<void(uint8_t, uint16_t, int, int)>);
-        void DrawObject(int, int, int, int, bool, std::function<void(uint8_t, uint16_t, int, int)>, std::function<void(int, int)>);
-        void DrawLight(int, int, int, int, std::function<void(int, int)>);
-        void DrawSelectGround(int, int, int, int, std::function<void(int, int, int)>);
-
-    public:
-        void ClearGroundSelect();
-
-    public:
-        void UpdateFrame(int);
-        bool Resize(int, int, int, int, int, int, int, int);
-
-    public:
-        bool Allocate(int, int);
-        bool SaveMir2xMapData(const char *);
-
-    public:
-        void Optimize();
-        void OptimizeTile(int, int);
-        void OptimizeCell(int, int);
-
-    private:
-        bool InitBuf();
-        void ClearBuf();
-        void MakeBuf(int, int);
-
-        void SetBufTile  (int, int);
-        void SetBufLight (int, int);
-        void SetBufGround(int, int);
-        void SetBufObj   (int, int, int);
-
-    public:
-        EditorMap *ExportLayer();
-
-    private:
-        void clearAniTime()
+        const auto &block(int x, int y) const
         {
-            std::memset(m_aniSaveTime,  0, sizeof(m_aniSaveTime));
-            std::memset(m_aniTileFrame, 0, sizeof(m_aniTileFrame));
+            return m_data.block(x, y);
         }
+
+        const auto &tile(int x, int y) const
+        {
+            return m_data.tile(x, y);
+        }
+
+        const auto &cell(int x, int y) const
+        {
+            return m_data.cell(x, y);
+        }
+
+    public:
+        auto &blockSelect(int x, int y)
+        {
+            fflassert(validC(x, y));
+            return m_selectBuf.at(x / 2 + (y / 2) * (m_data.w() / 2));
+        }
+
+        const auto &blockSelect(int x, int y) const
+        {
+            fflassert(validC(x, y));
+            return m_selectBuf.at(x / 2 + (y / 2) * (m_data.w() / 2));
+        }
+
+        auto &tileSelect(int x, int y)
+        {
+            return blockSelect(x, y).tile;
+        }
+
+        const auto &tileSelect(int x, int y) const
+        {
+            return blockSelect(x, y).tile;
+        }
+
+        auto &cellSelect(int x, int y)
+        {
+            return blockSelect(x, y).cell[(y % 2) * 2 + (x % 2)];
+        }
+
+        const auto &cellSelect(int x, int y) const
+        {
+            return blockSelect(x, y).cell[(y % 2) * 2 + (x % 2)];
+        }
+
+    public:
+        void clear()
+        {
+            m_data.clear();
+            m_selectBuf.clear();
+        }
+
+    public:
+        bool exportOverview(std::function<void(uint32_t, int, int, bool)>, std::atomic<int> *) const;
+
+    public:
+        void drawTile(int, int, int, int, std::function<void(uint32_t, int, int)>);
+        void drawObject(int, int, int, int, int, std::function<void(uint32_t, int, int)>, std::function<void(int, int)>);
+        void drawLight(int, int, int, int, std::function<void(int, int)>);
+
+    public:
+        void updateFrame(int);
+
+    public:
+        void allocate(size_t, size_t);
+        bool saveMir2xMapData(const char *);
+
+    public:
+        void optimize();
+        void optimizeTile(int, int);
+        void optimizeCell(int, int);
+
+    public:
+        Mir2xMapData exportLayer() const;
 };

@@ -5,6 +5,9 @@ code_name {.cpp}
 decl {\#include <cstdint>} {public local
 } 
 
+decl {\#include "mir2xmapdata.hpp"} {private local
+} 
+
 decl {\#include "mainwindow.hpp"} {private local
 } 
 
@@ -27,7 +30,7 @@ class AttributeSelectWindow {open
 	}
 
 	extern MainWindow *g_mainWindow;
-	g_mainWindow->RedrawAll();
+	g_mainWindow->redrawAll();
 }}
         xywh {38 22 177 33} down_box DOWN_BOX value 1 labelfont 4
       }
@@ -43,7 +46,7 @@ class AttributeSelectWindow {open
 	}
 
 	extern MainWindow *g_mainWindow;
-	g_mainWindow->RedrawAll();
+	g_mainWindow->redrawAll();
 }}
         xywh {38 57 177 33} down_box DOWN_BOX value 1 labelfont 4
       }
@@ -54,7 +57,7 @@ class AttributeSelectWindow {open
           label { Grass}
           callback {{
     extern MainWindow *g_mainWindow;
-    g_mainWindow->RedrawAll();
+    g_mainWindow->redrawAll();
 }}
           xywh {38 92 177 33} down_box DOWN_BOX labelfont 4
         }
@@ -62,7 +65,7 @@ class AttributeSelectWindow {open
           label { Stone}
           callback {{
     extern MainWindow *g_mainWindow;
-    g_mainWindow->RedrawAll();
+    g_mainWindow->redrawAll();
 }}
           xywh {38 124 177 33} down_box DOWN_BOX labelfont 4
         }
@@ -70,7 +73,7 @@ class AttributeSelectWindow {open
           label { Pond}
           callback {{
     extern MainWindow *g_mainWindow;
-    g_mainWindow->RedrawAll();
+    g_mainWindow->redrawAll();
 }}
           xywh {38 156 177 33} down_box DOWN_BOX labelfont 4
         }
@@ -78,7 +81,7 @@ class AttributeSelectWindow {open
           label { Sand}
           callback {{
     extern MainWindow *g_mainWindow;
-    g_mainWindow->RedrawAll();
+    g_mainWindow->redrawAll();
 }}
           xywh {38 188 177 33} down_box DOWN_BOX labelfont 4
         }
@@ -86,7 +89,7 @@ class AttributeSelectWindow {open
           label { Ocean}
           callback {{
     extern MainWindow *g_mainWindow;
-    g_mainWindow->RedrawAll();
+    g_mainWindow->redrawAll();
 }}
           xywh {38 220 177 33} down_box DOWN_BOX labelfont 4
         }
@@ -135,7 +138,7 @@ class AttributeSelectWindow {open
         label OK
         callback {{
 	extern MainWindow *g_mainWindow;
-    	g_mainWindow->RedrawAll();
+    	g_mainWindow->redrawAll();
     	
     	m_window->hide();
 }}
@@ -148,42 +151,20 @@ class AttributeSelectWindow {open
   } {
     code {m_window->show();} {}
   }
-  Function {TestLand(uint8_t nValue)} {open return_type bool
+  Function {testLand(const Mir2xMapData::LAND &land)} {open return_type bool
   } {
-    code {// bool bValid, uint8_t nValue
+    code {//
 {
-    auto bCanWalk  = (nValue & 0X80) ? true : false;
-    auto bCanFly   = (nValue & 0X40) ? true : false;
-    auto nLandType = (nValue & 0X3F);
-
-    // select can go through grids
-    // land type slection is disabled
-    if(false
-            || m_selectWalkable->value()
-            || m_selectFlyable ->value()){
-        return bCanWalk || bCanFly;
+    if(m_selectWalkable->value() || m_selectFlyable ->value()){
+        return land.canWalk || land.canFly;
     }
 
-    // selected by land type
-    switch(nLandType){
-        case LANDTYPE_GRASS:
-            {
-                return m_selectGrass->value();
-            }
-        case LANDTYPE_STONE:
-            {
-                return m_selectStone->value();
-            }
-        case LANDTYPE_SAND:
-            {
-                return m_selectStone->value();
-            }
-        default:
-            {
-                break;
-            }
+    switch(land.type){
+        case LANDTYPE_GRASS: return m_selectGrass->value();
+        case LANDTYPE_STONE: return m_selectStone->value();
+        case LANDTYPE_SAND : return m_selectStone->value();
+        default            : return false;
     }
-    return false;
 }} {}
   }
 } 

@@ -89,7 +89,7 @@ class MainWindow {} {
 		default :          break;
 	}
 }}
-      xywh {85 193 985 690} type Double resizable visible
+      xywh {64 159 985 690} type Double resizable visible
     } {
       Fl_Box m_drawArea {
         xywh {0 20 965 627} labelfont 4 resizable
@@ -107,6 +107,24 @@ class MainWindow {} {
             callback {SetWorkingPathName();
 fl_alert("%s", "Haven't implement yet!");}
             xywh {0 0 30 20} labelfont 4 divider
+          }
+          MenuItem {} {
+            label {Load Layer}
+            callback {{
+    extern std::string g_wilFilePathName;
+    if(g_wilFilePathName == ""){
+        SetWilFilePathName();
+    }
+
+    if(g_wilFilePathName != ""){
+        LoadMir2Map();
+    }
+}}
+            xywh {10 10 30 20} labelfont 4
+            code0 {\#include <string>}
+            code1 {\#include <FL/Fl_Native_File_Chooser.H>}
+            code2 {\#include <FL/fl_ask.H>}
+            code3 {\#include <algorithm>}
           }
           MenuItem {} {
             label {Load Mir2Map}
@@ -171,14 +189,14 @@ fl_alert("%s", "Haven't implement yet!");}
 
                 if(filesys::hasFile(szPath.c_str())){
                     extern EditorMap g_editorMap;
-                    if(!g_editorMap.LoadMir2xMapData(szPath.c_str()) || !g_editorMap.Valid()){
+                    if(!g_editorMap.loadMir2xMapData(szPath.c_str()) || !g_editorMap.valid()){
                         fl_alert("Failed to load Mir2xMapData: %s", szPath.c_str());
                     }
 
-                    setFootLog(str_printf("Mir2xMapData %s, width %zu, height %zu", szPath.c_str(), to_uz(g_editorMap.W()), to_uz(g_editorMap.H())).c_str());
+                    setFootLog(str_printf("Mir2xMapData %s, width %zu, height %zu", szPath.c_str(), to_uz(g_editorMap.w()), to_uz(g_editorMap.h())).c_str());
                     AfterLoadMap();
-                    Fl::remove_timeout(UpdateFrame);
-                    Fl::add_timeout(0.1, UpdateFrame);
+                    Fl::remove_timeout(updateFrame);
+                    Fl::add_timeout(0.1, updateFrame);
 
                 }else{
                     fl_alert("Invalid Mir2xMapData folder: %s", szPath.c_str());
@@ -273,19 +291,35 @@ fl_alert("%s", "Haven't implement yet!");}
           }
           MenuItem m_menuItemLightLine {
             label Light
-            xywh {0 0 30 20} type Toggle labelfont 4
+            xywh {0 0 30 20} type Toggle labelfont 4 divider
           }
           MenuItem m_menuItemBaseTileLine {
             label Tile
+            xywh {10 10 30 20} type Toggle labelfont 4 divider
+          }
+          MenuItem m_menuItemObjectGroundLine {
+            label {Object Ground}
             xywh {10 10 30 20} type Toggle labelfont 4
           }
-          MenuItem m_menuItemGroundObjectLine {
-            label {Ground Object}
-            xywh {10 10 30 20} type Toggle labelfont 4
-          }
-          MenuItem m_menuItemOverGroundObjectLine {
-            label {Over Ground Object}
+          MenuItem m_menuItemObjectOverGround0Line {
+            label {Object Over Ground 0}
             xywh {20 20 30 20} type Toggle labelfont 4
+          }
+          MenuItem m_menuItemObjectOverGround1Line {
+            label {Object Over Ground 1}
+            xywh {30 30 30 20} type Toggle labelfont 4
+          }
+          MenuItem m_menuItemObjectSkyLine {
+            label {Object Sky}
+            xywh {40 40 30 20} type Toggle labelfont 4 divider
+          }
+          MenuItem m_menuItemObjectIndex0Line {
+            label {Object Index 0}
+            xywh {50 50 30 20} type Toggle labelfont 4
+          }
+          MenuItem m_menuItemObjectIndex1Line {
+            label {Object Index 1}
+            xywh {60 60 30 20} type Toggle labelfont 4
           }
         }
         Submenu {} {
@@ -294,19 +328,35 @@ fl_alert("%s", "Haven't implement yet!");}
         } {
           MenuItem m_menuItemShowLight {
             label Light
-            xywh {10 10 30 20} type Toggle value 1 labelfont 4
+            xywh {10 10 30 20} type Toggle value 1 labelfont 4 divider
           }
           MenuItem m_menuItemShowTile {
             label Tile
+            xywh {20 20 30 20} type Toggle value 1 labelfont 4 divider
+          }
+          MenuItem m_menuItemShowObjectGround {
+            label {Object Ground}
             xywh {20 20 30 20} type Toggle value 1 labelfont 4
           }
-          MenuItem m_menuItemShowGroundObject {
-            label {Ground Object     }
-            xywh {20 20 30 20} type Toggle value 1 labelfont 4
+          MenuItem m_menuItemShowObjectOverGround0 {
+            label {Object Over Ground 0}
+            xywh {30 30 30 20} type Toggle value 1 labelfont 4
           }
-          MenuItem m_menuItemShowOverGroundObject {
-            label {Over Ground Object          }
-            xywh {30 30 30 20} type Toggle value 1 labelfont 4 divider
+          MenuItem m_menuItemShowObjectOverGround1 {
+            label {Object Over Ground 1}
+            xywh {40 40 30 20} type Toggle value 1 labelfont 4
+          }
+          MenuItem m_menuItemShowObjectSky {
+            label {Object Sky}
+            xywh {50 50 30 20} type Toggle value 1 labelfont 4 divider
+          }
+          MenuItem m_menuItemShowObjectIndex0 {
+            label {Object Index 0}
+            xywh {60 60 30 20} type Toggle value 1 labelfont 4
+          }
+          MenuItem m_menuItemShowObjectIndex1 {
+            label {Object Index 1}
+            xywh {70 70 30 20} type Toggle value 1 labelfont 4 divider
           }
           MenuItem m_menuItemClearBackground {
             label {Clear Background         }
@@ -329,8 +379,8 @@ fl_alert("%s", "Haven't implement yet!");}
             label Optimize
             callback {{
     extern EditorMap g_editorMap;
-        if(g_editorMap.Valid()){
-        g_editorMap.Optimize();
+        if(g_editorMap.valid()){
+        g_editorMap.optimize();
     }
 }}
             xywh {40 40 30 20} labelfont 4
@@ -374,20 +424,36 @@ fl_alert("%s", "Haven't implement yet!");}
 		g_attributeSelectWindow->ShowAll();
 	}
 }}
-            xywh {30 30 30 20} type Radio value 1 labelfont 4
+            xywh {30 30 30 20} type Radio labelfont 4
             code0 {\#include "attributeselectwindow.hpp"}
           }
           MenuItem m_menuItemSelectByTile {
             label Tile
-            xywh {40 40 30 20} type Radio labelfont 4
+            xywh {40 40 30 20} type Radio value 1 labelfont 4
           }
           MenuItem m_menuItemSelectByObjectGround {
-            label {Ground Object}
+            label {Object Ground}
             xywh {50 50 30 20} type Radio labelfont 4
           }
-          MenuItem m_menuItemSelectByObjectOverGround {
-            label {Over Ground Object}
-            xywh {60 60 30 20} type Radio labelfont 4 divider
+          MenuItem m_menuItemSelectByObjectOverGround0 {
+            label {Object Over Ground 0}
+            xywh {60 60 30 20} type Radio labelfont 4
+          }
+          MenuItem m_menuItemSelectByObjectOverGround1 {
+            label {Object Over Ground 1}
+            xywh {70 70 30 20} type Radio labelfont 4
+          }
+          MenuItem m_menuItemSelectByObjectSky {
+            label {Object Sky}
+            xywh {80 80 30 20} type Radio labelfont 4
+          }
+          MenuItem m_menuItemSelectByObjectIndex0 {
+            label {Object Index 0}
+            xywh {90 90 30 20} type Radio labelfont 4
+          }
+          MenuItem m_menuItemSelectByObjectIndex1 {
+            label {Object Index 1}
+            xywh {100 100 30 20} type Radio labelfont 4 divider
           }
           MenuItem m_menuItemReversed {
             label Reversed
@@ -531,10 +597,10 @@ g_aboutWindow->ShowAll();}
         }
       }
       Fl_Scrollbar m_vsbar {
-        xywh {965 20 20 647} labelfont 4 step 0.001 deactivate
+        xywh {965 20 20 647} labeltype NO_LABEL labelfont 4 step 0.001 deactivate
       }
       Fl_Scrollbar m_hsbar {
-        xywh {0 647 965 20} type Horizontal labelfont 4 step 0.001 deactivate
+        xywh {0 647 965 20} type Horizontal labeltype NO_LABEL labelfont 4 step 0.001 deactivate
       }
       Fl_Box m_logBar {
         label label
@@ -556,7 +622,7 @@ g_aboutWindow->ShowAll();}
 	m_window->show();
 }} {}
   }
-  Function {RedrawAll()} {return_type void
+  Function {redrawAll()} {return_type void
   } {
     code {{
 	m_window->redraw();
@@ -595,15 +661,15 @@ g_aboutWindow->ShowAll();}
             break;
         default:
             {
-                if(!g_editorMap.LoadMir2Map(fileChooser.filename())){
+                if(!g_editorMap.loadMir2Map(fileChooser.filename())){
                     fl_alert("Load mir2 map %s failed", fileChooser.filename());
                 }
 
-                setFootLog(str_printf("Mir2Map %s, width %zu, height %zu", fileChooser.filename(), to_zu(g_editorMap.W()), to_zu(g_editorMap.H())).c_str());
+                setFootLog(str_printf("Mir2Map %s, width %zu, height %zu", fileChooser.filename(), to_zu(g_editorMap.w()), to_zu(g_editorMap.h())).c_str());
                 AfterLoadMap();
 
-                Fl::remove_timeout(UpdateFrame);
-                Fl::add_timeout(0.1, UpdateFrame);
+                Fl::remove_timeout(updateFrame);
+                Fl::add_timeout(0.1, updateFrame);
             }
             break;
     }
@@ -618,7 +684,7 @@ g_aboutWindow->ShowAll();}
     // 2. used after draw area resize
     checkScrollBar();
     setScrollBarValue(0.0, 0.0);
-    RedrawAll();
+    redrawAll();
 }} {}
   }
   Function {SetWorkingPathName()} {return_type void
@@ -692,16 +758,16 @@ g_aboutWindow->ShowAll();}
     }
 }} {}
   }
-  Function {UpdateFrame(void *)} {return_type {static void}
+  Function {updateFrame(void *)} {return_type {static void}
   } {
     code {{
     extern EditorMap g_editorMap;
-    if(g_editorMap.Valid()){
-        g_editorMap.UpdateFrame(50);
+    if(g_editorMap.valid()){
+        g_editorMap.updateFrame(50);
         extern MainWindow *g_mainWindow;
-        g_mainWindow->RedrawAll();
+        g_mainWindow->redrawAll();
     }
-    Fl::repeat_timeout(0.1, UpdateFrame);
+    Fl::repeat_timeout(0.1, updateFrame);
 }} {}
   }
   Function {UpdateAnimationFrame(void *)} {return_type {static void}
@@ -712,7 +778,7 @@ g_aboutWindow->ShowAll();}
     extern AnimationDB g_animationDB;
     extern AnimationDraw g_animationDraw;
 
-    if(g_editorMap.Valid() && g_animationDraw.MonsterID){
+    if(g_editorMap.valid() && g_animationDraw.MonsterID){
         auto &rstRecord = g_animationDB.RetrieveAnimation(g_animationDraw.MonsterID);
         if(rstRecord.Valid() && rstRecord.DirectionValid(g_animationDraw.Action, g_animationDraw.Direction)){
             if(rstRecord.FrameValid(g_animationDraw.Action, g_animationDraw.Direction, g_animationDraw.Frame + 1, true) && rstRecord.FrameValid(g_animationDraw.Action, g_animationDraw.Direction, g_animationDraw.Frame + 1, false)){
@@ -722,13 +788,13 @@ g_aboutWindow->ShowAll();}
             }
 
             Fl::repeat_timeout(0.1, UpdateAnimationFrame);
-            g_mainWindow->RedrawAll();
+            g_mainWindow->redrawAll();
             return;
         }
     }
 
     Fl::remove_timeout(UpdateAnimationFrame);
-    g_mainWindow->RedrawAll();
+    g_mainWindow->redrawAll();
 }} {}
   }
   Function {ShowTileLine()} {return_type bool
@@ -737,16 +803,27 @@ g_aboutWindow->ShowAll();}
 	return m_menuItemBaseTileLine->value();
 }} {}
   }
-  Function {ShowGroundObjectLine()} {return_type bool
+  Function {ShowObjectLine(int depth)} {return_type bool
   } {
     code {{
-	return m_menuItemGroundObjectLine->value();
+    switch(depth){
+        case OBJD_GROUND     : return m_menuItemObjectGroundLine->value();
+        case OBJD_OVERGROUND0: return m_menuItemObjectOverGround0Line->value();
+        case OBJD_OVERGROUND1: return m_menuItemObjectOverGround1Line->value();
+        case OBJD_SKY        : return m_menuItemObjectSkyLine->value();
+        default              : return false;
+    }
 }} {}
   }
-  Function {ShowOverGroundObjectLine()} {return_type bool
+  Function {ShowObjectIndexLine(int objIndex)} {return_type bool
   } {
     code {{
-	return m_menuItemOverGroundObjectLine->value();
+    if(objIndex == 0){
+        return m_menuItemObjectIndex0Line->value();
+    }
+    else{
+        return m_menuItemObjectIndex1Line->value();
+    }
 }} {}
   }
   Function {ShowLightLine()} {return_type bool
@@ -779,13 +856,26 @@ g_aboutWindow->ShowAll();}
 	return m_menuItemShowTile->value();
 }} {}
   }
-  Function {ShowObject(bool bGround)} {return_type bool
+  Function {ShowObject(int depth)} {return_type bool
   } {
     code {{
-    if(bGround){
-        return m_menuItemShowGroundObject->value();
-    }else{
-        return m_menuItemShowOverGroundObject->value();
+    switch(depth){
+        case OBJD_GROUND     : return m_menuItemShowObjectGround->value();
+        case OBJD_OVERGROUND0: return m_menuItemShowObjectOverGround0->value();
+        case OBJD_OVERGROUND1: return m_menuItemShowObjectOverGround1->value();
+        case OBJD_SKY        : return m_menuItemShowObjectSky->value();
+        default              : return false;
+    }
+}} {}
+  }
+  Function {ShowObjectIndex(int objIndex)} {return_type bool
+  } {
+    code {{
+    if(objIndex == 0){
+        return m_menuItemShowObjectIndex0->value();
+    }
+    else{
+        return m_menuItemShowObjectIndex1->value();
     }
 }} {}
   }
@@ -807,43 +897,56 @@ g_aboutWindow->ShowAll();}
     return m_menuItemEnableTest->value();
 }} {}
   }
-  Function {SelectByAttribute()} {return_type bool
+  Function {selectByAttribute()} {return_type bool
   } {
     code {{
 	return m_menuItemSelectByAttribute->value();
 }} {}
   }
-  Function {SelectByRhombus()} {return_type bool
+  Function {selectByRhombus()} {return_type bool
   } {
     code {{
 	return m_menuItemSelectByRhombus->value();
 }} {}
   }
-  Function {SelectByRectangle()} {return_type bool
+  Function {selectByRectangle()} {return_type bool
   } {
     code {{
 	return m_menuItemSelectByRectangle->value();
 }} {}
   }
-  Function {SelectBySingle()} {return_type bool
+  Function {selectBySingle()} {return_type bool
   } {
     code {{
 	return m_menuItemSelectBySingle->value();
 }} {}
   }
-  Function {SelectByTile()} {return_type bool
+  Function {selectByTile()} {return_type bool
   } {
     code {{
 	return m_menuItemSelectByTile->value();
 }} {}
   }
-  Function {SelectByObject(bool bGround)} {return_type bool
+  Function {selectByObject(int depth)} {return_type bool
   } {
     code {{
-    if(bGround){
-        return m_menuItemSelectByObjectGround->value();
-    }else{
-        return m_menuItemSelectByObjectOverGround->value();
+    switch(depth){
+        case OBJD_GROUND     : return m_menuItemSelectByObjectGround->value();
+        case OBJD_OVERGROUND0: return m_menuItemSelectByObjectOverGround0->value();
+        case OBJD_OVERGROUND1: return m_menuItemSelectByObjectOverGround1->value();
+        case OBJD_SKY        : return m_menuItemSelectByObjectSky->value();
+        default              : return false;
+    }
+}} {}
+  }
+  Function {selectByObjectIndex(int objIndex)} {return_type bool
+  } {
+    code {{
+    if(objIndex == 0){
+        return m_menuItemSelectByObjectIndex0->value();
+    }
+    else{
+        return m_menuItemSelectByObjectIndex1->value();
     }
 }} {}
   }
@@ -863,7 +966,7 @@ g_aboutWindow->ShowAll();}
   } {
     code {{
 	extern EditorMap g_editorMap;
-	if(g_editorMap.Valid()){
+	if(g_editorMap.valid()){
 		extern std::string g_workingPathName;
     		std::string szTmpFileName = g_workingPathName;
 	
@@ -872,7 +975,7 @@ g_aboutWindow->ShowAll();}
     		}else{
         		szTmpFileName += "/DESC.BIN";
     		}
-    		g_editorMap.SaveMir2xMapData(szTmpFileName.c_str());
+    		g_editorMap.saveMir2xMapData(szTmpFileName.c_str());
     		fl_message("Save map file in mir2xmapdata format successfully!");
     		
 	}else{
@@ -880,7 +983,7 @@ g_aboutWindow->ShowAll();}
 	}
 }} {}
   }
-  Function {ClearBackground()} {return_type bool
+  Function {clearBackground()} {return_type bool
   } {
     code {{
     return m_menuItemClearBackground->value();
@@ -915,36 +1018,27 @@ g_aboutWindow->ShowAll();}
     // check if we need to deactivate the scroll bars, but don't reset the scrollbar value
     // 1. used after load map
     // 2. used after draw area resize
-    extern EditorMap g_editorMap;
-    if(g_editorMap.Valid()){
-        if(g_editorMap.W() * SYS_MAPGRIDXP <= m_drawArea->w()){
-            m_hsbar->deactivate();
-            setScrollBarValue(0.0, {});
-            setScrollBarSize (1.0, {});
-        }
-        else{
-            m_hsbar->activate();
-            ((Fl_Valuator *)(m_hsbar))->step(1, g_editorMap.W() * SYS_MAPGRIDXP);
-            setScrollBarSize(to_f(m_drawArea->w()) / (g_editorMap.W() * SYS_MAPGRIDXP), {});
-        }
-
-        if(g_editorMap.H() * SYS_MAPGRIDYP <= m_drawArea->h()){
-            m_vsbar->deactivate();
-            setScrollBarValue({}, 0.0);
-            setScrollBarSize ({}, 1.0);
-        }
-        else{
-            m_vsbar->activate();
-            ((Fl_Valuator *)(m_vsbar))->step(1, g_editorMap.H() * SYS_MAPGRIDYP);
-            setScrollBarSize({}, to_f(m_drawArea->h()) / (g_editorMap.H() * SYS_MAPGRIDYP));
-        }
+    const auto [roiW, roiH] = m_drawArea->getROISize().value_or(std::make_tuple(0, 0));
+    if(to_d(roiW) <= m_drawArea->w()){
+        m_hsbar->deactivate();
+        setScrollBarValue(0.0, {});
+        setScrollBarSize (1.0, {});
     }
     else{
-        m_hsbar->deactivate();
-        m_vsbar->deactivate();
+        m_hsbar->activate();
+        ((Fl_Valuator *)(m_hsbar))->step(1, roiW);
+        setScrollBarSize(to_f(m_drawArea->w()) / roiW, {});
+    }
 
-        setScrollBarSize (1.0, 1.0);
-        setScrollBarValue(0.0, 0.0);
+    if(to_d(roiH) <= m_drawArea->h()){
+        m_vsbar->deactivate();
+        setScrollBarValue({}, 0.0);
+        setScrollBarSize ({}, 1.0);
+    }
+    else{
+        m_vsbar->activate();
+        ((Fl_Valuator *)(m_vsbar))->step(1, roiH);
+        setScrollBarSize(to_f(m_drawArea->h()) / roiH, {});
     }
 }} {}
   }
@@ -988,7 +1082,7 @@ g_aboutWindow->ShowAll();}
     }
 
     extern EditorMap g_editorMap;
-    if(!g_editorMap.Valid()){
+    if(!g_editorMap.valid()){
         fl_alert("Current editor map is invalid");
         return;
     }
@@ -999,8 +1093,8 @@ g_aboutWindow->ShowAll();}
         return;
     }
 
-    const int nDstW = g_editorMap.W() * SYS_MAPGRIDXP;
-    const int nDstH = g_editorMap.H() * SYS_MAPGRIDYP;
+    const int nDstW = g_editorMap.w() * SYS_MAPGRIDXP;
+    const int nDstH = g_editorMap.h() * SYS_MAPGRIDYP;
 
     if(nDstW % overviewRatio || nDstH % overviewRatio){
         fl_alert("system error: overview ratio can't devide original map pixel size");
@@ -1008,10 +1102,10 @@ g_aboutWindow->ShowAll();}
     }
 
     std::vector<uint32_t> stvBuf(nDstW * nDstH, 0);
-    auto pDst = &(stvBuf[0]);
+    auto pDst = stvBuf.data();
 
-    auto fnBufDraw = [](
-            uint32_t       *pDst, int nDstW, int nDstH,
+    const auto fnBufDraw = [](
+            /* */ uint32_t *pDst, int nDstW, int nDstH,
             const uint32_t *pSrc, int nSrcW, int nSrcH,
 
             int nOnDstX, int nOnDstY,
@@ -1027,8 +1121,8 @@ g_aboutWindow->ShowAll();}
                 && nSrcW > 0
                 && nSrcH > 0){
 
-            auto nOldOnSrcX = nOnSrcX;
-            auto nOldOnSrcY = nOnSrcY;
+            const auto nOldOnSrcX = nOnSrcX;
+            const auto nOldOnSrcY = nOnSrcY;
 
             if(true
                     && nOnSrcW > 0
@@ -1038,8 +1132,8 @@ g_aboutWindow->ShowAll();}
                 nOnDstX += (nOnSrcX - nOldOnSrcX);
                 nOnDstY += (nOnSrcY - nOldOnSrcY);
 
-                auto nOldOnDstX = nOnDstX;
-                auto nOldOnDstY = nOnDstY;
+                const auto nOldOnDstX = nOnDstX;
+                const auto nOldOnDstY = nOnDstY;
 
                 if(true
                         && nOnSrcW > 0
@@ -1066,16 +1160,13 @@ g_aboutWindow->ShowAll();}
         }
     };
 
-    auto fnBufDrawImage = [this, fnBufDraw, pDst, nDstW, nDstH](uint8_t nFileIndex, uint16_t nImageIndex, int nX, int nY, bool bObj)
+    const auto fnBufDrawImage = [this, fnBufDraw, pDst, nDstW, nDstH](uint32_t imageIndex, int nX, int nY, bool bObj)
     {
         extern ImageDB *g_imageDB;
         extern EditorMap g_editorMap;
 
-        if(true
-                && g_editorMap.validC(nX, nY)
-                && g_imageDB->setIndex(nFileIndex, nImageIndex)){
-
-            if(const auto [pSrc, nSrcW, nSrcH] = g_imageDB->decode(nFileIndex, nImageIndex, 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF); pSrc){
+        if(g_editorMap.validC(nX, nY) && g_imageDB->setIndex(imageIndex)){
+            if(const auto [pSrc, nSrcW, nSrcH] = g_imageDB->decode(imageIndex, 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF); pSrc){
                 fnBufDraw(
                         pDst, nDstW, nDstH,
                         pSrc, nSrcW, nSrcH,
@@ -1092,7 +1183,7 @@ g_aboutWindow->ShowAll();}
         }
     };
 
-    g_editorMap.ExportOverview(fnBufDrawImage);
+    g_editorMap.exportOverview(fnBufDrawImage, nullptr);
     const std::string szOverviewFileName = datef::now() + ".PNG";
     const std::string szOverviewFullFileName = g_workingPathName + "/" + szOverviewFileName;
 

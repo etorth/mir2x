@@ -72,9 +72,6 @@ ProcessRun::ProcessRun()
 {
     m_focusUIDTable.fill(0);
     RegisterUserCommand();
-
-    std::memset(m_aniSaveTick, 0, sizeof(m_aniSaveTick));
-    std::memset(m_aniTileFrame, 0, sizeof(m_aniTileFrame));
 }
 
 void ProcessRun::scrollMap()
@@ -112,23 +109,7 @@ void ProcessRun::scrollMap()
 
 void ProcessRun::update(double fUpdateTime)
 {
-    constexpr uint32_t delayTicks[]
-    {
-        150, 200, 250, 300, 350, 400, 420, 450,
-    };
-
-    for(int i = 0; i < 8; ++i){
-        m_aniSaveTick[i] += std::lround(fUpdateTime);
-        if(m_aniSaveTick[i] > delayTicks[i]){
-            for(int frame = 0; frame < 16; ++frame){
-                m_aniTileFrame[i][frame]++;
-                if(m_aniTileFrame[i][frame] >= frame){
-                    m_aniTileFrame[i][frame] = 0;
-                }
-            }
-            m_aniSaveTick[i] = 0;
-        }
-    }
+    m_aniTimer.update(std::lround(fUpdateTime));
 
     scrollMap();
     m_GUIManager.update(fUpdateTime);
@@ -725,7 +706,7 @@ int ProcessRun::CheckPathGrid(int nX, int nY) const
         return PathFind::INVALID;
     }
 
-    if(!m_mir2xMapData.cell(nX, nY).canThrough()){
+    if(!m_mir2xMapData.cell(nX, nY).land.canThrough()){
         return PathFind::OBSTACLE;
     }
 
@@ -1399,7 +1380,7 @@ std::tuple<int, int> ProcessRun::getRandLoc(uint32_t nMapID)
         const int nX = std::rand() % mapBinPtr->w();
         const int nY = std::rand() % mapBinPtr->h();
 
-        if(mapBinPtr->validC(nX, nY) && mapBinPtr->cell(nX, nY).canThrough()){
+        if(mapBinPtr->validC(nX, nY) && mapBinPtr->cell(nX, nY).land.canThrough()){
             return {nX, nY};
         }
     }
@@ -1414,7 +1395,7 @@ bool ProcessRun::requestSpaceMove(uint32_t nMapID, int nX, int nY)
         return false;
     }
 
-    if(!(mapBinPtr->validC(nX, nY) && mapBinPtr->cell(nX, nY).canThrough())){
+    if(!(mapBinPtr->validC(nX, nY) && mapBinPtr->cell(nX, nY).land.canThrough())){
         return false;
     }
 
@@ -1627,7 +1608,7 @@ void ProcessRun::drawTile(int x0, int y0, int x1, int y1)
     for(int y = y0; y < y1; ++y){
         for(int x = x0; x <= x1; ++x){
             if(m_mir2xMapData.validC(x, y) && !(x % 2) && !(y % 2)){
-                if(const auto &tile = m_mir2xMapData.tile(x, y); tile.texIDValid){
+                if(const auto &tile = m_mir2xMapData.tile(x, y); tile.valid){
                     if(auto texPtr = g_mapDB->Retrieve(tile.texID)){
                         g_sdlDevice->drawTexture(texPtr, x * SYS_MAPGRIDXP - m_viewX, y * SYS_MAPGRIDYP - m_viewY);
                     }
@@ -1645,11 +1626,11 @@ void ProcessRun::drawObject(int x, int y, int objd, bool alpha)
 
     for(const int i: {0, 1}){
         const auto &obj = m_mir2xMapData.cell(x, y).obj[i];
-        if(!obj.texIDValid){
+        if(!obj.valid){
             continue;
         }
 
-        if(obj.depthType != objd){
+        if(obj.depth != objd){
             continue;
         }
 
@@ -1662,7 +1643,7 @@ void ProcessRun::drawObject(int x, int y, int objd, bool alpha)
                     || fileIndex == 41
                     || fileIndex == 56
                     || fileIndex == 71){ // TODO remove this check
-                imageId += m_aniTileFrame[obj.tickType][obj.frameCount];
+                imageId += m_aniTimer.frame(obj.tickType, obj.frameCount);
             }
         }
 

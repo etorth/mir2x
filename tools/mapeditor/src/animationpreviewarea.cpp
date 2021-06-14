@@ -59,7 +59,7 @@ int AnimationPreviewArea::handle(int nEvent)
 
                 // 3. hide all windows for animation selection
                 extern AnimationSelectWindow *g_animationSelectWindow;
-                g_animationSelectWindow->HideAll();
+                g_animationSelectWindow->hideAll();
             }
             break;
         default:

@@ -1055,7 +1055,7 @@ int CharObject::CheckPathGrid(int nX, int nY, uint32_t nTimeOut) const
         return PathFind::INVALID;
     }
 
-    if(!m_map->getMapData().cell(nX, nY).canThrough()){
+    if(!m_map->getMapData().cell(nX, nY).land.canThrough()){
         return PathFind::OBSTACLE;
     }
 

@@ -49,7 +49,7 @@ ServerLuaModule::ServerLuaModule()
                 const int x = std::rand() % dataCPtr->w();
                 const int y = std::rand() % dataCPtr->h();
 
-                if(dataCPtr->validC(x, y) && dataCPtr->cell(x, y).canThrough()){
+                if(dataCPtr->validC(x, y) && dataCPtr->cell(x, y).land.canThrough()){
                     return {x, y};
                 }
             }

@@ -444,7 +444,7 @@ void ServerMap::operateAM(const ActorMsgPack &rstMPK)
 
 bool ServerMap::groundValid(int nX, int nY) const
 {
-    return m_mir2xMapData.validC(nX, nY) && m_mir2xMapData.cell(nX, nY).canThrough();
+    return m_mir2xMapData.validC(nX, nY) && m_mir2xMapData.cell(nX, nY).land.canThrough();
 }
 
 bool ServerMap::canMove(bool bCheckCO, bool bCheckLock, int nX, int nY) const
@@ -1157,7 +1157,7 @@ int ServerMap::CheckPathGrid(int nX, int nY) const
         return PathFind::INVALID;
     }
 
-    if(!m_mir2xMapData.cell(nX, nY).canThrough()){
+    if(!m_mir2xMapData.cell(nX, nY).land.canThrough()){
         return PathFind::OBSTACLE;
     }
 

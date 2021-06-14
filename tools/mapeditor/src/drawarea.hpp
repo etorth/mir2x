@@ -56,14 +56,14 @@ class DrawArea: public BaseArea
         int  handle(int);
 
     public:
-        std::tuple<int, int> offset() const;
+        std::tuple<int, int> offset() const override;
 
     private:
         void DrawGrid();
-        void DrawTile();
+        void drawTile();
         void DrawLight();
         void DrawGround();
-        void DrawObject(bool);
+        void drawObject(int);
         void DrawAttributeGrid();
 
     private:
@@ -78,8 +78,8 @@ class DrawArea: public BaseArea
 
     private:
         void DrawTrySelectByTile();
+        void DrawSelectByObject(int);
         void DrawSelectByObjectIndex(int);
-        void DrawSelectByObjectGround(bool);
 
     private:
         void DrawTrySelectBySingle();
@@ -89,7 +89,7 @@ class DrawArea: public BaseArea
 
     private:
         void AddSelect();
-        void ClearGroundSelect();
+        void clearGroundSelect();
 
     private:
         void AddSelectByTile();
@@ -97,7 +97,8 @@ class DrawArea: public BaseArea
         void AddSelectByRhombus();
         void AddSelectByRectangle();
         void AddSelectByAttribute();
-        void AddSelectByObject(bool);
+        void AddSelectByObject(int);
+        void AddSelectByObjectIndex(int);
 
     private:
         bool LocateAnimation(int, int);
@@ -106,18 +107,17 @@ class DrawArea: public BaseArea
         void DrawFloatObject(int, int, int, int, int);
 
     public:
-        Fl_Image *RetrievePNG(uint8_t, uint16_t);
         Fl_Image *CreateRoundImage(int, uint32_t);
 
     protected:
         void DrawDoneSelectByTile();
-        void DrawDoneSelectByObject(bool);
+        void DrawDoneSelectByObject(int);
+        void DrawDoneSelectByObjectIndex(int);
         void DrawDoneSelectByAttribute();
 
     protected:
         void FillMapGrid(int, int, int, int, uint32_t);
 
-    private:
-        std::tuple<size_t, size_t> getScrollPixelCount() const;
-        std::tuple<float , float > getScrollPixelRatio(int, int) const;
+    public:
+        std::optional<std::tuple<size_t, size_t>> getROISize() const override;
 };

@@ -42,7 +42,7 @@ szLabel += "%";
 m_progressBar->value(nValue * 1.0);
 m_progressBar->copy_label(szLabel.c_str());} {}
   }
-  Function {HideAll()} {open return_type void
+  Function {hideAll()} {open return_type void
   } {
     code {m_window->hide();} {}
   }

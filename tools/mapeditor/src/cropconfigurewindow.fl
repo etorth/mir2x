@@ -30,31 +30,27 @@ class CropConfigureWindow {} {
       Fl_Button {} {
         label OK
         callback {{
-    extern MainWindow *g_mainWindow;
-    /*if(!g_mainWindow->EnableEdit()){
-        return;
-    }*/
-
-    extern EditorMap g_editorMap;
-    if(!g_editorMap.Valid()){
-        return;
-    }
-
-    int nStartX = (std::lround)(m_left->value());
-    int nStartY = (std::lround)(m_top->value());
-    int nW      = g_editorMap.W() - nStartX - (std::lround)(m_right->value());
-    int nH      = g_editorMap.H() - nStartY - (std::lround)(m_bottom->value());
-
-    g_editorMap.Resize(nStartX, nStartY, nW, nH, 0, 0, nW, nH);
-    g_mainWindow->setScrollBarValue(0.0, 0.0);
-    g_mainWindow->AfterLoadMap();
-
-    m_left->value(0);
-    m_top->value(0);
-    m_right->value(0);
-    m_bottom->value(0);
-
-    m_window->hide();
+    // extern MainWindow *g_mainWindow;
+    // extern EditorMap g_editorMap;
+    // if(!g_editorMap.valid()){
+    //     return;
+    // }
+    //
+    // int nStartX = (std::lround)(m_left->value());
+    // int nStartY = (std::lround)(m_top->value());
+    // int nW      = g_editorMap.w() - nStartX - (std::lround)(m_right->value());
+    // int nH      = g_editorMap.h() - nStartY - (std::lround)(m_bottom->value());
+    //
+    // g_editorMap.Resize(nStartX, nStartY, nW, nH, 0, 0, nW, nH);
+    // g_mainWindow->setScrollBarValue(0.0, 0.0);
+    // g_mainWindow->AfterLoadMap();
+    //
+    // m_left->value(0);
+    // m_top->value(0);
+    // m_right->value(0);
+    // m_bottom->value(0);
+    //
+    // m_window->hide();
 }}
         xywh {345 160 70 25} labelfont 4
         code0 {\#include <algorithm>}

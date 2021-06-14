@@ -14,21 +14,21 @@ class SelectSettingWindow {open
       Fl_Value_Slider m_valueSliderRectangle {
         label {Rectangle }
         callback {extern MainWindow *g_mainWindow;
-g_mainWindow->RedrawAll();}
+g_mainWindow->redrawAll();}
         xywh {126 26 345 25} type Horizontal labelfont 4 align 4 maximum 20 step 1 value 5 textfont 4 textsize 14
         code0 {\#include "mainwindow.hpp"}
       }
       Fl_Value_Slider m_valueSliderRhombus {
         label {Rhombus }
         callback {extern MainWindow *g_mainWindow;
-g_mainWindow->RedrawAll();}
+g_mainWindow->redrawAll();}
         xywh {126 71 345 25} type Horizontal labelfont 4 align 4 maximum 20 step 1 value 5 textfont 4 textsize 14
         code0 {\#include "mainwindow.hpp"}
       }
       Fl_Value_Slider m_valueSliderAttribute {
         label {Attribute }
         callback {extern MainWindow *g_mainWindow;
-g_mainWindow->RedrawAll();}
+g_mainWindow->redrawAll();}
         xywh {126 115 345 25} type Horizontal labelfont 4 align 4 maximum 20 step 1 value 5 textfont 4 textsize 14
         code0 {\#include "mainwindow.hpp"}
       }
