@@ -89,7 +89,7 @@ class MainWindow {} {
 		default :          break;
 	}
 }}
-      xywh {50 112 985 690} type Double resizable visible
+      xywh {2260 272 985 690} type Double resizable visible
     } {
       Fl_Box m_drawArea {
         xywh {0 20 965 627} labelfont 4 resizable
@@ -441,7 +441,14 @@ fl_alert("%s", "Haven't implement yet!");}
           }
           MenuItem m_menuItemDeselect {
             label Deselect
-            xywh {20 20 30 20} type Toggle labelfont 4
+            xywh {20 20 30 20} type Toggle labelfont 4 divider
+          }
+          MenuItem {} {
+            label {Clear All Select}
+            callback {extern EditorMap g_editorMap;
+g_editorMap.clearSelect();}
+            xywh {30 30 30 20} labelfont 4
+            code0 {\#include "editormap.hpp"}
           }
         }
         Submenu {} {

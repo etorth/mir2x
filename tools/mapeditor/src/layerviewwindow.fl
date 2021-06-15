@@ -11,15 +11,13 @@ decl {\#include <functional>} {public global
 decl {\#include "mir2xmapdata.hpp"} {public global
 }
 
-class LayerViewWindow {open
-} {
-  Function {LayerViewWindow()} {open
-  } {
+class LayerViewWindow {} {
+  Function {LayerViewWindow()} {} {
     Fl_Window m_window {
-      label LayerViewWindow open
-      xywh {2512 285 800 600} type Double visible
+      label LayerViewWindow
+      xywh {98 71 800 600} type Double resizable visible
     } {
-      Fl_Menu_Bar {} {open
+      Fl_Menu_Bar {} {
         xywh {0 0 800 25} box THIN_UP_BOX labelfont 4
       } {
         Submenu {} {
@@ -98,7 +96,7 @@ class LayerViewWindow {open
         }
       }
       Fl_Box m_viewArea {
-        xywh {0 25 800 555} labelfont 4
+        xywh {0 25 780 535} labelfont 4
         class LayerViewArea
       }
       Fl_Box m_logBar {

@@ -26,7 +26,7 @@ decl {\#include "layerviewwindow.hpp"} {private local
 class LayerBrowserWindow {} {
   Function {LayerBrowserWindow()} {} {
     Fl_Window m_window {
-      private xywh {86 109 555 605} type Double labelfont 4
+      private xywh {68 94 555 605} type Double labelfont 4
       code0 {\#include <FL/fl_ask.H>} visible
     } {
       Fl_Menu_Bar m_menuBar {
@@ -56,7 +56,7 @@ class LayerBrowserWindow {} {
           }
           MenuItem {} {
             label Exit
-            xywh {0 0 30 20} labelfont 4
+            xywh {0 0 30 20} shortcut 0x40071 labelfont 4
           }
         }
         Submenu {} {
@@ -65,15 +65,15 @@ class LayerBrowserWindow {} {
         } {
           MenuItem m_menuItemImportAttribute {
             label {Attribute              }
-            xywh {10 10 30 20} type Toggle value 1 labelfont 4
+            xywh {10 10 30 20} type Toggle value 1 labelfont 4 divider
           }
           MenuItem m_menuItemImportLight {
             label Light
-            xywh {20 20 30 20} type Toggle value 1 labelfont 4
+            xywh {20 20 30 20} type Toggle value 1 labelfont 4 divider
           }
           MenuItem m_menuItemImportTile {
             label Tile
-            xywh {10 10 30 20} type Toggle value 1 labelfont 4
+            xywh {10 10 30 20} type Toggle value 1 labelfont 4 divider
           }
           MenuItem m_menuItemImportObjectGround {
             label {Object Ground}
@@ -89,7 +89,7 @@ class LayerBrowserWindow {} {
           }
           MenuItem m_menuItemImportObjectSky {
             label {Object SKy}
-            xywh {50 50 30 20} type Toggle value 1 labelfont 4
+            xywh {50 50 30 20} type Toggle value 1 labelfont 4 divider
           }
           MenuItem {} {
             label Import
