@@ -15,7 +15,7 @@ class LayerViewWindow {} {
   Function {LayerViewWindow()} {} {
     Fl_Window m_window {
       label LayerViewWindow
-      xywh {98 71 800 600} type Double resizable visible
+      xywh {596 69 800 600} type Double labelfont 4 resizable visible
     } {
       Fl_Menu_Bar {} {
         xywh {0 0 800 25} box THIN_UP_BOX labelfont 4
@@ -96,7 +96,7 @@ class LayerViewWindow {} {
         }
       }
       Fl_Box m_viewArea {
-        xywh {0 25 780 535} labelfont 4
+        xywh {0 25 780 535} labelfont 4 resizable
         class LayerViewArea
       }
       Fl_Box m_logBar {
@@ -241,7 +241,7 @@ class LayerViewWindow {} {
     else{
         m_vsbar->activate();
         ((Fl_Valuator *)(m_vsbar))->step(1, roiH);
-        setScrollBarSize(to_f(m_viewArea->h()) / roiH, {});
+        setScrollBarSize({}, to_f(m_viewArea->h()) / roiH);
     }
 }} {}
   }

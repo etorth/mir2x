@@ -89,13 +89,13 @@ class MainWindow {} {
 		default :          break;
 	}
 }}
-      xywh {2260 272 985 690} type Double resizable visible
+      xywh {190 121 985 690} type Double labelfont 4 resizable visible
     } {
       Fl_Box m_drawArea {
         xywh {0 20 965 627} labelfont 4 resizable
         class DrawArea
       }
-      Fl_Menu_Bar m_menuBar {
+      Fl_Menu_Bar m_menuBar {open
         xywh {0 0 993 20} box THIN_UP_BOX labelfont 4 textfont 4
       } {
         Submenu {} {
@@ -457,19 +457,17 @@ g_editorMap.clearSelect();}
         } {
           MenuItem {} {
             label {Import Layer           }
-            xywh {40 40 30 20} labelfont 4
-            code0 {\#include "layerbrowserwindow.hpp"}
+            xywh {40 40 30 20} labelfont 4 divider
           }
           MenuItem {} {
             label {Export Layer}
-            callback {{
-    // show the layer browser window
-    // it may or may not hide when click it
-    extern LayerBrowserWindow *g_layerBrowserWindow;
-    g_layerBrowserWindow->showAll();
-}}
+            callback {extern EditorMap g_editorMap;
+extern LayerBrowserWindow *g_layerBrowserWindow;
+g_layerBrowserWindow->addEntry(g_editorMap.exportLayer());
+g_layerBrowserWindow->showAll();}
             xywh {50 50 30 20} labelfont 4 divider
-            code0 {\#include "layerbrowserwindow.hpp"}
+            code0 {\#include "editormap.hpp"}
+            code1 {\#include "layerbrowserwindow.hpp"}
           }
           MenuItem {} {
             label Reject
@@ -488,12 +486,8 @@ g_editorMap.clearSelect();}
           }
           MenuItem {} {
             label {Layer Browser}
-            callback {{
-    // show the layer browser window
-    // it may or may not hide when click it
-    extern LayerBrowserWindow *g_layerBrowserWindow;
-    g_layerBrowserWindow->showAll();
-}}
+            callback {extern LayerBrowserWindow *g_layerBrowserWindow;
+g_layerBrowserWindow->showAll();}
             xywh {30 30 30 20} labelfont 4
             code0 {\#include "layerbrowserwindow.hpp"}
           }
