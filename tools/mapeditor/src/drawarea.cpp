@@ -230,7 +230,7 @@ void DrawArea::DrawSelectByObject(int depth)
     int nX = nMouseXOnMap / SYS_MAPGRIDXP;
     int nY = nMouseYOnMap / SYS_MAPGRIDYP;
 
-    for(int nCurrY = nY - 1; nCurrY < g_editorMap.h(); ++nCurrY){
+    for(int nCurrY = nY - 1; nCurrY < to_d(g_editorMap.h()); ++nCurrY){
         if(g_editorMap.validC(nX, nCurrY)){
             for(int nIndex = 0; nIndex < 2; ++nIndex){
                 const auto &obj = g_editorMap.cell(nX, nCurrY).obj[nIndex];
@@ -294,7 +294,7 @@ void DrawArea::AddSelectByObject(int depth)
     int nX = nMouseXOnMap / SYS_MAPGRIDXP;
     int nY = nMouseYOnMap / SYS_MAPGRIDYP;
 
-    for(int nCurrY = nY - 1; nCurrY < g_editorMap.h(); ++nCurrY){
+    for(int nCurrY = nY - 1; nCurrY < to_d(g_editorMap.h()); ++nCurrY){
         if(g_editorMap.validC(nX, nCurrY)){
             for(int nIndex = 0; nIndex < 2; ++nIndex){
                 const auto &obj = g_editorMap.cell(nX, nCurrY).obj[nIndex];
@@ -328,7 +328,7 @@ void DrawArea::AddSelectByObjectIndex(int objIndex)
     int nX = nMouseXOnMap / SYS_MAPGRIDXP;
     int nY = nMouseYOnMap / SYS_MAPGRIDYP;
 
-    for(int nCurrY = nY - 1; nCurrY < g_editorMap.h(); ++nCurrY){
+    for(int nCurrY = nY - 1; nCurrY < to_d(g_editorMap.h()); ++nCurrY){
         if(g_editorMap.validC(nX, nCurrY)){
             const auto &obj = g_editorMap.cell(nX, nCurrY).obj[objIndex];
             if(obj.valid){

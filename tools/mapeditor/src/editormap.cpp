@@ -90,8 +90,8 @@ void EditorMap::optimize()
         return;
     }
 
-    for(int y = 0; y < h(); ++y){
-        for(int x = 0; x < w(); ++x){
+    for(size_t y = 0; y < h(); ++y){
+        for(size_t x = 0; x < w(); ++x){
             optimizeTile(x, y);
             optimizeCell(x, y);
         }
@@ -132,8 +132,8 @@ bool EditorMap::exportOverview(std::function<void(uint32_t, int, int, bool)> fnE
 
 
     int doneCount = 0;
-    for(int x = 0; x < w(); ++x){
-        for(int y = 0; y < h(); ++y){
+    for(size_t x = 0; x < w(); ++x){
+        for(size_t y = 0; y < h(); ++y){
             fnReportPercent(doneCount++);
             if(true
                     && !(x % 2)
@@ -146,8 +146,8 @@ bool EditorMap::exportOverview(std::function<void(uint32_t, int, int, bool)> fnE
     }
 
     for(const auto depth: {OBJD_GROUND, OBJD_OVERGROUND0, OBJD_OVERGROUND1, OBJD_SKY}){
-        for(int x = 0; x < w(); ++x){
-            for(int y = 0; y < h(); ++y){
+        for(size_t x = 0; x < w(); ++x){
+            for(size_t y = 0; y < h(); ++y){
                 fnReportPercent(doneCount++);
                 for(const int objIndex: {0, 1}){
                     const auto &obj = m_data.cell(x, y).obj[objIndex];
@@ -183,8 +183,8 @@ Mir2xMapData EditorMap::exportLayer() const
     Mir2xMapData data;
     data.allocate(w(), h());
 
-    for(int x = 0; x < w(); ++x){
-        for(int y = 0; y < h(); ++y){
+    for(size_t x = 0; x < w(); ++x){
+        for(size_t y = 0; y < h(); ++y){
             if(g_layerBrowserWindow->importTile()){
                 if((x % 2) == 0 && (y % 2) == 0){
                     if(tile(x, y).valid){

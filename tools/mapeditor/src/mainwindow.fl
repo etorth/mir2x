@@ -1057,24 +1057,7 @@ g_aboutWindow->showAll();}
   } {
     code {{
     // create a big png file as an overview of the current map
-    // generate name and save it in current working folder, support ratio 1/2/4/8/16
-
-    switch(overviewRatio){
-        case 1:
-        case 2:
-        case 4:
-        case 8:
-        case 16:
-        case 32:
-            {
-                break;
-            }
-        default:
-            {
-                fl_alert("Overview ratio is not supported: %d", overviewRatio);
-                return;
-            }
-    }
+    // generate name and save it in current working folder, support ratio 1/2/4/8/16/32
 
     extern EditorMap g_editorMap;
     if(!g_editorMap.valid()){
@@ -1082,71 +1065,83 @@ g_aboutWindow->showAll();}
         return;
     }
 
+    if(overviewRatio <= 0){
+        fl_alert("Invalid overview ratio: %d", overviewRatio);
+        return;
+    }
+
+    if(false
+            || (g_editorMap.w() * SYS_MAPGRIDXP) % overviewRatio
+            || (g_editorMap.h() * SYS_MAPGRIDYP) % overviewRatio){
+        fl_alert("Overview ratio doesn't match map size: ratio = %d, w = %zu h = %zu", overviewRatio, g_editorMap.w(), g_editorMap.h());
+        return;
+    }
+
     extern std::string g_workingPathName;
-    if(g_workingPathName == ""){
+    if(g_workingPathName.empty()){
         fl_alert("Current editor working path is invalid");
         return;
     }
 
-    const int nDstW = g_editorMap.w() * SYS_MAPGRIDXP;
-    const int nDstH = g_editorMap.h() * SYS_MAPGRIDYP;
+    const int dstW = g_editorMap.w() * SYS_MAPGRIDXP;
+    const int dstH = g_editorMap.h() * SYS_MAPGRIDYP;
 
-    if(nDstW % overviewRatio || nDstH % overviewRatio){
+    if(dstW % overviewRatio || dstH % overviewRatio){
         fl_alert("system error: overview ratio can't devide original map pixel size");
         return;
     }
 
-    std::vector<uint32_t> stvBuf(nDstW * nDstH, 0);
-    auto pDst = stvBuf.data();
+    std::vector<uint32_t> origDstBuf(dstW * dstH, 0);
+    auto dstPtr = origDstBuf.data();
 
     const auto fnBufDraw = [](
-            /* */ uint32_t *pDst, int nDstW, int nDstH,
-            const uint32_t *pSrc, int nSrcW, int nSrcH,
+            /* */ uint32_t *dstPtr, int dstW, int dstH,
+            const uint32_t *srcPtr, int srcW, int srcH,
 
-            int nOnDstX, int nOnDstY,
-            int nOnSrcX, int nOnSrcY,
-            int nOnSrcW, int nOnSrcH)
+            int onDstX, int onDstY,
+            int onSrcX, int onSrcY,
+            int onSrcW, int onSrcH)
     {
         if(true
-                && pDst
-                && nDstW > 0
-                && nDstH > 0
+                && dstPtr
+                && dstW > 0
+                && dstH > 0
 
-                && pSrc
-                && nSrcW > 0
-                && nSrcH > 0){
+                && srcPtr
+                && srcW > 0
+                && srcH > 0){
 
-            const auto nOldOnSrcX = nOnSrcX;
-            const auto nOldOnSrcY = nOnSrcY;
+            const auto oldOnSrcX = onSrcX;
+            const auto oldOnSrcY = onSrcY;
 
             if(true
-                    && nOnSrcW > 0
-                    && nOnSrcH > 0
-                    && mathf::rectangleOverlapRegion<int>(0, 0, nSrcW, nSrcH, &nOnSrcX, &nOnSrcY, &nOnSrcW, &nOnSrcH)){
+                    && onSrcW > 0
+                    && onSrcH > 0
+                    && mathf::rectangleOverlapRegion<int>(0, 0, srcW, srcH, &onSrcX, &onSrcY, &onSrcW, &onSrcH)){
 
-                nOnDstX += (nOnSrcX - nOldOnSrcX);
-                nOnDstY += (nOnSrcY - nOldOnSrcY);
+                onDstX += (onSrcX - oldOnSrcX);
+                onDstY += (onSrcY - oldOnSrcY);
 
-                const auto nOldOnDstX = nOnDstX;
-                const auto nOldOnDstY = nOnDstY;
+                const auto oldOnDstX = onDstX;
+                const auto oldOnDstY = onDstY;
 
                 if(true
-                        && nOnSrcW > 0
-                        && nOnSrcH > 0
-                        && mathf::rectangleOverlapRegion<int>(0, 0, nDstW, nDstH, &nOnDstX, &nOnDstY, &nOnSrcW, &nOnSrcH)){
+                        && onSrcW > 0
+                        && onSrcH > 0
+                        && mathf::rectangleOverlapRegion<int>(0, 0, dstW, dstH, &onDstX, &onDstY, &onSrcW, &onSrcH)){
 
-                    nOnSrcX += (nOnDstX - nOldOnDstX);
-                    nOnSrcY += (nOnDstY - nOldOnDstY);
+                    onSrcX += (onDstX - oldOnDstX);
+                    onSrcY += (onDstY - oldOnDstY);
 
                     if(true
-                            && nOnSrcW > 0
-                            && nOnSrcH > 0){
+                            && onSrcW > 0
+                            && onSrcH > 0){
 
-                        for(int nOnSrcDX = 0; nOnSrcDX < nOnSrcW; ++nOnSrcDX){
-                            for(int nOnSrcDY = 0; nOnSrcDY < nOnSrcH; ++nOnSrcDY){
-                                auto &nSrc = pSrc[(nOnSrcX + nOnSrcDX) + (nOnSrcY + nOnSrcDY) * nSrcW];
-                                auto &nDst = pDst[(nOnDstX + nOnSrcDX) + (nOnDstY + nOnSrcDY) * nDstW];
-                                nDst = colorf::renderABGR(nDst, nSrc);
+                        for(int onSrcDX = 0; onSrcDX < onSrcW; ++onSrcDX){
+                            for(int onSrcDY = 0; onSrcDY < onSrcH; ++onSrcDY){
+                                auto &src = srcPtr[(onSrcX + onSrcDX) + (onSrcY + onSrcDY) * srcW];
+                                auto &dst = dstPtr[(onDstX + onSrcDX) + (onDstY + onSrcDY) * dstW];
+                                dst = colorf::renderABGR(dst, src);
                             }
                         }
                     }
@@ -1155,25 +1150,25 @@ g_aboutWindow->showAll();}
         }
     };
 
-    const auto fnBufDrawImage = [this, fnBufDraw, pDst, nDstW, nDstH](uint32_t imageIndex, int nX, int nY, bool bObj)
+    const auto fnBufDrawImage = [this, fnBufDraw, dstPtr, dstW, dstH](uint32_t imageIndex, int nX, int nY, bool isObj)
     {
         extern ImageDB *g_imageDB;
         extern EditorMap g_editorMap;
 
         if(g_editorMap.validC(nX, nY) && g_imageDB->setIndex(imageIndex)){
-            if(const auto [pSrc, nSrcW, nSrcH] = g_imageDB->decode(imageIndex, 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF); pSrc){
+            if(const auto [srcPtr, srcW, srcH] = g_imageDB->decode(imageIndex, 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF); srcPtr){
                 fnBufDraw(
-                        pDst, nDstW, nDstH,
-                        pSrc, nSrcW, nSrcH,
+                        dstPtr, dstW, dstH,
+                        srcPtr, srcW, srcH,
 
                         nX * SYS_MAPGRIDXP,
-                        nY * SYS_MAPGRIDYP + (bObj ? (SYS_MAPGRIDYP - nSrcH) : 0),
+                        nY * SYS_MAPGRIDYP + (isObj ? (SYS_MAPGRIDYP - srcH) : 0),
 
                         0,
                         0,
 
-                        nSrcW,
-                        nSrcH);
+                        srcW,
+                        srcH);
             }
         }
     };
@@ -1182,27 +1177,27 @@ g_aboutWindow->showAll();}
     const std::string szOverviewFileName = datef::now() + ".PNG";
     const std::string szOverviewFullFileName = g_workingPathName + "/" + szOverviewFileName;
 
-    int exportW = nDstW;
-    int exportH = nDstH;
-    const uint32_t *exportBufPtr = pDst;
+    int exportW = dstW;
+    int exportH = dstH;
+    const uint32_t *exportBufPtr = dstPtr;
 
-    std::vector<uint32_t> overviewBuf;
+    std::vector<uint32_t> overviewDstBuf;
     if(overviewRatio != 1){
-        const int overviewW = nDstW / overviewRatio;
-        const int overviewH = nDstH / overviewRatio;
+        const int overviewW = dstW / overviewRatio;
+        const int overviewH = dstH / overviewRatio;
 
-        overviewBuf.resize(overviewW * overviewH, 0);
+        overviewDstBuf.resize(overviewW * overviewH, 0);
         for(int y = 0; y < overviewH; ++y){
             for(int x = 0; x < overviewW; ++x){
                 const int origX = x * overviewRatio;
                 const int origY = y * overviewRatio;
-                overviewBuf[y * overviewW + x] = stvBuf[origY * nDstW + origX];
+                overviewDstBuf[y * overviewW + x] = origDstBuf[origY * dstW + origX];
             }
         }
 
         exportW = overviewW;
         exportH = overviewH;
-        exportBufPtr = overviewBuf.data();
+        exportBufPtr = overviewDstBuf.data();
     }
 
     if(pngf::saveRGBABuffer((const uint8_t *)(exportBufPtr), to_u32(exportW), to_u32(exportH), szOverviewFullFileName.c_str())){

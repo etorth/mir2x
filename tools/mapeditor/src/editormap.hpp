@@ -106,21 +106,21 @@ class EditorMap
 
         bool validC(int nX, int nY) const
         {
-            return nX >= 0 && nX < w() && nY >= 0 && nY < h();
+            return nX >= 0 && nX < to_d(w()) && nY >= 0 && nY < to_d(h());
         }
 
         bool validP(int nX, int nY) const
         {
-            return nX >= 0 && nX < SYS_MAPGRIDXP * w() && nY >= 0 && nY < SYS_MAPGRIDYP * h();
+            return nX >= 0 && nX < to_d(SYS_MAPGRIDXP * w()) && nY >= 0 && nY < to_d(SYS_MAPGRIDYP * h());
         }
 
     public:
-        int w() const
+        size_t w() const
         {
             return m_data.w();
         }
 
-        int h() const
+        size_t h() const
         {
             return m_data.h();
         }
