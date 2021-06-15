@@ -15,7 +15,7 @@ class LayerViewWindow {} {
   Function {LayerViewWindow()} {} {
     Fl_Window m_window {
       label LayerViewWindow
-      xywh {596 69 800 600} type Double labelfont 4 resizable visible
+      xywh {75 100 800 600} type Double labelfont 4 resizable visible
     } {
       Fl_Menu_Bar {} {
         xywh {0 0 800 25} box THIN_UP_BOX labelfont 4
@@ -103,9 +103,11 @@ class LayerViewWindow {} {
         xywh {0 580 800 20} box THIN_UP_BOX labelfont 4 align 20
       }
       Fl_Scrollbar m_vsbar {
+        callback {m_window->redraw();}
         xywh {780 25 20 555} labeltype NO_LABEL labelfont 4
       }
       Fl_Scrollbar m_hsbar {
+        callback {m_window->redraw();}
         xywh {0 560 780 20} type Horizontal labelfont 4
       }
     }

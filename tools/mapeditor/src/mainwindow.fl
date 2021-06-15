@@ -89,13 +89,13 @@ class MainWindow {} {
 		default :          break;
 	}
 }}
-      xywh {190 121 985 690} type Double labelfont 4 resizable visible
+      xywh {77 83 985 690} type Double labelfont 4 resizable visible
     } {
       Fl_Box m_drawArea {
         xywh {0 20 965 627} labelfont 4 resizable
         class DrawArea
       }
-      Fl_Menu_Bar m_menuBar {open
+      Fl_Menu_Bar m_menuBar {
         xywh {0 0 993 20} box THIN_UP_BOX labelfont 4 textfont 4
       } {
         Submenu {} {
@@ -568,9 +568,11 @@ g_aboutWindow->showAll();}
         }
       }
       Fl_Scrollbar m_vsbar {
+        callback {m_window->redraw();}
         xywh {965 20 20 647} labeltype NO_LABEL labelfont 4 step 0.001 deactivate
       }
       Fl_Scrollbar m_hsbar {
+        callback {m_window->redraw();}
         xywh {0 647 965 20} type Horizontal labeltype NO_LABEL labelfont 4 step 0.001 deactivate
       }
       Fl_Box m_logBar {
