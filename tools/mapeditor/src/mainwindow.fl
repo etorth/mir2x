@@ -89,7 +89,7 @@ class MainWindow {} {
 		default :          break;
 	}
 }}
-      xywh {47 97 985 690} type Double resizable visible
+      xywh {55 128 985 690} type Double resizable visible
     } {
       Fl_Box m_drawArea {
         xywh {0 20 965 627} labelfont 4 resizable
@@ -451,16 +451,6 @@ fl_alert("%s", "Haven't implement yet!");}
           MenuItem m_menuItemDeselect {
             label Deselect
             xywh {20 20 30 20} type Toggle labelfont 4 divider
-          }
-          MenuItem {} {
-            label Settings
-            callback {extern SelectSettingWindow *g_selectSettingWindow;
-
-if(g_selectSettingWindow){
-	g_selectSettingWindow->showAll();
-}}
-            xywh {30 30 30 20} labelfont 4
-            code0 {\#include "selectsettingwindow.hpp"}
           }
         }
         Submenu {} {

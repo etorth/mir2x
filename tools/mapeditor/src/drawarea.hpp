@@ -26,22 +26,16 @@
 class DrawArea: public BaseArea
 {
     private:
-        enum FloatObjectType: int
+        enum
         {
-            FOTYPE_NONE = 0,
-            FOTYPE_TILE,
-            FOTYPE_OBJ0,
-            FOTYPE_OBJ1,
-            FOTYPE_MAX,
+            FOBJ_TILE,
+            FOBJ_OBJ0,
+            FOBJ_OBJ1,
         };
-
-    private:
-        std::unique_ptr<Fl_Image> m_lightImge;
 
     public:
         DrawArea(int argX, int argY, int argW, int argH)
             : BaseArea(argX, argY, argW, argH)
-            , m_lightImge(CreateRoundImage(200, 0X001286FF))
         {}
 
     public:
@@ -68,19 +62,12 @@ class DrawArea: public BaseArea
         void drawDoneSelect();
 
     private:
-        void RhombusCoverOperation  (int, int, int, std::function<void(int, int)>);
-        void RectangleCoverOperation(int, int, int, std::function<void(int, int)>);
-        void AttributeCoverOperation(int, int, int, std::function<void(int, int)>);
-
-    private:
         void drawTrySelectByTile();
         void drawSelectByObject(int);
         void drawSelectByObjectIndex(int);
 
     private:
-        void drawTrySelectBySingle();
-        void drawTrySelectByRhombus();
-        void drawTrySelectByRectangle();
+        void drawTrySelectByObject();
         void drawTrySelectByAttribute();
 
     private:
@@ -88,10 +75,6 @@ class DrawArea: public BaseArea
         void clearSelect();
 
     private:
-        void addSelectByTile();
-        void addSelectByRhombus();
-        void addSelectByRectangle();
-        void addSelectByAttribute();
         void addSelectByObject(int);
         void addSelectByObjectIndex(int);
 
@@ -106,8 +89,7 @@ class DrawArea: public BaseArea
 
     protected:
         void drawDoneSelectByTile();
-        void drawDoneSelectByObject(int);
-        void drawDoneSelectByObjectIndex(int);
+        void drawDoneSelectByObject();
         void drawDoneSelectByAttribute();
 
     public:

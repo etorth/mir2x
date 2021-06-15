@@ -36,17 +36,16 @@
 #include "attributeselectwindow.hpp"
 
 MainWindow                      *g_mainWindow               = nullptr;
-SelectSettingWindow             *g_selectSettingWindow      = nullptr;
 AnimationSelectWindow           *g_animationSelectWindow    = nullptr;
 AboutWindow                     *g_aboutWindow              = nullptr;
 AttributeSelectWindow           *g_attributeGridWindow      = nullptr;
 AttributeSelectWindow           *g_attributeSelectWindow    = nullptr;
 ProgressBarWindow               *g_progressBarWindow        = nullptr;
-LayerViewWindow               *g_layerViewWindow        = nullptr;
+LayerViewWindow                 *g_layerViewWindow          = nullptr;
 LayerBrowserWindow              *g_layerBrowserWindow       = nullptr;
 CropConfigureWindow             *g_cropConfigureWindow      = nullptr;
-EditorMap                        g_editorMap;
 ImageDB                         *g_imageDB                  = nullptr;
+EditorMap                        g_editorMap;
 ImageCache                       g_imageCache;
 AnimationDB                      g_animationDB;
 AnimationDraw                    g_animationDraw;
@@ -61,7 +60,6 @@ int main()
     g_workingPathName       = "";
 
     g_mainWindow            = new MainWindow();
-    g_selectSettingWindow   = new SelectSettingWindow();
     g_animationSelectWindow = new AnimationSelectWindow();
     g_aboutWindow           = new AboutWindow();
     g_attributeSelectWindow = new AttributeSelectWindow();
