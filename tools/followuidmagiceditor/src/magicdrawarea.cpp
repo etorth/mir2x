@@ -61,7 +61,7 @@ void MagicDrawArea::drawImage(Fl_Image *image, int dstX, int dstY, int srcX, int
         if(true
                 && srcW > 0
                 && srcH > 0
-                && mathf::rectangleOverlapRegion<int>(0, 0, image->w(), image->h(), &srcX, &srcY, &srcW, &srcH)){
+                && mathf::rectangleOverlapRegion<int>(0, 0, image->w(), image->h(), srcX, srcY, srcW, srcH)){
 
             dstX += (srcX - srcXOld);
             dstY += (srcY - srcYOld);
@@ -72,7 +72,7 @@ void MagicDrawArea::drawImage(Fl_Image *image, int dstX, int dstY, int srcX, int
             if(true
                     && srcW > 0
                     && srcH > 0
-                    && mathf::rectangleOverlapRegion<int>(0, 0, w(), h(), &dstX, &dstY, &srcW, &srcH)){
+                    && mathf::rectangleOverlapRegion<int>(0, 0, w(), h(), dstX, dstY, srcW, srcH)){
 
                 srcX += (dstX - dstXOld);
                 srcY += (dstY - dstYOld);

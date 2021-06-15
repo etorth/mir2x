@@ -1074,7 +1074,7 @@ g_aboutWindow->showAll();}
             if(true
                     && onSrcW > 0
                     && onSrcH > 0
-                    && mathf::rectangleOverlapRegion<int>(0, 0, srcW, srcH, &onSrcX, &onSrcY, &onSrcW, &onSrcH)){
+                    && mathf::rectangleOverlapRegion<int>(0, 0, srcW, srcH, onSrcX, onSrcY, onSrcW, onSrcH)){
 
                 onDstX += (onSrcX - oldOnSrcX);
                 onDstY += (onSrcY - oldOnSrcY);
@@ -1085,7 +1085,7 @@ g_aboutWindow->showAll();}
                 if(true
                         && onSrcW > 0
                         && onSrcH > 0
-                        && mathf::rectangleOverlapRegion<int>(0, 0, dstW, dstH, &onDstX, &onDstY, &onSrcW, &onSrcH)){
+                        && mathf::rectangleOverlapRegion<int>(0, 0, dstW, dstH, onDstX, onDstY, onSrcW, onSrcH)){
 
                     onSrcX += (onDstX - oldOnDstX);
                     onSrcY += (onDstY - oldOnDstY);

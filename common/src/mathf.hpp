@@ -208,37 +208,22 @@ namespace mathf
         return true;
     }
 
-    template<typename T> bool rectangleOverlapRegion(T nfX1, T nfY1, T nfW1, T nfH1, T *nfX2, T *nfY2, T *nfW2, T *nfH2)
+    template<typename T> bool rectangleOverlapRegion(T nfX1, T nfY1, T nfW1, T nfH1, T &nfX2, T &nfY2, T &nfW2, T &nfH2)
     {
-        // 1. check parameters, since we use them to provide arguments
-        if(!(nfX2 && nfY2 && nfW2 && nfH2)){
-            throw fflerror("invalid argument: rectangleOverlapRegion(...)");
+        if(!rectangleOverlap(nfX1, nfY1, nfW1, nfH1, nfX2, nfY2, nfW2, nfH2)){
+            return false;
         }
 
-        // 2. fast check for overlapping
-        if(rectangleOverlap(nfX1, nfY1, nfW1, nfH1, *nfX2, *nfY2, *nfW2, *nfH2)){
+        const T nfRX = std::max<T>(nfX1, nfX2);
+        const T nfRY = std::max<T>(nfY1, nfY2);
+        const T nfRW = std::min<T>(nfX1 + nfW1, nfX2 + nfW2) - nfRX;
+        const T nfRH = std::min<T>(nfY1 + nfH1, nfY2 + nfH2) - nfRY;
 
-            T nfRX, nfRY, nfRW, nfRH;
-            // TODO
-            //
-            // we assume W, H are always non-negative
-            // then even if we have substraction here, it's guarenteed to be safe
-
-            nfRX = (std::max<T>)(nfX1, *nfX2);
-            nfRY = (std::max<T>)(nfY1, *nfY2);
-            nfRW = (std::min<T>)(nfX1 + nfW1, *nfX2 + *nfW2) - nfRX;
-            nfRH = (std::min<T>)(nfY1 + nfH1, *nfY2 + *nfH2) - nfRY;
-
-            *nfX2 = nfRX;
-            *nfY2 = nfRY;
-            *nfW2 = nfRW;
-            *nfH2 = nfRH;
-
-            return true;
-        }
-
-        // no overlap, just return false
-        return false;
+        nfX2 = nfRX;
+        nfY2 = nfRY;
+        nfW2 = nfRW;
+        nfH2 = nfRH;
+        return true;
     }
 
     template<typename T> bool powerOf2(T nParam)
@@ -494,7 +479,7 @@ namespace mathf
         int nDst2SrcRegionW = nDstRegionW;
         int nDst2SrcRegionH = nDstRegionH;
 
-        if(!rectangleOverlapRegion(nSrcRegionX, nSrcRegionY, nSrcRegionW, nSrcRegionH, &nDst2SrcRegionX, &nDst2SrcRegionY, &nDst2SrcRegionW, &nDst2SrcRegionH)){
+        if(!rectangleOverlapRegion(nSrcRegionX, nSrcRegionY, nSrcRegionW, nSrcRegionH, nDst2SrcRegionX, nDst2SrcRegionY, nDst2SrcRegionW, nDst2SrcRegionH)){
             return false;
         }
 
@@ -511,7 +496,7 @@ namespace mathf
             *pSrcH = nSrcOriginH - *pSrcY;
         }
 
-        if(!rectangleOverlapRegion(nDst2SrcRegionX, nDst2SrcRegionY, nDst2SrcRegionW, nDst2SrcRegionH, pSrcX, pSrcY, pSrcW, pSrcH)){
+        if(!rectangleOverlapRegion(nDst2SrcRegionX, nDst2SrcRegionY, nDst2SrcRegionW, nDst2SrcRegionH, *pSrcX, *pSrcY, *pSrcW, *pSrcH)){
             *pSrcW = nBkupSrcW;
             *pSrcH = nBkupSrcH;
             return false;

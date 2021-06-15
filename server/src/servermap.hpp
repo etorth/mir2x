@@ -352,7 +352,7 @@ class ServerMap final: public ServerObject
             int x0 = cx0 - r + 1;
             int y0 = cy0 - r + 1;
 
-            if((doW > 0) && (doH > 0) && mathf::rectangleOverlapRegion(0, 0, W(), H(), &x0, &y0, &doW, &doH)){
+            if((doW > 0) && (doH > 0) && mathf::rectangleOverlapRegion(0, 0, W(), H(), x0, y0, doW, doH)){
                 for(int x = x0; x < x0 + doW; ++x){
                     for(int y = y0; y < y0 + doH; ++y){
                         if(validC(x, y)){
@@ -375,7 +375,7 @@ class ServerMap final: public ServerObject
 
         template<std::predicate<int, int> F> bool doSquare(int x0, int y0, int doW, int doH, const F &f)
         {
-            if((doW > 0) && (doH > 0) && mathf::rectangleOverlapRegion(0, 0, W(), H(), &x0, &y0, &doW, &doH)){
+            if((doW > 0) && (doH > 0) && mathf::rectangleOverlapRegion(0, 0, W(), H(), x0, y0, doW, doH)){
                 for(int x = x0; x < x0 + doW; ++x){
                     for(int y = y0; y < y0 + doH; ++y){
                         if(validC(x, y)){

@@ -52,7 +52,7 @@ void BaseArea::drawImage(Fl_Image *pImage, int nX, int nY, int nImageX, int nIma
         if(true
                 && nImageW > 0
                 && nImageH > 0
-                && mathf::rectangleOverlapRegion<int>(0, 0, pImage->w(), pImage->h(), &nImageX, &nImageY, &nImageW, &nImageH)){
+                && mathf::rectangleOverlapRegion<int>(0, 0, pImage->w(), pImage->h(), nImageX, nImageY, nImageW, nImageH)){
 
             nX += (nImageX - nOldImageX);
             nY += (nImageY - nOldImageY);
@@ -63,7 +63,7 @@ void BaseArea::drawImage(Fl_Image *pImage, int nX, int nY, int nImageX, int nIma
             if(true
                     && nImageW > 0
                     && nImageH > 0
-                    && mathf::rectangleOverlapRegion<int>(0, 0, w(), h(), &nX, &nY, &nImageW, &nImageH)){
+                    && mathf::rectangleOverlapRegion<int>(0, 0, w(), h(), nX, nY, nImageW, nImageH)){
 
                 nImageX += (nX - nOldAX);
                 nImageY += (nY - nOldAY);
@@ -151,7 +151,7 @@ void BaseArea::drawImageCover(Fl_Image *pImage, int nX, int nY, int nW, int nH)
 
             && nW > 0
             && nH > 0
-            && mathf::rectangleOverlapRegion(0, 0, w(), h(), &nX, &nY, &nW, &nH)){
+            && mathf::rectangleOverlapRegion(0, 0, w(), h(), nX, nY, nW, nH)){
 
         // use an image as a cover to repeat
         // should do partically drawing at end of x and y

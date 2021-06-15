@@ -1041,7 +1041,7 @@ void XMLTypeset::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int sr
                 int bgBoxW = tokenPtr->Box.Info.W + tokenPtr->Box.State.W1 + tokenPtr->Box.State.W2;
                 int bgBoxH = tokenPtr->Box.Info.H;
 
-                if(mathf::rectangleOverlapRegion(srcX, srcY, srcW, srcH, &bgBoxX, &bgBoxY, &bgBoxW, &bgBoxH)){
+                if(mathf::rectangleOverlapRegion(srcX, srcY, srcW, srcH, bgBoxX, bgBoxY, bgBoxW, bgBoxH)){
                     g_sdlDevice->fillRectangle(bgColorVal, bgBoxX + dstDX, bgBoxY + dstDY, bgBoxW, bgBoxH);
                 }
             }
@@ -1051,7 +1051,7 @@ void XMLTypeset::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int sr
             int boxW = tokenPtr->Box.Info.W;
             int boxH = tokenPtr->Box.Info.H;
 
-            if(!mathf::rectangleOverlapRegion(srcX, srcY, srcW, srcH, &boxX, &boxY, &boxW, &boxH)){
+            if(!mathf::rectangleOverlapRegion(srcX, srcY, srcW, srcH, boxX, boxY, boxW, boxH)){
                 continue;
             }
 

@@ -137,7 +137,7 @@ void InventoryBoard::drawItem(int dstX, int dstY, size_t startRow, bool cursorOn
             int binGridW = bin.w;
             int binGridH = bin.h;
 
-            if(mathf::rectangleOverlapRegion<int>(0, startRow, 6, 8, &binGridX, &binGridY, &binGridW, &binGridH)){
+            if(mathf::rectangleOverlapRegion<int>(0, startRow, 6, 8, binGridX, binGridY, binGridW, binGridH)){
                 if(cursorOn){
                     g_sdlDevice->fillRectangle(colorf::WHITE + 64,
                             startX + binGridX * SYS_INVGRIDPW,

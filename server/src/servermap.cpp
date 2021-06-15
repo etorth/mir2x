@@ -688,7 +688,7 @@ bool ServerMap::DoCenterCircle(int nCX0, int nCY0, int nCR, bool bPriority, cons
     if(true
             && nW > 0
             && nH > 0
-            && mathf::rectangleOverlapRegion(0, 0, W(), H(), &nX0, &nY0, &nW, &nH)){
+            && mathf::rectangleOverlapRegion(0, 0, W(), H(), nX0, nY0, nW, nH)){
 
         // get the clip region over the map
         // if no valid region we won't do the rest
@@ -726,7 +726,7 @@ bool ServerMap::DoCenterSquare(int nCX, int nCY, int nW, int nH, bool bPriority,
     if(true
             && nW > 0
             && nH > 0
-            && mathf::rectangleOverlapRegion(0, 0, W(), H(), &nX0, &nY0, &nW, &nH)){
+            && mathf::rectangleOverlapRegion(0, 0, W(), H(), nX0, nY0, nW, nH)){
 
         // get the clip region over the map
         // if no valid region we won't do the rest
