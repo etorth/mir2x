@@ -1065,21 +1065,14 @@ g_aboutWindow->showAll();}
         return;
     }
 
-    if(overviewRatio <= 0){
-        fl_alert("Invalid overview ratio: %d", overviewRatio);
-        return;
-    }
-
-    if(false
-            || (g_editorMap.w() * SYS_MAPGRIDXP) % overviewRatio
-            || (g_editorMap.h() * SYS_MAPGRIDYP) % overviewRatio){
-        fl_alert("Overview ratio doesn't match map size: ratio = %d, w = %zu h = %zu", overviewRatio, g_editorMap.w(), g_editorMap.h());
-        return;
-    }
-
     extern std::string g_workingPathName;
     if(g_workingPathName.empty()){
         fl_alert("Current editor working path is invalid");
+        return;
+    }
+
+    if(overviewRatio <= 0){
+        fl_alert("Invalid overview ratio: %d", overviewRatio);
         return;
     }
 
@@ -1087,7 +1080,7 @@ g_aboutWindow->showAll();}
     const int dstH = g_editorMap.h() * SYS_MAPGRIDYP;
 
     if(dstW % overviewRatio || dstH % overviewRatio){
-        fl_alert("system error: overview ratio can't devide original map pixel size");
+        fl_alert("Overview ratio doesn't match map size: ratio = %d, w = %zu h = %zu", overviewRatio, g_editorMap.w(), g_editorMap.h());
         return;
     }
 

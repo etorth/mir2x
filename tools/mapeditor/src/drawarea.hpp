@@ -59,17 +59,17 @@ class DrawArea: public BaseArea
         std::tuple<int, int> offset() const override;
 
     private:
-        void DrawGrid();
+        void drawGrid();
         void drawTile();
-        void DrawLight();
-        void DrawGround();
+        void drawLight();
+        void drawGround();
         void drawObject(int);
-        void DrawAttributeGrid();
+        void drawAttributeGrid();
 
     private:
-        void DrawTextBox();
-        void DrawTrySelect();
-        void DrawDoneSelect();
+        void drawTextBox();
+        void drawTrySelect();
+        void drawDoneSelect();
 
     private:
         void RhombusCoverOperation  (int, int, int, std::function<void(int, int)>);
@@ -77,15 +77,15 @@ class DrawArea: public BaseArea
         void AttributeCoverOperation(int, int, int, std::function<void(int, int)>);
 
     private:
-        void DrawTrySelectByTile();
-        void DrawSelectByObject(int);
-        void DrawSelectByObjectIndex(int);
+        void drawTrySelectByTile();
+        void drawSelectByObject(int);
+        void drawSelectByObjectIndex(int);
 
     private:
-        void DrawTrySelectBySingle();
-        void DrawTrySelectByRhombus();
-        void DrawTrySelectByRectangle();
-        void DrawTrySelectByAttribute();
+        void drawTrySelectBySingle();
+        void drawTrySelectByRhombus();
+        void drawTrySelectByRectangle();
+        void drawTrySelectByAttribute();
 
     private:
         void AddSelect();
@@ -104,16 +104,16 @@ class DrawArea: public BaseArea
         bool LocateAnimation(int, int);
 
     public:
-        void DrawFloatObject(int, int, int, int, int);
+        void drawFloatObject(int, int, int, int, int);
 
     public:
         Fl_Image *CreateRoundImage(int, uint32_t);
 
     protected:
-        void DrawDoneSelectByTile();
-        void DrawDoneSelectByObject(int);
-        void DrawDoneSelectByObjectIndex(int);
-        void DrawDoneSelectByAttribute();
+        void drawDoneSelectByTile();
+        void drawDoneSelectByObject(int);
+        void drawDoneSelectByObjectIndex(int);
+        void drawDoneSelectByAttribute();
 
     protected:
         void FillMapGrid(int, int, int, int, uint32_t);

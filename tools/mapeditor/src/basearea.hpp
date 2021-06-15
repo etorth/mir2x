@@ -50,15 +50,15 @@ class BaseArea: public Fl_Box
         void drawImage(Fl_Image *, int, int, int, int, int, int);
 
     public:
-        void DrawText(int, int, const char *, ...);
+        void drawText(int, int, const char *, ...);
         void drawImageCover(Fl_Image *, int, int, int, int);
 
     public:
-        void DrawCircle(int, int, int);
+        void drawCircle(int, int, int);
 
     public:
         void drawLine(int, int, int, int);
-        void DrawLoop(int, int, int, int, int, int);
+        void drawLoop(int, int, int, int, int, int);
         void drawRectangle(int, int, int, int);
 
     public:

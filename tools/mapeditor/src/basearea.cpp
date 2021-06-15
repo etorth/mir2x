@@ -76,7 +76,7 @@ void BaseArea::drawImage(Fl_Image *pImage, int nX, int nY, int nImageX, int nIma
     }
 }
 
-void BaseArea::DrawText(int nX, int nY, const char *szLogFormat, ...)
+void BaseArea::drawText(int nX, int nY, const char *szLogFormat, ...)
 {
     auto fnDraw = [this](int nX, int nY, const char *szLogInfo)
     {
@@ -204,7 +204,7 @@ void BaseArea::drawImageCover(Fl_Image *pImage, int nX, int nY, int nW, int nH)
     }
 }
 
-void BaseArea::DrawCircle(int nX, int nY, int nR)
+void BaseArea::drawCircle(int nX, int nY, int nR)
 {
     if(nR > 0){
         int nCBoxX = nX - nR - 1;
@@ -229,7 +229,7 @@ void BaseArea::drawLine(int nX0, int nY0, int nX1, int nY1)
     }
 }
 
-void BaseArea::DrawLoop(int nX1, int nY1, int nX2, int nY2, int nX3, int nY3)
+void BaseArea::drawLoop(int nX1, int nY1, int nX2, int nY2, int nX3, int nY3)
 {
     drawLine(nX1, nY1, nX2, nY2);
     drawLine(nX2, nY2, nX3, nY3);
