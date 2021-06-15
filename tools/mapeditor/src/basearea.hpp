@@ -27,6 +27,7 @@
 #include <FL/Fl_Box.H>
 #include <FL/Fl_Image.H>
 #include "totype.hpp"
+#include "sysconst.hpp"
 #include "wilanitimer.hpp"
 
 class BaseArea: public Fl_Box
@@ -35,7 +36,11 @@ class BaseArea: public Fl_Box
         WilAniTimer m_aniTimer;
 
     private:
-        std::map<uint32_t, std::shared_ptr<Fl_Image>> m_coverRecord;
+        std::unordered_map<uint32_t, std::unique_ptr<Fl_Image>> m_coverList;
+
+    protected:
+        int m_mouseX = 0; // reset in Fl_Box::handle()
+        int m_mouseY = 0;
 
     public:
         BaseArea(int argX, int argY, int argW, int argH)
@@ -71,11 +76,12 @@ class BaseArea: public Fl_Box
         }
 
     public:
-        void FillRectangle(int, int, int, int, uint32_t);
+        void fillGrid     (int, int, int, int, uint32_t);
+        void fillRectangle(int, int, int, int, uint32_t);
 
     private:
-        Fl_Image *RetrieveImageCover(uint32_t);
-        Fl_Image *CreateImageCover(int, int, uint32_t);
+        Fl_Image *retrieveImageCover(uint32_t);
+        Fl_Image *createImageCover(int, int, uint32_t);
 
     public:
         virtual std::optional<std::tuple<size_t, size_t>> getROISize() const = 0;
@@ -116,6 +122,17 @@ class BaseArea: public Fl_Box
             {
                 (xpCount > 0) ? to_f(dx) / xpCount : 0.0,
                 (ypCount > 0) ? to_f(dy) / ypCount : 0.0,
+            };
+        }
+
+    protected:
+        std::tuple<int, int> mouseGrid() const
+        {
+            const auto [offsetX, offsetY] = offset();
+            return
+            {
+                (m_mouseX - x() + offsetX) / SYS_MAPGRIDXP,
+                (m_mouseY - y() + offsetY) / SYS_MAPGRIDYP,
             };
         }
 };

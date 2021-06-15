@@ -94,48 +94,41 @@ void DrawArea::draw()
     drawTextBox();
 }
 
-void DrawArea::AddSelectByAttribute()
+void DrawArea::addSelectByAttribute()
 {
-    auto fnSet = [](int nX, int nY)
-    {
-        if(g_editorMap.validC(nX, nY)){
-            if(g_attributeSelectWindow->testLand(g_editorMap.cell(nX, nY).land)){
-                g_editorMap.cellSelect(nX, nY).ground = g_mainWindow->Deselect() ? false : true;
-            }
-        }
-    };
-
-    const auto [offsetX, offsetY] = offset();
-
-    int nMX = m_mouseX + offsetX - x();
-    int nMY = m_mouseY + offsetY - y();
-
-    AttributeCoverOperation(nMX, nMY, g_selectSettingWindow->AttributeSize(), fnSet);
+    const auto [mouseGX, mouseGY] = mouseGrid();
+    if(g_editorMap.validC(mouseGX, mouseGY)){
+        g_editorMap.cellSelect(mouseGX, mouseGY).attribute = (g_mainWindow->deselect() ? false : true);
+    }
 }
 
 void DrawArea::drawDoneSelectByTile()
 {
     const auto [offsetX, offsetY] = offset();
 
-    int nX0 = offsetX / SYS_MAPGRIDXP - SYS_OBJMAXW;
-    int nY0 = offsetY / SYS_MAPGRIDYP - SYS_OBJMAXH;
+    const int startGX = offsetX / SYS_MAPGRIDXP - 1;
+    const int startGY = offsetY / SYS_MAPGRIDYP - 1;
 
-    int nX1 = (offsetX + w()) / SYS_MAPGRIDXP + SYS_OBJMAXW;
-    int nY1 = (offsetY + h()) / SYS_MAPGRIDYP + SYS_OBJMAXH;
+    const int drawGW = w() / SYS_MAPGRIDXP + 10;
+    const int drawGH = h() / SYS_MAPGRIDYP + 40;
 
-    for(int nX = nX0; nX < nX1; ++nX){
-        for(int nY = nY0; nY < nY1; ++nY){
-            if(true
-                    && !(nX % 2)
-                    && !(nY % 2)
-                    &&  (g_editorMap.validC(nX, nY))){
-
-                if(g_editorMap.tile(nX, nY).valid && g_editorMap.tileSelect(nX, nY).tile){
-                    int nStartX = nX * SYS_MAPGRIDXP - offsetX;
-                    int nStartY = nY * SYS_MAPGRIDYP - offsetY;
-                    FillRectangle(nStartX, nStartY, SYS_MAPGRIDXP * 2, SYS_MAPGRIDYP * 2, g_mainWindow->Deselect() ? 0X80FF0000 : 0X8000FF00);
-                }
+    for(int iy = startGY; iy < startGY + drawGH; ++iy){
+        for(int ix = startGX; ix < startGX + drawGW; ++ix){
+            if(!g_editorMap.validC(ix, iy)){
+                continue;
             }
+
+            if(ix % 2 || iy % 2){
+                continue;
+            }
+
+            if(!g_editorMap.tile(ix, iy).valid){
+                continue;
+            }
+
+            const int startX = ix * SYS_MAPGRIDXP - offsetX;
+            const int startY = iy * SYS_MAPGRIDYP - offsetY;
+            fillRectangle(startX, startY, SYS_MAPGRIDXP * 2, SYS_MAPGRIDYP * 2, g_mainWindow->deselect() ? 0X80FF0000 : 0X8000FF00);
         }
     }
 }
@@ -144,28 +137,28 @@ void DrawArea::drawDoneSelectByObject(int depth)
 {
     const auto [offsetX, offsetY] = offset();
 
-    int nX0 = offsetX / SYS_MAPGRIDXP - SYS_OBJMAXW;
-    int nY0 = offsetY / SYS_MAPGRIDYP - SYS_OBJMAXH;
+    const int startGX = offsetX / SYS_MAPGRIDXP - 1;
+    const int startGY = offsetY / SYS_MAPGRIDYP - 1;
 
-    int nX1 = (offsetX + w()) / SYS_MAPGRIDXP + SYS_OBJMAXW;
-    int nY1 = (offsetY + h()) / SYS_MAPGRIDYP + SYS_OBJMAXH;
+    const int drawGW = w() / SYS_MAPGRIDXP + 10;
+    const int drawGH = h() / SYS_MAPGRIDYP + 40;
 
-    for(int nX = nX0; nX < nX1; ++nX){
-        for(int nY = nY0; nY < nY1; ++nY){
-            for(int nIndex = 0; nIndex < 2; ++nIndex){
-                if(g_editorMap.validC(nX, nY)){
-                    const auto &obj = g_editorMap.cell(nX, nY).obj[nIndex];
-                    if(true
-                            && obj.valid
-                            && obj.depth == depth
-                            && g_editorMap.cellSelect(nX, nY).obj[nIndex]){
-                        if(auto img = g_imageCache.retrieve(obj.texID)){
-                            const int nW = img->w();
-                            const int nH = img->h();
-                            const int startX = nX * SYS_MAPGRIDXP - offsetX;
-                            const int startY = nY * SYS_MAPGRIDYP - offsetY + SYS_MAPGRIDYP - nH;
-                            FillRectangle(startX, startY, nW, nH, g_mainWindow->Deselect() ? 0X80FF0000 : 0X8000FF00);
-                        }
+    for(int iy = startGY; iy < startGY + drawGH; ++iy){
+        for(int ix = startGX; ix < startGX + drawGW; ++ix){
+            if(!g_editorMap.validC(ix, iy)){
+                continue;
+            }
+
+            for(const auto objIndex: {0, 1}){
+                const auto &obj = g_editorMap.cell(ix, iy).obj[objIndex];
+                if(true
+                        && obj.valid
+                        && obj.depth == depth
+                        && g_editorMap.cellSelect(ix, iy).obj[objIndex]){
+                    if(auto img = g_imageCache.retrieve(obj.texID)){
+                        const int startX = ix * SYS_MAPGRIDXP - offsetX;
+                        const int startY = iy * SYS_MAPGRIDYP - offsetY + SYS_MAPGRIDYP - img->h();
+                        fillRectangle(startX, startY, img->w(), img->h(), g_mainWindow->deselect() ? 0X80FF0000 : 0X8000FF00);
                     }
                 }
             }
@@ -177,24 +170,24 @@ void DrawArea::drawDoneSelectByObjectIndex(int objIndex)
 {
     const auto [offsetX, offsetY] = offset();
 
-    int nX0 = offsetX / SYS_MAPGRIDXP - SYS_OBJMAXW;
-    int nY0 = offsetY / SYS_MAPGRIDYP - SYS_OBJMAXH;
+    const int startGX = offsetX / SYS_MAPGRIDXP - 1;
+    const int startGY = offsetY / SYS_MAPGRIDYP - 1;
 
-    int nX1 = (offsetX + w()) / SYS_MAPGRIDXP + SYS_OBJMAXW;
-    int nY1 = (offsetY + h()) / SYS_MAPGRIDYP + SYS_OBJMAXH;
+    const int drawGW = w() / SYS_MAPGRIDXP + 10;
+    const int drawGH = h() / SYS_MAPGRIDYP + 40;
 
-    for(int nX = nX0; nX < nX1; ++nX){
-        for(int nY = nY0; nY < nY1; ++nY){
-            if(g_editorMap.validC(nX, nY)){
-                const auto &obj = g_editorMap.cell(nX, nY).obj[objIndex];
-                if(obj.valid && g_editorMap.cellSelect(nX, nY).obj[objIndex]){
-                    if(auto img = g_imageCache.retrieve(obj.texID)){
-                        const int nW = img->w();
-                        const int nH = img->h();
-                        const int startX = nX * SYS_MAPGRIDXP - offsetX;
-                        const int startY = nY * SYS_MAPGRIDYP - offsetY + SYS_MAPGRIDYP - nH;
-                        FillRectangle(startX, startY, nW, nH, g_mainWindow->Deselect() ? 0X80FF0000 : 0X8000FF00);
-                    }
+    for(int iy = startGY; iy < startGY + drawGH; ++iy){
+        for(int ix = startGX; ix < startGX + drawGW; ++ix){
+            if(!g_editorMap.validC(ix, iy)){
+                continue;
+            }
+
+            const auto &obj = g_editorMap.cell(ix, iy).obj[objIndex];
+            if(obj.valid && g_editorMap.cellSelect(ix, iy).obj[objIndex]){
+                if(auto img = g_imageCache.retrieve(obj.texID)){
+                    const int startX = ix * SYS_MAPGRIDXP - offsetX;
+                    const int startY = iy * SYS_MAPGRIDYP - offsetY + SYS_MAPGRIDYP - img->h();
+                    fillRectangle(startX, startY, img->w(), img->h(), g_mainWindow->deselect() ? 0X80FF0000 : 0X8000FF00);
                 }
             }
         }
@@ -203,20 +196,12 @@ void DrawArea::drawDoneSelectByObjectIndex(int objIndex)
 
 void DrawArea::drawTrySelectByTile()
 {
-    const auto [offsetX, offsetY] = offset();
-
-    int nMouseXOnMap = m_mouseX - x() + offsetX;
-    int nMouseYOnMap = m_mouseY - y() + offsetY;
-
-    int nX = nMouseXOnMap / SYS_MAPGRIDXP;
-    int nY = nMouseYOnMap / SYS_MAPGRIDYP;
-
-    if(g_editorMap.validC(nX, nY) && g_editorMap.tile(nX, nY).valid){
-        int nStartX = (nX / 2) * 2 * SYS_MAPGRIDXP - offsetX;
-        int nStartY = (nY / 2) * 2 * SYS_MAPGRIDYP - offsetY;
-
-        FillRectangle(nStartX, nStartY, SYS_MAPGRIDXP * 2,  SYS_MAPGRIDYP * 2, g_mainWindow->Deselect() ? 0X80FF0000 : 0X8000FF00);
-        drawFloatObject((nX / 2) * 2, (nY / 2) * 2, FOTYPE_TILE, m_mouseX - x(), m_mouseY - y());
+    const auto [mouseGX, mouseGY] = mouseGrid();
+    if(g_editorMap.validC(mouseGX, mouseGY) && g_editorMap.tile(mouseGX, mouseGY).valid){
+        const auto tileGX = (mouseGX / 2) * 2;
+        const auto tileGY = (mouseGY / 2) * 2;
+        fillGrid(tileGX, tileGY, 2, 2, g_mainWindow->deselect() ? 0X80FF0000 : 0X8000FF00);
+        drawFloatObject(tileGX, tileGY, FOTYPE_TILE, m_mouseX - x(), m_mouseY - y());
     }
 }
 
@@ -243,7 +228,7 @@ void DrawArea::drawSelectByObject(int depth)
                         const int nStartY = nCurrY * SYS_MAPGRIDYP - offsetY + SYS_MAPGRIDYP - nH;
 
                         if(mathf::pointInRectangle(nMouseXOnMap - offsetX, nMouseYOnMap - offsetY, nStartX, nStartY, nW, nH)){
-                            FillRectangle(nStartX, nStartY, nW, nH, g_mainWindow->Deselect() ? 0X80FF0000 : 0X8000FF00);
+                            fillRectangle(nStartX, nStartY, nW, nH, g_mainWindow->deselect() ? 0X80FF0000 : 0X8000FF00);
                             drawFloatObject(nX, nCurrY, (nIndex == 0) ? FOTYPE_OBJ0 : FOTYPE_OBJ1, m_mouseX - x(), m_mouseY - y());
                             return;
                         }
@@ -256,20 +241,11 @@ void DrawArea::drawSelectByObject(int depth)
 
 void DrawArea::drawTrySelectBySingle()
 {
-    const auto [offsetX, offsetY] = offset();
-
-    int nX = (m_mouseX - x() + offsetX) / SYS_MAPGRIDXP;
-    int nY = (m_mouseY - y() + offsetY) / SYS_MAPGRIDYP;
-
-    FillRectangle(
-            SYS_MAPGRIDXP * nX - offsetX,
-            SYS_MAPGRIDYP * nY - offsetY,
-            SYS_MAPGRIDXP,
-            SYS_MAPGRIDYP,
-            g_mainWindow->Deselect() ? 0X80FF0000 : 0X8000FF00);
+    const auto [mouseGX, mouseGY] = mouseGrid();
+    fillGrid(mouseGX, mouseGY, 1, 1, g_mainWindow->deselect() ? 0X80FF0000 : 0X8000FF00);
 }
 
-void DrawArea::AddSelectByTile()
+void DrawArea::addSelectByTile()
 {
     const auto [offsetX, offsetY] = offset();
 
@@ -284,7 +260,7 @@ void DrawArea::AddSelectByTile()
     }
 }
 
-void DrawArea::AddSelectByObject(int depth)
+void DrawArea::addSelectByObject(int depth)
 {
     const auto [offsetX, offsetY] = offset();
 
@@ -307,7 +283,7 @@ void DrawArea::AddSelectByObject(int depth)
                         int nStartY = nCurrY * SYS_MAPGRIDYP - offsetY + SYS_MAPGRIDYP - nH;
 
                         if(mathf::pointInRectangle(nMouseXOnMap - offsetX, nMouseYOnMap - offsetY, nStartX, nStartY, nW, nH)){
-                            g_editorMap.cellSelect(nX, nCurrY).obj[nIndex] = !g_mainWindow->Deselect();
+                            g_editorMap.cellSelect(nX, nCurrY).obj[nIndex] = !g_mainWindow->deselect();
                             return;
                         }
                     }
@@ -317,7 +293,7 @@ void DrawArea::AddSelectByObject(int depth)
     }
 }
 
-void DrawArea::AddSelectByObjectIndex(int objIndex)
+void DrawArea::addSelectByObjectIndex(int objIndex)
 {
     fflassert(objIndex == 0 || objIndex == 1);
     const auto [offsetX, offsetY] = offset();
@@ -340,24 +316,12 @@ void DrawArea::AddSelectByObjectIndex(int objIndex)
                     int nStartY = nCurrY * SYS_MAPGRIDYP - offsetY + SYS_MAPGRIDYP - nH;
 
                     if(mathf::pointInRectangle(nMouseXOnMap - offsetX, nMouseYOnMap - offsetY, nStartX, nStartY, nW, nH)){
-                        g_editorMap.cellSelect(nX, nCurrY).obj[objIndex] = !g_mainWindow->Deselect();
+                        g_editorMap.cellSelect(nX, nCurrY).obj[objIndex] = !g_mainWindow->deselect();
                         return;
                     }
                 }
             }
         }
-    }
-}
-
-void DrawArea::AddSelectBySingle()
-{
-    const auto [offsetX, offsetY] = offset();
-
-    int nX = (m_mouseX - x() + offsetX) / SYS_MAPGRIDXP;
-    int nY = (m_mouseY - y() + offsetY) / SYS_MAPGRIDYP;
-
-    if(g_editorMap.validC(nX, nY)){
-        g_editorMap.cellSelect(nX, nY).ground = (g_mainWindow->Deselect() ? false : true);
     }
 }
 
@@ -398,7 +362,7 @@ void DrawArea::drawTrySelectByRhombus()
 {
     auto fnDraw = [this](int nX, int nY)
     {
-        FillMapGrid(nX, nY, 1, 1, g_mainWindow->Deselect() ? 0X80FF0000 : 0X8000FF00);
+        fillGrid(nX, nY, 1, 1, g_mainWindow->deselect() ? 0X80FF0000 : 0X8000FF00);
     };
 
     const auto [offsetX, offsetY] = offset();
@@ -409,12 +373,12 @@ void DrawArea::drawTrySelectByRhombus()
     RhombusCoverOperation(nMX, nMY, g_selectSettingWindow->RhombusSize(), fnDraw);
 }
 
-void DrawArea::AddSelectByRhombus()
+void DrawArea::addSelectByRhombus()
 {
     auto fnSet = [](int nX, int nY)
     {
         if(g_editorMap.validC(nX, nY)){
-            g_editorMap.cellSelect(nX, nY).ground = g_mainWindow->Deselect() ? false : true;
+            g_editorMap.cellSelect(nX, nY).ground = g_mainWindow->deselect() ? false : true;
         }
     };
 
@@ -446,7 +410,7 @@ void DrawArea::drawTrySelectByRectangle()
 {
     auto fnDraw = [this](int nX, int nY)
     {
-        FillMapGrid(nX, nY, 1, 1, g_mainWindow->Deselect() ? 0X80FF0000 : 0X8000FF00);
+        fillGrid(nX, nY, 1, 1, g_mainWindow->deselect() ? 0X80FF0000 : 0X8000FF00);
     };
 
     const auto [offsetX, offsetY] = offset();
@@ -457,11 +421,11 @@ void DrawArea::drawTrySelectByRectangle()
     RectangleCoverOperation(nMX, nMY, g_selectSettingWindow->RectangleSize(), fnDraw);
 }
 
-void DrawArea::AddSelectByRectangle()
+void DrawArea::addSelectByRectangle()
 {
     auto fnSet = [](int nX,  int nY)
     {
-        g_editorMap.cellSelect(nX, nY).ground = g_mainWindow->Deselect() ? false : true;
+        g_editorMap.cellSelect(nX, nY).ground = g_mainWindow->deselect() ? false : true;
     };
 
     const auto [offsetX, offsetY] = offset();
@@ -487,7 +451,7 @@ void DrawArea::drawTrySelectByAttribute()
         {
 
             if(g_attributeSelectWindow->testLand(g_editorMap.cell(nX, nY).land)){
-                FillMapGrid(nX, nY, 1, 1, g_mainWindow->Deselect() ? 0X80FF0000 : 0X8000FF00);
+                fillGrid(nX, nY, 1, 1, g_mainWindow->deselect() ? 0X80FF0000 : 0X8000FF00);
             }
         };
 
@@ -499,16 +463,17 @@ void DrawArea::drawDoneSelectByAttribute()
 {
     const auto [offsetX, offsetY] = offset();
 
-    int nX0 = offsetX / SYS_MAPGRIDXP - 1;
-    int nY0 = offsetY / SYS_MAPGRIDYP - 1;
-    int nX1 = (offsetX + w()) / SYS_MAPGRIDXP + 1;
-    int nY1 = (offsetY + h()) / SYS_MAPGRIDYP + 1;
+    const int startGX = offsetX / SYS_MAPGRIDXP - 1;
+    const int startGY = offsetY / SYS_MAPGRIDYP - 1;
 
-    for(int nX = nX0; nX < nX1; ++nX){
-        for(int nY = nY0; nY < nY1; ++nY){
-            if(g_editorMap.validC(nX, nY)){
-                if(g_editorMap.cellSelect(nX, nY).attribute == !g_mainWindow->Reversed()){
-                    FillMapGrid(nX, nY, 1, 1, g_mainWindow->Deselect() ? 0X80FF0000 : 0X8000FF00);
+    const int drawGW = w() / SYS_MAPGRIDXP + 10;
+    const int drawGH = h() / SYS_MAPGRIDYP + 40;
+
+    for(int iy = startGY; iy < startGY + drawGH; ++iy){
+        for(int ix = startGX; ix < startGX + drawGW; ++ix){
+            if(g_editorMap.validC(ix, iy)){
+                if(g_editorMap.cellSelect(ix, iy).attribute == !g_mainWindow->reversed()){
+                    fillGrid(ix, iy, 1, 1, g_mainWindow->deselect() ? 0X80FF0000 : 0X8000FF00);
                 }
             }
         }
@@ -527,62 +492,49 @@ void DrawArea::drawDoneSelect()
 
 void DrawArea::drawTrySelect()
 {
-    if(g_mainWindow->EnableSelect()){
-        auto nColor = fl_color();
-        fl_color(FL_RED);
-
-        if(g_mainWindow->enableSelectByTile()){
-            drawTrySelectByTile();
-        }
-
-        for(const auto depth: {OBJD_GROUND, OBJD_OVERGROUND0, OBJD_OVERGROUND1, OBJD_SKY}){
-            if(g_mainWindow->enableSelectByObject(depth)){
-                drawDoneSelectByObject(depth);
-            }
-        }
-
-        for(const auto objIndex: {0, 1}){
-            if(g_mainWindow->enableSelectByObjectIndex(objIndex)){
-                drawDoneSelectByObjectIndex(objIndex);
-            }
-        }
-
-        if(g_mainWindow->enableSelectBySingle()){
-            drawTrySelectBySingle();
-        }
-
-        if(g_mainWindow->enableSelectByRhombus()){
-            drawTrySelectByRhombus();
-        }
-
-        if(g_mainWindow->enableSelectByRectangle()){
-            drawTrySelectByRectangle();
-        }
-
-        if(g_mainWindow->enableSelectByAttribute()){
-            drawTrySelectByAttribute();
-        }
-
-        fl_color(nColor);
+    if(!g_mainWindow->enableSelect()){
+        return;
     }
+
+    if(g_mainWindow->enableSelectByTile()){
+        drawTrySelectByTile();
+    }
+
+    for(const auto depth: {OBJD_GROUND, OBJD_OVERGROUND0, OBJD_OVERGROUND1, OBJD_SKY}){
+        if(g_mainWindow->enableSelectByObject(depth)){
+            drawDoneSelectByObject(depth);
+        }
+    }
+
+    for(const auto objIndex: {0, 1}){
+        if(g_mainWindow->enableSelectByObjectIndex(objIndex)){
+            drawDoneSelectByObjectIndex(objIndex);
+        }
+    }
+
+    if(g_mainWindow->enableSelectByAttribute()){
+        drawTrySelectByAttribute();
+    }
+
+    drawTrySelectBySingle();
 }
 
 void DrawArea::drawTextBox()
 {
-    FillRectangle(0, 0, 250, 150, 0XC0000000);
+    fillRectangle(0, 0, 250, 150, 0XC0000000);
     const fl_wrapper::enable_color enable(FL_RED);
 
-    int nY = 20;
+    int startY = 20;
     const auto [offsetX, offsetY] = offset();
 
-    drawText(10, nY, "OffsetX: %d %d", offsetX / SYS_MAPGRIDXP, offsetX); nY += 20;
-    drawText(10, nY, "OffsetY: %d %d", offsetY / SYS_MAPGRIDYP, offsetY); nY += 20;
+    drawText(10, startY, "OffsetX: %d %d", offsetX / SYS_MAPGRIDXP, offsetX); startY += 20;
+    drawText(10, startY, "OffsetY: %d %d", offsetY / SYS_MAPGRIDYP, offsetY); startY += 20;
 
-    int nMouseX = (std::max<int>)(0, m_mouseX + offsetX - x());
-    int nMouseY = (std::max<int>)(0, m_mouseY + offsetY - y());
+    const int mousePX = std::max<int>(0, m_mouseX + offsetX - x());
+    const int mousePY = std::max<int>(0, m_mouseY + offsetY - y());
 
-    drawText(10, nY, "MouseMX: %d %d", nMouseX / SYS_MAPGRIDXP, nMouseX); nY += 20;
-    drawText(10, nY, "MouseMY: %d %d", nMouseY / SYS_MAPGRIDYP, nMouseY); nY += 20;
+    drawText(10, startY, "MouseGX: %d %d", mousePX / SYS_MAPGRIDXP, mousePX); startY += 20;
+    drawText(10, startY, "MouseGY: %d %d", mousePY / SYS_MAPGRIDYP, mousePY); startY += 20;
 }
 
 void DrawArea::drawObject(int depth)
@@ -785,52 +737,14 @@ int DrawArea::handle(int event)
 
             case FL_DRAG:
                 {
-                    if(g_mainWindow->EnableSelect()){
-                        AddSelect();
+                    if(g_mainWindow->enableSelect()){
+                        addSelect();
                     }
                     else if(g_mainWindow->EnableEdit()){
                         // TODO
                         //
                     }
-                    else if(g_mainWindow->EnableTest()){
-                        // // we are moving the animation to a proper place
-                        // // if current position is invalid, then we permit any moving to get a valid
-                        // // position, but if current position is valid, we reject any move request
-                        // // which make the position invlaid again
-                        //
-                        // int nNewX = g_animationDraw.X + (m_mouseX - lastMouseX);
-                        // int nNewY = g_animationDraw.Y + (m_mouseY - lastMouseY);
-                        //
-                        // if(CoverValid(g_animationDraw.X, g_animationDraw.Y, g_animationSelectWindow->R())){
-                        //     if(CoverValid(nNewX, nNewY, g_animationSelectWindow->R())){
-                        //         g_animationDraw.X = nNewX;
-                        //         g_animationDraw.Y = nNewY;
-                        //     }else{
-                        //         // try to find a feasible internal point by binary search
-                        //         int nX0 = g_animationDraw.X;
-                        //         int nY0 = g_animationDraw.Y;
-                        //         int nX1 = nNewX;
-                        //         int nY1 = nNewY;
-                        //         while((std::abs(nX1 - nX0) >= 2) || (std::abs(nY1 - nY0) >= 2)){
-                        //             int nMidX = (nX0 + nX1) / 2;
-                        //             int nMidY = (nY0 + nY1) / 2;
-                        //
-                        //             if(CoverValid(nMidX, nMidY, g_animationSelectWindow->R())){
-                        //                 nX0 = nMidX;
-                        //                 nY0 = nMidY;
-                        //             }else{
-                        //                 nX1 = nMidX;
-                        //                 nY1 = nMidY;
-                        //             }
-                        //         }
-                        //         g_animationDraw.X = nX0;
-                        //         g_animationDraw.Y = nY0;
-                        //     }
-                        // }else{
-                        //     // always allowed
-                        //     g_animationDraw.X = nNewX;
-                        //     g_animationDraw.Y = nNewY;
-                        // }
+                    else if(g_mainWindow->enableTest()){
                     }
                     else{
                         if(Fl::event_state() & FL_CTRL){
@@ -847,8 +761,8 @@ int DrawArea::handle(int event)
                 }
             case FL_PUSH:
                 {
-                    if(g_mainWindow->EnableSelect()){
-                        AddSelect();
+                    if(g_mainWindow->enableSelect()){
+                        addSelect();
                     }
 
                     if(g_mainWindow->EnableEdit()){
@@ -903,41 +817,35 @@ Fl_Image *DrawArea::CreateRoundImage(int nRadius, uint32_t nColor)
     }
 }
 
-void DrawArea::clearGroundSelect()
+void DrawArea::clearSelect()
 {
-    // if(g_editorMap.valid()){
-    //     g_editorMap.clearGroundSelect();
-    // }
+    if(g_editorMap.valid()){
+        g_editorMap.clearSelect();
+    }
 }
 
-void DrawArea::AddSelect()
+void DrawArea::addSelect()
 {
-    if(g_mainWindow->enableSelectBySingle()){
-        AddSelectBySingle();
-    }
-
-    if(g_mainWindow->enableSelectByRhombus()){
-        AddSelectByRhombus();
-    }
-
-    if(g_mainWindow->enableSelectByRectangle()){
-        AddSelectByRectangle();
+    const auto [mouseGX, mouseGY] = mouseGrid();
+    if(!g_editorMap.validC(mouseGX, mouseGY)){
+        return;
     }
 
     if(g_mainWindow->enableSelectByAttribute()){
-        AddSelectByAttribute();
+        g_editorMap.cellSelect(mouseGX, mouseGY).attribute = !g_mainWindow->deselect();
     }
-    
-    if(g_mainWindow->enableSelectByTile()){
-        AddSelectByTile();
+    else if(g_mainWindow->enableSelectByTile()){
+        g_editorMap.tileSelect(mouseGX, mouseGY).tile = !g_mainWindow->deselect();
     }
-
-    if(g_mainWindow->enableSelectByObject(true)){
-        AddSelectByObject(true);
-    }
-
-    if(g_mainWindow->enableSelectByObject(false)){
-        AddSelectByObject(false);
+    else{
+        for(const auto objIndex: {0, 1}){
+            const auto &obj = g_editorMap.cell(mouseGX, mouseGY).obj[objIndex];
+            if(false
+                    || g_mainWindow->enableSelectByObject(obj.depth)
+                    || g_mainWindow->enableSelectByObjectIndex(objIndex)){
+                g_editorMap.cellSelect(mouseGX, mouseGY).obj[objIndex] = !g_mainWindow->deselect();
+            }
+        }
     }
 }
 
@@ -968,7 +876,6 @@ void DrawArea::drawLight()
     }
 
     const auto [offsetX, offsetY] = offset();
-    const fl_wrapper::enable_color enable(138, 217, 12);
 
     const int startGX = offsetX / SYS_MAPGRIDXP - 1;
     const int startGY = offsetY / SYS_MAPGRIDYP - 1;
@@ -976,6 +883,7 @@ void DrawArea::drawLight()
     const int drawGW = w() / SYS_MAPGRIDXP + 10;
     const int drawGH = h() / SYS_MAPGRIDYP + 40;
 
+    const fl_wrapper::enable_color enable(FL_MAGENTA);
     for(int iy = startGY; iy < startGY + drawGH; ++iy){
         for(int ix = startGX; ix < startGX + drawGW; ++ix){
             if(!g_editorMap.validC(ix, iy)){
@@ -988,7 +896,7 @@ void DrawArea::drawLight()
                 drawImage(m_lightImge.get(), drawCX, drawCY);
 
                 if(g_mainWindow->enableShowLightLine()){
-                    drawCircle(ix * SYS_MAPGRIDXP - offsetX, iy * SYS_MAPGRIDYP - offsetY, 10);
+                    drawCircle(ix * SYS_MAPGRIDXP - offsetX, iy * SYS_MAPGRIDYP - offsetY, 20);
                 }
             }
         }
@@ -1101,7 +1009,7 @@ void DrawArea::drawFloatObject(int nX, int nY, int nFOType, int nWinX, int nWinY
             int nTextBoxX = nWinX + nMarginLeft + pImage->w() + nMarginMiddle;
             int nTextBoxY = nWinY + (nWinH - nTextBoxH) / 2;
 
-            FillRectangle(nWinX, nWinY, nWinW, nWinH, 0XC0000000);
+            fillRectangle(nWinX, nWinY, nWinW, nWinH, 0XC0000000);
             drawImage(pImage, nImageX, nImageY);
 
             // draw boundary for window
@@ -1203,19 +1111,6 @@ void DrawArea::drawFloatObject(int nX, int nY, int nFOType, int nWinX, int nWinY
             }
         }
     }
-}
-
-void DrawArea::FillMapGrid(int nX, int nY, int nW, int nH, uint32_t nARGB)
-{
-    const auto [offsetX, offsetY] = offset();
-
-    int nPX = nX * SYS_MAPGRIDXP - offsetX;
-    int nPY = nY * SYS_MAPGRIDYP - offsetY;
-
-    int nPW = nW * SYS_MAPGRIDXP;
-    int nPH = nH * SYS_MAPGRIDYP;
-
-    FillRectangle(nPX, nPY, nPW, nPH, nARGB);
 }
 
 std::optional<std::tuple<size_t, size_t>> DrawArea::getROISize() const

@@ -89,7 +89,7 @@ class MainWindow {} {
 		default :          break;
 	}
 }}
-      xywh {64 159 985 690} type Double resizable visible
+      xywh {47 97 985 690} type Double resizable visible
     } {
       Fl_Box m_drawArea {
         xywh {0 20 965 627} labelfont 4 resizable
@@ -401,20 +401,9 @@ fl_alert("%s", "Haven't implement yet!");}
           xywh {0 0 62 20} labelfont 4
         } {
           MenuItem m_menuItemEnableSelect {
-            label {Enable Select         }
+            label {Enable Select            }
+            callback {setSelectMenuItemList(m_menuItemEnableSelect->value());}
             xywh {30 30 30 20} type Toggle labelfont 4 divider
-          }
-          MenuItem m_menuItemSelectBySingle {
-            label Single
-            xywh {50 50 30 20} type Radio value 1 labelfont 4
-          }
-          MenuItem m_menuItemSelectByRhombus {
-            label Rhombus
-            xywh {60 60 30 20} type Radio labelfont 4
-          }
-          MenuItem m_menuItemSelectByRectangle {
-            label Rectangle
-            xywh {70 70 30 20} type Radio labelfont 4 divider
           }
           MenuItem m_menuItemSelectByAttribute {
             label Attribute
@@ -612,6 +601,7 @@ g_aboutWindow->showAll();}
     // current the fluid can set the slider_size
     // but when parsing it, it complains ``unknown property: slider_size"
 
+    setSelectMenuItemList(false);
     setScrollBarSize(1.0, 1.0);
     setFootLog("no map loaded");
 }} {}
@@ -880,13 +870,13 @@ g_aboutWindow->showAll();}
 	return m_menuItemEnableEdit->value();
 }} {}
   }
-  Function {EnableSelect()} {return_type bool
+  Function {enableSelect()} {return_type bool
   } {
     code {{
 	return m_menuItemEnableSelect->value();
 }} {}
   }
-  Function {EnableTest()} {return_type bool
+  Function {enableTest()} {return_type bool
   } {
     code {{
     return m_menuItemEnableTest->value();
@@ -895,36 +885,22 @@ g_aboutWindow->showAll();}
   Function {enableSelectByAttribute()} {return_type bool
   } {
     code {{
-	return m_menuItemSelectByAttribute->value();
-}} {}
-  }
-  Function {enableSelectByRhombus()} {return_type bool
-  } {
-    code {{
-	return m_menuItemSelectByRhombus->value();
-}} {}
-  }
-  Function {enableSelectByRectangle()} {return_type bool
-  } {
-    code {{
-	return m_menuItemSelectByRectangle->value();
-}} {}
-  }
-  Function {enableSelectBySingle()} {return_type bool
-  } {
-    code {{
-	return m_menuItemSelectBySingle->value();
+	return m_menuItemEnableSelect->value() && m_menuItemSelectByAttribute->value();
 }} {}
   }
   Function {enableSelectByTile()} {return_type bool
   } {
     code {{
-	return m_menuItemSelectByTile->value();
+	return m_menuItemEnableSelect->value() && m_menuItemSelectByTile->value();
 }} {}
   }
   Function {enableSelectByObject(int depth)} {return_type bool
   } {
     code {{
+    if(!m_menuItemEnableSelect->value()){
+        return false;
+    }
+
     switch(depth){
         case OBJD_GROUND     : return m_menuItemSelectByObjectGround->value();
         case OBJD_OVERGROUND0: return m_menuItemSelectByObjectOverGround0->value();
@@ -937,6 +913,10 @@ g_aboutWindow->showAll();}
   Function {enableSelectByObjectIndex(int objIndex)} {return_type bool
   } {
     code {{
+    if(!m_menuItemEnableSelect->value()){
+        return false;
+    }
+
     if(objIndex == 0){
         return m_menuItemSelectByObjectIndex0->value();
     }
@@ -984,13 +964,13 @@ g_aboutWindow->showAll();}
     return m_menuItemClearBackground->value();
 }} {}
   }
-  Function {Deselect()} {return_type bool
+  Function {deselect()} {return_type bool
   } {
     code {{
     return m_menuItemDeselect->value();
 }} {}
   }
-  Function {Reversed()} {return_type bool
+  Function {reversed()} {return_type bool
   } {
     code {{
     return m_menuItemReversed->value();
@@ -1260,6 +1240,31 @@ g_aboutWindow->showAll();}
 
     if(yratio.has_value()){
         ((Fl_Valuator *)(m_vsbar))->value(std::max<float>(std::min<float>(yratio.value(), 1.0), 0.0));
+    }
+}} {}
+  }
+  Function {setSelectMenuItemList(bool enable)} {return_type void
+  } {
+    code {{
+    if(enable){
+        m_menuItemSelectByAttribute->activate();
+        m_menuItemSelectByTile->activate();
+        m_menuItemSelectByObjectGround->activate();
+        m_menuItemSelectByObjectOverGround0->activate();
+        m_menuItemSelectByObjectOverGround1->activate();
+        m_menuItemSelectByObjectSky->activate();
+        m_menuItemSelectByObjectIndex0->activate();
+        m_menuItemSelectByObjectIndex1->activate();
+    }
+    else{
+        m_menuItemSelectByAttribute->deactivate();
+        m_menuItemSelectByTile->deactivate();
+        m_menuItemSelectByObjectGround->deactivate();
+        m_menuItemSelectByObjectOverGround0->deactivate();
+        m_menuItemSelectByObjectOverGround1->deactivate();
+        m_menuItemSelectByObjectSky->deactivate();
+        m_menuItemSelectByObjectIndex0->deactivate();
+        m_menuItemSelectByObjectIndex1->deactivate();
     }
 }} {}
   }

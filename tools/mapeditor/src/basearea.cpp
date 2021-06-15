@@ -26,6 +26,8 @@
 #include "fflerror.hpp"
 #include "sysconst.hpp"
 #include "drawarea.hpp"
+#include "fflerror.hpp"
+#include "totype.hpp"
 
 void BaseArea::drawImage(Fl_Image *pImage, int nX, int nY)
 {
@@ -249,41 +251,46 @@ void BaseArea::clear()
     fl_rectf(x(), y(), w(), h(), 0, 0, 0);
 }
 
-void BaseArea::FillRectangle(int nX, int nY, int nW, int nH, uint32_t nARGB)
+void BaseArea::fillRectangle(int argX, int argY, int argW, int argH, uint32_t color)
 {
     if(true
-            && nW > 0
-            && nH > 0
-            && mathf::rectangleOverlap(0, 0, w(), h(), nX, nY, nW, nH)
-            && ((nARGB & 0XFF000000))){
+            && argW > 0
+            && argH > 0
+            && mathf::rectangleOverlap(0, 0, w(), h(), argX, argY, argW, argH)
+            && (color & 0XFF000000)){
 
-        if(auto pImage = RetrieveImageCover(nARGB)){
-            drawImageCover(pImage, nX, nY, nW, nH);
+        if(auto img = retrieveImageCover(color)){
+            drawImageCover(img, argX, argY, argW, argH);
         }
     }
 }
 
-Fl_Image *BaseArea::CreateImageCover(int nW, int nH, uint32_t nColor)
+void BaseArea::fillGrid(int argX, int argY, int argW, int argH, uint32_t color)
 {
-    if(true
-            && nW > 0
-            && nH > 0){
-        std::vector<uint32_t> stvBuf(nW * nH, nColor);
-        return Fl_RGB_Image((uchar *)(&(stvBuf[0])), nW, nH, 4, 0).copy();
-    }else{
-        fl_alert("Invalid size for CreateImageCover(%d, %d, 0X%08" PRIu32 ")", nW, nH, nColor);
-        return nullptr;
-    }
+    const auto [offsetX, offsetY] = offset();
+    fillRectangle(
+            argX * SYS_MAPGRIDXP - offsetX,
+            argY * SYS_MAPGRIDYP - offsetY,
+
+            argW * SYS_MAPGRIDXP,
+            argH * SYS_MAPGRIDYP,
+
+            color);
 }
 
-Fl_Image *BaseArea::RetrieveImageCover(uint32_t nARGB)
+Fl_Image *BaseArea::createImageCover(int argW, int argH, uint32_t color)
 {
-    auto pRecord = m_coverRecord.find(nARGB);
-    if(pRecord != m_coverRecord.end()){
-        return pRecord->second.get();
-    }else{
-        auto pImage = CreateImageCover(SYS_MAPGRIDXP, SYS_MAPGRIDYP, nARGB);
-        m_coverRecord[nARGB].reset(pImage);
-        return pImage;
+    fflassert(argW > 0);
+    fflassert(argH > 0);
+
+    std::vector<uint32_t> imgBuf(argW * argH, color);
+    return Fl_RGB_Image((uchar *)(imgBuf.data()), argW, argH, 4, 0).copy();
+}
+
+Fl_Image *BaseArea::retrieveImageCover(uint32_t color)
+{
+    if(auto p = m_coverList.find(color); p != m_coverList.end()){
+        return p->second.get();
     }
+    return (m_coverList[color] = std::unique_ptr<Fl_Image>(createImageCover(SYS_MAPGRIDXP, SYS_MAPGRIDYP, color))).get();
 }

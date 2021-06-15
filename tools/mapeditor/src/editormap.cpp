@@ -231,3 +231,8 @@ void EditorMap::allocate(size_t argW, size_t argH)
     m_aniTimer.clear();
     m_data.allocate(argW, argH);
 }
+
+void EditorMap::clearSelect()
+{
+    std::fill(m_selectBuf.begin(), m_selectBuf.end(), BlockSelectConfig());
+}

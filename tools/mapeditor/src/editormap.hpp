@@ -211,4 +211,7 @@ class EditorMap
 
     public:
         Mir2xMapData exportLayer() const;
+
+    public:
+        void clearSelect();
 };

@@ -36,10 +36,6 @@ class DrawArea: public BaseArea
         };
 
     private:
-        int m_mouseX = 0;
-        int m_mouseY = 0;
-
-    private:
         std::unique_ptr<Fl_Image> m_lightImge;
 
     public:
@@ -88,17 +84,16 @@ class DrawArea: public BaseArea
         void drawTrySelectByAttribute();
 
     private:
-        void AddSelect();
-        void clearGroundSelect();
+        void addSelect();
+        void clearSelect();
 
     private:
-        void AddSelectByTile();
-        void AddSelectBySingle();
-        void AddSelectByRhombus();
-        void AddSelectByRectangle();
-        void AddSelectByAttribute();
-        void AddSelectByObject(int);
-        void AddSelectByObjectIndex(int);
+        void addSelectByTile();
+        void addSelectByRhombus();
+        void addSelectByRectangle();
+        void addSelectByAttribute();
+        void addSelectByObject(int);
+        void addSelectByObjectIndex(int);
 
     private:
         bool LocateAnimation(int, int);
@@ -114,9 +109,6 @@ class DrawArea: public BaseArea
         void drawDoneSelectByObject(int);
         void drawDoneSelectByObjectIndex(int);
         void drawDoneSelectByAttribute();
-
-    protected:
-        void FillMapGrid(int, int, int, int, uint32_t);
 
     public:
         std::optional<std::tuple<size_t, size_t>> getROISize() const override;
