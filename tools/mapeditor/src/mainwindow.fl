@@ -89,7 +89,7 @@ class MainWindow {} {
 		default :          break;
 	}
 }}
-      xywh {55 128 985 690} type Double resizable visible
+      xywh {42 81 985 690} type Double resizable visible
     } {
       Fl_Box m_drawArea {
         xywh {0 20 965 627} labelfont 4 resizable
@@ -336,19 +336,19 @@ fl_alert("%s", "Haven't implement yet!");}
           }
           MenuItem m_menuItemShowObjectGround {
             label {Object Ground}
-            xywh {20 20 30 20} type Toggle value 1 labelfont 4
+            xywh {20 20 30 20} type Toggle labelfont 4
           }
           MenuItem m_menuItemShowObjectOverGround0 {
             label {Object Over Ground 0}
-            xywh {30 30 30 20} type Toggle value 1 labelfont 4
+            xywh {30 30 30 20} type Toggle labelfont 4
           }
           MenuItem m_menuItemShowObjectOverGround1 {
             label {Object Over Ground 1}
-            xywh {40 40 30 20} type Toggle value 1 labelfont 4
+            xywh {40 40 30 20} type Toggle labelfont 4
           }
           MenuItem m_menuItemShowObjectSky {
             label {Object Sky}
-            xywh {50 50 30 20} type Toggle value 1 labelfont 4 divider
+            xywh {50 50 30 20} type Toggle labelfont 4 divider
           }
           MenuItem m_menuItemShowObjectIndex0 {
             label {Object Index 0}
@@ -450,7 +450,7 @@ fl_alert("%s", "Haven't implement yet!");}
           }
           MenuItem m_menuItemDeselect {
             label Deselect
-            xywh {20 20 30 20} type Toggle labelfont 4 divider
+            xywh {20 20 30 20} type Toggle labelfont 4
           }
         }
         Submenu {} {

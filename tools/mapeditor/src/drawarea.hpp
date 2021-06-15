@@ -63,10 +63,6 @@ class DrawArea: public BaseArea
 
     private:
         void drawTrySelectByTile();
-        void drawSelectByObject(int);
-        void drawSelectByObjectIndex(int);
-
-    private:
         void drawTrySelectByObject();
         void drawTrySelectByAttribute();
 
@@ -75,17 +71,10 @@ class DrawArea: public BaseArea
         void clearSelect();
 
     private:
-        void addSelectByObject(int);
-        void addSelectByObjectIndex(int);
-
-    private:
         bool LocateAnimation(int, int);
 
     public:
         void drawFloatObject(int, int, int, int, int);
-
-    public:
-        Fl_Image *CreateRoundImage(int, uint32_t);
 
     protected:
         void drawDoneSelectByTile();

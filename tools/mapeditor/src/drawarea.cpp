@@ -199,105 +199,7 @@ void DrawArea::drawTrySelectByObject()
                     if(mathf::pointInRectangle(m_mouseX - x(), m_mouseY - y(), startX, startY, imgW, imgH)){
                         fillRectangle(startX, startY, imgW, imgH, g_mainWindow->deselect() ? 0X80FF0000 : 0X8000FF00);
                         drawFloatObject(mouseGX, currGY, (objIndex == 0) ? FOBJ_OBJ0 : FOBJ_OBJ1, m_mouseX - x(), m_mouseY - y());
-                    }
-                }
-            }
-        }
-    }
-}
-
-void DrawArea::drawSelectByObject(int depth)
-{
-    const auto [offsetX, offsetY] = offset();
-
-    int nMouseXOnMap = m_mouseX - x() + offsetX;
-    int nMouseYOnMap = m_mouseY - y() + offsetY;
-
-    int nX = nMouseXOnMap / SYS_MAPGRIDXP;
-    int nY = nMouseYOnMap / SYS_MAPGRIDYP;
-
-    for(int nCurrY = nY - 1; nCurrY < to_d(g_editorMap.h()); ++nCurrY){
-        if(g_editorMap.validC(nX, nCurrY)){
-            for(int nIndex = 0; nIndex < 2; ++nIndex){
-                const auto &obj = g_editorMap.cell(nX, nCurrY).obj[nIndex];
-                if(obj.valid && obj.depth == depth){
-                    if(auto img = g_imageCache.retrieve(obj.texID)){
-                        const int nW = img->w();
-                        const int nH = img->h();
-
-                        const int nStartX = nX     * SYS_MAPGRIDXP - offsetX;
-                        const int nStartY = nCurrY * SYS_MAPGRIDYP - offsetY + SYS_MAPGRIDYP - nH;
-
-                        if(mathf::pointInRectangle(nMouseXOnMap - offsetX, nMouseYOnMap - offsetY, nStartX, nStartY, nW, nH)){
-                            fillRectangle(nStartX, nStartY, nW, nH, g_mainWindow->deselect() ? 0X80FF0000 : 0X8000FF00);
-                            drawFloatObject(nX, nCurrY, (nIndex == 0) ? FOBJ_OBJ0 : FOBJ_OBJ1, m_mouseX - x(), m_mouseY - y());
-                            return;
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-void DrawArea::addSelectByObject(int depth)
-{
-    const auto [offsetX, offsetY] = offset();
-
-    int nMouseXOnMap = m_mouseX - x() + offsetX;
-    int nMouseYOnMap = m_mouseY - y() + offsetY;
-
-    int nX = nMouseXOnMap / SYS_MAPGRIDXP;
-    int nY = nMouseYOnMap / SYS_MAPGRIDYP;
-
-    for(int nCurrY = nY - 1; nCurrY < to_d(g_editorMap.h()); ++nCurrY){
-        if(g_editorMap.validC(nX, nCurrY)){
-            for(int nIndex = 0; nIndex < 2; ++nIndex){
-                const auto &obj = g_editorMap.cell(nX, nCurrY).obj[nIndex];
-                if(obj.valid && obj.depth == depth){
-                    if(auto objImage = g_imageCache.retrieve(obj.texID)){
-                        int nW = objImage->w();
-                        int nH = objImage->h();
-
-                        int nStartX = nX     * SYS_MAPGRIDXP - offsetX;
-                        int nStartY = nCurrY * SYS_MAPGRIDYP - offsetY + SYS_MAPGRIDYP - nH;
-
-                        if(mathf::pointInRectangle(nMouseXOnMap - offsetX, nMouseYOnMap - offsetY, nStartX, nStartY, nW, nH)){
-                            g_editorMap.cellSelect(nX, nCurrY).obj[nIndex] = !g_mainWindow->deselect();
-                            return;
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-void DrawArea::addSelectByObjectIndex(int objIndex)
-{
-    fflassert(objIndex == 0 || objIndex == 1);
-    const auto [offsetX, offsetY] = offset();
-
-    int nMouseXOnMap = m_mouseX - x() + offsetX;
-    int nMouseYOnMap = m_mouseY - y() + offsetY;
-
-    int nX = nMouseXOnMap / SYS_MAPGRIDXP;
-    int nY = nMouseYOnMap / SYS_MAPGRIDYP;
-
-    for(int nCurrY = nY - 1; nCurrY < to_d(g_editorMap.h()); ++nCurrY){
-        if(g_editorMap.validC(nX, nCurrY)){
-            const auto &obj = g_editorMap.cell(nX, nCurrY).obj[objIndex];
-            if(obj.valid){
-                if(auto objImage = g_imageCache.retrieve(obj.texID)){
-                    int nW = objImage->w();
-                    int nH = objImage->h();
-
-                    int nStartX = nX     * SYS_MAPGRIDXP - offsetX;
-                    int nStartY = nCurrY * SYS_MAPGRIDYP - offsetY + SYS_MAPGRIDYP - nH;
-
-                    if(mathf::pointInRectangle(nMouseXOnMap - offsetX, nMouseYOnMap - offsetY, nStartX, nStartY, nW, nH)){
-                        g_editorMap.cellSelect(nX, nCurrY).obj[objIndex] = !g_mainWindow->deselect();
-                        return;
+                        break;
                     }
                 }
             }
@@ -705,6 +607,7 @@ void DrawArea::addSelect()
 
                         if(mathf::pointInRectangle(m_mouseX - x(), m_mouseY - y(), startX, startY, imgW, imgH)){
                             g_editorMap.cellSelect(mouseGX, currGY).obj[objIndex] = !g_mainWindow->deselect();
+                            break;
                         }
                     }
                 }
