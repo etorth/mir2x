@@ -531,35 +531,35 @@ void DrawArea::drawTrySelect()
         auto nColor = fl_color();
         fl_color(FL_RED);
 
-        if(g_mainWindow->selectByTile()){
+        if(g_mainWindow->enableSelectByTile()){
             drawTrySelectByTile();
         }
 
         for(const auto depth: {OBJD_GROUND, OBJD_OVERGROUND0, OBJD_OVERGROUND1, OBJD_SKY}){
-            if(g_mainWindow->selectByObject(depth)){
+            if(g_mainWindow->enableSelectByObject(depth)){
                 drawDoneSelectByObject(depth);
             }
         }
 
         for(const auto objIndex: {0, 1}){
-            if(g_mainWindow->selectByObjectIndex(objIndex)){
+            if(g_mainWindow->enableSelectByObjectIndex(objIndex)){
                 drawDoneSelectByObjectIndex(objIndex);
             }
         }
 
-        if(g_mainWindow->selectBySingle()){
+        if(g_mainWindow->enableSelectBySingle()){
             drawTrySelectBySingle();
         }
 
-        if(g_mainWindow->selectByRhombus()){
+        if(g_mainWindow->enableSelectByRhombus()){
             drawTrySelectByRhombus();
         }
 
-        if(g_mainWindow->selectByRectangle()){
+        if(g_mainWindow->enableSelectByRectangle()){
             drawTrySelectByRectangle();
         }
 
-        if(g_mainWindow->selectByAttribute()){
+        if(g_mainWindow->enableSelectByAttribute()){
             drawTrySelectByAttribute();
         }
 
@@ -912,31 +912,31 @@ void DrawArea::clearGroundSelect()
 
 void DrawArea::AddSelect()
 {
-    if(g_mainWindow->selectBySingle()){
+    if(g_mainWindow->enableSelectBySingle()){
         AddSelectBySingle();
     }
 
-    if(g_mainWindow->selectByRhombus()){
+    if(g_mainWindow->enableSelectByRhombus()){
         AddSelectByRhombus();
     }
 
-    if(g_mainWindow->selectByRectangle()){
+    if(g_mainWindow->enableSelectByRectangle()){
         AddSelectByRectangle();
     }
 
-    if(g_mainWindow->selectByAttribute()){
+    if(g_mainWindow->enableSelectByAttribute()){
         AddSelectByAttribute();
     }
     
-    if(g_mainWindow->selectByTile()){
+    if(g_mainWindow->enableSelectByTile()){
         AddSelectByTile();
     }
 
-    if(g_mainWindow->selectByObject(true)){
+    if(g_mainWindow->enableSelectByObject(true)){
         AddSelectByObject(true);
     }
 
-    if(g_mainWindow->selectByObject(false)){
+    if(g_mainWindow->enableSelectByObject(false)){
         AddSelectByObject(false);
     }
 }
