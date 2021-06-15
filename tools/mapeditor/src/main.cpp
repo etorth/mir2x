@@ -43,7 +43,6 @@ AttributeSelectWindow           *g_attributeSelectWindow    = nullptr;
 ProgressBarWindow               *g_progressBarWindow        = nullptr;
 LayerViewWindow                 *g_layerViewWindow          = nullptr;
 LayerBrowserWindow              *g_layerBrowserWindow       = nullptr;
-CropConfigureWindow             *g_cropConfigureWindow      = nullptr;
 ImageDB                         *g_imageDB                  = nullptr;
 EditorMap                        g_editorMap;
 ImageCache                       g_imageCache;
@@ -65,9 +64,8 @@ int main()
     g_attributeSelectWindow = new AttributeSelectWindow();
     g_attributeGridWindow   = new AttributeSelectWindow();
     g_progressBarWindow     = new ProgressBarWindow();
-    g_layerViewWindow     = new LayerViewWindow();
+    g_layerViewWindow       = new LayerViewWindow();
     g_layerBrowserWindow    = new LayerBrowserWindow();
-    g_cropConfigureWindow   = new CropConfigureWindow();
 
     g_mainWindow->showAll();
     return Fl::run();

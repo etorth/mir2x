@@ -89,7 +89,7 @@ class MainWindow {} {
 		default :          break;
 	}
 }}
-      xywh {42 81 985 690} type Double resizable visible
+      xywh {50 112 985 690} type Double resizable visible
     } {
       Fl_Box m_drawArea {
         xywh {0 20 965 627} labelfont 4 resizable
@@ -385,15 +385,6 @@ fl_alert("%s", "Haven't implement yet!");}
 }}
             xywh {40 40 30 20} labelfont 4
             code0 {\#include "editormap.hpp"}
-          }
-          MenuItem {} {
-            label Resize
-            callback {{
-    extern CropConfigureWindow *g_cropConfigureWindow;
-    g_cropConfigureWindow->showAll();
-}}
-            xywh {50 50 30 20} labelfont 4
-            code0 {\#include "cropconfigurewindow.hpp"}
           }
         }
         Submenu {} {

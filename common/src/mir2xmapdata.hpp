@@ -305,8 +305,8 @@ class Mir2xMapData final
             fflassert(argW > 0 && argW % 2 == 0);
             fflassert(argH > 0 && argH % 2 == 0);
 
-            fflassert(argX + argW < w());
-            fflassert(argY + argH < h());
+            fflassert(argX + argW <= w());
+            fflassert(argY + argH <= h());
 
             Mir2xMapData sub;
             sub.allocate(argW, argH);

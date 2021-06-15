@@ -185,21 +185,26 @@ Mir2xMapData EditorMap::exportLayer() const
 
     for(size_t x = 0; x < w(); ++x){
         for(size_t y = 0; y < h(); ++y){
-            if(g_layerBrowserWindow->importTile()){
-                if((x % 2) == 0 && (y % 2) == 0){
-                    if(tile(x, y).valid){
+            if((x % 2) == 0 && (y % 2) == 0){
+                if(g_layerBrowserWindow->importTile()){
+                    if(true
+                            && tile(x, y).valid
+                            && tileSelect(x, y).tile){
                         fnExtendROI(x, y);
                         data.tile(x, y) = tile(x, y);
                     }
                 }
             }
 
+            size_t dstObjIndex = 0;
             for(const int depth: {OBJD_GROUND, OBJD_OVERGROUND0, OBJD_OVERGROUND1, OBJD_SKY}){
                 if(g_layerBrowserWindow->importObject(depth)){
-                    size_t dstObjIndex = 0;
                     for(const int objIndex: {0, 1}){
                         const auto &obj = cell(x, y).obj[objIndex];
-                        if(obj.valid && obj.depth == depth){
+                        if(true
+                                && obj.valid
+                                && obj.depth == depth
+                                && cellSelect(x, y).obj[objIndex]){
                             fnExtendROI(x, y);
                             data.cell(x, y).obj[dstObjIndex++] = obj;
                         }

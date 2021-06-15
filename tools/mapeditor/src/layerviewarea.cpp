@@ -219,16 +219,7 @@ void LayerViewArea::drawObject(int depth)
     }
 
     const auto [offsetX, offsetY] = offset();
-    const fl_wrapper::enable_color enable([depth]()
-    {
-        switch(depth){
-            case OBJD_GROUND     : return FL_RED;
-            case OBJD_OVERGROUND0: return FL_BLUE;
-            case OBJD_OVERGROUND1: return FL_GREEN;
-            case OBJD_SKY        : return FL_MAGENTA;
-            default              : return FL_YELLOW;
-        }
-    }());
+    const fl_wrapper::enable_color enable(fl_wrapper::color(depth));
 
     const int startGX = offsetX / SYS_MAPGRIDXP - 2;
     const int startGY = offsetY / SYS_MAPGRIDYP - 2;
@@ -243,11 +234,16 @@ void LayerViewArea::drawObject(int depth)
             }
 
             for(const int objIndex: {0, 1}){
-                if(layer->cell(x, y).obj[objIndex].depth != depth){
+                const auto &obj = layer->cell(x, y).obj[objIndex];
+                if(!obj.valid){
                     continue;
                 }
 
-                if(auto img = g_imageCache.retrieve(layer->cell(x, y).obj[objIndex].texID)){
+                if(obj.depth != depth){
+                    continue;
+                }
+
+                if(auto img = g_imageCache.retrieve(obj.texID)){
                     const int startX = x * SYS_MAPGRIDXP - offsetX;
                     const int startY = y * SYS_MAPGRIDYP + SYS_MAPGRIDYP - img->h() - offsetY;
                     drawImage(img, startX, startY);
