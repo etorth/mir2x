@@ -199,7 +199,7 @@ void DrawArea::drawTrySelectByObject()
                     if(mathf::pointInRectangle(m_mouseX - x(), m_mouseY - y(), startX, startY, imgW, imgH)){
                         fillRectangle(startX, startY, imgW, imgH, g_mainWindow->deselect() ? 0X80FF0000 : 0X8000FF00);
                         drawFloatObject(mouseGX, currGY, (objIndex == 0) ? FOBJ_OBJ0 : FOBJ_OBJ1, m_mouseX - x(), m_mouseY - y());
-                        break;
+                        return;
                     }
                 }
             }
@@ -575,40 +575,40 @@ void DrawArea::addSelect()
         if(g_attributeSelectWindow->testLand(g_editorMap.cell(mouseGX, mouseGY).land)){
             g_editorMap.cellSelect(mouseGX, mouseGY).attribute = !g_mainWindow->deselect();
         }
+        return;
     }
 
     if(g_mainWindow->enableSelectByTile()){
         g_editorMap.tileSelect(mouseGX, mouseGY).tile = !g_mainWindow->deselect();
+        return;
     }
 
-    else{
-        const auto [offsetX, offsetY] = offset();
-        for(int currGY = mouseGY; currGY < mouseGY + 26; ++currGY){
-            if(!g_editorMap.validC(mouseGX, currGY)){
+    const auto [offsetX, offsetY] = offset();
+    for(int currGY = mouseGY; currGY < mouseGY + 26; ++currGY){
+        if(!g_editorMap.validC(mouseGX, currGY)){
+            continue;
+        }
+
+        for(const auto objIndex: {0, 1}){
+            const auto &obj = g_editorMap.cell(mouseGX, currGY).obj[objIndex];
+            if(!obj.valid){
                 continue;
             }
 
-            for(const auto objIndex: {0, 1}){
-                const auto &obj = g_editorMap.cell(mouseGX, currGY).obj[objIndex];
-                if(!obj.valid){
-                    continue;
-                }
+            if(false
+                    || g_mainWindow->enableSelectByObject(obj.depth)
+                    || g_mainWindow->enableSelectByObjectIndex(objIndex)){
 
-                if(false
-                        || g_mainWindow->enableSelectByObject(obj.depth)
-                        || g_mainWindow->enableSelectByObjectIndex(objIndex)){
+                if(auto img = g_imageCache.retrieve(obj.texID)){
+                    const int imgW = img->w();
+                    const int imgH = img->h();
 
-                    if(auto img = g_imageCache.retrieve(obj.texID)){
-                        const int imgW = img->w();
-                        const int imgH = img->h();
+                    const int startX = mouseGX * SYS_MAPGRIDXP - offsetX;
+                    const int startY =  currGY * SYS_MAPGRIDYP - offsetY + SYS_MAPGRIDYP - imgH;
 
-                        const int startX = mouseGX * SYS_MAPGRIDXP - offsetX;
-                        const int startY =  currGY * SYS_MAPGRIDYP - offsetY + SYS_MAPGRIDYP - imgH;
-
-                        if(mathf::pointInRectangle(m_mouseX - x(), m_mouseY - y(), startX, startY, imgW, imgH)){
-                            g_editorMap.cellSelect(mouseGX, currGY).obj[objIndex] = !g_mainWindow->deselect();
-                            break;
-                        }
+                    if(mathf::pointInRectangle(m_mouseX - x(), m_mouseY - y(), startX, startY, imgW, imgH)){
+                        g_editorMap.cellSelect(mouseGX, currGY).obj[objIndex] = !g_mainWindow->deselect();
+                        return;
                     }
                 }
             }

@@ -172,12 +172,14 @@ Mir2xMapData EditorMap::exportLayer() const
     int x1 = INT_MIN;
     int y1 = INT_MIN;
 
-    const auto fnExtendROI = [&x0, &y0, &x1, &y1](int x, int y)
+    const auto fnExtendROI = [&x0, &y0, &x1, &y1, this](int x, int y)
     {
-        x0 = std::min<int>(x0, x);
-        y0 = std::min<int>(y0, y);
-        x1 = std::max<int>(x1, x);
-        y1 = std::max<int>(y1, y);
+        if(validC(x, y)){
+            x0 = std::min<int>(x0, x);
+            y0 = std::min<int>(y0, y);
+            x1 = std::max<int>(x1, x);
+            y1 = std::max<int>(y1, y);
+        }
     };
 
     Mir2xMapData data;
@@ -205,8 +207,15 @@ Mir2xMapData EditorMap::exportLayer() const
                                 && obj.valid
                                 && obj.depth == depth
                                 && cellSelect(x, y).obj[objIndex]){
-                            fnExtendROI(x, y);
-                            data.cell(x, y).obj[dstObjIndex++] = obj;
+                            if(const auto img = g_imageDB->setIndex(obj.texID)){
+                                // objs are long bars
+                                // need to extend to bigger area contains whole objs
+                                const int objHCount = (img->height + SYS_MAPGRIDYP - 1) / SYS_MAPGRIDYP;
+                                for(int iy = 0; iy < objHCount; ++iy){
+                                    fnExtendROI(x, y - iy);
+                                }
+                                data.cell(x, y).obj[dstObjIndex++] = obj;
+                            }
                         }
                     }
                 }
