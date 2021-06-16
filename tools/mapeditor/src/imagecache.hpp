@@ -26,6 +26,7 @@
 class ImageCache
 {
     private:
+        std::vector<uint32_t> m_convBuf;
         std::unordered_map<uint32_t, std::unique_ptr<Fl_Image>> m_cache;
 
     public:
