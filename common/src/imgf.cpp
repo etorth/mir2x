@@ -173,11 +173,11 @@ bool imgf::saveImageBuffer(const void *imgBuf, size_t imgW, size_t imgH, const c
         goto pngf_saveRGBABuffer_failed;
     }
 
-    // Initialize header information for png
-    // RGBA means: [0] : R  : [07:00]
-    //             [1] : G  : [15:08]
-    //             [2] : B  : [23:16]
-    //             [3] : A  : [31:24]
+    // Initialize header information for png, this doesn't match colorf::RGBA model
+    // RGBA means: [0] : R  : [07:00] 0X000000FF
+    //             [1] : G  : [15:08] 0X0000FF00
+    //             [2] : B  : [23:16] 0X00FF0000
+    //             [3] : A  : [31:24] 0XFF000000
 
     png_set_IHDR(
             imgPtr,
@@ -185,10 +185,13 @@ bool imgf::saveImageBuffer(const void *imgBuf, size_t imgW, size_t imgH, const c
             imgW,
             imgH,
             8,
-            PNG_COLOR_TYPE_RGBA,
+            PNG_COLOR_TYPE_RGBA,    // -> ABGR
             PNG_INTERLACE_NONE,
             PNG_COMPRESSION_TYPE_DEFAULT,
             PNG_FILTER_TYPE_DEFAULT);
+
+    png_set_bgr(imgPtr);            // -> ARGB
+    png_set_swap_alpha(imgPtr);     // -> RGBA
 
     //  be extreme careful for memory allocation
     //  I use this function to generate extremely large PNG files, i.e. render the whole map

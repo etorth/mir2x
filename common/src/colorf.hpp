@@ -108,9 +108,9 @@ namespace colorf
         return (uint8_t)(val);
     }
 
-    constexpr uint32_t RGBA_F(double fR, double fG, double fB, double fA)
+    constexpr uint32_t RGBA_F(double fr, double fg, double fb, double fa)
     {
-        return RGBA(round255(fR * 255.0), round255(fG * 255.0), round255(fB * 255.0), round255(fA * 255.0));
+        return RGBA(round255(fr * 255.0), round255(fg * 255.0), round255(fb * 255.0), round255(fa * 255.0));
     }
 
     constexpr uint32_t RED     = RGBA(0XFF, 0X00, 0X00, 0X00);

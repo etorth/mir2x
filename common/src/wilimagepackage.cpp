@@ -21,6 +21,7 @@
 #include <cstdio>
 #include <cstring>
 
+#include "colorf.hpp"
 #include "totype.hpp"
 #include "filesys.hpp"
 #include "fflerror.hpp"
@@ -28,20 +29,16 @@
 
 static uint32_t color_u16_2_u32(uint16_t srcColor, uint32_t modColor)
 {
-    uint8_t r  = to_u8((srcColor & 0XF800) >> 8);
-    uint8_t g  = to_u8((srcColor & 0X07E0) >> 3);
-    uint8_t b  = to_u8((srcColor & 0X001F) << 3);
+    auto r = to_u8((srcColor & 0XF800) >> 8);
+    auto g = to_u8((srcColor & 0X07E0) >> 3);
+    auto b = to_u8((srcColor & 0X001F) << 3);
 
-    if((modColor & 0X00FFFFFF) != 0X00FFFFFF){
-        uint8_t br = to_u8((modColor & 0X00FF0000) >> 16);
-        uint8_t bg = to_u8((modColor & 0X0000FF00) >>  8);
-        uint8_t bb = to_u8((modColor & 0X000000FF) >>  0);
-
-        r = (br <= r) ? br : (uint8_t)std::lround(255.0 * r / br);
-        g = (bg <= g) ? bg : (uint8_t)std::lround(255.0 * g / bg);
-        b = (bb <= b) ? bb : (uint8_t)std::lround(255.0 * b / bb);
+    if((modColor & 0XFFFFFF00) != 0XFFFFFF00){
+        r = colorf::round255(to_df(r) * colorf::R(modColor) / 255.0);
+        g = colorf::round255(to_df(g) * colorf::G(modColor) / 255.0);
+        b = colorf::round255(to_df(b) * colorf::B(modColor) / 255.0);
     }
-    return (modColor & 0XFF000000) + ((to_u32(b)) << 16) + ((to_u32(g)) << 8) + to_u32(r);
+    return (to_u32(r) << 24) + (to_u32(g) << 16) + (to_u32(b) << 8) + (modColor & 0X000000FF);
 }
 
 static void memcpy_u16_2_u32(uint32_t *dst, const uint16_t *src, size_t n, uint32_t modColor)
