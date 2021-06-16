@@ -173,11 +173,19 @@ bool imgf::saveImageBuffer(const void *imgBuf, size_t imgW, size_t imgH, const c
         goto pngf_saveRGBABuffer_failed;
     }
 
-    // Initialize header information for png, this doesn't match colorf::RGBA model
-    // RGBA means: [0] : R  : [07:00] 0X000000FF
-    //             [1] : G  : [15:08] 0X0000FF00
-    //             [2] : B  : [23:16] 0X00FF0000
-    //             [3] : A  : [31:24] 0XFF000000
+    // Initialize header information for png, here the default RGBA doesn't match colorf::RGBA model:
+    // RGBA means here: [0] : R  : [07:00] 0X000000FF
+    //                  [1] : G  : [15:08] 0X0000FF00
+    //                  [2] : B  : [23:16] 0X00FF0000
+    //                  [3] : A  : [31:24] 0XFF000000
+    //
+    // I tried to call following functions and works
+    //
+    //     png_set_bgr(imgPtr);            // -> ARGB
+    //     png_set_swap_alpha(imgPtr);     // -> RGBA
+    //
+    // but looks manual/examples uses transform when calling png_write_png:
+    // https://www.roxlu.com/2015/050/saving-pixel-data-using-libpng
 
     png_set_IHDR(
             imgPtr,
@@ -189,12 +197,6 @@ bool imgf::saveImageBuffer(const void *imgBuf, size_t imgW, size_t imgH, const c
             PNG_INTERLACE_NONE,
             PNG_COMPRESSION_TYPE_DEFAULT,
             PNG_FILTER_TYPE_DEFAULT);
-
-    png_set_bgr(imgPtr);            // -> ARGB
-    png_set_swap_alpha(imgPtr);     // -> RGBA
-
-    // I don't know if I need to call: png_read_update_info(imgPtr, imgInfoPtr);
-    // per the manual looks I don't
 
     //  be extreme careful for memory allocation
     //  I use this function to generate extremely large PNG files, i.e. render the whole map
@@ -216,35 +218,22 @@ bool imgf::saveImageBuffer(const void *imgBuf, size_t imgW, size_t imgH, const c
 #endif
 
     rowPtrBufLen = imgH * sizeof(png_byte *);
-    rowPtrBuf =(png_byte **)(png_malloc(imgPtr, rowPtrBufLen));
+    rowPtrBuf =(png_byte **)(png_malloc(imgPtr, rowPtrBufLen)); // strict-aliasing issue ???
 
     CHECK_PNG_MALLOC_RESULT(imgPtr, rowPtrBuf);
     std::memset(rowPtrBuf, 0, rowPtrBufLen);
 
-    for(int y = 0; y < to_d(imgH); ++y){
-        const size_t rowBufLen = sizeof(uint8_t) * pixelSize * imgW;
-        auto rowBuf =(png_byte *)(png_malloc(imgPtr, rowBufLen));
-
-        CHECK_PNG_MALLOC_RESULT(imgPtr, rowBuf);
-        std::memcpy(rowBuf, (const uint8_t *)(imgBuf) + rowBufLen * y, rowBufLen);
-        rowPtrBuf[y] = rowBuf;
+    for(size_t y = 0; y < imgH; ++y){
+        rowPtrBuf[y] = (png_byte *)(imgBuf) + sizeof(uint8_t) * pixelSize * imgW * y; // const cast
     }
-
-    // all data has been stored in imgPtr 
-    // write data to binary file
 
     png_init_io(imgPtr, fp);
     png_set_rows(imgPtr, imgInfoPtr, rowPtrBuf);
-    png_write_png(imgPtr, imgInfoPtr, PNG_TRANSFORM_IDENTITY, nullptr);
+    png_write_png(imgPtr, imgInfoPtr, PNG_TRANSFORM_BGR | PNG_TRANSFORM_SWAP_ALPHA, nullptr);
     result = true;
 
 pngf_saveRGBABuffer_failed:
     if(rowPtrBuf){
-        for(int y = 0; y < to_d(imgH); y++){
-            if(rowPtrBuf[y]){
-                png_free(imgPtr, rowPtrBuf[y]);
-            }
-        }
         png_free(imgPtr, rowPtrBuf);
     }
 
