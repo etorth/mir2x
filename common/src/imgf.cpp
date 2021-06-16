@@ -193,6 +193,9 @@ bool imgf::saveImageBuffer(const void *imgBuf, size_t imgW, size_t imgH, const c
     png_set_bgr(imgPtr);            // -> ARGB
     png_set_swap_alpha(imgPtr);     // -> RGBA
 
+    // I don't know if I need to call: png_read_update_info(imgPtr, imgInfoPtr);
+    // per the manual looks I don't
+
     //  be extreme careful for memory allocation
     //  I use this function to generate extremely large PNG files, i.e. render the whole map
 
