@@ -22,7 +22,7 @@
 #include <FL/fl_draw.H>
 
 #include "filesys.hpp"
-#include "pngf.hpp"
+#include "imgf.hpp"
 #include "hexstr.hpp"
 #include "actionset.hpp"
 #include "mainwindow.hpp"
@@ -113,7 +113,7 @@ bool ActionSet::ImportMir2Action(int nFileIndex, int nAnimationIndex, int nStatu
                         nDataLen = imgInfo0->width * imgInfo0->height;
                     }
                     g_WilImagePackage[0]->decode(pData, 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF);
-                    pngf::saveRGBABuffer((uint8_t *)pData,
+                    imgf::saveImageBuffer((uint8_t *)pData,
                             imgInfo0->width, imgInfo0->height,
                             szSaveFileName);
                 }
@@ -139,7 +139,7 @@ bool ActionSet::ImportMir2Action(int nFileIndex, int nAnimationIndex, int nStatu
                         nDataLen = imgInfo1->width * imgInfo1->height;
                     }
                     g_WilImagePackage[1]->decode(pData, 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF);
-                    pngf::saveRGBABuffer((uint8_t *)pData,
+                    imgf::saveImageBuffer((uint8_t *)pData,
                             imgInfo1->width, imgInfo1->height,
                             szSaveFileName);
                 }

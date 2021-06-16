@@ -47,7 +47,7 @@
 
 #include "totype.hpp"
 #include "shadow.hpp"
-#include "pngf.hpp"
+#include "imgf.hpp"
 #include "filesys.hpp"
 #include "wilimagepackage.hpp"
 
@@ -232,7 +232,7 @@ bool monsterWil2PNG(int nMonsterFileIndex,
                                 imgCount++,
                                 prefixWidth);
 
-                        if(!pngf::saveRGBABuffer((uint8_t *)(&(stPNGBuf[0])), bodyImgInfo->width, bodyImgInfo->height, szSaveFileName)){
+                        if(!imgf::saveImageBuffer((uint8_t *)(&(stPNGBuf[0])), bodyImgInfo->width, bodyImgInfo->height, szSaveFileName)){
                             std::printf("save PNG failed: %s", szSaveFileName);
                             return false;
                         }
@@ -262,7 +262,7 @@ bool monsterWil2PNG(int nMonsterFileIndex,
                                     imgCount++,
                                     prefixWidth);
 
-                            if(!pngf::saveRGBABuffer(stPNGBufShadow.data(), shadowImgInfo->width, shadowImgInfo->height, szSaveShadowFileName)){
+                            if(!imgf::saveImageBuffer(stPNGBufShadow.data(), shadowImgInfo->width, shadowImgInfo->height, szSaveShadowFileName)){
                                 std::printf("save PNG failed: %s", szSaveShadowFileName);
                                 return false;
                             }
@@ -330,7 +330,7 @@ bool monsterWil2PNG(int nMonsterFileIndex,
                                         imgCount++,
                                         prefixWidth);
 
-                                if(!pngf::saveRGBABuffer(stPNGBufShadow.data(), nShadowW, nShadowH, szSaveShadowFileName)){
+                                if(!imgf::saveImageBuffer(stPNGBufShadow.data(), nShadowW, nShadowH, szSaveShadowFileName)){
                                     std::printf("save shadow PNG failed: %s", szSaveShadowFileName);
                                     return false;
                                 }

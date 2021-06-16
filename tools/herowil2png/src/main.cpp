@@ -42,7 +42,7 @@
 #include <cinttypes>
 #include <algorithm>
 
-#include "pngf.hpp"
+#include "imgf.hpp"
 #include "filesys.hpp"
 #include "shadow.hpp"
 #include "wilimagepackage.hpp"
@@ -136,7 +136,7 @@ bool heroWil2PNG(bool bGender,
                                 imgInfo->px,
                                 imgInfo->py);
 
-                        if(!pngf::saveRGBABuffer((uint8_t *)(&(stPNGBuf[0])), imgInfo->width, imgInfo->height, szSaveFileName)){
+                        if(!imgf::saveImageBuffer((uint8_t *)(&(stPNGBuf[0])), imgInfo->width, imgInfo->height, szSaveFileName)){
                             std::printf("save PNG failed: %s", szSaveFileName);
                             return false;
                         }
@@ -174,7 +174,7 @@ bool heroWil2PNG(bool bGender,
                                     bProject ? imgInfo->shadowPX : (imgInfo->px + 3),
                                     bProject ? imgInfo->shadowPY : (imgInfo->py + 2));
 
-                            if(!pngf::saveRGBABuffer((uint8_t *)(&(stPNGBufShadow[0])), nShadowW, nShadowH, szSaveFileName)){
+                            if(!imgf::saveImageBuffer((uint8_t *)(&(stPNGBufShadow[0])), nShadowW, nShadowH, szSaveFileName)){
                                 std::printf("save shadow PNG failed: %s", szSaveFileName);
                                 return false;
                             }

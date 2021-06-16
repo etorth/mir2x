@@ -41,7 +41,7 @@
 #include <cstdlib>
 #include <cstdint>
 
-#include "pngf.hpp"
+#include "imgf.hpp"
 #include "strf.hpp"
 #include "shadow.hpp"
 #include "motion.hpp"
@@ -327,7 +327,7 @@ void npcWil2PNG(const char *path, const char *baseName, const char *, const char
 
                 const int dir = dirMap.at(p.first.at(0));
                 const auto fileName = createOffsetFileName(outDir, false, lookId, encodeMotion, dir, frame, imgInfo->px, imgInfo->py);
-                pngf::saveRGBABuffer(reinterpret_cast<const uint8_t *>(pngBuf.data()), imgInfo->width, imgInfo->height, fileName.c_str());
+                imgf::saveImageBuffer(reinterpret_cast<const uint8_t *>(pngBuf.data()), imgInfo->width, imgInfo->height, fileName.c_str());
 
                 const auto [needShadow, projectShadow] = [lookId]() -> std::tuple<bool, bool>
                 {
@@ -369,7 +369,7 @@ void npcWil2PNG(const char *path, const char *baseName, const char *, const char
                 const auto shadowFileName = createOffsetFileName(outDir, true, lookId, encodeMotion, dir, frame, 
                         projectShadow ? imgInfo->shadowPX : (imgInfo->px + 3),
                         projectShadow ? imgInfo->shadowPY : (imgInfo->py + 2));
-                pngf::saveRGBABuffer(reinterpret_cast<const uint8_t *>(pngBufShadow.data()), nShadowW, nShadowH, shadowFileName.c_str());
+                imgf::saveImageBuffer(reinterpret_cast<const uint8_t *>(pngBufShadow.data()), nShadowW, nShadowH, shadowFileName.c_str());
             }
         }
     }

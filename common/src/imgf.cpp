@@ -151,26 +151,26 @@ bool imgf::saveImageBuffer(const void *imgBuf, size_t imgW, size_t imgH, const c
 
         // use goto sttement
         // then all variable declaration should at the very beginning
-        goto pngf_saveRGBABuffer_check_argument_failed;
+        goto imgf_saveRGBABuffer_check_argument_failed;
     }
 
     if(!(fp = std::fopen(fileName, "wb"))){
-        goto pngf_saveRGBABuffer_fopen_failed;
+        goto imgf_saveRGBABuffer_fopen_failed;
     }
 
     if(!(imgPtr = png_create_write_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr))){
-        goto pngf_saveRGBABuffer_png_create_write_struct_failed;
+        goto imgf_saveRGBABuffer_png_create_write_struct_failed;
     }
 
     if(!(imgInfoPtr = png_create_info_struct(imgPtr))){
-        goto pngf_saveRGBABuffer_png_create_info_struct_failed;
+        goto imgf_saveRGBABuffer_png_create_info_struct_failed;
     }
 
     // after this line
     // any failure in following png_* calls jumps back here, triggered by png_error()
 
     if(setjmp(png_jmpbuf(imgPtr))){
-        goto pngf_saveRGBABuffer_failed;
+        goto imgf_saveRGBABuffer_failed;
     }
 
     // Initialize header information for png, here the default RGBA doesn't match colorf::RGBA model:
@@ -232,18 +232,18 @@ bool imgf::saveImageBuffer(const void *imgBuf, size_t imgW, size_t imgH, const c
     png_write_png(imgPtr, imgInfoPtr, PNG_TRANSFORM_BGR | PNG_TRANSFORM_SWAP_ALPHA, nullptr);
     result = true;
 
-pngf_saveRGBABuffer_failed:
+imgf_saveRGBABuffer_failed:
     if(rowPtrBuf){
         png_free(imgPtr, rowPtrBuf);
     }
 
-pngf_saveRGBABuffer_png_create_info_struct_failed:
+imgf_saveRGBABuffer_png_create_info_struct_failed:
     png_destroy_write_struct(&imgPtr, &imgInfoPtr);
 
-pngf_saveRGBABuffer_png_create_write_struct_failed:
+imgf_saveRGBABuffer_png_create_write_struct_failed:
     std::fclose(fp);
 
-pngf_saveRGBABuffer_fopen_failed:
-pngf_saveRGBABuffer_check_argument_failed:
+imgf_saveRGBABuffer_fopen_failed:
+imgf_saveRGBABuffer_check_argument_failed:
     return result;
 }

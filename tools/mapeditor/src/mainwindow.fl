@@ -44,7 +44,7 @@ decl {\#include "strf.hpp"} {private local
 decl {\#include "totype.hpp"} {private local
 }
 
-decl {\#include "pngf.hpp"} {private local
+decl {\#include "imgf.hpp"} {private local
 }
 
 decl {\#include "imagedb.hpp"} {private local
@@ -1157,7 +1157,7 @@ g_aboutWindow->showAll();}
         exportBufPtr = overviewDstBuf.data();
     }
 
-    if(pngf::saveRGBABuffer((const uint8_t *)(exportBufPtr), to_u32(exportW), to_u32(exportH), szOverviewFullFileName.c_str())){
+    if(imgf::saveImageBuffer((const uint8_t *)(exportBufPtr), to_u32(exportW), to_u32(exportH), szOverviewFullFileName.c_str())){
         fl_alert("Done overview map image: %s", szOverviewFileName.c_str());
     }
     else{

@@ -17,7 +17,7 @@ decl {\#include <cstring>} {private local
 decl {\#include <iostream>} {private local
 }
 
-decl {\#include "pngf.hpp"} {private local
+decl {\#include "imgf.hpp"} {private local
 }
 
 decl {\#include "strf.hpp"} {private local
@@ -214,7 +214,7 @@ class MainWindow {} {
 
                     std::string tmpFilePathName = fileChooser.filename();
                     std::replace(tmpFilePathName.begin(), tmpFilePathName.end(), '\\\\', '/');
-                    pngf::saveRGBABuffer((uint8_t *)(&(stvBuf[0])), nW, nH, (tmpFilePathName + "/" + tmpIndex + ".PNG").c_str());
+                    imgf::saveImageBuffer((uint8_t *)(&(stvBuf[0])), nW, nH, (tmpFilePathName + "/" + tmpIndex + ".PNG").c_str());
                 }
                 break;
             }
@@ -302,7 +302,7 @@ class MainWindow {} {
 
                     std::string tmpFilePathName = fileChooser.filename();
                     std::replace(tmpFilePathName.begin(), tmpFilePathName.end(), '\\\\', '/');
-                    pngf::saveRGBABuffer((uint8_t *)(&(stvBuf[0])), nW, nH, (tmpFilePathName + "/" + tmpIndex + ".PNG").c_str());
+                    imgf::saveImageBuffer((uint8_t *)(&(stvBuf[0])), nW, nH, (tmpFilePathName + "/" + tmpIndex + ".PNG").c_str());
                 }
                 g_ProgressBarWindow->HideAll();
                 break;

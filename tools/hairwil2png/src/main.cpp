@@ -42,7 +42,7 @@
 #include <cinttypes>
 #include <algorithm>
 
-#include "pngf.hpp"
+#include "imgf.hpp"
 #include "filesys.hpp"
 #include "fflerror.hpp"
 #include "wilimagepackage.hpp"
@@ -118,7 +118,7 @@ void hairWil2PNG(bool bGender,
                                 hairImgInfo->px,
                                 hairImgInfo->py);
 
-                        if(!pngf::saveRGBABuffer((uint8_t *)(&(stHairPNGBuf[0])), hairImgInfo->width, hairImgInfo->height, szSaveFileName)){
+                        if(!imgf::saveImageBuffer((uint8_t *)(&(stHairPNGBuf[0])), hairImgInfo->width, hairImgInfo->height, szSaveFileName)){
                             throw fflerror("save hair PNG failed: %s", szSaveFileName);
                         }
                     }

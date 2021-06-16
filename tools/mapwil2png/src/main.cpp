@@ -24,7 +24,7 @@
 #include <cinttypes>
 
 #include "strf.hpp"
-#include "pngf.hpp"
+#include "imgf.hpp"
 #include "imagedb.hpp"
 #include "fflerror.hpp"
 
@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
         fflassert(imgH > 0);
 
         str_printf(fileName, "%s/%08llX.PNG", argv[2], (to_llu(fileIndex) << 16) + imageIndex);
-        pngf::saveRGBABuffer(imgBuf, imgW, imgH, fileName.c_str());
+        imgf::saveImageBuffer(imgBuf, imgW, imgH, fileName.c_str());
     });
     return 0;
 }

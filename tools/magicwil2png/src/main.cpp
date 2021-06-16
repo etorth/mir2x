@@ -41,7 +41,7 @@
 
 #include "totype.hpp"
 #include "fflerror.hpp"
-#include "pngf.hpp"
+#include "imgf.hpp"
 #include "alphaf.hpp"
 #include "filesys.hpp"
 #include "wilimagepackage.hpp"
@@ -99,7 +99,7 @@ void magicWil2PNG(const char *dataPath, const char *outDir, int prefixWidth)
                 char saveFileName[256];
                 createOffsetFileName(saveFileName, outDir, fileIndex, i, imgInfo->px, imgInfo->py, prefixIndex++, prefixWidth);
 
-                if(!pngf::saveRGBABuffer((uint8_t *)(pngBuf.data()), imgInfo->width, imgInfo->height, saveFileName)){
+                if(!imgf::saveImageBuffer((uint8_t *)(pngBuf.data()), imgInfo->width, imgInfo->height, saveFileName)){
                     throw fflerror("save PNG failed: %s", saveFileName);
                 }
             }

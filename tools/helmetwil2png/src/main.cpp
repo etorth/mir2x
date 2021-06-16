@@ -48,7 +48,7 @@
 #include <cinttypes>
 #include <algorithm>
 
-#include "pngf.hpp"
+#include "imgf.hpp"
 #include "filesys.hpp"
 #include "fflerror.hpp"
 #include "wilimagepackage.hpp"
@@ -122,7 +122,7 @@ void helmetWil2PNG(bool bGender, int nIndex,
                                 helmetImgInfo->px,
                                 helmetImgInfo->py);
 
-                        if(!pngf::saveRGBABuffer((uint8_t *)(&(stHelmetPNGBuf[0])), helmetImgInfo->width, helmetImgInfo->height, szSaveFileName)){
+                        if(!imgf::saveImageBuffer((uint8_t *)(&(stHelmetPNGBuf[0])), helmetImgInfo->width, helmetImgInfo->height, szSaveFileName)){
                             throw fflerror("save helmet PNG failed: %s", szSaveFileName);
                         }
                     }

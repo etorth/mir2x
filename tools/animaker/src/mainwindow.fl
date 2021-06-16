@@ -18,7 +18,7 @@ decl {\#include <FL/fl_ask.H>} {private local
 decl {\#include "operationarea.hpp"} {public local
 } 
 
-decl {\#include "pngf.hpp"} {public local
+decl {\#include "imgf.hpp"} {public local
 } 
 
 decl {\#include "mathf.hpp"} {public local

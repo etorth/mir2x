@@ -24,7 +24,7 @@
 #include <functional>
 #include <FL/fl_ask.H>
 
-#include "pngf.hpp"
+#include "imgf.hpp"
 #include "filesys.hpp"
 #include "imagedb.hpp"
 #include "mir2map.hpp"
