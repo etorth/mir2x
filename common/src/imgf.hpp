@@ -55,6 +55,18 @@ namespace imgf
             size_t,             // RGBA src buffer height
 
             int,                // dst x
+            int);               // dst y
+
+    void blendImageBuffer(
+            uint32_t *,         // RGBA dst buffer
+            size_t,             // RGBA dst buffer width
+            size_t,             // RGBA dst buffer height
+
+            const uint32_t *,   // RGBA src buffer
+            size_t,             // RGBA src buffer width
+            size_t,             // RGBA src buffer height
+
+            int,                // dst x
             int,                // dst y
 
             int,                // src x

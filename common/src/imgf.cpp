@@ -23,6 +23,7 @@
 #include "imgf.hpp"
 #include "mathf.hpp"
 #include "colorf.hpp"
+#include "totype.hpp"
 #include "fflerror.hpp"
 
 bool imgf::roiCrop(
@@ -116,6 +117,13 @@ void imgf::blendImageBuffer(
             dst = colorf::renderRGBA(dst, src);
         }
     }
+}
+
+void imgf::blendImageBuffer(
+        /* */ uint32_t *dstBuf, size_t dstBufW, size_t dstBufH,
+        const uint32_t *srcBuf, size_t srcBufW, size_t srcBufH, int dstX, int dstY)
+{
+    imgf::blendImageBuffer(dstBuf, dstBufW, dstBufH, srcBuf, srcBufW, srcBufH, dstX, dstY, 0, 0, to_d(srcBufW), to_d(srcBufH));
 }
 
 bool imgf::saveImageBuffer(const void *imgBuf, size_t imgW, size_t imgH, const char *fileName)

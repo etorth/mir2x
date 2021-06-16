@@ -22,14 +22,50 @@
 #include <iostream>
 #include <algorithm>
 #include "strf.hpp"
+#include "imgf.hpp"
 #include "imagedb.hpp"
+#include "sysconst.hpp"
 #include "filesys.hpp"
 #include "fflerror.hpp"
 #include "mir2map.hpp"
 #include "threadpool.hpp"
 #include "mir2xmapdata.hpp"
 
-void convertMap(std::string fromName, std::string outName, ImageDB &imgDB)
+static void exportOverview(const Mir2xMapData *p, const std::string &outName, ImageDB &imgDB)
+{
+    const size_t imgW = p->w() * SYS_MAPGRIDXP;
+    const size_t imgH = p->h() * SYS_MAPGRIDYP;
+
+    std::vector<uint32_t> imgBuf(imgW * imgH, 0);
+    for(size_t y = 0; y < p->h(); ++y){
+        for(size_t x = 0; x < p->w(); ++x){
+            if((x % 2) == 0 && (y % 2) == 0){
+                if(const auto &tile = p->tile(x, y); tile.valid){
+                    if(const auto [img, w, h] = imgDB.decode(tile.texID, 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF); img){
+                        imgf::blendImageBuffer(imgBuf.data(), imgW, imgH, img, w, h, x * SYS_MAPGRIDXP, y * SYS_MAPGRIDYP);
+                    }
+                }
+            }
+        }
+    }
+
+    for(const int depth: {OBJD_GROUND, OBJD_OVERGROUND0, OBJD_OVERGROUND1, OBJD_SKY}){
+        for(size_t y = 0; y < p->h(); ++y){
+            for(size_t x = 0; x < p->w(); ++x){
+                for(const int objIndex: {0, 1}){
+                    if(const auto &obj = p->cell(x, y).obj[objIndex]; obj.valid && obj.depth == depth){
+                        if(const auto [img, w, h] = imgDB.decode(obj.texID, 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF); img){
+                            imgf::blendImageBuffer(imgBuf.data(), imgW, imgH, img, w, h, x * SYS_MAPGRIDXP, y * SYS_MAPGRIDYP + SYS_MAPGRIDYP - h);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    imgf::saveImageBuffer(imgBuf.data(), imgW, imgH, outName.c_str());
+}
+
+static void convertMap(std::string fromName, std::string outName, ImageDB &imgDB)
 {
     std::cout << str_printf("converting %s", fromName.c_str()) << std::endl;
     auto mapPtr = std::make_unique<Mir2Map>(fromName.c_str());
@@ -47,7 +83,9 @@ void convertMap(std::string fromName, std::string outName, ImageDB &imgDB)
             }
         }
     }
+
     outPtr->save(outName);
+    exportOverview(outPtr.get(), outName + ".png", imgDB);
 }
 
 int main(int argc, char *argv[])
