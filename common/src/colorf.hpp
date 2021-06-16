@@ -20,7 +20,6 @@
 #include <array>
 #include <cstdint>
 #include <SDL2/SDL.h>
-#include "totype.hpp"
 
 namespace colorf
 {
