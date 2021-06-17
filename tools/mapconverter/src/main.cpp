@@ -41,7 +41,7 @@ class MapInfoParser
     private:
         struct MapEntry
         {
-            std::string fileName;
+            std::string name;
         };
 
     private:
@@ -63,19 +63,39 @@ class MapInfoParser
                     std::string fileName;
                     for(int i = 0; const auto &m: result){
                         switch(i++){
-                            case 1 : fileName = m.str(); break;
-                            case 2 :  mapName = m.str(); break;
-                            default:                     break;
+                            case 1 : fileName = toupper(m.str()); break;
+                            case 2 :  mapName = toupper(m.str()); break;
+                            default:                              break;
 
                         }
                     }
 
-                    m_mapList[mapName] = MapEntry
+                    m_mapList[fileName] = MapEntry
                     {
-                        .fileName = std::move(fileName),
+                        .name = std::move(mapName),
                     };
                 }
             }
+        }
+
+    private:
+        static std::string toupper(std::string s)
+        {
+            for(auto &ch: s){
+                if(ch >= 'a' && ch <= 'z'){
+                    ch = ('A' + ch) - 'a';
+                }
+            }
+            return s;
+        }
+
+    public:
+        std::string mapName(std::string fileName) const
+        {
+            if(auto p = m_mapList.find(toupper(fileName)); p != m_mapList.end()){
+                return p->second.name + "_" + toupper(fileName);
+            }
+            return std::string("未知地图") + "_" + toupper(fileName);
         }
 };
 
@@ -113,7 +133,7 @@ static void exportOverview(const Mir2xMapData *p, const std::string &outName, Im
     imgf::saveImageBuffer(imgBuf.data(), imgW, imgH, outName.c_str());
 }
 
-static void convertMap(std::string mapDir, std::string mapName, std::string outDir, ImageDB &imgDB)
+static void convertMap(std::string mapDir, std::string mapName, std::string outDir, const MapInfoParser *parser, ImageDB &imgDB)
 {
     auto mapPtr = std::make_unique<Mir2Map>(str_printf("%s/%s", mapDir.c_str(), mapName.c_str()).c_str());
 
@@ -134,8 +154,8 @@ static void convertMap(std::string mapDir, std::string mapName, std::string outD
     const auto [pathName, baseName, extName] = filesys::decompFileName(mapName.c_str(), true);
     fflassert(pathName.empty());
 
-    outPtr->save(str_printf("%s/%s.bin", outDir.c_str(), baseName.c_str()).c_str());
-    exportOverview(outPtr.get(), str_printf("%s/%s.png", outDir.c_str(), baseName.c_str()), imgDB);
+    outPtr->save(str_printf("%s/%s.bin", outDir.c_str(), parser->mapName(baseName).c_str()));
+    exportOverview(outPtr.get(), str_printf("%s/%s.png", outDir.c_str(), parser->mapName(baseName).c_str()), imgDB);
 }
 
 int main(int argc, char *argv[])
@@ -160,7 +180,7 @@ int main(int argc, char *argv[])
     const auto mapInfoParser = std::make_unique<MapInfoParser>(argv[5]);
 
     for(const auto &mapName: filesys::getFileList(argv[4], false, R"#(.*\.[mM][aA][pP]$)#")){
-        pool.addTask(hasDecodeError, [argv, mapName, &dbList](int threadId)
+        pool.addTask(hasDecodeError, [argv, mapName, &dbList, &mapInfoParser](int threadId)
         {
             // ImageDB is not thread safe
             // need to allocate for each thread
@@ -168,7 +188,7 @@ int main(int argc, char *argv[])
             if(!dbList[threadId]){
                 dbList[threadId] = std::make_unique<ImageDB>(argv[3]);
             }
-            convertMap(argv[4], mapName, argv[1], *dbList[threadId]);
+            convertMap(argv[4], mapName, argv[1], mapInfoParser.get(), *dbList[threadId]);
         });
     }
 
