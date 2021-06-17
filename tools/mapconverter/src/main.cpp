@@ -16,6 +16,7 @@
  * =====================================================================================
  */
 
+#include <regex>
 #include <memory>
 #include <string>
 #include <cstring>
@@ -31,6 +32,52 @@
 #include "argparser.hpp"
 #include "threadpool.hpp"
 #include "mir2xmapdata.hpp"
+
+// parser of /home/anhong/Dropbox/传奇3配置/Mapinfo.txt.utf8.txt
+// Mapinfo.txt.utf8.txt is same as Mapinfo.txt, but converted to utf8 encoding otherwise this code can't parse it
+
+class MapInfoParser
+{
+    private:
+        struct MapEntry
+        {
+            std::string fileName;
+        };
+
+    private:
+        std::unordered_map<std::string, MapEntry> m_mapList;
+
+    public:
+        MapInfoParser(const std::string &mapInfoFileName)
+        {
+            std::ifstream f(mapInfoFileName);
+            fflassert(f);
+
+            std::string line;
+            while(std::getline(f, line)){
+                std::regex express(R"#(^.*\[([0-9a-zA-Z_]*)  *([^ ]*)  *.*\].*\r*$)#");
+                std::match_results<std::string::iterator> result;
+
+                if(std::regex_match(line.begin(), line.end(), result, express)){
+                    std::string  mapName;
+                    std::string fileName;
+                    for(int i = 0; const auto &m: result){
+                        switch(i++){
+                            case 1 : fileName = m.str(); break;
+                            case 2 :  mapName = m.str(); break;
+                            default:                     break;
+
+                        }
+                    }
+
+                    m_mapList[mapName] = MapEntry
+                    {
+                        .fileName = std::move(fileName),
+                    };
+                }
+            }
+        }
+};
 
 static void exportOverview(const Mir2xMapData *p, const std::string &outName, ImageDB &imgDB)
 {
