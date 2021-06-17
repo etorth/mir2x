@@ -23,11 +23,12 @@
 #include <algorithm>
 #include "strf.hpp"
 #include "imgf.hpp"
-#include "imagedb.hpp"
-#include "sysconst.hpp"
-#include "filesys.hpp"
-#include "fflerror.hpp"
 #include "mir2map.hpp"
+#include "imagedb.hpp"
+#include "filesys.hpp"
+#include "sysconst.hpp"
+#include "fflerror.hpp"
+#include "argparser.hpp"
 #include "threadpool.hpp"
 #include "mir2xmapdata.hpp"
 
@@ -86,6 +87,15 @@ static void convertMap(std::string fromName, std::string outName, ImageDB &imgDB
 
     outPtr->save(outName);
     exportOverview(outPtr.get(), outName + ".png", imgDB);
+}
+
+void printHelp()
+{
+    std::cout << "--help"                   << std::endl;
+    std::cout << "--mir2-wil-path"          << std::endl;
+    std::cout << "--mir2-map-path"          << std::endl;
+    std::cout << "--mir2x-map-output-dir"   << std::endl;
+    std::cout << "--thread-pool-size"       << std::endl;
 }
 
 int main(int argc, char *argv[])

@@ -34,8 +34,8 @@ class arg_parser: public argh::parser
     public:
         int has_option(const std::string &opt) const
         {
-            auto flag = (bool)((*this)[opt]);
-            auto parm = (bool)((*this)(opt));
+            const auto flag = (bool)((*this)[opt]);
+            const auto parm = (bool)((*this)(opt));
 
             if(flag && parm){
                 return 2;
