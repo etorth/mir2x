@@ -499,7 +499,7 @@ bool MonoServer::addNPChar(const char *scriptPath)
 {
     fflassert(str_haschar(scriptPath));
     fflassert(filesys::hasFile(scriptPath));
-    const auto [filePath, fileName] = filesys::decompFileName(scriptPath);
+    const auto [filePath, fileName, extName] = filesys::decompFileName(scriptPath, false);
 
     char mapName[64];
     char npcName[64];

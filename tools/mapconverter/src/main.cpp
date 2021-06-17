@@ -131,8 +131,10 @@ static void convertMap(std::string mapDir, std::string mapName, std::string outD
         }
     }
 
-    const auto [baseName, extName] = filesys::decompFileName(mapName.c_str());
-    outPtr->save(str_printf("%s/%s.bin", mapDir.c_str(), baseName.c_str()).c_str());
+    const auto [pathName, baseName, extName] = filesys::decompFileName(mapName.c_str(), true);
+    fflassert(pathName.empty());
+
+    outPtr->save(str_printf("%s/%s.bin", outDir.c_str(), baseName.c_str()).c_str());
     exportOverview(outPtr.get(), str_printf("%s/%s.png", outDir.c_str(), baseName.c_str()), imgDB);
 }
 

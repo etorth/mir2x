@@ -33,5 +33,5 @@ namespace filesys
     std::vector<std::string> getFileList  (const char *, bool /* fullPath */, const char * /* reg */ = nullptr);
     std::vector<std::string> getSubDirList(const char *, bool /* fullPath */, const char * /* reg */ = nullptr);
 
-    std::tuple<std::string, std::string> decompFileName(const char *);
+    std::tuple<std::string, std::string, std::string> decompFileName(const char *, bool);
 }

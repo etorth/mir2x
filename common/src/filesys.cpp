@@ -115,13 +115,30 @@ std::vector<std::string> filesys::getFileList(const char *dir, bool fullPath, co
     return result;
 }
 
-std::tuple<std::string, std::string> filesys::decompFileName(const char *fullName)
+std::tuple<std::string, std::string, std::string> filesys::decompFileName(const char *fullName, bool decompName)
 {
     fflassert(str_haschar(fullName));
+    const auto fnDecompName = [](std::string pathName, std::string fileName) -> std::tuple<std::string, std::string, std::string>
+    {
+        if(const auto p = fileName.rfind('.'); p != std::string::npos){
+            return {std::move(pathName), fileName.substr(0, p), fileName.substr(p + 1)};
+        }
+        else{
+            return {std::move(pathName), fileName, ""};
+        }
+    };
+
     if(const auto p = std::strrchr(fullName, '/')){
-        return {std::string(fullName, p), std::string(p + 1)};
+        if(decompName){
+            return fnDecompName(std::string(fullName, p), std::string(p + 1));
+        }
+        else{
+            return {std::string(fullName, p), std::string(p + 1), ""};
+        }
     }
-    else{
-        return {"", fullName};
+
+    if(decompName){
+        return fnDecompName("", fullName);
     }
+    return {"", fullName, ""};
 }
