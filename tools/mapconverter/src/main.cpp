@@ -113,10 +113,9 @@ static void exportOverview(const Mir2xMapData *p, const std::string &outName, Im
     imgf::saveImageBuffer(imgBuf.data(), imgW, imgH, outName.c_str());
 }
 
-static void convertMap(std::string fromName, std::string outName, ImageDB &imgDB)
+static void convertMap(std::string mapDir, std::string mapName, std::string outDir, ImageDB &imgDB)
 {
-    std::cout << str_printf("converting %s", fromName.c_str()) << std::endl;
-    auto mapPtr = std::make_unique<Mir2Map>(fromName.c_str());
+    auto mapPtr = std::make_unique<Mir2Map>(str_printf("%s/%s", mapDir.c_str(), mapName.c_str()).c_str());
 
     fflassert((mapPtr->w() % 2) == 0);
     fflassert((mapPtr->h() % 2) == 0);
@@ -132,45 +131,46 @@ static void convertMap(std::string fromName, std::string outName, ImageDB &imgDB
         }
     }
 
-    outPtr->save(outName);
-    exportOverview(outPtr.get(), outName + ".png", imgDB);
-}
-
-void printHelp()
-{
-    std::cout << "--help"                   << std::endl;
-    std::cout << "--mir2-wil-path"          << std::endl;
-    std::cout << "--mir2-map-path"          << std::endl;
-    std::cout << "--mir2x-map-output-dir"   << std::endl;
-    std::cout << "--thread-pool-size"       << std::endl;
+    const auto [baseName, extName] = filesys::decompFileName(mapName.c_str());
+    outPtr->save(str_printf("%s/%s.bin", mapDir.c_str(), baseName.c_str()).c_str());
+    exportOverview(outPtr.get(), str_printf("%s/%s.png", outDir.c_str(), baseName.c_str()), imgDB);
 }
 
 int main(int argc, char *argv[])
 {
-    if(argc != 4){
-        throw fflerror("Usage: %s mir2-map-wil-path mir2-map-path mir2x-map-output", argv[0]);
+    if(argc == 1){
+        std::cout << "mapconvert"                                                   << std::endl;
+        std::cout << "      [1] output-dir              # output"                   << std::endl;
+        std::cout << "      [2] thread-pool-size        # 0 means use maximium"     << std::endl;
+        std::cout << "      [3] mir2-map-wil-data-dir   # input wil data dir"       << std::endl;
+        std::cout << "      [4] mir2-map-dir            # input map dir"            << std::endl;
+        std::cout << "      [5] mir2-map-info-file-path # Mapinfo.utf8.txt path"    << std::endl;
+        return 0;
     }
 
-    threadPool pool(0);
-    threadPool::abortedTag hasError;
-    std::vector<std::unique_ptr<ImageDB>> dbList(pool.poolSize);
+    if(argc != 1 + 5 /* parameters listed above */){
+        throw fflerror("run \"%s\" without parameter to show supported options", argv[0]);
+    }
 
-    for(const auto &mapName: filesys::getFileList(argv[2], false, R"#(.*\.[mM][aA][pP]$)#")){
-        const auto srcPath = str_printf("%s/%s",     argv[2], mapName.c_str());
-        const auto dstPath = str_printf("%s/%s.bin", argv[3], mapName.c_str());
-        pool.addTask(hasError, [argv, srcPath, dstPath, &dbList](int threadId)
+    threadPool pool(std::stoi(argv[2]));
+    threadPool::abortedTag hasDecodeError;
+    std::vector<std::unique_ptr<ImageDB>> dbList(pool.poolSize);
+    const auto mapInfoParser = std::make_unique<MapInfoParser>(argv[5]);
+
+    for(const auto &mapName: filesys::getFileList(argv[4], false, R"#(.*\.[mM][aA][pP]$)#")){
+        pool.addTask(hasDecodeError, [argv, mapName, &dbList](int threadId)
         {
             // ImageDB is not thread safe
             // need to allocate for each thread
 
             if(!dbList[threadId]){
-                dbList[threadId] = std::make_unique<ImageDB>(argv[1]);
+                dbList[threadId] = std::make_unique<ImageDB>(argv[3]);
             }
-            convertMap(srcPath, dstPath, *dbList[threadId]);
+            convertMap(argv[4], mapName, argv[1], *dbList[threadId]);
         });
     }
 
     pool.finish();
-    hasError.checkError();
+    hasDecodeError.checkError();
     return 0;
 }
