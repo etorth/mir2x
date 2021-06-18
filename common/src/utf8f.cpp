@@ -43,7 +43,7 @@ uint32_t utf8f::peekUTF8Code(const char *utf8String)
     fflassert(p - utf8String <= 4);
 
     uint32_t code = 0;
-    std::memcpy(&code, p, p - utf8String);
+    std::memcpy(&code, utf8String, p - utf8String);
     return code;
 }
 
