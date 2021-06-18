@@ -342,8 +342,8 @@ static void convertMap(std::string mapDir, std::string mapFileName, std::string 
         std::vector<std::string> codeList;
         codeList.push_back(str_printf(R"#({   .name = u8"%s_%s",)#", mapName.c_str(), fileName.c_str()));
 
-        if(const auto miniMapID = parser->hasMiniMapID(fileName); miniMapID >= 0){
-            codeList.push_back(str_printf(R"#(    .miniMapID = 0X%08X,)#", 0X19000000 + miniMapID - 1));
+        if(const auto miniMapID = parser->hasMiniMapID(fileName); miniMapID >= 1){
+            codeList.push_back(str_printf(R"#(    .miniMapID = 0X19%06d,)#", miniMapID - 1));
         }
 
         // map switch points
