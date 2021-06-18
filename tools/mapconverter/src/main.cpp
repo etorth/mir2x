@@ -39,43 +39,92 @@
 
 class MapInfoParser
 {
-    private:
+    // use mapName:fileName as key, from the Mapinfo.txt we know:
+    // 1. different map file can use same map name, i.e. 沙漠 for 42.map, 43.map, 44.map
+    // 2. different map name can use same map file, i.e. 行会大战 and 半兽天然洞穴 use same map file E001.map
+    // 3. there are files not present in file:name entry but has switch points
+
+    // this makes difficulty when there is switch point
+    // we have to manually define which map exactly it needs to switch to
+    // MapInfoParser only record lines, it doesn't validate anything
+
+    public:
+        struct MapEntry
+        {
+            std::string  mapName {};
+            std::string fileName {};
+        };
+
         struct MapSwitchPoint
         {
+            std::string from_fileName {};
             int from_x = -1;
             int from_y = -1;
 
-            std::string to_map {};
+            std::string to_fileName {};
             int to_x = -1;
             int to_y = -1;
         };
 
-        struct MapEntry
+        struct MiniMapEntry
         {
-            std::string name {};
-            std::vector<MapSwitchPoint> transp {};
+            std::string fileName {};
+            int miniMapId = -1;
         };
 
     private:
-        std::unordered_map<std::string, MapEntry> m_mapList;
+        std::vector<MapEntry> m_mapEntryList;
+        std::vector<MapSwitchPoint> m_mapSwitchPointList;
+        std::vector<MiniMapEntry> m_miniMapEntryList;
 
     public:
-        MapInfoParser(const std::string &mapInfoFileName)
+        MapInfoParser(const std::string &mapInfoFileName, const std::string &miniMapFileName)
         {
             // do seperated parsing
             // otherwise map switch point could not find map name
 
             parseMapFileName(mapInfoFileName);
             parseMapSwitchPoint(mapInfoFileName);
+            parseMiniMapID(miniMapFileName);
         }
 
     public:
-        std::string mapName(std::string fileName) const
+        std::vector<std::string> hasMapName(const std::string &fileName) const
         {
-            if(auto p = m_mapList.find(utf8f::toupper(fileName)); p != m_mapList.end()){
-                return p->second.name + "_" + utf8f::toupper(fileName);
+            std::vector<std::string> result;
+            for(const auto &line: m_mapEntryList){
+                if(line.fileName == utf8f::toupper(fileName)){
+                    result.push_back(line.mapName);
+                }
             }
-            return std::string("未知地图") + "_" + utf8f::toupper(fileName);
+            return result;
+        }
+
+        std::vector<MapSwitchPoint> hasSwitchPoint(const std::string &fileName) const
+        {
+            std::vector<MapSwitchPoint> result;
+            for(const auto &switchPoint: m_mapSwitchPointList){
+                if(switchPoint.from_fileName == utf8f::toupper(fileName)){
+                    result.push_back(switchPoint);
+                }
+            }
+            return result;
+        }
+
+        int hasMiniMapID(const std::string &fileName) const
+        {
+            int miniMapId = -1;
+            for(const auto &line: m_miniMapEntryList){
+                if(line.fileName == utf8f::toupper(fileName)){
+                    if(miniMapId >= 0 && miniMapId != line.miniMapId){
+                        std::cout << str_printf("[ERROR] map file has more than 1 mini map id: %s -> %d, %d", line.fileName.c_str(), miniMapId, line.miniMapId) << std::endl;
+                    }
+                    else{
+                        miniMapId = line.miniMapId;
+                    }
+                }
+            }
+            return miniMapId;
         }
 
     private:
@@ -84,14 +133,14 @@ class MapInfoParser
             std::ifstream f(mapInfoFileName);
             fflassert(f);
 
-            const std::regex expr(R"#(^.*\[([0-9a-zA-Z_]+)\s+([^ ]+)\s+.*\].*\r*$)#");
-            //                         -- - -------------     -----
-            //                         ^  ^       ^             ^
-            //                         |  |       |             |
-            //                         |  |       |             +------ map name
-            //                         |  |       +-------------------- map file name
-            //                         |  +---------------------------- marker for map file name lines: [ ... ]
-            //                         +------------------------------- matches comment markers: ;;
+            const std::regex expr(R"#(^.*?\[([0-9a-zA-Z_]+)\s+([^ ]+)\s+.*\].*\r*$)#");
+            //                         --- - -------------     -----
+            //                          ^  ^       ^             ^
+            //                          |  |       |             |
+            //                          |  |       |             +------ map name
+            //                          |  |       +-------------------- map file name
+            //                          |  +---------------------------- marker for map file name lines: [ ... ]
+            //                          +------------------------------- matches comment markers: ;;
 
             std::string line;
             std::match_results<std::string::iterator> result;
@@ -99,27 +148,17 @@ class MapInfoParser
             while(std::getline(f, line)){
                 fflassert(utf8f::valid(line));
                 if(std::regex_match(line.begin(), line.end(), result, expr)){
-                    std::string  mapName;
-                    std::string fileName;
+                    MapEntry entry;
                     for(int i = 0; const auto &m: result){
                         switch(i++){
-                            case 1 : fileName = utf8f::toupper(m.str()); break;
-                            case 2 :  mapName = utf8f::toupper(m.str()); break;
-                            default:                                     break;
-
+                            case 1 : entry.fileName = utf8f::toupper(m.str()); break;
+                            case 2 : entry. mapName = utf8f::toupper(m.str()); break;
+                            default:                                           break;
                         }
                     }
 
-                    if(m_mapList.count(fileName)){
-                        std::cout << str_printf("[ERROR]: (%s:%s) is already in the map file list", fileName.c_str(), mapName.c_str()) << std::endl;
-                    }
-                    else{
-                        m_mapList[fileName] = MapEntry
-                        {
-                            .name = mapName,
-                        };
-                        std::cout << str_printf("[FILE] %s: %s", fileName.c_str(), mapName.c_str()) << std::endl;
-                    }
+                    m_mapEntryList.push_back(entry);
+                    std::cout << str_printf("[FILE] %s:%s", entry.mapName.c_str(), entry.fileName.c_str()) << std::endl;
                 }
             }
         }
@@ -129,18 +168,18 @@ class MapInfoParser
             std::ifstream f(mapInfoFileName);
             fflassert(f);
 
-            const std::regex expr(R"#(^.*([0-9a-zA-Z_]+)\s+(\d+),\s*(\d+)\s*->\s*([0-9a-zA-Z_]+)\s+(\d+),\s*(\d+).*$)#");
-            //                         -- -------------     ---      ---    --    -------------     ---      ---
-            //                         ^        ^            ^        ^     ^          ^             ^        ^
-            //                         |        |            |        |     |          |             |        |
-            //                         |        |            |        |     |          |             |        +---------- to_y
-            //                         |        |            |        |     |          |             +------------------- to_x
-            //                         |        |            |        |     |          +--------------------------------- to_map
-            //                         |        |            |        |     +-------------------------------------------- transport marker: ->
-            //                         |        |            |        +-------------------------------------------------- from_y
-            //                         |        |            +----------------------------------------------------------- from_x
-            //                         |        +------------------------------------------------------------------------ from_map
-            //                         +--------------------------------------------------------------------------------- matches comments mark: ;;
+            const std::regex expr(R"#(^.*?([0-9a-zA-Z_]+)\s+(\d+),\s*(\d+)\s*->\s*([0-9a-zA-Z_]+)\s+(\d+),\s*(\d+).*$)#");
+            //                         --- -------------     ---      ---    --    -------------     ---      ---
+            //                          ^        ^            ^        ^     ^          ^             ^        ^
+            //                          |        |            |        |     |          |             |        |
+            //                          |        |            |        |     |          |             |        +---------- to_y
+            //                          |        |            |        |     |          |             +------------------- to_x
+            //                          |        |            |        |     |          +--------------------------------- to_map
+            //                          |        |            |        |     +-------------------------------------------- transport marker: ->
+            //                          |        |            |        +-------------------------------------------------- from_y
+            //                          |        |            +----------------------------------------------------------- from_x
+            //                          |        +------------------------------------------------------------------------ from_map
+            //                          +--------------------------------------------------------------------------------- matches comments mark: ;;
 
             std::string line;
             std::match_results<std::string::iterator> result;
@@ -148,46 +187,84 @@ class MapInfoParser
             while(std::getline(f, line)){
                 fflassert(utf8f::valid(line));
                 if(std::regex_match(line.begin(), line.end(), result, expr)){
-                    std::string fromFileName;
                     MapSwitchPoint switchPoint;
-
                     for(int i = 0; const auto &m: result){
                         switch(i++){
-                            case 1 : fromFileName       = utf8f::toupper(m.str()); break;
-                            case 2 : switchPoint.from_x =      std::stoi(m.str()); break;
-                            case 3 : switchPoint.from_y =      std::stoi(m.str()); break;
-                            case 4 : switchPoint.to_map = utf8f::toupper(m.str()); break;
-                            case 5 : switchPoint.to_x   =      std::stoi(m.str()); break;
-                            case 6 : switchPoint.to_y   =      std::stoi(m.str()); break;
-                            default:                                               break;
+                            case 1 : switchPoint.from_fileName = utf8f::toupper(m.str()); break;
+                            case 2 : switchPoint.from_x        =      std::stoi(m.str()); break;
+                            case 3 : switchPoint.from_y        =      std::stoi(m.str()); break;
+                            case 4 : switchPoint.to_fileName   = utf8f::toupper(m.str()); break;
+                            case 5 : switchPoint.to_x          =      std::stoi(m.str()); break;
+                            case 6 : switchPoint.to_y          =      std::stoi(m.str()); break;
+                            default:                                                      break;
                         }
                     }
 
-                    // we don't have enough information here to check if the from/to points are valid
+                    // we don't have enough information here to check if the from/to maps and points are valid
                     // leave the check to file generation time
 
-                    fflassert(!fromFileName.empty());
-                    fflassert(!switchPoint.to_map.empty());
+                    fflassert(!switchPoint.from_fileName.empty());
+                    fflassert(!switchPoint.to_fileName.empty());
 
                     fflassert(switchPoint.from_x >= 0);
                     fflassert(switchPoint.from_y >= 0);
+
                     fflassert(switchPoint.to_x >= 0);
                     fflassert(switchPoint.to_y >= 0);
 
-                    if(!m_mapList.count(fromFileName)){
-                        std::cout << str_printf("[ERROR] no from_map found: %s", fromFileName.c_str()) << std::endl;
+                    m_mapSwitchPointList.push_back(switchPoint);
+                    std::cout << str_printf("[SWITCH] (%s, %d, %d) -> (%s, %d, %d)", switchPoint.from_fileName.c_str(), switchPoint.from_x, switchPoint.from_y, switchPoint.to_fileName.c_str(), switchPoint.to_x, switchPoint.to_y) << std::endl;
+                }
+            }
+        }
+
+        void parseMiniMapID(const std::string &miniMapFileName)
+        {
+            std::ifstream f(miniMapFileName);
+            fflassert(f);
+
+            const std::regex expr(R"#(^.*?([0-9a-zA-Z_]+)\s+(\d+).*$)#");
+            //                         --- -------------     ---
+            //                          ^       ^             ^
+            //                          |       |             |
+            //                          |       |             +------ id
+            //                          |       +-------------------- map file name
+            //                          +---------------------------- matches comment markers: ;; actually I didn't see commented line
+
+            std::string line;
+            std::match_results<std::string::iterator> result;
+
+            while(std::getline(f, line)){
+                fflassert(utf8f::valid(line));
+                if(std::regex_match(line.begin(), line.end(), result, expr)){
+                    MiniMapEntry entry;
+                    for(int i = 0; const auto &m: result){
+                        switch(i++){
+                            case 1 : entry.fileName  = utf8f::toupper(m.str()); break;
+                            case 2 : entry.miniMapId =      std::stoi(m.str()); break;
+                            default:                                            break;
+                        }
                     }
-                    else if(!m_mapList.count(switchPoint.to_map)){
-                        std::cout << str_printf("[ERROR] no to_map found: %s", switchPoint.to_map.c_str()) << std::endl;
-                    }
-                    else{
-                        m_mapList[fromFileName].transp.push_back(switchPoint);
-                        std::cout << str_printf("[SWITCH] (%s, %d, %d) -> (%s, %d, %d)", fromFileName.c_str(), switchPoint.from_x, switchPoint.from_y, switchPoint.to_map.c_str(), switchPoint.to_x, switchPoint.to_y) << std::endl;
-                    }
+
+                    m_miniMapEntryList.push_back(entry);
+                    std::cout << str_printf("[MINI] %s:%d", entry.fileName.c_str(), entry.miniMapId) << std::endl;
                 }
             }
         }
 };
+
+static void printCodeLine(std::vector<std::string> s)
+{
+    static std::mutex lock;
+    std::lock_guard<std::mutex> lockGuard(lock);
+
+    for(auto &line: s){
+        while(!line.empty() && line.back() == ' '){
+            line.pop_back();
+        }
+        std::cout << "##### <-|" << line << std::endl;
+    }
+}
 
 static void exportOverview(const Mir2xMapData *p, const std::string &outName, ImageDB &imgDB)
 {
@@ -223,9 +300,9 @@ static void exportOverview(const Mir2xMapData *p, const std::string &outName, Im
     imgf::saveImageBuffer(imgBuf.data(), imgW, imgH, outName.c_str());
 }
 
-static void convertMap(std::string mapDir, std::string mapName, std::string outDir, const MapInfoParser *parser, ImageDB &imgDB)
+static void convertMap(std::string mapDir, std::string mapFileName, std::string outDir, const MapInfoParser *parser, ImageDB &imgDB)
 {
-    auto mapPtr = std::make_unique<Mir2Map>(str_printf("%s/%s", mapDir.c_str(), mapName.c_str()).c_str());
+    auto mapPtr = std::make_unique<Mir2Map>(str_printf("%s/%s", mapDir.c_str(), mapFileName.c_str()).c_str());
 
     fflassert((mapPtr->w() % 2) == 0);
     fflassert((mapPtr->h() % 2) == 0);
@@ -241,11 +318,52 @@ static void convertMap(std::string mapDir, std::string mapName, std::string outD
         }
     }
 
-    const auto [pathName, baseName, extName] = filesys::decompFileName(mapName.c_str(), true);
+    const auto [pathName, fileName, extName] = filesys::decompFileName(mapFileName.c_str(), true);
     fflassert(pathName.empty());
 
-    outPtr->save(str_printf("%s/%s.bin", outDir.c_str(), parser->mapName(baseName).c_str()));
-    exportOverview(outPtr.get(), str_printf("%s/%s.png", outDir.c_str(), parser->mapName(baseName).c_str()), imgDB);
+    // different map can use same map binary file
+    // we use "mapName_fileName" as string key in mir2x code, but only save "fileName.bin" as map binary
+    outPtr->save(str_printf("%s/%s.bin", outDir.c_str(), fileName.c_str()));
+
+    std::string srcPNGName;
+    const auto mapNameList = parser->hasMapName(fileName);
+
+    for(int i = 0; const auto &mapName: mapNameList){
+        if(i++ == 0){
+            srcPNGName = str_printf("%s/%s_%s.png", outDir.c_str(), mapName.c_str(), fileName.c_str());
+            exportOverview(outPtr.get(), srcPNGName, imgDB);
+        }
+        else{
+            filesys::copyFile(str_printf("%s/%s_%s.png", outDir.c_str(), mapName.c_str(), fileName.c_str()).c_str(), srcPNGName.c_str());
+        }
+
+        // generate code
+        //
+        std::vector<std::string> codeList;
+        codeList.push_back(str_printf(R"#({   .name = u8"%s_%s",)#", mapName.c_str(), fileName.c_str()));
+
+        if(const auto miniMapID = parser->hasMiniMapID(fileName); miniMapID >= 0){
+            codeList.push_back(str_printf(R"#(    .miniMapID = 0X%08X,)#", 0X19000000 + miniMapID - 1));
+        }
+
+        // map switch points
+        //
+        if(const auto &switchPointList = parser->hasSwitchPoint(fileName); !switchPointList.empty()){
+            codeList.push_back(R"#(    .mapSwitchList)#");
+            codeList.push_back(R"#(    {             )#");
+            for(const auto &switchPoint: switchPointList){
+                const auto toMapNameList = parser->hasMapName(switchPoint.to_fileName);
+                for(const auto toMapName: toMapNameList){
+                    codeList.push_back(str_printf(R"#(        {.x = %d, .y = %d, .endName = u8"%s_%s", .endX = %d, .endY = %d},%s)#", switchPoint.from_x, switchPoint.from_y, toMapName.c_str(), switchPoint.to_fileName.c_str(), switchPoint.to_x, switchPoint.to_y, (toMapNameList.size() == 1) ? "" : "// TODO select one"));
+                }
+            }
+            codeList.push_back(R"#(    })#");
+        }
+
+        codeList.push_back(R"#(},)#");
+        codeList.push_back(R"#(  )#");
+        printCodeLine(codeList);
+    }
 }
 
 int main(int argc, char *argv[])
@@ -257,17 +375,25 @@ int main(int argc, char *argv[])
         std::cout << "      [3] mir2-map-wil-data-dir   # input wil data dir"       << std::endl;
         std::cout << "      [4] mir2-map-dir            # input map dir"            << std::endl;
         std::cout << "      [5] mir2-map-info-file-path # Mapinfo.utf8.txt path"    << std::endl;
+        std::cout << "      [6] mir2-mini-map-file-path # MiniMap.utf8.txt path"    << std::endl;
         return 0;
     }
 
-    if(argc != 1 + 5 /* parameters listed above */){
+    if(argc != 1 + 6 /* parameters listed above */){
         throw fflerror("run \"%s\" without parameter to show supported options", argv[0]);
     }
+
+    printCodeLine
+    ({
+        R"#({   .name = u8"",)#",
+        R"#(},               )#",
+        R"#(                 )#",
+    });
 
     threadPool pool(std::stoi(argv[2]));
     threadPool::abortedTag hasDecodeError;
     std::vector<std::unique_ptr<ImageDB>> dbList(pool.poolSize);
-    const auto mapInfoParser = std::make_unique<MapInfoParser>(argv[5]);
+    const auto mapInfoParser = std::make_unique<MapInfoParser>(argv[5], argv[6]);
 
     for(const auto &mapName: filesys::getFileList(argv[4], false, R"#(.*\.[mM][aA][pP]$)#")){
         pool.addTask(hasDecodeError, [argv, mapName, &dbList, &mapInfoParser](int threadId)
