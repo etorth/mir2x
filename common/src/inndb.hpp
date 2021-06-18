@@ -7,11 +7,10 @@
  *
  *                 Internal Database support for 
  *                 1. LRU
- *                 2. Double level cache
- *                 3. Easy for extension
+ *                 2. Easy for extension
  *
  *                 this class load resources with a external handler function
- *                 store it in a hash-table based cache, linear cache is optional
+ *                 store it in a hash-table based cache
  *
  *                 to instantiation this class
  *                 1. define loadResource()
@@ -56,9 +55,7 @@ template<typename KeyT, typename ResT> class innDB
 
     public:
         innDB(size_t nResMax)
-            : m_cache()
-            , m_DLink()
-            , m_resSum(0)
+            : m_resSum(0)
             , m_resMax(nResMax)
         {
             static_assert(std::is_unsigned<KeyT>::value, "innDB only support unsigned intergal key");
