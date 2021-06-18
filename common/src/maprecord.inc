@@ -1431,7 +1431,7 @@
     }
 },
 
-{   .name = u8"赤月山谷1层_d1021",
+{   .name = u8"赤月山谷1层_D1021",
     .miniMapID = 0X19000120,
     .mapSwitchList
     {
@@ -1450,7 +1450,7 @@
     }
 },
 
-{   .name = u8"赤月山谷3层_d10231",
+{   .name = u8"赤月山谷3层_D10231",
     .miniMapID = 0X19000122,
     .mapSwitchList
     {
@@ -1869,7 +1869,7 @@
     }
 },
 
-{   .name = u8"北部石矿2层_d1412",
+{   .name = u8"北部石矿2层_D1412",
     .miniMapID = 0X19000251,
     .mapSwitchList
     {
@@ -2191,7 +2191,7 @@
     }
 },
 
-{   .name = u8"诺玛遗址1层_d1601",
+{   .name = u8"诺玛遗址1层_D1601",
     .miniMapID = 0X19000300,
     .mapSwitchList
     {
@@ -2208,7 +2208,7 @@
     }
 },
 
-{   .name = u8"诺玛遗址2层_d1602",
+{   .name = u8"诺玛遗址2层_D1602",
     .miniMapID = 0X19000301,
     .mapSwitchList
     {
@@ -2225,7 +2225,7 @@
     }
 },
 
-{   .name = u8"诺玛遗址3层_d16031",
+{   .name = u8"诺玛遗址3层_D16031",
     .miniMapID = 0X19000302,
     .mapSwitchList
     {
@@ -2236,7 +2236,7 @@
     }
 },
 
-{   .name = u8"诺玛遗址3层_d16032",
+{   .name = u8"诺玛遗址3层_D16032",
     .miniMapID = 0X19000303,
     .mapSwitchList
     {
@@ -2247,7 +2247,7 @@
     }
 },
 
-{   .name = u8"诺玛遗址3层_d16033",
+{   .name = u8"诺玛遗址3层_D16033",
     .miniMapID = 0X19000304,
     .mapSwitchList
     {
@@ -2258,7 +2258,7 @@
     }
 },
 
-{   .name = u8"诺玛遗址3层_d16034",
+{   .name = u8"诺玛遗址3层_D16034",
     .miniMapID = 0X19000305,
     .mapSwitchList
     {
@@ -2269,7 +2269,7 @@
     }
 },
 
-{   .name = u8"诺玛遗址4层_d1604",
+{   .name = u8"诺玛遗址4层_D1604",
     .miniMapID = 0X19000306,
     .mapSwitchList
     {
@@ -2566,7 +2566,7 @@
     }
 },
 
-{   .name = u8"诺玛遗址5层_d1605",
+{   .name = u8"诺玛遗址5层_D1605",
     .miniMapID = 0X19000307,
     .mapSwitchList
     {
@@ -2982,7 +2982,7 @@
     }
 },
 
-{   .name = u8"诺玛勇士墓穴_d1606",
+{   .name = u8"诺玛勇士墓穴_D1606",
     .mapSwitchList
     {
         {.x = 38, .y = 50, .endName = u8"诺玛遗址5层_D1605", .endX = 327, .endY = 213},
@@ -3412,7 +3412,7 @@
 {   .name = u8"尸王房_D452_001",
 },
 
-{   .name = u8"祖玛神殿1层_d501",
+{   .name = u8"祖玛神殿1层_D501",
     .miniMapID = 0X19000030,
     .mapSwitchList
     {
@@ -3424,7 +3424,7 @@
     }
 },
 
-{   .name = u8"祖玛神殿2层_d502",
+{   .name = u8"祖玛神殿2层_D502",
     .miniMapID = 0X19000031,
     .mapSwitchList
     {
@@ -3435,7 +3435,7 @@
     }
 },
 
-{   .name = u8"祖玛神殿3层_d503",
+{   .name = u8"祖玛神殿3层_D503",
     .miniMapID = 0X19000032,
     .mapSwitchList
     {
@@ -3444,7 +3444,7 @@
     }
 },
 
-{   .name = u8"祖玛神殿4层_d504",
+{   .name = u8"祖玛神殿4层_D504",
     .miniMapID = 0X19000033,
     .mapSwitchList
     {
@@ -3498,42 +3498,42 @@
     }
 },
 
-{   .name = u8"祖玛神殿_d511",
+{   .name = u8"祖玛神殿_D511",
     .mapSwitchList
     {
         {.x = 29, .y = 22, .endName = u8"祖玛神殿1层_D501", .endX = 303, .endY = 75},
     }
 },
 
-{   .name = u8"祖玛神殿_d512",
+{   .name = u8"祖玛神殿_D512",
     .mapSwitchList
     {
         {.x = 19, .y = 11, .endName = u8"祖玛神殿1层_D501", .endX = 325, .endY = 96},
     }
 },
 
-{   .name = u8"祖玛神殿_d513",
+{   .name = u8"祖玛神殿_D513",
     .mapSwitchList
     {
         {.x = 29, .y = 22, .endName = u8"祖玛神殿2层_D502", .endX = 303, .endY = 75},
     }
 },
 
-{   .name = u8"祖玛神殿_d514",
+{   .name = u8"祖玛神殿_D514",
     .mapSwitchList
     {
         {.x = 19, .y = 11, .endName = u8"祖玛神殿2层_D502", .endX = 325, .endY = 96},
     }
 },
 
-{   .name = u8"祖玛教主宫廷_d515",
+{   .name = u8"祖玛教主宫廷_D515",
     .mapSwitchList
     {
         {.x = 13, .y = 32, .endName = u8"祖玛神殿6层_D5074", .endX = 76, .endY = 16},
     }
 },
 
-{   .name = u8"绝命谷1层南部_d60011",
+{   .name = u8"绝命谷1层南部_D60011",
     .miniMapID = 0X19000040,
     .mapSwitchList
     {
@@ -3543,7 +3543,7 @@
     }
 },
 
-{   .name = u8"绝命谷1层西部_d60012",
+{   .name = u8"绝命谷1层西部_D60012",
     .miniMapID = 0X19000041,
     .mapSwitchList
     {
@@ -3553,7 +3553,7 @@
     }
 },
 
-{   .name = u8"绝命谷1层北部_d60013",
+{   .name = u8"绝命谷1层北部_D60013",
     .miniMapID = 0X19000042,
     .mapSwitchList
     {
@@ -3563,7 +3563,7 @@
     }
 },
 
-{   .name = u8"绝命谷2层西部_d60021",
+{   .name = u8"绝命谷2层西部_D60021",
     .miniMapID = 0X19000043,
     .mapSwitchList
     {
@@ -3572,7 +3572,7 @@
     }
 },
 
-{   .name = u8"绝命谷2层北部_d60022",
+{   .name = u8"绝命谷2层北部_D60022",
     .miniMapID = 0X19000044,
     .mapSwitchList
     {
@@ -3593,7 +3593,7 @@
     }
 },
 
-{   .name = u8"万年谷_d6011",
+{   .name = u8"万年谷_D6011",
     .miniMapID = 0X19000050,
     .mapSwitchList
     {
@@ -3670,7 +3670,7 @@
     }
 },
 
-{   .name = u8"生死关_d6015",
+{   .name = u8"生死关_D6015",
     .miniMapID = 0X19000058,
     .mapSwitchList
     {
@@ -3678,7 +3678,7 @@
     }
 },
 
-{   .name = u8"虫峡谷1层_d6021",
+{   .name = u8"虫峡谷1层_D6021",
     .miniMapID = 0X19000060,
     .mapSwitchList
     {
@@ -3687,7 +3687,7 @@
     }
 },
 
-{   .name = u8"虫峡谷2层_d6022",
+{   .name = u8"虫峡谷2层_D6022",
     .miniMapID = 0X19000061,
     .mapSwitchList
     {
@@ -3705,7 +3705,7 @@
     }
 },
 
-{   .name = u8"虫峡谷4层_d6024",
+{   .name = u8"虫峡谷4层_D6024",
     .miniMapID = 0X19000063,
     .mapSwitchList
     {
@@ -3722,7 +3722,7 @@
     }
 },
 
-{   .name = u8"石灯屋_d603",
+{   .name = u8"石灯屋_D603",
     .mapSwitchList
     {
         {.x = 16, .y = 29, .endName = u8"绝命谷1层南部_D60011", .endX = 52, .endY = 15},
@@ -3730,7 +3730,7 @@
     }
 },
 
-{   .name = u8"紫水晶洞_d604",
+{   .name = u8"紫水晶洞_D604",
     .mapSwitchList
     {
         {.x = 32, .y = 32, .endName = u8"绝命谷2层北部_D60022", .endX = 43, .endY = 20},
@@ -3739,7 +3739,7 @@
     }
 },
 
-{   .name = u8"暗阁泉_d605",
+{   .name = u8"暗阁泉_D605",
     .mapSwitchList
     {
         {.x = 14, .y = 34, .endName = u8"绝命谷2层北部_D60022", .endX = 43, .endY = 125},
@@ -3748,7 +3748,7 @@
     }
 },
 
-{   .name = u8"奇岩石屋_d606",
+{   .name = u8"奇岩石屋_D606",
     .mapSwitchList
     {
         {.x = 9, .y = 25, .endName = u8"奇岩通路_D607", .endX = 58, .endY = 69},
@@ -3758,7 +3758,7 @@
     }
 },
 
-{   .name = u8"奇岩通路_d607",
+{   .name = u8"奇岩通路_D607",
     .mapSwitchList
     {
         {.x = 32, .y = 40, .endName = u8"绝命谷1层西部_D60012", .endX = 177, .endY = 34},
@@ -3769,7 +3769,7 @@
     }
 },
 
-{   .name = u8"石阁入口_d7101",
+{   .name = u8"石阁入口_D7101",
     .mapSwitchList
     {
         {.x = 26, .y = 23, .endName = u8"石阁庙_75", .endX = 207, .endY = 67},
@@ -3777,10 +3777,10 @@
     }
 },
 
-{   .name = u8"石阁入口_d7102",
+{   .name = u8"石阁入口_D7102",
 },
 
-{   .name = u8"石阁1层_d711",
+{   .name = u8"石阁1层_D711",
     .miniMapID = 0X19000090,
     .mapSwitchList
     {
@@ -3789,7 +3789,7 @@
     }
 },
 
-{   .name = u8"石阁2层_d712",
+{   .name = u8"石阁2层_D712",
     .miniMapID = 0X19000091,
     .mapSwitchList
     {
@@ -3798,7 +3798,7 @@
     }
 },
 
-{   .name = u8"石阁3层_d713",
+{   .name = u8"石阁3层_D713",
     .miniMapID = 0X19000092,
     .mapSwitchList
     {
@@ -3807,7 +3807,7 @@
     }
 },
 
-{   .name = u8"石阁4层_d714",
+{   .name = u8"石阁4层_D714",
     .miniMapID = 0X19000093,
     .mapSwitchList
     {
@@ -3961,7 +3961,7 @@
     }
 },
 
-{   .name = u8"神舰入口_d900",
+{   .name = u8"神舰入口_D900",
     .mapSwitchList
     {
         {.x = 48, .y = 59, .endName = u8"神舰地下三层_D901", .endX = 22, .endY = 83},
@@ -4237,22 +4237,22 @@
     }
 },
 
-{   .name = u8"生存游戏场_Island01",
+{   .name = u8"生存游戏场_ISLAND01",
     .miniMapID = 0X19000291,
 },
 
-{   .name = u8"生存游戏场_Island02",
+{   .name = u8"生存游戏场_ISLAND02",
     .miniMapID = 0X19000292,
 },
 
-{   .name = u8"NPC屋_npcroom1",
+{   .name = u8"NPC屋_NPCROOM1",
 },
 
 {   .name = u8"试练屋_RUSH1",
     .miniMapID = 0X19000290,
 },
 
-{   .name = u8"打雪仗地图_snow",
+{   .name = u8"打雪仗地图_SNOW",
 },
 
 {   .name = u8"慈善屋_Z010",
