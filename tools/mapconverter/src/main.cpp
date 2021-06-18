@@ -97,7 +97,11 @@ class MapInfoParser
                     result.push_back(line.mapName);
                 }
             }
-            return result;
+
+            if(!result.empty()){
+                return result;
+            }
+            return {"无名之地"};
         }
 
         std::vector<MapSwitchPoint> hasSwitchPoint(const std::string &fileName) const
