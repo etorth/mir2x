@@ -323,24 +323,24 @@ static void convertMap(std::string mapDir, std::string mapFileName, std::string 
 
     // different map can use same map binary file
     // we use "mapName_fileName" as string key in mir2x code, but only save "fileName.bin" as map binary
-    outPtr->save(str_printf("%s/%s.bin", outDir.c_str(), fileName.c_str()));
+    outPtr->save(str_printf("%s/%s.bin", outDir.c_str(), utf8f::toupper(fileName).c_str()));
 
     std::string srcPNGName;
     const auto mapNameList = parser->hasMapName(fileName);
 
     for(int i = 0; const auto &mapName: mapNameList){
         if(i++ == 0){
-            srcPNGName = str_printf("%s/%s_%s.png", outDir.c_str(), mapName.c_str(), fileName.c_str());
+            srcPNGName = str_printf("%s/%s_%s.png", outDir.c_str(), mapName.c_str(), utf8f::toupper(fileName).c_str());
             exportOverview(outPtr.get(), srcPNGName, imgDB);
         }
         else{
-            filesys::copyFile(str_printf("%s/%s_%s.png", outDir.c_str(), mapName.c_str(), fileName.c_str()).c_str(), srcPNGName.c_str());
+            filesys::copyFile(str_printf("%s/%s_%s.png", outDir.c_str(), mapName.c_str(), utf8f::toupper(fileName).c_str()).c_str(), srcPNGName.c_str());
         }
 
         // generate code
         //
         std::vector<std::string> codeList;
-        codeList.push_back(str_printf(R"#({   .name = u8"%s_%s",)#", mapName.c_str(), fileName.c_str()));
+        codeList.push_back(str_printf(R"#({   .name = u8"%s_%s",)#", mapName.c_str(), utf8f::toupper(fileName).c_str()));
 
         if(const auto miniMapID = parser->hasMiniMapID(fileName); miniMapID >= 1){
             codeList.push_back(str_printf(R"#(    .miniMapID = 0X19%06d,)#", miniMapID - 1));
