@@ -166,11 +166,11 @@ bool MonoServer::createAccountCharacter(const char *id, const char *charName, bo
             case JOB_WIZARD:
             case JOB_WARRIOR:
                 {
-                    return {u8"比奇省", 441, 381};
+                    return {u8"比奇县_0", 441, 381};
                 }
             case JOB_TAOIST:
                 {
-                    return {u8"道馆", 405, 120};
+                    return {u8"道馆_1", 405, 120};
                 }
             default:
                 {
