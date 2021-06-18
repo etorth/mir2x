@@ -101,7 +101,7 @@ class MapInfoParser
             if(!result.empty()){
                 return result;
             }
-            return {"无名之地"};
+            return {"未命名地图"};
         }
 
         std::vector<MapSwitchPoint> hasSwitchPoint(const std::string &fileName) const
