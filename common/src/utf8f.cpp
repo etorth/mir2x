@@ -74,11 +74,13 @@ std::string utf8f::toupper(std::string s)
     char *p = s.data();
     char *pend = s.data() + s.size();
 
-    for(auto lastp = p; p < pend; utf8::advance(p, 1, pend)){
-        if(p - lastp == 1 && *p >= 'a' && *p <= 'z'){
-            *p = 'A' + *p - 'a';
+    while(p < pend){
+        auto lastp = p;
+        utf8::advance(p, 1, pend);
+
+        if(p - lastp == 1 && *lastp >= 'a' && *lastp <= 'z'){
+            *lastp = 'A' + *lastp - 'a';
         }
-        lastp = p;
     }
     return s;
 }
