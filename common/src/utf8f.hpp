@@ -31,4 +31,7 @@ namespace utf8f
     {
         return ((uint64_t)(font) << 48) + ((uint64_t)(fontSize) << 40) + ((uint64_t)(fontStyle) << 32) + (uint64_t)(utf8Code);
     }
+
+    bool valid(const std::string &);
+    std::string toupper(std::string);
 }

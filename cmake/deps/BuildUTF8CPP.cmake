@@ -17,12 +17,12 @@
 INCLUDE(ExternalProject)
 
 ExternalProject_Add(
-    mirror_utf8cpp
+    utf8cpp
 
-    GIT_REPOSITORY "https://github.com/etorth/mirror_utf8cpp.git"
+    GIT_REPOSITORY "https://github.com/nemtrif/utfcpp.git"
     GIT_TAG        "master"
   
-    SOURCE_DIR "${MIR2X_3RD_PARTY_DIR}/mirror_utf8cpp"
+    SOURCE_DIR "${MIR2X_3RD_PARTY_DIR}/utf8cpp"
 
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ""
@@ -31,6 +31,6 @@ ExternalProject_Add(
     PATCH_COMMAND ""
 )
 
-SET(UTF8CPP_INCLUDE_DIRS "${MIR2X_3RD_PARTY_DIR}/mirror_utf8cpp/source")
+SET(UTF8CPP_INCLUDE_DIRS "${MIR2X_3RD_PARTY_DIR}/utf8cpp/source")
 INCLUDE_DIRECTORIES(SYSTEM ${UTF8CPP_INCLUDE_DIRS})
-ADD_DEPENDENCIES(mir2x_3rds mirror_utf8cpp)
+ADD_DEPENDENCIES(mir2x_3rds utf8cpp)

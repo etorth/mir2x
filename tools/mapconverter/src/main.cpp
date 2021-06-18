@@ -24,6 +24,7 @@
 #include <algorithm>
 #include "strf.hpp"
 #include "imgf.hpp"
+#include "utf8f.hpp"
 #include "mir2map.hpp"
 #include "imagedb.hpp"
 #include "filesys.hpp"
@@ -58,14 +59,15 @@ class MapInfoParser
                 std::regex express(R"#(^.*\[([0-9a-zA-Z_]*)  *([^ ]*)  *.*\].*\r*$)#");
                 std::match_results<std::string::iterator> result;
 
+                fflassert(utf8f::valid(line));
                 if(std::regex_match(line.begin(), line.end(), result, express)){
                     std::string  mapName;
                     std::string fileName;
                     for(int i = 0; const auto &m: result){
                         switch(i++){
-                            case 1 : fileName = toupper(m.str()); break;
-                            case 2 :  mapName = toupper(m.str()); break;
-                            default:                              break;
+                            case 1 : fileName = utf8f::toupper(m.str()); break;
+                            case 2 :  mapName = utf8f::toupper(m.str()); break;
+                            default:                                     break;
 
                         }
                     }
@@ -78,24 +80,13 @@ class MapInfoParser
             }
         }
 
-    private:
-        static std::string toupper(std::string s)
-        {
-            for(auto &ch: s){
-                if(ch >= 'a' && ch <= 'z'){
-                    ch = ('A' + ch) - 'a';
-                }
-            }
-            return s;
-        }
-
     public:
         std::string mapName(std::string fileName) const
         {
-            if(auto p = m_mapList.find(toupper(fileName)); p != m_mapList.end()){
-                return p->second.name + "_" + toupper(fileName);
+            if(auto p = m_mapList.find(utf8f::toupper(fileName)); p != m_mapList.end()){
+                return p->second.name + "_" + utf8f::toupper(fileName);
             }
-            return std::string("未知地图") + "_" + toupper(fileName);
+            return std::string("未知地图") + "_" + utf8f::toupper(fileName);
         }
 };
 
