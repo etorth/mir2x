@@ -29,17 +29,17 @@
 
 struct MapBinElement
 {
-    std::unique_ptr<Mir2xMapData> data {};
+    std::shared_ptr<Mir2xMapData> data {};
 };
 
-class MapBinDB: public innDB<uint32_t, MapBinElement>
+class MapBinDB: public innDB<uint32_t, MapBinElement, true> // threadSafe
 {
     private:
         std::unique_ptr<ZSDB> m_ZSDBPtr;
 
     public:
         MapBinDB()
-            : innDB<uint32_t, MapBinElement>(16)
+            : innDB<uint32_t, MapBinElement, true>(16)
         {}
 
     public:
@@ -50,10 +50,10 @@ class MapBinDB: public innDB<uint32_t, MapBinElement>
         }
 
     public:
-        Mir2xMapData *retrieve(uint32_t key)
+        std::shared_ptr<Mir2xMapData> retrieve(uint32_t key)
         {
             if(auto p = innLoad(key)){
-                return p->data.get();
+                return p->data; // return a shared copy which can sustain
             }
             return nullptr;
         }
@@ -68,7 +68,7 @@ class MapBinDB: public innDB<uint32_t, MapBinElement>
                         if(std::vector<uint8_t> dataBuf; m_ZSDBPtr->decomp(str_printf("%s.bin", fileName.c_str()).c_str(), 0, &dataBuf)){
                             return std::make_tuple(MapBinElement
                             {
-                                .data = std::make_unique<Mir2xMapData>(dataBuf.data(), dataBuf.size()),
+                                .data = std::make_shared<Mir2xMapData>(dataBuf.data(), dataBuf.size()),
                             }, 1);
                         }
                     }
@@ -79,6 +79,6 @@ class MapBinDB: public innDB<uint32_t, MapBinElement>
 
         virtual void freeResource(MapBinElement &element)
         {
-            element.data.reset();
+            element.data.reset(); // this only decreases ref count by 1
         }
 };

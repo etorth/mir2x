@@ -1362,18 +1362,23 @@ void ProcessRun::centerMyHero()
     }
 }
 
-std::tuple<int, int> ProcessRun::getRandLoc(uint32_t nMapID)
+std::tuple<int, int> ProcessRun::getRandLoc(uint32_t reqMapID)
 {
-    const auto mapBinPtr = [nMapID, this]() -> const Mir2xMapData *
+    std::shared_ptr<Mir2xMapData> newPtr;
+    const auto mapBinPtr = [reqMapID, &newPtr, this]() -> const Mir2xMapData *
     {
-        if(nMapID == 0 || nMapID == mapID()){
+        if(reqMapID == 0 || reqMapID == mapID()){
             return &m_mir2xMapData;
         }
-        return g_mapBinDB->retrieve(nMapID);
+
+        if(newPtr = g_mapBinDB->retrieve(reqMapID)){
+            return newPtr.get();
+        }
+        return nullptr;
     }();
 
     if(!mapBinPtr){
-        throw fflerror("failed to find map with mapID = %llu", to_llu(nMapID));
+        throw fflerror("failed to find map with mapID = %llu", to_llu(reqMapID));
     }
 
     while(true){
@@ -1385,7 +1390,7 @@ std::tuple<int, int> ProcessRun::getRandLoc(uint32_t nMapID)
         }
     }
 
-    throw fflerror("can't reach here");
+    throw bad_reach();
 }
 
 bool ProcessRun::requestSpaceMove(uint32_t nMapID, int nX, int nY)
