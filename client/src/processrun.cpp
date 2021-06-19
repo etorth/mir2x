@@ -1670,7 +1670,7 @@ void ProcessRun::drawObject(int x, int y, int objd, bool alpha)
             g_sdlDevice->drawTexture(texPtr, x * SYS_MAPGRIDXP - m_viewX, (y + 1) * SYS_MAPGRIDYP - m_viewY - texH);
 
             if(objd == OBJD_OVERGROUND0){
-                for(const auto &entry: DBCOM_MAPRECORD(mapID()).mapSwitch()){
+                for(const auto &entry: DBCOM_MAPRECORD(mapID()).mapSwitchList){
                     if(true
                             && entry.w > 0
                             && entry.h > 0

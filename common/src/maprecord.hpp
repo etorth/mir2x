@@ -17,9 +17,8 @@
  */
 
 #pragma once
-#include <span>
 #include <cstdint>
-#include <utility>
+#include <initializer_list>
 
 struct MapSwitch
 {
@@ -42,20 +41,10 @@ struct MapRecord
 {
     const char8_t *name = u8"";
     const uint32_t miniMapID = 0;
-    const MapSwitch mapSwitchList[220] = {};
+    const std::initializer_list<MapSwitch> mapSwitchList {};
 
     operator bool () const
     {
         return name && name[0] != '\0';
-    }
-
-    auto mapSwitch() const
-    {
-        for(const auto &p: mapSwitchList){
-            if(!p){
-                return std::span<const MapSwitch>(mapSwitchList, &p);
-            }
-        }
-        return std::span<const MapSwitch>(mapSwitchList, mapSwitchList + std::extent_v<decltype(mapSwitchList)>);
     }
 };
