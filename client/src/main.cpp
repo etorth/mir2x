@@ -23,7 +23,7 @@
 #include "pngtexdb.hpp"
 #include "fontexdb.hpp"
 #include "mapbindb.hpp"
-#include "emoticondb.hpp"
+#include "emojidb.hpp"
 #include "notifyboard.hpp"
 #include "pngtexoffdb.hpp"
 #include "clientargparser.hpp"
@@ -44,7 +44,7 @@ PNGTexOffDB     *g_helmetDB        = nullptr; // database for helmet
 PNGTexOffDB     *g_equipDB         = nullptr; // database for equipment in player status board
 PNGTexOffDB     *g_magicDB         = nullptr; // database for magic
 PNGTexOffDB     *g_standNPCDB      = nullptr; // database for NPC
-emoticonDB      *g_emoticonDB      = nullptr; // database for emoticons
+EmojiDB         *g_emojiDB         = nullptr; // database for emoticons
 MapBinDB        *g_mapBinDB        = nullptr;
 FontexDB        *g_fontexDB        = nullptr;
 XMLConf         *g_xmlConf         = nullptr; // for client configure XML parsing
@@ -90,7 +90,7 @@ int main(int argc, char *argv[])
         g_standNPCDB      = new PNGTexOffDB(1024);
         g_fontexDB        = new FontexDB(1024);
         g_mapBinDB        = new MapBinDB();
-        g_emoticonDB      = new emoticonDB();
+        g_emojiDB         = new EmojiDB();
         g_client          = new Client();       // loads fontex resource
         g_notifyBoard     = new NotifyBoard(DIR_UPLEFT, 0, 0, 10240, 0, 15, 0, colorf::RED + 255);
 

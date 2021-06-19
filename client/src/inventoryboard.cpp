@@ -89,7 +89,7 @@ InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget
     , m_processRun(pRun)
 {
     show(false);
-    auto texPtr = g_progUseDB->Retrieve(0X0000001B);
+    auto texPtr = g_progUseDB->retrieve(0X0000001B);
     if(!texPtr){
         throw fflerror("no valid inventory frame texture");
     }
@@ -105,7 +105,7 @@ void InventoryBoard::drawItem(int dstX, int dstY, size_t startRow, bool cursorOn
             && bin.w >  0
             && bin.h >  0){
 
-        if(auto texPtr = g_itemDB->Retrieve(DBCOM_ITEMRECORD(bin.item.itemID).pkgGfxID | 0X01000000)){
+        if(auto texPtr = g_itemDB->retrieve(DBCOM_ITEMRECORD(bin.item.itemID).pkgGfxID | 0X01000000)){
             const int startX = dstX + m_invGridX0;
             const int startY = dstY + m_invGridY0 - startRow * SYS_INVGRIDPH;
             const int  viewX = dstX + m_invGridX0;
@@ -174,7 +174,7 @@ void InventoryBoard::update(double fUpdateTime)
 
 void InventoryBoard::drawEx(int dstX, int dstY, int, int, int, int) const
 {
-    if(auto pTexture = g_progUseDB->Retrieve(0X0000001B)){
+    if(auto pTexture = g_progUseDB->retrieve(0X0000001B)){
         g_sdlDevice->drawTexture(pTexture, dstX, dstY);
     }
 

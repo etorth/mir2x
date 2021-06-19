@@ -201,13 +201,13 @@ void ProcessNew::update(double fUpdateTime)
 void ProcessNew::draw()
 {
     const SDLDeviceHelper::RenderNewFrame newFrame;
-    g_sdlDevice->drawTexture(g_progUseDB->Retrieve(0X00000003), 0, 75);
-    g_sdlDevice->drawTexture(g_progUseDB->Retrieve(0X00000004), 0, 75, 0, 0, 800, 450);
+    g_sdlDevice->drawTexture(g_progUseDB->retrieve(0X00000003), 0, 75);
+    g_sdlDevice->drawTexture(g_progUseDB->retrieve(0X00000004), 0, 75, 0, 0, 800, 450);
 
     m_boxID.draw();
     m_boxPwd.draw();
     m_boxPwdConfirm.draw();
-    g_sdlDevice->drawTexture(g_progUseDB->Retrieve(0X0A000000), m_x, m_y);
+    g_sdlDevice->drawTexture(g_progUseDB->retrieve(0X0A000000), m_x, m_y);
 
     const auto fnDrawInput = [](int x, int y, int dx, auto &title, auto &check)
     {

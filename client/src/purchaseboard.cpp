@@ -291,7 +291,7 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
     , m_processRun(runPtr)
 {
     show(false);
-    if(auto texPtr = g_progUseDB->Retrieve(0X08000000)){
+    if(auto texPtr = g_progUseDB->retrieve(0X08000000)){
         std::tie(m_w, m_h) = SDLDeviceHelper::getTextureSize(texPtr);
     }
     else{
@@ -305,7 +305,7 @@ void PurchaseBoard::update(double)
 
 void PurchaseBoard::drawEx(int dstX, int dstY, int, int, int, int) const
 {
-    if(auto pTexture = g_progUseDB->Retrieve(0X08000000 + extendedBoardGfxID())){
+    if(auto pTexture = g_progUseDB->retrieve(0X08000000 + extendedBoardGfxID())){
         g_sdlDevice->drawTexture(pTexture, dstX, dstY);
     }
 
@@ -330,7 +330,7 @@ void PurchaseBoard::drawEx(int dstX, int dstY, int, int, int, int) const
 
     for(size_t startIndex = getStartIndex(), i = startIndex; i < std::min<size_t>(m_itemList.size(), startIndex + 4); ++i){
         if(const auto &ir = DBCOM_ITEMRECORD(m_itemList[i])){
-            if(auto texPtr = g_itemDB->Retrieve(ir.pkgGfxID | 0X02000000)){
+            if(auto texPtr = g_itemDB->retrieve(ir.pkgGfxID | 0X02000000)){
                 const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);
                 const int drawX = m_startX + (m_boxW - texW) / 2;
                 const int drawY =   startY + (m_boxH - texH) / 2;
@@ -652,7 +652,7 @@ void PurchaseBoard::drawExt1() const
             const int rightBoxX = rightStartX + c * m_boxW;
             const int rightBoxY = rightStartY + r * m_boxH;
 
-            if(auto texPtr = g_itemDB->Retrieve(ir.pkgGfxID | 0X02000000)){
+            if(auto texPtr = g_itemDB->retrieve(ir.pkgGfxID | 0X02000000)){
                 const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);
                 const int rightDrawX = rightBoxX + (m_boxW - texW) / 2;
                 const int rightDrawY = rightBoxY + (m_boxH - texH) / 2;
@@ -734,7 +734,7 @@ void PurchaseBoard::drawExt2() const
         throw fflerror("bad item in sell list: itemID = %llu, seqID = %llu", to_llu(sellItem.item.itemID), to_llu(sellItem.item.seqID));
     }
 
-    if(auto texPtr = g_itemDB->Retrieve(ir.pkgGfxID | 0X02000000)){
+    if(auto texPtr = g_itemDB->retrieve(ir.pkgGfxID | 0X02000000)){
         constexpr int rightStartX = 303;
         constexpr int rightStartY =  16;
         const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);

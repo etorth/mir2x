@@ -360,7 +360,7 @@ void MonoServer::LoadMapBinDB()
 {
     std::string szMapPath = g_serverConfigureWindow->GetMapPath();
 
-    if(!g_mapBinDB->Load(szMapPath.c_str())){
+    if(!g_mapBinDB->load(szMapPath.c_str())){
         throw fflerror("Failed to load mapbindb");
     }
 }

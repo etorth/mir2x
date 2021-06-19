@@ -122,7 +122,7 @@ PlayerStateBoard::PlayerStateBoard(int argX, int argY, ProcessRun *runPtr, Widge
     , m_processRun(runPtr)
 {
     show(false);
-    if(auto texPtr = g_progUseDB->Retrieve(0X06000000)){
+    if(auto texPtr = g_progUseDB->retrieve(0X06000000)){
         std::tie(m_w, m_h) = SDLDeviceHelper::getTextureSize(texPtr);
     }
     else{
@@ -167,19 +167,19 @@ void PlayerStateBoard::update(double)
 
 void PlayerStateBoard::drawEx(int, int, int, int, int, int) const
 {
-    if(auto texPtr = g_progUseDB->Retrieve(0X06000000)){
+    if(auto texPtr = g_progUseDB->retrieve(0X06000000)){
         g_sdlDevice->drawTexture(texPtr, x(), y());
     }
 
     const auto myHeroPtr = m_processRun->getMyHero();
-    if(auto [texPtr, dx, dy] = g_equipDB->Retrieve(myHeroPtr->gender() ? 0X00000000 : 0X00000001); texPtr){
+    if(auto [texPtr, dx, dy] = g_equipDB->retrieve(myHeroPtr->gender() ? 0X00000000 : 0X00000001); texPtr){
         g_sdlDevice->drawTexture(texPtr, x() + m_equipCharX + dx, y() + m_equipCharY + dy);
     }
 
     LabelBoard(DIR_UPLEFT, 0, 0, to_u8cstr(myHeroPtr->getName()), 1, 12, 0, myHeroPtr->getNameColor() | 0XFF).drawAt(DIR_NONE, x() + 164, y() + 38);
     if(const auto dressItemID = myHeroPtr->getWLItem(WLG_DRESS).itemID){
         if(const auto dressGfxID = DBCOM_ITEMRECORD(dressItemID).pkgGfxID; dressGfxID >= 0){
-            if(auto [texPtr, dx, dy] = g_equipDB->Retrieve(to_u32(dressGfxID) | 0X01000000); texPtr){
+            if(auto [texPtr, dx, dy] = g_equipDB->retrieve(to_u32(dressGfxID) | 0X01000000); texPtr){
                 g_sdlDevice->drawTexture(texPtr, x() + m_equipCharX + dx, y() + m_equipCharY + dy);
             }
         }
@@ -187,7 +187,7 @@ void PlayerStateBoard::drawEx(int, int, int, int, int, int) const
 
     if(const auto weaponItemID = myHeroPtr->getWLItem(WLG_WEAPON).itemID){
         if(const auto useGfxIndex = DBCOM_ITEMRECORD(weaponItemID).shape; useGfxIndex > 0){
-            if(auto [texPtr, dx, dy] = g_equipDB->Retrieve(0X01000000 + DBCOM_ITEMRECORD(weaponItemID).pkgGfxID); texPtr){
+            if(auto [texPtr, dx, dy] = g_equipDB->retrieve(0X01000000 + DBCOM_ITEMRECORD(weaponItemID).pkgGfxID); texPtr){
                 g_sdlDevice->drawTexture(texPtr, x() + m_equipCharX + dx, y() + m_equipCharY + dy);
             }
         }
@@ -195,14 +195,14 @@ void PlayerStateBoard::drawEx(int, int, int, int, int, int) const
 
     if(const auto helmetItemID = myHeroPtr->getWLItem(WLG_HELMET).itemID){
         if(const auto useGfxIndex = DBCOM_ITEMRECORD(helmetItemID).shape; useGfxIndex > 0){
-            if(auto [texPtr, dx, dy] = g_equipDB->Retrieve(0X01000000 + DBCOM_ITEMRECORD(helmetItemID).pkgGfxID); texPtr){
+            if(auto [texPtr, dx, dy] = g_equipDB->retrieve(0X01000000 + DBCOM_ITEMRECORD(helmetItemID).pkgGfxID); texPtr){
                 g_sdlDevice->drawTexture(texPtr, x() + m_equipCharX + dx, y() + m_equipCharY + dy);
             }
         }
     }
     else{
         if(myHeroPtr->getWLDesp().hair >= HAIR_BEGIN){
-            if(auto [texPtr, dx, dy] = g_equipDB->Retrieve((myHeroPtr->gender() ? 0X0000003C : 0X00000046) + myHeroPtr->getWLDesp().hair - HAIR_BEGIN); texPtr){
+            if(auto [texPtr, dx, dy] = g_equipDB->retrieve((myHeroPtr->gender() ? 0X0000003C : 0X00000046) + myHeroPtr->getWLDesp().hair - HAIR_BEGIN); texPtr){
                 SDLDeviceHelper::EnableTextureModColor enableColor(texPtr, myHeroPtr->getWLDesp().hairColor);
                 g_sdlDevice->drawTexture(texPtr, x() + m_equipCharX + dx, y() + m_equipCharY + dy);
             }
@@ -210,7 +210,7 @@ void PlayerStateBoard::drawEx(int, int, int, int, int, int) const
     }
 
     for(size_t i = WLG_W_BEGIN; i < WLG_W_END; ++i){
-        if(auto texPtr = g_itemDB->Retrieve(DBCOM_ITEMRECORD(m_processRun->getMyHero()->getWLItem(i).itemID).pkgGfxID | 0X01000000)){
+        if(auto texPtr = g_itemDB->retrieve(DBCOM_ITEMRECORD(m_processRun->getMyHero()->getWLItem(i).itemID).pkgGfxID | 0X01000000)){
             const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);
             const int dstX = x() + m_gridList[i].x + (m_gridList[i].w - texW) / 2;
             const int dstY = y() + m_gridList[i].y + (m_gridList[i].h - texH) / (i == WLG_SHOES ? 1 : 2);
@@ -237,7 +237,7 @@ void PlayerStateBoard::drawEx(int, int, int, int, int, int) const
                     }
                 }();
 
-                if(auto texPtr = g_progUseDB->Retrieve(texID)){
+                if(auto texPtr = g_progUseDB->retrieve(texID)){
                     SDLDeviceHelper::EnableTextureModColor enableColor(texPtr, colorf::WHITE + 128);
                     g_sdlDevice->drawTexture(texPtr, x() + m_gridList[i].x + dx, y() + m_gridList[i].y + dy);
                 }

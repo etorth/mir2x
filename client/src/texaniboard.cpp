@@ -38,7 +38,7 @@ TexAniBoard::TexAniBoard(dir8_t dir, int x, int y, uint32_t texID, size_t frameC
     int maxH = -1;
 
     for(uint32_t id = texID; id < texID + frameCount; ++id){
-        if(auto texPtr = g_progUseDB->Retrieve(id)){
+        if(auto texPtr = g_progUseDB->retrieve(id)){
             const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);
             maxW = std::max<int>(maxW, texW);
             maxH = std::max<int>(maxH, texH);
@@ -65,8 +65,8 @@ void TexAniBoard::drawEx(int dstX, int dstY, int, int, int, int) const
     const uint32_t currTexId = m_texSeq[(frame + 0) % m_texSeq.size()];
     const uint32_t nextTexId = m_texSeq[(frame + 1) % m_texSeq.size()];
 
-    auto currTexPtr = g_progUseDB->Retrieve(currTexId);
-    auto nextTexPtr = g_progUseDB->Retrieve(nextTexId);
+    auto currTexPtr = g_progUseDB->retrieve(currTexId);
+    auto nextTexPtr = g_progUseDB->retrieve(nextTexId);
 
     SDL_SetTextureAlphaMod(currTexPtr, 255 - alpha);
     SDL_SetTextureAlphaMod(nextTexPtr,       alpha);

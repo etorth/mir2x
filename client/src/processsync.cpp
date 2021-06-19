@@ -61,7 +61,7 @@ void ProcessSync::update(double fUpdateTime)
 void ProcessSync::draw()
 {
     SDLDeviceHelper::RenderNewFrame newFrame;
-    auto texPtr = g_progUseDB->Retrieve(0X00000002);
+    auto texPtr = g_progUseDB->retrieve(0X00000002);
     const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);
 
     g_sdlDevice->drawTexture(texPtr,
@@ -71,7 +71,7 @@ void ProcessSync::draw()
             0,    // src y
             std::lround(texW * (m_ratio / 100.0)), // src w
             texH);  // src h
-    g_sdlDevice->drawTexture(g_progUseDB->Retrieve(0X00000001), 0, 0);
+    g_sdlDevice->drawTexture(g_progUseDB->retrieve(0X00000001), 0, 0);
 
     const int infoX = (800 - m_processBarInfo.w()) / 2;
     const int infoY = 528 + (texH - m_processBarInfo.h()) / 2;

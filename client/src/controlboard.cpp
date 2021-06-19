@@ -712,7 +712,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
 
     auto fnAssertImage = [](uint32_t img, int w, int h)
     {
-        if(auto ptex = g_progUseDB->Retrieve(img)){
+        if(auto ptex = g_progUseDB->retrieve(img)){
             int readw = -1;
             int readh = -1;
             if(!SDL_QueryTexture(ptex, 0, 0, &readw, &readh)){
@@ -746,14 +746,14 @@ void ControlBoard::drawLeft() const
     const int nY0 = y();
 
     // draw left part
-    if(auto pTexture = g_progUseDB->Retrieve(0X00000012)){
+    if(auto pTexture = g_progUseDB->retrieve(0X00000012)){
         g_sdlDevice->drawTexture(pTexture, 0, nY0, 0, 0, 178, 133);
     }
 
     // draw HP and MP texture
     {
-        auto pHP = g_progUseDB->Retrieve(0X00000018);
-        auto pMP = g_progUseDB->Retrieve(0X00000019);
+        auto pHP = g_progUseDB->retrieve(0X00000018);
+        auto pMP = g_progUseDB->retrieve(0X00000019);
 
         if(pHP && pMP){
 
@@ -802,7 +802,7 @@ void ControlBoard::drawRight() const
     const int nW0 = w();
 
     // draw right part
-    if(auto pTexture = g_progUseDB->Retrieve(0X00000012)){
+    if(auto pTexture = g_progUseDB->retrieve(0X00000012)){
         g_sdlDevice->drawTexture(pTexture, nW0 - 166, nY0, 800 - 166, 0, 166, 133);
     }
 
@@ -861,10 +861,10 @@ void ControlBoard::drawMiddleDefault() const
     // draw '?' when the face texture is not available
     if(auto faceTexPtr = [this]() -> SDL_Texture *
     {
-        if(auto texPtr = g_progUseDB->Retrieve(m_processRun->GetFocusFaceKey())){
+        if(auto texPtr = g_progUseDB->retrieve(m_processRun->GetFocusFaceKey())){
             return texPtr;
         }
-        else if(auto texPtr = g_progUseDB->Retrieve(0X010007CF)){
+        else if(auto texPtr = g_progUseDB->retrieve(0X010007CF)){
             return texPtr;
         }
         else{
@@ -876,7 +876,7 @@ void ControlBoard::drawMiddleDefault() const
     }
 
     // draw middle part
-    if(auto texPtr = g_progUseDB->Retrieve(0X00000013)){
+    if(auto texPtr = g_progUseDB->retrieve(0X00000013)){
         g_sdlDevice->drawTexture(texPtr,             178, nY0 + 2,         0, 0,  50, 131);
         g_sdlDevice->drawTexture(texPtr, nW0 - 166 - 119, nY0 + 2, 456 - 119, 0, 119, 131);
 
@@ -899,7 +899,7 @@ void ControlBoard::drawMiddleDefault() const
     // the title texture is not symmetric, add 1 pixel offset
     // then the levelBox can anchor at the middle by m_middle.w() / 2
 
-    if(auto texPtr = g_progUseDB->Retrieve(0X00000022)){
+    if(auto texPtr = g_progUseDB->retrieve(0X00000022)){
         const auto [titleW, titleH] = SDLDeviceHelper::getTextureSize(texPtr);
         const int titleDstX = 178 + (nW0 - 178 - 166 - titleW) / 2 + 1;
         const int titleDstY = nY0 - 19;
@@ -955,7 +955,7 @@ void ControlBoard::drawMiddleExpand() const
     drawInputGreyBackground();
     m_cmdLine.draw(); // cursor can be over-sized
 
-    if(auto texPtr = g_progUseDB->Retrieve(0X00000027)){
+    if(auto texPtr = g_progUseDB->retrieve(0X00000027)){
 
         // draw four corners
         g_sdlDevice->drawTexture(texPtr,             178,                   startY,         0,        0,  50, 47);
@@ -993,7 +993,7 @@ void ControlBoard::drawMiddleExpand() const
         }
     }
 
-    if(auto texPtr = g_progUseDB->Retrieve(0X00000022)){
+    if(auto texPtr = g_progUseDB->retrieve(0X00000022)){
         const auto [titleW, titleH] = SDLDeviceHelper::getTextureSize(texPtr);
         const int titleDstX = 178 + (nW0 - 178 - 166 - titleW) / 2 + 1;
         const int titleDstY = startY - 2 - 19;
@@ -1306,7 +1306,7 @@ void ControlBoard::drawRatioBar(int x, int y, float r) const
 
         [](const ImageBoard *)
         {
-            return g_progUseDB->Retrieve(0X000000A0);
+            return g_progUseDB->retrieve(0X000000A0);
         },
 
         colorf::RGBA(to_u8(255 * r), to_u8(255 * (1 - r)), 0, 255),

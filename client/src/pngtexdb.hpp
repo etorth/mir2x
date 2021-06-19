@@ -26,65 +26,45 @@
 #include "hexstr.hpp"
 #include "sdldevice.hpp"
 
-struct PNGTexEntry
+struct PNGTexElement
 {
-    SDL_Texture *Texture;
+    SDL_Texture *texture = nullptr;
 };
 
-class PNGTexDB: public innDB<uint32_t, PNGTexEntry>
+class PNGTexDB: public innDB<uint32_t, PNGTexElement>
 {
     private:
         std::unique_ptr<ZSDB> m_zsdbPtr;
 
     public:
-        PNGTexDB(size_t nResMax)
-            : innDB<uint32_t, PNGTexEntry>(nResMax)
-            , m_zsdbPtr()
+        PNGTexDB(size_t resMax)
+            : innDB<uint32_t, PNGTexElement>(resMax)
         {}
 
     public:
-        bool Load(const char *szPNGTexDBName)
+        bool load(const char *texDBName)
         {
-            try{
-                m_zsdbPtr = std::make_unique<ZSDB>(szPNGTexDBName);
-            }catch(...){
-                return false;
-            }
+            m_zsdbPtr = std::make_unique<ZSDB>(texDBName);
             return true;
         }
 
     public:
-        SDL_Texture *Retrieve(uint32_t nKey)
+        SDL_Texture *retrieve(uint32_t key)
         {
-            if(PNGTexEntry stEntry {nullptr}; this->RetrieveResource(nKey, &stEntry)){
-                return stEntry.Texture;
+            if(auto p = innLoad(key)){
+                return p->texture;
             }
             return nullptr;
         }
 
-        SDL_Texture *Retrieve(uint8_t nIndex, uint16_t nImage)
+        SDL_Texture *retrieve(uint8_t fileIndex, uint16_t imageIndex)
         {
-            return Retrieve(to_u32((to_u32(nIndex) << 16) + nImage));
+            return retrieve(to_u32((to_u32(fileIndex) << 16) + imageIndex));
         }
 
     public:
-        virtual std::tuple<PNGTexEntry, size_t> loadResource(uint32_t nKey)
-        {
-            char szKeyString[16];
-            PNGTexEntry stEntry {nullptr};
+        std::optional<std::tuple<PNGTexElement, size_t>> loadResource(uint32_t) override;
 
-            if(std::vector<uint8_t> stBuf; m_zsdbPtr->decomp(hexstr::to_string<uint32_t, 4>(nKey, szKeyString, true), 8, &stBuf)){
-                extern SDLDevice *g_sdlDevice; // TODO
-                stEntry.Texture = g_sdlDevice->createTexture(stBuf.data(), stBuf.size());
-            }
-            return {stEntry, stEntry.Texture ? 1 : 0};
-        }
-
-        virtual void freeResource(PNGTexEntry &rstEntry)
-        {
-            if(rstEntry.Texture){
-                SDL_DestroyTexture(rstEntry.Texture);
-                rstEntry.Texture = nullptr;
-            }
-        }
+    public:
+        void freeResource(PNGTexElement &) override;
 };

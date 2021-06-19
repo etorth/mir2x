@@ -26,13 +26,13 @@
 #include "mathf.hpp"
 #include "fontexdb.hpp"
 #include "sdldevice.hpp"
-#include "emoticondb.hpp"
+#include "emojidb.hpp"
 #include "clientargparser.hpp"
 
 extern Log *g_log;
 extern FontexDB *g_fontexDB;
 extern SDLDevice *g_sdlDevice;
-extern emoticonDB *g_emoticonDB;
+extern EmojiDB *g_emojiDB;
 extern ClientArgParser *g_clientArgParser;
 
 void XMLTypeset::SetTokenBoxWordSpace(int nLine)
@@ -587,7 +587,7 @@ void XMLTypeset::SetLineTokenStartY(int nLine)
 void XMLTypeset::checkDefaultFontEx() const
 {
     const uint64_t u64key = utf8f::buildU64Key(m_font, m_fontSize, 0, utf8f::peekUTF8Code("0"));
-    if(!g_fontexDB->Retrieve(u64key)){
+    if(!g_fontexDB->retrieve(u64key)){
         throw fflerror("invalid default font: font = %d, fontsize = %d", to_d(m_font), to_d(m_fontSize));
     }
 }
@@ -599,7 +599,7 @@ TOKEN XMLTypeset::buildUTF8Token(int leaf, uint8_t nFont, uint8_t nFontSize, uin
     auto nU64Key = utf8f::buildU64Key(nFont, nFontSize, nFontStyle, nUTF8Code);
 
     stToken.leaf = leaf;
-    if(auto pTexture = g_fontexDB->Retrieve(nU64Key)){
+    if(auto pTexture = g_fontexDB->retrieve(nU64Key)){
         int nBoxW = -1;
         int nBoxH = -1;
         if(!SDL_QueryTexture(pTexture, nullptr, nullptr, &nBoxW, &nBoxH)){
@@ -614,12 +614,12 @@ TOKEN XMLTypeset::buildUTF8Token(int leaf, uint8_t nFont, uint8_t nFontSize, uin
     }
 
     nU64Key = utf8f::buildU64Key(m_font, m_fontSize, 0, nUTF8Code);
-    if(g_fontexDB->Retrieve(nU64Key)){
+    if(g_fontexDB->retrieve(nU64Key)){
         throw fflerror("can't find texture for UTF8: %" PRIX32, nUTF8Code);
     }
 
     nU64Key = utf8f::buildU64Key(m_font, m_fontSize, nFontStyle, utf8f::peekUTF8Code("0"));
-    if(g_fontexDB->Retrieve(nU64Key)){
+    if(g_fontexDB->retrieve(nU64Key)){
         throw fflerror("invalid font style: %" PRIX8, nFontStyle);
     }
 
@@ -627,7 +627,7 @@ TOKEN XMLTypeset::buildUTF8Token(int leaf, uint8_t nFont, uint8_t nFontSize, uin
     // use system default font, don't fail it
 
     nU64Key = utf8f::buildU64Key(m_font, m_fontSize, nFontStyle, nUTF8Code);
-    if(auto pTexture = g_fontexDB->Retrieve(nU64Key)){
+    if(auto pTexture = g_fontexDB->retrieve(nU64Key)){
         int nBoxW = -1;
         int nBoxH = -1;
         if(!SDL_QueryTexture(pTexture, nullptr, nullptr, &nBoxW, &nBoxH)){
@@ -661,7 +661,7 @@ TOKEN XMLTypeset::buildEmojiToken(int leaf, uint32_t emoji) const
     }
 
     emoji <<= 8;
-    if(g_emoticonDB->Retrieve(emoji, 0, 0, &tokenW, &tokenH, &h1, &fps, &frameCount)){
+    if(g_emojiDB->retrieve(emoji, 0, 0, &tokenW, &tokenH, &h1, &fps, &frameCount)){
         token.Box.Info.W       = tokenW;
         token.Box.Info.H       = tokenH;
         token.Box.State.H1     = h1;
@@ -1064,7 +1064,7 @@ void XMLTypeset::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int sr
             switch(leaf.type()){
                 case LEAF_UTF8GROUP:
                     {
-                        if(auto texPtr = g_fontexDB->Retrieve(tokenPtr->UTF8Char.U64Key)){
+                        if(auto texPtr = g_fontexDB->retrieve(tokenPtr->UTF8Char.U64Key)){
                             SDLDeviceHelper::EnableTextureModColor enableMod(texPtr, fgColorVal);
                             g_sdlDevice->drawTexture(texPtr, drawDstX, drawDstY, dx, dy, boxW, boxH);
                         }
@@ -1094,7 +1094,7 @@ void XMLTypeset::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int sr
                         int xOnTex = 0;
                         int yOnTex = 0;
 
-                        if(auto texPtr = g_emoticonDB->Retrieve(emojiKey, &xOnTex, &yOnTex, 0, 0, 0, 0, 0)){
+                        if(auto texPtr = g_emojiDB->retrieve(emojiKey, &xOnTex, &yOnTex, 0, 0, 0, 0, 0)){
                             SDLDeviceHelper::EnableTextureModColor enableMod(texPtr, m_imageMaskColor);
                             g_sdlDevice->drawTexture(texPtr, drawDstX, drawDstY, xOnTex + dx, yOnTex + dy, boxW, boxH);
                         }
@@ -1342,7 +1342,7 @@ void XMLTypeset::setLineWidth(int lineWidth)
 
 int XMLTypeset::getDefaultFontHeight() const
 {
-    if(auto texPtr = g_fontexDB->Retrieve(utf8f::buildU64Key(m_font, m_fontSize, m_fontStyle, utf8f::peekUTF8Code(" ")))){
+    if(auto texPtr = g_fontexDB->retrieve(utf8f::buildU64Key(m_font, m_fontSize, m_fontStyle, utf8f::peekUTF8Code(" ")))){
         return SDLDeviceHelper::getTextureHeight(texPtr);
     }
     return 20;

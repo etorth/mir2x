@@ -121,7 +121,7 @@ InputStringBoard::InputStringBoard(int x, int y, ProcessRun *runPtr, Widget *wid
     , m_processRun(runPtr)
 {
     show(false);
-    if(auto texPtr = g_progUseDB->Retrieve(0X07000000)){
+    if(auto texPtr = g_progUseDB->retrieve(0X07000000)){
         std::tie(m_w, m_h) = SDLDeviceHelper::getTextureSize(texPtr);
     }
     else{
@@ -136,7 +136,7 @@ void InputStringBoard::update(double ms)
 
 void InputStringBoard::drawEx(int dstX, int dstY, int, int, int, int) const
 {
-    if(auto texPtr = g_progUseDB->Retrieve(0X07000000)){
+    if(auto texPtr = g_progUseDB->retrieve(0X07000000)){
         g_sdlDevice->drawTexture(texPtr, dstX, dstY);
     }
 

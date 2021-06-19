@@ -26,7 +26,7 @@ extern SDLDevice *g_sdlDevice;
 
 void TritexButton::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int srcH) const
 {
-    if(auto texPtr = g_progUseDB->Retrieve(m_texID[getState()])){
+    if(auto texPtr = g_progUseDB->retrieve(m_texID[getState()])){
         const int offX = m_offset[getState()][0];
         const int offY = m_offset[getState()][1];
         const auto modG = [this]() -> uint8_t
@@ -47,7 +47,7 @@ void TritexButton::initButtonSize()
     int maxH = 0;
     for(const int state: {0, 1, 2}){
         if(m_texID[state] != SYS_TEXNIL){
-            if(auto texPtr = g_progUseDB->Retrieve(m_texID[state])){
+            if(auto texPtr = g_progUseDB->retrieve(m_texID[state])){
                 const auto [texCurrW, texCurrH] = SDLDeviceHelper::getTextureSize(texPtr);
                 maxW = (std::max<int>)(texCurrW, maxW);
                 maxH = (std::max<int>)(texCurrH, maxH);

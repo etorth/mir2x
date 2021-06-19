@@ -73,7 +73,7 @@ AlphaOnButton::AlphaOnButton(
     , m_onRadius(onRadius)
 {
 
-    auto texPtr = g_progUseDB->Retrieve(m_texID);
+    auto texPtr = g_progUseDB->retrieve(m_texID);
     if(!texPtr){
         throw fflerror("can't load down texture: %llu", to_llu(m_texID));
     }
@@ -100,7 +100,7 @@ void AlphaOnButton::drawEx(int dstX, int dstY, int, int, int, int) const
             }
         case BEVENT_DOWN:
             {
-                auto texPtr = g_progUseDB->Retrieve(m_texID);
+                auto texPtr = g_progUseDB->retrieve(m_texID);
                 if(!texPtr){
                     throw fflerror("can't get down texture: texID = %llu", to_llu(m_texID));
                 }

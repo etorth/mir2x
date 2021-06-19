@@ -151,8 +151,8 @@ void ClientMonster::drawFrame(int viewX, int viewY, int focusMask, int frame, bo
     const uint32_t   bodyKey = (to_u32(0) << 23) + (to_u32(optGfxID.value() & 0X03FFFF) << 5) + absFrame; // body
     const uint32_t shadowKey = (to_u32(1) << 23) + (to_u32(optGfxID.value() & 0X03FFFF) << 5) + absFrame; // shadow
 
-    const auto [  bodyFrame,   bodyDX,   bodyDY] = g_monsterDB->Retrieve(bodyKey);
-    const auto [shadowFrame, shadowDX, shadowDY] = g_monsterDB->Retrieve(shadowKey);
+    const auto [  bodyFrame,   bodyDX,   bodyDY] = g_monsterDB->retrieve(bodyKey);
+    const auto [shadowFrame, shadowDX, shadowDY] = g_monsterDB->retrieve(shadowKey);
     const auto [shiftX, shiftY] = getShift(frame);
 
     // always reset the alpha mode for each texture because texture is shared
@@ -239,8 +239,8 @@ void ClientMonster::drawFrame(int viewX, int viewY, int focusMask, int frame, bo
         }
 
         if(m_currMotion->type != MOTION_MON_DIE && g_clientArgParser->drawHPBar){
-            auto pBar0 = g_progUseDB->Retrieve(0X00000014);
-            auto pBar1 = g_progUseDB->Retrieve(0X00000015);
+            auto pBar0 = g_progUseDB->retrieve(0X00000014);
+            auto pBar1 = g_progUseDB->retrieve(0X00000015);
 
             int nBarW = -1;
             int nBarH = -1;
@@ -607,7 +607,7 @@ ClientCreature::TargetBox ClientMonster::getTargetBox() const
 
     int dx = 0;
     int dy = 0;
-    auto bodyFrameTexPtr = g_monsterDB->Retrieve(texID, &dx, &dy);
+    auto bodyFrameTexPtr = g_monsterDB->retrieve(texID, &dx, &dy);
 
     if(!bodyFrameTexPtr){
         return {};

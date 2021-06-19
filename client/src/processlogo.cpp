@@ -58,7 +58,7 @@ void ProcessLogo::update(double fDTime)
 void ProcessLogo::draw()
 {
     SDLDeviceHelper::RenderNewFrame newFrame;
-    if(auto pTexture = g_progUseDB->Retrieve(0X00000000)){
+    if(auto pTexture = g_progUseDB->retrieve(0X00000000)){
         auto bColor = (Uint8)(std::lround(255 * colorRatio()));
         SDL_SetTextureColorMod(pTexture, bColor, bColor, bColor);
 

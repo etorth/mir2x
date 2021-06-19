@@ -54,7 +54,7 @@ void TexVSlider::drawEx(int, int, int, int, int, int) const
 
     const auto [sliderX, sliderY, sliderW, sliderH] = getSliderRectangle();
 
-    auto texPtr = g_progUseDB->Retrieve(getSelfParam().texID);
+    auto texPtr = g_progUseDB->retrieve(getSelfParam().texID);
     if(!texPtr){
         return;
     }

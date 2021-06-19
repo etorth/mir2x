@@ -79,7 +79,7 @@ void Hero::drawFrame(int viewX, int viewY, int, int frame, bool)
         }
 
         const uint32_t weaponKey = ((to_u32(shadow ? 1 : 0)) << 23) + (to_u32(gender()) << 22) + ((nGfxWeaponID.value() & 0X01FFFF) << 5) + frame;
-        const auto [weaponFrame, weaponDX, weaponDY] = g_weaponDB->Retrieve(weaponKey);
+        const auto [weaponFrame, weaponDX, weaponDY] = g_weaponDB->retrieve(weaponKey);
 
         if(weaponFrame && shadow){
             SDL_SetTextureAlphaMod(weaponFrame, 128);
@@ -113,8 +113,8 @@ void Hero::drawFrame(int viewX, int viewY, int, int frame, bool)
     const uint32_t   bodyKey = (to_u32(0) << 23) + (to_u32(gender()) << 22) + ((to_u32(nGfxDressID.value() & 0X01FFFF)) << 5) + frame;
     const uint32_t shadowKey = (to_u32(1) << 23) + (to_u32(gender()) << 22) + ((to_u32(nGfxDressID.value() & 0X01FFFF)) << 5) + frame;
 
-    const auto [  bodyFrame,   bodyDX,   bodyDY] = g_heroDB->Retrieve(bodyKey);
-    const auto [shadowFrame, shadowDX, shadowDY] = g_heroDB->Retrieve(shadowKey);
+    const auto [  bodyFrame,   bodyDX,   bodyDY] = g_heroDB->retrieve(bodyKey);
+    const auto [shadowFrame, shadowDX, shadowDY] = g_heroDB->retrieve(shadowKey);
 
     if(shadowFrame){
         SDL_SetTextureAlphaMod(shadowFrame, 128);
@@ -146,7 +146,7 @@ void Hero::drawFrame(int viewX, int viewY, int, int frame, bool)
     if(getWLItem(WLG_HELMET)){
         if(const auto nHelmetGfxID = gfxHelmetID(DBCOM_ITEMRECORD(getWLItem(WLG_HELMET).itemID).shape, m_currMotion->type, m_currMotion->direction); nHelmetGfxID.has_value()){
             const uint32_t nHelmetKey = (to_u32(gender()) << 22) + ((to_u32(nHelmetGfxID.value() & 0X01FFFF)) << 5) + frame;
-            if(auto [texPtr, dx, dy] = g_helmetDB->Retrieve(nHelmetKey); texPtr){
+            if(auto [texPtr, dx, dy] = g_helmetDB->retrieve(nHelmetKey); texPtr){
                 g_sdlDevice->drawTexture(texPtr, startX + dx, startY + dy);
             }
         }
@@ -154,7 +154,7 @@ void Hero::drawFrame(int viewX, int viewY, int, int frame, bool)
     else{
         if(const auto nHairGfxID = gfxHairID(m_sdWLDesp.hair, m_currMotion->type, m_currMotion->direction); nHairGfxID.has_value()){
             const uint32_t nHairKey = (to_u32(gender()) << 22) + ((to_u32(nHairGfxID.value() & 0X01FFFF)) << 5) + frame;
-            if(auto [texPtr, dx, dy] = g_hairDB->Retrieve(nHairKey); texPtr){
+            if(auto [texPtr, dx, dy] = g_hairDB->retrieve(nHairKey); texPtr){
                 SDLDeviceHelper::EnableTextureModColor enableColor(texPtr, m_sdWLDesp.hairColor);
                 g_sdlDevice->drawTexture(texPtr, startX + dx, startY + dy);
             }
@@ -243,8 +243,8 @@ void Hero::drawFrame(int viewX, int viewY, int, int frame, bool)
     // draw HP bar
     // if current m_HPMqx is zero we draw full bar
     if(m_currMotion->type != MOTION_DIE && g_clientArgParser->drawHPBar){
-        auto bar0Ptr = g_progUseDB->Retrieve(0X00000014);
-        auto bar1Ptr = g_progUseDB->Retrieve(0X00000015);
+        auto bar0Ptr = g_progUseDB->retrieve(0X00000014);
+        auto bar1Ptr = g_progUseDB->retrieve(0X00000015);
 
         const auto [bar1TexW, bar1TexH] = SDLDeviceHelper::getTextureSize(bar1Ptr);
 
@@ -1125,10 +1125,7 @@ ClientCreature::TargetBox Hero::getTargetBox() const
 
     const uint32_t texID = ((to_u32(gender() ? 1 : 0)) << 22) + ((to_u32(texBaseID.value() & 0X01FFFF)) << 5) + currMotion()->frame;
 
-    int dx = 0;
-    int dy = 0;
-    auto bodyFrameTexPtr = g_heroDB->Retrieve(texID, &dx, &dy);
-
+    auto [bodyFrameTexPtr, dx, dy] = g_heroDB->retrieve(texID);
     if(!bodyFrameTexPtr){
         return {};
     }

@@ -65,7 +65,7 @@ QuickAccessBoard::QuickAccessBoard(int x, int y, ProcessRun *proc, Widget *pwidg
           this
       }
 {
-    auto texPtr = g_progUseDB->Retrieve(m_texID);
+    auto texPtr = g_progUseDB->retrieve(m_texID);
     if(!texPtr){
         throw fflerror("no valid quick access board texture: texID = %llu", to_llu(m_texID));
     }
@@ -76,7 +76,7 @@ QuickAccessBoard::QuickAccessBoard(int x, int y, ProcessRun *proc, Widget *pwidg
 
 void QuickAccessBoard::drawEx(int dstX, int dstY, int, int, int, int) const
 {
-    if(auto texPtr = g_progUseDB->Retrieve(m_texID)){
+    if(auto texPtr = g_progUseDB->retrieve(m_texID)){
         g_sdlDevice->drawTexture(texPtr, dstX, dstY);
     }
 
@@ -88,7 +88,7 @@ void QuickAccessBoard::drawEx(int dstX, int dstY, int, int, int, int) const
         }
 
         const auto [gridX, gridY, gridW, gridH] = getGridLoc(slot);
-        if(auto texPtr = g_itemDB->Retrieve(DBCOM_ITEMRECORD(item.itemID).pkgGfxID | 0X01000000)){
+        if(auto texPtr = g_itemDB->retrieve(DBCOM_ITEMRECORD(item.itemID).pkgGfxID | 0X01000000)){
             const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);
             const auto drawDstX = x() + gridX + (gridW - texW) / 2;
             const auto drawDstY = y() + gridY + (gridH - texH) / 2;

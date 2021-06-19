@@ -86,7 +86,7 @@ ACButton::ACButton(dir8_t dir, int x, int y, ProcessRun *proc, const std::vector
 
     bool inited = false;
     for(auto &p: m_texMap){
-        if(auto texPtr = g_progUseDB->Retrieve(p.second)){
+        if(auto texPtr = g_progUseDB->retrieve(p.second)){
             const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);
             m_w = std::max<int>(m_w, texW);
             m_h = std::max<int>(m_h, texH);
@@ -104,7 +104,7 @@ ACButton::ACButton(dir8_t dir, int x, int y, ProcessRun *proc, const std::vector
 void ACButton::drawEx(int dstX, int dstY, int, int, int, int) const
 {
     const auto buttonName = m_buttonNameList.at(m_currButtonName);
-    auto texPtr = g_progUseDB->Retrieve(m_texMap.at(buttonName));
+    auto texPtr = g_progUseDB->retrieve(m_texMap.at(buttonName));
 
     if(!texPtr){
         throw fflerror("no texture for %s", buttonName.c_str());

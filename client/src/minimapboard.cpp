@@ -234,15 +234,15 @@ void MiniMapBoard::drawMiniMapTexture() const
 void MiniMapBoard::drawFrame() const
 {
     g_sdlDevice->drawRectangle(colorf::RGBA(60, 60, 60, 255), x(), y(), w(), h());
-    if(auto texPtr = g_progUseDB->Retrieve(0X09000006); texPtr){
+    if(auto texPtr = g_progUseDB->retrieve(0X09000006); texPtr){
         g_sdlDevice->drawTexture(texPtr, x(), y());
     }
 
-    if(auto texPtr = g_progUseDB->Retrieve(0X09000007); texPtr){
+    if(auto texPtr = g_progUseDB->retrieve(0X09000007); texPtr){
         g_sdlDevice->drawTexture(texPtr, x() + w() - SDLDeviceHelper::getTextureWidth(texPtr), y());
     }
 
-    if(auto texPtr = g_progUseDB->Retrieve(0X09000008); texPtr){
+    if(auto texPtr = g_progUseDB->retrieve(0X09000008); texPtr){
         g_sdlDevice->drawTexture(texPtr, x(), y() + h() - SDLDeviceHelper::getTextureHeight(texPtr));
     }
 }
@@ -261,7 +261,7 @@ SDL_Texture *MiniMapBoard::getMiniMapTexture() const
 {
     [[maybe_unused]] const auto [mapID, mapW, mapH] = m_processRun->getMap();
     if(const auto miniMapID = DBCOM_MAPRECORD(mapID).miniMapID){
-        return g_progUseDB->Retrieve(miniMapID);
+        return g_progUseDB->retrieve(miniMapID);
     }
     return nullptr;
 }

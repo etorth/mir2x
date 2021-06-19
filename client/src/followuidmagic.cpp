@@ -20,7 +20,7 @@
 // Location a is the <m_x, m_y>, offset (b - a) is where to draw frame gfxs
 // Location c is the magic gfx arrow head (or fireball head) in the frame animation, which is used as target point
 //
-//     g_magicDB->Retrieve(texID, offX, offY): ( offX,  offY) is (b - a)
+//     g_magicDB->retrieve(texID, offX, offY): ( offX,  offY) is (b - a)
 //     FollowUIDMagic::targetOff()           : (txOff, tyOff) is (c - a)
 //
 //        b--------+
@@ -234,7 +234,7 @@ bool FollowUIDMagic::update(double ms)
 void FollowUIDMagic::drawViewOff(int viewX, int viewY, uint32_t modColor) const
 {
     if(const auto texID = frameTexID(); texID != SYS_TEXNIL){
-        if(auto [texPtr, offX, offY] = g_magicDB->Retrieve(texID); texPtr){
+        if(auto [texPtr, offX, offY] = g_magicDB->retrieve(texID); texPtr){
             SDLDeviceHelper::EnableTextureModColor enableModColor(texPtr, modColor);
             SDLDeviceHelper::EnableTextureBlendMode enableBlendMode(texPtr, SDL_BLENDMODE_BLEND);
 

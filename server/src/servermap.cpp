@@ -300,25 +300,24 @@ ServerMap::ServerPathFinder::ServerPathFinder(const ServerMap *pMap, int nMaxSte
     }
 }
 
-ServerMap::ServerMap(uint32_t nMapID)
-    : ServerObject(uidf::getMapUID(nMapID))
-    , m_ID(nMapID)
-    , m_mir2xMapData(*([nMapID]() -> Mir2xMapData *
+ServerMap::ServerMap(uint32_t mapID)
+    : ServerObject(uidf::getMapUID(mapID))
+    , m_ID(mapID)
+    , m_mir2xMapData([mapID]()
       {
-          // server is multi-thread
-          // but creating server map is always in service core
-
-          if(auto pMir2xMapData = g_mapBinDB->Retrieve(nMapID)){
-              return pMir2xMapData;
+          Mir2xMapData data;
+          if(auto p = g_mapBinDB->retrieve(mapID)){
+              data = *p;
           }
 
-          // when constructing a servermap
-          // servicecore should test if current nMapID valid
-          throw fflerror("load map failed: ID = %d, Name = %s", nMapID, to_cstr(DBCOM_MAPRECORD(nMapID).name));
-      }()))
+          if(!data.valid()){
+              throw fflerror("load map failed: ID = %d, Name = %s", to_d(mapID), to_cstr(DBCOM_MAPRECORD(mapID).name));
+          }
+          return data;
+      }())
 {
     m_gridList.resize(W() * H());
-    for(const auto &entry: DBCOM_MAPRECORD(nMapID).mapSwitch()){
+    for(const auto &entry: DBCOM_MAPRECORD(mapID).mapSwitch()){
         if(true
                 && entry.w > 0
                 && entry.h > 0

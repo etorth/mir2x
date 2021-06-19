@@ -32,13 +32,13 @@
 #include "pngtexdb.hpp"
 #include "mapbindb.hpp"
 #include "threadpool.hpp"
-#include "emoticondb.hpp"
+#include "emojidb.hpp"
 #include "pngtexoffdb.hpp"
 
 extern Log *g_log;
 extern XMLConf *g_xmlConf;
 extern SDLDevice *g_sdlDevice;
-extern emoticonDB *g_emoticonDB;
+extern EmojiDB *g_emojiDB;
 
 extern PNGTexDB *g_mapDB;
 extern MapBinDB *g_mapBinDB;
@@ -72,7 +72,7 @@ InitView::InitView(uint8_t fontSize)
           {1, [this](size_t weight){ loadDB(weight, g_xmlConf, g_equipDB,    "root/texture/equipDB"   ); }},
           {1, [this](size_t weight){ loadDB(weight, g_xmlConf, g_standNPCDB, "root/texture/standNPCDB"); }},
           {1, [this](size_t weight){ loadDB(weight, g_xmlConf, g_mapBinDB,   "root/map/mapBinDB"      ); }},
-          {1, [this](size_t weight){ loadDB(weight, g_xmlConf, g_emoticonDB, "root/emoji/emojiDB"     ); }},
+          {1, [this](size_t weight){ loadDB(weight, g_xmlConf, g_emojiDB,    "root/emoji/emojiDB"     ); }},
       }
 {
     const Rawbuf boardData

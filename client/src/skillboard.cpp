@@ -135,7 +135,7 @@ SkillBoard::SkillPage::SkillPage(uint32_t pageImage, Widget *widgetPtr, bool aut
 {
     std::tie(m_w, m_h) = [this]() -> std::tuple<int, int>
     {
-        if(auto texPtr = g_progUseDB->Retrieve(m_pageImage)){
+        if(auto texPtr = g_progUseDB->retrieve(m_pageImage)){
             return SDLDeviceHelper::getTextureSize(texPtr);
         }
 
@@ -146,7 +146,7 @@ SkillBoard::SkillPage::SkillPage(uint32_t pageImage, Widget *widgetPtr, bool aut
 
 void SkillBoard::SkillPage::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int srcH) const
 {
-    if(auto texPtr = g_progUseDB->Retrieve(m_pageImage)){
+    if(auto texPtr = g_progUseDB->retrieve(m_pageImage)){
         int srcXCrop = srcX;
         int srcYCrop = srcY;
         int dstXCrop = dstX;
@@ -352,7 +352,7 @@ SkillBoard::SkillBoard(int nX, int nY, ProcessRun *runPtr, Widget *pwidget, bool
     , m_processRun(runPtr)
 {
     show(false);
-    if(auto texPtr = g_progUseDB->Retrieve(0X05000000)){
+    if(auto texPtr = g_progUseDB->retrieve(0X05000000)){
         std::tie(m_w, m_h) = SDLDeviceHelper::getTextureSize(texPtr);
     }
     else{
@@ -362,7 +362,7 @@ SkillBoard::SkillBoard(int nX, int nY, ProcessRun *runPtr, Widget *pwidget, bool
 
 void SkillBoard::drawEx(int dstX, int dstY, int, int, int, int) const
 {
-    if(auto texPtr = g_progUseDB->Retrieve(0X05000000)){
+    if(auto texPtr = g_progUseDB->retrieve(0X05000000)){
         g_sdlDevice->drawTexture(texPtr, dstX, dstY);
     }
 

@@ -18,6 +18,7 @@
 
 #pragma once
 #include <vector>
+#include <memory>
 #include <unordered_map>
 
 #include "zsdb.hpp"
@@ -26,66 +27,58 @@
 #include "dbcomrecord.hpp"
 #include "mir2xmapdata.hpp"
 
-struct MapBinEntry
+struct MapBinElement
 {
-    Mir2xMapData *Map;
+    std::unique_ptr<Mir2xMapData> data {};
 };
 
-class MapBinDB: public innDB<uint32_t, MapBinEntry>
+class MapBinDB: public innDB<uint32_t, MapBinElement>
 {
     private:
         std::unique_ptr<ZSDB> m_ZSDBPtr;
 
     public:
         MapBinDB()
-            : innDB<uint32_t, MapBinEntry>(16)
-            , m_ZSDBPtr()
+            : innDB<uint32_t, MapBinElement>(16)
         {}
 
     public:
-        bool Load(const char *szMapDBName)
+        bool load(const char *mapDBName)
         {
-            try{
-                m_ZSDBPtr = std::make_unique<ZSDB>(szMapDBName);
-            }catch(...){
-                return false;
-            }
+            m_ZSDBPtr = std::make_unique<ZSDB>(mapDBName);
             return true;
         }
 
     public:
-        Mir2xMapData *Retrieve(uint32_t nKey)
+        Mir2xMapData *retrieve(uint32_t key)
         {
-            if(MapBinEntry stEntry {nullptr}; this->RetrieveResource(nKey, &stEntry)){
-                return stEntry.Map;
+            if(auto p = innLoad(key)){
+                return p->data.get();
             }
             return nullptr;
         }
 
     public:
-        virtual std::tuple<MapBinEntry, size_t> loadResource(uint32_t nKey)
+        std::optional<std::tuple<MapBinElement, size_t>> loadResource(uint32_t key) override
         {
-            MapBinEntry stEntry {nullptr};
-            if(const auto utf8name = DBCOM_MAPRECORD(nKey).name; str_haschar(utf8name)){
+            if(const auto utf8name = DBCOM_MAPRECORD(key).name; str_haschar(utf8name)){
                 const auto mapName = std::string(to_cstr(utf8name));
                 if(const auto pos = mapName.find('_'); pos != std::string::npos){
                     if(const auto fileName = mapName.substr(pos + 1); !fileName.empty()){
-                        if(std::vector<uint8_t> stBuf; m_ZSDBPtr->decomp(str_printf("%s.bin", fileName.c_str()).c_str(), 0, &stBuf)){
-                            auto pMap = new Mir2xMapData();
-                            pMap->loadData(stBuf.data(), stBuf.size());
-                            stEntry.Map = pMap;
+                        if(std::vector<uint8_t> dataBuf; m_ZSDBPtr->decomp(str_printf("%s.bin", fileName.c_str()).c_str(), 0, &dataBuf)){
+                            return std::make_tuple(MapBinElement
+                            {
+                                .data = std::make_unique<Mir2xMapData>(dataBuf.data(), dataBuf.size()),
+                            }, 1);
                         }
                     }
                 }
             }
-            return {stEntry, stEntry.Map ? 1 : 0};
+            return {};
         }
 
-        virtual void freeResource(MapBinEntry &rstEntry)
+        virtual void freeResource(MapBinElement &element)
         {
-            if(rstEntry.Map){
-                delete rstEntry.Map;
-                rstEntry.Map = nullptr;
-            }
+            element.data.reset();
         }
 };

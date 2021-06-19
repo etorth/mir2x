@@ -118,7 +118,7 @@ size_t InvPack::remove(uint32_t itemID, uint32_t seqID, size_t count)
 
 std::tuple<int, int> InvPack::getPackBinSize(uint32_t itemID)
 {
-    if(auto texPtr = g_itemDB->Retrieve(DBCOM_ITEMRECORD(itemID).pkgGfxID | 0X01000000)){
+    if(auto texPtr = g_itemDB->retrieve(DBCOM_ITEMRECORD(itemID).pkgGfxID | 0X01000000)){
         const auto [itemPW, itemPH] = SDLDeviceHelper::getTextureSize(texPtr);
         return
         {

@@ -3,8 +3,7 @@
  *
  *       Filename: fontexdb.hpp
  *        Created: 02/24/2016 17:51:16
- *    Description: this class only releases resource automatically
- *                 on loading new resources
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -18,13 +17,14 @@
  */
 
 #pragma once
-#include <map>
 #include <cstring>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
+#include <unordered_map>
 
 #include "zsdb.hpp"
 #include "inndb.hpp"
+#include "utf8f.hpp"
 #include "fflerror.hpp"
 #include "hexstr.hpp"
 #include "sdldevice.hpp"
@@ -40,12 +40,12 @@ enum FontStyle: uint8_t
     FONTSTYLE_BLENDED       = 0B0100'0000,
 };
 
-struct FontexEntry
+struct FontexElement
 {
-    SDL_Texture *Texture;
+    SDL_Texture *texture = nullptr;
 };
 
-class FontexDB: public innDB<uint64_t, FontexEntry>
+class FontexDB: public innDB<uint64_t, FontexElement>
 {
     private:
         std::unique_ptr<ZSDB> m_zsdbPtr;
@@ -54,106 +54,73 @@ class FontexDB: public innDB<uint64_t, FontexEntry>
     private:
         // 0XFF00 : font index
         // 0X00FF : font point size
-        std::map<uint16_t, TTF_Font *> m_TTFCache;
+        std::unordered_map<uint16_t, TTF_Font *> m_ttfCache;
 
     private:
-        std::map<uint8_t, std::vector<uint8_t>> m_fontDataCache;
+        std::unordered_map<uint8_t, std::vector<uint8_t>> m_fontDataCache;
 
     public:
-        FontexDB(size_t nResMax)
-            : innDB<uint64_t, FontexEntry>(nResMax)
-            , m_zsdbPtr()
-            , m_TTFCache()
-            , m_fontDataCache()
+        FontexDB(size_t resMax)
+            : innDB<uint64_t, FontexElement>(resMax)
         {}
 
         virtual ~FontexDB()
         {
-            for(auto &stEntry: m_TTFCache){
-                TTF_CloseFont(stEntry.second);
+            for(auto &p: m_ttfCache){
+                TTF_CloseFont(p.second);
             }
         }
 
     private:
-        const std::vector<uint8_t> &RetrieveFontData(uint8_t nFontIndex)
+        const std::vector<uint8_t> &findFontData(uint8_t fontIndex)
         {
-            if(auto p = m_fontDataCache.find(nFontIndex); p != m_fontDataCache.end()){
+            if(auto p = m_fontDataCache.find(fontIndex); p != m_fontDataCache.end()){
                 return p->second;
             }
 
-            m_fontDataCache[nFontIndex] = [this, nFontIndex]() -> std::vector<uint8_t>
+            return m_fontDataCache[fontIndex] = [this, fontIndex]() -> std::vector<uint8_t>
             {
-                char szFontIndexString[8];
-                std::vector<uint8_t> stFontDataBuf;
-                if(m_zsdbPtr->decomp(hexstr::to_string<uint8_t, 1>(nFontIndex, szFontIndexString, true), 2, &stFontDataBuf)){
-                    return stFontDataBuf;
+                char fontIndexString[8];
+                std::vector<uint8_t> fontDataBuf;
+
+                if(m_zsdbPtr->decomp(hexstr::to_string<uint8_t, 1>(fontIndex, fontIndexString, true), 2, &fontDataBuf)){
+                    return fontDataBuf;
                 }
                 return {};
             }();
-
-            return m_fontDataCache[nFontIndex];
         }
 
-        TTF_Font *RetrieveTTF(uint16_t nTTFIndex)
-        {
-            uint8_t nFontIndex = ((nTTFIndex & 0XFF00) >> 8);
-            uint8_t nFontSize  = ((nTTFIndex & 0X00FF) >> 0);
-
-            if(auto p = m_TTFCache.find(nTTFIndex); p != m_TTFCache.end()){
-                return p->second;
-            }
-
-            m_TTFCache[nTTFIndex] = [this, nFontSize, nFontIndex]() -> TTF_Font *
-            {
-                if(auto &stFontDataBuf = RetrieveFontData(nFontIndex); !stFontDataBuf.empty()){
-                    extern SDLDevice *g_sdlDevice;
-                    return g_sdlDevice->createTTF(stFontDataBuf.data(), stFontDataBuf.size(), nFontSize);
-                }
-                return nullptr;
-            }();
-
-            return m_TTFCache[nTTFIndex];
-        }
+    private:
+        TTF_Font *findTTF(uint16_t);
 
     public:
-        bool Load(const char *szFontexDBName)
+        bool load(const char *fontDBName)
         {
-            try{
-                m_zsdbPtr = std::make_unique<ZSDB>(szFontexDBName);
-                m_entryList = m_zsdbPtr->getEntryList();
-            }catch(...){
-                return false;
-            }
+            m_zsdbPtr = std::make_unique<ZSDB>(fontDBName);
+            m_entryList = m_zsdbPtr->getEntryList();
             return true;
         }
 
     public:
-        SDL_Texture *Retrieve(uint64_t nKey)
+        SDL_Texture *retrieve(uint64_t key)
         {
-            if(FontexEntry stEntry {nullptr}; this->RetrieveResource(nKey, &stEntry)){
-                return stEntry.Texture;
+            if(auto p = innLoad(key)){
+                return p->texture;
             }
             return nullptr;
         }
 
-        SDL_Texture *Retrieve(uint8_t nFontIndex, uint8_t nFontSize, uint8_t nFontStyle, uint32_t nUTF8Code)
+        SDL_Texture *retrieve(uint8_t fontIndex, uint8_t fontSize, uint8_t fontStyle, uint32_t utf8Code)
         {
-            uint64_t nKey = 0
-                + (((uint64_t)nFontIndex) << 48)
-                + (((uint64_t)nFontSize ) << 40)
-                + (((uint64_t)nFontStyle) << 32)
-                + (((uint64_t)nUTF8Code)  <<  0);
-            return Retrieve(nKey);
+            return retrieve(utf8f::buildU64Key(fontIndex, fontSize, fontStyle, utf8Code));
         }
 
     public:
         uint8_t findFontName(const char *fontName)
         {
-            if(!fontName){
-                return 0;
-            }
-
+            fflassert(str_haschar(fontName));
             const auto fileName = str_printf("%s.TTF", fontName);
+
             for(const auto &entry: m_entryList){
                 if(fileName == entry.fileName + 3){
                     return hexstr::to_hex<uint8_t, 1>(entry.fileName);
@@ -164,78 +131,12 @@ class FontexDB: public innDB<uint64_t, FontexEntry>
 
         bool hasFont(uint8_t font)
         {
-            return !RetrieveFontData(font).empty();
+            return !findFontData(font).empty();
         }
 
     public:
-        virtual std::tuple<FontexEntry, size_t> loadResource(uint64_t nKey)
-        {
-            FontexEntry stEntry {nullptr};
+        std::optional<std::tuple<FontexElement, size_t>> loadResource(uint64_t) override;
 
-            uint16_t nTTFIndex  = ((nKey & 0X00FFFF0000000000) >> 40);
-            uint8_t  nFontStyle = ((nKey & 0X000000FF00000000) >> 32);
-            uint32_t nUTF8Code  = ((nKey & 0X00000000FFFFFFFF) >>  0);
-
-            auto pFont = RetrieveTTF(nTTFIndex);
-            if(!pFont){
-                return {stEntry, 0};
-            }
-
-            TTF_SetFontKerning(pFont, 0);
-
-            if(nFontStyle){
-                int nTTFontStyle = 0;
-                if(nFontStyle & FONTSTYLE_BOLD){
-                    nTTFontStyle &= TTF_STYLE_BOLD;
-                }
-
-                if(nFontStyle & FONTSTYLE_ITALIC){
-                    nTTFontStyle &= TTF_STYLE_ITALIC;
-                }
-
-                if(nFontStyle & FONTSTYLE_UNDERLINE){
-                    nTTFontStyle &= TTF_STYLE_UNDERLINE;
-                }
-
-                if(nFontStyle & FONTSTYLE_STRIKETHROUGH){
-                    nTTFontStyle &= TTF_STYLE_STRIKETHROUGH;
-                }
-
-                TTF_SetFontStyle(pFont, nTTFontStyle);
-            }
-
-            char szUTF8[8];
-            SDL_Surface *pSurface = nullptr;
-
-            szUTF8[4] = 0;
-            std::memcpy(szUTF8, &nUTF8Code, sizeof(nUTF8Code));
-
-            if(nFontStyle & FONTSTYLE_SOLID){
-                pSurface = TTF_RenderUTF8_Solid(pFont, szUTF8, {0XFF, 0XFF, 0XFF, 0XFF});
-            }else if(nFontStyle & FONTSTYLE_SHADED){
-                pSurface = TTF_RenderUTF8_Shaded(pFont, szUTF8, {0XFF, 0XFF, 0XFF, 0XFF}, {0X00, 0X00, 0X00, 0X00});
-            }else{
-                // blended is by default but with lowest priority
-                // mask the bits if we really need to set SOLID/SHADOWED/BLENDED
-                pSurface = TTF_RenderUTF8_Blended(pFont, szUTF8, {0XFF, 0XFF, 0XFF, 0XFF});
-            }
-
-            if(!pSurface){
-                return {stEntry, 0};
-            }
-
-            extern SDLDevice *g_sdlDevice;
-            stEntry.Texture = g_sdlDevice->createTextureFromSurface(pSurface);
-            SDL_FreeSurface(pSurface);
-
-            return {stEntry, stEntry.Texture ? 1 : 0};
-        }
-
-        virtual void freeResource(FontexEntry &rstEntry)
-        {
-            if(rstEntry.Texture){
-                SDL_DestroyTexture(rstEntry.Texture);
-                rstEntry.Texture = nullptr;
-            }
-        }
+    public:
+        void freeResource(FontexElement &) override;
 };

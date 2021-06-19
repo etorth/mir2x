@@ -123,7 +123,7 @@ class InitView final
 
             if(auto nodePtr = xmlConfPtr->getXMLNode(nodePath)){
                 if(auto dbPath = nodePtr->GetText()){
-                    if(dbPtr->Load(dbPath)){
+                    if(dbPtr->load(dbPath)){
                         hasError = false;
                         m_doneWeight += taskWeight;
                         addIVLog(LOGIV_INFO, "[%03d%%]Loading %s done", donePercent(), nodePath);

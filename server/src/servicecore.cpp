@@ -131,7 +131,7 @@ void ServiceCore::loadMap(uint32_t mapID)
         return;
     }
 
-    if(!g_mapBinDB->Retrieve(mapID)){
+    if(!g_mapBinDB->retrieve(mapID)){
         return;
     }
 

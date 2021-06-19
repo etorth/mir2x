@@ -42,9 +42,7 @@ void AttachMagic::drawShift(int shiftX, int shiftY, bool alpha) const
         }
     }();
 
-    int offX = 0;
-    int offY = 0;
-    if(auto texPtr = g_magicDB->Retrieve(texID, &offX, &offY)){
+    if(auto [texPtr, offX, offY] = g_magicDB->retrieve(texID); texPtr){
         SDLDeviceHelper::EnableTextureModColor enableModColor(texPtr, colorf::RGBA(0XFF, 0XFF, 0XFF, alpha ? 0X40 : 0XC0));
         SDLDeviceHelper::EnableTextureBlendMode enableBlendMode(texPtr, SDL_BLENDMODE_BLEND);
         g_sdlDevice->drawTexture(texPtr, shiftX + offX, shiftY + offY);

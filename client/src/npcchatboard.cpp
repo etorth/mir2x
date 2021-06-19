@@ -92,8 +92,8 @@ NPCChatBoard::NPCChatBoard(ProcessRun *proc, Widget *pwidget, bool autoDelete)
 
     auto fnAssertImage = [](uint32_t key, int w, int h)
     {
-        if(auto ptex = g_progUseDB->Retrieve(key)){
-            if(SDLDeviceHelper::getTextureSize(ptex) == std::tuple<int, int>{w, h}){
+        if(auto texPtr = g_progUseDB->retrieve(key)){
+            if(SDLDeviceHelper::getTextureSize(texPtr) == std::tuple<int, int>{w, h}){
                 return;
             }
         }
@@ -119,7 +119,7 @@ void NPCChatBoard::drawWithNPCFace() const
     // | +----+ +------------------+ |  v
     // +-----------------------------+ ---
 
-    auto facePtr = g_progUseDB->Retrieve(getNPCFaceKey());
+    auto facePtr = g_progUseDB->retrieve(getNPCFaceKey());
     if(!facePtr){
         throw fflerror("no valid NPC face image");
     }
@@ -149,7 +149,7 @@ void NPCChatBoard::drawPlain() const
 
 void NPCChatBoard::drawEx(int, int, int, int, int, int) const
 {
-    if(g_progUseDB->Retrieve(getNPCFaceKey())){
+    if(g_progUseDB->retrieve(getNPCFaceKey())){
         drawWithNPCFace();
     }
     else{
@@ -166,7 +166,7 @@ void NPCChatBoard::loadXML(uint64_t uid, const char *xmlString)
     m_NPCUID = uid;
     m_chatBoard.clear();
 
-    if(auto texPtr = g_progUseDB->Retrieve(getNPCFaceKey())){
+    if(auto texPtr = g_progUseDB->retrieve(getNPCFaceKey())){
         m_chatBoard.setLineWidth(386 - m_margin * 3 - SDLDeviceHelper::getTextureWidth(texPtr));
     }
     else{
@@ -178,7 +178,7 @@ void NPCChatBoard::loadXML(uint64_t uid, const char *xmlString)
     m_h = 160 + 20 * getMiddleCount() + 44;
 
     m_buttonClose.moveTo(w() - 40, h() - 43);
-    if(auto texPtr = g_progUseDB->Retrieve(getNPCFaceKey())){
+    if(auto texPtr = g_progUseDB->retrieve(getNPCFaceKey())){
         m_chatBoard.moveTo(m_margin * 2 + SDLDeviceHelper::getTextureWidth(texPtr), (h() - m_chatBoard.h()) / 2);
     }
     else{
@@ -195,7 +195,7 @@ void NPCChatBoard::onClickEvent(const std::string &id)
 
 int NPCChatBoard::getMiddleCount() const
 {
-    if(auto texPtr = g_progUseDB->Retrieve(getNPCFaceKey())){
+    if(auto texPtr = g_progUseDB->retrieve(getNPCFaceKey())){
         const auto [faceW, faceH] = SDLDeviceHelper::getTextureSize(texPtr);
         if(faceW + m_margin * 3 + m_chatBoard.w() >= 386){
             throw fflerror("chat board size error");
@@ -223,9 +223,9 @@ int NPCChatBoard::getMiddleCount() const
 void NPCChatBoard::drawFrame() const
 {
     const auto k = getMiddleCount();
-    auto frameUp = g_progUseDB->Retrieve(0X00000051);
-    auto frameMid = g_progUseDB->Retrieve(0X00000052);
-    auto frameDown = g_progUseDB->Retrieve(0X00000053);
+    auto frameUp = g_progUseDB->retrieve(0X00000051);
+    auto frameMid = g_progUseDB->retrieve(0X00000052);
+    auto frameDown = g_progUseDB->retrieve(0X00000053);
 
     g_sdlDevice->drawTexture(frameUp, 0, 0);
     for(int i = 0; i < k; ++i){

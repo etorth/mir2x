@@ -117,9 +117,9 @@ void ProcessLogin::update(double fUpdateTime)
 void ProcessLogin::draw()
 {
     SDLDeviceHelper::RenderNewFrame newFrame;
-    g_sdlDevice->drawTexture(g_progUseDB->Retrieve(0X00000003),   0,  75);
-    g_sdlDevice->drawTexture(g_progUseDB->Retrieve(0X00000004),   0, 465);
-    g_sdlDevice->drawTexture(g_progUseDB->Retrieve(0X00000011), 103, 536);
+    g_sdlDevice->drawTexture(g_progUseDB->retrieve(0X00000003),   0,  75);
+    g_sdlDevice->drawTexture(g_progUseDB->retrieve(0X00000004),   0, 465);
+    g_sdlDevice->drawTexture(g_progUseDB->retrieve(0X00000011), 103, 536);
 
     m_button1.draw();
     m_button2.draw();

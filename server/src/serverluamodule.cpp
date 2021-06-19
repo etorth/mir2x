@@ -57,7 +57,7 @@ ServerLuaModule::ServerLuaModule()
         };
 
         if(const auto mapID = DBCOM_MAPID(to_u8cstr(mapName))){
-            if(const auto dataCPtr = g_mapBinDB->Retrieve(mapID)){
+            if(const auto dataCPtr = g_mapBinDB->retrieve(mapID)){
                 return sol::as_returns(fnGetRandGLoc(dataCPtr));
             }
             else{

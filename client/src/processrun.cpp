@@ -425,7 +425,7 @@ void ProcessRun::draw()
     if(m_drawMagicKey){
         int magicKeyOffX = 0;
         for(const auto &[magicID, magicKey]: dynamic_cast<SkillBoard *>(m_GUIManager.getWidget("SkillBoard"))->getMagicKeyList()){
-            if(auto texPtr = g_progUseDB->Retrieve(DBCOM_MAGICRECORD(magicID).icon + to_u32(0X00001000))){
+            if(auto texPtr = g_progUseDB->retrieve(DBCOM_MAGICRECORD(magicID).icon + to_u32(0X00001000))){
                 g_sdlDevice->drawTexture(texPtr, magicKeyOffX, 0);
                 const auto coolDownAngle = getMyHero()->getMagicCoolDownAngle(magicID);
                 const auto colorRatio = [coolDownAngle]() -> float
@@ -458,7 +458,7 @@ void ProcessRun::draw()
     m_GUIManager.draw();
     if(const auto selectedItemID = getMyHero()->getInvPack().getGrabbedItem().itemID){
         if(const auto &ir = DBCOM_ITEMRECORD(selectedItemID)){
-            if(auto texPtr = g_itemDB->Retrieve(ir.pkgGfxID | 0X01000000)){
+            if(auto texPtr = g_itemDB->retrieve(ir.pkgGfxID | 0X01000000)){
                 const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);
                 const auto [ptrX, ptrY] = SDLDeviceHelper::getMousePLoc();
                 g_sdlDevice->drawTexture(texPtr, ptrX - texW / 2, ptrY - texH / 2);
@@ -645,7 +645,7 @@ void ProcessRun::loadMap(uint32_t mapID)
         throw fflerror("mapID is zero");
     }
 
-    const auto mapBinPtr = g_mapBinDB->Retrieve(mapID);
+    const auto mapBinPtr = g_mapBinDB->retrieve(mapID);
     if(!mapBinPtr){
         throw fflerror("can't find map: mapID = %llu", to_llu(mapID));
     }
@@ -1369,7 +1369,7 @@ std::tuple<int, int> ProcessRun::getRandLoc(uint32_t nMapID)
         if(nMapID == 0 || nMapID == mapID()){
             return &m_mir2xMapData;
         }
-        return g_mapBinDB->Retrieve(nMapID);
+        return g_mapBinDB->retrieve(nMapID);
     }();
 
     if(!mapBinPtr){
@@ -1390,7 +1390,7 @@ std::tuple<int, int> ProcessRun::getRandLoc(uint32_t nMapID)
 
 bool ProcessRun::requestSpaceMove(uint32_t nMapID, int nX, int nY)
 {
-    const auto mapBinPtr = g_mapBinDB->Retrieve(nMapID);
+    const auto mapBinPtr = g_mapBinDB->retrieve(nMapID);
     if(!mapBinPtr){
         return false;
     }
@@ -1558,7 +1558,7 @@ void ProcessRun::drawGroundItem(int x0, int y0, int x1, int y1)
                 continue;
             }
 
-            auto texPtr = g_itemDB->Retrieve(ir.pkgGfxID);
+            auto texPtr = g_itemDB->retrieve(ir.pkgGfxID);
             if(!texPtr){
                 continue;
             }
@@ -1609,7 +1609,7 @@ void ProcessRun::drawTile(int x0, int y0, int x1, int y1)
         for(int x = x0; x <= x1; ++x){
             if(m_mir2xMapData.validC(x, y) && !(x % 2) && !(y % 2)){
                 if(const auto &tile = m_mir2xMapData.tile(x, y); tile.valid){
-                    if(auto texPtr = g_mapDB->Retrieve(tile.texID)){
+                    if(auto texPtr = g_mapDB->retrieve(tile.texID)){
                         g_sdlDevice->drawTexture(texPtr, x * SYS_MAPGRIDXP - m_viewX, y * SYS_MAPGRIDYP - m_viewY);
                     }
                 }
@@ -1647,7 +1647,7 @@ void ProcessRun::drawObject(int x, int y, int objd, bool alpha)
             }
         }
 
-        if(auto texPtr = g_mapDB->Retrieve(imageId)){
+        if(auto texPtr = g_mapDB->retrieve(imageId)){
             const int texH = SDLDeviceHelper::getTextureHeight(texPtr);
             const auto drawAlphaObj = [&obj, alpha]() -> uint8_t
             {
@@ -1687,7 +1687,7 @@ void ProcessRun::drawRotateStar(int x0, int y0, int x1, int y1)
         return;
     }
 
-    auto texPtr = g_progUseDB->Retrieve(0X00000090);
+    auto texPtr = g_progUseDB->retrieve(0X00000090);
     if(!texPtr){
         return;
     }

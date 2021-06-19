@@ -204,6 +204,19 @@ class Mir2xMapData final
         Mir2xMapData() = default;
 
     public:
+        Mir2xMapData(const std::string &fileName)
+            : Mir2xMapData()
+        {
+            load(fileName);
+        }
+
+        Mir2xMapData(const void *data, size_t size)
+            : Mir2xMapData()
+        {
+            loadData(data, size);
+        }
+
+    public:
         void allocate(int argW, int argH)
         {
             m_data.clear();

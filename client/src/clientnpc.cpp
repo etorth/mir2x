@@ -100,8 +100,8 @@ void ClientNPC::drawFrame(int viewX, int viewY, int focusMask, int frame, bool)
         return;
     }
 
-    const auto [  bodyFrame,   bodyDX,   bodyDY] = g_standNPCDB->Retrieve((bodyKey.value()                    ) + frame);
-    const auto [shadowFrame, shadowDX, shadowDY] = g_standNPCDB->Retrieve((bodyKey.value() | (to_u32(1) << 23)) + frame);
+    const auto [  bodyFrame,   bodyDX,   bodyDY] = g_standNPCDB->retrieve((bodyKey.value()                    ) + frame);
+    const auto [shadowFrame, shadowDX, shadowDY] = g_standNPCDB->retrieve((bodyKey.value() | (to_u32(1) << 23)) + frame);
 
     if(bodyFrame){
         SDL_SetTextureAlphaMod(bodyFrame, 255);
@@ -271,10 +271,7 @@ ClientCreature::TargetBox ClientNPC::getTargetBox() const
         return {};
     }
 
-    int dx = 0;
-    int dy = 0;
-    auto bodyFrameTexPtr = g_standNPCDB->Retrieve(texBaseID.value() + m_currMotion->frame, &dx, &dy);
-
+    auto [bodyFrameTexPtr, dx, dy] = g_standNPCDB->retrieve(texBaseID.value() + m_currMotion->frame);
     if(!bodyFrameTexPtr){
         return {};
     }
