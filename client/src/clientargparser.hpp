@@ -28,6 +28,7 @@ struct ClientArgParser
     const bool alwaysDrawName;          // "--always-draw-name"
     const bool drawMapGrid;             // "--draw-map-grid"
     const bool drawMagicGrid;           // "--draw-magic-grid"
+    const bool drawTranspGrid;          // "--draw-transp-grid"
     const bool drawHPBar;               // "--draw-hp-bar"
     const bool drawCreatureCover;       // "--draw-creature-cover"
     const bool drawMouseLocation;       // "--draw-mouse-location"
@@ -55,6 +56,7 @@ struct ClientArgParser
         , alwaysDrawName(cmdParser["always-draw-name"])
         , drawMapGrid(cmdParser["draw-map-grid"])
         , drawMagicGrid(cmdParser["draw-magic-grid"])
+        , drawTranspGrid(cmdParser["draw-transp-grid"])
         , drawHPBar(cmdParser["draw-hp-bar"])
         , drawCreatureCover(cmdParser["draw-creature-cover"])
         , drawMouseLocation(cmdParser["draw-mouse-location"])

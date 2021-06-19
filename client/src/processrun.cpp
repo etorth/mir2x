@@ -289,6 +289,20 @@ void ProcessRun::draw()
         }
     }
 
+    if(g_clientArgParser->drawTranspGrid){
+        for(const auto &entry: DBCOM_MAPRECORD(mapID()).mapSwitchList){
+            for(int tpy = entry.y; tpy < entry.y + entry.h; ++tpy){
+                for(int tpx = entry.x; tpx < entry.x + entry.w; ++tpx){
+                    if(true
+                            && m_mir2xMapData.validC(tpx, tpy)
+                            && mathf::pointInRectangle(tpx, tpy, x0, y0, x1 - x0 + 1, y1 - y0 + 1)){
+                        g_sdlDevice->fillRectangle(colorf::RGBA(0XFF, 0, 0, 100), tpx * SYS_MAPGRIDXP - m_viewX, tpy * SYS_MAPGRIDYP - m_viewY, SYS_MAPGRIDXP, SYS_MAPGRIDYP);
+                    }
+                }
+            }
+        }
+    }
+
     // over ground object
     for(int y = y0; y <= y1; ++y){
         for(int x = x0; x <= x1; ++x){
@@ -1668,20 +1682,6 @@ void ProcessRun::drawObject(int x, int y, int objd, bool alpha)
 
             SDLDeviceHelper::EnableTextureModColor enableColor(texPtr, colorf::RGBA(0XFF, 0XFF, 0XFF, drawAlphaObj));
             g_sdlDevice->drawTexture(texPtr, x * SYS_MAPGRIDXP - m_viewX, (y + 1) * SYS_MAPGRIDYP - m_viewY - texH);
-
-            if(objd == OBJD_OVERGROUND0){
-                for(const auto &entry: DBCOM_MAPRECORD(mapID()).mapSwitchList){
-                    if(true
-                            && entry.w > 0
-                            && entry.h > 0
-                            && m_mir2xMapData.validC(entry.x, entry.y)){
-
-                        if(mathf::pointInRectangle(x, y, entry.x, entry.y, entry.w, entry.h)){
-                            g_sdlDevice->fillRectangle(colorf::RGBA(0XFF, 0, 0, 100), x * SYS_MAPGRIDXP - m_viewX, y * SYS_MAPGRIDYP - m_viewY, SYS_MAPGRIDXP, SYS_MAPGRIDYP);
-                        }
-                    }
-                }
-            }
         }
     }
 }
