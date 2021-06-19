@@ -99,6 +99,8 @@ class MapInfoParser
                 }
             }
 
+            std::sort(result.begin(), result.end());
+
             if(!result.empty()){
                 return result;
             }
@@ -113,6 +115,12 @@ class MapInfoParser
                     result.push_back(switchPoint);
                 }
             }
+
+            std::sort(result.begin(), result.end(), [](const auto &parm1, const auto &parm2) -> bool
+            {
+                // don't need to check from_fileName
+                return std::make_tuple(parm1.to_fileName, parm1.from_x, parm1.from_y, parm1.to_x, parm1.to_y) < std::make_tuple(parm2.to_fileName, parm2.from_x, parm2.from_y, parm2.to_x, parm2.to_y);
+            });
             return result;
         }
 
