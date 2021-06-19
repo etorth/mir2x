@@ -29,6 +29,7 @@
 #include "imagedb.hpp"
 #include "filesys.hpp"
 #include "sysconst.hpp"
+#include "totype.hpp"
 #include "fflerror.hpp"
 #include "argparser.hpp"
 #include "threadpool.hpp"
@@ -304,20 +305,22 @@ static void exportOverview(const Mir2xMapData *p, const std::string &outName, Im
     imgf::saveImageBuffer(imgBuf.data(), imgW, imgH, outName.c_str());
 }
 
-static void convertMap(std::string mapDir, std::string mapFileName, std::string outDir, const MapInfoParser *parser, ImageDB &imgDB)
+static void convertMap(std::string mapDir, std::string mapFileName, std::string outDir, const MapInfoParser *parser, bool incFileOnly, ImageDB &imgDB)
 {
-    auto mapPtr = std::make_unique<Mir2Map>(str_printf("%s/%s", mapDir.c_str(), mapFileName.c_str()).c_str());
+    std::unique_ptr<Mir2xMapData> outPtr;
+    if(!incFileOnly){
+        outPtr = std::make_unique<Mir2xMapData>();
+        auto mapPtr = std::make_unique<Mir2Map>(str_printf("%s/%s", mapDir.c_str(), mapFileName.c_str()).c_str());
 
-    fflassert((mapPtr->w() % 2) == 0);
-    fflassert((mapPtr->h() % 2) == 0);
+        fflassert((mapPtr->w() % 2) == 0);
+        fflassert((mapPtr->h() % 2) == 0);
+        outPtr->allocate(mapPtr->w(), mapPtr->h());
 
-    auto outPtr = std::make_unique<Mir2xMapData>();
-    outPtr->allocate(mapPtr->w(), mapPtr->h());
-
-    for(int y = 0; y < to_d(mapPtr->h()); ++y){
-        for(int x = 0; x < to_d(mapPtr->w()); ++x){
-            if((x % 2) == 0 && (y % 2) == 0){
-                mapPtr->convBlock(x, y, outPtr->block(x, y), imgDB);
+        for(int y = 0; y < to_d(mapPtr->h()); ++y){
+            for(int x = 0; x < to_d(mapPtr->w()); ++x){
+                if((x % 2) == 0 && (y % 2) == 0){
+                    mapPtr->convBlock(x, y, outPtr->block(x, y), imgDB);
+                }
             }
         }
     }
@@ -327,18 +330,22 @@ static void convertMap(std::string mapDir, std::string mapFileName, std::string 
 
     // different map can use same map binary file
     // we use "mapName_fileName" as string key in mir2x code, but only save "fileName.bin" as map binary
-    outPtr->save(str_printf("%s/%s.bin", outDir.c_str(), utf8f::toupper(fileName).c_str()));
+    if(!incFileOnly){
+        outPtr->save(str_printf("%s/%s.bin", outDir.c_str(), utf8f::toupper(fileName).c_str()));
+    }
 
     std::string srcPNGName;
     const auto mapNameList = parser->hasMapName(fileName);
 
-    for(int i = 0; const auto &mapName: mapNameList){
-        if(i++ == 0){
-            srcPNGName = str_printf("%s/%s_%s.png", outDir.c_str(), mapName.c_str(), utf8f::toupper(fileName).c_str());
-            exportOverview(outPtr.get(), srcPNGName, imgDB);
-        }
-        else{
-            filesys::copyFile(str_printf("%s/%s_%s.png", outDir.c_str(), mapName.c_str(), utf8f::toupper(fileName).c_str()).c_str(), srcPNGName.c_str());
+    for(const auto &mapName: mapNameList){
+        if(!incFileOnly){
+            if(srcPNGName.empty()){ // first save
+                srcPNGName = str_printf("%s/%s_%s.png", outDir.c_str(), mapName.c_str(), utf8f::toupper(fileName).c_str());
+                exportOverview(outPtr.get(), srcPNGName, imgDB);
+            }
+            else{
+                filesys::copyFile(str_printf("%s/%s_%s.png", outDir.c_str(), mapName.c_str(), utf8f::toupper(fileName).c_str()).c_str(), srcPNGName.c_str());
+            }
         }
 
         // generate code
@@ -351,14 +358,20 @@ static void convertMap(std::string mapDir, std::string mapFileName, std::string 
         }
 
         // map switch points
-        //
+        // there are duplicated switch points
+
+        std::unordered_set<std::string> seenSwitchCodeList;
         if(const auto &switchPointList = parser->hasSwitchPoint(fileName); !switchPointList.empty()){
             codeList.push_back(R"#(    .mapSwitchList)#");
             codeList.push_back(R"#(    {             )#");
             for(const auto &switchPoint: switchPointList){
                 const auto toMapNameList = parser->hasMapName(switchPoint.to_fileName);
                 for(const auto toMapName: toMapNameList){
-                    codeList.push_back(str_printf(R"#(        {.x = %d, .y = %d, .endName = u8"%s_%s", .endX = %d, .endY = %d},%s)#", switchPoint.from_x, switchPoint.from_y, toMapName.c_str(), switchPoint.to_fileName.c_str(), switchPoint.to_x, switchPoint.to_y, (toMapNameList.size() == 1) ? "" : "// TODO select one"));
+                    const auto switchCodeLine = str_printf(R"#(        {.x = %d, .y = %d, .endName = u8"%s_%s", .endX = %d, .endY = %d},%s)#", switchPoint.from_x, switchPoint.from_y, toMapName.c_str(), switchPoint.to_fileName.c_str(), switchPoint.to_x, switchPoint.to_y, (toMapNameList.size() == 1) ? "" : "// TODO select one");
+                    if(!seenSwitchCodeList.count(switchCodeLine)){
+                        seenSwitchCodeList.insert(switchCodeLine);
+                        codeList.push_back(switchCodeLine);
+                    }
                 }
             }
             codeList.push_back(R"#(    })#");
@@ -373,17 +386,18 @@ static void convertMap(std::string mapDir, std::string mapFileName, std::string 
 int main(int argc, char *argv[])
 {
     if(argc == 1){
-        std::cout << "mapconvert"                                                   << std::endl;
-        std::cout << "      [1] output-dir              # output"                   << std::endl;
-        std::cout << "      [2] thread-pool-size        # 0 means use maximium"     << std::endl;
-        std::cout << "      [3] mir2-map-wil-data-dir   # input wil data dir"       << std::endl;
-        std::cout << "      [4] mir2-map-dir            # input map dir"            << std::endl;
-        std::cout << "      [5] mir2-map-info-file-path # Mapinfo.utf8.txt path"    << std::endl;
-        std::cout << "      [6] mir2-mini-map-file-path # MiniMap.utf8.txt path"    << std::endl;
+        std::cout << "mapconvert"                                                    << std::endl;
+        std::cout << "      [1] output-dir              # output"                    << std::endl;
+        std::cout << "      [2] thread-pool-size        # 0 means use maximium"      << std::endl;
+        std::cout << "      [3] mir2-map-wil-data-dir   # input wil data dir"        << std::endl;
+        std::cout << "      [4] mir2-map-dir            # input map dir"             << std::endl;
+        std::cout << "      [5] mir2-map-info-file-path # Mapinfo.utf8.txt path"     << std::endl;
+        std::cout << "      [6] mir2-mini-map-file-path # MiniMap.utf8.txt path"     << std::endl;
+        std::cout << "      [7] create-inc-file-only    # only create maprecord.inc" << std::endl;
         return 0;
     }
 
-    if(argc != 1 + 6 /* parameters listed above */){
+    if(argc != 1 + 7 /* parameters listed above */){
         throw fflerror("run \"%s\" without parameter to show supported options", argv[0]);
     }
 
@@ -408,7 +422,7 @@ int main(int argc, char *argv[])
             if(!dbList[threadId]){
                 dbList[threadId] = std::make_unique<ImageDB>(argv[3]);
             }
-            convertMap(argv[4], mapName, argv[1], mapInfoParser.get(), *dbList[threadId]);
+            convertMap(argv[4], mapName, argv[1], mapInfoParser.get(), to_bool(argv[7]), *dbList[threadId]);
         });
     }
 
