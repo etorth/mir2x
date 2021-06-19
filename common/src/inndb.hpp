@@ -26,15 +26,28 @@
  *
  * =====================================================================================
  */
+
 #pragma once
 #include <list>
+#include <mutex>
 #include <tuple>
 #include <concepts>
 #include <optional>
+#include <type_traits>
 #include <unordered_map>
 
-template<std::unsigned_integral KeyT, typename ResT> class innDB
+template<std::unsigned_integral KeyT, typename ResT, bool ThreadSafe = false> class innDB
 {
+    private:
+        struct DummyMutex
+        {
+            void   lock() {}
+            void unlock() {}
+        };
+
+    private:
+        using InnMutex = std::conditional_t<ThreadSafe, std::mutex, DummyMutex>;
+
     private:
         struct ResElement
         {
@@ -46,6 +59,9 @@ template<std::unsigned_integral KeyT, typename ResT> class innDB
     private:
         std::list<KeyT> m_keyList;
         std::unordered_map<KeyT, ResElement> m_elemList;
+
+    private:
+        InnMutex m_lock;
 
     private:
         size_t m_resSum = 0;
@@ -71,6 +87,7 @@ template<std::unsigned_integral KeyT, typename ResT> class innDB
     public:
         void clear()
         {
+            std::lock_guard<InnMutex> lockGurad(m_lock);
             for(auto &elemp: m_elemList){
                 if(elemp.second.res.has_value()){
                     freeResource(elemp.second.res.value());
@@ -85,6 +102,7 @@ template<std::unsigned_integral KeyT, typename ResT> class innDB
     protected:
         ResT *innLoad(KeyT key)
         {
+            std::lock_guard<InnMutex> lockGurad(m_lock);
             if(auto p = m_elemList.find(key); p != m_elemList.end()){
                 if(m_resMax > 0){
                     m_keyList.erase(p->second.keyiter);
