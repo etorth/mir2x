@@ -61,6 +61,8 @@ class MapInfoParser
             std::string from_fileName {};
             int from_x = -1;
             int from_y = -1;
+            int from_w =  1;
+            int from_h =  1;
 
             std::string to_fileName {};
             int to_x = -1;
@@ -107,7 +109,7 @@ class MapInfoParser
             return {"未命名地图"};
         }
 
-        std::vector<MapSwitchPoint> hasSwitchPoint(const std::string &fileName) const
+        std::vector<MapSwitchPoint> hasSwitchPoint(const std::string &fileName, bool mergeTP) const
         {
             std::vector<MapSwitchPoint> result;
             for(const auto &switchPoint: m_mapSwitchPointList){
@@ -121,6 +123,54 @@ class MapInfoParser
                 // don't need to check from_fileName
                 return std::make_tuple(parm1.to_fileName, parm1.from_x, parm1.from_y, parm1.to_x, parm1.to_y) < std::make_tuple(parm2.to_fileName, parm2.from_x, parm2.from_y, parm2.to_x, parm2.to_y);
             });
+
+            if(mergeTP){
+                // merge transports
+                // simple algorithm, can only merge into long bars
+                for(auto p = result.begin(); p != result.end();){
+                    auto pnext = p + 1;
+                    if(pnext == result.end()){
+                        break;
+                    }
+
+                    const int gridEndX = p->from_x + p->from_w - 1;
+                    const int gridEndY = p->from_y + p->from_h - 1;
+
+                    if(true
+                            && gridEndX == pnext->from_x
+                            && gridEndY == pnext->from_y - 1
+
+                            && p->from_w == 1
+
+                            && p->to_x == pnext->to_x
+                            && p->to_y == pnext->to_y
+
+                            && p->to_fileName == pnext->to_fileName){
+
+                        p->from_h++;
+                        result.erase(pnext);
+                        continue;
+                    }
+
+                    if(true
+                            && gridEndX == pnext->from_x - 1
+                            && gridEndY == pnext->from_y
+
+                            && p->from_h == 1
+
+                            && p->to_x == pnext->to_x
+                            && p->to_y == pnext->to_y
+
+                            && p->to_fileName == pnext->to_fileName){
+
+                        p->from_w++;
+                        result.erase(pnext);
+                        continue;
+                    }
+
+                    p++;
+                }
+            }
             return result;
         }
 
@@ -313,7 +363,7 @@ static void exportOverview(const Mir2xMapData *p, const std::string &outName, Im
     imgf::saveImageBuffer(imgBuf.data(), imgW, imgH, outName.c_str());
 }
 
-static void convertMap(std::string mapDir, std::string mapFileName, std::string outDir, const MapInfoParser *parser, bool incFileOnly, ImageDB &imgDB)
+static void convertMap(std::string mapDir, std::string mapFileName, std::string outDir, const MapInfoParser *parser, bool incFileOnly, bool mergeTP, ImageDB &imgDB)
 {
     std::unique_ptr<Mir2xMapData> outPtr;
     if(!incFileOnly){
@@ -369,13 +419,13 @@ static void convertMap(std::string mapDir, std::string mapFileName, std::string 
         // there are duplicated switch points
 
         std::unordered_set<std::string> seenSwitchCodeList;
-        if(const auto &switchPointList = parser->hasSwitchPoint(fileName); !switchPointList.empty()){
+        if(const auto &switchPointList = parser->hasSwitchPoint(fileName, mergeTP); !switchPointList.empty()){
             codeList.push_back(R"#(    .mapSwitchList)#");
             codeList.push_back(R"#(    {             )#");
             for(const auto &switchPoint: switchPointList){
                 const auto toMapNameList = parser->hasMapName(switchPoint.to_fileName);
                 for(const auto toMapName: toMapNameList){
-                    const auto switchCodeLine = str_printf(R"#(        {.x = %d, .y = %d, .endName = u8"%s_%s", .endX = %d, .endY = %d},%s)#", switchPoint.from_x, switchPoint.from_y, toMapName.c_str(), switchPoint.to_fileName.c_str(), switchPoint.to_x, switchPoint.to_y, (toMapNameList.size() == 1) ? "" : "// TODO select one");
+                    const auto switchCodeLine = str_printf(R"#(        {.x = %d, .y = %d, .w = %d, .h = %d, .endName = u8"%s_%s", .endX = %d, .endY = %d},%s)#", switchPoint.from_x, switchPoint.from_y, switchPoint.from_w, switchPoint.from_h, toMapName.c_str(), switchPoint.to_fileName.c_str(), switchPoint.to_x, switchPoint.to_y, (toMapNameList.size() == 1) ? "" : "// TODO select one");
                     if(!seenSwitchCodeList.count(switchCodeLine)){
                         seenSwitchCodeList.insert(switchCodeLine);
                         codeList.push_back(switchCodeLine);
@@ -402,10 +452,11 @@ int main(int argc, char *argv[])
         std::cout << "      [5] mir2-map-info-file-path # Mapinfo.utf8.txt path"     << std::endl;
         std::cout << "      [6] mir2-mini-map-file-path # MiniMap.utf8.txt path"     << std::endl;
         std::cout << "      [7] create-inc-file-only    # only create maprecord.inc" << std::endl;
+        std::cout << "      [8] merge-tp-grid           # merge continuous tp"       << std::endl;
         return 0;
     }
 
-    if(argc != 1 + 7 /* parameters listed above */){
+    if(argc != 1 + 8 /* parameters listed above */){
         throw fflerror("run \"%s\" without parameter to show supported options", argv[0]);
     }
 
@@ -430,7 +481,7 @@ int main(int argc, char *argv[])
             if(!dbList[threadId]){
                 dbList[threadId] = std::make_unique<ImageDB>(argv[3]);
             }
-            convertMap(argv[4], mapName, argv[1], mapInfoParser.get(), to_bool(argv[7]), *dbList[threadId]);
+            convertMap(argv[4], mapName, argv[1], mapInfoParser.get(), to_bool(argv[7]), to_bool(argv[8]), *dbList[threadId]);
         });
     }
 

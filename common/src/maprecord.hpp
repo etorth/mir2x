@@ -42,7 +42,7 @@ struct MapRecord
 {
     const char8_t *name = u8"";
     const uint32_t miniMapID = 0;
-    const MapSwitch mapSwitchList[512] = {};
+    const MapSwitch mapSwitchList[220] = {};
 
     operator bool () const
     {
