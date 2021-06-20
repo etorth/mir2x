@@ -56,9 +56,6 @@ decl {\#include "drawarea.hpp"} {public global
 decl {\#include "mathf.hpp"} {private local
 }
 
-decl {\#include "colorf.hpp"} {private local
-}
-
 decl {\#include "hexstr.hpp"} {private local
 }
 
@@ -1051,81 +1048,19 @@ g_aboutWindow->showAll();}
     std::vector<uint32_t> origDstBuf(dstW * dstH, 0);
     auto dstPtr = origDstBuf.data();
 
-    const auto fnBufDraw = [](
-            /* */ uint32_t *dstPtr, int dstW, int dstH,
-            const uint32_t *srcPtr, int srcW, int srcH,
-
-            int onDstX, int onDstY,
-            int onSrcX, int onSrcY,
-            int onSrcW, int onSrcH)
-    {
-        if(true
-                && dstPtr
-                && dstW > 0
-                && dstH > 0
-
-                && srcPtr
-                && srcW > 0
-                && srcH > 0){
-
-            const auto oldOnSrcX = onSrcX;
-            const auto oldOnSrcY = onSrcY;
-
-            if(true
-                    && onSrcW > 0
-                    && onSrcH > 0
-                    && mathf::rectangleOverlapRegion<int>(0, 0, srcW, srcH, onSrcX, onSrcY, onSrcW, onSrcH)){
-
-                onDstX += (onSrcX - oldOnSrcX);
-                onDstY += (onSrcY - oldOnSrcY);
-
-                const auto oldOnDstX = onDstX;
-                const auto oldOnDstY = onDstY;
-
-                if(true
-                        && onSrcW > 0
-                        && onSrcH > 0
-                        && mathf::rectangleOverlapRegion<int>(0, 0, dstW, dstH, onDstX, onDstY, onSrcW, onSrcH)){
-
-                    onSrcX += (onDstX - oldOnDstX);
-                    onSrcY += (onDstY - oldOnDstY);
-
-                    if(true
-                            && onSrcW > 0
-                            && onSrcH > 0){
-
-                        for(int onSrcDX = 0; onSrcDX < onSrcW; ++onSrcDX){
-                            for(int onSrcDY = 0; onSrcDY < onSrcH; ++onSrcDY){
-                                auto &src = srcPtr[(onSrcX + onSrcDX) + (onSrcY + onSrcDY) * srcW];
-                                auto &dst = dstPtr[(onDstX + onSrcDX) + (onDstY + onSrcDY) * dstW];
-                                dst = colorf::renderRGBA(dst, src);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    };
-
-    const auto fnBufDrawImage = [this, fnBufDraw, dstPtr, dstW, dstH](uint32_t imageIndex, int nX, int nY, bool isObj)
+    const auto fnBufDrawImage = [this, dstPtr, dstW, dstH](uint32_t imageIndex, int nX, int nY, bool isObj)
     {
         extern ImageDB *g_imageDB;
         extern EditorMap g_editorMap;
 
         if(g_editorMap.validC(nX, nY) && g_imageDB->setIndex(imageIndex)){
             if(const auto [srcPtr, srcW, srcH] = g_imageDB->decode(imageIndex, 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF); srcPtr){
-                fnBufDraw(
+                imgf::blendImageBuffer(
                         dstPtr, dstW, dstH,
                         srcPtr, srcW, srcH,
 
                         nX * SYS_MAPGRIDXP,
-                        nY * SYS_MAPGRIDYP + (isObj ? (SYS_MAPGRIDYP - srcH) : 0),
-
-                        0,
-                        0,
-
-                        srcW,
-                        srcH);
+                        nY * SYS_MAPGRIDYP + (isObj ? (SYS_MAPGRIDYP - srcH) : 0));
             }
         }
     };
