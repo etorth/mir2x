@@ -21,7 +21,6 @@
 #include <string>
 #include <algorithm>
 #include "totype.hpp"
-#include "colorf.hpp"
 #include "cerealf.hpp"
 #include "fflerror.hpp"
 #include "protocoldef.hpp"

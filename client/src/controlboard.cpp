@@ -189,7 +189,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           10,
 
           80,
-          colorf::WHITE,
+          colorf::WHITE + colorf::A_SHF(255),
           0X00000042,
 
           nullptr,
@@ -214,7 +214,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           10,
 
           80,
-          colorf::WHITE,
+          colorf::WHITE + colorf::A_SHF(255),
           0X00000043,
 
           nullptr,
@@ -246,7 +246,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           10,
 
           80,
-          colorf::WHITE,
+          colorf::WHITE + colorf::A_SHF(255),
           0X00000044,
 
           nullptr,
@@ -666,10 +666,10 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           12,
 
           0,
-          colorf::WHITE + 255,
+          colorf::WHITE + colorf::A_SHF(255),
 
           2,
-          colorf::WHITE + 255,
+          colorf::WHITE + colorf::A_SHF(255),
 
           nullptr,
           [this]()
@@ -695,7 +695,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           12,
           0,
 
-          colorf::WHITE + 255,
+          colorf::WHITE + colorf::A_SHF(255),
           0,
 
           LALIGN_JUSTIFY,
@@ -1149,9 +1149,9 @@ void ControlBoard::addLog(int logType, const char *log)
         // color::String2Color has no alpha component
 
         switch(logType){
-            case CBLOG_SYS: return "<par bgcolor = \"0x008000ff\"></par>";
-            case CBLOG_DBG: return "<par bgcolor = \"0x0000ffff\"></par>";
-            case CBLOG_ERR: return "<par bgcolor = \"0xff0000ff\"></par>";
+            case CBLOG_SYS: return "<par bgcolor = \"rgb(0x00,0x80,0x00)\"></par>";
+            case CBLOG_DBG: return "<par bgcolor = \"rgb(0x00,0x00,0xff)\"></par>";
+            case CBLOG_ERR: return "<par bgcolor = \"rgb(0xff,0x00,0x00)\"></par>";
             case CBLOG_DEF:
             default       : return "<par></par>";
         }
@@ -1251,7 +1251,7 @@ void ControlBoard::drawInputGreyBackground() const
         return;
     }
 
-    const auto color = colorf::GREY + 48;
+    const auto color = colorf::GREY + colorf::A_SHF(48);
     SDLDeviceHelper::EnableRenderBlendMode enableDrawBlendMode(SDL_BLENDMODE_BLEND);
 
     if(m_expand){
@@ -1286,7 +1286,7 @@ void ControlBoard::drawHeroLoc() const
         12,
         0,
 
-        colorf::WHITE + 255,
+        colorf::WHITE + colorf::A_SHF(255),
     };
 
     const int locBoardStartX = (136 - locBoard.w()) / 2;

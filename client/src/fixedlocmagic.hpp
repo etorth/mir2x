@@ -19,6 +19,7 @@
 #pragma once
 #include <cstdint>
 #include <cstdlib>
+#include "colorf.hpp"
 #include "totype.hpp"
 #include "fflerror.hpp"
 #include "magicbase.hpp"
@@ -101,7 +102,7 @@ class FireAshEffect_RUN: public FixedLocMagic
     private:
         uint32_t getPlainModColor() const
         {
-            return colorf::WHITE + colorf::round255(255.0 * [this]() -> float
+            return colorf::WHITE + colorf::A_SHF(colorf::round255(255.0 * [this]() -> float
             {
                 if(m_accuTime < m_alphaTime[0]){
                     return to_f(m_accuTime) / m_alphaTime[0];
@@ -115,7 +116,7 @@ class FireAshEffect_RUN: public FixedLocMagic
                 else{
                     return 0.0f;
                 }
-            }());
+            }()));
         }
 
     protected:
@@ -179,10 +180,10 @@ class FireWall_RUN: public FixedLocMagic
         uint32_t getPlainModColor() const
         {
             if(hasFadeOut()){
-                return colorf::WHITE + colorf::round255(255.0f * (1.0f - std::min<float>((m_accuTime - m_fadeStartTime) / to_f(m_fadeDuration), 1.0f)));
+                return colorf::WHITE + colorf::A_SHF(colorf::round255(255.0f * (1.0f - std::min<float>((m_accuTime - m_fadeStartTime) / to_f(m_fadeDuration), 1.0f))));
             }
             else{
-                return colorf::WHITE + 255;
+                return colorf::WHITE + colorf::A_SHF(255);
             }
         }
 };
@@ -264,7 +265,7 @@ class IceThorn_RUN: public FixedLocMagic
     private:
         uint32_t getPlainModColor() const
         {
-            return colorf::WHITE + colorf::round255(255.0 * [this]() -> float
+            return colorf::WHITE + colorf::A_SHF(colorf::round255(255.0 * [this]() -> float
             {
                 if(absFrame() < m_iceSlagFrameCount[0]){
                     return to_f(absFrame()) / m_iceSlagFrameCount[0];
@@ -278,7 +279,7 @@ class IceThorn_RUN: public FixedLocMagic
                 else{
                     return 0.0f;
                 }
-            }());
+            }()));
         }
 
     public:

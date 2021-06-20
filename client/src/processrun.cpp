@@ -332,11 +332,11 @@ void ProcessRun::draw()
     // should be draw immediately before dead actors, like over-ground objects
     for(const auto &p: m_fixedLocMagicList){
         if(p->checkMagic(u8"火焰灰烬", u8"运行")){
-            dynamic_cast<FireAshEffect_RUN *>(p.get())->drawGroundAsh(m_viewX, m_viewY, colorf::WHITE + 150);
+            dynamic_cast<FireAshEffect_RUN *>(p.get())->drawGroundAsh(m_viewX, m_viewY, colorf::WHITE + colorf::A_SHF(150));
         }
 
         if(p->checkMagic(u8"冰沙掌", u8"运行")){
-            dynamic_cast<IceThrust_RUN *>(p.get())->drawGroundIce(m_viewX, m_viewY, colorf::WHITE + 150);
+            dynamic_cast<IceThrust_RUN *>(p.get())->drawGroundIce(m_viewX, m_viewY, colorf::WHITE + colorf::A_SHF(150));
         }
     }
 
@@ -377,13 +377,13 @@ void ProcessRun::draw()
         for(int x = x0; x <= x1; ++x){
             if(auto p = fireWallList.find({x, y}); p != fireWallList.end()){
                 for(auto magicPtr: p->second){
-                    magicPtr->drawViewOff(m_viewX, m_viewY, colorf::WHITE + 255);
+                    magicPtr->drawViewOff(m_viewX, m_viewY, colorf::WHITE + colorf::A_SHF(255));
                 }
             }
 
             if(auto p = m_strikeGridList.find({x, y}); p != m_strikeGridList.end()){
                 if(hres_tstamp().to_msec() <= p->second + 1000){
-                    g_sdlDevice->fillRectangle(colorf::RED + 96, x * SYS_MAPGRIDXP - m_viewX, y * SYS_MAPGRIDYP - m_viewY, SYS_MAPGRIDXP, SYS_MAPGRIDYP);
+                    g_sdlDevice->fillRectangle(colorf::RED + colorf::A_SHF(96), x * SYS_MAPGRIDXP - m_viewX, y * SYS_MAPGRIDYP - m_viewY, SYS_MAPGRIDXP, SYS_MAPGRIDYP);
                 }
             }
 
@@ -426,13 +426,13 @@ void ProcessRun::draw()
     // draw magics
     for(auto &p: m_fixedLocMagicList){
         if(!p->getGfxEntry().onGround){
-            p->drawViewOff(m_viewX, m_viewY, colorf::WHITE + 255);
+            p->drawViewOff(m_viewX, m_viewY, colorf::WHITE + colorf::A_SHF(255));
         }
     }
 
     for(auto &p: m_followUIDMagicList){
         if(!p->done()){
-            p->drawViewOff(m_viewX, m_viewY, colorf::WHITE + 255);
+            p->drawViewOff(m_viewX, m_viewY, colorf::WHITE + colorf::A_SHF(255));
         }
     }
 
@@ -451,7 +451,7 @@ void ProcessRun::draw()
                 const auto texW = SDLDeviceHelper::getTextureWidth(texPtr);
                 const auto coverTexW = std::lround(1.41421356237309504880 * texW);
                 auto coverTexPtr = g_sdlDevice->getCover(coverTexW / 2, coolDownAngle);
-                SDLDeviceHelper::EnableTextureModColor enableModColor(coverTexPtr, colorf::fadeRGBA(colorf::RGBA(255, 51, 51, 255), colorf::GREEN + 80, colorRatio));
+                SDLDeviceHelper::EnableTextureModColor enableModColor(coverTexPtr, colorf::fadeRGBA(colorf::RGBA(255, 51, 51, 255), colorf::GREEN + colorf::A_SHF(80), colorRatio));
 
                 const auto offCoverX = (coverTexW - texW) / 2;
                 g_sdlDevice->drawTexture(coverTexPtr, magicKeyOffX, 0, offCoverX, offCoverX, texW, texW);
@@ -487,8 +487,8 @@ void ProcessRun::draw()
         const int x = 0;
         const int y = g_sdlDevice->getRendererHeight() - h - 133;
 
-        g_sdlDevice->fillRectangle(colorf::GREEN + 180, x, y, w, h);
-        g_sdlDevice->drawRectangle(colorf::BLUE  + 255, x, y, w, h);
+        g_sdlDevice->fillRectangle(colorf::GREEN + colorf::A_SHF(180), x, y, w, h);
+        g_sdlDevice->drawRectangle(colorf::BLUE  + colorf::A_SHF(255), x, y, w, h);
         g_notifyBoard->drawAt(DIR_UPLEFT, x, y);
     }
 

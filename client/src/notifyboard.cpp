@@ -20,7 +20,6 @@
 #include "totype.hpp"
 #include "xmltypeset.hpp"
 #include "mathf.hpp"
-#include "colorf.hpp"
 #include "notifyboard.hpp"
 
 void NotifyBoard::addLog(const char8_t * format, ...)

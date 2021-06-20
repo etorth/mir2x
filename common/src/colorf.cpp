@@ -25,28 +25,30 @@
 
 uint32_t colorf::string2RGBA(const char *colorString)
 {
-    if(colorString == nullptr){
-        throw fflerror("invalid color string: nullptr");
-    }
-
-    if(std::strlen(colorString) == 0){
-        throw fflerror("invalid color string: zero-length");
-    }
+    fflassert(str_haschar(colorString));
 
     // only for some color
     // check www.w3schools.com/cssref/css_colors.asp
 
-    const auto fnAlpha = [colorString]() -> uint8_t
+    const auto fn_A_SHF = [colorString]() -> uint32_t
     {
         if(const auto p = std::strstr(colorString, "+")){
-            if(const auto num = std::stoi(p + 1); num < 0){
+            int alpha = 0;
+            try{
+                alpha = std::stoi(p + 1);
+            }
+            catch(...){
+                alpha = -1;
+            }
+
+            if(alpha < 0){
                 throw fflerror("invalid color string: %s", colorString);
             }
             else{
-                return std::min<int>(num, 255);
+                return A_SHF(std::min<int>(alpha, 255));
             }
         }
-        return 255;
+        return A_SHF(255);
     };
 
     const auto fnStartWith = [colorString](const char *s) -> bool
@@ -58,64 +60,95 @@ uint32_t colorf::string2RGBA(const char *colorString)
             || fnStartWith("WHITE")
             || fnStartWith("White")
             || fnStartWith("white")){
-        return colorf::WHITE + fnAlpha();
+        return colorf::WHITE + fn_A_SHF();
     }
 
     if(false
             || fnStartWith("RED")
             || fnStartWith("Red")
             || fnStartWith("red")){
-        return colorf::RED + fnAlpha();
+        return colorf::RED + fn_A_SHF();
     }
 
     if(false
             || fnStartWith("GREEN")
             || fnStartWith("Green")
             || fnStartWith("green")){
-        return colorf::GREEN + fnAlpha();
+        return colorf::GREEN + fn_A_SHF();
     }
 
     if(false
             || fnStartWith("BLUE")
             || fnStartWith("Blue")
             || fnStartWith("blue")){
-        return colorf::BLUE + fnAlpha();
+        return colorf::BLUE + fn_A_SHF();
     }
 
     if(false
             || fnStartWith("YELLOW")
             || fnStartWith("Yellow")
             || fnStartWith("yellow")){
-        return colorf::YELLOW + fnAlpha();
+        return colorf::YELLOW + fn_A_SHF();
     }
 
     if(false
-            || fnStartWith("PURPLE")
-            || fnStartWith("Purple")
-            || fnStartWith("purple")){
-        return colorf::PURPLE + fnAlpha();
+            || fnStartWith("MAGENTA")
+            || fnStartWith("Magenta")
+            || fnStartWith("magenta")){
+        return colorf::MAGENTA + fn_A_SHF();
     }
 
-    uint32_t nRGBA = 0XFFFFFFFF;
-    if(false
-            || (std::sscanf(colorString, "0X%08X", &nRGBA) == 1)
-            || (std::sscanf(colorString, "0x%08X", &nRGBA) == 1)
-            || (std::sscanf(colorString, "0x%08x", &nRGBA) == 1)
-            || (std::sscanf(colorString, "0X%08x", &nRGBA) == 1)){
-        return nRGBA;
+    for(const auto rf: {"0x%x", "0x%X", "0X%x", "0X%X", "%d"}){
+        for(const auto gf: {"0x%x", "0x%X", "0X%x", "0X%X", "%d"}){
+            for(const auto bf: {"0x%x", "0x%X", "0X%x", "0X%X", "%d"}){
+                for(const auto af: {"0x%x", "0x%X", "0X%x", "0X%X", "%d"}){
+                    int r = 0;
+                    int g = 0;
+                    int b = 0;
+                    int a = 0;
+                    if(false
+                            || std::sscanf(colorString, str_printf("RGBA(%s,%s,%s,%s)", rf, gf, bf, af).c_str(), &r, &g, &b, &a) == 4
+                            || std::sscanf(colorString, str_printf("Rgba(%s,%s,%s,%s)", rf, gf, bf, af).c_str(), &r, &g, &b, &a) == 4
+                            || std::sscanf(colorString, str_printf("rgba(%s,%s,%s,%s)", rf, gf, bf, af).c_str(), &r, &g, &b, &a) == 4){
+                        if(false
+                                || r < 0
+                                || g < 0
+                                || b < 0
+                                || a < 0){
+                            throw fflerror("invalid color: %s", colorString);
+                        }
+                        else{
+                            return RGBA(round255(r), round255(g), round255(b), round255(a));
+                        }
+                    }
+                }
+            }
+        }
     }
 
-    // try 0XRGBA mode
-    // old browser only support #RRGGBB, newer support #RRGGBBAA
-
-    uint32_t nRGB = 0X00FFFFFF;
-    if(false
-            || (std::sscanf(colorString, "0X%06X", &nRGB) == 1)
-            || (std::sscanf(colorString, "0x%06X", &nRGB) == 1)
-            || (std::sscanf(colorString, "0x%06x", &nRGB) == 1)
-            || (std::sscanf(colorString, "0X%06x", &nRGB) == 1)){
-        return nRGB << 8;
+    for(const auto rf: {"0x%x", "0x%X", "0X%x", "0X%X", "%d"}){
+        for(const auto gf: {"0x%x", "0x%X", "0X%x", "0X%X", "%d"}){
+            for(const auto bf: {"0x%x", "0x%X", "0X%x", "0X%X", "%d"}){
+                int r = 0;
+                int g = 0;
+                int b = 0;
+                if(false
+                        || std::sscanf(colorString, str_printf("RGB(%s,%s,%s)", rf, gf, bf).c_str(), &r, &g, &b) == 3
+                        || std::sscanf(colorString, str_printf("Rgb(%s,%s,%s)", rf, gf, bf).c_str(), &r, &g, &b) == 3
+                        || std::sscanf(colorString, str_printf("rgb(%s,%s,%s)", rf, gf, bf).c_str(), &r, &g, &b) == 3){
+                    if(false
+                            || r < 0
+                            || g < 0
+                            || b < 0){
+                        throw fflerror("invalid color: %s", colorString);
+                    }
+                    else{
+                        return RGBA(round255(r), round255(g), round255(b), 255);
+                    }
+                }
+            }
+        }
     }
 
-    throw fflerror("color string not recognized: %s", colorString);
+    throw fflerror("invalid color string: %s", colorString);
 }

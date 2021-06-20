@@ -32,9 +32,9 @@ extern SDLDevice *g_sdlDevice;
 
 ProcessNew::ProcessNew()
 	: Process()
-    , m_LBID        (DIR_UPLEFT, 0, 0, u8"账号"    , 1, 15, 0, colorf::WHITE + 255)
-    , m_LBPwd       (DIR_UPLEFT, 0, 0, u8"密码"    , 1, 15, 0, colorf::WHITE + 255)
-    , m_LBPwdConfirm(DIR_UPLEFT, 0, 0, u8"确认密码", 1, 15, 0, colorf::WHITE + 255)
+    , m_LBID        (DIR_UPLEFT, 0, 0, u8"账号"    , 1, 15, 0, colorf::WHITE + colorf::A_SHF(255))
+    , m_LBPwd       (DIR_UPLEFT, 0, 0, u8"密码"    , 1, 15, 0, colorf::WHITE + colorf::A_SHF(255))
+    , m_LBPwdConfirm(DIR_UPLEFT, 0, 0, u8"确认密码", 1, 15, 0, colorf::WHITE + colorf::A_SHF(255))
 	, m_boxID
       {
           DIR_LEFT,
@@ -46,10 +46,10 @@ ProcessNew::ProcessNew()
           2,
           15,
           0,
-          colorf::WHITE + 255,
+          colorf::WHITE + colorf::A_SHF(255),
 
           2,
-          colorf::WHITE + 255,
+          colorf::WHITE + colorf::A_SHF(255),
 
           [this]()
           {
@@ -74,10 +74,10 @@ ProcessNew::ProcessNew()
           2,
           15,
           0,
-          colorf::WHITE + 255,
+          colorf::WHITE + colorf::A_SHF(255),
 
           2,
-          colorf::WHITE + 255,
+          colorf::WHITE + colorf::A_SHF(255),
 
           [this]()
           {
@@ -102,10 +102,10 @@ ProcessNew::ProcessNew()
           2,
           15,
           0,
-          colorf::WHITE + 255,
+          colorf::WHITE + colorf::A_SHF(255),
 
           2,
-          colorf::WHITE + 255,
+          colorf::WHITE + colorf::A_SHF(255),
 
           [this]()
           {
@@ -183,7 +183,7 @@ ProcessNew::ProcessNew()
           1,
           15,
           0,
-          colorf::YELLOW + 255
+          colorf::YELLOW + colorf::A_SHF(255)
       }
 {
     m_boxID.focus(true);
@@ -232,7 +232,7 @@ void ProcessNew::draw()
     m_quit.draw();
 
     if(hasInfo()){
-        g_sdlDevice->fillRectangle(colorf::BLUE + 32, 0, 75, 800, 450);
+        g_sdlDevice->fillRectangle(colorf::BLUE + colorf::A_SHF(32), 0, 75, 800, 450);
         m_infoStr.draw();
     }
 }

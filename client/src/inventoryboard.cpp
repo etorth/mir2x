@@ -38,7 +38,7 @@ InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget
           12,
           0,
 
-          colorf::WHITE + 255,
+          colorf::WHITE + colorf::A_SHF(255),
           this,
       }
 
@@ -139,7 +139,7 @@ void InventoryBoard::drawItem(int dstX, int dstY, size_t startRow, bool cursorOn
 
             if(mathf::rectangleOverlapRegion<int>(0, startRow, 6, 8, binGridX, binGridY, binGridW, binGridH)){
                 if(cursorOn){
-                    g_sdlDevice->fillRectangle(colorf::WHITE + 64,
+                    g_sdlDevice->fillRectangle(colorf::WHITE + colorf::A_SHF(64),
                             startX + binGridX * SYS_INVGRIDPW,
                             startY + binGridY * SYS_INVGRIDPH, // startY is for (0, 0), not for (0, startRow)
                             binGridW * SYS_INVGRIDPW,
@@ -421,7 +421,7 @@ void InventoryBoard::drawItemHoverText(const PackBin &bin) const
         1,
         12,
         0,
-        colorf::WHITE + 255,
+        colorf::WHITE + colorf::A_SHF(255),
         0,
 
         LALIGN_JUSTIFY,

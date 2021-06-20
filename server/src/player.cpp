@@ -21,7 +21,6 @@
 #include "uidf.hpp"
 #include "pathf.hpp"
 #include "mathf.hpp"
-#include "colorf.hpp"
 #include "dbcomid.hpp"
 #include "sysconst.hpp"
 #include "netdriver.hpp"

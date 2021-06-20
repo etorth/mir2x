@@ -16,6 +16,7 @@
  * =====================================================================================
  */
 
+#include "colorf.hpp"
 #include "totype.hpp"
 #include "bevent.hpp"
 #include "sdldevice.hpp"

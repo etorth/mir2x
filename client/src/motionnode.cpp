@@ -17,6 +17,7 @@
  */
 #include <cinttypes>
 #include "log.hpp"
+#include "colorf.hpp"
 #include "totype.hpp"
 #include "fflerror.hpp"
 #include "sdldevice.hpp"

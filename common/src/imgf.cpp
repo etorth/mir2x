@@ -173,19 +173,11 @@ bool imgf::saveImageBuffer(const void *imgBuf, size_t imgW, size_t imgH, const c
         goto imgf_saveRGBABuffer_failed;
     }
 
-    // Initialize header information for png, here the default RGBA doesn't match colorf::RGBA model:
+    // Initialize header information for png, here the default uses RGBA model:
     // RGBA means here: [0] : R  : [07:00] 0X000000FF
     //                  [1] : G  : [15:08] 0X0000FF00
     //                  [2] : B  : [23:16] 0X00FF0000
     //                  [3] : A  : [31:24] 0XFF000000
-    //
-    // I tried to call following functions and works
-    //
-    //     png_set_bgr(imgPtr);            // -> ARGB
-    //     png_set_swap_alpha(imgPtr);     // -> RGBA
-    //
-    // but looks manual/examples uses transform when calling png_write_png:
-    // https://www.roxlu.com/2015/050/saving-pixel-data-using-libpng
 
     png_set_IHDR(
             imgPtr,
@@ -193,7 +185,7 @@ bool imgf::saveImageBuffer(const void *imgBuf, size_t imgW, size_t imgH, const c
             imgW,
             imgH,
             8,
-            PNG_COLOR_TYPE_RGBA,    // -> ABGR
+            PNG_COLOR_TYPE_RGBA,
             PNG_INTERLACE_NONE,
             PNG_COMPRESSION_TYPE_DEFAULT,
             PNG_FILTER_TYPE_DEFAULT);
@@ -229,7 +221,7 @@ bool imgf::saveImageBuffer(const void *imgBuf, size_t imgW, size_t imgH, const c
 
     png_init_io(imgPtr, fp);
     png_set_rows(imgPtr, imgInfoPtr, rowPtrBuf);
-    png_write_png(imgPtr, imgInfoPtr, PNG_TRANSFORM_BGR | PNG_TRANSFORM_SWAP_ALPHA, nullptr);
+    png_write_png(imgPtr, imgInfoPtr, PNG_TRANSFORM_IDENTITY, nullptr);
     result = true;
 
 imgf_saveRGBABuffer_failed:

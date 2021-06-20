@@ -143,16 +143,16 @@ void ClientNPC::drawFrame(int viewX, int viewY, int focusMask, int frame, bool)
     }
 
     if(g_clientArgParser->drawTextureAlignLine){
-        g_sdlDevice->drawLine (colorf::RED  + 128, bodyDrawX - bodyDX, bodyDrawY - bodyDY, bodyDrawX, bodyDrawY);
-        g_sdlDevice->drawCross(colorf::BLUE + 128, bodyDrawX - bodyDX, bodyDrawY - bodyDY, 5);
+        g_sdlDevice->drawLine (colorf::RED  + colorf::A_SHF(128), bodyDrawX - bodyDX, bodyDrawY - bodyDY, bodyDrawX, bodyDrawY);
+        g_sdlDevice->drawCross(colorf::BLUE + colorf::A_SHF(128), bodyDrawX - bodyDX, bodyDrawY - bodyDY, 5);
 
         const auto [texW, texH] = SDLDeviceHelper::getTextureSize(bodyFrame);
-        g_sdlDevice->drawRectangle(colorf::RED + 128, bodyDrawX, bodyDrawY, texW, texH);
+        g_sdlDevice->drawRectangle(colorf::RED + colorf::A_SHF(128), bodyDrawX, bodyDrawY, texW, texH);
     }
 
     if(g_clientArgParser->drawTargetBox){
         if(const auto box = getTargetBox()){
-            g_sdlDevice->drawRectangle(colorf::BLUE + 128, box.x - viewX, box.y - viewY, box.w, box.h);
+            g_sdlDevice->drawRectangle(colorf::BLUE + colorf::A_SHF(128), box.x - viewX, box.y - viewY, box.w, box.h);
         }
     }
 

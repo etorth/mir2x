@@ -26,7 +26,6 @@
 #include "actorpod.hpp"
 #include "netdriver.hpp"
 #include "monoserver.hpp"
-#include "colorf.hpp"
 #include "cerealf.hpp"
 #include "serdesmsg.hpp"
 #include "buildconfig.hpp"

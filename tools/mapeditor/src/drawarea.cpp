@@ -33,7 +33,6 @@
 #include "mathf.hpp"
 #include "flwrapper.hpp"
 #include "editormap.hpp"
-#include "colorf.hpp"
 #include "animation.hpp"
 #include "mainwindow.hpp"
 #include "imagecache.hpp"

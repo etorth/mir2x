@@ -25,7 +25,6 @@
 #include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL2_gfxPrimitives.h>
 #include "totype.hpp"
-#include "colorf.hpp"
 #include "fflerror.hpp"
 #include "fpsmonitor.hpp"
 

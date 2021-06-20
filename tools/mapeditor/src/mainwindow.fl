@@ -1098,7 +1098,7 @@ g_aboutWindow->showAll();}
                             for(int onSrcDY = 0; onSrcDY < onSrcH; ++onSrcDY){
                                 auto &src = srcPtr[(onSrcX + onSrcDX) + (onSrcY + onSrcDY) * srcW];
                                 auto &dst = dstPtr[(onDstX + onSrcDX) + (onDstY + onSrcDY) * dstW];
-                                dst = colorf::renderABGR(dst, src);
+                                dst = colorf::renderRGBA(dst, src);
                             }
                         }
                     }

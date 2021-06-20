@@ -138,7 +138,7 @@ void LevelBox::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int srcH
                       0,
                       12,
                       0,
-                      colorf::YELLOW + 255,
+                      colorf::YELLOW + colorf::A_SHF(255),
 
                       this,
                       false,
@@ -172,8 +172,8 @@ void LevelBox::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int srcH
         [this]() -> uint32_t
         {
             switch(m_state){
-                case BEVENT_ON  : return colorf::BLUE + 0XFF;
-                case BEVENT_DOWN: return colorf::RED  + 0XFF;
+                case BEVENT_ON  : return colorf::BLUE + colorf::A_SHF(0XFF);
+                case BEVENT_DOWN: return colorf::RED  + colorf::A_SHF(0XFF);
                 default         : return 0;
             }
         }(),

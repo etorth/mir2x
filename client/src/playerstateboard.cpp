@@ -238,7 +238,7 @@ void PlayerStateBoard::drawEx(int, int, int, int, int, int) const
                 }();
 
                 if(auto texPtr = g_progUseDB->retrieve(texID)){
-                    SDLDeviceHelper::EnableTextureModColor enableColor(texPtr, colorf::WHITE + 128);
+                    SDLDeviceHelper::EnableTextureModColor enableColor(texPtr, colorf::WHITE + colorf::A_SHF(128));
                     g_sdlDevice->drawTexture(texPtr, x() + m_gridList[i].x + dx, y() + m_gridList[i].y + dy);
                 }
             }
@@ -249,7 +249,7 @@ void PlayerStateBoard::drawEx(int, int, int, int, int, int) const
 
     if(g_clientArgParser->debugPlayerStateBoard){
         for(size_t i = WLG_BEGIN; i < WLG_END; ++i){
-            g_sdlDevice->drawRectangle(colorf::BLUE + 255, x() + m_gridList[i].x, y() + m_gridList[i].y, m_gridList[i].w, m_gridList[i].h);
+            g_sdlDevice->drawRectangle(colorf::BLUE + colorf::A_SHF(255), x() + m_gridList[i].x, y() + m_gridList[i].y, m_gridList[i].w, m_gridList[i].h);
         }
     }
 }
@@ -366,7 +366,7 @@ void PlayerStateBoard::drawItemHoverText(int wltype) const
         1,
         12,
         0,
-        colorf::WHITE + 255,
+        colorf::WHITE + colorf::A_SHF(255),
         0,
 
         LALIGN_JUSTIFY,

@@ -182,7 +182,7 @@ void InputLine::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int src
     }
 
     if(g_clientArgParser->debugDrawInputLine){
-        g_sdlDevice->drawRectangle(colorf::BLUE + 255, x(), y(), w(), h());
+        g_sdlDevice->drawRectangle(colorf::BLUE + colorf::A_SHF(255), x(), y(), w(), h());
     }
 }
 

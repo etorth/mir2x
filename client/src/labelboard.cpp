@@ -20,7 +20,6 @@
 #include "totype.hpp"
 #include "strf.hpp"
 #include "xmltypeset.hpp"
-#include "colorf.hpp"
 #include "labelboard.hpp"
 
 extern Log *g_log;

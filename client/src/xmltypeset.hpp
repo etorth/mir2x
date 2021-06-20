@@ -79,7 +79,7 @@ class XMLTypeset // means XMLParagraph typeset
                 uint8_t  defaultFont           = 0,
                 uint8_t  defaultFontSize       = 8,
                 uint8_t  defaultFontStyle      = 0,
-                uint32_t defaultFontColor      = colorf::WHITE + 255,
+                uint32_t defaultFontColor      = colorf::WHITE + colorf::A_SHF(255),
                 uint32_t defaultFontBGColor    = 0,
                 uint32_t defaultImageMaskColor = colorf::RGBA(0XFF, 0XFF, 0XFF, 0XFF),
                 int      lineSpace             = 0,

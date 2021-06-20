@@ -26,6 +26,7 @@
 #include "mathf.hpp"
 #include "totype.hpp"
 #include "rawbuf.hpp"
+#include "colorf.hpp"
 #include "xmlconf.hpp"
 #include "fflerror.hpp"
 #include "sdldevice.hpp"
@@ -397,7 +398,7 @@ void SDLDevice::drawTexture(SDL_Texture *pstTexture,
 
         SDL_RenderCopy(m_renderer, pstTexture, &stSrc, &stDst);
         if(g_clientArgParser->debugDrawTexture){
-            drawRectangle(colorf::BLUE + 128, nDstX, nDstY, nDstW, nDstH);
+            drawRectangle(colorf::BLUE + colorf::A_SHF(128), nDstX, nDstY, nDstW, nDstH);
         }
     }
 }

@@ -16,6 +16,7 @@
  * =====================================================================================
  */
 
+#include "colorf.hpp"
 #include "pngtexdb.hpp"
 #include "sdldevice.hpp"
 #include "texvslider.hpp"
@@ -49,7 +50,7 @@ TexVSlider::TexVSlider(dir8_t dir, int x, int y, int h, int paramIndex, const st
 void TexVSlider::drawEx(int, int, int, int, int, int) const
 {
     if(g_clientArgParser->debugSlider){
-        g_sdlDevice->drawRectangle(colorf::GREEN + 255, x(), y(), w(), h());
+        g_sdlDevice->drawRectangle(colorf::GREEN + colorf::A_SHF(255), x(), y(), w(), h());
     }
 
     const auto [sliderX, sliderY, sliderW, sliderH] = getSliderRectangle();
@@ -75,12 +76,12 @@ void TexVSlider::drawEx(int, int, int, int, int, int) const
     switch(m_sliderState){
         case BEVENT_ON:
             {
-                fnDrawCover(colorf::BLUE);
+                fnDrawCover(colorf::BLUE + colorf::A_SHF(200));
                 break;
             }
         case BEVENT_DOWN:
             {
-                fnDrawCover(colorf::RED);
+                fnDrawCover(colorf::RED + colorf::A_SHF(200));
                 break;
             }
         default:
@@ -90,6 +91,6 @@ void TexVSlider::drawEx(int, int, int, int, int, int) const
     }
 
     if(g_clientArgParser->debugSlider){
-        g_sdlDevice->drawRectangle(colorf::RED + 255, sliderX, sliderY, sliderW, sliderH);
+        g_sdlDevice->drawRectangle(colorf::RED + colorf::A_SHF(255), sliderX, sliderY, sliderW, sliderH);
     }
 }

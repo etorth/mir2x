@@ -126,9 +126,9 @@ std::optional<uint32_t> XMLParagraphLeaf::color() const
 
     if(hasEvent()){
         switch(m_event){
-            case BEVENT_ON  : return colorf::GREEN  + 255;
-            case BEVENT_OFF : return colorf::YELLOW + 255;
-            case BEVENT_DOWN: return colorf::PURPLE + 255;
+            case BEVENT_ON  : return colorf::GREEN   + colorf::A_SHF(255);
+            case BEVENT_OFF : return colorf::YELLOW  + colorf::A_SHF(255);
+            case BEVENT_DOWN: return colorf::MAGENTA + colorf::A_SHF(255);
             default: throw fflerror("invalid leaf event: %d", m_event);
         }
     }

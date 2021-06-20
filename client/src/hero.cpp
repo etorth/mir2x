@@ -168,16 +168,16 @@ void Hero::drawFrame(int viewX, int viewY, int, int frame, bool)
     }
 
     if(g_clientArgParser->drawTextureAlignLine){
-        g_sdlDevice->drawLine (colorf::RED  + 128, startX, startY, startX + bodyDX, startY + bodyDY);
-        g_sdlDevice->drawCross(colorf::BLUE + 128, startX, startY, 5);
+        g_sdlDevice->drawLine (colorf::RED  + colorf::A_SHF(128), startX, startY, startX + bodyDX, startY + bodyDY);
+        g_sdlDevice->drawCross(colorf::BLUE + colorf::A_SHF(128), startX, startY, 5);
 
         const auto [texW, texH] = SDLDeviceHelper::getTextureSize(bodyFrame);
-        g_sdlDevice->drawRectangle(colorf::RED + 128, startX + bodyDX, startY + bodyDY, texW, texH);
+        g_sdlDevice->drawRectangle(colorf::RED + colorf::A_SHF(128), startX + bodyDX, startY + bodyDY, texW, texH);
     }
 
     if(g_clientArgParser->drawTargetBox){
         if(const auto box = getTargetBox()){
-            g_sdlDevice->drawRectangle(colorf::BLUE + 128, box.x - viewX, box.y - viewY, box.w, box.h);
+            g_sdlDevice->drawRectangle(colorf::BLUE + colorf::A_SHF(128), box.x - viewX, box.y - viewY, box.w, box.h);
         }
     }
 

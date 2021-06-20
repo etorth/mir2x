@@ -16,6 +16,7 @@
  * =====================================================================================
  */
 
+#include "colorf.hpp"
 #include "dbcomid.hpp"
 #include "sdldevice.hpp"
 #include "dbcomrecord.hpp"

@@ -244,11 +244,11 @@ void FollowUIDMagic::drawViewOff(int viewX, int viewY, uint32_t modColor) const
 
             g_sdlDevice->drawTexture(texPtr, drawPX, drawPY);
             if(g_clientArgParser->drawMagicGrid){
-                g_sdlDevice->drawRectangle(colorf::BLUE + 200, drawPX, drawPY, texW, texH);
-                g_sdlDevice->drawLine(colorf::RED + 200, drawPX, drawPY, m_x - viewX, m_y - viewY);
+                g_sdlDevice->drawRectangle(colorf::BLUE + colorf::A_SHF(200), drawPX, drawPY, texW, texH);
+                g_sdlDevice->drawLine(colorf::RED + colorf::A_SHF(200), drawPX, drawPY, m_x - viewX, m_y - viewY);
 
                 const auto [srcTargetX, srcTargetY] = targetPLoc();
-                g_sdlDevice->drawLine(colorf::GREEN + 200, m_x - viewX, m_y - viewY, srcTargetX - viewX, srcTargetY - viewY);
+                g_sdlDevice->drawLine(colorf::GREEN + colorf::A_SHF(200), m_x - viewX, m_y - viewY, srcTargetX - viewX, srcTargetY - viewY);
             }
         }
     }

@@ -50,10 +50,10 @@ InputStringBoard::InputStringBoard(int x, int y, ProcessRun *runPtr, Widget *wid
           14,
 
           0,
-          colorf::WHITE + 255,
+          colorf::WHITE + colorf::A_SHF(255),
 
           2,
-          colorf::WHITE + 255,
+          colorf::WHITE + colorf::A_SHF(255),
 
           nullptr,
           [this]()
@@ -155,14 +155,14 @@ void InputStringBoard::drawEx(int dstX, int dstY, int, int, int, int) const
         12,
         0,
 
-        colorf::WHITE + 255,
+        colorf::WHITE + colorf::A_SHF(255),
     };
 
     label.loadXML(to_cstr(m_parXMLString));
     label.drawAt(DIR_NONE, x() + w() / 2, y() + 120);
 
     if(m_input.focus()){
-        g_sdlDevice->fillRectangle(colorf::WHITE + 32, m_input.x(), m_input.y(), m_input.w(), m_input.h());
+        g_sdlDevice->fillRectangle(colorf::WHITE + colorf::A_SHF(32), m_input.x(), m_input.y(), m_input.w(), m_input.h());
     }
 }
 

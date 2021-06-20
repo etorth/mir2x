@@ -40,7 +40,7 @@ class ImageBoard: public Widget
 
                 std::function<SDL_Texture *(const ImageBoard *)> loadFunc,
 
-                uint32_t color     = colorf::WHITE + 0XFF,
+                uint32_t color     = colorf::WHITE + colorf::A_SHF(0XFF),
                 Widget *parent     = nullptr,
                 bool    autoDelete = false)
             : Widget(dir, x, y, w, h, parent, autoDelete)
@@ -71,7 +71,7 @@ class ImageBoard: public Widget
 
                 std::function<SDL_Texture *(const ImageBoard *)> loadFunc,
 
-                uint32_t color     = colorf::WHITE + 0XFF,
+                uint32_t color     = colorf::WHITE + colorf::A_SHF(0XFF),
                 Widget *parent     = nullptr,
                 bool    autoDelete = false)
             : ImageBoard(dir, x, y, 0, 0, std::move(loadFunc), color, parent, autoDelete)

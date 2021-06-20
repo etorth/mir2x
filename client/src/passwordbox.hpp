@@ -38,10 +38,10 @@ class PasswordBox: public InputLine
                 uint8_t  font      =  0,
                 uint8_t  fontSize  = 10,
                 uint8_t  fontStyle =  0,
-                uint32_t fontColor =  colorf::WHITE + 255,
+                uint32_t fontColor =  colorf::WHITE + colorf::A_SHF(255),
 
                 int      cursorWidth = 2,
-                uint32_t cursorColor = colorf::WHITE + 255,
+                uint32_t cursorColor = colorf::WHITE + colorf::A_SHF(255),
 
                 std::function<void()>  fnOnTab    = nullptr,
                 std::function<void()>  fnOnReturn = nullptr,

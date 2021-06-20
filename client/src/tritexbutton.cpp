@@ -16,6 +16,7 @@
  * =====================================================================================
  */
 
+#include "colorf.hpp"
 #include "sysconst.hpp"
 #include "pngtexdb.hpp"
 #include "sdldevice.hpp"

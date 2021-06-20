@@ -47,7 +47,7 @@ class NotifyBoard: public Widget
                 uint8_t          defaultFont      = 0,
                 uint8_t          defaultFontSize  = 10,
                 uint8_t          defaultFontStyle = 0,
-                uint32_t         defaultFontColor = colorf::WHITE + 255,
+                uint32_t         defaultFontColor = colorf::WHITE + colorf::A_SHF(255),
                 Widget          *widgetPtr        = nullptr,
                 bool             autoDelete       = false)
             : Widget(nDir, nX, nY, 0, 0, widgetPtr, autoDelete)

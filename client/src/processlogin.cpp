@@ -50,10 +50,10 @@ ProcessLogin::ProcessLogin()
           2,
           18,
           0,
-          colorf::WHITE + 255,
+          colorf::WHITE + colorf::A_SHF(255),
 
           2,
-          colorf::WHITE + 255,
+          colorf::WHITE + colorf::A_SHF(255),
 
           [this]()
           {
@@ -77,10 +77,10 @@ ProcessLogin::ProcessLogin()
           2,
           18,
           0,
-          colorf::WHITE + 255,
+          colorf::WHITE + colorf::A_SHF(255),
 
           2,
-          colorf::WHITE + 255,
+          colorf::WHITE + colorf::A_SHF(255),
 
           [this]()
           {
@@ -102,7 +102,7 @@ ProcessLogin::ProcessLogin()
             1,
             14,
             0,
-            colorf::YELLOW + 255,
+            colorf::YELLOW + colorf::A_SHF(255),
         }
 {
     m_buildSignature.setText(u8"编译版本号:%s", getBuildSignature());

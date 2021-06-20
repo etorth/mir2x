@@ -41,7 +41,7 @@ class LabelBoard: public Widget
                 uint8_t        font       = 0,
                 uint8_t        fontSize   = 10,
                 uint8_t        fontStyle  = 0,
-                uint32_t       fontColor  = colorf::WHITE + 255,
+                uint32_t       fontColor  = colorf::WHITE + colorf::A_SHF(255),
                 Widget        *widgetPtr  = nullptr,
                 bool           autoDelete = false)
             : Widget(dir, x, y, 0, 0, widgetPtr, autoDelete)

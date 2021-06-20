@@ -117,7 +117,7 @@ void QuickAccessBoard::drawEx(int dstX, int dstY, int, int, int, int) const
         const auto gridStartX = x() + gridX;
         const auto gridStartY = y() + gridY;
         if(mathf::pointInRectangle(mouseX, mouseY, gridStartX, gridStartY, gridW, gridH)){
-            g_sdlDevice->fillRectangle(colorf::WHITE + 64, gridStartX, gridStartY, gridW, gridH);
+            g_sdlDevice->fillRectangle(colorf::WHITE + colorf::A_SHF(64), gridStartX, gridStartY, gridW, gridH);
             break;
         }
     }

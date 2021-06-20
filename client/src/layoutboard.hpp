@@ -87,7 +87,7 @@ class LayoutBoard: public Widget
                 uint8_t  font        =  0,
                 uint8_t  fontSize    = 10,
                 uint8_t  fontStyle   =  0,
-                uint32_t fontColor   =  colorf::WHITE + 255,
+                uint32_t fontColor   =  colorf::WHITE + colorf::A_SHF(255),
                 uint32_t fontBGColor =  0,
 
                 int lineAlign = LALIGN_LEFT,

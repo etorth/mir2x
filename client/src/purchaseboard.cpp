@@ -342,7 +342,7 @@ void PurchaseBoard::drawEx(int dstX, int dstY, int, int, int, int) const
             label.draw();
 
             if(m_selected == to_d(i)){
-                g_sdlDevice->fillRectangle(colorf::WHITE + 64, m_startX, startY, 252 - 19, m_boxH);
+                g_sdlDevice->fillRectangle(colorf::WHITE + colorf::A_SHF(64), m_startX, startY, 252 - 19, m_boxH);
             }
             startY += m_lineH;
         }
@@ -601,7 +601,7 @@ void PurchaseBoard::drawExt1GridHoverText(int itemIndex) const
         1,
         12,
         0,
-        colorf::WHITE + 255,
+        colorf::WHITE + colorf::A_SHF(255),
         0,
 
         LALIGN_JUSTIFY,
@@ -681,7 +681,7 @@ void PurchaseBoard::drawExt1() const
             }();
 
             if(gridSelected || cursorOn){
-                const uint32_t gridColor = gridSelected ? (colorf::BLUE + 96) : (colorf::WHITE + 96);
+                const uint32_t gridColor = gridSelected ? (colorf::BLUE + colorf::A_SHF(96)) : (colorf::WHITE + colorf::A_SHF(96));
                 g_sdlDevice->fillRectangle(gridColor, x() + rightBoxX, y() + rightBoxY, m_boxW, m_boxH);
             }
 

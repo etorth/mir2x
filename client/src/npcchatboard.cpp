@@ -46,7 +46,7 @@ NPCChatBoard::NPCChatBoard(ProcessRun *proc, Widget *pwidget, bool autoDelete)
           12,
           0,
 
-          colorf::WHITE + 255,
+          colorf::WHITE + colorf::A_SHF(255),
           0,
 
           LALIGN_LEFT,

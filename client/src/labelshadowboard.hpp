@@ -37,8 +37,8 @@ class LabelShadowBoard: public WidgetGroup
                 uint8_t        font            = 0,
                 uint8_t        fontSize        = 8,
                 uint8_t        fontStyle       = 0,
-                uint32_t       fontColor       = colorf::WHITE + 255,
-                uint32_t       fontShadowColor = colorf::BLACK + 128,
+                uint32_t       fontColor       = colorf::WHITE + colorf::A_SHF(255),
+                uint32_t       fontShadowColor = colorf::BLACK + colorf::A_SHF(128),
                 Widget        *widgetPtr       = nullptr,
                 bool           autoDelete      = false)
             : WidgetGroup

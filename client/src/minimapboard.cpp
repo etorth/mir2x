@@ -185,14 +185,14 @@ void MiniMapBoard::drawMiniMapTexture() const
     };
 
     if(!m_alphaOn){
-        g_sdlDevice->fillRectangle(colorf::BLACK + 255, x(), y(), w(), h());
+        g_sdlDevice->fillRectangle(colorf::BLACK + colorf::A_SHF(255), x(), y(), w(), h());
     }
 
     const auto [heroMPX, heroMPY] = fnGetMPLoc(m_processRun->getMyHero()->location());
     const int srcX = std::min<int>(std::max<int>(0, heroMPX - w() / 2), texW - w());
     const int srcY = std::min<int>(std::max<int>(0, heroMPY - h() / 2), texH - h());
     {
-        SDLDeviceHelper::EnableTextureModColor enableModColor(texPtr, colorf::WHITE + (m_alphaOn ? 128 : 255));
+        SDLDeviceHelper::EnableTextureModColor enableModColor(texPtr, colorf::WHITE + colorf::A_SHF(m_alphaOn ? 128 : 255));
         g_sdlDevice->drawTexture(texPtr, x(), y(), srcX, srcY, w(), h());
     }
 
@@ -212,11 +212,11 @@ void MiniMapBoard::drawMiniMapTexture() const
                     }
                 case UID_NPC:
                     {
-                        return {colorf::BLUE+ 255, 2};
+                        return {colorf::BLUE+ colorf::A_SHF(255), 2};
                     }
                 case UID_MON:
                     {
-                        return {colorf::RED + 255, 1};
+                        return {colorf::RED + colorf::A_SHF(255), 1};
                     }
                 default:
                     {
