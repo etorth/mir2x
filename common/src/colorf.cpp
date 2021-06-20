@@ -40,7 +40,7 @@ do{ \
     } \
 \
     if(std::regex_match(color, std::regex("^" colorName R"#(\+)#" _REGEX_COL_0_255 "$", std::regex::icase))){ \
-        return baseColor + A_SHF(std::stoi(std::strstr(color, "+"))); \
+        return baseColor + A_SHF(std::stoi(std::strstr(color, "+"), 0, 0)); \
     } \
 }while(0)
 
@@ -73,10 +73,10 @@ uint32_t colorf::string2RGBA(const char *color)
         int b = 0;
         for(int i = 0; const auto &m: matchResult){
             switch(i++){
-                case 1 : r = std::stoi(m.str()); break;
-                case 2 : g = std::stoi(m.str()); break;
-                case 3 : b = std::stoi(m.str()); break;
-                default:                         break;
+                case 1 : r = std::stoi(m.str(), 0, 0); break;
+                case 2 : g = std::stoi(m.str(), 0, 0); break;
+                case 3 : b = std::stoi(m.str(), 0, 0); break;
+                default:                               break;
             }
         }
 
@@ -99,11 +99,11 @@ uint32_t colorf::string2RGBA(const char *color)
         int a = 0;
         for(int i = 0; const auto &m: matchResult){
             switch(i++){
-                case 1 : r = std::stoi(m.str()); break;
-                case 2 : g = std::stoi(m.str()); break;
-                case 3 : b = std::stoi(m.str()); break;
-                case 4 : a = std::stoi(m.str()); break;
-                default:                         break;
+                case 1 : r = std::stoi(m.str(), 0, 0); break;
+                case 2 : g = std::stoi(m.str(), 0, 0); break;
+                case 3 : b = std::stoi(m.str(), 0, 0); break;
+                case 4 : a = std::stoi(m.str(), 0, 0); break;
+                default:                               break;
             }
         }
 

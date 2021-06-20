@@ -1149,9 +1149,9 @@ void ControlBoard::addLog(int logType, const char *log)
         // color::String2Color has no alpha component
 
         switch(logType){
-            case CBLOG_SYS: return "<par bgcolor = \"rgb(0x00,0x80,0x00)\"></par>";
-            case CBLOG_DBG: return "<par bgcolor = \"rgb(0x00,0x00,0xff)\"></par>";
-            case CBLOG_ERR: return "<par bgcolor = \"rgb(0xff,0x00,0x00)\"></par>";
+            case CBLOG_SYS: return "<par bgcolor = \"rgb(0x00, 0x80, 0x00)\"></par>";
+            case CBLOG_DBG: return "<par bgcolor = \"rgb(0x00, 0x00, 0xff)\"></par>";
+            case CBLOG_ERR: return "<par bgcolor = \"rgb(0xff, 0x00, 0x00)\"></par>";
             case CBLOG_DEF:
             default       : return "<par></par>";
         }
