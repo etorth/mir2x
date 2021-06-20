@@ -47,12 +47,12 @@ void ProcessRun::net_LOGINOK(const uint8_t *buf, size_t bufSize)
     loadMap(sdLOK.mapID);
 
     m_myHeroUID = sdLOK.uid;
-    m_coList[m_myHeroUID] = std::make_unique<MyHero>(m_myHeroUID, this, ActionStand
+    m_coList[m_myHeroUID].reset(new MyHero(m_myHeroUID, this, ActionStand
     {
         .x = sdLOK.x,
         .y = sdLOK.y,
         .direction = DIR_DOWN,
-    });
+    }));
 
     getMyHero()->setName(to_cstr(sdLOK.name), sdLOK.nameColor);
     getMyHero()->setWLDesp(std::move(sdLOK.desp));
@@ -167,44 +167,24 @@ void ProcessRun::net_ACTION(const uint8_t *bufPtr, size_t)
                         }
                     default:
                         {
-                            switch(const auto monID = uidf::getMonsterID(smA.UID)){
+                            switch(uidf::getMonsterID(smA.UID)){
                                 case DBCOM_MONSTERID(u8"变异骷髅"):
                                     {
                                         if(!m_actionBlocker.contains(smA.UID)){
-                                            m_coList[smA.UID] = std::make_unique<ClientTaoSkeleton>(smA.UID, this, smA.action);
+                                            m_coList[smA.UID].reset(new ClientTaoSkeleton(smA.UID, this, smA.action));
                                         }
                                         return;
                                     }
                                 case DBCOM_MONSTERID(u8"神兽"):
                                     {
                                         if(!m_actionBlocker.contains(smA.UID)){
-                                            m_coList[smA.UID] = std::make_unique<ClientTaoDog>(smA.UID, this, smA.action);
+                                            m_coList[smA.UID].reset(new ClientTaoDog(smA.UID, this, smA.action));
                                         }
-                                        return;
-                                    }
-                                case DBCOM_MONSTERID(u8"食人花"):
-                                    {
-                                        m_coList[smA.UID] = std::make_unique<ClientCannibalPlant>(smA.UID, this, smA.action);
-                                        return;
-                                    }
-                                case DBCOM_MONSTERID(u8"角蝇"):
-                                    {
-                                        m_coList[smA.UID] = std::make_unique<ClientBugbatMaggot>(smA.UID, this, smA.action);
-                                        return;
-                                    }
-                                case DBCOM_MONSTERID(u8"稻草人"):
-                                    {
-                                        m_coList[smA.UID] = std::make_unique<ClientScarecrow>(smA.UID, this, smA.action);
                                         return;
                                     }
                                 default:
                                     {
-                                        if(DBCOM_MONSTERRECORD(monID).guard){
-                                            m_coList[smA.UID] = std::make_unique<ClientGuard>(smA.UID, this, smA.action);
-                                        }
-                                        else{
-                                            m_coList[smA.UID] = std::make_unique<ClientMonster>(smA.UID, this, smA.action);
-                                        }
+                                        m_coList[smA.UID].reset(ClientMonster::create(smA.UID, this, smA.action));
                                         return;
                                     }
                             }
@@ -215,7 +195,7 @@ void ProcessRun::net_ACTION(const uint8_t *bufPtr, size_t)
             }
         case UID_NPC:
             {
-                m_coList[smA.UID] = std::make_unique<ClientNPC>(smA.UID, this, smA.action);
+                m_coList[smA.UID].reset(new ClientNPC(smA.UID, this, smA.action));
                 return;
             }
         default:
@@ -240,48 +220,12 @@ void ProcessRun::net_CORECORD(const uint8_t *bufPtr, size_t)
     switch(uidf::getUIDType(smCOR.UID)){
         case UID_MON:
             {
-                switch(const auto monID = uidf::getMonsterID(smCOR.UID)){
-                    case DBCOM_MONSTERID(u8"变异骷髅"):
-                        {
-                            m_coList[smCOR.UID].reset(new ClientTaoSkeleton(smCOR.UID, this, smCOR.action));
-                            break;
-                        }
-                    case DBCOM_MONSTERID(u8"神兽"):
-                        {
-                            m_coList[smCOR.UID].reset(new ClientTaoDog(smCOR.UID, this, smCOR.action));
-                            break;
-                        }
-                    case DBCOM_MONSTERID(u8"食人花"):
-                        {
-                            m_coList[smCOR.UID].reset(new ClientCannibalPlant(smCOR.UID, this, smCOR.action));
-                            break;
-                        }
-                    case DBCOM_MONSTERID(u8"角蝇"):
-                        {
-                            m_coList[smCOR.UID].reset(new ClientBugbatMaggot(smCOR.UID, this, smCOR.action));
-                            break;
-                        }
-                    case DBCOM_MONSTERID(u8"稻草人"):
-                        {
-                            m_coList[smCOR.UID].reset(new ClientScarecrow(smCOR.UID, this, smCOR.action));
-                            break;
-                        }
-                    default:
-                        {
-                            if(DBCOM_MONSTERRECORD(monID).guard){
-                                m_coList[smCOR.UID] = std::make_unique<ClientGuard>(smCOR.UID, this, smCOR.action);
-                            }
-                            else{
-                                m_coList[smCOR.UID] = std::make_unique<ClientMonster>(smCOR.UID, this, smCOR.action);
-                            }
-                            break;
-                        }
-                }
+                m_coList[smCOR.UID].reset(ClientMonster::create(smCOR.UID, this, smCOR.action));
                 break;
             }
         case UID_PLY:
             {
-                m_coList[smCOR.UID] = std::make_unique<Hero>(smCOR.UID, this, smCOR.action);
+                m_coList[smCOR.UID].reset(new Hero(smCOR.UID, this, smCOR.action));
                 queryPlayerWLDesp(smCOR.UID);
                 break;
             }

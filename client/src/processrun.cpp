@@ -1467,7 +1467,7 @@ void ProcessRun::onActionSpawn(uint64_t uid, const ActionNode &action)
         return;
     }
 
-    switch(const auto monID = uidf::getMonsterID(uid)){
+    switch(uidf::getMonsterID(uid)){
         case DBCOM_MONSTERID(u8"变异骷髅"):
             {
                 m_actionBlocker.insert(uid);
@@ -1505,30 +1505,9 @@ void ProcessRun::onActionSpawn(uint64_t uid, const ActionNode &action)
                 queryCORecord(uid);
                 return;
             }
-        case DBCOM_MONSTERID(u8"食人花"):
-            {
-                m_coList[uid].reset(new ClientCannibalPlant(uid, this, action));
-                return;
-            }
-        case DBCOM_MONSTERID(u8"角蝇"):
-            {
-                m_coList[uid].reset(new ClientBugbatMaggot(uid, this, action));
-                return;
-            }
-        case DBCOM_MONSTERID(u8"稻草人"):
-            {
-                m_coList[uid].reset(new ClientScarecrow(uid, this, action));
-                return;
-            }
         default:
             {
-                if(DBCOM_MONSTERRECORD(monID).guard){
-                    m_coList[uid].reset(new ClientGuard(uid, this, action));
-                }
-                else{
-                    m_coList[uid].reset(new ClientMonster(uid, this, action));
-                }
-
+                m_coList[uid].reset(ClientMonster::create(uid, this, action));
                 queryCORecord(uid);
                 return;
             }

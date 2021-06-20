@@ -31,6 +31,10 @@
 #include "pngtexoffdb.hpp"
 #include "clienttaodog.hpp"
 #include "clienttaoskeleton.hpp"
+#include "clientscarecrow.hpp"
+#include "clientbugbatmaggot.hpp"
+#include "clientcannibalplant.hpp"
+#include "clientguard.hpp"
 #include "creaturemovable.hpp"
 #include "clientargparser.hpp"
 #include "clientpathfinder.hpp"
@@ -657,6 +661,41 @@ int ClientMonster::currStep() const
         default:
             {
                 return 0;
+            }
+    }
+}
+
+ClientMonster *ClientMonster::create(uint64_t uid, ProcessRun *proc, const ActionNode &action)
+{
+    switch(const auto monID = uidf::getMonsterID(uid)){
+        case DBCOM_MONSTERID(u8"变异骷髅"):
+            {
+                return new ClientTaoSkeleton(uid, proc, action);
+            }
+        case DBCOM_MONSTERID(u8"神兽"):
+            {
+                return new ClientTaoDog(uid, proc, action);
+            }
+        case DBCOM_MONSTERID(u8"食人花"):
+            {
+                return new ClientCannibalPlant(uid, proc, action);
+            }
+        case DBCOM_MONSTERID(u8"角蝇"):
+            {
+                return new ClientBugbatMaggot(uid, proc, action);
+            }
+        case DBCOM_MONSTERID(u8"稻草人"):
+            {
+                return new ClientScarecrow(uid, proc, action);
+            }
+        default:
+            {
+                if(DBCOM_MONSTERRECORD(monID).guard){
+                    return new ClientGuard(uid, proc, action);
+                }
+                else{
+                    return new ClientMonster(uid, proc, action);
+                }
             }
     }
 }

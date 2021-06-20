@@ -131,4 +131,7 @@ class ClientMonster: public CreatureMovable
 
     public:
         bool deadFadeOut() override;
+
+    public:
+        static ClientMonster *create(uint64_t, ProcessRun *, const ActionNode &);
 };
