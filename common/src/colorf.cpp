@@ -16,139 +16,105 @@
  * =====================================================================================
  */
 
-#include <cmath>
-#include <cstdio>
-#include <cstring>
+#include <regex>
 #include "strf.hpp"
 #include "colorf.hpp"
 #include "fflerror.hpp"
 
-uint32_t colorf::string2RGBA(const char *colorString)
+#define _REGEX_COL_0_255 R"#(((?:0x[0-9a-f]{1,2})|(?:\d)|(?:[^0]\d)|(?:1\d\d)|(?:2[0-4]\d)|(?:25[0-5])))#"
+//                           -   ---------------     --     ------     -----     --------     -------
+//                           ^          ^            ^         ^         ^          ^            ^
+//                           |          |            |         |         |          |            |
+//                           |          |            |         |         |          |            +----------  250  ~ 255
+//                           |          |            |         |         |          +-----------------------  200  ~ 249
+//                           |          |            |         |         +----------------------------------  100  ~ 199
+//                           |          |            |         +--------------------------------------------  19   ~ 99
+//                           |          |            +------------------------------------------------------  0    ~ 9
+//                           |          +-------------------------------------------------------------------  0x00 ~ 0xff
+//                           +------------------------------------------------------------------------------  create a group
+
+#define _try_match_named_color(color, colorName, baseColor) \
+do{ \
+    if(std::regex_match(color, std::regex("^" colorName "$", std::regex::icase))){ \
+        return baseColor + A_SHF(255); \
+    } \
+\
+    if(std::regex_match(color, std::regex("^" colorName R"#(\+)#" _REGEX_COL_0_255 "$", std::regex::icase))){ \
+        return baseColor + A_SHF(std::stoi(std::strstr(color, "+"))); \
+    } \
+}while(0)
+
+uint32_t colorf::string2RGBA(const char *color)
 {
-    fflassert(str_haschar(colorString));
+    fflassert(str_haschar(color));
 
     // only for some color
     // check www.w3schools.com/cssref/css_colors.asp
 
-    const auto fn_A_SHF = [colorString]() -> uint32_t
-    {
-        if(const auto p = std::strstr(colorString, "+")){
-            int alpha = 0;
-            try{
-                alpha = std::stoi(p + 1);
-            }
-            catch(...){
-                alpha = -1;
-            }
+    _try_match_named_color(color, "red"    ,  colorf::RED    );
+    _try_match_named_color(color, "green"  ,  colorf::GREEN  );
+    _try_match_named_color(color, "blue"   ,  colorf::BLUE   );
+    _try_match_named_color(color, "yellow" ,  colorf::YELLOW );
+    _try_match_named_color(color, "cyan"   ,  colorf::CYAN   );
+    _try_match_named_color(color, "magenta",  colorf::MAGENTA);
+    _try_match_named_color(color, "black"  ,  colorf::BLACK  );
+    _try_match_named_color(color, "grey"   ,  colorf::GREY   );
+    _try_match_named_color(color, "white"  ,  colorf::WHITE  );
 
-            if(alpha < 0){
-                throw fflerror("invalid color string: %s", colorString);
-            }
-            else{
-                return A_SHF(std::min<int>(alpha, 255));
-            }
-        }
-        return A_SHF(255);
-    };
+    std::string colorString = color;
+    std::match_results<std::string::iterator> matchResult;
 
-    const auto fnStartWith = [colorString](const char *s) -> bool
-    {
-        return std::strncmp(colorString, s, std::strlen(s)) == 0;
-    };
+    // matches RGB(xx, xx, xx)
+    std::regex rgbExpr(R"#(^\s*rgb\s*\(\s*)#" _REGEX_COL_0_255 R"#(\s*,\s*)#" _REGEX_COL_0_255 R"#(\s*,\s*)#" _REGEX_COL_0_255 R"#(\s*\)\s*$)#", std::regex::icase);
 
-    if(false
-            || fnStartWith("WHITE")
-            || fnStartWith("White")
-            || fnStartWith("white")){
-        return colorf::WHITE + fn_A_SHF();
-    }
-
-    if(false
-            || fnStartWith("RED")
-            || fnStartWith("Red")
-            || fnStartWith("red")){
-        return colorf::RED + fn_A_SHF();
-    }
-
-    if(false
-            || fnStartWith("GREEN")
-            || fnStartWith("Green")
-            || fnStartWith("green")){
-        return colorf::GREEN + fn_A_SHF();
-    }
-
-    if(false
-            || fnStartWith("BLUE")
-            || fnStartWith("Blue")
-            || fnStartWith("blue")){
-        return colorf::BLUE + fn_A_SHF();
-    }
-
-    if(false
-            || fnStartWith("YELLOW")
-            || fnStartWith("Yellow")
-            || fnStartWith("yellow")){
-        return colorf::YELLOW + fn_A_SHF();
-    }
-
-    if(false
-            || fnStartWith("MAGENTA")
-            || fnStartWith("Magenta")
-            || fnStartWith("magenta")){
-        return colorf::MAGENTA + fn_A_SHF();
-    }
-
-    for(const auto rf: {"0x%x", "0x%X", "0X%x", "0X%X", "%d"}){
-        for(const auto gf: {"0x%x", "0x%X", "0X%x", "0X%X", "%d"}){
-            for(const auto bf: {"0x%x", "0x%X", "0X%x", "0X%X", "%d"}){
-                for(const auto af: {"0x%x", "0x%X", "0X%x", "0X%X", "%d"}){
-                    int r = 0;
-                    int g = 0;
-                    int b = 0;
-                    int a = 0;
-                    if(false
-                            || std::sscanf(colorString, str_printf("RGBA(%s,%s,%s,%s)", rf, gf, bf, af).c_str(), &r, &g, &b, &a) == 4
-                            || std::sscanf(colorString, str_printf("Rgba(%s,%s,%s,%s)", rf, gf, bf, af).c_str(), &r, &g, &b, &a) == 4
-                            || std::sscanf(colorString, str_printf("rgba(%s,%s,%s,%s)", rf, gf, bf, af).c_str(), &r, &g, &b, &a) == 4){
-                        if(false
-                                || r < 0
-                                || g < 0
-                                || b < 0
-                                || a < 0){
-                            throw fflerror("invalid color: %s", colorString);
-                        }
-                        else{
-                            return RGBA(round255(r), round255(g), round255(b), round255(a));
-                        }
-                    }
-                }
+    if(std::regex_match(colorString.begin(), colorString.end(), matchResult, rgbExpr)){
+        int r = 0;
+        int g = 0;
+        int b = 0;
+        for(int i = 0; const auto &m: matchResult){
+            switch(i++){
+                case 1 : r = std::stoi(m.str()); break;
+                case 2 : g = std::stoi(m.str()); break;
+                case 3 : b = std::stoi(m.str()); break;
+                default:                         break;
             }
         }
+
+        if(true
+                && r >= 0 && r < 256
+                && g >= 0 && g < 256
+                && b >= 0 && b < 256){ // should always be true if the regex is correct
+            return colorf::RGBA(r, g, b, 255);
+        }
+        throw bad_reach();
     }
 
-    for(const auto rf: {"0x%x", "0x%X", "0X%x", "0X%X", "%d"}){
-        for(const auto gf: {"0x%x", "0x%X", "0X%x", "0X%X", "%d"}){
-            for(const auto bf: {"0x%x", "0x%X", "0X%x", "0X%X", "%d"}){
-                int r = 0;
-                int g = 0;
-                int b = 0;
-                if(false
-                        || std::sscanf(colorString, str_printf("RGB(%s,%s,%s)", rf, gf, bf).c_str(), &r, &g, &b) == 3
-                        || std::sscanf(colorString, str_printf("Rgb(%s,%s,%s)", rf, gf, bf).c_str(), &r, &g, &b) == 3
-                        || std::sscanf(colorString, str_printf("rgb(%s,%s,%s)", rf, gf, bf).c_str(), &r, &g, &b) == 3){
-                    if(false
-                            || r < 0
-                            || g < 0
-                            || b < 0){
-                        throw fflerror("invalid color: %s", colorString);
-                    }
-                    else{
-                        return RGBA(round255(r), round255(g), round255(b), 255);
-                    }
-                }
+    // matches RGBA(xx, xx, xx, xx)
+    std::regex rgbaExpr(R"#(^\s*rgba\s*\(\s*)#" _REGEX_COL_0_255 R"#(\s*,\s*)#" _REGEX_COL_0_255 R"#(\s*,\s*)#" _REGEX_COL_0_255 R"#(\s*,\s*)#" _REGEX_COL_0_255 R"#(\s*\)\s*$)#", std::regex::icase);
+
+    if(std::regex_match(colorString.begin(), colorString.end(), matchResult, rgbaExpr)){
+        int r = 0;
+        int g = 0;
+        int b = 0;
+        int a = 0;
+        for(int i = 0; const auto &m: matchResult){
+            switch(i++){
+                case 1 : r = std::stoi(m.str()); break;
+                case 2 : g = std::stoi(m.str()); break;
+                case 3 : b = std::stoi(m.str()); break;
+                case 4 : a = std::stoi(m.str()); break;
+                default:                         break;
             }
         }
-    }
 
-    throw fflerror("invalid color string: %s", colorString);
+        if(true
+                && r >= 0 && r < 256
+                && g >= 0 && g < 256
+                && b >= 0 && b < 256
+                && a >= 0 && a < 256){ // should always be true if the regex is correct
+            return colorf::RGBA(r, g, b, a);
+        }
+        throw bad_reach();
+    }
+    throw fflerror("invalid color string: %s", color);
 }
