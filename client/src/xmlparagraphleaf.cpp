@@ -86,6 +86,17 @@ XMLParagraphLeaf::XMLParagraphLeaf(tinyxml2::XMLNode *pNode)
     if(type() == LEAF_UTF8GROUP){
         m_UTF8CharOff = utf8f::buildUTF8Off(UTF8Text());
     }
+
+    // pre-save for color() and bgColor(), these two get called very frequently in drawEx()
+    // colorf::string2RGBA() is expensive and shouldn't get called in tight loop
+
+    if(const auto colorStr = xmlf::findAttribute(xmlNode(), "color", true)){
+        m_fontColor = colorf::string2RGBA(colorStr);
+    }
+
+    if(const auto bgColorStr = xmlf::findAttribute(xmlNode(), "bgcolor", true)){
+        m_fontBGColor = colorf::string2RGBA(bgColorStr);
+    }
 }
 
 int XMLParagraphLeaf::markEvent(int event)
@@ -120,8 +131,8 @@ uint32_t XMLParagraphLeaf::peekUTF8Code(int leafOff) const
 
 std::optional<uint32_t> XMLParagraphLeaf::color() const
 {
-    if(const auto colorStr = xmlf::findAttribute(xmlNode(), "color", true)){
-        return colorf::string2RGBA(colorStr);
+    if(m_fontColor.has_value()){
+        return m_fontColor;
     }
 
     if(hasEvent()){
@@ -137,10 +148,7 @@ std::optional<uint32_t> XMLParagraphLeaf::color() const
 
 std::optional<uint32_t> XMLParagraphLeaf::bgColor() const
 {
-    if(const auto bgColorStr = xmlf::findAttribute(xmlNode(), "bgcolor", true)){
-        return colorf::string2RGBA(bgColorStr);
-    }
-    return {};
+    return m_fontBGColor;
 }
 
 std::optional<uint8_t> XMLParagraphLeaf::font() const

@@ -59,6 +59,10 @@ class XMLParagraphLeaf
         std::vector<int> m_UTF8CharOff;
 
     private:
+        std::optional<uint32_t> m_fontColor;
+        std::optional<uint32_t> m_fontBGColor;
+
+    private:
         int m_event;
 
     public:
