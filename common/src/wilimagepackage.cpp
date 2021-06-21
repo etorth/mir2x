@@ -125,33 +125,37 @@ void WilImagePackage::decode(uint32_t *imageBuffer, uint32_t color0, uint32_t co
         dstNowPosInRow = 0;
 
         while(srcNowPos < srcEndPos){
-            const uint16_t hdCode  = m_currImageBuffer[srcNowPos++];
-            const uint16_t cntCopy = m_currImageBuffer[srcNowPos++];
+            const uint16_t hdCode      = m_currImageBuffer[srcNowPos++];
+            const uint16_t hdCopyCount = m_currImageBuffer[srcNowPos++];
+
+            // TODO some images have row can overflow to next row, i.e.: W-Hum.wil index 09010
+            // this can causes issue if currently is last row, if not last row then next row decoding can override it
+            const int rowCopyCount = std::max<int>(0, m_currImageInfo.width - to_d(dstNowPosInRow));
 
             switch(hdCode){
                 case 0XC0: // transparent
-                    memset_u32(imageBuffer + row * m_currImageInfo.width + dstNowPosInRow, cntCopy, 0X00000000);
+                    memset_u32(imageBuffer + row * m_currImageInfo.width + dstNowPosInRow, rowCopyCount, 0X00000000);
                     break;
                 case 0XC1:
-                    memcpy_u16_2_u32(imageBuffer + row * m_currImageInfo.width + dstNowPosInRow, m_currImageBuffer.data() + srcNowPos, cntCopy, color0);
-                    srcNowPos += cntCopy;
+                    memcpy_u16_2_u32(imageBuffer + row * m_currImageInfo.width + dstNowPosInRow, m_currImageBuffer.data() + srcNowPos, rowCopyCount, color0);
+                    srcNowPos += hdCopyCount;
                     break;
                 case 0XC2:
-                    memcpy_u16_2_u32(imageBuffer + row * m_currImageInfo.width + dstNowPosInRow, m_currImageBuffer.data() + srcNowPos, cntCopy, color1);
-                    srcNowPos += cntCopy;
+                    memcpy_u16_2_u32(imageBuffer + row * m_currImageInfo.width + dstNowPosInRow, m_currImageBuffer.data() + srcNowPos, rowCopyCount, color1);
+                    srcNowPos += hdCopyCount;
                     break;
                 case 0XC3:
-                    memcpy_u16_2_u32(imageBuffer + row * m_currImageInfo.width + dstNowPosInRow, m_currImageBuffer.data() + srcNowPos, cntCopy, color2);
-                    srcNowPos += cntCopy;
+                    memcpy_u16_2_u32(imageBuffer + row * m_currImageInfo.width + dstNowPosInRow, m_currImageBuffer.data() + srcNowPos, rowCopyCount, color2);
+                    srcNowPos += hdCopyCount;
                     break;
                 default:
                     throw bad_reach();
             }
-            dstNowPosInRow += cntCopy;
+            dstNowPosInRow += hdCopyCount;
         }
 
         // TODO wired code detected
-        // found image with dstNowPosInRow >m_currImageInfo.width, i.e.: W-Hum.wil index 09010
+        // found image with dstNowPosInRow > m_currImageInfo.width, i.e.: W-Hum.wil index 09010
 
         // this means the row data can overflow to next row, suprcode/mir2 checks each u16 to avoid this
         // if not at last row it's fine since decoding for next row override it, but the last row may have issue
