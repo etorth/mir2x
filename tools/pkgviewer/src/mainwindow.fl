@@ -20,6 +20,12 @@ decl {\#include <iostream>} {private local
 decl {\#include "imgf.hpp"} {private local
 }
 
+decl {\#include "colorf.hpp"} {private local
+}
+
+decl {\#include "alphaf.hpp"} {private local
+}
+
 decl {\#include "strf.hpp"} {private local
 }
 
@@ -188,11 +194,11 @@ class MainWindow {} {
                     g_WilPackage->decode(&(stvBuf[0]), 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF);
 
                     if(AutoAlphaEnabled()){
-                        CalcPixelAutoAlpha(stvBuf.data(), stvBuf.size());
+                        alphaf::autoAlpha(stvBuf.data(), stvBuf.size());
                     }
 
                     if(ShadowRemovalEnabled()){
-                        CalcShadowRemovalAlpha(stvBuf.data(), nW, nH, 0X80000000);
+                        alphaf::autoShadowRemove(stvBuf.data(), nW, nH, colorf::BLACK + colorf::A_SHF(0X80));
                     }
 
                     auto nDX = g_WilPackage->currImageInfo()->px;
@@ -222,7 +228,6 @@ class MainWindow {} {
 }}
             xywh {0 0 30 20} labelfont 4
             code0 {\#include <cstdint>}
-            code1 {\#include "autoalpha.hpp"}
           }
           MenuItem {} {
             label {Export all}
@@ -278,11 +283,11 @@ class MainWindow {} {
                     g_WilPackage->decode(stvBuf.data(), 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF);
 
                     if(AutoAlphaEnabled()){
-                        CalcPixelAutoAlpha(stvBuf.data(), stvBuf.size());
+                        alphaf::autoAlpha(stvBuf.data(), stvBuf.size());
                     }
 
                     if(ShadowRemovalEnabled()){
-                        CalcShadowRemovalAlpha(stvBuf.data(), nW, nH, 0X80000000);
+                        alphaf::autoShadowRemove(stvBuf.data(), nW, nH, colorf::BLACK + colorf::A_SHF(0X80));
                     }
 
                     auto nDX = g_WilPackage->currImageInfo()->px;
@@ -311,7 +316,6 @@ class MainWindow {} {
 }}
             xywh {20 20 30 20} labelfont 4 divider
             code0 {\#include "progressbarwindow.hpp"}
-            code1 {\#include "autoalpha.hpp"}
           }
           MenuItem {} {
             label Exit

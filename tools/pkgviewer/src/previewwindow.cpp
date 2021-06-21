@@ -19,7 +19,8 @@
 #include <string>
 #include <cstring>
 #include "totype.hpp"
-#include "autoalpha.hpp"
+#include "alphaf.hpp"
+#include "colorf.hpp"
 #include "flwrapper.hpp"
 #include "mainwindow.hpp"
 #include "previewwindow.hpp"
@@ -65,11 +66,11 @@ bool PreviewWindow::LoadImage()
     g_WilPackage->decode(m_Buf.data(), 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF);
 
     if(g_MainWindow->AutoAlphaEnabled()){
-        CalcPixelAutoAlpha(m_Buf.data(), m_Buf.size());
+        alphaf::autoAlpha(m_Buf.data(), m_Buf.size());
     }
 
     if(g_MainWindow->ShadowRemovalEnabled()){
-        CalcShadowRemovalAlpha(m_Buf.data(), nW, nH, 0X80000000);
+        alphaf::autoShadowRemove(m_Buf.data(), nW, nH, colorf::BLACK + colorf::A_SHF(0X80));
     }
 
     // Fl_RGB_Image won't copy the RGBA buffer
