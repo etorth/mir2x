@@ -33,7 +33,7 @@ static uint32_t color_u16_2_u32(uint16_t srcColor, uint32_t modColor)
     auto g = to_u8((srcColor & 0X07E0) >> 3);
     auto b = to_u8((srcColor & 0X001F) << 3);
 
-    if(colorf::RGBMask(modColor) != colorf::RGB(255, 255, 255)){
+    if(colorf::maskRGB(modColor) != colorf::RGB(255, 255, 255)){
         r = colorf::round255(to_df(r) * colorf::R(modColor) / 255.0);
         g = colorf::round255(to_df(g) * colorf::G(modColor) / 255.0);
         b = colorf::round255(to_df(b) * colorf::B(modColor) / 255.0);

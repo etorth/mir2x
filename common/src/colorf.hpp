@@ -53,7 +53,7 @@ namespace colorf
         return R_SHF(r) | G_SHF(g) | B_SHF(b);
     }
 
-    constexpr uint32_t RGBMask(uint32_t color)
+    constexpr uint32_t maskRGB(uint32_t color)
     {
         return color & (R_MASK | G_MASK | B_MASK);
     }
