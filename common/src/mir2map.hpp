@@ -360,17 +360,17 @@ class Mir2Map final
                         block.cell[ic].light.color  = lightColor(ix, iy) & 0X03;
                     }
 
-                    for(const int io: {0, 1}){
-                        if(objectValid(ix, iy, io, imgDB)){
-                            block.cell[ic].obj[io].valid = 1;
-                            block.cell[ic].obj[io].texID = object(ix, iy, io) & 0X00FFFFFF;
-                            block.cell[ic].obj[io].depth = groundObjectValid(ix, iy, io, imgDB) ? OBJD_GROUND : OBJD_OVERGROUND0;
+                    for(const int objIndex: {0, 1}){
+                        if(objectValid(ix, iy, objIndex, imgDB)){
+                            block.cell[ic].obj[objIndex].valid = 1;
+                            block.cell[ic].obj[objIndex].texID = object(ix, iy, objIndex) & 0X00FFFFFF;
+                            block.cell[ic].obj[objIndex].depth = groundObjectValid(ix, iy, objIndex, imgDB) ? OBJD_GROUND : OBJD_OVERGROUND0;
 
-                            if(aniObjectValid(ix, iy, io, imgDB)){
-                                block.cell[ic].obj[io].animated   = 1;
-                                block.cell[ic].obj[io].alpha      = to_u8((object(ix, iy, io) & 0X80000000) >> (7 + 8 + 16));
-                                block.cell[ic].obj[io].tickType   = to_u8((object(ix, iy, io) & 0X70000000) >> (4 + 8 + 16));
-                                block.cell[ic].obj[io].frameCount = to_u8((object(ix, iy, io) & 0X0F000000) >> (0 + 8 + 16));
+                            if(aniObjectValid(ix, iy, objIndex, imgDB)){
+                                block.cell[ic].obj[objIndex].animated   = 1;
+                                block.cell[ic].obj[objIndex].alpha      = to_u8((object(ix, iy, objIndex) & 0X80000000) >> (7 + 8 + 16));
+                                block.cell[ic].obj[objIndex].tickType   = to_u8((object(ix, iy, objIndex) & 0X70000000) >> (4 + 8 + 16));
+                                block.cell[ic].obj[objIndex].frameCount = to_u8((object(ix, iy, objIndex) & 0X0F000000) >> (0 + 8 + 16));
                             }
                         }
                     }
