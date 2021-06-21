@@ -21,6 +21,7 @@
 #include <vector>
 #include <memory>
 #include <unordered_map>
+#include <FL/Fl_Image.H>
 #include <FL/Fl_RGB_Image.H>
 #include "totype.hpp"
 #include "fflerror.hpp"

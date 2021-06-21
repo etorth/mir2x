@@ -26,17 +26,14 @@
 #include "imagecache.hpp"
 #include "animationdb.hpp"
 #include "aboutwindow.hpp"
-#include "animationdraw.hpp"
-#include "progressbarwindow.hpp"
 #include "layerviewwindow.hpp"
+#include "progressbarwindow.hpp"
 #include "layerbrowserwindow.hpp"
 #include "cropconfigurewindow.hpp"
 #include "selectsettingwindow.hpp"
-#include "animationselectwindow.hpp"
 #include "attributeselectwindow.hpp"
 
 MainWindow                      *g_mainWindow               = nullptr;
-AnimationSelectWindow           *g_animationSelectWindow    = nullptr;
 AboutWindow                     *g_aboutWindow              = nullptr;
 AttributeSelectWindow           *g_attributeGridWindow      = nullptr;
 AttributeSelectWindow           *g_attributeSelectWindow    = nullptr;
@@ -47,7 +44,6 @@ ImageDB                         *g_imageDB                  = nullptr;
 EditorMap                        g_editorMap;
 ImageCache                       g_imageCache;
 AnimationDB                      g_animationDB;
-AnimationDraw                    g_animationDraw;
 std::string                      g_wilFilePathName;
 std::string                      g_workingPathName;
 
@@ -59,7 +55,6 @@ int main()
     g_workingPathName       = "";
 
     g_mainWindow            = new MainWindow();
-    g_animationSelectWindow = new AnimationSelectWindow();
     g_aboutWindow           = new AboutWindow();
     g_attributeSelectWindow = new AttributeSelectWindow();
     g_attributeGridWindow   = new AttributeSelectWindow();

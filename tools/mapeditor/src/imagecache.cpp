@@ -21,6 +21,7 @@
 #include "imagedb.hpp"
 #include "imagecache.hpp"
 #include "mainwindow.hpp"
+#include <FL/Fl_Shared_Image.H>
 
 extern ImageDB *g_imageDB;
 extern MainWindow *g_mainWindow;

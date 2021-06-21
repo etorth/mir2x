@@ -37,13 +37,12 @@
 #include "mainwindow.hpp"
 #include "imagecache.hpp"
 #include "animationdb.hpp"
-#include "animationdraw.hpp"
-#include "animationselectwindow.hpp"
 #include "attributeselectwindow.hpp"
 
 extern ImageDB *g_imageDB;
 extern EditorMap g_editorMap;
 extern ImageCache g_imageCache;
+extern AnimationDB g_animationDB;
 
 extern MainWindow *g_mainWindow;
 extern AttributeSelectWindow *g_attributeSelectWindow;
@@ -79,6 +78,9 @@ void DrawArea::draw()
 
     drawObject(OBJD_GROUND);
     drawObject(OBJD_OVERGROUND0);
+
+    drawAnimationTest();
+
     drawObject(OBJD_OVERGROUND1);
     drawObject(OBJD_SKY);
 
@@ -346,6 +348,23 @@ void DrawArea::drawObject(int depth)
                 }
             }
         }
+    }
+}
+
+void DrawArea::drawAnimationTest()
+{
+    if(!g_mainWindow->enableTest()){
+        return;
+    }
+
+    if(auto [dx, dy, frame] = g_animationDB.getFrame(); frame){
+        const auto [offsetX, offsetY] = offset();
+        const auto [mouseGX, mouseGY] = mouseGrid();
+
+        const int startX = mouseGX * SYS_MAPGRIDXP - offsetX;
+        const int startY = mouseGY * SYS_MAPGRIDYP - offsetY;
+
+        drawImage(frame, startX + dx, startY + dy);
     }
 }
 

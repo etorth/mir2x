@@ -16,63 +16,53 @@
  * =====================================================================================
  */
 
-#include <cstring>
-#include <filesystem>
-#include "hexstr.hpp"
-#include "totype.hpp"
+#include "mainwindow.hpp"
 #include "animationdb.hpp"
 
-bool AnimationDB::Load(const char *szDBPath)
+extern MainWindow *g_mainWindow;
+AnimationDB::AnimationDB()
+    : m_animationList
+      {
+          { // animation 0
+              {
+                  -32,
+                  -89,
+                  {
+                      #include "mon_12.wil.index_00040.inc"
+                  },
+              },
+
+              {
+                  -33,
+                  -87,
+                  {
+                      #include "mon_12.wil.index_00041.inc"
+                  },
+              },
+
+              {
+                  -33,
+                  -86,
+                  {
+                      #include "mon_12.wil.index_00042.inc"
+                  },
+              },
+
+              {
+                  -33,
+                  -87,
+                  {
+                      #include "mon_12.wil.index_00043.inc"
+                  },
+              },
+          },
+      }
+{}
+
+Animation *AnimationDB::getAnimation()
 {
-    // 1. check argument
-    if(!(szDBPath && std::strlen(szDBPath))){
-        return false;
+    if(const auto index = g_mainWindow->getAnimationIndex(); index >= 0){
+        return &(m_animationList.at(index));
     }
-
-    // 2. record this path
-    m_dbPath = szDBPath;
-    while(m_dbPath.back() == '/'){
-        m_dbPath.pop_back();
-    }
-
-    if(m_dbPath.empty()){
-        return false;
-    }
-
-    for(auto &p: std::filesystem::directory_iterator(m_dbPath.c_str())){
-        if(!p.is_regular_file()){
-            continue;
-        }
-
-        auto szFileName = p.path().filename().u8string();
-        if(szFileName.size() != (18 + 4)){ continue; }
-        if(szFileName[0] != '0'){ continue; }
-        if((szFileName[1] != '0') && (szFileName[1] != '1')){ continue; }
-        if((szFileName.substr(18) != u8".PNG") && (szFileName.substr(18) != u8".png")){ continue; }
-
-        // 4. ok it's time to get the info
-        uint32_t nMonsterID = 0;
-        uint32_t nAction    = 0;
-        uint32_t nDirection = 0;
-        uint32_t nFrame     = 0;
-
-        auto nDesc = hexstr::to_hex<uint32_t, 4>(reinterpret_cast<const char *>(szFileName.c_str()));
-
-        nMonsterID = ((nDesc & 0X00FFF000) >> 12);
-        nAction    = ((nDesc & 0X00000F00) >>  8);
-        nDirection = ((nDesc & 0X000000E0) >>  5);
-        nFrame     = ((nDesc & 0X0000001F) >>  0);
-
-        // we refuse to accept frame with MonsterID == 0
-        if(nMonsterID == 0){ continue; }
-
-        auto nOffset = hexstr::to_hex<uint32_t, 4>(reinterpret_cast<const char *>(szFileName.c_str() + 10));
-
-        int nDX = ((szFileName[8] == '0') ? -1 : 1) * to_d((nOffset & 0XFFFF0000) >> 16);
-        int nDY = ((szFileName[9] == '0') ? -1 : 1) * to_d((nOffset & 0X0000FFFF) >>  0);
-
-        Add(nMonsterID, nAction, nDirection, nFrame, (szFileName[1] == '1'), nDX, nDY, ((m_dbPath + "/") + reinterpret_cast<const char *>(szFileName.c_str())));
-        // since we didn't update this directory, so we don't need rewinddir()
-    }
-    return true;
+    return nullptr;
 }

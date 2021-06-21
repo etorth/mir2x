@@ -17,70 +17,34 @@
  */
 
 #pragma once
-#include <string>
+#include <tuple>
+#include <vector>
+#include "raiitimer.hpp"
 #include "animation.hpp"
 
 class AnimationDB
 {
     private:
-        std::vector<Animation>  m_animationV;
-        Animation               m_emptyRecord;
-        std::string             m_dbPath;
+        hres_timer m_timer;
+
+    private:
+        std::vector<Animation> m_animationList;
 
     public:
-        AnimationDB()
-            : m_animationV()
-            , m_emptyRecord()
-            , m_dbPath("")
-        {}
-        ~AnimationDB() = default;
+        AnimationDB();
 
     public:
-        // TODO: we return non-const ref here since we need to update it
-        Animation &RetrieveAnimation(uint32_t nMonsterID)
+        Animation *getAnimation();
+
+    public:
+        std::tuple<int, int, Fl_Image *> getFrame()
         {
-            for(auto &rstRecord: m_animationV){
-                if(rstRecord.MonsterID() == nMonsterID){
-                    return rstRecord;
-                }
+            if(auto aniPtr = getAnimation()){
+                const auto aniFrameCount = aniPtr->frameCount();
+                fflassert(aniFrameCount > 0);
+
+                return aniPtr->frame((m_timer.diff_msec() / 20) % aniFrameCount);
             }
-
-            return m_emptyRecord;
+            return {0, 0, nullptr};
         }
-
-        size_t Size()
-        {
-            return m_animationV.size();
-        }
-
-        size_t Count()
-        {
-            return Size();
-        }
-
-        // TODO: when using this function, we need to Size() function
-        Animation &Get(size_t nVID)
-        {
-            return m_animationV[nVID];
-        }
-
-        template<typename... T> bool Add(uint32_t nMonsterID, uint32_t nAction, uint32_t nDirection, uint32_t nFrame, bool bShadow, T... stT)
-        {
-            if(false
-                    || nMonsterID ==  0
-                    || nAction    >= 16
-                    || nDirection >=  8
-                    || nFrame     >= 32){ return false; }
-
-            for(auto &rstRecord: m_animationV){
-                if(rstRecord.MonsterID() == nMonsterID){
-                    return rstRecord.Add(nAction, nDirection, nFrame, bShadow, std::forward<T>(stT)...);
-                }
-            }
-
-            m_animationV.emplace_back(nMonsterID);
-            return m_animationV.back().Add(nAction, nDirection, nFrame, bShadow, std::forward<T>(stT)...);
-        }
-    public:
-        bool Load(const char *);
 };

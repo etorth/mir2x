@@ -65,12 +65,6 @@ decl {\#include "editormap.hpp"} {private local
 decl {\#include "imagecache.hpp"} {private local
 }
 
-decl {\#include "animationdraw.hpp"} {private local
-}
-
-decl {\#include "animationselectwindow.hpp"} {private local
-}
-
 decl {\#include <FL/Fl_Native_File_Chooser.H>} {public local
 }
 
@@ -86,7 +80,7 @@ class MainWindow {} {
 		default :          break;
 	}
 }}
-      xywh {66 118 985 690} type Double labelfont 4 resizable visible
+      xywh {55 121 985 690} type Double labelfont 4 resizable visible
     } {
       Fl_Box m_drawArea {
         xywh {0 20 965 627} labelfont 4 resizable
@@ -501,61 +495,20 @@ g_layerBrowserWindow->showAll();}
           xywh {0 0 70 20}
         } {
           MenuItem m_menuItemEnableTest {
-            label {Enable Test                }
-            callback {{
-    CenterAnimation();
-}}
-            xywh {0 0 34 20} type Toggle divider
+            label {Enable Test     }
+            xywh {0 0 34 20} type Toggle labelfont 4 divider
           }
-          MenuItem {} {
-            label {Animation DB}
-            callback {{
-    // set test animation db here
-    Fl_Native_File_Chooser stFileChooser;
-    stFileChooser.title("Set Test Animation Database Path...");
-    stFileChooser.options(Fl_Native_File_Chooser::NO_OPTIONS);
-    stFileChooser.type(Fl_Native_File_Chooser::BROWSE_DIRECTORY);
-
-    stFileChooser.directory(".");
-
-    switch(stFileChooser.show()){
-        case -1:
-            {
-                fl_alert("%s", stFileChooser.errmsg());
-                break;
-            }
-        case 1:
-            {
-                break;
-            }
-        default:
-            {
-                std::string szChooseDBPath = stFileChooser.filename();
-                std::replace(szChooseDBPath.begin(), szChooseDBPath.end(), '\\\\', '/');
-
-                extern AnimationDB g_animationDB;
-                if(!g_animationDB.Load(szChooseDBPath.c_str())){
-                    fl_alert("%s", "Load test animation database failed");
-                }
-
-                extern AnimationSelectWindow *g_animationSelectWindow;
-                g_animationSelectWindow->Load();
-                g_animationSelectWindow->showAll();
-
-                break;
-            }
-    }
-}}
-            xywh {0 0 34 20} labelfont 4
-            code0 {\#include "animationdb.hpp"}
+          MenuItem m_menuItemTestAnimation0 {
+            label {Animation 0}
+            xywh {0 0 34 20} type Radio value 1 labelfont 4
           }
-          MenuItem {} {
-            label {Animation Configuration      }
-            callback {{
-    extern AnimationSelectWindow *g_animationSelectWindow;
-    g_animationSelectWindow->showAll();
-}}
-            xywh {10 10 34 20} labelfont 4
+          MenuItem m_menuItemTestAnimation1 {
+            label {Animation 1}
+            xywh {20 20 34 20} type Radio labelfont 4
+          }
+          MenuItem m_menuItemTestAnimation2 {
+            label {Animation 2}
+            xywh {10 10 34 20} type Radio labelfont 4
           }
         }
         Submenu {} {
@@ -741,33 +694,6 @@ g_aboutWindow->showAll();}
     code {{
     ((MainWindow *)(window))->update(100);
     Fl::repeat_timeout(0.1, updateFrame, window);
-}} {}
-  }
-  Function {UpdateAnimationFrame(void *)} {return_type {static void}
-  } {
-    code {{
-    extern EditorMap g_editorMap;
-    extern MainWindow *g_mainWindow;
-    extern AnimationDB g_animationDB;
-    extern AnimationDraw g_animationDraw;
-
-    if(g_editorMap.valid() && g_animationDraw.MonsterID){
-        auto &rstRecord = g_animationDB.RetrieveAnimation(g_animationDraw.MonsterID);
-        if(rstRecord.Valid() && rstRecord.DirectionValid(g_animationDraw.Action, g_animationDraw.Direction)){
-            if(rstRecord.FrameValid(g_animationDraw.Action, g_animationDraw.Direction, g_animationDraw.Frame + 1, true) && rstRecord.FrameValid(g_animationDraw.Action, g_animationDraw.Direction, g_animationDraw.Frame + 1, false)){
-                g_animationDraw.Frame = g_animationDraw.Frame + 1;
-            }else{
-                g_animationDraw.Frame = 0;
-            }
-
-            Fl::repeat_timeout(0.1, UpdateAnimationFrame);
-            g_mainWindow->redrawAll();
-            return;
-        }
-    }
-
-    Fl::remove_timeout(UpdateAnimationFrame);
-    g_mainWindow->redrawAll();
 }} {}
   }
   Function {enableShowTileLine()} {return_type bool
@@ -962,17 +888,6 @@ g_aboutWindow->showAll();}
   } {
     code {{
     return m_menuItemReversed->value();
-}} {}
-  }
-  Function {CenterAnimation()} {return_type void
-  } {
-    code {{
-    extern AnimationDraw g_animationDraw;
-    if(g_animationDraw.MonsterID){
-        const auto [offX, offY] = m_drawArea->offset();
-        g_animationDraw.X = offX + m_window->w() / 2;
-        g_animationDraw.Y = offY + m_window->h() / 2;
-    }
 }} {}
   }
   Function {checkScrollBar()} {return_type void
@@ -1197,5 +1112,22 @@ g_aboutWindow->showAll();}
   Function {autoShadow()} {return_type bool
   } {
     code {return m_menuItemAutoShadow->value();} {}
+  }
+  Function {getAnimationIndex()} {return_type int
+  } {
+    code {{
+    if(m_menuItemEnableTest->value()){
+        if(m_menuItemTestAnimation0->value()){
+            return 0;
+        }
+        else if(m_menuItemTestAnimation1->value()){
+            return 1;
+        }
+        else if(m_menuItemTestAnimation2->value()){
+            return 2;
+        }
+    }
+    return -1;
+}} {}
   }
 }
