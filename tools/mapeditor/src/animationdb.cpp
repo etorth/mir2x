@@ -90,6 +90,40 @@ AnimationDB::AnimationDB()
                   },
               },
           },
+
+          { // animation 2
+              {
+                  -24,
+                  -97,
+                  {
+                      #include "animation/mon_2.wil.index_0040.inc"
+                  },
+              },
+
+              {
+                  -21,
+                  -96,
+                  {
+                      #include "animation/mon_2.wil.index_0041.inc"
+                  },
+              },
+
+              {
+                  -20,
+                  -96,
+                  {
+                      #include "animation/mon_2.wil.index_0042.inc"
+                  },
+              },
+
+              {
+                  -22,
+                  -96,
+                  {
+                      #include "animation/mon_2.wil.index_0043.inc"
+                  },
+              },
+          },
       }
 {}
 
