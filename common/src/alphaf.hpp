@@ -22,64 +22,49 @@
 #include <cstdint>
 #include <cstddef>
 #include <algorithm>
+#include "colorf.hpp"
 #include "totype.hpp"
 #include "fflerror.hpp"
 
 namespace alphaf
 {
-    inline void autoAlpha(uint32_t *pData, size_t nDataLen)
+    inline void autoAlpha(uint32_t *data, size_t size)
     {
-        if(!(pData && nDataLen)){
-            throw fflerror("invalid buffer: (%p, %zu)", to_cvptr(pData), nDataLen);
-        }
+        fflassert(data);
+        fflassert(size > 0);
 
-        for(size_t nIndex = 0; nIndex < nDataLen; ++nIndex){
-            uint8_t a = ((pData[nIndex] & 0XFF000000) >> 24);
-
+        for(size_t i = 0; i < size; ++i){
+            uint8_t a = colorf::A(data[i]);
             if(a == 0){
-                pData[nIndex] = 0;
+                data[i] = 0;
                 continue;
             }
 
-            uint8_t r = ((pData[nIndex] & 0X00FF0000) >> 16);
-            uint8_t g = ((pData[nIndex] & 0X0000FF00) >>  8);
-            uint8_t b = ((pData[nIndex] & 0X000000FF) >>  0);
+            uint8_t r = colorf::R(data[i]);
+            uint8_t g = colorf::G(data[i]);
+            uint8_t b = colorf::B(data[i]);
 
             a = std::max<uint8_t>({r, g, b});
             if(a == 0){
-                pData[nIndex] = 0;
+                data[i] = 0;
                 continue;
             }
 
-            const auto fnRoundU8 = [](float c) -> uint8_t
-            {
-                const auto adjc = std::lround(c);
-                if(adjc <= 0){
-                    return 0;
-                }
-                else if(adjc >= 255){
-                    return 255;
-                }
-                else{
-                    return adjc;
-                }
-            };
+            r = colorf::round255(1.0 * r * 255.0 / a);
+            g = colorf::round255(1.0 * g * 255.0 / a);
+            b = colorf::round255(1.0 * b * 255.0 / a);
 
-            r = fnRoundU8(1.0 * r * 255.0 / a);
-            g = fnRoundU8(1.0 * g * 255.0 / a);
-            b = fnRoundU8(1.0 * b * 255.0 / a);
-
-            pData[nIndex] = (to_u32(a) << 24) | (to_u32(r) << 16) | (to_u32(g) << 8) | to_u32(b);
+            data[i] = colorf::RGBA(r, g, b, a);
         }
     }
 
-    inline void autoShadowRemove(uint32_t *pData, size_t nWidth, size_t nHeight, uint32_t nShadowColor)
+    inline void autoShadowRemove(uint32_t *data, size_t width, size_t height, uint32_t shadowColor)
     {
-        if(!(pData && nWidth && nHeight)){
-            throw fflerror("invalid buffer: (%p, %zu, %zu)", to_cvptr(pData), nWidth, nHeight);
-        }
+        fflassert(data);
+        fflassert(width > 0);
+        fflassert(height > 0);
 
-        if(nWidth < 3 || nHeight < 3){
+        if(width < 3 || height < 3){
             return;
         }
 
@@ -88,33 +73,35 @@ namespace alphaf
         //  1: has shadow color, but can be noise points
         //  2: shadow points for sure
 
-        std::vector<int> stvMark(nWidth * nHeight);
-        auto fnGetMarkRef = [nWidth, &stvMark](size_t nX, size_t nY) -> int &
+        std::vector<signed char> dataMarker(width * height);
+        const auto fn_marker_ref = [width, &dataMarker](size_t x, size_t y) -> signed char &
         {
-            return stvMark.at(nY * nWidth + nX);
+            return dataMarker.at(y * width + x);
         };
 
-        for(size_t nX = 0; nX < nWidth; ++nX){
-            for(size_t nY = 0; nY < nHeight; ++nY){
-                if(uint32_t nPixel = pData[nY * nWidth + nX]; nPixel & 0XFF000000){
+        for(size_t y = 0; y < height; ++y){
+            for(size_t x = 0; x < width; ++x){
+                if(const uint32_t pixelColor = data[y * width + x]; colorf::A(pixelColor) > 0){
                     // alpha not 0
                     // can be shadow pixels, noise points or normal points
 
-                    uint32_t nC1 = (nPixel & 0X00FF0000) >> 16;
-                    uint32_t nC2 = (nPixel & 0X0000FF00) >>  8;
-                    uint32_t nC3 = (nPixel & 0X000000FF) >>  0;
+                    const uint32_t r = colorf::R(pixelColor);
+                    const uint32_t g = colorf::G(pixelColor);
+                    const uint32_t b = colorf::B(pixelColor);
 
                     if(true
-                            && nC1 + nC2 + nC3 < 0X08 * 3
-                            && std::max<uint32_t>({nC1, nC2, nC3}) < 0X0C){
-                        fnGetMarkRef(nX, nY) = 1;
-                    }else{
-                        fnGetMarkRef(nX, nY) = -1;
+                            && r + g + b < 0X08 * 3
+                            && std::max<uint32_t>({r, g, b}) < 0X0C){
+                        fn_marker_ref(x, y) = 1;
                     }
-                }else{
+                    else{
+                        fn_marker_ref(x, y) = -1;
+                    }
+                }
+                else{
                     // alpha is 0
                     // can be grids between shadow pixels
-                    fnGetMarkRef(nX, nY) = 0;
+                    fn_marker_ref(x, y) = 0;
                 }
             }
         }
@@ -122,23 +109,23 @@ namespace alphaf
         // mark the 100% sure shadow points, strict step
         // can fail the edge of shadow area, shadow area too thin also fails
 
-        for(size_t nX = 1; nX < nWidth - 1; ++nX){
-            for(size_t nY = 1; nY < nHeight - 1; ++nY){
-                if(fnGetMarkRef(nX, nY) == 1){
+        for(size_t y = 1; y < height - 1; ++y){
+            for(size_t x = 1; x < width - 1; ++x){
+                if(fn_marker_ref(x, y) == 1){
                     if(true
-                            && fnGetMarkRef(nX - 1, nY - 1) > 0
-                            && fnGetMarkRef(nX + 1, nY - 1) > 0
-                            && fnGetMarkRef(nX - 1, nY + 1) > 0
-                            && fnGetMarkRef(nX + 1, nY + 1) > 0
+                            && fn_marker_ref(x - 1, y - 1) > 0
+                            && fn_marker_ref(x + 1, y - 1) > 0
+                            && fn_marker_ref(x - 1, y + 1) > 0
+                            && fn_marker_ref(x + 1, y + 1) > 0
 
-                            && fnGetMarkRef(nX, nY - 1) == 0
-                            && fnGetMarkRef(nX, nY + 1) == 0
-                            && fnGetMarkRef(nX - 1, nY) == 0
-                            && fnGetMarkRef(nX + 1, nY) == 0){
+                            && fn_marker_ref(x, y - 1) == 0
+                            && fn_marker_ref(x, y + 1) == 0
+                            && fn_marker_ref(x - 1, y) == 0
+                            && fn_marker_ref(x + 1, y) == 0){
 
-                        // check neighbors around it
+                        // checked neighbors around it
                         // mark as shadow points for 100% sure
-                        fnGetMarkRef(nX, nY) = 2;
+                        fn_marker_ref(x, y) = 2;
                     }
                 }
             }
@@ -147,36 +134,36 @@ namespace alphaf
         // after previous step, if a pixel is 1, then it must be a shadow pixel
         // now add back edge points
 
-        for(size_t nX = 1; nX < nWidth - 1; ++nX){
-            for(size_t nY = 1; nY < nHeight - 1; ++nY){
-                if(fnGetMarkRef(nX, nY) == 2){
-                    if(auto &nMark = fnGetMarkRef(nX - 1, nY - 1); nMark == 1){ nMark = 2; }
-                    if(auto &nMark = fnGetMarkRef(nX + 1, nY - 1); nMark == 1){ nMark = 2; }
-                    if(auto &nMark = fnGetMarkRef(nX - 1, nY + 1); nMark == 1){ nMark = 2; }
-                    if(auto &nMark = fnGetMarkRef(nX + 1, nY + 1); nMark == 1){ nMark = 2; }
+        for(size_t y = 1; y < height - 1; ++y){
+            for(size_t x = 1; x < width - 1; ++x){
+                if(fn_marker_ref(x, y) == 2){
+                    if(auto &mark = fn_marker_ref(x - 1, y - 1); mark == 1){ mark = 2; }
+                    if(auto &mark = fn_marker_ref(x + 1, y - 1); mark == 1){ mark = 2; }
+                    if(auto &mark = fn_marker_ref(x - 1, y + 1); mark == 1){ mark = 2; }
+                    if(auto &mark = fn_marker_ref(x + 1, y + 1); mark == 1){ mark = 2; }
                 }
             }
         }
 
         // try add back areas too thin
         // count 1 and 0, black areas can't have 0's around shadow color
-        for(size_t nX = 1; nX < nWidth - 1; ++nX){
-            for(size_t nY = 1; nY < nHeight - 1; ++nY){
-                if(fnGetMarkRef(nX, nY) == 1){
-                    int n11 = fnGetMarkRef(nX - 1, nY - 1) > 0;
-                    int n12 = fnGetMarkRef(nX + 1, nY - 1) > 0;
-                    int n13 = fnGetMarkRef(nX - 1, nY + 1) > 0;
-                    int n14 = fnGetMarkRef(nX + 1, nY + 1) > 0;
+        for(size_t y = 1; y < height - 1; ++y){
+            for(size_t x = 1; x < width - 1; ++x){
+                if(fn_marker_ref(x, y) == 1){
+                    const auto n11 = fn_marker_ref(x - 1, y - 1) > 0;
+                    const auto n12 = fn_marker_ref(x + 1, y - 1) > 0;
+                    const auto n13 = fn_marker_ref(x - 1, y + 1) > 0;
+                    const auto n14 = fn_marker_ref(x + 1, y + 1) > 0;
 
-                    int n01 = fnGetMarkRef(nX, nY - 1) == 0;
-                    int n02 = fnGetMarkRef(nX, nY + 1) == 0;
-                    int n03 = fnGetMarkRef(nX - 1, nY) == 0;
-                    int n04 = fnGetMarkRef(nX + 1, nY) == 0;
+                    const auto n01 = fn_marker_ref(x, y - 1) == 0;
+                    const auto n02 = fn_marker_ref(x, y + 1) == 0;
+                    const auto n03 = fn_marker_ref(x - 1, y) == 0;
+                    const auto n04 = fn_marker_ref(x + 1, y) == 0;
 
                     if(true
                             && n11 + n12 + n13 + n14 >= 2
                             && n01 + n02 + n03 + n04 >= 2){
-                        fnGetMarkRef(nX, nY) = 2;
+                        fn_marker_ref(x, y) = 2;
                     }
                 }
             }
@@ -185,16 +172,16 @@ namespace alphaf
         // fill those 0's inside 1's
         // edges can be filled, also area too thin can be filled
 
-        for(size_t nX = 0; nX < nWidth; ++nX){
-            for(size_t nY = 0; nY < nHeight; ++nY){
-                if(fnGetMarkRef(nX, nY) == 0){
-                    if((nX > 0) && (nX + 1 < nWidth) && (fnGetMarkRef(nX - 1, nY) == 2) && (fnGetMarkRef(nX + 1, nY) == 2)){
-                        fnGetMarkRef(nX, nY) = 2;
+        for(size_t y = 0; y < height; ++y){
+            for(size_t x = 0; x < width; ++x){
+                if(fn_marker_ref(x, y) == 0){
+                    if((x > 0) && (x + 1 < width) && (fn_marker_ref(x - 1, y) == 2) && (fn_marker_ref(x + 1, y) == 2)){
+                        fn_marker_ref(x, y) = 2;
                         continue;
                     }
 
-                    if((nY > 0) && (nY + 1 < nHeight) && (fnGetMarkRef(nX, nY - 1) == 2) && (fnGetMarkRef(nX, nY + 1) == 2)){
-                        fnGetMarkRef(nX, nY) = 2;
+                    if((y > 0) && (y + 1 < height) && (fn_marker_ref(x, y - 1) == 2) && (fn_marker_ref(x, y + 1) == 2)){
+                        fn_marker_ref(x, y) = 2;
                         continue;
                     }
                 }
@@ -205,10 +192,10 @@ namespace alphaf
         // for pixel marked as 2, assign given color
         // don't assign for pixels marked as 1, because this may change those black areas
 
-        for(size_t nX = 0; nX < nWidth; ++nX){
-            for(size_t nY = 0; nY < nHeight; ++nY){
-                if(fnGetMarkRef(nX, nY) == 2){
-                    pData[nY * nWidth + nX] = nShadowColor;
+        for(size_t y = 0; y < height; ++y){
+            for(size_t x = 0; x < width; ++x){
+                if(fn_marker_ref(x, y) == 2){
+                    data[y * width + x] = shadowColor;
                 }
             }
         }
