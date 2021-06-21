@@ -112,6 +112,8 @@ void WilImagePackage::decode(uint32_t *imageBuffer, uint32_t color0, uint32_t co
     fflassert(imageBuffer);
     fflassert(currImageValid());
 
+    // check decode in suprcode/mir2: LibraryEditor/Graphics/WeMadeLibrary.cs
+
     size_t srcBeginPos    = 0;
     size_t srcEndPos      = 0;
     size_t srcNowPos      = 0;
@@ -123,8 +125,8 @@ void WilImagePackage::decode(uint32_t *imageBuffer, uint32_t color0, uint32_t co
         dstNowPosInRow = 0;
 
         while(srcNowPos < srcEndPos){
-            uint16_t  hdCode  = m_currImageBuffer[srcNowPos++];
-            uint16_t  cntCopy = m_currImageBuffer[srcNowPos++];
+            const uint16_t hdCode  = m_currImageBuffer[srcNowPos++];
+            const uint16_t cntCopy = m_currImageBuffer[srcNowPos++];
 
             switch(hdCode){
                 case 0XC0: // transparent
@@ -150,6 +152,9 @@ void WilImagePackage::decode(uint32_t *imageBuffer, uint32_t color0, uint32_t co
 
         // TODO wired code detected
         // found image with dstNowPosInRow >m_currImageInfo.width, i.e.: W-Hum.wil index 09010
+
+        // this means the row data can overflow to next row, suprcode/mir2 checks each u16 to avoid this
+        // if not at last row it's fine since decoding for next row override it, but the last row may have issue
 
         if(to_d(dstNowPosInRow) < m_currImageInfo.width){
             memset_u32(imageBuffer + row * m_currImageInfo.width + dstNowPosInRow, m_currImageInfo.width - dstNowPosInRow, 0X00000000);
