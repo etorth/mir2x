@@ -54,7 +54,6 @@ class DrawArea: public BaseArea
         void drawLight();
         void drawGround();
         void drawObject(int);
-        void drawAnimationTest();
         void drawAttributeGrid();
 
     private:

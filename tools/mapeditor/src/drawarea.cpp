@@ -78,9 +78,6 @@ void DrawArea::draw()
 
     drawObject(OBJD_GROUND);
     drawObject(OBJD_OVERGROUND0);
-
-    drawAnimationTest();
-
     drawObject(OBJD_OVERGROUND1);
     drawObject(OBJD_SKY);
 
@@ -309,6 +306,8 @@ void DrawArea::drawObject(int depth)
     }
 
     const auto [offsetX, offsetY] = offset();
+    const auto [mouseGX, mouseGY] = mouseGrid();
+
     const int startGX = offsetX / SYS_MAPGRIDXP - 1;
     const int startGY = offsetY / SYS_MAPGRIDYP - 1;
 
@@ -347,24 +346,19 @@ void DrawArea::drawObject(int depth)
                     }
                 }
             }
+
+            if(depth == OBJD_OVERGROUND0){
+                if(g_mainWindow->enableTest()){
+                    if(ix == mouseGX && iy == mouseGY){
+                        if(auto [dx, dy, frame] = g_animationDB.getFrame(); frame){
+                            const int startX = mouseGX * SYS_MAPGRIDXP - offsetX + dx;
+                            const int startY = mouseGY * SYS_MAPGRIDYP - offsetY + dy;
+                            drawImage(frame, startX, startY);
+                        }
+                    }
+                }
+            }
         }
-    }
-}
-
-void DrawArea::drawAnimationTest()
-{
-    if(!g_mainWindow->enableTest()){
-        return;
-    }
-
-    if(auto [dx, dy, frame] = g_animationDB.getFrame(); frame){
-        const auto [offsetX, offsetY] = offset();
-        const auto [mouseGX, mouseGY] = mouseGrid();
-
-        const int startX = mouseGX * SYS_MAPGRIDXP - offsetX;
-        const int startY = mouseGY * SYS_MAPGRIDYP - offsetY;
-
-        drawImage(frame, startX + dx, startY + dy);
     }
 }
 
