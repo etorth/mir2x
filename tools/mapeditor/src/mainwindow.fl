@@ -86,7 +86,7 @@ class MainWindow {} {
 		default :          break;
 	}
 }}
-      xywh {77 83 985 690} type Double labelfont 4 resizable visible
+      xywh {66 118 985 690} type Double labelfont 4 resizable visible
     } {
       Fl_Box m_drawArea {
         xywh {0 20 965 627} labelfont 4 resizable
@@ -355,9 +355,16 @@ fl_alert("%s", "Haven't implement yet!");}
             label {Object Index 1}
             xywh {70 70 30 20} type Toggle value 1 labelfont 4 divider
           }
+          MenuItem m_menuItemAutoShadow {
+            label {Auto Shadow}
+            callback {extern ImageCache g_imageCache;
+g_imageCache.clear();}
+            xywh {40 40 30 20} type Toggle value 1 labelfont 4 divider
+            code0 {\#include "imagecache.hpp"}
+          }
           MenuItem m_menuItemClearBackground {
             label {Clear Background         }
-            xywh {40 40 30 20} type Toggle value 1 labelfont 4
+            xywh {50 50 30 20} type Toggle value 1 labelfont 4
           }
         }
         Submenu {} {
@@ -1186,5 +1193,9 @@ g_aboutWindow->showAll();}
         m_menuItemSelectByObjectIndex1->deactivate();
     }
 }} {}
+  }
+  Function {autoShadow()} {return_type bool
+  } {
+    code {return m_menuItemAutoShadow->value();} {}
   }
 }
