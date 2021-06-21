@@ -25,10 +25,44 @@ AnimationDB::AnimationDB()
       {
           { // animation 0
               {
+                  8,
+                  -47,
+                  {
+                      #include "animation/m_human.wil.index_09040.inc"
+                  },
+              },
+
+              {
+                  8,
+                  -47,
+                  {
+                      #include "animation/m_human.wil.index_09041.inc"
+                  },
+              },
+
+              {
+                  8,
+                  -47,
+                  {
+                      #include "animation/m_human.wil.index_09042.inc"
+                  },
+              },
+
+              {
+                  8,
+                  -47,
+                  {
+                      #include "animation/m_human.wil.index_09043.inc"
+                  },
+              },
+          },
+
+          { // animation 1
+              {
                   -32,
                   -89,
                   {
-                      #include "mon_12.wil.index_00040.inc"
+                      #include "animation/mon_12.wil.index_00040.inc"
                   },
               },
 
@@ -36,7 +70,7 @@ AnimationDB::AnimationDB()
                   -33,
                   -87,
                   {
-                      #include "mon_12.wil.index_00041.inc"
+                      #include "animation/mon_12.wil.index_00041.inc"
                   },
               },
 
@@ -44,7 +78,7 @@ AnimationDB::AnimationDB()
                   -33,
                   -86,
                   {
-                      #include "mon_12.wil.index_00042.inc"
+                      #include "animation/mon_12.wil.index_00042.inc"
                   },
               },
 
@@ -52,7 +86,7 @@ AnimationDB::AnimationDB()
                   -33,
                   -87,
                   {
-                      #include "mon_12.wil.index_00043.inc"
+                      #include "animation/mon_12.wil.index_00043.inc"
                   },
               },
           },
