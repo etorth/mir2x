@@ -148,7 +148,13 @@ void WilImagePackage::decode(uint32_t *imageBuffer, uint32_t color0, uint32_t co
             dstNowPosInRow += cntCopy;
         }
 
-        memset_u32(imageBuffer + row * m_currImageInfo.width + dstNowPosInRow, m_currImageInfo.width - dstNowPosInRow, 0X00000000);
+        // TODO wired code detected
+        // found image with dstNowPosInRow >m_currImageInfo.width, i.e.: W-Hum.wil index 09010
+
+        if(to_d(dstNowPosInRow) < m_currImageInfo.width){
+            memset_u32(imageBuffer + row * m_currImageInfo.width + dstNowPosInRow, m_currImageInfo.width - dstNowPosInRow, 0X00000000);
+        }
+
         srcEndPos++;
         srcBeginPos = srcEndPos;
     }
