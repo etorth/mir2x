@@ -94,7 +94,6 @@ void hairWil2PNG(bool bGender,
         const char *szOutDir)
 {
     WilImagePackage stHairWilPackage(szHairWilPath, szHairWilBaseName);
-    std::vector<uint32_t> stHairPNGBuf;
     for(int nHair = 0; nHair < 10; ++nHair){ // acturally only 0 ~ 4 valid
         for(int nMotion = 0; nMotion < 33; ++nMotion){
             for(int nDirection = 0; nDirection < 8; ++nDirection){
@@ -104,8 +103,7 @@ void hairWil2PNG(bool bGender,
                     if(stHairWilPackage.setIndex(nHairIndex)){
 
                         const auto hairImgInfo = stHairWilPackage.currImageInfo();
-                        stHairPNGBuf.resize(hairImgInfo->width * hairImgInfo->height);
-                        stHairWilPackage.decode(&(stHairPNGBuf[0]), 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF);
+                        const auto layer = stHairWilPackage.decode(true, false, false);
 
                         char szSaveFileName[128];
                         createOffsetFileName(szSaveFileName,
@@ -118,7 +116,7 @@ void hairWil2PNG(bool bGender,
                                 hairImgInfo->px,
                                 hairImgInfo->py);
 
-                        if(!imgf::saveImageBuffer((uint8_t *)(&(stHairPNGBuf[0])), hairImgInfo->width, hairImgInfo->height, szSaveFileName)){
+                        if(!imgf::saveImageBuffer((uint8_t *)(layer[0]), hairImgInfo->width, hairImgInfo->height, szSaveFileName)){
                             throw fflerror("save hair PNG failed: %s", szSaveFileName);
                         }
                     }

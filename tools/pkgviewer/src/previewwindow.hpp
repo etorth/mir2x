@@ -27,9 +27,7 @@
 class PreviewWindow: public Fl_Double_Window
 {
     private:
-        // for Fl_RGB_Image class
-        // caller need to maintain the color buffer
-        std::vector<uint32_t> m_Buf;
+        std::vector<uint32_t> m_imageBuf;
 
     private:
         std::optional<uint32_t> m_ImageIndex;

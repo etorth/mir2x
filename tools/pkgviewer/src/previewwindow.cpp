@@ -18,6 +18,7 @@
 
 #include <string>
 #include <cstring>
+#include "imgf.hpp"
 #include "totype.hpp"
 #include "alphaf.hpp"
 #include "colorf.hpp"
@@ -32,7 +33,7 @@ extern MainWindow      *g_MainWindow;
 void PreviewWindow::draw()
 {
     Fl_Double_Window::draw();
-    if(g_MainWindow->BlackBG()){
+    if(g_MainWindow->clearBackgroundEnabled()){
         fl_rectf(0, 0, w(), h(), 0, 0, 0);
     }
 
@@ -54,30 +55,35 @@ void PreviewWindow::draw()
 
 bool PreviewWindow::LoadImage()
 {
-    if(!g_WilPackage->setIndex(g_MainWindow->SelectedImageIndex())){
+    if(!g_WilPackage->setIndex(g_MainWindow->selectedImageIndex())){
         return false;
     }
 
-    auto nW = g_WilPackage->currImageInfo()->width;
-    auto nH = g_WilPackage->currImageInfo()->height;
+    const auto nW = g_WilPackage->currImageInfo()->width;
+    const auto nH = g_WilPackage->currImageInfo()->height;
 
-    m_Buf.resize(0);
-    m_Buf.resize(nW * nH);
-    g_WilPackage->decode(m_Buf.data(), 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF);
+    m_imageBuf.clear();
+    m_imageBuf.resize(nW * nH, 0X00000000);
 
-    if(g_MainWindow->AutoAlphaEnabled()){
-        alphaf::autoAlpha(m_Buf.data(), m_Buf.size());
+    const auto layer = g_WilPackage->decode(false, g_MainWindow->removeShadowMosaicEnabled(), g_MainWindow->autoAlphaEnabled());
+
+    if(layer[0] && g_MainWindow->layerIndexEnabled(0)){
+        imgf::blendImageBuffer(m_imageBuf.data(), nW, nH, layer[0], nW, nH, 0, 0);
     }
 
-    if(g_MainWindow->ShadowRemovalEnabled()){
-        alphaf::autoShadowRemove(m_Buf.data(), nW, nH, colorf::BLACK + colorf::A_SHF(0X80));
+    if(layer[1] && g_MainWindow->layerIndexEnabled(1)){
+        imgf::blendImageBuffer(m_imageBuf.data(), nW, nH, layer[1], nW, nH, 0, 0);
+    }
+
+    if(layer[2] && g_MainWindow->layerIndexEnabled(2)){
+        imgf::blendImageBuffer(m_imageBuf.data(), nW, nH, layer[2], nW, nH, 0, 0);
     }
 
     // Fl_RGB_Image won't copy the RGBA buffer
     // caller need to maintain m_Buf when m_Image is still used
 
-    m_Image.reset(Fl_RGB_Image((uchar *)(m_Buf.data()), nW, nH, 4).copy());
-    m_ImageIndex.emplace(g_MainWindow->SelectedImageIndex());
+    m_Image.reset(Fl_RGB_Image((uchar *)(m_imageBuf.data()), nW, nH, 4).copy());
+    m_ImageIndex.emplace(g_MainWindow->selectedImageIndex());
 
     size_t nWinH = (std::max<int>)(((std::min<int>)((to_d(nH * 1.5)), to_d(nH + 40))), (int)200);
     size_t nWinW = (std::max<int>)(((std::min<int>)((to_d(nW * 1.5)), to_d(nW + 40))), (int)200);

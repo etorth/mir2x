@@ -26,7 +26,7 @@
 #include "imgf.hpp"
 #include "utf8f.hpp"
 #include "mir2map.hpp"
-#include "imagedb.hpp"
+#include "imagemapdb.hpp"
 #include "filesys.hpp"
 #include "sysconst.hpp"
 #include "totype.hpp"
@@ -329,7 +329,7 @@ static void printCodeLine(std::vector<std::string> s)
     }
 }
 
-static void exportOverview(const Mir2xMapData *p, const std::string &outName, ImageDB &imgDB)
+static void exportOverview(const Mir2xMapData *p, const std::string &outName, ImageMapDB &imgDB)
 {
     const size_t imgW = p->w() * SYS_MAPGRIDXP;
     const size_t imgH = p->h() * SYS_MAPGRIDYP;
@@ -339,7 +339,7 @@ static void exportOverview(const Mir2xMapData *p, const std::string &outName, Im
         for(size_t x = 0; x < p->w(); ++x){
             if((x % 2) == 0 && (y % 2) == 0){
                 if(const auto &tile = p->tile(x, y); tile.valid){
-                    if(const auto [img, w, h] = imgDB.decode(tile.texID, 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF); img){
+                    if(const auto [img, w, h] = imgDB.decode(tile.texID, true); img){
                         imgf::blendImageBuffer(imgBuf.data(), imgW, imgH, img, w, h, x * SYS_MAPGRIDXP, y * SYS_MAPGRIDYP);
                     }
                 }
@@ -352,7 +352,7 @@ static void exportOverview(const Mir2xMapData *p, const std::string &outName, Im
             for(size_t x = 0; x < p->w(); ++x){
                 for(const int objIndex: {0, 1}){
                     if(const auto &obj = p->cell(x, y).obj[objIndex]; obj.valid && obj.depth == depth){
-                        if(const auto [img, w, h] = imgDB.decode(obj.texID, 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF); img){
+                        if(const auto [img, w, h] = imgDB.decode(obj.texID, true); img){
                             imgf::blendImageBuffer(imgBuf.data(), imgW, imgH, img, w, h, x * SYS_MAPGRIDXP, y * SYS_MAPGRIDYP + SYS_MAPGRIDYP - h);
                         }
                     }
@@ -363,7 +363,7 @@ static void exportOverview(const Mir2xMapData *p, const std::string &outName, Im
     imgf::saveImageBuffer(imgBuf.data(), imgW, imgH, outName.c_str());
 }
 
-static void convertMap(std::string mapDir, std::string mapFileName, std::string outDir, const MapInfoParser *parser, bool incFileOnly, bool mergeTP, ImageDB &imgDB)
+static void convertMap(std::string mapDir, std::string mapFileName, std::string outDir, const MapInfoParser *parser, bool incFileOnly, bool mergeTP, ImageMapDB &imgDB)
 {
     std::unique_ptr<Mir2xMapData> outPtr;
     if(!incFileOnly){
@@ -469,17 +469,17 @@ int main(int argc, char *argv[])
 
     threadPool pool(std::stoi(argv[2]));
     threadPool::abortedTag hasDecodeError;
-    std::vector<std::unique_ptr<ImageDB>> dbList(pool.poolSize);
+    std::vector<std::unique_ptr<ImageMapDB>> dbList(pool.poolSize);
     const auto mapInfoParser = std::make_unique<MapInfoParser>(argv[5], argv[6]);
 
     for(const auto &mapName: filesys::getFileList(argv[4], false, R"#(.*\.[mM][aA][pP]$)#")){
         pool.addTask(hasDecodeError, [argv, mapName, &dbList, &mapInfoParser](int threadId)
         {
-            // ImageDB is not thread safe
+            // ImageMapDB is not thread safe
             // need to allocate for each thread
 
             if(!dbList[threadId]){
-                dbList[threadId] = std::make_unique<ImageDB>(argv[3]);
+                dbList[threadId] = std::make_unique<ImageMapDB>(argv[3]);
             }
             convertMap(argv[4], mapName, argv[1], mapInfoParser.get(), to_bool(argv[7]), to_bool(argv[8]), *dbList[threadId]);
         });

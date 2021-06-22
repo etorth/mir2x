@@ -17,6 +17,7 @@
  */
 
 #pragma once
+#include <tuple>
 #include <cmath>
 #include <vector>
 #include <cstdint>
@@ -28,37 +29,7 @@
 
 namespace alphaf
 {
-    inline void autoAlpha(uint32_t *data, size_t size)
-    {
-        fflassert(data);
-        fflassert(size > 0);
-
-        for(size_t i = 0; i < size; ++i){
-            uint8_t a = colorf::A(data[i]);
-            if(a == 0){
-                data[i] = 0;
-                continue;
-            }
-
-            uint8_t r = colorf::R(data[i]);
-            uint8_t g = colorf::G(data[i]);
-            uint8_t b = colorf::B(data[i]);
-
-            a = std::max<uint8_t>({r, g, b});
-            if(a == 0){
-                data[i] = 0;
-                continue;
-            }
-
-            r = colorf::round255(1.0 * r * 255.0 / a);
-            g = colorf::round255(1.0 * g * 255.0 / a);
-            b = colorf::round255(1.0 * b * 255.0 / a);
-
-            data[i] = colorf::RGBA(r, g, b, a);
-        }
-    }
-
-    inline void autoShadowRemove(uint32_t *data, size_t width, size_t height, uint32_t shadowColor)
+    inline void removeShadowMosaic(uint32_t *data, size_t width, size_t height, uint32_t shadowColor)
     {
         fflassert(data);
         fflassert(width > 0);
@@ -199,5 +170,77 @@ namespace alphaf
                 }
             }
         }
+    }
+
+    inline void autoAlpha(uint32_t *data, size_t size)
+    {
+        fflassert(data);
+        fflassert(size > 0);
+
+        for(size_t i = 0; i < size; ++i){
+            uint8_t a = colorf::A(data[i]);
+            if(a == 0){
+                data[i] = 0;
+                continue;
+            }
+
+            uint8_t r = colorf::R(data[i]);
+            uint8_t g = colorf::G(data[i]);
+            uint8_t b = colorf::B(data[i]);
+
+            a = std::max<uint8_t>({r, g, b});
+            if(a == 0){
+                data[i] = 0;
+                continue;
+            }
+
+            r = colorf::round255(1.0 * r * 255.0 / a);
+            g = colorf::round255(1.0 * g * 255.0 / a);
+            b = colorf::round255(1.0 * b * 255.0 / a);
+
+            data[i] = colorf::RGBA(r, g, b, a);
+        }
+    }
+
+    inline std::tuple<const uint32_t *, size_t, size_t> createShadow(std::vector<uint32_t> &dst, bool proj, const uint32_t *src, size_t srcW, size_t srcH, uint32_t shadowColor)
+    {
+        fflassert(src);
+        fflassert(srcW > 0);
+        fflassert(srcH > 0);
+
+        // shadow size depends on project or not
+        //
+        //      project :  (srcW + srcH / 2) x (srcH / 2 + 1)
+        //              :  (srcW x srcH)
+        //
+
+        const size_t dstW = proj ? (srcW + srcH / 2) : srcW;
+        const size_t dstH = proj ? (   1 + srcH / 2) : srcH;
+
+        dst.clear();
+        dst.resize(dstW * dstH, 0X00000000);
+
+        if(proj){
+            for(size_t y = 0; y < srcH; ++y){
+                const size_t yproj = y - y / 2;
+                for(size_t x = 0; x < srcW; ++x){
+                    const size_t xproj = x + (srcH - y) / 2;
+                    if(colorf::A(src[y * srcW + x])){
+                        dst[yproj * dstW + xproj] = shadowColor;
+                    }
+                }
+            }
+        }
+        else{
+            for(size_t y = 0; y < srcH; ++y){
+                for(size_t x = 0; x < srcW; ++x){
+                    if(colorf::A(src[y * srcW + x])){
+                        dst[y * srcW + x] = shadowColor;
+                    }
+                }
+            }
+        }
+
+        return {dst.data(), dstW, dstH};
     }
 }

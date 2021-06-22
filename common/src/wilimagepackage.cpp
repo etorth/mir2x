@@ -21,41 +21,20 @@
 #include <cstdio>
 #include <cstring>
 
+#include "alphaf.hpp"
 #include "colorf.hpp"
 #include "totype.hpp"
 #include "filesys.hpp"
 #include "fflerror.hpp"
 #include "wilimagepackage.hpp"
 
-static uint32_t color_u16_2_u32(uint16_t srcColor, uint32_t modColor)
-{
-    auto r = to_u8((srcColor & 0XF800) >> 8);
-    auto g = to_u8((srcColor & 0X07E0) >> 3);
-    auto b = to_u8((srcColor & 0X001F) << 3);
-
-    if(colorf::maskRGB(modColor) != colorf::RGB(255, 255, 255)){
-        r = colorf::round255(to_df(r) * colorf::R(modColor) / 255.0);
-        g = colorf::round255(to_df(g) * colorf::G(modColor) / 255.0);
-        b = colorf::round255(to_df(b) * colorf::B(modColor) / 255.0);
-    }
-    return colorf::RGBA(r, g, b, colorf::A(modColor));
-}
-
-static void memcpy_u16_2_u32(uint32_t *dst, const uint16_t *src, size_t n, uint32_t modColor)
+static void memcpy_color_u16_2_u32(uint32_t *dst, const uint16_t *src, size_t n)
 {
     fflassert(src);
     fflassert(dst);
 
     for(size_t i = 0; i < n; i++){
-        dst[i] = color_u16_2_u32(src[i], modColor);
-    }
-}
-
-static void memset_u32(uint32_t *dst, size_t n, uint32_t src)
-{
-    fflassert(dst);
-    for(size_t i = 0; i < n; i++){
-        dst[i] = src;
+        dst[i] = colorf::RGBA(to_u8((src[i] & 0XF800) >> 8), to_u8((src[i] & 0X07E0) >> 3), to_u8((src[i] & 0X001F) << 3), 0XFF);
     }
 }
 
@@ -107,10 +86,13 @@ const WILIMAGEINFO *WilImagePackage::setIndex(uint32_t imageIndex)
     return &m_currImageInfo;
 }
 
-void WilImagePackage::decode(uint32_t *imageBuffer, uint32_t color0, uint32_t color1, uint32_t color2)
+std::array<const uint32_t *, 3> WilImagePackage::decode(bool mergeLayer, bool removeShadow, bool autoAlpha)
 {
-    fflassert(imageBuffer);
     fflassert(currImageValid());
+
+    m_decodeBuf0.clear();
+    m_decodeBuf1.clear();
+    m_decodeBuf2.clear();
 
     // check decode in suprcode/mir2: LibraryEditor/Graphics/WeMadeLibrary.cs
 
@@ -130,26 +112,64 @@ void WilImagePackage::decode(uint32_t *imageBuffer, uint32_t color0, uint32_t co
 
             // TODO some images have row can overflow to next row, i.e.: W-Hum.wil index 09010
             // this can causes issue if currently is last row, if not last row then next row decoding can override it
-            const int rowCopyCount = std::max<int>(0, m_currImageInfo.width - to_d(dstNowPosInRow));
+            const int rowLeftCount = std::max<int>(0, m_currImageInfo.width - to_d(dstNowPosInRow));
+            const int rowCopyCount = std::min<int>(hdCopyCount, rowLeftCount);
 
             switch(hdCode){
                 case 0XC0: // transparent
-                    memset_u32(imageBuffer + row * m_currImageInfo.width + dstNowPosInRow, rowCopyCount, 0X00000000);
-                    break;
+                    {
+                        break;
+                    }
                 case 0XC1:
-                    memcpy_u16_2_u32(imageBuffer + row * m_currImageInfo.width + dstNowPosInRow, m_currImageBuffer.data() + srcNowPos, rowCopyCount, color0);
-                    srcNowPos += hdCopyCount;
-                    break;
+                    {
+                        if(m_decodeBuf0.empty()){
+                            m_decodeBuf0.resize(m_currImageInfo.width * m_currImageInfo.height, 0X00000000);
+                        }
+
+                        memcpy_color_u16_2_u32(m_decodeBuf0.data() + row * m_currImageInfo.width + dstNowPosInRow, m_currImageBuffer.data() + srcNowPos, rowCopyCount);
+                        srcNowPos += hdCopyCount;
+                        break;
+                    }
                 case 0XC2:
-                    memcpy_u16_2_u32(imageBuffer + row * m_currImageInfo.width + dstNowPosInRow, m_currImageBuffer.data() + srcNowPos, rowCopyCount, color1);
-                    srcNowPos += hdCopyCount;
-                    break;
+                    {
+                        if(mergeLayer){
+                            if(m_decodeBuf0.empty()){
+                                m_decodeBuf0.resize(m_currImageInfo.width * m_currImageInfo.height, 0X00000000);
+                            }
+                            memcpy_color_u16_2_u32(m_decodeBuf0.data() + row * m_currImageInfo.width + dstNowPosInRow, m_currImageBuffer.data() + srcNowPos, rowCopyCount);
+                        }
+                        else{
+                            if(m_decodeBuf1.empty()){
+                                m_decodeBuf1.resize(m_currImageInfo.width * m_currImageInfo.height, 0X00000000);
+                            }
+                            memcpy_color_u16_2_u32(m_decodeBuf1.data() + row * m_currImageInfo.width + dstNowPosInRow, m_currImageBuffer.data() + srcNowPos, rowCopyCount);
+                        }
+
+                        srcNowPos += hdCopyCount;
+                        break;
+                    }
                 case 0XC3:
-                    memcpy_u16_2_u32(imageBuffer + row * m_currImageInfo.width + dstNowPosInRow, m_currImageBuffer.data() + srcNowPos, rowCopyCount, color2);
-                    srcNowPos += hdCopyCount;
-                    break;
+                    {
+                        if(mergeLayer){
+                            if(m_decodeBuf0.empty()){
+                                m_decodeBuf0.resize(m_currImageInfo.width * m_currImageInfo.height, 0X00000000);
+                            }
+                            memcpy_color_u16_2_u32(m_decodeBuf0.data() + row * m_currImageInfo.width + dstNowPosInRow, m_currImageBuffer.data() + srcNowPos, rowCopyCount);
+                        }
+                        else{
+                            if(m_decodeBuf2.empty()){
+                                m_decodeBuf2.resize(m_currImageInfo.width * m_currImageInfo.height, 0X00000000);
+                            }
+                            memcpy_color_u16_2_u32(m_decodeBuf2.data() + row * m_currImageInfo.width + dstNowPosInRow, m_currImageBuffer.data() + srcNowPos, rowCopyCount);
+                        }
+
+                        srcNowPos += hdCopyCount;
+                        break;
+                    }
                 default:
-                    throw bad_reach();
+                    {
+                        throw bad_reach();
+                    }
             }
             dstNowPosInRow += hdCopyCount;
         }
@@ -160,11 +180,22 @@ void WilImagePackage::decode(uint32_t *imageBuffer, uint32_t color0, uint32_t co
         // this means the row data can overflow to next row, suprcode/mir2 checks each u16 to avoid this
         // if not at last row it's fine since decoding for next row override it, but the last row may have issue
 
-        if(to_d(dstNowPosInRow) < m_currImageInfo.width){
-            memset_u32(imageBuffer + row * m_currImageInfo.width + dstNowPosInRow, m_currImageInfo.width - dstNowPosInRow, 0X00000000);
-        }
-
         srcEndPos++;
         srcBeginPos = srcEndPos;
     }
+
+    if(removeShadow && !m_decodeBuf0.empty()){
+        alphaf::removeShadowMosaic(m_decodeBuf0.data(), m_currImageInfo.width, m_currImageInfo.height, colorf::BLACK + colorf::A_SHF(0X80));
+    }
+
+    if(autoAlpha && !m_decodeBuf0.empty()){
+        alphaf::autoAlpha(m_decodeBuf0.data(), m_currImageInfo.width * m_currImageInfo.height);
+    }
+
+    return
+    {
+        m_decodeBuf0.empty() ? nullptr : m_decodeBuf0.data(),
+        m_decodeBuf1.empty() ? nullptr : m_decodeBuf1.data(),
+        m_decodeBuf2.empty() ? nullptr : m_decodeBuf2.data(),
+    };
 }

@@ -18,6 +18,7 @@
 
 #pragma once
 
+#include <array>
 #include <vector>
 #include <cstdio>
 #include <cstdint>
@@ -48,7 +49,7 @@ struct WILIMAGEINFO
     int16_t     height;
     int16_t     px;
     int16_t     py;
-    char        shadow;                    
+    char        shadow;
     int16_t     shadowPX;
     int16_t     shadowPY;
     uint32_t    imageLength;
@@ -75,6 +76,11 @@ class WilImagePackage
         std::vector< int32_t> m_wilPositionList;
         std::vector<uint16_t> m_currImageBuffer;
 
+    private:
+        std::vector<uint32_t> m_decodeBuf0;
+        std::vector<uint32_t> m_decodeBuf1;
+        std::vector<uint32_t> m_decodeBuf2;
+
     public:
         WilImagePackage(const char *, const char *);
 
@@ -99,7 +105,23 @@ class WilImagePackage
         const WILIMAGEINFO *setIndex(uint32_t);
 
     public:
-        void decode(uint32_t *, uint32_t, uint32_t, uint32_t);
+        // decode image
+        // when mergeLayer is true:
+        //      layer_0XC1: layer_0XC2 and layer_0XC3 merges to layer_0XC0
+        //      layer_0XC2: nullptr
+        //      layer_0XC3: nullptr
+        //
+        // when mergeLayer is false:
+        //      layer_0XC1:
+        //      layer_0XC2:
+        //      layer_0XC3:
+        //
+        // when there is no pixels, layer_0XC1 returns nullptr
+        //
+        // when removeShadow is true, alphaf::removeShadowMosaic() applied to layer_0XC1 if it's not nullptr
+        // when autoAlpha    is true, alphaf::autoAlpha()          applied to layer_0XC1 if it's not nullptr
+        //
+        std::array<const uint32_t *, 3> decode(bool /* mergeLayer */, bool /* removeShadow */, bool /* autoAlpha */);
 
     public:
         const WILFILEHEADER &header() const

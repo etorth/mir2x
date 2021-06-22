@@ -23,7 +23,7 @@
 #include <functional>
 
 #include "totype.hpp"
-#include "imagedb.hpp"
+#include "imagemapdb.hpp"
 #include "sysconst.hpp"
 #include "fflerror.hpp"
 #include "mir2xmapdata.hpp"
@@ -150,7 +150,7 @@ class Mir2Map final
             return groundFlag(x, y) & 0X01;
         }
 
-        bool aniObjectValid(int x, int y, int index, ImageDB &imgDB) const
+        bool aniObjectValid(int x, int y, int index, ImageMapDB &imgDB) const
         {
             if(objectValid(x, y, index, imgDB)){
                 if(index == 0){
@@ -163,7 +163,7 @@ class Mir2Map final
             return false;
         }
 
-        bool groundObjectValid(int x, int y, int index, ImageDB &imgDB) const
+        bool groundObjectValid(int x, int y, int index, ImageMapDB &imgDB) const
         {
             const auto [fileIndex, imageIndex] = [x, y, index, this]() -> std::tuple<uint8_t, uint16_t>
             {
@@ -186,7 +186,7 @@ class Mir2Map final
                 && imgDB.currImageInfo()->height == SYS_MAPGRIDYP;
         }
 
-        bool objectValid(int x, int y, int index, ImageDB &imgDB) const
+        bool objectValid(int x, int y, int index, ImageMapDB &imgDB) const
         {
             const auto [fileIndex, imageIndex] = [x, y, index, this]() -> std::tuple<uint8_t, uint16_t>
             {
@@ -295,7 +295,7 @@ class Mir2Map final
         }
 
     public:
-        bool tileValid(int x, int y, ImageDB &imgDB) const
+        bool tileValid(int x, int y, ImageMapDB &imgDB) const
         {
             return true
                 && tileInfo(x, y). fileIndex !=   255
@@ -330,7 +330,7 @@ class Mir2Map final
         }
 
     public:
-        void convBlock(int x, int y, Mir2xMapData::BLOCK &block, ImageDB &imgDB) const
+        void convBlock(int x, int y, Mir2xMapData::BLOCK &block, ImageMapDB &imgDB) const
         {
             fflassert((x % 2) == 0);
             fflassert((y % 2) == 0);

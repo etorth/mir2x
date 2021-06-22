@@ -47,7 +47,7 @@ decl {\#include "totype.hpp"} {private local
 decl {\#include "imgf.hpp"} {private local
 }
 
-decl {\#include "imagedb.hpp"} {private local
+decl {\#include "imagemapdb.hpp"} {private local
 }
 
 decl {\#include "drawarea.hpp"} {public global
@@ -349,8 +349,8 @@ fl_alert("%s", "Haven't implement yet!");}
             label {Object Index 1}
             xywh {70 70 30 20} type Toggle value 1 labelfont 4 divider
           }
-          MenuItem m_menuItemAutoShadow {
-            label {Auto Shadow}
+          MenuItem m_menuItemRemoveShadowMosaic {
+            label {Remove Shadow Mosaic}
             callback {extern ImageCache g_imageCache;
 g_imageCache.clear();}
             xywh {40 40 30 20} type Toggle value 1 labelfont 4 divider
@@ -563,9 +563,9 @@ g_aboutWindow->showAll();}
   } {
     code {{
     extern std::string g_wilFilePathName;
-    extern ImageDB    *g_imageDB;
-    if(!g_imageDB){
-        g_imageDB = new ImageDB(g_wilFilePathName.c_str());
+    extern ImageMapDB    *g_imageMapDB;
+    if(!g_imageMapDB){
+        g_imageMapDB = new ImageMapDB(g_wilFilePathName.c_str());
     }
 }} {}
   }
@@ -972,11 +972,11 @@ g_aboutWindow->showAll();}
 
     const auto fnBufDrawImage = [this, dstPtr, dstW, dstH](uint32_t imageIndex, int nX, int nY, bool isObj)
     {
-        extern ImageDB *g_imageDB;
+        extern ImageMapDB *g_imageMapDB;
         extern EditorMap g_editorMap;
 
-        if(g_editorMap.validC(nX, nY) && g_imageDB->setIndex(imageIndex)){
-            if(const auto [srcPtr, srcW, srcH] = g_imageDB->decode(imageIndex, 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF); srcPtr){
+        if(g_editorMap.validC(nX, nY) && g_imageMapDB->setIndex(imageIndex)){
+            if(const auto [srcPtr, srcW, srcH] = g_imageMapDB->decode(imageIndex, true); srcPtr){
                 imgf::blendImageBuffer(
                         dstPtr, dstW, dstH,
                         srcPtr, srcW, srcH,
@@ -1109,9 +1109,9 @@ g_aboutWindow->showAll();}
     }
 }} {}
   }
-  Function {autoShadow()} {return_type bool
+  Function {removeShadowMosaicEnabled()} {return_type bool
   } {
-    code {return m_menuItemAutoShadow->value();} {}
+    code {return m_menuItemRemoveShadowMosaic->value();} {}
   }
   Function {getAnimationIndex()} {return_type int
   } {

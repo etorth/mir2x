@@ -26,7 +26,7 @@
 
 #include "imgf.hpp"
 #include "filesys.hpp"
-#include "imagedb.hpp"
+#include "imagemapdb.hpp"
 #include "mir2map.hpp"
 #include "sysconst.hpp"
 #include "mathf.hpp"
@@ -34,7 +34,7 @@
 #include "mainwindow.hpp"
 #include "progressbarwindow.hpp"
 
-extern ImageDB *g_imageDB;
+extern ImageMapDB *g_imageMapDB;
 extern LayerBrowserWindow *g_layerBrowserWindow;
 
 bool EditorMap::loadLayer(const char *fullName)
@@ -61,7 +61,7 @@ bool EditorMap::loadMir2Map(const char *fullName)
     for(int y = 0; y < to_d(from.h()); ++y){
         for(int x = 0; x < to_d(from.w()); ++x){
             if((x % 2) == 0 && (y % 2) == 0){
-                from.convBlock(x, y, m_data.block(x, y), *g_imageDB);
+                from.convBlock(x, y, m_data.block(x, y), *g_imageMapDB);
             }
         }
     }
@@ -207,7 +207,7 @@ Mir2xMapData EditorMap::exportLayer() const
                                 && obj.valid
                                 && obj.depth == depth
                                 && cellSelect(x, y).obj[objIndex]){
-                            if(const auto img = g_imageDB->setIndex(obj.texID)){
+                            if(const auto img = g_imageMapDB->setIndex(obj.texID)){
                                 // objs are long bars
                                 // need to extend to bigger area contains whole objs
                                 const int objHCount = (img->height + SYS_MAPGRIDYP - 1) / SYS_MAPGRIDYP;

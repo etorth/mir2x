@@ -43,7 +43,7 @@
 
 #include "imgf.hpp"
 #include "strf.hpp"
-#include "shadow.hpp"
+#include "alphaf.hpp"
 #include "motion.hpp"
 #include "filesys.hpp"
 #include "protocoldef.hpp"
@@ -90,10 +90,8 @@ std::string createOffsetFileName(const char *outDir, bool shadow, int look, int 
 
 void npcWil2PNG(const char *path, const char *baseName, const char *, const char *outDir)
 {
-    WilImagePackage package(path, baseName);
-
-    std::vector<uint32_t> pngBuf;
     std::vector<uint32_t> pngBufShadow;
+    WilImagePackage package(path, baseName);
 
     struct frameSeq
     {
@@ -322,12 +320,11 @@ void npcWil2PNG(const char *path, const char *baseName, const char *, const char
                 }
 
                 const auto imgInfo = package.currImageInfo();
-                pngBuf.resize(imgInfo->width * imgInfo->height);
-                package.decode(pngBuf.data(), 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF);
+                const auto layer = package.decode(true, false, false);
 
                 const int dir = dirMap.at(p.first.at(0));
                 const auto fileName = createOffsetFileName(outDir, false, lookId, encodeMotion, dir, frame, imgInfo->px, imgInfo->py);
-                imgf::saveImageBuffer(reinterpret_cast<const uint8_t *>(pngBuf.data()), imgInfo->width, imgInfo->height, fileName.c_str());
+                imgf::saveImageBuffer(reinterpret_cast<const uint8_t *>(layer[0]), imgInfo->width, imgInfo->height, fileName.c_str());
 
                 const auto [needShadow, projectShadow] = [lookId]() -> std::tuple<bool, bool>
                 {
@@ -354,22 +351,15 @@ void npcWil2PNG(const char *path, const char *baseName, const char *, const char
                 //  project :  (nW + nH / 2) x (nH / 2 + 1)
                 //          :  (nW x nH)
 
-                const int maxShadowW = (std::max<int>)(imgInfo->width + imgInfo->height / 2, imgInfo->width ) + 20;
-                const int maxShadowH = (std::max<int>)(             1 + imgInfo->height / 2, imgInfo->height) + 20;
-                pngBufShadow.resize(maxShadowW * maxShadowH);
-
-                int nShadowW = 0;
-                int nShadowH = 0;
-                Shadow::MakeShadow(&(pngBufShadow[0]), projectShadow, &(pngBuf[0]), imgInfo->width, imgInfo->height, &nShadowW, &nShadowH, 0XFF000000);
-
-                if(nShadowW <= 0 || nShadowH <= 0){
-                    throw fflerror("create shadow image failed");
-                }
+                const auto [shadowBuf, shadowW, shadowH] = alphaf::createShadow(pngBufShadow, projectShadow, layer[0], imgInfo->width, imgInfo->height, colorf::BLACK + colorf::A_SHF(0XFF));
+                fflassert(shadowBuf);
+                fflassert(shadowW > 0);
+                fflassert(shadowH > 0);
 
                 const auto shadowFileName = createOffsetFileName(outDir, true, lookId, encodeMotion, dir, frame, 
                         projectShadow ? imgInfo->shadowPX : (imgInfo->px + 3),
                         projectShadow ? imgInfo->shadowPY : (imgInfo->py + 2));
-                imgf::saveImageBuffer(reinterpret_cast<const uint8_t *>(pngBufShadow.data()), nShadowW, nShadowH, shadowFileName.c_str());
+                imgf::saveImageBuffer(reinterpret_cast<const uint8_t *>(shadowBuf), shadowW, shadowH, shadowFileName.c_str());
             }
         }
     }

@@ -20,7 +20,7 @@
 #include <cstdint>
 #include <FL/Fl.H>
 
-#include "imagedb.hpp"
+#include "imagemapdb.hpp"
 #include "editormap.hpp"
 #include "mainwindow.hpp"
 #include "imagecache.hpp"
@@ -29,8 +29,6 @@
 #include "layerviewwindow.hpp"
 #include "progressbarwindow.hpp"
 #include "layerbrowserwindow.hpp"
-#include "cropconfigurewindow.hpp"
-#include "selectsettingwindow.hpp"
 #include "attributeselectwindow.hpp"
 
 MainWindow                      *g_mainWindow               = nullptr;
@@ -40,7 +38,7 @@ AttributeSelectWindow           *g_attributeSelectWindow    = nullptr;
 ProgressBarWindow               *g_progressBarWindow        = nullptr;
 LayerViewWindow                 *g_layerViewWindow          = nullptr;
 LayerBrowserWindow              *g_layerBrowserWindow       = nullptr;
-ImageDB                         *g_imageDB                  = nullptr;
+ImageMapDB                         *g_imageMapDB                  = nullptr;
 EditorMap                        g_editorMap;
 ImageCache                       g_imageCache;
 AnimationDB                      g_animationDB;

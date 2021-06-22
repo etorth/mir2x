@@ -40,7 +40,7 @@ class MainWindow {} {
 	// don't exit directly
 	// exit(0);
 }}
-      private xywh {2731 290 555 605} type Double labelfont 4 resizable
+      private xywh {146 263 555 605} type Double labelfont 4 resizable
       code0 {\#include <FL/fl_ask.H>} visible
     } {
       Fl_Menu_Bar m_MenuBar {
@@ -52,7 +52,7 @@ class MainWindow {} {
           xywh {0 0 62 20} labelfont 4
         } {
           MenuItem {} {
-            label {Open                     }
+            label Open
             callback {{
     extern PreviewWindow *g_PreviewWindow;
     g_PreviewWindow->hide();
@@ -159,7 +159,7 @@ class MainWindow {} {
             }
     }
 }}
-            xywh {0 0 30 20} labelfont 4 divider
+            xywh {0 0 30 20} shortcut 0x4006f labelfont 4 divider
             code0 {\#include <FL/Fl_Native_File_Chooser.H>}
             code1 {\#include "progressbarwindow.hpp"}
             code2 {\#include "previewwindow.hpp"}
@@ -184,44 +184,11 @@ class MainWindow {} {
             }
         default:
             {
-                extern WilImagePackage *g_WilPackage;
-                if(g_WilPackage->setIndex(SelectedImageIndex())){
+                const auto selectedImgIdx = selectedImageIndex();
+                std::string filePathName = fileChooser.filename();
+                std::replace(filePathName.begin(), filePathName.end(), '\\\\', '/');
 
-                    auto nW = g_WilPackage->currImageInfo()->width;
-                    auto nH = g_WilPackage->currImageInfo()->height;
-
-                    std::vector<uint32_t> stvBuf(nW * nH);
-                    g_WilPackage->decode(&(stvBuf[0]), 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF);
-
-                    if(AutoAlphaEnabled()){
-                        alphaf::autoAlpha(stvBuf.data(), stvBuf.size());
-                    }
-
-                    if(ShadowRemovalEnabled()){
-                        alphaf::autoShadowRemove(stvBuf.data(), nW, nH, colorf::BLACK + colorf::A_SHF(0X80));
-                    }
-
-                    auto nDX = g_WilPackage->currImageInfo()->px;
-                    auto nDY = g_WilPackage->currImageInfo()->py;
-
-                    char tmpIndex[128];
-                    auto imgIdx = SelectedImageIndex();
-
-                    if(SaveOffsetEnabled()){
-                        std::sprintf(tmpIndex, "TMP%s_%s%s%04X%04X",
-                                getImageIndexString(imgIdx).c_str(),
-                                ((nDX > 0) ? "1" : "0"),              // sign, postive for 1
-                                ((nDY > 0) ? "1" : "0"),              // sign
-                                (unsigned int)(std::labs(nDX)),
-                                (unsigned int)(std::labs(nDY)));
-                    }else{
-                        std::sprintf(tmpIndex, "TMP%s", getImageIndexString(imgIdx).c_str());
-                    }
-
-                    std::string tmpFilePathName = fileChooser.filename();
-                    std::replace(tmpFilePathName.begin(), tmpFilePathName.end(), '\\\\', '/');
-                    imgf::saveImageBuffer((uint8_t *)(&(stvBuf[0])), nW, nH, (tmpFilePathName + "/" + tmpIndex + ".PNG").c_str());
-                }
+                saveImage(selectedImgIdx, filePathName);
                 break;
             }
     }
@@ -230,7 +197,7 @@ class MainWindow {} {
             code0 {\#include <cstdint>}
           }
           MenuItem {} {
-            label {Export all}
+            label {Export All}
             callback {{
 	Fl_Native_File_Chooser fileChooser;
 	fileChooser.title("Save All Wil Images");
@@ -248,6 +215,9 @@ class MainWindow {} {
             }
         default:
             {
+                std::string filePathName = fileChooser.filename();
+                std::replace(filePathName.begin(), filePathName.end(), '\\\\', '/');
+
                 extern WilImagePackage *g_WilPackage;
                 extern ProgressBarWindow *g_ProgressBarWindow;
 
@@ -269,45 +239,9 @@ class MainWindow {} {
                         Fl::check();
                     }
 
+
                     const auto imgIdx = to_u32((intptr_t)(m_Browser->data(nIndex)));
-                    if(!g_WilPackage->setIndex(imgIdx)){
-                        continue;
-                    }
-
-                    auto nW = g_WilPackage->currImageInfo()->width;
-                    auto nH = g_WilPackage->currImageInfo()->height;
-
-                    stvBuf.resize(0);
-                    stvBuf.resize(nW * nH);
-
-                    g_WilPackage->decode(stvBuf.data(), 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF);
-
-                    if(AutoAlphaEnabled()){
-                        alphaf::autoAlpha(stvBuf.data(), stvBuf.size());
-                    }
-
-                    if(ShadowRemovalEnabled()){
-                        alphaf::autoShadowRemove(stvBuf.data(), nW, nH, colorf::BLACK + colorf::A_SHF(0X80));
-                    }
-
-                    auto nDX = g_WilPackage->currImageInfo()->px;
-                    auto nDY = g_WilPackage->currImageInfo()->py;
-
-                    char tmpIndex[128];
-                    if(SaveOffsetEnabled()){
-                        std::sprintf(tmpIndex, "TMP%s_%s%s%04X%04X",
-                                getImageIndexString(imgIdx).c_str(),
-                                ((nDX > 0) ? "1" : "0"),              // sign, postive for 1
-                                ((nDY > 0) ? "1" : "0"),              // sign
-                                (unsigned int)(std::labs(nDX)),
-                                (unsigned int)(std::labs(nDY)));
-                    }else{
-                        std::sprintf(tmpIndex, "TMP%s", getImageIndexString(imgIdx).c_str());
-                    }
-
-                    std::string tmpFilePathName = fileChooser.filename();
-                    std::replace(tmpFilePathName.begin(), tmpFilePathName.end(), '\\\\', '/');
-                    imgf::saveImageBuffer((uint8_t *)(&(stvBuf[0])), nW, nH, (tmpFilePathName + "/" + tmpIndex + ".PNG").c_str());
+                    saveImage(imgIdx, filePathName);
                 }
                 g_ProgressBarWindow->HideAll();
                 break;
@@ -320,23 +254,57 @@ class MainWindow {} {
           MenuItem {} {
             label Exit
             callback {exit(0);}
-            xywh {0 0 30 20} labelfont 4
+            xywh {0 0 30 20} shortcut 0x40065 labelfont 4
           }
         }
         Submenu {} {
           label Config
           xywh {0 0 70 21} labelfont 4
         } {
-          MenuItem m_MenuItemSaveIndex {
-            label {Save index}
-            xywh {20 20 36 21} type Toggle labelfont 4
+          MenuItem m_menuItemShowLayer0 {
+            label {Show Layer 0          }
+            callback {{
+	extern PreviewWindow *g_PreviewWindow;
+	g_PreviewWindow->LoadImage();
+	g_PreviewWindow->redraw();
+}}
+            xywh {60 60 36 21} type Toggle value 1 labelfont 4
+            code0 {\#include "previewwindow.hpp"}
           }
-          MenuItem m_MenuItemSaveOffset {
-            label {Save offset}
-            xywh {10 10 36 21} type Toggle labelfont 4 divider
+          MenuItem m_menuItemShowLayer1 {
+            label {Show Layer 1}
+            callback {{
+	extern PreviewWindow *g_PreviewWindow;
+	g_PreviewWindow->LoadImage();
+	g_PreviewWindow->redraw();
+}}
+            xywh {40 40 36 21} type Toggle value 1 labelfont 4
+            code0 {\#include "previewwindow.hpp"}
           }
-          MenuItem m_MenuItemAutoAlpha {
-            label {Auto alpha magic      }
+          MenuItem m_menuItemShowLayer2 {
+            label {Show Layer 2}
+            callback {{
+	extern PreviewWindow *g_PreviewWindow;
+	g_PreviewWindow->LoadImage();
+	g_PreviewWindow->redraw();
+}}
+            xywh {20 20 36 21} type Toggle value 1 labelfont 4 divider
+            code0 {\#include "previewwindow.hpp"}
+          }
+          MenuItem m_menuItemSaveIndex {
+            label {Save Index}
+            xywh {30 30 36 21} type Toggle labelfont 4
+          }
+          MenuItem m_menuItemSaveLayers {
+            label {Save Layers}
+            xywh {10 10 36 21} type Toggle labelfont 4
+          }
+          MenuItem m_menuItemSaveOffset {
+            label {Save Offset}
+            xywh {20 20 36 21} type Toggle labelfont 4 divider
+          }
+          MenuItem m_menuItemAutoAlpha {
+            label {Auto Alpha}
             callback {{
 	extern PreviewWindow *g_PreviewWindow;
 	g_PreviewWindow->LoadImage();
@@ -345,8 +313,8 @@ class MainWindow {} {
             xywh {20 20 36 21} type Toggle labelfont 4
             code0 {\#include "previewwindow.hpp"}
           }
-          MenuItem m_MenuItemAutoAlphaShadow {
-            label {Auto alpha shadow}
+          MenuItem m_menuItemAutoAlphaShadow {
+            label {Remove Shadow Mosaic}
             callback {{
 	extern PreviewWindow *g_PreviewWindow;
 	g_PreviewWindow->LoadImage();
@@ -355,8 +323,8 @@ class MainWindow {} {
             xywh {30 30 36 21} type Toggle labelfont 4 divider
             code0 {\#include "previewwindow.hpp"}
           }
-          MenuItem m_MenuItemBlackBG {
-            label {Black background}
+          MenuItem m_menuItemClearBackground {
+            label {Clear Background}
             callback {{
 	extern PreviewWindow *g_PreviewWindow;
 	g_PreviewWindow->redraw();
@@ -386,16 +354,17 @@ class MainWindow {} {
       Fl_Browser m_Browser {
         callback {// handle the click event
 // when clicking the item preview window should show selected window
-{
+
 extern PreviewWindow   *g_PreviewWindow;
 extern MainWindow      *g_MainWindow;
 extern WilImagePackage *g_WilPackage;
 
-if(g_WilPackage->setIndex(g_MainWindow->SelectedImageIndex())){
-	g_PreviewWindow->LoadImage();
-	g_PreviewWindow->show();
-	g_PreviewWindow->redraw();
-}
+if(g_WilPackage){
+    if(g_WilPackage->setIndex(g_MainWindow->selectedImageIndex())){
+        g_PreviewWindow->LoadImage();
+        g_PreviewWindow->show();
+        g_PreviewWindow->redraw();
+    }
 }}
         private xywh {0 20 555 570} type Hold labelfont 4 textfont 4 resizable
         code0 {\#include <algorithm>}
@@ -417,7 +386,7 @@ if(g_WilPackage->setIndex(g_MainWindow->SelectedImageIndex())){
 	m_Window->show();
 }} {}
   }
-  Function {SelectedImageIndex()} {return_type uint32_t
+  Function {selectedImageIndex()} {return_type uint32_t
   } {
     code {{
 	for(int i = 1; i <= m_Browser->size(); ++i)
@@ -460,44 +429,111 @@ if(g_WilPackage->setIndex(g_MainWindow->SelectedImageIndex())){
         m_Window->redraw();
 }} {}
   }
-  Function {AutoAlphaEnabled()} {return_type bool
+  Function {autoAlphaEnabled()} {return_type bool
   } {
     code {{
-    return m_MenuItemAutoAlpha->value();
+    return m_menuItemAutoAlpha->value();
 }} {}
   }
-  Function {ShadowRemovalEnabled()} {return_type bool
+  Function {removeShadowMosaicEnabled()} {return_type bool
   } {
     code {{
-    return m_MenuItemAutoAlphaShadow->value();
+    return m_menuItemAutoAlphaShadow->value();
 }} {}
   }
-  Function {SaveOffsetEnabled()} {return_type bool
+  Function {saveOffsetEnabled()} {return_type bool
   } {
     code {{
-    return m_MenuItemSaveOffset->value();
+    return m_menuItemSaveOffset->value();
 }} {}
   }
-  Function {SaveIndexEnabled()} {return_type bool
+  Function {saveIndexEnabled()} {return_type bool
   } {
     code {{
-    return m_MenuItemSaveIndex->value();
+    return m_menuItemSaveIndex->value();
 }} {}
   }
-  Function {BlackBG()} {return_type bool
+  Function {clearBackgroundEnabled()} {return_type bool
   } {
     code {{
-    return m_MenuItemBlackBG->value();
+    return m_menuItemClearBackground->value();
 }} {}
   }
   Function {getImageIndexString(int d)} {return_type {std::string}
   } {
     code {{
-    if(SaveIndexEnabled()){
+    if(saveIndexEnabled()){
         return str_printf("%06d_%08X", d, d);
     }
     else{
         return str_printf("%08X", d);
+    }
+}} {}
+  }
+  Function {layerIndexEnabled(int index)} {return_type bool
+  } {
+    code {{
+    if(index == 0){
+        return m_menuItemShowLayer0->value();
+    }
+    else if(index == 1){
+        return m_menuItemShowLayer1->value();
+    }
+    else if(index == 2){
+        return m_menuItemShowLayer2->value();
+    }
+    else{
+        return false;
+    }
+}} {}
+  }
+  Function {saveLayersEnabled()} {return_type bool
+  } {
+    code {{
+    return m_menuItemSaveLayers->value();
+}} {}
+  }
+  Function {saveImage(uint32_t imageIndex, const std::string &filePath)} {return_type void
+  } {
+    code {{
+    extern WilImagePackage *g_WilPackage;
+    if(g_WilPackage->setIndex(imageIndex)){
+        const auto nW  = g_WilPackage->currImageInfo()->width;
+        const auto nH  = g_WilPackage->currImageInfo()->height;
+        const auto nDX = g_WilPackage->currImageInfo()->px;
+        const auto nDY = g_WilPackage->currImageInfo()->py;
+
+        char tmpIndex[128];
+        if(saveOffsetEnabled()){
+            std::sprintf(tmpIndex, "TMP%s_%s%s%04X%04X",
+                    getImageIndexString(imageIndex).c_str(),
+                    ((nDX > 0) ? "1" : "0"),              // sign, postive for 1
+                    ((nDY > 0) ? "1" : "0"),              // sign
+                    (unsigned int)(std::labs(nDX)),
+                    (unsigned int)(std::labs(nDY)));
+        }
+        else{
+            std::sprintf(tmpIndex, "TMP%s", getImageIndexString(imageIndex).c_str());
+        }
+
+        if(const auto [layer0, layer1, layer2] = g_WilPackage->decode(true, removeShadowMosaicEnabled(), autoAlphaEnabled()); layer0){
+            imgf::saveImageBuffer((const uint8_t *)(layer0), nW, nH, (filePath + "/" + tmpIndex + "_M.PNG").c_str());
+        }
+
+        if(saveLayersEnabled()){
+            const auto [layer0, layer1, layer2] = g_WilPackage->decode(false, removeShadowMosaicEnabled(), autoAlphaEnabled());
+            if(layer0){
+                imgf::saveImageBuffer((const uint8_t *)(layer0), nW, nH, (filePath + "/" + tmpIndex + "_0.PNG").c_str());
+            }
+
+            if(layer1){
+                imgf::saveImageBuffer((const uint8_t *)(layer1), nW, nH, (filePath + "/" + tmpIndex + "_1.PNG").c_str());
+            }
+
+            if(layer2){
+                imgf::saveImageBuffer((const uint8_t *)(layer2), nW, nH, (filePath + "/" + tmpIndex + "_2.PNG").c_str());
+            }
+        }
     }
 }} {}
   }

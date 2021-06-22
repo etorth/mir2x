@@ -43,8 +43,8 @@
 #include <algorithm>
 
 #include "imgf.hpp"
+#include "alphaf.hpp"
 #include "filesys.hpp"
-#include "shadow.hpp"
 #include "wilimagepackage.hpp"
 
 void printUsage()
@@ -110,7 +110,6 @@ bool heroWil2PNG(bool bGender,
         const char *szOutDir)
 {
     WilImagePackage stPackage(szPath, szBaseName);
-    std::vector<uint32_t> stPNGBuf;
     std::vector<uint32_t> stPNGBufShadow;
     for(int nDress = 0; nDress < 9; ++nDress){
         for(int nMotion = 0; nMotion < 33; ++nMotion){
@@ -120,8 +119,7 @@ bool heroWil2PNG(bool bGender,
                     if(stPackage.setIndex(nBaseIndex)){
 
                         const auto imgInfo = stPackage.currImageInfo();
-                        stPNGBuf.resize(imgInfo->width * imgInfo->height);
-                        stPackage.decode(&(stPNGBuf[0]), 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF);
+                        const auto layer = stPackage.decode(true, false, false);
 
                         // export for HumanGfxDBN
                         char szSaveFileName[128];
@@ -136,7 +134,7 @@ bool heroWil2PNG(bool bGender,
                                 imgInfo->px,
                                 imgInfo->py);
 
-                        if(!imgf::saveImageBuffer((uint8_t *)(&(stPNGBuf[0])), imgInfo->width, imgInfo->height, szSaveFileName)){
+                        if(!imgf::saveImageBuffer((uint8_t *)(layer[0]), imgInfo->width, imgInfo->height, szSaveFileName)){
                             std::printf("save PNG failed: %s", szSaveFileName);
                             return false;
                         }
@@ -147,19 +145,13 @@ bool heroWil2PNG(bool bGender,
                         //  project :  (nW + nH / 2) x (nH / 2 + 1)
                         //          :  (nW x nH)
                         //
-                        int nMaxW = (std::max<int>)(imgInfo->width + imgInfo->height / 2, imgInfo->width ) + 20;
-                        int nMaxH = (std::max<int>)(           1 + imgInfo->height / 2, imgInfo->height) + 20;
-                        stPNGBufShadow.resize(nMaxW * nMaxH);
 
                         bool bProject = true;
                         if(true
                                 && nMotion == 19
                                 && nFrame  ==  9){ bProject = false; }
 
-                        int nShadowW = 0;
-                        int nShadowH = 0;
-                        Shadow::MakeShadow(&(stPNGBufShadow[0]), bProject, &(stPNGBuf[0]), imgInfo->width, imgInfo->height, &nShadowW, &nShadowH, 0XFF000000);
-
+                        const auto [bufShadow, nShadowW, nShadowH] = alphaf::createShadow(stPNGBufShadow, bProject, layer[0], imgInfo->width, imgInfo->height, colorf::A_SHF(0XFF));
                         if(true
                                 && nShadowW > 0
                                 && nShadowH > 0){
@@ -174,7 +166,7 @@ bool heroWil2PNG(bool bGender,
                                     bProject ? imgInfo->shadowPX : (imgInfo->px + 3),
                                     bProject ? imgInfo->shadowPY : (imgInfo->py + 2));
 
-                            if(!imgf::saveImageBuffer((uint8_t *)(&(stPNGBufShadow[0])), nShadowW, nShadowH, szSaveFileName)){
+                            if(!imgf::saveImageBuffer((uint8_t *)(bufShadow), nShadowW, nShadowH, szSaveFileName)){
                                 std::printf("save shadow PNG failed: %s", szSaveFileName);
                                 return false;
                             }

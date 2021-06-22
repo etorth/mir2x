@@ -109,7 +109,7 @@ void helmetWil2PNG(bool bGender, int nIndex,
                     const int nHelmetIndex = nHelmet * 3000 + nMotion * 80 + nDirection * 10 + nFrame;
                     if(const auto helmetImgInfo = stHelmetWilPackage.setIndex(nHelmetIndex)){
                         stHelmetPNGBuf.resize(helmetImgInfo->width * helmetImgInfo->height);
-                        stHelmetWilPackage.decode(stHelmetPNGBuf.data(), 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF);
+                        const auto layer = stHelmetWilPackage.decode(true, false, false);
 
                         char szSaveFileName[128];
                         createOffsetFileName(szSaveFileName,
@@ -122,7 +122,7 @@ void helmetWil2PNG(bool bGender, int nIndex,
                                 helmetImgInfo->px,
                                 helmetImgInfo->py);
 
-                        if(!imgf::saveImageBuffer((uint8_t *)(&(stHelmetPNGBuf[0])), helmetImgInfo->width, helmetImgInfo->height, szSaveFileName)){
+                        if(!imgf::saveImageBuffer((uint8_t *)(layer[0]), helmetImgInfo->width, helmetImgInfo->height, szSaveFileName)){
                             throw fflerror("save helmet PNG failed: %s", szSaveFileName);
                         }
                     }

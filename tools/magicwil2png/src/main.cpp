@@ -89,17 +89,14 @@ void magicWil2PNG(const char *dataPath, const char *outDir, int prefixWidth)
         "MonMagicEx4",
     }){
         WilImagePackage imgPackage(dataPath, fileBodyName);
-        std::vector<uint32_t> pngBuf;
         for(int i = 0; i < to_d(imgPackage.indexCount()); ++i){
             if(const auto imgInfo = imgPackage.setIndex(i)){
-                pngBuf.resize(imgInfo->width * imgInfo->height);
-                imgPackage.decode(pngBuf.data(), 0XFFFFFFFF, 0XFFFFFFFF, 0XFFFFFFFF);
-                alphaf::autoAlpha(pngBuf.data(), pngBuf.size());
+                const auto layer = imgPackage.decode(true, false, true);
 
                 char saveFileName[256];
                 createOffsetFileName(saveFileName, outDir, fileIndex, i, imgInfo->px, imgInfo->py, prefixIndex++, prefixWidth);
 
-                if(!imgf::saveImageBuffer((uint8_t *)(pngBuf.data()), imgInfo->width, imgInfo->height, saveFileName)){
+                if(!imgf::saveImageBuffer((uint8_t *)(layer[0]), imgInfo->width, imgInfo->height, saveFileName)){
                     throw fflerror("save PNG failed: %s", saveFileName);
                 }
             }

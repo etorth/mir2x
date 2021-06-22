@@ -27,7 +27,7 @@
 #include <FL/Fl_RGB_Image.H>
 
 #include "mir2map.hpp"
-#include "imagedb.hpp"
+#include "imagemapdb.hpp"
 #include "drawarea.hpp"
 #include "sysconst.hpp"
 #include "mathf.hpp"
@@ -39,7 +39,7 @@
 #include "animationdb.hpp"
 #include "attributeselectwindow.hpp"
 
-extern ImageDB *g_imageDB;
+extern ImageMapDB *g_imageMapDB;
 extern EditorMap g_editorMap;
 extern ImageCache g_imageCache;
 extern AnimationDB g_animationDB;
@@ -739,7 +739,7 @@ void DrawArea::drawFloatObject(int gridX, int gridY, int floatObj, int floatWinX
                 {
                     return
                     {
-                        100 + std::strlen(g_imageDB->dbName(objFileIndex)) * 10,
+                        100 + std::strlen(g_imageMapDB->dbName(objFileIndex)) * 10,
                         150,
                     };
                 }
@@ -749,7 +749,7 @@ void DrawArea::drawFloatObject(int gridX, int gridY, int floatObj, int floatWinX
                 {
                     return
                     {
-                        100 + std::strlen(g_imageDB->dbName(objFileIndex)) * 10,
+                        100 + std::strlen(g_imageMapDB->dbName(objFileIndex)) * 10,
                         260,
                     };
                 }
@@ -811,7 +811,7 @@ void DrawArea::drawFloatObject(int gridX, int gridY, int floatObj, int floatWinX
                 drawText(textStartX, textStartY, "index1 : %d", objImageIndex);
                 textStartY += 20;
 
-                drawText(textStartX, textStartY, "dbName : %s", g_imageDB->dbName(objFileIndex));
+                drawText(textStartX, textStartY, "dbName : %s", g_imageMapDB->dbName(objFileIndex));
                 textStartY += 20;
                 break;
             }
@@ -832,7 +832,7 @@ void DrawArea::drawFloatObject(int gridX, int gridY, int floatObj, int floatWinX
                 drawText(textStartX, textStartY, "index1 : %d", objImageIndex);
                 textStartY += 20;
 
-                drawText(textStartX, textStartY, "dbName : %s", g_imageDB->dbName(objFileIndex));
+                drawText(textStartX, textStartY, "dbName : %s", g_imageMapDB->dbName(objFileIndex));
                 textStartY += 20;
 
                 const auto &obj = g_editorMap.cell(gridX, gridY).obj[(floatObj == FOBJ_OBJ0) ? 0 : 1];
@@ -848,14 +848,14 @@ void DrawArea::drawFloatObject(int gridX, int gridY, int floatObj, int floatWinX
                 drawText(textStartX, textStartY, "frameC : %d", to_d(obj.frameCount));
                 textStartY += 20;
 
-                const auto imgInfo = g_imageDB->setIndex(imageIndex);
+                const auto imgInfo = g_imageMapDB->setIndex(imageIndex);
                 drawText(textStartX, textStartY, "offseX : %d", to_d(imgInfo->px));
                 textStartY += 20;
 
                 drawText(textStartX, textStartY, "offseY : %d", to_d(imgInfo->py));
                 textStartY += 20;
 
-                drawText(textStartX, textStartY, "Versio : %d", to_d(g_imageDB->getPackage(objFileIndex)->header().version));
+                drawText(textStartX, textStartY, "Versio : %d", to_d(g_imageMapDB->getPackage(objFileIndex)->header().version));
                 textStartY += 20;
                 break;
             }
