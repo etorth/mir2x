@@ -107,7 +107,7 @@ class WilImagePackage
     public:
         // decode image
         // when mergeLayer is true:
-        //      layer_0XC1: layer_0XC2 and layer_0XC3 merges to layer_0XC0
+        //      layer_0XC1: layer_0XC2 and layer_0XC3 merges to layer_0XC1
         //      layer_0XC2: nullptr
         //      layer_0XC3: nullptr
         //
