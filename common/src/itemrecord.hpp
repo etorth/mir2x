@@ -100,4 +100,9 @@ struct ItemRecord
     {
         return std::u8string_view(type) == u8"金币";
     }
+
+    constexpr bool isDress() const
+    {
+        return std::u8string_view(type) == u8"衣服";
+    }
 };

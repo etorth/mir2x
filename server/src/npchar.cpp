@@ -20,7 +20,9 @@
 #include "uidf.hpp"
 #include "luaf.hpp"
 #include "dbpod.hpp"
+#include "mathf.hpp"
 #include "npchar.hpp"
+#include "colorf.hpp"
 #include "totype.hpp"
 #include "filesys.hpp"
 #include "dbcomid.hpp"
@@ -808,6 +810,23 @@ void NPChar::fillSellItemList()
 
 SDItem NPChar::createSellItem(uint32_t itemID, uint32_t seqID) const
 {
+    if(DBCOM_ITEMRECORD(itemID).isDress()){
+        return SDItem
+        {
+            .itemID = itemID,
+            .seqID =  seqID,
+            .count = 1,
+            .duration = 0,
+            .extAttrList
+            {
+                .list
+                {
+                    {SDItem::COLOR, colorf::RGBA(mathf::rand(100, 255), mathf::rand(100, 255), mathf::rand(100, 255), 0XFF)},
+                }
+            },
+        };
+    }
+
     return SDItem
     {
         .itemID = itemID,

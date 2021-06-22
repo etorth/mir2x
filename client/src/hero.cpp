@@ -89,12 +89,15 @@ void Hero::drawFrame(int viewX, int viewY, int, int frame, bool)
 
     fnDrawWeapon(true);
 
-    const auto dressGfxIndex = [this]() -> int
+    const auto [dressGfxIndex, modDressColor] = [this]() -> std::tuple<int, uint32_t>
     {
         if(const auto &dressItem = getWLItem(WLG_DRESS)){
-            return DBCOM_ITEMRECORD(dressItem.itemID).shape;
+            if(dressItem.extAttrList.list.count(SDItem::COLOR)){
+                return {DBCOM_ITEMRECORD(dressItem.itemID).shape, std::get<uint32_t>(dressItem.extAttrList.list.at(SDItem::COLOR))};
+            }
+            return {DBCOM_ITEMRECORD(dressItem.itemID).shape, 0XFFFFFFFF};
         }
-        return DRESS_BEGIN; // naked
+        return {DRESS_BEGIN, 0XFFFFFFFF}; // naked
     }();
 
     const auto nGfxDressID = gfxDressID(dressGfxIndex, m_currMotion->type, m_currMotion->direction);
@@ -145,7 +148,10 @@ void Hero::drawFrame(int viewX, int viewY, int, int frame, bool)
     }
 
     g_sdlDevice->drawTexture(bodyLayer0, startX + body0DX, startY + body0DY);
-    g_sdlDevice->drawTexture(bodyLayer1, startX + body1DX, startY + body1DY);
+    if(bodyLayer1){
+        SDLDeviceHelper::EnableTextureModColor modColor(bodyLayer1, modDressColor);
+        g_sdlDevice->drawTexture(bodyLayer1, startX + body1DX, startY + body1DY);
+    }
 
     if(getWLItem(WLG_HELMET)){
         if(const auto nHelmetGfxID = gfxHelmetID(DBCOM_ITEMRECORD(getWLItem(WLG_HELMET).itemID).shape, m_currMotion->type, m_currMotion->direction); nHelmetGfxID.has_value()){

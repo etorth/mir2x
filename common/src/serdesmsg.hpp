@@ -108,24 +108,9 @@ struct SDCostItem
     }
 };
 
-struct SDItemAttr
-{
-    enum SDItemAttrID: int
-    {
-        NONE = 0,
-        COLOR,      // u32
-    };
-
-    std::variant<int, uint32_t, std::array<int, 2>> value;
-    template<typename Archive> void serialize(Archive & ar)
-    {
-        ar(value);
-    }
-};
-
 struct SDItemExtAttrList
 {
-    std::unordered_map<int, SDItemAttr> list;
+    std::unordered_map<int, std::variant<int, uint32_t, std::array<int, 2>>> list;
     template<typename Archive> void serialize(Archive & ar)
     {
         ar(list);
@@ -144,6 +129,12 @@ struct SDItemExtAttrList
 
 struct SDItem
 {
+    enum SDItemAttrType: int
+    {
+        NONE = 0,
+        COLOR, // u32
+    };
+
     uint32_t itemID = 0;
     uint32_t  seqID = 0;
     size_t    count = 1;
