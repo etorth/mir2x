@@ -158,6 +158,14 @@ struct SDItem
 
     operator bool () const;
     static SDItem buildGoldItem(size_t);
+
+    std::optional<uint32_t> getColor() const
+    {
+        if(extAttrList.list.count(SDItem::COLOR)){
+            return std::get<uint32_t>(extAttrList.list.at(SDItem::COLOR));
+        }
+        return {};
+    }
 };
 
 struct SDDropItem

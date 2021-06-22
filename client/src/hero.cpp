@@ -92,10 +92,7 @@ void Hero::drawFrame(int viewX, int viewY, int, int frame, bool)
     const auto [dressGfxIndex, modDressColor] = [this]() -> std::tuple<int, uint32_t>
     {
         if(const auto &dressItem = getWLItem(WLG_DRESS)){
-            if(dressItem.extAttrList.list.count(SDItem::COLOR)){
-                return {DBCOM_ITEMRECORD(dressItem.itemID).shape, std::get<uint32_t>(dressItem.extAttrList.list.at(SDItem::COLOR))};
-            }
-            return {DBCOM_ITEMRECORD(dressItem.itemID).shape, 0XFFFFFFFF};
+            return {DBCOM_ITEMRECORD(dressItem.itemID).shape, dressItem.getColor().value_or(0XFFFFFFFF)};
         }
         return {DRESS_BEGIN, 0XFFFFFFFF}; // naked
     }();
