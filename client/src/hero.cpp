@@ -110,10 +110,12 @@ void Hero::drawFrame(int viewX, int viewY, int, int frame, bool)
     // 21 - 14 :     dress : max = 256 : +----> gfxDressID
     //      22 :       sex :
     //      23 :    shadow :
+    //      24 :     layer :
     const uint32_t   bodyKey = (to_u32(0) << 23) + (to_u32(gender()) << 22) + ((to_u32(nGfxDressID.value() & 0X01FFFF)) << 5) + frame;
     const uint32_t shadowKey = (to_u32(1) << 23) + (to_u32(gender()) << 22) + ((to_u32(nGfxDressID.value() & 0X01FFFF)) << 5) + frame;
 
-    const auto [  bodyFrame,   bodyDX,   bodyDY] = g_heroDB->retrieve(bodyKey);
+    const auto [ bodyLayer0,  body0DX,  body0DY] = g_heroDB->retrieve(bodyKey);
+    const auto [ bodyLayer1,  body1DX,  body1DY] = g_heroDB->retrieve(bodyKey | (to_u32(1) << 24));
     const auto [shadowFrame, shadowDX, shadowDY] = g_heroDB->retrieve(shadowKey);
 
     if(shadowFrame){
@@ -142,7 +144,9 @@ void Hero::drawFrame(int viewX, int viewY, int, int frame, bool)
         }
     }
 
-    g_sdlDevice->drawTexture(bodyFrame, startX + bodyDX, startY + bodyDY);
+    g_sdlDevice->drawTexture(bodyLayer0, startX + body0DX, startY + body0DY);
+    g_sdlDevice->drawTexture(bodyLayer1, startX + body1DX, startY + body1DY);
+
     if(getWLItem(WLG_HELMET)){
         if(const auto nHelmetGfxID = gfxHelmetID(DBCOM_ITEMRECORD(getWLItem(WLG_HELMET).itemID).shape, m_currMotion->type, m_currMotion->direction); nHelmetGfxID.has_value()){
             const uint32_t nHelmetKey = (to_u32(gender()) << 22) + ((to_u32(nHelmetGfxID.value() & 0X01FFFF)) << 5) + frame;
@@ -168,11 +172,11 @@ void Hero::drawFrame(int viewX, int viewY, int, int frame, bool)
     }
 
     if(g_clientArgParser->drawTextureAlignLine){
-        g_sdlDevice->drawLine (colorf::RED  + colorf::A_SHF(128), startX, startY, startX + bodyDX, startY + bodyDY);
+        g_sdlDevice->drawLine (colorf::RED  + colorf::A_SHF(128), startX, startY, startX + body0DX, startY + body0DY);
         g_sdlDevice->drawCross(colorf::BLUE + colorf::A_SHF(128), startX, startY, 5);
 
-        const auto [texW, texH] = SDLDeviceHelper::getTextureSize(bodyFrame);
-        g_sdlDevice->drawRectangle(colorf::RED + colorf::A_SHF(128), startX + bodyDX, startY + bodyDY, texW, texH);
+        const auto [texW, texH] = SDLDeviceHelper::getTextureSize(bodyLayer0);
+        g_sdlDevice->drawRectangle(colorf::RED + colorf::A_SHF(128), startX + body0DX, startY + body0DY, texW, texH);
     }
 
     if(g_clientArgParser->drawTargetBox){
