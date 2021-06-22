@@ -524,12 +524,23 @@ void Player::net_CM_REQUESTGRABBELT(uint8_t, const uint8_t *buf, size_t)
 void Player::net_CM_DROPITEM(uint8_t, const uint8_t *buf, size_t)
 {
     const auto cmDI = ClientMsg::conv<CMDropItem>(buf);
-    SDItem dropItem
+    auto dropItem = [&cmDI, this]() -> SDItem
     {
-        .itemID = cmDI.itemID,
-        .seqID = cmDI.seqID,
-        .count = to_uz(cmDI.count),
-    };
+        if(const auto &singleItem = findInventoryItem(cmDI.itemID, cmDI.seqID)){
+            return singleItem;
+        }
+
+        if(hasInventoryItem(cmDI.itemID, cmDI.seqID, cmDI.count)){
+            return SDItem
+            {
+                .itemID = cmDI.itemID,
+                .seqID = cmDI.seqID,
+                .count = to_uz(cmDI.count),
+            };
+        }
+
+        return {};
+    }();
 
     fflassert(dropItem);
     removeInventoryItem(dropItem);
