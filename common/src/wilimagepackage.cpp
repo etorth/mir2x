@@ -94,6 +94,22 @@ std::array<const uint32_t *, 3> WilImagePackage::decode(bool mergeLayer, bool re
     m_decodeBuf1.clear();
     m_decodeBuf2.clear();
 
+    // checked all .wil packages, none of them has layer[2]
+    // the following packages has layer[1], all packages has layer[0]
+    //
+    //                  0 1 2 layers
+    // DMon-1.wil     : v v x
+    // Equip.wil      : v v x
+    // Flag.wil       : v v x
+    // GameInter.wil  : v v x
+    // Inventory.wil  : v v x
+    // M-Hair.wil     : x v x
+    // M-Hum.wil      : v v x
+    // Mon-17.wil     : v v x
+    // ProgUse.wil    : v v x
+    // WM-Hair.wil    : x v x
+    // WM-Hum.wil     : v v x
+
     // check decode in suprcode/mir2: LibraryEditor/Graphics/WeMadeLibrary.cs
 
     size_t srcBeginPos    = 0;
