@@ -6,6 +6,7 @@ import subprocess
 import statistics
 from PIL import Image
 
+
 def getFPS(gifOrigName):
     im = Image.open(gifOrigName, 'r')
     imglist = []
@@ -19,7 +20,13 @@ def getFPS(gifOrigName):
     except EOFError:
         pass
 
-    return math.ceil(1000 / statistics.mean([x.info['duration'] for x in imglist]))
+    # TODO I found there are gifs with duration zero, i.e. client/bin/emoji/classic/132.gif
+    mean = statistics.mean([x.info['duration'] for x in imglist])
+
+    if mean <= 0:
+        return 7
+
+    return math.ceil(1000 / mean)
 
 
 def simpleMerge(gifFrameNameList, outName, toRow):
@@ -77,25 +84,51 @@ def mergeFrames(gifFrameNameList, fps, emojiID):
     simpleMerge(gifMergedRowNameList, outFileName, False)
 
 
-def doConvert(gifOrigName, emojiID):
-    if not os.path.exists(gifOrigName):
-        raise ValueError("%s doesn't exists" % gifOrigName)
+def doConvert(gifOrigFullName, emojiID):
+    if not os.path.exists(gifOrigFullName):
+        raise ValueError("%s doesn't exists" % gifOrigFullName)
 
     if (emojiID < 0) or (emojiID >= 0XFFFFFF):
         raise ValueError('invalid output emoji id: %d', emojiID)
 
+    gifOrigName = os.path.basename(gifOrigFullName)
+
+    print("")
+    print("converting " + gifOrigName)
+
     # decompose gif into png files
     # "-coalesce" helps to make good frames, otherwise some frames can be partial because of optimization
-    subprocess.run(["convert", "-coalesce", gifOrigName, gifOrigName + ".frame.%04d.png"])
+    subprocess.run(["convert", "-coalesce", gifOrigFullName, gifOrigName + ".frame.%04d.png"])
 
     frameFileList = glob.glob(gifOrigName + '.frame.*.png')
-    fps = getFPS(gifOrigName)
-
+    fps = getFPS(gifOrigFullName)
     mergeFrames(frameFileList, fps, emojiID)
 
 
+def doConvertDir(gifDir, emojiGroupID):
+    if emojiGroupID < 0 or emojiGroupID >= 0XFF:
+        raise ValueError('invalid output emoji group id: %d', emojiGroupID)
+
+    gifOrigFullNameList = []
+    for file in os.listdir(gifDir):
+        if os.path.isfile(gifDir + '/' + file) and (file.endswith('.gif') or file.endswith('.GIF')):
+            gifOrigFullNameList.append(gifDir + '/' + file)
+
+    print("detected %d gif files:" % len(gifOrigFullNameList))
+    for gifOrigFullName in gifOrigFullNameList:
+        print(gifOrigFullName)
+
+    if len(gifOrigFullNameList) > 0XFFFF:
+        raise ValueError('an emoji group can contain maximal 65535 emojis')
+
+    index = 0
+    for gifOrigFullName in gifOrigFullNameList:
+        doConvert(gifOrigFullName, (emojiGroupID << 16) + index)
+        index = index + 1
+
+
 def main():
-    # convert gif to png based emoji
+    # convert gifs in one dir to png based emoji
     # use ImageMagic command line tool: convert, because it works better for decompse/merge
 
     # or use ezGIF
@@ -104,9 +137,9 @@ def main():
     # usage
     # output needs an ID for emojiDB
     if len(sys.argv) != 3:
-        raise ValueError("usage: python3 gif2emoji_convert.py file.gif 1230")
+        raise ValueError("usage: python3 gif2emoji_convert.py gif-dir-path emojiGroupID")
 
-    doConvert(sys.argv[1], int(sys.argv[2]))
+    doConvertDir(sys.argv[1], int(sys.argv[2]))
 
 
 if __name__ == "__main__":
