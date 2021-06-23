@@ -80,7 +80,7 @@ def mergeFrames(gifFrameNameList, fps, emojiID):
 
     # create name to load in zsdb
     # check client/src/emoticondb.hpp see how name get formated
-    outFileName = "%06X%02X%02X%04X%04X%04X.PNG" % (emojiID, frameCount, fps, frameWidth, frameHeight, frameHeight)
+    outFileName = "%06X00%02X%02X%04X%04X%04X.PNG" % (emojiID, frameCount, fps, frameWidth, frameHeight, frameHeight)
     simpleMerge(gifMergedRowNameList, outFileName, False)
 
 
@@ -88,7 +88,7 @@ def doConvert(gifOrigFullName, emojiID):
     if not os.path.exists(gifOrigFullName):
         raise ValueError("%s doesn't exists" % gifOrigFullName)
 
-    if (emojiID < 0) or (emojiID >= 0XFFFFFF):
+    if (emojiID < 0) or (emojiID > 0XFFFFFF):
         raise ValueError('invalid output emoji id: %d', emojiID)
 
     gifOrigName = os.path.basename(gifOrigFullName)
@@ -106,7 +106,7 @@ def doConvert(gifOrigFullName, emojiID):
 
 
 def doConvertDir(gifDir, emojiGroupID):
-    if emojiGroupID < 0 or emojiGroupID >= 0XFF:
+    if emojiGroupID < 0 or emojiGroupID > 0XFF:
         raise ValueError('invalid output emoji group id: %d', emojiGroupID)
 
     gifOrigFullNameList = []
