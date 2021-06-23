@@ -136,6 +136,9 @@ def main():
 
     # usage
     # output needs an ID for emojiDB
+
+    # currently: client/bin/res/emoji/classic -> 0
+    #            client/bin/res/emoji/new     -> 1
     if len(sys.argv) != 3:
         raise ValueError("usage: python3 gif2emoji_convert.py gif-dir-path emojiGroupID")
 
