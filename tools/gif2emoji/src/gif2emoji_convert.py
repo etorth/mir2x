@@ -74,6 +74,13 @@ def mergeFrames(gifFrameNameList, fps, emojiID):
             index += 1
 
         if len(gifRowNameList) > 0:
+            if len(gifRowNameList) < gridWidth:
+                # not a full row
+                # create transparent empty images and append to the list
+                subprocess.run(["convert", "-size", "%dx%d" % (frameWidth, frameHeight), "xc:transparent", "empty.png"])
+                while len(gifRowNameList) < gridWidth:
+                    gifRowNameList.append("empty.png")
+
             outName = "out." + str(index) + ".png"
             simpleMerge(gifRowNameList, outName, True)
             gifMergedRowNameList.append(outName)
