@@ -42,10 +42,10 @@ def clearFrameWhiteBorder(mergedFileName):
 
                 if edgeMask.getpixel((x, y)) == 1:
                     if r.getpixel((x, y)) + g.getpixel((x, y)) + b.getpixel((x, y)) > 230 * 3:
-                        r.putpixel((x, y), 50)
-                        g.putpixel((x, y), 50)
-                        b.putpixel((x, y), 50)
-                        a.putpixel((x, y), 50)
+                        r.putpixel((x, y), 5)
+                        g.putpixel((x, y), 5)
+                        b.putpixel((x, y), 5)
+                        a.putpixel((x, y), 5)
 
         # create a stepping alpha channel
         # original alpha channel is either 0 or 255, this makes the sharp edge
