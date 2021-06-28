@@ -77,6 +77,7 @@ class MyHero: public Hero
 
     public:
         bool parseActionQueue();
+        void clearActionQueue();
 
     public:
         uint32_t getExp() const

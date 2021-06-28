@@ -574,6 +574,11 @@ bool MyHero::parseActionQueue()
     return false;
 }
 
+void MyHero::clearActionQueue()
+{
+    m_actionQueue.clear();
+}
+
 bool MyHero::emplaceAction(const ActionNode &action)
 {
     if(m_forcedMotionQueue.empty()){

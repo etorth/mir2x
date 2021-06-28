@@ -129,6 +129,12 @@ void ProcessRun::net_ACTION(const uint8_t *bufPtr, size_t)
             throw fflerror("existing CO get spawn action: name = %s", uidf::getUIDString(smA.UID).c_str());
         }
 
+        // clear all pending action
+        // this helps to avoid the motion run back and forth
+        if(smA.UID == getMyHeroUID()){
+            getMyHero()->clearActionQueue();
+        }
+
         coPtr->parseAction(smA.action);
         switch(smA.action.type){
             case ACTION_SPACEMOVE2:
