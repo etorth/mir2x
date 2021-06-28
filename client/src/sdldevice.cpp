@@ -341,7 +341,7 @@ void SDLDevice::toggleWindowFullscreen()
     }
 }
 
-SDL_Texture *SDLDevice::createTexture(const uint8_t *pMem, size_t nSize)
+SDL_Texture *SDLDevice::createTexture(const void *data, size_t size)
 {
     // if it's changed
     // all the texture need to be re-load
@@ -349,33 +349,31 @@ SDL_Texture *SDLDevice::createTexture(const uint8_t *pMem, size_t nSize)
     // currently it doesn't support dynamic set of context
     // because all textures are based on current m_renderer
 
-    SDL_RWops   *pstRWops   = nullptr;
-    SDL_Surface *pstSurface = nullptr;
-    SDL_Texture *pstTexture = nullptr;
+    fflassert(data);
+    fflassert(size > 0);
 
-    if(pMem && nSize){
-        pstRWops = SDL_RWFromConstMem((const void *)(pMem), nSize);
-        if(pstRWops){
-            pstSurface = IMG_LoadPNG_RW(pstRWops);
-            if(pstSurface){
-                if(m_renderer){
-                    pstTexture = SDL_CreateTextureFromSurface(m_renderer, pstSurface);
-                }
-            }
+    if(!m_renderer){
+        return nullptr;
+    }
+
+    SDL_RWops   * rwOpsPtr = nullptr;
+    SDL_Surface *  surfPtr = nullptr;
+    SDL_Texture *   texPtr = nullptr;
+
+    if((rwOpsPtr = SDL_RWFromConstMem(data, size))){
+        if((surfPtr = IMG_LoadPNG_RW(rwOpsPtr))){
+            texPtr = SDL_CreateTextureFromSurface(m_renderer, surfPtr);
         }
     }
 
-    // TODO
-    // not understand well for SDL_FreeRW()
-    // since the creation is done we can free it?
-    if(pstRWops){
-        SDL_FreeRW(pstRWops);
+    if(rwOpsPtr){
+        SDL_FreeRW(rwOpsPtr);
     }
 
-    if(pstSurface){
-        SDL_FreeSurface(pstSurface);
+    if(surfPtr){
+        SDL_FreeSurface(surfPtr);
     }
-    return pstTexture;
+    return texPtr;
 }
 
 void SDLDevice::drawTexture(SDL_Texture *pstTexture,

@@ -143,7 +143,7 @@ class SDLDevice final
        ~SDLDevice();
 
     public:
-       SDL_Texture *createTexture(const uint8_t *, size_t);
+       SDL_Texture *createTexture(const void *, size_t);
 
     public:
        void setWindowIcon();
