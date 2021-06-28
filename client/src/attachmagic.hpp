@@ -18,6 +18,7 @@
 
 #pragma once
 #include <string_view>
+#include "fflerror.hpp"
 #include "magicbase.hpp"
 #include "magicrecord.hpp"
 
@@ -35,4 +36,15 @@ class AttachMagic: public MagicBase
 
     public:
         virtual void drawShift(int, int, bool) const;
+};
+
+class Thunderbolt: public AttachMagic
+{
+    public:
+        Thunderbolt()
+            : AttachMagic(u8"雷电术", u8"运行")
+        {}
+
+    public:
+        void drawShift(int, int, bool) const override;
 };

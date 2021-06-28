@@ -166,7 +166,8 @@ class SDLDevice final
                int,     // h on dst
                int,     // center x on dst
                int,     // center y on dst
-               int);    // rotate in degree on dst
+               int,     // rotate in degree on dst
+               SDL_RendererFlip = SDL_FLIP_NONE);
 
     public:
        void present()
