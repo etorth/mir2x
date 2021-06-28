@@ -376,61 +376,60 @@ SDL_Texture *SDLDevice::createTexture(const void *data, size_t size)
     return texPtr;
 }
 
-void SDLDevice::drawTexture(SDL_Texture *pstTexture,
-        int nDstX, int nDstY,
-        int nDstW, int nDstH,
-        int nSrcX, int nSrcY,
-        int nSrcW, int nSrcH)
+void SDLDevice::drawTexture(SDL_Texture *texPtr,
+        int dstX, int dstY,
+        int dstW, int dstH,
+        int srcX, int srcY,
+        int srcW, int srcH)
 {
-    if(pstTexture){
-        SDL_Rect stSrc;
-        SDL_Rect stDst;
+    if(texPtr){
+        SDL_Rect src;
+        SDL_Rect dst;
 
-        stSrc.x = nSrcX;
-        stSrc.y = nSrcY;
-        stSrc.w = nSrcW;
-        stSrc.h = nSrcH;
+        src.x = srcX;
+        src.y = srcY;
+        src.w = srcW;
+        src.h = srcH;
 
-        stDst.x = nDstX;
-        stDst.y = nDstY;
-        stDst.w = nDstW;
-        stDst.h = nDstH;
+        dst.x = dstX;
+        dst.y = dstY;
+        dst.w = dstW;
+        dst.h = dstH;
 
-        SDL_RenderCopy(m_renderer, pstTexture, &stSrc, &stDst);
+        SDL_RenderCopy(m_renderer, texPtr, &src, &dst);
         if(g_clientArgParser->debugDrawTexture){
-            drawRectangle(colorf::BLUE + colorf::A_SHF(128), nDstX, nDstY, nDstW, nDstH);
+            drawRectangle(colorf::BLUE + colorf::A_SHF(128), dstX, dstY, dstW, dstH);
         }
     }
 }
 
-void SDLDevice::drawTexture(SDL_Texture *pstTexture,
-        int nDstX, int nDstY,
-        int nSrcX, int nSrcY,
-        int nSrcW, int nSrcH)
+void SDLDevice::drawTexture(SDL_Texture *texPtr,
+        int dstX, int dstY,
+        int srcX, int srcY,
+        int srcW, int srcH)
 {
-    drawTexture(pstTexture, nDstX, nDstY, nSrcW, nSrcH, nSrcX, nSrcY, nSrcW, nSrcH);
+    drawTexture(texPtr, dstX, dstY, srcW, srcH, srcX, srcY, srcW, srcH);
 }
 
-void SDLDevice::drawTexture(SDL_Texture *pstTexture, int nX, int nY)
+void SDLDevice::drawTexture(SDL_Texture *texPtr, int dstX, int dstY)
 {
-    if(pstTexture){
-        int nW, nH;
-        if(!SDL_QueryTexture(pstTexture, nullptr, nullptr, &nW, &nH)){
-            drawTexture(pstTexture, nX, nY, 0, 0, nW, nH);
-        }
+    if(texPtr){
+        const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);
+        drawTexture(texPtr, dstX, dstY, 0, 0, texW, texH);
     }
 }
 
-TTF_Font *SDLDevice::createTTF(const uint8_t *pMem, size_t nSize, uint8_t nFontPointSize)
+TTF_Font *SDLDevice::createTTF(const void *data, size_t size, uint8_t fontPtSize)
 {
-    SDL_RWops *pstRWops = nullptr;
-    TTF_Font  *pstTTont = nullptr;
+    fflassert(data);
+    fflassert(size > 0);
+    fflassert(fontPtSize > 0);
 
-    if(pMem && nSize && nFontPointSize){
-        pstRWops = SDL_RWFromConstMem((const void *)(pMem), nSize);
-        if(pstRWops){
-            pstTTont = TTF_OpenFontRW(pstRWops, 1, nFontPointSize);
-        }
+    SDL_RWops * rwOpsPtr = nullptr;
+    TTF_Font  *   ttfPtr = nullptr;
+
+    if((rwOpsPtr = SDL_RWFromConstMem(data, size))){
+        ttfPtr = TTF_OpenFontRW(rwOpsPtr, 1, fontPtSize);
     }
 
     // TODO
@@ -445,11 +444,11 @@ TTF_Font *SDLDevice::createTTF(const uint8_t *pMem, size_t nSize, uint8_t nFontP
     // so, don't use this code before the resource allocated by SDL_RWops
     // is done. WTF
 
-    // if(pstRWops){
-    //     SDL_FreeRW(pstRWops);
+    // if(rwOpsPtr){
+    //     SDL_FreeRW(rwOpsPtr);
     // }
 
-    return pstTTont;
+    return ttfPtr;
 }
 
 void SDLDevice::createInitViewWindow()
