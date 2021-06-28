@@ -54,7 +54,7 @@ const char *createOffsetFileName(char *fileNameBuf, const char *outDir, int file
 
     char prefixBuf[64];
     if(prefixWidth > 0){
-        std::sprintf(prefixBuf, "%0*d_", prefixWidth, prefixIndex);
+        std::sprintf(prefixBuf, "%0*d_", std::min<int>(32, prefixWidth), prefixIndex);
     }
     else{
         prefixBuf[0] = '\0';
