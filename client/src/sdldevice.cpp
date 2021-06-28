@@ -247,9 +247,7 @@ SDLDeviceHelper::SDLEventPLoc SDLDeviceHelper::getEventPLoc(const SDL_Event &eve
 
 std::tuple<int, int> SDLDeviceHelper::getTextureSize(SDL_Texture *texture)
 {
-    if(!texture){
-        throw fflerror("null texture");
-    }
+    fflassert(texture);
 
     int width  = 0;
     int height = 0;
@@ -315,14 +313,14 @@ SDLDevice::~SDLDevice()
 
 void SDLDevice::setWindowIcon()
 {
-    Uint16 pRawData[16 * 16]
+    Uint16 rawData[16 * 16]
     {
         #include "winicon.inc"
     };
 
-    if(auto pstSurface = SDL_CreateRGBSurfaceFrom(pRawData, 16, 16, 16, 16*2, 0x0f00, 0x00f0, 0x000f, 0xf000)){
-        SDL_SetWindowIcon(m_window, pstSurface);
-        SDL_FreeSurface(pstSurface);
+    if(auto surfPtr = SDL_CreateRGBSurfaceFrom(rawData, 16, 16, 16, 16 * 2, 0X0F00, 0X00F0, 0X000F, 0XF000)){
+        SDL_SetWindowIcon(m_window, surfPtr);
+        SDL_FreeSurface(surfPtr);
     }
 }
 
@@ -332,10 +330,14 @@ void SDLDevice::toggleWindowFullscreen()
     const auto winFlag = SDL_GetWindowFlags(m_window);
 
     if(winFlag & (SDL_WINDOW_FULLSCREEN | SDL_WINDOW_FULLSCREEN_DESKTOP)){
-        SDL_SetWindowFullscreen(m_window, 0);
+        if(SDL_SetWindowFullscreen(m_window, 0)){
+            throw fflerror("SDL_SetWindowFullscreen(%p) failed: %s", to_cvptr(m_window), SDL_GetError());
+        }
     }
     else{
-        SDL_SetWindowFullscreen(m_window, SDL_WINDOW_FULLSCREEN);
+        if(SDL_SetWindowFullscreen(m_window, SDL_WINDOW_FULLSCREEN)){
+            throw fflerror("SDL_SetWindowFullscreen(%p) failed: %s", to_cvptr(m_window), SDL_GetError());
+        }
     }
 }
 
@@ -549,21 +551,21 @@ void SDLDevice::createMainWindow()
     SDL_StartTextInput();
 }
 
-void SDLDevice::drawTextureEx(SDL_Texture *pTexture,
-        int nSrcX, int nSrcY, int nSrcW, int nSrcH,
-        int nDstX, int nDstY, int nDstW, int nDstH,
+void SDLDevice::drawTextureEx(SDL_Texture *texPtr,
+        int srcX, int srcY, int srcW, int srcH,
+        int dstX, int dstY, int dstW, int dstH,
         int centerSrcX,
         int centerDstX,
-        int nRotateDegree,
+        int rotateDegree,
         SDL_RendererFlip flip)
 {
-    if(pTexture){
-        SDL_Rect stSrc {nSrcX, nSrcY, nSrcW, nSrcH};
-        SDL_Rect stDst {nDstX, nDstY, nDstW, nDstH};
-
-        const double fAngle = 1.00 * (nRotateDegree % 360);
-        SDL_Point stCenter {centerSrcX, centerDstX};
-        SDL_RenderCopyEx(m_renderer, pTexture, &stSrc, &stDst, fAngle, &stCenter, flip);
+    if(texPtr){
+        SDL_Rect src {srcX, srcY, srcW, srcH};
+        SDL_Rect dst {dstX, dstY, dstW, dstH};
+        SDL_Point center {centerSrcX, centerDstX};
+        if(SDL_RenderCopyEx(m_renderer, texPtr, &src, &dst, 1.00 * (rotateDegree % 360), &center, flip)){
+            throw fflerror("SDL_RenderCopyEx(%p) failed: %s", to_cvptr(m_renderer), SDL_GetError());
+        }
     }
 }
 
