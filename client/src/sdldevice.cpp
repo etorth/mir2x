@@ -341,7 +341,7 @@ void SDLDevice::toggleWindowFullscreen()
     }
 }
 
-SDL_Texture *SDLDevice::createTexture(const void *data, size_t size)
+SDL_Texture *SDLDevice::loadPNGTexture(const void *data, size_t size)
 {
     // if it's changed
     // all the texture need to be re-load
@@ -566,17 +566,21 @@ void SDLDevice::drawTextureEx(SDL_Texture *texPtr,
     }
 }
 
-SDL_Texture *SDLDevice::createTexture(const uint32_t *buf, int w, int h)
+SDL_Texture *SDLDevice::createRGBATexture(const uint32_t *data, size_t w, size_t h)
 {
     // TODO
     // seems we can only use SDL_PIXELFORMAT_RGBA8888
     // tried SDL_PIXELFORMAT_RGBA32 but gives wrong pixel format
-    //
-    if(auto ptex = SDL_CreateTexture(m_renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STATIC, w, h)){
-        if(!SDL_UpdateTexture(ptex, 0, buf, w * 4) && !SDL_SetTextureBlendMode(ptex, SDL_BLENDMODE_BLEND)){
-            return ptex;
+
+    fflassert(data);
+    fflassert(w > 0);
+    fflassert(h > 0);
+
+    if(auto texPtr = SDL_CreateTexture(m_renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STATIC, w, h)){
+        if(!SDL_UpdateTexture(texPtr, 0, data, w * 4) && !SDL_SetTextureBlendMode(texPtr, SDL_BLENDMODE_BLEND)){
+            return texPtr;
         }
-        SDL_DestroyTexture(ptex);
+        SDL_DestroyTexture(texPtr);
     }
     return nullptr;
 }
@@ -645,7 +649,7 @@ SDL_Texture *SDLDevice::getCover(int r, int angle)
         }
     }
 
-    if(auto texPtr = createTexture(buf.data(), w, h)){
+    if(auto texPtr = createRGBATexture(buf.data(), w, h)){
         return m_cover[key] = texPtr;
     }
     throw fflerror("failed to create texture: r = %d, angle = %d", r, angle);

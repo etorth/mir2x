@@ -143,7 +143,7 @@ class SDLDevice final
        ~SDLDevice();
 
     public:
-       SDL_Texture *createTexture(const void *, size_t);
+       SDL_Texture *loadPNGTexture(const void *, size_t);
 
     public:
        void setWindowIcon();
@@ -240,9 +240,9 @@ class SDLDevice final
        }
 
     public:
-       SDL_Texture *createTextureFromSurface(SDL_Surface * pSurface)
+       SDL_Texture *createTextureFromSurface(SDL_Surface * surfPtr)
        {
-           return pSurface ? SDL_CreateTextureFromSurface(m_renderer, pSurface) : nullptr;
+           return surfPtr ? SDL_CreateTextureFromSurface(m_renderer, surfPtr) : nullptr;
        }
 
        std::tuple<int, int> getWindowSize()
@@ -293,7 +293,7 @@ class SDLDevice final
        void createInitViewWindow();
 
     public:
-       SDL_Texture *createTexture(const uint32_t *, int, int);
+       SDL_Texture *createRGBATexture(const uint32_t *, size_t, size_t);
 
     public:
        TTF_Font *defaultTTF(uint8_t);

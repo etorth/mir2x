@@ -37,7 +37,7 @@ std::optional<std::tuple<PNGTexOffElement, size_t>> PNGTexOffDB::loadResource(ui
         //   +DX: abs(DX) take 4 chars, 2 bytes
         //   +DY: abs(DY) take 4 chars, 2 bytes
 
-        if(auto texPtr = g_sdlDevice->createTexture(dataBuf.data(), dataBuf.size())){
+        if(auto texPtr = g_sdlDevice->loadPNGTexture(dataBuf.data(), dataBuf.size())){
             return std::make_tuple(PNGTexOffElement
             {
                 .dx = to_d((fontFileName[8] != '0') ? 1 : (-1)) * to_d(hexstr::to_hex<uint32_t, 2>(fontFileName + 10)),

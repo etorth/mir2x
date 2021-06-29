@@ -24,7 +24,7 @@ std::optional<std::tuple<PNGTexElement, size_t>> PNGTexDB::loadResource(uint32_t
 {
     char keyString[16];
     if(std::vector<uint8_t> dataBuf; m_zsdbPtr->decomp(hexstr::to_string<uint32_t, 4>(key, keyString, true), 8, &dataBuf)){
-        if(auto texPtr = g_sdlDevice->createTexture(dataBuf.data(), dataBuf.size())){
+        if(auto texPtr = g_sdlDevice->loadPNGTexture(dataBuf.data(), dataBuf.size())){
             return std::make_tuple(PNGTexElement
             {
                 .texture = texPtr,

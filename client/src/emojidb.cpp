@@ -51,7 +51,7 @@ std::optional<std::tuple<EmojiElement, size_t>> EmojiDB::loadResource(uint32_t k
     std::vector<uint8_t> dataBuf;
 
     if(auto fileName = m_zsdbPtr->decomp(hexstr::to_string<uint32_t, 4>(key, keyString, true), 8, &dataBuf); fileName && (std::strlen(fileName) >= 22)){
-        if(auto texPtr = g_sdlDevice->createTexture(dataBuf.data(), dataBuf.size())){
+        if(auto texPtr = g_sdlDevice->loadPNGTexture(dataBuf.data(), dataBuf.size())){
             return std::make_tuple(EmojiElement
             {
                 .frameW     = to_d(hexstr::to_hex<uint16_t, 2>(fileName + 12)),

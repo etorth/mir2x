@@ -87,8 +87,8 @@ InitView::InitView(uint8_t fontSize)
 
     g_sdlDevice->createInitViewWindow();
 
-    m_boardTexture  = g_sdlDevice->createTexture( boardData.data(),  boardData.size());
-    m_buttonTexture = g_sdlDevice->createTexture(buttonData.data(), buttonData.size());
+    m_boardTexture  = g_sdlDevice->loadPNGTexture( boardData.data(),  boardData.size());
+    m_buttonTexture = g_sdlDevice->loadPNGTexture(buttonData.data(), buttonData.size());
 
     fflassert(m_boardTexture);
     fflassert(m_buttonTexture);
