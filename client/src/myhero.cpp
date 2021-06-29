@@ -583,10 +583,18 @@ void MyHero::brakeMove()
 {
     const auto loc = getGLoc();
     const auto type = currMotion()->type;
+    const auto direction = currMotion()->direction;
 
     flushForcedMotion();
 
     if(loc[1] == loc[2]){
+        m_currMotion.reset(new MotionNode
+        {
+            .type = onHorse() ? MOTION_ONHORSESTAND : MOTION_STAND,
+            .direction = direction,
+            .x = std::get<0>(loc[2]),
+            .y = std::get<1>(loc[2]),
+        });
         return;
     }
 
@@ -605,7 +613,7 @@ void MyHero::brakeMove()
                 m_currMotion.reset(new MotionNode
                 {
                     .type = motionType,
-                    .direction = m_currMotion->direction,
+                    .direction = direction,
                     .speed = 200,
 
                     .x    = std::get<0>(loc[1]),
@@ -619,6 +627,7 @@ void MyHero::brakeMove()
             }
         default:
             {
+                fflassert(loc[1] == loc[2]);
                 break;
             }
     }
