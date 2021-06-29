@@ -82,14 +82,23 @@ function tp.setTeleport(dst)
             local level = argDef(d.level, 0)
             local gotoTag = string.format('tp_goto_%d', i)
 
-            if gold > 0 and level > 0 then
-                dstParList = dstParList .. string.format('<par><event id = "%s">%s（金币%d，等级%d）</event></par>', gotoTag, d.map, gold, level)
-            elseif gold > 0 then
-                dstParList = dstParList .. string.format('<par><event id = "%s">%s（金币%d）</event></par>', gotoTag, d.map, gold)
-            elseif level > 0 then
-                dstParList = dstParList .. string.format('<par><event id = "%s">%s（等级%d）</event></par>', gotoTag, d.map, level)
+            local mapName = ''
+            local startPos = string.find(d.map, '_')
+
+            if startPos ~= nil then
+                mapName = string.sub(d.map, 1, startPos - 1)
             else
-                dstParList = dstParList .. string.format('<par><event id = "%s">%s</event></par>', gotoTag, d.map)
+                mapName = d.map
+            end
+
+            if gold > 0 and level > 0 then
+                dstParList = dstParList .. string.format('<par><event id = "%s">%s（金币%d，等级%d）</event></par>', gotoTag, mapName, gold, level)
+            elseif gold > 0 then
+                dstParList = dstParList .. string.format('<par><event id = "%s">%s（金币%d）</event></par>', gotoTag, mapName, gold)
+            elseif level > 0 then
+                dstParList = dstParList .. string.format('<par><event id = "%s">%s（等级%d）</event></par>', gotoTag, mapName, level)
+            else
+                dstParList = dstParList .. string.format('<par><event id = "%s">%s</event></par>', gotoTag, mapName)
             end
 
             processHandle[gotoTag] = function(uid, value)
