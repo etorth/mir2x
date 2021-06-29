@@ -347,22 +347,21 @@ void CreatureMovable::flushForcedMotion()
 
 std::tuple<int, int> CreatureMovable::getGLoc(int type) const
 {
-    // type: -1: floor
-    //        0: round
-    //       +1: ceil
-
     fflassert(motionValid(m_currMotion));
     const auto doneRatio = to_f(currMotion()->frame + 1) / motionFrameCountEx(currMotion()->type, currMotion()->direction); // max is 1.0
     const auto movedDistance = [type, doneRatio, this]() -> int
     {
-        if(type < 0){
+        if(type == GLOC_F){
             return to_d(std::lround(std::floor(doneRatio * currStep())));
         }
-        else if(type == 0){
+        else if(type == GLOC_R){
             return to_d(std::lround(doneRatio * currStep()));
         }
-        else{
+        else if(type == GLOC_C){
             return to_d(std::lround(std::ceil(doneRatio * currStep())));
+        }
+        else{
+            throw fflerror("invalid argument: getGLoc(%d)", type);
         }
     }();
     return pathf::getFrontGLoc(currMotion()->x, currMotion()->y, currMotion()->direction, movedDistance);

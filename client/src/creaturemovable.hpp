@@ -25,6 +25,10 @@
 #include "clientcreature.hpp"
 #include "clientpathfinder.hpp"
 
+constexpr int  GLOC_F = 0; // floor
+constexpr int  GLOC_R = 1; // round
+constexpr int  GLOC_C = 2; // ceil
+
 class ProcessRun;
 class CreatureMovable: public ClientCreature
 {
@@ -44,7 +48,7 @@ class CreatureMovable: public ClientCreature
     public:
         std::tuple<int, int> location() const override
         {
-            return getGLoc(0);
+            return getGLoc(GLOC_R);
         }
 
     protected:

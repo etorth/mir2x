@@ -608,7 +608,7 @@ bool MyHero::emplaceAction(const ActionNode &action)
                     }
                     else{
                         // assign a half done walk instead of direct flush
-                        // getGLoc(0) uses std::lround while getGLoc(1) uses std::ceil(), if different means done less half (ratio < n.5)
+                        // getGLoc(GLOC_R) uses std::lround while getGLoc(GLOC_C) uses std::ceil(), if different means done less half (ratio < n.5)
 
                         const auto motionType = onHorse() ? MOTION_ONHORSEWALK : MOTION_WALK;
                         const auto startFrame = motionFrameCountEx(motionType, m_currMotion->direction) / 2;
@@ -649,7 +649,7 @@ std::tuple<int, int> MyHero::emplaceActionPLoc() const
 {
     // don't use the CreatureMovable::location(), which uses std::lround()
     // here need to use std::ceil() to avoid frame shake, because std::lround() can pull back the motion
-    return getGLoc(1);
+    return getGLoc(GLOC_C);
 }
 
 void MyHero::reportAction(const ActionNode &action)
