@@ -345,24 +345,14 @@ void CreatureMovable::flushForcedMotion()
     m_currMotion = makeIdleMotion();
 }
 
-std::tuple<int, int> CreatureMovable::getGLoc(int type) const
+std::array<std::tuple<int, int>, 3> CreatureMovable::getGLoc() const
 {
     fflassert(motionValid(m_currMotion));
     const auto doneRatio = to_f(currMotion()->frame + 1) / motionFrameCountEx(currMotion()->type, currMotion()->direction); // max is 1.0
-    const auto movedDistance = [type, doneRatio, this]() -> int
+    return
     {
-        if(type == GLOC_F){
-            return to_d(std::lround(std::floor(doneRatio * currStep())));
-        }
-        else if(type == GLOC_R){
-            return to_d(std::lround(doneRatio * currStep()));
-        }
-        else if(type == GLOC_C){
-            return to_d(std::lround(std::ceil(doneRatio * currStep())));
-        }
-        else{
-            throw fflerror("invalid argument: getGLoc(%d)", type);
-        }
-    }();
-    return pathf::getFrontGLoc(currMotion()->x, currMotion()->y, currMotion()->direction, movedDistance);
+        pathf::getFrontGLoc(currMotion()->x, currMotion()->y, currMotion()->direction, to_d(std::lround(std::floor(doneRatio * currStep())))),
+        pathf::getFrontGLoc(currMotion()->x, currMotion()->y, currMotion()->direction, to_d(std::lround(          (doneRatio * currStep())))),
+        pathf::getFrontGLoc(currMotion()->x, currMotion()->y, currMotion()->direction, to_d(std::lround(std::ceil (doneRatio * currStep())))),
+    };
 }

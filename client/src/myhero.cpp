@@ -579,63 +579,53 @@ void MyHero::clearActionQueue()
     m_actionQueue.clear();
 }
 
-bool MyHero::emplaceAction(const ActionNode &action)
+void MyHero::brakeMove()
 {
-    if(m_forcedMotionQueue.empty()){
-        switch(currMotion()->type){
-            case MOTION_WALK:
-            case MOTION_RUN:
-            case MOTION_ONHORSEWALK:
-            case MOTION_ONHORSERUN:
-                {
-                    // no pending forced motion and is moving
-                    // force stand immediately, this changes the current endX/endY to location()
+    const auto loc = getGLoc();
+    const auto type = currMotion()->type;
 
-                    const auto [locGX, locGY] = location();
-                    while(m_currMotion->frame < motionFrameCount(m_currMotion->type, m_currMotion->direction)){
-                        m_currMotion->update();
-                        m_currMotion->frame++;
-                    }
+    flushForcedMotion();
 
-                    if(locGX == action.x && locGY == action.y){
-                        m_currMotion.reset(new MotionNode
-                        {
-                            .type = onHorse() ? MOTION_ONHORSESTAND : MOTION_STAND,
-                            .direction = m_currMotion->direction,
-                            .x = action.x,
-                            .y = action.y,
-                        });
-                    }
-                    else{
-                        // assign a half done walk instead of direct flush
-                        // getGLoc(GLOC_R) uses std::lround while getGLoc(GLOC_C) uses std::ceil(), if different means done less half (ratio < n.5)
-
-                        const auto motionType = onHorse() ? MOTION_ONHORSEWALK : MOTION_WALK;
-                        const auto startFrame = motionFrameCountEx(motionType, m_currMotion->direction) / 2;
-
-                        m_currMotion.reset(new MotionNode
-                        {
-                            .type = motionType,
-                            .direction = m_currMotion->direction,
-                            .speed = 200,
-
-                            .x = locGX,
-                            .y = locGY,
-                            .endX = action.x,
-                            .endY = action.y,
-
-                            .frame = startFrame,
-                        });
-                    }
-                    break;
-                }
-            default:
-                {
-                    break;
-                }
-        }
+    if(loc[1] == loc[2]){
+        return;
     }
 
+    switch(type){
+        case MOTION_WALK:
+        case MOTION_RUN:
+        case MOTION_ONHORSEWALK:
+        case MOTION_ONHORSERUN:
+            {
+                // assign a half done walk instead of direct flush
+                // getGLoc(GLOC_R) uses std::lround while getGLoc(GLOC_C) uses std::ceil(), if different means done less half (ratio < n.5)
+
+                const auto motionType = onHorse() ? MOTION_ONHORSEWALK : MOTION_WALK;
+                const auto startFrame = motionFrameCountEx(motionType, m_currMotion->direction) / 2;
+
+                m_currMotion.reset(new MotionNode
+                {
+                    .type = motionType,
+                    .direction = m_currMotion->direction,
+                    .speed = 200,
+
+                    .x    = std::get<0>(loc[1]),
+                    .y    = std::get<1>(loc[1]),
+                    .endX = std::get<0>(loc[2]),
+                    .endY = std::get<1>(loc[2]),
+
+                    .frame = startFrame,
+                });
+                break;
+            }
+        default:
+            {
+                break;
+            }
+    }
+}
+
+bool MyHero::emplaceAction(const ActionNode &action)
+{
     // always clear motionQueue if new action provided
     // for urgent motion must play, push them into forcedMotionQueue
 
@@ -643,13 +633,6 @@ bool MyHero::emplaceAction(const ActionNode &action)
     m_actionQueue.clear();
     m_actionQueue.push_back(action);
     return true;
-}
-
-std::tuple<int, int> MyHero::emplaceActionPLoc() const
-{
-    // don't use the CreatureMovable::location(), which uses std::lround()
-    // here need to use std::ceil() to avoid frame shake, because std::lround() can pull back the motion
-    return getGLoc(GLOC_C);
 }
 
 void MyHero::reportAction(const ActionNode &action)

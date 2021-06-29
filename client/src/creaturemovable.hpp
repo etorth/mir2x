@@ -17,6 +17,7 @@
  */
 
 #pragma once
+#include <array>
 #include <deque>
 #include <vector>
 #include <cstdint>
@@ -24,10 +25,6 @@
 #include "motionnode.hpp"
 #include "clientcreature.hpp"
 #include "clientpathfinder.hpp"
-
-constexpr int  GLOC_F = 0; // floor
-constexpr int  GLOC_R = 1; // round
-constexpr int  GLOC_C = 2; // ceil
 
 class ProcessRun;
 class CreatureMovable: public ClientCreature
@@ -48,11 +45,11 @@ class CreatureMovable: public ClientCreature
     public:
         std::tuple<int, int> location() const override
         {
-            return getGLoc(GLOC_R);
+            return getGLoc()[1];
         }
 
     protected:
-        std::tuple<int, int> getGLoc(int) const;
+        std::array<std::tuple<int, int>, 3> getGLoc() const;
 
     protected:
         virtual bool stayIdle() const
