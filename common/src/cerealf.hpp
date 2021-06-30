@@ -28,6 +28,7 @@
 #include <cereal/types/unordered_set.hpp>
 #include <cereal/types/unordered_map.hpp>
 #include <cereal/archives/binary.hpp>
+#include <cereal/archives/portable_binary.hpp>
 #include "zcompf.hpp"
 #include "totype.hpp"
 #include "fflerror.hpp"
@@ -47,7 +48,7 @@ namespace cerealf
     {
         std::ostringstream ss(std::ios::binary);
         {
-            cereal::BinaryOutputArchive ar(ss);
+            cereal::PortableBinaryOutputArchive ar(ss);
             ar(t);
         }
 
@@ -90,7 +91,7 @@ namespace cerealf
 
         T t;
         {
-            cereal::BinaryInputArchive ar(ss);
+            cereal::PortableBinaryInputArchive ar(ss);
             ar(t);
         }
         return t;
@@ -119,7 +120,7 @@ namespace cerealf
 
         T t;
         {
-            cereal::BinaryInputArchive ar(ss);
+            cereal::PortableBinaryInputArchive ar(ss);
             ar(t);
         }
         return t;
