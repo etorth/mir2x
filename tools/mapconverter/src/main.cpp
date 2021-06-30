@@ -363,10 +363,10 @@ static void exportOverview(const Mir2xMapData *p, const std::string &outName, Im
     imgf::saveImageBuffer(imgBuf.data(), imgW, imgH, outName.c_str());
 }
 
-static void convertMap(std::string mapDir, std::string mapFileName, std::string outDir, const MapInfoParser *parser, bool incFileOnly, bool mergeTP, ImageMapDB &imgDB)
+static void convertMap(std::string mapDir, std::string mapFileName, std::string outDir, const MapInfoParser *parser, bool enableMapBin, bool enableMapOverview, bool mergeTP, ImageMapDB &imgDB)
 {
     std::unique_ptr<Mir2xMapData> outPtr;
-    if(!incFileOnly){
+    if(enableMapBin || enableMapOverview){
         outPtr = std::make_unique<Mir2xMapData>();
         auto mapPtr = std::make_unique<Mir2Map>(str_printf("%s/%s", mapDir.c_str(), mapFileName.c_str()).c_str());
 
@@ -388,7 +388,7 @@ static void convertMap(std::string mapDir, std::string mapFileName, std::string 
 
     // different map can use same map binary file
     // we use "mapName_fileName" as string key in mir2x code, but only save "fileName.bin" as map binary
-    if(!incFileOnly){
+    if(enableMapBin){
         outPtr->save(str_printf("%s/%s.bin", outDir.c_str(), utf8f::toupper(fileName).c_str()));
     }
 
@@ -396,7 +396,7 @@ static void convertMap(std::string mapDir, std::string mapFileName, std::string 
     const auto mapNameList = parser->hasMapName(fileName);
 
     for(const auto &mapName: mapNameList){
-        if(!incFileOnly){
+        if(enableMapOverview){
             if(srcPNGName.empty()){ // first save
                 srcPNGName = str_printf("%s/%s_%s.png", outDir.c_str(), mapName.c_str(), utf8f::toupper(fileName).c_str());
                 exportOverview(outPtr.get(), srcPNGName, imgDB);
@@ -451,12 +451,13 @@ int main(int argc, char *argv[])
         std::cout << "      [4] mir2-map-dir            # input map dir"             << std::endl;
         std::cout << "      [5] mir2-map-info-file-path # Mapinfo.utf8.txt path"     << std::endl;
         std::cout << "      [6] mir2-mini-map-file-path # MiniMap.utf8.txt path"     << std::endl;
-        std::cout << "      [7] create-inc-file-only    # only create maprecord.inc" << std::endl;
-        std::cout << "      [8] merge-tp-grid           # merge continuous tp"       << std::endl;
+        std::cout << "      [7] enable-map-bin          # create map binary"         << std::endl;
+        std::cout << "      [8] enable-map-overview     # create map overview"       << std::endl;
+        std::cout << "      [9] merge-tp-grid           # merge continuous tp"       << std::endl;
         return 0;
     }
 
-    if(argc != 1 + 8 /* parameters listed above */){
+    if(argc != 1 + 9 /* parameters listed above */){
         throw fflerror("run \"%s\" without parameter to show supported options", argv[0]);
     }
 
@@ -481,7 +482,7 @@ int main(int argc, char *argv[])
             if(!dbList[threadId]){
                 dbList[threadId] = std::make_unique<ImageMapDB>(argv[3]);
             }
-            convertMap(argv[4], mapName, argv[1], mapInfoParser.get(), to_bool(argv[7]), to_bool(argv[8]), *dbList[threadId]);
+            convertMap(argv[4], mapName, argv[1], mapInfoParser.get(), to_bool(argv[7]), to_bool(argv[8]), to_bool(argv[9]), *dbList[threadId]);
         });
     }
 
