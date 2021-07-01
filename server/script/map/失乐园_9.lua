@@ -20,14 +20,20 @@ local logicDelay = 1000
 local monsterList = {'鸡', '猪', '牛' , '鹿', '稻草人', '钉耙猫', '狼', '食人花', '多钩猫', '毒蜘蛛'}
 local maxMonsterCount = math.floor(getCanThroughGridCount() / 64)
 
-addGuard('大刀卫士', 371, 160, DIR_DOWNLEFT)
-addGuard('大刀卫士', 375, 164, DIR_DOWNLEFT)
-addGuard('大刀卫士', 368, 112, DIR_UPLEFT)
-addGuard('大刀卫士', 372, 108, DIR_UPLEFT)
-addGuard('大刀卫士', 414, 166, DIR_DOWNRIGHT)
-addGuard('大刀卫士', 417, 163, DIR_DOWNRIGHT)
-addGuard('大刀卫士', 411, 115, DIR_DOWNLEFT)
-addGuard('大刀卫士', 414, 118, DIR_DOWNLEFT)
+addGuard('昂克战士', 177, 519, DIR_UPLEFT)
+addGuard('昂克战士', 174, 522, DIR_UPLEFT)
+addGuard('昂克战士', 238, 524, DIR_UPRIGHT)
+addGuard('昂克战士', 242, 527, DIR_UPRIGHT)
+addGuard('昂克战士', 246, 606, DIR_DOWNRIGHT)
+addGuard('昂克战士', 249, 602, DIR_DOWNRIGHT)
+addGuard('昂克战士', 254, 553, DIR_DOWNLEFT)
+addGuard('昂克战士', 258, 556, DIR_DOWNLEFT)
+addGuard('昂克战士', 266, 562, DIR_DOWNLEFT)
+addGuard('昂克战士', 250, 548, DIR_DOWNLEFT)
+addGuard('昂克战士', 168, 589, DIR_UPLEFT)
+addGuard('昂克战士', 163, 539, DIR_UP)
+addGuard('昂克战士', 213, 513, DIR_UPRIGHT)
+addGuard('昂克战士', 209, 643, DIR_DOWN)
 
 function main()
     while true do

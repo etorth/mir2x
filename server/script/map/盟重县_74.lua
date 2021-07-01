@@ -20,14 +20,10 @@ local logicDelay = 1000
 local monsterList = {'鸡', '猪', '牛' , '鹿', '稻草人', '钉耙猫', '狼', '食人花', '多钩猫', '毒蜘蛛'}
 local maxMonsterCount = math.floor(getCanThroughGridCount() / 64)
 
-addGuard('大刀卫士', 371, 160, DIR_DOWNLEFT)
-addGuard('大刀卫士', 375, 164, DIR_DOWNLEFT)
-addGuard('大刀卫士', 368, 112, DIR_UPLEFT)
-addGuard('大刀卫士', 372, 108, DIR_UPLEFT)
-addGuard('大刀卫士', 414, 166, DIR_DOWNRIGHT)
-addGuard('大刀卫士', 417, 163, DIR_DOWNRIGHT)
-addGuard('大刀卫士', 411, 115, DIR_DOWNLEFT)
-addGuard('大刀卫士', 414, 118, DIR_DOWNLEFT)
+addGuard('禁军卫士', 285, 268, DIR_UPLEFT)
+addGuard('禁军卫士', 275, 278, DIR_UPLEFT)
+addGuard('禁军卫士', 353, 309, DIR_DOWNRIGHT)
+addGuard('禁军卫士', 346, 316, DIR_DOWNRIGHT)
 
 function main()
     while true do

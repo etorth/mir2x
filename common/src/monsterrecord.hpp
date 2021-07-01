@@ -17,8 +17,8 @@
  */
 
 #pragma once
-#include <span>
 #include <cstdint>
+#include <initializer_list>
 #include "protocoldef.hpp"
 
 struct MonsterRecord
@@ -63,20 +63,10 @@ struct MonsterRecord
     const int attackWait   = 0;
     const int attackEffect = 0;
 
-    const char8_t *dcNameList[8] = {};
+    const std::initializer_list<const char8_t * const> dcNameList {};
 
     operator bool() const
     {
         return name && name[0] != '\0';
-    }
-
-    auto dcList() const
-    {
-        for(const auto &p: dcNameList){
-            if(!p){
-                return std::span<const char8_t * const>(dcNameList, &p);
-            }
-        }
-        return std::span<const char8_t * const>(dcNameList, dcNameList + std::extent_v<decltype(dcNameList)>);
     }
 };
