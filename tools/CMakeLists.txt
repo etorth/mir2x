@@ -13,6 +13,7 @@ ADD_SUBDIRECTORY(weaponwil2png)
 ADD_SUBDIRECTORY(helmetwil2png)
 ADD_SUBDIRECTORY(monsterwil2png)
 
+ADD_SUBDIRECTORY(npcgen)
 ADD_SUBDIRECTORY(zsdbmaker)
 ADD_SUBDIRECTORY(rawbufmaker)
 ADD_SUBDIRECTORY(followuidmagiceditor)
