@@ -70,6 +70,7 @@ class MerchantFileParser
             //                          +------------------------------------------------------------------------------ matches comment markers: ;;
 
             std::string line;
+            std::unordered_map<std::string, int> seen;
             std::match_results<std::string::iterator> result;
 
             while(std::getline(f, line)){
@@ -87,6 +88,9 @@ class MerchantFileParser
                             default:                                          break;
                         }
                     }
+
+                    const auto count = seen[str_printf("%s.%s", entry.mapName.c_str(), entry.npcName.c_str())]++;
+                    entry.npcName += str_printf("_%d", count + 1);
 
                     m_list.push_back(entry);
                     std::cout << str_printf("[FILE] %s:%s", entry.mapName.c_str(), entry.npcName.c_str()) << std::endl;
