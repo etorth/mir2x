@@ -1,0 +1,2 @@
+setNPCLook(10000)
+setNPCGLoc(202, 138)
