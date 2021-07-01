@@ -89,6 +89,16 @@ class MerchantFileParser
                         }
                     }
 
+                    const std::string origName = entry.npcName;
+                    while(!entry.npcName.empty() && entry.npcName.back() >= '0' && entry.npcName.back() <= '9'){
+                        entry.npcName.pop_back();
+                    }
+
+                    if(entry.npcName.empty()){
+                        std::cout << str_printf("[WARN] wired npc name: %s", origName.c_str()) << std::endl;
+                        continue;
+                    }
+
                     const auto count = seen[str_printf("%s.%s", entry.mapName.c_str(), entry.npcName.c_str())]++;
                     entry.npcName += str_printf("_%d", count + 1);
 
