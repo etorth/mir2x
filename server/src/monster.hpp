@@ -179,7 +179,6 @@ class Monster: public CharObject
         void checkFriend(uint64_t, std::function<void(int)>) override;
 
     private:
-        void checkFriend_AsGuard      (uint64_t, std::function<void(int)>);
         void checkFriend_CtrlByPlayer (uint64_t, std::function<void(int)>);
         void checkFriend_CtrlByMonster(uint64_t, std::function<void(int)>);
 
@@ -229,7 +228,6 @@ class Monster: public CharObject
 
     public:
         static bool isPet(uint64_t);
-        static bool isGuard(uint64_t);
 
     public:
         const auto &getMR() const

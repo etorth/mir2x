@@ -1272,57 +1272,6 @@ void Monster::QueryMaster(uint64_t nUID, std::function<void(uint64_t)> fnOp)
     });
 }
 
-void Monster::checkFriend_AsGuard(uint64_t nUID, std::function<void(int)> fnOp)
-{
-    if(!isGuard(UID())){
-        throw fflerror("invalid call to checkFriend_AsGuard");
-    }
-
-    switch(uidf::getUIDType(nUID)){
-        case UID_MON:
-            {
-                fnOp(isGuard(nUID) ? FT_NEUTRAL : FT_ENEMY);
-                return;
-            }
-        case UID_PLY:
-            {
-                m_actorPod->forward(nUID, AM_QUERYNAMECOLOR, [fnOp](const ActorMsgPack &rstMPK)
-                {
-                    switch(rstMPK.type()){
-                        case AM_NAMECOLOR:
-                            {
-                                AMNameColor amNC;
-                                std::memcpy(&amNC, rstMPK.data(), sizeof(amNC));
-
-                                switch(amNC.Color){
-                                    case 'R':
-                                        {
-                                            fnOp(FT_ENEMY);
-                                            return;
-                                        }
-                                    default:
-                                        {
-                                            fnOp(FT_NEUTRAL);
-                                            return;
-                                        }
-                                }
-                            }
-                        default:
-                            {
-                                fnOp(FT_ERROR);
-                                return;
-                            }
-                    }
-                });
-                return;
-            }
-        default:
-            {
-                throw fflerror("invalid UID type: %s", uidf::getUIDTypeCStr(nUID));
-            }
-    }
-}
-
 void Monster::checkFriend_CtrlByMonster(uint64_t nUID, std::function<void(int)> fnOp)
 {
     if(masterUID() && uidf::getUIDType(masterUID()) != UID_MON){
@@ -1457,15 +1406,6 @@ void Monster::checkFriend(uint64_t nUID, std::function<void(int)> fnOp)
         return;
     }
 
-    // 1. 大刀卫士 or 弓箭卫士
-    // 2. no master or master is still monster
-    // 3. as pet, master is UID_PLY
-
-    if(isGuard(UID())){
-        checkFriend_AsGuard(nUID, fnOp);
-        return;
-    }
-
     if(!masterUID()){
         checkFriend_CtrlByMonster(nUID, fnOp);
         return;
@@ -1552,25 +1492,6 @@ void Monster::QueryFriendType(uint64_t nUID, uint64_t nTargetUID, std::function<
                 }
         }
     });
-}
-
-bool Monster::isGuard(uint64_t nUID)
-{
-    if(uidf::getUIDType(nUID) != UID_MON){
-        return false;
-    }
-
-    switch(uidf::getMonsterID(nUID)){
-        case DBCOM_MONSTERID(u8"大刀卫士"):
-        case DBCOM_MONSTERID(u8"弓箭卫士"):
-            {
-                return true;
-            }
-        default:
-            {
-                return false;
-            }
-    }
 }
 
 bool Monster::isPet(uint64_t nUID)
