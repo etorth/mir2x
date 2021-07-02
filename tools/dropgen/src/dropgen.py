@@ -15,15 +15,47 @@ g_item = re.compile('^\s*(\d+)/(\d+)\s+(\S+)\s*$')
 #                      |   +--+--+----------- a / b
 #                      +--------------------- optional comment markers
 
+g_gold = re.compile('^\s*(\d+)/(\d+)\s+.*?金币.*?\s+(\d+)\s*$')
+#                     --- --- - ---       ----       ---
+#                      ^   ^  ^  ^          ^         ^
+#                      |   |  |  |          |         |
+#                      |   |  |  |          |         +--- gold count
+#                      |   |  |  |          +------------- 金币
+#                      |   +--+--+------------------------ a / b
+#                      +---------------------------------- optional comment markers
+
 def printCode(s):
     print('--->%s' % s)
 
 def dropGenOneMonster(name, file):
+    itemCount = {}
     with open(file, 'r', encoding='gb2312') as fp:
         for line in fp:
             match = g_item.search(line.strip())
             if match:
-                printCode('{%s, %s, 0, %s},' % (name, match.group(3), match.group(2)))
+                probNum = int(match.group(1))
+                probDen = int(match.group(2))
+
+                itemName = match.group(3)
+                probRecip = max(1, round(probDen / probNum))
+                codeLine = '{%s, %s, 0, %d, ' % (name, itemName, probRecip)
+
+                if codeLine not in itemCount.keys():
+                    itemCount[codeLine] = 1
+                else:
+                    itemCount[codeLine] = itemCount[codeLine] + 1
+
+            match = g_gold.search(line.strip())
+            if match:
+                probNum = int(match.group(1))
+                probDen = int(match.group(2))
+
+                goldCount = match.group(3)
+                probRecip = max(1, round(probDen / probNum))
+                printCode('{%s, 金币（小）, 0, %d, 1, %s},' % (name, probRecip, goldCount))
+
+    for code, count in itemCount.items():
+        printCode('%s%d, 1},' % (code, count))
 
 
 def dropGen(dir):
