@@ -111,7 +111,7 @@ std::vector<SDItem> getMonsterDropItemList(uint32_t monsterID)
                     fflassert(ir);
 
                     if(ir.isGold()){
-                        return {1, mathf::rand(0, 20) + dropItem.count};
+                        return {(dropItem.count + 1999) / 2000, mathf::rand(0, 20) + std::min<int>(2000, dropItem.count)};
                     }
 
                     if(ir.packable()){

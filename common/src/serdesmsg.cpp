@@ -49,10 +49,10 @@ SDItem SDItem::buildGoldItem(size_t count)
                 return DBCOM_ITEMID(u8"金币（大）");
             }
             else if(count < 2000){
-                return DBCOM_ITEMID(u8"金币（特大）");
+                return DBCOM_ITEMID(u8"金币（特）");
             }
             else{
-                return DBCOM_ITEMID(u8"金币（超级大）");
+                return DBCOM_ITEMID(u8"金币（超）");
             }
         }(),
         .count = count,
