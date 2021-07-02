@@ -358,7 +358,7 @@ void MonoServer::CreateDBConnection()
 
 void MonoServer::LoadMapBinDB()
 {
-    std::string szMapPath = g_serverConfigureWindow->GetMapPath();
+    std::string szMapPath = g_serverConfigureWindow->getConfig().mapPath;
 
     if(!g_mapBinDB->load(szMapPath.c_str())){
         throw fflerror("Failed to load mapbindb");
@@ -375,7 +375,7 @@ void MonoServer::StartServiceCore()
 
 void MonoServer::StartNetwork()
 {
-    uint32_t nPort = g_serverConfigureWindow->Port();
+    uint32_t nPort = g_serverConfigureWindow->getConfig().listenPort;
     if(!g_netDriver->Launch(nPort)){
         throw fflerror("Failed to launch the network");
     }

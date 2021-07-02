@@ -209,8 +209,8 @@ ServerMap::ServerMapLuaModule::ServerMapLuaModule(ServerMap *mapPtr)
 
     getLuaState().script_file([mapPtr]() -> std::string
     {
-        const auto configScriptPath = g_serverConfigureWindow->getScriptPath();
-        const auto scriptPath = configScriptPath.empty() ? std::string("script/map") : configScriptPath;
+        const auto configScriptPath = g_serverConfigureWindow->getConfig().scriptPath;
+        const auto scriptPath = configScriptPath.empty() ? std::string("script/map") : (configScriptPath + "/map");
 
         const auto scriptName = str_printf("%s/%s.lua", scriptPath.c_str(), to_cstr(DBCOM_MAPRECORD(mapPtr->ID()).name));
         if(filesys::hasFile(scriptName.c_str())){
@@ -1258,8 +1258,8 @@ void ServerMap::updateMapGrid()
 
 void ServerMap::loadNPChar()
 {
-    const auto cfgScriptPath = g_serverConfigureWindow->getScriptPath();
-    const auto scriptPath = cfgScriptPath.empty() ? std::string("script/npc") : cfgScriptPath;
+    const auto cfgScriptPath = g_serverConfigureWindow->getConfig().scriptPath;
+    const auto scriptPath = cfgScriptPath.empty() ? std::string("script/npc") : (cfgScriptPath + "/npc");
 
     const auto reg = str_printf("%s\\..*\\.lua", to_cstr(DBCOM_MAPRECORD(ID()).name));
     for(const auto &fileName: filesys::getFileList(scriptPath.c_str(), true, reg.c_str())){

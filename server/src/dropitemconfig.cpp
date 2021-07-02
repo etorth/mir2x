@@ -25,6 +25,9 @@
 #include "monoserver.hpp"
 #include "dbcomrecord.hpp"
 #include "dropitemconfig.hpp"
+#include "serverconfigurewindow.hpp"
+
+extern ServerConfigureWindow *g_serverConfigureWindow;
 
 struct InnDropItemConfig final
 {
@@ -102,16 +105,30 @@ const std::map<int, std::vector<DropItemConfig>> &getMonsterDropItemConfigList(u
 std::vector<SDItem> getMonsterDropItemList(uint32_t monsterID)
 {
     std::vector<SDItem> itemList;
+    const auto serverConfig = g_serverConfigureWindow->getConfig();
+
     for(const auto &[group, dropItemList]: getMonsterDropItemConfigList(monsterID)){
         for(const auto &dropItem: dropItemList){
-            if((dropItem.probRecip > 0) && ((std::rand() % dropItem.probRecip) == 0)){
-                const auto [loopCount, itemCount] = [&dropItem]() -> std::tuple<int, int>
+            const auto adjProbRecip = [&dropItem, &serverConfig]() -> int
+            {
+                if(dropItem.probRecip <= 0){
+                    return 0;
+                }
+
+                fflassert(serverConfig.equipmentRate >= 0.0);
+                return std::max<int>(1, std::lround(dropItem.probRecip / serverConfig.equipmentRate));
+            }();
+
+            if((dropItem.probRecip > 0) && ((std::rand() % adjProbRecip) == 0)){
+                const auto [loopCount, itemCount] = [&dropItem, &serverConfig]() -> std::tuple<int, int>
                 {
                     const auto &ir = DBCOM_ITEMRECORD(dropItem.itemID);
                     fflassert(ir);
 
                     if(ir.isGold()){
-                        return {(dropItem.count + 1999) / 2000, mathf::rand(0, 20) + std::min<int>(2000, dropItem.count)};
+                        fflassert(serverConfig.goldRate >= 0.0);
+                        const auto adjGold = std::max<int>(1, std::lround(dropItem.count * serverConfig.goldRate));
+                        return {(adjGold + 1999) / 2000, std::min<int>(2000, adjGold)};
                     }
 
                     if(ir.packable()){

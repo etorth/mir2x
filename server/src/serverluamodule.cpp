@@ -33,7 +33,7 @@ ServerLuaModule::ServerLuaModule()
 {
     m_luaState.script(str_printf("package.path = package.path .. ';%s/?.lua'", []() -> std::string
     {
-        if(const auto cfgScriptPath = g_serverConfigureWindow->getScriptPath(); cfgScriptPath.empty()){
+        if(const auto cfgScriptPath = g_serverConfigureWindow->getConfig().scriptPath; cfgScriptPath.empty()){
             return "script";
         }
         else{

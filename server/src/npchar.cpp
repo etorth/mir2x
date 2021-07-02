@@ -423,7 +423,7 @@ NPChar::LuaNPCModule::LuaNPCModule(const SDInitNPChar &initParam)
     {
         const auto scriptPath = []() -> std::string
         {
-            if(const auto cfgScriptPath = g_serverConfigureWindow->getScriptPath(); !cfgScriptPath.empty()){
+            if(const auto cfgScriptPath = g_serverConfigureWindow->getConfig().scriptPath; !cfgScriptPath.empty()){
                 return cfgScriptPath + "/npc";
             }
             return std::string("script/npc");
