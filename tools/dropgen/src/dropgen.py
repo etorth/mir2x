@@ -7,12 +7,12 @@ import subprocess
 
 # global re pattern
 # compile it as use all times
-g_pattern = re.compile('^\s*(\d+)/(\d+)\s(\S+)\s*$')
-#                        --- --- - ---    ---
-#                         ^   ^ ^   ^      ^
-#                         |   | |   |      |
-#                         |   | |   |      +---- item name
-#                         |   +-+---+----------- a / b
+g_pattern = re.compile('^\s*(\d+)/(\d+)\s+(\S+)\s*$')
+#                        --- --- - ---     ---
+#                         ^   ^  ^  ^       ^
+#                         |   |  |  |       |
+#                         |   |  |  |       +--- item name
+#                         |   +--+--+----------- a / b
 #                         +--------------------- optional comment markers
 
 def printCode(s):
