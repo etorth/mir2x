@@ -1,9 +1,7 @@
 import os
 import re
 import sys
-import math
 import glob
-import subprocess
 
 # global re pattern
 # compile it as use all times
@@ -27,6 +25,7 @@ g_gold = re.compile('^\s*(\d+)/(\d+)\s+.*?金币.*?\s+(\d+)\s*$')
 def printCode(s):
     print('--->%s' % s)
 
+
 def dropGenOneMonster(name, file):
     itemCount = {}
     with open(file, 'r', encoding='gb2312') as fp:
@@ -38,7 +37,7 @@ def dropGenOneMonster(name, file):
 
                 itemName = match.group(3)
                 probRecip = max(1, round(probDen / probNum))
-                codeLine = '{%s, %s, 0, %d, ' % (name, itemName, probRecip)
+                codeLine = '{u8"%s", u8"%s", 0, %d, ' % (name, itemName, probRecip)
 
                 if codeLine not in itemCount.keys():
                     itemCount[codeLine] = 1
@@ -52,7 +51,7 @@ def dropGenOneMonster(name, file):
 
                 goldCount = match.group(3)
                 probRecip = max(1, round(probDen / probNum))
-                printCode('{%s, 金币（小）, 0, %d, 1, %s},' % (name, probRecip, goldCount))
+                printCode('{u8"%s", u8"金币（小）", 0, %d, 1, %s},' % (name, probRecip, goldCount))
 
     for code, count in itemCount.items():
         printCode('%s%d, 1},' % (code, count))
@@ -90,6 +89,9 @@ def main():
     printCode('// created by: %s %s' % (sys.argv[0], sys.argv[1]))
     printCode('// format:')
     printCode('//     {monsterName, itemName, group, probRecip, repeat, count}')
+    printCode('//')
+    printCode('// always use 金币（小）to represent gold')
+    printCode('// code will figure out 小中大 based on SDItem::count')
     printCode('')
 
     dropGen(sys.argv[1])
