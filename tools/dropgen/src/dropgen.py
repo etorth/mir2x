@@ -7,13 +7,13 @@ import subprocess
 
 # global re pattern
 # compile it as use all times
-g_pattern = re.compile('^\s*(\d+)/(\d+)\s+(\S+)\s*$')
-#                        --- --- - ---     ---
-#                         ^   ^  ^  ^       ^
-#                         |   |  |  |       |
-#                         |   |  |  |       +--- item name
-#                         |   +--+--+----------- a / b
-#                         +--------------------- optional comment markers
+g_item = re.compile('^\s*(\d+)/(\d+)\s+(\S+)\s*$')
+#                     --- --- - ---     ---
+#                      ^   ^  ^  ^       ^
+#                      |   |  |  |       |
+#                      |   |  |  |       +--- item name
+#                      |   +--+--+----------- a / b
+#                      +--------------------- optional comment markers
 
 def printCode(s):
     print('--->%s' % s)
@@ -21,7 +21,7 @@ def printCode(s):
 def dropGenOneMonster(name, file):
     with open(file, 'r', encoding='gb2312') as fp:
         for line in fp:
-            match = g_pattern.search(line.strip())
+            match = g_item.search(line.strip())
             if match:
                 printCode('{%s, %s, 0, %s},' % (name, match.group(3), match.group(2)))
 
