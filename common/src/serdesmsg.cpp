@@ -32,31 +32,62 @@ std::string SDInitNPChar::getFileName() const
     }
 }
 
-SDItem SDItem::buildGoldItem(size_t count)
+std::vector<SDItem> SDItem::buildGoldItem(size_t count)
 {
     fflassert(count > 0);
-    return SDItem
-    {
-        .itemID = [count]() -> uint32_t
-        {
-            if(count < 10){
-                return DBCOM_ITEMID(u8"金币（小）");
-            }
-            else if(count < 100){
-                return DBCOM_ITEMID(u8"金币（中）");
-            }
-            else if(count < 500){
-                return DBCOM_ITEMID(u8"金币（大）");
-            }
-            else if(count < 2000){
-                return DBCOM_ITEMID(u8"金币（特）");
-            }
-            else{
-                return DBCOM_ITEMID(u8"金币（超）");
-            }
-        }(),
-        .count = count,
-    };
+    std::vector<SDItem> itemList;
+
+    while(count > 0){
+        if(count < 10){
+            itemList.push_back(SDItem
+            {
+                .itemID = DBCOM_ITEMID(u8"金币（小）"),
+                .count  = count,
+            });
+            break;
+        }
+        else if(count < 100){
+            itemList.push_back(SDItem
+            {
+                .itemID = DBCOM_ITEMID(u8"金币（中）"),
+                .count  = count,
+            });
+            break;
+        }
+        else if(count < 500){
+            itemList.push_back(SDItem
+            {
+                .itemID = DBCOM_ITEMID(u8"金币（大）"),
+                .count  = count,
+            });
+            break;
+        }
+        else if(count < 2000){
+            itemList.push_back(SDItem
+            {
+                .itemID = DBCOM_ITEMID(u8"金币（特）"),
+                .count  = count,
+            });
+            break;
+        }
+        else if(count < 5000){
+            itemList.push_back(SDItem
+            {
+                .itemID = DBCOM_ITEMID(u8"金币（超）"),
+                .count  = count,
+            });
+            break;
+        }
+        else{
+            itemList.push_back(SDItem
+            {
+                .itemID = DBCOM_ITEMID(u8"金币（超）"),
+                .count  = 5000,
+            });
+            count -= 5000;
+        }
+    }
+    return itemList;
 }
 
 SDItem::operator bool () const

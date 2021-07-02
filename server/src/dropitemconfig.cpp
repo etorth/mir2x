@@ -120,31 +120,38 @@ std::vector<SDItem> getMonsterDropItemList(uint32_t monsterID)
             }();
 
             if((dropItem.probRecip > 0) && ((std::rand() % adjProbRecip) == 0)){
-                const auto [loopCount, itemCount] = [&dropItem, &serverConfig]() -> std::tuple<int, int>
-                {
-                    const auto &ir = DBCOM_ITEMRECORD(dropItem.itemID);
-                    fflassert(ir);
+                const auto &ir = DBCOM_ITEMRECORD(dropItem.itemID);
+                fflassert(ir);
 
-                    if(ir.isGold()){
-                        fflassert(serverConfig.goldRate >= 0.0);
-                        const auto adjGold = std::max<int>(1, std::lround(dropItem.count * serverConfig.goldRate));
-                        return {(adjGold + 1999) / 2000, std::min<int>(2000, adjGold)};
+                if(ir.isGold()){
+                    fflassert(serverConfig.goldRate >= 0.0);
+                    const auto adjGold = std::max<size_t>(1, std::lround(dropItem.count * serverConfig.goldRate));
+                    for(const auto &goldItem: SDItem::buildGoldItem(adjGold)){
+                        itemList.push_back(SDItem
+                        {
+                            .itemID = goldItem.itemID,
+                            .seqID  = 1,
+                            .count  = std::max<size_t>(1, std::lround(goldItem.count * mathf::randf(0.9, 1.1))),
+                        });
                     }
-
-                    if(ir.packable()){
-                        return {1, dropItem.count};
-                    }
-
-                    return {dropItem.count, 1};
-                }();
-
-                for(int i = 0; i < loopCount; ++i){
+                }
+                else if(ir.packable()){
                     itemList.push_back(SDItem
                     {
                         .itemID = dropItem.itemID,
                         .seqID  = 1,
-                        .count  = to_uz(itemCount),
+                        .count  = to_uz(dropItem.count),
                     });
+                }
+                else{
+                    for(int i = 0; i < dropItem.count; ++i){
+                        itemList.push_back(SDItem
+                        {
+                            .itemID = dropItem.itemID,
+                            .seqID  = 1,
+                            .count  = 1,
+                        });
+                    }
                 }
 
                 if(group > 0){

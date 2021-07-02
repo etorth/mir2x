@@ -742,13 +742,12 @@ void NPChar::operateAM(const ActorMsgPack &mpk)
 
 std::vector<SDCostItem> NPChar::getCostItemList(const SDItem &) const
 {
-    const auto goldItem = SDItem::buildGoldItem(100 + std::rand() % 10);
     return
     {
         SDCostItem
         {
-            .itemID = goldItem.itemID,
-            .count  = goldItem.count,
+            .itemID = DBCOM_ITEMID(u8"金币（小）"),
+            .count  = to_uz(mathf::rand(90, 110)),
         },
     };
 }

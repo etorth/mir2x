@@ -828,7 +828,11 @@ void ServerMap::on_AM_PICKUP(const ActorMsgPack &mpk)
     }
 
     if(goldCount > 0){
-        pickedItemList.push_back(SDItem::buildGoldItem(goldCount));
+        pickedItemList.push_back(SDItem
+        {
+            .itemID = DBCOM_ITEMID(u8"金币（小）"),
+            .count  = goldCount,
+        });
     }
 
     size_t pickedWeight = 0;

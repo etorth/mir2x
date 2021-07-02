@@ -29,11 +29,17 @@
 
 namespace mathf
 {
-    // used for ability calculation
-    // accepts 10-0 which always return 10
     inline int rand(int min, int max)
     {
         return min + std::rand() % (1 + std::max<int>(max - min, 0));
+    }
+
+    inline double randf(double min, double max)
+    {
+        if(min < max){
+            return min + (max - min) * to_df(std::rand()) / to_df(RAND_MAX);
+        }
+        return min;
     }
 
     template<typename T> T bound(T val, T min, T max)

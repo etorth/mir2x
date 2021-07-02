@@ -157,7 +157,7 @@ struct SDItem
     }
 
     operator bool () const;
-    static SDItem buildGoldItem(size_t);
+    static std::vector<SDItem> buildGoldItem(size_t);
 
     std::optional<uint32_t> getColor() const
     {
