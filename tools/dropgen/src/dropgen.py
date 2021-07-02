@@ -5,29 +5,21 @@ import glob
 
 # global re pattern
 # compile it as use all times
-g_item = re.compile('^\s*(\d+)/(\d+)\s+(\S+)\s*$')
-#                     --- --- - ---     ---
-#                      ^   ^  ^  ^       ^
-#                      |   |  |  |       |
-#                      |   |  |  |       +--- item name
-#                      |   +--+--+----------- a / b
-#                      +--------------------- optional comment markers
-
-g_gold = re.compile('^\s*(\d+)/(\d+)\s+.*?金币.*?\s+(\d+)\s*$')
-#                     --- --- - ---       ----       ---
-#                      ^   ^  ^  ^          ^         ^
-#                      |   |  |  |          |         |
-#                      |   |  |  |          |         +--- gold count
-#                      |   |  |  |          +------------- 金币
-#                      |   +--+--+------------------------ a / b
-#                      +---------------------------------- optional comment markers
+g_item = re.compile('^\s*(\d+)/(\d+)\s+(\S+)(\s+(\d+))?\s*$')
+#                     --- --- - ---     ---      ---
+#                      ^   ^  ^  ^       ^        ^
+#                      |   |  |  |       |        |
+#                      |   |  |  |       |        +---- item count
+#                      |   |  |  |       +------------- item name
+#                      |   +--+--+--------------------- a / b
+#                      +------------------------------- optional comment markers
 
 def printCode(s):
     print('--->%s' % s)
 
 
 def dropGenOneMonster(name, file):
-    itemCount = {}
+    codeMap = {}
     with open(file, 'r', encoding='gb2312') as fp:
         for line in fp:
             match = g_item.search(line.strip())
@@ -36,24 +28,26 @@ def dropGenOneMonster(name, file):
                 probDen = int(match.group(2))
 
                 itemName = match.group(3)
-                probRecip = max(1, round(probDen / probNum))
-                codeLine = '{u8"%s", u8"%s", 0, %d, ' % (name, itemName, probRecip)
-
-                if codeLine not in itemCount.keys():
-                    itemCount[codeLine] = 1
+                if match.group(5):
+                    itemCount = int(match.group(5))
                 else:
-                    itemCount[codeLine] = itemCount[codeLine] + 1
+                    itemCount = 1
 
-            match = g_gold.search(line.strip())
-            if match:
-                probNum = int(match.group(1))
-                probDen = int(match.group(2))
-
-                goldCount = match.group(3)
                 probRecip = max(1, round(probDen / probNum))
-                printCode('{u8"%s", u8"金币（小）", 0, %d, 1, %s},' % (name, probRecip, goldCount))
+                if itemName == '金币' or itemName == '钱币':
+                    printCode('{u8"%s", u8"金币（小）", 0, %d, 1, %s},' % (name, probRecip, itemCount)) # gold in total
+                else:
+                    codeLine = '{u8"%s", u8"%s", 0, %d, ' % (name, itemName, probRecip)
+                    if codeLine not in codeMap.keys():
+                        codeMap[codeLine] = itemCount
+                    else:
+                        codeMap[codeLine] = codeMap[codeLine] + itemCount
+            else:
+                # doesn't match anything
+                # print the skipped lines for double check
+                print('[WARN] skipped: %s' % line.strip())
 
-    for code, count in itemCount.items():
+    for code, count in codeMap.items():
         printCode('%s%d, 1},' % (code, count))
 
 
