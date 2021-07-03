@@ -21,26 +21,19 @@ processNPCEvent =
         [[
             <layout>
                 <par>来吧，你有什么任务？</par>
-                <par><event id="npc_goto_3">乞丐任务</event></par>
-                <par><event id="npc_goto_4">苍蝇拍任务</event></par>
-                <par><event id="npc_goto_5">石罂粟任务</event></par>
+                <par><event id="npc_goto_3">乞丐任务</event>，<event id="npc_goto_4">苍蝇拍任务</event>，<event id="npc_goto_5">石罂粟任务</event></par>
                 <par></par>
 
                 <par>（等级 9）</par>
-                <par><event id="npc_goto_6">王大人任务</event></par>
-                <par><event id="npc_goto_7">比奇省任务</event></par>
-                <par><event id="npc_goto_8">药剂师任务</event></par>
+                <par><event id="npc_goto_6">王大人任务</event>，<event id="npc_goto_7">比奇省任务</event>，<event id="npc_goto_8">药剂师任务</event></par>
                 <par></par>
 
                 <par>（等级 11）</par>
-                <par><event id="npc_goto_9">轻型盔甲任务</event></par>
-                <par><event id="npc_goto_10">半兽人任务</event></par>
+                <par><event id="npc_goto_9">轻型盔甲任务</event>，<event id="npc_goto_10">半兽人任务</event></par>
                 <par></par>
 
                 <par>（等级 16）</par>
-                <par><event id="npc_goto_11">被盗的灵魂任务</event></par>
-                <par><event id="npc_goto_12">千年毒蛇任务</event></par>
-                <par><event id="npc_goto_13">堕落道士任务</event></par>
+                <par><event id="npc_goto_11">被盗的灵魂任务</event>，<event id="npc_goto_12">千年毒蛇任务</event>，<event id="npc_goto_13">堕落道士任务</event></par>
                 <par></par>
 
                 <par>（等级 20）</par>
