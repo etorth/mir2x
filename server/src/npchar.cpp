@@ -188,6 +188,11 @@ NPChar::LuaNPCModule::LuaNPCModule(const SDInitNPChar &initParam)
         }
     });
 
+    m_luaState.set_function("getSubukGuildName", [this]() -> std::string
+    {
+        fflassert(m_npc);
+        return "占领沙巴克行会的名字";
+    });
 
     m_luaState.set_function("addMonster", [this](std::string monsterName)
     {

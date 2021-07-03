@@ -89,6 +89,10 @@ function uidQueryName(uid)
     return uidQuery(uid, 'NAME')
 end
 
+function uidQueryRedName(uid)
+    return false
+end
+
 function uidQueryLevel(uid)
     return tonumber(uidQuery(uid, 'LEVEL'))
 end
