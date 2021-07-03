@@ -1,6 +1,7 @@
 setNPCLook(2)
 setNPCGLoc(398, 127)
 
+local dq = require('npc.include.dailyquest')
 processNPCEvent =
 {
     [SYS_NPCINIT] = function(uid, value)
@@ -47,5 +48,6 @@ processNPCEvent =
     end,
 
     ["npc_goto_2"] = function(uid, value)
+        dq.setQuest(0, uid, value)
     end
 }
