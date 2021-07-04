@@ -52,6 +52,7 @@ processNPCEvent =
                 <par><event id="%s">前一步</event></par>
             </layout>
         ]], SYS_NPCINIT)
+        uidPostSell(uid)
     end,
 
     ["npc_goto_2"] = function(uid, value)
