@@ -168,6 +168,10 @@ function getCallStackUID()
     return callStackTable['CS_UID']
 end
 
+function uidPostGold(uid, count)
+    uidPostGift(uid, '金币（小）', count)
+end
+
 function uidPostXML(uid, xmlFormat, ...)
     if type(uid) ~= 'string' or type(xmlFormat) ~= 'string' then
         fatalPrintf("invalid argument type: uid: %s, xmlFormat: %s", type(uid), type(xmlFormat))
