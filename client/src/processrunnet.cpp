@@ -522,9 +522,15 @@ void ProcessRun::net_NPCSELL(const uint8_t *buf, size_t bufSize)
     auto purchaseBoardPtr = dynamic_cast<PurchaseBoard *>(getGUIManager()->getWidget("PurchaseBoard"));
     auto npcChatBoardPtr  = dynamic_cast<NPCChatBoard  *>(getGUIManager()->getWidget("NPCChatBoard"));
 
+    if(npcChatBoardPtr->show()){
+        purchaseBoardPtr->moveTo(npcChatBoardPtr->x(), npcChatBoardPtr->y() + npcChatBoardPtr->h());
+    }
+    else{
+        purchaseBoardPtr->moveTo(0, 0);
+    }
+
     purchaseBoardPtr->loadSell(sdNPCS.npcUID, std::move(sdNPCS.itemList));
     purchaseBoardPtr->show(true);
-    npcChatBoardPtr->show(false);
 }
 
 void ProcessRun::net_TEXT(const uint8_t *buf, size_t bufSize)

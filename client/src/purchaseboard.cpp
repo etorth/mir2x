@@ -338,11 +338,10 @@ void PurchaseBoard::drawEx(int dstX, int dstY, int, int, int, int) const
             }
 
             label.setText(u8"%s", to_cstr(ir.name));
-            label.moveTo(x() + m_startX + m_boxW + 10, y() + startY + (m_boxH - label.h()) / 2);
-            label.draw();
+            label.drawAt(DIR_UPLEFT, x() + m_startX + m_boxW + 10, y() + startY + (m_boxH - label.h()) / 2);
 
             if(m_selected == to_d(i)){
-                g_sdlDevice->fillRectangle(colorf::WHITE + colorf::A_SHF(64), m_startX, startY, 252 - 19, m_boxH);
+                g_sdlDevice->fillRectangle(colorf::WHITE + colorf::A_SHF(64), x() + m_startX, y() + startY, 252 - 19, m_boxH);
             }
             startY += m_lineH;
         }
