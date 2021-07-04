@@ -190,7 +190,10 @@ void NPCChatBoard::onClickEvent(const std::string &id)
 {
     m_process->addCBLog(CBLOG_SYS, u8"clickEvent id: %s", id.c_str());
     m_process->sendNPCEvent(m_NPCUID, id.c_str());
-    show(false);
+
+    if(id == SYS_NPCDONE){
+        show(false);
+    }
 }
 
 int NPCChatBoard::getMiddleCount() const
