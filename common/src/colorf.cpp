@@ -92,7 +92,7 @@ uint32_t colorf::string2RGBA(const char *color)
     }
 
     // matches RGBA(xx, xx, xx, xx)
-    std::regex rgbaExpr(R"#(^\s*rgba\s*\(\s*)#" _REGEX_COL_0_255 R"#(\s*,\s*)#" _REGEX_COL_0_255 R"#(\s*,\s*)#" _REGEX_COL_0_255 R"#(\s*,\s*)#" _REGEX_COL_0_255 R"#(\s*\)\s*$)#", std::regex::icase);
+    const static std::regex rgbaExpr(R"#(^\s*rgba\s*\(\s*)#" _REGEX_COL_0_255 R"#(\s*,\s*)#" _REGEX_COL_0_255 R"#(\s*,\s*)#" _REGEX_COL_0_255 R"#(\s*,\s*)#" _REGEX_COL_0_255 R"#(\s*\)\s*$)#", std::regex::icase);
 
     if(std::regex_match(colorString.begin(), colorString.end(), matchResult, rgbaExpr)){
         int r = 0;
