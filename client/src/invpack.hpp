@@ -24,7 +24,7 @@
 class InvPack
 {
     private:
-        // TODO: Leave it as a variable, not using SYS_INVGRIDCW directly
+        // TODO: Leave it as a variable, not using SYS_INVGRIDGW directly
         //       Later I may change the texture width of inventory board to make it bigger
         const size_t m_w;
 
@@ -36,7 +36,7 @@ class InvPack
         std::vector<PackBin> m_packBinList;
 
     public:
-        InvPack(size_t argW = SYS_INVGRIDCW)
+        InvPack(size_t argW = SYS_INVGRIDGW)
             : m_w(argW)
         {}
 

@@ -53,8 +53,8 @@ constexpr int SYS_MINSPEED =  20;
 constexpr int SYS_DEFSPEED = 100;
 constexpr int SYS_MAXSPEED = 500;
 
-constexpr int SYS_INVGRIDCW =  6;
-constexpr int SYS_INVGRIDCH =  8;
+constexpr int SYS_INVGRIDGW = 10;
+constexpr int SYS_INVGRIDGH = 10;
 constexpr int SYS_INVGRIDPW = 38;
 constexpr int SYS_INVGRIDPH = 38;
 constexpr int SYS_INVGRIDMAXHOLD = 99;

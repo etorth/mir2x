@@ -30,8 +30,8 @@ InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget
     , m_opNameBoard
       {
           DIR_UPLEFT,
-          132,
-          16,
+          210,
+          18,
           u8"【背包】",
 
           1,
@@ -53,10 +53,10 @@ InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget
     , m_slider
       {
           DIR_UPLEFT,
-          258,
+          410,
           64,
 
-          291,
+          367,
           2,
 
           nullptr,
@@ -66,8 +66,8 @@ InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget
     , m_closeButton
       {
           DIR_UPLEFT,
-          242,
-          422,
+          394,
+          498,
           {SYS_TEXNIL, 0X0000001C, 0X0000001D},
 
           nullptr,
@@ -128,7 +128,7 @@ void InventoryBoard::drawItem(int dstX, int dstY, size_t startRow, bool cursorOn
                         drawSrcH,
 
                         0, 0, -1, -1,
-                        viewX, viewY, SYS_INVGRIDPW * 6, SYS_INVGRIDPH * 8)){
+                        viewX, viewY, SYS_INVGRIDPW * SYS_INVGRIDGW, SYS_INVGRIDPH * SYS_INVGRIDGH)){
                 g_sdlDevice->drawTexture(texPtr, drawDstX, drawDstY, drawSrcX, drawSrcY, drawSrcW, drawSrcH);
             }
 
@@ -137,7 +137,7 @@ void InventoryBoard::drawItem(int dstX, int dstY, size_t startRow, bool cursorOn
             int binGridW = bin.w;
             int binGridH = bin.h;
 
-            if(mathf::rectangleOverlapRegion<int>(0, startRow, 6, 8, binGridX, binGridY, binGridW, binGridH)){
+            if(mathf::rectangleOverlapRegion<int>(0, startRow, SYS_INVGRIDGW, SYS_INVGRIDGH, binGridX, binGridY, binGridW, binGridH)){
                 if(cursorOn){
                     g_sdlDevice->fillRectangle(colorf::WHITE + colorf::A_SHF(64),
                             startX + binGridX * SYS_INVGRIDPW,
@@ -287,10 +287,10 @@ bool InventoryBoard::processEvent(const SDL_Event &event, bool valid)
         case SDL_MOUSEWHEEL:
             {
                 const auto [mousePX, mousePY] = SDLDeviceHelper::getMousePLoc();
-                if(mathf::pointInRectangle<int>(mousePX, mousePY, x() + m_invGridX0, y() + m_invGridY0, 6 * SYS_INVGRIDPW, 8 * SYS_INVGRIDPH)){
+                if(mathf::pointInRectangle<int>(mousePX, mousePY, x() + m_invGridX0, y() + m_invGridY0, SYS_INVGRIDGW * SYS_INVGRIDPW, SYS_INVGRIDGH * SYS_INVGRIDPH)){
                     const auto rowCount = getRowCount();
-                    if(rowCount > 8){
-                        m_slider.addValue((event.wheel.y > 0 ? -1.0 : 1.0) / (rowCount - 8));
+                    if(rowCount > SYS_INVGRIDGH){
+                        m_slider.addValue((event.wheel.y > 0 ? -1.0 : 1.0) / (rowCount - SYS_INVGRIDGH));
                     }
                     return focusConsume(this, true);
                 }
@@ -330,13 +330,11 @@ size_t InventoryBoard::getRowCount() const
 
 size_t InventoryBoard::getStartRow() const
 {
-    const size_t rowGfxCount = 8;
     const size_t rowCount = getRowCount();
-
-    if(rowCount <= rowGfxCount){
+    if(rowCount <= SYS_INVGRIDGH){
         return 0;
     }
-    return std::lround((rowCount - rowGfxCount) * m_slider.getValue());
+    return std::lround((rowCount - SYS_INVGRIDGH) * m_slider.getValue());
 }
 
 void InventoryBoard::drawGold() const
@@ -354,7 +352,7 @@ void InventoryBoard::drawGold() const
 
         colorf::RGBA(0XFF, 0XFF, 0X00, 0XFF),
     };
-    goldBoard.drawAt(DIR_NONE, x() + 106, y() + 409);
+    goldBoard.drawAt(DIR_NONE, x() + 132, y() + 486);
 }
 
 int InventoryBoard::getPackBinIndex(int locPX, int locPY) const
@@ -381,7 +379,7 @@ std::tuple<int, int> InventoryBoard::getInvGrid(int locPX, int locPY) const
     const int gridPX0 = m_invGridX0 + x();
     const int gridPY0 = m_invGridY0 + y();
 
-    if(!mathf::pointInRectangle<int>(locPX, locPY, gridPX0, gridPY0, 6 * SYS_INVGRIDPW, 8 * SYS_INVGRIDPH)){
+    if(!mathf::pointInRectangle<int>(locPX, locPY, gridPX0, gridPY0, SYS_INVGRIDGW * SYS_INVGRIDPW, SYS_INVGRIDGH * SYS_INVGRIDPH)){
         return {-1, -1};
     }
 
