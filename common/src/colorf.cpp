@@ -35,11 +35,13 @@
 
 #define _try_match_named_color(color, colorName, baseColor) \
 do{ \
-    if(std::regex_match(color, std::regex("^" colorName "$", std::regex::icase))){ \
+    const static std::regex colorNameRegex("^" colorName "$", std::regex::icase); \
+    if(std::regex_match(color, colorNameRegex)){ \
         return baseColor + A_SHF(255); \
     } \
 \
-    if(std::regex_match(color, std::regex("^" colorName R"#(\+)#" _REGEX_COL_0_255 "$", std::regex::icase))){ \
+    const static std::regex colorNameAlphaRegex("^" colorName R"#(\+)#" _REGEX_COL_0_255 "$", std::regex::icase); \
+    if(std::regex_match(color, colorNameAlphaRegex)){ \
         return baseColor + A_SHF(std::stoi(std::strstr(color, "+"), 0, 0)); \
     } \
 }while(0)
@@ -65,7 +67,7 @@ uint32_t colorf::string2RGBA(const char *color)
     std::match_results<std::string::iterator> matchResult;
 
     // matches RGB(xx, xx, xx)
-    std::regex rgbExpr(R"#(^\s*rgb\s*\(\s*)#" _REGEX_COL_0_255 R"#(\s*,\s*)#" _REGEX_COL_0_255 R"#(\s*,\s*)#" _REGEX_COL_0_255 R"#(\s*\)\s*$)#", std::regex::icase);
+    const static std::regex rgbExpr(R"#(^\s*rgb\s*\(\s*)#" _REGEX_COL_0_255 R"#(\s*,\s*)#" _REGEX_COL_0_255 R"#(\s*,\s*)#" _REGEX_COL_0_255 R"#(\s*\)\s*$)#", std::regex::icase);
 
     if(std::regex_match(colorString.begin(), colorString.end(), matchResult, rgbExpr)){
         int r = 0;
