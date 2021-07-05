@@ -493,6 +493,13 @@ void ProcessRun::net_PICKUPERROR(const uint8_t *buf, size_t)
     }
 }
 
+void ProcessRun::net_NPCSTARTREPAIR(const uint8_t *buf, size_t size)
+{
+    fflassert(buf);
+    fflassert(size > 0);
+    dynamic_cast<InventoryBoard *>(getWidget("InventoryBoard"))->setMode(INV_REPAIR, std::string((const char *)(buf), size));
+}
+
 void ProcessRun::net_GOLD(const uint8_t *buf, size_t)
 {
     auto myHeroPtr = getMyHero();

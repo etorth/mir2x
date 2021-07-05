@@ -342,6 +342,17 @@ NPChar::LuaNPCModule::LuaNPCModule(const SDInitNPChar &initParam)
         m_npc->postSell(uidf::toUIDEx(uidString));
     });
 
+    m_luaState.set_function("uidPostRepair", [this](std::string uidString, std::string tagName, sol::as_table_t<std::vector<std::string>> typeTable)
+    {
+        fflassert(m_npc);
+        std::set<std::u8string> typeList;
+
+        for(const auto &type: typeTable.source){
+            typeList.insert(to_u8cstr(type));
+        }
+        m_npc->postRepair(uidf::toUIDEx(uidString), tagName, {typeList.begin(), typeList.end()});
+    });
+
     m_luaState.set_function("uidPostGift", [this](std::string uidString, std::string itemName, int count)
     {
         fflassert(m_npc);
@@ -583,6 +594,16 @@ void NPChar::postSell(uint64_t uid)
         .npcUID = UID(),
         .itemList = std::vector<uint32_t>(m_luaModulePtr->getNPCSell().begin(), m_luaModulePtr->getNPCSell().end()),
     }, true));
+}
+
+void NPChar::postRepair(uint64_t uid, const std::string tagName, std::vector<std::u8string> typeList)
+{
+    forwardNetPackage(uid, SM_NPCSTARTREPAIR, cerealf::serialize(SDNPCStartRepair
+    {
+        .npcUID = UID(),
+        .tagName = tagName,
+        .typeList = typeList,
+    }));
 }
 
 void NPChar::postGift(uint64_t uid, uint32_t itemID, int count)

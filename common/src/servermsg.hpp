@@ -47,6 +47,7 @@ enum SMType: uint8_t
     SM_REMOVEGROUNDITEM,
     SM_NPCXMLLAYOUT,
     SM_NPCSELL,
+    SM_NPCSTARTREPAIR,
     SM_GOLD,
     SM_STRIKEGRID,
     SM_SELLITEMLIST,
@@ -309,6 +310,7 @@ class ServerMsg final: public MsgBase
                 _add_server_msg_type_case(SM_REMOVEGROUNDITEM,   1, sizeof(SMRemoveGroundItem))
                 _add_server_msg_type_case(SM_NPCXMLLAYOUT,       3, 0                         )
                 _add_server_msg_type_case(SM_NPCSELL,            3, 0                         )
+                _add_server_msg_type_case(SM_NPCSTARTREPAIR,     3, 0                         )
                 _add_server_msg_type_case(SM_GOLD,               1, sizeof(SMGold)            )
                 _add_server_msg_type_case(SM_STRIKEGRID,         1, sizeof(SMStrikeGrid)      )
                 _add_server_msg_type_case(SM_SELLITEMLIST,       3, 0                         )

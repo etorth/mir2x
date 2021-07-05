@@ -81,6 +81,18 @@ struct SDNPCXMLLayout
     }
 };
 
+struct SDNPCStartRepair
+{
+    uint64_t npcUID = 0;
+    std::string tagName;
+    std::vector<std::u8string> typeList;
+
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(npcUID, tagName, typeList);
+    }
+};
+
 struct SDNPCSell
 {
     uint64_t npcUID = 0;

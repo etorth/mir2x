@@ -78,6 +78,7 @@ processNPCEvent =
                 <par><event id="npc_goto_6">修理</event></par>
             </layout>
         ]], SYS_NPCINIT)
+        uidPostRepair(uid, "npc_goto_6", {'武器'})
     end,
 
     ["npc_goto_4"] = function(uid, value)

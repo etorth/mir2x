@@ -200,6 +200,7 @@ class NPChar final: public CharObject
 
     private:
         void postSell(uint64_t);
+        void postRepair(uint64_t, std::string, std::vector<std::u8string>);
         void postGift(uint64_t, uint32_t, int);
         void postXMLLayout(uint64_t, std::string);
         void postAddMonster(uint32_t);

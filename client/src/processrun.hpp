@@ -241,6 +241,7 @@ class ProcessRun: public Process
         void net_EQUIPBELTERROR(const uint8_t *, size_t);
         void net_GRABBELT(const uint8_t *, size_t);
         void net_GRABBELTERROR(const uint8_t *, size_t);
+        void net_NPCSTARTREPAIR(const uint8_t *, size_t);
 
     public:
         bool canMove(bool, int, int, int);

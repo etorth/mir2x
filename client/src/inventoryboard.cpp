@@ -539,3 +539,34 @@ void InventoryBoard::packBinConsume(const PackBin &bin)
         m_processRun->requestConsumeItem(bin.item.itemID, bin.item.seqID, 1);
     }
 }
+
+void InventoryBoard::setMode(int mode, const std::string &buf)
+{
+    switch(mode){
+        case INV_NONE:
+            {
+                m_mode = mode;
+                return;
+            }
+        case INV_SELL:
+            {
+                m_mode = mode;
+                return;
+            }
+        case INV_LOCK:
+            {
+                m_mode = mode;
+                return;
+            }
+        case INV_REPAIR:
+            {
+                m_mode = mode;
+                m_sdRepair = cerealf::deserialize<SDNPCStartRepair>(buf);
+                return;
+            }
+        default:
+            {
+                throw fflerror("invalid inventory mode: %d", mode);
+            }
+    }
+}
