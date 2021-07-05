@@ -27,12 +27,19 @@
 #include "texvslider.hpp"
 #include "tritexbutton.hpp"
 
+constexpr int INV_NONE   = 0;
+constexpr int INV_LOCK   = 1;
+constexpr int INV_REPAIR = 2;
+
 class ProcessRun;
 class InventoryBoard: public Widget
 {
     private:
         const int m_invGridX0 = 18;
         const int m_invGridY0 = 59;
+
+    private:
+        int m_mode = INV_NONE;
 
     private:
         LabelBoard m_opNameBoard;
@@ -79,4 +86,15 @@ class InventoryBoard: public Widget
 
     private:
         void packBinConsume(const PackBin &);
+
+    public:
+        void setMode(int mode)
+        {
+            switch(mode){
+                case INV_NONE:
+                case INV_LOCK:
+                case INV_REPAIR: m_mode = mode;
+                default: throw fflerror("invalid inventory mode: %d", mode);
+            }
+        }
 };
