@@ -22,6 +22,7 @@
  */
 
 #pragma once
+#include <string>
 #include "widget.hpp"
 #include "labelboard.hpp"
 #include "texvslider.hpp"
@@ -45,6 +46,7 @@ class InventoryBoard: public Widget
 
     private:
         int m_mode = INV_NONE;
+        std::u8string m_modeArg;
 
     private:
         LabelBoard m_opNameBoard;
@@ -98,14 +100,22 @@ class InventoryBoard: public Widget
         void packBinConsume(const PackBin &);
 
     public:
-        void setMode(int mode)
+        void setMode(int mode, const char8_t *arg)
         {
             switch(mode){
                 case INV_NONE:
                 case INV_SELL:
                 case INV_LOCK:
-                case INV_REPAIR: m_mode = mode;
-                default: throw fflerror("invalid inventory mode: %d", mode);
+                case INV_REPAIR:
+                    {
+                        m_mode = mode;
+                        m_modeArg = str_haschar(arg) ? arg : u8"";
+                        break;
+                    }
+                default:
+                    {
+                        throw fflerror("invalid inventory mode: mode = %d, arg = %s", mode, to_cstr(arg));
+                    }
             }
         }
 };
