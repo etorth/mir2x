@@ -84,7 +84,7 @@ class Pack2D
         void occupy(int, int, int, int, bool);
 
     public:
-        void pack(std::vector<PackBin> &);
+        void pack(std::vector<PackBin> &, int);
 
     private:
         void findRoom(PackBin *);

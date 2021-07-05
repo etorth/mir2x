@@ -32,6 +32,9 @@ class InvPack
         size_t m_gold = 0;
 
     private:
+        int m_repackIndex = 0;
+
+    private:
         SDItem m_grabbedItem;
         std::vector<PackBin> m_packBinList;
 
@@ -60,7 +63,8 @@ class InvPack
     public:
         void repack()
         {
-            Pack2D(w()).pack(m_packBinList);
+            m_repackIndex = (m_repackIndex + 1) % 6;
+            Pack2D(w()).pack(m_packBinList, m_repackIndex);
         }
 
     public:

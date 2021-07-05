@@ -20,6 +20,7 @@
 #include "pack2d.hpp"
 #include "totype.hpp"
 #include "fflerror.hpp"
+#include "dbcomrecord.hpp"
 
 bool Pack2D::occupied(int x, int y) const
 {
@@ -81,11 +82,9 @@ void Pack2D::occupy(int x, int y, int argW, int argH, bool takeIt)
 
 void Pack2D::findRoom(PackBin *binPtr)
 {
-    if(!binPtr){
-        throw fflerror("invalid arguments: binPtr = %p", to_cvptr(binPtr));
-    }
-
+    fflassert(binPtr);
     validCEx(0, 0, binPtr->w, binPtr->h);
+
     for(int yi = 0; yi <= to_d(m_packMap.size()); ++yi){
         for(int xi = 0; xi + binPtr->w <= to_d(w()); ++xi){
             if(!occupied(xi, yi, binPtr->w, binPtr->h, true)){
@@ -98,24 +97,57 @@ void Pack2D::findRoom(PackBin *binPtr)
     throw bad_reach();
 }
 
-void Pack2D::pack(std::vector<PackBin> &binList)
+void Pack2D::pack(std::vector<PackBin> &binList, int packMethod)
 {
     m_packMap.clear();
-    if(!binList.empty()){
-        add(binList.data(), binList.size());
+    if(binList.empty()){
+        return;
+    }
+
+    std::sort(binList.begin(), binList.end(), [packMethod](const auto &x, const auto &y) -> bool
+    {
+        switch(packMethod){
+            case 0:
+                {
+                    return x.w * x.h < y.w * y.h;
+                }
+            case 1:
+                {
+                    return x.w * x.h > y.w * y.h;
+                }
+            case 2:
+                {
+                    return x.item.itemID < y.item.itemID;
+                }
+            case 3:
+                {
+                    return x.item.itemID > y.item.itemID;
+                }
+            case 4:
+                {
+                    return to_u8sv(DBCOM_ITEMRECORD(x.item.itemID).type) < to_u8sv(DBCOM_ITEMRECORD(y.item.itemID).type);
+                }
+            case 5:
+                {
+                    return to_u8sv(DBCOM_ITEMRECORD(x.item.itemID).type) > to_u8sv(DBCOM_ITEMRECORD(y.item.itemID).type);
+                }
+            default:
+                {
+                    throw fflerror("invalid pack method: %d", packMethod);
+                }
+        }
+    });
+
+    for(auto &bin: binList){
+        findRoom(&bin);
+        occupy(bin.x, bin.y, bin.w, bin.h, true);
     }
 }
 
 void Pack2D::add(PackBin *binListPtr, size_t binListSize)
 {
-    if(!(binListPtr && binListSize)){
-        throw fflerror("invalid binList: (%p, %zu)", to_cvptr(binListPtr), binListSize);
-    }
-
-    std::sort(binListPtr, binListPtr + binListSize, [](const auto &x, const auto &y) -> bool
-    {
-        return x.w * x.h < y.w * y.h;
-    });
+    fflassert(binListPtr);
+    fflassert(binListSize > 0);
 
     for(size_t i = 0; i < binListSize; ++i){
         findRoom(binListPtr + i);

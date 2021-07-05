@@ -74,6 +74,7 @@ InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget
           nullptr,
           [this]()
           {
+              m_processRun->getMyHero()->getInvPack().repack();
           },
 
           0,
