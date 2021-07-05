@@ -86,6 +86,75 @@ InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget
           true,
           this,
       }
+
+    , m_sellButton
+      {
+          DIR_UPLEFT,
+          m_invOpButtonX + 3,
+          m_invOpButtonY + 3,
+          {0X000000B3, 0X000000B3, 0X000000B4},
+
+          nullptr,
+          nullptr,
+          [this]()
+          {
+          },
+
+          0,
+          0,
+          0,
+          0,
+
+          true,
+          true,
+          this,
+      }
+
+    , m_lockButton
+      {
+          DIR_UPLEFT,
+          m_invOpButtonX + 3,
+          m_invOpButtonY + 3,
+          {0X000000B5, 0X000000B5, 0X000000B6},
+
+          nullptr,
+          nullptr,
+          [this]()
+          {
+          },
+
+          0,
+          0,
+          0,
+          0,
+
+          true,
+          true,
+          this,
+      }
+
+    , m_repairButton
+      {
+          DIR_UPLEFT,
+          m_invOpButtonX + 3,
+          m_invOpButtonY + 3,
+          {0X000000B1, 0X000000B1, 0X000000B2},
+
+          nullptr,
+          nullptr,
+          [this]()
+          {
+          },
+
+          0,
+          0,
+          0,
+          0,
+
+          true,
+          true,
+          this,
+      }
     , m_processRun(pRun)
 {
     show(false);
@@ -196,6 +265,31 @@ void InventoryBoard::drawEx(int dstX, int dstY, int, int, int, int) const
     m_wmdAniBoard.draw();
     m_slider     .draw();
     m_closeButton.draw();
+
+    if(m_mode != INV_NONE){
+        g_sdlDevice->drawTexture(g_progUseDB->retrieve(0X0000B0), dstX + m_invOpButtonX, dstY + m_invOpButtonY);
+        switch(m_mode){
+            case INV_SELL:
+                {
+                    m_sellButton.draw();
+                    break;
+                }
+            case INV_LOCK:
+                {
+                    m_lockButton.draw();
+                    break;
+                }
+            case INV_REPAIR:
+                {
+                    m_repairButton.draw();
+                    break;
+                }
+            default:
+                {
+                    break;
+                }
+        }
+    }
 
     if(cursorOnIndex >= 0){
         drawItemHoverText(packBinListCRef.at(cursorOnIndex));

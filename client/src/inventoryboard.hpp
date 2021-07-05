@@ -28,8 +28,9 @@
 #include "tritexbutton.hpp"
 
 constexpr int INV_NONE   = 0;
-constexpr int INV_LOCK   = 1;
-constexpr int INV_REPAIR = 2;
+constexpr int INV_SELL   = 1;
+constexpr int INV_LOCK   = 2;
+constexpr int INV_REPAIR = 3;
 
 class ProcessRun;
 class InventoryBoard: public Widget
@@ -37,6 +38,10 @@ class InventoryBoard: public Widget
     private:
         const int m_invGridX0 = 18;
         const int m_invGridY0 = 59;
+
+    private:
+        const int m_invOpButtonX = 275;
+        const int m_invOpButtonY = 480;
 
     private:
         int m_mode = INV_NONE;
@@ -50,6 +55,11 @@ class InventoryBoard: public Widget
 
     private:
         TritexButton m_closeButton;
+
+    private:
+        TritexButton m_sellButton;
+        TritexButton m_lockButton;
+        TritexButton m_repairButton;
 
     private:
         ProcessRun *m_processRun;
@@ -92,6 +102,7 @@ class InventoryBoard: public Widget
         {
             switch(mode){
                 case INV_NONE:
+                case INV_SELL:
                 case INV_LOCK:
                 case INV_REPAIR: m_mode = mode;
                 default: throw fflerror("invalid inventory mode: %d", mode);
