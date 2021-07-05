@@ -98,6 +98,7 @@ InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget
           nullptr,
           [this]()
           {
+              m_mode = INV_NONE;
               show(false);
           },
 
