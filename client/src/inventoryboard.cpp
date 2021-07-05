@@ -315,6 +315,34 @@ bool InventoryBoard::processEvent(const SDL_Event &event, bool valid)
         return true;
     }
 
+    switch(m_mode){
+        case INV_SELL:
+            {
+                if(m_sellButton.processEvent(event, valid)){
+                    return true;
+                }
+                break;
+            }
+        case INV_LOCK:
+            {
+                if(m_lockButton.processEvent(event, valid)){
+                    return true;
+                }
+                break;
+            }
+        case INV_REPAIR:
+            {
+                if(m_repairButton.processEvent(event, valid)){
+                    return true;
+                }
+                break;
+            }
+        default:
+            {
+                break;
+            }
+    }
+
     switch(event.type){
         case SDL_MOUSEMOTION:
             {
