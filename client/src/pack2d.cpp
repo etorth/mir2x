@@ -80,16 +80,14 @@ void Pack2D::occupy(int x, int y, int argW, int argH, bool takeIt)
     }
 }
 
-void Pack2D::findRoom(PackBin *binPtr)
+void Pack2D::findRoom(PackBin &bin)
 {
-    fflassert(binPtr);
-    validCEx(0, 0, binPtr->w, binPtr->h);
-
+    validCEx(0, 0, bin.w, bin.h);
     for(int yi = 0; yi <= to_d(m_packMap.size()); ++yi){
-        for(int xi = 0; xi + binPtr->w <= to_d(w()); ++xi){
-            if(!occupied(xi, yi, binPtr->w, binPtr->h, true)){
-                binPtr->x = xi;
-                binPtr->y = yi;
+        for(int xi = 0; xi + bin.w <= to_d(w()); ++xi){
+            if(!occupied(xi, yi, bin.w, bin.h, true)){
+                bin.x = xi;
+                bin.y = yi;
                 return;
             }
         }
@@ -97,13 +95,13 @@ void Pack2D::findRoom(PackBin *binPtr)
     throw bad_reach();
 }
 
-void Pack2D::pack(std::vector<PackBin> &binList, int packMethod)
+void Pack2D::pack(std::vector<PackBin> &binList, size_t packWidth, int packMethod)
 {
-    m_packMap.clear();
     if(binList.empty()){
         return;
     }
 
+    Pack2D packHelper(packWidth); // assert packWidth
     std::sort(binList.begin(), binList.end(), [packMethod](const auto &x, const auto &y) -> bool
     {
         switch(packMethod){
@@ -139,18 +137,7 @@ void Pack2D::pack(std::vector<PackBin> &binList, int packMethod)
     });
 
     for(auto &bin: binList){
-        findRoom(&bin);
-        occupy(bin.x, bin.y, bin.w, bin.h, true);
-    }
-}
-
-void Pack2D::add(PackBin *binListPtr, size_t binListSize)
-{
-    fflassert(binListPtr);
-    fflassert(binListSize > 0);
-
-    for(size_t i = 0; i < binListSize; ++i){
-        findRoom(binListPtr + i);
-        occupy(binListPtr[i].x, binListPtr[i].y, binListPtr[i].w, binListPtr[i].h, true);
+        packHelper.findRoom(bin);
+        packHelper.occupy(bin.x, bin.y, bin.w, bin.h, true);
     }
 }

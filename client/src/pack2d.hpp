@@ -70,9 +70,8 @@ class Pack2D
         Pack2D(size_t width)
             : m_w(width)
         {
-            if(m_w > sizeof(decltype(m_packMap)::value_type) * 8){
-                throw fflerror("invalid Pack2D width: %zu", m_w);
-            }
+            fflassert(m_w > 0);
+            fflassert(m_w <= sizeof(decltype(m_packMap)::value_type) * 8);
         }
 
     public:
@@ -84,13 +83,17 @@ class Pack2D
         void occupy(int, int, int, int, bool);
 
     public:
-        void pack(std::vector<PackBin> &, int);
+        static void pack(std::vector<PackBin> &, size_t, int);
 
     private:
-        void findRoom(PackBin *);
+        void findRoom(PackBin &);
 
     public:
-        void add(PackBin *, size_t = 1);
+        void add(PackBin &bin)
+        {
+            findRoom(bin);
+            occupy(bin.x, bin.y, bin.w, bin.h, true);
+        }
 
     public:
         bool put(int x, int y, int argW, int argH)

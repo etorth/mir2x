@@ -48,7 +48,7 @@ void InvPack::add(SDItem item)
     }
 
     auto addedBin = makePackBin(item);
-    pack2D.add(&addedBin, 1);
+    pack2D.add(addedBin);
     m_packBinList.push_back(addedBin);
 }
 

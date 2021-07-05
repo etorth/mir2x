@@ -64,7 +64,7 @@ class InvPack
         void repack()
         {
             m_repackIndex = (m_repackIndex + 1) % 6;
-            Pack2D(w()).pack(m_packBinList, m_repackIndex);
+            Pack2D::pack(m_packBinList, w(), m_repackIndex);
         }
 
     public:
