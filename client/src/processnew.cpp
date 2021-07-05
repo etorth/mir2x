@@ -367,10 +367,10 @@ void ProcessNew::localCheck()
             check.setText(u8"");
         }
         else if(good){
-            check.loadXML(to_cstr(str_printf(u8"<par><t color=\"0x00ff00ff\">√</t></par>").c_str()));
+            check.loadXML(to_cstr(str_printf(u8"<par><t color=\"green\">√</t></par>").c_str()));
         }
         else{
-            check.loadXML(to_cstr(str_printf(u8"<par><t color=\"0xff0000ff\">×</t></par>").c_str()));
+            check.loadXML(to_cstr(str_printf(u8"<par><t color=\"red\">×</t></par>").c_str()));
         }
     };
 
