@@ -41,6 +41,7 @@ enum CMType: uint8_t
     CM_PICKUP,
     CM_QUERYGOLD,
     CM_QUERYPLAYERWLDESP,
+    CM_QUERYITEMREPAIRCOST,
     CM_ACCOUNT,
     CM_NPCEVENT,
     CM_QUERYSELLITEMLIST,
@@ -107,6 +108,12 @@ struct CMPickUp
 struct CMQueryPlayerWLDesp
 {
     uint64_t uid;
+};
+
+struct CMQueryItemRepairCost
+{
+    uint32_t itemID;
+    uint32_t  seqID;
 };
 
 struct CMAccount
@@ -196,28 +203,29 @@ class ClientMsg final: public MsgBase
                 //  2    : not empty,     fixed size, not compressed
                 //  3    : not empty, not fixed size, not compressed
 #define _add_client_msg_type_case(type, encodeType, length) {type, {encodeType, length, #type}},
-                _add_client_msg_type_case(CM_NONE_0,             0, 0                           )
-                _add_client_msg_type_case(CM_PING,               2, sizeof(CMPing)              )
-                _add_client_msg_type_case(CM_LOGIN,              1, sizeof(CMLogin)             )
-                _add_client_msg_type_case(CM_ACTION,             1, sizeof(CMAction)            )
-                _add_client_msg_type_case(CM_SETMAGICKEY,        1, sizeof(CMSetMagicKey)       )
-                _add_client_msg_type_case(CM_QUERYCORECORD,      1, sizeof(CMQueryCORecord)     )
-                _add_client_msg_type_case(CM_REQUESTKILLPETS,    0, 0                           )
-                _add_client_msg_type_case(CM_REQUESTSPACEMOVE,   1, sizeof(CMRequestSpaceMove)  )
-                _add_client_msg_type_case(CM_REQUESTMAGICDAMAGE, 1, sizeof(CMRequestMagicDamage))
-                _add_client_msg_type_case(CM_PICKUP,             1, sizeof(CMPickUp)            )
-                _add_client_msg_type_case(CM_QUERYGOLD,          0, 0                           )
-                _add_client_msg_type_case(CM_QUERYPLAYERWLDESP,  1, sizeof(CMQueryPlayerWLDesp) )
-                _add_client_msg_type_case(CM_ACCOUNT,            1, sizeof(CMAccount)           )
-                _add_client_msg_type_case(CM_NPCEVENT,           1, sizeof(CMNPCEvent)          )
-                _add_client_msg_type_case(CM_QUERYSELLITEMLIST,  1, sizeof(CMQuerySellItemList) )
-                _add_client_msg_type_case(CM_DROPITEM,           1, sizeof(CMDropItem)          )
-                _add_client_msg_type_case(CM_CONSUMEITEM,        1, sizeof(CMConsumeItem)       )
-                _add_client_msg_type_case(CM_BUY,                1, sizeof(CMBuy)               )
-                _add_client_msg_type_case(CM_REQUESTEQUIPWEAR,   1, sizeof(CMRequestEquipWear)  )
-                _add_client_msg_type_case(CM_REQUESTGRABWEAR,    1, sizeof(CMRequestGrabWear)   )
-                _add_client_msg_type_case(CM_REQUESTEQUIPBELT,   1, sizeof(CMRequestEquipBelt)  )
-                _add_client_msg_type_case(CM_REQUESTGRABBELT,    1, sizeof(CMRequestGrabBelt)   )
+                _add_client_msg_type_case(CM_NONE_0,              0, 0                            )
+                _add_client_msg_type_case(CM_PING,                2, sizeof(CMPing)               )
+                _add_client_msg_type_case(CM_LOGIN,               1, sizeof(CMLogin)              )
+                _add_client_msg_type_case(CM_ACTION,              1, sizeof(CMAction)             )
+                _add_client_msg_type_case(CM_SETMAGICKEY,         1, sizeof(CMSetMagicKey)        )
+                _add_client_msg_type_case(CM_QUERYCORECORD,       1, sizeof(CMQueryCORecord)      )
+                _add_client_msg_type_case(CM_REQUESTKILLPETS,     0, 0                            )
+                _add_client_msg_type_case(CM_REQUESTSPACEMOVE,    1, sizeof(CMRequestSpaceMove)   )
+                _add_client_msg_type_case(CM_REQUESTMAGICDAMAGE,  1, sizeof(CMRequestMagicDamage) )
+                _add_client_msg_type_case(CM_PICKUP,              1, sizeof(CMPickUp)             )
+                _add_client_msg_type_case(CM_QUERYGOLD,           0, 0                            )
+                _add_client_msg_type_case(CM_QUERYPLAYERWLDESP,   1, sizeof(CMQueryPlayerWLDesp)  )
+                _add_client_msg_type_case(CM_QUERYITEMREPAIRCOST, 1, sizeof(CMQueryItemRepairCost))
+                _add_client_msg_type_case(CM_ACCOUNT,             1, sizeof(CMAccount)            )
+                _add_client_msg_type_case(CM_NPCEVENT,            1, sizeof(CMNPCEvent)           )
+                _add_client_msg_type_case(CM_QUERYSELLITEMLIST,   1, sizeof(CMQuerySellItemList)  )
+                _add_client_msg_type_case(CM_DROPITEM,            1, sizeof(CMDropItem)           )
+                _add_client_msg_type_case(CM_CONSUMEITEM,         1, sizeof(CMConsumeItem)        )
+                _add_client_msg_type_case(CM_BUY,                 1, sizeof(CMBuy)                )
+                _add_client_msg_type_case(CM_REQUESTEQUIPWEAR,    1, sizeof(CMRequestEquipWear)   )
+                _add_client_msg_type_case(CM_REQUESTGRABWEAR,     1, sizeof(CMRequestGrabWear)    )
+                _add_client_msg_type_case(CM_REQUESTEQUIPBELT,    1, sizeof(CMRequestEquipBelt)   )
+                _add_client_msg_type_case(CM_REQUESTGRABBELT,     1, sizeof(CMRequestGrabBelt)    )
 #undef _add_client_msg_type_case
             };
 
@@ -240,6 +248,7 @@ class ClientMsg final: public MsgBase
                     || std::is_same_v<T, CMPickUp>
                     || std::is_same_v<T, CMSetMagicKey>
                     || std::is_same_v<T, CMQueryPlayerWLDesp>
+                    || std::is_same_v<T, CMQueryItemRepairCost>
                     || std::is_same_v<T, CMAccount>
                     || std::is_same_v<T, CMNPCEvent>
                     || std::is_same_v<T, CMQuerySellItemList>

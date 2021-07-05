@@ -46,6 +46,9 @@ class InventoryBoard: public Widget
 
     private:
         int m_mode = INV_NONE;
+        int m_selectedIndex = -1;
+
+        int m_queryResult = -1;
         SDNPCStartRepair m_sdRepair;
 
     private:
@@ -71,7 +74,8 @@ class InventoryBoard: public Widget
 
     private:
         void drawGold() const;
-        void drawItem(int, int, size_t, bool, const PackBin &) const;
+        void drawQueryResult() const;
+        void drawItem(int, int, size_t, const PackBin &, uint32_t) const;
 
     public:
         void update(double) override;
@@ -101,4 +105,5 @@ class InventoryBoard: public Widget
 
     public:
         void setMode(int, const std::string & = {});
+        void setQueryResult(int, uint32_t, uint32_t, size_t);
 };

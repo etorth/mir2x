@@ -203,25 +203,26 @@ void Player::operateAM(const ActorMsgPack &rstMPK)
 void Player::operateNet(uint8_t nType, const uint8_t *pData, size_t nDataLen)
 {
     switch(nType){
-        case CM_QUERYCORECORD    : net_CM_QUERYCORECORD    (nType, pData, nDataLen); break;
-        case CM_REQUESTKILLPETS  : net_CM_REQUESTKILLPETS  (nType, pData, nDataLen); break;
-        case CM_REQUESTSPACEMOVE : net_CM_REQUESTSPACEMOVE (nType, pData, nDataLen); break;
-        case CM_ACTION           : net_CM_ACTION           (nType, pData, nDataLen); break;
-        case CM_PICKUP           : net_CM_PICKUP           (nType, pData, nDataLen); break;
-        case CM_PING             : net_CM_PING             (nType, pData, nDataLen); break;
-        case CM_CONSUMEITEM      : net_CM_CONSUMEITEM      (nType, pData, nDataLen); break;
-        case CM_BUY              : net_CM_BUY              (nType, pData, nDataLen); break;
-        case CM_QUERYGOLD        : net_CM_QUERYGOLD        (nType, pData, nDataLen); break;
-        case CM_NPCEVENT         : net_CM_NPCEVENT         (nType, pData, nDataLen); break;
-        case CM_QUERYSELLITEMLIST: net_CM_QUERYSELLITEMLIST(nType, pData, nDataLen); break;
-        case CM_QUERYPLAYERWLDESP: net_CM_QUERYPLAYERWLDESP(nType, pData, nDataLen); break;
-        case CM_REQUESTEQUIPWEAR : net_CM_REQUESTEQUIPWEAR (nType, pData, nDataLen); break;
-        case CM_REQUESTGRABWEAR  : net_CM_REQUESTGRABWEAR  (nType, pData, nDataLen); break;
-        case CM_REQUESTEQUIPBELT : net_CM_REQUESTEQUIPBELT (nType, pData, nDataLen); break;
-        case CM_REQUESTGRABBELT  : net_CM_REQUESTGRABBELT  (nType, pData, nDataLen); break;
-        case CM_DROPITEM         : net_CM_DROPITEM         (nType, pData, nDataLen); break;
-        case CM_SETMAGICKEY      : net_CM_SETMAGICKEY      (nType, pData, nDataLen); break;
-        default                  :                                                   break;
+        case CM_QUERYCORECORD      : net_CM_QUERYCORECORD      (nType, pData, nDataLen); break;
+        case CM_REQUESTKILLPETS    : net_CM_REQUESTKILLPETS    (nType, pData, nDataLen); break;
+        case CM_REQUESTSPACEMOVE   : net_CM_REQUESTSPACEMOVE   (nType, pData, nDataLen); break;
+        case CM_ACTION             : net_CM_ACTION             (nType, pData, nDataLen); break;
+        case CM_PICKUP             : net_CM_PICKUP             (nType, pData, nDataLen); break;
+        case CM_PING               : net_CM_PING               (nType, pData, nDataLen); break;
+        case CM_CONSUMEITEM        : net_CM_CONSUMEITEM        (nType, pData, nDataLen); break;
+        case CM_BUY                : net_CM_BUY                (nType, pData, nDataLen); break;
+        case CM_QUERYGOLD          : net_CM_QUERYGOLD          (nType, pData, nDataLen); break;
+        case CM_NPCEVENT           : net_CM_NPCEVENT           (nType, pData, nDataLen); break;
+        case CM_QUERYSELLITEMLIST  : net_CM_QUERYSELLITEMLIST  (nType, pData, nDataLen); break;
+        case CM_QUERYPLAYERWLDESP  : net_CM_QUERYPLAYERWLDESP  (nType, pData, nDataLen); break;
+        case CM_QUERYITEMREPAIRCOST: net_CM_QUERYITEMREPAIRCOST(nType, pData, nDataLen); break;
+        case CM_REQUESTEQUIPWEAR   : net_CM_REQUESTEQUIPWEAR   (nType, pData, nDataLen); break;
+        case CM_REQUESTGRABWEAR    : net_CM_REQUESTGRABWEAR    (nType, pData, nDataLen); break;
+        case CM_REQUESTEQUIPBELT   : net_CM_REQUESTEQUIPBELT   (nType, pData, nDataLen); break;
+        case CM_REQUESTGRABBELT    : net_CM_REQUESTGRABBELT    (nType, pData, nDataLen); break;
+        case CM_DROPITEM           : net_CM_DROPITEM           (nType, pData, nDataLen); break;
+        case CM_SETMAGICKEY        : net_CM_SETMAGICKEY        (nType, pData, nDataLen); break;
+        default                    :                                                     break;
     }
 }
 

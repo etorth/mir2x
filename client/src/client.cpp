@@ -260,6 +260,13 @@ void Client::onServerMessage(uint8_t headCode, const uint8_t *pData, size_t nDat
                 }
                 break;
             }
+        case SM_ITEMREPAIRCOST:
+            {
+                if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+                    pRun->net_ITEMREPAIRCOST(pData, nDataLen);
+                }
+                break;
+            }
         case SM_STRIKEGRID:
             {
                 if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){

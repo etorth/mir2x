@@ -512,6 +512,12 @@ void ProcessRun::net_GOLD(const uint8_t *buf, size_t)
     }
 }
 
+void ProcessRun::net_ITEMREPAIRCOST(const uint8_t *buf, size_t)
+{
+    const auto smIRC = ServerMsg::conv<SMItemRepairCost>(buf);
+    dynamic_cast<InventoryBoard *>(getWidget("InventoryBoard"))->setQueryResult(INV_REPAIR, smIRC.itemID, smIRC.seqID, smIRC.cost);
+}
+
 void ProcessRun::net_NPCXMLLAYOUT(const uint8_t *buf, size_t bufSize)
 {
     const auto sdNPCXMLL = cerealf::deserialize<SDNPCXMLLayout>(buf, bufSize);

@@ -1887,6 +1887,17 @@ void ProcessRun::queryPlayerWLDesp(uint64_t uid) const
     g_client->send(CM_QUERYPLAYERWLDESP, cmQPWLD);
 }
 
+void ProcessRun::queryItemRepairCost(uint32_t itemID, uint32_t seqID) const
+{
+    CMQueryItemRepairCost cmQIRC;
+    std::memset(&cmQIRC, 0, sizeof(cmQIRC));
+
+    cmQIRC.itemID = itemID;
+    cmQIRC.seqID  = seqID;
+
+    g_client->send(CM_QUERYITEMREPAIRCOST, cmQIRC);
+}
+
 void ProcessRun::requestBuy(uint64_t npcUID, uint32_t itemID, uint32_t seqID, size_t count)
 {
     fflassert(uidf::getUIDType(npcUID) == UID_NPC);

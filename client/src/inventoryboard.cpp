@@ -165,7 +165,7 @@ InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget
     std::tie(m_w, m_h) = SDLDeviceHelper::getTextureSize(texPtr);
 }
 
-void InventoryBoard::drawItem(int dstX, int dstY, size_t startRow, bool cursorOn, const PackBin &bin) const
+void InventoryBoard::drawItem(int dstX, int dstY, size_t startRow, const PackBin &bin, uint32_t fillColor) const
 {
     if(true
             && bin
@@ -207,13 +207,11 @@ void InventoryBoard::drawItem(int dstX, int dstY, size_t startRow, bool cursorOn
             int binGridH = bin.h;
 
             if(mathf::rectangleOverlapRegion<int>(0, startRow, SYS_INVGRIDGW, SYS_INVGRIDGH, binGridX, binGridY, binGridW, binGridH)){
-                if(cursorOn){
-                    g_sdlDevice->fillRectangle(colorf::WHITE + colorf::A_SHF(64),
-                            startX + binGridX * SYS_INVGRIDPW,
-                            startY + binGridY * SYS_INVGRIDPH, // startY is for (0, 0), not for (0, startRow)
-                            binGridW * SYS_INVGRIDPW,
-                            binGridH * SYS_INVGRIDPH);
-                }
+                g_sdlDevice->fillRectangle(fillColor,
+                        startX + binGridX * SYS_INVGRIDPW,
+                        startY + binGridY * SYS_INVGRIDPH, // startY is for (0, 0), not for (0, startRow)
+                        binGridW * SYS_INVGRIDPW,
+                        binGridH * SYS_INVGRIDPH);
 
                 if(bin.item.count > 1){
                     const LabelBoard itemCount
@@ -257,7 +255,19 @@ void InventoryBoard::drawEx(int dstX, int dstY, int, int, int, int) const
     const auto &packBinListCRef = myHeroPtr->getInvPack().getPackBinList();
     const auto cursorOnIndex = getPackBinIndex(mousePX, mousePY);
     for(int i = 0; i < to_d(packBinListCRef.size()); ++i){
-        drawItem(dstX, dstY, startRow, (i == cursorOnIndex), packBinListCRef.at(i));
+        const auto fillColor = [i, cursorOnIndex, this]() -> uint32_t
+        {
+            if(i == cursorOnIndex){
+                return colorf::WHITE + colorf::A_SHF(48);
+            }
+            else if(m_mode != INV_NONE && i == m_selectedIndex){
+                return colorf::BLUE + colorf::A_SHF(48);
+            }
+            else{
+                return 0;
+            }
+        }();
+        drawItem(dstX, dstY, startRow, packBinListCRef.at(i), fillColor);
     }
 
     drawGold();
@@ -288,6 +298,10 @@ void InventoryBoard::drawEx(int dstX, int dstY, int, int, int, int) const
                 {
                     break;
                 }
+        }
+
+        if(m_queryResult >= 0){
+            drawQueryResult();
         }
     }
 
@@ -368,23 +382,49 @@ bool InventoryBoard::processEvent(const SDL_Event &event, bool valid)
                     case SDL_BUTTON_LEFT:
                         {
                             if(in(event.button.x, event.button.y)){
-                                if(const int selectedPackIndex = getPackBinIndex(event.button.x, event.button.y); selectedPackIndex >= 0){
-                                    auto selectedPackBin = invPackRef.getPackBinList().at(selectedPackIndex);
-                                    invPackRef.setGrabbedItem(selectedPackBin.item);
-                                    invPackRef.remove(selectedPackBin.item);
-                                    if(lastGrabbedItem){
-                                        // when swapping
-                                        // prefer to use current location to store
-                                        invPackRef.add(lastGrabbedItem, selectedPackBin.x, selectedPackBin.y);
+                                if(m_mode == INV_NONE){
+                                    if(const int selectedPackIndex = getPackBinIndex(event.button.x, event.button.y); selectedPackIndex >= 0){
+                                        auto selectedPackBin = invPackRef.getPackBinList().at(selectedPackIndex);
+                                        invPackRef.setGrabbedItem(selectedPackBin.item);
+                                        invPackRef.remove(selectedPackBin.item);
+                                        if(lastGrabbedItem){
+                                            // when swapping
+                                            // prefer to use current location to store
+                                            invPackRef.add(lastGrabbedItem, selectedPackBin.x, selectedPackBin.y);
+                                        }
+                                    }
+                                    else if(lastGrabbedItem){
+                                        const auto [gridX, gridY] = getInvGrid(event.button.x, event.button.y);
+                                        const auto [gridW, gridH] = InvPack::getPackBinSize(lastGrabbedItem.itemID);
+                                        const auto startGridX = gridX - gridW / 2; // can give an invalid (x, y)
+                                        const auto startGridY = gridY - gridH / 2;
+                                        invPackRef.add(lastGrabbedItem, startGridX, startGridY);
+                                        invPackRef.setGrabbedItem({});
                                     }
                                 }
-                                else if(lastGrabbedItem){
-                                    const auto [gridX, gridY] = getInvGrid(event.button.x, event.button.y);
-                                    const auto [gridW, gridH] = InvPack::getPackBinSize(lastGrabbedItem.itemID);
-                                    const auto startGridX = gridX - gridW / 2; // can give an invalid (x, y)
-                                    const auto startGridY = gridY - gridH / 2;
-                                    invPackRef.add(lastGrabbedItem, startGridX, startGridY);
-                                    invPackRef.setGrabbedItem({});
+                                else{
+                                    if(const int selectedPackIndex = getPackBinIndex(event.button.x, event.button.y); selectedPackIndex >= 0){
+                                        m_selectedIndex = selectedPackIndex;
+                                        const auto &selectedItem = invPackRef.getPackBinList().at(selectedPackIndex);
+
+                                        switch(m_mode){
+                                            case INV_SELL:
+                                            case INV_LOCK:
+                                            case INV_REPAIR:
+                                                {
+                                                    m_processRun->queryItemRepairCost(selectedItem.item.itemID, selectedItem.item.seqID);
+                                                    break;
+                                                }
+                                            default:
+                                                {
+                                                    break;
+                                                }
+                                        }
+                                    }
+                                    else{
+                                        m_selectedIndex = -1;
+                                        m_queryResult = -1;
+                                    }
                                 }
                                 return focusConsume(this, true);
                             }
@@ -475,6 +515,28 @@ void InventoryBoard::drawGold() const
         colorf::RGBA(0XFF, 0XFF, 0X00, 0XFF),
     };
     goldBoard.drawAt(DIR_NONE, x() + 132, y() + 486);
+}
+
+void InventoryBoard::drawQueryResult() const
+{
+    if(m_queryResult < 0){
+        return;
+    }
+
+    const LabelBoard queryResultBoard
+    {
+        DIR_UPLEFT,
+        0, // reset by new width
+        0,
+        to_u8cstr(str_ksep(m_queryResult, ',')),
+
+        1,
+        12,
+        0,
+
+        colorf::RGBA(0XFF, 0XFF, 0X00, 0XFF),
+    };
+    queryResultBoard.drawAt(DIR_NONE, x() + 132, y() + 503);
 }
 
 int InventoryBoard::getPackBinIndex(int locPX, int locPY) const
@@ -597,4 +659,29 @@ void InventoryBoard::setMode(int mode, const std::string &buf)
                 throw fflerror("invalid inventory mode: %d", mode);
             }
     }
+}
+
+void InventoryBoard::setQueryResult(int mode, uint32_t itemID, uint32_t seqID, size_t cost)
+{
+    if(m_mode != mode){
+        return;
+    }
+
+    if(m_selectedIndex < 0){
+        return;
+    }
+
+    const auto myHeroPtr = m_processRun->getMyHero();
+    const auto &packBinListCRef = myHeroPtr->getInvPack().getPackBinList();
+
+    if(m_selectedIndex >= to_d(packBinListCRef.size())){
+        return;
+    }
+
+    const auto &binCRef = packBinListCRef.at(m_selectedIndex);
+    if(binCRef.item.itemID != itemID || binCRef.item.seqID != seqID){
+        return;
+    }
+
+    m_queryResult = to_d(cost);
 }
