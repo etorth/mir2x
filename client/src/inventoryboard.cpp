@@ -63,6 +63,29 @@ InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget
           this,
       }
 
+    , m_sortButton
+      {
+          DIR_UPLEFT,
+          374,
+          12,
+          {SYS_TEXNIL, 0X000000C0, 0X000000C1},
+
+          nullptr,
+          nullptr,
+          [this]()
+          {
+          },
+
+          0,
+          0,
+          0,
+          0,
+
+          true,
+          true,
+          this,
+      }
+
     , m_closeButton
       {
           DIR_UPLEFT,
@@ -276,7 +299,10 @@ void InventoryBoard::drawEx(int dstX, int dstY, int, int, int, int) const
     m_slider     .draw();
     m_closeButton.draw();
 
-    if(m_mode != INV_NONE){
+    if(m_mode == INV_NONE){
+        m_sortButton.draw();
+    }
+    else{
         g_sdlDevice->drawTexture(g_progUseDB->retrieve(0X0000B0), dstX + m_invOpButtonX, dstY + m_invOpButtonY);
         switch(m_mode){
             case INV_SELL:
@@ -330,6 +356,13 @@ bool InventoryBoard::processEvent(const SDL_Event &event, bool valid)
     }
 
     switch(m_mode){
+        case INV_NONE:
+            {
+                if(m_sortButton.processEvent(event, valid)){
+                    return true;
+                }
+                break;
+            }
         case INV_SELL:
             {
                 if(m_sellButton.processEvent(event, valid)){

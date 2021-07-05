@@ -59,6 +59,7 @@ class InventoryBoard: public Widget
         TexVSlider m_slider;
 
     private:
+        TritexButton m_sortButton;
         TritexButton m_closeButton;
 
     private:
