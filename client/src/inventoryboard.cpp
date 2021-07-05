@@ -29,9 +29,9 @@ InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget
     : Widget(DIR_UPLEFT, nX, nY, 0, 0, pwidget, autoDelete)
     , m_opNameBoard
       {
-          DIR_UPLEFT,
-          210,
-          18,
+          DIR_NONE,
+          238,
+          25,
           u8"【背包】",
 
           1,
@@ -636,21 +636,25 @@ void InventoryBoard::setMode(int mode, const std::string &buf)
         case INV_NONE:
             {
                 m_mode = mode;
+                m_opNameBoard.setText(u8"【背包】");
                 return;
             }
         case INV_SELL:
             {
                 m_mode = mode;
+                m_opNameBoard.setText(u8"【请选择出售物品】");
                 return;
             }
         case INV_LOCK:
             {
                 m_mode = mode;
+                m_opNameBoard.setText(u8"【请选择存储物品】");
                 return;
             }
         case INV_REPAIR:
             {
                 m_mode = mode;
+                m_opNameBoard.setText(u8"【请选择修理物品】");
                 m_sdRepair = cerealf::deserialize<SDNPCStartRepair>(buf);
                 return;
             }

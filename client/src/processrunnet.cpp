@@ -40,7 +40,9 @@
 #include "dbcomrecord.hpp"
 #include "cerealf.hpp"
 #include "serdesmsg.hpp"
+#include "sdldevice.hpp"
 
+extern SDLDevice *g_sdlDevice;
 void ProcessRun::net_LOGINOK(const uint8_t *buf, size_t bufSize)
 {
     auto sdLOK = cerealf::deserialize<SDLoginOK>(buf, bufSize);
@@ -497,7 +499,11 @@ void ProcessRun::net_NPCSTARTREPAIR(const uint8_t *buf, size_t size)
 {
     fflassert(buf);
     fflassert(size > 0);
-    dynamic_cast<InventoryBoard *>(getWidget("InventoryBoard"))->setMode(INV_REPAIR, std::string((const char *)(buf), size));
+    auto invBoardPtr = dynamic_cast<InventoryBoard *>(getWidget("InventoryBoard"));
+
+    invBoardPtr->show(true);
+    invBoardPtr->moveAt(DIR_UPRIGHT, g_sdlDevice->getRendererWidth() - 1, 0);
+    invBoardPtr->setMode(INV_REPAIR, std::string((const char *)(buf), size));
 }
 
 void ProcessRun::net_GOLD(const uint8_t *buf, size_t)
