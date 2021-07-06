@@ -40,7 +40,7 @@ function asString(arg)
     elseif typeStr == 'table' then
         local convTable = {}
         for k, v in pairs(arg) do
-            convTable[asString(k)] = asString(v)
+            convTable[asKeyString(asString(k))] = asString(v)
         end
         return convTableAsString(convTable)
     else
@@ -57,8 +57,7 @@ function fromString(s)
         local convTable = convTableFromString(s)
         local realTable = {}
         for k, v in pairs(convTable) do
-            realTable[fromString(asBinaryString(k))] = fromString(v)
-            -- realTable[fromString(k)] = fromString(v)
+            realTable[fromString(fromKeyString(k))] = fromString(v)
         end
         return realTable
     else
