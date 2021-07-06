@@ -109,6 +109,7 @@ InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget
           nullptr,
           [this]()
           {
+              commitInvOp();
           },
 
           0,
@@ -132,6 +133,7 @@ InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget
           nullptr,
           [this]()
           {
+              commitInvOp();
           },
 
           0,
@@ -155,6 +157,7 @@ InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget
           nullptr,
           [this]()
           {
+              commitInvOp();
           },
 
           0,
@@ -751,4 +754,27 @@ std::u8string InventoryBoard::typeListString(const std::vector<std::u8string> &t
                 return result + *(typeList.rbegin() + 1) + fnConn() + *typeList.rbegin();
             }
     }
+}
+
+void InventoryBoard::commitInvOp()
+{
+    if(m_sdInvOp.invOp == INVOP_NONE){
+        return;
+    }
+
+    if(m_selectedIndex < 0){
+        return;
+    }
+
+    const auto &selectedItem = m_processRun->getMyHero()->getInvPack().getPackBinList().at(m_selectedIndex);
+    if(!selectedItem){
+        return;
+    }
+
+    if(!m_sdInvOp.hasType(DBCOM_ITEMRECORD(selectedItem.item.itemID).type)){
+        return;
+    }
+
+    m_processRun->addCBLog(CBLOG_SYS, u8"提交修理%s", to_cstr(DBCOM_ITEMRECORD(selectedItem.item.itemID).name));
+    m_processRun->sendNPCEvent(m_sdInvOp.uid, m_sdInvOp.commitTag.c_str(), str_printf("%d:%d", to_d(selectedItem.item.itemID), to_d(selectedItem.item. seqID)).c_str());
 }

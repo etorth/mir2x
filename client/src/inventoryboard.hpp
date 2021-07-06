@@ -110,5 +110,8 @@ class InventoryBoard: public Widget
         void setInvOpCost(int, uint32_t, uint32_t, size_t);
 
     private:
+        void commitInvOp();
+
+    private:
         static std::u8string typeListString(const std::vector<std::u8string> &typeList);
 };

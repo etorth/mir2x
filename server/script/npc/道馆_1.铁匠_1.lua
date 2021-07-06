@@ -126,15 +126,16 @@ processNPCEvent =
     end,
 
     ["npc_goto_commit_repair"] = function(uid, value)
+        item = invop.parseItemString(value)
         uidPostXML(uid,
         [[
             <layout>
-                <par>修理完毕。</par>
+                <par>你的%s已经修理完毕。</par>
                 <par></par>
 
                 <par><event id="%s">前一步</event></par>
             </layout>
-        ]], SYS_NPCINIT)
+        ]], getItemName(item[1]), SYS_NPCINIT)
     end,
 
     ["npc_goto_8"] = function(uid, value)
