@@ -57,15 +57,16 @@ namespace luaf
         }
     };
 
-    // in lua the key can also be int, bool double etc
-    // but sol::object doesn't define less operator which makes it can't be key of std::map
-
-    using variable = std::variant<luaf::nil, int, bool, double, std::string>;
-    using table    = std::unordered_map<std::string, luaf::variable>;
+    using variable   = std::variant<luaf::nil, int, bool, double, std::string>;
+    using table      = std::map<luaf::variable, luaf::variable>;
+    using conv_table = std::map<std::string, std::string>; // string-to-string-table used to serialize/deserialize general lua table
 
     template<typename T> constexpr char getBlobType()
     {
-        if constexpr(std::is_same_v<T, int>){
+        if constexpr(std::is_same_v<T, luaf::nil>){
+            return 'n';
+        }
+        else if constexpr(std::is_same_v<T, int>){
             return 'i';
         }
         if constexpr(std::is_same_v<T, bool>){
@@ -77,11 +78,8 @@ namespace luaf
         else if constexpr(std::is_same_v<T, std::string>){
             return 's';
         }
-        else if constexpr(std::is_same_v<T, luaf::table>){
+        else if constexpr(std::is_same_v<T, std::map<std::string, std::string>>){
             return 't';
-        }
-        else if constexpr(std::is_same_v<T, luaf::nil>){
-            return 'n';
         }
         else{
             throw fflerror("no blob type char defined for given type");
@@ -142,24 +140,13 @@ namespace luaf
         }
     }
 
-    inline auto buildLuaTable(sol::state_view sv, std::string s)
+    inline auto buildLuaConvTable(std::string s)
     {
-        const auto fnConv = [&sv](const auto &var) -> sol::object
-        {
-            /**/ if(std::get_if<luaf::nil     >(&var)) return sol::make_object(sv, sol::nil);
-            else if(std::get_if<int           >(&var)) return sol::object(sv, sol::in_place_type<int        >, std::get<int        >(var));
-            else if(std::get_if<bool          >(&var)) return sol::object(sv, sol::in_place_type<bool       >, std::get<bool       >(var));
-            else if(std::get_if<double        >(&var)) return sol::object(sv, sol::in_place_type<double     >, std::get<double     >(var));
-            else if(std::get_if<std::string   >(&var)) return sol::object(sv, sol::in_place_type<std::string>, std::get<std::string>(var));
-            else throw fflerror("invalid blob type");
-        };
+        fflassert(s.length() >= 2);
+        fflassert(s.back() == getBlobType<luaf::conv_table>());
 
-        std::map<std::string, sol::object> luaTable;
-        const auto cppTable = cerealf::deserialize<luaf::table>(s);
-
-        for(const auto &[key, value]: cppTable){
-            luaTable[key] = fnConv(value);
-        }
-        return sol::as_table_t<decltype(luaTable)>(std::move(luaTable));
+        s.pop_back();
+        auto convTable = cerealf::deserialize<luaf::conv_table>(s);
+        return sol::as_table_t<luaf::conv_table>(std::move(convTable));
     }
 }

@@ -213,14 +213,24 @@ LuaModule::LuaModule()
         return result;
     });
 
-    m_luaState.set_function("asString", [this](sol::as_table_t<luaf::table> t) -> std::string
+    m_luaState.set_function("scalarAsString", [this](sol::object obj) -> std::string
     {
-        return cerealf::serialize<luaf::table>(t.source);
+        return luaf::buildBlob<sol::object>(obj);
     });
 
-    m_luaState.set_function("asTable", [this](std::string s, sol::this_state state)
+    m_luaState.set_function("convTableAsString", [this](sol::as_table_t<luaf::conv_table> convTable) -> std::string
+    {
+        return luaf::buildBlob<luaf::conv_table>(convTable.source);
+    });
+
+    m_luaState.set_function("scalarFromString", [this](std::string s, sol::this_state state)
     {
         sol::state_view sv(state);
-        return luaf::buildLuaTable(sv, s);
+        return luaf::buildLuaObj(sv, s);
+    });
+
+    m_luaState.set_function("convTableFromString", [this](std::string s)
+    {
+        return luaf::buildLuaConvTable(s);
     });
 }

@@ -33,6 +33,38 @@ function argDef(arg, def)
     end
 end
 
+function asString(arg)
+    typeStr = type(arg)
+    if typeStr == 'nil' or typeStr == 'number' or typeStr == 'boolean' or typeStr == 'string' then
+        return scalarAsString(arg)
+    elseif typeStr == 'table' then
+        local convTable = {}
+        for k, v in pairs(arg) do
+            convTable[asString(k)] = asString(v)
+        end
+        return convTableAsString(convTable)
+    else
+        fatalPrintf('asString(%s) type not supported: %s', tostring(arg), type(arg))
+    end
+end
+
+function fromString(s)
+    if type(s) ~= 'string' then
+        fatalPrintf('fromString(%s) expecting string, provided %s', tostring(s), type(s))
+    end
+
+    if string.sub(s, -1) == 't' then -- conv_table
+        local convTable = convTableFromString(s)
+        local realTable = {}
+        for k, v in pairs(convTable) do
+            realTable[fromString(k)] = fromString(v)
+        end
+        return realTable
+    else
+        return scalarFromString(s)
+    end
+end
+
 function asyncWait(ms)
     local start = getTime()
     while getTime() < start + ms
