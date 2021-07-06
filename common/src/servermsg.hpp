@@ -47,9 +47,9 @@ enum SMType: uint8_t
     SM_REMOVEGROUNDITEM,
     SM_NPCXMLLAYOUT,
     SM_NPCSELL,
-    SM_NPCSTARTREPAIR,
+    SM_STARTINVOP,
     SM_GOLD,
-    SM_ITEMREPAIRCOST,
+    SM_INVOPCOST,
     SM_STRIKEGRID,
     SM_SELLITEMLIST,
     SM_TEXT,
@@ -207,8 +207,9 @@ struct SMGold
     uint32_t gold;
 };
 
-struct SMItemRepairCost
+struct SMInvOpCost
 {
+    uint32_t invOp;
     uint32_t itemID;
     uint32_t seqID;
     uint32_t cost;
@@ -318,9 +319,9 @@ class ServerMsg final: public MsgBase
                 _add_server_msg_type_case(SM_REMOVEGROUNDITEM,   1, sizeof(SMRemoveGroundItem))
                 _add_server_msg_type_case(SM_NPCXMLLAYOUT,       3, 0                         )
                 _add_server_msg_type_case(SM_NPCSELL,            3, 0                         )
-                _add_server_msg_type_case(SM_NPCSTARTREPAIR,     3, 0                         )
+                _add_server_msg_type_case(SM_STARTINVOP,         3, 0                         )
                 _add_server_msg_type_case(SM_GOLD,               1, sizeof(SMGold)            )
-                _add_server_msg_type_case(SM_ITEMREPAIRCOST,     1, sizeof(SMItemRepairCost)  )
+                _add_server_msg_type_case(SM_INVOPCOST,          1, sizeof(SMInvOpCost)       )
                 _add_server_msg_type_case(SM_STRIKEGRID,         1, sizeof(SMStrikeGrid)      )
                 _add_server_msg_type_case(SM_SELLITEMLIST,       3, 0                         )
                 _add_server_msg_type_case(SM_TEXT,               3, 0                         )
@@ -369,7 +370,7 @@ class ServerMsg final: public MsgBase
                     || std::is_same_v<T, SMCastMagic>
                     || std::is_same_v<T, SMOffline>
                     || std::is_same_v<T, SMRemoveGroundItem>
-                    || std::is_same_v<T, SMItemRepairCost>
+                    || std::is_same_v<T, SMInvOpCost>
                     || std::is_same_v<T, SMPlayerName>
                     || std::is_same_v<T, SMBuildVersion>
                     || std::is_same_v<T, SMRemoveItem>

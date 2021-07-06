@@ -260,10 +260,10 @@ void Client::onServerMessage(uint8_t headCode, const uint8_t *pData, size_t nDat
                 }
                 break;
             }
-        case SM_ITEMREPAIRCOST:
+        case SM_INVOPCOST:
             {
                 if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
-                    pRun->net_ITEMREPAIRCOST(pData, nDataLen);
+                    pRun->net_INVOPCOST(pData, nDataLen);
                 }
                 break;
             }
@@ -302,10 +302,10 @@ void Client::onServerMessage(uint8_t headCode, const uint8_t *pData, size_t nDat
                 }
                 break;
             }
-        case SM_NPCSTARTREPAIR:
+        case SM_STARTINVOP:
             {
                 if(auto p = processRun(); p){
-                    p->net_NPCSTARTREPAIR(pData, nDataLen);
+                    p->net_STARTINVOP(pData, nDataLen);
                 }
                 break;
             }

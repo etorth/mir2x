@@ -495,7 +495,7 @@ void ProcessRun::net_PICKUPERROR(const uint8_t *buf, size_t)
     }
 }
 
-void ProcessRun::net_NPCSTARTREPAIR(const uint8_t *buf, size_t size)
+void ProcessRun::net_STARTINVOP(const uint8_t *buf, size_t size)
 {
     fflassert(buf);
     fflassert(size > 0);
@@ -503,7 +503,7 @@ void ProcessRun::net_NPCSTARTREPAIR(const uint8_t *buf, size_t size)
 
     invBoardPtr->show(true);
     invBoardPtr->moveAt(DIR_UPRIGHT, g_sdlDevice->getRendererWidth() - 1, 0);
-    invBoardPtr->setMode(INV_REPAIR, std::string((const char *)(buf), size));
+    invBoardPtr->startInvOp(cerealf::deserialize<SDStartInvOp>(buf, size));
 }
 
 void ProcessRun::net_GOLD(const uint8_t *buf, size_t)
@@ -518,10 +518,10 @@ void ProcessRun::net_GOLD(const uint8_t *buf, size_t)
     }
 }
 
-void ProcessRun::net_ITEMREPAIRCOST(const uint8_t *buf, size_t)
+void ProcessRun::net_INVOPCOST(const uint8_t *buf, size_t)
 {
-    const auto smIRC = ServerMsg::conv<SMItemRepairCost>(buf);
-    dynamic_cast<InventoryBoard *>(getWidget("InventoryBoard"))->setQueryResult(INV_REPAIR, smIRC.itemID, smIRC.seqID, smIRC.cost);
+    const auto smIOPC = ServerMsg::conv<SMInvOpCost>(buf);
+    dynamic_cast<InventoryBoard *>(getWidget("InventoryBoard"))->setInvOpCost(smIOPC.invOp, smIOPC.itemID, smIOPC.seqID, smIOPC.cost);
 }
 
 void ProcessRun::net_NPCXMLLAYOUT(const uint8_t *buf, size_t bufSize)

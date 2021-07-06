@@ -131,7 +131,7 @@ std::vector<SDItem> getMonsterDropItemList(uint32_t monsterID)
                         {
                             .itemID = goldItem.itemID,
                             .seqID  = 1,
-                            .count  = std::max<size_t>(1, std::lround(goldItem.count * mathf::randf(0.9, 1.1))),
+                            .count  = std::max<size_t>(1, std::lround(goldItem.count * mathf::rand<float>(0.9, 1.1))),
                         });
                     }
                 }

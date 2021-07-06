@@ -135,7 +135,7 @@ std::optional<uint32_t> XMLParagraphLeaf::color() const
         return m_fontColor;
     }
 
-    if(hasEvent()){
+    if(hasEvent().first){
         switch(m_event){
             case BEVENT_ON  : return colorf::GREEN   + colorf::A_SHF(255);
             case BEVENT_OFF : return colorf::YELLOW  + colorf::A_SHF(255);

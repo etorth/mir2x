@@ -53,10 +53,10 @@ NPCChatBoard::NPCChatBoard(ProcessRun *proc, Widget *pwidget, bool autoDelete)
           0,
           0,
 
-          [this](const std::string &id, int oldEvent, int newEvent)
+          [this](const char *id, const char *arg, int oldEvent, int newEvent)
           {
               if(oldEvent == BEVENT_DOWN && newEvent == BEVENT_ON){
-                  onClickEvent(id);
+                  onClickEvent(id, arg);
               }
           },
           this,
@@ -186,10 +186,17 @@ void NPCChatBoard::loadXML(uint64_t uid, const char *xmlString)
     }
 }
 
-void NPCChatBoard::onClickEvent(const std::string &id)
+void NPCChatBoard::onClickEvent(const char *id, const char *arg)
 {
-    m_process->addCBLog(CBLOG_SYS, u8"clickEvent id: %s", id.c_str());
-    m_process->sendNPCEvent(m_NPCUID, id.c_str());
+    m_process->addCBLog(CBLOG_SYS, u8"clickEvent: id = %s, arg = %s", to_cstr(id), to_cstr(arg));
+
+    fflassert(str_haschar(id));
+    if(arg){
+        m_process->sendNPCEvent(m_NPCUID, id, arg);
+    }
+    else{
+        m_process->sendNPCEvent(m_NPCUID, id);
+    }
 
     if(id == SYS_NPCDONE){
         show(false);

@@ -41,7 +41,6 @@ enum CMType: uint8_t
     CM_PICKUP,
     CM_QUERYGOLD,
     CM_QUERYPLAYERWLDESP,
-    CM_QUERYITEMREPAIRCOST,
     CM_ACCOUNT,
     CM_NPCEVENT,
     CM_QUERYSELLITEMLIST,
@@ -110,12 +109,6 @@ struct CMQueryPlayerWLDesp
     uint64_t uid;
 };
 
-struct CMQueryItemRepairCost
-{
-    uint32_t itemID;
-    uint32_t  seqID;
-};
-
 struct CMAccount
 {
     char id[64];
@@ -125,8 +118,8 @@ struct CMAccount
 struct CMNPCEvent
 {
     uint64_t uid;
-    char event[32];
-    char value[32];
+    char event[ 64];
+    char value[256];
 };
 
 struct CMQuerySellItemList
@@ -215,7 +208,6 @@ class ClientMsg final: public MsgBase
                 _add_client_msg_type_case(CM_PICKUP,              1, sizeof(CMPickUp)             )
                 _add_client_msg_type_case(CM_QUERYGOLD,           0, 0                            )
                 _add_client_msg_type_case(CM_QUERYPLAYERWLDESP,   1, sizeof(CMQueryPlayerWLDesp)  )
-                _add_client_msg_type_case(CM_QUERYITEMREPAIRCOST, 1, sizeof(CMQueryItemRepairCost))
                 _add_client_msg_type_case(CM_ACCOUNT,             1, sizeof(CMAccount)            )
                 _add_client_msg_type_case(CM_NPCEVENT,            1, sizeof(CMNPCEvent)           )
                 _add_client_msg_type_case(CM_QUERYSELLITEMLIST,   1, sizeof(CMQuerySellItemList)  )
@@ -248,7 +240,6 @@ class ClientMsg final: public MsgBase
                     || std::is_same_v<T, CMPickUp>
                     || std::is_same_v<T, CMSetMagicKey>
                     || std::is_same_v<T, CMQueryPlayerWLDesp>
-                    || std::is_same_v<T, CMQueryItemRepairCost>
                     || std::is_same_v<T, CMAccount>
                     || std::is_same_v<T, CMNPCEvent>
                     || std::is_same_v<T, CMQuerySellItemList>

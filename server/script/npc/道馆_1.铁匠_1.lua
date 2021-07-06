@@ -9,6 +9,7 @@ setNPCSell({
     '半月',
 })
 
+local invop = require('npc.include.invop')
 processNPCEvent =
 {
     [SYS_NPCINIT] = function(uid, value)
@@ -66,19 +67,20 @@ processNPCEvent =
                 <par><event id="%s">前一步</event></par>
             </layout>
         ]], SYS_NPCINIT)
+        uidPostInvOp(uid, INVOP_SELL, "npc_goto_6", {'武器'})
     end,
 
     ["npc_goto_3"] = function(uid, value)
         uidPostXML(uid,
         [[
             <layout>
-                <par>请把要修理的武器放上去。</par>
+                <par>请选择要修理的武器，我会给出维修费报价。</par>
                 <par></par>
 
                 <par><event id="npc_goto_6">修理</event></par>
             </layout>
         ]], SYS_NPCINIT)
-        uidPostRepair(uid, "npc_goto_6", {'武器'})
+        invop.uidStartRepair(uid, "npc_goto_query_repair", "npc_goto_commit_repair", {'武器'})
     end,
 
     ["npc_goto_4"] = function(uid, value)
@@ -107,20 +109,23 @@ processNPCEvent =
         ]], SYS_NPCDONE)
     end,
 
-    ["npc_goto_6"] = function(uid, value)
+    ["npc_goto_query_repair"] = function(uid, value)
+        item = invop.parseItemString(value)
+        repairCost = math.random(100, 200)
+
         uidPostXML(uid,
         [[
             <layout>
-                <par>你的武器太旧了，请稍等。</par>
-                <par>请选择你要修理的武器。</par>
+                <par>你的武器%s太旧了，修复费用是%s金币。</par>
                 <par></par>
 
                 <par><event id="%s">前一步</event></par>
             </layout>
-        ]], SYS_NPCINIT)
+        ]], getItemName(item[1]), repairCost, SYS_NPCINIT)
+        invop.postRepairCost(uid, item[1], item[2], repairCost)
     end,
 
-    ["npc_goto_7"] = function(uid, value)
+    ["npc_goto_commit_repair"] = function(uid, value)
         uidPostXML(uid,
         [[
             <layout>

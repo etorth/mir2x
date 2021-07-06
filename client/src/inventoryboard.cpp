@@ -16,6 +16,7 @@
  * =====================================================================================
  */
 
+#include "luaf.hpp"
 #include "pngtexdb.hpp"
 #include "sdldevice.hpp"
 #include "processrun.hpp"
@@ -27,21 +28,6 @@ extern SDLDevice *g_sdlDevice;
 
 InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget, bool autoDelete)
     : Widget(DIR_UPLEFT, nX, nY, 0, 0, pwidget, autoDelete)
-    , m_opNameBoard
-      {
-          DIR_NONE,
-          238,
-          25,
-          u8"【背包】",
-
-          1,
-          12,
-          0,
-
-          colorf::WHITE + colorf::A_SHF(255),
-          this,
-      }
-
     , m_wmdAniBoard
       {
           DIR_UPLEFT,
@@ -98,8 +84,8 @@ InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget
           nullptr,
           [this]()
           {
-              m_mode = INV_NONE;
               show(false);
+              m_sdInvOp.clear();
           },
 
           0,
@@ -285,7 +271,7 @@ void InventoryBoard::drawEx(int dstX, int dstY, int, int, int, int) const
             if(i == cursorOnIndex){
                 return colorf::WHITE + colorf::A_SHF(48);
             }
-            else if(m_mode != INV_NONE && i == m_selectedIndex){
+            else if(m_sdInvOp.invOp != INV_NONE && i == m_selectedIndex){
                 return colorf::BLUE + colorf::A_SHF(48);
             }
             else{
@@ -296,17 +282,17 @@ void InventoryBoard::drawEx(int dstX, int dstY, int, int, int, int) const
     }
 
     drawGold();
-    m_opNameBoard.draw();
+    drawInvOpTitle();
     m_wmdAniBoard.draw();
     m_slider     .draw();
     m_closeButton.draw();
 
-    if(m_mode == INV_NONE){
+    if(m_sdInvOp.invOp == INV_NONE){
         m_sortButton.draw();
     }
     else{
         g_sdlDevice->drawTexture(g_progUseDB->retrieve(0X0000B0), dstX + m_invOpButtonX, dstY + m_invOpButtonY);
-        switch(m_mode){
+        switch(m_sdInvOp.invOp){
             case INV_SELL:
                 {
                     m_sellButton.draw();
@@ -328,8 +314,8 @@ void InventoryBoard::drawEx(int dstX, int dstY, int, int, int, int) const
                 }
         }
 
-        if(m_queryResult >= 0){
-            drawQueryResult();
+        if(m_invOpCost >= 0){
+            drawInvOpCost();
         }
     }
 
@@ -357,7 +343,7 @@ bool InventoryBoard::processEvent(const SDL_Event &event, bool valid)
         return true;
     }
 
-    switch(m_mode){
+    switch(m_sdInvOp.invOp){
         case INV_NONE:
             {
                 if(m_sortButton.processEvent(event, valid)){
@@ -417,7 +403,7 @@ bool InventoryBoard::processEvent(const SDL_Event &event, bool valid)
                     case SDL_BUTTON_LEFT:
                         {
                             if(in(event.button.x, event.button.y)){
-                                if(m_mode == INV_NONE){
+                                if(m_sdInvOp.invOp == INV_NONE){
                                     if(const int selectedPackIndex = getPackBinIndex(event.button.x, event.button.y); selectedPackIndex >= 0){
                                         auto selectedPackBin = invPackRef.getPackBinList().at(selectedPackIndex);
                                         invPackRef.setGrabbedItem(selectedPackBin.item);
@@ -442,23 +428,19 @@ bool InventoryBoard::processEvent(const SDL_Event &event, bool valid)
                                         m_selectedIndex = selectedPackIndex;
                                         const auto &selectedItem = invPackRef.getPackBinList().at(selectedPackIndex);
 
-                                        switch(m_mode){
-                                            case INV_SELL:
-                                            case INV_LOCK:
-                                            case INV_REPAIR:
-                                                {
-                                                    m_processRun->queryItemRepairCost(selectedItem.item.itemID, selectedItem.item.seqID);
-                                                    break;
-                                                }
-                                            default:
-                                                {
-                                                    break;
-                                                }
+                                        if(m_sdInvOp.hasType(DBCOM_ITEMRECORD(selectedItem.item.itemID).type)){
+                                            m_processRun->sendNPCEvent(m_sdInvOp.uid, m_sdInvOp.queryTag.c_str(), str_printf("%d:%d", to_d(selectedItem.item.itemID), to_d(selectedItem.item. seqID)).c_str());
+                                        }
+                                        else{
+                                            m_processRun->addCBLog(CBLOG_ERR, u8"只能维修%s", to_cstr(typeListString(m_sdInvOp.typeList)));
+                                            m_selectedIndex = -1;
+                                            m_invOpCost = -1;
+                                            
                                         }
                                     }
                                     else{
                                         m_selectedIndex = -1;
-                                        m_queryResult = -1;
+                                        m_invOpCost = -1;
                                     }
                                 }
                                 return focusConsume(this, true);
@@ -552,9 +534,36 @@ void InventoryBoard::drawGold() const
     goldBoard.drawAt(DIR_NONE, x() + 132, y() + 486);
 }
 
-void InventoryBoard::drawQueryResult() const
+void InventoryBoard::drawInvOpTitle() const
 {
-    if(m_queryResult < 0){
+    const LabelBoard title
+    {
+        DIR_UPLEFT,
+        0,
+        0,
+        [this]() -> const char8_t *
+        {
+            switch(m_sdInvOp.invOp){
+                case INVOP_NONE  : return u8"【背包】";
+                case INVOP_SELL  : return u8"【请选择出售物品】";
+                case INVOP_LOCK  : return u8"【请选择存储物品】";
+                case INVOP_REPAIR: return u8"【请选择修理物品】";
+                default: throw bad_reach();
+            }
+        }(),
+
+        1,
+        12,
+        0,
+
+        colorf::WHITE + colorf::A_SHF(255),
+    };
+    title.drawAt(DIR_NONE, x() + 238, y() + 25);
+}
+
+void InventoryBoard::drawInvOpCost() const
+{
+    if(m_invOpCost < 0){
         return;
     }
 
@@ -563,7 +572,7 @@ void InventoryBoard::drawQueryResult() const
         DIR_UPLEFT,
         0, // reset by new width
         0,
-        to_u8cstr(str_ksep(m_queryResult, ',')),
+        to_u8cstr(str_ksep(m_invOpCost, ',')),
 
         1,
         12,
@@ -665,44 +674,24 @@ void InventoryBoard::packBinConsume(const PackBin &bin)
     }
 }
 
-void InventoryBoard::setMode(int mode, const std::string &buf)
+void InventoryBoard::clearInvOp()
 {
-    switch(mode){
-        case INV_NONE:
-            {
-                m_mode = mode;
-                m_opNameBoard.setText(u8"【背包】");
-                return;
-            }
-        case INV_SELL:
-            {
-                m_mode = mode;
-                m_opNameBoard.setText(u8"【请选择出售物品】");
-                return;
-            }
-        case INV_LOCK:
-            {
-                m_mode = mode;
-                m_opNameBoard.setText(u8"【请选择存储物品】");
-                return;
-            }
-        case INV_REPAIR:
-            {
-                m_mode = mode;
-                m_opNameBoard.setText(u8"【请选择修理物品】");
-                m_sdRepair = cerealf::deserialize<SDNPCStartRepair>(buf);
-                return;
-            }
-        default:
-            {
-                throw fflerror("invalid inventory mode: %d", mode);
-            }
-    }
+    m_sdInvOp.clear();
+    m_selectedIndex = -1;
+    m_invOpCost = -1;
 }
 
-void InventoryBoard::setQueryResult(int mode, uint32_t itemID, uint32_t seqID, size_t cost)
+void InventoryBoard::startInvOp(SDStartInvOp sdSIOP)
 {
-    if(m_mode != mode){
+    m_sdInvOp = std::move(sdSIOP);
+}
+
+void InventoryBoard::setInvOpCost(int mode, uint32_t itemID, uint32_t seqID, size_t cost)
+{
+    fflassert(mode >= INVOP_BEGIN);
+    fflassert(mode <  INVOP_END);
+
+    if(m_sdInvOp.invOp != mode){
         return;
     }
 
@@ -722,5 +711,44 @@ void InventoryBoard::setQueryResult(int mode, uint32_t itemID, uint32_t seqID, s
         return;
     }
 
-    m_queryResult = to_d(cost);
+    m_invOpCost = to_d(cost);
+}
+
+std::u8string InventoryBoard::typeListString(const std::vector<std::u8string> &typeList)
+{
+    const auto fnConn = []() -> const char8_t *
+    {
+        const char8_t * connList[]
+        {
+            u8"和",
+            u8"以及",
+            u8"或者",
+        };
+
+        return connList[std::rand() % std::extent_v<decltype(connList)>];
+    };
+
+    switch(typeList.size()){
+        case 0:
+            {
+                return {};
+            }
+        case 1:
+            {
+                return typeList[0];
+            }
+        case 2:
+            {
+                return typeList[0] + fnConn() + typeList[1];
+            }
+        default:
+            {
+                std::u8string result;
+                for(size_t i = 0; i < typeList.size() - 2; ++i){
+                    result += typeList[i];
+                    result += u8"，";
+                }
+                return result + *(typeList.rbegin() + 1) + fnConn() + *typeList.rbegin();
+            }
+    }
 }

@@ -200,10 +200,11 @@ class NPChar final: public CharObject
 
     private:
         void postSell(uint64_t);
-        void postRepair(uint64_t, std::string, std::vector<std::u8string>);
         void postGift(uint64_t, uint32_t, int);
         void postXMLLayout(uint64_t, std::string);
         void postAddMonster(uint32_t);
+        void postInvOpCost(uint64_t, int, uint32_t, uint32_t, size_t);
+        void postStartInvOp(uint64_t, int, std::string, std::string, std::vector<std::u8string>);
 
     public:
         void operateAM(const ActorMsgPack &) override;

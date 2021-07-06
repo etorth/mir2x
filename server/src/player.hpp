@@ -129,7 +129,6 @@ class Player final: public CharObject
         void net_CM_QUERYCORECORD      (uint8_t, const uint8_t *, size_t);
         void net_CM_QUERYSELLITEMLIST  (uint8_t, const uint8_t *, size_t);
         void net_CM_QUERYPLAYERWLDESP  (uint8_t, const uint8_t *, size_t);
-        void net_CM_QUERYITEMREPAIRCOST(uint8_t, const uint8_t *, size_t);
         void net_CM_ACTION             (uint8_t, const uint8_t *, size_t);
         void net_CM_PICKUP             (uint8_t, const uint8_t *, size_t);
         void net_CM_PING               (uint8_t, const uint8_t *, size_t);

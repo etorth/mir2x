@@ -217,7 +217,7 @@ NPChar::LuaNPCModule::LuaNPCModule(const SDInitNPChar &initParam)
         }
 
         auto query = g_dbPod->createQuery(u8R"###(replace into %s(fld_key, fld_value) values('%s', ?))###", npcDBName.c_str(), key.c_str());
-        query.bind(1, luaf::buildSQLBlob(obj));
+        query.bind(1, luaf::buildBlob(obj));
         query.exec();
     });
 
@@ -342,15 +342,26 @@ NPChar::LuaNPCModule::LuaNPCModule(const SDInitNPChar &initParam)
         m_npc->postSell(uidf::toUIDEx(uidString));
     });
 
-    m_luaState.set_function("uidPostRepair", [this](std::string uidString, std::string tagName, sol::as_table_t<std::vector<std::string>> typeTable)
+    m_luaState.set_function("uidPostStartInvOp", [this](std::string uidString, int invOp, std::string queryTag, std::string commitTag, sol::as_table_t<std::vector<std::string>> typeTable)
     {
         fflassert(m_npc);
-        std::set<std::u8string> typeList;
+        fflassert(invOp >= INVOP_BEGIN);
+        fflassert(invOp <  INVOP_END);
 
+        std::set<std::u8string> typeList;
         for(const auto &type: typeTable.source){
             typeList.insert(to_u8cstr(type));
         }
-        m_npc->postRepair(uidf::toUIDEx(uidString), tagName, {typeList.begin(), typeList.end()});
+        m_npc->postStartInvOp(uidf::toUIDEx(uidString), invOp, queryTag, commitTag, {typeList.begin(), typeList.end()});
+    });
+
+    m_luaState.set_function("uidPostInvOpCost", [this](std::string uidString, int invOp, int itemID, int seqID, int cost)
+    {
+        fflassert(m_npc);
+        fflassert(invOp >= INVOP_BEGIN);
+        fflassert(invOp <  INVOP_END);
+
+        m_npc->postInvOpCost(uidf::toUIDEx(uidString), invOp, itemID, seqID, cost);
     });
 
     m_luaState.set_function("uidPostGift", [this](std::string uidString, std::string itemName, int count)
@@ -596,12 +607,33 @@ void NPChar::postSell(uint64_t uid)
     }, true));
 }
 
-void NPChar::postRepair(uint64_t uid, const std::string tagName, std::vector<std::u8string> typeList)
+void NPChar::postInvOpCost(uint64_t uid, int invOp, uint32_t itemID, uint32_t seqID, size_t cost)
 {
-    forwardNetPackage(uid, SM_NPCSTARTREPAIR, cerealf::serialize(SDNPCStartRepair
+    fflassert(invOp >= INVOP_BEGIN);
+    fflassert(invOp <  INVOP_END);
+
+    SMInvOpCost smIOPC;
+    std::memset(&smIOPC, 0, sizeof(smIOPC));
+
+    smIOPC.invOp = invOp;
+    smIOPC.itemID = itemID;
+    smIOPC.seqID = seqID;
+    smIOPC.cost = to_u32(cost);
+
+    forwardNetPackage(uid, SM_INVOPCOST, smIOPC);
+}
+
+void NPChar::postStartInvOp(uint64_t uid, int invOp, std::string queryTag, std::string commitTag, std::vector<std::u8string> typeList)
+{
+    fflassert(invOp >= INVOP_BEGIN);
+    fflassert(invOp <  INVOP_END);
+
+    forwardNetPackage(uid, SM_STARTINVOP, cerealf::serialize(SDStartInvOp
     {
-        .npcUID = UID(),
-        .tagName = tagName,
+        .invOp = invOp,
+        .uid= UID(),
+        .queryTag = queryTag,
+        .commitTag = commitTag,
         .typeList = typeList,
     }));
 }

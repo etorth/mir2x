@@ -1509,26 +1509,22 @@ void ProcessRun::onActionSpawn(uint64_t uid, const ActionNode &action)
     }
 }
 
-void ProcessRun::sendNPCEvent(uint64_t uid, const char *event, const char *value)
+void ProcessRun::sendNPCEvent(uint64_t uid, std::string event, std::optional<std::string> value)
 {
-    if(uidf::getUIDType(uid) != UID_NPC){
-        throw fflerror("sending npc event to a non-npc UID");
-    }
-
-    if(!str_haschar(event)){
-        throw fflerror("invalid event name: [%p]%s", event, to_cstr(event));
-    }
+    fflassert(uidf::getUIDType(uid) == UID_NPC);
 
     CMNPCEvent cmNPCE;
     std::memset(&cmNPCE, 0, sizeof(cmNPCE));
 
     cmNPCE.uid = uid;
-    if(event){
-        std::strcpy(cmNPCE.event, event);
-    }
 
-    if(value){
-        std::strcpy(cmNPCE.value, value);
+    fflassert(!event.empty());
+    fflassert(event.size() < sizeof(cmNPCE.event));
+    std::strcpy(cmNPCE.event, event.c_str());
+
+    if(value.has_value()){
+        fflassert(value.value().size() < sizeof(cmNPCE.value));
+        std::strcpy(cmNPCE.value, value.value().c_str());
     }
     g_client->send(CM_NPCEVENT, cmNPCE);
 }
@@ -1885,17 +1881,6 @@ void ProcessRun::queryPlayerWLDesp(uint64_t uid) const
 
     cmQPWLD.uid = uid;
     g_client->send(CM_QUERYPLAYERWLDESP, cmQPWLD);
-}
-
-void ProcessRun::queryItemRepairCost(uint32_t itemID, uint32_t seqID) const
-{
-    CMQueryItemRepairCost cmQIRC;
-    std::memset(&cmQIRC, 0, sizeof(cmQIRC));
-
-    cmQIRC.itemID = itemID;
-    cmQIRC.seqID  = seqID;
-
-    g_client->send(CM_QUERYITEMREPAIRCOST, cmQIRC);
 }
 
 void ProcessRun::requestBuy(uint64_t npcUID, uint32_t itemID, uint32_t seqID, size_t count)

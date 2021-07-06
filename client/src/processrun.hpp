@@ -207,7 +207,7 @@ class ProcessRun: public Process
         void net_TEXT(const uint8_t *, size_t);
         void net_PING(const uint8_t *, size_t);
         void net_GOLD(const uint8_t *, size_t);
-        void net_ITEMREPAIRCOST(const uint8_t *, size_t);
+        void net_INVOPCOST(const uint8_t *, size_t);
         void net_ACTION(const uint8_t *, size_t);
         void net_OFFLINE(const uint8_t *, size_t);
         void net_NPCSELL(const uint8_t *, size_t);
@@ -242,7 +242,7 @@ class ProcessRun: public Process
         void net_EQUIPBELTERROR(const uint8_t *, size_t);
         void net_GRABBELT(const uint8_t *, size_t);
         void net_GRABBELTERROR(const uint8_t *, size_t);
-        void net_NPCSTARTREPAIR(const uint8_t *, size_t);
+        void net_STARTINVOP(const uint8_t *, size_t);
 
     public:
         bool canMove(bool, int, int, int);
@@ -337,7 +337,7 @@ class ProcessRun: public Process
 
     public:
         void queryPlayerWLDesp(uint64_t) const;
-        void queryItemRepairCost(uint32_t, uint32_t) const;
+        void queryInvOp(int, uint32_t, uint32_t) const;
 
     public:
         Widget *getWidget(const std::string &widgetName)
@@ -346,7 +346,7 @@ class ProcessRun: public Process
         }
 
     public:
-        void sendNPCEvent(uint64_t, const char *, const char * = nullptr);
+        void sendNPCEvent(uint64_t, std::string, std::optional<std::string> = {});
 
     private:
         void drawFPS();

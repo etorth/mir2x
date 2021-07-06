@@ -157,16 +157,22 @@ class XMLParagraphLeaf
             return reinterpret_cast<xmlLeafData *>(m_node->GetUserData());
         }
 
-        const char *hasEvent() const
+        std::pair<const char *, const char *> hasEvent() const
         {
             if(type() == LEAF_UTF8GROUP){
                 if(auto par = m_node->Parent(); par && par->ToElement() && (std::strcmp(par->ToElement()->Name(), "event") == 0)){
-                    if(const auto *value = par->ToElement()->Attribute("id"); value){
-                        return value;
-                    }
-                    return "";
+                    return
+                    {
+                        par->ToElement()->Attribute("id"),
+                        par->ToElement()->Attribute("arg"),
+                    };
                 }
             }
-            return nullptr;
+
+            return
+            {
+                nullptr,
+                nullptr,
+            };
         }
 };

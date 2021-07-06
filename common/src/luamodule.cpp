@@ -21,6 +21,7 @@
 #include <thread>
 #include "log.hpp"
 #include "uidf.hpp"
+#include "luaf.hpp"
 #include "totype.hpp"
 #include "sysconst.hpp"
 #include "fflerror.hpp"
@@ -41,6 +42,10 @@ LuaModule::LuaModule()
     m_luaState.script(str_printf("UID_MON = %d", UID_MON));
     m_luaState.script(str_printf("UID_ETC = %d", UID_ETC));
     m_luaState.script(str_printf("UID_INN = %d", UID_INN));
+
+    m_luaState.script(str_printf("INVOP_SELL   = %d", INVOP_SELL  ));
+    m_luaState.script(str_printf("INVOP_LOCK   = %d", INVOP_LOCK  ));
+    m_luaState.script(str_printf("INVOP_REPAIR = %d", INVOP_REPAIR));
 
     m_luaState.script(str_printf("DIR_UP        = %d", DIR_UP       ));
     m_luaState.script(str_printf("DIR_UPRIGHT   = %d", DIR_UPRIGHT  ));
@@ -206,5 +211,16 @@ LuaModule::LuaModule()
             result.push_back(alphabet[std::rand() % alphabet.length()]);
         }
         return result;
+    });
+
+    m_luaState.set_function("asString", [this](sol::as_table_t<luaf::table> t) -> std::string
+    {
+        return cerealf::serialize<luaf::table>(t.source);
+    });
+
+    m_luaState.set_function("asTable", [this](std::string s, sol::this_state state)
+    {
+        sol::state_view sv(state);
+        return luaf::buildLuaTable(sv, s);
     });
 }

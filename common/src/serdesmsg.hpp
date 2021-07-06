@@ -19,7 +19,10 @@
 #pragma once
 #include <array>
 #include <string>
+#include <variant>
+#include <optional>
 #include <algorithm>
+#include <unordered_set>
 #include "totype.hpp"
 #include "cerealf.hpp"
 #include "fflerror.hpp"
@@ -81,15 +84,33 @@ struct SDNPCXMLLayout
     }
 };
 
-struct SDNPCStartRepair
+struct SDStartInvOp
 {
-    uint64_t npcUID = 0;
-    std::string tagName;
+    int invOp = INVOP_NONE;
+
+    uint64_t uid = 0;
+    std::string queryTag;
+    std::string commitTag;
     std::vector<std::u8string> typeList;
 
     template<typename Archive> void serialize(Archive & ar)
     {
-        ar(npcUID, tagName, typeList);
+        ar(invOp, uid, queryTag, commitTag, typeList);
+    }
+
+    bool hasType(const char8_t *type) const
+    {
+        return std::find(typeList.begin(), typeList.end(), type) != typeList.end();
+    }
+
+    void clear()
+    {
+        invOp = INVOP_NONE;
+        uid   = 0;
+
+        queryTag .clear();
+        commitTag.clear();
+        typeList .clear();
     }
 };
 

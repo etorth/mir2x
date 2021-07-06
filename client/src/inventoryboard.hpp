@@ -45,14 +45,13 @@ class InventoryBoard: public Widget
         const int m_invOpButtonY = 480;
 
     private:
-        int m_mode = INV_NONE;
+        int m_invOpCost = -1;
         int m_selectedIndex = -1;
 
-        int m_queryResult = -1;
-        SDNPCStartRepair m_sdRepair;
+    private:
+        SDStartInvOp m_sdInvOp;
 
     private:
-        LabelBoard m_opNameBoard;
         WMDAniBoard m_wmdAniBoard;
 
     private:
@@ -75,7 +74,8 @@ class InventoryBoard: public Widget
 
     private:
         void drawGold() const;
-        void drawQueryResult() const;
+        void drawInvOpCost() const;
+        void drawInvOpTitle() const;
         void drawItem(int, int, size_t, const PackBin &, uint32_t) const;
 
     public:
@@ -105,6 +105,10 @@ class InventoryBoard: public Widget
         void packBinConsume(const PackBin &);
 
     public:
-        void setMode(int, const std::string & = {});
-        void setQueryResult(int, uint32_t, uint32_t, size_t);
+        void clearInvOp();
+        void startInvOp(SDStartInvOp);
+        void setInvOpCost(int, uint32_t, uint32_t, size_t);
+
+    private:
+        static std::u8string typeListString(const std::vector<std::u8string> &typeList);
 };

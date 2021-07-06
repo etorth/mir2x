@@ -19,6 +19,7 @@
 #pragma once
 #include <cmath>
 #include <cstdlib>
+#include <concepts>
 #include <algorithm>
 #include <stdexcept>
 #include <type_traits>
@@ -29,15 +30,15 @@
 
 namespace mathf
 {
-    inline int rand(int min, int max)
+    template<std::integral T> T rand(T min, T max)
     {
-        return min + std::rand() % (1 + std::max<int>(max - min, 0));
+        return min + (T)(std::rand() % (1 + std::max<int>(max - min, 0)));
     }
 
-    inline double randf(double min, double max)
+    template<std::floating_point T> T rand(T min, T max)
     {
         if(min < max){
-            return min + (max - min) * to_df(std::rand()) / to_df(RAND_MAX);
+            return min + (max - min) * to_f(std::rand()) / to_f(RAND_MAX);
         }
         return min;
     }

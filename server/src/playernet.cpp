@@ -217,23 +217,6 @@ void Player::net_CM_QUERYPLAYERWLDESP(uint8_t, const uint8_t *buf, size_t)
     }
 }
 
-void Player::net_CM_QUERYITEMREPAIRCOST(uint8_t, const uint8_t *buf, size_t)
-{
-    const auto cmQIRC = ClientMsg::conv<CMQueryItemRepairCost>(buf);
-    const auto &queryItem = findInventoryItem(cmQIRC.itemID, cmQIRC.seqID);
-
-    if(queryItem){
-        SMItemRepairCost smIRC;
-        std::memset(&smIRC, 0, sizeof(smIRC));
-
-        smIRC.itemID = cmQIRC.itemID;
-        smIRC.seqID  = cmQIRC.seqID;
-        smIRC.cost   = mathf::rand(100, 200);
-
-        postNetMessage(SM_ITEMREPAIRCOST, smIRC);
-    }
-}
-
 void Player::net_CM_BUY(uint8_t, const uint8_t *buf, size_t)
 {
     const auto cmB = ClientMsg::conv<CMBuy>(buf);
