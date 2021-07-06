@@ -225,8 +225,7 @@ LuaModule::LuaModule()
 
     m_luaState.set_function("scalarFromString", [this](std::string s, sol::this_state state)
     {
-        sol::state_view sv(state);
-        return luaf::buildLuaObj(sv, s);
+        return luaf::buildLuaObj(sol::state_view(state), s);
     });
 
     m_luaState.set_function("convTableFromString", [this](std::string s)
