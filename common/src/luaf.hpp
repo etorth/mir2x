@@ -57,9 +57,12 @@ namespace luaf
         }
     };
 
-    using variable   = std::variant<luaf::nil, int, bool, double, std::string>;
-    using table      = std::map<luaf::variable, luaf::variable>;
-    using conv_table = std::map<std::string, std::string>; // string-to-string-table used to serialize/deserialize general lua table
+    using variable = std::variant<luaf::nil, int, bool, double, std::string>;
+    using table    = std::map<luaf::variable, luaf::variable>;
+
+    // conv_table is the povit for lua types serdes
+    // it's an ascii-string-to-string-table used to serialize/deserialize general lua table
+    using conv_table = std::map<std::string, std::string>;
 
     template<typename T> constexpr char getBlobType()
     {
