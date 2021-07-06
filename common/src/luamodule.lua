@@ -57,7 +57,8 @@ function fromString(s)
         local convTable = convTableFromString(s)
         local realTable = {}
         for k, v in pairs(convTable) do
-            realTable[fromString(k)] = fromString(v)
+            realTable[fromString(asBinaryString(k))] = fromString(v)
+            -- realTable[fromString(k)] = fromString(v)
         end
         return realTable
     else

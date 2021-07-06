@@ -140,6 +140,8 @@ namespace luaf
         }
     }
 
+    // TODO
+    // remove when sol2 fixed the issue
     inline auto buildLuaConvTable(std::string s)
     {
         fflassert(s.length() >= 2);
@@ -147,6 +149,29 @@ namespace luaf
 
         s.pop_back();
         auto convTable = cerealf::deserialize<luaf::conv_table>(s);
-        return sol::as_table_t<luaf::conv_table>(std::move(convTable));
+        luaf::conv_table convTableTransf;
+
+        for(auto &p: convTable){
+            std::string ts;
+            ts.reserve(p.first.size() * 2);
+
+            for(const char ch: p.first){
+                ts.push_back(((ch & 0XF0) >> 4) + '0');
+                ts.push_back(((ch & 0X0F) >> 0) + '0');
+            }
+            convTableTransf[ts] = p.second;
+        }
+
+        return sol::as_table_t<luaf::conv_table>(std::move(convTableTransf));
     }
+
+    // inline auto buildLuaConvTable(std::string s)
+    // {
+    //     fflassert(s.length() >= 2);
+    //     fflassert(s.back() == getBlobType<luaf::conv_table>());
+    //
+    //     s.pop_back();
+    //     auto convTable = cerealf::deserialize<luaf::conv_table>(s);
+    //     return sol::as_table_t<luaf::conv_table>(std::move(convTable));
+    // }
 }

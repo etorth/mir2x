@@ -232,4 +232,19 @@ LuaModule::LuaModule()
     {
         return luaf::buildLuaConvTable(s);
     });
+
+    // TODO
+    // remove it when issue resolve by sol2
+    m_luaState.set_function("asBinaryString", [this](std::string s) -> std::string
+    {
+        fflassert(s.size() % 2 == 0);
+
+        std::string bs;
+        bs.reserve(s.size() / 2);
+
+        for(size_t i = 0; i < s.size(); i += 2){
+            bs.push_back(((s[i] - '0') << 4) + (s[i + 1] - '0'));
+        }
+        return bs;
+    });
 }
