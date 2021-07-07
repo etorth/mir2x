@@ -18,14 +18,14 @@ local function onSellChestnut(uid, chestnutName, currTagName, lastTagName)
         uidPostXML(uid,
         [[
             <layout>
-                <par>请收下<t color="RED">%d</t>金币</par>
+                <par>请收下<t color="red">%d</t>金币</par>
                 <par></par>
 
-                <par><event id="%s">还卖其它的%s</event></par>
+                <par><event id="%s" arg="%s">还卖其它的%s</event></par>
                 <par><event id="%s">前一步</event></par>
                 <par><event id="%s">关闭</event></par>
             </layout>
-        ]], priceTable[chestnutName], currTagName, chestnutName, lastTagName, SYS_NPCDONE)
+        ]], priceTable[chestnutName], currTagName, chestnutName, chestnutName, lastTagName, SYS_NPCDONE)
     else
         uidPostXML(uid,
         [[
@@ -60,29 +60,17 @@ processNPCEvent =
                     <par>你有栗子吗？</par>
                     <par></par>
 
-                    <par><event id="npc_goto_1">带来了金色栗子，你要卖吗？</event></par>
-                    <par><event id="npc_goto_2">带来了银色栗子，你要卖吗？</event></par>
-                    <par><event id="npc_goto_3">带来了铜色栗子，你要卖吗？</event></par>
-                    <par><event id="npc_goto_4">带来了褐色栗子，你要卖吗？</event></par>
+                    <par><event id="npc_goto_trade" arg="金色栗子">带来了金色栗子，你要卖吗？</event></par>
+                    <par><event id="npc_goto_trade" arg="银色栗子">带来了银色栗子，你要卖吗？</event></par>
+                    <par><event id="npc_goto_trade" arg="铜色栗子">带来了铜色栗子，你要卖吗？</event></par>
+                    <par><event id="npc_goto_trade" arg="褐色栗子">带来了褐色栗子，你要卖吗？</event></par>
                     <par><event id="%s">马上去给你找</event></par>
                 </layout>
             ]], SYS_NPCDONE)
         end
     end,
 
-    ["npc_goto_1"] = function(uid, value)
-        onSellChestnut(uid, '金色栗子', "npc_goto_1", SYS_NPCINIT)
-    end,
-
-    ["npc_goto_2"] = function(uid, value)
-        onSellChestnut(uid, '银色栗子', "npc_goto_2", SYS_NPCINIT)
-    end,
-
-    ["npc_goto_3"] = function(uid, value)
-        onSellChestnut(uid, '铜色栗子', "npc_goto_3", SYS_NPCINIT)
-    end,
-
-    ["npc_goto_4"] = function(uid, value)
-        onSellChestnut(uid, '褐色栗子', "npc_goto_4", SYS_NPCINIT)
+    ["npc_goto_trade"] = function(uid, value)
+        onSellChestnut(uid, value, "npc_goto_trade", SYS_NPCINIT)
     end,
 }

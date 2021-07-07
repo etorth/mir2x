@@ -198,7 +198,7 @@ void NPCChatBoard::onClickEvent(const char *id, const char *arg)
         m_process->sendNPCEvent(m_NPCUID, id);
     }
 
-    if(id == SYS_NPCDONE){
+    if(std::string(id) == SYS_NPCDONE){
         show(false);
     }
 }
