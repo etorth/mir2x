@@ -57,8 +57,8 @@ namespace luaf
         }
     };
 
-    using variable = std::variant<luaf::nil, int, bool, double, std::string>;
-    using table    = std::map<luaf::variable, luaf::variable>;
+    using scalar = std::variant<luaf::nil, int, bool, double, std::string>;
+    using table  = std::map<luaf::scalar, luaf::scalar>;
 
     // conv_table is the povit for lua types serdes
     // it's an ascii-string-to-string-table used to serialize/deserialize general lua table
