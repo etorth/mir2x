@@ -293,7 +293,7 @@ void InventoryBoard::drawEx(int dstX, int dstY, int, int, int, int) const
     if(m_sdInvOp.invOp == INV_NONE){
         m_sortButton.draw();
     }
-    else{
+    else if(m_selectedIndex >= 0){
         g_sdlDevice->drawTexture(g_progUseDB->retrieve(0X0000B0), dstX + m_invOpButtonX, dstY + m_invOpButtonY);
         switch(m_sdInvOp.invOp){
             case INV_SELL:
@@ -356,21 +356,21 @@ bool InventoryBoard::processEvent(const SDL_Event &event, bool valid)
             }
         case INV_SELL:
             {
-                if(m_sellButton.processEvent(event, valid)){
+                if(m_selectedIndex >= 0 && m_sellButton.processEvent(event, valid)){
                     return true;
                 }
                 break;
             }
         case INV_LOCK:
             {
-                if(m_lockButton.processEvent(event, valid)){
+                if(m_selectedIndex >= 0 && m_lockButton.processEvent(event, valid)){
                     return true;
                 }
                 break;
             }
         case INV_REPAIR:
             {
-                if(m_repairButton.processEvent(event, valid)){
+                if(m_selectedIndex >= 0 && m_repairButton.processEvent(event, valid)){
                     return true;
                 }
                 break;

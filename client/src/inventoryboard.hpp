@@ -41,8 +41,8 @@ class InventoryBoard: public Widget
         const int m_invGridY0 = 59;
 
     private:
-        const int m_invOpButtonX = 275;
-        const int m_invOpButtonY = 480;
+        const int m_invOpButtonX = 295;
+        const int m_invOpButtonY = 475;
 
     private:
         int m_invOpCost = -1;
