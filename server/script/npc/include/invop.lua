@@ -1,6 +1,6 @@
 local invop = {}
 
-function invop.uidStartSell(uid, queryTag, commitTag, typeList)
+function invop.uidStartTrade(uid, queryTag, commitTag, typeList)
     uidPostStartInvOp(uid, INVOP_SELL, queryTag, commitTag, typeList)
 end
 

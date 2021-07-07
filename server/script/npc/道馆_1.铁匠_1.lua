@@ -67,7 +67,7 @@ processNPCEvent =
                 <par><event id="%s">前一步</event></par>
             </layout>
         ]], SYS_NPCINIT)
-        uidPostInvOp(uid, INVOP_SELL, "npc_goto_6", {'武器'})
+        invop.uidStartTrade(uid, "npc_goto_query_trade", "npc_goto_commit_trade", {'武器'})
     end,
 
     ["npc_goto_3"] = function(uid, value)
@@ -107,6 +107,38 @@ processNPCEvent =
                 <par><event id="%s">关闭</event></par>
             </layout>
         ]], SYS_NPCDONE)
+    end,
+
+    ["npc_goto_query_trade"] = function(uid, value)
+        item = invop.parseItemString(value)
+        price = math.random(100, 200)
+
+        uidPostXML(uid,
+        [[
+            <layout>
+                <par>你的武器%s太旧了，卖不了多少钱，%s金币怎么样。</par>
+                <par></par>
+
+                <par><event id="%s">前一步</event></par>
+            </layout>
+        ]], getItemName(item[1]), price, SYS_NPCINIT)
+        invop.postTradePrice(uid, item[1], item[2], price)
+    end,
+
+    ["npc_goto_commit_trade"] = function(uid, value)
+        item = invop.parseItemString(value)
+        uidPostXML(uid,
+        [[
+            <layout>
+                <par>成交！请收好你的%d金币。</par>
+                <par></par>
+
+                <par><event id="%s">前一步</event></par>
+            </layout>
+        ]], 200, SYS_NPCINIT)
+
+        uidUseItem(uid, item[1], 1)
+        uidPostGold(uid, 200)
     end,
 
     ["npc_goto_query_repair"] = function(uid, value)

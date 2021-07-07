@@ -101,8 +101,16 @@ function uidQueryGold(uid)
     return tonumber(uidQuery(uid, 'GOLD'))
 end
 
-function uidUseItem(uid, itemName, count)
-    local itemID = getItemID(itemName)
+function uidUseItem(uid, item, count)
+    local itemID = 0
+    if type(item) == 'string' then
+        itemID = getItemID(item)
+    elseif math.type(item) == 'integer' then
+        itemID = item
+    else
+        fatalPrintf('uidUseItem(): invalid argument item = %s', tostring(item))
+    end
+
     if itemID == 0 then
         fatalPrintf('invalid item name: %s', itemName)
     end
