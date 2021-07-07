@@ -112,6 +112,9 @@ class InventoryBoard: public Widget
     private:
         void commitInvOp();
 
+    public:
+        void removeItem(uint32_t, uint32_t, size_t);
+
     private:
         static std::u8string typeListString(const std::vector<std::u8string> &typeList);
 };

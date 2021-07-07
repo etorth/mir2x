@@ -778,3 +778,26 @@ void InventoryBoard::commitInvOp()
     m_processRun->addCBLog(CBLOG_SYS, u8"提交修理%s", to_cstr(DBCOM_ITEMRECORD(selectedItem.item.itemID).name));
     m_processRun->sendNPCEvent(m_sdInvOp.uid, m_sdInvOp.commitTag.c_str(), str_printf("%d:%d", to_d(selectedItem.item.itemID), to_d(selectedItem.item. seqID)).c_str());
 }
+
+void InventoryBoard::removeItem(uint32_t itemID, uint32_t seqID, size_t count)
+{
+    auto grabbedItem = m_processRun->getMyHero()->getInvPack().getGrabbedItem();
+    if((itemID == grabbedItem.itemID) && (seqID == grabbedItem.seqID)){
+        if(count < grabbedItem.count){
+            grabbedItem.count -= count;
+            m_processRun->getMyHero()->getInvPack().setGrabbedItem(grabbedItem);
+        }
+        else{
+            m_processRun->getMyHero()->getInvPack().setGrabbedItem({});
+        }
+    }
+    else{
+        if(m_selectedIndex >= 0){
+            const auto &selectedItem = m_processRun->getMyHero()->getInvPack().getPackBinList().at(m_selectedIndex);
+            if(selectedItem.item.itemID == itemID && selectedItem.item.seqID == seqID){
+                m_selectedIndex = -1;
+            }
+        }
+        m_processRun->getMyHero()->getInvPack().remove(itemID, seqID, count);
+    }
+}

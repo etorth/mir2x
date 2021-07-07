@@ -607,19 +607,7 @@ void ProcessRun::net_UPDATEITEM(const uint8_t *buf, size_t bufSize)
 void ProcessRun::net_REMOVEITEM(const uint8_t *buf, size_t)
 {
     const auto smRI = ServerMsg::conv<SMRemoveItem>(buf);
-    /* */ auto grabbedItem = getMyHero()->getInvPack().getGrabbedItem();
-    if((smRI.itemID == grabbedItem.itemID) && (smRI.seqID == grabbedItem.seqID)){
-        if(smRI.count < grabbedItem.count){
-            grabbedItem.count -= smRI.count;
-            getMyHero()->getInvPack().setGrabbedItem(grabbedItem);
-        }
-        else{
-            getMyHero()->getInvPack().setGrabbedItem({});
-        }
-    }
-    else{
-        getMyHero()->getInvPack().remove(smRI.itemID, smRI.seqID, smRI.count);
-    }
+    dynamic_cast<InventoryBoard *>(getWidget("InventoryBoard"))->removeItem(smRI.itemID, smRI.seqID, smRI.count);
 }
 
 void ProcessRun::net_INVENTORY(const uint8_t *buf, size_t bufSize)
