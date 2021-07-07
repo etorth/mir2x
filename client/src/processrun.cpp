@@ -1524,7 +1524,11 @@ void ProcessRun::sendNPCEvent(uint64_t uid, std::string event, std::optional<std
 
     if(value.has_value()){
         fflassert(value.value().size() < sizeof(cmNPCE.value));
+        cmNPCE.valueSize = to_i16(value.value().size());
         std::strcpy(cmNPCE.value, value.value().c_str());
+    }
+    else{
+        cmNPCE.valueSize = -1;
     }
     g_client->send(CM_NPCEVENT, cmNPCE);
 }

@@ -31,23 +31,23 @@ processNPCEvent =
                     <par>这里是道馆寄存武器的地方，你需要什么武器吗？</par>
                     <par></par>
 
-                    <par><event id="npc_goto_1">购买</event>武器</par>
-                    <par><event id="npc_goto_2">出售</event>武器</par>
-                    <par><event id="npc_goto_3">修理</event>武器</par>
-                    <par><event id="npc_goto_4">特殊修理</event>武器</par>
-                    <par><event id="npc_goto_5">对今日的任务进行了解</event></par>
+                    <par><event id="npc_goto_purchase">购买</event>武器</par>
+                    <par><event id="npc_goto_trade">出售</event>武器</par>
+                    <par><event id="npc_goto_repair">修理</event>武器</par>
+                    <par><event id="npc_goto_special_repair">特殊修理</event>武器</par>
+                    <par><event id="npc_goto_daily_quest">对今日的任务进行了解</event></par>
                     <par><event id="%s">关闭</event></par>
                 </layout>
             ]], getSubukGuildName(), SYS_NPCDONE)
         end
     end,
 
-    ["npc_goto_1"] = function(uid, value)
+    ["npc_goto_purchase"] = function(uid, value)
         uidPostXML(uid,
         [[
             <layout>
                 <par>各种武器在这里保存得很好。</par>
-                <par>你想要什么武器？</par>
+                <par>你想要买什么武器？</par>
                 <par></par>
 
                 <par><event id="%s">前一步</event></par>
@@ -56,7 +56,7 @@ processNPCEvent =
         uidPostSell(uid)
     end,
 
-    ["npc_goto_2"] = function(uid, value)
+    ["npc_goto_trade"] = function(uid, value)
         uidPostXML(uid,
         [[
             <layout>
@@ -70,11 +70,11 @@ processNPCEvent =
         invop.uidStartTrade(uid, "npc_goto_query_trade", "npc_goto_commit_trade", {'武器'})
     end,
 
-    ["npc_goto_3"] = function(uid, value)
+    ["npc_goto_repair"] = function(uid, value)
         uidPostXML(uid,
         [[
             <layout>
-                <par>请选择要修理的武器，我会给出维修费报价。</par>
+                <par>请选择要修理的武器，我会报价。</par>
                 <par></par>
 
                 <par><event id="npc_goto_6">修理</event></par>
@@ -83,7 +83,7 @@ processNPCEvent =
         invop.uidStartRepair(uid, "npc_goto_query_repair", "npc_goto_commit_repair", {'武器'})
     end,
 
-    ["npc_goto_4"] = function(uid, value)
+    ["npc_goto_special_repair"] = function(uid, value)
         uidPostXML(uid,
         [[
             <layout>
@@ -91,13 +91,13 @@ processNPCEvent =
                 <par>这个特修是只有带着物品的情况下才可以修理。请确认一下是否带着。</par>
                 <par></par>
 
-                <par><event id="npc_goto_8">修理</event></par>
+                <par><event id="npc_goto_commit_special_repair">修理</event></par>
                 <par><event id="%s">前一步</event></par>
             </layout>
         ]], 0, SYS_NPCINIT)
     end,
 
-    ["npc_goto_5"] = function(uid, value)
+    ["npc_goto_daily_quest"] = function(uid, value)
         uidPostXML(uid,
         [[
             <layout>
@@ -116,7 +116,8 @@ processNPCEvent =
         uidPostXML(uid,
         [[
             <layout>
-                <par>你的武器%s太旧了，卖不了多少钱，%s金币怎么样。</par>
+                <par>你的武器%s太旧了，卖不了多少钱，报价%s金币。</par>
+                <par>你要卖吗？</par>
                 <par></par>
 
                 <par><event id="%s">前一步</event></par>
@@ -130,7 +131,7 @@ processNPCEvent =
         uidPostXML(uid,
         [[
             <layout>
-                <par>成交！请收好你的%d金币。</par>
+                <par>成交！支付你你%d金币。</par>
                 <par></par>
 
                 <par><event id="%s">前一步</event></par>
@@ -170,7 +171,7 @@ processNPCEvent =
         ]], getItemName(item[1]), SYS_NPCINIT)
     end,
 
-    ["npc_goto_8"] = function(uid, value)
+    ["npc_goto_commit_special_repair"] = function(uid, value)
         uidPostXML(uid,
         [[
             <layout>

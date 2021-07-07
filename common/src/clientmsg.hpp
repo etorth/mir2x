@@ -118,8 +118,10 @@ struct CMAccount
 struct CMNPCEvent
 {
     uint64_t uid;
-    char event[ 64];
+    char event[128];
     char value[256];
+
+    int16_t valueSize;
 };
 
 struct CMQuerySellItemList
