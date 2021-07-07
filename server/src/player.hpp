@@ -230,6 +230,7 @@ class Player final: public CharObject
 
     private:
         void dbUpdateExp();
+        void dbUpdateMapGLoc();
 
     private:
         void dbLoadInventory();

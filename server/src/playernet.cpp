@@ -70,10 +70,16 @@ void Player::net_CM_REQUESTSPACEMOVE(uint8_t, const uint8_t *buf, size_t)
 {
     const auto cmRSM = ClientMsg::conv<CMRequestSpaceMove>(buf);
     if(cmRSM.mapID == mapID()){
-        requestSpaceMove(cmRSM.X, cmRSM.Y, false);
+        requestSpaceMove(cmRSM.X, cmRSM.Y, false, [this]()
+        {
+            dbUpdateMapGLoc();
+        });
     }
     else{
-        requestMapSwitch(cmRSM.mapID, cmRSM.X, cmRSM.Y, false);
+        requestMapSwitch(cmRSM.mapID, cmRSM.X, cmRSM.Y, false, [this]()
+        {
+            dbUpdateMapGLoc();
+        });
     }
 }
 

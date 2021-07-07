@@ -452,6 +452,7 @@ bool Player::Offline()
 {
     dispatchOffline();
     reportOffline(UID(), mapID());
+    dbUpdateMapGLoc();
 
     deactivate();
     return true;
@@ -520,7 +521,12 @@ void Player::onCMActionMove(CMAction stCMA)
     switch(estimateHop(nX0, nY0)){
         case 0:
             {
-                requestMove(nX1, nY1, MoveSpeed(), false, false, nullptr, [this]()
+                requestMove(nX1, nY1, MoveSpeed(), false, false, [this]()
+                {
+                    dbUpdateMapGLoc();
+                },
+
+                [this]()
                 {
                     reportStand();
                 });

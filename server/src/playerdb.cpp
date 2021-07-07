@@ -29,6 +29,11 @@ void Player::dbUpdateExp()
     g_dbPod->exec(u8R"###( update tbl_dbid set fld_exp = %llu where fld_dbid = %llu )###", to_llu(exp()), to_llu(dbid()));
 }
 
+void Player::dbUpdateMapGLoc()
+{
+    g_dbPod->exec(u8R"###( update tbl_dbid set fld_mapname = '%s', fld_mapx = %d, fld_mapy = %d where fld_dbid = %llu )###", to_cstr(DBCOM_MAPRECORD(mapID()).name), X(), Y(), to_llu(dbid()));
+}
+
 void Player::dbLoadInventory()
 {
     // tbl_inventory:
