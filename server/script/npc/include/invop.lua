@@ -1,31 +1,31 @@
 local invop = {}
 
 function invop.uidStartTrade(uid, queryTag, commitTag, typeList)
-    uidPostStartInvOp(uid, INVOP_SELL, queryTag, commitTag, typeList)
+    uidPostStartInvOp(uid, INVOP_TRADE, queryTag, commitTag, typeList)
 end
 
-function invop.uidStartLock(uid, queryTag, commitTag, typeList)
-    uidPostStartInvOp(uid, INVOP_LOCK, queryTag, commitTag, typeList)
+function invop.uidStartSecure(uid, queryTag, commitTag, typeList)
+    uidPostStartInvOp(uid, INVOP_SECURE, queryTag, commitTag, typeList)
 end
 
 function invop.uidStartRepair(uid, queryTag, commitTag, typeList)
     uidPostStartInvOp(uid, INVOP_REPAIR, queryTag, commitTag, typeList)
 end
 
-function invop.postSellPrice(uid, itemID, seqID, price)
-    uidPostInvOpCost(uid, INVOP_SELL, itemID, seqID, price)
+function invop.postTradePrice(uid, itemID, seqID, price)
+    uidPostInvOpCost(uid, INVOP_TRADE, itemID, seqID, price)
 end
 
-function invop.postLockCost(uid, itemID, seqID, cost)
-    uidPostInvOpCost(uid, INVOP_LOCK, itemID, seqID, cost)
+function invop.postSecureCost(uid, itemID, seqID, cost)
+    uidPostInvOpCost(uid, INVOP_SECURE, itemID, seqID, cost)
 end
 
 function invop.postRepairCost(uid, itemID, seqID, cost)
     uidPostInvOpCost(uid, INVOP_REPAIR, itemID, seqID, cost)
 end
 
-function invop.uidStartLock(uid, queryTag, commitTag, typeList)
-    uidPostStartInvOp(uid, INVOP_LOCK, queryTag, commitTag, typeList)
+function invop.uidStartSecure(uid, queryTag, commitTag, typeList)
+    uidPostStartInvOp(uid, INVOP_SECURE, queryTag, commitTag, typeList)
 end
 
 function invop.uidStartRepair(uid, queryTag, commitTag, typeList)

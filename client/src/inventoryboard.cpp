@@ -274,7 +274,7 @@ void InventoryBoard::drawEx(int dstX, int dstY, int, int, int, int) const
             if(i == cursorOnIndex){
                 return colorf::WHITE + colorf::A_SHF(48);
             }
-            else if(m_sdInvOp.invOp != INV_NONE && i == m_selectedIndex){
+            else if(m_sdInvOp.invOp != INVOP_NONE && i == m_selectedIndex){
                 return colorf::BLUE + colorf::A_SHF(48);
             }
             else{
@@ -290,23 +290,23 @@ void InventoryBoard::drawEx(int dstX, int dstY, int, int, int, int) const
     m_slider     .draw();
     m_closeButton.draw();
 
-    if(m_sdInvOp.invOp == INV_NONE){
+    if(m_sdInvOp.invOp == INVOP_NONE){
         m_sortButton.draw();
     }
     else if(m_selectedIndex >= 0){
         g_sdlDevice->drawTexture(g_progUseDB->retrieve(0X0000B0), dstX + m_invOpButtonX, dstY + m_invOpButtonY);
         switch(m_sdInvOp.invOp){
-            case INV_SELL:
+            case INVOP_TRADE:
                 {
                     m_sellButton.draw();
                     break;
                 }
-            case INV_LOCK:
+            case INVOP_SECURE:
                 {
                     m_lockButton.draw();
                     break;
                 }
-            case INV_REPAIR:
+            case INVOP_REPAIR:
                 {
                     m_repairButton.draw();
                     break;
@@ -347,28 +347,28 @@ bool InventoryBoard::processEvent(const SDL_Event &event, bool valid)
     }
 
     switch(m_sdInvOp.invOp){
-        case INV_NONE:
+        case INVOP_NONE:
             {
                 if(m_sortButton.processEvent(event, valid)){
                     return true;
                 }
                 break;
             }
-        case INV_SELL:
+        case INVOP_TRADE:
             {
                 if(m_selectedIndex >= 0 && m_sellButton.processEvent(event, valid)){
                     return true;
                 }
                 break;
             }
-        case INV_LOCK:
+        case INVOP_SECURE:
             {
                 if(m_selectedIndex >= 0 && m_lockButton.processEvent(event, valid)){
                     return true;
                 }
                 break;
             }
-        case INV_REPAIR:
+        case INVOP_REPAIR:
             {
                 if(m_selectedIndex >= 0 && m_repairButton.processEvent(event, valid)){
                     return true;
@@ -406,7 +406,7 @@ bool InventoryBoard::processEvent(const SDL_Event &event, bool valid)
                     case SDL_BUTTON_LEFT:
                         {
                             if(in(event.button.x, event.button.y)){
-                                if(m_sdInvOp.invOp == INV_NONE){
+                                if(m_sdInvOp.invOp == INVOP_NONE){
                                     if(const int selectedPackIndex = getPackBinIndex(event.button.x, event.button.y); selectedPackIndex >= 0){
                                         auto selectedPackBin = invPackRef.getPackBinList().at(selectedPackIndex);
                                         invPackRef.setGrabbedItem(selectedPackBin.item);
@@ -548,8 +548,8 @@ void InventoryBoard::drawInvOpTitle() const
         {
             switch(m_sdInvOp.invOp){
                 case INVOP_NONE  : return u8"【背包】";
-                case INVOP_SELL  : return u8"【请选择出售物品】";
-                case INVOP_LOCK  : return u8"【请选择存储物品】";
+                case INVOP_TRADE : return u8"【请选择出售物品】";
+                case INVOP_SECURE: return u8"【请选择存储物品】";
                 case INVOP_REPAIR: return u8"【请选择修理物品】";
                 default: throw bad_reach();
             }

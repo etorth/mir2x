@@ -43,8 +43,8 @@ LuaModule::LuaModule()
     m_luaState.script(str_printf("UID_ETC = %d", UID_ETC));
     m_luaState.script(str_printf("UID_INN = %d", UID_INN));
 
-    m_luaState.script(str_printf("INVOP_SELL   = %d", INVOP_SELL  ));
-    m_luaState.script(str_printf("INVOP_LOCK   = %d", INVOP_LOCK  ));
+    m_luaState.script(str_printf("INVOP_TRADE  = %d", INVOP_TRADE ));
+    m_luaState.script(str_printf("INVOP_SECURE = %d", INVOP_SECURE));
     m_luaState.script(str_printf("INVOP_REPAIR = %d", INVOP_REPAIR));
 
     m_luaState.script(str_printf("DIR_UP        = %d", DIR_UP       ));

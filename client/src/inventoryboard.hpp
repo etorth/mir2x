@@ -28,11 +28,6 @@
 #include "texvslider.hpp"
 #include "tritexbutton.hpp"
 
-constexpr int INV_NONE   = 0;
-constexpr int INV_SELL   = 1;
-constexpr int INV_LOCK   = 2;
-constexpr int INV_REPAIR = 3;
-
 class ProcessRun;
 class InventoryBoard: public Widget
 {

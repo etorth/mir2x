@@ -342,8 +342,8 @@ enum InvOpType: int
 {
     INVOP_NONE  = 0,
     INVOP_BEGIN = 1,
-    INVOP_SELL  = INVOP_BEGIN,
-    INVOP_LOCK,
+    INVOP_TRADE = INVOP_BEGIN,
+    INVOP_SECURE,
     INVOP_REPAIR,
     INVOP_END,
 };
