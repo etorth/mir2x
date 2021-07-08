@@ -48,6 +48,7 @@ enum SMType: uint8_t
     SM_NPCXMLLAYOUT,
     SM_NPCSELL,
     SM_STARTINVOP,
+    SM_STARTINPUT,
     SM_GOLD,
     SM_INVOPCOST,
     SM_STRIKEGRID,
@@ -320,6 +321,7 @@ class ServerMsg final: public MsgBase
                 _add_server_msg_type_case(SM_NPCXMLLAYOUT,       3, 0                         )
                 _add_server_msg_type_case(SM_NPCSELL,            3, 0                         )
                 _add_server_msg_type_case(SM_STARTINVOP,         3, 0                         )
+                _add_server_msg_type_case(SM_STARTINPUT,         3, 0                         )
                 _add_server_msg_type_case(SM_GOLD,               1, sizeof(SMGold)            )
                 _add_server_msg_type_case(SM_INVOPCOST,          1, sizeof(SMInvOpCost)       )
                 _add_server_msg_type_case(SM_STRIKEGRID,         1, sizeof(SMStrikeGrid)      )

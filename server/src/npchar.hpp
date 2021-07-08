@@ -204,6 +204,7 @@ class NPChar final: public CharObject
         void postXMLLayout(uint64_t, std::string);
         void postAddMonster(uint32_t);
         void postInvOpCost(uint64_t, int, uint32_t, uint32_t, size_t);
+        void postStartInput(uint64_t, std::string, std::string, bool);
         void postStartInvOp(uint64_t, int, std::string, std::string, std::vector<std::u8string>);
 
     public:

@@ -32,6 +32,10 @@ function invop.uidStartRepair(uid, queryTag, commitTag, typeList)
     uidPostStartInvOp(uid, INVOP_REPAIR, queryTag, commitTag, typeList)
 end
 
+function invop.postStartInput(uid, title, commitTag, show)
+    uidPostStartInput(uid, title, commitTag, show)
+end
+
 function invop.parseItemString(itemString)
     local itemID, seqID = string.match(itemString, '^(%d+):(%d+)$')
     return {tonumber(itemID, 10), tonumber(seqID, 10)}

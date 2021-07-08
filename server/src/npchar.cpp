@@ -375,6 +375,14 @@ NPChar::LuaNPCModule::LuaNPCModule(const SDInitNPChar &initParam)
         m_npc->postGift(uidf::toUIDEx(uidString), itemID, count);
     });
 
+    m_luaState.set_function("uidPostStartInput", [this](std::string uidString, std::string title, std::string commitTag, bool show)
+    {
+        fflassert(m_npc);
+        fflassert(!title.empty());
+        fflassert(!commitTag.empty());
+        m_npc->postStartInput(uidf::toUIDEx(uidString), title, commitTag, show);
+    });
+
     m_luaState.set_function("uidPostXMLString", [this](std::string uidString, std::string xmlString)
     {
         fflassert(m_npc);
@@ -646,6 +654,17 @@ void NPChar::postGift(uint64_t uid, uint32_t itemID, int count)
     amG.itemID = itemID;
     amG.count  = count;
     m_actorPod->forward(uid, {AM_GIFT, amG});
+}
+
+void NPChar::postStartInput(uint64_t uid, std::string title, std::string commitTag, bool show)
+{
+    forwardNetPackage(uid, SM_STARTINPUT, cerealf::serialize(SDStartInput
+    {
+        .uid = UID(),
+        .title = title,
+        .commitTag = commitTag,
+        .show = show,
+    }));
 }
 
 void NPChar::sendQuery(uint64_t callStackUID, uint64_t uid, const std::string &query)

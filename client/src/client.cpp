@@ -309,6 +309,13 @@ void Client::onServerMessage(uint8_t headCode, const uint8_t *pData, size_t nDat
                 }
                 break;
             }
+        case SM_STARTINPUT:
+            {
+                if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+                    pRun->net_STARTINPUT(pData, nDataLen);
+                }
+                break;
+            }
         case SM_TEXT:
             {
                 if(auto p = processRun(); p){

@@ -757,3 +757,12 @@ void ProcessRun::net_GRABBELTERROR(const uint8_t *buf, size_t)
             }
     }
 }
+
+void ProcessRun::net_STARTINPUT(const uint8_t *buf, size_t bufSize)
+{
+    const auto sdSI = cerealf::deserialize<SDStartInput>(buf, bufSize);
+    dynamic_cast<InputStringBoard *>(getWidget("InputStringBoard"))->waitInput(to_u8cstr(sdSI.title), [uid = sdSI.uid, commitTag = sdSI.commitTag, this](std::u8string input)
+    {
+        sendNPCEvent(uid, commitTag, to_cstr(input));
+    });
+}

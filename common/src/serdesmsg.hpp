@@ -114,6 +114,19 @@ struct SDStartInvOp
     }
 };
 
+struct SDStartInput
+{
+    uint64_t uid = 0;
+    std::string title;
+    std::string commitTag;
+    bool show = false;
+
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(uid, title, commitTag, show);
+    }
+};
+
 struct SDNPCSell
 {
     uint64_t npcUID = 0;
