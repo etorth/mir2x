@@ -56,9 +56,9 @@ void ServiceCore::net_CM_Login(uint32_t channID, uint8_t, const uint8_t *buf, si
         return;
     }
 
-    const int mapX = queryChar.getColumn("fld_mapx");
-    const int mapY = queryChar.getColumn("fld_mapy");
-    const uint32_t mapID = DBCOM_MAPID(to_u8cstr((const char *)(queryChar.getColumn("fld_mapname"))));
+    const int mapID = queryChar.getColumn("fld_map");
+    const int mapX  = queryChar.getColumn("fld_mapx");
+    const int mapY  = queryChar.getColumn("fld_mapy");
 
     const auto dbBuf = cerealf::serialize(SDInitPlayer
     {
@@ -68,7 +68,7 @@ void ServiceCore::net_CM_Login(uint32_t channID, uint8_t, const uint8_t *buf, si
         .nameColor = queryChar.getColumn("fld_namecolor"),
         .x         = mapX,
         .y         = mapY,
-        .mapID     = mapID,
+        .mapID     = to_u32(mapID),
         .hp        = queryChar.getColumn("fld_hp"),
         .mp        = queryChar.getColumn("fld_mp"),
         .exp       = queryChar.getColumn("fld_exp"),
