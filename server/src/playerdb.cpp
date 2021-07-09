@@ -37,13 +37,15 @@ void Player::dbUpdateMapGLoc()
 void Player::dbLoadInventory()
 {
     // tbl_inventory:
-    // +----------+------------+-----------+-----------+--------------+-----------------+
-    // | fld_dbid | fld_itemid | fld_seqid | fld_count | fld_duration | fld_extattrlist |
-    // +----------+------------+-----------+-----------+--------------+-----------------+
-    // |<----primary key---->|
+    // +----------+------------+------------+-----------+-----------+--------------+-----------------+
+    // | fld_dbid | fld_secure | fld_itemid | fld_seqid | fld_count | fld_duration | fld_extattrlist |
+    // +----------+------------+------------+-----------+-----------+--------------+-----------------+
+    //      ^                       ^            ^
+    //      |                       |            |
+    //      +-----------------------+------------+-- primary key
 
     m_sdItemStorage.inventory.clear();
-    auto query = g_dbPod->createQuery("select * from tbl_inventory where fld_dbid = %llu", to_llu(dbid()));
+    auto query = g_dbPod->createQuery("select * from tbl_inventory where fld_dbid = %llu and fld_secure = 0", to_llu(dbid()));
 
     while(query.executeStep()){
         SDItem item
@@ -65,9 +67,9 @@ void Player::dbUpdateInventoryItem(const SDItem &item)
     fflassert(item);
     const auto attrBuf = cerealf::serialize(item.extAttrList);
     auto query = g_dbPod->createQuery(
-            u8R"###( replace into tbl_inventory(fld_dbid, fld_itemid, fld_seqid, fld_count, fld_duration, fld_extattrlist) )###"
-            u8R"###( values                                                                                                )###"
-            u8R"###(     (%llu, %llu, %llu, %llu, %llu, ?)                                                                 )###",
+            u8R"###( replace into tbl_inventory(fld_dbid, fld_secure, fld_itemid, fld_seqid, fld_count, fld_duration, fld_extattrlist) )###"
+            u8R"###( values                                                                                                            )###"
+            u8R"###(     (%llu, 0, %llu, %llu, %llu, %llu, ?)                                                                          )###",
 
             to_llu(dbid()),
             to_llu(item.itemID),

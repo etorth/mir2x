@@ -207,9 +207,9 @@ bool MonoServer::createAccountCharacter(const char *id, const char *charName, bo
         fflassert(item);
         const auto attrBuf = cerealf::serialize(item.extAttrList);
         auto query = g_dbPod->createQuery(
-                u8R"###( replace into tbl_inventory(fld_dbid, fld_itemid, fld_seqid, fld_count, fld_duration, fld_extattrlist) )###"
-                u8R"###( values                                                                                                )###"
-                u8R"###(     (%llu, %llu, %llu, %llu, %llu, ?)                                                                 )###",
+                u8R"###( replace into tbl_inventory(fld_dbid, fld_secure, fld_itemid, fld_seqid, fld_count, fld_duration, fld_extattrlist) )###"
+                u8R"###( values                                                                                                            )###"
+                u8R"###(     (%llu, 0, %llu, %llu, %llu, %llu, ?)                                                                          )###",
 
                 to_llu(dbid),
                 to_llu(item.itemID),
@@ -222,6 +222,7 @@ bool MonoServer::createAccountCharacter(const char *id, const char *charName, bo
     };
 
     fnAddInitItem(u8"火墙");
+    fnAddInitItem(u8"地狱火");
     fnAddInitItem(u8"雷电术");
     fnAddInitItem(u8"召唤神兽");
 
@@ -295,6 +296,7 @@ void MonoServer::createDefaultDatabase()
 
         u8R"###( create table tbl_inventory(                                         )###"
         u8R"###(     fld_dbid           int unsigned not null,                       )###"
+        u8R"###(     fld_secure         int unsigned not null,                       )###"
         u8R"###(     fld_itemid         int unsigned not null,                       )###"
         u8R"###(     fld_seqid          int unsigned not null,                       )###"
         u8R"###(     fld_count          int unsigned not null,                       )###"
