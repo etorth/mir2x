@@ -134,6 +134,9 @@ end
 -- setup call stack table for thread-based parameters
 -- we spawn call stack by sol::thread which still access global table
 -- so we can't have tls per call stack, have to save call stack related globals into this table
+--
+-- TODO: take a look at this code for tls implementation
+-- https://stackoverflow.com/a/24358483
 g_callStackTableList = {}
 
 function getCallStackTable()

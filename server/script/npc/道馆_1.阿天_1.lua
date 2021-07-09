@@ -59,15 +59,51 @@ processNPCEvent =
     end,
 
     ["npc_goto_get_set_password_1"] = function(uid, value)
+        tls = getCallStackTable()
+        tls['set_password_1'] = value
+
         uidPostXML(uid,
         [[
             <layout>
-                <par>你输入的密码是：%s</par>
+                <par>请再次输入密码确认。</par>
                 <par></par>
 
                 <par><event id="%s">关闭</event></par>
             </layout>
         ]], value, SYS_NPCDONE)
+        invop.postStartInput(uid, '<par>请确认密码</par>', 'npc_goto_get_set_password_2', true)
+    end,
+
+    ["npc_goto_get_set_password_2"] = function(uid, value)
+        tls = getCallStackTable()
+        firstInput = tls['set_password_1']
+
+        -- TODO this won't work, just keep the wrong code here
+        -- because every npc_goto uses a new main(uid) call, thus a fresh call stack
+
+        if firstInput == value then
+            uidPostXML(uid,
+            [[
+                <layout>
+                    <par>设置密码成功！</par>
+                    <par></par>
+
+                    <par><event id="%s">前一步</event></par>
+                    <par><event id="%s">关闭</event></par>
+                </layout>
+            ]], SYS_NPCINIT, SYS_NPCDONE)
+        else
+            uidPostXML(uid,
+            [[
+                <layout>
+                    <par>两次密码输入不一致，设置密码失败。</par>
+                    <par></par>
+
+                    <par><event id="%s">设置密码</event></par>
+                    <par><event id="%s">关闭</event></par>
+                </layout>
+            ]], "npc_goto_set_password", SYS_NPCDONE)
+        end
     end,
 
     ["npc_goto_daily_quest"] = function(uid, value)
