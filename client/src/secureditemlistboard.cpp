@@ -51,7 +51,10 @@ const SDItem &SecuredItemListBoard::getItem(size_t index) const
 std::u8string SecuredItemListBoard::getGridHeader(size_t index) const
 {
     if(const auto &item = getItem(index)){
-        if(item.count > 0){
+        const auto &ir = DBCOM_ITEMRECORD(item.itemID);
+        fflassert(ir);
+
+        if(ir.packable() && (item.count > 0)){
             return to_u8cstr(str_ksep(item.count));
         }
     }
@@ -84,6 +87,5 @@ void SecuredItemListBoard::onSelect()
         if(const auto &item = getItem(m_selectedPageGrid.value())){
             m_processRun->requestRemoveSecuredItem(item.itemID, item.seqID);
         }
-        m_selectedPageGrid.reset();
     }
 }

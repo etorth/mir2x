@@ -16,6 +16,7 @@
  * =====================================================================================
  */
 
+#include "strf.hpp"
 #include "client.hpp"
 #include "pngtexdb.hpp"
 #include "sdldevice.hpp"
@@ -266,12 +267,30 @@ void ItemListBoard::drawEx(int dstX, int dstY, int, int, int, int) const
     m_rightButton .draw();
     m_closeButton .draw();
 
-    if(pageCount() <= 0){
-        return;
-    }
+    const auto fnDrawTitle = [this](const std::u8string &title)
+    {
+        LabelBoard
+        {
+            DIR_UPLEFT,
+            0,
+            0,
+            title.c_str(),
+
+            1,
+            12,
+            0,
+
+            colorf::RGBA(0XFF, 0XFF, 0X00, 0XFF),
+        }.drawAt(DIR_NONE, x() + 99, y() + 18);
+    };
 
     if(pageCount() > 0){
         fflassert(m_page < pageCount());
+        fnDrawTitle(str_printf(u8"第%zu/%zu页", m_page + 1, pageCount()));
+    }
+    else{
+        fnDrawTitle(u8"（空）");
+        return;
     }
 
     int cursorOnGridIndex = -1;
@@ -298,19 +317,21 @@ void ItemListBoard::drawEx(int dstX, int dstY, int, int, int, int) const
                 g_sdlDevice->drawTexture(texPtr, x() + rightDrawX, y() + rightDrawY);
             }
 
-            LabelBoard
-            {
-                DIR_UPLEFT,
-                0,
-                0,
-                to_u8cstr(getGridHeader(i)),
+            if(const auto header = getGridHeader(i); !header.empty()){
+                LabelBoard
+                {
+                    DIR_UPLEFT,
+                    0,
+                    0,
+                    to_u8cstr(header),
 
-                1,
-                10,
-                0,
+                    1,
+                    10,
+                    0,
 
-                colorf::RGBA(0XFF, 0XFF, 0X00, 0XFF),
-            }.drawAt(DIR_UPLEFT, x() + rightBoxX, y() + rightBoxY);
+                    colorf::RGBA(0XFF, 0XFF, 0X00, 0XFF),
+                }.drawAt(DIR_UPLEFT, x() + rightBoxX, y() + rightBoxY);
+            }
 
             const bool gridSelected = m_selectedPageGrid.has_value() && (m_selectedPageGrid.value() == i);
             const bool cursorOn = [rightBoxX, rightBoxY, this]() -> bool
@@ -329,20 +350,6 @@ void ItemListBoard::drawEx(int dstX, int dstY, int, int, int, int) const
             }
         }
     }
-
-    LabelBoard
-    {
-        DIR_UPLEFT,
-        0,
-        0,
-        str_printf(u8"第%zu/%zu页", m_page + 1, pageCount()).c_str(),
-
-        1,
-        12,
-        0,
-
-        colorf::RGBA(0XFF, 0XFF, 0X00, 0XFF),
-    }.drawAt(DIR_NONE, x() + 99, y() + 18);
 
     if(cursorOnGridIndex >= 0){
         drawGridHoverLayout(cursorOnGridIndex);
