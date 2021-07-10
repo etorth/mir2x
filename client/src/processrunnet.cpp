@@ -610,6 +610,12 @@ void ProcessRun::net_REMOVEITEM(const uint8_t *buf, size_t)
     dynamic_cast<InventoryBoard *>(getWidget("InventoryBoard"))->removeItem(smRI.itemID, smRI.seqID, smRI.count);
 }
 
+void ProcessRun::net_REMOVESECUREDITEM(const uint8_t *buf, size_t)
+{
+    const auto smRI = ServerMsg::conv<SMRemoveSecuredItem>(buf);
+    dynamic_cast<SecuredItemListBoard *>(getWidget("SecuredItemListBoard"))->removeItem(smRI.itemID, smRI.seqID);
+}
+
 void ProcessRun::net_INVENTORY(const uint8_t *buf, size_t bufSize)
 {
     getMyHero()->getInvPack().setInventory(cerealf::deserialize<SDInventory>(buf, bufSize));
@@ -765,4 +771,20 @@ void ProcessRun::net_STARTINPUT(const uint8_t *buf, size_t bufSize)
     {
         sendNPCEvent(uid, commitTag, to_cstr(input));
     });
+}
+
+void ProcessRun::net_SECUREDITEMLIST(const uint8_t *buf, size_t bufSize)
+{
+    auto chatBoardPtr = dynamic_cast<NPCChatBoard  *>(getGUIManager()->getWidget("NPCChatBoard"));
+    auto itemBoardPtr = dynamic_cast<SecuredItemListBoard *>(getWidget("SecuredItemListBoard"));
+
+    if(chatBoardPtr->show()){
+        itemBoardPtr->moveTo(chatBoardPtr->x(), chatBoardPtr->y() + chatBoardPtr->h());
+    }
+    else{
+        itemBoardPtr->moveTo(0, 0);
+    }
+
+    itemBoardPtr->setItemList(std::move(cerealf::deserialize<SDSecuredItemList>(buf, bufSize).itemList));
+    itemBoardPtr->show(true);
 }

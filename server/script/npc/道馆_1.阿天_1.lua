@@ -8,7 +8,7 @@ processNPCEvent =
         uidPostXML(uid,
         [[
             <layout>
-                <par>这里是沙巴克城<t color="RED">%s</t>行会的领地。</par>
+                <par>这里是沙巴克城<t color="red">%s</t>行会的领地。</par>
                 <par>贫道是仓库管理员，需要的话，可以把东西暂时寄存在我这里。</par>
                 <par></par>
 
@@ -31,6 +31,34 @@ processNPCEvent =
                 <par><event id="%s">前一步</event></par>
             </layout>
         ]], SYS_NPCINIT)
+        invop.uidStartSecure(uid, "npc_goto_secure_query", "npc_goto_secure_commit", {'武器'})
+    end,
+
+    ["npc_goto_secure_query"] = function(uid, value)
+        uidPostXML(uid,
+        [[
+            <layout>
+                <par>这个我可以帮你保存，但要收你<t color="red">20金币</t>保管费。</par>
+                <par></par>
+
+                <par><event id="%s">前一步</event></par>
+            </layout>
+        ]], SYS_NPCINIT)
+    end,
+
+    ["npc_goto_secure_commit"] = function(uid, value)
+        itemID, seqID = invop.parseItemString(value)
+        uidSecureItem(uid, itemID, seqID)
+
+        uidPostXML(uid,
+        [[
+            <layout>
+                <par>已经放好了。</par>
+                <par></par>
+
+                <par><event id="%s">前一步</event></par>
+            </layout>
+        ]], SYS_NPCINIT)
     end,
 
     ["npc_goto_get_back"] = function(uid, value)
@@ -43,6 +71,7 @@ processNPCEvent =
                 <par><event id="%s">前一步</event></par>
             </layout>
         ]], SYS_NPCINIT)
+        uidShowSecuredItemList(uid)
     end,
 
     ["npc_goto_set_password"] = function(uid, value)

@@ -131,6 +131,28 @@ function uidUseGold(uid, count)
     return uidUseItem(uid, '金币（小）', count)
 end
 
+function uidSecureItem(uid, itemID, seqID)
+    local result = uidQuery(uid, 'SECURE %d %d', itemID, seqID)
+    if result == '1' then
+        return true
+    elseif result == '0' then
+        return false
+    else
+        fatalPrintf('invalid query result: %s', result)
+    end
+end
+
+function uidShowSecuredItemList(uid)
+    local result = uidQuery(uid, 'SHOWSECURED')
+    if result == '1' then
+        return true
+    elseif result == '0' then
+        return false
+    else
+        fatalPrintf('invalid query result: %s', result)
+    end
+end
+
 -- setup call stack table for thread-based parameters
 -- we spawn call stack by sol::thread which still access global table
 -- so we can't have tls per call stack, have to save call stack related globals into this table

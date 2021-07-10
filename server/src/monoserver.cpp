@@ -306,6 +306,18 @@ void MonoServer::createDefaultDatabase()
         u8R"###(     primary key (fld_dbid, fld_itemid, fld_seqid)                   )###"
         u8R"###( );                                                                  )###",
 
+        u8R"###( create table tbl_secureditemlist(                                   )###"
+        u8R"###(     fld_dbid           int unsigned not null,                       )###"
+        u8R"###(     fld_itemid         int unsigned not null,                       )###"
+        u8R"###(     fld_seqid          int unsigned not null,                       )###"
+        u8R"###(     fld_count          int unsigned not null,                       )###"
+        u8R"###(     fld_duration       int unsigned not null,                       )###"
+        u8R"###(     fld_extattrlist    blob         not null,                       )###"
+        u8R"###(                                                                     )###"
+        u8R"###(     foreign key (fld_dbid) references tbl_dbid(fld_dbid),           )###"
+        u8R"###(     primary key (fld_dbid, fld_itemid, fld_seqid)                   )###"
+        u8R"###( );                                                                  )###",
+
         u8R"###( create table tbl_learnedmagiclist(                                  )###"
         u8R"###(     fld_dbid           int unsigned not null,                       )###"
         u8R"###(     fld_magicid        int unsigned not null,                       )###"

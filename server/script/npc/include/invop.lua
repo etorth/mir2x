@@ -38,7 +38,7 @@ end
 
 function invop.parseItemString(itemString)
     local itemID, seqID = string.match(itemString, '^(%d+):(%d+)$')
-    return {tonumber(itemID, 10), tonumber(seqID, 10)}
+    return tonumber(itemID, 10), tonumber(seqID, 10)
 end
 
 return invop

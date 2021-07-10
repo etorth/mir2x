@@ -199,6 +199,8 @@ class NPChar final: public CharObject
         void sendQuery(uint64_t, uint64_t, const std::string &);
 
     private:
+        // NPC -> client directly
+        // for NPC -> player use uidQuery('CMD', arg, ...)
         void postSell(uint64_t);
         void postGift(uint64_t, uint32_t, int);
         void postXMLLayout(uint64_t, std::string);

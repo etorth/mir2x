@@ -261,6 +261,15 @@ struct SDWear // wear items don't have seqID constraint
         const SDItem &getWLItem(int) const;
 };
 
+struct SDSecuredItemList
+{
+    std::vector<SDItem> itemList;
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(itemList);
+    }
+};
+
 struct SDSellItem
 {
     SDItem item;

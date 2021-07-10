@@ -226,6 +226,7 @@ class ProcessRun: public Process
         void net_BELT(const uint8_t *, size_t);
         void net_INVENTORY(const uint8_t *, size_t);
         void net_REMOVEITEM(const uint8_t *, size_t);
+        void net_REMOVESECUREDITEM(const uint8_t *, size_t);
         void net_DEADFADEOUT(const uint8_t *, size_t);
         void net_MONSTERGINFO(const uint8_t *, size_t);
         void net_SELLITEMLIST(const uint8_t *, size_t);
@@ -244,6 +245,7 @@ class ProcessRun: public Process
         void net_GRABBELTERROR(const uint8_t *, size_t);
         void net_STARTINVOP(const uint8_t *, size_t);
         void net_STARTINPUT(const uint8_t *, size_t);
+        void net_SECUREDITEMLIST(const uint8_t *, size_t);
 
     public:
         bool canMove(bool, int, int, int);
@@ -416,6 +418,7 @@ class ProcessRun: public Process
         void requestGrabBelt(int);
         void requestDropItem(uint32_t, uint32_t, size_t);
         void requestSetMagicKey(uint32_t, char);
+        void requestRemoveSecuredItem(uint32_t, uint32_t);
 
     public:
         std::tuple<uint32_t, int, int> getMap() const

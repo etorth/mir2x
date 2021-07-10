@@ -323,6 +323,13 @@ void Client::onServerMessage(uint8_t headCode, const uint8_t *pData, size_t nDat
                 }
                 break;
             }
+        case SM_SECUREDITEMLIST:
+            {
+                if(auto p = processRun(); p){
+                    p->net_SECUREDITEMLIST(pData, nDataLen);
+                }
+                break;
+            }
         case SM_PLAYERNAME:
             {
                 if(auto p = processRun(); p){
@@ -448,6 +455,13 @@ void Client::onServerMessage(uint8_t headCode, const uint8_t *pData, size_t nDat
             {
                 if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
                     pRun->net_REMOVEITEM(pData, nDataLen);
+                }
+                break;
+            }
+        case SM_REMOVESECUREDITEM:
+            {
+                if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+                    pRun->net_REMOVESECUREDITEM(pData, nDataLen);
                 }
                 break;
             }

@@ -33,7 +33,7 @@ GUIManager::GUIManager(ProcessRun *proc)
           g_sdlDevice->getRendererHeight(),
       }
 
-    , m_proc(proc)
+    , m_processRun(proc)
     , m_NPCChatBoard
       {
           proc,
@@ -96,10 +96,16 @@ GUIManager::GUIManager(ProcessRun *proc)
           proc,
           this,
       }
+
+    , m_securedItemListBoard
+      {
+          0,
+          0,
+          m_processRun,
+          this,
+      }
 {
-    if(!m_proc){
-        throw fflerror("null ProcessRun pointer");
-    }
+    fflassert(m_processRun);
 }
 
 void GUIManager::drawEx(int, int, int, int, int, int) const
@@ -157,42 +163,46 @@ bool GUIManager::processEvent(const SDL_Event &event, bool valid)
     return tookEvent;
 }
 
-Widget *GUIManager::getWidget(const std::string &widgetName)
+Widget *GUIManager::getWidget(const std::string &name)
 {
-    if(widgetName == "InventoryBoard"){
+    if(name == "InventoryBoard"){
         return &m_inventoryBoard;
     }
 
-    if(widgetName == "QuickAccessBoard"){
+    else if(name == "QuickAccessBoard"){
         return &m_quickAccessBoard;
     }
 
-    if(widgetName == "NPCChatBoard"){
+    else if(name == "NPCChatBoard"){
         return &m_NPCChatBoard;
     }
 
-    if(widgetName == "ControlBoard"){
+    else if(name == "ControlBoard"){
         return &m_controlBoard;
     }
 
-    if(widgetName == "SkillBoard"){
+    else if(name == "SkillBoard"){
         return &m_skillBoard;
     }
 
-    if(widgetName == "MiniMapBoard"){
+    else if(name == "MiniMapBoard"){
         return &m_miniMapBoard;
     }
 
-    if(widgetName == "PlayerStateBoard"){
+    else if(name == "PlayerStateBoard"){
         return &m_playerStateBoard;
     }
 
-    if(widgetName == "PurchaseBoard"){
+    else if(name == "PurchaseBoard"){
         return &m_purchaseBoard;
     }
 
-    if(widgetName == "InputStringBoard"){
+    else if(name == "InputStringBoard"){
         return &m_inputStringBoard;
+    }
+
+    else if(name == "SecuredItemListBoard"){
+        return &m_securedItemListBoard;
     }
 
     return nullptr;

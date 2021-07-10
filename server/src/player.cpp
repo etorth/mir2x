@@ -203,25 +203,28 @@ void Player::operateAM(const ActorMsgPack &rstMPK)
 void Player::operateNet(uint8_t nType, const uint8_t *pData, size_t nDataLen)
 {
     switch(nType){
-        case CM_QUERYCORECORD      : net_CM_QUERYCORECORD      (nType, pData, nDataLen); break;
-        case CM_REQUESTKILLPETS    : net_CM_REQUESTKILLPETS    (nType, pData, nDataLen); break;
-        case CM_REQUESTSPACEMOVE   : net_CM_REQUESTSPACEMOVE   (nType, pData, nDataLen); break;
-        case CM_ACTION             : net_CM_ACTION             (nType, pData, nDataLen); break;
-        case CM_PICKUP             : net_CM_PICKUP             (nType, pData, nDataLen); break;
-        case CM_PING               : net_CM_PING               (nType, pData, nDataLen); break;
-        case CM_CONSUMEITEM        : net_CM_CONSUMEITEM        (nType, pData, nDataLen); break;
-        case CM_BUY                : net_CM_BUY                (nType, pData, nDataLen); break;
-        case CM_QUERYGOLD          : net_CM_QUERYGOLD          (nType, pData, nDataLen); break;
-        case CM_NPCEVENT           : net_CM_NPCEVENT           (nType, pData, nDataLen); break;
-        case CM_QUERYSELLITEMLIST  : net_CM_QUERYSELLITEMLIST  (nType, pData, nDataLen); break;
-        case CM_QUERYPLAYERWLDESP  : net_CM_QUERYPLAYERWLDESP  (nType, pData, nDataLen); break;
-        case CM_REQUESTEQUIPWEAR   : net_CM_REQUESTEQUIPWEAR   (nType, pData, nDataLen); break;
-        case CM_REQUESTGRABWEAR    : net_CM_REQUESTGRABWEAR    (nType, pData, nDataLen); break;
-        case CM_REQUESTEQUIPBELT   : net_CM_REQUESTEQUIPBELT   (nType, pData, nDataLen); break;
-        case CM_REQUESTGRABBELT    : net_CM_REQUESTGRABBELT    (nType, pData, nDataLen); break;
-        case CM_DROPITEM           : net_CM_DROPITEM           (nType, pData, nDataLen); break;
-        case CM_SETMAGICKEY        : net_CM_SETMAGICKEY        (nType, pData, nDataLen); break;
-        default                    :                                                     break;
+#define _support_cm(cm) case cm: net_##cm(nType, pData, nDataLen); break
+        _support_cm(CM_QUERYCORECORD           );
+        _support_cm(CM_REQUESTKILLPETS         );
+        _support_cm(CM_REQUESTSPACEMOVE        );
+        _support_cm(CM_REQUESTRETRIEVESECUREDITEM);
+        _support_cm(CM_ACTION                  );
+        _support_cm(CM_PICKUP                  );
+        _support_cm(CM_PING                    );
+        _support_cm(CM_CONSUMEITEM             );
+        _support_cm(CM_BUY                     );
+        _support_cm(CM_QUERYGOLD               );
+        _support_cm(CM_NPCEVENT                );
+        _support_cm(CM_QUERYSELLITEMLIST       );
+        _support_cm(CM_QUERYPLAYERWLDESP       );
+        _support_cm(CM_REQUESTEQUIPWEAR        );
+        _support_cm(CM_REQUESTGRABWEAR         );
+        _support_cm(CM_REQUESTEQUIPBELT        );
+        _support_cm(CM_REQUESTGRABBELT         );
+        _support_cm(CM_DROPITEM                );
+        _support_cm(CM_SETMAGICKEY             );
+        default: break;
+#undef _support_cm
     }
 }
 
@@ -950,6 +953,14 @@ void Player::reportRemoveItem(uint32_t itemID, uint32_t seqID, size_t count)
     postNetMessage(SM_REMOVEITEM, smRI);
 }
 
+void Player::reportSecuredItemList()
+{
+    postNetMessage(SM_SECUREDITEMLIST, cerealf::serialize(SDSecuredItemList
+    {
+        .itemList = dbLoadSecuredItemList(),
+    }));
+}
+
 void Player::checkFriend(uint64_t nUID, std::function<void(int)> fnOp)
 {
     if(!nUID){
@@ -1013,7 +1024,7 @@ void Player::RequestKillPets()
 void Player::postOnLoginOK()
 {
     postBuildVersion();
-    postNetMessage(SM_LOGINOK, cerealf::serialize<SDLoginOK>(SDLoginOK
+    postNetMessage(SM_LOGINOK, cerealf::serialize(SDLoginOK
     {
         .uid = UID(),
         .mapID = mapID(),
@@ -1100,6 +1111,25 @@ const SDItem &Player::findInventoryItem(uint32_t itemID, uint32_t seqID) const
 {
     fflassert(DBCOM_ITEMRECORD(itemID));
     return m_sdItemStorage.inventory.find(itemID, seqID);
+}
+
+void Player::addSecuredItem(uint32_t itemID, uint32_t seqID)
+{
+    fflassert(findInventoryItem(itemID, seqID));
+    dbSecureItem(itemID, seqID);
+    removeInventoryItem(itemID, seqID);
+}
+
+void Player::removeSecuredItem(uint32_t itemID, uint32_t seqID)
+{
+    addInventoryItem(dbRetrieveSecuredItem(itemID, seqID), false);
+
+    SMRemoveSecuredItem smRSI;
+    std::memset(&smRSI, 0, sizeof(smRSI));
+
+    smRSI.itemID = itemID;
+    smRSI. seqID =  seqID;
+    postNetMessage(SM_REMOVESECUREDITEM, smRSI);
 }
 
 void Player::setGold(size_t gold)

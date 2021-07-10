@@ -123,25 +123,26 @@ class Player final: public CharObject
         void on_AM_QUERYPLAYERWLDESP(const ActorMsgPack &);
 
     private:
-        void net_CM_REQUESTKILLPETS    (uint8_t, const uint8_t *, size_t);
-        void net_CM_REQUESTSPACEMOVE   (uint8_t, const uint8_t *, size_t);
-        void net_CM_REQUESTMAGICDAMAGE (uint8_t, const uint8_t *, size_t);
-        void net_CM_QUERYCORECORD      (uint8_t, const uint8_t *, size_t);
-        void net_CM_QUERYSELLITEMLIST  (uint8_t, const uint8_t *, size_t);
-        void net_CM_QUERYPLAYERWLDESP  (uint8_t, const uint8_t *, size_t);
-        void net_CM_ACTION             (uint8_t, const uint8_t *, size_t);
-        void net_CM_PICKUP             (uint8_t, const uint8_t *, size_t);
-        void net_CM_PING               (uint8_t, const uint8_t *, size_t);
-        void net_CM_CONSUMEITEM        (uint8_t, const uint8_t *, size_t);
-        void net_CM_BUY                (uint8_t, const uint8_t *, size_t);
-        void net_CM_QUERYGOLD          (uint8_t, const uint8_t *, size_t);
-        void net_CM_NPCEVENT           (uint8_t, const uint8_t *, size_t);
-        void net_CM_REQUESTEQUIPWEAR   (uint8_t, const uint8_t *, size_t);
-        void net_CM_REQUESTGRABWEAR    (uint8_t, const uint8_t *, size_t);
-        void net_CM_REQUESTEQUIPBELT   (uint8_t, const uint8_t *, size_t);
-        void net_CM_REQUESTGRABBELT    (uint8_t, const uint8_t *, size_t);
-        void net_CM_DROPITEM           (uint8_t, const uint8_t *, size_t);
-        void net_CM_SETMAGICKEY        (uint8_t, const uint8_t *, size_t);
+        void net_CM_REQUESTKILLPETS         (uint8_t, const uint8_t *, size_t);
+        void net_CM_REQUESTSPACEMOVE        (uint8_t, const uint8_t *, size_t);
+        void net_CM_REQUESTMAGICDAMAGE      (uint8_t, const uint8_t *, size_t);
+        void net_CM_REQUESTRETRIEVESECUREDITEM(uint8_t, const uint8_t *, size_t);
+        void net_CM_QUERYCORECORD           (uint8_t, const uint8_t *, size_t);
+        void net_CM_QUERYSELLITEMLIST       (uint8_t, const uint8_t *, size_t);
+        void net_CM_QUERYPLAYERWLDESP       (uint8_t, const uint8_t *, size_t);
+        void net_CM_ACTION                  (uint8_t, const uint8_t *, size_t);
+        void net_CM_PICKUP                  (uint8_t, const uint8_t *, size_t);
+        void net_CM_PING                    (uint8_t, const uint8_t *, size_t);
+        void net_CM_CONSUMEITEM             (uint8_t, const uint8_t *, size_t);
+        void net_CM_BUY                     (uint8_t, const uint8_t *, size_t);
+        void net_CM_QUERYGOLD               (uint8_t, const uint8_t *, size_t);
+        void net_CM_NPCEVENT                (uint8_t, const uint8_t *, size_t);
+        void net_CM_REQUESTEQUIPWEAR        (uint8_t, const uint8_t *, size_t);
+        void net_CM_REQUESTGRABWEAR         (uint8_t, const uint8_t *, size_t);
+        void net_CM_REQUESTEQUIPBELT        (uint8_t, const uint8_t *, size_t);
+        void net_CM_REQUESTGRABBELT         (uint8_t, const uint8_t *, size_t);
+        void net_CM_DROPITEM                (uint8_t, const uint8_t *, size_t);
+        void net_CM_SETMAGICKEY             (uint8_t, const uint8_t *, size_t);
 
     protected:
         void reportGold();
@@ -151,6 +152,7 @@ class Player final: public CharObject
         void reportCO(uint64_t);
         void reportOffline(uint64_t, uint32_t);
         void reportRemoveItem(uint32_t, uint32_t, size_t);
+        void reportSecuredItemList();
 
     protected:
         virtual void reportAction(uint64_t, const ActionNode &);
@@ -239,6 +241,11 @@ class Player final: public CharObject
         void dbRemoveInventoryItem(uint32_t, uint32_t);
 
     private:
+        void dbSecureItem(uint32_t, uint32_t);
+        SDItem dbRetrieveSecuredItem(uint32_t, uint32_t);
+        std::vector<SDItem> dbLoadSecuredItemList() const;
+
+    private:
         void dbLoadBelt();
         void dbUpdateBeltItem(size_t, const SDItem &);
         void dbRemoveBeltItem(size_t);
@@ -280,6 +287,10 @@ class Player final: public CharObject
 
     private:
         const SDItem &findInventoryItem(uint32_t, uint32_t) const;
+
+    private:
+        void addSecuredItem(uint32_t, uint32_t);
+        void removeSecuredItem(uint32_t, uint32_t);
 
     private:
         size_t getGold() const

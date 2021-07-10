@@ -27,12 +27,13 @@
 #include "quickaccessboard.hpp"
 #include "playerstateboard.hpp"
 #include "inputstringboard.hpp"
+#include "secureditemlistboard.hpp"
 
 class ProcessRun;
 class GUIManager: public WidgetGroup
 {
     private:
-        ProcessRun *m_proc;
+        ProcessRun *m_processRun;
 
     private:
         NPCChatBoard m_NPCChatBoard;
@@ -46,6 +47,7 @@ class GUIManager: public WidgetGroup
         QuickAccessBoard m_quickAccessBoard;
         PlayerStateBoard m_playerStateBoard;
         InputStringBoard m_inputStringBoard;
+        SecuredItemListBoard m_securedItemListBoard;
 
     public:
         GUIManager(ProcessRun *);

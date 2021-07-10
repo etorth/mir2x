@@ -66,6 +66,12 @@ void Player::net_CM_QUERYCORECORD(uint8_t, const uint8_t *pBuf, size_t)
     }
 }
 
+void Player::net_CM_REQUESTRETRIEVESECUREDITEM(uint8_t, const uint8_t *buf, size_t)
+{
+    const auto cmRRSI = ClientMsg::conv<CMRequestRetrieveSecuredItem>(buf);
+    removeSecuredItem(cmRRSI.itemID, cmRRSI.seqID);
+}
+
 void Player::net_CM_REQUESTSPACEMOVE(uint8_t, const uint8_t *buf, size_t)
 {
     const auto cmRSM = ClientMsg::conv<CMRequestSpaceMove>(buf);

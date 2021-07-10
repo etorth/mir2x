@@ -187,6 +187,20 @@ void Player::on_AM_NPCQUERY(const ActorMsgPack &mpk)
         return;
     }
 
+    if(tokenList.front() == "SECURE"){
+        const auto itemID = std::stoi(tokenList.at(1));
+        const auto  seqID = std::stoi(tokenList.at(2));
+        addSecuredItem(itemID, seqID);
+        fnResp("1");
+        return;
+    }
+
+    if(tokenList.front() == "SHOWSECURED"){
+        reportSecuredItemList();
+        fnResp("1");
+        return;
+    }
+
     if(tokenList.front() == "SPACEMOVE"){
         const auto argMapID = std::stoi(tokenList.at(1));
         const auto argX     = std::stoi(tokenList.at(2));

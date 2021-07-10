@@ -110,7 +110,7 @@ processNPCEvent =
     end,
 
     ["npc_goto_query_trade"] = function(uid, value)
-        item = invop.parseItemString(value)
+        itemID, seqID = invop.parseItemString(value)
         price = math.random(100, 200)
 
         uidPostXML(uid,
@@ -122,12 +122,12 @@ processNPCEvent =
 
                 <par><event id="%s">前一步</event></par>
             </layout>
-        ]], getItemName(item[1]), price, SYS_NPCINIT)
-        invop.postTradePrice(uid, item[1], item[2], price)
+        ]], getItemName(itemID), price, SYS_NPCINIT)
+        invop.postTradePrice(uid, itemID, seqID, price)
     end,
 
     ["npc_goto_commit_trade"] = function(uid, value)
-        item = invop.parseItemString(value)
+        itemID, seqID = invop.parseItemString(value)
         uidPostXML(uid,
         [[
             <layout>
@@ -138,12 +138,12 @@ processNPCEvent =
             </layout>
         ]], 200, SYS_NPCINIT)
 
-        uidUseItem(uid, item[1], 1)
+        uidUseItem(uid, itemID, 1)
         uidPostGold(uid, 200)
     end,
 
     ["npc_goto_query_repair"] = function(uid, value)
-        item = invop.parseItemString(value)
+        itemID, seqID = invop.parseItemString(value)
         repairCost = math.random(100, 200)
 
         uidPostXML(uid,
@@ -154,12 +154,12 @@ processNPCEvent =
 
                 <par><event id="%s">前一步</event></par>
             </layout>
-        ]], getItemName(item[1]), repairCost, SYS_NPCINIT)
-        invop.postRepairCost(uid, item[1], item[2], repairCost)
+        ]], getItemName(itemID), repairCost, SYS_NPCINIT)
+        invop.postRepairCost(uid, itemID, seqID, repairCost)
     end,
 
     ["npc_goto_commit_repair"] = function(uid, value)
-        item = invop.parseItemString(value)
+        itemID, seqID = invop.parseItemString(value)
         uidPostXML(uid,
         [[
             <layout>
@@ -168,7 +168,7 @@ processNPCEvent =
 
                 <par><event id="%s">前一步</event></par>
             </layout>
-        ]], getItemName(item[1]), SYS_NPCINIT)
+        ]], getItemName(itemID), SYS_NPCINIT)
     end,
 
     ["npc_goto_commit_special_repair"] = function(uid, value)

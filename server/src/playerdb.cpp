@@ -79,6 +79,11 @@ void Player::dbUpdateInventoryItem(const SDItem &item)
     query.exec();
 }
 
+void Player::dbRemoveInventoryItem(const SDItem &item)
+{
+    dbRemoveInventoryItem(item.itemID, item.seqID);
+}
+
 void Player::dbRemoveInventoryItem(uint32_t itemID, uint32_t seqID)
 {
     // requies seqID to be non-zero
@@ -90,11 +95,82 @@ void Player::dbRemoveInventoryItem(uint32_t itemID, uint32_t seqID)
     g_dbPod->exec("delete from tbl_inventory where fld_dbid = %llu and fld_itemid = %llu and fld_seqid = %llu", to_llu(dbid()), to_llu(itemID), to_llu(seqID));
 }
 
-void Player::dbRemoveInventoryItem(const SDItem &item)
+void Player::dbSecureItem(uint32_t itemID, uint32_t seqID)
 {
-    dbRemoveInventoryItem(item.itemID, item.seqID);
+    const auto &item = findInventoryItem(itemID, seqID);
+    fflassert(item);
+
+    const auto attrBuf = cerealf::serialize(item.extAttrList);
+    auto query = g_dbPod->createQuery(
+            u8R"###( replace into tbl_secureditemlist(fld_dbid, fld_itemid, fld_seqid, fld_count, fld_duration, fld_extattrlist) )###"
+            u8R"###( values                                                                                                      )###"
+            u8R"###(     (%llu, %llu, %llu, %llu, %llu, ?)                                                                       )###",
+
+            to_llu(dbid()),
+            to_llu(item.itemID),
+            to_llu(item.seqID),
+            to_llu(item.count),
+            to_llu(item.duration));
+
+    query.bind(1, attrBuf.data(), attrBuf.length());
+    query.exec();
 }
 
+SDItem Player::dbRetrieveSecuredItem(uint32_t itemID, uint32_t seqID)
+{
+    fflassert(DBCOM_ITEMRECORD(itemID));
+    fflassert(seqID > 0);
+
+    auto query = g_dbPod->createQuery(
+            u8R"###( delete from tbl_secureditemlist where fld_dbid = %llu and fld_itemid = %llu and fld_seqid = %llu returning * )###",
+
+            to_llu(dbid()),
+            to_llu(itemID),
+            to_llu(seqID));
+
+    while(query.executeStep()){
+        SDItem item
+        {
+            .itemID      = check_cast<uint32_t, unsigned>         (query.getColumn("fld_itemid"     )),
+            .seqID       = check_cast<uint32_t, unsigned>         (query.getColumn("fld_seqid"      )),
+            .count       = check_cast<  size_t, unsigned>         (query.getColumn("fld_count"      )),
+            .duration    = check_cast<  size_t, unsigned>         (query.getColumn("fld_count"      )),
+            .extAttrList = cerealf::deserialize<SDItemExtAttrList>(query.getColumn("fld_extattrlist")),
+        };
+
+        fflassert(item);
+        fflassert(!query.executeStep());
+        return item;
+    }
+    throw fflerror("can't find item: itemID = %llu, seqID = %llu", to_llu(itemID), to_llu(seqID));
+}
+
+std::vector<SDItem> Player::dbLoadSecuredItemList() const
+{
+    // tbl_secureditemlist:
+    // +----------+------------+-----------+-----------+--------------+-----------------+
+    // | fld_dbid | fld_itemid | fld_seqid | fld_count | fld_duration | fld_extattrlist |
+    // +----------+------------+-----------+-----------+--------------+-----------------+
+    // |<-----primary key----->|
+
+    std::vector<SDItem> itemList;
+    auto query = g_dbPod->createQuery("select * from tbl_secureditemlist where fld_dbid = %llu", to_llu(dbid()));
+
+    while(query.executeStep()){
+        SDItem item
+        {
+            .itemID      = check_cast<uint32_t, unsigned>         (query.getColumn("fld_itemid"     )),
+            .seqID       = check_cast<uint32_t, unsigned>         (query.getColumn("fld_seqid"      )),
+            .count       = check_cast<  size_t, unsigned>         (query.getColumn("fld_count"      )),
+            .duration    = check_cast<  size_t, unsigned>         (query.getColumn("fld_count"      )),
+            .extAttrList = cerealf::deserialize<SDItemExtAttrList>(query.getColumn("fld_extattrlist")),
+        };
+
+        fflassert(item);
+        itemList.push_back(std::move(item));
+    }
+    return itemList;
+}
 
 void Player::dbLoadRuntimeConfig()
 {

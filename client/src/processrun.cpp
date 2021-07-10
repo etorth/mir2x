@@ -1438,6 +1438,19 @@ void ProcessRun::requestSetMagicKey(uint32_t magicID, char key)
     g_client->send(CM_SETMAGICKEY, cmSMK);
 }
 
+void ProcessRun::requestRemoveSecuredItem(uint32_t itemID, uint32_t seqID)
+{
+    fflassert(DBCOM_ITEMRECORD(itemID));
+
+    CMRequestRetrieveSecuredItem cmRRSI;
+    std::memset(&cmRRSI, 0, sizeof(cmRRSI));
+
+    cmRRSI.itemID = itemID;
+    cmRRSI.seqID = seqID;
+
+    g_client->send(CM_REQUESTRETRIEVESECUREDITEM, cmRRSI);
+}
+
 void ProcessRun::RequestKillPets()
 {
     g_client->send(CM_REQUESTKILLPETS);
