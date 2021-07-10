@@ -35,10 +35,8 @@ class ItemListBoard: public Widget
         constexpr static int m_gfxSrcW = 198;
         constexpr static int m_gfxSrcH = 204;
 
-    private:
-        size_t m_page = 0;
-
     protected:
+        size_t m_page = 0;
         std::optional<size_t> m_selectedPageGrid;
 
     private:

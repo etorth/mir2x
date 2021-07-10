@@ -245,7 +245,7 @@ class ProcessRun: public Process
         void net_GRABBELTERROR(const uint8_t *, size_t);
         void net_STARTINVOP(const uint8_t *, size_t);
         void net_STARTINPUT(const uint8_t *, size_t);
-        void net_SECUREDITEMLIST(const uint8_t *, size_t);
+        void net_SHOWSECUREDITEMLIST(const uint8_t *, size_t);
 
     public:
         bool canMove(bool, int, int, int);

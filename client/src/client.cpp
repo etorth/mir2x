@@ -323,10 +323,10 @@ void Client::onServerMessage(uint8_t headCode, const uint8_t *pData, size_t nDat
                 }
                 break;
             }
-        case SM_SECUREDITEMLIST:
+        case SM_SHOWSECUREDITEMLIST:
             {
                 if(auto p = processRun(); p){
-                    p->net_SECUREDITEMLIST(pData, nDataLen);
+                    p->net_SHOWSECUREDITEMLIST(pData, nDataLen);
                 }
                 break;
             }

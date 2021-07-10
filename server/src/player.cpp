@@ -955,7 +955,7 @@ void Player::reportRemoveItem(uint32_t itemID, uint32_t seqID, size_t count)
 
 void Player::reportSecuredItemList()
 {
-    postNetMessage(SM_SECUREDITEMLIST, cerealf::serialize(SDSecuredItemList
+    postNetMessage(SM_SHOWSECUREDITEMLIST, cerealf::serialize(SDShowSecuredItemList
     {
         .itemList = dbLoadSecuredItemList(),
     }));

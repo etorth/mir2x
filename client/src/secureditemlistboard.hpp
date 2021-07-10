@@ -37,6 +37,8 @@ class SecuredItemListBoard: public ItemListBoard
     public:
         void setItemList(std::vector<SDItem> itemList)
         {
+            m_page = 0;
+            m_selectedPageGrid.reset();
             m_itemList = std::move(itemList);
         }
 
@@ -46,6 +48,18 @@ class SecuredItemListBoard: public ItemListBoard
             {
                 return itemID == param.itemID && seqID == param.seqID;
             }));
+
+            if(itemCount() == 0){
+                m_page = 0;
+                m_selectedPageGrid.reset();
+            }
+
+            else{
+                m_page = to_uz(mathf::bound<int>(m_page, 0, to_d(pageCount()) - 1));
+                if(m_selectedPageGrid.has_value()){
+                    m_selectedPageGrid = to_uz(mathf::bound<int>(m_selectedPageGrid.value(), 0, to_d(itemCount()) - 1));
+                }
+            }
         }
 
     public:

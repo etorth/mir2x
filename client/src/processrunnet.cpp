@@ -773,7 +773,7 @@ void ProcessRun::net_STARTINPUT(const uint8_t *buf, size_t bufSize)
     });
 }
 
-void ProcessRun::net_SECUREDITEMLIST(const uint8_t *buf, size_t bufSize)
+void ProcessRun::net_SHOWSECUREDITEMLIST(const uint8_t *buf, size_t bufSize)
 {
     auto chatBoardPtr = dynamic_cast<NPCChatBoard  *>(getGUIManager()->getWidget("NPCChatBoard"));
     auto itemBoardPtr = dynamic_cast<SecuredItemListBoard *>(getWidget("SecuredItemListBoard"));
@@ -785,6 +785,6 @@ void ProcessRun::net_SECUREDITEMLIST(const uint8_t *buf, size_t bufSize)
         itemBoardPtr->moveTo(0, 0);
     }
 
-    itemBoardPtr->setItemList(std::move(cerealf::deserialize<SDSecuredItemList>(buf, bufSize).itemList));
+    itemBoardPtr->setItemList(std::move(cerealf::deserialize<SDShowSecuredItemList>(buf, bufSize).itemList));
     itemBoardPtr->show(true);
 }
