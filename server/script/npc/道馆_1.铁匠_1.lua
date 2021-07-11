@@ -138,7 +138,7 @@ processNPCEvent =
             </layout>
         ]], 200, SYS_NPCINIT)
 
-        uidRemove(uid, itemID, 1)
+        uidRemove(uid, {itemID = itemID, seqID = seqID})
         uidGrantGold(uid, 200)
     end,
 

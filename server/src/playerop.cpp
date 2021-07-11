@@ -284,12 +284,14 @@ void Player::on_AM_NPCQUERY(const ActorMsgPack &mpk)
 
     if(tokenList.front() == "REMOVE"){
         const auto argItemID = to_u32(std::stoi(tokenList.at(1)));
-        const auto argCount  = to_uz (std::stoi(tokenList.at(2)));
+        const auto argSeqID  = to_u32(std::stoi(tokenList.at(2)));
+        const auto argCount  = to_uz (std::stoi(tokenList.at(3)));
 
         const auto &ir = DBCOM_ITEMRECORD(argItemID);
         fflassert(ir);
 
         if(ir.isGold()){
+            fflassert(argSeqID == 0);
             if(m_sdItemStorage.gold >= argCount){
                 fnResp("1");
                 setGold(m_sdItemStorage.gold - argCount);
@@ -298,9 +300,20 @@ void Player::on_AM_NPCQUERY(const ActorMsgPack &mpk)
                 fnResp("0");
             }
         }
-        else{
-            const auto delCount = removeInventoryItem(argItemID, 0, argCount);
+        else if(argSeqID > 0){
+            fflassert(argCount == 1);
+            const auto delCount = removeInventoryItem(argItemID, argSeqID);
             fnResp(delCount ? "1" : "0");
+        }
+        else{
+            fflassert(argCount > 0);
+            if(hasInventoryItem(argItemID, argSeqID, argCount)){
+                removeInventoryItem(argItemID, 0, argCount);
+                fnResp("1");
+            }
+            else{
+                fnResp("0");
+            }
         }
         return;
     }

@@ -101,18 +101,33 @@ function uidQueryGold(uid)
     return tonumber(uidQuery(uid, 'GOLD'))
 end
 
-local function convItemID(item)
+local function convItemSeqID(item)
     if math.type(item) == 'integer' then
-        return item
+        return item, 0
     elseif type(item) == 'string' then
-        return getItemID(item)
+        return getItemID(item), 0
+    elseif type(item) == 'table' then
+        if item.itemID ~= nil then
+            local itemID = convItemSeqID(item.itemID)
+            if item.seqID == nil then
+                return itemID, 0
+            elseif math.type(item.seqID) == 'integer' then
+                return itemID, item.seqID
+            elseif type(item.seqID) == 'string' then
+                return itemID, tonumber(item.seqID)
+            else
+                fatalPrintf("invalid augument: unexpected item.seqID type: %s", type(item.seqID))
+            end
+        else
+            fatalPrintf("invalid augument: table has no itemID")
+        end
     else
         fatalPrintf('invalid argument: item = %s', tostring(item))
     end
 end
 
 function uidConsume(uid, item, count)
-    local itemID = convItemID(item)
+    local itemID = convItemSeqID(item)
     if itemID == 0 then
         fatalPrintf('invalid item: %s', tostring(item))
     end
@@ -128,12 +143,12 @@ function uidConsume(uid, item, count)
 end
 
 function uidRemove(uid, item, count)
-    local itemID = convItemID(item)
+    local itemID, seqID = convItemSeqID(item)
     if itemID == 0 then
         fatalPrintf('invalid item: %s', tostring(item))
     end
 
-    local value = uidQuery(uid, 'REMOVE %d %d', itemID, argDef(count, 1))
+    local value = uidQuery(uid, 'REMOVE %d %d %d', itemID, seqID, argDef(count, 1))
     if value == '1' then
         return true
     elseif value == '0' then
@@ -172,7 +187,7 @@ function uidShowSecuredItemList(uid)
 end
 
 function uidGrant(uid, item, count)
-    local itemID = convItemID(item)
+    local itemID = convItemSeqID(item)
     if itemID == 0 then
         fatalPrintf('invalid item: %s', tostring(item))
     end
