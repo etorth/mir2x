@@ -1,57 +1,6 @@
 --, u8R"###(
 --
 
-function has_processNPCEvent(verbose, event)
-    verbose = verbose or false
-    if type(verbose) ~= 'boolean' then
-        verbose = false
-        addLog(LOGTYPE_WARNING, 'parmeter verbose is not boolean type, assumed false')
-    end
-
-    if type(event) ~= 'string' then
-        event = nil
-        addLog(LOGTYPE_WARNING, 'parmeter event is not string type, ignored')
-    end
-
-    if not processNPCEvent then
-        if verbose then
-            addLog(LOGTYPE_WARNING, "NPC %s: processNPCEvent is not defined", getNPCFullName())
-        end
-        return false
-    elseif type(processNPCEvent) ~= 'table' then
-        if verbose then
-            addLog(LOGTYPE_WARNING, "NPC %s: processNPCEvent is not a function table", getNPCFullName())
-        end
-        return false
-    else
-        local count = 0
-        for _ in pairs(processNPCEvent) do
-            -- here for each entry we can check if the key is string and value is function type
-            -- but can possibly be OK if the event is not triggered
-            count = count + 1
-        end
-
-        if count == 0 then
-            if verbose then
-                addLog(LOGTYPE_WARNING, "NPC %s: processNPCEvent is empty", getNPCFullName())
-            end
-            return false
-        end
-
-        if not event then
-            return true
-        end
-
-        if type(processNPCEvent[event]) ~= 'function' then
-            if verbose then
-                addLog(LOGTYPE_WARNING, "NPC %s: processNPCEvent[%s] is not a function", getNPCFullName(), event)
-            end
-            return false
-        end
-        return true
-    end
-end
-
 function sendQuery(uid, query)
     sendCallStackQuery(getCallStackUID(), uid, query)
 end
@@ -101,7 +50,7 @@ function uidQueryGold(uid)
     return tonumber(uidQuery(uid, 'GOLD'))
 end
 
-local function convItemSeqID(item)
+function convItemSeqID(item)
     if math.type(item) == 'integer' then
         return item, 0
     elseif type(item) == 'string' then
@@ -247,6 +196,57 @@ function uidPostXML(uid, xmlFormat, ...)
         fatalPrintf("not a valid uid string: %s", uid)
     end
     uidPostXMLString(uid, xmlFormat:format(...))
+end
+
+function has_processNPCEvent(verbose, event)
+    verbose = verbose or false
+    if type(verbose) ~= 'boolean' then
+        verbose = false
+        addLog(LOGTYPE_WARNING, 'parmeter verbose is not boolean type, assumed false')
+    end
+
+    if type(event) ~= 'string' then
+        event = nil
+        addLog(LOGTYPE_WARNING, 'parmeter event is not string type, ignored')
+    end
+
+    if not processNPCEvent then
+        if verbose then
+            addLog(LOGTYPE_WARNING, "NPC %s: processNPCEvent is not defined", getNPCFullName())
+        end
+        return false
+    elseif type(processNPCEvent) ~= 'table' then
+        if verbose then
+            addLog(LOGTYPE_WARNING, "NPC %s: processNPCEvent is not a function table", getNPCFullName())
+        end
+        return false
+    else
+        local count = 0
+        for _ in pairs(processNPCEvent) do
+            -- here for each entry we can check if the key is string and value is function type
+            -- but can possibly be OK if the event is not triggered
+            count = count + 1
+        end
+
+        if count == 0 then
+            if verbose then
+                addLog(LOGTYPE_WARNING, "NPC %s: processNPCEvent is empty", getNPCFullName())
+            end
+            return false
+        end
+
+        if not event then
+            return true
+        end
+
+        if type(processNPCEvent[event]) ~= 'function' then
+            if verbose then
+                addLog(LOGTYPE_WARNING, "NPC %s: processNPCEvent[%s] is not a function", getNPCFullName(), event)
+            end
+            return false
+        end
+        return true
+    end
 end
 
 -- entry coroutine for event handling
