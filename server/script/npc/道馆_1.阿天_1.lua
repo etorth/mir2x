@@ -31,7 +31,7 @@ processNPCEvent =
                 <par><event id="%s">前一步</event></par>
             </layout>
         ]], SYS_NPCINIT)
-        invop.uidStartSecure(uid, "npc_goto_secure_query", "npc_goto_secure_commit", {'武器'})
+        invop.uidStartSecure(uid, "npc_goto_secure_query", "npc_goto_secure_commit", {'恢复药水', '武器', '药粉', '传送卷轴', '技能书', '护身符', '头盔', '戒指', '手镯', '项链', '衣服', '鞋'})
     end,
 
     ["npc_goto_secure_query"] = function(uid, value)

@@ -168,14 +168,9 @@ size_t SDInventory::has(uint32_t itemID, uint32_t seqID) const
 
     size_t count = 0;
     for(const auto &item: m_list){
-        if(item.itemID != itemID){
-            continue;
+        if((item.itemID == itemID) && ((seqID == 0) || (item.seqID == seqID))){
+            count += item.count;
         }
-
-        if(!(seqID && (seqID == item.seqID))){
-            continue;
-        }
-        count += item.count;
     }
     return count;
 }
@@ -188,14 +183,9 @@ const SDItem &SDInventory::find(uint32_t itemID, uint32_t seqID) const
     fflassert(!ir.isGold());
 
     for(const auto &item: m_list){
-        if(item.itemID != itemID){
-            continue;
+        if((item.itemID == itemID) && ((seqID == 0) || (item.seqID == seqID))){
+            return item;
         }
-
-        if(!(seqID && (seqID == item.seqID))){
-            continue;
-        }
-        return item;
     }
 
     const static SDItem s_item;
@@ -253,7 +243,7 @@ std::tuple<size_t, uint32_t, const SDItem *> SDInventory::remove(uint32_t itemID
             continue;
         }
 
-        if(seqID && (item.seqID != seqID)){
+        if((seqID > 0) && (item.seqID != seqID)){
             continue;
         }
 
