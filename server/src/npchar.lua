@@ -126,22 +126,6 @@ local function convItemSeqID(item)
     end
 end
 
-function uidConsume(uid, item, count)
-    local itemID = convItemSeqID(item)
-    if itemID == 0 then
-        fatalPrintf('invalid item: %s', tostring(item))
-    end
-
-    local value = uidQuery(uid, 'CONSUME %d %d', itemID, argDef(count, 1))
-    if value == '1' then
-        return true
-    elseif value == '0' then
-        return false
-    else
-        fatalPrintf('invalid query result: %s', value)
-    end
-end
-
 function uidRemove(uid, item, count)
     local itemID, seqID = convItemSeqID(item)
     if itemID == 0 then
