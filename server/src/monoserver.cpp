@@ -136,13 +136,10 @@ int MonoServer::createAccount(const char *id, const char *password)
 
 bool MonoServer::createAccountCharacter(const char *id, const char *charName, bool gender, const char *job)
 {
-    if(!(str_haschar(id) && str_haschar(charName) && str_haschar(job))){
-        throw fflerror("invalid argumets: id = %s, charName = %s, gender = %s, job = %s", to_cstr(id), to_cstr(charName), gender ? "male" : "female", to_cstr(job));
-    }
-
-    if(!hasDatabase()){
-        throw fflerror("no available database");
-    }
+    fflassert(str_haschar(id));
+    fflassert(str_haschar(charName));
+    fflassert(str_haschar(job));
+    fflassert(hasDatabase());
 
     if(hasCharacter(charName)){
         return false;
