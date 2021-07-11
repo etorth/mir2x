@@ -693,8 +693,7 @@ void InventoryBoard::commitInvOp()
         return;
     }
 
-    m_processRun->addCBLog(CBLOG_SYS, u8"提交修理%s", to_cstr(DBCOM_ITEMRECORD(selectedItem.item.itemID).name));
-    m_processRun->sendNPCEvent(m_sdInvOp.uid, m_sdInvOp.commitTag.c_str(), str_printf("%d:%d", to_d(selectedItem.item.itemID), to_d(selectedItem.item. seqID)).c_str());
+    m_processRun->sendNPCEvent(m_sdInvOp.uid, m_sdInvOp.commitTag.c_str(), str_printf("%d:%d", to_d(selectedItem.item.itemID), to_d(selectedItem.item.seqID)).c_str());
 }
 
 void InventoryBoard::removeItem(uint32_t itemID, uint32_t seqID, size_t count)
