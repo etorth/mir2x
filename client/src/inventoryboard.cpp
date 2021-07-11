@@ -98,7 +98,7 @@ InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget
           this,
       }
 
-    , m_sellButton
+    , m_tradeButton
       {
           DIR_UPLEFT,
           m_invOpButtonX + 3,
@@ -122,7 +122,7 @@ InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget
           this,
       }
 
-    , m_lockButton
+    , m_secureButton
       {
           DIR_UPLEFT,
           m_invOpButtonX + 3,
@@ -298,12 +298,12 @@ void InventoryBoard::drawEx(int dstX, int dstY, int, int, int, int) const
         switch(m_sdInvOp.invOp){
             case INVOP_TRADE:
                 {
-                    m_sellButton.draw();
+                    m_tradeButton.draw();
                     break;
                 }
             case INVOP_SECURE:
                 {
-                    m_lockButton.draw();
+                    m_secureButton.draw();
                     break;
                 }
             case INVOP_REPAIR:
@@ -356,14 +356,14 @@ bool InventoryBoard::processEvent(const SDL_Event &event, bool valid)
             }
         case INVOP_TRADE:
             {
-                if(m_selectedIndex >= 0 && m_sellButton.processEvent(event, valid)){
+                if(m_selectedIndex >= 0 && m_tradeButton.processEvent(event, valid)){
                     return true;
                 }
                 break;
             }
         case INVOP_SECURE:
             {
-                if(m_selectedIndex >= 0 && m_lockButton.processEvent(event, valid)){
+                if(m_selectedIndex >= 0 && m_secureButton.processEvent(event, valid)){
                     return true;
                 }
                 break;
