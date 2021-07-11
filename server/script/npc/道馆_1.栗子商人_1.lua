@@ -13,8 +13,8 @@ local function onSellChestnut(uid, chestnutName, currTagName, lastTagName)
         fatalPrintf('Invalid chestnut name: %s', tostring(chestnutName))
     end
 
-    if uidUseItem(uid, chestnutName, 1) then
-        uidPostGold(uid, priceTable[chestnutName])
+    if uidRemove(uid, chestnutName, 1) then
+        uidGrantGold(uid, priceTable[chestnutName])
         uidPostXML(uid,
         [[
             <layout>

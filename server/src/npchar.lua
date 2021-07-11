@@ -101,18 +101,20 @@ function uidQueryGold(uid)
     return tonumber(uidQuery(uid, 'GOLD'))
 end
 
-function uidUseItem(uid, item, count)
-    local itemID = 0
-    if type(item) == 'string' then
-        itemID = getItemID(item)
-    elseif math.type(item) == 'integer' then
-        itemID = item
+local function convItemID(item)
+    if math.type(item) == 'integer' then
+        return item
+    elseif type(item) == 'string' then
+        return getItemID(item)
     else
-        fatalPrintf('uidUseItem(): invalid argument item = %s', tostring(item))
+        fatalPrintf('invalid argument: item = %s', tostring(item))
     end
+end
 
+function uidConsume(uid, item, count)
+    local itemID = convItemID(item)
     if itemID == 0 then
-        fatalPrintf('invalid item name: %s', itemName)
+        fatalPrintf('invalid item: %s', tostring(item))
     end
 
     local value = uidQuery(uid, 'CONSUME %d %d', itemID, argDef(count, 1))
@@ -125,10 +127,26 @@ function uidUseItem(uid, item, count)
     end
 end
 
+function uidRemove(uid, item, count)
+    local itemID = convItemID(item)
+    if itemID == 0 then
+        fatalPrintf('invalid item: %s', tostring(item))
+    end
+
+    local value = uidQuery(uid, 'REMOVE %d %d', itemID, argDef(count, 1))
+    if value == '1' then
+        return true
+    elseif value == '0' then
+        return false
+    else
+        fatalPrintf('invalid query result: %s', value)
+    end
+end
+
 -- always use 金币（小）to represent the gold item
 -- when convert to a SDItem the real 小中大 will get figured out by the count
 function uidUseGold(uid, count)
-    return uidUseItem(uid, '金币（小）', count)
+    return uidRemove(uid, '金币（小）', count)
 end
 
 function uidSecureItem(uid, itemID, seqID)
@@ -150,6 +168,22 @@ function uidShowSecuredItemList(uid)
         return false
     else
         fatalPrintf('invalid query result: %s', result)
+    end
+end
+
+function uidGrant(uid, item, count)
+    local itemID = convItemID(item)
+    if itemID == 0 then
+        fatalPrintf('invalid item: %s', tostring(item))
+    end
+
+    local value = uidQuery(uid, 'GRANT %d %d', itemID, argDef(count, 1))
+    if value == '1' then
+        return true
+    elseif value == '0' then
+        return false
+    else
+        fatalPrintf('invalid query result: %s', value)
     end
 end
 
@@ -201,8 +235,8 @@ function getCallStackUID()
     return callStackTable['CS_UID']
 end
 
-function uidPostGold(uid, count)
-    uidPostGift(uid, '金币（小）', count)
+function uidGrantGold(uid, count)
+    uidGrant(uid, '金币（小）', count)
 end
 
 function uidPostXML(uid, xmlFormat, ...)

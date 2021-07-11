@@ -202,7 +202,6 @@ class NPChar final: public CharObject
         // NPChar::postXXX functions are for NPC -> client directly
         // for messages NPChar -> Player (then Player may react) we use uidQuery(uid, 'QUERY_CMD', ...)
         void postSell(uint64_t);
-        void postGift(uint64_t, uint32_t, int);
         void postXMLLayout(uint64_t, std::string);
         void postAddMonster(uint32_t);
         void postInvOpCost(uint64_t, int, uint32_t, uint32_t, size_t);

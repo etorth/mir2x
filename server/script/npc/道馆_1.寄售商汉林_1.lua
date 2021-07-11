@@ -37,8 +37,8 @@ processNPCEvent =
     end,
 
     ["npc_goto_1"] = function(uid, value)
-        uidPostGift(uid, '斩马刀', 2)
-        uidPostGift(uid, '五彩鞋', 1)
-        uidPostGift(uid, '井中月', 1)
+        uidGrant(uid, '斩马刀', 2)
+        uidGrant(uid, '五彩鞋', 1)
+        uidGrant(uid, '井中月', 1)
     end,
 }

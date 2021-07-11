@@ -138,8 +138,8 @@ processNPCEvent =
             </layout>
         ]], 200, SYS_NPCINIT)
 
-        uidUseItem(uid, itemID, 1)
-        uidPostGold(uid, 200)
+        uidRemove(uid, itemID, 1)
+        uidGrantGold(uid, 200)
     end,
 
     ["npc_goto_query_repair"] = function(uid, value)

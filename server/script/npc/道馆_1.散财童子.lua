@@ -41,7 +41,7 @@ processNPCEvent =
         local lastTime = argDef(uidDBGetKey(uid, 'fld_time'), 0)
 
         if currTime > lastTime + 10 then
-            uidPostGold(uid, 1000)
+            uidGrantGold(uid, 1000)
             uidDBSetKey(uid, 'fld_time', currTime)
         else
             uidPostXML(uid,
@@ -57,8 +57,8 @@ processNPCEvent =
     end,
 
     ["npc_goto_2"] = function(uid, value)
-        uidPostGift(uid, '斩马刀', 2)
-        uidPostGift(uid, '五彩鞋', 1)
-        uidPostGift(uid, '井中月', 1)
+        uidGrant(uid, '斩马刀', 2)
+        uidGrant(uid, '五彩鞋', 1)
+        uidGrant(uid, '井中月', 1)
     end,
 }

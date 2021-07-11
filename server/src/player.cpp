@@ -117,11 +117,6 @@ void Player::operateAM(const ActorMsgPack &rstMPK)
                 on_AM_MISS(rstMPK);
                 break;
             }
-        case AM_GIFT:
-            {
-                on_AM_GIFT(rstMPK);
-                break;
-            }
         case AM_ACTION:
             {
                 on_AM_ACTION(rstMPK);

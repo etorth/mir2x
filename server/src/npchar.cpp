@@ -364,17 +364,6 @@ NPChar::LuaNPCModule::LuaNPCModule(const SDInitNPChar &initParam)
         m_npc->postInvOpCost(uidf::toUIDEx(uidString), invOp, itemID, seqID, cost);
     });
 
-    m_luaState.set_function("uidPostGift", [this](std::string uidString, std::string itemName, int count)
-    {
-        fflassert(m_npc);
-        fflassert(count > 0);
-
-        const auto itemID = DBCOM_ITEMID(to_u8cstr(itemName));
-        fflassert(itemID);
-
-        m_npc->postGift(uidf::toUIDEx(uidString), itemID, count);
-    });
-
     m_luaState.set_function("uidPostStartInput", [this](std::string uidString, std::string title, std::string commitTag, bool show)
     {
         fflassert(m_npc);
@@ -612,7 +601,7 @@ void NPChar::postSell(uint64_t uid)
     {
         .npcUID = UID(),
         .itemList = std::vector<uint32_t>(m_luaModulePtr->getNPCSell().begin(), m_luaModulePtr->getNPCSell().end()),
-    }, true));
+    }));
 }
 
 void NPChar::postInvOpCost(uint64_t uid, int invOp, uint32_t itemID, uint32_t seqID, size_t cost)
@@ -644,16 +633,6 @@ void NPChar::postStartInvOp(uint64_t uid, int invOp, std::string queryTag, std::
         .commitTag = commitTag,
         .typeList = typeList,
     }));
-}
-
-void NPChar::postGift(uint64_t uid, uint32_t itemID, int count)
-{
-    AMGift amG;
-    std::memset(&amG, 0, sizeof(amG));
-
-    amG.itemID = itemID;
-    amG.count  = count;
-    m_actorPod->forward(uid, {AM_GIFT, amG});
 }
 
 void NPChar::postStartInput(uint64_t uid, std::string title, std::string commitTag, bool show)
@@ -722,7 +701,7 @@ void NPChar::postXMLLayout(uint64_t uid, std::string xmlString)
     {
         .npcUID = UID(),
         .xmlLayout = std::move(xmlString),
-    }, true));
+    }));
 }
 
 void NPChar::postAddMonster(uint32_t monsterID)
