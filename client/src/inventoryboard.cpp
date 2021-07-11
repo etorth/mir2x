@@ -98,12 +98,16 @@ InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget
           this,
       }
 
-    , m_tradeButton
+    , m_invOpButton
       {
           DIR_UPLEFT,
           m_invOpButtonX + 3,
           m_invOpButtonY + 3,
-          {0X000000B3, 0X000000B3, 0X000000B4},
+          {
+              0X000000B3, // use trade gfx, needs it to setup widget size
+              0X000000B3,
+              0X000000B4,
+          },
 
           nullptr,
           nullptr,
@@ -122,53 +126,6 @@ InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget
           this,
       }
 
-    , m_secureButton
-      {
-          DIR_UPLEFT,
-          m_invOpButtonX + 3,
-          m_invOpButtonY + 3,
-          {0X000000B5, 0X000000B5, 0X000000B6},
-
-          nullptr,
-          nullptr,
-          [this]()
-          {
-              commitInvOp();
-          },
-
-          0,
-          0,
-          0,
-          0,
-
-          true,
-          true,
-          this,
-      }
-
-    , m_repairButton
-      {
-          DIR_UPLEFT,
-          m_invOpButtonX + 3,
-          m_invOpButtonY + 3,
-          {0X000000B1, 0X000000B1, 0X000000B2},
-
-          nullptr,
-          nullptr,
-          [this]()
-          {
-              commitInvOp();
-          },
-
-          0,
-          0,
-          0,
-          0,
-
-          true,
-          true,
-          this,
-      }
     , m_processRun(pRun)
 {
     show(false);
@@ -295,28 +252,7 @@ void InventoryBoard::drawEx(int dstX, int dstY, int, int, int, int) const
     }
     else if(m_selectedIndex >= 0){
         g_sdlDevice->drawTexture(g_progUseDB->retrieve(0X0000B0), dstX + m_invOpButtonX, dstY + m_invOpButtonY);
-        switch(m_sdInvOp.invOp){
-            case INVOP_TRADE:
-                {
-                    m_tradeButton.draw();
-                    break;
-                }
-            case INVOP_SECURE:
-                {
-                    m_secureButton.draw();
-                    break;
-                }
-            case INVOP_REPAIR:
-                {
-                    m_repairButton.draw();
-                    break;
-                }
-            default:
-                {
-                    break;
-                }
-        }
-
+        m_invOpButton.draw();
         if(m_invOpCost >= 0){
             drawInvOpCost();
         }
@@ -346,39 +282,15 @@ bool InventoryBoard::processEvent(const SDL_Event &event, bool valid)
         return true;
     }
 
-    switch(m_sdInvOp.invOp){
-        case INVOP_NONE:
-            {
-                if(m_sortButton.processEvent(event, valid)){
-                    return true;
-                }
-                break;
-            }
-        case INVOP_TRADE:
-            {
-                if(m_selectedIndex >= 0 && m_tradeButton.processEvent(event, valid)){
-                    return true;
-                }
-                break;
-            }
-        case INVOP_SECURE:
-            {
-                if(m_selectedIndex >= 0 && m_secureButton.processEvent(event, valid)){
-                    return true;
-                }
-                break;
-            }
-        case INVOP_REPAIR:
-            {
-                if(m_selectedIndex >= 0 && m_repairButton.processEvent(event, valid)){
-                    return true;
-                }
-                break;
-            }
-        default:
-            {
-                break;
-            }
+    if(m_sdInvOp.invOp == INVOP_NONE){
+        if(m_sortButton.processEvent(event, valid)){
+            return true;
+        }
+    }
+    else{
+        if(m_selectedIndex >= 0 && m_invOpButton.processEvent(event, valid)){
+            return true;
+        }
     }
 
     switch(event.type){
@@ -687,6 +599,12 @@ void InventoryBoard::clearInvOp()
 void InventoryBoard::startInvOp(SDStartInvOp sdSIOP)
 {
     m_sdInvOp = std::move(sdSIOP);
+    switch(m_sdInvOp.invOp){
+        case INVOP_TRADE : m_invOpButton.setTexID({0X000000B3, 0X000000B3, 0X000000B4}); return;
+        case INVOP_SECURE: m_invOpButton.setTexID({0X000000B5, 0X000000B5, 0X000000B6}); return;
+        case INVOP_REPAIR: m_invOpButton.setTexID({0X000000B1, 0X000000B1, 0X000000B2}); return;
+        default: throw bad_reach();
+    }
 }
 
 void InventoryBoard::setInvOpCost(int mode, uint32_t itemID, uint32_t seqID, size_t cost)

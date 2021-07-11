@@ -57,9 +57,7 @@ class InventoryBoard: public Widget
         TritexButton m_closeButton;
 
     private:
-        TritexButton m_tradeButton;
-        TritexButton m_secureButton;
-        TritexButton m_repairButton;
+        TritexButton m_invOpButton;
 
     private:
         ProcessRun *m_processRun;
