@@ -104,35 +104,24 @@ void Pack2D::pack(std::vector<PackBin> &binList, size_t packWidth, int packMetho
     Pack2D packHelper(packWidth); // assert packWidth
     std::sort(binList.begin(), binList.end(), [packMethod](const auto &x, const auto &y) -> bool
     {
-        switch(packMethod){
-            case 0:
-                {
-                    return x.w * x.h < y.w * y.h;
-                }
-            case 1:
-                {
-                    return x.w * x.h > y.w * y.h;
-                }
-            case 2:
-                {
-                    return x.item.itemID < y.item.itemID;
-                }
-            case 3:
-                {
-                    return x.item.itemID > y.item.itemID;
-                }
-            case 4:
-                {
-                    return to_u8sv(DBCOM_ITEMRECORD(x.item.itemID).type) < to_u8sv(DBCOM_ITEMRECORD(y.item.itemID).type);
-                }
-            case 5:
-                {
-                    return to_u8sv(DBCOM_ITEMRECORD(x.item.itemID).type) > to_u8sv(DBCOM_ITEMRECORD(y.item.itemID).type);
-                }
-            default:
-                {
-                    throw fflerror("invalid pack method: %d", packMethod);
-                }
+        const auto fnCreateSortHelper = [packMethod](const auto &bin)
+        {
+            std::array<uint64_t, 3> sortHelper
+            {
+                to_u64(bin.w * bin.h),
+                to_u64(bin.item.itemID),
+                to_u64((uintptr_t)(DBCOM_ITEMRECORD(bin.item.itemID).type)),
+            };
+
+            std::swap(sortHelper[0], sortHelper[(sortHelper.size() + std::labs(packMethod)) % sortHelper.size()]);
+            return sortHelper;
+        };
+
+        if(packMethod % 2){
+            return fnCreateSortHelper(x) > fnCreateSortHelper(y);
+        }
+        else{
+            return fnCreateSortHelper(x) < fnCreateSortHelper(y);
         }
     });
 
