@@ -93,7 +93,7 @@ end
 
 -- always use 金币（小）to represent the gold item
 -- when convert to a SDItem the real 小中大 will get figured out by the count
-function uidUseGold(uid, count)
+function uidRemoveGold(uid, count)
     return uidRemove(uid, '金币（小）', count)
 end
 
