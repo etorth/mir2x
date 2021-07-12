@@ -161,15 +161,19 @@ void Player::on_AM_NPCQUERY(const ActorMsgPack &mpk)
     const auto tokenList = parseNPCQuery(mpk.conv<AMNPCQuery>().query);
     fflassert(!tokenList.empty());
 
-    AMNPCEvent amNPCE;
-    std::memset(&amNPCE, 0, sizeof(amNPCE));
-    std::strcpy(amNPCE.event, tokenList.front().c_str());
-
-    auto fnResp = [amNPCE, from = mpk.from(), seqID = mpk.seqID(), this](std::string value) mutable
+    const auto fnResp = [from = mpk.from(), seqID = mpk.seqID(), argX = X(), argY = Y(), argMapID = mapID(), argEvent = tokenList.front(), this](std::optional<std::string> value)
     {
-        fflassert(value.length() < std::extent_v<decltype(amNPCE.value)>);
-        std::strcpy(amNPCE.value, value.c_str());
-        m_actorPod->forward(from, {AM_NPCEVENT, amNPCE}, seqID);
+        // capture all variables by copy
+        // this lambda can be registered into other callbacks
+
+        m_actorPod->forward(from, {AM_NPCEVENT, cerealf::serialize(SDNPCEvent
+        {
+            .x = argX,
+            .y = argY,
+            .mapID = argMapID,
+            .event = argEvent,
+            .value = std::move(value),
+        })}, seqID);
     };
 
     if(tokenList.front() == "GOLD"){
@@ -183,7 +187,7 @@ void Player::on_AM_NPCQUERY(const ActorMsgPack &mpk)
     }
 
     if(tokenList.front() == "NAME"){
-        fnResp(to_cstr(m_name));
+        fnResp(m_name);
         return;
     }
 

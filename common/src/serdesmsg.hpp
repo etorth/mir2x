@@ -607,3 +607,18 @@ struct SDRuntimeConfig
         magicKeyList.clear();
     }
 };
+
+struct SDNPCEvent
+{
+    int x = 0;
+    int y = 0;
+    uint32_t mapID = 0;
+
+    std::string event;
+    std::optional<std::string> value;
+
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(x, y, mapID, event, value);
+    }
+};

@@ -96,7 +96,7 @@ function tp.setTeleport(titlePar, dst)
                 else
                     local gold = argDef(d.gold, 0)
                     local level = argDef(d.level, 0)
-                    local gotoTag = string.format('tp_goto_%d', i)
+                    local gotoTag = string.format('tp_goto_%d::%s', i, SYS_NPCDONE)
 
                     local mapName = ''
                     if d.name ~= nil then

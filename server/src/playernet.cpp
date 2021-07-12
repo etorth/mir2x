@@ -185,15 +185,21 @@ void Player::net_CM_QUERYGOLD(uint8_t, const uint8_t *, size_t)
 void Player::net_CM_NPCEVENT(uint8_t, const uint8_t *buf, size_t bufLen)
 {
     const auto cmNPCE = ClientMsg::conv<CMNPCEvent>(buf, bufLen);
-    AMNPCEvent amNPCEvent;
+    m_actorPod->forward(cmNPCE.uid, {AM_NPCEVENT, cerealf::serialize(SDNPCEvent
+    {
+        .x = X(),
+        .y = Y(),
+        .mapID = mapID(),
 
-    std::memset(&amNPCEvent, 0, sizeof(amNPCEvent));
-    amNPCEvent.x = X();
-    amNPCEvent.y = Y();
-    amNPCEvent.mapID = mapID();
-    std::strcpy(amNPCEvent.event, cmNPCE.event);
-    std::strcpy(amNPCEvent.value, cmNPCE.value);
-    m_actorPod->forward(cmNPCE.uid, {AM_NPCEVENT, amNPCEvent});
+        .event = cmNPCE.event,
+        .value = [&cmNPCE]() -> std::optional<std::string>
+        {
+            if(cmNPCE.valueSize >= 0){
+                return std::string(cmNPCE.value, cmNPCE.valueSize);
+            }
+            return {};
+        }(),
+    })});
 }
 
 void Player::net_CM_QUERYSELLITEMLIST(uint8_t, const uint8_t *buf, size_t)

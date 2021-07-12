@@ -25,6 +25,7 @@
 #include <cereal/types/string.hpp>
 #include <cereal/types/vector.hpp>
 #include <cereal/types/variant.hpp>
+#include <cereal/types/optional.hpp>
 #include <cereal/types/unordered_set.hpp>
 #include <cereal/types/unordered_map.hpp>
 #include <cereal/archives/binary.hpp>

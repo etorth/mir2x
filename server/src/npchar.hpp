@@ -19,6 +19,7 @@
 #pragma once
 #include <memory>
 #include <cstdint>
+#include <optional>
 #include "servicecore.hpp"
 #include "servermap.hpp"
 #include "charobject.hpp"
@@ -36,7 +37,7 @@ class NPChar final: public CharObject
                 {
                     uint64_t from = 0;
                     std::string event;
-                    std::string value;
+                    std::optional<std::string> value;
 
                     // scenario why adding seqID:
                     // 1. received an event which triggers processNPCEvent(event)
@@ -84,7 +85,7 @@ class NPChar final: public CharObject
                 LuaNPCModule(const SDInitNPChar &);
 
             public:
-                void setEvent(uint64_t callStackUID, uint64_t from, std::string event, std::string value);
+                void setEvent(uint64_t callStackUID, uint64_t from, std::string event, std::optional<std::string> value);
 
             public:
                 void close(uint64_t uid)

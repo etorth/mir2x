@@ -430,10 +430,10 @@ NPChar::LuaNPCModule::LuaNPCModule(const SDInitNPChar &initParam)
                 }
 
 
-                if(p->second.value.empty()){
+                if(!p->second.value.has_value()){
                     return {std::to_string(fromUID), std::move(p->second.event)};
                 }
-                return {std::to_string(fromUID), std::move(p->second.event), std::move(p->second.value)};
+                return {std::to_string(fromUID), std::move(p->second.event), std::move(p->second.value.value())};
             }
             throw fflerror("can't find call stack UID = %llu", to_llu(uid));
         }());
@@ -477,10 +477,10 @@ NPChar::LuaNPCModule::LuaNPCModule(const SDInitNPChar &initParam)
         R"###( has_processNPCEvent(true, SYS_NPCINIT)                          )###""\n");
 }
 
-void NPChar::LuaNPCModule::setEvent(uint64_t callStackUID, uint64_t from, std::string event, std::string value)
+void NPChar::LuaNPCModule::setEvent(uint64_t callStackUID, uint64_t from, std::string event, std::optional<std::string> value)
 {
     if(!(callStackUID && from && !event.empty())){
-        throw fflerror("invalid argument: callStackUID = %llu, from = %llu, event = %s, value = %s", to_llu(callStackUID), to_llu(from), to_cstr(event), to_cstr(value));
+        throw fflerror("invalid argument: callStackUID = %llu, from = %llu, event = %s, value = %s", to_llu(callStackUID), to_llu(from), to_cstr(event), to_cstr(value.value_or("(nil)")));
     }
 
     if(event == SYS_NPCDONE){
@@ -678,12 +678,12 @@ void NPChar::sendQuery(uint64_t callStackUID, uint64_t uid, const std::string &q
         switch(mpk.type()){
             case AM_NPCEVENT:
                 {
-                    const auto amNPCE = mpk.conv<AMNPCEvent>();
-                    if(!query.starts_with(amNPCE.event)){
-                        throw fflerror("invalid response: query = %s, event = %s", to_cstr(query), to_cstr(amNPCE.event));
+                    const auto sdNPCE = mpk.deserialize<SDNPCEvent>();
+                    if(!query.starts_with(sdNPCE.event)){
+                        throw fflerror("invalid response: query = %s, event = %s", to_cstr(query), to_cstr(sdNPCE.event));
                     }
 
-                    m_luaModulePtr->setEvent(callStackUID, uid, SYS_NPCQUERY, amNPCE.value);
+                    m_luaModulePtr->setEvent(callStackUID, uid, SYS_NPCQUERY, sdNPCE.value);
                     return;
                 }
             default:

@@ -549,19 +549,9 @@ struct AMNameColor
     int Color;
 };
 
-struct AMNPCEvent
-{
-    int x;
-    int y;
-    uint32_t mapID;
-
-    char event[32];
-    char value[32];
-};
-
 struct AMNPCQuery
 {
-    char query[32];
+    char query[128];
 };
 
 struct AMNPCError

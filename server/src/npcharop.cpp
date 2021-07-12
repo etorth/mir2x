@@ -50,26 +50,26 @@ void NPChar::on_AM_NPCEVENT(const ActorMsgPack &mpk)
         throw fflerror("NPC event comes from zero uid");
     }
 
-    const auto amNPCE = mpk.conv<AMNPCEvent>();
+    const auto sdNPCE = mpk.deserialize<SDNPCEvent>();
 
     // when CO initiatively sends a message to NPC, we assume it's UID is the callStackUID
     // when NPC querys CO attributes the response should be handled in actor response handler, not here
 
     if(false
-            || std::string(amNPCE.event) == SYS_NPCDONE
-            || std::string(amNPCE.event) == SYS_NPCERROR){
+            || sdNPCE.event == SYS_NPCDONE
+            || sdNPCE.event == SYS_NPCERROR){
         m_luaModulePtr->close(mpk.from());
         return;
     }
 
-    if(std::string(amNPCE.event) == SYS_NPCQUERY){
-        throw fflerror("unexcepted NPC event: event = %s, value = %s", to_cstr(amNPCE.event), to_cstr(amNPCE.value));
+    if(sdNPCE.event == SYS_NPCQUERY){
+        throw fflerror("unexcepted NPC event: event = %s, value = %s", to_cstr(sdNPCE.event), to_cstr(sdNPCE.value.value_or("(nil)")));
     }
 
     // can be SYS_NPCINIT or scritp event
     // script event defines like text button pressed etc
 
-    if(amNPCE.mapID != mapID() || mathf::LDistance2(amNPCE.x, amNPCE.y, X(), Y()) >= SYS_MAXNPCDISTANCE * SYS_MAXNPCDISTANCE){
+    if(sdNPCE.mapID != mapID() || mathf::LDistance2(sdNPCE.x, sdNPCE.y, X(), Y()) >= SYS_MAXNPCDISTANCE * SYS_MAXNPCDISTANCE){
         AMNPCError amNPCE;
         std::memset(&amNPCE, 0, sizeof(amNPCE));
 
@@ -87,7 +87,7 @@ void NPChar::on_AM_NPCEVENT(const ActorMsgPack &mpk)
         m_luaModulePtr->close(mpk.from());
     }
 
-    m_luaModulePtr->setEvent(mpk.from(), mpk.from(), amNPCE.event, amNPCE.value);
+    m_luaModulePtr->setEvent(mpk.from(), mpk.from(), sdNPCE.event, sdNPCE.value);
 }
 
 void NPChar::on_AM_NOTIFYNEWCO(const ActorMsgPack &mpk)

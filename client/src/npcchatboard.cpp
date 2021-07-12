@@ -16,8 +16,9 @@
  * =====================================================================================
  */
 
-#include "totype.hpp"
+#include <string_view>
 #include "uidf.hpp"
+#include "totype.hpp"
 #include "sysconst.hpp"
 #include "pngtexdb.hpp"
 #include "sdldevice.hpp"
@@ -198,7 +199,7 @@ void NPCChatBoard::onClickEvent(const char *id, const char *arg)
         m_process->sendNPCEvent(m_NPCUID, id);
     }
 
-    if(std::string(id) == SYS_NPCDONE){
+    if(std::string_view(id).ends_with(SYS_NPCDONE)){
         show(false);
     }
 }
