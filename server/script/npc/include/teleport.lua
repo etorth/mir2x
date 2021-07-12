@@ -62,12 +62,12 @@ end
 -- })
 --
 function tp.setTeleport(titlePar, dst)
-    if type(titlePar) ~= 'string' then
-        fatalPrintf('expect an XML paragraph string, get %s', type(titlePar))
-    end
-
     if processNPCEvent ~= nil then
         fatalPrintf('processNPCEvent has already been defined')
+    end
+
+    if type(titlePar) ~= 'string' then
+        fatalPrintf('expect an XML paragraph string, get %s', type(titlePar))
     end
 
     if type(dst) ~= 'table' then
