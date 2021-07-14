@@ -4,7 +4,7 @@ setNPCGLoc(416, 179)
 local tp = require('npc.include.teleport')
 tp.setTeleport('<par>你想去哪里？</par>',
 {
-    {name = '比奇城', map = '比奇县_0', x = 370, y = 335, gold = 500},
+    {name = '比奇城', map = '比奇县_0', x = 371, y = 335, gold = 500},
     {},
 
     {name = '毒蛇山村', map = '毒蛇山谷_2', x = 307, y = 243, gold = 1000},
