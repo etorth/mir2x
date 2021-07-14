@@ -5,7 +5,7 @@ local tp = require('npc.include.teleport')
 tp.setTeleport('<par>你想去哪里？</par>',
 {
     {map = '沙漠土城_5', x = 113, y = 176, gold = 500},
-    {name = '蚂蚁洞穴入口', map = '比奇县_0', x = 499, y = 462, gold = 500}, -- TODO
+    {name = '蚂蚁洞穴入口', map = '沙漠_6', x = 274, y = 730, gold = 500},
     {},
 
     {name = '盟重土城', map = '盟重县_74', x = 272, y = 266, gold = 1000},
