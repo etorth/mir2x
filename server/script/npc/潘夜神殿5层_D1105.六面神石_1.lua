@@ -5,6 +5,6 @@ local tp = require('npc.include.teleport')
 processNPCEvent =
 {
     [SYS_NPCINIT] = function(uid, value)
-        tp.uidReqSpaceMove(uid, '潘夜神殿大厅_D1110', 30, 33)
+        tp.uidReqSpaceMove(uid, '潘夜神殿大厅_D1110', 29, 30)
     end,
 }
