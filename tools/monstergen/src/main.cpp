@@ -37,6 +37,11 @@
 //
 // linux file command shows incorrect encoding, need to use another command: chardet
 
+static void printCode(const std::string &s)
+{
+    std::cout << "[CODE] " << s << std::endl;
+}
+
 class MapRecordFileParser
 {
     public:
@@ -83,7 +88,7 @@ class MapRecordFileParser
                     std::cout << str_printf("[FILE] %s:%s", entry.mapName.c_str(), entry.fileName.c_str()) << std::endl;
                 }
                 else{
-                    std::cout << str_printf("[SKIP]: %s", line.c_str()) << std::endl;
+                    std::cout << str_printf("[SKIP] %s", line.c_str()) << std::endl;
                 }
             }
         }
@@ -168,25 +173,68 @@ class GenFileParser
                         std::cout << str_printf("[FILE] %s:%s", entry.fileName.c_str(), entry.monName.c_str()) << std::endl;
                     }
                     else{
-                        std::cout << str_printf("[SKIP]: %s", line.c_str()) << std::endl;
+                        std::cout << str_printf("[SKIP] %s", line.c_str()) << std::endl;
+                    }
+                }
+            }
+        }
+
+    public:
+        void print(const MapRecordFileParser &parser)
+        {
+            std::map<std::string, std::map<std::string, std::vector<GenEntry>>> genInfo;
+            for(const auto &entry: m_genEntryList){
+                genInfo[entry.fileName][entry.monName].push_back(entry);
+            }
+
+            // create lua table
+            // for each map, print format:
+            // local monsterGenList = -- 道馆_01
+            // {
+            //     {
+            //         name = '鸡',
+            //         loc  = {
+            //             {x = 1, y = 2, r = 3, count = 4, time = 5, cratio = 6},
+            //             {x = 1, y = 2, r = 3, count = 4, time = 5, cratio = 6},
+            //             {x = 1, y = 2, r = 3, count = 4, time = 5, cratio = 6},
+            //         }
+            //     },
+            //     {
+            //         name = '羊',
+            //         loc  = {
+            //             {x = 1, y = 2, r = 3, count = 4, time = 5, cratio = 6},
+            //             {x = 1, y = 2, r = 3, count = 4, time = 5, cratio = 6},
+            //         }
+            //     },
+            // }
+
+            for(const auto &[file, monGenList]: genInfo){
+                const auto mapNameList = parser.hasMapName(file);
+                if(mapNameList.empty()){
+                    std::cout << str_printf("[ERROR] no map uses file: %s", file.c_str()) << std::endl;
+                }
+                else{
+                    for(const auto &mapName: mapNameList){
+                        printCode(str_printf("local monsterGenList = -- %s_%s%s", mapName.c_str(), file.c_str(), (mapNameList.size() > 1) ? " TODO" : ""));
+                        printCode(str_printf("{"));
+
+                        for(const auto &[monName, entryList]: monGenList){
+                            printCode(str_printf("    {"));
+                            printCode(str_printf("        name = '%s',", monName.c_str()));
+                            printCode(str_printf("        loc = {"));
+
+                            for(const auto &entry: entryList){
+                                printCode(str_printf("            {x = %d, y = %d, r = %d, count = %d, time = %d, cratio = %d},", entry.x, entry.y, entry.range, entry.num, entry.time, entry.cratio));
+                            }
+                            printCode(str_printf("        }"));
+                            printCode(str_printf("    },"));
+                        }
+                        printCode(str_printf("}"));
                     }
                 }
             }
         }
 };
-
-// static void printCodeLine(std::vector<std::string> s)
-// {
-//     static std::mutex lock;
-//     std::lock_guard<std::mutex> lockGuard(lock);
-//
-//     for(auto &line: s){
-//         while(!line.empty() && line.back() == ' '){
-//             line.pop_back();
-//         }
-//         std::cout << "##### <-|" << line << std::endl;
-//     }
-// }
 
 int main(int argc, char *argv[])
 {
@@ -203,5 +251,7 @@ int main(int argc, char *argv[])
 
     MapRecordFileParser mapParser(argv[1]);
     GenFileParser genParser(argv[2]);
+
+    genParser.print(mapParser);
     return 0;
 }
