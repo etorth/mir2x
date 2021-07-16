@@ -47,7 +47,7 @@ class MapInfoParser
 
     // this makes difficulty when there is switch point
     // we have to manually define which map exactly it needs to switch to
-    // MapInfoParser only record lines, it doesn't validate anything
+    // MapInfoParser only record lines, check if file exists, it doesn't validate anything
 
     public:
         struct MapEntry
@@ -81,12 +81,12 @@ class MapInfoParser
         std::vector<MiniMapEntry> m_miniMapEntryList;
 
     public:
-        MapInfoParser(const std::string &mapInfoFileName, const std::string &miniMapFileName)
+        MapInfoParser(const std::string &mapInfoFileName, const std::string &miniMapFileName, const std::vector<std::string> &mapFileList)
         {
             // do seperated parsing
             // otherwise map switch point could not find map name
 
-            parseMapFileName(mapInfoFileName);
+            parseMapFileName(mapInfoFileName, mapFileList);
             parseMapSwitchPoint(mapInfoFileName);
             parseMiniMapID(miniMapFileName);
         }
@@ -191,10 +191,15 @@ class MapInfoParser
         }
 
     private:
-        void parseMapFileName(const std::string &mapInfoFileName)
+        void parseMapFileName(const std::string &mapInfoFileName, const std::vector<std::string> &mapFileList)
         {
             std::ifstream f(mapInfoFileName);
             fflassert(f);
+
+            std::unordered_set<std::string> mapFileSet;
+            for(const auto &fileName: mapFileList){
+                mapFileSet.insert(utf8f::toupper(fileName));
+            }
 
             const std::regex expr(R"#(^.*?\[([0-9a-zA-Z_]+)\s+([^ ]+)\s+.*\].*\r*$)#");
             //                         --- - -------------     -----
@@ -220,8 +225,13 @@ class MapInfoParser
                         }
                     }
 
-                    m_mapEntryList.push_back(entry);
-                    std::cout << str_printf("[FILE] %s:%s", entry.mapName.c_str(), entry.fileName.c_str()) << std::endl;
+                    if(mapFileSet.count(entry.fileName + ".MAP")){
+                        m_mapEntryList.push_back(entry);
+                        std::cout << str_printf("[FILE] %s:%s", entry.mapName.c_str(), entry.fileName.c_str()) << std::endl;
+                    }
+                    else{
+                        std::cout << str_printf("[ERROR] no file in map dir: %s", entry.fileName.c_str()) << std::endl;
+                    }
                 }
             }
         }
@@ -471,9 +481,11 @@ int main(int argc, char *argv[])
     threadPool pool(std::stoi(argv[2]));
     threadPool::abortedTag hasDecodeError;
     std::vector<std::unique_ptr<ImageMapDB>> dbList(pool.poolSize);
-    const auto mapInfoParser = std::make_unique<MapInfoParser>(argv[5], argv[6]);
 
-    for(const auto &mapName: filesys::getFileList(argv[4], false, R"#(.*\.[mM][aA][pP]$)#")){
+    const auto mapFileList = filesys::getFileList(argv[4], false, R"#(.*\.[mM][aA][pP]$)#");
+    const auto mapInfoParser = std::make_unique<MapInfoParser>(argv[5], argv[6], mapFileList);
+
+    for(const auto &mapName: mapFileList){
         pool.addTask(hasDecodeError, [argv, mapName, &dbList, &mapInfoParser](int threadId)
         {
             // ImageMapDB is not thread safe
