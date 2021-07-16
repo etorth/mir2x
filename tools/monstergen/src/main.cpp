@@ -37,11 +37,6 @@
 //
 // linux file command shows incorrect encoding, need to use another command: chardet
 
-static void printCode(const std::string &s)
-{
-    std::cout << "[CODE] " << s << std::endl;
-}
-
 class MapRecordFileParser
 {
     public:
@@ -180,7 +175,7 @@ class GenFileParser
         }
 
     public:
-        void print(const MapRecordFileParser &parser)
+        void print(const MapRecordFileParser &parser, const std::string &outDir)
         {
             std::map<std::string, std::map<std::string, std::vector<GenEntry>>> genInfo;
             for(const auto &entry: m_genEntryList){
@@ -208,6 +203,7 @@ class GenFileParser
             //     },
             // }
 
+            std::vector<std::string> codeList;
             for(const auto &[file, monGenList]: genInfo){
                 const auto mapNameList = parser.hasMapName(file);
                 if(mapNameList.empty()){
@@ -215,21 +211,28 @@ class GenFileParser
                 }
                 else{
                     for(const auto &mapName: mapNameList){
-                        printCode(str_printf("local monsterGenList = -- %s_%s%s", mapName.c_str(), file.c_str(), (mapNameList.size() > 1) ? " TODO" : ""));
-                        printCode(str_printf("{"));
+                        codeList.clear();
+                        codeList.push_back(str_printf("local monsterGenList = -- %s_%s%s", mapName.c_str(), file.c_str(), (mapNameList.size() > 1) ? " TODO" : ""));
+                        codeList.push_back(str_printf("{"));
 
                         for(const auto &[monName, entryList]: monGenList){
-                            printCode(str_printf("    {"));
-                            printCode(str_printf("        name = '%s',", monName.c_str()));
-                            printCode(str_printf("        loc = {"));
+                            codeList.push_back(str_printf("    {"));
+                            codeList.push_back(str_printf("        name = '%s',", monName.c_str()));
+                            codeList.push_back(str_printf("        loc = {"));
 
                             for(const auto &entry: entryList){
-                                printCode(str_printf("            {x = %d, y = %d, r = %d, count = %d, time = %d, cratio = %d},", entry.x, entry.y, entry.range, entry.num, entry.time, entry.cratio));
+                                codeList.push_back(str_printf("            {x = %d, y = %d, r = %d, count = %d, time = %d, cratio = %d},", entry.x, entry.y, entry.range, entry.num, entry.time, entry.cratio));
                             }
-                            printCode(str_printf("        }"));
-                            printCode(str_printf("    },"));
+                            codeList.push_back(str_printf("        }"));
+                            codeList.push_back(str_printf("    },"));
                         }
-                        printCode(str_printf("}"));
+                        codeList.push_back(str_printf("}"));
+
+                        std::ofstream f(str_printf("%s/%s_%s.lua", outDir.c_str(), mapName.c_str(), file.c_str()));
+                        for(const auto &codeLine: codeList){
+                            std::cout << "[CODE] " << codeLine << std::endl;
+                            f << codeLine << std::endl;
+                        }
                     }
                 }
             }
@@ -240,18 +243,19 @@ int main(int argc, char *argv[])
 {
     if(argc == 1){
         std::cout << "monstergen"                                                  << std::endl;
-        std::cout << "      [1] maprecord.inc path  # maprecord.inc"               << std::endl;
-        std::cout << "      [2] monstergen dir      # Mon_Def_GB2312_to_utf8 path" << std::endl;
+        std::cout << "      [1] lua out dir         # out dir"                     << std::endl;
+        std::cout << "      [2] maprecord.inc path  # maprecord.inc"               << std::endl;
+        std::cout << "      [3] monstergen dir      # Mon_Def_GB2312_to_utf8 path" << std::endl;
         return 0;
     }
 
-    if(argc != 1 + 2 /* parameters listed above */){
+    if(argc != 1 + 3 /* parameters listed above */){
         throw fflerror("run \"%s\" without parameter to show supported options", argv[0]);
     }
 
-    MapRecordFileParser mapParser(argv[1]);
-    GenFileParser genParser(argv[2]);
+    MapRecordFileParser mapParser(argv[2]);
+    GenFileParser genParser(argv[3]);
 
-    genParser.print(mapParser);
+    genParser.print(mapParser, argv[1]);
     return 0;
 }
