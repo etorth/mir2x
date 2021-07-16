@@ -233,6 +233,10 @@ class GenFileParser
                             std::cout << "[CODE] " << codeLine << std::endl;
                             f << codeLine << std::endl;
                         }
+
+                        // generate monster gen code
+                        // only print this to lua file, not to stdout
+
                     }
                 }
             }
