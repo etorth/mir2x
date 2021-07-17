@@ -189,16 +189,16 @@ class GenFileParser
             //     {
             //         name = '鸡',
             //         loc  = {
-            //             {x = 1, y = 2, r = 3, count = 4, time = 5, cratio = 6},
-            //             {x = 1, y = 2, r = 3, count = 4, time = 5, cratio = 6},
-            //             {x = 1, y = 2, r = 3, count = 4, time = 5, cratio = 6},
+            //             {x = 1, y = 2, w = 3, h = 4, count = 4, time = 5, cratio = 6},
+            //             {x = 1, y = 2, w = 3, h = 4, count = 4, time = 5, cratio = 6},
+            //             {x = 1, y = 2, w = 3, h = 4, count = 4, time = 5, cratio = 6},
             //         }
             //     },
             //     {
             //         name = '羊',
             //         loc  = {
-            //             {x = 1, y = 2, r = 3, count = 4, time = 5, cratio = 6},
-            //             {x = 1, y = 2, r = 3, count = 4, time = 5, cratio = 6},
+            //             {x = 1, y = 2, w = 3, h = 4, count = 4, time = 5, cratio = 6},
+            //             {x = 1, y = 2, w = 3, h = 4, count = 4, time = 5, cratio = 6},
             //         }
             //     },
             // }
@@ -221,7 +221,7 @@ class GenFileParser
                             codeList.push_back(str_printf("        loc = {"));
 
                             for(const auto &entry: entryList){
-                                codeList.push_back(str_printf("            {x = %d, y = %d, r = %d, count = %d, time = %d, cratio = %d},", entry.x, entry.y, entry.range, entry.num, entry.time, entry.cratio));
+                                codeList.push_back(str_printf("            {x = %d, y = %d, w = %d, h = %d, count = %d, time = %d, cratio = %d},", entry.x, entry.y, entry.range, entry.range, entry.num, std::max<int>(10, entry.time * 60), entry.cratio));
                             }
                             codeList.push_back(str_printf("        }"));
                             codeList.push_back(str_printf("    },"));
