@@ -19,12 +19,14 @@
 #include "dbpod.hpp"
 #include "dbcomid.hpp"
 #include "mapbindb.hpp"
+#include "actorpool.hpp"
 #include "monoserver.hpp"
 #include "serverluamodule.hpp"
 #include "serverconfigurewindow.hpp"
 
 extern DBPod *g_dbPod;
 extern MapBinDB *g_mapBinDB;
+extern ActorPool *g_actorPool;
 extern MonoServer *g_monoServer;
 extern ServerConfigureWindow *g_serverConfigureWindow;
 
@@ -40,6 +42,11 @@ ServerLuaModule::ServerLuaModule()
             return cfgScriptPath;
         }
     }().c_str()));
+
+    m_luaState.set_function("isUIDAlive", [](std::string uidString)
+    {
+        return g_actorPool->checkUIDValid(uidf::toUIDEx(uidString));
+    });
 
     m_luaState.set_function("randMapGLoc", [](std::string mapName)
     {
