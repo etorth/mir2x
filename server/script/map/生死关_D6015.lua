@@ -28,7 +28,7 @@ local addMonCo = addmon.monGener( -- 生死关_D6015
     {
         name = '触龙神',
         loc = {
-            {x = 83, y = 168, w = 0, h = 0, count = 1, time = 18000, cratio = 0},
+            {x = 83, y = 168, w = 1, h = 1, count = 1, time = 18000, cratio = 0},
         }
     },
     {

@@ -46,7 +46,7 @@ local addMonCo = addmon.monGener( -- 祖玛教主宫廷_D515
     {
         name = '祖玛教主',
         loc = {
-            {x = 19, y = 24, w = 0, h = 0, count = 1, time = 18000, cratio = 0},
+            {x = 19, y = 24, w = 1, h = 1, count = 1, time = 18000, cratio = 0},
         }
     },
     {

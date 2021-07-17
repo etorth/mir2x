@@ -25,6 +25,7 @@
 #include <iostream>
 #include <algorithm>
 #include "strf.hpp"
+#include "mathf.hpp"
 #include "utf8f.hpp"
 #include "totype.hpp"
 #include "filesys.hpp"
@@ -222,7 +223,7 @@ class GenFileParser
                             codeList.push_back(str_printf("        loc = {"));
 
                             for(const auto &entry: entryList){
-                                codeList.push_back(str_printf("            {x = %d, y = %d, w = %d, h = %d, count = %d, time = %d, cratio = %d},", entry.x, entry.y, entry.range, entry.range, entry.num, std::max<int>(10, entry.time * 60), entry.cratio));
+                                codeList.push_back(str_printf("            {x = %d, y = %d, w = %d, h = %d, count = %d, time = %d, cratio = %d},", entry.x, entry.y, std::max<int>(1, entry.range), std::max<int>(1, entry.range), std::max<int>(1, entry.num), std::max<int>(10, entry.time * 60), mathf::bound<int>(entry.cratio, 0, 100)));
                             }
                             codeList.push_back(str_printf("        }"));
                             codeList.push_back(str_printf("    },"));

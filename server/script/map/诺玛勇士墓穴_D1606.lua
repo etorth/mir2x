@@ -16,7 +16,7 @@ local addMonCo = addmon.monGener( -- 诺玛勇士墓穴_D1606
     {
         name = '诺玛教主',
         loc = {
-            {x = 31, y = 41, w = 0, h = 0, count = 1, time = 14400, cratio = 0},
+            {x = 31, y = 41, w = 1, h = 1, count = 1, time = 14400, cratio = 0},
         }
     },
     {

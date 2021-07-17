@@ -184,11 +184,11 @@ local addMonCo = addmon.monGener( -- 比奇县_0
     {
         name = '圣诞树1',
         loc = {
-            {x = 450, y = 393, w = 0, h = 0, count = 1, time = 3600, cratio = 0},
-            {x = 465, y = 372, w = 0, h = 0, count = 1, time = 3600, cratio = 0},
-            {x = 434, y = 375, w = 0, h = 0, count = 1, time = 3600, cratio = 0},
-            {x = 471, y = 406, w = 0, h = 0, count = 1, time = 3600, cratio = 0},
-            {x = 422, y = 402, w = 0, h = 0, count = 1, time = 3600, cratio = 0},
+            {x = 450, y = 393, w = 1, h = 1, count = 1, time = 3600, cratio = 0},
+            {x = 465, y = 372, w = 1, h = 1, count = 1, time = 3600, cratio = 0},
+            {x = 434, y = 375, w = 1, h = 1, count = 1, time = 3600, cratio = 0},
+            {x = 471, y = 406, w = 1, h = 1, count = 1, time = 3600, cratio = 0},
+            {x = 422, y = 402, w = 1, h = 1, count = 1, time = 3600, cratio = 0},
         }
     },
     {

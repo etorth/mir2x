@@ -34,7 +34,7 @@ local addMonCo = addmon.monGener( -- 赤月恶魔洞穴_D10162
     {
         name = '赤月恶魔',
         loc = {
-            {x = 23, y = 18, w = 0, h = 0, count = 1, time = 18000, cratio = 0},
+            {x = 23, y = 18, w = 1, h = 1, count = 1, time = 18000, cratio = 0},
         }
     },
     {
