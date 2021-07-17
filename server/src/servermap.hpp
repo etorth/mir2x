@@ -222,8 +222,12 @@ class ServerMap final: public ServerObject
         bool removeGridUID(uint64_t, int, int);
 
     private:
-        [[maybe_unused]] std::tuple<bool, int, int> GetValidGrid(bool, bool, int) const;
-        [[maybe_unused]] std::tuple<bool, int, int> GetValidGrid(bool, bool, int, int, int) const;
+        [[maybe_unused]] std::optional<std::tuple<int, int>> getRCGLoc(bool, bool, int, int, int, int, int, int, int) const;
+
+    private:
+        [[maybe_unused]] std::optional<std::tuple<int, int>> GetValidGrid(bool, bool, int) const;
+        [[maybe_unused]] std::optional<std::tuple<int, int>> GetValidGrid(bool, bool, int, int, int) const;
+        [[maybe_unused]] std::optional<std::tuple<int, int>> GetValidGrid(bool, bool, int, int, int, int, int) const;
 
     private:
         void notifyNewCO(uint64_t, int, int);

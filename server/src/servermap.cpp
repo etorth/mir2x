@@ -597,40 +597,60 @@ double ServerMap::OneStepCost(int nCheckCO, int nCheckLock, int nX0, int nY0, in
     return 1.00 + nMaxIndex * 0.10 + fExtraPen;
 }
 
-std::tuple<bool, int, int> ServerMap::GetValidGrid(bool bCheckCO, bool bCheckLock, int nCheckCount) const
+std::optional<std::tuple<int, int>> ServerMap::getRCGLoc(bool checkCO, bool checkLock, int checkCount, int centerX, int centerY, int regionX, int regionY, int regionW, int regionH) const
 {
-    for(int nIndex = 0; (nCheckCount <= 0) || (nIndex < nCheckCount); ++nIndex){
-        int nX = std::rand() % W();
-        int nY = std::rand() % H();
+    fflassert(regionW > 0);
+    fflassert(regionH > 0);
 
-        if(In(ID(), nX, nY) && canMove(bCheckCO, bCheckLock, nX, nY)){
-            return {true, nX, nY};
-        }
-    }
-    return {false, -1, -1};
-}
+    int roiX = regionX;
+    int roiY = regionY;
+    int roiW = regionW;
+    int roiH = regionH;
 
-std::tuple<bool, int, int> ServerMap::GetValidGrid(bool bCheckCO, bool bCheckLock, int nCheckCount, int nX, int nY) const
-{
-    if(!In(ID(), nX, nY)){
-        throw fflerror("invalid location: (%d, %d)", nX, nY);
+    if(!mathf::rectangleOverlapRegion<int>(0, 0, W(), H(), roiX, roiY, roiW, roiH)){
+        throw fflerror("invalid region: x = %d, y = %d, w = %d, h = %d", regionX, regionY, regionW, regionH);
     }
 
-    RotateCoord rc(nX, nY, 0, 0, W(), H());
-    for(int nIndex = 0; (nCheckCount <= 0) || (nIndex < nCheckCount); ++nIndex){
+    RotateCoord rc
+    {
+        centerX,
+        centerY,
+        roiX,
+        roiY,
+        roiW,
+        roiH,
+    };
 
-        int nCurrX = rc.x();
-        int nCurrY = rc.y();
+    for(int i = 0; (checkCount <= 0) || (i < checkCount); ++i){
+        const int currX = rc.x();
+        const int currY = rc.y();
 
-        if(In(ID(), nCurrX, nCurrY) && canMove(bCheckCO, bCheckLock, nCurrX, nCurrY)){
-            return {true, nCurrX, nCurrY};
+        if(In(ID(), currX, currY) && canMove(checkCO, checkLock, currX, currY)){
+            return std::make_tuple(currX, currY);
         }
 
         if(!rc.forward()){
-            return {false, -1, -1};
+            break;
         }
     }
-    return {false, -1, -1};
+    return {};
+}
+
+std::optional<std::tuple<int, int>> ServerMap::GetValidGrid(bool checkCO, bool checkLock, int checkCount) const
+{
+    return GetValidGrid(checkCO, checkLock, checkCount, 0, 0, W(), H());
+}
+
+std::optional<std::tuple<int, int>> ServerMap::GetValidGrid(bool checkCO, bool checkLock, int checkCount, int startX, int startY) const
+{
+    return getRCGLoc(checkCO, checkLock, checkCount, startX, startY, 0, 0, W(), H());
+}
+
+std::optional<std::tuple<int, int>> ServerMap::GetValidGrid(bool checkCO, bool checkLock, int checkCount, int regionX, int regionY, int regionW, int regionH) const
+{
+    fflassert(regionW > 0);
+    fflassert(regionH > 0);
+    return getRCGLoc(checkCO, checkLock, checkCount, regionX + std::rand() % regionW, regionY + std::rand() % regionH, regionX, regionY, regionW, regionH);
 }
 
 void ServerMap::addGridUID(uint64_t uid, int nX, int nY, bool bForce)
@@ -1005,7 +1025,8 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
         nHintY = std::rand() % H();
     }
 
-    if(auto [bDstOK, nDstX, nDstY] = GetValidGrid(false, false, to_d(bStrictLoc), nHintX, nHintY); bDstOK){
+    if(const auto loc = GetValidGrid(false, false, to_d(bStrictLoc), nHintX, nHintY); loc.has_value()){
+        const auto [nDstX, nDstY] = loc.value();
         Monster *monsterPtr = nullptr;
         switch(nMonsterID){
             case DBCOM_MONSTERID(u8"变异骷髅"):
@@ -1143,7 +1164,7 @@ Player *ServerMap::addPlayer(const SDInitPlayer &initPlayer)
         nHintY = std::rand() % H();
     }
 
-    if(auto [bDstOK, nDstX, nDstY] = GetValidGrid(false, false, to_d(bStrictLoc), nHintX, nHintY); bDstOK){
+    if(const auto loc = GetValidGrid(false, false, to_d(bStrictLoc), nHintX, nHintY); loc.has_value()){
         auto playerPtr = new Player
         {
             initPlayer,

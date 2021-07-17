@@ -198,13 +198,13 @@ void ServerMap::on_AM_TRYSPACEMOVE(const ActorMsgPack &mpk)
         nDstY = std::rand() % H();
     }
 
-    bool bDstOK = false;
-    std::tie(bDstOK, nDstX, nDstY) = GetValidGrid(false, false, amTSM.StrictMove ? 1 : 100, nDstX, nDstY);
-
-    if(!bDstOK){
+    const auto loc = GetValidGrid(false, false, amTSM.StrictMove ? 1 : 100, nDstX, nDstY);
+    if(!loc.has_value()){
         m_actorPod->forward(mpk.from(), AM_ERROR, mpk.seqID());
         return;
     }
+
+    std::tie(nDstX, nDstY) = loc.value();
 
     AMSpaceMoveOK amSMOK;
     std::memset(&amSMOK, 0, sizeof(amSMOK));
