@@ -22,11 +22,22 @@ local addmon = {}
 
 function addmon.monGener(monGenList)
     assertType(monGenList, 'table')
-    for _, genList in pairs(monGenList) do
-        for _, locInfo in pairs(genList.loc) do
-            locInfo.uidList = {}                            -- add extra entry: UIDs created by this locInfo
-            locInfo.lastUpdateTime = -1000 * locInfo.time   -- add extra entry: hack
+
+    local badNameKeyList = {}
+    for i, genList in pairs(monGenList) do
+        if getMonsterID(genList.name) == 0 then
+            addLog(LOGTYPE_WARNING, 'invalid monster name: %s', genList.name)
+            table.insert(badNameKeyList, i)
+        else
+            for _, locInfo in pairs(genList.loc) do
+                locInfo.uidList = {}                            -- add extra entry: UIDs created by this locInfo
+                locInfo.lastUpdateTime = -1000 * locInfo.time   -- add extra entry: hack
+            end
         end
+    end
+
+    for _, badNameKey in pairs(badNameKeyList) do
+        monGenList[badNameKey] = nil
     end
 
     return coroutine.create(function()
