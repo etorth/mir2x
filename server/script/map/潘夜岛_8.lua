@@ -14,12 +14,6 @@
 --
 -- =====================================================================================
 
-addLog(LOGTYPE_INFO, string.format('Map %s sources %s', getMapName(), getFileName()))
-
-local logicDelay = 1000
-local monsterList = {'鸡', '猪', '牛' , '鹿', '稻草人', '钉耙猫', '狼', '食人花', '多钩猫', '毒蜘蛛'}
-local maxMonsterCount = math.floor(getCanThroughGridCount() / 64)
-
 addGuard('大刀卫士', 269, 292, DIR_DOWNRIGHT)
 addGuard('大刀卫士', 260, 302, DIR_DOWNRIGHT)
 addGuard('大刀卫士', 234, 293, DIR_UPRIGHT)
@@ -35,16 +29,56 @@ addGuard('大刀卫士', 281, 225, DIR_DOWNRIGHT)
 addGuard('大刀卫士', 271, 263, DIR_DOWNRIGHT)
 addGuard('大刀卫士', 263, 269, DIR_UPRIGHT)
 
+local addmon = require('map.addmonster')
+local addMonCo = addmon.monGener( -- 潘夜岛_8
+{
+    {
+        name = '夜行鬼09',
+        loc = {
+            {x = 400, y = 400, w = 200, h = 200, count = 200, time = 1200, cratio = 0},
+        }
+    },
+    {
+        name = '浪子人鬼',
+        loc = {
+            {x = 700, y = 300, w = 90, h = 90, count = 310, time = 600, cratio = 0},
+            {x = 500, y = 500, w = 90, h = 90, count = 315, time = 600, cratio = 0},
+            {x = 300, y = 700, w = 90, h = 90, count = 315, time = 600, cratio = 0},
+            {x = 500, y = 700, w = 90, h = 90, count = 315, time = 600, cratio = 0},
+        }
+    },
+    {
+        name = '浪子人鬼0',
+        loc = {
+            {x = 700, y = 300, w = 90, h = 90, count = 2, time = 3600, cratio = 0},
+            {x = 500, y = 500, w = 90, h = 90, count = 2, time = 3600, cratio = 0},
+            {x = 300, y = 700, w = 90, h = 90, count = 2, time = 3600, cratio = 0},
+            {x = 500, y = 700, w = 90, h = 90, count = 2, time = 3600, cratio = 0},
+        }
+    },
+    {
+        name = '腐蚀人鬼',
+        loc = {
+            {x = 100, y = 300, w = 90, h = 90, count = 310, time = 600, cratio = 0},
+            {x = 100, y = 500, w = 90, h = 90, count = 310, time = 600, cratio = 0},
+            {x = 300, y = 500, w = 90, h = 90, count = 315, time = 600, cratio = 0},
+            {x = 700, y = 500, w = 90, h = 90, count = 315, time = 600, cratio = 0},
+        }
+    },
+    {
+        name = '腐蚀人鬼0',
+        loc = {
+            {x = 100, y = 300, w = 90, h = 90, count = 2, time = 3600, cratio = 0},
+            {x = 100, y = 500, w = 90, h = 90, count = 2, time = 3600, cratio = 0},
+            {x = 300, y = 500, w = 90, h = 90, count = 2, time = 3600, cratio = 0},
+            {x = 700, y = 500, w = 90, h = 90, count = 2, time = 3600, cratio = 0},
+        }
+    },
+})
+
 function main()
     while true do
-        local monsterCount = getMonsterCount(0)
-        if monsterCount < maxMonsterCount then
-            for i = 1, math.min(50, maxMonsterCount - monsterCount) do
-                local x, y = getRandLoc()
-                local monsterName = monsterList[math.random(#monsterList)]
-                addMonster(monsterName, x, y, true)
-            end
-        end
-        asyncWait(logicDelay)
+        coroutine.resume(addMonCo)
+        asyncWait(1000 * 5)
     end
 end

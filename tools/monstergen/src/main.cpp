@@ -212,7 +212,8 @@ class GenFileParser
                 else{
                     for(const auto &mapName: mapNameList){
                         codeList.clear();
-                        codeList.push_back(str_printf("local monsterGenList = -- %s_%s%s", mapName.c_str(), file.c_str(), (mapNameList.size() > 1) ? " TODO" : ""));
+                        codeList.push_back(str_printf("local addmon = require('map.addmonster')"));
+                        codeList.push_back(str_printf("local addMonCo = addmon.monGener( -- %s_%s%s", mapName.c_str(), file.c_str(), (mapNameList.size() > 1) ? " TODO" : ""));
                         codeList.push_back(str_printf("{"));
 
                         for(const auto &[monName, entryList]: monGenList){
@@ -226,17 +227,21 @@ class GenFileParser
                             codeList.push_back(str_printf("        }"));
                             codeList.push_back(str_printf("    },"));
                         }
-                        codeList.push_back(str_printf("}"));
+                        codeList.push_back(str_printf("})"));
+                        codeList.push_back({});
+
+                        codeList.push_back(str_printf("function main()"));
+                        codeList.push_back(str_printf("    while true do"));
+                        codeList.push_back(str_printf("        coroutine.resume(addMonCo)"));
+                        codeList.push_back(str_printf("        asyncWait(1000 * 5)"));
+                        codeList.push_back(str_printf("    end"));
+                        codeList.push_back(str_printf("end"));
 
                         std::ofstream f(str_printf("%s/%s_%s.lua", outDir.c_str(), mapName.c_str(), file.c_str()));
                         for(const auto &codeLine: codeList){
                             std::cout << "[CODE] " << codeLine << std::endl;
                             f << codeLine << std::endl;
                         }
-
-                        // generate monster gen code
-                        // only print this to lua file, not to stdout
-
                     }
                 }
             }

@@ -14,12 +14,6 @@
 --
 -- =====================================================================================
 
-addLog(LOGTYPE_INFO, string.format('Map %s sources %s', getMapName(), getFileName()))
-
-local logicDelay = 1000
-local monsterList = {'鸡', '猪', '牛' , '鹿', '稻草人', '钉耙猫', '狼', '食人花', '多钩猫', '毒蜘蛛'}
-local maxMonsterCount = math.floor(getCanThroughGridCount() / 64)
-
 addGuard('沙漠战士', 240, 166, DIR_DOWNLEFT)
 addGuard('沙漠战士', 237, 163, DIR_DOWNLEFT)
 addGuard('沙漠战士', 208, 167, DIR_DOWNRIGHT)
@@ -39,16 +33,25 @@ addGuard('沙漠战士', 138, 192, DIR_UPLEFT)
 addGuard('沙漠战士', 199, 279, DIR_DOWNRIGHT)
 addGuard('沙漠战士', 207, 271, DIR_DOWNRIGHT)
 
+local addmon = require('map.addmonster')
+local addMonCo = addmon.monGener( -- 沙漠土城_5
+{
+    {
+        name = '羊',
+        loc = {
+            {x = 150, y = 50, w = 40, h = 40, count = 10, time = 1800, cratio = 0},
+            {x = 150, y = 150, w = 40, h = 40, count = 10, time = 1800, cratio = 0},
+            {x = 150, y = 250, w = 40, h = 40, count = 10, time = 1800, cratio = 0},
+            {x = 250, y = 50, w = 40, h = 40, count = 10, time = 1800, cratio = 0},
+            {x = 250, y = 150, w = 40, h = 40, count = 10, time = 1800, cratio = 0},
+            {x = 250, y = 250, w = 40, h = 40, count = 10, time = 1800, cratio = 0},
+        }
+    },
+})
+
 function main()
     while true do
-        local monsterCount = getMonsterCount(0)
-        if monsterCount < maxMonsterCount then
-            for i = 1, math.min(50, maxMonsterCount - monsterCount) do
-                local x, y = getRandLoc()
-                local monsterName = monsterList[math.random(#monsterList)]
-                addMonster(monsterName, x, y, true)
-            end
-        end
-        asyncWait(logicDelay)
+        coroutine.resume(addMonCo)
+        asyncWait(1000 * 5)
     end
 end

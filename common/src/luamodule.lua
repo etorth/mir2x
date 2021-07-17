@@ -33,6 +33,28 @@ function argDef(arg, def)
     end
 end
 
+function assertType(var, typestr)
+    if type(typestr) ~= 'string' then
+        fatalPrintf('invalid type string, expect string, get %s)', type(typestr))
+    end
+
+    if type(var) == 'number' then
+        if math.type(var) ~= typestr then
+            fatalPrintf('assertion failed: expect type(var) as %s, get %s', math.type(var), typestr)
+        end
+    else
+        if type(var) ~= typestr then
+            fatalPrintf('assertion failed: expect type(var) as %s, get %s', type(var), typestr)
+        end
+    end
+end
+
+function assertValue(var, value)
+    if var ~= value then
+        fatalPrintf('assertion failed: expect [%s](%s), get [%s](%s)', type(var), tostring(value), type(value), tostring(var))
+    end
+end
+
 function asString(arg)
     typeStr = type(arg)
     if typeStr == 'nil' or typeStr == 'number' or typeStr == 'boolean' or typeStr == 'string' then

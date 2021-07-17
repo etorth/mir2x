@@ -14,7 +14,7 @@
 --
 -- =====================================================================================
 
-addLog(LOGTYPE_INFO, string.format('Map %s sources %s', getMapName(), getFileName()))
+addLog(LOGTYPE_INFO, 'Map %s sources default script %s', getMapName(), getFileName())
 
 local logicDelay = 1000
 local monsterList = {'虎卫', '红蛇', '虎蛇'}
