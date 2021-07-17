@@ -108,16 +108,30 @@ ServerMap::ServerMapLuaModule::ServerMapLuaModule(ServerMap *mapPtr)
     getLuaState().set_function("randGLoc", [mapPtr](sol::variadic_args args)
     {
         const std::vector<sol::object> argList(args.begin(), args.end());
-        const auto locopt = [&argList, mapPtr]()
+        const auto [useFullMap, regionX, regionY, regionW, regionH] = [&argList, mapPtr]() -> std::tuple<bool, int, int, int, int>
         {
             switch(argList.size()){
                 case 0:
                     {
-                        return mapPtr->GetValidGrid(false, false, -1);
+                        return
+                        {
+                            true,
+                            0,
+                            0,
+                            mapPtr->W(),
+                            mapPtr->H(),
+                        };
                     }
                 case 4:
                     {
-                        return mapPtr->GetValidGrid(false, false, -1, argList[0].as<int>(), argList[1].as<int>(), argList[2].as<int>(), argList[3].as<int>());
+                        return
+                        {
+                            false,
+                            argList[0].as<int>(),
+                            argList[1].as<int>(),
+                            argList[2].as<int>(),
+                            argList[3].as<int>(),
+                        };
                     }
                 default:
                     {
@@ -126,16 +140,23 @@ ServerMap::ServerMapLuaModule::ServerMapLuaModule(ServerMap *mapPtr)
             }
         }();
 
-        if(!locopt.has_value()){
-            throw fflerror("no valid grid in provided region");
+        if(const auto locopt = mapPtr->GetValidGrid(false, false, -1, regionX, regionY, regionW, regionH); locopt.has_value()){
+            return sol::as_returns(std::array<int, 2>
+            {
+                std::get<0>(locopt.value()),
+                std::get<1>(locopt.value()),
+            });
         }
 
-        std::array<int, 2> loc
-        {
-            std::get<0>(locopt.value()),
-            std::get<1>(locopt.value()),
-        };
-        return sol::as_returns(loc);
+        // give detailed failure message
+        // need it to validate map monster gen coroutine
+
+        if(useFullMap){
+            throw fflerror("no valid grid on map: map = %s", to_cstr(DBCOM_MAPRECORD(mapPtr->ID()).name));
+        }
+        else{
+            throw fflerror("no valid grid in region: map = %s, x = %d, y = %d, w = %d, h = %d", to_cstr(DBCOM_MAPRECORD(mapPtr->ID()).name), regionX, regionY, regionW, regionH);
+        }
     });
 
     getLuaState().set_function("getMonsterCount", [mapPtr](sol::variadic_args args) -> int

@@ -51,7 +51,6 @@ local addMonCo = addmon.monGener( -- 绿洲_4
             {x = 332, y = 598, w = 66, h = 66, count = 5, time = 600, cratio = 0},
             {x = 332, y = 731, w = 66, h = 66, count = 5, time = 600, cratio = 0},
             {x = 465, y = 332, w = 66, h = 66, count = 5, time = 600, cratio = 0},
-            {x = 465, y = 465, w = 66, h = 66, count = 5, time = 600, cratio = 0},
             {x = 465, y = 731, w = 66, h = 66, count = 5, time = 600, cratio = 0},
         }
     },
@@ -72,7 +71,6 @@ local addMonCo = addmon.monGener( -- 绿洲_4
             {x = 332, y = 598, w = 66, h = 66, count = 5, time = 600, cratio = 0},
             {x = 332, y = 731, w = 66, h = 66, count = 5, time = 600, cratio = 0},
             {x = 465, y = 332, w = 66, h = 66, count = 5, time = 600, cratio = 0},
-            {x = 465, y = 465, w = 66, h = 66, count = 5, time = 600, cratio = 0},
             {x = 465, y = 731, w = 66, h = 66, count = 5, time = 600, cratio = 0},
         }
     },
@@ -95,7 +93,6 @@ local addMonCo = addmon.monGener( -- 绿洲_4
             {x = 199, y = 465, w = 66, h = 66, count = 1, time = 3600, cratio = 0},
             {x = 332, y = 465, w = 66, h = 66, count = 1, time = 3600, cratio = 0},
             {x = 332, y = 598, w = 66, h = 66, count = 1, time = 3600, cratio = 0},
-            {x = 465, y = 465, w = 66, h = 66, count = 1, time = 3600, cratio = 0},
         }
     },
     {
@@ -127,7 +124,6 @@ local addMonCo = addmon.monGener( -- 绿洲_4
             {x = 332, y = 598, w = 66, h = 66, count = 20, time = 600, cratio = 0},
             {x = 332, y = 731, w = 66, h = 66, count = 20, time = 600, cratio = 0},
             {x = 465, y = 332, w = 66, h = 66, count = 20, time = 600, cratio = 0},
-            {x = 465, y = 465, w = 66, h = 66, count = 20, time = 600, cratio = 0},
             {x = 465, y = 731, w = 66, h = 66, count = 20, time = 600, cratio = 0},
         }
     },
@@ -155,7 +151,6 @@ local addMonCo = addmon.monGener( -- 绿洲_4
             {x = 332, y = 598, w = 66, h = 66, count = 20, time = 600, cratio = 0},
             {x = 332, y = 731, w = 66, h = 66, count = 20, time = 600, cratio = 0},
             {x = 465, y = 332, w = 66, h = 66, count = 20, time = 600, cratio = 0},
-            {x = 465, y = 465, w = 66, h = 66, count = 20, time = 600, cratio = 0},
             {x = 465, y = 731, w = 66, h = 66, count = 20, time = 600, cratio = 0},
         }
     },
@@ -183,7 +178,6 @@ local addMonCo = addmon.monGener( -- 绿洲_4
             {x = 332, y = 598, w = 66, h = 66, count = 5, time = 600, cratio = 0},
             {x = 332, y = 731, w = 66, h = 66, count = 5, time = 600, cratio = 0},
             {x = 465, y = 332, w = 66, h = 66, count = 5, time = 600, cratio = 0},
-            {x = 465, y = 465, w = 66, h = 66, count = 5, time = 600, cratio = 0},
             {x = 465, y = 731, w = 66, h = 66, count = 5, time = 600, cratio = 0},
         }
     },
@@ -212,7 +206,6 @@ local addMonCo = addmon.monGener( -- 绿洲_4
             {x = 332, y = 598, w = 66, h = 66, count = 5, time = 600, cratio = 0},
             {x = 332, y = 731, w = 66, h = 66, count = 5, time = 600, cratio = 0},
             {x = 465, y = 332, w = 66, h = 66, count = 5, time = 600, cratio = 0},
-            {x = 465, y = 465, w = 66, h = 66, count = 5, time = 600, cratio = 0},
             {x = 465, y = 731, w = 66, h = 66, count = 5, time = 600, cratio = 0},
         }
     },

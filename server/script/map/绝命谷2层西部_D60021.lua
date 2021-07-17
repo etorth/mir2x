@@ -28,7 +28,7 @@ local addMonCo = addmon.monGener( -- 绝命谷2层西部_D60021
     {
         name = '邪恶钳虫',
         loc = {
-            {x = 150, y = 150, w = 150, h = 150, count = 1, time = 7200, cratio = 0},
+            {x = 100, y = 100, w = 100, h = 100, count = 1, time = 7200, cratio = 0},
         }
     },
     {

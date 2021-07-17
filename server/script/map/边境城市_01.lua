@@ -88,7 +88,6 @@ local addMonCo = addmon.monGener( -- 边境城市_01
             {x = 450, y = 550, w = 50, h = 50, count = 3, time = 1200, cratio = 0},
             {x = 550, y = 50, w = 50, h = 50, count = 3, time = 1200, cratio = 0},
             {x = 550, y = 150, w = 50, h = 50, count = 3, time = 1200, cratio = 0},
-            {x = 550, y = 250, w = 50, h = 50, count = 3, time = 1200, cratio = 0},
             {x = 550, y = 450, w = 50, h = 50, count = 3, time = 1200, cratio = 0},
             {x = 550, y = 550, w = 50, h = 50, count = 3, time = 1200, cratio = 0},
             {x = 100, y = 300, w = 100, h = 100, count = 50, time = 300, cratio = 0},
@@ -121,7 +120,6 @@ local addMonCo = addmon.monGener( -- 边境城市_01
         loc = {
             {x = 450, y = 250, w = 50, h = 50, count = 30, time = 600, cratio = 0},
             {x = 450, y = 350, w = 50, h = 50, count = 30, time = 600, cratio = 0},
-            {x = 550, y = 250, w = 50, h = 50, count = 30, time = 600, cratio = 0},
         }
     },
     {
@@ -137,7 +135,6 @@ local addMonCo = addmon.monGener( -- 边境城市_01
         loc = {
             {x = 450, y = 250, w = 50, h = 50, count = 30, time = 600, cratio = 0},
             {x = 450, y = 350, w = 50, h = 50, count = 30, time = 600, cratio = 0},
-            {x = 550, y = 250, w = 50, h = 50, count = 30, time = 600, cratio = 0},
         }
     },
     {
@@ -195,7 +192,6 @@ local addMonCo = addmon.monGener( -- 边境城市_01
         loc = {
             {x = 450, y = 250, w = 50, h = 50, count = 30, time = 600, cratio = 0},
             {x = 450, y = 350, w = 50, h = 50, count = 30, time = 600, cratio = 0},
-            {x = 550, y = 250, w = 50, h = 50, count = 30, time = 600, cratio = 0},
         }
     },
     {
