@@ -89,7 +89,7 @@ ServerMap::ServerMapLuaModule::ServerMapLuaModule(ServerMap *mapPtr)
         return gridCount;
     });
 
-    getLuaState().set_function("getRandLoc", [mapPtr]() /* -> ? */
+    getLuaState().set_function("getRandLoc", [mapPtr]()
     {
         std::array<int, 2> loc;
         while(true){
@@ -102,6 +102,39 @@ ServerMap::ServerMapLuaModule::ServerMapLuaModule(ServerMap *mapPtr)
                 break;
             }
         }
+        return sol::as_returns(loc);
+    });
+
+    getLuaState().set_function("randGLoc", [mapPtr](sol::variadic_args args)
+    {
+        const std::vector<sol::object> argList(args.begin(), args.end());
+        const auto locopt = [&argList, mapPtr]()
+        {
+            switch(argList.size()){
+                case 0:
+                    {
+                        return mapPtr->GetValidGrid(false, false, -1);
+                    }
+                case 4:
+                    {
+                        return mapPtr->GetValidGrid(false, false, -1, argList[0].as<int>(), argList[1].as<int>(), argList[2].as<int>(), argList[3].as<int>());
+                    }
+                default:
+                    {
+                        throw fflerror("invalid argument count: %zu", argList.size());
+                    }
+            }
+        }();
+
+        if(!locopt.has_value()){
+            throw fflerror("no valid grid in provided region");
+        }
+
+        std::array<int, 2> loc
+        {
+            std::get<0>(locopt.value()),
+            std::get<1>(locopt.value()),
+        };
         return sol::as_returns(loc);
     });
 
