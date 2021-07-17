@@ -77,7 +77,10 @@ local addMonCo = addmon.monGener( -- 南部矿山_D431 TODO
 
 function main()
     while true do
-        coroutine.resume(addMonCo)
+        local rc, errMsg = coroutine.resume(addMonCo)
+        if not rc then
+            fatalPrintf('addMonCo failed: %s', argDef(errMsg, 'unknown error'))
+        end
         asyncWait(1000 * 5)
     end
 end

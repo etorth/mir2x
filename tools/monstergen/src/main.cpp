@@ -233,7 +233,10 @@ class GenFileParser
 
                         codeList.push_back(str_printf("function main()"));
                         codeList.push_back(str_printf("    while true do"));
-                        codeList.push_back(str_printf("        coroutine.resume(addMonCo)"));
+                        codeList.push_back(str_printf("        local rc, errMsg = coroutine.resume(addMonCo)"));
+                        codeList.push_back(str_printf("        if not rc then"));
+                        codeList.push_back(str_printf("            fatalPrintf('addMonCo failed: %%s', argDef(errMsg, 'unknown error'))"));
+                        codeList.push_back(str_printf("        end"));
                         codeList.push_back(str_printf("        asyncWait(1000 * 5)"));
                         codeList.push_back(str_printf("    end"));
                         codeList.push_back(str_printf("end"));

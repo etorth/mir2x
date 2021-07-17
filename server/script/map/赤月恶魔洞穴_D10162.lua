@@ -53,7 +53,10 @@ local addMonCo = addmon.monGener( -- 赤月恶魔洞穴_D10162
 
 function main()
     while true do
-        coroutine.resume(addMonCo)
+        local rc, errMsg = coroutine.resume(addMonCo)
+        if not rc then
+            fatalPrintf('addMonCo failed: %s', argDef(errMsg, 'unknown error'))
+        end
         asyncWait(1000 * 5)
     end
 end

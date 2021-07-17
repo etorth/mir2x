@@ -35,7 +35,10 @@ local addMonCo = addmon.monGener( -- 潘夜神殿3层东部_D11032
 
 function main()
     while true do
-        coroutine.resume(addMonCo)
+        local rc, errMsg = coroutine.resume(addMonCo)
+        if not rc then
+            fatalPrintf('addMonCo failed: %s', argDef(errMsg, 'unknown error'))
+        end
         asyncWait(1000 * 5)
     end
 end
