@@ -136,8 +136,17 @@ ServerMap::ServerMapLuaModule::ServerMapLuaModule(ServerMap *mapPtr)
         return -1;
     });
 
-    getLuaState().set_function("addMonster", [mapPtr](sol::object monInfo, sol::variadic_args args) -> bool
+    getLuaState().set_function("addMonster", [mapPtr](sol::object monInfo, sol::variadic_args args, sol::this_state s) -> sol::object
     {
+        sol::state_view sv(s);
+        const auto fnGetLuaUIDString = [&sv](const Monster *monPtr) -> sol::object
+        {
+            if(monPtr){
+                return sol::object(sv, sol::in_place_type<std::string>, std::to_string(monPtr->UID()));
+            }
+            return sol::make_object(sv, sol::nil);
+        };
+
         const uint32_t monID = [&monInfo]() -> uint32_t
         {
             if(monInfo.is<int>()){
@@ -152,14 +161,14 @@ ServerMap::ServerMapLuaModule::ServerMapLuaModule(ServerMap *mapPtr)
         }();
 
         if(!monID){
-            return false;
+            return fnGetLuaUIDString(nullptr);
         }
 
         const std::vector<sol::object> argList(args.begin(), args.end());
         switch(argList.size()){
             case 0:
                 {
-                    return mapPtr->addMonster(monID, 0, -1, -1, false);
+                    return fnGetLuaUIDString(mapPtr->addMonster(monID, 0, -1, -1, false));
                 }
             case 2:
                 {
@@ -167,10 +176,9 @@ ServerMap::ServerMapLuaModule::ServerMapLuaModule(ServerMap *mapPtr)
                             && argList[0].is<int>()
                             && argList[1].is<int>()){
 
-                        auto nX = argList[0].as<int>();
-                        auto nY = argList[1].as<int>();
-
-                        return mapPtr->addMonster(monID, 0, nX, nY, false);
+                        const auto nX = argList[0].as<int>();
+                        const auto nY = argList[1].as<int>();
+                        return fnGetLuaUIDString(mapPtr->addMonster(monID, 0, nX, nY, false));
                     }
                     break;
                 }
@@ -184,8 +192,7 @@ ServerMap::ServerMapLuaModule::ServerMapLuaModule(ServerMap *mapPtr)
                         const auto nX = argList[0].as<int >();
                         const auto nY = argList[1].as<int >();
                         const auto bStrictLoc = argList[2].as<bool>();
-
-                        return mapPtr->addMonster(monID, 0, nX, nY, bStrictLoc);
+                        return fnGetLuaUIDString(mapPtr->addMonster(monID, 0, nX, nY, bStrictLoc));
                     }
                     break;
                 }
@@ -194,8 +201,7 @@ ServerMap::ServerMapLuaModule::ServerMapLuaModule(ServerMap *mapPtr)
                     break;
                 }
         }
-
-        return false;
+        return fnGetLuaUIDString(nullptr);
     });
 
     getLuaState().set_function("addGuard", [mapPtr](std::string type, int x, int y, int direction) -> bool
