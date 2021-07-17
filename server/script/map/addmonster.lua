@@ -1,6 +1,7 @@
 local addmon = {}
 
--- local monsterGenList = -- 道馆_1
+-- input monster gen table sample format:
+-- local monGenList = -- 道馆_1
 -- {
 --     {
 --         name = '半兽人',
@@ -21,48 +22,54 @@ local addmon = {}
 
 function addmon.monGener(monGenList)
     assertType(monGenList, 'table')
-    for i, genList in ipairs(monGenList) do
-        genList.uidList = {}
-        genList.lastUpdateTime = 0
+    for _, genList in pairs(monGenList) do
+        for _, locInfo in pairs(genList.loc) do
+            locInfo.uidList = {}                            -- add extra entry: UIDs created by this locInfo
+            locInfo.lastUpdateTime = -1000 * locInfo.time   -- add extra entry: hack
+        end
     end
 
-    return coroutine.create(function ()
+    return coroutine.create(function()
         while true do
-            coroutine.yield()
             local currTime = getTime()
-            for i, genList in ipairs(monGenList) do
-                if currTime > genList.lastUpdateTime + genList.time then
-                    -- seems lua remove a key is pretty complicated
-                    -- see: https://stackoverflow.com/questions/12394841/safely-remove-items-from-an-array-table-while-iterating
-                    local keyList = {}
-                    for j, uidString in pairs(genList.uidList) do
-                        if not isUIDAlive(uidString) then
-                            table.insert(keyList, j)
+            for _, genList in pairs(monGenList) do
+                for _, locInfo in pairs(genList.loc) do
+                    if currTime > locInfo.lastUpdateTime + locInfo.time * 1000 then
+                        -- seems lua remove a key is pretty complicated
+                        -- see: https://stackoverflow.com/questions/12394841/safely-remove-items-from-an-array-table-while-iterating
+                        local deadKeyList = {}
+                        for ikey, uidString in pairs(locInfo.uidList) do
+                            if not isUIDAlive(uidString) then
+                                table.insert(deadKeyList, ikey)
+                            end
                         end
-                    end
 
-                    for _, ikey in pairs(keyList) do
-                        genList.uidList[ikey] = nil
-                    end
-
-                    local aliveMonCount = 0
-                    for _, _ in pairs(genList.uidList) do
-                        aliveMonCount = aliveMonCount + 1
-                    end
-
-                    local needCount = genList.count - aliveMonCount
-                    while needCount > 0 do
-                        local addX, addY = randGLoc(genList.x, genList.y, genList.w, genList.h)
-                        local uidString = addMonster(genList.name, addX, addY, true)
-
-                        if uidString ~= nil then
-                            table.insert(genList.uidList, uidString)
-                            needCount = needCount - 1
+                        for _, ikey in pairs(deadKeyList) do
+                            locInfo.uidList[ikey] = nil
                         end
+
+                        local aliveMonCount = 0
+                        for _, _ in pairs(locInfo.uidList) do
+                            aliveMonCount = aliveMonCount + 1
+                        end
+
+                        local needCount = locInfo.count - aliveMonCount
+                        while needCount > 0 do
+                            local addX, addY = randGLoc(locInfo.x, locInfo.y, locInfo.w, locInfo.h)
+                            local uidString = addMonster(genList.name, addX, addY, true)
+
+                            if uidString ~= nil then
+                                table.insert(locInfo.uidList, uidString)
+                                needCount = needCount - 1
+                            end
+                        end
+                        locInfo.lastUpdateTime = currTime
                     end
                 end
             end
+            coroutine.yield()
         end
     end)
 end
+
 return addmon
