@@ -3,7 +3,7 @@
  *
  *       Filename: mathf.hpp
  *        Created: 02/02/2016 20:50:30
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -173,10 +173,15 @@ namespace mathf
         return LDistance2(nfX, nfY, nfCX, nfCY) <= nfR * nfR;
     }
 
+    template<typename T> bool segmentOverlap(T nfX1, T nfW1, T nfX2, T nfW2)
+    {
+        static_assert(std::is_arithmetic<T>::value);
+        return !(nfX1 >= nfX2 + nfW2 || nfX2 >= nfX1 + nfW1);
+    }
+
     template<typename T> bool rectangleOverlap(T nfX1, T nfY1, T nfW1, T nfH1, T nfX2, T nfY2, T nfW2, T nfH2)
     {
-        static_assert(std::is_arithmetic<T>::value, "Arithmetic type required...");
-        return !((nfX1 >= nfX2 + nfW2) || (nfX1 + nfW1 < nfX2) || (nfY1 >= nfY2 + nfH2) || (nfY1 + nfH1 < nfY2));
+        return segmentOverlap<T>(nfX1, nfW1, nfX2, nfW2) && segmentOverlap<T>(nfY1, nfH1, nfY2, nfH2);
     }
 
     // check whether R2 is inside R1
@@ -217,7 +222,7 @@ namespace mathf
 
     template<typename T> bool rectangleOverlapRegion(T nfX1, T nfY1, T nfW1, T nfH1, T &nfX2, T &nfY2, T &nfW2, T &nfH2)
     {
-        if(!rectangleOverlap(nfX1, nfY1, nfW1, nfH1, nfX2, nfY2, nfW2, nfH2)){
+        if(!rectangleOverlap<T>(nfX1, nfY1, nfW1, nfH1, nfX2, nfY2, nfW2, nfH2)){
             return false;
         }
 

@@ -662,7 +662,7 @@ std::optional<std::tuple<int, int>> ServerMap::getRCGLoc(bool checkCO, bool chec
     int roiH = regionH;
 
     if(!mathf::rectangleOverlapRegion<int>(0, 0, W(), H(), roiX, roiY, roiW, roiH)){
-        throw fflerror("invalid region: x = %d, y = %d, w = %d, h = %d", regionX, regionY, regionW, regionH);
+        throw fflerror("invalid region: map = %s, x = %d, y = %d, w = %d, h = %d", to_cstr(DBCOM_MAPRECORD(ID()).name), regionX, regionY, regionW, regionH);
     }
 
     RotateCoord rc

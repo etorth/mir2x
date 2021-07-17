@@ -4,7 +4,7 @@ local addMonCo = addmon.monGener( -- 北部矿山入口_D431 TODO
     {
         name = '僧侣僵尸',
         loc = {
-            {x = 200, y = 200, w = 180, h = 180, count = 10, time = 600, cratio = 0},
+            {x = 0, y = 0, w = 180, h = 180, count = 10, time = 600, cratio = 0},
         }
     },
     {
@@ -70,7 +70,7 @@ local addMonCo = addmon.monGener( -- 北部矿山入口_D431 TODO
     {
         name = '雷电僵尸',
         loc = {
-            {x = 200, y = 200, w = 180, h = 180, count = 10, time = 600, cratio = 0},
+            {x = 0, y = 0, w = 180, h = 180, count = 10, time = 600, cratio = 0},
         }
     },
 })
