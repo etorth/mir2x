@@ -60,7 +60,7 @@ class ServiceCore final: public ServerObject
         void on_AM_QUERYMAPUID(const ActorMsgPack &);
         void on_AM_QUERYMAPLIST(const ActorMsgPack &);
         void on_AM_QUERYCOCOUNT(const ActorMsgPack &);
-        void on_AM_ADDCHAROBJECT(const ActorMsgPack &);
+        void on_AM_ADDCO(const ActorMsgPack &);
 
     private:
         void net_CM_Login  (uint32_t, uint8_t, const uint8_t *, size_t);

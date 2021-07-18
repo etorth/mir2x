@@ -90,7 +90,7 @@ void ServerMap::on_AM_ACTION(const ActorMsgPack &rstMPK)
     });
 }
 
-void ServerMap::on_AM_ADDCHAROBJECT(const ActorMsgPack &rstMPK)
+void ServerMap::on_AM_ADDCO(const ActorMsgPack &rstMPK)
 {
     const auto amACO = rstMPK.conv<AMAddCharObject>();
     const auto nX = amACO.x;

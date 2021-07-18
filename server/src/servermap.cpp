@@ -531,9 +531,9 @@ void ServerMap::operateAM(const ActorMsgPack &rstMPK)
                 on_AM_CASTFIREWALL(rstMPK);
                 break;
             }
-        case AM_ADDCHAROBJECT:
+        case AM_ADDCO:
             {
-                on_AM_ADDCHAROBJECT(rstMPK);
+                on_AM_ADDCO(rstMPK);
                 break;
             }
         case AM_PULLCOINFO:

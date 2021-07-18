@@ -720,7 +720,7 @@ void NPChar::postAddMonster(uint32_t monsterID)
     amACO.monster.monsterID = monsterID;
     amACO.monster.masterUID = 0;
 
-    m_actorPod->forward(m_map->UID(), {AM_ADDCHAROBJECT, amACO}, [](const ActorMsgPack &rmpk)
+    m_actorPod->forward(m_map->UID(), {AM_ADDCO, amACO}, [](const ActorMsgPack &rmpk)
     {
         switch(rmpk.type()){
             case AM_OK:

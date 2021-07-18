@@ -97,7 +97,7 @@ void ServiceCore::net_CM_Login(uint32_t channID, uint8_t, const uint8_t *buf, si
     amACO.buf.size = dbBuf.length();
     std::copy(dbBuf.begin(), dbBuf.end(), amACO.buf.data);
 
-    m_actorPod->forward(mapPtr->UID(), {AM_ADDCHAROBJECT, amACO}, [this, fnOnLoginFail](const ActorMsgPack &rmpk)
+    m_actorPod->forward(mapPtr->UID(), {AM_ADDCO, amACO}, [this, fnOnLoginFail](const ActorMsgPack &rmpk)
     {
         switch(rmpk.type()){
             case AM_OK:

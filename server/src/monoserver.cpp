@@ -486,7 +486,7 @@ bool MonoServer::addMonster(uint32_t monsterID, uint32_t mapID, int x, int y, bo
     amACO.monster.masterUID = 0;
     addLog(LOGTYPE_INFO, "Try to add monster, monsterID = %llu", to_llu(monsterID));
 
-    switch(auto stRMPK = SyncDriver().forward(uidf::getServiceCoreUID(), {AM_ADDCHAROBJECT, amACO}, 0, 0); stRMPK.type()){
+    switch(auto stRMPK = SyncDriver().forward(uidf::getServiceCoreUID(), {AM_ADDCO, amACO}, 0, 0); stRMPK.type()){
         case AM_OK:
             {
                 addLog(LOGTYPE_INFO, "Add monster succeeds");
@@ -542,7 +542,7 @@ bool MonoServer::addNPChar(const char *scriptPath)
     std::memcpy(amACO.buf.data, buf.data(), buf.length());
     addLog(LOGTYPE_INFO, "Try to add NPC, script: %s", to_cstr(scriptPath));
 
-    switch(auto rmpk = SyncDriver().forward(uidf::getServiceCoreUID(), {AM_ADDCHAROBJECT, amACO}, 0, 0); rmpk.type()){
+    switch(auto rmpk = SyncDriver().forward(uidf::getServiceCoreUID(), {AM_ADDCO, amACO}, 0, 0); rmpk.type()){
         case AM_OK:
             {
                 addLog(LOGTYPE_INFO, "Add NPC succeeds");

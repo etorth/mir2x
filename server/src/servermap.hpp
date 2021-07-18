@@ -419,7 +419,7 @@ class ServerMap final: public ServerObject
         void on_AM_QUERYCOCOUNT(const ActorMsgPack &);
         void on_AM_TRYSPACEMOVE(const ActorMsgPack &);
         void on_AM_CASTFIREWALL(const ActorMsgPack &);
-        void on_AM_ADDCHAROBJECT(const ActorMsgPack &);
+        void on_AM_ADDCO(const ActorMsgPack &);
         void on_AM_STRIKEFIXEDLOCDAMAGE(const ActorMsgPack &);
 
     private:

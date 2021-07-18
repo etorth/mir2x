@@ -49,9 +49,9 @@ void ServiceCore::operateAM(const ActorMsgPack &rstMPK)
                 on_AM_METRONOME(rstMPK);
                 break;
             }
-        case AM_ADDCHAROBJECT:
+        case AM_ADDCO:
             {
-                on_AM_ADDCHAROBJECT(rstMPK);
+                on_AM_ADDCO(rstMPK);
                 break;
             }
         case AM_RECVPACKAGE:

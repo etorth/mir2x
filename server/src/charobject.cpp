@@ -992,7 +992,7 @@ void CharObject::addMonster(uint32_t monsterID, int x, int y, bool strictLoc)
     amACO.monster.monsterID = monsterID;
     amACO.monster.masterUID = UID();
 
-    m_actorPod->forward(uidf::getServiceCoreUID(), {AM_ADDCHAROBJECT, amACO}, [](const ActorMsgPack &rstRMPK)
+    m_actorPod->forward(uidf::getServiceCoreUID(), {AM_ADDCO, amACO}, [](const ActorMsgPack &rstRMPK)
     {
         switch(rstRMPK.seqID()){
             default:

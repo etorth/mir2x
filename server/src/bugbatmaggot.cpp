@@ -33,7 +33,7 @@ void BugbatMaggot::addBat()
     amACO.monster.monsterID = DBCOM_MONSTERID(u8"蝙蝠");
     amACO.monster.masterUID = 0;
 
-    m_actorPod->forward(m_map->UID(), {AM_ADDCHAROBJECT, amACO}, [](const ActorMsgPack &rmpk)
+    m_actorPod->forward(m_map->UID(), {AM_ADDCO, amACO}, [](const ActorMsgPack &rmpk)
     {
         switch(rmpk.type()){
             case AM_OK:

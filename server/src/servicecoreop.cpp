@@ -44,7 +44,7 @@ void ServiceCore::on_AM_METRONOME(const ActorMsgPack &)
 {
 }
 
-void ServiceCore::on_AM_ADDCHAROBJECT(const ActorMsgPack &rstMPK)
+void ServiceCore::on_AM_ADDCO(const ActorMsgPack &rstMPK)
 {
     const auto amACO = rstMPK.conv<AMAddCharObject>();
     if(!amACO.mapID){
@@ -64,7 +64,7 @@ void ServiceCore::on_AM_ADDCHAROBJECT(const ActorMsgPack &rstMPK)
         return;
     }
 
-    m_actorPod->forward(pMap->UID(), {AM_ADDCHAROBJECT, amACO}, [this, amACO, rstMPK](const ActorMsgPack &rstRMPK)
+    m_actorPod->forward(pMap->UID(), {AM_ADDCO, amACO}, [this, amACO, rstMPK](const ActorMsgPack &rstRMPK)
     {
         switch(rstRMPK.type()){
             case AM_OK:
