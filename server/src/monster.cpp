@@ -255,7 +255,10 @@ void Monster::attackUID(uint64_t nUID, int nDC, std::function<void()> onOK, std:
             return;
         }
 
-        m_direction = PathFind::GetDirection(X(), Y(), coLoc.x, coLoc.y);
+        if(const auto newDir = PathFind::GetDirection(X(), Y(), coLoc.x, coLoc.y); directionValid(newDir)){
+            m_direction = newDir;
+        }
+
         if(!canAttack()){
             if(onError){
                 onError();
