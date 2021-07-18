@@ -86,7 +86,6 @@ local addMonCo = addmon.monGener( -- 毒蛇山谷_2
             {x = 250, y = 50, w = 50, h = 50, count = 3, time = 1200, cratio = 0},
             {x = 250, y = 150, w = 50, h = 50, count = 3, time = 1200, cratio = 0},
             {x = 250, y = 250, w = 50, h = 50, count = 3, time = 1200, cratio = 0},
-            {x = 250, y = 350, w = 50, h = 50, count = 3, time = 1200, cratio = 0},
             {x = 350, y = 50, w = 50, h = 50, count = 3, time = 1200, cratio = 0},
             {x = 350, y = 150, w = 50, h = 50, count = 3, time = 1200, cratio = 0},
             {x = 50, y = 150, w = 50, h = 50, count = 13, time = 300, cratio = 0},
