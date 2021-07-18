@@ -105,6 +105,68 @@ ServerMap::ServerMapLuaModule::ServerMapLuaModule(ServerMap *mapPtr)
         return sol::as_returns(loc);
     });
 
+    getLuaState().set_function("countGLoc", [fullCount = -1, mapPtr](sol::variadic_args args) mutable
+    {
+        const std::vector<sol::object> argList(args.begin(), args.end());
+        const auto [useFullMap, regionX, regionY, regionW, regionH] = [&argList, mapPtr]() -> std::tuple<bool, int, int, int, int>
+        {
+            switch(argList.size()){
+                case 0:
+                    {
+                        return
+                        {
+                            true,
+                            0,
+                            0,
+                            mapPtr->W(),
+                            mapPtr->H(),
+                        };
+                    }
+                case 4:
+                    {
+                        return
+                        {
+                            false,
+                            argList[0].as<int>(),
+                            argList[1].as<int>(),
+                            argList[2].as<int>(),
+                            argList[3].as<int>(),
+                        };
+                    }
+                default:
+                    {
+                        throw fflerror("invalid argument count: %zu", argList.size());
+                    }
+            }
+        }();
+
+        fflassert(regionW > 0);
+        fflassert(regionH > 0);
+
+        int roiX = regionX;
+        int roiY = regionY;
+        int roiW = regionW;
+        int roiH = regionH;
+
+        if(!mathf::rectangleOverlapRegion<int>(0, 0, mapPtr->W(), mapPtr->H(), roiX, roiY, roiW, roiH)){
+            throw fflerror("invalid region: map = %s, x = %d, y = %d, w = %d, h = %d", to_cstr(DBCOM_MAPRECORD(mapPtr->ID()).name), regionX, regionY, regionW, regionH);
+        }
+
+        int count = 0;
+        for(int yi = roiY; yi < roiY + roiH; ++yi){
+            for(int xi = roiX; xi < roiX + roiW; ++xi){
+                if(mapPtr->groundValid(xi, yi)){
+                    count++;
+                }
+            }
+        }
+
+        if(useFullMap){
+            fullCount = count; // cache
+        }
+        return count;
+    });
+
     getLuaState().set_function("randGLoc", [mapPtr](sol::variadic_args args)
     {
         const std::vector<sol::object> argList(args.begin(), args.end());

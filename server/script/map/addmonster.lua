@@ -29,10 +29,34 @@ function addmon.monGener(monGenList)
             addLog(LOGTYPE_WARNING, 'invalid monster name: %s', genList.name)
             table.insert(badNameKeyList, i)
         else
-            for _, locInfo in pairs(genList.loc) do
-                locInfo.count = 1
-                locInfo.uidList = {}                            -- add extra entry: UIDs created by this locInfo
-                locInfo.lastUpdateTime = -1000 * locInfo.time   -- add extra entry: hack
+            local badRectKeyList = {}
+            for j, locInfo in pairs(genList.loc) do
+                locInfo.uidList = {}
+                locInfo.lastUpdateTime = -1000 * locInfo.time -- hack for init
+                locInfo.gridCount = countGLoc(locInfo.x, locInfo.y, locInfo.w, locInfo.h)
+
+                if locInfo.gridCount < 0 or locInfo.gridCount > locInfo.w * locInfo.h then
+                    fatalPrintf('invalid grid count: count = %d, x = %d, y = %d, w = %d, h = %d', locInfo.gridCount, locInfo.x, locInfo.y, locInfo.w, locInfo.h)
+                end
+
+                if locInfo.gridCount == 0 then
+                    addLog(LOGTYPE_WARNING, 'region has no valid grid: map = %s, x = %d, y = %d, w = %d, h = %d', getMapName(), locInfo.x, locInfo.y, locInfo.w, locInfo.h)
+                    table.insert(badRectKeyList, j)
+                end
+            end
+
+            for _, badRectKey in pairs(badRectKeyList) do
+                genList.loc[badRectKey] = nil
+            end
+
+            local locCount = 0
+            for _, _ in pairs(genList.loc) do
+                locCount = locCount + 1
+            end
+
+            if locCount == 0 then
+                addLog(LOGTYPE_WARNING, 'skip monster %s on map %s because there is no valid gen location', genList.name, getMapName())
+                table.insert(badNameKeyList, i)
             end
         end
     end
@@ -65,7 +89,9 @@ function addmon.monGener(monGenList)
                             aliveMonCount = aliveMonCount + 1
                         end
 
-                        local needCount = locInfo.count - aliveMonCount
+                        local regionMaxCount = math.max(1, math.floor(locInfo.count * (locInfo.gridCount / (locInfo.w * locInfo.h))))
+                        local needCount = regionMaxCount - aliveMonCount
+
                         while needCount > 0 do
                             local addX, addY = randGLoc(locInfo.x, locInfo.y, locInfo.w, locInfo.h)
                             local uidString = addMonster(genList.name, addX, addY, true)
