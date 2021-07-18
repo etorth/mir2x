@@ -89,7 +89,10 @@ function addmon.monGener(monGenList)
                             aliveMonCount = aliveMonCount + 1
                         end
 
-                        local regionMaxCount = math.max(1, math.floor(locInfo.count * (locInfo.gridCount / (locInfo.w * locInfo.h))))
+                        -- density: how many grids needs per monster
+                        -- this is not exact, some monster can create more monsters
+                        local monsterMaxDensity = 8
+                        local regionMaxCount = math.max(1, math.min(math.floor(locInfo.gridCount / monsterMaxDensity), locInfo.count))
                         local needCount = regionMaxCount - aliveMonCount
 
                         while needCount > 0 do
