@@ -115,8 +115,8 @@ std::vector<SDItem> getMonsterDropItemList(uint32_t monsterID)
                     return 0;
                 }
 
-                fflassert(serverConfig.equipmentRate >= 0.0);
-                return std::max<int>(1, std::lround(dropItem.probRecip / serverConfig.equipmentRate));
+                fflassert(serverConfig.dropRate >= 0.0);
+                return std::max<int>(1, std::lround(dropItem.probRecip / serverConfig.dropRate));
             }();
 
             if((dropItem.probRecip > 0) && ((std::rand() % adjProbRecip) == 0)){

@@ -31,7 +31,7 @@ class ServerConfig {} {
   }
   decl {double experienceRate = 1.0;} {public local
   }
-  decl {double equipmentRate = 1.0;} {public local
+  decl {double dropRate = 1.0;} {public local
   }
   decl {double goldRate = 1.0;} {public local
   }
@@ -62,7 +62,7 @@ class ServerConfigureWindow {} {
         xywh {172 61 273 24} labelfont 4 textfont 4
       }
       Fl_Value_Input m_equipmentRate {
-        label {Equipment Rate: }
+        label {Drop Rate: }
         xywh {172 221 60 24} labelfont 4 minimum 1024 maximum 10000 value 1 textfont 4
       }
       Fl_Value_Input m_m_experienceRate {
@@ -229,7 +229,7 @@ m_window->hide();}
         };
 
         fnAssignPositiveDouble(m_m_experienceRate->value(), "experience rate", m_config.experienceRate);
-        fnAssignPositiveDouble(m_equipmentRate->value(), "equipment rate", m_config.equipmentRate);
+        fnAssignPositiveDouble(m_equipmentRate->value(), "drop rate", m_config.dropRate);
         fnAssignPositiveDouble(m_goldRate->value(), "gold rate", m_config.goldRate);
 }} {}
   }
