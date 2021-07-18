@@ -723,16 +723,19 @@ void NPChar::postAddMonster(uint32_t monsterID)
     m_actorPod->forward(m_map->UID(), {AM_ADDCO, amACO}, [](const ActorMsgPack &rmpk)
     {
         switch(rmpk.type()){
-            case AM_OK:
+            case AM_UID:
                 {
-                    return;
+                    if(const auto amUID = rmpk.conv<AMUID>(); amUID.UID){
+                        return;
+                    }
+                    break;
                 }
             default:
                 {
-                    g_monoServer->addLog(LOGTYPE_WARNING, "NPC failed to add monster");
-                    return;
+                    break;
                 }
         }
+        g_monoServer->addLog(LOGTYPE_WARNING, "NPC failed to add monster");
     });
 }
 

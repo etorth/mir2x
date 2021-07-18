@@ -487,22 +487,22 @@ bool MonoServer::addMonster(uint32_t monsterID, uint32_t mapID, int x, int y, bo
     addLog(LOGTYPE_INFO, "Try to add monster, monsterID = %llu", to_llu(monsterID));
 
     switch(auto stRMPK = SyncDriver().forward(uidf::getServiceCoreUID(), {AM_ADDCO, amACO}, 0, 0); stRMPK.type()){
-        case AM_OK:
+        case AM_UID:
             {
-                addLog(LOGTYPE_INFO, "Add monster succeeds");
-                return true;
-            }
-        case AM_ERROR:
-            {
-                addLog(LOGTYPE_WARNING, "Add monster failed");
-                return false;
+                if(const auto amUID = stRMPK.conv<AMUID>(); amUID.UID){
+                    addLog(LOGTYPE_INFO, "Add monster succeeds");
+                    return true;
+                }
+                break;
             }
         default:
             {
-                addLog(LOGTYPE_WARNING, "Unsupported message: %s", mpkName(stRMPK.type()));
-                return false;
+                break;
             }
     }
+
+    addLog(LOGTYPE_WARNING, "Add monster failed");
+    return false;
 }
 
 bool MonoServer::addNPChar(const char *scriptPath)
@@ -543,21 +543,22 @@ bool MonoServer::addNPChar(const char *scriptPath)
     addLog(LOGTYPE_INFO, "Try to add NPC, script: %s", to_cstr(scriptPath));
 
     switch(auto rmpk = SyncDriver().forward(uidf::getServiceCoreUID(), {AM_ADDCO, amACO}, 0, 0); rmpk.type()){
-        case AM_OK:
+        case AM_UID:
             {
-                addLog(LOGTYPE_INFO, "Add NPC succeeds");
-                return true;
-            }
-        case AM_ERROR:
-            {
-                addLog(LOGTYPE_WARNING, "Add NPC failed");
-                return false;
+                if(const auto amUID = rmpk.conv<AMUID>(); amUID.UID){
+                    addLog(LOGTYPE_INFO, "Add NPC succeeds");
+                    return true;
+                }
+                break;
             }
         default:
             {
-                throw fflerror("unsupported message: %s", mpkName(rmpk.type()));
+                break;
             }
     }
+
+    addLog(LOGTYPE_WARNING, "Add NPC failed");
+    return false;
 }
 
 std::vector<int> MonoServer::GetMapList()

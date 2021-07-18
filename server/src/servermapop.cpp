@@ -17,6 +17,7 @@
  */
 #include <cinttypes>
 #include "player.hpp"
+#include "npchar.hpp"
 #include "dbcomid.hpp"
 #include "monster.hpp"
 #include "strf.hpp"
@@ -97,18 +98,20 @@ void ServerMap::on_AM_ADDCO(const ActorMsgPack &rstMPK)
     const auto nY = amACO.y;
     const bool bStrictLoc = amACO.strictLoc;
 
+    AMUID amUID;
+    std::memset(&amUID, 0, sizeof(amUID));
+
     switch(amACO.type){
         case UID_MON:
             {
                 const auto nMonsterID = amACO.monster.monsterID;
                 const auto nMasterUID = amACO.monster.masterUID;
 
-                if(addMonster(nMonsterID, nMasterUID, nX, nY, bStrictLoc)){
-                    m_actorPod->forward(rstMPK.from(), AM_OK, rstMPK.seqID());
-                    return;
+                if(auto monPtr = addMonster(nMonsterID, nMasterUID, nX, nY, bStrictLoc)){
+                    amUID.UID = monPtr->UID();
                 }
 
-                m_actorPod->forward(rstMPK.from(), AM_ERROR, rstMPK.seqID());
+                m_actorPod->forward(rstMPK.from(), {AM_UID, amUID}, rstMPK.seqID());
                 return;
             }
         case UID_PLY:
@@ -119,7 +122,6 @@ void ServerMap::on_AM_ADDCO(const ActorMsgPack &rstMPK)
                     std::memset(&amBC, 0, sizeof(amBC));
                     amBC.channID = initParam.channID;
 
-                    m_actorPod->forward(rstMPK.from(), AM_OK, rstMPK.seqID());
                     m_actorPod->forward(playerPtr->UID(), {AM_BINDCHANNEL, amBC});
                     doCircle(nX, nY, 20, [this](int nX, int nY) -> bool
                     {
@@ -128,16 +130,15 @@ void ServerMap::on_AM_ADDCO(const ActorMsgPack &rstMPK)
                         }
                         return false;
                     });
-                    return;
+                    amUID.UID = playerPtr->UID();
                 }
 
-                m_actorPod->forward(rstMPK.from(), AM_ERROR, rstMPK.seqID());
+                m_actorPod->forward(rstMPK.from(), {AM_UID, amUID}, rstMPK.seqID());
                 return;
             }
         case UID_NPC:
             {
-                if(addNPChar(cerealf::deserialize<SDInitNPChar>(amACO.buf.data, amACO.buf.size))){
-                    m_actorPod->forward(rstMPK.from(), AM_OK, rstMPK.seqID());
+                if(auto npcPtr = addNPChar(cerealf::deserialize<SDInitNPChar>(amACO.buf.data, amACO.buf.size))){
                     doCircle(nX, nY, 20, [this](int nX, int nY) -> bool
                     {
                         if(true || validC(nX, nY)){
@@ -145,10 +146,10 @@ void ServerMap::on_AM_ADDCO(const ActorMsgPack &rstMPK)
                         }
                         return false;
                     });
-                    return;
+                    amUID.UID = npcPtr->UID();
                 }
 
-                m_actorPod->forward(rstMPK.from(), AM_ERROR, rstMPK.seqID());
+                m_actorPod->forward(rstMPK.from(), {AM_UID, amUID}, rstMPK.seqID());
                 return;
             }
         default:

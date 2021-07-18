@@ -100,16 +100,19 @@ void ServiceCore::net_CM_Login(uint32_t channID, uint8_t, const uint8_t *buf, si
     m_actorPod->forward(mapPtr->UID(), {AM_ADDCO, amACO}, [this, fnOnLoginFail](const ActorMsgPack &rmpk)
     {
         switch(rmpk.type()){
-            case AM_OK:
+            case AM_UID:
                 {
+                    if(const auto amUID = rmpk.conv<AMUID>(); amUID.UID){
+                        return;
+                    }
                     break;
                 }
             default:
                 {
-                    fnOnLoginFail(LOGINERR_UNKNOWN);
                     break;
                 }
         }
+        fnOnLoginFail(LOGINERR_UNKNOWN);
     });
 }
 

@@ -66,18 +66,7 @@ void ServiceCore::on_AM_ADDCO(const ActorMsgPack &rstMPK)
 
     m_actorPod->forward(pMap->UID(), {AM_ADDCO, amACO}, [this, amACO, rstMPK](const ActorMsgPack &rstRMPK)
     {
-        switch(rstRMPK.type()){
-            case AM_OK:
-                {
-                    m_actorPod->forward(rstMPK.from(), AM_OK, rstMPK.seqID());
-                    break;
-                }
-            default:
-                {
-                    m_actorPod->forward(rstMPK.from(), AM_ERROR, rstMPK.seqID());
-                    break;
-                }
-        }
+        m_actorPod->forward(rstMPK.from(), {rstRMPK.type(), rstRMPK.data()}, rstMPK.seqID());
     });
 }
 

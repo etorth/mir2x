@@ -994,7 +994,7 @@ void CharObject::addMonster(uint32_t monsterID, int x, int y, bool strictLoc)
 
     m_actorPod->forward(uidf::getServiceCoreUID(), {AM_ADDCO, amACO}, [](const ActorMsgPack &rstRMPK)
     {
-        switch(rstRMPK.seqID()){
+        switch(rstRMPK.type()){
             default:
                 {
                     break;

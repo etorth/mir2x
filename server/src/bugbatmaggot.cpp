@@ -33,11 +33,14 @@ void BugbatMaggot::addBat()
     amACO.monster.monsterID = DBCOM_MONSTERID(u8"蝙蝠");
     amACO.monster.masterUID = 0;
 
-    m_actorPod->forward(m_map->UID(), {AM_ADDCO, amACO}, [](const ActorMsgPack &rmpk)
+    m_actorPod->forward(m_map->UID(), {AM_ADDCO, amACO}, [this](const ActorMsgPack &rmpk)
     {
         switch(rmpk.type()){
-            case AM_OK:
+            case AM_UID:
                 {
+                    if(const auto amUID = rmpk.conv<AMUID>(); amUID.UID){
+                        m_batUIDList.insert(amUID.UID);
+                    }
                     return;
                 }
             default:
@@ -51,15 +54,25 @@ void BugbatMaggot::addBat()
 corof::long_jmper BugbatMaggot::updateCoroFunc()
 {
     while(HP() > 0){
-        dispatchAction(ActionAttack
-        {
-            .x = X(),
-            .y = Y(),
-        });
+        for(auto p = m_batUIDList.begin(); p != m_batUIDList.end();){
+            if(m_actorPod->checkUIDValid(*p)){
+                p++;
+            }
+            else{
+                p = m_batUIDList.erase(p);
+            }
+        }
 
-        co_await corof::async_wait(600);
-        addBat();
+        if(m_batUIDList.size() < m_maxBatCount){
+            dispatchAction(ActionAttack
+            {
+                .x = X(),
+                .y = Y(),
+            });
 
+            co_await corof::async_wait(600);
+            addBat();
+        }
         co_await corof::async_wait(2000);
     }
 
