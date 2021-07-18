@@ -105,12 +105,6 @@ local addMonCo = addmon.monGener( -- 沙巴克城_3
         }
     },
     {
-        name = '葛贰厘面0',
-        loc = {
-            {x = 300, y = 300, w = 250, h = 250, count = 1, time = 7200, cratio = 0},
-        }
-    },
-    {
         name = '虎蛇',
         loc = {
             {x = 300, y = 300, w = 250, h = 250, count = 15, time = 600, cratio = 0},
