@@ -35,7 +35,7 @@ local addMonCo = addmon.monGener( -- 盟重县_74
         }
     },
     {
-        name = '威思而小虫',
+        name = '威思尔小虫',
         loc = {
             {x = 300, y = 300, w = 250, h = 250, count = 20, time = 600, cratio = 0},
         }
@@ -47,7 +47,7 @@ local addMonCo = addmon.monGener( -- 盟重县_74
         }
     },
     {
-        name = '沙漠威思而小虫',
+        name = '沙漠威思尔小虫',
         loc = {
             {x = 300, y = 300, w = 250, h = 250, count = 20, time = 600, cratio = 0},
         }

@@ -26,7 +26,7 @@ local addMonCo = addmon.monGener( -- 祖玛神殿_31
         }
     },
     {
-        name = '威思而小虫',
+        name = '威思尔小虫',
         loc = {
             {x = 150, y = 150, w = 150, h = 150, count = 8, time = 600, cratio = 0},
         }
@@ -44,7 +44,7 @@ local addMonCo = addmon.monGener( -- 祖玛神殿_31
         }
     },
     {
-        name = '沙漠威思而小虫',
+        name = '沙漠威思尔小虫',
         loc = {
             {x = 150, y = 150, w = 150, h = 150, count = 8, time = 600, cratio = 0},
         }

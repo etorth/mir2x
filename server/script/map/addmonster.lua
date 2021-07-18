@@ -30,6 +30,7 @@ function addmon.monGener(monGenList)
             table.insert(badNameKeyList, i)
         else
             for _, locInfo in pairs(genList.loc) do
+                locInfo.count = 1
                 locInfo.uidList = {}                            -- add extra entry: UIDs created by this locInfo
                 locInfo.lastUpdateTime = -1000 * locInfo.time   -- add extra entry: hack
             end
