@@ -671,8 +671,6 @@ void ProcessRun::loadMap(uint32_t mapID, int centerGX, int centerGY)
 
     const auto fnLoadMap = [mapID, &fnSetDoneRatio, centerGX, centerGY, this]()
     {
-        fnSetDoneRatio(0);
-
         const auto mapBinPtr = g_mapBinDB->retrieve(mapID);
         fflassert(mapBinPtr);
         fnSetDoneRatio(30);
@@ -682,11 +680,18 @@ void ProcessRun::loadMap(uint32_t mapID, int centerGX, int centerGY)
         m_groundItemIDList.clear();
         fnSetDoneRatio(40);
 
-        const auto [winW, winH] = g_sdlDevice->getRendererSize();
+        // don't use getRenererSize() here
+        // SDLDevice::getRenererSize() doesn't have lock protection
+        const int winW = 1200;
+        const int winH = 1200;
+
         const int x0 = mathf::bound<int>(centerGX - winW / 2 / SYS_MAPGRIDXP - SYS_OBJMAXW, 0, m_mir2xMapData.w());
         const int x1 = mathf::bound<int>(centerGX + winW / 2 / SYS_MAPGRIDXP + SYS_OBJMAXW, 0, m_mir2xMapData.w());
         const int y0 = mathf::bound<int>(centerGY - winH / 2 / SYS_MAPGRIDYP - SYS_OBJMAXH, 0, m_mir2xMapData.h());
         const int y1 = mathf::bound<int>(centerGY + winH / 2 / SYS_MAPGRIDYP + SYS_OBJMAXH, 0, m_mir2xMapData.h());
+
+        // preloading gfx needs macro: ZSTD_MULTITHREAD
+        // g_mapDB->retrieve() calls libzstd functions, ModalStringBoard::waitDone() also access it
 
         int preloadRatio = 40;
         for(int y = y0; y < y1; ++y){
@@ -710,6 +715,7 @@ void ProcessRun::loadMap(uint32_t mapID, int centerGX, int centerGY)
         fnSetDoneRatio(100);
     };
 
+    fnSetDoneRatio(0);
     auto loadThread = std::async(std::launch::async, fnLoadMap);
     loadStringBoard.waitDone();
     loadThread.get();

@@ -84,42 +84,37 @@ void ModalStringBoard::drawEx(int dstX, int dstY, int srcX, int srcY, int, int) 
         xmlCopy = m_xmlString;
     }
 
-    LayoutBoard board
-    {
-        DIR_NONE,
-        0,
-        0,
-        300,
+    if(!xmlCopy.empty()){
+        LayoutBoard board
+        {
+            DIR_NONE,
+            0,
+            0,
+            300,
 
-        false,
-        {0, 0, 0, 0},
+            false,
+            {0, 0, 0, 0},
 
-        false,
+            false,
 
-        1,
-        12,
-        0,
-        colorf::WHITE + colorf::A_SHF(255),
-        0,
+            1,
+            12,
+            0,
+            colorf::WHITE + colorf::A_SHF(255),
+            0,
 
-        LALIGN_JUSTIFY, // LALIGN_CENTER,
-    };
+            LALIGN_JUSTIFY, // LALIGN_CENTER,
+        };
 
-    board.loadXML(to_cstr(xmlCopy));
-    board.drawAt(DIR_NONE, dstX - srcX + w() / 2, dstY - srcY + h() / 2 + 20);
+        board.loadXML(to_cstr(xmlCopy));
+        board.drawAt(DIR_NONE, dstX - srcX + w() / 2, dstY - srcY + h() / 2 + 20);
+    }
 }
 
 void ModalStringBoard::waitDone()
 {
     using namespace std::chrono_literals;
     while(true){
-        {
-            std::unique_lock<std::mutex> lockGuard(m_lock);
-            if(m_cond.wait_for(lockGuard, 10ms, [this](){ return m_done; })){
-                return;
-            }
-        }
-
         // ignore events but need to flush
         // seems it's required to commit event like window size change
         SDL_Event event;
@@ -133,6 +128,15 @@ void ModalStringBoard::waitDone()
             drawAt(DIR_NONE, winW / 2, winH / 2);
         }
         g_sdlDevice->present();
+
+        // put wait at end
+        // this makes sure every waitDone() can draw at least 1 frame
+        {
+            std::unique_lock<std::mutex> lockGuard(m_lock);
+            if(m_cond.wait_for(lockGuard, 10ms, [this](){ return m_done; })){
+                return;
+            }
+        }
     }
 }
 

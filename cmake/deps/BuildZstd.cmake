@@ -36,6 +36,7 @@ ExternalProject_Add(
     LOG_INSTALL 1
 )
 
+ADD_COMPILE_DEFINITIONS(ZSTD_MULTITHREAD)
 SET(ZSTD_INCLUDE_DIRS "${MIR2X_3RD_PARTY_DIR}/libzstd/build/install/include")
 IF(WIN32)
     SET(ZSTD_LIBRARIES zstd_static)
