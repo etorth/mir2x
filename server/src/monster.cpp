@@ -1211,6 +1211,21 @@ void Monster::SearchNearestTarget(std::function<void(uint64_t)> fnTarget)
         fnTarget(0);
         return;
     }
+
+    // TODO check if offender is still on same map
+    //      and if too far monster should pick up a target near it
+    for(auto p = m_offenderList.rbegin(); p != m_offenderList.rend(); ++p){
+        if(m_actorPod->checkUIDValid(p->UID)){
+            fnTarget(p->UID);
+            return;
+        }
+    }
+
+    if(DBCOM_MONSTERRECORD(monsterID()).behaveMode == BM_NEUTRAL){
+        fnTarget(0);
+        return;
+    }
+
     RecursiveCheckInViewTarget(0, fnTarget);
 }
 
@@ -1396,13 +1411,8 @@ void Monster::checkFriend_CtrlByPlayer(uint64_t nUID, std::function<void(int)> f
 
 void Monster::checkFriend(uint64_t nUID, std::function<void(int)> fnOp)
 {
-    if(!nUID){
-        throw fflerror("invalid zero UID");
-    }
-
-    if(nUID == UID()){
-        throw fflerror("check friend type to self");
-    }
+    fflassert(nUID != 0);
+    fflassert(nUID != UID());
 
     if(uidf::getUIDType(nUID) == UID_NPC){
         fnOp(FT_NEUTRAL);

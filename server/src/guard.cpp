@@ -75,24 +75,17 @@ void Guard::jumpBack(std::function<void()> onOK, std::function<void()> onError)
 
 void Guard::checkFriend(uint64_t uid, std::function<void(int)> fnOp)
 {
-    if(!uid){
-        throw fflerror("invalid zero UID");
-    }
-
-    if(uid == UID()){
-        throw fflerror("check friend type to self");
-    }
+    fflassert(uid != 0);
+    fflassert(uid != UID());
 
     switch(uidf::getUIDType(uid)){
         case UID_MON:
             {
-                if(DBCOM_MONSTERRECORD(uidf::getMonsterID(uid)).behaveMode == BM_GUARD){
-                    fnOp(FT_FRIEND);
+                switch(DBCOM_MONSTERRECORD(uidf::getMonsterID(uid)).behaveMode){
+                    case BM_GUARD  : fnOp(FT_FRIEND ); return;
+                    case BM_NEUTRAL: fnOp(FT_NEUTRAL); return;
+                    default        : fnOp(FT_ENEMY  ); return;
                 }
-                else{
-                    fnOp(FT_ENEMY);
-                }
-                return;
             }
         case UID_PLY:
             {
