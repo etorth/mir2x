@@ -153,7 +153,13 @@ void Player::on_AM_MAPSWITCH(const ActorMsgPack &mpk)
     if(!(amMS.UID && amMS.mapID)){
         g_monoServer->addLog(LOGTYPE_WARNING, "Map switch request failed: (UID = %llu, mapID = %llu)", to_llu(amMS.UID), to_llu(amMS.mapID));
     }
-    requestMapSwitch(amMS.mapID, amMS.X, amMS.Y, false);
+
+    if(amMS.mapID == mapID()){
+        requestSpaceMove(amMS.X, amMS.Y, false);
+    }
+    else{
+        requestMapSwitch(amMS.mapID, amMS.X, amMS.Y, false);
+    }
 }
 
 void Player::on_AM_NPCQUERY(const ActorMsgPack &mpk)
