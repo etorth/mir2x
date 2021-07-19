@@ -693,7 +693,10 @@ void ProcessRun::loadMap(uint32_t mapID, int centerGX, int centerGY)
         // preloading gfx needs macro: ZSTD_MULTITHREAD
         // g_mapDB->retrieve() calls libzstd functions, ModalStringBoard::waitDone() also access it
 
-        int preloadRatio = 40;
+        int lastRatio = 0;
+        int doneGridCount = 0;
+        const int totalGridCount = (y1 - y0 + 1) * (x1 - x0 + 1);
+
         for(int y = y0; y < y1; ++y){
             for(int x = x0; x <= x1; ++x){
                 if(m_mir2xMapData.validC(x, y)){
@@ -709,7 +712,11 @@ void ProcessRun::loadMap(uint32_t mapID, int centerGX, int centerGY)
                         }
                     }
                 }
-                fnSetDoneRatio(preloadRatio++);
+
+                if(const auto currRatio = to_d(std::lround(to_f(doneGridCount++ * (100 - 40)) / totalGridCount)); currRatio > lastRatio){
+                    lastRatio = currRatio;
+                    fnSetDoneRatio(40 + currRatio);
+                }
             }
         }
         fnSetDoneRatio(100);
