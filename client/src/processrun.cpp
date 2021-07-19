@@ -271,15 +271,10 @@ uint64_t ProcessRun::focusUID(int nFocusType)
 void ProcessRun::draw()
 {
     SDLDeviceHelper::RenderNewFrame newFrame;
-    const auto fnLimitedRegion = [](int mn, int mx, int parm) -> int
-    {
-        return std::max<int>(std::min<int>(parm, mx), mn);
-    };
-
-    const int x0 = fnLimitedRegion(0, m_mir2xMapData.w(), -SYS_OBJMAXW + (m_viewX - 2 * SYS_MAPGRIDXP) / SYS_MAPGRIDXP);
-    const int y0 = fnLimitedRegion(0, m_mir2xMapData.h(), -SYS_OBJMAXH + (m_viewY - 2 * SYS_MAPGRIDYP) / SYS_MAPGRIDYP);
-    const int x1 = fnLimitedRegion(0, m_mir2xMapData.w(), +SYS_OBJMAXW + (m_viewX + 2 * SYS_MAPGRIDXP + g_sdlDevice->getRendererWidth() ) / SYS_MAPGRIDXP);
-    const int y1 = fnLimitedRegion(0, m_mir2xMapData.h(), +SYS_OBJMAXH + (m_viewY + 2 * SYS_MAPGRIDYP + g_sdlDevice->getRendererHeight()) / SYS_MAPGRIDYP);
+    const int x0 = mathf::bound<int>(-SYS_OBJMAXW + (m_viewX - 2 * SYS_MAPGRIDXP) / SYS_MAPGRIDXP,                                    0, m_mir2xMapData.w());
+    const int y0 = mathf::bound<int>(-SYS_OBJMAXH + (m_viewY - 2 * SYS_MAPGRIDYP) / SYS_MAPGRIDYP,                                    0, m_mir2xMapData.h());
+    const int x1 = mathf::bound<int>(+SYS_OBJMAXW + (m_viewX + 2 * SYS_MAPGRIDXP + g_sdlDevice->getRendererWidth() ) / SYS_MAPGRIDXP, 0, m_mir2xMapData.w());
+    const int y1 = mathf::bound<int>(+SYS_OBJMAXH + (m_viewY + 2 * SYS_MAPGRIDYP + g_sdlDevice->getRendererHeight()) / SYS_MAPGRIDYP, 0, m_mir2xMapData.h());
 
     drawTile(x0, y0, x1, y1);
 
@@ -650,12 +645,12 @@ void ProcessRun::processEvent(const SDL_Event &event)
     }
 }
 
-void ProcessRun::loadMap(uint32_t mapID, bool showModalString)
+void ProcessRun::loadMap(uint32_t mapID, int centerGX, int centerGY)
 {
     fflassert(mapID > 0);
     ModalStringBoard loadStringBoard;
 
-    const auto fnSetRatio = [&loadStringBoard, mapID](int ratio)
+    const auto fnSetDoneRatio = [&loadStringBoard, mapID](int ratio)
     {
         const std::string mapName = to_cstr(DBCOM_MAPRECORD(mapID).name);
         loadStringBoard.loadXML(str_printf
@@ -666,35 +661,58 @@ void ProcessRun::loadMap(uint32_t mapID, bool showModalString)
             u8R"###( </layout>                                    )###""\n",
 
             mapName.substr(0, mapName.find('_')).c_str(),
-            ratio
+            mathf::bound<int>(ratio, 0, 100)
         ));
+
+        if(ratio >= 100){
+            loadStringBoard.setDone();
+        }
     };
 
-    const auto fnLoadMap = [mapID, fnSetRatio, &loadStringBoard, this]()
+    const auto fnLoadMap = [mapID, &fnSetDoneRatio, centerGX, centerGY, this]()
     {
-        fnSetRatio(0);
-        const auto mapBinPtr = g_mapBinDB->retrieve(mapID);
-        if(!mapBinPtr){
-            throw fflerror("can't find map: mapID = %llu", to_llu(mapID));
-        }
+        fnSetDoneRatio(0);
 
-        fnSetRatio(50);
+        const auto mapBinPtr = g_mapBinDB->retrieve(mapID);
+        fflassert(mapBinPtr);
+        fnSetDoneRatio(30);
+
         m_mapID = mapID;
         m_mir2xMapData = *mapBinPtr;
         m_groundItemIDList.clear();
+        fnSetDoneRatio(40);
 
-        fnSetRatio(100);
-        loadStringBoard.setDone();
+        const auto [winW, winH] = g_sdlDevice->getRendererSize();
+        const int x0 = mathf::bound<int>(centerGX - winW / 2 / SYS_MAPGRIDXP - SYS_OBJMAXW, 0, m_mir2xMapData.w());
+        const int x1 = mathf::bound<int>(centerGX + winW / 2 / SYS_MAPGRIDXP + SYS_OBJMAXW, 0, m_mir2xMapData.w());
+        const int y0 = mathf::bound<int>(centerGY - winH / 2 / SYS_MAPGRIDYP - SYS_OBJMAXH, 0, m_mir2xMapData.h());
+        const int y1 = mathf::bound<int>(centerGY + winH / 2 / SYS_MAPGRIDYP + SYS_OBJMAXH, 0, m_mir2xMapData.h());
+
+        int preloadRatio = 40;
+        for(int y = y0; y < y1; ++y){
+            for(int x = x0; x <= x1; ++x){
+                if(m_mir2xMapData.validC(x, y)){
+                    if((x % 2 == 0) && (y % 2 == 0)){
+                        if(const auto &tile = m_mir2xMapData.tile(x, y); tile.valid){
+                            g_mapDB->retrieve(tile.texID);
+                        }
+                    }
+
+                    for(const int i: {0, 1}){
+                        if(const auto &obj = m_mir2xMapData.cell(x, y).obj[i]; obj.valid){
+                            g_mapDB->retrieve(obj.texID);
+                        }
+                    }
+                }
+                fnSetDoneRatio(preloadRatio++);
+            }
+        }
+        fnSetDoneRatio(100);
     };
 
-    if(showModalString){
-        auto loadThread = std::async(std::launch::async, fnLoadMap);
-        loadStringBoard.waitDone();
-        loadThread.get();
-    }
-    else{
-        fnLoadMap();
-    }
+    auto loadThread = std::async(std::launch::async, fnLoadMap);
+    loadStringBoard.waitDone();
+    loadThread.get();
 
     if(auto boardPtr = dynamic_cast<MiniMapBoard *>(getWidget("MiniMapBoard"))){
         if(boardPtr->show() && !boardPtr->getMiniMapTexture()){

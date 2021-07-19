@@ -102,7 +102,7 @@ void ModalStringBoard::drawEx(int dstX, int dstY, int srcX, int srcY, int, int) 
         colorf::WHITE + colorf::A_SHF(255),
         0,
 
-        LALIGN_JUSTIFY,
+        LALIGN_JUSTIFY, // LALIGN_CENTER,
     };
 
     board.loadXML(to_cstr(xmlCopy));
@@ -114,8 +114,8 @@ void ModalStringBoard::waitDone()
     using namespace std::chrono_literals;
     while(true){
         {
-            std::unique_lock<std::mutex> uniqueLock(m_lock);
-            if(m_cond.wait_for(uniqueLock, 10ms, [this](){ return m_done; })){
+            std::unique_lock<std::mutex> lockGuard(m_lock);
+            if(m_cond.wait_for(lockGuard, 10ms, [this](){ return m_done; })){
                 return;
             }
         }
