@@ -115,7 +115,7 @@ void ModalStringBoard::waitNotify()
     while(true){
         {
             std::unique_lock<std::mutex> uniqueLock(m_lock);
-            if(m_cond.wait_for(uniqueLock, 100ms, [this](){ return m_done; })){
+            if(m_cond.wait_for(uniqueLock, 10ms, [this](){ return m_done; })){
                 return;
             }
         }
