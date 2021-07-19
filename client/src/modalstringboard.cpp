@@ -109,7 +109,7 @@ void ModalStringBoard::drawEx(int dstX, int dstY, int srcX, int srcY, int, int) 
     board.drawAt(DIR_NONE, dstX - srcX + w() / 2, dstY - srcY + h() / 2 + 20);
 }
 
-void ModalStringBoard::waitNotify()
+void ModalStringBoard::waitDone()
 {
     using namespace std::chrono_literals;
     while(true){

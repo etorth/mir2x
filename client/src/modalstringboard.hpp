@@ -57,7 +57,7 @@ class ModalStringBoard: public Widget
         void drawEx(int, int, int, int, int, int) const override;
 
     public:
-        void waitNotify();
+        void waitDone();
 
     public:
         void setDone();

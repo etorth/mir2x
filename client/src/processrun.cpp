@@ -689,7 +689,7 @@ void ProcessRun::loadMap(uint32_t mapID, bool showModalString)
 
     if(showModalString){
         auto loadThread = std::async(std::launch::async, fnLoadMap);
-        loadStringBoard.waitNotify();
+        loadStringBoard.waitDone();
         loadThread.get();
     }
     else{
