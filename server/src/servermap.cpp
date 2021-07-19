@@ -32,6 +32,7 @@
 #include "taoskeleton.hpp"
 #include "cannibalplant.hpp"
 #include "bugbatmaggot.hpp"
+#include "monstertree.hpp"
 #include "raiitimer.hpp"
 #include "mathf.hpp"
 #include "sysconst.hpp"
@@ -1198,6 +1199,18 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
                         nDstY,
                         DIR_LEFT, // direction for initial gfx when born
                         nMasterUID,
+                    };
+                    break;
+                }
+            case DBCOM_MONSTERID(u8"栗子树"):
+            case DBCOM_MONSTERID(u8"圣诞树"):
+                {
+                    monsterPtr = new MonsterTree
+                    {
+                        nMonsterID,
+                        this,
+                        nDstX,
+                        nDstY,
                     };
                     break;
                 }
