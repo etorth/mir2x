@@ -46,7 +46,7 @@ extern SDLDevice *g_sdlDevice;
 void ProcessRun::net_LOGINOK(const uint8_t *buf, size_t bufSize)
 {
     auto sdLOK = cerealf::deserialize<SDLoginOK>(buf, bufSize);
-    loadMap(sdLOK.mapID);
+    loadMap(sdLOK.mapID, true);
 
     m_myHeroUID = sdLOK.uid;
     m_coList[m_myHeroUID].reset(new MyHero(m_myHeroUID, this, ActionStand
@@ -104,7 +104,7 @@ void ProcessRun::net_ACTION(const uint8_t *bufPtr, size_t)
 
         m_actionBlocker.clear();
         getMyHero()->flushForcedMotion();
-        loadMap(smA.mapID);
+        loadMap(smA.mapID, true);
 
         // directly assign a stand motion
         // this need to skip all location validation

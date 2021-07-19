@@ -146,7 +146,7 @@ class ProcessRun: public Process
         void scrollMap();
 
     private:
-        void loadMap(uint32_t);
+        void loadMap(uint32_t, bool);
 
     public:
         ProcessRun();

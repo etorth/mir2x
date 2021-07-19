@@ -2,16 +2,16 @@
  * =====================================================================================
  *
  *       Filename: imageboard.cpp
+ *        Created: 03/25/2020 22:27:45
+ *    Description:
  *
- *    Description:  
+ *        Version: 1.0
+ *       Revision: none
+ *       Compiler: gcc
  *
- *        Version:  1.0
- *        Created:  03/09/21 20:10:09
- *       Revision:  none
- *       Compiler:  gcc
- *
- *         Author:  YOUR NAME (), 
- *   Organization:  
+ *         Author: ANHONG
+ *          Email: anhonghe@gmail.com
+ *   Organization: USTC
  *
  * =====================================================================================
  */

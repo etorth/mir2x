@@ -37,6 +37,7 @@
 #include "clientpathfinder.hpp"
 #include "notifyboard.hpp"
 #include "npcchatboard.hpp"
+#include "modalstringboard.hpp"
 #include "fflerror.hpp"
 #include "totype.hpp"
 #include "skillboard.hpp"
@@ -649,20 +650,51 @@ void ProcessRun::processEvent(const SDL_Event &event)
     }
 }
 
-void ProcessRun::loadMap(uint32_t mapID)
+void ProcessRun::loadMap(uint32_t mapID, bool showModalString)
 {
-    if(!mapID){
-        throw fflerror("mapID is zero");
-    }
+    fflassert(mapID > 0);
+    ModalStringBoard loadStringBoard;
 
-    const auto mapBinPtr = g_mapBinDB->retrieve(mapID);
-    if(!mapBinPtr){
-        throw fflerror("can't find map: mapID = %llu", to_llu(mapID));
-    }
+    const auto fnSetRatio = [&loadStringBoard, mapID](int ratio)
+    {
+        const std::string mapName = to_cstr(DBCOM_MAPRECORD(mapID).name);
+        loadStringBoard.loadXML(str_printf
+        (
+            u8R"###( <layout>                                     )###""\n"
+            u8R"###(     <par>加载地图<t color="red">%s</t></par> )###""\n"
+            u8R"###(     <par>完成<t color="red">%%%d</t></par>   )###""\n"
+            u8R"###( </layout>                                    )###""\n",
 
-    m_mapID = mapID;
-    m_mir2xMapData = *mapBinPtr;
-    m_groundItemIDList.clear();
+            mapName.substr(0, mapName.find('_')).c_str(),
+            ratio
+        ));
+    };
+
+    const auto fnLoadMap = [mapID, fnSetRatio, &loadStringBoard, this]()
+    {
+        fnSetRatio(0);
+        const auto mapBinPtr = g_mapBinDB->retrieve(mapID);
+        if(!mapBinPtr){
+            throw fflerror("can't find map: mapID = %llu", to_llu(mapID));
+        }
+
+        fnSetRatio(50);
+        m_mapID = mapID;
+        m_mir2xMapData = *mapBinPtr;
+        m_groundItemIDList.clear();
+
+        fnSetRatio(100);
+        loadStringBoard.setDone();
+    };
+
+    if(showModalString){
+        auto loadThread = std::async(std::launch::async, fnLoadMap);
+        loadStringBoard.waitNotify();
+        loadThread.get();
+    }
+    else{
+        fnLoadMap();
+    }
 
     if(auto boardPtr = dynamic_cast<MiniMapBoard *>(getWidget("MiniMapBoard"))){
         if(boardPtr->show() && !boardPtr->getMiniMapTexture()){
