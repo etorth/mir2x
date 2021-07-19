@@ -690,7 +690,7 @@ ClientMonster *ClientMonster::create(uint64_t uid, ProcessRun *proc, const Actio
             }
         default:
             {
-                if(DBCOM_MONSTERRECORD(monID).guard){
+                if(DBCOM_MONSTERRECORD(monID).behaveMode == BM_GUARD){
                     return new ClientGuard(uid, proc, action);
                 }
                 else{

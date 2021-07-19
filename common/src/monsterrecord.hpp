@@ -21,6 +21,13 @@
 #include <initializer_list>
 #include "protocoldef.hpp"
 
+// behave mode
+// monster used this in server side to setup behavior AI
+constexpr int BM_DEFAULT = 0;
+constexpr int BM_NEUTRAL = 1;
+constexpr int BM_GUARD   = 2;
+constexpr int BM_BOSS    = 3;
+
 struct MonsterRecord
 {
     const char8_t *name = u8"";
@@ -28,7 +35,6 @@ struct MonsterRecord
     const int level  = 0;
     const int lookID = 0;
 
-    const int guard       = 0;
     const int undead      = 0;
     const int tamable     = 0;
     const int coolEye     = 0;
@@ -56,10 +62,11 @@ struct MonsterRecord
     const int ACDark    = 0;
     const int ACPhantom = 0;
 
+    const int behaveMode = 0; // 0 means BM_DEFAULT
+
     const int walkWait  = 0;
     const int walkSpeed = 0;
 
-    const int attackMode   = 0;
     const int attackWait   = 0;
     const int attackEffect = 0;
 

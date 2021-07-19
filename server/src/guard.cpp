@@ -86,7 +86,7 @@ void Guard::checkFriend(uint64_t uid, std::function<void(int)> fnOp)
     switch(uidf::getUIDType(uid)){
         case UID_MON:
             {
-                if(DBCOM_MONSTERRECORD(uidf::getMonsterID(uid)).guard){
+                if(DBCOM_MONSTERRECORD(uidf::getMonsterID(uid)).behaveMode == BM_GUARD){
                     fnOp(FT_FRIEND);
                 }
                 else{
