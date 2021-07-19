@@ -207,7 +207,7 @@ void ClientMonster::drawFrame(int viewX, int viewY, int focusMask, int frame, bo
     // TODO some monter doesn't need to draw seperate shadow texture
     //      the body frame itself has shadow effect, i.e. 洞穴蜈蚣, later should remove the synthesized shadow texture
 
-    if(isMonster(u8"洞穴蜈蚣")){
+    if(isMonster(u8"洞穴蜈蚣") || isMonster(u8"栗子树") || isMonster(u8"圣诞树")){
         // sikp shadow
     }
     else{
