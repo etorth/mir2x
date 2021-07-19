@@ -139,12 +139,3 @@ void ModalStringBoard::waitDone()
         }
     }
 }
-
-void ModalStringBoard::setDone()
-{
-    {
-        std::lock_guard<std::mutex> lockGuard(m_lock);
-        m_done = true;
-    }
-    m_cond.notify_one();
-}
