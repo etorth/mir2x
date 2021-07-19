@@ -120,6 +120,13 @@ void ModalStringBoard::waitDone()
             }
         }
 
+        // ignore events but need to flush
+        // seems it's required to commit event like window size change
+        SDL_Event event;
+        while(SDL_PollEvent(&event)){
+            continue;
+        }
+
         g_sdlDevice->clearScreen();
         {
             const auto [winW, winH] = g_sdlDevice->getRendererSize();
