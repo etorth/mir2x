@@ -732,6 +732,9 @@ void ProcessRun::loadMap(uint32_t mapID, int centerGX, int centerGY)
             boardPtr->show(false);
             addCBLog(CBLOG_ERR, u8"没有可用的地图");
         }
+        else{
+            boardPtr->setPLoc();
+        }
     }
 }
 
