@@ -30,6 +30,7 @@
 #include "dbcomrecord.hpp"
 #include "pngtexoffdb.hpp"
 #include "clienttaodog.hpp"
+#include "clientsandcactus.hpp"
 #include "clienttaoskeleton.hpp"
 #include "clientscarecrow.hpp"
 #include "clientbugbatmaggot.hpp"
@@ -687,6 +688,10 @@ ClientMonster *ClientMonster::create(uint64_t uid, ProcessRun *proc, const Actio
         case DBCOM_MONSTERID(u8"稻草人"):
             {
                 return new ClientScarecrow(uid, proc, action);
+            }
+        case DBCOM_MONSTERID(u8"沙漠树魔"):
+            {
+                return new ClientSandCactus(uid, proc, action);
             }
         default:
             {

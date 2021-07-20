@@ -33,6 +33,7 @@
 #include "cannibalplant.hpp"
 #include "bugbatmaggot.hpp"
 #include "monstertree.hpp"
+#include "sandcactus.hpp"
 #include "raiitimer.hpp"
 #include "mathf.hpp"
 #include "sysconst.hpp"
@@ -1208,6 +1209,16 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
                     monsterPtr = new MonsterTree
                     {
                         nMonsterID,
+                        this,
+                        nDstX,
+                        nDstY,
+                    };
+                    break;
+                }
+            case DBCOM_MONSTERID(u8"沙漠树魔"):
+                {
+                    monsterPtr = new SandCactus
+                    {
                         this,
                         nDstX,
                         nDstY,

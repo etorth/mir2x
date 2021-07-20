@@ -765,8 +765,30 @@
 },
 
 {
+    .name = u8"沙漠树魔_喷刺",
+    .gfxList
+    {
+        {
+            .stage = u8"运行",
+            .type  = u8"跟随",
+            .gfxID = 0X030003C0,
+            .frameCount = 1,
+            .gfxIDCount = 1,
+            .gfxDirType = 1,
+            .loop = 1,
+        },
+
+        {
+            .stage = u8"结束",
+            .type  = u8"附着",
+            .gfxID = 0X010003A2,
+            .frameCount = 6,
+        },
+    },
+},
+
+{
     .name = u8"稻草人_死亡火焰",
-    .element = u8"火",
     .gfxList
     {
         {

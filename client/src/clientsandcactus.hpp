@@ -1,0 +1,49 @@
+/*
+ * =====================================================================================
+ *
+ *       Filename: clientsandcactus.hpp
+ *        Created: 07/31/2021 08:26:19
+ *    Description:
+ *
+ *        Version: 1.0
+ *       Revision: none
+ *       Compiler: gcc
+ *
+ *         Author: ANHONG
+ *          Email: anhonghe@gmail.com
+ *   Organization: USTC
+ *
+ * =====================================================================================
+ */
+
+#pragma once
+#include "totype.hpp"
+#include "dbcomid.hpp"
+#include "clientmonster.hpp"
+
+class ClientSandCactus: public ClientMonster
+{
+    public:
+        ClientSandCactus(uint64_t, ProcessRun *, const ActionNode &);
+
+    protected:
+        bool onActionAttack(const ActionNode &) override;
+
+    protected:
+        FrameSeq motionFrameSeq(int motion, int direction) const
+        {
+            if(const auto nGfxId = gfxID(motion, direction); !nGfxId.has_value()){
+                return {};
+            }
+
+            switch(motion){
+                case MOTION_MON_STAND  : return {.count =  1};
+                case MOTION_MON_ATTACK0: return {.count = 10};
+                case MOTION_MON_HITTED : return {.count =  2};
+                case MOTION_MON_DIE    : return {.count = 10};
+                case MOTION_MON_ATTACK1: return {.count =  6};
+                case MOTION_MON_SPELL0 : return {.count = 10};
+                default                : return {};
+            }
+        }
+};
