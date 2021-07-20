@@ -728,12 +728,14 @@ void ProcessRun::loadMap(uint32_t mapID, int centerGX, int centerGY)
     loadThread.get();
 
     if(auto boardPtr = dynamic_cast<MiniMapBoard *>(getWidget("MiniMapBoard"))){
-        if(boardPtr->show() && !boardPtr->getMiniMapTexture()){
-            boardPtr->show(false);
-            addCBLog(CBLOG_ERR, u8"没有可用的地图");
-        }
-        else{
-            boardPtr->setPLoc();
+        if(boardPtr->show()){
+            if(boardPtr->getMiniMapTexture()){
+                boardPtr->setPLoc();
+            }
+            else{
+                boardPtr->show(false);
+                addCBLog(CBLOG_ERR, u8"没有可用的地图");
+            }
         }
     }
 }
