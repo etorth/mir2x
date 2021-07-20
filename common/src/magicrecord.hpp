@@ -18,6 +18,7 @@
 
 #pragma once
 #include <string_view>
+#include <initializer_list>
 #include "sysconst.hpp"
 
 enum MagicElemType: int
@@ -226,7 +227,7 @@ struct MagicRecord
     const int checkGround = 0;
 
     const uint32_t icon = SYS_TEXNIL;
-    const MagicGfxEntry gfxList[8]{};
+    const std::initializer_list<MagicGfxEntry> gfxList {};
 
     constexpr const MagicGfxEntry &getGfxEntry(const char8_t *stage) const
     {
