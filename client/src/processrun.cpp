@@ -690,27 +690,27 @@ void ProcessRun::loadMap(uint32_t mapID, int centerGX, int centerGY)
         const int y0 = mathf::bound<int>(centerGY - winH / 2 / SYS_MAPGRIDYP - SYS_OBJMAXH, 0, m_mir2xMapData.h());
         const int y1 = mathf::bound<int>(centerGY + winH / 2 / SYS_MAPGRIDYP + SYS_OBJMAXH, 0, m_mir2xMapData.h());
 
-        // preloading gfx needs macro: ZSTD_MULTITHREAD
-        // g_mapDB->retrieve() calls libzstd functions, ModalStringBoard::waitDone() also access it
-
         int lastRatio = 0;
         int doneGridCount = 0;
         const int totalGridCount = (y1 - y0 + 1) * (x1 - x0 + 1);
 
+        // TODO the g_mapDB->retrieve() calls g_sdlDevice->createPNGTexture()
+        // SDL2 is not thread safe, the ModalStringBoard calls g_sdlDevice->present() can crash the data
+
         for(int y = y0; y < y1; ++y){
             for(int x = x0; x <= x1; ++x){
                 if(m_mir2xMapData.validC(x, y)){
-                    if((x % 2 == 0) && (y % 2 == 0)){
-                        if(const auto &tile = m_mir2xMapData.tile(x, y); tile.valid){
-                            g_mapDB->retrieve(tile.texID);
-                        }
-                    }
-
-                    for(const int i: {0, 1}){
-                        if(const auto &obj = m_mir2xMapData.cell(x, y).obj[i]; obj.valid){
-                            g_mapDB->retrieve(obj.texID);
-                        }
-                    }
+                    // if((x % 2 == 0) && (y % 2 == 0)){
+                    //     if(const auto &tile = m_mir2xMapData.tile(x, y); tile.valid){
+                    //         g_mapDB->retrieve(tile.texID);
+                    //     }
+                    // }
+                    //
+                    // for(const int i: {0, 1}){
+                    //     if(const auto &obj = m_mir2xMapData.cell(x, y).obj[i]; obj.valid){
+                    //         g_mapDB->retrieve(obj.texID);
+                    //     }
+                    // }
                 }
 
                 if(const auto currRatio = to_d(std::lround(to_f(doneGridCount++ * (100 - 40)) / totalGridCount)); currRatio > lastRatio){
