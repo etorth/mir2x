@@ -223,7 +223,14 @@ class GenFileParser
                             codeList.push_back(str_printf("        loc = {"));
 
                             for(const auto &entry: entryList){
-                                codeList.push_back(str_printf("            {x = %d, y = %d, w = %d, h = %d, count = %d, time = %d, cratio = %d},", entry.x, entry.y, std::max<int>(1, entry.range), std::max<int>(1, entry.range), std::max<int>(1, entry.num), std::max<int>(10, entry.time * 60), mathf::bound<int>(entry.cratio, 0, 100)));
+                                const auto x      = std::max<int>(entry.x, 0);
+                                const auto y      = std::max<int>(entry.y, 0);
+                                const auto r      = std::max<int>(entry.range, 1);
+                                const auto count  = std::max<int>(entry.num, 1);
+                                const auto time   = std::max<int>(entry.time * 60, 10);
+                                const auto cratio = mathf::bound<int>(entry.cratio, 0, 100);
+                                const auto cratioStr = (cratio == 0) ? std::string("") : str_printf(", cratio = %d", cratio);
+                                codeList.push_back(str_printf("            {x = %d, y = %d, w = %d, h = %d, count = %d, time = %d%s},", x, y, r, r, count, time, cratioStr.c_str()));
                             }
                             codeList.push_back(str_printf("        }"));
                             codeList.push_back(str_printf("    },"));

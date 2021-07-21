@@ -6,16 +6,16 @@ local addmon = {}
 --     {
 --         name = '半兽人',
 --         loc = {
---             {x = 488, y = 488, w = 38, h = 38, count = 15, time = 10, cratio = 0},
---             {x = 488, y = 563, w = 38, h = 38, count = 15, time = 10, cratio = 0},
+--             {x = 488, y = 488, w = 38, h = 38, count = 15, time = 10},
+--             {x = 488, y = 563, w = 38, h = 38, count = 15, time = 10},
 --         }
 --     },
 --     {
 --         name = '多钩猫',
 --         loc = {
---             {x = 113, y = 263, w = 38, h = 38, count = 10, time = 10, cratio = 0},
---             {x = 113, y = 338, w = 38, h = 38, count = 10, time = 10, cratio = 0},
---             {x = 188, y = 113, w = 38, h = 38, count = 10, time = 10, cratio = 0},
+--             {x = 113, y = 263, w = 38, h = 38, count = 10, time = 10},
+--             {x = 113, y = 338, w = 38, h = 38, count = 10, time = 10},
+--             {x = 188, y = 113, w = 38, h = 38, count = 10, time = 10},
 --         }
 --     },
 -- }

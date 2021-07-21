@@ -39,12 +39,12 @@ local addMonCo = addmon.monGener( -- 沙漠土城_5
     {
         name = '羊',
         loc = {
-            {x = 150, y = 50, w = 40, h = 40, count = 10, time = 1800, cratio = 0},
-            {x = 150, y = 150, w = 40, h = 40, count = 10, time = 1800, cratio = 0},
-            {x = 150, y = 250, w = 40, h = 40, count = 10, time = 1800, cratio = 0},
-            {x = 250, y = 50, w = 40, h = 40, count = 10, time = 1800, cratio = 0},
-            {x = 250, y = 150, w = 40, h = 40, count = 10, time = 1800, cratio = 0},
-            {x = 250, y = 250, w = 40, h = 40, count = 10, time = 1800, cratio = 0},
+            {x = 150, y = 50, w = 40, h = 40, count = 10, time = 1800},
+            {x = 150, y = 150, w = 40, h = 40, count = 10, time = 1800},
+            {x = 150, y = 250, w = 40, h = 40, count = 10, time = 1800},
+            {x = 250, y = 50, w = 40, h = 40, count = 10, time = 1800},
+            {x = 250, y = 150, w = 40, h = 40, count = 10, time = 1800},
+            {x = 250, y = 250, w = 40, h = 40, count = 10, time = 1800},
         }
     },
 })

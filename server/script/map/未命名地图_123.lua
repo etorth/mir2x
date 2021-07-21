@@ -4,7 +4,7 @@ local addMonCo = addmon.monGener( -- 未命名地图_123
     {
         name = '夜行鬼09',
         loc = {
-            {x = 200, y = 200, w = 200, h = 200, count = 100, time = 1200, cratio = 0},
+            {x = 200, y = 200, w = 200, h = 200, count = 100, time = 1200},
         }
     },
 })

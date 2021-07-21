@@ -35,43 +35,43 @@ local addMonCo = addmon.monGener( -- 潘夜岛_8
     {
         name = '夜行鬼09',
         loc = {
-            {x = 400, y = 400, w = 200, h = 200, count = 200, time = 1200, cratio = 0},
+            {x = 400, y = 400, w = 200, h = 200, count = 200, time = 1200},
         }
     },
     {
         name = '浪子人鬼',
         loc = {
-            {x = 700, y = 300, w = 90, h = 90, count = 310, time = 600, cratio = 0},
-            {x = 500, y = 500, w = 90, h = 90, count = 315, time = 600, cratio = 0},
-            {x = 300, y = 700, w = 90, h = 90, count = 315, time = 600, cratio = 0},
-            {x = 500, y = 700, w = 90, h = 90, count = 315, time = 600, cratio = 0},
+            {x = 700, y = 300, w = 90, h = 90, count = 310, time = 600},
+            {x = 500, y = 500, w = 90, h = 90, count = 315, time = 600},
+            {x = 300, y = 700, w = 90, h = 90, count = 315, time = 600},
+            {x = 500, y = 700, w = 90, h = 90, count = 315, time = 600},
         }
     },
     {
         name = '浪子人鬼0',
         loc = {
-            {x = 700, y = 300, w = 90, h = 90, count = 2, time = 3600, cratio = 0},
-            {x = 500, y = 500, w = 90, h = 90, count = 2, time = 3600, cratio = 0},
-            {x = 300, y = 700, w = 90, h = 90, count = 2, time = 3600, cratio = 0},
-            {x = 500, y = 700, w = 90, h = 90, count = 2, time = 3600, cratio = 0},
+            {x = 700, y = 300, w = 90, h = 90, count = 2, time = 3600},
+            {x = 500, y = 500, w = 90, h = 90, count = 2, time = 3600},
+            {x = 300, y = 700, w = 90, h = 90, count = 2, time = 3600},
+            {x = 500, y = 700, w = 90, h = 90, count = 2, time = 3600},
         }
     },
     {
         name = '腐蚀人鬼',
         loc = {
-            {x = 100, y = 300, w = 90, h = 90, count = 310, time = 600, cratio = 0},
-            {x = 100, y = 500, w = 90, h = 90, count = 310, time = 600, cratio = 0},
-            {x = 300, y = 500, w = 90, h = 90, count = 315, time = 600, cratio = 0},
-            {x = 700, y = 500, w = 90, h = 90, count = 315, time = 600, cratio = 0},
+            {x = 100, y = 300, w = 90, h = 90, count = 310, time = 600},
+            {x = 100, y = 500, w = 90, h = 90, count = 310, time = 600},
+            {x = 300, y = 500, w = 90, h = 90, count = 315, time = 600},
+            {x = 700, y = 500, w = 90, h = 90, count = 315, time = 600},
         }
     },
     {
         name = '腐蚀人鬼0',
         loc = {
-            {x = 100, y = 300, w = 90, h = 90, count = 2, time = 3600, cratio = 0},
-            {x = 100, y = 500, w = 90, h = 90, count = 2, time = 3600, cratio = 0},
-            {x = 300, y = 500, w = 90, h = 90, count = 2, time = 3600, cratio = 0},
-            {x = 700, y = 500, w = 90, h = 90, count = 2, time = 3600, cratio = 0},
+            {x = 100, y = 300, w = 90, h = 90, count = 2, time = 3600},
+            {x = 100, y = 500, w = 90, h = 90, count = 2, time = 3600},
+            {x = 300, y = 500, w = 90, h = 90, count = 2, time = 3600},
+            {x = 700, y = 500, w = 90, h = 90, count = 2, time = 3600},
         }
     },
 })

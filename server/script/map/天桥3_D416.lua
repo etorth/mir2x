@@ -4,31 +4,31 @@ local addMonCo = addmon.monGener( -- 天桥3_D416
     {
         name = '僵尸1',
         loc = {
-            {x = 0, y = 0, w = 100, h = 100, count = 20, time = 600, cratio = 0},
+            {x = 0, y = 0, w = 100, h = 100, count = 20, time = 600},
         }
     },
     {
         name = '僵尸2',
         loc = {
-            {x = 0, y = 0, w = 100, h = 100, count = 20, time = 600, cratio = 0},
+            {x = 0, y = 0, w = 100, h = 100, count = 20, time = 600},
         }
     },
     {
         name = '僵尸3',
         loc = {
-            {x = 0, y = 0, w = 100, h = 100, count = 20, time = 600, cratio = 0},
+            {x = 0, y = 0, w = 100, h = 100, count = 20, time = 600},
         }
     },
     {
         name = '僵尸4',
         loc = {
-            {x = 0, y = 0, w = 100, h = 100, count = 20, time = 600, cratio = 0},
+            {x = 0, y = 0, w = 100, h = 100, count = 20, time = 600},
         }
     },
     {
         name = '僵尸5',
         loc = {
-            {x = 0, y = 0, w = 100, h = 100, count = 20, time = 600, cratio = 0},
+            {x = 0, y = 0, w = 100, h = 100, count = 20, time = 600},
         }
     },
 })

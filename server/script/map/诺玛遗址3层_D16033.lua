@@ -4,13 +4,13 @@ local addMonCo = addmon.monGener( -- 诺玛遗址3层_D16033
     {
         name = '诺玛司令',
         loc = {
-            {x = 200, y = 200, w = 180, h = 180, count = 110, time = 600, cratio = 0},
+            {x = 200, y = 200, w = 180, h = 180, count = 110, time = 600},
         }
     },
     {
         name = '诺玛司令8',
         loc = {
-            {x = 200, y = 200, w = 180, h = 180, count = 11, time = 600, cratio = 0},
+            {x = 200, y = 200, w = 180, h = 180, count = 11, time = 600},
         }
     },
     {
@@ -28,43 +28,43 @@ local addMonCo = addmon.monGener( -- 诺玛遗址3层_D16033
     {
         name = '诺玛斧兵',
         loc = {
-            {x = 200, y = 200, w = 180, h = 180, count = 80, time = 600, cratio = 0},
+            {x = 200, y = 200, w = 180, h = 180, count = 80, time = 600},
         }
     },
     {
         name = '诺玛斧兵8',
         loc = {
-            {x = 200, y = 200, w = 180, h = 180, count = 8, time = 600, cratio = 0},
+            {x = 200, y = 200, w = 180, h = 180, count = 8, time = 600},
         }
     },
     {
         name = '诺玛突击队长',
         loc = {
-            {x = 200, y = 200, w = 180, h = 180, count = 1, time = 7200, cratio = 0},
+            {x = 200, y = 200, w = 180, h = 180, count = 1, time = 7200},
         }
     },
     {
         name = '诺玛装甲兵',
         loc = {
-            {x = 200, y = 200, w = 180, h = 180, count = 130, time = 600, cratio = 0},
+            {x = 200, y = 200, w = 180, h = 180, count = 130, time = 600},
         }
     },
     {
         name = '诺玛装甲兵8',
         loc = {
-            {x = 200, y = 200, w = 180, h = 180, count = 13, time = 600, cratio = 0},
+            {x = 200, y = 200, w = 180, h = 180, count = 13, time = 600},
         }
     },
     {
         name = '诺玛骑兵',
         loc = {
-            {x = 200, y = 200, w = 180, h = 180, count = 130, time = 600, cratio = 0},
+            {x = 200, y = 200, w = 180, h = 180, count = 130, time = 600},
         }
     },
     {
         name = '诺玛骑兵8',
         loc = {
-            {x = 200, y = 200, w = 180, h = 180, count = 13, time = 600, cratio = 0},
+            {x = 200, y = 200, w = 180, h = 180, count = 13, time = 600},
         }
     },
 })
