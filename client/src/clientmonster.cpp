@@ -35,6 +35,7 @@
 #include "clientscarecrow.hpp"
 #include "clientbugbatmaggot.hpp"
 #include "clientcannibalplant.hpp"
+#include "clientdualaxeskeleton.hpp"
 #include "clientguard.hpp"
 #include "creaturemovable.hpp"
 #include "clientargparser.hpp"
@@ -692,6 +693,10 @@ ClientMonster *ClientMonster::create(uint64_t uid, ProcessRun *proc, const Actio
         case DBCOM_MONSTERID(u8"沙漠树魔"):
             {
                 return new ClientSandCactus(uid, proc, action);
+            }
+        case DBCOM_MONSTERID(u8"掷斧骷髅"):
+            {
+                return new ClientDualAxeSkeleton(uid, proc, action);
             }
         default:
             {

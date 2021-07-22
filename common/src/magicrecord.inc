@@ -766,6 +766,12 @@
 
 {
     .name = u8"沙漠树魔_喷刺",
+    .castRange
+    {
+        .type = CRT_DIR,
+        .distance = 5,
+    },
+
     .gfxList
     {
         {
@@ -789,6 +795,12 @@
 
 {
     .name = u8"掷斧骷髅_掷斧",
+    .castRange
+    {
+        .type = CRT_DIR,
+        .distance = 5,
+    },
+
     .gfxList
     {
         {

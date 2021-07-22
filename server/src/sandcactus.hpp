@@ -32,4 +32,10 @@ class SandCactus final: public Monster
 
     protected:
         DamageNode getAttackDamage(int) const override;
+
+    protected:
+        bool canMove() const override
+        {
+            return false;
+        }
 };

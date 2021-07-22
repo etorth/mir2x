@@ -47,8 +47,8 @@ class FollowUIDMagic: public MagicBase
                 const char8_t *, // stageName
                 int,             // x
                 int,             // y
-                int,             // gfxDirIndex, can be [0, m_gfxEntry.gfxDirIndex)
-                int,             // flyDirIndex, flying direction when targetUID is unavailable and lastFlyOff is not set, always use [0, 16)
+                int,             // gfxDirIndex, can be [0, m_gfxEntry.gfxDirIndex), used to indexing gfx resource
+                int,             // flyDirIndex, flying direction when targetUID is unavailable and lastFlyOff is not set, always use [0, 16), only used to calculate location off, this is not gfxDirIndex
                 int,             // moveSpeed
                 uint64_t,        // targetUID
                 ProcessRun *);   // ProcessRun
