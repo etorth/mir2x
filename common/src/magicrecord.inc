@@ -808,6 +808,7 @@
             .type  = u8"跟随",
             .gfxID = 0X03000320,
             .frameCount = 6,
+            .gfxIDCount = 10,
             .gfxDirType = 8,
             .loop = 1,
         },
