@@ -538,7 +538,7 @@ void Monster::jumpAttackUID(uint64_t targetUID, std::function<void()> onOK, std:
         throw fflerror("invalid zero UID");
     }
 
-    const auto magicID = pickAttackMagic(targetUID);
+    const auto magicID = getAttackMagic(targetUID);
     const auto &mr = DBCOM_MAGICRECORD(magicID);
     if(!mr){
         if(onError){
@@ -559,7 +559,7 @@ void Monster::trackAttackUID(uint64_t targetUID, std::function<void()> onOK, std
         throw fflerror("invalid zero UID");
     }
 
-    const auto magicID = pickAttackMagic(targetUID);
+    const auto magicID = getAttackMagic(targetUID);
     const auto &mr = DBCOM_MAGICRECORD(magicID);
     if(!mr){
         if(onError){
@@ -1252,7 +1252,7 @@ void Monster::pickTarget(std::function<void(uint64_t)> fnTarget)
     }
 }
 
-int Monster::pickAttackMagic(uint64_t) const
+int Monster::getAttackMagic(uint64_t) const
 {
     const auto &mr = DBCOM_MONSTERRECORD(monsterID());
     fflassert(mr);

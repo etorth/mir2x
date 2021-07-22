@@ -169,7 +169,7 @@ class Monster: public CharObject
 
     protected:
         virtual void pickTarget(std::function<void(uint64_t)>);
-        virtual int  pickAttackMagic(uint64_t) const;
+        virtual int  getAttackMagic(uint64_t) const;
 
     protected:
         int FindPathMethod();
