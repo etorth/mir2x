@@ -33,6 +33,7 @@
 #include "cannibalplant.hpp"
 #include "bugbatmaggot.hpp"
 #include "monstertree.hpp"
+#include "dualaxeskeleton.hpp"
 #include "sandcactus.hpp"
 #include "raiitimer.hpp"
 #include "mathf.hpp"
@@ -1222,6 +1223,18 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
                         this,
                         nDstX,
                         nDstY,
+                    };
+                    break;
+                }
+            case DBCOM_MONSTERID(u8"掷斧骷髅"):
+                {
+                    monsterPtr = new DualAxeSkeleton
+                    {
+                        this,
+                        nDstX,
+                        nDstY,
+                        DIR_UP,
+                        nMasterUID,
                     };
                     break;
                 }

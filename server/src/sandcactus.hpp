@@ -31,11 +31,5 @@ class SandCactus final: public Monster
         corof::long_jmper updateCoroFunc() override;
 
     protected:
-        int pickAttackMagic(uint64_t) const override
-        {
-            return DBCOM_MAGICID(u8"沙漠树魔_喷刺");
-        }
-
-    protected:
         DamageNode getAttackDamage(int) const override;
 };

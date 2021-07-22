@@ -70,7 +70,8 @@ struct MonsterRecord
     const int attackWait   = 0;
     const int attackEffect = 0;
 
-    const std::initializer_list<const char8_t * const> dcNameList {};
+    const char8_t *dcName = u8"";
+    const char8_t *description = u8"";
 
     operator bool() const
     {

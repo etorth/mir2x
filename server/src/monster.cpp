@@ -1254,7 +1254,9 @@ void Monster::pickTarget(std::function<void(uint64_t)> fnTarget)
 
 int Monster::pickAttackMagic(uint64_t) const
 {
-    return DBCOM_MAGICID(u8"物理攻击");
+    const auto &mr = DBCOM_MONSTERRECORD(monsterID());
+    fflassert(mr);
+    return DBCOM_MAGICID(str_haschar(mr.dcName) ? mr.dcName : u8"物理攻击");
 }
 
 void Monster::QueryMaster(uint64_t nUID, std::function<void(uint64_t)> fnOp)

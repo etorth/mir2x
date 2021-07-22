@@ -788,6 +788,28 @@
 },
 
 {
+    .name = u8"掷斧骷髅_掷斧",
+    .gfxList
+    {
+        {
+            .stage = u8"运行",
+            .type  = u8"跟随",
+            .gfxID = 0X03000320,
+            .frameCount = 6,
+            .gfxDirType = 8,
+            .loop = 1,
+        },
+
+        {
+            .stage = u8"结束",
+            .type  = u8"附着",
+            .gfxID = 0X010003A2,
+            .frameCount = 6,
+        },
+    },
+},
+
+{
     .name = u8"稻草人_死亡火焰",
     .gfxList
     {
