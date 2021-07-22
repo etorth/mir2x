@@ -79,9 +79,12 @@ bool ClientDualAxeSkeleton::onActionAttack(const ActionNode &action)
 
             targetUID,
             m_processRun,
-        }))->addOnDone([targetUID, this](MagicBase *)
+        }))->addOnDone([targetUID, proc = m_processRun](MagicBase *)
         {
-            if(auto coPtr = m_processRun->findUID(targetUID)){
+            // TODO interesting bug, don't directly refer to this->m_processRun
+            // an dual-axe-skeleton can throw dual-axe-magic and die immediately, which makes *this* dangling
+
+            if(auto coPtr = proc->findUID(targetUID)){
                 coPtr->addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"掷斧骷髅_掷斧", u8"结束")));
             }
         });
