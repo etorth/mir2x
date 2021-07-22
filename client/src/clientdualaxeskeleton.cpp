@@ -30,6 +30,7 @@ ClientDualAxeSkeleton::ClientDualAxeSkeleton(uint64_t uid, ProcessRun *proc, con
         case ACTION_HITTED:
         case ACTION_DIE:
         case ACTION_ATTACK:
+        case ACTION_MOVE:
             {
                 m_currMotion.reset(new MotionNode
                 {
