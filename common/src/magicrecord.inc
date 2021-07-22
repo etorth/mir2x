@@ -768,7 +768,7 @@
     .name = u8"沙漠树魔_喷刺",
     .castRange
     {
-        .type = CRT_DIR,
+        .type = CRT_LIMITED,
         .distance = 5,
     },
 
@@ -797,7 +797,7 @@
     .name = u8"掷斧骷髅_掷斧",
     .castRange
     {
-        .type = CRT_DIR,
+        .type = CRT_LIMITED,
         .distance = 5,
     },
 

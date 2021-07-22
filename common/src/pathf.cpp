@@ -174,7 +174,7 @@ bool pathf::inDCCastRange(const DCCastRange &r, int x0, int y0, int x1, int y1)
             }
         case CRT_LIMITED:
             {
-                return mathf::LDistance2(x0, y0, x1, y1) <= r.distance;
+                return mathf::LDistance2(x0, y0, x1, y1) <= r.distance * r.distance;
             }
         default:
             {
