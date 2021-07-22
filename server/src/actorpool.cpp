@@ -385,7 +385,7 @@ bool ActorPool::postMessage(uint64_t uid, ActorMsgPack msg)
     }
 
     const auto bucketId = getBucketID(uid);
-    const auto fnPostMessage = [uid](Mailbox *mailboxPtr, ActorMsgPack msg) -> bool
+    const auto fnPostMessage = [](Mailbox *mailboxPtr, ActorMsgPack msg) -> bool
     {
         logScopedProfiler("pushMailbox");
 
