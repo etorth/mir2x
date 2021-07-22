@@ -225,6 +225,7 @@ class Monster: public CharObject
         corof::long_jmper::eval_op<bool>     coro_attackUID(uint64_t, int);
         corof::long_jmper::eval_op<bool>     coro_jumpAttackUID(uint64_t);
         corof::long_jmper::eval_op<bool>     coro_trackAttackUID(uint64_t);
+        corof::long_jmper::eval_op<bool>     coro_inDCCastRange(uint64_t, DCCastRange);
 
     public:
         static bool isPet(uint64_t);

@@ -22,13 +22,19 @@
 
 corof::long_jmper SandCactus::updateCoroFunc()
 {
+    const auto magicID = DBCOM_MAGICID(u8"沙漠树魔_喷刺");
+    const auto &mr = DBCOM_MAGICRECORD(magicID);
+
+    fflassert(mr);
+    fflassert(mr.castRange);
+
     while(HP() > 0){
         if(const uint64_t targetUID = co_await coro_pickTarget()){
-            co_await coro_trackAttackUID(targetUID);
+            if(co_await coro_inDCCastRange(targetUID, mr.castRange)){
+                co_await coro_attackUID(targetUID, magicID);
+            }
         }
-        else{
-            co_await corof::async_wait(200);
-        }
+        co_await corof::async_wait(200);
     }
 
     goDie();

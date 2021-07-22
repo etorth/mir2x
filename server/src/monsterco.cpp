@@ -16,6 +16,7 @@
  * =====================================================================================
  */
 
+#include "pathf.hpp"
 #include "corof.hpp"
 #include "monster.hpp"
 #include "monoserver.hpp"
@@ -168,4 +169,37 @@ corof::long_jmper::eval_op<bool> Monster::coro_jumpAttackUID(uint64_t targetUID)
         }
     };
     return fnwait(this, targetUID).eval<bool>();
+}
+
+corof::long_jmper::eval_op<bool> Monster::coro_inDCCastRange(uint64_t targetUID, DCCastRange r)
+{
+    fflassert(targetUID);
+    fflassert(r);
+
+    const auto fnwait = +[](Monster *p, uint64_t targetUID, DCCastRange r) -> corof::long_jmper
+    {
+        corof::async_variable<bool> done;
+        p->getCOLocation(targetUID, [p, r, &done](const COLocation &coLoc)
+        {
+            if(p->m_map->In(coLoc.mapID, coLoc.x, coLoc.y)){
+                done.assign(pathf::inDCCastRange(r, p->X(), p->Y(), coLoc.x, coLoc.y));
+            }
+            else{
+                done.assign(false);
+            }
+        },
+
+        [&done]()
+        {
+            done.assign(false);
+        });
+
+        if(co_await done){
+            co_return true;
+        }
+        else{
+            co_return false;
+        }
+    };
+    return fnwait(this, targetUID, r).eval<bool>();
 }
