@@ -758,9 +758,9 @@ bool Hero::parseAction(const ActionNode &action)
                                             targetUID,
                                             m_processRun,
 
-                                        }))->addOnDone([targetUID, magicID, this](MagicBase *)
+                                        }))->addOnDone([targetUID, magicID, proc = m_processRun](MagicBase *)
                                         {
-                                            if(auto coPtr = m_processRun->findUID(targetUID)){
+                                            if(auto coPtr = proc->findUID(targetUID)){
                                                 coPtr->addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(DBCOM_MAGICRECORD(magicID).name, u8"结束")));
                                             }
                                         });
