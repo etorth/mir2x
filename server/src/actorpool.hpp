@@ -465,7 +465,7 @@ class ActorPool final
         };
 
     private:
-        constexpr static int m_subBucketCount = 13;
+        constexpr static int m_subBucketCount = 97;
         struct MailboxBucket
         {
             std::future<void> runThread;
