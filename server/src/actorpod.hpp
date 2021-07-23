@@ -106,15 +106,15 @@ class ActorPod final
         void innHandler(const ActorMsgPack &);
 
     public:
-        bool forward(uint64_t nUID, const ActorMsgBuf &rstMB)
+        bool forward(uint64_t nUID, const ActorMsgBuf &mbuf)
         {
-            return forward(nUID, rstMB, 0);
+            return forward(nUID, mbuf, 0);
         }
 
     public:
-        bool forward(uint64_t nUID, const ActorMsgBuf &rstMB, std::function<void(const ActorMsgPack &)> fnOPR)
+        bool forward(uint64_t nUID, const ActorMsgBuf &mbuf, std::function<void(const ActorMsgPack &)> fnOPR)
         {
-            return forward(nUID, rstMB, 0, std::move(fnOPR));
+            return forward(nUID, mbuf, 0, std::move(fnOPR));
         }
 
     public:
