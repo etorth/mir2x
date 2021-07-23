@@ -109,8 +109,9 @@ class MonoServer final
         void StartServiceCore();
 
     public:
-        std::vector<int>   GetMapList();
-        sol::optional<int> GetMonsterCount(int, int);
+        bool loadMap(const std::string &);
+        std::vector<int> getMapList();
+        sol::optional<int> getMonsterCount(int, int);
 
     public:
         bool addMonster(uint32_t,       // monster id

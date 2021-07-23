@@ -561,7 +561,32 @@ bool MonoServer::addNPChar(const char *scriptPath)
     return false;
 }
 
-std::vector<int> MonoServer::GetMapList()
+bool MonoServer::loadMap(const std::string &mapName)
+{
+    AMQueryMapUID amQMUID;
+    std::memset(&amQMUID, 0, sizeof(amQMUID));
+
+    amQMUID.mapID = DBCOM_MAPID(to_u8cstr(mapName));
+    if(amQMUID.mapID == 0){
+        addLog(LOGTYPE_WARNING, "Invalid map name: %s", to_cstr(mapName));
+        return false;
+    }
+
+    switch(const auto rmpk = SyncDriver().forward(uidf::getServiceCoreUID(), {AM_QUERYMAPUID, amQMUID}); rmpk.type()){
+        case AM_UID:
+            {
+                addLog(LOGTYPE_INFO, "Load map %s: uid = 0x%016x", to_cstr(mapName), to_llu(rmpk.conv<AMUID>().UID));
+                return true;
+            }
+        default:
+            {
+                addLog(LOGTYPE_WARNING, "Load map %s failed", to_cstr(mapName));
+                return false;
+            }
+    }
+}
+
+std::vector<int> MonoServer::getMapList()
 {
     switch(auto stRMPK = SyncDriver().forward(uidf::getServiceCoreUID(), AM_QUERYMAPLIST); stRMPK.type()){
         case AM_MAPLIST:
@@ -586,10 +611,10 @@ std::vector<int> MonoServer::GetMapList()
     }
 }
 
-sol::optional<int> MonoServer::GetMonsterCount(int nMonsterID, int nMapID)
+sol::optional<int> MonoServer::getMonsterCount(int nMonsterID, int nMapID)
 {
     // I have two ways to implement this function
-    //  1. GetMapList() / GetMapUID() / GetMapAddress() / QueryMonsterCount()
+    //  1. getMapList() / GetMapUID() / GetMapAddress() / QueryMonsterCount()
     //  2. send QueryMonsterCount to ServiceCore, ServiceCore queries all maps and return the sum
     // currently using method-2
 
@@ -858,7 +883,7 @@ void MonoServer::regLuaExport(CommandLuaModule *modulePtr, uint32_t nCWID)
     // register command countMonster(monsterID, mapID)
     modulePtr->getLuaState().set_function("countMonster", [this, nCWID](int nMonsterID, int nMapID) -> int
     {
-        auto nRet = GetMonsterCount(nMonsterID, nMapID).value_or(-1);
+        auto nRet = getMonsterCount(nMonsterID, nMapID).value_or(-1);
         if(nRet < 0){
             addCWLogString(nCWID, 2, ">>> ", "countMonster(MonsterID: int, mapID: int) failed");
         }
@@ -932,7 +957,12 @@ void MonoServer::regLuaExport(CommandLuaModule *modulePtr, uint32_t nCWID)
     // return a table (userData) to lua for ipairs() check
     modulePtr->getLuaState().set_function("getMapIDList", [this](sol::this_state stThisLua)
     {
-        return sol::make_object(sol::state_view(stThisLua), GetMapList());
+        return sol::make_object(sol::state_view(stThisLua), getMapList());
+    });
+
+    modulePtr->getLuaState().set_function("loadMap", [this](std::string mapName)
+    {
+        return loadMap(mapName);
     });
 
     modulePtr->getLuaState().set_function("getCWID", [nCWID]() -> int

@@ -18,7 +18,7 @@ class ScriptWindow {} {
   }
   Function {ScriptWindow()} {} {
     Fl_Window m_window {
-      xywh {1 41 830 505} type Double labelfont 4 resizable visible
+      xywh {9 72 830 505} type Double labelfont 4 resizable visible
     } {
       Fl_Menu_Bar {} {
         xywh {0 0 830 25} box FLAT_BOX labelfont 4
@@ -58,7 +58,19 @@ class ScriptWindow {} {
           }
           MenuItem {} {
             label {Run   }
+            callback {{ // source the current buffer
+    extern MainWindow *g_mainWindow;
+    const int cwid = 1;
+    auto runWin = g_mainWindow->getCommandWindow(cwid);
+    if(runWin){
+        runWin->runScriptFile(m_fileName.c_str());
+    }
+    else{
+        fl_alert("Command window is not active: CWID = %d", cwid);
+    }
+}}
             xywh {0 0 100 20} shortcut 0x40072 labelfont 4
+            code0 {\#include "mainwindow.hpp"}
           }
         }
       }

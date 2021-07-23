@@ -8,14 +8,16 @@ decl {\#include <memory>} {public global
 decl {\#include "totype.hpp"} {public global
 }
 
+decl {\#include "filesys.hpp"} {public global
+}
+
 decl {\#include "commandinput.hpp"} {public global
 }
 
 decl {\#include "commandluamodule.hpp"} {public global
 }
 
-class CommandWindow {open
-} {
+class CommandWindow {} {
   decl {int m_CWID;} {private local
   }
   decl {std::unique_ptr<CommandLuaModule> m_luaModule;} {private local
@@ -32,7 +34,7 @@ class CommandWindow {open
     extern MainWindow *g_mainWindow;
     g_mainWindow->HideCommandWindow(getCWID());
 }}
-      xywh {2593 363 580 400} type Double resizable
+      xywh {71 119 580 400} type Double resizable
       code0 {\#include "mainwindow.hpp"} visible
     } {
       Fl_Menu_Bar {} {
@@ -78,7 +80,7 @@ class CommandWindow {open
     code {{
     // initialization of the lua module
     m_CWID = 0;
-	
+
 	// bind current window to CommandInput
 	// which helps to do event logic handling inside CommandInput
 	// avoid to do it in CommandWindow::handle(int)
@@ -172,12 +174,28 @@ class CommandWindow {open
     return m_input->getHistory();
 }} {}
   }
-  Function {setGUIFont(int fontID)} {open return_type void
+  Function {setGUIFont(int fontID)} {return_type void
   } {
     code {{
     m_input->textfont((Fl_Font)(fontID));
     m_browser->textfont((Fl_Font)(fontID));
     m_window->redraw();
+}} {}
+  }
+  Function {runScriptFile(const char *fileName)} {return_type void
+  } {
+    code {{
+    if(!filesys::hasFile(fileName)){
+    	fl_alert("Invalid file name: %s", fileName);
+        return;
+    }
+
+    if(!m_luaModule){
+        fl_alert("Command window has no lua module bound: CWID = %d", m_CWID);
+        return;
+    }
+
+    m_luaModule->getLuaState().script_file(fileName);
 }} {}
   }
 }
