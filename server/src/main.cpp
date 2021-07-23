@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
         g_monoServer            = new MonoServer();
         g_mapBinDB              = new MapBinDB();
         g_serverConfigureWindow = new ServerConfigureWindow();
-        g_actorPool             = new ActorPool(g_serverArgParser->actorPoolThread, 10);
+        g_actorPool             = new ActorPool(g_serverArgParser->actorPoolThread, g_serverArgParser->logicalFPS);
         g_dbPod                 = new DBPod();
         g_netDriver             = new NetDriver();
         g_podMonitorWindow      = new PodMonitorWindow();

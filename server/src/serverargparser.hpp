@@ -44,6 +44,7 @@ struct ServerArgParser
     const bool preloadMap;                  // "--preload-map"
     const int  preloadMapID;                // "--preload-map-id"
     const int  actorPoolThread;             // "--actor-pool-thread"
+    const int  logicalFPS;                  // "--logical-fps"
 
     ServerArgParser(const argh::parser &cmdParser)
         : disableProfiler(cmdParser["disable-profiler"])
@@ -102,6 +103,23 @@ struct ServerArgParser
               }
               else{
                   return 4;
+              }
+          }())
+        , logicalFPS([&cmdParser]() -> int
+          {
+              if(const auto numStr = cmdParser("logical-fps").str(); !numStr.empty()){
+                  try{
+                      if(const auto fps = std::stoi(numStr); fps > 0){
+                          return fps;
+                      }
+                  }
+                  catch(...){
+                      // ...
+                  }
+                  throw fflerror("invalid fps: %s", numStr.c_str());
+              }
+              else{
+                  return 10;
               }
           }())
     {}

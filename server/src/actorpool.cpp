@@ -66,20 +66,12 @@ ActorPool::Mailbox::Mailbox(ActorPod *actorPtr, std::function<void()> atStartTri
 ActorPool::ActorPool(int bucketCount, int logicFPS)
     : m_logicFPS([logicFPS]() -> uint32_t
       {
-          if(logicFPS <= 0){
-              return 5;
-          }
-
-          if(logicFPS >= 30){
-              return 30;
-          }
+          fflassert(logicFPS > 0);
           return logicFPS;
       }())
     , m_bucketList([bucketCount]() -> uint32_t
       {
-          if(bucketCount <= 0){
-              return 1;
-          }
+          fflassert(bucketCount > 0);
           return bucketCount;
       }())
 {
