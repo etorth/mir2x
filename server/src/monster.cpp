@@ -589,7 +589,7 @@ corof::long_jmper Monster::updateCoroFunc()
                 break;
             }
         }
-        else if(hasPlayerNeighbor()){
+        else if(g_serverArgParser->forceMonsterRandomMove || hasPlayerNeighbor()){
             co_await coro_randomMove();
         }
         else{
