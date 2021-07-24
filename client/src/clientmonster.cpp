@@ -37,6 +37,7 @@
 #include "clientcannibalplant.hpp"
 #include "clientdualaxeskeleton.hpp"
 #include "clientguard.hpp"
+#include "clientsandghost.hpp"
 #include "clientwedgemoth.hpp"
 #include "creaturemovable.hpp"
 #include "clientargparser.hpp"
@@ -210,7 +211,7 @@ void ClientMonster::drawFrame(int viewX, int viewY, int focusMask, int frame, bo
     // TODO some monter doesn't need to draw seperate shadow texture
     //      the body frame itself has shadow effect, i.e. 洞穴蜈蚣, later should remove the synthesized shadow texture
 
-    if(isMonster(u8"洞穴蜈蚣") || isMonster(u8"栗子树") || isMonster(u8"圣诞树")){
+    if(isMonster(u8"洞穴蜈蚣") || isMonster(u8"栗子树") || isMonster(u8"圣诞树") || isMonster(u8"沙鬼")){
         // sikp shadow
     }
     else{
@@ -702,6 +703,10 @@ ClientMonster *ClientMonster::create(uint64_t uid, ProcessRun *proc, const Actio
         case DBCOM_MONSTERID(u8"楔蛾"):
             {
                 return new ClientWedgeMoth(uid, proc, action);
+            }
+        case DBCOM_MONSTERID(u8"沙鬼"):
+            {
+                return new ClientSandGhost(uid, proc, action);
             }
         default:
             {

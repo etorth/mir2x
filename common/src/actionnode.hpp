@@ -67,6 +67,11 @@ struct ActionNode
             uint8_t standMode;
         };
 
+        struct SandGhostStand
+        {
+            uint8_t standMode;
+        };
+
         struct NPCStand
         {
             uint8_t act;
@@ -76,6 +81,7 @@ struct ActionNode
         {
             DogStand dog;
             CannibalPlantStand cannibalPlant;
+            SandGhostStand sandGhost;
             NPCStand npc;
         };
     };
@@ -92,10 +98,16 @@ struct ActionNode
             uint8_t standModeReq;
         };
 
+        struct SandGhostTransf
+        {
+            uint8_t standModeReq;
+        };
+
         union
         {
             DogTransf dog;
             CannibalPlantTransf cannibalPlant;
+            SandGhostTransf sandGhost;
         };
     };
 
