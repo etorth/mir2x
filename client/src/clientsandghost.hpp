@@ -67,6 +67,19 @@ class ClientSandGhost: public ClientMonster
                         m_standMode = (bool)(action.extParam.transf.sandGhost.standModeReq);
                         break;
                     }
+                case ACTION_MOVE:
+                    {
+                        m_currMotion.reset(new MotionNode
+                        {
+                            .type = MOTION_MON_APPEAR,
+                            .direction = directionValid(action.direction) ? to_d(action.direction) : DIR_UP,
+                            .x = action.x,
+                            .y = action.y,
+                        });
+
+                        m_standMode = true;
+                        break;
+                    }
                 case ACTION_HITTED:
                     {
                         m_currMotion.reset(new MotionNode
@@ -82,7 +95,7 @@ class ClientSandGhost: public ClientMonster
                     }
                 default:
                     {
-                        throw bad_reach();
+                        throw fflerror("invalid action: %s", actionName(action));
                     }
             }
         }

@@ -21,18 +21,36 @@
 #include "dbcomid.hpp"
 #include "raiitimer.hpp"
 #include "sandghost.hpp"
+#include "serverargparser.hpp"
 
+extern ServerArgParser *g_serverArgParser;
 corof::long_jmper SandGhost::updateCoroFunc()
 {
     std::optional<uint64_t> idleTime;
     while(HP() > 0){
         if(const uint64_t targetUID = co_await coro_pickTarget()){
             const auto [targetMapID, targetX, targetY] = co_await coro_getCOPLoc(targetUID);
-            if((mapID() == targetMapID) && (mathf::CDistance<int>(targetX, targetY, X(), Y()) <= 1)){
-                idleTime.reset();
-                setStandMode(true);
-                co_await coro_attackUID(targetUID, DBCOM_MAGICID(u8"物理攻击"));
+            if(mapID() == targetMapID){
+                if(mathf::CDistance<int>(targetX, targetY, X(), Y()) <= 1){
+                    idleTime.reset();
+                    setStandMode(true);
+                    co_await coro_attackUID(targetUID, DBCOM_MAGICID(u8"物理攻击"));
+                }
+                else{
+                    co_await coro_trackUID(targetUID, DBCOM_MAGICRECORD(u8"物理攻击").castRange);
+                }
+                co_await corof::async_wait(200);
             }
+            else{
+                co_await corof::async_wait(200);
+                continue;
+            }
+        }
+        else if(g_serverArgParser->forceMonsterRandomMove || hasPlayerNeighbor()){
+            if(m_standMode){
+                co_await coro_randomMove();
+            }
+            co_await corof::async_wait(200);
         }
         else{
             if(!idleTime.has_value()){
