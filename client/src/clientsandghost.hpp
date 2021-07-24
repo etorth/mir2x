@@ -134,18 +134,6 @@ class ClientSandGhost: public ClientMonster
         void addActionTransf();
 
     protected:
-        std::unique_ptr<MotionNode> makeIdleMotion() const override
-        {
-            return std::unique_ptr<MotionNode>(new MotionNode
-            {
-                .type = MOTION_MON_STAND,
-                .direction = m_currMotion->direction,
-                .x = m_currMotion->endX,
-                .y = m_currMotion->endY,
-            });
-        }
-
-    protected:
         bool finalStandMode() const;
 
     protected:
