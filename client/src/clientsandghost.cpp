@@ -38,7 +38,7 @@ bool ClientSandGhost::onActionSpawn(const ActionNode &action)
 
 bool ClientSandGhost::onActionStand(const ActionNode &action)
 {
-    if(finalStandMode() != action.extParam.stand.cannibalPlant.standMode){
+    if(finalStandMode() != (bool)(action.extParam.stand.sandGhost.standMode)){
         addActionTransf();
     }
     return true;
@@ -46,7 +46,7 @@ bool ClientSandGhost::onActionStand(const ActionNode &action)
 
 bool ClientSandGhost::onActionTransf(const ActionNode &action)
 {
-    const auto standReq = (bool)(action.extParam.transf.cannibalPlant.standModeReq);
+    const auto standReq = (bool)(action.extParam.transf.sandGhost.standModeReq);
     if(finalStandMode() != standReq){
         addActionTransf();
     }

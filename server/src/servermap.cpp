@@ -36,6 +36,7 @@
 #include "dualaxeskeleton.hpp"
 #include "eviltentacle.hpp"
 #include "sandcactus.hpp"
+#include "sandghost.hpp"
 #include "raiitimer.hpp"
 #include "mathf.hpp"
 #include "sysconst.hpp"
@@ -1242,6 +1243,17 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
             case DBCOM_MONSTERID(u8"触角神魔"):
                 {
                     monsterPtr = new EvilTentacle
+                    {
+                        this,
+                        nDstX,
+                        nDstY,
+                        DIR_UP,
+                    };
+                    break;
+                }
+            case DBCOM_MONSTERID(u8"沙鬼"):
+                {
+                    monsterPtr = new SandGhost
                     {
                         this,
                         nDstX,
