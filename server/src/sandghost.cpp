@@ -31,20 +31,16 @@ corof::long_jmper SandGhost::updateCoroFunc()
         if(const uint64_t targetUID = co_await coro_pickTarget()){
             const auto [targetMapID, targetX, targetY] = co_await coro_getCOPLoc(targetUID);
             if(mapID() == targetMapID){
+                idleTime.reset();
+                setStandMode(true);
                 if(mathf::CDistance<int>(targetX, targetY, X(), Y()) <= 1){
-                    idleTime.reset();
-                    setStandMode(true);
                     co_await coro_attackUID(targetUID, DBCOM_MAGICID(u8"物理攻击"));
                 }
                 else{
                     co_await coro_trackUID(targetUID, DBCOM_MAGICRECORD(u8"物理攻击").castRange);
                 }
-                co_await corof::async_wait(200);
             }
-            else{
-                co_await corof::async_wait(200);
-                continue;
-            }
+            co_await corof::async_wait(200);
         }
         else if(g_serverArgParser->forceMonsterRandomMove || hasPlayerNeighbor()){
             if(m_standMode){
