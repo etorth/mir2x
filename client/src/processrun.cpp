@@ -43,11 +43,7 @@
 #include "skillboard.hpp"
 #include "lochashtable.hpp"
 #include "clienttaodog.hpp"
-#include "clientguard.hpp"
-#include "clientscarecrow.hpp"
 #include "clienttaoskeleton.hpp"
-#include "clientcannibalplant.hpp"
-#include "clientbugbatmaggot.hpp"
 
 extern Log *g_log;
 extern Client *g_client;

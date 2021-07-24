@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename: clientdualaxeskeleton.hpp
+ *       Filename: clientwedgemoth.hpp
  *        Created: 07/31/2021 08:26:19
  *    Description:
  *
@@ -20,10 +20,10 @@
 #include "dbcomid.hpp"
 #include "clientmonster.hpp"
 
-class ClientDualAxeSkeleton: public ClientMonster
+class ClientWedgeMoth: public ClientMonster
 {
     public:
-        ClientDualAxeSkeleton(uint64_t, ProcessRun *, const ActionNode &);
+        ClientWedgeMoth(uint64_t, ProcessRun *, const ActionNode &);
 
     protected:
         bool onActionAttack(const ActionNode &) override;

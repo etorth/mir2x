@@ -794,6 +794,27 @@
 },
 
 {
+    .name = u8"楔蛾_喷毒",
+    .castRange
+    {
+        .type = CRT_DIR,
+        .distance = 1,
+    },
+
+    .gfxList
+    {
+        {
+            .stage = u8"运行",
+            .type  = u8"固定",
+            .gfxID = 0X03000370,
+            .frameCount = 6,
+            .gfxIDCount = 10,
+            .gfxDirType = 8,
+        },
+    },
+},
+
+{
     .name = u8"掷斧骷髅_掷斧",
     .castRange
     {
