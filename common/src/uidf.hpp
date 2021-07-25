@@ -100,17 +100,13 @@ namespace uidf
 {
     inline uint32_t getMonsterID(uint64_t uid)
     {
-        if(getUIDType(uid) != UID_MON){
-            throw fflerror("not a monster uid");
-        }
+        fflassert(getUIDType(uid) == UID_MON);
         return to_u32((uid & 0X00000FFE00000000ULL) >> 33);
     }
 
     inline uint32_t getMonsterSeq(uint64_t uid)
     {
-        if(getUIDType(uid) != UID_MON){
-            throw fflerror("not a monster uid");
-        }
+        fflassert(getUIDType(uid) == UID_MON);
         return to_u32(uid & 0XFFFFFFFFULL);
     }
 

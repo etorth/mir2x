@@ -795,6 +795,22 @@
 },
 
 {
+    .name = u8"僧侣僵尸_地洞",
+    .gfxList
+    {
+        {
+            .stage = u8"运行",
+            .type  = u8"固定",
+            .gfxID = 0X0F0000F0,
+            .frameCount = 1,
+            .gfxDirType = 8,
+            .onGround = 1,
+            .loop = 1,
+        },
+    },
+},
+
+{
     .name = u8"沙漠树魔_喷刺",
     .castRange
     {

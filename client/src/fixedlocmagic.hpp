@@ -336,14 +336,14 @@ class IceThrust_RUN: public FixedLocMagic
         void drawViewOff(int, int, uint32_t) const override;
 };
 
-class StoneManSpawnEffect_RUN: public FixedLocMagic
+class SingleFrameSpawnEffect_RUN: public FixedLocMagic
 {
     private:
         const int m_alphaTime[2];
 
     public:
-        StoneManSpawnEffect_RUN(int x, int y, int gfxDirIndex, int t1 = 5000, int t2 = 3000)
-            : FixedLocMagic(u8"沙漠石人_石坑", u8"运行", x, y, gfxDirIndex)
+        SingleFrameSpawnEffect_RUN(const char8_t *magicName, const char8_t *magicStage, int x, int y, int gfxDirIndex, int t1, int t2)
+            : FixedLocMagic(magicName, magicStage, x, y, gfxDirIndex)
             , m_alphaTime
               {
                   t1,
@@ -352,6 +352,7 @@ class StoneManSpawnEffect_RUN: public FixedLocMagic
         {
             fflassert(t1 >= 0);
             fflassert(t2 >  0);
+            fflassert(m_gfxEntry.frameCount == 1);
         }
 
     public:
@@ -382,4 +383,20 @@ class StoneManSpawnEffect_RUN: public FixedLocMagic
         {
             FixedLocMagic::drawViewOff(viewX, viewY, colorf::modRGBA(getPlainModColor(), modColor));
         }
+};
+
+class StoneManSpawnEffect_RUN: public SingleFrameSpawnEffect_RUN
+{
+    public:
+        StoneManSpawnEffect_RUN(int x, int y, int gfxDirIndex, int t1 = 5000, int t2 = 3000)
+            : SingleFrameSpawnEffect_RUN(u8"沙漠石人_石坑", u8"运行", x, y, gfxDirIndex, t1, t2)
+        {}
+};
+
+class MonkZombieSpawnEffect_RUN: public SingleFrameSpawnEffect_RUN
+{
+    public:
+        MonkZombieSpawnEffect_RUN(int x, int y, int gfxDirIndex, int t1 = 5000, int t2 = 3000)
+            : SingleFrameSpawnEffect_RUN(u8"僧侣僵尸_地洞", u8"运行", x, y, gfxDirIndex, t1, t2)
+        {}
 };
