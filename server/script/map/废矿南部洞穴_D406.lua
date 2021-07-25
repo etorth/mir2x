@@ -14,7 +14,7 @@ local addMonCo = addmon.monGener( -- 废矿南部洞穴_D406
         }
     },
     {
-        name = '僵尸2',
+        name = '僧侣僵尸',
         loc = {
             {x = 100, y = 100, w = 100, h = 100, count = 40, time = 600},
         }

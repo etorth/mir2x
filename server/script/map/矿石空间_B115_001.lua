@@ -8,7 +8,7 @@ local addMonCo = addmon.monGener( -- 矿石空间_B115_001
         }
     },
     {
-        name = '僵尸2',
+        name = '僧侣僵尸',
         loc = {
             {x = 100, y = 100, w = 100, h = 100, count = 20, time = 300},
         }

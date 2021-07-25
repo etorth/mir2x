@@ -8,7 +8,7 @@ local addMonCo = addmon.monGener( -- 北部石矿3层_D1413
         }
     },
     {
-        name = '僵尸2',
+        name = '僧侣僵尸',
         loc = {
             {x = 200, y = 200, w = 200, h = 200, count = 70, time = 600},
         }

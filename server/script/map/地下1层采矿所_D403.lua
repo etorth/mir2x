@@ -14,7 +14,7 @@ local addMonCo = addmon.monGener( -- 地下1层采矿所_D403
         }
     },
     {
-        name = '僵尸2',
+        name = '僧侣僵尸',
         loc = {
             {x = 100, y = 100, w = 100, h = 100, count = 33, time = 600},
         }

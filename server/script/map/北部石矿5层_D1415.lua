@@ -8,7 +8,7 @@ local addMonCo = addmon.monGener( -- 北部石矿5层_D1415
         }
     },
     {
-        name = '僵尸2',
+        name = '僧侣僵尸',
         loc = {
             {x = 200, y = 200, w = 200, h = 200, count = 60, time = 600},
         }

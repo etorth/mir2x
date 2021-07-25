@@ -8,7 +8,7 @@ local addMonCo = addmon.monGener( -- 天桥3_D416
         }
     },
     {
-        name = '僵尸2',
+        name = '僧侣僵尸',
         loc = {
             {x = 0, y = 0, w = 100, h = 100, count = 20, time = 600},
         }

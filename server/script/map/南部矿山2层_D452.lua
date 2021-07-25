@@ -14,7 +14,7 @@ local addMonCo = addmon.monGener( -- 南部矿山2层_D452
         }
     },
     {
-        name = '僵尸2',
+        name = '僧侣僵尸',
         loc = {
             {x = 200, y = 200, w = 180, h = 180, count = 80, time = 600},
         }
