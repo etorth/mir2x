@@ -795,6 +795,29 @@
 },
 
 {
+    .name = u8"雷电僵尸_雷电",
+    .element = u8"雷",
+
+    .castRange
+    {
+        .type = CRT_DIR,
+        .distance = 8,
+    },
+
+    .gfxList
+    {
+        {
+            .stage = u8"运行",
+            .type  = u8"固定",
+            .gfxID = 0X03000258,
+            .frameCount = 6,
+            .gfxIDCount = 10,
+            .gfxDirType = 8,
+        },
+    },
+},
+
+{
     .name = u8"僧侣僵尸_地洞",
     .gfxList
     {
