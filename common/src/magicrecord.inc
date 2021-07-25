@@ -765,6 +765,36 @@
 },
 
 {
+    .name = u8"沙漠石人_石坑",
+    .gfxList
+    {
+        {
+            .stage = u8"运行",
+            .type  = u8"固定",
+            .gfxID = 0X0F0000C8,
+            .frameCount = 1,
+            .gfxDirType = 8,
+            .onGround = 1,
+            .loop = 1,
+        },
+    },
+},
+
+{
+    .name = u8"沙漠石人_死亡",
+    .gfxList
+    {
+        {
+            .stage = u8"运行",
+            .type  = u8"固定",
+            .gfxID = 0X03000132,
+            .frameCount = 8,
+            .gfxDirType = 1,
+        },
+    },
+},
+
+{
     .name = u8"沙漠树魔_喷刺",
     .castRange
     {

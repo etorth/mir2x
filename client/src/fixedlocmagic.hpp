@@ -335,3 +335,51 @@ class IceThrust_RUN: public FixedLocMagic
     public:
         void drawViewOff(int, int, uint32_t) const override;
 };
+
+class StoneManSpawnEffect_RUN: public FixedLocMagic
+{
+    private:
+        const int m_alphaTime[2];
+
+    public:
+        StoneManSpawnEffect_RUN(int x, int y, int gfxDirIndex, int t1 = 5000, int t2 = 3000)
+            : FixedLocMagic(u8"沙漠石人_石坑", u8"运行", x, y, gfxDirIndex)
+            , m_alphaTime
+              {
+                  t1,
+                  t2,
+              }
+        {
+            fflassert(t1 >= 0);
+            fflassert(t2 >  0);
+        }
+
+    public:
+        bool done() const override
+        {
+            return m_accuTime >= m_alphaTime[0] + m_alphaTime[1];
+        }
+
+    private:
+        uint32_t getPlainModColor() const
+        {
+            return colorf::WHITE + colorf::A_SHF(colorf::round255(255.0 * [this]() -> float
+            {
+                if(m_accuTime < m_alphaTime[0]){
+                    return 1.0f;
+                }
+                else if(m_accuTime < m_alphaTime[0] + m_alphaTime[1]){
+                    return 1.0f - to_f(m_accuTime - m_alphaTime[0]) / m_alphaTime[1];
+                }
+                else{
+                    return 0.0f;
+                }
+            }()));
+        }
+
+    public:
+        void drawViewOff(int viewX, int viewY, uint32_t modColor) const override
+        {
+            FixedLocMagic::drawViewOff(viewX, viewY, colorf::modRGBA(getPlainModColor(), modColor));
+        }
+};
