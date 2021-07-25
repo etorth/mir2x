@@ -104,15 +104,7 @@ class ClientRebornZombie: public ClientMonster
         {
             if(m_standMode){
                 switch(motion){
-                    case MOTION_MON_APPEAR:
-                        {
-                            return
-                            {
-                                .begin = 9,
-                                .count = 10,
-                                .reverse = true,
-                            };
-                        }
+                    case MOTION_MON_APPEAR : return {.count = 10};
                     case MOTION_MON_STAND  : return {.count =  4};
                     case MOTION_MON_WALK   : return {.count =  6};
                     case MOTION_MON_ATTACK0: return {.count =  6};
