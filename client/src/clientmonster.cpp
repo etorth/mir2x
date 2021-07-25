@@ -40,7 +40,7 @@
 #include "clientsandghost.hpp"
 #include "clientsandstoneman.hpp"
 #include "clientwedgemoth.hpp"
-#include "clientthunderzombie.hpp"
+#include "clientlightboltzombie.hpp"
 #include "clientmonkzombie.hpp"
 #include "creaturemovable.hpp"
 #include "clientargparser.hpp"
@@ -717,7 +717,7 @@ ClientMonster *ClientMonster::create(uint64_t uid, ProcessRun *proc, const Actio
             }
         case DBCOM_MONSTERID(u8"雷电僵尸"):
             {
-                return new ClientThunderZombie(uid, proc, action);
+                return new ClientLightBoltZombie(uid, proc, action);
             }
         case DBCOM_MONSTERID(u8"僧侣僵尸"):
             {

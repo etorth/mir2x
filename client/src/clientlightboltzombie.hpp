@@ -3,10 +3,10 @@
 #include "dbcomid.hpp"
 #include "clientmonster.hpp"
 
-class ClientThunderZombie: public ClientMonster
+class ClientLightBoltZombie: public ClientMonster
 {
     public:
-        ClientThunderZombie(uint64_t uid, ProcessRun *proc, const ActionNode &action)
+        ClientLightBoltZombie(uint64_t uid, ProcessRun *proc, const ActionNode &action)
             : ClientMonster(uid, proc, action)
         {
             fflassert(isMonster(u8"雷电僵尸"));
