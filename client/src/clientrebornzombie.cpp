@@ -1,8 +1,8 @@
 #include "fflerror.hpp"
 #include "processrun.hpp"
-#include "clientsandghost.hpp"
+#include "clientrebornzombie.hpp"
 
-void ClientSandGhost::addActionTransf()
+void ClientRebornZombie::addActionTransf()
 {
     const auto [endX, endY, endDir] = motionEndGLoc(END_FORCED);
     m_forcedMotionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
@@ -20,7 +20,7 @@ void ClientSandGhost::addActionTransf()
     });
 }
 
-bool ClientSandGhost::onActionSpawn(const ActionNode &action)
+bool ClientRebornZombie::onActionSpawn(const ActionNode &action)
 {
     fflassert(m_forcedMotionQueue.empty());
     m_currMotion.reset(new MotionNode
@@ -35,7 +35,7 @@ bool ClientSandGhost::onActionSpawn(const ActionNode &action)
     return true;
 }
 
-bool ClientSandGhost::onActionStand(const ActionNode &action)
+bool ClientRebornZombie::onActionStand(const ActionNode &action)
 {
     if(finalStandMode() != (bool)(action.extParam.stand.sandGhost.standMode)){
         addActionTransf();
@@ -43,7 +43,7 @@ bool ClientSandGhost::onActionStand(const ActionNode &action)
     return true;
 }
 
-bool ClientSandGhost::onActionTransf(const ActionNode &action)
+bool ClientRebornZombie::onActionTransf(const ActionNode &action)
 {
     const auto standReq = (bool)(action.extParam.transf.sandGhost.standModeReq);
     if(finalStandMode() != standReq){
@@ -52,7 +52,7 @@ bool ClientSandGhost::onActionTransf(const ActionNode &action)
     return true;
 }
 
-bool ClientSandGhost::onActionAttack(const ActionNode &action)
+bool ClientRebornZombie::onActionAttack(const ActionNode &action)
 {
     if(!finalStandMode()){
         addActionTransf();
@@ -68,7 +68,7 @@ bool ClientSandGhost::onActionAttack(const ActionNode &action)
     return true;
 }
 
-bool ClientSandGhost::finalStandMode() const
+bool ClientRebornZombie::finalStandMode() const
 {
     int countTransf = 0;
 
@@ -91,7 +91,7 @@ bool ClientSandGhost::finalStandMode() const
     return (bool)(countTransf % 2) ? !m_standMode : m_standMode;
 }
 
-std::optional<uint32_t> ClientSandGhost::gfxID(int motion, int dir) const
+std::optional<uint32_t> ClientRebornZombie::gfxID(int motion, int dir) const
 {
     if(m_standMode){
         return ClientMonster::gfxID(motion, dir);
@@ -101,12 +101,15 @@ std::optional<uint32_t> ClientSandGhost::gfxID(int motion, int dir) const
             case MOTION_MON_STAND:
                 {
                     // gfx redirect
-                    // use the single final frame of MOTION_MON_APPEAR to show it hides in the soil
-                    return ClientMonster::gfxID(MOTION_MON_APPEAR, dir);
+                    // use the single final frame of MOTION_MON_DIE to show its lying down state
+                    return ClientMonster::gfxID(MOTION_MON_DIE, dir);
                 }
             case MOTION_MON_APPEAR:
                 {
-                    return ClientMonster::gfxID(MOTION_MON_APPEAR, dir);
+                    // gfx redirect
+                    // use MOTION_MON_DIE    to transf to lying down mode
+                    // use MOTION_MON_APPEAR to transf to standing   mode
+                    return ClientMonster::gfxID(MOTION_MON_DIE, dir);
                 }
             default:
                 {

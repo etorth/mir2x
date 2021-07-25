@@ -37,6 +37,7 @@
 #include "eviltentacle.hpp"
 #include "sandcactus.hpp"
 #include "sandghost.hpp"
+#include "rebornzombie.hpp"
 #include "raiitimer.hpp"
 #include "mathf.hpp"
 #include "sysconst.hpp"
@@ -1255,6 +1256,20 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
                 {
                     monsterPtr = new SandGhost
                     {
+                        this,
+                        nDstX,
+                        nDstY,
+                        DIR_UP,
+                    };
+                    break;
+                }
+            case DBCOM_MONSTERID(u8"僵尸_1"):
+            case DBCOM_MONSTERID(u8"僵尸_2"):
+            case DBCOM_MONSTERID(u8"腐僵"):
+                {
+                    monsterPtr = new RebornZombie
+                    {
+                        nMonsterID,
                         this,
                         nDstX,
                         nDstY,

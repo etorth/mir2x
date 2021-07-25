@@ -29,6 +29,9 @@
 #include "protocoldef.hpp"
 #include "dbcomrecord.hpp"
 #include "pngtexoffdb.hpp"
+#include "clientargparser.hpp"
+#include "clientpathfinder.hpp"
+#include "creaturemovable.hpp"
 #include "clienttaodog.hpp"
 #include "clientsandcactus.hpp"
 #include "clienttaoskeleton.hpp"
@@ -42,9 +45,7 @@
 #include "clientwedgemoth.hpp"
 #include "clientlightboltzombie.hpp"
 #include "clientmonkzombie.hpp"
-#include "creaturemovable.hpp"
-#include "clientargparser.hpp"
-#include "clientpathfinder.hpp"
+#include "clientrebornzombie.hpp"
 
 extern Log *g_log;
 extern PNGTexDB *g_progUseDB;
@@ -722,6 +723,12 @@ ClientMonster *ClientMonster::create(uint64_t uid, ProcessRun *proc, const Actio
         case DBCOM_MONSTERID(u8"僧侣僵尸"):
             {
                 return new ClientMonkZombie(uid, proc, action);
+            }
+        case DBCOM_MONSTERID(u8"僵尸_1"):
+        case DBCOM_MONSTERID(u8"僵尸_2"):
+        case DBCOM_MONSTERID(u8"腐僵"):
+            {
+                return new ClientRebornZombie(uid, proc, action);
             }
         default:
             {
