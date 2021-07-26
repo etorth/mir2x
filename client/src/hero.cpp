@@ -312,7 +312,7 @@ bool Hero::update(double ms)
                     return updateMotion();
                 }
 
-                const int motionEndFrame = motionFrameCountEx(m_currMotion->type, m_currMotion->direction) - 1;
+                const int motionEndFrame = getFrameCountEx(m_currMotion->type, m_currMotion->direction) - 1;
                 const int effectEndFrame = m_currMotion->extParam.spell.effect->frameCount() - 1;
                 const int motionSyncFrameCount = [this]() -> int
                 {
@@ -372,7 +372,7 @@ bool Hero::motionValid(const std::unique_ptr<MotionNode> &motionPtr) const
             && motionPtr->speed <= SYS_MAXSPEED
 
             && motionPtr->frame >= 0
-            && motionPtr->frame <  motionFrameCount(motionPtr->type, motionPtr->direction)){
+            && motionPtr->frame <  getFrameCount(motionPtr->type, motionPtr->direction)){
 
         const auto nLDistance2 = mathf::LDistance2(motionPtr->x, motionPtr->y, motionPtr->endX, motionPtr->endY);
         switch(motionPtr->type){

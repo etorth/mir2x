@@ -253,7 +253,7 @@ std::tuple<int, int> CreatureMovable::getShift(int frame) const
             }
     }
 
-    const auto frameCount = motionFrameCountEx(m_currMotion->type, m_currMotion->direction);
+    const auto frameCount = getFrameCountEx(m_currMotion->type, m_currMotion->direction);
 
     const float shiftDX = 1.0f * SYS_MAPGRIDXP * currStepCount / to_f(frameCount);
     const float shiftDY = 1.0f * SYS_MAPGRIDYP * currStepCount / to_f(frameCount);
@@ -322,7 +322,7 @@ void CreatureMovable::flushForcedMotion()
                 }
         }
 
-        while(motionPtr->frame < motionFrameCount(motionPtr->type, motionPtr->direction)){
+        while(motionPtr->frame < getFrameCount(motionPtr->type, motionPtr->direction)){
             motionPtr->update();
             motionPtr->frame++;
         }
@@ -346,7 +346,7 @@ void CreatureMovable::flushForcedMotion()
 std::array<std::tuple<int, int>, 3> CreatureMovable::getGLoc() const
 {
     fflassert(motionValid(m_currMotion));
-    const auto doneRatio = to_f(currMotion()->frame + 1) / motionFrameCountEx(currMotion()->type, currMotion()->direction); // max is 1.0
+    const auto doneRatio = to_f(currMotion()->frame + 1) / getFrameCountEx(currMotion()->type, currMotion()->direction); // max is 1.0
     return
     {
         pathf::getFrontGLoc(currMotion()->x, currMotion()->y, currMotion()->direction, to_d(std::lround(std::floor(doneRatio * currStep())))),

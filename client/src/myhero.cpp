@@ -608,7 +608,7 @@ void MyHero::brakeMove()
                 // getGLoc(GLOC_R) uses std::lround while getGLoc(GLOC_C) uses std::ceil(), if different means done less half (ratio < n.5)
 
                 const auto motionType = onHorse() ? MOTION_ONHORSEWALK : MOTION_WALK;
-                const auto startFrame = motionFrameCountEx(motionType, m_currMotion->direction) / 2;
+                const auto startFrame = getFrameCountEx(motionType, m_currMotion->direction) / 2;
 
                 m_currMotion.reset(new MotionNode
                 {

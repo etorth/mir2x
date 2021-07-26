@@ -179,7 +179,7 @@ std::optional<uint32_t> ClientNPC::gfxID() const
     // NPC lookID allows zero
     // check mir2x/tools/npcwil2png/src/main.cpp
 
-    if(motionFrameCount(m_currMotion->type, m_currMotion->direction) <= 0){
+    if(getFrameCount(m_currMotion->type, m_currMotion->direction) <= 0){
         return {};
     }
     return (to_u32(lookID()) << 12) | (to_u32(m_currMotion->type & 0X0F) << 8) | (to_u32(m_currMotion->direction) << 5);
@@ -236,7 +236,7 @@ bool ClientNPC::update(double ms)
 
     const bool doneCurrMotion = [this]()
     {
-        return m_currMotion->frame + 1 == motionFrameCount(m_currMotion->type, m_currMotion->direction);
+        return m_currMotion->frame + 1 == getFrameCount(m_currMotion->type, m_currMotion->direction);
     }();
 
     switch(m_currMotion->type){

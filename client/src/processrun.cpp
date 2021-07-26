@@ -1374,7 +1374,7 @@ void ProcessRun::centerMyHero()
     const auto nX          = getMyHero()->currMotion()->x;
     const auto nY          = getMyHero()->currMotion()->y;
     const auto currFrame   = getMyHero()->currMotion()->frame;
-    const auto frameCount = getMyHero()->motionFrameCount(nMotion, nDirection);
+    const auto frameCount = getMyHero()->getFrameCount(nMotion, nDirection);
 
     if(frameCount <= 0){
         throw fflerror("invalid frame count: %d", frameCount);

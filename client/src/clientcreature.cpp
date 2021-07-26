@@ -38,7 +38,7 @@ extern Log *g_log;
 
 bool ClientCreature::advanceMotionFrame(int addFrame)
 {
-    const auto frameCount = motionFrameCount(m_currMotion->type, m_currMotion->direction);
+    const auto frameCount = getFrameCount(m_currMotion->type, m_currMotion->direction);
     if(frameCount <= 0){
         return false;
     }
@@ -105,7 +105,7 @@ bool ClientCreature::active() const
         case MOTION_DIE:
         case MOTION_MON_DIE:
             {
-                return (m_currMotion->frame + 1) < motionFrameCountEx(m_currMotion->type, m_currMotion->direction);
+                return (m_currMotion->frame + 1) < getFrameCountEx(m_currMotion->type, m_currMotion->direction);
             }
         default:
             {
@@ -121,7 +121,7 @@ bool ClientCreature::visible() const
         case MOTION_DIE:
             {
                 fflassert(type() == UID_PLY);
-                return ((m_currMotion->frame + 1) < motionFrameCountEx(m_currMotion->type, m_currMotion->direction)) || (m_currMotion->extParam.die.fadeOut < 255);
+                return ((m_currMotion->frame + 1) < getFrameCountEx(m_currMotion->type, m_currMotion->direction)) || (m_currMotion->extParam.die.fadeOut < 255);
             }
         case MOTION_MON_DIE:
             {
@@ -129,7 +129,7 @@ bool ClientCreature::visible() const
                 // because ClientCreature::update() guarantees frame < frmeCount always true
 
                 fflassert(type() == UID_MON);
-                if((m_currMotion->frame + 1) < motionFrameCountEx(m_currMotion->type, m_currMotion->direction)){
+                if((m_currMotion->frame + 1) < getFrameCountEx(m_currMotion->type, m_currMotion->direction)){
                     return true;
                 }
 

@@ -152,12 +152,12 @@ class ClientCreature
         virtual std::tuple<int, int> location() const = 0;
 
     public:
-        virtual int motionFrameCount(int, int) const = 0;
+        virtual int getFrameCount(int, int) const = 0;
 
     public:
-        int motionFrameCountEx(int motion, int direction) const
+        int getFrameCountEx(int motion, int direction) const
         {
-            if(const int count = motionFrameCount(motion, direction); count > 0){
+            if(const int count = getFrameCount(motion, direction); count > 0){
                 return count;
             }
             throw fflerror("invalid arguments: motion = %d, direction = %d", motion, direction);
@@ -175,7 +175,7 @@ class ClientCreature
     protected:
         virtual bool updateMotion()
         {
-            if(m_currMotion->frame < (motionFrameCountEx(m_currMotion->type, m_currMotion->direction) - 1)){
+            if(m_currMotion->frame < (getFrameCountEx(m_currMotion->type, m_currMotion->direction) - 1)){
                 return advanceMotionFrame(1);
             }
             return moveNextMotion();

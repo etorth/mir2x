@@ -132,7 +132,7 @@ bool ClientMonster::update(double ms)
             }
         case MOTION_MON_DIE:
             {
-                const auto frameCount = motionFrameCount(m_currMotion->type, m_currMotion->direction);
+                const auto frameCount = getFrameCount(m_currMotion->type, m_currMotion->direction);
                 if(frameCount <= 0){
                     return false;
                 }
@@ -488,7 +488,7 @@ bool ClientMonster::motionValid(const std::unique_ptr<MotionNode> &motionPtr) co
             && motionPtr->speed <= SYS_MAXSPEED
 
             && motionPtr->frame >= 0
-            && motionPtr->frame <  motionFrameCount(motionPtr->type, motionPtr->direction)){
+            && motionPtr->frame <  getFrameCount(motionPtr->type, motionPtr->direction)){
 
         const auto nLDistance2 = mathf::LDistance2(motionPtr->x, motionPtr->y, motionPtr->endX, motionPtr->endY);
         switch(motionPtr->type){
@@ -524,29 +524,21 @@ bool ClientMonster::motionValid(const std::unique_ptr<MotionNode> &motionPtr) co
     return false;
 }
 
-bool ClientMonster::motionDirectionValid(int, int) const
+MonsterFrameGfxSeq ClientMonster::getFrameGfxSeq(int motion, int) const
 {
-    return true;
-}
-
-MonsterFrameGfxSeq ClientMonster::getFrameGfxSeq(int motion, int direction) const
-{
-    if(motionDirectionValid(motion, direction)){
-        switch(motion){
-            case MOTION_MON_STAND  : return {.count =  4};
-            case MOTION_MON_WALK   : return {.count =  6};
-            case MOTION_MON_ATTACK0: return {.count =  6};
-            case MOTION_MON_HITTED : return {.count =  2};
-            case MOTION_MON_DIE    : return {.count = 10};
-            case MOTION_MON_ATTACK1: return {.count =  6};
-            case MOTION_MON_SPELL0 :
-            case MOTION_MON_SPELL1 : return {.count = 10};
-            case MOTION_MON_APPEAR : return {.count = 10};
-            case MOTION_MON_SPECIAL: return {.count =  6};
-            default                : return {};
-        }
+    switch(motion){
+        case MOTION_MON_STAND  : return {.count =  4};
+        case MOTION_MON_WALK   : return {.count =  6};
+        case MOTION_MON_ATTACK0: return {.count =  6};
+        case MOTION_MON_HITTED : return {.count =  2};
+        case MOTION_MON_DIE    : return {.count = 10};
+        case MOTION_MON_ATTACK1: return {.count =  6};
+        case MOTION_MON_SPELL0 :
+        case MOTION_MON_SPELL1 : return {.count = 10};
+        case MOTION_MON_APPEAR : return {.count = 10};
+        case MOTION_MON_SPECIAL: return {.count =  6};
+        default                : return {};
     }
-    return {};
 }
 
 std::unique_ptr<MotionNode> ClientMonster::makeWalkMotion(int nX0, int nY0, int nX1, int nY1, int nSpeed) const

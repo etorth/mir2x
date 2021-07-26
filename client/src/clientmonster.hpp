@@ -90,7 +90,7 @@ class ClientMonster: public CreatureMovable
         }
 
     public:
-        int motionFrameCount(int motion, int direction) const override
+        int getFrameCount(int motion, int direction) const override
         {
             return getFrameGfxSeq(motion, direction).count;
         }
@@ -100,7 +100,6 @@ class ClientMonster: public CreatureMovable
 
     public:
         bool motionValid(const std::unique_ptr<MotionNode> &) const override;
-        virtual bool motionDirectionValid(int, int) const;
 
     public:
         virtual MonsterFrameGfxSeq getFrameGfxSeq(int, int) const;
