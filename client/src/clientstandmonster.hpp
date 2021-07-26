@@ -19,7 +19,7 @@ class ClientStandMonster: public ClientMonster
     protected:
         void addActionTransf()
         {
-            const auto [endX, endY, endDir] = motionEndGLoc(END_FORCED);
+            const auto [endX, endY, endDir] = motionEndGLoc().at(1);
             m_forcedMotionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
             {
                 .type = MOTION_MON_APPEAR,

@@ -151,7 +151,7 @@ bool ClientTaoDog::onActionAttack(const ActionNode &action)
         addActionTransf();
     }
 
-    const auto [endX, endY, endDir] = motionEndGLoc(END_FORCED);
+    const auto [endX, endY, endDir] = motionEndGLoc().at(1);
     m_motionQueue = makeWalkMotionQueue(endX, endY, action.x, action.y, SYS_MAXSPEED);
     m_motionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
     {

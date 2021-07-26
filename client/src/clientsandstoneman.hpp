@@ -80,14 +80,14 @@ class ClientSandStoneMan: public ClientMonster
     public:
         bool onActionDie(const ActionNode &action) override
         {
-            const auto [endX, endY, endDir] = motionEndGLoc(END_FORCED);
+            const auto [endX, endY, endDir] = motionEndGLoc().at(1);
             for(auto &node: makeWalkMotionQueue(endX, endY, action.x, action.y, SYS_MAXSPEED)){
                 fflassert(node);
                 fflassert(motionValid(node));
                 m_forcedMotionQueue.push_back(std::move(node));
             }
 
-            const auto [dieX, dieY, dieDir] = motionEndGLoc(END_FORCED);
+            const auto [dieX, dieY, dieDir] = motionEndGLoc().at(1);
             m_forcedMotionQueue.emplace_back(std::unique_ptr<MotionNode>(new MotionNode
             {
                 .type = MOTION_MON_DIE,

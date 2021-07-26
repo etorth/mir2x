@@ -274,32 +274,25 @@ std::tuple<int, int> CreatureMovable::getShift(int frame) const
     }
 }
 
-std::tuple<int, int, int> CreatureMovable::motionEndGLoc(int endType) const
+std::array<std::tuple<int, int, int>, 3> CreatureMovable::motionEndGLoc() const
 {
-    switch(endType){
-        case END_PENDING:
-            {
-                if(!m_motionQueue.empty()){
-                    return {m_motionQueue.back()->endX, m_motionQueue.back()->endY, m_motionQueue.back()->direction};
-                }
-                [[fallthrough]];
-            }
-        case END_FORCED:
-            {
-                if(!m_forcedMotionQueue.empty()){
-                    return {m_forcedMotionQueue.back()->endX, m_forcedMotionQueue.back()->endY, m_forcedMotionQueue.back()->direction};
-                }
-                [[fallthrough]];
-            }
-        case END_NOW:
-            {
-                return {m_currMotion->endX, m_currMotion->endY, m_currMotion->direction};
-            }
-        default:
-            {
-                throw fflerror("invalid endType: %d", endType);
-            }
+    std::array<std::tuple<int, int, int>, 3> endGLocList;
+    endGLocList[0] = std::make_tuple(m_currMotion->endX, m_currMotion->endY, m_currMotion->direction);
+
+    if(m_forcedMotionQueue.empty()){
+        endGLocList[1] = endGLocList[0];
     }
+    else{
+        endGLocList[1] = std::make_tuple(m_forcedMotionQueue.back()->endX, m_forcedMotionQueue.back()->endY, m_forcedMotionQueue.back()->direction);
+    }
+
+    if(m_motionQueue.empty()){
+        endGLocList[2] = endGLocList[1];
+    }
+    else{
+        endGLocList[2] = std::make_tuple(m_motionQueue.back()->endX, m_motionQueue.back()->endY, m_motionQueue.back()->direction);
+    }
+    return endGLocList;
 }
 
 void CreatureMovable::flushForcedMotion()

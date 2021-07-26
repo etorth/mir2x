@@ -94,13 +94,7 @@ class CreatureMovable: public ClientCreature
         std::tuple<int, int> getShift(int) const;
 
     public:
-        enum endType: int
-        {
-            END_NOW,
-            END_FORCED,
-            END_PENDING,
-        };
-        std::tuple<int, int, int> motionEndGLoc(int) const;
+        std::array<std::tuple<int, int, int>, 3> motionEndGLoc() const;
 
     public:
         virtual void flushForcedMotion();

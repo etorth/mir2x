@@ -331,7 +331,7 @@ bool ClientMonster::parseAction(const ActionNode &action)
 
 bool ClientMonster::onActionDie(const ActionNode &action)
 {
-    const auto [endX, endY, endDir] = motionEndGLoc(END_FORCED);
+    const auto [endX, endY, endDir] = motionEndGLoc().at(1);
     for(auto &node: makeWalkMotionQueue(endX, endY, action.x, action.y, SYS_MAXSPEED)){
         if(!(node && motionValid(node))){
             throw fflerror("current motion node is invalid");
@@ -339,7 +339,7 @@ bool ClientMonster::onActionDie(const ActionNode &action)
         m_forcedMotionQueue.push_back(std::move(node));
     }
 
-    const auto [dieX, dieY, dieDir] = motionEndGLoc(END_FORCED);
+    const auto [dieX, dieY, dieDir] = motionEndGLoc().at(1);
     m_forcedMotionQueue.emplace_back(std::unique_ptr<MotionNode>(new MotionNode
     {
         .type = MOTION_MON_DIE,
@@ -355,7 +355,7 @@ bool ClientMonster::onActionDie(const ActionNode &action)
 
 bool ClientMonster::onActionStand(const ActionNode &action)
 {
-    const auto [endX, endY, endDir] = motionEndGLoc(END_FORCED);
+    const auto [endX, endY, endDir] = motionEndGLoc().at(1);
     m_motionQueue = makeWalkMotionQueue(endX, endY, action.x, action.y, SYS_MAXSPEED);
     m_motionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
     {
@@ -369,7 +369,7 @@ bool ClientMonster::onActionStand(const ActionNode &action)
 
 bool ClientMonster::onActionHitted(const ActionNode &action)
 {
-    const auto [endX, endY, endDir] = motionEndGLoc(END_FORCED);
+    const auto [endX, endY, endDir] = motionEndGLoc().at(1);
     m_motionQueue = makeWalkMotionQueue(endX, endY, action.x, action.y, SYS_MAXSPEED);
     m_motionQueue.emplace_back(std::unique_ptr<MotionNode>(new MotionNode
     {
@@ -414,7 +414,7 @@ bool ClientMonster::onActionJump(const ActionNode &action)
 
 bool ClientMonster::onActionMove(const ActionNode &action)
 {
-    const auto [endX, endY, endDir] = motionEndGLoc(END_FORCED);
+    const auto [endX, endY, endDir] = motionEndGLoc().at(1);
     m_motionQueue = makeWalkMotionQueue(endX, endY, action.x, action.y, SYS_MAXSPEED);
     if(auto moveNode = makeWalkMotion(action.x, action.y, action.aimX, action.aimY, action.speed); motionValid(moveNode)){
         m_motionQueue.push_back(std::move(moveNode));
@@ -448,7 +448,7 @@ bool ClientMonster::onActionSpawn(const ActionNode &action)
 
 bool ClientMonster::onActionAttack(const ActionNode &action)
 {
-    const auto [endX, endY, endDir] = motionEndGLoc(END_FORCED);
+    const auto [endX, endY, endDir] = motionEndGLoc().at(1);
     m_motionQueue = makeWalkMotionQueue(endX, endY, action.x, action.y, SYS_MAXSPEED);
     if(auto coPtr = m_processRun->findUID(action.aimUID)){
         m_motionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
