@@ -17,12 +17,32 @@
  */
 
 #pragma once
+#include <optional>
 #include "uidf.hpp"
 #include "client.hpp"
 #include "clientmsg.hpp"
 #include "dbcomrecord.hpp"
 #include "protocoldef.hpp"
 #include "creaturemovable.hpp"
+
+class ClientMonster;
+struct MonsterFrameGfxSeq final
+{
+    const std::optional<int>      gfxLookID {};
+    const std::optional<int>    gfxMotionID {};
+    const std::optional<int> gfxDirectionID {};
+
+    const int begin = 0;
+    const int count = 0;
+    const bool reverse = false;
+
+    operator bool() const
+    {
+        return begin >= 0 && count > 0;
+    }
+
+    std::optional<uint32_t> gfxID(const ClientMonster *, std::optional<int> = {}) const;
+};
 
 class ClientMonster: public CreatureMovable
 {
@@ -33,16 +53,7 @@ class ClientMonster: public CreatureMovable
             m_currMotion.reset(new MotionNode
             {
                 .type = MOTION_MON_STAND,
-                .direction = [&action]() -> int
-                {
-                    if(directionValid(action.direction)){
-                        return action.direction;
-                    }
-                    else{
-                        return DIR_UP;
-                    }
-                }(),
-
+                .direction = directionValid(action.direction) ? to_d(action.direction) : DIR_UP,
                 .x = action.x,
                 .y = action.y,
             });
@@ -63,17 +74,36 @@ class ClientMonster: public CreatureMovable
             return uidf::getMonsterID(UID());
         }
 
+        std::u8string_view monsterName() const
+        {
+            return DBCOM_MONSTERRECORD(monsterID()).name;
+        }
+
+        const auto &getMR() const
+        {
+            return DBCOM_MONSTERRECORD(monsterID());
+        }
+
+        int lookID() const
+        {
+            return getMR().lookID;
+        }
+
+    public:
+        int motionFrameCount(int motion, int direction) const override
+        {
+            return getFrameGfxSeq(motion, direction).count;
+        }
+
     public:
         bool parseAction(const ActionNode &) override;
 
     public:
         bool motionValid(const std::unique_ptr<MotionNode> &) const override;
-
-    protected:
-        virtual std::optional<uint32_t> gfxID(int, int) const;
+        virtual bool motionDirectionValid(int, int) const;
 
     public:
-        FrameSeq motionFrameSeq(int, int) const override;
+        virtual MonsterFrameGfxSeq getFrameGfxSeq(int, int) const;
 
     protected:
         std::unique_ptr<MotionNode> makeWalkMotion(int, int, int, int, int) const;
@@ -81,15 +111,6 @@ class ClientMonster: public CreatureMovable
     public:
         int  maxStep() const override;
         int currStep() const override;
-
-    public:
-        virtual int lookID() const
-        {
-            if(const auto &mr = DBCOM_MONSTERRECORD(monsterID())){
-                return mr.lookID;
-            }
-            return -1;
-        }
 
     protected:
         virtual bool onActionDie       (const ActionNode &);
@@ -101,12 +122,6 @@ class ClientMonster: public CreatureMovable
         virtual bool onActionSpawn     (const ActionNode &);
         virtual bool onActionTransf    (const ActionNode &);
         virtual bool onActionSpaceMove2(const ActionNode &);
-
-    protected:
-        std::u8string_view monsterName() const
-        {
-            return DBCOM_MONSTERRECORD(monsterID()).name;
-        }
 
     public:
         ClientCreature::TargetBox getTargetBox() const override;
@@ -121,12 +136,6 @@ class ClientMonster: public CreatureMovable
                 .x = m_currMotion->endX,
                 .y = m_currMotion->endY,
             });
-        }
-
-    public:
-        const auto &getMR() const
-        {
-            return DBCOM_MONSTERRECORD(uidf::getMonsterID(UID()));
         }
 
     public:

@@ -23,6 +23,18 @@
 #include "actionnode.hpp"
 #include "clientcreature.hpp"
 
+struct NPCFrameGfxSeq final
+{
+    const int  begin = 0;
+    const int  count = 0;
+    const bool reverse = false;
+
+    operator bool() const
+    {
+        return begin >= 0 && count > 0;
+    }
+};
+
 class ClientNPC: public ClientCreature
 {
     public:
@@ -41,7 +53,13 @@ class ClientNPC: public ClientCreature
         void drawFrame(int, int, int, int, bool) override;
 
     public:
-        FrameSeq motionFrameSeq(int, int) const override;
+        NPCFrameGfxSeq getFrameGfxSeq(int, int) const;
+
+    public:
+        int motionFrameCount(int motion, int direction) const override
+        {
+            return getFrameGfxSeq(motion, direction).count;
+        }
 
     public:
         std::tuple<int, int> location() const override

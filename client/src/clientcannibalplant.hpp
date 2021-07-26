@@ -106,7 +106,7 @@ class ClientCannibalPlant: public ClientMonster
         }
 
     public:
-        FrameSeq motionFrameSeq(int motion, int direction) const override
+        MonsterFrameGfxSeq getFrameGfxSeq(int motion, int direction) const override
         {
             if(m_standMode){
                 switch(motion){
@@ -134,9 +134,33 @@ class ClientCannibalPlant: public ClientMonster
             }
             else{
                 switch(motion){
-                    case MOTION_MON_STAND : return {.begin = 7, .count = 1};
-                    case MOTION_MON_APPEAR: return {.begin = 0, .count = 8};
-                    default               : return {};
+                    case MOTION_MON_STAND:
+                        {
+                            if(direction == DIR_BEGIN){
+                                return
+                                {
+                                    .gfxMotionID = MOTION_MON_APPEAR,
+                                    .begin = 7,
+                                    .count = 1,
+                                };
+                            }
+                            return {};
+                        }
+                    case MOTION_MON_APPEAR:
+                        {
+                            if(direction == DIR_BEGIN){
+                                return
+                                {
+                                    .begin = 0,
+                                    .count = 8,
+                                };
+                            }
+                            return {};
+                        }
+                    default:
+                        {
+                            return {};
+                        }
                 }
             }
         }
@@ -170,7 +194,4 @@ class ClientCannibalPlant: public ClientMonster
 
     protected:
         bool finalStandMode() const;
-
-    protected:
-        std::optional<uint32_t> gfxID(int, int) const override;
 };

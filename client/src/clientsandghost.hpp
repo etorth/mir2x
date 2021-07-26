@@ -101,7 +101,7 @@ class ClientSandGhost: public ClientMonster
         }
 
     public:
-        FrameSeq motionFrameSeq(int motion, int) const override
+        MonsterFrameGfxSeq getFrameGfxSeq(int motion, int) const override
         {
             if(m_standMode){
                 switch(motion){
@@ -124,8 +124,8 @@ class ClientSandGhost: public ClientMonster
             }
             else{
                 switch(motion){
-                    case MOTION_MON_STAND : return {.begin = 9, .count =  1};
-                    case MOTION_MON_APPEAR: return {.begin = 0, .count = 10};
+                    case MOTION_MON_STAND : return {.gfxMotionID = MOTION_MON_APPEAR, .begin = 9, .count =  1};
+                    case MOTION_MON_APPEAR: return {.gfxMotionID = MOTION_MON_APPEAR, .begin = 0, .count = 10};
                     default               : return {};
                 }
             }
@@ -148,7 +148,4 @@ class ClientSandGhost: public ClientMonster
 
     protected:
         bool finalStandMode() const;
-
-    protected:
-        std::optional<uint32_t> gfxID(int, int) const override;
 };

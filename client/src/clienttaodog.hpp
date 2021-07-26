@@ -31,7 +31,7 @@ class ClientTaoDog: public ClientMonster
         ClientTaoDog(uint64_t, ProcessRun *, const ActionNode &);
 
     public:
-        FrameSeq motionFrameSeq(int motion, int) const override
+        MonsterFrameGfxSeq getFrameGfxSeq(int motion, int) const override
         {
             if(m_standMode){
                 switch(motion){
@@ -45,7 +45,7 @@ class ClientTaoDog: public ClientMonster
                             // from crawling to stand
                             // need gfx redirect, gfx index is MOTION_MON_APPEAR
                             // user MOTION_MON_SPECIAL here to simplify finalStandMode() to count
-                            return {.count = 10};
+                            return {.gfxMotionID = MOTION_MON_APPEAR, .count = 10};
                         }
                     default:
                         {
@@ -55,17 +55,18 @@ class ClientTaoDog: public ClientMonster
             }
             else{
                 switch(motion){
-                    case MOTION_MON_STAND  : return {.count =  4};
-                    case MOTION_MON_WALK   : return {.count =  6};
-                    case MOTION_MON_HITTED : return {.count =  2};
-                    case MOTION_MON_DIE    : return {.count = 10};
-                    case MOTION_MON_APPEAR : return {.count = 10}; // from non to crawling
+                    case MOTION_MON_STAND  : return {.gfxLookID = 0X59, .count =  4};
+                    case MOTION_MON_WALK   : return {.gfxLookID = 0X59, .count =  6};
+                    case MOTION_MON_HITTED : return {.gfxLookID = 0X59, .count =  2};
+                    case MOTION_MON_DIE    : return {.gfxLookID = 0X59, .count = 10};
+                    case MOTION_MON_APPEAR : return {.gfxLookID = 0X59, .count = 10}; // from non to crawling
                     case MOTION_MON_SPECIAL:
                         {
                             // from stand to crawling
                             // need gfxID redirect and lookID redirect
                             return
                             {
+                                .gfxMotionID = MOTION_MON_APPEAR,
                                 .begin = 9,
                                 .count = 10,
                                 .reverse = true,
@@ -75,22 +76,6 @@ class ClientTaoDog: public ClientMonster
                         {
                             return {};
                         }
-                }
-            }
-        }
-
-    public:
-        int lookID() const override
-        {
-            if(m_standMode){
-                return 0X5A;
-            }
-            else{
-                if(m_currMotion->type == MOTION_MON_SPECIAL){
-                    return 0X5A;
-                }
-                else{
-                    return 0X59;
                 }
             }
         }
@@ -106,25 +91,4 @@ class ClientTaoDog: public ClientMonster
 
     protected:
         bool finalStandMode() const;
-
-    protected:
-        std::optional<uint32_t> gfxID(int motion, int direction) const override
-        {
-            if(m_standMode){
-                if(motion == MOTION_MON_SPECIAL){
-                    return ClientMonster::gfxID(MOTION_MON_APPEAR, direction);
-                }
-                else{
-                    return ClientMonster::gfxID(motion, direction);
-                }
-            }
-            else{
-                if(motion == MOTION_MON_SPECIAL){
-                    return ClientMonster::gfxID(MOTION_MON_APPEAR, direction); // lookID has been recirect to bigger dog
-                }
-                else{
-                    return ClientMonster::gfxID(motion, direction);
-                }
-            }
-        }
 };

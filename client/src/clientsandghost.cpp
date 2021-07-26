@@ -90,28 +90,3 @@ bool ClientSandGhost::finalStandMode() const
 
     return (bool)(countTransf % 2) ? !m_standMode : m_standMode;
 }
-
-std::optional<uint32_t> ClientSandGhost::gfxID(int motion, int dir) const
-{
-    if(m_standMode){
-        return ClientMonster::gfxID(motion, dir);
-    }
-    else{
-        switch(motion){
-            case MOTION_MON_STAND:
-                {
-                    // gfx redirect
-                    // use the single final frame of MOTION_MON_APPEAR to show it hides in the soil
-                    return ClientMonster::gfxID(MOTION_MON_APPEAR, dir);
-                }
-            case MOTION_MON_APPEAR:
-                {
-                    return ClientMonster::gfxID(MOTION_MON_APPEAR, dir);
-                }
-            default:
-                {
-                    return {};
-                }
-        }
-    }
-}

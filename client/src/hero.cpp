@@ -888,7 +888,7 @@ bool Hero::parseAction(const ActionNode &action)
     return motionQueueValid();
 }
 
-FrameSeq Hero::motionFrameSeq(int motion, int direction) const
+HeroFrameGfxSeq Hero::getFrameGfxSeq(int motion, int direction) const
 {
     if(!(motion >= MOTION_BEGIN && motion < MOTION_END)){
         return {};

@@ -20,6 +20,7 @@
 #include "log.hpp"
 #include "pathf.hpp"
 #include "mathf.hpp"
+#include "totype.hpp"
 #include "processrun.hpp"
 #include "creaturemovable.hpp"
 
@@ -252,13 +253,10 @@ std::tuple<int, int> CreatureMovable::getShift(int frame) const
             }
     }
 
-    const auto seq = motionFrameSeq(m_currMotion->type, m_currMotion->direction);
+    const auto frameCount = motionFrameCountEx(m_currMotion->type, m_currMotion->direction);
 
-    fflassert(seq);
-    fflassert(frame >= 0 && frame < seq.count);
-
-    const float shiftDX = 1.0f * SYS_MAPGRIDXP * currStepCount / seq.count;
-    const float shiftDY = 1.0f * SYS_MAPGRIDYP * currStepCount / seq.count;
+    const float shiftDX = 1.0f * SYS_MAPGRIDXP * currStepCount / to_f(frameCount);
+    const float shiftDY = 1.0f * SYS_MAPGRIDYP * currStepCount / to_f(frameCount);
 
     const int shiftX = to_d(std::lround(shiftDX * (frame + 1)));
     const int shiftY = to_d(std::lround(shiftDY * (frame + 1)));

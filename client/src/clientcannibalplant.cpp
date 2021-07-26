@@ -109,28 +109,3 @@ bool ClientCannibalPlant::finalStandMode() const
 
     return (bool)(countTransf % 2) ? !m_standMode : m_standMode;
 }
-
-std::optional<uint32_t> ClientCannibalPlant::gfxID(int motion, int dir) const
-{
-    if(m_standMode){
-        return ClientMonster::gfxID(motion, dir);
-    }
-    else{
-        switch(motion){
-            case MOTION_MON_STAND:
-                {
-                    // gfx redirect
-                    // use the single final frame of MOTION_MON_APPEAR to show it hides in the soil
-                    return ClientMonster::gfxID(MOTION_MON_APPEAR, DIR_BEGIN);
-                }
-            case MOTION_MON_APPEAR:
-                {
-                    return ClientMonster::gfxID(MOTION_MON_APPEAR, DIR_BEGIN);
-                }
-            default:
-                {
-                    return {};
-                }
-        }
-    }
-}

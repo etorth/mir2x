@@ -22,6 +22,18 @@
 #include "serdesmsg.hpp"
 #include "creaturemovable.hpp"
 
+struct HeroFrameGfxSeq final
+{
+    const int  begin = 0;
+    const int  count = 0;
+    const bool reverse = false;
+
+    operator bool() const
+    {
+        return begin >= 0 && count > 0;
+    }
+};
+
 class Hero: public CreatureMovable
 {
     protected:
@@ -74,7 +86,13 @@ class Hero: public CreatureMovable
         bool moving();
 
     public:
-        FrameSeq motionFrameSeq(int, int) const override;
+        HeroFrameGfxSeq getFrameGfxSeq(int, int) const;
+
+    public:
+        int motionFrameCount(int motion, int direction) const override
+        {
+            return getFrameGfxSeq(motion, direction).count;
+        }
 
     public:
         static std::optional<int> weaponOrder(int, int, int);

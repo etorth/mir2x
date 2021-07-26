@@ -53,6 +53,40 @@ extern SDLDevice *g_sdlDevice;
 extern PNGTexOffDB *g_monsterDB;
 extern ClientArgParser *g_clientArgParser;
 
+std::optional<uint32_t> MonsterFrameGfxSeq::gfxID(const ClientMonster *monPtr, std::optional<int> frameOpt) const
+{
+    fflassert(monPtr);
+    if(*this){
+        // monster graphics retrieving key structure
+        //
+        //   3322 2222 2222 1111 1111 1100 0000 0000
+        //   1098 7654 3210 9876 5432 1098 7654 3210
+        //   ^^^^ ^^^^ ^^^^ ^^^^ ^^^^ ^^^^ ^^^^ ^^^^
+        //   |||| |||| |||| |||| |||| |||| |||| ||||
+        //             |||| |||| |||| |||| |||+-++++-----------     frame : max =   32
+        //             |||| |||| |||| |||| +++----------------- direction : max =    8 -+
+        //             |||| |||| |||| ++++---------------------    motion : max =   16 -+
+        //             |+++-++++-++++--------------------------      look : max = 2048 -+------> gfxBaseID
+        //             +---------------------------------------    shadow : max =    2
+        //
+
+        const auto frame = frameOpt.value_or(monPtr->currMotion()->frame);
+        fflassert(frame >= 0);
+        fflassert(frame < count);
+
+        const auto          gfxFrame = to_u32(begin + frame * (reverse ? -1 : 1));
+        const auto      lookGfxIndex = to_u32(gfxLookID.value_or(monPtr->getMR().lookID) - LID_BEGIN);
+        const auto    motionGfxIndex = to_u32(gfxMotionID.value_or(monPtr->currMotion()->type) - MOTION_MON_BEGIN);
+        const auto directionGfxIndex = to_u32(gfxDirectionID.value_or(monPtr->currMotion()->direction) - DIR_BEGIN);
+
+        return 0
+            + ((     lookGfxIndex & 0X07FF) << 12)
+            + ((   motionGfxIndex & 0X000F) <<  8)
+            + ((directionGfxIndex & 0X0007) <<  5) + gfxFrame;
+    }
+    return {};
+}
+
 ClientMonster::ClientMonster(uint64_t uid, ProcessRun *proc)
     : CreatureMovable(uid, proc)
 {
@@ -139,31 +173,15 @@ bool ClientMonster::update(double ms)
 
 void ClientMonster::drawFrame(int viewX, int viewY, int focusMask, int frame, bool frameOnly)
 {
-    // monster graphics retrieving key structure
-    //
-    //   3322 2222 2222 1111 1111 1100 0000 0000
-    //   1098 7654 3210 9876 5432 1098 7654 3210
-    //   ^^^^ ^^^^ ^^^^ ^^^^ ^^^^ ^^^^ ^^^^ ^^^^
-    //   |||| |||| |||| |||| |||| |||| |||| ||||
-    //             |||| |||| |||| |||| |||+-++++-----------     frame : max =   32
-    //             |||| |||| |||| |||| +++----------------- direction : max =    8 -+
-    //             |||| |||| |||| ++++---------------------    motion : max =   16 -+
-    //             |+++-++++-++++--------------------------      look : max = 2048 -+------> gfxID
-    //             +---------------------------------------    shadow : max =    2
-    //
-
-    const auto optGfxID = gfxID(m_currMotion->type, m_currMotion->direction);
-    if(!optGfxID.has_value()){
+    const auto gfxBodyIDOpt = getFrameGfxSeq(m_currMotion->type, m_currMotion->direction).gfxID(this);
+    if(!gfxBodyIDOpt.has_value()){
         return;
     }
 
-    const auto frameSeq = motionFrameSeq(m_currMotion->type, m_currMotion->direction);
-    const auto absFrame = frameSeq.begin + frame * (frameSeq.reverse ? -1 : 1);
+    const uint32_t   bodyKey = (to_u32(0) << 23) + gfxBodyIDOpt.value(); // body
+    const uint32_t shadowKey = (to_u32(1) << 23) + gfxBodyIDOpt.value(); // shadow
 
-    const uint32_t   bodyKey = (to_u32(0) << 23) + (to_u32(optGfxID.value() & 0X03FFFF) << 5) + absFrame; // body
-    const uint32_t shadowKey = (to_u32(1) << 23) + (to_u32(optGfxID.value() & 0X03FFFF) << 5) + absFrame; // shadow
-
-    const auto [  bodyFrame,   bodyDX,   bodyDY] = g_monsterDB->retrieve(bodyKey);
+    const auto [  bodyFrame,   bodyDX,   bodyDY] = g_monsterDB->retrieve(  bodyKey);
     const auto [shadowFrame, shadowDX, shadowDY] = g_monsterDB->retrieve(shadowKey);
     const auto [shiftX, shiftY] = getShift(frame);
 
@@ -506,55 +524,29 @@ bool ClientMonster::motionValid(const std::unique_ptr<MotionNode> &motionPtr) co
     return false;
 }
 
-std::optional<uint32_t> ClientMonster::gfxID(int motion, int direction) const
+bool ClientMonster::motionDirectionValid(int, int) const
 {
-    if(!monsterID()){
-        return {};
-    }
-
-    if(!((motion >= MOTION_MON_BEGIN) && (motion < MOTION_MON_END))){
-        return {};
-    }
-
-    const auto nLookID      = lookID();
-    const auto nGfxMotionID = motion - MOTION_MON_BEGIN;
-
-    if(true
-            && nLookID >= LID_BEGIN
-            && nLookID <  LID_END
-
-            && direction >= DIR_BEGIN
-            && direction <  DIR_END
-
-            && nGfxMotionID >= 0){
-
-        // if passed listed simple test
-        // we need to check the huge table for it
-
-        return ((to_u32(nLookID - LID_BEGIN) & 0X07FF) << 7) + (to_u32(nGfxMotionID & 0X000F) << 3) + (to_u32(direction - DIR_BEGIN) & 0X0007);
-    }
-    return {};
+    return true;
 }
 
-FrameSeq ClientMonster::motionFrameSeq(int motion, int direction) const
+MonsterFrameGfxSeq ClientMonster::getFrameGfxSeq(int motion, int direction) const
 {
-    if(const auto nGfxId = gfxID(motion, direction); !nGfxId.has_value()){
-        return {};
+    if(motionDirectionValid(motion, direction)){
+        switch(motion){
+            case MOTION_MON_STAND  : return {.count =  4};
+            case MOTION_MON_WALK   : return {.count =  6};
+            case MOTION_MON_ATTACK0: return {.count =  6};
+            case MOTION_MON_HITTED : return {.count =  2};
+            case MOTION_MON_DIE    : return {.count = 10};
+            case MOTION_MON_ATTACK1: return {.count =  6};
+            case MOTION_MON_SPELL0 :
+            case MOTION_MON_SPELL1 : return {.count = 10};
+            case MOTION_MON_APPEAR : return {.count = 10};
+            case MOTION_MON_SPECIAL: return {.count =  6};
+            default                : return {};
+        }
     }
-
-    switch(motion){
-        case MOTION_MON_STAND  : return {.count =  4};
-        case MOTION_MON_WALK   : return {.count =  6};
-        case MOTION_MON_ATTACK0: return {.count =  6};
-        case MOTION_MON_HITTED : return {.count =  2};
-        case MOTION_MON_DIE    : return {.count = 10};
-        case MOTION_MON_ATTACK1: return {.count =  6};
-        case MOTION_MON_SPELL0 :
-        case MOTION_MON_SPELL1 : return {.count = 10};
-        case MOTION_MON_APPEAR : return {.count = 10};
-        case MOTION_MON_SPECIAL: return {.count =  6};
-        default                : return {};
-    }
+    return {};
 }
 
 std::unique_ptr<MotionNode> ClientMonster::makeWalkMotion(int nX0, int nY0, int nX1, int nY1, int nSpeed) const
@@ -610,16 +602,14 @@ ClientCreature::TargetBox ClientMonster::getTargetBox() const
             }
     }
 
-    const auto texBaseID = gfxID(m_currMotion->type, m_currMotion->direction);
-    if(!texBaseID.has_value()){
+    const auto texBodyID = getFrameGfxSeq(m_currMotion->type, m_currMotion->direction).gfxID(this);
+    if(!texBodyID.has_value()){
         return {};
     }
 
-    const uint32_t texID = (to_u32(texBaseID.value() & 0X03FFFF) << 5) + m_currMotion->frame;
-
     int dx = 0;
     int dy = 0;
-    auto bodyFrameTexPtr = g_monsterDB->retrieve(texID, &dx, &dy);
+    auto bodyFrameTexPtr = g_monsterDB->retrieve(texBodyID.value(), &dx, &dy);
 
     if(!bodyFrameTexPtr){
         return {};

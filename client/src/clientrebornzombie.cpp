@@ -90,31 +90,3 @@ bool ClientRebornZombie::finalStandMode() const
 
     return (bool)(countTransf % 2) ? !m_standMode : m_standMode;
 }
-
-std::optional<uint32_t> ClientRebornZombie::gfxID(int motion, int dir) const
-{
-    if(m_standMode){
-        return ClientMonster::gfxID(motion, dir);
-    }
-    else{
-        switch(motion){
-            case MOTION_MON_STAND:
-                {
-                    // gfx redirect
-                    // use the single final frame of MOTION_MON_DIE to show its lying down state
-                    return ClientMonster::gfxID(MOTION_MON_DIE, dir);
-                }
-            case MOTION_MON_APPEAR:
-                {
-                    // gfx redirect
-                    // use MOTION_MON_DIE    to transf to lying down mode
-                    // use MOTION_MON_APPEAR to transf to standing   mode
-                    return ClientMonster::gfxID(MOTION_MON_DIE, dir);
-                }
-            default:
-                {
-                    return {};
-                }
-        }
-    }
-}

@@ -39,7 +39,7 @@ ClientNPC::ClientNPC(uint64_t uid, ProcessRun *proc, const ActionNode &action)
     }
 }
 
-FrameSeq ClientNPC::motionFrameSeq(int motion, int direction) const
+NPCFrameGfxSeq ClientNPC::getFrameGfxSeq(int motion, int direction) const
 {
     // NPC direction is not the real direction
     // it's like a seq id for the first/second/third valid direction
