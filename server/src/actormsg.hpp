@@ -343,7 +343,6 @@ struct AMLocation
 {
     uint64_t UID;
     uint32_t mapID;
-    uint32_t RecordTime;
 
     int X;
     int Y;

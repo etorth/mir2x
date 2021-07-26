@@ -48,9 +48,8 @@ enum _RangeType: uint8_t
 
 struct COLocation
 {
-    uint64_t uid    = 0;
-    uint32_t mapID  = 0;
-    uint32_t tstamp = 0;
+    uint64_t uid   = 0;
+    uint32_t mapID = 0;
 
     int x = -1;
     int y = -1;
@@ -345,7 +344,7 @@ class CharObject: public ServerObject
         void GetValidChaseGrid(int, int, int, scoped_alloc::svobuf_wrapper<PathFind::PathNode, 3> &) const;
 
     protected:
-        int CheckPathGrid(int, int, uint32_t = 0) const;
+        int CheckPathGrid(int, int) const;
         double OneStepCost(const CharObject::COPathFinder *, int, int, int, int, int) const;
 
     protected:

@@ -331,7 +331,7 @@ bool CharObject::requestMove(int nX, int nY, int nSpeed, bool allowHalfMove, boo
         case 1:
         case 2:
             {
-                switch(CheckPathGrid(nX, nY, 0)){
+                switch(CheckPathGrid(nX, nY)){
                     case PathFind::FREE:
                         {
                             break;
@@ -779,7 +779,7 @@ void CharObject::getCOLocation(uint64_t nUID, std::function<void(const COLocatio
     // CO dispatches location changes automatically
     // always trust the InViewCOList, can even skip the expiration now
 
-    if(auto p = getInViewCOPtr(nUID); p && g_monoServer->getCurrTick() <= p->tstamp + 2 * 1000){
+    if(auto p = getInViewCOPtr(nUID)){
         onOK(*p);
         return;
     }
@@ -808,7 +808,6 @@ void CharObject::getCOLocation(uint64_t nUID, std::function<void(const COLocatio
                     {
                         .uid       = amL.UID,
                         .mapID     = amL.mapID,
-                        .tstamp    = amL.RecordTime,
                         .x         = amL.X,
                         .y         = amL.Y,
                         .direction = amL.Direction
@@ -1045,7 +1044,7 @@ int CharObject::estimateHop(int nX, int nY)
     }
 }
 
-int CharObject::CheckPathGrid(int nX, int nY, uint32_t nTimeOut) const
+int CharObject::CheckPathGrid(int nX, int nY) const
 {
     if(!m_map){
         throw fflerror("CO has no map associated");
@@ -1064,17 +1063,10 @@ int CharObject::CheckPathGrid(int nX, int nY, uint32_t nTimeOut) const
     }
 
     for(auto &rstLocation: m_inViewCOList){
-        if(nTimeOut){
-            if(g_monoServer->getCurrTick() > rstLocation.tstamp + nTimeOut){
-                continue;
-            }
-        }
-
         if(rstLocation.x == nX && rstLocation.y == nY){
             return PathFind::OCCUPIED;
         }
     }
-
     return PathFind::FREE;
 }
 
@@ -1289,7 +1281,7 @@ void CharObject::foreachInViewCO(std::function<void(const COLocation &)> fnOnLoc
 
 void CharObject::AddInViewCO(uint64_t nUID, uint32_t nMapID, int nX, int nY, int nDirection)
 {
-    AddInViewCO(COLocation(nUID, nMapID, g_monoServer->getCurrTick(), nX, nY, nDirection));
+    AddInViewCO(COLocation(nUID, nMapID, nX, nY, nDirection));
 }
 
 void CharObject::SortInViewCO()
