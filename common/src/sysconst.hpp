@@ -45,6 +45,7 @@ constexpr int SYS_MAPVISIBLEH  = 40;
 constexpr int SYS_MAPVISIBLECD = 100;
 
 constexpr int SYS_MAXPLAYERNUM = 8192;
+constexpr int SYS_VIEWR        = 15;
 
 constexpr int SYS_MAXDROPITEM     = 10;
 constexpr int SYS_MAXDROPITEMGRID = 81;

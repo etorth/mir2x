@@ -194,7 +194,7 @@ void CharObject::dispatchAction(const ActionNode &action)
                     const auto nX = rstLocation.x;
                     const auto nY = rstLocation.y;
                     const auto nMapID = rstLocation.mapID;
-                    if(InView(nMapID, nX, nY)){
+                    if(inView(nMapID, nX, nY)){
                         m_actorPod->forward(rstLocation.uid, {AM_ACTION, amA});
                     }
                 });
@@ -814,7 +814,7 @@ void CharObject::getCOLocation(uint64_t nUID, std::function<void(const COLocatio
                         .direction = amL.Direction
                     };
 
-                    if((amL.UID == nUID) && InView(amL.mapID, amL.X, amL.Y)){
+                    if((amL.UID == nUID) && inView(amL.mapID, amL.X, amL.Y)){
                         AddInViewCO(stCOLoccation);
                     }
                     else{
@@ -1249,9 +1249,14 @@ void CharObject::setLastAction(int type)
     m_lastActionTime.at(type) = g_monoServer->getCurrTick();
 }
 
+bool CharObject::inView(uint32_t argMapID, int argX, int argY) const
+{
+    return m_map->In(argMapID, argX, argY) && mathf::LDistance2<int>(X(), Y(), argX, argY) <= SYS_VIEWR * SYS_VIEWR;
+}
+
 void CharObject::AddInViewCO(const COLocation &rstCOLocation)
 {
-    if(!InView(rstCOLocation.mapID, rstCOLocation.x, rstCOLocation.y)){
+    if(!inView(rstCOLocation.mapID, rstCOLocation.x, rstCOLocation.y)){
         return;
     }
 
@@ -1300,7 +1305,7 @@ void CharObject::RemoveInViewCO(uint64_t nUID)
 {
     m_inViewCOList.erase(std::remove_if(m_inViewCOList.begin(), m_inViewCOList.end(), [this, nUID](const auto &rstCOLoc)
     {
-        return rstCOLoc.uid == nUID || !InView(rstCOLoc.mapID, rstCOLoc.x, rstCOLoc.y);
+        return rstCOLoc.uid == nUID || !inView(rstCOLoc.mapID, rstCOLoc.x, rstCOLoc.y);
     }), m_inViewCOList.end());
 
     if((m_inViewCOList.size() < m_inViewCOList.capacity() / 2) && (m_inViewCOList.capacity() > 20)){
@@ -1310,11 +1315,6 @@ void CharObject::RemoveInViewCO(uint64_t nUID)
     if(uidf::getUIDType(UID()) == UID_MON){
         dynamic_cast<Monster *>(this)->removeTarget(nUID);
     }
-}
-
-bool CharObject::InView(uint32_t nMapID, int nX, int nY) const
-{
-    return m_map->In(nMapID, nX, nY) && mathf::LDistance2(X(), Y(), nX, nY) <= 10 * 10;
 }
 
 COLocation &CharObject::GetInViewCORef(uint64_t nUID)

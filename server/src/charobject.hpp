@@ -349,7 +349,7 @@ class CharObject: public ServerObject
         double OneStepCost(const CharObject::COPathFinder *, int, int, int, int, int) const;
 
     protected:
-        bool InView(uint32_t, int, int) const;
+        bool inView(uint32_t, int, int) const;
 
     protected:
         void SortInViewCO();

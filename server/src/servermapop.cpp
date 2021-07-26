@@ -64,7 +64,7 @@ void ServerMap::on_AM_ACTION(const ActorMsgPack &rstMPK)
         }
     }
 
-    doCircle(amA.action.x, amA.action.y, 10, [this, amA](int nX, int nY) -> bool
+    doCircle(amA.action.x, amA.action.y, SYS_VIEWR, [this, amA](int nX, int nY) -> bool
     {
         if(true || validC(nX, nY)){
             doUIDList(nX, nY, [this, amA](uint64_t nUID) -> bool
