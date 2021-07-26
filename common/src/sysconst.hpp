@@ -3,7 +3,7 @@
  *
  *       Filename: sysconst.hpp
  *        Created: 04/11/2016 22:24:56
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -45,7 +45,11 @@ constexpr int SYS_MAPVISIBLEH  = 40;
 constexpr int SYS_MAPVISIBLECD = 100;
 
 constexpr int SYS_MAXPLAYERNUM = 8192;
-constexpr int SYS_VIEWR        = 15;
+
+// view range is mutual direction and universal
+// a monster tracks player in range MonsterRecord::view, but it keeps records for all player in SYS_VIEWR as neighbors
+// otherwise monsters will not send ACTION to players in range MonsterRecord::view < d <= SYS_VIEWR
+constexpr int SYS_VIEWR = 15;
 
 constexpr int SYS_MAXDROPITEM     = 10;
 constexpr int SYS_MAXDROPITEMGRID = 81;
