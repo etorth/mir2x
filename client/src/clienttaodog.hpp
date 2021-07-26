@@ -40,17 +40,8 @@ class ClientTaoDog: public ClientMonster
                     case MOTION_MON_HITTED : return {.count =  2};
                     case MOTION_MON_DIE    : return {.count = 10};
                     case MOTION_MON_ATTACK0: return {.count =  6};
-                    case MOTION_MON_SPECIAL:
-                        {
-                            // from crawling to stand
-                            // need gfx redirect, gfx index is MOTION_MON_APPEAR
-                            // user MOTION_MON_SPECIAL here to simplify finalStandMode() to count
-                            return {.gfxMotionID = MOTION_MON_APPEAR, .count = 10};
-                        }
-                    default:
-                        {
-                            return {};
-                        }
+                    case MOTION_MON_APPEAR : return {.count = 10}; // from crawling to stand
+                    default                : return {};
                 }
             }
             else{
@@ -59,14 +50,23 @@ class ClientTaoDog: public ClientMonster
                     case MOTION_MON_WALK   : return {.gfxLookID = 0X59, .count =  6};
                     case MOTION_MON_HITTED : return {.gfxLookID = 0X59, .count =  2};
                     case MOTION_MON_DIE    : return {.gfxLookID = 0X59, .count = 10};
-                    case MOTION_MON_APPEAR : return {.gfxLookID = 0X59, .count = 10}; // from non to crawling
                     case MOTION_MON_SPECIAL:
+                        {
+                            // from non to crawling
+                            // it's not used for standMode transf
+                            return
+                            {
+                                .gfxLookID = 0X59,
+                                .gfxMotionID = MOTION_MON_APPEAR,
+                                .count = 10,
+                            };
+                        }
+                    case MOTION_MON_APPEAR:
                         {
                             // from stand to crawling
                             // need gfxID redirect and lookID redirect
                             return
                             {
-                                .gfxMotionID = MOTION_MON_APPEAR,
                                 .begin = 9,
                                 .count = 10,
                                 .reverse = true,

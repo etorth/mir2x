@@ -29,7 +29,7 @@ ClientTaoDog::ClientTaoDog(uint64_t uid, ProcessRun *proc, const ActionNode &act
             {
                 m_currMotion.reset(new MotionNode
                 {
-                    .type = MOTION_MON_APPEAR,
+                    .type = MOTION_MON_SPECIAL,
                     .direction = directionValid(action.direction) ? to_d(action.direction) : DIR_UP,
                     .x = action.x,
                     .y = action.y,
@@ -118,7 +118,7 @@ void ClientTaoDog::addActionTransf()
     const auto [endX, endY, endDir] = motionEndGLoc(END_FORCED);
     m_forcedMotionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
     {
-        .type = MOTION_MON_SPECIAL,
+        .type = MOTION_MON_APPEAR,
         .direction = endDir,
         .x = endX,
         .y = endY,
@@ -206,7 +206,7 @@ bool ClientTaoDog::finalStandMode() const
 
     int countTransf = 0;
     for(const auto &motionPtr: m_forcedMotionQueue){
-        if(motionPtr->type == MOTION_MON_SPECIAL){
+        if(motionPtr->type == MOTION_MON_APPEAR){
             countTransf++;
         }
     }
