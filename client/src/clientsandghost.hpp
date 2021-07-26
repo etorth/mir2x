@@ -2,16 +2,13 @@
 #include "totype.hpp"
 #include "dbcomid.hpp"
 #include "fflerror.hpp"
-#include "clientmonster.hpp"
+#include "clientstandmonster.hpp"
 
-class ClientSandGhost: public ClientMonster
+class ClientSandGhost: public ClientStandMonster
 {
-    private:
-        bool m_standMode;
-
     public:
         ClientSandGhost(uint64_t uid, ProcessRun *proc, const ActionNode &action)
-            : ClientMonster(uid, proc)
+            : ClientStandMonster(uid, proc)
         {
             fflassert(isMonster(u8"沙鬼"));
             switch(action.type){
@@ -142,10 +139,4 @@ class ClientSandGhost: public ClientMonster
         {
             return ClientCreature::canFocus(pointX, pointY) && m_standMode;
         }
-
-    private:
-        void addActionTransf();
-
-    protected:
-        bool finalStandMode() const;
 };

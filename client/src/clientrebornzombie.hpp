@@ -2,16 +2,13 @@
 #include "totype.hpp"
 #include "dbcomid.hpp"
 #include "fflerror.hpp"
-#include "clientmonster.hpp"
+#include "clientstandmonster.hpp"
 
-class ClientRebornZombie: public ClientMonster
+class ClientRebornZombie: public ClientStandMonster
 {
-    private:
-        bool m_standMode;
-
     public:
         ClientRebornZombie(uint64_t uid, ProcessRun *proc, const ActionNode &action)
-            : ClientMonster(uid, proc)
+            : ClientStandMonster(uid, proc)
         {
             switch(action.type){
                 case ACTION_SPAWN:
@@ -133,10 +130,4 @@ class ClientRebornZombie: public ClientMonster
         {
             return ClientCreature::canFocus(pointX, pointY) && m_standMode;
         }
-
-    private:
-        void addActionTransf();
-
-    protected:
-        bool finalStandMode() const;
 };

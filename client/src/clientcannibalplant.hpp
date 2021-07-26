@@ -20,16 +20,13 @@
 #include "totype.hpp"
 #include "dbcomid.hpp"
 #include "fflerror.hpp"
-#include "clientmonster.hpp"
+#include "clientstandmonster.hpp"
 
-class ClientCannibalPlant: public ClientMonster
+class ClientCannibalPlant: public ClientStandMonster
 {
-    private:
-        bool m_standMode;
-
     public:
         ClientCannibalPlant(uint64_t uid, ProcessRun *proc, const ActionNode &action)
-            : ClientMonster(uid, proc)
+            : ClientStandMonster(uid, proc)
         {
             fflassert(isMonster(u8"食人花"));
             switch(action.type){
@@ -177,9 +174,6 @@ class ClientCannibalPlant: public ClientMonster
             return ClientCreature::canFocus(pointX, pointY) && m_standMode;
         }
 
-    private:
-        void addActionTransf();
-
     protected:
         std::unique_ptr<MotionNode> makeIdleMotion() const override
         {
@@ -191,7 +185,4 @@ class ClientCannibalPlant: public ClientMonster
                 .y = m_currMotion->endY,
             });
         }
-
-    protected:
-        bool finalStandMode() const;
 };

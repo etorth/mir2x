@@ -21,7 +21,7 @@
 #include "clienttaodog.hpp"
 
 ClientTaoDog::ClientTaoDog(uint64_t uid, ProcessRun *proc, const ActionNode &action)
-    : ClientMonster(uid, proc, action)
+    : ClientStandMonster(uid, proc)
 {
     fflassert(isMonster(u8"神兽"));
     switch(action.type){
@@ -113,24 +113,6 @@ ClientTaoDog::ClientTaoDog(uint64_t uid, ProcessRun *proc, const ActionNode &act
     }
 }
 
-void ClientTaoDog::addActionTransf()
-{
-    const auto [endX, endY, endDir] = motionEndGLoc(END_FORCED);
-    m_forcedMotionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
-    {
-        .type = MOTION_MON_APPEAR,
-        .direction = endDir,
-        .x = endX,
-        .y = endY,
-    }));
-
-    m_forcedMotionQueue.back()->addUpdate(true, [this](MotionNode *) -> bool
-    {
-        m_standMode = !m_standMode;
-        return true;
-    });
-}
-
 bool ClientTaoDog::onActionStand(const ActionNode &action)
 {
     if(finalStandMode() != action.extParam.stand.dog.standMode){
@@ -197,19 +179,4 @@ bool ClientTaoDog::onActionAttack(const ActionNode &action)
         return true;
     });
     return true;
-}
-
-bool ClientTaoDog::finalStandMode() const
-{
-    // don't need to count current status
-    // check comments in ClientCannibalPlant::finalStandMode()
-
-    int countTransf = 0;
-    for(const auto &motionPtr: m_forcedMotionQueue){
-        if(motionPtr->type == MOTION_MON_APPEAR){
-            countTransf++;
-        }
-    }
-
-    return (bool)(countTransf % 2) ? !m_standMode : m_standMode;
 }

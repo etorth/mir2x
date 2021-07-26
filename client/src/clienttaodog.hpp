@@ -20,13 +20,10 @@
 #include <unordered_map>
 #include "totype.hpp"
 #include "dbcomid.hpp"
-#include "clientmonster.hpp"
+#include "clientstandmonster.hpp"
 
-class ClientTaoDog: public ClientMonster
+class ClientTaoDog: public ClientStandMonster
 {
-    private:
-        bool m_standMode;
-
     public:
         ClientTaoDog(uint64_t, ProcessRun *, const ActionNode &);
 
@@ -85,10 +82,4 @@ class ClientTaoDog: public ClientMonster
         bool onActionSpawn (const ActionNode &) override;
         bool onActionTransf(const ActionNode &) override;
         bool onActionAttack(const ActionNode &) override;
-
-    private:
-        void addActionTransf();
-
-    protected:
-        bool finalStandMode() const;
 };

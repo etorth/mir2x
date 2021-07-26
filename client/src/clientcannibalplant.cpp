@@ -21,24 +21,6 @@
 #include "clienttaodog.hpp"
 #include "clientcannibalplant.hpp"
 
-void ClientCannibalPlant::addActionTransf()
-{
-    const auto [endX, endY, endDir] = motionEndGLoc(END_FORCED);
-    m_forcedMotionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
-    {
-        .type = MOTION_MON_APPEAR,
-        .direction = endDir,
-        .x = endX,
-        .y = endY,
-    }));
-
-    m_forcedMotionQueue.back()->addUpdate(true, [this](MotionNode *) -> bool
-    {
-        m_standMode = !m_standMode;
-        return true;
-    });
-}
-
 bool ClientCannibalPlant::onActionSpawn(const ActionNode &action)
 {
     fflassert(m_forcedMotionQueue.empty());
@@ -85,27 +67,4 @@ bool ClientCannibalPlant::onActionAttack(const ActionNode &action)
         .y = action.y,
     }));
     return true;
-}
-
-bool ClientCannibalPlant::finalStandMode() const
-{
-    int countTransf = 0;
-
-    // don't need to count current status
-    // if current status is MOTION_MON_APPEAR then the m_standMode has already changed
-    //
-    // the general rule is: we use end frame status as current status
-    // i.e. there is a flower bloom animation, then the m_currMotion->type for this whole animation is "BLOOMED"
-
-    // if(m_currMotion->motion == MOTION_MON_APPEAR){
-    //     countTransf++;
-    // }
-
-    for(const auto &motionPtr: m_forcedMotionQueue){
-        if(motionPtr->type == MOTION_MON_APPEAR){
-            countTransf++;
-        }
-    }
-
-    return (bool)(countTransf % 2) ? !m_standMode : m_standMode;
 }
