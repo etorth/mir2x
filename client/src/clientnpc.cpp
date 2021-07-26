@@ -31,30 +31,33 @@ std::optional<uint32_t> NPCFrameGfxSeq::gfxID(const ClientNPC *npcPtr, std::opti
 {
     fflassert(npcPtr);
     if(*this){
-        return {};
+        // stand npc graphics retrieving key structure
+        //
+        //   3322 2222 2222 1111 1111 1100 0000 0000
+        //   1098 7654 3210 9876 5432 1098 7654 3210
+        //   ^^^^ ^^^^ ^^^^ ^^^^ ^^^^ ^^^^ ^^^^ ^^^^
+        //   |||| |||| |||| |||| |||| |||| |||| ||||
+        //             |||| |||| |||| |||| |||+-++++-----------     frame : max =   32
+        //             |||| |||| |||| |||| +++----------------- direction : max =    8 -+
+        //             |||| |||| |||| ++++---------------------    motion : max =   16 -+
+        //             |+++-++++-++++--------------------------      look : max = 2048 -+------> GfxID
+        //             +---------------------------------------    shadow : max =    2
+        //
+
+        // NPC lookID allows zero
+        // check mir2x/tools/npcwil2png/src/main.cpp
+
+        const int frame = frameOpt.value_or(npcPtr->currMotion()->frame);
+        fflassert(frame >= 0);
+        fflassert(frame < count);
+
+        return 0
+            + (to_u32(npcPtr->lookID()                & 0X07FF) << 12)
+            + (to_u32(npcPtr->currMotion()->type      & 0X000F) <<  8)
+            + (to_u32(npcPtr->currMotion()->direction & 0X0007) <<  5)
+            + (to_u32(frame                           & 0X001F) <<  0);
     }
-
-    // stand npc graphics retrieving key structure
-    //
-    //   3322 2222 2222 1111 1111 1100 0000 0000
-    //   1098 7654 3210 9876 5432 1098 7654 3210
-    //   ^^^^ ^^^^ ^^^^ ^^^^ ^^^^ ^^^^ ^^^^ ^^^^
-    //   |||| |||| |||| |||| |||| |||| |||| ||||
-    //             |||| |||| |||| |||| |||+-++++-----------     frame : max =   32
-    //             |||| |||| |||| |||| +++----------------- direction : max =    8 -+
-    //             |||| |||| |||| ++++---------------------    motion : max =   16 -+
-    //             |+++-++++-++++--------------------------      look : max = 2048 -+------> GfxID
-    //             +---------------------------------------    shadow : max =    2
-    //
-
-    // NPC lookID allows zero
-    // check mir2x/tools/npcwil2png/src/main.cpp
-
-    const int frame = frameOpt.value_or(npcPtr->currMotion()->frame);
-    fflassert(frame >= 0);
-    fflassert(frame < count);
-
-    return (to_u32(npcPtr->lookID()) << 12) | (to_u32(npcPtr->currMotion()->type & 0X0F) << 8) | (to_u32(npcPtr->currMotion()->direction & 0X07) << 5) | to_u32(frame & 0X1F);
+    return {};
 }
 
 ClientNPC::ClientNPC(uint64_t uid, ProcessRun *proc, const ActionNode &action)

@@ -82,7 +82,8 @@ std::optional<uint32_t> MonsterFrameGfxSeq::gfxID(const ClientMonster *monPtr, s
         return 0
             + ((     lookGfxIndex & 0X07FF) << 12)
             + ((   motionGfxIndex & 0X000F) <<  8)
-            + ((directionGfxIndex & 0X0007) <<  5) + gfxFrame;
+            + ((directionGfxIndex & 0X0007) <<  5)
+            + ((         gfxFrame & 0X001F) <<  0);
     }
     return {};
 }
