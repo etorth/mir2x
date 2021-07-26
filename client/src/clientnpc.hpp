@@ -18,21 +18,23 @@
 
 #pragma once
 #include <cstdint>
+#include <optional>
 #include "totype.hpp"
 #include "processrun.hpp"
 #include "actionnode.hpp"
 #include "clientcreature.hpp"
 
+class ClientNPC;
 struct NPCFrameGfxSeq final
 {
-    const int  begin = 0;
-    const int  count = 0;
-    const bool reverse = false;
+    const int count = 0;
 
     operator bool() const
     {
-        return begin >= 0 && count > 0;
+        return count > 0;
     }
+
+    std::optional<uint32_t> gfxID(const ClientNPC *, std::optional<int> = {}) const;
 };
 
 class ClientNPC: public ClientCreature
@@ -45,9 +47,6 @@ class ClientNPC: public ClientCreature
         {
             return uidf::getLookID(UID());
         }
-
-    protected:
-        std::optional<uint32_t> gfxID() const;
 
     public:
         void drawFrame(int, int, int, int, bool) override;

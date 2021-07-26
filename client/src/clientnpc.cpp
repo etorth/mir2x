@@ -27,6 +27,36 @@ extern SDLDevice *g_sdlDevice;
 extern PNGTexOffDB *g_standNPCDB;
 extern ClientArgParser *g_clientArgParser;
 
+std::optional<uint32_t> NPCFrameGfxSeq::gfxID(const ClientNPC *npcPtr, std::optional<int> frameOpt) const
+{
+    fflassert(npcPtr);
+    if(*this){
+        return {};
+    }
+
+    // stand npc graphics retrieving key structure
+    //
+    //   3322 2222 2222 1111 1111 1100 0000 0000
+    //   1098 7654 3210 9876 5432 1098 7654 3210
+    //   ^^^^ ^^^^ ^^^^ ^^^^ ^^^^ ^^^^ ^^^^ ^^^^
+    //   |||| |||| |||| |||| |||| |||| |||| ||||
+    //             |||| |||| |||| |||| |||+-++++-----------     frame : max =   32
+    //             |||| |||| |||| |||| +++----------------- direction : max =    8 -+
+    //             |||| |||| |||| ++++---------------------    motion : max =   16 -+
+    //             |+++-++++-++++--------------------------      look : max = 2048 -+------> GfxID
+    //             +---------------------------------------    shadow : max =    2
+    //
+
+    // NPC lookID allows zero
+    // check mir2x/tools/npcwil2png/src/main.cpp
+
+    const int frame = frameOpt.value_or(npcPtr->currMotion()->frame);
+    fflassert(frame >= 0);
+    fflassert(frame < count);
+
+    return (to_u32(npcPtr->lookID()) << 12) | (to_u32(npcPtr->currMotion()->type & 0X0F) << 8) | (to_u32(npcPtr->currMotion()->direction & 0X07) << 5) | to_u32(frame & 0X1F);
+}
+
 ClientNPC::ClientNPC(uint64_t uid, ProcessRun *proc, const ActionNode &action)
     : ClientCreature(uid, proc)
 {
@@ -95,13 +125,13 @@ NPCFrameGfxSeq ClientNPC::getFrameGfxSeq(int motion, int direction) const
 
 void ClientNPC::drawFrame(int viewX, int viewY, int focusMask, int frame, bool)
 {
-    const auto bodyKey = gfxID();
+    const auto bodyKey = getFrameGfxSeq(currMotion()->type, currMotion()->direction).gfxID(this, frame);
     if(!bodyKey.has_value()){
         return;
     }
 
-    const auto [  bodyFrame,   bodyDX,   bodyDY] = g_standNPCDB->retrieve((bodyKey.value()                    ) + frame);
-    const auto [shadowFrame, shadowDX, shadowDY] = g_standNPCDB->retrieve((bodyKey.value() | (to_u32(1) << 23)) + frame);
+    const auto [  bodyFrame,   bodyDX,   bodyDY] = g_standNPCDB->retrieve((bodyKey.value()                    ));
+    const auto [shadowFrame, shadowDX, shadowDY] = g_standNPCDB->retrieve((bodyKey.value() | (to_u32(1) << 23)));
 
     if(bodyFrame){
         SDL_SetTextureAlphaMod(bodyFrame, 255);
@@ -159,30 +189,6 @@ void ClientNPC::drawFrame(int viewX, int viewY, int focusMask, int frame, bool)
     for(auto &p: m_attachMagicList){
         p->drawShift(x() * SYS_MAPGRIDXP - viewX, y() * SYS_MAPGRIDYP - viewY, false);
     }
-}
-
-std::optional<uint32_t> ClientNPC::gfxID() const
-{
-    // stand npc graphics retrieving key structure
-    //
-    //   3322 2222 2222 1111 1111 1100 0000 0000
-    //   1098 7654 3210 9876 5432 1098 7654 3210
-    //   ^^^^ ^^^^ ^^^^ ^^^^ ^^^^ ^^^^ ^^^^ ^^^^
-    //   |||| |||| |||| |||| |||| |||| |||| ||||
-    //             |||| |||| |||| |||| |||+-++++-----------     frame : max =   32
-    //             |||| |||| |||| |||| +++----------------- direction : max =    8 -+
-    //             |||| |||| |||| ++++---------------------    motion : max =   16 -+
-    //             |+++-++++-++++--------------------------      look : max = 2048 -+------> GfxID
-    //             +---------------------------------------    shadow : max =    2
-    //
-
-    // NPC lookID allows zero
-    // check mir2x/tools/npcwil2png/src/main.cpp
-
-    if(getFrameCount(m_currMotion->type, m_currMotion->direction) <= 0){
-        return {};
-    }
-    return (to_u32(lookID()) << 12) | (to_u32(m_currMotion->type & 0X0F) << 8) | (to_u32(m_currMotion->direction) << 5);
 }
 
 bool ClientNPC::parseAction(const ActionNode &action)
@@ -266,7 +272,7 @@ bool ClientNPC::motionValid(const std::unique_ptr<MotionNode> &motionPtr) const
 
 ClientCreature::TargetBox ClientNPC::getTargetBox() const
 {
-    const auto texBaseID = gfxID();
+    const auto texBaseID = getFrameGfxSeq(currMotion()->type, currMotion()->direction).gfxID(this);
     if(!texBaseID.has_value()){
         return {};
     }

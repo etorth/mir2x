@@ -19,18 +19,17 @@
 #pragma once
 #include <tuple>
 #include <array>
+#include <optional>
 #include "serdesmsg.hpp"
 #include "creaturemovable.hpp"
 
 struct HeroFrameGfxSeq final
 {
-    const int  begin = 0;
-    const int  count = 0;
-    const bool reverse = false;
+    const int count = 0;
 
     operator bool() const
     {
-        return begin >= 0 && count > 0;
+        return count > 0;
     }
 };
 

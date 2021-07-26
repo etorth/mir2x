@@ -173,7 +173,7 @@ bool ClientMonster::update(double ms)
 
 void ClientMonster::drawFrame(int viewX, int viewY, int focusMask, int frame, bool frameOnly)
 {
-    const auto gfxBodyIDOpt = getFrameGfxSeq(m_currMotion->type, m_currMotion->direction).gfxID(this);
+    const auto gfxBodyIDOpt = getFrameGfxSeq(m_currMotion->type, m_currMotion->direction).gfxID(this, frame);
     if(!gfxBodyIDOpt.has_value()){
         return;
     }
