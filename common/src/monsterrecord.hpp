@@ -37,6 +37,7 @@ struct MonsterRecord
 
     const int undead      = 0;
     const int tamable     = 0;
+    const int view        = 0;  // range of view, zero means blind
     const int coolEye     = 0;
     const int deadFadeOut = 0;
 
