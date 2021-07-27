@@ -20,6 +20,35 @@
 #include "processrun.hpp"
 #include "clientguard.hpp"
 
+ClientGuard::ClientGuard(uint64_t uid, ProcessRun *proc, const ActionNode &action)
+    : ClientMonster(uid, proc)
+{
+    switch(action.type){
+        case ACTION_ATTACK:
+            {
+                m_currMotion.reset(new MotionNode
+                {
+                    .type = MOTION_MON_ATTACK0,
+                    .direction = m_processRun->getAimDirection(action, m_currMotion->direction),
+                    .x = action.x,
+                    .y = action.y,
+                });
+                break;
+            }
+        default:
+            {
+                m_currMotion.reset(new MotionNode
+                {
+                    .type = MOTION_MON_STAND,
+                    .direction = directionValid(action.direction) ? action.direction : to_d(DIR_UP),
+                    .x = action.x,
+                    .y = action.y,
+                });
+                break;
+            }
+    }
+}
+
 bool ClientGuard::parseAction(const ActionNode &action)
 {
     m_lastActive = SDL_GetTicks();

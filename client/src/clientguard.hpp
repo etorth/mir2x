@@ -22,9 +22,7 @@
 class ClientGuard: public ClientMonster
 {
     public:
-        ClientGuard(uint64_t uid, ProcessRun *proc, const ActionNode &action)
-            : ClientMonster(uid, proc, action)
-        {}
+        ClientGuard(uint64_t, ProcessRun *, const ActionNode &);
 
     public:
         bool parseAction(const ActionNode &) override;
