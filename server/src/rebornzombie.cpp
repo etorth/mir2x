@@ -8,11 +8,22 @@
 extern ServerArgParser *g_serverArgParser;
 corof::long_jmper RebornZombie::updateCoroFunc()
 {
+    uint64_t targetUID = 0;
     std::optional<uint64_t> idleTime;
+
     while(HP() > 0){
-        if(const uint64_t targetUID = co_await coro_pickTarget()){
+        if(targetUID && !m_actorPod->checkUIDValid(targetUID)){
+            m_inViewCOList.erase(targetUID);
+            targetUID = 0;
+        }
+
+        if(!targetUID){
+            targetUID = co_await coro_pickTarget();
+        }
+
+        if(targetUID){
             const auto [targetMapID, targetX, targetY] = co_await coro_getCOPLoc(targetUID);
-            if(mapID() == targetMapID){
+            if(inView(targetMapID, targetX, targetY)){
                 idleTime.reset();
                 setStandMode(true);
                 if(mathf::CDistance<int>(targetX, targetY, X(), Y()) <= 1){
@@ -22,13 +33,15 @@ corof::long_jmper RebornZombie::updateCoroFunc()
                     co_await coro_trackUID(targetUID, DBCOM_MAGICRECORD(u8"物理攻击").castRange);
                 }
             }
-            co_await corof::async_wait(200);
+            else{
+                m_inViewCOList.erase(targetUID);
+                targetUID = 0;
+            }
         }
         else if(g_serverArgParser->forceMonsterRandomMove || hasPlayerNeighbor()){
             if(m_standMode){
                 co_await coro_randomMove();
             }
-            co_await corof::async_wait(200);
         }
         else{
             if(!idleTime.has_value()){
@@ -37,8 +50,8 @@ corof::long_jmper RebornZombie::updateCoroFunc()
             else if(hres_tstamp().to_sec() - idleTime.value() > 30ULL){
                 setStandMode(false);
             }
-            co_await corof::async_wait(200);
         }
+        co_await corof::async_wait(200);
     }
 
     goDie();
