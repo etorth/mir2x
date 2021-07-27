@@ -51,6 +51,10 @@ constexpr int SYS_MAXPLAYERNUM = 8192;
 // otherwise monsters will not send ACTION to players in range MonsterRecord::view < d <= SYS_VIEWR
 constexpr int SYS_VIEWR = 15;
 
+// monster targeting expire time
+// CO targeted longer than the time is expired, for monster only
+constexpr int SYS_TARGETSEC = 60;
+
 constexpr int SYS_MAXDROPITEM     = 10;
 constexpr int SYS_MAXDROPITEMGRID = 81;
 

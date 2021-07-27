@@ -1224,7 +1224,7 @@ void Monster::searchNearestTarget(std::function<void(uint64_t)> fnTarget)
 
 void Monster::pickTarget(std::function<void(uint64_t)> fnTarget)
 {
-    if(m_target.UID && m_target.activeTimer.diff_sec() < 60){
+    if(m_target.UID && m_target.activeTimer.diff_sec() < SYS_TARGETSEC){
         checkFriend(m_target.UID, [targetUID = m_target.UID, fnTarget = std::move(fnTarget), this](int nFriendType) mutable
         {
             if(nFriendType == FT_ENEMY){
@@ -1235,12 +1235,12 @@ void Monster::pickTarget(std::function<void(uint64_t)> fnTarget)
             // may changed monster
             // last target is not a target anymore
 
-            removeTarget(targetUID);
+            clearTarget();
             searchNearestTarget(std::move(fnTarget));
         });
     }
     else{
-        removeTarget(m_target.UID);
+        clearTarget();
         searchNearestTarget(std::move(fnTarget));
     }
 }
