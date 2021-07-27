@@ -180,7 +180,6 @@ class CharObject: public ServerObject
 
     public:
         virtual bool update() = 0;
-        virtual bool InRange(int, int, int) = 0;
 
     public:
         bool NextLocation(int *, int *, int, int);

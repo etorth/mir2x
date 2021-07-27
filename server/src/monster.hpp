@@ -63,13 +63,6 @@ class Monster: public CharObject
         };
 
     protected:
-        struct Target
-        {
-            uint64_t UID = 0;
-            hres_timer activeTimer;
-        };
-
-    protected:
         friend class CharObject;
 
     protected:
@@ -77,9 +70,6 @@ class Monster: public CharObject
 
     protected:
         AStarCache m_AStarCache;
-
-    protected:
-        Target m_target;
 
     protected:
         corof::long_jmper m_updateCoro;
@@ -134,26 +124,6 @@ class Monster: public CharObject
 
     protected:
         bool DCValid(int, bool);
-        bool InRange(int, int, int);
-
-    protected:
-        virtual void setTarget(uint64_t uid)
-        {
-            m_target.UID = uid;
-            m_target.activeTimer.reset();
-        }
-
-        virtual void clearTarget()
-        {
-            setTarget(0);
-        }
-
-        virtual void removeTarget(uint64_t uid)
-        {
-            if(m_target.UID == uid){
-                clearTarget();
-            }
-        }
 
     protected:
         bool struckDamage(const DamageNode &) override;

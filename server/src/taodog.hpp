@@ -51,12 +51,6 @@ class TaoDog final: public Monster
             }
         }
 
-        void setTarget(uint64_t uid) override
-        {
-            Monster::setTarget(uid);
-            setStandMode(true);
-        }
-
     protected:
         corof::long_jmper updateCoroFunc() override;
 

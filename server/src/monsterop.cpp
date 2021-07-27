@@ -91,9 +91,6 @@ void Monster::on_AM_ACTION(const ActorMsgPack &rstMPK)
                 }
         }
     }
-    else{
-        removeTarget(amA.UID);
-    }
 }
 
 void Monster::on_AM_NOTIFYNEWCO(const ActorMsgPack &rstMPK)
@@ -143,14 +140,12 @@ void Monster::on_AM_BADACTORPOD(const ActorMsgPack &)
 void Monster::on_AM_DEADFADEOUT(const ActorMsgPack &mpk)
 {
     const auto amDFO = mpk.conv<AMDeadFadeOut>();
-    removeTarget(amDFO.UID);
     m_inViewCOList.erase(amDFO.UID);
 }
 
 void Monster::on_AM_NOTIFYDEAD(const ActorMsgPack &rstMPK)
 {
     const auto amND = rstMPK.conv<AMNotifyDead>();
-    removeTarget(amND.UID);
     m_inViewCOList.erase(amND.UID);
 }
 

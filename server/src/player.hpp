@@ -171,7 +171,6 @@ class Player final: public CharObject
 
     protected:
         bool DCValid(int, bool);
-        bool InRange(int, int, int);
 
     protected:
         bool ActionValid(const ActionNode &);

@@ -266,7 +266,6 @@ void Monster::attackUID(uint64_t nUID, int nDC, std::function<void()> onOK, std:
             return;
         }
 
-        setTarget(nUID);
         dispatchAction(ActionAttack
         {
             .speed = AttackSpeed(),
@@ -351,9 +350,7 @@ void Monster::attackUID(uint64_t nUID, int nDC, std::function<void()> onOK, std:
     [this, nUID, onError]()
     {
         m_attackLock = false;
-
         m_inViewCOList.erase(nUID);
-        removeTarget(nUID);
 
         if(onError){
             onError();
@@ -772,27 +769,6 @@ void Monster::reportCO(uint64_t toUID)
     amCOR.action = makeActionStand();
     amCOR.Monster.MonsterID = monsterID();
     m_actorPod->forward(toUID, {AM_CORECORD, amCOR});
-}
-
-bool Monster::InRange(int nRangeType, int nX, int nY)
-{
-    if(true
-            && m_map
-            && m_map->validC(nX, nY)){
-        switch(nRangeType){
-            case RANGE_VISIBLE:
-                {
-                    return mathf::LDistance2(X(), Y(), nX, nY) < 20 * 20;
-                }
-            case RANGE_ATTACK:
-                {
-                    // inside this range
-                    // monster will decide to make an attack
-                    return mathf::LDistance2(X(), Y(), nX, nY) < 10 * 10;
-                }
-        }
-    }
-    return false;
 }
 
 DamageNode Monster::getAttackDamage(int nDC) const

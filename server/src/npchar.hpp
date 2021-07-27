@@ -159,7 +159,6 @@ class NPChar final: public CharObject
 
     public:
         bool update() override;
-        bool InRange(int, int, int) override;
 
     public:
         void reportCO(uint64_t) override;

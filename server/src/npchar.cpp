@@ -566,11 +566,6 @@ bool NPChar::update()
     return true;
 }
 
-bool NPChar::InRange(int, int, int)
-{
-    return true;
-}
-
 void NPChar::reportCO(uint64_t)
 {
 }

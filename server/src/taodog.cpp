@@ -37,6 +37,7 @@ corof::long_jmper TaoDog::updateCoroFunc()
 
         if(targetUID){
             idleTime.reset();
+            setStandMode(true);
             co_await coro_trackAttackUID(targetUID);
         }
 

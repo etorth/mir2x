@@ -288,29 +288,6 @@ void Player::reportHealth()
     postNetMessage(SM_UPDATEHP, smUHP);
 }
 
-bool Player::InRange(int nRangeType, int nX, int nY)
-{
-    if(!m_map->validC(nX, nY)){
-        return false;
-    }
-
-    switch(nRangeType){
-        case RANGE_VISIBLE:
-            {
-                return mathf::LDistance2(X(), Y(), nX, nY) < 20 * 20;
-            }
-        case RANGE_ATTACK:
-            {
-                return mathf::LDistance2(X(), Y(), nX, nY) < 10 * 10;
-            }
-        default:
-            {
-                break;
-            }
-    }
-    return false;
-}
-
 bool Player::goDie()
 {
     if(m_dead.get()){
