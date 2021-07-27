@@ -32,7 +32,6 @@
 #include "protocoldef.hpp"
 
 extern MonoServer *g_monoServer;
-
 CharObject::COPathFinder::COPathFinder(const CharObject *pCO, int nCheckCO)
     : AStarPathFinder([this](int nSrcX, int nSrcY, int nDstX, int nDstY) -> double
       {
@@ -124,7 +123,6 @@ CharObject::CharObject(
     , m_moveLock(false)
     , m_attackLock(false)
     , m_lastAction(ACTION_NONE)
-    , m_target()
 {
     fflassert(m_map);
     m_lastActionTime.fill(0);
@@ -285,7 +283,6 @@ bool CharObject::requestJump(int nX, int nY, int nDirection, std::function<void(
                         .y = Y(),
                         .direction = Direction(),
                     });
-                    SortInViewCO();
 
                     if(onOK){
                         onOK();
@@ -428,7 +425,6 @@ bool CharObject::requestMove(int nX, int nY, int nSpeed, bool allowHalfMove, boo
                         .aimY = Y(),
                         .onHorse = (bool)(Horse()),
                     });
-                    SortInViewCO();
 
                     if(onOK){
                         onOK();
@@ -768,13 +764,8 @@ bool CharObject::canAttack() const
 
 void CharObject::getCOLocation(uint64_t nUID, std::function<void(const COLocation &)> onOK, std::function<void()> onError)
 {
-    if(!nUID){
-        throw fflerror("query location with zero UID");
-    }
-
-    if(nUID == UID()){
-        throw fflerror("query UID to CO itself: %llu", to_llu(nUID));
-    }
+    fflassert(nUID);
+    fflassert(nUID != UID());
 
     // CO dispatches location changes automatically
     // always trust the InViewCOList, can even skip the expiration now
@@ -804,7 +795,7 @@ void CharObject::getCOLocation(uint64_t nUID, std::function<void(const COLocatio
                     // TODO when we get this response
                     // it's possible that the co has switched map or dead
 
-                    const COLocation stCOLoccation
+                    const COLocation coLoc
                     {
                         .uid       = amL.UID,
                         .mapID     = amL.mapID,
@@ -813,14 +804,8 @@ void CharObject::getCOLocation(uint64_t nUID, std::function<void(const COLocatio
                         .direction = amL.Direction
                     };
 
-                    if((amL.UID == nUID) && inView(amL.mapID, amL.X, amL.Y)){
-                        AddInViewCO(stCOLoccation);
-                    }
-                    else{
-                        RemoveInViewCO(nUID);
-                    }
-
-                    onOK(stCOLoccation);
+                    updateInViewCO(coLoc);
+                    onOK(coLoc);
                     return;
                 }
             default:
@@ -829,11 +814,7 @@ void CharObject::getCOLocation(uint64_t nUID, std::function<void(const COLocatio
                     // when nUID is not detached ActorPod::forward receives AM_BADACTORPOD immedately
                     // then this branch get called, then m_inViewCOList get updated implicitly
 
-                    RemoveInViewCO(nUID);
-                    if(uidf::getUIDType(UID()) == UID_MON){
-                        dynamic_cast<Monster *>(this)->removeTarget(nUID);
-                    }
-
+                    m_inViewCOList.erase(nUID);
                     onError();
                     return;
                 }
@@ -1062,8 +1043,8 @@ int CharObject::CheckPathGrid(int nX, int nY) const
         return PathFind::OCCUPIED;
     }
 
-    for(auto &rstLocation: m_inViewCOList){
-        if(rstLocation.x == nX && rstLocation.y == nY){
+    for(const auto &[uid, coLoc]: m_inViewCOList){
+        if(coLoc.x == nX && coLoc.y == nY){
             return PathFind::OCCUPIED;
         }
     }
@@ -1246,85 +1227,31 @@ bool CharObject::inView(uint32_t argMapID, int argX, int argY) const
     return m_map->In(argMapID, argX, argY) && mathf::LDistance2<int>(X(), Y(), argX, argY) <= SYS_VIEWR * SYS_VIEWR;
 }
 
-void CharObject::AddInViewCO(const COLocation &rstCOLocation)
-{
-    if(!inView(rstCOLocation.mapID, rstCOLocation.x, rstCOLocation.y)){
-        return;
-    }
-
-    if(auto p = getInViewCOPtr(rstCOLocation.uid)){
-        *p = rstCOLocation;
-    }
-    else{
-        m_inViewCOList.push_back(rstCOLocation);
-    }
-    SortInViewCO();
-}
-
 void CharObject::foreachInViewCO(std::function<void(const COLocation &)> fnOnLoc)
 {
-    // TODO dangerous part
-    // check comments in getCOLocation
+    // the updateInViewCO() may get called in fnOnLoc
+    // which changes m_inViewCOList
 
-    // RemoveInViewCO() may get called in fnOnLoc
-    // RemoveInViewCO() may get called in getCOLocation
-
-    scoped_alloc::svobuf_wrapper<uint64_t, 16> uidList;
-    for(const auto &rstCOLoc: m_inViewCOList){
-        uidList.c.push_back(rstCOLoc.uid);
+    scoped_alloc::svobuf_wrapper<COLocation, 128> coLocList;
+    for(const auto &[uid, coLoc]: m_inViewCOList){
+        coLocList.c.push_back(coLoc);
     }
 
-    for(size_t i = 0; i < uidList.c.size(); ++i){
-        getCOLocation(uidList.c.at(i), fnOnLoc);
+    for(const auto &coLoc: coLocList.c){
+        fnOnLoc(coLoc);
     }
 }
 
-void CharObject::AddInViewCO(uint64_t nUID, uint32_t nMapID, int nX, int nY, int nDirection)
+bool CharObject::updateInViewCO(const COLocation &coLoc, bool forceDelete)
 {
-    AddInViewCO(COLocation(nUID, nMapID, nX, nY, nDirection));
-}
-
-void CharObject::SortInViewCO()
-{
-    RemoveInViewCO(0);
-    std::sort(m_inViewCOList.begin(), m_inViewCOList.end(), [this](const auto &rstLoc1, const auto &rstLoc2)
-    {
-        return mathf::LDistance2(rstLoc1.x, rstLoc1.y, X(), Y()) < mathf::LDistance2(rstLoc2.x, rstLoc2.y, X(), Y());
-    });
-}
-
-void CharObject::RemoveInViewCO(uint64_t nUID)
-{
-    m_inViewCOList.erase(std::remove_if(m_inViewCOList.begin(), m_inViewCOList.end(), [this, nUID](const auto &rstCOLoc)
-    {
-        return rstCOLoc.uid == nUID || !inView(rstCOLoc.mapID, rstCOLoc.x, rstCOLoc.y);
-    }), m_inViewCOList.end());
-
-    if((m_inViewCOList.size() < m_inViewCOList.capacity() / 2) && (m_inViewCOList.capacity() > 20)){
-        m_inViewCOList.shrink_to_fit();
+    if(!forceDelete && inView(coLoc.mapID, coLoc.x, coLoc.y)){
+        m_inViewCOList[coLoc.uid] = coLoc;
+        return true;
     }
-
-    if(uidf::getUIDType(UID()) == UID_MON){
-        dynamic_cast<Monster *>(this)->removeTarget(nUID);
+    else{
+        m_inViewCOList.erase(coLoc.uid);
+        return false;
     }
-}
-
-COLocation &CharObject::GetInViewCORef(uint64_t nUID)
-{
-    if(auto p = getInViewCOPtr(nUID)){
-        return *p;
-    }
-    throw fflerror("can't find UID in InViewCOList: %" PRIu64, nUID);
-}
-
-COLocation *CharObject::getInViewCOPtr(uint64_t nUID)
-{
-    for(auto &rstCOLoc: m_inViewCOList){
-        if(rstCOLoc.uid == nUID){
-            return &rstCOLoc;
-        }
-    }
-    return nullptr;
 }
 
 bool CharObject::isOffender(uint64_t nUID)

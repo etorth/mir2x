@@ -1148,11 +1148,12 @@ void Player::setWLItem(int wltype, SDItem item)
         .item = item,
     });
 
-    for(const auto &coLoc: m_inViewCOList){
+    foreachInViewCO([sdEquipWearBuf, this](const COLocation &coLoc)
+    {
         if(uidf::getUIDType(coLoc.uid) == UID_PLY){
             forwardNetPackage(coLoc.uid, SM_EQUIPWEAR, sdEquipWearBuf);
         }
-    }
+    });
 }
 
 void Player::postBuildVersion()

@@ -352,8 +352,8 @@ void Monster::attackUID(uint64_t nUID, int nDC, std::function<void()> onOK, std:
     {
         m_attackLock = false;
 
+        m_inViewCOList.erase(nUID);
         removeTarget(nUID);
-        RemoveInViewCO(nUID);
 
         if(onError){
             onError();
@@ -829,20 +829,6 @@ bool Monster::DCValid(int, bool)
     return true;
 }
 
-void Monster::removeTarget(uint64_t nUID)
-{
-    if(m_target.UID == nUID){
-        m_target.UID = 0;
-        m_target.activeTimer.reset();
-    }
-}
-
-void Monster::setTarget(uint64_t nUID)
-{
-    m_target.UID = nUID;
-    m_target.activeTimer.reset();
-}
-
 bool Monster::goDie()
 {
     if(m_dead.get()){
@@ -1176,36 +1162,43 @@ int Monster::FindPathMethod()
     return FPMETHOD_COMBINE;
 }
 
-void Monster::RecursiveCheckInViewTarget(size_t nIndex, std::function<void(uint64_t)> fnTarget)
+void Monster::searchNearestTargetHelper(std::unordered_set<uint64_t> seen, std::function<void(uint64_t)> fnTarget)
 {
-    if(nIndex >= m_inViewCOList.size()){
-        fnTarget(0);
-        return;
+    int minDistance = INT_MAX;
+    uint64_t minDistanceUID = 0;
+
+    if(seen.empty()){
+        seen.reserve(m_inViewCOList.size() + 8);
     }
 
-    auto nUID = m_inViewCOList[nIndex].uid;
-    checkFriend(nUID, [this, nIndex, nUID, fnTarget](int nFriendType)
-    {
-        // when reach here
-        // m_inViewCOList[nIndex] may not be nUID anymore
-
-        // if changed
-        // we'd better redo the search
-
-        if(nIndex >= m_inViewCOList.size() || m_inViewCOList[nIndex].uid != nUID){
-            RecursiveCheckInViewTarget(0, fnTarget);
-            return;
+    for(const auto &[uid, coLoc]: m_inViewCOList){
+        if(!seen.count(uid)){
+            const auto currDistance = mathf::LDistance2<int>(X(), Y(), coLoc.x, coLoc.y);
+            if(currDistance < minDistance){
+                minDistance    = currDistance;
+                minDistanceUID = uid;
+            }
         }
+    }
 
-        if(nFriendType == FT_ENEMY){
-            fnTarget(nUID);
-            return;
-        }
-        RecursiveCheckInViewTarget(nIndex + 1, fnTarget);
-    });
+    if(minDistanceUID){
+        checkFriend(minDistanceUID, [this, minDistanceUID, seen = std::move(seen), fnTarget = std::move(fnTarget)](int friendType) mutable
+        {
+            if(friendType == FT_ENEMY){
+                fnTarget(minDistanceUID);
+                return;
+            }
+
+            seen.insert(minDistanceUID);
+            searchNearestTargetHelper(std::move(seen), std::move(fnTarget));
+        });
+    }
+    else{
+        fnTarget(0);
+    }
 }
 
-void Monster::SearchNearestTarget(std::function<void(uint64_t)> fnTarget)
+void Monster::searchNearestTarget(std::function<void(uint64_t)> fnTarget)
 {
     if(m_inViewCOList.empty()){
         fnTarget(0);
@@ -1226,13 +1219,13 @@ void Monster::SearchNearestTarget(std::function<void(uint64_t)> fnTarget)
         return;
     }
 
-    RecursiveCheckInViewTarget(0, fnTarget);
+    searchNearestTargetHelper({}, fnTarget);
 }
 
 void Monster::pickTarget(std::function<void(uint64_t)> fnTarget)
 {
     if(m_target.UID && m_target.activeTimer.diff_sec() < 60){
-        checkFriend(m_target.UID, [targetUID = m_target.UID, fnTarget, this](int nFriendType)
+        checkFriend(m_target.UID, [targetUID = m_target.UID, fnTarget = std::move(fnTarget), this](int nFriendType) mutable
         {
             if(nFriendType == FT_ENEMY){
                 fnTarget(targetUID);
@@ -1243,12 +1236,12 @@ void Monster::pickTarget(std::function<void(uint64_t)> fnTarget)
             // last target is not a target anymore
 
             removeTarget(targetUID);
-            SearchNearestTarget(fnTarget);
+            searchNearestTarget(std::move(fnTarget));
         });
     }
     else{
         removeTarget(m_target.UID);
-        SearchNearestTarget(fnTarget);
+        searchNearestTarget(std::move(fnTarget));
     }
 }
 
@@ -1530,8 +1523,8 @@ bool Monster::isPet(uint64_t nUID)
 
 bool Monster::hasPlayerNeighbor() const
 {
-    for(const auto &loc: m_inViewCOList){
-        if(uidf::getUIDType(loc.uid) == UID_PLY){
+    for(const auto &[uid, coLoc]: m_inViewCOList){
+        if(uidf::getUIDType(coLoc.uid) == UID_PLY){
             return true;
         }
     }

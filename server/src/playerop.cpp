@@ -75,55 +75,35 @@ void Player::on_AM_RECVPACKAGE(const ActorMsgPack &mpk)
 
 void Player::on_AM_ACTION(const ActorMsgPack &rstMPK)
 {
-    AMAction amA;
-    std::memcpy(&amA, rstMPK.data(), sizeof(amA));
-
+    const auto amA = rstMPK.conv<AMAction>();
     if(amA.UID == UID()){
         return;
     }
 
-    if(amA.mapID != mapID()){
-        RemoveInViewCO(amA.UID);
-        return;
+    const bool addedInView = updateInViewCO(COLocation
+    {
+        .uid = amA.UID,
+        .mapID = amA.mapID,
+        .x = amA.action.x,
+        .y = amA.action.y,
+        .direction = amA.action.direction,
+    });
+
+    if(addedInView){
+        switch(amA.action.type){
+            case ACTION_SPAWN:
+            case ACTION_SPACEMOVE2:
+                {
+                    dispatchAction(amA.UID, makeActionStand());
+                    break;
+                }
+            default:
+                {
+                    break;
+                }
+        }
+        reportAction(amA.UID, amA.action);
     }
-
-    // for all action types
-    // the x/y are always well-defined
-
-    int nDirection = -1;
-    switch(amA.action.type){
-        case ACTION_STAND:
-        case ACTION_ATTACK:
-        case ACTION_HITTED:
-            {
-                nDirection = amA.action.direction;
-                break;
-            }
-        default:
-            {
-                break;
-            }
-    }
-
-    if(mathf::LDistance2<int>(amA.action.x, amA.action.y, X(), Y()) > 20 * 20){
-        return;
-    }
-
-    switch(amA.action.type){
-        case ACTION_SPAWN:
-        case ACTION_SPACEMOVE2:
-            {
-                dispatchAction(amA.UID, makeActionStand());
-                break;
-            }
-        default:
-            {
-                break;
-            }
-    }
-
-    AddInViewCO(amA.UID, amA.mapID, amA.action.x, amA.action.y, nDirection);
-    reportAction(amA.UID, amA.action);
 }
 
 void Player::on_AM_NOTIFYNEWCO(const ActorMsgPack &mpk)
@@ -390,7 +370,7 @@ void Player::on_AM_UPDATEHP(const ActorMsgPack &rstMPK)
 void Player::on_AM_DEADFADEOUT(const ActorMsgPack &mpk)
 {
     const auto amDFO = mpk.conv<AMDeadFadeOut>();
-    RemoveInViewCO(amDFO.UID);
+    m_inViewCOList.erase(amDFO.UID);
 
     if(amDFO.UID != UID()){
         SMDeadFadeOut smDFO;

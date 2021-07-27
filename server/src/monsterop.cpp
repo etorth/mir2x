@@ -62,67 +62,38 @@ void Monster::on_AM_EXP(const ActorMsgPack &rstMPK)
 
 void Monster::on_AM_ACTION(const ActorMsgPack &rstMPK)
 {
-    AMAction amA;
-    std::memcpy(&amA, rstMPK.data(), sizeof(amA));
-
+    const auto amA = rstMPK.conv<AMAction>();
     if(amA.UID == UID()){
         return;
     }
 
-    if(amA.mapID != mapID()){
+    const auto addedInView = updateInViewCO(COLocation
+    {
+        .uid = amA.UID,
+        .mapID = amA.mapID,
+
+        .x = amA.action.x,
+        .y = amA.action.y,
+        .direction = amA.action.direction,
+    });
+
+    if(addedInView){
+        switch(amA.action.type){
+            case ACTION_SPAWN:
+            case ACTION_SPACEMOVE2:
+                {
+                    dispatchAction(amA.UID, makeActionStand());
+                    break;
+                }
+            default:
+                {
+                    break;
+                }
+        }
+    }
+    else{
         removeTarget(amA.UID);
-        RemoveInViewCO(amA.UID);
-        return;
     }
-
-    int nX   = -1;
-    int nY   = -1;
-    int nDir = -1;
-
-    switch(amA.action.type){
-        case ACTION_STAND:
-        case ACTION_ATTACK:
-        case ACTION_HITTED:
-            {
-                nX   = amA.action.x;
-                nY   = amA.action.y;
-                nDir = amA.action.direction;
-                break;
-            }
-        case ACTION_MOVE:
-        case ACTION_SPELL:
-        case ACTION_SPAWN:
-            {
-                nX = amA.action.x;
-                nY = amA.action.y;
-                break;
-            }
-        case ACTION_DIE:
-            {
-                removeTarget(amA.UID);
-                RemoveInViewCO(amA.UID);
-                return;
-            }
-        default:
-            {
-                break;
-            }
-    }
-
-    switch(amA.action.type){
-        case ACTION_SPAWN:
-        case ACTION_SPACEMOVE2:
-            {
-                dispatchAction(amA.UID, makeActionStand());
-                break;
-            }
-        default:
-            {
-                break;
-            }
-    }
-
-    AddInViewCO(amA.UID, amA.mapID, nX, nY, nDir);
 }
 
 void Monster::on_AM_NOTIFYNEWCO(const ActorMsgPack &rstMPK)
@@ -173,16 +144,14 @@ void Monster::on_AM_DEADFADEOUT(const ActorMsgPack &mpk)
 {
     const auto amDFO = mpk.conv<AMDeadFadeOut>();
     removeTarget(amDFO.UID);
-    RemoveInViewCO(amDFO.UID);
+    m_inViewCOList.erase(amDFO.UID);
 }
 
 void Monster::on_AM_NOTIFYDEAD(const ActorMsgPack &rstMPK)
 {
-    AMNotifyDead amND;
-    std::memcpy(&amND, rstMPK.data(), sizeof(amND));
-
+    const auto amND = rstMPK.conv<AMNotifyDead>();
     removeTarget(amND.UID);
-    RemoveInViewCO(amND.UID);
+    m_inViewCOList.erase(amND.UID);
 }
 
 void Monster::on_AM_OFFLINE(const ActorMsgPack &rstMPK)

@@ -17,6 +17,7 @@
  */
 #pragma once
 #include <functional>
+#include <unordered_set>
 #include "corof.hpp"
 #include "fflerror.hpp"
 #include "charobject.hpp"
@@ -62,6 +63,13 @@ class Monster: public CharObject
         };
 
     protected:
+        struct Target
+        {
+            uint64_t UID = 0;
+            hres_timer activeTimer;
+        };
+
+    protected:
         friend class CharObject;
 
     protected:
@@ -69,6 +77,9 @@ class Monster: public CharObject
 
     protected:
         AStarCache m_AStarCache;
+
+    protected:
+        Target m_target;
 
     protected:
         corof::long_jmper m_updateCoro;
@@ -111,8 +122,8 @@ class Monster: public CharObject
         void followMaster(std::function<void()>, std::function<void()>);
 
     protected:
-        void RecursiveCheckInViewTarget(size_t, std::function<void(uint64_t)>);
-        void SearchNearestTarget(std::function<void(uint64_t)>);
+        void searchNearestTarget(std::function<void(uint64_t)>);
+        void searchNearestTargetHelper(std::unordered_set<uint64_t>, std::function<void(uint64_t)>);
 
     protected:
         virtual void jumpUID       (uint64_t,              std::function<void()>, std::function<void()>);
@@ -126,8 +137,23 @@ class Monster: public CharObject
         bool InRange(int, int, int);
 
     protected:
-        virtual void setTarget(uint64_t);
-        virtual void removeTarget(uint64_t);
+        virtual void setTarget(uint64_t uid)
+        {
+            m_target.UID = uid;
+            m_target.activeTimer.reset();
+        }
+
+        virtual void clearTarget()
+        {
+            setTarget(0);
+        }
+
+        virtual void removeTarget(uint64_t uid)
+        {
+            if(m_target.UID == uid){
+                clearTarget();
+            }
+        }
 
     protected:
         bool struckDamage(const DamageNode &) override;

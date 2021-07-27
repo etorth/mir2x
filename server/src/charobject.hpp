@@ -21,7 +21,8 @@
 #include <list>
 #include <deque>
 #include <vector>
-
+#include <memory>
+#include <unordered_map>
 #include "totype.hpp"
 #include "corof.hpp"
 #include "fflerror.hpp"
@@ -103,12 +104,6 @@ class CharObject: public ServerObject
             {}
         };
 
-        struct Target
-        {
-            uint64_t UID = 0;
-            hres_timer activeTimer;
-        };
-
     protected:
         const ServerMap *m_map;
 
@@ -119,13 +114,7 @@ class CharObject: public ServerObject
         }
 
     protected:
-        // list of all COs *this* CO can see
-        // 1. used for path finding
-        // 2. directly report to these COs for action non-moving
-        // 3. need to report to map if moving
-        // 4. part of these COs are neighbors if close enough
-        // 5. don't remove COs in this list if expired, otherwise action in (2) may miss
-        std::vector<COLocation> m_inViewCOList;
+        std::unordered_map<uint64_t, COLocation> m_inViewCOList;
 
     protected:
         int m_X;
@@ -148,9 +137,6 @@ class CharObject: public ServerObject
 
     protected:
         TimedState<bool> m_dead;
-
-    protected:
-        Target m_target;
 
     protected:
         std::vector<Offender> m_offenderList;
@@ -351,15 +337,17 @@ class CharObject: public ServerObject
         bool inView(uint32_t, int, int) const;
 
     protected:
-        void SortInViewCO();
-        void RemoveInViewCO(uint64_t);
-        void AddInViewCO(const COLocation &);
-        void AddInViewCO(uint64_t, uint32_t, int, int, int);
+        bool updateInViewCO(const COLocation &, bool = false);
         void foreachInViewCO(std::function<void(const COLocation &)>);
 
     protected:
-        COLocation &GetInViewCORef(uint64_t);
-        COLocation *getInViewCOPtr(uint64_t);
+        COLocation *getInViewCOPtr(uint64_t uid)
+        {
+            if(auto p = m_inViewCOList.find(uid); p != m_inViewCOList.end()){
+                return std::addressof(p->second);
+            }
+            return nullptr;
+        }
 
     protected:
         virtual void checkFriend(uint64_t, std::function<void(int)>) = 0;
@@ -387,7 +375,7 @@ class CharObject: public ServerObject
     protected:
         template<typename... Args> void dispatchInViewCONetPackage(uint8_t type, Args && ... args)
         {
-            for(const auto &coLoc: m_inViewCOList){
+            for(const auto &[uid, coLoc]: m_inViewCOList){
                 if(uidf::getUIDType(coLoc.uid) == UID_PLY){
                     forwardNetPackage(coLoc.uid, type, std::forward<Args>(args)...);
                 }
