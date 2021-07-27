@@ -36,9 +36,25 @@ class hres_tstamp
 #endif
     public:
         hres_tstamp();
+
+    public:
         uint64_t to_nsec() const;
-        uint64_t to_usec() const;
-        uint64_t to_msec() const;
+
+    public:
+        uint64_t to_usec() const
+        {
+            return to_nsec() / 1000ULL;
+        }
+
+        uint64_t to_msec() const
+        {
+            return to_nsec() / 1000000ULL;
+        }
+
+        uint64_t to_sec () const
+        {
+            return to_nsec() / 1000000000ULL;
+        }
 };
 
 class hres_timer

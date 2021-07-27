@@ -50,9 +50,9 @@ corof::long_jmper SandGhost::updateCoroFunc()
         }
         else{
             if(!idleTime.has_value()){
-                idleTime = hres_tstamp().to_msec();
+                idleTime = hres_tstamp().to_sec();
             }
-            else if(hres_tstamp().to_msec() - idleTime.value() > 30ULL * 1000ULL /* n x 1 sec*/){
+            else if(hres_tstamp().to_sec() - idleTime.value() > 30ULL){
                 setStandMode(false);
             }
             co_await corof::async_wait(200);

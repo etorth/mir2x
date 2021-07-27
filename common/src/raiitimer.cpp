@@ -51,13 +51,3 @@ uint64_t hres_tstamp::to_nsec() const
     return (to_u64(m_tstamp.tv_sec  ) * 1000000000ULL) + to_u64(m_tstamp.tv_nsec  );
 #endif
 }
-
-uint64_t hres_tstamp::to_usec() const
-{
-    return to_nsec() / 1000ULL;
-}
-
-uint64_t hres_tstamp::to_msec() const
-{
-    return to_nsec() / 1000000ULL;
-}
