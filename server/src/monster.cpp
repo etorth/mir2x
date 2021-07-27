@@ -837,9 +837,10 @@ bool Monster::goDie()
     if(m_dead.get()){
         return true;
     }
-    m_dead.set(true);
 
+    m_dead.set(true);
     dispatchOffenderExp();
+
     for(auto &item: getMonsterDropItemList(monsterID())){
         m_actorPod->forward(m_map->UID(), {AM_DROPITEM, cerealf::serialize(SDDropItem
         {
