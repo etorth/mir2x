@@ -28,8 +28,18 @@ corof::long_jmper SandCactus::updateCoroFunc()
     fflassert(mr);
     fflassert(mr.castRange);
 
+    uint64_t targetUID = 0;
     while(HP() > 0){
-        if(const uint64_t targetUID = co_await coro_pickTarget()){
+        if(targetUID && !m_actorPod->checkUIDValid(targetUID)){
+            m_inViewCOList.erase(targetUID);
+            targetUID = 0;
+        }
+
+        if(!targetUID){
+            targetUID = co_await coro_pickTarget();
+        }
+
+        if(targetUID){
             if(co_await coro_inDCCastRange(targetUID, mr.castRange)){
                 co_await coro_attackUID(targetUID, magicID);
             }
