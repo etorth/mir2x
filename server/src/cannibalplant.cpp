@@ -24,25 +24,42 @@
 
 corof::long_jmper CannibalPlant::updateCoroFunc()
 {
+    uint64_t targetUID = 0;
     std::optional<uint64_t> idleTime;
+
     while(HP() > 0){
-        if(const uint64_t targetUID = co_await coro_pickTarget()){
+        if(targetUID && !m_actorPod->checkUIDValid(targetUID)){
+            targetUID = 0;
+            m_inViewCOList.erase(targetUID);
+        }
+
+        if(targetUID){
             const auto [targetMapID, targetX, targetY] = co_await coro_getCOPLoc(targetUID);
-            if((mapID() == targetMapID) && (mathf::CDistance<int>(targetX, targetY, X(), Y()) <= 1)){
-                idleTime.reset();
-                setStandMode(true);
-                co_await coro_attackUID(targetUID, DBCOM_MAGICID(u8"物理攻击"));
+            if(!inView(targetMapID, targetX, targetY)){
+                targetUID = 0;
+                m_inViewCOList.erase(targetUID);
+            }
+            else if(mathf::CDistance<int>(targetX, targetY, X(), Y()) > 1){
+                targetUID = 0;
             }
         }
-        else{
-            if(!idleTime.has_value()){
-                idleTime = hres_tstamp().to_sec();
-            }
-            else if(hres_tstamp().to_sec() - idleTime.value() > 30ULL){
-                setStandMode(false);
-            }
-            co_await corof::async_wait(200);
+
+        if(!targetUID){
+            targetUID = co_await coro_pickTarget();
         }
+
+        if(targetUID){
+            idleTime.reset();
+            setStandMode(true);
+            co_await coro_attackUID(targetUID, DBCOM_MAGICID(u8"物理攻击"));
+        }
+        else if(!idleTime.has_value()){
+            idleTime = hres_tstamp().to_sec();
+        }
+        else if(hres_tstamp().to_sec() - idleTime.value() > 30ULL){
+            setStandMode(false);
+        }
+        co_await corof::async_wait(200);
     }
 
     goDie();
