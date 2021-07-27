@@ -22,10 +22,19 @@
 extern ServerArgParser *g_serverArgParser;
 corof::long_jmper EvilTentacle::updateCoroFunc()
 {
+    uint64_t targetUID = 0;
     while(HP() > 0){
-        if(const uint64_t targetUID = co_await coro_pickTarget()){
+        if(targetUID && !m_actorPod->checkUIDValid(targetUID)){
+            targetUID = 0;
+        }
+
+        if(!targetUID){
+            targetUID = co_await coro_pickTarget();
+        }
+
+        if(targetUID){
             const auto [targetMapID, targetX, targetY] = co_await coro_getCOPLoc(targetUID);
-            if(mapID() == targetMapID){
+            if(inView(targetMapID, targetX, targetY)){
                 if(mathf::CDistance<int>(targetX, targetY, X(), Y()) <= 3){
                     co_await coro_trackAttackUID(targetUID);
                 }
@@ -33,16 +42,15 @@ corof::long_jmper EvilTentacle::updateCoroFunc()
                     co_await coro_jumpAttackUID(targetUID);
                 }
             }
-            else if(g_serverArgParser->forceMonsterRandomMove || hasPlayerNeighbor()){
-                co_await coro_randomMove();
-            }
             else{
-                co_await corof::async_wait(200);
+                targetUID = 0;
+                m_inViewCOList.erase(targetUID);
             }
         }
-        else{
-            co_await corof::async_wait(200);
+        else if(g_serverArgParser->forceMonsterRandomMove || hasPlayerNeighbor()){
+            co_await coro_randomMove();
         }
+        co_await corof::async_wait(200);
     }
 
     goDie();
