@@ -31,10 +31,20 @@ Guard::Guard(uint32_t monID, ServerMap *mapPtr, int argX, int argY, int argDir)
 
 corof::long_jmper Guard::updateCoroFunc()
 {
+    uint64_t targetUID = 0;
     while(HP() > 0){
-        if(const uint64_t targetUID = co_await coro_pickTarget()){
+        if(targetUID && !m_actorPod->checkUIDValid(targetUID)){
+            targetUID = 0;
+            m_inViewCOList.erase(targetUID);
+        }
+
+        if(!targetUID){
+            targetUID = co_await coro_pickTarget();
+        }
+
+        if(targetUID){
             const auto [targetMapID, targetX, targetY] = co_await coro_getCOPLoc(targetUID);
-            if(mapID() == targetMapID){
+            if(inView(targetMapID, targetX, targetY)){
                 if(mathf::CDistance<int>(targetX, targetY, X(), Y()) == 1){
                     co_await coro_attackUID(targetUID, DBCOM_MAGICID(u8"物理攻击"));
                 }
@@ -43,6 +53,8 @@ corof::long_jmper Guard::updateCoroFunc()
                 }
             }
             else{
+                m_inViewCOList.erase(targetUID);
+                targetUID = 0;
                 co_await coro_jumpBack();
             }
         }
