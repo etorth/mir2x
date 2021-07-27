@@ -555,9 +555,8 @@ void Monster::jumpAttackUID(uint64_t targetUID, std::function<void()> onOK, std:
 
 void Monster::trackAttackUID(uint64_t targetUID, std::function<void()> onOK, std::function<void()> onError)
 {
-    if(!targetUID){
-        throw fflerror("invalid zero UID");
-    }
+    fflassert(targetUID);
+    fflassert(targetUID != UID());
 
     const auto magicID = getAttackMagic(targetUID);
     const auto &mr = DBCOM_MAGICRECORD(magicID);
