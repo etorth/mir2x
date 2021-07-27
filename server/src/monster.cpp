@@ -1164,6 +1164,12 @@ int Monster::FindPathMethod()
 
 void Monster::searchNearestTargetHelper(std::unordered_set<uint64_t> seen, std::function<void(uint64_t)> fnTarget)
 {
+    const auto viewDistance = DBCOM_MONSTERRECORD(monsterID()).view;
+    if(viewDistance <= 0){
+        fnTarget(0);
+        return;
+    }
+
     int minDistance = INT_MAX;
     uint64_t minDistanceUID = 0;
 
@@ -1173,8 +1179,7 @@ void Monster::searchNearestTargetHelper(std::unordered_set<uint64_t> seen, std::
 
     for(const auto &[uid, coLoc]: m_inViewCOList){
         if(!seen.count(uid)){
-            const auto currDistance = mathf::LDistance2<int>(X(), Y(), coLoc.x, coLoc.y);
-            if(currDistance < minDistance){
+            if(const auto currDistance = mathf::LDistance2<int>(X(), Y(), coLoc.x, coLoc.y); (currDistance <= viewDistance) && (currDistance < minDistance)){
                 minDistance    = currDistance;
                 minDistanceUID = uid;
             }
