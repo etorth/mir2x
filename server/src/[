@@ -576,38 +576,13 @@ void Monster::trackAttackUID(uint64_t targetUID, std::function<void()> onOK, std
 corof::long_jmper Monster::updateCoroFunc()
 {
     uint64_t targetUID = 0;
-    hres_timer targetActiveTimer;
+    hres_timer targetactiveTimer;
 
     while(HP() > 0){
-        if(targetUID && targetActiveTimer.diff_sec() > SYS_TARGETSEC){
-            targetUID = 0;
+        if(const uint64_t targetUID = co_await coro_pickTarget()){
+            co_await coro_trackAttackUID(targetUID);
         }
 
-        if(targetUID && !m_actorPod->checkUIDValid(targetUID)){
-            targetUID = 0;
-            m_inViewCOList.erase(targetUID);
-        }
-
-        if(targetUID){
-            const auto [argMapID, argX, argY] = co_await coro_getCOPLoc(targetUID);
-            if(!inView(argMapID, argX, argY)){
-                targetUID = 0;
-                m_inViewCOList.erase(targetUID);
-            }
-        }
-
-        if(!targetUID){
-            targetUID = co_await coro_pickTarget();
-            if(targetUID){
-                targetActiveTimer.reset();
-            }
-        }
-
-        if(targetUID){
-            if(co_await coro_trackAttackUID(targetUID)){
-                targetActiveTimer.reset();
-            }
-        }
         else if(masterUID()){
             if(m_actorPod->checkUIDValid(masterUID())){
                 co_await coro_followMaster();
@@ -619,9 +594,9 @@ corof::long_jmper Monster::updateCoroFunc()
         else if(g_serverArgParser->forceMonsterRandomMove || hasPlayerNeighbor()){
             co_await coro_randomMove();
         }
-
-        // always wait
-        co_await corof::async_wait(200);
+        else{
+            co_await corof::async_wait(200);
+        }
     }
 
     goDie();
@@ -1251,14 +1226,30 @@ void Monster::searchNearestTarget(std::function<void(uint64_t)> fnTarget)
         return;
     }
 
-    searchNearestTargetHelper({}, std::move(fnTarget));
+    searchNearestTargetHelper({}, fnTarget);
 }
 
 void Monster::pickTarget(std::function<void(uint64_t)> fnTarget)
 {
-    // can have different strategy to pick target: nearest, latest, weakest
-    //
-    searchNearestTarget(std::move(fnTarget));
+    if(m_target.UID && m_target.activeTimer.diff_sec() < SYS_TARGETSEC){
+        checkFriend(m_target.UID, [targetUID = m_target.UID, fnTarget = std::move(fnTarget), this](int nFriendType) mutable
+        {
+            if(nFriendType == FT_ENEMY){
+                fnTarget(targetUID);
+                return;
+            }
+
+            // may changed monster
+            // last target is not a target anymore
+
+            clearTarget();
+            searchNearestTarget(std::move(fnTarget));
+        });
+    }
+    else{
+        clearTarget();
+        searchNearestTarget(std::move(fnTarget));
+    }
 }
 
 int Monster::getAttackMagic(uint64_t) const
