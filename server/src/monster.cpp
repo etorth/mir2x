@@ -1179,7 +1179,7 @@ void Monster::searchNearestTargetHelper(std::unordered_set<uint64_t> seen, std::
 
     for(const auto &[uid, coLoc]: m_inViewCOList){
         if(!seen.count(uid)){
-            if(const auto currDistance = mathf::LDistance2<int>(X(), Y(), coLoc.x, coLoc.y); (currDistance <= viewDistance) && (currDistance < minDistance)){
+            if(const auto currDistance = mathf::LDistance2<int>(X(), Y(), coLoc.x, coLoc.y); (currDistance <= viewDistance * viewDistance) && (currDistance < minDistance)){
                 minDistance    = currDistance;
                 minDistanceUID = uid;
             }
