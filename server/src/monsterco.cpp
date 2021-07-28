@@ -97,6 +97,18 @@ corof::long_jmper::eval_op<uint64_t> Monster::coro_pickTarget()
     return fnwait(this).eval<uint64_t>();
 }
 
+corof::long_jmper::eval_op<int> Monster::coro_checkFriend(uint64_t uid)
+{
+    const auto fnwait = +[](Monster *p, uint64_t uid) -> corof::long_jmper
+    {
+        corof::async_variable<int> friendType;
+        p->checkFriend(uid, [&friendType](uint64_t type){ friendType.assign(type); });
+        const auto result = co_await friendType;
+        co_return result;
+    };
+    return fnwait(this, uid).eval<int>();
+}
+
 corof::long_jmper::eval_op<bool> Monster::coro_trackAttackUID(uint64_t targetUID)
 {
     const auto fnwait = +[](Monster *p, uint64_t targetUID) -> corof::long_jmper
