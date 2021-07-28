@@ -924,3 +924,16 @@
         }
     },
 },
+
+{
+    .name = u8"轻甲守卫_死亡紫雾",
+    .gfxList
+    {
+        {
+            .stage = u8"运行",
+            .type  = u8"附着", // may also make it as 固定, magic of type 附着 only get draw when monster body is still visible
+            .gfxID = 0X0300003C,
+            .frameCount = 18,
+        }
+    },
+},

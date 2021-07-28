@@ -46,6 +46,7 @@
 #include "clientlightboltzombie.hpp"
 #include "clientmonkzombie.hpp"
 #include "clientrebornzombie.hpp"
+#include "clientlightarmoredguard.hpp"
 
 extern Log *g_log;
 extern PNGTexDB *g_progUseDB;
@@ -659,6 +660,10 @@ int ClientMonster::currStep() const
 ClientMonster *ClientMonster::create(uint64_t uid, ProcessRun *proc, const ActionNode &action)
 {
     switch(const auto monID = uidf::getMonsterID(uid)){
+        case DBCOM_MONSTERID(u8"轻甲守卫"):
+            {
+                return new ClientLightArmoredGuard(uid, proc, action);
+            }
         case DBCOM_MONSTERID(u8"变异骷髅"):
             {
                 return new ClientTaoSkeleton(uid, proc, action);
