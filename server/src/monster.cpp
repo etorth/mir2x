@@ -1290,7 +1290,7 @@ void Monster::checkFriend_CtrlByMonster(uint64_t nUID, std::function<void(int)> 
                     return;
                 }
 
-                QueryFinalMaster(nUID, [nUID, fnOp](uint64_t nFMasterUID)
+                queryFinalMaster(nUID, [nUID, fnOp](uint64_t nFMasterUID)
                 {
                     if(!nFMasterUID){
                         fnOp(FT_ERROR);
@@ -1341,7 +1341,7 @@ void Monster::checkFriend_CtrlByPlayer(uint64_t nUID, std::function<void(int)> f
                     return;
                 }
 
-                QueryFinalMaster(nUID, [this, nUID, fnOp](uint64_t nFMasterUID)
+                queryFinalMaster(nUID, [this, nUID, fnOp](uint64_t nFMasterUID)
                 {
                     if(!nFMasterUID){
                         fnOp(FT_ERROR);
@@ -1416,7 +1416,7 @@ void Monster::checkFriend(uint64_t nUID, std::function<void(int)> fnOp)
     // has a master
     // check the final master
 
-    QueryFinalMaster(UID(), [this, nUID, fnOp](uint64_t nFMasterUID)
+    queryFinalMaster(UID(), [this, nUID, fnOp](uint64_t nFMasterUID)
     {
         if(!nFMasterUID){
             // TODO monster can swith master

@@ -177,7 +177,7 @@ void Monster::on_AM_QUERYMASTER(const ActorMsgPack &rstMPK)
 
 void Monster::on_AM_QUERYFINALMASTER(const ActorMsgPack &rstMPK)
 {
-    QueryFinalMaster(UID(), [this, rstMPK](uint64_t nFMasterUID)
+    queryFinalMaster(UID(), [this, rstMPK](uint64_t nFMasterUID)
     {
         AMUID amUID;
         std::memset(&amUID, 0, sizeof(amUID));

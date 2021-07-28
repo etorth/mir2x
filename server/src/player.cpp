@@ -957,7 +957,7 @@ void Player::checkFriend(uint64_t nUID, std::function<void(int)> fnOp)
                     return;
                 }
 
-                QueryFinalMaster(nUID, [this, nUID, fnOp](uint64_t nFMasterUID)
+                queryFinalMaster(nUID, [this, nUID, fnOp](uint64_t nFMasterUID)
                 {
                     switch(uidf::getUIDType(nFMasterUID)){
                         case UID_PLY:

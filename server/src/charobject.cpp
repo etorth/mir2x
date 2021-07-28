@@ -1264,7 +1264,7 @@ bool CharObject::isOffender(uint64_t nUID)
     return false;
 }
 
-void CharObject::QueryFinalMaster(uint64_t nUID, std::function<void(uint64_t)> fnOp)
+void CharObject::queryFinalMaster(uint64_t nUID, std::function<void(uint64_t)> fnOp)
 {
     if(!nUID){
         throw fflerror("invalid zero UID");

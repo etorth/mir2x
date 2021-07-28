@@ -352,7 +352,7 @@ class CharObject: public ServerObject
         virtual void checkFriend(uint64_t, std::function<void(int)>) = 0;
 
     protected:
-        void QueryFinalMaster(uint64_t, std::function<void(uint64_t)>);
+        void queryFinalMaster(uint64_t, std::function<void(uint64_t)>);
 
     protected:
         bool isOffender(uint64_t);
