@@ -1245,24 +1245,17 @@ int Monster::getAttackMagic(uint64_t) const
     return DBCOM_MAGICID(str_haschar(mr.dcName) ? mr.dcName : u8"物理攻击");
 }
 
-void Monster::QueryMaster(uint64_t nUID, std::function<void(uint64_t)> fnOp)
+void Monster::queryMaster(uint64_t nUID, std::function<void(uint64_t)> fnOp)
 {
-    if(!nUID){
-        throw fflerror("invalid zero UID");
-    }
-
-    if(nUID == UID()){
-        throw fflerror("query self for masterUID()");
-    }
+    fflassert(nUID);
+    fflassert(nUID != UID());
 
     m_actorPod->forward(nUID, AM_QUERYMASTER, [this, nUID, fnOp](const ActorMsgPack &rstRMPK)
     {
         switch(rstRMPK.type()){
             case AM_UID:
                 {
-                    AMUID amUID;
-                    std::memcpy(&amUID, rstRMPK.data(), sizeof(amUID));
-
+                    const auto amUID = rstRMPK.conv<AMUID>();
                     fnOp(amUID.UID);
                     return;
                 }

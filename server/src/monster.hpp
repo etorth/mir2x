@@ -179,7 +179,7 @@ class Monster: public CharObject
         void checkFriend_CtrlByMonster(uint64_t, std::function<void(int)>);
 
     protected:
-        void QueryMaster(uint64_t, std::function<void(uint64_t)>);
+        void queryMaster(uint64_t, std::function<void(uint64_t)>);
 
     protected:
         bool MoveOneStepAStar   (int, int, std::function<void()>, std::function<void()>);
