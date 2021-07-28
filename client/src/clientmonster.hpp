@@ -50,13 +50,30 @@ class ClientMonster: public CreatureMovable
         ClientMonster(uint64_t uid, ProcessRun *proc, const ActionNode &action)
             : ClientMonster(uid, proc)
         {
-            m_currMotion.reset(new MotionNode
-            {
-                .type = MOTION_MON_STAND,
-                .direction = directionValid(action.direction) ? to_d(action.direction) : DIR_UP,
-                .x = action.x,
-                .y = action.y,
-            });
+            switch(action.type){
+                case ACTION_DIE:
+                    {
+                        m_currMotion.reset(new MotionNode
+                        {
+                            .type = MOTION_MON_DIE,
+                            .direction = directionValid(action.direction) ? to_d(action.direction) : DIR_UP,
+                            .x = action.x,
+                            .y = action.y,
+                        });
+                        break;
+                    }
+                default:
+                    {
+                        m_currMotion.reset(new MotionNode
+                        {
+                            .type = MOTION_MON_STAND,
+                            .direction = directionValid(action.direction) ? to_d(action.direction) : DIR_UP,
+                            .x = action.x,
+                            .y = action.y,
+                        });
+                        break;
+                    }
+            }
         }
 
     protected:
