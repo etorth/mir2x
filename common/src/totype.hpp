@@ -87,6 +87,16 @@ inline const char *to_cstr(const std::u8string &s)
     return to_cstr(s.c_str());
 }
 
+inline const char *to_cstr(const std::string_view &s)
+{
+    return to_cstr(s.data());
+}
+
+inline const char *to_cstr(const std::u8string_view &s)
+{
+    return to_cstr(s.data());
+}
+
 // cast char buf to char8_t buf
 // this may break the strict-aliasing rule
 

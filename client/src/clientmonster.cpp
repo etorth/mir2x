@@ -48,6 +48,7 @@
 #include "clientrebornzombie.hpp"
 #include "clientlightarmoredguard.hpp"
 #include "clientanthealer.hpp"
+#include "clientnumawizard.hpp"
 
 extern Log *g_log;
 extern PNGTexDB *g_progUseDB;
@@ -314,21 +315,17 @@ bool ClientMonster::parseAction(const ActionNode &action)
 
     m_motionQueue.clear();
     switch(action.type){
-        case ACTION_DIE       : return onActionDie       (action);
-        case ACTION_STAND     : return onActionStand     (action);
-        case ACTION_HITTED    : return onActionHitted    (action);
-        case ACTION_JUMP      : return onActionJump      (action);
-        case ACTION_MOVE      : return onActionMove      (action);
-        case ACTION_ATTACK    : return onActionAttack    (action);
-        case ACTION_SPAWN     : return onActionSpawn     (action);
-        case ACTION_TRANSF    : return onActionTransf    (action);
-        case ACTION_SPACEMOVE2: return onActionSpaceMove2(action);
+        case ACTION_DIE       : return onActionDie       (action) && motionQueueValid();
+        case ACTION_STAND     : return onActionStand     (action) && motionQueueValid();
+        case ACTION_HITTED    : return onActionHitted    (action) && motionQueueValid();
+        case ACTION_JUMP      : return onActionJump      (action) && motionQueueValid();
+        case ACTION_MOVE      : return onActionMove      (action) && motionQueueValid();
+        case ACTION_ATTACK    : return onActionAttack    (action) && motionQueueValid();
+        case ACTION_SPAWN     : return onActionSpawn     (action) && motionQueueValid();
+        case ACTION_TRANSF    : return onActionTransf    (action) && motionQueueValid();
+        case ACTION_SPACEMOVE2: return onActionSpaceMove2(action) && motionQueueValid();
         default               : return false;
     }
-
-    // 3. after action parse
-    //    verify the whole motion queue
-    return motionQueueValid();
 }
 
 bool ClientMonster::onActionDie(const ActionNode &action)
@@ -668,6 +665,11 @@ ClientMonster *ClientMonster::create(uint64_t uid, ProcessRun *proc, const Actio
         case DBCOM_MONSTERID(u8"蚂蚁道士"):
             {
                 return new ClientAntHealer(uid, proc, action);
+            }
+        case DBCOM_MONSTERID(u8"诺玛法老"):
+        case DBCOM_MONSTERID(u8"大法老"):
+            {
+                return new ClientNumaWizard(uid, proc, action);
             }
         case DBCOM_MONSTERID(u8"变异骷髅"):
             {

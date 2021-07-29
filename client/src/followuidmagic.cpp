@@ -96,6 +96,7 @@ std::tuple<int, int> FollowUIDMagic::targetOff() const
 
     switch(magicID()){
         case DBCOM_MAGICID(u8"火球术"):
+        case DBCOM_MAGICID(u8"诺玛法老_火球术"):
             {
                 switch(gfxDirIndex()){
                     case  0: return { 35, -52};

@@ -48,3 +48,14 @@ class Thunderbolt: public AttachMagic
     public:
         void drawShift(int, int, bool) const override;
 };
+
+class NumaWizardThunderBolt: public AttachMagic
+{
+    public:
+        NumaWizardThunderBolt()
+            : AttachMagic(u8"诺玛法老_雷电术", u8"运行")
+        {}
+
+    public:
+        void drawShift(int, int, bool) const override;
+};

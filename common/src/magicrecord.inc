@@ -256,10 +256,6 @@
 },
 
 {
-    .name = u8"雷电术",
-},
-
-{
     .name = u8"刺杀剑术",
 },
 
@@ -908,6 +904,59 @@
             .type  = u8"附着",
             .gfxID = 0X010003A2,
             .frameCount = 6,
+        },
+    },
+},
+
+{
+    .name = u8"诺玛法老_火球术",
+    .element = u8"火",
+
+    .castRange
+    {
+        .type = CRT_LIMITED,
+        .distance = 8,
+    },
+
+    .gfxList
+    {
+        {
+            .stage = u8"运行",
+            .type  = u8"跟随",
+            .gfxID = 0X000001A4,
+            .frameCount = 5,
+            .gfxIDCount = 10,
+            .gfxDirType = 16, //special, has 16 directions
+            .loop = 1,
+            .speed = 200,
+        },
+
+        {
+            .stage = u8"结束",
+            .type  = u8"附着",
+            .gfxID = 0X00000244,
+            .frameCount = 10,
+        },
+    }
+},
+
+{
+    .name = u8"大法老_雷电术",
+    .element = u8"雷",
+
+    .castRange
+    {
+        .type = CRT_LIMITED,
+        .distance = 10,
+    },
+
+    .gfxList
+    {
+        {
+            .stage = u8"运行",
+            .type  = u8"附着",
+            .gfxID = 0X000005AA,
+            .frameCount = 5,
         },
     },
 },
