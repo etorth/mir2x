@@ -21,7 +21,7 @@
 
 corof::long_jmper MonsterTree::updateCoroFunc()
 {
-    while(HP() > 0){
+    while(m_sdHealth.HP > 0){
         co_await corof::async_wait(2000);
     }
 

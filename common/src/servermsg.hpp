@@ -35,7 +35,7 @@ enum SMType: uint8_t
     SM_PLAYERWLDESP,
     SM_ACTION,
     SM_CORECORD,
-    SM_UPDATEHP,
+    SM_HEALTH,
     SM_NOTIFYDEAD,
     SM_DEADFADEOUT,
     SM_EXP,
@@ -127,15 +127,6 @@ struct SMCORecord
         _SMCORecord_Player  Player;
         _SMCORecord_NPC     NPC;
     };
-};
-
-struct SMUpdateHP
-{
-    uint64_t UID;
-    uint32_t mapID;
-
-    uint32_t HP;
-    uint32_t HPMax;
 };
 
 struct SMNotifyDead
@@ -316,7 +307,7 @@ class ServerMsg final: public MsgBase
                 _add_server_msg_type_case(SM_PLAYERWLDESP,        3, 0                          )
                 _add_server_msg_type_case(SM_ACTION,              1, sizeof(SMAction)           )
                 _add_server_msg_type_case(SM_CORECORD,            1, sizeof(SMCORecord)         )
-                _add_server_msg_type_case(SM_UPDATEHP,            1, sizeof(SMUpdateHP)         )
+                _add_server_msg_type_case(SM_HEALTH,              3, 0                          )
                 _add_server_msg_type_case(SM_NOTIFYDEAD,          1, sizeof(SMNotifyDead)       )
                 _add_server_msg_type_case(SM_DEADFADEOUT,         1, sizeof(SMDeadFadeOut)      )
                 _add_server_msg_type_case(SM_EXP,                 1, sizeof(SMExp)              )
@@ -373,7 +364,6 @@ class ServerMsg final: public MsgBase
                     || std::is_same_v<T, SMLoginFail>
                     || std::is_same_v<T, SMAction>
                     || std::is_same_v<T, SMCORecord>
-                    || std::is_same_v<T, SMUpdateHP>
                     || std::is_same_v<T, SMNotifyDead>
                     || std::is_same_v<T, SMDeadFadeOut>
                     || std::is_same_v<T, SMExp>

@@ -16,6 +16,7 @@
  * =====================================================================================
  */
 #pragma once
+#include <optional>
 #include <functional>
 #include <unordered_set>
 #include "corof.hpp"
@@ -134,6 +135,7 @@ class Monster: public CharObject
     private:
         void on_AM_EXP             (const ActorMsgPack &);
         void on_AM_MISS            (const ActorMsgPack &);
+        void on_AM_HEAL            (const ActorMsgPack &);
         void on_AM_ATTACK          (const ActorMsgPack &);
         void on_AM_ACTION          (const ActorMsgPack &);
         void on_AM_OFFLINE         (const ActorMsgPack &);
@@ -146,6 +148,7 @@ class Monster: public CharObject
         void on_AM_BADACTORPOD     (const ActorMsgPack &);
         void on_AM_CHECKMASTER     (const ActorMsgPack &);
         void on_AM_QUERYMASTER     (const ActorMsgPack &);
+        void on_AM_QUERYHEALTH     (const ActorMsgPack &);
         void on_AM_DEADFADEOUT     (const ActorMsgPack &);
         void on_AM_NOTIFYNEWCO     (const ActorMsgPack &);
         void on_AM_QUERYCORECORD   (const ActorMsgPack &);
@@ -217,12 +220,14 @@ class Monster: public CharObject
         corof::long_jmper::eval_op<bool>     coro_moveForward();
         corof::long_jmper::eval_op<bool>     coro_followMaster();
         corof::long_jmper::eval_op<uint64_t> coro_pickTarget();
+        corof::long_jmper::eval_op<uint64_t> coro_pickHealTarget();
         corof::long_jmper::eval_op<int>      coro_checkFriend(uint64_t);
         corof::long_jmper::eval_op<bool>     coro_trackUID(uint64_t, DCCastRange);
         corof::long_jmper::eval_op<bool>     coro_attackUID(uint64_t, int);
         corof::long_jmper::eval_op<bool>     coro_jumpAttackUID(uint64_t);
         corof::long_jmper::eval_op<bool>     coro_trackAttackUID(uint64_t);
         corof::long_jmper::eval_op<bool>     coro_inDCCastRange(uint64_t, DCCastRange);
+        corof::long_jmper::eval_op<std::optional<SDHealth>> coro_queryHealth(uint64_t);
 
     public:
         static bool isPet(uint64_t);

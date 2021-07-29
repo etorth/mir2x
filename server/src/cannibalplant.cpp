@@ -27,7 +27,7 @@ corof::long_jmper CannibalPlant::updateCoroFunc()
     uint64_t targetUID = 0;
     std::optional<uint64_t> idleTime;
 
-    while(HP() > 0){
+    while(m_sdHealth.HP > 0){
         if(targetUID && !m_actorPod->checkUIDValid(targetUID)){
             targetUID = 0;
             m_inViewCOList.erase(targetUID);

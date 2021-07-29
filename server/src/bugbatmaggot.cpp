@@ -53,7 +53,7 @@ void BugbatMaggot::addBat()
 
 corof::long_jmper BugbatMaggot::updateCoroFunc()
 {
-    while(HP() > 0){
+    while(m_sdHealth.HP > 0){
         for(auto p = m_batUIDList.begin(); p != m_batUIDList.end();){
             if(m_actorPod->checkUIDValid(*p)){
                 p++;

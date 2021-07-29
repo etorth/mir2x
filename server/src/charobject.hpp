@@ -122,10 +122,7 @@ class CharObject: public ServerObject
         int m_direction;
 
     protected:
-        int m_HP;
-        int m_HPMax;
-        int m_MP;
-        int m_MPMax;
+        SDHealth m_sdHealth;
 
     protected:
         bool m_moveLock;
@@ -155,12 +152,6 @@ class CharObject: public ServerObject
     protected:
         int X() const { return m_X; }
         int Y() const { return m_Y; }
-
-    protected:
-        int HP()    const { return m_HP; }
-        int MP()    const { return m_MP; }
-        int HPMax() const { return m_HPMax; }
-        int MPMax() const { return m_MPMax; }
 
     protected:
         int Direction() const
@@ -352,6 +343,7 @@ class CharObject: public ServerObject
         virtual void checkFriend(uint64_t, std::function<void(int)>) = 0;
 
     protected:
+        void queryHealth(uint64_t, std::function<void(uint64_t, SDHealth)>);
         void queryFinalMaster(uint64_t, std::function<void(uint64_t)>);
 
     protected:

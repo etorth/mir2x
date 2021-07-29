@@ -113,10 +113,11 @@ Monster::Monster(uint32_t monID,
         throw fflerror("invalid monster record: MonsterID = %llu", to_llu(monsterID()));
     }
 
-    m_HP    = getMR().HP;
-    m_HPMax = getMR().HP;
-    m_MP    = getMR().MP;
-    m_MPMax = getMR().MP;
+    m_sdHealth.uid   = UID();
+    m_sdHealth.HP    = getMR().HP;
+    m_sdHealth.MP    = getMR().MP;
+    m_sdHealth.maxHP = getMR().HP;
+    m_sdHealth.maxMP = getMR().MP;
 }
 
 bool Monster::randomMove()
@@ -575,7 +576,7 @@ corof::long_jmper Monster::updateCoroFunc()
     uint64_t targetUID = 0;
     hres_timer targetActiveTimer;
 
-    while(HP() > 0){
+    while(m_sdHealth.HP > 0){
         if(targetUID && targetActiveTimer.diff_sec() > SYS_TARGETSEC){
             targetUID = 0;
         }
@@ -627,7 +628,7 @@ corof::long_jmper Monster::updateCoroFunc()
 
 bool Monster::update()
 {
-    if(HP() < 0){
+    if(m_sdHealth.HP < 0){
         return goDie();
     }
 
@@ -669,6 +670,11 @@ void Monster::operateAM(const ActorMsgPack &rstMPK)
                 on_AM_QUERYNAMECOLOR(rstMPK);
                 break;
             }
+        case AM_QUERYHEALTH:
+            {
+                on_AM_QUERYHEALTH(rstMPK);
+                break;
+            }
         case AM_NOTIFYNEWCO:
             {
                 on_AM_NOTIFYNEWCO(rstMPK);
@@ -697,6 +703,11 @@ void Monster::operateAM(const ActorMsgPack &rstMPK)
         case AM_MISS:
             {
                 on_AM_MISS(rstMPK);
+                break;
+            }
+        case AM_HEAL:
+            {
+                on_AM_HEAL(rstMPK);
                 break;
             }
         case AM_ACTION:
@@ -902,10 +913,14 @@ bool Monster::goGhost()
 bool Monster::struckDamage(const DamageNode &node)
 {
     if(node){
-        m_HP = (std::max<int>)(0, HP() - node.damage);
-        dispatchHealth();
+        const auto lastHP = m_sdHealth.HP;
+        m_sdHealth.HP = std::max<int>(0, m_sdHealth.HP - node.damage);
 
-        if(HP() <= 0){
+        if(lastHP != m_sdHealth.HP){
+            dispatchHealth();
+        }
+
+        if(m_sdHealth.HP <= 0){
             goDie();
         }
         return true;

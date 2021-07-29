@@ -281,7 +281,7 @@ void ClientMonster::drawFrame(int viewX, int viewY, int focusMask, int frame, bo
 
             const int drawBarXP = startX +  7;
             const int drawBarYP = startY - 53;
-            const int drawBarWidth = to_d(std::lround(nBarW * (m_maxHP ? (std::min<double>)(1.0, (1.0 * m_HP) / m_maxHP) : 1.0)));
+            const int drawBarWidth = to_d(std::lround(nBarW * (m_sdHealth.maxHP ? (std::min<double>)(1.0, (1.0 * m_sdHealth.HP) / m_sdHealth.maxHP) : 1.0)));
 
             g_sdlDevice->drawTexture(pBar1, drawBarXP, drawBarYP, 0, 0, drawBarWidth, nBarH);
             g_sdlDevice->drawTexture(pBar0, drawBarXP, drawBarYP);

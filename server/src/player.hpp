@@ -98,12 +98,12 @@ class Player final: public CharObject
     private:
         void on_AM_EXP(const ActorMsgPack &);
         void on_AM_MISS(const ActorMsgPack &);
+        void on_AM_HEAL(const ActorMsgPack &);
         void on_AM_GIFT(const ActorMsgPack &);
         void on_AM_ACTION(const ActorMsgPack &);
         void on_AM_ATTACK(const ActorMsgPack &);
         void on_AM_OFFLINE(const ActorMsgPack &);
         void on_AM_CORECORD(const ActorMsgPack &);
-        void on_AM_UPDATEHP(const ActorMsgPack &);
         void on_AM_NPCQUERY(const ActorMsgPack &);
         void on_AM_METRONOME(const ActorMsgPack &);
         void on_AM_MAPSWITCH(const ActorMsgPack &);
@@ -112,6 +112,7 @@ class Player final: public CharObject
         void on_AM_BADCHANNEL(const ActorMsgPack &);
         void on_AM_NOTIFYDEAD(const ActorMsgPack &);
         void on_AM_NOTIFYNEWCO(const ActorMsgPack &);
+        void on_AM_QUERYHEALTH(const ActorMsgPack &);
         void on_AM_DEADFADEOUT(const ActorMsgPack &);
         void on_AM_BADACTORPOD(const ActorMsgPack &);
         void on_AM_BINDCHANNEL(const ActorMsgPack &);
@@ -218,7 +219,7 @@ class Player final: public CharObject
         virtual int MaxStep() const;
 
     protected:
-        virtual void RecoverHealth();
+        virtual void recoverHealth();
 
     protected:
         void gainExp(int);

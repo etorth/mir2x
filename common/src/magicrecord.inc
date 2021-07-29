@@ -937,3 +937,16 @@
         }
     },
 },
+
+{
+    .name = u8"蚂蚁道士_治疗",
+    .gfxList
+    {
+        {
+            .stage = u8"运行",
+            .type  = u8"附着", // may also make it as 固定, magic of type 附着 only get draw when monster body is still visible
+            .gfxID = 0X03000064,
+            .frameCount = 10,
+        }
+    },
+},

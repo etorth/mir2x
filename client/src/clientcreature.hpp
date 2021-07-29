@@ -33,6 +33,7 @@
 #include "colorf.hpp"
 #include "fflerror.hpp"
 #include "focustype.hpp"
+#include "serdesmsg.hpp"
 #include "actionnode.hpp"
 #include "labelboard.hpp"
 #include "motionnode.hpp"
@@ -49,10 +50,7 @@ class ClientCreature
         ProcessRun *m_processRun;
 
     protected:
-        uint32_t m_HP;
-        uint32_t m_MP;
-        uint32_t m_maxHP;
-        uint32_t m_maxMP;
+        SDHealth m_sdHealth;
 
     protected:
         std::unique_ptr<MotionNode> m_currMotion;
@@ -72,10 +70,13 @@ class ClientCreature
         ClientCreature(uint64_t uid, ProcessRun *pRun)
             : m_UID(uid)
             , m_processRun(pRun)
-            , m_HP(0)
-            , m_MP(0)
-            , m_maxHP(0)
-            , m_maxMP(0)
+            , m_sdHealth
+              {
+                  .HP    = 100,
+                  .MP    = 100,
+                  .maxHP = 100,
+                  .maxMP = 100,
+              }
             , m_lastActive(0)
             , m_lastQuerySelf(0)
             , m_nameBoard(DIR_UPLEFT, 0, 0, u8"ClientCreature", 1, 12, 0, colorf::RGBA(0XFF, 0XFF, 0XFF, 0X00))
@@ -198,14 +199,13 @@ class ClientCreature
         virtual bool motionValid(const std::unique_ptr<MotionNode> &) const = 0;
 
     public:
-        void updateHealth(int, int);
+        void updateHealth(SDHealth);
 
     public:
-        int HP() const { return m_HP; }
-        int MP() const { return m_MP; }
-
-        int maxHP() const { return m_maxHP; }
-        int maxMP() const { return m_maxMP; }
+        const auto &getHealth() const
+        {
+            return m_sdHealth;
+        }
 
     public:
         virtual bool deadFadeOut() = 0;

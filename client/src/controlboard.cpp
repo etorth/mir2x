@@ -769,8 +769,8 @@ void ControlBoard::drawLeft() const
             SDL_QueryTexture(pMP, nullptr, nullptr, &nMPW, &nMPH);
 
             if(auto pMyHero = m_processRun->getMyHero()){
-                double fHPRatio = (pMyHero->maxHP() > 0) ? ((1.0 * pMyHero->HP()) / pMyHero->maxHP()) : 1.0;
-                double fMPRatio = (pMyHero->maxMP() > 0) ? ((1.0 * pMyHero->MP()) / pMyHero->maxMP()) : 1.0;
+                double fHPRatio = (pMyHero->getHealth().maxHP > 0) ? ((1.0 * pMyHero->getHealth().HP) / pMyHero->getHealth().maxHP) : 1.0;
+                double fMPRatio = (pMyHero->getHealth().maxMP > 0) ? ((1.0 * pMyHero->getHealth().MP) / pMyHero->getHealth().maxMP) : 1.0;
 
                 fHPRatio = (std::max<double>)((std::min<double>)(fHPRatio, 1.0), 0.0);
                 fMPRatio = (std::max<double>)((std::min<double>)(fMPRatio, 1.0), 0.0);

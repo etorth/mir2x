@@ -16,6 +16,7 @@
  * =====================================================================================
  */
 
+#include "uidf.hpp"
 #include "pathf.hpp"
 #include "corof.hpp"
 #include "monster.hpp"
@@ -93,6 +94,46 @@ corof::long_jmper::eval_op<uint64_t> Monster::coro_pickTarget()
         p->pickTarget([&targetUID](uint64_t uid){ targetUID.assign(uid); });
         const auto result = co_await targetUID;
         co_return result;
+    };
+    return fnwait(this).eval<uint64_t>();
+}
+
+corof::long_jmper::eval_op<uint64_t> Monster::coro_pickHealTarget()
+{
+    const auto fnwait = +[](Monster *p) -> corof::long_jmper
+    {
+        const auto fnNeedHeal = +[](Monster *p, uint64_t uid) -> corof::long_jmper
+        {
+            if(uid && p->m_inViewCOList.count(uid)){
+                switch(uidf::getUIDType(uid)){
+                    case UID_MON:
+                    case UID_PLY:
+                        {
+                            const auto health = co_await p->coro_queryHealth(uid);
+                            if(health.has_value() && health.value().HP < health.value().maxHP){
+                                co_return true;
+                            }
+                            break;
+                        }
+                    default:
+                        {
+                            break;
+                        }
+                }
+            }
+            co_return false;
+        };
+
+        if(p->masterUID() && (co_await fnNeedHeal(p, p->masterUID()).eval<bool>())){
+            co_return p->masterUID();
+        }
+
+        for(const auto &[uid, coLoc]: p->m_inViewCOList){
+            if((uid != p->masterUID()) && (co_await fnNeedHeal(p, uid).eval<bool>())){
+                co_return uid;
+            }
+        }
+        co_return to_u64(0);
     };
     return fnwait(this).eval<uint64_t>();
 }
@@ -214,4 +255,26 @@ corof::long_jmper::eval_op<bool> Monster::coro_inDCCastRange(uint64_t targetUID,
         }
     };
     return fnwait(this, targetUID, r).eval<bool>();
+}
+
+corof::long_jmper::eval_op<std::optional<SDHealth>> Monster::coro_queryHealth(uint64_t uid)
+{
+    const auto fnwait = +[](Monster *p, uint64_t uid) -> corof::long_jmper
+    {
+        corof::async_variable<std::optional<SDHealth>> health;
+        p->queryHealth(uid, [uid, &health](uint64_t argUID, SDHealth argHealth)
+        {
+            if(argUID){
+                fflassert(uid == argUID);
+                health.assign(std::move(argHealth));
+            }
+            else{
+                health.assign({});
+            }
+        });
+
+        auto result = co_await health;
+        co_return result;
+    };
+    return fnwait(this, uid).eval<std::optional<SDHealth>>();
 }

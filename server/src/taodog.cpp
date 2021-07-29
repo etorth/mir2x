@@ -25,7 +25,7 @@ corof::long_jmper TaoDog::updateCoroFunc()
     uint64_t targetUID = 0;
     std::optional<uint64_t> idleTime;
 
-    while(HP() > 0){
+    while(m_sdHealth.HP > 0){
         if(targetUID && !m_actorPod->checkUIDValid(targetUID)){
             m_inViewCOList.erase(targetUID);
             targetUID = 0;

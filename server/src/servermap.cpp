@@ -38,6 +38,7 @@
 #include "sandcactus.hpp"
 #include "sandghost.hpp"
 #include "rebornzombie.hpp"
+#include "anthealer.hpp"
 #include "raiitimer.hpp"
 #include "mathf.hpp"
 #include "sysconst.hpp"
@@ -1274,6 +1275,18 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
                         nDstX,
                         nDstY,
                         DIR_UP,
+                    };
+                    break;
+                }
+            case DBCOM_MONSTERID(u8"蚂蚁道士"):
+                {
+                    monsterPtr = new AntHealer
+                    {
+                        this,
+                        nDstX,
+                        nDstY,
+                        DIR_UP,
+                        nMasterUID,
                     };
                     break;
                 }

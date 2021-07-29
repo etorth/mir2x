@@ -119,6 +119,11 @@ void Player::on_AM_NOTIFYNEWCO(const ActorMsgPack &mpk)
     }
 }
 
+void Player::on_AM_QUERYHEALTH(const ActorMsgPack &rmpk)
+{
+    m_actorPod->forward(rmpk.from(), {AM_HEALTH, cerealf::serialize(m_sdHealth)}, rmpk.seqID());
+}
+
 void Player::on_AM_QUERYCORECORD(const ActorMsgPack &rstMPK)
 {
     AMQueryCORecord amQCOR;
@@ -351,22 +356,6 @@ void Player::on_AM_ATTACK(const ActorMsgPack &mpk)
     });
 }
 
-void Player::on_AM_UPDATEHP(const ActorMsgPack &rstMPK)
-{
-    AMUpdateHP amUHP;
-    std::memcpy(&amUHP, rstMPK.data(), sizeof(amUHP));
-
-    if(amUHP.UID != UID()){
-        SMUpdateHP smUHP;
-        smUHP.UID   = amUHP.UID;
-        smUHP.mapID = amUHP.mapID;
-        smUHP.HP    = amUHP.HP;
-        smUHP.HPMax = amUHP.HPMax;
-
-        g_netDriver->Post(channID(), SM_UPDATEHP, smUHP);
-    }
-}
-
 void Player::on_AM_DEADFADEOUT(const ActorMsgPack &mpk)
 {
     const auto amDFO = mpk.conv<AMDeadFadeOut>();
@@ -403,6 +392,16 @@ void Player::on_AM_MISS(const ActorMsgPack &mpk)
 
     smM.UID = amM.UID;
     dispatchNetPackage(true, SM_MISS, smM);
+}
+
+void Player::on_AM_HEAL(const ActorMsgPack &mpk)
+{
+    const auto amH = mpk.conv<AMHeal>();
+    if(amH.mapID == mapID()){
+        m_sdHealth.HP += amH.addHP;
+        m_sdHealth.MP += amH.addMP;
+        dispatchHealth();
+    }
 }
 
 void Player::on_AM_BADCHANNEL(const ActorMsgPack &rstMPK)

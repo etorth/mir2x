@@ -44,8 +44,12 @@ Player::Player(const SDInitPlayer &initParam, const ServerMap *mapPtr)
     , m_hair(initParam.hair)
     , m_hairColor(initParam.hairColor)
 {
-    m_HP = initParam.hp;
-    m_MP = initParam.mp;
+    m_sdHealth.uid   = UID();
+    m_sdHealth.HP    = initParam.hp;
+    m_sdHealth.MP    = initParam.mp;
+    m_sdHealth.maxHP = initParam.hp;
+    m_sdHealth.maxMP = initParam.mp;
+
     m_sdItemStorage.gold = initParam.gold;
 
     dbLoadWear();
@@ -57,7 +61,7 @@ Player::Player(const SDInitPlayer &initParam, const ServerMap *mapPtr)
     m_stateTrigger.install([this, lastCheckTick = to_u32(0)]() mutable -> bool
     {
         if(const auto currTick = g_monoServer->getCurrTick(); currTick >= (lastCheckTick + 1000)){
-            RecoverHealth();
+            recoverHealth();
             lastCheckTick = currTick;
         }
         return false;
@@ -80,6 +84,11 @@ void Player::operateAM(const ActorMsgPack &rstMPK)
         case AM_NOTIFYNEWCO:
             {
                 on_AM_NOTIFYNEWCO(rstMPK);
+                break;
+            }
+        case AM_QUERYHEALTH:
+            {
+                on_AM_QUERYHEALTH(rstMPK);
                 break;
             }
         case AM_CHECKMASTER:
@@ -117,6 +126,11 @@ void Player::operateAM(const ActorMsgPack &rstMPK)
                 on_AM_MISS(rstMPK);
                 break;
             }
+        case AM_HEAL:
+            {
+                on_AM_HEAL(rstMPK);
+                break;
+            }
         case AM_ACTION:
             {
                 on_AM_ACTION(rstMPK);
@@ -125,11 +139,6 @@ void Player::operateAM(const ActorMsgPack &rstMPK)
         case AM_ATTACK:
             {
                 on_AM_ATTACK(rstMPK);
-                break;
-            }
-        case AM_UPDATEHP:
-            {
-                on_AM_UPDATEHP(rstMPK);
                 break;
             }
         case AM_DEADFADEOUT:
@@ -277,15 +286,7 @@ void Player::reportDeadUID(uint64_t nDeadUID)
 
 void Player::reportHealth()
 {
-    SMUpdateHP smUHP;
-    std::memset(&smUHP, 0, sizeof(smUHP));
-
-    smUHP.UID   = UID();
-    smUHP.mapID = mapID();
-    smUHP.HP    = HP();
-    smUHP.HPMax = HPMax();
-
-    postNetMessage(SM_UPDATEHP, smUHP);
+    dispatchNetPackage(true, SM_HEALTH, cerealf::serialize(m_sdHealth));
 }
 
 bool Player::goDie()
@@ -369,11 +370,11 @@ bool Player::struckDamage(const DamageNode &node)
     return true;
 
     if(node){
-        m_HP = (std::max<int>)(0, HP() - node.damage);
+        m_sdHealth.HP = std::max<int>(0, m_sdHealth.HP - node.damage);
         reportHealth();
         dispatchHealth();
 
-        if(HP() <= 0){
+        if(m_sdHealth.HP <= 0){
             goDie();
         }
         return true;
@@ -842,29 +843,15 @@ int Player::MaxStep() const
     }
 }
 
-void Player::RecoverHealth()
+void Player::recoverHealth()
 {
-    auto fnGetAdd = [](int nCurr, int nMax) -> int
-    {
-        if(true
-                && nCurr >= 0
-                && nMax  >= 0
-                && nCurr <= nMax){
+    const auto lastHP = m_sdHealth.HP;
+    const auto lastMP = m_sdHealth.MP;
 
-            auto nAdd = (std::max<int>)(nMax / 60, 1);
-            return (std::min<int>)(nAdd, nMax - nCurr);
-        }
-        return 0;
-    };
+    m_sdHealth.HP = std::min<int>(m_sdHealth.maxHP, m_sdHealth.HP + std::max<int>(m_sdHealth.maxHP / 60, 1));
+    m_sdHealth.MP = std::min<int>(m_sdHealth.maxMP, m_sdHealth.MP + std::max<int>(m_sdHealth.maxMP / 60, 1));
 
-    auto nAddHP = fnGetAdd(m_HP, m_HPMax);
-    auto nAddMP = fnGetAdd(m_MP, m_MPMax);
-
-    if((nAddHP > 0) || (nAddMP > 0)){
-
-        m_HP += nAddHP;
-        m_MP += nAddMP;
-
+    if((lastHP != m_sdHealth.HP) || (lastMP != m_sdHealth.MP)){
         reportHealth();
     }
 }

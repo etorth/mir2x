@@ -75,10 +75,10 @@ class RebornZombie final: public Monster
             }
 
             if(damage){
-                m_HP = (std::max<int>)(0, HP() - damage.damage);
+                m_sdHealth.HP = std::max<int>(0, m_sdHealth.HP - damage.damage);
                 dispatchHealth();
 
-                if(HP() <= 0){
+                if(m_sdHealth.HP <= 0){
                     goDie();
                 }
                 return true;

@@ -622,3 +622,19 @@ struct SDNPCEvent
         ar(x, y, mapID, event, value);
     }
 };
+
+struct SDHealth
+{
+    uint64_t uid = 0;
+
+    int HP = 0;
+    int MP = 0;
+
+    int maxHP = 0;
+    int maxMP = 0;
+
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(uid, HP, MP, maxHP, maxMP);
+    }
+};

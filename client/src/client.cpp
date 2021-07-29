@@ -211,10 +211,10 @@ void Client::onServerMessage(uint8_t headCode, const uint8_t *pData, size_t nDat
                 }
                 break;
             }
-        case SM_UPDATEHP:
+        case SM_HEALTH:
             {
                 if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
-                    pRun->net_UPDATEHP(pData, nDataLen);
+                    pRun->net_HEALTH(pData, nDataLen);
                 }
                 break;
             }

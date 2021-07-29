@@ -46,8 +46,7 @@ AscendStr::AscendStr(int nType, int nValue, int nX, int nY)
             }
         default:
             {
-                g_log->addLog(LOGTYPE_FATAL, "Invalid AscendStr type: %d", Type());
-                break;
+                throw bad_reach();
             }
     }
 

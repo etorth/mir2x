@@ -32,7 +32,7 @@ Guard::Guard(uint32_t monID, ServerMap *mapPtr, int argX, int argY, int argDir)
 corof::long_jmper Guard::updateCoroFunc()
 {
     uint64_t targetUID = 0;
-    while(HP() > 0){
+    while(m_sdHealth.HP > 0){
         if(targetUID && !m_actorPod->checkUIDValid(targetUID)){
             targetUID = 0;
             m_inViewCOList.erase(targetUID);

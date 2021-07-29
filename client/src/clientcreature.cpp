@@ -60,20 +60,16 @@ void ClientCreature::updateAttachMagic(double fUpdateTime)
     }
 }
 
-void ClientCreature::updateHealth(int hp, int hpMax)
+void ClientCreature::updateHealth(SDHealth health)
 {
-    if(const auto diff = hp - HP()){
-        if(HP() > 0){
-            if(m_processRun){
-                const int pixelX = x() * SYS_MAPGRIDXP + SYS_MAPGRIDXP / 2;
-                const int pixelY = y() * SYS_MAPGRIDYP - SYS_MAPGRIDYP * 1;
-                m_processRun->addAscendStr(ASCENDSTR_NUM0, diff, pixelX, pixelY);
-            }
-        }
-    }
+    const auto lastHealth = m_sdHealth;
+    m_sdHealth = health;
 
-    m_HP = hp;
-    m_maxHP = hpMax;
+    if(const auto diff = lastHealth.HP - m_sdHealth.HP; (m_sdHealth.HP > 0) && (diff != 0)){
+        const int pixelX = x() * SYS_MAPGRIDXP + SYS_MAPGRIDXP / 2;
+        const int pixelY = y() * SYS_MAPGRIDYP - SYS_MAPGRIDYP * 1;
+        m_processRun->addAscendStr(ASCENDSTR_NUM0, diff, pixelX, pixelY);
+    }
 }
 
 bool ClientCreature::alive() const

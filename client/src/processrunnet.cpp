@@ -244,15 +244,11 @@ void ProcessRun::net_CORECORD(const uint8_t *bufPtr, size_t)
     }
 }
 
-void ProcessRun::net_UPDATEHP(const uint8_t *bufPtr, size_t)
+void ProcessRun::net_HEALTH(const uint8_t *buf, size_t bufSize)
 {
-    SMUpdateHP stSMUHP;
-    std::memcpy(&stSMUHP, bufPtr, sizeof(stSMUHP));
-
-    if(stSMUHP.mapID == mapID()){
-        if(auto p = findUID(stSMUHP.UID)){
-            p->updateHealth(stSMUHP.HP, stSMUHP.HPMax);
-        }
+    auto sdH = cerealf::deserialize<SDHealth>(buf, bufSize);
+    if(auto p = findUID(sdH.uid)){
+        p->updateHealth(std::move(sdH));
     }
 }
 

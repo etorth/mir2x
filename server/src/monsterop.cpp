@@ -45,6 +45,16 @@ void Monster::on_AM_MISS(const ActorMsgPack &mpk)
     dispatchInViewCONetPackage(SM_MISS, smM);
 }
 
+void Monster::on_AM_HEAL(const ActorMsgPack &mpk)
+{
+    const auto amH = mpk.conv<AMHeal>();
+    if(amH.mapID == mapID()){
+        m_sdHealth.HP += amH.addHP;
+        m_sdHealth.MP += amH.addMP;
+        dispatchHealth();
+    }
+}
+
 void Monster::on_AM_QUERYCORECORD(const ActorMsgPack &rstMPK)
 {
     AMQueryCORecord amQCOR;
@@ -164,6 +174,11 @@ void Monster::on_AM_OFFLINE(const ActorMsgPack &rstMPK)
 void Monster::on_AM_CHECKMASTER(const ActorMsgPack &rstMPK)
 {
     m_actorPod->forward(rstMPK.from(), AM_OK, rstMPK.seqID());
+}
+
+void Monster::on_AM_QUERYHEALTH(const ActorMsgPack &rmpk)
+{
+    m_actorPod->forward(rmpk.from(), {AM_HEALTH, cerealf::serialize(m_sdHealth)}, rmpk.seqID());
 }
 
 void Monster::on_AM_QUERYMASTER(const ActorMsgPack &rstMPK)

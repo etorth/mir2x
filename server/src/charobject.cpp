@@ -116,10 +116,6 @@ CharObject::CharObject(
     , m_X(mapX)
     , m_Y(mapY)
     , m_direction(direction)
-    , m_HP(0)
-    , m_HPMax(0)
-    , m_MP(0)
-    , m_MPMax(0)
     , m_moveLock(false)
     , m_attackLock(false)
     , m_lastAction(ACTION_NONE)
@@ -905,22 +901,7 @@ int CharObject::OneStepReach(int nDirection, int nMaxDistance, int *pX, int *pY)
 
 void CharObject::dispatchHealth()
 {
-    AMUpdateHP amUHP;
-    std::memset(&amUHP, 0, sizeof(amUHP));
-
-    amUHP.UID   = UID();
-    amUHP.mapID = mapID();
-    amUHP.X     = X();
-    amUHP.Y     = Y();
-    amUHP.HP    = HP();
-    amUHP.HPMax = HPMax();
-
-    if(true
-            && checkActorPod()
-            && m_map
-            && m_map->checkActorPod()){
-        m_actorPod->forward(m_map->UID(), {AM_UPDATEHP, amUHP});
-    }
+    dispatchInViewCONetPackage(SM_HEALTH, cerealf::serialize(m_sdHealth));
 }
 
 void CharObject::dispatchAttackDamage(uint64_t nUID, int nDC)
@@ -1262,6 +1243,26 @@ bool CharObject::isOffender(uint64_t nUID)
         }
     }
     return false;
+}
+
+void CharObject::queryHealth(uint64_t uid, std::function<void(uint64_t, SDHealth)> fnOp)
+{
+    fflassert(uid);
+    m_actorPod->forward(uid, AM_QUERYHEALTH, [uid, fnOp = std::move(fnOp)](const ActorMsgPack &rmpk)
+    {
+        switch(rmpk.type()){
+            case AM_HEALTH:
+                {
+                    fnOp(uid, rmpk.deserialize<SDHealth>());
+                    break;
+                }
+            default:
+                {
+                    fnOp(0, {});
+                    break;
+                }
+        }
+    });
 }
 
 void CharObject::queryFinalMaster(uint64_t nUID, std::function<void(uint64_t)> fnOp)

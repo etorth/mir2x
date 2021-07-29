@@ -71,6 +71,9 @@ enum ActorMsgPackType: int
     AM_COCOUNT,
     AM_EXP,
     AM_MISS,
+    AM_HEAL,
+    AM_QUERYHEALTH,
+    AM_HEALTH,
     AM_DROPITEM,
     AM_SHOWDROPITEM,
     AM_NOTIFYDEAD,
@@ -444,6 +447,16 @@ struct AMExp
 struct AMMiss
 {
     uint64_t UID;
+};
+
+struct AMHeal
+{
+    uint32_t mapID;
+    int x;
+    int y;
+
+    int addHP;
+    int addMP;
 };
 
 struct AMNotifyDead
