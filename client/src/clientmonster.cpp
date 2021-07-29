@@ -49,6 +49,7 @@
 #include "clientlightarmoredguard.hpp"
 #include "clientanthealer.hpp"
 #include "clientnumawizard.hpp"
+#include "clientredclothwizard.hpp"
 
 extern Log *g_log;
 extern PNGTexDB *g_progUseDB;
@@ -673,6 +674,10 @@ ClientMonster *ClientMonster::create(uint64_t uid, ProcessRun *proc, const Actio
         case DBCOM_MONSTERID(u8"诺玛大法老"):
             {
                 return new ClientNumaWizard(uid, proc, action);
+            }
+        case DBCOM_MONSTERID(u8"红衣法师"):
+            {
+                return new ClientRedClothWizard(uid, proc, action);
             }
         case DBCOM_MONSTERID(u8"变异骷髅"):
             {
