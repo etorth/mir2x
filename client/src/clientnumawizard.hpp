@@ -9,13 +9,13 @@ class ClientNumaWizard: public ClientMonster
         ClientNumaWizard(uint64_t uid, ProcessRun *proc, const ActionNode &action)
             : ClientMonster(uid, proc, action)
         {
-            fflassert(isMonster(u8"诺玛法老") || isMonster(u8"大法老"));
+            fflassert(isMonster(u8"诺玛法老") || isMonster(u8"诺玛大法老"));
         }
 
     public:
         MonsterFrameGfxSeq getFrameGfxSeq(int motion, int direction) const override
         {
-            if(isMonster(u8"大法老") && (motion == MOTION_MON_ATTACK0)){
+            if(isMonster(u8"诺玛大法老") && (motion == MOTION_MON_ATTACK0)){
                 return
                 {
                     .gfxMotionID = MOTION_MON_SPELL0,
@@ -31,7 +31,7 @@ class ClientNumaWizard: public ClientMonster
             if(isMonster(u8"诺玛法老")){
                 return onActionAttack_fireBall(action);
             }
-            else if(isMonster(u8"大法老")){
+            else if(isMonster(u8"诺玛大法老")){
                 return onActionAttack_thunderBolt(action);
             }
             else{

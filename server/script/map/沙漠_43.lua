@@ -8,7 +8,7 @@ local addMonCo = addmon.monGener( -- 沙漠_43
         }
     },
     {
-        name = '大法老',
+        name = '诺玛大法老',
         loc = {
             {x = 200, y = 200, w = 190, h = 190, count = 1, time = 7200},
         }

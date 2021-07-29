@@ -29,7 +29,7 @@ local addMonCo = addmon.monGener( -- 绿洲_4
         }
     },
     {
-        name = '大法老',
+        name = '诺玛大法老',
         loc = {
             {x = 400, y = 400, w = 390, h = 390, count = 2, time = 7200},
         }

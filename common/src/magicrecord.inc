@@ -941,7 +941,7 @@
 },
 
 {
-    .name = u8"大法老_雷电术",
+    .name = u8"诺玛大法老_雷电术",
     .element = u8"雷",
 
     .castRange

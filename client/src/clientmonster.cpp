@@ -670,7 +670,7 @@ ClientMonster *ClientMonster::create(uint64_t uid, ProcessRun *proc, const Actio
                 return new ClientAntHealer(uid, proc, action);
             }
         case DBCOM_MONSTERID(u8"诺玛法老"):
-        case DBCOM_MONSTERID(u8"大法老"):
+        case DBCOM_MONSTERID(u8"诺玛大法老"):
             {
                 return new ClientNumaWizard(uid, proc, action);
             }
