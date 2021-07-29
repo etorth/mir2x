@@ -86,7 +86,7 @@ local addMonCo = addmon.monGener( -- 绿洲_4
         }
     },
     {
-        name = '沙魔树魔0',
+        name = '沙漠树魔0',
         loc = {
             {x = 66, y = 465, w = 66, h = 66, count = 1, time = 3600},
             {x = 66, y = 598, w = 66, h = 66, count = 1, time = 3600},
