@@ -18,7 +18,7 @@ class ClientLightArmoredGuard: public ClientMonster
         }
 
     public:
-        bool onActionDie(const ActionNode &action)
+        bool onActionDie(const ActionNode &action) override
         {
             const auto result = ClientMonster::onActionDie(action);
 
