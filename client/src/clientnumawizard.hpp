@@ -12,6 +12,19 @@ class ClientNumaWizard: public ClientMonster
             fflassert(isMonster(u8"诺玛法老") || isMonster(u8"大法老"));
         }
 
+    public:
+        MonsterFrameGfxSeq getFrameGfxSeq(int motion, int direction) const override
+        {
+            if(isMonster(u8"大法老") && (motion == MOTION_MON_ATTACK0)){
+                return
+                {
+                    .gfxMotionID = MOTION_MON_SPELL0,
+                    .count = 6,
+                };
+            }
+            return ClientMonster::getFrameGfxSeq(motion, direction);
+        }
+
     protected:
         bool onActionAttack(const ActionNode &action)
         {

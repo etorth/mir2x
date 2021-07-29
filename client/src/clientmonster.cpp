@@ -505,6 +505,9 @@ bool ClientMonster::motionValid(const std::unique_ptr<MotionNode> &motionPtr) co
                         || nLDistance2 == 2 * maxStep() * maxStep();
                 }
             case MOTION_MON_ATTACK0:
+            case MOTION_MON_ATTACK1:
+            case MOTION_MON_SPELL0:
+            case MOTION_MON_SPELL1:
             case MOTION_MON_HITTED:
             case MOTION_MON_DIE:
             case MOTION_MON_APPEAR:
