@@ -1071,3 +1071,24 @@
         },
     },
 },
+
+{
+    .name = u8"火焰沃玛_喷火",
+    .castRange
+    {
+        .type = CRT_DIR,
+        .distance = 1,
+    },
+
+    .gfxList
+    {
+        {
+            .stage = u8"运行",
+            .type  = u8"固定",
+            .gfxID = 0X03000208,
+            .frameCount = 7,
+            .gfxIDCount = 10,
+            .gfxDirType = 8,
+        },
+    },
+},

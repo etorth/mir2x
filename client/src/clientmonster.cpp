@@ -52,6 +52,7 @@
 #include "clientredclothwizard.hpp"
 #include "clientskeletonelite.hpp"
 #include "clientcavemaggot.hpp"
+#include "clientwoomaflamingwarrior.hpp"
 
 extern Log *g_log;
 extern PNGTexDB *g_progUseDB;
@@ -688,6 +689,10 @@ ClientMonster *ClientMonster::create(uint64_t uid, ProcessRun *proc, const Actio
         case DBCOM_MONSTERID(u8"洞蛆"):
             {
                 return new ClientCaveMaggot(uid, proc, action);
+            }
+        case DBCOM_MONSTERID(u8"火焰沃玛"):
+            {
+                return new ClientWoomaFlamingWarrior(uid, proc, action);
             }
         case DBCOM_MONSTERID(u8"变异骷髅"):
             {
