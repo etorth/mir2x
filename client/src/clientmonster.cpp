@@ -51,6 +51,7 @@
 #include "clientnumawizard.hpp"
 #include "clientredclothwizard.hpp"
 #include "clientskeletonelite.hpp"
+#include "clientcavemaggot.hpp"
 
 extern Log *g_log;
 extern PNGTexDB *g_progUseDB;
@@ -683,6 +684,10 @@ ClientMonster *ClientMonster::create(uint64_t uid, ProcessRun *proc, const Actio
         case DBCOM_MONSTERID(u8"骷髅精灵"):
             {
                 return new ClientSkeletonElite(uid, proc, action);
+            }
+        case DBCOM_MONSTERID(u8"洞蛆"):
+            {
+                return new ClientCaveMaggot(uid, proc, action);
             }
         case DBCOM_MONSTERID(u8"变异骷髅"):
             {

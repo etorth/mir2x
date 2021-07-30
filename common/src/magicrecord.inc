@@ -1050,3 +1050,24 @@
         }
     },
 },
+
+{
+    .name = u8"洞蛆_喷毒",
+    .castRange
+    {
+        .type = CRT_DIR,
+        .distance = 1,
+    },
+
+    .gfxList
+    {
+        {
+            .stage = u8"运行",
+            .type  = u8"固定",
+            .gfxID = 0X03000794,
+            .frameCount = 5,
+            .gfxIDCount = 10,
+            .gfxDirType = 8,
+        },
+    },
+},
