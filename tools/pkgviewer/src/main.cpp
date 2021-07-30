@@ -3,7 +3,7 @@
  *
  *       Filename: main.cpp
  *        Created: 08/31/2015 08:52:57 PM
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -24,29 +24,29 @@
 #include "wilimagepackage.hpp"
 #include "progressbarwindow.hpp"
 
-std::string          g_FileFullName;
-WilImagePackage     *g_WilPackage;
-MainWindow          *g_MainWindow;
-PreviewWindow       *g_PreviewWindow;
-ProgressBarWindow   *g_ProgressBarWindow;
+std::string          g_fileFullName;
+WilImagePackage     *g_wilPackage;
+MainWindow          *g_mainWindow;
+PreviewWindow       *g_previewWindow;
+ProgressBarWindow   *g_progressBarWindow;
 
 int main()
 {
-    g_FileFullName      = "";
-    g_WilPackage        = nullptr;
-    g_MainWindow        = nullptr;
-    g_PreviewWindow     = nullptr;
-    g_ProgressBarWindow = nullptr;
+    g_fileFullName      = "";
+    g_wilPackage        = nullptr;
+    g_mainWindow        = nullptr;
+    g_previewWindow     = nullptr;
+    g_progressBarWindow = nullptr;
 
     Fl::visual(FL_RGB | FL_ALPHA);
 
-    g_ProgressBarWindow = new ProgressBarWindow();
-    g_PreviewWindow     = new PreviewWindow();
-    g_MainWindow        = new MainWindow();
+    g_progressBarWindow = new ProgressBarWindow();
+    g_previewWindow     = new PreviewWindow();
+    g_mainWindow        = new MainWindow();
 
-    g_PreviewWindow->hide();
-    g_ProgressBarWindow->HideAll();
+    g_previewWindow->hide();
+    g_progressBarWindow->hideAll();
 
-    g_MainWindow->ShowAll();
+    g_mainWindow->showAll();
     return Fl::run();
 }

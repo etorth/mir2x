@@ -5,22 +5,22 @@ header_name {.hpp}
 code_name {.cpp}
 class AboutWindow {} {
   Function {AboutWindow()} {} {
-    Fl_Window m_Window {
+    Fl_Window m_window {
       private xywh {904 340 315 195} type Double labelfont 5 align 80 resizable visible
     } {
-      Fl_Output m_Output {
+      Fl_Output m_output {
         private xywh {0 0 325 204} type Multiline labelfont 4 textfont 4
       }
     }
     code {// add default text here
 {
-	m_Output->value("Name : Anhong\\nEmail: anhonghe@gmail.com");
-	m_Output->cursor_color(FL_WHITE);
+	m_output->value("Name : Anhong\\nEmail: anhonghe@gmail.com");
+	m_output->cursor_color(FL_WHITE);
 }} {selected
     }
   }
-  Function {ShowAll()} {return_type void
+  Function {showAll()} {return_type void
   } {
-    code {m_Window->show();} {}
+    code {m_window->show();} {}
   }
 } 

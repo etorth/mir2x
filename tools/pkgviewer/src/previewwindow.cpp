@@ -3,7 +3,7 @@
  *
  *       Filename: previewwindow.cpp
  *        Created: 07/22/2015 03:16:57 AM
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -27,26 +27,42 @@
 #include "previewwindow.hpp"
 #include "wilimagepackage.hpp"
 
-extern WilImagePackage *g_WilPackage;
-extern MainWindow      *g_MainWindow;
+extern WilImagePackage *g_wilPackage;
+extern MainWindow      *g_mainWindow;
 
 void PreviewWindow::draw()
 {
     Fl_Double_Window::draw();
-    if(g_MainWindow->clearBackgroundEnabled()){
+    if(g_mainWindow->clearBackgroundEnabled()){
         fl_rectf(0, 0, w(), h(), 0, 0, 0);
     }
 
-    if(!m_Image){
+    if(!m_image){
         return;
     }
 
-    int nX = (w() - m_Image->w()) / 2;
-    int nY = (h() - m_Image->h()) / 2;
-    int nW = m_Image->w();
-    int nH = m_Image->h();
+    const auto [nX, nY] = [this]() -> std::tuple<int, int>
+    {
+        if(g_mainWindow->offsetDrawEnabled()){
+            return
+            {
+                100 + m_imageOffX,
+                100 + m_imageOffY - m_image->h(),
+            };
+        }
+        else{
+            return
+            {
+                (w() - m_image->w()) / 2,
+                (h() - m_image->h()) / 2,
+            };
+        }
+    }();
 
-    m_Image->draw(nX, nY, nW, nH);
+    const int nW = m_image->w();
+    const int nH = m_image->h();
+
+    m_image->draw(nX, nY, nW, nH);
     {
         fl_wrapper::enable_color stColor(FL_RED);
         fl_rect(nX, nY, nW, nH);
@@ -55,35 +71,38 @@ void PreviewWindow::draw()
 
 bool PreviewWindow::LoadImage()
 {
-    if(!g_WilPackage->setIndex(g_MainWindow->selectedImageIndex())){
+    if(!g_wilPackage->setIndex(g_mainWindow->selectedImageIndex())){
         return false;
     }
 
-    const auto nW = g_WilPackage->currImageInfo()->width;
-    const auto nH = g_WilPackage->currImageInfo()->height;
+    const auto nW = g_wilPackage->currImageInfo()->width;
+    const auto nH = g_wilPackage->currImageInfo()->height;
+
+    m_imageOffX = g_wilPackage->currImageInfo()->px;
+    m_imageOffY = g_wilPackage->currImageInfo()->py;
 
     m_imageBuf.clear();
     m_imageBuf.resize(nW * nH, 0X00000000);
 
-    const auto layer = g_WilPackage->decode(false, g_MainWindow->removeShadowMosaicEnabled(), g_MainWindow->autoAlphaEnabled());
+    const auto layer = g_wilPackage->decode(false, g_mainWindow->removeShadowMosaicEnabled(), g_mainWindow->autoAlphaEnabled());
 
-    if(layer[0] && g_MainWindow->layerIndexEnabled(0)){
+    if(layer[0] && g_mainWindow->layerIndexEnabled(0)){
         imgf::blendImageBuffer(m_imageBuf.data(), nW, nH, layer[0], nW, nH, 0, 0);
     }
 
-    if(layer[1] && g_MainWindow->layerIndexEnabled(1)){
+    if(layer[1] && g_mainWindow->layerIndexEnabled(1)){
         imgf::blendImageBuffer(m_imageBuf.data(), nW, nH, layer[1], nW, nH, 0, 0);
     }
 
-    if(layer[2] && g_MainWindow->layerIndexEnabled(2)){
+    if(layer[2] && g_mainWindow->layerIndexEnabled(2)){
         imgf::blendImageBuffer(m_imageBuf.data(), nW, nH, layer[2], nW, nH, 0, 0);
     }
 
     // Fl_RGB_Image won't copy the RGBA buffer
-    // caller need to maintain m_Buf when m_Image is still used
+    // caller need to maintain m_buf when m_image is still used
 
-    m_Image.reset(Fl_RGB_Image((uchar *)(m_imageBuf.data()), nW, nH, 4).copy());
-    m_ImageIndex.emplace(g_MainWindow->selectedImageIndex());
+    m_image.reset(Fl_RGB_Image((uchar *)(m_imageBuf.data()), nW, nH, 4).copy());
+    m_imageIndex.emplace(g_mainWindow->selectedImageIndex());
 
     size_t nWinH = (std::max<int>)(((std::min<int>)((to_d(nH * 1.5)), to_d(nH + 40))), (int)200);
     size_t nWinW = (std::max<int>)(((std::min<int>)((to_d(nW * 1.5)), to_d(nW + 40))), (int)200);
@@ -91,7 +110,7 @@ bool PreviewWindow::LoadImage()
     // resize the window
     // don't call this function in the ::draw()
     size(nWinW, nWinH);
-    copy_label(std::to_string(m_ImageIndex.value()).c_str());
+    copy_label((std::string("Index_") + std::to_string(m_imageIndex.value())).c_str());
 
     return true;
 }

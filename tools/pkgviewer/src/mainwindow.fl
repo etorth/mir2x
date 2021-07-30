@@ -34,16 +34,16 @@ decl {\#include "wilimagepackage.hpp"} {private local
 
 class MainWindow {} {
   Function {MainWindow()} {} {
-    Fl_Window m_Window {
+    Fl_Window m_window {
       label pkgviewer
       callback {{
 	// don't exit directly
 	// exit(0);
 }}
-      private xywh {146 263 555 605} type Double labelfont 4 resizable
+      private xywh {96 106 555 605} type Double labelfont 4 resizable
       code0 {\#include <FL/fl_ask.H>} visible
     } {
-      Fl_Menu_Bar m_MenuBar {
+      Fl_Menu_Bar m_menuBar {
         label {Auto alpha}
         private xywh {0 0 600 20} box FLAT_BOX labelfont 4 textfont 4
       } {
@@ -54,11 +54,11 @@ class MainWindow {} {
           MenuItem {} {
             label Open
             callback {{
-    extern PreviewWindow *g_PreviewWindow;
-    g_PreviewWindow->hide();
+    extern PreviewWindow *g_previewWindow;
+    g_previewWindow->hide();
 
     Fl_Native_File_Chooser fileChooser;
-    extern std::string g_FileFullName;
+    extern std::string g_fileFullName;
     fileChooser.title("Select .WIL File");
     fileChooser.type(Fl_Native_File_Chooser::BROWSE_FILE);
 
@@ -82,16 +82,16 @@ class MainWindow {} {
             {
             	DeactivateAll();
                 // TODO: NO ERROR CHECKING HERE
-                g_FileFullName = fileChooser.filename();
-                std::replace(g_FileFullName.begin(), g_FileFullName.end(), '\\\\', '/');
+                g_fileFullName = fileChooser.filename();
+                std::replace(g_fileFullName.begin(), g_fileFullName.end(), '\\\\', '/');
 
                 std::string pathName, fileName, fileExt;
-                auto posF = g_FileFullName.find_last_of('/');
-                auto posD = g_FileFullName.find_last_of('.');
+                auto posF = g_fileFullName.find_last_of('/');
+                auto posD = g_fileFullName.find_last_of('.');
 
-                pathName = g_FileFullName.substr(0, posF);
-                fileName = g_FileFullName.substr(posF + 1, posD - posF - 1);
-                fileExt  = g_FileFullName.substr(posD + 1);
+                pathName = g_fileFullName.substr(0, posF);
+                fileName = g_fileFullName.substr(posF + 1, posD - posF - 1);
+                fileExt  = g_fileFullName.substr(posD + 1);
 
                 // std::replace(pathName.begin(), pathName.end(), '\\\\', '/');
 
@@ -99,29 +99,29 @@ class MainWindow {} {
                 // std::cout << fileName << std::endl;
                 // std::cout << fileExt  << std::endl;
 
-                extern WilImagePackage *g_WilPackage;
+                extern WilImagePackage *g_wilPackage;
 
-                delete g_WilPackage;
-                g_WilPackage = new WilImagePackage(pathName.c_str(), fileName.c_str());
+                delete g_wilPackage;
+                g_wilPackage = new WilImagePackage(pathName.c_str(), fileName.c_str());
 
-                m_Browser->clear();
+                m_browser->clear();
                 int  maxLen = 0;
-                auto nCnt   = g_WilPackage->indexCount();
+                auto nCnt   = g_wilPackage->indexCount();
                 for(auto nTmp = nCnt; nTmp > 0; nTmp /= 10){
                     maxLen++;
                 }
 
                 auto fnUpdateProgressBar = [nLastPercent = 0](int nCurrCount) mutable
                 {
-                    extern WilImagePackage *g_WilPackage;
-                    auto nPercent = std::lround(100.0 * nCurrCount / g_WilPackage->indexCount());
+                    extern WilImagePackage *g_wilPackage;
+                    auto nPercent = std::lround(100.0 * nCurrCount / g_wilPackage->indexCount());
                     if(nPercent > nLastPercent){
                         nLastPercent = nPercent;
 
-                        extern ProgressBarWindow *g_ProgressBarWindow;
-                        g_ProgressBarWindow->SetValue(nPercent);
-                        g_ProgressBarWindow->Redraw();
-                        g_ProgressBarWindow->ShowAll();
+                        extern ProgressBarWindow *g_progressBarWindow;
+                        g_progressBarWindow->SetValue(nPercent);
+                        g_progressBarWindow->redrawAll();
+                        g_progressBarWindow->showAll();
                         Fl::check();
                     }
                 };
@@ -130,29 +130,29 @@ class MainWindow {} {
                 formatStr = "Index: %0" + std::to_string(maxLen) + "d       W:%4d       H:%4d       PX:%4d      PY:%4d";
 
                 int nImageCount = 0;
-                for(int nImgIndex = 0; nImgIndex < to_d(g_WilPackage->indexCount()); ++nImgIndex){
+                for(int nImgIndex = 0; nImgIndex < to_d(g_wilPackage->indexCount()); ++nImgIndex){
                     fnUpdateProgressBar(nImgIndex);
-                    if(g_WilPackage->setIndex(nImgIndex)){
+                    if(g_wilPackage->setIndex(nImgIndex)){
                         char tmpBuf[128];
                         std::sprintf(tmpBuf, formatStr.c_str(),
                                 nImgIndex,
-                                g_WilPackage->currImageInfo()->width,
-                                g_WilPackage->currImageInfo()->height,
-                                g_WilPackage->currImageInfo()->px,
-                                g_WilPackage->currImageInfo()->py);
+                                g_wilPackage->currImageInfo()->width,
+                                g_wilPackage->currImageInfo()->height,
+                                g_wilPackage->currImageInfo()->px,
+                                g_wilPackage->currImageInfo()->py);
 
-                        m_Browser->add(tmpBuf, (void *)((intptr_t)nImgIndex));
+                        m_browser->add(tmpBuf, (void *)((intptr_t)nImgIndex));
                         nImageCount++;
                     }
                 }
 
-                extern ProgressBarWindow *g_ProgressBarWindow;
-                g_ProgressBarWindow->HideAll();
+                extern ProgressBarWindow *g_progressBarWindow;
+                g_progressBarWindow->hideAll();
                 
                 ActivateAll();
                 auto szBottomInfo = std::string("FileName: ") + fileName + "." + fileExt
                     + "    ImageCount: " + std::to_string(nImageCount)
-                    + "    Version: "    + std::to_string(g_WilPackage->version());
+                    + "    Version: "    + std::to_string(g_wilPackage->version());
 
                 AddBottomLog(szBottomInfo.c_str());
                 break;
@@ -218,32 +218,32 @@ class MainWindow {} {
                 std::string filePathName = fileChooser.filename();
                 std::replace(filePathName.begin(), filePathName.end(), '\\\\', '/');
 
-                extern WilImagePackage *g_WilPackage;
-                extern ProgressBarWindow *g_ProgressBarWindow;
+                extern WilImagePackage *g_wilPackage;
+                extern ProgressBarWindow *g_progressBarWindow;
 
-                g_ProgressBarWindow->SetValue(0);
-                g_ProgressBarWindow->Redraw();
-                g_ProgressBarWindow->ShowAll();
+                g_progressBarWindow->SetValue(0);
+                g_progressBarWindow->redrawAll();
+                g_progressBarWindow->showAll();
                 Fl::check();
 
                 int lastPercent = 0;
                 std::vector<uint32_t> stvBuf;
 
-                for(int nIndex = 1; nIndex <= m_Browser->size(); ++nIndex){
-                    const auto currPercent = to_d(std::lround(nIndex * 100.0 / g_WilPackage->indexCount()));
+                for(int nIndex = 1; nIndex <= m_browser->size(); ++nIndex){
+                    const auto currPercent = to_d(std::lround(nIndex * 100.0 / g_wilPackage->indexCount()));
                     if(currPercent != lastPercent){
                         lastPercent = currPercent;
-                        g_ProgressBarWindow->SetValue(currPercent);
-                        g_ProgressBarWindow->Redraw();
-                        g_ProgressBarWindow->ShowAll();
+                        g_progressBarWindow->SetValue(currPercent);
+                        g_progressBarWindow->redrawAll();
+                        g_progressBarWindow->showAll();
                         Fl::check();
                     }
 
 
-                    const auto imgIdx = to_u32((intptr_t)(m_Browser->data(nIndex)));
+                    const auto imgIdx = to_u32((intptr_t)(m_browser->data(nIndex)));
                     saveImage(imgIdx, filePathName);
                 }
-                g_ProgressBarWindow->HideAll();
+                g_progressBarWindow->hideAll();
                 break;
             }
     }
@@ -264,9 +264,9 @@ class MainWindow {} {
           MenuItem m_menuItemShowLayer0 {
             label {Show Layer 0          }
             callback {{
-	extern PreviewWindow *g_PreviewWindow;
-	g_PreviewWindow->LoadImage();
-	g_PreviewWindow->redraw();
+	extern PreviewWindow *g_previewWindow;
+	g_previewWindow->LoadImage();
+	g_previewWindow->redraw();
 }}
             xywh {60 60 36 21} type Toggle value 1 labelfont 4
             code0 {\#include "previewwindow.hpp"}
@@ -274,9 +274,9 @@ class MainWindow {} {
           MenuItem m_menuItemShowLayer1 {
             label {Show Layer 1}
             callback {{
-	extern PreviewWindow *g_PreviewWindow;
-	g_PreviewWindow->LoadImage();
-	g_PreviewWindow->redraw();
+	extern PreviewWindow *g_previewWindow;
+	g_previewWindow->LoadImage();
+	g_previewWindow->redraw();
 }}
             xywh {40 40 36 21} type Toggle value 1 labelfont 4
             code0 {\#include "previewwindow.hpp"}
@@ -284,9 +284,9 @@ class MainWindow {} {
           MenuItem m_menuItemShowLayer2 {
             label {Show Layer 2}
             callback {{
-	extern PreviewWindow *g_PreviewWindow;
-	g_PreviewWindow->LoadImage();
-	g_PreviewWindow->redraw();
+	extern PreviewWindow *g_previewWindow;
+	g_previewWindow->LoadImage();
+	g_previewWindow->redraw();
 }}
             xywh {20 20 36 21} type Toggle value 1 labelfont 4 divider
             code0 {\#include "previewwindow.hpp"}
@@ -306,9 +306,9 @@ class MainWindow {} {
           MenuItem m_menuItemAutoAlpha {
             label {Auto Alpha}
             callback {{
-	extern PreviewWindow *g_PreviewWindow;
-	g_PreviewWindow->LoadImage();
-	g_PreviewWindow->redraw();
+	extern PreviewWindow *g_previewWindow;
+	g_previewWindow->LoadImage();
+	g_previewWindow->redraw();
 }}
             xywh {20 20 36 21} type Toggle labelfont 4
             code0 {\#include "previewwindow.hpp"}
@@ -316,20 +316,29 @@ class MainWindow {} {
           MenuItem m_menuItemAutoAlphaShadow {
             label {Remove Shadow Mosaic}
             callback {{
-	extern PreviewWindow *g_PreviewWindow;
-	g_PreviewWindow->LoadImage();
-	g_PreviewWindow->redraw();
+	extern PreviewWindow *g_previewWindow;
+	g_previewWindow->LoadImage();
+	g_previewWindow->redraw();
 }}
             xywh {30 30 36 21} type Toggle labelfont 4 divider
+            code0 {\#include "previewwindow.hpp"}
+          }
+          MenuItem m_menuItemOffsetDraw {
+            label {Offset Draw}
+            callback {{
+	extern PreviewWindow *g_previewWindow;
+	g_previewWindow->redraw();
+}}
+            xywh {20 20 36 21} type Toggle value 1 labelfont 4 divider
             code0 {\#include "previewwindow.hpp"}
           }
           MenuItem m_menuItemClearBackground {
             label {Clear Background}
             callback {{
-	extern PreviewWindow *g_PreviewWindow;
-	g_PreviewWindow->redraw();
+	extern PreviewWindow *g_previewWindow;
+	g_previewWindow->redraw();
 }}
-            xywh {20 20 36 21} type Toggle labelfont 4
+            xywh {30 30 36 21} type Toggle labelfont 4
             code0 {\#include "previewwindow.hpp"}
           }
         }
@@ -344,26 +353,26 @@ class MainWindow {} {
 	if(!p){
 		p = new AboutWindow();
 	}
-	p->ShowAll();
+	p->showAll();
 }}
             xywh {0 0 30 20} labelfont 4
             code0 {\#include "aboutwindow.hpp"}
           }
         }
       }
-      Fl_Browser m_Browser {
+      Fl_Browser m_browser {
         callback {// handle the click event
 // when clicking the item preview window should show selected window
 
-extern PreviewWindow   *g_PreviewWindow;
-extern MainWindow      *g_MainWindow;
-extern WilImagePackage *g_WilPackage;
+extern PreviewWindow   *g_previewWindow;
+extern MainWindow      *g_mainWindow;
+extern WilImagePackage *g_wilPackage;
 
-if(g_WilPackage){
-    if(g_WilPackage->setIndex(g_MainWindow->selectedImageIndex())){
-        g_PreviewWindow->LoadImage();
-        g_PreviewWindow->show();
-        g_PreviewWindow->redraw();
+if(g_wilPackage){
+    if(g_wilPackage->setIndex(g_mainWindow->selectedImageIndex())){
+        g_previewWindow->LoadImage();
+        g_previewWindow->show();
+        g_previewWindow->redraw();
     }
 }}
         private xywh {0 20 555 570} type Hold labelfont 4 textfont 4 resizable
@@ -371,7 +380,7 @@ if(g_WilPackage){
         code1 {\#include <FL/fl_draw.H>}
         code2 {\#include "previewwindow.hpp"}
       }
-      Fl_Box m_LogBar {
+      Fl_Box m_logBar {
         xywh {0 590 555 15} labelfont 4 labelsize 10 align 20
       }
     }
@@ -380,39 +389,39 @@ if(g_WilPackage){
 	AddBottomLog("Version 0.0.1");
 }} {}
   }
-  Function {ShowAll()} {return_type void
+  Function {showAll()} {return_type void
   } {
     code {{
-	m_Window->show();
+	m_window->show();
 }} {}
   }
   Function {selectedImageIndex()} {return_type uint32_t
   } {
     code {{
-	for(int i = 1; i <= m_Browser->size(); ++i)
+	for(int i = 1; i <= m_browser->size(); ++i)
 	{
-		if(m_Browser->selected(i)){
-			return to_u32((intptr_t)m_Browser->data(i));
+		if(m_browser->selected(i)){
+			return to_u32((intptr_t)m_browser->data(i));
 		}
 	}
 
-	extern WilImagePackage *g_WilPackage;
-	return g_WilPackage->imageCount();
+	extern WilImagePackage *g_wilPackage;
+	return g_wilPackage->imageCount();
 }} {}
   }
   Function {ActivateAll()} {return_type void
   } {
     code {{
-        m_Window->activate();
-        m_MenuBar->activate();
-        m_Browser->activate();
+        m_window->activate();
+        m_menuBar->activate();
+        m_browser->activate();
 }} {}
   }
   Function {DeactivateAll()} {} {
     code {{
-        m_Window->deactivate();
-        m_MenuBar->deactivate();
-        m_Browser->deactivate();
+        m_window->deactivate();
+        m_menuBar->deactivate();
+        m_browser->deactivate();
 }} {}
   }
   Function {AddBottomLog(const char *szMessage)} {return_type void
@@ -421,12 +430,12 @@ if(g_WilPackage){
         if(true
                 && szMessage
                 && std::strlen(szMessage)){
-            m_LogBar->copy_label(szMessage);
+            m_logBar->copy_label(szMessage);
         }else{
-            m_LogBar->copy_label("Version: 0.0.1");
+            m_logBar->copy_label("Version: 0.0.1");
         }
-        m_LogBar->redraw();
-        m_Window->redraw();
+        m_logBar->redraw();
+        m_window->redraw();
 }} {}
   }
   Function {autoAlphaEnabled()} {return_type bool
@@ -451,6 +460,12 @@ if(g_WilPackage){
   } {
     code {{
     return m_menuItemSaveIndex->value();
+}} {}
+  }
+  Function {offsetDrawEnabled()} {return_type bool
+  } {
+    code {{
+    return m_menuItemOffsetDraw->value();
 }} {}
   }
   Function {clearBackgroundEnabled()} {return_type bool
@@ -496,12 +511,12 @@ if(g_WilPackage){
   Function {saveImage(uint32_t imageIndex, const std::string &filePath)} {return_type void
   } {
     code {{
-    extern WilImagePackage *g_WilPackage;
-    if(g_WilPackage->setIndex(imageIndex)){
-        const auto nW  = g_WilPackage->currImageInfo()->width;
-        const auto nH  = g_WilPackage->currImageInfo()->height;
-        const auto nDX = g_WilPackage->currImageInfo()->px;
-        const auto nDY = g_WilPackage->currImageInfo()->py;
+    extern WilImagePackage *g_wilPackage;
+    if(g_wilPackage->setIndex(imageIndex)){
+        const auto nW  = g_wilPackage->currImageInfo()->width;
+        const auto nH  = g_wilPackage->currImageInfo()->height;
+        const auto nDX = g_wilPackage->currImageInfo()->px;
+        const auto nDY = g_wilPackage->currImageInfo()->py;
 
         char tmpIndex[128];
         if(saveOffsetEnabled()){
@@ -516,12 +531,12 @@ if(g_WilPackage){
             std::sprintf(tmpIndex, "TMP%s", getImageIndexString(imageIndex).c_str());
         }
 
-        if(const auto [layer0, layer1, layer2] = g_WilPackage->decode(true, removeShadowMosaicEnabled(), autoAlphaEnabled()); layer0){
+        if(const auto [layer0, layer1, layer2] = g_wilPackage->decode(true, removeShadowMosaicEnabled(), autoAlphaEnabled()); layer0){
             imgf::saveImageBuffer((const uint8_t *)(layer0), nW, nH, (filePath + "/" + tmpIndex + "_M.PNG").c_str());
         }
 
         if(saveLayersEnabled()){
-            const auto [layer0, layer1, layer2] = g_WilPackage->decode(false, removeShadowMosaicEnabled(), autoAlphaEnabled());
+            const auto [layer0, layer1, layer2] = g_wilPackage->decode(false, removeShadowMosaicEnabled(), autoAlphaEnabled());
             if(layer0){
                 imgf::saveImageBuffer((const uint8_t *)(layer0), nW, nH, (filePath + "/" + tmpIndex + "_0.PNG").c_str());
             }
