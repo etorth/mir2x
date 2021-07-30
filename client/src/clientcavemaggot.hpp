@@ -24,7 +24,7 @@ class ClientCaveMaggot: public ClientMonster
 
             m_motionQueue.back()->addUpdate(false, [this](MotionNode *motionPtr) -> bool
             {
-                if(motionPtr->frame < 5){
+                if(motionPtr->frame < 3){
                     return false;
                 }
 
