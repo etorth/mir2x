@@ -1165,3 +1165,24 @@
         },
     },
 },
+
+{
+    .name = u8"粪虫_喷毒",
+    .castRange
+    {
+        .type = CRT_DIR,
+        .distance = 1,
+    },
+
+    .gfxList
+    {
+        {
+            .stage = u8"运行",
+            .type  = u8"固定",
+            .gfxID = 0X030007EE,
+            .frameCount = 5,
+            .gfxIDCount = 10,
+            .gfxDirType = 8,
+        },
+    },
+},
