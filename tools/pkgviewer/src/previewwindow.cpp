@@ -47,8 +47,8 @@ void PreviewWindow::draw()
         if(g_mainWindow->offsetDrawEnabled()){
             return
             {
-                100 + m_imageOffX,
-                100 + m_imageOffY - m_image->h(),
+                w() / 2 + m_imageOffX - SYS_MAPGRIDXP / 2,
+                h() / 2 + m_imageOffY - SYS_MAPGRIDYP / 2,
             };
         }
         else{
@@ -87,7 +87,7 @@ void PreviewWindow::draw()
     }
 }
 
-void PreviewWindow::resize()
+void PreviewWindow::autoResize()
 {
     // resize the window
     // don't call this function in the ::draw()
@@ -97,7 +97,71 @@ void PreviewWindow::resize()
         const int imgH = m_image->h();
 
         if(g_mainWindow->offsetDrawEnabled()){
-            size(imgW * 2 + 40, imgH * 2 + 40);
+            // the fixed cross point will be at the middle of the preview window
+            // all other size/point get calculated by this fixed point
+            //
+            //     crossX = winW / 2
+            //     crossY = winH / 2
+            //
+            //     crossX = drawStartX - m_imageOffX + SYS_MAPGRIDXP / 2
+            //     crossY = drawStartY - m_imageOffY + SYS_MAPGRIDYP / 2
+            //
+            // =>
+            //
+            //     drawStartX = winW / 2 + m_imageOffX - SYS_MAPGRIDXP / 2
+            //     drawStartY = winH / 2 + m_imageOffY - SYS_MAPGRIDYP / 2
+            //
+            // we need to make sure the image starts inside the window
+            // also gives some margin at resize
+            //
+            // =>
+            //
+            //     winW / 2 + m_imageOffX - SYS_MAPGRIDXP / 2 >= margin
+            //     winH / 2 + m_imageOffY - SYS_MAPGRIDYP / 2 >= margin
+            //
+            // =>
+            //
+            //     winW >= 2 * margin + SYS_MAPGRIDXP - m_imageOffX * 2     ----- (a)
+            //     winH >= 2 * margin + SYS_MAPGRIDYP - m_imageOffY * 2
+            //
+            // we also need to ensure the image ends inside the window
+            // also gives the same margin
+            //
+            // =>
+            //
+            //     drawStartX + imgW + margin <= winW
+            //     drawStartY + imgH + margin <= winH
+            //
+            // =>
+            //
+            //     winW / 2 + m_imageOffX - SYS_MAPGRIDXP / 2 + imgW + margin <= winW
+            //     winH / 2 + m_imageOffY - SYS_MAPGRIDYP / 2 + imgH + margin <= winH
+            //
+            // =>
+            //
+            //     winW >= m_imageOffX * 2 - SYS_MAPGRIDXP + imgW * 2 + margin * 2      ----- (b)
+            //     winH >= m_imageOffY * 2 - SYS_MAPGRIDYP + imgH * 2 + margin * 2
+            //
+            // use (a) and (b) =>
+            //
+            //     winW >= std::max<int>(2 * margin + SYS_MAPGRIDXP - m_imageOffX * 2, m_imageOffX * 2 - SYS_MAPGRIDXP + imgW * 2 + margin * 2)
+            //     winH >= std::max<int>(2 * margin + SYS_MAPGRIDYP - m_imageOffY * 2, m_imageOffY * 2 - SYS_MAPGRIDYP + imgH * 2 + margin * 2)
+            //
+            // simplify
+            //
+            //     winW >= margin * 2 + std::max<int>(SYS_MAPGRIDXP - m_imageOffX * 2, m_imageOffX * 2 - SYS_MAPGRIDXP + imgW * 2)
+            //     winH >= margin * 2 + std::max<int>(SYS_MAPGRIDYP - m_imageOffY * 2, m_imageOffY * 2 - SYS_MAPGRIDYP + imgH * 2)
+
+            // when we check if we need to resize
+            // we assume margin can be zero, but when we decide to resize, we give non-zero margin, this prevent to resize at each frame
+
+            const int minWinW = std::max<int>(SYS_MAPGRIDXP - m_imageOffX * 2, m_imageOffX * 2 - SYS_MAPGRIDXP + m_image->w() * 2);
+            const int minWinH = std::max<int>(SYS_MAPGRIDYP - m_imageOffY * 2, m_imageOffY * 2 - SYS_MAPGRIDYP + m_image->h() * 2);
+
+            if(w() < minWinW || h() < minWinH){
+                const int margin = 100;
+                size(margin * 2 + minWinW, margin * 2 + minWinH);
+            }
         }
         else{
             const size_t winH = std::max<int>((std::min<int>((to_d(imgH * 1.5)), to_d(imgH + 40))), 200);
@@ -145,7 +209,7 @@ bool PreviewWindow::loadImage()
     m_image.reset(Fl_RGB_Image((uchar *)(m_imageBuf.data()), nW, nH, 4).copy());
     m_imageIndex.emplace(g_mainWindow->selectedImageIndex());
 
-    resize();
+    autoResize();
     copy_label((std::string("Index_") + std::to_string(m_imageIndex.value())).c_str());
     return true;
 }

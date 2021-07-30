@@ -50,6 +50,6 @@ class PreviewWindow: public Fl_Double_Window
         void draw() override;
 
     public:
-        void resize();
         bool loadImage();
+        void autoResize();
 };
