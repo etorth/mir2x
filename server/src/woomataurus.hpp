@@ -21,7 +21,7 @@ class WoomaTaurus final: public Monster
                         return MagicDamage
                         {
                             .magicID = dc,
-                            .damage = 15,
+                            .damage = 25,
                         };
                     }
                 case DBCOM_MAGICID(u8"沃玛教主_雷电术"):
@@ -29,7 +29,7 @@ class WoomaTaurus final: public Monster
                         return MagicDamage
                         {
                             .magicID = dc,
-                            .damage = 20,
+                            .damage = 15,
                         };
                     }
                 default:
@@ -38,4 +38,7 @@ class WoomaTaurus final: public Monster
                     }
             }
         }
+
+    protected:
+        void sendThunderBolt(uint64_t);
 };

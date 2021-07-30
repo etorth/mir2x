@@ -1,4 +1,5 @@
 #include "fflerror.hpp"
+#include "friendtype.hpp"
 #include "woomataurus.hpp"
 #include "serverargparser.hpp"
 
@@ -33,7 +34,25 @@ corof::long_jmper WoomaTaurus::updateCoroFunc()
                 co_await coro_attackUID(targetUID, lightMagicID);
             }
             else if(co_await coro_inDCCastRange(targetUID, thunderMR.castRange)){
-                co_await coro_attackUID(targetUID, thunderMagicID);
+                if(co_await coro_attackUID(targetUID, thunderMagicID)){
+                    for(const auto &[uid, coLoc]: m_inViewCOList){
+                        if(uid == targetUID){
+                            continue;
+                        }
+
+                        switch(co_await coro_checkFriend(uid)){
+                            case FT_ENEMY:
+                                {
+                                    sendThunderBolt(uid);
+                                    break;
+                                }
+                            default:
+                                {
+                                    break;
+                                }
+                        }
+                    }
+                }
             }
             else{
                 co_await coro_trackUID(targetUID, {});
@@ -50,4 +69,24 @@ corof::long_jmper WoomaTaurus::updateCoroFunc()
 
     goDie();
     co_return true;
+}
+
+void WoomaTaurus::sendThunderBolt(uint64_t uid)
+{
+    SMCastMagic smFM;
+    std::memset(&smFM, 0, sizeof(smFM));
+
+    smFM.UID    = UID();
+    smFM.mapID  = mapID();
+    smFM.Magic  = DBCOM_MAGICID(u8"沃玛教主_雷电术");
+    smFM.Speed  = MagicSpeed();
+    smFM.X      = X();
+    smFM.Y      = Y();
+    smFM.AimUID = uid;
+
+    dispatchInViewCONetPackage(SM_CASTMAGIC, smFM);
+    addDelay(300, [uid, this]()
+    {
+        dispatchAttackDamage(uid, DBCOM_MAGICID(u8"沃玛教主_雷电术"));
+    });
 }

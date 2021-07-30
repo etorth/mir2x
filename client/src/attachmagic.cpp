@@ -72,22 +72,12 @@ void Thunderbolt::drawShift(int shiftX, int shiftY, bool alpha) const
         SDLDeviceHelper::EnableTextureModColor enableModColor(texPtr, colorf::RGBA(0XFF, 0XFF, 0XFF, alpha ? 0X40 : 0XC0));
         SDLDeviceHelper::EnableTextureBlendMode enableBlendMode(texPtr, SDL_BLENDMODE_BLEND);
 
+        // thunder bolt has 5 frames
+        // frame 0 ~ 3 are long, last frame is short
         g_sdlDevice->drawTexture(texPtr, shiftX + offX, shiftY + offY);
-        g_sdlDevice->drawTextureEx(texPtr,
-                0,
-                0,
-                texW,
-                texH,
-
-                shiftX + offX,
-                shiftY + offY - texH,
-                texW,
-                texH,
-
-                0,
-                0,
-                0,
-                SDL_FLIP_VERTICAL);
+        if(frame() >= 3){
+            g_sdlDevice->drawTextureEx(texPtr, 0, 0, texW, texH, shiftX + offX, shiftY + offY - texH, texW, texH, 0, 0, 0, SDL_FLIP_VERTICAL);
+        }
     }
 }
 
@@ -113,21 +103,11 @@ void NumaWizardThunderBolt::drawShift(int shiftX, int shiftY, bool alpha) const
         SDLDeviceHelper::EnableTextureModColor enableModColor(texPtr, colorf::RGBA(0XFF, 0XFF, 0XFF, alpha ? 0X40 : 0XC0));
         SDLDeviceHelper::EnableTextureBlendMode enableBlendMode(texPtr, SDL_BLENDMODE_BLEND);
 
+        // thunder bolt has 5 frames
+        // frame 0 ~ 3 are long, last frame is short
         g_sdlDevice->drawTexture(texPtr, shiftX + offX, shiftY + offY);
-        g_sdlDevice->drawTextureEx(texPtr,
-                0,
-                0,
-                texW,
-                texH,
-
-                shiftX + offX,
-                shiftY + offY - texH,
-                texW,
-                texH,
-
-                0,
-                0,
-                0,
-                SDL_FLIP_VERTICAL);
+        if(frame() >= 3){
+            g_sdlDevice->drawTextureEx(texPtr, 0, 0, texW, texH, shiftX + offX, shiftY + offY - texH, texW, texH, 0, 0, 0, SDL_FLIP_VERTICAL);
+        }
     }
 }

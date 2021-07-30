@@ -447,6 +447,7 @@ void ProcessRun::net_CASTMAGIC(const uint8_t *bufPtr, size_t)
                 return;
             }
         case DBCOM_MAGICID(u8"雷电术"):
+        case DBCOM_MAGICID(u8"沃玛教主_雷电术"):
             {
                 if(auto coPtr = findUID(smCM.AimUID)){
                     coPtr->addAttachMagic(std::unique_ptr<AttachMagic>(new Thunderbolt()));
