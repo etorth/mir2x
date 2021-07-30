@@ -69,7 +69,30 @@ void PreviewWindow::draw()
     }
 }
 
-bool PreviewWindow::LoadImage()
+void PreviewWindow::resize()
+{
+    // resize the window
+    // don't call this function in the ::draw()
+
+    if(m_image){
+        const int imgW = m_image->w();
+        const int imgH = m_image->h();
+
+        if(g_mainWindow->offsetDrawEnabled()){
+            size(imgW * 2 + 40, imgH * 2 + 40);
+        }
+        else{
+            const size_t winH = std::max<int>((std::min<int>((to_d(imgH * 1.5)), to_d(imgH + 40))), 200);
+            const size_t winW = std::max<int>((std::min<int>((to_d(imgW * 1.5)), to_d(imgW + 40))), 200);
+            size(winW, winH);
+        }
+    }
+    else{
+        size(100, 100);
+    }
+}
+
+bool PreviewWindow::loadImage()
 {
     if(!g_wilPackage->setIndex(g_mainWindow->selectedImageIndex())){
         return false;
@@ -104,13 +127,7 @@ bool PreviewWindow::LoadImage()
     m_image.reset(Fl_RGB_Image((uchar *)(m_imageBuf.data()), nW, nH, 4).copy());
     m_imageIndex.emplace(g_mainWindow->selectedImageIndex());
 
-    size_t nWinH = (std::max<int>)(((std::min<int>)((to_d(nH * 1.5)), to_d(nH + 40))), (int)200);
-    size_t nWinW = (std::max<int>)(((std::min<int>)((to_d(nW * 1.5)), to_d(nW + 40))), (int)200);
-
-    // resize the window
-    // don't call this function in the ::draw()
-    size(nWinW, nWinH);
+    resize();
     copy_label((std::string("Index_") + std::to_string(m_imageIndex.value())).c_str());
-
     return true;
 }

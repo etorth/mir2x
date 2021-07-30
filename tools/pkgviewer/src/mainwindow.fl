@@ -265,7 +265,7 @@ class MainWindow {} {
             label {Show Layer 0          }
             callback {{
 	extern PreviewWindow *g_previewWindow;
-	g_previewWindow->LoadImage();
+	g_previewWindow->loadImage();
 	g_previewWindow->redraw();
 }}
             xywh {60 60 36 21} type Toggle value 1 labelfont 4
@@ -275,7 +275,7 @@ class MainWindow {} {
             label {Show Layer 1}
             callback {{
 	extern PreviewWindow *g_previewWindow;
-	g_previewWindow->LoadImage();
+	g_previewWindow->loadImage();
 	g_previewWindow->redraw();
 }}
             xywh {40 40 36 21} type Toggle value 1 labelfont 4
@@ -285,7 +285,7 @@ class MainWindow {} {
             label {Show Layer 2}
             callback {{
 	extern PreviewWindow *g_previewWindow;
-	g_previewWindow->LoadImage();
+	g_previewWindow->loadImage();
 	g_previewWindow->redraw();
 }}
             xywh {20 20 36 21} type Toggle value 1 labelfont 4 divider
@@ -307,7 +307,7 @@ class MainWindow {} {
             label {Auto Alpha}
             callback {{
 	extern PreviewWindow *g_previewWindow;
-	g_previewWindow->LoadImage();
+	g_previewWindow->loadImage();
 	g_previewWindow->redraw();
 }}
             xywh {20 20 36 21} type Toggle labelfont 4
@@ -317,7 +317,7 @@ class MainWindow {} {
             label {Remove Shadow Mosaic}
             callback {{
 	extern PreviewWindow *g_previewWindow;
-	g_previewWindow->LoadImage();
+	g_previewWindow->loadImage();
 	g_previewWindow->redraw();
 }}
             xywh {30 30 36 21} type Toggle labelfont 4 divider
@@ -370,7 +370,7 @@ extern WilImagePackage *g_wilPackage;
 
 if(g_wilPackage){
     if(g_wilPackage->setIndex(g_mainWindow->selectedImageIndex())){
-        g_previewWindow->LoadImage();
+        g_previewWindow->loadImage();
         g_previewWindow->show();
         g_previewWindow->redraw();
     }
