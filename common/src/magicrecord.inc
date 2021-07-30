@@ -1092,3 +1092,47 @@
         },
     },
 },
+
+{
+    .name = u8"沃玛教主_电光",
+    .element = u8"雷",
+
+    .castRange
+    {
+        .type = CRT_DIR,
+        .distance = 1,
+    },
+
+    .gfxList
+    {
+        {
+            .stage = u8"运行",
+            .type  = u8"固定",
+            .gfxID = 0X030001B8,
+            .frameCount = 6,
+            .gfxIDCount = 10,
+            .gfxDirType = 8,
+        },
+    },
+},
+
+{
+    .name = u8"沃玛教主_雷电术",
+    .element = u8"雷",
+
+    .castRange
+    {
+        .type = CRT_LIMITED,
+        .distance = 10,
+    },
+
+    .gfxList
+    {
+        {
+            .stage = u8"运行",
+            .type  = u8"附着",
+            .gfxID = 0X000005AA,
+            .frameCount = 5,
+        },
+    },
+},
