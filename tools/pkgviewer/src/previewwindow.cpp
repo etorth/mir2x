@@ -67,6 +67,21 @@ void PreviewWindow::draw()
         fl_wrapper::enable_color stColor(FL_RED);
         fl_rect(nX, nY, nW, nH);
     }
+
+    if(g_mainWindow->showOffsetCrossEnabled()){
+        const auto crossX = nX + m_imageOffX;
+        const auto crossY = nY + m_imageOffY;
+        {
+            fl_wrapper::enable_color enableColor(FL_BLUE);
+            fl_line(nX, nY, crossX, crossY);
+        }
+
+        {
+            fl_wrapper::enable_color enableColor(FL_GREEN);
+            fl_line(crossX - 5, crossY - 0, crossX + 5, crossY + 0);
+            fl_line(crossX - 0, crossY - 5, crossX + 0, crossY + 5);
+        }
+    }
 }
 
 void PreviewWindow::resize()
