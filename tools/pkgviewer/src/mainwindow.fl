@@ -40,7 +40,7 @@ class MainWindow {} {
 	// don't exit directly
 	// exit(0);
 }}
-      private xywh {96 106 555 605} type Double labelfont 4 resizable
+      private xywh {42 70 555 605} type Double labelfont 4 resizable
       code0 {\#include <FL/fl_ask.H>} visible
     } {
       Fl_Menu_Bar m_menuBar {
@@ -261,8 +261,17 @@ class MainWindow {} {
           label Config
           xywh {0 0 70 21} labelfont 4
         } {
+          MenuItem m_menuItemShowOffsetCross {
+            label {Show Offset Cross       }
+            callback {{
+	extern PreviewWindow *g_previewWindow;
+	g_previewWindow->redraw();
+}}
+            xywh {70 70 36 21} type Toggle value 1 labelfont 4 divider
+            code0 {\#include "previewwindow.hpp"}
+          }
           MenuItem m_menuItemShowLayer0 {
-            label {Show Layer 0          }
+            label {Show Layer 0}
             callback {{
 	extern PreviewWindow *g_previewWindow;
 	g_previewWindow->loadImage();
@@ -448,6 +457,12 @@ if(g_wilPackage){
   } {
     code {{
     return m_menuItemAutoAlphaShadow->value();
+}} {}
+  }
+  Function {showOffsetCrossEnabled()} {return_type bool
+  } {
+    code {{
+    return m_menuItemShowOffsetCross->value();
 }} {}
   }
   Function {saveOffsetEnabled()} {return_type bool
