@@ -37,7 +37,7 @@ class ClientTaoDog: public ClientStandMonster
                     case MOTION_MON_HITTED : return {.count =  2};
                     case MOTION_MON_DIE    : return {.count = 10};
                     case MOTION_MON_ATTACK0: return {.count =  6};
-                    case MOTION_MON_APPEAR : return {.count = 10}; // from crawling to stand
+                    case MOTION_MON_SPAWN  : return {.count = 10}; // from crawling to stand
                     default                : return {};
                 }
             }
@@ -54,11 +54,11 @@ class ClientTaoDog: public ClientStandMonster
                             return
                             {
                                 .gfxLookID = 0X59,
-                                .gfxMotionID = MOTION_MON_APPEAR,
+                                .gfxMotionID = MOTION_MON_SPAWN,
                                 .count = 10,
                             };
                         }
-                    case MOTION_MON_APPEAR:
+                    case MOTION_MON_SPAWN:
                         {
                             // from stand to crawling
                             // need gfxID redirect and lookID redirect

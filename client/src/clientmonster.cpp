@@ -518,7 +518,7 @@ bool ClientMonster::motionValid(const std::unique_ptr<MotionNode> &motionPtr) co
             case MOTION_MON_SPELL1:
             case MOTION_MON_HITTED:
             case MOTION_MON_DIE:
-            case MOTION_MON_APPEAR:
+            case MOTION_MON_SPAWN:
                 {
                     return nLDistance2 == 0;
                 }
@@ -546,7 +546,7 @@ MonsterFrameGfxSeq ClientMonster::getFrameGfxSeq(int motion, int) const
         case MOTION_MON_ATTACK1: return {.count =  6};
         case MOTION_MON_SPELL0 :
         case MOTION_MON_SPELL1 : return {.count = 10};
-        case MOTION_MON_APPEAR : return {.count = 10};
+        case MOTION_MON_SPAWN  : return {.count = 10};
         case MOTION_MON_SPECIAL: return {.count =  6};
         default                : return {};
     }

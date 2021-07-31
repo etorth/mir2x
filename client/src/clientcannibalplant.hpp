@@ -73,7 +73,7 @@ class ClientCannibalPlant: public ClientStandMonster
                     {
                         m_currMotion.reset(new MotionNode
                         {
-                            .type = MOTION_MON_APPEAR,
+                            .type = MOTION_MON_SPAWN,
                             .direction = DIR_BEGIN,
                             .x = action.x,
                             .y = action.y,
@@ -114,7 +114,7 @@ class ClientCannibalPlant: public ClientStandMonster
                             }
                             return {};
                         }
-                    case MOTION_MON_APPEAR:
+                    case MOTION_MON_SPAWN:
                         {
                             return
                             {
@@ -136,14 +136,14 @@ class ClientCannibalPlant: public ClientStandMonster
                             if(direction == DIR_BEGIN){
                                 return
                                 {
-                                    .gfxMotionID = MOTION_MON_APPEAR,
+                                    .gfxMotionID = MOTION_MON_SPAWN,
                                     .begin = 7,
                                     .count = 1,
                                 };
                             }
                             return {};
                         }
-                    case MOTION_MON_APPEAR:
+                    case MOTION_MON_SPAWN:
                         {
                             if(direction == DIR_BEGIN){
                                 return

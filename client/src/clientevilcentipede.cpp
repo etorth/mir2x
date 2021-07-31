@@ -50,7 +50,7 @@ ClientEvilCentipede::ClientEvilCentipede(uint64_t uid, ProcessRun *proc, const A
             {
                 m_currMotion.reset(new MotionNode
                 {
-                    .type = MOTION_MON_APPEAR,
+                    .type = MOTION_MON_SPAWN,
                     .direction = DIR_BEGIN,
                     .x = action.x,
                     .y = action.y,

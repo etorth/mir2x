@@ -54,7 +54,7 @@ class ClientRebornZombie: public ClientStandMonster
                     {
                         m_currMotion.reset(new MotionNode
                         {
-                            .type = MOTION_MON_APPEAR,
+                            .type = MOTION_MON_SPAWN,
                             .direction = directionValid(action.direction) ? to_d(action.direction) : DIR_UP,
                             .x = action.x,
                             .y = action.y,
@@ -67,7 +67,7 @@ class ClientRebornZombie: public ClientStandMonster
                     {
                         m_currMotion.reset(new MotionNode
                         {
-                            .type = MOTION_MON_APPEAR,
+                            .type = MOTION_MON_SPAWN,
                             .direction = directionValid(action.direction) ? to_d(action.direction) : DIR_UP,
                             .x = action.x,
                             .y = action.y,
@@ -101,7 +101,7 @@ class ClientRebornZombie: public ClientStandMonster
         {
             if(m_standMode){
                 switch(motion){
-                    case MOTION_MON_APPEAR : return {.count = 10};
+                    case MOTION_MON_SPAWN : return {.count = 10};
                     case MOTION_MON_STAND  : return {.count =  4};
                     case MOTION_MON_WALK   : return {.count =  6};
                     case MOTION_MON_ATTACK0: return {.count =  6};
@@ -113,7 +113,7 @@ class ClientRebornZombie: public ClientStandMonster
             else{
                 switch(motion){
                     case MOTION_MON_STAND : return {.gfxMotionID = MOTION_MON_DIE, .begin = 9, .count =  1};
-                    case MOTION_MON_APPEAR: return {.gfxMotionID = MOTION_MON_DIE, .begin = 0, .count = 10};
+                    case MOTION_MON_SPAWN: return {.gfxMotionID = MOTION_MON_DIE, .begin = 0, .count = 10};
                     default               : return {};
                 }
             }

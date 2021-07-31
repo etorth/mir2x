@@ -288,7 +288,7 @@ inline const char *motionName(int type)
         _add_motion_type_case(MOTION_MON_ATTACK1  )
         _add_motion_type_case(MOTION_MON_SPELL0   )
         _add_motion_type_case(MOTION_MON_SPELL1   )
-        _add_motion_type_case(MOTION_MON_APPEAR   )
+        _add_motion_type_case(MOTION_MON_SPAWN    )
         _add_motion_type_case(MOTION_MON_SPECIAL  )
 
         _add_motion_type_case(MOTION_NPC_STAND    )

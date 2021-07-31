@@ -126,7 +126,7 @@ bool ClientTaoDog::onActionSpawn(const ActionNode &action)
     fflassert(m_forcedMotionQueue.empty());
     m_currMotion.reset(new MotionNode
     {
-        .type = MOTION_MON_APPEAR,
+        .type = MOTION_MON_SPAWN,
         .direction = directionValid(action.direction) ? to_d(action.direction) : DIR_UP,
         .x = action.x,
         .y = action.y,
