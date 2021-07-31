@@ -77,7 +77,12 @@ struct ActionNode
             uint8_t standMode;
         };
 
-        struct EvilCentipede
+        struct EvilCentipedeStand
+        {
+            uint8_t standMode;
+        };
+
+        struct ZumaMonsterStand
         {
             uint8_t standMode;
         };
@@ -93,7 +98,8 @@ struct ActionNode
             CannibalPlantStand cannibalPlant;
             SandGhostStand sandGhost;
             RebornZombieStand rebornZombie;
-            EvilCentipede evilCentipede;
+            EvilCentipedeStand evilCentipede;
+            ZumaMonsterStand zumaMonster;
             NPCStand npc;
         };
     };
@@ -120,7 +126,12 @@ struct ActionNode
             uint8_t standModeReq;
         };
 
-        struct EvilCentipede
+        struct EvilCentipedeTransf
+        {
+            uint8_t standModeReq;
+        };
+
+        struct ZumaMonsterTransf
         {
             uint8_t standModeReq;
         };
@@ -131,7 +142,8 @@ struct ActionNode
             CannibalPlantTransf cannibalPlant;
             SandGhostTransf sandGhost;
             RebornZombieTransf rebornZombie;
-            EvilCentipede evilCentipede;
+            EvilCentipedeTransf evilCentipede;
+            ZumaMonsterTransf zumaMonster;
         };
     };
 
