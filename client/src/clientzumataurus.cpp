@@ -162,7 +162,33 @@ bool ClientZumaTaurus::onActionAttack(const ActionNode &action)
     if(!finalStandMode()){
         addActionTransf();
     }
-    return ClientMonster::onActionAttack(action);
+
+    const auto [endX, endY, endDir] = motionEndGLoc().at(1);
+    m_motionQueue = makeWalkMotionQueue(endX, endY, action.x, action.y, SYS_MAXSPEED);
+    if(auto coPtr = m_processRun->findUID(action.aimUID)){
+        m_motionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
+        {
+            .type = MOTION_MON_ATTACK0,
+            .direction = [&action, endDir, coPtr]() -> int
+            {
+                const auto nX = coPtr->x();
+                const auto nY = coPtr->y();
+                if(mathf::LDistance2<int>(nX, nY, action.x, action.y) == 0){
+                    return endDir;
+                }
+                return PathFind::GetDirection(action.x, action.y, nX, nY);
+            }(),
+            .x = action.x,
+            .y = action.y,
+        }));
+
+        m_motionQueue.back()->addUpdate(false, [this](MotionNode *motionPtr) -> bool
+        {
+            addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"祖玛教主_施法", u8"启动", motionPtr->direction - DIR_BEGIN)));
+            return true;
+        });
+    }
+    return true;
 }
 
 void ClientZumaTaurus::addActionTransf()

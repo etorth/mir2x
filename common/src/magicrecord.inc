@@ -1231,3 +1231,18 @@
         },
     },
 },
+
+{
+    .name = u8"祖玛教主_施法",
+    .gfxList
+    {
+        {
+            .stage = u8"启动",
+            .type  = u8"附着",
+            .gfxID = 0X030002D0,
+            .frameCount = 8,
+            .gfxIDCount = 10,
+            .gfxDirType = 8,
+        },
+    },
+},
