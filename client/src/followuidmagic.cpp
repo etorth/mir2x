@@ -195,22 +195,22 @@ std::tuple<int, int> FollowUIDMagic::targetOff() const
         case DBCOM_MAGICID(u8"祖玛弓箭手_射箭"):
             {
                 switch(gfxDirIndex()){
-                    case  0: return {  0,   0};
-                    case  1: return { 49, -66};
-                    case  2: return { 66, -61};
-                    case  3: return { 75, -52};
+                    case  0: return { 29, -70};
+                    case  1: return { 48, -65};
+                    case  2: return { 65, -59};
+                    case  3: return { 73, -50};
                     case  4: return { 76, -38};
-                    case  5: return { 74, -27};
+                    case  5: return { 71, -27};
                     case  6: return { 63, -16};
-                    case  7: return { 48, -12};
-                    case  8: return { 31,  -7};
-                    case  9: return { 15, -11};
-                    case 10: return {  1, -18};
-                    case 11: return {-12, -26};
-                    case 12: return {  0,   0};
-                    case 13: return {  0,   0};
-                    case 14: return {  0,   0};
-                    case 15: return {  0,   0};
+                    case  7: return { 48, -11};
+                    case  8: return { 31,  -8};
+                    case  9: return { 13, -11};
+                    case 10: return {  1, -17};
+                    case 11: return { -8, -26};
+                    case 12: return {-13, -37};
+                    case 13: return { -8, -47};
+                    case 14: return {  2, -58};
+                    case 15: return { 16, -63};
                     default: throw bad_reach();
                 }
             }
