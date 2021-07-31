@@ -57,6 +57,7 @@
 #include "clientdarkwarrior.hpp"
 #include "clientdung.hpp"
 #include "clientevilcentipede.hpp"
+#include "clientzumaarcher.hpp"
 
 extern Log *g_log;
 extern PNGTexDB *g_progUseDB;
@@ -713,6 +714,10 @@ ClientMonster *ClientMonster::create(uint64_t uid, ProcessRun *proc, const Actio
         case DBCOM_MONSTERID(u8"触龙神"):
             {
                 return new ClientEvilCentipede(uid, proc, action);
+            }
+        case DBCOM_MONSTERID(u8"祖玛弓箭手"):
+            {
+                return new ClientZumaArcher(uid, proc, action);
             }
         case DBCOM_MONSTERID(u8"变异骷髅"):
             {

@@ -1186,3 +1186,32 @@
         },
     },
 },
+
+{
+    .name = u8"祖玛弓箭手_射箭",
+    .castRange
+    {
+        .type = CRT_LIMITED,
+        .distance = 8,
+    },
+
+    .gfxList
+    {
+        {
+            .stage = u8"运行",
+            .type  = u8"跟随",
+            .gfxID = 0X03000578,
+            .frameCount = 1,
+            .gfxIDCount = 10,
+            .gfxDirType = 16,
+            .loop = 1,
+        },
+
+        {
+            .stage = u8"结束",
+            .type  = u8"附着",
+            .gfxID = 0X010003A2,
+            .frameCount = 6,
+        },
+    },
+},
