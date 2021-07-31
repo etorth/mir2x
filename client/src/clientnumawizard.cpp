@@ -1,3 +1,4 @@
+#include "pathf.hpp"
 #include "processrun.hpp"
 #include "clientnumawizard.hpp"
 
@@ -17,16 +18,24 @@ bool ClientNumaWizard::onActionAttack_fireBall(const ActionNode &action)
             return false;
         }
 
+        const auto gfx16DirIndex = [targetUID, motionPtr, this]() -> int
+        {
+            if(auto coPtr = m_processRun->findUID(targetUID)){
+                return pathf::getDir16((coPtr->x() - motionPtr->x) * SYS_MAPGRIDXP, (coPtr->y() - motionPtr->y) * SYS_MAPGRIDYP);
+            }
+            return (motionPtr->direction - DIR_BEGIN) * 2;
+        }();
+
         m_processRun->addFollowUIDMagic(std::unique_ptr<FollowUIDMagic>(new FollowUIDMagic
         {
             u8"诺玛法老_火球术",
             u8"运行",
 
-            currMotion()->x * SYS_MAPGRIDXP,
-            currMotion()->y * SYS_MAPGRIDYP,
+            motionPtr->x * SYS_MAPGRIDXP,
+            motionPtr->y * SYS_MAPGRIDYP,
 
-            (currMotion()->direction - DIR_BEGIN) * 2, // fireball gfx is 16 direction
-            (currMotion()->direction - DIR_BEGIN) * 2,
+            gfx16DirIndex,
+            gfx16DirIndex,
             20,
 
             targetUID,

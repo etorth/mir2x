@@ -27,21 +27,21 @@ class ClientZumaArcher: public ClientMonster
                 .y = action.y,
             }));
 
-            m_motionQueue.back()->addUpdate(false, [targetUID = action.aimUID, proc = m_processRun](MotionNode *motionPtr) -> bool
+            m_motionQueue.back()->addUpdate(false, [targetUID = action.aimUID, this](MotionNode *motionPtr) -> bool
             {
                 if(motionPtr->frame < 5){
                     return false;
                 }
 
-                const auto gfx16DirIndex = [targetUID, motionPtr, proc]() -> int
+                const auto gfx16DirIndex = [targetUID, motionPtr, this]() -> int
                 {
-                    if(auto coPtr = proc->findUID(targetUID)){
+                    if(auto coPtr = m_processRun->findUID(targetUID)){
                         return pathf::getDir16((coPtr->x() - motionPtr->x) * SYS_MAPGRIDXP, (coPtr->y() - motionPtr->y) * SYS_MAPGRIDYP);
                     }
                     return (motionPtr->direction - DIR_BEGIN) * 2;
                 }();
 
-                proc->addFollowUIDMagic(std::unique_ptr<FollowUIDMagic>(new FollowUIDMagic
+                m_processRun->addFollowUIDMagic(std::unique_ptr<FollowUIDMagic>(new FollowUIDMagic
                 {
                     u8"祖玛弓箭手_射箭",
                     u8"运行",
@@ -54,8 +54,8 @@ class ClientZumaArcher: public ClientMonster
                     20,
 
                     targetUID,
-                    proc,
-                }))->addOnDone([targetUID, proc = proc](MagicBase *)
+                    m_processRun,
+                }))->addOnDone([targetUID, proc = m_processRun](MagicBase *)
                 {
                     if(auto coPtr = proc->findUID(targetUID)){
                         coPtr->addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"祖玛弓箭手_射箭", u8"结束")));
