@@ -1,4 +1,5 @@
 #pragma once
+#include "pathf.hpp"
 #include "totype.hpp"
 #include "dbcomid.hpp"
 #include "fflerror.hpp"
@@ -26,27 +27,35 @@ class ClientZumaArcher: public ClientMonster
                 .y = action.y,
             }));
 
-            m_motionQueue.back()->addUpdate(false, [targetUID = action.aimUID, this](MotionNode *motionPtr) -> bool
+            m_motionQueue.back()->addUpdate(false, [targetUID = action.aimUID, proc = m_processRun](MotionNode *motionPtr) -> bool
             {
                 if(motionPtr->frame < 5){
                     return false;
                 }
 
-                m_processRun->addFollowUIDMagic(std::unique_ptr<FollowUIDMagic>(new FollowUIDMagic
+                const auto gfx16DirIndex = [targetUID, motionPtr, proc]() -> int
+                {
+                    if(auto coPtr = proc->findUID(targetUID)){
+                        return pathf::getDir16((coPtr->x() - motionPtr->x) * SYS_MAPGRIDXP, (coPtr->y() - motionPtr->y) * SYS_MAPGRIDYP);
+                    }
+                    return (motionPtr->direction - DIR_BEGIN) * 2;
+                }();
+
+                proc->addFollowUIDMagic(std::unique_ptr<FollowUIDMagic>(new FollowUIDMagic
                 {
                     u8"祖玛弓箭手_射箭",
                     u8"运行",
 
-                    currMotion()->x * SYS_MAPGRIDXP,
-                    currMotion()->y * SYS_MAPGRIDYP,
+                    motionPtr->x * SYS_MAPGRIDXP,
+                    motionPtr->y * SYS_MAPGRIDYP,
 
-                    (currMotion()->direction - DIR_BEGIN) * 2,
-                    (currMotion()->direction - DIR_BEGIN) * 2,
+                    gfx16DirIndex,
+                    gfx16DirIndex,
                     20,
 
                     targetUID,
-                    m_processRun,
-                }))->addOnDone([targetUID, proc = m_processRun](MagicBase *)
+                    proc,
+                }))->addOnDone([targetUID, proc = proc](MagicBase *)
                 {
                     if(auto coPtr = proc->findUID(targetUID)){
                         coPtr->addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"祖玛弓箭手_射箭", u8"结束")));
