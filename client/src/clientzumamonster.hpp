@@ -13,7 +13,21 @@ class ClientZumaMonster: public ClientStandMonster
         MonsterFrameGfxSeq getFrameGfxSeq(int motion, int dir) const override
         {
             if(m_standMode){
-                return ClientStandMonster::getFrameGfxSeq(motion, dir);
+                switch(motion){
+                    case MOTION_MON_SPAWN:
+                        {
+                            return
+                            {
+                                .gfxMotionID = MOTION_MON_SPAWN,
+                                .begin = 0,
+                                .count = 6,
+                            };
+                        }
+                    default:
+                        {
+                            return ClientStandMonster::getFrameGfxSeq(motion, dir);
+                        }
+                }
             }
             else{
                 switch(motion){
