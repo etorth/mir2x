@@ -22,6 +22,7 @@ class EvilCentipede final: public Monster
             {
                 .x = X(),
                 .y = Y(),
+
                 .direction = DIR_BEGIN,
                 .extParam
                 {
@@ -42,7 +43,7 @@ class EvilCentipede final: public Monster
                     .x = X(),
                     .y = Y(),
 
-                    .direction = Direction(),
+                    .direction = DIR_BEGIN,
                     .extParam
                     {
                         .evilCentipede
