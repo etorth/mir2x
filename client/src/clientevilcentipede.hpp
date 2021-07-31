@@ -12,6 +12,16 @@ class ClientEvilCentipede: public ClientStandMonster
     public:
         MonsterFrameGfxSeq getFrameGfxSeq(int motion, int) const override
         {
+            // index frames   gfx
+            // 07000   4      stand
+            // 07160   6      AOE, attach far
+            // 07170   6      attack close, middle
+            // 07180   6      attack close, left
+            // 07190   6      attack close, right
+            // 07240   2      hitted
+            // 07320  10      die
+            // 07640  10      hide/appear
+
             if(m_standMode){
                 switch(motion){
                     case MOTION_MON_STAND  : return {.count =  4};
