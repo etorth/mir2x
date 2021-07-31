@@ -1,6 +1,7 @@
 #pragma once
 #include "dbcomid.hpp"
 #include "monster.hpp"
+#include "fflerror.hpp"
 
 class ZumaTaurus final: public Monster
 {
@@ -15,6 +16,7 @@ class ZumaTaurus final: public Monster
     public:
         void setStandMode(bool standMode)
         {
+            fflassert(standMode);
             if(standMode != m_standMode){
                 m_standMode = standMode;
                 dispatchAction(ActionTransf
@@ -30,6 +32,9 @@ class ZumaTaurus final: public Monster
                         },
                     },
                 });
+
+                m_direction = DIR_DOWNLEFT;
+                dispatchAction(makeActionStand());
             }
         }
 
