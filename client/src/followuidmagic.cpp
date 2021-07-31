@@ -272,6 +272,12 @@ void FollowUIDMagic::drawViewOff(int viewX, int viewY, uint32_t modColor) const
 
                 const auto [srcTargetX, srcTargetY] = targetPLoc();
                 g_sdlDevice->drawLine(colorf::GREEN + colorf::A_SHF(200), m_x - viewX, m_y - viewY, srcTargetX - viewX, srcTargetY - viewY);
+
+                if(const auto coPtr = m_process->findUID(m_uid)){
+                    const auto [srcTargetX, srcTargetY] = targetPLoc();
+                    const auto [dstTargetX, dstTargetY] = coPtr->getTargetBox().targetPLoc();
+                    g_sdlDevice->drawLine(colorf::MAGENTA + colorf::A_SHF(200), srcTargetX - viewX, srcTargetY - viewY, dstTargetX - viewX, dstTargetY - viewY);
+                }
             }
         }
     }
