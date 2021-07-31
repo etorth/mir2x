@@ -42,7 +42,7 @@ corof::long_jmper ZumaMonster::updateCoroFunc()
 
 void ZumaMonster::onAMAttack(const ActorMsgPack &mpk)
 {
-    if(!m_standMode){
+    if(m_standMode){
         Monster::onAMAttack(mpk);
     }
 }

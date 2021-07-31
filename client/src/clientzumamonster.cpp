@@ -46,6 +46,19 @@ ClientZumaMonster::ClientZumaMonster(uint64_t uid, ProcessRun *proc, const Actio
                 m_standMode = true;
                 break;
             }
+        case ACTION_MOVE:
+            {
+                m_currMotion.reset(new MotionNode
+                {
+                    .type = MOTION_MON_WALK,
+                    .direction = directionValid(action.direction) ? to_d(action.direction) : DIR_UP,
+                    .x = action.x,
+                    .y = action.y,
+                });
+
+                m_standMode = true;
+                break;
+            }
         case ACTION_TRANSF:
             {
                 m_currMotion.reset(new MotionNode
