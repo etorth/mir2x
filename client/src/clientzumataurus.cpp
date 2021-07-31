@@ -82,7 +82,7 @@ ClientZumaTaurus::ClientZumaTaurus(uint64_t uid, ProcessRun *proc, const ActionN
 
                 m_currMotion->addUpdate(false, [this](MotionNode *motionPtr) -> bool
                 {
-                    if(motionPtr->frame < 10){
+                    if(motionPtr->frame < 9){
                         return false;
                     }
 
@@ -127,6 +127,7 @@ ClientZumaTaurus::ClientZumaTaurus(uint64_t uid, ProcessRun *proc, const ActionN
 
 bool ClientZumaTaurus::onActionSpawn(const ActionNode &action)
 {
+    fflassert(m_forcedMotionQueue.empty());
     m_currMotion.reset(new MotionNode
     {
         .type = MOTION_MON_STAND,
@@ -173,7 +174,7 @@ void ClientZumaTaurus::addActionTransf()
 
     m_forcedMotionQueue.back()->addUpdate(false, [this](MotionNode *motionPtr) -> bool
     {
-        if(motionPtr->frame < 10){
+        if(motionPtr->frame < 9){
             return false;
         }
 
