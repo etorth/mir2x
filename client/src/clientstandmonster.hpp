@@ -17,7 +17,7 @@ class ClientStandMonster: public ClientMonster
         {}
 
     protected:
-        void addActionTransf()
+        virtual void addActionTransf()
         {
             const auto [endX, endY, endDir] = motionEndGLoc().at(1);
             m_forcedMotionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode

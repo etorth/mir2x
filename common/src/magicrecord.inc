@@ -1215,3 +1215,19 @@
         },
     },
 },
+
+{
+    .name = u8"祖玛教主_石像碎片",
+    .gfxList
+    {
+        {
+            .stage = u8"运行",
+            .type  = u8"固定",
+            .gfxID = 0X0F0000D2,
+            .frameCount = 1,
+            .gfxDirType = 1,
+            .onGround = 1,
+            .loop = 1,
+        },
+    },
+},

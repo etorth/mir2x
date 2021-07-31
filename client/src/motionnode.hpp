@@ -62,7 +62,7 @@ struct MotionNode final
             int fadeOut = 0;
         }
         die{};
-        
+
         struct MotionSwing
         {
             const uint32_t magicID = 0;

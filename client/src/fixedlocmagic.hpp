@@ -336,13 +336,13 @@ class IceThrust_RUN: public FixedLocMagic
         void drawViewOff(int, int, uint32_t) const override;
 };
 
-class SingleFrameSpawnEffect_RUN: public FixedLocMagic
+class SingleFrameEffect_RUN: public FixedLocMagic
 {
     private:
         const int m_alphaTime[2];
 
     public:
-        SingleFrameSpawnEffect_RUN(const char8_t *magicName, const char8_t *magicStage, int x, int y, int gfxDirIndex, int t1, int t2)
+        SingleFrameEffect_RUN(const char8_t *magicName, const char8_t *magicStage, int x, int y, int gfxDirIndex, int t1, int t2)
             : FixedLocMagic(magicName, magicStage, x, y, gfxDirIndex)
             , m_alphaTime
               {
@@ -385,18 +385,26 @@ class SingleFrameSpawnEffect_RUN: public FixedLocMagic
         }
 };
 
-class StoneManSpawnEffect_RUN: public SingleFrameSpawnEffect_RUN
+class StoneManSpawnEffect_RUN: public SingleFrameEffect_RUN
 {
     public:
         StoneManSpawnEffect_RUN(int x, int y, int gfxDirIndex, int t1 = 5000, int t2 = 3000)
-            : SingleFrameSpawnEffect_RUN(u8"沙漠石人_石坑", u8"运行", x, y, gfxDirIndex, t1, t2)
+            : SingleFrameEffect_RUN(u8"沙漠石人_石坑", u8"运行", x, y, gfxDirIndex, t1, t2)
         {}
 };
 
-class MonkZombieSpawnEffect_RUN: public SingleFrameSpawnEffect_RUN
+class MonkZombieSpawnEffect_RUN: public SingleFrameEffect_RUN
 {
     public:
         MonkZombieSpawnEffect_RUN(int x, int y, int gfxDirIndex, int t1 = 5000, int t2 = 3000)
-            : SingleFrameSpawnEffect_RUN(u8"僧侣僵尸_地洞", u8"运行", x, y, gfxDirIndex, t1, t2)
+            : SingleFrameEffect_RUN(u8"僧侣僵尸_地洞", u8"运行", x, y, gfxDirIndex, t1, t2)
+        {}
+};
+
+class ZumaTaurusFragmentEffect_RUN: public SingleFrameEffect_RUN
+{
+    public:
+        ZumaTaurusFragmentEffect_RUN(int x, int y, int t1 = 5000, int t2 = 3000)
+            : SingleFrameEffect_RUN(u8"祖玛教主_石像碎片", u8"运行", x, y, 0, t1, t2)
         {}
 };

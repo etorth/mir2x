@@ -1,10 +1,8 @@
-#include "zumamonster.hpp"
+#include "zumataurus.hpp"
 
-corof::long_jmper ZumaMonster::updateCoroFunc()
+corof::long_jmper ZumaTaurus::updateCoroFunc()
 {
     uint64_t targetUID = 0;
-    std::optional<uint64_t> idleTime;
-
     while(m_sdHealth.HP > 0){
         if(targetUID && !m_actorPod->checkUIDValid(targetUID)){
             m_inViewCOList.erase(targetUID);
@@ -16,7 +14,6 @@ corof::long_jmper ZumaMonster::updateCoroFunc()
         }
 
         if(targetUID){
-            idleTime.reset();
             setStandMode(true);
             co_await coro_trackAttackUID(targetUID);
         }
@@ -25,15 +22,6 @@ corof::long_jmper ZumaMonster::updateCoroFunc()
             setStandMode(true);
             co_await coro_followMaster();
         }
-
-        else{
-            if(!idleTime.has_value()){
-                idleTime = hres_tstamp().to_sec();
-            }
-            else if(hres_tstamp().to_sec() - idleTime.value() > 30ULL){
-                setStandMode(false);
-            }
-        }
         co_await corof::async_wait(200);
     }
 
@@ -41,7 +29,7 @@ corof::long_jmper ZumaMonster::updateCoroFunc()
     co_return true;
 }
 
-void ZumaMonster::onAMAttack(const ActorMsgPack &mpk)
+void ZumaTaurus::onAMAttack(const ActorMsgPack &mpk)
 {
     if(m_standMode){
         Monster::onAMAttack(mpk);

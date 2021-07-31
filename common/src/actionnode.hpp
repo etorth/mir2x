@@ -87,6 +87,11 @@ struct ActionNode
             uint8_t standMode;
         };
 
+        struct ZumaTaurusStand
+        {
+            uint8_t standMode;
+        };
+
         struct NPCStand
         {
             uint8_t act;
@@ -100,6 +105,7 @@ struct ActionNode
             RebornZombieStand rebornZombie;
             EvilCentipedeStand evilCentipede;
             ZumaMonsterStand zumaMonster;
+            ZumaTaurusStand zumaTaurus;
             NPCStand npc;
         };
     };
@@ -136,6 +142,11 @@ struct ActionNode
             uint8_t standModeReq;
         };
 
+        struct ZumaTaurusTransf
+        {
+            uint8_t standModeReq;
+        };
+
         union
         {
             DogTransf dog;
@@ -144,6 +155,7 @@ struct ActionNode
             RebornZombieTransf rebornZombie;
             EvilCentipedeTransf evilCentipede;
             ZumaMonsterTransf zumaMonster;
+            ZumaTaurusTransf zumaTaurus;
         };
     };
 

@@ -42,6 +42,7 @@
 #include "woomataurus.hpp"
 #include "evilcentipede.hpp"
 #include "zumamonster.hpp"
+#include "zumataurus.hpp"
 #include "raiitimer.hpp"
 #include "mathf.hpp"
 #include "sysconst.hpp"
@@ -1325,6 +1326,17 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
                         nDstX,
                         nDstY,
                         DIR_UP,
+                        nMasterUID,
+                    };
+                    break;
+                }
+            case DBCOM_MONSTERID(u8"祖玛教主"):
+                {
+                    monsterPtr = new ZumaTaurus
+                    {
+                        this,
+                        nDstX,
+                        nDstY,
                         nMasterUID,
                     };
                     break;
