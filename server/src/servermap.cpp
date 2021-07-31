@@ -40,6 +40,7 @@
 #include "rebornzombie.hpp"
 #include "anthealer.hpp"
 #include "woomataurus.hpp"
+#include "evilcentipede.hpp"
 #include "raiitimer.hpp"
 #include "mathf.hpp"
 #include "sysconst.hpp"
@@ -1300,6 +1301,16 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
                         nDstY,
                         DIR_UP,
                         nMasterUID,
+                    };
+                    break;
+                }
+            case DBCOM_MONSTERID(u8"触龙神"):
+                {
+                    monsterPtr = new EvilCentipede
+                    {
+                        this,
+                        nDstX,
+                        nDstY,
                     };
                     break;
                 }
