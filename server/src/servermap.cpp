@@ -45,6 +45,7 @@
 #include "zumataurus.hpp"
 #include "serverbombspider.hpp"
 #include "serverrootspider.hpp"
+#include "serverredmoonevil.hpp"
 #include "raiitimer.hpp"
 #include "mathf.hpp"
 #include "sysconst.hpp"
@@ -1359,6 +1360,16 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
             case DBCOM_MONSTERID(u8"幻影蜘蛛"):
                 {
                     monsterPtr = new ServerRootSpider
+                    {
+                        this,
+                        nDstX,
+                        nDstY,
+                    };
+                    break;
+                }
+            case DBCOM_MONSTERID(u8"赤月恶魔"):
+                {
+                    monsterPtr = new ServerRedMoonEvil
                     {
                         this,
                         nDstX,
