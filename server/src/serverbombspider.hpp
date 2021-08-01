@@ -10,8 +10,35 @@ class ServerBombSpider final: public Monster
         {}
 
     protected:
-        corof::long_jmper updateCoroFunc() override;
+        corof::long_jmper updateCoroFunc() override
+        {
+            uint64_t targetUID = 0;
+            while(m_sdHealth.HP > 0){
+                if(targetUID && !m_actorPod->checkUIDValid(targetUID)){
+                    m_inViewCOList.erase(targetUID);
+                    targetUID = 0;
+                }
 
-    protected:
-        DamageNode getAttackDamage(int) const override;
+                if(!targetUID){
+                    targetUID = co_await coro_pickTarget();
+                }
+
+                if(targetUID){
+                    const auto [targetMapID, targetGX, targetGY] = co_await coro_getCOPLoc(targetUID);
+                    if((mapID() != targetMapID) || (mathf::LDistance2<int>(X(), Y(), targetGX, targetGY) <= 1)){
+                        break; // goDie
+                    }
+                    else{
+                        co_await coro_trackUID(targetUID, {});
+                    }
+                }
+                else{
+                    break; // goDie
+                }
+                co_await corof::async_wait(200);
+            }
+
+            goDie();
+            co_return true;
+        }
 };

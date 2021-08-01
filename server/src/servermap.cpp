@@ -43,6 +43,7 @@
 #include "evilcentipede.hpp"
 #include "zumamonster.hpp"
 #include "zumataurus.hpp"
+#include "serverbombspider.hpp"
 #include "raiitimer.hpp"
 #include "mathf.hpp"
 #include "sysconst.hpp"
@@ -1340,6 +1341,17 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
                         nDstX,
                         nDstY,
                         nMasterUID,
+                    };
+                    break;
+                }
+            case DBCOM_MONSTERID(u8"爆裂蜘蛛"):
+                {
+                    monsterPtr = new ServerBombSpider
+                    {
+                        this,
+                        nDstX,
+                        nDstY,
+                        DIR_UP,
                     };
                     break;
                 }
