@@ -13,7 +13,7 @@ class ClientGasAnt: public ClientMonster
         }
 
     protected:
-        bool onActionAttack(const ActionNode &action)
+        bool onActionAttack(const ActionNode &action) override
         {
             const auto [endX, endY, endDir] = motionEndGLoc().at(1);
             m_motionQueue = makeWalkMotionQueue(endX, endY, action.x, action.y, SYS_MAXSPEED);

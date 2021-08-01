@@ -731,7 +731,7 @@ ClientMonster *ClientMonster::create(uint64_t uid, ProcessRun *proc, const Actio
             {
                 return new ClientZumaTaurus(uid, proc, action);
             }
-        case DBCOM_MONSTERID(u8"喷毒蚂蚁"):
+        case DBCOM_MONSTERID(u8"爆毒蚂蚁"):
             {
                 return new ClientGasAnt(uid, proc, action);
             }
