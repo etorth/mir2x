@@ -1287,3 +1287,16 @@
         },
     },
 },
+
+{
+    .name = u8"神舰守卫_死亡溅射",
+    .gfxList
+    {
+        {
+            .stage = u8"运行",
+            .type  = u8"附着", // may also make it as 固定, magic of type 附着 only get draw when monster body is still visible
+            .gfxID = 0X03000104,
+            .frameCount = 6,
+        },
+    },
+},
