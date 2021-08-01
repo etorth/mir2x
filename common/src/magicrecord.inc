@@ -1267,3 +1267,23 @@
         },
     },
 },
+
+{
+    .name = u8"沙漠风魔_扇风",
+    .castRange
+    {
+        .type = CRT_LIMITED,
+        .distance = 5,
+    },
+
+    .gfxList
+    {
+        {
+            .stage = u8"运行",
+            .type  = u8"附着",
+            .gfxID = 0X03000622,
+            .frameCount = 10,
+            .gfxDirType = 1,
+        },
+    },
+},

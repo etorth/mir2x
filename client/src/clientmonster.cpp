@@ -61,6 +61,7 @@
 #include "clientzumamonster.hpp"
 #include "clientzumataurus.hpp"
 #include "clientgasant.hpp"
+#include "clientsandevilfan.hpp"
 
 extern Log *g_log;
 extern PNGTexDB *g_progUseDB;
@@ -734,6 +735,10 @@ ClientMonster *ClientMonster::create(uint64_t uid, ProcessRun *proc, const Actio
         case DBCOM_MONSTERID(u8"爆毒蚂蚁"):
             {
                 return new ClientGasAnt(uid, proc, action);
+            }
+        case DBCOM_MONSTERID(u8"沙漠风魔"):
+            {
+                return new ClientSandEvilFan(uid, proc, action);
             }
         case DBCOM_MONSTERID(u8"变异骷髅"):
             {
