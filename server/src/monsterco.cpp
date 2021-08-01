@@ -199,6 +199,19 @@ corof::long_jmper::eval_op<bool> Monster::coro_attackUID(uint64_t targetUID, int
     return fnwait(this, targetUID, dcType).eval<bool>();
 }
 
+corof::long_jmper::eval_op<bool> Monster::coro_jumpUID(uint64_t targetUID)
+{
+    const auto fnwait = +[](Monster *p, uint64_t targetUID) -> corof::long_jmper
+    {
+        corof::async_variable<bool> done;
+        p->jumpUID(targetUID, [&done]{ done.assign(true); }, [&done]{ done.assign(false); });
+
+        const auto result = co_await done;
+        co_return result;
+    };
+    return fnwait(this, targetUID).eval<bool>();
+}
+
 corof::long_jmper::eval_op<bool> Monster::coro_jumpAttackUID(uint64_t targetUID)
 {
     const auto fnwait = +[](Monster *p, uint64_t targetUID) -> corof::long_jmper

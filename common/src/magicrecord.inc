@@ -1326,3 +1326,12 @@
         },
     },
 },
+
+{
+    .name = u8"霸王教主_野蛮冲撞",
+    .castRange
+    {
+        .type = CRT_DIR,
+        .distance = 5,
+    },
+},
