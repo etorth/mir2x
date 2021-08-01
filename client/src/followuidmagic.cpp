@@ -214,6 +214,13 @@ std::tuple<int, int> FollowUIDMagic::targetOff() const
                     default: throw bad_reach();
                 }
             }
+        case DBCOM_MAGICID(u8"爆毒蚂蚁_喷毒"):
+            {
+                switch(gfxDirIndex()){
+                    case  0: return { 22, -12};
+                    default: throw bad_reach();
+                }
+            }
         default:
             {
                 return {0, 0};
