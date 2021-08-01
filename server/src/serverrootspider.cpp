@@ -38,25 +38,37 @@ void ServerRootSpider::addBombSpider()
 
 corof::long_jmper ServerRootSpider::updateCoroFunc()
 {
+    uint64_t targetUID = 0;
     while(m_sdHealth.HP > 0){
-        for(auto p = m_batUIDList.begin(); p != m_batUIDList.end();){
-            if(m_actorPod->checkUIDValid(*p)){
-                p++;
-            }
-            else{
-                p = m_batUIDList.erase(p);
-            }
+        if(targetUID && !m_actorPod->checkUIDValid(targetUID)){
+            m_inViewCOList.erase(targetUID);
+            targetUID = 0;
         }
 
-        if(m_batUIDList.size() < m_maxBatCount){
-            dispatchAction(ActionAttack
-            {
-                .x = X(),
-                .y = Y(),
-            });
+        if(!targetUID){
+            targetUID = co_await coro_pickTarget();
+        }
 
-            co_await corof::async_wait(300);
-            addBombSpider();
+        if(targetUID){
+            for(auto p = m_batUIDList.begin(); p != m_batUIDList.end();){
+                if(m_actorPod->checkUIDValid(*p)){
+                    p++;
+                }
+                else{
+                    p = m_batUIDList.erase(p);
+                }
+            }
+
+            if(m_batUIDList.size() < m_maxBatCount){
+                dispatchAction(ActionAttack
+                {
+                    .x = X(),
+                    .y = Y(),
+                });
+
+                co_await corof::async_wait(300);
+                addBombSpider();
+            }
         }
         co_await corof::async_wait(2000);
     }
