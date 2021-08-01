@@ -1246,3 +1246,24 @@
         },
     },
 },
+
+{
+    .name = u8"爆毒蚂蚁_喷毒",
+    .castRange
+    {
+        .type = CRT_LIMITED,
+        .distance = 5,
+    },
+
+    .gfxList
+    {
+        {
+            .stage = u8"运行",
+            .type  = u8"跟随",
+            .gfxID = 0X03000050,
+            .frameCount = 6,
+            .gfxDirType = 1,
+            .loop = 1,
+        },
+    },
+},

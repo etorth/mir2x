@@ -1247,9 +1247,11 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
                     break;
                 }
             case DBCOM_MONSTERID(u8"触角神魔"):
+            case DBCOM_MONSTERID(u8"爆毒神魔"):
                 {
                     monsterPtr = new EvilTentacle
                     {
+                        nMonsterID,
                         this,
                         nDstX,
                         nDstY,
