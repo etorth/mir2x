@@ -123,8 +123,16 @@ constexpr inline int magicGfxEntryID(const char8_t *type)
     return                                                  MGT_NONE;
 }
 
+struct MagicGfxEntryRef
+{
+    const char8_t *name  = nullptr;
+    const char8_t *stage = nullptr;
+};
+
 struct MagicGfxEntry
 {
+    const MagicGfxEntryRef ref {};
+
     const char8_t *stage = nullptr;
     const char8_t *type  = nullptr;
 
