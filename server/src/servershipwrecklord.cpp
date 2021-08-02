@@ -18,6 +18,9 @@ corof::long_jmper ServerShipwreckLord::updateCoroFunc()
     uint64_t targetUID = 0;
     constexpr int followDistance = 5;
 
+    hres_timer lastPushTime;
+    constexpr uint64_t pushCoolTime = 5;
+
     while(m_sdHealth.HP > 0){
         if(targetUID && !m_actorPod->checkUIDValid(targetUID)){
             m_inViewCOList.erase(targetUID);
@@ -32,8 +35,9 @@ corof::long_jmper ServerShipwreckLord::updateCoroFunc()
             if(co_await coro_inDCCastRange(targetUID, phyMR.castRange)){
                 co_await coro_attackUID(targetUID, phyDC);
             }
-            else if(co_await coro_inDCCastRange(targetUID, pushMR.castRange)){
+            else if(lastPushTime.diff_sec() >= pushCoolTime && (co_await coro_inDCCastRange(targetUID, pushMR.castRange))){
                 co_await coro_attackUID(targetUID, pushDC);
+                lastPushTime.reset();
             }
             else{
                 const auto [targetMapID, targetGX, targetGY] = co_await coro_getCOPLoc(targetUID);
@@ -51,7 +55,7 @@ corof::long_jmper ServerShipwreckLord::updateCoroFunc()
                 }
             }
         }
-        co_await corof::async_wait(200);
+        co_await corof::async_wait(1000);
     }
 
     goDie();

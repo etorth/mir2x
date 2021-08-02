@@ -1328,6 +1328,20 @@
 },
 
 {
+    .name = u8"霸王教主_火刃",
+    .gfxList
+    {
+        {
+            .stage = u8"运行",
+            .type  = u8"附着", // may also make it as 固定, magic of type 附着 only get draw when monster body is still visible
+            .gfxID = 0X03000708,
+            .frameCount = 10,
+            .gfxDirType = 8,
+        },
+    },
+},
+
+{
     .name = u8"霸王教主_野蛮冲撞",
     .castRange
     {

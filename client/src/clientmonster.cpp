@@ -65,6 +65,7 @@
 #include "clientshipwreckguardian.hpp"
 #include "clientspiderbat.hpp"
 #include "clientbombspider.hpp"
+#include "clientshipwrecklord.hpp"
 
 extern Log *g_log;
 extern PNGTexDB *g_progUseDB;
@@ -754,6 +755,10 @@ ClientMonster *ClientMonster::create(uint64_t uid, ProcessRun *proc, const Actio
         case DBCOM_MONSTERID(u8"爆裂蜘蛛"):
             {
                 return new ClientBombSpider(uid, proc, action);
+            }
+        case DBCOM_MONSTERID(u8"霸王教主"):
+            {
+                return new ClientShipwreckLord(uid, proc, action);
             }
         case DBCOM_MONSTERID(u8"变异骷髅"):
             {
