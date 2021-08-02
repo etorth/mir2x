@@ -19,9 +19,9 @@ bool ClientShipwreckLord::onActionAttack(const ActionNode &action)
                     .y = action.y,
                 }));
 
-                m_motionQueue.back()->addUpdate(false, [this](MotionNode *) -> bool
+                m_motionQueue.back()->addUpdate(false, [this](MotionNode *motionPtr) -> bool
                 {
-                    addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"霸王教主_火刃", u8"运行")));
+                    addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"霸王教主_火刃", u8"运行", motionPtr->direction - DIR_BEGIN)));
                     return true;
                 });
                 return true;
