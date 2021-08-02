@@ -28,4 +28,5 @@ class ClientShipwreckLord: public ClientMonster
 
     protected:
         bool onActionAttack(const ActionNode &) override;
+        bool onActionDie   (const ActionNode &) override;
 };

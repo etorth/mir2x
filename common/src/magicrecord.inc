@@ -1349,3 +1349,17 @@
         .distance = 5,
     },
 },
+
+{
+    .name = u8"霸王教主_死亡特效",
+    .gfxList
+    {
+        {
+            .stage = u8"运行",
+            .type  = u8"附着", // may also make it as 固定, magic of type 附着 only get draw when monster body is still visible
+            .gfxID = 0X03000762,
+            .frameCount = 18,
+            .gfxDirType = 1,
+        },
+    },
+},
