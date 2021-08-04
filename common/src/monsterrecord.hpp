@@ -71,8 +71,6 @@ struct MonsterRecord
     const int attackWait   = 0;
     const int attackEffect = 0;
 
-    const int deathEffect = 0;
-
     const char8_t *dcName = u8"";
     const char8_t *description = u8"";
 

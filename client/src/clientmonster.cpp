@@ -35,7 +35,6 @@
 #include "clienttaodog.hpp"
 #include "clientsandcactus.hpp"
 #include "clienttaoskeleton.hpp"
-#include "clientscarecrow.hpp"
 #include "clientbugbatmaggot.hpp"
 #include "clientcannibalplant.hpp"
 #include "clientdualaxeskeleton.hpp"
@@ -363,6 +362,14 @@ bool ClientMonster::onActionDie(const ActionNode &action)
         .x = dieX,
         .y = dieY,
     }));
+
+    if(const auto deathEffectName = str_printf(u8"%s_死亡特效", to_cstr(monsterName())); DBCOM_MAGICID(to_u8cstr(deathEffectName))){
+        m_forcedMotionQueue.back()->addUpdate(true, [deathEffectName, this](MotionNode *) -> bool
+        {
+            addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(to_u8cstr(deathEffectName), u8"运行")));
+            return true;
+        });
+    }
 
     // set motion fadeOut as 0
     // server later will issue fadeOut on dead body
@@ -775,10 +782,6 @@ ClientMonster *ClientMonster::create(uint64_t uid, ProcessRun *proc, const Actio
         case DBCOM_MONSTERID(u8"角蝇"):
             {
                 return new ClientBugbatMaggot(uid, proc, action);
-            }
-        case DBCOM_MONSTERID(u8"稻草人"):
-            {
-                return new ClientScarecrow(uid, proc, action);
             }
         case DBCOM_MONSTERID(u8"沙漠树魔"):
             {
