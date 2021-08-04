@@ -80,33 +80,16 @@ class ClientSandStoneMan: public ClientMonster
     public:
         bool onActionDie(const ActionNode &action) override
         {
-            const auto [endX, endY, endDir] = motionEndGLoc().at(1);
-            for(auto &node: makeWalkMotionQueue(endX, endY, action.x, action.y, SYS_MAXSPEED)){
-                fflassert(node);
-                fflassert(motionValid(node));
-                m_forcedMotionQueue.push_back(std::move(node));
-            }
+            const auto result = ClientMonster::onActionDie(action);
 
-            const auto [dieX, dieY, dieDir] = motionEndGLoc().at(1);
-            m_forcedMotionQueue.emplace_back(std::unique_ptr<MotionNode>(new MotionNode
-            {
-                .type = MOTION_MON_DIE,
-                .direction = dieDir,
-                .x = dieX,
-                .y = dieY,
-            }));
+            fflassert(result);
+            fflassert(m_forcedMotionQueue.back()->type == MOTION_MON_DIE);
 
-            m_forcedMotionQueue.back()->addUpdate(true, [proc = m_processRun](MotionNode *motionPtr)
+            m_forcedMotionQueue.back()->addUpdate(true, [this](MotionNode *) -> bool
             {
-                proc->addFixedLocMagic(std::unique_ptr<FixedLocMagic>(new FixedLocMagic
-                {
-                    u8"沙漠石人_死亡",
-                    u8"运行",
-                    motionPtr->x,
-                    motionPtr->y,
-                }));
+                addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"沙漠石人_死亡光晕", u8"运行")));
                 return true;
             });
-            return true;
+            return result;
         }
 };
