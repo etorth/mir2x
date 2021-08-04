@@ -76,20 +76,4 @@ class ClientSandStoneMan: public ClientMonster
                     }
             }
         }
-
-    public:
-        bool onActionDie(const ActionNode &action) override
-        {
-            const auto result = ClientMonster::onActionDie(action);
-
-            fflassert(result);
-            fflassert(m_forcedMotionQueue.back()->type == MOTION_MON_DIE);
-
-            m_forcedMotionQueue.back()->addUpdate(true, [this](MotionNode *) -> bool
-            {
-                addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"沙漠石人_死亡光晕", u8"运行")));
-                return true;
-            });
-            return result;
-        }
 };

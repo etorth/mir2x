@@ -45,11 +45,9 @@
 #include "clientlightboltzombie.hpp"
 #include "clientmonkzombie.hpp"
 #include "clientrebornzombie.hpp"
-#include "clientlightarmoredguard.hpp"
 #include "clientanthealer.hpp"
 #include "clientnumawizard.hpp"
 #include "clientredclothwizard.hpp"
-#include "clientskeletonelite.hpp"
 #include "clientcavemaggot.hpp"
 #include "clientwoomaflamingwarrior.hpp"
 #include "clientwoomataurus.hpp"
@@ -61,8 +59,6 @@
 #include "clientzumataurus.hpp"
 #include "clientgasant.hpp"
 #include "clientsandevilfan.hpp"
-#include "clientshipwreckguardian.hpp"
-#include "clientspiderbat.hpp"
 #include "clientbombspider.hpp"
 #include "clientshipwrecklord.hpp"
 
@@ -685,10 +681,6 @@ int ClientMonster::currStep() const
 ClientMonster *ClientMonster::create(uint64_t uid, ProcessRun *proc, const ActionNode &action)
 {
     switch(const auto monID = uidf::getMonsterID(uid)){
-        case DBCOM_MONSTERID(u8"轻甲守卫"):
-            {
-                return new ClientLightArmoredGuard(uid, proc, action);
-            }
         case DBCOM_MONSTERID(u8"蚂蚁道士"):
             {
                 return new ClientAntHealer(uid, proc, action);
@@ -701,10 +693,6 @@ ClientMonster *ClientMonster::create(uint64_t uid, ProcessRun *proc, const Actio
         case DBCOM_MONSTERID(u8"红衣法师"):
             {
                 return new ClientRedClothWizard(uid, proc, action);
-            }
-        case DBCOM_MONSTERID(u8"骷髅精灵"):
-            {
-                return new ClientSkeletonElite(uid, proc, action);
             }
         case DBCOM_MONSTERID(u8"洞蛆"):
             {
@@ -750,14 +738,6 @@ ClientMonster *ClientMonster::create(uint64_t uid, ProcessRun *proc, const Actio
         case DBCOM_MONSTERID(u8"沙漠风魔"):
             {
                 return new ClientSandEvilFan(uid, proc, action);
-            }
-        case DBCOM_MONSTERID(u8"神舰守卫"):
-            {
-                return new ClientShipwreckGuardian(uid, proc, action);
-            }
-        case DBCOM_MONSTERID(u8"月魔蜘蛛"):
-            {
-                return new ClientSpiderBat(uid, proc, action);
             }
         case DBCOM_MONSTERID(u8"爆裂蜘蛛"):
             {
