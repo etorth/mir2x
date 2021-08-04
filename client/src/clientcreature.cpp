@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: clientcreature.cpp
- *        Created: 08/31/2015 10:45:48 PM
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #include <algorithm>
 #include <tinyxml2.h>
 #include <SDL2/SDL.h>
@@ -146,11 +128,9 @@ bool ClientCreature::visible() const
 
 double ClientCreature::currMotionDelay() const
 {
-    auto speed = currMotion()->speed;
-    speed = (std::max<int>)(SYS_MINSPEED, speed);
-    speed = (std::min<int>)(SYS_MAXSPEED, speed);
-
-    return (1000.0 / SYS_DEFFPS) * (100.0 / speed);
+    const auto baseDelay = 1000.0 / to_df(SYS_DEFFPS);
+    const auto fspeed = to_df(mathf::bound<int>(currMotion()->speed, SYS_MINSPEED, SYS_MAXSPEED)) / 100.0;
+    return baseDelay / fspeed;
 }
 
 void ClientCreature::querySelf()
