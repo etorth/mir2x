@@ -61,7 +61,10 @@ class ClientCreature
     protected:
         uint32_t m_lastActive;
         uint32_t m_lastQuerySelf;
-        double   m_lastUpdateTime = 0.0;
+
+    protected:
+        double m_lastUpdateTime = 0.0;
+        double m_accuUpdateTime = 0.0;
 
     protected:
         LabelBoard m_nameBoard;
@@ -229,15 +232,7 @@ class ClientCreature
         double currMotionDelay() const;
 
     protected:
-        bool checkUpdate(double)
-        {
-            if(SDL_GetTicks() * 1.0f < currMotionDelay() + m_lastUpdateTime){
-                return false;
-            }
-
-            m_lastUpdateTime = SDL_GetTicks() * 1.0f;
-            return true;
-        }
+        bool checkUpdate(double);
 
     public:
         void querySelf();

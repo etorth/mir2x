@@ -133,6 +133,19 @@ double ClientCreature::currMotionDelay() const
     return baseDelay / fspeed;
 }
 
+
+bool ClientCreature::checkUpdate(double ms)
+{
+    fflassert(ms >= 0.0);
+    m_accuUpdateTime += ms;
+
+    if(m_accuUpdateTime >= m_lastUpdateTime + currMotionDelay()){
+        m_lastUpdateTime = m_accuUpdateTime;
+        return true;
+    }
+    return false;
+}
+
 void ClientCreature::querySelf()
 {
     m_lastQuerySelf = SDL_GetTicks();
