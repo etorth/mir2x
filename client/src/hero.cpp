@@ -219,32 +219,8 @@ void Hero::drawFrame(int viewX, int viewY, int, int frame, bool)
         }
     }
 
-    switch(m_currMotion->type){
-        case MOTION_SPELL0:
-        case MOTION_SPELL1:
-            {
-                if(m_currMotion->extParam.spell.effect){
-                    m_currMotion->extParam.spell.effect->drawShift(startX, startY, false);
-                }
-                break;
-            }
-        case MOTION_ONEHSWING:
-        case MOTION_ONEVSWING:
-        case MOTION_TWOHSWING:
-        case MOTION_TWOVSWING:
-        case MOTION_RANDSWING:
-        case MOTION_SPEARHSWING:
-        case MOTION_SPEARVSWING:
-            {
-                if(m_currMotion->extParam.swing.magicID){
-                    //
-                }
-                break;
-            }
-        default:
-            {
-                break;
-            }
+    if(m_currMotion->effect){
+        m_currMotion->effect->drawShift(startX, startY, colorf::RGBA(0XFF, 0XFF, 0XFF, 0XF0));
     }
 
     // draw HP bar
@@ -267,16 +243,19 @@ void Hero::drawFrame(int viewX, int viewY, int, int frame, bool)
 bool Hero::update(double ms)
 {
     updateAttachMagic(ms);
-    m_currMotion->updateSpellEffect(ms);
-
-    if(!checkUpdate(ms)){
-        return true;
-    }
-
     const CallOnExitHelper motionOnUpdate([this]()
     {
         m_currMotion->update();
     });
+
+    if(m_currMotion->effect){
+        m_currMotion->effect->update(ms);
+        return true;
+    }
+
+    if(!checkUpdate(ms)){
+        return true;
+    }
 
     switch(m_currMotion->type){
         case MOTION_STAND:
@@ -304,48 +283,6 @@ bool Hero::update(double ms)
                 //
                 // we don't want to reset the frame here
                 return moveNextMotion();
-            }
-        case MOTION_SPELL0:
-        case MOTION_SPELL1:
-            {
-                if(!m_currMotion->extParam.spell.effect){
-                    return updateMotion();
-                }
-
-                const int motionEndFrame = getFrameCountEx(m_currMotion->type, m_currMotion->direction) - 1;
-                const int effectEndFrame = m_currMotion->extParam.spell.effect->frameCount() - 1;
-                const int motionSyncFrameCount = [this]() -> int
-                {
-                    if(m_currMotion->type == MOTION_SPELL0){
-                        return 3;
-                    }
-                    return 1;
-                }();
-                const int effectSyncFrameCount = [motionSyncFrameCount, this]() -> int
-                {
-                    return std::lround((to_df(m_currMotion->extParam.spell.effect->speed()) * motionSyncFrameCount) / m_currMotion->speed);
-                }();
-
-                if( m_currMotion->frame >= motionEndFrame - motionSyncFrameCount && m_currMotion->extParam.spell.effect->frame() < effectEndFrame - effectSyncFrameCount){
-                    m_currMotion->frame  = motionEndFrame - motionSyncFrameCount;
-                    return true;
-                }
-                else{
-                    return updateMotion();
-                }
-            }
-        case MOTION_ONEHSWING:
-        case MOTION_ONEVSWING:
-        case MOTION_TWOHSWING:
-        case MOTION_TWOVSWING:
-        case MOTION_RANDSWING:
-        case MOTION_SPEARHSWING:
-        case MOTION_SPEARVSWING:
-            {
-                if(m_currMotion->extParam.swing.magicID){
-                    //
-                }
-                return updateMotion();
             }
         default:
             {
@@ -621,6 +558,14 @@ bool Hero::parseAction(const ActionNode &action)
                         }));
 
                         m_motionQueue.back()->extParam.spell.effect.reset(new CastMagicMotionEffect(m_motionQueue.back().get()));
+
+                        m_motionQueue.back()->effect = std::unique_ptr<HeroSpellMagicEffect>(new HeroSpellMagicEffect
+                        {
+                            to_u8cstr(DBCOM_MAGICRECORD(magicID).name),
+                            this,
+                            m_motionQueue.back().get(),
+                        });
+
                         if(UID() == m_processRun->getMyHeroUID()){
                             m_processRun->getMyHero()->setMagicCastTime(magicID);
                         }

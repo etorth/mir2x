@@ -18,6 +18,9 @@ class MotionEffect
         MotionEffect(const char8_t *, const char8_t *, MotionNode *);
 
     public:
+        virtual ~MotionEffect() = default;
+
+    public:
         virtual int speed() const
         {
             return m_gfxEntry->speed;

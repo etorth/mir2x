@@ -96,8 +96,8 @@ void HeroSpellMagicEffect::update(double ms)
 {
     m_accuTime += ms;
     if(m_hero->checkUpdate(ms)){
+        const int effectEndFrame = frameCount() - 1;
         const int motionEndFrame = m_hero->getFrameCountEx(m_motion->type, m_motion->direction) - 1;
-        const int effectEndFrame = m_motion->extParam.spell.effect->frameCount() - 1;
         const int motionSyncFrameCount = [this]() -> int
         {
             if(m_motion->type == MOTION_SPELL0){
@@ -107,10 +107,10 @@ void HeroSpellMagicEffect::update(double ms)
         }();
         const int effectSyncFrameCount = [motionSyncFrameCount, this]() -> int
         {
-            return std::lround((to_df(m_motion->extParam.spell.effect->speed()) * motionSyncFrameCount) / m_motion->speed);
+            return std::lround((to_df(speed()) * motionSyncFrameCount) / m_motion->speed);
         }();
 
-        if( m_motion->frame >= motionEndFrame - motionSyncFrameCount && m_motion->extParam.spell.effect->frame() < effectEndFrame - effectSyncFrameCount){
+        if( m_motion->frame >= motionEndFrame - motionSyncFrameCount && frame() < effectEndFrame - effectSyncFrameCount){
             m_motion->frame  = motionEndFrame - motionSyncFrameCount;
         }
         else{
