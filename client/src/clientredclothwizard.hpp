@@ -24,7 +24,7 @@ class ClientRedClothWizard: public ClientMonster
                 .y = action.y,
             }));
 
-            m_motionQueue.back()->addUpdate(false, [targetUID = action.aimUID, proc = m_processRun](MotionNode *motionPtr) -> bool
+            m_motionQueue.back()->addTrigger(false, [targetUID = action.aimUID, proc = m_processRun](MotionNode *motionPtr) -> bool
             {
                 if(motionPtr->frame < 3){
                     return false;

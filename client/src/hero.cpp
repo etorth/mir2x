@@ -245,7 +245,7 @@ bool Hero::update(double ms)
     updateAttachMagic(ms);
     const CallOnExitHelper motionOnUpdate([this]()
     {
-        m_currMotion->update();
+        m_currMotion->runTrigger();
     });
 
     if(m_currMotion->effect){
@@ -475,7 +475,7 @@ bool Hero::parseAction(const ActionNode &action)
                             throw fflerror("invalid UID to trigger pickUp action: uid = %llu", to_llu(UID()));
                         }
 
-                        m_motionQueue.back()->addUpdate(false, [this](MotionNode *motionPtr) -> bool
+                        m_motionQueue.back()->addTrigger(false, [this](MotionNode *motionPtr) -> bool
                         {
                             if(motionPtr->frame < 4){
                                 return false;
@@ -565,7 +565,7 @@ bool Hero::parseAction(const ActionNode &action)
                             case DBCOM_MAGICID(u8"冰沙掌"):
                             case DBCOM_MAGICID(u8"地狱火"):
                                 {
-                                    m_motionQueue.back()->addUpdate(true, [standDir, magicID, this](MotionNode *motionPtr) -> bool
+                                    m_motionQueue.back()->addTrigger(true, [standDir, magicID, this](MotionNode *motionPtr) -> bool
                                     {
                                         // usually when reaches this cb the motionPtr is just currMotion()
                                         // but not true if in flushForcedMotion()
@@ -598,7 +598,7 @@ bool Hero::parseAction(const ActionNode &action)
                                                         aimX,
                                                         aimY,
                                                         standDir,
-                                                    }))->addOnUpdate([aimX, aimY, this](MagicBase *magicPtr)
+                                                    }))->addTrigger([aimX, aimY, this](MagicBase *magicPtr)
                                                     {
                                                         if(magicPtr->frame() < 10){
                                                             return false;
@@ -624,7 +624,7 @@ bool Hero::parseAction(const ActionNode &action)
                                 }
                             case DBCOM_MAGICID(u8"疾光电影"):
                                 {
-                                    m_motionQueue.back()->addUpdate(true, [standDir, this](MotionNode *motionPtr) -> bool
+                                    m_motionQueue.back()->addTrigger(true, [standDir, this](MotionNode *motionPtr) -> bool
                                     {
                                         if(motionPtr->frame < 3){
                                             return false;
@@ -649,7 +649,7 @@ bool Hero::parseAction(const ActionNode &action)
                             case DBCOM_MAGICID(u8"冰月神掌"):
                             case DBCOM_MAGICID(u8"冰月震天"):
                                 {
-                                    m_motionQueue.back()->addUpdate(true, [targetUID = action.aimUID, magicID, this](MotionNode *motionPtr) -> bool
+                                    m_motionQueue.back()->addTrigger(true, [targetUID = action.aimUID, magicID, this](MotionNode *motionPtr) -> bool
                                     {
                                         // usually when reaches this cb the current motion is motionPtr
                                         // but not true if in flushForcedMotion()
@@ -769,7 +769,7 @@ bool Hero::parseAction(const ActionNode &action)
                     .y = endY,
                 }));
 
-                m_motionQueue.front()->addUpdate(true, [this](MotionNode *) -> bool
+                m_motionQueue.front()->addTrigger(true, [this](MotionNode *) -> bool
                 {
                     for(auto &p: m_attachMagicList){
                         if(p->magicID() == DBCOM_MAGICID(u8"魔法盾")){

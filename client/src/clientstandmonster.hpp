@@ -28,7 +28,7 @@ class ClientStandMonster: public ClientMonster
                 .y = endY,
             }));
 
-            m_forcedMotionQueue.back()->addUpdate(true, [this](MotionNode *) -> bool
+            m_forcedMotionQueue.back()->addTrigger(true, [this](MotionNode *) -> bool
             {
                 m_standMode = !m_standMode;
                 return true;

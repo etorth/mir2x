@@ -80,11 +80,14 @@ struct MotionNode final
     /**/    const int endY = y;                                            /**/
     /**/                                                                   /**/
     /**/    int frame = 0;                                                 /**/
-    /**/    MotionExtParam extParam{};                                     /**/
+    /**/    MotionExtParam extParam {};                                    /**/
     /**/    std::unique_ptr<MotionEffect> effect {};                       /**/
-    /**/    std::list<std::function<bool(MotionNode *)>> onUpdateCBList{}; /**/
     /**/                                                                   /**/
     ///////////////////////////////////////////////////////////////////////////
+
+    // private members
+    // make it public to support init by initializer_list
+    std::list<std::function<bool(MotionNode *)>> m_triggerList {};
 
     operator bool () const
     {
@@ -94,9 +97,10 @@ struct MotionNode final
             || ((type >= MOTION_NPC_BEGIN) && (type < MOTION_NPC_END));
     }
 
-    void update();
+    void runTrigger();
+    void addTrigger(bool, std::function<bool(MotionNode *)>);
+
     void print() const;
-    void addUpdate(bool, std::function<bool(MotionNode *)>);
     double frameDelay() const;
 };
 

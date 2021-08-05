@@ -22,7 +22,7 @@ class ClientWoomaFlamingWarrior: public ClientMonster
                 .y = action.y,
             }));
 
-            m_motionQueue.back()->addUpdate(false, [this](MotionNode *motionPtr) -> bool
+            m_motionQueue.back()->addTrigger(false, [this](MotionNode *motionPtr) -> bool
             {
                 if(motionPtr->frame < 3){
                     return false;

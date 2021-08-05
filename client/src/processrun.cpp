@@ -1551,7 +1551,7 @@ void ProcessRun::onActionSpawn(uint64_t uid, const ActionNode &action)
                     action.x,
                     action.y,
 
-                }))->addOnUpdate([action, uid, this](MagicBase *magicPtr) -> bool
+                }))->addTrigger([action, uid, this](MagicBase *magicPtr) -> bool
                 {
                     if(magicPtr->frame() < 10){
                         return false;

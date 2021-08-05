@@ -240,7 +240,7 @@ bool ClientNPC::update(double ms)
     fflassert(motionValid(m_currMotion));
     const CallOnExitHelper motionOnUpdate([this]()
     {
-        m_currMotion->update();
+        m_currMotion->runTrigger();
     });
 
     const bool doneCurrMotion = [this]()

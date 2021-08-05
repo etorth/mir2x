@@ -174,7 +174,7 @@ class MagicBase
             m_onDoneCBList.push_back(std::move(onDone));
         }
 
-        void addOnUpdate(std::function<bool(MagicBase *)> onUpdate)
+        void addTrigger(std::function<bool(MagicBase *)> onUpdate)
         {
             m_onUpdateCBList.push_back(std::move(onUpdate));
         }

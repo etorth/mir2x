@@ -80,7 +80,7 @@ ClientZumaTaurus::ClientZumaTaurus(uint64_t uid, ProcessRun *proc, const ActionN
                     .y = action.y,
                 });
 
-                m_currMotion->addUpdate(false, [this](MotionNode *motionPtr) -> bool
+                m_currMotion->addTrigger(false, [this](MotionNode *motionPtr) -> bool
                 {
                     if(motionPtr->frame < 9){
                         return false;
@@ -182,7 +182,7 @@ bool ClientZumaTaurus::onActionAttack(const ActionNode &action)
             .y = action.y,
         }));
 
-        m_motionQueue.back()->addUpdate(false, [this](MotionNode *motionPtr) -> bool
+        m_motionQueue.back()->addTrigger(false, [this](MotionNode *motionPtr) -> bool
         {
             addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"祖玛教主_施法", u8"启动", motionPtr->direction - DIR_BEGIN)));
             return true;
@@ -198,7 +198,7 @@ void ClientZumaTaurus::addActionTransf()
     fflassert(!m_forcedMotionQueue.empty());
     fflassert(m_forcedMotionQueue.back()->type == MOTION_MON_SPAWN);
 
-    m_forcedMotionQueue.back()->addUpdate(false, [this](MotionNode *motionPtr) -> bool
+    m_forcedMotionQueue.back()->addTrigger(false, [this](MotionNode *motionPtr) -> bool
     {
         if(motionPtr->frame < 9){
             return false;

@@ -20,7 +20,7 @@ class ClientMonkZombie: public ClientMonster
                             .y = action.y,
                         });
 
-                        m_currMotion->addUpdate(true, [proc](MotionNode *motionPtr)
+                        m_currMotion->addTrigger(true, [proc](MotionNode *motionPtr)
                         {
                             if(motionPtr->frame < 9){
                                 return false;

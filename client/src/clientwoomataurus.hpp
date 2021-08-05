@@ -25,7 +25,7 @@ class ClientWoomaTaurus: public ClientMonster
             switch(action.extParam.attack.damageID){
                 case DBCOM_MAGICID(u8"沃玛教主_电光"):
                     {
-                        m_motionQueue.back()->addUpdate(false, [this](MotionNode *motionPtr) -> bool
+                        m_motionQueue.back()->addTrigger(false, [this](MotionNode *motionPtr) -> bool
                         {
                             if(motionPtr->frame < 1){
                                 return false;
@@ -45,7 +45,7 @@ class ClientWoomaTaurus: public ClientMonster
                     }
                 case DBCOM_MAGICID(u8"沃玛教主_雷电术"):
                     {
-                        m_motionQueue.back()->addUpdate(false, [targetUID = action.aimUID, this](MotionNode *motionPtr) -> bool
+                        m_motionQueue.back()->addTrigger(false, [targetUID = action.aimUID, this](MotionNode *motionPtr) -> bool
                         {
                             if(motionPtr->frame < 3){
                                 return false;

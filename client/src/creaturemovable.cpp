@@ -316,7 +316,7 @@ void CreatureMovable::flushForcedMotion()
         }
 
         while(motionPtr->frame < getFrameCount(motionPtr->type, motionPtr->direction)){
-            motionPtr->update();
+            motionPtr->runTrigger();
             motionPtr->frame++;
         }
     };

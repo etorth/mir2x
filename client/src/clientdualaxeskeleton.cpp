@@ -58,7 +58,7 @@ bool ClientDualAxeSkeleton::onActionAttack(const ActionNode &action)
         .y = action.y,
     }));
 
-    m_motionQueue.back()->addUpdate(false, [targetUID = action.aimUID, this](MotionNode *motionPtr) -> bool
+    m_motionQueue.back()->addTrigger(false, [targetUID = action.aimUID, this](MotionNode *motionPtr) -> bool
     {
         if(motionPtr->frame < 4){
             return false;
