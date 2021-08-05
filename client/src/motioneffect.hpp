@@ -77,11 +77,14 @@ class HeroSpellMagicEffect: public MotionEffect
 class ClientCreature;
 class MotionSyncEffect: public MotionEffect
 {
-    private:
+    protected:
         ClientCreature * const m_creature = nullptr;
+
     private:
         const bool m_useMotionSpeed = true;
-        const int m_motionFrameCount = 10;
+
+    public:
+        MotionSyncEffect(const char8_t *, const char8_t *, ClientCreature *, MotionNode *);
 
     protected:
         int absFrame() const override;

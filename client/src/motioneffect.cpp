@@ -119,16 +119,20 @@ void HeroSpellMagicEffect::update(double ms)
     }
 }
 
+MotionSyncEffect::MotionSyncEffect(const char8_t *magicName, const char8_t *stageName, ClientCreature *creaturePtr, MotionNode *motionPtr)
+    : MotionEffect(magicName, stageName, motionPtr)
+    , m_creature(creaturePtr)
+{}
+
 int MotionSyncEffect::absFrame() const
 {
     const auto fspeed = [this]() -> double
     {
         if(m_useMotionSpeed){
-            return to_df(m_motion->speed * m_gfxEntry->frameCount) / to_df(m_motionFrameCount);
+            return to_df(m_motion->speed * m_gfxEntry->frameCount) / to_df(m_creature->getFrameCountEx(m_motion->type, m_motion->direction));
         }
         return to_df(m_gfxEntry->speed);
     }();
-
     return (m_accuTime / 1000.0) * SYS_DEFFPS * (fspeed / 100.0);
 }
 
