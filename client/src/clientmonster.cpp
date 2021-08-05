@@ -121,16 +121,19 @@ ClientMonster::ClientMonster(uint64_t uid, ProcessRun *proc)
 bool ClientMonster::update(double ms)
 {
     updateAttachMagic(ms);
-    m_currMotion->updateSpellEffect(ms);
-
-    if(!checkUpdate(ms)){
-        return true;
-    }
-
     const CallOnExitHelper motionOnUpdate([this]()
     {
         m_currMotion->update();
     });
+
+    if(m_currMotion->effect){
+        m_currMotion->effect->update(ms);
+        return true;
+    }
+
+    if(!checkUpdate(ms)){
+        return true;
+    }
 
     switch(m_currMotion->type){
         case MOTION_MON_STAND:

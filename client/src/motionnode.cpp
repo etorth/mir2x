@@ -45,35 +45,6 @@ void MotionNode::update()
     }
 }
 
-void MotionNode::updateSpellEffect(double ms)
-{
-    switch(type){
-        case MOTION_SPELL0:
-        case MOTION_SPELL1:
-            {
-                if( extParam.spell.effect){
-                    extParam.spell.effect->update(ms);
-                }
-                break;
-            }
-        default:
-            {
-                break;
-            }
-    }
-}
-
-void MagicSpellEffect::drawShift(int shiftX, int shiftY, bool alpha)
-{
-    if(const auto texID = frameTexID(); texID != SYS_TEXNIL){
-        if(auto [texPtr, offX, offY] = g_magicDB->retrieve(texID); texPtr){
-            SDLDeviceHelper::EnableTextureModColor enableModColor(texPtr, colorf::RGBA(0XFF, 0XFF, 0XFF, alpha ? 0X40 : 0XC0));
-            SDLDeviceHelper::EnableTextureBlendMode enableBlendMode(texPtr, SDL_BLENDMODE_BLEND);
-            g_sdlDevice->drawTexture(texPtr, shiftX + offX, shiftY + offY);
-        }
-    }
-}
-
 void MotionNode::print() const
 {
     g_log->addLog(LOGTYPE_INFO, "MotionNode::0x%016p::motion               = %s", to_cvptr(this), motionName(type)           );

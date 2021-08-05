@@ -548,16 +548,7 @@ bool Hero::parseAction(const ActionNode &action)
                             .direction = standDir,
                             .x = action.x,
                             .y = action.y,
-                            .extParam
-                            {
-                                .spell
-                                {
-                                    .magicID = magicID,
-                                },
-                            },
                         }));
-
-                        m_motionQueue.back()->extParam.spell.effect.reset(new CastMagicMotionEffect(m_motionQueue.back().get()));
 
                         m_motionQueue.back()->effect = std::unique_ptr<HeroSpellMagicEffect>(new HeroSpellMagicEffect
                         {
