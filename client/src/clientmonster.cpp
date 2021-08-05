@@ -287,6 +287,10 @@ void ClientMonster::drawFrame(int viewX, int viewY, int focusMask, int frame, bo
             p->drawShift(startX, startY, false);
         }
 
+        if(m_currMotion->effect){
+            m_currMotion->effect->drawShift(startX, startY, colorf::RGBA(0XFF, 0XFF, 0XFF, 0XF0));
+        }
+
         if(m_currMotion->type != MOTION_MON_DIE && g_clientArgParser->drawHPBar){
             auto pBar0 = g_progUseDB->retrieve(0X00000014);
             auto pBar1 = g_progUseDB->retrieve(0X00000015);

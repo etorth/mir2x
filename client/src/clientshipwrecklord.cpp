@@ -1,6 +1,7 @@
 #include "dbcomid.hpp"
 #include "processrun.hpp"
 #include "dbcomrecord.hpp"
+#include "motioneffect.hpp"
 #include "clientshipwrecklord.hpp"
 
 bool ClientShipwreckLord::onActionAttack(const ActionNode &action)
@@ -19,11 +20,7 @@ bool ClientShipwreckLord::onActionAttack(const ActionNode &action)
                     .y = action.y,
                 }));
 
-                m_motionQueue.back()->addTrigger(false, [this](MotionNode *motionPtr) -> bool
-                {
-                    addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"霸王教主_火刃", u8"运行", motionPtr->direction - DIR_BEGIN)));
-                    return true;
-                });
+                m_motionQueue.back()->effect.reset(new MotionSyncEffect(u8"霸王教主_火刃", u8"运行", this, m_motionQueue.back().get()));
                 return true;
             }
         case DBCOM_MAGICID(u8"霸王教主_野蛮冲撞"):
