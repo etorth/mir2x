@@ -60,6 +60,14 @@ class ClientMonster: public CreatureMovable
                             .x = action.x,
                             .y = action.y,
                         });
+
+                        if(const auto deathEffectName = str_printf(u8"%s_死亡特效", to_cstr(monsterName())); DBCOM_MAGICID(to_u8cstr(deathEffectName))){
+                            m_currMotion->addUpdate(true, [deathEffectName, this](MotionNode *) -> bool
+                            {
+                                addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(to_u8cstr(deathEffectName), u8"运行")));
+                                return true;
+                            });
+                        }
                         break;
                     }
                 default:

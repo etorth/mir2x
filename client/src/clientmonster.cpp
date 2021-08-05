@@ -354,7 +354,7 @@ bool ClientMonster::onActionDie(const ActionNode &action)
     m_forcedMotionQueue.emplace_back(std::unique_ptr<MotionNode>(new MotionNode
     {
         .type = MOTION_MON_DIE,
-        .direction = dieDir,
+        .direction = directionValid(dieDir) ? to_d(dieDir) : DIR_UP,
         .x = dieX,
         .y = dieY,
     }));
