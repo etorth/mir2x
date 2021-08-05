@@ -38,6 +38,7 @@
 #include "dbcomid.hpp"
 #include "dbcomrecord.hpp"
 #include "protocoldef.hpp"
+#include "motioneffect.hpp"
 
 class MagicSpellEffect;
 struct MotionNode final
@@ -89,6 +90,7 @@ struct MotionNode final
     /**/    int frame = 0;                                                 /**/
     /**/    MotionExtParam extParam{};                                     /**/
     /**/    std::list<std::function<bool(MotionNode *)>> onUpdateCBList{}; /**/
+    /**/    std::unique_ptr<MotionEffect> effect {};                       /**/
     /**/                                                                   /**/
     ///////////////////////////////////////////////////////////////////////////
 
@@ -104,6 +106,7 @@ struct MotionNode final
     void updateSpellEffect(double);
     void print() const;
     void addUpdate(bool, std::function<bool(MotionNode *)>);
+    double frameDelay() const;
 };
 
 class MagicSpellEffect

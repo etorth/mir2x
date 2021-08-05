@@ -176,7 +176,7 @@ class ClientCreature
     protected:
         virtual bool advanceMotionFrame(int);
 
-    protected:
+    public:
         virtual bool updateMotion()
         {
             if(m_currMotion->frame < (getFrameCountEx(m_currMotion->type, m_currMotion->direction) - 1)){
@@ -228,10 +228,7 @@ class ClientCreature
             return m_attachMagicList.back().get();
         }
 
-    protected:
-        double currMotionDelay() const;
-
-    protected:
+    public:
         bool checkUpdate(double);
 
     public:

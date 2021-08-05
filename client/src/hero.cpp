@@ -323,7 +323,7 @@ bool Hero::update(double ms)
                 }();
                 const int effectSyncFrameCount = [motionSyncFrameCount, this]() -> int
                 {
-                    return std::lround(m_currMotion->extParam.spell.effect->speed() * motionSyncFrameCount / m_currMotion->speed);
+                    return std::lround((to_df(m_currMotion->extParam.spell.effect->speed()) * motionSyncFrameCount) / m_currMotion->speed);
                 }();
 
                 if( m_currMotion->frame >= motionEndFrame - motionSyncFrameCount && m_currMotion->extParam.spell.effect->frame() < effectEndFrame - effectSyncFrameCount){

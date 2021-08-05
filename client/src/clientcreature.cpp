@@ -126,20 +126,12 @@ bool ClientCreature::visible() const
     }
 }
 
-double ClientCreature::currMotionDelay() const
-{
-    const auto baseDelay = 1000.0 / to_df(SYS_DEFFPS);
-    const auto fspeed = to_df(mathf::bound<int>(currMotion()->speed, SYS_MINSPEED, SYS_MAXSPEED)) / 100.0;
-    return baseDelay / fspeed;
-}
-
-
 bool ClientCreature::checkUpdate(double ms)
 {
     fflassert(ms >= 0.0);
     m_accuUpdateTime += ms;
 
-    if(m_accuUpdateTime >= m_lastUpdateTime + currMotionDelay()){
+    if(m_accuUpdateTime >= m_lastUpdateTime + m_currMotion->frameDelay()){
         m_lastUpdateTime = m_accuUpdateTime;
         return true;
     }

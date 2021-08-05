@@ -17,6 +17,7 @@
  */
 #include <cinttypes>
 #include "log.hpp"
+#include "mathf.hpp"
 #include "colorf.hpp"
 #include "totype.hpp"
 #include "fflerror.hpp"
@@ -98,4 +99,11 @@ void MotionNode::addUpdate(bool addBefore, std::function<bool(MotionNode *)> op)
     else{
         onUpdateCBList.push_back(std::move(op));
     }
+}
+
+double MotionNode::frameDelay() const
+{
+    const auto baseDelay = 1000.0 / to_df(SYS_DEFFPS);
+    const auto fspeed = to_df(mathf::bound<int>(speed, SYS_MINSPEED, SYS_MAXSPEED)) / 100.0;
+    return baseDelay / fspeed;
 }
