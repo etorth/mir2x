@@ -1,8 +1,8 @@
 /*
  * =====================================================================================
  *
- *       Filename: sandghost.cpp
- *        Created: 07/24/2021 03:48:41 AM
+ *       Filename: servereviltentacle.cpp
+ *        Created: 04/26/2021 02:32:45
  *    Description:
  *
  *        Version: 1.0
@@ -16,22 +16,15 @@
  * =====================================================================================
  */
 
-#include <optional>
-#include "mathf.hpp"
-#include "dbcomid.hpp"
-#include "raiitimer.hpp"
-#include "sandghost.hpp"
+#include "servereviltentacle.hpp"
 #include "serverargparser.hpp"
 
 extern ServerArgParser *g_serverArgParser;
-corof::long_jmper SandGhost::updateCoroFunc()
+corof::long_jmper ServerEvilTentacle::updateCoroFunc()
 {
     uint64_t targetUID = 0;
-    std::optional<uint64_t> idleTime;
-
     while(m_sdHealth.HP > 0){
         if(targetUID && !m_actorPod->checkUIDValid(targetUID)){
-            m_inViewCOList.erase(targetUID);
             targetUID = 0;
         }
 
@@ -42,31 +35,20 @@ corof::long_jmper SandGhost::updateCoroFunc()
         if(targetUID){
             const auto [targetMapID, targetX, targetY] = co_await coro_getCOPLoc(targetUID);
             if(inView(targetMapID, targetX, targetY)){
-                idleTime.reset();
-                setStandMode(true);
-                if(mathf::CDistance<int>(targetX, targetY, X(), Y()) <= 1){
-                    co_await coro_attackUID(targetUID, DBCOM_MAGICID(u8"物理攻击"));
+                if(mathf::CDistance<int>(targetX, targetY, X(), Y()) <= 3){
+                    co_await coro_trackAttackUID(targetUID);
                 }
                 else{
-                    co_await coro_trackUID(targetUID, DBCOM_MAGICRECORD(u8"物理攻击").castRange);
+                    co_await coro_jumpAttackUID(targetUID);
                 }
             }
             else{
-                idleTime = hres_tstamp().to_sec();
-                m_inViewCOList.erase(targetUID);
                 targetUID = 0;
+                m_inViewCOList.erase(targetUID);
             }
         }
         else if(g_serverArgParser->forceMonsterRandomMove || hasPlayerNeighbor()){
-            if(m_standMode){
-                co_await coro_randomMove();
-            }
-        }
-        else if(!idleTime.has_value()){
-            idleTime = hres_tstamp().to_sec();
-        }
-        else if(hres_tstamp().to_sec() - idleTime.value() > 30ULL){
-            setStandMode(false);
+            co_await coro_randomMove();
         }
         co_await corof::async_wait(200);
     }

@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename: guard.cpp
+ *       Filename: serverguard.cpp
  *        Created: 04/26/2021 02:32:45
  *    Description:
  *
@@ -16,20 +16,20 @@
  * =====================================================================================
  */
 
-#include "guard.hpp"
+#include "serverguard.hpp"
 #include "dbcomid.hpp"
 #include "friendtype.hpp"
 #include "monoserver.hpp"
 
 extern MonoServer *g_monoServer;
-Guard::Guard(uint32_t monID, ServerMap *mapPtr, int argX, int argY, int argDir)
+ServerGuard::ServerGuard(uint32_t monID, ServerMap *mapPtr, int argX, int argY, int argDir)
     : Monster(monID, mapPtr, argX, argY, argDir, 0)
     , m_standX(argX)
     , m_standY(argY)
     , m_standDirection(argDir)
 {}
 
-corof::long_jmper Guard::updateCoroFunc()
+corof::long_jmper ServerGuard::updateCoroFunc()
 {
     uint64_t targetUID = 0;
     while(m_sdHealth.HP > 0){
@@ -68,7 +68,7 @@ corof::long_jmper Guard::updateCoroFunc()
     co_return true;
 }
 
-void Guard::jumpBack(std::function<void()> onOK, std::function<void()> onError)
+void ServerGuard::jumpBack(std::function<void()> onOK, std::function<void()> onError)
 {
     if(X() == m_standX && Y() == m_standY){
         if(Direction() != m_standDirection){
@@ -85,7 +85,7 @@ void Guard::jumpBack(std::function<void()> onOK, std::function<void()> onError)
     requestJump(m_standX, m_standY, m_standDirection, onOK, onError);
 }
 
-void Guard::checkFriend(uint64_t uid, std::function<void(int)> fnOp)
+void ServerGuard::checkFriend(uint64_t uid, std::function<void(int)> fnOp)
 {
     fflassert(uid != 0);
     fflassert(uid != UID());
@@ -112,12 +112,12 @@ void Guard::checkFriend(uint64_t uid, std::function<void(int)> fnOp)
     }
 }
 
-bool Guard::canMove() const
+bool ServerGuard::canMove() const
 {
     return CharObject::canMove();
 }
 
-bool Guard::canAttack() const
+bool ServerGuard::canAttack() const
 {
     if(!CharObject::canAttack()){
         return false;

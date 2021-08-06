@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename: sandghost.hpp
+ *       Filename: serversandghost.hpp
  *        Created: 07/24/2021 03:48:41 AM
  *    Description:
  *
@@ -20,13 +20,13 @@
 #include "dbcomid.hpp"
 #include "monster.hpp"
 
-class SandGhost final: public Monster
+class ServerSandGhost final: public Monster
 {
     private:
         bool m_standMode = false;
 
     public:
-        SandGhost(ServerMap *mapPtr, int argX, int argY, int argDir)
+        ServerSandGhost(ServerMap *mapPtr, int argX, int argY, int argDir)
             : Monster(DBCOM_MONSTERID(u8"沙鬼"), mapPtr, argX, argY, argDir, 0)
         {}
 

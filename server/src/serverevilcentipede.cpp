@@ -2,11 +2,9 @@
 #include "mathf.hpp"
 #include "dbcomid.hpp"
 #include "raiitimer.hpp"
-#include "rebornzombie.hpp"
-#include "serverargparser.hpp"
+#include "serverevilcentipede.hpp"
 
-extern ServerArgParser *g_serverArgParser;
-corof::long_jmper RebornZombie::updateCoroFunc()
+corof::long_jmper ServerEvilCentipede::updateCoroFunc()
 {
     uint64_t targetUID = 0;
     std::optional<uint64_t> idleTime;
@@ -29,27 +27,18 @@ corof::long_jmper RebornZombie::updateCoroFunc()
                 if(mathf::CDistance<int>(targetX, targetY, X(), Y()) <= 1){
                     co_await coro_attackUID(targetUID, DBCOM_MAGICID(u8"物理攻击"));
                 }
-                else{
-                    co_await coro_trackUID(targetUID, DBCOM_MAGICRECORD(u8"物理攻击").castRange);
-                }
             }
             else{
+                idleTime = hres_tstamp().to_sec();
                 m_inViewCOList.erase(targetUID);
                 targetUID = 0;
             }
         }
-        else if(g_serverArgParser->forceMonsterRandomMove || hasPlayerNeighbor()){
-            if(m_standMode){
-                co_await coro_randomMove();
-            }
+        else if(!idleTime.has_value()){
+            idleTime = hres_tstamp().to_sec();
         }
-        else{
-            if(!idleTime.has_value()){
-                idleTime = hres_tstamp().to_sec();
-            }
-            else if(hres_tstamp().to_sec() - idleTime.value() > 30ULL){
-                setStandMode(false);
-            }
+        else if(hres_tstamp().to_sec() - idleTime.value() > 30ULL){
+            setStandMode(false);
         }
         co_await corof::async_wait(200);
     }

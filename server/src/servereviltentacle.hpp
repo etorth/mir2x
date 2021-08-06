@@ -1,8 +1,8 @@
 /*
  * =====================================================================================
  *
- *       Filename: sandcactus.hpp
- *        Created: 07/19/2021 11:32:45
+ *       Filename: servereviltentacle.hpp
+ *        Created: 04/26/2021 02:32:45
  *    Description:
  *
  *        Version: 1.0
@@ -20,22 +20,15 @@
 #include "dbcomid.hpp"
 #include "monster.hpp"
 
-class SandCactus final: public Monster
+class ServerEvilTentacle: public Monster
 {
     public:
-        SandCactus(ServerMap *mapPtr, int argX, int argY)
-            : Monster(DBCOM_MONSTERID(u8"沙漠树魔"), mapPtr, argX, argY, DIR_BEGIN, 0)
-        {}
+        ServerEvilTentacle(uint32_t monID, ServerMap *mapPtr, int argX, int argY, int argDir)
+            : Monster(monID, mapPtr, argX, argY, argDir, 0)
+        {
+            fflassert(isMonster(u8"触角神魔") || isMonster(u8"爆毒神魔"));
+        }
 
     protected:
         corof::long_jmper updateCoroFunc() override;
-
-    protected:
-        DamageNode getAttackDamage(int) const override;
-
-    protected:
-        bool canMove() const override
-        {
-            return false;
-        }
 };

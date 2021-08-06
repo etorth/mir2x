@@ -1,10 +1,10 @@
 #include "fflerror.hpp"
 #include "friendtype.hpp"
-#include "woomataurus.hpp"
+#include "serverwoomataurus.hpp"
 #include "serverargparser.hpp"
 
 extern ServerArgParser *g_serverArgParser;
-corof::long_jmper WoomaTaurus::updateCoroFunc()
+corof::long_jmper ServerWoomaTaurus::updateCoroFunc()
 {
     const auto   lightMagicID = DBCOM_MAGICID(u8"沃玛教主_电光");
     const auto thunderMagicID = DBCOM_MAGICID(u8"沃玛教主_雷电术");
@@ -71,7 +71,7 @@ corof::long_jmper WoomaTaurus::updateCoroFunc()
     co_return true;
 }
 
-void WoomaTaurus::sendThunderBolt(uint64_t uid)
+void ServerWoomaTaurus::sendThunderBolt(uint64_t uid)
 {
     SMCastMagic smFM;
     std::memset(&smFM, 0, sizeof(smFM));

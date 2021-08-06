@@ -1,10 +1,30 @@
+/*
+ * =====================================================================================
+ *
+ *       Filename: serversandghost.cpp
+ *        Created: 07/24/2021 03:48:41 AM
+ *    Description:
+ *
+ *        Version: 1.0
+ *       Revision: none
+ *       Compiler: gcc
+ *
+ *         Author: ANHONG
+ *          Email: anhonghe@gmail.com
+ *   Organization: USTC
+ *
+ * =====================================================================================
+ */
+
 #include <optional>
 #include "mathf.hpp"
 #include "dbcomid.hpp"
 #include "raiitimer.hpp"
-#include "evilcentipede.hpp"
+#include "serversandghost.hpp"
+#include "serverargparser.hpp"
 
-corof::long_jmper EvilCentipede::updateCoroFunc()
+extern ServerArgParser *g_serverArgParser;
+corof::long_jmper ServerSandGhost::updateCoroFunc()
 {
     uint64_t targetUID = 0;
     std::optional<uint64_t> idleTime;
@@ -27,11 +47,19 @@ corof::long_jmper EvilCentipede::updateCoroFunc()
                 if(mathf::CDistance<int>(targetX, targetY, X(), Y()) <= 1){
                     co_await coro_attackUID(targetUID, DBCOM_MAGICID(u8"物理攻击"));
                 }
+                else{
+                    co_await coro_trackUID(targetUID, DBCOM_MAGICRECORD(u8"物理攻击").castRange);
+                }
             }
             else{
                 idleTime = hres_tstamp().to_sec();
                 m_inViewCOList.erase(targetUID);
                 targetUID = 0;
+            }
+        }
+        else if(g_serverArgParser->forceMonsterRandomMove || hasPlayerNeighbor()){
+            if(m_standMode){
+                co_await coro_randomMove();
             }
         }
         else if(!idleTime.has_value()){

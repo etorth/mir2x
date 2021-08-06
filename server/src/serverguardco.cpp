@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename: guardco.cpp
+ *       Filename: serverguardco.cpp
  *        Created: 04/26/2021 02:32:45
  *    Description:
  *
@@ -16,11 +16,10 @@
  * =====================================================================================
  */
 
-#include "guard.hpp"
-
-corof::long_jmper::eval_op<bool> Guard::coro_jumpBack()
+#include "serverguard.hpp"
+corof::long_jmper::eval_op<bool> ServerGuard::coro_jumpBack()
 {
-    const auto fnwait = +[](Guard *p) -> corof::long_jmper
+    const auto fnwait = +[](ServerGuard *p) -> corof::long_jmper
     {
         corof::async_variable<bool> done;
         p->jumpBack([&done](){ done.assign(true); }, [&done](){ done.assign(false); });

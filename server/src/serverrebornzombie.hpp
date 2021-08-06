@@ -2,14 +2,14 @@
 #include "dbcomid.hpp"
 #include "monster.hpp"
 
-class EvilCentipede final: public Monster
+class ServerRebornZombie final: public Monster
 {
     private:
         bool m_standMode = false;
 
     public:
-        EvilCentipede(ServerMap *mapPtr, int argX, int argY)
-            : Monster(DBCOM_MONSTERID(u8"触龙神"), mapPtr, argX, argY, DIR_BEGIN, 0)
+        ServerRebornZombie(uint32_t monID, ServerMap *mapPtr, int argX, int argY, int argDir)
+            : Monster(monID, mapPtr, argX, argY, argDir, 0)
         {}
 
     protected:
@@ -22,11 +22,10 @@ class EvilCentipede final: public Monster
             {
                 .x = X(),
                 .y = Y(),
-
-                .direction = DIR_BEGIN,
+                .direction = Direction(),
                 .extParam
                 {
-                    .evilCentipede
+                    .rebornZombie
                     {
                         .standMode = m_standMode,
                     },
@@ -43,10 +42,10 @@ class EvilCentipede final: public Monster
                     .x = X(),
                     .y = Y(),
 
-                    .direction = DIR_BEGIN,
+                    .direction = Direction(),
                     .extParam
                     {
-                        .evilCentipede
+                        .rebornZombie
                         {
                             .standModeReq = standMode,
                         }
@@ -58,16 +57,31 @@ class EvilCentipede final: public Monster
     protected:
         bool struckDamage(const DamageNode &damage)
         {
-            if(m_standMode){
-                if(damage){
-                    m_sdHealth.HP = std::max<int>(0, m_sdHealth.HP - damage.damage);
-                    dispatchHealth();
-
-                    if(m_sdHealth.HP <= 0){
-                        goDie();
-                    }
-                    return true;
+            if(!m_standMode){
+                switch(damage.magicID){
+                    case DBCOM_MAGICID(u8"火墙"):
+                    case DBCOM_MAGICID(u8"地狱火"):
+                    case DBCOM_MAGICID(u8"冰沙掌"):
+                        {
+                            setStandMode(true);
+                            break;
+                        }
+                    default:
+                        {
+                            break;
+                        }
                 }
+                return true;
+            }
+
+            if(damage){
+                m_sdHealth.HP = std::max<int>(0, m_sdHealth.HP - damage.damage);
+                dispatchHealth();
+
+                if(m_sdHealth.HP <= 0){
+                    goDie();
+                }
+                return true;
             }
             return false;
         }

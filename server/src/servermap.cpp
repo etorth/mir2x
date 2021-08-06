@@ -26,27 +26,7 @@
 #include "dbcomid.hpp"
 #include "monster.hpp"
 #include "actorpod.hpp"
-#include "taodog.hpp"
-#include "guard.hpp"
 #include "filesys.hpp"
-#include "taoskeleton.hpp"
-#include "cannibalplant.hpp"
-#include "bugbatmaggot.hpp"
-#include "monstertree.hpp"
-#include "dualaxeskeleton.hpp"
-#include "eviltentacle.hpp"
-#include "sandcactus.hpp"
-#include "sandghost.hpp"
-#include "rebornzombie.hpp"
-#include "anthealer.hpp"
-#include "woomataurus.hpp"
-#include "evilcentipede.hpp"
-#include "serverzumamonster.hpp"
-#include "serverzumataurus.hpp"
-#include "serverbombspider.hpp"
-#include "serverrootspider.hpp"
-#include "serverredmoonevil.hpp"
-#include "servershipwrecklord.hpp"
 #include "raiitimer.hpp"
 #include "mathf.hpp"
 #include "sysconst.hpp"
@@ -60,6 +40,26 @@
 #include "rotatecoord.hpp"
 #include "serverargparser.hpp"
 #include "serverconfigurewindow.hpp"
+#include "serverguard.hpp"
+#include "taodog.hpp"
+#include "taoskeleton.hpp"
+#include "cannibalplant.hpp"
+#include "bugbatmaggot.hpp"
+#include "monstertree.hpp"
+#include "serverdualaxeskeleton.hpp"
+#include "servereviltentacle.hpp"
+#include "serversandcactus.hpp"
+#include "serversandghost.hpp"
+#include "serverrebornzombie.hpp"
+#include "serveranthealer.hpp"
+#include "serverwoomataurus.hpp"
+#include "serverevilcentipede.hpp"
+#include "serverzumamonster.hpp"
+#include "serverzumataurus.hpp"
+#include "serverbombspider.hpp"
+#include "serverrootspider.hpp"
+#include "serverredmoonevil.hpp"
+#include "servershipwrecklord.hpp"
 
 extern MapBinDB *g_mapBinDB;
 extern MonoServer *g_monoServer;
@@ -1230,7 +1230,7 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
                 }
             case DBCOM_MONSTERID(u8"沙漠树魔"):
                 {
-                    monsterPtr = new SandCactus
+                    monsterPtr = new ServerSandCactus
                     {
                         this,
                         nDstX,
@@ -1240,7 +1240,7 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
                 }
             case DBCOM_MONSTERID(u8"掷斧骷髅"):
                 {
-                    monsterPtr = new DualAxeSkeleton
+                    monsterPtr = new ServerDualAxeSkeleton
                     {
                         this,
                         nDstX,
@@ -1253,7 +1253,7 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
             case DBCOM_MONSTERID(u8"触角神魔"):
             case DBCOM_MONSTERID(u8"爆毒神魔"):
                 {
-                    monsterPtr = new EvilTentacle
+                    monsterPtr = new ServerEvilTentacle
                     {
                         nMonsterID,
                         this,
@@ -1265,7 +1265,7 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
                 }
             case DBCOM_MONSTERID(u8"沙鬼"):
                 {
-                    monsterPtr = new SandGhost
+                    monsterPtr = new ServerSandGhost
                     {
                         this,
                         nDstX,
@@ -1278,7 +1278,7 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
             case DBCOM_MONSTERID(u8"僵尸_2"):
             case DBCOM_MONSTERID(u8"腐僵"):
                 {
-                    monsterPtr = new RebornZombie
+                    monsterPtr = new ServerRebornZombie
                     {
                         nMonsterID,
                         this,
@@ -1290,7 +1290,7 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
                 }
             case DBCOM_MONSTERID(u8"蚂蚁道士"):
                 {
-                    monsterPtr = new AntHealer
+                    monsterPtr = new ServerAntHealer
                     {
                         this,
                         nDstX,
@@ -1302,7 +1302,7 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
                 }
             case DBCOM_MONSTERID(u8"沃玛教主"):
                 {
-                    monsterPtr = new WoomaTaurus
+                    monsterPtr = new ServerWoomaTaurus
                     {
                         this,
                         nDstX,
@@ -1314,7 +1314,7 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
                 }
             case DBCOM_MONSTERID(u8"触龙神"):
                 {
-                    monsterPtr = new EvilCentipede
+                    monsterPtr = new ServerEvilCentipede
                     {
                         this,
                         nDstX,
@@ -1411,7 +1411,7 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
     return nullptr;
 }
 
-Guard *ServerMap::addGuard(uint32_t monID, int x, int y, int direction)
+ServerGuard *ServerMap::addGuard(uint32_t monID, int x, int y, int direction)
 {
     fflassert(monID);
     fflassert(validC(x, y));
@@ -1420,7 +1420,7 @@ Guard *ServerMap::addGuard(uint32_t monID, int x, int y, int direction)
         return nullptr;
     }
 
-    auto guardPtr = new Guard
+    auto guardPtr = new ServerGuard
     {
         monID,
         this,

@@ -35,7 +35,7 @@
 #include "serverobject.hpp"
 #include "batchluamodule.hpp"
 
-class Guard;
+class ServerGuard;
 class Player;
 class NPChar;
 class Monster;
@@ -240,7 +240,7 @@ class ServerMap final: public ServerObject
         Monster *addMonster(uint32_t, uint64_t, int, int, bool);
 
     private:
-        Guard *addGuard(uint32_t, int, int, int);
+        ServerGuard *addGuard(uint32_t, int, int, int);
 
     private:
         int getMonsterCount(uint32_t);

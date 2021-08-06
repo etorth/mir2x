@@ -2,10 +2,10 @@
 #include "dbcomid.hpp"
 #include "monster.hpp"
 
-class WoomaTaurus final: public Monster
+class ServerWoomaTaurus final: public Monster
 {
     public:
-        WoomaTaurus(ServerMap *mapPtr, int argX, int argY, int argDir, uint64_t masterUID)
+        ServerWoomaTaurus(ServerMap *mapPtr, int argX, int argY, int argDir, uint64_t masterUID)
             : Monster(DBCOM_MONSTERID(u8"沃玛教主"), mapPtr, argX, argY, argDir, masterUID)
         {}
 

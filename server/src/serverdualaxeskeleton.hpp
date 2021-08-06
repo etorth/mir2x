@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename: dualaxeskeleton.hpp
+ *       Filename: serverdualaxeskeleton.hpp
  *        Created: 07/10/2021 02:32:45
  *    Description:
  *
@@ -20,10 +20,10 @@
 #include "dbcomid.hpp"
 #include "monster.hpp"
 
-class DualAxeSkeleton final: public Monster
+class ServerDualAxeSkeleton final: public Monster
 {
     public:
-        DualAxeSkeleton(ServerMap *mapPtr, int argX, int argY, int argDir, uint64_t masterUID)
+        ServerDualAxeSkeleton(ServerMap *mapPtr, int argX, int argY, int argDir, uint64_t masterUID)
             : Monster(DBCOM_MONSTERID(u8"掷斧骷髅"), mapPtr, argX, argY, argDir, masterUID)
         {}
 

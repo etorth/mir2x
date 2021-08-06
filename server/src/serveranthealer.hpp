@@ -2,10 +2,10 @@
 #include "dbcomid.hpp"
 #include "monster.hpp"
 
-class AntHealer final: public Monster
+class ServerAntHealer final: public Monster
 {
     public:
-        AntHealer(ServerMap *mapPtr, int argX, int argY, int argDir, uint64_t masterUID)
+        ServerAntHealer(ServerMap *mapPtr, int argX, int argY, int argDir, uint64_t masterUID)
             : Monster(DBCOM_MONSTERID(u8"蚂蚁道士"), mapPtr, argX, argY, argDir, masterUID)
         {}
 

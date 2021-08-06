@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename: sandcactus.cpp
+ *       Filename: serversandcactus.cpp
  *        Created: 04/10/2016 02:32:45
  *    Description:
  *
@@ -17,10 +17,10 @@
  */
 
 #include "pathf.hpp"
-#include "sandcactus.hpp"
+#include "serversandcactus.hpp"
 #include "raiitimer.hpp"
 
-corof::long_jmper SandCactus::updateCoroFunc()
+corof::long_jmper ServerSandCactus::updateCoroFunc()
 {
     const auto magicID = DBCOM_MAGICID(u8"沙漠树魔_喷刺");
     const auto &mr = DBCOM_MAGICRECORD(magicID);
@@ -51,7 +51,7 @@ corof::long_jmper SandCactus::updateCoroFunc()
     co_return true;
 }
 
-DamageNode SandCactus::getAttackDamage(int dc) const
+DamageNode ServerSandCactus::getAttackDamage(int dc) const
 {
     fflassert(to_u32(dc) == DBCOM_MAGICID(u8"沙漠树魔_喷刺"));
     return MagicDamage

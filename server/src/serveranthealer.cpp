@@ -1,8 +1,8 @@
 #include "pathf.hpp"
 #include "fflerror.hpp"
-#include "anthealer.hpp"
+#include "serveranthealer.hpp"
 
-void AntHealer::sendHeal(uint64_t uid)
+void ServerAntHealer::sendHeal(uint64_t uid)
 {
     fflassert(uid);
     if(const auto p = m_inViewCOList.find(uid); p != m_inViewCOList.end()){
@@ -36,7 +36,7 @@ void AntHealer::sendHeal(uint64_t uid)
     }
 }
 
-corof::long_jmper AntHealer::updateCoroFunc()
+corof::long_jmper ServerAntHealer::updateCoroFunc()
 {
     while(m_sdHealth.HP > 0){
         if(m_sdHealth.HP < m_sdHealth.maxHP){

@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename: guard.hpp
+ *       Filename: serverguard.hpp
  *        Created: 04/26/2021 02:32:45
  *    Description:
  *
@@ -20,7 +20,7 @@
 #include "dbcomid.hpp"
 #include "monster.hpp"
 
-class Guard: public Monster
+class ServerGuard: public Monster
 {
     private:
         const int m_standX;
@@ -28,7 +28,7 @@ class Guard: public Monster
         const int m_standDirection;
 
     public:
-        Guard(uint32_t, ServerMap *, int, int, int);
+        ServerGuard(uint32_t, ServerMap *, int, int, int);
 
     protected:
         void jumpBack(std::function<void()>, std::function<void()>);
@@ -45,7 +45,7 @@ class Guard: public Monster
     protected:
         void onAMAttack(const ActorMsgPack &) override
         {
-            // guard won't get any damage
+            // serverguard won't get any damage
         }
 
     protected:
