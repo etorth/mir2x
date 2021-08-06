@@ -877,7 +877,7 @@ bool Monster::goDie()
     // theoratically dead actor shouldn't dispatch anything
 
     if(getMR().deadFadeOut){
-        addDelay(2 * 1000, [this]() { goGhost(); });
+        addDelay(1000, [this]() { goGhost(); });
         return true;
     }
     else{
