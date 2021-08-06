@@ -44,6 +44,12 @@ struct MotionNode final
 {
     struct MotionExtParam
     {
+        struct MotionSpell
+        {
+            const uint32_t magicID = 0;
+        }
+        spell{};
+
         struct MotionAttack
         {
             const int motion = 0;
