@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename: bugbatmaggot.cpp
+ *       Filename: serverbugbatmaggot.cpp
  *        Created: 04/07/2016 03:48:41 AM
  *    Description:
  *
@@ -17,9 +17,9 @@
  */
 
 #include "sysconst.hpp"
-#include "bugbatmaggot.hpp"
+#include "serverbugbatmaggot.hpp"
 
-void BugbatMaggot::addBat()
+void ServerBugbatMaggot::addBat()
 {
     AMAddCharObject amACO;
     std::memset(&amACO, 0, sizeof(amACO));
@@ -51,7 +51,7 @@ void BugbatMaggot::addBat()
     });
 }
 
-corof::long_jmper BugbatMaggot::updateCoroFunc()
+corof::long_jmper ServerBugbatMaggot::updateCoroFunc()
 {
     while(m_sdHealth.HP > 0){
         for(auto p = m_batUIDList.begin(); p != m_batUIDList.end();){

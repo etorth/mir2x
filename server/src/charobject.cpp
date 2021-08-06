@@ -22,7 +22,7 @@
 #include "dbcomid.hpp"
 #include "monster.hpp"
 #include "mathf.hpp"
-#include "taodog.hpp"
+#include "servertaodog.hpp"
 #include "fflerror.hpp"
 #include "actorpod.hpp"
 #include "condcheck.hpp"

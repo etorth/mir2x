@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename: bugbatmaggot.cpp
+ *       Filename: serverbugbatmaggot.cpp
  *        Created: 04/07/2016 03:48:41 AM
  *    Description:
  *
@@ -17,9 +17,9 @@
  */
 
 #include "sysconst.hpp"
-#include "monstertree.hpp"
+#include "servermonstertree.hpp"
 
-corof::long_jmper MonsterTree::updateCoroFunc()
+corof::long_jmper ServerMonsterTree::updateCoroFunc()
 {
     while(m_sdHealth.HP > 0){
         co_await corof::async_wait(2000);

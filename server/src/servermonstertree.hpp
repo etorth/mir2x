@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename: monstertree.hpp
+ *       Filename: servermonstertree.hpp
  *        Created: 04/07/2016 03:48:41 AM
  *    Description:
  *
@@ -20,10 +20,10 @@
 #include "dbcomid.hpp"
 #include "monster.hpp"
 
-class MonsterTree final: public Monster
+class ServerMonsterTree final: public Monster
 {
     public:
-        MonsterTree(uint32_t monsterID, const ServerMap *mapPtr, int argX, int argY)
+        ServerMonsterTree(uint32_t monsterID, const ServerMap *mapPtr, int argX, int argY)
             : Monster(monsterID, mapPtr, argX, argY, DIR_BEGIN, 0)
         {}
 

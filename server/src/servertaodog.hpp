@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename: taodog.hpp
+ *       Filename: servertaodog.hpp
  *        Created: 04/10/2016 02:32:45
  *    Description:
  *
@@ -20,13 +20,13 @@
 #include "dbcomid.hpp"
 #include "monster.hpp"
 
-class TaoDog final: public Monster
+class ServerTaoDog final: public Monster
 {
     private:
         bool m_standMode = false;
 
     public:
-        TaoDog(ServerMap *mapPtr, int argX, int argY, int argDir, uint64_t masterUID)
+        ServerTaoDog(ServerMap *mapPtr, int argX, int argY, int argDir, uint64_t masterUID)
             : Monster(DBCOM_MONSTERID(u8"神兽"), mapPtr, argX, argY, argDir, masterUID)
         {}
 

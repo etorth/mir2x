@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename: cannibalplant.cpp
+ *       Filename: servercannibalplant.cpp
  *        Created: 04/07/2016 03:48:41 AM
  *    Description:
  *
@@ -20,9 +20,9 @@
 #include "mathf.hpp"
 #include "dbcomid.hpp"
 #include "raiitimer.hpp"
-#include "cannibalplant.hpp"
+#include "servercannibalplant.hpp"
 
-corof::long_jmper CannibalPlant::updateCoroFunc()
+corof::long_jmper ServerCannibalPlant::updateCoroFunc()
 {
     uint64_t targetUID = 0;
     std::optional<uint64_t> idleTime;

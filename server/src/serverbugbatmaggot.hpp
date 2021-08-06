@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename: bugbatmaggot.hpp
+ *       Filename: serverbugbatmaggot.hpp
  *        Created: 04/07/2016 03:48:41 AM
  *    Description:
  *
@@ -21,14 +21,14 @@
 #include "dbcomid.hpp"
 #include "monster.hpp"
 
-class BugbatMaggot final: public Monster
+class ServerBugbatMaggot final: public Monster
 {
     private:
         const size_t m_maxBatCount = 20;
         std::unordered_set<uint64_t> m_batUIDList;
 
     public:
-        BugbatMaggot(ServerMap *mapPtr, int argX, int argY)
+        ServerBugbatMaggot(ServerMap *mapPtr, int argX, int argY)
             : Monster(DBCOM_MONSTERID(u8"角蝇"), mapPtr, argX, argY, DIR_BEGIN, 0)
         {}
 

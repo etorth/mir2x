@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename: cannibalplant.hpp
+ *       Filename: servercannibalplant.hpp
  *        Created: 04/07/2016 03:48:41 AM
  *    Description:
  *
@@ -20,13 +20,13 @@
 #include "dbcomid.hpp"
 #include "monster.hpp"
 
-class CannibalPlant final: public Monster
+class ServerCannibalPlant final: public Monster
 {
     private:
         bool m_standMode = false;
 
     public:
-        CannibalPlant(ServerMap *mapPtr, int argX, int argY)
+        ServerCannibalPlant(ServerMap *mapPtr, int argX, int argY)
             : Monster(DBCOM_MONSTERID(u8"食人花"), mapPtr, argX, argY, DIR_BEGIN, 0)
         {}
 

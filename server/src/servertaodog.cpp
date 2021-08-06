@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename: taodog.cpp
+ *       Filename: servertaodog.cpp
  *        Created: 04/10/2016 02:32:45
  *    Description:
  *
@@ -17,10 +17,10 @@
  */
 
 #include "pathf.hpp"
-#include "taodog.hpp"
+#include "servertaodog.hpp"
 #include "raiitimer.hpp"
 
-corof::long_jmper TaoDog::updateCoroFunc()
+corof::long_jmper ServerTaoDog::updateCoroFunc()
 {
     uint64_t targetUID = 0;
     std::optional<uint64_t> idleTime;
@@ -62,7 +62,7 @@ corof::long_jmper TaoDog::updateCoroFunc()
     co_return true;
 }
 
-void TaoDog::onAMAttack(const ActorMsgPack &mpk)
+void ServerTaoDog::onAMAttack(const ActorMsgPack &mpk)
 {
     const auto amAK = mpk.conv<AMAttack>();
     if(m_dead.get()){
@@ -110,7 +110,7 @@ void TaoDog::onAMAttack(const ActorMsgPack &mpk)
     }
 }
 
-DamageNode TaoDog::getAttackDamage(int dc) const
+DamageNode ServerTaoDog::getAttackDamage(int dc) const
 {
     fflassert(to_u32(dc) == DBCOM_MAGICID(u8"神兽_喷火"));
     return MagicDamage

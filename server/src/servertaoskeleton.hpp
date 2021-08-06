@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename: taoskeleton.hpp
+ *       Filename: servertaoskeleton.hpp
  *        Created: 04/10/2016 02:32:45
  *    Description:
  *
@@ -19,10 +19,10 @@
 #include "dbcomid.hpp"
 #include "monster.hpp"
 
-class TaoSkeleton final: public Monster
+class ServerTaoSkeleton final: public Monster
 {
     public:
-        TaoSkeleton(ServerMap *mapPtr, int argX, int argY, uint64_t masterUID)
+        ServerTaoSkeleton(ServerMap *mapPtr, int argX, int argY, uint64_t masterUID)
             : Monster(DBCOM_MONSTERID(u8"变异骷髅"), mapPtr, argX, argY, DIR_DOWNLEFT, masterUID)
         {}
 };

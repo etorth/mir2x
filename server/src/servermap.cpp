@@ -41,11 +41,11 @@
 #include "serverargparser.hpp"
 #include "serverconfigurewindow.hpp"
 #include "serverguard.hpp"
-#include "taodog.hpp"
-#include "taoskeleton.hpp"
-#include "cannibalplant.hpp"
-#include "bugbatmaggot.hpp"
-#include "monstertree.hpp"
+#include "servertaodog.hpp"
+#include "servertaoskeleton.hpp"
+#include "servercannibalplant.hpp"
+#include "serverbugbatmaggot.hpp"
+#include "servermonstertree.hpp"
 #include "serverdualaxeskeleton.hpp"
 #include "servereviltentacle.hpp"
 #include "serversandcactus.hpp"
@@ -1162,7 +1162,7 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
         switch(nMonsterID){
             case DBCOM_MONSTERID(u8"变异骷髅"):
                 {
-                    monsterPtr = new TaoSkeleton
+                    monsterPtr = new ServerTaoSkeleton
                     {
                         this,
                         nDstX,
@@ -1173,7 +1173,7 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
                 }
             case DBCOM_MONSTERID(u8"神兽"):
                 {
-                    monsterPtr = new TaoDog
+                    monsterPtr = new ServerTaoDog
                     {
                         this,
                         nDstX,
@@ -1185,7 +1185,7 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
                 }
             case DBCOM_MONSTERID(u8"食人花"):
                 {
-                    monsterPtr = new CannibalPlant
+                    monsterPtr = new ServerCannibalPlant
                     {
                         this,
                         nDstX,
@@ -1195,7 +1195,7 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
                 }
             case DBCOM_MONSTERID(u8"角蝇"):
                 {
-                    monsterPtr = new BugbatMaggot
+                    monsterPtr = new ServerBugbatMaggot
                     {
                         this,
                         nDstX,
@@ -1219,7 +1219,7 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
             case DBCOM_MONSTERID(u8"栗子树"):
             case DBCOM_MONSTERID(u8"圣诞树"):
                 {
-                    monsterPtr = new MonsterTree
+                    monsterPtr = new ServerMonsterTree
                     {
                         nMonsterID,
                         this,
