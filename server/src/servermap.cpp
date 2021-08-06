@@ -41,8 +41,8 @@
 #include "anthealer.hpp"
 #include "woomataurus.hpp"
 #include "evilcentipede.hpp"
-#include "zumamonster.hpp"
-#include "zumataurus.hpp"
+#include "serverzumamonster.hpp"
+#include "serverzumataurus.hpp"
 #include "serverbombspider.hpp"
 #include "serverrootspider.hpp"
 #include "serverredmoonevil.hpp"
@@ -1325,7 +1325,7 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
             case DBCOM_MONSTERID(u8"祖玛雕像"):
             case DBCOM_MONSTERID(u8"祖玛卫士"):
                 {
-                    monsterPtr = new ZumaMonster
+                    monsterPtr = new ServerZumaMonster
                     {
                         nMonsterID,
                         this,
@@ -1338,7 +1338,7 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
                 }
             case DBCOM_MONSTERID(u8"祖玛教主"):
                 {
-                    monsterPtr = new ZumaTaurus
+                    monsterPtr = new ServerZumaTaurus
                     {
                         this,
                         nDstX,

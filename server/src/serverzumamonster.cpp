@@ -1,6 +1,6 @@
-#include "zumamonster.hpp"
+#include "serverzumamonster.hpp"
 
-corof::long_jmper ZumaMonster::updateCoroFunc()
+corof::long_jmper ServerZumaMonster::updateCoroFunc()
 {
     uint64_t targetUID = 0;
     std::optional<uint64_t> idleTime;
@@ -41,7 +41,7 @@ corof::long_jmper ZumaMonster::updateCoroFunc()
     co_return true;
 }
 
-void ZumaMonster::onAMAttack(const ActorMsgPack &mpk)
+void ServerZumaMonster::onAMAttack(const ActorMsgPack &mpk)
 {
     if(m_standMode){
         Monster::onAMAttack(mpk);

@@ -1,6 +1,6 @@
-#include "zumataurus.hpp"
+#include "serverzumataurus.hpp"
 
-corof::long_jmper ZumaTaurus::updateCoroFunc()
+corof::long_jmper ServerZumaTaurus::updateCoroFunc()
 {
     uint64_t targetUID = 0;
     while(m_sdHealth.HP > 0){
@@ -29,7 +29,7 @@ corof::long_jmper ZumaTaurus::updateCoroFunc()
     co_return true;
 }
 
-void ZumaTaurus::onAMAttack(const ActorMsgPack &mpk)
+void ServerZumaTaurus::onAMAttack(const ActorMsgPack &mpk)
 {
     if(m_standMode){
         Monster::onAMAttack(mpk);

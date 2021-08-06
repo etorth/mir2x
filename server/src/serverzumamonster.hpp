@@ -1,22 +1,22 @@
 #pragma once
 #include "dbcomid.hpp"
 #include "monster.hpp"
-#include "fflerror.hpp"
 
-class ZumaTaurus final: public Monster
+class ServerZumaMonster final: public Monster
 {
     private:
         bool m_standMode = false;
 
     public:
-        ZumaTaurus(ServerMap *mapPtr, int argX, int argY, uint64_t masterUID)
-            : Monster(DBCOM_MONSTERID(u8"祖玛教主"), mapPtr, argX, argY, DIR_BEGIN, masterUID)
-        {}
+        ServerZumaMonster(uint32_t monID, ServerMap *mapPtr, int argX, int argY, int argDir, uint64_t masterUID)
+            : Monster(monID, mapPtr, argX, argY, argDir, masterUID)
+        {
+            fflassert(isMonster(u8"祖玛雕像") || isMonster(u8"祖玛卫士"));
+        }
 
     public:
         void setStandMode(bool standMode)
         {
-            fflassert(standMode);
             if(standMode != m_standMode){
                 m_standMode = standMode;
                 dispatchAction(ActionTransf
@@ -26,15 +26,12 @@ class ZumaTaurus final: public Monster
                     .direction = Direction(),
                     .extParam
                     {
-                        .zumaTaurus
+                        .zumaMonster
                         {
                             .standModeReq = m_standMode,
                         },
                     },
                 });
-
-                m_direction = DIR_DOWNLEFT;
-                dispatchAction(makeActionStand());
             }
         }
 
@@ -51,7 +48,7 @@ class ZumaTaurus final: public Monster
                 .direction = Direction(),
                 .extParam
                 {
-                    .zumaTaurus
+                    .zumaMonster
                     {
                         .standMode = m_standMode,
                     },
