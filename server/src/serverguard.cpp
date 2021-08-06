@@ -55,34 +55,25 @@ corof::long_jmper ServerGuard::updateCoroFunc()
             else{
                 m_inViewCOList.erase(targetUID);
                 targetUID = 0;
-                co_await coro_jumpBack();
             }
         }
-        else{
-            co_await coro_jumpBack();
+
+        if(!targetUID){
+            if(X() == m_standX && Y() == m_standY){
+                if(Direction() != m_standDirection){
+                    m_direction = m_standDirection;
+                    dispatchAction(makeActionStand());
+                }
+            }
+            else{
+                co_await coro_jumpGLoc(m_standX, m_standY, m_standDirection);
+            }
         }
         co_await corof::async_wait(200);
     }
 
     goDie();
     co_return true;
-}
-
-void ServerGuard::jumpBack(std::function<void()> onOK, std::function<void()> onError)
-{
-    if(X() == m_standX && Y() == m_standY){
-        if(Direction() != m_standDirection){
-            m_direction = m_standDirection;
-            dispatchAction(makeActionStand());
-        }
-
-        if(onOK){
-            onOK();
-        }
-        return;
-    }
-
-    requestJump(m_standX, m_standY, m_standDirection, onOK, onError);
 }
 
 void ServerGuard::checkFriend(uint64_t uid, std::function<void(int)> fnOp)
