@@ -140,6 +140,6 @@ void MotionSyncEffect::update(double ms)
 {
     m_accuTime += ms;
     if(m_creature->checkUpdate(ms)){
-        m_creature->updateMotion();
+        m_creature->updateMotion(); // this can deallocate m_motion
     }
 }
