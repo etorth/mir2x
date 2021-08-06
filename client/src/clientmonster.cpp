@@ -126,7 +126,7 @@ bool ClientMonster::update(double ms)
         m_currMotion->runTrigger();
     });
 
-    if(m_currMotion->effect){
+    if(m_currMotion->effect && !m_currMotion->effect->done()){
         m_currMotion->effect->update(ms);
         return true;
     }
@@ -287,7 +287,7 @@ void ClientMonster::drawFrame(int viewX, int viewY, int focusMask, int frame, bo
             p->drawShift(startX, startY, false);
         }
 
-        if(m_currMotion->effect){
+        if(m_currMotion->effect && !m_currMotion->effect->done()){
             m_currMotion->effect->drawShift(startX, startY, colorf::RGBA(0XFF, 0XFF, 0XFF, 0XF0));
         }
 

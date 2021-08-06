@@ -37,9 +37,12 @@ MotionEffect::MotionEffect(const char8_t *magicName, const char8_t *stageName, M
     fflassert(directionValid(m_motion->direction));
 }
 
-
 uint32_t MotionEffect::frameTexID() const
 {
+    if(done()){
+        return SYS_TEXNIL;
+    }
+
     if(m_gfxEntry->gfxDirType > 1){
         return m_gfxEntry->gfxID + frame() + (m_motion->direction - DIR_BEGIN) * m_gfxEntry->gfxIDCount;
     }
@@ -48,11 +51,13 @@ uint32_t MotionEffect::frameTexID() const
 
 void MotionEffect::drawShift(int shiftX, int shiftY, uint32_t modColor)
 {
-    if(const auto texID = frameTexID(); texID != SYS_TEXNIL){
-        if(auto [texPtr, offX, offY] = g_magicDB->retrieve(texID); texPtr){
-            SDLDeviceHelper::EnableTextureModColor enableModColor(texPtr, modColor);
-            SDLDeviceHelper::EnableTextureBlendMode enableBlendMode(texPtr, SDL_BLENDMODE_BLEND);
-            g_sdlDevice->drawTexture(texPtr, shiftX + offX, shiftY + offY);
+    if(!done()){
+        if(const auto texID = frameTexID(); texID != SYS_TEXNIL){
+            if(auto [texPtr, offX, offY] = g_magicDB->retrieve(texID); texPtr){
+                SDLDeviceHelper::EnableTextureModColor enableModColor(texPtr, modColor);
+                SDLDeviceHelper::EnableTextureBlendMode enableBlendMode(texPtr, SDL_BLENDMODE_BLEND);
+                g_sdlDevice->drawTexture(texPtr, shiftX + offX, shiftY + offY);
+            }
         }
     }
 }
@@ -84,6 +89,14 @@ int HeroSpellMagicEffect::frameCount() const
     }
 }
 
+uint32_t HeroSpellMagicEffect::frameTexID() const
+{
+    if(frame() < MotionEffect::frameCount()){
+        return MotionEffect::frameTexID();
+    }
+    return SYS_TEXNIL;
+}
+
 void HeroSpellMagicEffect::update(double ms)
 {
     m_accuTime += ms;
@@ -111,9 +124,10 @@ void HeroSpellMagicEffect::update(double ms)
     }
 }
 
-MotionAlignedEffect::MotionAlignedEffect(const char8_t *magicName, const char8_t *stageName, ClientCreature *creaturePtr, MotionNode *motionPtr)
+MotionAlignedEffect::MotionAlignedEffect(const char8_t *magicName, const char8_t *stageName, ClientCreature *creaturePtr, MotionNode *motionPtr, bool useMotionSpeed)
     : MotionEffect(magicName, stageName, motionPtr)
     , m_creature(creaturePtr)
+    , m_useMotionSpeed(useMotionSpeed)
 {}
 
 int MotionAlignedEffect::absFrame() const
@@ -130,6 +144,10 @@ int MotionAlignedEffect::absFrame() const
 
 void MotionAlignedEffect::update(double ms)
 {
+    if(done()){
+        return;
+    }
+
     m_accuTime += ms;
     if(m_creature->checkUpdate(ms)){
         m_creature->updateMotion(); // this can deallocate m_motion
@@ -148,6 +166,10 @@ int MotionSyncEffect::absFrame() const
 
 void MotionSyncEffect::update(double ms)
 {
+    if(done()){
+        return;
+    }
+
     m_accuTime += ms;
     if(m_creature->checkUpdate(ms)){
         m_creature->updateMotion(); // this can deallocate m_motion

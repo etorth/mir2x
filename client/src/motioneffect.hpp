@@ -36,7 +36,7 @@ class MotionEffect
 
         virtual int frame() const
         {
-            return std::min<int>(absFrame(), frameCount() - 1);
+            return absFrame();
         }
 
         virtual int frameCount() const
@@ -58,6 +58,12 @@ class MotionEffect
         {
             m_accuTime = 0.0;
         }
+
+    public:
+        virtual bool done() const
+        {
+            return frame() >= frameCount();
+        }
 };
 
 class Hero;
@@ -73,6 +79,9 @@ class HeroSpellMagicEffect: public MotionEffect
         int frameCount() const override;
 
     public:
+        uint32_t frameTexID() const override;
+
+    public:
         void update(double) override;
 };
 
@@ -80,13 +89,13 @@ class ClientCreature;
 class MotionAlignedEffect: public MotionEffect
 {
     protected:
-        ClientCreature * const m_creature = nullptr;
+        ClientCreature * const m_creature;
 
     private:
-        const bool m_useMotionSpeed = true;
+        const bool m_useMotionSpeed;
 
     public:
-        MotionAlignedEffect(const char8_t *, const char8_t *, ClientCreature *, MotionNode *);
+        MotionAlignedEffect(const char8_t *, const char8_t *, ClientCreature *, MotionNode *, bool useMotionSpeed = true);
 
     protected:
         int absFrame() const override;
@@ -98,7 +107,7 @@ class MotionAlignedEffect: public MotionEffect
 class MotionSyncEffect: public MotionEffect
 {
     protected:
-        ClientCreature * const m_creature = nullptr;
+        ClientCreature * const m_creature;
 
     public:
         MotionSyncEffect(const char8_t *, const char8_t *, ClientCreature *, MotionNode *);
