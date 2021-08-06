@@ -1,5 +1,7 @@
 #pragma once
+#include <cmath>
 #include <cstdint>
+#include <algorithm>
 #include "totype.hpp"
 #include "sysconst.hpp"
 #include "dbcomrecord.hpp"
@@ -29,12 +31,12 @@ class MotionEffect
     public:
         virtual int absFrame() const
         {
-            return (m_accuTime / 1000.0) * SYS_DEFFPS * (to_df(speed()) / 100.0);
+            return std::lround((m_accuTime / 1000.0) * SYS_DEFFPS * (to_df(speed()) / 100.0));
         }
 
         virtual int frame() const
         {
-            return absFrame();
+            return std::min<int>(absFrame(), frameCount() - 1);
         }
 
         virtual int frameCount() const
@@ -69,9 +71,6 @@ class HeroSpellMagicEffect: public MotionEffect
 
     public:
         int frameCount() const override;
-
-    protected:
-        uint32_t frameTexID() const override;
 
     public:
         void update(double) override;

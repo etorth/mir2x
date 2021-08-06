@@ -1,23 +1,6 @@
-/*
- * =====================================================================================
- *
- *       Filename: magicbase.hpp
- *        Created: 08/05/2017 22:58:20
- *    Description: base of AttachMagic and IndepMagic
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #pragma once
 #include <list>
+#include <cmath>
 #include <cstdint>
 #include <functional>
 #include "totype.hpp"
@@ -165,7 +148,7 @@ class MagicBase
 
         virtual int absFrame() const
         {
-            return (m_accuTime / 1000.0) * SYS_DEFFPS * (m_gfxEntry.speed / 100.0);
+            return std::lround((m_accuTime / 1000.0) * SYS_DEFFPS * (m_gfxEntry.speed / 100.0));
         }
 
     public:

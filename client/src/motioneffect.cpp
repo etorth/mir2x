@@ -84,14 +84,6 @@ int HeroSpellMagicEffect::frameCount() const
     }
 }
 
-uint32_t HeroSpellMagicEffect::frameTexID() const
-{
-    if(frame() < MotionEffect::frameCount()){
-        return MotionEffect::frameTexID();
-    }
-    return SYS_TEXNIL;
-}
-
 void HeroSpellMagicEffect::update(double ms)
 {
     m_accuTime += ms;
