@@ -77,13 +77,28 @@ class HeroSpellMagicEffect: public MotionEffect
 };
 
 class ClientCreature;
-class MotionSyncEffect: public MotionEffect
+class MotionAlignedEffect: public MotionEffect
 {
     protected:
         ClientCreature * const m_creature = nullptr;
 
     private:
         const bool m_useMotionSpeed = true;
+
+    public:
+        MotionAlignedEffect(const char8_t *, const char8_t *, ClientCreature *, MotionNode *);
+
+    protected:
+        int absFrame() const override;
+
+    public:
+        void update(double) override;
+};
+
+class MotionSyncEffect: public MotionEffect
+{
+    protected:
+        ClientCreature * const m_creature = nullptr;
 
     public:
         MotionSyncEffect(const char8_t *, const char8_t *, ClientCreature *, MotionNode *);

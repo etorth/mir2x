@@ -111,12 +111,12 @@ void HeroSpellMagicEffect::update(double ms)
     }
 }
 
-MotionSyncEffect::MotionSyncEffect(const char8_t *magicName, const char8_t *stageName, ClientCreature *creaturePtr, MotionNode *motionPtr)
+MotionAlignedEffect::MotionAlignedEffect(const char8_t *magicName, const char8_t *stageName, ClientCreature *creaturePtr, MotionNode *motionPtr)
     : MotionEffect(magicName, stageName, motionPtr)
     , m_creature(creaturePtr)
 {}
 
-int MotionSyncEffect::absFrame() const
+int MotionAlignedEffect::absFrame() const
 {
     const auto fspeed = [this]() -> double
     {
@@ -126,6 +126,24 @@ int MotionSyncEffect::absFrame() const
         return to_df(m_gfxEntry->speed);
     }();
     return std::lround((m_accuTime / 1000.0) * SYS_DEFFPS * (fspeed / 100.0));
+}
+
+void MotionAlignedEffect::update(double ms)
+{
+    m_accuTime += ms;
+    if(m_creature->checkUpdate(ms)){
+        m_creature->updateMotion(); // this can deallocate m_motion
+    }
+}
+
+MotionSyncEffect::MotionSyncEffect(const char8_t *magicName, const char8_t *stageName, ClientCreature *creaturePtr, MotionNode *motionPtr)
+    : MotionEffect(magicName, stageName, motionPtr)
+    , m_creature(creaturePtr)
+{}
+
+int MotionSyncEffect::absFrame() const
+{
+    return m_motion->frame;
 }
 
 void MotionSyncEffect::update(double ms)
