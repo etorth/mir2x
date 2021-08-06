@@ -27,7 +27,7 @@ class ClientGasAnt: public ClientMonster
 
             m_motionQueue.back()->addTrigger(false, [targetUID = action.aimUID, this](MotionNode *motionPtr) -> bool
             {
-                if(motionPtr->frame < 4){
+                if(motionPtr->frame < 2){
                     return false;
                 }
 
