@@ -133,7 +133,7 @@ int MotionSyncEffect::absFrame() const
         }
         return to_df(m_gfxEntry->speed);
     }();
-    return (m_accuTime / 1000.0) * SYS_DEFFPS * (fspeed / 100.0);
+    return std::lround((m_accuTime / 1000.0) * SYS_DEFFPS * (fspeed / 100.0));
 }
 
 void MotionSyncEffect::update(double ms)
