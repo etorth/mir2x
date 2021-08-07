@@ -174,7 +174,7 @@ int MotionSyncEffect::gfxFrame() const
 
 int MotionSyncEffect::frameCount() const
 {
-    return std::min<int>(MotionEffect::frameCount(), m_creature->getFrameCountEx(m_motion->type, m_motion->direction));
+    return std::min<int>(MotionEffect::frameCount() + m_lagFrame, m_creature->getFrameCountEx(m_motion->type, m_motion->direction));
 }
 
 void MotionSyncEffect::update(double ms)
