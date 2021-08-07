@@ -11,6 +11,7 @@ extern SDLDevice *g_sdlDevice;
 
 MotionEffect::MotionEffect(const char8_t *magicName, const char8_t *stageName, MotionNode *motionPtr)
     : m_accuTime(0.0)
+    , m_motion(motionPtr)
     , m_gfxEntry([magicName, stageName]()
       {
           fflassert(str_haschar(magicName));
@@ -31,7 +32,6 @@ MotionEffect::MotionEffect(const char8_t *magicName, const char8_t *stageName, M
           fflassert(ge.speed <= SYS_MAXSPEED);
           return &ge;
       }())
-    , m_motion(motionPtr)
 {
     fflassert(m_motion);
     fflassert(directionValid(m_motion->direction));
@@ -39,10 +39,7 @@ MotionEffect::MotionEffect(const char8_t *magicName, const char8_t *stageName, M
 
 uint32_t MotionEffect::frameTexID() const
 {
-    if(done()){
-        return SYS_TEXNIL;
-    }
-
+    fflassert(!done());
     if(m_gfxEntry->gfxDirType > 1){
         return m_gfxEntry->gfxID + frame() + (m_motion->direction - DIR_BEGIN) * m_gfxEntry->gfxIDCount;
     }
@@ -51,13 +48,12 @@ uint32_t MotionEffect::frameTexID() const
 
 void MotionEffect::drawShift(int shiftX, int shiftY, uint32_t modColor)
 {
-    if(!done()){
-        if(const auto texID = frameTexID(); texID != SYS_TEXNIL){
-            if(auto [texPtr, offX, offY] = g_magicDB->retrieve(texID); texPtr){
-                SDLDeviceHelper::EnableTextureModColor enableModColor(texPtr, modColor);
-                SDLDeviceHelper::EnableTextureBlendMode enableBlendMode(texPtr, SDL_BLENDMODE_BLEND);
-                g_sdlDevice->drawTexture(texPtr, shiftX + offX, shiftY + offY);
-            }
+    fflassert(!done());
+    if(const auto texID = frameTexID(); texID != SYS_TEXNIL){
+        if(auto [texPtr, offX, offY] = g_magicDB->retrieve(texID); texPtr){
+            SDLDeviceHelper::EnableTextureModColor enableModColor(texPtr, modColor);
+            SDLDeviceHelper::EnableTextureBlendMode enableBlendMode(texPtr, SDL_BLENDMODE_BLEND);
+            g_sdlDevice->drawTexture(texPtr, shiftX + offX, shiftY + offY);
         }
     }
 }
@@ -99,7 +95,9 @@ uint32_t HeroSpellMagicEffect::frameTexID() const
 
 void HeroSpellMagicEffect::update(double ms)
 {
+    fflassert(!done());
     m_accuTime += ms;
+
     if(m_hero->checkUpdate(ms)){
         const int effectEndFrame = frameCount() - 1;
         const int motionEndFrame = m_hero->getFrameCountEx(m_motion->type, m_motion->direction) - 1;
@@ -144,11 +142,9 @@ int MotionAlignedEffect::absFrame() const
 
 void MotionAlignedEffect::update(double ms)
 {
-    if(done()){
-        return;
-    }
-
+    fflassert(!done());
     m_accuTime += ms;
+
     if(m_creature->checkUpdate(ms)){
         m_creature->updateMotion(); // this can deallocate m_motion
     }
@@ -166,11 +162,9 @@ int MotionSyncEffect::absFrame() const
 
 void MotionSyncEffect::update(double ms)
 {
-    if(done()){
-        return;
-    }
-
+    fflassert(!done());
     m_accuTime += ms;
+
     if(m_creature->checkUpdate(ms)){
         m_creature->updateMotion(); // this can deallocate m_motion
     }

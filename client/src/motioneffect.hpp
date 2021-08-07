@@ -6,15 +6,21 @@
 #include "sysconst.hpp"
 #include "dbcomrecord.hpp"
 
+// MotionEffect has a bound MotionNode, assigned to MotionNode::effect
+// when MotionNode swapped out by its CO, MotionEffect won't and shouldn't get accessed anymore
+
+// MotionEffect won't support callback
+// because MotionNode can be flushed without present frames
+
 class MotionNode;
 class MotionEffect
 {
     protected:
         double m_accuTime;
-        const MagicGfxEntry * const m_gfxEntry;
+        MotionNode * const m_motion;
 
     protected:
-        MotionNode * const m_motion;
+        const MagicGfxEntry * const m_gfxEntry;
 
     public:
         MotionEffect(const char8_t *, const char8_t *, MotionNode *);
