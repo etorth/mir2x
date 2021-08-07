@@ -27,7 +27,8 @@ mir2x is a c/s based mir2ei implementation with various platforms supported. It 
   - animaker
   - mapeditor
 
-YouTube link: https://youtu.be/3Xne8UHlOl0
+YouTube links: [1](https://youtu.be/3Xne8UHlOl0) [2](https://youtu.be/jl1LPxe2EAA)
+
 
 <img src="https://github.com/etorth/mir2x/raw/master/readme/screencapture6.gif" width="800" height="600"/>
 <img src="https://github.com/etorth/mir2x/raw/master/readme/mapeditor.png" width="800" height="520"/>
