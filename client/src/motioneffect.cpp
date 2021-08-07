@@ -162,9 +162,19 @@ MotionSyncEffect::MotionSyncEffect(const char8_t *magicName, const char8_t *stag
     , m_lagFrame(lagFrame)
 {}
 
-int MotionSyncEffect::absFrame() const
+int MotionSyncEffect::speed() const
 {
-    return m_motion->frame;
+    // previously redefined:
+    //
+    //     MotionSyncEffect::absFrame() const
+    //     {
+    //         return m_motion->frame;
+    //     }
+    //
+    // the problem is m_motion->frame never go above frameCount
+    // this makes MotionSyncEffect::done() never returns true, then the ClientCreature::update() gets stuck
+
+    return m_motion->speed;
 }
 
 int MotionSyncEffect::gfxFrame() const

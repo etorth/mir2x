@@ -130,7 +130,9 @@ class MotionSyncEffect: public MotionEffect
         MotionSyncEffect(const char8_t *, const char8_t *, ClientCreature *, MotionNode *, int lagFrame = 0);
 
     protected:
-        int absFrame() const override;
+        int speed() const override;
+
+    protected:
         int gfxFrame() const override;
 
     public:
