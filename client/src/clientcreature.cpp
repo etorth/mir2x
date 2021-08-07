@@ -37,13 +37,25 @@ void ClientCreature::updateAttachMagic(double fUpdateTime)
 
 void ClientCreature::updateHealth(SDHealth health)
 {
-    const auto lastHealth = m_sdHealth;
+    const int pixelX = x() * SYS_MAPGRIDXP + SYS_MAPGRIDXP / 2;
+    const int pixelY = y() * SYS_MAPGRIDYP - SYS_MAPGRIDYP * 1;
+
+    if(!m_sdHealth.has_value()){
+        m_sdHealth = std::move(health);
+        return;
+    }
+
+    const int diffHP = health.HP - m_sdHealth.value().HP;
+    const int diffMP = health.MP - m_sdHealth.value().MP;
+
     m_sdHealth = health;
 
-    if(const auto diff = lastHealth.HP - m_sdHealth.HP; (m_sdHealth.HP > 0) && (diff != 0)){
-        const int pixelX = x() * SYS_MAPGRIDXP + SYS_MAPGRIDXP / 2;
-        const int pixelY = y() * SYS_MAPGRIDYP - SYS_MAPGRIDYP * 1;
-        m_processRun->addAscendStr(ASCENDSTR_NUM0, diff, pixelX, pixelY);
+    if(diffHP){
+        m_processRun->addAscendStr(ASCENDSTR_NUM0, diffHP, pixelX, pixelY);
+    }
+
+    if(diffMP){
+        m_processRun->addAscendStr(ASCENDSTR_NUM1, diffMP, pixelX, pixelY - (diffHP ? SYS_MAPGRIDYP : 0));
     }
 }
 

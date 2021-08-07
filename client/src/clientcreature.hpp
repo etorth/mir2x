@@ -20,11 +20,13 @@
 
 #include <list>
 #include <deque>
+#include <array>
 #include <memory>
 #include <cstddef>
 #include <cstdint>
 #include <optional>
 #include <concepts>
+#include <optional>
 #include <SDL2/SDL.h>
 
 #include "uidf.hpp"
@@ -50,7 +52,7 @@ class ClientCreature
         ProcessRun *m_processRun;
 
     protected:
-        SDHealth m_sdHealth;
+        std::optional<SDHealth> m_sdHealth;
 
     protected:
         std::unique_ptr<MotionNode> m_currMotion;
@@ -73,13 +75,6 @@ class ClientCreature
         ClientCreature(uint64_t uid, ProcessRun *pRun)
             : m_UID(uid)
             , m_processRun(pRun)
-            , m_sdHealth
-              {
-                  .HP    = 100,
-                  .MP    = 100,
-                  .maxHP = 100,
-                  .maxMP = 100,
-              }
             , m_lastActive(0)
             , m_lastQuerySelf(0)
             , m_nameBoard(DIR_UPLEFT, 0, 0, u8"ClientCreature", 1, 12, 0, colorf::RGBA(0XFF, 0XFF, 0XFF, 0X00))
@@ -210,9 +205,13 @@ class ClientCreature
         void updateHealth(SDHealth);
 
     public:
-        const auto &getHealth() const
+        std::array<double, 2> getHealthRatio() const
         {
-            return m_sdHealth;
+            return
+            {
+                (m_sdHealth.has_value() && (m_sdHealth.value().maxHP > 0)) ? mathf::bound<double>(to_df(m_sdHealth.value().HP) / m_sdHealth.value().maxHP, 0.0, 1.0) : 0.0,
+                (m_sdHealth.has_value() && (m_sdHealth.value().maxMP > 0)) ? mathf::bound<double>(to_df(m_sdHealth.value().MP) / m_sdHealth.value().maxMP, 0.0, 1.0) : 0.0,
+            };
         }
 
     public:

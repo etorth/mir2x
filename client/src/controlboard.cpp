@@ -769,17 +769,11 @@ void ControlBoard::drawLeft() const
             SDL_QueryTexture(pMP, nullptr, nullptr, &nMPW, &nMPH);
 
             if(auto pMyHero = m_processRun->getMyHero()){
-                double fHPRatio = (pMyHero->getHealth().maxHP > 0) ? ((1.0 * pMyHero->getHealth().HP) / pMyHero->getHealth().maxHP) : 1.0;
-                double fMPRatio = (pMyHero->getHealth().maxMP > 0) ? ((1.0 * pMyHero->getHealth().MP) / pMyHero->getHealth().maxMP) : 1.0;
+                const double fLostHPRatio = 1.0 - pMyHero->getHealthRatio().at(0);
+                const double fLostMPRatio = 1.0 - pMyHero->getHealthRatio().at(1);
 
-                fHPRatio = (std::max<double>)((std::min<double>)(fHPRatio, 1.0), 0.0);
-                fMPRatio = (std::max<double>)((std::min<double>)(fMPRatio, 1.0), 0.0);
-
-                double fLostHPRatio = 1.0 - fHPRatio;
-                double fLostMPRatio = 1.0 - fMPRatio;
-
-                auto nLostHPH = to_d(std::lround(nHPH * fLostHPRatio));
-                auto nLostMPH = to_d(std::lround(nMPH * fLostMPRatio));
+                const auto nLostHPH = to_d(std::lround(nHPH * fLostHPRatio));
+                const auto nLostMPH = to_d(std::lround(nMPH * fLostMPRatio));
 
                 g_sdlDevice->drawTexture(pHP, 33, nY0 + 9 + nLostHPH, 0, nLostHPH, nHPW, nHPH - nLostHPH);
                 g_sdlDevice->drawTexture(pMP, 73, nY0 + 9 + nLostMPH, 0, nLostMPH, nMPW, nMPH - nLostMPH);

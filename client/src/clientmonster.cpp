@@ -296,13 +296,10 @@ void ClientMonster::drawFrame(int viewX, int viewY, int focusMask, int frame, bo
             auto pBar0 = g_progUseDB->retrieve(0X00000014);
             auto pBar1 = g_progUseDB->retrieve(0X00000015);
 
-            int nBarW = -1;
-            int nBarH = -1;
-            SDL_QueryTexture(pBar1, nullptr, nullptr, &nBarW, &nBarH);
-
+            const auto [nBarW, nBarH] = SDLDeviceHelper::getTextureSize(pBar1);
             const int drawBarXP = startX +  7;
             const int drawBarYP = startY - 53;
-            const int drawBarWidth = to_d(std::lround(nBarW * (m_sdHealth.maxHP ? (std::min<double>)(1.0, (1.0 * m_sdHealth.HP) / m_sdHealth.maxHP) : 1.0)));
+            const int drawBarWidth = to_d(std::lround(nBarW * getHealthRatio().at(0)));
 
             g_sdlDevice->drawTexture(pBar1, drawBarXP, drawBarYP, 0, 0, drawBarWidth, nBarH);
             g_sdlDevice->drawTexture(pBar0, drawBarXP, drawBarYP);
