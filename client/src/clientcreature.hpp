@@ -209,8 +209,8 @@ class ClientCreature
         {
             return
             {
-                (m_sdHealth.has_value() && (m_sdHealth.value().maxHP > 0)) ? mathf::bound<double>(to_df(m_sdHealth.value().HP) / m_sdHealth.value().maxHP, 0.0, 1.0) : 0.0,
-                (m_sdHealth.has_value() && (m_sdHealth.value().maxMP > 0)) ? mathf::bound<double>(to_df(m_sdHealth.value().MP) / m_sdHealth.value().maxMP, 0.0, 1.0) : 0.0,
+                (m_sdHealth.has_value() && (m_sdHealth.value().maxHP > 0)) ? mathf::bound<double>(to_df(m_sdHealth.value().HP) / m_sdHealth.value().maxHP, 0.0, 1.0) : 1.0,
+                (m_sdHealth.has_value() && (m_sdHealth.value().maxMP > 0)) ? mathf::bound<double>(to_df(m_sdHealth.value().MP) / m_sdHealth.value().maxMP, 0.0, 1.0) : 1.0,
             };
         }
 
