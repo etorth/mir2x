@@ -48,6 +48,9 @@ uint32_t MotionEffect::frameTexID() const
 
 void MotionEffect::drawShift(int shiftX, int shiftY, uint32_t modColor)
 {
+    // m_motion is always valid in this function
+    // because we call it by currMotion: CO::m_currMotion->effect->drawShift()
+
     fflassert(!done());
     if(const auto texID = frameTexID(); texID != SYS_TEXNIL){
         if(auto [texPtr, offX, offY] = g_magicDB->retrieve(texID); texPtr){
@@ -117,7 +120,7 @@ void HeroSpellMagicEffect::update(double ms)
             m_motion->frame  = motionEndFrame - motionSyncFrameCount;
         }
         else{
-            m_hero->updateMotion();
+            m_hero->updateMotion(false);
         }
     }
 }
@@ -146,7 +149,7 @@ void MotionAlignedEffect::update(double ms)
     m_accuTime += ms;
 
     if(m_creature->checkUpdate(ms)){
-        m_creature->updateMotion(); // this can deallocate m_motion
+        m_creature->updateMotion(false);
     }
 }
 
@@ -160,12 +163,17 @@ int MotionSyncEffect::absFrame() const
     return m_motion->frame;
 }
 
+int MotionSyncEffect::frameCount() const
+{
+    return std::min<int>(MotionEffect::frameCount(), m_creature->getFrameCountEx(m_motion->type, m_motion->direction));
+}
+
 void MotionSyncEffect::update(double ms)
 {
     fflassert(!done());
     m_accuTime += ms;
 
     if(m_creature->checkUpdate(ms)){
-        m_creature->updateMotion(); // this can deallocate m_motion
+        m_creature->updateMotion(false);
     }
 }

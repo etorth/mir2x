@@ -251,7 +251,7 @@ bool ClientNPC::update(double ms)
     switch(m_currMotion->type){
         case MOTION_NPC_STAND:
             {
-                return advanceMotionFrame(1);
+                return advanceMotionFrame();
             }
         case MOTION_NPC_ACT:
         case MOTION_NPC_ACTEXT:
@@ -259,7 +259,7 @@ bool ClientNPC::update(double ms)
                 if(doneCurrMotion){
                     return moveNextMotion();
                 }
-                return advanceMotionFrame(1);
+                return advanceMotionFrame();
             }
         default:
             {

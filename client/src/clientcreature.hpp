@@ -174,15 +174,20 @@ class ClientCreature
         virtual bool parseAction(const ActionNode &) = 0;
 
     protected:
-        virtual bool advanceMotionFrame(int);
+        virtual bool advanceMotionFrame();
 
     public:
-        virtual bool updateMotion()
+        bool updateMotion(bool allowSwitchMotion)
         {
-            if(m_currMotion->frame < (getFrameCountEx(m_currMotion->type, m_currMotion->direction) - 1)){
-                return advanceMotionFrame(1);
+            if(m_currMotion->frame + 1 < getFrameCountEx(m_currMotion->type, m_currMotion->direction)){
+                return advanceMotionFrame();
             }
-            return moveNextMotion();
+            else if(allowSwitchMotion){
+                return moveNextMotion();
+            }
+            else{
+                return true; // stuck at last frame
+            }
         }
 
     protected:

@@ -12,6 +12,9 @@
 // MotionEffect won't support callback
 // because MotionNode can be flushed without present frames
 
+// MotionEffect::update() should guarentee that it won't swap motion
+// this helps to guarentee that m_motion always be valid
+
 class MotionNode;
 class MotionEffect
 {
@@ -120,6 +123,9 @@ class MotionSyncEffect: public MotionEffect
 
     protected:
         int absFrame() const override;
+
+    public:
+        int frameCount() const override;
 
     public:
         void update(double) override;

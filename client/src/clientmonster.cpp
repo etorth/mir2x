@@ -139,7 +139,7 @@ bool ClientMonster::update(double ms)
         case MOTION_MON_STAND:
             {
                 if(stayIdle()){
-                    return advanceMotionFrame(1);
+                    return advanceMotionFrame();
                 }
 
                 // move to next motion will reset frame as 0
@@ -157,7 +157,7 @@ bool ClientMonster::update(double ms)
                 }
 
                 if(m_currMotion->frame + 1 < frameCount){
-                    return advanceMotionFrame(1);
+                    return advanceMotionFrame();
                 }
 
                 switch(m_currMotion->extParam.die.fadeOut){
@@ -185,7 +185,7 @@ bool ClientMonster::update(double ms)
             }
         default:
             {
-                return updateMotion();
+                return updateMotion(true);
             }
     }
 }

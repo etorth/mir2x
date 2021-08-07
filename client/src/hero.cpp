@@ -261,7 +261,7 @@ bool Hero::update(double ms)
         case MOTION_STAND:
             {
                 if(stayIdle()){
-                    return advanceMotionFrame(1);
+                    return advanceMotionFrame();
                 }
 
                 // move to next motion will reset frame as 0
@@ -274,7 +274,7 @@ bool Hero::update(double ms)
         case MOTION_HITTED:
             {
                 if(stayIdle()){
-                    return updateMotion();
+                    return updateMotion(true);
                 }
 
                 // move to next motion will reset frame as 0
@@ -286,7 +286,7 @@ bool Hero::update(double ms)
             }
         default:
             {
-                return updateMotion();
+                return updateMotion(true);
             }
     }
 }

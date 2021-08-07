@@ -17,16 +17,9 @@
 #include "clientmonster.hpp"
 
 extern Log *g_log;
-
-bool ClientCreature::advanceMotionFrame(int addFrame)
+bool ClientCreature::advanceMotionFrame()
 {
-    const auto frameCount = getFrameCount(m_currMotion->type, m_currMotion->direction);
-    if(frameCount <= 0){
-        return false;
-    }
-
-    m_currMotion->frame = (m_currMotion->frame + addFrame  ) % frameCount;
-    m_currMotion->frame = (m_currMotion->frame + frameCount) % frameCount;
+    m_currMotion->frame = (m_currMotion->frame + 1) % getFrameCountEx(m_currMotion->type, m_currMotion->direction);
     return true;
 }
 
