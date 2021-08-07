@@ -60,6 +60,7 @@
 #include "serverrootspider.hpp"
 #include "serverredmoonevil.hpp"
 #include "servershipwrecklord.hpp"
+#include "serverminotaurguardian.hpp"
 
 extern MapBinDB *g_mapBinDB;
 extern MonoServer *g_monoServer;
@@ -1382,6 +1383,20 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
                 {
                     monsterPtr = new ServerShipwreckLord
                     {
+                        this,
+                        nDstX,
+                        nDstY,
+                        DIR_UP,
+                        nMasterUID,
+                    };
+                    break;
+                }
+            case DBCOM_MONSTERID(u8"潘夜左护卫"):
+            case DBCOM_MONSTERID(u8"潘夜右护卫"):
+                {
+                    monsterPtr = new ServerMinotaurGuardian
+                    {
+                        nMonsterID,
                         this,
                         nDstX,
                         nDstY,
