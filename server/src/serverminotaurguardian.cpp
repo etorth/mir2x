@@ -15,15 +15,15 @@ corof::long_jmper ServerMinotaurGuardian::updateCoroFunc()
         if(isMonster(u8"潘夜左护卫")){
             return
             {
-                DBCOM_MAGICID(u8"潘夜左护卫_电魔杖"),
-                DBCOM_MAGICID(u8"潘夜左护卫_雷电术"),
+                DBCOM_MAGICID(u8"潘夜左护卫_火魔杖"),
+                DBCOM_MAGICID(u8"潘夜左护卫_火球术"),
             };
         }
         else{
             return
             {
-                DBCOM_MAGICID(u8"潘夜右护卫_火魔杖"),
-                DBCOM_MAGICID(u8"潘夜右护卫_火球术"),
+                DBCOM_MAGICID(u8"潘夜右护卫_电魔杖"),
+                DBCOM_MAGICID(u8"潘夜右护卫_雷电术"),
             };
         }
     }();
@@ -67,8 +67,8 @@ DamageNode ServerMinotaurGuardian::getAttackDamage(int dc) const
 {
     if(isMonster(u8"潘夜左护卫")){
         switch(dc){
-            case DBCOM_MAGICID(u8"潘夜左护卫_电魔杖"):
-            case DBCOM_MAGICID(u8"潘夜左护卫_雷电术"):
+            case DBCOM_MAGICID(u8"潘夜左护卫_火魔杖"):
+            case DBCOM_MAGICID(u8"潘夜左护卫_火球术"):
                 {
                     for(const auto &[uid, coLoc]: m_inViewCOList){
                         if((uidf::getUIDType(uid) == UID_MON) && (uidf::getMonsterID(uid) == DBCOM_MONSTERID(u8"潘夜右护卫"))){
@@ -94,8 +94,8 @@ DamageNode ServerMinotaurGuardian::getAttackDamage(int dc) const
     }
     else{
         switch(dc){
-            case DBCOM_MAGICID(u8"潘夜右护卫_火魔杖"):
-            case DBCOM_MAGICID(u8"潘夜右护卫_火球术"):
+            case DBCOM_MAGICID(u8"潘夜右护卫_电魔杖"):
+            case DBCOM_MAGICID(u8"潘夜右护卫_雷电术"):
                 {
                     for(const auto &[uid, coLoc]: m_inViewCOList){
                         if((uidf::getUIDType(uid) == UID_MON) && (uidf::getMonsterID(uid) == DBCOM_MONSTERID(u8"潘夜左护卫"))){

@@ -1366,7 +1366,7 @@
 },
 
 {
-    .name = u8"潘夜左护卫_电魔杖",
+    .name = u8"潘夜右护卫_电魔杖",
     .castRange
     {
         .type = CRT_DIR,
@@ -1395,7 +1395,7 @@
 },
 
 {
-    .name = u8"潘夜左护卫_雷电术",
+    .name = u8"潘夜右护卫_雷电术",
     .element = u8"雷",
 
     .castRange
@@ -1416,7 +1416,7 @@
 },
 
 {
-    .name = u8"潘夜右护卫_火魔杖",
+    .name = u8"潘夜左护卫_火魔杖",
     .castRange
     {
         .type = CRT_DIR,
@@ -1445,7 +1445,7 @@
 },
 
 {
-    .name = u8"潘夜右护卫_火球术",
+    .name = u8"潘夜左护卫_火球术",
     .element = u8"火",
 
     .castRange
