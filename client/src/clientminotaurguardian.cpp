@@ -22,7 +22,7 @@ bool ClientMinotaurGuardian::onActionAttack(const ActionNode &action)
                     .y = action.y,
                 }));
 
-                m_motionQueue.back()->effect.reset(new MotionSyncEffect(DBCOM_MAGICRECORD(magicID).name, u8"运行", this, m_motionQueue.back().get()));
+                m_motionQueue.back()->effect.reset(new MotionSyncEffect(DBCOM_MAGICRECORD(magicID).name, u8"运行", this, m_motionQueue.back().get(), 3));
                 return true;
             }
         case DBCOM_MAGICID(u8"潘夜右护卫_雷电术"):

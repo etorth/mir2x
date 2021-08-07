@@ -40,10 +40,13 @@ MotionEffect::MotionEffect(const char8_t *magicName, const char8_t *stageName, M
 uint32_t MotionEffect::frameTexID() const
 {
     fflassert(!done());
-    if(m_gfxEntry->gfxDirType > 1){
-        return m_gfxEntry->gfxID + frame() + (m_motion->direction - DIR_BEGIN) * m_gfxEntry->gfxIDCount;
+    if(const auto gfxIndex = gfxFrame(); gfxIndex >= 0){
+        if(m_gfxEntry->gfxDirType > 1){
+            return m_gfxEntry->gfxID + gfxIndex + (m_motion->direction - DIR_BEGIN) * m_gfxEntry->gfxIDCount;
+        }
+        return m_gfxEntry->gfxID + gfxIndex;
     }
-    return m_gfxEntry->gfxID + frame();
+    return SYS_TEXNIL;
 }
 
 void MotionEffect::drawShift(int shiftX, int shiftY, uint32_t modColor)
@@ -153,14 +156,20 @@ void MotionAlignedEffect::update(double ms)
     }
 }
 
-MotionSyncEffect::MotionSyncEffect(const char8_t *magicName, const char8_t *stageName, ClientCreature *creaturePtr, MotionNode *motionPtr)
+MotionSyncEffect::MotionSyncEffect(const char8_t *magicName, const char8_t *stageName, ClientCreature *creaturePtr, MotionNode *motionPtr, int lagFrame)
     : MotionEffect(magicName, stageName, motionPtr)
     , m_creature(creaturePtr)
+    , m_lagFrame(lagFrame)
 {}
 
 int MotionSyncEffect::absFrame() const
 {
     return m_motion->frame;
+}
+
+int MotionSyncEffect::gfxFrame() const
+{
+    return absFrame() - m_lagFrame;
 }
 
 int MotionSyncEffect::frameCount() const

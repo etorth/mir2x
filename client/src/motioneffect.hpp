@@ -43,6 +43,11 @@ class MotionEffect
             return std::lround((m_accuTime / 1000.0) * SYS_DEFFPS * (to_df(speed()) / 100.0));
         }
 
+        virtual int gfxFrame() const
+        {
+            return absFrame();
+        }
+
         virtual int frame() const
         {
             return absFrame();
@@ -118,11 +123,15 @@ class MotionSyncEffect: public MotionEffect
     protected:
         ClientCreature * const m_creature;
 
+    protected:
+        const int m_lagFrame;
+
     public:
-        MotionSyncEffect(const char8_t *, const char8_t *, ClientCreature *, MotionNode *);
+        MotionSyncEffect(const char8_t *, const char8_t *, ClientCreature *, MotionNode *, int lagFrame = 0);
 
     protected:
         int absFrame() const override;
+        int gfxFrame() const override;
 
     public:
         int frameCount() const override;
