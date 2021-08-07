@@ -13,7 +13,7 @@
 // because MotionNode can be flushed without present frames
 
 // MotionEffect::update() should guarentee that it won't swap motion
-// this helps to guarentee that m_motion always be valid
+// this helps to guarentee MotionEffect::m_motion keeps valid
 
 class MotionNode;
 class MotionEffect
