@@ -138,3 +138,24 @@ namespace uidf
         throw fflerror("failed to convert %s to a valid UID", uidString.c_str());
     }
 }
+
+namespace uidf
+{
+    inline bool isPlayer(uint64_t uid)
+    {
+        return uidf::getUIDType(uid) == UID_PLY;
+    }
+
+    inline bool isNPChar(uint64_t uid)
+    {
+        return uidf::getUIDType(uid) == UID_NPC;
+    }
+
+    inline bool isMonster(uint64_t uid)
+    {
+        return uidf::getUIDType(uid) == UID_MON;
+    }
+
+    bool isMonster(uint64_t, uint32_t);
+    bool isMonster(uint64_t, const char8_t *);
+}

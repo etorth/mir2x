@@ -24,6 +24,7 @@
 #include "strf.hpp"
 #include "totype.hpp"
 #include "fflerror.hpp"
+#include "dbcomid.hpp"
 #include "dbcomrecord.hpp"
 
 uint64_t uidf::getMapUID(uint32_t mapID)
@@ -230,4 +231,14 @@ uint16_t uidf::getLookID(uint64_t uid)
                 throw fflerror("uid type %s doesn't support lookID", uidf::getUIDTypeCStr(uid));
             }
     }
+}
+
+bool uidf::isMonster(uint64_t uid, uint32_t monID)
+{
+    return uidf::isMonster(uid) && (uidf::getMonsterID(uid) == monID);
+}
+
+bool uidf::isMonster(uint64_t uid, const char8_t *name)
+{
+    return uidf::isMonster(uid) && (uidf::getMonsterID(uid) == DBCOM_MONSTERID(name));
 }
