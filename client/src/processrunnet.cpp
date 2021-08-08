@@ -112,6 +112,11 @@ void ProcessRun::net_ACTION(const uint8_t *bufPtr, size_t)
         m_coList.clear();
         m_coList[m_myHeroUID] = std::move(myHeroPtr);
 
+        m_fixedLocMagicList.clear();
+        m_followUIDMagicList.clear();
+        m_actionBlocker.clear();
+        m_ascendStrList.clear();
+
         centerMyHero();
         getMyHero()->parseAction(smA.action);
         return;
