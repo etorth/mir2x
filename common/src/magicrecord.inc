@@ -1366,6 +1366,20 @@
 },
 
 {
+    .name = u8"潘夜右护卫_死亡特效",
+    .gfxList
+    {
+        {
+            .stage = u8"运行",
+            .type  = u8"附着",
+            .gfxID = 0X0400005A,
+            .frameCount = 5,
+            .gfxDirType = 1,
+        },
+    },
+},
+
+{
     .name = u8"潘夜右护卫_电魔杖",
     .castRange
     {
@@ -1387,8 +1401,8 @@
         {
             .stage = u8"结束",
             .type  = u8"附着",
-            .gfxID = 0X0400005A,
-            .frameCount = 5,
+            .gfxID = 0X0100033E,
+            .frameCount = 6,
             .gfxDirType = 1,
         },
     },
@@ -1416,6 +1430,20 @@
 },
 
 {
+    .name = u8"潘夜左护卫_死亡特效",
+    .gfxList
+    {
+        {
+            .stage = u8"运行",
+            .type  = u8"附着",
+            .gfxID = 0X040000C8,
+            .frameCount = 5,
+            .gfxDirType = 1,
+        },
+    },
+},
+
+{
     .name = u8"潘夜左护卫_火魔杖",
     .castRange
     {
@@ -1437,8 +1465,8 @@
         {
             .stage = u8"结束",
             .type  = u8"附着",
-            .gfxID = 0X040000C8,
-            .frameCount = 5,
+            .gfxID = 0X01000316,
+            .frameCount = 6,
             .gfxDirType = 1,
         },
     },

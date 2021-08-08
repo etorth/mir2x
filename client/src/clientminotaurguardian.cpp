@@ -23,6 +23,17 @@ bool ClientMinotaurGuardian::onActionAttack(const ActionNode &action)
                 }));
 
                 m_motionQueue.back()->effect.reset(new MotionSyncEffect(DBCOM_MAGICRECORD(magicID).name, u8"运行", this, m_motionQueue.back().get(), 3));
+                m_motionQueue.back()->addTrigger(false, [targetUID = action.aimUID, magicID, this](MotionNode *motionPtr) -> bool
+                {
+                    if(motionPtr->frame < 4){
+                        return false;
+                    }
+
+                    if(auto coPtr = m_processRun->findUID(targetUID)){
+                        coPtr->addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(DBCOM_MAGICRECORD(magicID).name, u8"结束")));
+                    }
+                    return true;
+                });
                 return true;
             }
         case DBCOM_MAGICID(u8"潘夜右护卫_雷电术"):
