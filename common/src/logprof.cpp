@@ -20,7 +20,6 @@
 #include <string>
 #include <cstring>
 #include <fstream>
-#include <unistd.h>
 #include "strf.hpp"
 #include "totype.hpp"
 #include "logprof.hpp"
