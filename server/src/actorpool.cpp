@@ -528,7 +528,7 @@ bool ActorPool::runOneMailbox(Mailbox *mailboxPtr, bool useMetronome, uint64_t s
             return false;                       // any thread want to call runOneMailbox should first grab the schedLoc
         }                                       // means it's in grabbed status rather than detached status if we can reach here
 
-        if((mailboxPtr->actor->getUpdateFreq() > 0) && (mailboxPtr->lastUpdateTime + 1000ULL / mailboxPtr->actor->getUpdateFreq() <= startUpdateTime)){
+        if((mailboxPtr->actor->getMetronomeFreq() > 0) && (mailboxPtr->lastUpdateTime + 1000ULL / mailboxPtr->actor->getMetronomeFreq() <= startUpdateTime)){
             raii_timer procTimer(&(mailboxPtr->monitor.procTick));
             mailboxPtr->actor->innHandler({AM_METRONOME, 0, 0});
             mailboxPtr->lastUpdateTime = startUpdateTime;

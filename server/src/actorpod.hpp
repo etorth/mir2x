@@ -150,14 +150,14 @@ class ActorPod final
         }
 
     public:
-        void setUpdateFreq(uint64_t freq)
+        void setMetronomeFreq(uint64_t freq)
         {
             // TODO enhance it to do more check
             // should only call this function inside message handler
             m_updateFreq = freq;
         }
 
-        uint64_t getUpdateFreq() const
+        uint64_t getMetronomeFreq() const
         {
             return m_updateFreq;
         }
