@@ -614,8 +614,15 @@ corof::long_jmper Monster::updateCoroFunc()
                 break;
             }
         }
-        else if(g_serverArgParser->forceMonsterRandomMove || hasPlayerNeighbor()){
+        else{
             co_await coro_randomMove();
+        }
+
+        if(g_serverArgParser->forceMonsterRandomMove || hasPlayerNeighbor()){
+            m_actorPod->setUpdateFreq(std::min<uint64_t>(10, m_actorPod->getUpdateFreq() * 2));
+        }
+        else{
+            m_actorPod->setUpdateFreq(std::max<uint64_t>(1,  m_actorPod->getUpdateFreq() / 2));
         }
 
         // always wait

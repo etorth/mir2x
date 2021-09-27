@@ -484,7 +484,7 @@ void ActorPool::runOneUID(uint64_t uid)
                     lockGuard.unlock();
                 }
 
-                runOneMailbox(mailboxPtr, false);
+                runOneMailbox(mailboxPtr, false, 0ULL);
                 return;
             }
         default:
@@ -494,7 +494,7 @@ void ActorPool::runOneUID(uint64_t uid)
     }
 }
 
-bool ActorPool::runOneMailbox(Mailbox *mailboxPtr, bool useMetronome)
+bool ActorPool::runOneMailbox(Mailbox *mailboxPtr, bool useMetronome, uint64_t startUpdateTime)
 {
     if(!isActorThread()){
         throw fflerror("accessing actor message handlers outside of actor threads: %d", getWorkerID());
@@ -528,9 +528,10 @@ bool ActorPool::runOneMailbox(Mailbox *mailboxPtr, bool useMetronome)
             return false;                       // any thread want to call runOneMailbox should first grab the schedLoc
         }                                       // means it's in grabbed status rather than detached status if we can reach here
 
-        {
+        if((mailboxPtr->actor->getUpdateFreq() > 0) && (mailboxPtr->lastUpdateTime + 1000ULL / mailboxPtr->actor->getUpdateFreq() <= startUpdateTime)){
             raii_timer procTimer(&(mailboxPtr->monitor.procTick));
             mailboxPtr->actor->innHandler({AM_METRONOME, 0, 0});
+            mailboxPtr->lastUpdateTime = startUpdateTime;
         }
 
         mailboxPtr->monitor.messageDone.fetch_add(1);
@@ -654,7 +655,7 @@ void ActorPool::clearOneMailbox(Mailbox *mailboxPtr)
     mailboxPtr->currQ.clear();
 }
 
-void ActorPool::runOneMailboxBucket(int bucketId)
+void ActorPool::runOneMailboxBucket(int bucketId, uint64_t startUpdateTime)
 {
     logProfiler();
     const int workerId = getWorkerID();
@@ -662,7 +663,7 @@ void ActorPool::runOneMailboxBucket(int bucketId)
         throw fflerror("udpate mailbox bucket %d by thread %d", bucketId, workerId);
     }
 
-    const auto fnRunMailbox = [workerId, this](Mailbox *mailboxPtr) -> bool
+    const auto fnRunMailbox = [workerId, startUpdateTime, this](Mailbox *mailboxPtr) -> bool
     {
         // we can use raw mailboxPtr here because it's in dedicated actor thread
         // no one else can remove {uid, mailboxPtr} from the sub-bucket
@@ -682,7 +683,7 @@ void ActorPool::runOneMailboxBucket(int bucketId)
 
                     // don't try clean it
                     // since we can't guarentee to clean it complately
-                    return runOneMailbox(mailboxPtr, true);
+                    return runOneMailbox(mailboxPtr, true, startUpdateTime);
                 }
             case MAILBOX_ACCESS_PUB:
                 {
@@ -796,7 +797,7 @@ void ActorPool::launchPool()
                     else{
                         const uint64_t currTime = timer.diff_msec();
                         if(currTime >= lastUpdateTime + maxUpdateWaitTime){
-                            runOneMailboxBucket(bucketId);
+                            runOneMailboxBucket(bucketId, currTime);
                             lastUpdateTime = currTime;
                         }
 

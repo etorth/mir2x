@@ -86,6 +86,7 @@ uint64_t ServerObject::activate()
             operateAM(mpk);
         },
 
+        10ULL,
         3600ULL * 1000 * 1000 * 1000,
     };
 

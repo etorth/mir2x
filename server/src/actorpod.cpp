@@ -34,6 +34,7 @@ extern ServerArgParser *g_serverArgParser;
 ActorPod::ActorPod(uint64_t nUID,
         std::function<void()> fnTrigger,
         std::function<void(const ActorMsgPack &)> fnOperation,
+        uint64_t updateFreq,
         uint64_t nExpireTime)
     : m_UID([nUID]() -> uint64_t
       {
@@ -48,6 +49,7 @@ ActorPod::ActorPod(uint64_t nUID,
       }())
     , m_trigger(std::move(fnTrigger))
     , m_operation(std::move(fnOperation))
+    , m_updateFreq(updateFreq)
     , m_expireTime(nExpireTime)
 {}
 

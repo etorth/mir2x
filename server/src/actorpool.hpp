@@ -409,6 +409,10 @@ class ActorPool final
             std::function<void()> atStart;
             std::function<void()> atExit;
 
+            // pool can automatically send METRONOME to actorpod
+            // this record last send time, in ms
+            uint64_t lastUpdateTime = 0;
+
             // put a monitor structure and always maintain it
             // then no need to acquire schedLock to dump the monitor
             struct MailboxMonitor
@@ -565,8 +569,8 @@ class ActorPool final
 
     private:
         void runOneUID(uint64_t);
-        bool runOneMailbox(Mailbox *, bool);
-        void runOneMailboxBucket(int);
+        bool runOneMailbox(Mailbox *, bool, uint64_t);
+        void runOneMailboxBucket(int, uint64_t);
 
     private:
         void clearOneMailbox(Mailbox *);

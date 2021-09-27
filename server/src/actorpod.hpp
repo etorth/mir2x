@@ -66,6 +66,11 @@ class ActorPod final
         const std::function<void(const ActorMsgPack &)> m_operation;
 
     private:
+        // actorpool automatically send METRONOME to actor
+        // this can control the freq if we want to setup actor in standby/active mode
+        uint64_t m_updateFreq;
+
+    private:
         // used by rollSeqID()
         // to create unique proper ID for an message expcecting response
         uint32_t m_nextSeqID = 1;
@@ -94,6 +99,7 @@ class ActorPod final
         explicit ActorPod(uint64_t,                         // UID
                 std::function<void()>,                      // trigger
                 std::function<void(const ActorMsgPack &)>,  // msgHandler
+                uint64_t,                                   // metronome frequency in HZ
                 uint64_t);                                  // timeout in nanoseconds
 
     public:
@@ -141,5 +147,18 @@ class ActorPod final
         ActorPodMonitor dumpPodMonitor() const
         {
             return m_podMonitor;
+        }
+
+    public:
+        void setUpdateFreq(uint64_t freq)
+        {
+            // TODO enhance it to do more check
+            // should only call this function inside message handler
+            m_updateFreq = freq;
+        }
+
+        uint64_t getUpdateFreq() const
+        {
+            return m_updateFreq;
         }
 };
