@@ -67,7 +67,7 @@ ServerObject::~ServerObject()
 //
 // And if we really want to change the address of current object, maybe we need to
 // delete current object totally and create a new one instead
-uint64_t ServerObject::activate()
+uint64_t ServerObject::activate(uint64_t metronomeFreq, uint64_t expireTime)
 {
     if(m_actorPod){
         throw fflerror("activation twice: %s", uidf::getUIDString(UID()).c_str());
@@ -86,8 +86,8 @@ uint64_t ServerObject::activate()
             operateAM(mpk);
         },
 
-        10ULL,
-        3600ULL * 1000 * 1000 * 1000,
+        metronomeFreq,
+        expireTime,
     };
 
     // seperate attach call

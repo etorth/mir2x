@@ -35,7 +35,7 @@ ActorPod::ActorPod(uint64_t nUID,
         std::function<void()> fnTrigger,
         std::function<void(const ActorMsgPack &)> fnOperation,
         uint64_t updateFreq,
-        uint64_t nExpireTime)
+        uint64_t expireTime)
     : m_UID([nUID]() -> uint64_t
       {
           if(!nUID){
@@ -50,7 +50,7 @@ ActorPod::ActorPod(uint64_t nUID,
     , m_trigger(std::move(fnTrigger))
     , m_operation(std::move(fnOperation))
     , m_updateFreq(updateFreq)
-    , m_expireTime(nExpireTime)
+    , m_expireTime(expireTime)
 {}
 
 ActorPod::~ActorPod()
