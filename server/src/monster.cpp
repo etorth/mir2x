@@ -614,14 +614,12 @@ corof::long_jmper Monster::updateCoroFunc()
                 break;
             }
         }
-        else{
+        else if(g_serverArgParser->forceMonsterRandomMove || hasPlayerNeighbor()){
             co_await coro_randomMove();
-            if(g_serverArgParser->forceMonsterRandomMove || hasPlayerNeighbor()){
-                m_actorPod->setMetronomeFreq(std::min<uint64_t>(10, m_actorPod->getMetronomeFreq() * 2));
-            }
-            else{
-                m_actorPod->setMetronomeFreq(std::max<uint64_t>(1,  m_actorPod->getMetronomeFreq() / 2));
-            }
+            m_actorPod->setMetronomeFreq(10);
+        }
+        else{
+            m_actorPod->setMetronomeFreq(1); // don't set freq as 0, the UpdateCoro is driven by METRONOME
         }
 
         // always wait
