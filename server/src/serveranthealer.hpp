@@ -10,7 +10,7 @@ class ServerAntHealer final: public Monster
         {}
 
     protected:
-        corof::long_jmper updateCoroFunc() override;
+        corof::eval_poller updateCoroFunc() override;
 
     protected:
         void sendHeal(uint64_t);

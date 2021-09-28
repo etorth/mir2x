@@ -73,7 +73,7 @@ class Monster: public CharObject
         AStarCache m_AStarCache;
 
     protected:
-        corof::long_jmper m_updateCoro;
+        corof::eval_poller m_updateCoro;
 
     public:
         Monster(uint32_t,           // monster id
@@ -105,7 +105,7 @@ class Monster: public CharObject
         bool update() override;
 
     protected:
-        virtual corof::long_jmper updateCoroFunc();
+        virtual corof::eval_poller updateCoroFunc();
 
     protected:
         bool randomMove();
@@ -216,20 +216,20 @@ class Monster: public CharObject
         virtual bool goGhost();
 
     protected:
-        corof::long_jmper::eval_awaiter<bool>     coro_randomMove();
-        corof::long_jmper::eval_awaiter<bool>     coro_moveForward();
-        corof::long_jmper::eval_awaiter<bool>     coro_followMaster();
-        corof::long_jmper::eval_awaiter<uint64_t> coro_pickTarget();
-        corof::long_jmper::eval_awaiter<uint64_t> coro_pickHealTarget();
-        corof::long_jmper::eval_awaiter<int>      coro_checkFriend(uint64_t);
-        corof::long_jmper::eval_awaiter<bool>     coro_trackUID(uint64_t, DCCastRange);
-        corof::long_jmper::eval_awaiter<bool>     coro_attackUID(uint64_t, int);
-        corof::long_jmper::eval_awaiter<bool>     coro_jumpGLoc(int, int, int);
-        corof::long_jmper::eval_awaiter<bool>     coro_jumpUID(uint64_t);
-        corof::long_jmper::eval_awaiter<bool>     coro_jumpAttackUID(uint64_t);
-        corof::long_jmper::eval_awaiter<bool>     coro_trackAttackUID(uint64_t);
-        corof::long_jmper::eval_awaiter<bool>     coro_inDCCastRange(uint64_t, DCCastRange);
-        corof::long_jmper::eval_awaiter<std::optional<SDHealth>> coro_queryHealth(uint64_t);
+        corof::eval_poller::eval_awaiter<bool>     coro_randomMove();
+        corof::eval_poller::eval_awaiter<bool>     coro_moveForward();
+        corof::eval_poller::eval_awaiter<bool>     coro_followMaster();
+        corof::eval_poller::eval_awaiter<uint64_t> coro_pickTarget();
+        corof::eval_poller::eval_awaiter<uint64_t> coro_pickHealTarget();
+        corof::eval_poller::eval_awaiter<int>      coro_checkFriend(uint64_t);
+        corof::eval_poller::eval_awaiter<bool>     coro_trackUID(uint64_t, DCCastRange);
+        corof::eval_poller::eval_awaiter<bool>     coro_attackUID(uint64_t, int);
+        corof::eval_poller::eval_awaiter<bool>     coro_jumpGLoc(int, int, int);
+        corof::eval_poller::eval_awaiter<bool>     coro_jumpUID(uint64_t);
+        corof::eval_poller::eval_awaiter<bool>     coro_jumpAttackUID(uint64_t);
+        corof::eval_poller::eval_awaiter<bool>     coro_trackAttackUID(uint64_t);
+        corof::eval_poller::eval_awaiter<bool>     coro_inDCCastRange(uint64_t, DCCastRange);
+        corof::eval_poller::eval_awaiter<std::optional<SDHealth>> coro_queryHealth(uint64_t);
 
     public:
         static bool isPet(uint64_t);

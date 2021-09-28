@@ -36,7 +36,7 @@ void ServerRootSpider::addBombSpider()
     });
 }
 
-corof::long_jmper ServerRootSpider::updateCoroFunc()
+corof::eval_poller ServerRootSpider::updateCoroFunc()
 {
     uint64_t targetUID = 0;
     while(m_sdHealth.HP > 0){

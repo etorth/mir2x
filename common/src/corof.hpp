@@ -25,29 +25,29 @@
 
 namespace corof
 {
-    class long_jmper_promise;
-    class [[nodiscard]] long_jmper 
+    class eval_poller_promise;
+    class [[nodiscard]] eval_poller 
     {
         public:
-            using promise_type = long_jmper_promise;
+            using promise_type = eval_poller_promise;
             using  handle_type = std::coroutine_handle<promise_type>;
 
         public:
             handle_type m_handle;
 
         public:
-            long_jmper(handle_type handle = nullptr)
+            eval_poller(handle_type handle = nullptr)
                 : m_handle(handle) 
             {}
 
-            long_jmper(long_jmper&& other) noexcept
+            eval_poller(eval_poller&& other) noexcept
                 : m_handle(other.m_handle)
             {
                 other.m_handle = nullptr;
             }
 
         public:
-            long_jmper & operator = (long_jmper && other) noexcept
+            eval_poller & operator = (eval_poller && other) noexcept
             {
                 m_handle = other.m_handle;
                 other.m_handle = nullptr;
@@ -55,7 +55,7 @@ namespace corof
             }
 
         public:
-            ~long_jmper()
+            ~eval_poller()
             {
                 if(m_handle){
                     m_handle.destroy();
@@ -81,7 +81,7 @@ namespace corof
                     handle_type m_eval_handle;
 
                 public:
-                    eval_awaiter(long_jmper &&jmper) noexcept
+                    eval_awaiter(eval_poller &&jmper) noexcept
                         : m_eval_handle(jmper.m_handle)
                     {
                         jmper.m_handle = nullptr;
@@ -119,7 +119,7 @@ namespace corof
                 if(valid()){
                     return eval_awaiter<T>(std::move(*this));
                 }
-                throw fflerror("long_jmper has no eval-context associated");
+                throw fflerror("eval_poller has no eval-context associated");
             }
 
             template<typename T> auto sync_eval()
@@ -131,15 +131,15 @@ namespace corof
             }
     };
 
-    class long_jmper_promise 
+    class eval_poller_promise 
     {
         private:
-            friend class long_jmper;
+            friend class eval_poller;
 
         private:
             std::any m_value;
-            long_jmper::handle_type m_inner_handle;
-            long_jmper::handle_type m_outer_handle;
+            eval_poller::handle_type m_inner_handle;
+            eval_poller::handle_type m_outer_handle;
 
         public:
             template<typename T> T &get_value()
@@ -163,9 +163,9 @@ namespace corof
                 return std::suspend_always{};
             }
 
-            long_jmper get_return_object()
+            eval_poller get_return_object()
             {
-                return {std::coroutine_handle<long_jmper_promise>::from_promise(*this)};
+                return {std::coroutine_handle<eval_poller_promise>::from_promise(*this)};
             }
 
             void unhandled_exception()
@@ -178,7 +178,7 @@ namespace corof
             }
     };
 
-    inline long_jmper::handle_type long_jmper::find_handle(long_jmper::handle_type start_handle)
+    inline eval_poller::handle_type eval_poller::find_handle(eval_poller::handle_type start_handle)
     {
         if(!start_handle){
             throw fflerror("invalid argument: find_handle(nullptr)");
@@ -194,10 +194,10 @@ namespace corof
         return curr_handle;
     }
 
-    inline bool long_jmper::poll_one()
+    inline bool eval_poller::poll_one()
     {
         if(!m_handle){
-            throw fflerror("long_jmper has no eval-context associated");
+            throw fflerror("eval_poller has no eval-context associated");
         }
 
         handle_type curr_handle = find_handle(m_handle);
@@ -224,10 +224,10 @@ namespace corof
         return m_handle.done();
     }
 
-    // inline bool long_jmper::poll_one()
+    // inline bool eval_poller::poll_one()
     // {
     //     if(!m_handle){
-    //         throw fflerror("long_jmper has no eval-context associated");
+    //         throw fflerror("eval_poller has no eval-context associated");
     //     }
     //
     //     bool resumed = false;
@@ -267,14 +267,14 @@ namespace corof
     //     return m_handle.done();
     // }
 
-    template<typename T> inline bool long_jmper::eval_awaiter<T>::await_suspend(handle_type handle) noexcept
+    template<typename T> inline bool eval_poller::eval_awaiter<T>::await_suspend(handle_type handle) noexcept
     {
         handle       .promise().m_inner_handle = m_eval_handle;
         m_eval_handle.promise().m_outer_handle = handle;
         return true;
     }
 
-    template<typename T> inline decltype(auto) long_jmper::eval_awaiter<T>::await_resume()
+    template<typename T> inline decltype(auto) eval_poller::eval_awaiter<T>::await_resume()
     {
         return m_eval_handle.promise().get_value<T>();
     }
@@ -306,7 +306,7 @@ namespace corof
         public:
             auto operator co_await() noexcept
             {
-                const auto fnwait = +[](corof::async_variable<T> *p) -> corof::long_jmper
+                const auto fnwait = +[](corof::async_variable<T> *p) -> corof::eval_poller
                 {
                     while(!p->m_var.has_value()){
                         co_await std::suspend_always{};
@@ -319,7 +319,7 @@ namespace corof
 
     inline auto async_wait(uint64_t msec) noexcept
     {
-        const auto fnwait = +[](uint64_t msec) -> corof::long_jmper
+        const auto fnwait = +[](uint64_t msec) -> corof::eval_poller
         {
             size_t count = 0;
             if(msec == 0){
@@ -340,7 +340,7 @@ namespace corof
 
     template<typename T> inline auto delay_value(uint64_t msec, T t) // how about variadic template argument
     {
-        const auto fnwait = +[](uint64_t msec, T t) -> corof::long_jmper
+        const auto fnwait = +[](uint64_t msec, T t) -> corof::eval_poller
         {
             co_await corof::async_wait(msec);
             co_return t;

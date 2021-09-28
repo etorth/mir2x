@@ -22,7 +22,7 @@
 #include "raiitimer.hpp"
 #include "servercannibalplant.hpp"
 
-corof::long_jmper ServerCannibalPlant::updateCoroFunc()
+corof::eval_poller ServerCannibalPlant::updateCoroFunc()
 {
     uint64_t targetUID = 0;
     std::optional<uint64_t> idleTime;

@@ -24,7 +24,7 @@
 #include "serverargparser.hpp"
 
 extern ServerArgParser *g_serverArgParser;
-corof::long_jmper ServerSandGhost::updateCoroFunc()
+corof::eval_poller ServerSandGhost::updateCoroFunc()
 {
     uint64_t targetUID = 0;
     std::optional<uint64_t> idleTime;

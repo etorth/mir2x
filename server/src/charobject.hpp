@@ -361,7 +361,7 @@ class CharObject: public ServerObject
         virtual ActionNode makeActionStand() const;
 
     protected:
-        corof::long_jmper::eval_awaiter<std::tuple<uint32_t, int, int>> coro_getCOPLoc(uint64_t);
+        corof::eval_poller::eval_awaiter<std::tuple<uint32_t, int, int>> coro_getCOPLoc(uint64_t);
 
     protected:
         template<typename... Args> void dispatchInViewCONetPackage(uint8_t type, Args && ... args)

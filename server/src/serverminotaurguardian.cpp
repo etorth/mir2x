@@ -8,7 +8,7 @@ ServerMinotaurGuardian::ServerMinotaurGuardian(uint32_t monID, ServerMap *mapPtr
     fflassert(isMonster(u8"潘夜左护卫") || isMonster(u8"潘夜右护卫"));
 }
 
-corof::long_jmper ServerMinotaurGuardian::updateCoroFunc()
+corof::eval_poller ServerMinotaurGuardian::updateCoroFunc()
 {
     const auto [shortDC, longDC] = [this]() -> std::tuple<uint32_t, uint32_t>
     {

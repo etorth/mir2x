@@ -29,7 +29,7 @@ ServerGuard::ServerGuard(uint32_t monID, ServerMap *mapPtr, int argX, int argY, 
     , m_standDirection(argDir)
 {}
 
-corof::long_jmper ServerGuard::updateCoroFunc()
+corof::eval_poller ServerGuard::updateCoroFunc()
 {
     uint64_t targetUID = 0;
     while(m_sdHealth.HP > 0){

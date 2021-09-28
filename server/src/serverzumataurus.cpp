@@ -1,6 +1,6 @@
 #include "serverzumataurus.hpp"
 
-corof::long_jmper ServerZumaTaurus::updateCoroFunc()
+corof::eval_poller ServerZumaTaurus::updateCoroFunc()
 {
     uint64_t targetUID = 0;
     while(m_sdHealth.HP > 0){

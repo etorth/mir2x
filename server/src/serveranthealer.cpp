@@ -36,7 +36,7 @@ void ServerAntHealer::sendHeal(uint64_t uid)
     }
 }
 
-corof::long_jmper ServerAntHealer::updateCoroFunc()
+corof::eval_poller ServerAntHealer::updateCoroFunc()
 {
     while(m_sdHealth.HP > 0){
         if(m_sdHealth.HP < m_sdHealth.maxHP){

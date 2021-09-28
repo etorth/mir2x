@@ -20,7 +20,7 @@
 #include "serversandcactus.hpp"
 #include "raiitimer.hpp"
 
-corof::long_jmper ServerSandCactus::updateCoroFunc()
+corof::eval_poller ServerSandCactus::updateCoroFunc()
 {
     const auto magicID = DBCOM_MAGICID(u8"沙漠树魔_喷刺");
     const auto &mr = DBCOM_MAGICRECORD(magicID);

@@ -20,7 +20,7 @@
 #include "servertaodog.hpp"
 #include "raiitimer.hpp"
 
-corof::long_jmper ServerTaoDog::updateCoroFunc()
+corof::eval_poller ServerTaoDog::updateCoroFunc()
 {
     uint64_t targetUID = 0;
     std::optional<uint64_t> idleTime;

@@ -13,7 +13,7 @@ class ServerRebornZombie final: public Monster
         {}
 
     protected:
-        corof::long_jmper updateCoroFunc() override;
+        corof::eval_poller updateCoroFunc() override;
 
     protected:
         ActionNode makeActionStand() const override

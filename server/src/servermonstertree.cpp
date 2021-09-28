@@ -19,7 +19,7 @@
 #include "sysconst.hpp"
 #include "servermonstertree.hpp"
 
-corof::long_jmper ServerMonsterTree::updateCoroFunc()
+corof::eval_poller ServerMonsterTree::updateCoroFunc()
 {
     while(m_sdHealth.HP > 0){
         co_await corof::async_wait(2000);

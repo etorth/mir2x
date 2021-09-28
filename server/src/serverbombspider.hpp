@@ -10,7 +10,7 @@ class ServerBombSpider final: public Monster
         {}
 
     protected:
-        corof::long_jmper updateCoroFunc() override
+        corof::eval_poller updateCoroFunc() override
         {
             uint64_t targetUID = 0;
             while(m_sdHealth.HP > 0){

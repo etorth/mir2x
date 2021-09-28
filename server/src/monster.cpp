@@ -571,7 +571,7 @@ void Monster::trackAttackUID(uint64_t targetUID, std::function<void()> onOK, std
     }, onError);
 }
 
-corof::long_jmper Monster::updateCoroFunc()
+corof::eval_poller Monster::updateCoroFunc()
 {
     uint64_t targetUID = 0;
     hres_timer targetActiveTimer;

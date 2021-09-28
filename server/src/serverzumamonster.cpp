@@ -1,6 +1,6 @@
 #include "serverzumamonster.hpp"
 
-corof::long_jmper ServerZumaMonster::updateCoroFunc()
+corof::eval_poller ServerZumaMonster::updateCoroFunc()
 {
     uint64_t targetUID = 0;
     std::optional<uint64_t> idleTime;
