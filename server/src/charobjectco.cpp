@@ -19,7 +19,7 @@
 #include "corof.hpp"
 #include "charobject.hpp"
 
-corof::eval_poller::eval_awaiter<std::tuple<uint32_t, int, int>> CharObject::coro_getCOPLoc(uint64_t targetUID)
+corof::eval_awaiter<std::tuple<uint32_t, int, int>> CharObject::coro_getCOPLoc(uint64_t targetUID)
 {
     const auto fnwait = +[](CharObject *p, uint64_t targetUID) -> corof::eval_poller
     {

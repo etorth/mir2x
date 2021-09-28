@@ -25,7 +25,46 @@
 
 namespace corof
 {
+    class eval_poller;
     class eval_poller_promise;
+    template<typename T> class [[nodiscard]] eval_awaiter
+    {
+        private:
+            friend class eval_poller_promise;
+
+        private:
+            std::coroutine_handle<eval_poller_promise> m_eval_handle;
+
+        public:
+            explicit eval_awaiter(eval_poller &&) noexcept;
+
+        public:
+            ~eval_awaiter()
+            {
+                if(m_eval_handle){
+                    m_eval_handle.destroy();
+                }
+            }
+
+        public:
+            eval_awaiter & operator = (eval_awaiter && other) noexcept
+            {
+                m_eval_handle = other.m_eval_handle;
+                other.m_eval_handle = nullptr;
+                return *this;
+            }
+
+        public:
+            bool await_ready() noexcept
+            {
+                return false;
+            }
+
+        public:
+            bool await_suspend(std::coroutine_handle<eval_poller_promise> handle) noexcept;
+            decltype(auto) await_resume();
+    };
+
     class [[nodiscard]] eval_poller
     {
         public:
@@ -75,45 +114,6 @@ namespace corof
             static inline handle_type find_handle(handle_type);
 
         public:
-            template<typename T> class [[nodiscard]] eval_awaiter
-            {
-                private:
-                    handle_type m_eval_handle;
-
-                public:
-                    eval_awaiter(eval_poller &&jmper) noexcept
-                        : m_eval_handle(jmper.m_handle)
-                    {
-                        jmper.m_handle = nullptr;
-                    }
-
-                    ~eval_awaiter()
-                    {
-                        if(m_eval_handle){
-                            m_eval_handle.destroy();
-                        }
-                    }
-
-                public:
-                    eval_awaiter & operator = (eval_awaiter && other) noexcept
-                    {
-                        m_eval_handle = other.m_eval_handle;
-                        other.m_eval_handle = nullptr;
-                        return *this;
-                    }
-
-                public:
-                    bool await_ready() noexcept
-                    {
-                        return false;
-                    }
-
-                public:
-                    bool await_suspend(handle_type handle) noexcept;
-                    decltype(auto) await_resume();
-            };
-
-        public:
             template<typename T> [[nodiscard]] eval_awaiter<T> to_awaiter()
             {
                 fflassert(valid());
@@ -133,6 +133,7 @@ namespace corof
     {
         private:
             friend class eval_poller;
+            template<typename T> friend class eval_awaiter;
 
         private:
             std::any m_value;
@@ -178,10 +179,7 @@ namespace corof
 
     inline eval_poller::handle_type eval_poller::find_handle(eval_poller::handle_type start_handle)
     {
-        if(!start_handle){
-            throw fflerror("invalid argument: find_handle(nullptr)");
-        }
-
+        fflassert(start_handle);
         auto curr_handle = start_handle;
         auto next_handle = start_handle.promise().m_inner_handle;
 
@@ -219,14 +217,20 @@ namespace corof
         return m_handle.done();
     }
 
-    template<typename T> inline bool eval_poller::eval_awaiter<T>::await_suspend(handle_type handle) noexcept
+    template<typename T> eval_awaiter<T>::eval_awaiter(eval_poller &&jmper) noexcept
+        : m_eval_handle(jmper.m_handle)
+    {
+        jmper.m_handle = nullptr;
+    }
+
+    template<typename T> inline bool eval_awaiter<T>::await_suspend(std::coroutine_handle<eval_poller_promise> handle) noexcept
     {
         handle       .promise().m_inner_handle = m_eval_handle;
         m_eval_handle.promise().m_outer_handle = handle;
         return true;
     }
 
-    template<typename T> inline decltype(auto) eval_poller::eval_awaiter<T>::await_resume()
+    template<typename T> inline decltype(auto) eval_awaiter<T>::await_resume()
     {
         return m_eval_handle.promise().get_value<T>();
     }

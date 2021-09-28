@@ -216,20 +216,20 @@ class Monster: public CharObject
         virtual bool goGhost();
 
     protected:
-        corof::eval_poller::eval_awaiter<bool>     coro_randomMove();
-        corof::eval_poller::eval_awaiter<bool>     coro_moveForward();
-        corof::eval_poller::eval_awaiter<bool>     coro_followMaster();
-        corof::eval_poller::eval_awaiter<uint64_t> coro_pickTarget();
-        corof::eval_poller::eval_awaiter<uint64_t> coro_pickHealTarget();
-        corof::eval_poller::eval_awaiter<int>      coro_checkFriend(uint64_t);
-        corof::eval_poller::eval_awaiter<bool>     coro_trackUID(uint64_t, DCCastRange);
-        corof::eval_poller::eval_awaiter<bool>     coro_attackUID(uint64_t, int);
-        corof::eval_poller::eval_awaiter<bool>     coro_jumpGLoc(int, int, int);
-        corof::eval_poller::eval_awaiter<bool>     coro_jumpUID(uint64_t);
-        corof::eval_poller::eval_awaiter<bool>     coro_jumpAttackUID(uint64_t);
-        corof::eval_poller::eval_awaiter<bool>     coro_trackAttackUID(uint64_t);
-        corof::eval_poller::eval_awaiter<bool>     coro_inDCCastRange(uint64_t, DCCastRange);
-        corof::eval_poller::eval_awaiter<std::optional<SDHealth>> coro_queryHealth(uint64_t);
+        corof::eval_awaiter<bool>     coro_randomMove();
+        corof::eval_awaiter<bool>     coro_moveForward();
+        corof::eval_awaiter<bool>     coro_followMaster();
+        corof::eval_awaiter<uint64_t> coro_pickTarget();
+        corof::eval_awaiter<uint64_t> coro_pickHealTarget();
+        corof::eval_awaiter<int>      coro_checkFriend(uint64_t);
+        corof::eval_awaiter<bool>     coro_trackUID(uint64_t, DCCastRange);
+        corof::eval_awaiter<bool>     coro_attackUID(uint64_t, int);
+        corof::eval_awaiter<bool>     coro_jumpGLoc(int, int, int);
+        corof::eval_awaiter<bool>     coro_jumpUID(uint64_t);
+        corof::eval_awaiter<bool>     coro_jumpAttackUID(uint64_t);
+        corof::eval_awaiter<bool>     coro_trackAttackUID(uint64_t);
+        corof::eval_awaiter<bool>     coro_inDCCastRange(uint64_t, DCCastRange);
+        corof::eval_awaiter<std::optional<SDHealth>> coro_queryHealth(uint64_t);
 
     public:
         static bool isPet(uint64_t);
