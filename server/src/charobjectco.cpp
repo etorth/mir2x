@@ -19,7 +19,7 @@
 #include "corof.hpp"
 #include "charobject.hpp"
 
-corof::long_jmper::eval_op<std::tuple<uint32_t, int, int>> CharObject::coro_getCOPLoc(uint64_t targetUID)
+corof::long_jmper::eval_awaiter<std::tuple<uint32_t, int, int>> CharObject::coro_getCOPLoc(uint64_t targetUID)
 {
     const auto fnwait = +[](CharObject *p, uint64_t targetUID) -> corof::long_jmper
     {

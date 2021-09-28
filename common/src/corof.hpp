@@ -75,19 +75,19 @@ namespace corof
             static inline handle_type find_handle(handle_type);
 
         public:
-            template<typename T> class [[nodiscard]] eval_op
+            template<typename T> class [[nodiscard]] eval_awaiter
             {
                 private:
                     handle_type m_eval_handle;
 
                 public:
-                    eval_op(long_jmper &&jmper) noexcept
+                    eval_awaiter(long_jmper &&jmper) noexcept
                         : m_eval_handle(jmper.m_handle)
                     {
                         jmper.m_handle = nullptr;
                     }
 
-                    ~eval_op()
+                    ~eval_awaiter()
                     {
                         if(m_eval_handle){
                             m_eval_handle.destroy();
@@ -95,7 +95,7 @@ namespace corof
                     }
 
                 public:
-                    eval_op & operator = (eval_op && other) noexcept
+                    eval_awaiter & operator = (eval_awaiter && other) noexcept
                     {
                         m_eval_handle = other.m_eval_handle;
                         other.m_eval_handle = nullptr;
@@ -114,10 +114,10 @@ namespace corof
             };
 
         public:
-            template<typename T> [[nodiscard]] eval_op<T> eval()
+            template<typename T> [[nodiscard]] eval_awaiter<T> eval()
             {
                 if(valid()){
-                    return eval_op<T>(std::move(*this));
+                    return eval_awaiter<T>(std::move(*this));
                 }
                 throw fflerror("long_jmper has no eval-context associated");
             }
@@ -267,14 +267,14 @@ namespace corof
     //     return m_handle.done();
     // }
 
-    template<typename T> inline bool long_jmper::eval_op<T>::await_suspend(handle_type handle) noexcept
+    template<typename T> inline bool long_jmper::eval_awaiter<T>::await_suspend(handle_type handle) noexcept
     {
         handle       .promise().m_inner_handle = m_eval_handle;
         m_eval_handle.promise().m_outer_handle = handle;
         return true;
     }
 
-    template<typename T> inline decltype(auto) long_jmper::eval_op<T>::await_resume()
+    template<typename T> inline decltype(auto) long_jmper::eval_awaiter<T>::await_resume()
     {
         return m_eval_handle.promise().get_value<T>();
     }

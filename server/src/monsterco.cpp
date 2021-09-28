@@ -22,7 +22,7 @@
 #include "monster.hpp"
 #include "monoserver.hpp"
 
-corof::long_jmper::eval_op<bool> Monster::coro_followMaster()
+corof::long_jmper::eval_awaiter<bool> Monster::coro_followMaster()
 {
     const auto fnwait = +[](Monster *p) -> corof::long_jmper
     {
@@ -41,7 +41,7 @@ corof::long_jmper::eval_op<bool> Monster::coro_followMaster()
     return fnwait(this).eval<bool>();
 }
 
-corof::long_jmper::eval_op<bool> Monster::coro_randomMove()
+corof::long_jmper::eval_awaiter<bool> Monster::coro_randomMove()
 {
     const auto fnwait = +[](Monster *p) -> corof::long_jmper
     {
@@ -67,7 +67,7 @@ corof::long_jmper::eval_op<bool> Monster::coro_randomMove()
     return fnwait(this).eval<bool>();
 }
 
-corof::long_jmper::eval_op<bool> Monster::coro_moveForward()
+corof::long_jmper::eval_awaiter<bool> Monster::coro_moveForward()
 {
     const auto fnwait = +[](Monster *p) -> corof::long_jmper
     {
@@ -86,7 +86,7 @@ corof::long_jmper::eval_op<bool> Monster::coro_moveForward()
     return fnwait(this).eval<bool>();
 }
 
-corof::long_jmper::eval_op<uint64_t> Monster::coro_pickTarget()
+corof::long_jmper::eval_awaiter<uint64_t> Monster::coro_pickTarget()
 {
     const auto fnwait = +[](Monster *p) -> corof::long_jmper
     {
@@ -98,7 +98,7 @@ corof::long_jmper::eval_op<uint64_t> Monster::coro_pickTarget()
     return fnwait(this).eval<uint64_t>();
 }
 
-corof::long_jmper::eval_op<uint64_t> Monster::coro_pickHealTarget()
+corof::long_jmper::eval_awaiter<uint64_t> Monster::coro_pickHealTarget()
 {
     const auto fnwait = +[](Monster *p) -> corof::long_jmper
     {
@@ -138,7 +138,7 @@ corof::long_jmper::eval_op<uint64_t> Monster::coro_pickHealTarget()
     return fnwait(this).eval<uint64_t>();
 }
 
-corof::long_jmper::eval_op<int> Monster::coro_checkFriend(uint64_t uid)
+corof::long_jmper::eval_awaiter<int> Monster::coro_checkFriend(uint64_t uid)
 {
     const auto fnwait = +[](Monster *p, uint64_t uid) -> corof::long_jmper
     {
@@ -150,7 +150,7 @@ corof::long_jmper::eval_op<int> Monster::coro_checkFriend(uint64_t uid)
     return fnwait(this, uid).eval<int>();
 }
 
-corof::long_jmper::eval_op<bool> Monster::coro_trackAttackUID(uint64_t targetUID)
+corof::long_jmper::eval_awaiter<bool> Monster::coro_trackAttackUID(uint64_t targetUID)
 {
     const auto fnwait = +[](Monster *p, uint64_t targetUID) -> corof::long_jmper
     {
@@ -169,7 +169,7 @@ corof::long_jmper::eval_op<bool> Monster::coro_trackAttackUID(uint64_t targetUID
     return fnwait(this, targetUID).eval<bool>();
 }
 
-corof::long_jmper::eval_op<bool> Monster::coro_trackUID(uint64_t targetUID, DCCastRange r)
+corof::long_jmper::eval_awaiter<bool> Monster::coro_trackUID(uint64_t targetUID, DCCastRange r)
 {
     const auto fnwait = +[](Monster *p, uint64_t targetUID, DCCastRange r) -> corof::long_jmper
     {
@@ -186,7 +186,7 @@ corof::long_jmper::eval_op<bool> Monster::coro_trackUID(uint64_t targetUID, DCCa
     return fnwait(this, targetUID, r).eval<bool>();
 }
 
-corof::long_jmper::eval_op<bool> Monster::coro_attackUID(uint64_t targetUID, int dcType)
+corof::long_jmper::eval_awaiter<bool> Monster::coro_attackUID(uint64_t targetUID, int dcType)
 {
     const auto fnwait = +[](Monster *p, uint64_t targetUID, int dcType) -> corof::long_jmper
     {
@@ -199,7 +199,7 @@ corof::long_jmper::eval_op<bool> Monster::coro_attackUID(uint64_t targetUID, int
     return fnwait(this, targetUID, dcType).eval<bool>();
 }
 
-corof::long_jmper::eval_op<bool> Monster::coro_jumpGLoc(int dstX, int dstY, int newDir)
+corof::long_jmper::eval_awaiter<bool> Monster::coro_jumpGLoc(int dstX, int dstY, int newDir)
 {
     const auto fnwait = +[](Monster *p, int dstX, int dstY, int newDir) -> corof::long_jmper
     {
@@ -212,7 +212,7 @@ corof::long_jmper::eval_op<bool> Monster::coro_jumpGLoc(int dstX, int dstY, int 
     return fnwait(this, dstX, dstY, newDir).eval<bool>();
 }
 
-corof::long_jmper::eval_op<bool> Monster::coro_jumpUID(uint64_t targetUID)
+corof::long_jmper::eval_awaiter<bool> Monster::coro_jumpUID(uint64_t targetUID)
 {
     const auto fnwait = +[](Monster *p, uint64_t targetUID) -> corof::long_jmper
     {
@@ -225,7 +225,7 @@ corof::long_jmper::eval_op<bool> Monster::coro_jumpUID(uint64_t targetUID)
     return fnwait(this, targetUID).eval<bool>();
 }
 
-corof::long_jmper::eval_op<bool> Monster::coro_jumpAttackUID(uint64_t targetUID)
+corof::long_jmper::eval_awaiter<bool> Monster::coro_jumpAttackUID(uint64_t targetUID)
 {
     const auto fnwait = +[](Monster *p, uint64_t targetUID) -> corof::long_jmper
     {
@@ -244,7 +244,7 @@ corof::long_jmper::eval_op<bool> Monster::coro_jumpAttackUID(uint64_t targetUID)
     return fnwait(this, targetUID).eval<bool>();
 }
 
-corof::long_jmper::eval_op<bool> Monster::coro_inDCCastRange(uint64_t targetUID, DCCastRange r)
+corof::long_jmper::eval_awaiter<bool> Monster::coro_inDCCastRange(uint64_t targetUID, DCCastRange r)
 {
     fflassert(targetUID);
     fflassert(r);
@@ -277,7 +277,7 @@ corof::long_jmper::eval_op<bool> Monster::coro_inDCCastRange(uint64_t targetUID,
     return fnwait(this, targetUID, r).eval<bool>();
 }
 
-corof::long_jmper::eval_op<std::optional<SDHealth>> Monster::coro_queryHealth(uint64_t uid)
+corof::long_jmper::eval_awaiter<std::optional<SDHealth>> Monster::coro_queryHealth(uint64_t uid)
 {
     const auto fnwait = +[](Monster *p, uint64_t uid) -> corof::long_jmper
     {
