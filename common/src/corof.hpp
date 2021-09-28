@@ -25,14 +25,60 @@
 
 namespace corof
 {
-    class eval_poller_promise;
     template<typename T> class eval_awaiter;
-
     class [[nodiscard]] eval_poller
     {
         public:
-            using promise_type = eval_poller_promise;
-            using  handle_type = std::coroutine_handle<promise_type>;
+            class promise_type
+            {
+                private:
+                    friend class eval_poller;
+                    template<typename T> friend class eval_awaiter;
+
+                private:
+                    std::any m_value;
+                    std::coroutine_handle<promise_type> m_inner_handle;
+                    std::coroutine_handle<promise_type> m_outer_handle;
+
+                public:
+                    template<typename T> T &get_value()
+                    {
+                        return std::any_cast<T &>(m_value);
+                    }
+
+                    auto initial_suspend()
+                    {
+                        return std::suspend_never{};
+                    }
+
+                    auto final_suspend() noexcept
+                    {
+                        return std::suspend_always{};
+                    }
+
+                    template<typename T> auto return_value(T t)
+                    {
+                        m_value = std::move(t);
+                        return std::suspend_always{};
+                    }
+
+                    eval_poller get_return_object()
+                    {
+                        return {std::coroutine_handle<promise_type>::from_promise(*this)};
+                    }
+
+                    void unhandled_exception()
+                    {
+                        std::terminate();
+                    }
+
+                    void rethrow_if_unhandled_exception()
+                    {
+                    }
+            };
+
+        public:
+            using handle_type = std::coroutine_handle<promise_type>;
 
         public:
             handle_type m_handle;
@@ -84,10 +130,10 @@ namespace corof
     template<typename T> class [[nodiscard]] eval_awaiter
     {
         private:
-            friend class eval_poller_promise;
+            friend class eval_poller::promise_type;
 
         private:
-            std::coroutine_handle<eval_poller_promise> m_eval_handle;
+            std::coroutine_handle<eval_poller::promise_type> m_eval_handle;
 
         public:
             explicit eval_awaiter(eval_poller &&) noexcept;
@@ -115,7 +161,7 @@ namespace corof
             }
 
         public:
-            bool await_suspend(std::coroutine_handle<eval_poller_promise> handle) noexcept;
+            bool await_suspend(std::coroutine_handle<eval_poller::promise_type> handle) noexcept;
             decltype(auto) await_resume();
     };
 
@@ -133,53 +179,6 @@ namespace corof
         return to_awaiter<T>().await_resume();
     }
 
-    class eval_poller_promise
-    {
-        private:
-            friend class eval_poller;
-            template<typename T> friend class eval_awaiter;
-
-        private:
-            std::any m_value;
-            eval_poller::handle_type m_inner_handle;
-            eval_poller::handle_type m_outer_handle;
-
-        public:
-            template<typename T> T &get_value()
-            {
-                return std::any_cast<T &>(m_value);
-            }
-
-            auto initial_suspend()
-            {
-                return std::suspend_never{};
-            }
-
-            auto final_suspend() noexcept
-            {
-                return std::suspend_always{};
-            }
-
-            template<typename T> auto return_value(T t)
-            {
-                m_value = std::move(t);
-                return std::suspend_always{};
-            }
-
-            eval_poller get_return_object()
-            {
-                return {std::coroutine_handle<eval_poller_promise>::from_promise(*this)};
-            }
-
-            void unhandled_exception()
-            {
-                std::terminate();
-            }
-
-            void rethrow_if_unhandled_exception()
-            {
-            }
-    };
 
     inline eval_poller::handle_type eval_poller::find_handle(eval_poller::handle_type start_handle)
     {
@@ -227,7 +226,7 @@ namespace corof
         jmper.m_handle = nullptr;
     }
 
-    template<typename T> inline bool eval_awaiter<T>::await_suspend(std::coroutine_handle<eval_poller_promise> handle) noexcept
+    template<typename T> inline bool eval_awaiter<T>::await_suspend(std::coroutine_handle<eval_poller::promise_type> handle) noexcept
     {
         handle       .promise().m_inner_handle = m_eval_handle;
         m_eval_handle.promise().m_outer_handle = handle;
