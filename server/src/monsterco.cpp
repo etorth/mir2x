@@ -38,7 +38,7 @@ corof::eval_poller::eval_awaiter<bool> Monster::coro_followMaster()
             co_return false;
         }
     };
-    return fnwait(this).eval<bool>();
+    return fnwait(this).to_awaiter<bool>();
 }
 
 corof::eval_poller::eval_awaiter<bool> Monster::coro_randomMove()
@@ -64,7 +64,7 @@ corof::eval_poller::eval_awaiter<bool> Monster::coro_randomMove()
         }
         co_return true;
     };
-    return fnwait(this).eval<bool>();
+    return fnwait(this).to_awaiter<bool>();
 }
 
 corof::eval_poller::eval_awaiter<bool> Monster::coro_moveForward()
@@ -83,7 +83,7 @@ corof::eval_poller::eval_awaiter<bool> Monster::coro_moveForward()
         const auto result = co_await done;
         co_return result;
     };
-    return fnwait(this).eval<bool>();
+    return fnwait(this).to_awaiter<bool>();
 }
 
 corof::eval_poller::eval_awaiter<uint64_t> Monster::coro_pickTarget()
@@ -95,7 +95,7 @@ corof::eval_poller::eval_awaiter<uint64_t> Monster::coro_pickTarget()
         const auto result = co_await targetUID;
         co_return result;
     };
-    return fnwait(this).eval<uint64_t>();
+    return fnwait(this).to_awaiter<uint64_t>();
 }
 
 corof::eval_poller::eval_awaiter<uint64_t> Monster::coro_pickHealTarget()
@@ -124,18 +124,18 @@ corof::eval_poller::eval_awaiter<uint64_t> Monster::coro_pickHealTarget()
             co_return false;
         };
 
-        if(p->masterUID() && (co_await fnNeedHeal(p, p->masterUID()).eval<bool>())){
+        if(p->masterUID() && (co_await fnNeedHeal(p, p->masterUID()).to_awaiter<bool>())){
             co_return p->masterUID();
         }
 
         for(const auto &[uid, coLoc]: p->m_inViewCOList){
-            if((uid != p->masterUID()) && (co_await fnNeedHeal(p, uid).eval<bool>())){
+            if((uid != p->masterUID()) && (co_await fnNeedHeal(p, uid).to_awaiter<bool>())){
                 co_return uid;
             }
         }
         co_return to_u64(0);
     };
-    return fnwait(this).eval<uint64_t>();
+    return fnwait(this).to_awaiter<uint64_t>();
 }
 
 corof::eval_poller::eval_awaiter<int> Monster::coro_checkFriend(uint64_t uid)
@@ -147,7 +147,7 @@ corof::eval_poller::eval_awaiter<int> Monster::coro_checkFriend(uint64_t uid)
         const auto result = co_await friendType;
         co_return result;
     };
-    return fnwait(this, uid).eval<int>();
+    return fnwait(this, uid).to_awaiter<int>();
 }
 
 corof::eval_poller::eval_awaiter<bool> Monster::coro_trackAttackUID(uint64_t targetUID)
@@ -166,7 +166,7 @@ corof::eval_poller::eval_awaiter<bool> Monster::coro_trackAttackUID(uint64_t tar
             co_return false;
         }
     };
-    return fnwait(this, targetUID).eval<bool>();
+    return fnwait(this, targetUID).to_awaiter<bool>();
 }
 
 corof::eval_poller::eval_awaiter<bool> Monster::coro_trackUID(uint64_t targetUID, DCCastRange r)
@@ -183,7 +183,7 @@ corof::eval_poller::eval_awaiter<bool> Monster::coro_trackUID(uint64_t targetUID
             co_return false;
         }
     };
-    return fnwait(this, targetUID, r).eval<bool>();
+    return fnwait(this, targetUID, r).to_awaiter<bool>();
 }
 
 corof::eval_poller::eval_awaiter<bool> Monster::coro_attackUID(uint64_t targetUID, int dcType)
@@ -196,7 +196,7 @@ corof::eval_poller::eval_awaiter<bool> Monster::coro_attackUID(uint64_t targetUI
         const auto result = co_await done;
         co_return result;
     };
-    return fnwait(this, targetUID, dcType).eval<bool>();
+    return fnwait(this, targetUID, dcType).to_awaiter<bool>();
 }
 
 corof::eval_poller::eval_awaiter<bool> Monster::coro_jumpGLoc(int dstX, int dstY, int newDir)
@@ -209,7 +209,7 @@ corof::eval_poller::eval_awaiter<bool> Monster::coro_jumpGLoc(int dstX, int dstY
         const auto result = co_await done;
         co_return result;
     };
-    return fnwait(this, dstX, dstY, newDir).eval<bool>();
+    return fnwait(this, dstX, dstY, newDir).to_awaiter<bool>();
 }
 
 corof::eval_poller::eval_awaiter<bool> Monster::coro_jumpUID(uint64_t targetUID)
@@ -222,7 +222,7 @@ corof::eval_poller::eval_awaiter<bool> Monster::coro_jumpUID(uint64_t targetUID)
         const auto result = co_await done;
         co_return result;
     };
-    return fnwait(this, targetUID).eval<bool>();
+    return fnwait(this, targetUID).to_awaiter<bool>();
 }
 
 corof::eval_poller::eval_awaiter<bool> Monster::coro_jumpAttackUID(uint64_t targetUID)
@@ -241,7 +241,7 @@ corof::eval_poller::eval_awaiter<bool> Monster::coro_jumpAttackUID(uint64_t targ
             co_return false;
         }
     };
-    return fnwait(this, targetUID).eval<bool>();
+    return fnwait(this, targetUID).to_awaiter<bool>();
 }
 
 corof::eval_poller::eval_awaiter<bool> Monster::coro_inDCCastRange(uint64_t targetUID, DCCastRange r)
@@ -274,7 +274,7 @@ corof::eval_poller::eval_awaiter<bool> Monster::coro_inDCCastRange(uint64_t targ
             co_return false;
         }
     };
-    return fnwait(this, targetUID, r).eval<bool>();
+    return fnwait(this, targetUID, r).to_awaiter<bool>();
 }
 
 corof::eval_poller::eval_awaiter<std::optional<SDHealth>> Monster::coro_queryHealth(uint64_t uid)
@@ -296,5 +296,5 @@ corof::eval_poller::eval_awaiter<std::optional<SDHealth>> Monster::coro_queryHea
         auto result = co_await health;
         co_return result;
     };
-    return fnwait(this, uid).eval<std::optional<SDHealth>>();
+    return fnwait(this, uid).to_awaiter<std::optional<SDHealth>>();
 }

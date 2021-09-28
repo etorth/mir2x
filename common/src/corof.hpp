@@ -3,7 +3,7 @@
  *
  *       Filename: corof.hpp
  *        Created: 03/07/2020 12:36:32
- *    Description: 
+ *    Description:
  *
  *        Version: 1.0
  *       Revision: none
@@ -26,7 +26,7 @@
 namespace corof
 {
     class eval_poller_promise;
-    class [[nodiscard]] eval_poller 
+    class [[nodiscard]] eval_poller
     {
         public:
             using promise_type = eval_poller_promise;
@@ -37,7 +37,7 @@ namespace corof
 
         public:
             eval_poller(handle_type handle = nullptr)
-                : m_handle(handle) 
+                : m_handle(handle)
             {}
 
             eval_poller(eval_poller&& other) noexcept
@@ -114,12 +114,10 @@ namespace corof
             };
 
         public:
-            template<typename T> [[nodiscard]] eval_awaiter<T> eval()
+            template<typename T> [[nodiscard]] eval_awaiter<T> to_awaiter()
             {
-                if(valid()){
-                    return eval_awaiter<T>(std::move(*this));
-                }
-                throw fflerror("eval_poller has no eval-context associated");
+                fflassert(valid());
+                return eval_awaiter<T>(std::move(*this));
             }
 
             template<typename T> auto sync_eval()
@@ -127,11 +125,11 @@ namespace corof
                 while(!poll_one()){
                     continue;
                 }
-                return eval<T>().await_resume();
+                return to_awaiter<T>().await_resume();
             }
     };
 
-    class eval_poller_promise 
+    class eval_poller_promise
     {
         private:
             friend class eval_poller;
@@ -196,10 +194,7 @@ namespace corof
 
     inline bool eval_poller::poll_one()
     {
-        if(!m_handle){
-            throw fflerror("eval_poller has no eval-context associated");
-        }
-
+        fflassert(m_handle);
         handle_type curr_handle = find_handle(m_handle);
         if(curr_handle.done()){
             if(!curr_handle.promise().m_outer_handle){
@@ -223,49 +218,6 @@ namespace corof
         curr_handle.resume();
         return m_handle.done();
     }
-
-    // inline bool eval_poller::poll_one()
-    // {
-    //     if(!m_handle){
-    //         throw fflerror("eval_poller has no eval-context associated");
-    //     }
-    //
-    //     bool resumed = false;
-    //     auto curr_handle = m_handle;
-    //
-    //     while(curr_handle){
-    //         if(!curr_handle.promise().m_inner_handle){
-    //             while(!curr_handle.done()){
-    //                 curr_handle.resume();
-    //                 resumed = true;
-    //
-    //                 if(!curr_handle.done()){
-    //                     return false;
-    //                 }
-    //
-    //                 if(!curr_handle.promise().m_outer_handle){
-    //                     return true;
-    //                 }
-    //
-    //                 curr_handle = curr_handle.promise().m_outer_handle;
-    //                 curr_handle.promise().m_inner_handle = nullptr;
-    //             }
-    //
-    //             if(!curr_handle.promise().m_outer_handle){
-    //                 return true;
-    //             }
-    //
-    //             curr_handle = curr_handle.promise().m_outer_handle;
-    //             curr_handle.promise().m_inner_handle = nullptr;
-    //
-    //             if(resumed){
-    //                 return m_handle.done();
-    //             }
-    //         }
-    //         curr_handle = curr_handle.promise().m_inner_handle;
-    //     }
-    //     return m_handle.done();
-    // }
 
     template<typename T> inline bool eval_poller::eval_awaiter<T>::await_suspend(handle_type handle) noexcept
     {
@@ -313,7 +265,7 @@ namespace corof
                     }
                     co_return p->m_var.value();
                 };
-                return fnwait(this). template eval<T>();
+                return fnwait(this). template to_awaiter<T>();
             }
     };
 
@@ -335,7 +287,7 @@ namespace corof
             }
             co_return count;
         };
-        return fnwait(msec).eval<size_t>();
+        return fnwait(msec).to_awaiter<size_t>();
     }
 
     template<typename T> inline auto delay_value(uint64_t msec, T t) // how about variadic template argument
@@ -345,6 +297,6 @@ namespace corof
             co_await corof::async_wait(msec);
             co_return t;
         };
-        return fnwait(msec, std::move(t)). template eval<T>();
+        return fnwait(msec, std::move(t)). template to_awaiter<T>();
     }
 }

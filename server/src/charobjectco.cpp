@@ -49,5 +49,5 @@ corof::eval_poller::eval_awaiter<std::tuple<uint32_t, int, int>> CharObject::cor
         }
     };
 
-    return fnwait(this, targetUID).eval<std::tuple<uint32_t, int, int>>();
+    return fnwait(this, targetUID).to_awaiter<std::tuple<uint32_t, int, int>>();
 }
