@@ -117,7 +117,7 @@ namespace corof
             }
 
         public:
-            inline bool poll_one();
+            inline bool poll();
 
         private:
             static inline handle_type find_handle(handle_type);
@@ -130,10 +130,7 @@ namespace corof
     template<typename T> class [[nodiscard]] eval_awaiter
     {
         private:
-            friend class eval_poller::promise_type;
-
-        private:
-            std::coroutine_handle<eval_poller::promise_type> m_eval_handle;
+            eval_poller::handle_type m_eval_handle;
 
         public:
             explicit eval_awaiter(eval_poller &&) noexcept;
@@ -173,12 +170,11 @@ namespace corof
 
     template<typename T> decltype(auto) eval_poller::sync_eval()
     {
-        while(!poll_one()){
+        while(!poll()){
             continue;
         }
         return to_awaiter<T>().await_resume();
     }
-
 
     inline eval_poller::handle_type eval_poller::find_handle(eval_poller::handle_type start_handle)
     {
@@ -193,7 +189,7 @@ namespace corof
         return curr_handle;
     }
 
-    inline bool eval_poller::poll_one()
+    inline bool eval_poller::poll()
     {
         fflassert(m_handle);
         handle_type curr_handle = find_handle(m_handle);
@@ -214,16 +210,16 @@ namespace corof
         }
 
         // resume only once and return immediately
-        // after resume curr_handle can be in done state, next call to poll_one should unlink it
+        // after resume curr_handle can be in done state, next call to poll should unlink it
 
         curr_handle.resume();
         return m_handle.done();
     }
 
-    template<typename T> eval_awaiter<T>::eval_awaiter(eval_poller &&jmper) noexcept
-        : m_eval_handle(jmper.m_handle)
+    template<typename T> eval_awaiter<T>::eval_awaiter(eval_poller &&poller) noexcept
+        : m_eval_handle(poller.m_handle)
     {
-        jmper.m_handle = nullptr;
+        poller.m_handle = nullptr;
     }
 
     template<typename T> inline bool eval_awaiter<T>::await_suspend(std::coroutine_handle<eval_poller::promise_type> handle) noexcept

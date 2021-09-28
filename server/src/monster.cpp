@@ -640,7 +640,7 @@ bool Monster::update()
         return goDie();
     }
 
-    if(!m_updateCoro.valid() || m_updateCoro.poll_one()){
+    if(!m_updateCoro.valid() || m_updateCoro.poll()){
         m_updateCoro = updateCoroFunc();
     }
     return true;
