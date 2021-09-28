@@ -25,45 +25,8 @@
 
 namespace corof
 {
-    class eval_poller;
     class eval_poller_promise;
-    template<typename T> class [[nodiscard]] eval_awaiter
-    {
-        private:
-            friend class eval_poller_promise;
-
-        private:
-            std::coroutine_handle<eval_poller_promise> m_eval_handle;
-
-        public:
-            explicit eval_awaiter(eval_poller &&) noexcept;
-
-        public:
-            ~eval_awaiter()
-            {
-                if(m_eval_handle){
-                    m_eval_handle.destroy();
-                }
-            }
-
-        public:
-            eval_awaiter & operator = (eval_awaiter && other) noexcept
-            {
-                m_eval_handle = other.m_eval_handle;
-                other.m_eval_handle = nullptr;
-                return *this;
-            }
-
-        public:
-            bool await_ready() noexcept
-            {
-                return false;
-            }
-
-        public:
-            bool await_suspend(std::coroutine_handle<eval_poller_promise> handle) noexcept;
-            decltype(auto) await_resume();
-    };
+    template<typename T> class eval_awaiter;
 
     class [[nodiscard]] eval_poller
     {
@@ -114,20 +77,61 @@ namespace corof
             static inline handle_type find_handle(handle_type);
 
         public:
-            template<typename T> [[nodiscard]] eval_awaiter<T> to_awaiter()
+            template<typename T> [[nodiscard]] eval_awaiter<T> to_awaiter();
+            template<typename T> decltype(auto) sync_eval();
+    };
+
+    template<typename T> class [[nodiscard]] eval_awaiter
+    {
+        private:
+            friend class eval_poller_promise;
+
+        private:
+            std::coroutine_handle<eval_poller_promise> m_eval_handle;
+
+        public:
+            explicit eval_awaiter(eval_poller &&) noexcept;
+
+        public:
+            ~eval_awaiter()
             {
-                fflassert(valid());
-                return eval_awaiter<T>(std::move(*this));
+                if(m_eval_handle){
+                    m_eval_handle.destroy();
+                }
             }
 
-            template<typename T> auto sync_eval()
+        public:
+            eval_awaiter & operator = (eval_awaiter && other) noexcept
             {
-                while(!poll_one()){
-                    continue;
-                }
-                return to_awaiter<T>().await_resume();
+                m_eval_handle = other.m_eval_handle;
+                other.m_eval_handle = nullptr;
+                return *this;
             }
+
+        public:
+            bool await_ready() noexcept
+            {
+                return false;
+            }
+
+        public:
+            bool await_suspend(std::coroutine_handle<eval_poller_promise> handle) noexcept;
+            decltype(auto) await_resume();
     };
+
+    template<typename T> [[nodiscard]] eval_awaiter<T> eval_poller::to_awaiter()
+    {
+        fflassert(valid());
+        return eval_awaiter<T>(std::move(*this));
+    }
+
+    template<typename T> decltype(auto) eval_poller::sync_eval()
+    {
+        while(!poll_one()){
+            continue;
+        }
+        return to_awaiter<T>().await_resume();
+    }
 
     class eval_poller_promise
     {
