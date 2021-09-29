@@ -118,6 +118,10 @@ namespace corof
             }
 
         public:
+            eval_poller              (const eval_poller &) = delete;
+            eval_poller & operator = (const eval_poller &) = delete;
+
+        public:
             ~eval_poller()
             {
                 if(m_handle){
