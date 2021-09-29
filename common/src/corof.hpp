@@ -191,20 +191,22 @@ namespace corof
                 fflassert(m_eval_handle);
             }
 
+            eval_awaiter(eval_awaiter && other)
+                : m_eval_handle(other.m_eval_handle)
+            {
+                other.m_eval_handle = nullptr;
+            }
+
+        public:
+            eval_awaiter              (const eval_awaiter &) = delete;
+            eval_awaiter & operator = (const eval_awaiter &) = delete;
+
         public:
             ~eval_awaiter()
             {
                 if(m_eval_handle){
                     m_eval_handle.destroy();
                 }
-            }
-
-        public:
-            eval_awaiter & operator = (eval_awaiter && other) noexcept
-            {
-                m_eval_handle = other.m_eval_handle;
-                other.m_eval_handle = nullptr;
-                return *this;
             }
 
         public:
