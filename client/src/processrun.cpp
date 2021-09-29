@@ -363,7 +363,7 @@ void ProcessRun::draw()
     // over ground objects
     for(int y = y0; y <= y1; ++y){
         for(int x = x0; x <= x1; ++x){
-            drawObject(x, y, OBJD_OVERGROUND0, true);
+            drawObject(x, y, OBJD_OVERGROUND0, false);
         }
 
         for(int x = x0; x <= x1; ++x){
@@ -407,7 +407,7 @@ void ProcessRun::draw()
         }
 
         for(int x = x0; x <= x1; ++x){
-            drawObject(x, y, OBJD_OVERGROUND1, true);
+            drawObject(x, y, OBJD_OVERGROUND1, false);
         }
     }
 
