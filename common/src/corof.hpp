@@ -88,7 +88,7 @@ namespace corof
                 : m_handle(handle)
             {}
 
-            eval_poller(eval_poller&& other) noexcept
+            eval_poller(eval_poller && other) noexcept
                 : m_handle(other.m_handle)
             {
                 other.m_handle = nullptr;
@@ -216,7 +216,7 @@ namespace corof
         return m_handle.done();
     }
 
-    template<typename T> eval_awaiter<T>::eval_awaiter(eval_poller &&poller) noexcept
+    template<typename T> eval_awaiter<T>::eval_awaiter(eval_poller && poller) noexcept
         : m_eval_handle(poller.m_handle)
     {
         poller.m_handle = nullptr;
@@ -243,7 +243,7 @@ namespace corof
             std::optional<T> m_var;
 
         public:
-            template<typename U = T> void assign(U &&u)
+            template<typename U = T> void assign(U && u)
             {
                 if(m_var.has_value()){
                     throw fflerror("assign value to async_variable twice");
