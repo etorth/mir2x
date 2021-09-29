@@ -182,15 +182,21 @@ namespace corof
     template<typename T> class [[nodiscard]] eval_awaiter
     {
         private:
+            friend class eval_poller;
+
+        private:
             eval_poller::handle_type m_eval_handle;
 
-        public:
+        private:
+            // eval_awaiter can only be created by eval_poller::to_awaiter()
+            // do NOT permit user to create eval_awaiter from raw eval_poller::handle_type
             explicit eval_awaiter(eval_poller::handle_type handle)
                 : m_eval_handle(handle)
             {
                 fflassert(m_eval_handle);
             }
 
+        public:
             eval_awaiter(eval_awaiter && other)
                 : m_eval_handle(other.m_eval_handle)
             {
