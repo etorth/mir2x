@@ -38,6 +38,9 @@ namespace corof
         private:
             class eval_poller_promise final
             {
+                // hiden its defination and expose by aliasing to promise_type
+                // this type is prepared to compiler, user should never instantiate an eval_poller_promise object
+
                 private:
                     friend class eval_poller;
                     template<typename T> friend class eval_awaiter;
@@ -83,7 +86,7 @@ namespace corof
                     }
             };
 
-        public:
+        private:
             handle_type m_handle;
 
         public:
@@ -91,6 +94,7 @@ namespace corof
                 : m_handle(handle)
             {}
 
+        public:
             eval_poller(eval_poller && other) noexcept
                 : m_handle(other.m_handle)
             {
@@ -136,7 +140,11 @@ namespace corof
             eval_poller::handle_type m_eval_handle;
 
         public:
-            explicit eval_awaiter(eval_poller &&) noexcept;
+            explicit eval_awaiter(eval_poller::handle_type handle)
+                : m_eval_handle(handle)
+            {
+                fflassert(m_eval_handle);
+            }
 
         public:
             ~eval_awaiter()
@@ -161,14 +169,26 @@ namespace corof
             }
 
         public:
-            bool await_suspend(eval_poller::handle_type) noexcept;
-            decltype(auto) await_resume();
+            bool await_suspend(eval_poller::handle_type handle) noexcept
+            {
+                /*  */ handle.promise().m_inner_handle = m_eval_handle;
+                m_eval_handle.promise().m_outer_handle =        handle;
+                return true;
+            }
+
+        public:
+            decltype(auto) await_resume()
+            {
+                return m_eval_handle.promise().get_value<T>();
+            }
     };
 
     template<typename T> [[nodiscard]] eval_awaiter<T> eval_poller::to_awaiter()
     {
         fflassert(valid());
-        return eval_awaiter<T>(std::move(*this));
+        auto hd = m_handle;
+        m_handle = nullptr;
+        return eval_awaiter<T>(hd);
     }
 
     template<typename T> decltype(auto) eval_poller::sync_eval()
@@ -217,24 +237,6 @@ namespace corof
 
         curr_handle.resume();
         return m_handle.done();
-    }
-
-    template<typename T> eval_awaiter<T>::eval_awaiter(eval_poller && poller) noexcept
-        : m_eval_handle(poller.m_handle)
-    {
-        poller.m_handle = nullptr;
-    }
-
-    template<typename T> inline bool eval_awaiter<T>::await_suspend(eval_poller::handle_type handle) noexcept
-    {
-        handle       .promise().m_inner_handle = m_eval_handle;
-        m_eval_handle.promise().m_outer_handle = handle;
-        return true;
-    }
-
-    template<typename T> inline decltype(auto) eval_awaiter<T>::await_resume()
-    {
-        return m_eval_handle.promise().get_value<T>();
     }
 }
 
