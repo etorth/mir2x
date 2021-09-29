@@ -20,6 +20,7 @@
 #include <any>
 #include <optional>
 #include <coroutine>
+#include <exception>
 #include "fflerror.hpp"
 #include "raiitimer.hpp"
 
@@ -38,8 +39,8 @@ namespace corof
         private:
             class eval_poller_promise final
             {
-                // hiden its defination and expose by aliasing to promise_type
-                // this type is prepared to compiler, user should never instantiate an eval_poller_promise object
+                // hiden its definition and expose by aliasing to promise_type
+                // this type is for compiler, user should never instantiate an eval_poller_promise object
 
                 private:
                     friend class eval_poller;
@@ -47,8 +48,13 @@ namespace corof
 
                 private:
                     std::any m_value;
+
+                private:
                     handle_type m_inner_handle;
                     handle_type m_outer_handle;
+
+                private:
+                    std::exception_ptr m_exception = nullptr;
 
                 public:
                     template<typename T> T &get_value()
@@ -78,11 +84,14 @@ namespace corof
 
                     void unhandled_exception()
                     {
-                        std::terminate();
+                        m_exception = std::current_exception();
                     }
 
                     void rethrow_if_unhandled_exception()
                     {
+                        if(m_exception){
+                            std::rethrow_exception(m_exception);
+                        }
                     }
             };
 
