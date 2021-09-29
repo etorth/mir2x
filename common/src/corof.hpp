@@ -178,7 +178,7 @@ namespace corof
             }
 
         public:
-            template<typename T> decltype(auto) eval_ref();
+            template<typename T> decltype(auto) sync_eval();
             template<typename T> [[nodiscard]] eval_awaiter<T> to_awaiter();
     };
 
@@ -237,7 +237,7 @@ namespace corof
             }
     };
 
-    template<typename T> decltype(auto) eval_poller::eval_ref()
+    template<typename T> decltype(auto) eval_poller::sync_eval()
     {
         while(!poll()){
             continue;
