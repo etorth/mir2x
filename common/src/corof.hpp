@@ -124,14 +124,50 @@ namespace corof
             }
 
         public:
-            inline bool poll();
+            bool poll()
+            {
+                fflassert(m_handle);
+                handle_type curr_handle = find_handle(m_handle);
+                if(curr_handle.done()){
+                    if(!curr_handle.promise().m_outer_handle){
+                        return true;
+                    }
+
+                    // jump out for one layer
+                    // should I call destroy() for done handle?
+
+                    curr_handle = curr_handle.promise().m_outer_handle;
+                    curr_handle.promise().m_inner_handle = nullptr;
+
+                    if(curr_handle.done()){
+                        throw fflerror("linked done handle detected");
+                    }
+                }
+
+                // resume only once and return immediately
+                // after resume curr_handle can be in done state, next call to poll should unlink it
+
+                curr_handle.resume();
+                return m_handle.done();
+            }
 
         private:
-            static inline handle_type find_handle(handle_type);
+            static inline handle_type find_handle(handle_type start_handle)
+            {
+                fflassert(start_handle);
+                auto curr_handle = start_handle;
+                auto next_handle = start_handle.promise().m_inner_handle;
+
+                while(curr_handle && next_handle){
+                    curr_handle = next_handle;
+                    next_handle = next_handle.promise().m_inner_handle;
+                }
+                return curr_handle;
+            }
 
         public:
-            template<typename T> [[nodiscard]] eval_awaiter<T> to_awaiter();
             template<typename T> decltype(auto) sync_eval();
+            template<typename T> [[nodiscard]] eval_awaiter<T> to_awaiter();
     };
 
     template<typename T> class [[nodiscard]] eval_awaiter
@@ -183,14 +219,6 @@ namespace corof
             }
     };
 
-    template<typename T> [[nodiscard]] eval_awaiter<T> eval_poller::to_awaiter()
-    {
-        fflassert(valid());
-        auto hd = m_handle;
-        m_handle = nullptr;
-        return eval_awaiter<T>(hd);
-    }
-
     template<typename T> decltype(auto) eval_poller::sync_eval()
     {
         while(!poll()){
@@ -199,44 +227,12 @@ namespace corof
         return to_awaiter<T>().await_resume();
     }
 
-    inline eval_poller::handle_type eval_poller::find_handle(eval_poller::handle_type start_handle)
+    template<typename T> [[nodiscard]] eval_awaiter<T> eval_poller::to_awaiter()
     {
-        fflassert(start_handle);
-        auto curr_handle = start_handle;
-        auto next_handle = start_handle.promise().m_inner_handle;
-
-        while(curr_handle && next_handle){
-            curr_handle = next_handle;
-            next_handle = next_handle.promise().m_inner_handle;
-        }
-        return curr_handle;
-    }
-
-    inline bool eval_poller::poll()
-    {
-        fflassert(m_handle);
-        handle_type curr_handle = find_handle(m_handle);
-        if(curr_handle.done()){
-            if(!curr_handle.promise().m_outer_handle){
-                return true;
-            }
-
-            // jump out for one layer
-            // should I call destroy() for done handle?
-
-            curr_handle = curr_handle.promise().m_outer_handle;
-            curr_handle.promise().m_inner_handle = nullptr;
-
-            if(curr_handle.done()){
-                throw fflerror("linked done handle detected");
-            }
-        }
-
-        // resume only once and return immediately
-        // after resume curr_handle can be in done state, next call to poll should unlink it
-
-        curr_handle.resume();
-        return m_handle.done();
+        fflassert(valid());
+        auto hd = m_handle;
+        m_handle = nullptr;
+        return eval_awaiter<T>(hd);
     }
 }
 
