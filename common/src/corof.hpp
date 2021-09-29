@@ -57,12 +57,13 @@ namespace corof
                 private:
                     std::exception_ptr m_exception = nullptr;
 
-                public:
-                    template<typename T> T &get_value()
+                private:
+                    template<typename T> T &get_ref()
                     {
                         return std::any_cast<T &>(m_value);
                     }
 
+                public:
                     auto initial_suspend()
                     {
                         return std::suspend_never{};
@@ -177,7 +178,7 @@ namespace corof
             }
 
         public:
-            template<typename T> decltype(auto) sync_eval();
+            template<typename T> decltype(auto) eval_ref();
             template<typename T> [[nodiscard]] eval_awaiter<T> to_awaiter();
     };
 
@@ -232,11 +233,11 @@ namespace corof
         public:
             decltype(auto) await_resume()
             {
-                return m_eval_handle.promise().get_value<T>();
+                return m_eval_handle.promise().get_ref<T>();
             }
     };
 
-    template<typename T> decltype(auto) eval_poller::sync_eval()
+    template<typename T> decltype(auto) eval_poller::eval_ref()
     {
         while(!poll()){
             continue;
