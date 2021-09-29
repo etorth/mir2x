@@ -31,6 +31,7 @@ namespace corof
     {
         private:
             class eval_poller_promise;
+            template<typename T> friend class eval_awaiter;
 
         public:
             using promise_type = eval_poller_promise;
@@ -105,16 +106,14 @@ namespace corof
 
         public:
             eval_poller(eval_poller && other) noexcept
-                : m_handle(other.m_handle)
             {
-                other.m_handle = nullptr;
+                std::swap(m_handle, other.m_handle);
             }
 
         public:
             eval_poller & operator = (eval_poller && other) noexcept
             {
-                m_handle = other.m_handle;
-                other.m_handle = nullptr;
+                std::swap(m_handle, other.m_handle);
                 return *this;
             }
 
@@ -145,12 +144,11 @@ namespace corof
                     // jump out for one layer
                     // should I call destroy() for done handle?
 
-                    curr_handle = curr_handle.promise().m_outer_handle;
-                    curr_handle.promise().m_inner_handle = nullptr;
+                    const auto outer_handle = curr_handle.promise().m_outer_handle;
+                    fflassert(!outer_handle.done());
 
-                    if(curr_handle.done()){
-                        throw fflerror("linked done handle detected");
-                    }
+                    curr_handle = outer_handle;
+                    curr_handle.promise().m_inner_handle = nullptr;
                 }
 
                 // resume only once and return immediately
@@ -188,19 +186,17 @@ namespace corof
             eval_poller::handle_type m_eval_handle;
 
         private:
-            // eval_awaiter can only be created by eval_poller::to_awaiter()
-            // do NOT permit user to create eval_awaiter from raw eval_poller::handle_type
-            explicit eval_awaiter(eval_poller::handle_type handle)
-                : m_eval_handle(handle)
+            explicit eval_awaiter(eval_poller poller)
             {
+                std::swap(m_eval_handle, poller.m_handle);
                 fflassert(m_eval_handle);
             }
 
         public:
             eval_awaiter(eval_awaiter && other)
-                : m_eval_handle(other.m_eval_handle)
             {
-                other.m_eval_handle = nullptr;
+                std::swap(m_eval_handle, other.m_eval_handle);
+                fflassert(m_eval_handle);
             }
 
         public:
@@ -247,9 +243,7 @@ namespace corof
     template<typename T> [[nodiscard]] eval_awaiter<T> eval_poller::to_awaiter()
     {
         fflassert(valid());
-        auto hd = m_handle;
-        m_handle = nullptr;
-        return eval_awaiter<T>(hd);
+        return eval_awaiter<T>(std::move(*this));
     }
 }
 
@@ -263,9 +257,7 @@ namespace corof
         public:
             template<typename U = T> void assign(U && u)
             {
-                if(m_var.has_value()){
-                    throw fflerror("assign value to async_variable twice");
-                }
+                fflassert(!m_var.has_value());
                 m_var = std::move(u);
             }
 
@@ -273,7 +265,7 @@ namespace corof
             async_variable() = default;
 
         public:
-            template<typename U> async_variable(const async_variable<U> &) = delete;
+            template<typename U    > async_variable                 (const async_variable<U> &) = delete;
             template<typename U = T> async_variable<T> & operator = (const async_variable<U> &) = delete;
 
         public:
