@@ -20,6 +20,7 @@
 #include <map>
 #include <array>
 #include <string>
+#include <cfloat>
 #include <functional>
 
 #include "actormsgbuf.hpp"
@@ -67,8 +68,8 @@ class ActorPod final
 
     private:
         // actorpool automatically send METRONOME to actor
-        // this can control the freq if we want to setup actor in standby/active mode
-        uint64_t m_updateFreq;
+        // this can control the freq if we want to setup actor in standby/active mode, zero or negative means not send METRONOME
+        double m_updateFreq;
 
     private:
         // used by rollSeqID()
@@ -99,7 +100,7 @@ class ActorPod final
         explicit ActorPod(uint64_t,                         // UID
                 std::function<void()>,                      // trigger
                 std::function<void(const ActorMsgPack &)>,  // msgHandler
-                uint64_t,                                   // metronome frequency in HZ
+                double,                                     // metronome frequency in HZ
                 uint64_t);                                  // timeout in nanoseconds
 
     public:
@@ -150,15 +151,29 @@ class ActorPod final
         }
 
     public:
-        void setMetronomeFreq(uint64_t freq)
+        void setMetronomeFreq(double freq)
         {
             // TODO enhance it to do more check
             // should only call this function inside message handler
-            m_updateFreq = freq;
+            m_updateFreq = regMetronomeFreq(freq);
         }
 
-        uint64_t getMetronomeFreq() const
+        double getMetronomeFreq() const
         {
             return m_updateFreq;
+        }
+
+    private:
+        static double regMetronomeFreq(double freq)
+        {
+            if(freq <= 0.0){
+                return -1.0;
+            }
+            else if(freq < DBL_EPSILON){
+                return DBL_EPSILON;
+            }
+            else{
+                return freq;
+            }
         }
 };

@@ -380,7 +380,7 @@ void MonoServer::StartServiceCore()
     g_actorPool->launchPool();
 
     m_serviceCore = new ServiceCore();
-    m_serviceCore->activate(0);
+    m_serviceCore->activate(-1.0);
 }
 
 void MonoServer::StartNetwork()
