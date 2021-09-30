@@ -3550,14 +3550,36 @@
 
 {   .name = u8"无名刀",
     .type = u8"武器",
+    .weight = 25,
     .pkgGfxID = 0X0426,
     .shape = 33,
+    .equip
+    {
+        .duration = 24,
+        .ac = {7, 18},
+        .sac = {3, 6},
+        .hit = 2,
+        .req
+        {
+            .level = 33,
+        }
+    },
 },
 
 {   .name = u8"斩马刀",
     .type = u8"武器",
+    .weight = 27,
     .pkgGfxID = 0X0427,
     .shape = 11,
+    .equip
+    {
+        .duration = 18,
+        .ac = {5, 16},
+        .req
+        {
+            .level = 18,
+        }
+    },
 },
 
 {   .name = u8"阴阳刀",
@@ -3569,14 +3591,34 @@
 
 {   .name = u8"修罗",
     .type = u8"武器",
+    .weight = 30,
     .pkgGfxID = 0X0429,
     .shape = 12,
+    .equip
+    {
+        .duration = 22,
+        .ac = {0, 22},
+        .req
+        {
+            .level = 20,
+        }
+    },
 },
 
 {   .name = u8"炼狱",
     .type = u8"武器",
+    .weight = 70,
     .pkgGfxID = 0X042A,
     .shape = 5,
+    .equip
+    {
+        .duration = 30,
+        .ac = {1, 32},
+        .req
+        {
+            .level = 33,
+        }
+    },
 },
 
 {   .name = u8"命运之刃",
@@ -3601,10 +3643,12 @@
 {   .name = u8"屠龙",
     .type = u8"武器",
     .rarity = u8"高级",
+    .weight = 100,
     .pkgGfxID = 0X042E,
     .shape = 4,
     .equip
     {
+        .duration = 36,
         .ac = {2, 40},
         .req
         {
@@ -3645,6 +3689,20 @@
 {   .name = u8"五彩鞋",
     .type = u8"鞋",
     .pkgGfxID = 0X055E,
+    .equip
+    {
+        .comfort = 3,
+        .load
+        {
+            .hand = 2,
+            .inventory = 2,
+        },
+
+        .req
+        {
+            .level = 26,
+        }
+    },
 },
 
 {   .name = u8"鹿皮靴",
