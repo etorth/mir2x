@@ -38,24 +38,36 @@
 
 struct ItemRecord
 {
-    const char8_t * const name;
-    const char8_t * const type;
-    const char8_t * const rarity;
+    const char8_t * const name   = nullptr;
+    const char8_t * const type   = nullptr;
+    const char8_t * const rarity = nullptr;
 
-    int weight;
-    int pkgGfxID;
-    uint32_t shape;
+    int weight = 1;
+    int pkgGfxID = 0;
+    uint32_t shape = 0;
 
-    const char8_t * const needJob;
+    int needAC    = 0;
+    int needMAC   = 0;
+    int needSPC   = 0;
+    int needLevel = 0;
+    const char8_t * const needJob = nullptr;
 
-    int needLevel;
-    int needDC;
-    int needSPC;
-    int needMDC;
-    int needAC;
-    int needMAC;
+    int  AC[2] = {0, 0};
+    int  DC[2] = {0, 0};
+    int MAC[2] = {0, 0};
+    int MDC[2] = {0, 0};
+    int SPC[2] = {0, 0};
 
-    const char8_t * const description;
+    int HIT = 0;
+    int DGE = 0;
+    int SPD = 0;
+    int CFT = 0;
+
+    int addHP   = 0;
+    int addMP   = 0;
+    int addTime = 0;
+
+    const char8_t * const description = nullptr;
 
     operator bool() const
     {

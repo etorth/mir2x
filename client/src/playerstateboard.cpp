@@ -210,11 +210,13 @@ void PlayerStateBoard::drawEx(int, int, int, int, int, int) const
     }
 
     for(size_t i = WLG_W_BEGIN; i < WLG_W_END; ++i){
-        if(auto texPtr = g_itemDB->retrieve(DBCOM_ITEMRECORD(m_processRun->getMyHero()->getWLItem(i).itemID).pkgGfxID | 0X01000000)){
-            const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);
-            const int dstX = x() + m_gridList[i].x + (m_gridList[i].w - texW) / 2;
-            const int dstY = y() + m_gridList[i].y + (m_gridList[i].h - texH) / (i == WLG_SHOES ? 1 : 2);
-            g_sdlDevice->drawTexture(texPtr, dstX, dstY);
+        if(const auto &item = m_processRun->getMyHero()->getWLItem(i)){
+            if(auto texPtr = g_itemDB->retrieve(DBCOM_ITEMRECORD(item.itemID).pkgGfxID | 0X01000000)){
+                const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);
+                const int dstX = x() + m_gridList[i].x + (m_gridList[i].w - texW) / 2;
+                const int dstY = y() + m_gridList[i].y + (m_gridList[i].h - texH) / (i == WLG_SHOES ? 1 : 2);
+                g_sdlDevice->drawTexture(texPtr, dstX, dstY);
+            }
         }
     }
 
