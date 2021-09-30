@@ -126,7 +126,10 @@ LuaModule::LuaModule()
 
     m_luaState.set_function("getItemName", [](int itemID) -> std::string
     {
-        return to_cstr(DBCOM_ITEMRECORD(itemID).name);
+        if(const auto s = to_cstr(DBCOM_ITEMRECORD(itemID).name)){
+            return s;
+        }
+        return "";
     });
 
     m_luaState.set_function("getItemID", [](std::string itemName) -> int
