@@ -3075,8 +3075,19 @@
 
 {   .name = u8"布衣（男）",
     .type = u8"衣服",
+    .weight = 5,
     .pkgGfxID = 0X03AC,
     .shape = 1,
+    .equip
+    {
+        .duration = 5,
+        .dc = {2, 2},
+        .mdc = {0, 1},
+        .req
+        {
+            .level = 1,
+        },
+    },
 },
 
 {   .name = u8"轻盔甲（男）",
@@ -3410,6 +3421,15 @@
     .type = u8"武器",
     .pkgGfxID = 0X0412,
     .shape = 9,
+    .equip
+    {
+        .duration = 4,
+        .ac = {2, 5},
+        .req
+        {
+            .level = 1,
+        },
+    },
 },
 
 {   .name = u8"乌木剑",
@@ -3583,9 +3603,14 @@
     .rarity = u8"高级",
     .pkgGfxID = 0X042E,
     .shape = 4,
-    .needLevel = 34,
-    .AC = {2, 40},
-
+    .equip
+    {
+        .ac = {2, 40},
+        .req
+        {
+            .level = 34,
+        }
+    },
     .description = u8"用天外玄铁打造，刀身刻有龙纹，潜藏着强大的气场，是荣耀和力量的象征。",
 },
 
@@ -3594,8 +3619,20 @@
 {   .name = u8"草鞋",
     .type = u8"鞋",
     .pkgGfxID = 0X0550,
-    .needLevel = 6,
-    .CFT = 1,
+    .equip
+    {
+        .comfort = 1,
+        .load
+        {
+            .hand = 1,
+            .inventory = 1,
+        },
+
+        .req
+        {
+            .level = 6,
+        }
+    },
     .description = u8"用香蒲编成的凉鞋，价格低廉，是老百姓常穿的鞋子。",
 },
 

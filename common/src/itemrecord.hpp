@@ -42,30 +42,58 @@ struct ItemRecord
     const char8_t * const type   = nullptr;
     const char8_t * const rarity = nullptr;
 
-    int weight = 1;
-    int pkgGfxID = 0;
-    uint32_t shape = 0;
+    const int weight = 1;
+    const int pkgGfxID = 0;
+    const uint32_t shape = 0;
 
-    int needAC    = 0;
-    int needMAC   = 0;
-    int needSPC   = 0;
-    int needLevel = 0;
-    const char8_t * const needJob = nullptr;
+    const struct EquipAttribute
+    {
+        const int duration = 0;
 
-    int  AC[2] = {0, 0};
-    int  DC[2] = {0, 0};
-    int MAC[2] = {0, 0};
-    int MDC[2] = {0, 0};
-    int SPC[2] = {0, 0};
+        const int  ac[2] = {0, 0};
+        const int  dc[2] = {0, 0};
+        const int mac[2] = {0, 0};
+        const int mdc[2] = {0, 0};
+        const int sac[2] = {0, 0};
 
-    int HIT = 0;
-    int DGE = 0;
-    int SPD = 0;
-    int CFT = 0;
+        const int hit     = 0;
+        const int dodge   = 0;
+        const int speed   = 0;
+        const int comfort = 0;
 
-    int addHP   = 0;
-    int addMP   = 0;
-    int addTime = 0;
+        const struct AddLoad
+        {
+            int hand      = 0;
+            int head      = 0;
+            int inventory = 0;
+        }
+        load {};
+
+        const struct EquipReq
+        {
+            int ac    = 0;
+            int mac   = 0;
+            int sac   = 0;
+            int level = 0;
+            const char8_t * const job = nullptr;
+        }
+        req {};
+    }
+    equip {};
+
+    const struct PotionAttribute
+    {
+        int hp   = 0;
+        int mp   = 0;
+        int time = 0;
+    }
+    potion {};
+
+    const struct PoisonAttribute
+    {
+        int dose = 0;
+    }
+    poison {};
 
     const char8_t * const description = nullptr;
 
