@@ -182,6 +182,10 @@ void PlayerStateBoard::drawEx(int, int, int, int, int, int) const
     LabelBoard(DIR_UPLEFT, 0, 0, str_printf(u8"魔防 %d - %d", combatNode.mac[0], combatNode.mac[1]).c_str(), 1, 12, 0, colorf::WHITE + colorf::A_SHF(255)).drawAt(DIR_UPLEFT, x() + 130, y() + 345);
     LabelBoard(DIR_UPLEFT, 0, 0, str_printf(u8"道术 %d - %d", combatNode.sdc[0], combatNode.sdc[1]).c_str(), 1, 12, 0, colorf::WHITE + colorf::A_SHF(255)).drawAt(DIR_UPLEFT, x() + 233, y() + 345);
 
+    LabelBoard(DIR_UPLEFT, 0, 0, u8"强攻元素", 1, 12, 0, colorf::WHITE + colorf::A_SHF(255)).drawAt(DIR_UPLEFT, x() + 10, y() + 376);
+    LabelBoard(DIR_UPLEFT, 0, 0, u8"强防元素", 1, 12, 0, colorf::WHITE + colorf::A_SHF(255)).drawAt(DIR_UPLEFT, x() + 10, y() + 406);
+    LabelBoard(DIR_UPLEFT, 0, 0, u8"弱防元素", 1, 12, 0, colorf::WHITE + colorf::A_SHF(255)).drawAt(DIR_UPLEFT, x() + 10, y() + 436);
+
     if(auto [texPtr, dx, dy] = g_equipDB->retrieve(myHeroPtr->gender() ? 0X00000000 : 0X00000001); texPtr){
         g_sdlDevice->drawTexture(texPtr, x() + m_equipCharX + dx, y() + m_equipCharY + dy);
     }
