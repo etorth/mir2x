@@ -43,12 +43,15 @@ std::u8string SDItem::getXMLLayout() const
     xmlStr += str_printf(u8R"###( <layout> )###""\n");
     xmlStr += str_printf(u8R"###( <par>【名称】%s</par> )###""\n", ir.name);
     xmlStr += str_printf(u8R"###( <par>【重量】%d</par> )###""\n", ir.weight);
-    xmlStr += str_printf(u8R"###( <par>【描述】%s</par> )###""\n", str_haschar(ir.description) ? ir.description : u8"游戏处于开发阶段，此物品暂无描述。");
 
     if(ir.equip.duration > 0){
-        xmlStr += str_printf(u8R"###( <par>持久 %zu/%d</par> )###""\n", duration, ir.equip.duration);
+        xmlStr += str_printf(u8R"###( <par>【持久】%zu/%d</par> )###""\n", duration, ir.equip.duration);
     }
 
+    xmlStr += str_printf(u8R"###( <par></par> )###""\n");
+    xmlStr += str_printf(u8R"###( <par>%s</par> )###""\n", str_haschar(ir.description) ? ir.description : u8"游戏处于开发阶段，暂无物品描述。");
+
+    xmlStr += str_printf(u8R"###( <par></par> )###""\n");
     if(ir.equip.dc[0] > 0 || ir.equip.dc[1] > 0){
         xmlStr += str_printf(u8R"###( <par>攻击 %d - %d</par> )###""\n", ir.equip.dc[0], ir.equip.dc[1]);
     }
