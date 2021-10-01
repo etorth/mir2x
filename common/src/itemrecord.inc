@@ -3683,6 +3683,21 @@
 {   .name = u8"皮靴",
     .type = u8"鞋",
     .pkgGfxID = 0X0551,
+    .equip
+    {
+        .duration = 8,
+        .comfort = 2,
+        .load
+        {
+            .hand = 2,
+            .inventory = 2,
+        },
+
+        .req
+        {
+            .level = 16,
+        }
+    },
     .description = u8"用皮革做成的鞋子，坚固耐用，是老百姓常穿的鞋子。",
 },
 
@@ -3717,17 +3732,60 @@
 
 {   .name = u8"天掌靴",
     .type = u8"鞋",
+    .weight = 2,
     .pkgGfxID = 0X0552,
+    .equip
+    {
+        .duration = 10,
+        .comfort = 5,
+        .load
+        {
+            .hand = 4,
+            .inventory = 4,
+        },
+
+        .req
+        {
+            .level = 38,
+        }
+    },
 },
 
 {   .name = u8"赤飞靴",
     .type = u8"鞋",
+    .weight = 2,
     .pkgGfxID = 0X0553,
+    .equip
+    {
+        .duration = 10,
+        .comfort = 4,
+        .load
+        {
+            .hand = 3,
+            .inventory = 3,
+        },
+
+        .req
+        {
+            .level = 33,
+        }
+    },
 },
 
 {   .name = u8"黑皮靴",
     .type = u8"鞋",
+    .weight = 3,
     .pkgGfxID = 0X0554,
+    .equip
+    {
+        .duration = 12,
+        .comfort = 7,
+        .load
+        {
+            .hand = 7,
+            .inventory = 7,
+        },
+    },
 },
 
 {   .name = u8"长皮靴",
@@ -3737,7 +3795,18 @@
 
 {   .name = u8"月光鞋",
     .type = u8"鞋",
+    .weight = 2,
     .pkgGfxID = 0X055B,
+    .equip
+    {
+        .duration = 8,
+        .comfort = 7,
+        .load
+        {
+            .hand = 3,
+            .inventory = 14,
+        },
+    },
 },
 
 {   .name = u8"无影靴",
