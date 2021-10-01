@@ -330,43 +330,9 @@ bool Player::DCValid(int, bool)
     return true;
 }
 
-CombatNode Player::getCombatNode() const
-{
-    CombatNode node;
-    std::memset(&node, 0, sizeof(node));
-
-    for(size_t i = WLG_BEGIN; i < WLG_END; ++i){
-        if(const auto &item = m_sdItemStorage.wear.getWLItem(i)){
-            const auto &ir = DBCOM_ITEMRECORD(item.itemID);
-            fflassert(ir);
-
-            node.ac[0] += ir.equip.ac[0];
-            node.ac[1] += ir.equip.ac[1];
-
-            node.dc[0] += ir.equip.dc[0];
-            node.dc[1] += ir.equip.dc[1];
-
-            node.mac[0] += ir.equip.mac[0];
-            node.mac[1] += ir.equip.mac[1];
-
-            node.mdc[0] += ir.equip.mdc[0];
-            node.mdc[1] += ir.equip.mdc[1];
-
-            node.sdc[0] += ir.equip.sdc[0];
-            node.sdc[1] += ir.equip.sdc[1];
-
-            node.hit += ir.equip.hit;
-            node.dodge += ir.equip.dodge;
-            node.speed += ir.equip.speed;
-            node.comfort += ir.equip.comfort;
-        }
-    }
-    return node;
-}
-
 DamageNode Player::getAttackDamage(int nDC) const
 {
-    const auto node = getCombatNode();
+    const auto node = getCombatNode(m_sdItemStorage.wear, UID(), level());
     switch(nDC){
         case DBCOM_MAGICID(u8"物理攻击"):
             {

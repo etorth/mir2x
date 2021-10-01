@@ -169,7 +169,6 @@ class Player final: public CharObject
         void RequestKillPets();
 
     protected:
-        CombatNode getCombatNode() const;
         DamageNode getAttackDamage(int) const;
 
     protected:

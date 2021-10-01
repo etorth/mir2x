@@ -19,6 +19,7 @@
 #pragma once
 #include "hero.hpp"
 #include "invpack.hpp"
+#include "combatnode.hpp"
 #include "actionnode.hpp"
 
 class MyHero: public Hero
@@ -110,6 +111,12 @@ class MyHero: public Hero
         {
             const auto level = getLevel();
             return to_f(to_df(getExp() - SYS_SUMEXP(level)) / SYS_EXP[level]);
+        }
+
+    public:
+        CombatNode getCombatNode() const
+        {
+            return ::getCombatNode(m_sdWLDesp.wear, UID(), getLevel());
         }
 
     public:
