@@ -3081,8 +3081,8 @@
     .equip
     {
         .duration = 5,
-        .dc = {2, 2},
-        .mdc = {0, 1},
+        .ac = {2, 2},
+        .mac = {0, 1},
         .req
         {
             .level = 1,
