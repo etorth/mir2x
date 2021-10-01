@@ -42,7 +42,12 @@ std::u8string SDItem::getXMLLayout() const
 
     xmlStr += str_printf(u8R"###( <layout> )###""\n");
     xmlStr += str_printf(u8R"###( <par>【名称】%s</par> )###""\n", ir.name);
+    xmlStr += str_printf(u8R"###( <par>【重量】%d</par> )###""\n", ir.weight);
     xmlStr += str_printf(u8R"###( <par>【描述】%s</par> )###""\n", str_haschar(ir.description) ? ir.description : u8"游戏处于开发阶段，此物品暂无描述。");
+
+    if(ir.equip.duration > 0){
+        xmlStr += str_printf(u8R"###( <par>持久 %zu/%d</par> )###""\n", duration, ir.equip.duration);
+    }
 
     if(ir.equip.dc[0] > 0 || ir.equip.dc[1] > 0){
         xmlStr += str_printf(u8R"###( <par>攻击 %d - %d</par> )###""\n", ir.equip.dc[0], ir.equip.dc[1]);
@@ -70,6 +75,26 @@ std::u8string SDItem::getXMLLayout() const
 
     if(ir.equip.dodge > 0){
         xmlStr += str_printf(u8R"###( <par>闪避 %d</par> )###""\n", ir.equip.dodge);
+    }
+
+    if(ir.equip.speed > 0){
+        xmlStr += str_printf(u8R"###( <par>速度 %d</par> )###""\n", ir.equip.speed);
+    }
+
+    if(ir.equip.comfort > 0){
+        xmlStr += str_printf(u8R"###( <par>舒适度 %d</par> )###""\n", ir.equip.comfort);
+    }
+
+    if(ir.equip.load.hand > 0){
+        xmlStr += str_printf(u8R"###( <par>手负重 %d</par> )###""\n", ir.equip.load.hand);
+    }
+
+    if(ir.equip.load.head > 0){
+        xmlStr += str_printf(u8R"###( <par>头负重 %d</par> )###""\n", ir.equip.load.head);
+    }
+
+    if(ir.equip.load.inventory > 0){
+        xmlStr += str_printf(u8R"###( <par>包裹负重 %d</par> )###""\n", ir.equip.load.inventory);
     }
 
     xmlStr += str_printf(u8R"###( </layout> )###""\n");
