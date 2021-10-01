@@ -32,7 +32,7 @@ struct ItemRecord
         const struct AddLoad
         {
             int hand      = 0;
-            int head      = 0;
+            int body      = 0;
             int inventory = 0;
         }
         load {};

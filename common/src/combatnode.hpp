@@ -19,6 +19,14 @@ struct CombatNode
     int dodge   = 0;
     int speed   = 0;
     int comfort = 0;
+
+    struct AddLoad
+    {
+        int hand      = 0;
+        int body      = 0;
+        int inventory = 0;
+    }
+    load {};
 };
 
 // server/client uses same CombatNode calculation

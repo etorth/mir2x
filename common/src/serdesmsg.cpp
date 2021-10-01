@@ -104,8 +104,8 @@ std::u8string SDItem::getXMLLayout() const
         xmlStr += str_printf(u8R"###( <par>手负重 %d</par> )###""\n", ir.equip.load.hand);
     }
 
-    if(ir.equip.load.head > 0){
-        xmlStr += str_printf(u8R"###( <par>头负重 %d</par> )###""\n", ir.equip.load.head);
+    if(ir.equip.load.body > 0){
+        xmlStr += str_printf(u8R"###( <par>身体负重 %d</par> )###""\n", ir.equip.load.body);
     }
 
     if(ir.equip.load.inventory > 0){

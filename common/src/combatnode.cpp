@@ -34,6 +34,10 @@ CombatNode getCombatNode(const SDWear & wear, uint64_t uid, int level)
             node.dodge += ir.equip.dodge;
             node.speed += ir.equip.speed;
             node.comfort += ir.equip.comfort;
+
+            node.load.hand += ir.equip.load.hand;
+            node.load.body += ir.equip.load.body;
+            node.load.inventory += ir.equip.load.inventory;
         }
     }
 
