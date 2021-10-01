@@ -32,6 +32,50 @@ std::string SDInitNPChar::getFileName() const
     }
 }
 
+std::u8string SDItem::getXMLLayout() const
+{
+    fflassert(*this);
+    const auto &ir = DBCOM_ITEMRECORD(itemID);
+
+    fflassert(ir);
+    std::u8string xmlStr;
+
+    xmlStr += str_printf(u8R"###( <layout> )###""\n");
+    xmlStr += str_printf(u8R"###( <par>【名称】%s</par> )###""\n", ir.name);
+    xmlStr += str_printf(u8R"###( <par>【描述】%s</par> )###""\n", str_haschar(ir.description) ? ir.description : u8"游戏处于开发阶段，此物品暂无描述。");
+
+    if(ir.equip.dc[0] > 0 || ir.equip.dc[1] > 0){
+        xmlStr += str_printf(u8R"###( <par>攻击 %d - %d</par> )###""\n", ir.equip.dc[0], ir.equip.dc[1]);
+    }
+
+    if(ir.equip.ac[0] > 0 || ir.equip.ac[1] > 0){
+        xmlStr += str_printf(u8R"###( <par>防御 %d - %d</par> )###""\n", ir.equip.ac[0], ir.equip.ac[1]);
+    }
+
+    if(ir.equip.mdc[0] > 0 || ir.equip.mdc[1] > 0){
+        xmlStr += str_printf(u8R"###( <par>魔法 %d - %d</par> )###""\n", ir.equip.mdc[0], ir.equip.mdc[1]);
+    }
+
+    if(ir.equip.mac[0] > 0 || ir.equip.mac[1] > 0){
+        xmlStr += str_printf(u8R"###( <par>魔防 %d - %d</par> )###""\n", ir.equip.mac[0], ir.equip.mac[1]);
+    }
+
+    if(ir.equip.sdc[0] > 0 || ir.equip.sdc[1] > 0){
+        xmlStr += str_printf(u8R"###( <par>道术 %d - %d</par> )###""\n", ir.equip.sdc[0], ir.equip.sdc[1]);
+    }
+
+    if(ir.equip.hit > 0){
+        xmlStr += str_printf(u8R"###( <par>准确 %d</par> )###""\n", ir.equip.hit);
+    }
+
+    if(ir.equip.dodge > 0){
+        xmlStr += str_printf(u8R"###( <par>闪避 %d</par> )###""\n", ir.equip.dodge);
+    }
+
+    xmlStr += str_printf(u8R"###( </layout> )###""\n");
+    return xmlStr;
+}
+
 std::vector<SDItem> SDItem::buildGoldItem(size_t count)
 {
     fflassert(count > 0);

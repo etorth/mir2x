@@ -335,23 +335,13 @@ bool PlayerStateBoard::processEvent(const SDL_Event &event, bool valid)
 
 void PlayerStateBoard::drawItemHoverText(int wltype) const
 {
-    const auto itemID = m_processRun->getMyHero()->getWLItem(wltype).itemID;
-    const auto &ir = DBCOM_ITEMRECORD(itemID);
-
-    if(!(itemID && ir)){
+    const auto &item = m_processRun->getMyHero()->getWLItem(wltype);
+    if(!item){
         return;
     }
 
-    const auto hoverText = str_printf
-    (
-        u8R"###( <layout>                  )###""\n"
-        u8R"###(     <par>【名称】%s</par> )###""\n"
-        u8R"###(     <par>【描述】%s</par> )###""\n"
-        u8R"###( </layout>                 )###""\n",
-
-        ir.name,
-        str_haschar(ir.description) ? ir.description : u8"游戏处于开发阶段，此物品暂无描述。"
-    );
+    const auto &ir = DBCOM_ITEMRECORD(item.itemID);
+    fflassert(ir);
 
     LayoutBoard hoverTextBoard
     {
@@ -374,7 +364,7 @@ void PlayerStateBoard::drawItemHoverText(int wltype) const
         LALIGN_JUSTIFY,
     };
 
-    hoverTextBoard.loadXML(to_cstr(hoverText));
+    hoverTextBoard.loadXML(to_cstr(item.getXMLLayout().c_str()));
     const auto [mousePX, mousePY] = SDLDeviceHelper::getMousePLoc();
     const auto textBoxW = std::max<int>(hoverTextBoard.w(), 200) + 20;
     const auto textBoxH = hoverTextBoard.h() + 20;

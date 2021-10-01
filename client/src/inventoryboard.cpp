@@ -535,50 +535,6 @@ std::tuple<int, int> InventoryBoard::getInvGrid(int locPX, int locPY) const
 
 void InventoryBoard::drawItemHoverText(const PackBin &bin) const
 {
-    std::u8string attrStr;
-    const auto &ir = DBCOM_ITEMRECORD(bin.item.itemID);
-
-    if(ir.equip.dc[0] > 0 || ir.equip.dc[1] > 0){
-        attrStr += str_printf(u8R"###( <par>攻击 %d - %d</par> )###""\n", ir.equip.dc[0], ir.equip.dc[1]);
-    }
-
-    if(ir.equip.ac[0] > 0 || ir.equip.ac[1] > 0){
-        attrStr += str_printf(u8R"###( <par>防御 %d - %d</par> )###""\n", ir.equip.ac[0], ir.equip.ac[1]);
-    }
-
-    if(ir.equip.mdc[0] > 0 || ir.equip.mdc[1] > 0){
-        attrStr += str_printf(u8R"###( <par>魔法 %d - %d</par> )###""\n", ir.equip.mdc[0], ir.equip.mdc[1]);
-    }
-
-    if(ir.equip.mac[0] > 0 || ir.equip.mac[1] > 0){
-        attrStr += str_printf(u8R"###( <par>魔法防御 %d - %d</par> )###""\n", ir.equip.mac[0], ir.equip.mac[1]);
-    }
-
-    if(ir.equip.sdc[0] > 0 || ir.equip.sdc[1] > 0){
-        attrStr += str_printf(u8R"###( <par>道术 %d - %d</par> )###""\n", ir.equip.sdc[0], ir.equip.sdc[1]);
-    }
-
-    if(ir.equip.hit > 0){
-        attrStr += str_printf(u8R"###( <par>准确 %d</par> )###""\n", ir.equip.hit);
-    }
-
-    if(ir.equip.dodge > 0){
-        attrStr += str_printf(u8R"###( <par>闪避 %d</par> )###""\n", ir.equip.dodge);
-    }
-
-    const auto hoverText = str_printf
-    (
-        u8R"###( <layout>                  )###""\n"
-        u8R"###(     <par>【名称】%s</par> )###""\n"
-        u8R"###(     <par>【描述】%s</par> )###""\n"
-        u8R"###(     %s                    )###""\n"
-        u8R"###( </layout>                 )###""\n",
-
-        ir.name,
-        str_haschar(ir.description) ? ir.description : u8"游戏处于开发阶段，此物品暂无描述。",
-        attrStr.c_str()
-    );
-
     LayoutBoard hoverTextBoard
     {
         DIR_UPLEFT,
@@ -600,7 +556,7 @@ void InventoryBoard::drawItemHoverText(const PackBin &bin) const
         LALIGN_JUSTIFY,
     };
 
-    hoverTextBoard.loadXML(to_cstr(hoverText));
+    hoverTextBoard.loadXML(to_cstr(bin.item.getXMLLayout().c_str()));
     const auto [mousePX, mousePY] = SDLDeviceHelper::getMousePLoc();
     const auto textBoxW = std::max<int>(hoverTextBoard.w(), 200) + 20;
     const auto textBoxH = hoverTextBoard.h() + 20;

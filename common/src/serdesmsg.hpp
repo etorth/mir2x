@@ -197,6 +197,8 @@ struct SDItem
         return str_printf("(itemID, seqID, count, duration, extAttrList) = (%llu, %llu, %zu, %zu, %s)", to_llu(itemID), to_llu(seqID), count, duration, to_cstr(extAttrList.str()));
     }
 
+    std::u8string getXMLLayout() const;
+
     bool isGold() const
     {
         return to_u8sv(DBCOM_ITEMRECORD(itemID).type) == u8"金币";
