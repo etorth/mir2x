@@ -1290,7 +1290,7 @@ void ControlBoard::drawHeroLoc() const
     locBoard.draw();
 }
 
-void ControlBoard::drawRatioBar(int x, int y, float r) const
+void ControlBoard::drawRatioBar(int x, int y, double r) const
 {
     ImageBoard barImage
     {

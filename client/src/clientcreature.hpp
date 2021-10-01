@@ -24,6 +24,7 @@
 #include <memory>
 #include <cstddef>
 #include <cstdint>
+#include <climits>
 #include <optional>
 #include <concepts>
 #include <optional>
@@ -205,12 +206,30 @@ class ClientCreature
         void updateHealth(SDHealth);
 
     public:
+        std::array<int, 4> getHealth() const
+        {
+            if(m_sdHealth.has_value()){
+                return
+                {
+                    mathf::bound<int>(m_sdHealth.value().HP, 0, mathf::bound<int>(m_sdHealth.value().maxHP, 0, INT_MAX)),
+                    mathf::bound<int>(m_sdHealth.value().maxHP, 0, INT_MAX),
+
+                    mathf::bound<int>(m_sdHealth.value().MP, 0, mathf::bound<int>(m_sdHealth.value().maxMP, 0, INT_MAX)),
+                    mathf::bound<int>(m_sdHealth.value().maxMP, 0, INT_MAX),
+                };
+            }
+            else{
+                return {0, 0, 0, 0};
+            }
+        }
+
         std::array<double, 2> getHealthRatio() const
         {
+            const auto [HP, maxHP, MP, maxMP] = getHealth();
             return
             {
-                (m_sdHealth.has_value() && (m_sdHealth.value().maxHP > 0)) ? mathf::bound<double>(to_df(m_sdHealth.value().HP) / m_sdHealth.value().maxHP, 0.0, 1.0) : 1.0,
-                (m_sdHealth.has_value() && (m_sdHealth.value().maxMP > 0)) ? mathf::bound<double>(to_df(m_sdHealth.value().MP) / m_sdHealth.value().maxMP, 0.0, 1.0) : 1.0,
+                (maxHP > 0) ? (to_df(HP) / maxHP) : 1.0,
+                (maxMP > 0) ? (to_df(MP) / maxMP) : 1.0,
             };
         }
 

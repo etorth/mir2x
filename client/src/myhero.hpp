@@ -107,7 +107,7 @@ class MyHero: public Hero
             return SYS_LEVEL(getExp());
         }
 
-        float getLevelRatio() const
+        double getLevelRatio() const
         {
             const auto level = getLevel();
             return to_f(to_df(getExp() - SYS_SUMEXP(level)) / SYS_EXP[level]);

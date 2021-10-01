@@ -148,7 +148,7 @@ class ControlBoard: public Widget
 
     private:
         void drawHeroLoc() const;
-        void drawRatioBar(int, int, float) const;
+        void drawRatioBar(int, int, double) const;
 
     private:
         void drawLeft() const;
