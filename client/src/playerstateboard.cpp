@@ -174,6 +174,14 @@ void PlayerStateBoard::drawEx(int, int, int, int, int, int) const
     }
 
     const auto myHeroPtr = m_processRun->getMyHero();
+    const auto combatNode = myHeroPtr->getCombatNode();
+
+    LabelBoard(DIR_UPLEFT, 0, 0, str_printf(u8"攻击 %d - %d", combatNode. dc[0], combatNode. dc[1]).c_str(), 1, 12, 0, colorf::WHITE + colorf::A_SHF(255)).drawAt(DIR_UPLEFT, x() +  21, y() + 317);
+    LabelBoard(DIR_UPLEFT, 0, 0, str_printf(u8"防御 %d - %d", combatNode. ac[0], combatNode. ac[1]).c_str(), 1, 12, 0, colorf::WHITE + colorf::A_SHF(255)).drawAt(DIR_UPLEFT, x() + 130, y() + 317);
+    LabelBoard(DIR_UPLEFT, 0, 0, str_printf(u8"魔法 %d - %d", combatNode.mdc[0], combatNode.mdc[1]).c_str(), 1, 12, 0, colorf::WHITE + colorf::A_SHF(255)).drawAt(DIR_UPLEFT, x() +  21, y() + 345);
+    LabelBoard(DIR_UPLEFT, 0, 0, str_printf(u8"魔防 %d - %d", combatNode.mac[0], combatNode.mac[1]).c_str(), 1, 12, 0, colorf::WHITE + colorf::A_SHF(255)).drawAt(DIR_UPLEFT, x() + 130, y() + 345);
+    LabelBoard(DIR_UPLEFT, 0, 0, str_printf(u8"道术 %d - %d", combatNode.sdc[0], combatNode.sdc[1]).c_str(), 1, 12, 0, colorf::WHITE + colorf::A_SHF(255)).drawAt(DIR_UPLEFT, x() + 233, y() + 345);
+
     if(auto [texPtr, dx, dy] = g_equipDB->retrieve(myHeroPtr->gender() ? 0X00000000 : 0X00000001); texPtr){
         g_sdlDevice->drawTexture(texPtr, x() + m_equipCharX + dx, y() + m_equipCharY + dy);
     }
@@ -256,13 +264,6 @@ void PlayerStateBoard::drawEx(int, int, int, int, int, int) const
             g_sdlDevice->drawRectangle(colorf::BLUE + colorf::A_SHF(255), x() + m_gridList[i].x, y() + m_gridList[i].y, m_gridList[i].w, m_gridList[i].h);
         }
     }
-
-    const auto node = myHeroPtr->getCombatNode();
-    LabelBoard(DIR_UPLEFT, 0, 0, str_printf(u8"攻击 %d - %d", node. dc[0], node. dc[1]).c_str(), 1, 12, 0, colorf::WHITE + colorf::A_SHF(255)).drawAt(DIR_UPLEFT, x() +  21, y() + 317);
-    LabelBoard(DIR_UPLEFT, 0, 0, str_printf(u8"防御 %d - %d", node. ac[0], node. ac[1]).c_str(), 1, 12, 0, colorf::WHITE + colorf::A_SHF(255)).drawAt(DIR_UPLEFT, x() + 130, y() + 317);
-    LabelBoard(DIR_UPLEFT, 0, 0, str_printf(u8"魔法 %d - %d", node.mdc[0], node.mdc[1]).c_str(), 1, 12, 0, colorf::WHITE + colorf::A_SHF(255)).drawAt(DIR_UPLEFT, x() +  21, y() + 345);
-    LabelBoard(DIR_UPLEFT, 0, 0, str_printf(u8"魔防 %d - %d", node.mac[0], node.mac[1]).c_str(), 1, 12, 0, colorf::WHITE + colorf::A_SHF(255)).drawAt(DIR_UPLEFT, x() + 130, y() + 345);
-    LabelBoard(DIR_UPLEFT, 0, 0, str_printf(u8"道术 %d - %d", node.sdc[0], node.sdc[1]).c_str(), 1, 12, 0, colorf::WHITE + colorf::A_SHF(255)).drawAt(DIR_UPLEFT, x() + 233, y() + 345);
 }
 
 bool PlayerStateBoard::processEvent(const SDL_Event &event, bool valid)
