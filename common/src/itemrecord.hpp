@@ -50,11 +50,11 @@ struct ItemRecord
     {
         const int duration = 0;
 
-        const int  ac[2] = {0, 0};
         const int  dc[2] = {0, 0};
-        const int mac[2] = {0, 0};
+        const int  ac[2] = {0, 0};
         const int mdc[2] = {0, 0};
-        const int sac[2] = {0, 0};
+        const int mac[2] = {0, 0};
+        const int sdc[2] = {0, 0};
 
         const int hit     = 0;
         const int dodge   = 0;
@@ -71,9 +71,9 @@ struct ItemRecord
 
         const struct EquipReq
         {
-            int ac    = 0;
-            int mac   = 0;
-            int sac   = 0;
+            int  dc   = 0;
+            int mdc   = 0;
+            int sdc   = 0;
             int level = 0;
             const char8_t * const job = nullptr;
         }

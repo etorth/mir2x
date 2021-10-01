@@ -3424,7 +3424,7 @@
     .equip
     {
         .duration = 4,
-        .ac = {2, 5},
+        .dc = {2, 5},
         .req
         {
             .level = 1,
@@ -3556,8 +3556,8 @@
     .equip
     {
         .duration = 24,
-        .ac = {7, 18},
-        .sac = {3, 6},
+        .dc = {7, 18},
+        .sdc = {3, 6},
         .hit = 2,
         .req
         {
@@ -3574,7 +3574,7 @@
     .equip
     {
         .duration = 18,
-        .ac = {5, 16},
+        .dc = {5, 16},
         .req
         {
             .level = 18,
@@ -3597,7 +3597,7 @@
     .equip
     {
         .duration = 22,
-        .ac = {0, 22},
+        .dc = {0, 22},
         .req
         {
             .level = 20,
@@ -3613,7 +3613,7 @@
     .equip
     {
         .duration = 30,
-        .ac = {1, 32},
+        .dc = {1, 32},
         .req
         {
             .level = 33,
@@ -3649,7 +3649,7 @@
     .equip
     {
         .duration = 36,
-        .ac = {2, 40},
+        .dc = {2, 40},
         .req
         {
             .level = 34,

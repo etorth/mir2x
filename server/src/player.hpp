@@ -24,6 +24,7 @@
 #include "totype.hpp"
 #include "monoserver.hpp"
 #include "charobject.hpp"
+#include "combatnode.hpp"
 
 class Player final: public CharObject
 {
@@ -168,6 +169,7 @@ class Player final: public CharObject
         void RequestKillPets();
 
     protected:
+        CombatNode getCombatNode() const;
         DamageNode getAttackDamage(int) const;
 
     protected:
