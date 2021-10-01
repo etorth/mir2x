@@ -48,10 +48,14 @@ void Player::dbLoadInventory()
     while(query.executeStep()){
         SDItem item
         {
-            .itemID      = check_cast<uint32_t, unsigned>         (query.getColumn("fld_itemid"     )),
-            .seqID       = check_cast<uint32_t, unsigned>         (query.getColumn("fld_seqid"      )),
-            .count       = check_cast<  size_t, unsigned>         (query.getColumn("fld_count"      )),
-            .duration    = check_cast<  size_t, unsigned>         (query.getColumn("fld_count"      )),
+            .itemID = check_cast<uint32_t, unsigned>(query.getColumn("fld_itemid")),
+            .seqID  = check_cast<uint32_t, unsigned>(query.getColumn("fld_seqid" )),
+            .count  = check_cast<  size_t, unsigned>(query.getColumn("fld_count" )),
+            .duration
+            {
+                check_cast<size_t, unsigned>(query.getColumn("fld_duration")),
+                check_cast<size_t, unsigned>(query.getColumn("fld_maxduration")),
+            },
             .extAttrList = cerealf::deserialize<SDItemExtAttrList>(query.getColumn("fld_extattrlist")),
         };
 
@@ -65,15 +69,16 @@ void Player::dbUpdateInventoryItem(const SDItem &item)
     fflassert(item);
     const auto attrBuf = cerealf::serialize(item.extAttrList);
     auto query = g_dbPod->createQuery(
-            u8R"###( replace into tbl_inventory(fld_dbid, fld_itemid, fld_seqid, fld_count, fld_duration, fld_extattrlist) )###"
-            u8R"###( values                                                                                                )###"
-            u8R"###(     (%llu, %llu, %llu, %llu, %llu, ?)                                                                 )###",
+            u8R"###( replace into tbl_inventory(fld_dbid, fld_itemid, fld_seqid, fld_count, fld_duration, fld_maxduration, fld_extattrlist) )###"
+            u8R"###( values                                                                                                                 )###"
+            u8R"###(     (%llu, %llu, %llu, %llu, %llu, %llu, ?)                                                                            )###",
 
             to_llu(dbid()),
             to_llu(item.itemID),
             to_llu(item.seqID),
             to_llu(item.count),
-            to_llu(item.duration));
+            to_llu(item.duration[0]),
+            to_llu(item.duration[1]));
 
     query.bind(1, attrBuf.data(), attrBuf.length());
     query.exec();
@@ -102,15 +107,16 @@ void Player::dbSecureItem(uint32_t itemID, uint32_t seqID)
 
     const auto attrBuf = cerealf::serialize(item.extAttrList);
     auto query = g_dbPod->createQuery(
-            u8R"###( replace into tbl_secureditemlist(fld_dbid, fld_itemid, fld_seqid, fld_count, fld_duration, fld_extattrlist) )###"
-            u8R"###( values                                                                                                      )###"
-            u8R"###(     (%llu, %llu, %llu, %llu, %llu, ?)                                                                       )###",
+            u8R"###( replace into tbl_secureditemlist(fld_dbid, fld_itemid, fld_seqid, fld_count, fld_duration, fld_maxduration, fld_extattrlist) )###"
+            u8R"###( values                                                                                                                       )###"
+            u8R"###(     (%llu, %llu, %llu, %llu, %llu, %llu, ?)                                                                                  )###",
 
             to_llu(dbid()),
             to_llu(item.itemID),
             to_llu(item.seqID),
             to_llu(item.count),
-            to_llu(item.duration));
+            to_llu(item.duration[0]),
+            to_llu(item.duration[1]));
 
     query.bind(1, attrBuf.data(), attrBuf.length());
     query.exec();
@@ -131,10 +137,14 @@ SDItem Player::dbRetrieveSecuredItem(uint32_t itemID, uint32_t seqID)
     while(query.executeStep()){
         SDItem item
         {
-            .itemID      = check_cast<uint32_t, unsigned>         (query.getColumn("fld_itemid"     )),
-            .seqID       = check_cast<uint32_t, unsigned>         (query.getColumn("fld_seqid"      )),
-            .count       = check_cast<  size_t, unsigned>         (query.getColumn("fld_count"      )),
-            .duration    = check_cast<  size_t, unsigned>         (query.getColumn("fld_count"      )),
+            .itemID = check_cast<uint32_t, unsigned>(query.getColumn("fld_itemid")),
+            .seqID  = check_cast<uint32_t, unsigned>(query.getColumn("fld_seqid" )),
+            .count  = check_cast<  size_t, unsigned>(query.getColumn("fld_count" )),
+            .duration
+            {
+                check_cast<size_t, unsigned>(query.getColumn("fld_duration")),
+                check_cast<size_t, unsigned>(query.getColumn("fld_maxduration")),
+            },
             .extAttrList = cerealf::deserialize<SDItemExtAttrList>(query.getColumn("fld_extattrlist")),
         };
 
@@ -159,10 +169,14 @@ std::vector<SDItem> Player::dbLoadSecuredItemList() const
     while(query.executeStep()){
         SDItem item
         {
-            .itemID      = check_cast<uint32_t, unsigned>         (query.getColumn("fld_itemid"     )),
-            .seqID       = check_cast<uint32_t, unsigned>         (query.getColumn("fld_seqid"      )),
-            .count       = check_cast<  size_t, unsigned>         (query.getColumn("fld_count"      )),
-            .duration    = check_cast<  size_t, unsigned>         (query.getColumn("fld_count"      )),
+            .itemID = check_cast<uint32_t, unsigned>(query.getColumn("fld_itemid")),
+            .seqID  = check_cast<uint32_t, unsigned>(query.getColumn("fld_seqid" )),
+            .count  = check_cast<  size_t, unsigned>(query.getColumn("fld_count" )),
+            .duration
+            {
+                check_cast<size_t, unsigned>(query.getColumn("fld_duration")),
+                check_cast<size_t, unsigned>(query.getColumn("fld_maxduration")),
+            },
             .extAttrList = cerealf::deserialize<SDItemExtAttrList>(query.getColumn("fld_extattrlist")),
         };
 
@@ -294,9 +308,13 @@ void Player::dbLoadWear()
         SDItem item
         {
             .itemID = check_cast<uint32_t, unsigned>(query.getColumn("fld_itemid")),
-            .seqID = 0,
-            .count = check_cast<size_t, unsigned>(query.getColumn("fld_count")),
-            .duration = check_cast<size_t, unsigned>(query.getColumn("fld_duration")),
+            .seqID  = 0,
+            .count  = check_cast<size_t, unsigned>(query.getColumn("fld_count")),
+            .duration
+            {
+                check_cast<size_t, unsigned>(query.getColumn("fld_duration")),
+                check_cast<size_t, unsigned>(query.getColumn("fld_maxduration")),
+            },
             .extAttrList = cerealf::deserialize<SDItemExtAttrList>(query.getColumn("fld_extattrlist")),
         };
 
@@ -325,15 +343,16 @@ void Player::dbUpdateWearItem(int wltype, const SDItem &item)
 
     const auto attrBuf = cerealf::serialize(item.extAttrList);
     auto query = g_dbPod->createQuery(
-            u8R"###( replace into tbl_wear(fld_dbid, fld_wear, fld_itemid, fld_count, fld_duration, fld_extattrlist) )###"
-            u8R"###( values                                                                                          )###"
-            u8R"###(     (%llu, %llu, %llu, %llu, %llu, ?)                                                           )###",
+            u8R"###( replace into tbl_wear(fld_dbid, fld_wear, fld_itemid, fld_count, fld_duration, fld_maxduration, fld_extattrlist) )###"
+            u8R"###( values                                                                                                           )###"
+            u8R"###(     (%llu, %llu, %llu, %llu, %llu, %llu, ?)                                                                      )###",
 
             to_llu(dbid()),
             to_llu(wltype),
             to_llu(item.itemID),
             to_llu(item.count),
-            to_llu(item.duration));
+            to_llu(item.duration[0]),
+            to_llu(item.duration[1]));
 
     query.bind(1, attrBuf.data(), attrBuf.length());
     query.exec();

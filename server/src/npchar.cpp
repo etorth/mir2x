@@ -863,13 +863,16 @@ void NPChar::fillSellItemList()
 
 SDItem NPChar::createSellItem(uint32_t itemID, uint32_t seqID) const
 {
-    if(DBCOM_ITEMRECORD(itemID).isDress()){
+    const auto &ir = DBCOM_ITEMRECORD(itemID);
+    fflassert(ir);
+
+    if(ir.isDress()){
         return SDItem
         {
             .itemID = itemID,
             .seqID =  seqID,
             .count = 1,
-            .duration = 0,
+            .duration = {mathf::rand<size_t>(0, ir.equip.duration), to_uz(ir.equip.duration)},
             .extAttrList
             {
                 .list
@@ -879,13 +882,22 @@ SDItem NPChar::createSellItem(uint32_t itemID, uint32_t seqID) const
             },
         };
     }
-
-    return SDItem
-    {
-        .itemID = itemID,
-        .seqID =  seqID,
-        .count = 1,
-        .duration = 0,
-        .extAttrList = {},
-    };
+    else if(ir.isWeapon()){
+        return SDItem
+        {
+            .itemID = itemID,
+            .seqID =  seqID,
+            .count = 1,
+            .duration = {mathf::rand<size_t>(0, ir.equip.duration), to_uz(ir.equip.duration)},
+        };
+    }
+    else{
+        return SDItem
+        {
+            .itemID = itemID,
+            .seqID =  seqID,
+            .count = 1,
+            .extAttrList = {},
+        };
+    }
 }

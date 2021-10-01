@@ -204,15 +204,16 @@ bool MonoServer::createAccountCharacter(const char *id, const char *charName, bo
         fflassert(item);
         const auto attrBuf = cerealf::serialize(item.extAttrList);
         auto query = g_dbPod->createQuery(
-                u8R"###( replace into tbl_inventory(fld_dbid, fld_itemid, fld_seqid, fld_count, fld_duration, fld_extattrlist) )###"
-                u8R"###( values                                                                                                )###"
-                u8R"###(     (%llu, %llu, %llu, %llu, %llu, ?)                                                                 )###",
+                u8R"###( replace into tbl_inventory(fld_dbid, fld_itemid, fld_seqid, fld_count, fld_duration, fld_maxduration, fld_extattrlist) )###"
+                u8R"###( values                                                                                                                 )###"
+                u8R"###(     (%llu, %llu, %llu, %llu, %llu, %llu, ?)                                                                            )###",
 
                 to_llu(dbid),
                 to_llu(item.itemID),
                 to_llu(item.seqID),
                 to_llu(item.count),
-                to_llu(item.duration));
+                to_llu(item.duration[0]),
+                to_llu(item.duration[1]));
 
         query.bind(1, attrBuf.data(), attrBuf.length());
         query.exec();
@@ -285,6 +286,7 @@ void MonoServer::createDefaultDatabase()
         u8R"###(     fld_itemid         int unsigned not null,                       )###"
         u8R"###(     fld_count          int unsigned not null,                       )###"
         u8R"###(     fld_duration       int unsigned not null,                       )###"
+        u8R"###(     fld_maxduration    int unsigned not null,                       )###"
         u8R"###(     fld_extattrlist    blob         not null,                       )###"
         u8R"###(                                                                     )###"
         u8R"###(     foreign key (fld_dbid) references tbl_dbid(fld_dbid),           )###"
@@ -297,6 +299,7 @@ void MonoServer::createDefaultDatabase()
         u8R"###(     fld_seqid          int unsigned not null,                       )###"
         u8R"###(     fld_count          int unsigned not null,                       )###"
         u8R"###(     fld_duration       int unsigned not null,                       )###"
+        u8R"###(     fld_maxduration    int unsigned not null,                       )###"
         u8R"###(     fld_extattrlist    blob         not null,                       )###"
         u8R"###(                                                                     )###"
         u8R"###(     foreign key (fld_dbid) references tbl_dbid(fld_dbid),           )###"
@@ -309,6 +312,7 @@ void MonoServer::createDefaultDatabase()
         u8R"###(     fld_seqid          int unsigned not null,                       )###"
         u8R"###(     fld_count          int unsigned not null,                       )###"
         u8R"###(     fld_duration       int unsigned not null,                       )###"
+        u8R"###(     fld_maxduration    int unsigned not null,                       )###"
         u8R"###(     fld_extattrlist    blob         not null,                       )###"
         u8R"###(                                                                     )###"
         u8R"###(     foreign key (fld_dbid) references tbl_dbid(fld_dbid),           )###"

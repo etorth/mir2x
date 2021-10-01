@@ -7,7 +7,7 @@
 CombatNode getCombatNode(const SDWear & wear, uint64_t uid, int level)
 {
     fflassert(uidf::isPlayer(uid));
-    fflassert(level > 0);
+    fflassert(level >= 0);
 
     CombatNode node;
     for(size_t i = WLG_BEGIN; i < WLG_END; ++i){

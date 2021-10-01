@@ -183,18 +183,19 @@ struct SDItem
 
     uint32_t itemID = 0;
     uint32_t  seqID = 0;
-    size_t    count = 1;
-    size_t duration = 0;
+
+    size_t count = 1;
+    size_t duration[2] = {0, 0};
     SDItemExtAttrList extAttrList = {};
 
     template<typename Archive> void serialize(Archive & ar)
     {
-        ar(itemID, seqID, count, duration, extAttrList);
+        ar(itemID, seqID, count, duration[0], duration[1], extAttrList);
     }
 
     std::string str() const
     {
-        return str_printf("(itemID, seqID, count, duration, extAttrList) = (%llu, %llu, %zu, %zu, %s)", to_llu(itemID), to_llu(seqID), count, duration, to_cstr(extAttrList.str()));
+        return str_printf("(itemID, seqID, count, duration[0], duration[1], extAttrList) = (%llu, %llu, %zu, %zu, %zu, %s)", to_llu(itemID), to_llu(seqID), count, duration[0], duration[1], to_cstr(extAttrList.str()));
     }
 
     std::u8string getXMLLayout() const;

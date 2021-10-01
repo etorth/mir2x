@@ -113,4 +113,9 @@ struct ItemRecord
     {
         return std::u8string_view(type) == u8"衣服";
     }
+
+    constexpr bool isWeapon() const
+    {
+        return std::u8string_view(type) == u8"武器";
+    }
 };
