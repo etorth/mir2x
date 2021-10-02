@@ -225,11 +225,11 @@ class ClientCreature
 
         std::array<double, 2> getHealthRatio() const
         {
-            const auto [HP, maxHP, MP, maxMP] = getHealth();
+            const auto health = getHealth();
             return
             {
-                (maxHP > 0) ? (to_df(HP) / maxHP) : 1.0,
-                (maxMP > 0) ? (to_df(MP) / maxMP) : 1.0,
+                (health[1] > 0) ? (to_df(health[0]) / health[1]) : 1.0,
+                (health[3] > 0) ? (to_df(health[2]) / health[3]) : 1.0,
             };
         }
 
