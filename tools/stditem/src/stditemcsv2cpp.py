@@ -30,6 +30,26 @@ def num_2_type(num):
     return '道具'
 
 
+def parse_potion(item_dict):
+    print('    .potion')
+    print('    {')
+
+    if item_dict['ac'] > 0:
+        print('        .hp = %d,' % item_dict['ac'])
+
+    if item_dict['mac'] > 0:
+        print('        .mp = %d,' % item_dict['mac'])
+
+    if item_dict['shape'] == 0:
+        print('        .time = 1,')
+    elif item_dict['shape'] == 1:
+        pass # add HP/MP immediately
+    else:
+        pass # don't know what kind of effect this potion can help
+
+    print('    },')
+
+
 def parse_item(item_dict):
     item_name = item_dict['name']
     item_type = num_2_type(item_dict['stdmode'])
@@ -37,15 +57,15 @@ def parse_item(item_dict):
     print('{   .name = u8"%s"' % item_name)
     print('    .type = u8"%s"' % item_type)
     print('    .weight = %d' % item_dict['weight'])
-    print('    .pkgGfxID = 0X%04X' % item_dict['shape'])
+    print('    .pkgGfxID = 0X%04X' % item_dict['looks'])
 
-    # the csv has column "sac" but always zero
-    # and looks the sdc is merged to mdc, need to check the Mc_Type to tell apart
+    if item_type == '恢复药水':
+        parse_potion(item_dict)
 
-    if item_type == '武器':
+    elif item_type == '武器':
         print('    .equip')
         print('    {')
-        print('        .duration = %d' % (int(item_dict['duramax']) // 1000))
+        print('        .duration = %d,' % (int(item_dict['duramax']) // 1000))
         if item_dict['dc'] > 0 or item_dict['dc2'] > 0:
             print('        .dc = {%d, %d},' % (item_dict['dc'], item_dict['dc2']))
 
@@ -64,6 +84,16 @@ def parse_item(item_dict):
             print('        .mac = {%d, %d},' % (item_dict['mac'], item_dict['mac2']))
 
         print('    },')
+
+        if item_dict['needlevel'] > 0:
+            print('    .req')
+            print('    {')
+            if   item_dict['need'] == 0: print('        .level = %d,' % item_dict['needlevel'])
+            elif item_dict['need'] == 1: print('        .dc = %d,'    % item_dict['needlevel'])
+            elif item_dict['need'] == 2: print('        .mdc = %d,'   % item_dict['needlevel'])
+            elif item_dict['need'] == 3: print('        .sdc = %d,'   % item_dict['needlevel'])
+            else: pass
+            print('    },')
 
     print('},')
     print()
