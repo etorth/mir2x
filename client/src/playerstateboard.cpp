@@ -176,17 +176,21 @@ void PlayerStateBoard::drawEx(int, int, int, int, int, int) const
     const auto myHeroPtr = m_processRun->getMyHero();
     const auto combatNode = myHeroPtr->getCombatNode();
     const auto [HP, maxHP, MP, maxMP] = myHeroPtr->getHealth();
-    const auto invPackWeight = myHeroPtr->getInvPack().getWeight();
 
-    LabelBoard(DIR_UPLEFT, 0, 0, str_printf(u8"%d", to_d(myHeroPtr->getLevel()))                .c_str(), 1, 12, 0, colorf::WHITE + colorf::A_SHF(255)).drawAt(DIR_NONE, x() + 279, y() + 97 + 24 * 0);
-    LabelBoard(DIR_UPLEFT, 0, 0, str_printf(u8"%.2f%%", myHeroPtr->getLevelRatio() * 100.0)     .c_str(), 1, 12, 0, colorf::WHITE + colorf::A_SHF(255)).drawAt(DIR_NONE, x() + 279, y() + 97 + 24 * 1);
-    LabelBoard(DIR_UPLEFT, 0, 0, str_printf(u8"%d/%d", HP, maxHP)                               .c_str(), 1, 12, 0, colorf::WHITE + colorf::A_SHF(255)).drawAt(DIR_NONE, x() + 279, y() + 97 + 24 * 2);
-    LabelBoard(DIR_UPLEFT, 0, 0, str_printf(u8"%d/%d", MP, maxMP)                               .c_str(), 1, 12, 0, colorf::WHITE + colorf::A_SHF(255)).drawAt(DIR_NONE, x() + 279, y() + 97 + 24 * 3);
-    LabelBoard(DIR_UPLEFT, 0, 0, str_printf(u8"%d/%d", invPackWeight, combatNode.load.inventory).c_str(), 1, 12, 0, colorf::WHITE + colorf::A_SHF(255)).drawAt(DIR_NONE, x() + 279, y() + 97 + 24 * 4);
-    LabelBoard(DIR_UPLEFT, 0, 0, str_printf(u8"%d", combatNode.load.body)                       .c_str(), 1, 12, 0, colorf::WHITE + colorf::A_SHF(255)).drawAt(DIR_NONE, x() + 279, y() + 97 + 24 * 5);
-    LabelBoard(DIR_UPLEFT, 0, 0, str_printf(u8"%d", combatNode.load.hand)                       .c_str(), 1, 12, 0, colorf::WHITE + colorf::A_SHF(255)).drawAt(DIR_NONE, x() + 279, y() + 97 + 24 * 6);
-    LabelBoard(DIR_UPLEFT, 0, 0, str_printf(u8"%d", combatNode.hit)                             .c_str(), 1, 12, 0, colorf::WHITE + colorf::A_SHF(255)).drawAt(DIR_NONE, x() + 279, y() + 97 + 24 * 7);
-    LabelBoard(DIR_UPLEFT, 0, 0, str_printf(u8"%d", combatNode.dodge)                           .c_str(), 1, 12, 0, colorf::WHITE + colorf::A_SHF(255)).drawAt(DIR_NONE, x() + 279, y() + 97 + 24 * 8);
+    const auto fnDrawLabel = [this](int labelX, int labelY, const std::u8string &s)
+    {
+        LabelBoard(DIR_UPLEFT, 0, 0, s.c_str(), 1, 12, 0, colorf::WHITE + colorf::A_SHF(255)).drawAt(DIR_NONE, x() + labelX, y() + labelY);
+    };
+
+    fnDrawLabel(279, 97 + 24 * 0, str_printf(u8"%d", to_d(myHeroPtr->getLevel())));
+    fnDrawLabel(279, 97 + 24 * 1, str_printf(u8"%.2f%%", myHeroPtr->getLevelRatio() * 100.0));
+    fnDrawLabel(279, 97 + 24 * 2, str_printf(u8"%d/%d", HP, maxHP));
+    fnDrawLabel(279, 97 + 24 * 3, str_printf(u8"%d/%d", MP, maxMP));
+    fnDrawLabel(279, 97 + 24 * 4, str_printf(u8"%d/%d", myHeroPtr->getInvPack().getWeight(), combatNode.load.inventory));
+    fnDrawLabel(279, 97 + 24 * 5, str_printf(u8"%d", combatNode.load.body));
+    fnDrawLabel(279, 97 + 24 * 6, str_printf(u8"%d", combatNode.load.hand));
+    fnDrawLabel(279, 97 + 24 * 7, str_printf(u8"%d", combatNode.hit));
+    fnDrawLabel(279, 97 + 24 * 8, str_printf(u8"%d", combatNode.dodge));
 
     LabelBoard(DIR_UPLEFT, 0, 0, str_printf(u8"攻击 %d - %d", combatNode. dc[0], combatNode. dc[1]).c_str(), 1, 12, 0, colorf::WHITE + colorf::A_SHF(255)).drawAt(DIR_UPLEFT, x() +  21, y() + 317);
     LabelBoard(DIR_UPLEFT, 0, 0, str_printf(u8"防御 %d - %d", combatNode. ac[0], combatNode. ac[1]).c_str(), 1, 12, 0, colorf::WHITE + colorf::A_SHF(255)).drawAt(DIR_UPLEFT, x() + 130, y() + 317);
