@@ -29,7 +29,6 @@ def num_2_type(num):
     if num == 44: return '道具'
     return '道具'
 
-
 def stditem_parse(filename):
     with open(filename, newline='') as csvfile:
         item_reader = csv.reader(csvfile)
@@ -48,17 +47,31 @@ def stditem_parse(filename):
             print('    .pkgGfxID = 0X%04X' % int(item_row[3]))
 
             # the csv has column "sac" but always zero
-            # and looks the sdc is merged to mdc, need to check the stdmode to tell apart
+            # and looks the sdc is merged to mdc, need to check the Mc_Type to tell apart
 
             if item_type == '武器':
                 print('    .equip')
                 print('    {')
                 print('        .duration = %d' % (int(item_row[11]) // 1000))
-                print('        .dc = {%s, %s},' % (item_row[17], item_row[18]))
-                print('        .ac = {%s, %s},' % (item_row[12], item_row[13]))
-                print('        .mdc = {%s, %s},' % (item_row[22], item_row[23]))
-                print('        .mac = {%s, %s},' % (item_row[15], item_row[16]))
-                print('        .sdc = {%s, %s},' % (item_row[19], item_row[20]))
+                if int(item_row[17]) > 0 or int(item_row[18]) > 0:
+                    print('        .dc = {%s, %s},' % (item_row[17], item_row[18]))
+
+                if int(item_row[12]) > 0 or int(item_row[13]) > 0:
+                    print('        .ac = {%s, %s},' % (item_row[12], item_row[13]))
+
+                if int(item_row[22]) > 0 or int(item_row[23]) > 0:
+                    if item_row[21] == '1':
+                        if int(item_row[22]) > 0 or int(item_row[23]) > 0:
+                            print('        .mdc = {%s, %s},' % (item_row[22], item_row[23]))
+                    elif item_row[21] == '2':
+                        if int(item_row[19]) > 0 or int(item_row[20]) > 0:
+                            print('        .sdc = {%s, %s},' % (item_row[19], item_row[20]))
+
+                if int(item_row[15]) > 0 or int(item_row[16]) > 0:
+                    print('        .mac = {%s, %s},' % (item_row[15], item_row[16]))
+
+                if int(item_row])
+
                 print('    },')
 
             print('},')
