@@ -173,9 +173,9 @@ void PlayerStateBoard::drawEx(int, int, int, int, int, int) const
         g_sdlDevice->drawTexture(texPtr, x(), y());
     }
 
-    const auto fnDrawLabel = [this](int labelX, int labelY, const std::u8string &s)
+    const auto fnDrawLabel = [this](int labelX, int labelY, const std::u8string &s, uint32_t color = colorf::WHITE)
     {
-        LabelBoard(DIR_UPLEFT, 0, 0, s.c_str(), 1, 12, 0, colorf::WHITE + colorf::A_SHF(255)).drawAt(DIR_NONE, x() + labelX, y() + labelY);
+        LabelBoard(DIR_UPLEFT, 0, 0, s.c_str(), 1, 12, 0, colorf::maskRGB(color) + colorf::A_SHF(255)).drawAt(DIR_NONE, x() + labelX, y() + labelY);
     };
 
     const auto myHeroPtr = m_processRun->getMyHero();
@@ -187,7 +187,9 @@ void PlayerStateBoard::drawEx(int, int, int, int, int, int) const
     fnDrawLabel(279, 97 + 24 * 3, str_printf(u8"%d/%d", health[2], health[3]));
 
     const auto combatNode = myHeroPtr->getCombatNode();
-    fnDrawLabel(279, 97 + 24 * 4, str_printf(u8"%d/%d", myHeroPtr->getInvPack().getWeight(), combatNode.load.inventory));
+    const auto invPackWeight = myHeroPtr->getInvPack().getWeight();
+    const auto invPackWeightColor = (invPackWeight > combatNode.load.inventory) ? colorf::RED : colorf::WHITE;
+    fnDrawLabel(279, 97 + 24 * 4, str_printf(u8"%d/%d", invPackWeight, combatNode.load.inventory), invPackWeightColor);
 
     const auto bodyLoad = [myHeroPtr]()
     {
@@ -208,7 +210,9 @@ void PlayerStateBoard::drawEx(int, int, int, int, int, int) const
         }
         return result;
     }();
-    fnDrawLabel(279, 97 + 24 * 5, str_printf(u8"%d/%d", bodyLoad, combatNode.load.body));
+
+    const auto bodyLoadColor = (bodyLoad > combatNode.load.body) ? colorf::RED : colorf::WHITE;
+    fnDrawLabel(279, 97 + 24 * 5, str_printf(u8"%d/%d", bodyLoad, combatNode.load.body), bodyLoadColor);
 
     const auto handLoad = [myHeroPtr]()
     {
@@ -222,7 +226,8 @@ void PlayerStateBoard::drawEx(int, int, int, int, int, int) const
         return ir.weight;
     }();
 
-    fnDrawLabel(279, 97 + 24 * 6, str_printf(u8"%d/%d", handLoad, combatNode.load.hand));
+    const auto handLoadColor = (handLoad > combatNode.load.hand) ? colorf::RED : colorf::WHITE;
+    fnDrawLabel(279, 97 + 24 * 6, str_printf(u8"%d/%d", handLoad, combatNode.load.hand), handLoadColor);
     fnDrawLabel(279, 97 + 24 * 7, str_printf(u8"%d", combatNode.hit));
     fnDrawLabel(279, 97 + 24 * 8, str_printf(u8"%d", combatNode.dodge));
 
@@ -310,6 +315,33 @@ void PlayerStateBoard::drawEx(int, int, int, int, int, int) const
             }
             drawItemHoverText(i);
             break;
+        }
+    }
+
+    const int labelGridX = 220;
+    const int labelGridY =  87;
+    const int labelGridW =  18;
+    const int labelGridH =  18;
+    const int labelGridD =  24;
+    constexpr const char8_t * labelName[]
+    {
+        u8"等级",
+        u8"经验",
+        u8"生命值",
+        u8"魔法值",
+        u8"背包负重",
+        u8"身体负重",
+        u8"手负重",
+        u8"命中",
+        u8"躲避",
+    };
+
+    for(int i = 0; i < 9; ++i){
+        if(mathf::pointInRectangle(mouseX, mouseY, x() + labelGridX, y() + labelGridY + labelGridD * i, labelGridW, labelGridH)){
+            g_sdlDevice->fillRectangle(colorf::RGBA(0, 100, 0, 100), x() + labelGridX, y() + labelGridY + labelGridD * i, labelGridW, labelGridH);
+            const LabelBoard labelNameBoard(DIR_UPLEFT, 0, 0, labelName[i], 1, 12, 0, colorf::WHITE + colorf::A_SHF(255));
+            g_sdlDevice->fillRectangle(colorf::RGBA(0, 100, 0, 200), mouseX - labelNameBoard.w(), mouseY - labelNameBoard.h(), labelNameBoard.w(), labelNameBoard.h());
+            labelNameBoard.drawAt(DIR_DOWNRIGHT, mouseX, mouseY);
         }
     }
 
