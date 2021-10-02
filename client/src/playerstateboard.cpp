@@ -173,22 +173,56 @@ void PlayerStateBoard::drawEx(int, int, int, int, int, int) const
         g_sdlDevice->drawTexture(texPtr, x(), y());
     }
 
-    const auto myHeroPtr = m_processRun->getMyHero();
-    const auto combatNode = myHeroPtr->getCombatNode();
-    const auto [HP, maxHP, MP, maxMP] = myHeroPtr->getHealth();
-
     const auto fnDrawLabel = [this](int labelX, int labelY, const std::u8string &s)
     {
         LabelBoard(DIR_UPLEFT, 0, 0, s.c_str(), 1, 12, 0, colorf::WHITE + colorf::A_SHF(255)).drawAt(DIR_NONE, x() + labelX, y() + labelY);
     };
 
+    const auto myHeroPtr = m_processRun->getMyHero();
     fnDrawLabel(279, 97 + 24 * 0, str_printf(u8"%d", to_d(myHeroPtr->getLevel())));
     fnDrawLabel(279, 97 + 24 * 1, str_printf(u8"%.2f%%", myHeroPtr->getLevelRatio() * 100.0));
-    fnDrawLabel(279, 97 + 24 * 2, str_printf(u8"%d/%d", HP, maxHP));
-    fnDrawLabel(279, 97 + 24 * 3, str_printf(u8"%d/%d", MP, maxMP));
+
+    const auto health = myHeroPtr->getHealth();
+    fnDrawLabel(279, 97 + 24 * 2, str_printf(u8"%d/%d", health[0], health[1]));
+    fnDrawLabel(279, 97 + 24 * 3, str_printf(u8"%d/%d", health[2], health[3]));
+
+    const auto combatNode = myHeroPtr->getCombatNode();
     fnDrawLabel(279, 97 + 24 * 4, str_printf(u8"%d/%d", myHeroPtr->getInvPack().getWeight(), combatNode.load.inventory));
-    fnDrawLabel(279, 97 + 24 * 5, str_printf(u8"%d", combatNode.load.body));
-    fnDrawLabel(279, 97 + 24 * 6, str_printf(u8"%d", combatNode.load.hand));
+
+    const auto bodyLoad = [myHeroPtr]()
+    {
+        int result = 0;
+        for(int i = WLG_BEGIN; i < WLG_END; ++i){
+            if(i == WLG_WEAPON){
+                continue;
+            }
+
+            const auto &item = myHeroPtr->getWLItem(i);
+            if(!item){
+                continue;
+            }
+
+            const auto &ir = DBCOM_ITEMRECORD(item.itemID);
+            fflassert(ir);
+            result += ir.weight;
+        }
+        return result;
+    }();
+    fnDrawLabel(279, 97 + 24 * 5, str_printf(u8"%d/%d", bodyLoad, combatNode.load.body));
+
+    const auto handLoad = [myHeroPtr]()
+    {
+        const auto &item = myHeroPtr->getWLItem(WLG_WEAPON);
+        if(!item){
+            return 0;
+        }
+
+        const auto &ir = DBCOM_ITEMRECORD(item.itemID);
+        fflassert(ir);
+        return ir.weight;
+    }();
+
+    fnDrawLabel(279, 97 + 24 * 6, str_printf(u8"%d/%d", handLoad, combatNode.load.hand));
     fnDrawLabel(279, 97 + 24 * 7, str_printf(u8"%d", combatNode.hit));
     fnDrawLabel(279, 97 + 24 * 8, str_printf(u8"%d", combatNode.dodge));
 
