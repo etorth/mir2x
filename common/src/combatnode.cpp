@@ -46,6 +46,10 @@ CombatNode getCombatNode(const SDWear & wear, uint64_t uid, int level)
     node.mac[0] += (level / 2);
     node.mac[1] += (level / 2 + level % 2);
 
+    node.load.hand += (10 + level * 2);
+    node.load.body += (20 + level * 2);
+    node.load.inventory += (100 + level * 10);
+
     if(uidf::hasPlayerJob(uid, JOB_WARRIOR)){
         node.dc[0] += (level / 2);
         node.dc[1] += (level / 2 + level % 2);

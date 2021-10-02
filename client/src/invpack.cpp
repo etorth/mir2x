@@ -24,6 +24,17 @@
 #include "dbcomrecord.hpp"
 
 extern PNGTexDB *g_itemDB;
+int InvPack::getWeight() const
+{
+    int weight = 0;
+    for(const auto &bin: m_packBinList){
+        const auto &ir = DBCOM_ITEMRECORD(bin.item.itemID);
+        fflassert(ir);
+        weight += ir.weight;
+    }
+    return weight;
+}
+
 void InvPack::add(SDItem item)
 {
     fflassert(item);

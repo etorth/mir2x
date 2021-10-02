@@ -55,6 +55,9 @@ class InvPack
         }
 
     public:
+        int getWeight() const;
+
+    public:
         size_t w() const
         {
             return m_w;
