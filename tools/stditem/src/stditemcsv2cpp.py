@@ -29,59 +29,68 @@ def num_2_type(num):
     if num == 44: return '道具'
     return '道具'
 
-def stditem_parse(filename):
+
+def parse_item(item_dict):
+    item_name = item_dict['name']
+    item_type = num_2_type(item_dict['stdmode'])
+
+    print('{   .name = u8"%s"' % item_name)
+    print('    .type = u8"%s"' % item_type)
+    print('    .weight = %s' % item_dict['weight'])
+    print('    .pkgGfxID = 0X%04X' % item_dict['shape'])
+
+    # the csv has column "sac" but always zero
+    # and looks the sdc is merged to mdc, need to check the Mc_Type to tell apart
+
+    if item_type == '武器':
+        print('    .equip')
+        print('    {')
+        print('        .duration = %d' % (int(item_dict['duramax']) // 1000))
+        if item_dict['dc'] > 0 or item_dict['dc2'] > 0:
+            print('        .dc = {%d, %d},' % (item_dict['dc'], item_dict['dc2']))
+
+        if item_dict['ac'] > 0 or item_dict['ac2'] > 0:
+            print('        .ac = {%d, %d},' % (item_dict['ac'], item_dict['ac2']))
+
+        if item_dict['mc'] > 0 or item_dict['mc2'] > 0:
+            if item_dict['mc_type'] == 1:
+                if item_dict['mc'] > 0 or item_dict['mc2'] > 0:
+                    print('        .mdc = {%s, %s},' % (item_dict['mc'], item_dict['mc2']))
+            elif item_dict['mc_type'] == 2:
+                if item_dict['sac'] > 0 or item_dict['sac'] > 0:
+                    print('        .sdc = {%s, %s},' % (item_dict['sac'], item_dict['sac2']))
+
+        if item_dict['mac'] > 0 or item_dict['mac2'] > 0:
+            print('        .mac = {%d, %d},' % (item_dict['mac'], item_dict['mac2']))
+
+        print('    },')
+
+    print('},')
+    print()
+
+
+def parse_stditem(filename):
     with open(filename, newline='') as csvfile:
         item_reader = csv.reader(csvfile)
-        done_skip = False
+        header = None
         for item_row in item_reader:
-            if not done_skip:
-                done_skip = True
+            if not header:
+                header = item_row
                 continue
 
-            item_name = item_row[1]
-            item_type = num_2_type(int(item_row[2]))
+            item_dict = {}
+            for i in range(len(header))[0:-1]:
+                if   i == 0: pass
+                elif i == 1: item_dict[header[i].lower()] = item_row[i]
+                else       : item_dict[header[i].lower()] = int(item_row[i])
 
-            print('{   .name = u8"%s"' % item_name)
-            print('    .type = u8"%s"' % item_type)
-            print('    .weight = %s' % item_row[4])
-            print('    .pkgGfxID = 0X%04X' % int(item_row[3]))
-
-            # the csv has column "sac" but always zero
-            # and looks the sdc is merged to mdc, need to check the Mc_Type to tell apart
-
-            if item_type == '武器':
-                print('    .equip')
-                print('    {')
-                print('        .duration = %d' % (int(item_row[11]) // 1000))
-                if int(item_row[17]) > 0 or int(item_row[18]) > 0:
-                    print('        .dc = {%s, %s},' % (item_row[17], item_row[18]))
-
-                if int(item_row[12]) > 0 or int(item_row[13]) > 0:
-                    print('        .ac = {%s, %s},' % (item_row[12], item_row[13]))
-
-                if int(item_row[22]) > 0 or int(item_row[23]) > 0:
-                    if item_row[21] == '1':
-                        if int(item_row[22]) > 0 or int(item_row[23]) > 0:
-                            print('        .mdc = {%s, %s},' % (item_row[22], item_row[23]))
-                    elif item_row[21] == '2':
-                        if int(item_row[19]) > 0 or int(item_row[20]) > 0:
-                            print('        .sdc = {%s, %s},' % (item_row[19], item_row[20]))
-
-                if int(item_row[15]) > 0 or int(item_row[16]) > 0:
-                    print('        .mac = {%s, %s},' % (item_row[15], item_row[16]))
-
-                if int(item_row])
-
-                print('    },')
-
-            print('},')
-            print()
+            parse_item(item_dict)
 
 
 def main():
     if len(sys.argv) != 2:
         raise ValueError("usage: python3 stditemcsv2cpp.py <csv-file-name>")
-    stditem_parse(sys.argv[1])
+    parse_stditem(sys.argv[1])
 
 
 if __name__ == "__main__":
