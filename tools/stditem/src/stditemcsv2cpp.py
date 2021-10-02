@@ -36,7 +36,7 @@ def parse_item(item_dict):
 
     print('{   .name = u8"%s"' % item_name)
     print('    .type = u8"%s"' % item_type)
-    print('    .weight = %s' % item_dict['weight'])
+    print('    .weight = %d' % item_dict['weight'])
     print('    .pkgGfxID = 0X%04X' % item_dict['shape'])
 
     # the csv has column "sac" but always zero
@@ -55,10 +55,10 @@ def parse_item(item_dict):
         if item_dict['mc'] > 0 or item_dict['mc2'] > 0:
             if item_dict['mc_type'] == 1:
                 if item_dict['mc'] > 0 or item_dict['mc2'] > 0:
-                    print('        .mdc = {%s, %s},' % (item_dict['mc'], item_dict['mc2']))
+                    print('        .mdc = {%d, %d},' % (item_dict['mc'], item_dict['mc2']))
             elif item_dict['mc_type'] == 2:
                 if item_dict['sac'] > 0 or item_dict['sac'] > 0:
-                    print('        .sdc = {%s, %s},' % (item_dict['sac'], item_dict['sac2']))
+                    print('        .sdc = {%d, %d},' % (item_dict['sac'], item_dict['sac2']))
 
         if item_dict['mac'] > 0 or item_dict['mac2'] > 0:
             print('        .mac = {%d, %d},' % (item_dict['mac'], item_dict['mac2']))
