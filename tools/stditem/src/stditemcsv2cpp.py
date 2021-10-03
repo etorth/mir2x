@@ -74,6 +74,7 @@ def parse_book(item_dict):
     elif item_dict['shape'] == 1: print('        .job = u8"法师",')
     elif item_dict['shape'] == 2: print('        .job = u8"道士",')
 
+    print('        .level = %d,' % item_dict['duramax'])
     print('    },')
 
 
@@ -124,6 +125,104 @@ def parse_dope(item_dict):
     print('    },')
 
 
+def parse_equip_require(item_dict):
+    if item_dict['needlevel'] > 0:
+        print('        .req')
+        print('        {')
+        if   item_dict['need'] == 0: print('            .level = %d,' % item_dict['needlevel'])
+        elif item_dict['need'] == 1: print('            .dc = %d,'    % item_dict['needlevel'])
+        elif item_dict['need'] == 2: print('            .mdc = %d,'   % item_dict['needlevel'])
+        elif item_dict['need'] == 3: print('            .sdc = %d,'   % item_dict['needlevel'])
+        else: pass
+        print('        },')
+
+
+def parse_necklace(item_dict):
+    print('    .equip')
+    print('    {')
+    print('        .duration = %d,' % (item_dict['duramax'] // 1000))
+
+    hit = 0
+    dodge = 0
+    speed = 0
+    hprecover = 0
+    mprecover = 0
+    mdcdodge = 0
+    luck = 0
+
+    if item_dict['stdmode'] == 19:
+        mdcdodge += item_dict['ac2']
+        luck += item_dict['mac']
+        luck -= item_dict['mac2']
+    elif item_dict['stdmode'] == 20:
+        hit += item_dict['ac2']
+        dodge += item_dict['mac2']
+    elif item_dict['stdmode'] == 21:
+        speed += item_dict['ac']
+        speed -= item_dict['mac']
+        hprecover += item_dict['ac2']
+        mprecover += item_dict['mac2']
+
+    if item_dict['dc'] > 0 or item_dict['dc2'] > 0:
+        print('        .dc = {%d, %d},' % (item_dict['dc'], item_dict['dc2']))
+
+    if item_dict['mc'] > 0 or item_dict['mc2'] > 0:
+        if item_dict['mc_type'] == 1:
+            print('        .mdc = {%d, %d},' % (item_dict['mc'], item_dict['mc2']))
+        elif item_dict['mc_type'] == 2:
+            print('        .sdc = {%d, %d},' % (item_dict['mc'], item_dict['mc2']))
+
+    if hit > 0:
+        print('        .hit = %d,' % hit)
+
+    if dodge > 0:
+        print('        .dodge = %d,' % dodge)
+
+    if speed > 0:
+        print('        .speed = %d,' % speed)
+
+    if hprecover > 0:
+        print('        .hprecover = %d,' % hprecover)
+
+    if mprecover > 0:
+        print('        .mprecover = %d,' % mprecover)
+
+    if mdcdodge > 0:
+        print('        .mdcdodge = %d,' % mdcdodge)
+
+    if luck != 0:
+        print('        .luck = %d,' % luck)
+
+    parse_equip_require(item_dict)
+    print('    },')
+
+
+def parse_equip(item_dict):
+    item_type = get_item_type(item_dict)
+
+    print('    .equip')
+    print('    {')
+    print('        .duration = %d,' % (item_dict['duramax'] // 1000))
+
+    if item_dict['dc'] > 0 or item_dict['dc2'] > 0:
+        print('        .dc = {%d, %d},' % (item_dict['dc'], item_dict['dc2']))
+
+    if (item_dict['ac'] > 0 or item_dict['ac2'] > 0) and item_type != '项链':
+        print('        .ac = {%d, %d},' % (item_dict['ac'], item_dict['ac2']))
+
+    if item_dict['mc'] > 0 or item_dict['mc2'] > 0:
+        if item_dict['mc_type'] == 1:
+            print('        .mdc = {%d, %d},' % (item_dict['mc'], item_dict['mc2']))
+        elif item_dict['mc_type'] == 2:
+            print('        .sdc = {%d, %d},' % (item_dict['mc'], item_dict['mc2']))
+
+    if item_dict['mac'] > 0 or item_dict['mac2'] > 0:
+        print('        .mac = {%d, %d},' % (item_dict['mac'], item_dict['mac2']))
+
+    parse_equip_require(item_dict)
+    print('    },')
+
+
 def parse_item(item_dict):
     item_name = item_dict['name']
     item_type = get_item_type(item_dict)
@@ -141,38 +240,10 @@ def parse_item(item_dict):
         parse_dope(item_dict)
     elif item_type == '技能书':
         parse_book(item_dict)
-    elif item_type == '武器':
-        print('    .equip')
-        print('    {')
-        print('        .duration = %d,' % (int(item_dict['duramax']) // 1000))
-        if item_dict['dc'] > 0 or item_dict['dc2'] > 0:
-            print('        .dc = {%d, %d},' % (item_dict['dc'], item_dict['dc2']))
-
-        if item_dict['ac'] > 0 or item_dict['ac2'] > 0:
-            print('        .ac = {%d, %d},' % (item_dict['ac'], item_dict['ac2']))
-
-        if item_dict['mc'] > 0 or item_dict['mc2'] > 0:
-            if item_dict['mc_type'] == 1:
-                if item_dict['mc'] > 0 or item_dict['mc2'] > 0:
-                    print('        .mdc = {%d, %d},' % (item_dict['mc'], item_dict['mc2']))
-            elif item_dict['mc_type'] == 2:
-                if item_dict['sac'] > 0 or item_dict['sac'] > 0:
-                    print('        .sdc = {%d, %d},' % (item_dict['sac'], item_dict['sac2']))
-
-        if item_dict['mac'] > 0 or item_dict['mac2'] > 0:
-            print('        .mac = {%d, %d},' % (item_dict['mac'], item_dict['mac2']))
-
-        print('    },')
-
-        if item_dict['needlevel'] > 0:
-            print('    .req')
-            print('    {')
-            if   item_dict['need'] == 0: print('        .level = %d,' % item_dict['needlevel'])
-            elif item_dict['need'] == 1: print('        .dc = %d,'    % item_dict['needlevel'])
-            elif item_dict['need'] == 2: print('        .mdc = %d,'   % item_dict['needlevel'])
-            elif item_dict['need'] == 3: print('        .sdc = %d,'   % item_dict['needlevel'])
-            else: pass
-            print('    },')
+    elif item_type == '项链':
+        parse_necklace(item_dict)
+    elif item_type in ['头盔', '戒指', '武器', '衣服', '手镯']:
+        parse_equip(item_dict)
 
     print('},')
     print()

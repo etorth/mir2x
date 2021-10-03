@@ -10,7 +10,7 @@ struct ItemRecord
     const char8_t * const type   = nullptr;
     const char8_t * const rarity = nullptr;
 
-    const int weight = 1;
+    const int weight = 0;
     const int pkgGfxID = 0;
     const uint32_t shape = 0;
 
@@ -26,23 +26,28 @@ struct ItemRecord
 
         const int hit     = 0;
         const int dodge   = 0;
+        const int dodgem  = 0;
+
         const int speed   = 0;
         const int comfort = 0;
 
+        const int hprecover = 0;
+        const int mprecover = 0;
+
         const struct AddLoad
         {
-            int hand      = 0;
-            int body      = 0;
-            int inventory = 0;
+            const int hand      = 0;
+            const int body      = 0;
+            const int inventory = 0;
         }
         load {};
 
         const struct EquipReq
         {
-            int  dc   = 0;
-            int mdc   = 0;
-            int sdc   = 0;
-            int level = 0;
+            const int  dc   = 0;
+            const int mdc   = 0;
+            const int sdc   = 0;
+            const int level = 0;
             const char8_t * const job = nullptr;
         }
         req {};
@@ -51,17 +56,38 @@ struct ItemRecord
 
     const struct PotionAttribute
     {
-        int hp   = 0;
-        int mp   = 0;
-        int time = 0;
+        const int hp   = 0;
+        const int mp   = 0;
+        const int time = 0;
     }
     potion {};
 
+    const struct DopeAttribute
+    {
+        const int  hp = 0;
+        const int  mp = 0;
+
+        const int  dc = 0;
+        const int mdc = 0;
+        const int sdc = 0;
+
+        const int speed = 0;
+        const int time  = 0;
+    }
+    dope {};
+
     const struct PoisonAttribute
     {
-        int dose = 0;
+        const int dose = 0;
     }
     poison {};
+
+    const struct BookAttribute
+    {
+        const char8_t * job = nullptr;
+        const int level = 0;
+    }
+    book {};
 
     const char8_t * const description = nullptr;
 
