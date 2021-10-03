@@ -138,30 +138,90 @@ def parse_equip_require(item_dict):
 
 
 def parse_necklace(item_dict):
+    item_attr = {}
+    if item_dict['stdmode'] == 19:
+        item_attr['mcDodge'] = item_dict['ac2']
+        item_attr['luckCurse'] = item_dict['mac'] - item_dict['mac2']
+    elif item_dict['stdmode'] == 20:
+        item_attr['hit'] = item_dict['ac2']
+        item_attr['dcDodge'] = item_dict['mac2']
+    elif item_dict['stdmode'] == 21:
+        item_attr['speed'] = item_dict['ac'] - item_dict['mac']
+        item_attr['hpRecover'] = item_dict['ac2']
+        item_attr['mpRecover'] = item_dict['mac2']
+
+    if item_dict['dc'] > 0 or item_dict['dc2'] > 0:
+        item_attr['dc'] = [item_dict['dc'], item_dict['dc2']]
+
+    if item_dict['mc'] > 0 or item_dict['mc2'] > 0:
+        if item_dict['mc_type'] == 1:
+            item_attr['mc'] = [item_dict['mc'], item_dict['mc2']]
+        elif item_dict['mc_type'] == 2:
+            item_attr['sc'] = [item_dict['mc'], item_dict['mc2']]
+
+    return item_attr
+
+
+def parse_weapon(item_dict):
+    item_attr = {}
+    if item_dict['dc'] > 0 or item_dict['dc2'] > 0:
+        item_attr['dc'] = [item_dict['dc'], item_dict['dc2']]
+
+    if item_dict['ac2'] > 0:
+        item_attr['hit'] = item_dict['ac2']
+
+    if item_dict['ac'] > 0 or item_dict['mac'] != 0:
+        item_attr['luckCurse'] = item_dict['ac'] - item_dict['mac']
+
+    if item_dict['mac2'] > 0:
+        item_attr['speed'] = -item_dict['mac2']
+
+    if item_dict['source'] > 0:
+        item_attr['elem'] = {}
+        item_attr['elem']['holy'] = item_dict['source']
+
+    return item_attr
+
+
+def parse_necklace(item_dict):
+    item_type = get_item_type(item_dict)
+
     print('    .equip')
     print('    {')
     print('        .duration = %d,' % (item_dict['duramax'] // 1000))
 
+    dc = [0, 0]
+    mc = [0, 0]
+    sc = [0, 0]
+
+    ac  = [0, 0]
+    mac = [0, 0]
+
     hit = 0
+    dcDodge = 0
+    mcDodge = 0
+
     speed = 0
+    comfort = 0
+
     hpRecover = 0
     mpRecover = 0
-    acDodge = 0
-    mcDodge = 0
-    luck = 0
 
-    if item_dict['stdmode'] == 19:
-        mcDodge += item_dict['ac2']
-        luck += item_dict['mac']
-        luck -= item_dict['mac2']
-    elif item_dict['stdmode'] == 20:
-        hit += item_dict['ac2']
-        acDodge += item_dict['mac2']
-    elif item_dict['stdmode'] == 21:
-        speed += item_dict['ac']
-        speed -= item_dict['mac']
-        hpRecover += item_dict['ac2']
-        mpRecover += item_dict['mac2']
+    luckCurse = 0
+
+    if item_type == '项链':
+        if item_dict['stdmode'] == 19:
+            mcDodge += item_dict['ac2']
+            luck += item_dict['mac']
+            luck -= item_dict['mac2']
+        elif item_dict['stdmode'] == 20:
+            hit += item_dict['ac2']
+            dcDodge += item_dict['mac2']
+        elif item_dict['stdmode'] == 21:
+            speed += item_dict['ac']
+            speed -= item_dict['mac']
+            hpRecover += item_dict['ac2']
+            mpRecover += item_dict['mac2']
 
     if item_dict['dc'] > 0 or item_dict['dc2'] > 0:
         print('        .dc = {%d, %d},' % (item_dict['dc'], item_dict['dc2']))
@@ -175,8 +235,8 @@ def parse_necklace(item_dict):
     if hit > 0:
         print('        .hit = %d,' % hit)
 
-    if acDodge > 0:
-        print('        .acDodge = %d,' % acDodge)
+    if dcDodge > 0:
+        print('        .dcDodge = %d,' % dcDodge)
 
     if speed > 0:
         print('        .speed = %d,' % speed)
