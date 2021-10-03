@@ -86,7 +86,7 @@ def parse_potion(item_dict):
     print('    },')
 
 def parse_dope(item_dict):
-    print('    .potion')
+    print('    .dope')
     print('    {')
 
     if item_dict['ac'] > 0:
@@ -95,15 +95,22 @@ def parse_dope(item_dict):
     if item_dict['mac'] > 0:
         print('        .mp = %d,' % item_dict['mac'])
 
-    if item_dict['shape'] == 0:
-        print('        .time = 1,')
-    elif item_dict['shape'] == 1:
-        pass # add HP/MP immediately
-    else:
-        pass # don't know what kind of effect this potion can help
+    if item_dict['dc'] > 0:
+        print('        .dc = %d,' % item_dict['dc'])
+
+    if item_dict['mc'] > 0:
+        print('        .mdc = %d,' % item_dict['mc'])
+
+    if item_dict['sac'] > 0:
+        print('        .sdc = %d,' % item_dict['sac'])
+
+    if item_dict['ac2'] > 0:
+        print('        .speed = %d,' % item_dict['ac2'])
+
+    if item_dict['mac2'] > 0:
+        print('        .time = %d,' % item_dict['mac2'])
 
     print('    },')
-
 
 
 def parse_item(item_dict):
@@ -117,7 +124,10 @@ def parse_item(item_dict):
 
     if item_type == '恢复药水':
         parse_potion(item_dict)
-
+    elif item_type == '功能药水':
+        pass
+    elif item_type == '强效药水':
+        parse_dope(item_dict)
     elif item_type == '武器':
         print('    .equip')
         print('    {')
