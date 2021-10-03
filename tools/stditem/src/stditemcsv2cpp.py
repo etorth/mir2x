@@ -66,6 +66,17 @@ def get_item_type(item_dict):
     return '道具'
 
 
+def parse_book(item_dict):
+    print('    .book')
+    print('    {')
+
+    if   item_dict['shape'] == 0: print('        .job = u8"战士",')
+    elif item_dict['shape'] == 1: print('        .job = u8"法师",')
+    elif item_dict['shape'] == 2: print('        .job = u8"道士",')
+
+    print('    },')
+
+
 def parse_potion(item_dict):
     print('    .potion')
     print('    {')
@@ -128,6 +139,8 @@ def parse_item(item_dict):
         pass
     elif item_type == '强效药水':
         parse_dope(item_dict)
+    elif item_type == '技能书':
+        parse_book(item_dict)
     elif item_type == '武器':
         print('    .equip')
         print('    {')
