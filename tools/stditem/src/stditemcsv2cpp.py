@@ -1,32 +1,68 @@
 import os
+import re
 import sys
 import csv
 
-def num_2_type(num):
-    if num ==  0: return '恢复药水'
-    if num ==  1: return '肉'
-    if num ==  2: return '包子'
-    if num ==  3: return '功能药水'
-    if num ==  4: return '技能书'
-    if num ==  5: return '武器'
-    if num ==  6: return '高级武器'
-    if num == 10: return '衣服（男）'
-    if num == 10: return '衣服（女）'
-    if num == 15: return '头盔'
-    if num == 19: return '项链'
-    if num == 20: return '项链'
-    if num == 21: return '项链'
-    if num == 22: return '戒指'
-    if num == 23: return '戒指'
-    if num == 24: return '手镯'
-    if num == 25: return '药粉|护身符'
-    if num == 26: return '手镯'
-    if num == 30: return '火把|勋章'
-    if num == 31: return '恢复药水'
-    if num == 40: return '肉'
-    if num == 41: return '金币'
-    if num == 43: return '矿石'
-    if num == 44: return '道具'
+def get_item_type(item_dict):
+    if item_dict['stdmode'] == 0:
+        return '恢复药水'
+    elif item_dict['stdmode'] in [1, 40]:
+        return '肉'
+    elif item_dict['stdmode'] == 2:
+        return '道具'
+    elif item_dict['stdmode'] == 3:
+        if item_dict['shape'] in [1, 2, 3, 5]:
+            return '传送卷轴'
+        elif item_dict['shape'] in [4, 9, 10]:
+            return '功能药水'
+        elif item_dict['shape'] == 11:
+            return '道具'
+        elif item_dict['shape'] == 12:
+            return '强效药水'
+        else:
+            return '道具'
+    elif item_dict['stdmode'] == 4:
+        return '技能书'
+    elif item_dict['stdmode'] in [5, 6]:
+        return '武器'
+    elif item_dict['stdmode'] in [10, 11]:
+        return '衣服'
+    elif item_dict['stdmode'] == 15:
+        return '头盔'
+    elif item_dict['stdmode'] in [19, 20, 21]:
+        return '项链'
+    elif item_dict['stdmode'] in [22, 23]:
+        return '戒指'
+    elif item_dict['stdmode'] in [24, 26]:
+        return '手镯'
+    elif item_dict['stdmode'] == 25:
+        if item_dict['shape'] in [1, 2]:
+            return '药粉'
+        elif item_dict['shape'] in [5, 7]:
+            return '护身符'
+        else:
+            return '道具'
+    elif item_dict['stdmode'] == 30:
+        if re.search('勋章', item_dict['name']):
+            return '勋章'
+        else:
+            return '火把'
+    elif item_dict['stdmode'] == 31:
+        return '道具' # 打捆物品
+    elif item_dict['stdmode'] == 41:
+        return '金币'
+    elif item_dict['stdmode'] == 43:
+        return '矿石'
+    elif item_dict['stdmode'] == 44:
+        return '道具'
+    elif item_dict['stdmode'] == 45:
+        return '骰子'
+    elif item_dict['stdmode'] == 46:
+        return '道具'
+    elif item_dict['stdmode'] == 47:
+        return '道具'
+    elif item_dict['stdmode'] == 50:
+        return '兑换券'
     return '道具'
 
 
@@ -49,10 +85,30 @@ def parse_potion(item_dict):
 
     print('    },')
 
+def parse_dope(item_dict):
+    print('    .potion')
+    print('    {')
+
+    if item_dict['ac'] > 0:
+        print('        .hp = %d,' % item_dict['ac'])
+
+    if item_dict['mac'] > 0:
+        print('        .mp = %d,' % item_dict['mac'])
+
+    if item_dict['shape'] == 0:
+        print('        .time = 1,')
+    elif item_dict['shape'] == 1:
+        pass # add HP/MP immediately
+    else:
+        pass # don't know what kind of effect this potion can help
+
+    print('    },')
+
+
 
 def parse_item(item_dict):
     item_name = item_dict['name']
-    item_type = num_2_type(item_dict['stdmode'])
+    item_type = get_item_type(item_dict)
 
     print('{   .name = u8"%s"' % item_name)
     print('    .type = u8"%s"' % item_type)
