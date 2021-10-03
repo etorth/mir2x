@@ -341,12 +341,19 @@ DamageNode Player::getAttackDamage(int nDC) const
                     .damage = mathf::rand<int>(node.dc[0], node.dc[1]),
                 };
             }
-        case DBCOM_MAGICID(u8"雷电术"):
-        case DBCOM_MAGICID(u8"火球术"):
-        case DBCOM_MAGICID(u8"大火球"):
         case DBCOM_MAGICID(u8"灵魂火符"):
         case DBCOM_MAGICID(u8"冰月神掌"):
         case DBCOM_MAGICID(u8"冰月震天"):
+            {
+                return MagicDamage
+                {
+                    .magicID = nDC,
+                    .damage = mathf::rand<int>(node.sc[0], node.sc[1]),
+                };
+            }
+        case DBCOM_MAGICID(u8"雷电术"):
+        case DBCOM_MAGICID(u8"火球术"):
+        case DBCOM_MAGICID(u8"大火球"):
         case DBCOM_MAGICID(u8"疾光电影"):
         case DBCOM_MAGICID(u8"地狱火"):
         case DBCOM_MAGICID(u8"冰沙掌"):
@@ -354,7 +361,7 @@ DamageNode Player::getAttackDamage(int nDC) const
                 return MagicDamage
                 {
                     .magicID = nDC,
-                    .damage = mathf::rand<int>(node.mdc[0], node.mdc[1]),
+                    .damage = mathf::rand<int>(node.mc[0], node.mc[1]),
                 };
             }
         default:

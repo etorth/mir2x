@@ -435,7 +435,7 @@
     .pkgGfxID = 0X0051,
     .dope
     {
-        .mdc = 3,
+        .mc = 3,
         .time = 5,
     },
 },
@@ -446,7 +446,7 @@
     .pkgGfxID = 0X0052,
     .dope
     {
-        .mdc = 3,
+        .mc = 3,
         .time = 5,
     },
 },
@@ -493,7 +493,7 @@
         .hp = 60,
         .mp = 60,
         .dc = 2,
-        .mdc = 2,
+        .mc = 2,
         .speed = 2,
         .time = 60,
     },
@@ -2513,8 +2513,8 @@
     .equip
     {
         .duration = 4,
+        .mc = {0, 1},
         .ac = {0, 2},
-        .mdc = {0, 1},
         .req
         {
             .level = 9,
@@ -2577,7 +2577,7 @@
     .equip
     {
         .duration = 5,
-        .sdc = {0, 6},
+        .sc = {0, 6},
     },
 },
 
@@ -2588,8 +2588,8 @@
     .equip
     {
         .duration = 5,
+        .sc = {3, 9},
         .ac = {1, 2},
-        .sdc = {3, 9},
     },
 },
 
@@ -2600,8 +2600,8 @@
     .equip
     {
         .duration = 4,
+        .mc = {0, 9},
         .ac = {1, 1},
-        .mdc = {0, 9},
     },
 },
 
@@ -2612,8 +2612,8 @@
     .equip
     {
         .duration = 5,
+        .mc = {3, 9},
         .ac = {1, 2},
-        .mdc = {3, 9},
     },
 },
 
@@ -2624,8 +2624,8 @@
     .equip
     {
         .duration = 5,
+        .sc = {0, 9},
         .ac = {1, 1},
-        .sdc = {0, 9},
     },
 },
 
@@ -2636,7 +2636,7 @@
     .equip
     {
         .duration = 5,
-        .sdc = {0, 1},
+        .sc = {0, 1},
         .req
         {
             .level = 7,
@@ -2651,7 +2651,7 @@
     .equip
     {
         .duration = 5,
-        .sdc = {0, 2},
+        .sc = {0, 2},
         .req
         {
             .level = 13,
@@ -2666,7 +2666,7 @@
     .equip
     {
         .duration = 5,
-        .sdc = {0, 3},
+        .sc = {0, 3},
         .req
         {
             .level = 19,
@@ -2681,10 +2681,10 @@
     .equip
     {
         .duration = 5,
-        .sdc = {0, 4},
+        .sc = {0, 4},
         .req
         {
-            .sdc = 17,
+            .sc = 17,
         },
     },
 },
@@ -2696,7 +2696,7 @@
     .equip
     {
         .duration = 5,
-        .sdc = {0, 5},
+        .sc = {0, 5},
         .req
         {
             .level = 27,
@@ -2711,8 +2711,8 @@
     .equip
     {
         .duration = 6,
+        .sc = {2, 6},
         .ac = {1, 1},
-        .sdc = {2, 6},
     },
 },
 
@@ -2784,7 +2784,7 @@
     .equip
     {
         .duration = 4,
-        .mdc = {0, 1},
+        .mc = {0, 1},
         .req
         {
             .level = 7,
@@ -2799,7 +2799,7 @@
     .equip
     {
         .duration = 4,
-        .mdc = {0, 2},
+        .mc = {0, 2},
         .req
         {
             .level = 13,
@@ -2814,7 +2814,7 @@
     .equip
     {
         .duration = 4,
-        .mdc = {1, 2},
+        .mc = {1, 2},
         .req
         {
             .level = 19,
@@ -2829,10 +2829,10 @@
     .equip
     {
         .duration = 4,
-        .mdc = {0, 4},
+        .mc = {0, 4},
         .req
         {
-            .mdc = 17,
+            .mc = 17,
         },
     },
 },
@@ -2844,7 +2844,7 @@
     .equip
     {
         .duration = 4,
-        .mdc = {0, 5},
+        .mc = {0, 5},
         .req
         {
             .level = 27,
@@ -2870,8 +2870,8 @@
     .equip
     {
         .duration = 5,
+        .mc = {2, 6},
         .ac = {1, 1},
-        .mdc = {2, 6},
     },
 },
 
@@ -2894,7 +2894,7 @@
     .equip
     {
         .duration = 5,
-        .mdc = {1, 7},
+        .mc = {1, 7},
     },
 },
 
@@ -2905,8 +2905,8 @@
     .equip
     {
         .duration = 5,
+        .mc = {4, 9},
         .ac = {0, 1},
-        .mdc = {4, 9},
         .mac = {0, 1},
         .req
         {
@@ -3057,9 +3057,9 @@
     .equip
     {
         .duration = 5,
+        .sc = {4, 9},
         .ac = {0, 1},
         .mac = {0, 1},
-        .sdc = {4, 9},
         .req
         {
             .level = 155,
@@ -3111,7 +3111,7 @@
     .equip
     {
         .duration = 6,
-        .sdc = {0, 8},
+        .sc = {0, 8},
     },
 },
 
@@ -3133,8 +3133,8 @@
     .equip
     {
         .duration = 8,
+        .sc = {5, 7},
         .mac = {0, 1},
-        .sdc = {5, 7},
     },
 },
 
@@ -3145,8 +3145,8 @@
     .equip
     {
         .duration = 8,
+        .mc = {6, 7},
         .ac = {0, 1},
-        .mdc = {6, 7},
     },
 },
 
@@ -3321,7 +3321,7 @@
     .equip
     {
         .duration = 7,
-        .sdc = {1, 3},
+        .sc = {1, 3},
     },
 },
 
@@ -3332,7 +3332,7 @@
     .equip
     {
         .duration = 5,
-        .mdc = {1, 4},
+        .mc = {1, 4},
     },
 },
 
@@ -3365,7 +3365,7 @@
     .equip
     {
         .duration = 5,
-        .mdc = {2, 3},
+        .mc = {2, 3},
     },
 },
 
@@ -3413,7 +3413,7 @@
     .equip
     {
         .duration = 6,
-        .sdc = {2, 10},
+        .sc = {2, 10},
     },
 },
 
@@ -3424,7 +3424,7 @@
     .equip
     {
         .duration = 5,
-        .mdc = {4, 8},
+        .mc = {4, 8},
     },
 },
 
@@ -3669,8 +3669,8 @@
     .equip
     {
         .duration = 6,
+        .sc = {1, 5},
         .ac = {2, 2},
-        .sdc = {1, 5},
     },
 },
 
@@ -3781,7 +3781,7 @@
     .equip
     {
         .duration = 6,
-        .sdc = {0, 1},
+        .sc = {0, 1},
         .req
         {
             .level = 10,
@@ -3796,7 +3796,7 @@
     .equip
     {
         .duration = 6,
-        .sdc = {0, 2},
+        .sc = {0, 2},
         .req
         {
             .level = 22,
@@ -3811,7 +3811,7 @@
     .equip
     {
         .duration = 6,
-        .sdc = {1, 3},
+        .sc = {1, 3},
     },
 },
 
@@ -3822,8 +3822,8 @@
     .equip
     {
         .duration = 5,
+        .mc = {1, 5},
         .ac = {2, 2},
-        .mdc = {1, 5},
     },
 },
 
@@ -3857,7 +3857,7 @@
     .equip
     {
         .duration = 8,
-        .mdc = {3, 4},
+        .mc = {3, 4},
         .mac = {1, 3},
     },
     .description = u8"李云龙的传家宝",
@@ -3870,8 +3870,8 @@
     .equip
     {
         .duration = 8,
+        .sc = {3, 4},
         .mac = {2, 2},
-        .sdc = {3, 4},
     },
 },
 
@@ -3939,7 +3939,7 @@
     .equip
     {
         .duration = 5,
-        .mdc = {0, 1},
+        .mc = {0, 1},
         .req
         {
             .level = 10,
@@ -3954,7 +3954,7 @@
     .equip
     {
         .duration = 5,
-        .mdc = {0, 2},
+        .mc = {0, 2},
         .req
         {
             .level = 22,
@@ -3983,7 +3983,7 @@
     .equip
     {
         .duration = 5,
-        .mdc = {2, 4},
+        .mc = {2, 4},
     },
 },
 
@@ -3994,7 +3994,7 @@
     .equip
     {
         .duration = 5,
-        .mdc = {5, 7},
+        .mc = {5, 7},
         .mac = {2, 3},
         .req
         {
@@ -4011,9 +4011,9 @@
     {
         .duration = 5,
         .dc = {2, 2},
+        .sc = {4, 8},
         .ac = {1, 2},
         .mac = {1, 2},
-        .sdc = {4, 8},
         .req
         {
             .level = 156,
@@ -4099,7 +4099,7 @@
     .equip
     {
         .duration = 6,
-        .sdc = {2, 4},
+        .sc = {2, 4},
     },
 },
 
@@ -4137,7 +4137,7 @@
     .equip
     {
         .duration = 6,
-        .mdc = {1, 1},
+        .mc = {1, 1},
     },
 },
 
@@ -4159,7 +4159,7 @@
     .equip
     {
         .duration = 6,
-        .sdc = {0, 2},
+        .sc = {0, 2},
     },
 },
 
@@ -4170,7 +4170,7 @@
     .equip
     {
         .duration = 6,
-        .sdc = {1, 1},
+        .sc = {1, 1},
     },
 },
 
@@ -4229,7 +4229,7 @@
     .equip
     {
         .duration = 6,
-        .sdc = {3, 5},
+        .sc = {3, 5},
     },
 },
 
@@ -4240,7 +4240,7 @@
     .equip
     {
         .duration = 7,
-        .mdc = {3, 5},
+        .mc = {3, 5},
         .mac = {0, 2},
     },
 },
@@ -4323,7 +4323,7 @@
     .equip
     {
         .duration = 8,
-        .sdc = {2, 10},
+        .sc = {2, 10},
     },
 },
 
@@ -4334,8 +4334,8 @@
     .equip
     {
         .duration = 8,
-        .mdc = {4, 8},
-        .dodgem = 3,
+        .mc = {4, 8},
+        .mcDodge = 3,
     },
 },
 
@@ -4417,7 +4417,7 @@
     .equip
     {
         .duration = 7,
-        .sdc = {2, 7},
+        .sc = {2, 7},
     },
 },
 
@@ -4428,7 +4428,7 @@
     .equip
     {
         .duration = 6,
-        .mdc = {0, 9},
+        .mc = {0, 9},
     },
 },
 
@@ -4439,7 +4439,7 @@
     .equip
     {
         .duration = 7,
-        .sdc = {1, 4},
+        .sc = {1, 4},
         .req
         {
             .level = 25,
@@ -4476,7 +4476,7 @@
     .equip
     {
         .duration = 7,
-        .sdc = {1, 0},
+        .sc = {1, 0},
         .req
         {
             .level = 11,
@@ -4491,7 +4491,7 @@
     .equip
     {
         .duration = 7,
-        .sdc = {1, 2},
+        .sc = {1, 2},
         .req
         {
             .level = 19,
@@ -4506,7 +4506,7 @@
     .equip
     {
         .duration = 7,
-        .sdc = {1, 3},
+        .sc = {1, 3},
         .req
         {
             .level = 22,
@@ -4521,10 +4521,10 @@
     .equip
     {
         .duration = 7,
-        .sdc = {1, 5},
+        .sc = {1, 5},
         .req
         {
-            .sdc = 22,
+            .sc = 22,
         },
     },
 },
@@ -4536,7 +4536,7 @@
     .equip
     {
         .duration = 7,
-        .sdc = {1, 6},
+        .sc = {1, 6},
     },
 },
 
@@ -4582,7 +4582,7 @@
     .equip
     {
         .duration = 7,
-        .sdc = {2, 5},
+        .sc = {2, 5},
     },
 },
 
@@ -4593,7 +4593,7 @@
     .equip
     {
         .duration = 7,
-        .sdc = {1, 9},
+        .sc = {1, 9},
     },
 },
 
@@ -4604,7 +4604,7 @@
     .equip
     {
         .duration = 6,
-        .mdc = {1, 0},
+        .mc = {1, 0},
         .req
         {
             .level = 11,
@@ -4619,10 +4619,10 @@
     .equip
     {
         .duration = 6,
-        .mdc = {0, 2},
+        .mc = {0, 2},
         .req
         {
-            .mdc = 10,
+            .mc = 10,
         },
     },
 },
@@ -4634,7 +4634,7 @@
     .equip
     {
         .duration = 6,
-        .mdc = {2, 0},
+        .mc = {2, 0},
         .req
         {
             .level = 15,
@@ -4649,7 +4649,7 @@
     .equip
     {
         .duration = 6,
-        .mdc = {1, 3},
+        .mc = {1, 3},
         .req
         {
             .level = 22,
@@ -4664,10 +4664,10 @@
     .equip
     {
         .duration = 6,
-        .mdc = {1, 5},
+        .mc = {1, 5},
         .req
         {
-            .mdc = 25,
+            .mc = 25,
         },
     },
 },
@@ -4679,7 +4679,7 @@
     .equip
     {
         .duration = 6,
-        .mdc = {0, 7},
+        .mc = {0, 7},
     },
 },
 
@@ -4690,7 +4690,7 @@
     .equip
     {
         .duration = 6,
-        .mdc = {1, 4},
+        .mc = {1, 4},
         .req
         {
             .level = 25,
@@ -4710,7 +4710,7 @@
     .equip
     {
         .duration = 6,
-        .mdc = {3, 4},
+        .mc = {3, 4},
     },
 },
 
@@ -4721,7 +4721,7 @@
     .equip
     {
         .duration = 6,
-        .mdc = {2, 8},
+        .mc = {2, 8},
     },
 },
 
@@ -4732,7 +4732,7 @@
     .equip
     {
         .duration = 8,
-        .dodge = 1,
+        .dcDodge = 1,
         .req
         {
             .level = 2,
@@ -4747,7 +4747,7 @@
     .equip
     {
         .duration = 8,
-        .dodgem = 2,
+        .mcDodge = 2,
         .req
         {
             .level = 18,
@@ -4763,7 +4763,7 @@
     {
         .duration = 8,
         .dc = {1, 0},
-        .dodgem = 1,
+        .mcDodge = 1,
         .req
         {
             .level = 13,
@@ -4793,7 +4793,7 @@
     .equip
     {
         .duration = 7,
-        .dodge = 3,
+        .dcDodge = 3,
         .req
         {
             .level = 107,
@@ -4873,7 +4873,7 @@
     .equip
     {
         .duration = 6,
-        .mdc = {2, 6},
+        .mc = {2, 6},
     },
 },
 
@@ -4895,7 +4895,7 @@
     .equip
     {
         .duration = 7,
-        .sdc = {3, 5},
+        .sc = {3, 5},
     },
 },
 
@@ -4906,7 +4906,7 @@
     .equip
     {
         .duration = 7,
-        .sdc = {2, 4},
+        .sc = {2, 4},
         .req
         {
             .level = 29,
@@ -4921,7 +4921,7 @@
     .equip
     {
         .duration = 6,
-        .mdc = {0, 6},
+        .mc = {0, 6},
         .req
         {
             .level = 29,
@@ -4936,7 +4936,7 @@
     .equip
     {
         .duration = 7,
-        .sdc = {4, 9},
+        .sc = {4, 9},
     },
 },
 
@@ -4980,7 +4980,7 @@
     .equip
     {
         .duration = 7,
-        .sdc = {0, 4},
+        .sc = {0, 4},
     },
 },
 
@@ -4991,7 +4991,7 @@
     .equip
     {
         .duration = 7,
-        .mdc = {0, 4},
+        .mc = {0, 4},
     },
 },
 
@@ -5002,7 +5002,7 @@
     .equip
     {
         .duration = 7,
-        .mdc = {1, 3},
+        .mc = {1, 3},
     },
 },
 
@@ -5024,7 +5024,7 @@
     .equip
     {
         .duration = 6,
-        .mdc = {2, 10},
+        .mc = {2, 10},
     },
 },
 
@@ -5048,7 +5048,7 @@
         .duration = 7,
         .dc = {0, 7},
         .hit = 1,
-        .dodge = 1,
+        .dcDodge = 1,
     },
 },
 
@@ -5059,9 +5059,9 @@
     .equip
     {
         .duration = 8,
-        .mdc = {6, 7},
-        .hprecover = 3,
-        .mprecover = 3,
+        .mc = {6, 7},
+        .hpRecover = 3,
+        .mpRecover = 3,
     },
 },
 
@@ -5074,8 +5074,8 @@
         .duration = 8,
         .dc = {2, 12},
         .speed = 1,
-        .hprecover = 3,
-        .mprecover = 3,
+        .hpRecover = 3,
+        .mpRecover = 3,
     },
 },
 
@@ -5086,9 +5086,9 @@
     .equip
     {
         .duration = 8,
-        .sdc = {6, 7},
-        .hprecover = 2,
-        .mprecover = 3,
+        .sc = {6, 7},
+        .hpRecover = 2,
+        .mpRecover = 3,
     },
 },
 
@@ -5100,9 +5100,9 @@
     {
         .duration = 8,
         .dc = {2, 3},
-        .mdc = {4, 5},
-        .hprecover = 1,
-        .mprecover = 1,
+        .mc = {4, 5},
+        .hpRecover = 1,
+        .mpRecover = 1,
         .req
         {
             .level = 157,
@@ -5117,9 +5117,9 @@
     .equip
     {
         .duration = 8,
-        .sdc = {4, 9},
-        .hprecover = 1,
-        .mprecover = 1,
+        .sc = {4, 9},
+        .hpRecover = 1,
+        .mpRecover = 1,
         .req
         {
             .level = 157,
@@ -5135,8 +5135,8 @@
     {
         .duration = 8,
         .dc = {4, 14},
-        .hprecover = 1,
-        .mprecover = 1,
+        .hpRecover = 1,
+        .mpRecover = 1,
         .req
         {
             .level = 157,
@@ -5608,9 +5608,9 @@
     .equip
     {
         .duration = 20,
+        .sc = {0, 2},
         .ac = {3, 8},
         .mac = {3, 3},
-        .sdc = {0, 2},
         .req
         {
             .level = 22,
@@ -5626,9 +5626,9 @@
     .equip
     {
         .duration = 24,
+        .sc = {0, 4},
         .ac = {3, 12},
         .mac = {4, 5},
-        .sdc = {0, 4},
         .req
         {
             .level = 33,
@@ -5644,9 +5644,9 @@
     .equip
     {
         .duration = 26,
+        .sc = {0, 5},
         .ac = {3, 14},
         .mac = {4, 6},
-        .sdc = {0, 5},
         .req
         {
             .level = 38,
@@ -5662,9 +5662,9 @@
     .equip
     {
         .duration = 29,
+        .sc = {1, 7},
         .ac = {5, 16},
         .mac = {6, 8},
-        .sdc = {1, 7},
         .req
         {
             .level = 160,
@@ -5680,9 +5680,9 @@
     .equip
     {
         .duration = 20,
+        .sc = {0, 2},
         .ac = {3, 8},
         .mac = {3, 3},
-        .sdc = {0, 2},
         .req
         {
             .level = 22,
@@ -5698,9 +5698,9 @@
     .equip
     {
         .duration = 24,
+        .sc = {0, 4},
         .ac = {3, 12},
         .mac = {4, 5},
-        .sdc = {0, 4},
         .req
         {
             .level = 33,
@@ -5716,9 +5716,9 @@
     .equip
     {
         .duration = 26,
+        .sc = {0, 5},
         .ac = {3, 14},
         .mac = {4, 6},
-        .sdc = {0, 5},
         .req
         {
             .level = 38,
@@ -5734,9 +5734,9 @@
     .equip
     {
         .duration = 29,
+        .sc = {1, 7},
         .ac = {5, 16},
         .mac = {6, 8},
-        .sdc = {1, 7},
         .req
         {
             .level = 160,
@@ -5752,8 +5752,8 @@
     .equip
     {
         .duration = 20,
+        .mc = {0, 2},
         .ac = {3, 7},
-        .mdc = {0, 2},
         .mac = {3, 4},
         .req
         {
@@ -5770,8 +5770,8 @@
     .equip
     {
         .duration = 22,
+        .mc = {0, 4},
         .ac = {3, 10},
-        .mdc = {0, 4},
         .mac = {5, 6},
         .req
         {
@@ -5788,8 +5788,8 @@
     .equip
     {
         .duration = 23,
+        .mc = {0, 5},
         .ac = {3, 12},
-        .mdc = {0, 5},
         .mac = {5, 8},
         .req
         {
@@ -5806,8 +5806,8 @@
     .equip
     {
         .duration = 25,
+        .mc = {2, 6},
         .ac = {4, 14},
-        .mdc = {2, 6},
         .mac = {7, 11},
         .req
         {
@@ -5824,8 +5824,8 @@
     .equip
     {
         .duration = 20,
+        .mc = {0, 2},
         .ac = {3, 7},
-        .mdc = {0, 2},
         .mac = {3, 4},
         .req
         {
@@ -5842,8 +5842,8 @@
     .equip
     {
         .duration = 22,
+        .mc = {0, 4},
         .ac = {3, 10},
-        .mdc = {0, 4},
         .mac = {5, 6},
         .req
         {
@@ -5860,8 +5860,8 @@
     .equip
     {
         .duration = 23,
+        .mc = {0, 5},
         .ac = {3, 12},
-        .mdc = {0, 5},
         .mac = {5, 8},
         .req
         {
@@ -5878,8 +5878,8 @@
     .equip
     {
         .duration = 25,
+        .mc = {2, 6},
         .ac = {4, 14},
-        .mdc = {2, 6},
         .mac = {7, 11},
         .req
         {
@@ -5942,7 +5942,7 @@
     {
         .duration = 5,
         .dc = {3, 7},
-        .mdc = {0, 1},
+        .mc = {0, 1},
         .req
         {
             .level = 7,
@@ -6008,7 +6008,7 @@
     {
         .duration = 26,
         .dc = {7, 22},
-        .sdc = {4, 10},
+        .sc = {4, 10},
         .hit = 3,
         .req
         {
@@ -6027,7 +6027,7 @@
     {
         .duration = 19,
         .dc = {6, 22},
-        .mdc = {4, 21},
+        .mc = {4, 21},
     },
 },
 
@@ -6175,7 +6175,7 @@
     {
         .duration = 19,
         .dc = {9, 20},
-        .mdc = {5, 9},
+        .mc = {5, 9},
         .hit = 6,
         .req
         {
@@ -6193,7 +6193,7 @@
     {
         .duration = 24,
         .dc = {7, 18},
-        .sdc = {3, 6},
+        .sc = {3, 6},
         .hit = 2,
         .req
         {

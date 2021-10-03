@@ -9,14 +9,18 @@
 
 struct CombatNode
 {
-    int  dc[2] = {0, 0};
-    int  ac[2] = {0, 0};
-    int mdc[2] = {0, 0};
-    int mac[2] = {0, 0};
-    int sdc[2] = {0, 0};
+    int dc[2] = {0, 0};
+    int mc[2] = {0, 0};
+    int sc[2] = {0, 0};
 
-    int hit     = 0;
-    int dodge   = 0;
+    int  ac[2] = {0, 0};
+    int mac[2] = {0, 0};
+
+    int hit = 0;
+
+    int dcDodge = 0;
+    int mcDodge = 0;
+
     int speed   = 0;
     int comfort = 0;
 

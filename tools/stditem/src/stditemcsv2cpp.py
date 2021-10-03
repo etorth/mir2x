@@ -143,25 +143,25 @@ def parse_necklace(item_dict):
     print('        .duration = %d,' % (item_dict['duramax'] // 1000))
 
     hit = 0
-    dodge = 0
     speed = 0
-    hprecover = 0
-    mprecover = 0
-    mdcdodge = 0
+    hpRecover = 0
+    mpRecover = 0
+    acDodge = 0
+    mcDodge = 0
     luck = 0
 
     if item_dict['stdmode'] == 19:
-        mdcdodge += item_dict['ac2']
+        mcDodge += item_dict['ac2']
         luck += item_dict['mac']
         luck -= item_dict['mac2']
     elif item_dict['stdmode'] == 20:
         hit += item_dict['ac2']
-        dodge += item_dict['mac2']
+        acDodge += item_dict['mac2']
     elif item_dict['stdmode'] == 21:
         speed += item_dict['ac']
         speed -= item_dict['mac']
-        hprecover += item_dict['ac2']
-        mprecover += item_dict['mac2']
+        hpRecover += item_dict['ac2']
+        mpRecover += item_dict['mac2']
 
     if item_dict['dc'] > 0 or item_dict['dc2'] > 0:
         print('        .dc = {%d, %d},' % (item_dict['dc'], item_dict['dc2']))
@@ -175,20 +175,20 @@ def parse_necklace(item_dict):
     if hit > 0:
         print('        .hit = %d,' % hit)
 
-    if dodge > 0:
-        print('        .dodge = %d,' % dodge)
+    if acDodge > 0:
+        print('        .acDodge = %d,' % acDodge)
 
     if speed > 0:
         print('        .speed = %d,' % speed)
 
-    if hprecover > 0:
-        print('        .hprecover = %d,' % hprecover)
+    if hpRecover > 0:
+        print('        .hpRecover = %d,' % hpRecover)
 
-    if mprecover > 0:
-        print('        .mprecover = %d,' % mprecover)
+    if mpRecover > 0:
+        print('        .mpRecover = %d,' % mpRecover)
 
-    if mdcdodge > 0:
-        print('        .mdcdodge = %d,' % mdcdodge)
+    if mcDodge > 0:
+        print('        .mcDodge = %d,' % mcDodge)
 
     if luck != 0:
         print('        .luck = %d,' % luck)
@@ -227,10 +227,10 @@ def parse_item(item_dict):
     item_name = item_dict['name']
     item_type = get_item_type(item_dict)
 
-    print('{   .name = u8"%s"' % item_name)
-    print('    .type = u8"%s"' % item_type)
-    print('    .weight = %d' % item_dict['weight'])
-    print('    .pkgGfxID = 0X%04X' % item_dict['looks'])
+    print('{   .name = u8"%s",' % item_name)
+    print('    .type = u8"%s",' % item_type)
+    print('    .weight = %d,' % item_dict['weight'])
+    print('    .pkgGfxID = 0X%04X,' % item_dict['looks'])
 
     if item_type == '恢复药水':
         parse_potion(item_dict)

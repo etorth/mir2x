@@ -229,13 +229,13 @@ void PlayerStateBoard::drawEx(int, int, int, int, int, int) const
     const auto handLoadColor = (handLoad > combatNode.load.hand) ? colorf::RED : colorf::WHITE;
     fnDrawLabel(279, 97 + 24 * 6, str_printf(u8"%d/%d", handLoad, combatNode.load.hand), handLoadColor);
     fnDrawLabel(279, 97 + 24 * 7, str_printf(u8"%d", combatNode.hit));
-    fnDrawLabel(279, 97 + 24 * 8, str_printf(u8"%d", combatNode.dodge));
+    fnDrawLabel(279, 97 + 24 * 8, str_printf(u8"%d", combatNode.dcDodge));
 
     LabelBoard(DIR_UPLEFT, 0, 0, str_printf(u8"攻击 %d - %d", combatNode. dc[0], combatNode. dc[1]).c_str(), 1, 12, 0, colorf::WHITE + colorf::A_SHF(255)).drawAt(DIR_UPLEFT, x() +  21, y() + 317);
     LabelBoard(DIR_UPLEFT, 0, 0, str_printf(u8"防御 %d - %d", combatNode. ac[0], combatNode. ac[1]).c_str(), 1, 12, 0, colorf::WHITE + colorf::A_SHF(255)).drawAt(DIR_UPLEFT, x() + 130, y() + 317);
-    LabelBoard(DIR_UPLEFT, 0, 0, str_printf(u8"魔法 %d - %d", combatNode.mdc[0], combatNode.mdc[1]).c_str(), 1, 12, 0, colorf::WHITE + colorf::A_SHF(255)).drawAt(DIR_UPLEFT, x() +  21, y() + 345);
+    LabelBoard(DIR_UPLEFT, 0, 0, str_printf(u8"魔法 %d - %d", combatNode. mc[0], combatNode. mc[1]).c_str(), 1, 12, 0, colorf::WHITE + colorf::A_SHF(255)).drawAt(DIR_UPLEFT, x() +  21, y() + 345);
     LabelBoard(DIR_UPLEFT, 0, 0, str_printf(u8"魔防 %d - %d", combatNode.mac[0], combatNode.mac[1]).c_str(), 1, 12, 0, colorf::WHITE + colorf::A_SHF(255)).drawAt(DIR_UPLEFT, x() + 130, y() + 345);
-    LabelBoard(DIR_UPLEFT, 0, 0, str_printf(u8"道术 %d - %d", combatNode.sdc[0], combatNode.sdc[1]).c_str(), 1, 12, 0, colorf::WHITE + colorf::A_SHF(255)).drawAt(DIR_UPLEFT, x() + 233, y() + 345);
+    LabelBoard(DIR_UPLEFT, 0, 0, str_printf(u8"道术 %d - %d", combatNode. sc[0], combatNode. sc[1]).c_str(), 1, 12, 0, colorf::WHITE + colorf::A_SHF(255)).drawAt(DIR_UPLEFT, x() + 233, y() + 345);
 
     LabelBoard(DIR_UPLEFT, 0, 0, u8"强攻元素", 1, 12, 0, colorf::WHITE + colorf::A_SHF(255)).drawAt(DIR_UPLEFT, x() + 10, y() + 376);
     LabelBoard(DIR_UPLEFT, 0, 0, u8"强防元素", 1, 12, 0, colorf::WHITE + colorf::A_SHF(255)).drawAt(DIR_UPLEFT, x() + 10, y() + 406);

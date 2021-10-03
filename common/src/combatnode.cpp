@@ -24,14 +24,15 @@ CombatNode getCombatNode(const SDWear & wear, uint64_t uid, int level)
             node.mac[0] += ir.equip.mac[0];
             node.mac[1] += ir.equip.mac[1];
 
-            node.mdc[0] += ir.equip.mdc[0];
-            node.mdc[1] += ir.equip.mdc[1];
+            node.mc[0] += ir.equip.mc[0];
+            node.mc[1] += ir.equip.mc[1];
 
-            node.sdc[0] += ir.equip.sdc[0];
-            node.sdc[1] += ir.equip.sdc[1];
+            node.sc[0] += ir.equip.sc[0];
+            node.sc[1] += ir.equip.sc[1];
 
             node.hit += ir.equip.hit;
-            node.dodge += ir.equip.dodge;
+            node.dcDodge += ir.equip.dcDodge;
+            node.mcDodge += ir.equip.mcDodge;
             node.speed += ir.equip.speed;
             node.comfort += ir.equip.comfort;
 
@@ -56,13 +57,13 @@ CombatNode getCombatNode(const SDWear & wear, uint64_t uid, int level)
     }
 
     if(uidf::hasPlayerJob(uid, JOB_TAOIST)){
-        node.sdc[0] += (level / 2);
-        node.sdc[1] += (level / 2 + level % 2);
+        node.sc[0] += (level / 2);
+        node.sc[1] += (level / 2 + level % 2);
     }
 
     if(uidf::hasPlayerJob(uid, JOB_WIZARD)){
-        node.mdc[0] += (level / 2);
-        node.mdc[1] += (level / 2 + level % 2);
+        node.mc[0] += (level / 2);
+        node.mc[1] += (level / 2 + level % 2);
     }
     return node;
 }

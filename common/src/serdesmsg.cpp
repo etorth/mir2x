@@ -68,28 +68,32 @@ std::u8string SDItem::getXMLLayout() const
         xmlStr += str_printf(u8R"###( <par>攻击 %d - %d</par> )###""\n", ir.equip.dc[0], ir.equip.dc[1]);
     }
 
-    if(ir.equip.ac[0] > 0 || ir.equip.ac[1] > 0){
-        xmlStr += str_printf(u8R"###( <par>防御 %d - %d</par> )###""\n", ir.equip.ac[0], ir.equip.ac[1]);
+    if(ir.equip.mc[0] > 0 || ir.equip.mc[1] > 0){
+        xmlStr += str_printf(u8R"###( <par>魔法 %d - %d</par> )###""\n", ir.equip.mc[0], ir.equip.mc[1]);
     }
 
-    if(ir.equip.mdc[0] > 0 || ir.equip.mdc[1] > 0){
-        xmlStr += str_printf(u8R"###( <par>魔法 %d - %d</par> )###""\n", ir.equip.mdc[0], ir.equip.mdc[1]);
+    if(ir.equip.sc[0] > 0 || ir.equip.sc[1] > 0){
+        xmlStr += str_printf(u8R"###( <par>道术 %d - %d</par> )###""\n", ir.equip.sc[0], ir.equip.sc[1]);
+    }
+
+    if(ir.equip.ac[0] > 0 || ir.equip.ac[1] > 0){
+        xmlStr += str_printf(u8R"###( <par>防御 %d - %d</par> )###""\n", ir.equip.ac[0], ir.equip.ac[1]);
     }
 
     if(ir.equip.mac[0] > 0 || ir.equip.mac[1] > 0){
         xmlStr += str_printf(u8R"###( <par>魔防 %d - %d</par> )###""\n", ir.equip.mac[0], ir.equip.mac[1]);
     }
 
-    if(ir.equip.sdc[0] > 0 || ir.equip.sdc[1] > 0){
-        xmlStr += str_printf(u8R"###( <par>道术 %d - %d</par> )###""\n", ir.equip.sdc[0], ir.equip.sdc[1]);
-    }
-
     if(ir.equip.hit > 0){
         xmlStr += str_printf(u8R"###( <par>准确 %d</par> )###""\n", ir.equip.hit);
     }
 
-    if(ir.equip.dodge > 0){
-        xmlStr += str_printf(u8R"###( <par>闪避 %d</par> )###""\n", ir.equip.dodge);
+    if(ir.equip.dcDodge > 0){
+        xmlStr += str_printf(u8R"###( <par>闪避 %d</par> )###""\n", ir.equip.dcDodge);
+    }
+
+    if(ir.equip.mcDodge > 0){
+        xmlStr += str_printf(u8R"###( <par>魔法闪避 %d</par> )###""\n", ir.equip.mcDodge);
     }
 
     if(ir.equip.speed > 0){
@@ -98,6 +102,14 @@ std::u8string SDItem::getXMLLayout() const
 
     if(ir.equip.comfort > 0){
         xmlStr += str_printf(u8R"###( <par>舒适度 %d</par> )###""\n", ir.equip.comfort);
+    }
+
+    if(ir.equip.hpRecover > 0){
+        xmlStr += str_printf(u8R"###( <par>生命恢复 %d</par> )###""\n", ir.equip.hpRecover);
+    }
+
+    if(ir.equip.mpRecover > 0){
+        xmlStr += str_printf(u8R"###( <par>魔法恢复 %d</par> )###""\n", ir.equip.mpRecover);
     }
 
     if(ir.equip.load.hand > 0){
@@ -110,6 +122,26 @@ std::u8string SDItem::getXMLLayout() const
 
     if(ir.equip.load.inventory > 0){
         xmlStr += str_printf(u8R"###( <par>包裹负重 %d</par> )###""\n", ir.equip.load.inventory);
+    }
+
+    if(ir.equip.req.dc > 0){
+        xmlStr += str_printf(u8R"###( <par>需要攻击 %d</par> )###""\n", ir.equip.req.dc);
+    }
+
+    if(ir.equip.req.mc > 0){
+        xmlStr += str_printf(u8R"###( <par>需要魔法 %d</par> )###""\n", ir.equip.req.mc);
+    }
+
+    if(ir.equip.req.sc > 0){
+        xmlStr += str_printf(u8R"###( <par>需要道术 %d</par> )###""\n", ir.equip.req.sc);
+    }
+
+    if(ir.equip.req.level > 0){
+        xmlStr += str_printf(u8R"###( <par>需要等级 %d</par> )###""\n", ir.equip.req.level);
+    }
+
+    if(str_haschar(ir.equip.req.job)){
+        xmlStr += str_printf(u8R"###( <par>需要职业 %s</par> )###""\n", ir.equip.req.job);
     }
 
     xmlStr += str_printf(u8R"###( </layout> )###""\n");

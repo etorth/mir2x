@@ -18,21 +18,23 @@ struct ItemRecord
     {
         const int duration = 0;
 
-        const int  dc[2] = {0, 0};
-        const int  ac[2] = {0, 0};
-        const int mdc[2] = {0, 0};
-        const int mac[2] = {0, 0};
-        const int sdc[2] = {0, 0};
+        const int dc[2] = {0, 0};
+        const int mc[2] = {0, 0};
+        const int sc[2] = {0, 0};
 
-        const int hit     = 0;
-        const int dodge   = 0;
-        const int dodgem  = 0;
+        const int  ac[2] = {0, 0};
+        const int mac[2] = {0, 0};
+
+        const int hit = 0;
+
+        const int dcDodge = 0;
+        const int mcDodge = 0;
 
         const int speed   = 0;
         const int comfort = 0;
 
-        const int hprecover = 0;
-        const int mprecover = 0;
+        const int hpRecover = 0;
+        const int mpRecover = 0;
 
         const struct AddLoad
         {
@@ -44,9 +46,9 @@ struct ItemRecord
 
         const struct EquipReq
         {
-            const int  dc   = 0;
-            const int mdc   = 0;
-            const int sdc   = 0;
+            const int dc = 0;
+            const int mc = 0;
+            const int sc = 0;
             const int level = 0;
             const char8_t * const job = nullptr;
         }
@@ -67,9 +69,9 @@ struct ItemRecord
         const int  hp = 0;
         const int  mp = 0;
 
-        const int  dc = 0;
-        const int mdc = 0;
-        const int sdc = 0;
+        const int dc = 0;
+        const int mc = 0;
+        const int sc = 0;
 
         const int speed = 0;
         const int time  = 0;
