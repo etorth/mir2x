@@ -138,7 +138,7 @@ def parse_equip_require(item_dict):
         print('        },')
 
 
-def parse_attr_helmet(item_dict):
+def parse_equip_attr_helmet(item_dict):
     item_attr = {}
     if item_dict['dc'] > 0 or item_dict['dc2'] > 0:
         item_attr['dc'] = [item_dict['dc'], item_dict['dc2']]
@@ -159,7 +159,7 @@ def parse_attr_helmet(item_dict):
     return item_attr
 
 
-def parse_attr_necklace(item_dict):
+def parse_equip_attr_necklace(item_dict):
     item_attr = {}
     if item_dict['stdmode'] == 19:
         item_attr['mcDodge'] = item_dict['ac2']
@@ -184,7 +184,38 @@ def parse_attr_necklace(item_dict):
     return item_attr
 
 
-def parse_attr_armring(item_dict):
+def parse_equip_attr_armring(item_dict):
+    item_attr = {}
+    if item_dict['stdmode'] == 24:
+        if item_dict['ac2'] > 0:
+            item_attr['hit'] = item_dict['ac2']
+
+        if item_dict['mac2'] > 0:
+            item_attr['dcDodge'] = item_dict['mac2']
+
+    elif item_dict['stdmode'] == 26:
+
+        if item_dict['ac'] > 0 or item_dict['ac2'] > 0:
+            item_attr['ac'] = [item_dict['ac'], item_dict['ac2']]
+
+        if item_dict['mac'] > 0 or item_dict['mac2'] > 0:
+            item_attr['mac'] = [item_dict['mac'], item_dict['mac2']]
+    else:
+        pass
+
+    if item_dict['dc'] > 0 or item_dict['dc2'] > 0:
+        item_attr['dc'] = [item_dict['dc'], item_dict['dc2']]
+
+    if item_dict['mc'] > 0 or item_dict['mc2'] > 0:
+        if item_dict['mc_type'] == 1:
+            item_attr['mc'] = [item_dict['mc'], item_dict['mc2']]
+        elif item_dict['mc_type'] == 2:
+            item_attr['sc'] = [item_dict['mc'], item_dict['mc2']]
+
+    return item_attr
+
+
+def parse_equip_attr_ring(item_dict):
     item_attr = {}
     if item_dict['dc'] > 0 or item_dict['dc2'] > 0:
         item_attr['dc'] = [item_dict['dc'], item_dict['dc2']]
@@ -205,28 +236,7 @@ def parse_attr_armring(item_dict):
     return item_attr
 
 
-def parse_attr_ring(item_dict):
-    item_attr = {}
-    if item_dict['dc'] > 0 or item_dict['dc2'] > 0:
-        item_attr['dc'] = [item_dict['dc'], item_dict['dc2']]
-
-    if item_dict['ac2'] > 0:
-        item_attr['hit'] = item_dict['ac2']
-
-    if item_dict['ac'] > 0 or item_dict['mac'] != 0:
-        item_attr['luckCurse'] = item_dict['ac'] - item_dict['mac']
-
-    if item_dict['mac2'] > 0:
-        item_attr['speed'] = -item_dict['mac2']
-
-    if item_dict['source'] > 0:
-        item_attr['elem'] = {}
-        item_attr['elem']['holy'] = item_dict['source']
-
-    return item_attr
-
-
-def parse_attr_medal(item_dict):
+def parse_equip_attr_medal(item_dict):
     item_attr = {}
     if item_dict['dc'] > 0 or item_dict['dc2'] > 0:
         item_attr['dc'] = [item_dict['dc'], item_dict['dc2']]
@@ -246,7 +256,7 @@ def parse_attr_medal(item_dict):
     return item_attr
 
 
-def parse_attr_cloth(item_dict):
+def parse_equip_attr_cloth(item_dict):
     item_attr = {}
     if item_dict['dc'] > 0 or item_dict['dc2'] > 0:
         item_attr['dc'] = [item_dict['dc'], item_dict['dc2']]
@@ -266,7 +276,7 @@ def parse_attr_cloth(item_dict):
     return item_attr
 
 
-def parse_attr_weapon(item_dict):
+def parse_equip_attr_weapon(item_dict):
     item_attr = {}
     if item_dict['dc'] > 0 or item_dict['dc2'] > 0:
         item_attr['dc'] = [item_dict['dc'], item_dict['dc2']]
@@ -297,20 +307,18 @@ def parse_equip(item_dict):
     item_type = get_item_type(item_dict)
     item_attr = {}
 
-    if   item_type == '头盔': item_attr = parse_attr_helmet  (item_dict)
-    elif item_type == '项链': item_attr = parse_attr_necklace(item_dict)
-    elif item_type == '手镯': item_attr = parse_attr_armring (item_dict)
-    elif item_type == '戒指': item_attr = parse_attr_ring    (item_dict)
-    elif item_type == '勋章': item_attr = parse_attr_medal   (item_dict)
-    elif item_type == '衣服': item_attr = parse_attr_cloth   (item_dict)
-    elif item_type == '武器': item_attr = parse_attr_weapon  (item_dict)
-    else: raise ValueError(item_dict['name'], item_type)
-
-    if not item_attr:
-        return
-
     print('    .equip')
     print('    {')
+    print('        .duration = %d,' % max(1, item_dict['duramax'] // 1000))
+
+    if   item_type == '头盔': item_attr = parse_equip_attr_helmet  (item_dict)
+    elif item_type == '项链': item_attr = parse_equip_attr_necklace(item_dict)
+    elif item_type == '手镯': item_attr = parse_equip_attr_armring (item_dict)
+    elif item_type == '戒指': item_attr = parse_equip_attr_ring    (item_dict)
+    elif item_type == '勋章': item_attr = parse_equip_attr_medal   (item_dict)
+    elif item_type == '衣服': item_attr = parse_equip_attr_cloth   (item_dict)
+    elif item_type == '武器': item_attr = parse_equip_attr_weapon  (item_dict)
+    else: raise ValueError(item_dict['name'], item_type)
 
     if 'dc' in item_attr:
         print('        .dc = {%d, %d},' % (item_attr['dc'][0], item_attr['dc'][1]))
