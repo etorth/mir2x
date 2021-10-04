@@ -502,6 +502,9 @@ def parse_item(item_dict):
 
 
 def parse_stditem(filename):
+    print('{},')
+    print()
+
     with open(filename, newline='') as csvfile:
         item_reader = csv.reader(csvfile)
         header = None
@@ -517,7 +520,8 @@ def parse_stditem(filename):
                 elif i == 1: item_dict[header[i].lower()] = item_row[i]
                 else       : item_dict[header[i].lower()] = int(item_row[i])
 
-            item_list.append(item_dict)
+            if item_dict['name'] not in ['金币']:
+                item_list.append(item_dict)
 
         for item_dict in sorted(item_list, key = lambda item_dict: (item_dict['looks'], item_dict['stdmode'], item_dict['shape'])):
             parse_item(item_dict)
