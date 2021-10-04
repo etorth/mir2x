@@ -65,6 +65,8 @@ def get_item_type(item_dict):
         return '兑换券'
     elif item_dict['stdmode'] == 53:
         return '鞋'
+    elif item_dict['stdmode'] == 54:
+        return '标枪'
     return '道具'
 
 
@@ -354,6 +356,17 @@ def parse_equip_attr_weapon(item_dict):
     return item_attr
 
 
+def parse_equip_attr_javelin(item_dict):
+    item_attr = {}
+    if item_dict['dc'] > 0 or item_dict['dc2'] > 0:
+        item_attr['dc'] = [item_dict['dc'], item_dict['dc2']]
+
+    if item_dict['ac2'] > 0:
+        item_attr['hit'] = item_dict['ac2']
+
+    return item_attr
+
+
 def parse_equip(item_dict):
     item_type = get_item_type(item_dict)
     item_attr = {}
@@ -370,6 +383,7 @@ def parse_equip(item_dict):
     elif item_type == '衣服': item_attr = parse_equip_attr_cloth   (item_dict)
     elif item_type == '鞋'  : item_attr = parse_equip_attr_boot    (item_dict)
     elif item_type == '武器': item_attr = parse_equip_attr_weapon  (item_dict)
+    elif item_type == '标枪': item_attr = parse_equip_attr_javelin (item_dict)
     else: raise ValueError(item_dict['name'], item_type)
 
     if 'dc' in item_attr:
@@ -480,7 +494,7 @@ def parse_item(item_dict):
         parse_dope(item_dict)
     elif item_type == '技能书':
         parse_book(item_dict)
-    elif item_type in ['头盔', '项链', '手镯', '戒指', '勋章', '衣服', '武器', '鞋']:
+    elif item_type in ['头盔', '项链', '手镯', '戒指', '勋章', '衣服', '武器', '鞋', '标枪']:
         parse_equip(item_dict)
 
     print('},')
