@@ -116,10 +116,10 @@ def parse_dope(item_dict):
         print('        .dc = %d,' % item_dict['dc'])
 
     if item_dict['mc'] > 0:
-        print('        .mdc = %d,' % item_dict['mc'])
+        print('        .mc = %d,' % item_dict['mc'])
 
     if item_dict['sac'] > 0:
-        print('        .sdc = %d,' % item_dict['sac'])
+        print('        .sc = %d,' % item_dict['sac'])
 
     if item_dict['ac2'] > 0:
         print('        .speed = %d,' % item_dict['ac2'])
