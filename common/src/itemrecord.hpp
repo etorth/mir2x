@@ -36,6 +36,19 @@ struct ItemRecord
         const int hpRecover = 0;
         const int mpRecover = 0;
 
+        const int luckCurse = 0;
+
+        const struct AddElem
+        {
+            const int fire  = 0;
+            const int ice   = 0;
+            const int light = 0;
+            const int wind  = 0;
+            const int holy  = 0;
+            const int dark  = 0;
+        }
+        elem {};
+
         const struct AddLoad
         {
             const int hand      = 0;
