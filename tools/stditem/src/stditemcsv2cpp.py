@@ -152,10 +152,6 @@ def parse_equip_attr_helmet(item_dict):
     if item_dict['mac2'] > 0:
         item_attr['speed'] = -item_dict['mac2']
 
-    if item_dict['source'] > 0:
-        item_attr['elem'] = {}
-        item_attr['elem']['holy'] = item_dict['source']
-
     return item_attr
 
 
@@ -229,10 +225,6 @@ def parse_equip_attr_ring(item_dict):
     if item_dict['mac2'] > 0:
         item_attr['speed'] = -item_dict['mac2']
 
-    if item_dict['source'] > 0:
-        item_attr['elem'] = {}
-        item_attr['elem']['holy'] = item_dict['source']
-
     return item_attr
 
 
@@ -296,10 +288,6 @@ def parse_equip_attr_weapon(item_dict):
     if item_dict['mac2'] > 0:
         item_attr['speed'] = -item_dict['mac2']
 
-    if item_dict['source'] > 0:
-        item_attr['elem'] = {}
-        item_attr['elem']['holy'] = item_dict['source']
-
     return item_attr
 
 
@@ -359,29 +347,20 @@ def parse_equip(item_dict):
     if 'luckCurse' in item_attr:
         print('        .luckCurse = %d,' % item_attr['luckCurse'])
 
-    if 'elem' in item_attr:
+    if item_dict['func_type'] > 0:
         print('        .elem')
         print('        {')
 
-        if 'fire' in item_attr['elem']:
-            print('            .fire = %d' % item_attr['elem']['fire'])
+        if   item_dict['func_type'] == 1: print('            .fire = %d,'    % item_dict['func'])
+        elif item_dict['func_type'] == 2: print('            .ice = %d,'     % item_dict['func'])
+        elif item_dict['func_type'] == 3: print('            .light = %d,'   % item_dict['func'])
+        elif item_dict['func_type'] == 4: print('            .wind = %d,'    % item_dict['func'])
+        elif item_dict['func_type'] == 5: print('            .holy = %d,'    % item_dict['func'])
+        elif item_dict['func_type'] == 6: print('            .dark = %d,'    % item_dict['func'])
+        elif item_dict['func_type'] == 7: print('            .phantom = %d,' % item_dict['func'])
+        else                            : pass
 
-        if 'ice' in item_attr['elem']:
-            print('            .ice = %d' % item_attr['elem']['ice'])
-
-        if 'light' in item_attr['elem']:
-            print('            .light = %d' % item_attr['elem']['light'])
-
-        if 'wind' in item_attr['elem']:
-            print('            .wind = %d' % item_attr['elem']['wind'])
-
-        if 'holy' in item_attr['elem']:
-            print('            .holy = %d' % item_attr['elem']['holy'])
-
-        if 'dark' in item_attr['elem']:
-            print('            .dark = %d' % item_attr['elem']['dark'])
-
-        print('        }')
+        print('        },')
 
     if 'load' in item_attr:
         print('        .load')
@@ -396,7 +375,7 @@ def parse_equip(item_dict):
         if 'inventory' in item_attr['load']:
             print('            .inventory = %d' % item_attr['load']['inventory'])
 
-        print('        }')
+        print('        },')
 
     parse_equip_require(item_dict)
     print('    },')
