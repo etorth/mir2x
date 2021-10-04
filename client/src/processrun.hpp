@@ -332,6 +332,7 @@ class ProcessRun: public Process
 
     public:
         void RequestKillPets();
+        void requestAddExp(uint64_t);
         bool requestSpaceMove(uint32_t, int, int);
 
     public:

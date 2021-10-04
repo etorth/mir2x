@@ -208,25 +208,26 @@ void Player::operateNet(uint8_t nType, const uint8_t *pData, size_t nDataLen)
 {
     switch(nType){
 #define _support_cm(cm) case cm: net_##cm(nType, pData, nDataLen); break
-        _support_cm(CM_QUERYCORECORD           );
-        _support_cm(CM_REQUESTKILLPETS         );
-        _support_cm(CM_REQUESTSPACEMOVE        );
+        _support_cm(CM_QUERYCORECORD             );
+        _support_cm(CM_REQUESTADDEXP             );
+        _support_cm(CM_REQUESTKILLPETS           );
+        _support_cm(CM_REQUESTSPACEMOVE          );
         _support_cm(CM_REQUESTRETRIEVESECUREDITEM);
-        _support_cm(CM_ACTION                  );
-        _support_cm(CM_PICKUP                  );
-        _support_cm(CM_PING                    );
-        _support_cm(CM_CONSUMEITEM             );
-        _support_cm(CM_BUY                     );
-        _support_cm(CM_QUERYGOLD               );
-        _support_cm(CM_NPCEVENT                );
-        _support_cm(CM_QUERYSELLITEMLIST       );
-        _support_cm(CM_QUERYPLAYERWLDESP       );
-        _support_cm(CM_REQUESTEQUIPWEAR        );
-        _support_cm(CM_REQUESTGRABWEAR         );
-        _support_cm(CM_REQUESTEQUIPBELT        );
-        _support_cm(CM_REQUESTGRABBELT         );
-        _support_cm(CM_DROPITEM                );
-        _support_cm(CM_SETMAGICKEY             );
+        _support_cm(CM_ACTION                    );
+        _support_cm(CM_PICKUP                    );
+        _support_cm(CM_PING                      );
+        _support_cm(CM_CONSUMEITEM               );
+        _support_cm(CM_BUY                       );
+        _support_cm(CM_QUERYGOLD                 );
+        _support_cm(CM_NPCEVENT                  );
+        _support_cm(CM_QUERYSELLITEMLIST         );
+        _support_cm(CM_QUERYPLAYERWLDESP         );
+        _support_cm(CM_REQUESTEQUIPWEAR          );
+        _support_cm(CM_REQUESTGRABWEAR           );
+        _support_cm(CM_REQUESTEQUIPBELT          );
+        _support_cm(CM_REQUESTGRABBELT           );
+        _support_cm(CM_DROPITEM                  );
+        _support_cm(CM_SETMAGICKEY               );
         default: break;
 #undef _support_cm
     }

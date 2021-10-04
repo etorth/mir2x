@@ -1106,6 +1106,12 @@ void ProcessRun::RegisterUserCommand()
         return 0;
     });
 
+    m_userCommandList.emplace_back("addExp", [this](const std::vector<std::string> &parms) -> int
+    {
+        requestAddExp(to_u64(std::stol(parms.at(1))));
+        return 0;
+    });
+
     m_userCommandList.emplace_back("help", [this](const std::vector<std::string> &) -> int
     {
         for(const auto &cmd: m_userCommandList){
@@ -1518,6 +1524,17 @@ void ProcessRun::requestRemoveSecuredItem(uint32_t itemID, uint32_t seqID)
 void ProcessRun::RequestKillPets()
 {
     g_client->send(CM_REQUESTKILLPETS);
+}
+
+void ProcessRun::requestAddExp(uint64_t exp)
+{
+    if(exp){
+        CMRequestAddExp cmRAE;
+        std::memset(&cmRAE, 0, sizeof(cmRAE));
+
+        cmRAE.addExp = exp;
+        g_client->send(CM_REQUESTADDEXP, cmRAE);
+    }
 }
 
 void ProcessRun::queryCORecord(uint64_t nUID) const

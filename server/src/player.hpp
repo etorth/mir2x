@@ -125,6 +125,7 @@ class Player final: public CharObject
         void on_AM_QUERYPLAYERWLDESP(const ActorMsgPack &);
 
     private:
+        void net_CM_REQUESTADDEXP           (uint8_t, const uint8_t *, size_t);
         void net_CM_REQUESTKILLPETS         (uint8_t, const uint8_t *, size_t);
         void net_CM_REQUESTSPACEMOVE        (uint8_t, const uint8_t *, size_t);
         void net_CM_REQUESTMAGICDAMAGE      (uint8_t, const uint8_t *, size_t);

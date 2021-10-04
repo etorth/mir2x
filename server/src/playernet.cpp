@@ -95,6 +95,12 @@ void Player::net_CM_REQUESTMAGICDAMAGE(uint8_t, const uint8_t *buf, size_t)
     dispatchAttackDamage(cmRMD.aimUID, DBCOM_MAGICID(u8"物理攻击"));
 }
 
+void Player::net_CM_REQUESTADDEXP(uint8_t, const uint8_t *buf, size_t)
+{
+    const auto cmRAE = ClientMsg::conv<CMRequestAddExp>(buf);
+    gainExp(to_d(cmRAE.addExp));
+}
+
 void Player::net_CM_REQUESTKILLPETS(uint8_t, const uint8_t *, size_t)
 {
     RequestKillPets();
