@@ -382,6 +382,9 @@ def parse_equip(item_dict):
 
         print('        },')
 
+    # seems all sac2 are zeros
+    # only 头盔 has sac non-zero, this means only 头盔 can add acElem?
+
     if item_type == '头盔' and item_dict['sac'] > 0:
         print('        .acElem')
         print('        {')
