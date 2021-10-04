@@ -84,44 +84,72 @@ std::u8string SDItem::getXMLLayout() const
         xmlStr += str_printf(u8R"###( <par>魔防 %d - %d</par> )###""\n", ir.equip.mac[0], ir.equip.mac[1]);
     }
 
-    if(ir.equip.hit > 0){
-        xmlStr += str_printf(u8R"###( <par>准确 %d</par> )###""\n", ir.equip.hit);
+    if(ir.equip.hit){
+        xmlStr += str_printf(u8R"###( <par>准确 %+d</par> )###""\n", ir.equip.hit);
     }
 
-    if(ir.equip.dcDodge > 0){
-        xmlStr += str_printf(u8R"###( <par>闪避 %d</par> )###""\n", ir.equip.dcDodge);
+    if(ir.equip.dcDodge){
+        xmlStr += str_printf(u8R"###( <par>闪避 %+d</par> )###""\n", ir.equip.dcDodge);
     }
 
-    if(ir.equip.mcDodge > 0){
-        xmlStr += str_printf(u8R"###( <par>魔法闪避 %d</par> )###""\n", ir.equip.mcDodge);
+    if(ir.equip.mcDodge){
+        xmlStr += str_printf(u8R"###( <par>魔法闪避 %+d</par> )###""\n", ir.equip.mcDodge);
     }
 
-    if(ir.equip.speed > 0){
-        xmlStr += str_printf(u8R"###( <par>速度 %d</par> )###""\n", ir.equip.speed);
+    if(ir.equip.speed){
+        xmlStr += str_printf(u8R"###( <par>速度 %+d</par> )###""\n", ir.equip.speed);
     }
 
-    if(ir.equip.comfort > 0){
-        xmlStr += str_printf(u8R"###( <par>舒适度 %d</par> )###""\n", ir.equip.comfort);
+    if(ir.equip.comfort){
+        xmlStr += str_printf(u8R"###( <par>舒适度 %+d</par> )###""\n", ir.equip.comfort);
     }
 
-    if(ir.equip.hpRecover > 0){
-        xmlStr += str_printf(u8R"###( <par>生命恢复 %d</par> )###""\n", ir.equip.hpRecover);
+    if(ir.equip.hpRecover){
+        xmlStr += str_printf(u8R"###( <par>生命恢复 %+d</par> )###""\n", ir.equip.hpRecover);
     }
 
-    if(ir.equip.mpRecover > 0){
-        xmlStr += str_printf(u8R"###( <par>魔法恢复 %d</par> )###""\n", ir.equip.mpRecover);
+    if(ir.equip.mpRecover){
+        xmlStr += str_printf(u8R"###( <par>魔法恢复 %+d</par> )###""\n", ir.equip.mpRecover);
     }
 
-    if(ir.equip.load.hand > 0){
-        xmlStr += str_printf(u8R"###( <par>手负重 %d</par> )###""\n", ir.equip.load.hand);
+    if(ir.equip.luckCurse){
+        xmlStr += str_printf(u8R"###( <par>%s %+d</par> )###""\n", ir.equip.luckCurse > 0 ? u8"幸运" : u8"诅咒", std::abs(ir.equip.luckCurse));
     }
 
-    if(ir.equip.load.body > 0){
-        xmlStr += str_printf(u8R"###( <par>身体负重 %d</par> )###""\n", ir.equip.load.body);
+    if(ir.equip.dcElem.fire    > 0){ xmlStr += str_printf(u8R"###( <par color='green'>攻击元素：火 %+d</par> )###""\n",   ir.equip.dcElem.fire   ); }
+    if(ir.equip.dcElem.ice     > 0){ xmlStr += str_printf(u8R"###( <par color='green'>攻击元素：冰 %+d</par> )###""\n",   ir.equip.dcElem.ice    ); }
+    if(ir.equip.dcElem.light   > 0){ xmlStr += str_printf(u8R"###( <par color='green'>攻击元素：雷 %+d</par> )###""\n",   ir.equip.dcElem.light  ); }
+    if(ir.equip.dcElem.wind    > 0){ xmlStr += str_printf(u8R"###( <par color='green'>攻击元素：风 %+d</par> )###""\n",   ir.equip.dcElem.wind   ); }
+    if(ir.equip.dcElem.holy    > 0){ xmlStr += str_printf(u8R"###( <par color='green'>攻击元素：神圣 %+d</par> )###""\n", ir.equip.dcElem.holy   ); }
+    if(ir.equip.dcElem.dark    > 0){ xmlStr += str_printf(u8R"###( <par color='green'>攻击元素：暗黑 %+d</par> )###""\n", ir.equip.dcElem.dark   ); }
+    if(ir.equip.dcElem.phantom > 0){ xmlStr += str_printf(u8R"###( <par color='green'>攻击元素：幻影 %+d</par> )###""\n", ir.equip.dcElem.phantom); }
+
+    if(ir.equip.acElem.fire    > 0){ xmlStr += str_printf(u8R"###( <par color='green'>强防元素：火 %+d</par> )###""\n",   ir.equip.acElem.fire   ); }
+    if(ir.equip.acElem.ice     > 0){ xmlStr += str_printf(u8R"###( <par color='green'>强防元素：冰 %+d</par> )###""\n",   ir.equip.acElem.ice    ); }
+    if(ir.equip.acElem.light   > 0){ xmlStr += str_printf(u8R"###( <par color='green'>强防元素：雷 %+d</par> )###""\n",   ir.equip.acElem.light  ); }
+    if(ir.equip.acElem.wind    > 0){ xmlStr += str_printf(u8R"###( <par color='green'>强防元素：风 %+d</par> )###""\n",   ir.equip.acElem.wind   ); }
+    if(ir.equip.acElem.holy    > 0){ xmlStr += str_printf(u8R"###( <par color='green'>强防元素：神圣 %+d</par> )###""\n", ir.equip.acElem.holy   ); }
+    if(ir.equip.acElem.dark    > 0){ xmlStr += str_printf(u8R"###( <par color='green'>强防元素：暗黑 %+d</par> )###""\n", ir.equip.acElem.dark   ); }
+    if(ir.equip.acElem.phantom > 0){ xmlStr += str_printf(u8R"###( <par color='green'>强防元素：幻影 %+d</par> )###""\n", ir.equip.acElem.phantom); }
+
+    if(ir.equip.acElem.fire    < 0){ xmlStr += str_printf(u8R"###( <par color='red'>弱防元素：火 %+d</par> )###""\n",   std::abs(ir.equip.acElem.fire   )); }
+    if(ir.equip.acElem.ice     < 0){ xmlStr += str_printf(u8R"###( <par color='red'>弱防元素：冰 %+d</par> )###""\n",   std::abs(ir.equip.acElem.ice    )); }
+    if(ir.equip.acElem.light   < 0){ xmlStr += str_printf(u8R"###( <par color='red'>弱防元素：雷 %+d</par> )###""\n",   std::abs(ir.equip.acElem.light  )); }
+    if(ir.equip.acElem.wind    < 0){ xmlStr += str_printf(u8R"###( <par color='red'>弱防元素：风 %+d</par> )###""\n",   std::abs(ir.equip.acElem.wind   )); }
+    if(ir.equip.acElem.holy    < 0){ xmlStr += str_printf(u8R"###( <par color='red'>弱防元素：神圣 %+d</par> )###""\n", std::abs(ir.equip.acElem.holy   )); }
+    if(ir.equip.acElem.dark    < 0){ xmlStr += str_printf(u8R"###( <par color='red'>弱防元素：暗黑 %+d</par> )###""\n", std::abs(ir.equip.acElem.dark   )); }
+    if(ir.equip.acElem.phantom < 0){ xmlStr += str_printf(u8R"###( <par color='red'>弱防元素：幻影 %+d</par> )###""\n", std::abs(ir.equip.acElem.phantom)); }
+
+    if(ir.equip.load.hand){
+        xmlStr += str_printf(u8R"###( <par>手负重 %+d</par> )###""\n", ir.equip.load.hand);
     }
 
-    if(ir.equip.load.inventory > 0){
-        xmlStr += str_printf(u8R"###( <par>包裹负重 %d</par> )###""\n", ir.equip.load.inventory);
+    if(ir.equip.load.body){
+        xmlStr += str_printf(u8R"###( <par>身体负重 %+d</par> )###""\n", ir.equip.load.body);
+    }
+
+    if(ir.equip.load.inventory){
+        xmlStr += str_printf(u8R"###( <par>包裹负重 %+d</par> )###""\n", ir.equip.load.inventory);
     }
 
     if(ir.equip.req.dc > 0){

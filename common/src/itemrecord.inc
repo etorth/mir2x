@@ -3306,6 +3306,10 @@
     .equip
     {
         .duration = 5,
+        .dcElem
+        {
+            .fire = 2,
+        },
     },
 },
 
