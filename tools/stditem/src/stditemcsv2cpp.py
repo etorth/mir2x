@@ -63,6 +63,8 @@ def get_item_type(item_dict):
         return '道具'
     elif item_dict['stdmode'] == 50:
         return '兑换券'
+    elif item_dict['stdmode'] == 53:
+        return '鞋'
     return '道具'
 
 
@@ -157,17 +159,6 @@ def parse_equip_attr_helmet(item_dict):
 
 def parse_equip_attr_necklace(item_dict):
     item_attr = {}
-    if item_dict['stdmode'] == 19:
-        item_attr['mcDodge'] = item_dict['ac2']
-        item_attr['luckCurse'] = item_dict['mac'] - item_dict['mac2']
-    elif item_dict['stdmode'] == 20:
-        item_attr['hit'] = item_dict['ac2']
-        item_attr['dcDodge'] = item_dict['mac2']
-    elif item_dict['stdmode'] == 21:
-        item_attr['speed'] = item_dict['ac'] - item_dict['mac']
-        item_attr['hpRecover'] = item_dict['ac2']
-        item_attr['mpRecover'] = item_dict['mac2']
-
     if item_dict['dc'] > 0 or item_dict['dc2'] > 0:
         item_attr['dc'] = [item_dict['dc'], item_dict['dc2']]
 
@@ -177,6 +168,38 @@ def parse_equip_attr_necklace(item_dict):
 
         if item_dict['mc_type'] in [0, 2]:
             item_attr['sc'] = [item_dict['mc'], item_dict['mc2']]
+
+    if item_dict['stdmode'] == 19:
+        if item_dict['ac2'] > 0:
+            item_attr['mcDodge'] = item_dict['ac2']
+        if item_dict['mac2'] > 0:
+            item_attr['luckCurse'] = item_dict['mac2']
+
+    elif item_dict['stdmode'] == 20:
+        if item_dict['ac2'] > 0:
+            item_attr['hit'] = item_dict['ac2']
+
+        # for 神勇之物 mac is 1, but seems game doesn't use it
+        # all others of necklace has mac as zero
+
+        # also for 神勇之物 mac2 is 1 but looks the game take its dcDodge as 0
+        # this is strange, but we still take it as dcDodge
+
+        # and for dc, 神勇之物 is 7 but in game it's only 1
+        # ok I think 神勇之物 is not using this row in the csv database
+
+        if item_dict['mac2'] > 0:
+            item_attr['dcDodge'] = item_dict['mac2']
+
+    elif item_dict['stdmode'] == 21:
+        if item_dict['ac'] > 0:
+            item_attr['speed'] = item_dict['ac']
+
+        if item_dict['ac2'] > 0:
+            item_attr['hpRecover'] = item_dict['ac2']
+
+        if item_dict['mac2'] > 0:
+            item_attr['mpRecover'] = item_dict['mac2']
 
     return item_attr
 
@@ -191,7 +214,6 @@ def parse_equip_attr_armring(item_dict):
             item_attr['dcDodge'] = item_dict['mac2']
 
     elif item_dict['stdmode'] == 26:
-
         if item_dict['ac'] > 0 or item_dict['ac2'] > 0:
             item_attr['ac'] = [item_dict['ac'], item_dict['ac2']]
 
@@ -215,40 +237,44 @@ def parse_equip_attr_armring(item_dict):
 
 def parse_equip_attr_ring(item_dict):
     item_attr = {}
-    if item_dict['dc'] > 0 or item_dict['dc2'] > 0:
-        item_attr['dc'] = [item_dict['dc'], item_dict['dc2']]
+    if item_dict['stdmode'] == 22:
+        # explain all fields as cloth does
+        # means column name means what it literlly means
+        return parse_equip_attr_cloth(item_dict)
 
-    if item_dict['ac2'] > 0:
-        item_attr['hit'] = item_dict['ac2']
+    elif item_dict['stdmode'] == 23:
+        if item_dict['dc'] > 0 or item_dict['dc2'] > 0:
+            item_attr['dc'] = [item_dict['dc'], item_dict['dc2']]
 
-    if item_dict['ac'] > 0 or item_dict['mac'] != 0:
-        item_attr['luckCurse'] = item_dict['ac'] - item_dict['mac']
+        if item_dict['mc'] > 0 or item_dict['mc2'] > 0:
+            if item_dict['mc_type'] in [0, 1]:
+                item_attr['mc'] = [item_dict['mc'], item_dict['mc2']]
 
-    if item_dict['mac2'] > 0:
-        item_attr['speed'] = -item_dict['mac2']
+            if item_dict['mc_type'] in [0, 2]:
+                item_attr['sc'] = [item_dict['mc'], item_dict['mc2']]
+        if item_dict['ac'] > 0:
+            item_attr['speed'] = item_dict['ac']
+
+        # TODO not sure if I should ignore ac2
+        # because actually for those rings with nonzer ac2, the game doesn't support
+
+        if item_dict['ac2'] > 0:
+            item_attr['hit'] = item_dict['ac2']
+
+        # TODO not sure if I should ignore mac2
+        # because actually for those rings with nonzer mac2, the game doesn't support
+
+        if item_dict['mac2'] > 0:
+            item_attr['dcDodge'] = item_dict['mac2']
+
+    else:
+        pass
 
     return item_attr
 
 
 def parse_equip_attr_medal(item_dict):
-    item_attr = {}
-    if item_dict['dc'] > 0 or item_dict['dc2'] > 0:
-        item_attr['dc'] = [item_dict['dc'], item_dict['dc2']]
-
-    if item_dict['mc'] > 0 or item_dict['mc2'] > 0:
-        if item_dict['mc_type'] in [0, 1]:
-            item_attr['mc'] = [item_dict['mc'], item_dict['mc2']]
-
-        if item_dict['mc_type'] in [0, 2]:
-            item_attr['sc'] = [item_dict['mc'], item_dict['mc2']]
-
-    if item_dict['ac'] > 0 or item_dict['ac2'] > 0:
-        item_attr['ac'] = [item_dict['ac'], item_dict['ac2']]
-
-    if item_dict['mac'] > 0 or item_dict['mac2'] > 0:
-        item_attr['mac'] = [item_dict['mac'], item_dict['mac2']]
-
-    return item_attr
+    return parse_equip_attr_cloth(item_dict)
 
 
 def parse_equip_attr_cloth(item_dict):
@@ -268,6 +294,23 @@ def parse_equip_attr_cloth(item_dict):
 
     if item_dict['mac'] > 0 or item_dict['mac2'] > 0:
         item_attr['mac'] = [item_dict['mac'], item_dict['mac2']]
+
+    return item_attr
+
+
+def parse_equip_attr_boot(item_dict):
+    item_attr = {}
+    if item_dict['dc'] > 0:
+        item_attr['comfort'] = item_dict['dc']
+
+    if item_dict['mc'] > 0 or item_dict['mc2'] > 0:
+        item_attr['load'] = {}
+
+        if item_dict['mc'] > 0:
+            item_attr['load']['body'] = item_dict['mc']
+
+        if item_dict['mc2'] > 0:
+            item_attr['load']['hand'] = item_dict['mc2']
 
     return item_attr
 
@@ -325,6 +368,7 @@ def parse_equip(item_dict):
     elif item_type == '戒指': item_attr = parse_equip_attr_ring    (item_dict)
     elif item_type == '勋章': item_attr = parse_equip_attr_medal   (item_dict)
     elif item_type == '衣服': item_attr = parse_equip_attr_cloth   (item_dict)
+    elif item_type == '鞋'  : item_attr = parse_equip_attr_boot    (item_dict)
     elif item_type == '武器': item_attr = parse_equip_attr_weapon  (item_dict)
     else: raise ValueError(item_dict['name'], item_type)
 
@@ -405,13 +449,13 @@ def parse_equip(item_dict):
         print('        {')
 
         if 'hand' in item_attr['load']:
-            print('            .hand = %d' % item_attr['load']['hand'])
+            print('            .hand = %d,' % item_attr['load']['hand'])
 
         if 'body' in item_attr['load']:
-            print('            .body = %d' % item_attr['load']['body'])
+            print('            .body = %d,' % item_attr['load']['body'])
 
         if 'inventory' in item_attr['load']:
-            print('            .inventory = %d' % item_attr['load']['inventory'])
+            print('            .inventory = %d,' % item_attr['load']['inventory'])
 
         print('        },')
 
@@ -436,7 +480,7 @@ def parse_item(item_dict):
         parse_dope(item_dict)
     elif item_type == '技能书':
         parse_book(item_dict)
-    elif item_type in ['头盔', '项链', '手镯', '戒指', '勋章', '衣服', '武器']:
+    elif item_type in ['头盔', '项链', '手镯', '戒指', '勋章', '衣服', '武器', '鞋']:
         parse_equip(item_dict)
 
     print('},')
