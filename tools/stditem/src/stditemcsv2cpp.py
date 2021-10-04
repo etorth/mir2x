@@ -172,9 +172,10 @@ def parse_equip_attr_necklace(item_dict):
         item_attr['dc'] = [item_dict['dc'], item_dict['dc2']]
 
     if item_dict['mc'] > 0 or item_dict['mc2'] > 0:
-        if item_dict['mc_type'] == 1:
+        if item_dict['mc_type'] in [0, 1]:
             item_attr['mc'] = [item_dict['mc'], item_dict['mc2']]
-        elif item_dict['mc_type'] == 2:
+
+        if item_dict['mc_type'] in [0, 2]:
             item_attr['sc'] = [item_dict['mc'], item_dict['mc2']]
 
     return item_attr
@@ -203,9 +204,10 @@ def parse_equip_attr_armring(item_dict):
         item_attr['dc'] = [item_dict['dc'], item_dict['dc2']]
 
     if item_dict['mc'] > 0 or item_dict['mc2'] > 0:
-        if item_dict['mc_type'] == 1:
+        if item_dict['mc_type'] in [0, 1]:
             item_attr['mc'] = [item_dict['mc'], item_dict['mc2']]
-        elif item_dict['mc_type'] == 2:
+
+        if item_dict['mc_type'] in [0, 2]:
             item_attr['sc'] = [item_dict['mc'], item_dict['mc2']]
 
     return item_attr
@@ -234,9 +236,10 @@ def parse_equip_attr_medal(item_dict):
         item_attr['dc'] = [item_dict['dc'], item_dict['dc2']]
 
     if item_dict['mc'] > 0 or item_dict['mc2'] > 0:
-        if item_dict['mc_type'] == 1:
+        if item_dict['mc_type'] in [0, 1]:
             item_attr['mc'] = [item_dict['mc'], item_dict['mc2']]
-        elif item_dict['mc_type'] == 2:
+
+        if item_dict['mc_type'] in [0, 2]:
             item_attr['sc'] = [item_dict['mc'], item_dict['mc2']]
 
     if item_dict['ac'] > 0 or item_dict['ac2'] > 0:
@@ -254,9 +257,10 @@ def parse_equip_attr_cloth(item_dict):
         item_attr['dc'] = [item_dict['dc'], item_dict['dc2']]
 
     if item_dict['mc'] > 0 or item_dict['mc2'] > 0:
-        if item_dict['mc_type'] == 1:
+        if item_dict['mc_type'] in [0, 1]:
             item_attr['mc'] = [item_dict['mc'], item_dict['mc2']]
-        elif item_dict['mc_type'] == 2:
+
+        if item_dict['mc_type'] in [0, 2]:
             item_attr['sc'] = [item_dict['mc'], item_dict['mc2']]
 
     if item_dict['ac'] > 0 or item_dict['ac2'] > 0:
@@ -274,19 +278,35 @@ def parse_equip_attr_weapon(item_dict):
         item_attr['dc'] = [item_dict['dc'], item_dict['dc2']]
 
     if item_dict['mc'] > 0 or item_dict['mc2'] > 0:
-        if item_dict['mc_type'] == 1:
+        if item_dict['mc_type'] in [0, 1]:
             item_attr['mc'] = [item_dict['mc'], item_dict['mc2']]
-        elif item_dict['mc_type'] == 2:
+
+        if item_dict['mc_type'] in [0, 2]:
             item_attr['sc'] = [item_dict['mc'], item_dict['mc2']]
 
-    if item_dict['ac2'] > 0:
-        item_attr['hit'] = item_dict['ac2']
+    if item_dict['stdmode'] == 5:
+        if item_dict['ac2'] > 0:
+            item_attr['hit'] = item_dict['ac2']
 
-    if item_dict['ac'] > 0 or item_dict['mac'] != 0:
-        item_attr['luckCurse'] = item_dict['ac'] - item_dict['mac']
+        if item_dict['mac2'] > 10:
+            item_attr['speed'] = item_dict['mac2'] - 10
+        elif item_dict['mac2'] > 0:
+            pass # only 寂幻之刃 has value 3, but looks it doesn't show in the game, looks ignored
 
-    if item_dict['mac2'] > 0:
-        item_attr['speed'] = -item_dict['mac2']
+
+    elif item_dict['stdmode'] == 6:
+        if item_dict['ac2'] > 100:
+            item_attr['hit'] = 100 - item_dict['ac2'] # negative, only 风之鹤嘴锄 has this negative attribute
+        elif item_dict['ac2'] > 0:
+            item_attr['hit'] = item_dict['ac2']
+
+        if item_dict['mac2'] > 10:
+            item_attr['speed'] = item_dict['mac2'] - 10
+        elif item_dict['mac2'] > 0:
+            item_attr['speed'] = -item_dict['mac2']
+
+    else:
+        pass
 
     return item_attr
 
@@ -348,7 +368,7 @@ def parse_equip(item_dict):
         print('        .luckCurse = %d,' % item_attr['luckCurse'])
 
     if item_dict['func_type'] > 0:
-        print('        .elem')
+        print('        .dcElem')
         print('        {')
 
         if   item_dict['func_type'] == 1: print('            .fire = %d,'    % item_dict['func'])
@@ -359,6 +379,21 @@ def parse_equip(item_dict):
         elif item_dict['func_type'] == 6: print('            .dark = %d,'    % item_dict['func'])
         elif item_dict['func_type'] == 7: print('            .phantom = %d,' % item_dict['func'])
         else                            : pass
+
+        print('        },')
+
+    if item_type == '头盔' and item_dict['sac'] > 0:
+        print('        .acElem')
+        print('        {')
+
+        if   item_dict['sac'] == 1: print('            .fire = 1,')
+        elif item_dict['sac'] == 2: print('            .ice = 1,')
+        elif item_dict['sac'] == 3: print('            .light = 1,')
+        elif item_dict['sac'] == 4: print('            .wind = 1,')
+        elif item_dict['sac'] == 5: print('            .holy = 1,')
+        elif item_dict['sac'] == 6: print('            .dark = 1,')
+        elif item_dict['sac'] == 7: print('            .phantom = 1,')
+        else                      : pass
 
         print('        },')
 

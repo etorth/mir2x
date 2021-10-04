@@ -38,7 +38,7 @@ struct ItemRecord
 
         const int luckCurse = 0;
 
-        const struct AddElem
+        struct AddElem
         {
             const int fire    = 0;
             const int ice     = 0;
@@ -47,8 +47,10 @@ struct ItemRecord
             const int holy    = 0;
             const int dark    = 0;
             const int phantom = 0;
-        }
-        elem {};
+        };
+
+        const AddElem dcElem {};
+        const AddElem acElem {};
 
         const struct AddLoad
         {
