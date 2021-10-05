@@ -22,6 +22,7 @@ def get_item_rename(item_index, item_name):
     elif item_index == 201 : return '韩服（男）_0' # <- 韩服（男）
     elif item_index == 343 : return '韩服（男）_1' # <- 韩服（男）, same name and gfx, but with different attributes
     elif item_index == 379 : return '沃玛号角_1'   # <- 沃玛勇士号角
+    elif item_index == 557 : return '栗子_0'       # <- 栗子2
     elif item_index == 558 : return '栗子_1'       # <- 栗子2
     elif item_index == 559 : return '栗子_2'       # <- 栗子3
     elif item_index == 560 : return '栗子_3'       # <- 栗子4
