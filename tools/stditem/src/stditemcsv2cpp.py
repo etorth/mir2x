@@ -490,8 +490,8 @@ def parse_item(item_dict):
             print('    .shape = %d,' % item_dict['shape'])
 
     elif item_type == '武器':
-        # looks all has a shape field
-        # but some field actually has no gfx, i.e. 飞龙剑
+        # looks all weapons have non-zero number associted to 'shape' field
+        # but some numbers are not mapped to the exact weapon, i.e. 飞龙剑, it uses shape = 14, which is also used by 井中月 and 生死宝刀
         print('    .shape = %d,' % item_dict['shape'])
 
     if item_type == '恢复药水':
