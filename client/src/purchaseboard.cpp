@@ -16,6 +16,7 @@
  * =====================================================================================
  */
 
+#include "totype.hpp"
 #include "client.hpp"
 #include "pngtexdb.hpp"
 #include "sdldevice.hpp"
@@ -330,7 +331,7 @@ void PurchaseBoard::drawEx(int dstX, int dstY, int, int, int, int) const
 
     for(size_t startIndex = getStartIndex(), i = startIndex; i < std::min<size_t>(m_itemList.size(), startIndex + 4); ++i){
         if(const auto &ir = DBCOM_ITEMRECORD(m_itemList[i])){
-            if(auto texPtr = g_itemDB->retrieve(ir.pkgGfxID | 0X02000000)){
+            if(auto texPtr = getItemTexture(ir.type, ir.pkgGfxID)){
                 const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);
                 const int drawX = m_startX + (m_boxW - texW) / 2;
                 const int drawY =   startY + (m_boxH - texH) / 2;
@@ -651,7 +652,7 @@ void PurchaseBoard::drawExt1() const
             const int rightBoxX = rightStartX + c * m_boxW;
             const int rightBoxY = rightStartY + r * m_boxH;
 
-            if(auto texPtr = g_itemDB->retrieve(ir.pkgGfxID | 0X02000000)){
+            if(auto texPtr = getItemTexture(ir.type, ir.pkgGfxID)){
                 const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);
                 const int rightDrawX = rightBoxX + (m_boxW - texW) / 2;
                 const int rightDrawY = rightBoxY + (m_boxH - texH) / 2;
@@ -733,7 +734,7 @@ void PurchaseBoard::drawExt2() const
         throw fflerror("bad item in sell list: itemID = %llu, seqID = %llu", to_llu(sellItem.item.itemID), to_llu(sellItem.item.seqID));
     }
 
-    if(auto texPtr = g_itemDB->retrieve(ir.pkgGfxID | 0X02000000)){
+    if(auto texPtr = getItemTexture(ir.type, ir.pkgGfxID)){
         constexpr int rightStartX = 303;
         constexpr int rightStartY =  16;
         const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);
@@ -816,4 +817,24 @@ void PurchaseBoard::onBuySucceed(uint64_t npcUID, uint32_t itemID, uint32_t seqI
             return;
         }
     }
+}
+
+SDL_Texture *PurchaseBoard::getItemTexture(const char8_t *itemType, uint32_t pkgGfxID)
+{
+    // for some items the game originally doesn't support to buy/sell them so there is no buy/sell gfx
+    // but there is gfx when they get weared, try to reuse
+
+    if(auto texPtr = g_itemDB->retrieve(pkgGfxID | 0X02000000)){
+        return texPtr;
+    }
+
+    if(str_haschar(itemType)){
+        if(false
+                || to_u8sv(itemType) == u8"项链"
+                || to_u8sv(itemType) == u8"戒指"
+                || to_u8sv(itemType) == u8"手镯"){
+            return g_itemDB->retrieve(pkgGfxID | 0X01000000);
+        }
+    }
+    return nullptr;
 }

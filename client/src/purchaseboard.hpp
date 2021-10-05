@@ -132,4 +132,7 @@ class PurchaseBoard: public Widget
 
     private:
         size_t getItemPrice(int) const;
+
+    private:
+        static SDL_Texture *getItemTexture(const char8_t *, uint32_t);
 };
