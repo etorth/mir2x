@@ -3,6 +3,38 @@ import re
 import sys
 import csv
 
+def skip_item_index(item_index):
+    if   item_index ==   0: return True # 金币
+    elif item_index == 381: return True # 七点白蛇血, dup 1
+    elif item_index == 368: return True # 汤药
+    elif item_index == 383: return True # 沃玛角
+    elif item_index == 428: return True # 七点白蛇血, dup 2
+    elif item_index == 580: return True # 千年毒蛇牙齿
+    elif item_index == 519: return True # 沃玛角
+    elif item_index == 784: return True # 阿才的书
+    return False
+
+
+def get_item_rename(item_index, item_name):
+    if   item_index ==  66 : return '沃玛号角_0'   # <- 沃玛号角
+    elif item_index ==  84 : return '小手镯_0'     # <- 小手镯
+    elif item_index == 119 : return '小手镯_1'     # <- 小手镯, same name but with different gfx, and different attributes
+    elif item_index == 201 : return '韩服（男）_0' # <- 韩服（男）
+    elif item_index == 343 : return '韩服（男）_1' # <- 韩服（男）, same name and gfx, but with different attributes
+    elif item_index == 379 : return '沃玛号角_1'   # <- 沃玛勇士号角
+    elif item_index == 558 : return '栗子_1'       # <- 栗子2
+    elif item_index == 559 : return '栗子_2'       # <- 栗子3
+    elif item_index == 560 : return '栗子_3'       # <- 栗子4
+    elif item_index == 561 : return '栗子_4'       # <- 栗子5
+    elif item_index == 562 : return '栗子_5'       # <- 栗子6
+    elif item_index == 563 : return '栗子_6'       # <- 栗子7
+    elif item_index == 564 : return '栗子_7'       # <- 栗子8
+    elif item_index == 565 : return '栗子_8'       # <- 栗子9
+    elif item_index == 566 : return '栗子_9'       # <- 栗子10
+    elif item_index == 805 : return '暗黑之药水'   # <- 汤药
+    else                   : return item_name
+
+
 def get_item_type(item_dict):
     if item_dict['stdmode'] == 0:
         return '恢复药水'
@@ -467,10 +499,8 @@ def parse_equip(item_dict):
 
 
 def parse_item(item_dict):
-    item_name = item_dict['name']
     item_type = get_item_type(item_dict)
-
-    print('{   .name = u8"%s",' % item_name)
+    print('{   .name = u8"%s",' % item_dict['rename'])
     print('    .type = u8"%s",' % item_type)
     print('    .weight = %d,' % max(1, item_dict['weight']))
     print('    .pkgGfxID = 0X%04X,' % item_dict['looks'])
@@ -510,6 +540,8 @@ def parse_item(item_dict):
 
 
 def parse_stditem(filename):
+    # print all special items here
+    # need to simulaneously update the variable ``found_items" to detect duplications
     print(
 '''{},
 
@@ -545,6 +577,13 @@ def parse_stditem(filename):
 // item has been sorted by pkgGfxID, not using original order in King_StdItems.csv
 ''')
 
+    found_items = set()
+    found_items.add('金币（小）')
+    found_items.add('金币（中）')
+    found_items.add('金币（大）')
+    found_items.add('金币（特）')
+    found_items.add('金币（超）')
+
     with open(filename, newline='') as csvfile:
         item_reader = csv.reader(csvfile)
         header = None
@@ -554,17 +593,24 @@ def parse_stditem(filename):
                 header = item_row
                 continue
 
+            if skip_item_index(int(item_row[0])):
+                continue
+
             item_dict = {}
             for i in range(len(header))[0:-1]:
-                if   i == 0: pass
+                if   i == 0: item_dict['idx'] = int(item_row[i]) # csv has special leading bytes, it's '\ufeffIdx'
                 elif i == 1: item_dict[header[i].lower()] = item_row[i]
                 else       : item_dict[header[i].lower()] = int(item_row[i])
 
-            if item_dict['name'] not in ['金币']:
-                item_list.append(item_dict)
+            item_dict['rename'] = get_item_rename(item_dict['idx'], item_dict['name'])
+            item_list.append(item_dict)
 
-        for item_dict in sorted(item_list, key = lambda item_dict: (item_dict['looks'], item_dict['stdmode'], item_dict['shape'])):
+        for item_dict in sorted(item_list, key = lambda item_dict: (item_dict['looks'], item_dict['stdmode'], item_dict['shape'], item_dict['idx'])):
+            if item_dict['rename'] in found_items:
+                raise ValueError("found duplicates: index = %d, name = %s" % (item_dict['idx'], item_dict['rename']))
+
             parse_item(item_dict)
+            found_items.add(item_dict['rename'])
 
 
 def main():
