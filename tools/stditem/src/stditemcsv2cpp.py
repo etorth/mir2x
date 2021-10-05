@@ -510,8 +510,34 @@ def parse_item(item_dict):
 
 
 def parse_stditem(filename):
-    print('{},')
-    print()
+    print(
+'''{},
+
+{   .name = u8"金币（小）",
+    .type = u8"金币",
+    .pkgGfxID = 0X0078,
+},
+
+{   .name = u8"金币（中）",
+    .type = u8"金币",
+    .pkgGfxID = 0X0079,
+},
+
+{   .name = u8"金币（大）",
+    .type = u8"金币",
+    .pkgGfxID = 0X007A,
+},
+
+{   .name = u8"金币（特）",
+    .type = u8"金币",
+    .pkgGfxID = 0X007B,
+},
+
+{   .name = u8"金币（超）",
+    .type = u8"金币",
+    .pkgGfxID = 0X007C,
+},
+''')
 
     with open(filename, newline='') as csvfile:
         item_reader = csv.reader(csvfile)
