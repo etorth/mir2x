@@ -15,25 +15,29 @@ def skip_item_index(item_index):
     return False
 
 
-def get_item_rename(item_index, item_name):
-    if   item_index ==  66 : return '沃玛号角_0'   # <- 沃玛号角
-    elif item_index ==  84 : return '小手镯_0'     # <- 小手镯
-    elif item_index == 119 : return '小手镯_1'     # <- 小手镯, same name but with different gfx, and different attributes
-    elif item_index == 201 : return '韩服（男）_0' # <- 韩服（男）
-    elif item_index == 343 : return '韩服（男）_1' # <- 韩服（男）, same name and gfx, but with different attributes
-    elif item_index == 379 : return '沃玛号角_1'   # <- 沃玛勇士号角
-    elif item_index == 557 : return '栗子_0'       # <- 栗子2
-    elif item_index == 558 : return '栗子_1'       # <- 栗子2
-    elif item_index == 559 : return '栗子_2'       # <- 栗子3
-    elif item_index == 560 : return '栗子_3'       # <- 栗子4
-    elif item_index == 561 : return '栗子_4'       # <- 栗子5
-    elif item_index == 562 : return '栗子_5'       # <- 栗子6
-    elif item_index == 563 : return '栗子_6'       # <- 栗子7
-    elif item_index == 564 : return '栗子_7'       # <- 栗子8
-    elif item_index == 565 : return '栗子_8'       # <- 栗子9
-    elif item_index == 566 : return '栗子_9'       # <- 栗子10
-    elif item_index == 805 : return '暗黑之药水'   # <- 汤药
-    else                   : return item_name
+def get_item_rename(item_dict):
+    if   item_dict['idx'] ==  66 : return '沃玛号角_0'   # <- 沃玛号角
+    elif item_dict['idx'] ==  84 : return '小手镯_0'     # <- 小手镯
+    elif item_dict['idx'] == 119 : return '小手镯_1'     # <- 小手镯, same name but with different gfx, and different attributes
+    elif item_dict['idx'] == 201 : return '韩服（男）_0' # <- 韩服（男）
+    elif item_dict['idx'] == 343 : return '韩服（男）_1' # <- 韩服（男）, same name and gfx, but with different attributes
+    elif item_dict['idx'] == 379 : return '沃玛号角_1'   # <- 沃玛勇士号角
+    elif item_dict['idx'] == 557 : return '栗子_0'       # <- 栗子2
+    elif item_dict['idx'] == 558 : return '栗子_1'       # <- 栗子2
+    elif item_dict['idx'] == 559 : return '栗子_2'       # <- 栗子3
+    elif item_dict['idx'] == 560 : return '栗子_3'       # <- 栗子4
+    elif item_dict['idx'] == 561 : return '栗子_4'       # <- 栗子5
+    elif item_dict['idx'] == 562 : return '栗子_5'       # <- 栗子6
+    elif item_dict['idx'] == 563 : return '栗子_6'       # <- 栗子7
+    elif item_dict['idx'] == 564 : return '栗子_7'       # <- 栗子8
+    elif item_dict['idx'] == 565 : return '栗子_8'       # <- 栗子9
+    elif item_dict['idx'] == 566 : return '栗子_9'       # <- 栗子10
+    elif item_dict['idx'] == 805 : return '暗黑之药水'   # <- 汤药
+
+    if item_dict['stdmode'] == 4 and re.search('（秘籍）', item_dict['name']):
+        return item_dict['name'][0:-4]
+
+    return item_dict['name']
 
 
 def get_item_type(item_dict):
@@ -603,7 +607,18 @@ def parse_stditem(filename):
                 elif i == 1: item_dict[header[i].lower()] = item_row[i]
                 else       : item_dict[header[i].lower()] = int(item_row[i])
 
-            item_dict['rename'] = get_item_rename(item_dict['idx'], item_dict['name'])
+            # 秘籍 has attributes for job/level
+            # skip plain book like 基本剑术, and rename 基本剑术（秘籍）to 基本剑术
+
+            if item_dict['stdmode'] == 51:
+                continue
+
+            # some wired 秘籍 created by the private servers?
+            # item has name like: 聚集灵魂火符（秘籍）, 分散灵魂火符（秘籍）, 幽灵盾（雷）（秘籍）, 幽灵盾（风）（秘籍）
+            if item_dict['stdmode'] == 99 and re.search('（秘籍）', item_dict['name']):
+                continue
+
+            item_dict['rename'] = get_item_rename(item_dict)
             item_list.append(item_dict)
 
         for item_dict in sorted(item_list, key = lambda item_dict: (item_dict['looks'], item_dict['stdmode'], item_dict['shape'], item_dict['idx'])):
