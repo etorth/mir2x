@@ -472,7 +472,7 @@ def parse_item(item_dict):
 
     print('{   .name = u8"%s",' % item_name)
     print('    .type = u8"%s",' % item_type)
-    print('    .weight = %d,' % item_dict['weight'])
+    print('    .weight = %d,' % max(1, item_dict['weight']))
     print('    .pkgGfxID = 0X%04X,' % item_dict['looks'])
 
     if item_type == '头盔':
@@ -513,6 +513,9 @@ def parse_stditem(filename):
     print(
 '''{},
 
+// put all hand-made items here
+// edits here invalidate game server database
+
 {   .name = u8"金币（小）",
     .type = u8"金币",
     .pkgGfxID = 0X0078,
@@ -537,6 +540,9 @@ def parse_stditem(filename):
     .type = u8"金币",
     .pkgGfxID = 0X007C,
 },
+
+// below this line all items are from King_StdItems.csv
+// item has been sorted by pkgGfxID, not using original order in King_StdItems.csv
 ''')
 
     with open(filename, newline='') as csvfile:
