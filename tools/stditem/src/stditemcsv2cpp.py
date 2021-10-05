@@ -143,20 +143,9 @@ def parse_equip_require(item_dict):
 
 
 def parse_equip_attr_helmet(item_dict):
-    item_attr = {}
-    if item_dict['dc'] > 0 or item_dict['dc2'] > 0:
-        item_attr['dc'] = [item_dict['dc'], item_dict['dc2']]
-
-    if item_dict['ac2'] > 0:
-        item_attr['hit'] = item_dict['ac2']
-
-    if item_dict['ac'] > 0 or item_dict['mac'] != 0:
-        item_attr['luckCurse'] = item_dict['ac'] - item_dict['mac']
-
-    if item_dict['mac2'] > 0:
-        item_attr['speed'] = -item_dict['mac2']
-
-    return item_attr
+    # only helmet has non-zero sac field, which means acElem, not parsed here
+    # reset fileds are parsed as cloth
+    return parse_equip_attr_cloth(item_dict)
 
 
 def parse_equip_attr_necklace(item_dict):
@@ -485,6 +474,25 @@ def parse_item(item_dict):
     print('    .type = u8"%s",' % item_type)
     print('    .weight = %d,' % item_dict['weight'])
     print('    .pkgGfxID = 0X%04X,' % item_dict['looks'])
+
+    if item_type == '头盔':
+        if item_dict['charlooks'] > 0:
+            print('    .shape = %d,' % item_dict['charlooks'])
+        else:
+            print('    .shape = 0, // TODO this helmet has no associated gfx resource')
+
+    elif item_type == '衣服':
+        if re.search('布衣', item_dict['name']):
+            print('    .shape = 1,') # this database changes 1 to all fancy cloths
+        elif item_dict['shape'] == 1:
+            print('    .shape = 0, // TODO this cloth has no associated gfx resource')
+        else:
+            print('    .shape = %d,' % item_dict['shape'])
+
+    elif item_type == '武器':
+        # looks all has a shape field
+        # but some field actually has no gfx, i.e. 飞龙剑
+        print('    .shape = %d,' % item_dict['shape'])
 
     if item_type == '恢复药水':
         parse_potion(item_dict)
