@@ -17,6 +17,7 @@ def skip_item_index(item_index):
     elif item_index == 368: return True # 汤药
     elif item_index == 383: return True # 沃玛角
     elif item_index == 428: return True # 七点白蛇血, dup 2
+    elif item_index == 519: return True # 沃玛角
     elif item_index == 580: return True # 千年毒蛇牙齿
     elif item_index == 589: return True # _丸药（500）
     elif item_index == 590: return True # _丸药（2000）
@@ -25,7 +26,9 @@ def skip_item_index(item_index):
     elif item_index == 608: return True # _丸药（10000）
     elif item_index == 609: return True # _丸药（20000）
     elif item_index == 611: return True # _丸药（50000）
-    elif item_index == 519: return True # 沃玛角
+    elif item_index == 660: return True # 法师剑1
+    elif item_index == 663: return True # 法师剑2
+    elif item_index == 666: return True # 法师剑4
     elif item_index == 784: return True # 阿才的书
     return False
 

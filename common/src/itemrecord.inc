@@ -10421,24 +10421,6 @@
     },
 },
 
-{   .name = u8"法师剑1",
-    .type = u8"道具",
-    .weight = 1,
-    .pkgGfxID = 0X0417,
-},
-
-{   .name = u8"法师剑2",
-    .type = u8"道具",
-    .weight = 1,
-    .pkgGfxID = 0X0417,
-},
-
-{   .name = u8"法师剑4",
-    .type = u8"道具",
-    .weight = 1,
-    .pkgGfxID = 0X0417,
-},
-
 {   .name = u8"临时",
     .type = u8"道具",
     .weight = 1,
