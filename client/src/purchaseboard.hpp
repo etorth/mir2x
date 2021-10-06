@@ -134,5 +134,8 @@ class PurchaseBoard: public Widget
         size_t getItemPrice(int) const;
 
     private:
+        void drawItemInGrid(const char8_t *, uint32_t, int, int) const;
+
+    private:
         static SDL_Texture *getItemTexture(const char8_t *, uint32_t);
 };

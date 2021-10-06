@@ -331,12 +331,7 @@ void PurchaseBoard::drawEx(int dstX, int dstY, int, int, int, int) const
 
     for(size_t startIndex = getStartIndex(), i = startIndex; i < std::min<size_t>(m_itemList.size(), startIndex + 4); ++i){
         if(const auto &ir = DBCOM_ITEMRECORD(m_itemList[i])){
-            if(auto texPtr = getItemTexture(ir.type, ir.pkgGfxID)){
-                const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);
-                const int drawX = m_startX + (m_boxW - texW) / 2;
-                const int drawY =   startY + (m_boxH - texH) / 2;
-                g_sdlDevice->drawTexture(texPtr, x() + drawX, y() + drawY);
-            }
+            drawItemInGrid(ir.type, ir.pkgGfxID, x() + m_startX, y() + startY);
 
             label.setText(u8"%s", to_cstr(ir.name));
             label.drawAt(DIR_UPLEFT, x() + m_startX + m_boxW + 10, y() + startY + (m_boxH - label.h()) / 2);
@@ -652,13 +647,7 @@ void PurchaseBoard::drawExt1() const
             const int rightBoxX = rightStartX + c * m_boxW;
             const int rightBoxY = rightStartY + r * m_boxH;
 
-            if(auto texPtr = getItemTexture(ir.type, ir.pkgGfxID)){
-                const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);
-                const int rightDrawX = rightBoxX + (m_boxW - texW) / 2;
-                const int rightDrawY = rightBoxY + (m_boxH - texH) / 2;
-                g_sdlDevice->drawTexture(texPtr, x() + rightDrawX, y() + rightDrawY);
-            }
-
+            drawItemInGrid(ir.type, ir.pkgGfxID, x() + rightBoxX, y() + rightBoxY);
             LabelBoard
             {
                 DIR_UPLEFT,
@@ -734,14 +723,9 @@ void PurchaseBoard::drawExt2() const
         throw fflerror("bad item in sell list: itemID = %llu, seqID = %llu", to_llu(sellItem.item.itemID), to_llu(sellItem.item.seqID));
     }
 
-    if(auto texPtr = getItemTexture(ir.type, ir.pkgGfxID)){
-        constexpr int rightStartX = 303;
-        constexpr int rightStartY =  16;
-        const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);
-        const int rightDrawX = rightStartX + (m_boxW - texW) / 2;
-        const int rightDrawY = rightStartY + (m_boxH - texH) / 2;
-        g_sdlDevice->drawTexture(texPtr, x() + rightDrawX, y() + rightDrawY);
-    }
+    constexpr int rightStartX = 303;
+    constexpr int rightStartY =  16;
+    drawItemInGrid(ir.type, ir.pkgGfxID, x() + rightStartX, y() + rightStartY);
 
     LabelBoard
     {
@@ -816,6 +800,21 @@ void PurchaseBoard::onBuySucceed(uint64_t npcUID, uint32_t itemID, uint32_t seqI
             m_sdSellItemList.list.erase(p);
             return;
         }
+    }
+}
+
+void PurchaseBoard::drawItemInGrid(const char8_t *itemType, uint32_t pkgGfxID, int gridX, int gridY) const
+{
+    if(auto texPtr = getItemTexture(itemType, pkgGfxID)){
+        auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);
+        const auto resizeRatio = std::max<double>({to_df(texW) / m_boxW, to_df(texH) / m_boxH, 1.0});
+
+        const auto dstW = to_d(std::lround(texW / resizeRatio));
+        const auto dstH = to_d(std::lround(texH / resizeRatio));
+
+        const auto drawX = gridX + (m_boxW - dstW) / 2;
+        const auto drawY = gridY + (m_boxH - dstH) / 2;
+        g_sdlDevice->drawTexture(texPtr, drawX, drawY, dstW, dstH, 0, 0, texW, texH);
     }
 }
 
