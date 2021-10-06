@@ -228,7 +228,7 @@ void PlayerStateBoard::drawEx(int, int, int, int, int, int) const
 
     const auto handLoadColor = (handLoad > combatNode.load.hand) ? colorf::RED : colorf::WHITE;
     fnDrawLabel(279, 97 + 24 * 6, str_printf(u8"%d/%d", handLoad, combatNode.load.hand), handLoadColor);
-    fnDrawLabel(279, 97 + 24 * 7, str_printf(u8"%d", combatNode.hit));
+    fnDrawLabel(279, 97 + 24 * 7, str_printf(u8"%d", combatNode.dcHit));
     fnDrawLabel(279, 97 + 24 * 8, str_printf(u8"%d", combatNode.dcDodge));
 
     LabelBoard(DIR_UPLEFT, 0, 0, str_printf(u8"攻击 %d - %d", combatNode. dc[0], combatNode. dc[1]).c_str(), 1, 12, 0, colorf::WHITE + colorf::A_SHF(255)).drawAt(DIR_UPLEFT, x() +  21, y() + 317);
