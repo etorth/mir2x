@@ -5,11 +5,26 @@ import csv
 
 def skip_item_index(item_index):
     if   item_index ==   0: return True # 金币
+    elif item_index == 201: return True # 韩服（男）
+    elif item_index == 202: return True # 韩服（女）
+    elif item_index == 289: return True # "_水饺200",
+    elif item_index == 290: return True # "_水饺400",
+    elif item_index == 291: return True # "_水饺600",
+    elif item_index == 292: return True # "_水饺800",
+    elif item_index == 293: return True # "_水饺1000",
+    elif item_index == 343: return True # 韩服（男）
     elif item_index == 381: return True # 七点白蛇血, dup 1
     elif item_index == 368: return True # 汤药
     elif item_index == 383: return True # 沃玛角
     elif item_index == 428: return True # 七点白蛇血, dup 2
     elif item_index == 580: return True # 千年毒蛇牙齿
+    elif item_index == 589: return True # _丸药（500）
+    elif item_index == 590: return True # _丸药（2000）
+    elif item_index == 606: return True # _丸药（1000）
+    elif item_index == 607: return True # _丸药（5000）
+    elif item_index == 608: return True # _丸药（10000）
+    elif item_index == 609: return True # _丸药（20000）
+    elif item_index == 611: return True # _丸药（50000）
     elif item_index == 519: return True # 沃玛角
     elif item_index == 784: return True # 阿才的书
     return False
@@ -19,8 +34,6 @@ def get_item_rename(item_dict):
     if   item_dict['idx'] ==  66 : return '沃玛号角_0'   # <- 沃玛号角
     elif item_dict['idx'] ==  84 : return '小手镯_0'     # <- 小手镯
     elif item_dict['idx'] == 119 : return '小手镯_1'     # <- 小手镯, same name but with different gfx, and different attributes
-    elif item_dict['idx'] == 201 : return '韩服（男）_0' # <- 韩服（男）
-    elif item_dict['idx'] == 343 : return '韩服（男）_1' # <- 韩服（男）, same name and gfx, but with different attributes
     elif item_dict['idx'] == 379 : return '沃玛号角_1'   # <- 沃玛勇士号角
     elif item_dict['idx'] == 557 : return '栗子_0'       # <- 栗子2
     elif item_dict['idx'] == 558 : return '栗子_1'       # <- 栗子2
@@ -32,6 +45,7 @@ def get_item_rename(item_dict):
     elif item_dict['idx'] == 564 : return '栗子_7'       # <- 栗子8
     elif item_dict['idx'] == 565 : return '栗子_8'       # <- 栗子9
     elif item_dict['idx'] == 566 : return '栗子_9'       # <- 栗子10
+    elif item_dict['idx'] == 588 : return '丸药'         # <- _丸药（100）
     elif item_dict['idx'] == 805 : return '暗黑之药水'   # <- 汤药
 
     if item_dict['stdmode'] == 4 and re.search('（秘籍）', item_dict['name']):
