@@ -30,9 +30,11 @@ CombatNode getCombatNode(const SDWear & wear, uint64_t uid, int level)
             node.sc[0] += ir.equip.sc[0];
             node.sc[1] += ir.equip.sc[1];
 
-            node.hit += ir.equip.hit;
+            node.dcHit += ir.equip.dcHit;
+            node.mcHit += ir.equip.mcHit;
             node.dcDodge += ir.equip.dcDodge;
             node.mcDodge += ir.equip.mcDodge;
+
             node.speed += ir.equip.speed;
             node.comfort += ir.equip.comfort;
             node.luckCurse += ir.equip.luckCurse;

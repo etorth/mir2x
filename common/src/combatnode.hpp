@@ -16,7 +16,8 @@ struct CombatNode
     int  ac[2] = {0, 0};
     int mac[2] = {0, 0};
 
-    int hit = 0;
+    int dcHit = 0;
+    int mcHit = 0;
 
     int dcDodge = 0;
     int mcDodge = 0;

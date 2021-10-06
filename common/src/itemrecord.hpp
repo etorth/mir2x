@@ -25,7 +25,8 @@ struct ItemRecord
         const int  ac[2] = {0, 0};
         const int mac[2] = {0, 0};
 
-        const int hit = 0;
+        const int dcHit = 0;
+        const int mcHit = 0;
 
         const int dcDodge = 0;
         const int mcDodge = 0;

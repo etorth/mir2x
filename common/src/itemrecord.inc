@@ -3916,7 +3916,7 @@
     {
         .duration = 5,
         .mc = {4, 9},
-        .hit = 1,
+        .dcHit = 1,
         .dcDodge = 1,
         .req
         {
@@ -4332,7 +4332,7 @@
     {
         .duration = 5,
         .sc = {4, 9},
-        .hit = 1,
+        .dcHit = 1,
         .dcDodge = 1,
         .req
         {
@@ -4587,7 +4587,7 @@
     {
         .duration = 8,
         .mc = {6, 7},
-        .hit = 1,
+        .dcHit = 1,
     },
 },
 
@@ -4637,7 +4637,7 @@
     {
         .duration = 5,
         .dc = {5, 9},
-        .hit = 1,
+        .dcHit = 1,
         .dcDodge = 1,
         .req
         {
@@ -5022,7 +5022,7 @@
     .equip
     {
         .duration = 7,
-        .hit = 1,
+        .dcHit = 1,
         .req
         {
             .level = 3,
@@ -5038,7 +5038,7 @@
     {
         .duration = 6,
         .sc = {0, 1},
-        .hit = 2,
+        .dcHit = 2,
         .req
         {
             .level = 10,
@@ -5053,7 +5053,7 @@
     .equip
     {
         .duration = 9,
-        .hit = 1,
+        .dcHit = 1,
         .req
         {
             .level = 3,
@@ -5947,7 +5947,7 @@
     {
         .duration = 8,
         .sc = {5, 8},
-        .hit = 3,
+        .dcHit = 3,
         .dcDodge = 4,
     },
 },
@@ -5991,7 +5991,7 @@
     {
         .duration = 8,
         .mc = {5, 8},
-        .hit = 3,
+        .dcHit = 3,
         .dcDodge = 4,
     },
 },
@@ -6037,7 +6037,7 @@
     {
         .duration = 8,
         .dc = {5, 8},
-        .hit = 3,
+        .dcHit = 3,
         .dcDodge = 4,
     },
 },
@@ -6080,7 +6080,7 @@
     .equip
     {
         .duration = 6,
-        .hit = 2,
+        .dcHit = 2,
         .req
         {
             .level = 60,
@@ -8530,7 +8530,7 @@
     .equip
     {
         .duration = 8,
-        .hit = 1,
+        .dcHit = 1,
         .req
         {
             .level = 3,
@@ -8646,7 +8646,7 @@
         .dc = {0, 8},
         .mc = {0, 7},
         .sc = {0, 7},
-        .hit = 2,
+        .dcHit = 2,
     },
 },
 
@@ -9244,7 +9244,7 @@
         .dc = {0, 7},
         .mc = {0, 7},
         .sc = {0, 7},
-        .hit = 1,
+        .dcHit = 1,
         .dcDodge = 1,
     },
 },
@@ -9297,7 +9297,7 @@
     {
         .duration = 10,
         .dc = {3, 13},
-        .hit = 2,
+        .dcHit = 2,
         .dcDodge = 1,
     },
 },
@@ -9418,7 +9418,7 @@
     {
         .duration = 10,
         .dc = {4, 15},
-        .hit = 4,
+        .dcHit = 4,
         .dcDodge = 3,
     },
 },
@@ -10509,7 +10509,7 @@
         .dc = {5, 7},
         .mc = {1, 1},
         .sc = {1, 1},
-        .hit = 2,
+        .dcHit = 2,
         .req
         {
             .level = 10,
@@ -10527,7 +10527,7 @@
         .duration = 26,
         .dc = {7, 22},
         .sc = {4, 10},
-        .hit = 3,
+        .dcHit = 3,
         .dcElem
         {
             .holy = 4,
@@ -10585,7 +10585,7 @@
     {
         .duration = 30,
         .dc = {0, 3},
-        .hit = -2,
+        .dcHit = -2,
         .speed = 3,
         .req
         {
@@ -10621,7 +10621,7 @@
         .dc = {0, 48},
         .mc = {3, 16},
         .sc = {3, 16},
-        .hit = 4,
+        .dcHit = 4,
         .dcElem
         {
             .fire = 8,
@@ -10644,7 +10644,7 @@
         .dc = {0, 48},
         .mc = {3, 16},
         .sc = {3, 16},
-        .hit = 4,
+        .dcHit = 4,
         .dcElem
         {
             .ice = 7,
@@ -10667,7 +10667,7 @@
         .dc = {0, 48},
         .mc = {3, 16},
         .sc = {3, 16},
-        .hit = 4,
+        .dcHit = 4,
         .dcElem
         {
             .light = 7,
@@ -10690,7 +10690,7 @@
         .dc = {0, 48},
         .mc = {3, 16},
         .sc = {3, 16},
-        .hit = 4,
+        .dcHit = 4,
         .dcElem
         {
             .wind = 7,
@@ -10713,7 +10713,7 @@
         .dc = {0, 48},
         .mc = {3, 16},
         .sc = {3, 16},
-        .hit = 4,
+        .dcHit = 4,
         .dcElem
         {
             .holy = 6,
@@ -10736,7 +10736,7 @@
         .dc = {0, 48},
         .mc = {3, 16},
         .sc = {3, 16},
-        .hit = 4,
+        .dcHit = 4,
         .dcElem
         {
             .dark = 7,
@@ -10759,7 +10759,7 @@
         .dc = {0, 48},
         .mc = {3, 16},
         .sc = {3, 16},
-        .hit = 4,
+        .dcHit = 4,
         .dcElem
         {
             .phantom = 8,
@@ -10803,7 +10803,7 @@
         .duration = 19,
         .dc = {9, 20},
         .mc = {5, 9},
-        .hit = 6,
+        .dcHit = 6,
         .dcElem
         {
             .wind = 3,
@@ -10924,7 +10924,7 @@
     {
         .duration = 30,
         .dc = {1, 33},
-        .hit = 1,
+        .dcHit = 1,
         .req
         {
             .level = 33,
@@ -10971,7 +10971,7 @@
     {
         .duration = 24,
         .dc = {9, 20},
-        .hit = 2,
+        .dcHit = 2,
         .dcElem
         {
             .ice = 2,
@@ -11014,7 +11014,7 @@
         .dc = {200, 200},
         .mc = {200, 200},
         .sc = {200, 200},
-        .hit = 10,
+        .dcHit = 10,
         .speed = 5,
         .req
         {
@@ -11106,7 +11106,7 @@
     {
         .duration = 20,
         .dc = {7, 8},
-        .hit = 5,
+        .dcHit = 5,
         .req
         {
             .level = 10,
@@ -11122,7 +11122,7 @@
     {
         .duration = 40,
         .dc = {19, 20},
-        .hit = 5,
+        .dcHit = 5,
         .req
         {
             .level = 30,
@@ -11138,7 +11138,7 @@
     {
         .duration = 30,
         .dc = {13, 14},
-        .hit = 5,
+        .dcHit = 5,
         .req
         {
             .level = 20,
@@ -11169,7 +11169,7 @@
         .dc = {2, 60},
         .mc = {5, 30},
         .sc = {5, 30},
-        .hit = 10,
+        .dcHit = 10,
         .speed = 5,
         .req
         {
@@ -11189,7 +11189,7 @@
         .dc = {2, 54},
         .mc = {5, 24},
         .sc = {5, 24},
-        .hit = 2,
+        .dcHit = 2,
         .req
         {
             .level = 60,
@@ -11208,7 +11208,7 @@
         .dc = {2, 55},
         .mc = {5, 25},
         .sc = {5, 25},
-        .hit = 10,
+        .dcHit = 10,
         .speed = 5,
         .req
         {
@@ -11238,7 +11238,7 @@
     {
         .duration = 40,
         .dc = {0, 56},
-        .hit = 3,
+        .dcHit = 3,
         .req
         {
             .level = 60,
@@ -11353,7 +11353,7 @@
         .duration = 20,
         .dc = {5, 20},
         .mc = {3, 7},
-        .hit = 5,
+        .dcHit = 5,
         .req
         {
             .level = 33,
@@ -11371,7 +11371,7 @@
         .duration = 20,
         .dc = {5, 20},
         .mc = {3, 9},
-        .hit = 5,
+        .dcHit = 5,
         .req
         {
             .level = 33,
@@ -11389,7 +11389,7 @@
         .duration = 16,
         .dc = {6, 16},
         .mc = {3, 6},
-        .hit = 5,
+        .dcHit = 5,
         .dcElem
         {
             .ice = 2,
@@ -11428,7 +11428,7 @@
         .duration = 17,
         .dc = {6, 17},
         .mc = {6, 10},
-        .hit = 1,
+        .dcHit = 1,
         .dcElem
         {
             .fire = 3,
@@ -11513,7 +11513,7 @@
         .duration = 18,
         .dc = {9, 20},
         .mc = {3, 17},
-        .hit = 7,
+        .dcHit = 7,
     },
 },
 
@@ -11553,7 +11553,7 @@
         .duration = 40,
         .dc = {10, 20},
         .mc = {8, 20},
-        .hit = 7,
+        .dcHit = 7,
     },
 },
 
@@ -11601,7 +11601,7 @@
         .duration = 14,
         .dc = {5, 12},
         .sc = {1, 2},
-        .hit = 1,
+        .dcHit = 1,
         .req
         {
             .level = 18,
@@ -11619,7 +11619,7 @@
         .duration = 16,
         .dc = {5, 13},
         .sc = {2, 2},
-        .hit = 1,
+        .dcHit = 1,
         .req
         {
             .level = 20,
@@ -11637,7 +11637,7 @@
         .duration = 22,
         .dc = {6, 17},
         .sc = {2, 4},
-        .hit = 2,
+        .dcHit = 2,
         .req
         {
             .level = 28,
@@ -11685,7 +11685,7 @@
         .duration = 24,
         .dc = {6, 20},
         .sc = {4, 8},
-        .hit = 2,
+        .dcHit = 2,
         .dcElem
         {
             .holy = 4,
@@ -11707,7 +11707,7 @@
         .duration = 24,
         .dc = {6, 19},
         .sc = {3, 7},
-        .hit = 2,
+        .dcHit = 2,
         .dcElem
         {
             .holy = 3,
@@ -11735,7 +11735,7 @@
         .duration = 26,
         .dc = {9, 24},
         .sc = {4, 12},
-        .hit = 3,
+        .dcHit = 3,
         .dcElem
         {
             .holy = 5,
@@ -11753,7 +11753,7 @@
         .duration = 26,
         .dc = {9, 22},
         .sc = {3, 11},
-        .hit = 3,
+        .dcHit = 3,
         .dcElem
         {
             .dark = 4,
@@ -11775,7 +11775,7 @@
         .duration = 26,
         .dc = {9, 22},
         .sc = {5, 15},
-        .hit = 3,
+        .dcHit = 3,
         .req
         {
             .level = 60,
@@ -11799,7 +11799,7 @@
         .duration = 25,
         .dc = {9, 24},
         .sc = {5, 14},
-        .hit = 3,
+        .dcHit = 3,
         .dcElem
         {
             .holy = 6,
@@ -11817,7 +11817,7 @@
         .duration = 26,
         .dc = {9, 21},
         .sc = {5, 20},
-        .hit = 4,
+        .dcHit = 4,
     },
 },
 
@@ -11831,7 +11831,7 @@
         .duration = 40,
         .dc = {14, 22},
         .sc = {6, 22},
-        .hit = 4,
+        .dcHit = 4,
     },
 },
 
@@ -11846,7 +11846,7 @@
         .dc = {8, 10},
         .mc = {2, 2},
         .sc = {2, 2},
-        .hit = 3,
+        .dcHit = 3,
         .speed = 1,
     },
 },
@@ -11862,7 +11862,7 @@
         .dc = {11, 17},
         .mc = {5, 5},
         .sc = {5, 5},
-        .hit = 3,
+        .dcHit = 3,
         .req
         {
             .level = 30,
@@ -11879,7 +11879,7 @@
     {
         .duration = 1,
         .dc = {5, 10},
-        .hit = 5,
+        .dcHit = 5,
         .req
         {
             .level = 1,
@@ -11898,7 +11898,7 @@
         .dc = {1, 1},
         .mc = {1, 1},
         .sc = {1, 1},
-        .hit = 1,
+        .dcHit = 1,
     },
 },
 
@@ -11912,7 +11912,7 @@
         .duration = 24,
         .dc = {7, 18},
         .sc = {3, 7},
-        .hit = 2,
+        .dcHit = 2,
         .req
         {
             .level = 33,
@@ -11982,7 +11982,7 @@
         .duration = 24,
         .dc = {7, 19},
         .sc = {3, 7},
-        .hit = 3,
+        .dcHit = 3,
         .req
         {
             .level = 33,
@@ -12251,7 +12251,7 @@
         .duration = 20,
         .dc = {6, 14},
         .sc = {2, 3},
-        .hit = 1,
+        .dcHit = 1,
         .speed = 1,
         .req
         {
@@ -12307,7 +12307,7 @@
         .duration = 17,
         .dc = {6, 17},
         .mc = {7, 10},
-        .hit = 2,
+        .dcHit = 2,
         .dcElem
         {
             .fire = 4,
@@ -12387,7 +12387,7 @@
         .duration = 26,
         .dc = {9, 26},
         .sc = {5, 14},
-        .hit = 3,
+        .dcHit = 3,
         .dcElem
         {
             .holy = 6,
@@ -12405,7 +12405,7 @@
         .duration = 26,
         .dc = {9, 26},
         .sc = {5, 14},
-        .hit = 3,
+        .dcHit = 3,
         .dcElem
         {
             .holy = 6,
@@ -12423,7 +12423,7 @@
         .duration = 22,
         .dc = {6, 16},
         .sc = {0, 3},
-        .hit = 2,
+        .dcHit = 2,
         .dcElem
         {
             .dark = 5,
@@ -12445,7 +12445,7 @@
         .duration = 22,
         .dc = {7, 18},
         .sc = {2, 4},
-        .hit = 2,
+        .dcHit = 2,
         .dcElem
         {
             .holy = 2,
@@ -12516,7 +12516,7 @@
         .duration = 24,
         .dc = {6, 18},
         .sc = {3, 6},
-        .hit = 2,
+        .dcHit = 2,
         .dcElem
         {
             .holy = 2,
@@ -12538,7 +12538,7 @@
         .duration = 24,
         .dc = {6, 20},
         .sc = {4, 10},
-        .hit = 2,
+        .dcHit = 2,
         .dcElem
         {
             .holy = 4,
@@ -12560,7 +12560,7 @@
         .duration = 24,
         .dc = {6, 20},
         .sc = {4, 10},
-        .hit = 2,
+        .dcHit = 2,
         .dcElem
         {
             .holy = 4,
@@ -12582,7 +12582,7 @@
         .duration = 24,
         .dc = {6, 20},
         .sc = {5, 8},
-        .hit = 3,
+        .dcHit = 3,
         .dcElem
         {
             .holy = 4,
@@ -12604,7 +12604,7 @@
         .duration = 24,
         .dc = {6, 20},
         .sc = {6, 8},
-        .hit = 3,
+        .dcHit = 3,
         .dcElem
         {
             .wind = 8,
@@ -12760,7 +12760,7 @@
     {
         .duration = 34,
         .dc = {2, 39},
-        .hit = 1,
+        .dcHit = 1,
         .dcElem
         {
             .fire = 3,
@@ -12781,7 +12781,7 @@
     {
         .duration = 34,
         .dc = {3, 39},
-        .hit = 2,
+        .dcHit = 2,
         .dcElem
         {
             .fire = 4,

@@ -233,7 +233,7 @@ def parse_equip_attr_necklace(item_dict):
 
     elif item_dict['stdmode'] == 20:
         if item_dict['ac2'] > 0:
-            item_attr['hit'] = item_dict['ac2']
+            item_attr['dcHit'] = item_dict['ac2']
 
         # for 神勇之物 mac is 1, but seems game doesn't use it
         # all others of necklace has mac as zero
@@ -264,7 +264,7 @@ def parse_equip_attr_armring(item_dict):
     item_attr = {}
     if item_dict['stdmode'] == 24:
         if item_dict['ac2'] > 0:
-            item_attr['hit'] = item_dict['ac2']
+            item_attr['dcHit'] = item_dict['ac2']
 
         if item_dict['mac2'] > 0:
             item_attr['dcDodge'] = item_dict['mac2']
@@ -315,7 +315,7 @@ def parse_equip_attr_ring(item_dict):
         # because actually for those rings with nonzer ac2, the game doesn't support
 
         if item_dict['ac2'] > 0:
-            item_attr['hit'] = item_dict['ac2']
+            item_attr['dcHit'] = item_dict['ac2']
 
         # TODO not sure if I should ignore mac2
         # because actually for those rings with nonzer mac2, the game doesn't support
@@ -385,7 +385,7 @@ def parse_equip_attr_weapon(item_dict):
 
     if item_dict['stdmode'] == 5:
         if item_dict['ac2'] > 0:
-            item_attr['hit'] = item_dict['ac2']
+            item_attr['dcHit'] = item_dict['ac2']
 
         if item_dict['mac2'] > 10:
             item_attr['speed'] = item_dict['mac2'] - 10
@@ -395,9 +395,9 @@ def parse_equip_attr_weapon(item_dict):
 
     elif item_dict['stdmode'] == 6:
         if item_dict['ac2'] > 100:
-            item_attr['hit'] = 100 - item_dict['ac2'] # negative, only 风之鹤嘴锄 has this negative attribute
+            item_attr['dcHit'] = 100 - item_dict['ac2'] # negative, only 风之鹤嘴锄 has this negative attribute
         elif item_dict['ac2'] > 0:
-            item_attr['hit'] = item_dict['ac2']
+            item_attr['dcHit'] = item_dict['ac2']
 
         if item_dict['mac2'] > 10:
             item_attr['speed'] = item_dict['mac2'] - 10
@@ -416,7 +416,7 @@ def parse_equip_attr_javelin(item_dict):
         item_attr['dc'] = [item_dict['dc'], item_dict['dc2']]
 
     if item_dict['ac2'] > 0:
-        item_attr['hit'] = item_dict['ac2']
+        item_attr['dcHit'] = item_dict['ac2']
 
     return item_attr
 
@@ -455,8 +455,11 @@ def parse_equip(item_dict):
     if 'mac' in item_attr:
         print('        .mac = {%d, %d},' % (item_attr['mac'][0], item_attr['mac'][1]))
 
-    if 'hit' in item_attr:
-        print('        .hit = %d,' % item_attr['hit'])
+    if 'dcHit' in item_attr:
+        print('        .dcHit = %d,' % item_attr['dcHit'])
+
+    if 'mcHit' in item_attr:
+        print('        .mcHit = %d,' % item_attr['mcHit'])
 
     if 'dcDodge' in item_attr:
         print('        .dcDodge = %d,' % item_attr['dcDodge'])

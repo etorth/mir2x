@@ -84,8 +84,12 @@ std::u8string SDItem::getXMLLayout() const
         xmlStr += str_printf(u8R"###( <par>魔防 %d - %d</par> )###""\n", ir.equip.mac[0], ir.equip.mac[1]);
     }
 
-    if(ir.equip.hit){
-        xmlStr += str_printf(u8R"###( <par>准确 %+d</par> )###""\n", ir.equip.hit);
+    if(ir.equip.dcHit){
+        xmlStr += str_printf(u8R"###( <par>命中 %+d</par> )###""\n", ir.equip.dcHit);
+    }
+
+    if(ir.equip.mcHit){
+        xmlStr += str_printf(u8R"###( <par>魔法命中 %+d</par> )###""\n", ir.equip.mcHit);
     }
 
     if(ir.equip.dcDodge){
