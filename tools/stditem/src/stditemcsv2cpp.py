@@ -26,9 +26,13 @@ def skip_item_index(item_index):
     elif item_index == 608: return True # _丸药（10000）
     elif item_index == 609: return True # _丸药（20000）
     elif item_index == 611: return True # _丸药（50000）
+    elif item_index == 630: return True # 添加手套4
     elif item_index == 660: return True # 法师剑1
     elif item_index == 663: return True # 法师剑2
     elif item_index == 666: return True # 法师剑4
+    elif item_index == 671: return True # 添加头盔3
+    elif item_index == 672: return True # 添加头盔4
+    elif item_index == 674: return True # 添加头盔5
     elif item_index == 784: return True # 阿才的书
     return False
 
@@ -49,6 +53,7 @@ def get_item_rename(item_dict):
     elif item_dict['idx'] ==  565 : return '栗子_8'             # <- 栗子9
     elif item_dict['idx'] ==  566 : return '栗子_9'             # <- 栗子10
     elif item_dict['idx'] ==  588 : return '丸药'               # <- _丸药（100）
+    elif item_dict['idx'] ==  629 : return '铁金手套'           # <- 添加手套2
     elif item_dict['idx'] ==  805 : return '暗黑之药水'         # <- 汤药
     elif item_dict['idx'] == 1053 : return '绝世极品战甲（男）' # <- 绝世极品战甲（男）1
     elif item_dict['idx'] == 1054 : return '绝世极品战甲（女）' # <- 绝世极品战甲（女）1

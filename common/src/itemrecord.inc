@@ -3024,12 +3024,6 @@
     },
 },
 
-{   .name = u8"添加头盔3",
-    .type = u8"道具",
-    .weight = 8,
-    .pkgGfxID = 0X019D,
-},
-
 {   .name = u8"战神头盔",
     .type = u8"头盔",
     .weight = 20,
@@ -3043,12 +3037,6 @@
     },
 },
 
-{   .name = u8"添加头盔4",
-    .type = u8"道具",
-    .weight = 8,
-    .pkgGfxID = 0X019E,
-},
-
 {   .name = u8"虎面头盔",
     .type = u8"头盔",
     .weight = 4,
@@ -3060,12 +3048,6 @@
         .ac = {2, 5},
         .mac = {4, 12},
     },
-},
-
-{   .name = u8"添加头盔5",
-    .type = u8"道具",
-    .weight = 8,
-    .pkgGfxID = 0X019F,
 },
 
 {   .name = u8"魔幻戒指",
@@ -5200,7 +5182,7 @@
     },
 },
 
-{   .name = u8"添加手套2",
+{   .name = u8"铁金手套",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X029C,
@@ -5220,12 +5202,6 @@
             .level = 32,
         },
     },
-},
-
-{   .name = u8"添加手套4",
-    .type = u8"道具",
-    .weight = 1,
-    .pkgGfxID = 0X029D,
 },
 
 {   .name = u8"道士手镯",
