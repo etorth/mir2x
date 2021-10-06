@@ -320,12 +320,6 @@
     },
 },
 
-{   .name = u8"玛祖拉废墟门票",
-    .type = u8"道具",
-    .weight = 1,
-    .pkgGfxID = 0X004B,
-},
-
 {   .name = u8"疾风神水（小）",
     .type = u8"强效药水",
     .weight = 3,
@@ -654,12 +648,6 @@
     },
 },
 
-{   .name = u8"圣女果",
-    .type = u8"道具",
-    .weight = 1,
-    .pkgGfxID = 0X0056,
-},
-
 {   .name = u8"玫瑰",
     .type = u8"道具",
     .weight = 1,
@@ -873,48 +861,6 @@
     .pkgGfxID = 0X0063,
 },
 
-{   .name = u8"蓝玫瑰（火）",
-    .type = u8"道具",
-    .weight = 1,
-    .pkgGfxID = 0X0063,
-},
-
-{   .name = u8"蓝玫瑰（冰）",
-    .type = u8"道具",
-    .weight = 1,
-    .pkgGfxID = 0X0063,
-},
-
-{   .name = u8"蓝玫瑰（雷）",
-    .type = u8"道具",
-    .weight = 1,
-    .pkgGfxID = 0X0063,
-},
-
-{   .name = u8"蓝玫瑰（风）",
-    .type = u8"道具",
-    .weight = 1,
-    .pkgGfxID = 0X0063,
-},
-
-{   .name = u8"蓝玫瑰（神圣）",
-    .type = u8"道具",
-    .weight = 1,
-    .pkgGfxID = 0X0063,
-},
-
-{   .name = u8"蓝玫瑰（暗黑）",
-    .type = u8"道具",
-    .weight = 1,
-    .pkgGfxID = 0X0063,
-},
-
-{   .name = u8"蓝玫瑰（幻影）",
-    .type = u8"道具",
-    .weight = 1,
-    .pkgGfxID = 0X0063,
-},
-
 {   .name = u8"沃玛号角_0",
     .type = u8"道具",
     .weight = 1,
@@ -994,12 +940,6 @@
 },
 
 {   .name = u8"皮",
-    .type = u8"道具",
-    .weight = 1,
-    .pkgGfxID = 0X006B,
-},
-
-{   .name = u8"寒冰守护神羽毛",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X006B,
@@ -1233,12 +1173,6 @@
     .pkgGfxID = 0X00B7,
 },
 
-{   .name = u8"声望卡",
-    .type = u8"道具",
-    .weight = 1,
-    .pkgGfxID = 0X00B7,
-},
-
 {   .name = u8"彩卷",
     .type = u8"道具",
     .weight = 1,
@@ -1255,6 +1189,30 @@
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X00C0,
+},
+
+{   .name = u8"英雄遗物（英）",
+    .type = u8"道具",
+    .weight = 1,
+    .pkgGfxID = 0X00C8,
+},
+
+{   .name = u8"英雄遗物（雄）",
+    .type = u8"道具",
+    .weight = 1,
+    .pkgGfxID = 0X00C9,
+},
+
+{   .name = u8"英雄遗物（遗）",
+    .type = u8"道具",
+    .weight = 1,
+    .pkgGfxID = 0X00CA,
+},
+
+{   .name = u8"英雄遗物（物）",
+    .type = u8"道具",
+    .weight = 1,
+    .pkgGfxID = 0X00CB,
 },
 
 {   .name = u8"行会回城卷",
@@ -1375,6 +1333,24 @@
     .type = u8"矿石",
     .weight = 4,
     .pkgGfxID = 0X00DC,
+},
+
+{   .name = u8"神魔石",
+    .type = u8"火把",
+    .weight = 1,
+    .pkgGfxID = 0X00DD,
+},
+
+{   .name = u8"暗魔石",
+    .type = u8"火把",
+    .weight = 1,
+    .pkgGfxID = 0X00DF,
+},
+
+{   .name = u8"幻魔石",
+    .type = u8"火把",
+    .weight = 1,
+    .pkgGfxID = 0X00E1,
 },
 
 {   .name = u8"金创药（小）包",
@@ -2403,85 +2379,43 @@
 },
 
 {   .name = u8"焰魔石",
-    .type = u8"药粉",
+    .type = u8"火把",
     .weight = 1,
     .pkgGfxID = 0X0154,
 },
 
 {   .name = u8"冰魔石",
-    .type = u8"药粉",
+    .type = u8"火把",
     .weight = 1,
     .pkgGfxID = 0X0155,
 },
 
 {   .name = u8"雷魔石",
-    .type = u8"药粉",
+    .type = u8"火把",
     .weight = 1,
     .pkgGfxID = 0X0156,
 },
 
 {   .name = u8"风魔石",
-    .type = u8"药粉",
+    .type = u8"火把",
     .weight = 1,
     .pkgGfxID = 0X0157,
 },
 
-{   .name = u8"邪恶面具",
+{   .name = u8"天狼头盔",
     .type = u8"头盔",
-    .weight = 1,
-    .pkgGfxID = 0X015E,
-    .shape = 0, // TODO this helmet has no associated gfx resource
+    .weight = 7,
+    .pkgGfxID = 0X0163,
+    .shape = 9,
     .equip
     {
         .duration = 10,
-        .ac = {2, 3},
-        .mac = {2, 3},
-    },
-},
-
-{   .name = u8"金面圣面",
-    .type = u8"头盔",
-    .weight = 1,
-    .pkgGfxID = 0X015F,
-    .shape = 0, // TODO this helmet has no associated gfx resource
-    .equip
-    {
-        .duration = 12,
-        .dc = {5, 0},
-        .ac = {3, 4},
-        .mac = {3, 4},
-    },
-},
-
-{   .name = u8"圣灵头盔",
-    .type = u8"头盔",
-    .weight = 1,
-    .pkgGfxID = 0X0160,
-    .shape = 0, // TODO this helmet has no associated gfx resource
-    .equip
-    {
-        .duration = 14,
-        .dc = {0, 2},
-        .mc = {0, 2},
-        .sc = {0, 2},
-        .ac = {0, 7},
-        .mac = {0, 7},
-    },
-},
-
-{   .name = u8"古神头盔",
-    .type = u8"头盔",
-    .weight = 1,
-    .pkgGfxID = 0X0161,
-    .shape = 0, // TODO this helmet has no associated gfx resource
-    .equip
-    {
-        .duration = 16,
-        .dc = {0, 3},
-        .mc = {0, 3},
-        .sc = {0, 3},
-        .ac = {5, 8},
-        .mac = {4, 13},
+        .ac = {4, 8},
+        .mac = {4, 8},
+        .req
+        {
+            .level = 60,
+        },
     },
 },
 
@@ -2498,6 +2432,73 @@
         .sc = {2, 3},
         .ac = {3, 6},
         .mac = {3, 7},
+    },
+},
+
+{   .name = u8"新人帽",
+    .type = u8"头盔",
+    .weight = 1,
+    .pkgGfxID = 0X0164,
+    .shape = 9,
+    .equip
+    {
+        .duration = 2,
+        .ac = {2, 3},
+        .mac = {2, 3},
+    },
+},
+
+{   .name = u8"法神头盔",
+    .type = u8"头盔",
+    .weight = 7,
+    .pkgGfxID = 0X0165,
+    .shape = 9,
+    .equip
+    {
+        .duration = 10,
+        .mc = {1, 1},
+        .ac = {5, 6},
+        .mac = {6, 8},
+        .req
+        {
+            .level = 60,
+        },
+    },
+},
+
+{   .name = u8"狂魔头盔",
+    .type = u8"头盔",
+    .weight = 7,
+    .pkgGfxID = 0X0166,
+    .shape = 9,
+    .equip
+    {
+        .duration = 10,
+        .dc = {1, 1},
+        .ac = {6, 8},
+        .mac = {5, 6},
+        .req
+        {
+            .level = 60,
+        },
+    },
+},
+
+{   .name = u8"天尊头盔",
+    .type = u8"头盔",
+    .weight = 7,
+    .pkgGfxID = 0X0167,
+    .shape = 9,
+    .equip
+    {
+        .duration = 10,
+        .sc = {1, 1},
+        .ac = {5, 7},
+        .mac = {5, 6},
+        .req
+        {
+            .level = 60,
+        },
     },
 },
 
@@ -2835,25 +2836,13 @@
     .equip
     {
         .duration = 8,
-        .dc = {1, 3},
-        .mc = {8, 8},
-        .sc = {8, 8},
-        .ac = {4, 6},
-        .mac = {10, 10},
-    },
-},
-
-{   .name = u8"火麒麟头盔",
-    .type = u8"头盔",
-    .weight = 20,
-    .pkgGfxID = 0X0177,
-    .shape = 0, // TODO this helmet has no associated gfx resource
-    .equip
-    {
-        .duration = 15,
-        .dc = {0, 5},
-        .ac = {7, 15},
-        .mac = {3, 7},
+        .sc = {2, 3},
+        .ac = {6, 7},
+        .mac = {6, 10},
+        .req
+        {
+            .level = 60,
+        },
     },
 },
 
@@ -2865,23 +2854,13 @@
     .equip
     {
         .duration = 8,
-        .mc = {10, 10},
-        .ac = {4, 6},
-        .mac = {10, 10},
-    },
-},
-
-{   .name = u8"鹰人面具",
-    .type = u8"头盔",
-    .weight = 4,
-    .pkgGfxID = 0X0178,
-    .shape = 0, // TODO this helmet has no associated gfx resource
-    .equip
-    {
-        .duration = 12,
-        .mc = {0, 5},
-        .ac = {3, 7},
-        .mac = {7, 15},
+        .mc = {2, 3},
+        .ac = {6, 8},
+        .mac = {6, 9},
+        .req
+        {
+            .level = 60,
+        },
     },
 },
 
@@ -2893,23 +2872,13 @@
     .equip
     {
         .duration = 8,
-        .sc = {15, 15},
-        .ac = {4, 6},
-        .mac = {10, 10},
-    },
-},
-
-{   .name = u8"岳飞神头",
-    .type = u8"头盔",
-    .weight = 8,
-    .pkgGfxID = 0X0179,
-    .shape = 0, // TODO this helmet has no associated gfx resource
-    .equip
-    {
-        .duration = 12,
-        .sc = {0, 5},
-        .ac = {3, 9},
-        .mac = {7, 15},
+        .dc = {1, 2},
+        .ac = {6, 9},
+        .mac = {6, 8},
+        .req
+        {
+            .level = 60,
+        },
     },
 },
 
@@ -3895,19 +3864,6 @@
     .pkgGfxID = 0X0206,
 },
 
-{   .name = u8"狂道神戒",
-    .type = u8"戒指",
-    .weight = 3,
-    .pkgGfxID = 0X0207,
-    .equip
-    {
-        .duration = 10,
-        .sc = {3, 13},
-        .ac = {2, 3},
-        .mac = {4, 5},
-    },
-},
-
 {   .name = u8"悲怒戒",
     .type = u8"戒指",
     .weight = 3,
@@ -4356,18 +4312,6 @@
     },
 },
 
-{   .name = u8"狂战神戒",
-    .type = u8"戒指",
-    .weight = 3,
-    .pkgGfxID = 0X021B,
-    .equip
-    {
-        .duration = 10,
-        .dc = {3, 15},
-        .speed = 2,
-    },
-},
-
 {   .name = u8"狂风戒指",
     .type = u8"戒指",
     .weight = 1,
@@ -4541,19 +4485,6 @@
     },
 },
 
-{   .name = u8"法仙魔戒",
-    .type = u8"戒指",
-    .weight = 3,
-    .pkgGfxID = 0X022B,
-    .equip
-    {
-        .duration = 10,
-        .mc = {2, 10},
-        .ac = {2, 2},
-        .mac = {0, 2},
-    },
-},
-
 {   .name = u8"水仙戒指",
     .type = u8"戒指",
     .weight = 1,
@@ -4563,19 +4494,10 @@
         .duration = 8,
         .sc = {5, 7},
         .dcDodge = 1,
-    },
-},
-
-{   .name = u8"道仙魔戒",
-    .type = u8"戒指",
-    .weight = 3,
-    .pkgGfxID = 0X022C,
-    .equip
-    {
-        .duration = 10,
-        .sc = {2, 10},
-        .ac = {2, 2},
-        .mac = {0, 2},
+        .req
+        {
+            .level = 60,
+        },
     },
 },
 
@@ -4588,19 +4510,10 @@
         .duration = 8,
         .mc = {6, 7},
         .dcHit = 1,
-    },
-},
-
-{   .name = u8"战仙魔戒",
-    .type = u8"戒指",
-    .weight = 3,
-    .pkgGfxID = 0X022D,
-    .equip
-    {
-        .duration = 10,
-        .dc = {1, 11},
-        .ac = {0, 2},
-        .mac = {2, 2},
+        .req
+        {
+            .level = 60,
+        },
     },
 },
 
@@ -4613,19 +4526,10 @@
         .duration = 8,
         .dc = {2, 12},
         .speed = 1,
-    },
-},
-
-{   .name = u8"狂魔神戒",
-    .type = u8"戒指",
-    .weight = 3,
-    .pkgGfxID = 0X022E,
-    .equip
-    {
-        .duration = 10,
-        .mc = {3, 13},
-        .ac = {3, 3},
-        .mac = {4, 5},
+        .req
+        {
+            .level = 60,
+        },
     },
 },
 
@@ -5627,21 +5531,12 @@
         .duration = 8,
         .mc = {3, 4},
         .mac = {1, 3},
+        .req
+        {
+            .level = 60,
+        },
     },
     .description = u8"李云龙的传家宝。",
-},
-
-{   .name = u8"道仙魔镯",
-    .type = u8"手镯",
-    .weight = 3,
-    .pkgGfxID = 0X02AE,
-    .equip
-    {
-        .duration = 10,
-        .sc = {3, 5},
-        .ac = {2, 2},
-        .mac = {1, 1},
-    },
 },
 
 {   .name = u8"至善手镯",
@@ -5653,19 +5548,10 @@
         .duration = 8,
         .sc = {3, 4},
         .mac = {2, 2},
-    },
-},
-
-{   .name = u8"战仙魔镯",
-    .type = u8"手镯",
-    .weight = 3,
-    .pkgGfxID = 0X02AF,
-    .equip
-    {
-        .duration = 10,
-        .dc = {3, 5},
-        .ac = {1, 1},
-        .mac = {2, 0},
+        .req
+        {
+            .level = 60,
+        },
     },
 },
 
@@ -5678,19 +5564,10 @@
         .duration = 8,
         .dc = {4, 5},
         .mac = {0, 3},
-    },
-},
-
-{   .name = u8"法仙魔镯",
-    .type = u8"手镯",
-    .weight = 3,
-    .pkgGfxID = 0X02B0,
-    .equip
-    {
-        .duration = 10,
-        .mc = {3, 5},
-        .ac = {2, 2},
-        .mac = {1, 1},
+        .req
+        {
+            .level = 60,
+        },
     },
 },
 
@@ -5939,19 +5816,6 @@
     .pkgGfxID = 0X02BF,
 },
 
-{   .name = u8"狂道神镯",
-    .type = u8"手镯",
-    .weight = 3,
-    .pkgGfxID = 0X02C0,
-    .equip
-    {
-        .duration = 8,
-        .sc = {5, 8},
-        .dcHit = 3,
-        .dcDodge = 4,
-    },
-},
-
 {   .name = u8"帝恨手镯",
     .type = u8"手镯",
     .weight = 1,
@@ -5980,19 +5844,6 @@
         {
             .level = 60,
         },
-    },
-},
-
-{   .name = u8"狂魔神镯",
-    .type = u8"手镯",
-    .weight = 3,
-    .pkgGfxID = 0X02C1,
-    .equip
-    {
-        .duration = 8,
-        .mc = {5, 8},
-        .dcHit = 3,
-        .dcDodge = 4,
     },
 },
 
@@ -6026,19 +5877,6 @@
         {
             .level = 60,
         },
-    },
-},
-
-{   .name = u8"狂战神镯",
-    .type = u8"手镯",
-    .weight = 3,
-    .pkgGfxID = 0X02C2,
-    .equip
-    {
-        .duration = 8,
-        .dc = {5, 8},
-        .dcHit = 3,
-        .dcDodge = 4,
     },
 },
 
@@ -9259,6 +9097,10 @@
         .mc = {6, 7},
         .hpRecover = 3,
         .mpRecover = 3,
+        .req
+        {
+            .level = 60,
+        },
     },
 },
 
@@ -9273,32 +9115,10 @@
         .speed = 1,
         .hpRecover = 3,
         .mpRecover = 3,
-    },
-},
-
-{   .name = u8"道仙魔链",
-    .type = u8"项链",
-    .weight = 3,
-    .pkgGfxID = 0X0397,
-    .equip
-    {
-        .duration = 10,
-        .sc = {5, 11},
-        .hpRecover = 1,
-        .mpRecover = 2,
-    },
-},
-
-{   .name = u8"战仙魔链",
-    .type = u8"项链",
-    .weight = 3,
-    .pkgGfxID = 0X0398,
-    .equip
-    {
-        .duration = 10,
-        .dc = {3, 13},
-        .dcHit = 2,
-        .dcDodge = 1,
+        .req
+        {
+            .level = 60,
+        },
     },
 },
 
@@ -9312,6 +9132,10 @@
         .sc = {6, 7},
         .hpRecover = 2,
         .mpRecover = 3,
+        .req
+        {
+            .level = 60,
+        },
     },
 },
 
@@ -9350,19 +9174,6 @@
     },
 },
 
-{   .name = u8"狂道神链",
-    .type = u8"项链",
-    .weight = 3,
-    .pkgGfxID = 0X0399,
-    .equip
-    {
-        .duration = 10,
-        .sc = {0, 15},
-        .hpRecover = 4,
-        .mpRecover = 4,
-    },
-},
-
 {   .name = u8"十方俱灭项链",
     .type = u8"项链",
     .weight = 3,
@@ -9394,32 +9205,6 @@
         {
             .level = 60,
         },
-    },
-},
-
-{   .name = u8"狂魔神链",
-    .type = u8"项链",
-    .weight = 3,
-    .pkgGfxID = 0X039A,
-    .equip
-    {
-        .duration = 10,
-        .mc = {4, 15},
-        .hpRecover = 4,
-        .mpRecover = 4,
-    },
-},
-
-{   .name = u8"狂战神链",
-    .type = u8"项链",
-    .weight = 3,
-    .pkgGfxID = 0X039B,
-    .equip
-    {
-        .duration = 10,
-        .dc = {4, 15},
-        .dcHit = 4,
-        .dcDodge = 3,
     },
 },
 
@@ -9579,6 +9364,114 @@
     .type = u8"道具",
     .weight = 10,
     .pkgGfxID = 0X03B7,
+},
+
+{   .name = u8"天蚕宝甲（男）",
+    .type = u8"衣服",
+    .weight = 28,
+    .pkgGfxID = 0X03C1,
+    .shape = 0, // TODO this cloth has no associated gfx resource
+    .equip
+    {
+        .duration = 42,
+        .dc = {1, 10},
+        .ac = {9, 28},
+        .mac = {9, 18},
+        .req
+        {
+            .level = 60,
+        },
+    },
+},
+
+{   .name = u8"欲火战衣（男）",
+    .type = u8"衣服",
+    .weight = 28,
+    .pkgGfxID = 0X03C2,
+    .shape = 0, // TODO this cloth has no associated gfx resource
+    .equip
+    {
+        .duration = 42,
+        .mc = {3, 10},
+        .ac = {9, 28},
+        .mac = {9, 18},
+        .req
+        {
+            .level = 60,
+        },
+    },
+},
+
+{   .name = u8"玄冰神甲（男）",
+    .type = u8"衣服",
+    .weight = 28,
+    .pkgGfxID = 0X03C3,
+    .shape = 0, // TODO this cloth has no associated gfx resource
+    .equip
+    {
+        .duration = 42,
+        .sc = {2, 12},
+        .ac = {9, 28},
+        .mac = {9, 18},
+        .req
+        {
+            .level = 60,
+        },
+    },
+},
+
+{   .name = u8"天蚕宝甲（女）",
+    .type = u8"衣服",
+    .weight = 28,
+    .pkgGfxID = 0X03CB,
+    .shape = 0, // TODO this cloth has no associated gfx resource
+    .equip
+    {
+        .duration = 42,
+        .dc = {1, 10},
+        .ac = {9, 28},
+        .mac = {9, 18},
+        .req
+        {
+            .level = 60,
+        },
+    },
+},
+
+{   .name = u8"欲火战衣（女）",
+    .type = u8"衣服",
+    .weight = 28,
+    .pkgGfxID = 0X03CC,
+    .shape = 0, // TODO this cloth has no associated gfx resource
+    .equip
+    {
+        .duration = 42,
+        .mc = {3, 10},
+        .ac = {9, 28},
+        .mac = {9, 18},
+        .req
+        {
+            .level = 60,
+        },
+    },
+},
+
+{   .name = u8"玄冰神甲（女）",
+    .type = u8"衣服",
+    .weight = 28,
+    .pkgGfxID = 0X03CD,
+    .shape = 0, // TODO this cloth has no associated gfx resource
+    .equip
+    {
+        .duration = 42,
+        .sc = {2, 12},
+        .ac = {9, 28},
+        .mac = {9, 18},
+        .req
+        {
+            .level = 60,
+        },
+    },
 },
 
 {   .name = u8"重盔甲（男）",
@@ -10301,30 +10194,6 @@
     },
 },
 
-{   .name = u8"破山剑（勇者）",
-    .type = u8"武器",
-    .weight = 99,
-    .pkgGfxID = 0X0411,
-    .shape = 8,
-    .equip
-    {
-        .duration = 35,
-        .dc = {1, 50},
-    },
-},
-
-{   .name = u8"破山剑（英雄）",
-    .type = u8"武器",
-    .weight = 99,
-    .pkgGfxID = 0X0411,
-    .shape = 8,
-    .equip
-    {
-        .duration = 35,
-        .dc = {1, 50},
-    },
-},
-
 {   .name = u8"木剑",
     .type = u8"武器",
     .weight = 5,
@@ -10614,7 +10483,7 @@
     .type = u8"武器",
     .weight = 20,
     .pkgGfxID = 0X041A,
-    .shape = 14,
+    .shape = 2,
     .equip
     {
         .duration = 32,
@@ -10637,7 +10506,7 @@
     .type = u8"武器",
     .weight = 20,
     .pkgGfxID = 0X041A,
-    .shape = 14,
+    .shape = 2,
     .equip
     {
         .duration = 32,
@@ -10660,7 +10529,7 @@
     .type = u8"武器",
     .weight = 20,
     .pkgGfxID = 0X041A,
-    .shape = 14,
+    .shape = 2,
     .equip
     {
         .duration = 32,
@@ -10683,7 +10552,7 @@
     .type = u8"武器",
     .weight = 20,
     .pkgGfxID = 0X041A,
-    .shape = 14,
+    .shape = 2,
     .equip
     {
         .duration = 32,
@@ -10706,7 +10575,7 @@
     .type = u8"武器",
     .weight = 20,
     .pkgGfxID = 0X041A,
-    .shape = 14,
+    .shape = 2,
     .equip
     {
         .duration = 32,
@@ -10729,7 +10598,7 @@
     .type = u8"武器",
     .weight = 20,
     .pkgGfxID = 0X041A,
-    .shape = 14,
+    .shape = 2,
     .equip
     {
         .duration = 32,
@@ -10752,7 +10621,7 @@
     .type = u8"武器",
     .weight = 20,
     .pkgGfxID = 0X041A,
-    .shape = 14,
+    .shape = 2,
     .equip
     {
         .duration = 32,
@@ -10775,7 +10644,7 @@
     .type = u8"武器",
     .weight = 20,
     .pkgGfxID = 0X0424,
-    .shape = 10,
+    .shape = 12,
     .equip
     {
         .duration = 20,
@@ -10877,7 +10746,7 @@
     .equip
     {
         .duration = 40,
-        .dc = {5, 10},
+        .dc = {10, 12},
         .mc = {1, 2},
         .sc = {1, 2},
     },
@@ -11084,7 +10953,6 @@
     {
         .duration = 36,
         .dc = {2, 41},
-        .speed = -1,
         .req
         {
             .level = 60,
@@ -11158,6 +11026,25 @@
     },
 },
 
+{   .name = u8"寂幻之刃",
+    .type = u8"武器",
+    .weight = 22,
+    .pkgGfxID = 0X0433,
+    .shape = 45,
+    .equip
+    {
+        .duration = 45,
+        .dc = {2, 54},
+        .mc = {5, 24},
+        .sc = {5, 24},
+        .dcHit = 2,
+        .req
+        {
+            .level = 60,
+        },
+    },
+},
+
 {   .name = u8"末日之刃",
     .type = u8"武器",
     .weight = 22,
@@ -11171,25 +11058,6 @@
         .sc = {5, 30},
         .dcHit = 10,
         .speed = 5,
-        .req
-        {
-            .level = 60,
-        },
-    },
-},
-
-{   .name = u8"寂幻之刃",
-    .type = u8"武器",
-    .weight = 22,
-    .pkgGfxID = 0X0434,
-    .shape = 45,
-    .equip
-    {
-        .duration = 45,
-        .dc = {2, 54},
-        .mc = {5, 24},
-        .sc = {5, 24},
-        .dcHit = 2,
         .req
         {
             .level = 60,
@@ -11220,8 +11088,8 @@
 {   .name = u8"擎天",
     .type = u8"武器",
     .weight = 60,
-    .pkgGfxID = 0X0435,
-    .shape = 38,
+    .pkgGfxID = 0X0436,
+    .shape = 44,
     .equip
     {
         .duration = 42,
@@ -11418,28 +11286,6 @@
     },
 },
 
-{   .name = u8"骨玉权杖（初）",
-    .type = u8"武器",
-    .weight = 15,
-    .pkgGfxID = 0X043C,
-    .shape = 17,
-    .equip
-    {
-        .duration = 17,
-        .dc = {6, 17},
-        .mc = {6, 10},
-        .dcHit = 1,
-        .dcElem
-        {
-            .fire = 3,
-        },
-        .req
-        {
-            .level = 60,
-        },
-    },
-},
-
 {   .name = u8"我乃骨玉权杖",
     .type = u8"道具",
     .weight = 10,
@@ -11546,8 +11392,8 @@
 {   .name = u8"碎梦",
     .type = u8"武器",
     .weight = 25,
-    .pkgGfxID = 0X0440,
-    .shape = 40,
+    .pkgGfxID = 0X043F,
+    .shape = 42,
     .equip
     {
         .duration = 40,
@@ -11884,21 +11730,6 @@
         {
             .level = 1,
         },
-    },
-},
-
-{   .name = u8"试练之刃",
-    .type = u8"武器",
-    .weight = 22,
-    .pkgGfxID = 0X0461,
-    .shape = 32,
-    .equip
-    {
-        .duration = 25,
-        .dc = {1, 1},
-        .mc = {1, 1},
-        .sc = {1, 1},
-        .dcHit = 1,
     },
 },
 
@@ -12280,45 +12111,6 @@
     },
 },
 
-{   .name = u8"骨玉权杖（英雄）",
-    .type = u8"武器",
-    .weight = 15,
-    .pkgGfxID = 0X04A8,
-    .shape = 17,
-    .equip
-    {
-        .duration = 17,
-        .dc = {6, 17},
-        .mc = {4, 12},
-        .req
-        {
-            .level = 60,
-        },
-    },
-},
-
-{   .name = u8"骨玉权杖（终极）",
-    .type = u8"武器",
-    .weight = 15,
-    .pkgGfxID = 0X04A8,
-    .shape = 17,
-    .equip
-    {
-        .duration = 17,
-        .dc = {6, 17},
-        .mc = {7, 10},
-        .dcHit = 2,
-        .dcElem
-        {
-            .fire = 4,
-        },
-        .req
-        {
-            .level = 60,
-        },
-    },
-},
-
 {   .name = u8"祖玛骨玉权杖",
     .type = u8"武器",
     .weight = 14,
@@ -12332,83 +12124,6 @@
         .req
         {
             .level = 33,
-        },
-    },
-},
-
-{   .name = u8"骨玉权杖（勇者）",
-    .type = u8"武器",
-    .weight = 15,
-    .pkgGfxID = 0X04A9,
-    .shape = 17,
-    .equip
-    {
-        .duration = 17,
-        .dc = {6, 17},
-        .mc = {4, 12},
-        .req
-        {
-            .level = 60,
-        },
-    },
-},
-
-{   .name = u8"屠龙（英雄）",
-    .type = u8"武器",
-    .weight = 100,
-    .pkgGfxID = 0X04B0,
-    .shape = 4,
-    .equip
-    {
-        .duration = 36,
-        .dc = {2, 48},
-    },
-},
-
-{   .name = u8"屠龙（勇者）",
-    .type = u8"武器",
-    .weight = 100,
-    .pkgGfxID = 0X04B3,
-    .shape = 4,
-    .equip
-    {
-        .duration = 36,
-        .dc = {2, 48},
-    },
-},
-
-{   .name = u8"龙纹剑（英雄）",
-    .type = u8"武器",
-    .weight = 37,
-    .pkgGfxID = 0X04C5,
-    .shape = 20,
-    .equip
-    {
-        .duration = 26,
-        .dc = {9, 26},
-        .sc = {5, 14},
-        .dcHit = 3,
-        .dcElem
-        {
-            .holy = 6,
-        },
-    },
-},
-
-{   .name = u8"龙纹剑（勇者）",
-    .type = u8"武器",
-    .weight = 37,
-    .pkgGfxID = 0X04C7,
-    .shape = 20,
-    .equip
-    {
-        .duration = 26,
-        .dc = {9, 26},
-        .sc = {5, 14},
-        .dcHit = 3,
-        .dcElem
-        {
-            .holy = 6,
         },
     },
 },
@@ -12528,120 +12243,6 @@
     },
 },
 
-{   .name = u8"无极棍（勇者）",
-    .type = u8"武器",
-    .weight = 33,
-    .pkgGfxID = 0X04ED,
-    .shape = 19,
-    .equip
-    {
-        .duration = 24,
-        .dc = {6, 20},
-        .sc = {4, 10},
-        .dcHit = 2,
-        .dcElem
-        {
-            .holy = 4,
-        },
-        .req
-        {
-            .level = 60,
-        },
-    },
-},
-
-{   .name = u8"无极棍（英雄）",
-    .type = u8"武器",
-    .weight = 33,
-    .pkgGfxID = 0X04ED,
-    .shape = 19,
-    .equip
-    {
-        .duration = 24,
-        .dc = {6, 20},
-        .sc = {4, 10},
-        .dcHit = 2,
-        .dcElem
-        {
-            .holy = 4,
-        },
-        .req
-        {
-            .level = 60,
-        },
-    },
-},
-
-{   .name = u8"无极棍（初）",
-    .type = u8"武器",
-    .weight = 33,
-    .pkgGfxID = 0X04ED,
-    .shape = 19,
-    .equip
-    {
-        .duration = 24,
-        .dc = {6, 20},
-        .sc = {5, 8},
-        .dcHit = 3,
-        .dcElem
-        {
-            .holy = 4,
-        },
-        .req
-        {
-            .level = 60,
-        },
-    },
-},
-
-{   .name = u8"无极棍（终极）",
-    .type = u8"武器",
-    .weight = 33,
-    .pkgGfxID = 0X04ED,
-    .shape = 19,
-    .equip
-    {
-        .duration = 24,
-        .dc = {6, 20},
-        .sc = {6, 8},
-        .dcHit = 3,
-        .dcElem
-        {
-            .wind = 8,
-        },
-        .req
-        {
-            .level = 60,
-        },
-    },
-},
-
-{   .name = u8"嗜魂法杖（英雄）",
-    .type = u8"武器",
-    .weight = 16,
-    .pkgGfxID = 0X04F6,
-    .shape = 3,
-    .equip
-    {
-        .duration = 19,
-        .dc = {6, 20},
-        .mc = {6, 16},
-    },
-},
-
-{   .name = u8"嗜魂法杖（勇者）",
-    .type = u8"武器",
-    .weight = 16,
-    .pkgGfxID = 0X04F9,
-    .shape = 3,
-    .equip
-    {
-        .duration = 19,
-        .dc = {6, 20},
-        .mc = {6, 16},
-    },
-},
-
 {   .name = u8"诺玛族魔杖",
     .type = u8"武器",
     .weight = 12,
@@ -12702,22 +12303,6 @@
     },
 },
 
-{   .name = u8"裁决之杖（英雄）",
-    .type = u8"武器",
-    .weight = 90,
-    .pkgGfxID = 0X0514,
-    .shape = 15,
-    .equip
-    {
-        .duration = 34,
-        .dc = {0, 41},
-        .req
-        {
-            .level = 60,
-        },
-    },
-},
-
 {   .name = u8"祖玛裁决之杖",
     .type = u8"武器",
     .weight = 80,
@@ -12731,64 +12316,6 @@
         .req
         {
             .level = 33,
-        },
-    },
-},
-
-{   .name = u8"裁决之杖（勇者）",
-    .type = u8"武器",
-    .weight = 90,
-    .pkgGfxID = 0X0517,
-    .shape = 15,
-    .equip
-    {
-        .duration = 34,
-        .dc = {0, 41},
-        .req
-        {
-            .level = 60,
-        },
-    },
-},
-
-{   .name = u8"裁决之杖（初）",
-    .type = u8"武器",
-    .weight = 90,
-    .pkgGfxID = 0X0517,
-    .shape = 15,
-    .equip
-    {
-        .duration = 34,
-        .dc = {2, 39},
-        .dcHit = 1,
-        .dcElem
-        {
-            .fire = 3,
-        },
-        .req
-        {
-            .level = 60,
-        },
-    },
-},
-
-{   .name = u8"裁决之杖（终极）",
-    .type = u8"武器",
-    .weight = 90,
-    .pkgGfxID = 0X0517,
-    .shape = 15,
-    .equip
-    {
-        .duration = 34,
-        .dc = {3, 39},
-        .dcHit = 2,
-        .dcElem
-        {
-            .fire = 4,
-        },
-        .req
-        {
-            .level = 60,
         },
     },
 },
@@ -12980,168 +12507,6 @@
     .pkgGfxID = 0X053B,
 },
 
-{   .name = u8"神符艾尔（1）",
-    .type = u8"道具",
-    .weight = 1,
-    .pkgGfxID = 0X053B,
-},
-
-{   .name = u8"神符艾德（2）",
-    .type = u8"道具",
-    .weight = 1,
-    .pkgGfxID = 0X053B,
-},
-
-{   .name = u8"神符特尔（3）",
-    .type = u8"道具",
-    .weight = 1,
-    .pkgGfxID = 0X053B,
-},
-
-{   .name = u8"神符那夫（4）",
-    .type = u8"道具",
-    .weight = 1,
-    .pkgGfxID = 0X053B,
-},
-
-{   .name = u8"神符爱斯（5）",
-    .type = u8"道具",
-    .weight = 1,
-    .pkgGfxID = 0X053B,
-},
-
-{   .name = u8"神符伊司（6）",
-    .type = u8"道具",
-    .weight = 1,
-    .pkgGfxID = 0X053B,
-},
-
-{   .name = u8"神符塔尔（7）",
-    .type = u8"道具",
-    .weight = 1,
-    .pkgGfxID = 0X053B,
-},
-
-{   .name = u8"神符拉尔（8）",
-    .type = u8"道具",
-    .weight = 1,
-    .pkgGfxID = 0X053B,
-},
-
-{   .name = u8"神符欧特（9）",
-    .type = u8"道具",
-    .weight = 1,
-    .pkgGfxID = 0X053B,
-},
-
-{   .name = u8"神符书尔（10）",
-    .type = u8"道具",
-    .weight = 1,
-    .pkgGfxID = 0X053B,
-},
-
-{   .name = u8"神符安姆（11）",
-    .type = u8"道具",
-    .weight = 1,
-    .pkgGfxID = 0X053B,
-},
-
-{   .name = u8"神符索尔（12）",
-    .type = u8"道具",
-    .weight = 1,
-    .pkgGfxID = 0X053B,
-},
-
-{   .name = u8"神符沙尔（13）",
-    .type = u8"道具",
-    .weight = 1,
-    .pkgGfxID = 0X053B,
-},
-
-{   .name = u8"神符多尔（14）",
-    .type = u8"道具",
-    .weight = 1,
-    .pkgGfxID = 0X053B,
-},
-
-{   .name = u8"神符海尔（15）",
-    .type = u8"道具",
-    .weight = 1,
-    .pkgGfxID = 0X053B,
-},
-
-{   .name = u8"神符艾欧（16）",
-    .type = u8"道具",
-    .weight = 1,
-    .pkgGfxID = 0X053B,
-},
-
-{   .name = u8"神符卢姆（17）",
-    .type = u8"道具",
-    .weight = 1,
-    .pkgGfxID = 0X053B,
-},
-
-{   .name = u8"神符科（18）",
-    .type = u8"道具",
-    .weight = 1,
-    .pkgGfxID = 0X053B,
-},
-
-{   .name = u8"神符法尔（19）",
-    .type = u8"道具",
-    .weight = 1,
-    .pkgGfxID = 0X053B,
-},
-
-{   .name = u8"神符蓝姆（20）",
-    .type = u8"道具",
-    .weight = 1,
-    .pkgGfxID = 0X053B,
-},
-
-{   .name = u8"神符普尔（21）",
-    .type = u8"道具",
-    .weight = 1,
-    .pkgGfxID = 0X053B,
-},
-
-{   .name = u8"神符吉尔（22）",
-    .type = u8"道具",
-    .weight = 1,
-    .pkgGfxID = 0X053B,
-},
-
-{   .name = u8"神符查姆（23）",
-    .type = u8"道具",
-    .weight = 1,
-    .pkgGfxID = 0X053B,
-},
-
-{   .name = u8"神符萨德（24）",
-    .type = u8"道具",
-    .weight = 1,
-    .pkgGfxID = 0X053B,
-},
-
-{   .name = u8"神符罗（25）",
-    .type = u8"道具",
-    .weight = 1,
-    .pkgGfxID = 0X053B,
-},
-
-{   .name = u8"神符瑟（26）",
-    .type = u8"道具",
-    .weight = 1,
-    .pkgGfxID = 0X053B,
-},
-
-{   .name = u8"神符贝（27）",
-    .type = u8"道具",
-    .weight = 1,
-    .pkgGfxID = 0X053B,
-},
-
 {   .name = u8"好友令牌",
     .type = u8"道具",
     .weight = 1,
@@ -13152,61 +12517,6 @@
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X053C,
-},
-
-{   .name = u8"特效自然药剂",
-    .type = u8"强效药水",
-    .weight = 1,
-    .pkgGfxID = 0X053D,
-    .dope
-    {
-        .mc = 20,
-        .time = 30,
-    },
-},
-
-{   .name = u8"特效灵魂药剂",
-    .type = u8"强效药水",
-    .weight = 1,
-    .pkgGfxID = 0X053D,
-    .dope
-    {
-        .mc = 20,
-        .time = 30,
-    },
-},
-
-{   .name = u8"特效体力药剂",
-    .type = u8"强效药水",
-    .weight = 1,
-    .pkgGfxID = 0X053D,
-    .dope
-    {
-        .hp = 220,
-        .time = 30,
-    },
-},
-
-{   .name = u8"特效攻击药剂",
-    .type = u8"强效药水",
-    .weight = 1,
-    .pkgGfxID = 0X053D,
-    .dope
-    {
-        .dc = 20,
-        .time = 30,
-    },
-},
-
-{   .name = u8"特效疾风药剂",
-    .type = u8"强效药水",
-    .weight = 1,
-    .pkgGfxID = 0X053D,
-    .dope
-    {
-        .speed = 5,
-        .time = 30,
-    },
 },
 
 {   .name = u8"毒蛇胆汁",
@@ -13265,18 +12575,6 @@
 },
 
 {   .name = u8"沃玛金牌",
-    .type = u8"道具",
-    .weight = 1,
-    .pkgGfxID = 0X0540,
-},
-
-{   .name = u8"魔界准入证",
-    .type = u8"道具",
-    .weight = 1,
-    .pkgGfxID = 0X0540,
-},
-
-{   .name = u8"终极决斗证书",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X0540,
@@ -13382,12 +12680,6 @@
 },
 
 {   .name = u8"受胎石",
-    .type = u8"道具",
-    .weight = 1,
-    .pkgGfxID = 0X054B,
-},
-
-{   .name = u8"地天灭王印记",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X054B,
@@ -13545,21 +12837,6 @@
     },
 },
 
-{   .name = u8"黑旋风",
-    .type = u8"鞋",
-    .weight = 4,
-    .pkgGfxID = 0X055C,
-    .equip
-    {
-        .duration = 12,
-        .comfort = 12,
-        .load
-        {
-            .body = 30,
-        },
-    },
-},
-
 {   .name = u8"无影靴",
     .type = u8"鞋",
     .weight = 4,
@@ -13642,33 +12919,22 @@
     },
 },
 
-{   .name = u8"紫姚之风",
+{   .name = u8"乘风鞋",
     .type = u8"鞋",
-    .weight = 4,
+    .weight = 3,
     .pkgGfxID = 0X0562,
     .equip
     {
         .duration = 12,
-        .comfort = 12,
+        .comfort = 8,
         .load
         {
-            .hand = 30,
+            .hand = 10,
+            .body = 15,
         },
-    },
-},
-
-{   .name = u8"古典美学",
-    .type = u8"鞋",
-    .weight = 4,
-    .pkgGfxID = 0X0563,
-    .equip
-    {
-        .duration = 12,
-        .comfort = 14,
-        .load
+        .req
         {
-            .hand = 18,
-            .body = 18,
+            .level = 60,
         },
     },
 },
@@ -13691,10 +12957,46 @@
     .pkgGfxID = 0X0565,
 },
 
+{   .name = u8"新人鞋",
+    .type = u8"鞋",
+    .weight = 1,
+    .pkgGfxID = 0X0566,
+    .equip
+    {
+        .duration = 2,
+        .comfort = 2,
+        .load
+        {
+            .hand = 2,
+            .body = 2,
+        },
+    },
+},
+
 {   .name = u8"扛造鞋",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X0566,
+},
+
+{   .name = u8"天狼靴",
+    .type = u8"鞋",
+    .weight = 3,
+    .pkgGfxID = 0X0568,
+    .equip
+    {
+        .duration = 12,
+        .comfort = 8,
+        .load
+        {
+            .hand = 13,
+            .body = 12,
+        },
+        .req
+        {
+            .level = 60,
+        },
+    },
 },
 
 {   .name = u8"鞋子",
@@ -13703,78 +13005,82 @@
     .pkgGfxID = 0X0568,
 },
 
-{   .name = u8"圣洁天使",
+{   .name = u8"青山绿水",
     .type = u8"鞋",
-    .weight = 6,
-    .pkgGfxID = 0X056B,
+    .weight = 3,
+    .pkgGfxID = 0X0569,
     .equip
     {
-        .duration = 14,
-        .comfort = 15,
+        .duration = 12,
+        .comfort = 10,
         .load
         {
-            .body = 33,
+            .hand = 13,
+            .body = 17,
+        },
+        .req
+        {
+            .level = 60,
         },
     },
 },
 
-{   .name = u8"狂道神靴",
+{   .name = u8"踏雪无痕",
     .type = u8"鞋",
-    .weight = 8,
-    .pkgGfxID = 0X056B,
+    .weight = 3,
+    .pkgGfxID = 0X056A,
     .equip
     {
-        .duration = 20,
-        .comfort = 18,
+        .duration = 12,
+        .comfort = 10,
         .load
         {
-            .hand = 40,
+            .hand = 15,
+            .body = 15,
+        },
+        .req
+        {
+            .level = 60,
         },
     },
 },
 
-{   .name = u8"乘风鞋",
+{   .name = u8"踏雪寻梅",
+    .type = u8"鞋",
+    .weight = 3,
+    .pkgGfxID = 0X056B,
+    .equip
+    {
+        .duration = 12,
+        .comfort = 10,
+        .load
+        {
+            .hand = 12,
+            .body = 18,
+        },
+        .req
+        {
+            .level = 60,
+        },
+    },
+},
+
+{   .name = u8"黄金战靴",
     .type = u8"鞋",
     .weight = 3,
     .pkgGfxID = 0X056C,
     .equip
     {
         .duration = 12,
-        .comfort = 20,
+        .comfort = 10,
         .load
         {
             .hand = 10,
             .body = 20,
         },
-    },
-},
-
-{   .name = u8"神圣宝靴",
-    .type = u8"鞋",
-    .weight = 6,
-    .pkgGfxID = 0X056C,
-    .equip
-    {
-        .duration = 14,
-        .comfort = 15,
-        .load
+        .req
         {
-            .hand = 33,
-        },
-    },
-},
-
-{   .name = u8"狂魔神靴",
-    .type = u8"鞋",
-    .weight = 8,
-    .pkgGfxID = 0X056C,
-    .equip
-    {
-        .duration = 20,
-        .comfort = 18,
-        .load
-        {
-            .body = 40,
+            .level = 60,
         },
     },
 },
@@ -13786,43 +13092,15 @@
     .equip
     {
         .duration = 12,
-        .comfort = 20,
+        .comfort = 8,
         .load
         {
-            .hand = 10,
-            .body = 20,
+            .hand = 11,
+            .body = 14,
         },
-    },
-},
-
-{   .name = u8"火麒麟",
-    .type = u8"鞋",
-    .weight = 3,
-    .pkgGfxID = 0X056D,
-    .equip
-    {
-        .duration = 23,
-        .comfort = 9,
-        .load
+        .req
         {
-            .hand = 12,
-            .body = 12,
-        },
-    },
-},
-
-{   .name = u8"狂战神靴",
-    .type = u8"鞋",
-    .weight = 8,
-    .pkgGfxID = 0X056D,
-    .equip
-    {
-        .duration = 16,
-        .comfort = 20,
-        .load
-        {
-            .hand = 25,
-            .body = 25,
+            .level = 60,
         },
     },
 },
@@ -13834,11 +13112,35 @@
     .equip
     {
         .duration = 12,
-        .comfort = 20,
+        .comfort = 8,
         .load
         {
-            .hand = 10,
-            .body = 20,
+            .hand = 12,
+            .body = 13,
+        },
+        .req
+        {
+            .level = 60,
+        },
+    },
+},
+
+{   .name = u8"虎皮靴",
+    .type = u8"鞋",
+    .weight = 3,
+    .pkgGfxID = 0X056F,
+    .equip
+    {
+        .duration = 12,
+        .comfort = 8,
+        .load
+        {
+            .hand = 14,
+            .body = 11,
+        },
+        .req
+        {
+            .level = 60,
         },
     },
 },
@@ -14057,6 +13359,12 @@
     .pkgGfxID = 0X058D,
 },
 
+{   .name = u8"普通饲料",
+    .type = u8"道具",
+    .weight = 1,
+    .pkgGfxID = 0X058E,
+},
+
 {   .name = u8"尾毛",
     .type = u8"道具",
     .weight = 1,
@@ -14108,18 +13416,6 @@
 {   .name = u8"箱子",
     .type = u8"道具",
     .weight = 4,
-    .pkgGfxID = 0X0591,
-},
-
-{   .name = u8"经验宝箱",
-    .type = u8"道具",
-    .weight = 1,
-    .pkgGfxID = 0X0591,
-},
-
-{   .name = u8"超级经验宝箱",
-    .type = u8"道具",
-    .weight = 1,
     .pkgGfxID = 0X0591,
 },
 
@@ -14185,12 +13481,6 @@
     {
         .duration = 10,
     },
-},
-
-{   .name = u8"神符咒语(装备提升)",
-    .type = u8"道具",
-    .weight = 1,
-    .pkgGfxID = 0X059D,
 },
 
 {   .name = u8"圣",
@@ -14305,12 +13595,6 @@
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X05AA,
-},
-
-{   .name = u8"师徒令",
-    .type = u8"道具",
-    .weight = 1,
-    .pkgGfxID = 0X05AB,
 },
 
 {   .name = u8"消魔的护身符",
@@ -14796,7 +14080,7 @@
     },
 },
 
-{   .name = u8"节日礼卡",
+{   .name = u8"礼物盒",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X05E2,
@@ -14856,13 +14140,13 @@
     .pkgGfxID = 0X0601,
 },
 
-{   .name = u8"骷髅碎骨",
+{   .name = u8"高级饲料",
     .type = u8"道具",
     .weight = 1,
-    .pkgGfxID = 0X0612,
+    .pkgGfxID = 0X0604,
 },
 
-{   .name = u8"死亡的面孔",
+{   .name = u8"骷髅碎骨",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X0612,
@@ -14872,12 +14156,6 @@
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X0613,
-},
-
-{   .name = u8"天灾的力量",
-    .type = u8"道具",
-    .weight = 1,
-    .pkgGfxID = 0X0614,
 },
 
 {   .name = u8"金钥匙",
@@ -14904,52 +14182,9 @@
     .pkgGfxID = 0X0618,
 },
 
-{   .name = u8"屠龙者的纹章",
-    .type = u8"道具",
-    .weight = 1,
-    .pkgGfxID = 0X0618,
-},
-
 {   .name = u8"梳子",
     .type = u8"道具",
     .weight = 1,
     .pkgGfxID = 0X0623,
-},
-
-{   .name = u8"法仙魔链",
-    .type = u8"项链",
-    .weight = 2,
-    .pkgGfxID = 0X0644,
-    .equip
-    {
-        .duration = 10,
-        .mc = {4, 12},
-        .hpRecover = 1,
-        .mpRecover = 2,
-    },
-},
-
-{   .name = u8"奎尔塞拉",
-    .type = u8"道具",
-    .weight = 1,
-    .pkgGfxID = 0X064B,
-},
-
-{   .name = u8"玛利斯达尔",
-    .type = u8"道具",
-    .weight = 1,
-    .pkgGfxID = 0X064C,
-},
-
-{   .name = u8"天灾的威严",
-    .type = u8"道具",
-    .weight = 1,
-    .pkgGfxID = 0X064D,
-},
-
-{   .name = u8"偏斜雕文",
-    .type = u8"道具",
-    .weight = 1,
-    .pkgGfxID = 0X064E,
 },
 
