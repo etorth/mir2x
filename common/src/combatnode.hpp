@@ -21,8 +21,9 @@ struct CombatNode
     int dcDodge = 0;
     int mcDodge = 0;
 
-    int speed   = 0;
+    int speed = 0;
     int comfort = 0;
+    int luckCurse = 0;
 
     struct AddLoad
     {
