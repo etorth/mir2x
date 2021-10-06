@@ -831,7 +831,11 @@ SDL_Texture *PurchaseBoard::getItemTexture(const char8_t *itemType, uint32_t pkg
         if(false
                 || to_u8sv(itemType) == u8"项链"
                 || to_u8sv(itemType) == u8"戒指"
-                || to_u8sv(itemType) == u8"手镯"){
+                || to_u8sv(itemType) == u8"手镯"
+                || to_u8sv(itemType) == u8"鞋"
+                || to_u8sv(itemType) == u8"道具"
+                || to_u8sv(itemType) == u8"火把"
+                || to_u8sv(itemType) == u8"头盔"){
             return g_itemDB->retrieve(pkgGfxID | 0X01000000);
         }
     }
