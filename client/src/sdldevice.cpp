@@ -548,18 +548,18 @@ void SDLDevice::createMainWindow()
     SDL_StartTextInput();
 }
 
-void SDLDevice::drawTextureEx(SDL_Texture *texPtr,
+void SDLDevice::drawTextureExt(SDL_Texture *texPtr,
         int srcX, int srcY, int srcW, int srcH,
         int dstX, int dstY, int dstW, int dstH,
         int centerSrcX,
-        int centerDstX,
+        int centerSrcY,
         int rotateDegree,
         SDL_RendererFlip flip)
 {
     if(texPtr){
         SDL_Rect src {srcX, srcY, srcW, srcH};
         SDL_Rect dst {dstX, dstY, dstW, dstH};
-        SDL_Point center {centerSrcX, centerDstX};
+        SDL_Point center {centerSrcX, centerSrcY};
         if(SDL_RenderCopyEx(m_renderer, texPtr, &src, &dst, 1.00 * (rotateDegree % 360), &center, flip)){
             throw fflerror("SDL_RenderCopyEx(%p) failed: %s", to_cvptr(m_renderer), SDL_GetError());
         }

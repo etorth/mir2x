@@ -76,7 +76,7 @@ void Thunderbolt::drawShift(int shiftX, int shiftY, bool alpha) const
         // frame 0 ~ 3 are long, last frame is short
         g_sdlDevice->drawTexture(texPtr, shiftX + offX, shiftY + offY);
         if(frame() <= 3){
-            g_sdlDevice->drawTextureEx(texPtr, 0, 0, texW, texH, shiftX + offX, shiftY + offY - texH, texW, texH, 0, 0, 0, SDL_FLIP_VERTICAL);
+            g_sdlDevice->drawTextureExt(texPtr, 0, 0, texW, texH, shiftX + offX, shiftY + offY - texH, texW, texH, 0, 0, 0, SDL_FLIP_VERTICAL);
         }
     }
 }
@@ -107,7 +107,7 @@ void NumaWizardThunderBolt::drawShift(int shiftX, int shiftY, bool alpha) const
         // frame 0 ~ 3 are long, last frame is short
         g_sdlDevice->drawTexture(texPtr, shiftX + offX, shiftY + offY);
         if(frame() <= 3){
-            g_sdlDevice->drawTextureEx(texPtr, 0, 0, texW, texH, shiftX + offX, shiftY + offY - texH, texW, texH, 0, 0, 0, SDL_FLIP_VERTICAL);
+            g_sdlDevice->drawTextureExt(texPtr, 0, 0, texW, texH, shiftX + offX, shiftY + offY - texH, texW, texH, 0, 0, 0, SDL_FLIP_VERTICAL);
         }
     }
 }

@@ -1785,7 +1785,7 @@ void ProcessRun::drawRotateStar(int x0, int y0, int x1, int y1)
         // use different color of rotating star for different type
 
         SDL_SetTextureAlphaMod(texPtr, 128);
-        g_sdlDevice->drawTextureEx(texPtr, 0, 0, texW, texH, drawPX, drawPY, currSize, currSize, currSize / 2, currSize / 2, std::lround(m_starRatio * 360.0));
+        g_sdlDevice->drawTextureExt(texPtr, 0, 0, texW, texH, drawPX, drawPY, currSize, currSize, currSize / 2, currSize / 2, std::lround(m_starRatio * 360.0));
     }
 }
 

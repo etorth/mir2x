@@ -155,7 +155,7 @@ class SDLDevice final
        void drawTexture(SDL_Texture *, int, int, int, int, int, int, int, int);
 
     public:
-       void drawTextureEx(SDL_Texture *,
+       void drawTextureExt(SDL_Texture *,
                int,     // x on src
                int,     // y on src
                int,     // w on src

@@ -54,7 +54,7 @@ void FireAshEffect_RUN::drawGroundAsh(int viewX, int viewY, uint32_t modColor) c
         const int useTexW = std::min<int>(102, texW); // crop left up part to rotate
         const int useTexH = std::min<int>( 72, texH); //
 
-        g_sdlDevice->drawTextureEx(texPtr,
+        g_sdlDevice->drawTextureExt(texPtr,
                 0,
                 0,
                 useTexW,
@@ -122,7 +122,7 @@ void IceThorn_RUN::drawGroundIce(int viewX, int viewY, uint32_t modColor) const
     if(texPtr){
         SDLDeviceHelper::EnableTextureModColor enableModColor(texPtr, colorf::modRGBA(getPlainModColor(), modColor));
         SDLDeviceHelper::EnableTextureBlendMode enableBlendMode(texPtr, SDL_BLENDMODE_BLEND);
-        g_sdlDevice->drawTextureEx(texPtr,
+        g_sdlDevice->drawTextureExt(texPtr,
                 0,
                 0,
                 useTexW,
