@@ -16,7 +16,7 @@ int CombatNode::randPickDC() const
     return mathf::rand<int>(minDC(), maxDC());
 }
 
-CombatNode getCombatNode(const SDWear & wear, uint64_t uid, int level)
+CombatNode getCombatNode(const SDWear & wear, const SDLearnedMagicList &magicList, uint64_t uid, int level)
 {
     fflassert(uidf::isPlayer(uid));
     fflassert(level >= 0);
@@ -79,6 +79,10 @@ CombatNode getCombatNode(const SDWear & wear, uint64_t uid, int level)
     if(uidf::hasPlayerJob(uid, JOB_WIZARD)){
         node.mc[0] += (level / 2);
         node.mc[1] += (level / 2 + level % 2);
+    }
+
+    if(magicList.has(DBCOM_MAGICID(u8"基本剑术"))){
+        node.dcHit += 2;
     }
     return node;
 }

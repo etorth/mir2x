@@ -555,6 +555,11 @@ struct SDLearnedMagic
     {
         ar(magicID, exp);
     }
+
+    int level() const
+    {
+        return 1;
+    }
 };
 
 struct SDLearnedMagicList

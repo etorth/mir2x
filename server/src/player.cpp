@@ -333,7 +333,7 @@ bool Player::DCValid(int, bool)
 
 DamageNode Player::getAttackDamage(int nDC) const
 {
-    const auto node = getCombatNode(m_sdItemStorage.wear, UID(), level());
+    const auto node = getCombatNode(m_sdItemStorage.wear, {}, UID(), level());
     switch(nDC){
         case DBCOM_MAGICID(u8"物理攻击"):
             {
@@ -603,7 +603,7 @@ void Player::onCMActionSpell(CMAction cmA)
     const int magicID = cmA.action.extParam.spell.magicID;
     dispatchAction(cmA.action);
 
-    const auto node = getCombatNode(m_sdItemStorage.wear, UID(), level());
+    const auto node = getCombatNode(m_sdItemStorage.wear, {}, UID(), level());
     switch(magicID){
         case DBCOM_MAGICID(u8"火球术"):
         case DBCOM_MAGICID(u8"大火球"):
