@@ -30,38 +30,46 @@ constexpr int BM_BOSS    = 3;
 
 struct MonsterRecord
 {
-    const char8_t *name = u8"";
+    const char8_t *name = nullptr;
 
-    const int level  = 0;
-    const int lookID = 0;
-
+    const int lookID      = 0;
     const int undead      = 0;
     const int tamable     = 0;
     const int view        = 0;  // range of view, zero means blind
     const int coolEye     = 0;
     const int deadFadeOut = 0;
 
-    const int HP  = 0;
-    const int MP  = 0;
-    const int hit = 0;
+    const int hp  = 0;
+    const int mp  = 0;
     const int exp = 0;
 
-    const int DC     = 0;
-    const int DCMax  = 0;
-    const int MDC    = 0;
-    const int MDCMax = 0;
-    const int AC     = 0;
-    const int ACMax  = 0;
-    const int MAC    = 0;
-    const int MACMax = 0;
+    const int  dc[2] = {0, 0};
+    const int  mc[2] = {0, 0};
+    const int  ac[2] = {0, 0};
+    const int mac[2] = {0, 0};
 
-    const int ACFire    = 0;
-    const int ACIce     = 0;
-    const int ACLight   = 0;
-    const int ACWind    = 0;
-    const int ACHoly    = 0;
-    const int ACDark    = 0;
-    const int ACPhantom = 0;
+    const int dcHit = 0;
+    const int mcHit = 0;
+
+    const int dcDodge = 0;
+    const int mcDodge = 0;
+
+    const int hpRecover = 0;
+    const int mpRecover = 0;
+
+    struct AddElem
+    {
+        const int fire    = 0;
+        const int ice     = 0;
+        const int light   = 0;
+        const int wind    = 0;
+        const int holy    = 0;
+        const int dark    = 0;
+        const int phantom = 0;
+    };
+
+    const AddElem dcElem {};
+    const AddElem acElem {};
 
     const int behaveMode = 0; // 0 means BM_DEFAULT
 
@@ -71,8 +79,8 @@ struct MonsterRecord
     const int attackWait   = 0;
     const int attackEffect = 0;
 
-    const char8_t *dcName = u8"";
-    const char8_t *description = u8"";
+    const char8_t *dcName = nullptr;
+    const char8_t *description = nullptr;
 
     operator bool() const
     {

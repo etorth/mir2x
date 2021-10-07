@@ -114,10 +114,10 @@ Monster::Monster(uint32_t monID,
     }
 
     m_sdHealth.uid   = UID();
-    m_sdHealth.HP    = getMR().HP;
-    m_sdHealth.MP    = getMR().MP;
-    m_sdHealth.maxHP = getMR().HP;
-    m_sdHealth.maxMP = getMR().MP;
+    m_sdHealth.HP    = getMR().hp;
+    m_sdHealth.MP    = getMR().mp;
+    m_sdHealth.maxHP = getMR().hp;
+    m_sdHealth.maxMP = getMR().mp;
 }
 
 bool Monster::randomMove()
@@ -793,7 +793,7 @@ DamageNode Monster::getAttackDamage(int nDC) const
             {
                 return PlainPhyDamage
                 {
-                    .damage = mathf::rand(getMR().DC, getMR().DCMax),
+                    .damage = mathf::rand(getMR().dc[0], getMR().dc[1]),
                 };
             }
         default:
