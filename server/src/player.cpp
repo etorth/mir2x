@@ -339,7 +339,7 @@ DamageNode Player::getAttackDamage(int nDC) const
             {
                 return PlainPhyDamage
                 {
-                    .damage = mathf::rand<int>(node.dc[0], node.dc[1]),
+                    .damage = node.randPickDC(),
                 };
             }
         case DBCOM_MAGICID(u8"灵魂火符"):

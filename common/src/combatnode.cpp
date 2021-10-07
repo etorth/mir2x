@@ -1,8 +1,20 @@
 #include "strf.hpp"
 #include "uidf.hpp"
+#include "mathf.hpp"
 #include "fflerror.hpp"
 #include "combatnode.hpp"
 #include "dbcomrecord.hpp"
+
+int CombatNode::randPickDC() const
+{
+    const auto luckCurseAbs = mathf::bound<int>(std::abs(luckCurse), 0, 10);
+    const auto rdPick = mathf::rand<int>(1, 10);
+
+    if(luckCurseAbs >= rdPick){
+        return dc[luckCurse > 0 ? 1 : 0];
+    }
+    return mathf::rand<int>(minDC(), maxDC());
+}
 
 CombatNode getCombatNode(const SDWear & wear, uint64_t uid, int level)
 {

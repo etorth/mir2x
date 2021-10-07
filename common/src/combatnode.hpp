@@ -33,6 +33,18 @@ struct CombatNode
         int inventory = 0;
     }
     load {};
+
+    int minDC() const
+    {
+        return std::min<int>(dc[0], dc[1]);
+    }
+
+    int maxDC() const
+    {
+        return std::max<int>(dc[0], dc[1]);
+    }
+
+    int randPickDC() const;
 };
 
 // server/client uses same CombatNode calculation
