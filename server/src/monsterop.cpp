@@ -100,6 +100,10 @@ void Monster::on_AM_ACTION(const ActorMsgPack &rstMPK)
                     break;
                 }
         }
+
+        if(uidf::isPlayer(amA.UID)){
+            m_actorPod->setMetronomeFreq(10);
+        }
     }
 }
 
