@@ -603,6 +603,7 @@ void Player::onCMActionSpell(CMAction cmA)
     const int magicID = cmA.action.extParam.spell.magicID;
     dispatchAction(cmA.action);
 
+    const auto node = getCombatNode(m_sdItemStorage.wear, UID(), level());
     switch(magicID){
         case DBCOM_MAGICID(u8"火球术"):
         case DBCOM_MAGICID(u8"大火球"):
@@ -724,16 +725,16 @@ void Player::onCMActionSpell(CMAction cmA)
             }
         case DBCOM_MAGICID(u8"火墙"):
             {
-                addDelay(550, [this, cmA]()
+                addDelay(550, [this, cmA, node]()
                 {
                     AMCastFireWall amCFW;
                     std::memset(&amCFW, 0, sizeof(amCFW));
 
-                    amCFW.minDC = 5;
-                    amCFW.maxDC = 9;
+                    amCFW.minDC = node.mc[0];
+                    amCFW.maxDC = node.mc[1];
 
                     amCFW.duration = 20 * 1000;
-                    amCFW.dps      = 3;
+                    amCFW.dps      = 2;
 
                     // not 3x3
                     // fire wall takes grids as a cross
