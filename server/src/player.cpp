@@ -949,7 +949,7 @@ void Player::checkFriend(uint64_t nUID, std::function<void(int)> fnOp)
             }
         case UID_MON:
             {
-                if(!DBCOM_MONSTERRECORD(uidf::getMonsterID(nUID)).tamable){
+                if(!DBCOM_MONSTERRECORD(uidf::getMonsterID(nUID)).tameable){
                     fnOp(FT_ENEMY);
                     return;
                 }

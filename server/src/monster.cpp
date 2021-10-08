@@ -1304,7 +1304,7 @@ void Monster::checkFriend_CtrlByMonster(uint64_t nUID, std::function<void(int)> 
             }
         case UID_MON:
             {
-                if(!DBCOM_MONSTERRECORD(uidf::getMonsterID(nUID)).tamable){
+                if(!DBCOM_MONSTERRECORD(uidf::getMonsterID(nUID)).tameable){
                     fnOp(FT_NEUTRAL);
                     return;
                 }
@@ -1355,7 +1355,7 @@ void Monster::checkFriend_CtrlByPlayer(uint64_t nUID, std::function<void(int)> f
     switch(uidf::getUIDType(nUID)){
         case UID_MON:
             {
-                if(!(isPet(nUID) || DBCOM_MONSTERRECORD(uidf::getMonsterID(nUID)).tamable)){
+                if(!(isPet(nUID) || DBCOM_MONSTERRECORD(uidf::getMonsterID(nUID)).tameable)){
                     fnOp(FT_ENEMY);
                     return;
                 }

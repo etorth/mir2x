@@ -34,7 +34,7 @@ struct MonsterRecord
 
     const int lookID      = 0;
     const int undead      = 0;
-    const int tamable     = 0;
+    const int tameable    = 0;
     const int view        = 0;  // range of view, zero means blind
     const int coolEye     = 0;
     const int deadFadeOut = 0;
@@ -73,8 +73,8 @@ struct MonsterRecord
 
     const int behaveMode = 0; // 0 means BM_DEFAULT
 
-    const int walkWait  = 0;
-    const int walkSpeed = 0;
+    const int walkWait = 0;
+    const int walkStep = 0;
 
     const int attackWait   = 0;
     const int attackEffect = 0;
