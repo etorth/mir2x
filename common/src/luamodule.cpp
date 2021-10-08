@@ -139,7 +139,10 @@ LuaModule::LuaModule()
 
     m_luaState.set_function("getMonsterName", [](int monsterID) -> std::string
     {
-        return to_cstr(DBCOM_MONSTERRECORD(monsterID).name);
+        if(const auto s = to_cstr(DBCOM_MONSTERRECORD(monsterID).name)){
+            return s;
+        }
+        return "";
     });
 
     m_luaState.set_function("getMonsterID", [](std::string monsterName) -> int
