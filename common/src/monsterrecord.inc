@@ -3331,7 +3331,6 @@
     .lookID = 0X5A,
     .undead = 1,
     .view = 10,
-    .deadFadeOut = 1,
     .hp = 200,
     .exp = 16,
     .dc = {30, 50},

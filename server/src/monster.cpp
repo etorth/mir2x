@@ -917,15 +917,23 @@ bool Monster::goGhost()
 bool Monster::struckDamage(const DamageNode &node)
 {
     if(node){
-        const auto lastHP = m_sdHealth.HP;
-        m_sdHealth.HP = std::max<int>(0, m_sdHealth.HP - node.damage);
+        const auto damage = [&node, this]() -> int
+        {
+            if(DBCOM_MAGICID(u8"物理攻击") == to_u32(node.magicID)){
+                return std::max<int>(0, node.damage - mathf::rand<int>(getMR().ac[0], getMR().ac[1]));
+            }
+            else{
+                return std::max<int>(0, node.damage - mathf::rand<int>(getMR().mac[0], getMR().mac[1]));
+            }
+        }();
 
-        if(lastHP != m_sdHealth.HP){
+        if(damage > 0){
+            m_sdHealth.HP = std::max<int>(0, m_sdHealth.HP - damage);
             dispatchHealth();
-        }
 
-        if(m_sdHealth.HP <= 0){
-            goDie();
+            if(m_sdHealth.HP <= 0){
+                goDie();
+            }
         }
         return true;
     }

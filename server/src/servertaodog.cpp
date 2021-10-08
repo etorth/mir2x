@@ -16,9 +16,10 @@
  * =====================================================================================
  */
 
+#include "mathf.hpp"
 #include "pathf.hpp"
-#include "servertaodog.hpp"
 #include "raiitimer.hpp"
+#include "servertaodog.hpp"
 
 corof::eval_poller ServerTaoDog::updateCoroFunc()
 {
@@ -116,6 +117,6 @@ DamageNode ServerTaoDog::getAttackDamage(int dc) const
     return MagicDamage
     {
         .magicID = dc,
-        .damage = 15,
+        .damage = mathf::rand<int>(getMR().dc[0], getMR().dc[1]),
     };
 }
