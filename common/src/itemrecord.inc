@@ -9071,8 +9071,14 @@
     {
         .duration = 8,
         .mc = {6, 7},
-        .hpRecover = 3,
-        .mpRecover = 3,
+        .hp
+        {
+            .recover = 3,
+        },
+        .mp
+        {
+            .recover = 3,
+        },
         .req
         {
             .level = 60,
@@ -9089,8 +9095,14 @@
         .duration = 8,
         .dc = {2, 12},
         .speed = 1,
-        .hpRecover = 3,
-        .mpRecover = 3,
+        .hp
+        {
+            .recover = 3,
+        },
+        .mp
+        {
+            .recover = 3,
+        },
         .req
         {
             .level = 60,
@@ -9106,8 +9118,14 @@
     {
         .duration = 8,
         .sc = {6, 7},
-        .hpRecover = 2,
-        .mpRecover = 3,
+        .hp
+        {
+            .recover = 2,
+        },
+        .mp
+        {
+            .recover = 3,
+        },
         .req
         {
             .level = 60,
@@ -9124,8 +9142,14 @@
         .duration = 8,
         .dc = {2, 3},
         .mc = {4, 5},
-        .hpRecover = 1,
-        .mpRecover = 1,
+        .hp
+        {
+            .recover = 1,
+        },
+        .mp
+        {
+            .recover = 1,
+        },
         .req
         {
             .level = 60,
@@ -9141,8 +9165,14 @@
     {
         .duration = 8,
         .mc = {4, 5},
-        .hpRecover = 2,
-        .mpRecover = 1,
+        .hp
+        {
+            .recover = 2,
+        },
+        .mp
+        {
+            .recover = 1,
+        },
         .req
         {
             .level = 60,
@@ -9158,8 +9188,14 @@
     {
         .duration = 8,
         .sc = {4, 9},
-        .hpRecover = 1,
-        .mpRecover = 1,
+        .hp
+        {
+            .recover = 1,
+        },
+        .mp
+        {
+            .recover = 1,
+        },
         .req
         {
             .level = 60,
@@ -9175,8 +9211,14 @@
     {
         .duration = 8,
         .sc = {4, 9},
-        .hpRecover = 1,
-        .mpRecover = 2,
+        .hp
+        {
+            .recover = 1,
+        },
+        .mp
+        {
+            .recover = 2,
+        },
         .req
         {
             .level = 60,
@@ -9207,8 +9249,14 @@
     {
         .duration = 8,
         .dc = {4, 14},
-        .hpRecover = 1,
-        .mpRecover = 1,
+        .hp
+        {
+            .recover = 1,
+        },
+        .mp
+        {
+            .recover = 1,
+        },
         .req
         {
             .level = 60,

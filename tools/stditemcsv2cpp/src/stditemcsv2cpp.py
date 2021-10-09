@@ -262,10 +262,12 @@ def parse_equip_attr_necklace(item_dict):
             item_attr['speed'] = item_dict['ac']
 
         if item_dict['ac2'] > 0:
-            item_attr['hpRecover'] = item_dict['ac2']
+            item_attr['hp'] = {}
+            item_attr['hp']['recover'] = item_dict['ac2']
 
         if item_dict['mac2'] > 0:
-            item_attr['mpRecover'] = item_dict['mac2']
+            item_attr['mp'] = {}
+            item_attr['mp']['recover'] = item_dict['mac2']
 
     return item_attr
 
@@ -483,14 +485,20 @@ def parse_equip(item_dict):
     if 'comfort' in item_attr:
         print('        .comfort = %d,' % item_attr['comfort'])
 
-    if 'hpRecover' in item_attr:
-        print('        .hpRecover = %d,' % item_attr['hpRecover'])
-
-    if 'mpRecover' in item_attr:
-        print('        .mpRecover = %d,' % item_attr['mpRecover'])
-
     if 'luckCurse' in item_attr:
         print('        .luckCurse = %d,' % item_attr['luckCurse'])
+
+    if 'hp' in item_attr:
+        print('        .hp')
+        print('        {')
+        print('            .recover = %d,' % item_attr['hp']['recover'])
+        print('        },')
+
+    if 'mp' in item_attr:
+        print('        .mp')
+        print('        {')
+        print('            .recover = %d,' % item_attr['mp']['recover'])
+        print('        },')
 
     if item_dict['func_type'] > 0:
         print('        .dcElem')

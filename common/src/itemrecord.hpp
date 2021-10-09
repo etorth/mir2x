@@ -31,13 +31,19 @@ struct ItemRecord
         const int dcDodge = 0;
         const int mcDodge = 0;
 
-        const int speed   = 0;
+        const int speed = 0;
         const int comfort = 0;
-
-        const int hpRecover = 0;
-        const int mpRecover = 0;
-
         const int luckCurse = 0;
+
+        struct ExtHealth
+        {
+            const int add     = 0;
+            const int steal   = 0;
+            const int recover = 0;
+        };
+
+        const ExtHealth hp {};
+        const ExtHealth mp {};
 
         struct AddElem
         {

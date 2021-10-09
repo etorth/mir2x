@@ -177,14 +177,15 @@ struct SDItem
 
         EA_SPEED,
         EA_COMFORT,
-
-        EA_HPRECOVER,
-        EA_MPRECOVER,
-
-        EA_HP,
-        EA_MP,
-
         EA_LUCKCURSE,
+
+        EA_HPADD,
+        EA_HPSTEAL,
+        EA_HPRECOVER,
+
+        EA_MPADD,
+        EA_MPSTEAL,
+        EA_MPRECOVER,
 
         EA_DCFIRE,
         EA_DCICE,
@@ -201,9 +202,6 @@ struct SDItem
         EA_ACHOLY,
         EA_ACDARK,
         EA_ACPHANTOM,
-
-        EA_HPSTEAL,
-        EA_MPSTEAL,
 
         EA_EXTEXP,
         EA_EXTGOLD,
@@ -227,7 +225,7 @@ struct SDItem
 
     std::string str() const
     {
-        return str_printf("(name, itemID, seqID, count, duration[0], duration[1]) = (%s, %llu, %llu, %zu, %zu, %zu)", to_cstr(DBCOM_ITEMRECORD(itemID).name), to_llu(itemID), to_llu(seqID), count, duration[0], duration[1]);
+        return str_printf("(name, itemID, seqID, count, duration) = (%s, %zu, %zu, %zu, (%zu, %zu))", to_cstr(DBCOM_ITEMRECORD(itemID).name), to_uz(itemID), to_uz(seqID), count, duration[0], duration[1]);
     }
 
     std::u8string getXMLLayout() const;

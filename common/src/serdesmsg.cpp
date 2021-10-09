@@ -115,12 +115,12 @@ std::u8string SDItem::getXMLLayout() const
         xmlStr += str_printf(u8R"###( <par>舒适度 %+d</par> )###""\n", ir.equip.comfort);
     }
 
-    if(ir.equip.hpRecover){
-        xmlStr += str_printf(u8R"###( <par>生命恢复 %+d</par> )###""\n", ir.equip.hpRecover);
+    if(ir.equip.hp.recover){
+        xmlStr += str_printf(u8R"###( <par>生命恢复 %+d</par> )###""\n", ir.equip.hp.recover);
     }
 
-    if(ir.equip.mpRecover){
-        xmlStr += str_printf(u8R"###( <par>魔法恢复 %+d</par> )###""\n", ir.equip.mpRecover);
+    if(ir.equip.mp.recover){
+        xmlStr += str_printf(u8R"###( <par>魔法恢复 %+d</par> )###""\n", ir.equip.mp.recover);
     }
 
     if(ir.equip.luckCurse){
