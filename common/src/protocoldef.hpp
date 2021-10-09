@@ -80,20 +80,6 @@ enum LookIDType: int
     LID_END   = LID_BEGIN + 2048,
 };
 
-enum ECType: int
-{
-    EC_NONE = 0,
-    EC_PLAIN,
-    EC_FIRE,
-    EC_ICE,
-    EC_LIGHT,
-    EC_WIND,
-    EC_HOLY,
-    EC_DARK,
-    EC_PHANTOM,
-    EC_MAX,
-};
-
 enum EffectType: int
 {
     EFF_NONE = 0,

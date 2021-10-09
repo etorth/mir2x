@@ -334,6 +334,23 @@ bool Player::DCValid(int, bool)
 DamageNode Player::getAttackDamage(int nDC) const
 {
     const auto node = getCombatNode(m_sdItemStorage.wear, {}, UID(), level());
+    const double elemRatio = 1.0 + 0.1 * [nDC, &node]() -> int
+    {
+        const auto &mr = DBCOM_MAGICRECORD(nDC);
+        fflassert(mr);
+
+        switch(magicElemID(mr.element)){
+            case MET_FIRE   : return node.dcElem.fire;
+            case MET_ICE    : return node.dcElem.ice;
+            case MET_LIGHT  : return node.dcElem.light;
+            case MET_WIND   : return node.dcElem.wind;
+            case MET_HOLY   : return node.dcElem.holy;
+            case MET_DARK   : return node.dcElem.dark;
+            case MET_PHANTOM: return node.dcElem.phantom;
+            default         : return 0;
+        }
+    }();
+
     switch(nDC){
         case DBCOM_MAGICID(u8"物理攻击"):
             {
@@ -349,7 +366,7 @@ DamageNode Player::getAttackDamage(int nDC) const
                 return MagicDamage
                 {
                     .magicID = nDC,
-                    .damage = mathf::rand<int>(node.sc[0], node.sc[1]),
+                    .damage = to_d(std::lround(node.randPickSC() * elemRatio)),
                 };
             }
         case DBCOM_MAGICID(u8"雷电术"):
@@ -362,7 +379,7 @@ DamageNode Player::getAttackDamage(int nDC) const
                 return MagicDamage
                 {
                     .magicID = nDC,
-                    .damage = mathf::rand<int>(node.mc[0], node.mc[1]),
+                    .damage = to_d(std::lround(node.randPickMC() * elemRatio)),
                 };
             }
         default:

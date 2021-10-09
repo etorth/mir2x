@@ -27,7 +27,7 @@ enum MagicElemType: int
     MET_BEGIN = 1,
     MET_FIRE  = 1,
     MET_ICE,
-    MET_THUNDER,
+    MET_LIGHT,
     MET_WIND,
     MET_HOLY,
     MET_DARK,
@@ -40,7 +40,7 @@ constexpr inline const char8_t *magicElemName(int type)
     switch(type){
         case MET_FIRE     : return u8"火";
         case MET_ICE      : return u8"冰";
-        case MET_THUNDER  : return u8"雷";
+        case MET_LIGHT    : return u8"雷";
         case MET_WIND     : return u8"风";
         case MET_HOLY     : return u8"神圣";
         case MET_DARK     : return u8"暗黑";
@@ -53,7 +53,7 @@ constexpr inline int magicElemID(const char8_t *type)
 {
     if(type && std::u8string_view(type) == u8"火"  ) return MET_FIRE;
     if(type && std::u8string_view(type) == u8"冰"  ) return MET_ICE;
-    if(type && std::u8string_view(type) == u8"雷"  ) return MET_THUNDER;
+    if(type && std::u8string_view(type) == u8"雷"  ) return MET_LIGHT;
     if(type && std::u8string_view(type) == u8"风"  ) return MET_WIND;
     if(type && std::u8string_view(type) == u8"神圣") return MET_HOLY;
     if(type && std::u8string_view(type) == u8"暗黑") return MET_DARK;

@@ -130,37 +130,6 @@ PlayerStateBoard::PlayerStateBoard(int argX, int argY, ProcessRun *runPtr, Widge
     else{
         throw fflerror("no valid player status board frame texture");
     }
-
-    for(int r: {0, 1, 2}){
-        for(int i = 0; i < 7; ++i){
-            m_elemStateList.push_back(new TritexButton
-            {
-                DIR_UPLEFT,
-                62  + i * 37,
-                374 + r * 30,
-
-                {
-                    SYS_TEXNIL,
-                    0X06000010 + to_u32(i),
-                    0X06000020 + to_u32(i),
-                },
-
-                nullptr,
-                nullptr,
-                nullptr,
-
-                0,
-                0,
-                0,
-                0,
-
-                false,
-                true,
-                this,
-                true,
-            });
-        }
-    }
 }
 
 void PlayerStateBoard::update(double)
@@ -241,6 +210,45 @@ void PlayerStateBoard::drawEx(int, int, int, int, int, int) const
     LabelBoard(DIR_UPLEFT, 0, 0, u8"防御元素", 1, 12, 0, colorf::WHITE + colorf::A_SHF(255)).drawAt(DIR_UPLEFT, x() + 10, y() + 406);
     LabelBoard(DIR_UPLEFT, 0, 0, u8"弱点元素", 1, 12, 0, colorf::WHITE + colorf::A_SHF(255)).drawAt(DIR_UPLEFT, x() + 10, y() + 436);
 
+    for(int i = MET_BEGIN; i < MET_END; ++i){
+        const auto [dcElem, acElem] = [i, &combatNode]() -> std::array<int, 2>
+        {
+            switch(i){
+                case MET_FIRE   : return {combatNode.dcElem.fire   , combatNode.acElem.fire   };
+                case MET_ICE    : return {combatNode.dcElem.ice    , combatNode.acElem.ice    };
+                case MET_LIGHT  : return {combatNode.dcElem.light  , combatNode.acElem.light  };
+                case MET_WIND   : return {combatNode.dcElem.wind   , combatNode.acElem.wind   };
+                case MET_HOLY   : return {combatNode.dcElem.holy   , combatNode.acElem.holy   };
+                case MET_DARK   : return {combatNode.dcElem.dark   , combatNode.acElem.dark   };
+                case MET_PHANTOM: return {combatNode.dcElem.phantom, combatNode.acElem.phantom};
+                default         : return {0, 0};
+            }
+        }();
+
+        fflassert(dcElem >= 0);
+        const int elemGridX = x() + 62 + (i - MET_BEGIN) * 37;
+        const int elemGridY[]
+        {
+            y() + 375 + 0 * 30,
+            y() + 375 + 1 * 30,
+            y() + 375 + 2 * 30,
+        };
+
+        if(dcElem > 0){
+            g_sdlDevice->drawTexture(g_progUseDB->retrieve(0X06000010 + to_u32(i - MET_BEGIN)), elemGridX, elemGridY[0]);
+            LabelBoard(DIR_UPLEFT, 0, 0, str_printf(u8"%+d", dcElem).c_str(), 1, 12, 0, colorf::GREEN + colorf::A_SHF(255)).drawAt(DIR_UPLEFT, elemGridX + 20, elemGridY[0] + 1);
+        }
+
+        if(acElem > 0){
+            g_sdlDevice->drawTexture(g_progUseDB->retrieve(0X06000010 + to_u32(i - MET_BEGIN)), elemGridX, elemGridY[1]);
+            LabelBoard(DIR_UPLEFT, 0, 0, str_printf(u8"%+d", acElem).c_str(), 1, 12, 0, colorf::GREEN + colorf::A_SHF(255)).drawAt(DIR_UPLEFT, elemGridX + 20, elemGridY[1] + 1);
+        }
+        else if(acElem < 0){
+            g_sdlDevice->drawTexture(g_progUseDB->retrieve(0X06000020 + to_u32(i - MET_BEGIN)), elemGridX, elemGridY[2]);
+            LabelBoard(DIR_UPLEFT, 0, 0, str_printf(u8"%+d", acElem).c_str(), 1, 12, 0, colorf::RED   + colorf::A_SHF(255)).drawAt(DIR_UPLEFT, elemGridX + 20, elemGridY[2] + 1);
+        }
+    }
+
     if(auto [texPtr, dx, dy] = g_equipDB->retrieve(myHeroPtr->gender() ? 0X00000000 : 0X00000001); texPtr){
         g_sdlDevice->drawTexture(texPtr, x() + m_equipCharX + dx, y() + m_equipCharY + dy);
     }
@@ -287,11 +295,6 @@ void PlayerStateBoard::drawEx(int, int, int, int, int, int) const
                 g_sdlDevice->drawTexture(texPtr, dstX, dstY);
             }
         }
-    }
-
-    m_closeButton.draw();
-    for(auto buttonPtr: m_elemStateList){
-        buttonPtr->draw();
     }
 
     const auto [mouseX, mouseY] = SDLDeviceHelper::getMousePLoc();
@@ -350,6 +353,7 @@ void PlayerStateBoard::drawEx(int, int, int, int, int, int) const
             g_sdlDevice->drawRectangle(colorf::BLUE + colorf::A_SHF(255), x() + m_gridList[i].x, y() + m_gridList[i].y, m_gridList[i].w, m_gridList[i].h);
         }
     }
+    m_closeButton.draw();
 }
 
 bool PlayerStateBoard::processEvent(const SDL_Event &event, bool valid)
@@ -359,15 +363,6 @@ bool PlayerStateBoard::processEvent(const SDL_Event &event, bool valid)
     }
 
     if(!show()){
-        return focusConsume(this, false);
-    }
-
-    bool consumed = false;
-    for(auto buttonPtr: m_elemStateList){
-        consumed |= buttonPtr->processEvent(event, !consumed && valid);
-    }
-
-    if(consumed){
         return focusConsume(this, false);
     }
 

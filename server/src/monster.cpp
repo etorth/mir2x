@@ -786,19 +786,23 @@ void Monster::reportCO(uint64_t toUID)
     m_actorPod->forward(toUID, {AM_CORECORD, amCOR});
 }
 
-DamageNode Monster::getAttackDamage(int nDC) const
+DamageNode Monster::getAttackDamage(int dc) const
 {
-    switch(nDC){
+    switch(dc){
         case DBCOM_MAGICID(u8"物理攻击"):
             {
                 return PlainPhyDamage
                 {
-                    .damage = mathf::rand(getMR().dc[0], getMR().dc[1]),
+                    .damage = mathf::rand<int>(getMR().dc[0], getMR().dc[1]),
                 };
             }
         default:
             {
-                return {};
+                return MagicDamage
+                {
+                    .magicID = dc,
+                    .damage = mathf::rand<int>(getMR().mc[0], getMR().mc[1]),
+                };
             }
     }
 }
@@ -922,9 +926,24 @@ bool Monster::struckDamage(const DamageNode &node)
             if(DBCOM_MAGICID(u8"物理攻击") == to_u32(node.magicID)){
                 return std::max<int>(0, node.damage - mathf::rand<int>(getMR().ac[0], getMR().ac[1]));
             }
-            else{
-                return std::max<int>(0, node.damage - mathf::rand<int>(getMR().mac[0], getMR().mac[1]));
-            }
+
+            const double elemRatio = 1.0 + 0.1 * [&node, this]() -> int
+            {
+                const auto &mr = DBCOM_MAGICRECORD(node.magicID);
+                fflassert(mr);
+
+                switch(magicElemID(mr.element)){
+                    case MET_FIRE   : return getMR().acElem.fire;
+                    case MET_ICE    : return getMR().acElem.ice;
+                    case MET_LIGHT  : return getMR().acElem.light;
+                    case MET_WIND   : return getMR().acElem.wind;
+                    case MET_HOLY   : return getMR().acElem.holy;
+                    case MET_DARK   : return getMR().acElem.dark;
+                    case MET_PHANTOM: return getMR().acElem.phantom;
+                    default         : return 0;
+                }
+            }();
+            return std::max<int>(0, node.damage - std::lround(mathf::rand<int>(getMR().mac[0], getMR().mac[1]) * elemRatio));
         }();
 
         if(damage > 0){

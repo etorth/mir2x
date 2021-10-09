@@ -26,6 +26,20 @@ struct CombatNode
     int comfort = 0;
     int luckCurse = 0;
 
+    struct AddElem
+    {
+        int fire    = 0;
+        int ice     = 0;
+        int light   = 0;
+        int wind    = 0;
+        int holy    = 0;
+        int dark    = 0;
+        int phantom = 0;
+    };
+
+    AddElem dcElem {};
+    AddElem acElem {};
+
     struct AddLoad
     {
         int hand      = 0;
@@ -34,17 +48,16 @@ struct CombatNode
     }
     load {};
 
-    int minDC() const
-    {
-        return std::min<int>(dc[0], dc[1]);
-    }
-
-    int maxDC() const
-    {
-        return std::max<int>(dc[0], dc[1]);
-    }
-
     int randPickDC() const;
+    int randPickMC() const;
+    int randPickSC() const;
+
+    int minDC() const { return std::min<int>(dc[0], dc[1]); }
+    int maxDC() const { return std::max<int>(dc[0], dc[1]); }
+    int minMC() const { return std::min<int>(mc[0], mc[1]); }
+    int maxMC() const { return std::max<int>(mc[0], mc[1]); }
+    int minSC() const { return std::min<int>(sc[0], sc[1]); }
+    int maxSC() const { return std::max<int>(sc[0], sc[1]); }
 };
 
 // server/client uses same CombatNode calculation

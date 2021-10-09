@@ -47,9 +47,6 @@ class PlayerStateBoard: public Widget
         TritexButton m_closeButton;
 
     private:
-        std::vector<TritexButton *> m_elemStateList;
-
-    private:
         ProcessRun *m_processRun;
 
     public:

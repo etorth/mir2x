@@ -16,6 +16,28 @@ int CombatNode::randPickDC() const
     return mathf::rand<int>(minDC(), maxDC());
 }
 
+int CombatNode::randPickMC() const
+{
+    const auto luckCurseAbs = mathf::bound<int>(std::abs(luckCurse), 0, 10);
+    const auto rdPick = mathf::rand<int>(1, 10);
+
+    if(luckCurseAbs >= rdPick){
+        return mc[luckCurse > 0 ? 1 : 0];
+    }
+    return mathf::rand<int>(minMC(), maxMC());
+}
+
+int CombatNode::randPickSC() const
+{
+    const auto luckCurseAbs = mathf::bound<int>(std::abs(luckCurse), 0, 10);
+    const auto rdPick = mathf::rand<int>(1, 10);
+
+    if(luckCurseAbs >= rdPick){
+        return sc[luckCurse > 0 ? 1 : 0];
+    }
+    return mathf::rand<int>(minSC(), maxSC());
+}
+
 CombatNode getCombatNode(const SDWear & wear, const SDLearnedMagicList &magicList, uint64_t uid, int level)
 {
     fflassert(uidf::isPlayer(uid));
@@ -50,6 +72,22 @@ CombatNode getCombatNode(const SDWear & wear, const SDLearnedMagicList &magicLis
             node.speed += ir.equip.speed;
             node.comfort += ir.equip.comfort;
             node.luckCurse += ir.equip.luckCurse;
+
+            node.dcElem.fire    += ir.equip.dcElem.fire;
+            node.dcElem.ice     += ir.equip.dcElem.ice;
+            node.dcElem.light   += ir.equip.dcElem.light;
+            node.dcElem.wind    += ir.equip.dcElem.wind;
+            node.dcElem.holy    += ir.equip.dcElem.holy;
+            node.dcElem.dark    += ir.equip.dcElem.dark;
+            node.dcElem.phantom += ir.equip.dcElem.phantom;
+
+            node.acElem.fire    += ir.equip.acElem.fire;
+            node.acElem.ice     += ir.equip.acElem.ice;
+            node.acElem.light   += ir.equip.acElem.light;
+            node.acElem.wind    += ir.equip.acElem.wind;
+            node.acElem.holy    += ir.equip.acElem.holy;
+            node.acElem.dark    += ir.equip.acElem.dark;
+            node.acElem.phantom += ir.equip.acElem.phantom;
 
             node.load.hand += ir.equip.load.hand;
             node.load.body += ir.equip.load.body;
