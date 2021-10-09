@@ -49,13 +49,15 @@ void ClientCreature::updateHealth(SDHealth health)
     const int diffMP = health.MP - m_sdHealth.value().MP;
 
     m_sdHealth = health;
-
-    if(diffHP){
-        m_processRun->addAscendStr(ASCENDSTR_NUM0, diffHP, pixelX, pixelY);
+    if(diffHP > 0){
+        m_processRun->addAscendStr(ASCENDSTR_GREEN, diffHP, pixelX, pixelY);
+    }
+    else{
+        m_processRun->addAscendStr(ASCENDSTR_RED, diffHP, pixelX, pixelY);
     }
 
-    if(diffMP){
-        m_processRun->addAscendStr(ASCENDSTR_NUM1, diffMP, pixelX, pixelY - (diffHP ? SYS_MAPGRIDYP : 0));
+    if(diffMP > 0){
+        m_processRun->addAscendStr(ASCENDSTR_BLUE, diffMP, pixelX, pixelY - (diffHP ? SYS_MAPGRIDYP : 0));
     }
 }
 

@@ -17,20 +17,21 @@
 #include <cstdint>
 #include <cinttypes>
 #include "log.hpp"
+#include "colorf.hpp"
 #include "pngtexdb.hpp"
 #include "ascendstr.hpp"
 #include "sdldevice.hpp"
+#include "totype.hpp"
 
 extern Log *g_log;
 extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 
-AscendStr::AscendStr(int nType, int nValue, int nX, int nY)
-    : m_type(nType)
-    , m_value(nValue)
-    , m_x(nX)
-    , m_y(nY)
-    , m_tick(0.0)
+AscendStr::AscendStr(int argType, int argValue, int argX, int argY)
+    : m_type(argType)
+    , m_value(argValue)
+    , m_x(argX)
+    , m_y(argY)
 {
     switch(m_type){
         case ASCENDSTR_MISS:
@@ -38,9 +39,9 @@ AscendStr::AscendStr(int nType, int nValue, int nX, int nY)
                 m_value = 0;
                 break;
             }
-        case ASCENDSTR_NUM0:
-        case ASCENDSTR_NUM1:
-        case ASCENDSTR_NUM2:
+        case ASCENDSTR_RED:
+        case ASCENDSTR_BLUE:
+        case ASCENDSTR_GREEN:
             {
                 break;
             }
@@ -49,57 +50,41 @@ AscendStr::AscendStr(int nType, int nValue, int nX, int nY)
                 throw bad_reach();
             }
     }
-
-    // TODO
-    // should I here put checks for (nX, nY) in current map?
 }
 
-void AscendStr::Update(double fUpdate)
+void AscendStr::draw(int viewX, int viewY)
 {
-    m_tick += fUpdate;
-}
+    if(ratio() < 1.0){
+        /* */ auto currX = x();
+        const auto currY = y();
+        const auto currA = to_u8(std::lround(255 * (1.0 - ratio())));
 
-void AscendStr::Draw(int nViewX, int nViewY)
-{
-    if(Ratio() < 1.0){
-
-        auto nCurrX = X();
-        auto nCurrY = Y();
-        auto nCurrA = (Uint8)(std::lround(255 * (1.0 - Ratio())));
-
-        switch(Type()){
+        switch(type()){
             case ASCENDSTR_MISS:
                 {
-                    if(auto pTexture = g_progUseDB->retrieve(0X03000030)){
-                        SDL_SetTextureAlphaMod(pTexture, nCurrA);
-                        g_sdlDevice->drawTexture(pTexture, nCurrX - nViewX, nCurrY - nViewY);
+                    if(auto texPtr = g_progUseDB->retrieve(0X03000030)){
+                        SDLDeviceHelper::EnableTextureModColor enableColor(texPtr, colorf::RGBA(255, 255, 255, currA));
+                        g_sdlDevice->drawTexture(texPtr, currX - viewX, currY - viewY);
                     }
                     break;
                 }
-            case ASCENDSTR_NUM0:
-            case ASCENDSTR_NUM1:
-            case ASCENDSTR_NUM2:
+            case ASCENDSTR_RED:
+            case ASCENDSTR_BLUE:
+            case ASCENDSTR_GREEN:
                 {
-                    if(Value()){
-                        uint32_t nPreKey = 0X03000000 | ((Type() - ASCENDSTR_NUM0) << 4);
-                        if(auto pTexture = g_progUseDB->retrieve(nPreKey | ((Value() < 0) ? 0X0A : 0X0B))){
-                            SDL_SetTextureAlphaMod(pTexture, nCurrA);
-                            g_sdlDevice->drawTexture(pTexture, nCurrX - nViewX, nCurrY - nViewY + ((Value() < 0) ? 4 : 1));
-
-                            int nTextureW;
-                            SDL_QueryTexture(pTexture, nullptr, nullptr, &nTextureW, nullptr);
-                            nCurrX += nTextureW;
+                    if(value()){
+                        const uint32_t baseKey = 0X03000000 | ((type() - ASCENDSTR_BEGIN) << 4);
+                        if(auto texPtr = g_progUseDB->retrieve(baseKey | ((value() < 0) ? 0X0A : 0X0B))){
+                            SDLDeviceHelper::EnableTextureModColor enableColor(texPtr, colorf::RGBA(255, 255, 255, currA));
+                            g_sdlDevice->drawTexture(texPtr, currX - viewX, currY - viewY + ((value() < 0) ? 4 : 1));
+                            currX += SDLDeviceHelper::getTextureWidth(texPtr);
                         }
 
-                        auto szNumStr = std::to_string(std::labs(Value()));
-                        for(auto chNum: szNumStr){
-                            if(auto pTexture = g_progUseDB->retrieve(nPreKey | (chNum - '0'))){
-                                SDL_SetTextureAlphaMod(pTexture, nCurrA);
-                                g_sdlDevice->drawTexture(pTexture, nCurrX - nViewX, nCurrY - nViewY);
-
-                                int nTextureW;
-                                SDL_QueryTexture(pTexture, nullptr, nullptr, &nTextureW, nullptr);
-                                nCurrX += nTextureW;
+                        for(const auto chNum: std::to_string(std::labs(value()))){
+                            if(auto texPtr = g_progUseDB->retrieve(baseKey | (chNum - '0'))){
+                                SDLDeviceHelper::EnableTextureModColor enableColor(texPtr, colorf::RGBA(255, 255, 255, currA));
+                                g_sdlDevice->drawTexture(texPtr, currX - viewX, currY - viewY);
+                                currX += SDLDeviceHelper::getTextureWidth(texPtr);
                             }
                         }
                     }

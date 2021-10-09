@@ -18,13 +18,17 @@
 
 #pragma once
 #include <cmath>
+#include "totype.hpp"
 
 enum AscendStrType: int
 {
-    ASCENDSTR_MISS = 0,
-    ASCENDSTR_NUM0 = 1,
-    ASCENDSTR_NUM1 = 2,
-    ASCENDSTR_NUM2 = 3,
+    ASCENDSTR_NONE  = 0,
+    ASCENDSTR_MISS  = 0,
+    ASCENDSTR_BEGIN = 1,
+    ASCENDSTR_RED   = 1,
+    ASCENDSTR_BLUE  = 2,
+    ASCENDSTR_GREEN = 3,
+    ASCENDSTR_END   = 4,
 };
 
 class AscendStr
@@ -38,42 +42,46 @@ class AscendStr
         int m_y;
 
     private:
-        double m_tick;
+        double m_tick = 0.0;
 
     public:
         AscendStr(int, int, int, int);
 
     public:
+        AscendStr(int x, int y)
+            : AscendStr(ASCENDSTR_MISS, 0, x, y)
+        {}
+
+    public:
         ~AscendStr() = default;
 
     public:
-        void Draw(int, int);
-        void Update(double);
+        void draw(int, int);
 
-    private:
-        int Type () const { return m_type;  }
-        int Value() const { return m_value; }
-
-    private:
-        int X() const
+    public:
+        void update(double fUpdate)
         {
-            return m_x + to_d(std::lround(Ratio() * 50.0));
-        }
-
-        int Y() const
-        {
-            return m_y - to_d(std::lround(Ratio() * 50.0));
+            m_tick += fUpdate;
         }
 
     private:
-        double Tick() const
+        int type () const { return m_type;  }
+        int value() const { return m_value; }
+
+    private:
+        int x() const
         {
-            return m_tick;
+            return m_x + to_d(std::lround(ratio() * 50.0));
+        }
+
+        int y() const
+        {
+            return m_y - to_d(std::lround(ratio() * 50.0));
         }
 
     public:
-        double Ratio() const
+        double ratio() const
         {
-            return Tick() / 3000.0;
+            return m_tick / 3000.0;
         }
 };

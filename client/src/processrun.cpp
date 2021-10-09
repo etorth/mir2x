@@ -164,10 +164,11 @@ void ProcessRun::update(double fUpdateTime)
     }
 
     for(auto p = m_ascendStrList.begin(); p != m_ascendStrList.end();){
-        if((*p)->Ratio() < 1.00){
-            (*p)->Update(fUpdateTime);
+        if((*p)->ratio() < 1.00){
+            (*p)->update(fUpdateTime);
             ++p;
-        }else{
+        }
+        else{
             p = m_ascendStrList.erase(p);
         }
     }
@@ -458,7 +459,7 @@ void ProcessRun::draw()
     g_sdlDevice->fillRectangle(colorf::RGBA(0, 0, 0, 0), 0, winH - 4, winW, 4);
 
     for(auto p: m_ascendStrList){
-        p->Draw(m_viewX, m_viewY);
+        p->draw(m_viewX, m_viewY);
     }
 
     m_GUIManager.draw();
