@@ -875,10 +875,7 @@ SDItem NPChar::createSellItem(uint32_t itemID, uint32_t seqID) const
             .duration = {mathf::rand<size_t>(0, ir.equip.duration), to_uz(ir.equip.duration)},
             .extAttrList
             {
-                .list
-                {
-                    {SDItem::EA_COLOR, colorf::RGBA(mathf::rand(100, 255), mathf::rand(100, 255), mathf::rand(100, 255), 0XFF)},
-                }
+                {SDItem::EA_COLOR, colorf::RGBA(mathf::rand(100, 255), mathf::rand(100, 255), mathf::rand(100, 255), 0XFF)},
             },
         };
     }
@@ -891,11 +888,44 @@ SDItem NPChar::createSellItem(uint32_t itemID, uint32_t seqID) const
             .duration = {mathf::rand<size_t>(0, ir.equip.duration), to_uz(ir.equip.duration)},
             .extAttrList
             {
-                .list
-                {
-                    {SDItem::EA_DC, mathf::rand<int>(1, 5)},
-                    {SDItem::EA_MC, mathf::rand<int>(1, 5)},
-                }
+                {SDItem::EA_DC, mathf::rand<int>(1, 5)},
+                {SDItem::EA_MC, mathf::rand<int>(1, 5)},
+                {SDItem::EA_SC, mathf::rand<int>(1, 5)},
+                {SDItem::EA_AC, mathf::rand<int>(1, 5)},
+                {SDItem::EA_MAC, mathf::rand<int>(1, 5)},
+
+                {SDItem::EA_DCHIT, mathf::rand<int>(1, 5)},
+                {SDItem::EA_MCHIT, mathf::rand<int>(1, 5)},
+                {SDItem::EA_DCDODGE, mathf::rand<int>(1, 5)},
+                {SDItem::EA_MCDODGE, mathf::rand<int>(1, 5)},
+
+                {SDItem::EA_SPEED, mathf::rand<int>(1, 5)},
+                {SDItem::EA_COMFORT, mathf::rand<int>(1, 5)},
+                {SDItem::EA_LUCKCURSE, mathf::rand<int>(1, 5)},
+
+                {SDItem::EA_HPADD, mathf::rand<int>(1, 5)},
+                {SDItem::EA_HPSTEAL, mathf::rand<int>(1, 5)},
+                {SDItem::EA_HPRECOVER, mathf::rand<int>(1, 5)},
+
+                {SDItem::EA_MPADD, mathf::rand<int>(1, 5)},
+                {SDItem::EA_MPSTEAL, mathf::rand<int>(1, 5)},
+                {SDItem::EA_MPRECOVER, mathf::rand<int>(1, 5)},
+
+                {SDItem::EA_DCFIRE, mathf::rand<int>(1, 5)},
+                {SDItem::EA_DCICE, mathf::rand<int>(1, 5)},
+                {SDItem::EA_DCLIGHT, mathf::rand<int>(1, 5)},
+                {SDItem::EA_DCWIND, mathf::rand<int>(1, 5)},
+                {SDItem::EA_DCHOLY, mathf::rand<int>(1, 5)},
+                {SDItem::EA_DCDARK, mathf::rand<int>(1, 5)},
+                {SDItem::EA_DCPHANTOM, mathf::rand<int>(1, 5)},
+
+                {SDItem::EA_ACFIRE, mathf::rand<int>(1, 5)},
+                {SDItem::EA_ACICE, mathf::rand<int>(1, 5)},
+                {SDItem::EA_ACLIGHT, mathf::rand<int>(1, 5)},
+                {SDItem::EA_ACWIND, mathf::rand<int>(1, 5)},
+                {SDItem::EA_ACHOLY, mathf::rand<int>(1, 5)},
+                {SDItem::EA_ACDARK, mathf::rand<int>(1, 5)},
+                {SDItem::EA_ACPHANTOM, mathf::rand<int>(1, 5)},
             },
         };
     }
