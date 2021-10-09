@@ -43,21 +43,25 @@ std::u8string SDItem::getXMLLayout() const
 
     xmlStr += str_printf(u8R"###( <layout> )###""\n");
     xmlStr += str_printf(u8R"###( <par>【名称】%s</par> )###""\n", ir.name);
+    xmlStr += str_printf(u8R"###( <par>【类型】%s</par> )###""\n", ir.type);
     xmlStr += str_printf(u8R"###( <par>【重量】%d</par> )###""\n", ir.weight);
 
     if(ir.equip.duration > 0){
         fflassert(duration[0] <= duration[1]);
         fflassert(duration[1] <= to_uz(ir.equip.duration));
-
-        if(duration[0] <= to_uz(duration[1] / 4) || (duration[0] <= 1)){
-            xmlStr += str_printf(u8R"###( <par>【持久】<t color='red'>%zu/%zu/%d</t></par> )###""\n", duration[0], duration[1], ir.equip.duration);
-        }
-        else if(duration[0] <= to_uz(duration[1] / 2)){
-            xmlStr += str_printf(u8R"###( <par>【持久】<t color='yellow'>%zu/%zu/%d</t></par> )###""\n", duration[0], duration[1], ir.equip.duration);
-        }
-        else{
-            xmlStr += str_printf(u8R"###( <par>【持久】%zu/%zu/%d</par> )###""\n", duration[0], duration[1], ir.equip.duration);
-        }
+        const auto duraColorStr = [this]() -> const char *
+        {
+            if(duration[0] <= to_uz(duration[1] / 4) || (duration[0] <= 1)){
+                return "red";
+            }
+            else if(duration[0] <= to_uz(duration[1] / 2)){
+                return "yellow";
+            }
+            else{
+                return "white";
+            }
+        }();
+        xmlStr += str_printf(u8R"###( <par>【持久】<t color='%s'>%zu/%zu/%d</t></par> )###""\n", duraColorStr, duration[0], duration[1], ir.equip.duration);
     }
 
     xmlStr += str_printf(u8R"###( <par></par> )###""\n");

@@ -118,7 +118,9 @@ struct ItemRecord
 
     operator bool() const
     {
-        return name && std::u8string_view(name) != u8"";
+        return true
+            && name && !std::u8string_view(name).empty()
+            && type && !std::u8string_view(type).empty();
     }
 
     constexpr bool packable() const
