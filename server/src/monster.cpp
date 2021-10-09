@@ -927,10 +927,10 @@ bool Monster::struckDamage(const DamageNode &node)
         const auto hitProb = [phyDC, &node, this]() -> double
         {
             if(phyDC){
-                return mathf::sigmoid(to_df(node.dcHit - getMR().dcDodge)) / 2.0 + 0.5;
+                return mathf::sigmoid(to_df(node.dcHit - getMR().dcDodge) / 2.5) / 2.0 + 0.5;
             }
             else{
-                return mathf::sigmoid(to_df(node.mcHit - getMR().mcDodge)) / 2.0 + 0.5;
+                return mathf::sigmoid(to_df(node.mcHit - getMR().mcDodge) / 2.5) / 2.0 + 0.5;
             }
         }();
 
