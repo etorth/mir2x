@@ -403,7 +403,7 @@ bool Player::struckDamage(const DamageNode &node)
                 return std::max<int>(0, node.damage - mathf::rand<int>(combatNode.ac[0], combatNode.ac[1]));
             }
 
-            const double elemRatio = 1.0 + 0.1 * [&node, &combatNode, this]() -> int
+            const double elemRatio = std::max<double>(0.0, 1.0 + 0.1 * [&node, &combatNode, this]() -> int
             {
                 const auto &mr = DBCOM_MAGICRECORD(node.magicID);
                 fflassert(mr);
@@ -418,7 +418,7 @@ bool Player::struckDamage(const DamageNode &node)
                     case MET_PHANTOM: return combatNode.acElem.phantom;
                     default         : return 0;
                 }
-            }();
+            }());
             return std::max<int>(0, node.damage - std::lround(mathf::rand<int>(combatNode.mac[0], combatNode.mac[1]) * elemRatio));
         }();
 
