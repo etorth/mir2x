@@ -396,12 +396,40 @@ bool Player::struckDamage(const DamageNode &node)
     return true;
 
     if(node){
-        m_sdHealth.HP = std::max<int>(0, m_sdHealth.HP - node.damage);
-        reportHealth();
-        dispatchHealth();
+        const auto damage = [&node, this]() -> int
+        {
+            const auto combatNode = getCombatNode(m_sdItemStorage.wear, {}, UID(), level());
+            if(DBCOM_MAGICID(u8"物理攻击") == to_u32(node.magicID)){
+                return std::max<int>(0, node.damage - mathf::rand<int>(combatNode.ac[0], combatNode.ac[1]));
+            }
 
-        if(m_sdHealth.HP <= 0){
-            goDie();
+            const double elemRatio = 1.0 + 0.1 * [&node, &combatNode, this]() -> int
+            {
+                const auto &mr = DBCOM_MAGICRECORD(node.magicID);
+                fflassert(mr);
+
+                switch(magicElemID(mr.element)){
+                    case MET_FIRE   : return combatNode.acElem.fire;
+                    case MET_ICE    : return combatNode.acElem.ice;
+                    case MET_LIGHT  : return combatNode.acElem.light;
+                    case MET_WIND   : return combatNode.acElem.wind;
+                    case MET_HOLY   : return combatNode.acElem.holy;
+                    case MET_DARK   : return combatNode.acElem.dark;
+                    case MET_PHANTOM: return combatNode.acElem.phantom;
+                    default         : return 0;
+                }
+            }();
+            return std::max<int>(0, node.damage - std::lround(mathf::rand<int>(combatNode.mac[0], combatNode.mac[1]) * elemRatio));
+        }();
+
+        if(damage > 0){
+            m_sdHealth.HP = std::max<int>(0, m_sdHealth.HP - damage);
+            reportHealth();
+            dispatchHealth();
+
+            if(m_sdHealth.HP <= 0){
+                goDie();
+            }
         }
         return true;
     }

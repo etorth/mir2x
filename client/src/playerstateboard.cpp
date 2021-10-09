@@ -229,9 +229,9 @@ void PlayerStateBoard::drawEx(int, int, int, int, int, int) const
         const int elemGridX = x() + 62 + (i - MET_BEGIN) * 37;
         const int elemGridY[]
         {
-            y() + 375 + 0 * 30,
-            y() + 375 + 1 * 30,
-            y() + 375 + 2 * 30,
+            y() + 374 + 0 * 30,
+            y() + 374 + 1 * 30,
+            y() + 374 + 2 * 30,
         };
 
         if(dcElem > 0){
