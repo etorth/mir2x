@@ -1277,7 +1277,6 @@ void ProcessRun::RegisterLuaExport(ClientLuaModule *luaModulePtr)
             getMyHero()->setWLItem(WLG_DRESS, SDItem
             {
                 .itemID = to_u32(nDress),
-                .extAttrList = {},
             });
         }
     });

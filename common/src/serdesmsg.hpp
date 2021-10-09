@@ -175,10 +175,57 @@ struct SDItemExtAttrList
 
 struct SDItem
 {
-    enum SDItemAttrType: int
+    enum SDItemExtAttrType: int
     {
-        NONE = 0,
-        COLOR, // u32
+        EA_NONE = 0,
+        EA_DC,
+        EA_MC,
+        EA_SC,
+        EA_AC,
+        EA_MAC,
+
+        EA_DCHIT,
+        EA_MCHIT,
+
+        EA_DCDODGE,
+        EA_MCDODGE,
+
+        EA_SPEED,
+        EA_COMFORT,
+
+        EA_HPRECOVER,
+        EA_MPRECOVER,
+
+        EA_HP,
+        EA_MP,
+
+        EA_LUCKCURSE,
+
+        EA_DCFIRE,
+        EA_DCICE,
+        EA_DCLIGHT,
+        EA_DCWIND,
+        EA_DCHOLY,
+        EA_DCDARK,
+        EA_DCPHANTOM,
+
+        EA_ACFIRE,
+        EA_ACICE,
+        EA_ACLIGHT,
+        EA_ACWIND,
+        EA_ACHOLY,
+        EA_ACDARK,
+        EA_ACPHANTOM,
+
+        EA_HPSTEAL,
+        EA_MPSTEAL,
+
+        EA_EXTEXP,
+        EA_EXTGOLD,
+        EA_EXTDROP,
+
+        EA_COLOR, // u32
+        EA_END,
     };
 
     uint32_t itemID = 0;
@@ -208,10 +255,10 @@ struct SDItem
     operator bool () const;
     static std::vector<SDItem> buildGoldItem(size_t);
 
-    std::optional<uint32_t> getColor() const
+    template<typename T> std::optional<T> getExtAttr(int attrType) const
     {
-        if(extAttrList.list.count(SDItem::COLOR)){
-            return std::get<uint32_t>(extAttrList.list.at(SDItem::COLOR));
+        if(const auto p = extAttrList.list.find(attrType); p != extAttrList.list.end()){
+            return std::get<T>(p->second);
         }
         return {};
     }

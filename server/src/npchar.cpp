@@ -877,7 +877,7 @@ SDItem NPChar::createSellItem(uint32_t itemID, uint32_t seqID) const
             {
                 .list
                 {
-                    {SDItem::COLOR, colorf::RGBA(mathf::rand(100, 255), mathf::rand(100, 255), mathf::rand(100, 255), 0XFF)},
+                    {SDItem::EA_COLOR, colorf::RGBA(mathf::rand(100, 255), mathf::rand(100, 255), mathf::rand(100, 255), 0XFF)},
                 }
             },
         };
@@ -889,6 +889,14 @@ SDItem NPChar::createSellItem(uint32_t itemID, uint32_t seqID) const
             .seqID =  seqID,
             .count = 1,
             .duration = {mathf::rand<size_t>(0, ir.equip.duration), to_uz(ir.equip.duration)},
+            .extAttrList
+            {
+                .list
+                {
+                    {SDItem::EA_DC, mathf::rand<int>(1, 5)},
+                    {SDItem::EA_MC, mathf::rand<int>(1, 5)},
+                }
+            },
         };
     }
     else{
