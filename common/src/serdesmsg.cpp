@@ -64,68 +64,53 @@ std::u8string SDItem::getXMLLayout() const
     xmlStr += str_printf(u8R"###( <par>%s</par> )###""\n", str_haschar(ir.description) ? ir.description : u8"游戏处于开发阶段，暂无物品描述。");
 
     xmlStr += str_printf(u8R"###( <par></par> )###""\n");
-    if(const auto extDC = getExtAttr<int>(SDItem::EA_DC); ir.equip.dc[0] > 0 || ir.equip.dc[1] > 0 || extDC.has_value()){
-        const auto extDCStr = str_printf("<t color='green'>（%+d）</t>", extDC.value_or(0));
-        xmlStr += str_printf(u8R"###( <par>攻击 %d - %d%s</par> )###""\n", ir.equip.dc[0], ir.equip.dc[1] + extDC.value_or(0), extDC.has_value() ? extDCStr.c_str() : "");
+    const auto fnAddAttrValuePair = [&xmlStr, this](int val0, int val1, const char8_t *valName, int extType)
+    {
+        if(const auto extAttr = getExtAttr<int>(extType); val0 > 0 || val1 > 0 || (extAttr.has_value() && extAttr.value() != 0)){
+            const auto extAttrStr = str_printf("<t color='green'>（%+d）</t>", extAttr.value_or(0));
+            xmlStr += str_printf(u8R"###( <par>%s %d - %d%s</par> )###""\n", to_cstr(valName), val0, val1 + extAttr.value_or(0), extAttr.has_value() ? extAttrStr.c_str() : "");
+        }
+    };
+
+    const auto fnAddAttrValue = [&xmlStr, this](int val, const char8_t *valName, int extType)
+    {
+        if(const auto extAttr = getExtAttr<int>(extType); val || (extAttr.has_value() && extAttr.value() != 0)){
+            const auto extAttrStr = str_printf("<t color='green'>（%+d）</t>", extAttr.value_or(0));
+            xmlStr += str_printf(u8R"###( <par>%s %+d%s</par> )###""\n", to_cstr(valName), val + extAttr.value_or(0), extAttr.has_value() ? extAttrStr.c_str() : "");
+        }
+    };
+
+    fnAddAttrValuePair(ir.equip. dc[0], ir.equip. dc[1], u8"攻击", SDItem::EA_DC);
+    fnAddAttrValuePair(ir.equip. mc[0], ir.equip. mc[1], u8"魔法", SDItem::EA_MC);
+    fnAddAttrValuePair(ir.equip. sc[0], ir.equip. sc[1], u8"道术", SDItem::EA_SC);
+    fnAddAttrValuePair(ir.equip. ac[0], ir.equip. ac[1], u8"防御", SDItem::EA_AC);
+    fnAddAttrValuePair(ir.equip.mac[0], ir.equip.mac[1], u8"魔防", SDItem::EA_MAC);
+
+    fnAddAttrValue(ir.equip.dcHit,   u8"命中",     SDItem::EA_DCHIT);
+    fnAddAttrValue(ir.equip.mcHit,   u8"魔法命中", SDItem::EA_MCHIT);
+    fnAddAttrValue(ir.equip.dcDodge, u8"闪避",     SDItem::EA_DCDODGE);
+    fnAddAttrValue(ir.equip.mcDodge, u8"魔法闪避", SDItem::EA_MCDODGE);
+    fnAddAttrValue(ir.equip.speed,   u8"速度",     SDItem::EA_SPEED);
+    fnAddAttrValue(ir.equip.comfort, u8"舒适度",   SDItem::EA_COMFORT);
+
+    if(const auto extLuckCurseAttr = getExtAttr<int>(SDItem::EA_LUCKCURSE); ir.equip.luckCurse || (extLuckCurseAttr.value_or(0) != 0)){
+        if(const auto luckCurseSum = ir.equip.luckCurse + extLuckCurseAttr.value_or(0); luckCurseSum >= 0){
+            const auto extAttrStr = str_printf("<t color='%s'>（%+d）</t>", (extLuckCurseAttr.value_or(0) >= 0) ? "green" : "red", extLuckCurseAttr.value_or(0));
+            xmlStr += str_printf(u8R"###( <par>幸运 %+d%s</par> )###""\n", luckCurseSum, extLuckCurseAttr.value_or(0) ? extAttrStr.c_str() : "");
+        }
+        else{
+            const auto extAttrStr = str_printf("<t color='%s'>（%+d）</t>", (extLuckCurseAttr.value_or(0) >= 0) ? "red" : "green", -1 * extLuckCurseAttr.value_or(0));
+            xmlStr += str_printf(u8R"###( <par>诅咒 %+d%s</par> )###""\n", std::abs(luckCurseSum), extLuckCurseAttr.value_or(0) ? extAttrStr.c_str() : "");
+        }
     }
 
-    if(const auto extMC = getExtAttr<int>(SDItem::EA_MC); ir.equip.mc[0] > 0 || ir.equip.mc[1] > 0 || extMC.has_value()){
-        const auto extMCStr = str_printf("<t color='green'>（%+d）</t>", extMC.value_or(0));
-        xmlStr += str_printf(u8R"###( <par>魔法 %d - %d%s</par> )###""\n", ir.equip.mc[0], ir.equip.mc[1] + extMC.value_or(0), extMC.has_value() ? extMCStr.c_str() : "");
-    }
+    fnAddAttrValue(ir.equip.hp.add,     u8"生命上限",   SDItem::EA_HPADD);
+    fnAddAttrValue(ir.equip.hp.steal,   u8"生命盗取",   SDItem::EA_HPSTEAL);
+    fnAddAttrValue(ir.equip.hp.recover, u8"生命恢复",   SDItem::EA_HPRECOVER);
 
-    if(const auto extSC = getExtAttr<int>(SDItem::EA_SC); ir.equip.sc[0] > 0 || ir.equip.sc[1] > 0 || extSC.has_value()){
-        const auto extSCStr = str_printf("<t color='green'>（%+d）</t>", extSC.value_or(0));
-        xmlStr += str_printf(u8R"###( <par>道术 %d - %d%s</par> )###""\n", ir.equip.sc[0], ir.equip.sc[1] + extSC.value_or(0), extSC.has_value() ? extSCStr.c_str() : "");
-    }
-
-    if(const auto extAC = getExtAttr<int>(SDItem::EA_AC); ir.equip.ac[0] > 0 || ir.equip.ac[1] > 0 || extAC.has_value()){
-        const auto extACStr = str_printf("<t color='green'>（%+d）</t>", extAC.value_or(0));
-        xmlStr += str_printf(u8R"###( <par>防御 %d - %d%s</par> )###""\n", ir.equip.ac[0], ir.equip.ac[1] + extAC.value_or(0), extAC.has_value() ? extACStr.c_str() : "");
-    }
-
-    if(const auto extMAC = getExtAttr<int>(SDItem::EA_MAC); ir.equip.mac[0] > 0 || ir.equip.mac[1] > 0 || extMAC.has_value()){
-        const auto extMACStr = str_printf("<t color='green'>（%+d）</t>", extMAC.value_or(0));
-        xmlStr += str_printf(u8R"###( <par>魔防 %d - %d%s</par> )###""\n", ir.equip.mac[0], ir.equip.mac[1] + extMAC.value_or(0), extMAC.has_value() ? extMACStr.c_str() : "");
-    }
-
-    if(const auto extDCHit = getExtAttr<int>(SDItem::EA_DCHIT); ir.equip.dcHit || extDCHit.has_value()){
-        const auto extDCHitStr = str_printf("<t color='green'>（%+d）</t>", extDCHit.value_or(0));
-        xmlStr += str_printf(u8R"###( <par>命中 %+d%s</par> )###""\n", ir.equip.dcHit + extDCHit.value_or(0), extDCHit.has_value() ? extDCHitStr.c_str() : "");
-    }
-
-    if(const auto extMCHit = getExtAttr<int>(SDItem::EA_MCHIT); ir.equip.mcHit || extMCHit.has_value()){
-        const auto extMCHitStr = str_printf("<t color='green'>（%+d）</t>", extMCHit.value_or(0));
-        xmlStr += str_printf(u8R"###( <par>命中 %+d%s</par> )###""\n", ir.equip.mcHit + extMCHit.value_or(0), extMCHit.has_value() ? extMCHitStr.c_str() : "");
-    }
-
-    if(ir.equip.dcDodge){
-        xmlStr += str_printf(u8R"###( <par>闪避 %+d</par> )###""\n", ir.equip.dcDodge);
-    }
-
-    if(ir.equip.mcDodge){
-        xmlStr += str_printf(u8R"###( <par>魔法闪避 %+d</par> )###""\n", ir.equip.mcDodge);
-    }
-
-    if(ir.equip.speed){
-        xmlStr += str_printf(u8R"###( <par>速度 %+d</par> )###""\n", ir.equip.speed);
-    }
-
-    if(ir.equip.comfort){
-        xmlStr += str_printf(u8R"###( <par>舒适度 %+d</par> )###""\n", ir.equip.comfort);
-    }
-
-    if(ir.equip.hp.recover){
-        xmlStr += str_printf(u8R"###( <par>生命恢复 %+d</par> )###""\n", ir.equip.hp.recover);
-    }
-
-    if(ir.equip.mp.recover){
-        xmlStr += str_printf(u8R"###( <par>魔法恢复 %+d</par> )###""\n", ir.equip.mp.recover);
-    }
-
-    if(ir.equip.luckCurse){
-        xmlStr += str_printf(u8R"###( <par>%s %+d</par> )###""\n", ir.equip.luckCurse > 0 ? u8"幸运" : u8"诅咒", std::abs(ir.equip.luckCurse));
-    }
+    fnAddAttrValue(ir.equip.mp.add,     u8"魔法上限",   SDItem::EA_MPADD);
+    fnAddAttrValue(ir.equip.mp.steal,   u8"魔法盗取",   SDItem::EA_MPSTEAL);
+    fnAddAttrValue(ir.equip.mp.recover, u8"魔法恢复",   SDItem::EA_MPRECOVER);
 
     if(ir.equip.dcElem.fire    > 0){ xmlStr += str_printf(u8R"###( <par color='green'>攻击元素：火 %+d</par> )###""\n",   ir.equip.dcElem.fire   ); }
     if(ir.equip.dcElem.ice     > 0){ xmlStr += str_printf(u8R"###( <par color='green'>攻击元素：冰 %+d</par> )###""\n",   ir.equip.dcElem.ice    ); }
