@@ -378,7 +378,7 @@ def parse_equip_attr_boot(item_dict):
             item_attr['load']['body'] = item_dict['mc']
 
         if item_dict['mc2'] > 0:
-            item_attr['load']['hand'] = item_dict['mc2']
+            item_attr['load']['weapon'] = item_dict['mc2']
 
     return item_attr
 
@@ -537,11 +537,11 @@ def parse_equip(item_dict):
         print('        .load')
         print('        {')
 
-        if 'hand' in item_attr['load']:
-            print('            .hand = %d,' % item_attr['load']['hand'])
-
         if 'body' in item_attr['load']:
             print('            .body = %d,' % item_attr['load']['body'])
+
+        if 'weapon' in item_attr['load']:
+            print('            .weapon = %d,' % item_attr['load']['weapon'])
 
         if 'inventory' in item_attr['load']:
             print('            .inventory = %d,' % item_attr['load']['inventory'])

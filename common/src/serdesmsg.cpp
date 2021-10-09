@@ -136,36 +136,44 @@ std::u8string SDItem::getXMLLayout() const
     if(ir.equip.acElem.dark    < 0){ xmlStr += str_printf(u8R"###( <par color='red'>弱防元素：暗黑 %+d</par> )###""\n", std::abs(ir.equip.acElem.dark   )); }
     if(ir.equip.acElem.phantom < 0){ xmlStr += str_printf(u8R"###( <par color='red'>弱防元素：幻影 %+d</par> )###""\n", std::abs(ir.equip.acElem.phantom)); }
 
-    if(ir.equip.load.hand){
-        xmlStr += str_printf(u8R"###( <par>手负重 %+d</par> )###""\n", ir.equip.load.hand);
+    if(false
+            || ir.equip.load.body > 0
+            || ir.equip.load.weapon > 0
+            || ir.equip.load.inventory > 0){
+
+        xmlStr += str_printf(u8R"###( <par></par> )###""\n");
+        fnAddAttrValue(ir.equip.load.body,      u8"身体负重", SDItem::EA_LOADBODY);
+        fnAddAttrValue(ir.equip.load.weapon,    u8"武器负重", SDItem::EA_LOADWEAPON);
+        fnAddAttrValue(ir.equip.load.inventory, u8"包裹负重", SDItem::EA_LOADINVENTORY);
     }
 
-    if(ir.equip.load.body){
-        xmlStr += str_printf(u8R"###( <par>身体负重 %+d</par> )###""\n", ir.equip.load.body);
-    }
+    if(false
+            || ir.equip.req.dc > 0
+            || ir.equip.req.mc > 0
+            || ir.equip.req.sc > 0
+            || ir.equip.req.level > 0
+            || str_haschar(ir.equip.req.job)){
 
-    if(ir.equip.load.inventory){
-        xmlStr += str_printf(u8R"###( <par>包裹负重 %+d</par> )###""\n", ir.equip.load.inventory);
-    }
+        xmlStr += str_printf(u8R"###( <par></par> )###""\n");
+        if(ir.equip.req.dc > 0){
+            xmlStr += str_printf(u8R"###( <par>需要攻击 %d</par> )###""\n", ir.equip.req.dc);
+        }
 
-    if(ir.equip.req.dc > 0){
-        xmlStr += str_printf(u8R"###( <par>需要攻击 %d</par> )###""\n", ir.equip.req.dc);
-    }
+        if(ir.equip.req.mc > 0){
+            xmlStr += str_printf(u8R"###( <par>需要魔法 %d</par> )###""\n", ir.equip.req.mc);
+        }
 
-    if(ir.equip.req.mc > 0){
-        xmlStr += str_printf(u8R"###( <par>需要魔法 %d</par> )###""\n", ir.equip.req.mc);
-    }
+        if(ir.equip.req.sc > 0){
+            xmlStr += str_printf(u8R"###( <par>需要道术 %d</par> )###""\n", ir.equip.req.sc);
+        }
 
-    if(ir.equip.req.sc > 0){
-        xmlStr += str_printf(u8R"###( <par>需要道术 %d</par> )###""\n", ir.equip.req.sc);
-    }
+        if(ir.equip.req.level > 0){
+            xmlStr += str_printf(u8R"###( <par>需要等级 %d</par> )###""\n", ir.equip.req.level);
+        }
 
-    if(ir.equip.req.level > 0){
-        xmlStr += str_printf(u8R"###( <par>需要等级 %d</par> )###""\n", ir.equip.req.level);
-    }
-
-    if(str_haschar(ir.equip.req.job)){
-        xmlStr += str_printf(u8R"###( <par>需要职业 %s</par> )###""\n", ir.equip.req.job);
+        if(str_haschar(ir.equip.req.job)){
+            xmlStr += str_printf(u8R"###( <par>需要职业 %s</par> )###""\n", ir.equip.req.job);
+        }
     }
 
     xmlStr += str_printf(u8R"###( </layout> )###""\n");

@@ -203,6 +203,10 @@ struct SDItem
         EA_ACDARK,
         EA_ACPHANTOM,
 
+        EA_LOADBODY,
+        EA_LOADWEAPON,
+        EA_LOADINVENTORY,
+
         EA_EXTEXP,
         EA_EXTGOLD,
         EA_EXTDROP,

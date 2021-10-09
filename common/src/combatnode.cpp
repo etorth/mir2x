@@ -90,8 +90,8 @@ CombatNode getCombatNode(const SDWear & wear, const SDLearnedMagicList &magicLis
             node.acElem.dark    += ir.equip.acElem.dark;
             node.acElem.phantom += ir.equip.acElem.phantom;
 
-            node.load.hand += ir.equip.load.hand;
             node.load.body += ir.equip.load.body;
+            node.load.weapon += ir.equip.load.weapon;
             node.load.inventory += ir.equip.load.inventory;
         }
     }
@@ -101,8 +101,8 @@ CombatNode getCombatNode(const SDWear & wear, const SDLearnedMagicList &magicLis
     node.mac[0] += (level / 2);
     node.mac[1] += (level / 2 + level % 2);
 
-    node.load.hand += (10 + level * 2);
     node.load.body += (20 + level * 2);
+    node.load.weapon += (10 + level * 2);
     node.load.inventory += (100 + level * 10);
 
     if(uidf::hasPlayerJob(uid, JOB_WARRIOR)){

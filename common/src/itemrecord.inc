@@ -12739,8 +12739,8 @@
         .comfort = 1,
         .load
         {
-            .hand = 1,
             .body = 1,
+            .weapon = 1,
         },
         .req
         {
@@ -12760,8 +12760,8 @@
         .comfort = 2,
         .load
         {
-            .hand = 2,
             .body = 2,
+            .weapon = 2,
         },
         .req
         {
@@ -12781,8 +12781,8 @@
         .comfort = 5,
         .load
         {
-            .hand = 4,
             .body = 4,
+            .weapon = 4,
         },
         .req
         {
@@ -12801,8 +12801,8 @@
         .comfort = 4,
         .load
         {
-            .hand = 3,
             .body = 3,
+            .weapon = 3,
         },
         .req
         {
@@ -12821,8 +12821,8 @@
         .comfort = 7,
         .load
         {
-            .hand = 7,
             .body = 7,
+            .weapon = 7,
         },
     },
 },
@@ -12837,8 +12837,8 @@
         .comfort = 7,
         .load
         {
-            .hand = 14,
             .body = 3,
+            .weapon = 14,
         },
     },
 },
@@ -12853,7 +12853,7 @@
         .comfort = 7,
         .load
         {
-            .hand = 20,
+            .weapon = 20,
         },
     },
 },
@@ -12868,8 +12868,8 @@
         .comfort = 3,
         .load
         {
-            .hand = 2,
             .body = 2,
+            .weapon = 2,
         },
         .req
         {
@@ -12903,8 +12903,8 @@
         .comfort = 7,
         .load
         {
-            .hand = 11,
             .body = 11,
+            .weapon = 11,
         },
     },
 },
@@ -12919,8 +12919,8 @@
         .comfort = 7,
         .load
         {
-            .hand = 3,
             .body = 14,
+            .weapon = 3,
         },
     },
 },
@@ -12935,8 +12935,8 @@
         .comfort = 8,
         .load
         {
-            .hand = 10,
             .body = 15,
+            .weapon = 10,
         },
         .req
         {
@@ -12973,8 +12973,8 @@
         .comfort = 2,
         .load
         {
-            .hand = 2,
             .body = 2,
+            .weapon = 2,
         },
     },
 },
@@ -12995,8 +12995,8 @@
         .comfort = 8,
         .load
         {
-            .hand = 13,
             .body = 12,
+            .weapon = 13,
         },
         .req
         {
@@ -13021,8 +13021,8 @@
         .comfort = 10,
         .load
         {
-            .hand = 13,
             .body = 17,
+            .weapon = 13,
         },
         .req
         {
@@ -13041,8 +13041,8 @@
         .comfort = 10,
         .load
         {
-            .hand = 15,
             .body = 15,
+            .weapon = 15,
         },
         .req
         {
@@ -13061,8 +13061,8 @@
         .comfort = 10,
         .load
         {
-            .hand = 12,
             .body = 18,
+            .weapon = 12,
         },
         .req
         {
@@ -13081,8 +13081,8 @@
         .comfort = 10,
         .load
         {
-            .hand = 10,
             .body = 20,
+            .weapon = 10,
         },
         .req
         {
@@ -13101,8 +13101,8 @@
         .comfort = 8,
         .load
         {
-            .hand = 11,
             .body = 14,
+            .weapon = 11,
         },
         .req
         {
@@ -13121,8 +13121,8 @@
         .comfort = 8,
         .load
         {
-            .hand = 12,
             .body = 13,
+            .weapon = 12,
         },
         .req
         {
@@ -13141,8 +13141,8 @@
         .comfort = 8,
         .load
         {
-            .hand = 14,
             .body = 11,
+            .weapon = 14,
         },
         .req
         {

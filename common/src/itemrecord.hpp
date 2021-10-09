@@ -61,8 +61,8 @@ struct ItemRecord
 
         const struct AddLoad
         {
-            const int hand      = 0;
             const int body      = 0;
+            const int weapon    = 0;
             const int inventory = 0;
         }
         load {};

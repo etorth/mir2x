@@ -183,7 +183,7 @@ void PlayerStateBoard::drawEx(int, int, int, int, int, int) const
     const auto bodyLoadColor = (bodyLoad > combatNode.load.body) ? colorf::RED : colorf::WHITE;
     fnDrawLabel(279, 97 + 24 * 5, str_printf(u8"%d/%d", bodyLoad, combatNode.load.body), bodyLoadColor);
 
-    const auto handLoad = [myHeroPtr]()
+    const auto weaponLoad = [myHeroPtr]()
     {
         const auto &item = myHeroPtr->getWLItem(WLG_WEAPON);
         if(!item){
@@ -195,8 +195,8 @@ void PlayerStateBoard::drawEx(int, int, int, int, int, int) const
         return ir.weight;
     }();
 
-    const auto handLoadColor = (handLoad > combatNode.load.hand) ? colorf::RED : colorf::WHITE;
-    fnDrawLabel(279, 97 + 24 * 6, str_printf(u8"%d/%d", handLoad, combatNode.load.hand), handLoadColor);
+    const auto weaponLoadColor = (weaponLoad > combatNode.load.weapon) ? colorf::RED : colorf::WHITE;
+    fnDrawLabel(279, 97 + 24 * 6, str_printf(u8"%d/%d", weaponLoad, combatNode.load.weapon), weaponLoadColor);
     fnDrawLabel(279, 97 + 24 * 7, str_printf(u8"%d", combatNode.dcHit));
     fnDrawLabel(279, 97 + 24 * 8, str_printf(u8"%d", combatNode.dcDodge));
 
@@ -334,7 +334,7 @@ void PlayerStateBoard::drawEx(int, int, int, int, int, int) const
         u8"魔法值",
         u8"背包负重",
         u8"身体负重",
-        u8"手负重",
+        u8"武器负重",
         u8"命中",
         u8"躲避",
     };
