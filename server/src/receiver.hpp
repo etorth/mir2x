@@ -28,7 +28,7 @@ class Receiver
         friend class ActorPool;
 
     private:
-        uint64_t m_UID;
+        uint64_t m_uid;
 
     private:
         std::mutex m_lock;
@@ -46,15 +46,15 @@ class Receiver
     public:
         uint64_t UID() const
         {
-            return m_UID;
+            return m_uid;
         }
 
     private:
         void pushMessage(ActorMsgPack);
 
     public:
-        size_t Wait(uint32_t = 0);
+        size_t wait(uint32_t = 0);
 
     public:
-        std::vector<ActorMsgPack> Pop();
+        std::vector<ActorMsgPack> pop();
 };

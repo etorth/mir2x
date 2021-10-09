@@ -18,6 +18,7 @@
 
 #include <cinttypes>
 #include "uidf.hpp"
+#include "fflerror.hpp"
 #include "actorpool.hpp"
 #include "monoserver.hpp"
 #include "syncdriver.hpp"
@@ -29,17 +30,12 @@ extern ServerArgParser *g_serverArgParser;
 
 ActorMsgPack SyncDriver::forward(uint64_t uid, const ActorMsgBuf &mb, uint32_t resp, uint32_t timeout)
 {
-    if(!uid){
-        throw fflerror("invalid UID: ZERO");
-    }
-
     // don't use in actor thread
     // because we can use actor send message directly
     // and this blocks the actor thread caused the wait never finish
 
-    if(g_actorPool->isActorThread()){
-        throw fflerror("calling SyncDriver::forward() in actor thread, uid = %s", uidf::getUIDString(uid).c_str());
-    }
+    fflassert(uid);
+    fflassert(!g_actorPool->isActorThread());
 
     m_currID++;
     if(m_currID == 0){
@@ -62,7 +58,7 @@ ActorMsgPack SyncDriver::forward(uint64_t uid, const ActorMsgBuf &mb, uint32_t r
         return {ActorMsgBuf(AM_BADACTORPOD, amBAP), 0, 0, m_currID};
     }
 
-    switch(m_receiver.Wait(timeout)){
+    switch(m_receiver.wait(timeout)){
         case 0:
             {
                 break;
@@ -70,7 +66,7 @@ ActorMsgPack SyncDriver::forward(uint64_t uid, const ActorMsgBuf &mb, uint32_t r
         case 1:
         default:
             {
-                if(auto mpkList = m_receiver.Pop(); mpkList.size()){
+                if(auto mpkList = m_receiver.pop(); mpkList.size()){
                     for(auto p = mpkList.begin(); p != mpkList.end(); ++p){
                         if(p->respID() == m_currID){
                             return *p;

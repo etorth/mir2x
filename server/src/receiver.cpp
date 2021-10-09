@@ -25,10 +25,7 @@ extern ActorPool *g_actorPool;
 extern MonoServer *g_monoServer;
 
 Receiver::Receiver()
-    : m_UID(uidf::buildReceiverUID())
-    , m_lock()
-    , m_condition()
-    , m_messageList()
+    : m_uid(uidf::buildReceiverUID())
 {
     g_actorPool->attach(this);
 }
@@ -43,36 +40,38 @@ Receiver::~Receiver()
     }
 }
 
-void Receiver::pushMessage(ActorMsgPack stMPK)
+void Receiver::pushMessage(ActorMsgPack mpk)
 {
-    std::unique_lock<std::mutex> stLock(m_lock);
-    m_messageList.push_back(std::move(stMPK));
+    {
+        std::lock_guard<std::mutex> lockGuard(m_lock);
+        m_messageList.push_back(std::move(mpk));
+    }
     m_condition.notify_all();
 }
 
-size_t Receiver::Wait(uint32_t nTimeout)
+size_t Receiver::wait(uint32_t timeout)
 {
-    std::unique_lock<std::mutex> stLock(m_lock);
-    auto fnPred = [this, nOrigLen = m_messageList.size()]() -> bool
+    std::unique_lock<std::mutex> lockGuard(m_lock);
+    const auto fnPred = [this, origLen = m_messageList.size()]() -> bool
     {
-        return m_messageList.size() > nOrigLen;
+        return m_messageList.size() > origLen;
     };
 
-    if(nTimeout){
-        m_condition.wait_for(stLock, std::chrono::milliseconds(nTimeout), fnPred);
-    }else{
-        m_condition.wait(stLock, fnPred);
+    if(timeout){
+        m_condition.wait_for(lockGuard, std::chrono::milliseconds(timeout), fnPred);
     }
-
+    else{
+        m_condition.wait(lockGuard, fnPred);
+    }
     return m_messageList.size();
 }
 
-std::vector<ActorMsgPack> Receiver::Pop()
+std::vector<ActorMsgPack> Receiver::pop()
 {
-    std::vector<ActorMsgPack> stvPop;
+    std::vector<ActorMsgPack> popList;
     {
-        std::lock_guard<std::mutex> stLockGuard(m_lock);
-        std::swap(stvPop, m_messageList);
+        std::lock_guard<std::mutex> lockGuard(m_lock);
+        std::swap(popList, m_messageList);
     }
-    return stvPop;
+    return popList;
 }
