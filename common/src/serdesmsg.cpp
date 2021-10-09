@@ -33,7 +33,7 @@ std::string SDInitNPChar::getFileName() const
     }
 }
 
-std::u8string SDItem::getXMLLayout() const
+std::u8string SDItem::getXMLLayout(const std::unordered_map<int, std::string> & params) const
 {
     fflassert(*this);
     const auto &ir = DBCOM_ITEMRECORD(itemID);
@@ -45,6 +45,11 @@ std::u8string SDItem::getXMLLayout() const
     xmlStr += str_printf(u8R"###( <par>【名称】%s</par> )###""\n", ir.name);
     xmlStr += str_printf(u8R"###( <par>【类型】%s</par> )###""\n", ir.type);
     xmlStr += str_printf(u8R"###( <par>【重量】%d</par> )###""\n", ir.weight);
+
+    if(const auto p = params.find(SDItem::XML_PRICE); p != params.end()){
+        const auto priceColor = params.count(SDItem::XML_PRICECOLOR) ? to_cstr(params.at(SDItem::XML_PRICECOLOR)) : "green";
+        xmlStr += str_printf(u8R"###( <par>【售价】<t color='%s'>%s</t></par> )###""\n", priceColor, to_cstr(p->second));
+    }
 
     if(ir.equip.duration > 0){
         fflassert(duration[0] <= duration[1]);

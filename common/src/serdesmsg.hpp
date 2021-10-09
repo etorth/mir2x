@@ -159,6 +159,21 @@ using SDItemExtAttrList  = std::unordered_map<int, SDItemExtAttr>;
 
 struct SDItem
 {
+    enum SDItemXMLLayoutParamType: int
+    {
+        XML_NONE  = 0,
+        XML_BEGIN = 1,
+        XML_DC    = 1,
+        XML_MC,
+        XML_SC,
+        XML_LEVEL,
+        XML_JOB,
+
+        XML_PRICE,
+        XML_PRICECOLOR,
+        XML_END,
+    };
+
     enum SDItemExtAttrType: int
     {
         EA_NONE  = 0,
@@ -232,7 +247,7 @@ struct SDItem
         return str_printf("(name, itemID, seqID, count, duration) = (%s, %zu, %zu, %zu, (%zu, %zu))", to_cstr(DBCOM_ITEMRECORD(itemID).name), to_uz(itemID), to_uz(seqID), count, duration[0], duration[1]);
     }
 
-    std::u8string getXMLLayout() const;
+    std::u8string getXMLLayout(const std::unordered_map<int, std::string> & = {}) const;
 
     bool isGold() const
     {

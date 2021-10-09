@@ -587,7 +587,13 @@ void PurchaseBoard::drawExt1GridHoverText(int itemIndex) const
         LALIGN_JUSTIFY,
     };
 
-    hoverTextBoard.loadXML(to_cstr(m_sdSellItemList.list.at(itemIndex).item.getXMLLayout().c_str()));
+    const auto goldPrice = getItemPrice(itemIndex);
+    hoverTextBoard.loadXML(to_cstr(m_sdSellItemList.list.at(itemIndex).item.getXMLLayout(
+    {
+        {SDItem::XML_PRICE, std::to_string(goldPrice)},
+        {SDItem::XML_PRICECOLOR, (goldPrice > 100) ? std::string("red") : std::string("green")},
+    }).c_str()));
+
     const auto [mousePX, mousePY] = SDLDeviceHelper::getMousePLoc();
     g_sdlDevice->fillRectangle(colorf::RGBA(0, 0, 0, 200), mousePX, mousePY, std::max<int>(hoverTextBoard.w(), 200) + 20, hoverTextBoard.h() + 20);
     hoverTextBoard.drawAt(DIR_UPLEFT, mousePX + 10, mousePY + 10);
