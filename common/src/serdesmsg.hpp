@@ -177,8 +177,9 @@ struct SDItem
 {
     enum SDItemExtAttrType: int
     {
-        EA_NONE = 0,
-        EA_DC,
+        EA_NONE  = 0,
+        EA_BEGIN = 1,
+        EA_DC    = 1,
         EA_MC,
         EA_SC,
         EA_AC,
@@ -257,6 +258,9 @@ struct SDItem
 
     template<typename T> std::optional<T> getExtAttr(int attrType) const
     {
+        fflassert(attrType >= EA_BEGIN);
+        fflassert(attrType <  EA_END);
+
         if(const auto p = extAttrList.list.find(attrType); p != extAttrList.list.end()){
             return std::get<T>(p->second);
         }
