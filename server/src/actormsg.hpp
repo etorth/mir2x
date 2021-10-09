@@ -533,6 +533,7 @@ struct AMCastFireWall
 
     int minDC;
     int maxDC;
+    int mcHit;
 
     int duration;
     int dps;

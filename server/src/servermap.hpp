@@ -106,6 +106,7 @@ class ServerMap final: public ServerObject
 
             int minDC = 0;
             int maxDC = 0;
+            int mcHit = 0;
 
             uint64_t startTime      = 0;
             uint64_t lastAttackTime = 0;

@@ -357,6 +357,7 @@ DamageNode Player::getAttackDamage(int nDC) const
                 return PlainPhyDamage
                 {
                     .damage = node.randPickDC(),
+                    .dcHit = node.dcHit,
                 };
             }
         case DBCOM_MAGICID(u8"灵魂火符"):
@@ -367,6 +368,7 @@ DamageNode Player::getAttackDamage(int nDC) const
                 {
                     .magicID = nDC,
                     .damage = to_d(std::lround(node.randPickSC() * elemRatio)),
+                    .mcHit = node.mcHit,
                 };
             }
         case DBCOM_MAGICID(u8"雷电术"):
@@ -380,6 +382,7 @@ DamageNode Player::getAttackDamage(int nDC) const
                 {
                     .magicID = nDC,
                     .damage = to_d(std::lround(node.randPickMC() * elemRatio)),
+                    .mcHit = node.mcHit,
                 };
             }
         default:
@@ -777,6 +780,7 @@ void Player::onCMActionSpell(CMAction cmA)
 
                     amCFW.minDC = node.mc[0];
                     amCFW.maxDC = node.mc[1];
+                    amCFW.mcHit = node.mcHit;
 
                     amCFW.duration = 20 * 1000;
                     amCFW.dps      = 2;

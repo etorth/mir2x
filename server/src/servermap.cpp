@@ -1549,11 +1549,11 @@ void ServerMap::updateMapGrid()
                     amA.X = nX;
                     amA.Y = nY;
 
-                    amA.damage = DamageNode
+                    amA.damage = MagicDamage
                     {
                         .magicID = to_d(DBCOM_MAGICID(u8"火墙")),
-                        .damage  = mathf::rand(p->minDC, p->maxDC),
-                        .effect  = 0,
+                        .damage = mathf::rand(p->minDC, p->maxDC),
+                        .mcHit = p->mcHit,
                     };
 
                     doUIDList(nX, nY, [amA, this](uint64_t uid) -> bool

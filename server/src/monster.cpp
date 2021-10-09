@@ -794,6 +794,7 @@ DamageNode Monster::getAttackDamage(int dc) const
                 return PlainPhyDamage
                 {
                     .damage = mathf::rand<int>(getMR().dc[0], getMR().dc[1]),
+                    .dcHit = getMR().dcHit,
                 };
             }
         default:
@@ -802,6 +803,7 @@ DamageNode Monster::getAttackDamage(int dc) const
                 {
                     .magicID = dc,
                     .damage = mathf::rand<int>(getMR().mc[0], getMR().mc[1]),
+                    .mcHit = getMR().mcHit,
                 };
             }
     }
@@ -921,9 +923,24 @@ bool Monster::goGhost()
 bool Monster::struckDamage(const DamageNode &node)
 {
     if(node){
-        const auto damage = [&node, this]() -> int
+        const bool phyDC = (to_u32(node.magicID) == DBCOM_MAGICID(u8"物理攻击"));
+        const auto hitProb = [phyDC, &node, this]() -> double
         {
-            if(DBCOM_MAGICID(u8"物理攻击") == to_u32(node.magicID)){
+            if(phyDC){
+                return mathf::sigmoid(to_df(node.dcHit - getMR().dcDodge)) / 2.0 + 0.5;
+            }
+            else{
+                return mathf::sigmoid(to_df(node.mcHit - getMR().mcDodge)) / 2.0 + 0.5;
+            }
+        }();
+
+        if(mathf::rand<double>(0.0, 1.0) > hitProb){
+            return true;
+        }
+
+        const auto damage = [phyDC, &node, this]() -> int
+        {
+            if(phyDC){
                 return std::max<int>(0, node.damage - mathf::rand<int>(getMR().ac[0], getMR().ac[1]));
             }
 

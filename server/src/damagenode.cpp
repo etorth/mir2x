@@ -27,6 +27,7 @@ PlainPhyDamage::operator DamageNode() const
 
     node.magicID = DBCOM_MAGICID(u8"物理攻击");
     node.damage = damage;
+    node.dcHit = dcHit;
     return node;
 }
 
@@ -37,5 +38,6 @@ MagicDamage::operator DamageNode() const
 
     node.magicID = magicID;
     node.damage = damage;
+    node.mcHit = mcHit;
     return node;
 }

@@ -64,6 +64,11 @@ namespace mathf
         return (std::max<T>)(std::abs(nfX - nfX1), std::abs(nfY - nfY1));
     }
 
+    inline double sigmoid(double x)
+    {
+        return 1.0 / (1.0 + std::exp(-1.0 * x));
+    }
+
     template<typename T> T LDistance2(T nfX, T nfY, T nfX1, T nfY1)
     {
         static_assert(std::is_arithmetic<T>::value, "Arithmetic type required...");
