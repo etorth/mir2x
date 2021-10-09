@@ -277,9 +277,7 @@ void SDWear::setWLItem(int i, SDItem item)
     }
 
     if(item.itemID){
-        if(!item){
-            throw fflerror("bad item: %s", to_cstr(item.str()));
-        }
+        fflassert(item);
         m_list[i] = std::move(item);
     }
     else{

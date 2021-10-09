@@ -154,24 +154,8 @@ struct SDCostItem
     }
 };
 
-struct SDItemExtAttrList
-{
-    std::unordered_map<int, std::variant<int, uint32_t, std::array<int, 2>>> list;
-    template<typename Archive> void serialize(Archive & ar)
-    {
-        ar(list);
-    }
-
-    std::string str() const
-    {
-        return {};
-    }
-
-    bool empty() const
-    {
-        return list.empty();
-    }
-};
+using SDItemExtAttr      = std::variant<int, double, uint32_t, std::array<int, 2>, std::string>;
+using SDItemExtAttrList  = std::unordered_map<int, SDItemExtAttr>;
 
 struct SDItem
 {
@@ -243,7 +227,7 @@ struct SDItem
 
     std::string str() const
     {
-        return str_printf("(itemID, seqID, count, duration[0], duration[1], extAttrList) = (%llu, %llu, %zu, %zu, %zu, %s)", to_llu(itemID), to_llu(seqID), count, duration[0], duration[1], to_cstr(extAttrList.str()));
+        return str_printf("(name, itemID, seqID, count, duration[0], duration[1]) = (%s, %llu, %llu, %zu, %zu, %zu)", to_cstr(DBCOM_ITEMRECORD(itemID).name), to_llu(itemID), to_llu(seqID), count, duration[0], duration[1]);
     }
 
     std::u8string getXMLLayout() const;
@@ -261,7 +245,7 @@ struct SDItem
         fflassert(attrType >= EA_BEGIN);
         fflassert(attrType <  EA_END);
 
-        if(const auto p = extAttrList.list.find(attrType); p != extAttrList.list.end()){
+        if(const auto p = extAttrList.find(attrType); p != extAttrList.end()){
             return std::get<T>(p->second);
         }
         return {};
