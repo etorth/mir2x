@@ -500,6 +500,26 @@ void Player::on_AM_NOTIFYDEAD(const ActorMsgPack &)
 
 void Player::on_AM_CHECKMASTER(const ActorMsgPack &rstMPK)
 {
+    const auto combNode = getCombatNode(m_sdItemStorage.wear, m_sdLearnedMagicList, UID(), level());
+
+    AMCheckMasterOK amCMOK;
+    std::memset(&amCMOK, 0, sizeof(amCMOK));
+
+    amCMOK.dc[0] = combNode.dc[0];
+    amCMOK.dc[1] = combNode.dc[1];
+
+    amCMOK.mc[0] = combNode.mc[0];
+    amCMOK.mc[1] = combNode.mc[1];
+
+    amCMOK.sc[0] = combNode.sc[0];
+    amCMOK.sc[1] = combNode.sc[1];
+
+    amCMOK.ac[0] = combNode.ac[0];
+    amCMOK.ac[1] = combNode.ac[1];
+
+    amCMOK.mac[0] = combNode.mac[0];
+    amCMOK.mac[1] = combNode.mac[1];
+
     m_slaveList.insert(rstMPK.from());
-    m_actorPod->forward(rstMPK.from(), AM_CHECKMASTEROK, rstMPK.seqID());
+    m_actorPod->forward(rstMPK.from(), {AM_CHECKMASTEROK, amCMOK}, rstMPK.seqID());
 }

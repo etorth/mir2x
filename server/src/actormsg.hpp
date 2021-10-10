@@ -527,6 +527,16 @@ struct AMNotifyNewCO
     uint64_t UID;
 };
 
+struct AMCheckMasterOK
+{
+    int dc[2];
+    int mc[2];
+    int sc[2];
+
+    int  ac[2];
+    int mac[2];
+};
+
 struct AMCastFireWall
 {
     int x;
