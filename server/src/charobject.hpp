@@ -241,9 +241,6 @@ class CharObject: public ServerObject
                 std::function<void()> = nullptr);   // fnOnError
 
     protected:
-        void addOffenderDamage(uint64_t, int);
-
-    protected:
         virtual bool canAct()    const;
         virtual bool canMove()   const;
         virtual bool canAttack() const;

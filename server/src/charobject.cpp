@@ -818,27 +818,6 @@ void CharObject::getCOLocation(uint64_t nUID, std::function<void(const COLocatio
     });
 }
 
-void CharObject::addOffenderDamage(uint64_t nUID, int nDamage)
-{
-    fflassert(nUID);
-    fflassert(nDamage >= 0);
-
-    for(auto p = m_offenderList.begin(); p != m_offenderList.end(); ++p){
-        if(p->uid == nUID){
-            p->damage += to_u64(nDamage);
-            p->activeTime = hres_tstamp().to_sec();
-            return;
-        }
-    }
-
-    m_offenderList.emplace_back(Offender
-    {
-        .uid = nUID,
-        .damage = to_u64(nDamage),
-        .activeTime = hres_tstamp().to_sec(),
-    });
-}
-
 int CharObject::OneStepReach(int nDirection, int nMaxDistance, int *pX, int *pY)
 {
     if(m_map){

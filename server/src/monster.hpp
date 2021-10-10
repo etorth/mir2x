@@ -255,4 +255,5 @@ class Monster: public CharObject
 
     protected:
         void dispatchOffenderExp();
+        void addOffenderDamage(uint64_t, int);
 };
