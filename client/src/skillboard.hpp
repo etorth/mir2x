@@ -102,8 +102,8 @@ class SkillBoard: public Widget
 
                     m_magicIconButtonList.push_back(new SkillBoard::MagicIconButton
                     {
-                        iconDataPtr->x,
-                        iconDataPtr->y,
+                        iconDataPtr->x * 60 + 12,
+                        iconDataPtr->y * 65 + 13,
                         iconDataPtr,
                         this,
                         true,

@@ -174,20 +174,85 @@ SkillBoard::SkillBoard(int nX, int nY, ProcessRun *runPtr, Widget *pwidget, bool
       {
           // not only for currnet user
           // list all possible magics for all types of user
-          {DBCOM_MAGICID(u8"雷电术"  ),  12,  78},
-          {DBCOM_MAGICID(u8"魔法盾"  ), 252, 143},
-          {DBCOM_MAGICID(u8"召唤骷髅"),  12,  13},
-          {DBCOM_MAGICID(u8"召唤神兽"),  12,  78},
-          {DBCOM_MAGICID(u8"灵魂火符"), 192,  13},
-          {DBCOM_MAGICID(u8"冰月神掌"),  12,  13},
-          {DBCOM_MAGICID(u8"冰月震天"),  12,  78},
-          {DBCOM_MAGICID(u8"冰沙掌"  ), 132, 143},
-          {DBCOM_MAGICID(u8"地狱火"  ), 132,  78},
-          {DBCOM_MAGICID(u8"火球术"  ),  12,  13},
-          {DBCOM_MAGICID(u8"大火球"  ),  12,  78},
-          {DBCOM_MAGICID(u8"焰天火雨"),  12, 208},
-          {DBCOM_MAGICID(u8"火墙"    ), 132, 143},
-          {DBCOM_MAGICID(u8"疾光电影"), 132, 143},
+
+          // 火
+          {DBCOM_MAGICID(u8"火球术"  ), 0, 0},
+          {DBCOM_MAGICID(u8"大火球"  ), 0, 1},
+          {DBCOM_MAGICID(u8"焰天火雨"), 0, 3},
+          {DBCOM_MAGICID(u8"地狱火"  ), 2, 1},
+          {DBCOM_MAGICID(u8"火墙"    ), 2, 2},
+          {DBCOM_MAGICID(u8"爆裂火焰"), 4, 3},
+
+          // 冰
+          {DBCOM_MAGICID(u8"冰月神掌"), 0, 0},
+          {DBCOM_MAGICID(u8"冰月震天"), 0, 1},
+          {DBCOM_MAGICID(u8"冰沙掌"  ), 2, 2},
+          {DBCOM_MAGICID(u8"冰咆哮"  ), 2, 3},
+          {DBCOM_MAGICID(u8"魄冰刺"  ), 2, 4},
+
+          // 雷
+          {DBCOM_MAGICID(u8"霹雳掌"  ), 0, 0},
+          {DBCOM_MAGICID(u8"雷电术"  ), 0, 1},
+          {DBCOM_MAGICID(u8"疾光电影"), 2, 2},
+          {DBCOM_MAGICID(u8"地狱雷光"), 2, 3},
+          {DBCOM_MAGICID(u8"怒神霹雳"), 2, 4},
+
+          // 风
+          {DBCOM_MAGICID(u8"风掌"    ), 0, 0},
+          {DBCOM_MAGICID(u8"击风"    ), 0, 1},
+          {DBCOM_MAGICID(u8"风震天"  ), 2, 2},
+          {DBCOM_MAGICID(u8"龙卷风"  ), 2, 3},
+          {DBCOM_MAGICID(u8"抗拒火环"), 4, 1},
+          {DBCOM_MAGICID(u8"魔法盾"  ), 4, 2},
+
+          // 神圣
+          {DBCOM_MAGICID(u8"治愈术"    ), 0, 0},
+          {DBCOM_MAGICID(u8"群体治愈术"), 0, 2},
+          {DBCOM_MAGICID(u8"回生术"    ), 0, 3},
+          {DBCOM_MAGICID(u8"月魂断玉"  ), 2, 1},
+          {DBCOM_MAGICID(u8"月魂灵波"  ), 2, 2},
+          {DBCOM_MAGICID(u8"云寂术"    ), 4, 3},
+          {DBCOM_MAGICID(u8"阴阳法环"  ), 4, 4},
+
+          // 暗黑
+          {DBCOM_MAGICID(u8"施毒术"    ), 0, 0},
+          {DBCOM_MAGICID(u8"困魔咒"    ), 0, 1},
+          {DBCOM_MAGICID(u8"幽灵盾"    ), 1, 1},
+          {DBCOM_MAGICID(u8"神圣战甲术"), 1, 2},
+          {DBCOM_MAGICID(u8"强魔震法"  ), 1, 3},
+          {DBCOM_MAGICID(u8"猛虎强势"  ), 1, 4},
+          {DBCOM_MAGICID(u8"隐身术"    ), 2, 0},
+          {DBCOM_MAGICID(u8"集体隐身术"), 2, 1},
+          {DBCOM_MAGICID(u8"妙影无踪"  ), 2, 4},
+          {DBCOM_MAGICID(u8"灵魂火符"  ), 3, 0},
+
+          // 幻影
+          {DBCOM_MAGICID(u8"召唤骷髅"    ), 0, 0},
+          {DBCOM_MAGICID(u8"召唤神兽"    ), 0, 1},
+          {DBCOM_MAGICID(u8"超强召唤骷髅"), 0, 2},
+          {DBCOM_MAGICID(u8"移花接玉"    ), 0, 3},
+          {DBCOM_MAGICID(u8"诱惑之光"    ), 2, 0},
+          {DBCOM_MAGICID(u8"圣言术"      ), 2, 1},
+          {DBCOM_MAGICID(u8"凝血离魂"    ), 2, 3},
+          {DBCOM_MAGICID(u8"瞬息移动"    ), 3, 0},
+          {DBCOM_MAGICID(u8"异形换位"    ), 3, 1},
+
+          // 无
+          {DBCOM_MAGICID(u8"基本剑术"  ), 0, 0},
+          {DBCOM_MAGICID(u8"攻杀剑术"  ), 0, 1},
+          {DBCOM_MAGICID(u8"刺杀剑术"  ), 0, 2},
+          {DBCOM_MAGICID(u8"半月弯刀"  ), 1, 3},
+          {DBCOM_MAGICID(u8"翔空剑法"  ), 1, 4},
+          {DBCOM_MAGICID(u8"十方斩"    ), 1, 5},
+          {DBCOM_MAGICID(u8"烈火剑法"  ), 2, 4},
+          {DBCOM_MAGICID(u8"莲月剑法"  ), 2, 5},
+          {DBCOM_MAGICID(u8"野蛮冲撞"  ), 3, 3},
+          {DBCOM_MAGICID(u8"乾坤大挪移"), 3, 4},
+          {DBCOM_MAGICID(u8"铁布衫"    ), 3, 5},
+          {DBCOM_MAGICID(u8"斗转星移"  ), 3, 6},
+          {DBCOM_MAGICID(u8"破血狂杀"  ), 3, 7},
+          {DBCOM_MAGICID(u8"精神力战法"), 4, 0},
+          {DBCOM_MAGICID(u8"空拳刀法"  ), 4, 3},
       }
 
     , m_skillPageList([this]() -> std::vector<SkillBoard::SkillPage *>
