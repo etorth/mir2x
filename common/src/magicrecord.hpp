@@ -223,8 +223,8 @@ struct DCCastRange
 
 struct MagicRecord
 {
-    const char8_t *name = 0;
-    const char8_t *element = u8"无";
+    const char8_t *name = nullptr;
+    const char8_t *elem = nullptr;
 
     const DCCastRange castRange
     {
