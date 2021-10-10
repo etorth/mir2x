@@ -201,7 +201,7 @@ class Monster: public CharObject
 
             m_actorPod->forward(masterUID(), {AM_CHECKMASTER}, [this](const ActorMsgPack &rstRMPK)
             {
-                if(rstRMPK.type() != AM_OK){
+                if(rstRMPK.type() != AM_CHECKMASTEROK){
                     goDie();
                 }
             });

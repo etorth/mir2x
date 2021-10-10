@@ -501,5 +501,5 @@ void Player::on_AM_NOTIFYDEAD(const ActorMsgPack &)
 void Player::on_AM_CHECKMASTER(const ActorMsgPack &rstMPK)
 {
     m_slaveList.insert(rstMPK.from());
-    m_actorPod->forward(rstMPK.from(), AM_OK, rstMPK.seqID());
+    m_actorPod->forward(rstMPK.from(), AM_CHECKMASTEROK, rstMPK.seqID());
 }
