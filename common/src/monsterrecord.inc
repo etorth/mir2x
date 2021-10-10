@@ -3337,7 +3337,7 @@
     .mc = {30, 40},
     .ac = {9, 9},
     .mac = {16, 16},
-    .dcHit = 19,
+    .mcHit = 19,
     .dcDodge = 18,
     .acElem
     {

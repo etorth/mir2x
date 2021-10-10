@@ -18,6 +18,7 @@
 
 #include "mathf.hpp"
 #include "pathf.hpp"
+#include "fflerror.hpp"
 #include "raiitimer.hpp"
 #include "servertaodog.hpp"
 
@@ -117,6 +118,7 @@ DamageNode ServerTaoDog::getAttackDamage(int dc) const
     return MagicDamage
     {
         .magicID = dc,
-        .damage = mathf::rand<int>(getMR().dc[0] + m_masterSC[0], getMR().dc[1] + m_masterSC[1]),
+        .damage = mathf::rand<int>(getMR().mc[0] + m_masterSC[0], getMR().mc[1] + m_masterSC[1]),
+        .mcHit = getMR().mcHit,
     };
 }
