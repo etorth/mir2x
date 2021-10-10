@@ -1280,8 +1280,8 @@ void Monster::searchNearestTarget(std::function<void(uint64_t)> fnTarget)
     // TODO check if offender is still on same map
     //      and if too far monster should pick up a target near it
     for(auto p = m_offenderList.rbegin(); p != m_offenderList.rend(); ++p){
-        if(m_actorPod->checkUIDValid(p->UID)){
-            fnTarget(p->UID);
+        if(m_actorPod->checkUIDValid(p->uid)){
+            fnTarget(p->uid);
             return;
         }
     }
@@ -1624,4 +1624,44 @@ void Monster::onAMAttack(const ActorMsgPack &mpk)
 void Monster::onAMMasterHitted(const ActorMsgPack &)
 {
     // do nothing by default
+}
+
+void Monster::dispatchOffenderExp()
+{
+    for(auto p = m_offenderList.begin(); p != m_offenderList.end();){
+        if(hres_tstamp().to_sec() >= p->activeTime + 120){
+            p = m_offenderList.erase(p);
+        }
+        else{
+            p++;
+        }
+    }
+
+    if(m_offenderList.empty()){
+        return;
+    }
+
+    const auto sumDamage = std::accumulate(m_offenderList.begin(), m_offenderList.end(), to_u64(0), [](uint64_t sum, const auto &offender) -> uint64_t
+    {
+        return sum + offender.damage;
+    });
+
+    for(const auto &offender: m_offenderList){
+        switch(uidf::getUIDType(offender.uid)){
+            case UID_MON:
+            case UID_PLY:
+                {
+                    AMExp amE;
+                    std::memset(&amE, 0, sizeof(amE));
+
+                    amE.exp = std::max<int>(1, std::lround((to_df(offender.damage) / sumDamage) * getMR().exp));
+                    m_actorPod->forward(offender.uid, {AM_EXP, amE});
+                    break;
+                }
+            default:
+                {
+                    break;
+                }
+        }
+    }
 }

@@ -820,52 +820,23 @@ void CharObject::getCOLocation(uint64_t nUID, std::function<void(const COLocatio
 
 void CharObject::addOffenderDamage(uint64_t nUID, int nDamage)
 {
-    if(!nUID){
-        throw fflerror("offender with zero UID");
-    }
-
-    if(nDamage < 0){
-        throw fflerror("invalid offender damage: %d", nDamage);
-    }
+    fflassert(nUID);
+    fflassert(nDamage >= 0);
 
     for(auto p = m_offenderList.begin(); p != m_offenderList.end(); ++p){
-        if(p->UID == nUID){
-            p->Damage += nDamage;
-            p->ActiveTime = g_monoServer->getCurrTick();
+        if(p->uid == nUID){
+            p->damage += to_u64(nDamage);
+            p->activeTime = hres_tstamp().to_sec();
             return;
         }
     }
-    m_offenderList.emplace_back(nUID, nDamage, g_monoServer->getCurrTick());
-}
 
-void CharObject::dispatchOffenderExp()
-{
-    for(auto p = m_offenderList.begin(); p != m_offenderList.end();){
-        if(g_monoServer->getCurrTick() >= p->ActiveTime + 2 * 60 * 3600){
-            p = m_offenderList.erase(p);
-        }else{
-            p++;
-        }
-    }
-
-    if(m_offenderList.empty()){
-        return;
-    }
-
-    auto fnCalcExp = [this](int nDamage) -> int
+    m_offenderList.emplace_back(Offender
     {
-        return nDamage * m_offenderList.size();
-    };
-
-    for(const auto &rstOffender: m_offenderList){
-        if(auto nType = uidf::getUIDType(rstOffender.UID); nType == UID_MON || nType == UID_PLY){
-            AMExp amE;
-            std::memset(&amE, 0, sizeof(amE));
-
-            amE.exp = fnCalcExp(rstOffender.Damage);
-            m_actorPod->forward(rstOffender.UID, {AM_EXP, amE});
-        }
-    }
+        .uid = nUID,
+        .damage = to_u64(nDamage),
+        .activeTime = hres_tstamp().to_sec(),
+    });
 }
 
 int CharObject::OneStepReach(int nDirection, int nMaxDistance, int *pX, int *pY)
@@ -1237,8 +1208,8 @@ bool CharObject::updateInViewCO(const COLocation &coLoc, bool forceDelete)
 
 bool CharObject::isOffender(uint64_t nUID)
 {
-    for(auto &rstOffender: m_offenderList){
-        if(rstOffender.UID == nUID){
+    for(auto &offender: m_offenderList){
+        if(offender.uid == nUID){
             return true;
         }
     }

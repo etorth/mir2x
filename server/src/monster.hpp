@@ -252,4 +252,7 @@ class Monster: public CharObject
     protected:
         virtual void onAMAttack      (const ActorMsgPack &);
         virtual void onAMMasterHitted(const ActorMsgPack &);
+
+    protected:
+        void dispatchOffenderExp();
 };

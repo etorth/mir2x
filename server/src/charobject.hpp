@@ -93,15 +93,9 @@ class CharObject: public ServerObject
     protected:
         struct Offender
         {
-            uint64_t UID = 0;
-            uint32_t Damage = 0;
-            uint32_t ActiveTime = 0;
-
-            Offender(uint64_t nUID = 0, uint32_t nDamage = 0, uint32_t nActiveTime = 0)
-                : UID(nUID)
-                , Damage(nDamage)
-                , ActiveTime(nActiveTime)
-            {}
+            uint64_t uid = 0;
+            uint64_t damage = 0;
+            uint64_t activeTime = 0;
         };
 
     protected:
@@ -248,7 +242,6 @@ class CharObject: public ServerObject
 
     protected:
         void addOffenderDamage(uint64_t, int);
-        void dispatchOffenderExp();
 
     protected:
         virtual bool canAct()    const;
