@@ -2016,7 +2016,7 @@
     },
     .walkWait = 500,
     .walkStep = 1,
-    .attackWait = 2300,
+    .attackWait = 500,
 },
 
 {   .name = u8"超强骷髅",
