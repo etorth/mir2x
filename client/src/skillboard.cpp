@@ -247,7 +247,7 @@ void SkillBoard::SkillPage::drawEx(int dstX, int dstY, int srcX, int srcY, int s
 
 SkillBoard::SkillBoard(int argX, int argY, ProcessRun *runPtr, Widget *widgetPtr, bool autoDelete)
     : Widget(DIR_UPLEFT, argX, argY, 0, 0, widgetPtr, autoDelete)
-    , m_skillPageList([this]() -> std::vector<SkillBoard::SkillPage *>
+    , m_skillPageList([runPtr, this]() -> std::vector<SkillBoard::SkillPage *>
       {
           std::vector<SkillBoard::SkillPage *> pageList;
           pageList.reserve(8);
@@ -257,7 +257,7 @@ SkillBoard::SkillBoard(int argX, int argY, ProcessRun *runPtr, Widget *widgetPtr
               {
                   to_u32(0X05000010 + to_u32(i)),
                   &m_config,
-                  m_processRun,
+                  runPtr,
                   this,
                   true,
               };

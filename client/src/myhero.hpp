@@ -109,8 +109,12 @@ class MyHero: public Hero
 
         double getLevelRatio() const
         {
-            const auto level = getLevel();
-            return to_f(to_df(getExp() - SYS_SUMEXP(level)) / SYS_EXP[level]);
+            if(const auto level = getLevel(); level == 0){
+                return to_df(getExp()) / SYS_EXP(0);
+            }
+            else{
+                return to_df(getExp() - SYS_SUMEXP(level - 1)) / SYS_EXP(level);
+            }
         }
 
     public:

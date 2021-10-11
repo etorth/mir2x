@@ -79,76 +79,30 @@ constexpr char SYS_NPCDONE [] = "RSVD_NPC_DONE__6381083734343264";
 constexpr char SYS_NPCQUERY[] = "RSVD_NPC_QUERY_8619263917692639";
 constexpr char SYS_NPCERROR[] = "RSVD_NPC_ERROR_8619263917692639";
 
-constexpr size_t SYS_EXP[]
-{
-       1000,  //  0: need 100 to reach next level from current level 0
-       1650,  //  1: need 165 to reach next level from current level 1
-       3330,  //  2: ...
-       6040,  //  3
-       9770,  //  4
-      14540,  //  5
-      20360,  //  6
-      27220,  //  7
-      35140,  //  8
-      44120,  //  9
-      54170,  // 10
-      65310,  // 11
-      77550,  // 12
-      90910,  // 13
-     105390,  // 14
-     121020,  // 15
-     137830,  // 16
-     155840,  // 17
-     175080,  // 18
-     195590,  // 19
-     217410,  // 20
-     240590,  // 21
-     265170,  // 22
-     291230,  // 23
-     318830,  // 24
-     348070,  // 25
-     379030,  // 26
-     411830,  // 27
-     446600,  // 28
-     483480,  // 29
-     522650,  // 30
-     564310,  // 31
-     608680,  // 32
-     656030,  // 33
-     706660,  // 34
-     760910,  // 35
-     819200,  // 36
-     882000,  // 37
-     949820,  // 38
-    1023310,  // 39
-    1103170,  // 40
-    1190220,  // 41
-    1285430,  // 42
-    1389880,  // 43
-    1504850,  // 44
-    1631790,  // 45
-    1772390,  // 46
-    1928590,  // 47
-    2102650,  // 48
-    2297130,  // 49
-    2515040,  // 50
-};
-
 constexpr inline size_t SYS_SUMEXP(uint32_t level)
 {
-    size_t sumExp = 0;
-    for(size_t i = 0; i < level && i < std::extent_v<decltype(SYS_EXP)>; ++i){
-        sumExp += SYS_EXP[i];
+    const size_t a =  100;
+    const size_t b =  100;
+    const size_t c =  100;
+    const size_t d = 1000;
+
+    return a * level * level * level + b * level * level + c * level + d;
+}
+
+constexpr size_t SYS_EXP(uint32_t level)
+{
+    if(level == 0){
+        return SYS_SUMEXP(level);
     }
-    return sumExp;
+    return SYS_SUMEXP(level) - SYS_SUMEXP(level - 1);
 }
 
 constexpr inline uint32_t SYS_LEVEL(size_t exp)
 {
-    for(uint32_t level = 0; level + 1 < std::extent_v<decltype(SYS_EXP)>; ++level){
-        if(exp >= SYS_SUMEXP(level) && exp < SYS_SUMEXP(level + 1)){
+    for(uint32_t level = 0;; ++level){
+        if(SYS_SUMEXP(level) > exp){
             return level;
         }
     }
-    return std::extent_v<decltype(SYS_EXP)>;
+    return 0;
 }
