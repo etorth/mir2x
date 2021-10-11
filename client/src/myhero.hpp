@@ -18,6 +18,7 @@
 
 #pragma once
 #include "hero.hpp"
+#include "mathf.hpp"
 #include "invpack.hpp"
 #include "combatnode.hpp"
 #include "actionnode.hpp"
@@ -118,26 +119,26 @@ class MyHero: public Hero
         }
 
     public:
+        double getInventoryRatio() const
+        {
+            return mathf::bound<double>(to_df(getInvPack().getWeight()) / getCombatNode().load.inventory, 0.0, 1.0);
+        }
+
+    public:
         CombatNode getCombatNode() const
         {
             return ::getCombatNode(m_sdWLDesp.wear, {}, UID(), getLevel());
         }
 
     public:
-        InvPack &getInvPack()
-        {
-            return m_invPack;
-        }
+        /* */ SDBelt &getBelt()       { return m_sdBelt; }
+        const SDBelt &getBelt() const { return m_sdBelt; }
 
-        SDBelt &getBelt()
-        {
-            return m_sdBelt;
-        }
+        /* */ InvPack &getInvPack()       { return m_invPack; }
+        const InvPack &getInvPack() const { return m_invPack; }
 
-        SDItem &getBelt(size_t i)
-        {
-            return m_sdBelt.list.at(i);
-        }
+        /* */ SDItem &getBelt(size_t i)       { return m_sdBelt.list.at(i); }
+        const SDItem &getBelt(size_t i) const { return m_sdBelt.list.at(i); }
 
     public:
         bool stayIdle() const override

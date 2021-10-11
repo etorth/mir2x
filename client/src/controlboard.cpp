@@ -787,7 +787,7 @@ void ControlBoard::drawLeft() const
     m_buttonQuickAccess.draw();
 
     drawRatioBar(153, nY0 + 115, m_processRun->getMyHero()->getLevelRatio());
-    drawRatioBar(166, nY0 + 115, 0.5);
+    drawRatioBar(166, nY0 + 115, m_processRun->getMyHero()->getInventoryRatio());
 }
 
 void ControlBoard::drawRight() const
