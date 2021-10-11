@@ -51,14 +51,14 @@ constexpr inline const char8_t *magicElemName(int type)
 
 constexpr inline int magicElemID(const char8_t *type)
 {
-    if(type && std::u8string_view(type) == u8"火"  ) return MET_FIRE;
-    if(type && std::u8string_view(type) == u8"冰"  ) return MET_ICE;
-    if(type && std::u8string_view(type) == u8"雷"  ) return MET_LIGHT;
-    if(type && std::u8string_view(type) == u8"风"  ) return MET_WIND;
-    if(type && std::u8string_view(type) == u8"神圣") return MET_HOLY;
-    if(type && std::u8string_view(type) == u8"暗黑") return MET_DARK;
-    if(type && std::u8string_view(type) == u8"幻影") return MET_PHANTOM;
-    return                                                  MET_NONE;
+    if     (type && std::u8string_view(type) == u8"火"  ) return MET_FIRE;
+    else if(type && std::u8string_view(type) == u8"冰"  ) return MET_ICE;
+    else if(type && std::u8string_view(type) == u8"雷"  ) return MET_LIGHT;
+    else if(type && std::u8string_view(type) == u8"风"  ) return MET_WIND;
+    else if(type && std::u8string_view(type) == u8"神圣") return MET_HOLY;
+    else if(type && std::u8string_view(type) == u8"暗黑") return MET_DARK;
+    else if(type && std::u8string_view(type) == u8"幻影") return MET_PHANTOM;
+    else                                                  return MET_NONE;
 }
 
 enum MagicStageType: int

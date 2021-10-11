@@ -224,15 +224,11 @@ class SkillBoard: public Widget
             }
 
             const int elemID = magicElemID(mr.elem);
-            if(!elemID){
-                return -1;
-            }
-
-            if(elemID >= MET_BEGIN && elemID < MET_END){
-                return elemID - MET_BEGIN;
-            }
-            else if(elemID == MET_NONE){
+            if(elemID == MET_NONE){
                 return 7;
+            }
+            else if(elemID >= MET_BEGIN && elemID < MET_END){
+                return elemID - MET_BEGIN;
             }
             else{
                 return -1;
