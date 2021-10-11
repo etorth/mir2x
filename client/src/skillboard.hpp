@@ -40,6 +40,8 @@ class SkillBoard: public Widget
             // icon height: 40
 
             const uint32_t magicID = 0;
+            const uint32_t magicIcon = SYS_TEXNIL;
+
             const int x = 0;
             const int y = 0;
 

@@ -27,19 +27,21 @@ def parse_magic(magic_dict):
 
     print('    },')
 
-    if magic_dict['defspell'] > 0:
-        print('    .mp = %d,' % magic_dict['defspell'])
-
     if magic_dict['delay'] > 0:
         print('    .coolDown = %d,' % magic_dict['delay'])
+
+    if magic_dict['spell'] > 0:
+        print('    .mp = %d,' % magic_dict['spell'])
+
+    if magic_dict['defspell'] > 0:
+        print('    .mpInc = %d,' % magic_dict['defspell'])
 
     if magic_dict['power'] > 0 or magic_dict['maxpower']:
         print('    .power = {%d, %d},' % (magic_dict['power'], magic_dict['maxpower']))
 
     if magic_dict['defpower'] > 0 or magic_dict['defmaxpower']:
-        print('    .addPower = {%d, %d},' % (magic_dict['defpower'], magic_dict['defmaxpower']))
+        print('    .powerInc = {%d, %d},' % (magic_dict['defpower'], magic_dict['defmaxpower']))
 
-    print('    .icon = 0X%08X,' % (magic_dict['magid'] + 0X05001000 - 1))
     print('},')
     print()
 

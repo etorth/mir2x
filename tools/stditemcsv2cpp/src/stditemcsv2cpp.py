@@ -5,6 +5,7 @@ import csv
 
 def skip_item_index(item_index):
     if   item_index ==   0: return True # 金币
+    elif item_index == 187: return True # 心灵启示
     elif item_index == 201: return True # 韩服（男）
     elif item_index == 202: return True # 韩服（女）
     elif item_index == 289: return True # "_水饺200",

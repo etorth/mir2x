@@ -239,9 +239,11 @@ struct MagicRecord
         .type = CRT_LONG,
     };
 
-    const int mp = 0;
     const int coolDown = 0;
     const int checkGround = 0;
+
+    const int mp = 0;
+    const int mpInc = 0;
 
     const int    power[2] = {0, 0};
     const int addPower[2] = {0, 0};

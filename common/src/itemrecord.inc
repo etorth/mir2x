@@ -518,18 +518,6 @@
     },
 },
 
-{   .name = u8"心灵启示",
-    .type = u8"强效药水",
-    .weight = 1,
-    .pkgGfxID = 0X0054,
-    .dope
-    {
-        .dc = 5,
-        .mc = 5,
-        .time = 30,
-    },
-},
-
 {   .name = u8"攻击神水（小）",
     .type = u8"强效药水",
     .weight = 3,
