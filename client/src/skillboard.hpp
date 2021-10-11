@@ -196,10 +196,10 @@ class SkillBoard: public Widget
     public:
         auto getMagicKeyList() const
         {
-            std::vector<std::tuple<uint32_t, char>> result;
+            std::vector<std::tuple<uint32_t, char, uint32_t>> result;
             for(const auto &iconData: m_magicIconDataList){
                 if(iconData.magicID && iconData.magicKey != '\0'){
-                    result.emplace_back(iconData.magicID, iconData.magicKey);
+                    result.emplace_back(iconData.magicID, iconData.magicKey, iconData.magicIcon);
                 }
             }
 
