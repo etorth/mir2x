@@ -431,24 +431,26 @@ void ProcessRun::draw()
 
     if(m_drawMagicKey){
         int magicKeyOffX = 0;
-        for(const auto &[magicID, magicKey, magicIcon]: dynamic_cast<SkillBoard *>(m_GUIManager.getWidget("SkillBoard"))->getMagicKeyList()){
-            if(auto texPtr = g_progUseDB->retrieve(magicIcon + to_u32(0X00001000))){
-                g_sdlDevice->drawTexture(texPtr, magicKeyOffX, 0);
-                const auto coolDownAngle = getMyHero()->getMagicCoolDownAngle(magicID);
-                const auto colorRatio = [coolDownAngle]() -> float
-                {
-                    const float r = to_f(coolDownAngle) / 360.0;
-                    return r * r * r * r;
-                }();
+        for(const auto &[magicID, magicKey]: dynamic_cast<SkillBoard *>(m_GUIManager.getWidget("SkillBoard"))->getMagicKeyList()){
+            if(const auto &iconGfx = SkillBoard::getMagicIconGfx(magicID); iconGfx && iconGfx.magicIcon != SYS_TEXNIL){
+                if(auto texPtr = g_progUseDB->retrieve(iconGfx.magicIcon + to_u32(0X00001000))){
+                    g_sdlDevice->drawTexture(texPtr, magicKeyOffX, 0);
+                    const auto coolDownAngle = getMyHero()->getMagicCoolDownAngle(magicID);
+                    const auto colorRatio = [coolDownAngle]() -> float
+                    {
+                        const float r = to_f(coolDownAngle) / 360.0;
+                        return r * r * r * r;
+                    }();
 
-                const auto texW = SDLDeviceHelper::getTextureWidth(texPtr);
-                const auto coverTexW = std::lround(1.41421356237309504880 * texW);
-                auto coverTexPtr = g_sdlDevice->getCover(coverTexW / 2, coolDownAngle);
-                SDLDeviceHelper::EnableTextureModColor enableModColor(coverTexPtr, colorf::fadeRGBA(colorf::RGBA(255, 51, 51, 255), colorf::GREEN + colorf::A_SHF(80), colorRatio));
+                    const auto texW = SDLDeviceHelper::getTextureWidth(texPtr);
+                    const auto coverTexW = std::lround(1.41421356237309504880 * texW);
+                    auto coverTexPtr = g_sdlDevice->getCover(coverTexW / 2, coolDownAngle);
+                    SDLDeviceHelper::EnableTextureModColor enableModColor(coverTexPtr, colorf::fadeRGBA(colorf::RGBA(255, 51, 51, 255), colorf::GREEN + colorf::A_SHF(80), colorRatio));
 
-                const auto offCoverX = (coverTexW - texW) / 2;
-                g_sdlDevice->drawTexture(coverTexPtr, magicKeyOffX, 0, offCoverX, offCoverX, texW, texW);
-                magicKeyOffX += texW;
+                    const auto offCoverX = (coverTexW - texW) / 2;
+                    g_sdlDevice->drawTexture(coverTexPtr, magicKeyOffX, 0, offCoverX, offCoverX, texW, texW);
+                    magicKeyOffX += texW;
+                }
             }
         }
     }
