@@ -949,7 +949,7 @@ bool Monster::struckDamage(const DamageNode &node)
                 const auto &mr = DBCOM_MAGICRECORD(node.magicID);
                 fflassert(mr);
 
-                switch(magicElemID(mr.element)){
+                switch(magicElemID(mr.elem)){
                     case MET_FIRE   : return getMR().acElem.fire;
                     case MET_ICE    : return getMR().acElem.ice;
                     case MET_LIGHT  : return getMR().acElem.light;

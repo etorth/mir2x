@@ -339,7 +339,7 @@ DamageNode Player::getAttackDamage(int nDC) const
         const auto &mr = DBCOM_MAGICRECORD(nDC);
         fflassert(mr);
 
-        switch(magicElemID(mr.element)){
+        switch(magicElemID(mr.elem)){
             case MET_FIRE   : return node.dcElem.fire;
             case MET_ICE    : return node.dcElem.ice;
             case MET_LIGHT  : return node.dcElem.light;
@@ -411,7 +411,7 @@ bool Player::struckDamage(const DamageNode &node)
                 const auto &mr = DBCOM_MAGICRECORD(node.magicID);
                 fflassert(mr);
 
-                switch(magicElemID(mr.element)){
+                switch(magicElemID(mr.elem)){
                     case MET_FIRE   : return combatNode.acElem.fire;
                     case MET_ICE    : return combatNode.acElem.ice;
                     case MET_LIGHT  : return combatNode.acElem.light;

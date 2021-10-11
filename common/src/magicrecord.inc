@@ -19,13 +19,9 @@
  * =====================================================================================
  */
 
-{
-    // magicID = 0
-    // first empty record
-},
+{},
 
-{
-    .name = u8"物理攻击", // TODO ...
+{   .name = u8"物理攻击", // TODO ...
     .castRange
     {
         .type = CRT_DIR,
@@ -33,11 +29,18 @@
     },
 },
 
-{
-    .name = u8"雷电术",
-    .element = u8"雷",
-    .coolDown = 3000,
-
+{   .name = u8"雷电术",
+    .elem = u8"雷",
+    .req
+    {
+        .level = {16, 18, 20},
+        .train = {40, 50, 60},
+        .job = u8"法师",
+    },
+    .mp = 6,
+    .coolDown = 80,
+    .power = {15, 19},
+    .addPower = {7, 11},
     .icon = 0X0500100A,
     .gfxList
     {
@@ -58,11 +61,16 @@
     },
 },
 
-{
-    .name = u8"魔法盾",
-    .element = u8"风",
-    .coolDown = 5000,
-
+{   .name = u8"魔法盾",
+    .elem = u8"风",
+    .req
+    {
+        .level = {29, 31, 33},
+        .train = {90, 100, 110},
+        .job = u8"法师",
+    },
+    .mp = 30,
+    .coolDown = 10,
     .icon = 0X0500101D,
     .gfxList
     {
@@ -98,11 +106,16 @@
     },
 },
 
-{
-    .name = u8"召唤骷髅",
-    .element = u8"幻影",
-    .coolDown = 5000,
-
+{   .name = u8"召唤骷髅",
+    .elem = u8"幻影",
+    .req
+    {
+        .level = {17, 19, 21},
+        .train = {40, 50, 60},
+        .job = u8"道士",
+    },
+    .mp = 10,
+    .coolDown = 200,
     .icon = 0X0500103B,
     .gfxList
     {
@@ -125,13 +138,19 @@
     }
 },
 
-{
-    .name = u8"火球术",
-    .element = u8"火",
-
-    .coolDown = 2000,
+{   .name = u8"火球术",
+    .elem = u8"火",
+    .req
+    {
+        .level = {7, 9, 11},
+        .train = {10, 20, 30},
+        .job = u8"法师",
+    },
+    .mp = 1,
+    .coolDown = 50,
     .checkGround = 1,
-
+    .power = {6, 10},
+    .addPower = {0, 4},
     .icon = 0X05001000,
     .gfxList
     {
@@ -164,13 +183,19 @@
     }
 },
 
-{
-    .name = u8"大火球",
-    .element = u8"火",
-
-    .coolDown = 2000,
+{   .name = u8"大火球",
+    .elem = u8"火",
+    .req
+    {
+        .level = {15, 17, 19},
+        .train = {40, 50, 60},
+        .job = u8"法师",
+    },
+    .mp = 6,
+    .coolDown = 70,
     .checkGround = 1,
-
+    .power = {15, 19},
+    .addPower = {7, 11},
     .icon = 0X05001004,
     .gfxList
     {
@@ -203,35 +228,89 @@
     }
 },
 
-{
-    .name = u8"治愈术",
+{   .name = u8"治愈术",
+    .elem = u8"神圣",
+    .req
+    {
+        .level = {7, 9, 11},
+        .train = {10, 20, 30},
+        .job = u8"道士",
+    },
+    .mp = 2,
+    .coolDown = 40,
+    .power = {11, 15},
+    .icon = 0X05001001,
 },
 
-{
-    .name = u8"基本剑术",
+{   .name = u8"基本剑术",
+    .req
+    {
+        .level = {7, 9, 11},
+        .train = {10, 20, 30},
+        .job = u8"战士",
+    },
+    .icon = 0X05001002,
 },
 
-{
-    .name = u8"精神力战法",
+{   .name = u8"精神力战法",
+    .req
+    {
+        .level = {8, 10, 12},
+        .train = {10, 20, 30},
+        .job = u8"道士",
+    },
+    .icon = 0X05001003,
 },
 
-{
-    .name = u8"施毒术",
+{   .name = u8"施毒术",
+    .elem = u8"暗黑",
+    .req
+    {
+        .level = {12, 14, 16},
+        .train = {20, 30, 40},
+        .job = u8"道士",
+    },
+    .mp = 5,
+    .coolDown = 60,
+    .icon = 0X05001005,
 },
 
-{
-    .name = u8"攻杀剑术",
+{   .name = u8"攻杀剑术",
+    .req
+    {
+        .level = {14, 16, 18},
+        .train = {30, 40, 50},
+        .job = u8"战士",
+    },
+    .icon = 0X05001006,
 },
 
-{
-    .name = u8"抗拒火环",
+{   .name = u8"抗拒火环",
+    .elem = u8"风",
+    .req
+    {
+        .level = {12, 14, 16},
+        .train = {20, 30, 40},
+        .job = u8"法师",
+    },
+    .mp = 1,
+    .coolDown = 60,
+    .power = {0, 2},
+    .icon = 0X05001007,
 },
 
-{
-    .name = u8"疾光电影",
-    .element = u8"雷",
-    .coolDown = 2000,
-
+{   .name = u8"疾光电影",
+    .elem = u8"雷",
+    .req
+    {
+        .level = {21, 23, 25},
+        .train = {50, 60, 70},
+        .job = u8"法师",
+    },
+    .mp = 15,
+    .coolDown = 80,
+    .power = {14, 14},
+    .addPower = {12, 16},
     .icon = 0X05001009,
     .gfxList
     {
@@ -255,17 +334,29 @@
     }
 },
 
-{
-    .name = u8"刺杀剑术",
+{   .name = u8"刺杀剑术",
+    .req
+    {
+        .level = {19, 21, 23},
+        .train = {40, 50, 60},
+        .job = u8"战士",
+    },
+    .icon = 0X0500100B,
 },
 
-{
-    .name = u8"灵魂火符",
-    .element = u8"暗黑",
-
-    .coolDown = 2000,
+{   .name = u8"灵魂火符",
+    .elem = u8"暗黑",
+    .req
+    {
+        .level = {13, 15, 17},
+        .train = {20, 30, 40},
+        .job = u8"道士",
+    },
+    .mp = 3,
+    .coolDown = 50,
     .checkGround = 1,
-
+    .power = {6, 10},
+    .addPower = {3, 3},
     .icon = 0X0500100C,
     .gfxList
     {
@@ -298,35 +389,95 @@
     }
 },
 
-{
-    .name = u8"幽灵盾",
+{   .name = u8"幽灵盾",
+    .elem = u8"暗黑",
+    .req
+    {
+        .level = {21, 23, 25},
+        .train = {50, 60, 70},
+        .job = u8"道士",
+    },
+    .mp = 5,
+    .coolDown = 70,
+    .icon = 0X0500100D,
 },
 
-{
-    .name = u8"神圣战甲术",
+{   .name = u8"神圣战甲术",
+    .elem = u8"暗黑",
+    .req
+    {
+        .level = {25, 27, 29},
+        .train = {70, 80, 90},
+        .job = u8"道士",
+    },
+    .mp = 5,
+    .coolDown = 70,
+    .icon = 0X0500100E,
 },
 
-{
-    .name = u8"困魔咒",
+{   .name = u8"困魔咒",
+    .elem = u8"暗黑",
+    .req
+    {
+        .level = {27, 29, 31},
+        .train = {80, 90, 100},
+        .job = u8"道士",
+    },
+    .mp = 10,
+    .coolDown = 100,
+    .icon = 0X0500100F,
 },
 
-{
-    .name = u8"隐身术",
+{   .name = u8"隐身术",
+    .elem = u8"暗黑",
+    .req
+    {
+        .level = {20, 22, 24},
+        .train = {50, 60, 70},
+        .job = u8"道士",
+    },
+    .mp = 5,
+    .coolDown = 70,
+    .icon = 0X05001011,
 },
 
-{
-    .name = u8"集体隐身术",
+{   .name = u8"集体隐身术",
+    .elem = u8"暗黑",
+    .req
+    {
+        .level = {23, 25, 27},
+        .train = {60, 70, 80},
+        .job = u8"道士",
+    },
+    .mp = 5,
+    .coolDown = 70,
+    .icon = 0X05001012,
 },
 
-{
-    .name = u8"诱惑之光",
+{   .name = u8"诱惑之光",
+    .elem = u8"幻影",
+    .req
+    {
+        .level = {13, 15, 17},
+        .train = {20, 30, 40},
+        .job = u8"法师",
+    },
+    .mp = 3,
+    .coolDown = 60,
+    .icon = 0X05001013,
 },
 
-{
-    .name = u8"瞬息移动",
-    .element = u8"幻影",
-    .coolDown = 3000,
-
+{   .name = u8"瞬息移动",
+    .elem = u8"幻影",
+    .req
+    {
+        .level = {14, 16, 18},
+        .train = {30, 40, 50},
+        .job = u8"法师",
+    },
+    .mp = 10,
+    .coolDown = 70,
+    .icon = 0X05001014,
     .gfxList
     {
         {
@@ -345,11 +496,18 @@
     },
 },
 
-{
-    .name = u8"火墙",
-    .element = u8"火",
-    .coolDown = 3000,
-
+{   .name = u8"火墙",
+    .elem = u8"火",
+    .req
+    {
+        .level = {24, 26, 28},
+        .train = {60, 70, 80},
+        .job = u8"法师",
+    },
+    .mp = 30,
+    .coolDown = 100,
+    .power = {2, 9},
+    .addPower = {1, 6},
     .icon = 0X05001015,
     .gfxList
     {
@@ -373,11 +531,18 @@
     },
 },
 
-{
-    .name = u8"地狱火",
-    .element = u8"火",
-    .coolDown = 3000,
-
+{   .name = u8"地狱火",
+    .elem = u8"火",
+    .req
+    {
+        .level = {20, 22, 24},
+        .train = {50, 60, 70},
+        .job = u8"法师",
+    },
+    .mp = 15,
+    .coolDown = 80,
+    .power = {14, 18},
+    .addPower = {12, 16},
     .icon = 0X05001008,
     .gfxList
     {
@@ -402,8 +567,7 @@
     },
 },
 
-{
-    .name = u8"火焰灰烬", // magic effect, not for specific magic
+{   .name = u8"火焰灰烬", // magic effect, not for specific magic
     .gfxList
     {
         {
@@ -418,8 +582,7 @@
     },
 },
 
-{
-    .name = u8"冰刺", // magic effect, used for 冰沙掌 and 魄冰刺
+{   .name = u8"冰刺", // magic effect, used for 冰沙掌 and 魄冰刺
     .gfxList
     {
         {
@@ -434,39 +597,104 @@
     },
 },
 
-{
-    .name = u8"爆裂火焰",
+{   .name = u8"爆裂火焰",
+    .elem = u8"火",
+    .req
+    {
+        .level = {32, 34, 36},
+        .train = {100, 110, 120},
+        .job = u8"法师",
+    },
+    .mp = 20,
+    .coolDown = 90,
+    .power = {14, 18},
+    .addPower = {14, 18},
+    .icon = 0X05001016,
 },
 
-{
-    .name = u8"地狱雷光",
+{   .name = u8"地狱雷光",
+    .elem = u8"雷",
+    .req
+    {
+        .level = {33, 35, 37},
+        .train = {100, 110, 120},
+        .job = u8"法师",
+    },
+    .mp = 20,
+    .coolDown = 90,
+    .power = {14, 18},
+    .addPower = {14, 18},
+    .icon = 0X05001017,
 },
 
-{
-    .name = u8"半月弯刀",
+{   .name = u8"半月弯刀",
+    .req
+    {
+        .level = {24, 26, 28},
+        .train = {60, 70, 80},
+        .job = u8"战士",
+    },
+    .mp = 3,
+    .icon = 0X05001018,
 },
 
-{
-    .name = u8"烈火剑法",
+{   .name = u8"烈火剑法",
+    .req
+    {
+        .level = {32, 34, 36},
+        .train = {100, 110, 120},
+        .job = u8"战士",
+    },
+    .mp = 7,
+    .icon = 0X05001019,
 },
 
-{
-    .name = u8"野蛮冲撞",
+{   .name = u8"野蛮冲撞",
+    .req
+    {
+        .level = {27, 29, 31},
+        .train = {70, 80, 90},
+        .job = u8"战士",
+    },
+    .icon = 0X0500101A,
 },
 
-{
-    .name = u8"心灵启示",
+{   .name = u8"心灵启示",
+    .req
+    {
+        .level = {99, 99, 99},
+        .train = {5000, 5000, 5000},
+        .job = u8"道士",
+    },
+    .coolDown = 99,
+    .icon = 0X0500101B,
 },
 
-{
-    .name = u8"群体治愈术",
+{   .name = u8"群体治愈术",
+    .elem = u8"神圣",
+    .req
+    {
+        .level = {31, 33, 35},
+        .train = {100, 110, 120},
+        .job = u8"道士",
+    },
+    .mp = 20,
+    .coolDown = 40,
+    .power = {8, 12},
+    .addPower = {4, 4},
+    .icon = 0X0500101C,
 },
 
-{
-    .name = u8"召唤神兽",
-    .element = u8"幻影",
-    .coolDown = 10000,
-
+{   .name = u8"召唤神兽",
+    .elem = u8"幻影",
+    .req
+    {
+        .level = {30, 32, 34},
+        .train = {90, 100, 110},
+        .job = u8"道士",
+    },
+    .mp = 15,
+    .coolDown = 200,
     .icon = 0X0500101C,
     .gfxList
     {
@@ -481,41 +709,110 @@
     }
 },
 
-{
-    .name = u8"圣言术",
+{   .name = u8"圣言术",
+    .elem = u8"幻影",
+    .req
+    {
+        .level = {26, 28, 30},
+        .train = {70, 80, 90},
+        .job = u8"法师",
+    },
+    .mp = 30,
+    .coolDown = 100,
+    .icon = 0X0500101F,
 },
 
-{
-    .name = u8"冰咆哮",
+{   .name = u8"冰咆哮",
+    .elem = u8"冰",
+    .req
+    {
+        .level = {34, 36, 38},
+        .train = {100, 110, 120},
+        .job = u8"法师",
+    },
+    .mp = 20,
+    .coolDown = 90,
+    .power = {12, 16},
+    .addPower = {14, 18},
+    .icon = 0X05001020,
 },
 
-{
-    .name = u8"莲月剑法",
+{   .name = u8"莲月剑法",
+    .req
+    {
+        .level = {38, 40, 42},
+        .train = {100, 110, 120},
+        .job = u8"战士",
+    },
+    .mp = 9,
+    .icon = 0X05001021,
 },
 
-{
-    .name = u8"翔空剑法",
+{   .name = u8"翔空剑法",
+    .req
+    {
+        .level = {35, 37, 39},
+        .train = {100, 110, 120},
+        .job = u8"战士",
+    },
+    .mp = 8,
+    .icon = 0X05001022,
 },
 
-{
-    .name = u8"空拳刀法",
+{   .name = u8"空拳刀法",
+    .req
+    {
+        .level = {28, 30, 32},
+        .train = {90, 100, 110},
+        .job = u8"道士",
+    },
+    .mp = 10,
+    .coolDown = 80,
+    .icon = 0X05001023,
 },
 
-{
-    .name = u8"月魂断玉",
+{   .name = u8"月魂断玉",
+    .elem = u8"神圣",
+    .req
+    {
+        .level = {14, 16, 18},
+        .train = {30, 40, 50},
+        .job = u8"道士",
+    },
+    .mp = 3,
+    .coolDown = 50,
+    .power = {6, 10},
+    .addPower = {3, 3},
+    .icon = 0X05001024,
 },
 
-{
-    .name = u8"月魂灵波",
+{   .name = u8"月魂灵波",
+    .elem = u8"神圣",
+    .req
+    {
+        .level = {24, 26, 28},
+        .train = {60, 70, 80},
+        .job = u8"道士",
+    },
+    .mp = 4,
+    .power = {8, 12},
+    .addPower = {7, 7},
+    .icon = 0X05001025,
 },
 
-{
-    .name = u8"冰月神掌",
-    .element = u8"冰",
-
-    .coolDown = 2000,
+{   .name = u8"冰月神掌",
+    .elem = u8"冰",
+    .req
+    {
+        .level = {9, 11, 13},
+        .train = {10, 20, 30},
+        .job = u8"法师",
+    },
+    .mp = 1,
+    .coolDown = 50,
     .checkGround = 1,
-
+    .power = {4, 8},
+    .addPower = {0, 4},
     .icon = 0X05001025,
     .gfxList
     {
@@ -548,13 +845,19 @@
     }
 },
 
-{
-    .name = u8"冰月震天",
-    .element = u8"冰",
-
-    .coolDown = 2000,
+{   .name = u8"冰月震天",
+    .elem = u8"冰",
+    .req
+    {
+        .level = {17, 19, 21},
+        .train = {40, 50, 60},
+        .job = u8"法师",
+    },
+    .mp = 6,
+    .coolDown = 70,
     .checkGround = 1,
-
+    .power = {13, 17},
+    .addPower = {7, 11},
     .icon = 0X05001026,
     .gfxList
     {
@@ -585,17 +888,34 @@
     }
 },
 
-{
-    .name = u8"霹雳掌",
+{   .name = u8"霹雳掌",
+    .elem = u8"雷",
+    .req
+    {
+        .level = {8, 10, 12},
+        .train = {10, 20, 30},
+        .job = u8"法师",
+    },
+    .mp = 1,
+    .coolDown = 50,
+    .power = {6, 10},
+    .addPower = {0, 4},
+    .icon = 0X05001028,
 },
 
-{
-    .name = u8"冰沙掌",
-    .element = u8"冰",
-
-    .coolDown = 2000,
+{   .name = u8"冰沙掌",
+    .elem = u8"冰",
+    .req
+    {
+        .level = {22, 24, 26},
+        .train = {50, 60, 70},
+        .job = u8"法师",
+    },
+    .mp = 15,
+    .coolDown = 80,
     .checkGround = 1,
-
+    .power = {12, 16},
+    .addPower = {12, 16},
     .icon = 0X05001028,
     .gfxList
     {
@@ -617,79 +937,253 @@
     }
 },
 
-{
-    .name = u8"风掌",
+{   .name = u8"风掌",
+    .elem = u8"风",
+    .req
+    {
+        .level = {10, 12, 14},
+        .train = {10, 20, 30},
+        .job = u8"法师",
+    },
+    .mp = 1,
+    .coolDown = 50,
+    .power = {5, 9},
+    .addPower = {0, 4},
+    .icon = 0X05001042,
 },
 
-{
-    .name = u8"龙卷风",
+{   .name = u8"龙卷风",
+    .elem = u8"风",
+    .req
+    {
+        .level = {35, 37, 39},
+        .train = {100, 110, 120},
+        .job = u8"法师",
+    },
+    .mp = 20,
+    .coolDown = 90,
+    .power = {13, 17},
+    .addPower = {14, 18},
+    .icon = 0X05001047,
 },
 
-{
-    .name = u8"风震天",
+{   .name = u8"风震天",
+    .elem = u8"风",
+    .req
+    {
+        .level = {23, 25, 27},
+        .train = {60, 70, 80},
+        .job = u8"法师",
+    },
+    .mp = 15,
+    .coolDown = 80,
+    .power = {13, 17},
+    .addPower = {12, 16},
+    .icon = 0X05001048,
 },
 
-{
-    .name = u8"击风",
+{   .name = u8"击风",
+    .elem = u8"风",
+    .req
+    {
+        .level = {18, 20, 22},
+        .train = {40, 50, 60},
+        .job = u8"法师",
+    },
+    .mp = 6,
+    .coolDown = 80,
+    .power = {14, 18},
+    .addPower = {7, 11},
+    .icon = 0X05001049,
 },
 
-{
-    .name = u8"回生术",
+{   .name = u8"回生术",
+    .elem = u8"神圣",
+    .req
+    {
+        .level = {35, 37, 39},
+        .train = {50, 60, 70},
+        .job = u8"道士",
+    },
+    .mp = 100,
+    .coolDown = 500,
+    .icon = 0X0500104C,
 },
 
-{
-    .name = u8"强魔震法",
+{   .name = u8"强魔震法",
+    .elem = u8"暗黑",
+    .req
+    {
+        .level = {29, 31, 33},
+        .train = {90, 100, 110},
+        .job = u8"道士",
+    },
+    .mp = 5,
+    .coolDown = 70,
+    .icon = 0X05001058,
 },
 
-{
-    .name = u8"猛虎强势",
+{   .name = u8"猛虎强势",
+    .elem = u8"暗黑",
+    .req
+    {
+        .level = {34, 36, 38},
+        .train = {100, 110, 120},
+        .job = u8"道士",
+    },
+    .mp = 5,
+    .coolDown = 70,
+    .icon = 0X0500105D,
 },
 
-{
-    .name = u8"铁布衫",
+{   .name = u8"铁布衫",
+    .elem = u8"暗黑",
+    .req
+    {
+        .level = {44, 47, 50},
+        .train = {1000, 2000, 3000},
+        .job = u8"战士",
+    },
+    .mp = 20,
+    .coolDown = 100,
+    .power = {2, 4},
+    .addPower = {3, 5},
+    .icon = 0X05001065,
 },
 
-{
-    .name = u8"十方斩",
+{   .name = u8"十方斩",
+    .req
+    {
+        .level = {40, 43, 46},
+        .train = {500, 800, 1000},
+        .job = u8"战士",
+    },
+    .mp = 7,
+    .icon = 0X05001066,
 },
 
-{
-    .name = u8"异形换位",
+{   .name = u8"异形换位",
+    .elem = u8"幻影",
+    .req
+    {
+        .level = {27, 29, 31},
+        .train = {80, 90, 100},
+        .job = u8"法师",
+    },
+    .mp = 20,
+    .coolDown = 250,
+    .icon = 0X05001067,
 },
 
-{
-    .name = u8"超强召唤骷髅",
+{   .name = u8"超强召唤骷髅",
+    .elem = u8"幻影",
+    .req
+    {
+        .level = {33, 35, 37},
+        .train = {100, 110, 120},
+        .job = u8"道士",
+    },
+    .mp = 25,
+    .coolDown = 200,
+    .icon = 0X05001068,
 },
 
-{
-    .name = u8"破血狂杀",
+{   .name = u8"破血狂杀",
+    .elem = u8"暗黑",
+    .req
+    {
+        .level = {48, 51, 54},
+        .train = {1000, 2000, 3000},
+        .job = u8"战士",
+    },
+    .mp = 100,
+    .coolDown = 200,
+    .power = {2, 4},
+    .addPower = {3, 5},
+    .icon = 0X05001069,
 },
 
-{
-    .name = u8"乾坤大挪移",
+{   .name = u8"乾坤大挪移",
+    .req
+    {
+        .level = {42, 45, 48},
+        .train = {500, 800, 1000},
+        .job = u8"战士",
+    },
+    .mp = 10,
+    .coolDown = 20,
+    .icon = 0X0500106A,
 },
 
-{
-    .name = u8"斗转星移",
+{   .name = u8"斗转星移",
+    .req
+    {
+        .level = {46, 49, 52},
+        .train = {500, 800, 1000},
+        .job = u8"战士",
+    },
+    .mp = 20,
+    .coolDown = 20,
+    .icon = 0X0500106B,
 },
 
-{
-    .name = u8"魄冰刺",
+{   .name = u8"魄冰刺",
+    .elem = u8"冰",
+    .req
+    {
+        .level = {38, 41, 44},
+        .train = {500, 800, 1000},
+        .job = u8"法师",
+    },
+    .mp = 20,
+    .coolDown = 10,
+    .power = {16, 20},
+    .addPower = {16, 20},
+    .icon = 0X0500106D,
 },
 
-{
-    .name = u8"怒神霹雳",
+{   .name = u8"怒神霹雳",
+    .elem = u8"雷",
+    .req
+    {
+        .level = {40, 42, 44},
+        .train = {500, 800, 1000},
+        .job = u8"法师",
+    },
+    .mp = 30,
+    .coolDown = 10,
+    .power = {20, 40},
+    .addPower = {20, 30},
+    .icon = 0X0500106E,
 },
 
-{
-    .name = u8"凝血离魂",
+{   .name = u8"凝血离魂",
+    .elem = u8"暗黑",
+    .req
+    {
+        .level = {46, 48, 50},
+        .train = {1000, 2000, 3000},
+        .job = u8"法师",
+    },
+    .mp = 10,
+    .coolDown = 10,
+    .power = {6, 2},
+    .addPower = {1, 1},
+    .icon = 0X0500106F,
 },
 
-{
-    .name = u8"焰天火雨",
-    .element = u8"火",
-    .coolDown = 2000,
-
+{   .name = u8"焰天火雨",
+    .elem = u8"火",
+    .req
+    {
+        .level = {43, 45, 47},
+        .train = {1000, 2000, 3000},
+        .job = u8"法师",
+    },
+    .mp = 20,
+    .coolDown = 10,
+    .power = {32, 40},
+    .addPower = {14, 22},
     .icon = 0X05001042,
     .gfxList
     {
@@ -722,25 +1216,62 @@
     },
 },
 
-{
-    .name = u8"云寂术",
+{   .name = u8"云寂术",
+    .elem = u8"暗黑",
+    .req
+    {
+        .level = {38, 41, 44},
+        .train = {500, 800, 1000},
+        .job = u8"道士",
+    },
+    .mp = 10,
+    .coolDown = 10,
+    .icon = 0X05001077,
 },
 
-{
-    .name = u8"妙影无踪",
+{   .name = u8"妙影无踪",
+    .elem = u8"暗黑",
+    .req
+    {
+        .level = {43, 45, 47},
+        .train = {1000, 2000, 3000},
+        .job = u8"道士",
+    },
+    .mp = 80,
+    .coolDown = 10,
+    .icon = 0X05001078,
 },
 
-{
-    .name = u8"阴阳法环",
+{   .name = u8"阴阳法环",
+    .elem = u8"风",
+    .req
+    {
+        .level = {46, 48, 50},
+        .train = {1000, 2000, 3000},
+        .job = u8"道士",
+    },
+    .mp = 50,
+    .coolDown = 20,
+    .icon = 0X05001079,
 },
 
-{
-    .name = u8"移花接玉",
+{   .name = u8"移花接玉",
+    .elem = u8"暗黑",
+    .req
+    {
+        .level = {40, 42, 44},
+        .train = {500, 800, 1000},
+        .job = u8"道士",
+    },
+    .mp = 30,
+    .coolDown = 20,
+    .power = {4, 8},
+    .addPower = {3, 4},
+    .icon = 0X0500107A,
 },
 
-{
-    .name = u8"神兽_喷火",
-    .element = u8"火",
+{   .name = u8"神兽_喷火",
+    .elem = u8"火",
     .castRange
     {
         .type = CRT_DIR,
@@ -760,8 +1291,7 @@
     },
 },
 
-{
-    .name = u8"沙漠石人_石坑",
+{   .name = u8"沙漠石人_石坑",
     .gfxList
     {
         {
@@ -776,8 +1306,7 @@
     },
 },
 
-{
-    .name = u8"沙漠石人_死亡特效",
+{   .name = u8"沙漠石人_死亡特效",
     .gfxList
     {
         {
@@ -790,9 +1319,8 @@
     },
 },
 
-{
-    .name = u8"雷电僵尸_雷电",
-    .element = u8"雷",
+{   .name = u8"雷电僵尸_雷电",
+    .elem = u8"雷",
 
     .castRange
     {
@@ -813,8 +1341,7 @@
     },
 },
 
-{
-    .name = u8"僧侣僵尸_地洞",
+{   .name = u8"僧侣僵尸_地洞",
     .gfxList
     {
         {
@@ -829,8 +1356,7 @@
     },
 },
 
-{
-    .name = u8"沙漠树魔_喷刺",
+{   .name = u8"沙漠树魔_喷刺",
     .castRange
     {
         .type = CRT_LIMITED,
@@ -858,8 +1384,7 @@
     },
 },
 
-{
-    .name = u8"楔蛾_喷毒",
+{   .name = u8"楔蛾_喷毒",
     .castRange
     {
         .type = CRT_DIR,
@@ -879,8 +1404,7 @@
     },
 },
 
-{
-    .name = u8"掷斧骷髅_掷斧",
+{   .name = u8"掷斧骷髅_掷斧",
     .castRange
     {
         .type = CRT_LIMITED,
@@ -908,9 +1432,8 @@
     },
 },
 
-{
-    .name = u8"诺玛法老_火球术",
-    .element = u8"火",
+{   .name = u8"诺玛法老_火球术",
+    .elem = u8"火",
 
     .castRange
     {
@@ -940,9 +1463,8 @@
     }
 },
 
-{
-    .name = u8"诺玛大法老_雷电术",
-    .element = u8"雷",
+{   .name = u8"诺玛大法老_雷电术",
+    .elem = u8"雷",
 
     .castRange
     {
@@ -961,8 +1483,7 @@
     },
 },
 
-{
-    .name = u8"稻草人_死亡特效",
+{   .name = u8"稻草人_死亡特效",
     .gfxList
     {
         {
@@ -974,8 +1495,7 @@
     },
 },
 
-{
-    .name = u8"轻甲守卫_死亡特效",
+{   .name = u8"轻甲守卫_死亡特效",
     .gfxList
     {
         {
@@ -987,8 +1507,7 @@
     },
 },
 
-{
-    .name = u8"蚂蚁道士_治疗",
+{   .name = u8"蚂蚁道士_治疗",
     .castRange
     {
         .type = CRT_LIMITED,
@@ -1006,8 +1525,7 @@
     },
 },
 
-{
-    .name = u8"红衣法师_魔法",
+{   .name = u8"红衣法师_魔法",
     .castRange
     {
         .type = CRT_LIMITED,
@@ -1025,8 +1543,7 @@
     },
 },
 
-{
-    .name = u8"红衣法师_死亡特效",
+{   .name = u8"红衣法师_死亡特效",
     .gfxList
     {
         {
@@ -1038,8 +1555,7 @@
     },
 },
 
-{
-    .name = u8"骷髅精灵_死亡特效",
+{   .name = u8"骷髅精灵_死亡特效",
     .gfxList
     {
         {
@@ -1051,8 +1567,7 @@
     },
 },
 
-{
-    .name = u8"洞蛆_喷毒",
+{   .name = u8"洞蛆_喷毒",
     .castRange
     {
         .type = CRT_DIR,
@@ -1072,8 +1587,7 @@
     },
 },
 
-{
-    .name = u8"火焰沃玛_喷火",
+{   .name = u8"火焰沃玛_喷火",
     .castRange
     {
         .type = CRT_DIR,
@@ -1093,9 +1607,8 @@
     },
 },
 
-{
-    .name = u8"沃玛教主_电光",
-    .element = u8"雷",
+{   .name = u8"沃玛教主_电光",
+    .elem = u8"雷",
 
     .castRange
     {
@@ -1116,9 +1629,8 @@
     },
 },
 
-{
-    .name = u8"沃玛教主_雷电术",
-    .element = u8"雷",
+{   .name = u8"沃玛教主_雷电术",
+    .elem = u8"雷",
 
     .castRange
     {
@@ -1137,8 +1649,7 @@
     },
 },
 
-{
-    .name = u8"暗黑战士_喷刺",
+{   .name = u8"暗黑战士_喷刺",
     .castRange
     {
         .type = CRT_LIMITED,
@@ -1166,8 +1677,7 @@
     },
 },
 
-{
-    .name = u8"粪虫_喷毒",
+{   .name = u8"粪虫_喷毒",
     .castRange
     {
         .type = CRT_DIR,
@@ -1187,8 +1697,7 @@
     },
 },
 
-{
-    .name = u8"祖玛弓箭手_射箭",
+{   .name = u8"祖玛弓箭手_射箭",
     .castRange
     {
         .type = CRT_LIMITED,
@@ -1216,8 +1725,7 @@
     },
 },
 
-{
-    .name = u8"祖玛教主_石像碎片",
+{   .name = u8"祖玛教主_石像碎片",
     .gfxList
     {
         {
@@ -1232,8 +1740,7 @@
     },
 },
 
-{
-    .name = u8"祖玛教主_施法",
+{   .name = u8"祖玛教主_施法",
     .gfxList
     {
         {
@@ -1247,8 +1754,7 @@
     },
 },
 
-{
-    .name = u8"爆毒蚂蚁_喷毒",
+{   .name = u8"爆毒蚂蚁_喷毒",
     .castRange
     {
         .type = CRT_LIMITED,
@@ -1268,8 +1774,7 @@
     },
 },
 
-{
-    .name = u8"沙漠风魔_扇风",
+{   .name = u8"沙漠风魔_扇风",
     .castRange
     {
         .type = CRT_LIMITED,
@@ -1288,8 +1793,7 @@
     },
 },
 
-{
-    .name = u8"神舰守卫_死亡特效",
+{   .name = u8"神舰守卫_死亡特效",
     .gfxList
     {
         {
@@ -1301,8 +1805,7 @@
     },
 },
 
-{
-    .name = u8"月魔蜘蛛_死亡特效",
+{   .name = u8"月魔蜘蛛_死亡特效",
     .gfxList
     {
         {
@@ -1314,8 +1817,7 @@
     },
 },
 
-{
-    .name = u8"爆裂蜘蛛_死亡特效",
+{   .name = u8"爆裂蜘蛛_死亡特效",
     .gfxList
     {
         {
@@ -1327,8 +1829,7 @@
     },
 },
 
-{
-    .name = u8"霸王教主_火刃",
+{   .name = u8"霸王教主_火刃",
     .gfxList
     {
         {
@@ -1342,8 +1843,7 @@
     },
 },
 
-{
-    .name = u8"霸王教主_野蛮冲撞",
+{   .name = u8"霸王教主_野蛮冲撞",
     .castRange
     {
         .type = CRT_DIR,
@@ -1351,8 +1851,7 @@
     },
 },
 
-{
-    .name = u8"霸王教主_死亡特效",
+{   .name = u8"霸王教主_死亡特效",
     .gfxList
     {
         {
@@ -1365,8 +1864,7 @@
     },
 },
 
-{
-    .name = u8"潘夜右护卫_死亡特效",
+{   .name = u8"潘夜右护卫_死亡特效",
     .gfxList
     {
         {
@@ -1379,8 +1877,7 @@
     },
 },
 
-{
-    .name = u8"潘夜右护卫_电魔杖",
+{   .name = u8"潘夜右护卫_电魔杖",
     .castRange
     {
         .type = CRT_DIR,
@@ -1408,9 +1905,8 @@
     },
 },
 
-{
-    .name = u8"潘夜右护卫_雷电术",
-    .element = u8"雷",
+{   .name = u8"潘夜右护卫_雷电术",
+    .elem = u8"雷",
 
     .castRange
     {
@@ -1429,8 +1925,7 @@
     },
 },
 
-{
-    .name = u8"潘夜左护卫_死亡特效",
+{   .name = u8"潘夜左护卫_死亡特效",
     .gfxList
     {
         {
@@ -1443,8 +1938,7 @@
     },
 },
 
-{
-    .name = u8"潘夜左护卫_火魔杖",
+{   .name = u8"潘夜左护卫_火魔杖",
     .castRange
     {
         .type = CRT_DIR,
@@ -1472,9 +1966,8 @@
     },
 },
 
-{
-    .name = u8"潘夜左护卫_火球术",
-    .element = u8"火",
+{   .name = u8"潘夜左护卫_火球术",
+    .elem = u8"火",
 
     .castRange
     {

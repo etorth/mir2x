@@ -15,6 +15,30 @@ def parse_magic(magic_dict):
     elif magic_dict['mag_type'] == 6: print('    .elem = u8"幻影",')
     else: pass
 
+    print('    .req')
+    print('    {')
+    print('        .level = {%d, %d, %d},' % (magic_dict['needl1'], magic_dict['needl2'], magic_dict['needl3']))
+    print('        .train = {%d, %d, %d},' % (magic_dict['l1train'], magic_dict['l2train'], magic_dict['l3train']))
+
+    if   magic_dict['job'] == 0: print('        .job = u8"战士",')
+    elif magic_dict['job'] == 1: print('        .job = u8"法师",')
+    elif magic_dict['job'] == 2: print('        .job = u8"道士",')
+    else: pass
+
+    print('    },')
+
+    if magic_dict['defspell'] > 0:
+        print('    .mp = %d,' % magic_dict['defspell'])
+
+    if magic_dict['delay'] > 0:
+        print('    .coolDown = %d,' % magic_dict['delay'])
+
+    if magic_dict['power'] > 0 or magic_dict['maxpower']:
+        print('    .power = {%d, %d},' % (magic_dict['power'], magic_dict['maxpower']))
+
+    if magic_dict['defpower'] > 0 or magic_dict['defmaxpower']:
+        print('    .addPower = {%d, %d},' % (magic_dict['defpower'], magic_dict['defmaxpower']))
+
     print('    .icon = 0X%08X,' % (magic_dict['magid'] + 0X05001000 - 1))
     print('},')
     print()

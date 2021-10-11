@@ -226,13 +226,25 @@ struct MagicRecord
     const char8_t *name = nullptr;
     const char8_t *elem = nullptr;
 
+    const struct MagicReq
+    {
+        const int level[3] = {0, 0, 0};
+        const int train[3] = {0, 0, 0};
+        const char8_t *job = nullptr;
+    }
+    req {};
+
     const DCCastRange castRange
     {
         .type = CRT_LONG,
     };
 
+    const int mp = 0;
     const int coolDown = 0;
     const int checkGround = 0;
+
+    const int    power[2] = {0, 0};
+    const int addPower[2] = {0, 0};
 
     const uint32_t icon = SYS_TEXNIL;
     const std::initializer_list<MagicGfxEntry> gfxList {};
