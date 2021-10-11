@@ -28,7 +28,7 @@ def parse_magic(magic_dict):
     print('    },')
 
     if magic_dict['delay'] > 0:
-        print('    .coolDown = %d,' % magic_dict['delay'])
+        print('    .coolDown = %d,' % (magic_dict['delay'] * 10))
 
     if magic_dict['spell'] > 0:
         print('    .mp = %d,' % magic_dict['spell'])
