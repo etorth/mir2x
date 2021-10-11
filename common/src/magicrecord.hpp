@@ -248,7 +248,6 @@ struct MagicRecord
     const int    power[2] = {0, 0};
     const int addPower[2] = {0, 0};
 
-    const uint32_t icon = SYS_TEXNIL;
     const std::initializer_list<MagicGfxEntry> gfxList {};
 
     constexpr const MagicGfxEntry &getGfxEntry(const char8_t *stage) const
