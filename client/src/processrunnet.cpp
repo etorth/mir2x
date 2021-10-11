@@ -63,7 +63,7 @@ void ProcessRun::net_RUNTIMECONFIG(const uint8_t *buf, size_t bufSize)
 {
     const auto sdRC = cerealf::deserialize<SDRuntimeConfig>(buf, bufSize);
     for(const auto &[magicID, key]: sdRC.magicKeyList.keyList){
-        dynamic_cast<SkillBoard *>(getWidget("SkillBoard"))->setMagicKey(magicID, key);
+        dynamic_cast<SkillBoard *>(getWidget("SkillBoard"))->getConfig().setMagicKey(magicID, key);
     }
 }
 
@@ -71,7 +71,7 @@ void ProcessRun::net_LEARNEDMAGICLIST(const uint8_t *buf, size_t bufSize)
 {
     const auto sdLML = cerealf::deserialize<SDLearnedMagicList>(buf, bufSize);
     for(const auto &magic: sdLML.magicList){
-        dynamic_cast<SkillBoard *>(getWidget("SkillBoard"))->setMagicLevel(magic.magicID, 1);
+        dynamic_cast<SkillBoard *>(getWidget("SkillBoard"))->getConfig().setMagicLevel(magic.magicID, 1);
     }
 }
 

@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: skillboard.hpp
- *        Created: 10/08/2017 19:06:52
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #pragma once
 #include <list>
 #include <array>
@@ -48,14 +30,245 @@ class SkillBoard: public Widget
             }
         };
 
-        static const MagicIconGfx &getMagicIconGfx(uint32_t magicID)
+    public:
+        class SkillBoardConfig final
         {
-            const static MagicIconGfx s_iconGfxList[]
+            private:
+                struct MagicConfig
+                {
+                    int level = -1;
+                    std::optional<char> key;
+                };
+
+            private:
+                std::unordered_map<uint32_t, MagicConfig> m_learnedMagicList;
+
+            public:
+                std::optional<char> getMagicKey  (uint32_t) const;
+                std::optional<int > getMagicLevel(uint32_t) const;
+
+            public:
+                bool hasMagicID(uint32_t magicID) const
+                {
+                    return m_learnedMagicList.count(magicID) > 0;
+                }
+
+            public:
+                void setMagicLevel(uint32_t, int);
+                void setMagicKey  (uint32_t, std::optional<char>);
+
+            public:
+                auto getMagicKeyList() const
+                {
+                    std::vector<std::tuple<uint32_t, char>> result;
+                    for(const auto &p: m_learnedMagicList){
+                        if(p.second.key.has_value()){
+                            result.emplace_back(p.first, p.second.key.value());
+                        }
+                    }
+
+                    std::sort(result.begin(), result.end());
+                    return result;
+                }
+
+            public:
+                uint32_t key2MagicID(char key) const
+                {
+                    for(const auto &p: m_learnedMagicList){
+                        if(p.second.key.has_value() && p.second.key.value() == key){
+                            return p.first;
+                        }
+                    }
+                    return 0;
+                }
+        };
+
+    private:
+        class MagicIconButton: public WidgetGroup
+        {
+            // +-+-----+
+            // |A|     |
+            // +-+     |
+            // |       |
+            // +-------+-+
+            //         |1|
+            //         +-+
+
+            private:
+                const uint32_t m_magicID;
+
+            private:
+                SkillBoardConfig * const m_config;
+                ProcessRun       * const m_processRun;
+
+            private:
+                TritexButton m_icon;
+
+            public:
+                MagicIconButton(int, int, uint32_t, SkillBoardConfig *, ProcessRun *, Widget *widgetPtr = nullptr, bool autoDelete = false);
+
+            public:
+                void drawEx(int, int, int, int, int, int) const override;
+
+            public:
+                bool processEvent(const SDL_Event &, bool) override;
+
+            public:
+                bool cursorOn() const
+                {
+                    return m_icon.getState() != BEVENT_OFF;
+                }
+
+            public:
+                auto magicID() const
+                {
+                    return m_magicID;
+                }
+        };
+
+        class SkillPage: public WidgetGroup
+        {
+            private:
+                SkillBoardConfig * const m_config;
+                ProcessRun       * const m_processRun;
+
+            private:
+                const uint32_t m_pageImage;
+                std::vector<SkillBoard::MagicIconButton *> m_magicIconButtonList;
+
+            public:
+                SkillPage(uint32_t, SkillBoardConfig *, ProcessRun *proc, Widget *widgetPtr = nullptr, bool autoDelete = false);
+
+            public:
+                void addIcon(uint32_t argMagicID)
+                {
+                    for(auto buttonCPtr: m_magicIconButtonList){
+                        if(buttonCPtr->magicID() == argMagicID){
+                            return;
+                        }
+                    }
+
+                    fflassert(DBCOM_MAGICRECORD(argMagicID));
+                    const auto &iconGfx = SkillBoard::getMagicIconGfx(argMagicID);
+
+                    fflassert(iconGfx);
+                    m_magicIconButtonList.push_back(new SkillBoard::MagicIconButton
+                    {
+                        iconGfx.x * 60 + 12,
+                        iconGfx.y * 65 + 13,
+                        argMagicID,
+                        m_config,
+                        m_processRun,
+                        this,
+                        true,
+                    });
+                }
+
+            public:
+                void drawEx(int, int, int, int, int, int) const override;
+
+            public:
+                const auto &getMagicIconButtonList() const
+                {
+                    return m_magicIconButtonList;
+                }
+        };
+
+    private:
+        SkillBoardConfig m_config;
+        std::vector<SkillPage *> m_skillPageList;
+
+    private:
+        // no need to introduce a new type
+        // use two tritex button to micmic the tab button
+        int m_selectedTabIndex =  0;
+        int m_cursorOnTabIndex = -1;
+        std::vector<TritexButton *> m_tabButtonList;
+
+    private:
+        TexVSlider m_slider;
+
+    private:
+        TritexButton m_closeButton;
+
+    private:
+        ProcessRun *m_processRun;
+
+    public:
+        SkillBoard(int, int, ProcessRun *, Widget * = nullptr, bool = false);
+
+    public:
+        void drawTabName() const;
+        void drawEx(int, int, int, int, int, int) const override;
+
+    public:
+        bool processEvent(const SDL_Event &, bool) override;
+
+    private:
+        static std::array<int, 4> getPageRectange()
+        {
+            return {18, 44, 304, 329};
+        }
+
+    public:
+        static int tabElem(int tabIndex)
+        {
+            fflassert(tabIndex >= 0);
+            fflassert(tabIndex <= 7);
+
+            if(tabIndex >= 0 && tabIndex <= 6){
+                return MET_BEGIN + tabIndex;
+            }
+            else{
+                return MET_NONE;
+            }
+        }
+
+        int selectedElem() const
+        {
+            return tabElem(m_selectedTabIndex);
+        }
+
+        int cursorOnElem() const
+        {
+            return tabElem(m_cursorOnTabIndex);
+        }
+
+    public:
+        /* */ SkillBoardConfig &getConfig()       { return m_config; }
+        const SkillBoardConfig &getConfig() const { return m_config; }
+
+    private:
+        static int getSkillPageIndex(uint32_t magicID)
+        {
+            if(!magicID){
+                return -1;
+            }
+
+            const auto &mr = DBCOM_MAGICRECORD(magicID);
+            if(!mr){
+                return -1;
+            }
+
+            const int elemID = magicElemID(mr.elem);
+            if(elemID == MET_NONE){
+                return 7;
+            }
+            else if(elemID >= MET_BEGIN && elemID < MET_END){
+                return elemID - MET_BEGIN;
+            }
+            else{
+                return -1;
+            }
+        }
+
+    public:
+        static const auto &getMagicIconGfxList()
+        {
+            const static std::vector<MagicIconGfx> s_iconGfxList
             {
                 // not only for currnet user
                 // list all possible magics for all types of user
-
-                {},
 
                 // 火
                 {DBCOM_MAGICID(u8"火球术"  ), 0X05001000, 0, 0},
@@ -136,214 +349,18 @@ class SkillBoard: public Widget
                 {DBCOM_MAGICID(u8"精神力战法"), 0X05001003, 4, 0},
                 {DBCOM_MAGICID(u8"空拳刀法"  ), 0X05001022, 4, 3},
             };
-
-            for(int i = 1; i < to_d(std::extent_v<decltype(s_iconGfxList)>); ++i){
-                if(s_iconGfxList[i].magicID == magicID){
-                    return s_iconGfxList[i];
-                }
-            }
-            return s_iconGfxList[0];
+            return s_iconGfxList;
         }
 
-    private:
-        struct MagicIconData
+        static const MagicIconGfx &getMagicIconGfx(uint32_t magicID)
         {
-            // icon width : 40
-            // icon height: 40
-
-            const uint32_t magicID = 0;
-            const uint32_t magicIcon = SYS_TEXNIL;
-
-            const int x = 0;
-            const int y = 0;
-
-            int level = 0;
-            char magicKey = '\0';
-        };
-
-        class MagicIconButton: public WidgetGroup
-        {
-            // +-+-----+
-            // |A|     |
-            // +-+     |
-            // |       |
-            // +-------+-+
-            //         |1|
-            //         +-+
-
-            private:
-                SkillBoard::MagicIconData *m_magicIconDataPtr = nullptr;
-
-            private:
-                TritexButton m_icon;
-
-            public:
-                MagicIconButton(int, int, SkillBoard::MagicIconData *, Widget *widgetPtr = nullptr, bool autoDelete = false);
-
-            public:
-                void drawEx(int, int, int, int, int, int) const override;
-
-            public:
-                bool processEvent(const SDL_Event &, bool) override;
-
-            public:
-                bool cursorOn() const
-                {
-                    return m_icon.getState() != BEVENT_OFF;
-                }
-
-                const auto getMagicIconDataPtr() const
-                {
-                    return m_magicIconDataPtr;
-                }
-        };
-
-        class SkillPage: public WidgetGroup
-        {
-            private:
-                const uint32_t m_pageImage;
-                std::vector<SkillBoard::MagicIconButton *> m_magicIconButtonList;
-
-            public:
-                SkillPage(uint32_t, Widget *widgetPtr = nullptr, bool autoDelete = false);
-
-            public:
-                void addIcon(SkillBoard::MagicIconData *iconDataPtr)
-                {
-                    if(!iconDataPtr){
-                        throw fflerror("invalid icon data pointer: (null)");
-                    }
-
-                    m_magicIconButtonList.push_back(new SkillBoard::MagicIconButton
-                    {
-                        iconDataPtr->x * 60 + 12,
-                        iconDataPtr->y * 65 + 13,
-                        iconDataPtr,
-                        this,
-                        true,
-                    });
-                }
-
-            public:
-                void drawEx(int, int, int, int, int, int) const override;
-
-            public:
-                const auto &getMagicIconButtonList() const
-                {
-                    return m_magicIconButtonList;
-                }
-
-                void setMagicKey(uint32_t magicID, char key)
-                {
-                    dynamic_cast<SkillBoard *>(m_parent)->setMagicKey(magicID, key);
-                }
-        };
-
-    private:
-        std::list<MagicIconData> m_magicIconDataList;
-
-    private:
-        std::vector<SkillPage *> m_skillPageList;
-
-    private:
-        // no need to introduce a new type
-        // use two tritex button to micmic the tab button
-
-        int m_selectedTabIndex =  0;
-        int m_cursorOnTabIndex = -1;
-        std::vector<TritexButton *> m_tabButtonList;
-
-    private:
-        TexVSlider m_slider;
-
-    private:
-        TritexButton m_closeButton;
-
-    private:
-        ProcessRun *m_processRun;
-
-    public:
-        SkillBoard(int, int, ProcessRun *, Widget * = nullptr, bool = false);
-
-    public:
-        void drawTabName() const;
-        void drawEx(int, int, int, int, int, int) const override;
-
-    public:
-        bool processEvent(const SDL_Event &, bool) override;
-
-    private:
-        static std::array<int, 4> getPageRectange()
-        {
-            return {18, 44, 304, 329};
-        }
-
-    public:
-        static int tabElem(int tabIndex)
-        {
-            if(tabIndex >= 0 && tabIndex <= 6){
-                return MET_BEGIN + tabIndex;
-            }
-            else if(tabIndex == 7){
-                return MET_NONE;
-            }
-            else{
-                throw fflerror("invalid tab index: %d", tabIndex);
-            }
-        }
-
-        int selectedElem() const
-        {
-            return tabElem(m_selectedTabIndex);
-        }
-
-        int cursorOnElem() const
-        {
-            return tabElem(m_cursorOnTabIndex);
-        }
-
-    public:
-        uint32_t key2MagicID(char) const;
-
-    public:
-        auto getMagicKeyList() const
-        {
-            std::vector<std::tuple<uint32_t, char>> result;
-            for(const auto &iconData: m_magicIconDataList){
-                if(iconData.magicID && iconData.magicKey != '\0'){
-                    result.emplace_back(iconData.magicID, iconData.magicKey);
+            for(const auto &magicGfx: getMagicIconGfxList()){
+                if(magicGfx.magicID == magicID){
+                    return magicGfx;
                 }
             }
 
-            std::sort(result.begin(), result.end());
-            return result;
-        }
-
-    public:
-        void setMagicLevel(uint32_t, int);
-        void setMagicKey(uint32_t, char);
-
-    private:
-        static int getSkillPageIndex(uint32_t magicID)
-        {
-            if(!magicID){
-                return -1;
-            }
-
-            const auto &mr = DBCOM_MAGICRECORD(magicID);
-            if(!mr){
-                return -1;
-            }
-
-            const int elemID = magicElemID(mr.elem);
-            if(elemID == MET_NONE){
-                return 7;
-            }
-            else if(elemID >= MET_BEGIN && elemID < MET_END){
-                return elemID - MET_BEGIN;
-            }
-            else{
-                return -1;
-            }
+            const static MagicIconGfx s_emptyGfx {};
+            return s_emptyGfx;
         }
 };

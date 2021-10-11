@@ -27,7 +27,58 @@
 extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 
-SkillBoard::MagicIconButton::MagicIconButton(int argX, int argY, SkillBoard::MagicIconData *iconDataPtr, Widget *widgetPtr, bool autoDelete)
+std::optional<char> SkillBoard::SkillBoardConfig::getMagicKey(uint32_t magicID) const
+{
+    if(auto p = m_learnedMagicList.find(magicID); p != m_learnedMagicList.end()){
+        return p->second.key;
+    }
+    return {};
+}
+
+std::optional<int> SkillBoard::SkillBoardConfig::getMagicLevel(uint32_t magicID) const
+{
+    if(auto p = m_learnedMagicList.find(magicID); p != m_learnedMagicList.end()){
+        return p->second.level;
+    }
+    return {};
+}
+
+void SkillBoard::SkillBoardConfig::setMagicLevel(uint32_t magicID, int level)
+{
+    fflassert(DBCOM_MAGICRECORD(magicID));
+    fflassert(SkillBoard::getMagicIconGfx(magicID));
+
+    fflassert(level >= 1);
+    fflassert(level <= 3);
+
+    if(auto p = m_learnedMagicList.find(magicID); p != m_learnedMagicList.end()){
+        fflassert(level >= p->second.level);
+        p->second.level = level;
+    }
+    else{
+        m_learnedMagicList[magicID].level = level;
+    }
+}
+
+void SkillBoard::SkillBoardConfig::setMagicKey(uint32_t magicID, std::optional<char> key)
+{
+    fflassert(DBCOM_MAGICRECORD(magicID));
+    fflassert(SkillBoard::getMagicIconGfx(magicID));
+
+    fflassert(hasMagicID(magicID));
+    fflassert(!key.has_value() || (key.value() >= 'a' && key.value() <= 'z') || (key.value() >= '0' && key.value() <= '9'));
+
+    m_learnedMagicList[magicID].key = key;
+    if(key.has_value()){
+        for(auto &p: m_learnedMagicList){
+            if((p.first != magicID) && p.second.key == key){
+                p.second.key.reset();
+            }
+        }
+    }
+}
+
+SkillBoard::MagicIconButton::MagicIconButton(int argX, int argY, uint32_t argMagicID, SkillBoardConfig *configPtr, ProcessRun *proc, Widget *widgetPtr, bool autoDelete)
     : WidgetGroup
       {
           DIR_UPLEFT,
@@ -39,10 +90,23 @@ SkillBoard::MagicIconButton::MagicIconButton(int argX, int argY, SkillBoard::Mag
           autoDelete,
       }
 
-    , m_magicIconDataPtr([iconDataPtr]()
+    , m_magicID([argMagicID]() -> uint32_t
       {
-          fflassert(iconDataPtr);
-          return iconDataPtr;
+          fflassert(DBCOM_MAGICRECORD(argMagicID));
+          fflassert(SkillBoard::getMagicIconGfx(argMagicID));
+          return argMagicID;
+      }())
+
+    , m_config([configPtr]()
+      {
+          fflassert(configPtr);
+          return configPtr;
+      }())
+
+    , m_processRun([proc]()
+      {
+          fflassert(proc);
+          return proc;
       }())
 
     , m_icon
@@ -52,9 +116,9 @@ SkillBoard::MagicIconButton::MagicIconButton(int argX, int argY, SkillBoard::Mag
           0,
 
           {
-              m_magicIconDataPtr->magicIcon,
-              m_magicIconDataPtr->magicIcon,
-              m_magicIconDataPtr->magicIcon,
+              SkillBoard::getMagicIconGfx(argMagicID).magicIcon,
+              SkillBoard::getMagicIconGfx(argMagicID).magicIcon,
+              SkillBoard::getMagicIconGfx(argMagicID).magicIcon,
           },
 
           nullptr,
@@ -80,7 +144,7 @@ SkillBoard::MagicIconButton::MagicIconButton(int argX, int argY, SkillBoard::Mag
 
 void SkillBoard::MagicIconButton::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int srcH) const
 {
-    if(m_magicIconDataPtr->level > 0){
+    if(const auto levelOpt = m_config->getMagicLevel(magicID()); levelOpt.has_value()){
         WidgetGroup::drawEx(dstX, dstY, srcX, srcY, srcW, srcH);
 
         const LabelBoard magicLevel
@@ -88,7 +152,7 @@ void SkillBoard::MagicIconButton::drawEx(int dstX, int dstY, int srcX, int srcY,
             DIR_UPLEFT,
             0,
             0,
-            str_printf(u8"%d", m_magicIconDataPtr->level).c_str(),
+            str_printf(u8"%d", levelOpt.value()).c_str(),
 
             3,
             12,
@@ -98,7 +162,7 @@ void SkillBoard::MagicIconButton::drawEx(int dstX, int dstY, int srcX, int srcY,
         };
         magicLevel.drawAt(DIR_UPLEFT, (dstX - srcX) + (m_icon.w() - 2), (dstY - srcY) + (m_icon.h() - 1), dstX, dstY, srcW, srcH);
 
-        if(m_magicIconDataPtr->magicKey != '\0'){
+        if(const auto keyOpt = m_config->getMagicKey(magicID()); keyOpt.has_value()){
             const LabelShadowBoard magicKey
             {
                 DIR_UPLEFT,
@@ -106,7 +170,7 @@ void SkillBoard::MagicIconButton::drawEx(int dstX, int dstY, int srcX, int srcY,
                 0,
                 2,
                 2,
-                str_printf(u8"%c", std::toupper(m_magicIconDataPtr->magicKey)).c_str(),
+                str_printf(u8"%c", std::toupper(keyOpt.value())).c_str(),
 
                 3,
                 20,
@@ -120,7 +184,7 @@ void SkillBoard::MagicIconButton::drawEx(int dstX, int dstY, int srcX, int srcY,
     }
 }
 
-SkillBoard::SkillPage::SkillPage(uint32_t pageImage, Widget *widgetPtr, bool autoDelete)
+SkillBoard::SkillPage::SkillPage(uint32_t pageImage, SkillBoardConfig *configPtr, ProcessRun *proc, Widget *widgetPtr, bool autoDelete)
     : WidgetGroup
       {
           DIR_UPLEFT,
@@ -131,6 +195,19 @@ SkillBoard::SkillPage::SkillPage(uint32_t pageImage, Widget *widgetPtr, bool aut
           widgetPtr,
           autoDelete,
       }
+
+    , m_config([configPtr]()
+      {
+          fflassert(configPtr);
+          return configPtr;
+      }())
+
+    , m_processRun([proc]()
+      {
+          fflassert(proc);
+          return proc;
+      }())
+
     , m_pageImage(pageImage)
 {
     std::tie(m_w, m_h) = [this]() -> std::tuple<int, int>
@@ -170,91 +247,6 @@ void SkillBoard::SkillPage::drawEx(int dstX, int dstY, int srcX, int srcY, int s
 
 SkillBoard::SkillBoard(int nX, int nY, ProcessRun *runPtr, Widget *pwidget, bool autoDelete)
     : Widget(DIR_UPLEFT, nX, nY, 0, 0, pwidget, autoDelete)
-    , m_magicIconDataList
-      {
-          // not only for currnet user
-          // list all possible magics for all types of user
-
-          // 火
-          {DBCOM_MAGICID(u8"火球术"  ), 0X05001000, 0, 0},
-          {DBCOM_MAGICID(u8"大火球"  ), 0X05001004, 0, 1},
-          {DBCOM_MAGICID(u8"焰天火雨"), 0X05001042, 0, 3},
-          {DBCOM_MAGICID(u8"地狱火"  ), 0X05001008, 2, 1},
-          {DBCOM_MAGICID(u8"火墙"    ), 0X05001015, 2, 2},
-          {DBCOM_MAGICID(u8"爆裂火焰"), 0X05001016, 4, 3},
-
-          // 冰
-          {DBCOM_MAGICID(u8"冰月神掌"), 0X05001025, 0, 0},
-          {DBCOM_MAGICID(u8"冰月震天"), 0X05001026, 0, 1},
-          {DBCOM_MAGICID(u8"冰沙掌"  ), 0X05001028, 2, 2},
-          {DBCOM_MAGICID(u8"冰咆哮"  ), 0X0500101F, 2, 3},
-          {DBCOM_MAGICID(u8"魄冰刺"  ), 0X05001050, 2, 4}, // no original gfx, hand-made gfx
-
-          // 雷
-          {DBCOM_MAGICID(u8"霹雳掌"  ), 0X05001027, 0, 0},
-          {DBCOM_MAGICID(u8"雷电术"  ), 0X0500100A, 0, 1},
-          {DBCOM_MAGICID(u8"疾光电影"), 0X05001009, 2, 2},
-          {DBCOM_MAGICID(u8"地狱雷光"), 0X05001017, 2, 3},
-          {DBCOM_MAGICID(u8"怒神霹雳"), 0X05001040, 2, 4},
-
-          // 风
-          {DBCOM_MAGICID(u8"风掌"    ), 0X05001029, 0, 0},
-          {DBCOM_MAGICID(u8"击风"    ), 0X0500102C, 0, 1},
-          {DBCOM_MAGICID(u8"风震天"  ), 0X0500102B, 2, 2},
-          {DBCOM_MAGICID(u8"龙卷风"  ), 0X0500102A, 2, 3},
-          {DBCOM_MAGICID(u8"抗拒火环"), 0X05001007, 4, 1},
-          {DBCOM_MAGICID(u8"魔法盾"  ), 0X0500101D, 4, 2},
-
-          // 神圣
-          {DBCOM_MAGICID(u8"治愈术"    ), 0X05001001, 0, 0},
-          {DBCOM_MAGICID(u8"群体治愈术"), 0X0500101B, 0, 2},
-          {DBCOM_MAGICID(u8"回生术"    ), 0X0500102D, 0, 3},
-          {DBCOM_MAGICID(u8"月魂断玉"  ), 0X05001023, 2, 1},
-          {DBCOM_MAGICID(u8"月魂灵波"  ), 0X05001024, 2, 2},
-          {DBCOM_MAGICID(u8"云寂术"    ), 0X05001043, 4, 3},
-          {DBCOM_MAGICID(u8"阴阳法环"  ), 0X05001045, 4, 4},
-
-          // 暗黑
-          {DBCOM_MAGICID(u8"施毒术"    ), 0X05001005, 0, 0},
-          {DBCOM_MAGICID(u8"困魔咒"    ), 0X0500100F, 0, 1},
-          {DBCOM_MAGICID(u8"幽灵盾"    ), 0X0500100D, 1, 1},
-          {DBCOM_MAGICID(u8"神圣战甲术"), 0X0500100E, 1, 2},
-          {DBCOM_MAGICID(u8"强魔震法"  ), 0X05001032, 1, 3},
-          {DBCOM_MAGICID(u8"猛虎强势"  ), 0X05001037, 1, 4},
-          {DBCOM_MAGICID(u8"隐身术"    ), 0X05001011, 2, 0},
-          {DBCOM_MAGICID(u8"集体隐身术"), 0X05001012, 2, 1},
-          {DBCOM_MAGICID(u8"妙影无踪"  ), 0X05001044, 2, 4},
-          {DBCOM_MAGICID(u8"灵魂火符"  ), 0X0500100C, 3, 0},
-
-          // 幻影
-          {DBCOM_MAGICID(u8"召唤骷髅"    ), 0X0500103B, 0, 0},
-          {DBCOM_MAGICID(u8"召唤神兽"    ), 0X0500101C, 0, 1},
-          {DBCOM_MAGICID(u8"超强召唤骷髅"), 0X05001010, 0, 2},
-          {DBCOM_MAGICID(u8"移花接玉"    ), 0X05001046, 0, 3},
-          {DBCOM_MAGICID(u8"诱惑之光"    ), 0X05001013, 2, 0},
-          {DBCOM_MAGICID(u8"圣言术"      ), 0X0500101E, 2, 1},
-          {DBCOM_MAGICID(u8"凝血离魂"    ), 0X05001041, 2, 3},
-          {DBCOM_MAGICID(u8"瞬息移动"    ), 0X05001014, 3, 0},
-          {DBCOM_MAGICID(u8"异形换位"    ), 0X0500103A, 3, 1},
-
-          // 无
-          {DBCOM_MAGICID(u8"基本剑术"  ), 0X05001002, 0, 0},
-          {DBCOM_MAGICID(u8"攻杀剑术"  ), 0X05001006, 0, 1},
-          {DBCOM_MAGICID(u8"刺杀剑术"  ), 0X0500100B, 0, 2},
-          {DBCOM_MAGICID(u8"半月弯刀"  ), 0X05001018, 1, 3},
-          {DBCOM_MAGICID(u8"翔空剑法"  ), 0X05001021, 1, 4},
-          {DBCOM_MAGICID(u8"十方斩"    ), 0X05001039, 1, 5},
-          {DBCOM_MAGICID(u8"烈火剑法"  ), 0X05001019, 2, 4},
-          {DBCOM_MAGICID(u8"莲月剑法"  ), 0X05001020, 2, 5},
-          {DBCOM_MAGICID(u8"野蛮冲撞"  ), 0X0500101A, 3, 3},
-          {DBCOM_MAGICID(u8"乾坤大挪移"), 0X0500103D, 3, 4},
-          {DBCOM_MAGICID(u8"铁布衫"    ), 0X05001038, 3, 5},
-          {DBCOM_MAGICID(u8"斗转星移"  ), 0X0500103E, 3, 6},
-          {DBCOM_MAGICID(u8"破血狂杀"  ), 0X0500103C, 3, 7},
-          {DBCOM_MAGICID(u8"精神力战法"), 0X05001003, 4, 0},
-          {DBCOM_MAGICID(u8"空拳刀法"  ), 0X05001022, 4, 3},
-      }
-
     , m_skillPageList([this]() -> std::vector<SkillBoard::SkillPage *>
       {
           std::vector<SkillBoard::SkillPage *> pageList;
@@ -264,13 +256,15 @@ SkillBoard::SkillBoard(int nX, int nY, ProcessRun *runPtr, Widget *pwidget, bool
               auto pagePtr = new SkillBoard::SkillPage
               {
                   to_u32(0X05000010 + to_u32(i)),
+                  &m_config,
+                  m_processRun,
                   this,
                   true,
               };
 
-              for(auto &iconRef: m_magicIconDataList){
-                  if(i == getSkillPageIndex(iconRef.magicID)){
-                      pagePtr->addIcon(&iconRef);
+              for(const auto &iconGfx: SkillBoard::getMagicIconGfxList()){
+                  if(i == getSkillPageIndex(iconGfx.magicID)){
+                      pagePtr->addIcon(iconGfx.magicID);
                   }
               }
               pageList.push_back(pagePtr);
@@ -449,7 +443,8 @@ bool SkillBoard::MagicIconButton::processEvent(const SDL_Event &event, bool vali
     const auto result = m_icon.processEvent(event, valid);
     if(event.type == SDL_KEYDOWN && cursorOn()){
         if(const auto key = SDLDeviceHelper::getKeyChar(event, false); (key >= '0' && key <= '9') || (key >= 'a' && key <= 'z')){
-            dynamic_cast<SkillPage *>(m_parent)->setMagicKey(m_magicIconDataPtr->magicID, key);
+            m_config->setMagicKey(magicID(), key);
+            m_processRun->requestSetMagicKey(magicID(), key);
             return focusConsume(this, true);
         }
     }
@@ -527,16 +522,6 @@ bool SkillBoard::processEvent(const SDL_Event &event, bool valid)
     }
 }
 
-uint32_t SkillBoard::key2MagicID(char key) const
-{
-    for(const auto &iconCRef: m_magicIconDataList){
-        if(std::tolower(iconCRef.magicKey) == std::tolower(key)){
-            return iconCRef.magicID;
-        }
-    }
-    return 0;
-}
-
 void SkillBoard::drawTabName() const
 {
     const LabelBoard tabName
@@ -554,7 +539,7 @@ void SkillBoard::drawTabName() const
             if(m_selectedTabIndex >= 0){
                 for(const auto magicIconPtr: m_skillPageList.at(m_selectedTabIndex)->getMagicIconButtonList()){
                     if(magicIconPtr->cursorOn()){
-                        if(const auto &mr = DBCOM_MAGICRECORD(magicIconPtr->getMagicIconDataPtr()->magicID)){
+                        if(const auto &mr = DBCOM_MAGICRECORD(magicIconPtr->magicID())){
                             return str_printf(u8"元素【%s】%s", to_cstr(mr.elem), to_cstr(mr.name));
                         }
                         else{
@@ -577,44 +562,4 @@ void SkillBoard::drawTabName() const
         colorf::WHITE + colorf::A_SHF(255),
     };
     tabName.drawAt(DIR_UPLEFT, x() + 30, y() + 400);
-}
-
-void SkillBoard::setMagicLevel(uint32_t magicID, int level)
-{
-    fflassert(DBCOM_MAGICRECORD(magicID));
-    fflassert(level >= 1 && level <= 3); // no way to delete a learnt magic
-
-    for(auto &data: m_magicIconDataList){
-        if(data.magicID == magicID){
-            data.level = level;
-            return;
-        }
-    }
-    throw fflerror("no magic icon for magic: %s", to_cstr(DBCOM_MAGICRECORD(magicID).name));
-}
-
-void SkillBoard::setMagicKey(uint32_t magicID, char key)
-{
-    fflassert(DBCOM_MAGICRECORD(magicID));
-    fflassert((key >= 'a' && key <= 'z') || (key >= '0' && key <= '9') || (key == '\0'));
-
-    bool found = false;
-    for(auto &data: m_magicIconDataList){
-        if(data.magicID == magicID){
-            found = true;
-            data.magicKey = key;
-            break;
-        }
-    }
-
-    if(!found){
-        throw fflerror("no magic icon for magic: %s", to_cstr(DBCOM_MAGICRECORD(magicID).name));
-    }
-
-    for(auto &data: m_magicIconDataList){
-        if(data.magicID != magicID && data.magicKey == key){
-            data.magicKey = '\0';
-        }
-    }
-    m_processRun->requestSetMagicKey(magicID, key);
 }
