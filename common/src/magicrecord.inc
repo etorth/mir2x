@@ -774,6 +774,17 @@
     },
     .mp = 3,
     .mpInc = 9,
+    .gfxList
+    {
+        {
+            .stage = u8"运行",
+            .type  = u8"附着",
+            .gfxID = 0X010006F4,
+            .frameCount = 10,
+            .gfxIDCount = 10,
+            .gfxDirType = 8,
+        },
+    },
 },
 
 {   .name = u8"翔空剑法",
