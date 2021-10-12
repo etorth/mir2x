@@ -280,6 +280,17 @@
         .train = {30, 40, 50},
         .job = u8"战士",
     },
+    .gfxList
+    {
+        {
+            .stage = u8"运行",
+            .type  = u8"附着",
+            .gfxID = 0X00000546,
+            .frameCount = 6,
+            .gfxIDCount = 10,
+            .gfxDirType = 8,
+        },
+    },
 },
 
 {   .name = u8"抗拒火环",
@@ -337,6 +348,17 @@
         .level = {19, 21, 23},
         .train = {40, 50, 60},
         .job = u8"战士",
+    },
+    .gfxList
+    {
+        {
+            .stage = u8"运行",
+            .type  = u8"附着",
+            .gfxID = 0X00000140,
+            .frameCount = 6,
+            .gfxIDCount = 10,
+            .gfxDirType = 8,
+        },
     },
 },
 
@@ -631,6 +653,17 @@
         .job = u8"战士",
     },
     .mpInc = 3,
+    .gfxList
+    {
+        {
+            .stage = u8"运行",
+            .type  = u8"附着",
+            .gfxID = 0X000000E6,
+            .frameCount = 6,
+            .gfxIDCount = 10,
+            .gfxDirType = 8,
+        },
+    },
 },
 
 {   .name = u8"烈火剑法",

@@ -736,6 +736,7 @@ bool Hero::parseAction(const ActionNode &action)
                             .y = action.y,
                         }));
 
+                        m_motionQueue.back()->effect.reset(new MotionSyncEffect(u8"攻杀剑术", u8"运行", this, m_motionQueue.back().get()));
                         m_motionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
                         {
                             .type = MOTION_ATTACKMODE,
