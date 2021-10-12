@@ -730,13 +730,13 @@ bool Hero::parseAction(const ActionNode &action)
                     if(const auto attackDir = PathFind::GetDirection(action.x, action.y, coPtr->x(), coPtr->y()); attackDir >= DIR_BEGIN && attackDir < DIR_END){
                         m_motionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
                         {
-                            .type = MOTION_ONEVSWING,
+                            .type = MOTION_RANDSWING,
                             .direction = attackDir,
                             .x = action.x,
                             .y = action.y,
                         }));
 
-                        m_motionQueue.back()->effect.reset(new MotionSyncEffect(u8"攻杀剑术", u8"运行", this, m_motionQueue.back().get()));
+                        m_motionQueue.back()->effect.reset(new MotionSyncEffect(u8"翔空剑法", u8"运行", this, m_motionQueue.back().get()));
                         m_motionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
                         {
                             .type = MOTION_ATTACKMODE,

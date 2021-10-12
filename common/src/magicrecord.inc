@@ -675,6 +675,17 @@
     },
     .mp = 2,
     .mpInc = 7,
+    .gfxList
+    {
+        {
+            .stage = u8"运行",
+            .type  = u8"附着",
+            .gfxID = 0X000005BE,
+            .frameCount = 6,
+            .gfxIDCount = 10,
+            .gfxDirType = 8,
+        },
+    },
 },
 
 {   .name = u8"野蛮冲撞",
@@ -774,6 +785,30 @@
     },
     .mp = 2,
     .mpInc = 8,
+    .gfxList
+    {
+        {
+            // TODO for 宝湾传奇 the 翔空剑法 is just an enhanced version of 半月弯刀, so the gfx index is 2185, and using motion MOTION_WHEELWIND, it's a jump
+            // I remember when I play the private server, 翔空剑法 is ``在从半空落下攻击敌人的技能", which means a jump, the corresponding gfx index is 2270, which is ``random swing".
+            // and in the motion set there is a motion called MOTION_RANDSWING, it's purely for gfx index 2270, but it's NOT a jump
+            // here I use MOTION_RANDSWING and the gfx 2270 to present 翔空剑法
+
+            // below are all confusing gfx:
+            //
+            //  230 : 半月弯刀
+            //  320 : 刺杀剑术
+            // 1350 : 攻杀剑术
+            // 2185 : 升级版半月弯刀, used by 宝湾传奇 as 翔空剑法
+            // 2270 : random swing, take it as 翔空剑法
+
+            .stage = u8"运行",
+            .type  = u8"附着",
+            .gfxID = 0X000008DE,
+            .frameCount = 10,
+            .gfxIDCount = 10,
+            .gfxDirType = 8,
+        },
+    },
 },
 
 {   .name = u8"空拳刀法",
