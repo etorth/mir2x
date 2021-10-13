@@ -33,6 +33,9 @@ void Player::net_CM_ACTION(uint8_t, const uint8_t *pBuf, size_t)
             && cmA.UID == UID()
             && cmA.mapID == mapID()){
 
+        // don't do dispatchAction(cmA.action) here
+        // we may need to filter some actions to anti-cheat, dispatch in onCMActionXXXX(cmA) if legeal
+
         switch(to_d(cmA.action.type)){
             case ACTION_STAND : onCMActionStand (cmA); return;
             case ACTION_MOVE  : onCMActionMove  (cmA); return;
@@ -40,7 +43,6 @@ void Player::net_CM_ACTION(uint8_t, const uint8_t *pBuf, size_t)
             case ACTION_SPELL : onCMActionSpell (cmA); return;
             default           :                        return;
         }
-        dispatchAction(cmA.action);
     }
 }
 

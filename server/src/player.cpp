@@ -597,6 +597,13 @@ void Player::onCMActionAttack(CMAction stCMA)
 
         if(rstLocation.mapID == mapID()){
             switch(nDCType){
+                case DBCOM_MAGICID(u8"烈火剑法"):
+                case DBCOM_MAGICID(u8"翔空剑法"):
+                case DBCOM_MAGICID(u8"莲月剑法"):
+                case DBCOM_MAGICID(u8"半月弯刀"):
+                case DBCOM_MAGICID(u8"十方斩"  ):
+                case DBCOM_MAGICID(u8"攻杀剑术"):
+                case DBCOM_MAGICID(u8"刺杀剑术"):
                 case DBCOM_MAGICID(u8"物理攻击"):
                     {
                         switch(estimateHop(nX0, nY0)){
@@ -606,6 +613,7 @@ void Player::onCMActionAttack(CMAction stCMA)
                                         case 1:
                                         case 2:
                                             {
+                                                dispatchAction(stCMA.action);
                                                 dispatchAttackDamage(nAimUID, nDCType);
                                                 return;
                                             }

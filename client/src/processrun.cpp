@@ -1336,12 +1336,27 @@ bool ProcessRun::trackAttack(bool bForce, uint64_t nUID)
                 .aimUID = nUID,
                 .damageID = [this]() -> uint32_t
                 {
-                    /**/ if(getMyHero()->hasSwingMagic(DBCOM_MAGICID(u8"莲月剑法"))){ getMyHero()->toggleSwingMagic(DBCOM_MAGICID(u8"莲月剑法"), false); return DBCOM_MAGICID(u8"莲月剑法"); }
-                    else if(getMyHero()->hasSwingMagic(DBCOM_MAGICID(u8"翔空剑法"))){ getMyHero()->toggleSwingMagic(DBCOM_MAGICID(u8"翔空剑法"), false); return DBCOM_MAGICID(u8"翔空剑法"); }
-                    else if(getMyHero()->hasSwingMagic(DBCOM_MAGICID(u8"烈火剑法"))){ getMyHero()->toggleSwingMagic(DBCOM_MAGICID(u8"烈火剑法"), false); return DBCOM_MAGICID(u8"烈火剑法"); }
-                    else if(getMyHero()->hasSwingMagic(DBCOM_MAGICID(u8"十方斩"  ))){ getMyHero()->toggleSwingMagic(DBCOM_MAGICID(u8"十方斩"  ), false); return DBCOM_MAGICID(u8"十方斩"  ); }
-                    else if(getMyHero()->hasSwingMagic(DBCOM_MAGICID(u8"半月弯刀"))){ getMyHero()->toggleSwingMagic(DBCOM_MAGICID(u8"半月弯刀"), false); return DBCOM_MAGICID(u8"半月弯刀"); }
-                    else return DBCOM_MAGICID(u8"物理攻击");
+                    if(getMyHero()->hasSwingMagic(DBCOM_MAGICID(u8"莲月剑法"))){
+                        getMyHero()->toggleSwingMagic(DBCOM_MAGICID(u8"莲月剑法"), false);
+                        return DBCOM_MAGICID(u8"莲月剑法");
+                    }
+                    else if(getMyHero()->hasSwingMagic(DBCOM_MAGICID(u8"翔空剑法"))){
+                        getMyHero()->toggleSwingMagic(DBCOM_MAGICID(u8"翔空剑法"), false);
+                        return DBCOM_MAGICID(u8"翔空剑法");
+                    }
+                    else if(getMyHero()->hasSwingMagic(DBCOM_MAGICID(u8"烈火剑法"))){
+                        getMyHero()->toggleSwingMagic(DBCOM_MAGICID(u8"烈火剑法"), false);
+                        return DBCOM_MAGICID(u8"烈火剑法");
+                    }
+                    else if(getMyHero()->hasSwingMagic(DBCOM_MAGICID(u8"十方斩"))){
+                        return DBCOM_MAGICID(u8"十方斩");
+                    }
+                    else if(getMyHero()->hasSwingMagic(DBCOM_MAGICID(u8"半月弯刀"))){
+                        return DBCOM_MAGICID(u8"半月弯刀");
+                    }
+                    else{
+                        return DBCOM_MAGICID(u8"物理攻击");
+                    }
                 }(),
             });
         }
