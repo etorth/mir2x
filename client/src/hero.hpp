@@ -183,5 +183,6 @@ class Hero: public CreatureMovable
         void setBuff(int, int) override;
 
     public:
+        bool hasSwingMagic(uint32_t) const;
         void toggleSwingMagic(uint32_t, std::optional<bool> = {});
 };
