@@ -253,9 +253,9 @@ void ProcessRun::net_HEALTH(const uint8_t *buf, size_t bufSize)
     }
 }
 
-void ProcessRun::net_NEXTHIT(const uint8_t *, size_t)
+void ProcessRun::net_NEXTSTRIKE(const uint8_t *, size_t)
 {
-    getMyHero()->setNextHit(true);
+    getMyHero()->setNextStrike(true);
 }
 
 void ProcessRun::net_NOTIFYDEAD(const uint8_t *bufPtr, size_t)

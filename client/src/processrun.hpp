@@ -216,7 +216,7 @@ class ProcessRun: public Process
         void net_LEARNEDMAGICLIST(const uint8_t *, size_t);
         void net_CORECORD(const uint8_t *, size_t);
         void net_HEALTH(const uint8_t *, size_t);
-        void net_NEXTHIT(const uint8_t *, size_t);
+        void net_NEXTSTRIKE(const uint8_t *, size_t);
         void net_CASTMAGIC(const uint8_t *, size_t);
         void net_NOTIFYDEAD(const uint8_t *, size_t);
         void net_PLAYERNAME(const uint8_t *, size_t);

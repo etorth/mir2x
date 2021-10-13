@@ -290,9 +290,9 @@ void Player::reportHealth()
     dispatchNetPackage(true, SM_HEALTH, cerealf::serialize(m_sdHealth));
 }
 
-void Player::reportNextHit()
+void Player::reportNextStrike()
 {
-    postNetMessage(SM_NEXTHIT);
+    postNetMessage(SM_NEXTSTRIKE);
 }
 
 bool Player::goDie()
@@ -618,30 +618,35 @@ void Player::onCMActionAttack(CMAction stCMA)
                                         case 1:
                                         case 2:
                                             {
-                                                // TODO 1. too verbose, give a better implementation
-                                                //      2. change the ambiguous name: nextHit
-                                                //
-                                                // client reports 攻杀技术 but actually it's not scheduled
-                                                // change to normal attack and dispatch to its neighbor, for client who sends it has presented the 攻杀技术 gfx
-                                                if(to_u32(nDCType) == DBCOM_MAGICID(u8"攻杀剑术") && !m_nextHit){
-                                                    auto fixedAction = stCMA.action;
-                                                    fixedAction.extParam.attack.damageID = DBCOM_MAGICID(u8"物理攻击");
-                                                    dispatchAction(fixedAction);
-                                                }
-                                                else{
-                                                    dispatchAction(stCMA.action);
-                                                }
+                                                // client reports 攻杀技术 but server need to validate if it's scheduled
+                                                // if not scheduled then dispatch 物理攻击 instead, this is for client anti-cheat
+                                                dispatchAction(ActionAttack
+                                                {
+                                                    .speed = stCMA.action.speed,
+                                                    .x = stCMA.action.x,
+                                                    .y = stCMA.action.y,
+                                                    .aimUID = stCMA.action.aimUID,
+                                                    .damageID = [nDCType, this]() -> uint32_t
+                                                    {
+                                                        if(to_u32(nDCType) == DBCOM_MAGICID(u8"攻杀剑术") && !m_nextStrike){
+                                                            return DBCOM_MAGICID(u8"物理攻击");
+                                                        }
+                                                        else{
+                                                            return nDCType;
+                                                        }
+                                                    }(),
+                                                });
 
                                                 dispatchAttackDamage(nAimUID, nDCType);
-                                                if(m_nextHit){
-                                                    m_nextHit = false;
+                                                if(m_nextStrike){
+                                                    m_nextStrike = false;
                                                 }
                                                 else{
-                                                    m_nextHit = (mathf::rand<int>(0, 2) == 0);
+                                                    m_nextStrike = (mathf::rand<int>(0, 2) == 0);
                                                 }
 
-                                                if(m_nextHit){
-                                                    reportNextHit();
+                                                if(m_nextStrike){
+                                                    reportNextStrike();
                                                 }
                                                 return;
                                             }
