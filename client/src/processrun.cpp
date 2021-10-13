@@ -1898,7 +1898,6 @@ void ProcessRun::checkMagicSpell(const SDL_Event &event)
         return;
     }
 
-    getMyHero()->brakeMove();
     switch(magicID){
         case DBCOM_MAGICID(u8"烈火剑法"):
         case DBCOM_MAGICID(u8"翔空剑法"):
@@ -1916,6 +1915,7 @@ void ProcessRun::checkMagicSpell(const SDL_Event &event)
         case DBCOM_MAGICID(u8"冰月神掌"):
         case DBCOM_MAGICID(u8"冰月震天"):
             {
+                getMyHero()->brakeMove();
                 if(const auto uid = focusUID(FOCUS_MAGIC)){
                     getMyHero()->emplaceAction(ActionSpell
                     {
@@ -1948,6 +1948,7 @@ void ProcessRun::checkMagicSpell(const SDL_Event &event)
         case DBCOM_MAGICID(u8"焰天火雨"):
             {
                 const auto [aimX, aimY] = getMouseGLoc();
+                getMyHero()->brakeMove();
                 getMyHero()->emplaceAction(ActionSpell
                 {
                     .x = getMyHero()->currMotion()->endX,
@@ -1962,6 +1963,7 @@ void ProcessRun::checkMagicSpell(const SDL_Event &event)
         case DBCOM_MAGICID(u8"召唤骷髅"):
         case DBCOM_MAGICID(u8"召唤神兽"):
             {
+                getMyHero()->brakeMove();
                 getMyHero()->emplaceAction(ActionSpell
                 {
                     .x = getMyHero()->currMotion()->endX,
