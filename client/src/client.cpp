@@ -218,6 +218,13 @@ void Client::onServerMessage(uint8_t headCode, const uint8_t *pData, size_t nDat
                 }
                 break;
             }
+        case SM_NEXTHIT:
+            {
+                if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+                    pRun->net_NEXTHIT(pData, nDataLen);
+                }
+                break;
+            }
         case SM_DEADFADEOUT:
             {
                 if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){

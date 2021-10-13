@@ -36,6 +36,7 @@ enum SMType: uint8_t
     SM_ACTION,
     SM_CORECORD,
     SM_HEALTH,
+    SM_NEXTHIT,
     SM_NOTIFYDEAD,
     SM_DEADFADEOUT,
     SM_EXP,
@@ -308,6 +309,7 @@ class ServerMsg final: public MsgBase
                 _add_server_msg_type_case(SM_ACTION,              1, sizeof(SMAction)           )
                 _add_server_msg_type_case(SM_CORECORD,            1, sizeof(SMCORecord)         )
                 _add_server_msg_type_case(SM_HEALTH,              3, 0                          )
+                _add_server_msg_type_case(SM_NEXTHIT,             0, 0                          )
                 _add_server_msg_type_case(SM_NOTIFYDEAD,          1, sizeof(SMNotifyDead)       )
                 _add_server_msg_type_case(SM_DEADFADEOUT,         1, sizeof(SMDeadFadeOut)      )
                 _add_server_msg_type_case(SM_EXP,                 1, sizeof(SMExp)              )

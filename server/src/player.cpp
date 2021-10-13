@@ -290,6 +290,11 @@ void Player::reportHealth()
     dispatchNetPackage(true, SM_HEALTH, cerealf::serialize(m_sdHealth));
 }
 
+void Player::reportNextHit()
+{
+    postNetMessage(SM_NEXTHIT);
+}
+
 bool Player::goDie()
 {
     if(m_dead.get()){
@@ -613,8 +618,31 @@ void Player::onCMActionAttack(CMAction stCMA)
                                         case 1:
                                         case 2:
                                             {
-                                                dispatchAction(stCMA.action);
+                                                // TODO 1. too verbose, give a better implementation
+                                                //      2. change the ambiguous name: nextHit
+                                                //
+                                                // client reports 攻杀技术 but actually it's not scheduled
+                                                // change to normal attack and dispatch to its neighbor, for client who sends it has presented the 攻杀技术 gfx
+                                                if(to_u32(nDCType) == DBCOM_MAGICID(u8"攻杀剑术") && !m_nextHit){
+                                                    auto fixedAction = stCMA.action;
+                                                    fixedAction.extParam.attack.damageID = DBCOM_MAGICID(u8"物理攻击");
+                                                    dispatchAction(fixedAction);
+                                                }
+                                                else{
+                                                    dispatchAction(stCMA.action);
+                                                }
+
                                                 dispatchAttackDamage(nAimUID, nDCType);
+                                                if(m_nextHit){
+                                                    m_nextHit = false;
+                                                }
+                                                else{
+                                                    m_nextHit = (mathf::rand<int>(0, 2) == 0);
+                                                }
+
+                                                if(m_nextHit){
+                                                    reportNextHit();
+                                                }
                                                 return;
                                             }
                                         default:

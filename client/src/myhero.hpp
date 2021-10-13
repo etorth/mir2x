@@ -39,6 +39,9 @@ class MyHero: public Hero
     private:
         std::deque<ActionNode> m_actionQueue;
 
+    private:
+        bool m_nextHit = false;
+
     public:
         MyHero(uint64_t, ProcessRun *, const ActionNode &);
 
@@ -178,4 +181,15 @@ class MyHero: public Hero
     public:
         void setMagicCastTime(uint32_t);
         int getMagicCoolDownAngle(uint32_t) const;
+
+    public:
+        void setNextHit(bool nextHit)
+        {
+            m_nextHit = nextHit;
+        }
+
+        bool getNextHit() const
+        {
+            return m_nextHit;
+        }
 };

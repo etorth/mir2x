@@ -51,6 +51,12 @@ class Player final: public CharObject
         bool m_pickUpLock = false;
 
     private:
+        // flag to show next hit is 攻杀剑术
+        // by implementation, client reports action to server, at the same time client present action gfx without wait server response
+        // so for some random action like 攻杀技术, server has to send enable flag to client in advance to show correct gfx, don't let client do random pick because of anti-cheating
+        bool m_nextHit = false;
+
+    private:
         SDItemStorage      m_sdItemStorage;
         SDLearnedMagicList m_sdLearnedMagicList;
         SDRuntimeConfig    m_sdRuntimeConfig;
@@ -151,6 +157,7 @@ class Player final: public CharObject
         void reportGold();
         void reportStand();
         void reportHealth();
+        void reportNextHit();
         void reportDeadUID(uint64_t);
         void reportCO(uint64_t);
         void reportOffline(uint64_t, uint32_t);

@@ -1336,7 +1336,11 @@ bool ProcessRun::trackAttack(bool bForce, uint64_t nUID)
                 .aimUID = nUID,
                 .damageID = [this]() -> uint32_t
                 {
-                    if(getMyHero()->hasSwingMagic(DBCOM_MAGICID(u8"莲月剑法"))){
+                    if(getMyHero()->getNextHit()){
+                        getMyHero()->setNextHit(false);
+                        return DBCOM_MAGICID(u8"攻杀剑术");
+                    }
+                    else if(getMyHero()->hasSwingMagic(DBCOM_MAGICID(u8"莲月剑法"))){
                         getMyHero()->toggleSwingMagic(DBCOM_MAGICID(u8"莲月剑法"), false);
                         return DBCOM_MAGICID(u8"莲月剑法");
                     }
