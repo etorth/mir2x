@@ -46,6 +46,9 @@ class Hero: public CreatureMovable
     protected:
         SDWLDesp m_sdWLDesp;
 
+    protected:
+        std::unordered_set<uint32_t> m_swingMagicList;
+
     public:
         Hero(uint64_t, ProcessRun *, const ActionNode &);
 
@@ -178,4 +181,7 @@ class Hero: public CreatureMovable
 
     public:
         void setBuff(int, int) override;
+
+    public:
+        void toggleSwingMagic(uint32_t, std::optional<bool> = {});
 };

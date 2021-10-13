@@ -728,15 +728,33 @@ bool Hero::parseAction(const ActionNode &action)
             {
                 if(auto coPtr = m_processRun->findUID(action.aimUID)){
                     if(const auto attackDir = PathFind::GetDirection(action.x, action.y, coPtr->x(), coPtr->y()); attackDir >= DIR_BEGIN && attackDir < DIR_END){
+                        const auto magicID = action.extParam.attack.damageID;
+                        const auto swingMotion = [magicID]() -> int
+                        {
+                            switch(magicID){
+                                case DBCOM_MAGICID(u8"烈火剑法"): return MOTION_ONEVSWING;
+                                case DBCOM_MAGICID(u8"翔空剑法"): return MOTION_RANDSWING;
+                                case DBCOM_MAGICID(u8"莲月剑法"): return MOTION_RANDSWING;
+                                case DBCOM_MAGICID(u8"半月弯刀"): return MOTION_ONEHSWING;
+                                case DBCOM_MAGICID(u8"十方斩"  ): return MOTION_WHEELWIND;
+                                case DBCOM_MAGICID(u8"攻杀剑术"): return MOTION_ONEVSWING;
+                                case DBCOM_MAGICID(u8"刺杀剑术"): return MOTION_ONEVSWING;
+                                default                         : return MOTION_ONEVSWING;
+                            }
+                        }();
+
                         m_motionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
                         {
-                            .type = MOTION_RANDSWING,
+                            .type = swingMotion,
                             .direction = attackDir,
                             .x = action.x,
                             .y = action.y,
                         }));
 
-                        m_motionQueue.back()->effect.reset(new MotionSyncEffect(u8"翔空剑法", u8"运行", this, m_motionQueue.back().get()));
+                        if(magicID && magicID != DBCOM_MAGICID(u8"物理攻击")){
+                            m_motionQueue.back()->effect.reset(new MotionSyncEffect(DBCOM_MAGICRECORD(magicID).name, u8"运行", this, m_motionQueue.back().get()));
+                        }
+
                         m_motionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
                         {
                             .type = MOTION_ATTACKMODE,
@@ -1194,5 +1212,25 @@ void Hero::setBuff(int type, int state)
             {
                 break;
             }
+    }
+}
+
+void Hero::toggleSwingMagic(uint32_t magicID, std::optional<bool> enable)
+{
+    if(enable.has_value()){
+        if(enable.value()){
+            m_swingMagicList.insert(magicID);
+        }
+        else{
+            m_swingMagicList.erase(magicID);
+        }
+    }
+    else{
+        if(m_swingMagicList.count(magicID)){
+            m_swingMagicList.erase(magicID);
+        }
+        else{
+            m_swingMagicList.insert(magicID);
+        }
     }
 }

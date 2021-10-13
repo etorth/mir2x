@@ -1873,6 +1873,15 @@ void ProcessRun::checkMagicSpell(const SDL_Event &event)
 
     getMyHero()->brakeMove();
     switch(magicID){
+        case DBCOM_MAGICID(u8"烈火剑法"):
+        case DBCOM_MAGICID(u8"翔空剑法"):
+        case DBCOM_MAGICID(u8"莲月剑法"):
+        case DBCOM_MAGICID(u8"半月弯刀"):
+        case DBCOM_MAGICID(u8"十方斩"):
+            {
+                getMyHero()->toggleSwingMagic(magicID);
+                break;
+            }
         case DBCOM_MAGICID(u8"雷电术"):
         case DBCOM_MAGICID(u8"火球术"):
         case DBCOM_MAGICID(u8"大火球"):
