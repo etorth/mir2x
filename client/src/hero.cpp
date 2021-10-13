@@ -729,17 +729,17 @@ bool Hero::parseAction(const ActionNode &action)
                 if(auto coPtr = m_processRun->findUID(action.aimUID)){
                     if(const auto attackDir = PathFind::GetDirection(action.x, action.y, coPtr->x(), coPtr->y()); attackDir >= DIR_BEGIN && attackDir < DIR_END){
                         const auto magicID = action.extParam.attack.damageID;
-                        const auto swingMotion = [magicID]() -> int
+                        const auto [swingMotion, magicName, lagFrame] = [magicID]() -> std::tuple<int, const char8_t *, int>
                         {
                             switch(magicID){
-                                case DBCOM_MAGICID(u8"烈火剑法"): return MOTION_ONEVSWING;
-                                case DBCOM_MAGICID(u8"翔空剑法"): return MOTION_RANDSWING;
-                                case DBCOM_MAGICID(u8"莲月剑法"): return MOTION_RANDSWING;
-                                case DBCOM_MAGICID(u8"半月弯刀"): return MOTION_ONEHSWING;
-                                case DBCOM_MAGICID(u8"十方斩"  ): return MOTION_WHEELWIND;
-                                case DBCOM_MAGICID(u8"攻杀剑术"): return MOTION_ONEVSWING;
-                                case DBCOM_MAGICID(u8"刺杀剑术"): return MOTION_ONEVSWING;
-                                default                         : return MOTION_ONEVSWING;
+                                case DBCOM_MAGICID(u8"烈火剑法"): return {MOTION_ONEVSWING, u8"烈火剑法", 0};
+                                case DBCOM_MAGICID(u8"翔空剑法"): return {MOTION_RANDSWING, u8"翔空剑法", 0};
+                                case DBCOM_MAGICID(u8"莲月剑法"): return {MOTION_RANDSWING, u8"莲月剑法", 0};
+                                case DBCOM_MAGICID(u8"半月弯刀"): return {MOTION_ONEHSWING, u8"半月弯刀", 0};
+                                case DBCOM_MAGICID(u8"十方斩"  ): return {MOTION_WHEELWIND, u8"十方斩"  , 3}; // 十方斩 has only 6 frames while MOTION_WHEELWIND has 10 frames
+                                case DBCOM_MAGICID(u8"攻杀剑术"): return {MOTION_ONEVSWING, u8"攻杀剑术", 0};
+                                case DBCOM_MAGICID(u8"刺杀剑术"): return {MOTION_ONEVSWING, u8"刺杀剑术", 0};
+                                default                         : return {MOTION_ONEVSWING, u8"物理攻击", 0};
                             }
                         }();
 
@@ -751,8 +751,8 @@ bool Hero::parseAction(const ActionNode &action)
                             .y = action.y,
                         }));
 
-                        if(magicID && magicID != DBCOM_MAGICID(u8"物理攻击")){
-                            m_motionQueue.back()->effect.reset(new MotionSyncEffect(DBCOM_MAGICRECORD(magicID).name, u8"运行", this, m_motionQueue.back().get()));
+                        if(to_u8sv(magicName) != u8"物理攻击"){
+                            m_motionQueue.back()->effect.reset(new MotionSyncEffect(magicName, u8"运行", this, m_motionQueue.back().get(), lagFrame));
                         }
 
                         m_motionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode

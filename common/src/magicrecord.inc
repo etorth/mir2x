@@ -1121,6 +1121,17 @@
         .job = u8"战士",
     },
     .mpInc = 7,
+    .gfxList
+    {
+        {
+            .stage = u8"运行",
+            .type  = u8"附着",
+            .gfxID = 0X02000208,
+            .frameCount = 6,
+            .gfxIDCount = 10,
+            .gfxDirType = 1,
+        },
+    },
 },
 
 {   .name = u8"异形换位",
