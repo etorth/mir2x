@@ -49,7 +49,7 @@
             .type  = u8"附着",
             .gfxID = 0X00000596,
             .frameCount = 12,
-            .motion = 1,
+            .motion = MOTION_SPELL1,
         },
 
         {
@@ -79,7 +79,7 @@
             .type  = u8"附着",
             .gfxID = 0X0000033E,
             .frameCount = 9,
-            .motion = 1,
+            .motion = MOTION_SPELL1,
         },
 
         {
@@ -124,7 +124,7 @@
             .type  = u8"附着",
             .gfxID = 0X000002E4,
             .frameCount = 10,
-            .motion = 1,
+            .motion = MOTION_SPELL1,
             .speed = 80,
         },
 
@@ -534,7 +534,7 @@
             .type  = u8"附着",
             .gfxID = 0X0000038E,
             .frameCount = 10,
-            .motion = 1,
+            .motion = MOTION_SPELL1,
         },
 
         {
@@ -731,7 +731,7 @@
             .type  = u8"附着",
             .gfxID = 0X00000A1E,
             .frameCount = 19,
-            .motion = 1,
+            .motion = MOTION_SPELL1,
             .speed = 180,
         }
     }
@@ -1111,6 +1111,17 @@
     .mpInc = 20,
     .power = {2, 4},
     .addPower = {3, 5},
+    .gfxList
+    {
+        {
+            .stage = u8"启动",
+            .type  = u8"附着",
+            .gfxID = 0X02000028,
+            .frameCount = 10,
+            .gfxDirType = 1,
+            .motion = MOTION_ATTACKMODE,
+        },
+    },
 },
 
 {   .name = u8"十方斩",
@@ -1172,6 +1183,17 @@
     .mpInc = 100,
     .power = {2, 4},
     .addPower = {3, 5},
+    .gfxList
+    {
+        {
+            .stage = u8"启动",
+            .type  = u8"附着",
+            .gfxID = 0X0200003C,
+            .frameCount = 10,
+            .gfxDirType = 1,
+            .motion = MOTION_ATTACKMODE,
+        },
+    },
 },
 
 {   .name = u8"乾坤大挪移",
@@ -1192,7 +1214,7 @@
             .gfxID = 0X02000000,
             .frameCount = 10,
             .gfxDirType = 1,
-            .motion = 1,
+            .motion = MOTION_SPELL1,
         },
 
         {

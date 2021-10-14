@@ -71,8 +71,9 @@ HeroSpellMagicEffect::HeroSpellMagicEffect(const char8_t *magicName, Hero *heroP
     fflassert(m_hero);
     switch(m_motion->type){
         case MOTION_SPELL0:
-        case MOTION_SPELL1: break;
-        default           : throw fflerror("invalid motion type: %s", motionName(m_motion->type));
+        case MOTION_SPELL1:
+        case MOTION_ATTACKMODE: break;
+        default: throw fflerror("invalid motion type: %s", motionName(m_motion->type));
     }
 
     switch(m_gfxEntry->gfxDirType){
@@ -85,9 +86,10 @@ HeroSpellMagicEffect::HeroSpellMagicEffect(const char8_t *magicName, Hero *heroP
 int HeroSpellMagicEffect::frameCount() const
 {
     switch(m_motion->type){
-        case MOTION_SPELL0: return std::max<int>(MotionEffect::frameCount(),  8);
-        case MOTION_SPELL1: return std::max<int>(MotionEffect::frameCount(), 10);
-        default           : throw fflerror("invalid motion type: %s", motionName(m_motion->type));
+        case MOTION_SPELL0: return std::max<int>(MotionEffect::frameCount(), 8);
+        case MOTION_SPELL1:
+        case MOTION_ATTACKMODE: return std::max<int>(MotionEffect::frameCount(), 10);
+        default: throw fflerror("invalid motion type: %s", motionName(m_motion->type));
     }
 }
 

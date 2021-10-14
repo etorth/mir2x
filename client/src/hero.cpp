@@ -505,9 +505,10 @@ bool Hero::parseAction(const ActionNode &action)
                         const auto motionSpell = [&gfxEntry]() -> int
                         {
                             switch(gfxEntry.motion){
-                                case 0  : return MOTION_SPELL0;
-                                case 1  : return MOTION_SPELL1;
-                                default : throw bad_reach();
+                                case MOTION_SPELL0:
+                                case MOTION_SPELL1:
+                                case MOTION_ATTACKMODE: return gfxEntry.motion;
+                                default: throw bad_reach();
                             }
                         }();
 
@@ -525,8 +526,12 @@ bool Hero::parseAction(const ActionNode &action)
                             }
                         };
 
-                        const auto standDir = [&fnGetSpellDir, &action, this]() -> int
+                        const auto standDir = [&gfxEntry, &fnGetSpellDir, &action, this]() -> int
                         {
+                            if(gfxEntry.motion == MOTION_ATTACKMODE){
+                                return DIR_DOWN;
+                            }
+
                             if(action.aimUID){
                                 if(auto coPtr = m_processRun->findUID(action.aimUID); coPtr && coPtr->getTargetBox()){
                                     if(const auto dir = m_processRun->getAimDirection(action, DIR_NONE); dir != DIR_NONE){
