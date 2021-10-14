@@ -1117,6 +1117,7 @@
             .stage = u8"启动",
             .type  = u8"附着",
             .gfxID = 0X02000028,
+            .modColor = colorf::RGBA(255, 255, 255, 120),
             .frameCount = 10,
             .gfxDirType = 1,
             .motion = MOTION_ATTACKMODE,
