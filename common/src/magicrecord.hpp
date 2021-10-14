@@ -21,6 +21,7 @@
 #include <initializer_list>
 #include "sysconst.hpp"
 #include "motion.hpp"
+#include "colorf.hpp"
 
 enum MagicElemType: int
 {
@@ -138,6 +139,7 @@ struct MagicGfxEntry
     const char8_t *type  = nullptr;
 
     const uint32_t gfxID = SYS_TEXNIL;
+    const uint32_t modColor = colorf::RGBA(0XFF, 0XFF, 0XFF, 0XFF);
 
     const int frameCount = 0;
     const int gfxIDCount = frameCount;

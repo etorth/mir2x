@@ -220,7 +220,7 @@ void Hero::drawFrame(int viewX, int viewY, int, int frame, bool)
     }
 
     if(m_currMotion->effect && !m_currMotion->effect->done()){
-        m_currMotion->effect->drawShift(startX, startY, colorf::RGBA(0XFF, 0XFF, 0XFF, 0XF0));
+        m_currMotion->effect->drawShift(startX, startY, colorf::RGBA(0XFF, 0XFF, 0XFF, 0XFF));
     }
 
     // draw HP bar
