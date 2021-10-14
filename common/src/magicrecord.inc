@@ -1100,6 +1100,39 @@
     .mpInc = 1,
     .power = {5, 9},
     .addPower = {0, 4},
+    .gfxList
+    {
+        {
+            .stage = u8"启动",
+            .type  = u8"附着",
+            .gfxID = 0X0100015E,
+            .modColor = colorf::RGBA(255, 255, 255, 120),
+            .frameCount = 7,
+            .gfxIDCount = 10,
+            .gfxDirType = 8,
+        },
+
+        {
+            .stage = u8"运行",
+            .type  = u8"跟随",
+            .gfxID = 0X010001AE,
+            .modColor = colorf::RGBA(255, 255, 255, 120),
+            .frameCount = 5,
+            .gfxIDCount = 10,
+            .gfxDirType = 16, //special, has 16 directions
+            .loop = 1,
+            .speed = 200,
+        },
+
+        {
+            .stage = u8"结束",
+            .type  = u8"附着",
+            .gfxID = 0X0100024E,
+            .modColor = colorf::RGBA(255, 255, 255, 120),
+            .frameCount = 10,
+            .gfxDirType = 1,
+        },
+    }
 },
 
 {   .name = u8"龙卷风",
@@ -1145,6 +1178,33 @@
     .mpInc = 6,
     .power = {14, 18},
     .addPower = {7, 11},
+    .gfxList
+    {
+        {
+            .stage = u8"启动",
+            .type  = u8"附着",
+            .gfxID = 0X010007B2,
+            .frameCount = 10,
+            .gfxDirType = 1,
+            .motion = MOTION_SPELL1,
+        },
+
+        {
+            .stage = u8"运行",
+            .type  = u8"固定",
+            .gfxID = 0X010007BC,
+            .frameCount = 15,
+            .gfxDirType = 1,
+        },
+
+        {
+            .stage = u8"结束",
+            .type  = u8"固定",
+            .gfxID = 0X010007D0,
+            .frameCount = 10,
+            .gfxDirType = 1,
+        },
+    },
 },
 
 {   .name = u8"回生术",
