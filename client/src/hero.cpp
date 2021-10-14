@@ -662,6 +662,29 @@ bool Hero::parseAction(const ActionNode &action)
                                     });
                                     break;
                                 }
+                            case DBCOM_MAGICID(u8"爆裂火焰"):
+                                {
+                                    m_motionQueue.back()->addTrigger(true, [action, this](MotionNode *motionPtr) -> bool
+                                    {
+                                        if(motionPtr->frame < 3){
+                                            return false;
+                                        }
+
+                                        const auto [aimX, aimY] = [action, this]() -> std::tuple<int, int>
+                                        {
+                                            if(auto coPtr = m_processRun->findUID(action.aimUID)){
+                                                return {coPtr->currMotion()->endX, coPtr->currMotion()->endY};
+                                            }
+                                            else{
+                                                return {action.aimX, action.aimY};
+                                            }
+                                        }();
+
+                                        m_processRun->addFixedLocMagic(std::unique_ptr<FixedLocMagic>(new FixedLocMagic(u8"爆裂火焰", u8"运行", aimX, aimY)));
+                                        return true;
+                                    });
+                                    break;
+                                }
                             case DBCOM_MAGICID(u8"火球术"):
                             case DBCOM_MAGICID(u8"大火球"):
                             case DBCOM_MAGICID(u8"灵魂火符"):

@@ -628,6 +628,25 @@
     .mpInc = 20,
     .power = {14, 18},
     .addPower = {14, 18},
+    .gfxList
+    {
+        {
+            .stage = u8"启动",
+            .type  = u8"附着",
+            .gfxID = 0X000003AC,
+            .frameCount = 10,
+            .gfxDirType = 1,
+            .motion = MOTION_SPELL1,
+        },
+
+        {
+            .stage = u8"运行",
+            .type  = u8"固定",
+            .gfxID = 0X000003B6,
+            .frameCount = 10,
+            .gfxDirType = 1,
+        },
+    },
 },
 
 {   .name = u8"地狱雷光",
@@ -1239,6 +1258,16 @@
     .coolDown = 200,
     .mp = 40,
     .mpInc = 20,
+    .gfxList
+    {
+        {
+            .stage = u8"启动",
+            .type  = u8"附着",
+            .gfxID = 0X02000244,
+            .frameCount = 10,
+            .gfxDirType = 8,
+        },
+    },
 },
 
 {   .name = u8"魄冰刺",
