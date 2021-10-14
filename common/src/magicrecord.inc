@@ -1163,6 +1163,43 @@
     .mpInc = 15,
     .power = {13, 17},
     .addPower = {12, 16},
+    .gfxList
+    {
+        // 击风 and 风震天 are actually using same gfx
+        // but 风震天 splits the gfx into three parts to present moving magic
+        {
+            .stage = u8"启动",
+            .type  = u8"附着",
+            .gfxID = 0X010007B2, // same with 击风
+            .frameCount = 10,
+            .gfxDirType = 1,
+            .motion = MOTION_SPELL1,
+        },
+
+        {
+            .stage = u8"开始",
+            .type  = u8"固定",
+            .gfxID = 0X010007BC,
+            .frameCount = 10,
+            .gfxDirType = 1,
+        },
+
+        {
+            .stage = u8"运行",
+            .type  = u8"固定",
+            .gfxID = 0X010007C6,
+            .frameCount = 5,
+            .gfxDirType = 1,
+        },
+
+        {
+            .stage = u8"结束",
+            .type  = u8"固定",
+            .gfxID = 0X010007D0,
+            .frameCount = 10,
+            .gfxDirType = 1,
+        },
+    },
 },
 
 {   .name = u8"击风",

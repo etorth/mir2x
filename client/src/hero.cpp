@@ -626,6 +626,62 @@ bool Hero::parseAction(const ActionNode &action)
                                     });
                                     break;
                                 }
+                            case DBCOM_MAGICID(u8"风震天"):
+                                {
+                                    m_motionQueue.back()->addTrigger(true, [standDir, magicID, this](MotionNode *motionPtr) -> bool
+                                    {
+                                        if(motionPtr->frame < 4){
+                                            return false;
+                                        }
+
+                                        const auto castX = motionPtr->endX;
+                                        const auto castY = motionPtr->endY;
+                                        const auto [aimX, aimY] = pathf::getFrontGLoc(castX, castY, standDir, 1);
+                                        m_processRun->addFixedLocMagic(std::unique_ptr<FixedLocMagic>(new FixedLocMagic
+                                        {
+                                            u8"风震天",
+                                            u8"开始",
+
+                                            aimX,
+                                            aimY,
+                                        }))->addOnDone([standDir, this](MagicBase *magicPtr)
+                                        {
+                                            const auto fnAddNextStep = +[](MagicBase *magicPtr, int standDir, ProcessRun *proc, std::shared_ptr<int> magicRanPtr, void *selfFuncPtr)
+                                            {
+                                                const auto fixedLocMagicPtr = dynamic_cast<FixedLocMagic *>(magicPtr);
+                                                const auto [nextX, nextY] = pathf::getFrontGLoc(fixedLocMagicPtr->x(), fixedLocMagicPtr->y(), standDir, 1);
+
+                                                if(*magicRanPtr >= 5){
+                                                    proc->addFixedLocMagic(std::unique_ptr<FixedLocMagic>(new FixedLocMagic
+                                                    {
+                                                        u8"风震天",
+                                                        u8"结束",
+
+                                                        nextX,
+                                                        nextY,
+                                                    }));
+                                                }
+                                                else{
+                                                    (*magicRanPtr)++;
+                                                    proc->addFixedLocMagic(std::unique_ptr<FixedLocMagic>(new FixedLocMagic
+                                                    {
+                                                        u8"风震天",
+                                                        u8"运行",
+
+                                                        nextX,
+                                                        nextY,
+                                                    }))->addOnDone([proc, magicRanPtr, standDir, selfFuncPtr](MagicBase *magicPtr)
+                                                    {
+                                                        ((void (*)(MagicBase *, int, ProcessRun *, std::shared_ptr<int>, void *))(selfFuncPtr))(magicPtr, standDir, proc, magicRanPtr, selfFuncPtr);
+                                                    });
+                                                }
+                                            };
+                                            fnAddNextStep(magicPtr, standDir, m_processRun, std::make_shared<int>(0), (void *)(fnAddNextStep));
+                                        });
+                                        return true;
+                                    });
+                                    break;
+                                }
                             case DBCOM_MAGICID(u8"疾光电影"):
                                 {
                                     m_motionQueue.back()->addTrigger(true, [standDir, this](MotionNode *motionPtr) -> bool
@@ -662,6 +718,7 @@ bool Hero::parseAction(const ActionNode &action)
                                     });
                                     break;
                                 }
+                            case DBCOM_MAGICID(u8"击风"  ):
                             case DBCOM_MAGICID(u8"冰咆哮"):
                             case DBCOM_MAGICID(u8"爆裂火焰"):
                             case DBCOM_MAGICID(u8"地狱雷光"):
@@ -683,7 +740,13 @@ bool Hero::parseAction(const ActionNode &action)
                                             }
                                         }();
 
-                                        m_processRun->addFixedLocMagic(std::unique_ptr<FixedLocMagic>(new FixedLocMagic(DBCOM_MAGICRECORD(magicID).name, u8"运行", aimX, aimY)));
+                                        auto addedMagic = m_processRun->addFixedLocMagic(std::unique_ptr<FixedLocMagic>(new FixedLocMagic(DBCOM_MAGICRECORD(magicID).name, u8"运行", aimX, aimY)));
+                                        if(magicID == DBCOM_MAGICID(u8"击风")){
+                                            addedMagic->addOnDone([aimX, aimY, magicID, this](MagicBase *)
+                                            {
+                                                m_processRun->addFixedLocMagic(std::unique_ptr<FixedLocMagic>(new FixedLocMagic(DBCOM_MAGICRECORD(magicID).name, u8"结束", aimX, aimY)));
+                                            });
+                                        }
                                         return true;
                                     });
                                     break;
@@ -691,6 +754,7 @@ bool Hero::parseAction(const ActionNode &action)
                             case DBCOM_MAGICID(u8"火球术"):
                             case DBCOM_MAGICID(u8"大火球"):
                             case DBCOM_MAGICID(u8"霹雳掌"):
+                            case DBCOM_MAGICID(u8"风掌"  ):
                             case DBCOM_MAGICID(u8"灵魂火符"):
                             case DBCOM_MAGICID(u8"冰月神掌"):
                             case DBCOM_MAGICID(u8"冰月震天"):
