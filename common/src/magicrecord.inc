@@ -1184,6 +1184,25 @@
     .coolDown = 200,
     .mp = 40,
     .mpInc = 10,
+    .gfxList
+    {
+        {
+            .stage = u8"启动",
+            .type  = u8"附着",
+            .gfxID = 0X02000000,
+            .frameCount = 10,
+            .gfxDirType = 1,
+            .motion = 1,
+        },
+
+        {
+            .stage = u8"运行",
+            .type  = u8"附着",
+            .gfxID = 0X0200000A,
+            .frameCount = 10,
+            .gfxDirType = 1,
+        },
+    },
 },
 
 {   .name = u8"斗转星移",

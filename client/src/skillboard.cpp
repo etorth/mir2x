@@ -66,6 +66,7 @@ void SkillBoard::SkillBoardConfig::setMagicKey(uint32_t magicID, std::optional<c
     fflassert(SkillBoard::getMagicIconGfx(magicID));
 
     fflassert(hasMagicID(magicID));
+    fflassert(!SkillBoard::getMagicIconGfx(magicID).passive);
     fflassert(!key.has_value() || (key.value() >= 'a' && key.value() <= 'z') || (key.value() >= '0' && key.value() <= '9'));
 
     m_learnedMagicList[magicID].key = key;
@@ -443,8 +444,10 @@ bool SkillBoard::MagicIconButton::processEvent(const SDL_Event &event, bool vali
     const auto result = m_icon.processEvent(event, valid);
     if(event.type == SDL_KEYDOWN && cursorOn()){
         if(const auto key = SDLDeviceHelper::getKeyChar(event, false); (key >= '0' && key <= '9') || (key >= 'a' && key <= 'z')){
-            m_config->setMagicKey(magicID(), key);
-            m_processRun->requestSetMagicKey(magicID(), key);
+            if(!SkillBoard::getMagicIconGfx(magicID()).passive){
+                m_config->setMagicKey(magicID(), key);
+                m_processRun->requestSetMagicKey(magicID(), key);
+            }
             return focusConsume(this, true);
         }
     }
@@ -540,7 +543,7 @@ void SkillBoard::drawTabName() const
                 for(const auto magicIconPtr: m_skillPageList.at(m_selectedTabIndex)->getMagicIconButtonList()){
                     if(magicIconPtr->cursorOn()){
                         if(const auto &mr = DBCOM_MAGICRECORD(magicIconPtr->magicID())){
-                            return str_printf(u8"元素【%s】%s", to_cstr(mr.elem), to_cstr(mr.name));
+                            return str_printf(u8"元素【%s】%s", str_haschar(mr.elem) ? to_cstr(mr.elem) : "无", to_cstr(mr.name));
                         }
                         else{
                             return str_printf(u8"元素【无】");
