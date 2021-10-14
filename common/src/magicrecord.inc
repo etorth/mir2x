@@ -662,6 +662,25 @@
     .mpInc = 20,
     .power = {14, 18},
     .addPower = {14, 18},
+    .gfxList
+    {
+        {
+            .stage = u8"启动",
+            .type  = u8"附着",
+            .gfxID = 0X02000118,
+            .frameCount = 8,
+            .gfxDirType = 1,
+            .motion = MOTION_SPELL1,
+        },
+
+        {
+            .stage = u8"运行",
+            .type  = u8"固定",
+            .gfxID = 0X010003D4,
+            .frameCount = 8,
+            .gfxDirType = 1,
+        },
+    },
 },
 
 {   .name = u8"半月弯刀",
@@ -782,6 +801,25 @@
     .mpInc = 20,
     .power = {12, 16},
     .addPower = {14, 18},
+    .gfxList
+    {
+        {
+            .stage = u8"启动",
+            .type  = u8"附着",
+            .gfxID = 0X00000302,
+            .frameCount = 10,
+            .gfxDirType = 1,
+            .motion = MOTION_SPELL1,
+        },
+
+        {
+            .stage = u8"运行",
+            .type  = u8"固定",
+            .gfxID = 0X0000030C,
+            .frameCount = 10,
+            .gfxDirType = 1,
+        },
+    },
 },
 
 {   .name = u8"莲月剑法",
@@ -983,6 +1021,36 @@
     .mpInc = 1,
     .power = {6, 10},
     .addPower = {0, 4},
+    .gfxList
+    {
+        {
+            .stage = u8"启动",
+            .type  = u8"附着",
+            .gfxID = 0X00000BAE,
+            .frameCount = 6,
+            .gfxIDCount = 10,
+            .gfxDirType = 8,
+        },
+
+        {
+            .stage = u8"运行",
+            .type  = u8"跟随",
+            .gfxID = 0X00000BFE,
+            .frameCount = 6,
+            .gfxIDCount = 10,
+            .gfxDirType = 16, //special, has 16 directions
+            .loop = 1,
+            .speed = 200,
+        },
+
+        {
+            .stage = u8"结束",
+            .type  = u8"附着",
+            .gfxID = 0X00000C9E,
+            .frameCount = 10,
+            .gfxDirType = 1,
+        },
+    }
 },
 
 {   .name = u8"冰沙掌",
@@ -1283,6 +1351,17 @@
     .mpInc = 20,
     .power = {16, 20},
     .addPower = {16, 20},
+    .gfxList
+    {
+        {
+            .stage = u8"启动",
+            .type  = u8"附着",
+            .gfxID = 0X01000000,
+            .frameCount = 10,
+            .gfxIDCount = 10,
+            .gfxDirType = 8,
+        },
+    },
 },
 
 {   .name = u8"怒神霹雳",
@@ -1298,6 +1377,25 @@
     .mpInc = 30,
     .power = {20, 40},
     .addPower = {20, 30},
+    .gfxList
+    {
+        {
+            .stage = u8"启动",
+            .type  = u8"附着",
+            .gfxID = 0X02000118,
+            .frameCount = 8,
+            .gfxDirType = 1,
+            .motion = MOTION_SPELL1,
+        },
+
+        {
+            .stage = u8"运行",
+            .type  = u8"固定",
+            .gfxID = 0X020001D6,
+            .frameCount = 10,
+            .gfxDirType = 1,
+        },
+    },
 },
 
 {   .name = u8"凝血离魂",

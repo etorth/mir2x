@@ -1911,8 +1911,12 @@ void ProcessRun::checkMagicSpell(const SDL_Event &event)
         case DBCOM_MAGICID(u8"雷电术"):
         case DBCOM_MAGICID(u8"火球术"):
         case DBCOM_MAGICID(u8"大火球"):
+        case DBCOM_MAGICID(u8"冰咆哮"):
+        case DBCOM_MAGICID(u8"霹雳掌"):
         case DBCOM_MAGICID(u8"斗转星移"):
         case DBCOM_MAGICID(u8"爆裂火焰"):
+        case DBCOM_MAGICID(u8"地狱雷光"):
+        case DBCOM_MAGICID(u8"怒神霹雳"):
         case DBCOM_MAGICID(u8"灵魂火符"):
         case DBCOM_MAGICID(u8"冰月神掌"):
         case DBCOM_MAGICID(u8"冰月震天"):
@@ -1947,6 +1951,7 @@ void ProcessRun::checkMagicSpell(const SDL_Event &event)
         case DBCOM_MAGICID(u8"火墙"):
         case DBCOM_MAGICID(u8"地狱火"):
         case DBCOM_MAGICID(u8"冰沙掌"):
+        case DBCOM_MAGICID(u8"魄冰刺"):
         case DBCOM_MAGICID(u8"疾光电影"):
         case DBCOM_MAGICID(u8"焰天火雨"):
             {

@@ -662,9 +662,12 @@ bool Hero::parseAction(const ActionNode &action)
                                     });
                                     break;
                                 }
+                            case DBCOM_MAGICID(u8"冰咆哮"):
                             case DBCOM_MAGICID(u8"爆裂火焰"):
+                            case DBCOM_MAGICID(u8"地狱雷光"):
+                            case DBCOM_MAGICID(u8"怒神霹雳"):
                                 {
-                                    m_motionQueue.back()->addTrigger(true, [action, this](MotionNode *motionPtr) -> bool
+                                    m_motionQueue.back()->addTrigger(true, [magicID, action, this](MotionNode *motionPtr) -> bool
                                     {
                                         if(motionPtr->frame < 3){
                                             return false;
@@ -680,13 +683,14 @@ bool Hero::parseAction(const ActionNode &action)
                                             }
                                         }();
 
-                                        m_processRun->addFixedLocMagic(std::unique_ptr<FixedLocMagic>(new FixedLocMagic(u8"爆裂火焰", u8"运行", aimX, aimY)));
+                                        m_processRun->addFixedLocMagic(std::unique_ptr<FixedLocMagic>(new FixedLocMagic(DBCOM_MAGICRECORD(magicID).name, u8"运行", aimX, aimY)));
                                         return true;
                                     });
                                     break;
                                 }
                             case DBCOM_MAGICID(u8"火球术"):
                             case DBCOM_MAGICID(u8"大火球"):
+                            case DBCOM_MAGICID(u8"霹雳掌"):
                             case DBCOM_MAGICID(u8"灵魂火符"):
                             case DBCOM_MAGICID(u8"冰月神掌"):
                             case DBCOM_MAGICID(u8"冰月震天"):
