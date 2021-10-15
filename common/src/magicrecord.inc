@@ -641,6 +641,23 @@
     .coolDown = 600,
     .mp = 3,
     .mpInc = 3,
+    .gfxList
+    {
+        {
+            .stage = u8"启动",
+            .type  = u8"附着",
+            .gfxID = 0X00000000,
+            .frameCount = 10,
+            .motion = MOTION_SPELL1,
+        },
+
+        {
+            .stage = u8"运行",
+            .type  = u8"附着",
+            .gfxID = 0X0000000A,
+            .frameCount = 20,
+        },
+    },
 },
 
 {   .name = u8"瞬息移动",
