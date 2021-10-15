@@ -2016,6 +2016,23 @@
     .mpInc = 30,
     .power = {4, 8},
     .addPower = {3, 4},
+    .gfxList
+    {
+        {
+            .stage = u8"启动",
+            .type  = u8"附着",
+            .gfxID = 0X02000168,
+            .frameCount = 10,
+            .motion = MOTION_SPELL1,
+        },
+
+        {
+            .stage = u8"运行",
+            .type  = u8"附着",
+            .gfxID = 0X02000172,
+            .frameCount = 10,
+        },
+    },
 },
 
 {   .name = u8"神兽_喷火",
