@@ -1934,6 +1934,8 @@ void ProcessRun::checkMagicSpell(const SDL_Event &event)
         case DBCOM_MAGICID(u8"群体治愈术"):
         case DBCOM_MAGICID(u8"幽灵盾"):
         case DBCOM_MAGICID(u8"神圣战甲术"):
+        case DBCOM_MAGICID(u8"强魔震法"):
+        case DBCOM_MAGICID(u8"猛虎强势"):
             {
                 getMyHero()->brakeMove();
                 if(const auto uid = focusUID(FOCUS_MAGIC)){

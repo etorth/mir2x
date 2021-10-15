@@ -121,6 +121,8 @@ std::tuple<int, int> FollowUIDMagic::targetOff() const
         case DBCOM_MAGICID(u8"幽灵盾"):
         case DBCOM_MAGICID(u8"神圣战甲术"):
         case DBCOM_MAGICID(u8"灵魂火符"):
+        case DBCOM_MAGICID(u8"强魔震法"):
+        case DBCOM_MAGICID(u8"猛虎强势"):
             {
                 switch(gfxDirIndex()){
                     case  0: return { 31, -56};
