@@ -646,7 +646,7 @@ bool Hero::parseAction(const ActionNode &action)
                                             aimY,
                                         }))->addOnDone([standDir, this](MagicBase *magicPtr)
                                         {
-                                            const auto fnAddNextStep = +[](MagicBase *magicPtr, int standDir, ProcessRun *proc, std::shared_ptr<int> magicRanPtr, void *selfFuncPtr)
+                                            auto fnAddNextStep = +[](MagicBase *magicPtr, int standDir, ProcessRun *proc, std::shared_ptr<int> magicRanPtr, void *selfFuncPtr)
                                             {
                                                 const auto fixedLocMagicPtr = dynamic_cast<FixedLocMagic *>(magicPtr);
                                                 const auto [nextX, nextY] = pathf::getFrontGLoc(fixedLocMagicPtr->x(), fixedLocMagicPtr->y(), standDir, 1);
