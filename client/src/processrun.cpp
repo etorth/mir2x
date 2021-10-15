@@ -1918,6 +1918,7 @@ void ProcessRun::checkMagicSpell(const SDL_Event &event)
         case DBCOM_MAGICID(u8"霹雳掌"):
         case DBCOM_MAGICID(u8"风掌"):
         case DBCOM_MAGICID(u8"击风"):
+        case DBCOM_MAGICID(u8"月魂断玉"):
         case DBCOM_MAGICID(u8"斗转星移"):
         case DBCOM_MAGICID(u8"爆裂火焰"):
         case DBCOM_MAGICID(u8"地狱雷光"):

@@ -265,6 +265,13 @@ std::tuple<int, int> FollowUIDMagic::targetOff() const
                     default: throw bad_reach();
                 }
             }
+        case DBCOM_MAGICID(u8"月魂断玉"):
+            {
+                switch(gfxDirIndex()){
+                    case  0: return { 24, -14};
+                    default: throw bad_reach();
+                }
+            }
         default:
             {
                 return {0, 0};

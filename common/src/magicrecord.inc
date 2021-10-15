@@ -948,6 +948,36 @@
     .mpInc = 3,
     .power = {6, 10},
     .addPower = {3, 3},
+    .gfxList
+    {
+        {
+            .stage = u8"启动",
+            .type  = u8"附着",
+            .gfxID = 0X00000CB2,
+            .frameCount = 6,
+            .gfxIDCount = 10,
+            .gfxDirType = 8,
+        },
+
+        {
+            .stage = u8"运行",
+            .type  = u8"跟随",
+            .gfxID = 0X00000D02,
+            .frameCount = 6,
+            .gfxIDCount = 10,
+            .gfxDirType = 1,
+            .loop = 1,
+            .speed = 200,
+        },
+
+        {
+            .stage = u8"结束",
+            .type  = u8"附着",
+            .gfxID = 0X00000D0C,
+            .frameCount = 10,
+            .gfxDirType = 1,
+        },
+    },
 },
 
 {   .name = u8"月魂灵波",

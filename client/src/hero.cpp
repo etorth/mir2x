@@ -795,6 +795,7 @@ bool Hero::parseAction(const ActionNode &action)
                             case DBCOM_MAGICID(u8"大火球"):
                             case DBCOM_MAGICID(u8"霹雳掌"):
                             case DBCOM_MAGICID(u8"风掌"  ):
+                            case DBCOM_MAGICID(u8"月魂断玉"):
                             case DBCOM_MAGICID(u8"灵魂火符"):
                             case DBCOM_MAGICID(u8"冰月神掌"):
                             case DBCOM_MAGICID(u8"冰月震天"):
@@ -804,7 +805,7 @@ bool Hero::parseAction(const ActionNode &action)
                                         // usually when reaches this cb the current motion is motionPtr
                                         // but not true if in flushForcedMotion()
 
-                                        if(motionPtr->frame < 3){
+                                        if(motionPtr->frame < 4){
                                             return false;
                                         }
 
@@ -824,6 +825,7 @@ bool Hero::parseAction(const ActionNode &action)
                                         const auto gfxDirIndex = [magicID, flyDir16Index]()
                                         {
                                             switch(magicID){
+                                                case DBCOM_MAGICID(u8"月魂断玉"): return 0;
                                                 case DBCOM_MAGICID(u8"冰月震天"): return 0;
                                                 default                         : return flyDir16Index;
                                             }
