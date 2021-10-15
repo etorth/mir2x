@@ -741,6 +741,7 @@ void Player::onCMActionSpell(CMAction cmA)
                 break;
             }
         case DBCOM_MAGICID(u8"魔法盾"):
+        case DBCOM_MAGICID(u8"阴阳法环"):
             {
                 SMCastMagic smFM;
                 std::memset(&smFM, 0, sizeof(smFM));

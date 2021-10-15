@@ -452,6 +452,18 @@ void ProcessRun::net_CASTMAGIC(const uint8_t *bufPtr, size_t)
                 }
                 return;
             }
+        case DBCOM_MAGICID(u8"阴阳法环"):
+            {
+                if(auto coPtr = findUID(smCM.UID)){
+                    coPtr->addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"阴阳法环", u8"开始")))->addOnDone([smCM, this](MagicBase *)
+                    {
+                        if(auto coPtr = findUID(smCM.UID)){
+                            coPtr->addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"阴阳法环", u8"运行")));
+                        }
+                    });
+                }
+                return;
+            }
         case DBCOM_MAGICID(u8"雷电术"):
         case DBCOM_MAGICID(u8"沃玛教主_雷电术"):
             {

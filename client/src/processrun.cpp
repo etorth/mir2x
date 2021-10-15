@@ -1979,6 +1979,7 @@ void ProcessRun::checkMagicSpell(const SDL_Event &event)
             }
         case DBCOM_MAGICID(u8"魔法盾"):
         case DBCOM_MAGICID(u8"铁布衫"):
+        case DBCOM_MAGICID(u8"阴阳法环"):
         case DBCOM_MAGICID(u8"抗拒火环"):
         case DBCOM_MAGICID(u8"破血狂杀"):
         case DBCOM_MAGICID(u8"召唤骷髅"):
