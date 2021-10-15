@@ -118,6 +118,8 @@ std::tuple<int, int> FollowUIDMagic::targetOff() const
                     default: throw bad_reach();
                 }
             }
+        case DBCOM_MAGICID(u8"幽灵盾"):
+        case DBCOM_MAGICID(u8"神圣战甲术"):
         case DBCOM_MAGICID(u8"灵魂火符"):
             {
                 switch(gfxDirIndex()){
