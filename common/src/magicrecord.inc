@@ -488,6 +488,23 @@
     .coolDown = 1000,
     .mp = 15,
     .mpInc = 10,
+    .gfxList
+    {
+        {
+            .stage = u8"启动",
+            .type  = u8"附着",
+            .gfxID = 0X00000276,
+            .frameCount = 10,
+            .motion = MOTION_SPELL1,
+        },
+
+        {
+            .stage = u8"运行",
+            .type  = u8"固定",
+            .gfxID = 0X00000280,
+            .frameCount = 10,
+        },
+    },
 },
 
 {   .name = u8"隐身术",
