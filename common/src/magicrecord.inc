@@ -1890,6 +1890,16 @@
     .mpInc = 10,
     .power = {6, 2},
     .addPower = {1, 1},
+    .gfxList
+    {
+        {
+            .stage = u8"启动",
+            .type  = u8"附着",
+            .gfxID = 0X02000050,
+            .frameCount = 10,
+            .motion = MOTION_SPELL1,
+        },
+    },
 },
 
 {   .name = u8"焰天火雨",

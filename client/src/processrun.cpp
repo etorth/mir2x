@@ -2019,6 +2019,7 @@ void ProcessRun::checkMagicSpell(const SDL_Event &event)
                 break;
             }
         case DBCOM_MAGICID(u8"隐身术"):
+        case DBCOM_MAGICID(u8"凝血离魂"):
         case DBCOM_MAGICID(u8"妙影无踪"):
         case DBCOM_MAGICID(u8"魔法盾"):
         case DBCOM_MAGICID(u8"铁布衫"):
