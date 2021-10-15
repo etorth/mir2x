@@ -1754,7 +1754,7 @@
             .stage = u8"启动",
             .type  = u8"附着",
             .gfxID = 0X02000118, // same as 怒神霹雳
-            .modColor = colorf::RGBA(255, 255, 40, 255),
+            .modColor = colorf::RGBA(255, 255, 126, 100),
             .frameCount = 8,
             .gfxDirType = 1,
             .motion = MOTION_SPELL1,
@@ -1771,6 +1771,7 @@
             .stage = u8"运行",
             .type  = u8"附着",
             .gfxID = 0X0200012C, // need to manually make gfx, this one uses first 2 frames of 阴阳法环/挨打
+            .modColor = colorf::RGBA(255, 255, 255, 120),
             .frameCount = 2,
             .loop = 1,
         },
