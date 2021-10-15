@@ -1930,6 +1930,32 @@ void ProcessRun::checkMagicSpell(const SDL_Event &event)
     }
 
     switch(magicID){
+        case DBCOM_MAGICID(u8"空拳刀法"):
+            {
+                getMyHero()->brakeMove();
+                if(const auto uid = focusUID(FOCUS_MAGIC)){
+                    getMyHero()->emplaceAction(ActionSpinKick
+                    {
+                        .x = getMyHero()->currMotion()->endX,
+                        .y = getMyHero()->currMotion()->endY,
+                        .aimUID = uid,
+                    });
+                }
+                else{
+                    // even there is no target UID
+                    // we still cast the magic to show gfx
+
+                    const auto [aimX, aimY] = getMouseGLoc();
+                    getMyHero()->emplaceAction(ActionSpinKick
+                    {
+                        .x = getMyHero()->currMotion()->endX,
+                        .y = getMyHero()->currMotion()->endY,
+                        .aimX = aimX,
+                        .aimY = aimY,
+                    });
+                }
+                break;
+            }
         case DBCOM_MAGICID(u8"烈火剑法"):
         case DBCOM_MAGICID(u8"翔空剑法"):
         case DBCOM_MAGICID(u8"莲月剑法"):

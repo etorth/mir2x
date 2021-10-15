@@ -187,10 +187,11 @@ class Player final: public CharObject
         bool MotionValid(const ActionNode &);
 
     protected:
-        void onCMActionMove  (CMAction);
-        void onCMActionStand (CMAction);
-        void onCMActionSpell (CMAction);
-        void onCMActionAttack(CMAction);
+        void onCMActionMove    (CMAction);
+        void onCMActionStand   (CMAction);
+        void onCMActionSpell   (CMAction);
+        void onCMActionSpinKick(CMAction);
+        void onCMActionAttack  (CMAction);
 
     private:
         bool postNetMessage(uint8_t, const void *, size_t);

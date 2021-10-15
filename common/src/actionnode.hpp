@@ -38,6 +38,7 @@ enum ActionType: int
     ACTION_SPELL,
     ACTION_TRANSF,
     ACTION_HITTED,
+    ACTION_SPINKICK,
     ACTION_DIE,
     ACTION_END,
 };
@@ -213,6 +214,36 @@ struct ActionNode
     } extParam;
 };
 #pragma pack(pop)
+
+struct ActionSpinKick
+{
+    const int speed = SYS_DEFSPEED;
+
+    const int x = -1;
+    const int y = -1;
+
+    const int aimX = x;
+    const int aimY = y;
+
+    const uint64_t aimUID = 0;
+
+    operator ActionNode () const
+    {
+        ActionNode node;
+        std::memset(&node, 0, sizeof(node));
+
+        node.type = ACTION_SPINKICK;
+        node.speed = speed;
+
+        node.x = x;
+        node.y = y;
+
+        node.aimX = aimX;
+        node.aimY = aimY;
+        node.aimUID = aimUID;
+        return node;
+    }
+};
 
 struct ActionDie
 {
@@ -506,6 +537,7 @@ inline const char *actionName(int type)
         _add_action_type_case(ACTION_SPELL     )
         _add_action_type_case(ACTION_TRANSF    )
         _add_action_type_case(ACTION_HITTED    )
+        _add_action_type_case(ACTION_SPINKICK  )
         _add_action_type_case(ACTION_DIE       )
         default: return "ACTION_UNKNOWN";
     }

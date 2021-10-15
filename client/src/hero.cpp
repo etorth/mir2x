@@ -345,12 +345,9 @@ bool Hero::motionValid(const std::unique_ptr<MotionNode> &motionPtr) const
             case MOTION_HITTED:
             case MOTION_WHEELWIND:
             case MOTION_RANDSWING:
+            case MOTION_SPINKICK:
                 {
                     return !onHorse() && (nLDistance2 == 0);
-                }
-            case MOTION_BACKDROPKICK:
-                {
-                    return false;
                 }
             case MOTION_DIE:
                 {
@@ -430,6 +427,7 @@ bool Hero::parseAction(const ActionNode &action)
         case ACTION_STAND:
         case ACTION_SPELL:
         case ACTION_ATTACK:
+        case ACTION_SPINKICK:
             {
                 m_motionQueue = makeWalkMotionQueue(endX, endY, action.x, action.y, SYS_MAXSPEED);
                 break;
@@ -460,6 +458,27 @@ bool Hero::parseAction(const ActionNode &action)
                     }(),
 
                     .direction = action.direction,
+                    .x = action.x,
+                    .y = action.y,
+                }));
+                break;
+            }
+        case ACTION_SPINKICK:
+            {
+                m_motionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
+                {
+                    .type = MOTION_SPINKICK,
+                    .direction = [&action, this]() -> int
+                    {
+                        if(action.aimUID){
+                            if(auto coPtr = m_processRun->findUID(action.aimUID)){
+                                if(mathf::CDistance<int>(coPtr->x(), coPtr->y(), x(), y()) == 1){
+                                    return PathFind::GetDirection(coPtr->x(), coPtr->y(), x(), y());
+                                }
+                            }
+                        }
+                        return m_currMotion->direction;
+                    }(),
                     .x = action.x,
                     .y = action.y,
                 }));
@@ -1040,7 +1059,7 @@ HeroFrameGfxSeq Hero::getFrameGfxSeq(int motion, int direction) const
         case MOTION_HITTED          : return {.count =  3};
         case MOTION_WHEELWIND       : return {.count = 10};
         case MOTION_RANDSWING       : return {.count = 10};
-        case MOTION_BACKDROPKICK    : return {.count = 10};
+        case MOTION_SPINKICK        : return {.count = 10};
         case MOTION_DIE             : return {.count = 10};
         case MOTION_ONHORSEDIE      : return {.count = 10};
         case MOTION_WALK            : return {.count =  6};

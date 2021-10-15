@@ -37,11 +37,12 @@ void Player::net_CM_ACTION(uint8_t, const uint8_t *pBuf, size_t)
         // we may need to filter some actions to anti-cheat, dispatch in onCMActionXXXX(cmA) if legeal
 
         switch(to_d(cmA.action.type)){
-            case ACTION_STAND : onCMActionStand (cmA); return;
-            case ACTION_MOVE  : onCMActionMove  (cmA); return;
-            case ACTION_ATTACK: onCMActionAttack(cmA); return;
-            case ACTION_SPELL : onCMActionSpell (cmA); return;
-            default           :                        return;
+            case ACTION_STAND   : onCMActionStand   (cmA); return;
+            case ACTION_MOVE    : onCMActionMove    (cmA); return;
+            case ACTION_ATTACK  : onCMActionAttack  (cmA); return;
+            case ACTION_SPELL   : onCMActionSpell   (cmA); return;
+            case ACTION_SPINKICK: onCMActionSpinKick(cmA); return;
+            default             :                          return;
         }
     }
 }

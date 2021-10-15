@@ -2010,7 +2010,7 @@
             .type  = u8"附着",
             .gfxID = 0X020001AE,
             .frameCount = 7,
-            .motion = MOTION_SPELL1,
+            .motion = MOTION_ATTACKMODE,
         },
     },
 },

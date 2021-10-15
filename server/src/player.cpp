@@ -686,6 +686,12 @@ void Player::onCMActionAttack(CMAction stCMA)
     });
 }
 
+void Player::onCMActionSpinKick(CMAction cmA)
+{
+    fflassert(cmA.action.type == ACTION_SPINKICK);
+    dispatchAction(cmA.action);
+}
+
 void Player::onCMActionSpell(CMAction cmA)
 {
     fflassert(cmA.action.type == ACTION_SPELL);
