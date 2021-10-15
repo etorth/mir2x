@@ -2005,6 +2005,8 @@ void ProcessRun::checkMagicSpell(const SDL_Event &event)
         case DBCOM_MAGICID(u8"魄冰刺"):
         case DBCOM_MAGICID(u8"疾光电影"):
         case DBCOM_MAGICID(u8"焰天火雨"):
+        case DBCOM_MAGICID(u8"瞬息移动"):
+        case DBCOM_MAGICID(u8"异形换位"):
             {
                 const auto [aimX, aimY] = getMouseGLoc();
                 getMyHero()->brakeMove();

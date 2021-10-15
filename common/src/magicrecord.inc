@@ -1704,6 +1704,22 @@
     .coolDown = 2500,
     .mp = 20,
     .mpInc = 20,
+    .gfxList
+    {
+        {
+            .stage = u8"启动",
+            .type  = u8"附着",
+            .gfxID = 0X0000006E, // same as 瞬息移动
+            .frameCount = 10,
+        },
+
+        {
+            .stage = u8"结束",
+            .type  = u8"附着",
+            .gfxID = 0X00000938, // same as 瞬息移动
+            .frameCount = 10,
+        },
+    },
 },
 
 {   .name = u8"超强召唤骷髅",
