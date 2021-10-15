@@ -1148,6 +1148,25 @@
     .mpInc = 20,
     .power = {13, 17},
     .addPower = {14, 18},
+    .gfxList
+    {
+        {
+            .stage = u8"启动",
+            .type  = u8"附着",
+            .gfxID = 0X01000406,
+            .frameCount = 10,
+            .gfxDirType = 1,
+            .motion = MOTION_SPELL1,
+        },
+
+        {
+            .stage = u8"运行",
+            .type  = u8"固定",
+            .gfxID = 0X01000410,
+            .frameCount = 16,
+            .gfxDirType = 1,
+        },
+    },
 },
 
 {   .name = u8"风震天",

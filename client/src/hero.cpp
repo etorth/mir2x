@@ -720,6 +720,7 @@ bool Hero::parseAction(const ActionNode &action)
                                 }
                             case DBCOM_MAGICID(u8"击风"  ):
                             case DBCOM_MAGICID(u8"冰咆哮"):
+                            case DBCOM_MAGICID(u8"龙卷风"):
                             case DBCOM_MAGICID(u8"爆裂火焰"):
                             case DBCOM_MAGICID(u8"地狱雷光"):
                             case DBCOM_MAGICID(u8"怒神霹雳"):
