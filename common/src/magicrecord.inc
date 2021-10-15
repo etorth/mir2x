@@ -1705,6 +1705,23 @@
     .coolDown = 100,
     .mp = 20,
     .mpInc = 10,
+    .gfxList
+    {
+        {
+            .stage = u8"启动",
+            .type  = u8"附着",
+            .gfxID = 0X020000DC,
+            .frameCount = 10,
+            .motion = MOTION_SPELL1,
+        },
+
+        {
+            .stage = u8"运行",
+            .type  = u8"附着",
+            .gfxID = 0X020000E6,
+            .frameCount = 10,
+        },
+    },
 },
 
 {   .name = u8"妙影无踪",
