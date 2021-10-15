@@ -767,6 +767,7 @@ void Player::onCMActionSpell(CMAction cmA)
                 break;
             }
         case DBCOM_MAGICID(u8"召唤骷髅"):
+        case DBCOM_MAGICID(u8"超强召唤骷髅"):
             {
                 int nFrontX = -1;
                 int nFrontY = -1;
@@ -782,9 +783,14 @@ void Player::onCMActionSpell(CMAction cmA)
                 smFM.AimX  = nFrontX;
                 smFM.AimY  = nFrontY;
 
-                addDelay(600, [this, smFM]()
+                addDelay(600, [this, magicID, smFM]()
                 {
-                    addMonster(DBCOM_MONSTERID(u8"变异骷髅"), smFM.AimX, smFM.AimY, false);
+                    if(to_u32(magicID) == DBCOM_MAGICID(u8"召唤骷髅")){
+                        addMonster(DBCOM_MONSTERID(u8"变异骷髅"), smFM.AimX, smFM.AimY, false);
+                    }
+                    else{
+                        addMonster(DBCOM_MONSTERID(u8"超强骷髅"), smFM.AimX, smFM.AimY, false);
+                    }
 
                     // addMonster will send ACTION_SPAWN to client
                     // client then use it to play the magic for 召唤骷髅, we don't send magic message here

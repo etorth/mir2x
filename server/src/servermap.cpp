@@ -43,6 +43,7 @@
 #include "serverguard.hpp"
 #include "servertaodog.hpp"
 #include "servertaoskeleton.hpp"
+#include "servertaoskeletonext.hpp"
 #include "servercannibalplant.hpp"
 #include "serverbugbatmaggot.hpp"
 #include "servermonstertree.hpp"
@@ -1164,6 +1165,17 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
             case DBCOM_MONSTERID(u8"变异骷髅"):
                 {
                     monsterPtr = new ServerTaoSkeleton
+                    {
+                        this,
+                        nDstX,
+                        nDstY,
+                        nMasterUID,
+                    };
+                    break;
+                }
+            case DBCOM_MONSTERID(u8"超强骷髅"):
+                {
+                    monsterPtr = new ServerTaoSkeletonExt
                     {
                         this,
                         nDstX,

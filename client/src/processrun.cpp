@@ -44,6 +44,7 @@
 #include "lochashtable.hpp"
 #include "clienttaodog.hpp"
 #include "clienttaoskeleton.hpp"
+#include "clienttaoskeletonext.hpp"
 
 extern Log *g_log;
 extern Client *g_client;
@@ -1616,6 +1617,36 @@ void ProcessRun::onActionSpawn(uint64_t uid, const ActionNode &action)
                 });
                 return;
             }
+        case DBCOM_MONSTERID(u8"超强骷髅"):
+            {
+                m_actionBlocker.insert(uid);
+                addCBLog(CBLOG_SYS, u8"使用魔法: 超强召唤骷髅");
+                addFixedLocMagic(std::unique_ptr<FixedLocMagic>(new FixedLocMagic
+                {
+                    u8"超强召唤骷髅",
+                    u8"开始",
+                    action.x,
+                    action.y,
+
+                }))->addTrigger([action, uid, this](MagicBase *magicPtr) -> bool
+                {
+                    if(magicPtr->frame() < 10){
+                        return false;
+                    }
+
+                    m_coList[uid].reset(new ClientTaoSkeletonExt(uid, this, ActionStand
+                    {
+                        .x = action.x,
+                        .y = action.y,
+                        .direction = DIR_DOWNLEFT,
+                    }));
+
+                    m_actionBlocker.erase(uid);
+                    queryCORecord(uid);
+                    return true;
+                });
+                return;
+            }
         case DBCOM_MONSTERID(u8"神兽"):
             {
                 addCBLog(CBLOG_SYS, u8"使用魔法: 召唤神兽");
@@ -1992,6 +2023,7 @@ void ProcessRun::checkMagicSpell(const SDL_Event &event)
         case DBCOM_MAGICID(u8"抗拒火环"):
         case DBCOM_MAGICID(u8"破血狂杀"):
         case DBCOM_MAGICID(u8"召唤骷髅"):
+        case DBCOM_MAGICID(u8"超强召唤骷髅"):
         case DBCOM_MAGICID(u8"召唤神兽"):
             {
                 getMyHero()->brakeMove();

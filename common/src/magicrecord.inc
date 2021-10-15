@@ -1683,6 +1683,25 @@
     .coolDown = 2000,
     .mp = 20,
     .mpInc = 25,
+    .gfxList
+    {
+        {
+            .stage = u8"启动",
+            .type  = u8"附着",
+            .gfxID = 0X000002E4, // same with 召唤骷髅
+            .frameCount = 10,
+            .motion = MOTION_SPELL1,
+            .speed = 80,
+        },
+
+        {
+            .stage = u8"开始",
+            .type  = u8"固定",
+            .gfxID = 0X000002EE, // same with 召唤骷髅
+            .frameCount = 10,
+            .speed = 200,
+        },
+    }
 },
 
 {   .name = u8"破血狂杀",

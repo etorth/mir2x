@@ -35,6 +35,7 @@
 #include "clienttaodog.hpp"
 #include "clientsandcactus.hpp"
 #include "clienttaoskeleton.hpp"
+#include "clienttaoskeletonext.hpp"
 #include "clientbugbatmaggot.hpp"
 #include "clientcannibalplant.hpp"
 #include "clientdualaxeskeleton.hpp"
@@ -760,6 +761,10 @@ ClientMonster *ClientMonster::create(uint64_t uid, ProcessRun *proc, const Actio
         case DBCOM_MONSTERID(u8"变异骷髅"):
             {
                 return new ClientTaoSkeleton(uid, proc, action);
+            }
+        case DBCOM_MONSTERID(u8"超强骷髅"):
+            {
+                return new ClientTaoSkeletonExt(uid, proc, action);
             }
         case DBCOM_MONSTERID(u8"神兽"):
             {

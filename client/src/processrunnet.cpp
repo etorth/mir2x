@@ -26,6 +26,7 @@
 #include "clientmonster.hpp"
 #include "clienttaodog.hpp"
 #include "clienttaoskeleton.hpp"
+#include "clienttaoskeletonext.hpp"
 #include "clientnpc.hpp"
 #include "uidf.hpp"
 #include "sysconst.hpp"
@@ -181,6 +182,13 @@ void ProcessRun::net_ACTION(const uint8_t *bufPtr, size_t)
                                     {
                                         if(!m_actionBlocker.contains(smA.UID)){
                                             m_coList[smA.UID].reset(new ClientTaoSkeleton(smA.UID, this, smA.action));
+                                        }
+                                        return;
+                                    }
+                                case DBCOM_MONSTERID(u8"超强骷髅"):
+                                    {
+                                        if(!m_actionBlocker.contains(smA.UID)){
+                                            m_coList[smA.UID].reset(new ClientTaoSkeletonExt(smA.UID, this, smA.action));
                                         }
                                         return;
                                     }
