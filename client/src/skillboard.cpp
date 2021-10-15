@@ -518,6 +518,15 @@ bool SkillBoard::processEvent(const SDL_Event &event, bool valid)
                         }
                 }
             }
+        case SDL_MOUSEWHEEL:
+            {
+                auto pagePtr = m_skillPageList.at(m_selectedTabIndex);
+                if(captureEvent && (r[3] < pagePtr->h())){
+                    m_slider.addValue(event.wheel.y * -0.1f);
+                    pagePtr->moveTo(r[0], r[1] - (pagePtr->h() - r[3]) * m_slider.getValue());
+                }
+                return focusConsume(this, true);
+            }
         default:
             {
                 return focusConsume(this, false);
