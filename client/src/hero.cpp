@@ -743,6 +743,7 @@ bool Hero::parseAction(const ActionNode &action)
                                 }
                             case DBCOM_MAGICID(u8"云寂术"):
                             case DBCOM_MAGICID(u8"回生术"):
+                            case DBCOM_MAGICID(u8"施毒术"):
                                 {
                                     m_motionQueue.back()->addTrigger(true, [magicID, action, this](MotionNode *motionPtr) -> bool
                                     {

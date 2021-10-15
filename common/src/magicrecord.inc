@@ -288,6 +288,23 @@
     .coolDown = 600,
     .mp = 10,
     .mpInc = 5,
+    .gfxList
+    {
+        {
+            .stage = u8"启动",
+            .type  = u8"附着",
+            .gfxID = 0X0000003C,
+            .frameCount = 10,
+            .motion = MOTION_SPELL1,
+        },
+
+        {
+            .stage = u8"运行",
+            .type  = u8"附着",
+            .gfxID = 0X00000046,
+            .frameCount = 10,
+        },
+    },
 },
 
 {   .name = u8"攻杀剑术",
