@@ -741,6 +741,7 @@ bool Hero::parseAction(const ActionNode &action)
                                     });
                                     break;
                                 }
+                            case DBCOM_MAGICID(u8"圣言术"):
                             case DBCOM_MAGICID(u8"云寂术"):
                             case DBCOM_MAGICID(u8"回生术"):
                             case DBCOM_MAGICID(u8"施毒术"):

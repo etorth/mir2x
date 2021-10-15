@@ -1939,6 +1939,7 @@ void ProcessRun::checkMagicSpell(const SDL_Event &event)
                 getMyHero()->toggleSwingMagic(magicID);
                 break;
             }
+        case DBCOM_MAGICID(u8"圣言术"):
         case DBCOM_MAGICID(u8"治愈术"):
         case DBCOM_MAGICID(u8"困魔咒"):
         case DBCOM_MAGICID(u8"施毒术"):

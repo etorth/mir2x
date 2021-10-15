@@ -978,6 +978,23 @@
     .coolDown = 1000,
     .mp = 30,
     .mpInc = 30,
+    .gfxList
+    {
+        {
+            .stage = u8"启动",
+            .type  = u8"附着",
+            .gfxID = 0X00000082,
+            .frameCount = 10,
+            .motion = MOTION_SPELL1,
+        },
+
+        {
+            .stage = u8"运行",
+            .type  = u8"附着",
+            .gfxID = 0X0000008C,
+            .frameCount = 20,
+        },
+    },
 },
 
 {   .name = u8"冰咆哮",
