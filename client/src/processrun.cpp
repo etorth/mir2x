@@ -1936,6 +1936,7 @@ void ProcessRun::checkMagicSpell(const SDL_Event &event)
         case DBCOM_MAGICID(u8"神圣战甲术"):
         case DBCOM_MAGICID(u8"强魔震法"):
         case DBCOM_MAGICID(u8"猛虎强势"):
+        case DBCOM_MAGICID(u8"集体隐身术"):
             {
                 getMyHero()->brakeMove();
                 if(const auto uid = focusUID(FOCUS_MAGIC)){
@@ -1983,6 +1984,8 @@ void ProcessRun::checkMagicSpell(const SDL_Event &event)
                 });
                 break;
             }
+        case DBCOM_MAGICID(u8"隐身术"):
+        case DBCOM_MAGICID(u8"妙影无踪"):
         case DBCOM_MAGICID(u8"魔法盾"):
         case DBCOM_MAGICID(u8"铁布衫"):
         case DBCOM_MAGICID(u8"阴阳法环"):

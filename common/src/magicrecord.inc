@@ -576,6 +576,16 @@
     .coolDown = 700,
     .mp = 5,
     .mpInc = 5,
+    .gfxList
+    {
+        {
+            .stage = u8"启动",
+            .type  = u8"附着",
+            .gfxID = 0X0000032A,
+            .frameCount = 10,
+            .motion = MOTION_SPELL1,
+        },
+    },
 },
 
 {   .name = u8"集体隐身术",
@@ -589,6 +599,35 @@
     .coolDown = 700,
     .mp = 10,
     .mpInc = 5,
+    .gfxList
+    {
+        {
+            .stage = u8"启动",
+            .type  = u8"附着",
+            .gfxID = 0X00000820, // same as 灵魂火符
+            .frameCount = 6,
+            .gfxIDCount = 10,
+            .gfxDirType = 8,
+        },
+
+        {
+            .stage = u8"运行",
+            .type  = u8"跟随",
+            .gfxID = 0X000003D4, // same as 灵魂火符
+            .frameCount = 3,
+            .gfxIDCount = 10,
+            .gfxDirType = 16, //special, has 16 directions
+            .loop = 1,
+            .speed = 200,
+        },
+
+        {
+            .stage = u8"结束",
+            .type  = u8"附着",
+            .gfxID = 0X00000334,
+            .frameCount = 10,
+        },
+    },
 },
 
 {   .name = u8"诱惑之光",
@@ -1885,6 +1924,16 @@
     .coolDown = 100,
     .mp = 120,
     .mpInc = 80,
+    .gfxList
+    {
+        {
+            .stage = u8"启动",
+            .type  = u8"附着",
+            .gfxID = 0X020001AE,
+            .frameCount = 7,
+            .motion = MOTION_SPELL1,
+        },
+    },
 },
 
 {   .name = u8"阴阳法环",
