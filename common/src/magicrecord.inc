@@ -1318,6 +1318,23 @@
     .coolDown = 5000,
     .mp = 100,
     .mpInc = 100,
+    .gfxList
+    {
+        {
+            .stage = u8"启动",
+            .type  = u8"附着",
+            .gfxID = 0X01000136,
+            .frameCount = 10,
+            .motion = MOTION_SPELL1,
+        },
+
+        {
+            .stage = u8"运行",
+            .type  = u8"附着",
+            .gfxID = 0X01000140,
+            .frameCount = 10,
+        },
+    },
 },
 
 {   .name = u8"强魔震法",

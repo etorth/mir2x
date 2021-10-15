@@ -1909,6 +1909,7 @@ void ProcessRun::checkMagicSpell(const SDL_Event &event)
                 break;
             }
         case DBCOM_MAGICID(u8"治愈术"):
+        case DBCOM_MAGICID(u8"回生术"):
         case DBCOM_MAGICID(u8"雷电术"):
         case DBCOM_MAGICID(u8"火球术"):
         case DBCOM_MAGICID(u8"大火球"):

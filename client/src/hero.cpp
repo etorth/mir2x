@@ -741,6 +741,21 @@ bool Hero::parseAction(const ActionNode &action)
                                     });
                                     break;
                                 }
+                            case DBCOM_MAGICID(u8"回生术"):
+                                {
+                                    m_motionQueue.back()->addTrigger(true, [magicID, action, this](MotionNode *motionPtr) -> bool
+                                    {
+                                        if(motionPtr->frame < 3){
+                                            return false;
+                                        }
+
+                                        if(auto coPtr = m_processRun->findUID(action.aimUID)){
+                                            coPtr->addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(DBCOM_MAGICRECORD(magicID).name, u8"运行")));
+                                        }
+                                        return true;
+                                    });
+                                    break;
+                                }
                             case DBCOM_MAGICID(u8"击风"  ):
                             case DBCOM_MAGICID(u8"冰咆哮"):
                             case DBCOM_MAGICID(u8"龙卷风"):
