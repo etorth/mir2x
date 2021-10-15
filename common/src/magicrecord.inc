@@ -240,6 +240,23 @@
     .mp = 7,
     .mpInc = 2,
     .power = {11, 15},
+    .gfxList
+    {
+        {
+            .stage = u8"启动",
+            .type  = u8"附着",
+            .gfxID = 0X00000258,
+            .frameCount = 10,
+            .motion = MOTION_SPELL1,
+        },
+
+        {
+            .stage = u8"运行",
+            .type  = u8"附着",
+            .gfxID = 0X00000262,
+            .frameCount = 10,
+        },
+    },
 },
 
 {   .name = u8"基本剑术",
@@ -305,6 +322,16 @@
     .mp = 8,
     .mpInc = 1,
     .power = {0, 2},
+    .gfxList
+    {
+        {
+            .stage = u8"启动",
+            .type  = u8"附着",
+            .gfxID = 0X0000005A,
+            .frameCount = 8,
+            .motion = MOTION_SPELL1,
+        },
+    },
 },
 
 {   .name = u8"疾光电影",
@@ -749,6 +776,23 @@
     .mpInc = 20,
     .power = {8, 12},
     .addPower = {4, 4},
+    .gfxList
+    {
+        {
+            .stage = u8"启动",
+            .type  = u8"附着",
+            .gfxID = 0X00000294,
+            .frameCount = 10,
+            .motion = MOTION_SPELL1,
+        },
+
+        {
+            .stage = u8"运行",
+            .type  = u8"固定",
+            .gfxID = 0X0000029E,
+            .frameCount = 10,
+        },
+    },
 },
 
 {   .name = u8"召唤神兽",

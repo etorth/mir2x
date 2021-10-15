@@ -1908,6 +1908,7 @@ void ProcessRun::checkMagicSpell(const SDL_Event &event)
                 getMyHero()->toggleSwingMagic(magicID);
                 break;
             }
+        case DBCOM_MAGICID(u8"治愈术"):
         case DBCOM_MAGICID(u8"雷电术"):
         case DBCOM_MAGICID(u8"火球术"):
         case DBCOM_MAGICID(u8"大火球"):
@@ -1924,6 +1925,7 @@ void ProcessRun::checkMagicSpell(const SDL_Event &event)
         case DBCOM_MAGICID(u8"冰月神掌"):
         case DBCOM_MAGICID(u8"冰月震天"):
         case DBCOM_MAGICID(u8"乾坤大挪移"):
+        case DBCOM_MAGICID(u8"群体治愈术"):
             {
                 getMyHero()->brakeMove();
                 if(const auto uid = focusUID(FOCUS_MAGIC)){
@@ -1973,6 +1975,7 @@ void ProcessRun::checkMagicSpell(const SDL_Event &event)
             }
         case DBCOM_MAGICID(u8"魔法盾"):
         case DBCOM_MAGICID(u8"铁布衫"):
+        case DBCOM_MAGICID(u8"抗拒火环"):
         case DBCOM_MAGICID(u8"破血狂杀"):
         case DBCOM_MAGICID(u8"召唤骷髅"):
         case DBCOM_MAGICID(u8"召唤神兽"):

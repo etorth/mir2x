@@ -718,12 +718,36 @@ bool Hero::parseAction(const ActionNode &action)
                                     });
                                     break;
                                 }
+                            case DBCOM_MAGICID(u8"治愈术"):
+                                {
+                                    m_motionQueue.back()->addTrigger(true, [magicID, action, this](MotionNode *motionPtr) -> bool
+                                    {
+                                        if(motionPtr->frame < 3){
+                                            return false;
+                                        }
+
+                                        const auto coPtr = [action, this]() -> ClientCreature *
+                                        {
+                                            if(auto coPtr = m_processRun->findUID(action.aimUID)){
+                                                return coPtr;
+                                            }
+                                            else{
+                                                return this;
+                                            }
+                                        }();
+
+                                        coPtr->addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(DBCOM_MAGICRECORD(magicID).name, u8"运行")));
+                                        return true;
+                                    });
+                                    break;
+                                }
                             case DBCOM_MAGICID(u8"击风"  ):
                             case DBCOM_MAGICID(u8"冰咆哮"):
                             case DBCOM_MAGICID(u8"龙卷风"):
                             case DBCOM_MAGICID(u8"爆裂火焰"):
                             case DBCOM_MAGICID(u8"地狱雷光"):
                             case DBCOM_MAGICID(u8"怒神霹雳"):
+                            case DBCOM_MAGICID(u8"群体治愈术"):
                                 {
                                     m_motionQueue.back()->addTrigger(true, [magicID, action, this](MotionNode *motionPtr) -> bool
                                     {
