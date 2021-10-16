@@ -88,6 +88,18 @@
     },
 },
 
+{   .name = u8"魔法特效_雷电术",
+    .gfxList
+    {
+        {
+            .stage = u8"运行",
+            .type  = u8"附着",
+            .gfxID = 0X000005AA,
+            .frameCount = 5,
+        },
+    },
+},
+
 // end of shared magic effect
 // rest are real magic effects and player/monster can cast
 
@@ -115,10 +127,11 @@
         },
 
         {
-            .stage = u8"运行",
-            .type  = u8"附着",
-            .gfxID = 0X000005AA,
-            .frameCount = 5,
+            .ref
+            {
+                .name = u8"魔法特效_雷电术",
+                .stage = u8"运行",
+            },
         },
     },
 },
@@ -2306,10 +2319,11 @@
     .gfxList
     {
         {
-            .stage = u8"运行",
-            .type  = u8"附着",
-            .gfxID = 0X000005AA,
-            .frameCount = 5,
+            .ref
+            {
+                .name = u8"魔法特效_雷电术",
+                .stage = u8"运行",
+            },
         },
     },
 },
@@ -2472,10 +2486,11 @@
     .gfxList
     {
         {
-            .stage = u8"运行",
-            .type  = u8"附着",
-            .gfxID = 0X000005AA,
-            .frameCount = 5,
+            .ref
+            {
+                .name = u8"魔法特效_雷电术",
+                .stage = u8"运行",
+            },
         },
     },
 },
@@ -2748,10 +2763,11 @@
     .gfxList
     {
         {
-            .stage = u8"运行",
-            .type  = u8"附着",
-            .gfxID = 0X000005AA,
-            .frameCount = 5,
+            .ref
+            {
+                .name = u8"魔法特效_雷电术",
+                .stage = u8"运行",
+            },
         },
     },
 },
