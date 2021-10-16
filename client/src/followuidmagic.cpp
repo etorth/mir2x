@@ -127,7 +127,8 @@ void FollowUIDMagic::drawViewOff(int viewX, int viewY, uint32_t modColor) const
 {
     if(const auto texID = frameTexID(); texID != SYS_TEXNIL){
         if(auto [texPtr, offX, offY] = g_magicDB->retrieve(texID); texPtr){
-            SDLDeviceHelper::EnableTextureModColor enableModColor(texPtr, modColor);
+            const auto gfxEntryModColor = m_gfxEntryRef ? m_gfxEntryRef.modColor : m_gfxEntry.modColor;
+            SDLDeviceHelper::EnableTextureModColor enableModColor(texPtr, colorf::modRGBA(gfxEntryModColor, modColor));
             SDLDeviceHelper::EnableTextureBlendMode enableBlendMode(texPtr, SDL_BLENDMODE_BLEND);
 
             const int drawPX = (m_x + offX) - viewX;

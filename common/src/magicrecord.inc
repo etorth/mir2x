@@ -2261,7 +2261,7 @@
             {
                 .name = u8"魔法特效_召唤雷电",
                 .stage = u8"启动",
-                .modColor = colorf::RGBA(255, 255, 126, 100),
+                .modColor = colorf::RGBA(255, 255, 126, 80),
             },
         },
 
@@ -2269,7 +2269,7 @@
             .stage = u8"开始",
             .type  = u8"附着",
             .gfxID = 0X02000122,
-            .modColor = colorf::RGBA(255, 255, 255, 128),
+            .modColor = colorf::RGBA(255, 255, 255, 100),
             .frameCount = 9,
         },
 
@@ -2277,7 +2277,7 @@
             .stage = u8"运行",
             .type  = u8"附着",
             .gfxID = 0X0200012A, // use special gfx, this one uses last frame of 阴阳法环:开始
-            .modColor = colorf::RGBA(255, 255, 255, 128),
+            .modColor = colorf::RGBA(255, 255, 255, 100),
             .frameCount = 1,
             .loop = 1,
         },
@@ -2286,7 +2286,7 @@
             .stage = u8"挨打",
             .type  = u8"附着",
             .gfxID = 0X0200012C,
-            .modColor = colorf::RGBA(255, 255, 255, 128),
+            .modColor = colorf::RGBA(255, 255, 255, 100),
             .frameCount = 6,
         },
     },
