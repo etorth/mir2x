@@ -161,9 +161,18 @@
     },
 },
 
-{   .name = u8"大火球",
+{   .name = u8"魔法特效_大火球",
     .gfxList
     {
+        {
+            .stage = u8"启动",
+            .type  = u8"附着",
+            .gfxID = 0X00000618,
+            .frameCount = 9,
+            .gfxIDCount = 10,
+            .gfxDirType = 8,
+        },
+
         {
             .stage = u8"运行",
             .type  = u8"跟随",
@@ -375,12 +384,11 @@
     .gfxList
     {
         {
-            .stage = u8"启动",
-            .type  = u8"附着",
-            .gfxID = 0X00000618,
-            .frameCount = 9,
-            .gfxIDCount = 10,
-            .gfxDirType = 8,
+            .ref
+            {
+                .name = u8"魔法特效_大火球",
+                .stage = u8"启动",
+            },
         },
 
         {
@@ -1258,6 +1266,10 @@
             .frameCount = 6,
             .gfxIDCount = 10,
             .gfxDirType = 1,
+            .targetOffList
+            {
+                { 24, -14},
+            },
             .loop = 1,
             .speed = 200,
         },
@@ -1302,6 +1314,10 @@
             .frameCount = 6,
             .gfxIDCount = 10,
             .gfxDirType = 1,
+            .targetOffList
+            {
+                { 23, -18},
+            },
             .loop = 1,
             .speed = 200,
         },
@@ -1348,6 +1364,25 @@
             .frameCount = 3,
             .gfxIDCount = 10,
             .gfxDirType = 16, //special, has 16 directions
+            .targetOffList
+            {
+                { 24, -31},
+                { 34, -30},
+                { 42, -27},
+                { 48, -22},
+                { 49, -16},
+                { 48,  -9},
+                { 43,  -4},
+                { 33,   0},
+                { 23,   2},
+                { 15,  -1},
+                {  6,  -2},
+                {  0,  -8},
+                { -3, -14},
+                {  0, -22},
+                {  5, -28},
+                { 14, -32},
+            },
             .loop = 1,
             .speed = 200,
         },
@@ -1391,6 +1426,11 @@
             .type  = u8"跟随",
             .gfxID = 0X00000B90,
             .frameCount = 6,
+            .gfxDirType = 1,
+            .targetOffList
+            {
+                { 23, -22},
+            },
             .loop = 1,
             .speed = 200,
         },
@@ -1435,6 +1475,25 @@
             .frameCount = 6,
             .gfxIDCount = 10,
             .gfxDirType = 16, //special, has 16 directions
+            .targetOffList
+            {
+                { 23, -34},
+                { 30, -33},
+                { 38, -31},
+                { 42, -26},
+                { 44, -21},
+                { 42, -17},
+                { 38, -13},
+                { 31, -11},
+                { 25, -10},
+                { 17, -10},
+                { 11, -13},
+                {  6, -16},
+                {  6, -21},
+                {  6, -26},
+                { 11, -29},
+                { 18, -32},
+            },
             .loop = 1,
             .speed = 200,
         },
@@ -1516,6 +1575,25 @@
             .frameCount = 5,
             .gfxIDCount = 10,
             .gfxDirType = 16, //special, has 16 directions
+            .targetOffList
+            {
+                { 29, -46},
+                { 41, -45},
+                { 53, -40},
+                { 57, -33},
+                { 57, -25},
+                { 54, -15},
+                { 31,  -7},
+                { 31,  -8},
+                { 17,  -6},
+                {  3,  -8},
+                {  0, -17},
+                { -5, -21},
+                {-12, -30},
+                { -3, -39},
+                {  4, -46},
+                { 17, -48},
+            },
             .loop = 1,
             .speed = 200,
         },
@@ -2052,30 +2130,27 @@
     .gfxList
     {
         {
-            .stage = u8"启动",
-            .type  = u8"附着",
-            .gfxID = 0X00000618,
-            .frameCount = 9,
-            .gfxIDCount = 10,
-            .gfxDirType = 8,
+            .ref
+            {
+                .name = u8"魔法特效_大火球",
+                .stage = u8"启动",
+            },
         },
 
         {
-            .stage = u8"运行",
-            .type  = u8"跟随",
-            .gfxID = 0X00000668,
-            .frameCount = 6,
-            .gfxIDCount = 10,
-            .gfxDirType = 16, //special, has 16 directions
-            .loop = 1,
-            .speed = 200,
+            .ref
+            {
+                .name = u8"魔法特效_大火球",
+                .stage = u8"运行",
+            },
         },
 
         {
-            .stage = u8"结束",
-            .type  = u8"附着",
-            .gfxID = 0X00000708,
-            .frameCount = 10,
+            .ref
+            {
+                .name = u8"魔法特效_大火球",
+                .stage = u8"结束",
+            },
         },
     },
 },
@@ -2656,6 +2731,25 @@
             .frameCount = 1,
             .gfxIDCount = 10,
             .gfxDirType = 16,
+            .targetOffList
+            {
+                { 29, -70},
+                { 48, -65},
+                { 65, -59},
+                { 73, -50},
+                { 76, -38},
+                { 71, -27},
+                { 63, -16},
+                { 48, -11},
+                { 31,  -8},
+                { 13, -11},
+                {  1, -17},
+                { -8, -26},
+                {-13, -37},
+                { -8, -47},
+                {  2, -58},
+                { 16, -63},
+            },
             .loop = 1,
         },
 
@@ -2712,6 +2806,10 @@
             .gfxID = 0X03000050,
             .frameCount = 6,
             .gfxDirType = 1,
+            .targetOffList
+            {
+                { 22, -12},
+            },
             .loop = 1,
         },
     },
