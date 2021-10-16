@@ -212,6 +212,25 @@
     },
 },
 
+{   .name = u8"魔法特效_瞬息移动",
+    .gfxList
+    {
+        {
+            .stage = u8"启动",
+            .type  = u8"附着",
+            .gfxID = 0X0000006E,
+            .frameCount = 10,
+        },
+
+        {
+            .stage = u8"结束",
+            .type  = u8"附着",
+            .gfxID = 0X00000938,
+            .frameCount = 10,
+        },
+    },
+},
+
 // end of shared magic effect
 // rest are real magic effects and player/monster can cast
 
@@ -839,17 +858,19 @@
     .gfxList
     {
         {
-            .stage = u8"启动",
-            .type  = u8"附着",
-            .gfxID = 0X0000006E,
-            .frameCount = 10,
+            .ref
+            {
+                .name = u8"魔法特效_瞬息移动",
+                .stage = u8"启动",
+            },
         },
 
         {
-            .stage = u8"结束",
-            .type  = u8"附着",
-            .gfxID = 0X00000938,
-            .frameCount = 10,
+            .ref
+            {
+                .name = u8"魔法特效_瞬息移动",
+                .stage = u8"结束",
+            },
         },
     },
 },
@@ -1904,17 +1925,19 @@
     .gfxList
     {
         {
-            .stage = u8"启动",
-            .type  = u8"附着",
-            .gfxID = 0X0000006E, // same as 瞬息移动
-            .frameCount = 10,
+            .ref
+            {
+                .name = u8"魔法特效_瞬息移动",
+                .stage = u8"启动",
+            },
         },
 
         {
-            .stage = u8"结束",
-            .type  = u8"附着",
-            .gfxID = 0X00000938, // same as 瞬息移动
-            .frameCount = 10,
+            .ref
+            {
+                .name = u8"魔法特效_瞬息移动",
+                .stage = u8"结束",
+            },
         },
     },
 },
@@ -2241,9 +2264,9 @@
         {
             .stage = u8"运行",
             .type  = u8"附着",
-            .gfxID = 0X0200012C, // need to manually make gfx, this one uses first 2 frames of 阴阳法环/挨打
+            .gfxID = 0X0200012C, // need to manually make gfx, this one uses first frame of 阴阳法环:挨打
             .modColor = colorf::RGBA(255, 255, 255, 120),
-            .frameCount = 2,
+            .frameCount = 1,
             .loop = 1,
         },
 
