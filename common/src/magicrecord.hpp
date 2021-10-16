@@ -256,7 +256,8 @@ struct MagicRecord
         .type = CRT_LONG,
     };
 
-    const int coolDown = 0;
+    const int castDelay   = 0;
+    const int coolDown    = 0;
     const int checkGround = 0;
 
     const int mp = 0;
