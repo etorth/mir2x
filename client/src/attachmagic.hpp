@@ -29,9 +29,7 @@ class AttachMagic: public MagicBase
         AttachMagic(const char8_t *magicName, const char8_t *magicStage, int gfxDirIndex = 0)
             : MagicBase(magicName, magicStage, gfxDirIndex)
         {
-            if(!m_gfxEntry.checkType(u8"附着")){
-                throw fflerror("invalid magic type: %s", to_cstr(m_gfxEntry.type));
-            }
+            fflassert(m_gfxEntry.checkType(u8"附着"));
         }
 
     public:
@@ -43,17 +41,6 @@ class Thunderbolt: public AttachMagic
     public:
         Thunderbolt()
             : AttachMagic(u8"雷电术", u8"运行")
-        {}
-
-    public:
-        void drawShift(int, int, bool) const override;
-};
-
-class NumaWizardThunderBolt: public AttachMagic
-{
-    public:
-        NumaWizardThunderBolt()
-            : AttachMagic(u8"诺玛法老_雷电术", u8"运行")
         {}
 
     public:

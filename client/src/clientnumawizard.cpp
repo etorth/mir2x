@@ -68,7 +68,7 @@ bool ClientNumaWizard::onActionAttack_thunderBolt(const ActionNode &action)
         }
 
         if(auto coPtr = m_processRun->findUID(targetUID)){
-            coPtr->addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"诺玛大法老_雷电术", u8"运行")));
+            coPtr->addAttachMagic(std::unique_ptr<AttachMagic>(new Thunderbolt()));
         }
         return true;
     });
