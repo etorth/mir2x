@@ -466,7 +466,7 @@ void ProcessRun::net_CASTMAGIC(const uint8_t *bufPtr, size_t)
                     coPtr->addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"阴阳法环", u8"开始")))->addOnDone([smCM, this](MagicBase *)
                     {
                         if(auto coPtr = findUID(smCM.UID)){
-                            coPtr->addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"阴阳法环", u8"运行")));
+                            coPtr->addAttachMagic(std::unique_ptr<AttachMagic>(new TaoYellowBlueRing()));
                         }
                     });
                 }

@@ -133,12 +133,12 @@ void Hero::drawFrame(int viewX, int viewY, int, int frame, bool)
         switch(p->magicID()){
             case DBCOM_MAGICID(u8"魔法盾"):
                 {
-                    p->drawShift(startX, startY, true);
+                    p->drawShift(startX, startY, colorf::RGBA(0XFF, 0XFF, 0XFF, 0XF0));
                     break;
                 }
             default:
                 {
-                    p->drawShift(startX, startY, false);
+                    p->drawShift(startX, startY, colorf::RGBA(0XFF, 0XFF, 0XFF, 0XFF));
                     break;
                 }
         }
@@ -205,7 +205,7 @@ void Hero::drawFrame(int viewX, int viewY, int, int frame, bool)
                             }
                         default:
                             {
-                                p->drawShift(startX, startY, true);
+                                p->drawShift(startX, startY, colorf::RGBA(0XFF, 0XFF, 0XFF, 0XFF));
                                 break;
                             }
                     }
@@ -213,7 +213,7 @@ void Hero::drawFrame(int viewX, int viewY, int, int frame, bool)
                 }
             default:
                 {
-                    p->drawShift(startX, startY, true);
+                    p->drawShift(startX, startY, colorf::RGBA(0XFF, 0XFF, 0XFF, 0XF0));
                     break;
                 }
         }

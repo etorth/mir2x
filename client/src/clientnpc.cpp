@@ -190,7 +190,7 @@ void ClientNPC::drawFrame(int viewX, int viewY, int focusMask, int frame, bool)
     }
 
     for(auto &p: m_attachMagicList){
-        p->drawShift(x() * SYS_MAPGRIDXP - viewX, y() * SYS_MAPGRIDYP - viewY, false);
+        p->drawShift(x() * SYS_MAPGRIDXP - viewX, y() * SYS_MAPGRIDYP - viewY, colorf::RGBA(0XFF, 0XFF, 0XFF, 0XFF));
     }
 }
 

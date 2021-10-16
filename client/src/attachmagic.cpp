@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: attachmagic.cpp
- *        Created: 08/10/2017 12:46:45
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #include "colorf.hpp"
 #include "dbcomid.hpp"
 #include "sdldevice.hpp"
@@ -26,7 +8,7 @@
 extern SDLDevice *g_sdlDevice;
 extern PNGTexOffDB *g_magicDB;
 
-void AttachMagic::drawShift(int shiftX, int shiftY, bool alpha) const
+void AttachMagic::drawShift(int shiftX, int shiftY, uint32_t modColor) const
 {
     if(m_gfxEntry.gfxID == SYS_TEXNIL){
         return;
@@ -44,13 +26,13 @@ void AttachMagic::drawShift(int shiftX, int shiftY, bool alpha) const
     }();
 
     if(auto [texPtr, offX, offY] = g_magicDB->retrieve(texID); texPtr){
-        SDLDeviceHelper::EnableTextureModColor enableModColor(texPtr, colorf::RGBA(0XFF, 0XFF, 0XFF, alpha ? 0X40 : 0XC0));
+        SDLDeviceHelper::EnableTextureModColor enableModColor(texPtr, colorf::modRGBA(m_gfxEntry.modColor, modColor));
         SDLDeviceHelper::EnableTextureBlendMode enableBlendMode(texPtr, SDL_BLENDMODE_BLEND);
         g_sdlDevice->drawTexture(texPtr, shiftX + offX, shiftY + offY);
     }
 }
 
-void Thunderbolt::drawShift(int shiftX, int shiftY, bool alpha) const
+void Thunderbolt::drawShift(int shiftX, int shiftY, uint32_t modColor) const
 {
     if(m_gfxEntry.gfxID == SYS_TEXNIL){
         return;
@@ -69,7 +51,7 @@ void Thunderbolt::drawShift(int shiftX, int shiftY, bool alpha) const
 
     if(auto [texPtr, offX, offY] = g_magicDB->retrieve(texID); texPtr){
         const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);
-        SDLDeviceHelper::EnableTextureModColor enableModColor(texPtr, colorf::RGBA(0XFF, 0XFF, 0XFF, alpha ? 0X40 : 0XC0));
+        SDLDeviceHelper::EnableTextureModColor enableModColor(texPtr, colorf::modRGBA(m_gfxEntry.modColor, modColor));
         SDLDeviceHelper::EnableTextureBlendMode enableBlendMode(texPtr, SDL_BLENDMODE_BLEND);
 
         // thunder bolt has 5 frames
@@ -79,4 +61,11 @@ void Thunderbolt::drawShift(int shiftX, int shiftY, bool alpha) const
             g_sdlDevice->drawTextureExt(texPtr, 0, 0, texW, texH, shiftX + offX, shiftY + offY - texH, texW, texH, 0, 0, 0, SDL_FLIP_VERTICAL);
         }
     }
+}
+
+void TaoYellowBlueRing::drawShift(int shiftX, int shiftY, uint32_t modColor) const
+{
+    const auto r = std::fabs(std::sin(m_accuTime / 1000.0));
+    const auto timedModColor = colorf::RGBA(0XFF, 0XFF, 0XFF, colorf::round255(r * 255));
+    AttachMagic::drawShift(shiftX, shiftY, colorf::modRGBA(timedModColor, modColor));
 }

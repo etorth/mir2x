@@ -1,28 +1,10 @@
-/*
- * =====================================================================================
- *
- *       Filename: attachmagic.hpp
- *        Created: 08/10/2017 12:17:50
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #pragma once
+#include <cmath>
 #include <string_view>
 #include "fflerror.hpp"
 #include "magicbase.hpp"
 #include "magicrecord.hpp"
 
-class ProcessRun;
 class AttachMagic: public MagicBase
 {
     public:
@@ -33,7 +15,7 @@ class AttachMagic: public MagicBase
         }
 
     public:
-        virtual void drawShift(int, int, bool) const;
+        virtual void drawShift(int, int, uint32_t) const;
 };
 
 class Thunderbolt: public AttachMagic
@@ -44,5 +26,16 @@ class Thunderbolt: public AttachMagic
         {}
 
     public:
-        void drawShift(int, int, bool) const override;
+        void drawShift(int, int, uint32_t) const override;
+};
+
+class TaoYellowBlueRing: public AttachMagic
+{
+    public:
+        TaoYellowBlueRing()
+            : AttachMagic(u8"阴阳法环", u8"运行")
+        {}
+
+    public:
+        void drawShift(int, int, uint32_t) const;
 };

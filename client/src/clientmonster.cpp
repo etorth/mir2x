@@ -286,7 +286,7 @@ void ClientMonster::drawFrame(int viewX, int viewY, int focusMask, int frame, bo
 
     if(!frameOnly){
         for(auto &p: m_attachMagicList){
-            p->drawShift(startX, startY, false);
+            p->drawShift(startX, startY, colorf::RGBA(0XFF, 0XFF, 0XFF, 0XFF));
         }
 
         if(m_currMotion->effect && !m_currMotion->effect->done()){

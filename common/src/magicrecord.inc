@@ -231,6 +231,20 @@
     },
 },
 
+{   .name = u8"魔法特效_召唤雷电",
+    .gfxList
+    {
+        {
+            .stage = u8"启动",
+            .type  = u8"附着",
+            .gfxID = 0X02000118,
+            .frameCount = 8,
+            .gfxDirType = 1,
+            .motion = MOTION_SPELL1,
+        },
+    },
+},
+
 // end of shared magic effect
 // rest are real magic effects and player/monster can cast
 
@@ -996,12 +1010,11 @@
     .gfxList
     {
         {
-            .stage = u8"启动",
-            .type  = u8"附着",
-            .gfxID = 0X02000118,
-            .frameCount = 8,
-            .gfxDirType = 1,
-            .motion = MOTION_SPELL1,
+            .ref
+            {
+                .name = u8"魔法特效_召唤雷电",
+                .stage = u8"启动",
+            },
         },
 
         {
@@ -2094,12 +2107,11 @@
     .gfxList
     {
         {
-            .stage = u8"启动",
-            .type  = u8"附着",
-            .gfxID = 0X02000118,
-            .frameCount = 8,
-            .gfxDirType = 1,
-            .motion = MOTION_SPELL1,
+            .ref
+            {
+                .name = u8"魔法特效_召唤雷电",
+                .stage = u8"启动",
+            },
         },
 
         {
@@ -2245,19 +2257,19 @@
     .gfxList
     {
         {
-            .stage = u8"启动",
-            .type  = u8"附着",
-            .gfxID = 0X02000118, // same as 怒神霹雳
-            .modColor = colorf::RGBA(255, 255, 126, 100),
-            .frameCount = 8,
-            .gfxDirType = 1,
-            .motion = MOTION_SPELL1,
+            .ref
+            {
+                .name = u8"魔法特效_召唤雷电",
+                .stage = u8"启动",
+                .modColor = colorf::RGBA(255, 255, 126, 100),
+            },
         },
 
         {
             .stage = u8"开始",
             .type  = u8"附着",
             .gfxID = 0X02000122,
+            .modColor = colorf::RGBA(255, 255, 255, 128),
             .frameCount = 9,
         },
 
@@ -2265,7 +2277,7 @@
             .stage = u8"运行",
             .type  = u8"附着",
             .gfxID = 0X0200012C, // need to manually make gfx, this one uses first frame of 阴阳法环:挨打
-            .modColor = colorf::RGBA(255, 255, 255, 120),
+            .modColor = colorf::RGBA(255, 255, 255, 128),
             .frameCount = 1,
             .loop = 1,
         },
@@ -2274,6 +2286,7 @@
             .stage = u8"挨打",
             .type  = u8"附着",
             .gfxID = 0X0200012C,
+            .modColor = colorf::RGBA(255, 255, 255, 128),
             .frameCount = 6,
         },
     },
