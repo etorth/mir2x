@@ -17,6 +17,7 @@
  */
 
 #pragma once
+#include <tuple>
 #include <string_view>
 #include <initializer_list>
 #include "sysconst.hpp"
@@ -155,6 +156,11 @@ struct MagicGfxEntry
     const int frameCount = 0;
     const int gfxIDCount = frameCount;
     const int gfxDirType = 1;
+
+    // target offset
+    // only needed for magic type: 跟随
+    // targetOffList.size() should be zero or equal to gfxDirType
+    const std::initializer_list<std::tuple<int, int>> targetOffList {};
 
     // gfx is on ground
     // player can walk on the magic
