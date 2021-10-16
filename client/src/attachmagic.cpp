@@ -65,7 +65,7 @@ void Thunderbolt::drawShift(int shiftX, int shiftY, uint32_t modColor) const
 
 void TaoYellowBlueRing::drawShift(int shiftX, int shiftY, uint32_t modColor) const
 {
-    const auto r = std::fabs(std::sin(m_accuTime / 1000.0));
-    const auto timedModColor = colorf::RGBA(0XFF, 0XFF, 0XFF, colorf::round255(r * 255));
+    const auto r = std::fabs(std::cos(m_accuTime / 800.0));
+    const auto timedModColor = colorf::RGBA(0XFF, 0XFF, 0XFF, std::max<uint8_t>(colorf::round255(r * 255), 32));
     AttachMagic::drawShift(shiftX, shiftY, colorf::modRGBA(timedModColor, modColor));
 }
