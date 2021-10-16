@@ -53,14 +53,14 @@ constexpr inline const char8_t *magicElemName(int type)
 
 constexpr inline int magicElemID(const char8_t *type)
 {
-    if     (type && std::u8string_view(type) == u8"火"  ) return MET_FIRE;
-    else if(type && std::u8string_view(type) == u8"冰"  ) return MET_ICE;
-    else if(type && std::u8string_view(type) == u8"雷"  ) return MET_LIGHT;
-    else if(type && std::u8string_view(type) == u8"风"  ) return MET_WIND;
-    else if(type && std::u8string_view(type) == u8"神圣") return MET_HOLY;
-    else if(type && std::u8string_view(type) == u8"暗黑") return MET_DARK;
-    else if(type && std::u8string_view(type) == u8"幻影") return MET_PHANTOM;
-    else                                                  return MET_NONE;
+    if(type && std::u8string_view(type) == u8"火"  ) return MET_FIRE;
+    if(type && std::u8string_view(type) == u8"冰"  ) return MET_ICE;
+    if(type && std::u8string_view(type) == u8"雷"  ) return MET_LIGHT;
+    if(type && std::u8string_view(type) == u8"风"  ) return MET_WIND;
+    if(type && std::u8string_view(type) == u8"神圣") return MET_HOLY;
+    if(type && std::u8string_view(type) == u8"暗黑") return MET_DARK;
+    if(type && std::u8string_view(type) == u8"幻影") return MET_PHANTOM;
+    return                                                  MET_NONE;
 }
 
 enum MagicStageType: int
@@ -127,8 +127,19 @@ constexpr inline int magicGfxEntryID(const char8_t *type)
 
 struct MagicGfxEntryRef
 {
-    const char8_t *name  = nullptr;
+    const char8_t *name = nullptr;
     const char8_t *stage = nullptr;
+    const uint32_t modColor = colorf::RGBA(0XFF, 0XFF, 0XFF, 0XFF);
+
+    constexpr operator bool () const
+    {
+        return name && name[0] && stage && stage[0];
+    }
+
+    constexpr bool checkStage(const char8_t *argStage) const
+    {
+        return argStage && argStage[0] && stage && stage[0] && (std::u8string_view(argStage) == stage);
+    }
 };
 
 struct MagicGfxEntry
@@ -161,17 +172,17 @@ struct MagicGfxEntry
 
     constexpr operator bool () const
     {
-        return stage && type && checkStage() && checkType();
+        return (stage && stage[0] && checkStage()) && (type && type[0] && checkType());
     }
 
     constexpr bool checkStage(const char8_t *argStage) const
     {
-        return std::u8string_view(argStage) == stage;
+        return argStage && argStage[0] && stage && stage[0] && (std::u8string_view(argStage) == stage);
     }
 
     constexpr bool checkType(const char8_t *argType) const
     {
-        return std::u8string_view(argType) == type;
+        return argType && argType[0] && type && type[0] && (std::u8string_view(argType) == type);
     }
 
     constexpr bool checkStage() const
@@ -192,11 +203,6 @@ struct MagicGfxEntry
             || checkType(u8"跟随");
     }
 };
-
-namespace
-{
-    constexpr MagicGfxEntry _inn_reservedEmptyMagicGfxEntry;
-}
 
 enum DCCastRangeType: int
 {
@@ -254,18 +260,12 @@ struct MagicRecord
 
     const std::initializer_list<MagicGfxEntry> gfxList {};
 
-    constexpr const MagicGfxEntry &getGfxEntry(const char8_t *stage) const
-    {
-        for(const auto &entry: gfxList){
-            if(entry && entry.checkStage(stage)){
-                return entry;
-            }
-        }
-        return _inn_reservedEmptyMagicGfxEntry;
-    }
-
     constexpr operator bool () const
     {
         return name && name[0];
     }
+
+    // need to be non-constexpr
+    // because to support magic gfx entry reference
+    const MagicGfxEntry &getGfxEntry(const char8_t *) const;
 };

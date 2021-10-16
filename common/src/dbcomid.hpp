@@ -61,7 +61,7 @@ namespace
 
 template<typename T, size_t N> constexpr uint32_t DBCOM_IDHELPER(const T (&itemList)[N], const char8_t *name)
 {
-    if(name){
+    if(name && name[0]){
         for(uint32_t i = 0; i < N; ++i){
             if(itemList[i].name && std::u8string_view(itemList[i].name) == name){
                 return i;

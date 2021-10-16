@@ -72,7 +72,7 @@ class FireAshEffect_RUN: public FixedLocMagic
 
     public:
         FireAshEffect_RUN(int x, int y, int t1 = 2000, int t2 = 5000, int t3 = 3000)
-            : FixedLocMagic(u8"火焰灰烬", u8"运行", x, y, std::rand() % 5)
+            : FixedLocMagic(u8"魔法特效_火焰灰烬", u8"运行", x, y, std::rand() % 5)
             , m_rotate(std::rand() % 360)
             , m_absFrameOff(std::rand() % 10)
             , m_alphaTime
@@ -247,7 +247,7 @@ class IceThorn_RUN: public FixedLocMagic
 
     public:
         IceThorn_RUN(int x, int y, int gfxDirIndex)
-            : FixedLocMagic(u8"冰刺", u8"运行", x, y, gfxDirIndex)
+            : FixedLocMagic(u8"魔法特效_冰刺", u8"运行", x, y, gfxDirIndex)
             , m_rotate(std::rand() % 360)
             , m_iceSlagTexSelect(std::rand() % 2)
         {

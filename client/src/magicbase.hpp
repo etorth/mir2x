@@ -5,6 +5,7 @@
 #include <functional>
 #include "totype.hpp"
 #include "dbcomid.hpp"
+#include "fflerror.hpp"
 #include "dbcomrecord.hpp"
 #include "magicrecord.hpp"
 
@@ -174,10 +175,7 @@ class MagicBase
     protected:
         void runOnDone()
         {
-            if(!done()){
-                throw fflerror("magic is not done yet");
-            }
-
+            fflassert(done());
             for(auto &f: m_onDoneCBList){
                 f(this);
             }

@@ -1,24 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: magicrecord.inc
- *        Created: 08/04/2017 23:00:09
- *    Description: description of magic
- *                 1. prayer
- *                 2. magic
- *                 3. explosion
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 {},
 
 {   .name = u8"物理攻击", // TODO ...
@@ -28,6 +7,89 @@
         .distance = 1,
     },
 },
+
+// list of shared magic effect gfx
+// these are not real magic entries, used as magic gfx entry ref
+
+{   .name = u8"魔法特效_火焰灰烬", // used by 地狱火, 火墙
+    .gfxList
+    {
+        {
+            .stage = u8"运行",
+            .type  = u8"固定",
+            .gfxID = 0X00000992,
+            .frameCount = 10,
+            .gfxDirType = 5,
+            .onGround = 1,
+            .loop = 1,
+        },
+    },
+},
+
+{   .name = u8"魔法特效_冰刺", // used by 冰沙掌, 魄冰刺
+    .gfxList
+    {
+        {
+            .stage = u8"运行",
+            .type  = u8"固定",
+            .gfxID = 0X0100005A,
+            .frameCount = 20,
+            .gfxDirType = 2,
+            .onGround = 1,
+            .speed = 200,
+        },
+    },
+},
+
+{   .name = u8"魔法特效_护身符",
+    .gfxList
+    {
+        {
+            .stage = u8"启动",
+            .type  = u8"附着",
+            .gfxID = 0X00000820,
+            .frameCount = 6,
+            .gfxIDCount = 10,
+            .gfxDirType = 8,
+        },
+
+        {
+            .stage = u8"运行",
+            .type  = u8"跟随",
+            .gfxID = 0X000003D4,
+            .frameCount = 3,
+            .gfxIDCount = 10,
+            .gfxDirType = 16, //special, has 16 directions
+            .loop = 1,
+            .speed = 200,
+        },
+    },
+},
+
+{   .name = u8"魔法特效_召唤骷髅",
+    .gfxList
+    {
+        {
+            .stage = u8"启动",
+            .type  = u8"附着",
+            .gfxID = 0X000002E4,
+            .frameCount = 10,
+            .motion = MOTION_SPELL1,
+            .speed = 80,
+        },
+
+        {
+            .stage = u8"开始",
+            .type  = u8"固定",
+            .gfxID = 0X000002EE,
+            .frameCount = 10,
+            .speed = 200,
+        },
+    },
+},
+
+// end of shared magic effect
+// rest are real magic effects and player/monster can cast
 
 {   .name = u8"雷电术",
     .elem = u8"雷",
@@ -120,20 +182,19 @@
     .gfxList
     {
         {
-            .stage = u8"启动",
-            .type  = u8"附着",
-            .gfxID = 0X000002E4,
-            .frameCount = 10,
-            .motion = MOTION_SPELL1,
-            .speed = 80,
+            .ref
+            {
+                .name  = u8"魔法特效_召唤骷髅",
+                .stage = u8"启动",
+            },
         },
 
         {
-            .stage = u8"开始",
-            .type  = u8"固定",
-            .gfxID = 0X000002EE,
-            .frameCount = 10,
-            .speed = 200,
+            .ref
+            {
+                .name  = u8"魔法特效_召唤骷髅",
+                .stage = u8"开始",
+            },
         },
     }
 },
@@ -423,23 +484,19 @@
     .gfxList
     {
         {
-            .stage = u8"启动",
-            .type  = u8"附着",
-            .gfxID = 0X00000820,
-            .frameCount = 6,
-            .gfxIDCount = 10,
-            .gfxDirType = 8,
+            .ref
+            {
+                .name  = u8"魔法特效_护身符",
+                .stage = u8"启动",
+            },
         },
 
         {
-            .stage = u8"运行",
-            .type  = u8"跟随",
-            .gfxID = 0X000003D4,
-            .frameCount = 3,
-            .gfxIDCount = 10,
-            .gfxDirType = 16, //special, has 16 directions
-            .loop = 1,
-            .speed = 200,
+            .ref
+            {
+                .name  = u8"魔法特效_护身符",
+                .stage = u8"运行",
+            },
         },
 
         {
@@ -465,23 +522,19 @@
     .gfxList
     {
         {
-            .stage = u8"启动",
-            .type  = u8"附着",
-            .gfxID = 0X00000820, // same as 灵魂火符
-            .frameCount = 6,
-            .gfxIDCount = 10,
-            .gfxDirType = 8,
+            .ref
+            {
+                .name  = u8"魔法特效_护身符",
+                .stage = u8"启动",
+            },
         },
 
         {
-            .stage = u8"运行",
-            .type  = u8"跟随",
-            .gfxID = 0X000003D4, // same as 灵魂火符
-            .frameCount = 3,
-            .gfxIDCount = 10,
-            .gfxDirType = 16, //special, has 16 directions
-            .loop = 1,
-            .speed = 200,
+            .ref
+            {
+                .name  = u8"魔法特效_护身符",
+                .stage = u8"运行",
+            },
         },
 
         {
@@ -507,23 +560,19 @@
     .gfxList
     {
         {
-            .stage = u8"启动",
-            .type  = u8"附着",
-            .gfxID = 0X00000820, // same as 灵魂火符
-            .frameCount = 6,
-            .gfxIDCount = 10,
-            .gfxDirType = 8,
+            .ref
+            {
+                .name  = u8"魔法特效_护身符",
+                .stage = u8"启动",
+            },
         },
 
         {
-            .stage = u8"运行",
-            .type  = u8"跟随",
-            .gfxID = 0X000003D4, // same as 灵魂火符
-            .frameCount = 3,
-            .gfxIDCount = 10,
-            .gfxDirType = 16, //special, has 16 directions
-            .loop = 1,
-            .speed = 200,
+            .ref
+            {
+                .name  = u8"魔法特效_护身符",
+                .stage = u8"运行",
+            },
         },
 
         {
@@ -602,23 +651,19 @@
     .gfxList
     {
         {
-            .stage = u8"启动",
-            .type  = u8"附着",
-            .gfxID = 0X00000820, // same as 灵魂火符
-            .frameCount = 6,
-            .gfxIDCount = 10,
-            .gfxDirType = 8,
+            .ref
+            {
+                .name  = u8"魔法特效_护身符",
+                .stage = u8"启动",
+            },
         },
 
         {
-            .stage = u8"运行",
-            .type  = u8"跟随",
-            .gfxID = 0X000003D4, // same as 灵魂火符
-            .frameCount = 3,
-            .gfxIDCount = 10,
-            .gfxDirType = 16, //special, has 16 directions
-            .loop = 1,
-            .speed = 200,
+            .ref
+            {
+                .name  = u8"魔法特效_护身符",
+                .stage = u8"运行",
+            },
         },
 
         {
@@ -753,36 +798,6 @@
             .type  = u8"固定",
             .gfxID = 0X0000076C,
             .frameCount = 30,
-            .gfxDirType = 2,
-            .onGround = 1,
-            .speed = 200,
-        },
-    },
-},
-
-{   .name = u8"火焰灰烬", // magic effect, not for specific magic
-    .gfxList
-    {
-        {
-            .stage = u8"运行",
-            .type  = u8"固定",
-            .gfxID = 0X00000992,
-            .frameCount = 10,
-            .gfxDirType = 5,
-            .onGround = 1,
-            .loop = 1,
-        },
-    },
-},
-
-{   .name = u8"冰刺", // magic effect, used for 冰沙掌 and 魄冰刺
-    .gfxList
-    {
-        {
-            .stage = u8"运行",
-            .type  = u8"固定",
-            .gfxID = 0X0100005A,
-            .frameCount = 20,
             .gfxDirType = 2,
             .onGround = 1,
             .speed = 200,
@@ -1576,23 +1591,19 @@
     .gfxList
     {
         {
-            .stage = u8"启动",
-            .type  = u8"附着",
-            .gfxID = 0X00000820, // same as 灵魂火符
-            .frameCount = 6,
-            .gfxIDCount = 10,
-            .gfxDirType = 8,
+            .ref
+            {
+                .name  = u8"魔法特效_护身符",
+                .stage = u8"启动",
+            },
         },
 
         {
-            .stage = u8"运行",
-            .type  = u8"跟随",
-            .gfxID = 0X000003D4, // same as 灵魂火符
-            .frameCount = 3,
-            .gfxIDCount = 10,
-            .gfxDirType = 16, //special, has 16 directions
-            .loop = 1,
-            .speed = 200,
+            .ref
+            {
+                .name  = u8"魔法特效_护身符",
+                .stage = u8"运行",
+            },
         },
 
         {
@@ -1618,23 +1629,19 @@
     .gfxList
     {
         {
-            .stage = u8"启动",
-            .type  = u8"附着",
-            .gfxID = 0X00000820, // same as 灵魂火符
-            .frameCount = 6,
-            .gfxIDCount = 10,
-            .gfxDirType = 8,
+            .ref
+            {
+                .name  = u8"魔法特效_护身符",
+                .stage = u8"启动",
+            },
         },
 
         {
-            .stage = u8"运行",
-            .type  = u8"跟随",
-            .gfxID = 0X000003D4, // same as 灵魂火符
-            .frameCount = 3,
-            .gfxIDCount = 10,
-            .gfxDirType = 16, //special, has 16 directions
-            .loop = 1,
-            .speed = 200,
+            .ref
+            {
+                .name  = u8"魔法特效_护身符",
+                .stage = u8"运行",
+            },
         },
 
         {
@@ -1736,20 +1743,19 @@
     .gfxList
     {
         {
-            .stage = u8"启动",
-            .type  = u8"附着",
-            .gfxID = 0X000002E4, // same with 召唤骷髅
-            .frameCount = 10,
-            .motion = MOTION_SPELL1,
-            .speed = 80,
+            .ref
+            {
+                .name  = u8"魔法特效_召唤骷髅",
+                .stage = u8"启动",
+            },
         },
 
         {
-            .stage = u8"开始",
-            .type  = u8"固定",
-            .gfxID = 0X000002EE, // same with 召唤骷髅
-            .frameCount = 10,
-            .speed = 200,
+            .ref
+            {
+                .name  = u8"魔法特效_召唤骷髅",
+                .stage = u8"开始",
+            },
         },
     }
 },
