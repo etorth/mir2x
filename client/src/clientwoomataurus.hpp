@@ -52,7 +52,7 @@ class ClientWoomaTaurus: public ClientMonster
                             }
 
                             if(auto coPtr = m_processRun->findUID(targetUID)){
-                                coPtr->addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"沃玛教主_雷电术", u8"运行")));
+                                coPtr->addAttachMagic(std::unique_ptr<AttachMagic>(new Thunderbolt()));
                             }
                             return true;
                         });
