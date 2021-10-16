@@ -2276,7 +2276,7 @@
         {
             .stage = u8"运行",
             .type  = u8"附着",
-            .gfxID = 0X0200012C, // need to manually make gfx, this one uses first frame of 阴阳法环:挨打
+            .gfxID = 0X0200012A, // use special gfx, this one uses last frame of 阴阳法环:开始
             .modColor = colorf::RGBA(255, 255, 255, 128),
             .frameCount = 1,
             .loop = 1,
