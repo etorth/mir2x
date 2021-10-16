@@ -18,6 +18,7 @@
 
 #pragma once
 #include <tuple>
+#include <utility>
 #include <string_view>
 #include <initializer_list>
 #include "sysconst.hpp"
@@ -273,5 +274,5 @@ struct MagicRecord
 
     // need to be non-constexpr
     // because to support magic gfx entry reference
-    const MagicGfxEntry &getGfxEntry(const char8_t *) const;
+    std::pair<const MagicGfxEntry &, const MagicGfxEntryRef &> getGfxEntry(const char8_t *) const;
 };

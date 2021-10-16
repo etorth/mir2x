@@ -20,7 +20,7 @@ MotionEffect::MotionEffect(const char8_t *magicName, const char8_t *stageName, M
           const auto &mr = DBCOM_MAGICRECORD(magicName);
           fflassert(mr);
 
-          const auto &ge = mr.getGfxEntry(stageName);
+          const auto &ge = mr.getGfxEntry(stageName).first;
           fflassert(ge);
           fflassert(ge.loop == 0);
           fflassert(ge.checkType(u8"附着"));

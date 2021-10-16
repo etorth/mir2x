@@ -90,6 +90,6 @@ class MagicDrawArea: public Fl_Box
     private:
         int magicDirCount() const
         {
-            return DBCOM_MAGICRECORD(m_magicID).getGfxEntry(u8"运行").gfxDirType;
+            return DBCOM_MAGICRECORD(m_magicID).getGfxEntry(u8"运行").first.gfxDirType;
         }
 };

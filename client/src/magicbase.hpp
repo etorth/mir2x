@@ -15,8 +15,12 @@ class MagicBase
         const uint32_t m_magicID;
         const MagicRecord &m_magicRecord;
 
+    private:
+        const std::pair<const MagicGfxEntry &, const MagicGfxEntryRef &> m_gfxEntryPair;
+
     protected:
-        const MagicGfxEntry &m_gfxEntry;
+        const MagicGfxEntry    &m_gfxEntry    = m_gfxEntryPair.first;
+        const MagicGfxEntryRef &m_gfxEntryRef = m_gfxEntryPair.second;
 
     protected:
         const int m_gfxDirIndex;
@@ -44,10 +48,10 @@ class MagicBase
                   }
                   throw fflerror("invalid magicID: %d", magicID());
               }())
-            , m_gfxEntry([magicStage, this]() -> const auto &
+            , m_gfxEntryPair([magicStage, this]()
               {
-                  if(const auto &ge = m_magicRecord.getGfxEntry(magicStage)){
-                      return ge;
+                  if(const auto &p = m_magicRecord.getGfxEntry(magicStage); p.first){
+                      return p;
                   }
                   throw fflerror("invalid magicStage: %s", to_cstr(magicStage));
               }())

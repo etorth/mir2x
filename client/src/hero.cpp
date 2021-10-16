@@ -520,7 +520,7 @@ bool Hero::parseAction(const ActionNode &action)
             {
                 const auto magicID = action.extParam.spell.magicID;
                 if(auto &mr = DBCOM_MAGICRECORD(magicID)){
-                    if(auto &gfxEntry = mr.getGfxEntry(u8"启动")){
+                    if(auto &gfxEntry = mr.getGfxEntry(u8"启动").first){
                         const auto motionSpell = [&gfxEntry]() -> int
                         {
                             switch(gfxEntry.motion){

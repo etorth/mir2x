@@ -41,8 +41,8 @@ int main(int argc, char *argv[])
 
     const auto &mr = DBCOM_MAGICRECORD(magicID);
     fflassert(mr);
-    fflassert(mr.getGfxEntry(u8"运行"));
-    fflassert(mr.getGfxEntry(u8"运行").checkType(u8"跟随"));
+    fflassert(mr.getGfxEntry(u8"运行").first);
+    fflassert(mr.getGfxEntry(u8"运行").first.checkType(u8"跟随"));
 
     fl_register_images();
 
