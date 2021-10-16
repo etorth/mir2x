@@ -1,29 +1,4 @@
-/*
- * =====================================================================================
- *
- *       Filename: netdriver.hpp
- *        Created: 08/14/2015 11:34:33
- *    Description:
- *
- *                 Stand-alone network module for monoserver, this module only do
- *                 read/write to net IO and never pass the package
- *
- *                 when Launch(Theron::Address) with the actor address of service core
- *                 this pod will start a new thread and run asio::run() inside
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #pragma once
-
 #include <asio.hpp>
 #include <atomic>
 #include <thread>
@@ -36,7 +11,7 @@
 #include "actormsgpack.hpp"
 
 class Channel;
-class NetDriver final: public Dispatcher
+class NetDriver final
 {
     private:
         friend class Channel;

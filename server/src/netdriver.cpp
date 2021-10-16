@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: netdriver.cpp
- *        Created: 06/25/2017 12:05:00
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #include <cinttypes>
 #include "fflerror.hpp"
 #include "sysconst.hpp"
@@ -27,8 +9,7 @@ extern ActorPool *g_actorPool;
 extern MonoServer *g_monoServer;
 
 NetDriver::NetDriver()
-    : Dispatcher()
-    , m_port(0)
+    : m_port(0)
     , m_IO(nullptr)
     , m_endPoint(nullptr)
     , m_acceptor(nullptr)
