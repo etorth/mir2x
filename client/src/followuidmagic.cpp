@@ -100,51 +100,6 @@ std::tuple<int, int> FollowUIDMagic::targetOff() const
     }
 
     switch(magicID()){
-        case DBCOM_MAGICID(u8"火球术"):
-        case DBCOM_MAGICID(u8"诺玛法老_火球术"):
-            {
-                switch(gfxDirIndex()){
-                    case  0: return { 35, -52};
-                    case  1: return { 53, -47};
-                    case  2: return { 68, -39};
-                    case  3: return { 77, -26};
-                    case  4: return { 76, -11};
-                    case  5: return { 68,   1};
-                    case  6: return { 54,  11};
-                    case  7: return { 33,  16};
-                    case  8: return { 13,  14};
-                    case  9: return { -6,  10};
-                    case 10: return {-20,   1};
-                    case 11: return {-29, -13};
-                    case 12: return {-28, -24};
-                    case 13: return {-22, -36};
-                    case 14: return { -6, -48};
-                    case 15: return { 15, -52};
-                    default: throw bad_reach();
-                }
-            }
-        case DBCOM_MAGICID(u8"大火球"):
-            {
-                switch(gfxDirIndex()){
-                    case  0: return { 25, -51};
-                    case  1: return { 44, -49};
-                    case  2: return { 61, -41};
-                    case  3: return { 72, -30};
-                    case  4: return { 76, -17};
-                    case  5: return { 72,  -2};
-                    case  6: return { 61,   8};
-                    case  7: return { 43,  16};
-                    case  8: return { 24,  18};
-                    case  9: return {  4,  16};
-                    case 10: return {-13,   8};
-                    case 11: return {-25,  -3};
-                    case 12: return {-28, -17};
-                    case 13: return {-23, -29};
-                    case 14: return {-12, -41};
-                    case 15: return {  4, -47};
-                    default: throw bad_reach();
-                }
-            }
         case DBCOM_MAGICID(u8"冰月震天"):
             {
                 switch(gfxDirIndex()){

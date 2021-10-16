@@ -119,6 +119,90 @@
     },
 },
 
+{   .name = u8"魔法特效_火球术",
+    .gfxList
+    {
+        {
+            .stage = u8"运行",
+            .type  = u8"跟随",
+            .gfxID = 0X000001A4,
+            .frameCount = 5,
+            .gfxIDCount = 10,
+            .gfxDirType = 16, //special, has 16 directions
+            .targetOffList
+            {
+                { 35, -52},
+                { 53, -47},
+                { 68, -39},
+                { 77, -26},
+                { 76, -11},
+                { 68,   1},
+                { 54,  11},
+                { 33,  16},
+                { 13,  14},
+                { -6,  10},
+                {-20,   1},
+                {-29, -13},
+                {-28, -24},
+                {-22, -36},
+                { -6, -48},
+                { 15, -52},
+            },
+            .loop = 1,
+            .speed = 200,
+        },
+
+        {
+            .stage = u8"结束",
+            .type  = u8"附着",
+            .gfxID = 0X00000244,
+            .frameCount = 10,
+        },
+    },
+},
+
+{   .name = u8"大火球",
+    .gfxList
+    {
+        {
+            .stage = u8"运行",
+            .type  = u8"跟随",
+            .gfxID = 0X00000668,
+            .frameCount = 6,
+            .gfxIDCount = 10,
+            .gfxDirType = 16, //special, has 16 directions
+            .targetOffList
+            {
+                { 25, -51},
+                { 44, -49},
+                { 61, -41},
+                { 72, -30},
+                { 76, -17},
+                { 72,  -2},
+                { 61,   8},
+                { 43,  16},
+                { 24,  18},
+                {  4,  16},
+                {-13,   8},
+                {-25,  -3},
+                {-28, -17},
+                {-23, -29},
+                {-12, -41},
+                {  4, -47},
+            },
+            .loop = 1,
+            .speed = 200,
+        },
+
+        {
+            .stage = u8"结束",
+            .type  = u8"附着",
+            .gfxID = 0X00000708,
+            .frameCount = 10,
+        },
+    },
+},
+
 // end of shared magic effect
 // rest are real magic effects and player/monster can cast
 
@@ -228,7 +312,7 @@
                 .stage = u8"开始",
             },
         },
-    }
+    },
 },
 
 {   .name = u8"火球术",
@@ -257,23 +341,21 @@
         },
 
         {
-            .stage = u8"运行",
-            .type  = u8"跟随",
-            .gfxID = 0X000001A4,
-            .frameCount = 5,
-            .gfxIDCount = 10,
-            .gfxDirType = 16, //special, has 16 directions
-            .loop = 1,
-            .speed = 200,
+            .ref
+            {
+                .name = u8"魔法特效_火球术",
+                .stage = u8"运行",
+            },
         },
 
         {
-            .stage = u8"结束",
-            .type  = u8"附着",
-            .gfxID = 0X00000244,
-            .frameCount = 10,
+            .ref
+            {
+                .name = u8"魔法特效_火球术",
+                .stage = u8"结束",
+            },
         },
-    }
+    },
 },
 
 {   .name = u8"大火球",
@@ -302,23 +384,21 @@
         },
 
         {
-            .stage = u8"运行",
-            .type  = u8"跟随",
-            .gfxID = 0X00000668,
-            .frameCount = 6,
-            .gfxIDCount = 10,
-            .gfxDirType = 16, //special, has 16 directions
-            .loop = 1,
-            .speed = 200,
+            .ref
+            {
+                .name = u8"魔法特效_大火球",
+                .stage = u8"运行",
+            },
         },
 
         {
-            .stage = u8"结束",
-            .type  = u8"附着",
-            .gfxID = 0X00000708,
-            .frameCount = 10,
+            .ref
+            {
+                .name = u8"魔法特效_大火球",
+                .stage = u8"结束",
+            },
         },
-    }
+    },
 },
 
 {   .name = u8"治愈术",
@@ -476,7 +556,7 @@
             .gfxIDCount = 10,
             .gfxDirType = 8,
         },
-    }
+    },
 },
 
 {   .name = u8"刺杀剑术",
@@ -537,7 +617,7 @@
             .gfxID = 0X00000474,
             .frameCount = 10,
         },
-    }
+    },
 },
 
 {   .name = u8"幽灵盾",
@@ -1010,8 +1090,8 @@
             .frameCount = 19,
             .motion = MOTION_SPELL1,
             .speed = 180,
-        }
-    }
+        },
+    },
 },
 
 {   .name = u8"圣言术",
@@ -1278,7 +1358,7 @@
             .gfxID = 0X00000B2C,
             .frameCount = 10,
         },
-    }
+    },
 },
 
 {   .name = u8"冰月震天",
@@ -1321,7 +1401,7 @@
             .gfxID = 0X00000B9A,
             .frameCount = 10,
         },
-    }
+    },
 },
 
 {   .name = u8"霹雳掌",
@@ -1366,7 +1446,7 @@
             .frameCount = 10,
             .gfxDirType = 1,
         },
-    }
+    },
 },
 
 {   .name = u8"冰沙掌",
@@ -1400,7 +1480,7 @@
             .onGround = 1,
             .speed = 200,
         },
-    }
+    },
 },
 
 {   .name = u8"风掌",
@@ -1448,7 +1528,7 @@
             .frameCount = 10,
             .gfxDirType = 1,
         },
-    }
+    },
 },
 
 {   .name = u8"龙卷风",
@@ -1789,7 +1869,7 @@
                 .stage = u8"开始",
             },
         },
-    }
+    },
 },
 
 {   .name = u8"破血狂杀",
@@ -2150,7 +2230,7 @@
             .frameCount = 6,
             .gfxIDCount = 10,
             .gfxDirType = 8,
-        }
+        },
     },
 },
 
@@ -2307,23 +2387,21 @@
     .gfxList
     {
         {
-            .stage = u8"运行",
-            .type  = u8"跟随",
-            .gfxID = 0X000001A4,
-            .frameCount = 5,
-            .gfxIDCount = 10,
-            .gfxDirType = 16, //special, has 16 directions
-            .loop = 1,
-            .speed = 200,
+            .ref
+            {
+                .name = u8"魔法特效_火球术",
+                .stage = u8"运行",
+            },
         },
 
         {
-            .stage = u8"结束",
-            .type  = u8"附着",
-            .gfxID = 0X00000244,
-            .frameCount = 10,
+            .ref
+            {
+                .name = u8"魔法特效_火球术",
+                .stage = u8"结束",
+            },
         },
-    }
+    },
 },
 
 {   .name = u8"诺玛大法老_雷电术",
@@ -2355,7 +2433,7 @@
             .type  = u8"附着", // may also make it as 固定, magic of type 附着 only get draw when monster body is still visible
             .gfxID = 0X030002A8,
             .frameCount = 10,
-        }
+        },
     },
 },
 
@@ -2367,7 +2445,7 @@
             .type  = u8"附着", // may also make it as 固定, magic of type 附着 only get draw when monster body is still visible
             .gfxID = 0X0300003C,
             .frameCount = 18,
-        }
+        },
     },
 },
 
@@ -2385,7 +2463,7 @@
             .type  = u8"附着",
             .gfxID = 0X03000064,
             .frameCount = 10,
-        }
+        },
     },
 },
 
@@ -2403,7 +2481,7 @@
             .type  = u8"附着",
             .gfxID = 0X03000118,
             .frameCount = 10,
-        }
+        },
     },
 },
 
@@ -2415,7 +2493,7 @@
             .type  = u8"附着",
             .gfxID = 0X0300003C,
             .frameCount = 18,
-        }
+        },
     },
 },
 
@@ -2427,7 +2505,7 @@
             .type  = u8"附着",
             .gfxID = 0X03000780,
             .frameCount = 10,
-        }
+        },
     },
 },
 
@@ -2844,21 +2922,19 @@
     .gfxList
     {
         {
-            .stage = u8"运行",
-            .type  = u8"跟随",
-            .gfxID = 0X000001A4,
-            .frameCount = 5,
-            .gfxIDCount = 10,
-            .gfxDirType = 16, //special, has 16 directions
-            .loop = 1,
-            .speed = 200,
+            .ref
+            {
+                .name = u8"魔法特效_火球术",
+                .stage = u8"运行",
+            },
         },
 
         {
-            .stage = u8"结束",
-            .type  = u8"附着",
-            .gfxID = 0X00000244,
-            .frameCount = 10,
+            .ref
+            {
+                .name = u8"魔法特效_火球术",
+                .stage = u8"结束",
+            },
         },
-    }
+    },
 },
