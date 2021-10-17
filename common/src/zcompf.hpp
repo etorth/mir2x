@@ -137,36 +137,34 @@ namespace zcompf
 
     inline int countData(const uint8_t *buf, size_t bufLen)
     {
-        if(buf){
-            int count = 0;
-            for(size_t i = 0; i < bufLen; ++i){
-                if(buf[i]){
-                    count++;
-                }
+        int count = 0;
+        for(size_t i = 0; i < bufLen; ++i){
+            if(buf[i]){
+                count++;
             }
-            return count;
         }
-        throw fflerror("invalid buffer: nullptr");
+        return count;
     }
 
     inline int xorEncode(uint8_t *dst, const uint8_t *buf, size_t bufLen)
     {
-        if(dst && buf && bufLen){
-            auto maskLen = ((bufLen + 7) / 8);
-            auto maskPtr = dst;
-            auto compPtr = dst + maskLen;
-            std::memset(maskPtr, 0, maskLen);
+        fflassert(dst);
+        fflassert(buf);
+        fflassert(bufLen);
 
-            int dataCount = 0;
-            for(size_t i = 0; i < bufLen; ++i){
-                if(buf[i]){
-                    maskPtr[i / 8] |= (0X01 << (i % 8));
-                    compPtr[dataCount++] = buf[i];
-                }
+        const auto maskLen = ((bufLen + 7) / 8);
+        const auto maskPtr = dst;
+        const auto compPtr = dst + maskLen;
+        std::memset(maskPtr, 0, maskLen);
+
+        int dataCount = 0;
+        for(size_t i = 0; i < bufLen; ++i){
+            if(buf[i]){
+                maskPtr[i / 8] |= (0X01 << (i % 8));
+                compPtr[dataCount++] = buf[i];
             }
-            return dataCount;
         }
-        throw fflerror("invalid arguments: dst = %p, buf = %p, bufPtr = %zu", to_cvptr(dst), to_cvptr(buf), bufLen);
+        return dataCount;
     }
 
     inline int xorDecode(uint8_t *dst, size_t bufLen, const uint8_t *maskPtr, const uint8_t *compPtr)

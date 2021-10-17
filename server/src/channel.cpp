@@ -273,6 +273,8 @@ void Channel::doSendPack()
                         g_monoServer->addLog(LOGTYPE_WARNING, "Network error on channel %d: %s", to_d(channPtr->id()), ec.message().c_str());
                     }
                     else{
+                        // validate the m_currSendQ size
+                        // only asio event loop accesses m_currSendQ and its size should not change during sending
                         fflassert(sentByteCount == channPtr->m_currSendQ.size());
                         channPtr->m_currSendQ.clear();
                         channPtr->doSendPack();
