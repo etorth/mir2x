@@ -36,7 +36,6 @@ Channel::~Channel()
     catch(...){
         g_monoServer->addLog(LOGTYPE_WARNING, "Failed to release channel %d: unknown error", to_d(id()));
     }
-    g_netDriver->recycle(id());
 }
 
 void Channel::doReadPackHeadCode()
@@ -47,7 +46,7 @@ void Channel::doReadPackHeadCode()
                 asio::async_read(m_socket, asio::buffer(&m_readHeadCode, 1), [channPtr = shared_from_this()](std::error_code ec, size_t)
                 {
                     if(ec){
-                        throw fflerror("network error on channel %d: %s", channPtr->id(), ec.message().c_str());
+                        throw ChannError(channPtr->id(), "network error on channel %d: %s", channPtr->id(), ec.message().c_str());
                     }
 
                     const ClientMsg cmsg(channPtr->m_readHeadCode);
@@ -64,7 +63,7 @@ void Channel::doReadPackHeadCode()
                                 asio::async_read(channPtr->m_socket, asio::buffer(channPtr->m_readLen, 1), [channPtr, cmsg](std::error_code ec, size_t)
                                 {
                                     if(ec){
-                                        throw fflerror("network error on channel %d: %s", channPtr->id(), ec.message().c_str());
+                                        throw ChannError(channPtr->id(), "network error on channel %d: %s", channPtr->id(), ec.message().c_str());
                                     }
 
                                     if(channPtr->m_readLen[0] != 255){
@@ -77,7 +76,7 @@ void Channel::doReadPackHeadCode()
                                         asio::async_read(channPtr->m_socket, asio::buffer(channPtr->m_readLen + 1, 1), [channPtr, cmsg](std::error_code ec, size_t)
                                         {
                                             if(ec){
-                                                throw fflerror("network error on channel %d: %s", channPtr->id(), ec.message().c_str());
+                                                throw ChannError(channPtr->id(), "network error on channel %d: %s", channPtr->id(), ec.message().c_str());
                                             }
 
                                             fflassert(channPtr->m_readLen[0] == 255);
@@ -112,7 +111,7 @@ void Channel::doReadPackHeadCode()
                                 asio::async_read(channPtr->m_socket, asio::buffer(channPtr->m_readLen, 4), [channPtr](std::error_code ec, size_t)
                                 {
                                     if(ec){
-                                        throw fflerror("network error on channel %d: %s", channPtr->id(), ec.message().c_str());
+                                        throw ChannError(channPtr->id(), "network error on channel %d: %s", channPtr->id(), ec.message().c_str());
                                     }
                                     channPtr->doReadPackBody(0, to_uz(as_u32(channPtr->m_readLen)));
                                 });
@@ -150,7 +149,7 @@ void Channel::doReadPackBody(size_t maskSize, size_t bodySize)
                     asio::async_read(m_socket, asio::buffer(readMemPtr, totalSize), [channPtr = shared_from_this(), maskSize, bodySize, readMemPtr, cmsg](std::error_code ec, size_t)
                     {
                         if(ec){
-                            throw fflerror("network error on channel %d: %s", channPtr->id(), ec.message().c_str());
+                            throw ChannError(channPtr->id(), "network error on channel %d: %s", channPtr->id(), ec.message().c_str());
                         }
 
                         uint8_t *decodeMemPtr = nullptr;
