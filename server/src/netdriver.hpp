@@ -3,7 +3,9 @@
 #include <atomic>
 #include <thread>
 #include <cstdint>
+#include "uidf.hpp"
 #include "channel.hpp"
+#include "fflerror.hpp"
 #include "sysconst.hpp"
 #include "monoserver.hpp"
 #include "cachequeue.hpp"
@@ -17,102 +19,85 @@ class NetDriver final
         friend class Channel;
 
     private:
-        unsigned int                m_port;
-        asio::io_service           *m_IO;
-        asio::ip::tcp::endpoint    *m_endPoint;
-        asio::ip::tcp::acceptor    *m_acceptor;
-        asio::ip::tcp::socket      *m_socket;
+        unsigned int m_port = 0;
+
+    private:
+        asio::io_service        *m_io       = nullptr;
+        asio::ip::tcp::endpoint *m_endPoint = nullptr;
+        asio::ip::tcp::acceptor *m_acceptor = nullptr;
 
     private:
         std::thread m_thread;
 
     private:
-        CacheQueue<uint32_t, SYS_MAXPLAYERNUM> m_channIDQ;
-
-    private:
-        std::shared_ptr<Channel> m_channelList[SYS_MAXPLAYERNUM + 1];
+        std::queue<uint32_t> m_channIDQ;
+        std::vector<std::shared_ptr<Channel>> m_channList;
 
     public:
         NetDriver();
 
     public:
-        virtual ~NetDriver();
-
-    protected:
-        bool CheckPort(uint32_t);
-        bool InitASIO(uint32_t);
+        ~NetDriver();
 
     private:
-        void RecycleChannID(uint32_t nChannID)
+        void recycle(uint32_t channID)
         {
-            m_channIDQ.PushBack(nChannID);
-        }
-
-    private:
-        bool CheckChannID(uint32_t nChannID)
-        {
-            return (nChannID > 0) && (nChannID <= std::extent<decltype(m_channelList)>::value);
+            m_channIDQ.push(channID);
         }
 
     public:
-        // launch the net driver with (port)
-        // before call this function, the service core should be ready
-        // then connection request will be accepted and forward to the service core
-        //
-        // return value:
-        //      0: OK
-        //      1: invalid argument
-        //      2: asio initialization failed
-        bool Launch(uint32_t);
+        bool isNetThread() const;
 
     public:
-        template<typename... Args> bool Post(uint32_t nChannID, uint8_t nHC, Args&&... args)
+        void launch(uint32_t);
+
+    public:
+        void post(uint32_t channID, uint8_t headCode, const void *buf, size_t bufLen)
         {
-            if(CheckChannID(nChannID)){
-                return m_channelList[nChannID]->Post(nHC, std::forward<Args>(args)...);
-            }
-            return false;
+            fflassert(to_uz(channID) > 0);
+            fflassert(to_uz(channID) < m_channList.size());
+            fflassert(ServerMsg(headCode).checkData(buf, bufLen));
+            m_channList.at(channID)->post(headCode, buf, bufLen);
         }
 
-        bool Post(uint32_t channID, uint8_t hc, const uint8_t *buf, size_t bufLen)
+        void bindPlayer(uint32_t channID, uint64_t uid)
         {
-            if(CheckChannID(channID)){
-                return m_channelList[channID]->Post(hc, buf, bufLen);
-            }
-            return false;
+            fflassert(to_uz(channID) > 0);
+            fflassert(to_uz(channID) < m_channList.size());
+
+            fflassert(uidf::isPlayer(uid));
+            m_channList.at(channID)->bindPlayer(uid);
         }
 
-        void bindActor(uint32_t nChannID, uint64_t nUID)
+        void shutdown(uint32_t channID, bool force)
         {
-            if(CheckChannID(nChannID)){
-                m_channelList[nChannID]->BindActor(nUID);
-            }
-        }
+            fflassert(to_uz(channID) > 0);
+            fflassert(to_uz(channID) < m_channList.size());
 
-        void Shutdown(uint32_t nChannID, bool bForce)
-        {
-            if(CheckChannID(nChannID)){
-                m_channelList[nChannID]->Shutdown(bForce);
-            }
-        }
-
-    private:
-        bool ChannBuild(uint32_t nChannID, asio::ip::tcp::socket stSocket)
-        {
-            if(CheckChannID(nChannID)){
-                m_channelList[nChannID] = std::make_shared<Channel>(nChannID, std::move(stSocket));
-                return true;
-            }
-            return false;
-        }
-
-        void ChannRelease(uint32_t nChannID)
-        {
-            if(CheckChannID(nChannID)){
-                m_channelList[nChannID].reset();
-            }
+            m_channList.at(channID)->shutdown(force);
+            m_channList.at(channID).reset();
         }
 
     private:
-        void AcceptNewConnection();
+        void acceptNewConnection();
+
+    private:
+        void release()
+        {
+            if(m_io){
+                m_io->stop();
+            }
+
+            if(m_thread.joinable()){
+                m_thread.join();
+            }
+
+            delete m_acceptor;
+            delete m_endPoint;
+            delete m_io;
+
+            m_acceptor = nullptr;
+            m_endPoint = nullptr;
+            m_io       = nullptr;
+        }
 };

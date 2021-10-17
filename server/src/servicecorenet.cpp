@@ -38,8 +38,8 @@ void ServiceCore::net_CM_Login(uint32_t channID, uint8_t, const uint8_t *buf, si
         std::memset(&smLF, 0, sizeof(smLF));
 
         smLF.error = error;
-        g_netDriver->Post(channID, SM_LOGINFAIL, smLF);
-        g_netDriver->Shutdown(channID, false);
+        g_netDriver->post(channID, SM_LOGINFAIL, &smLF, sizeof(smLF));
+        g_netDriver->shutdown(channID, false);
         g_monoServer->addLog(LOGTYPE_WARNING, "Login failed for account: %s", cmL.id);
     };
 
@@ -125,7 +125,7 @@ void ServiceCore::net_CM_Account(uint32_t channID, uint8_t, const uint8_t *buf, 
         std::memset(&smA, 0, sizeof(smA));
 
         smA.error = error;
-        g_netDriver->Post(channID, SM_ACCOUNT, smA);
+        g_netDriver->post(channID, SM_ACCOUNT, &smA, sizeof(smA));
     };
 
     const auto errcode = g_monoServer->createAccount(cmA.id, cmA.password);

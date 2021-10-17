@@ -194,28 +194,28 @@ class Player final: public CharObject
         void onCMActionAttack  (CMAction);
 
     private:
-        bool postNetMessage(uint8_t, const void *, size_t);
+        void postNetMessage(uint8_t, const void *, size_t);
 
     private:
-        bool postNetMessage(uint8_t hc)
+        void postNetMessage(uint8_t hc)
         {
-            return postNetMessage(hc, 0, 0);
+            postNetMessage(hc, 0, 0);
         }
 
-        bool postNetMessage(uint8_t hc, const std::string &buf)
+        void postNetMessage(uint8_t hc, const std::string &buf)
         {
-            return postNetMessage(hc, buf.data(), buf.length());
+            postNetMessage(hc, buf.data(), buf.length());
         }
 
-        bool postNetMessage(uint8_t hc, const std::u8string &buf)
+        void postNetMessage(uint8_t hc, const std::u8string &buf)
         {
-            return postNetMessage(hc, buf.data(), buf.length());
+            postNetMessage(hc, buf.data(), buf.length());
         }
 
-        template<typename T> bool postNetMessage(uint8_t nHC, T& stMessage)
+        template<typename T> void postNetMessage(uint8_t nHC, T& stMessage)
         {
             static_assert(std::is_trivially_copyable_v<T>);
-            return postNetMessage(nHC, (const uint8_t *)(&stMessage), sizeof(stMessage));
+            postNetMessage(nHC, (const uint8_t *)(&stMessage), sizeof(stMessage));
         }
 
     protected:

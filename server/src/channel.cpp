@@ -1,48 +1,25 @@
-/*
- * =====================================================================================
- *
- *       Filename: channel.cpp
- *        Created: 09/03/2015 03:48:41 AM
- *    Description: for received messages we won't crash if get invalid ones
- *                 but for messages to send we take zero tolerance
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #include "zcompf.hpp"
 #include "channel.hpp"
 #include "netdriver.hpp"
-#include "condcheck.hpp"
+#include "actorpool.hpp"
 #include "monoserver.hpp"
 #include "actormsgpack.hpp"
 
-Channel::Channel(uint32_t nChannID, asio::ip::tcp::socket stSocket)
-    : m_ID(nChannID)
-    , m_state(CHANNTYPE_NONE)
-    , m_dispatcher()
-    , m_socket(std::move(stSocket))
-    , m_IP(m_socket.remote_endpoint().address().to_string())
-    , m_port(m_socket.remote_endpoint().port())
-    , m_readHC(0)
-    , m_readLen {0, 0, 0, 0}
-    , m_bodyLen(0)
-    , m_readBuf()
-    , m_decodeBuf()
-    , m_bindUID(0)
-    , m_flushFlag(false)
-    , m_nextQLock()
-    , m_sendPackQ0()
-    , m_sendPackQ1()
-    , m_currSendQ(&(m_sendPackQ0))
-    , m_nextSendQ(&(m_sendPackQ1))
+extern ActorPool *g_actorPool;
+extern NetDriver *g_netDriver;
+extern MonoServer *g_monoServer;
+
+Channel::Channel(asio::io_service *ioPtr, uint32_t argChannID)
+    : m_socket([ioPtr]() -> asio::io_service &
+      {
+          fflassert(ioPtr);
+          return *ioPtr;
+      }())
+    , m_id([argChannID]()
+      {
+          fflassert(argChannID);
+          return argChannID;
+      }())
 {}
 
 Channel::~Channel()
@@ -50,395 +27,278 @@ Channel::~Channel()
     // access raw pointer here
     // don't use shared_from_this() in constructor or destructor
 
-    Shutdown(true);
-
-    extern NetDriver *g_netDriver;
-    g_netDriver->RecycleChannID(ID());
+    try{
+        shutdown(true);
+    }
+    catch(const std::exception &e){
+        g_monoServer->addLog(LOGTYPE_WARNING, "Failed to release channel %d: %s", to_d(id()), e.what());
+    }
+    catch(...){
+        g_monoServer->addLog(LOGTYPE_WARNING, "Failed to release channel %d: unknown error", to_d(id()));
+    }
+    g_netDriver->recycle(id());
 }
 
-void Channel::DoReadPackHC()
+void Channel::doReadPackHeadCode()
 {
-    switch(auto nCurrState = m_state.load()){
-        case CHANNTYPE_STOPPED:
+    switch(m_state.load()){
+        case CS_RUNNING:
             {
+                const auto fnOnNetError = [channPtr = shared_from_this()](std::error_code ec)
+                {
+                    if(ec){
+                        g_monoServer->addLog(LOGTYPE_WARNING, "Network error on channel %d: %s", to_d(channPtr->id()), ec.message().c_str());
+                        channPtr->shutdown(true);
+                    }
+                };
+
+                asio::async_read(m_socket, asio::buffer(&m_readHeadCode, 1), [channPtr = shared_from_this(), fnOnNetError](std::error_code ec, size_t)
+                {
+                    if(ec){
+                        fnOnNetError(ec);
+                        return;
+                    }
+
+                    const ClientMsg cmsg(channPtr->m_readHeadCode);
+                    switch(cmsg.type()){
+                        case 0:
+                            {
+                                channPtr->forwardActorMessage(channPtr->m_readHeadCode, nullptr, 0);
+                                channPtr->doReadPackHeadCode();
+                                return;
+                            }
+                        case 1:
+                            {
+                                // not empty, fixed size, compressed
+                                asio::async_read(channPtr->m_socket, asio::buffer(channPtr->m_readLen, 1), [channPtr, cmsg, fnOnNetError](std::error_code ec, size_t)
+                                {
+                                    if(ec){
+                                        fnOnNetError(ec);
+                                        return;
+                                    }
+
+                                    if(channPtr->m_readLen[0] != 255){
+                                        if(to_uz(channPtr->m_readLen[0]) > cmsg.dataLen()){
+                                            channPtr->shutdown(true);
+                                            throw fflerror("invalid package: compSize = %d", to_d(channPtr->m_readLen[0]));
+                                        }
+                                        else{
+                                            channPtr->doReadPackBody(cmsg.maskLen(), channPtr->m_readLen[0]);
+                                        }
+                                    }
+                                    else{
+                                        // oooops, bytes[0] is 255
+                                        // we got a long message and need to read bytes[1]
+                                        asio::async_read(channPtr->m_socket, asio::buffer(channPtr->m_readLen + 1, 1), [channPtr, cmsg, fnOnNetError](std::error_code ec, size_t)
+                                        {
+                                            if(ec){
+                                                fnOnNetError(ec);
+                                                return;
+                                            }
+
+                                            fflassert(channPtr->m_readLen[0] == 255);
+                                            const auto compSize = to_uz(channPtr->m_readLen[1]) + 255;
+
+                                            if(compSize > cmsg.dataLen()){
+                                                channPtr->shutdown(true);
+                                                throw fflerror("invalid package: compSize = %d", to_d(compSize));
+                                            }
+                                            else{
+                                                channPtr->doReadPackBody(cmsg.maskLen(), compSize);
+                                            }
+                                        });
+                                    }
+                                });
+                                return;
+                            }
+                        case 2:
+                            {
+                                // not empty, fixed size, not compressed
+
+                                // it has no overhead, fast
+                                // this mode should be used for small messages
+                                channPtr->doReadPackBody(0, cmsg.dataLen());
+                                return;
+                            }
+                        case 3:
+                            {
+                                // not empty, not fixed size, not compressed
+
+                                // directly read four bytes as length
+                                // this mode is designed for transfering big chunk
+                                // for even bigger chunk we should send more than one time
+
+                                // and if we want to send big chunk of compressed data
+                                // we should compress it by other method and send it via this channel
+                                asio::async_read(channPtr->m_socket, asio::buffer(channPtr->m_readLen, 4), [channPtr, fnOnNetError](std::error_code ec, size_t)
+                                {
+                                    if(ec){
+                                        fnOnNetError(ec);
+                                    }
+                                    else{
+                                        channPtr->doReadPackBody(0, to_uz(as_u32(channPtr->m_readLen)));
+                                    }
+                                });
+                                return;
+                            }
+                        default:
+                            {
+                                // impossible type
+                                // should abort at construction of ClientMsg
+                                channPtr->shutdown(true);
+                                return;
+                            }
+                    }
+                });
                 return;
             }
-        case CHANNTYPE_RUNNING:
+        case CS_STOPPED:
             {
-                auto fnReportLastPack = [pThis = shared_from_this()]()
-                {
-                    extern MonoServer *g_monoServer;
-                    g_monoServer->addLog(LOGTYPE_WARNING, "Last ClientMsg::HC      = %s", (ClientMsg(pThis->m_readHC).name().c_str()));
-                    g_monoServer->addLog(LOGTYPE_WARNING, "              ::Type    = %d", to_d(ClientMsg(pThis->m_readHC).type()));
-                    g_monoServer->addLog(LOGTYPE_WARNING, "              ::MaskLen = %d", to_d(ClientMsg(pThis->m_readHC).maskLen()));
-                    g_monoServer->addLog(LOGTYPE_WARNING, "              ::DataLen = %d", to_d(ClientMsg(pThis->m_readHC).dataLen()));
-                };
-
-                auto fnOnNetError = [pThis = shared_from_this(), fnReportLastPack](std::error_code stEC)
-                {
-                    if(stEC){
-                        // 1. close the asio socket
-                        pThis->Shutdown(true);
-
-                        // 2. record the error code to log
-                        extern MonoServer *g_monoServer;
-                        g_monoServer->addLog(LOGTYPE_WARNING, "Network error on channel %d: %s", to_d(pThis->ID()), stEC.message().c_str());
-                        fnReportLastPack();
-                    }
-                };
-
-                auto fnDoneReadHC = [pThis = shared_from_this(), fnOnNetError, fnReportLastPack](std::error_code stEC, size_t)
-                {
-                    if(stEC){
-                        fnOnNetError(stEC);
-                    }else{
-                        ClientMsg stCMSG(pThis->m_readHC);
-                        switch(stCMSG.type()){
-                            case 0:
-                                {
-                                    pThis->forwardActorMessage(pThis->m_readHC, nullptr, 0);
-                                    pThis->DoReadPackHC();
-                                    return;
-                                }
-                            case 1:
-                                {
-                                    // not empty, fixed size, compressed
-                                    auto fnDoneReadLen0 = [pThis, stCMSG, fnOnNetError, fnReportLastPack](std::error_code stEC, size_t)
-                                    {
-                                        if(stEC){
-                                            fnOnNetError(stEC);
-                                        }else{
-                                            if(pThis->m_readLen[0] != 255){
-                                                if((size_t)(pThis->m_readLen[0]) > stCMSG.dataLen()){
-                                                    // 1. close the asio socket
-                                                    pThis->Shutdown(true);
-
-                                                    // 2. record the error code but not exit?
-                                                    extern MonoServer *g_monoServer;
-                                                    g_monoServer->addLog(LOGTYPE_WARNING, "Invalid package: CompLen = %d", to_d(pThis->m_readLen[0]));
-                                                    fnReportLastPack();
-
-                                                    // 3. we stop here
-                                                    //    should we have some method to save it?
-                                                    return;
-                                                }else{
-                                                    pThis->DoReadPackBody(stCMSG.maskLen(), pThis->m_readLen[0]);
-                                                }
-                                            }else{
-                                                // oooops, bytes[0] is 255
-                                                // we got a long message and need to read bytes[1]
-                                                auto fnDoneReadLen1 = [pThis, stCMSG, fnReportLastPack, fnOnNetError](std::error_code stEC, size_t)
-                                                {
-                                                    if(stEC){
-                                                        fnOnNetError(stEC);
-                                                    }else{
-                                                        condcheck(pThis->m_readLen[0] == 255);
-                                                        auto nCompLen = (size_t)(pThis->m_readLen[1]) + 255;
-
-                                                        if(nCompLen > stCMSG.dataLen()){
-                                                            // 1. close the asio socket
-                                                            pThis->Shutdown(true);
-
-                                                            // 2. record the error code but not exit?
-                                                            extern MonoServer *g_monoServer;
-                                                            g_monoServer->addLog(LOGTYPE_WARNING, "Invalid package: CompLen = %d", to_d(nCompLen));
-                                                            fnReportLastPack();
-
-                                                            // 3. we stop here
-                                                            //    should we have some method to save it?
-                                                            return;
-                                                        }else{
-                                                            pThis->DoReadPackBody(stCMSG.maskLen(), nCompLen);
-                                                        }
-                                                    }
-                                                };
-                                                asio::async_read(pThis->m_socket, asio::buffer(pThis->m_readLen + 1, 1), fnDoneReadLen1);
-                                            }
-                                        }
-                                    };
-                                    asio::async_read(pThis->m_socket, asio::buffer(pThis->m_readLen, 1), fnDoneReadLen0);
-                                    return;
-                                }
-                            case 2:
-                                {
-                                    // not empty, fixed size, not compressed
-
-                                    // it has no overhead, fast
-                                    // this mode should be used for small messages
-                                    pThis->DoReadPackBody(0, stCMSG.dataLen());
-                                    return;
-                                }
-                            case 3:
-                                {
-                                    // not empty, not fixed size, not compressed
-
-                                    // directly read four bytes as length
-                                    // this mode is designed for transfering big chunk
-                                    // for even bigger chunk we should send more than one time
-
-                                    // and if we want to send big chunk of compressed data
-                                    // we should compress it by other method and send it via this channel
-                                    auto fnDoneReadLen = [pThis, fnOnNetError](std::error_code stEC, size_t)
-                                    {
-                                        if(stEC){
-                                            fnOnNetError(stEC);
-                                        }else{
-                                            uint32_t nDataLenU32 = 0;
-                                            std::memcpy(&nDataLenU32, pThis->m_readLen, 4);
-                                            pThis->DoReadPackBody(0, (size_t)(nDataLenU32));
-                                        }
-                                    };
-                                    asio::async_read(pThis->m_socket, asio::buffer(pThis->m_readLen, 4), fnDoneReadLen);
-                                    return;
-                                }
-                            default:
-                                {
-                                    // impossible type
-                                    // should abort at construction of ClientMsg
-                                    pThis->Shutdown(true);
-                                    fnReportLastPack();
-                                    return;
-                                }
-                        }
-                    }
-                };
-                asio::async_read(m_socket, asio::buffer(&m_readHC, 1), fnDoneReadHC);
                 return;
             }
         default:
             {
-                extern MonoServer *g_monoServer;
-                g_monoServer->addLog(LOGTYPE_WARNING, "Calling DoReadPackHC() with invalid state: %d", nCurrState);
-                return;
+                throw bad_reach();
             }
     }
 }
 
-void Channel::DoReadPackBody(size_t nMaskLen, size_t nBodyLen)
+void Channel::doReadPackBody(size_t maskSize, size_t bodySize)
 {
-    switch(auto nCurrState = m_state.load()){
-        case CHANNTYPE_STOPPED:
+    switch(m_state.load()){
+        case CS_RUNNING:
             {
-                return;
-            }
-        case CHANNTYPE_RUNNING:
-            {
-                auto fnReportLastPack = [pThis = shared_from_this()]()
+                const auto fnOnNetError = [channPtr = shared_from_this()](std::error_code ec)
                 {
-                    extern MonoServer *g_monoServer;
-                    g_monoServer->addLog(LOGTYPE_WARNING, "Current serverMsg::HC      = %d", to_d(pThis->m_readHC));
-                    g_monoServer->addLog(LOGTYPE_WARNING, "                 ::Type    = %d", to_d(ClientMsg(pThis->m_readHC).type()));
-                    g_monoServer->addLog(LOGTYPE_WARNING, "                 ::MaskLen = %d", to_d(ClientMsg(pThis->m_readHC).maskLen()));
-                    g_monoServer->addLog(LOGTYPE_WARNING, "                 ::DataLen = %d", to_d(ClientMsg(pThis->m_readHC).dataLen()));
-                };
-
-                auto fnOnNetError = [pThis = shared_from_this(), fnReportLastPack](std::error_code stEC)
-                {
-                    if(stEC){
-                        // 1. close the asio socket
-                        pThis->Shutdown(true);
-
-                        // 2. record the error code to log
-                        extern MonoServer *g_monoServer;
-                        g_monoServer->addLog(LOGTYPE_WARNING, "Network error on channel %d: %s", to_d(pThis->ID()), stEC.message().c_str());
-                        fnReportLastPack();
+                    if(ec){
+                        g_monoServer->addLog(LOGTYPE_WARNING, "Network error on channel %d: %s", to_d(channPtr->id()), ec.message().c_str());
+                        channPtr->shutdown(true);
                     }
                 };
 
-                auto fnReportInvalidArg = [nMaskLen, nBodyLen, fnReportLastPack]()
-                {
-                    extern MonoServer *g_monoServer;
-                    g_monoServer->addLog(LOGTYPE_WARNING, "Invalid argument to DoReadPackBody(MaskLen = %d, BodyLen = %d)", to_d(nMaskLen), to_d(nBodyLen));
-                    fnReportLastPack();
-                };
-
-                // argument check
-                // check if (nMaskLen, nBodyLen) is proper based on current m_readHC
-                ClientMsg stCMSG(m_readHC);
-                switch(stCMSG.type()){
-                    case 0:
-                        {
-                            fnReportInvalidArg();
-                            return;
-                        }
-                    case 1:
-                        {
-                            if(!((nMaskLen == stCMSG.maskLen()) && (nBodyLen <= stCMSG.dataLen()))){
-                                fnReportInvalidArg();
-                                return;
-                            }
-                            break;
-                        }
-                    case 2:
-                        {
-                            if(nMaskLen || (nBodyLen != stCMSG.dataLen())){
-                                fnReportInvalidArg();
-                                return;
-                            }
-                            break;
-                        }
-                    case 3:
-                        {
-                            if(nMaskLen || (nBodyLen > 0XFFFFFFFF)){
-                                fnReportInvalidArg();
-                                return;
-                            }
-                            break;
-                        }
-                    default:
-                        {
-                            fnReportInvalidArg();
-                            return;
-                        }
+                ClientMsg cmsg(m_readHeadCode);
+                if(!cmsg.checkDataSize(maskSize, bodySize)){
+                    g_monoServer->addLog(LOGTYPE_WARNING, "Invalid argument to doReadPackBody(maskSize = %zu, bodySize = %zu)", maskSize, bodySize);
+                    return;
                 }
 
-                if(auto nDataLen = nMaskLen + nBodyLen){
-                    auto pMem = GetReadBuf(nDataLen);
-                    auto fnDoneReadData = [pThis = shared_from_this(), nMaskLen, nBodyLen, pMem, stCMSG, fnReportLastPack, fnOnNetError](std::error_code stEC, size_t)
+                if(const auto totalSize = maskSize + bodySize){
+                    auto readMemPtr = getReadBuf(totalSize);
+                    asio::async_read(m_socket, asio::buffer(readMemPtr, totalSize), [channPtr = shared_from_this(), maskSize, bodySize, readMemPtr, cmsg, fnOnNetError](std::error_code ec, size_t)
                     {
-                        if(stEC){
-                            fnOnNetError(stEC);
-                        }else{
-                            uint8_t *pDecodeMem = nullptr;
-                            if(nMaskLen){
-                                auto nMaskCount = zcompf::countMask(pMem, nMaskLen);
-                                if(nMaskCount != to_d(nBodyLen)){
-                                    // we get corrupted data
-                                    // should we ignore current package or kill the process?
+                        if(ec){
+                            fnOnNetError(ec);
+                            return;
+                        }
 
-                                    // 1. keep a log for the corrupted message
-                                    extern MonoServer *g_monoServer;
-                                    g_monoServer->addLog(LOGTYPE_WARNING, "Corrupted data: MaskCount = %d, CompLen = %d", nMaskCount, to_d(nBodyLen));
-
-                                    // 2. we ignore this message
-                                    //    won't shutdown current channel, just return?
-                                    return;
-                                }
-
-                                // we need to decode it
-                                // we do have a compressed version of data
-                                if(nBodyLen <= stCMSG.dataLen()){
-                                    pDecodeMem = pThis->GetDecodeBuf(stCMSG.dataLen());
-                                    if(zcompf::xorDecode(pDecodeMem, stCMSG.dataLen(), pMem, pMem + nMaskLen) != to_d(nBodyLen)){
-                                        extern MonoServer *g_monoServer;
-                                        g_monoServer->addLog(LOGTYPE_WARNING, "Decode failed: MaskCount = %d, CompLen = %d", nMaskCount, to_d(nBodyLen));
-                                        fnReportLastPack();
-                                        return;
-                                    }
-                                }else{
-                                    extern MonoServer *g_monoServer;
-                                    g_monoServer->addLog(LOGTYPE_WARNING, "Corrupted data: DataLen = %d, CompLen = %d", to_d(stCMSG.dataLen()), to_d(nBodyLen));
-                                    fnReportLastPack();
-                                    return;
+                        uint8_t *decodeMemPtr = nullptr;
+                        if(maskSize){
+                            const auto maskCount = zcompf::countMask(readMemPtr, maskSize);
+                            if(maskCount != to_d(bodySize)){
+                                throw fflerror("corrupted data: maskCount = %d, compSize = %d", maskCount, to_d(bodySize));
+                            }
+                            else if(bodySize > cmsg.dataLen()){
+                                throw fflerror("corrupted data: dataLen = %d, compSize = %d", to_d(cmsg.dataLen()), to_d(bodySize));
+                            }
+                            else{
+                                decodeMemPtr = channPtr->getDecodeBuf(cmsg.dataLen());
+                                if(zcompf::xorDecode(decodeMemPtr, cmsg.dataLen(), readMemPtr, readMemPtr + maskSize) != to_d(bodySize)){
+                                    throw fflerror("decode failed: maskCount = %d, compSize = %d", maskCount, to_d(bodySize));
                                 }
                             }
-
-                            // decoding and verification done
-                            // we forward the (decoded/origin) data to the bind actor
-                            pThis->forwardActorMessage(pThis->m_readHC, pDecodeMem ? pDecodeMem : pMem, nMaskLen ? stCMSG.dataLen() : nBodyLen);
-                            pThis->DoReadPackHC();
                         }
-                    };
-                    asio::async_read(m_socket, asio::buffer(pMem, nDataLen), fnDoneReadData);
+
+                        channPtr->forwardActorMessage(channPtr->m_readHeadCode, decodeMemPtr ? decodeMemPtr : readMemPtr, maskSize ? cmsg.dataLen() : bodySize);
+                        channPtr->doReadPackHeadCode();
+                    });
                     return;
                 }
 
                 // possibilities to reach here
-                // 1. call DoReadPackBody() with m_readHC as empty message type
+                // 1. call doReadPackBody() with m_readHeadCode as empty message type
                 // 2. read a body with empty body in mode 3
-                forwardActorMessage(m_readHC, nullptr, 0);
-                DoReadPackHC();
+                forwardActorMessage(m_readHeadCode, nullptr, 0);
+                doReadPackHeadCode();
+                return;
+            }
+        case CS_STOPPED:
+            {
                 return;
             }
         default:
             {
-                extern MonoServer *g_monoServer;
-                g_monoServer->addLog(LOGTYPE_WARNING, "Calling DoReadPackBody() with invalid state: %d", nCurrState);
-                return;
+                throw bad_reach();
             }
     }
 }
 
-void Channel::DoSendPack()
+void Channel::doSendPack()
 {
     // 1. only called in asio main loop thread
     // 2. only called in RUNNING / STOPPED state
 
-    switch(auto nCurrState = m_state.load()){
-        case CHANNTYPE_STOPPED:
-            {
-                // asio can't cancel a handler after post
-                // so we have to check it here and exit directly if channel stopped
-                // nothing is important now, we just return and won't take care of m_flushFlag
-                return;
-            }
-        case CHANNTYPE_RUNNING:
+    switch(m_state.load()){
+        case CS_RUNNING:
             {
                 // will send the first chann pack
                 // channel state could switch to STOPPED during sending
 
                 // when we are here
                 // we should already have m_flushFlag set as true
-                condcheck(m_flushFlag);
+                fflassert(m_flushFlag);
 
                 // check m_currSendQ and if it's empty we swap with the pending queue
                 // then for server threads calling Post() we only dealing with m_nextSendQ
 
-                if(m_currSendQ->Empty()){
-                    std::lock_guard<std::mutex> stLockGuard(m_nextQLock);
-                    if(m_nextSendQ->Empty()){
+                if(m_currSendQ.empty()){
+                    std::lock_guard<std::mutex> lockGuard(m_nextQLock);
+                    if(m_nextSendQ.empty()){
                         // neither queue contains pending packages
                         // mark m_flushFlag as no one accessing m_currSendQ and return
                         m_flushFlag = false;
                         return;
-                    }else{
+                    }
+                    else{
                         // else we still need to access m_currSendQ
                         // keep m_flushFlag to pervent other thread to call DoSendHC()
                         std::swap(m_currSendQ, m_nextSendQ);
                     }
                 }
 
-                condcheck(!m_currSendQ->Empty());
-                auto fnDoSendBuf = [pThis = shared_from_this()](std::error_code stEC, size_t)
+                fflassert(!m_currSendQ.empty());
+                asio::async_write(m_socket, asio::buffer(m_currSendQ.data(), m_currSendQ.size()), [channPtr = shared_from_this(), sentByteCount = m_currSendQ.size()](std::error_code ec, size_t)
                 {
-                    if(stEC){
-                        // immediately shutdown the channel
-                        pThis->Shutdown(true);
-
-                        // report message and abort current process
-                        extern MonoServer *g_monoServer;
-                        g_monoServer->addLog(LOGTYPE_WARNING, "Network error on channel %d: %s", to_d(pThis->ID()), stEC.message().c_str());
-                        return;
+                    if(ec){
+                        channPtr->shutdown(true);
+                        g_monoServer->addLog(LOGTYPE_WARNING, "Network error on channel %d: %s", to_d(channPtr->id()), ec.message().c_str());
                     }
-
-                    // send the first pack without error
-                    // invoke the callback and register the next round
-
-                    auto stCurrPack = pThis->m_currSendQ->GetChannPack();
-                    if(stCurrPack.DoneCB){
-                        stCurrPack.DoneCB();
+                    else{
+                        fflassert(sentByteCount == channPtr->m_currSendQ.size());
+                        channPtr->m_currSendQ.clear();
+                        channPtr->doSendPack();
                     }
-
-                    pThis->m_currSendQ->RemoveChannPack();
-                    pThis->DoSendPack();
-                };
-
-                auto stCurrPack = m_currSendQ->GetChannPack();
-                asio::async_write(m_socket, asio::buffer(stCurrPack.Data, stCurrPack.DataLen), fnDoSendBuf);
+                });
+                return;
+            }
+        case CS_STOPPED:
+            {
+                // asio can't cancel a handler after post
+                // so we have to check it here and exit directly if channel stopped
+                // nothing is important now, we just return and won't take care of m_flushFlag
                 return;
             }
         default:
             {
-                extern MonoServer *g_monoServer;
-                g_monoServer->addLog(LOGTYPE_WARNING, "Calling DoSendPack() with invalid channel state: %d", nCurrState);
-                return;
+                throw bad_reach();
             }
     }
 }
 
-bool Channel::FlushSendQ()
+void Channel::flushSendQ()
 {
-    auto fnFlushSendQ = [pThis = shared_from_this()]()
+    // flushSendQ() is called by server threads only
+    // we post handler fnFlushSendQ to prevent from direct access to m_currSendQ
+    m_socket.get_io_service().post([channPtr = shared_from_this()]()
     {
         // m_currSendQ assessing should always be in the asio main loop
         // the Channel::Post() should only access m_nextSendQ
@@ -454,166 +314,206 @@ bool Channel::FlushSendQ()
         // use shared_ptr<Channel>() instead of raw this
         // then outside of asio main loop we use shared_ptr::reset()
 
-        if(!pThis->m_flushFlag){
+        if(!channPtr->m_flushFlag){
             //  mark as current some one is accessing it
             //  we don't even need to make m_flushFlag atomic since it's in one thread
-            pThis->m_flushFlag = true;
-            pThis->DoSendPack();
+            channPtr->m_flushFlag = true;
+            channPtr->doSendPack();
         }
-    };
-
-    // FlushSendQ() is called by server threads only
-    // we post handler fnFlushSendQ to prevent from direct access to m_currSendQ
-    m_socket.get_io_service().post(fnFlushSendQ);
-    return true;
+    });
 }
 
-bool Channel::Post(uint8_t nHC, const uint8_t *pData, size_t nDataLen, std::function<void()> &&fnDone)
+std::array<std::tuple<const uint8_t *, size_t>, 2> Channel::encodePostBuf(uint8_t headCode, const void *buf, size_t bufSize)
 {
-    // post current message to NextSendQ
-    // this function is called by one server thread
-    {
-        std::lock_guard<std::mutex> stLockGuard(m_nextQLock);
-        m_nextSendQ->AddChannPack(nHC, pData, nDataLen, std::move(fnDone));
-    }
+    const ServerMsg smsg(headCode);
+    fflassert(smsg.checkData(buf, bufSize));
 
-    return FlushSendQ();
-}
-
-bool Channel::forwardActorMessage(uint8_t nHC, const uint8_t *pData, size_t nDataLen)
-{
-    auto fnReportBadArgs = [nHC, pData, nDataLen]()
-    {
-        extern MonoServer *g_monoServer;
-        g_monoServer->addLog(LOGTYPE_WARNING, "Invalid argument: (%d, %p, %d)", to_d(nHC), pData, to_d(nDataLen));
-    };
-
-    ClientMsg stCMSG(nHC);
-    switch(stCMSG.type()){
+    switch(smsg.type()){
         case 0:
             {
-                if(pData || nDataLen){
-                    fnReportBadArgs();
-                    return false;
-                }
-                break;
+                return
+                {
+                    std::make_tuple(nullptr, 0),
+                    std::make_tuple(nullptr, 0),
+                };
             }
         case 1:
+            {
+                // not empty, fixed size, comperssed
+                // length encoding:
+                // [0 - 254]          : length in 0 ~ 254
+                // [    255][0 ~ 255] : length as 0 ~ 255 + 255
+
+                // use 1 or 2 bytes
+                // variant data length, support range in [0, 255 + 255]
+
+                /* */ auto compBuf = getPostBuf(smsg.maskLen() + bufSize + 64);
+                const auto compCnt = zcompf::xorEncode(compBuf + 2, (const uint8_t *)(buf), bufSize);
+
+                fflassert(compCnt >= 0);
+                if(compCnt <= 254){
+                    compBuf[1] = to_u8(compCnt);
+                    return
+                    {
+                        std::make_tuple(compBuf + 1, 1 + smsg.maskLen() + to_uz(compCnt)),
+                        std::make_tuple(nullptr, 0),
+                    };
+                }
+                else if(compCnt <= (255 + 255)){
+                    compBuf[0] = 255;
+                    compBuf[1] = to_u8(compCnt - 255);
+                    return
+                    {
+                        std::make_tuple(compBuf, 2 + smsg.maskLen() + to_uz(compCnt)),
+                        std::make_tuple(nullptr, 0),
+                    };
+                }
+                else{
+                    throw fflerror("message length after compression is too long: %d", compCnt);
+                }
+            }
         case 2:
             {
-                if(!(pData && (nDataLen == stCMSG.dataLen()))){
-                    fnReportBadArgs();
-                    return false;
-                }
-                break;
+                // not empty, fixed size, not compressed
+                return
+                {
+                    std::make_tuple((const uint8_t *)(buf), bufSize),
+                    std::make_tuple(nullptr, 0),
+
+                };
             }
         case 3:
             {
-                if(pData){
-                    if((nDataLen == 0) || (nDataLen > 0XFFFFFFFF)){
-                        fnReportBadArgs();
-                        return false;
-                    }
-                }else{
-                    if(nDataLen){
-                        fnReportBadArgs();
-                        return false;
-                    }
-                }
-                break;
+                // not empty, not fixed size, not compressed
+                auto sizeBuf = getPostBuf(4);
+                const uint32_t bufSizeU32 = to_u32(bufSize);
+
+                std::memcpy(sizeBuf, &bufSizeU32, 4);
+                return
+                {
+                    std::make_tuple(sizeBuf, 4),
+                    std::make_tuple((const uint8_t *)(buf), bufSize),
+                };
             }
         default:
             {
-                return false;
+                throw bad_reach();
             }
     }
+}
+
+void Channel::post(uint8_t headCode, const void *buf, size_t bufLen)
+{
+    // post current message to m_nextSendQ
+    // this function is called by server thread only
+    const auto encodedBufList = encodePostBuf(headCode, buf, bufLen);
+    {
+        std::lock_guard<std::mutex> lockGuard(m_nextQLock);
+        m_nextSendQ.push_back(headCode);
+
+        for(const auto [encodedBuf, encodedBufSize]: encodedBufList){
+            if(encodedBuf){
+                m_nextSendQ.insert(m_nextSendQ.end(), encodedBuf, encodedBuf + encodedBufSize);
+            }
+        }
+    }
+
+    // when asio thread finish send all pending data it doesn't poll new packs
+    // so every time when there is new packs, need to trigger the send, otherwise data stay in the buffer
+    flushSendQ();
+}
+
+bool Channel::forwardActorMessage(uint8_t headCode, const uint8_t *dataPtr, size_t dataLen)
+{
+    fflassert(g_netDriver->isNetThread());
+    fflassert(ClientMsg(headCode).checkData(dataPtr, dataLen));
 
     AMRecvPackage amRP;
     std::memset(&amRP, 0, sizeof(amRP));
 
-    amRP.channID = ID();
-    buildActorDataPackage(&(amRP.package), nHC, pData, nDataLen);
-    return m_dispatcher.forward(m_bindUID, {AM_RECVPACKAGE, amRP});
+    amRP.channID = id();
+    buildActorDataPackage(&(amRP.package), headCode, dataPtr, dataLen);
+    return m_dispatcher.forward(m_playerUID ? m_playerUID : uidf::getServiceCoreUID(), {AM_RECVPACKAGE, amRP});
 }
 
-void Channel::Shutdown(bool bForce)
+void Channel::shutdown(bool force)
 {
-    auto fnShutdown = [](auto pThis)
+    const auto fnShutdown = [](auto channPtr)
     {
-        switch(auto nCurrState = pThis->m_state.exchange(CHANNTYPE_STOPPED)){
-            case CHANNTYPE_STOPPED:
-                {
-                    return;
-                }
-            case CHANNTYPE_RUNNING:
+        switch(const auto lastState = channPtr->m_state.exchange(CS_STOPPED)){
+            case CS_RUNNING:
                 {
                     AMBadChannel amBC;
                     std::memset(&amBC, 0, sizeof(amBC));
 
                     // can forward to servicecore or player
                     // servicecore won't keep pointer *this* then we need to report it
-                    amBC.channID = pThis->ID();
+                    amBC.channID = channPtr->id();
 
-                    pThis->m_dispatcher.forward(pThis->m_bindUID, {AM_BADCHANNEL, amBC});
-                    pThis->m_bindUID = 0;
+                    channPtr->m_dispatcher.forward(channPtr->m_playerUID ? channPtr->m_playerUID : uidf::getServiceCoreUID(), {AM_BADCHANNEL, amBC});
+                    channPtr->m_playerUID = 0;
 
                     // if we call shutdown() here
-                    // we need to use try-catch since if connection has already
-                    // been broken, it throws exception
+                    // we need to use try-catch since if connection has already been broken, it throws exception
 
                     // try{
                     //     m_socket.shutdown(asio::ip::tcp::socket::shutdown_both);
-                    // }catch(...){
+                    // }
+                    // catch(...){
+                    //     ...
                     // }
 
-                    pThis->m_socket.close();
+                    channPtr->m_socket.close();
+                    return;
+                }
+            case CS_STOPPED:
+                {
                     return;
                 }
             default:
                 {
-                    extern MonoServer *g_monoServer;
-                    g_monoServer->addLog(LOGTYPE_WARNING, "Calling Shutdown() with invalid state: %d", nCurrState);
-                    return;
+                    throw bad_reach();
                 }
         }
     };
 
-    if(bForce){
+    if(force){
         fnShutdown(this);
-    }else{
-        m_socket.get_io_service().post([pThis = shared_from_this(), fnShutdown]()
+    }
+    else{
+        m_socket.get_io_service().post([channPtr = shared_from_this(), fnShutdown]()
         {
-            fnShutdown(pThis);
+            fnShutdown(channPtr);
         });
     }
 }
 
-bool Channel::Launch(uint64_t rstAddr)
+void Channel::launch()
 {
-    // Launch is not thread safe
-    // because it's accessing m_bindUID directly without protection
+    const auto lastState = m_state.exchange(CS_RUNNING);
+    fflassert(lastState == CS_NONE);
 
-    if(rstAddr){
-        m_bindUID = rstAddr;
-        switch(auto nCurrState = m_state.exchange(CHANNTYPE_RUNNING)){
-            case CHANNTYPE_NONE:
-                {
-                    // make state RUNNING first
-                    // otherwise all DoXXXXFunc() will exit directly
+    m_socket.get_io_service().post([channPtr = shared_from_this()]()
+    {
+        channPtr->doReadPackHeadCode();
+    });
+}
 
-                    m_socket.get_io_service().post([pThis = shared_from_this()]()
-                    {
-                        pThis->DoReadPackHC();
-                    });
-                    return true;
-                }
-            default:
-                {
-                    extern MonoServer *g_monoServer;
-                    g_monoServer->addLog(LOGTYPE_WARNING, "Invalid channel state to launch: %d", nCurrState);
-                    return false;
-                }
-        }
-    }
-    return false;
+void Channel::bindPlayer(uint64_t uid)
+{
+    // force messages forward to the new actor
+    // use post rather than directly assignement
+    // since asio main loop thread will access m_playerUID
+
+    // potential bug:
+    // internal actor address won't get update immediately after this call
+
+    fflassert(uidf::isPlayer(uid));
+    fflassert(g_actorPool->checkUIDValid(uid));
+
+    m_socket.get_io_service().post([uid, this]()
+    {
+        fflassert(!m_playerUID);
+        m_playerUID = uid;
+    });
 }

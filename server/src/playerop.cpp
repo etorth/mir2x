@@ -53,7 +53,7 @@ void Player::on_AM_BINDCHANNEL(const ActorMsgPack &rstMPK)
     // bind channel here
     // set the channel actor as this->GetAddress()
     m_channID = amBC.channID;
-    g_netDriver->bindActor(channID(), UID());
+    g_netDriver->bindPlayer(channID(), UID());
 
     postOnLoginOK();
     PullRectCO(10, 10);
@@ -404,14 +404,12 @@ void Player::on_AM_HEAL(const ActorMsgPack &mpk)
     }
 }
 
-void Player::on_AM_BADCHANNEL(const ActorMsgPack &rstMPK)
+void Player::on_AM_BADCHANNEL(const ActorMsgPack &mpk)
 {
-    AMBadChannel amBC;
-    std::memcpy(&amBC, rstMPK.data(), sizeof(amBC));
+    const auto amBC = mpk.conv<AMBadChannel>();
+    fflassert(channID() == amBC.channID);
 
-    condcheck(channID() == amBC.channID);
-    g_netDriver->Shutdown(channID(), false);
-
+    g_netDriver->shutdown(channID(), false);
     Offline();
 }
 

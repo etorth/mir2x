@@ -272,7 +272,7 @@ void Player::reportAction(uint64_t nUID, const ActionNode &action)
         smA.mapID = mapID();
         smA.action = action;
 
-        g_netDriver->Post(channID(), SM_ACTION, smA);
+        postNetMessage(SM_ACTION, smA);
     }
 }
 
@@ -479,10 +479,11 @@ void Player::reportOffline(uint64_t nUID, uint32_t nMapID)
             && channID()){
 
         SMOffline smO;
+        std::memset(&smO, 0, sizeof(smO));
+
         smO.UID   = nUID;
         smO.mapID = nMapID;
-
-        g_netDriver->Post(channID(), SM_OFFLINE, smO);
+        postNetMessage(SM_OFFLINE, smO);
     }
 }
 
@@ -496,12 +497,10 @@ bool Player::Offline()
     return true;
 }
 
-bool Player::postNetMessage(uint8_t nHC, const void *pData, size_t nDataLen)
+void Player::postNetMessage(uint8_t headCode, const void *buf, size_t bufLen)
 {
-    if(channID()){
-        return g_netDriver->Post(channID(), nHC, (const uint8_t *)(pData), nDataLen);
-    }
-    return false;
+    fflassert(channID());
+    return g_netDriver->post(channID(), headCode, (const uint8_t *)(buf), bufLen);
 }
 
 void Player::onCMActionStand(CMAction stCMA)

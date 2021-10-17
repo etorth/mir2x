@@ -171,18 +171,21 @@ namespace zcompf
 
     inline int xorDecode(uint8_t *dst, size_t bufLen, const uint8_t *maskPtr, const uint8_t *compPtr)
     {
-        if(dst && bufLen && maskPtr && compPtr){
-            int decodeCount = 0;
-            for(size_t i = 0; i < bufLen; ++i){
-                if(maskPtr[i / 8] & (0x01 << (i % 8))){
-                    dst[i] = compPtr[decodeCount++];
-                }
-                else{
-                    dst[i] = 0;
-                }
+        fflassert(dst);
+        fflassert(bufLen);
+
+        fflassert(maskPtr);
+        fflassert(compPtr);
+
+        int decodeCount = 0;
+        for(size_t i = 0; i < bufLen; ++i){
+            if(maskPtr[i / 8] & (0x01 << (i % 8))){
+                dst[i] = compPtr[decodeCount++];
             }
-            return decodeCount;
+            else{
+                dst[i] = 0;
+            }
         }
-        throw fflerror("invalid arguments: dst = %p, bufLen = %zu, maskPtr = %p, compPtr = %p", to_cvptr(dst), bufLen, to_cvptr(maskPtr), to_cvptr(compPtr));
+        return decodeCount;
     }
 }

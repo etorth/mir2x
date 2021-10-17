@@ -389,10 +389,7 @@ void MonoServer::StartServiceCore()
 
 void MonoServer::StartNetwork()
 {
-    uint32_t nPort = g_serverConfigureWindow->getConfig().listenPort;
-    if(!g_netDriver->Launch(nPort)){
-        throw fflerror("Failed to launch the network");
-    }
+    g_netDriver->launch(g_serverConfigureWindow->getConfig().listenPort);
 }
 
 void MonoServer::Launch()

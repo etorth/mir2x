@@ -18,25 +18,21 @@
 
 #include <cinttypes>
 #include "uidf.hpp"
-#include "serverargparser.hpp"
 #include "actorpool.hpp"
 #include "monoserver.hpp"
 #include "dispatcher.hpp"
 #include "actormsgpack.hpp"
+#include "serverargparser.hpp"
 
 extern ActorPool *g_actorPool;
 extern MonoServer *g_monoServer;
 extern ServerArgParser *g_serverArgParser;
 
-bool Dispatcher::forward(uint64_t nUID, const ActorMsgBuf &rstMB, uint32_t nRespond)
+bool Dispatcher::forward(uint64_t uid, const ActorMsgBuf &msgBuf, uint32_t resp)
 {
+    fflassert(uid);
     if(g_serverArgParser->traceActorMessage){
-        g_monoServer->addLog(LOGTYPE_DEBUG, "Dispatcher -> (UID: %s, Type: %s, ID: 0, Resp: %llu)", uidf::getUIDString(nUID).c_str(), mpkName(rstMB.type()), to_llu(nRespond));
+        g_monoServer->addLog(LOGTYPE_DEBUG, "Dispatcher -> (UID: %s, Type: %s, ID: 0, Resp: %llu)", uidf::getUIDString(uid).c_str(), mpkName(msgBuf.type()), to_llu(resp));
     }
-
-    if(!nUID){
-        g_monoServer->addLog(LOGTYPE_DEBUG, "Dispatcher -> (UID: %s, Type: %s, ID: 0, Resp: %llu): Try to send message to UID 0", uidf::getUIDString(nUID).c_str(), mpkName(rstMB.type()), to_llu(nRespond));
-        return false;
-    }
-    return g_actorPool->postMessage(nUID, {rstMB, 0, 0, nRespond});
+    return g_actorPool->postMessage(uid, {msgBuf, 0, 0, resp});
 }

@@ -22,10 +22,8 @@
 #include "zcompf.hpp"
 #include "message.hpp"
 #include "fflerror.hpp"
-#include "condcheck.hpp"
 
 extern Log *g_log;
-
 NetIO::SendPack::SendPack(uint8_t hc, const uint8_t *dataBuf, size_t dataLength)
     : headCode(hc)
     , data(dataBuf)
@@ -511,40 +509,22 @@ bool NetIO::send(uint8_t nHC, const uint8_t *pData, size_t nDataLen)
     return true;
 }
 
-void NetIO::start(const char *IPStr, const char * portStr, const std::function<void(uint8_t, const uint8_t *, size_t)> &msgHandler)
+void NetIO::start(const char *IPStr, const char * portStr, std::function<void(uint8_t, const uint8_t *, size_t)> msgHandler)
 {
-    if(!(IPStr && portStr)){
-        throw fflerror("invalid endpoint providen: (%s:%s)", IPStr ? IPStr : "(null)", portStr ? portStr : "(null)");
-    }
+    fflassert(str_haschar(  IPStr));
+    fflassert(str_haschar(portStr));
 
-    // 1. register the completion handler
-    if(!msgHandler){
-        throw fflerror("invalid message handler");
-    }
-    m_msgHandler = msgHandler;
+    fflassert(msgHandler);
+    m_msgHandler = std::move(msgHandler);
 
-    // 2. try to connect to server
-    //    this just put an handler in the event pool, should pool to drive it
     asio::async_connect(m_socket, m_resolver.resolve({IPStr, portStr}), [this](std::error_code errCode, asio::ip::tcp::resolver::iterator)
     {
         if(errCode){
-            // 1. close the asio socket
             shutdown();
-
-            // 2. record the error code and exit
             g_log->addLog(LOGTYPE_WARNING, "Network error: %s", errCode.message().c_str());
-
-            // 3. the main loop can check socket::is_open()
-            //    to inform the user that current socket is working or run into errors
-
-            // 4. else call readHeadCode() to get the first headCode
-            //    all readHeadCode() should be called after the invocation of completion handler
         }
         else{
             readHeadCode();
         }
     });
-
-    // 3. we won't call asio::io_service::run() here
-    //    instead we'll explicitly call asio::io_service::poll() in Client::mainLoop()
 }

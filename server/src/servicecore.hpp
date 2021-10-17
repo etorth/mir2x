@@ -39,7 +39,7 @@ class ServiceCore final: public ServerObject
 
     public:
         ServiceCore();
-       ~ServiceCore() = default;
+        ~ServiceCore() = default;
 
     protected:
         void operateAM(const ActorMsgPack &);

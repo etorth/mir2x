@@ -7,155 +7,81 @@
 
 extern ActorPool *g_actorPool;
 extern MonoServer *g_monoServer;
+static thread_local bool t_netThreadFlag = false; // use bool since only has 1 net thread
 
 NetDriver::NetDriver()
-    : m_port(0)
-    , m_IO(nullptr)
-    , m_endPoint(nullptr)
-    , m_acceptor(nullptr)
-    , m_socket(nullptr)
-    , m_thread()
-    , m_channIDQ()
-{}
+    : m_channList(SYS_MAXPLAYERNUM + 1)
+{
+    // reserve all valid channal IDs
+    // don't use the first slot with ID as zero
+    for(size_t channID = 1; channID < m_channList.size(); ++channID){
+        m_channIDQ.push(channID);
+    }
+}
 
 NetDriver::~NetDriver()
 {
-    m_IO->stop();
-    if(m_thread.joinable()){
-        m_thread.join();
-    }
-
-    delete m_socket;
-    delete m_acceptor;
-    delete m_endPoint;
-    delete m_IO;
-}
-
-bool NetDriver::CheckPort(uint32_t nPort)
-{
-    if(nPort <= 1024){
-        g_monoServer->addLog(LOGTYPE_WARNING, "Don't use reserved port: %d", to_d(nPort));
-        return false;
-    }
-
-    if(m_port > 1024){
-        // TODO here we add other well-unknown occupied port check
-    }
-
-    return true;
-}
-
-bool NetDriver::InitASIO(uint32_t nPort)
-{
-    // 1. set server listen port
-
-    if(!CheckPort(nPort)){
-        throw fflerror("invalid port provided: %llu", to_llu(nPort));
-    }
-
-    m_port = nPort;
-
     try{
-        m_IO       = new asio::io_service();
-        m_endPoint = new asio::ip::tcp::endpoint(asio::ip::tcp::v4(), m_port);
-        m_acceptor = new asio::ip::tcp::acceptor(*m_IO, *m_endPoint);
-        m_socket   = new asio::ip::tcp::socket(*m_IO);
+        release();
+    }
+    catch(const std::exception &e){
+        g_monoServer->addLog(LOGTYPE_WARNING, "Failed when release net driver: %s", e.what());
     }
     catch(...){
-        delete m_socket;
-        delete m_acceptor;
-        delete m_endPoint;
-        delete m_IO;
-
-        throw fflerror("initialization of ASIO failed");
+        g_monoServer->addLog(LOGTYPE_WARNING, "Failed when release net driver: unknown error");
     }
-    return true;
 }
 
-bool NetDriver::Launch(uint32_t nPort)
+bool NetDriver::isNetThread() const
 {
-    if(!CheckPort(nPort)){
-        g_monoServer->addLog(LOGTYPE_WARNING, "Using invalid port: %llu", to_llu(nPort));
-        return false;
-    }
+    return t_netThreadFlag;
+}
 
-    if(!g_actorPool->checkUIDValid(uidf::getServiceCoreUID())){
-        g_monoServer->addLog(LOGTYPE_WARNING, "Service core is not started");
-        return false;
-    }
+void NetDriver::launch(uint32_t port)
+{
+    fflassert(port > 1024);
+    fflassert(g_actorPool->checkUIDValid(uidf::getServiceCoreUID()));
+    fflassert(m_port == 0);
 
-    if(m_thread.joinable()){
-        m_thread.join();
-    }
+    m_port = port;
+    m_io = new asio::io_service();
+    m_endPoint = new asio::ip::tcp::endpoint(asio::ip::tcp::v4(), m_port);
+    m_acceptor = new asio::ip::tcp::acceptor(*m_io, *m_endPoint);
 
-    if(!InitASIO(nPort)){
-        g_monoServer->addLog(LOGTYPE_WARNING, "InitASIO failed in NetDriver");
-        return false;
-    }
+    fflassert(!m_channIDQ.empty());
+    acceptNewConnection();
 
-    m_channIDQ.Clear();
-    for(int nIndex = 1; nIndex <= SYS_MAXPLAYERNUM; ++nIndex){
-        m_channIDQ.PushBack(nIndex);
-    }
-
-    AcceptNewConnection();
     m_thread = std::thread([this]()
     {
-        m_IO->run();
+        t_netThreadFlag = true;
+        m_io->run();
     });
-
-    return true;
 }
 
-void NetDriver::AcceptNewConnection()
+void NetDriver::acceptNewConnection()
 {
-    auto fnAccept = [this](std::error_code stEC)
+    if(m_channIDQ.empty()){
+        g_monoServer->addLog(LOGTYPE_INFO, "No valid slot for new connection, request ignored.");
+        return;
+    }
+
+    const auto channID = m_channIDQ.front();
+    m_channIDQ.pop();
+
+    fflassert(to_uz(channID) > 0);
+    fflassert(to_uz(channID) < m_channList.size());
+
+    m_channList[channID] = std::make_shared<Channel>(m_io, channID);
+    m_acceptor->async_accept(m_channList[channID]->socket(), [channID, this](std::error_code ec)
     {
-        if(stEC){
-            // error occurs, stop the network
-            // assume g_monoServer is ready for log
-            throw fflerror("get network error when accepting: %s", stEC.message().c_str());
+        if(ec){
+            throw fflerror("get network error when accepting new connection: %s", ec.message().c_str());
         }
 
-        if(m_channIDQ.Empty()){
-            g_monoServer->addLog(LOGTYPE_INFO, "No valid slot for new connection request");
+        auto channPtr = m_channList.at(channID).get();
+        g_monoServer->addLog(LOGTYPE_INFO, "Channel %d established for endpoint (%s:%d)", to_d(channPtr->id()), to_cstr(channPtr->ip()), to_d(channPtr->port()));
 
-            // currently no valid slot
-            // but should wait for new accepting request
-            AcceptNewConnection();
-            return;
-        }
-
-        auto nChannID = m_channIDQ.Head();
-        m_channIDQ.PopHead();
-
-        if(!CheckChannID(nChannID)){
-            throw fflerror("Get invalid channel ID from reserved queue");
-        }
-
-        auto szIP  = m_socket->remote_endpoint().address().to_string();
-        auto nPort = m_socket->remote_endpoint().port();
-
-        if(!ChannBuild(nChannID, std::move(*m_socket))){
-            g_monoServer->addLog(LOGTYPE_WARNING, "Creating channel for endpoint (%s:%d) failed", szIP.c_str(), nPort);
-
-            // build channel for the allocated id failed
-            // recycle the id and post the accept for new request
-
-            m_channIDQ.PushBack(nChannID);
-            AcceptNewConnection();
-            return;
-        }
-
-        auto pChann = m_channelList[nChannID];
-        g_monoServer->addLog(LOGTYPE_INFO, "Channel %d established for endpoint (%s:%d)", pChann->ID(), pChann->IP(), pChann->Port());
-
-        // directly lanuch the channel here
-        // won't forward the new connection to the service core
-
-        pChann->Launch(uidf::getServiceCoreUID());
-        AcceptNewConnection();
-    };
-
-    m_acceptor->async_accept(*m_socket, fnAccept);
+        channPtr->launch();
+        acceptNewConnection();
+    });
 }

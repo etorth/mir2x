@@ -1,29 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: netio.hpp
- *        Created: 09/03/2015 03:49:00 AM
- *    Description: read / write for 1 to 1 map network, for the server part we use class
- *                 session since it's 1 to N map.
- *
- *                 this class provide an internal buffer to store read data, when using
- *                 internal buffer we need to make the read procedure one by one otherwise
- *                 data will be corrupted
- *
- *                 for sending message, I put the memory pool inside to free user to
- *                 mantain the message buffer, and I put compression support inside
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #pragma once
 #include <asio.hpp>
 #include <queue>
@@ -67,7 +41,7 @@ class NetIO final
         ~NetIO();
 
     public:
-        void start(const char *, const char *, const std::function<void(uint8_t, const uint8_t *, size_t)> &);
+        void start(const char *, const char *, std::function<void(uint8_t, const uint8_t *, size_t)>);
 
     public:
         void poll()
