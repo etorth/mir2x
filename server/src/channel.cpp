@@ -492,13 +492,11 @@ void Channel::shutdown(bool force)
 
 void Channel::launch()
 {
+    fflassert(g_netDriver->isNetThread());
     const auto lastState = m_state.exchange(CS_RUNNING);
-    fflassert(lastState == CS_NONE);
 
-    m_socket.get_io_service().post([channPtr = shared_from_this()]()
-    {
-        channPtr->doReadPackHeadCode();
-    });
+    fflassert(lastState == CS_NONE);
+    doReadPackHeadCode();
 }
 
 void Channel::bindPlayer(uint64_t uid)
