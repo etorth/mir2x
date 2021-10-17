@@ -417,6 +417,8 @@ void Player::on_AM_BADCHANNEL(const ActorMsgPack &mpk)
     // AM_BADCHANNEL is sent by Channel::dtor
     // when player get this message the channel has already been destructed
     // assign zero to m_channID to indicate player has received AM_BADCHANNEL instead of not bind to a channel yet
+    // code after this line should know it shall not post any network message, because the channel slot has been released
+
     m_channID = 0;
     goOffline();
 }

@@ -484,6 +484,11 @@ void Player::reportOffline(uint64_t nUID, uint32_t nMapID)
         smO.mapID = nMapID;
         postNetMessage(SM_OFFLINE, smO);
 
+        // player initiatively shutdown the channel
+        // the NetDriver::shutdown() only *request* the channel to be closed, it schedule an event
+        // after this line the channel slot may still be non-empty, but we shall not post any network message
+        // so use m_channID = 0 as a flag, also check comments for Player::on_AM_BADCHANNEL()
+
         g_netDriver->shutdown(m_channID.value());
         m_channID = 0;
     }
