@@ -54,7 +54,20 @@ void NetDriver::launch(uint32_t port)
     m_thread = std::thread([this]()
     {
         t_netThreadFlag = true;
-        m_io->run();
+
+        // net driver shouldn't crash the main loop when exception get thrown in completion handlers
+        // see: http://www.boost.org/doc/libs/1_65_1/doc/html/boost_asio/reference/io_service.html#boost_asio.reference.io_service.effect_of_exceptions_thrown_from_handlers
+        while(true){
+            try{
+                m_io->run();
+                break; // run() exited normally
+            }
+            catch(const ChannError &e){
+                shutdown(e.channID(), true);
+            }
+            // only catch channError
+            // let it crash when caught any other exceptions
+        }
     });
 }
 

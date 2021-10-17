@@ -7,8 +7,42 @@
 #include <vector>
 #include <atomic>
 #include <cstdint>
+#include <stdexcept>
 #include <functional>
+#include "strf.hpp"
 #include "dispatcher.hpp"
+
+class ChannError: public std::exception
+{
+    private:
+        const uint32_t m_channID;
+
+    private:
+        std::string m_what;
+
+    public:
+        ChannError(uint32_t channID)
+            : m_channID(channID)
+        {}
+
+        ChannError(uint32_t channID, const char *format, ...)
+            : m_channID(channID)
+        {
+            str_format(format, m_what);
+        }
+
+    public:
+        const char *what() const noexcept override
+        {
+            return m_what.empty() ? "ChannError: unknown error" : m_what.c_str();
+        }
+
+    public:
+        uint32_t channID() const
+        {
+            return m_channID;
+        }
+};
 
 class Channel final: public std::enable_shared_from_this<Channel>
 {
