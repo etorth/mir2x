@@ -29,7 +29,7 @@ extern DBPod *g_dbPod;
 extern NetDriver *g_netDriver;
 extern MonoServer *g_monoServer;
 
-void ServiceCore::net_CM_Login(uint32_t channID, uint8_t, const uint8_t *buf, size_t)
+void ServiceCore::net_CM_LOGIN(uint32_t channID, uint8_t, const uint8_t *buf, size_t)
 {
     const auto cmL = ClientMsg::conv<CMLogin>(buf);
     const auto fnOnLoginFail = [channID, cmL](int error)
@@ -116,7 +116,7 @@ void ServiceCore::net_CM_Login(uint32_t channID, uint8_t, const uint8_t *buf, si
     });
 }
 
-void ServiceCore::net_CM_Account(uint32_t channID, uint8_t, const uint8_t *buf, size_t)
+void ServiceCore::net_CM_ACCOUNT(uint32_t channID, uint8_t, const uint8_t *buf, size_t)
 {
     const auto cmA = ClientMsg::conv<CMAccount>(buf);
     const auto fnOnDone = [channID, cmA](bool error)
