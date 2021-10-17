@@ -46,6 +46,8 @@ void Channel::doReadPackHeadCode()
                 asio::async_read(m_socket, asio::buffer(&m_readHeadCode, 1), [channPtr = shared_from_this()](std::error_code ec, size_t)
                 {
                     if(ec){
+                        // TODO should call channPtr->m_state = CS_STOPPED
+                        //      otherwise if there are more completions handler associated to this channel, it's not get acknowledged there this channel shouldn't be used
                         throw ChannError(channPtr->id(), "network error on channel %d: %s", channPtr->id(), ec.message().c_str());
                     }
 
