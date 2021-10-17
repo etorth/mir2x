@@ -14,7 +14,10 @@ class NetIO final
         uint8_t m_readLen[4] = {0, 0, 0, 0};
 
     private:
-        std::vector<uint8_t> m_sendBuf;
+        std::vector<uint8_t> m_currSendBuf;
+        std::vector<uint8_t> m_nextSendBuf;
+
+    private:
         std::vector<uint8_t> m_readBuf;
 
     private:
@@ -66,8 +69,11 @@ class NetIO final
         }
 
     private:
-        void readHeadCode();
-        void readBody(size_t, size_t);
+        void doReadHeadCode();
+        void doReadBody(size_t, size_t);
+
+    private:
+        void doSendBuf();
 
     private:
         void shutdown()

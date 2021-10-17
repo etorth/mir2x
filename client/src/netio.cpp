@@ -4,7 +4,7 @@
 #include "message.hpp"
 #include "fflerror.hpp"
 
-void NetIO::readHeadCode()
+void NetIO::doReadHeadCode()
 {
     asio::async_read(m_socket, asio::buffer(&m_readHeadCode, 1), [this](std::error_code errCode, size_t)
     {
@@ -17,7 +17,7 @@ void NetIO::readHeadCode()
             case 0:
                 {
                     m_msgHandler(m_readHeadCode, nullptr, 0);
-                    readHeadCode();
+                    doReadHeadCode();
                     return;
                 }
             case 1:
@@ -30,7 +30,7 @@ void NetIO::readHeadCode()
 
                         if(m_readLen[0] != 255){
                             fflassert(to_uz(m_readLen[0]) <= smsg.dataLen());
-                            readBody(smsg.maskLen(), m_readLen[0]);
+                            doReadBody(smsg.maskLen(), m_readLen[0]);
                         }
                         else{
                             asio::async_read(m_socket, asio::buffer(m_readLen + 1, 1), [this, smsg](std::error_code errCode, size_t)
@@ -43,7 +43,7 @@ void NetIO::readHeadCode()
                                 const auto compSize = to_uz(m_readLen[1]) + 255;
 
                                 fflassert(compSize <= smsg.dataLen());
-                                readBody(smsg.maskLen(), compSize);
+                                doReadBody(smsg.maskLen(), compSize);
                             });
                         }
                     });
@@ -51,7 +51,7 @@ void NetIO::readHeadCode()
                 }
             case 2:
                 {
-                    readBody(0, smsg.dataLen());
+                    doReadBody(0, smsg.dataLen());
                     return;
                 }
             case 3:
@@ -61,7 +61,7 @@ void NetIO::readHeadCode()
                         if(errCode){
                             throw fflerror("network error: %s", errCode.message().c_str());
                         }
-                        readBody(0, as_u32(m_readLen));
+                        doReadBody(0, as_u32(m_readLen));
                     });
                     return;
                 }
@@ -73,7 +73,7 @@ void NetIO::readHeadCode()
     });
 }
 
-void NetIO::readBody(size_t maskSize, size_t bodySize)
+void NetIO::doReadBody(size_t maskSize, size_t bodySize)
 {
     const ServerMsg smsg(m_readHeadCode);
     fflassert(smsg.checkDataSize(maskSize, bodySize));
@@ -122,13 +122,35 @@ void NetIO::readBody(size_t maskSize, size_t bodySize)
             }
 
             m_msgHandler(m_readHeadCode, m_readBuf.data() + (maskSize ? ((maskSize + bodySize + 7) / 8 * 8) : 0), maskSize ? smsg.dataLen() : bodySize);
-            readHeadCode();
+            doReadHeadCode();
         });
     }
     else{
         m_msgHandler(m_readHeadCode, nullptr, 0);
-        readHeadCode();
+        doReadHeadCode();
     }
+}
+
+void NetIO::doSendBuf()
+{
+    if(m_currSendBuf.empty()){
+        return;
+    }
+
+    asio::async_write(m_socket, asio::buffer(m_currSendBuf.data(), m_currSendBuf.size()), [this](std::error_code errCode, size_t)
+    {
+        if(errCode){
+            throw fflerror("network error: %s", errCode.message().c_str());
+        }
+
+        m_currSendBuf.clear();
+        if(m_nextSendBuf.empty()){
+            return;
+        }
+
+        std::swap(m_currSendBuf, m_nextSendBuf);
+        doSendBuf();
+    });
 }
 
 void NetIO::send(uint8_t headCode, const uint8_t *buf, size_t bufSize)
@@ -136,10 +158,8 @@ void NetIO::send(uint8_t headCode, const uint8_t *buf, size_t bufSize)
     const ClientMsg cmsg(headCode);
     fflassert(cmsg.checkData(buf, bufSize));
 
-    const bool needFlush = m_sendBuf.empty();
-    const auto bodyStartOff = m_sendBuf.size() + 1; // after headCode
-
-    m_sendBuf.push_back(headCode);
+    const auto bodyStartOff = m_nextSendBuf.size() + 1; // after headCode
+    m_nextSendBuf.push_back(headCode);
     switch(cmsg.type()){
         case 0:
             {
@@ -152,17 +172,17 @@ void NetIO::send(uint8_t headCode, const uint8_t *buf, size_t bufSize)
                 fflassert(bitCount <= to_d(cmsg.dataLen()));
 
                 if(bitCount <= 254){
-                    m_sendBuf.resize(m_sendBuf.size() + cmsg.maskLen() + to_uz(bitCount) + 1);
-                    const auto encodeSize = zcompf::xorEncode(m_sendBuf.data() + bodyStartOff + 1, buf, bufSize);
+                    m_nextSendBuf.resize(m_nextSendBuf.size() + cmsg.maskLen() + to_uz(bitCount) + 1);
+                    const auto encodeSize = zcompf::xorEncode(m_nextSendBuf.data() + bodyStartOff + 1, buf, bufSize);
                     fflassert(encodeSize == bitCount);
-                    m_sendBuf[bodyStartOff] = bitCount;
+                    m_nextSendBuf[bodyStartOff] = bitCount;
                 }
                 else if(bitCount <= 255 + 255){
-                    m_sendBuf.resize(m_sendBuf.size() + cmsg.maskLen() + to_uz(bitCount) + 2);
-                    const auto encodeSize = zcompf::xorEncode(m_sendBuf.data() + bodyStartOff + 2, buf, bufSize);
+                    m_nextSendBuf.resize(m_nextSendBuf.size() + cmsg.maskLen() + to_uz(bitCount) + 2);
+                    const auto encodeSize = zcompf::xorEncode(m_nextSendBuf.data() + bodyStartOff + 2, buf, bufSize);
                     fflassert(encodeSize == bitCount);
-                    m_sendBuf[bodyStartOff] = 255;
-                    m_sendBuf[bodyStartOff + 1] = to_u8(bitCount - 255);
+                    m_nextSendBuf[bodyStartOff] = 255;
+                    m_nextSendBuf[bodyStartOff + 1] = to_u8(bitCount - 255);
                 }
                 else{
                     throw fflerror("message length after compression is too long: %d", bitCount);
@@ -171,15 +191,15 @@ void NetIO::send(uint8_t headCode, const uint8_t *buf, size_t bufSize)
             }
         case 2:
             {
-                m_sendBuf.insert(m_sendBuf.end(), buf, buf + bufSize);
+                m_nextSendBuf.insert(m_nextSendBuf.end(), buf, buf + bufSize);
                 break;
             }
         case 3:
             {
-                m_sendBuf.resize(m_sendBuf.size() + bufSize + 4);
+                m_nextSendBuf.resize(m_nextSendBuf.size() + bufSize + 4);
                 const uint32_t bufSizeU32 = bufSize;
-                std::memcpy(m_sendBuf.data() + bodyStartOff, &bufSizeU32, 4);
-                std::memcpy(m_sendBuf.data() + bodyStartOff + 4, buf, bufSize);
+                std::memcpy(m_nextSendBuf.data() + bodyStartOff, &bufSizeU32, 4);
+                std::memcpy(m_nextSendBuf.data() + bodyStartOff + 4, buf, bufSize);
                 break;
             }
         default:
@@ -188,19 +208,9 @@ void NetIO::send(uint8_t headCode, const uint8_t *buf, size_t bufSize)
             }
     }
 
-    if(needFlush){
-        m_io.post([this]()
-        {
-            asio::async_write(m_socket, asio::buffer(m_sendBuf.data(), m_sendBuf.size()), [this](std::error_code errCode, size_t)
-            {
-                if(errCode){
-                    throw fflerror("network error: %s", errCode.message().c_str());
-                }
-                else{
-                    m_sendBuf.clear();
-                }
-            });
-        });
+    if(m_currSendBuf.empty()){
+        std::swap(m_currSendBuf, m_nextSendBuf);
+        doSendBuf();
     }
 }
 
@@ -218,7 +228,7 @@ void NetIO::start(const char *ipStr, const char *portStr, std::function<void(uin
             throw fflerror("network error: %s", errCode.message().c_str());
         }
         else{
-            readHeadCode();
+            doReadHeadCode();
         }
     });
 }
