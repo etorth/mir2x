@@ -44,19 +44,10 @@ void Channel::doReadPackHeadCode()
     switch(m_state.load()){
         case CS_RUNNING:
             {
-                const auto fnOnNetError = [channPtr = shared_from_this()](std::error_code ec)
+                asio::async_read(m_socket, asio::buffer(&m_readHeadCode, 1), [channPtr = shared_from_this()](std::error_code ec, size_t)
                 {
                     if(ec){
-                        g_monoServer->addLog(LOGTYPE_WARNING, "Network error on channel %d: %s", to_d(channPtr->id()), ec.message().c_str());
-                        channPtr->shutdown(true);
-                    }
-                };
-
-                asio::async_read(m_socket, asio::buffer(&m_readHeadCode, 1), [channPtr = shared_from_this(), fnOnNetError](std::error_code ec, size_t)
-                {
-                    if(ec){
-                        fnOnNetError(ec);
-                        return;
+                        throw fflerror("network error on channel %d: %s", channPtr->id(), ec.message().c_str());
                     }
 
                     const ClientMsg cmsg(channPtr->m_readHeadCode);
@@ -70,42 +61,30 @@ void Channel::doReadPackHeadCode()
                         case 1:
                             {
                                 // not empty, fixed size, compressed
-                                asio::async_read(channPtr->m_socket, asio::buffer(channPtr->m_readLen, 1), [channPtr, cmsg, fnOnNetError](std::error_code ec, size_t)
+                                asio::async_read(channPtr->m_socket, asio::buffer(channPtr->m_readLen, 1), [channPtr, cmsg](std::error_code ec, size_t)
                                 {
                                     if(ec){
-                                        fnOnNetError(ec);
-                                        return;
+                                        throw fflerror("network error on channel %d: %s", channPtr->id(), ec.message().c_str());
                                     }
 
                                     if(channPtr->m_readLen[0] != 255){
-                                        if(to_uz(channPtr->m_readLen[0]) > cmsg.dataLen()){
-                                            channPtr->shutdown(true);
-                                            throw fflerror("invalid package: compSize = %d", to_d(channPtr->m_readLen[0]));
-                                        }
-                                        else{
-                                            channPtr->doReadPackBody(cmsg.maskLen(), channPtr->m_readLen[0]);
-                                        }
+                                        fflassert(to_uz(channPtr->m_readLen[0]) <= cmsg.dataLen());
+                                        channPtr->doReadPackBody(cmsg.maskLen(), channPtr->m_readLen[0]);
                                     }
                                     else{
                                         // oooops, bytes[0] is 255
                                         // we got a long message and need to read bytes[1]
-                                        asio::async_read(channPtr->m_socket, asio::buffer(channPtr->m_readLen + 1, 1), [channPtr, cmsg, fnOnNetError](std::error_code ec, size_t)
+                                        asio::async_read(channPtr->m_socket, asio::buffer(channPtr->m_readLen + 1, 1), [channPtr, cmsg](std::error_code ec, size_t)
                                         {
                                             if(ec){
-                                                fnOnNetError(ec);
-                                                return;
+                                                throw fflerror("network error on channel %d: %s", channPtr->id(), ec.message().c_str());
                                             }
 
                                             fflassert(channPtr->m_readLen[0] == 255);
                                             const auto compSize = to_uz(channPtr->m_readLen[1]) + 255;
 
-                                            if(compSize > cmsg.dataLen()){
-                                                channPtr->shutdown(true);
-                                                throw fflerror("invalid package: compSize = %d", to_d(compSize));
-                                            }
-                                            else{
-                                                channPtr->doReadPackBody(cmsg.maskLen(), compSize);
-                                            }
+                                            fflassert(compSize <= cmsg.dataLen());
+                                            channPtr->doReadPackBody(cmsg.maskLen(), compSize);
                                         });
                                     }
                                 });
@@ -130,23 +109,18 @@ void Channel::doReadPackHeadCode()
 
                                 // and if we want to send big chunk of compressed data
                                 // we should compress it by other method and send it via this channel
-                                asio::async_read(channPtr->m_socket, asio::buffer(channPtr->m_readLen, 4), [channPtr, fnOnNetError](std::error_code ec, size_t)
+                                asio::async_read(channPtr->m_socket, asio::buffer(channPtr->m_readLen, 4), [channPtr](std::error_code ec, size_t)
                                 {
                                     if(ec){
-                                        fnOnNetError(ec);
+                                        throw fflerror("network error on channel %d: %s", channPtr->id(), ec.message().c_str());
                                     }
-                                    else{
-                                        channPtr->doReadPackBody(0, to_uz(as_u32(channPtr->m_readLen)));
-                                    }
+                                    channPtr->doReadPackBody(0, to_uz(as_u32(channPtr->m_readLen)));
                                 });
                                 return;
                             }
                         default:
                             {
-                                // impossible type
-                                // should abort at construction of ClientMsg
-                                channPtr->shutdown(true);
-                                return;
+                                throw bad_reach();
                             }
                     }
                 });
@@ -168,57 +142,36 @@ void Channel::doReadPackBody(size_t maskSize, size_t bodySize)
     switch(m_state.load()){
         case CS_RUNNING:
             {
-                const auto fnOnNetError = [channPtr = shared_from_this()](std::error_code ec)
-                {
-                    if(ec){
-                        g_monoServer->addLog(LOGTYPE_WARNING, "Network error on channel %d: %s", to_d(channPtr->id()), ec.message().c_str());
-                        channPtr->shutdown(true);
-                    }
-                };
-
-                ClientMsg cmsg(m_readHeadCode);
-                if(!cmsg.checkDataSize(maskSize, bodySize)){
-                    g_monoServer->addLog(LOGTYPE_WARNING, "Invalid argument to doReadPackBody(maskSize = %zu, bodySize = %zu)", maskSize, bodySize);
-                    return;
-                }
+                const ClientMsg cmsg(m_readHeadCode);
+                fflassert(cmsg.checkDataSize(maskSize, bodySize));
 
                 if(const auto totalSize = maskSize + bodySize){
                     auto readMemPtr = getReadBuf(totalSize);
-                    asio::async_read(m_socket, asio::buffer(readMemPtr, totalSize), [channPtr = shared_from_this(), maskSize, bodySize, readMemPtr, cmsg, fnOnNetError](std::error_code ec, size_t)
+                    asio::async_read(m_socket, asio::buffer(readMemPtr, totalSize), [channPtr = shared_from_this(), maskSize, bodySize, readMemPtr, cmsg](std::error_code ec, size_t)
                     {
                         if(ec){
-                            fnOnNetError(ec);
-                            return;
+                            throw fflerror("network error on channel %d: %s", channPtr->id(), ec.message().c_str());
                         }
 
                         uint8_t *decodeMemPtr = nullptr;
                         if(maskSize){
-                            const auto maskCount = zcompf::countMask(readMemPtr, maskSize);
-                            if(maskCount != to_d(bodySize)){
-                                throw fflerror("corrupted data: maskCount = %d, compSize = %d", maskCount, to_d(bodySize));
-                            }
-                            else if(bodySize > cmsg.dataLen()){
-                                throw fflerror("corrupted data: dataLen = %d, compSize = %d", to_d(cmsg.dataLen()), to_d(bodySize));
-                            }
-                            else{
-                                decodeMemPtr = channPtr->getDecodeBuf(cmsg.dataLen());
-                                if(zcompf::xorDecode(decodeMemPtr, cmsg.dataLen(), readMemPtr, readMemPtr + maskSize) != to_d(bodySize)){
-                                    throw fflerror("decode failed: maskCount = %d, compSize = %d", maskCount, to_d(bodySize));
-                                }
-                            }
+                            const auto bitCount = zcompf::countMask(readMemPtr, maskSize);
+                            fflassert(bitCount == to_d(bodySize));
+                            fflassert(bodySize <= cmsg.dataLen());
+
+                            decodeMemPtr = channPtr->getDecodeBuf(cmsg.dataLen());
+                            const auto decodeSize = zcompf::xorDecode(decodeMemPtr, cmsg.dataLen(), readMemPtr, readMemPtr + maskSize);
+                            fflassert(decodeSize == to_d(bodySize));
                         }
 
                         channPtr->forwardActorMessage(channPtr->m_readHeadCode, decodeMemPtr ? decodeMemPtr : readMemPtr, maskSize ? cmsg.dataLen() : bodySize);
                         channPtr->doReadPackHeadCode();
                     });
-                    return;
                 }
-
-                // possibilities to reach here
-                // 1. call doReadPackBody() with m_readHeadCode as empty message type
-                // 2. read a body with empty body in mode 3
-                forwardActorMessage(m_readHeadCode, nullptr, 0);
-                doReadPackHeadCode();
+                else{
+                    forwardActorMessage(m_readHeadCode, nullptr, 0);
+                    doReadPackHeadCode();
+                }
                 return;
             }
         case CS_STOPPED:
@@ -266,7 +219,7 @@ void Channel::doSendPack()
                 }
 
                 fflassert(!m_currSendQ.empty());
-                asio::async_write(m_socket, asio::buffer(m_currSendQ.data(), m_currSendQ.size()), [channPtr = shared_from_this(), sentByteCount = m_currSendQ.size()](std::error_code ec, size_t)
+                asio::async_write(m_socket, asio::buffer(m_currSendQ.data(), m_currSendQ.size()), [channPtr = shared_from_this(), sentCount = m_currSendQ.size()](std::error_code ec, size_t)
                 {
                     if(ec){
                         channPtr->shutdown(true);
@@ -275,7 +228,7 @@ void Channel::doSendPack()
                     else{
                         // validate the m_currSendQ size
                         // only asio event loop accesses m_currSendQ and its size should not change during sending
-                        fflassert(sentByteCount == channPtr->m_currSendQ.size());
+                        fflassert(sentCount == channPtr->m_currSendQ.size());
                         channPtr->m_currSendQ.clear();
                         channPtr->doSendPack();
                     }
@@ -413,7 +366,7 @@ void Channel::post(uint8_t headCode, const void *buf, size_t bufLen)
         std::lock_guard<std::mutex> lockGuard(m_nextQLock);
         m_nextSendQ.push_back(headCode);
 
-        for(const auto [encodedBuf, encodedBufSize]: encodedBufList){
+        for(const auto &[encodedBuf, encodedBufSize]: encodedBufList){
             if(encodedBuf){
                 m_nextSendQ.insert(m_nextSendQ.end(), encodedBuf, encodedBuf + encodedBufSize);
             }
@@ -504,6 +457,7 @@ void Channel::bindPlayer(uint64_t uid)
     // force messages forward to the new actor
     // use post rather than directly assignement
     // since asio main loop thread will access m_playerUID
+    // this function is called only by actor thread
 
     // potential bug:
     // internal actor address won't get update immediately after this call
