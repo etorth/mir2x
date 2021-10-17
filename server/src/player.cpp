@@ -259,21 +259,18 @@ void Player::reportStand()
     reportAction(UID(), makeActionStand());
 }
 
-void Player::reportAction(uint64_t nUID, const ActionNode &action)
+void Player::reportAction(uint64_t uid, const ActionNode &action)
 {
-    if(true
-            && nUID
-            && channID()){
+    fflassert(uid);
 
-        SMAction smA;
-        std::memset(&smA, 0, sizeof(smA));
+    SMAction smA;
+    std::memset(&smA, 0, sizeof(smA));
 
-        smA.UID = nUID;
-        smA.mapID = mapID();
-        smA.action = action;
+    smA.UID = uid;
+    smA.mapID = mapID();
+    smA.action = action;
 
-        postNetMessage(SM_ACTION, smA);
-    }
+    postNetMessage(SM_ACTION, smA);
 }
 
 void Player::reportDeadUID(uint64_t nDeadUID)
@@ -473,21 +470,26 @@ void Player::dispatchOffline()
 
 void Player::reportOffline(uint64_t nUID, uint32_t nMapID)
 {
-    if(true
-            && nUID
-            && nMapID
-            && channID()){
+    fflassert(nUID);
+    fflassert(nMapID);
 
+    // player can initiatively start the offline procedure
+    // in this case the m_channID still contains a good channel id, we need to call shutdown
+
+    if(m_channID.has_value() && m_channID.value()){
         SMOffline smO;
         std::memset(&smO, 0, sizeof(smO));
 
-        smO.UID   = nUID;
+        smO.UID = nUID;
         smO.mapID = nMapID;
         postNetMessage(SM_OFFLINE, smO);
+
+        g_netDriver->shutdown(m_channID.value());
+        m_channID = 0;
     }
 }
 
-bool Player::Offline()
+bool Player::goOffline()
 {
     dispatchOffline();
     reportOffline(UID(), mapID());
@@ -499,8 +501,12 @@ bool Player::Offline()
 
 void Player::postNetMessage(uint8_t headCode, const void *buf, size_t bufLen)
 {
-    fflassert(channID());
-    return g_netDriver->post(channID(), headCode, (const uint8_t *)(buf), bufLen);
+    if(m_channID.has_value() && m_channID.value()){
+        g_netDriver->post(m_channID.value(), headCode, (const uint8_t *)(buf), bufLen);
+    }
+    else{
+        goOffline();
+    }
 }
 
 void Player::onCMActionStand(CMAction stCMA)

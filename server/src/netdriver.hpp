@@ -39,12 +39,6 @@ class NetDriver final
     public:
         ~NetDriver();
 
-    private:
-        void recycle(uint32_t channID)
-        {
-            m_channIDQ.push(channID);
-        }
-
     public:
         bool isNetThread() const;
 
@@ -52,52 +46,16 @@ class NetDriver final
         void launch(uint32_t);
 
     public:
-        void post(uint32_t channID, uint8_t headCode, const void *buf, size_t bufLen)
-        {
-            fflassert(to_uz(channID) > 0);
-            fflassert(to_uz(channID) < m_channList.size());
-            fflassert(ServerMsg(headCode).checkData(buf, bufLen));
-            m_channList.at(channID)->post(headCode, buf, bufLen);
-        }
-
-        void bindPlayer(uint32_t channID, uint64_t uid)
-        {
-            fflassert(to_uz(channID) > 0);
-            fflassert(to_uz(channID) < m_channList.size());
-
-            fflassert(uidf::isPlayer(uid));
-            m_channList.at(channID)->bindPlayer(uid);
-        }
-
-        void shutdown(uint32_t channID, bool force)
-        {
-            fflassert(to_uz(channID) > 0);
-            fflassert(to_uz(channID) < m_channList.size());
-
-            m_channList.at(channID)->shutdown(force);
-            m_channList.at(channID).reset();
-        }
+        // these functions are provided to actor thread
+        // actor thread send/receive message by these interfaces
+        void shutdown(uint32_t);                                // request a channel to be closed
+        void bindPlayer(uint32_t, uint64_t);                    // request a channel to forward all net message to an UID
+        void post(uint32_t, uint8_t, const void *, size_t);     // post message to a channel
 
     private:
         void acceptNewConnection();
 
     private:
-        void release()
-        {
-            if(m_io){
-                m_io->stop();
-            }
-
-            if(m_thread.joinable()){
-                m_thread.join();
-            }
-
-            delete m_acceptor;
-            delete m_endPoint;
-            delete m_io;
-
-            m_acceptor = nullptr;
-            m_endPoint = nullptr;
-            m_io       = nullptr;
-        }
+        void release();
+        void close(uint32_t);
 };

@@ -41,7 +41,9 @@ void NetDriver::launch(uint32_t port)
 {
     fflassert(port > 1024);
     fflassert(g_actorPool->checkUIDValid(uidf::getServiceCoreUID()));
-    fflassert(m_port == 0);
+
+    fflassert(!m_port);
+    fflassert(!isNetThread());
 
     m_port = port;
     m_io = new asio::io_service();
@@ -63,7 +65,8 @@ void NetDriver::launch(uint32_t port)
                 break; // run() exited normally
             }
             catch(const ChannError &e){
-                shutdown(e.channID(), true);
+                shutdown(e.channID());
+                g_monoServer->addLog(LOGTYPE_WARNING, "Channel %d disconnected.", to_d(e.channID()));
             }
             // only catch channError
             // let it crash when caught any other exceptions
@@ -97,4 +100,71 @@ void NetDriver::acceptNewConnection()
         channPtr->launch();
         acceptNewConnection();
     });
+}
+
+void NetDriver::post(uint32_t channID, uint8_t headCode, const void *buf, size_t bufLen)
+{
+    fflassert(to_uz(channID) > 0);
+    fflassert(to_uz(channID) < m_channList.size());
+    fflassert(ServerMsg(headCode).checkData(buf, bufLen));
+    fflassert(m_channList[channID]);
+    m_channList[channID]->post(headCode, buf, bufLen);
+}
+
+void NetDriver::bindPlayer(uint32_t channID, uint64_t uid)
+{
+    fflassert(to_uz(channID) > 0);
+    fflassert(to_uz(channID) < m_channList.size());
+    fflassert(uidf::isPlayer(uid));
+    fflassert(m_channList[channID]);
+    m_channList[channID]->bindPlayer(uid);
+}
+
+void NetDriver::shutdown(uint32_t channID)
+{
+    fflassert(to_uz(channID) > 0);
+    fflassert(to_uz(channID) < m_channList.size());
+    fflassert(m_channList[channID]);
+
+    // actor thread can access m_channList[channID] directly
+    // but it can not release the channel, channel release should only happens in net thread
+
+    // if actor thread would initialize a shutdown to a channel
+    // it should call this function to schedule a shutdown event via m_io->post()
+
+    m_io->post([channID, this]()
+    {
+        close(channID);
+    });
+}
+
+void NetDriver::release()
+{
+    if(m_io){
+        m_io->stop();
+    }
+
+    if(m_thread.joinable()){
+        m_thread.join();
+    }
+
+    delete m_acceptor;
+    delete m_endPoint;
+    delete m_io;
+
+    m_acceptor = nullptr;
+    m_endPoint = nullptr;
+    m_io       = nullptr;
+}
+
+void NetDriver::close(uint32_t channID)
+{
+    fflassert(to_uz(channID) > 0);
+    fflassert(to_uz(channID) < m_channList.size());
+    fflassert(isNetThread());
+
+    if(m_channList[channID]){
+        m_channList.at(channID).reset();
+        m_channIDQ.push(channID);
+    }
 }

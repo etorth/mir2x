@@ -51,9 +51,13 @@ void Player::on_AM_BINDCHANNEL(const ActorMsgPack &rstMPK)
     std::memcpy(&amBC, rstMPK.data(), sizeof(amBC));
 
     // bind channel here
-    // set the channel actor as this->GetAddress()
+    // BINDCHANNEL message sent by servermap, not servicecore or g_netDirver
+
+    fflassert(amBC.channID);
+    fflassert(!m_channID.has_value());
+
     m_channID = amBC.channID;
-    g_netDriver->bindPlayer(channID(), UID());
+    g_netDriver->bindPlayer(m_channID.value(), UID());
 
     postOnLoginOK();
     PullRectCO(10, 10);
@@ -407,10 +411,14 @@ void Player::on_AM_HEAL(const ActorMsgPack &mpk)
 void Player::on_AM_BADCHANNEL(const ActorMsgPack &mpk)
 {
     const auto amBC = mpk.conv<AMBadChannel>();
-    fflassert(channID() == amBC.channID);
+    fflassert(m_channID.has_value());
+    fflassert(m_channID.value() == amBC.channID);
 
-    g_netDriver->shutdown(channID(), false);
-    Offline();
+    // AM_BADCHANNEL is sent by Channel::dtor
+    // when player get this message the channel has already been destructed
+    // assign zero to m_channID to indicate player has received AM_BADCHANNEL instead of not bind to a channel yet
+    m_channID = 0;
+    goOffline();
 }
 
 void Player::on_AM_OFFLINE(const ActorMsgPack &rstMPK)

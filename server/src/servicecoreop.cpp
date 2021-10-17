@@ -228,11 +228,8 @@ void ServiceCore::on_AM_QUERYCOCOUNT(const ActorMsgPack &rstMPK)
     }
 }
 
-void ServiceCore::on_AM_BADCHANNEL(const ActorMsgPack &mpk)
+void ServiceCore::on_AM_BADCHANNEL(const ActorMsgPack &)
 {
     // channel may go down before bind to one actor
-    // then stop it here
-
-    const auto amBC = mpk.conv<AMBadChannel>();
-    g_netDriver->shutdown(amBC.channID, false);
+    // ignore it
 }

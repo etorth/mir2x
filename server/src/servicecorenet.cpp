@@ -39,7 +39,6 @@ void ServiceCore::net_CM_LOGIN(uint32_t channID, uint8_t, const uint8_t *buf, si
 
         smLF.error = error;
         g_netDriver->post(channID, SM_LOGINFAIL, &smLF, sizeof(smLF));
-        g_netDriver->shutdown(channID, false);
         g_monoServer->addLog(LOGTYPE_WARNING, "Login failed for account: %s", cmL.id);
     };
 

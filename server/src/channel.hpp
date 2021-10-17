@@ -185,7 +185,7 @@ class Channel final: public std::enable_shared_from_this<Channel>
         // only called in Channel::Post(server_message)
         void flushSendQ();
 
-    public:
+    private:
         // called by asio main loop thread and server thread
         // it atomically set the channel state, which would disable everything
         void shutdown(bool);

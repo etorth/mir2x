@@ -221,8 +221,7 @@ void Channel::doSendPack()
                 asio::async_write(m_socket, asio::buffer(m_currSendQ.data(), m_currSendQ.size()), [channPtr = shared_from_this(), sentCount = m_currSendQ.size()](std::error_code ec, size_t)
                 {
                     if(ec){
-                        channPtr->shutdown(true);
-                        g_monoServer->addLog(LOGTYPE_WARNING, "Network error on channel %d: %s", to_d(channPtr->id()), ec.message().c_str());
+                        throw ChannError(channPtr->id(), "network error on channel %d: %s", channPtr->id(), ec.message().c_str());
                     }
                     else{
                         // validate the m_currSendQ size
@@ -394,6 +393,7 @@ void Channel::shutdown(bool force)
 {
     const auto fnShutdown = [](auto channPtr)
     {
+        fflassert(g_netDriver->isNetThread());
         switch(const auto lastState = channPtr->m_state.exchange(CS_STOPPED)){
             case CS_RUNNING:
                 {

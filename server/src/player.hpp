@@ -32,7 +32,10 @@ class Player final: public CharObject
         friend class CharObject;
 
     protected:
-        uint32_t m_channID = 0;
+        // empty: hasn't bind to a channel yet
+        //  zero: has received AM_BADCHANNEL and need to go offine
+        //  xxxx: channel id of associated working channel
+        std::optional<uint32_t> m_channID;
 
     protected:
         uint32_t m_exp;
@@ -83,13 +86,8 @@ class Player final: public CharObject
             return to_u32(SYS_LEVEL(exp()));
         }
 
-        uint32_t channID()
-        {
-            return m_channID;
-        }
-
     public:
-        int Speed()
+        int Speed(int) const override
         {
             return 5;
         }
@@ -223,7 +221,7 @@ class Player final: public CharObject
         virtual bool goGhost();
 
     protected:
-        bool Offline();
+        bool goOffline();
 
     protected:
         virtual int MaxStep() const;
