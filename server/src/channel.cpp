@@ -28,7 +28,7 @@ Channel::~Channel()
     // don't use shared_from_this() in constructor or destructor
 
     try{
-        shutdown(true);
+        close();
     }
     catch(const std::exception &e){
         g_monoServer->addLog(LOGTYPE_WARNING, "Failed to release channel %d: %s", to_d(id()), e.what());
@@ -389,56 +389,43 @@ bool Channel::forwardActorMessage(uint8_t headCode, const uint8_t *dataPtr, size
     return m_dispatcher.forward(m_playerUID ? m_playerUID : uidf::getServiceCoreUID(), {AM_RECVPACKAGE, amRP});
 }
 
-void Channel::shutdown(bool force)
+void Channel::close()
 {
-    const auto fnShutdown = [](auto channPtr)
-    {
-        fflassert(g_netDriver->isNetThread());
-        switch(const auto lastState = channPtr->m_state.exchange(CS_STOPPED)){
-            case CS_RUNNING:
-                {
-                    AMBadChannel amBC;
-                    std::memset(&amBC, 0, sizeof(amBC));
+    fflassert(g_netDriver->isNetThread());
+    switch(m_state.exchange(CS_STOPPED)){
+        case CS_RUNNING:
+            {
+                AMBadChannel amBC;
+                std::memset(&amBC, 0, sizeof(amBC));
 
-                    // can forward to servicecore or player
-                    // servicecore won't keep pointer *this* then we need to report it
-                    amBC.channID = channPtr->id();
+                // can forward to servicecore or player
+                // servicecore won't keep pointer *this* then we need to report it
+                amBC.channID = id();
 
-                    channPtr->m_dispatcher.forward(channPtr->m_playerUID ? channPtr->m_playerUID : uidf::getServiceCoreUID(), {AM_BADCHANNEL, amBC});
-                    channPtr->m_playerUID = 0;
+                m_dispatcher.forward(m_playerUID ? m_playerUID : uidf::getServiceCoreUID(), {AM_BADCHANNEL, amBC});
+                m_playerUID = 0;
 
-                    // if we call shutdown() here
-                    // we need to use try-catch since if connection has already been broken, it throws exception
+                // if we call m_socket.shutdown() here
+                // we need to use try-catch since if connection has already been broken, it throws exception
 
-                    // try{
-                    //     m_socket.shutdown(asio::ip::tcp::socket::shutdown_both);
-                    // }
-                    // catch(...){
-                    //     ...
-                    // }
+                // try{
+                //     m_socket.shutdown(asio::ip::tcp::socket::shutdown_both);
+                // }
+                // catch(...){
+                //     ...
+                // }
 
-                    channPtr->m_socket.close();
-                    return;
-                }
-            case CS_STOPPED:
-                {
-                    return;
-                }
-            default:
-                {
-                    throw bad_reach();
-                }
-        }
-    };
-
-    if(force){
-        fnShutdown(this);
-    }
-    else{
-        m_socket.get_io_service().post([channPtr = shared_from_this(), fnShutdown]()
-        {
-            fnShutdown(channPtr);
-        });
+                m_socket.close();
+                return;
+            }
+        case CS_STOPPED:
+            {
+                return;
+            }
+        default:
+            {
+                throw bad_reach();
+            }
     }
 }
 

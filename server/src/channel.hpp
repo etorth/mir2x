@@ -188,7 +188,7 @@ class Channel final: public std::enable_shared_from_this<Channel>
     private:
         // called by asio main loop thread and server thread
         // it atomically set the channel state, which would disable everything
-        void shutdown(bool);
+        void close();
 
     public:
         void launch();

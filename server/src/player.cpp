@@ -474,7 +474,7 @@ void Player::reportOffline(uint64_t nUID, uint32_t nMapID)
     fflassert(nMapID);
 
     // player can initiatively start the offline procedure
-    // in this case the m_channID still contains a good channel id, we need to call shutdown
+    // in this case the m_channID still contains a good channel id, we need to call close
 
     if(m_channID.has_value() && m_channID.value()){
         SMOffline smO;
@@ -484,12 +484,12 @@ void Player::reportOffline(uint64_t nUID, uint32_t nMapID)
         smO.mapID = nMapID;
         postNetMessage(SM_OFFLINE, smO);
 
-        // player initiatively shutdown the channel
-        // the NetDriver::shutdown() only *request* the channel to be closed, it schedule an event
+        // player initiatively close the channel
+        // the NetDriver::close() only *request* the channel to be closed, it schedule an event
         // after this line the channel slot may still be non-empty, but we shall not post any network message
         // so use m_channID = 0 as a flag, please check comments for Player::on_AM_BADCHANNEL()
 
-        g_netDriver->shutdown(m_channID.value());
+        g_netDriver->close(m_channID.value());
         m_channID = 0;
     }
 }

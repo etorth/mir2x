@@ -48,7 +48,7 @@ class NetDriver final
     public:
         // these functions are provided to actor thread
         // actor thread send/receive message by these interfaces
-        void shutdown(uint32_t);                                // request a channel to be closed
+        void close(uint32_t);                                   // request a channel to be closed
         void bindPlayer(uint32_t, uint64_t);                    // request a channel to forward all net message to an UID
         void post(uint32_t, uint8_t, const void *, size_t);     // post message to a channel
 
@@ -56,6 +56,6 @@ class NetDriver final
         void acceptNewConnection();
 
     private:
-        void release();
-        void close(uint32_t);
+        void doRelease();
+        void doClose(uint32_t);
 };

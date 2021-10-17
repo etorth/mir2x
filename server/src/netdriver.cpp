@@ -22,7 +22,7 @@ NetDriver::NetDriver()
 NetDriver::~NetDriver()
 {
     try{
-        release();
+        doRelease();
     }
     catch(const std::exception &e){
         g_monoServer->addLog(LOGTYPE_WARNING, "Failed when release net driver: %s", e.what());
@@ -65,7 +65,7 @@ void NetDriver::launch(uint32_t port)
                 break; // run() exited normally
             }
             catch(const ChannError &e){
-                shutdown(e.channID());
+                doClose(e.channID());
                 g_monoServer->addLog(LOGTYPE_WARNING, "Channel %d disconnected.", to_d(e.channID()));
             }
             // only catch channError
@@ -120,7 +120,7 @@ void NetDriver::bindPlayer(uint32_t channID, uint64_t uid)
     m_channList[channID]->bindPlayer(uid);
 }
 
-void NetDriver::shutdown(uint32_t channID)
+void NetDriver::close(uint32_t channID)
 {
     fflassert(to_uz(channID) > 0);
     fflassert(to_uz(channID) < m_channList.size());
@@ -132,13 +132,16 @@ void NetDriver::shutdown(uint32_t channID)
     // if actor thread would initialize a shutdown to a channel
     // it should call this function to schedule a shutdown event via m_io->post()
 
+    // after this function call, the channel slot can still be not empty
+    // player actor should keep a flag(m_channID.has_value() && m_channID.value() == 1) to indicate it shall not post more message
+
     m_io->post([channID, this]()
     {
-        close(channID);
+        doClose(channID);
     });
 }
 
-void NetDriver::release()
+void NetDriver::doRelease()
 {
     if(m_io){
         m_io->stop();
@@ -157,7 +160,7 @@ void NetDriver::release()
     m_io       = nullptr;
 }
 
-void NetDriver::close(uint32_t channID)
+void NetDriver::doClose(uint32_t channID)
 {
     fflassert(to_uz(channID) > 0);
     fflassert(to_uz(channID) < m_channList.size());
