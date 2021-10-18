@@ -31,6 +31,10 @@ Channel::~Channel()
 {
     try{
         close();
+        {
+            std::lock_guard<std::mutex> lockGuard(m_nextQLock);
+            std::vector<uint8_t>().swap(m_nextSendQ);
+        }
     }
     catch(const std::exception &e){
         g_monoServer->addLog(LOGTYPE_WARNING, "Failed to release channel %d: %s", to_d(id()), e.what());

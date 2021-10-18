@@ -61,7 +61,7 @@ class NetDriver final
         ~NetDriver();
 
     public:
-        bool isNetThread() const;
+        static bool isNetThread();
 
     public:
         void launch(uint32_t);
@@ -71,13 +71,6 @@ class NetDriver final
         // actor thread send/receive message by these interfaces
         // actor thread can invalidate channel by calling close(channID), asio loop can invalidate by catching exception
         // but no method to check channel is valid, after actor thread invalidate it, actor thread should keep flag to prevent access an invalidated channel
-        //
-        // TODO thre is data race bug
-        // when actor thread doing post but asio loop catches exception and calling doClose()
-        // then still has issue, possible solution:
-        // 1. use std::atomic<std::shared_ptr<Channel>>
-        // 2. split channel into store/post/recive parts, store part always storing posting data from actor threads
-        //    and post/receive parts are real asio related part
         void close(uint32_t);                                   // request a channel to be closed
         void bindPlayer(uint32_t, uint64_t);                    // request a channel to forward all net message to an UID
         void post(uint32_t, uint8_t, const void *, size_t);     // post message to a channel

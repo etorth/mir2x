@@ -32,7 +32,7 @@ NetDriver::~NetDriver()
     }
 }
 
-bool NetDriver::isNetThread() const
+bool NetDriver::isNetThread()
 {
     return t_netThreadFlag;
 }
@@ -98,7 +98,7 @@ void NetDriver::acceptNewConnection()
         }
 
         auto channPtr = m_channList.at(channID).channPtr.get();
-        g_monoServer->addLog(LOGTYPE_INFO, "Channel %d established for endpoint (%s:%d)", to_d(channPtr->id()), to_cstr(channPtr->ip()), to_d(channPtr->port()));
+        g_monoServer->addLog(LOGTYPE_INFO, "Channel %d established for endpoint (%s:%d).", to_d(channPtr->id()), to_cstr(channPtr->ip()), to_d(channPtr->port()));
 
         channPtr->launch();
         acceptNewConnection();
