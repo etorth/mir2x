@@ -104,6 +104,7 @@ void NetDriver::acceptNewConnection()
 
 void NetDriver::post(uint32_t channID, uint8_t headCode, const void *buf, size_t bufLen)
 {
+    logProfiler();
     fflassert(to_uz(channID) > 0);
     fflassert(to_uz(channID) < m_channList.size());
     fflassert(ServerMsg(headCode).checkData(buf, bufLen));
@@ -113,6 +114,7 @@ void NetDriver::post(uint32_t channID, uint8_t headCode, const void *buf, size_t
 
 void NetDriver::bindPlayer(uint32_t channID, uint64_t uid)
 {
+    logProfiler();
     fflassert(to_uz(channID) > 0);
     fflassert(to_uz(channID) < m_channList.size());
     fflassert(uidf::isPlayer(uid));
@@ -122,6 +124,7 @@ void NetDriver::bindPlayer(uint32_t channID, uint64_t uid)
 
 void NetDriver::close(uint32_t channID)
 {
+    logProfiler();
     fflassert(to_uz(channID) > 0);
     fflassert(to_uz(channID) < m_channList.size());
     fflassert(m_channList[channID]);
