@@ -38,6 +38,16 @@ Channel::~Channel()
     }
 }
 
+// need to setup state by: channPtr->m_state = CS_STOPPED
+// otherwise if there are more completions handlers associated to this channel, they won't get acknowledged that this channel shouldn't be used any more
+#define _abort_channel_if_errcode(channPtr, ec) \
+do{ \
+    if(ec){ \
+        (channPtr)->m_state = CS_STOPPED; \
+        throw ChannError((channPtr)->id(), "network error on channel %d: %s", (channPtr)->id(), (ec).message().c_str()); \
+    } \
+}while(0)
+
 void Channel::doReadPackHeadCode()
 {
     switch(m_state.load()){
@@ -45,12 +55,7 @@ void Channel::doReadPackHeadCode()
             {
                 asio::async_read(m_socket, asio::buffer(&m_readHeadCode, 1), [channPtr = shared_from_this()](std::error_code ec, size_t)
                 {
-                    if(ec){
-                        // TODO should call channPtr->m_state = CS_STOPPED
-                        //      otherwise if there are more completions handler associated to this channel, it's not get acknowledged there this channel shouldn't be used
-                        throw ChannError(channPtr->id(), "network error on channel %d: %s", channPtr->id(), ec.message().c_str());
-                    }
-
+                    _abort_channel_if_errcode(channPtr, ec);
                     const ClientMsg cmsg(channPtr->m_readHeadCode);
                     switch(cmsg.type()){
                         case 0:
@@ -64,10 +69,7 @@ void Channel::doReadPackHeadCode()
                                 // not empty, fixed size, compressed
                                 asio::async_read(channPtr->m_socket, asio::buffer(channPtr->m_readLen, 1), [channPtr, cmsg](std::error_code ec, size_t)
                                 {
-                                    if(ec){
-                                        throw ChannError(channPtr->id(), "network error on channel %d: %s", channPtr->id(), ec.message().c_str());
-                                    }
-
+                                    _abort_channel_if_errcode(channPtr, ec);
                                     if(channPtr->m_readLen[0] != 255){
                                         fflassert(to_uz(channPtr->m_readLen[0]) <= cmsg.dataLen());
                                         channPtr->doReadPackBody(cmsg.maskLen(), channPtr->m_readLen[0]);
@@ -77,10 +79,7 @@ void Channel::doReadPackHeadCode()
                                         // we got a long message and need to read bytes[1]
                                         asio::async_read(channPtr->m_socket, asio::buffer(channPtr->m_readLen + 1, 1), [channPtr, cmsg](std::error_code ec, size_t)
                                         {
-                                            if(ec){
-                                                throw ChannError(channPtr->id(), "network error on channel %d: %s", channPtr->id(), ec.message().c_str());
-                                            }
-
+                                            _abort_channel_if_errcode(channPtr, ec);
                                             fflassert(channPtr->m_readLen[0] == 255);
                                             const auto compSize = to_uz(channPtr->m_readLen[1]) + 255;
 
@@ -112,9 +111,7 @@ void Channel::doReadPackHeadCode()
                                 // we should compress it by other method and send it via this channel
                                 asio::async_read(channPtr->m_socket, asio::buffer(channPtr->m_readLen, 4), [channPtr](std::error_code ec, size_t)
                                 {
-                                    if(ec){
-                                        throw ChannError(channPtr->id(), "network error on channel %d: %s", channPtr->id(), ec.message().c_str());
-                                    }
+                                    _abort_channel_if_errcode(channPtr, ec);
                                     channPtr->doReadPackBody(0, to_uz(as_u32(channPtr->m_readLen)));
                                 });
                                 return;
@@ -150,10 +147,7 @@ void Channel::doReadPackBody(size_t maskSize, size_t bodySize)
                     auto readMemPtr = getReadBuf(totalSize);
                     asio::async_read(m_socket, asio::buffer(readMemPtr, totalSize), [channPtr = shared_from_this(), maskSize, bodySize, readMemPtr, cmsg](std::error_code ec, size_t)
                     {
-                        if(ec){
-                            throw ChannError(channPtr->id(), "network error on channel %d: %s", channPtr->id(), ec.message().c_str());
-                        }
-
+                        _abort_channel_if_errcode(channPtr, ec);
                         uint8_t *decodeMemPtr = nullptr;
                         if(maskSize){
                             const auto bitCount = zcompf::countMask(readMemPtr, maskSize);
@@ -222,16 +216,12 @@ void Channel::doSendPack()
                 fflassert(!m_currSendQ.empty());
                 asio::async_write(m_socket, asio::buffer(m_currSendQ.data(), m_currSendQ.size()), [channPtr = shared_from_this(), sentCount = m_currSendQ.size()](std::error_code ec, size_t)
                 {
-                    if(ec){
-                        throw ChannError(channPtr->id(), "network error on channel %d: %s", channPtr->id(), ec.message().c_str());
-                    }
-                    else{
-                        // validate the m_currSendQ size
-                        // only asio event loop accesses m_currSendQ and its size should not change during sending
-                        fflassert(sentCount == channPtr->m_currSendQ.size());
-                        channPtr->m_currSendQ.clear();
-                        channPtr->doSendPack();
-                    }
+                    // validate the m_currSendQ size
+                    // only asio event loop accesses m_currSendQ and its size should not change during sending
+                    _abort_channel_if_errcode(channPtr, ec);
+                    fflassert(sentCount == channPtr->m_currSendQ.size());
+                    channPtr->m_currSendQ.clear();
+                    channPtr->doSendPack();
                 });
                 return;
             }
@@ -395,7 +385,8 @@ void Channel::close()
 {
     fflassert(g_netDriver->isNetThread());
     switch(m_state.exchange(CS_STOPPED)){
-        case CS_RUNNING:
+        case CS_RUNNING: // actor initiatively close the channel
+        case CS_STOPPED: // asio main loop caught exception and close the channel
             {
                 AMBadChannel amBC;
                 std::memset(&amBC, 0, sizeof(amBC));
@@ -418,10 +409,6 @@ void Channel::close()
                 // }
 
                 m_socket.close();
-                return;
-            }
-        case CS_STOPPED:
-            {
                 return;
             }
         default:
