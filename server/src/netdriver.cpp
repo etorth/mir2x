@@ -87,19 +87,101 @@ void NetDriver::acceptNewConnection()
     fflassert(to_uz(channID) > 0);
     fflassert(to_uz(channID) < m_channList.size());
 
-    m_channList[channID] = std::make_shared<Channel>(m_io, channID);
-    m_acceptor->async_accept(m_channList[channID]->socket(), [channID, this](std::error_code ec)
+    auto &slotRef = m_channList[channID];
+
+    slotRef.sendBuf.clear();
+    slotRef.channPtr = std::make_shared<Channel>(m_io, channID, slotRef.lock, slotRef.sendBuf);
+    m_acceptor->async_accept(slotRef.channPtr->socket(), [channID, this](std::error_code ec)
     {
         if(ec){
-            throw fflerror("get network error when accepting new connection: %s", ec.message().c_str());
+            throw ChannError(channID, "network error when accepting new connection: %s", ec.message().c_str());
         }
 
-        auto channPtr = m_channList.at(channID).get();
+        auto channPtr = m_channList.at(channID).channPtr.get();
         g_monoServer->addLog(LOGTYPE_INFO, "Channel %d established for endpoint (%s:%d)", to_d(channPtr->id()), to_cstr(channPtr->ip()), to_d(channPtr->port()));
 
         channPtr->launch();
         acceptNewConnection();
     });
+}
+
+std::array<std::tuple<const uint8_t *, size_t>, 2> NetDriver::encodePostBuf(uint8_t headCode, const void *buf, size_t bufSize, std::vector<uint8_t> &encodeBuf)
+{
+    const ServerMsg smsg(headCode);
+    fflassert(smsg.checkData(buf, bufSize));
+
+    switch(smsg.type()){
+        case 0:
+            {
+                return
+                {
+                    std::make_tuple(nullptr, 0),
+                    std::make_tuple(nullptr, 0),
+                };
+            }
+        case 1:
+            {
+                // not empty, fixed size, comperssed
+                // length encoding:
+                // [0 - 254]          : length in 0 ~ 254
+                // [    255][0 ~ 255] : length as 0 ~ 255 + 255
+
+                // use 1 or 2 bytes
+                // variant data length, support range in [0, 255 + 255]
+
+                encodeBuf.resize(smsg.maskLen() + bufSize + 64);
+                /* */ auto compBuf = encodeBuf.data();
+                const auto compCnt = zcompf::xorEncode(compBuf + 2, (const uint8_t *)(buf), bufSize);
+
+                fflassert(compCnt >= 0);
+                if(compCnt <= 254){
+                    compBuf[1] = to_u8(compCnt);
+                    return
+                    {
+                        std::make_tuple(compBuf + 1, 1 + smsg.maskLen() + to_uz(compCnt)),
+                        std::make_tuple(nullptr, 0),
+                    };
+                }
+                else if(compCnt <= (255 + 255)){
+                    compBuf[0] = 255;
+                    compBuf[1] = to_u8(compCnt - 255);
+                    return
+                    {
+                        std::make_tuple(compBuf, 2 + smsg.maskLen() + to_uz(compCnt)),
+                        std::make_tuple(nullptr, 0),
+                    };
+                }
+                else{
+                    throw fflerror("message length after compression is too long: %d", compCnt);
+                }
+            }
+        case 2:
+            {
+                // not empty, fixed size, not compressed
+                return
+                {
+                    std::make_tuple((const uint8_t *)(buf), bufSize),
+                    std::make_tuple(nullptr, 0),
+
+                };
+            }
+        case 3:
+            {
+                // not empty, not fixed size, not compressed
+                encodeBuf.resize(4);
+                const uint32_t bufSizeU32 = to_u32(bufSize);
+                std::memcpy(encodeBuf.data(), &bufSizeU32, 4);
+                return
+                {
+                    std::make_tuple(encodeBuf.data(), 4),
+                    std::make_tuple((const uint8_t *)(buf), bufSize),
+                };
+            }
+        default:
+            {
+                throw bad_reach();
+            }
+    }
 }
 
 void NetDriver::post(uint32_t channID, uint8_t headCode, const void *buf, size_t bufLen)
@@ -108,8 +190,44 @@ void NetDriver::post(uint32_t channID, uint8_t headCode, const void *buf, size_t
     fflassert(to_uz(channID) > 0);
     fflassert(to_uz(channID) < m_channList.size());
     fflassert(ServerMsg(headCode).checkData(buf, bufLen));
-    fflassert(m_channList[channID]);
-    m_channList[channID]->post(headCode, buf, bufLen);
+
+    // post current message to sendBuf, which links to Channel::m_nextSendQ
+    // this function is called by server thread only
+    //
+    // current implementation is based on double-queue method
+    // one queue (Q1) is used for store new packages in parallel
+    // the other (Q2) queue is used to post all packages in ASIO main loop
+    //
+    // then Q1 needs to be protected from data race
+    // but for Q2 since it's only used in ASIO main loop, we don't need to protect it
+    //
+    // idea from: https://stackoverflow.com/questions/4029448/thread-safety-for-stl-queue
+    auto &slotRef = m_channList[channID];
+    const auto encodedBufList = encodePostBuf(headCode, buf, bufLen, slotRef.encodeBuf);
+    {
+        std::lock_guard<std::mutex> lockGuard(slotRef.lock);
+        slotRef.sendBuf.push_back(headCode);
+
+        for(const auto &[encodedBuf, encodedBufSize]: encodedBufList){
+            if(encodedBuf){
+                slotRef.sendBuf.insert(slotRef.sendBuf.end(), encodedBuf, encodedBuf + encodedBufSize);
+            }
+        }
+    }
+
+    // when asio thread finish send all pending data it doesn't poll new packs
+    // so every time when there is new packs, need to trigger the send, otherwise data stay in the buffer
+    m_io->post([channID, this]()
+    {
+        if(auto channPtr = m_channList[channID].channPtr.get()){
+            channPtr->flushSendQ();
+        }
+        else{
+            // channel has been released, ignore the post request
+            // the corresponding actor should aleady or shall get AM_BADCHANNEL by Channel::dtor
+            // note even channPtr is empty, the dtor may not get called yet because of the shared_from_this() capture
+        }
+    });
 }
 
 void NetDriver::bindPlayer(uint32_t channID, uint64_t uid)
@@ -118,8 +236,16 @@ void NetDriver::bindPlayer(uint32_t channID, uint64_t uid)
     fflassert(to_uz(channID) > 0);
     fflassert(to_uz(channID) < m_channList.size());
     fflassert(uidf::isPlayer(uid));
-    fflassert(m_channList[channID]);
-    m_channList[channID]->bindPlayer(uid);
+
+    m_io->post([uid, channID, this]()
+    {
+        // use post rather than directly assignement since asio thread accesses m_playerUID
+        // potential bug is it's done by post so actor uid is not updated immediately after this call
+
+        if(auto channPtr = m_channList[channID].channPtr.get()){
+            channPtr->bindPlayer(uid);
+        }
+    });
 }
 
 void NetDriver::close(uint32_t channID)
@@ -127,19 +253,17 @@ void NetDriver::close(uint32_t channID)
     logProfiler();
     fflassert(to_uz(channID) > 0);
     fflassert(to_uz(channID) < m_channList.size());
-    fflassert(m_channList[channID]);
-
-    // actor thread can access m_channList[channID] directly
-    // but it can not release the channel, channel release should only happens in net thread
 
     // if actor thread would initialize a shutdown to a channel
     // it should call this function to schedule a shutdown event via m_io->post()
 
     // after this function call, the channel slot can still be not empty
-    // player actor should keep a flag(m_channID.has_value() && m_channID.value() == 1) to indicate it shall not post more message
+    // player actor should keep a flag(m_channID.has_value() && m_channID.value() == 1) to indicate it shall not post any new message
 
     m_io->post([channID, this]()
     {
+        // TODO shall I add any validation to confirm that only the bind player UID can close the channel?
+        //      otherwise a careless call to NetDriver::close() with random channID can crash other player's connection
         doClose(channID);
     });
 }
@@ -169,8 +293,8 @@ void NetDriver::doClose(uint32_t channID)
     fflassert(to_uz(channID) < m_channList.size());
     fflassert(isNetThread());
 
-    if(m_channList[channID]){
-        m_channList.at(channID).reset();
+    if(m_channList[channID].channPtr){
+        m_channList[channID].channPtr.reset();
         m_channIDQ.push(channID);
     }
 }

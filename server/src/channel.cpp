@@ -9,7 +9,7 @@ extern ActorPool *g_actorPool;
 extern NetDriver *g_netDriver;
 extern MonoServer *g_monoServer;
 
-Channel::Channel(asio::io_service *ioPtr, uint32_t argChannID)
+Channel::Channel(asio::io_service *ioPtr, uint32_t argChannID, std::mutex &sendLock, std::vector<uint8_t> &sendBuf)
     : m_socket([ioPtr]() -> asio::io_service &
       {
           fflassert(ioPtr);
@@ -20,13 +20,15 @@ Channel::Channel(asio::io_service *ioPtr, uint32_t argChannID)
           fflassert(argChannID);
           return argChannID;
       }())
+
+    // pass sendBuf and sendLock refs to channel
+    // sendBuf and sendLock can outlive channel for thread-safe implementation
+    , m_nextQLock(sendLock)
+    , m_nextSendQ(sendBuf)
 {}
 
 Channel::~Channel()
 {
-    // access raw pointer here
-    // don't use shared_from_this() in constructor or destructor
-
     try{
         close();
     }
@@ -50,7 +52,7 @@ do{ \
 
 void Channel::doReadPackHeadCode()
 {
-    switch(m_state.load()){
+    switch(m_state){
         case CS_RUNNING:
             {
                 asio::async_read(m_socket, asio::buffer(&m_readHeadCode, 1), [channPtr = shared_from_this()](std::error_code ec, size_t)
@@ -137,7 +139,7 @@ void Channel::doReadPackHeadCode()
 
 void Channel::doReadPackBody(size_t maskSize, size_t bodySize)
 {
-    switch(m_state.load()){
+    switch(m_state){
         case CS_RUNNING:
             {
                 const ClientMsg cmsg(m_readHeadCode);
@@ -185,7 +187,7 @@ void Channel::doSendPack()
     // 1. only called in asio main loop thread
     // 2. only called in RUNNING / STOPPED state
 
-    switch(m_state.load()){
+    switch(m_state){
         case CS_RUNNING:
             {
                 // will send the first chann pack
@@ -196,7 +198,7 @@ void Channel::doSendPack()
                 fflassert(m_flushFlag);
 
                 // check m_currSendQ and if it's empty we swap with the pending queue
-                // then for server threads calling Post() we only dealing with m_nextSendQ
+                // then for server threads calling post() we only dealing with m_nextSendQ
 
                 if(m_currSendQ.empty()){
                     std::lock_guard<std::mutex> lockGuard(m_nextQLock);
@@ -241,131 +243,24 @@ void Channel::doSendPack()
 
 void Channel::flushSendQ()
 {
-    // flushSendQ() is called by server threads only
-    // we post handler fnFlushSendQ to prevent from direct access to m_currSendQ
-    m_socket.get_io_service().post([channPtr = shared_from_this()]()
-    {
-        // m_currSendQ assessing should always be in the asio main loop
-        // the Channel::Post() should only access m_nextSendQ
+    // m_currSendQ assessing should always be in the asio main loop
+    // the Channel::post() should only access m_nextSendQ
 
-        // then we don't have to put lock to protect m_currSendQ
-        // but we need lock for m_nextSendQ, in child threads, in asio main loop
+    // then we don't have to put lock to protect m_currSendQ
+    // but we need lock for m_nextSendQ, in child threads, in asio main loop
 
-        // but we need to make sure there is only one procedure in asio main loop accessing m_currSendQ
-        // because packages in m_currSendQ are divided into two parts: HC / Data
-        // one package only get erased after Data is sent
-        // then multiple procesdure in asio main loop may send HC / Data more than one time
+    // but we need to make sure there is only one procedure in asio main loop accessing m_currSendQ
+    // because packages in m_currSendQ are divided into two parts: HC / Data
+    // one package only get erased after Data is sent
+    // then multiple procesdure in asio main loop may send HC / Data more than one time
 
-        // use shared_ptr<Channel>() instead of raw this
-        // then outside of asio main loop we use shared_ptr::reset()
-
-        if(!channPtr->m_flushFlag){
-            //  mark as current some one is accessing it
-            //  we don't even need to make m_flushFlag atomic since it's in one thread
-            channPtr->m_flushFlag = true;
-            channPtr->doSendPack();
-        }
-    });
-}
-
-std::array<std::tuple<const uint8_t *, size_t>, 2> Channel::encodePostBuf(uint8_t headCode, const void *buf, size_t bufSize)
-{
-    const ServerMsg smsg(headCode);
-    fflassert(smsg.checkData(buf, bufSize));
-
-    switch(smsg.type()){
-        case 0:
-            {
-                return
-                {
-                    std::make_tuple(nullptr, 0),
-                    std::make_tuple(nullptr, 0),
-                };
-            }
-        case 1:
-            {
-                // not empty, fixed size, comperssed
-                // length encoding:
-                // [0 - 254]          : length in 0 ~ 254
-                // [    255][0 ~ 255] : length as 0 ~ 255 + 255
-
-                // use 1 or 2 bytes
-                // variant data length, support range in [0, 255 + 255]
-
-                /* */ auto compBuf = getPostBuf(smsg.maskLen() + bufSize + 64);
-                const auto compCnt = zcompf::xorEncode(compBuf + 2, (const uint8_t *)(buf), bufSize);
-
-                fflassert(compCnt >= 0);
-                if(compCnt <= 254){
-                    compBuf[1] = to_u8(compCnt);
-                    return
-                    {
-                        std::make_tuple(compBuf + 1, 1 + smsg.maskLen() + to_uz(compCnt)),
-                        std::make_tuple(nullptr, 0),
-                    };
-                }
-                else if(compCnt <= (255 + 255)){
-                    compBuf[0] = 255;
-                    compBuf[1] = to_u8(compCnt - 255);
-                    return
-                    {
-                        std::make_tuple(compBuf, 2 + smsg.maskLen() + to_uz(compCnt)),
-                        std::make_tuple(nullptr, 0),
-                    };
-                }
-                else{
-                    throw fflerror("message length after compression is too long: %d", compCnt);
-                }
-            }
-        case 2:
-            {
-                // not empty, fixed size, not compressed
-                return
-                {
-                    std::make_tuple((const uint8_t *)(buf), bufSize),
-                    std::make_tuple(nullptr, 0),
-
-                };
-            }
-        case 3:
-            {
-                // not empty, not fixed size, not compressed
-                auto sizeBuf = getPostBuf(4);
-                const uint32_t bufSizeU32 = to_u32(bufSize);
-
-                std::memcpy(sizeBuf, &bufSizeU32, 4);
-                return
-                {
-                    std::make_tuple(sizeBuf, 4),
-                    std::make_tuple((const uint8_t *)(buf), bufSize),
-                };
-            }
-        default:
-            {
-                throw bad_reach();
-            }
+    fflassert(g_netDriver->isNetThread());
+    if(!m_flushFlag){
+        //  mark as current some one is accessing it
+        //  we don't even need to make m_flushFlag atomic since it's in one thread
+        m_flushFlag = true;
+        doSendPack();
     }
-}
-
-void Channel::post(uint8_t headCode, const void *buf, size_t bufLen)
-{
-    // post current message to m_nextSendQ
-    // this function is called by server thread only
-    const auto encodedBufList = encodePostBuf(headCode, buf, bufLen);
-    {
-        std::lock_guard<std::mutex> lockGuard(m_nextQLock);
-        m_nextSendQ.push_back(headCode);
-
-        for(const auto &[encodedBuf, encodedBufSize]: encodedBufList){
-            if(encodedBuf){
-                m_nextSendQ.insert(m_nextSendQ.end(), encodedBuf, encodedBuf + encodedBufSize);
-            }
-        }
-    }
-
-    // when asio thread finish send all pending data it doesn't poll new packs
-    // so every time when there is new packs, need to trigger the send, otherwise data stay in the buffer
-    flushSendQ();
 }
 
 bool Channel::forwardActorMessage(uint8_t headCode, const uint8_t *dataPtr, size_t dataLen)
@@ -384,7 +279,7 @@ bool Channel::forwardActorMessage(uint8_t headCode, const uint8_t *dataPtr, size
 void Channel::close()
 {
     fflassert(g_netDriver->isNetThread());
-    switch(m_state.exchange(CS_STOPPED)){
+    switch(m_state){
         case CS_RUNNING: // actor initiatively close the channel
         case CS_STOPPED: // asio main loop caught exception and close the channel
             {
@@ -409,6 +304,7 @@ void Channel::close()
                 // }
 
                 m_socket.close();
+                m_state = CS_RELEASED;
                 return;
             }
         default:
@@ -421,28 +317,17 @@ void Channel::close()
 void Channel::launch()
 {
     fflassert(g_netDriver->isNetThread());
-    const auto lastState = m_state.exchange(CS_RUNNING);
+    fflassert(m_state == CS_NONE);
 
-    fflassert(lastState == CS_NONE);
+    m_state = CS_RUNNING,
     doReadPackHeadCode();
 }
 
 void Channel::bindPlayer(uint64_t uid)
 {
-    // force messages forward to the new actor
-    // use post rather than directly assignement
-    // since asio main loop thread will access m_playerUID
-    // this function is called only by actor thread
-
-    // potential bug:
-    // internal actor address won't get update immediately after this call
-
+    fflassert(g_netDriver->isNetThread());
     fflassert(uidf::isPlayer(uid));
-    fflassert(g_actorPool->checkUIDValid(uid));
 
-    m_socket.get_io_service().post([uid, this]()
-    {
-        fflassert(!m_playerUID);
-        m_playerUID = uid;
-    });
+    fflassert(!m_playerUID);
+    m_playerUID = uid;
 }

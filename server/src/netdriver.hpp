@@ -1,5 +1,8 @@
 #pragma once
 #include <asio.hpp>
+#include <cstdint>
+#include <array>
+#include <tuple>
 #include <atomic>
 #include <thread>
 #include <cstdint>
@@ -19,6 +22,24 @@ class NetDriver final
         friend class Channel;
 
     private:
+        struct ChannelSlot
+        {
+            // lock-protected buf
+            // actor thread and asio thread access it
+            std::mutex lock;
+            std::vector<uint8_t> sendBuf;
+
+            // sctatch buffer, accessed by actor thread only
+            // used when post messages that need xor compression
+            std::vector<uint8_t> encodeBuf;
+
+            // channel
+            // only asio thread can access it
+            // actor thread access it through asio::post(access_handler)
+            std::shared_ptr<Channel> channPtr;
+        };
+
+    private:
         unsigned int m_port = 0;
 
     private:
@@ -31,7 +52,7 @@ class NetDriver final
 
     private:
         std::queue<uint32_t> m_channIDQ;
-        std::vector<std::shared_ptr<Channel>> m_channList;
+        std::vector<ChannelSlot> m_channList;
 
     public:
         NetDriver();
@@ -67,4 +88,7 @@ class NetDriver final
     private:
         void doRelease();
         void doClose(uint32_t);
+
+    private:
+        std::array<std::tuple<const uint8_t *, size_t>, 2> encodePostBuf(uint8_t, const void *, size_t, std::vector<uint8_t> &);
 };

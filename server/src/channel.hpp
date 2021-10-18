@@ -1,14 +1,10 @@
 #pragma once
 #include <asio.hpp>
-#include <array>
-#include <tuple>
 #include <mutex>
 #include <memory>
 #include <vector>
-#include <atomic>
 #include <cstdint>
 #include <stdexcept>
-#include <functional>
 #include "strf.hpp"
 #include "dispatcher.hpp"
 
@@ -44,15 +40,20 @@ class ChannError: public std::exception
         }
 };
 
+class NetDriver;
 class Channel final: public std::enable_shared_from_this<Channel>
 {
     private:
         enum ChannStateType: int
         {
-            CS_NONE    = 0,
-            CS_RUNNING = 1,
-            CS_STOPPED = 2,
+            CS_NONE     = 0,
+            CS_RUNNING  = 1,
+            CS_STOPPED  = 2, // stopped by exception
+            CS_RELEASED = 3, // socket has been closed, AM_BADCHANNEL has been sent
         };
+
+    private:
+        friend class NetDriver;
 
     private:
         asio::ip::tcp::socket m_socket;
@@ -61,20 +62,19 @@ class Channel final: public std::enable_shared_from_this<Channel>
         const uint32_t m_id;
 
     private:
-        std::atomic<int> m_state {CS_NONE};
+        int m_state = CS_NONE;
 
     private:
         Dispatcher m_dispatcher;
 
     private:
         // for read channel packets
-        // only asio main loop accesses these fields
+        // only asio thread accesses these variables
         uint8_t  m_readHeadCode = 0;
         uint8_t  m_readLen[4]   = {0, 0, 0, 0};
         uint32_t m_bodyLen      = 0;
 
     private:
-        std::vector<uint8_t> m_postBuf;
         std::vector<uint8_t> m_readBuf;
         std::vector<uint8_t> m_decodeBuf;
 
@@ -82,32 +82,24 @@ class Channel final: public std::enable_shared_from_this<Channel>
         uint64_t m_playerUID = 0;
 
     private:
-        // for post channel packets
-        // server thread and asio main loop accesses these feilds
-        //
-        // 1. m_flushFlag indicates there is procedure accessing m_currSendQ in asio main loop
-        //    m_flushFlag prevents more than one procedure from accessing m_currSendQ
-        //
-        // 2. m_nextQLock protect the pending queue: m_nextSendQ
-        //    m_nextSendQ will be accessed by server thread to push packets in
+        // m_flushFlag indicates there is procedure accessing m_currSendQ in asio thread
+        // it prevents more than one procedure from accessing m_currSendQ
         bool m_flushFlag = false;
 
     private:
-        std::mutex m_nextQLock;
+        std::mutex &m_nextQLock; // ref to NetDriver::m_channList[channID]::lock
 
     private:
-        std::vector<uint8_t> m_currSendQ;
-        std::vector<uint8_t> m_nextSendQ;
+        std::vector<uint8_t>  m_currSendQ;
+        std::vector<uint8_t> &m_nextSendQ; // ref to NetDriver::m_channList[channID]::sendBuf
 
     public:
-        // only asio main loop calls the constructor
-        Channel(asio::io_service *, uint32_t);
+        Channel(asio::io_service *, uint32_t, std::mutex &, std::vector<uint8_t> &);
 
     public:
-        // only asio main loop calls the destructor
         ~Channel();
 
-    public:
+    private:
         uint32_t id() const
         {
             return m_id;
@@ -118,7 +110,7 @@ class Channel final: public std::enable_shared_from_this<Channel>
             return m_socket;
         }
 
-    public:
+    private:
         std::string ip() const
         {
             return m_socket.remote_endpoint().address().to_string();
@@ -129,28 +121,7 @@ class Channel final: public std::enable_shared_from_this<Channel>
             return m_socket.remote_endpoint().port();
         }
 
-    public:
-        // family of post facilities, called by one server thread
-        // Channel will do compression if needed based on message header code
-
-        // post with a r-ref callback, this is the base of all post function
-        // current implementation is based on double-queue method
-        // one queue (Q1) is used for store new packages in parallel
-        // the other (Q2) queue is used to post all packages in ASIO main loop
-        //
-        // then Q1 needs to be protected from data race
-        // but for Q2 since it's only used in ASIO main loop, we don't need to protect it
-        //
-        // idea from: https://stackoverflow.com/questions/4029448/thread-safety-for-stl-queue
-        void post(uint8_t, const void *, size_t);
-
     private:
-        uint8_t *getPostBuf(size_t bufSize)
-        {
-            m_postBuf.resize(bufSize + 16);
-            return m_postBuf.data();
-        }
-
         uint8_t *getReadBuf(size_t bufSize)
         {
             m_readBuf.resize(bufSize + 16);
@@ -164,11 +135,6 @@ class Channel final: public std::enable_shared_from_this<Channel>
         }
 
     private:
-        std::array<std::tuple<const uint8_t *, size_t>, 2> encodePostBuf(uint8_t, const void *, size_t);
-
-    private:
-        // functions called by asio main loop only
-        // following DoXXXFunc should only be invoked in asio main loop thread
         void doReadPackHeadCode();
         void doReadPackBody(size_t, size_t);
 
@@ -176,21 +142,15 @@ class Channel final: public std::enable_shared_from_this<Channel>
         void doSendPack();
 
     private:
-        // called by asio main loop only
-        // only called in Channel::doReadPackHeadCode()/doReadPackBody()
         bool forwardActorMessage(uint8_t, const uint8_t *, size_t);
 
     private:
-        // called by one server thread
-        // only called in Channel::Post(server_message)
         void flushSendQ();
 
     private:
-        // called by asio main loop thread and server thread
-        // it atomically set the channel state, which would disable everything
         void close();
 
-    public:
+    private:
         void launch();
 
     public:
