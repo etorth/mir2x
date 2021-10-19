@@ -10759,6 +10759,10 @@
         {
             .level = 20,
         },
+        .weapon
+        {
+            .doubleHand = true,
+        },
     },
 },
 
@@ -10774,6 +10778,10 @@
         .req
         {
             .level = 33,
+        },
+        .weapon
+        {
+            .doubleHand = true,
         },
     },
 },

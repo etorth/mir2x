@@ -913,17 +913,27 @@ bool Hero::parseAction(const ActionNode &action)
                 if(auto coPtr = m_processRun->findUID(action.aimUID)){
                     if(const auto attackDir = PathFind::GetDirection(action.x, action.y, coPtr->x(), coPtr->y()); attackDir >= DIR_BEGIN && attackDir < DIR_END){
                         const auto magicID = action.extParam.attack.damageID;
-                        const auto [swingMotion, motionSpeed, magicName, lagFrame] = [magicID]() -> std::tuple<int, int, const char8_t *, int>
+                        const auto [swingMotion, motionSpeed, magicName, lagFrame] = [magicID, this]() -> std::tuple<int, int, const char8_t *, int>
                         {
+                            const auto doubleHanded = [this]() -> bool
+                            {
+                                if(const auto &weaponItem = getWLItem(WLG_WEAPON); weaponItem){
+                                    const auto &ir = DBCOM_ITEMRECORD(weaponItem.itemID);
+                                    fflassert(ir);
+                                    return ir.equip.weapon.doubleHand;
+                                }
+                                return false;
+                            }();
+
                             switch(magicID){
-                                case DBCOM_MAGICID(u8"烈火剑法"): return {MOTION_ONEVSWING, 100, u8"烈火剑法", 0};
-                                case DBCOM_MAGICID(u8"翔空剑法"): return {MOTION_RANDSWING, 100, u8"翔空剑法", 0};
-                                case DBCOM_MAGICID(u8"莲月剑法"): return {MOTION_RANDSWING, 100, u8"莲月剑法", 0};
-                                case DBCOM_MAGICID(u8"半月弯刀"): return {MOTION_ONEHSWING, 100, u8"半月弯刀", 0};
-                                case DBCOM_MAGICID(u8"十方斩"  ): return {MOTION_WHEELWIND, 150, u8"十方斩"  , 3}; // 十方斩 has only 6 frames while MOTION_WHEELWIND has 10 frames
-                                case DBCOM_MAGICID(u8"攻杀剑术"): return {MOTION_ONEVSWING, 100, u8"攻杀剑术", 0};
-                                case DBCOM_MAGICID(u8"刺杀剑术"): return {MOTION_ONEVSWING, 100, u8"刺杀剑术", 0};
-                                default                         : return {MOTION_ONEVSWING, 100, u8"物理攻击", 0};
+                                case DBCOM_MAGICID(u8"烈火剑法"): return {doubleHanded ? MOTION_TWOVSWING : MOTION_ONEVSWING, 100, u8"烈火剑法", 0};
+                                case DBCOM_MAGICID(u8"翔空剑法"): return {                                  MOTION_RANDSWING, 100, u8"翔空剑法", 0};
+                                case DBCOM_MAGICID(u8"莲月剑法"): return {                                  MOTION_RANDSWING, 100, u8"莲月剑法", 0};
+                                case DBCOM_MAGICID(u8"半月弯刀"): return {doubleHanded ? MOTION_TWOHSWING : MOTION_ONEHSWING, 100, u8"半月弯刀", 0};
+                                case DBCOM_MAGICID(u8"十方斩"  ): return {                                  MOTION_WHEELWIND, 150, u8"十方斩"  , 3}; // 十方斩 has 6 frames while MOTION_WHEELWIND has 10
+                                case DBCOM_MAGICID(u8"攻杀剑术"): return {doubleHanded ? MOTION_TWOVSWING : MOTION_ONEVSWING, 100, u8"攻杀剑术", 0};
+                                case DBCOM_MAGICID(u8"刺杀剑术"): return {doubleHanded ? MOTION_TWOVSWING : MOTION_ONEVSWING, 100, u8"刺杀剑术", 0};
+                                default                         : return {doubleHanded ? MOTION_TWOVSWING : MOTION_ONEVSWING, 100, u8"物理攻击", 0};
                             }
                         }();
 

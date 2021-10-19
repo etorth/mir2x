@@ -76,6 +76,12 @@ struct ItemRecord
             const char8_t * const job = nullptr;
         }
         req {};
+
+        const struct WeaponAttr
+        {
+            const bool doubleHand = false;
+        }
+        weapon {};
     }
     equip {};
 
