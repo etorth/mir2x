@@ -61,7 +61,7 @@ class ProcessNew: public Process
         virtual ~ProcessNew() = default;
 
     public:
-        int ID() const
+        int ID() const override
         {
             return PROCESSID_NEW;
         }

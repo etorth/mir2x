@@ -20,11 +20,14 @@
 #include <cstdint>
 #include <SDL2/SDL.h>
 
+#include "strf.hpp"
+#include "totype.hpp"
 #include "process.hpp"
 #include "message.hpp"
 #include "inputline.hpp"
 #include "labelboard.hpp"
 #include "passwordbox.hpp"
+#include "notifyboard.hpp"
 #include "tritexbutton.hpp"
 
 class ProcessLogin: public Process
@@ -41,12 +44,15 @@ class ProcessLogin: public Process
     private:
         LabelBoard m_buildSignature;
 
+    private:
+        NotifyBoard m_notifyBoard;
+
     public:
         ProcessLogin();
         virtual ~ProcessLogin() = default;
 
     public:
-        int ID() const
+        int ID() const override
         {
             return PROCESSID_LOGIN;
         }
@@ -59,4 +65,12 @@ class ProcessLogin: public Process
     private:
         void doLogin();
         void doCreateAccount();
+
+    public:
+        void addLog(const char8_t *format, ...)
+        {
+            std::u8string s;
+            str_format(format, s);
+            m_notifyBoard.addLog(u8"%s", to_cstr(s));
+        }
 };

@@ -427,6 +427,27 @@ void Client::onServerMessage(uint8_t headCode, const uint8_t *pData, size_t nDat
             }
         case SM_LOGINFAIL:
             {
+                switch(ServerMsg::conv<SMLoginFail>(pData).error){
+                    case LOGINERR_NOACCOUNT:
+                        {
+                            if(auto proc = (ProcessLogin *)(ProcessValid(PROCESSID_LOGIN))){
+                                proc->addLog(u8"错误的账号/密码");
+                            }
+                            break;
+                        }
+                    case LOGINERR_BADRECORD:
+                        {
+                            if(auto proc = (ProcessLogin *)(ProcessValid(PROCESSID_LOGIN))){
+                                proc->addLog(u8"无效的数据库记录");
+                            }
+                            break;
+                        }
+                    default:
+                        {
+                            break;
+                        }
+                }
+
                 g_log->addLog(LOGTYPE_WARNING, "Login failed: error = %llu", to_llu(ServerMsg::conv<SMLoginFail>(pData).error));
                 break;
             }

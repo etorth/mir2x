@@ -83,7 +83,7 @@ class NotifyBoard: public Widget
         }
 
     public:
-        void Clear()
+        void clear()
         {
             m_boardList.clear();
             m_w = 0;
@@ -92,6 +92,12 @@ class NotifyBoard: public Widget
 
     public:
         int pw();
+
+    public:
+        bool empty() const
+        {
+            return m_boardList.empty();
+        }
 
     public:
         void drawEx(int, int, int, int, int, int) const override;

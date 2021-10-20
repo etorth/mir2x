@@ -26,6 +26,7 @@
 #include "pngtexdb.hpp"
 #include "sdldevice.hpp"
 #include "buildconfig.hpp"
+#include "notifyboard.hpp"
 #include "processlogin.hpp"
 
 extern Log *g_log;
@@ -93,17 +94,29 @@ ProcessLogin::ProcessLogin()
           },
       }
 
-      , m_buildSignature
-        {
-            DIR_UPLEFT,
-            0,
-            0,
-            u8"build",
-            1,
-            14,
-            0,
-            colorf::YELLOW + colorf::A_SHF(255),
-        }
+    , m_buildSignature
+      {
+          DIR_UPLEFT,
+          0,
+          0,
+          u8"build",
+          1,
+          14,
+          0,
+          colorf::YELLOW + colorf::A_SHF(255),
+      }
+
+    , m_notifyBoard
+      {
+          DIR_UPLEFT,
+          0,
+          0,
+          10240,
+          1,
+          15,
+          0,
+          colorf::YELLOW + colorf::A_SHF(255),
+      }
 {
     m_buildSignature.setText(u8"编译版本号:%s", getBuildSignature());
 }
@@ -130,6 +143,16 @@ void ProcessLogin::draw()
     m_passwordBox.draw();
 
     m_buildSignature.draw();
+
+    const int notifX = (800 - m_notifyBoard.pw()) / 2;
+    const int notifY = (600 - m_notifyBoard. h()) / 2;
+    const int margin = 20;
+
+    if(m_notifyBoard.empty()){
+        g_sdlDevice->fillRectangle(colorf::RGBA(0, 0,   0, 128), notifX - margin, notifY - margin, m_notifyBoard.pw() + margin * 2, m_notifyBoard.h() + margin * 2, 8);
+        g_sdlDevice->drawRectangle(colorf::RGBA(0, 0, 255, 128), notifX - margin, notifY - margin, m_notifyBoard.pw() + margin * 2, m_notifyBoard.h() + margin * 2, 8);
+    }
+    m_notifyBoard.drawAt(DIR_UPLEFT, notifX, notifY);
 }
 
 void ProcessLogin::processEvent(const SDL_Event &event)
