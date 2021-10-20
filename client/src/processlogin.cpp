@@ -148,7 +148,7 @@ void ProcessLogin::draw()
     const int notifY = (600 - m_notifyBoard. h()) / 2;
     const int margin = 20;
 
-    if(m_notifyBoard.empty()){
+    if(!m_notifyBoard.empty()){
         g_sdlDevice->fillRectangle(colorf::RGBA(0, 0,   0, 128), notifX - margin, notifY - margin, m_notifyBoard.pw() + margin * 2, m_notifyBoard.h() + margin * 2, 8);
         g_sdlDevice->drawRectangle(colorf::RGBA(0, 0, 255, 128), notifX - margin, notifY - margin, m_notifyBoard.pw() + margin * 2, m_notifyBoard.h() + margin * 2, 8);
     }
