@@ -116,6 +116,8 @@ ProcessLogin::ProcessLogin()
           15,
           0,
           colorf::YELLOW + colorf::A_SHF(255),
+          5000,
+          10,
       }
 {
     m_buildSignature.setText(u8"编译版本号:%s", getBuildSignature());
@@ -125,6 +127,7 @@ void ProcessLogin::update(double fUpdateTime)
 {
     m_idBox.update(fUpdateTime);
     m_passwordBox.update(fUpdateTime);
+    m_notifyBoard.update(fUpdateTime);
 }
 
 void ProcessLogin::draw()
@@ -146,7 +149,7 @@ void ProcessLogin::draw()
 
     const int notifX = (800 - m_notifyBoard.pw()) / 2;
     const int notifY = (600 - m_notifyBoard. h()) / 2;
-    const int margin = 20;
+    const int margin = 15;
 
     if(!m_notifyBoard.empty()){
         g_sdlDevice->fillRectangle(colorf::RGBA(0, 0,   0, 128), notifX - margin, notifY - margin, m_notifyBoard.pw() + margin * 2, m_notifyBoard.h() + margin * 2, 8);

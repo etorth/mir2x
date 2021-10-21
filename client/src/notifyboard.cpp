@@ -27,22 +27,32 @@ void NotifyBoard::addLog(const char8_t * format, ...)
     std::u8string text;
     str_format(format, text);
 
-    if(m_boardList.size() < 5){
-        m_boardList.push_back(std::make_shared<XMLTypeset>(m_lineW, LALIGN_LEFT, false, m_font, m_fontSize, m_fontStyle, m_fontColor));
-    }
-    else{
-        m_boardList.push_back(m_boardList.front());
+    while((m_maxEntryCount > 0) && (m_boardList.size() >= m_maxEntryCount)){
         m_boardList.pop_front();
     }
 
+    m_boardList.emplace_back();
+    m_boardList.back().typeset =std::make_unique<XMLTypeset>(m_lineW, LALIGN_LEFT, false, m_font, m_fontSize, m_fontStyle, m_fontColor);
+
     const auto xmlString = str_printf("<par>%s</par>", to_cstr(text));
-    m_boardList.back()->loadXML(xmlString.c_str());
+    m_boardList.back().typeset->loadXML(xmlString.c_str());
 
     m_w = m_lineW;
-    m_h = 0;
+    updateHeight();
+}
 
-    for(const auto &ptr: m_boardList){
-        m_h += ptr->ph();
+void NotifyBoard::update(double)
+{
+    if(m_showTime > 0){
+        while(!m_boardList.empty()){
+            if(m_boardList.front().timer.diff_msec() >= m_showTime){
+                m_boardList.pop_front();
+            }
+            else{
+                break;
+            }
+        }
+        updateHeight();
     }
 }
 
@@ -51,8 +61,8 @@ void NotifyBoard::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int s
     int startX = 0;
     int startY = 0;
 
-    for(const auto &ptr: m_boardList){
-        const auto p = ptr.get();
+    for(const auto &tp: m_boardList){
+        const auto p = tp.typeset.get();
 
         int srcXCrop = srcX;
         int srcYCrop = srcY;
@@ -81,8 +91,16 @@ void NotifyBoard::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int s
 int NotifyBoard::pw()
 {
     int maxW = 0;
-    for(const auto &ptr: m_boardList){
-        maxW = std::max<int>(maxW, ptr->pw());
+    for(const auto &tp: m_boardList){
+        maxW = std::max<int>(maxW, tp.typeset->pw());
     }
     return maxW;
+}
+
+void NotifyBoard::updateHeight()
+{
+    m_h = 0;
+    for(const auto &tp: m_boardList){
+        m_h += tp.typeset->ph();
+    }
 }

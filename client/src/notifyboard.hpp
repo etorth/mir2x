@@ -18,12 +18,20 @@
 
 #pragma once
 #include <deque>
+#include <memory>
 #include "widget.hpp"
 #include "lalign.hpp"
+#include "raiitimer.hpp"
 #include "xmltypeset.hpp"
 
 class NotifyBoard: public Widget
 {
+    struct NotifyBoardTypeset
+    {
+        hres_timer timer;
+        std::unique_ptr<XMLTypeset> typeset;
+    };
+
     private:
         int m_lineW;
 
@@ -36,7 +44,11 @@ class NotifyBoard: public Widget
         uint32_t m_fontColor;
 
     private:
-        std::deque<std::shared_ptr<XMLTypeset>> m_boardList;
+        uint64_t m_showTime;
+        size_t m_maxEntryCount;
+
+    private:
+        std::deque<NotifyBoardTypeset> m_boardList;
 
     public:
         NotifyBoard(
@@ -48,6 +60,8 @@ class NotifyBoard: public Widget
                 uint8_t          defaultFontSize  = 10,
                 uint8_t          defaultFontStyle = 0,
                 uint32_t         defaultFontColor = colorf::WHITE + colorf::A_SHF(255),
+                uint64_t         showTime         = 0,
+                size_t           maxEntryCount    = 0,
                 Widget          *widgetPtr        = nullptr,
                 bool             autoDelete       = false)
             : Widget(nDir, nX, nY, 0, 0, widgetPtr, autoDelete)
@@ -56,6 +70,8 @@ class NotifyBoard: public Widget
             , m_fontSize(defaultFontSize)
             , m_fontStyle(defaultFontStyle)
             , m_fontColor(defaultFontColor)
+            , m_showTime(showTime)
+            , m_maxEntryCount(maxEntryCount)
         {}
 
     public:
@@ -100,5 +116,11 @@ class NotifyBoard: public Widget
         }
 
     public:
+        void update(double) override;
+
+    public:
         void drawEx(int, int, int, int, int, int) const override;
+
+    private:
+        void updateHeight();
 };
