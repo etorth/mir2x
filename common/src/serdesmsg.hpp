@@ -444,7 +444,7 @@ struct SDUIDWLDesp
     }
 };
 
-struct SDLoginOK
+struct SDStartGameScene
 {
     uint64_t uid   = 0;
     uint32_t mapID = 0;

@@ -4,6 +4,7 @@
 #include <type_traits>
 #include <unordered_map>
 #include "msgbase.hpp"
+#include "fixedbuf.hpp"
 #include "actionnode.hpp"
 
 enum CMType: uint8_t
@@ -14,6 +15,10 @@ enum CMType: uint8_t
     CM_BEGIN  = 1,
     CM_PING   = 1,
     CM_LOGIN,
+    CM_QUERYCHAR,
+    CM_CREATECHAR,
+    CM_DELETECHAR,
+    CM_ONLINE,
     CM_ACTION,
     CM_SETMAGICKEY,
     CM_QUERYCORECORD,
@@ -25,7 +30,7 @@ enum CMType: uint8_t
     CM_PICKUP,
     CM_QUERYGOLD,
     CM_QUERYPLAYERWLDESP,
-    CM_ACCOUNT,
+    CM_CREATEACCOUNT,
     CM_NPCEVENT,
     CM_QUERYSELLITEMLIST,
     CM_DROPITEM,
@@ -46,14 +51,31 @@ struct CMPing
 
 struct CMLogin
 {
-    char id[64];
-    char password[64];
+    FixedBuf<SYS_IDSIZE> id;
+    FixedBuf<SYS_PWDSIZE> password;
 };
 
 struct CMSetMagicKey
 {
     uint32_t magicID;
     uint8_t key;
+};
+
+struct CMQueryChar
+{
+    uint32_t dbid;
+};
+
+struct CMCreateChar
+{
+    FixedBuf<SYS_NAMESIZE> name;
+    uint8_t job;
+    uint8_t gender;
+};
+
+struct CMDeleteChar
+{
+    FixedBuf<SYS_PWDSIZE> password;
 };
 
 struct CMAction
@@ -104,10 +126,10 @@ struct CMQueryPlayerWLDesp
     uint64_t uid;
 };
 
-struct CMAccount
+struct CMCreateAccount
 {
-    char id[64];
-    char password[128];
+    FixedBuf<SYS_IDSIZE> id;
+    FixedBuf<SYS_PWDSIZE> password;
 };
 
 struct CMNPCEvent
@@ -196,6 +218,10 @@ class ClientMsg final: public MsgBase
                 _add_client_msg_type_case(CM_NONE_0,                     0, 0                                   )
                 _add_client_msg_type_case(CM_PING,                       2, sizeof(CMPing)                      )
                 _add_client_msg_type_case(CM_LOGIN,                      1, sizeof(CMLogin)                     )
+                _add_client_msg_type_case(CM_QUERYCHAR,                  1, sizeof(CMQueryChar)                 )
+                _add_client_msg_type_case(CM_CREATECHAR,                 1, sizeof(CMCreateChar)                )
+                _add_client_msg_type_case(CM_DELETECHAR,                 1, sizeof(CMDeleteChar)                )
+                _add_client_msg_type_case(CM_ONLINE,                     0, 0                                   )
                 _add_client_msg_type_case(CM_ACTION,                     1, sizeof(CMAction)                    )
                 _add_client_msg_type_case(CM_SETMAGICKEY,                1, sizeof(CMSetMagicKey)               )
                 _add_client_msg_type_case(CM_QUERYCORECORD,              1, sizeof(CMQueryCORecord)             )
@@ -207,7 +233,7 @@ class ClientMsg final: public MsgBase
                 _add_client_msg_type_case(CM_PICKUP,                     1, sizeof(CMPickUp)                    )
                 _add_client_msg_type_case(CM_QUERYGOLD,                  0, 0                                   )
                 _add_client_msg_type_case(CM_QUERYPLAYERWLDESP,          1, sizeof(CMQueryPlayerWLDesp)         )
-                _add_client_msg_type_case(CM_ACCOUNT,                    1, sizeof(CMAccount)                   )
+                _add_client_msg_type_case(CM_CREATEACCOUNT,              1, sizeof(CMCreateAccount)             )
                 _add_client_msg_type_case(CM_NPCEVENT,                   1, sizeof(CMNPCEvent)                  )
                 _add_client_msg_type_case(CM_QUERYSELLITEMLIST,          1, sizeof(CMQuerySellItemList)         )
                 _add_client_msg_type_case(CM_DROPITEM,                   1, sizeof(CMDropItem)                  )
@@ -232,6 +258,9 @@ class ClientMsg final: public MsgBase
             static_assert(false
                     || std::is_same_v<T, CMPing>
                     || std::is_same_v<T, CMLogin>
+                    || std::is_same_v<T, CMQueryChar>
+                    || std::is_same_v<T, CMCreateChar>
+                    || std::is_same_v<T, CMDeleteChar>
                     || std::is_same_v<T, CMAction>
                     || std::is_same_v<T, CMQueryCORecord>
                     || std::is_same_v<T, CMRequestAddExp>
@@ -241,7 +270,7 @@ class ClientMsg final: public MsgBase
                     || std::is_same_v<T, CMPickUp>
                     || std::is_same_v<T, CMSetMagicKey>
                     || std::is_same_v<T, CMQueryPlayerWLDesp>
-                    || std::is_same_v<T, CMAccount>
+                    || std::is_same_v<T, CMCreateAccount>
                     || std::is_same_v<T, CMNPCEvent>
                     || std::is_same_v<T, CMQuerySellItemList>
                     || std::is_same_v<T, CMDropItem>

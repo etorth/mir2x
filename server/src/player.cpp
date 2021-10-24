@@ -1,20 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: player.cpp
- *        Created: 04/07/2016 03:48:41 AM
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
 #include <cinttypes>
 #include "dbpod.hpp"
 #include "player.hpp"
@@ -37,7 +20,7 @@ extern MonoServer *g_monoServer;
 extern ServerArgParser *g_serverArgParser;
 
 Player::Player(const SDInitPlayer &initParam, const ServerMap *mapPtr)
-    : CharObject(mapPtr, uidf::buildPlayerUID(initParam.dbid, initParam.gender, initParam.jobList), initParam.x, initParam.y, DIR_DOWN)
+    : CharObject(mapPtr, uidf::getPlayerUID(initParam.dbid, initParam.gender, initParam.jobList), initParam.x, initParam.y, DIR_DOWN)
     , m_exp(initParam.exp)
     , m_name(initParam.name)
     , m_nameColor(initParam.nameColor)
@@ -1103,10 +1086,10 @@ void Player::RequestKillPets()
     m_slaveList.clear();
 }
 
-void Player::postOnLoginOK()
+void Player::postOnlineOK()
 {
-    postBuildVersion();
-    postNetMessage(SM_LOGINOK, cerealf::serialize(SDLoginOK
+    postNetMessage(SM_ONLINEOK);
+    postNetMessage(SM_STARTGAMESCENE, cerealf::serialize(SDStartGameScene
     {
         .uid = UID(),
         .mapID = mapID(),
@@ -1124,7 +1107,7 @@ void Player::postOnLoginOK()
 
         .name = m_name,
         .nameColor = m_nameColor,
-    }, true));
+    }));
 
     postExp();
     postNetMessage(SM_INVENTORY,        cerealf::serialize(m_sdItemStorage.inventory));
@@ -1241,14 +1224,6 @@ void Player::setWLItem(int wltype, SDItem item)
             forwardNetPackage(coLoc.uid, SM_EQUIPWEAR, sdEquipWearBuf);
         }
     });
-}
-
-void Player::postBuildVersion()
-{
-    SMBuildVersion smBV;
-    std::memset(&smBV, 0, sizeof(smBV));
-    std::strcpy(smBV.version, getBuildSignature());
-    postNetMessage(SM_BUILDVERSION, smBV);
 }
 
 void Player::postExp()

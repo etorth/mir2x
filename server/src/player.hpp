@@ -279,10 +279,9 @@ class Player final: public CharObject
 
     private:
         void postExp();
-        void postBuildVersion();
 
     private:
-        void postOnLoginOK();
+        void postOnlineOK();
 
     private:
         bool hasInventoryItem(uint32_t, uint32_t, size_t) const;

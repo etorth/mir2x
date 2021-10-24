@@ -40,21 +40,21 @@
 #include "sdldevice.hpp"
 
 extern SDLDevice *g_sdlDevice;
-void ProcessRun::net_LOGINOK(const uint8_t *buf, size_t bufSize)
+void ProcessRun::net_STARTGAMESCENE(const uint8_t *buf, size_t bufSize)
 {
-    auto sdLOK = cerealf::deserialize<SDLoginOK>(buf, bufSize);
-    loadMap(sdLOK.mapID, sdLOK.x, sdLOK.y);
+    auto sdSGS = cerealf::deserialize<SDStartGameScene>(buf, bufSize);
+    loadMap(sdSGS.mapID, sdSGS.x, sdSGS.y);
 
-    m_myHeroUID = sdLOK.uid;
+    m_myHeroUID = sdSGS.uid;
     m_coList[m_myHeroUID].reset(new MyHero(m_myHeroUID, this, ActionStand
     {
-        .x = sdLOK.x,
-        .y = sdLOK.y,
+        .x = sdSGS.x,
+        .y = sdSGS.y,
         .direction = DIR_DOWN,
     }));
 
-    getMyHero()->setName(to_cstr(sdLOK.name), sdLOK.nameColor);
-    getMyHero()->setWLDesp(std::move(sdLOK.desp));
+    getMyHero()->setName(to_cstr(sdSGS.name), sdSGS.nameColor);
+    getMyHero()->setWLDesp(std::move(sdSGS.desp));
 
     centerMyHero();
     getMyHero()->pullGold();

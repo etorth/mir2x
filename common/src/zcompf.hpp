@@ -27,7 +27,6 @@
 #include <type_traits>
 #include "lz4.h"
 #include "zstd.h"
-#include "totype.hpp"
 #include "fflerror.hpp"
 
 namespace zcompf
@@ -52,7 +51,7 @@ namespace zcompf
     }
 
     // lz4 has no reverse function of LZ4_compressBound()
-    // the decompression bound is 255 * srcLen, this is too large, so need to provide the maxDstSize 
+    // the decompression bound is 255 * srcLen, this is too large, so need to provide the maxDstSize
 
     template<typename C> void lz4Decode(C &dst, size_t maxDstSize, const uint8_t *src, size_t srcSize)
     {
@@ -95,7 +94,7 @@ namespace zcompf
         dst.resize(rc);
     }
 
-    template<typename C> void zstdDecode(C &dst, const uint8_t *src, size_t srcSize)
+    template<typename C> void zstdDecode(C &dst, const void *src, size_t srcSize)
     {
         using VALUE_TYPE = typename C::value_type;
         static_assert(std::is_trivially_copyable_v<VALUE_TYPE>);
@@ -104,7 +103,7 @@ namespace zcompf
             case ZSTD_CONTENTSIZE_ERROR:
             case ZSTD_CONTENTSIZE_UNKNOWN:
                 {
-                    throw fflerror("not a zstd compressed data buffer: src = %p, srcSize = %zu", to_cvptr(src), srcSize);
+                    throw fflerror("not a zstd compressed data buffer: src = %p, srcSize = %zu", src, srcSize);
                 }
             default:
                 {
@@ -127,17 +126,18 @@ namespace zcompf
     // xor compression/decompression
     // used by default, gives about 2x compression in general
 
-    inline int countMask(const uint8_t *buf, size_t bufLen)
+    inline size_t countMask(const uint8_t *buf, size_t bufLen)
     {
-        if(buf){
-            return to_d(popcnt(buf, bufLen));
+        if(bufLen > 0){
+            fflassert(buf);
+            return popcnt(buf, bufLen);
         }
-        throw fflerror("invalid buffer: nullptr");
+        return 0;
     }
 
-    inline int countData(const uint8_t *buf, size_t bufLen)
+    inline size_t countData(const uint8_t *buf, size_t bufLen)
     {
-        int count = 0;
+        size_t count = 0;
         for(size_t i = 0; i < bufLen; ++i){
             if(buf[i]){
                 count++;
@@ -146,7 +146,7 @@ namespace zcompf
         return count;
     }
 
-    inline int xorEncode(uint8_t *dst, const uint8_t *buf, size_t bufLen)
+    inline size_t xorEncode(uint8_t *dst, const uint8_t *buf, size_t bufLen)
     {
         fflassert(dst);
         fflassert(buf);
@@ -157,7 +157,7 @@ namespace zcompf
         const auto compPtr = dst + maskLen;
         std::memset(maskPtr, 0, maskLen);
 
-        int dataCount = 0;
+        size_t dataCount = 0;
         for(size_t i = 0; i < bufLen; ++i){
             if(buf[i]){
                 maskPtr[i / 8] |= (0X01 << (i % 8));
@@ -167,7 +167,7 @@ namespace zcompf
         return dataCount;
     }
 
-    inline int xorDecode(uint8_t *dst, size_t bufLen, const uint8_t *maskPtr, const uint8_t *compPtr)
+    inline size_t xorDecode(uint8_t *dst, size_t bufLen, const uint8_t *maskPtr, const uint8_t *compPtr)
     {
         fflassert(dst);
         fflassert(bufLen);
@@ -175,7 +175,7 @@ namespace zcompf
         fflassert(maskPtr);
         fflassert(compPtr);
 
-        int decodeCount = 0;
+        size_t decodeCount = 0;
         for(size_t i = 0; i < bufLen; ++i){
             if(maskPtr[i / 8] & (0x01 << (i % 8))){
                 dst[i] = compPtr[decodeCount++];

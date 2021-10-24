@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: processnew.cpp
- *        Created: 08/14/2015 02:47:49
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #include <regex>
 #include <cstring>
 #include <algorithm>
@@ -24,13 +6,13 @@
 #include "client.hpp"
 #include "pngtexdb.hpp"
 #include "sdldevice.hpp"
-#include "processnew.hpp"
+#include "processcreateaccount.hpp"
 
 extern Client *g_client;
 extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 
-ProcessNew::ProcessNew()
+ProcessCreateAccount::ProcessCreateAccount()
 	: Process()
     , m_LBID        (DIR_UPLEFT, 0, 0, u8"账号"    , 1, 15, 0, colorf::WHITE + colorf::A_SHF(255))
     , m_LBPwd       (DIR_UPLEFT, 0, 0, u8"密码"    , 1, 15, 0, colorf::WHITE + colorf::A_SHF(255))
@@ -191,14 +173,14 @@ ProcessNew::ProcessNew()
     m_boxPwdConfirm.focus(false);
 }
 
-void ProcessNew::update(double fUpdateTime)
+void ProcessCreateAccount::update(double fUpdateTime)
 {
     m_boxID        .update(fUpdateTime);
     m_boxPwd       .update(fUpdateTime);
     m_boxPwdConfirm.update(fUpdateTime);
 }
 
-void ProcessNew::draw()
+void ProcessCreateAccount::draw()
 {
     const SDLDeviceHelper::RenderNewFrame newFrame;
     g_sdlDevice->drawTexture(g_progUseDB->retrieve(0X00000003), 0, 75);
@@ -237,7 +219,7 @@ void ProcessNew::draw()
     }
 }
 
-void ProcessNew::processEvent(const SDL_Event &event)
+void ProcessCreateAccount::processEvent(const SDL_Event &event)
 {
     if(m_quit.processEvent(event, true)){
         return;
@@ -299,7 +281,7 @@ void ProcessNew::processEvent(const SDL_Event &event)
     localCheck();
 }
 
-bool ProcessNew::localCheckID(const char *id) const
+bool ProcessCreateAccount::localCheckID(const char *id) const
 {
     if(str_haschar(id)){
         std::regex ptn
@@ -311,17 +293,17 @@ bool ProcessNew::localCheckID(const char *id) const
     return false;
 }
 
-bool ProcessNew::localCheckPwd(const char *pwd) const
+bool ProcessCreateAccount::localCheckPwd(const char *pwd) const
 {
     return str_haschar(pwd);
 }
 
-void ProcessNew::doExit()
+void ProcessCreateAccount::doExit()
 {
-    g_client->RequestProcess(PROCESSID_LOGIN);
+    g_client->requestProcess(PROCESSID_LOGIN);
 }
 
-void ProcessNew::doPostAccount()
+void ProcessCreateAccount::doPostAccount()
 {
     const auto idStr = m_boxID.getRawString();
     const auto pwdStr = m_boxPwd.getPasswordString();
@@ -347,15 +329,15 @@ void ProcessNew::doPostAccount()
 
     setInfoStr(u8"提交中");
 
-    CMAccount cmA;
-    std::memset(&cmA, 0, sizeof(cmA));
+    CMCreateAccount cmCA;
+    std::memset(&cmCA, 0, sizeof(cmCA));
 
-    std::strcpy(cmA.id, idStr.c_str());
-    std::strcpy(cmA.password, pwdStr.c_str());
-    g_client->send(CM_ACCOUNT, cmA);
+    cmCA.id.assign(idStr);
+    cmCA.password.assign(pwdStr);
+    g_client->send(CM_CREATEACCOUNT, cmCA);
 }
 
-void ProcessNew::localCheck()
+void ProcessCreateAccount::localCheck()
 {
     const auto idStr = m_boxID.getRawString();
     const auto pwdStr = m_boxPwd.getPasswordString();
@@ -379,14 +361,14 @@ void ProcessNew::localCheck()
     fnCheckInput(pwdConfirmStr, m_LBCheckPwdConfirm, localCheckPwd(pwdConfirmStr.c_str()) && pwdStr == pwdConfirmStr);
 }
 
-void ProcessNew::clearInput()
+void ProcessCreateAccount::clearInput()
 {
     m_boxID.clear();
     m_boxPwd.clear();
     m_boxPwdConfirm.clear();
 }
 
-bool ProcessNew::hasInfo() const
+bool ProcessCreateAccount::hasInfo() const
 {
     if(m_infoStr.empty()){
         return false;
@@ -398,13 +380,13 @@ bool ProcessNew::hasInfo() const
     return m_infoStrTimer.diff_sec() < m_infoStrSec;
 }
 
-void ProcessNew::setInfoStr(const char8_t *s)
+void ProcessCreateAccount::setInfoStr(const char8_t *s)
 {
     m_infoStr.setText(str_haschar(s) ? s : u8"");
     m_infoStrSec = 0;
 }
 
-void ProcessNew::setInfoStr(const char8_t *s, uint32_t sec)
+void ProcessCreateAccount::setInfoStr(const char8_t *s, uint32_t sec)
 {
     m_infoStr.setText(str_haschar(s) ? s : u8"");
     m_infoStrSec = sec;

@@ -40,7 +40,7 @@ class ProcessLogo: public Process
         virtual ~ProcessLogo() = default;
 
     public:
-        int ID() const override
+        int id() const override
         {
             return PROCESSID_LOGO;
         }

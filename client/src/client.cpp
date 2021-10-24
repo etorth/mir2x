@@ -31,10 +31,10 @@
 #include "fontexdb.hpp"
 #include "sdldevice.hpp"
 #include "servermsg.hpp"
-#include "processnew.hpp"
 #include "processrun.hpp"
 #include "processlogo.hpp"
 #include "processsync.hpp"
+#include "processcreateaccount.hpp"
 #include "pngtexoffdb.hpp"
 #include "notifyboard.hpp"
 #include "buildconfig.hpp"
@@ -71,7 +71,7 @@ void Client::processEvent()
 
 void Client::mainLoop()
 {
-    SwitchProcess(PROCESSID_LOGO);
+    switchProcess(PROCESSID_LOGO);
     initASIO();
 
     auto fDelayDraw   = (1000.0 / (1.0 * SYS_DEFFPS)) / 6.0;
@@ -87,10 +87,10 @@ void Client::mainLoop()
             PrintMonitor();
         }
 
-        SwitchProcess();
+        switchProcess();
         if(true
                 && m_currentProcess
-                && m_currentProcess->ID() != PROCESSID_EXIT){
+                && m_currentProcess->id() != PROCESSID_EXIT){
 
             if(m_netPackTick > 0.0){
                 if(SDL_GetTicks() * 1.0 - m_netPackTick > 15.0 * 1000){
@@ -191,7 +191,7 @@ void Client::initASIO()
     });
 }
 
-void Client::onServerMessage(uint8_t headCode, const uint8_t *pData, size_t nDataLen)
+void Client::onServerMessage(uint8_t headCode, const uint8_t *buf, size_t bufSize)
 {
     // 1. update the time when last message received
     m_netPackTick = SDL_GetTicks() * 1.0;
@@ -204,365 +204,348 @@ void Client::onServerMessage(uint8_t headCode, const uint8_t *pData, size_t nDat
 
     // 2. handle messages
     switch(headCode){
-        case SM_ACCOUNT:
+        case SM_LOGINOK:
             {
-                if(auto proc = (ProcessNew *)(ProcessValid(PROCESSID_NEW))){
-                    proc->net_ACCOUNT(pData, nDataLen);
+                if(auto proc = (ProcessLogin *)(ProcessValid(PROCESSID_LOGIN))){
+                    proc->net_LOGINOK(buf, bufSize);
+                }
+                break;
+            }
+        case SM_STARTGAMESCENE:
+            {
+                if(auto proc = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+                    proc->net_STARTGAMESCENE(buf, bufSize);
+                }
+                break;
+            }
+        case SM_CREATEACCOUNTOK:
+            {
+                if(auto proc = (ProcessCreateAccount *)(ProcessValid(PROCESSID_CREATEACCOUNT))){
+                    proc->net_CREATEACCOUNTOK(buf, bufSize);
+                }
+                break;
+            }
+        case SM_CREATEACCOUNTERROR:
+            {
+                if(auto proc = (ProcessCreateAccount *)(ProcessValid(PROCESSID_CREATEACCOUNT))){
+                    proc->net_CREATEACCOUNTERROR(buf, bufSize);
                 }
                 break;
             }
         case SM_HEALTH:
             {
-                if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
-                    pRun->net_HEALTH(pData, nDataLen);
+                if(auto proc = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+                    proc->net_HEALTH(buf, bufSize);
                 }
                 break;
             }
         case SM_NEXTSTRIKE:
             {
-                if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
-                    pRun->net_NEXTSTRIKE(pData, nDataLen);
+                if(auto proc = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+                    proc->net_NEXTSTRIKE(buf, bufSize);
                 }
                 break;
             }
         case SM_DEADFADEOUT:
             {
-                if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
-                    pRun->net_DEADFADEOUT(pData, nDataLen);
+                if(auto proc = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+                    proc->net_DEADFADEOUT(buf, bufSize);
                 }
                 break;
             }
         case SM_NOTIFYDEAD:
             {
-                if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
-                    pRun->net_NOTIFYDEAD(pData, nDataLen);
+                if(auto proc = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+                    proc->net_NOTIFYDEAD(buf, bufSize);
                 }
                 break;
             }
         case SM_EXP:
             {
-                if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
-                    pRun->net_EXP(pData, nDataLen);
+                if(auto proc = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+                    proc->net_EXP(buf, bufSize);
                 }
                 break;
             }
         case SM_BUFF:
             {
-                if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
-                    pRun->net_BUFF(pData, nDataLen);
+                if(auto proc = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+                    proc->net_BUFF(buf, bufSize);
                 }
                 break;
             }
         case SM_MISS:
             {
-                if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
-                    pRun->net_MISS(pData, nDataLen);
+                if(auto proc = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+                    proc->net_MISS(buf, bufSize);
                 }
                 break;
             }
         case SM_GOLD:
             {
-                if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
-                    pRun->net_GOLD(pData, nDataLen);
+                if(auto proc = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+                    proc->net_GOLD(buf, bufSize);
                 }
                 break;
             }
         case SM_INVOPCOST:
             {
-                if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
-                    pRun->net_INVOPCOST(pData, nDataLen);
+                if(auto proc = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+                    proc->net_INVOPCOST(buf, bufSize);
                 }
                 break;
             }
         case SM_STRIKEGRID:
             {
-                if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
-                    pRun->net_STRIKEGRID(pData, nDataLen);
+                if(auto proc = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+                    proc->net_STRIKEGRID(buf, bufSize);
                 }
                 break;
             }
         case SM_PLAYERWLDESP:
             {
                 if(auto runPtr = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
-                    runPtr->net_PLAYERWLDESP(pData, nDataLen);
+                    runPtr->net_PLAYERWLDESP(buf, bufSize);
                 }
                 break;
             }
         case SM_CASTMAGIC:
             {
-                if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
-                    pRun->net_CASTMAGIC(pData, nDataLen);
+                if(auto proc = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+                    proc->net_CASTMAGIC(buf, bufSize);
                 }
                 break;
             }
         case SM_NPCXMLLAYOUT:
             {
                 if(auto p = processRun(); p){
-                    p->net_NPCXMLLAYOUT(pData, nDataLen);
+                    p->net_NPCXMLLAYOUT(buf, bufSize);
                 }
                 break;
             }
         case SM_NPCSELL:
             {
                 if(auto p = processRun(); p){
-                    p->net_NPCSELL(pData, nDataLen);
+                    p->net_NPCSELL(buf, bufSize);
                 }
                 break;
             }
         case SM_STARTINVOP:
             {
                 if(auto p = processRun(); p){
-                    p->net_STARTINVOP(pData, nDataLen);
+                    p->net_STARTINVOP(buf, bufSize);
                 }
                 break;
             }
         case SM_STARTINPUT:
             {
-                if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
-                    pRun->net_STARTINPUT(pData, nDataLen);
+                if(auto proc = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+                    proc->net_STARTINPUT(buf, bufSize);
                 }
                 break;
             }
         case SM_TEXT:
             {
                 if(auto p = processRun(); p){
-                    p->net_TEXT(pData, nDataLen);
+                    p->net_TEXT(buf, bufSize);
                 }
                 break;
             }
         case SM_SHOWSECUREDITEMLIST:
             {
                 if(auto p = processRun(); p){
-                    p->net_SHOWSECUREDITEMLIST(pData, nDataLen);
+                    p->net_SHOWSECUREDITEMLIST(buf, bufSize);
                 }
                 break;
             }
         case SM_PLAYERNAME:
             {
                 if(auto p = processRun(); p){
-                    p->net_PLAYERNAME(pData, nDataLen);
+                    p->net_PLAYERNAME(buf, bufSize);
                 }
                 break;
             }
         case SM_BUYSUCCEED:
             {
                 if(auto p = processRun(); p){
-                    p->net_BUYSUCCEED(pData, nDataLen);
+                    p->net_BUYSUCCEED(buf, bufSize);
                 }
                 break;
             }
         case SM_BUYERROR:
             {
                 if(auto p = processRun(); p){
-                    p->net_BUYERROR(pData, nDataLen);
+                    p->net_BUYERROR(buf, bufSize);
                 }
                 break;
             }
         case SM_GROUNDITEMIDLIST:
             {
-                if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
-                    pRun->net_GROUNDITEMIDLIST(pData, nDataLen);
+                if(auto proc = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+                    proc->net_GROUNDITEMIDLIST(buf, bufSize);
                 }
                 break;
             }
         case SM_GROUNDFIREWALLLIST:
             {
-                if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
-                    pRun->net_GROUNDFIREWALLLIST(pData, nDataLen);
+                if(auto proc = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+                    proc->net_GROUNDFIREWALLLIST(buf, bufSize);
                 }
                 break;
             }
         case SM_PICKUPERROR:
             {
-                if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
-                    pRun->net_PICKUPERROR(pData, nDataLen);
+                if(auto proc = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+                    proc->net_PICKUPERROR(buf, bufSize);
                 }
                 break;
             }
         case SM_PING:
             {
-                if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
-                    pRun->net_PING(pData, nDataLen);
+                if(auto proc = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+                    proc->net_PING(buf, bufSize);
                 }
                 break;
             }
         case SM_SELLITEMLIST:
             {
-                if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
-                    pRun->net_SELLITEMLIST(pData, nDataLen);
-                }
-                break;
-            }
-        case SM_LOGINOK:
-            {
-                SwitchProcess(m_currentProcess->ID(), PROCESSID_RUN);
-                if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
-                    pRun->net_LOGINOK(pData, nDataLen);
-                }
-                else{
-                    throw fflerror("failed to switch to ProcessRun");
+                if(auto proc = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+                    proc->net_SELLITEMLIST(buf, bufSize);
                 }
                 break;
             }
         case SM_RUNTIMECONFIG:
             {
-                if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
-                    pRun->net_RUNTIMECONFIG(pData, nDataLen);
+                if(auto proc = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+                    proc->net_RUNTIMECONFIG(buf, bufSize);
                 }
                 break;
             }
         case SM_LEARNEDMAGICLIST:
             {
-                if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
-                    pRun->net_LEARNEDMAGICLIST(pData, nDataLen);
+                if(auto proc = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+                    proc->net_LEARNEDMAGICLIST(buf, bufSize);
                 }
                 break;
             }
         case SM_CORECORD:
             {
-                if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
-                    pRun->net_CORECORD(pData, nDataLen);
+                if(auto proc = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+                    proc->net_CORECORD(buf, bufSize);
                 }
-                break;
-            }
-        case SM_LOGINFAIL:
-            {
-                switch(ServerMsg::conv<SMLoginFail>(pData).error){
-                    case LOGINERR_NOACCOUNT:
-                        {
-                            if(auto proc = (ProcessLogin *)(ProcessValid(PROCESSID_LOGIN))){
-                                proc->addLog(u8"错误的账号/密码");
-                            }
-                            break;
-                        }
-                    case LOGINERR_BADRECORD:
-                        {
-                            if(auto proc = (ProcessLogin *)(ProcessValid(PROCESSID_LOGIN))){
-                                proc->addLog(u8"无效的数据库记录");
-                            }
-                            break;
-                        }
-                    default:
-                        {
-                            break;
-                        }
-                }
-
-                g_log->addLog(LOGTYPE_WARNING, "Login failed: error = %llu", to_llu(ServerMsg::conv<SMLoginFail>(pData).error));
                 break;
             }
         case SM_ACTION:
             {
-                if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
-                    pRun->net_ACTION(pData, nDataLen);
+                if(auto proc = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+                    proc->net_ACTION(buf, bufSize);
                 }
                 break;
             }
         case SM_UPDATEITEM:
             {
-                if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
-                    pRun->net_UPDATEITEM(pData, nDataLen);
+                if(auto proc = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+                    proc->net_UPDATEITEM(buf, bufSize);
                 }
                 break;
             }
         case SM_INVENTORY:
             {
-                if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
-                    pRun->net_INVENTORY(pData, nDataLen);
+                if(auto proc = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+                    proc->net_INVENTORY(buf, bufSize);
                 }
                 break;
             }
         case SM_BELT:
             {
-                if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
-                    pRun->net_BELT(pData, nDataLen);
+                if(auto proc = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+                    proc->net_BELT(buf, bufSize);
                 }
                 break;
             }
         case SM_REMOVEITEM:
             {
-                if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
-                    pRun->net_REMOVEITEM(pData, nDataLen);
+                if(auto proc = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+                    proc->net_REMOVEITEM(buf, bufSize);
                 }
                 break;
             }
         case SM_REMOVESECUREDITEM:
             {
-                if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
-                    pRun->net_REMOVESECUREDITEM(pData, nDataLen);
+                if(auto proc = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+                    proc->net_REMOVESECUREDITEM(buf, bufSize);
                 }
                 break;
             }
         case SM_OFFLINE:
             {
-                if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
-                    pRun->net_OFFLINE(pData, nDataLen);
+                if(auto proc = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+                    proc->net_OFFLINE(buf, bufSize);
                 }
                 break;
             }
         case SM_BUILDVERSION:
             {
                 if(!g_clientArgParser->disableVersionCheck){
-                    const auto smBV = ServerMsg::conv<SMBuildVersion>(pData);
-                    if(std::strcmp(smBV.version, getBuildSignature())){
-                        throw fflerror("client/server version mismatches, client: %s, server: %s", getBuildSignature(), smBV.version);
+                    if(const auto smBV = ServerMsg::conv<SMBuildVersion>(buf); smBV.version.as_sv() != getBuildSignature()){
+                        throw fflerror("client/server version mismatches, client: %s, server: %s", getBuildSignature(), to_cstr(smBV.version));
                     }
                 }
                 break;
             }
         case SM_EQUIPWEAR:
             {
-                if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
-                    pRun->net_EQUIPWEAR(pData, nDataLen);
+                if(auto proc = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+                    proc->net_EQUIPWEAR(buf, bufSize);
                 }
                 break;
             }
         case SM_EQUIPWEARERROR:
             {
-                if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
-                    pRun->net_EQUIPWEARERROR(pData, nDataLen);
+                if(auto proc = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+                    proc->net_EQUIPWEARERROR(buf, bufSize);
                 }
                 break;
             }
         case SM_GRABWEAR:
             {
-                if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
-                    pRun->net_GRABWEAR(pData, nDataLen);
+                if(auto proc = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+                    proc->net_GRABWEAR(buf, bufSize);
                 }
                 break;
             }
         case SM_GRABWEARERROR:
             {
-                if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
-                    pRun->net_GRABWEARERROR(pData, nDataLen);
+                if(auto proc = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+                    proc->net_GRABWEARERROR(buf, bufSize);
                 }
                 break;
             }
         case SM_EQUIPBELT:
             {
-                if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
-                    pRun->net_EQUIPBELT(pData, nDataLen);
+                if(auto proc = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+                    proc->net_EQUIPBELT(buf, bufSize);
                 }
                 break;
             }
         case SM_EQUIPBELTERROR:
             {
-                if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
-                    pRun->net_EQUIPBELTERROR(pData, nDataLen);
+                if(auto proc = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+                    proc->net_EQUIPBELTERROR(buf, bufSize);
                 }
                 break;
             }
         case SM_GRABBELT:
             {
-                if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
-                    pRun->net_GRABBELT(pData, nDataLen);
+                if(auto proc = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+                    proc->net_GRABBELT(buf, bufSize);
                 }
                 break;
             }
         case SM_GRABBELTERROR:
             {
-                if(auto pRun = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
-                    pRun->net_GRABBELTERROR(pData, nDataLen);
+                if(auto proc = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+                    proc->net_GRABBELTERROR(buf, bufSize);
                 }
                 break;
             }
@@ -573,22 +556,22 @@ void Client::onServerMessage(uint8_t headCode, const uint8_t *pData, size_t nDat
     }
 }
 
-void Client::SwitchProcess()
+void Client::switchProcess()
 {
     if(true
             && m_requestProcess >= PROCESSID_BEGIN
             && m_requestProcess <  PROCESSID_END){
-        SwitchProcess((m_currentProcess ? m_currentProcess->ID() : PROCESSID_NONE), m_requestProcess);
+        switchProcess((m_currentProcess ? m_currentProcess->id() : PROCESSID_NONE), m_requestProcess);
     }
     m_requestProcess = PROCESSID_NONE;
 }
 
-void Client::SwitchProcess(int nNewID)
+void Client::switchProcess(int newID)
 {
-    SwitchProcess((m_currentProcess ? m_currentProcess->ID() : PROCESSID_NONE), nNewID);
+    switchProcess((m_currentProcess ? m_currentProcess->id() : PROCESSID_NONE), newID);
 }
 
-void Client::SwitchProcess(int oldID, int newID)
+void Client::switchProcess(int oldID, int newID)
 {
     m_currentProcess.reset();
     switch(oldID){
@@ -659,9 +642,9 @@ void Client::SwitchProcess(int oldID, int newID)
         case PROCESSID_LOGIN:
             {
                 switch(newID){
-                    case PROCESSID_NEW:
+                    case PROCESSID_CREATEACCOUNT:
                         {
-                            m_currentProcess = std::make_unique<ProcessNew>();
+                            m_currentProcess = std::make_unique<ProcessCreateAccount>();
                             break;
                         }
                     case PROCESSID_RUN:
@@ -676,7 +659,7 @@ void Client::SwitchProcess(int oldID, int newID)
                 }
                 break;
             }
-        case PROCESSID_NEW:
+        case PROCESSID_CREATEACCOUNT:
             {
                 switch(newID){
                     case PROCESSID_LOGIN:

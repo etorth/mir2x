@@ -31,7 +31,6 @@
 #include <cereal/archives/binary.hpp>
 #include <cereal/archives/portable_binary.hpp>
 #include "zcompf.hpp"
-#include "totype.hpp"
 #include "fflerror.hpp"
 
 namespace cerealf
@@ -74,7 +73,7 @@ namespace cerealf
     template<typename T> T deserialize(const void *buf, size_t size)
     {
         if(!(buf && (size >= 1))){
-            throw fflerror("invalid arguments: buf = %p, size = %zu", to_cvptr(buf), size);
+            throw fflerror("invalid arguments: buf = %p, size = %zu", buf, size);
         }
 
         const auto flag = ((char *)(buf))[--size];

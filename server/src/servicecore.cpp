@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: servicecore.cpp
- *        Created: 04/22/2016 18:16:53
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #include <string>
 #include <cstring>
 #include "player.hpp"
@@ -82,17 +64,27 @@ void ServiceCore::operateAM(const ActorMsgPack &rstMPK)
     }
 }
 
-void ServiceCore::operateNet(uint32_t nSID, uint8_t nType, const uint8_t *pData, size_t nDataLen)
+void ServiceCore::operateNet(uint32_t channID, uint8_t cmType, const uint8_t *buf, size_t bufSize)
 {
-    switch(nType){
+    switch(cmType){
         case CM_LOGIN:
             {
-                net_CM_LOGIN(nSID, nType, pData, nDataLen);
+                net_CM_LOGIN(channID, cmType, buf, bufSize);
                 break;
             }
-        case CM_ACCOUNT:
+        case CM_CREATEACCOUNT:
             {
-                net_CM_ACCOUNT(nSID, nType, pData, nDataLen);
+                net_CM_CREATEACCOUNT(channID, cmType, buf, bufSize);
+                break;
+            }
+        case CM_CREATECHAR:
+            {
+                net_CM_CREATEACCOUNT(channID, cmType, buf, bufSize);
+                break;
+            }
+        case CM_QUERYCHAR:
+            {
+                net_CM_QUERYCHAR(channID, cmType, buf, bufSize);
                 break;
             }
         default:
@@ -154,4 +146,14 @@ const ServerMap *ServiceCore::retrieveMap(uint32_t mapID)
         return p->second;
     }
     return nullptr;
+}
+
+std::optional<uint32_t> ServiceCore::findDBID(uint32_t channID) const
+{
+    fflassert(channID);
+    if(auto p = m_dbidList.find(channID); p != m_dbidList.end()){
+        fflassert(p->second);
+        return p->second;
+    }
+    return {};
 }

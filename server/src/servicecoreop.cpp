@@ -20,6 +20,7 @@
 
 #include "player.hpp"
 #include "actorpod.hpp"
+#include "netdriver.hpp"
 #include "monoserver.hpp"
 #include "servicecore.hpp"
 

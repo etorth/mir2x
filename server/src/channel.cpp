@@ -157,12 +157,12 @@ void Channel::doReadPackBody(size_t maskSize, size_t bodySize)
                         uint8_t *decodeMemPtr = nullptr;
                         if(maskSize){
                             const auto bitCount = zcompf::countMask(readMemPtr, maskSize);
-                            fflassert(bitCount == to_d(bodySize));
+                            fflassert(bitCount == bodySize);
                             fflassert(bodySize <= cmsg.dataLen());
 
                             decodeMemPtr = channPtr->getDecodeBuf(cmsg.dataLen());
                             const auto decodeSize = zcompf::xorDecode(decodeMemPtr, cmsg.dataLen(), readMemPtr, readMemPtr + maskSize);
-                            fflassert(decodeSize == to_d(bodySize));
+                            fflassert(decodeSize == bodySize);
                         }
 
                         channPtr->forwardActorMessage(channPtr->m_readHeadCode, decodeMemPtr ? decodeMemPtr : readMemPtr, maskSize ? cmsg.dataLen() : bodySize);

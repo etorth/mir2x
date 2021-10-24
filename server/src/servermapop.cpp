@@ -116,7 +116,7 @@ void ServerMap::on_AM_ADDCO(const ActorMsgPack &rstMPK)
             }
         case UID_PLY:
             {
-                const auto initParam = cerealf::deserialize<SDInitPlayer>(amACO.buf.data, amACO.buf.size);
+                const auto initParam = amACO.buf.deserialize<SDInitPlayer>();
                 if(auto playerPtr = addPlayer(initParam)){
                     AMBindChannel amBC;
                     std::memset(&amBC, 0, sizeof(amBC));
@@ -138,7 +138,7 @@ void ServerMap::on_AM_ADDCO(const ActorMsgPack &rstMPK)
             }
         case UID_NPC:
             {
-                if(auto npcPtr = addNPChar(cerealf::deserialize<SDInitNPChar>(amACO.buf.data, amACO.buf.size))){
+                if(auto npcPtr = addNPChar(amACO.buf.deserialize<SDInitNPChar>())){
                     doCircle(nX, nY, 20, [this](int nX, int nY) -> bool
                     {
                         if(true || validC(nX, nY)){

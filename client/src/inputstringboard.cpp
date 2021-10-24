@@ -18,14 +18,13 @@
 
 #include "pngtexdb.hpp"
 #include "sdldevice.hpp"
-#include "processrun.hpp"
 #include "controlboard.hpp"
 #include "inputstringboard.hpp"
 
 extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 
-InputStringBoard::InputStringBoard(int x, int y, ProcessRun *runPtr, Widget *widgetPtr, bool autoDelete)
+InputStringBoard::InputStringBoard(int x, int y, Widget *widgetPtr, bool autoDelete)
     : Widget
       {
           DIR_UPLEFT,
@@ -117,8 +116,6 @@ InputStringBoard::InputStringBoard(int x, int y, ProcessRun *runPtr, Widget *wid
           this,
           false,
       }
-
-    , m_processRun(runPtr)
 {
     show(false);
     if(auto texPtr = g_progUseDB->retrieve(0X07000000)){

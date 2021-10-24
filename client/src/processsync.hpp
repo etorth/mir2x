@@ -33,7 +33,7 @@ class ProcessSync: public Process
         ~ProcessSync() = default;
 
     public:
-        int ID() const override
+        int id() const override
         {
             return PROCESSID_SYRC;
         }

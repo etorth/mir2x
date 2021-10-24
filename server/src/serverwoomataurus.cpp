@@ -1,4 +1,5 @@
 #include "fflerror.hpp"
+#include "servermsg.hpp"
 #include "friendtype.hpp"
 #include "serverwoomataurus.hpp"
 #include "serverargparser.hpp"

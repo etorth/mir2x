@@ -26,7 +26,9 @@ enum ProcessID: int
     PROCESSID_LOGO  = 1,
     PROCESSID_SYRC,
     PROCESSID_LOGIN,
-    PROCESSID_NEW,
+    PROCESSID_CREATEACCOUNT,
+    PROCESSID_SELECTCHAR,
+    PROCESSID_CREATECHAR,
     PROCESSID_PWD,
     PROCESSID_RUN,
     PROCESSID_EXIT,
@@ -42,7 +44,7 @@ class Process
         virtual ~Process() = default;
 
     public:
-        virtual int ID() const = 0;
+        virtual int id() const = 0;
 
     public:
         virtual void draw() = 0;

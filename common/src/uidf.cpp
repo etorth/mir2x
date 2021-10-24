@@ -51,7 +51,7 @@ static constexpr uint64_t playerUID_jobTaoist  = 0X0000040000000000ULL;
 static constexpr uint64_t playerUID_jobWarrior = 0X0000020000000000ULL;
 static constexpr uint64_t playerUID_jobWizard  = 0X0000010000000000ULL;
 
-uint64_t uidf::buildPlayerUID(uint32_t dbid, bool gender, const std::vector<int> &jobList)
+uint64_t uidf::getPlayerUID(uint32_t dbid, bool gender, const std::vector<int> &jobList)
 {
     uint64_t jobMask = 0;
     for(int job: jobList){

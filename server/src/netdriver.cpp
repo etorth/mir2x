@@ -133,7 +133,6 @@ std::array<std::tuple<const uint8_t *, size_t>, 2> NetDriver::encodePostBuf(uint
                 /* */ auto compBuf = encodeBuf.data();
                 const auto compCnt = zcompf::xorEncode(compBuf + 2, (const uint8_t *)(buf), bufSize);
 
-                fflassert(compCnt >= 0);
                 if(compCnt <= 254){
                     compBuf[1] = to_u8(compCnt);
                     return
@@ -152,7 +151,7 @@ std::array<std::tuple<const uint8_t *, size_t>, 2> NetDriver::encodePostBuf(uint
                     };
                 }
                 else{
-                    throw fflerror("message length after compression is too long: %d", compCnt);
+                    throw fflerror("message length after compression is too long: %zu", compCnt);
                 }
             }
         case 2:

@@ -237,17 +237,6 @@ enum AttributeType: int
     ATR_END,
 };
 
-enum LoginErrorType: int
-{
-    LOGINERR_NONE = 0,
-    LOGINERR_BEGIN = 1,
-    LOGINERR_NOACCOUNT = 1,
-    LOGINERR_NODBID,
-    LOGINERR_BADRECORD,
-    LOGINERR_UNKNOWN,
-    LOGINERR_END,
-};
-
 enum BuyErrorType: int
 {
     BUYERR_NONE    = 0,
@@ -300,11 +289,62 @@ enum GrabBeltErrorType: int
 
 enum CreateAccountErrorType: int
 {
-    CAERR_NONE = 0,
-    CAERR_BEGIN = 1,
-    CAERR_EXIST = 1,
-    CAERR_INVALID,
-    CAERR_END,
+    CRTACCERR_NONE         = 0,
+    CRTACCERR_BEGIN        = 1,
+    CRTACCERR_ACCOUNTEXIST = 1,
+    CRTACCERR_BADACCOUNT,
+    CRTACCERR_BADPASSWORD,
+    CRTACCERR_END,
+};
+
+enum LoginErrorType: int
+{
+    LOGINERR_NONE      = 0,
+    LOGINERR_BEGIN     = 1,
+    LOGINERR_NOACCOUNT = 1,
+    LOGINERR_MULTILOGIN,
+    LOGINERR_END,
+};
+
+enum CreateCharErrorType: int
+{
+    CRTCHARERR_NONE    = 0,
+    CRTCHARERR_BEGIN   = 1,
+    CRTCHARERR_NOLOGIN = 1,     //
+    CRTCHARERR_CHAREXIST,       // current account has char created
+    CRTCHARERR_NAMEEXIST,       // name has been used by another existing char
+    CRTCHARERR_BADNAME,         // name not allowed
+    CRTCHARERR_DBERROR,         // sqlite3 error when creating player
+    CRTCHARERR_END,
+};
+
+enum QueryCharErrorType: int
+{
+    QUERYCHARERR_NONE    = 0,
+    QUERYCHARERR_BEGIN   = 1,
+    QUERYCHARERR_NOLOGIN = 1,
+    QUERYCHARERR_NOCHAR,
+    QUERYCHARERR_END,
+};
+
+enum DeleteCharErrorType: int
+{
+    DELCHARERR_NONE    = 0,
+    DELCHARERR_BEGIN   = 1,
+    DELCHARERR_NOLOGIN = 1,
+    DELCHARERR_NOCHAR,
+    DELCHARERR_BADPASSWORD,
+    DELCHARERR_END,
+};
+
+enum OnlineErrorTpe: int
+{
+    ONLINEERR_NONE  = 0,
+    ONLINEERR_BEGIN = 1,
+    ONLINEERR_NOLOGIN,
+    ONLINEERR_NOCHAR,
+    ONLINEERR_AMERROR,
+    ONLINEERR_END,
 };
 
 enum BuffType: int

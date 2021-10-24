@@ -37,7 +37,7 @@ void ProcessSync::processEvent(const SDL_Event &event)
         case SDL_KEYDOWN:
             {
                 if(event.key.keysym.sym == SDLK_ESCAPE){
-                    g_client->RequestProcess(PROCESSID_LOGIN);
+                    g_client->requestProcess(PROCESSID_LOGIN);
                 }
                 break;
             }
@@ -51,7 +51,7 @@ void ProcessSync::processEvent(const SDL_Event &event)
 void ProcessSync::update(double fUpdateTime)
 {
     if(m_ratio >= 100){
-        g_client->RequestProcess(PROCESSID_LOGIN);
+        g_client->requestProcess(PROCESSID_LOGIN);
         return;
     }
 

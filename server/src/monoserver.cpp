@@ -34,6 +34,7 @@
 #include "monster.hpp"
 #include "mapbindb.hpp"
 #include "fflerror.hpp"
+#include "netdriver.hpp"
 #include "serdesmsg.hpp"
 #include "actorpool.hpp"
 #include "syncdriver.hpp"
@@ -127,11 +128,11 @@ int MonoServer::createAccount(const char *id, const char *password)
     }
 
     if(g_dbPod->createQuery(u8R"###(select fld_dbid from tbl_account where fld_account ='%s')###", id).executeStep()){
-        return CAERR_EXIST;
+        return CRTACCERR_ACCOUNTEXIST;
     }
 
     g_dbPod->exec(u8R"###(insert into tbl_account(fld_account, fld_password) values ('%s', '%s'))###", id, password);
-    return CAERR_NONE;
+    return CRTACCERR_NONE;
 }
 
 bool MonoServer::createAccountCharacter(const char *id, const char *charName, bool gender, const char *job)
@@ -531,18 +532,14 @@ bool MonoServer::addNPChar(const char *scriptPath)
     amACO.y = -1;
     amACO.strictLoc = false;
 
-    const auto buf = cerealf::serialize(SDInitNPChar
+    amACO.buf.assign(cerealf::serialize(SDInitNPChar
     {
         .filePath = filePath,
         .mapID    = mapID,
         .npcName  = npcName,
-    });
+    }));
 
-    fflassert(sizeof(amACO.buf.data) >= buf.length());
-    amACO.buf.size = buf.length();
-    std::memcpy(amACO.buf.data, buf.data(), buf.length());
     addLog(LOGTYPE_INFO, "Try to add NPC, script: %s", to_cstr(scriptPath));
-
     switch(auto rmpk = SyncDriver().forward(uidf::getServiceCoreUID(), {AM_ADDCO, amACO}, 0, 0); rmpk.type()){
         case AM_UID:
             {

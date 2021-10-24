@@ -1,23 +1,6 @@
-/*
- * =====================================================================================
- *
- *       Filename: actormsg.hpp
- *        Created: 05/03/2016 13:19:07
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #pragma once
 #include <cstdint>
+#include "fixedbuf.hpp"
 #include "actionnode.hpp"
 #include "damagenode.hpp"
 #include "actordatapackage.hpp"
@@ -162,13 +145,7 @@ struct AMAddCharObject
         _monsterType monster;
     };
 
-    struct sdBuf
-    {
-        char   data[256];
-        size_t size;
-    };
-
-    sdBuf buf;
+    FixedBuf<256> buf;
 };
 
 struct AMLogin

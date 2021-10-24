@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: mathf.hpp
- *        Created: 02/02/2016 20:50:30
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #pragma once
 #include <cmath>
 #include <cstdlib>
@@ -46,6 +28,22 @@ namespace mathf
     template<typename T> T bound(T val, T min, T max)
     {
         return std::min<T>(std::max<T>(val, min), max);
+    }
+
+    inline std::string randstr(size_t size, const std::string &tok)
+    {
+        std::string s;
+        s.reserve(size);
+
+        for(size_t i = 0; i < size; ++i){
+            if(tok.empty()){
+                s.push_back(rand<char>(1, 127));
+            }
+            else{
+                s.push_back(tok[rand<size_t>(0, tok.size() - 1)]);
+            }
+        }
+        return s;
     }
 
     template<typename T> T CDistance(T nfX, T nfY, T nfX1, T nfY1)

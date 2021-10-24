@@ -19,6 +19,7 @@
 #include "mathf.hpp"
 #include "npchar.hpp"
 #include "dbcomid.hpp"
+#include "servermsg.hpp"
 #include "serdesmsg.hpp"
 #include "dbcomrecord.hpp"
 #include "actormsgpack.hpp"

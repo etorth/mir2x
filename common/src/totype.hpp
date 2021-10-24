@@ -22,6 +22,7 @@
 #include <cstring>
 #include <stdexcept>
 #include <string_view>
+#include "fixedbuf.hpp"
 
 inline auto to_d    (auto x){ return static_cast<               int>(x); }
 inline auto to_u    (auto x){ return static_cast<      unsigned int>(x); }
@@ -97,6 +98,11 @@ inline const char *to_cstr(const std::u8string_view &s)
     return to_cstr(s.data());
 }
 
+template<size_t FixedBufSize> const char *to_cstr(const FixedBuf<FixedBufSize> &buf)
+{
+    return to_cstr((const char *)(buf.buf));
+}
+
 // cast char buf to char8_t buf
 // this may break the strict-aliasing rule
 
@@ -131,6 +137,11 @@ inline const char8_t *to_u8cstr(const std::u8string &s)
 inline const char8_t *to_u8cstr(const std::string &s)
 {
     return to_u8cstr(s.c_str());
+}
+
+template<size_t FixedBufSize> const char8_t *to_u8cstr(const FixedBuf<FixedBufSize> &buf)
+{
+    return to_u8cstr((const char8_t *)(buf.buf));
 }
 
 inline const char *to_boolcstr(bool b)

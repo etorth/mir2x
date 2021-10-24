@@ -18,21 +18,21 @@
 
 #include <cstdint>
 #include "servermsg.hpp"
-#include "processnew.hpp"
+#include "processcreateaccount.hpp"
 
-void ProcessNew::net_ACCOUNT(const uint8_t *buf, size_t)
+void ProcessCreateAccount::net_CREATEACCOUNTOK(const uint8_t *, size_t)
 {
-    const auto smA = ServerMsg::conv<SMAccount>(buf);
-    switch(smA.error){
-        case CAERR_NONE:
-            {
-                setInfoStr(u8"注册成功", 2);
-                m_boxID.focus(false);
-                m_boxPwd.focus(false);
-                m_boxPwdConfirm.focus(false);
-                return;
-            }
-        case CAERR_EXIST:
+    setInfoStr(u8"注册成功", 2);
+    m_boxID.focus(false);
+    m_boxPwd.focus(false);
+    m_boxPwdConfirm.focus(false);
+}
+
+void ProcessCreateAccount::net_CREATEACCOUNTERROR(const uint8_t *buf, size_t)
+{
+    const auto smCAE = ServerMsg::conv<SMCreateAccountError>(buf);
+    switch(smCAE.error){
+        case CRTACCERR_ACCOUNTEXIST:
             {
                 setInfoStr(u8"账号已存在", 2);
                 clearInput();
@@ -42,9 +42,19 @@ void ProcessNew::net_ACCOUNT(const uint8_t *buf, size_t)
                 m_boxPwdConfirm.focus(false);
                 return;
             }
-        case CAERR_INVALID:
+        case CRTACCERR_BADACCOUNT:
             {
-                setInfoStr(u8"无效的账号或密码", 2);
+                setInfoStr(u8"无效的账号", 2);
+                clearInput();
+
+                m_boxID.focus(true);
+                m_boxPwd.focus(false);
+                m_boxPwdConfirm.focus(false);
+                return;
+            }
+        case CRTACCERR_BADPASSWORD:
+            {
+                setInfoStr(u8"无效的密码", 2);
                 clearInput();
 
                 m_boxID.focus(true);
@@ -54,7 +64,7 @@ void ProcessNew::net_ACCOUNT(const uint8_t *buf, size_t)
             }
         default:
             {
-                throw fflerror("Invalid server message: %d", to_d(smA.error));
+                throw bad_reach();
             }
     }
 }

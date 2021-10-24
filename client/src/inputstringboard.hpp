@@ -23,7 +23,6 @@
 #include "inputline.hpp"
 #include "tritexbutton.hpp"
 
-class ProcessRun;
 class InputStringBoard: public Widget
 {
     private:
@@ -34,14 +33,11 @@ class InputStringBoard: public Widget
         TritexButton m_nopButton;
 
     private:
-        ProcessRun *m_processRun;
-
-    private:
         std::u8string m_parXMLString;
         std::function<void(std::u8string)> m_onDone;
 
     public:
-        InputStringBoard(int, int, ProcessRun *, Widget * = nullptr, bool = false);
+        InputStringBoard(int, int, Widget * = nullptr, bool = false);
 
     public:
         void update(double) override;

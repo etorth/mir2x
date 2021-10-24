@@ -34,7 +34,7 @@ void ProcessLogo::processEvent(const SDL_Event &event)
                     case SDLK_SPACE:
                     case SDLK_ESCAPE:
                         {
-                            g_client->RequestProcess(PROCESSID_SYRC);
+                            g_client->requestProcess(PROCESSID_SYRC);
                         }
                         break;
                     default:
@@ -51,7 +51,7 @@ void ProcessLogo::update(double fDTime)
 {
     m_totalTime += fDTime;
     if(m_totalTime >= m_fullTime){
-        g_client->RequestProcess(PROCESSID_SYRC);
+        g_client->requestProcess(PROCESSID_SYRC);
     }
 }
 

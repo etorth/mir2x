@@ -43,8 +43,9 @@ class Widget
         Widget * const m_parent;
 
     protected:
-        bool m_show  = true;
-        bool m_focus = false;
+        bool m_show   = true;
+        bool m_focus  = false;
+        bool m_active = true;
 
     private:
         dir8_t m_dir;
@@ -282,6 +283,17 @@ class Widget
         bool show() const
         {
             return m_show;
+        }
+
+    public:
+        void active(bool activeFlag)
+        {
+            m_active = activeFlag;
+        }
+
+        bool active() const
+        {
+            return m_active;
         }
 
     public:

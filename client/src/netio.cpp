@@ -110,7 +110,7 @@ void NetIO::doReadBody(size_t maskSize, size_t bodySize)
 
             if(maskSize){
                 const auto bitCount = zcompf::countMask(m_readBuf.data(), maskSize);
-                fflassert(bitCount == to_d(bodySize));
+                fflassert(bitCount == bodySize);
                 fflassert(bodySize <= smsg.dataLen());
 
                 const auto maskDataPtr = m_readBuf.data();
@@ -118,7 +118,7 @@ void NetIO::doReadBody(size_t maskSize, size_t bodySize)
                 /* */ auto origDataPtr = m_readBuf.data() + ((maskSize + bodySize + 7) / 8) * 8;
 
                 const auto decodeSize = zcompf::xorDecode(origDataPtr, smsg.dataLen(), maskDataPtr, compDataPtr);
-                fflassert(decodeSize == to_d(bodySize));
+                fflassert(decodeSize == bodySize);
             }
 
             m_msgHandler(m_readHeadCode, m_readBuf.data() + (maskSize ? ((maskSize + bodySize + 7) / 8 * 8) : 0), maskSize ? smsg.dataLen() : bodySize);
@@ -168,8 +168,7 @@ void NetIO::send(uint8_t headCode, const uint8_t *buf, size_t bufSize)
         case 1:
             {
                 const auto bitCount = zcompf::countData(buf, bufSize);
-                fflassert(bitCount >= 0);
-                fflassert(bitCount <= to_d(cmsg.dataLen()));
+                fflassert(bitCount <= cmsg.dataLen());
 
                 if(bitCount <= 254){
                     m_nextSendBuf.resize(m_nextSendBuf.size() + cmsg.maskLen() + to_uz(bitCount) + 1);
@@ -185,7 +184,7 @@ void NetIO::send(uint8_t headCode, const uint8_t *buf, size_t bufSize)
                     m_nextSendBuf[bodyStartOff + 1] = to_u8(bitCount - 255);
                 }
                 else{
-                    throw fflerror("message length after compression is too long: %d", bitCount);
+                    throw fflerror("message length after compression is too long: %zu", bitCount);
                 }
                 break;
             }

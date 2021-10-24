@@ -38,6 +38,7 @@ class ProcessLogin: public Process
         TritexButton    m_button3;
         TritexButton    m_button4;
 
+    private:
         InputLine       m_idBox;
         PasswordBox     m_passwordBox;
 
@@ -52,7 +53,7 @@ class ProcessLogin: public Process
         virtual ~ProcessLogin() = default;
 
     public:
-        int ID() const override
+        int id() const override
         {
             return PROCESSID_LOGIN;
         }
@@ -67,10 +68,6 @@ class ProcessLogin: public Process
         void doCreateAccount();
 
     public:
-        void addLog(const char8_t *format, ...)
-        {
-            std::u8string s;
-            str_format(format, s);
-            m_notifyBoard.addLog(u8"%s", to_cstr(s));
-        }
+        void net_LOGINOK   (const uint8_t *, size_t);
+        void net_LOGINERROR(const uint8_t *, size_t);
 };

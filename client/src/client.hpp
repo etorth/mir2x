@@ -46,6 +46,9 @@ class Client final
         };
 
     private:
+        std::string m_token;
+
+    private:
         ClientMonitor m_clientMonitor;
 
     private:
@@ -84,20 +87,20 @@ class Client final
         }
 
     public:
-        int RequestProcess() const
+        int requestProcess() const
         {
             return m_requestProcess;
         }
 
-        void RequestProcess(int processID)
+        void requestProcess(int processID)
         {
             m_requestProcess = processID;
         }
 
     private:
-        void SwitchProcess();
-        void SwitchProcess(int);
-        void SwitchProcess(int, int);
+        void switchProcess();
+        void switchProcess(int);
+        void switchProcess(int, int);
 
     public:
         void initASIO();
@@ -127,7 +130,7 @@ class Client final
     public:
         Process *ProcessValid(int processID)
         {
-            return (m_currentProcess && m_currentProcess->ID() == processID) ? m_currentProcess.get() : nullptr;
+            return (m_currentProcess && m_currentProcess->id() == processID) ? m_currentProcess.get() : nullptr;
         }
 
     public:
@@ -157,4 +160,15 @@ class Client final
 
     public:
         void PrintMonitor() const;
+
+    public:
+        void setToken(std::string token)
+        {
+            m_token = std::move(token);
+        }
+
+        const std::string &getToken() const
+        {
+            return m_token;
+        }
 };

@@ -20,6 +20,7 @@
 #include <cstdint>
 #include <unordered_map>
 #include "msgbase.hpp"
+#include "fixedbuf.hpp"
 #include "actionnode.hpp"
 
 enum SMType: uint8_t
@@ -27,9 +28,19 @@ enum SMType: uint8_t
     SM_NONE_0  = 0,
     SM_BEGIN   = 1,
     SM_PING    = 1,
-    SM_ACCOUNT,
     SM_LOGINOK,
-    SM_LOGINFAIL,
+    SM_LOGINERROR,
+    SM_CREATEACCOUNTOK,
+    SM_CREATEACCOUNTERROR,
+    SM_QUERYCHAROK,
+    SM_QUERYCHARERROR,
+    SM_CREATECHAROK,
+    SM_CREATECHARERROR,
+    SM_DELETECHAROK,
+    SM_DELETECHARERROR,
+    SM_ONLINEOK,
+    SM_ONLINEERROR,
+    SM_STARTGAMESCENE,
     SM_RUNTIMECONFIG,
     SM_LEARNEDMAGICLIST,
     SM_PLAYERWLDESP,
@@ -84,14 +95,41 @@ struct SMPing
     uint32_t Tick;
 };
 
-struct SMAccount
+struct SMLoginError
+{
+    uint8_t error;
+};
+
+struct SMCreateAccountError
 {
     uint32_t error;
 };
 
-struct SMLoginFail
+struct SMQueryCharOK
 {
-    uint32_t error;
+    FixedBuf<SYS_NAMESIZE> name;
+    FixedBuf<128> job;
+    uint32_t exp;
+};
+
+struct SMQueryCharError
+{
+    uint8_t error;
+};
+
+struct SMCreateCharError
+{
+    uint8_t error;
+};
+
+struct SMDeleteCharError
+{
+    uint8_t error;
+};
+
+struct SMOnlineError
+{
+    uint8_t error;
 };
 
 struct SMAction
@@ -225,7 +263,7 @@ struct SMPlayerName
 
 struct SMBuildVersion
 {
-    char version[128];
+    FixedBuf<128> version;
 };
 
 struct SMRemoveItem
@@ -298,56 +336,66 @@ class ServerMsg final: public MsgBase
                 //  2    : not empty,     fixed size, not compressed
                 //  3    : not empty, not fixed size, not compressed
 #define _add_server_msg_type_case(type, encodeType, length) {type, {encodeType, length, #type}},
-                _add_server_msg_type_case(SM_NONE_0,              0, 0                          )
-                _add_server_msg_type_case(SM_PING,                2, sizeof(SMPing)             )
-                _add_server_msg_type_case(SM_ACCOUNT,             1, sizeof(SMAccount)          )
-                _add_server_msg_type_case(SM_LOGINOK,             3, 0                          )
-                _add_server_msg_type_case(SM_RUNTIMECONFIG,       3, 0                          )
-                _add_server_msg_type_case(SM_LEARNEDMAGICLIST,    3, 0                          )
-                _add_server_msg_type_case(SM_LOGINFAIL,           2, sizeof(SMLoginFail)        )
-                _add_server_msg_type_case(SM_PLAYERWLDESP,        3, 0                          )
-                _add_server_msg_type_case(SM_ACTION,              1, sizeof(SMAction)           )
-                _add_server_msg_type_case(SM_CORECORD,            1, sizeof(SMCORecord)         )
-                _add_server_msg_type_case(SM_HEALTH,              3, 0                          )
-                _add_server_msg_type_case(SM_NEXTSTRIKE,          0, 0                          )
-                _add_server_msg_type_case(SM_NOTIFYDEAD,          1, sizeof(SMNotifyDead)       )
-                _add_server_msg_type_case(SM_DEADFADEOUT,         1, sizeof(SMDeadFadeOut)      )
-                _add_server_msg_type_case(SM_EXP,                 1, sizeof(SMExp)              )
-                _add_server_msg_type_case(SM_BUFF,                1, sizeof(SMBuff)             )
-                _add_server_msg_type_case(SM_MISS,                1, sizeof(SMMiss)             )
-                _add_server_msg_type_case(SM_CASTMAGIC,           1, sizeof(SMCastMagic)        )
-                _add_server_msg_type_case(SM_OFFLINE,             1, sizeof(SMOffline)          )
-                _add_server_msg_type_case(SM_PICKUPERROR,         1, sizeof(SMPickUpError)      )
-                _add_server_msg_type_case(SM_REMOVEGROUNDITEM,    1, sizeof(SMRemoveGroundItem) )
-                _add_server_msg_type_case(SM_NPCXMLLAYOUT,        3, 0                          )
-                _add_server_msg_type_case(SM_NPCSELL,             3, 0                          )
-                _add_server_msg_type_case(SM_STARTINVOP,          3, 0                          )
-                _add_server_msg_type_case(SM_STARTINPUT,          3, 0                          )
-                _add_server_msg_type_case(SM_GOLD,                1, sizeof(SMGold)             )
-                _add_server_msg_type_case(SM_INVOPCOST,           1, sizeof(SMInvOpCost)        )
-                _add_server_msg_type_case(SM_STRIKEGRID,          1, sizeof(SMStrikeGrid)       )
-                _add_server_msg_type_case(SM_SELLITEMLIST,        3, 0                          )
-                _add_server_msg_type_case(SM_TEXT,                3, 0                          )
-                _add_server_msg_type_case(SM_PLAYERNAME,          1, sizeof(SMPlayerName)       )
-                _add_server_msg_type_case(SM_BUILDVERSION,        1, sizeof(SMBuildVersion)     )
-                _add_server_msg_type_case(SM_INVENTORY,           3, 0                          )
-                _add_server_msg_type_case(SM_BELT,                3, 0                          )
-                _add_server_msg_type_case(SM_UPDATEITEM,          3, 0                          )
-                _add_server_msg_type_case(SM_REMOVEITEM,          1, sizeof(SMRemoveItem)       )
-                _add_server_msg_type_case(SM_REMOVESECUREDITEM,   1, sizeof(SMRemoveSecuredItem))
-                _add_server_msg_type_case(SM_BUYSUCCEED,          1, sizeof(SMBuySucceed)       )
-                _add_server_msg_type_case(SM_BUYERROR,            1, sizeof(SMBuyError)         )
-                _add_server_msg_type_case(SM_GROUNDITEMIDLIST,    3, 0                          )
-                _add_server_msg_type_case(SM_GROUNDFIREWALLLIST,  3, 0                          )
-                _add_server_msg_type_case(SM_EQUIPWEAR,           3, 0                          )
-                _add_server_msg_type_case(SM_EQUIPWEARERROR,      1, sizeof(SMEquipWearError)   )
-                _add_server_msg_type_case(SM_GRABWEAR,            3, 0                          )
-                _add_server_msg_type_case(SM_GRABWEARERROR,       1, sizeof(SMGrabWearError)    )
-                _add_server_msg_type_case(SM_EQUIPBELT,           3, 0                          )
-                _add_server_msg_type_case(SM_EQUIPBELTERROR,      1, sizeof(SMEquipBeltError)   )
-                _add_server_msg_type_case(SM_GRABBELT,            3, 0                          )
-                _add_server_msg_type_case(SM_GRABBELTERROR,       1, sizeof(SMGrabBeltError)    )
-                _add_server_msg_type_case(SM_SHOWSECUREDITEMLIST, 3, 0                          )
+                _add_server_msg_type_case(SM_NONE_0,              0, 0                           )
+                _add_server_msg_type_case(SM_PING,                2, sizeof(SMPing)              )
+                _add_server_msg_type_case(SM_LOGINOK,             0, 0                           )
+                _add_server_msg_type_case(SM_LOGINERROR,          1, sizeof(SMLoginError)        )
+                _add_server_msg_type_case(SM_CREATEACCOUNTOK,     0, 0                           )
+                _add_server_msg_type_case(SM_CREATEACCOUNTERROR,  1, sizeof(SMCreateAccountError))
+                _add_server_msg_type_case(SM_CREATECHAROK,        0, 0                           )
+                _add_server_msg_type_case(SM_CREATECHARERROR,     1, sizeof(SMCreateCharError)   )
+                _add_server_msg_type_case(SM_DELETECHAROK,        0, 0                           )
+                _add_server_msg_type_case(SM_DELETECHARERROR,     1, sizeof(SMDeleteCharError)   )
+                _add_server_msg_type_case(SM_ONLINEOK,            3, 0                           )
+                _add_server_msg_type_case(SM_ONLINEERROR,         1, sizeof(SMOnlineError)       )
+                _add_server_msg_type_case(SM_STARTGAMESCENE,      3, 0                           )
+                _add_server_msg_type_case(SM_RUNTIMECONFIG,       3, 0                           )
+                _add_server_msg_type_case(SM_LEARNEDMAGICLIST,    3, 0                           )
+                _add_server_msg_type_case(SM_QUERYCHAROK,         1, sizeof(SMQueryCharOK)       )
+                _add_server_msg_type_case(SM_QUERYCHARERROR,      1, sizeof(SMQueryCharError)    )
+                _add_server_msg_type_case(SM_PLAYERWLDESP,        3, 0                           )
+                _add_server_msg_type_case(SM_ACTION,              1, sizeof(SMAction)            )
+                _add_server_msg_type_case(SM_CORECORD,            1, sizeof(SMCORecord)          )
+                _add_server_msg_type_case(SM_HEALTH,              3, 0                           )
+                _add_server_msg_type_case(SM_NEXTSTRIKE,          0, 0                           )
+                _add_server_msg_type_case(SM_NOTIFYDEAD,          1, sizeof(SMNotifyDead)        )
+                _add_server_msg_type_case(SM_DEADFADEOUT,         1, sizeof(SMDeadFadeOut)       )
+                _add_server_msg_type_case(SM_EXP,                 1, sizeof(SMExp)               )
+                _add_server_msg_type_case(SM_BUFF,                1, sizeof(SMBuff)              )
+                _add_server_msg_type_case(SM_MISS,                1, sizeof(SMMiss)              )
+                _add_server_msg_type_case(SM_CASTMAGIC,           1, sizeof(SMCastMagic)         )
+                _add_server_msg_type_case(SM_OFFLINE,             1, sizeof(SMOffline)           )
+                _add_server_msg_type_case(SM_PICKUPERROR,         1, sizeof(SMPickUpError)       )
+                _add_server_msg_type_case(SM_REMOVEGROUNDITEM,    1, sizeof(SMRemoveGroundItem)  )
+                _add_server_msg_type_case(SM_NPCXMLLAYOUT,        3, 0                           )
+                _add_server_msg_type_case(SM_NPCSELL,             3, 0                           )
+                _add_server_msg_type_case(SM_STARTINVOP,          3, 0                           )
+                _add_server_msg_type_case(SM_STARTINPUT,          3, 0                           )
+                _add_server_msg_type_case(SM_GOLD,                1, sizeof(SMGold)              )
+                _add_server_msg_type_case(SM_INVOPCOST,           1, sizeof(SMInvOpCost)         )
+                _add_server_msg_type_case(SM_STRIKEGRID,          1, sizeof(SMStrikeGrid)        )
+                _add_server_msg_type_case(SM_SELLITEMLIST,        3, 0                           )
+                _add_server_msg_type_case(SM_TEXT,                3, 0                           )
+                _add_server_msg_type_case(SM_PLAYERNAME,          1, sizeof(SMPlayerName)        )
+                _add_server_msg_type_case(SM_BUILDVERSION,        1, sizeof(SMBuildVersion)      )
+                _add_server_msg_type_case(SM_INVENTORY,           3, 0                           )
+                _add_server_msg_type_case(SM_BELT,                3, 0                           )
+                _add_server_msg_type_case(SM_UPDATEITEM,          3, 0                           )
+                _add_server_msg_type_case(SM_REMOVEITEM,          1, sizeof(SMRemoveItem)        )
+                _add_server_msg_type_case(SM_REMOVESECUREDITEM,   1, sizeof(SMRemoveSecuredItem) )
+                _add_server_msg_type_case(SM_BUYSUCCEED,          1, sizeof(SMBuySucceed)        )
+                _add_server_msg_type_case(SM_BUYERROR,            1, sizeof(SMBuyError)          )
+                _add_server_msg_type_case(SM_GROUNDITEMIDLIST,    3, 0                           )
+                _add_server_msg_type_case(SM_GROUNDFIREWALLLIST,  3, 0                           )
+                _add_server_msg_type_case(SM_EQUIPWEAR,           3, 0                           )
+                _add_server_msg_type_case(SM_EQUIPWEARERROR,      1, sizeof(SMEquipWearError)    )
+                _add_server_msg_type_case(SM_GRABWEAR,            3, 0                           )
+                _add_server_msg_type_case(SM_GRABWEARERROR,       1, sizeof(SMGrabWearError)     )
+                _add_server_msg_type_case(SM_EQUIPBELT,           3, 0                           )
+                _add_server_msg_type_case(SM_EQUIPBELTERROR,      1, sizeof(SMEquipBeltError)    )
+                _add_server_msg_type_case(SM_GRABBELT,            3, 0                           )
+                _add_server_msg_type_case(SM_GRABBELTERROR,       1, sizeof(SMGrabBeltError)     )
+                _add_server_msg_type_case(SM_SHOWSECUREDITEMLIST, 3, 0                           )
 #undef _add_server_msg_type_case
             };
 
@@ -362,8 +410,13 @@ class ServerMsg final: public MsgBase
         {
             static_assert(false
                     || std::is_same_v<T, SMPing>
-                    || std::is_same_v<T, SMAccount>
-                    || std::is_same_v<T, SMLoginFail>
+                    || std::is_same_v<T, SMLoginError>
+                    || std::is_same_v<T, SMCreateAccountError>
+                    || std::is_same_v<T, SMCreateCharError>
+                    || std::is_same_v<T, SMDeleteCharError>
+                    || std::is_same_v<T, SMQueryCharOK>
+                    || std::is_same_v<T, SMQueryCharError>
+                    || std::is_same_v<T, SMOnlineError>
                     || std::is_same_v<T, SMAction>
                     || std::is_same_v<T, SMCORecord>
                     || std::is_same_v<T, SMNotifyDead>

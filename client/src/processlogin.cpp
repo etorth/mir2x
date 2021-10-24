@@ -199,27 +199,22 @@ void ProcessLogin::processEvent(const SDL_Event &event)
 
 void ProcessLogin::doLogin()
 {
-    if(!(m_idBox.getRawString().empty()) && !(m_passwordBox.getRawString().empty())){
-        g_log->addLog(LOGTYPE_INFO, "login account: (%s:%s)", m_idBox.getRawString().c_str(), m_passwordBox.getRawString().c_str());
+    const auto idStr  = m_idBox.getRawString();
+    const auto pwdStr = m_passwordBox.getPasswordString();
 
-        const auto idStr  = m_idBox.getRawString();
-        const auto pwdStr = m_passwordBox.getPasswordString();
+    if(!(idStr.empty()) && !(pwdStr.empty())){
+        g_log->addLog(LOGTYPE_INFO, "Login account: (%s:%s)", idStr.c_str(), pwdStr.c_str());
 
         CMLogin cmL;
         std::memset(&cmL, 0, sizeof(cmL));
 
-        if((idStr.size() >= sizeof(cmL.id)) || (pwdStr.size() >= sizeof(cmL.password))){
-            g_log->addLog(LOGTYPE_WARNING, "Too long id/password provided");
-            return;
-        }
-
-        std::strcpy(cmL.id, idStr.c_str());
-        std::strcpy(cmL.password, pwdStr.c_str());
+        cmL.id.assign(idStr);
+        cmL.password.assign(pwdStr);
         g_client->send(CM_LOGIN, cmL);
     }
 }
 
 void ProcessLogin::doCreateAccount()
 {
-    g_client->RequestProcess(PROCESSID_NEW);
+    g_client->requestProcess(PROCESSID_CREATEACCOUNT);
 }

@@ -1,22 +1,4 @@
-/*
- * =====================================================================================
- *
- *       Filename: processnew.hpp
- *        Created: 08/14/2015 02:47:30 PM
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
 #pragma once
-
 #include <cstdint>
 #include <optional>
 #include "process.hpp"
@@ -26,7 +8,7 @@
 #include "passwordbox.hpp"
 #include "tritexbutton.hpp"
 
-class ProcessNew: public Process
+class ProcessCreateAccount: public Process
 {
     private:
         constexpr static int m_x = 180;
@@ -57,13 +39,13 @@ class ProcessNew: public Process
         hres_timer m_infoStrTimer;
 
     public:
-        ProcessNew();
-        virtual ~ProcessNew() = default;
+        ProcessCreateAccount();
+        virtual ~ProcessCreateAccount() = default;
 
     public:
-        int ID() const override
+        int id() const override
         {
-            return PROCESSID_NEW;
+            return PROCESSID_CREATEACCOUNT;
         }
 
     public:
@@ -91,5 +73,6 @@ class ProcessNew: public Process
         void setInfoStr(const char8_t *, uint32_t);
 
     public:
-        void net_ACCOUNT(const uint8_t *, size_t);
+        void net_CREATEACCOUNTOK   (const uint8_t *, size_t);
+        void net_CREATEACCOUNTERROR(const uint8_t *, size_t);
 };

@@ -153,7 +153,7 @@ class ProcessRun: public Process
         virtual ~ProcessRun() = default;
 
     public:
-        int ID() const override
+        int id() const override
         {
             return PROCESSID_RUN;
         }
@@ -211,7 +211,7 @@ class ProcessRun: public Process
         void net_ACTION(const uint8_t *, size_t);
         void net_OFFLINE(const uint8_t *, size_t);
         void net_NPCSELL(const uint8_t *, size_t);
-        void net_LOGINOK(const uint8_t *, size_t);
+        void net_STARTGAMESCENE(const uint8_t *, size_t);
         void net_RUNTIMECONFIG(const uint8_t *, size_t);
         void net_LEARNEDMAGICLIST(const uint8_t *, size_t);
         void net_CORECORD(const uint8_t *, size_t);
