@@ -72,14 +72,9 @@ void ServiceCore::operateNet(uint32_t channID, uint8_t cmType, const uint8_t *bu
                 net_CM_LOGIN(channID, cmType, buf, bufSize);
                 break;
             }
-        case CM_CREATEACCOUNT:
+        case CM_ONLINE:
             {
-                net_CM_CREATEACCOUNT(channID, cmType, buf, bufSize);
-                break;
-            }
-        case CM_CREATECHAR:
-            {
-                net_CM_CREATEACCOUNT(channID, cmType, buf, bufSize);
+                net_CM_ONLINE(channID, cmType, buf, bufSize);
                 break;
             }
         case CM_QUERYCHAR:
@@ -87,9 +82,24 @@ void ServiceCore::operateNet(uint32_t channID, uint8_t cmType, const uint8_t *bu
                 net_CM_QUERYCHAR(channID, cmType, buf, bufSize);
                 break;
             }
+        case CM_CREATECHAR:
+            {
+                net_CM_CREATECHAR(channID, cmType, buf, bufSize);
+                break;
+            }
+        case CM_DELETECHAR:
+            {
+                net_CM_DELETECHAR(channID, cmType, buf, bufSize);
+                break;
+            }
+        case CM_CREATEACCOUNT:
+            {
+                net_CM_CREATEACCOUNT(channID, cmType, buf, bufSize);
+                break;
+            }
         default:
             {
-                break;
+                throw fflerror("unknown client message unhandled: %s", to_cstr(ClientMsg(cmType).name()));
             }
     }
 }
