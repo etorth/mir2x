@@ -87,11 +87,6 @@ class Client final
         }
 
     public:
-        int requestProcess() const
-        {
-            return m_requestProcess;
-        }
-
         void requestProcess(int processID)
         {
             m_requestProcess = processID;
@@ -109,7 +104,7 @@ class Client final
         void onServerMessage(uint8_t, const uint8_t *, size_t);
 
     private:
-        void EventDelay(double);
+        void eventDelay(double);
         void processEvent();
 
     private:

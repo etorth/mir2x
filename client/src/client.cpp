@@ -87,44 +87,39 @@ void Client::mainLoop()
             PrintMonitor();
         }
 
-        switchProcess();
-        if(true
-                && m_currentProcess
-                && m_currentProcess->id() != PROCESSID_EXIT){
-
-            if(m_netPackTick > 0.0){
-                if(SDL_GetTicks() * 1.0 - m_netPackTick > 15.0 * 1000){
-                    // std::exit(0);
-                }
-            }
-
-            if(auto fCurrUpdate = 1.0 * SDL_GetTicks(); fCurrUpdate - fLastUpdate > fDelayUpdate){
-                auto fPastUpdate = fCurrUpdate - fLastUpdate;
-                fLastUpdate = fCurrUpdate;
-                update(fPastUpdate);
-            }
-
-            if(auto fCurrDraw = 1.0 * SDL_GetTicks(); fCurrDraw - fLastDraw > fDelayDraw){
-                fLastDraw = fCurrDraw;
-                draw();
-            }
-
-            auto fCurrLoop = 1.0 * SDL_GetTicks();
-            auto fPastLoop = fCurrLoop - fLastLoop;
-
-            fLastLoop = fCurrLoop;
-            EventDelay(fDelayLoop - fPastLoop);
-        }else{
-            // need to exit
-            // jump to the invalid process
+        if(!(m_currentProcess && (m_currentProcess->id() != PROCESSID_EXIT))){
             break;
         }
+
+        if(m_netPackTick > 0.0){
+            if(SDL_GetTicks() * 1.0 - m_netPackTick > 15.0 * 1000){
+                // std::exit(0);
+            }
+        }
+
+        if(auto fCurrUpdate = 1.0 * SDL_GetTicks(); fCurrUpdate - fLastUpdate > fDelayUpdate){
+            auto fPastUpdate = fCurrUpdate - fLastUpdate;
+            fLastUpdate = fCurrUpdate;
+            update(fPastUpdate);
+        }
+
+        if(auto fCurrDraw = 1.0 * SDL_GetTicks(); fCurrDraw - fLastDraw > fDelayDraw){
+            fLastDraw = fCurrDraw;
+            draw();
+        }
+
+        auto fCurrLoop = 1.0 * SDL_GetTicks();
+        auto fPastLoop = fCurrLoop - fLastLoop;
+
+        fLastLoop = fCurrLoop;
+        eventDelay(fDelayLoop - fPastLoop);
+        switchProcess();
     }
 }
 
-void Client::EventDelay(double fDelayMS)
+void Client::eventDelay(double fDelayMS)
 {
-    double fStartDelayMS = SDL_GetTicks() * 1.0;
+    const double fStartDelayMS = SDL_GetTicks() * 1.0;
     while(true){
 
         // always try to poll it
@@ -188,6 +183,7 @@ void Client::initASIO()
         // core should handle on fully recieved message from the serer
         // previously there are two steps (HC, Body) seperately handled, error-prone
         onServerMessage(headCode, pData, nDataLen);
+        switchProcess();
     });
 }
 
@@ -558,10 +554,8 @@ void Client::onServerMessage(uint8_t headCode, const uint8_t *buf, size_t bufSiz
 
 void Client::switchProcess()
 {
-    if(true
-            && m_requestProcess >= PROCESSID_BEGIN
-            && m_requestProcess <  PROCESSID_END){
-        switchProcess((m_currentProcess ? m_currentProcess->id() : PROCESSID_NONE), m_requestProcess);
+    if(m_requestProcess >= PROCESSID_BEGIN && m_requestProcess < PROCESSID_END){
+        switchProcess(m_currentProcess ? m_currentProcess->id() : PROCESSID_NONE, m_requestProcess);
     }
     m_requestProcess = PROCESSID_NONE;
 }
