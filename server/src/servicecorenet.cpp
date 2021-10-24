@@ -29,12 +29,6 @@ void ServiceCore::net_CM_LOGIN(uint32_t channID, uint8_t, const uint8_t *buf, si
         g_monoServer->addLog(LOGTYPE_WARNING, "Login account failed: id = %s, ec = %d", to_cstr(cmL.id), error);
     };
 
-    const auto dbidOpt = findDBID(channID);
-    if(dbidOpt.has_value()){
-        fnLoginError(LOGINERR_MULTILOGIN);
-        return;
-    }
-
     auto queryAccount = g_dbPod->createQuery("select fld_dbid from tbl_account where fld_account = '%s' and fld_password = '%s'", to_cstr(cmL.id), to_cstr(cmL.password));
     if(!queryAccount.executeStep()){
         fnLoginError(LOGINERR_NOACCOUNT);
@@ -43,6 +37,17 @@ void ServiceCore::net_CM_LOGIN(uint32_t channID, uint8_t, const uint8_t *buf, si
 
     const auto dbid = check_cast<uint32_t, unsigned>(queryAccount.getColumn("fld_dbid"));
     fflassert(dbid);
+
+    for(const auto [existChannID, existDBID]: m_dbidList){
+        if(existChannID == channID){
+            throw fflerror("internal error: channID reused before recycle: %d", to_d(channID));
+        }
+
+        if(existDBID == dbid){
+            fnLoginError(LOGINERR_MULTILOGIN);
+            return;
+        }
+    }
 
     m_dbidList[channID] = dbid;
     g_netDriver->post(channID, SM_LOGINOK, nullptr, 0);
