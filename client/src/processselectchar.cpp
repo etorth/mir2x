@@ -9,9 +9,9 @@ extern SDLDevice *g_sdlDevice;
 
 ProcessSelectChar::ProcessSelectChar()
     : Process()
-	, m_start (DIR_UPLEFT, 270,  60, {0X0C000010, 0X0C000010, 0X0C000011}, nullptr, nullptr, [this](){ onStart (); })
-	, m_create(DIR_UPLEFT, 455, 103, {0X0C000020, 0X0C000020, 0X0C000021}, nullptr, nullptr, [this](){ onCreate(); })
-	, m_delete(DIR_UPLEFT,  85, 256, {0X0C000030, 0X0C000030, 0X0C000031}, nullptr, nullptr, [this](){ onDelete(); })
+	, m_start (DIR_UPLEFT,  85, 256, {0X0C000030, 0X0C000030, 0X0C000031}, nullptr, nullptr, [this](){ onStart (); })
+	, m_create(DIR_UPLEFT, 270,  60, {0X0C000010, 0X0C000010, 0X0C000011}, nullptr, nullptr, [this](){ onCreate(); })
+	, m_delete(DIR_UPLEFT, 455, 103, {0X0C000020, 0X0C000020, 0X0C000021}, nullptr, nullptr, [this](){ onDelete(); })
 	, m_exit  (DIR_UPLEFT,  50, 428, {0X0C000040, 0X0C000040, 0X0C000041}, nullptr, nullptr, [this](){ onExit  (); })
 
     , m_notifyBoard

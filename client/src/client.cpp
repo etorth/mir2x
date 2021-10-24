@@ -215,6 +215,27 @@ void Client::onServerMessage(uint8_t headCode, const uint8_t *buf, size_t bufSiz
                 }
                 break;
             }
+        case SM_QUERYCHARERROR:
+            {
+                if(auto proc = (ProcessSelectChar *)(ProcessValid(PROCESSID_SELECTCHAR))){
+                    proc->net_QUERYCHARERROR(buf, bufSize);
+                }
+                break;
+            }
+        case SM_ONLINEOK:
+            {
+                if(auto proc = (ProcessSelectChar *)(ProcessValid(PROCESSID_SELECTCHAR))){
+                    proc->net_ONLINEOK(buf, bufSize);
+                }
+                break;
+            }
+        case SM_ONLINEERROR:
+            {
+                if(auto proc = (ProcessSelectChar *)(ProcessValid(PROCESSID_SELECTCHAR))){
+                    proc->net_ONLINEERROR(buf, bufSize);
+                }
+                break;
+            }
         case SM_STARTGAMESCENE:
             {
                 if(auto proc = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
