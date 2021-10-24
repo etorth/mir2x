@@ -61,11 +61,6 @@ struct CMSetMagicKey
     uint8_t key;
 };
 
-struct CMQueryChar
-{
-    uint32_t dbid;
-};
-
 struct CMCreateChar
 {
     FixedBuf<SYS_NAMESIZE> name;
@@ -218,7 +213,7 @@ class ClientMsg final: public MsgBase
                 _add_client_msg_type_case(CM_NONE_0,                     0, 0                                   )
                 _add_client_msg_type_case(CM_PING,                       2, sizeof(CMPing)                      )
                 _add_client_msg_type_case(CM_LOGIN,                      1, sizeof(CMLogin)                     )
-                _add_client_msg_type_case(CM_QUERYCHAR,                  1, sizeof(CMQueryChar)                 )
+                _add_client_msg_type_case(CM_QUERYCHAR,                  0, 0                                   )
                 _add_client_msg_type_case(CM_CREATECHAR,                 1, sizeof(CMCreateChar)                )
                 _add_client_msg_type_case(CM_DELETECHAR,                 1, sizeof(CMDeleteChar)                )
                 _add_client_msg_type_case(CM_ONLINE,                     0, 0                                   )
@@ -258,7 +253,6 @@ class ClientMsg final: public MsgBase
             static_assert(false
                     || std::is_same_v<T, CMPing>
                     || std::is_same_v<T, CMLogin>
-                    || std::is_same_v<T, CMQueryChar>
                     || std::is_same_v<T, CMCreateChar>
                     || std::is_same_v<T, CMDeleteChar>
                     || std::is_same_v<T, CMAction>

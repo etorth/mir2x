@@ -31,7 +31,7 @@ class ProcessSelectChar: public Process
     public:
         int id() const override
         {
-            return PROCESSID_CREATEACCOUNT;
+            return PROCESSID_SELECTCHAR;
         }
 
     public:

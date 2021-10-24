@@ -34,6 +34,7 @@
 #include "processrun.hpp"
 #include "processlogo.hpp"
 #include "processsync.hpp"
+#include "processselectchar.hpp"
 #include "processcreateaccount.hpp"
 #include "pngtexoffdb.hpp"
 #include "notifyboard.hpp"
@@ -204,6 +205,13 @@ void Client::onServerMessage(uint8_t headCode, const uint8_t *buf, size_t bufSiz
             {
                 if(auto proc = (ProcessLogin *)(ProcessValid(PROCESSID_LOGIN))){
                     proc->net_LOGINOK(buf, bufSize);
+                }
+                break;
+            }
+        case SM_QUERYCHAROK:
+            {
+                if(auto proc = (ProcessSelectChar *)(ProcessValid(PROCESSID_SELECTCHAR))){
+                    proc->net_QUERYCHAROK(buf, bufSize);
                 }
                 break;
             }
@@ -636,6 +644,11 @@ void Client::switchProcess(int oldID, int newID)
         case PROCESSID_LOGIN:
             {
                 switch(newID){
+                    case PROCESSID_SELECTCHAR:
+                        {
+                            m_currentProcess = std::make_unique<ProcessSelectChar>();
+                            break;
+                        }
                     case PROCESSID_CREATEACCOUNT:
                         {
                             m_currentProcess = std::make_unique<ProcessCreateAccount>();

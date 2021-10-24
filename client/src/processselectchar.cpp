@@ -48,6 +48,7 @@ void ProcessSelectChar::update(double fUpdateTime)
 
 void ProcessSelectChar::draw()
 {
+    SDLDeviceHelper::RenderNewFrame newFrame;
     if(auto texPtr = g_progUseDB->retrieve(0X0C000000)){
         g_sdlDevice->drawTexture(texPtr, 0, 0);
     }
