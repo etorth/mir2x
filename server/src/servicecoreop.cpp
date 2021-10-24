@@ -229,8 +229,8 @@ void ServiceCore::on_AM_QUERYCOCOUNT(const ActorMsgPack &rstMPK)
     }
 }
 
-void ServiceCore::on_AM_BADCHANNEL(const ActorMsgPack &)
+void ServiceCore::on_AM_BADCHANNEL(const ActorMsgPack &mpk)
 {
-    // channel may go down before bind to one actor
-    // ignore it
+    const auto amBC = mpk.conv<AMBadChannel>();
+    m_dbidList.erase(amBC.channID);
 }

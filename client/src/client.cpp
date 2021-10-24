@@ -208,6 +208,13 @@ void Client::onServerMessage(uint8_t headCode, const uint8_t *buf, size_t bufSiz
                 }
                 break;
             }
+        case SM_LOGINERROR:
+            {
+                if(auto proc = (ProcessLogin *)(ProcessValid(PROCESSID_LOGIN))){
+                    proc->net_LOGINERROR(buf, bufSize);
+                }
+                break;
+            }
         case SM_QUERYCHAROK:
             {
                 if(auto proc = (ProcessSelectChar *)(ProcessValid(PROCESSID_SELECTCHAR))){

@@ -19,7 +19,7 @@ extern ActorPool *g_actorPool;
 void ServiceCore::net_CM_LOGIN(uint32_t channID, uint8_t, const uint8_t *buf, size_t)
 {
     const auto cmL = ClientMsg::conv<CMLogin>(buf);
-    const auto fnLoginError = [channID, &cmL, this](int error)
+    const auto fnLoginError = [channID, &cmL](int error)
     {
         SMLoginError smLE;
         std::memset(&smLE, 0, sizeof(smLE));

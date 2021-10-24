@@ -294,8 +294,12 @@ void Channel::close()
                 // servicecore won't keep pointer *this* then we need to report it
                 amBC.channID = id();
 
-                m_dispatcher.forward(m_playerUID ? m_playerUID : uidf::getServiceCoreUID(), {AM_BADCHANNEL, amBC});
+                if(m_playerUID){
+                    m_dispatcher.forward(m_playerUID, {AM_BADCHANNEL, amBC});
+                }
+
                 m_playerUID = 0;
+                m_dispatcher.forward(uidf::getServiceCoreUID(), {AM_BADCHANNEL, amBC});
 
                 // if we call m_socket.shutdown() here
                 // we need to use try-catch since if connection has already been broken, it throws exception
