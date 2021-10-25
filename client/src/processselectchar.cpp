@@ -155,9 +155,12 @@ void ProcessSelectChar::onExit()
 void ProcessSelectChar::drawCharName() const
 {
     if(m_smChar.has_value() && !m_smChar.value().name.empty()){
-        const auto exp  = m_smChar.value().exp;
+        const auto exp = m_smChar.value().exp;
         const auto name = m_smChar.value().name.to_str();
-        const auto job  = m_smChar.value().job.deserialize<std::vector<int>>().at(0);
+        const auto jobList = m_smChar.value().job.deserialize<std::vector<int>>();
+
+        fflassert(!name.empty());
+        fflassert(!jobList.empty());
 
         LayoutBoard charBoard
         {
@@ -182,16 +185,18 @@ void ProcessSelectChar::drawCharName() const
         xmlStr += str_printf(u8R"###( <layout> )###""\n");
         xmlStr += str_printf(u8R"###(     <par color='RGB(237,226,200)'>角色：%s</par> )###""\n", to_cstr(name));
         xmlStr += str_printf(u8R"###(     <par color='RGB(175,196,175)'>等级：%d</par> )###""\n", to_d(SYS_LEVEL(exp)));
-        xmlStr += str_printf(u8R"###(     <par color='RGB(231,231,189)'>职业：%s</par> )###""\n", to_cstr(jobName(job)));
+        for(const auto job: jobList){
+            xmlStr += str_printf(u8R"###( <par color='RGB(231,231,189)'>职业：%s</par> )###""\n", to_cstr(jobName(job)));
+        }
         xmlStr += str_printf(u8R"###( </layout> )###""\n");
         charBoard.loadXML(to_cstr(xmlStr));
 
-        constexpr int drawBoardX = 120;
-        constexpr int drawBoardY = 200;
-        constexpr int drawBoardMargin = 15;
+        const int drawBoardX = 120;
+        const int drawBoardY = 260 - charBoard.h();
+        const int drawBoardMargin = 15;
 
-        g_sdlDevice->fillRectangle(colorf::RGBA(0, 0,   0, 128), drawBoardX - drawBoardMargin, drawBoardY - drawBoardMargin, charBoard.w() + drawBoardMargin * 2, charBoard.h() + drawBoardMargin * 2, 5);
-        g_sdlDevice->drawRectangle(colorf::RGBA(0, 0, 255, 128), drawBoardX - drawBoardMargin, drawBoardY - drawBoardMargin, charBoard.w() + drawBoardMargin * 2, charBoard.h() + drawBoardMargin * 2, 5);
+        g_sdlDevice->fillRectangle(colorf::RGBA(  0,   0,   0, 128), drawBoardX - drawBoardMargin, drawBoardY - drawBoardMargin, charBoard.w() + drawBoardMargin * 2, charBoard.h() + drawBoardMargin * 2, 5);
+        g_sdlDevice->drawRectangle(colorf::RGBA(231, 231, 189, 128), drawBoardX - drawBoardMargin, drawBoardY - drawBoardMargin, charBoard.w() + drawBoardMargin * 2, charBoard.h() + drawBoardMargin * 2, 5);
         charBoard.drawAt(DIR_UPLEFT, drawBoardX, drawBoardY);
     }
 }
